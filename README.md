@@ -1,11 +1,59 @@
 ![](https://github.com/ksh93/ksh/workflows/CI/badge.svg)
 
+# Extras branch
+This is a downstream branch of ksh93u+m I maintain that adds
+a few extra features. The [upstream branch](https://github.com/ksh93/ksh) is currently focused
+on bugfixes, so (at least for now) these patches aren't going
+to be upstreamed. I used to maintain additions to ksh in gists,
+but maintaining these patches in a branch is probably a better
+idea.
+
+The extra features added are as follows:
+
+1. Support for `${$var}` from ksh93v- has been added (commit fb94c2cb),
+   where `$var` points to the name of a variable. So for example, `$var`
+    can be set to point to `$foo`:  
+```sh
+$ var=foo
+$ foo='Intended result'
+$ echo ${$var}
+Intended result
+```
+2. Extra keybinds have been added to the emacs and vi editing modes (commit 4036ec7e).
+  * The following keybinds to the emacs and vi editing modes:  
+    * Support for Home key sequences `^[[1~` and `^[[7~`
+    * Support for End key sequences `^[[4~` and `^[[8~`
+    * Ctrl+Left Arrow:	Go back one word
+    * Ctrl+Right Arrow:	Go forward one word
+    * Ctrl+G:		End reverse search
+  * These keybinds are added just to emacs mode:  
+    * Ctrl+Delete:	Delete next word
+    * Insert:		Escape next character
+  * This keybind is added just to vi mode:  
+    * Insert:		Switch to insert mode
+3. Extra options have been added to the `ulimit` command in commit 7d7d9604
+   (as long as the OS supports them). These options are also present in Bash,
+   although in ksh additional long forms of each option are available:  
+```
+ulimit -k/--kqueues
+	This is the maximum number of kqueues.  
+ulimit -P/--npts
+	This is the maximum number of pseudo-terminals.  
+ulimit -R/--rttime
+	This is the time a real-time process can running before blocking, in microseconds.
+```
+4. Microsecond precision has been added to the `time` keyword and
+   `times` builtin (commit d97b64e2).
+5. The `%C` time format has been backported from ksh2020. `%C` is
+   the total number of CPU seconds (i.e., the sum of `%U` and `%S`).
+   Added in commit d97b64e2.
+6. An `banner` command has been added alongside `pty`. This is the AST
+   `banner` with features added to it from the NetBSD `banner`.
+   Added in commit 312972fc.
+
 # KornShell 93u+m
 
-This repository is used to develop bugfixes
-to the last stable release (93u+ 2012-08-01) of
-[ksh93](http://www.kornshell.com/),
-formerly developed by AT&T Software Technology (AST).
+See the main repo at https://github.com/ksh93/ksh.
 The sources in this repository were forked from the
 GitHub [AST repository](https://github.com/att/ast)
 which is no longer under active development.
