@@ -1315,10 +1315,12 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 	struct Cache_entry	*xp;
 #endif
 	
-	sh_stats(STAT_NVOPEN);
 	memset(&fun,0,sizeof(fun));
 	shp->openmatch = 0;
 	shp->last_table = 0;
+	if(!name)
+		return 0;
+	sh_stats(STAT_NVOPEN);
 	if(!root)
 		root = shp->var_tree;
 	shp->last_root = root;

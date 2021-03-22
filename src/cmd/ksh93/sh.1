@@ -1264,6 +1264,11 @@ Expands to the type name (See
 below) or attributes of the variable referred to by
 .IR vname .
 .TP
+\f3${$\fP\f2parameter\^\fP\f3}\fP
+If \f3$\fP\f2parameter\fP expands to the name of a variable, this expands
+to the value of that variable.  Otherwise, it expands to the empty string.
+It is undefined for special parameters.
+.TP
 \f3${!\fP\f2vname\^\fP\f3}\fP
 Expands to the name of the variable referred to by
 .IR vname .

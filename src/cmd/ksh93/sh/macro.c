@@ -97,6 +97,7 @@ typedef struct  _mac_
 #define M_NAMESCAN	6	/* ${!var*}	*/
 #define M_NAMECOUNT	7	/* ${#var*}	*/
 #define M_TYPE		8	/* ${@var}	*/
+#define M_EVAL		9	/* ${$var}	*/
 
 static int	substring(const char*, const char*, int[], int);
 static void	copyto(Mac_t*, int, int);
@@ -1131,6 +1132,12 @@ retry1:
 		}
 		/* FALL THRU */
 	    case S_SPC2:
+		if(type==M_BRACE && c=='$' && isalnum(mode=fcpeek(0)))
+		{
+			type = M_EVAL;
+			mode = c;
+			goto retry1;
+		}
 		var = 0;
 		*id = c;
 		v = special(mp->shp,c);
@@ -1321,6 +1328,32 @@ retry1:
 				sfprintf(mp->shp->strbuf,"%s%c",id,0);
 				id = sfstruse(mp->shp->strbuf);
 			}
+
+			/* handle ${$var} */
+			if(type==M_EVAL && np && (v=nv_getval(np)))
+			{
+				char *last;
+				int n = strtol(v,&last,10);
+				type = M_BRACE;
+				if(*last==0)
+				{
+					np = 0;
+					v = 0;
+					idnum = n;
+					if(n==0)
+						v = special(mp->shp,n);
+					else if(n<=mp->shp->st.dolc)
+					{
+						mp->shp->used_pos = 1;
+						v = mp->shp->st.dolv[n];
+					} else
+						idnum = 0;
+					fcseek(-LEN);
+					stkseek(stkp, offset);
+					break;
+				} else
+					np = nv_open(v,mp->shp->var_tree,flag|NV_NOFAIL);
+			}
 		}
 		if(isastchar(mode))
 			var = 0;
@@ -1503,7 +1536,7 @@ retry1:
 		c = fcget();
 	if(type>M_TREE)
 	{
-		if(c!=RBRACE)
+		if(c!=RBRACE && type!=M_EVAL)
 			mac_error(np);
 		if(type==M_NAMESCAN || type==M_NAMECOUNT)
 		{
@@ -1543,6 +1576,11 @@ retry1:
 					v = nv_getsub(np);
 			}
 		}
+		else if (type==M_EVAL && (np=nv_open(v,mp->shp->var_tree,NV_NOREF|NV_NOADD|NV_VARNAME|NV_NOFAIL)))
+		{
+			v = nv_getval(np);
+			goto skip;
+		}
 		else
 		{
 			if(!isastchar(mode))
@@ -1568,6 +1606,7 @@ retry1:
 		}
 		c = RBRACE;
 	}
+skip:
 	nulflg = 0;
 	if(type && c==':')
 	{

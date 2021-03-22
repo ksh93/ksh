@@ -936,7 +936,7 @@ int sh_lex(Lex_t* lp)
 					case '@':
 #endif /* SHOPT_TYPEDEF */
 					case '!':
-						if(n!=S_ALP)
+						if(n!=S_ALP && n!=S_DIG)
 							goto dolerr;
 					case '#':
 						if(c=='#')

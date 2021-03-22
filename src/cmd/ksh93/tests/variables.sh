@@ -260,7 +260,7 @@ set -- "${@-}"
 if	(( $# !=1 ))
 then	err_exit	'"${@-}" not expanding to null string'
 fi
-for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
+for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$$'
 do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not an syntax error"
 done
 
@@ -1066,6 +1066,30 @@ $SHELL -c '
 ' changecase_test "$@"
 (((e = $?) == 1)) || err_exit "typeset -l/-u doesn't work on special variables" \
 	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+
+# ======
+# Basic test for ${$var} to make sure it works
+unset foo bar
+bar=correct
+foo=bar
+[[ ${$foo} == correct ]] || err_exit "\${\$foo} doesn't point to \$bar" \
+	"(expected '$bar', got $(printf %q "${$foo}"))"
+
+# Tests for ${$var} from ksh93v-
+set abc def
+abc=foo
+def=bar
+[[ ${$2:1:1} == a ]] || err_exit '${$2:1:1} not correct with $2=def and def=bar'
+OPTIND=2
+[[ ${$OPTIND:1:1} == e ]] || err_exit '${$OPTIND:1:1} not correct with OPTIND=2 and $2=def'
+
+# Test empty variable usage with ${$bar}
+$SHELL -c '
+	function foo {
+		test ${$bar}
+	}; foo
+	exit 0
+' || err_exit "\${\$bar} crashes ksh when \$bar isn't set"
 
 # ======
 # ${.sh.pid} should be the forked subshell's PID
