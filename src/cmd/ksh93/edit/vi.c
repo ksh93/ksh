@@ -1440,6 +1440,10 @@ static void getline(register Vi_t* vp,register int mode)
 			}
 			break;
 
+		case cntl('G'):
+			if(mode!=SEARCH)
+				break;
+			/* FALLTHRU */
 		case UINTR:
 				first_virt = 0;
 				cdelete(vp,cur_virt+1, BAD);
@@ -1667,6 +1671,38 @@ static int mvcursor(register Vi_t* vp,register int motion)
 			/* VT220 End key */
 			ed_ungetchar(vp->ed,'$');
 			return(1);
+		    case '1':
+		    case '7':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound=='~')
+			{ /* Home key */
+				ed_ungetchar(vp->ed,'0');
+				return(1);
+			}
+			else if( bound==';' && ed_getchar(vp->ed,-1)=='5' )
+			{
+				switch(ed_getchar(vp->ed,-1))
+				{
+					case 'D': /* Ctrl-Left arrow (go back one word) */
+						ed_ungetchar(vp->ed, 'b');
+						return(1);
+					case 'C': /* Ctrl-Right arrow (go forward one word) */
+						ed_ungetchar(vp->ed, 'w');
+						return(1);
+				}
+			}
+			ed_ungetchar(vp->ed,motion);
+			return(0);
+		    case '2':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound=='~')
+			{
+				/* VT220 insert key */
+				ed_ungetchar(vp->ed,'i');
+				return(1);
+			}
+			ed_ungetchar(vp->ed,motion);
+			return(0);
 		    case '3':
 			bound = ed_getchar(vp->ed,-1);
 			if(bound=='~')
@@ -1675,7 +1711,16 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed,'x');
 				return(1);
 			}
-			ed_ungetchar(vp->ed,bound);
+			ed_ungetchar(vp->ed,motion);
+			return(0);
+		    case '4':
+		    case '8':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound=='~')
+			{ /* End key */
+				ed_ungetchar(vp->ed,'$');
+				return(1);
+			}
 			/* FALLTHROUGH */
 		    default:
 			ed_ungetchar(vp->ed,motion);

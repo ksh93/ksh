@@ -829,6 +829,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case 'd':
 		case 'c':
 		case 'f':
+		forward:
 		{
 			i = cur;
 			while(value-- && i<eol)
@@ -886,6 +887,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case DELETE :
 		case '\b':
 		case 'h':
+		backward:
 		{
 			i = cur;
 			while(value-- && i>0)
@@ -1126,6 +1128,37 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				/* VT220 End key */
 				ed_ungetchar(ep->ed,cntl('E'));
 				return(-1);
+			    case '1':
+			    case '7':
+				/*
+				 * ed_getchar() can only be run once on each character
+				 * and shouldn't be used on non-existent characters.
+				 */
+				if((ch = ed_getchar(ep->ed,1)) == '~')
+				{ /* Home key */
+					ed_ungetchar(ep->ed,cntl('A'));
+					return(-1);
+				}
+				else if(ch == ';' && ed_getchar(ep->ed,1) == '5')
+				{
+					switch(ed_getchar(ep->ed,1))
+					{
+					    case 'D': /* Ctrl-Left arrow (go back one word) */
+						ch = 'b';
+						goto backward;
+					    case 'C': /* Ctrl-Right arrow (go forward one word) */
+						ch = 'f';
+						goto forward;
+					}
+				}
+				ed_ungetchar(ep->ed,i);
+				return(-1);
+			    case '2': /* Insert key */
+				if(ed_getchar(ep->ed,1) == '~')
+					ed_ungetchar(ep->ed, cntl('V'));
+				else
+					ed_ungetchar(ep->ed,i);
+				return(-1);
 			    case '3':
 				if((ch=ed_getchar(ep->ed,1))=='~')
 				{	/*
@@ -1138,7 +1171,20 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 						ed_ungetchar(ep->ed,ERASECHAR);
 					return(-1);
 				}
-				ed_ungetchar(ep->ed,ch);
+				else if(ch == ';' && ed_getchar(ep->ed,1) == '5' && ed_getchar(ep->ed,1) == '~')
+				{ /* Ctrl-Delete (delete next word) */
+					ch = 'd';
+					goto forward;
+				}
+				ed_ungetchar(ep->ed,i);
+				return(-1);
+			    case '4':
+			    case '8': /* rxvt */
+				if(ed_getchar(ep->ed,1) == '~')
+				{
+					ed_ungetchar(ep->ed,cntl('E')); /* End key */
+					return(-1);
+				}
 				/* FALLTHROUGH */
 			    default:
 				ed_ungetchar(ep->ed,i);
@@ -1292,7 +1338,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 				goto restore;
 			continue;
 		}
-		if(i == ep->ed->e_intr)
+		if(i == ep->ed->e_intr || i == cntl('G')) /* end reverse search */
 			goto restore;
 		if (i==usrkill)
 		{
