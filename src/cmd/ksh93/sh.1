@@ -8079,7 +8079,7 @@ that have attributes
 are printed.
 .RE
 .TP
-\f3ulimit\fP \*(OK \f3\-HSaMctdfxlqenupmrbiswTv\fP \*(CK \*(OK \f2limit\^\fP \*(CK
+\f3ulimit\fP \*(OK \f3\-HSaMctdfkxlqenuPpmrRbiswTv\fP \*(CK \*(OK \f2limit\^\fP \*(CK
 Set or display a resource limit.
 The available resource limits are listed below.
 Many systems do not support one or more of these limits.
@@ -8137,6 +8137,9 @@ current process or by child processes (files of any size may be read).
 .B \-i
 The signal queue size.
 .TP
+.B \-k
+The max number of kqueues created by the current user.
+.TP
 .B \-l
 The locked address space in K-bytes.
 .TP
@@ -8149,11 +8152,20 @@ The number of K-bytes on the size of physical memory.
 .B \-n
 The number of file descriptors plus 1.
 .TP
+.B \-P
+The max number of pseudo-terminals created by the current user.
+.TP
 .B \-p
 The number of 512-byte blocks for pipe buffering.
 .TP
 .B \-q
 The message queue size in K-bytes.
+.TP
+.B \-R
+The max time a real-time process can run before blocking, in microseconds. If this limit is exceeded
+the process is sent a
+.B SIGXCPU
+signal.
 .TP
 .B \-r
 The max real-time priority.
