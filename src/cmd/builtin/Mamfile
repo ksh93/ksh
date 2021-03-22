@@ -57,11 +57,27 @@ make install
 		bind -lutil dontcare
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -lm ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} ${mam_libcmd}
 	done pty generated
+	make banner
+		make banner.o
+			make banner.c
+				prev ${PACKAGE_ast_INCLUDE}/cmd.h implicit
+			done banner.c
+			meta banner.o %.c>%.o banner.c banner
+			prev banner.c
+			exec - ${CC} ${mam_cc_FLAGS} ${KSH_REFLAGS} ${CCFLAGS} -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=\""builtin"\" -D_PACKAGE_ast -DCMD_STANDALONE=b_banner -c banner.c
+		done banner.o generated
+		bind -last
+		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_REFLAGS} ${CCFLAGS} ${LDFLAGS} -lm ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o banner banner.o ${mam_libast} ${man_libcmd}
+	done banner generated
 	make ${INSTALLROOT}/bin
 		exec - if silent test ! -d ${INSTALLROOT}/bin
 		exec - then mkdir -p ${INSTALLROOT}/bin
 		exec - fi
 	done ${INSTALLROOT}/bin generated
+	make ${INSTALLROOT}/bin/banner
+		prev banner
+		exec - test '' = 'banner' || ${STDCMP} 2>/dev/null -s banner ${INSTALLROOT}/bin/banner || { ${STDMV} ${INSTALLROOT}/bin/banner ${INSTALLROOT}/bin/banner.old 2>/dev/null || true; ${STDCP} banner ${INSTALLROOT}/bin/banner;}
+	done ${INSTALLROOT}/bin/banner generated
 	make ${INSTALLROOT}/bin/pty
 		prev pty
 		exec - test '' = 'pty' || ${STDCMP} 2>/dev/null -s pty ${INSTALLROOT}/bin/pty || { ${STDMV} ${INSTALLROOT}/bin/pty ${INSTALLROOT}/bin/pty.old 2>/dev/null || true; ${STDCP} pty ${INSTALLROOT}/bin/pty ;}
