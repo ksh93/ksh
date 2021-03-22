@@ -2212,8 +2212,11 @@ The number of CPU seconds spent in user mode.
 .B %[\fIp\fP][l]S
 The number of CPU seconds spent in system mode.
 .TP
+.B %[\fIp\fP][l]C
+The total number of CPU seconds; i.e., the sum of the time spent in user plus system mode.
+.TP
 .B %P
-The CPU percentage, computed as (U + S) / R.
+The CPU percentage (i.e., CPU utilization), computed as C / R.
 .PD
 .RE
 .IP
@@ -2221,9 +2224,9 @@ The brackets denote optional portions.
 The optional \fIp\fP is a digit specifying the \fIprecision\fP,
 the number of fractional digits after a decimal point.
 A value of 0 causes no decimal point or fraction to be output.
-At most three places after the decimal point can be displayed;
-values of \fIp\fP greater than 3 are treated as 3.
-If \fIp\fP is not specified, the value 3 is used.
+At most six places after the decimal point can be displayed;
+values of \fIp\fP greater than 6 are treated as 6.
+If \fIp\fP is not specified, the value 6 is used.
 .IP
 The optional \fBl\fP specifies a longer format, including
 hours if greater than zero,
@@ -2233,7 +2236,7 @@ included.
 .IP
 All other characters are output without change and a trailing
 newline is added.
-If unset, the default value, \fB$'\enreal\et%2lR\enuser\et%2lU\ensys\et%2lS'\fP,
+If unset, the default value, \fB$'\enreal\et%6lR\enuser\et%6lU\ensys\et%6lS'\fP,
 is used.  If the value is null, no timing information is displayed.
 .TP
 .B

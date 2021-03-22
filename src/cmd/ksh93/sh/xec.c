@@ -326,7 +326,7 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 		if(c!='%')
 			continue;
 		unsigned char l_modifier = 0;
-		int precision = 3;
+		int precision = 6;
 
 		sfwrite(stkp, first, format-first);
 		c = *++format;
@@ -345,7 +345,7 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 		}
 		if(c>='0' && c <='9')
 		{
-			precision = (c>'3')?3:(c-'0');
+			precision = (c>'6')?6:(c-'0');
 			c = *++format;
 		}
 		if(c=='P')
@@ -380,6 +380,12 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 			tvp = &tm[TM_USR_IDX];
 		else if(c=='S')
 			tvp = &tm[TM_SYS_IDX];
+		else if(c=='C')
+		{
+			/* sum of U + S */
+			timeradd(&tm[TM_USR_IDX], &tm[TM_SYS_IDX], &tv_cpu_sum);
+			tvp = &tv_cpu_sum;
+		}
 		else
 		{
 			stkseek(stkp,offset);
