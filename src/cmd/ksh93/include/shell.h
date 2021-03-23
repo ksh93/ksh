@@ -37,18 +37,6 @@
 #   include	<nval.h>
 #endif /* _SH_PRIVATE */
 
-/*
- * This is a macro that can be used to silence "unused parameter" warnings from the compiler for
- * functions which need to accept parameters they do not use because they need to be compatible
- * with an interface.
- */
-#undef NOT_USED
-#define NOT_USED(expr)		\
-	do {			\
-		(void)(expr);	\
-	} while (0)
-
-
 /* options */
 typedef struct
 {
@@ -133,6 +121,9 @@ typedef union Shnode_u Shnode_t;
 #define SH_DICTIONARY	30
 #define SH_PIPEFAIL	32
 #define SH_GLOBSTARS	33
+#if SHOPT_GLOBCASEDET
+#define SH_GLOBCASEDET	34
+#endif
 #define SH_RC		35
 #define SH_SHOWME	36
 #define SH_LETOCTAL	37

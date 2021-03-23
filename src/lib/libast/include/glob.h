@@ -94,6 +94,11 @@ struct _glob_
 
 };
 
+/*
+ * The standard/extended interface GLOB_* flags below must
+ * fit in the GLOB_FLAGMASK bitmask defined in misc/glob.c.
+ */
+
 /* standard interface */
 #define GLOB_APPEND	0x0001		/* append to previous		*/
 #define GLOB_DOOFFS	0x0002		/* gl_offs defines argv offset	*/
@@ -113,8 +118,8 @@ struct _glob_
 #define GLOB_LIST	0x2000		/* just create gl_list		*/
 #define GLOB_ALTDIRFUNC	0x4000		/* gnu discipline functions	*/
 #define GLOB_DISC	0x8000		/* discipline initialized	*/
-
 #define GLOB_GROUP	0x10000		/* REG_SHELL_GROUP		*/
+#define GLOB_DCASE	0x20000		/* detect FS case insensitivity	*/
 
 /* gl_status */
 #define GLOB_NOTDIR	0x0001		/* last gl_dirnext() not a dir	*/

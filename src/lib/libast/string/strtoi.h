@@ -85,15 +85,12 @@
 
 #include <ast.h>
 #include <ctype.h>
+#include <error.h>
 
 #include "sfhdr.h"
 
 #if !__STD_C && !defined(const)
 #define const
-#endif
-
-#ifndef ERANGE
-#define ERANGE		EINVAL
 #endif
 
 #define QL		01

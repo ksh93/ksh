@@ -59,6 +59,9 @@ static char *fmtx(const char *string)
 	return(stakptr(offset));
 }
 
+#if !SHOPT_GLOBCASEDET
+#define charcmp(a,b,dummy) (a==b)
+#else
 static int charcmp(int a, int b, int nocase)
 {
 	if(nocase)
@@ -78,6 +81,7 @@ static int charcmp(int a, int b, int nocase)
 	}
 	return(a==b);
 }
+#endif /* !SHOPT_GLOBCASEDET */
 
 /*
  *  overwrites <str> to common prefix of <str> and <newstr>
@@ -384,8 +388,10 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 				*dir = 0;
 				saveout = begin;
 			}
-			if(saveout=astconf("PATH_ATTRIBUTES",saveout,(char*)0))
-				nocase = (strchr(saveout,'c')!=0);
+#if SHOPT_GLOBCASEDET
+			if(sh_isoption(SH_GLOBCASEDET))
+				nocase = (pathicase(saveout) > 0);
+#endif
 			if(dir)
 				*dir = c;
 			/* just expand until name is unique */

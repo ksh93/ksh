@@ -3,6 +3,22 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-03-22:
+
+- A new --globcasedetect shell option is added to ksh on OSs where we can check
+  for a case-insensitive file system (currently macOS, Windows/Cygwin, Linux
+  5.2+, and QNX 7.0+). When this option is turned on, file name generation
+  (globbing), as well as file name tab completion on interactive shells,
+  automatically become case-insensitive on file systems where the difference
+  between upper- and lowercase is ignored for file names. This is transparently
+  determined for each directory, so a path pattern that spans multiple file
+  systems can be part case-sensitive and part case-insensitive.
+      The option is not compiled into ksh on systems where we do not know of a
+  method to check for file system case insensitivity. The shell option can be
+  force-compiled by setting SHOPT_GLOBCASEDET to 1 in src/cmd/ksh93/SHOPT.sh,
+  but it won't have any effect on non-supported systems, so this is not
+  recommended. It can be removed from ksh by setting SHOPT_GLOBCASEDET to 0.
+
 2021-03-17:
 
 - Fixed a bug with file name completion on the interactive shell in multibyte

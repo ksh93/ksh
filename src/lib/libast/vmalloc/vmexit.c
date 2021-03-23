@@ -93,7 +93,7 @@ int	type;
 	return type;
 }
 
-#endif	/* _lib_onexit || _lib_on_exit */
+#endif	/* _lib_onexit */
 
 #endif /*!PACKAGE_ast*/
 

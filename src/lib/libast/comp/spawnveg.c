@@ -140,10 +140,6 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 #include <ast_tty.h>
 #include <ast_vfork.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 #if _lib_spawnve && _hdr_process
 #include <process.h>
 #if defined(P_NOWAIT) || defined(_P_NOWAIT)

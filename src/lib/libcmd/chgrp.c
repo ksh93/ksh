@@ -109,10 +109,6 @@ __STDPP__directive pragma pp:hide lchown
 #include <ctype.h>
 #include <fts_fix.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 #include "FEATURE/symlink"
 
 #if defined(__STDPP__directive) && defined(__STDPP__hide)

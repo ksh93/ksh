@@ -13,7 +13,7 @@ lib	openpty,_getpty,ptsname -lutil
 lib	grantpt,unlockpt,posix_openpt stdlib.h
 lib	cfmakeraw termios.h
 
-tst - output{
+tst - -lm output{
 	#include	<fcntl.h>
 	#if _lib_ptsname
 	#include	<stdlib.h>

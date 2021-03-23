@@ -33,10 +33,6 @@ NoN(symlink)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 int
 symlink(const char* a, char* b)
 {

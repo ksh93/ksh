@@ -37,7 +37,7 @@ make install
 					meta FEATURE/pty features/%>FEATURE/% features/pty pty
 					make features/pty
 					done features/pty
-					exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -lm" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} ${mam_libcmd} : run features/pty
+					exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} ${mam_libcmd} : run features/pty
 				done FEATURE/pty generated
 				make ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
 				done ${PACKAGE_ast_INCLUDE}/ast_time.h

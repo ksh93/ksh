@@ -36,10 +36,6 @@
 #include <error.h>
 #include <stdio.h>
 
-#ifndef ERANGE
-#define ERANGE		E2BIG
-#endif
-
 #define ERROR(e)	{errno=e;goto error;}
 
 char*

@@ -92,11 +92,6 @@ typedef int (*Stat_f)(const char*, struct stat*);
 
 #include <fts.h>
 
-#ifndef ENOSYS
-#define ENOSYS		EINVAL
-#endif
-
-
 #if MAXNAMLEN > 16
 #define MINNAME		32
 #else

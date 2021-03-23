@@ -33,10 +33,6 @@ NoN(readlink)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 int
 readlink(const char* path, char* buf, int siz)
 {

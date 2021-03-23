@@ -54,3 +54,18 @@ cat{
 	#   undef SHOPT_MULTIBYTE
 	#endif
 }end
+
+tst	note{ can we probe file system case insensitivity }end output{
+	#include <ast.h>
+	#include <error.h>
+	#include <stdio.h>
+	static char *o = "SHOPT_GLOBCASEDET";
+	int main(int argc,char *argv[])
+	{
+		int r;
+		r = pathicase("/");
+		r = (r > -1 || errno != ENOSYS);
+		printf("#ifndef %s\n#   define %s\t%d\n#endif\n", o, o, r);
+		return !r;
+	}
+}end

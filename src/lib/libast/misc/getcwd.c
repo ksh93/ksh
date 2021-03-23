@@ -80,10 +80,6 @@ getcwd(char* buf, size_t len)
 #include <ast_dir.h>
 #include <error.h>
 
-#ifndef ERANGE
-#define ERANGE		E2BIG
-#endif
-
 #define ERROR(e)	{ errno = e; goto error; }
 
 struct dirlist				/* long path chdir(2) component	*/

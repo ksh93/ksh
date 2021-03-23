@@ -1040,11 +1040,7 @@ extern Void_t*	F1(_ast_valloc, size_t,n) { return valloc(n); }
 
 #if !_UWIN
 
-#if !_malloc_hook
-
 #include	<malloc.h>
-
-#endif
 
 typedef struct mallinfo Mallinfo_t;
 typedef struct mstats Mstats_t;

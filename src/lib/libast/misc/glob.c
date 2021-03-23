@@ -37,7 +37,12 @@
 #include <ctype.h>
 #include <regex.h>
 
-#define GLOB_MAGIC	0xaaaa0000
+/*
+ * GLOB_MAGIC is used for sanity checking. Its significant bits must not overlap with those used
+ * for flags. If a new GLOB_* flag bit is added to glob.h, these must be adapted accordingly.
+ */
+#define GLOB_MAGIC	0xAAA80000	/* 10101010101010000000000000000000 */
+#define GLOB_FLAGMASK	0x0003FFFF	/* 00000000000000111111111111111111 */
 
 #define MATCH_RAW	1
 #define MATCH_MAKE	2
@@ -143,7 +148,9 @@ gl_type(glob_t* gp, const char* path, int flags)
 static int
 gl_attr(glob_t* gp, const char* path, int flags)
 {
-	return strchr(astconf("PATH_ATTRIBUTES", path, NiL), 'c') ? GLOB_ICASE : 0;
+	NOT_USED(gp);
+	NOT_USED(flags);
+	return pathicase(path) > 0 ? GLOB_ICASE : 0;
 }
 
 /*
@@ -485,7 +492,9 @@ skip:
 			|| t1 == GLOB_SYM && pat[0]=='*' && pat[1]=='\0') /* follow symlinks to dirs for non-globstar components */
 		&& (dirf = (*gp->gl_diropen)(gp, dirname)))
 		{
-			if (!(gp->re_flags & REG_ICASE) && ((*gp->gl_attr)(gp, dirname, 0) & GLOB_ICASE))
+			if (!(gp->re_flags & REG_ICASE)
+			&& (gp->gl_flags & GLOB_DCASE)
+			&& ((*gp->gl_attr)(gp, dirname, 0) & GLOB_ICASE))
 			{
 				if (!prei)
 				{
@@ -613,7 +622,7 @@ glob(const char* pattern, int flags, int (*errfn)(const char*, int), register gl
 	}
 	else
 	{
-		gp->gl_flags = (flags&0xffff)|GLOB_MAGIC;
+		gp->gl_flags = (flags & GLOB_FLAGMASK) | GLOB_MAGIC;
 		gp->re_flags = REG_SHELL|REG_NOSUB|REG_LEFT|REG_RIGHT|((flags&GLOB_AUGMENTED)?REG_AUGMENTED:0);
 		gp->gl_pathc = 0;
 		gp->gl_ignore = 0;
@@ -730,7 +739,7 @@ glob(const char* pattern, int flags, int (*errfn)(const char*, int), register gl
 					f &= ~GLOB_STARSTAR;
 				continue;
 			case ')':
-				flags = (gp->gl_flags = f) & 0xffff;
+				flags = (gp->gl_flags = f) & GLOB_FLAGMASK;
 				if (f & GLOB_ICASE)
 					gp->re_flags |= REG_ICASE;
 				else

@@ -31,10 +31,6 @@ NoN(vfork)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS		EINVAL
-#endif
-
 #undef	vfork
 
 #if defined(__EXPORT__)

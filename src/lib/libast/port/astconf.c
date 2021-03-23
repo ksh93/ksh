@@ -221,11 +221,7 @@ static Feature_t	dynamic[] =
 	{
 		&dynamic[OP_path_attributes+1],
 		"PATH_ATTRIBUTES",
-#if _WINIX
-		"c",
-#else
 		&null[0],
-#endif
 		&null[0],
 		0,
 		15,
@@ -706,6 +702,8 @@ format(register Feature_t* fp, const char* path, const char* value, unsigned int
 				}
 			*s = 0;
 		}
+#else
+		fp->value = pathicase(path) > 0 ? "c" : null;
 #endif
 		break;
 

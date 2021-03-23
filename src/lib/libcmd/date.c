@@ -207,10 +207,6 @@ typedef struct Fmt
 	char*		format;
 } Fmt_t;
 
-#ifndef ENOSYS
-#define ENOSYS		EINVAL
-#endif
-
 /*
  * set the system clock
  * the standards wimped out here

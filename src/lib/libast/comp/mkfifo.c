@@ -32,10 +32,6 @@ NoN(mkfifo)
 #include <ls.h>
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 int
 mkfifo(const char* path, mode_t mode)
 {

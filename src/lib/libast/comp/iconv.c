@@ -31,6 +31,7 @@
 
 #include <ast.h>
 #include <dirent.h>
+#include <error.h>
 
 #define DEBUG_TRACE		0
 #define _ICONV_LIST_PRIVATE_
@@ -54,13 +55,6 @@
 #define _ast_iconv_name		iconv_name
 #define _ast_iconv_write	iconv_write
 
-#endif
-
-#ifndef E2BIG
-#define E2BIG			ENOMEM
-#endif
-#ifndef EILSEQ
-#define EILSEQ			EIO
 #endif
 
 #define RETURN(e,n,fn) \

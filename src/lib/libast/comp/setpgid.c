@@ -31,10 +31,6 @@ NoN(setpgid)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS		EINVAL
-#endif
-
 #if _lib_setpgrp2
 #define setpgrp		setpgrp2
 #else

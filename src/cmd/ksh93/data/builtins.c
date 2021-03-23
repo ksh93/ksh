@@ -216,6 +216,14 @@ const char sh_set[] =
 		"[+emacs?Enables/disables \bemacs\b editing mode.]"
 #endif
 		"[+errexit?Equivalent to \b-e\b.]"
+#if SHOPT_GLOBCASEDET
+		"[+globcasedetect?Pathname expansion and file name completion "
+		"automatically become case-insensitive on file systems where "
+		"the difference between upper- and lowercase is ignored for "
+		"file names. Each slash-separated path name component pattern "
+		"\ap\a is treated as \b~(i:\b\ap\a\b)\b if its parent directory "
+		"exists on a case-insensitive file system.]"
+#endif
 		"[+globstar?Equivalent to \b-G\b.]"
 #if SHOPT_ESH
 		"[+gmacs?Enables/disables \bgmacs\b editing mode.  \bgmacs\b "

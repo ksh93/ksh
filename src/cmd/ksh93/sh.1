@@ -2779,7 +2779,9 @@ currently implemented.
 The remainder of the pattern uses System V regular expression syntax.
 .TP
 .B i
-Treat the match as case insensitive.
+Always treat the match as case-insensitive, regardless of the
+.B globcasedetect
+shell option.
 .TP
 .B g
 File the longest match (greedy).  This is the default.
@@ -6016,7 +6018,7 @@ omitted, then \f2type\^\fP must be an indexed array variable with at
 least two elements and the values are taken from this array variable.
 If
 .B -i
-is specified the values are case insensitive.
+is specified the values are case-insensitive.
 Declaration commands are created as special builtins that cannot be
 removed or overridden by shell functions.
 .TP
@@ -7129,6 +7131,22 @@ style in-line editor for command entry.
 .B errexit
 Same as
 .BR \-e .
+.TP 8
+.B globcasedetect
+When this option is turned on, globbing (see
+.I "File Name Generation\^"
+above) and
+file name listing and completion (see
+.I "In-line Editing Options\^"
+above) automatically become case-insensitive on file systems where the
+difference between upper- and lowercase is ignored for file names. This is
+transparently determined for each directory, so a path pattern that spans
+multiple file systems can be part case-sensitive and part case-insensitive.
+In more precise terms, each slash-separated path name component pattern \fIp\fR
+is treated as \fB~(i:\fR\fIp\fR\fB)\fR
+if its parent directory exists on a case-insensitive file system.
+This option is only present on operating systems that support
+case-insensitive file systems.
 .TP 8
 .B globstar
 Same as

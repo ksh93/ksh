@@ -8,7 +8,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2021-03-06 $
+@(#)$Id: shtests (ksh 93u+m) 2021-03-23 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -405,8 +405,13 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}
 		tmp_s=$tmp/$u.shcomp
 		mkdir -m700 "$tmp_s" || exit
+		# must incorporate _common in script itself so the aliases are expanded at compile time
+		sed '/^\. .*\/_common/ {
+			r _common
+			d
+		}' < $i > $c.orig
 		cd "$tmp_s" || exit
-		if	$SHCOMP "$OLDPWD/$i" > $c
+		if	"$SHCOMP" "$c.orig" > $c
 		then	if	tmp=$tmp_s $valgrind $SHELL $trace $c
 			then	echo test $o passed ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"} "[ $t $T 0 errors ]"
 			else	e=$?

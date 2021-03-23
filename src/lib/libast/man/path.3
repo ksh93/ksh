@@ -50,6 +50,7 @@ char*     pathcat(char* \fIpath\fP, const char* \fIdirs\fP, int \fIsep\fP, const
 char*     pathcd(char* \fIpath\fP, const char* \fIhome\fP);
 int       pathcheck(const char* \fIpackage\fP, const char* \fItool\fP, Pathcheck_t* \fIpc\fP);
 int       pathgetlink(const char* \fIname\fP, char* \fIbuf\fP, int \fIsiz\fP);
+int       pathicase(const char* \fIpath\fP);
 char*     pathkey(char* \fIkey\fP, char* \fIattr\fP, const char* \fIlang\fP, const char* \fIpath\fP);
 char*     pathnext(char* \fIpath\fP, char* \fIextra\fP, long* \fIvisits\fP);
 char*     pathpath(char* \fIpath\fP, const char* \fIp\fP, const char* \fIa\fP, int \fImode\fP);
@@ -229,6 +230,32 @@ by converting non-standard dynamic link text to
 .LI .../$( UNIVERSE )/...
 .L pathsetsymlink
 converts in the other direction.
+.PP
+.L pathicase
+uses an operating system-specific method, if available,
+to determine if a file system uses case-insensitive file names.
+The return value is
+.B 1
+if the file system associated with the
+.I path
+is case-insensitive (regardless of case preservation),
+.B 0
+if it is not, or
+.B \-1
+if an error occurred. On error,
+.L errno
+is set by the system-specific function that was used.
+If the operating system does not have a known method
+to determine file system case insensitivity for the
+.IR path ,
+then
+.L pathicase
+returns
+.B \-1
+with
+.L errno
+set to
+.LR ENOSYS .
 .PP
 .L pathkey
 generates in

@@ -92,6 +92,10 @@ int path_expand(Shell_t *shp,const char *pattern, struct argnod **arghead)
 		flags |= GLOB_MARK;
 	if(sh_isoption(SH_GLOBSTARS))
 		flags |= GLOB_STARSTAR;
+#if SHOPT_GLOBCASEDET
+	if(sh_isoption(SH_GLOBCASEDET))
+		flags |= GLOB_DCASE;
+#endif
 	if(sh_isstate(SH_COMPLETE))
 	{
 #if KSHELL

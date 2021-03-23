@@ -34,11 +34,7 @@ NoN(atexit)
 
 #else
 
-#if _lib_onexit || _lib_on_exit
-
-#if !_lib_onexit
-#define onexit		on_exit
-#endif
+#if _lib_onexit
 
 extern int		onexit(void(*)(void));
 

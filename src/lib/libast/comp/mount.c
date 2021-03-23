@@ -31,10 +31,6 @@ NoN(mount)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 int
 mount(const char* a, char* b, int c, void* d)
 {

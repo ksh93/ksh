@@ -31,10 +31,6 @@ NoN(link)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 int
 link(const char* from, const char* to)
 {

@@ -20,6 +20,7 @@ SHOPT EDPREDICT=1			# predictive editing
 SHOPT ESH=1				# emacs/gmacs edit mode
 SHOPT FILESCAN=1			# fast file scan
 SHOPT FIXEDARRAY=1			# fixed dimension indexed array
+SHOPT GLOBCASEDET=			# -o globcasedetect: adapt globbing/completion to case-insensitive file systems
 SHOPT HISTEXPAND=1			# csh-style history file expansions
 SHOPT KIA=				# ksh -R <outfile> <script> generates cross-ref database from script
 SHOPT MULTIBYTE=1			# multibyte character handling

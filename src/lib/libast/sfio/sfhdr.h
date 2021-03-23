@@ -301,7 +301,7 @@
 
 #include	"FEATURE/float"
 
-#include	<errno.h>
+#include	<error.h>
 #include	<ctype.h>
 
 /* deal with multi-byte character and string conversions */
@@ -619,26 +619,6 @@
 #endif /*F_SETFD*/
 
 #define SF_FD_CLOEXEC			0x0001
-
-/* a couple of error number that we use, default values are like Linux */
-#ifndef EINTR
-#define EINTR	4
-#endif
-#ifndef EBADF
-#define EBADF	9
-#endif
-#ifndef EAGAIN
-#define EAGAIN	11
-#endif
-#ifndef ENOMEM
-#define ENOMEM	12
-#endif
-#ifndef EINVAL
-#define EINVAL	22
-#endif
-#ifndef ESPIPE
-#define ESPIPE	29
-#endif
 
 /* function to get the decimal point for local environment */
 #if !defined(SFSETLOCALE) && _PACKAGE_ast

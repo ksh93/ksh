@@ -32,10 +32,6 @@ NoN(mknod)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 int
 mknod(const char* path, mode_t mode, dev_t dev)
 {

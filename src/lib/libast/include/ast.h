@@ -79,6 +79,19 @@ struct _sfio_s;
 #endif
 
 /*
+ * tcc on FreeBSD: Avoid using nonexistent math
+ * builtins by pretending to be an ancient gcc.
+ */
+#if __TINYC__ && __GNUC__ >= 3 && __FreeBSD__
+#undef __GNUC__
+#undef __GNUC_MINOR__
+#undef __GNUC_PATCHLEVEL__
+#define __GNUC__ 2
+#define __GNUC_MINOR__ 95
+#define __GNUC_PATCHLEVEL__ 3
+#endif
+
+/*
  * exit() support -- this matches shell exit codes
  */
 
@@ -228,7 +241,7 @@ typedef struct
 
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 #define NiL		0
-#define NoP(x)		(void)(x)
+#define NoP(x)		do (void)(x); while(0)	/* for silencing "unused parameter" warnings */
 #else
 #define NiL		((char*)0)
 #define NoP(x)		(&x,1)
@@ -317,6 +330,7 @@ extern int		pathcheck(const char*, const char*, Pathcheck_t*);
 extern int		pathexists(char*, int);
 extern char*		pathfind(const char*, const char*, const char*, char*, size_t);
 extern int		pathgetlink(const char*, char*, int);
+extern int		pathicase(const char*);
 extern int		pathinclude(const char*);
 extern char*		pathkey(char*, char*, const char*, const char*, const char*);
 extern char*		pathkey_20100601(const char*, const char*, const char*, char*, size_t, char*, size_t);

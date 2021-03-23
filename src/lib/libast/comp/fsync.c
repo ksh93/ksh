@@ -31,10 +31,6 @@ NoN(fsync)
 
 #include <error.h>
 
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-
 int
 fsync(int fd)
 {
