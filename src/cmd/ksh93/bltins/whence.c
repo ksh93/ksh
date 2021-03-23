@@ -116,6 +116,7 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 	    case 'f':
 		flags |= F_FLAG;
 		break;
+	    case 'P':
 	    case 'p':
 		flags |= P_FLAG;
 		flags &= ~V_FLAG;

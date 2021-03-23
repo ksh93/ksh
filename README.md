@@ -47,7 +47,10 @@ ulimit -R/--rttime
 5. The `%C` time format has been backported from ksh2020. `%C` is
    the total number of CPU seconds (i.e., the sum of `%U` and `%S`).
    Added in commit [`d97b64e2`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c).
-6. An `banner` command has been added alongside `pty`. This is the AST
+6. Extra options have been backported from ksh93v- for bash compatibility. The options added so far are:
+  * `type -P` as an alias for `whence -p`.
+  * `read -a` as an alias for `read -A`.
+7. An `banner` command has been added alongside `pty`. This is the AST
    `banner` with features added to it from the NetBSD `banner`.
    Added in commit [`312972fc`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d).
 
