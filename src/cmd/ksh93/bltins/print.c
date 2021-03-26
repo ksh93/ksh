@@ -125,7 +125,7 @@ static char* 	nullarg[] = { 0, 0 };
 	{
 		if(strcmp(argv[1],"-n")==0)
 			prdata.echon = 1;
-#if !SHOPT_ECHOE
+#if !SHOPT_NOECHOE
 		else if(strcmp(argv[1],"-e")==0)
 			prdata.raw = 0;
 		else if(strcmp(argv[1],"-ne")==0 || strcmp(argv[1],"-en")==0)
@@ -133,7 +133,7 @@ static char* 	nullarg[] = { 0, 0 };
 			prdata.raw = 0;
 			prdata.echon = 1;
 		}
-#endif /* SHOPT_ECHOE */
+#endif /* SHOPT_NOECHOE */
 		else
 			break;
 		argv++;

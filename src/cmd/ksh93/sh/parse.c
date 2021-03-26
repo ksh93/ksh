@@ -782,18 +782,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		lexp->current = kiaentity(lexp,t->funct.functnam,-1,'p',-1,-1,lexp->script,'p',0,"");
 #endif /* SHOPT_KIA */
 	if(flag)
-	{
 		lexp->token = sh_lex(lexp);
-#if SHOPT_BASH
-		if(lexp->token == LPAREN)
-		{
-			if((lexp->token = sh_lex(lexp)) == RPAREN)
-				t->funct.functtyp |= FPOSIX;
-			else
-				sh_syntax(lexp);
-		}
-#endif
-	}
 	if(t->funct.functtyp&FPOSIX)
 		skipnl(lexp,0);
 	else

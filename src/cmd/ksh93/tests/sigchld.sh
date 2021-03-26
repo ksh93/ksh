@@ -20,7 +20,7 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-float DELAY=${1:-0.02}
+float DELAY=${1:-0.2}
 integer FOREGROUND=10 BACKGROUND=2
 
 s=$($SHELL -c '

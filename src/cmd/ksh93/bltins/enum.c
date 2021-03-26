@@ -121,7 +121,8 @@ static void put_enum(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	struct Enum 		*ep = (struct Enum*)fp;
 	register const char	*v;
-	unsigned short		i=0, n;
+	unsigned short		i=0;
+	int			n;
 	if(!val)
 	{
 		nv_putv(np, val, flags,fp);

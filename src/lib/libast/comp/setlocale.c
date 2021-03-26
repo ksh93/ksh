@@ -36,7 +36,7 @@
 #include <ctype.h>
 #include <mc.h>
 #include <namval.h>
-#include <errno.h>
+#include <error.h>
 
 #if ( _lib_wcwidth || _lib_wctomb ) && _hdr_wctype
 #include <wctype.h>
@@ -633,9 +633,7 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 	if (!*sp)
 		return 0;
  invalid:
-#ifdef EILSEQ
 	errno = EILSEQ;
-#endif
 	ast.mb_sync = (const char*)sp - str;
 	return -1;
 }

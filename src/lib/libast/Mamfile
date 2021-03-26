@@ -1099,6 +1099,7 @@ make install
 			done pathposix.o generated
 			make pathtemp.o
 				make path/pathtemp.c
+					prev include/error.h implicit
 					make include/tm.h implicit
 						prev include/times.h implicit
 						prev include/ast.h implicit
@@ -1472,6 +1473,7 @@ make install
 				make comp/setlocale.c
 					prev include/ast_windows.h implicit
 					prev std/wctype.h implicit
+					prev include/error.h implicit
 					prev include/namval.h implicit
 					make include/mc.h implicit
 						prev include/ast.h implicit
@@ -2559,6 +2561,7 @@ make install
 			make debug.o
 				make misc/debug.c
 					prev include/times.h implicit
+					prev FEATURE/time implicit
 					prev include/debug.h implicit
 					prev include/error.h implicit
 					prev include/ast.h implicit

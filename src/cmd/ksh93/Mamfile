@@ -177,6 +177,10 @@ make install
 					done ${PACKAGE_ast_INCLUDE}/cmd.h dontcare
 					prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
 					make include/nval.h implicit
+						make ${PACKAGE_ast_INCLUDE}/hash.h implicit
+							make ${PACKAGE_ast_INCLUDE}/hashpart.h implicit
+							done ${PACKAGE_ast_INCLUDE}/hashpart.h dontcare
+						done ${PACKAGE_ast_INCLUDE}/hash.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/option.h implicit
 						make ${PACKAGE_ast_INCLUDE}/cdt.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
@@ -280,6 +284,11 @@ make install
 			done alarm.o generated
 			make cd_pwd.o
 				make bltins/cd_pwd.c
+					make include/test.h implicit
+						prev include/shtable.h implicit
+						prev include/defs.h implicit
+						prev FEATURE/options implicit
+					done include/test.h
 					make ${PACKAGE_ast_INCLUDE}/ls.h implicit
 						make ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
 						done ${PACKAGE_ast_INCLUDE}/ast_mode.h dontcare
@@ -330,11 +339,7 @@ make install
 			done cflow.o generated
 			make deparse.o
 				make sh/deparse.c
-					make include/test.h implicit
-						prev include/shtable.h implicit
-						prev include/defs.h implicit
-						prev FEATURE/options implicit
-					done include/test.h
+					prev include/test.h implicit
 					prev include/shnodes.h implicit
 					prev include/defs.h implicit
 				done sh/deparse.c
@@ -408,6 +413,9 @@ make install
 			done hist.o generated
 			make misc.o
 				make bltins/misc.c
+					prev ${PACKAGE_ast_INCLUDE}/times.h implicit
+					prev FEATURE/time implicit
+					prev FEATURE/locale implicit
 					make include/jobs.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
 						prev include/terminal.h implicit
@@ -703,6 +711,7 @@ make install
 					prev include/edit.h implicit
 					prev include/terminal.h implicit
 					prev include/builtins.h implicit
+					prev include/jobs.h implicit
 					prev include/path.h implicit
 					prev include/defs.h implicit
 				done sh/args.c
@@ -1217,7 +1226,11 @@ make install
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/math.sh ${PACKAGEROOT}/src/cmd/ksh93/data/math.tab
 						make ${PACKAGE_ast_INCLUDE}/ast_standards.h implicit
 						done ${PACKAGE_ast_INCLUDE}/ast_standards.h dontcare
-						prev ${INSTALLROOT}/src/lib/libast/FEATURE/float implicit
+						make ${INSTALLROOT}/src/lib/libast/FEATURE/float implicit
+							make ${INSTALLROOT}/src/lib/libast/FEATURE/standards implicit
+							done ${INSTALLROOT}/src/lib/libast/FEATURE/standards dontcare
+							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+						done ${INSTALLROOT}/src/lib/libast/FEATURE/float dontcare
 					done FEATURE/math generated
 					prev include/streval.h implicit
 					prev FEATURE/options implicit
@@ -1263,6 +1276,7 @@ make install
 			done options.o generated
 			make signals.o
 				make data/signals.c
+					prev include/jobs.h implicit
 					prev include/defs.h implicit
 				done data/signals.c
 				meta signals.o %.c>%.o data/signals.c signals
