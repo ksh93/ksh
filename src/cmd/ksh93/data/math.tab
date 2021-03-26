@@ -16,6 +16,7 @@ f 1 cosh
 f 1 erf
 f 1 erfc
 f 1 exp
+f 1 exp10
 f 1 exp2
 f 1 expm1
 f 1 fabs abs

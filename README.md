@@ -50,7 +50,8 @@ ulimit -R/--rttime
 6. Extra options have been backported from ksh93v- for bash compatibility. The options added so far are:
   * `type -P` as an alias for `whence -p`.
   * `read -a` as an alias for `read -A`.
-7. An `banner` command has been added alongside `pty`. This is the AST
+7. `exp10(3)` has been added as a supported math function (when available), so `echo $(( exp10(3) ))` now prints 1000 (10<sup>3</sup>).
+8. An `banner` command has been added alongside `pty`. This is the AST
    `banner` with features added to it from the NetBSD `banner`.
    Added in commit [`312972fc`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d).
 
