@@ -329,7 +329,11 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 		if(c!='%')
 			continue;
 		unsigned char l_modifier = 0;
+#ifdef timeofday
 		int precision = 6;
+#else
+		int precision = 2;
+#endif
 
 		sfwrite(stkp, first, format-first);
 		c = *++format;
@@ -348,7 +352,11 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 		}
 		if(c>='0' && c <='9')
 		{
+#ifdef timeofday
 			precision = (c>'6')?6:(c-'0');
+#else
+			precision = (c>'2')?2:(c-'0');
+#endif
 			c = *++format;
 		}
 		if(c=='P')
@@ -401,7 +409,7 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 		{
 			/* scale fraction from micro to milli, centi, or deci second according to precision */
 			int n, frac = tvp->tv_usec;
-			for(n = 3 + (3 - precision); n > 0; --n)
+			for(n = 6 + (6 - precision); n > 0; --n)
 				frac /= 10;
 			if(precision)
 				sfprintf(stkp, "%d%c%0*d", tvp->tv_sec, GETDECIMAL(0), precision, frac);
@@ -415,18 +423,26 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 			n = 1;
 		else if(c=='S')
 			n = 2;
+		else if(c=='C')
+			n = 3;
 		else
 		{
 			stkseek(stkp,offset);
 			errormsg(SH_DICT,ERROR_exit(0),e_badtformat,c);
 			return;
 		}
-		d = (double)tm[n]/shp->gd->lim.clk_tck;
+		if(n==3)
+		{
+			/* sum of U + S */
+			d = (double)((tm[1]+tm[2])/shp->gd->lim.clk_tck);
+		}
+		else
+			d = (double)tm[n]/shp->gd->lim.clk_tck;
 	skip:
 		if(l_modifier)
-			l_time(stkp, tm[n], precision);
+			l_time(stkp, n==3 ? tm[1] + tm[2] : tm[n], precision);
 		else
-			sfprintf(stkp,"%.*f",precision, d);
+			sfprintf(stkp,"%.*f", precision, d);
 #endif
 		first = format+1;
 	}
