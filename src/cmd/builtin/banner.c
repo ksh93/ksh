@@ -75,7 +75,10 @@ static void create_banner(const char *restrict string, const char *restrict deli
 	const char *cp, *dp;
 
 	if (j > width / 8)
+	{
 		error(ERROR_exit(1), "up to %d char%s per arg", width / 8, (width / 8) == 1 ? "" : "s");
+		UNREACHABLE();
+	}
 	for (i = 0; i < 9; i++)
 	{
 		dp = delim;
@@ -171,11 +174,14 @@ int b_banner(int argc, char *argv[], Shbltin_t *context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 	argv += opt_info.index;
 	if (error_info.errors || !*argv)
+	{
 		error(ERROR_usage(2), "%s", optusage(NULL));
+		UNREACHABLE();
+	}
 	sfset(sfstdout, SF_LINE, 0);
 
 	/* Create banners with a loop */
