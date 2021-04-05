@@ -87,7 +87,7 @@ b_head(int argc, register char** argv, Shbltin_t* context)
 		{
 		case 'c':
 			delim = -1;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'n':
 			if (opt_info.offset && argv[opt_info.index][opt_info.offset] == 'c')
 			{
@@ -108,7 +108,7 @@ b_head(int argc, register char** argv, Shbltin_t* context)
 			continue;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			continue;
+			UNREACHABLE();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
@@ -118,7 +118,10 @@ b_head(int argc, register char** argv, Shbltin_t* context)
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	if (error_info.errors)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (cp = *argv)
 		argv++;
 	do

@@ -201,7 +201,7 @@ vercmp(FTSENT* const* ap, FTSENT* const* bp)
 		if (!*b++)
 			return 1;
 	}
-	/*NOTREACHED*/
+	UNREACHABLE();
 }
 
 /*

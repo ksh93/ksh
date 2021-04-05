@@ -869,7 +869,7 @@ sfsync(sfstderr);
 				proc->wfd = poi[1];
 				close(poi[0]);
 #endif
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 1:
 				proc->rfd = pio[0];
 				close(pio[1]);

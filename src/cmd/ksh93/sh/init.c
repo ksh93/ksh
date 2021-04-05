@@ -221,11 +221,11 @@ static int		rand_shift;
 /*
  * out of memory routine for stak routines
  */
-static char *nomemory(int unused)
+static noreturn char *nomemory(int unused)
 {
 	NOT_USED(unused);
 	errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "out of memory");
-	return(NIL(char*));
+	UNREACHABLE();
 }
 
 /*
@@ -371,7 +371,10 @@ static void put_restricted(register Namval_t* np,const char *val,int flags,Namfu
 	Pathcomp_t *pp;
 	char *name = nv_name(np);
 	if(!(flags&NV_RDONLY) && sh_isoption(SH_RESTRICTED))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_restricted,nv_name(np));
+		UNREACHABLE();
+	}
 	if(np==PATHNOD	|| (path_scoped=(strcmp(name,PATHNOD->nvname)==0)))		
 	{
 		/* Clear the hash table */
@@ -1195,7 +1198,10 @@ static void put_mode(Namval_t* np, const char* val, int flag, Namfun_t* nfp)
 		else
 			mode = strperm(val, &last,0);
 		if(*last)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),"%s: invalid mode string",val);
+			UNREACHABLE();
+		}
 		nv_putv(np,(char*)&mode,NV_INTEGER,nfp);
 	}
 	else
@@ -1472,7 +1478,10 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 #ifdef SHELLMAGIC
 		/* careful of #! setuid scripts with name beginning with - */
 		if(shp->login_sh && argv[1] && strcmp(argv[0],argv[1])==0)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_prohibited);
+			UNREACHABLE();
+		}
 #endif /*SHELLMAGIC*/
 	}
 	else
@@ -1700,7 +1709,10 @@ found:
 		shp->last_table = SH_STATS;
 	}
 	else
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_notelem,n,name,nv_name(np));
+		UNREACHABLE();
+	}
 	return(nq);
 }
 

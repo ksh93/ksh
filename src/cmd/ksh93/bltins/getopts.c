@@ -84,12 +84,15 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	if(error_info.errors || argc<2)
+	{
 		errormsg(SH_DICT,ERROR_usage(2), "%s", optusage((char*)0));
+		UNREACHABLE();
+	}
 	error_info.context->flags |= ERROR_SILENT;
 	error_info.id = options;
 	options = argv[0];
@@ -126,9 +129,12 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	{
 	    case '?':
 		if(mode==0)
+		{
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
+			UNREACHABLE();
+		}
 		opt_info.option[1] = '?';
-		/* FALL THRU */
+		/* FALLTHROUGH */
 	    case ':':
 		key[0] = opt_info.option[1];
 		if(strmatch(opt_info.arg,"*unknown*"))
@@ -160,7 +166,10 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 			optget(com,options);
 			opt_info.index = flag;
 			if(!mode && strchr(options,' '))
+			{
 				errormsg(SH_DICT,ERROR_usage(2), "%s", optusage((char*)0));
+				UNREACHABLE();
+			}
 		}
 		opt_info.arg = 0;
 		options = value;

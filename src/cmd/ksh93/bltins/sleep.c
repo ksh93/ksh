@@ -60,10 +60,13 @@ int	b_sleep(register int argc,char *argv[],Shbltin_t *context)
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NULL));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	if(cp = *argv)
 	{
@@ -93,16 +96,25 @@ int	b_sleep(register int argc,char *argv[],Shbltin_t *context)
 					ns = tmxdate(pp, &last, now);
 			}
 			if(*last)
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_number,*argv);
+				UNREACHABLE();
+			}
 			d = ns - now;
 			d /= TMX_RESOLUTION;
 		}
 skip:
 		if(argv[1])
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_oneoperand);
+			UNREACHABLE();
+		}
 	}
 	else if(!sflag)
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_oneoperand);
+		UNREACHABLE();
+	}
 	if(d > .10)
 	{
 		time(&tloc);

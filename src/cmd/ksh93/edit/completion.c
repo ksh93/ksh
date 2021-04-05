@@ -190,7 +190,7 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 		    case '~':
 			if(*cp=='(')
 				break;
-			/* fall through */
+			/* FALLTHROUGH */
 		    default:
 			if(c && c==endchar)
 				return(xp);

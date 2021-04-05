@@ -177,7 +177,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 					pad = c;
 					continue;
 				}
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case '1':
 			case '2':
 			case '3':
@@ -191,7 +191,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 				{
 				case 0:
 					parts++;
-					/*FALLTHROUGH*/
+					/* FALLTHROUGH */
 				case 1:
 					width = width * 10 + (c - '0');
 					break;

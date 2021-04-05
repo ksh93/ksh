@@ -238,7 +238,7 @@ Sfdisc_t*	disc;
 		case SF_EDISC :
 			if(!local && !(f->flags&SF_STRING))
 				goto do_continue;
-			/* else fall thru */
+			/* FALLTHROUGH */
 		case SF_ESTACK :
 			SFMTXRETURN(f, (ssize_t)(-1));
 		}

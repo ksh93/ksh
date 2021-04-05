@@ -770,7 +770,7 @@ nestmatch(register unsigned char* s, register unsigned char* e, const unsigned s
 					if (!--n)
 						return s;
 				}
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case REX_NEST_open:
 				if (c == co)
 				{
@@ -1444,7 +1444,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							break;
 						case GOOD:
 							r = GOOD;
-							/*FALLTHROUGH*/
+							/* FALLTHROUGH */
 						default:
 							continue;
 						}

@@ -1013,7 +1013,7 @@ findwrite(register Find_t* fp, const char* path, size_t len, const char* type)
 		else
 			u = 0;
 		sfputu(fp->fp, u);
-		/*FALLTHROUGH...*/
+		/* FALLTHROUGH */
 	case FF_dir:
 		d = n - fp->encode.prefix;
 		sfputl(fp->fp, d);

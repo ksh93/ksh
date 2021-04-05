@@ -266,7 +266,7 @@ fmtmatch(const char* as)
 		case '$':
 			if (e = !*s)
 				break;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		default:
 			*t++ = c;
 			continue;

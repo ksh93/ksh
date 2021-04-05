@@ -421,13 +421,16 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 			continue;
 		case '?':
 			error(ERROR_usage(2), opt_info.arg);
-			continue;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors || !(var = *argv++) || !(path = *argv++) || *argv)
+	{
 		error(ERROR_usage(2), optusage(NiL));
+		UNREACHABLE();
+	}
 	sp = sh_newof(0, Service_t, 1, 0);
 	sp->acceptf = Accept;
 	sp->actionf = Action;
@@ -440,6 +443,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 	{
 		free((void*)sp);
 		error(ERROR_exit(1), "%s: cannot start service", path);
+		UNREACHABLE();
 	}
 	if((sp->fd = fcntl(fd, F_DUPFD, 10))>=10)
 		close(fd);
@@ -472,13 +476,16 @@ int	b_eloop(int argc, char** argv, Shbltin_t *context)
 			continue;
 		case '?':
 			error(ERROR_usage(2), opt_info.arg);
-			continue;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors  || *argv)
+	{
 		error(ERROR_usage(2), optusage(NiL));
+		UNREACHABLE();
+	}
 	while(1)
 	{
 		if(waitnotify(-1, timeout, 0)==0)

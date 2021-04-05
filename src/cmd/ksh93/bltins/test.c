@@ -141,7 +141,10 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	{
 		cp = argv[--argc];
 		if(!c_eq(cp, ']'))
+		{
 			errormsg(SH_DICT,ERROR_exit(2),e_missing,"']'");
+			UNREACHABLE();
+		}
 	}
 	if(argc <= 1)
 	{
@@ -166,7 +169,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 			if(!not)
 				break;
 			argv++;
-			/* fall through */
+			/* FALLTHROUGH */
 		case 4:
 		{
 			register int op = sh_lookup(cp=argv[2],shtab_testops);
@@ -192,6 +195,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 					goto done;
 				}
 				errormsg(SH_DICT,ERROR_exit(2),e_badop,cp);
+				UNREACHABLE();
 			}
 			exitval = (test_binop(tdata.sh,op,argv[1],argv[3])^(argc!=5));
 			goto done;
@@ -218,7 +222,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 					av[2] = 0;
 					optget(av,sh_opttest);
 					errormsg(SH_DICT,ERROR_usage(2), "%s",opt_info.arg);
-					return(2);
+					UNREACHABLE();
 				}
 				break;
 			}
@@ -276,6 +280,7 @@ static int expr(struct test *tp,register int flag)
 		if(flag==0)
 			break;
 		errormsg(SH_DICT,ERROR_exit(2),e_badsyntax);
+		UNREACHABLE();
 	}
 	return(r);
 }
@@ -290,6 +295,7 @@ static char *nxtarg(struct test *tp,int mt)
 			return(0);
 		}
 		errormsg(SH_DICT,ERROR_exit(2),e_argument);
+		UNREACHABLE();
 	}
 	return(tp->av[tp->ap++]);
 }
@@ -308,7 +314,10 @@ static int e3(struct test *tp)
 		op = expr(tp,1);
 		cp = nxtarg(tp,0);
 		if(!cp || !c_eq(cp, ')'))
+		{
 			errormsg(SH_DICT,ERROR_exit(2),e_missing,"')'");
+			UNREACHABLE();
+		}
 		return(op);
 	}
 	cp = nxtarg(tp,1);
@@ -340,6 +349,7 @@ static int e3(struct test *tp)
 			if(op==0 || !strchr(test_opchars+10,op))
 				return(1);
 			errormsg(SH_DICT,ERROR_exit(2),e_argument);
+			UNREACHABLE();
 		}
 		if(strchr(test_opchars,op))
 			return(test_unop(tp->sh,op,cp));
@@ -354,7 +364,10 @@ skip:
 	if(!(op&TEST_BINOP))
 		cp = nxtarg(tp,0);
 	if(!op)
+	{
 		errormsg(SH_DICT,ERROR_exit(2),e_badop,binop);
+		UNREACHABLE();
+	}
 	if(op==TEST_AND || op==TEST_OR)
 		tp->ap--;
 	return(test_binop(tp->sh,op,arg,cp));
@@ -434,6 +447,7 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 		return(*arg == 0);
 	    case 's':
 		sfsync(sfstdout);
+		/* FALLTHROUGH */
 	    case 'O':
 	    case 'G':
 		if(*arg==0 || test_stat(arg,&statb)<0)
@@ -490,8 +504,7 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 		static char a[3] = "-?";
 		a[1]= op;
 		errormsg(SH_DICT,ERROR_exit(2),e_badop,a);
-		/* NOTREACHED */
-		return(0);
+		UNREACHABLE();
 	    }
 	}
 }
@@ -510,7 +523,6 @@ int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 	}
 	switch(op)
 	{
-		/* op must be one of the following values */
 		case TEST_AND:
 		case TEST_OR:
 			return(*left!=0);
@@ -544,9 +556,16 @@ int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 			return(lnum>=rnum);
 		case TEST_LE:
 			return(lnum<=rnum);
+		default:
+		{
+			/* fallback for operators not supported by the test builtin */
+			int i=0;
+			while(shtab_testops[i].sh_number && shtab_testops[i].sh_number != op)
+				i++;
+			errormsg(SH_DICT, ERROR_exit(2), op==TEST_END ? e_badop : e_unsupported_op, shtab_testops[i].sh_name);
+		}
 	}
-	/* NOTREACHED */
-	return(0);
+	UNREACHABLE();
 }
 
 /*

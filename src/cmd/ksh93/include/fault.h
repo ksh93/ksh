@@ -108,8 +108,8 @@ struct checkpt
 				)
 #define sh_popcontext(shp,bp)	(shp->jmplist=(bp)->prev, errorpop(&((bp)->err)))
 
+extern noreturn void 	sh_done(void*,int);
 extern void 	sh_fault(int);
-extern void 	sh_done(void*,int);
 extern void 	sh_sigclear(int);
 extern void 	sh_sigdone(void);
 extern void	sh_siginit(void*);

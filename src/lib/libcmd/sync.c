@@ -63,17 +63,21 @@ b_sync(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors || *argv)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 #if _lib_sync
 	sync();
+	return 0;
 #else
 	error(ERROR_usage(2), "failed -- the native system does not provide a sync(2) call");
+	UNREACHABLE();
 #endif
-	return 0;
 }

@@ -270,7 +270,7 @@ int b___regress__(int argc, char** argv, Shbltin_t *context)
 		{
 		case '?':
 			errormsg(SH_DICT, ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		case ':':
 			errormsg(SH_DICT, 2, "%s", opt_info.arg);
 			break;
@@ -332,7 +332,10 @@ int b___regress__(int argc, char** argv, Shbltin_t *context)
 		break;
 	}
 	if (error_info.errors || *(argv + opt_info.index))
+	{
 		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	return 0;
 }
 

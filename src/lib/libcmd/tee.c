@@ -149,12 +149,15 @@ b_tee(int argc, register char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	if (error_info.errors)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 #if _ANCIENT_BSD_COMPATIBILITY

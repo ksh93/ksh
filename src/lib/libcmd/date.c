@@ -341,7 +341,10 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 			continue;
 		case 'p':
 			if (!(f = newof(0, Fmt_t, 1, 0)))
+			{
 				error(ERROR_SYSTEM|3, "out of memory [format]");
+				UNREACHABLE();
+			}
 			f->next = fmts;
 			f->format = opt_info.arg;
 			fmts = f;
@@ -376,8 +379,8 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 			listzones = tm_data.zone;
 			continue;
 		case '?':
-			error(ERROR_USAGE|4, "%s", opt_info.arg);
-			continue;
+			error(ERROR_usage(2), "%s", opt_info.arg);
+			UNREACHABLE();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
@@ -386,7 +389,10 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 	}
 	argv += opt_info.index;
 	if (error_info.errors)
-		error(ERROR_USAGE|4, "%s", optusage(NiL));
+	{
+		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	now = tmxgettime();
 	if (listzones)
 	{
@@ -434,7 +440,10 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 	else if (filetime)
 	{
 		if (!*argv)
-			error(ERROR_USAGE|4, "%s", optusage(NiL));
+		{
+			error(ERROR_usage(2), "%s", optusage(NiL));
+			UNREACHABLE();
+		}
 		n = argv[1] != 0;
 		while (s = *argv++)
 		{
@@ -474,7 +483,10 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 		if (s || (s = string))
 		{
 			if (*argv && string)
-				error(ERROR_USAGE|4, "%s", optusage(NiL));
+			{
+				error(ERROR_usage(2), "%s", optusage(NiL));
+				UNREACHABLE();
+			}
 			now = convert(fmts, s, now);
 			if (*argv && (s = *++argv))
 			{
@@ -498,7 +510,10 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 			sfprintf(sfstdout, "%s\n", buf);
 		}
 		else if (settime(context, cmd, now, increment, network))
+		{
 			error(ERROR_SYSTEM|3, "cannot set system time");
+			UNREACHABLE();
+		}
 	}
 	while (fmts != &fmt)
 	{

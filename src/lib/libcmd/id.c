@@ -232,7 +232,10 @@ getids(Sfio_t* sp, const char* name, register int flags)
 			if ((maxgroups = getgroups(0, groups)) <= 0)
 				maxgroups = NGROUPS_MAX;
 			if (!(groups = newof(0, gid_t, maxgroups + 1, 0)))
+			{
 				error(ERROR_exit(1), "out of memory [group array]");
+				UNREACHABLE();
+			}
 		}
 		ngroups = getgroups(maxgroups, groups);
 		for (i = j = 0; i < ngroups; i++)
@@ -251,7 +254,10 @@ getids(Sfio_t* sp, const char* name, register int flags)
 			{
 				user = strtol(name, &s, 0);
 				if (*s || !(pw = getpwuid(user)))
+				{
 					error(ERROR_exit(1), "%s: name not found", name);
+					UNREACHABLE();
+				}
 				name = pw->pw_name;
 			}
 			user = pw->pw_uid;
@@ -264,7 +270,10 @@ getids(Sfio_t* sp, const char* name, register int flags)
 			do
                         {
                                 if (!(fs = getfsgnam(name)))
+				{
                                         error(ERROR_exit(1), "%u: fss name not found", name);
+					UNREACHABLE();
+				}
                         } while (isfsg(fs));
                         fs_id = fs->fs_id;
 		}
@@ -451,7 +460,7 @@ b_id(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
@@ -461,7 +470,10 @@ b_id(int argc, char** argv, Shbltin_t* context)
 	if (!power2(n))
 		error(2, "incompatible options selected");
 	if (error_info.errors || argc > 1)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (!(flags & ~(N_FLAG|R_FLAG)))
 	{
 		if (flags & N_FLAG) flags |= O_FLAG;

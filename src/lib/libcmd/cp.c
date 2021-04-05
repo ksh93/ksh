@@ -289,7 +289,10 @@ visit(State_t* state, register FTSENT* ent)
 	if (state->directory)
 	{
 		if ((state->postsiz + len) > state->pathsiz && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + len, PATH_CHUNK), 0)))
+		{
 			error(ERROR_SYSTEM|3, "out of memory");
+			UNREACHABLE();
+		}
 		if (state->hierarchy && ent->fts_level == 0 && strchr(base, '/'))
 		{
 			s = state->path + state->postsiz;
@@ -361,7 +364,7 @@ visit(State_t* state, register FTSENT* ent)
 			error(2, "%s: cannot search directory", ent->fts_path);
 			fts_set(NiL, ent, FTS_SKIP);
 
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case FTS_D:
 			if (state->directory)
 				memcpy(state->path + state->postsiz, base, len);
@@ -520,12 +523,15 @@ visit(State_t* state, register FTSENT* ent)
 				sfprintf(state->tmp, "%s.%s%d%s", state->path, state->suffix, v + 1, state->suffix);
 				goto backup;
 			}
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case BAK_simple:
 			sfprintf(state->tmp, "%s%s", state->path, state->suffix);
 		backup:
 			if (!(s = sfstruse(state->tmp)))
+			{
 				error(ERROR_SYSTEM|3, "%s: out of space", state->path);
+				UNREACHABLE();
+			}
 			if (rename(state->path, s))
 			{
 				error(ERROR_SYSTEM|2, "%s: cannot backup to %s", state->path, s);
@@ -564,7 +570,7 @@ visit(State_t* state, register FTSENT* ent)
 			else
 				break;
 		}
-		/*FALLTHROUGH*/
+		/* FALLTHROUGH */
 	case CP:
 		if (S_ISLNK(ent->fts_statp->st_mode))
 		{
@@ -688,7 +694,10 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 	if (!(sh = CMD_CONTEXT(context)) || !(state = (State_t*)sh->ptr))
 	{
 		if (!(state = newof(0, State_t, 1, 0)))
+		{
 			error(ERROR_SYSTEM|3, "out of memory");
+			UNREACHABLE();
+		}
 		if (sh)
 			sh->ptr = state;
 	}
@@ -701,7 +710,10 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 	state->uid = geteuid();
 	state->wflags = O_WRONLY|O_CREAT|O_TRUNC|O_BINARY;
 	if (!state->tmp && !(state->tmp = sfstropen()))
+	{
 		error(ERROR_SYSTEM|3, "out of space [tmp string]");
+		UNREACHABLE();
+	}
 	sfputr(state->tmp, usage_head, -1);
 	standard = !!conformance(0, 0);
 	switch (error_info.id[0])
@@ -738,7 +750,10 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 	}
 	sfputr(state->tmp, usage_tail, -1);
 	if (!(usage = sfstruse(state->tmp)))
+	{
 		error(ERROR_SYSTEM|3, "%s: out of space", state->path);
+		UNREACHABLE();
+	}
 	state->opname = state->op == CP ? ERROR_translate(0, 0, 0, "overwrite") : ERROR_translate(0, 0, 0, "replace");
 	for (;;)
 	{
@@ -873,7 +888,10 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 		argv++;
 	}
 	if (!(v = (char**)stkalloc(stkstd, (argc + 2) * sizeof(char*))))
+	{
 		error(ERROR_SYSTEM|3, "out of memory");
+		UNREACHABLE();
+	}
 	memcpy(v, argv, (argc + 1) * sizeof(char*));
 	argv = v;
 	if (!standard)
@@ -940,7 +958,10 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 		state->suflen = strlen(state->suffix);
 	}
 	if (argc <= 0 || error_info.errors)
-		error(ERROR_USAGE|4, "%s", optusage(NiL));
+	{
+		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (!path_resolve)
 		state->flags |= fts_flags() | FTS_META;
 	file = argv[argc];
@@ -955,12 +976,18 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 	if (file != (char*)dot)
 		pathcanon(file, 0, 0);
 	if (!(state->directory = !stat(file, &st) && S_ISDIR(st.st_mode)) && argc > 1)
-		error(ERROR_USAGE|4, "%s", optusage(NiL));
+	{
+		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (s && !state->directory)
 		error(3, "%s: not a directory", file);
 	state->postsiz = strlen(file);
 	if (state->pathsiz < roundof(state->postsiz + 2, PATH_CHUNK) && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + 2, PATH_CHUNK), 0)))
+	{
 		error(ERROR_SYSTEM|3, "out of memory");
+		UNREACHABLE();
+	}
 	memcpy(state->path, file, state->postsiz + 1);
 	if (state->directory && state->path[state->postsiz - 1] != '/')
 		state->path[state->postsiz++] = '/';

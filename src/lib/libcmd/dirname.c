@@ -121,14 +121,17 @@ b_dirname(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	if(error_info.errors || argc != 1)
+	{
 		error(ERROR_usage(2),"%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if(!mode)
 		l_dirname(sfstdout,argv[0]);
 	else if(pathpath(argv[0], "", mode, buf, sizeof(buf)))

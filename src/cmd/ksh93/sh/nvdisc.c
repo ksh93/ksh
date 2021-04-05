@@ -600,7 +600,10 @@ static char *setdisc(register Namval_t* np,register const char *event,Namval_t *
 	{
 		Namval_t *tp = nv_type(np);
 		if(tp && (np = (Namval_t*)vp->bltins[type]) && nv_isattr(np,NV_STATICF))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_staticfun,name,tp->nvname);
+			UNREACHABLE();
+		}
 		vp->bltins[type] = action;
 	}
 	else
@@ -1204,7 +1207,10 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 		if(extra == (void*)1)
 		{
 			if(nv_isattr(np,BLT_SPC))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),"cannot delete: %s%s",name,is_spcbuiltin);
+				UNREACHABLE();
+			}
 			if(np->nvfun && !nv_isattr(np,NV_NOFREE))
 				free((void*)np->nvfun);
 			dtdelete(sh.bltin_tree,np);
@@ -1254,7 +1260,10 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 		cp=nv_setdisc(nq,cp+1,np,(Namfun_t*)nq);
 		nv_close(nq);
 		if(!cp)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_baddisc,name);
+			UNREACHABLE();
+		}
 	}
 	if(extra == (void*)1)
 		return(0);

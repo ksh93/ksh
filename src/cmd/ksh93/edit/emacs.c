@@ -566,6 +566,7 @@ update:
 		case KILLCHAR :
 			cur = 0;
 			oadjust = -1;
+			/* FALLTHROUGH */
 		case cntl('K') :
 			if(oadjust >= 0)
 			{
@@ -985,6 +986,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			if(ch=='\n')
 				ed_ungetchar(ep->ed,'\n');
 #endif /* SHOPT_EDPREDICT */
+			/* FALLTHROUGH */
 		/* file name expansion */
 		case ESC :
 #if SHOPT_EDPREDICT
@@ -1003,6 +1005,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			}
 #endif /* SHOPT_EDPREDICT */
 			i = '\\';	/* filename completion */
+			/* FALLTHROUGH */
 		case '*':		/* filename expansion */
 		case '=':	/* escape = - list all matching file names */
 			ep->mark = cur;
@@ -1190,6 +1193,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				ed_ungetchar(ep->ed,i);
 			}
 			i = '_';
+			/* FALLTHROUGH */
 
 		default:
 			/* look for user defined macro definitions */

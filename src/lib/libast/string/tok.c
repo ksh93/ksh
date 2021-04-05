@@ -156,12 +156,12 @@ tokread(char* u)
 				else if (!p->flg)
 					p->flg = FLG_NEWLINE;
 			}
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case ' ':
 		case '\t':
 			if (q)
 				break;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 0:
 			if (s == --r)
 			{

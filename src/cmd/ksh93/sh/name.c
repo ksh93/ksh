@@ -204,6 +204,7 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 			nv_delete(sp->nodes[0],root,NV_NOFREE);
 			dtinsert(root,sp->rp);
 			errormsg(SH_DICT,ERROR_exit(1),e_redef,sp->nodes[0]->nvname);
+			UNREACHABLE();
 		}
 	}
 	for(i=0; i < sp->numnodes; i++)
@@ -352,7 +353,10 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					tp->com.comtyp = COMSCAN;
 				}
 				if(nv_isattr(np,NV_RDONLY) && np->nvfun && !(flags&NV_RDONLY))
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_readonly, nv_name(np));
+					UNREACHABLE();
+				}
 				if(nv_isattr(np,NV_NOFREE) && nv_isnull(np))
 					nv_offattr(np,NV_NOFREE);
 				if(nv_istable(np))
@@ -413,6 +417,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					{
 						shp->mktype = 0;
 						errormsg(SH_DICT,ERROR_exit(1),"%s: not a known type name",argv[0]);
+						UNREACHABLE();
 					}
 #endif /* SHOPT_TYPEDEF */
 					if(!(arg->argflag&ARG_APPEND))
@@ -500,7 +505,10 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 						if(nv_isarray(np))
 						{
 							if((sub=nv_aimax(np)) < 0  && nv_arrayptr(np))
+							{
 								errormsg(SH_DICT,ERROR_exit(1),e_badappend,nv_name(np));
+								UNREACHABLE();
+							}
 							if(sub>=0)
 								sub++;
 						}
@@ -769,10 +777,12 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 				sp = (char*)name+c;
 				c = '.';
 			}
+			/* FALLTHROUGH */
 		skip:
 		    case '+':
 		    case '=':
 			*sp = 0;
+			/* FALLTHROUGH */
 		    case 0:
 			isref = 0;
 			dp->last = cp;
@@ -926,7 +936,10 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 				}
 				shp->first_root = root;
 				if(nv_isref(np) && (c=='[' || c=='.' || !(flags&NV_ASSIGN)))
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_noref,nv_name(np));
+					UNREACHABLE();
+				}
 				if(sub && c==0)
 				{
 					if(flags&NV_ARRAY)
@@ -1544,6 +1557,7 @@ skip:
 		else if(c=='[')
 			msg = e_noarray;
 		errormsg(SH_DICT,ERROR_exit(1),msg,name);
+		UNREACHABLE();
 	}
 	if(fun.nofree&1)
 		stakseek(offset);
@@ -1578,7 +1592,10 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 	Namarr_t	*ap;
 #endif /* SHOPT_FIXEDARRAY */
 	if(!(flags&NV_RDONLY) && nv_isattr (np, NV_RDONLY))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_readonly, nv_name(np));
+		UNREACHABLE();
+	}
 	/*
 	 * The following could cause the shell to fork if assignment
 	 * would cause a side effect
@@ -2459,7 +2476,10 @@ void	_nv_unset(register Namval_t *np,int flags)
 	Namarr_t	*ap;
 #endif /* SHOPT_FIXEDARRAY */
 	if(!(flags&NV_RDONLY) && nv_isattr (np,NV_RDONLY))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_readonly, nv_name(np));
+		UNREACHABLE();
+	}
 	if(is_afunction(np) && np->nvalue.ip)
 	{
 		register struct slnod *slp = (struct slnod*)(np->nvenv);
@@ -2882,7 +2902,10 @@ Sfdouble_t nv_getnum(register Namval_t *np)
 		nv_optimize(np);
 #endif /* SHOPT_OPTIMIZE */
 	if(nv_istable(np))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_number,nv_name(np));
+		UNREACHABLE();
+	}
      	if(np->nvfun && np->nvfun->disc)
 	{
 		if(!nv_local)
@@ -2972,7 +2995,10 @@ void nv_newattr (register Namval_t *np, unsigned newatts, int size)
 
 	/* check for restrictions */
 	if(sh_isoption(SH_RESTRICTED) && ((sp=nv_name(np))==nv_name(PATHNOD) || sp==nv_name(SHELLNOD) || sp==nv_name(ENVNOD) || sp==nv_name(FPATHNOD)))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_restricted,nv_name(np));
+		UNREACHABLE();
+	}
 	/* handle attributes that do not change data separately */
 	n = np->nvflag;
 	trans = !(n&NV_INTEGER) && (n&(NV_LTOU|NV_UTOL)); /* transcode to lower or upper case */
@@ -3267,11 +3293,17 @@ int nv_rename(register Namval_t *np, int flags)
 	if(!(cp=nv_getval(np)))
 	{
 		if(flags&NV_MOVE)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_varname,"");
+			UNREACHABLE();
+		}
 		return(0);
 	}
 	if(lastdot(cp,0) && nv_isattr(np,NV_MINIMAL))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_varname,nv_name(np));
+		UNREACHABLE();
+	}
 	arraynr = cp[strlen(cp)-1] == ']';
 	if(nv_isarray(np) && !(mp=nv_opensub(np)))
 		index=nv_aindex(np);
@@ -3393,7 +3425,10 @@ void nv_setref(register Namval_t *np, Dt_t *hp, int flags)
 	if(nv_isref(np))
 		return;
 	if(nv_isarray(np))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_badref,nv_name(np));
+		UNREACHABLE();
+	}
 	if(!(cp=nv_getval(np)))
 	{
 		_nv_unset(np,0);
@@ -3401,7 +3436,10 @@ void nv_setref(register Namval_t *np, Dt_t *hp, int flags)
 		return;
 	}
 	if((ep = lastdot(cp,0)) && nv_isattr(np,NV_MINIMAL))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_badref,nv_name(np));
+		UNREACHABLE();
+	}
 	if(hp)
 		hpnext = dtvnext(hp);
 	if((nr=nv_open(cp, hp?hp:shp->var_tree, flags|NV_NOSCOPE|NV_NOADD|NV_NOFAIL)))
@@ -3417,10 +3455,16 @@ void nv_setref(register Namval_t *np, Dt_t *hp, int flags)
 	if(nr==np) 
 	{
 		if(shp->namespace && nv_dict(shp->namespace)==hp)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_selfref,nv_name(np));
+			UNREACHABLE();
+		}
 		/* bind to earlier scope, or add to global scope */
 		if(!(hp=dtvnext(hp)) || (nq=nv_search((char*)np,hp,NV_ADD|HASH_BUCKET))==np)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_selfref,nv_name(np));
+			UNREACHABLE();
+		}
 		if(nv_isarray(nq))
 			nv_putsub(nq,(char*)0,ARRAY_UNDEF);
 	}
@@ -3449,6 +3493,7 @@ void nv_setref(register Namval_t *np, Dt_t *hp, int flags)
 		_nv_unset(np,NV_RDONLY);
 		nv_onattr(np,NV_REF);
 		errormsg(SH_DICT,ERROR_exit(1),e_globalref,nv_name(np));
+		UNREACHABLE();
 	}
 	shp->instance = 1;
 	if(nq && !ep && (ap=nv_arrayptr(nq)) && !(ap->nelem&(ARRAY_UNDEF|ARRAY_SCAN)))

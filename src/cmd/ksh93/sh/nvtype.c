@@ -411,7 +411,10 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 			if(nr)
 			{
 				if(nv_isattr(nq,NV_RDONLY) && (nq->nvalue.cp || nv_isattr(nq,NV_INTEGER)))
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_readonly, nq->nvname);
+					UNREACHABLE();
+				}
 				if(nv_isref(nq))
 					nq = nv_refnode(nq);
 				if((size = nv_datasize(nr,(size_t*)0)) && size==nv_datasize(nq,(size_t*)0))
@@ -455,7 +458,10 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 					nv_delete(nr,sh.last_root,0);
 			}
 			else if(nv_isattr(nq,NV_RDONLY) && !nq->nvalue.cp && !nv_isattr(nq,NV_INTEGER))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_required,nq->nvname,nv_name(mp));
+				UNREACHABLE();
+			}
 		}
 	}
 	if(nv_isattr(mp,NV_BINARY))
@@ -515,6 +521,7 @@ found:
 				return(nq);
 		}
 		errormsg(SH_DICT,ERROR_exit(1),e_notelem,n,name,nv_name(np));
+		UNREACHABLE();
 	}
 	return(nq);
 }
@@ -841,6 +848,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 		cp = nodes[0]->nvname;
 		_nv_unset(nodes[0],NV_RDONLY);
 		errormsg(SH_DICT,ERROR_exit(1),e_badtypedef,cp);
+		UNREACHABLE();
 	}
 	n=strlen(nodes[1]->nvname);
 	for(nnodes=1,i=1; i <numnodes; i++)
@@ -1299,6 +1307,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		if(tp==tq)
 			return(0);
 		errormsg(SH_DICT,ERROR_exit(1),e_redef,nv_name(np));
+		UNREACHABLE();
 	}
 	if((ap=nv_arrayptr(np)) && ap->nelem>0)
 	{
@@ -1428,7 +1437,10 @@ Namval_t *nv_mkstruct(const char *name, int rsize, Fields_t *fields)
 			tp = nv_open(stakptr(offset), sh.var_tree, NV_VARNAME|NV_NOADD|NV_NOFAIL);
 			stakseek(r);
 			if(!tp)
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_unknowntype,strlen(fp->type),fp->type);
+				UNREACHABLE();
+			}
 			if(dp = (Namtype_t*)nv_hasdisc(tp,&type_disc))
 			{
 				nnodes += dp->numnodes;

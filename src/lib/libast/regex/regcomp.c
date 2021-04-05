@@ -775,7 +775,7 @@ magic(register Cenv_t* env, register int c, int escaped)
 					env->token.len += ep - sp;
 					return n;
 				}
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case T_BACK+8:
 			case T_BACK+9:
 				if (env->type == SRE || c == T_BACK && !(env->flags & (REG_LENIENT|REG_REGEXP)))
@@ -2102,7 +2102,7 @@ grp(Cenv_t* env, int parno)
 					env->error = REG_BADRPT;
 					return 0;
 				}
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 0:
 			case T_CLOSE:
 				x = 0;
@@ -2177,7 +2177,7 @@ grp(Cenv_t* env, int parno)
 			case 'X':
 				if (typ >= 0 || env->type == ERE && (env->flags & REG_CLASS_ESCAPE))
 					break; /* PCRE_EXTRA */
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 'A':
 				env->flags &= ~(REG_AUGMENTED|REG_EXTENDED|REG_LITERAL|REG_REGEXP|REG_SHELL|REG_LEFT|REG_RIGHT);
 				env->flags |= REG_AUGMENTED|REG_EXTENDED;
@@ -2291,7 +2291,7 @@ grp(Cenv_t* env, int parno)
 				return 0;
 			case 'D':
 				x = REX_NEST_delimiter;
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			delimiter:
 				if ((i = chr(env, &esc)) < 0)
 					goto invalid;
@@ -2317,7 +2317,7 @@ grp(Cenv_t* env, int parno)
 				continue;
 			case 'Q':
 				x = REX_NEST_quote;
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			quote:
 				if ((i = chr(env, &esc)) < 0)
 					goto invalid;
@@ -2512,7 +2512,7 @@ grp(Cenv_t* env, int parno)
 			env->paren[c]->re.group.back = 1;
 			return rep(env, node(env, REX_BACK, c, 0, 0), 0, 0);
 		}
-		/*FALLTHROUGH*/
+		/* FALLTHROUGH */
 	default:
 		env->error = REG_BADRPT;
 		return 0;
@@ -3182,7 +3182,7 @@ special(Cenv_t* env, regex_t* p)
 			e = e->re.group.expr.rex;
 			if (e->type != REX_DOT)
 				return 0;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case REX_DOT:
 			if (e->lo == 0 && e->hi == RE_DUP_INF)
 				break;

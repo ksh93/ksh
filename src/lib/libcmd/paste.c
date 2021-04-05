@@ -199,13 +199,16 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
+	{
 		error(ERROR_usage(2),"%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if(!delim || !*delim)
 	{
 		delim = defdelim;
@@ -213,7 +216,10 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 		delim[1] = 0;
 	}
 	if (!(delim = strdup(delim)))
+	{
 		error(ERROR_system(1), "out of memory");
+		UNREACHABLE();
+	}
 	dlen = dsiz = stresc(delim);
 	mp = 0;
 	if (mbwide())
@@ -232,6 +238,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 			{
 				free(delim);
 				error(ERROR_system(1), "out of memory");
+				UNREACHABLE();
 			}
 			cp = delim;
 			dlen = 0;
@@ -254,7 +261,10 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 	if(!sflag)
 	{
 		if (!(streams = (Sfio_t**)stakalloc(n*sizeof(Sfio_t*))))
+		{
 			error(ERROR_exit(1), "out of memory");
+			UNREACHABLE();
+		}
 		n = 0;
 	}
 	do

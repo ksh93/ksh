@@ -97,14 +97,17 @@ int main(int argc, char *argv[])
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2),"%s",opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	shp = sh_init(argc,argv,(Shinit_f)0);
 	shp->shcomp = 1;
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	if(error_info.errors || argc>2)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(cp= *argv)
 	{
 		argv++;
@@ -116,7 +119,10 @@ int main(int argc, char *argv[])
 	{
 		struct stat statb;
 		if(!(out = sfopen((Sfio_t*)0,cp,"w")))
+		{
 			errormsg(SH_DICT,ERROR_system(1),"%s: cannot create",cp);
+			UNREACHABLE();
+		}
 		if(fstat(sffileno(out),&statb) >=0)
 			chmod(cp,(statb.st_mode&~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
 	}
@@ -145,12 +151,18 @@ int main(int argc, char *argv[])
 			if((t->tre.tretyp&(COMMSK|COMSCAN))==0 && t->com.comnamp && strcmp(nv_name((Namval_t*)t->com.comnamp),"alias")==0)
 				sh_exec(t,0);
 			if(!dflag && sh_tdump(out,t) < 0)
+			{
 				errormsg(SH_DICT,ERROR_exit(1),"dump failed");
+				UNREACHABLE();
+			}
 		}
 		else if(sfeof(in))
 			break;
 		if(sferror(in))
+		{
 			errormsg(SH_DICT,ERROR_system(1),"I/O error");
+			UNREACHABLE();
+		}
 		if(t && ((t->tre.tretyp&COMMSK)==TCOM) && (np=t->com.comnamp) && (cp=nv_name(np)))
 		{
 			if(strcmp(cp,"exit")==0)

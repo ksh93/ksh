@@ -753,7 +753,7 @@ astlicense(char* p, int size, char* file, char* options, int cc1, int cc2, int c
 							break;
 						case -1:
 							c = SPECIAL;
-							/*FALLTHROUGH*/
+							/* FALLTHROUGH */
 						default:
 							notice.type = c;
 							notice.item[CLASS].data = lic[lic[c].quote].data;

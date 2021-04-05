@@ -193,7 +193,10 @@ static int getnode(State_t* state, Node_t *np)
 	char*		ep;
 
 	if (!(cp = *state->arglist++))
+	{
 		error(ERROR_exit(2), "argument expected");
+		UNREACHABLE();
+	}
 	if (!state->standard)
 		switch (cp[0])
 		{
@@ -201,9 +204,15 @@ static int getnode(State_t* state, Node_t *np)
 			if (cp[1] == 'n' && !strcmp(cp, "index"))
 			{
 				if (!(cp = *state->arglist++))
+				{
 					error(ERROR_exit(2), "string argument expected");
+					UNREACHABLE();
+				}
 				if (!(ep = *state->arglist++))
+				{
 					error(ERROR_exit(2), "chars argument expected");
+					UNREACHABLE();
+				}
 				np->num = (ep = strpbrk(cp, ep)) ? (ep - cp + 1) : 0;
 				np->type = T_NUM;
 				goto next;
@@ -213,7 +222,10 @@ static int getnode(State_t* state, Node_t *np)
 			if (cp[1] == 'e' && !strcmp(cp, "length"))
 			{
 				if (!(cp = *state->arglist++))
+				{
 					error(ERROR_exit(2), "string argument expected");
+					UNREACHABLE();
+				}
 				np->num = strlen(cp);
 				np->type = T_NUM;
 				goto next;
@@ -223,27 +235,42 @@ static int getnode(State_t* state, Node_t *np)
 			if (cp[1] == 'a' && !strcmp(cp, "match"))
 			{
 				if (!(np->str = *state->arglist++))
+				{
 					error(ERROR_exit(2), "pattern argument expected");
+					UNREACHABLE();
+				}
 				np->type = T_STR;
 				return ':';
 			}
 			break;
 		case 'q':
 			if (cp[1] == 'u' && !strcmp(cp, "quote") && !(cp = *state->arglist++))
+			{
 				error(ERROR_exit(2), "string argument expected");
+				UNREACHABLE();
+			}
 			break;
 		case 's':
 			if (cp[1] == 'u' && !strcmp(cp, "substr"))
 			{
 				if (!(sp = *state->arglist++))
+				{
 					error(ERROR_exit(2), "string argument expected");
+					UNREACHABLE();
+				}
 				if (!(cp = *state->arglist++))
+				{
 					error(ERROR_exit(2), "position argument expected");
+					UNREACHABLE();
+				}
 				i = strtol(cp, &ep, 10);
 				if (*ep || --i < 0)
 					i = -1;
 				if (!(cp = *state->arglist++))
+				{
 					error(ERROR_exit(2), "length argument expected");
+					UNREACHABLE();
+				}
 				j = strtol(cp, &ep, 10);
 				if (*ep)
 					j = -1;
@@ -267,7 +294,10 @@ static int getnode(State_t* state, Node_t *np)
 	{
 		tok = expr_or(state, np);
 		if (tok != ')')
+		{
 			error(ERROR_exit(2),"closing parenthesis missing");
+			UNREACHABLE();
+		}
 	}
 	else
 	{
@@ -288,7 +318,7 @@ static int getnode(State_t* state, Node_t *np)
 		if (*cp==optable[i].opname[0] && cp[1]==optable[i].opname[1])
 			return optable[i].op;
 	error(ERROR_exit(2),"%s: unknown operator argument",cp);
-	return 0;
+	UNREACHABLE();
 }
 
 static int expr_cond(State_t* state, Node_t *np)
@@ -352,9 +382,15 @@ static int expr_mult(State_t* state, Node_t *np)
 		int op = (tok&T_OP);
 		tok = expr_cond(state, &rp);
 		if (!numeric(np) || !numeric(&rp))
+		{
 			error(ERROR_exit(2),"non-numeric argument");
+			UNREACHABLE();
+		}
 		if (op && rp.num==0)
+		{
 			error(ERROR_exit(2),"division by zero");
+			UNREACHABLE();
+		}
 		switch(op)
 		{
 		    case 0:
@@ -381,7 +417,10 @@ static int expr_add(State_t* state, Node_t *np)
 		int op = (tok&T_OP);
 		tok = expr_mult(state, &rp);
 		if (!numeric(np) || !numeric(&rp))
+		{
 			error(ERROR_exit(2),"non-numeric argument");
+			UNREACHABLE();
+		}
 		if (op)
 			np->num -= rp.num;
 		else
@@ -513,17 +552,27 @@ b_expr(int argc, char** argv, Shbltin_t* context)
 			 *	 unknown - options
 			 */
 			if(n=='?')
+			{
 				error(ERROR_usage(2), "%s", opt_info.arg);
+				UNREACHABLE();
+			}
 			if (opt_info.option[1] != '?')
 				break;
 			error(ERROR_usage(2), "%s", opt_info.arg);
+			UNREACHABLE();
 		}
 		if (error_info.errors)
+		{
 			error(ERROR_usage(2),"%s",optusage((char*)0));
+			UNREACHABLE();
+		}
 		state.arglist = argv+opt_info.index;
 	}
 	if (expr_or(&state, &node))
+	{
 		error(ERROR_exit(2),"syntax error");
+		UNREACHABLE();
+	}
 	if (node.type&T_STR)
 	{
 		if (*node.str)

@@ -844,6 +844,7 @@ unset foo
 [[ $(printf '%(%k)T') == $(printf '%(%_H)T') ]] || err_exit 'date format %k is not the same as %_H'
 [[ $(printf '%(%f)T') == $(printf '%(%Y.%m.%d-%H:%M:%S)T') ]] || err_exit 'date format %f is not the same as %Y.%m.%d-%H:%M:%S'
 [[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] && err_exit 'date format %q is the same as %Qz'
+[[ $(printf '%(%Z)T') == $(date '+%Z') ]] || err_exit "date format %Z is incorrect (expected $(date '+%Z'), got $(printf '%(%Z)T'))"
 
 # Test manually specified blank and zero padding with 'printf  %T'
 (
@@ -995,6 +996,32 @@ then	got=$( { "$SHELL" -c '
 		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 fi
 
+# ==========
+# Verify that the POSIX 'test' builtin complains loudly when the '=~' operator is used rather than
+# failing silently. See https://github.com/att/ast/issues/1152.
+actual=$($SHELL -c 'test foo =~ foo' 2>&1)
+actual_status=$?
+actual=${actual#*: }
+expect='test: =~: operator not supported; use [[ ... ]]'
+expect_status=2
+[[ "$actual" = "$expect" ]] || err_exit "test =~ failed (expected $expect, got $actual)"
+[[ "$actual_status" = "$expect_status" ]] ||
+    err_exit "test =~ failed with the wrong exit status (expected $expect_status, got $actual_status)"
+
+# Invalid operators 'test' and '[[ ... ]]' both reject should also cause an error with exit status 2.
+for operator in '===' ']]'
+do
+	actual="$($SHELL -c "test foo $operator foo" 2>&1)"
+	actual_status=$?
+	actual=${actual#*: }
+	expect="test: $operator: unknown operator"
+	expect_status=2
+	[[ "$actual" = "$expect" ]] || err_exit "test $operator failed" \
+		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	[[ "$actual_status" = "$expect_status" ]] ||
+		err_exit "'test foo $operator foo' failed with the wrong exit status (expected $expect_status, got $actual_status)"
+done
+
 # ======
 # Regression test for https://github.com/att/ast/issues/1402
 #
@@ -1031,6 +1058,103 @@ $SHELL -c "cd $tmp/notadir" 2> /dev/null && err_exit "'cd' on a normal file does
 got=$?
 exp=1
 [[ $got == $exp ]] || err_exit "'kill %' has the wrong exit status (expected '$exp'; got '$got')"
+
+# ======
+# 'cd -' should recognize the value of an overriden $OLDPWD variable
+# https://github.com/ksh93/ksh/pull/249
+# https://github.com/att/ast/issues/8
+
+mkdir "$tmp/oldpwd" "$tmp/otherpwd"
+exp=$tmp/oldpwd
+OLDPWD=$exp
+cd - > /dev/null
+got=$PWD
+[[ $got == "$exp" ]] || err_exit "cd - doesn't recognize overridden OLDPWD variable" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+cd "$tmp"
+OLDPWD=$tmp/otherpwd
+got=$(OLDPWD=$tmp/oldpwd cd -)
+[[ $got == "$exp" ]] ||
+	err_exit "cd - doesn't recognize overridden OLDPWD variable if it is overridden in new scope" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+function fn
+{
+	typeset OLDPWD=/tmp
+	cd -
+}
+exp='/tmp'
+got=$(OLDPWD=/bin fn)
+[[ $got == "$exp" ]] ||
+	err_exit "cd - doesn't recognize overridden OLDPWD variable if it is overridden in function scope" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+function fn
+{
+	typeset PWD=bug
+	cd /tmp
+	echo "$PWD"
+}
+exp='/tmp'
+got=$(fn)
+[[ $got == "$exp" ]] ||
+	err_exit "PWD isn't set after cd if already set in function scope" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# $PWD should be set correctly after cd
+exp="$PWD
+$PWD"
+got=$(echo $PWD; PWD=/tmp cd /home; echo $PWD)
+[[ $got == "$exp" ]] ||
+	err_exit "PWD is incorrect after cd" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test for $OLDPWD and/or $PWD leaking out of subshell
+exp='/tmp /dev'
+got=$(
+	PWD=/dev
+	OLDPWD=/tmp
+	(
+		cd /usr; cd /bin
+		cd - > /dev/null
+	)
+	echo $OLDPWD $PWD
+)
+[[ $got == "$exp" ]] ||
+	err_exit "OLDPWD and/or PWD leak out of subshell" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# $OLDPWD and $PWD should survive after being set in a subshare
+exp='/usr /bin'
+got=$(
+	PWD=/dev
+	OLDPWD=/tmp
+	foo=${
+		cd /usr; cd /bin
+	}
+	echo $OLDPWD $PWD
+)
+[[ $got == "$exp" ]] ||
+	err_exit "OLDPWD and/or PWD fail to survive subshare" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Test for bugs related to 'uname -d'
+# https://github.com/att/ast/pull/1187
+builtin uname
+exp=$(uname -o)
+
+# Test for a possible crash (to avoid crashing the script, fork the subshell)
+(
+	ulimit -t unlimited
+	uname -d > /dev/null
+) || err_exit "'uname -d' crashes"
+
+# 'uname -d' shouldn't change the output of 'uname -o'
+got=$(ulimit -t unlimited; uname -d > /dev/null; uname -o)
+[[ $exp == $got ]] || err_exit "'uname -d' changes the output of 'uname -o'" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -537,7 +537,7 @@ reg int		local;	/* a local call */
 
 			break;
 		}
-		/* fall thru */
+		/* FALLTHROUGH */
 
 	case SF_READ: /* switching to SF_WRITE */
 		if(wanted != SF_WRITE)

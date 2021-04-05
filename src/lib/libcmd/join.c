@@ -348,7 +348,7 @@ getrec(Join_t* jp, int index, int discard)
 						cp = tp;
 						break;
 					}
-					/*FALLTHROUGH*/
+					/* FALLTHROUGH */
 				default:
 					goto next;
 				}
@@ -824,7 +824,10 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
 #endif
 	if (!(jp = init()))
+	{
 		error(ERROR_system(1),"out of memory");
+		UNREACHABLE();
+	}
 	jp->context = context;
 	for (;;)
 	{
@@ -866,7 +869,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 				jp->file[0].field = (int)(opt_info.num-1);
 				n = '2';
 			}
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
  		case '1':
 		case '2':
 			if (opt_info.num <=0)
@@ -875,7 +878,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case 'v':
 			jp->outmode &= ~C_COMMON;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'a':
 			if (opt_info.num!=1 && opt_info.num!=2)
 				error(2,"%s: file number must be 1 or 2", opt_info.name);
@@ -918,7 +921,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 		case '?':
 			done(jp);
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
@@ -928,6 +931,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	{
 		done(jp);
 		error(ERROR_usage(2),"%s", optusage(NiL));
+		UNREACHABLE();
 	}
 	jp->ooutmode = jp->outmode;
 	jp->file[0].name = cp = *argv++;
@@ -946,6 +950,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	{
 		done(jp);
 		error(ERROR_system(1),"%s: cannot open",cp);
+		UNREACHABLE();
 	}
 	jp->file[1].name = cp = *argv;
 	if (streq(cp,"-"))
@@ -963,6 +968,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	{
 		done(jp);
 		error(ERROR_system(1),"%s: cannot open",cp);
+		UNREACHABLE();
 	}
 	if (jp->buffered)
 	{
@@ -976,6 +982,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	{
 		done(jp);
 		error(ERROR_system(1),"write error");
+		UNREACHABLE();
 	}
 	else if (jp->file[0].iop==sfstdin || jp->file[1].iop==sfstdin)
 		sfseek(sfstdin,(Sfoff_t)0,SEEK_END);

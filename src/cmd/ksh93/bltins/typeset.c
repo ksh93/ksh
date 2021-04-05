@@ -107,7 +107,10 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 			return(2);
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),optusage(NIL(char*)));
+		UNREACHABLE();
+	}
 	argv += (opt_info.index-1);
 	if(*command=='r')
 		flag = (NV_ASSIGN|NV_RDONLY|NV_VARNAME);
@@ -166,7 +169,10 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 			return(2);
 		}
 		if(error_info.errors)
+		{
 			errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NIL(char*)));
+			UNREACHABLE();
+		}
 		argv += (opt_info.index-1);
 	}
 	/* 'alias -t', 'hash' */
@@ -222,7 +228,10 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 		else if(argv[0][0] == 'n')	/* <n>ameref == typeset -n */
 			new_argv[1] = "-n";
 		else
+		{
 			errormsg(SH_DICT, ERROR_exit(128), "internal error");
+			UNREACHABLE();
+		}
 		for (n = 1; n <= argc; n++)
 			new_argv[n + 1] = argv[n];
 		argc++;
@@ -256,6 +265,7 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 					tdata.argnum = (int)opt_info.num;
 					break;
 				}
+				/* FALLTHROUGH */
 			case 'F':
 			case 'X':
 				if(!opt_info.arg || (tdata.argnum = opt_info.num) <0)
@@ -304,7 +314,10 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 				if(tdata.argnum==0)
 					tdata.argnum = (int)opt_info.num;
 				if(tdata.argnum < 0)
+				{
 					errormsg(SH_DICT,ERROR_exit(1), e_badfield, tdata.argnum);
+					UNREACHABLE();
+				}
 				isadjust = 1;
 				if(n=='Z')
 					flag |= NV_ZFILL;
@@ -316,7 +329,10 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 				break;
 			case 'M':
 				if((tdata.wctname = opt_info.arg) && !nv_mapchar((Namval_t*)0,tdata.wctname))
+				{
 					errormsg(SH_DICT, ERROR_exit(1),e_unknownmap, tdata.wctname);
+					UNREACHABLE();
+				}
 				if(tdata.wctname && strcmp(tdata.wctname,e_tolower)==0)
 					flag |= NV_UTOL;
 				else
@@ -451,9 +467,15 @@ endargs:
 		flag |= NV_STATICF;
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage(NIL(char*)));
+		UNREACHABLE();
+	}
 	if(sizeof(char*)<8 && tdata.argnum > SHRT_MAX)
+	{
 		errormsg(SH_DICT,ERROR_exit(2),"option argument cannot be greater than %d",SHRT_MAX);
+		UNREACHABLE();
+	}
 	if(isfloat)
 		flag |= NV_DOUBLE;
 	if(sflag)
@@ -495,7 +517,10 @@ endargs:
 #endif /* SHOPT_NAMESPACE */
 		stkseek(stkp,offset);
 		if(!tdata.tp)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),"%s: unknown type",tdata.prefix);
+			UNREACHABLE();
+		}
 		else if(nv_isnull(tdata.tp))
 			nv_newtype(tdata.tp);
 		tdata.tp->nvenv = tdata.help;
@@ -511,7 +536,10 @@ endargs:
 	if(!tdata.sh->mktype)
 		tdata.help = 0;
 	if(tdata.aflag=='+' && (flag&(NV_ARRAY|NV_IARRAY|NV_COMVAR)) && argv[1])
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_nounattr);
+		UNREACHABLE();
+	}
 	return(setall(argv,flag,troot,&tdata));
 }
 
@@ -631,7 +659,10 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				{
 					/* Function names cannot be special builtin */
 					if((np=nv_search(name,shp->bltin_tree,0)) && nv_isattr(np,BLT_SPC))
+					{
 						errormsg(SH_DICT,ERROR_exit(1),e_badfun,name);
+						UNREACHABLE();
+					}
 #if SHOPT_NAMESPACE
 					if(shp->namespace)
 						np = sh_fsearch(shp,name,NV_ADD|HASH_NOSCOPE);
@@ -704,7 +735,10 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			if(nv_isnull(np) && !nv_isarray(np) && nv_isattr(np,NV_NOFREE))
 				nv_offattr(np,NV_NOFREE);
 			else if(tp->tp && !nv_isattr(np,NV_MINIMAL|NV_EXPORT) && (mp=(Namval_t*)np->nvenv) && (ap=nv_arrayptr(mp)) && (ap->nelem&ARRAY_TREE))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_typecompat,nv_name(np));
+				UNREACHABLE();
+			}
 			else if((ap=nv_arrayptr(np)) && nv_aindex(np)>0 && ap->nelem==1 && nv_getval(np)==Empty)
 			{
 				ap->nelem++;
@@ -712,7 +746,10 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				ap->nelem--;
 			}
 			else if(iarray && ap && ap->fun) 
+			{
 				errormsg(SH_DICT,ERROR_exit(1),"cannot change associative array %s to indexed array",nv_name(np));
+				UNREACHABLE();
+			}
 			else if( (iarray||(flag&NV_ARRAY)) && nv_isvtree(np) && !nv_type(np))
 				_nv_unset(np,NV_EXPORT);
 			if(tp->pflag)
@@ -803,7 +840,10 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				Namfun_t *fp;
 				char  *cp;
 				if(!tp->wctname)
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_mapchararg,nv_name(np));
+					UNREACHABLE();
+				}
 				cp = (char*)nv_mapchar(np,0);
 				if(fp=nv_mapchar(np,tp->wctname))
 				{
@@ -827,7 +867,10 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			if (tp->aflag == '-')
 			{
 				if((flag&NV_EXPORT) && (strchr(name,'.') || nv_isvtree(np)))
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_badexport,name);
+					UNREACHABLE();
+				}
 #if SHOPT_BSH
 				if(flag&NV_EXPORT)
 					nv_offattr(np,NV_IMPORT);
@@ -848,7 +891,10 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			else
 			{
 				if((flag&NV_RDONLY) && (curflag&NV_RDONLY))
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_readonly,nv_name(np));
+					UNREACHABLE();
+				}
 				newflag = curflag & ~flag;
 			}
 			if (tp->aflag && (tp->argnum || (curflag!=newflag)))
@@ -1070,18 +1116,27 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage(NIL(char*)));
+		UNREACHABLE();
+	}
 	if(arg || *argv)
 	{
 		if(sh_isoption(SH_RESTRICTED))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_restricted,argv[-opt_info.index]);
+			UNREACHABLE();
+		}
 #if SHOPT_PFSH
 		if(sh_isoption(SH_PFSH))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_pfsh,argv[-opt_info.index]);
+			UNREACHABLE();
+		}
 #endif
 		if(tdata.sh->subshell && !tdata.sh->subshare)
 			sh_subfork();
@@ -1230,6 +1285,7 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 			break;
 		case 'n':
 			nflag = NV_NOREF;
+			/* FALLTHROUGH */
 		case 'v':
 			troot = shp->var_tree;
 			break;
@@ -1242,7 +1298,10 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 	}
 	argv += opt_info.index;
 	if(error_info.errors || (*argv==0 &&!all))
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NIL(char*)));
+		UNREACHABLE();
+	}
 	if(!troot)
 		return(1);
 	r = 0;

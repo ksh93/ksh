@@ -238,6 +238,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			continue;
 		    case A_ASSIGNOP1:
 			node.emode |= ARITH_ASSIGNOP;
+			/* FALLTHROUGH */
 		    case A_PUSHV:
 			cp = roundptr(ep,cp,Sfdouble_t*);
 			dp = *((Sfdouble_t**)cp);
@@ -282,6 +283,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			continue;
 		    case A_ASSIGNOP:
 			node.nosub = lastsub;
+			/* FALLTHROUGH */
 		    case A_STORE:
 			cp = roundptr(ep,cp,Sfdouble_t*);
 			dp = *((Sfdouble_t**)cp);
@@ -532,7 +534,7 @@ static int gettok(register struct vars *vp)
 				op = A_DIG;
 			else
 				op = A_REG;
-			/*FALL THRU*/
+			/* FALLTHROUGH */
 		    case A_DIG: case A_REG: case A_LIT:
 		    keep:
 			ungetchr(vp);
@@ -551,10 +553,10 @@ static int gettok(register struct vars *vp)
 				op -= 2;
 				break;
 			}
-			/* FALL THRU */
+			/* FALLTHROUGH */
 		    case A_NOT:	case A_COLON:
 			c = '=';
-			/* FALL THRU */
+			/* FALLTHROUGH */
 		    case A_ASSIGN:
 		    case A_TIMES:
 		    case A_PLUS:	case A_MINUS:
@@ -608,7 +610,7 @@ again:
 	    case A_PLUSPLUS:
 		c = A_LVALUE;
 		op = A_INCR|T_NOFLOAT;
-		/* FALL THRU */
+		/* FALLTHROUGH */
 	    case A_TILDE:
 		op |= T_NOFLOAT;
 	    common:
@@ -762,6 +764,7 @@ again:
 		case A_MINUSMINUS:
 			wasop=0;
 			op |= T_NOFLOAT;
+			/* FALLTHROUGH */
 		case A_ASSIGN:
 			if(!lvalue.value)
 				ERROR(vp,e_notlvalue);
@@ -827,7 +830,7 @@ again:
 		case A_AND:	case A_OR:	case A_XOR:	case A_LSHIFT:
 		case A_RSHIFT:	case A_MOD:
 			op |= T_NOFLOAT;
-			/* FALL THRU */
+			/* FALLTHROUGH */
 		case A_PLUS:	case A_MINUS:	case A_TIMES:	case A_DIV:
 		case A_EQ:	case A_NEQ:	case A_LT:	case A_LE:
 		case A_GT:	case A_GE:	case A_POW:
@@ -1021,7 +1024,7 @@ Sfdouble_t strval(Shell_t *shp,const char *s,char **end,Sfdouble_t(*conv)(const 
 	}
 	level=0;
 	errormsg(SH_DICT,ERROR_exit(1),message,ep->name);
-	return(0);
+	UNREACHABLE();
     }
 
 #undef	extern

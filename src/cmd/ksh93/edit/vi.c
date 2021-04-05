@@ -664,8 +664,7 @@ static void backword(Vi_t *vp,int nwords, register int cmd)
 	register int tcur_virt = cur_virt;
 	while( nwords-- && tcur_virt > first_virt )
 	{
-		if( !isblank(tcur_virt) && isblank(tcur_virt-1)
-			&& tcur_virt>first_virt )
+		if( !isblank(tcur_virt) && isblank(tcur_virt-1) )
 			--tcur_virt;
 		else if(cmd != 'B')
 		{
@@ -674,21 +673,20 @@ static void backword(Vi_t *vp,int nwords, register int cmd)
 			if((!cur && last) || (cur && !last))
 				--tcur_virt;
 		}
-		while( isblank(tcur_virt) && tcur_virt>=first_virt )
+		while( tcur_virt >= first_virt && isblank(tcur_virt) )
 			--tcur_virt;
 		if( cmd == 'B' )
 		{
-			while( !isblank(tcur_virt) && tcur_virt>=first_virt )
+			while( tcur_virt >= first_virt && !isblank(tcur_virt) )
 				--tcur_virt;
 		}
 		else
 		{
 			if(isalph(tcur_virt))
-				while( isalph(tcur_virt) && tcur_virt>=first_virt )
+				while( tcur_virt >= first_virt && isalph(tcur_virt) )
 					--tcur_virt;
 			else
-				while( !isalph(tcur_virt) && !isblank(tcur_virt)
-					&& tcur_virt>=first_virt )
+				while( tcur_virt >= first_virt && !isalph(tcur_virt) && !isblank(tcur_virt) )
 					--tcur_virt;
 		}
 		cur_virt = ++tcur_virt;
@@ -838,6 +836,7 @@ static int cntlmode(Vi_t *vp)
 			case BAD:
 				/*** no match ***/
 					ed_ringbell();
+				/* FALLTHROUGH */
 
 			default:
 				if( vp->u_column == INVALID )
@@ -958,6 +957,7 @@ static int cntlmode(Vi_t *vp)
 			if(vp->repeat_set==0)
 				goto vcommand;
 #endif /* KSHELL */
+			/* FALLTHROUGH */
 
 		case 'G':		/** goto command repeat **/
 			if(vp->repeat_set==0)
@@ -1016,11 +1016,13 @@ static int cntlmode(Vi_t *vp)
 				}
 				refresh(vp,INPUT);
 			}
+			/* FALLTHROUGH */
 
 		case '\n':		/** send to shell **/
 #if SHOPT_EDPREDICT
 			if(!vp->ed->hlist)
-			return(ENTER);
+				return(ENTER);
+			/* FALLTHROUGH */
 		case '\t':		/** bring choice to edit **/
 			if(vp->ed->hlist)
 			{
@@ -1047,6 +1049,7 @@ static int cntlmode(Vi_t *vp)
 				if(c=='[')
 					continue;
 			}
+			/* FALLTHROUGH */
 		default:
 		ringbell:
 			ed_ringbell();
@@ -1057,7 +1060,6 @@ static int cntlmode(Vi_t *vp)
 		refresh(vp,CONTROL);
 		vp->repeat = 1;
 	}
-/* NOTREACHED */
 	return(0);
 }
 
@@ -1235,23 +1237,22 @@ static void endword(Vi_t *vp, int nwords, register int cmd)
 	register int tcur_virt = cur_virt;
 	while( nwords-- )
 	{
-		if( !isblank(tcur_virt) && tcur_virt<=last_virt )
+		if( tcur_virt <= last_virt && !isblank(tcur_virt) )
 			++tcur_virt;
-		while( isblank(tcur_virt) && tcur_virt<=last_virt )
+		while( tcur_virt <= last_virt && isblank(tcur_virt) )
 			++tcur_virt;	
 		if( cmd == 'E' )
 		{
-			while( !isblank(tcur_virt) && tcur_virt<=last_virt )
+			while( tcur_virt <= last_virt && !isblank(tcur_virt) )
 				++tcur_virt;
 		}
 		else
 		{
 			if( isalph(tcur_virt) )
-				while( isalph(tcur_virt) && tcur_virt<=last_virt )
+				while( tcur_virt <= last_virt && isalph(tcur_virt) )
 					++tcur_virt;
 			else
-				while( !isalph(tcur_virt) && !isblank(tcur_virt)
-					&& tcur_virt<=last_virt )
+				while( tcur_virt <= last_virt && !isalph(tcur_virt) && !isblank(tcur_virt) )
 					++tcur_virt;
 		}
 		if( tcur_virt > first_virt )
@@ -1274,24 +1275,23 @@ static void forward(Vi_t *vp,register int nwords, int cmd)
 	{
 		if( cmd == 'W' )
 		{
-			while( !isblank(tcur_virt) && tcur_virt < last_virt )
+			while( tcur_virt < last_virt && !isblank(tcur_virt) )
 				++tcur_virt;
 		}
 		else
 		{
 			if( isalph(tcur_virt) )
 			{
-				while( isalph(tcur_virt) && tcur_virt<last_virt )
+				while( tcur_virt < last_virt && isalph(tcur_virt) )
 					++tcur_virt;
 			}
 			else
 			{
-				while( !isalph(tcur_virt) && !isblank(tcur_virt)
-					&& tcur_virt < last_virt )
+				while( tcur_virt < last_virt && !isalph(tcur_virt) && !isblank(tcur_virt) )
 					++tcur_virt;
 			}
 		}
-		while( isblank(tcur_virt) && tcur_virt < last_virt )
+		while( tcur_virt < last_virt && isblank(tcur_virt) )
 			++tcur_virt;
 	}
 	cur_virt = tcur_virt;
@@ -1527,6 +1527,7 @@ static void getline(register Vi_t* vp,register int mode)
 			if( cur_virt != INVALID )
 				continue;
 			vp->addnl = 0;
+			/* FALLTHROUGH */
 
 		case '\n':		/** newline or return **/
 			if( mode != SEARCH )
@@ -1560,7 +1561,7 @@ static void getline(register Vi_t* vp,register int mode)
 				}
 				vp->ed->e_tabcount = 0;
 			}
-			/* FALL THRU*/
+			/* FALLTHROUGH */
 		default:
 			if( mode == REPLACE )
 			{
@@ -1610,7 +1611,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 
 	case '^':		/** First nonblank character **/
 		tcur_virt = first_virt;
-		while( isblank(tcur_virt) && tcur_virt < last_virt )
+		while( tcur_virt < last_virt && isblank(tcur_virt) )
 			++tcur_virt;
 		break;
 
@@ -1618,7 +1619,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		tcur_virt = vp->repeat-1;
 		if(tcur_virt <= last_virt)
 			break;
-		/* fall through */
+		/* FALLTHROUGH */
 
 	case '$':		/** End of line **/
 		tcur_virt = last_virt;
@@ -1797,6 +1798,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 	case 'f':		/** find new char forward **/
 		bound = last_virt;
 		incr = 1;
+		/* FALLTHROUGH */
 
 	case 'T':		/** find up to new char backward **/
 	case 'F':		/** find new char backward **/
@@ -2493,10 +2495,12 @@ addin:
 		if(vp->ed->e_tabcount!=1)
 			return(BAD);
 		c = '=';
+		/* FALLTHROUGH */
 	case '*':		/** do file name expansion in place **/
 	case '\\':		/** do file name completion in place **/
 		if( cur_virt == INVALID )
 			return(BAD);
+		/* FALLTHROUGH */
 	case '=':		/** list file name expansions **/
 		save_v(vp);
 		i = last_virt;
@@ -2577,10 +2581,12 @@ addin:
 			while(i = *p++);
 			return(APPEND);
 		}
+		/* FALLTHROUGH */
 
 	case 'A':		/** append to end of line **/
 		cur_virt = last_virt;
 		sync_cursor(vp);
+		/* FALLTHROUGH */
 
 	case 'a':		/** append **/
 		if( fold(mode) == 'A' )
@@ -2600,6 +2606,7 @@ addin:
 	case 'I':		/** insert at beginning of line **/
 		cur_virt = first_virt;
 		sync_cursor(vp);
+		/* FALLTHROUGH */
 
 	case 'i':		/** insert **/
 		if( fold(mode) == 'I' )
@@ -2676,6 +2683,7 @@ deleol:
 				vp->ocur_virt = INVALID;
 			--cur_virt;
 		}
+		/* FALLTHROUGH */
 
 	case 'p':		/** print **/
 		if( p[0] == '\0' )

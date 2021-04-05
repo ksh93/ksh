@@ -337,13 +337,16 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 			}
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors || *argv && (flags || sethost) || sethost && flags)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (sethost)
 	{
 #if _lib_sethostname
@@ -356,6 +359,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 #endif
 #endif
 		error(ERROR_system(1), "%s: cannot set host name", sethost);
+		UNREACHABLE();
 	}
 	else if (list)
 		astconflist(sfstdout, NiL, ASTCONF_base|ASTCONF_defined|ASTCONF_lower|ASTCONF_quote|ASTCONF_matchcall, "CS|SI");
@@ -381,7 +385,10 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 			flags = OPT_system;
 		memzero(&ut, sizeof(ut));
 		if (uname(&ut) < 0)
+		{
 			error(ERROR_usage(2), "information unavailable");
+			UNREACHABLE();
+		}
 		output(OPT_system, ut.sysname, "sysname");
 		if (flags & OPT_nodename)
 		{
@@ -493,11 +500,14 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 		if (flags & OPT_domain)
 		{
 			if (!*(s = astconf("SRPC_DOMAIN", NiL, NiL)))
+			{
 #if _lib_getdomainname
-				getdomainname(s, sizeof(buf));
+				getdomainname(buf, sizeof(buf));
+				s = buf;
 #else
 				/*NOP*/;
 #endif
+			}
 			output(OPT_domain, s, "domain");
 		}
 #if _mem_m_type_utsname

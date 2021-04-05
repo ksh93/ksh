@@ -66,6 +66,7 @@ extern const char	test_opchars[];
 extern const char	e_argument[];
 extern const char	e_missing[];
 extern const char	e_badop[];
+extern const char	e_unsupported_op[];
 extern const char	e_tstbegin[];
 extern const char	e_tstend[];
 

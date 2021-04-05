@@ -202,7 +202,10 @@ b_chmod(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case 'F':
 			if (stat(opt_info.arg, &st))
+			{
 				error(ERROR_exit(1), "%s: cannot stat", opt_info.arg);
+				UNREACHABLE();
+			}
 			mode = st.st_mode;
 			amode = "";
 			continue;
@@ -225,13 +228,16 @@ b_chmod(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors || !*argv || !amode && !*(argv + 1))
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (chlink)
 	{
 		flags &= ~FTS_META;
@@ -253,6 +259,7 @@ b_chmod(int argc, char** argv, Shbltin_t* context)
 			if (ignore)
 				umask(ignore);
 			error(ERROR_exit(1), "%s: invalid mode", amode);
+			UNREACHABLE();
 		}
 	}
 	if (!(fts = fts_open(argv, flags, NiL)))
@@ -260,6 +267,7 @@ b_chmod(int argc, char** argv, Shbltin_t* context)
 		if (ignore)
 			umask(ignore);
 		error(ERROR_system(1), "%s: not found", *argv);
+		UNREACHABLE();
 	}
 	while (!sh_checksig(context) && (ent = fts_read(fts)))
 		switch (ent->fts_info)

@@ -82,7 +82,7 @@ extern Pathcomp_t 	*path_absolute(Shell_t*, const char*, Pathcomp_t*, int);
 extern char 		*path_basename(const char*);
 extern char 		*path_fullname(Shell_t*,const char*);
 extern int 		path_expand(Shell_t*,const char*, struct argnod**);
-extern void 		path_exec(Shell_t*,const char*,char*[],struct argnod*);
+extern noreturn void 	path_exec(Shell_t*,const char*,char*[],struct argnod*);
 extern pid_t		path_spawn(Shell_t*,const char*,char*[],char*[],Pathcomp_t*,int);
 #if defined(__EXPORT__) && defined(_BLD_DLL) && defined(_BLD_shell)
 #   define extern __EXPORT__

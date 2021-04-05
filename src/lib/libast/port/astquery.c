@@ -89,7 +89,7 @@ astquery(int quit, const char* format, ...)
 		{
 		case EOF:
 			n = c;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case '\n':
 			switch (n)
 			{

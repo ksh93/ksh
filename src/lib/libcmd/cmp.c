@@ -165,15 +165,24 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 			if (!(p1 = (unsigned char*)sfreserve(f1, SF_UNBOUND, 0)) || (c1 = sfvalue(f1)) <= 0)
 			{
 				if (sferror(f1))
+				{
 					error(ERROR_exit(2), "read error on %s", file1);
+					UNREACHABLE();
+				}
 				if ((e2 - p2) > 0 || sfreserve(f2, SF_UNBOUND, 0) && sfvalue(f2) > 0)
 				{
 					ret = 1;
 					if (!(flags & CMP_SILENT))
+					{
 						error(ERROR_exit(1), "EOF on %s", file1);
+						UNREACHABLE();
+					}
 				}
 				if (sferror(f2))
+				{
 					error(ERROR_exit(2), "read error on %s", file2);
+					UNREACHABLE();
+				}
 				return ret;
 			}
 			if (count > 0 && c1 > count)
@@ -186,9 +195,15 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 			if (!(p2 = (unsigned char*)sfreserve(f2, SF_UNBOUND, 0)) || (c2 = sfvalue(f2)) <= 0)
 			{
 				if (sferror(f2))
+				{
 					error(ERROR_exit(2), "read error on %s", file2);
+					UNREACHABLE();
+				}
 				if (!(flags & CMP_SILENT))
+				{
 					error(ERROR_exit(1), "EOF on %s", file2);
+					UNREACHABLE();
+				}
 				return 1;
 			}
 			e2 = p2 + c2;
@@ -311,13 +326,16 @@ b_cmp(int argc, register char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors || !(file1 = *argv++) || !(file2 = *argv++))
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	n = 2;
 	if (streq(file1, "-"))
 		f1 = sfstdin;

@@ -58,7 +58,10 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 	{
 	    case 'p':
 		if(sh_isoption(SH_RESTRICTED))
+		{
 			 errormsg(SH_DICT,ERROR_exit(1),e_restricted,"-p");
+			 UNREACHABLE();
+		}
 		sh_onstate(SH_DEFPATH);
 		break;
 	    case 'v':
@@ -79,7 +82,7 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 		if(argc==0)
 			return(0);
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	if(argc==0)
 	{
@@ -91,7 +94,10 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 	}
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage((char*)0));
+		UNREACHABLE();
+	}
 	return(whence(shp,argv, flags));
 }
 
@@ -109,7 +115,7 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 	{
 	    case 'a':
 		flags |= A_FLAG;
-		/* FALL THRU */
+		/* FALLTHROUGH */
 	    case 'v':
 		flags |= V_FLAG;
 		break;
@@ -129,11 +135,14 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),optusage((char*)0));
+		UNREACHABLE();
+	}
 	return(whence(shp, argv, flags));
 }
 

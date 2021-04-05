@@ -87,7 +87,7 @@ pathcanon_20100601(char* path, size_t size, int flags)
 			break;
 		case 0:
 			s--;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case '/':
 			while (*s == '/') s++;
 			switch (dots)

@@ -163,8 +163,8 @@ b_vmstate(int argc, char** argv, Shbltin_t* context)
 			state.format = opt_info.arg;
 			continue;
 		case '?':
-			error(ERROR_USAGE|4, "%s", opt_info.arg);
-			break;
+			error(ERROR_usage(2), "%s", opt_info.arg);
+			UNREACHABLE();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			break;
@@ -173,7 +173,10 @@ b_vmstate(int argc, char** argv, Shbltin_t* context)
 	}
 	argv += opt_info.index;
 	if (error_info.errors || *argv)
-		error(ERROR_USAGE|4, "%s", optusage(NiL));
+	{
+		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (!state.format)
 		state.format = FORMAT;
 

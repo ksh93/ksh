@@ -76,7 +76,10 @@ pid_t	pid_fromstring(char *str)
 	else
 		pid = (pid_t)strtol(str, &last, 10);
 	if(errno==ERANGE || *last)
+	{
 		errormsg(SH_DICT,ERROR_exit(1),"%s: invalid process id",str);
+		UNREACHABLE();
+	}
 	return(pid);
 }
 
@@ -841,7 +844,10 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 	{
 		job_string = jobid;
 		if(*jobid==0)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_jobusage,job_string);
+			UNREACHABLE();
+		}
 		if(*jobid == '%')
 			pw = job_bystring(jobid);
 		else
@@ -1152,7 +1158,10 @@ static struct process *job_byname(char *name)
 		if(hist_match(shgd->hist_ptr,pw->p_name,cp,flag)>=0)
 		{
 			if(pz)
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_jobusage,name-1);
+				UNREACHABLE();
+			}
 			pz = pw;
 		}
 	}

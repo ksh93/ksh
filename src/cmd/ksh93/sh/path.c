@@ -53,7 +53,7 @@
 
 static int		canexecute(Shell_t*,char*,int);
 static void		funload(Shell_t*,int,const char*);
-static void		exscript(Shell_t*,char*, char*[], char**);
+static void noreturn	exscript(Shell_t*,char*, char*[], char**);
 static int		path_chkpaths(Shell_t*,Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,int);
 static void		path_checkdup(Shell_t *shp,register Pathcomp_t*);
 static			Pathcomp_t *defpath_init(Shell_t *shp);
@@ -244,49 +244,35 @@ static pid_t path_xargs(Shell_t *shp,const char *path, char *argv[],char *const 
 char *path_pwd(Shell_t *shp,int flag)
 {
 	register char *cp;
-	register int count = 0;
+	Namval_t *pwdnod;
 	NOT_USED(flag);
+	/* Don't bother if PWD already set */
 	if(shp->pwd)
 		return((char*)shp->pwd);
-	while(1) 
+	/* First see if PWD variable is correct */
+	pwdnod = sh_scoped(shp,PWDNOD);
+	cp = nv_getval(pwdnod);
+	if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 	{
-		/* try from lowest to highest */
-		switch(count++)
+		/* Check if $HOME is a path to the PWD; this ensures $PWD == $HOME
+		   at login, even if $HOME is a path that contains symlinks */
+		cp = nv_getval(sh_scoped(shp,HOME));
+		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
-			case 0:
-				cp = nv_getval(PWDNOD);
-				break;
-			case 1:
-				cp = nv_getval(HOME);
-				break;
-			case 2:
-				cp = "/";
-				break;
-			case 3:
-			{
-				if(cp=getcwd(NIL(char*),0))
-				{  
-					nv_offattr(PWDNOD,NV_NOFREE);
-					_nv_unset(PWDNOD,0);
-					PWDNOD->nvalue.cp = cp;
-					goto skip;
-				}
-				break;
-			}
-			case 4:
+			/* Get physical PWD (no symlinks) using getcwd(3), fall back to "." */
+			cp = getcwd(NIL(char*),0);
+			if(!cp)
 				return((char*)e_dot);
 		}
-		if(cp && *cp=='/' && test_inode(cp,e_dot))
-			break;
+		/* Store in PWD variable */
+		if(shp->subshell)
+			pwdnod = sh_assignok(pwdnod,1);
+		nv_offattr(pwdnod,NV_NOFREE);
+		nv_putval(pwdnod,cp,NV_RDONLY);
 	}
-	if(count>1)
-	{
-		nv_offattr(PWDNOD,NV_NOFREE);
-		nv_putval(PWDNOD,cp,NV_RDONLY);
-	}
-skip:
-	nv_onattr(PWDNOD,NV_NOFREE|NV_EXPORT);
-	shp->pwd = (char*)(PWDNOD->nvalue.cp);
+	nv_onattr(pwdnod,NV_NOFREE|NV_EXPORT);
+	/* Set shell PWD */
+	shp->pwd = (char*)(pwdnod->nvalue.cp);
 	return(cp);
 }
 
@@ -503,7 +489,10 @@ static int	path_opentype(Shell_t *shp,const char *name, register Pathcomp_t *pp,
 	if(!fun && strchr(name,'/'))
 	{
 		if(sh_isoption(SH_RESTRICTED))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_restricted,name);
+			UNREACHABLE();
+		}
 	}
 
 	nextpp = pp;
@@ -616,7 +605,10 @@ static void funload(Shell_t *shp,int fno, const char *name)
 	if(!loopdetect_tree)
 		loopdetect_tree = dtopen(&_Nvdisc,Dtoset);
 	else if(nv_search(pname,loopdetect_tree,0))
+	{
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),"autoload loop: %s in %s",name,pname);
+		UNREACHABLE();
+	}
 	np_loopdetect = nv_search(pname,loopdetect_tree,NV_ADD);
 	sh_onstate(SH_NOALIAS);
 	shp->readscript = (char*)name;
@@ -644,7 +636,10 @@ static void funload(Shell_t *shp,int fno, const char *name)
 	sh_setstate(savestates);
 	nv_delete(np_loopdetect,loopdetect_tree,0);
 	if(pname)
+	{
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),e_funload,name,pname);
+		UNREACHABLE();
+	}
 }
 
 /*
@@ -1005,7 +1000,7 @@ char *path_relative(Shell_t *shp,register const char* file)
 	return((char*)file);
 }
 
-void	path_exec(Shell_t *shp,register const char *arg0,register char *argv[],struct argnod *local)
+noreturn void path_exec(Shell_t *shp,register const char *arg0,register char *argv[],struct argnod *local)
 {
 	char **envp;
 	const char *opath;
@@ -1018,7 +1013,10 @@ void	path_exec(Shell_t *shp,register const char *arg0,register char *argv[],stru
 		slash=1;
 		/* name containing / not allowed for restricted shell */
 		if(sh_isoption(SH_RESTRICTED))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_restricted,arg0);
+			UNREACHABLE();
+		}
 	}
 	else
 		pp=path_get(shp,arg0);
@@ -1049,6 +1047,7 @@ void	path_exec(Shell_t *shp,register const char *arg0,register char *argv[],stru
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found,arg0);
 	else
 		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,arg0);
+	UNREACHABLE();
 }
 
 pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **envp, Pathcomp_t *libpath, int spawn)
@@ -1205,6 +1204,7 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 			((struct checkpt*)shp->jmplist)->mode = SH_JMPEXIT;
 		}
 		exscript(shp,path,argv,envp);
+		UNREACHABLE();
 	    case EACCES:
 	    {
 		struct stat statb;
@@ -1214,15 +1214,19 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 				errno = EISDIR;
 #ifdef S_ISSOCK
 			if(S_ISSOCK(statb.st_mode))
+			{
 				exscript(shp,path,argv,envp);
+				UNREACHABLE();
+			}
 #endif
 		}
 	    }
-		/* FALL THROUGH */
 #ifdef ENAMETOOLONG
+	    /* FALLTHROUGH */
 	    case ENAMETOOLONG:
 #endif /* ENAMETOOLONG */
 #if !SHOPT_SUID_EXEC
+	    /* FALLTHROUGH */
 	    case EPERM:
 #endif
 		shp->path_err = errno;
@@ -1239,11 +1243,16 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 		{
 			pid = path_xargs(shp,opath, &argv[0] ,envp,spawn);
 			if(pid<0)
+			{
 				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),"command -x: could not execute %s",path);
+				UNREACHABLE();
+			}
 			return(pid);
 		}
+		/* FALLTHROUGH */
 	    default:
 		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,path);
+		UNREACHABLE();
 	}
 	return 0;
 }
@@ -1253,7 +1262,7 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
  * Assume file is a Shell script and execute it.
  */
 
-static void exscript(Shell_t *shp,register char *path,register char *argv[],char **envp)
+static noreturn void exscript(Shell_t *shp,register char *path,register char *argv[],char **envp)
 {
 	register Sfio_t *sp;
 	path = path_relative(shp,path);
@@ -1315,7 +1324,10 @@ static void exscript(Shell_t *shp,register char *path,register char *argv[],char
 		 *  The following code is just for compatibility
 		 */
 		if((n=open(path,O_RDONLY,0)) < 0)
+		{
 			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,path);
+			UNREACHABLE();
+		}
 		if(savet)
 			*argv++ = savet;
 	openok:
@@ -1323,7 +1335,10 @@ static void exscript(Shell_t *shp,register char *path,register char *argv[],char
 	}
 #else
 	if((shp->infd = sh_open(path,O_RDONLY,0)) < 0)
+	{
 		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,path);
+		UNREACHABLE();
+	}
 #endif
 	shp->infd = sh_iomovefd(shp->infd);
 #if SHOPT_ACCT

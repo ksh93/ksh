@@ -79,12 +79,15 @@ b_tty(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	if(error_info.errors)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if(!(tty=ttyname(0)))
 	{
 		tty = ERROR_translate(0, 0, 0, "not a tty");

@@ -248,10 +248,6 @@ tmlocal(void)
 			environ[0] = e;
 	}
 #endif
-#if _dat_tzname
-	local.standard = strdup(tzname[0]);
-	local.daylight = strdup(tzname[1]);
-#endif
 	tmlocale();
 
 	/*
@@ -296,10 +292,8 @@ tmlocal(void)
 		 * POSIX
 		 */
 
-		if (!local.standard)
-			local.standard = strdup(tzname[0]);
-		if (!local.daylight)
-			local.daylight = strdup(tzname[1]);
+		local.standard = strdup(tzname[0]);
+		local.daylight = strdup(tzname[1]);
 	}
 	else
 #endif

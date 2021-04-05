@@ -116,13 +116,16 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors || (pfx = *argv++) && *argv)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	mask = umask(0);
 	if (!mode)
 		mode = (fdp ? (S_IRUSR|S_IWUSR) : S_IRWXU) & ~mask;

@@ -190,11 +190,11 @@ Sfdisc_t*	dp;
 		{
 		case '\t':
 			more->col = ((more->col + 8) & ~7) - 1;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		default:
 			if (++more->col <= more->cols || s < e && *s == '\n')
 				continue;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case '\n':
 			more->col = 1;
 			if (++more->row < more->rows)

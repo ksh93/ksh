@@ -111,6 +111,12 @@ For more details, see the NEWS file and for complete details, see the git log.
 	Turning on the new --globcasedetect shell option restores
 	case-insensitive globbing for case-insensitive file systems.
 
+22.	If $PWD or $OLDPWD are passed as invocation-local assignments to cd,
+	their values are no longer altered in the outer scope when cd finishes.
+	For example:
+		ksh -c 'OLDPWD=/bin; OLDPWD=/tmp cd - > /dev/null; echo $OLDPWD'
+		ksh -c 'cd /var; PWD=/tmp cd /usr; echo $PWD'
+	now prints '/bin' followed by '/var'.
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

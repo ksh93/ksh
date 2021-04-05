@@ -60,11 +60,13 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
 		return(2);
-		break;
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(arg = *argv)
 	{
 		char *action = arg;
@@ -91,7 +93,10 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 				}
 			}
 			if(!argv[0])
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_condition);
+				UNREACHABLE();
+			}
 		}
 		while(arg = *argv++)
 		{
@@ -211,19 +216,23 @@ int	b_kill(int argc,char *argv[],Shbltin_t *context)
 			goto endopts;
 		case 'L':
 			usemenu = -1;
+			/* FALLTHROUGH */
 		case 'l':
 			flag |= L_FLAG;
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 endopts:
 	argv += opt_info.index;
 	if(*argv && strcmp(*argv,"--")==0 && strcmp(*(argv-1),"--")!=0)
 		argv++;
 	if(error_info.errors || flag==(L_FLAG|S_FLAG) || (!(*argv) && !(flag&L_FLAG)))
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage((char*)0));
+		UNREACHABLE();
+	}
 	/* just in case we send a kill -9 $$ */
 	sfsync(sfstderr);
 	if(flag&L_FLAG)
@@ -240,6 +249,7 @@ endopts:
 				{
 					shp->exitval = 2;
 					errormsg(SH_DICT,ERROR_exit(1),e_nosignal,signame);
+					UNREACHABLE();
 				}
 				sfprintf(sfstdout,"%d\n",sig);
 			}
@@ -249,7 +259,10 @@ endopts:
 	if(flag&S_FLAG)
 	{
 		if((sig=sig_number(shp,signame)) < 0 || sig > shp->gd->sigmax)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_nosignal,signame);
+			UNREACHABLE();
+		}
 	}
 	if(job_walk(sfstdout,job_kill,sig,argv))
 		shp->exitval = 1;
@@ -272,16 +285,28 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 	if(error_info.errors)	/* no options supported (except AST --man, etc.) */
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(argv[opt_info.index])	/* no operands supported */
+	{
 		errormsg(SH_DICT, ERROR_exit(2), e_toomanyops);
+		UNREACHABLE();
+	}
 	if(sh_isoption(SH_LOGIN_SHELL))
+	{
 		errormsg(SH_DICT, ERROR_exit(1), "cannot suspend a login shell");
+		UNREACHABLE();
+	}
 	if(kill(context->shp->gd->pid, SIGSTOP) != 0)
+	{
 		errormsg(SH_DICT, ERROR_exit(1), "could not signal main shell at PID %d", context->shp->gd->pid);
+		UNREACHABLE();
+	}
 	return(0);
 }
 #endif /* defined(JOBS) && defined(SIGSTOP) */

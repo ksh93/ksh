@@ -138,7 +138,10 @@ cutinit(int mode, char* str, Delim_t* wdelim, Delim_t* ldelim, size_t reclen)
 	Cut_t*		cut;
 
 	if (!(cut = (Cut_t*)stakalloc(sizeof(Cut_t) + strlen(cp) * sizeof(int))))
+	{
 		error(ERROR_exit(1), "out of memory");
+		UNREACHABLE();
+	}
 	if (cut->mb = mbwide())
 	{
 		memset(cut->space, 0, sizeof(cut->space) / 2);
@@ -165,14 +168,17 @@ cutinit(int mode, char* str, Delim_t* wdelim, Delim_t* ldelim, size_t reclen)
 		case '\t':
 			while(*cp==' ' || *cp=='\t')
 				cp++;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 0:
 		case ',':
 			if(range)
 			{
 				--range;
 				if((n = (n ? (n-range) : (HUGE-1))) < 0)
+				{
 					error(ERROR_exit(1),"invalid range for c/f option");
+					UNREACHABLE();
+				}
 				*lp++ = range;
 				*lp++ = n;
 			}
@@ -230,18 +236,24 @@ cutinit(int mode, char* str, Delim_t* wdelim, Delim_t* ldelim, size_t reclen)
 
 		case '-':
 			if(range)
+			{
 				error(ERROR_exit(1),"bad list for c/f option");
+				UNREACHABLE();
+			}
 			range = n?n:1;
 			n = 0;
 			break;
 
 		default:
 			if(!isdigit(c))
+			{
 				error(ERROR_exit(1),"bad list for c/f option");
+				UNREACHABLE();
+			}
 			n = 10*n + (c-'0');
 			break;
 		}
-	/* NOTREACHED */
+	UNREACHABLE();
 }
 
 /*
@@ -659,17 +671,21 @@ b_cut(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors)
+	{
 		error(ERROR_usage(2), "%s",optusage(NiL));
+		UNREACHABLE();
+	}
 	if(!cp)
 	{
 		error(2, "b, c or f option must be specified");
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
 	}
 	if(!*cp)
 		error(3, "non-empty b, c or f option must be specified");

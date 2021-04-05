@@ -308,7 +308,7 @@ main(int argc, char** argv)
 				return 0;
 			default:
 				fprintf(stderr, "release: -%c: unknown option\n", i);
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case '?':
 				usage();
 				break;

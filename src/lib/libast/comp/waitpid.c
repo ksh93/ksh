@@ -191,7 +191,7 @@ waitpid(pid_t pid, int* status, int flags)
 		zp->next = zombies;
 		zombies = zp;
 	}
-	/*NOTREACHED*/
+	UNREACHABLE();
 }
 
 #endif

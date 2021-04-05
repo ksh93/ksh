@@ -131,7 +131,10 @@ void	sh_subtmpfile(char comsub_flag)
 			close(1);
 		}
 		else if(errno!=EBADF)
+		{
 			errormsg(SH_DICT,ERROR_system(1),e_toomany);
+			UNREACHABLE();
+		}
 		/* popping a discipline forces a /tmp file create */
 		if(comsub_flag != 1)
 			sfdisc(sfstdout,SF_POPDISC);
@@ -149,7 +152,10 @@ void	sh_subtmpfile(char comsub_flag)
 				write(fds[1],sfsetbuf(sfstdout,(Void_t*)sfstdout,0),(size_t)off);
 			sfclose(sfstdout);
 			if((sh_fcntl(fds[1],F_DUPFD, 1)) != 1)
+			{
 				errormsg(SH_DICT,ERROR_system(1),e_file+4);
+				UNREACHABLE();
+			}
 			sh_close(fds[1]);
 		}
 		else
@@ -661,6 +667,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			{
 				sfswap(sp->saveout,sfstdout);
 				errormsg(SH_DICT,ERROR_system(1),e_tmpcreate);
+				UNREACHABLE();
 			}
 			sfswap(iop,sfstdout);
 			sfset(sfstdout,SF_READ,0);
@@ -747,6 +754,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 					shp->toomany = 1;
 					((struct checkpt*)shp->jmplist)->mode = SH_JMPERREXIT;
 					errormsg(SH_DICT,ERROR_system(1),e_toomany);
+					UNREACHABLE();
 				}
 				if(fd >= shp->gd->lim.open_max)
 					sh_iovalidfd(shp,fd);
@@ -932,14 +940,17 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 				shp->toomany = 1;
 				errno = saveerrno;
 				errormsg(SH_DICT,ERROR_system(1),e_redirect);
+				UNREACHABLE();
 			case 2:
 				/* reinit PWD as it will be wrong */
 				shp->pwd = NULL;
 				path_pwd(shp,0);
 				errno = saveerrno;
 				errormsg(SH_DICT,ERROR_system(1),"Failed to restore PWD upon exiting subshell");
+				UNREACHABLE();
 			default:
 				errormsg(SH_DICT,ERROR_system(1),"Subshell error %d",fatalerror);
+				UNREACHABLE();
 		}
 	}
 	if(shp->ignsig)

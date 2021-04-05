@@ -55,7 +55,7 @@ readdir(register DIR* dirp)
 		dirp->dd_loc += dp->d_reclen;
 		if (dp->d_fileno) return(dp);
 	}
-	/*NOTREACHED*/
+	UNREACHABLE();
 }
 
 #endif

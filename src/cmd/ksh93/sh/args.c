@@ -171,7 +171,10 @@ int sh_argopts(int argc,register char *argv[], void *context)
 			}
 			o &= 0xff;
 			if(sh_isoption(SH_RESTRICTED) && !f && o==SH_RESTRICTED)
+			{
 				errormsg(SH_DICT,ERROR_exit(1), e_restricted, opt_info.arg);
+				UNREACHABLE();
+			}
 			break;
 		    case -5:	/* --posix must be handled explicitly to stop AST optget(3) overriding it */
 			if(opt_info.num)
@@ -216,13 +219,13 @@ int sh_argopts(int argc,register char *argv[], void *context)
 				ap->kiafile = opt_info.arg;
 				n = 'n';
 			}
-			/*FALLTHROUGH*/
 #endif /* SHOPT_KIA */
 #if SHOPT_REGRESS
 			goto skip;
 		    case 'I':
 			continue;
 #endif /* SHOPT_REGRESS */
+			/* FALLTHROUGH */
 		    skip:
 		    default:
 			if(cp=strchr(optksh,n))
@@ -270,7 +273,10 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		else
 		{
 			if ((o == SH_RESTRICTED) && sh_isoption(SH_RESTRICTED))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_restricted,"r"); /* set -r cannot be unset */
+				UNREACHABLE();
+			}
 			if(o==SH_POSIX && !defaultflag)
 			{
 #if SHOPT_BRACEPAT
@@ -286,7 +292,10 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		}
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NIL(char*)));
+		UNREACHABLE();
+	}
 	/* check for '-' or '+' argument */
 	if((cp=argv[opt_info.index]) && cp[1]==0 && (*cp=='+' || *cp=='-') &&
 		strcmp(argv[opt_info.index-1],"--"))
@@ -325,6 +334,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		{
 			errormsg(SH_DICT,2,e_cneedsarg);
 			errormsg(SH_DICT,ERROR_usage(2),optusage(NIL(char*)));
+			UNREACHABLE();
 		}
 		argc--;
 	}
@@ -334,11 +344,20 @@ int sh_argopts(int argc,register char *argv[], void *context)
 	if(ap->kiafile)
 	{
 		if(!argv[0])
+		{
 			errormsg(SH_DICT,ERROR_usage(2),"-R requires scriptname");
+			UNREACHABLE();
+		}
 		if(!(lp->kiafile=sfopen(NIL(Sfio_t*),ap->kiafile,"w+")))
+		{
 			errormsg(SH_DICT,ERROR_system(3),e_create,ap->kiafile);
+			UNREACHABLE();
+		}
 		if(!(lp->kiatmp=sftmp(2*SF_BUFSIZE)))
+		{
 			errormsg(SH_DICT,ERROR_system(3),e_tmpcreate);
+			UNREACHABLE();
+		}
 		sfputr(lp->kiafile,";vdb;CIAO/ksh",'\n');
 		lp->kiabegin = sftell(lp->kiafile);
 		lp->entity_tree = dtopen(&_Nvdisc,Dtbag);
@@ -735,7 +754,10 @@ struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
 		break;
 	}
 	if(!shp->fifo)
+	{
 		errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "process substitution: FIFO creation failed");
+		UNREACHABLE();
+	}
 	chmod(shp->fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
 	sfputr(shp->stk,shp->fifo,0);
 #endif /* SHOPT_DEVFD */

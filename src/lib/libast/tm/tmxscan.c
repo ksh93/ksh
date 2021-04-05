@@ -253,7 +253,7 @@ scan(register const char* s, char** e, const char* format, char** f, Time_t t, l
 			case 'd':
 				if (pedantic && !isdigit(*s))
 					goto next;
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 'e':
 				NUMBER(2, 1, 31);
 				set.mday = n;
@@ -301,7 +301,7 @@ scan(register const char* s, char** e, const char* format, char** f, Time_t t, l
 						s++;
 					continue;
 				}
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 't':
 				while (isspace(*s))
 					s++;
@@ -384,6 +384,7 @@ scan(register const char* s, char** e, const char* format, char** f, Time_t t, l
 					u = 0;
 				if (d == 'q')
 					continue;
+				/* FALLTHROUGH */
 			case 'z':
 				if ((zp = tmzone(s, &u, u, &m)))
 				{

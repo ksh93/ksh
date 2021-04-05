@@ -149,7 +149,7 @@ extern int		sh_lex(Lex_t*);
 extern Shnode_t		*sh_dolparen(Lex_t*);
 extern Lex_t		*sh_lexopen(Lex_t*, Shell_t*, int);
 extern void 		sh_lexskip(Lex_t*,int,int,int);
-extern void 		sh_syntax(Lex_t*);
+extern noreturn void 	sh_syntax(Lex_t*);
 #if SHOPT_KIA
     extern int                  kiaclose(Lex_t *);
     extern unsigned long        kiaentity(Lex_t*, const char*,int,int,int,int,unsigned long,int,int,const char*);

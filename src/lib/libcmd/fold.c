@@ -211,14 +211,17 @@ b_fold(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			continue;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	if(error_info.errors)
+	{
 		error(ERROR_usage(2),"%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if(cp = *argv)
 		argv++;
 	do

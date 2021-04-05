@@ -134,13 +134,16 @@ b_rev(int argc, register char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
+	{
 		error(ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	n=0;
 	if(cp = *argv)
 		argv++;
@@ -161,7 +164,10 @@ b_rev(int argc, register char** argv, Shbltin_t* context)
 		if(fp!=sfstdin)
 			sfclose(fp);
 		if(line < 0)
+		{
 			error(ERROR_system(1),"write failed");
+			UNREACHABLE();
+		}
 	}
 	while(cp= *argv++);
 	return(n);

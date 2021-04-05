@@ -463,7 +463,7 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		if (!n)
 			break;
@@ -474,7 +474,10 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 	}
 	argv += opt_info.index;
 	if (error_info.errors)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	memset(states, 0, sizeof(states));
 	if (flags&V_FLAG)
 	{

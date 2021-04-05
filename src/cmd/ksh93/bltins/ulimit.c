@@ -44,7 +44,7 @@
 		NOT_USED(argv);
 		NOT_USED(context);
 		errormsg(SH_DICT,ERROR_exit(2),e_nosupport);
-		return(0);
+		UNREACHABLE();
 	}
 #else
 
@@ -106,7 +106,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 	opt_info.disc = 0;
 	/* default to -f */
@@ -121,7 +121,10 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	/* only one option at a time for setting */
 	label = (hit&(hit-1));
 	if(error_info.errors || (limit && label) || argc>opt_info.index+1)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(mode==0)
 		mode = (HARD|SOFT);
 	for(tp = shtab_limits; tp->option && hit; tp++,hit>>=1)
@@ -145,26 +148,41 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 				else if((i=strton(limit,&last,NiL,0))==INFINITY || *last)
 				{
 					if((i=sh_strnum(limit,&last,2))==INFINITY || *last)
+					{
 						errormsg(SH_DICT,ERROR_system(1),e_number,limit);
+						UNREACHABLE();
+					}
 					i *= unit;
 				}
 			}
 			if(nosupport)
+			{
 				errormsg(SH_DICT,ERROR_system(1),e_readonly,tp->name);
+				UNREACHABLE();
+			}
 			else
 			{
 #ifdef _lib_getrlimit
 				if(getrlimit(n,&rlp) <0)
+				{
 					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
+					UNREACHABLE();
+				}
 				if(mode&HARD)
 					rlp.rlim_max = i;
 				if(mode&SOFT)
 					rlp.rlim_cur = i;
 				if(setrlimit(n,&rlp) <0)
+				{
 					errormsg(SH_DICT,ERROR_system(1),e_overlimit,limit);
+					UNREACHABLE();
+				}
 #else
 				if((i=vlimit(n,i)) < 0)
+				{
 					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
+					UNREACHABLE();
+				}
 #endif /* _lib_getrlimit */
 			}
 		}
@@ -174,7 +192,10 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			{
 #ifdef  _lib_getrlimit
 				if(getrlimit(n,&rlp) <0)
+				{
 					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
+					UNREACHABLE();
+				}
 				if(mode&HARD)
 					i = rlp.rlim_max;
 				if(mode&SOFT)
@@ -185,7 +206,10 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 #   endif /* _lib_ulimit */
 				i = -1;
 				if((i=vlimit(n,i)) < 0)
+				{
 					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
+					UNREACHABLE();
+				}
 #endif /* _lib_getrlimit */
 			}
 			if(label)

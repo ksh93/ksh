@@ -405,6 +405,7 @@ int sh_lex(Lex_t* lp)
 						errno = ENOEXEC;
 						error_info.id = shp->readscript;
 						errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,cp);
+						UNREACHABLE();
 					}
 					else
 					{
@@ -470,7 +471,7 @@ int sh_lex(Lex_t* lp)
 					return(lp->token=EOFSYM);
 				n = S_NLTOK;
 				shp->inlineno--;
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			case S_NLTOK:
 				/* check for here-document */
 				if(lp->heredoc)
@@ -491,7 +492,7 @@ int sh_lex(Lex_t* lp)
 				}
 				lp->lex.reservok = !lp->lex.intest;
 				lp->lex.skipword = 0;
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			case S_NL:
 				/* skip over new-lines */
 				lp->lex.last_quote = 0;
@@ -502,6 +503,7 @@ int sh_lex(Lex_t* lp)
 					lp->comp_assign = 0;
 					return(lp->token='\n');
 				}
+				/* FALLTHROUGH */
 			case S_BLNK:
 				if(lp->lex.incase<=TEST_RE)
 					continue;
@@ -686,7 +688,7 @@ int sh_lex(Lex_t* lp)
 			case S_NAME:
 				if(!lp->lex.skipword)
 					lp->lex.reservok *= 2;
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			case S_TILDE:
 				if(c=='~' && mode==ST_NESTED)
 				{
@@ -697,6 +699,7 @@ int sh_lex(Lex_t* lp)
 					}
 					continue;
 				}
+				/* FALLTHROUGH */
 			case S_RES:
 				if(!lp->lexd.dolparen)
 					lp->lexd.first = fcseek(0)-LEN;
@@ -808,7 +811,7 @@ int sh_lex(Lex_t* lp)
 				wordflags |=(ARG_MAC|ARG_EXP);
 				if(mode==ST_QUOTE)
 					ingrave = !ingrave;
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			case S_QUOTE:
 				if(oldmode(lp)==ST_NONE && lp->lexd.arith)	/*  in ((...)) */
 				{
@@ -914,10 +917,11 @@ int sh_lex(Lex_t* lp)
 					setchar(lp,c);
 					continue;
 				}
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			case S_ALP:
 				if(c=='.' && endchar(lp)=='$')
 					goto err;
+				/* FALLTHROUGH */
 			case S_SPC2:
 			case S_DIG:
 				wordflags |= ARG_MAC;
@@ -938,9 +942,11 @@ int sh_lex(Lex_t* lp)
 					case '!':
 						if(n!=S_ALP && n!=S_DIG)
 							goto dolerr;
+						/* FALLTHROUGH */
 					case '#':
 						if(c=='#')
 							n = S_ALP;
+						/* FALLTHROUGH */
 					case RBRACE:
 						if(n==S_ALP)
 						{
@@ -1150,7 +1156,7 @@ int sh_lex(Lex_t* lp)
 				continue;
 			case S_EQ:
 				assignment = lp->assignok;
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			case S_COLON:
 				if(assignment)
 				{
@@ -1185,7 +1191,10 @@ int sh_lex(Lex_t* lp)
 					if(n>0 && n==']')
 					{
 						if(mode==ST_NAME)
+						{
 							errormsg(SH_DICT,ERROR_exit(SYNBAD),e_lexsyntax1, shp->inlineno, "[]", "empty subscript");
+							UNREACHABLE();
+						}
 						if(!epatchar || epatchar=='%')
 							continue;
 					}
@@ -1254,7 +1263,7 @@ int sh_lex(Lex_t* lp)
 			}
 			case S_PAT:
 				wordflags |= ARG_EXP;
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			case S_EPAT:
 			epat:
 				if(fcgetc(n)==LPAREN && c!='[')
@@ -1419,7 +1428,7 @@ breakloop:
 		case TEST_SEQ:
 			if(lp->lexd.warn && state[1]==0)
 				errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete3,shp->inlineno);
-			/* FALL THRU */
+			/* FALLTHROUGH */
 		default:
 			if(lp->lex.testop2)
 			{
@@ -1434,7 +1443,7 @@ breakloop:
 				lp->token = TESTBINOP;	
 				return(lp->token);	
 			}
-
+			/* FALLTHROUGH */
 		case TEST_OR: case TEST_AND:
 		case 0:
 			return(lp->token=0);
@@ -1629,6 +1638,7 @@ static int comsub(register Lex_t *lp, int endtok)
 				lp->lastline = line;
 				lp->lasttok = endtok;
 				sh_syntax(lp);
+				/* UNREACHABLE */
 			    case IOSEEKSYM:
 				if(fcgetc(c)!='#' && c>0)
 					fcseek(-LEN);
@@ -1649,7 +1659,7 @@ static int comsub(register Lex_t *lp, int endtok)
 					goto rbrace;
 				if(c>0)
 					fcseek(-LEN);
-				/* fall through */
+				/* FALLTHROUGH */
 			    default:
 				lp->lex.reservok = 1;
 			}
@@ -1663,7 +1673,10 @@ done:
 	lp->lex = save;
 	lp->assignok = (endchar(lp)==RBRACT?assignok:0);
 	if(lp->heredoc && !inheredoc)
+	{
 		errormsg(SH_DICT,ERROR_exit(SYNBAD),e_lexsyntax5,lp->sh->inlineno,lp->heredoc->ioname);
+		UNREACHABLE();
+	}
 	return(messages);
 }
 
@@ -2089,7 +2102,7 @@ static char	*fmttoken(Lex_t *lp, register int sym, char *tok)
  * print a bad syntax message
  */
 
-void	sh_syntax(Lex_t *lp)
+noreturn void sh_syntax(Lex_t *lp)
 {
 	register Shell_t *shp = lp->sh;
 	register const char *cp = sh_translate(e_unexpected);
@@ -2126,6 +2139,7 @@ void	sh_syntax(Lex_t *lp)
 		errormsg(SH_DICT,ERROR_exit(SYNBAD),e_lexsyntax1,lp->lastline,tokstr,cp);
 	else
 		errormsg(SH_DICT,ERROR_exit(SYNBAD),e_lexsyntax2,tokstr,cp);
+	UNREACHABLE();
 }
 
 static char *stack_shift(Stk_t *stkp, register char *sp,char *dp)

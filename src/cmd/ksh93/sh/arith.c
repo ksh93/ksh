@@ -421,7 +421,10 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			else
 				c = *str;
 			if(c=='.' && radix!='.')
+			{
 				errormsg(SH_DICT,ERROR_exit(1),"%s: radix point '.' requires LC_NUMERIC=C",val);
+				UNREACHABLE();
+			}
 			if(c==radix || c=='e' || c == 'E' || lastbase == 16 && (c == 'p' || c == 'P'))
 			{
 				lvalue->isfloat=1;
@@ -542,7 +545,10 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 				if(!last || *last!='.' || last[1]!='.')
 					d = strval(shp,str,&last,arith,mode);
 				if(!ptr && *last && mode>0)
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*last,str);
+					UNREACHABLE();
+				}
 			}
 		} else if (!d && *str=='-') {
 			d = -0.0;
@@ -564,6 +570,9 @@ void	*sh_arithcomp(Shell_t *shp,register char *str)
 	Arith_t *ep;
 	ep = arith_compile(shp,str,(char**)&ptr,arith,ARITH_COMP|1);
 	if(*ptr)
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*ptr,str);
+		UNREACHABLE();
+	}
 	return((void*)ep);
 }

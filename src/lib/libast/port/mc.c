@@ -171,7 +171,7 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
 						p += sizeof(lc_messages) - 1;
 						goto case_C;
 					}
-					/*FALLTHROUGH*/
+					/* FALLTHROUGH */
 				default:
 					if (s < e)
 						*s++ = c;

@@ -214,7 +214,10 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 		case 's':
 			/* print to history file */
 			if(!sh_histinit((void*)shp))
+			{
 				errormsg(SH_DICT,ERROR_system(1),e_history);
+				UNREACHABLE();
+			}
 			fd = sffileno(shp->gd->hist_ptr->histfp);
 			sh_onstate(SH_HISTORY);
 			sflag++;
@@ -266,13 +269,19 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 	argv += opt_info.index;
 	if(error_info.errors || (argc<0 && !(format = *argv++)))
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(vflag && format)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"-%c and -f are mutually exclusive",vflag);
+		UNREACHABLE();
+	}
 skip:
 	if(format)
 		format = genformat(format);
@@ -293,6 +302,7 @@ skip2:
 		if(fd==1)
 			return(1);
 		errormsg(SH_DICT,ERROR_system(1),msg);
+		UNREACHABLE();
 	}
 	if(!(outfile=shp->sftable[fd]))
 	{
@@ -545,7 +555,10 @@ static ssize_t fmtbase64(Sfio_t *iop, char *string, int alt)
 	if(!np || nv_isnull(np))
 	{
 		if(sh_isoption(SH_NOUNSET))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_notset,string);
+			UNREACHABLE();
+		}
 		return(0);
 	}
 	if(nv_isattr(np,NV_INTEGER))
@@ -716,7 +729,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 			break;
 		case 'q':
 			format = 's';
-			/* FALL THROUGH */
+			/* FALLTHROUGH */
 		case 's':
 		case 'H':
 		case 'B':
@@ -755,7 +768,10 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 			break;
 		default:
 			if(!strchr("DdXxoUu",format))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_formspec,format);
+				UNREACHABLE();
+			}
 			fe->fmt = 'd';
 			value->ll = 0;
 			break;
@@ -798,6 +814,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 						fe->flags |=SFFMT_ALTER;
 				}
 			}
+			/* FALLTHROUGH */
 		case 'b':
 		case 's':
 		case 'B':
@@ -837,12 +854,14 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		case 'u':
 		case 'U':
 			longmax = LDBL_ULLONG_MAX;
+			/* FALLTHROUGH */
 		case '.':
 			if(fe->size==2 && strchr("bcsqHPRQTZ",*fe->form))
 			{
 				value->ll = ((unsigned char*)argp)[0];
 				break;
 			}
+			/* FALLTHROUGH */
 		case 'd':
 		case 'D':
 		case 'i':
@@ -931,7 +950,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 			fe->fmt = 'd';
 			fe->size = sizeof(value->ll);
 			errormsg(SH_DICT,ERROR_exit(1),e_formspec,format);
-			break;
+			UNREACHABLE();
 		}
 		if (format == '.')
 			value->i = value->ll;
@@ -977,13 +996,19 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 	case 'P':
 		s = fmtmatch(value->s);
 		if(!s || *s==0)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_badregexp,value->s);
+			UNREACHABLE();
+		}
 		value->s = s;
 		break;
 	case 'R':
 		s = fmtre(value->s);
 		if(!s || *s==0)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_badregexp,value->s);
+			UNREACHABLE();
+		}
 		value->s = s;
 		break;
 	case 'Q':
@@ -1096,6 +1121,7 @@ static int fmtvecho(const char *string, struct printf *pp)
 					c <<= 3;
 					c |= (*cp-'0');
 				}
+				/* FALLTHROUGH */
 			default:
 				cp--;
 		}

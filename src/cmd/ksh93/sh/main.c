@@ -263,7 +263,10 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 #endif
 					fdin = (int)strtol(name+8, (char**)0, 10);
 					if(fstat(fdin,&statb)<0)
+					{
 						errormsg(SH_DICT,ERROR_system(1),e_open,name);
+						UNREACHABLE();
+					}
 #if !_WINIX
 					/*
 					 * try to undo effect of solaris 2.5+
@@ -317,7 +320,10 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 							errno = EISDIR;
 						 error_info.id = av[0];
 						if(sp || errno!=ENOENT)
+						{
 							errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
+							UNREACHABLE();
+						}
 						/* try sh -c 'name "$@"' */
 						sh_onoption(SH_CFLAG);
 						shp->comdiv = (char*)sh_malloc(strlen(name)+7);
@@ -350,8 +356,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
 	exfile(shp,iop,fdin);
 	sh_done(shp,0);
-	/* NOTREACHED */
-	return(0);
 }
 
 /*

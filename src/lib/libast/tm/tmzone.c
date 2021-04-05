@@ -92,10 +92,10 @@ tmzone(register const char* name, char** end, const char* type, int* dst)
 		{
 		case 'C':
 			d += 15;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'B':
 			d += 15;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'A':
 			d += 15;
 			e++;

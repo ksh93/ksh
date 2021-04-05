@@ -775,4 +775,15 @@ got=$(umask 777; set +x; { cat <(echo ok); } 2>&1)
 [[ $got == ok ]] || err_exit "process substitution failed with umask 777 (got $(printf %q "$got"))"
 
 # ======
+# https://github.com/att/ast/issues/1336
+# Use the /proc psuedo filesystem on Linux as a convenient way to force a write I/O error.
+if [[ $(uname) == Linux ]]
+then
+	actual=$($SHELL -c 'echo > /proc/self/uid_map; echo okay' 2>&1)
+	expect='write.*failed.*okay'
+	[[ "$actual" =~ $expect ]] || err_exit "I/O failure not handled" \
+		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

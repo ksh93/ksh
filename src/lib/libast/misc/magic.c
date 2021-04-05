@@ -550,7 +550,7 @@ ckmagic(register Magic_t* mp, const char* file, char* buf, char* end, struct sta
 		case '|':
 			if (mp->keep[level] > 1)
 				goto checknest;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		default:
 			if (!mp->keep[level])
 			{
@@ -678,7 +678,7 @@ ckmagic(register Magic_t* mp, const char* file, char* buf, char* end, struct sta
 		case 'e':
 			if (!(p = getdata(mp, num, 0)))
 				goto next;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'E':
 			if (!ep->value.sub)
 				goto next;
@@ -714,7 +714,7 @@ ckmagic(register Magic_t* mp, const char* file, char* buf, char* end, struct sta
 		case 'm':
 			if (!(p = getdata(mp, num, 0)))
 				goto next;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'M':
 		case 'S':
 		checkstr:
@@ -1356,7 +1356,7 @@ cklang(register Magic_t* mp, const char* file, char* buf, char* end, struct stat
 						mp->mime = "application/x-cc";
 						break;
 					}
-					/*FALLTHROUGH*/
+					/* FALLTHROUGH */
 				case 'y':
 				case 'Y':
 					t1 = "yacc ";
@@ -1462,13 +1462,16 @@ cklang(register Magic_t* mp, const char* file, char* buf, char* end, struct stat
 			case 4:
 				if (b < e && (*b++ & 0xc0) != 0x80)
 					break;
+				/* FALLTHROUGH */
 			case 3:
 				if (b < e && (*b++ & 0xc0) != 0x80)
 					break;
+				/* FALLTHROUGH */
 			case 2:
 				if (b < e && (*b++ & 0xc0) != 0x80)
 					break;
 				n = 1;
+				/* FALLTHROUGH */
 			case 0:
 				if (b >= e)
 				{
@@ -1803,7 +1806,7 @@ load(register Magic_t* mp, char* file, register Sfio_t* fp)
 					ep->nest = '1';
 				}
 			}
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case '+':
 		case '&':
 		case '|':
@@ -1812,7 +1815,7 @@ load(register Magic_t* mp, char* file, register Sfio_t* fp)
 		default:
 			if ((mp->flags & MAGIC_VERBOSE) && !isalpha(*p) && mp->disc->errorf)
 				(*mp->disc->errorf)(mp, mp->disc, 1, "`%c': invalid line continuation operator", *p);
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case '*':
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':

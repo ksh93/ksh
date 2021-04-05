@@ -179,7 +179,10 @@ getids(register char* s, char** e, Key_t* key, int options)
 				if ((m = struid(s)) != NOID)
 					n = m;
 				else if (*z)
+				{
 					error(ERROR_exit(1), "%s: unknown user", s);
+					UNREACHABLE();
+				}
 			}
 			key->uid = n;
 		}
@@ -199,7 +202,10 @@ getids(register char* s, char** e, Key_t* key, int options)
 			if ((m = strgid(s)) != NOID)
 				n = m;
 			else if (*z)
+			{
 				error(ERROR_exit(1), "%s: unknown group", s);
+				UNREACHABLE();
+			}
 		}
 		key->gid = n;
 	}
@@ -241,7 +247,10 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	flags = fts_flags() | FTS_META | FTS_TOP | FTS_NOPOSTORDER | FTS_NOSEEDOTDIR;
 	before = ~0;
 	if (!(sp = sfstropen()))
+	{
 		error(ERROR_SYSTEM|3, "out of space");
+		UNREACHABLE();
+	}
 	sfputr(sp, usage_1, -1);
 	if (error_info.id[2] == 'g')
 		sfputr(sp, usage_grp_1, -1);
@@ -257,14 +266,20 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 		sfputr(sp, ERROR_translate(0, 0, 0, "[[owner:]group]"), -1);
 	sfputr(sp, usage_3, -1);
 	if (!(usage = sfstruse(sp)))
+	{
 		error(ERROR_SYSTEM|3, "out of space");
+		UNREACHABLE();
+	}
 	for (;;)
 	{
 		switch (optget(argv, usage))
 		{
 		case 'b':
 			if (stat(opt_info.arg, &st))
+			{
 				error(ERROR_exit(1), "%s: cannot stat", opt_info.arg);
+				UNREACHABLE();
+			}
 			before = st.st_mtime;
 			continue;
 		case 'c':
@@ -282,7 +297,10 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			mapdisc.key = offsetof(Map_t, key);
 			mapdisc.size = sizeof(Key_t);
 			if (!(map = dtopen(&mapdisc, Dtset)))
+			{
 				error(ERROR_exit(1), "out of memory [id map]");
+				UNREACHABLE();
+			}
 			continue;
 		case 'n':
 			options |= OPT_SHOW;
@@ -292,7 +310,10 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case 'r':
 			if (stat(opt_info.arg, &st))
+			{
 				error(ERROR_exit(1), "%s: cannot stat", opt_info.arg);
+				UNREACHABLE();
+			}
 			uid = st.st_uid;
 			gid = st.st_gid;
 			options |= OPT_UID|OPT_GID;
@@ -325,14 +346,17 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	if (error_info.errors || argc < 2)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	s = *argv;
 	if (options & OPT_LCHOWN)
 	{
@@ -347,14 +371,20 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 		if (streq(s, "-"))
 			sp = sfstdin;
 		else if (!(sp = sfopen(NiL, s, "r")))
+		{
 			error(ERROR_exit(1), "%s: cannot read", s);
+			UNREACHABLE();
+		}
 		while (s = sfgetr(sp, '\n', 1))
 		{
 			getids(s, &t, &key, options);
 			if (!(m = (Map_t*)dtmatch(map, &key)))
 			{
 				if (!(m = (Map_t*)stakalloc(sizeof(Map_t))))
+				{
 					error(ERROR_exit(1), "out of memory [id dictionary]");
+					UNREACHABLE();
+				}
 				m->key = key;
 				m->to.uid = m->to.gid = NOID;
 				dtinsert(map, m);
@@ -389,7 +419,10 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 		break;
 	}
 	if (!(fts = fts_open(argv + 1, flags, NiL)))
+	{
 		error(ERROR_system(1), "%s: not found", argv[1]);
+		UNREACHABLE();
+	}
 	while (!sh_checksig(context) && (ent = fts_read(fts)))
 		switch (ent->fts_info)
 		{

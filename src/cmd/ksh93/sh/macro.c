@@ -99,6 +99,7 @@ typedef struct  _mac_
 #define M_TYPE		8	/* ${@var}	*/
 #define M_EVAL		9	/* ${$var}	*/
 
+static noreturn void	mac_error(Namval_t*);
 static int	substring(const char*, const char*, int[], int);
 static void	copyto(Mac_t*, int, int);
 static void	comsubst(Mac_t*, Shnode_t*, int);
@@ -108,7 +109,6 @@ static void	tilde_expand2(Shell_t*,int);
 static char 	*sh_tilde(Shell_t*,const char*);
 static char	*special(Shell_t *,int);
 static void	endfield(Mac_t*,int);
-static void	mac_error(Namval_t*);
 static char	*mac_getstring(char*);
 static int	charlen(const char*,int);
 #if SHOPT_MULTIBYTE
@@ -185,7 +185,10 @@ char *sh_mactrim(Shell_t *shp, char *str, register int mode)
 		if((mode=path_expand(shp,str,&arglist))==1)
 			str = arglist->argval;
 		else if(mode>1)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_ambiguous,str);
+			UNREACHABLE();
+		}
 		sh_trim(str);
 	}
 	*mp = savemac;
@@ -391,7 +394,7 @@ void sh_machere(Shell_t *shp,Sfio_t *infile, Sfio_t *outfile, char *string)
 			    case S_EOF:
 				if((c=fcfill()) > 0)
 					goto again;
-				/* FALL THRU */
+				/* FALLTHROUGH */
 			    default:
 			    regular:
 				sfputc(outfile,'$');
@@ -465,6 +468,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				    case -1:	/* illegal multi-byte char */
 				    case 0:
 					len = 1;
+					/* FALLTHROUGH */
 				    case 1:
 					n = state[*(unsigned char*)cp++];
 					break;
@@ -644,6 +648,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 					goto pattern;
 				continue;
 			}
+			/* FALLTHROUGH */
 		    case S_EOF:
 			if(c)
 			{
@@ -668,6 +673,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 		    case S_QUOTE:
 			if(mp->lit || mp->arith)
 				break;
+			/* FALLTHROUGH */
 		    case S_LIT:
 			if(mp->arith)
 			{
@@ -710,7 +716,10 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 					if(first[c-2]=='.')
 						offset = stktell(stkp);
 					if(isastchar(*cp) && cp[1]==']')
+					{
 						errormsg(SH_DICT,ERROR_exit(1),e_badsubscript,*cp);
+						UNREACHABLE();
+					}
 				}
 				first = fcseek(c);
 				mp->pattern = 4;
@@ -730,6 +739,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				cp = first = fcseek(0);
 				break;
 			}
+			/* FALLTHROUGH */
 		    case S_PAT:
 			if(mp->pattern && !(mp->quote || mp->lit))
 			{
@@ -1103,7 +1113,7 @@ retry1:
 		/* This code handles ${#} */
 		c = mode;
 		mode = type = 0;
-		/* FALL THRU */
+		/* FALLTHROUGH */
 	    case S_SPC1:
 		if(type==M_BRACE)
 		{
@@ -1130,7 +1140,7 @@ retry1:
 				goto retry1;
 			}
 		}
-		/* FALL THRU */
+		/* FALLTHROUGH */
 	    case S_SPC2:
 		if(type==M_BRACE && c=='$' && isalnum(mode=fcpeek(0)))
 		{
@@ -1201,7 +1211,10 @@ retry1:
 			d=fcget();
 			fcseek(-1);
 			if(!(d && strchr(":+-?=",d)))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_notset,ltos(c));
+				UNREACHABLE();
+			}
 		}
 		break;
 	    case S_ALP:
@@ -1498,7 +1511,10 @@ retry1:
 		{
 			/* The parameter is unset. */
 			if(sh_isoption(SH_NOUNSET) && !isastchar(mode) && (type==M_VNAME || type==M_SIZE))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
+				UNREACHABLE();
+			}
 			v = 0;
 			if(type==M_VNAME)
 			{
@@ -1633,7 +1649,10 @@ skip:
 			int newops = (c=='#' || c == '%' || c=='/');
 			offset = stktell(stkp);
 			if(newops && sh_isoption(SH_NOUNSET) && *id && id!=idbuff  && (!np || nv_isnull(np)))
+			{
 				errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
+				UNREACHABLE();
+			}
 			if(c=='/' ||c==':' || ((!v || (nulflg && *v==0)) ^ (c=='+'||c=='#'||c=='%')))
 			{
 				int newquote = mp->quote;
@@ -2034,6 +2053,7 @@ retry2:
 				errormsg(SH_DICT,ERROR_exit(1),e_nullset,id);
 			else
 				errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
+			UNREACHABLE();
 		}
 		else if(c=='=')
 		{
@@ -2065,6 +2085,7 @@ retry2:
 			nv_close(np);
 		}
 		errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
+		UNREACHABLE();
 	}
 	if(np)
 		nv_close(np);
@@ -2834,6 +2855,7 @@ static char *special(Shell_t *shp,register int c)
 			c_str[0]=(char)c;
 			c_str[1]='\0';
 			errormsg(SH_DICT,ERROR_exit(1),e_notset,c_str);
+			UNREACHABLE();
 		}
 	}
 	return(NIL(char*));
@@ -2842,11 +2864,12 @@ static char *special(Shell_t *shp,register int c)
 /*
  * Handle macro expansion errors
  */
-static void mac_error(Namval_t *np)
+static noreturn void mac_error(Namval_t *np)
 {
 	if(np)
 		nv_close(np);
 	errormsg(SH_DICT,ERROR_exit(1),e_subst,fcfirst());
+	UNREACHABLE();
 }
 
 /*

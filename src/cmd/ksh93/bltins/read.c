@@ -110,7 +110,10 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		break;
 	    case 'p':
 		if((fd = shp->cpipe[0])<=0)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_query);
+			UNREACHABLE();
+		}
 		break;
 	    case 'n': case 'N':
 		flags &= ((1<<D_FLAG)-1);
@@ -130,7 +133,10 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 	    case 'u':
 		fd = (int)opt_info.num;
 		if(opt_info.num<0 || opt_info.num>INT_MAX || (fd>=shp->gd->lim.open_max && !sh_iovalidfd(shp,fd)))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_file,opt_info.arg); /* reject invalid file descriptors */
+			UNREACHABLE();
+		}
 		if(sh_inuse(shp,fd))
 			fd = -1;
 		break;
@@ -142,15 +148,21 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2), "%s", optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(!((r=shp->fdstatus[fd])&IOREAD)  || !(r&(IOSEEK|IONOSEEK)))
 		r = sh_iocheckfd(shp,fd);
 	if(fd<0 || !(r&IOREAD))
+	{
 		errormsg(SH_DICT,ERROR_system(1),e_file+4);
+		UNREACHABLE();
+	}
 	/* look for prompt */
 	if((name = *argv) && (name=strchr(name,'?')) && (r&IOTTY))
 		r = strlen(name++);
@@ -486,7 +498,10 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 	{
 		c = sfvalue(iop)+1;
 		if(!sferror(iop) && sfgetc(iop) >=0)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_overlimit,"line length");
+			UNREACHABLE();
+		}
 	}
 	if(timeslot)
 		timerdel(timeslot);
@@ -600,6 +615,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 
 		    case S_ERR:
 			cp++;
+			/* FALLTHROUGH */
 		    case S_EOF:
 			/* check for end of buffer */
 			if(val && *val)
@@ -661,7 +677,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 #endif /* SHOPT_MULTIBYTE */
 			if(c!=S_DELIM)
 				break;
-			/* FALL THRU */
+			/* FALLTHROUGH */
 
 		    case S_DELIM:
 			if(!del)
@@ -672,7 +688,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 				while((c=shp->ifstable[*cp++])==S_SPACE);
 				break;
 			}
-			/* FALL THRU */
+			/* FALLTHROUGH */
 
 		    case 0:
 			if(val==0 || was_escape)

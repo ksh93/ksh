@@ -120,10 +120,10 @@ typeset x=(
 	( (d D) (e E) (f F) )
 	( (a A) (b B) (c C) )
 )
-[[ ${x[0][0][0]} == g ]] || err_exit '${x[0][0][0]} == G'
-[[ ${x[1][1][0]} == e ]] || err_exit '${x[1][1][0]} == e'
-[[ ${x[1][1][1]} == E ]] || err_exit '${x[2][2][1]} == C'
-[[ ${x[0][2][1]} == I ]] || err_exit '${x[0][2][1]} == I'
+[[ ${x[0][0][0]} == g ]] || exit 1
+[[ ${x[1][1][0]} == e ]] || exit 1
+[[ ${x[1][1][1]} == E ]] || exit 1
+[[ ${x[0][2][1]} == I ]] || exit 1
 +++
 
 typeset -a -si x=( [0]=(1 2 3) [1]=(4 5 6) [2]=(7 8 9) )
@@ -220,7 +220,7 @@ typeset -A foo[bar]
 foo[bar][x]=2
 (( foo[bar][x]++ ))
 exp=3
-[[ ${foo[bar][x]} == $exp ]] || err_ext "subscript gets added incorrectly to an associative array when ++ operator is called" \
+[[ ${foo[bar][x]} == $exp ]] || err_exit "subscript gets added incorrectly to an associative array when ++ operator is called" \
 	"(expected '$exp', got '${foo[bar][x]}')"
 
 # ======

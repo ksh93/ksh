@@ -1013,7 +1013,7 @@ ppfsm __PARAM__((int op, register char* s), (op, s)) __OTORP__(int op; register 
 				case 023:
 					for (c = 0; c <= 255; c++)
 						rp[c] = n;
- 
+					/* FALLTHROUGH */
 
 				case 002:
 					_pp_fsmtab[(0+28)][fp->state+1] = n < 0 ? ~n : n;
@@ -2110,7 +2110,7 @@ astlicense __PARAM__((char* p, int size, char* file, char* options, int cc1, int
 							break;
 						case -1:
 							c = 12;
- 
+							/* FALLTHROUGH */
 						default:
 							notice.type = c;
 							notice.item[1].data = lic[lic[c].quote].data;
@@ -2899,7 +2899,7 @@ lex __PARAM__((register Proto_t* proto, register long flags), (proto, flags)) __
 	if ((n = ip - bp - 1) > 0)
 	{
 		ip = bp;
-		do switch( n) { default : memcopy( op, ip, n); op += n; ip += n; break; case 7 : * op++ = * ip++; case 6 : * op++ = * ip++; case 5 : * op++ = * ip++; case 4 : * op++ = * ip++; case 3 : * op++ = * ip++; case 2 : * op++ = * ip++; case 1 : * op++ = * ip++; case 0 : break; } while (0);
+		do switch( n) { default : memcopy( op, ip, n); op += n; ip += n; break; case 7 : * op++ = * ip++; /* FALLTHROUGH */ case 6 : * op++ = * ip++; /* FALLTHROUGH */ case 5 : * op++ = * ip++; /* FALLTHROUGH */ case 4 : * op++ = * ip++; /* FALLTHROUGH */ case 3 : * op++ = * ip++; /* FALLTHROUGH */ case 2 : * op++ = * ip++; /* FALLTHROUGH */ case 1 : * op++ = * ip++; /* FALLTHROUGH */ case 0 : break; } while (0);
 		ip++;
 	}
 	state = ~state;
@@ -3534,11 +3534,11 @@ lex __PARAM__((register Proto_t* proto, register long flags), (proto, flags)) __
 							break;
 						case ((( ((( ((( ((( ((( (( 'i')-('a'-1)))<<5)+(( 'n')-('a'-1))))<<5)+(( 'c')-('a'-1))))<<5)+(( 'l')-('a'-1))))<<5)+(( 'u')-('a'-1))))<<5)+(( 'd')-('a'-1))):
 							if (*ip == 'e') ip++;
- 
+ 							/* FALLTHROUGH */
 						case ((( ((( ((( ((( ((( (( 'd')-('a'-1)))<<5)+(( 'e')-('a'-1))))<<5)+(( 'f')-('a'-1))))<<5)+(( 'i')-('a'-1))))<<5)+(( 'n')-('a'-1))))<<5)+(( 'e')-('a'-1))):
 						case ((( ((( ((( ((( ((( (( 'p')-('a'-1)))<<5)+(( 'r')-('a'-1))))<<5)+(( 'a')-('a'-1))))<<5)+(( 'g')-('a'-1))))<<5)+(( 'm')-('a'-1))))<<5)+(( 'a')-('a'-1))):
 							if (*ip < 'a' || *ip > 'z') break;
- 
+							/* FALLTHROUGH */
 						default:
 							flags |= (1L<<12)|(1L<<15);
 							im = bp - 1;
@@ -4260,7 +4260,7 @@ if !defined(va_start)\n\
 				call = 0;
 				break;
 			}
- 
+			/* FALLTHROUGH */
 		case (0401+0):
  fsm_id:
 
@@ -5161,7 +5161,7 @@ main __PARAM__((int argc, char** argv), (argc, argv)) __OTORP__(int argc; char**
 				continue;
 			default:
 				proto_error(((char*)0), 2, file, "unknown option");
- 
+				/* FALLTHROUGH */
 			case '?':
 				b = "Usage: proto [-dfhinprstvzP+S] [-C directory] [-e package] [-l file]\n             [-o \"name='value' ...\"] [-L file] file ...\n";
 				write(2, b, sstrlen( b));

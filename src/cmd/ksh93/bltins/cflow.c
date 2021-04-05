@@ -61,7 +61,10 @@ int	b_return(register int n, register char *argv[],Shbltin_t *context)
 	}
 done:
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	pp->mode = (**argv=='e'?SH_JMPEXIT:SH_JMPFUN);
 	argv += opt_info.index;
 	n = (arg = *argv) ? (int)strtol(arg, (char**)0, 10) : shp->savexit;
@@ -98,14 +101,20 @@ int	b_break(register int n, register char *argv[],Shbltin_t *context)
 		return(2);
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	n=1;
 	if(arg= *argv)
 	{
 		n = (int)strtol(arg,&arg,10);
 		if(n<=0 || *arg)
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_nolabels,*argv);
+			UNREACHABLE();
+		}
 	}
 	if(shp->st.loopcnt)
 	{

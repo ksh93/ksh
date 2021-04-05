@@ -20,7 +20,7 @@
 #pragma prototyped
 
 /*
- * tables for the test builtin [[...]] and [...]
+ * tables for the test builtin [[ ... ]] and [ ... ]
  */
 
 #include	<ast.h>
@@ -29,7 +29,7 @@
 #include	"test.h"
 
 /*
- * This is the list of binary test and [[...]] operators
+ * This is the list of binary test and [[ ... ]] operators
  */
 
 const Shtable_t shtab_testops[] =
@@ -166,5 +166,6 @@ const char test_opchars[]	= "HLNRSVOGCaeohrwxdcbfugkv"
 const char e_argument[]		= "argument expected";
 const char e_missing[]		= "%s missing";
 const char e_badop[]		= "%s: unknown operator";
+const char e_unsupported_op[]	= "%s: operator not supported; use [[ ... ]]";
 const char e_tstbegin[]		= "[[ ! ";
 const char e_tstend[]		= " ]]\n";

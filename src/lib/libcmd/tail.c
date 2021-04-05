@@ -462,7 +462,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				t = opt_info.arg;
 				goto suffix;
 			}
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'n':
 			flags |= COUNT;
 			if (s = opt_info.arg)
@@ -515,7 +515,10 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 			flags |= TIMEOUT;
 			timeout = strelapsed(opt_info.arg, &s, 1);
 			if (*s)
+			{
 				error(ERROR_exit(1), "%s: invalid elapsed time [%s]", opt_info.arg, s);
+				UNREACHABLE();
+			}
 			continue;
 		case 'v':
 			flags |= VERBOSE;
@@ -569,7 +572,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
@@ -611,7 +614,10 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 	if (flags & FOLLOW)
 	{
 		if (!(fp = (Tail_t*)stakalloc(argc * sizeof(Tail_t))))
+		{
 			error(ERROR_system(1), "out of memory");
+			UNREACHABLE();
+		}
 		files = 0;
 		s = *argv;
 		do
@@ -718,7 +724,10 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				fp = fp->next;
 			}
 			if (sfsync(sfstdout))
+			{
 				error(ERROR_system(1), "write error");
+				UNREACHABLE();
+			}
 		}
 	done:
 		for (fp = files; fp; fp = fp->next)

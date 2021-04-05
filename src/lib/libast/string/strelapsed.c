@@ -105,7 +105,7 @@ strelapsed(register const char* s, char** e, int n)
 			break;
 		case '-':
 			p = 1;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'd':
 			v *= 24 * 60 * 60;
 			break;

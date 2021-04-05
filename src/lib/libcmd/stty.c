@@ -645,14 +645,23 @@ static void set(char *argv[], struct termios *sp)
 			off=1;
 		}
 		if(!(tp=lookup(cp)) || (off && (tp->type!=BIT) && (tp->type!=TABS)))
+		{
 			error(ERROR_exit(1),"%s: unknown mode",cp);
+			UNREACHABLE();
+		}
 		switch(tp->type)
 		{
 		    case CHAR:
 			if(off)
+			{
 				error(ERROR_exit(1),"%s: unknown mode",cp);
+				UNREACHABLE();
+			}
 			if(!*argv)
+			{
 				error(ERROR_exit(1),"missing argument to %s",cp);
+				UNREACHABLE();
+			}
 			c = gettchar(*argv++);
 			if(c>=0)
 				sp->c_cc[tp->mask] = c;
@@ -697,7 +706,10 @@ static void set(char *argv[], struct termios *sp)
 			struct winsize win;
 			int n;
 			if(ioctl(0,TIOCGWINSZ,&win)<0)
+			{
 				error(ERROR_system(1),"cannot set %s",tp->name);
+				UNREACHABLE();
+			}
 			if(!(cp= *argv))
 			{
 				sfprintf(sfstdout,"%d\n",tp->mask?win.ws_col:win.ws_row);
@@ -706,13 +718,19 @@ static void set(char *argv[], struct termios *sp)
 			argv++;
 			n=strtol(cp,&cp,10);
 			if(*cp)
+			{
 				error(ERROR_system(1),"%d: invalid number of %s",argv[-1],tp->name);
+				UNREACHABLE();
+			}
 			if(tp->mask)
 				win.ws_col = n;
 			else
 				win.ws_row = n;
 			if(ioctl(0,TIOCSWINSZ,&win)<0)
+			{
 				error(ERROR_system(1),"cannot set %s",tp->name);
+				UNREACHABLE();
+			}
 			break;
 		    }
 #endif
@@ -727,11 +745,15 @@ static void set(char *argv[], struct termios *sp)
 					break;
 				}
 				error(ERROR_exit(1), "%s: missing numeric argument", tp->name);
+				UNREACHABLE();
 			}
 			argv++;
 			c = (int)strtol(cp, &ep, 10);
 			if (*ep)
+			{
 				error(ERROR_exit(1), "%s: %s: numeric argument expected", tp->name, cp);
+				UNREACHABLE();
+			}
 			switch (tp->field)
 			{
 #if _mem_c_line_termios
@@ -748,7 +770,10 @@ static void set(char *argv[], struct termios *sp)
 						cfsetospeed(sp, c);
 				}
 				else
+				{
 					error(ERROR_exit(1), "%s: %s: invalid speed", tp->name, cp);
+					UNREACHABLE();
+				}
 				break;
 			case T_CHAR:
 				sp->c_cc[tp->mask] = c;
@@ -936,24 +961,33 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 				}
 				continue;
 			}
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case ':':
 			if (!opt_info.offset)
 				error(2, "%s", opt_info.arg);
 			else if (!(tp = lookup(argv[opt_info.index]+1)) || (tp->type != BIT && tp->type != TABS))
+			{
 				error(ERROR_exit(1), "%s: unknown mode", argv[opt_info.index]);
+				UNREACHABLE();
+			}
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (error_info.errors || (flags && *argv) || (flags&(flags-1)))
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (tcgetattr(fd, &tty) < 0)
+	{
 		error(ERROR_system(1), "not a tty");
+		UNREACHABLE();
+	}
 	if (flags & T_FLAG)
 		sfprintf(sfstdout, "%d\n", tcgetpgrp(0));
 	else if (*argv)
@@ -963,7 +997,10 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 		else
 			set(argv, &tty);
 		if (tcsetattr(0, TCSANOW, &tty) < 0)
+		{
 			error(ERROR_system(1), "cannot set tty");
+			UNREACHABLE();
+		}
 	}
 	else
 		output(&tty, flags);

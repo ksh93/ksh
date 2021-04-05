@@ -150,6 +150,7 @@ static void put_enum(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		i++;
 	}
 	error(ERROR_exit(1), "%s: invalid value %s",nv_name(np),val);
+	UNREACHABLE();
 }
 
 static char* get_enum(register Namval_t* np, Namfun_t *fp)
@@ -196,8 +197,8 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 			iflag = 'i';
 			continue;
 		case '?':
-			error(ERROR_USAGE|4, "%s", opt_info.arg);
-			break;
+			error(ERROR_usage(2), "%s", opt_info.arg);
+			UNREACHABLE();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			break;
@@ -213,7 +214,10 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 	while(cp = *argv++)
 	{
 		if(!(np = nv_open(cp, (void*)0, NV_VARNAME|NV_NOADD))  || !(ap=nv_arrayptr(np)) || ap->fun || (sz=ap->nelem&(((1L<<ARRAY_BITS)-1))) < 2)
-			error(ERROR_exit(1), "%s must name an array  containing at least two elements",cp);
+		{
+			error(ERROR_exit(1), "%s must name an array containing at least two elements",cp);
+			UNREACHABLE();
+		}
 		n = staktell();
 		sfprintf(stkstd,"%s.%s%c",NV_CLASS,np->nvname,0);
 		tp = nv_open(stakptr(n), shp->var_tree, NV_VARNAME);

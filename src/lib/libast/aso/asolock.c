@@ -44,7 +44,7 @@ asolock(unsigned int volatile* lock, unsigned int key, int type)
 		case ASO_LOCK:
 			if (*lock == key)
 				return 0;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case ASO_SPINLOCK:
 			for (k = 0; asocasint(lock, 0, key) != 0; ASOLOOP(k));
 			return 0;

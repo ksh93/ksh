@@ -692,7 +692,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 			case '\r':
 				if(pp == (ep->e_prompt+2)) /* quote char */
 					myquote = *(pp-1);
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 
 			case '\n':
 				/* start again */

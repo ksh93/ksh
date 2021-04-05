@@ -2516,7 +2516,7 @@ opthelp(const char* oopts, const char* what)
 		for (q = o; q < e; q++)
 			if (!(q->flags & OPT_ignore) && !streq(q->catalog, o->catalog))
 				o = q;
-		/*FALLTHROUGH*/
+		/* FALLTHROUGH */
 	case STYLE_posix:
 		sfputc(mp, '\f');
 		break;

@@ -115,7 +115,7 @@ fmtip6(const unsigned char* addr, int bits)
 		case 14:
 			if (!a[14] && a[15] <= 15)
 				break;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 12:
 			s = dec(s, "::", a[12]);
 			s = dec(s, ".", a[13]);

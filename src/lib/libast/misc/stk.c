@@ -120,13 +120,12 @@ static const char Omsg[] = "malloc failed while growing stack\n";
 /*
  * default overflow exception
  */
-static char *overflow(int n)
+static noreturn char *overflow(int n)
 {
 	NoP(n);
 	write(2,Omsg, sizeof(Omsg)-1);
 	exit(2);
-	/* NOTREACHED */
-	return(0);
+	UNREACHABLE();
 }
 
 /*

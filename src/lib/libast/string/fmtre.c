@@ -129,7 +129,7 @@ fmtre(const char* as)
 				end = 0;
 				break;
 			}
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case '?':
 		case '+':
 		case '@':
@@ -210,7 +210,7 @@ fmtre(const char* as)
 		logical:
 			if (!*s || *s == ')')
 				return 0;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		default:
 			*t++ = c;
 			continue;

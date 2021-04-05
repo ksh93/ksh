@@ -113,18 +113,27 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		return(2);
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(*argv[0]=='r' && argv[opt_info.index])  /* 'redirect' supports no args */
+	{
 		errormsg(SH_DICT,ERROR_exit(2),"%s: %s",e_badsyntax,argv[opt_info.index]);
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	if(!*argv)
 		return(0);
 
 	/* from here on, it's 'exec' with args, so we're replacing the shell */
 	if(sh_isoption(SH_RESTRICTED))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_restricted,argv[0]);
+		UNREACHABLE();
+	}
 	else
-        {
+	{
 		register struct argnod *arg=logdata.sh->envlist;
 		register Namval_t* np;
 		register char *cp;
@@ -157,7 +166,6 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		sh_sigreset(2);
 		sh_freeup(logdata.sh);
 		path_exec(logdata.sh,pname,argv,NIL(struct argnod*));
-		sh_done(logdata.sh,0);
         }
 	return(1);
 }
@@ -175,11 +183,14 @@ int    b_let(int argc,char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	while(arg= *argv++)
 		r = !sh_arith(shp,arg);
 	return(r);
@@ -200,7 +211,10 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 		return(2);
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	if(*argv && **argv)
 	{
@@ -236,9 +250,15 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	argv += opt_info.index;
 	script = *argv;
 	if(error_info.errors || !script)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(shp->dot_depth+1 > DOTMAX)
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,script);
+		UNREACHABLE();
+	}
 	if(!(np=shp->posix_fun))
 	{
 		/* check for KornShell style function first */
@@ -254,7 +274,10 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 						np = 0;
 				}
 				else
+				{
 					errormsg(SH_DICT,ERROR_exit(1),e_found,script);
+					UNREACHABLE();
+				}
 			}
 		}
 		else
@@ -262,7 +285,10 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		if(!np)
 		{
 			if((fd=path_open(shp,script,path_get(shp,script))) < 0)
+			{
 				errormsg(SH_DICT,ERROR_system(1),e_open,script);
+				UNREACHABLE();
+			}
 			filename = path_fullname(shp,stkptr(shp->stk,PATH_OFFSET));
 		}
 	}
@@ -362,11 +388,17 @@ int    b_shift(register int n, register char *argv[], Shbltin_t *context)
 			return(2);
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	n = ((arg= *argv)?(int)sh_arith(shp,arg):1);
 	if(n<0 || shp->st.dolc<n)
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_number,arg);
+		UNREACHABLE();
+	}
 	else
 	{
 		shp->st.dolv += n;
@@ -385,10 +417,13 @@ int    b_wait(int n,register char *argv[],Shbltin_t *context)
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s",opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	job_bwait(argv);
 	return(shp->exitval);
@@ -416,20 +451,26 @@ int    b_bg(register int n,register char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s",opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 	if(!sh_isstate(SH_MONITOR))
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_no_jctl);
-		return(1);
+		UNREACHABLE();
 	}
 	if(flag=='d' && *argv==0)
 		argv = (char**)0;
 	if(job_walk(sfstdout,job_switch,flag,argv))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_no_job);
+		UNREACHABLE();
+	}
 	return(shp->exitval);
 }
 
@@ -453,15 +494,21 @@ int    b_jobs(register int n,char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s",opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(*argv==0)
 		argv = (char**)0;
 	if(job_walk(sfstdout,job_list,flag,argv))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_no_job);
+		UNREACHABLE();
+	}
 	job_wait((pid_t)0);
 	return(shp->exitval);
 }
@@ -527,12 +574,16 @@ int	b_times(int argc, char *argv[], Shbltin_t *context)
 	    case ':':
 		errormsg(SH_DICT, 2, "%s", opt_info.arg);
 		errormsg(SH_DICT, ERROR_usage(2), "%s", optusage((char*)0));
+		UNREACHABLE();
 	    default:
 		errormsg(SH_DICT, ERROR_usage(0), "%s", opt_info.arg);
 		return(2);
 	}
 	if (argv[opt_info.index])
+	{
 		errormsg(SH_DICT, ERROR_exit(2), e_toomanyops);
+		UNREACHABLE();
+	}
 	/* Get & print the times */
 	print_cpu_times();
 	return(0);
@@ -555,21 +606,30 @@ int	b_universe(int argc, char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s",opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	if(error_info.errors || argc>1)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(arg = argv[0])
 	{
 		if(!astconf("UNIVERSE",0,arg))
+		{
 			errormsg(SH_DICT,ERROR_exit(1), e_badname,arg);
+			UNREACHABLE();
+		}
 	}
 	else
 	{
 		if(!(arg=astconf("UNIVERSE",0,0)))
+		{
 			errormsg(SH_DICT,ERROR_exit(1),e_nouniverse);
+			UNREACHABLE();
+		}
 		else
 			sfputr(sfstdout,arg,'\n');
 	}

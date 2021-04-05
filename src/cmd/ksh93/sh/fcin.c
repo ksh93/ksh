@@ -157,7 +157,7 @@ int _fcmbget(short *len)
 	{
 	    case -1:
 		*len = 1;
-		/* fall through */
+		/* FALLTHROUGH */
 	    case 0:
 	    case 1:
 		c=fcget();

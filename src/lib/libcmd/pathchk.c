@@ -252,13 +252,16 @@ b_pathchk(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (!*argv || error_info.errors)
+	{
 		error(ERROR_usage(2),"%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	while (s = *argv++)
 		pathchk(s, mode);
 	return error_info.errors != 0;

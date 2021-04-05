@@ -256,19 +256,25 @@ int	b_alarm(int argc,char *argv[],Shbltin_t *context)
 		break;
 	    case '?':
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		break;
+		UNREACHABLE();
 	}
 	argc -= opt_info.index;
 	argv += opt_info.index;
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(argc==0)
 	{
 		print_alarms(shp->st.timetrap);
 		return(0);
 	}
 	if(argc!=2)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),optusage((char*)0));
+		UNREACHABLE();
+	}
 	np = nv_open(argv[0],shp->var_tree,NV_NOARRAY|NV_VARNAME|NV_NOASSIGN);
 	if(!nv_isnull(np))
 		nv_unset(np);

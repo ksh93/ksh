@@ -217,7 +217,7 @@ word2posix(register char* f, register char* w, int alternate)
 			{
 			case 1:
 				p = '-';
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 2:
 				c = 'd';
 				break;
@@ -234,7 +234,7 @@ word2posix(register char* f, register char* w, int alternate)
 			{
 			case 1:
 				p = '-';
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			default:
 				c = 'I';
 				break;
@@ -245,7 +245,7 @@ word2posix(register char* f, register char* w, int alternate)
 			{
 			case 1:
 				p = '-';
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			default:
 				c = 'H';
 				break;
@@ -256,7 +256,7 @@ word2posix(register char* f, register char* w, int alternate)
 			{
 			case 1:
 				p = '-';
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 2:
 				c = 'm';
 				break;
@@ -273,7 +273,7 @@ word2posix(register char* f, register char* w, int alternate)
 			{
 			case 1:
 				p = '-';
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			default:
 				c = 'M';
 				break;
@@ -284,7 +284,7 @@ word2posix(register char* f, register char* w, int alternate)
 			{
 			case 1:
 				p = '-';
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			default:
 				c = 'S';
 				break;
@@ -295,7 +295,7 @@ word2posix(register char* f, register char* w, int alternate)
 			{
 			case 1:
 				p = '-';
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 2:
 				c = 'y';
 				break;

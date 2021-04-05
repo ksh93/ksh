@@ -864,7 +864,7 @@ substitute(Buf_t* buf, register char* s)
 				}
 				if (c != '-')
 					break;
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 0:
 			case '=':
 			case '}':
@@ -2118,7 +2118,7 @@ main(int argc, char** argv)
 			continue;
 		case 'N':
 			state.never = 1;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'n':
 			append(state.opt, " -n");
 			state.exec = 0;
@@ -2223,7 +2223,7 @@ main(int argc, char** argv)
 				continue;
 			case 'N':
 				state.never = 1;
-				/*FALLTHROUGH*/
+				/* FALLTHROUGH */
 			case 'n':
 				append(state.opt, " -n");
 				state.exec = 0;
@@ -2278,6 +2278,7 @@ main(int argc, char** argv)
 				break;
 			default:
 				report(2, "unknown option", s, (unsigned long)0);
+				/* FALLTHROUGH */
 			case '?':
 				usage();
 				break;

@@ -78,7 +78,7 @@ Sfio_t*	f;
 
 		/* 2-way pipe, must clear read buffer */
 		(void)_sfmode(f,SF_READ,1);
-		/* fall through */
+		/* FALLTHROUGH */
 	case SF_READ:
 		if(f->extent >= 0 && f->endb > f->next)
 		{	f->here -= f->endb-f->next;

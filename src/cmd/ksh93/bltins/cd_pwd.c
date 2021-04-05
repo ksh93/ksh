@@ -57,10 +57,13 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	register Shell_t *shp = context->shp;
 	int saverrno=0;
 	int rval,flag=0;
-	char *oldpwd;
+	static char *oldpwd;
 	Namval_t *opwdnod, *pwdnod;
 	if(sh_isoption(SH_RESTRICTED))
+	{
 		errormsg(SH_DICT,ERROR_exit(1),e_restricted+4);
+		UNREACHABLE();
+	}
 	while((rval = optget(argv,sh_optcd))) switch(rval)
 	{
 		case 'L':
@@ -74,16 +77,26 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	dir =  argv[0];
 	if(error_info.errors>0 || argc >2)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
+	if(oldpwd && oldpwd!=shp->pwd && oldpwd!=e_dot)
+		free(oldpwd);
 	oldpwd = path_pwd(shp,0);
-	opwdnod = (shp->subshell?sh_assignok(OLDPWDNOD,1):OLDPWDNOD); 
-	pwdnod = (shp->subshell?sh_assignok(PWDNOD,1):PWDNOD); 
+	opwdnod = sh_scoped(shp,OLDPWDNOD);
+	pwdnod = sh_scoped(shp,PWDNOD);
+	if(shp->subshell)
+	{
+		opwdnod = sh_assignok(opwdnod,1);
+		pwdnod = sh_assignok(pwdnod,1);
+	}
 	if(argc==2)
 		dir = sh_substitute(oldpwd,dir,argv[1]);
 	else if(!dir)
@@ -91,7 +104,10 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	else if(*dir == '-' && dir[1]==0)
 		dir = nv_getval(opwdnod);
 	if(!dir || *dir==0)
+	{
 		errormsg(SH_DICT,ERROR_exit(1),argc==2?e_subst+4:e_direct);
+		UNREACHABLE();
+	}
 	/*
 	 * If sh_subshell() in subshell.c cannot use fchdir(2) to restore the PWD using a saved file descriptor,
 	 * we must fork any virtual subshell now to avoid the possibility of ending up in the wrong PWD on exit.
@@ -186,6 +202,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		if(saverrno)
 			errno = saverrno;
 		errormsg(SH_DICT,ERROR_system(1),"%s:",dir);
+		UNREACHABLE();
 	}
 success:
 	if(dir == nv_getval(opwdnod) || argc==2)
@@ -197,6 +214,7 @@ success:
 		{
 			dir = stakptr(PATH_OFFSET);
 			errormsg(SH_DICT,ERROR_system(1),"%s:",dir);
+			UNREACHABLE();
 		}
 		stakseek(dir-stakptr(0));
 	}
@@ -216,8 +234,6 @@ success:
 	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	path_newdir(shp,shp->pathlist);
 	path_newdir(shp,shp->cdpathlist);
-	if(oldpwd && oldpwd!=e_dot)
-		free(oldpwd);
 	return(0);
 }
 
@@ -240,12 +256,18 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 			break;
 		case '?':
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 	}
 	if(error_info.errors)
+	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
 	if(*(cp = path_pwd(shp,0)) != '/')
+	{
 		errormsg(SH_DICT,ERROR_system(1), e_pwd);
+		UNREACHABLE();
+	}
 	if(flag)
 	{
 		cp = strcpy(stakseek(strlen(cp)+PATH_MAX),cp);

@@ -599,7 +599,7 @@ static void array_notify(Namval_t *np, void *data)
  * This is the exit routine for the shell
  */
 
-void sh_done(void *ptr, register int sig)
+noreturn void sh_done(void *ptr, register int sig)
 {
 	Shell_t	*shp = (Shell_t*)ptr;
 	register char *t;

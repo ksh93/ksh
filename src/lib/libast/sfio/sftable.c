@@ -178,7 +178,8 @@ int		type;	/* >0: scanf, =0: printf, -1: internal	*/
 			}
 			else if(*form != '*')
 				goto loop_flags;
-			else	form += 1; /* drop thru below */
+			else	form += 1;
+			/* FALLTHROUGH */
 
 		case '*' :
 			form = sffmtint(form,&n);

@@ -3,6 +3,34 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-04-03:
+
+- Fixed a bug that caused the uname builtin's -d option to change the output
+  of the -o option.
+
+- Fixed a possible crash that could occur when showing the domain name
+  with the uname builtin's -d option.
+
+2021-03-31:
+
+- Fixed a bug that caused 'cd -' to ignore the current value of $OLDPWD
+  when it's set to a different directory in a new scope.
+
+- Fixed a related bug that caused ksh to use the wrong value for $PWD
+  when in a new scope.
+
+2021-03-29:
+
+- Fixed an intermittent crash that could occur in vi mode when using the 'b'
+  or 'B' commands to go back one word.
+
+2021-03-27:
+
+- The 'test' builtin will now show an error message when given the invalid ']]'
+  or '=~' operators; it also properly returns with exit status 2 now (instead
+  of exit status 1). If the invalid operator is supported by [[ ... ]] (such
+  as '=~'), test will now suggest the usage of [[ ... ]] instead.
+
 2021-03-22:
 
 - A new --globcasedetect shell option is added to ksh on OSs where we can check
