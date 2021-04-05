@@ -10,7 +10,7 @@ idea.
 
 The extra features added are as follows:
 
-1. Support for `${$var}` from ksh93v- has been added (commit [`fb94c2cb`](https://github.com/JohnoKing/ksh/commit/fb94c2cb60722e1ea440d7a84739f4923cb2b908)),
+1. Support for `${$var}` from ksh93v- has been added (commit [`fb94c2c`](https://github.com/JohnoKing/ksh/commit/fb94c2cb60722e1ea440d7a84739f4923cb2b908)),
    where `$var` points to the name of a variable. So for example, `$var`
     can be set to point to `$foo`:  
 ```sh
@@ -19,7 +19,7 @@ $ foo='Intended result'
 $ echo ${$var}
 Intended result
 ```
-2. Extra keybinds have been added to the emacs and vi editing modes (commit [`4036ec7e`](https://github.com/JohnoKing/ksh/commit/4036ec7ec8c59e3ab143773e9c382cf9199a79ee)).
+2. Extra keybinds have been added to the emacs and vi editing modes (commit [`4036ec7`](https://github.com/JohnoKing/ksh/commit/4036ec7ec8c59e3ab143773e9c382cf9199a79ee)).
   * The following keybinds are added to both editing modes:
     * Support for Home key sequences `^[[1~` and `^[[7~`
     * Support for End key sequences `^[[4~` and `^[[8~`
@@ -31,7 +31,7 @@ Intended result
     * Insert:		Escape next character
   * This keybind is added just to vi mode:  
     * Insert:		Switch to insert mode
-3. Extra options have been added to the `ulimit` command in commit [`7d7d9604`](https://github.com/JohnoKing/ksh/commit/7d7d960481006843bf042c68730be66d3b01b462)
+3. Extra options have been added to the `ulimit` command in commit [`7d7d960`](https://github.com/JohnoKing/ksh/commit/7d7d960481006843bf042c68730be66d3b01b462)
    (as long as the OS supports them). These options are also present in Bash,
    although in ksh additional long forms of each option are available:  
 ```
@@ -43,17 +43,18 @@ ulimit -R/--rttime
 	This is the time a real-time process can running before blocking, in microseconds.
 ```
 4. Microsecond precision has been added to the `time` keyword and
-   `times` builtin (commit [`d97b64e2`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c)).
+   `times` builtin (commit [`d97b64e`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c)).
 5. The `%C` time format has been backported from ksh2020. `%C` is
    the total number of CPU seconds (i.e., the sum of `%U` and `%S`).
-   Added in commit [`d97b64e2`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c).
+   Added in commit [`d97b64e`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c).
 6. Extra options have been backported from ksh93v- for bash compatibility. The options added so far are:
-  * `type -P` as an alias for `whence -p`.
-  * `read -a` as an alias for `read -A`.
+  * `type -P` as an alias for `whence -p` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
+  * `read -a` as an alias for `read -A` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
 7. `exp10(3)` has been added as a supported math function (when available), so `echo $(( exp10(3) ))` now prints 1000 (10<sup>3</sup>).
+   Added in commit [`f090522`](https://github.com/JohnoKing/ksh/commit/f090522d70302a67a3cb977e0dbf3ef8a1d94fcb).
 8. An `banner` command has been added alongside `pty`. This is the AST
    `banner` with features added to it from the NetBSD `banner`.
-   Added in commit [`312972fc`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d).
+   Added in commits [`312972f`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d) and [`62fbfa4`](https://github.com/JohnoKing/ksh/commit/62fbfa4b09848d507e31ec019d039a2649040fa2).
 
 # KornShell 93u+m
 
