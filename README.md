@@ -52,7 +52,7 @@ ulimit -R/--rttime
   * `read -a` as an alias for `read -A` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
 7. `exp10(3)` has been added as a supported math function (when available), so `echo $(( exp10(3) ))` now prints 1000 (10<sup>3</sup>).
    Added in commit [`f090522`](https://github.com/JohnoKing/ksh/commit/f090522d70302a67a3cb977e0dbf3ef8a1d94fcb).
-8. An `banner` command has been added alongside `pty`. This is the AST
+8. A `banner` command has been added alongside `pty`. This is the AST
    `banner` with features added to it from the NetBSD `banner`.
    Added in commits [`312972f`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d) and [`62fbfa4`](https://github.com/JohnoKing/ksh/commit/62fbfa4b09848d507e31ec019d039a2649040fa2).
 
