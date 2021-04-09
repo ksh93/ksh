@@ -47,6 +47,12 @@
  *       not done for `csh script arg ...'
  */
 
+#ifdef _WINIX
+#	define EXE "?(.exe)"
+#else
+#	define EXE
+#endif
+
 char*
 pathshell(void)
 {
@@ -59,13 +65,13 @@ pathshell(void)
 
 	static char*	val;
 
-	if ((sh = getenv("SHELL")) && *sh == '/' && strmatch(sh, "*/(sh|*[!cC]sh)*([[:digit:]])?(-+([.[:alnum:]]))?(.exe)"))
+	if ((sh = getenv("SHELL")) && *sh == '/' && strmatch(sh, "*/(sh|*[!cC]sh)*([[:digit:]])?(-+([.[:alnum:]]))" EXE))
 	{
 		if (!(ru = getuid()) || !eaccess("/bin", W_OK))
 		{
 			if (stat(sh, &st))
 				goto defshell;
-			if (ru != st.st_uid && !strmatch(sh, "?(/usr)?(/local)/?([ls])bin/?([[:lower:]])sh?(.exe)"))
+			if (ru != st.st_uid && !strmatch(sh, "?(/usr)?(/local)/?([ls])bin/?([[:lower:]])sh" EXE))
 				goto defshell;
 		}
 		else

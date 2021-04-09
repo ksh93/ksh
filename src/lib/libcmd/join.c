@@ -478,7 +478,7 @@ outfield(Join_t* jp, int index, register int n, int last)
 		{
 			register unsigned char*	sp = jp->state;
 
-			/*eliminate leading spaces */
+			/* eliminate leading spaces */
 			if (jp->mb)
 				for (;;)
 				{

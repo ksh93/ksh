@@ -191,7 +191,13 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 
 #if 0
     /* for the dictionary generator */
-    int    b_local(int argc,char *argv[],Shbltin_t *context){}
+    int    b_autoload(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_compound(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_float(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_functions(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_integer(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_local(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_nameref(int argc,register char *argv[],Shbltin_t *context){}
 #endif
 int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 {
@@ -732,6 +738,12 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			np = nv_open(name,troot,nvflags|((nvflags&NV_ASSIGN)?0:NV_ARRAY)|((iarray|(nvflags&(NV_REF|NV_NOADD)==NV_REF))?NV_FARRAY:0));
 			if(!np)
 				continue;
+			if(np->nvflag&NV_RDONLY && !tp->pflag
+			&& (flag & ~(NV_ASSIGN|NV_RDONLY|NV_EXPORT)))	/* allow readonly/export on readonly vars */
+			{
+				errormsg(SH_DICT,ERROR_exit(1),e_readonly,nv_name(np));
+				UNREACHABLE();
+			}
 			if(nv_isnull(np) && !nv_isarray(np) && nv_isattr(np,NV_NOFREE))
 				nv_offattr(np,NV_NOFREE);
 			else if(tp->tp && !nv_isattr(np,NV_MINIMAL|NV_EXPORT) && (mp=(Namval_t*)np->nvenv) && (ap=nv_arrayptr(mp)) && (ap->nelem&ARRAY_TREE))
@@ -889,14 +901,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				}
 			}
 			else
-			{
-				if((flag&NV_RDONLY) && (curflag&NV_RDONLY))
-				{
-					errormsg(SH_DICT,ERROR_exit(1),e_readonly,nv_name(np));
-					UNREACHABLE();
-				}
 				newflag = curflag & ~flag;
-			}
 			if (tp->aflag && (tp->argnum || (curflag!=newflag)))
 			{
 				if(shp->subshell)

@@ -578,7 +578,7 @@ void sh_exit(register int xno)
 	shp->prefix = 0;
 #if SHOPT_TYPEDEF
 	shp->mktype = 0;
-#endif /* SHOPT_TYPEDEF*/
+#endif /* SHOPT_TYPEDEF */
 	if(job.in_critical)
 		job_unlock();
 	if(pp->mode == SH_JMPSCRIPT && !pp->prev) 

@@ -45,7 +45,7 @@
 #define PATH_STD_DIR		0100	/* directory is on  $(getconf PATH) */
 
 #define PATH_OFFSET	2		/* path offset for path_join */
-#define MAXDEPTH	(sizeof(char*)==2?64:1024) /* maximum recursion depth*/
+#define MAXDEPTH	(sizeof(char*)==2?64:1024) /* maximum recursion depth */
 
 /*
  * path component structure for path searching

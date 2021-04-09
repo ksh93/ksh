@@ -137,7 +137,7 @@ do      if      print foo | grep bar
         then    break 
         fi
 done
-(( d==2000 )) ||  err_exit "trap '' CHLD  causes side effects d=$d"
+(( d==2000 )) ||  err_exit "trap '' CHLD causes side effects d=$d"
 trap - CHLD
 
 x=$($SHELL 2> /dev/null -ic '/dev/null/notfound; sleep .05 & sleep .1;jobs')

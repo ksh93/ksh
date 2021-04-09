@@ -108,7 +108,7 @@ typedef struct edit
 	char	*e_outptr;	/* pointer to position in output buffer */
 	char	*e_outlast;	/* pointer to end of output buffer */
 	genchar	*e_inbuf;	/* pointer to input buffer */
-	char	*e_prompt;	/* pointer to buffer containing the prompt */
+	char	*e_prompt;	/* pointer to trimmed final line of PS1 prompt, used when redrawing command line */
 	genchar	*e_killbuf;	/* pointer to delete buffer */
 	char	e_search[SEARCHSIZE];	/* search string */
 	genchar	*e_physbuf;	/* temporary workspace buffer */
@@ -127,7 +127,7 @@ typedef struct edit
 	struct termio e_ott;
 #endif
 	int	*e_globals;	/* global variables */
-	genchar	*e_window;	/* display window  image */
+	genchar	*e_window;	/* display window image */
 	char	e_inmacro;	/* processing macro expansion */
 #if KSHELL
 	char	e_vi_insert[2];	/* for sh_keytrap */

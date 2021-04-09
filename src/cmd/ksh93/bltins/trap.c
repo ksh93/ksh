@@ -183,6 +183,10 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 	return(0);
 }
 
+#if 0
+    /* for the dictionary generator */
+    int    b_stop(int argc,char *argv[],Shbltin_t *context){}
+#endif
 int	b_kill(int argc,char *argv[],Shbltin_t *context)
 {
 	register char *signame;

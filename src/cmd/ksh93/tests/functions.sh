@@ -991,7 +991,7 @@ caller() {
 bar() { caller;}
 set -- $(bar)
 [[ $1 == $2 ]] && err_exit ".sh.inline optimization bug"
-( $SHELL  -c ' function foo { typeset x=$1;print $1;};z=();z=($(foo bar)) ') 2> /dev/null ||  err_exit 'using a function to set an array in a command sub  fails'
+( $SHELL  -c ' function foo { typeset x=$1;print $1;};z=();z=($(foo bar)) ') 2> /dev/null ||  err_exit 'using a function to set an array in a command sub fails'
 
 {
 got=$(
@@ -1153,7 +1153,7 @@ func2
 	}
 	foo
 EOF
-} 2> /dev/null || err_exit  'problem with unset -f  foo within function foo'
+} 2> /dev/null || err_exit  "problem with 'unset -f foo' within function foo"
 
 val=$($SHELL 2> /dev/null <<- \EOF
 	.sh.fun.set() { set -x; }

@@ -78,6 +78,7 @@ const struct shtable2 shtab_variables[] =
 	"LC_CTYPE",	0,				(char*)0,
 	"LC_MESSAGES",	0,				(char*)0,
 	"LC_NUMERIC",	0,				(char*)0,
+	"LC_TIME",	0,				(char*)0,
 	"FIGNORE",	0,				(char*)0,
 	"KSH_VERSION",	0,				(char*)0,
 	"JOBMAX",	NV_NOFREE|NV_INTEGER,		(char*)0,

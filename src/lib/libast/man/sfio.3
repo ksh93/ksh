@@ -696,7 +696,7 @@ may result in undefined behavior.
 .PP
 .Ss "  int sfgetc(Sfio_t* f)"
 .Ss "  int sfputc(Sfio_t* f, int c)"
-These functions read/write a byte  from/to stream \f5f\fP.
+These functions read/write a byte from/to stream \f5f\fP.
 \f5sfgetc()\fP returns the byte read or \f5-1\fP on error.
 \f5sfputc()\fP returns \f5c\fP on success and \f5-1\fP on error.
 
@@ -2356,8 +2356,8 @@ symbol may be removed in a future release.
 The printing and scanning functions were extended to handle multibyte characters
 and to conform to the C99 standard.
 .PP
-The function \f5sfpoll()\fP was rehauled to make it useful
-for writing servers that must commnunicate with multiple streams
+The function \f5sfpoll()\fP was overhauled to make it useful
+for writing servers that must communicate with multiple streams
 without blocking.
 .PP
 The formatting pattern \f5%c\fP for \f5sf*printf\fP was extended

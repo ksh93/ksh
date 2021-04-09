@@ -27,7 +27,7 @@
 #include	"streval.h"
 
 const unsigned char strval_precedence[35] =
-	/* opcode	precedence,assignment  */
+	/* opcode	precedence,assignment */
 {
 	/* DEFAULT */		MAXPREC|NOASSIGN,
 	/* DONE */		0|NOASSIGN|RASSOC,

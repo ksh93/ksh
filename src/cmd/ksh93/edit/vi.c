@@ -501,7 +501,7 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		}
 
 		/*** Line terminated with escape, or escaped eol/eof, ***/
-		/*  so set raw mode */
+		/*** so set raw mode ***/
 
 		if( tty_raw(ERRIO,0) < 0 )
 		{

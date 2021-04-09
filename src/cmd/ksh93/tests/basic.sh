@@ -215,6 +215,7 @@ if	[[ $x != "hello there" ]]
 then	err_exit "scripts in subshells fail"
 fi
 cd ~- || err_exit "cd back failed"
+cd "$tmp"
 x=$( ("$binecho" foo) 2> /dev/null )
 if	[[ $x != foo ]]
 then	err_exit "subshell in command substitution fails"
@@ -616,6 +617,7 @@ esac
 # When running a script without a #! hashbang path, ksh attempts to replace argv with the arguments
 # of the script. However, fixargs() didn't wipe out the rest of previous arguments after the last
 # \0. This caused an erroneous record in /proc/<PID>/cmdline and the output of the ps command.
+cd "$tmp"
 getPsOutput() {
 	# UNIX95=1 makes this work on HP-UX.
 	actual=$(UNIX95=1 ps -o args= -p "$1" 2>&1)

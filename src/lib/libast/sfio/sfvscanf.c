@@ -57,7 +57,7 @@ int*	peek;
 }
 
 /* buffer used during scanning of a double value or a multi-byte
-   character. the fields mirror certain local variables in sfvscanf.  */
+   character. the fields mirror certain local variables in sfvscanf. */
 typedef struct _scan_s
 {	int	error;	/* get set by _sfdscan if no value specified	*/
 	int	inp;	/* last input character read			*/

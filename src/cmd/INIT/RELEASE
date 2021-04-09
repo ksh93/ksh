@@ -423,7 +423,7 @@
 03-09-23 ratz.c: fix tar header number parse bug that skipped to next number
 	 regress.sh: rm cleanup now handles files matching -*
 03-09-11 iffe.sh: add unnamed { ... } blocks
-	 regress.sh: add COPY from to, like MOVE but comprison still done
+	 regress.sh: add COPY from to, like MOVE but comparison still done
 	 regress.sh: rm -rfu to handle test dirs w/o u+rwx
 03-08-14 Makefile: add hello.c to the manifest
 03-08-11 package.sh: fix `html binary' generation
@@ -522,7 +522,7 @@
 	 make.probe: add CC.LD.STRIP for link time a.out strip
 	 package.sh: fix package_use vs. PACKAGE_USE check
 02-10-24 WWW.mk: fix bug that required a :WWWBIN: assertion to post
-02-10-23 mamake.c: fix unuinitialized time in make()
+02-10-23 mamake.c: fix uninitialized time in make()
 	 ratz.c: fix meter buffer overflow
 02-10-20 package.sh: fix lib/probe/C/make/probe update test
 02-10-18 probe.win32: update for mingw
@@ -604,7 +604,7 @@
 	 package.sh: add check for { cc ar nm yacc/bison } before make
 	 ratz.c: fix "rb" vs. "r" macro tests
 	 iffe.sh: add nxt, similar to lcl but defines _nxt_foo for #include
-	 iffe.sh,package.sh: remove vaibale from sccs,cvs ident strings -- duh
+	 iffe.sh,package.sh: remove variable from sccs,cvs ident strings -- duh
 02-01-24 C+probe: check CC.DYNAMIC to handle cc that accept but ignore -B*
 	 iffe.sh: handle 'mem struct.a.b'
 02-01-22 iffe.sh: cache (internal) `foo vs. struct foo' test results
@@ -855,7 +855,7 @@
 98-05-01 regress: fix bug sometimes didn't list last test
 98-04-01 hostinfo: add cc path arg
 	 hostinfo: now works with /bin/sh
-	 Makefile: strengthed -lm probe
+	 Makefile: strengthen -lm probe
 98-01-23 Makefile: check for -ldl -lm
 	 C.probe: handle gcc -v -E phony include dirs
 	 iffe: fix lcl by dropping sort -u -- we need the real first

@@ -258,7 +258,7 @@ of ksh.
 	2.  The -C option is equivalent to -o noclobber.  Files are
 	    created with O_EXCL when -C is on.
 
-    h.	The following changes have been made to [[...]]:
+    h.	The following changes have been made to [[ ... ]]:
 	1.  A string by itself is equivalent to -n string.
 	2.  -e has been added as equivalent to -a.
 	3.  == has been added as equivalent =.

@@ -430,7 +430,7 @@ struct _seg_s
 #define DB2BEST(d)	((Vmuchar_t*)(d) - 2*sizeof(Head_t))
 #define DB2DEBUG(b)	((Vmuchar_t*)(b) + 2*sizeof(Head_t))
 
-/* set file and line number, note that DBLN > 0 so that DBISBAD will work  */
+/* set file and line number, note that DBLN > 0 so that DBISBAD will work */
 #define DBSETFL(d,f,l)	(DBFILE(d) = (f), DBLN(d) = (f) ? (l) : 1)
 
 /* set and test the state of known to be corrupted */

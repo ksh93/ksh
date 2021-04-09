@@ -637,8 +637,14 @@ tmlocale(void)
 		else if (tm_info.deformat != tm_info.format[TM_DEFAULT])
 			state.format = tm_info.deformat;
 	}
+
+	/* load the locale set in LC_TIME */
 	li = LCINFO(AST_LC_TIME);
-	if (!li->data)
+	if (!li->data || state.locale != li)
+	{
 		load(li);
+		state.locale = li;
+	}
+
 	return tm_info.format;
 }

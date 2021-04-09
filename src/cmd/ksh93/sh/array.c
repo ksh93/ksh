@@ -421,18 +421,17 @@ int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, int flags)
 	}
 	if(nq = nv_search(sub, ap->table, NV_ADD))
 	{
-		char		*saved_value;
-		int		rdonly = nv_isattr(np,NV_RDONLY);
+		char	*saved_value = NIL(char*);
 		if(!nq->nvfun && nq->nvalue.cp && *nq->nvalue.cp==0)
 			_nv_unset(nq,NV_RDONLY);
 		nv_arraychild(np,nq,0);
 		if(!nv_isattr(tp,NV_BINARY))
-			saved_value = stkcopy(stkstd,nv_getval(np));
+			saved_value = nv_getval(np);
 		if(!nv_clone(tp,nq,flags|NV_NOFREE))
 			return(0);
-		if(!rdonly)
+		if(!nv_isattr(np,NV_RDONLY))
 			nv_offattr(nq,NV_RDONLY);
-		if(!nv_isattr(tp,NV_BINARY))
+		if(saved_value)
 			nv_putval(nq,saved_value,0);
 		ap->nelem |= ARRAY_SCAN;
 		return(1);
@@ -699,6 +698,8 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 #endif /* SHOPT_FIXEDARRAY */
 			np->nvalue.up = up;
 		nv_putv(np,string,flags,&ap->hdr);
+		if(nofree && !up->cp)
+			up->cp = Empty;
 #if SHOPT_FIXEDARRAY
 		if(fp = (struct fixed_array*)ap->fixed)
 		{
@@ -870,13 +871,8 @@ static struct index_array *array_grow(Namval_t *np, register struct index_array 
 			}
 		}
 		else
-		if((ap->val[0].cp=np->nvalue.cp))
+		if((ap->val[0].cp=np->nvalue.cp) || (nv_isattr(np,NV_INTEGER) && !nv_isnull(np)))
 			i++;
-		else if(nv_isattr(np,NV_INTEGER) && !nv_isnull(np))
-		{
-			Sfdouble_t d= nv_getnum(np);
-			i++;
-		}
 		ap->header.nelem = i;
 		ap->header.hdr.disc = &array_disc;
 		nv_disc(np,(Namfun_t*)ap, NV_FIRST);
@@ -1523,7 +1519,14 @@ char *nv_endsubscript(Namval_t *np, register char *cp, int mode)
 	if(mode && np)
 	{
 		Namarr_t *ap = nv_arrayptr(np);
-		int scan = 0;
+		/* Block an attempt to alter a readonly array via subscript assignment or by appending the array.
+		   However instances of type variables must be allowed. This exception is observed when np->nvflag
+		   has NV_BINARY and NV_LJUST set besides NV_RDONLY and NV_ARRAY. */
+		if(nv_isattr(np,NV_RDONLY) && nv_isattr(np,NV_ARRAY) && mode&NV_ASSIGN && np->nvflag&(NV_BINARY|NV_LJUST)^(NV_BINARY|NV_LJUST))
+		{
+			errormsg(SH_DICT,ERROR_exit(1),e_readonly,nv_name(np));
+			UNREACHABLE();
+		}
 #if SHOPT_FIXEDARRAY
 		if((mode&NV_FARRAY) && !nv_isarray(np))
 		{
@@ -1534,8 +1537,6 @@ char *nv_endsubscript(Namval_t *np, register char *cp, int mode)
 			}
 		}
 #endif /* SHOPT_FIXEDARRAY */
-		if(ap)
-			scan = ap->nelem&ARRAY_SCAN;
 		if((mode&NV_ASSIGN) && (cp[1]=='=' || cp[1]=='+'))
 			mode |= NV_ADD;
 		else if(ap && cp[1]=='.' && (mode&NV_FARRAY))
@@ -1546,8 +1547,6 @@ char *nv_endsubscript(Namval_t *np, register char *cp, int mode)
 		else
 #endif /* SHOPT_FIXEDARRAY */
 		nv_putsub(np, sp, ((mode&NV_ADD)?ARRAY_ADD:0)|(cp[1]&&(mode&NV_ADD)?ARRAY_FILL:mode&ARRAY_FILL));
-		if(scan)
-			ap->nelem |= scan;
 	}
 	if(quoted)
 		stakseek(count);
@@ -1772,7 +1771,13 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 					nv_arraychild(np,mp,0);
 				if(sh.subshell)
 					np = sh_assignok(np,1);
-				if(!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0))
+				/*
+				 * type == 0x26 == NV_INTEGER|NV_LTOU|NV_RJUST (see include/nval.h) indicates an
+				 * associative array of a type created by the enum command. nelem should not be
+				 * increased in that case or 'unset' will fail to completely unset such an array.
+				 */
+				if(type != (NV_INTEGER|NV_LTOU|NV_RJUST)
+				&& (!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0)))
 					ap->header.nelem++;
 				if(nv_isnull(mp))
 				{

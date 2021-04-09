@@ -20,17 +20,17 @@ ast-ksh :PACKAGE: ksh93 libast libcmd libcoshell libsum libdll
 		these symlinks
 			/bin/ksh.exe => ksh93.exe
 			/usr/share/man/man1/ksh93.1 => ksh.1
-		are created.  This allows alternative ksh impelementations,
+		are created.  This allows alternative ksh implementations,
 		e.g., /bin/pdksh.exe, to be selected by changing the ksh.exe
 		and ksh.1 symbolic links.  In addition, ksh and ksh93 paths are
 		added to /etc/shells if not already present.
 		$()
 		Each builtin or special command accepts the --man and --html
-		options to list the man page on the standard error. The --???
+		options to show the man page on the standard error. The --???
 		option describes the self documenting options available to all
 		builtin and special commands.
 		$()
-		The stanadlone ksh is statically linked with the ast libcmd
+		The standlone ksh is statically linked with the ast libcmd
 		library which provides several builtin versions of /bin
 		commands. "builtin | grep /opt/ast/bin" lists the libcmd
 		builtins on the standard output. /opt/ast/bin/FOO accesses
@@ -55,12 +55,12 @@ ast-ksh :PACKAGE: ksh93 libast libcmd libcoshell libsum libdll
 		variables to convert. PATH is handled by cygwin so it is not
 		converted by the ast library.
 		$()
-		The astksh cygwin source package provides a bootstrap build
+		The ast-ksh cygwin source package provides a bootstrap build
 		environment that is not suited for an edit/build/debug cycle.
 		If you want to explore and modify the source then you should
 		install the (non-cygwinized) ast-base package which includes
 		AT&T nmake. With ast-base you will also be able to regenerate
-		the astksh cygwin source and binary packages.
+		the ast-ksh cygwin source and binary packages.
 		$()
 		For more information on ksh and other AT&T ast tools see
 		   http://www.research.att.com/sw/download/

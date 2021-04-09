@@ -113,9 +113,12 @@ main()
 #endif
 	printf("#undef	getdate\n");
 	printf("#define getdate		_ast_getdate\n");
-#if _lib_getopt || _lib_getsubopt || _lib_getopt_long || _lib_getopt_long_only
+#endif
+	/* libast always provides its own getopt implementation */
 	printf("#undef	getopt\n");
 	printf("#define getopt		_ast_getopt\n");
+#if _map_libc
+#if _lib_getopt || _lib_getsubopt || _lib_getopt_long || _lib_getopt_long_only
 	printf("#undef	getsubopt\n");
 	printf("#define getsubopt       _ast_getsubopt\n");
 	printf("#undef	getopt_long\n");
@@ -447,9 +450,6 @@ main()
 	printf("#undef	realloc\n");
 	printf("#define realloc		_ast_realloc\n");
 	printf("extern void*		realloc(void*, size_t);\n");
-	printf("#undef	strdup\n");
-	printf("#define strdup		_ast_strdup\n");
-	printf("extern char*		strdup(const char*);\n");
 #if _lib_valloc
 	printf("#undef	valloc\n");
 	printf("#define valloc		_ast_valloc\n");
@@ -457,6 +457,10 @@ main()
 #endif
 #endif
 #endif
+	/* we always use the libast strdup implementation */
+	printf("#undef	strdup\n");
+	printf("#define strdup		_ast_strdup\n");
+	printf("extern char*		strdup(const char*);\n");
 
 	/*
 	 * overriding <stdlib.h> strto*() is problematic to say the least

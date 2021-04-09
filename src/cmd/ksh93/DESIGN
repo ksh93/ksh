@@ -46,7 +46,7 @@ Directory layout:
 Include directory:
 	1.	argnod.h contains the type definitions for command
 		nodes, io nodes, argument nodes, and for positional
-		parameters.a  It defines the prototypes for
+		parameters.  It defines the prototypes for
 		all the positional parameters functions.
 	2.	builtins.h contains prototypes for builtins as well
 		as symbolic constants that refer to the name-pairs
@@ -89,7 +89,7 @@ Include directory:
 		functions.
 	19.	terminal.h is a header file that includes the appropriate
 		terminal include.
-	20.	test.h contains the definitions for the test and [[...]]
+	20.	test.h contains the definitions for the test and [[ ... ]]
 		commands.
 	21.	timeout.h contains the define constant for the maximum
 		shell timeout.

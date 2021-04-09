@@ -68,7 +68,7 @@ if	[[  ! -d . ]]
 then	err_exit "-d: . should be a directory file"
 fi
 if	[[  -f /dev/null ]]
-then	err_exit "-f: /dev/null  should not be an ordinary file"
+then	err_exit "-f: /dev/null should not be an ordinary file"
 fi
 chmod 000 $file
 
@@ -132,26 +132,26 @@ fi
 [[ -z '' &&  -z '' && -z '' ]]	|| err_exit "three ors not working"
 (exit 8)
 if	[[ $? -ne 8 || $? -ne 8 ]]
-then	err_exit 'value $? within [[...]]'
+then	err_exit 'value $? within [[ ... ]]'
 fi
 x='(x'
 if	[[ '(x' != '('* ]]
-then	err_exit " '(x' does not match '('* within [[...]]"
+then	err_exit " '(x' does not match '('* within [[ ... ]]"
 fi
 if	[[ '(x' != "("* ]]
-then	err_exit ' "(x" does not match "("* within [[...]]'
+then	err_exit ' "(x" does not match "("* within [[ ... ]]'
 fi
 if	[[ '(x' != \(* ]]
-then	err_exit ' "(x" does not match \(* within [[...]]'
+then	err_exit ' "(x" does not match \(* within [[ ... ]]'
 fi
 if	[[ 'x(' != *'(' ]]
-then	err_exit " 'x(' does not match '('* within [[...]]"
+then	err_exit " 'x(' does not match '('* within [[ ... ]]"
 fi
 if	[[ 'x&' != *'&' ]]
-then	err_exit " 'x&' does not match '&'* within [[...]]"
+then	err_exit " 'x&' does not match '&'* within [[ ... ]]"
 fi
 if	[[ 'xy' == *'*' ]]
-then	err_exit " 'xy' matches *'*' within [[...]]"
+then	err_exit " 'xy' matches *'*' within [[ ... ]]"
 fi
 if	[[ 3 > 4 ]]
 then	err_exit '3 < 4'
@@ -252,7 +252,7 @@ i=hell
 [[ hell0 == $i[0] ]]  ||  err_exit 'pattern $i[0] interpreted as array ref'
 test '(' = ')' && err_exit '"test ( = )" should not be true'
 [[ $($SHELL -c 'case  F in ~(Eilr)[a-z0-9#]) print ok;;esac' 2> /dev/null) == ok ]] || err_exit '~(Eilr) not working in case command'
-[[ $($SHELL -c "case  Q in ~(Fi)q |  \$'\E') print ok;;esac" 2> /dev/null) == ok ]] || err_exit '~(Fi)q | \E  not working in case command'
+[[ $($SHELL -c "case  Q in ~(Fi)q |  \$'\E') print ok;;esac" 2> /dev/null) == ok ]] || err_exit '~(Fi)q | \E not working in case command'
 
 locales=$'\n'$(command -p locale -a 2>/dev/null)$'\n'
 for l in C C.UTF-8 en_US.ISO8859-1 en_US.ISO8859-15 en_US.UTF-8
@@ -330,7 +330,7 @@ unset x
 unset x y z foo bar
 
 { x=$($SHELL -c '[[ (( $# -eq 0 )) ]] && print ok') 2> /dev/null;}
-[[ $x == ok ]] || err_exit '((...)) inside [[...]] not treated as nested ()'
+[[ $x == ok ]] || err_exit '((...)) inside [[ ... ]] not treated as nested ()'
 
 [[ -e /dev/fd/ ]] || err_exit '/dev/fd/ does not exits'
 [[ -e /dev/tcp/ ]] || err_exit '/dev/tcp/ does not exist'
@@ -400,11 +400,11 @@ done
 
 # ======
 # Tests from ksh93v- for the -eq operator
-[[ 010 -eq 10 ]] || err_exit '010 is not 10 in [[...]]'
+[[ 010 -eq 10 ]] || err_exit '010 is not 10 in [[ ... ]]'
 
 unset foo
 foo=10
-([[ foo -eq 10 ]]) || err_exit 'foo -eq 10 fails in [[...]] with foo=10'
+([[ foo -eq 10 ]]) || err_exit 'foo -eq 10 fails in [[ ... ]] with foo=10'
 
 # ======
 exit $((Errors<125?Errors:125))

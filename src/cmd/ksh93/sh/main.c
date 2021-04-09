@@ -277,7 +277,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 					if(((type = sh_type(cp = av[0])) & SH_TYPE_SH) && (name = nv_getval(L_ARGNOD)) && (!((type = sh_type(cp = name)) & SH_TYPE_SH)))
 					{
 						av[0] = (type & SH_TYPE_LOGIN) ? cp : path_basename(cp);
-						/*  exec to change $0 for ps */
+						/* exec to change $0 for ps */
 						execv(pathshell(),av);
 						/* exec fails */
 						shp->st.dolv[0] = av[0];
@@ -480,7 +480,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 		if(sh_isoption(SH_VERBOSE))
 			sh_onstate(SH_VERBOSE);
 		sh_onstate(SH_ERREXIT);
-		/* -eim  flags don't apply to profiles */
+		/* -eim flags don't apply to profiles */
 		if(sh_isstate(SH_PROFILE))
 		{
 			sh_offstate(SH_INTERACTIVE);

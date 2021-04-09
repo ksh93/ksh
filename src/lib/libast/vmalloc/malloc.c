@@ -267,7 +267,7 @@ static int vmflinit()
 	return 0;
 }
 
-/* use multiple regions to reduce blocking by concurrent threads  */
+/* use multiple regions to reduce blocking by concurrent threads */
 #if _mem_mmap_anon || _mem_mmap_zero
 static Vmalloc_t	*Region[64];	/* list of concurrent regions	*/
 static unsigned int	Regmax = 64;	/* max number of regions	*/

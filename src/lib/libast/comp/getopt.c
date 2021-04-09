@@ -43,8 +43,12 @@ char*		optarg = 0;
 
 static int	lastoptind;
 
+/*
+ * Avoid a null-test optimization bug caused by glibc's headers
+ * by naming this function '_ast_getopt' instead of 'getopt'.
+ */
 extern int
-getopt(int argc, char* const* argv, const char* optstring)
+_ast_getopt(int argc, char* const* argv, const char* optstring)
 {
 	int	n;
 

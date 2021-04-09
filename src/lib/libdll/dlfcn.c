@@ -201,9 +201,9 @@ static const char id[] = "\n@(#)$Id: dll library (AT&T Research) 2010-10-20 $\0\
 		 * its virtual origin and where it was
 		 * actually placed
 		 */
-		/*N.B. o_sndata etc. are one based */
+		/* N.B. o_sndata etc. are one based */
 		datareloc = (ulong)data - hdr->s[hdr->a.o_sndata-1].s_vaddr;
-		/*hdr is address of header, not text, so add text s_scnptr */
+		/* hdr is address of header, not text, so add text s_scnptr */
 		textreloc = (ulong)hdr + hdr->s[hdr->a.o_sntext-1].s_scnptr
 			- hdr->s[hdr->a.o_sntext-1].s_vaddr;
 		ldhdr = (void*)((char*)hdr+ hdr->s[hdr->a.o_snloader-1].s_scnptr);

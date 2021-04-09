@@ -23,12 +23,6 @@ https://github.com/modernish/modernish/tree/0.16/lib/modernish/cap/
   initial ! (and, on some shells, ^) retains the meaning of negation, even
   in quoted strings within bracket patterns, including quoted variables.
 
-- BUG_CSUBSTDO: If standard output (file descriptor 1) is closed before
-  entering a $(command substitution), and any other file descriptors are
-  redirected within the command substitution, commands such as 'echo' will
-  not work within the command substitution, acting as if standard output is
-  still closed.
-
 - BUG_IFSGLOBS: In glob pattern matching (as in case or parameter
   substitution with # and %), if IFS starts with ? or * and the "$*"
   parameter expansion inserts any IFS separator characters, those characters

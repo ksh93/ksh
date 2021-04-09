@@ -21,9 +21,9 @@
 12-07-02  A bug in which builtin name did now work for builtins found in a
 	  library added by builtin -f lib has been fixed.
 12-07-02  A bug in the edit modes which <tab> after a directory did not refresh
-          the input line has been fixed.
+	  the input line has been fixed.
 12-07-02  A bug in which an exit status > 256 corresponding to a signal was
-          not returned by a function to indicate a signal exit has been fixed.
+	  not returned by a function to indicate a signal exit has been fixed.
 12-06-28  Fix ulimit -a to list (Kibytes) instead of (kbytes).
 12-06-27  Fix uninitialized data reference for <CR> as first char in --vi mode.
 12-06-26  The formatting of printf "%q" for multibyte locales has changed to
@@ -243,7 +243,7 @@
 	  that caused a core dump has been fixed.
 12-02-08  A bug in which .sh.fun disciplines could be cleared after a
 	  function completes has been fixed.
-12-02-08  A bug in job control in which the foregroup process group was not
+12-02-08  A bug in job control in which the foreground process group was not
 	  set correctly after restarting a stopped pipeline has been fixed.
 12-02-07  A bug in which numbers with leading zeros could be treated as
 	  octal constants outside of ((...)) has been fixed.
@@ -297,7 +297,7 @@
 	  quote argument in a form suitable for a field in a .csv format file.
 11-12-02 +A -S option was added to read to be able to read .csv format files.
 11-11-28  A bug in which redirection of standard error in a function called from
-	  command substitution caused standard error to be lost has ben fixed.
+	  command substitution caused standard error to be lost has been fixed.
 11-11-21  [[ (-n foo) ]] no longer requires a space before (.
 11-11-11  The readonly attribute for a variable now applies to compound
 	  assignments to that variable.
@@ -355,7 +355,7 @@
 	  Linux has been fixed.  The bug could also have affected other systems.
 11-06-07 +A number of changes to support the still undocumented namespace option
 	  have been added.
-11-06-06  A bug in which command substitution of eval would hang when it  had
+11-06-06  A bug in which command substitution of eval would hang when it had
 	  standard error redirected to standard output has been fixed.
 11-06-01  A bug in case statement fall through (;&) ignoring set -e was fixed.
 11-06-01  A bug in which creating a left or right justified upper or lowercase
@@ -711,7 +711,7 @@
 	  was invoked on a two dimensional array, i.e., arr[5][9].discipline.
 10-07-19  Fixed a buffering problem which occurred when running a script with
 	  ssh and the parent ssh process is killed.
-10-07-14  Modified the parser to treat ((...)) inside [[...]] as ( (...) ) to
+10-07-14  Modified the parser to treat ((...)) inside [[ ... ]] as ( (...) ) so
 	  that it is a nested (...).
 10-07-09  A bug in the handling of process substitution inside command
 	  substitution as part of a pipeline has been fixed.
@@ -1142,9 +1142,9 @@
 	  has been fixed.
 09-01-19  A bug in which sending SIGWINCH to a process that reads from a pipe
 	  could cause a memory fault has been fixed.
-09-01-16 +The -R unary operator was added to [[...]] and test to check whether
-	  a variable is a  name reference.
-09-01-16 +The -v unary operator was added to [[...]] and test to check whether
+09-01-16 +The -R unary operator was added to [[ ... ]] and test to check whether
+	  a variable is a name reference.
+09-01-16 +The -v unary operator was added to [[ ... ]] and test to check whether
 	  a variable is set.
 09-01-14  The unset built-in was modified to return 0 exit status when
 	  unsetting a variable that was unset to conform with the POSIX
@@ -1261,7 +1261,7 @@
 	  cases where the command caused the shell to fork has been fixed.
 08-09-19  type, whence -v, and command -v were fixed to comply with POSIX
 	  by writing 'not found' diagnostics to the standard error.
-08-09-18  test and [...] were fixed to comply with POSIX in the case
+08-09-18  test and [ ... ] were fixed to comply with POSIX in the case
 	  of test '(' binop ')' where binop is a valid binary test operator.
 08-09-16 +If a method discipline named create is specified when defining a
 	  type, this function will be called when an instance is created.
@@ -1468,7 +1468,7 @@
 08-03-04  A bug in multiline mode in emacs and vi mode which could cause the
 	  cursor to be on the wrong line when interrupt was hit has been fixed.
 08-03-03  The change made in ksh93s+ on 07-06-18 in which braces became
-	  optional for ${a[i]} inside  [[...]] was restored in the case
+	  optional for ${a[i]} inside  [[ ... ]] was restored in the case
 	  where the argument can be a pattern.
 08-03-03  A bug in which creating a name reference to an associative array
 	  instance would fail when the subscript contained characters [ or
@@ -1580,7 +1580,7 @@
 	  name+=([sub]=value) could cause the array to become an associative
 	  array has been fixed.
 07-11-14  A bug in which typeset without arguments could coredump if a
-	  variable is declared as in indexed array and  has no elements has
+	  variable is declared as an indexed array and has no elements has
 	  been fixed.
 07-11-14  A bug in which creating a local SECONDS variable with typeset in
 	  a function could corrupt memory has been fixed.
@@ -1636,13 +1636,13 @@
 07-06-25  A bug in the expansion of ${var/pattern/rep} when pattern or rep
 	  contained a left parenthesis in single quotes has been fixed.
 07-06-18  The braces for a subscripted variable with ${var[sub]} are now
-	  optional when inside [[...]], ((...)) or as a subscript.
+	  optional when inside [[ ... ]], ((...)) or as a subscript.
 07-05-28  A bug in brace expansion in which single and double quotes did
           not treat the comma as a literal character has been fixed.
 07-05-24  The -p option of whence now disables -v.
 07-05-23  Several bug fixes in compound variables and arrays of arrays
 	  have been made.
-07-05-15  A bug in which the %B format of printf was affected  by the
+07-05-15  A bug in which the %B format of printf was affected by the
 	  locale has been fixed.
 07-05-14  A bug in which \ was not removed in the replacement pattern with
 	  ${var/pattern/rep} when it was not followed by \ or a digit has
@@ -1788,7 +1788,7 @@
 06-05-19 +Modified arithmetic so that conversions to strings default to
 	  the maximum number of precision digits.
 06-05-16  Bug fixes for multibyte locales.
-06-05-10  The =~ operator was added to [[...]] and  [[ string ~= ERE ]]
+06-05-10  The =~ operator was added to [[ ... ]] and  [[ string ~= ERE ]]
 	  is equivalent to [[ string == ~(E)ERE ]].
 06-04-25  A bug in the vi edit mode which could cause the shell to core dump
 	  when switching from emacs mode.
@@ -1880,7 +1880,7 @@
 05-05-18  A bug in which the line number for errors was not correct for
           functions loaded from FPATH has been fixed.
 05-04-18  A bug in which the exit status $? is not set when a trap triggered
-	  by the [[...]] command is executed has been fixed.
+	  by the [[ ... ]] command is executed has been fixed.
 05-04-08 +Redirection operators can be directly preceded with {varname}
 	  with no intervening space, where varname is a variable name which
 	  allows the shell to select a file descriptor > 10 and store it
@@ -2144,7 +2144,7 @@
 	  did not follow x has been fixed.
 
 03-03-18  --- Release ksh93o  ---
-03-03-18 +A -N unary operator was added to test and [[...]] which returns
+03-03-18 +A -N unary operator was added to test and [[ ... ]] which returns
 	  true if the file exists and the file has been modified since it
 	  was last read.
 03-03-18 +The TIMEFORMAT variable was added to control the format for
@@ -2639,7 +2639,7 @@
 	  jobs have completed has been fixed.
 00-06-21  A bug in which backspace did not work correctly during the
 	  R replace directive in vi-mode has been fixed.
-00-06-12 +Added variable name completion/expansion/listing  to the set of
+00-06-12 +Added variable name completion/expansion/listing to the set of
 	  completions.  Variable name completions begin with $ or "$ followed
 	  by a letter.
 00-05-09  --- Release ksh93j  ---
@@ -2660,7 +2660,7 @@
 00-03-30 +Code was modified in several places to support automatic
 	  generation of C locale dictionaries.
 00-03-28  A bug in which the set and trap commands invoked with --name
-	  type arguments would terminate the invoking script  has
+	  type arguments would terminate the invoking script has
 	  been fixed.
 00-03-27  A bug in which the library path variable was not updated
 	  correctly on some systems as described in the 'g' point
@@ -2703,7 +2703,7 @@
 99-03-31 +The TAB key can be used for completion in emacs and viraw mode.
 99-03-31  A bug in setting .sh.editchar during the KEYBD trap
 	  for the MULTIBYTE option was fixed in release ksh93h.
-99-03-31  A bug in shcomp for compilation of unary operators with [[...]]
+99-03-31  A bug in shcomp for compilation of unary operators with [[ ... ]]
 	  has been fixed.
 99-03-31  A bug in which the value of $? was changed when executing
 	  a keyboard trap has been fixed.
@@ -2853,7 +2853,7 @@
 96-07-31  A bug in right to left arithmetic assignment for which
 	  the arithmetic expression (( y = x = 1.5 )) did not
 	  yield 1 for y when x was declared typeset -i was fixed.
-96-07-31  printf has been fixed to handle format  containing \0
+96-07-31  printf has been fixed to handle format containing \0
 	  and/or \0145 correctly.  In addition, characters following
 	  %b in the format string are no longer displayed when
 	  the operand contains \c.

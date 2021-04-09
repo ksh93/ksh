@@ -41,12 +41,12 @@ static const char sh_opttype[] =
 	"field splitting and pathname expansion are not performed on "
 	"the arguments.  Tilde expansion occurs on \avalue\a.]"
 "[r?Enables readonly.  Once enabled, the value cannot be changed or unset.]"
-"[a]:?[type?Indexed array. Each \aname\a will converted to an indexed "
+"[a]:?[type?Indexed array. Each \aname\a is converted to an indexed "
 	"array of type \b\f?\f\b.  If a variable already exists, the current "
 	"value will become index \b0\b.  If \b[\b\atype\a\b]]\b is "
 	"specified, each subscript is interpreted as a value of enumeration "
 	"type \atype\a.]"
-"[A?Associative array. Each \aname\a will converted to an associative "
+"[A?Associative array. Each \aname\a is converted to an associative "
         "array of type \b\f?\f\b.  If a variable already exists, the current "
 	"value will become subscript \b0\b.]"
 "[h]:[string?Used within a type definition to provide a help string  "
@@ -666,7 +666,6 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		nq = nv_namptr(dp->nodes,i);
 		if(tp=nv_type(nq))
 		{
-			Namfun_t *pp = nv_hasdisc(nq,&type_disc);
 			sfprintf(out,"\t[+%s?%s.\n",nq->nvname,tp->nvname);
 			n = strlen(nq->nvname);
 			while((cp=nv_namptr(dp->nodes,i+1)->nvname) && memcmp(cp,nq->nvname,n)==0 && cp[n]=='.')
@@ -1332,7 +1331,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 			nv_putsub(np,"0",ARRAY_FILL);
 			ap = nv_arrayptr(np);
 			nelem = 1;
-		
+			nv_arraysettype(np,tp,"0",flags);
 		}
 	}
 	else
@@ -1529,42 +1528,6 @@ Namval_t *nv_mkstruct(const char *name, int rsize, Fields_t *fields)
 	mp->nvalue.cp = pp->data;
 	nv_newtype(mp);
 	return(mp);
-}
-
-static void put_stat(Namval_t* np, const char* val, int flag, Namfun_t* nfp)
-{
-	if(val)
-	{
-		if(stat(val,(struct stat*)np->nvalue.cp)<0)
-			sfprintf(sfstderr,"stat of %s failed\n",val);
-		return;
-	}
-	nv_putv(np,val,flag,nfp);
-	nv_disc(np,nfp,NV_POP);
-	if(!(nfp->nofree&1))
-		free((void*)nfp);
-}
-
-static const Namdisc_t stat_disc =
-{
-        0,
-        put_stat
-};
-
-
-void nv_mkstat(void)
-{
-	Namval_t *tp;
-	Namfun_t *fp;
-	tp = nv_mkstruct("stat_t", sizeof(struct stat), foo);
-	nv_offattr(tp,NV_RDONLY);
-	nv_setvtree(tp);
-	fp = sh_newof(NiL,Namfun_t,1,0);
-	fp->type = tp;
-	fp->disc = &stat_disc;
-	nv_disc(tp,fp,NV_FIRST);
-	nv_putval(tp,e_devnull,0);
-	nv_onattr(tp,NV_RDONLY);
 }
 
 static void write_indent(Sfio_t *out,char *str,int n,int indent)

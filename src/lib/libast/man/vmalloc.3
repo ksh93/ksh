@@ -284,7 +284,7 @@ events in a \fIregion\fP.
 There are two standard disciplines, both with \f5round\fP being 0 and \f5exceptf\fP being \f5NULL\fP.
 .TP
 .MW Vmdcsystem
-A discipline whose \f5memoryf\fP function gets space from  the operation system
+A discipline whose \f5memoryf\fP function gets space from the operation system
 via different available methods which include \fImmap(2)\fP, \fIsbrk(2)\fP and
 functions from the WIN32 API.
 For historical reason, \fIVmdcsbrk\fP is also available and functions like \fIVmdcsystem\fP.
@@ -523,7 +523,7 @@ A \f5Vmstat_t\fP structure has at least these members:
 .MW "size_t	m_free;	/* maximum free block size */
 .MW "int	n_seg;	/* count of segments */
 .MW "size_t	extent;	/* memory extent of region */
-.MW "int	n_region; /* total Malloc regions  */
+.MW "int	n_region; /* total Malloc regions */
 .MW "int	n_open; /* non-blocked operations */
 .MW "int	n_lock; /* blocked operations */
 .MW "int	n_probe; /* region searches */

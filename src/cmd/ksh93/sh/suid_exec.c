@@ -30,7 +30,7 @@
  */
 
 /* The file name of the script to execute is argv[0]
- * Argv[1] is the  program name
+ * Argv[1] is the program name
  * The basic idea is to open the script as standard input, set the effective
  *   user and group id correctly, and then exec the shell.
  * The complicated part is getting the effective uid of the caller and 
@@ -87,7 +87,9 @@ static const char version[]	= "\n@(#)$Id: suid_exec "SH_RELEASE" $\n";
 static const char badopen[]	= "cannot open";
 static const char badexec[]	= "cannot exec";
 static const char devfd[]	= "/dev/fd/10";	/* must match FDIN above */
+#ifndef _lib_setreuid
 static char tmpname[]		= "/tmp/SUIDXXXXXX";
+#endif
 static char **arglist;
 
 static char *shell;

@@ -102,7 +102,7 @@ typedef struct _arith_
 	short		elen;
 } Arith_t;
 #define ARITH_COMP	04	/* set when compile separate from execute */
-#define ARITH_ASSIGNOP	010	/* set during assignment operators  */
+#define ARITH_ASSIGNOP	010	/* set during assignment operators */
 
 #define MAXPREC		15	/* maximum precision level */
 #define SEQPOINT	0200	/* sequence point */

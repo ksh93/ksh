@@ -166,7 +166,7 @@ double x;
 	/* end of x < lnhuge */
 
 	else 
-	/*  expm1(INF) is INF, expm1(+big#) overflows to INF */
+	/* expm1(INF) is INF, expm1(+big#) overflows to INF */
 	    return( finite(x) ?  scalb(one,5000) : x);
 }
 

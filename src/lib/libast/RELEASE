@@ -283,7 +283,7 @@
 08-12-07 include/ast_std.h,misc/getenv.c: no _ast_getenv for uwin ast54 compatibility
 08-12-07 tm/tmxfmt.c: add %[_][EO]K for [space pad] [full|long] iso
 08-12-07 sfio/sfvscanf.c: fix ok[] short by one allocation
-08-12-07 comp/setlocale.c: fix off by one composite initialition loop test
+08-12-07 comp/setlocale.c: fix off by one composite initialization loop test
 08-12-07 path/pathkey.c: fix off by one loop test
 08-12-04 vmalloc/vmbest.c: catch sbrk() wraparound
 08-12-04 comp/spawnveg.c: clean up attrs on failure too

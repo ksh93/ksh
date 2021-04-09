@@ -305,7 +305,7 @@ int tty_raw(register int fd, int echomode)
 		return(-1);
 	ep->e_ttyspeed = (ttyparm.sg_ospeed>=B1200?FAST:SLOW);
 #   ifdef TIOCGLTC
-	/* try to remove effect of ^V  and ^Y and ^O */
+	/* try to remove effect of ^V and ^Y and ^O */
 	if(ioctl(fd,TIOCGLTC,&l_chars) != SYSERR)
 	{
 		lchars = l_chars;
@@ -651,6 +651,10 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	ep->e_winsz = ep->e_wsize+2;
 	ep->e_crlf = 1;
 	ep->e_plen = 0;
+	/*
+	 * Prepare e_prompt buffer for use when redrawing the command line.
+	 * Use only the last line of the potentially multi-line prompt.
+	 */
 	pp = ep->e_prompt;
 	ppmax = pp+PRSIZE-1;
 	*pp++ = '\r';
@@ -661,9 +665,40 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 			case ESC:
 			{
 				int skip=0;
+				if(*last == ']')
+				{
+					/*
+					 * Cut out dtterm/xterm Operating System Commands that set window/icon title, etc.
+					 * See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+					 */
+					char *cp = last + 1;
+					while(*cp >= '0' && *cp <= '9')
+						cp++;
+					if(*cp++ == ';')
+					{
+						while(c = *cp++)
+						{
+							if(c == '\a')			/* legacy terminator */
+								break;
+							if(c == ESC && *cp == '\\')	/* recommended terminator */
+							{
+								cp++;
+								break;
+							}
+						}
+						if(!c)
+							break;
+						last = cp;
+						continue;
+					}
+				}
+				/*
+				 * Try to add the length of included escape sequences to qlen
+				 * which is subtracted from the physical length of the prompt.
+				 */
 				ep->e_crlf = 0;
 				if(pp<ppmax)
-					*pp++ = c;
+					*pp++ = ESC;
 				for(n=1; c = *last++; n++)
 				{
 					if(pp < ppmax)
@@ -675,9 +710,11 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 						skip = 0;
 						continue;
 					}
-					if(n>1 && c==';')
+					if(n==3 && (c=='?' || c=='!'))
+						continue;
+					else if(n>1 && c==';')
 						skip = 1;
-					else if(n>2 || (c!= '[' &&  c!= ']'))
+					else if(n>2 || (c!='[' && c!=']' && c!='('))
 						break;
 				}
 				if(c==0 || c==ESC || c=='\r')

@@ -755,6 +755,7 @@ onintr(struct addrinfo* addr, void* handle)
 int sh_open(register const char *path, int flags, ...)
 {
 	Shell_t			*shp = sh_getinterp();
+	Sfio_t			*sp;
 	register int		fd = -1;
 	mode_t			mode;
 	char			*e;
@@ -869,6 +870,16 @@ int sh_open(register const char *path, int flags, ...)
 		mode = IOREAD;
 	if(fd >= shp->gd->lim.open_max)
 		sh_iovalidfd(shp,fd);
+	if((sp = shp->sftable[fd]) && (sfset(sp,0,0) & SF_STRING))
+	{
+		int n,err=errno;
+		if((n = sh_fcntl(fd,F_DUPFD,10)) >= 10)
+		{
+			while(close(fd) < 0 && errno == EINTR)
+				errno = err;
+			fd = n;
+		}
+	}
 	shp->fdstatus[fd] = mode;
 	return(fd);
 }

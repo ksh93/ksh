@@ -776,7 +776,7 @@ got=$(umask 777; set +x; { cat <(echo ok); } 2>&1)
 
 # ======
 # https://github.com/att/ast/issues/1336
-# Use the /proc psuedo filesystem on Linux as a convenient way to force a write I/O error.
+# Use the /proc pseudo filesystem on Linux as a convenient way to force a write I/O error.
 if [[ $(uname) == Linux ]]
 then
 	actual=$($SHELL -c 'echo > /proc/self/uid_map; echo okay' 2>&1)
@@ -784,6 +784,16 @@ then
 	[[ "$actual" =~ $expect ]] || err_exit "I/O failure not handled" \
 		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 fi
+
+# ======
+# Test for BUG_CSUBSTDO: If stdout is closed before running a command substitution,
+# redirecting any file descriptor in the command substitution would break stdout
+# inside of the command substitution. This only occurred when redirecting any other
+# file descriptor inside of the command substitution.
+exp='Foo bar'
+{ got=$(echo 'Foo bar' 2>/dev/null); } >&-
+[[ $exp == $got ]] || err_exit "BUG_CSUBSTDO: Closing stdout outside of command substitution breaks stdout inside of command substitution" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

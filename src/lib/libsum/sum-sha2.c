@@ -40,7 +40,7 @@
  * ASSERT NOTE:
  * Some sanity checking code is included using assert().  On my FreeBSD
  * system, this additional code can be removed by compiling with NDEBUG
- * defined.  Check your own systems man page on assert() to see how to
+ * defined.  Check your own system's man page on assert() to see how to
  * compile WITHOUT the sanity checking code on your system.
  *
  * UNROLLED TRANSFORM LOOP NOTE:

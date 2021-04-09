@@ -53,7 +53,7 @@
 
 #if _WINIX
     static int Skip;
-#endif /*_WINIX */
+#endif /* _WINIX */
 
 static int	_c_;
 typedef struct  _mac_
@@ -824,7 +824,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 					first = cp = fcseek(Skip);
 					Skip = 0;
 				}
-#endif /*_WINIX */
+#endif /* _WINIX */
 				tilde = -1;
 				c=0;
 			}

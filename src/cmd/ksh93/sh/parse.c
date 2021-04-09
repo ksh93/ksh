@@ -682,7 +682,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,register Shnode_t *tf)
 		/* remove trailing white space */
 		while(offset>ARGVAL && ((c= *stkptr(stkp,offset-1)),isspace(c)))
 			offset--;
-		/* check for empty initialization expression  */
+		/* check for empty initialization expression */
 		if(offset==ARGVAL && n==0)
 			continue;
 		stkseek(stkp,offset);

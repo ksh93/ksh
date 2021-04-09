@@ -411,7 +411,7 @@ const char e_lexlabunknown[]	= "line %d: %s unknown label";
 const char e_lexobsolete1[]	= "line %d: `...` obsolete, use $(...)";
 const char e_lexobsolete2[]	= "line %d: -a obsolete, use -e";
 const char e_lexobsolete3[]	= "line %d: '=' obsolete, use '=='";
-const char e_lexobsolete4[]	= "line %d: %s within [[...]] obsolete, use ((...))";
+const char e_lexobsolete4[]	= "line %d: %s within [[ ... ]] obsolete, use ((...))";
 const char e_lexobsolete5[]	= "line %d: set %s obsolete";
 const char e_lexobsolete6[]	= "line %d: `{' instead of `in' is obsolete";
 const char e_lexusebrace[]	= "line %d: use braces to avoid ambiguities with $id[...]";

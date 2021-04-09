@@ -229,7 +229,7 @@ of ksh.
 	c.  A bug in right to left arithmetic assignment for which
 	    the arithmetic expression (( y = x = 1.5 )) did not
 	    yield 1 for y when x was declared typeset -i was fixed.
-	d.  printf has been fixed to handle format  containing \0
+	d.  printf has been fixed to handle format containing \0
 	    and/or \0145 correctly.  In addition, characters following
 	    %b in the format string are no longer displayed when
 	    the operand contains \c.
@@ -359,7 +359,7 @@ of ksh.
 	    were split across buffer boundaries has been fixed.
 
 14.	Bugs fixed in 12/28/93h for default OPTIONS
-	a.  I bug in shcomp for compilation of unary operators with [[...]]
+	a.  I bug in shcomp for compilation of unary operators with [[ ... ]]
 	    has been fixed.
 	b.  A bug in which the value of $? was changed when executing
 	    a keyboard trap has been fixed.

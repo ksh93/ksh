@@ -37,7 +37,7 @@ static const char usage[] =
 	"to standard output.  If no \ainfile\a is given, or if the \ainfile\a "
 	"is \b-\b, \buniq\b reads from standard input with the start of "
 	"the file defined as the current offset.]"
-"[c:count?Output the number of times each line occurred  along with "
+"[c:count?Output the number of times each line occurred along with "
 	"the line.]"
 "[d:repeated|duplicates?Output the first of each duplicate line.]"
 "[D:all-repeated?Output all duplicate lines as a group with an empty "

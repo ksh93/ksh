@@ -84,11 +84,11 @@ if	[[ $z != 'a{b}c' ]]
 then	err_exit '"${z="a{b}c"}" not correct'
 fi
 if	[[ $(print -r -- "a\*b") !=  'a\*b' ]]
-then	err_exit '$(print -r -- "a\*b") differs from  a\*b'
+then	err_exit '$(print -r -- "a\*b") differs from a\*b'
 fi
 unset x
 if	[[ $(print -r -- "a\*b$x") !=  'a\*b' ]]
-then	err_exit '$(print -r -- "a\*b$x") differs from  a\*b'
+then	err_exit '$(print -r -- "a\*b$x") differs from a\*b'
 fi
 x=hello
 set -- ${x+foo bar bam}
@@ -157,10 +157,10 @@ fi
 # The following caused a syntax error on earlier versions
 foo=foo x=-
 if	[[  `eval print \\${foo$x}` != foo* ]]
-then	err_exit '`eval  print \\${foo$x}`' not working
+then	err_exit '`eval print \\${foo$x}`' not working
 fi
 if	[[  "`eval print \\${foo$x}`" != foo* ]]
-then	err_exit '"`eval  print \\${foo$x}`"' not working
+then	err_exit '"`eval print \\${foo$x}`"' not working
 fi
 if	( [[ $() != '' ]] )
 then	err_exit '$() not working'

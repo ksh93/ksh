@@ -88,7 +88,7 @@ struct Namarray
 	void	*(*fun)(Namval_t*,const char*,int);	/* associative arrays */
 	void		*fixed;			/* for fixed sized arrays */
 	Dt_t		*table;			/* for subscripts */
-	void		*scope;			/* non-zerp when scoped */
+	void		*scope;			/* non-zero when scoped */
 };
 
 /* The context pointer for declaration command */
@@ -167,7 +167,7 @@ struct Namval
 #define NV_HEXFLOAT	(NV_LTOU)	/* for C99 base16 float notation */
 #define NV_FLTSIZEZERO	-1		/* a float with size of 0 being <0 */
 
-/*  options for nv_open */
+/* options for nv_open */
 
 #define NV_APPEND	0x10000		/* append value */
 #define NV_MOVE		0x8000000	/* for use with nv_clone */
@@ -231,7 +231,7 @@ struct Namval
 #define ARRAY_UNDEF	(4L<<ARRAY_BITS)	/* For ${array} */
 
 
-/* These  are disciplines provided by the library for use with nv_discfun */
+/* These are disciplines provided by the library for use with nv_discfun */
 #define NV_DCADD	0	/* used to add named disciplines */
 #define NV_DCRESTRICT	1	/* variable that are restricted in rsh */
 
@@ -242,7 +242,7 @@ struct Namval
 #	define extern __IMPORT__
 #   endif /* _BLD_shell */
 #endif /* _DLL */
-/* prototype for array interface*/
+/* prototype for array interface */
 extern Namarr_t	*nv_arrayptr(Namval_t*);
 extern Namarr_t	*nv_setarray(Namval_t*,void*(*)(Namval_t*,const char*,int));
 extern int	nv_arraynsub(Namarr_t*);
@@ -285,7 +285,7 @@ extern void 		nv_setvec(Namval_t*,int,int,char*[]);
 extern void		nv_setvtree(Namval_t*);
 extern int 		nv_setsize(Namval_t*,int);
 extern Namfun_t		*nv_disc(Namval_t*,Namfun_t*,int);
-extern void 		nv_unset(Namval_t*);	 /*obsolete */
+extern void 		nv_unset(Namval_t*);	 /* obsolete */
 extern void 		_nv_unset(Namval_t*,int);
 extern Namval_t		*nv_search(const char *, Dt_t*, int);
 extern char		*nv_name(Namval_t*);

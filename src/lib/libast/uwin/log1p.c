@@ -57,7 +57,7 @@ static char sccsid[] = "@(#)log1p.c	8.1 (Berkeley) 6/4/93";
  * Method :
  *	1. Argument Reduction: find k and f such that 
  *			1+x  = 2^k * (1+f), 
- *	   where  sqrt(2)/2 < 1+f < sqrt(2) .
+ *	   where sqrt(2)/2 < 1+f < sqrt(2) .
  *
  *	2. Let s = f/(2+f) ; based on log(1+f) = log(1+s) - log(1-s)
  *		 = 2s + 2/3 s**3 + 2/5 s**5 + .....,

@@ -81,7 +81,7 @@ function x.set
 	[[ ${.sh.value} ]] && print hello
 }
 if	[[ $(.foo.bar.set) != $(x.set) ]]
-then	err_exit "function references  not working"
+then	err_exit "function references not working"
 fi
 if	[[ $(typeset +n) != x ]]
 then	err_exit "typeset +n doesn't list names of reference variables"

@@ -440,4 +440,16 @@ err_exit_if_leak 'PWD and/or OLDPWD changed by cd'
 cd $original_pwd
 
 # ======
+# https://github.com/ksh93/ksh/issues/253#issuecomment-815308466
+: <<'disabled'	# TODO: known leak(s) (approx 1008 KiB after 16384 iterations)
+before=$(getmem)
+for ((i=0; i < N; i++))
+do
+	(SECONDS=1; LANG=C)
+done
+after=$(getmem)
+err_exit_if_leak 'Variable with discipline function in subshell causes memory leak'
+disabled
+
+# ======
 exit $((Errors<125?Errors:125))

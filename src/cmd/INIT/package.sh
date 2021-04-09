@@ -2571,13 +2571,16 @@ int b() { return 0; }
 			;;
 		*)	case $bits in
 			'')	bits=`	cd "$TMPDIR"
+					LC_ALL=C
+					export LC_ALL
 					tmp=hi$$
 					trap 'rm -f $tmp.*' 0 1 2
 					echo 'int main() { return 0; }' > $tmp.a.c
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
 					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  `
 				case $bits in
-				*64*)	bits=64 ;;
+				*\ 64-bit* | *\ 64\ bit* | *\ 64bit*)
+					bits=64 ;;
 				*)	bits= ;;
 				esac
 				;;

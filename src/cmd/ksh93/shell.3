@@ -145,9 +145,9 @@ The \f5Shell_t\fP structure contains the following fields:
 	Dt_t	*\fIalias_tree\fP;		\fR/* shell alias dictionary */\fP
 	Dt_t	*\fIbltin_tree\fP;		\fR/* shell built-in dictionary */\fP
 	Shscope_t	*\fItopscope\fP;		\fR/* pointer to top-level scope */\fP
-	char	*\fIinfile_name\fP;	\fR/* path name of current input file*/\fP
-	int	\fIinlineno\fP;		\fR/* line number of current input file*/\fP
-	int	\fIexitval\fP;		\fR/* most recent exit value*/\fP
+	char	*\fIinfile_name\fP;	\fR/* path name of current input file */\fP
+	int	\fIinlineno\fP;		\fR/* line number of current input file */\fP
+	int	\fIexitval\fP;		\fR/* most recent exit value */\fP
 .ft R
 .fi
 This structure is returned by \f5sh_init()\fP but can also be retrieved
@@ -383,7 +383,7 @@ a slow device or waiting for a process to complete.
 This function can process events and run shell commands
 until there is input, the timer is reached or a signal arises.
 It is called with three arguments. The first is the file
-descriptor from which the shell trying to read  or \f5\-1\fP
+descriptor from which the shell trying to read or \f5\-1\fP
 if the shell is waiting for a process to complete.
 The second is a timeout in milliseconds.
 A value of \f5\-1\fP for the timeout means that

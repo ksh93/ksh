@@ -746,7 +746,7 @@ Errors=$?  # ensure error count survives subshell
 		exit $Errors
 	fi
 
-	for v in LC_ALL LC_CTYPE LC_MESSAGES LC_COLLATE LC_NUMERIC
+	for v in LC_ALL LC_CTYPE LC_MESSAGES LC_COLLATE LC_NUMERIC LC_TIME
 	do	nameref r=$v
 		unset $v
 		[[ $r ]] && err_exit "unset $v failed -- expected '', got '$r'"
@@ -921,6 +921,7 @@ set -- \
 	"LC_CTYPE" \
 	"LC_MESSAGES" \
 	"LC_NUMERIC" \
+	"LC_TIME" \
 	"FIGNORE" \
 	"KSH_VERSION" \
 	"JOBMAX" \
@@ -1284,6 +1285,16 @@ exp='0'
 got="$($SHELL -c 'PS4="${.sh.subshell}"; echo ${.sh.subshell}')"
 [[ "$exp" == "$got" ]] || err_exit "\${.sh.subshell} is wrongly unset in the \$PS4 prompt" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Corruption of SECONDS on leaving virtual subshell
+# https://github.com/ksh93/ksh/issues/253#issuecomment-815191052
+osec=$SECONDS
+(SECONDS=20)
+nsec=$SECONDS
+if	((nsec<osec || nsec>osec+0.1))
+then	err_exit "SECONDS corrupted after leaving virtual subshell (expected $osec, got $nsec)"
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

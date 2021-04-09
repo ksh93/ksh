@@ -224,6 +224,10 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 	return(shp->exitval);
 }
 
+#if 0
+    /* for the dictionary generator */
+    int	b_source(register int n,char *argv[],Shbltin_t *context){}
+#endif
 int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 {
 	register char *script;
@@ -529,7 +533,7 @@ static void	print_times(struct timeval utime, struct timeval stime)
 	sfprintf(sfstdout, "%dm%02d%c%06ds %dm%02d%c%06ds\n", ut_min, ut_sec, radix, ut_ms, st_min, st_sec, radix, st_ms);
 }
 #if _lib_getrusage
-static void	print_cpu_times()
+static void	print_cpu_times(void)
 {
 	struct rusage usage;
 	/* Print the time (user & system) consumed by the shell. */
@@ -540,7 +544,7 @@ static void	print_cpu_times()
 	print_times(usage.ru_utime, usage.ru_stime);
 }
 #else  /* _lib_getrusage */
-static void	print_cpu_times()
+static void	print_cpu_times(void)
 {
 	struct timeval utime, stime;
 	double dtime;

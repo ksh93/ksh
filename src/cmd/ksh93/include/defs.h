@@ -81,7 +81,7 @@ struct sh_scoped
 	char		*funname;
 	int		lineno;
 	Dt_t		*save_tree;	/* var_tree for calling function */
-	struct sh_scoped *self;		/* pointer to copy of this scope*/
+	struct sh_scoped *self;		/* pointer to copy of this scope */
 	Dt_t		*var_local;	/* local level variables for name() */
 	struct slnod	*staklist;	/* link list of function stacks */
 	int		states;		/* shell state bits used by sh_isstate(), etc. */
@@ -163,12 +163,12 @@ struct shared
 	char		*lastarg; \
 	char		*lastpath;	/* last absolute path found */ \
 	int		path_err;	/* last error on path search */ \
-	Dt_t		*track_tree;	/* for tracked aliases*/ \
+	Dt_t		*track_tree;	/* for tracked aliases */ \
 	Dt_t		*var_base;	/* global level variables */ \
 	Dt_t		*openmatch; \
-	Namval_t	*namespace;	/* current active namespace*/ \
-	Namval_t	*last_table;	/* last table used in last nv_open  */ \
-	Namval_t	*prev_table;	/* previous table used in nv_open  */ \
+	Namval_t	*namespace;	/* current active namespace */ \
+	Namval_t	*last_table;	/* last table used in last nv_open */ \
+	Namval_t	*prev_table;	/* previous table used in nv_open */ \
 	Sfio_t		*outpool;	/* output stream pool */ \
 	long		timeout;	/* read timeout */ \
 	unsigned int	curenv;		/* current subshell number */ \

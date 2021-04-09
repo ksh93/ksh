@@ -426,8 +426,8 @@ typedef uLong FAR uLongf;
 #  define z_off_t off_t
 #endif
 #ifndef SEEK_SET
-#  define SEEK_SET        0       /* Seek from beginning of file.  */
-#  define SEEK_CUR        1       /* Seek from current position.  */
+#  define SEEK_SET        0       /* Seek from beginning of file. */
+#  define SEEK_CUR        1       /* Seek from current position. */
 #  define SEEK_END        2       /* Set file pointer to EOF plus "offset" */
 #endif
 #ifndef z_off_t
@@ -1391,7 +1391,7 @@ typedef struct internal_state {
      */
 
     int level;    /* compression level (1..9) */
-    int strategy; /* favor or force Huffman coding*/
+    int strategy; /* favor or force Huffman coding */
 
     uInt good_match;
     /* Use a faster search when the previous match is longer than this */
@@ -2087,7 +2087,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     unsigned dmask;             /* mask for first level of distance codes */
     code this;                  /* retrieved table entry */
     unsigned op;                /* code bits, operation, extra bits, or */
-                                /*  window position, window bytes to copy */
+                                /* window position, window bytes to copy */
     unsigned len;               /* match length, unused bytes */
     unsigned dist;              /* match distance */
     unsigned char FAR *from;    /* where to copy match from */
@@ -4813,8 +4813,8 @@ char**	argv;
 			sfprintf(sfstdout, "%s\n", id + 10);
 			return 0;
 		case '?':
-			error(ERROR_USAGE|4, "%s", opt_info.arg);
-			continue;
+			error(ERROR_usage(2), "%s", opt_info.arg);
+			UNREACHABLE();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
@@ -4822,7 +4822,10 @@ char**	argv;
 		break;
 	}
 	if (error_info.errors)
-		error(ERROR_USAGE|4, "%s", optusage(NiL));
+	{
+		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 #else
 	while ((s = *++argv) && *s == '-' && *(s + 1))

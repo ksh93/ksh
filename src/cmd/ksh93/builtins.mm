@@ -19,7 +19,7 @@ are Linux, System V Release 4, Solaris, Sun OS, HP-UX Release 8 and above,
 AIX 3.2 and above, and Microsoft Windows systems. 
 .P
 This memo describes how to write and compile programs
-that can be loaded into \f5ksh\fP at run  time as built-in
+that can be loaded into \f5ksh\fP at run time as built-in
 commands.
 .AE   \" abstract end
 .H 1 INTRODUCTION

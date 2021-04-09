@@ -125,9 +125,10 @@ static const char usage[] =
 #define CMIN		1
 #endif
 
-static void outofmemory(void)
+static noreturn void outofmemory(void)
 {
 	error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+	UNREACHABLE();
 }
 
 #if !_lib_openpty && !_lib__getpty && !defined(_pty_clone)
@@ -221,7 +222,6 @@ static int
 mkpty(int* master, int* minion)
 {
 	struct termios	tty;
-	struct termios	tst;
 	struct termios*	ttyp;
 #ifdef TIOCGWINSZ
 	struct winsize	win;
@@ -316,6 +316,7 @@ mkpty(int* master, int* minion)
 		return -1;
 #endif
 #ifdef I_PUSH
+	struct termios	tst;
 	if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
 	{
 		close(*minion);
@@ -1057,17 +1058,26 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 			break;
 		case '?':
 			error(ERROR_usage(2), "%s", opt_info.arg);
-			break;
+			UNREACHABLE();
 		}
 		break;
 	}
 	argv += opt_info.index;
 	if (!argv[0])
+	{
 		error(ERROR_exit(1), "command must be specified");
+		UNREACHABLE();
+	}
 	if (mkpty(&master, &minion) < 0)
+	{
 		error(ERROR_system(1), "unable to create pty");
+		UNREACHABLE();
+	}
 	if (!(mp = sfnew(NiL, 0, SF_UNBOUND, master, SF_READ|SF_WRITE)))
+	{
 		error(ERROR_system(1), "cannot open master stream");
+		UNREACHABLE();
+	}
 	if (stty)
 	{
 		n = 2;
@@ -1095,9 +1105,15 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	if (!log)
 		lp = 0;
 	else if (!(lp = sfopen(NiL, log, "w")))
+	{
 		error(ERROR_system(1), "%s: cannot write", log);
+		UNREACHABLE();
+	}
 	if (!(proc = runcmd(argv, minion, session)))
+	{
 		error(ERROR_system(1), "unable run %s", argv[0]);
+		UNREACHABLE();
+	}
 	close(minion);
 	if (messages)
 	{
@@ -1109,7 +1125,10 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		else if ((fd = open(messages, O_CREAT|O_WRONLY, MODE_666)) >= 0)
 			drop = 0;
 		else
+		{
 			error(ERROR_system(1), "%s: cannot redirect messages", messages);
+			UNREACHABLE();
+		}
 		close(2);
 		dup(fd);
 		if (drop)
@@ -1118,6 +1137,9 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	minion = (*fun)(mp, lp, delay, timeout);
 	master = procclose(proc);
 	if (lp && sfclose(lp))
+	{
 		error(ERROR_system(1), "%s: write error", log);
+		UNREACHABLE();
+	}
 	return minion ? minion : master;
 }

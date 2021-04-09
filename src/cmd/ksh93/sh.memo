@@ -2778,7 +2778,7 @@ the pathname for the built-in.  The basename of this path must
 be the name of an existing built-in for this to succeed.
 Specifying the name of the built-in without a pathname causes
 this built-in to be found before a path search.
-A built-in can be deleted  with the \fB\-d\fP option.
+A built-in can be deleted with the \fB\-d\fP option.
 .P
 On systems with run time loading of libraries, built-in commands
 can be added with the \f5builtin\fP command.

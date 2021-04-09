@@ -48,7 +48,7 @@ if	[[ ${newrec.name} != "${rec.name}" ]]
 then	err_exit 'copying a compound object not working'
 fi
 if	(( newrec.born.day != 16 ))
-then	err_exit 'copying integer field of  compound object not working'
+then	err_exit 'copying integer field of compound object not working'
 fi
 p_t=(
         integer z=0
@@ -511,7 +511,7 @@ expected=$'(\n\ttypeset -A subtree=(\n\t\t[a_node]=(\n\t\t\tone=hello\n\t\t\ttwo
 typeset -C -A array
 float array[12].amount=2.9 
 expected='typeset -C -A array=([12]=(typeset -l -E amount=2.9))'
-[[ $(typeset -p array) == "$expected" ]] || err_exit 'typeset with compound  variable with compound variable array not working'
+[[ $(typeset -p array) == "$expected" ]] || err_exit 'typeset with compound variable with compound variable array not working'
 
 typeset -T foo_t=(
         function diff

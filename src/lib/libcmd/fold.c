@@ -43,7 +43,7 @@ static const char usage[] =
 		"to zero.  \bfold\b will not insert a newline immediately "
 		"before or after a carriage-return.]"
 	"[+backspace?If positive, the current count of line width will be "
-		"decremented by  one.  \bfold\b will not insert a newline "
+		"decremented by one.  \bfold\b will not insert a newline "
 		"immediately before or after a backspace.]"
 	"[+tab?Each tab character encountered will advance the column "
 		"position to the next tab stop.  Tab stops are at each "

@@ -248,7 +248,7 @@ sc1  =	 9.97395106984001955652274773456e+000,
 sc2  =	 2.80952153365721279953959310660e+001,
 sc3  =	 2.19826478142545234106819407316e+001;
 /*
- * Coefficients for approximation to  erfc in [4,28]
+ * Coefficients for approximation to erfc in [4,28]
  */
 static double
 rd0  =	-2.1491361969012978677e-016,	/* includes lsqrtPI_lo */
@@ -280,7 +280,7 @@ extern double erf(x)
 	if (ax < .84375) {
 	    if (ax < 3.7e-09) {
 		if (ax < 1.0e-308)
-		    return 0.125*(8.0*x+p0t8*x);  /*avoid underflow */
+		    return 0.125*(8.0*x+p0t8*x);  /* avoid underflow */
 		return x + p0*x;
 	    }
 	    y = x*x;

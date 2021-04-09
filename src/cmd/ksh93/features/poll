@@ -150,6 +150,6 @@ cat{
 	#   endif /* FD_SET */
 	#   ifndef _typ_fd_set
 		typedef long fd_set;
-	#   endif /*_typ_fd_set */
+	#   endif /* _typ_fd_set */
 	#endif /* _lib_select */
 }end

@@ -392,9 +392,9 @@ static void nv_restore(struct subshell *sp)
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
 		if(nv_cover(mp))
-			nv_putval(mp, nv_getval(np),np->nvflag|NV_NOFREE|NV_RDONLY);
+			nv_putval(mp,nv_getval(np),NV_RDONLY);
 		else
-			mp->nvalue.cp = np->nvalue.cp;
+			mp->nvalue = np->nvalue;
 		if(nofree && np->nvfun && !np->nvfun->nofree)
 			free((char*)np->nvfun);
 		np->nvfun = 0;
@@ -769,7 +769,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			sfswap(sp->saveout,sfstdout);
 		else
 			sfstdout = &_Sfstdout;
-		/*  check if standard output was preserved */
+		/* check if standard output was preserved */
 		if(sp->tmpfd>=0)
 		{
 			int err=errno;

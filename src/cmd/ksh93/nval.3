@@ -221,7 +221,7 @@ name-value pair as a string.  A \f5NULL\fP return value indicates
 that the name-value pair is unset.
 The \f5nv_getnum()\fP function returns the value of the given
 name-value pair as a double precision number using the \f5Sfio\fP
-library  (See Sfio(3)) type \f5Sfdouble_t\fP.
+library (see sfio(3)) type \f5Sfdouble_t\fP.
 For name-value pairs without the \f5NV_INTEGER\fP attribute,
 the string value is evaluated as an arithmetic expression to
 arrive at a numerical value.
@@ -244,14 +244,14 @@ argument is actually a pointer to a name-value pair
 and \f5np\fP should become a reference to this name-value pair.
 If \f5NV_NOFREE\fP is specified, \fIvalue\fP itself becomes
 the value of the name-value pair \fInp\fP.
-Otherwise, a  copy of the value is stored
+Otherwise, a copy of the value is stored
 as the value for \fInp\fP.
 .PP
 The \f5nv_unset()\fP function clears out the value and attributes
 of the given name-value function but does not free the name-value
 pair.
 If called from the \f5putval\fP discipline function, use the \fIflags\fP
-argument as the \fIflags\fP to  \f5nv_unset()\fP.  Otherwise, use 0.
+argument as the \fIflags\fP to \f5nv_unset()\fP.  Otherwise, use 0.
 .PP
 The following attributes can be associated with a name-value pair:
 .IP
@@ -541,7 +541,7 @@ and returned.
 .IP
 \f5NV_CLONE\fP:
 If \fIfp\fP is non-\f5NULL\fP and it is on the stack,
-it is replace by a copy created by \f5malloc\fP(3).
+it is replaced by a copy created by \f5malloc\fP(3).
 The \f5nofree\fP field is set to \f50\fP.
 The new discipline is returned.
 Otherwise, \f5NULL\fP is returned.
@@ -671,7 +671,7 @@ argument contains the string used by \f5optget\fP(3) to generate
 the man page and process the options.  The \fIop\fP argument
 specifies the callback discipline used by  \f5optget\fP(3) and
 \fIsz\fP specifies the size of the callback information so
-that the  discipline \fBoptget\fP(3) can be extended with private
+that the discipline \fBoptget\fP(3) can be extended with private
 data used by the callback function.
 .P
 The \f5nv_mkinttype()\fP function creates named integer types

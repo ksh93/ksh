@@ -436,7 +436,7 @@ int job_reap(register int sig)
 #ifdef DEBUG
 		sfprintf(sfstderr,"ksh: job line %4d: reap pid=%d critical=%d job %d with pid %d flags=%o complete with status=%x exit=%d\n",__LINE__,shgd->current_pid,job.in_critical,pw->p_job,pid,pw->p_flag,wstat,pw->p_exit);
 		sfsync(sfstderr);
-#endif /* DEBUG*/
+#endif /* DEBUG */
 		/* only top-level process in job should have notify set */
 		if(px && pw != px)
 			pw->p_flag &= ~P_NOTIFY;
@@ -1461,7 +1461,7 @@ int	job_wait(register pid_t pid)
 	sfprintf(sfstderr,"ksh: job line %4d: wait pid=%d critical=%d job=%d pid=%d\n",__LINE__,shgd->current_pid,job.in_critical,jobid,pid);
 	if(pw)
 		sfprintf(sfstderr,"ksh: job line %4d: wait pid=%d critical=%d flags=%o\n",__LINE__,shgd->current_pid,job.in_critical,pw->p_flag);
-#endif /* DEBUG*/
+#endif /* DEBUG */
 	errno = 0;
 	if(shp->coutpipe>=0 && lastpid && shp->cpid==lastpid)
 	{
@@ -1704,7 +1704,7 @@ static void job_unstop(register struct process *px)
 
 /*
  * remove a job from table
- * If all the processes have not completed, unpost first non-completed  process
+ * If all the processes have not completed, unpost first non-completed process
  * Otherwise the job is removed and job_unpost returns NULL.
  * pwlist is reset if the first job is removed
  * if <notify> is non-zero, then jobs with pending notifications are unposted

@@ -2157,8 +2157,8 @@ main(int argc, char** argv)
 			search(state.vars, "-strip-symbols", "1");
 			continue;
 		case '?':
-			error(ERROR_USAGE|4, "%s", opt_info.arg);
-			continue;
+			error(ERROR_usage(2), "%s", opt_info.arg);
+			UNREACHABLE();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
@@ -2166,7 +2166,10 @@ main(int argc, char** argv)
 		break;
 	}
 	if (error_info.errors)
-		error(ERROR_USAGE|4, "%s", optusage(NiL));
+	{
+		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	argv += opt_info.index;
 #else
 	while ((s = *++argv) && *s == '-')

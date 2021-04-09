@@ -47,7 +47,7 @@
 #   define SH_DICT	"libshell"
 #endif
 
-#define MAXLEVEL	9
+#define MAXLEVEL	1024
 #define SMALL_STACK	12
 
 /*

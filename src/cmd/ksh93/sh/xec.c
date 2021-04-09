@@ -79,7 +79,7 @@ struct funenv
 	Namval_t	**nref;
 };
 
-/* ========	command execution	========*/
+/* ========	command execution	======== */
 
 #if !SHOPT_DEVFD
     static pid_t fifo_save_ppid;
@@ -158,8 +158,7 @@ static void get_cpu_times(Shell_t *shp, struct timeval *tv_usr, struct timeval *
 #endif /* _lib_getrusage */
 
 #ifdef timeofday
-/* 'inline' is commented out because C89 doesn't have it */
-static /*inline*/ double timeval_to_double(struct timeval tv)
+static inline double timeval_to_double(struct timeval tv)
 {
 	return (double)tv.tv_sec + ((double)tv.tv_usec / 1000000.0);
 }
@@ -466,7 +465,7 @@ static int p_comarg(register struct comnod *com)
 	int n = p_arg(com->comset,ARG_ASSIGN);
 	if(com->comarg && (com->comtyp&COMSCAN))
 		n+= p_arg(com->comarg,0);
-	if(com->comstate  && np)
+	if(com->comstate && np)
 	{
 		/* call builtin to cleanup state */
 		Shbltin_t *bp = &sh.bltindata;
@@ -633,7 +632,7 @@ struct Level
 /*
  * this is for a debugger but it hasn't been tested yet
  * if a debug script sets .sh.level it should set up the scope
- *  as if you were executing in that level
+ * as if you were executing in that level
  */ 
 static void put_level(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
@@ -1699,7 +1698,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 					if(shp->topfd > topfd)
 						sh_iorestore(shp,topfd,0);
-					if(usepipe && tsetio &&  subdup && unpipe)
+					if(usepipe && tsetio && subdup && unpipe)
 						sh_iounpipe(shp);
 					if(!sh_isstate(SH_MONITOR))
 					{
@@ -2094,7 +2093,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 
 		    case TLST:
 		    {
-			/*  a list of commands are executed here */
+			/* a list of commands are executed here */
 			do
 			{
 				sh_exec(t->lst.lstlef,errorflg|OPTIMIZE);
@@ -3653,7 +3652,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		if(spawnpid < 0) switch(errno=shp->path_err)
 		{
 		    case ENOENT:
-			errormsg(SH_DICT,ERROR_system(ERROR_NOENT),e_found+4);
+			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
 			UNREACHABLE();
 		    default:
 			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);

@@ -84,7 +84,7 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
 7. Code style varies somewhat in this historic code base.
    Your changes should match the style of the code surrounding it.
    Indent with tabs, assuming an 8-space tab width.
-   Opening braces are on a line of their own, at the same identation level
+   Opening braces are on a line of their own, at the same indentation level
    as their corresponding closing brace.
    Comments always use `/*`...`*/`.
 8. Good judgment may override this policy.

@@ -51,19 +51,15 @@ __STDPP__directive pragma pp:nohide strdup
 #endif
 
 /*
- * Work around a null-test optimization bug in GCC.
+ * Avoid a null-test optimization bug caused by glibc's headers
+ * by naming this function '_ast_strdup' instead of 'strdup'.
  * https://bugzilla.redhat.com/1221766
  */
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
-
 extern char*
-strdup(register const char* s)
+_ast_strdup(const char* s)
 {
 	register char*	t;
 	register int	n;
 
 	return (s && (t = oldof(0, char, n = strlen(s) + 1, 0))) ? (char*)memcpy(t, s, n) : (char*)0;
 }
-
-#pragma GCC pop_options

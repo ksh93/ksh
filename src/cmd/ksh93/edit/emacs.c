@@ -374,7 +374,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		do_default_processing:
 		default:
 
-			if ((eol+1) >= (scend)) /*  will not fit on line */
+			if ((eol+1) >= (scend)) /* will not fit on line */
 			{
 				ed_ungetchar(ep->ed,c); /* save character for next line */
 				goto process;
@@ -1280,7 +1280,7 @@ static void xcommands(register Emacs_t *ep,int count)
 				show_info(ep,hbuf);
 				return;
 			}
-#	if !AST_ksh_release		/* debugging, modify as required */
+#	if !_AST_ksh_release		/* debugging, modify as required */
 		case cntl('D'):		/* ^X^D show debugging info */
 			{
 				char debugbuf[MAXLINE];

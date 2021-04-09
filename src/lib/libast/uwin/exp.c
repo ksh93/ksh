@@ -165,7 +165,7 @@ double x;
 
 #endif
 
-/* returns exp(r = x + c) for |c| < |x| with no overlap.  */
+/* returns exp(r = x + c) for |c| < |x| with no overlap. */
 
 double __exp__D(x, c)
 double x, c;

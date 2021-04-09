@@ -120,7 +120,7 @@ struct argnod
 #define ARG_QUOTED	0x20	/* word contained quote characters */
 #define ARG_MESSAGE	0x40	/* contains international string */
 #define ARG_APPEND	0x80	/* for += assignment */
-/*  The following can be passed as options to sh_macexpand() */
+/* The following can be passed as options to sh_macexpand() */
 #define ARG_ARITH	0x100	/* arithmetic expansion */
 #define ARG_OPTIMIZE	0x200	/* try to optimize */
 #define ARG_NOGLOB	0x400	/* no file name expansion */

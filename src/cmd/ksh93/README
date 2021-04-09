@@ -18,7 +18,7 @@ The Makefile file contains several compilation options that can be set
 before compiling ksh.  Options are of the form SHOPT_option and become
 #define inside the code.  These options are set to their recommended
 value and some of these may disappear as options in future releases.
-A value of 0, or no value  represents off, 1 represents on.
+A value of 0, or no value represents off, 1 represents on.
 Note that == is needed, not =, because these are nmake state variables
 and changing their value will cause all modules that could be affected
 by this change to be recompiled.

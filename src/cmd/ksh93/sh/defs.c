@@ -20,7 +20,7 @@
 /*
  * Ksh - AT&T Labs
  * Written by David Korn
- * This file defines all the  read/write shell global variables
+ * This file defines all the read/write shell global variables
  */
 
 #include	"defs.h"

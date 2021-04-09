@@ -2127,9 +2127,12 @@ if executing under
 .TP
 .SM
 .B PS1
-The value of this variable is expanded for parameter
-expansion, command substitution, and arithmetic substitution to define the
-primary prompt string which by default is
+Every time a new command line is started on an interactive shell,
+the value of this variable is expanded to resolve
+backslash escaping, parameter expansion, command substitution,
+and arithmetic substitution.
+The result defines the primary prompt string for that command line.
+The default is
 .RB `` "$ \|\|\|" ''.
 The character
 .B !
@@ -2143,6 +2146,12 @@ Two successive occurrences of
 will produce a single
 .B !
 when the prompt string is printed.
+Note that any terminal escape sequences used in the
+.B PS1
+prompt thus need every instance of
+.B !
+in them to be changed to
+.BR !! .
 .TP
 .SM
 .B PS2
@@ -3950,7 +3959,7 @@ using \fB\s+2.\s-2\fP\f2identifier\fP\fB\s+2.\s-2\fP\f2name\fP.
 Similarly, a function defined by a command in the
 .B namespace
 .I list\^
-is created using the name space name  preceded by a \fB\s+2.\s-2\fP.
+is created using the name space name preceded by a \fB\s+2.\s-2\fP.
 .PP
 When  the
 .I list\^
@@ -4313,7 +4322,7 @@ being searched.
 .P
 The
 .B .paths
-file is then checked  for a line of the form
+file is then checked for a line of the form
 .BI PLUGIN_LIB= libname
 \*(OK \f3:\fP \f2libname\^\fP \*(CK .\|.\|. .
 Each library named by
@@ -6144,7 +6153,7 @@ and IEEE POSIX 1003.2 standards.
 (See
 .IR pathconf (2)
 and
-.IR sysconf (2).)
+.IR sysconf (3).)
 The
 .I pathname
 argument is required for parameters whose value depends on
@@ -7478,7 +7487,7 @@ or
 \f3times\fP
 Displays the accumulated user and system CPU times, one line with the times
 used by the shell and another with those used by all of the shell's child
-processes. No options are supporetd.
+processes. No options are supported.
 .TP
 \(dg \f3trap\fP \*(OK \f3\-p\fP \*(CK \*(OK \f2action\^\fP \*(CK \*(OK \f2sig\^\fP \*(CK .\|.\|.
 The
@@ -8456,7 +8465,7 @@ except that the following are disallowed:
 .RS
 .PD 0
 .PP
-Unsetting the restricted option.
+unsetting the restricted option,
 .br
 changing directory (see
 .IR cd (1)),
@@ -8481,9 +8490,9 @@ redirecting output
 .BR >| ,
 .BR <> ,
 and
-.BR >> ).
+.BR >> ) ,
 .br
-adding or deleting built-in commands.
+adding or deleting built-in commands,
 .br
 using
 .B "command -p"
@@ -8602,7 +8611,7 @@ lseek(2),
 paste(1),
 pathconf(2),
 pipe(2),
-sysconf(2),
+sysconf(3),
 umask(2),
 ulimit(2),
 wait(2),

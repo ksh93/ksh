@@ -37,7 +37,7 @@
 static char	*savesub = 0;
 static char	Null[1];
 static Namval_t	NullNode;
-static Dt_t	*Refdict;		
+static Dt_t	*Refdict;
 static Dtdisc_t	_Refdisc =
 {
 	offsetof(struct Namref,np),sizeof(struct Namval_t*),sizeof(struct Namref)
@@ -280,7 +280,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 		shtp.rp = 0;
 		shtp.nodes = (Namval_t**)sh_malloc(shtp.maxnodes*sizeof(Namval_t*));
 	}
-#endif /* SHOPT_TYPEDEF*/
+#endif /* SHOPT_TYPEDEF */
 #if SHOPT_NAMESPACE
 	if(shp->namespace && nv_dict(shp->namespace)==shp->var_tree)
 		flags |= NV_NOSCOPE;
@@ -734,9 +734,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 	long			mode, add=0;
 	int			copy=0,isref,top=0,noscope=(flags&NV_NOSCOPE);
 	int			nofree=0, level=0;
-#if SHOPT_FIXEDARRAY
 	Namarr_t		*ap;
-#endif /* SHOPT_FIXEDARRAY */
 	if(root==shp->var_tree)
 	{
 		if(dtvnext(root))
@@ -944,7 +942,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 				{
 					if(flags&NV_ARRAY)
 					{
-						Namarr_t *ap = nv_arrayptr(np);
+						ap = nv_arrayptr(np);
 						nq = nv_opensub(np);
 						if((flags&NV_ASSIGN) && (!nq || nv_isnull(nq)))
 							ap->nelem++;
@@ -1034,7 +1032,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 					if(c=='[')
 					{
 #if SHOPT_FIXEDARRAY
-						Namarr_t *ap = nv_arrayptr(np);
+						ap = nv_arrayptr(np);
 #endif /* SHOPT_FIXEDARRAY */
 						n = mode|nv_isarray(np);
 						if(!mode && (flags&NV_ARRAY) && ((c=sp[1])=='*' || c=='@') && sp[2]==']')
@@ -2075,7 +2073,7 @@ static void rightjust(char *str, int size, int fill)
      * given physical size, return a logical size which reflects the
      * screen width of multi-byte characters
      * Multi-width characters replaced by spaces if they cross the boundary
-     * <type> is non-zero for right justified  fields
+     * <type> is non-zero for right justified fields
      */
 
     static int ja_size(char *str,int size,int type)
@@ -2604,36 +2602,6 @@ Namval_t *sh_scoped(Shell_t *shp, register Namval_t *np)
 	if(!dtvnext(shp->var_tree))
 		return(np);
 	return(dtsearch(shp->var_tree,np));
-}
-
-/*
- * return space separated list of names of variables in given tree
- */
-static char *tableval(Dt_t *root)
-{
-	static Sfio_t *out;
-	register Namval_t *np;
-	register int first=1;
-	register Dt_t *base = dtview(root,0);
-        if(out)
-                sfseek(out,(Sfoff_t)0,SEEK_SET);
-        else
-                out =  sfnew((Sfio_t*)0,(char*)0,-1,-1,SF_WRITE|SF_STRING);
-	for(np=(Namval_t*)dtfirst(root);np;np=(Namval_t*)dtnext(root,np))
-	{
-                if(!nv_isnull(np) || np->nvfun || nv_isattr(np,~NV_NOFREE))
-		{
-			if(!first)
-				sfputc(out,' ');
-			else
-				first = 0;
-			sfputr(out,np->nvname,-1);
-		}
-	}
-	sfputc(out,0);
-	if(base)
-		dtview(root,base);
-	return((char*)out->_data);
 }
 
 #if SHOPT_OPTIMIZE

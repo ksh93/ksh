@@ -465,7 +465,7 @@ static C_block	PC2ROT[2][64/CHUNKBITS][1<<CHUNKBITS];
 /* Initial permutation/expansion table */
 static C_block	IE3264[32/CHUNKBITS][1<<CHUNKBITS];
 
-/* Table that combines the S, P, and E operations.  */
+/* Table that combines the S, P, and E operations. */
 static long SPE[2][8][64];
 
 /* compressed/interleaved => final permutation table */

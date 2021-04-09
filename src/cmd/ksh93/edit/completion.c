@@ -351,7 +351,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			rval = -1;
 			goto done;
 		}
-		/*  match? */
+		/* match? */
 		if (*com==0 || (narg <= 1 && (strcmp(ap->argval,*com)==0) || (addstar && com[0][strlen(*com)-1]=='*')))
 		{
 			rval = -1;

@@ -48,7 +48,7 @@ static const char usage[] =
 		"[+m?1 MiB.]"
 		"[+g?1 GiB.]"
 	"}"
-"[+?For backwards compatibility, \b-\b\anumber\a  is equivalent to "
+"[+?For backwards compatibility, \b-\b\anumber\a is equivalent to "
 	"\b-n\b \anumber\a and \b+\b\anumber\a is equivalent to "
 	"\b-n -\b\anumber\a. \anumber\a may also have these option "
 	"suffixes: \bb c f g k l m r\b.]"

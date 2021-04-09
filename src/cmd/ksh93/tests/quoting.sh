@@ -85,11 +85,11 @@ if	[[ $z != 'a{b}c' ]]
 then	err_exit '"${z="a{b}c"}" not correct'
 fi
 if	[[ $(print -r -- "a\*b") !=  'a\*b' ]]
-then	err_exit '$(print -r -- "a\*b") differs from  a\*b'
+then	err_exit '$(print -r -- "a\*b") differs from a\*b'
 fi
 unset x
 if	[[ $(print -r -- "a\*b$x") !=  'a\*b' ]]
-then	err_exit '$(print -r -- "a\*b$x") differs from  a\*b'
+then	err_exit '$(print -r -- "a\*b$x") differs from a\*b'
 fi
 x=hello
 set -- ${x+foo bar bam}
@@ -306,19 +306,19 @@ re='@(?*)/@(?*)/@(?*)'
 string='\3'
 [[ ${subject/${re}/${string}} != words ]] && err_exit 'string replacement with $string not working with string=\3'
 [[ $(print -r "${subject/${re}/${string}}") != words ]] && err_exit 'string replacement with $string not working with string=\3 using print'
-[[ ${subject/${re}/"${string}"} != '\3' ]] && err_exit 'string replacement with "$string" not working with  string=\3'
-[[ $(print -r "${subject/${re}/"${string}"}") != '\3' ]] && err_exit 'string replacement with "$string" not working with  string=\3 using print'
+[[ ${subject/${re}/"${string}"} != '\3' ]] && err_exit 'string replacement with "$string" not working with string=\3'
+[[ $(print -r "${subject/${re}/"${string}"}") != '\3' ]] && err_exit 'string replacement with "$string" not working with string=\3 using print'
 string='\\3'
 [[ ${subject/${re}/${string}} != '\3' ]] && err_exit 'string replacement with $string not working with string=\\3'
-[[ ${subject/${re}/"${string}"} != '\\3' ]] && err_exit 'string replacement with "$string" not working with  string=\\3'
+[[ ${subject/${re}/"${string}"} != '\\3' ]] && err_exit 'string replacement with "$string" not working with string=\\3'
 [[ ${subject/${re}/\4} != '\4' ]] && err_exit 'string replacement with \4 not working'
 [[ ${subject/${re}/'\4'} != '\4' ]] && err_exit 'string replacement with '\4' not working'
 string='\4'
 [[ ${subject/${re}/${string}} != '\4' ]] && err_exit 'string replacement with $string not working with string=\4'
-[[ ${subject/${re}/"${string}"} != '\4' ]] && err_exit 'string replacement with "$string" not working with  string=\4'
+[[ ${subject/${re}/"${string}"} != '\4' ]] && err_exit 'string replacement with "$string" not working with string=\4'
 string='&foo'
 [[ ${subject/${re}/${string}} != '&foo' ]] && err_exit 'string replacement with $string not working with string=&foo'
-[[ ${subject/${re}/"${string}"} != '&foo' ]] && err_exit 'string replacement with "$string" not working with  string=&foo'
+[[ ${subject/${re}/"${string}"} != '&foo' ]] && err_exit 'string replacement with "$string" not working with string=&foo'
 {
 x=x
 x=${x:-`id | sed 's/^[^(]*(\([^)]*\)).*/\1/'`}

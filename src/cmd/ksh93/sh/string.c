@@ -239,7 +239,7 @@ found:
 void	sh_trim(register char *sp)
 /*@
 	assume sp!=NULL;
-	promise  strlen(in sp) <= in strlen(sp);
+	promise strlen(in sp) <= in strlen(sp);
 @*/
 {
 	register char *dp;

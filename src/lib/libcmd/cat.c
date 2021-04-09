@@ -57,7 +57,7 @@ static const char usage[] =
     "converted back to the native encoding. Multibyte characters in the "
     "current locale are treated as printable characters.]"
 "[A:show-all?Equivalent to \b-vET\b.]"
-"[B:squeeze-blank?Multiple adjacent new-line characters are replace by one"
+"[B:squeeze-blank?Multiple adjacent new-line characters are replaced by one"
 "	new-line.]"
 "[D:dos-output?Output files are opened in \atext\amode which inserts carriage"
 "	returns in front of new-lines on some systems.]"
