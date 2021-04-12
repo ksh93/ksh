@@ -1322,8 +1322,8 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	/* save current line */
 	int sav_cur = cur;
 	genncpy(str_buff,string,sizeof(str_buff)/sizeof(*str_buff));
-	string[0] = '^';
-	string[1] = 'R';
+	string[0] = '?';
+	string[1] = ' ';
 	string[2] = '\0';
 	sl = 2;
 	cur = sl;

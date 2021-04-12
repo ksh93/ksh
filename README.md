@@ -55,6 +55,7 @@ ulimit -R/--rttime
 8. A `banner` command has been added alongside `pty`. This is the AST
    `banner` with features added to it from the NetBSD `banner`.
    Added in commits [`312972f`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d) and [`62fbfa4`](https://github.com/JohnoKing/ksh/commit/62fbfa4b09848d507e31ec019d039a2649040fa2).
+9. The prompt printed for emacs reverse search mode is now '? ' instead of `^R`.
 
 # KornShell 93u+m
 
