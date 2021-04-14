@@ -57,9 +57,6 @@
 #if _lib_nice
     extern int	nice(int);
 #endif /* _lib_nice */
-#if !_lib_spawnveg
-#   define spawnveg(a,b,c,d)    spawnve(a,b,c)
-#endif /* !_lib_spawnveg */
 #if SHOPT_SPAWN
     static pid_t sh_ntfork(Shell_t*,const Shnode_t*,char*[],int*,int);
 #endif /* SHOPT_SPAWN */
@@ -1045,6 +1042,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			error_info.line = t->com.comline-shp->st.firstline;
 			com = sh_argbuild(shp,&argn,&(t->com),OPTIMIZE);
 			echeck = 1;
+			shp->arithrecursion = 0;
 			if(t->tre.tretyp&COMSCAN)
 			{
 				argp = t->com.comarg;
@@ -1646,22 +1644,20 @@ int sh_exec(register const Shnode_t *t, int flags)
 #endif
 #if SHOPT_SPAWN
 				if(com && !job.jobcontrol)
-					parent = sh_ntfork(shp,t,com,&jobid,ntflag);
-				else
-					parent = sh_fork(shp,type,&jobid);
-				if(parent<0)
 				{
-					/* prevent a file descriptor leak from a 'not found' error */
-					if(shp->topfd > topfd)
-						sh_iorestore(shp,topfd,0);
-
-					if(shp->comsub==1 && usepipe && unpipe)
-						sh_iounpipe(shp);
-					break;
+					parent = sh_ntfork(shp,t,com,&jobid,ntflag);
+					if(parent<0)
+					{
+						if(shp->topfd > topfd)
+							sh_iorestore(shp,topfd,0);  /* prevent FD leak from 'not found' */
+						if(shp->comsub==1 && usepipe && unpipe)
+							sh_iounpipe(shp);
+						break;
+					}
 				}
-#else
-				parent = sh_fork(shp,type,&jobid);
+				else
 #endif /* SHOPT_SPAWN */
+					parent = sh_fork(shp,type,&jobid);
 			}
 			if(job.parent=parent)
 			/* This is the parent branch of fork
@@ -1757,7 +1753,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				}
 				sh_offstate(SH_INTERACTIVE);
 				/* pipe in or out */
-#ifdef _lib_nice
+#if _lib_nice
 				if((type&FAMP) && sh_isoption(SH_BGNICE))
 					nice(4);
 #endif /* _lib_nice */
@@ -1930,6 +1926,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 
 		    case TPAR:
 			echeck = 1;
+			shp->arithrecursion = 0;
 			flags &= ~OPTIMIZE_FLAG;
 			if(!shp->subshell && !shp->st.trapcom[0] && !shp->st.trap[SH_ERRTRAP] && (flags&sh_state(SH_NOFORK)))
 			{
@@ -1993,6 +1990,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int	*exitval=0,*saveexitval = job.exitval;
 			pid_t	savepgid = job.curpgid;
 			echeck = 1;
+			shp->arithrecursion = 0;
 			job.exitval = 0;
 			job.curjobid = 0;
 			if(shp->subshell)
@@ -2676,6 +2674,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				skipexitset++;
 			error_info.line = t->tst.tstline-shp->st.firstline;
 			echeck = 1;
+			shp->arithrecursion = 0;
 			if((type&TPAREN)==TPAREN)
 			{
 				sh_exec(t->lst.lstlef,OPTIMIZE);
@@ -3522,7 +3521,7 @@ static void sigreset(Shell_t *shp,int mode)
 
 /*
  * A combined fork/exec for systems with slow fork().
- * Note: Incompatible with job control.
+ * Incompatible with job control on interactive shells (job.jobcontrol).
  */
 static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,int flag)
 {
@@ -3531,7 +3530,7 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 	static int	savejobid;
 	struct checkpt	*buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
 	int		otype=0, jmpval,jobfork=0;
-	volatile int	jobwasset=0, scope=0, sigwasset=0;
+	volatile int	scope=0, sigwasset=0;
 	char		**arge, *path;
 	volatile pid_t	grp = 0;
 	Pathcomp_t	*pp;
@@ -3599,17 +3598,8 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		}
 		arge = sh_envgen();
 		shp->exitval = 0;
-#ifdef SIGTSTP
-		if(job.jobcontrol)
-		{
-			signal(SIGTTIN,SIG_DFL);
-			signal(SIGTTOU,SIG_DFL);
-			signal(SIGTSTP,SIG_DFL);
-			jobwasset++;
-		}
-#endif /* SIGTSTP */
 #ifdef JOBS
-		if(sh_isstate(SH_MONITOR) && (job.jobcontrol || (otype&FAMP)))
+		if(sh_isstate(SH_MONITOR) && (otype&FAMP))
 		{
 			if((otype&FAMP) || job.curpgid==0)
 				grp = 1;
@@ -3665,17 +3655,6 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 	sh_popcontext(shp,buffp);
 	if(buffp->olist)
 		free_list(buffp->olist);
-#ifdef SIGTSTP
-	if(jobwasset)
-	{
-		signal(SIGTTIN,SIG_IGN);
-		signal(SIGTTOU,SIG_IGN);
-		if(sh_isstate(SH_INTERACTIVE))
-			signal(SIGTSTP,SIG_IGN);
-		else
-			signal(SIGTSTP,SIG_DFL);
-	}
-#endif /* SIGTSTP */
 	if(sigwasset)
 		sigreset(shp,1);	/* restore ignored signals */
 	if(scope)
@@ -3695,13 +3674,6 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 #ifdef JOBS
 		if(grp==1)
 			job.curpgid = spawnpid;
-#   ifdef SIGTSTP
-		if(job.jobcontrol && grp>0 && !(otype&FAMP))
-		{
-			while(tcsetpgrp(job.fd,job.curpgid)<0 && job.curpgid!=spawnpid)
-				job.curpgid = spawnpid;
-		}
-#   endif /* SIGTSTP */
 #endif /* JOBS */
 		savejobid = *jobid;
 		if(otype)

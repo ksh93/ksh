@@ -740,9 +740,36 @@ printf '\\\000' | read -r -d ''
 [[ $REPLY == $'\\' ]] || err_exit "read -r -d '' ignores -r"
 
 # ======
-# Preceding a special builtin with 'command' should disable its special properties
+# BUG_CMDSPASGN: Preceding a special builtin with 'command' should disable its special properties.
 foo=BUG command eval ':'
 [[ $foo == BUG ]] && err_exit "'command' fails to disable the special properties of special builtins"
+
+# Regression that occurred after fixing the bug above: the += operator didn't work correctly.
+# https://www.mail-archive.com/ast-users@lists.research.att.com/msg00369.html
+unset foo
+integer foo=1
+exp=4
+got=$(foo+=3 command eval 'echo $foo')
+[[ $exp == $got ]] || err_exit "[1]: += assignment for environment variables doesn't work with 'command special_builtin'" \
+	"(expected $exp, got $got)"
+foo+=3 command eval 'test $foo'
+(( foo == 1 )) || err_exit "environment isn't restored after 'command special_builtin'" \
+	"(expected 1, got $foo)"
+got=$(foo+=3 eval 'echo $foo')
+[[ $exp == $got ]] || err_exit "+= assignment for environment variables doesn't work with builtins" \
+	"(expected $exp, got $got)"
+
+unset foo
+exp=barbaz
+got=$(foo=bar; foo+=baz command eval 'echo $foo')
+[[ $exp == $got ]] || err_exit "[2]: += assignment for environment variables doesn't work with 'command special_builtin'" \
+	"(expected $exp, got $got)"
+
+# Attempting to modify a readonly variable with the += operator should fail
+exp=2
+got=$(integer -r foo=2; foo+=3 command eval 'echo $foo' 2> /dev/null)
+[[ $? == 0 ]] && err_exit "+= assignment modifies readonly variables" \
+	"(expected $exp, got $got)"
 
 # ======
 # 'whence -f' should ignore functions

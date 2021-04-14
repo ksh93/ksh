@@ -684,4 +684,7 @@ typeset -n ref='arr[2]'
 
 $SHELL  2> /dev/null -c 'function x { nameref lv=gg ; compound -A lv.c=( [4]=( x=1 )) ; } ; compound gg ; x' || err_exit 'compound array assignment with nameref in a function failed'
 
+$SHELL -c 'unset -n KSH_VERSION' 2> /dev/null || err_exit 'Unable to unset nameref KSH_VERSION.'
+
+# ======
 exit $((Errors<125?Errors:125))

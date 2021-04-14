@@ -3,6 +3,41 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-04-12:
+
+- Corrected a memory fault when an attempt was made to unset the default
+  nameref KSH_VERSION from the shell environment prior to any other name
+  reference variable creation or modificaton.
+
+2021-04-11:
+
+- Fixed two related regressions introduced on 2020-06-16:
+  1. The += assignment failed to append the value of variables when used
+     in an invocation-local scope. The following should print '5', but
+     the regression resulted in '3' being printed instead:
+       $ integer foo=2; foo+=3 command eval 'echo $foo'
+       3
+  2. Any += assignment used in an invocation-local scope could modify
+     readonly variables.
+
+2021-04-10:
+
+- Fixed: the internal count of the recursion level for arithmetic expressions
+  was not reset when certain errors occurred in a virtual subshell. This could
+  cause an erroneous "recursion to deep" error when a loop executed many
+  subshells containing arithmetic expressions with errors, e.g. for testing.
+
+2021-04-09:
+
+- Fixed a bug that caused ksh to enable -c during the shell's initialization
+  if the only argument passed was --posix.
+
+- Fixed a related bug that caused 'set --posix' to leave the braceexpand and
+  letoctal shell options unchanged.
+
+- Fixed a bug that caused 'set --default' to unset the restricted option
+  in restricted shells.
+
 2021-04-08:
 
 - Path-bound builtins will now be used by restricted shells if /opt/ast/bin

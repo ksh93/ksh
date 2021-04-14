@@ -122,7 +122,7 @@ struct lexdata
 #define setchar(lp,c)	(lp->lexd.lastc = ((lp->lexd.lastc&~0xff)|(c)))
 #define poplevel(lp)	(lp->lexd.lastc=lp->lexd.lex_match[--lp->lexd.level])
 
-static char		*fmttoken(Lex_t*, int, char*);
+static char		*fmttoken(Lex_t*, int);
 static int		alias_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
 static void		setupalias(Lex_t*,const char*, Namval_t*);
 static int		comsub(Lex_t*,int);
@@ -289,7 +289,6 @@ int sh_lex(Lex_t *lp)
 	Shell_t *shp = lp->sh;
 	register int flag;
 	char *quoted, *macro, *split, *expand; 
-	char tokstr[4];
 	register int tok = lextoken(lp);
 	quoted = macro = split = expand = "";
 	if(tok==0 && (flag=lp->arg->argflag))
@@ -302,7 +301,7 @@ int sh_lex(Lex_t *lp)
 			quoted = "quoted:";
 	}
 	sfprintf(sfstderr,"%d: line %d: %o:%s%s%s%s %s\n",shgd->current_pid,shp->inlineno,tok,quoted,
-		macro, split, expand, fmttoken(lp,tok,tokstr));
+		macro, split, expand, fmttoken(lp,tok));
 	return(tok);
 }
 #define sh_lex	lextoken
@@ -2042,9 +2041,8 @@ done:
 /*
  * generates string for given token
  */
-static char	*fmttoken(Lex_t *lp, register int sym, char *tok)
+static char	*fmttoken(Lex_t *lp, register int sym)
 {
-	int n=1;
 	if(sym < 0)
 		return((char*)sh_translate(e_lexzerobyte));
 	if(sym==0)
@@ -2062,9 +2060,9 @@ static char	*fmttoken(Lex_t *lp, register int sym, char *tok)
 		return((char*)sh_translate(e_endoffile));
 	if(sym==NL)
 		return((char*)sh_translate(e_newline));
-	tok[0] = sym;
+	stakputc(sym);
 	if(sym&SYMREP)
-		tok[n++] = sym;
+		stakputc(sym);
 	else
 	{
 		switch(sym&SYMMASK)
@@ -2085,17 +2083,16 @@ static char	*fmttoken(Lex_t *lp, register int sym, char *tok)
 				sym = '#';
 				break;
 			case SYMSEMI:
-				if(tok[0]=='<')
-					tok[n++] = '>';
+				if(*stakptr(0)=='<')
+					stakputc('>');
 				sym = ';';
 				break;
 			default:
 				sym = 0;
 		}
-		tok[n++] = sym;
+		stakputc(sym);
 	}
-	tok[n] = 0;
-	return(tok);
+	return(stakfreeze(1));
 }
 
 /*
@@ -2108,7 +2105,6 @@ noreturn void sh_syntax(Lex_t *lp)
 	register const char *cp = sh_translate(e_unexpected);
 	register char *tokstr;
 	register int tok = lp->token;
-	char tokbuf[4];
 	Sfio_t *sp;
 	if((tok==EOFSYM) && lp->lasttok)
 	{
@@ -2117,7 +2113,7 @@ noreturn void sh_syntax(Lex_t *lp)
 	}
 	else
 		lp->lastline = shp->inlineno;
-	tokstr = fmttoken(lp,tok,tokbuf);
+	tokstr = fmttoken(lp,tok);
 	if((sp=fcfile()) || (shp->infd>=0 && (sp=shp->sftable[shp->infd])))
 	{
 		/* clear out any pending input */

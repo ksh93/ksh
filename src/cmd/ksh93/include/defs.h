@@ -203,6 +203,7 @@ struct shared
 	char		universe; \
 	char		winch; \
 	char		inarith; 	/* set when in ((...)) */ \
+	short		arithrecursion;	/* current arithmetic recursion level */ \
 	char		indebug; 	/* set when in debug trap */ \
 	unsigned char	ignsig;		/* ignored signal in subshell */ \
 	unsigned char	lastsig;	/* last signal received */ \

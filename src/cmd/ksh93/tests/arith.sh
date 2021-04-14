@@ -823,4 +823,30 @@ got=$(set +x; { var="x\]+b\[\$(uname>&2)"; typeset -A a; ((a["\$var"]++)); types
 [[ $got == "$exp" ]] || err_exit "Array subscript quoting test 5M: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # ======
+# Arithmetic recursion level was not reset on encountering readonly error in combination with a recursive arithmetic expression.
+# (arithmetic array subscripts inside arithmetic expressions are one example of such recursion)
+# https://github.com/ksh93/ksh/pull/239#discussion_r606874442
+srcdir=${SHTESTS_COMMON%/tests/*}
+integer maxlevel=$(grep $'^#define MAXLEVEL\t' "$srcdir/sh/streval.c" | sed 's/.*MAXLEVEL//')
+if	((!maxlevel))
+then	err_exit "could not get maximum arithmetic recursion level from source code; update this test"
+	maxlevel=1024
+fi
+integer loopcount=maxlevel+10
+got=$(
+	typeset -r -A -i ro_arr=([a]=10 [b]=20 [c]=30)
+	for ((i=0; i<loopcount; i++)); do
+		let "ro_arr[i+1] += 5"
+	done 2>&1
+)
+[[ $got == *recursion* ]] && err_exit "recursion level not reset on readonly error (main shell)"
+got=$(
+	typeset -r -A -i ro_arr=([a]=10 [b]=20 [c]=30)
+	for ((i=0; i<loopcount; i++)); do
+		( ((ro_arr[i+1] += 5)) )
+	done 2>&1
+)
+[[ $got == *recursion* ]] && err_exit "recursion level not reset on readonly error (subshell)"
+
+# ======
 exit $((Errors<125?Errors:125))

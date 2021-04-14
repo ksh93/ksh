@@ -70,9 +70,10 @@ do	check_restricted  "function foo { typeset $i=foobar;};foo" || err_exit "$i ca
 done
 
 # ======
-# 'set +r' and 'set +o restricted' should not unset the restricted option
-check_restricted 'set +r' 2> /dev/null || err_exit "'set +r' unsets the restricted option"
-check_restricted 'set +o restricted' 2> /dev/null || err_exit "'set +o restricted' unsets the restricted option"
+# The restricted option cannot be unset
+check_restricted 'set +r' || err_exit "'set +r' unsets the restricted option"
+check_restricted 'set +o restricted' || err_exit "'set +o restricted' unsets the restricted option"
+check_restricted 'set --default; $(whence -p true)' || err_exit "'set --default' unsets the restricted option"
 
 # ======
 exit $((Errors<125?Errors:125))

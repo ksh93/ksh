@@ -65,8 +65,6 @@
 				*((type*)stakptr((v)->offset)) = (val)),(v)->offset)
 #define roundptr(ep,cp,type)	(((unsigned char*)(ep))+round(cp-((unsigned char*)(ep)),pow2size(sizeof(type))))
 
-static int level;
-
 struct vars				/* vars stacked per invocation */
 {
 	Shell_t		*shp;
@@ -125,14 +123,12 @@ static int _seterror(struct vars *vp,const char *msg)
 		vp->errmsg.value = (char*)msg;
 	vp->errchr = vp->nextchr;
 	vp->nextchr = "";
-	level = 0;
 	return(0);
 }
 
 
 static void arith_error(const char *message,const char *expr, int mode)
 {
-        level = 0;
 	mode = (mode&3)!=0;
         errormsg(SH_DICT,ERROR_exit(mode),message,expr);
 }
@@ -177,7 +173,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	node.nosub = 0;
 	node.ptr = 0;
 	node.eflag = 0;
-	if(level++ >=MAXLEVEL)
+	if(shp->arithrecursion++ >= MAXLEVEL)
 	{
 		arith_error(e_recursive,ep->expr,ep->emode);
 		return(0);
@@ -249,7 +245,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			if(node.flag = c)
 				lastval = 0;
 			node.isfloat=0;
-			node.level = level;
+			node.level = shp->arithrecursion;
 			node.nosub = 0;
 			num = (*ep->fun)(&ptr,&node,VALUE,num);
 			if(node.emode&ARITH_ASSIGNOP)
@@ -497,8 +493,8 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 		*sp = num;
 		*tp = type;
 	}
-	if(level>0)
-		level--;
+	if(shp->arithrecursion>0)
+		shp->arithrecursion--;
 	if(type==0 && !num)
 		num = 0;
 	return(num);
@@ -1022,7 +1018,6 @@ Sfdouble_t strval(Shell_t *shp,const char *s,char **end,Sfdouble_t(*conv)(const 
 	    default:
 		return(1);
 	}
-	level=0;
 	errormsg(SH_DICT,ERROR_exit(1),message,ep->name);
 	UNREACHABLE();
     }

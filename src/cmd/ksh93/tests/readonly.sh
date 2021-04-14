@@ -314,9 +314,10 @@ rtests=(
 	)
 )
 
-typeset -i i
+typeset -i i n
 n=${#rtests[@]}
-for ((i=0; i<$n; i++))
+ulimit --cpu 3 2>/dev/null
+for ((i=0; i<n; i++))
 do
 	got=$(
 		trap "${rtests[$i].res}" EXIT
@@ -326,7 +327,7 @@ do
 	[[ $got == *$': is read only\n'* ]] || err_exit "Readonly variable did not warn for rtests[$i]: "\
 		"setup='${rtests[$i].ini}', change='${rtests[$i].chg}'"
 	got=${got#*$': is read only\n'}
-	[[ ${rtests[$i].exp} == "$got" ]] || err_exit "Readonly variable changed on rtests[$i]: "\
+	[[ $got == *"${rtests[$i].exp}" ]] || err_exit "Readonly variable changed on rtests[$i]: "\
 		"expected '${rtests[$i].exp}', got '$got'"
 done
 unset i n got rtests
@@ -339,6 +340,10 @@ unset i n got rtests
 (readonly v=1; export v) 2>/dev/null || err_exit "readonly variable cannot be exported (1)"
 (readonly v=1; typeset -x v) 2>/dev/null || err_exit "readonly variable cannot be exported (2)"
 (readonly v=1; typeset -rx v) 2>/dev/null || err_exit "readonly variable cannot be set readonly and exported"
+
+# ======
+# the environment list was not checked for readonly for commands that are not fork()ed
+(readonly v=1; v=2 true) 2>/dev/null && err_exit 'readonly not verified for command environment list'
 
 # ======
 exit $((Errors<125?Errors:125))

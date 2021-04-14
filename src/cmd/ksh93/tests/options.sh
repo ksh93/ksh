@@ -531,8 +531,14 @@ if [[ -o ?posix ]]; then
 	(set -o posix +o letoctal; [[ -o letoctal ]]) && err_exit "failed to stop posix option from turning on letoctal"
 if((SHOPT_BRACEPAT)); then
 	(set +B; set -o posix -B; [[ -o braceexpand ]]) || err_exit "failed to stop posix option from turning off bracceexpand"
+	(set --posix; [[ -o braceexpand ]]) && err_exit "set --posix fails to disable braceexpand"
+	(set -o posix; [[ -o braceexpand ]]) && err_exit "set -o posix fails to disable braceexpand"
 fi # SHOPT_BRACEPAT
 	(set --default -o posix; [[ -o letoctal ]]) && err_exit "set --default failed to stop posix option from changing others"
+	(set --posix; [[ -o letoctal ]]) || err_exit "set --posix fails to enable letoctal"
+	(set -o posix; [[ -o letoctal ]]) || err_exit "set -o posix fails to enable letoctal"
+	$SHELL --posix < <(echo 'exit 0') || err_exit "ksh fails to handle --posix during startup"
+	$SHELL -o posix < <(echo 'exit 0') || err_exit "ksh fails to handle -o posix during startup"
 fi
 
 # ======
