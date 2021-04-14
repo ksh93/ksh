@@ -19,7 +19,7 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * read [-ACprsSv] [-d delim] [-u fd] [-t timeout] [-n count] [-N count] [var?prompt] [var ...]
+ * read [-aACprsSv] [-d delim] [-u fd] [-t timeout] [-n count] [-N count] [var?prompt] [var ...]
  *
  *   David Korn
  *   AT&T Labs

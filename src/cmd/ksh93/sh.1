@@ -6788,7 +6788,7 @@ or
 on the command line
 determines which method is used.
 .TP
-\f3read\fP \*(OK \f3\-ACSprsv\^\fP \*(CK \*(OK \f3\-d\fP \f2delim \^\fP\*(CK \*(OK \f3\-n\fP \f2n \^\fP\*(CK \*(OK \*(OK \f3\-N\fP \f2n \^\fP\*(CK \*(OK \f3\-t\fP \f2timeout \^\fP\*(CK \*(OK \f3\-u\fP \f2unit \^\fP\*(CK \*(OK \f2vname\f3?\f2prompt\^\f1 \*(CK \*(OK \f2vname\^\fP .\|.\|. \*(CK
+\f3read\fP \*(OK \f3\-aACSprsv\^\fP \*(CK \*(OK \f3\-d\fP \f2delim \^\fP\*(CK \*(OK \f3\-n\fP \f2n \^\fP\*(CK \*(OK \*(OK \f3\-N\fP \f2n \^\fP\*(CK \*(OK \f3\-t\fP \f2timeout \^\fP\*(CK \*(OK \f3\-u\fP \f2unit \^\fP\*(CK \*(OK \f2vname\f3?\f2prompt\^\f1 \*(CK \*(OK \f2vname\^\fP .\|.\|. \*(CK
 The shell input mechanism.
 One line is read and
 is broken up into fields using the characters in
@@ -6848,7 +6848,9 @@ is specified, then the value of the first
 will be used as a default value when reading from a terminal device.
 The
 .B \-A
-option causes the variable
+and
+.B \-a
+options cause the variable
 .I vname\^
 to be unset and each field that is read to be stored in
 successive elements of the indexed array
@@ -7618,7 +7620,7 @@ Does nothing, and exits 0. Used with
 .B while
 for infinite loops.
 .TP
-\f3type\fP \*(OK \f3\-afpq\fP \*(CK \f2name\^\fP .\|.\|.
+\f3type\fP \*(OK \f3\-afpPq\fP \*(CK \f2name\^\fP .\|.\|.
 The same as
 .BR whence\ \-v .
 .TP
@@ -8250,7 +8252,7 @@ See
 for a description of the format of
 .IR job .
 .TP
-\f3whence\fP \*(OK \f3\-afpqv\fP \*(CK \f2name\^\fP .\|.\|.
+\f3whence\fP \*(OK \f3\-afpPqv\fP \*(CK \f2name\^\fP .\|.\|.
 For each
 .IR name ,
 indicate how it
@@ -8265,13 +8267,13 @@ The
 option skips the search for functions.
 The
 .B \-p
-option
-does a path search for
+and
+.B \-P
+options
+do a path search for
 .I name\^
 even if name is an alias, a function, or a reserved word.
-The
-.B \-p
-option turns off the
+Both of these options turn off the
 .B \-v
 option.
 The

@@ -20,7 +20,7 @@
 #pragma prototyped
 /*
  * command [-pvVx] name [arg...]
- * whence [-afpqv] name...
+ * whence [-afpPqv] name...
  *
  *   David Korn
  *   AT&T Labs
