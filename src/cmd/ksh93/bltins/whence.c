@@ -211,30 +211,22 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				continue;
 			if(!(flags&T_FLAG))
 				sfputr(sfstdout,name,-1);
-			if(flags&(V_FLAG|T_FLAG))
+			if(flags&V_FLAG)
 			{
 				if(nv_isnull(np))
 				{
-					if(flags&T_FLAG)
-						sfprintf(sfstdout,"function");
-					else
-					{
-						sfprintf(sfstdout,sh_translate(is_ufunction));
-						pp = 0;
-						while(!path_search(shp,name,&pp,3) && pp && (pp = pp->next))
-							;
-						if(*stakptr(PATH_OFFSET)=='/')
-							sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
-					}
+					sfprintf(sfstdout,sh_translate(is_ufunction));
+					pp = 0;
+					while(!path_search(shp,name,&pp,3) && pp && (pp = pp->next))
+						;
+					if(*stakptr(PATH_OFFSET)=='/')
+						sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
 				}
 				else
-				{
-					if(flags&T_FLAG)
-						sfprintf(sfstdout,"function");
-					else
-						sfprintf(sfstdout,sh_translate(is_function));
-				}
+					sfprintf(sfstdout,sh_translate(is_function));
 			}
+			else if(flags&T_FLAG)
+				sfprintf(sfstdout,"function");
 			sfputc(sfstdout,'\n');
 			if(!aflag)
 				continue;
