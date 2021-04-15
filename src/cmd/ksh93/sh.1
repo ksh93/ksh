@@ -7670,7 +7670,7 @@ Does nothing, and exits 0. Used with
 .B while
 for infinite loops.
 .TP
-\f3type\fP \*(OK \f3\-afpPq\fP \*(CK \f2name\^\fP .\|.\|.
+\f3type\fP \*(OK \f3\-afpPqt\fP \*(CK \f2name\^\fP .\|.\|.
 The same as
 .BR whence\ \-v .
 .TP
@@ -8290,7 +8290,7 @@ See
 for a description of the format of
 .IR job .
 .TP
-\f3whence\fP \*(OK \f3\-afpPqv\fP \*(CK \f2name\^\fP .\|.\|.
+\f3whence\fP \*(OK \f3\-afpPqtv\fP \*(CK \f2name\^\fP .\|.\|.
 For each
 .IR name ,
 indicate how it
@@ -8322,6 +8322,9 @@ to enter quiet mode.
 .BR whence
 will return zero if all arguments are built-ins, functions, or
 are programs found on the path.
+The
+.B \-t
+option only outputs the type of the given command.
 The
 .B \-a
 option

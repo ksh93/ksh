@@ -21,7 +21,7 @@
 #pragma prototyped
 /*
  * command [-pvVx] name [arg...]
- * whence [-afpPqv] name...
+ * whence [-afpPqtv] name...
  *
  *   David Korn
  *   AT&T Labs
@@ -36,12 +36,13 @@
 #include	"shlex.h"
 #include	"builtins.h"
 
-#define P_FLAG	1
-#define V_FLAG	2
-#define A_FLAG	4
-#define F_FLAG	010
-#define X_FLAG	020
-#define Q_FLAG	040
+#define P_FLAG	(1 << 0)
+#define V_FLAG	(1 << 1)
+#define A_FLAG	(1 << 2)
+#define F_FLAG	(1 << 3)
+#define X_FLAG	(1 << 4)
+#define Q_FLAG	(1 << 5)
+#define T_FLAG	(1 << 6)
 
 static int whence(Shell_t *,char**, int);
 
@@ -122,6 +123,9 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 	    case 'v':
 		flags |= V_FLAG;
 		break;
+	    case 't':
+		flags |= T_FLAG;
+		break;
 	    case 'f':
 		flags |= F_FLAG;
 		break;
@@ -140,6 +144,8 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
 		UNREACHABLE();
 	}
+	if(flags&T_FLAG)
+		flags &= ~V_FLAG;
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
 	{
@@ -173,7 +179,10 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 		/* reserved words first */
 		if(sh_lookup(name,shtab_reserved))
 		{
-			sfprintf(sfstdout,"%s%s\n",name,(flags&V_FLAG)?sh_translate(is_reserved):"");
+			if(flags&T_FLAG)
+				sfprintf(sfstdout,"keyword\n");
+			else
+				sfprintf(sfstdout,"%s%s\n",name,(flags&V_FLAG)?sh_translate(is_reserved):"");
 			if(!aflag)
 				continue;
 			aflag++;
@@ -188,7 +197,10 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				msg = sh_translate(is_alias);
 				sfprintf(sfstdout,msg,name);
 			}
-			sfputr(sfstdout,sh_fmtq(cp),'\n');
+			if(flags&T_FLAG)
+				sfputr(sfstdout,"alias",'\n');
+			else
+				sfputr(sfstdout,sh_fmtq(cp),'\n');
 			if(!aflag)
 				continue;
 			cp = 0;
@@ -200,20 +212,31 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 		{
 			if(flags&Q_FLAG)
 				continue;
-			sfputr(sfstdout,name,-1);
-			if(flags&V_FLAG)
+			if(!(flags&T_FLAG))
+				sfputr(sfstdout,name,-1);
+			if(flags&(V_FLAG|T_FLAG))
 			{
 				if(nv_isnull(np))
 				{
-					sfprintf(sfstdout,sh_translate(is_ufunction));
-					pp = 0;
-					while(!path_search(shp,name,&pp,3) && pp && (pp = pp->next))
-						;
-					if(*stakptr(PATH_OFFSET)=='/')
-						sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
+					if(flags&T_FLAG)
+						sfprintf(sfstdout,"function");
+					else
+					{
+						sfprintf(sfstdout,sh_translate(is_ufunction));
+						pp = 0;
+						while(!path_search(shp,name,&pp,3) && pp && (pp = pp->next))
+							;
+						if(*stakptr(PATH_OFFSET)=='/')
+							sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
+					}
 				}
 				else
-					sfprintf(sfstdout,sh_translate(is_function));
+				{
+					if(flags&T_FLAG)
+						sfprintf(sfstdout,"function");
+					else
+						sfprintf(sfstdout,sh_translate(is_function));
+				}
 			}
 			sfputc(sfstdout,'\n');
 			if(!aflag)
@@ -232,7 +255,10 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				cp = "";
 			if(flags&Q_FLAG)
 				continue;
-			sfprintf(sfstdout,"%s%s\n",name,cp);
+			if(flags&T_FLAG)
+				sfprintf(sfstdout,"builtin\n");
+			else
+				sfprintf(sfstdout,"%s%s\n",name,cp);
 			if(!aflag)
 				continue;
 			aflag++;
@@ -275,7 +301,9 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				{
 					/* Undefined/autoloadable function on FPATH */
 					sfputr(sfstdout,sh_fmtq(cp),-1);
-					if(flags&V_FLAG)
+					if(flags&T_FLAG)
+						sfprintf(sfstdout,"function");
+					else if(flags&V_FLAG)
 					{
 						sfprintf(sfstdout,sh_translate(is_ufunction));
 						sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
@@ -286,12 +314,19 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			else if(cp)
 			{
 				cp = path_fullname(shp,cp);  /* resolve '.' & '..' */
-				if(flags&V_FLAG)
+				int is_pathbound_builtin = 0;
+				if(flags&(V_FLAG|T_FLAG))
 				{
-					sfputr(sfstdout,sh_fmtq(name),' ');
+					if(!(flags&T_FLAG))
+						sfputr(sfstdout,sh_fmtq(name),' ');
 					/* built-in version of program */
 					if(nv_search(cp,shp->bltin_tree,0))
-						msg = sh_translate(is_builtver);
+					{
+						if(flags&T_FLAG)
+							is_pathbound_builtin = 1;
+						else
+							msg = sh_translate(is_builtver);
+					}
 					/* tracked aliases next */
 					else if(!sh_isstate(SH_DEFPATH)
 					&& (np = nv_search(name,shp->track_tree,0))
@@ -300,9 +335,13 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 						msg = sh_translate(is_talias);
 					else
 						msg = sh_translate("is");
-					sfputr(sfstdout,msg,' ');
+					if(!(flags&T_FLAG))
+						sfputr(sfstdout,msg,' ');
 				}
-				sfputr(sfstdout,sh_fmtq(cp),'\n');
+				if(flags&T_FLAG)
+					sfputr(sfstdout,is_pathbound_builtin ? "builtin" : "file",'\n');
+				else
+					sfputr(sfstdout,sh_fmtq(cp),'\n');
 				free((char*)cp);
 			}
 			else if(aflag<=1) 
