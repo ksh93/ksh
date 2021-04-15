@@ -1240,9 +1240,19 @@ int sh_exec(register const Shnode_t *t, int flags)
 				if(io)
 					sfsync(shp->outpool);
 				shp->lastpath = 0;
-				if(!np  && !strchr(com0,'/'))
+				if(!np)
 				{
-					if(path_search(shp,com0,NIL(Pathcomp_t**),1))
+					if(*com0 == '/' && !sh_isoption(SH_RESTRICTED))
+					{
+						/* Check for path-bound builtin referenced by absolute canonical path, in
+						   case the parser didn't provide a pointer (e.g. '$(whence -p cat) foo') */
+						np = nv_search(com0, shp->bltin_tree, 0);
+					}
+					else if(strchr(com0,'/'))
+					{
+						/* Do nothing */
+					}
+					else if(path_search(shp,com0,NIL(Pathcomp_t**),1))
 					{
 						error_info.line = t->com.comline-shp->st.firstline;
 #if SHOPT_NAMESPACE
@@ -3639,11 +3649,16 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 	fail:
 		if(jobfork && spawnpid<0) 
 			job_fork(-2);
-		if(spawnpid < 0) switch(errno=shp->path_err)
+		if(spawnpid == -1) switch(errno=shp->path_err)
 		{
 		    case ENOENT:
 			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
 			UNREACHABLE();
+#ifdef ENAMETOOLONG
+		    case ENAMETOOLONG:
+			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong+4);
+			UNREACHABLE();
+#endif
 		    default:
 			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
 			UNREACHABLE();

@@ -117,6 +117,18 @@ For more details, see the NEWS file and for complete details, see the git log.
 		ksh -c 'OLDPWD=/bin; OLDPWD=/tmp cd - > /dev/null; echo $OLDPWD'
 		ksh -c 'cd /var; PWD=/tmp cd /usr; echo $PWD'
 	now prints '/bin' followed by '/var'.
+
+23.	Path-bound builtins (such as /opt/ast/bin/cat) can now be executed
+	by invoking the canonical path, so the following will now work:
+		$ /opt/ast/bin/cat --version
+		  version         cat (AT&T Research) 2012-05-31
+		$ (PATH=/opt/ast/bin:$PATH; "$(whence -p cat)" --version)
+		  version         cat (AT&T Research) 2012-05-31
+	In the event an external command by that path exists, the path-bound
+	builtin will now override it when invoked using the canonical path.
+	To invoke a possible external command at that path, you can still use
+	a non-canonical path, e.g.: /opt//ast/bin/cat or /opt/ast/./bin/cat
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

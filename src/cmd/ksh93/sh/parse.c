@@ -1439,9 +1439,10 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		{
 			if(!(argp->argflag&ARG_RAW))
 				argno = -1;
-			if(argno>=0 && argno++==cmdarg && !(flag&SH_ARRAY) && *argp->argval!='/')
+			if(argno>=0 && argno++==cmdarg && !(flag&SH_ARRAY)
+			&& !(sh_isoption(SH_RESTRICTED) && strchr(argp->argval,'/')))
 			{
-				/* check for builtin command */
+				/* check for builtin command (including path-bound builtins executed by full pathname) */
 				Namval_t *np=nv_bfsearch(argp->argval,lexp->sh->fun_tree, (Namval_t**)&t->comnamq,(char**)0);
 				if(np && is_abuiltin(np))
 				{

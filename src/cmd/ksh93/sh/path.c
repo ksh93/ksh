@@ -769,6 +769,8 @@ Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp
 	{
 		sh_sigcheck(shp);
 		shp->bltin_dir = 0;
+		/* In this loop, oldpp is the current pointer.
+		   pp is the next pointer. */
 		while(oldpp=pp)
 		{
 			pp = path_nextcomp(shp,pp,name,0);
@@ -901,10 +903,10 @@ Pathcomp_t *path_absolute(Shell_t *shp,register const char *name, Pathcomp_t *pp
 				np->nvflag = n;
 			}
 		}
+		if(f<0 && errno!=ENOENT)
+			noexec = errno;
 		if(!pp || f>=0)
 			break;
-		if(errno!=ENOENT)
-			noexec = errno;
 	}
 	if(f<0)
 	{
@@ -1007,7 +1009,8 @@ noreturn void path_exec(Shell_t *shp,register const char *arg0,register char *ar
 	char **envp;
 	const char *opath;
 	Pathcomp_t *libpath, *pp=0;
-	int slash=0;
+	int slash=0, not_executable=0;
+	pid_t spawnpid;
 	nv_setlist(local,NV_EXPORT|NV_IDENT|NV_ASSIGN,0);
 	envp = sh_envgen();
 	if(strchr(arg0,'/'))
@@ -1038,18 +1041,40 @@ noreturn void path_exec(Shell_t *shp,register const char *arg0,register char *ar
 		}
 		else
 			opath = arg0;
-		path_spawn(shp,opath,argv,envp,libpath,0);
+		spawnpid = path_spawn(shp,opath,argv,envp,libpath,0);
+		if(spawnpid==-1 && shp->path_err!=ENOENT)
+		{
+			/*
+			 * A command was found but it couldn't be executed.
+			 * POSIX specifies that the shell should continue to search for the
+			 * command in PATH and return 126 only when it can't find an executable
+			 * file in other elements of PATH.
+			 */
+			not_executable = shp->path_err;
+		}
 		while(pp && (pp->flags&PATH_FPATH))
 			pp = path_nextcomp(shp,pp,arg0,0);
 	}
 	while(pp);
 	/* force an exit */
 	((struct checkpt*)shp->jmplist)->mode = SH_JMPEXIT;
-	if((errno=shp->path_err)==ENOENT)
+	errno = not_executable ? not_executable : shp->path_err;
+	switch(errno)
+	{
+	    /* the first two cases return exit status 127 (the command wasn't in the PATH) */
+	    case ENOENT:
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found,arg0);
-	else
+		UNREACHABLE();
+#ifdef ENAMETOOLONG
+	    case ENAMETOOLONG:
+		errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong,arg0);
+		UNREACHABLE();
+#endif
+	    /* other cases return exit status 126 (the command was found, but wasn't executable) */
+	    default:
 		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,arg0);
-	UNREACHABLE();
+		UNREACHABLE();
+	}
 }
 
 pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **envp, Pathcomp_t *libpath, int spawn)
@@ -1060,6 +1085,20 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 	char		*s, *v;
 	int		r, n, pidsize;
 	pid_t		pid= -1;
+	if(nv_search(opath,shp->bltin_tree,0))
+	{
+		/* Found a path-bound built-in. Since this was not caught earlier in sh_exec(), it must
+		   have been found on a temporarily assigned PATH, as with 'PATH=/opt/ast/bin:$PATH cat'.
+		   Now that that local PATH assignment is in effect, we can just sh_run() the built-in. */
+		int argc = 0;
+		while(argv[argc])
+			argc++;
+		sh_run(argc,argv);
+		if(!spawn)
+			sh_done(shp,0);
+		errno = 0;
+		return(-2);  /* treat like failure to spawn in sh_ntfork() except for the error message */
+	}
 	/* leave room for inserting _= pathname in environment */
 	envp--;
 #if _lib_readlink
@@ -1187,6 +1226,8 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 		return(pid);
 	switch(shp->path_err = errno)
 	{
+	    case EISDIR:
+		return -1;
 	    case ENOEXEC:
 #if SHOPT_SUID_EXEC
 	    case EPERM:

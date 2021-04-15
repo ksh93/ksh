@@ -65,23 +65,23 @@ __STDPP__directive pragma pp:nohide wait waitpid
 #endif
 
 #ifndef WIFEXITED
-#define WIFEXITED(x)	(!((x)&((1<<(EXIT_BITS-1))-1)))
+#define WIFEXITED(x)	(!((x) & EXIT_NOTFOUND))
 #endif
 
 #ifndef WEXITSTATUS
-#define WEXITSTATUS(x)	(((x)>>EXIT_BITS)&((1<<EXIT_BITS)-1))
+#define WEXITSTATUS(x)	(((x) >> 8) & EXIT_QUIT)
 #endif
 
 #ifndef WIFSIGNALED
-#define WIFSIGNALED(x)	(((x)&((1<<(EXIT_BITS-1))-1))!=0)
+#define WIFSIGNALED(x)	(((x) & EXIT_NOTFOUND) != 0)
 #endif
 
 #ifndef WTERMSIG
-#define WTERMSIG(x)	((x)&((1<<(EXIT_BITS-1))-1))
+#define WTERMSIG(x)	((x) & EXIT_NOTFOUND)
 #endif
 
 #ifndef WIFSTOPPED
-#define WIFSTOPPED(x)	(((x)&((1<<EXIT_BITS)-1))==((1<<(EXIT_BITS-1))-1))
+#define WIFSTOPPED(x)	(((x) & EXIT_QUIT) == EXIT_NOTFOUND)
 #endif
 
 #ifndef WSTOPSIG
@@ -89,7 +89,7 @@ __STDPP__directive pragma pp:nohide wait waitpid
 #endif
 
 #ifndef WTERMCORE
-#define WTERMCORE(x)	((x)&(1<<(EXIT_BITS-1)))
+#define WTERMCORE(x)	((x) & 128)
 #endif
 
 extern pid_t		wait(int*);

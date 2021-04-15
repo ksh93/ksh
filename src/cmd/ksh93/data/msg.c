@@ -83,6 +83,9 @@ const char e_logout[]		= "Use 'exit' to terminate this shell";
 const char e_exec[]		= "%s: cannot execute";
 const char e_pwd[]		= "cannot access parent directories";
 const char e_found[]		= "%s: not found";
+#ifdef ENAMETOOLONG
+const char e_toolong[]		= "%s: file name too long";
+#endif
 const char e_defined[]		= "%s: function not defined";
 const char e_nointerp[]		= "%s: interpreter not found";
 const char e_subscript[]	= "%s: subscript out of range";
