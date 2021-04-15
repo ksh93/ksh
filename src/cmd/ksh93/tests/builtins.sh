@@ -794,6 +794,85 @@ whence -q nonexist && err_exit "'whence -q' has the wrong exit status"
 PATH=$save_PATH
 
 # ======
+# These are the regression tests for the whence builtin's '-t' flag
+for w in 'whence -t' 'type -t' 'whence -t -v'; do
+	exp=file
+	got=$($w $SHELL)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for external commands" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	got=$(builtin -d chmod; hash chmod; $w chmod)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for tracked aliases" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	exp=keyword
+	got=$($w time)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for keywords" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	exp=builtin
+	got=$($w sleep)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for regular builtins" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	got=$($w export)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for special builtins" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	if [[ $(PATH=/opt/ast/bin type cat) != "cat is a shell builtin version of /opt/ast/bin/cat" ]]
+	then	warning "/opt/ast/bin/cat isn't a builtin; skipping path-bound builtin tests"
+	else
+		got=$(PATH=/opt/ast/bin $w cat)
+		[[ $exp == "$got" ]] || err_exit "Test A: '$w' has the wrong output for path-bound builtins" \
+			"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+		got=$($w /opt/ast/bin/cat)
+		[[ $exp == "$got" ]] || err_exit "Test B: '$w' has the wrong output for path-bound builtins" \
+			"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+		got=$(PATH=/opt/ast/bin:$PATH; $w cat)
+		[[ $exp == "$got" ]] || err_exit "Test C: '$w' has the wrong output for path-bound builtins" \
+			"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+		got=$(builtin cat; $w cat)
+		[[ $exp == "$got" ]] || err_exit "Test D: '$w' has the wrong output for path-bound builtins" \
+			"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	fi
+	exp=alias
+	got=$(alias foo=bar; $w foo)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for aliases" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	exp=function
+	got=$(foo() { true; }; $w foo)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for POSIX functions" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	got=$(function foo { true; }; $w foo)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for KornShell functions" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	got=$(autoload FooBar; $w FooBar)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for undefined autoloaded functions" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	echo 'FooBar() { true; }' > FooBar
+	got=$(FPATH=. autoload FooBar; $w FooBar)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for autoloaded POSIX functions" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	echo 'function FooBar { true; }' > FooBar
+	got=$(FPATH=. autoload FooBar; $w FooBar)
+	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for autoloaded KornShell functions" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+	# The final few tests are for '-t -a'
+	exp="alias
+function
+builtin
+$($w -pa cat)"
+	got=$(alias cat=false
+		autoload cat
+		PATH=/opt/ast/bin:$PATH $w -a cat)
+	[[ $exp == "$got" ]] || err_exit "'$w -a' output is incorrect (cat command)" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	exp="keyword
+alias
+$($w -pa time)"
+	got=$(alias time=nottime
+		$w -a time)
+	[[ $exp == "$got" ]] || err_exit "'$w -a' output is incorrect (time command)" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+done
+
+# ======
 # 'cd ../.foo' should not exclude the '.' in '.foo'
 # https://bugzilla.redhat.com/889748
 expect=$tmp/.ssh

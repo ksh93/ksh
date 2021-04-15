@@ -48,8 +48,9 @@ ulimit -R/--rttime
    the total number of CPU seconds (i.e., the sum of `%U` and `%S`).
    Added in commit [`d97b64e`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c).
 6. Extra options have been backported from ksh93v- for bash compatibility. The options added so far are:
-  * `type -P` as an alias for `whence -p` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
   * `read -a` as an alias for `read -A` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
+  * `type -P` as an alias for `whence -p` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
+  * `type -t` has been backported from ksh93v- (it functions the same way it does in Bash).
 7. `exp10(3)` has been added as a supported math function (when available), so `echo $(( exp10(3) ))` now prints 1000 (10<sup>3</sup>).
    Added in commit [`f090522`](https://github.com/JohnoKing/ksh/commit/f090522d70302a67a3cb977e0dbf3ef8a1d94fcb).
 8. A `banner` command has been added alongside `pty`. This is the AST
