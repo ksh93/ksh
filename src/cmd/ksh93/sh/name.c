@@ -2346,8 +2346,11 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,int mask, int fl
  */
 void sh_scope(Shell_t *shp, struct argnod *envlist, int fun)
 {
-	register Dt_t		*newscope, *newroot=shp->var_base;
+	register Dt_t		*newscope, *newroot;
 	struct Ufunction	*rp;
+	/* TODO: Fix the scope of POSIX functions with declare and local */
+	newroot = shp->st.var_local ? shp->st.var_local : shp->var_base;
+
 #if SHOPT_NAMESPACE
 	if(shp->namespace)
 		newroot = nv_dict(shp->namespace);

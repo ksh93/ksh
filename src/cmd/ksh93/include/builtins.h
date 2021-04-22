@@ -19,8 +19,6 @@
 ***********************************************************************/
 #pragma prototyped
 
-#ifndef SYSDECLARE
-
 #include	<option.h>
 #include	"FEATURE/options"
 #include	"FEATURE/dynamic"
@@ -49,15 +47,17 @@
 						/* functions	|		*/
 						/* integer	|		*/
 #define SYSNAMEREF	(shgd->bltin_cmds+15)	/* nameref      |		*/
-#define SYSTYPESET_END	(shgd->bltin_cmds+15)	/*	       /		*/
+#define SYSLOCAL	(shgd->bltin_cmds+16)	/* local */
+#define SYSDECLARE	(shgd->bltin_cmds+17)	/* declare */
+#define SYSTYPESET_END	(shgd->bltin_cmds+17)	/*	       /		*/
 
-#define SYSTEST		(shgd->bltin_cmds+16)	/* test */
-#define SYSBRACKET	(shgd->bltin_cmds+17)	/* [ */
-#define SYSLET		(shgd->bltin_cmds+18)	/* let */
-#define SYSEXPORT	(shgd->bltin_cmds+19)	/* export */
-#define SYSDOT		(shgd->bltin_cmds+20)	/* . */
-#define SYSSOURCE	(shgd->bltin_cmds+21)	/* source */
-#define SYSRETURN	(shgd->bltin_cmds+22)	/* return */
+#define SYSTEST		(shgd->bltin_cmds+18)	/* test */
+#define SYSBRACKET	(shgd->bltin_cmds+19)	/* [ */
+#define SYSLET		(shgd->bltin_cmds+20)	/* let */
+#define SYSEXPORT	(shgd->bltin_cmds+21)	/* export */
+#define SYSDOT		(shgd->bltin_cmds+22)	/* . */
+#define SYSSOURCE	(shgd->bltin_cmds+23)	/* source */
+#define SYSRETURN	(shgd->bltin_cmds+24)	/* return */
 
 /* entry point for shell special builtins */
 
@@ -206,7 +206,6 @@ extern const char sh_optwait[];
 #endif /* _cmd_universe */
 extern const char sh_optunset[];
 extern const char sh_optwhence[];
-#endif /* SYSDECLARE */
 extern const char sh_opttimes[];
 
 extern const char e_dict[];

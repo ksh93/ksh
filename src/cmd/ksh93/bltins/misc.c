@@ -236,7 +236,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	register Shell_t *shp = context->shp;
 	struct sh_scoped savst, *prevscope = shp->st.self;
 	char *filename=0, *buffer=0, *tofree;
-	int	fd;
+	int	fd, infunction = 0;
 	struct dolnod   *saveargfor;
 	volatile struct dolnod   *argsave=0;
 	struct checkpt buff;
@@ -296,6 +296,11 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			filename = path_fullname(shp,stkptr(shp->stk,PATH_OFFSET));
 		}
 	}
+	if(np)
+	{
+		infunction = sh_isstate(SH_INFUNCTION);
+		sh_onstate(SH_INFUNCTION);
+	}
 	*prevscope = shp->st;
 	shp->st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
 	shp->st.var_local = shp->st.save_tree = shp->var_tree;
@@ -347,6 +352,8 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	}
 	if (shp->st.self != &savst)
 		*shp->st.self = shp->st;
+	if(!infunction)
+		sh_offstate(SH_INFUNCTION);
 	/* only restore the top Shscope_t portion for posix functions */
 	memcpy((void*)&shp->st, (void*)prevscope, sizeof(Shscope_t));
 	shp->topscope = (Shscope_t*)prevscope;

@@ -1127,6 +1127,27 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 					if(np)
 						flgs |= NV_UNJUST;
+
+					/* Prohibit usage of the local builtin outside of functions */
+					if(np==SYSLOCAL && !sh_isstate(SH_INFUNCTION))
+					{
+						errormsg(SH_DICT,ERROR_exit(1),"%s: can only be used in a function",com0);
+						UNREACHABLE();
+					}
+					/*
+					 * The declare and local builtins have a dynamic scope limited
+					 * to the function in which they are called. This should be
+					 * skipped when not in a function.
+					 */
+					if((np == SYSLOCAL || (sh_isstate(SH_INFUNCTION) && np == SYSDECLARE)) && shp->st.var_local != shp->var_tree)
+					{
+						sh_scope(shp,(struct argnod*)0,0);
+						shp->st.var_local = shp->var_tree;
+					}
+					/* The other typeset builtins have a static scope */
+					else if (!(np == SYSLOCAL || np == SYSDECLARE) && shp->st.var_local == shp->var_tree)
+						shp->st.var_local = shp->var_base;
+
 					if(np && np->nvalue.bfp==SYSTYPESET->nvalue.bfp)
 					{
 						/* command calls b_typeset(); treat as a typeset variant */
@@ -3154,7 +3175,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	struct dolnod		*argsav=0,*saveargfor;
 	struct sh_scoped	savst, *prevscope = shp->st.self;
 	struct argnod		*envlist=0;
-	int			isig,jmpval;
+	int			isig,jmpval,infunction;
 	volatile int		r = 0;
 	int			n;
 	char 			**savsig;
@@ -3168,6 +3189,10 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		shp->glob_options =  shp->options;
 	else
 		shp->options = shp->glob_options;
+
+	infunction = sh_isstate(SH_INFUNCTION);
+	sh_onstate(SH_INFUNCTION);
+
 	*prevscope = shp->st;
 	sh_offoption(SH_ERREXIT);
 	shp->st.prevst = prevscope;
@@ -3300,6 +3325,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	shp->trapnote=0;
 	shp->options = options;
 	shp->last_root = last_root;
+	if(!infunction)
+		sh_offstate(SH_INFUNCTION);
 	if(jmpval == SH_JMPSUB)
 		siglongjmp(*shp->jmplist,jmpval);
 	if(trap)
@@ -3348,11 +3375,11 @@ static void sh_funct(Shell_t *shp,Namval_t *np,int argn, char *argv[],struct arg
 		argv[-1] = 0;
 		shp->st.funname = nv_name(np);
 		shp->last_root = nv_dict(DOTSHNOD);
-		nv_putval(SH_FUNNAMENOD, nv_name(np),NV_NOFREE);
+		nv_putval(SH_FUNNAMENOD, nv_name(np), NV_NOFREE);
 		opt_info.index = opt_info.offset = 0;
 		error_info.errors = 0;
 		shp->st.loopcnt = 0;
-		b_dot_cmd(argn+1,argv-1,&shp->bltindata);
+		b_dot_cmd(argn+1,argv-1,&shp->bltindata); /* NOTE: This can be replaced with sh_funscope to get a local scope */
 		shp->st.loopcnt = loopcnt;
 		argv[-1] = save;
 	}

@@ -77,6 +77,7 @@ typedef union Shnode_u Shnode_t;
 #define SH_COMPLETE	19	/* set for command completion */
 #define SH_INTESTCMD	20	/* set while test/[ command is being run */
 #define SH_XARG		21	/* set while in xarg (command -x) mode */
+#define SH_INFUNCTION	22	/* set while in a function */
 
 /*
  * Shell options (set -o). Used with sh_isoption(), sh_onoption(), sh_offoption().

@@ -22,6 +22,8 @@
  * export [-p] [arg...]
  * readonly [-p] [arg...]
  * typeset [options] [arg...]
+ * declare [options] [arg...]
+ * local [options] [arg...]
  * autoload [options] [arg...]
  * compound [options] [arg...]
  * float [options] [arg...]
@@ -193,10 +195,11 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
     /* for the dictionary generator */
     int    b_autoload(int argc,register char *argv[],Shbltin_t *context){}
     int    b_compound(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_declare(int argc,char *argv[],Shbltin_t *context){}
     int    b_float(int argc,register char *argv[],Shbltin_t *context){}
     int    b_functions(int argc,register char *argv[],Shbltin_t *context){}
     int    b_integer(int argc,register char *argv[],Shbltin_t *context){}
-    int    b_local(int argc,register char *argv[],Shbltin_t *context){}
+    int    b_local(int argc,char *argv[],Shbltin_t *context){}
     int    b_nameref(int argc,register char *argv[],Shbltin_t *context){}
 #endif
 int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
@@ -206,18 +209,19 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
-	int		isfloat=0, isadjust=0, shortint=0, sflag=0;
+	int		isfloat=0, isadjust=0, shortint=0, sflag=0, local;
 
 	memset((void*)&tdata,0,sizeof(tdata));
 	tdata.sh = context->shp;
 	troot = tdata.sh->var_tree;
-	if(ntp)					/* custom declaration command added using enum */
+	local = argv[0][0] == 'l';
+	if(ntp)  /* custom declaration command added using enum */
 	{
 		tdata.tp = ntp->tp;
 		opt_info.disc = (Optdisc_t*)ntp->optinfof;
 		optstring = ntp->optstring;
 	}
-	else if(argv[0][0] != 't')		/* not <t>ypeset */
+	else if(argv[0][0] != 't' && argv[0][0] != 'd' && !local) /* not <t>ypeset, <d>eclare or <l>ocal */
 	{
 		char **new_argv = (char **)stakalloc((argc + 2) * sizeof(char*));
 		new_argv[0] = "typeset";
@@ -428,6 +432,14 @@ int    b_typeset(int argc,register char *argv[],Shbltin_t *context)
 	}
 endargs:
 	argv += opt_info.index;
+
+	/* 'local' builtin */
+	if(local && !sh_isstate(SH_INFUNCTION))
+	{
+		errormsg(SH_DICT,ERROR_exit(1), "can only be used in a function");
+		UNREACHABLE();
+	}
+
 	opt_info.disc = 0;
 	/* handle argument of + and - specially */
 	if(*argv && argv[0][1]==0 && (*argv[0]=='+' || *argv[0]=='-'))
