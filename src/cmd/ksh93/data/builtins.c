@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -735,11 +736,11 @@ const char sh_optgetopts[] =
       "[+n?Associate -\anumber\a and +\anumber\a options with the first "
         "option with numeric arguments.]"
       "[+o?The \b-\b option character prefix is optional (supports "
-        "obsolete \bps\b(1) option syntax.)]"
+        "obsolete \bps\b(1) option syntax).]"
       "[+p?\anumber\a specifies the number of \b-\b characters that must "
 	"prefix long option names. The default is \b2\b; \b0\b, \b1\b or "
 	"\b2\b are accepted (e.g., \bp0\b for \bdd\b(1) and \bp1\b for "
-	"\bfind\b(1).)]"
+	"\bfind\b(1)).]"
       "[+s?\anumber\a specifies the \b--??man\b section number, "
         "\b1\b by default.]"
   "}"

@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -327,7 +328,7 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 		{
 			walk = root->walk?root->walk:root;
 			mpnext = dtnext(root,mp);
-			if(memcmp(name,mp->nvname,len) || mp->nvname[len]!='.')
+			if(strncmp(name,mp->nvname,len) || mp->nvname[len]!='.')
 				break;
 			nv_delete(mp,walk,NV_NOFREE);
 			*((Namval_t**)mp) = lp->child;
@@ -381,8 +382,9 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvenv = np->nvenv;
-		if(!nofree)
-			mp->nvfun = np->nvfun;
+		mp->nvfun = np->nvfun;
+		if(np->nvfun && nofree)
+			np->nvfun->nofree = nofree;
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -425,12 +427,21 @@ static void nv_restore(struct subshell *sp)
 Dt_t *sh_subtracktree(int create)
 {
 	register struct subshell *sp = subshell_data;
-	if(create && sh.subshell && !sh.subshare && sp && !sp->strack)
+	if(create && sh.subshell)
 	{
-		sp->strack = dtopen(&_Nvdisc,Dtset);
-		dtuserdata(sp->strack,&sh,1);
-		dtview(sp->strack,sh.track_tree);
-		sh.track_tree = sp->strack;
+		if(sh.subshare)
+		{
+			while(sp->subshare)	/* move up as long as parent is also a ${ subshare; } */
+				sp = sp->prev;
+			sp = sp->prev;		/* move to first non-subshare parent */
+		}
+		if(sp && !sp->strack)
+		{
+			sp->strack = dtopen(&_Nvdisc,Dtset);
+			dtuserdata(sp->strack,&sh,1);
+			dtview(sp->strack,sh.track_tree);
+			sh.track_tree = sp->strack;
+		}
 	}
 	return(sh.track_tree);
 }
@@ -442,39 +453,23 @@ Dt_t *sh_subtracktree(int create)
 Dt_t *sh_subfuntree(int create)
 {
 	register struct subshell *sp = subshell_data;
-	if(create && sh.subshell && !sh.subshare && sp && !sp->sfun)
+	if(create && sh.subshell)
 	{
-		sp->sfun = dtopen(&_Nvdisc,Dtoset);
-		dtuserdata(sp->sfun,&sh,1);
-		dtview(sp->sfun,sh.fun_tree);
-		sh.fun_tree = sp->sfun;
+		if(sh.subshare)
+		{
+			while(sp->subshare)	/* move up as long as parent is also a ${ subshare; } */
+				sp = sp->prev;
+			sp = sp->prev;		/* move to first non-subshare parent */
+		}
+		if(sp && !sp->sfun)
+		{
+			sp->sfun = dtopen(&_Nvdisc,Dtoset);
+			dtuserdata(sp->sfun,&sh,1);
+			dtview(sp->sfun,sh.fun_tree);
+			sh.fun_tree = sp->sfun;
+		}
 	}
 	return(sh.fun_tree);
-}
-
-/*
- * Remove and free a subshell table at *root after leaving a virtual subshell.
- * Pass 'fun' as nonzero when removing a subshell's shell functions.
- */
-static void table_unset(Shell_t *shp,register Dt_t *root,int fun)
-{
-	register Namval_t *np,*nq;
-	int flag;
-	for(np=(Namval_t*)dtfirst(root);np;np=nq)
-	{
-		nq = (Namval_t*)dtnext(root,np);
-		flag=0;
-		/* Check for autoloaded function; it must not be freed. */
-		if(fun && np->nvalue.rp && np->nvalue.rp->fname && shp->fpathdict
-		&& nv_search(np->nvalue.rp->fname,shp->fpathdict,0))
-		{
-			np->nvalue.rp->fdict = 0;
-			flag = NV_NOFREE;
-		}
-		else
-			_nv_unset(np,NV_RDONLY);
-		nv_delete(np,root,flag|NV_FUNCTION);
-	}
 }
 
 int sh_subsavefd(register int fd)
@@ -807,30 +802,47 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		/* Clean up subshell hash table. */
 		if(sp->strack)
 		{
-			Namval_t *np, *prev_np;
+			Namval_t *np, *next_np;
 			/* Detach this scope from the unified view. */
 			shp->track_tree = dtview(sp->strack,0);
-			/* Delete (free) all elements of the subshell hash table. To allow dtnext() to
-			   set the pointer to the next item, we have to delete one item behind the loop. */
-			prev_np = 0;
-			np = (Namval_t*)dtfirst(sp->strack);
-			while(np)
+			/* Free all elements of the subshell hash table. */
+			for(np = (Namval_t*)dtfirst(sp->strack); np; np = next_np)
 			{
-				if(prev_np)
-					nv_delete(prev_np,sp->strack,0);
-				prev_np = np;
-				np = (Namval_t*)dtnext(sp->strack,np);
+				next_np = (Namval_t*)dtnext(sp->strack,np);
+				nv_delete(np,sp->strack,0);
 			}
-			if(prev_np)
-				nv_delete(prev_np,sp->strack,0);
 			/* Close and free the table itself. */
 			dtclose(sp->strack);
 		}
 		/* Clean up subshell function table. */
 		if(sp->sfun)
 		{
+			Namval_t *np, *next_np;
+			/* Detach this scope from the unified view. */
 			shp->fun_tree = dtview(sp->sfun,0);
-			table_unset(shp,sp->sfun,1);
+			/* Free all elements of the subshell function table. */
+			for(np = (Namval_t*)dtfirst(sp->sfun); np; np = next_np)
+			{
+				next_np = (Namval_t*)dtnext(sp->sfun,np);
+				if(!np->nvalue.rp)
+				{
+					/* Dummy node created by unall() to mask parent shell function. */
+					nv_delete(np,sp->sfun,0);
+					continue;
+				}
+				nv_onattr(np,NV_FUNCTION);  /* in case invalidated by unall() */
+				if(np->nvalue.rp->fname && shp->fpathdict && nv_search(np->nvalue.rp->fname,shp->fpathdict,0))
+				{
+					/* Autoloaded function. It must not be freed. */
+					np->nvalue.rp->fdict = 0;
+					nv_delete(np,sp->sfun,NV_FUNCTION|NV_NOFREE);
+				}
+				else
+				{
+					_nv_unset(np,NV_RDONLY);
+					nv_delete(np,sp->sfun,NV_FUNCTION);
+				}
+			}
 			dtclose(sp->sfun);
 		}
 		n = shp->st.trapmax-savst.trapmax;

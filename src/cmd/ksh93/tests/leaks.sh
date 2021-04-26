@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -194,6 +195,40 @@ done
 after=$(getmem)
 err_exit_if_leak 'POSIX function defined in virtual subshell'
 typeset -f foo >/dev/null && err_exit 'POSIX function leaks out of subshell'
+
+# Unsetting a function in a virtual subshell
+
+function foo { echo bar; }
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(unset -f foo)
+done
+after=$(getmem)
+err_exit_if_leak 'ksh function unset in virtual subshell'
+typeset -f foo >/dev/null || err_exit 'ksh function unset in subshell was unset in main shell'
+
+foo() { echo bar; }
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(unset -f foo)
+done
+after=$(getmem)
+err_exit_if_leak 'POSIX function unset in virtual subshell'
+typeset -f foo >/dev/null || err_exit 'POSIX function unset in subshell was unset in main shell'
+
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(function foo { echo baz; }; unset -f foo)
+done
+after=$(getmem)
+err_exit_if_leak 'ksh function defined and unset in virtual subshell'
+
+before=$(getmem)
+for ((i=0; i < N; i++))
+do	(foo() { echo baz; }; unset -f foo)
+done
+after=$(getmem)
+err_exit_if_leak 'POSIX function defined and unset in virtual subshell'
 
 # ======
 # Sourcing a dot script in a virtual subshell

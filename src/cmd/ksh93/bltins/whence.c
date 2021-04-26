@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -192,7 +193,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 		}
 		/* built-ins and functions next */
 	bltins:
-		if(!(flags&F_FLAG) && (np = nv_bfsearch(name, shp->fun_tree, &nq, &notused)) && !is_abuiltin(np))
+		if(!(flags&F_FLAG) && (np = nv_bfsearch(name, shp->fun_tree, &nq, &notused)) && is_afunction(np))
 		{
 			if(flags&Q_FLAG)
 				continue;

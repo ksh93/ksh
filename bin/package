@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -98,7 +99,7 @@ export TMPDIR
 src="cmd contrib etc lib"
 use="/usr/common /exp /usr/local /usr/add-on /usr/addon /usr/tools /usr /opt"
 usr="/home"
-lib="" # nee /usr/local/lib /usr/local/shlib
+lib="" # need /usr/local/lib /usr/local/shlib
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
 makefiles="Mamfile"  # ksh 93u+m no longer uses these: Nmakefile nmakefile Makefile makefile
@@ -331,7 +332,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             results.]
         [+release\b [ [\aCC\a]]\aYY-MM-DD\a [ [\acc\a]]\ayy-mm-dd\a ]]]] [ \apackage\a ]]?Display
             recent changes for the date range [\aCC\a]]\aYY-MM-DD\a (up to
-        [\acc\a]]\ayy-mm-dd\a.), where \b-\b means lowest (or highest.)
+        [\acc\a]]\ayy-mm-dd\a), where \b-\b means lowest (or highest).
             If no dates are specified then changes for the last 4 months
             are listed. \apackage\a may be a package or component name.]
         [+remove\b [ \apackage\a ]]?Remove files installed for
@@ -340,7 +341,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             results and interesting messages captured by the most recent
             \bmake\b (default), \btest\b or \bwrite\b action. \bold\b
             specifies the previous results, if any (current and previous
-            results are retained.) \b$HOME/.pkgresults\b, if it exists,
+            results are retained). \b$HOME/.pkgresults\b, if it exists,
             must contain an \begrep\b(1) expression of result lines to be
             ignored. \bfailed\b lists failures only and \bpath\b lists the
             results file path name only.]
@@ -394,7 +395,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             directory. If the file \b$INSTALLROOT/lib/package/profile\b is
             readable then it is sourced to initialize the environment. 32 or 64
 	    implies \b$PACKAGEROOT\b of . and specifies the target architecture
-	    word size (which may be silently ignored.)]
+	    word size (which may be silently ignored).]
         [+verify\b [ \apackage\a ]]?Verify installed binary files
             against the checksum files in
             \b$INSTALLROOT/lib/\b\apackage\a\b/gen/*.sum\b. The checksum
@@ -430,7 +431,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
                     archive and \aNPD\a file, suitable for \bexpmake\b(1)]
                 [+lcl?Generate a package archive suitable for
                     restoration into the local source tree (i.e., the
-                    source is not annotated for licencing.)]
+                    source is not annotated for licencing).]
                 [+pkg?Generate a \bpkgmk\b(1) package suitable for
                     \bpkgadd\b(1).]
                 [+rpm?Generate an \brpm\b(1) package.]
@@ -450,7 +451,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             package contains a complete copy of all components. A delta
             package contains only changes from a previous base package.
             Delta recipients must have the \bast\b \bpax\b(1) command (in
-            the \bast-base\b package.) If neither \bbase\b nor \bdelta\b is
+            the \bast-base\b package). If neither \bbase\b nor \bdelta\b is
             specified, then the current base is overwritten if there are no
             deltas referring to the current base. Only the \btgz\b and
             \blcl\b formats support \bdelta\b. If \bbase\b is specified
@@ -520,14 +521,14 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     since the two most recent base releases. Component \bRELEASE\b files
     contain tag lines of the form [\aYY\a]]\aYY-MM-DD\a [ \atext\a ]] (or
     \bdate\b(1) format dates) followed by README text, in reverse
-    chronological order (newer entries at the top of the file.) \bpackage
+    chronological order (newer entries at the top of the file). \bpackage
     release\b lists this information, and \bpackage contents ...\b lists
     the descriptions and components.]
 [+?\b$HOSTYPE\b names the current binary architecture and is determined
-    by the output of \bpackage\b (no arguments.) The \b$HOSTTYPE\b naming
+    by the output of \bpackage\b (no arguments). The \b$HOSTTYPE\b naming
     scheme is used to separate incompatible executable and object formats.
     All architecture specific binaries are placed under \b$INSTALLROOT\b
-    (\b$PACKAGEROOT/arch/$HOSTTYPE\b.) There are a few places that match
+    (\b$PACKAGEROOT/arch/$HOSTTYPE\b). There are a few places that match
     against \b$HOSTTYPE\b when making binaries; these are limited to
     makefile compiler workarounds, e.g., if \b$HOSTTYPE\b matches \bhp.*\b
     then turn off the optimizer for these objects. All other architecture
@@ -538,7 +539,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     compilers on the same architecture.]
 [+?Each component contains an \bast\b \bnmake\b(1) makefile (either
     \bNmakefile\b or \bMakefile\b) and a \bMAM\b (make abstract machine)
-    file (\bMamfile\b.) A Mamfile contains a portable makefile description
+    file (\bMamfile\b). A Mamfile contains a portable makefile description
     that is used by \bmamake\b(1) to simulate \bnmake\b. Currently there is
     no support for old-make/gnu-make makefiles; if the binaries are just
     being built then \bmamake\b will suffice; if source or makefile
@@ -873,13 +874,13 @@ ${bB}CHANGES${eB} or ${bB}ChangeLog${eB} files dated since the two most recent b
 releases. Component ${bB}RELEASE${eB} files contain tag lines of the form
 [${bI}CC${eI}]${bI}YY-MM-DD${eI} [ ${bI}TEXT${eI} ] (or ${Mdate} format dates) followed by README
 text, in reverse chronological order (newer entries at the top of the
-file.) ${bF}package release${eF} generates this information, and
+file). ${bF}package release${eF} generates this information, and
 ${bF}package contents ...${eF} lists the descriptions and components.
 ${bP}
 ${bB}\$HOSTYPE${eB} names the current binary architecture and is determined by the
-output of ${bF}package${eF} (no arguments.) The ${bB}\$HOSTTYPE${eB} naming scheme is used
+output of ${bF}package${eF} (no arguments). The ${bB}\$HOSTTYPE${eB} naming scheme is used
 to separate incompatible executable and object formats. All architecture
-specific binaries are placed under ${bB}\$INSTALLROOT${eB} (${bB}\$PACKAGEROOT/arch/\$HOSTTYPE${eB}.)
+specific binaries are placed under ${bB}\$INSTALLROOT${eB} (${bB}\$PACKAGEROOT/arch/\$HOSTTYPE${eB}).
 There are a few places that match against ${bB}\$HOSTTYPE${eB} when making binaries; these
 are limited to makefile compiler workarounds, e.g., if ${bB}\$HOSTTYPE${eB} matches
 'hp.*' then turn off the optimizer for these objects. All other architecture
@@ -889,7 +890,7 @@ optionally set the default ${bB}CC${eB} and ${bB}CCFLAGS${eB}. This is handy for
 farms that support different compilers on the same architecture.
 ${bP}
 Each component contains an ${bB}ast${eB} ${Mnmake} makefile (either ${bB}Nmakefile${eB} or ${bB}Makefile${eB})
-and a ${bI}MAM${eI} (make abstract machine) file (${bB}Mamfile${eB}.) A Mamfile contains a portable
+and a ${bI}MAM${eI} (make abstract machine) file (${bB}Mamfile${eB}). A Mamfile contains a portable
 makefile description that is used by ${bB}\$INSTALLROOT/bin/mamake${eB} to simulate
 ${bB}nmake${eB}. Currently there is no support for old-make/gnu-make makefiles; if
 the binaries are just being built then ${bB}mamake${eB} will suffice; if source or
@@ -947,7 +948,7 @@ ${bT}(5)${bD}Determine the list of package names you want from the download site
 		bin/package setup source${eX}${eD}
 ${bT}(6)${bD}Build and install; all generated files are placed under ${bB}arch/${eB}${bI}HOSTTYPE${eI}
       (${bB}\$INSTALLROOT${eB}), where ${bI}HOSTTYPE${eI} is the output of ${bB}bin/package${eB} (with no
-      arguments.) ${bI}name=value${eI} arguments are supported; ${bB}CC${eB} and ${bB}debug=1${eB} (compile
+      arguments). ${bI}name=value${eI} arguments are supported; ${bB}CC${eB} and ${bB}debug=1${eB} (compile
       with -g instead of -O) are likely candidates. The output is written to
       the terminal and captured in ${bB}\$INSTALLROOT/lib/package/gen/make.out${eB}:${bX}
 		bin/package make${eX}${eD}
@@ -1152,7 +1153,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 	regress diff(1) the current and previous package test results.
 	release [ [CC]YY-MM-DD [ [cc]yy-mm-dd ] ] [ package ]
 		Display recent changes since [CC]YY-MM-DD (up to [cc]yy-mm-dd),
-		where - means lowest (or highest.) If no dates are specified
+		where - means lowest (or highest). If no dates are specified
 		then changes for the last 4 months are listed. PACKAGE may
 		be a package or component name.
 	remove PACKAGE
@@ -1161,7 +1162,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		List results and interesting messages captured by the most
 		recent make (default), test or write action. old specifies the
 		previous results, if any (current and previous results are
-		retained.) $HOME/.pkgresults, if it exists, must contain an
+		retained). $HOME/.pkgresults, if it exists, must contain an
 		egrep(1) expression of result lines to be ignored. failed lists
 		failures only and path lists the results file path only.
 	setup [ beta ] [ binary ] [ source ] [ ARCHITECTURE ... ] [ URL ] [ PACKAGE ... ]
@@ -1216,7 +1217,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		\$INSTALLROOT/lib/package/profile is readable then it is
 		sourced to initialize the environment. 32 or 64 implies
 		\$PACKAGEROOT of . and specifies the target architecture word
-		size (which may be silently ignored.)
+		size (which may be silently ignored).
 	verify [ PACKAGE ]
 		Verify installed binary files against the checksum files in
 		\$INSTALLROOT/lib/package/gen/*.sum. The checksum files contain
@@ -1270,7 +1271,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		be either a base or delta. A base package contains a
 		complete copy of all components.  A delta package contains
 		only changes from a previous base package. Delta recipients
-		must have the ast pax(1) command (in the ast-base package.)
+		must have the ast pax(1) command (in the ast-base package).
 		If neither base nor delta is specified, then the current
 		base is overwritten if there are no deltas referring to the
 		current base. Only the tgz and lcl formats support delta.

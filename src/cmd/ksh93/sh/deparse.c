@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -40,9 +41,10 @@
 
 
 /* flags that can be specified with p_tree() */
-#define NO_NEWLINE	1
-#define NEED_BRACE	2
-#define NO_BRACKET	4
+#define NO_NEWLINE	(1 << 0)
+#define NEED_BRACE	(1 << 1)
+#define NO_BRACKET	(1 << 2)
+#define PROCSUBST	(1 << 3)
 
 static void p_comlist(const struct dolnod*,int);
 static void p_arg(const struct argnod*, int endchar, int opts);
@@ -62,8 +64,6 @@ static const struct ionod *here_doc;
 static Sfio_t *outfile;
 static const char *forinit = "";
 
-extern void sh_deparse(Sfio_t*, const Shnode_t*,int);
-
 void sh_deparse(Sfio_t *out, const Shnode_t *t,int tflags)
 {
 	outfile = out;
@@ -77,9 +77,12 @@ static void p_tree(register const Shnode_t *t,register int tflags)
 	register char *cp;
 	int save = end_line;
 	int needbrace = (tflags&NEED_BRACE);
+	int procsub = (tflags&PROCSUBST);
 	tflags &= ~NEED_BRACE;
 	if(tflags&NO_NEWLINE)
 		end_line = ' ';
+	else if(procsub)
+		end_line = ')';
 	else
 		end_line = '\n';
 	switch(t->tre.tretyp&COMMSK)
@@ -113,7 +116,7 @@ static void p_tree(register const Shnode_t *t,register int tflags)
 		case TFORK:
 			if(needbrace)
 				tflags |= NEED_BRACE;
-			if(t->tre.tretyp&(FAMP|FCOOP))
+			if((t->tre.tretyp&(FAMP|FCOOP)) && (t->tre.tretyp&(FAMP|FINT))!=FAMP)
 			{
 				tflags = NEED_BRACE|NO_NEWLINE;
 				end_line = ' ';
@@ -125,12 +128,12 @@ static void p_tree(register const Shnode_t *t,register int tflags)
 				p_redirect(t->fork.forkio);
 			if(t->tre.tretyp&FCOOP)
 			{
-				sfputr(outfile,"|&",'\n');
+				sfputr(outfile,"|&",procsub?')':'\n');
 				begin_line = 1;
 			}
-			else if(t->tre.tretyp&FAMP)
+			else if((t->tre.tretyp&(FAMP|FINT))==(FAMP|FINT))
 			{
-				sfputr(outfile,"&",'\n');
+				sfputr(outfile,"&",procsub?')':'\n');
 				begin_line = 1;
 			}
 			break;
@@ -401,13 +404,13 @@ static void p_arg(register const struct argnod *arg,register int endchar,int opt
 		else if(opts)
 			flag = ' ';
 		cp = arg->argval;
-		if(*cp==0 && (arg->argflag&ARG_EXP)  && arg->argchn.ap)
+		if(*cp==0 && (arg->argflag&ARG_EXP) && arg->argchn.ap)
 		{
+			/* process substitution */
 			int c = (arg->argflag&ARG_RAW)?'>':'<';
 			sfputc(outfile,c);
 			sfputc(outfile,'(');
-			p_tree((Shnode_t*)arg->argchn.ap,0);
-			sfputc(outfile,')');
+			p_tree((Shnode_t*)arg->argchn.ap,PROCSUBST);
 		}
 		else if(*cp==0 && opts==POST && arg->argchn.ap)
 		{
@@ -489,7 +492,17 @@ static void p_redirect(register const struct ionod *iop)
 		}
 		if((iof&IOLSEEK) && (iof&IOARITH))
 			iof2 = iof, iof = ' ';
-		if(iop->iodelim)
+		if((iop->iofile & IOPROCSUB) && !(iop->iofile & IOLSEEK))
+		{
+			/* process substitution as argument to redirection */
+			if(iop->iofile & IOPUT)
+				sfwrite(outfile,">(",2);
+			else
+				sfwrite(outfile,"<(",2);
+			p_tree((Shnode_t*)iop->ioname,PROCSUBST);
+			sfputc(outfile,iof);
+		}
+		else if(iop->iodelim)
 		{
 			if(!(iop->iofile&IODOC))
 				sfwrite(outfile,"''",2);

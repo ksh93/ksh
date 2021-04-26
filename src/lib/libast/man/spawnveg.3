@@ -44,7 +44,7 @@ spawnveg \- process spawn with process group and session control
 .sp
 .L "int spawnveg(const char* command, char** argv, char** envv, pid_t pgid);"
 .SH DESCRIPTION
-.L spwanveg
+.L spawnveg
 combines
 .IR fork (2),
 .IR exec (2),
@@ -52,6 +52,12 @@ combines
 and
 .IR setsid (2)
 into a single call.
+If one of either
+.IR posix_spawn (3)
+or
+.IR vfork (2)
+is available, those functions are preferred over
+.IR fork .
 .PP
 .LR command ,
 .L argv
@@ -75,5 +81,10 @@ The new process becomes a process group leader.
 .L >1
 The new process joins the process group
 .IR pgid .
+.SH CAVEATS
+The
+.L spawnveg
+function cannot set the terminal process group.
+As a result, it is incompatible with job control when used with terminals.
 .SH "SEE ALSO"
 fork(2), exec(2), setpgid(2), setsid(2), spawnve(2)

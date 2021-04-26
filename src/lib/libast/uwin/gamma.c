@@ -201,7 +201,7 @@ large_gam(x)
 	return (u);
 }
 /*
- * Good to < 1 ulp.  (provably .90 ulp; .87 ulp on 1,000,000 runs.)
+ * Good to < 1 ulp.  (Provably .90 ulp; .87 ulp on 1,000,000 runs.)
  * It also has correct monotonicity.
  */
 static double

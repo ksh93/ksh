@@ -2,6 +2,8 @@
 # Compile-time SHOPT_* options for ksh93.
 # 1 to enable, 0 to disable, empty value to probe.
 #
+# For a more complete description of the options, see src/cmd/ksh93/README.
+#
 
 SHOPT 2DMATCH=1				# two dimensional ${.sh.match} for ${var//pat/str}
 SHOPT ACCT=				# accounting
@@ -16,7 +18,7 @@ SHOPT CRNL=				# accept MS Windows newlines (<cr><nl>) for <nl>
 SHOPT DEVFD=				# use /dev/fd instead of FIFOs for process substitutions
 SHOPT DYNAMIC=1				# dynamic loading for builtins
 SHOPT ECHOPRINT=			# make echo equivalent to print
-SHOPT EDPREDICT=1			# predictive editing
+SHOPT EDPREDICT=0			# History pattern search menu (type #<pattern>, then ESC <number> TAB). Experimental.
 SHOPT ESH=1				# emacs/gmacs edit mode
 SHOPT FILESCAN=1			# fast file scan
 SHOPT FIXEDARRAY=1			# fixed dimension indexed array

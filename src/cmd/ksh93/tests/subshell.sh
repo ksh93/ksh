@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -656,6 +657,7 @@ v=$("$SHELL" -c '. "$1"' x "$a") && [[ $v == ok ]] || err_exit "fail: more fun 4
 # ...multiple levels of subshell
 func() { echo mainfunction; }
 v=$(
+	set +x
 	(
 		func() { echo sub1; }
 		(
@@ -664,19 +666,49 @@ v=$(
 				func() { echo sub3; }
 				func
 				PATH=/dev/null
-				unset -f func
+				dummy=${ dummy=${ dummy=${ dummy=${ unset -f func; }; }; }; };  # test subshare within subshell
 				func 2>/dev/null
 				(($? == 127)) && echo ok_nonexistent || echo fail_zombie
 			)
 			func
 		)
 		func
-	)
-	func
+	) 2>&1
+	func 2>&1
 )
 expect=$'sub3\nok_nonexistent\nsub2\nsub1\nmainfunction'
 [[ $v == "$expect" ]] \
 || err_exit "multi-level subshell function failure (expected $(printf %q "$expect"), got $(printf %q "$v"))"
+
+# ... https://github.com/ksh93/ksh/issues/228
+fail() {
+	echo 'Failure'
+}
+exp=Success
+got=$(
+	foo() { true; }			# Define function before forking
+	ulimit -t unlimited 2>/dev/null	# Fork the subshell
+	unset -f fail
+	PATH=/dev/null fail 2>/dev/null || echo "$exp"
+)
+[[ $got == "$exp" ]] || err_exit 'unset -f fails in forked subshells if a function is defined before forking' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# function set in subshell, unset in subshell of that subshell
+exp='*: f: not found'
+got=$( f() { echo WRONG; }; ( unset -f f; PATH=/dev/null f 2>&1 ) )
+[[ $got == $exp ]] || err_exit 'unset -f fails in sub-subshell on function set in subshell' \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Functions unset in a subshell shouldn't be detected by type (whence -v)
+# https://github.com/ksh93/ksh/pull/287
+notafunc() {
+	echo 'Failure'
+}
+exp=Success
+got=$(unset -f notafunc; type notafunc 2>/dev/null || echo Success)
+[[ $got == "$exp" ]] || err_exit "type/whence -v finds function in virtual subshell after it's unset with 'unset -f'" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # Unsetting or redefining aliases within subshells
@@ -944,6 +976,29 @@ v=main
 v=main
 (v=sub; (d=${ v=shared; }; [[ $v == shared ]]) ) || err_exit "shared comsub in nested subshell wrongly scoped (2)"
 [[ $v == main ]] || err_exit "shared comsub leaks out of subshell (7)"
+
+# ...multiple levels of subshell
+v=main
+got=$(
+	(
+		v=sub1
+		(
+			v=sub2
+			(
+				v=sub3
+				echo $v
+				dummy=${ dummy=${ dummy=${ dummy=${ unset v; }; }; }; };  # test subshare within subshell
+				[[ -n $v || -v v ]] && echo fail_zombie || echo ok_nonexistent
+			)
+			echo $v
+		)
+		echo $v
+	)
+	echo $v
+)
+exp=$'sub3\nok_nonexistent\nsub2\nsub1\nmain'
+[[ $got == "$exp" ]] || err_exit "multi-level subshell function failure" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # After the memory leak patch for rhbz#982142, this minor regression was introduced:

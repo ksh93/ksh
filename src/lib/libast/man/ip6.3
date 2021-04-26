@@ -38,7 +38,7 @@
 ..
 .TH IP6 3
 .SH NAME
-ip6 \- IP V6 address support
+ip6 \- IPv6 address support
 .SH SYNOPSIS
 .EX
 #include <ip6.h>
@@ -49,7 +49,7 @@ int        strtoip6(const char* str, char** end, unsigned char* addr, unsigned c
 
 .SH DESCRIPTION
 .L fmtip6()
-formats the IPV6 address
+formats the IPv6 address
 .L addr
 with optional prefix bits
 .L bits
@@ -58,9 +58,9 @@ to the formatted value.
 
 .PP
 .L strtoip6()
-converts a formatted IPV6 address from the 0-terminated string
+converts a formatted IPv6 address from the 0-terminated string
 .L str
-into a host order IPV6 address in
+into a host order IPv6 address in
 .L addr
 which must be a buffer of at least
 .L IP6ADDR

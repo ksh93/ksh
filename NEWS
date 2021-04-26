@@ -8,6 +8,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - shcomp (the shell bytecode compiler) was fixed to correctly compile process
   substitutions used as the file name to a redirection, as in 'cmd < <(cmd)'.
 
+- Fixed a bug introduced on 2020-07-13 that set LINENO to the wrong line
+  number after leaving a virtual subshell in which LINENO had been unset.
+
 2021-04-21:
 
 - Fixed a bug introduced on 2020-09-28 that caused an interactive ksh to exit
@@ -61,7 +64,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Corrected a memory fault when an attempt was made to unset the default
   nameref KSH_VERSION from the shell environment prior to any other name
-  reference variable creation or modificaton.
+  reference variable creation or modification.
 
 2021-04-11:
 

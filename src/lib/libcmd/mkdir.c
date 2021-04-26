@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -39,8 +40,8 @@ static const char usage[] =
 "[p:parents?Create any missing intermediate pathname components. For "
     "each dir operand that does not name an existing directory, effects "
     "equivalent to those caused by the following command shall occur: "
-    "\vmkdir -p -m $(umask -S),u+wx $(dirname dir) && mkdir [-m mode]] "
-    "dir\v where the \b-m\b mode option represents that option supplied to "
+    "\bmkdir -p -m $(umask -S),u+wx $(dirname dir) && mkdir [-m mode]] "
+    "dir\b where the \b-m\b mode option represents that option supplied to "
     "the original invocation of \bmkdir\b, if any. Each dir operand that "
     "names an existing directory shall be ignored without error.]"
 "[v:verbose?Print a message on the standard error for each created "

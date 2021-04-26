@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -53,7 +54,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 [r!:regular?Run each test with the standard input and standard output
     redirected through regular files.]
 [t:test?Run only tests matching \apattern\a. Tests are numbered and
-    consist of at least two digits (0 filled if necessary.) Tests matching
+    consist of at least two digits (0 filled if necessary). Tests matching
     \b+(0)\b are always run.]:[pattern]
 [x:trace?Enable debug tracing.]
 [v:verbose?List differences between actual (<) and expected (>) output,

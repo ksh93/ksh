@@ -122,13 +122,13 @@ and
 for the child and parent process context respectively.
 Valid operations are:
 .TP
-\f5PROC_FD_CLOSE(\fIfd\fP,\fIcontext\fP)\fR
+\f3PROC_FD_CLOSE(\fIfd\fP, \fIcontext\fP)\fR
 The file descriptor
 .I fd
 is closed in
 .IR context .
 .TP
-\f5PROC_FD_DUP(\fIfrom\fP,\fIto\fP,\fIcontext\fP)\fR
+\f3PROC_FD_DUP(\fIfrom\fP, \fIto\fP, \fIcontext\fP)\fR
 The file descriptor
 .I from
 is
@@ -138,21 +138,21 @@ into the file descriptor
 in
 .IR context .
 .TP
-\f5PROC_SIG_DFL(\fIsig\fP)\fR
+\f3PROC_SIG_DFL(\fIsig\fP)\fR
 The signal handler for
 .I sig
 is set to
 .L SIG_DFL
 in the child context.
 .TP
-\f5PROC_SIG_IGN(\fIsig\fP)\fR
+\f3PROC_SIG_IGN(\fIsig\fP)\fR
 The signal handler for
 .I sig
 is set to
 .L SIG_IGN
 in the child context.
 .TP
-\f5PROC_SYS_PGRP(\fIpgid\fP)\fR
+\f3PROC_SYS_PGRP(\fIpgid\fP)\fR
 The child process group is set to
 .IR pgid .
 .I pgid
@@ -171,7 +171,7 @@ The child process becomes a process group leader.
 The child process joins the process group
 .IR pgid .
 .TP
-\f5PROC_SYS_UMASK(\fImask\fP)\fR
+\f3PROC_SYS_UMASK(\fImask\fP)\fR
 The child process group file creation mask is set to
 .IR mask .
 .PP

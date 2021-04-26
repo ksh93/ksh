@@ -360,7 +360,7 @@ The basic operations may be qualified by the following
 the parenthesized list):
 .RS
 .TP
-.L "HASH_BUCKET (HASH_CREATE,HASH_DELETE,HASH_LOOKUP)"
+.L "HASH_BUCKET (HASH_CREATE, HASH_DELETE, HASH_LOOKUP)"
 .L name
 is a pointer to a bucket that has already been entered into the table.
 .TP
@@ -379,7 +379,7 @@ is a pointer to a bucket that has not been entered into the table.
 .L "HASH_NOSCOPE (HASH_LOOKUP)"
 The lookup is restricted to the top level scope.
 .TP
-.L "HASH_OPAQUE (HASH_CREATE,HASH_DELETE)"
+.L "HASH_OPAQUE (HASH_CREATE, HASH_DELETE)"
 Sets
 .L (HASH_CREATE)
 or clears
@@ -389,13 +389,13 @@ the
 property for the bucket.
 An opaque bucket is not visible in lower scopes.
 .TP
-.L "HASH_SCOPE (HASH_CREATE,HASH_DELETE)"
+.L "HASH_SCOPE (HASH_CREATE, HASH_DELETE)"
 All scopes are searched for the bucket.
 If the bucket is not found for
 .L HASH_CREATE
 then a new bucket is created in the lowest scope.
 .TP
-.L "HASH_VALUE (HASH_CREATE,HASH_LOOKUP)"
+.L "HASH_VALUE (HASH_CREATE, HASH_LOOKUP)"
 For
 .L HASH_CREATE
 the bucket

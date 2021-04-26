@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1198,7 +1199,7 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 	if(*path!='/' && path!=opath)
 	{
 		/*
-		 * The following code because execv(foo,) and execv(./foo,)
+		 * The following code is because execv(foo,) and execv(./foo,)
 		 * may not yield the same results
 		 */
 		char *sp = (char*)sh_malloc(strlen(path)+3);

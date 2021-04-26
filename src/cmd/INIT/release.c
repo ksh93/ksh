@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1990-2011 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -44,9 +45,9 @@ static const char usage[] =
 "	contain date tag lines of the form [\acc\a]]\ayy-mm-dd\a [ \atext\a ]]"
 "	(or \bdate\b(1) default format), where \acc\a is determined by a Y2K"
 "	window year of 69 (we can produce an example coding dated 1991 - this"
-"	can be patented?, how about 1+1=2?.) The date tag lines are followed by"
+"	can be patented?, how about 1+1=2?). The date tag lines are followed by"
 "	\areadme\a text in reverse chronological order (newer entries at the"
-"	top of the file.) If no selection options are specified then all"
+"	top of the file). If no selection options are specified then all"
 "	changes are listed. If no \afile\a operands are specified then the"
 "	standard input is read.]"
 "[+?The entries for each \afile\a are annotated with the file directory name.]"

@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -137,10 +138,13 @@ main()
 	printf("#undef	getwd\n");
 	printf("#define getwd		_ast_getwd\n");
 	printf("extern char*		getwd(char*);\n");
+#endif
+	/* use the libast glob functions rather than the native versions */
 	printf("#undef	glob\n");
 	printf("#define glob		_ast_glob\n");
 	printf("#undef	globfree\n");
 	printf("#define globfree	_ast_globfree\n");
+#if _map_libc
 	printf("#undef	memdup\n");
 	printf("#define memdup		_ast_memdup\n");
 	printf("#undef	memfatal\n");

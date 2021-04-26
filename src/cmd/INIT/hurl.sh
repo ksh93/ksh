@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2011 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -49,7 +50,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 	[+curl -s -L -o - \aurl\a?]
 }
 [a:authorize?The url authorization user name and password, separated
-	by \b:\b (one colon character.)]:[user::password]
+	by \b:\b (one colon character).]:[user::password]
 [s:size?Terminate the data transmission after \abytes\a have been
 	transferred.]:[bytes]
 [v:verbose?Verbose trace.]

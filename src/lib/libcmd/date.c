@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -42,7 +43,7 @@ static const char usage[] =
 "	\ayymmddHHMM.SS\a, or \ammddHHMMccyy.SS\a or \accyymmddHHMM.SS\a."
 "	Conflicting standards and practice allow a leading or trailing"
 "	2 or 4 digit year for the 10 and 12 digit forms; the X/Open trailing"
-"	form is used to disambiguate (\btouch\b(1) uses the leading form.)"
+"	form is used to disambiguate (\btouch\b(1) uses the leading form)."
 "	Avoid the 10 digit form to avoid confusion. The digit fields are:]{"
 "		[+cc?Century - 1, 19-20.]"
 "		[+yy?Year in century, 00-99.]"
@@ -82,7 +83,7 @@ static const char usage[] =
 "	are padded with \b0\b and string fields are padded with space."
 "	\afield\a may also be preceded by \bE\b for alternate era"
 "	representation or \bO\b for alternate digit representation (if"
-"	supported by the current locale.) Finally, an integral \awidth\a"
+"	supported by the current locale). Finally, an integral \awidth\a"
 "	preceding \afield\a truncates the field to \awidth\a characters."
 "	The fields are:]:[format]{"
 "		[+%?% character]"

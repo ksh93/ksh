@@ -40,36 +40,37 @@
 .SH NAME
 sig \- signal interface routines
 .SH SYNOPSIS
+.EX
 .L "#include <ast.h>"
 .L "#include <sig.h>"
 .sp
 .L "int sigunblock(int sig);"
 .L "int sigcritical(int op);"
 .SH DESCRIPTION
-.L sigunblock
+.B sigunblock
 is called to
 unblocks the signal
-.L sig
+.B sig
 from within a handler currently servicing
-.LR sig .
+.BR sig .
 .PP
-.L sigcritical
+.B sigcritical
 controls a critical region for the
-.LR SIGINT ,
-.L SIGQUIT
+.BR SIGINT ,
+.B SIGQUIT
 and
-.L SIGHUP
+.B SIGHUP
 signals.
-.L "op > 0"
+.B "op > 0"
 pushes the region,
-.L "op == 0"
+.B "op == 0"
 pops the region, and
-.L "op < 0"
+.B "op < 0"
 returns non-zero if any signals are being held in the current
 critical region.
 Signal critical regions may be nested.
 The current critical region level is returned,
-.L \-1
+.B \-1
 on error.
 .SH "SEE ALSO"
 signal(2)

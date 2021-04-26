@@ -37,7 +37,7 @@ The options have the following defaults and meanings:
                      beginning of the trap.
     BRACEPAT     on  C-shell type abc{d,e}f style file generation
     CMDLIB_HDR   "<cmdlist.h>"
-                     The header in which yuo can provide a custom list of
+                     The header in which you can provide a custom list of
                      libcmd commands to provide as path-bound built-ins.
     CMDLIB_DIR   "\"/opt/ast/bin\""
                      The default virtual directory prefix for path-bound
@@ -47,12 +47,13 @@ The options have the following defaults and meanings:
                      process substitutions. On by default on OSs with /dev/fd.
     DYNAMIC      on  Dynamic loading of builtins. (Requires dlopen() interface.)
     ECHOPRINT    off Make echo equivalent to print.
-    EDPREDICT    on  Enables predictive editing. As you type a line beginning
+    EDPREDICT    off Enables history pattern search menu. As you begin a line
                      with a #, the following characters are treated as a shell
                      pattern and cause matching lines from the history file to
                      be displayed as a numbered list as you type. You can
                      scroll up and down this list or you can use <ESC>nTAB to
                      make this the current line (n defaults to 1 if omitted).
+                     Experimental. Bugs: https://github.com/ksh93/ksh/issues/233
     ESH          on  Compile with emacs command line editing.  The original
                      emacs line editor code was provided by Mike Veach at IH.
     FILESCAN     on  Experimental option that allows fast reading of files

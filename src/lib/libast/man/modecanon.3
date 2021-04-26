@@ -40,6 +40,7 @@
 .SH NAME
 modecanon \- canonical file mode representation
 .SH SYNOPSIS
+.EX
 #include <modex.h>
 
 int    modei(int \fIexternal\fP);
@@ -70,7 +71,7 @@ takes an internal mode representation
 .I internal
 and returns the equivalent external representation.
 .PP
-The traditional bit access macro (\f5S_\fP prefix changes to \f5X_\fP) are:
+The traditional bit access macro (\f3S_\fP prefix changes to \f3X_\fP) are:
 .L X_IFMT ,
 .L X_IFSOCK ,
 .L X_IFLNK ,
