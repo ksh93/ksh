@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -416,7 +417,7 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 }
 
 #ifdef _hdr_locale
-    /* Trap for LC_ALL, LC_CTYPE, LC_MESSAGES, LC_COLLATE and LANG */
+    /* Trap for the LC_* and LANG variables */
     static void put_lang(Namval_t* np,const char *val,int flags,Namfun_t *fp)
     {
 	Shell_t *shp = sh_getinterp();
@@ -1636,7 +1637,7 @@ static Namval_t *create_stat(Namval_t *np,const char *name,int flag,Namfun_t *fp
 	for(i=0; i < sp->numnodes; i++)
 	{
 		nq = nv_namptr(sp->nodes,i);
-		if((n==0||memcmp(name,nq->nvname,n)==0) && nq->nvname[n]==0)
+		if((n==0||strncmp(name,nq->nvname,n)==0) && nq->nvname[n]==0)
 			goto found;
 	}
 	nq = 0;
@@ -1821,7 +1822,7 @@ static Init_t *nv_init(Shell_t *shp)
 	dtuserdata(shp->track_tree,shp,1);
 	shp->bltin_tree = sh_inittree(shp,(const struct shtable2*)shtab_builtins);
 	dtuserdata(shp->bltin_tree,shp,1);
-	shp->fun_tree = dtopen(&_Nvdisc,Dtoset);
+	shp->fun_base = shp->fun_tree = dtopen(&_Nvdisc,Dtoset);
 	dtuserdata(shp->fun_tree,shp,1);
 	dtview(shp->fun_tree,shp->bltin_tree);
 	nv_mount(DOTSHNOD, "type", shp->typedict=dtopen(&_Nvdisc,Dtoset));
@@ -1986,6 +1987,9 @@ static void env_import_attributes(Shell_t *shp, char *next)
 					size--;
 				}
 			}
+			flag &= ~NV_RDONLY;	/* refuse to import readonly attribute */
+			if(!flag)
+				continue;
 			nv_newattr(np,flag|NV_IMPORT|NV_EXPORT,size);
 		}
 	}

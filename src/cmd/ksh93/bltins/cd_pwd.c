@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -57,7 +58,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	register Shell_t *shp = context->shp;
 	int saverrno=0;
 	int rval,flag=0;
-	static char *oldpwd;
+	char *oldpwd;
 	Namval_t *opwdnod, *pwdnod;
 	if(sh_isoption(SH_RESTRICTED))
 	{
@@ -87,11 +88,11 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	if(oldpwd && oldpwd!=shp->pwd && oldpwd!=e_dot)
-		free(oldpwd);
 	oldpwd = path_pwd(shp,0);
 	opwdnod = sh_scoped(shp,OLDPWDNOD);
 	pwdnod = sh_scoped(shp,PWDNOD);
+	if(oldpwd == e_dot && pwdnod->nvalue.cp)
+		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
 	if(shp->subshell)
 	{
 		opwdnod = sh_assignok(opwdnod,1);
@@ -137,8 +138,6 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 				cdpath->shp = shp;
 			}
 		}
-		if(!oldpwd)
-			oldpwd = path_pwd(shp,1);
 	}
 	if(*dir!='/')
 	{
@@ -221,16 +220,33 @@ success:
 	dir = (char*)stakfreeze(1)+PATH_OFFSET;
 	if(*dp && (*dp!='.'||dp[1]) && strchr(dir,'/'))
 		sfputr(sfstdout,dir,'\n');
-	if(*dir != '/')
-		return(0);
 	nv_putval(opwdnod,oldpwd,NV_RDONLY);
-	flag = strlen(dir);
-	/* delete trailing '/' */
-	while(--flag>0 && dir[flag]=='/')
-		dir[flag] = 0;
-	nv_putval(pwdnod,dir,NV_RDONLY);
-	nv_onattr(pwdnod,NV_NOFREE|NV_EXPORT);
-	shp->pwd = pwdnod->nvalue.cp;
+	if(*dir == '/')
+	{
+		flag = strlen(dir);
+		/* delete trailing '/' */
+		while(--flag>0 && dir[flag]=='/')
+			dir[flag] = 0;
+		nv_putval(pwdnod,dir,NV_RDONLY);
+		nv_onattr(pwdnod,NV_EXPORT);
+		if(shp->pwd)
+			free((void*)shp->pwd);
+		shp->pwd = sh_strdup(pwdnod->nvalue.cp);
+	}
+	else
+	{
+		/* pathcanon() failed to canonicalize the directory, which happens when 'cd' is invoked from a
+		   nonexistent PWD with a relative path as the argument. Reinitialize $PWD as it will be wrong. */
+		if(shp->pwd)
+			free((void*)shp->pwd);
+		shp->pwd = NIL(const char*);
+		path_pwd(shp,0);
+		if(*shp->pwd != '/')
+		{
+			errormsg(SH_DICT,ERROR_system(1),e_direct);
+			UNREACHABLE();
+		}
+	}
 	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	path_newdir(shp,shp->pathlist);
 	path_newdir(shp,shp->cdpathlist);

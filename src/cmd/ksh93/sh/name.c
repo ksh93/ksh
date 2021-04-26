@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1415,7 +1416,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 	{
 		if(xp->root!=root)
 			continue;
-		if(*name==*xp->name && xp->namespace==shp->namespace && (flags&(NV_ARRAY|NV_NOSCOPE))==xp->flags && memcmp(xp->name,name,xp->len)==0 && (name[xp->len]==0 || name[xp->len]=='=' || name[xp->len]=='+'))
+		if(*name==*xp->name && xp->namespace==shp->namespace && (flags&(NV_ARRAY|NV_NOSCOPE))==xp->flags && strncmp(xp->name,name,xp->len)==0 && (name[xp->len]==0 || name[xp->len]=='=' || name[xp->len]=='+'))
 		{
 			sh_stats(STAT_NVHITS);
 			np = xp->np;
@@ -2243,7 +2244,7 @@ char **sh_envgen(void)
 	/* Export variable attributes into env var named by e_envmarker, unless POSIX mode is on */
 	cp = data.attval = strcopy(*data.argnam,e_envmarker);
 	if(!sh_isoption(SH_POSIX))
-		nv_scan(shp->var_tree, attstore,&data,0,(NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER));
+		nv_scan(shp->var_tree, attstore,&data,0,(NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER));
 	*data.attval = 0;
 	if(cp!=data.attval)
 		data.argnam++;

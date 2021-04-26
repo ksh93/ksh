@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -450,6 +451,7 @@ let "$? == 256+9" && err_exit 'exit with status > 256 makes shell kill itself'
 cat >"$tmp/sigtest.sh" <<\EOF
 echo begin
 "$1" -c 'kill -9 "$$"'
+# this extra comment disables an exec optimization
 EOF
 expect=$'^begin\n/.*/sigtest.sh: line 2: [1-9][0-9]*: Killed\n[1-9][0-9]{1,2}$'
 actual=$(LANG=C "$SHELL" -c '"$1" "$2" "$1"; echo "$?"' x "$SHELL" "$tmp/sigtest.sh" 2>&1)
@@ -457,7 +459,8 @@ if	! [[ $actual =~ $expect ]]
 then	[[ $actual == *Killed*Killed* ]] && msg='ksh killed itself' || msg='unexpected output'
 	err_exit "$msg after child process signal (expected match to $(printf %q "$expect"); got $(printf %q "$actual"))"
 fi
-let "${actual##*$'\n'} > 128" || err_exit "child process signal did not cause exit status > 128"
+let "${actual##*$'\n'} > 128" || err_exit "child process signal did not cause exit status > 128" \
+	"(got ${actual##*$'\n'})"
 
 # ======
 # Killing a non-existent job shouldn't cause a segfault. Note that `2> /dev/null` has no effect when

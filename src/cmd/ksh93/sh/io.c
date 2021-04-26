@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -2703,7 +2704,7 @@ Sfio_t *sh_pathopen(const char *cp)
 
 int sh_isdevfd(register const char *fd)
 {
-	if(!fd || memcmp(fd,"/dev/fd/",8) || fd[8]==0)
+	if(!fd || strncmp(fd,"/dev/fd/",8) || fd[8]==0)
 		return(0);
 	for ( fd=&fd[8] ; *fd != '\0' ; fd++ )
 	{

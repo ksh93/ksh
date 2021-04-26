@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1990-2011 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1079,13 +1080,23 @@ push(char* file, Stdio_t* fp, int flags)
 	else if (++state.sp >= &state.streams[elementsof(state.streams)])
 		report(3, "input stream stack overflow", NiL, (unsigned long)0);
 	if (state.sp->fp = fp)
-		state.sp->file = "pipeline";
+	{
+		if(state.sp->file)
+			free(state.sp->file);
+		state.sp->file = strdup("pipeline");
+		if(!state.sp->file)
+			report(3, "out of memory [push]", NiL, (unsigned long)0);
+	}
 	else if (flags & STREAM_PIPE)
 		report(3, "pipe error", file, (unsigned long)0);
 	else if (!file || !strcmp(file, "-") || !strcmp(file, "/dev/stdin"))
 	{
 		flags |= STREAM_KEEP;
-		state.sp->file = "/dev/stdin";
+		if(state.sp->file)
+			free(state.sp->file);
+		state.sp->file = strdup("/dev/stdin");
+		if(!state.sp->file)
+			report(3, "out of memory [push]", NiL, (unsigned long)0);
 		state.sp->fp = stdin;
 	}
 	else
@@ -1095,6 +1106,8 @@ push(char* file, Stdio_t* fp, int flags)
 		{
 			if (!(state.sp->fp = fopen(path, "r")))
 				report(3, "cannot read", path, (unsigned long)0);
+			if(state.sp->file)
+				free(state.sp->file);
 			state.sp->file = duplicate(path);
 			drop(buf);
 		}
@@ -1446,6 +1459,7 @@ require(char* lib, int dontcare)
 	Buf_t*		tmp;
 	struct stat	st;
 
+	int		tofree = 0;
 	static int	dynamic = -1;
 
 	if (dynamic < 0)
@@ -1490,7 +1504,10 @@ require(char* lib, int dontcare)
 			}
 		}
 		if (r != lib)
+		{
+			tofree = 1;
 			r = duplicate(r);
+		}
 		search(state.vars, lib, r);
 		append(tmp, lib + 2);
 		append(tmp, ".req");
@@ -1519,6 +1536,8 @@ require(char* lib, int dontcare)
 				}
 			}
 			fclose(f);
+			if(tofree)
+				free(r);
 			r = use(buf);
 		}
 		else if (dontcare)
@@ -1533,7 +1552,11 @@ require(char* lib, int dontcare)
 			append(tmp, "rm -f x.${!-$$}.[cox]\n");
 			append(tmp, "exit $c\n");
 			if (execute(expand(buf, use(tmp))))
+			{
+				if(tofree)
+					free(r);
 				r = "";
+			}
 		}
 		r = duplicate(r);
 		search(state.vars, lib, r);

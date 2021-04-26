@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -256,6 +257,7 @@ char *path_pwd(Shell_t *shp,int flag)
 	{
 		/* Check if $HOME is a path to the PWD; this ensures $PWD == $HOME
 		   at login, even if $HOME is a path that contains symlinks */
+		char tofree = 0;
 		cp = nv_getval(sh_scoped(shp,HOME));
 		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
@@ -263,17 +265,19 @@ char *path_pwd(Shell_t *shp,int flag)
 			cp = getcwd(NIL(char*),0);
 			if(!cp)
 				return((char*)e_dot);
+			tofree++;
 		}
 		/* Store in PWD variable */
 		if(shp->subshell)
 			pwdnod = sh_assignok(pwdnod,1);
-		nv_offattr(pwdnod,NV_NOFREE);
 		nv_putval(pwdnod,cp,NV_RDONLY);
+		if(tofree)
+			free(cp);
 	}
-	nv_onattr(pwdnod,NV_NOFREE|NV_EXPORT);
+	nv_onattr(pwdnod,NV_EXPORT);
 	/* Set shell PWD */
-	shp->pwd = (char*)(pwdnod->nvalue.cp);
-	return(cp);
+	shp->pwd = sh_strdup(pwdnod->nvalue.cp);
+	return((char*)shp->pwd);
 }
 
 /*
@@ -1195,7 +1199,7 @@ pid_t path_spawn(Shell_t *shp,const char *opath,register char **argv, char **env
 	if(*path!='/' && path!=opath)
 	{
 		/*
-		 * The following code because execv(foo,) and execv(./foo,)
+		 * The following code is because execv(foo,) and execv(./foo,)
 		 * may not yield the same results
 		 */
 		char *sp = (char*)sh_malloc(strlen(path)+3);

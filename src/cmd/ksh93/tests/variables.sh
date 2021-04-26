@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -44,14 +45,6 @@ set abc def
 if	[[ $_ != def ]]
 then	err_exit _ variable not working
 fi
-# ERRNO
-#set abc def
-#rm -f foobar#
-#ERRNO=
-#2> /dev/null < foobar#
-#if	(( ERRNO == 0 ))
-#then	err_exit ERRNO variable not working
-#fi
 # PWD
 if	[[ !  $PWD -ef . ]]
 then	err_exit PWD variable failed, not equivalent to .
@@ -720,7 +713,6 @@ set --
 
 unset r v x
 (
-	ulimit -t unlimited 2>/dev/null  # TODO: this test messes up LINENO past the subshell unless we fork it
 	x=foo
 	for v in EDITOR VISUAL OPTIND CDPATH FPATH PATH ENV RANDOM SECONDS _ LINENO
 	do	nameref r=$v
@@ -1295,6 +1287,19 @@ nsec=$SECONDS
 if	((nsec<osec || nsec>osec+0.1))
 then	err_exit "SECONDS corrupted after leaving virtual subshell (expected $osec, got $nsec)"
 fi
+
+# Corruption of LINENO on leaving virtual subshell
+lineno_subshell=$tmp/lineno_subshell.sh
+cat >| "$lineno_subshell" << 'EOF'
+(
+	unset LINENO
+	:
+)
+echo $LINENO
+EOF
+exp=5
+got=$($SHELL "$lineno_subshell")
+[[ $exp == $got ]] || err_exit "LINENO corrupted after leaving virtual subshell (expected $exp, got $got)"
 
 # ======
 exit $((Errors<125?Errors:125))

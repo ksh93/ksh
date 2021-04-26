@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -2060,6 +2061,7 @@ static char	*fmttoken(Lex_t *lp, register int sym)
 		return((char*)sh_translate(e_endoffile));
 	if(sym==NL)
 		return((char*)sh_translate(e_newline));
+	stakfreeze(0);
 	stakputc(sym);
 	if(sym&SYMREP)
 		stakputc(sym);

@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -22,8 +23,34 @@
 
 bincat=$(whence -p cat)
 
-# test shell builtin commands
+# ======
+# These are regression tests for the getconf builtin.
 builtin getconf
+bingetconf=$(getconf GETCONF)
+bad_result=$(getconf --version 2>&1)
+
+# The -l option should convert all variable names to lowercase.
+# https://github.com/att/ast/issues/1171
+got=$(getconf -l | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
+[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
+	"(got $(printf %q "$got"))"
+
+# The -q option should quote all string values.
+# https://github.com/att/ast/issues/1173
+exp="GETCONF=\"$bingetconf\""
+got=$(getconf -q | grep 'GETCONF=')
+[[ $exp == "$got" ]] || err_exit "'getconf -q' fails to quote string values" \
+	"(expected $exp, got $got)"
+
+# The -n option should only return matching names.
+# https://github.com/ksh93/ksh/issues/279
+exp="GETCONF=$bingetconf"
+got=$(getconf -n GETCONF)
+[[ $exp == "$got" ]] || err_exit "'getconf -n' doesn't match names correctly" \
+	"(expected $exp, got $got)"
+
+# ======
+# Test shell builtin commands
 : ${foo=bar} || err_exit ": failed"
 [[ $foo == bar ]] || err_exit ": side effects failed"
 set -- - foobar
@@ -254,7 +281,7 @@ if	[[ $(trap --version 2> /dev/null;print done) != done ]]
 then	err_exit 'trap builtin terminating after --version'
 fi
 if	[[ $(set --version 2> /dev/null;print done) != done ]]
-then	err_exit 'set builtin terminating after --veresion'
+then	err_exit 'set builtin terminating after --version'
 fi
 unset -f foobar
 function foobar
@@ -671,8 +698,8 @@ then	(
 			mv t1 t2
 			mkdir t1
 		)
-		[[ -f real_t1 ]] || err_exit 'real_t1 not found after parent directory renamed in subshell'
-	)
+		[[ -f real_t1 ]]
+	) || err_exit 'real_t1 not found after parent directory renamed in subshell'
 fi
 cd "$tmp"
 
@@ -750,7 +777,7 @@ unset foo
 integer foo=1
 exp=4
 got=$(foo+=3 command eval 'echo $foo')
-[[ $exp == $got ]] || err_exit "[1]: += assignment for environment variables doesn't work with 'command special_builtin'" \
+[[ $exp == $got ]] || err_exit "Test 1: += assignment for environment variables doesn't work with 'command special_builtin'" \
 	"(expected $exp, got $got)"
 foo+=3 command eval 'test $foo'
 (( foo == 1 )) || err_exit "environment isn't restored after 'command special_builtin'" \
@@ -762,7 +789,7 @@ got=$(foo+=3 eval 'echo $foo')
 unset foo
 exp=barbaz
 got=$(foo=bar; foo+=baz command eval 'echo $foo')
-[[ $exp == $got ]] || err_exit "[2]: += assignment for environment variables doesn't work with 'command special_builtin'" \
+[[ $exp == $got ]] || err_exit "Test 2: += assignment for environment variables doesn't work with 'command special_builtin'" \
 	"(expected $exp, got $got)"
 
 # Attempting to modify a readonly variable with the += operator should fail
@@ -1211,7 +1238,7 @@ got=$(fn)
 # $PWD should be set correctly after cd
 exp="$PWD
 $PWD"
-got=$(echo $PWD; PWD=/tmp cd /home; echo $PWD)
+got=$(echo $PWD; PWD=/tmp cd /dev; echo $PWD)
 [[ $got == "$exp" ]] ||
 	err_exit "PWD is incorrect after cd" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -1281,6 +1308,17 @@ then	exp='  version         cat (*) ????-??-??'
 		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 else	warning 'skipping path-bound builtin tests: builtin /opt/ast/bin/cat not found'
 fi
+
+# ======
+# part of https://github.com/ksh93/ksh/issues/153
+mkdir "$tmp/deleted"
+cd "$tmp/deleted"
+tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/deleted"'
+exp=$PWD
+got=$("$SHELL" -c 'cd /; echo "$OLDPWD"' 2>&1)
+[[ $got == "$exp" ]] || err_exit "OLDPWD not correct after cd'ing from a nonexistent PWD" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+cd "$tmp"
 
 # ======
 exit $((Errors<125?Errors:125))

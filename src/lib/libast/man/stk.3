@@ -6,7 +6,7 @@
 .ta .75i 1.5i 2.25i 3i 3.75i 4.5i 5.25i 6i
 .PP
 .nf
-\f5
+\f3
 #include <stk.h>
 
 Stk_t *stkopen(int \fIflags\fP);
@@ -27,17 +27,17 @@ int stkon(Stk *\fIstack\fP, char* \fIaddr\fP)
 .fi
 .SH DESCRIPTION
 .PP
-\f5stk\fP is a package of routines designed to provide efficient
+\f3stk\fP is a package of routines designed to provide efficient
 stack oriented dynamic storage.
 A stack abstraction consists of an ordered list of contiguous
 memory regions, called stack frames, that can hold objects of
 arbitrary size.
-A stack is represented by the type \f5Stk_t\fP
-defined in header \f5<stk.h>\fP.
-The type \f5Stk_t\fP is compatible with the type \f5Sfio_t\fP
-defined by the \f5sfio\fP(3) library.
+A stack is represented by the type \f3Stk_t\fP
+defined in header \f3<stk.h>\fP.
+The type \f3Stk_t\fP is compatible with the type \f3Sfio_t\fP
+defined by the \f3sfio\fP(3) library.
 At any instant there is one active stack which can be referenced
-by the constant \f5stkstd\fP.
+by the constant \f3stkstd\fP.
 Variable size objects can be
 added to the active stack
 and programs can reference these objects directly with pointers.
@@ -54,36 +54,36 @@ relative offsets ranging from zero to the current offset of the object.
 There is a preset initial active stack.
 To use an additional stack, it is necessary to create it and to
 install it as the active stack.
-A stack is created with the \f5stkopen\fP() function.
-A \fIflags\fP argument of \f5STK_SMALL\fP indicates that unused
+A stack is created with the \f3stkopen\fP() function.
+A \fIflags\fP argument of \f3STK_SMALL\fP indicates that unused
 space on the stack should be freed whenever this stack ceases
 to be the active stack.
 If successful,
-\f5stkopen\fP() returns a pointer to a stack whose reference
+\f3stkopen\fP() returns a pointer to a stack whose reference
 count is 1.
-Otherwise, \f5stkopen\fP() returns a null pointer.
-The \f5stklink\fP() function increases the reference count for the
+Otherwise, \f3stkopen\fP() returns a null pointer.
+The \f3stklink\fP() function increases the reference count for the
 given \fIstack\fP and returns the increased count.
-The \f5stkinstall\fP() function
+The \f3stkinstall\fP() function
 makes the specified \fIstack\fP the active stack and returns a pointer
 to the previous active stack.
 When the \fIoverflow\fP argument is not null,
 it specifies a function that will
-be called whenever \f5malloc\fP(3) fails while trying to grow the
+be called whenever \f3malloc\fP(3) fails while trying to grow the
 stack.
 The \fIoverflow\fP function will be called with the size that was passed
-to \f5malloc\fP(3).
-The \fIoverflow\fP function can call \f5exit\fP(3), call \f5longjmp\fP(3)
+to \f3malloc\fP(3).
+The \fIoverflow\fP function can call \f3exit\fP(3), call \f3longjmp\fP(3)
 or return.
-If the \f5overflow\fP function returns,
+If the \f3overflow\fP function returns,
 it must return a pointer to a memory region of the given size.
 The default action is to write an error to standard error and to
-call \f5exit\fP(2) with a non-zero exit value.
+call \f3exit\fP(2) with a non-zero exit value.
 When \fIstack\fP is a null pointer,
 the active stack is not changed
 but the \fIoverflow\fP function for the active stack can be changed
 and a pointer to the active stack is returned.
-The \f5stkclose\fP() function decrements the reference count and
+The \f3stkclose\fP() function decrements the reference count and
 frees the memory associated with
 the specified stack
 when the reference count is zero.
@@ -91,20 +91,20 @@ The effect of subsequent references to objects
 on the stack are undefined.
 .PP
 The
-\f5stkalloc\fP() function returns an aligned pointer to space on the
+\f3stkalloc\fP() function returns an aligned pointer to space on the
 active stack that can be used to hold any object of the given \fIsize\fP.
-\f5stkalloc\fP() is similar to \f5malloc\fP(3) except that individual
-items returned by \f5stkalloc\fP() can not be freed.
-\f5stkalloc\fP() causes the offset of the current object to be set to
+\f3stkalloc\fP() is similar to \f3malloc\fP(3) except that individual
+items returned by \f3stkalloc\fP() can not be freed.
+\f3stkalloc\fP() causes the offset of the current object to be set to
 zero.
 .PP
 The
-\f5stkcopy\fP() function copies the given string onto the stack
+\f3stkcopy\fP() function copies the given string onto the stack
 and returns a pointer to the \fIstring\fP on the stack.
-\f5stkcopy\fP() causes the offset of the current object to be set to
+\f3stkcopy\fP() causes the offset of the current object to be set to
 zero.
 .PP
-The \f5stkset\fP() function finds the frame containing the given
+The \f3stkset\fP() function finds the frame containing the given
 \fIaddress\fP, frees all frames that were created after the one containing
 the given \fIaddress\fP, and sets the current object to the given
 \fIaddress\fP.
@@ -114,45 +114,45 @@ If \fIaddress\fP is null, the stack is reset to the beginning.
 If it is non-null, but is not the address of an object on the
 stack, the program aborts and dumps core.
 .PP
-The \f5sfio\fP(3) output functions can be used to build
+The \f3sfio\fP(3) output functions can be used to build
 current object incrementally.
 An object that is built incrementally on the stack will
 always occupy contiguous memory within a stack frame but
-until \f5stkfreeze\fP() is called,
+until \f3stkfreeze\fP() is called,
 the location in memory for the object can change.
 There is a current offset associated with the current object that
 determines where subsequent operations apply.
 Initially, this offset is zero, and the offset changes as a result
 of the operations you specify.
-The \f5stkseek\fP() function is used set the offset for the
+The \f3stkseek\fP() function is used set the offset for the
 current object.
-The \fIoffset\fP argument to \f5stkseek\fP() specifies the new
+The \fIoffset\fP argument to \f3stkseek\fP() specifies the new
 offset for the current object.
 The frame will be extended or moved
-if \f5offset\fP causes the new current offset to extend beyond the
+if \f3offset\fP causes the new current offset to extend beyond the
 current frame.
-\f5stkseek\fP() returns a pointer to the beginning of the current object.
-The \f5stktell\fP() function gives the offset of the current object.
+\f3stkseek\fP() returns a pointer to the beginning of the current object.
+The \f3stktell\fP() function gives the offset of the current object.
 .PP
-The \f5stkptr\fP() function converts the given \f5offset\fP
+The \f3stkptr\fP() function converts the given \f3offset\fP
 for the current object into a memory address on the stack.
 This address is only valid until another stack operation is given.
 The result is not defined if \fIoffset\fP exceeds the size of the current
 object.
-The \f5stkfreeze\fP()
+The \f3stkfreeze\fP()
 function terminates the current object on the
 stack and returns a pointer to the beginning of this object.
 If \fIextra\fP is non-zero, \fIextra\fP bytes are added to the stack
 before the current object is terminated.  The first added byte will
 contain zero and the contents of the remaining bytes are undefined.
 .PP
-The \f5stkon\fP()
+The \f3stkon\fP()
 function returns non-zero if the address given by \fIaddr\fP is
-on the stack \fIstack\fP and \f50\fP otherwise.
+on the stack \fIstack\fP and \f30\fP otherwise.
 .PP
 .SH HISTORY
 The
-\f5stk\fP
+\f3stk\fP
 interface was derived from similar routines in the KornShell code
 that is used for building parse trees and carrying out expansions.
 It provides an efficient mechanism for grouping dynamically allocated
@@ -160,7 +160,7 @@ objects so that they can be freed all at once rather than individually.
 .SH AUTHOR
  David Korn
 .SH SEE ALSO
-\f5exit(2)\fP
-\f5longjmp(3)\fP
-\f5malloc(3)\fP
-\f5sfio(3)\fP
+\f3exit(2)\fP
+\f3longjmp(3)\fP
+\f3malloc(3)\fP
+\f3sfio(3)\fP

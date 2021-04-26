@@ -82,7 +82,7 @@ extern long int	random();
    state information will give 7 longs worth of state information, which will
    allow a degree seven polynomial.  (Note: The zeroeth word of state
    information also has some other information stored in it; see setstate
-   for details).  The random number generation technique is a linear feedback
+   for details.)  The random number generation technique is a linear feedback
    shift register approach, employing trinomials (since there are fewer terms
    to sum up that way).  In this approach, the least significant bit of all
    the numbers in the state table will act as a linear feedback shift register,
@@ -170,7 +170,7 @@ static long int randtbl[DEG_3 + 1] =
    pointer.  These two pointers are always rand_sep places aparts, as they
    cycle through the state information.  (Yes, this does mean we could get
    away with just one pointer, but the code for random is more efficient
-   this way).  The pointers are left positioned as they would be from the call:
+   this way.)  The pointers are left positioned as they would be from the call:
 	initstate(1, randtbl, 128);
    (The position of the rear pointer, rptr, is really 0 (as explained above
    in the initialization of randtbl) because the state table pointer is set

@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -224,7 +225,10 @@ static struct ionod *r_redirect(Shell_t* shp)
 		else
 			iopold->ionxt = iop;
 		iop->iofile = l;
-		iop->ioname = r_string(shp->stk);
+		if((l & IOPROCSUB) && !(l & IOLSEEK))
+			iop->ioname = (char*)r_tree(shp);  /* process substitution as file name to redirection */
+		else
+			iop->ioname = r_string(shp->stk);  /* file name, descriptor, etc. */
 		if(iop->iodelim = r_string(shp->stk))
 		{
 			iop->iosize = sfgetl(infile);

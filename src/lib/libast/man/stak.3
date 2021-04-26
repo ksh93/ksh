@@ -6,7 +6,7 @@
 .ta .75i 1.5i 2.25i 3i 3.75i 4.5i 5.25i 6i
 .PP
 .nf
-\f5
+\f3
 #include <stak.h>
 
 Stak_t *stakcreate(int \fIflags\fP);
@@ -29,13 +29,13 @@ char *stakfreeze(unsigned \fIextra\fP);
 .fi
 .SH DESCRIPTION
 .PP
-\f5stak\fP is a package of routines designed to provide efficient
+\f3stak\fP is a package of routines designed to provide efficient
 stack oriented dynamic storage.
 A stack abstraction consists of an ordered list of contiguous
 memory regions, called stack frames, that can hold objects of
 arbitrary size.
-A stack is represented by the type \f5Stak_t\fP
-defined in header \f5<stak.h>\fP.
+A stack is represented by the type \f3Stak_t\fP
+defined in header \f3<stak.h>\fP.
 At any instant there is one active stack.
 Variable size objects can be
 added to the active stack
@@ -53,36 +53,36 @@ relative offsets ranging from zero to the current offset of the object.
 There is a preset initial active stack.
 To use an additional stack, it is necessary to create it and to
 install it as the active stack.
-A stack is created with the \f5stakcreate\fP() function.
-A \fIflags\fP argument of \f5STAK_SMALL\fP indicates that unused
+A stack is created with the \f3stakcreate\fP() function.
+A \fIflags\fP argument of \f3STAK_SMALL\fP indicates that unused
 space on the stack should be freed whenever this stack ceases
 to be the active stack.
 If successful,
-\f5stakcreate\fP() returns a pointer to a stack whose reference
+\f3stakcreate\fP() returns a pointer to a stack whose reference
 count is 1.
-Otherwise, \f5stakcreate\fP() returns a null pointer.
-The \f5staklink\fP() function increases the reference count for the
+Otherwise, \f3stakcreate\fP() returns a null pointer.
+The \f3staklink\fP() function increases the reference count for the
 given \fIstack\fP and returns the increased count.
-The \f5stakinstall\fP() function
+The \f3stakinstall\fP() function
 makes the specified \fIstack\fP the active stack and returns a pointer
 to the previous active stack.
 When the \fIoverflow\fP argument is not null,
 it specifies a function that will
-be called whenever \f5malloc\fP(3) fails while trying to grow the
+be called whenever \f3malloc\fP(3) fails while trying to grow the
 stack.
 The \fIoverflow\fP function will be called with the size that was passed
-to \f5malloc\fP(3).
-The \fIoverflow\fP function can call \f5exit\fP(3), call \f5longjmp\fP(3)
+to \f3malloc\fP(3).
+The \fIoverflow\fP function can call \f3exit\fP(3), call \f3longjmp\fP(3)
 or return.
-If the \f5overflow\fP function returns,
+If the \f3overflow\fP function returns,
 it must return a pointer to a memory region of the given size.
 The default action is to write an error to standard error and to
-call \f5exit\fP(2) with a non-zero exit value.
+call \f3exit\fP(2) with a non-zero exit value.
 When \fIstack\fP is a null pointer,
 the active stack is not changed
 but the \fIoverflow\fP function for the active stack can be changed
 and a pointer to the active stack is returned.
-The \f5stakdelete\fP() function decrements the reference count and
+The \f3stakdelete\fP() function decrements the reference count and
 frees the memory associated with
 the specified stack
 when the reference count is zero.
@@ -90,20 +90,20 @@ The effect of subsequent references to objects
 on the stack are undefined.
 .PP
 The
-\f5stakalloc\fP() function returns an aligned pointer to space on the
+\f3stakalloc\fP() function returns an aligned pointer to space on the
 active stack that can be used to hold any object of the given \fIsize\fP.
-\f5stakalloc\fP() is similar to \f5malloc\fP(3) except that individual
-items returned by \f5stakalloc\fP() can not be freed.
-\f5stakalloc\fP() causes the offset of the current object to be set to
+\f3stakalloc\fP() is similar to \f3malloc\fP(3) except that individual
+items returned by \f3stakalloc\fP() can not be freed.
+\f3stakalloc\fP() causes the offset of the current object to be set to
 zero.
 .PP
 The
-\f5stakcopy\fP() function copies the given string onto the stack
+\f3stakcopy\fP() function copies the given string onto the stack
 and returns a pointer to the \fIstring\fP on the stack.
-\f5stakcopy\fP() causes the offset of the current object to be set to
+\f3stakcopy\fP() causes the offset of the current object to be set to
 zero.
 .PP
-The \f5stakset\fP() function finds the frame containing the given
+The \f3stakset\fP() function finds the frame containing the given
 \fIaddress\fP, frees all frames that were created after the one containing
 the given \fIaddress\fP, and sets the current object to the given
 \fIaddress\fP.
@@ -116,39 +116,39 @@ stack, the program aborts and dumps core.
 The remaining functions are used to build the current object incrementally.
 An object that is built incrementally on the stack will
 always occupy contiguous memory within a stack frame but
-until \f5stakfreeze\fP() is called,
+until \f3stakfreeze\fP() is called,
 the location in memory for the object can change.
 There is a current offset associated with the current object that
 determines where subsequent operations apply.
 Initially, this offset is zero, and the offset changes as a result
 of the operations you specify.
-The \f5stakseek\fP() function is used set the offset for the
+The \f3stakseek\fP() function is used set the offset for the
 current object.
-The \fIoffset\fP argument to \f5stakseek\fP() specifies the new
+The \fIoffset\fP argument to \f3stakseek\fP() specifies the new
 offset for the current object.
 The frame will be extended or moved
-if \f5offset\fP causes the new current offset to extend beyond the
+if \f3offset\fP causes the new current offset to extend beyond the
 current frame.
-\f5stakseek\fP() returns a pointer to the beginning of the current object.
-The \f5staktell\fP() function gives the offset of the current object.
+\f3stakseek\fP() returns a pointer to the beginning of the current object.
+The \f3staktell\fP() function gives the offset of the current object.
 .PP
-The \f5stakputc\fP() function adds a given character to the current object
+The \f3stakputc\fP() function adds a given character to the current object
 on the stack.
 The current offset is advanced by 1.
-The \f5stakputs\fP() function appends the given \fIstring\fP onto the current
+The \f3stakputs\fP() function appends the given \fIstring\fP onto the current
 object in the stack and returns the length of the string.
 The current offset is advanced by the length of the string.
-The \f5stakwrite\fP() function appends the given \fIsize\fP byte memory
+The \f3stakwrite\fP() function appends the given \fIsize\fP byte memory
 region starting at \fIaddress\fP onto the current
 object in the stack and advances the current offset by \fIsize\fP.
 The current offset is returned.
 .PP
-The \f5stakptr\fP() function converts the given \f5offset\fP
+The \f3stakptr\fP() function converts the given \f3offset\fP
 for the current object into a memory address on the stack.
 This address is only valid until another stack operation is given.
 The result is not defined if \fIoffset\fP exceeds the size of the current
 object.
-The \f5stakfreeze\fP()
+The \f3stakfreeze\fP()
 function terminates the current object on the
 stack and returns a pointer to the beginning of this object.
 If \fIextra\fP is non-zero, \fIextra\fP bytes are added to the stack
@@ -157,7 +157,7 @@ contain zero and the contents of the remaining bytes are undefined.
 .PP
 .SH HISTORY
 The
-\f5stak\fP
+\f3stak\fP
 interface was derived from similar routines in the KornShell code
 that is used for building parse trees and carrying out expansions.
 It provides an efficient mechanism for grouping dynamically allocated
@@ -165,6 +165,6 @@ objects so that they can be freed all at once rather than individually.
 .SH AUTHOR
  David Korn
 .SH SEE ALSO
-\f5exit(2)\fP
-\f5longjmp(3)\fP
-\f5malloc(3)\fP
+\f3exit(2)\fP
+\f3longjmp(3)\fP
+\f3malloc(3)\fP

@@ -129,6 +129,9 @@ For more details, see the NEWS file and for complete details, see the git log.
 	To invoke a possible external command at that path, you can still use
 	a non-canonical path, e.g.: /opt//ast/bin/cat or /opt/ast/./bin/cat
 
+24.	The readonly attribute of ksh variables is no longer imported from
+	or exported to other ksh shell instances through the environment.
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

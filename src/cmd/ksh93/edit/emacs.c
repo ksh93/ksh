@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1010,8 +1011,14 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case '=':	/* escape = - list all matching file names */
 			ep->mark = cur;
 			if(cur<1)
+			{
 				beep();
-			else if(ed_expand(ep->ed,(char*)out,&cur,&eol,i,count) < 0)
+				return(-1);
+			}
+			ch = i;
+			if(i=='\\' && out[cur-1]=='/')
+				i = '=';
+			if(ed_expand(ep->ed,(char*)out,&cur,&eol,ch,count) < 0)
 			{
 				if(ep->ed->e_tabcount==1)
 				{
@@ -1024,7 +1031,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			else if(i=='=' || (i=='\\' && out[cur-1]=='/'))
 			{
 				draw(ep,REFRESH);
-				if(count>0)
+				if(count>0 || i=='\\')
 					ep->ed->e_tabcount=0;
 				else
 				{

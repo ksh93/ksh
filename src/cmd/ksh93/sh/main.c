@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -186,7 +187,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 #if SHOPT_REMOTE
 		/*
 		 * Building ksh with SHOPT_REMOTE=1 causes ksh to set --rc if stdin is
-		 * a socket (presumably part of a remote shell invocation.)
+		 * a socket (presumably part of a remote shell invocation).
 		 */
 		if(!sh_isoption(SH_RC) && !fstat(0, &statb) && REMOTE(statb.st_mode))
 			sh_onoption(SH_RC);
@@ -424,7 +425,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 		sfsync(shp->outpool);
 		shp->st.execbrk = shp->st.breakcnt = 0;
 		/* check for return from profile or env file */
-		if(sh_isstate(SH_PROFILE) && (jmpval==SH_JMPFUN || jmpval==SH_JMPEXIT || jmpval==SH_JMPERREXIT))
+		if(sh_isstate(SH_PROFILE) && (jmpval==SH_JMPFUN || jmpval==SH_JMPEXIT))
 		{
 			sh_setstate(states);
 			goto done;
@@ -575,7 +576,7 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 		{
 			execflags = sh_state(SH_ERREXIT)|sh_state(SH_INTERACTIVE);
 			/* The last command may not have to fork */
-			if(!sh_isstate(SH_PROFILE) && sh_isoption(SH_CFLAG) &&
+			if(!sh_isstate(SH_PROFILE) && !sh_isstate(SH_INTERACTIVE) &&
 				(fno<0 || !(shp->fdstatus[fno]&(IOTTY|IONOSEEK)))
 				&& !sfreserve(iop,0,0))
 			{
@@ -603,7 +604,7 @@ done:
 	}
 	if(jmpval == SH_JMPSCRIPT)
 		siglongjmp(*shp->jmplist,jmpval);
-	else if(jmpval == SH_JMPEXIT || jmpval == SH_JMPERREXIT)
+	else if(jmpval == SH_JMPEXIT)
 		sh_done(shp,0);
 	if(fno>0)
 		sh_close(fno);

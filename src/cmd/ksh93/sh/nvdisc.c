@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -752,7 +753,7 @@ Namfun_t *nv_disc(register Namval_t *np, register Namfun_t* fp, int mode)
 			if(lp && !lp->disc)
 				fp->next = lp;
 			else
-				fp->next = 0;
+				fp->next = *lpp;
 		}
 		else
 		{

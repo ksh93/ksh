@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1251,14 +1252,14 @@ print(Sfio_t* sp, register Lookup_t* look, const char* name, const char* path, i
 		if (p->flags & CONF_LIMIT_DEF)
 		{
 			if (p->limit.string)
-				sfprintf(sp, "L[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->limit.string, "\"", "\"", strlen(p->limit.string), FMT_SHELL) : p->limit.string);
+				sfprintf(sp, "L[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->limit.string, "\"", "\"", strlen(p->limit.string), FMT_SHELL|FMT_ALWAYS) : p->limit.string);
 			else
 				sfprintf(sp, "L[%I*d] ", sizeof(p->limit.number), p->limit.number);
 		}
 		if (p->flags & CONF_MINMAX_DEF)
 		{
 			if (p->minmax.string)
-				sfprintf(sp, "M[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->minmax.string, "\"", "\"", strlen(p->minmax.string), FMT_SHELL) : p->minmax.string);
+				sfprintf(sp, "M[%s] ", (listflags & ASTCONF_quote) ? fmtquote(p->minmax.string, "\"", "\"", strlen(p->minmax.string), FMT_SHELL|FMT_ALWAYS) : p->minmax.string);
 			else
 				sfprintf(sp, "M[%I*d] ", sizeof(p->minmax.number), p->minmax.number);
 		}
@@ -1267,7 +1268,7 @@ print(Sfio_t* sp, register Lookup_t* look, const char* name, const char* path, i
 		else if (defined)
 		{
 			if (s)
-				sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL) : s);
+				sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 			else if (v != -1)
 				sfprintf(sp, "%I*d", sizeof(v), v);
 			else
@@ -1297,7 +1298,7 @@ print(Sfio_t* sp, register Lookup_t* look, const char* name, const char* path, i
 			else if (defined)
 			{
 				if (s)
-					sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL) : s);
+					sfprintf(sp, "%s", (listflags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 				else if (v != -1)
 					sfprintf(sp, "%I*d", sizeof(v), v);
 				else
@@ -1636,6 +1637,25 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 					for (*s++ = 0; isspace(*s); s++);
 				if (!lookup(&look, f, flags))
 				{
+					if(pattern)
+					{
+
+						if (flags & ASTCONF_matchcall)
+						{
+							if (regexec(&re, prefix[look.conf->call + CONF_call].name, 0, NiL, 0))
+								continue;
+						}
+						else if (flags & ASTCONF_matchname)
+						{
+							if (regexec(&re, f, 0, NiL, 0))
+								continue;
+						}
+						else if (flags & ASTCONF_matchstandard)
+						{
+							if (regexec(&re, prefix[look.standard].name, 0, NiL, 0))
+								continue;
+						}
+					}
 					if (flags & ASTCONF_table)
 					{
 						if (look.standard < 0)
@@ -1645,9 +1665,9 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 						sfprintf(sp, "%*s %*s %d %2s %4d %5s %s\n", sizeof(conf[0].name), f, sizeof(prefix[look.standard].name), prefix[look.standard].name, look.section, call, 0, "N", s);
 					}
 					else if (flags & ASTCONF_parse)
-						sfprintf(sp, "%s %s - %s\n", state.id, f, s); 
+						sfprintf(sp, "%s %s - %s\n", state.id, (flags & ASTCONF_lower) ? fmtlower(f) : f, fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS));
 					else
-						sfprintf(sp, "%s=%s\n", f, (flags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL) : s);
+						sfprintf(sp, "%s=%s\n", (flags & ASTCONF_lower) ? fmtlower(f) : f, (flags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 				}
 			}
 			sfclose(pp);
@@ -1693,9 +1713,9 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 				sfprintf(sp, "%*s %*s %d %2s %4d %5s %s\n", sizeof(conf[0].name), fp->name, sizeof(prefix[fp->standard].name), prefix[fp->standard].name, 1, call, 0, flg, s);
 			}
 			else if (flags & ASTCONF_parse)
-				sfprintf(sp, "%s %s - %s\n", state.id, (flags & ASTCONF_lower) ? fmtlower(fp->name) : fp->name, fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL)); 
+				sfprintf(sp, "%s %s - %s\n", state.id, (flags & ASTCONF_lower) ? fmtlower(fp->name) : fp->name, fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS));
 			else
-				sfprintf(sp, "%s=%s\n", (flags & ASTCONF_lower) ? fmtlower(fp->name) : fp->name, (flags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL) : s);
+				sfprintf(sp, "%s=%s\n", (flags & ASTCONF_lower) ? fmtlower(fp->name) : fp->name, (flags & ASTCONF_quote) ? fmtquote(s, "\"", "\"", strlen(s), FMT_SHELL|FMT_ALWAYS) : s);
 		}
 	}
 	if (pattern)

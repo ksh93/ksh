@@ -2,6 +2,8 @@
 # Compile-time SHOPT_* options for ksh93.
 # 1 to enable, 0 to disable, empty value to probe.
 #
+# For a more complete description of the options, see src/cmd/ksh93/README.
+#
 
 SHOPT 2DMATCH=1				# two dimensional ${.sh.match} for ${var//pat/str}
 SHOPT ACCT=				# accounting
@@ -16,7 +18,7 @@ SHOPT CRNL=				# accept MS Windows newlines (<cr><nl>) for <nl>
 SHOPT DEVFD=				# use /dev/fd instead of FIFOs for process substitutions
 SHOPT DYNAMIC=1				# dynamic loading for builtins
 SHOPT ECHOPRINT=			# make echo equivalent to print
-SHOPT EDPREDICT=1			# predictive editing
+SHOPT EDPREDICT=0			# History pattern search menu (type #<pattern>, then ESC <number> TAB). Experimental.
 SHOPT ESH=1				# emacs/gmacs edit mode
 SHOPT FILESCAN=1			# fast file scan
 SHOPT FIXEDARRAY=1			# fixed dimension indexed array
@@ -33,7 +35,6 @@ SHOPT P_SUID=				# real uid's that require -p for set[ug]id (do not set to 0 to 
 SHOPT RAWONLY=1				# make viraw the only vi mode
 SHOPT REGRESS=				# enable __regress__ builtin and instrumented intercepts for testing
 SHOPT REMOTE=				# enable --rc if running as a remote shell
-SHOPT SEVENBIT=				# strip the eighth bit from characters
 SHOPT SPAWN=				# use spawnveg for fork/exec
 SHOPT STATS=1				# add .sh.stats variable
 SHOPT SUID_EXEC=1			# allow (safe) suid/sgid shell scripts

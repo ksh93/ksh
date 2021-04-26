@@ -14,60 +14,90 @@ ksh language more compatible with other shells by following the POSIX
 standard more closely. See the manual page for details. It is enabled by
 default if ksh is invoked as sh, otherwise it is disabled by default.
 
-The Makefile file contains several compilation options that can be set
+The SHOPT.sh file contains several compilation options that can be set
 before compiling ksh.  Options are of the form SHOPT_option and become
 #define inside the code.  These options are set to their recommended
 value and some of these may disappear as options in future releases.
-A value of 0, or no value represents off, 1 represents on.
-Note that == is needed, not =, because these are nmake state variables
-and changing their value will cause all modules that could be affected
-by this change to be recompiled.
+A value of 0 represents off, 1 represents on, no value means probe. For
+options where no feature probe is available, probe is the same as off.
+
 The options have the following defaults and meanings:
+    2DMATCH      on  Two-dimensional ${.sh.match} for ${var//pat/str}.
     ACCT         off Shell accounting.
     ACCTFILE     off Enable per user accounting info.
     AUDIT	 off For auditing specific users
     AUDITFILE	 "/etc/ksh_audit"
-    APPEND       on  Allows var+=val string and array append.
-    BASH         off Bash compatibility mode.  It is not fully implemented
-                     and is experimental.
+    BGX          on  Enables background job extensions. Noted by "J" in the
+                     version string when enabled. (1) JOBMAX=n limits the
+                     number of concurrent background jobs to n; the (n+1)th
+                     background job will block until a running background job
+                     completes. (2) SIGCHLD traps are queued so that each
+                     completing background job gets its own trap; $! is set to
+                     the job pid and $? is set to the job exit status at the
+                     beginning of the trap.
     BRACEPAT     on  C-shell type abc{d,e}f style file generation
-    CMDLIB_BLTIN off Makes all commands in libcmd.a builtins.  The
-                     SH_CMDLIB_DIR nmake state variable can be used to
-		     specify a directory. 
-    CMDLIB_DIR   off Sets CMDLIB_BLTIN=1 and provides a default value
-                     of "/opt/ast/bin" for SH_CMDLIB_DIR.
-    COMPOUND_ARRAY
-                 on  Allows all components of compound variables except the
-                     first to be any string by enclosing in [...].  It also
-                     allows components other than the last to be arrays.
-                     This is experimental and only partially complete.
+    CMDLIB_HDR   "<cmdlist.h>"
+                     The header in which you can provide a custom list of
+                     libcmd commands to provide as path-bound built-ins.
+    CMDLIB_DIR   "\"/opt/ast/bin\""
+                     The default virtual directory prefix for path-bound
+                     built-ins. The value must include double quotes.
     CRNL         off <cr><nl> treated as <nl> in shell grammar.
+    DEVFD            Use the more secure /dev/fd mechanism instead of FIFOs for
+                     process substitutions. On by default on OSs with /dev/fd.
     DYNAMIC      on  Dynamic loading of builtins. (Requires dlopen() interface.)
     ECHOPRINT    off Make echo equivalent to print.
+    EDPREDICT    off Enables history pattern search menu. As you begin a line
+                     with a #, the following characters are treated as a shell
+                     pattern and cause matching lines from the history file to
+                     be displayed as a numbered list as you type. You can
+                     scroll up and down this list or you can use <ESC>nTAB to
+                     make this the current line (n defaults to 1 if omitted).
+                     Experimental. Bugs: https://github.com/ksh93/ksh/issues/233
     ESH          on  Compile with emacs command line editing.  The original
                      emacs line editor code was provided by Mike Veach at IH.
     FILESCAN     on  Experimental option that allows fast reading of files
                      using while < file;do ...; done and allowing fields in
                      each line to be accessed as positional parameters.
-    KIA          off Allow generation of shell cross reference database with -I.
+    FIXEDARRAY   on  When using typeset, a name in the format NAME[N]
+                     creates a fixed-size array and any attempt to access a
+                     subscript N or higher is an error. Multidimensional
+                     fixed-size arrays NAME[N1][N2]... are also supported.
+    GLOBCASEDET      Adds the 'globcasedetect' shell option. When this shell
+                     option is turned on, file name generation (globbing)
+                     and file name listing and completion automatically become
+                     case-insensitive on file systems where the difference
+                     between upper- and lowercase is ignored for file names.
+                     This compile-time option is enabled by default on operating
+                     systems that can support case-insensitive file systems.
+    HISTEXPAND   on  Enable !-style history expansion similar to csh(1).
+    KIA          off Allow generation of shell cross reference database with -R.
     MULTIBYTE    on  Multibyte character handling.  Requires mblen() and
                      mbctowc().
     NAMESPACE    on  Allows namespaces.  This is experimental, incomplete
                      and undocumented.
+    NOECHOE      off Disable the '-e' option to the 'echo' command,
+                     unless SHOPT_ECHOPRINT is enabled.
     OLDTERMIO    off Use either termios or termio at runtime.
-    OO           on  Experimental object oriented extension.  This option
-                     should disappear soon.
     OPTIMIZE     on  Optimize loop invariants for with for and while loops.
+    PFSH         off Compile with support for profile shell. (Solaris; obsolete)
     P_SUID       off If set, all real uids, greater than or equal to this
                      value will require the -p flag to run suid/sgid scripts.
-    PFSH         off Compile with support for profile shell.
-    RAWONLY      off Turn on if the vi line mode doesn't work right unless
+    RAWONLY      on  Turn on if the vi line mode doesn't work right unless
                      you do a set -o viraw.
-    SEVENBIT     off Strip the eighth bit from characters.
-    SPAWN        off Use spawn as combined fork/exec.  May improve speed on
-                     some systems.
+    REGRESS      off Enable the __regress__ built-in command and instrumented
+                     intercepts for testing.
+    REMOTE       off Set --rc (read profile scripts) even if ksh was invoked
+                     with standard input on a socket, i.e. as a remote shell.
+    SPAWN        on  Use posix_spawn(3) as combined fork/exec if job control
+                     is not active. Improves speed.
     STATS	 on  Add .sh.stats compound variable.
     SUID_EXEC    on  Execute /etc/suid_exec for setuid, setgid script.
+    SYSRC            Source /etc/ksh.kshrc on initializing an interactive
+                     shell. This is on by default if /etc/ksh.kshrc or
+                     /etc/bash.bashrc exists at compile time.
+    TEST_L           Add 'test -l' as an alias for 'test -L'. This is on by
+                     default if the OS's external 'test' command supports it.
     TIMEOUT      off Set this to the number of seconds for timing out and
                      exiting the shell when you don't enter a command.  If
                      non-zero, TMOUT can not be set larger than this value.
@@ -75,30 +105,48 @@ The options have the following defaults and meanings:
     VSH          on  Compile with vi command line editing.  The original vi
                      line editor code was provided by Pat Sullivan at CB.
 
-The following compile options are set automatically by the feature testing:
-    DEVFD   Set when /dev/fd is a directory that names open files.
-    SHELLMAGIC
-            Set on systems that recognize script beginning with #! specially.
+To build ksh (as well as libcmd and libast libraries on which ksh depends),
+cd to the top directory and run:
 
+	bin/package make
 
-In most instances, you will generate ksh from a higher level directory
-which also generates libcmd and libast libraries on which ksh depends.
-However, it is possible to generate ksh, with by running make -f ksh.mk
-in this directory.  The ksh.mk file was generated from the nmake Makefile.
-If you do not have make or nmake, but do have a Version 7 UNIX compatible
-shell, then you can run the script mamexec < Mamfile to build ksh.
-If you have nmake, version 2.3 or later, you can use it without the -f ksh.mk.
-In either case, ksh relies on libraries libast and libcmd which must be
-built first.  The binary for ksh becomes the file named ./ksh which can
-be copied to where ever you install it.
+The compiled binaries are stored in the arch directory, in a subdirectory
+that corresponds to your architecture. The command 'bin/package host type'
+outputs the name of this subdirectory.
 
-If you use old make or the Mamfile, and you system has dynamic shared
-libraries, then you should define the variables mam_cc_static and
-mam_cc_dynanamic as the compiler options that request static linking
-and dynamic linking respectively.  This will decrease the number of
-shared libraries that ksh need and cut startup time substantially.
+If you have trouble or want to tune the binaries, you may pass additional
+compiler and linker flags. It is usually best to export these as environment
+variables before running bin/package as they could change the name of the
+build subdirectory of the arch directory, so exporting them is a convenient
+way to keep them consistent between build and test commands. Note that this
+system uses CCFLAGS instead of the usual CFLAGS. An example that makes
+Solaris Studio cc produce a 64-bit binary:
 
-The makefile should also generate shcomp, a program that will precompile
+	export CCFLAGS="-xc99 -m64 -O" LDFLAGS="-m64"
+	bin/package make
+
+Alternatively you can append these to the command, and they will only be
+used for that command. You can also specify an alternative shell in which to
+run the build scripts this way. For example:
+
+	bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" \
+		LDFLAGS="-L/opt/local/lib"
+
+For more information, run:
+
+	bin/package help
+
+Many other commands in this repo self-document via the --help, --man and
+--html options; those that do have no separate manual page.
+
+Automated installation is not supported. To install manually:
+
+	cp arch/$(bin/package host type)/bin/ksh /usr/local/bin/
+	cp src/cmd/ksh93/sh.1 /usr/local/share/man/man1/ksh.1
+
+(adapting the destination directories as required).
+
+The build should also generate shcomp, a program that will precompile
 a script.  ksh93 is able to recognize files in this format and process
 them as scripts.  You can use shcomp to send out scripts when you
 don't want to give away the original script source.
@@ -136,25 +184,6 @@ RELEASE contains bug fixes made in this release since ksh-88.  The file
 COMPATIBILITY contains a list of incompatibilities with ksh-88.  The
 file bltins.mm is a draft troff (mm) memo describing how to write
 built-in commands that can be loaded at run time.
-
-Most of the work for internationalization has been done with ksh93.
-The file ksh.msg is a generated file that contains error messages
-that need to be translated.  In addition, the function translate()
-in sh/init.c has to be completed to interface with the dictionary
-lookup.  The translate function takes two argument, the string
-that is to be translated and a type which is
-    0 when a library string needs translation.
-    1 when one of the error messages in ksh.msg needs translation.
-    2 when a string in a script needs translation.  You use a $ in front
-      of a double quoted string in a script to indicate that it
-      needs translation.  The -D option for ksh builds the dictionary.
-The translate routine needs to return the translated message.
-For dictionaries that need to use a numeric key, it should be
-possible to use the strhash() function to generate numbers to
-go along with each of the messages and to use this number both
-when generating the dictionary and when converting strings.
-If you encounter error messages of type 1 that are not be translated via
-this translate() function send mail to the address below.
 
 Please report any problems or suggestions to:
 

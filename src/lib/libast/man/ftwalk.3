@@ -6,7 +6,7 @@
 .ta .75i 1.5i 2.25i 3i 3.75i 4.5i 5.25i 6i
 .PP
 .nf
-\f5
+\f3
 #include <ftwalk.h>
 
 int ftwalk(char* path, int (*userf)(struct FTW* ftw), int options,
@@ -226,7 +226,7 @@ preferences specified by
 the routine \fIftw\fR provided in System V.
 However, it is more general than \fIftw\fR
 and suitable for use as a base in implementing
-popular tools such as \fIls, find, tar, du,\fR and \fIrm\fR.
+popular tools such as \fIls\fR, \fIfind\fR, \fItar\fR, \fIdu\fR, and \fIrm\fR.
 \fIFtwalk\fR also handles symbolic links and hard links gracefully.
 .SH AUTHORS
 Phong Vo, Glenn Fowler, Dave Korn

@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1277,12 +1278,6 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 	while(r = optget(argv,name)) switch(r)
 	{
 		case 'f':
-			/*
-			 * Unsetting functions in a virtual/non-forked subshell doesn't work due to limitations
-			 * in the subshell function tree mechanism. Work around this by forking the subshell.
-			 */
-			if(shp->subshell && !shp->subshare)
-				sh_subfork();
 			troot = sh_subfuntree(1);
 			break;
 		case 'a':
@@ -1388,33 +1383,24 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 				_nv_unset(np,0);
 			if(troot==shp->var_tree && shp->st.real_fun && (dp=shp->var_tree->walk) && dp==shp->st.real_fun->sdict)
 				nv_delete(np,dp,NV_NOFREE);
-			else if(isfun && !(np->nvalue.rp && np->nvalue.rp->running))
+			else if(isfun)
 			{
-				nv_delete(np,troot,0);
-				/*
-				 * If we have just unset a function in a subshell tree that overrode a function by the same
-				 * name in the main shell, then the above nv_delete() call incorrectly restores the function
-				 * from the main shell scope. So walk though troot's parent views and delete any such zombie
-				 * functions. Note that this only works because 'unset -f' now forks if we're in a subshell.
-				 */
-				Dt_t *troottmp = troot;
-				while((troottmp = troottmp->view) && (np = nv_search(name,troottmp,0)) && is_afunction(np))
-					nv_delete(np,troottmp,0);
+				if(troot!=shp->fun_base)
+					nv_offattr(np,NV_FUNCTION);	/* invalidate */
+				else if(!(np->nvalue.rp && np->nvalue.rp->running))
+					nv_delete(np,troot,0);
 			}
 			/* The alias has been unset by call to _nv_unset, remove it from the tree */
 			else if(troot==shp->alias_tree)
 				nv_delete(np,troot,nofree_attr);
-#if 0
-			/* causes unsetting local variable to expose global */
-			else if(shp->var_tree==troot && shp->var_tree!=shp->var_base && nv_search((char*)np,shp->var_tree,HASH_BUCKET|HASH_NOSCOPE))
-				nv_delete(np,shp->var_tree,0);
-#endif
 			else
 				nv_close(np);
 
 		}
 		else if(troot==shp->alias_tree)
 			r = 1;
+		else if(troot==shp->fun_tree && troot!=shp->fun_base && nv_search(name,shp->fun_tree,0))
+			nv_open(name,troot,NV_NOSCOPE);	/* create dummy virtual subshell node without NV_FUNCTION attribute */
 	}
 	sh_popcontext(shp,&buff);
 	return(r);

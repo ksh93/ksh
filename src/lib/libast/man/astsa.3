@@ -133,20 +133,20 @@ to the end offset of the \fIi\fP-th parenthesized subexpression.
 \fInsub\fP is 1/2 the number of elements in \fIsub\fP.
 \fIflags\fP controls the matching:
 .Tp
-\f5STR_MAXIMAL\fP:
+\f3STR_MAXIMAL\fP:
 Maximal match.
 The default is minimal (first) match.
 .Tp
-\f5STR_LEFT\fP:
+\f3STR_LEFT\fP:
 Implicit left anchor.
 .Tp
-\f5STR_RIGHT\fP:
+\f3STR_RIGHT\fP:
 Implicit right anchor.
 .Tp
-\f5STR_ICASE\fP:
+\f3STR_ICASE\fP:
 Ignore case.
 .Tp
-\f5STR_GROUP\fP:
+\f3STR_GROUP\fP:
 (|&) inside [@|*|+{n,m}](...) only.
 .Ss "int strmatch(const char* \fIstring\fP, const char* \fIpattern\fP, int* \fIsub\fP, int \fInsub\fP, int \fIflags\fP)"
 Equivalent to strgrpmatch(\fIstring\fP,\fIpattern\fP,0,0,STR_MAXIMAL|STR_LEFT|STR_RIGHT).

@@ -229,13 +229,16 @@ Full weekday name.
 .B b
 Abbreviated month name.
 .TP
+.B B
+Full month name.
+.TP
 .B c
-.IR ctime (3)
+.BR ctime (3)
 style date without the trailing
 .BR newline .
 .TP
 .B C
-.IR date (1)
+.BR date (1)
 style date.
 .TP
 .B d
@@ -251,19 +254,28 @@ Blank padded day of month number.
 .B E
 Unpadded day of month number.
 .TP
+.B f
+Date as
+.IR %Y.%m.%d-%H:%M:%S .
+.TP
+.B F
+ISO 8601:2000 standard date format; equivalent to
+.IR %Y-%m-%d .
+.TP
 .B h
 Abbreviated month name.
 .TP
 .B H
-24-hour clock hour.
+24-hour clock hour, zero-padded.
 .TP
 .B i
 International
-.IR date (1)
-date that includes the time zone type name.
+.BR date (1)
+date that includes the time zone type name
+.RL ( tm_info.format[107] ).
 .TP
 .B I
-12-hour clock hour.
+12-hour clock hour, zero-padded.
 .TP
 .B j
 1-offset Julian date.
@@ -271,13 +283,17 @@ date that includes the time zone type name.
 .B J
 0-offset Julian date.
 .TP
+.B k
+24-hour clock hour, blank-padded.
+.TP
+.B K
+Language neutral, all numeric, no embedded space date
+with larger to smaller time units from left to right,
+suitable for sorting:
+.LR '"%Y-%m-%d+%H:%M:%S"' .
+.TP
 .B l
-.IR ls (1)
-.B \-l
-date that lists recent dates with
-.IR hh : mm
-and distant dates with
-.IR yyyy .
+12-hour clock hour, blank-padded.
 .TP
 .B m
 Month number.
@@ -289,11 +305,35 @@ Minutes.
 .B newline
 character.
 .TP
+.B N
+Nanoseconds 000000000-999999999.
+.TP
 .B p
 Meridian (e.g.,
 .B AM
 or
 .BR PM ).
+.TP
+.B P
+Lowercase meridian (e.g.,
+.B am
+or
+.BR pm ).
+.TP
+.B q
+The quarter of the year.
+.TP
+\fB%Q\fP\fI<delim>recent<delim>distant<delim>\fP
+Recent dates are formatted with
+.I recent
+and distant dates are formatted with
+.IR distant ,
+where
+.I <delim>
+is any character not appearing in
+.I recent
+or
+.IR distant .
 .TP
 .B r
 12-hour time as
@@ -304,8 +344,22 @@ or
 24-hour time as
 .IR hh : mm .
 .TP
+.B s
+Seconds since the epoch.
+.RI . prec
+preceding
+.B s
+appends
+.I prec
+nanosecond digits,
+.B 9
+if
+.I prec
+is omitted.
+.TP
 .B S
-Seconds.
+.I seconds.subseconds
+since the epoch.
 .TP
 .B t
 .B tab
@@ -315,11 +369,17 @@ character.
 24-hour time as
 .IR hh : mm : ss .
 .TP
+.B u
+Weekday number with 1 for Monday, 7 for Sunday.
+.TP
 .B U
 Week number with Sunday as the first day.
 .TP
+.B V
+ISO week number (i18n is \fIfun\fP).
+.TP
 .B w
-Weekday number.
+Weekday number with 0 for Sunday, 6 for Saturday.
 .TP
 .B W
 Week number with Monday as the first day.
@@ -335,37 +395,69 @@ Local time style, using
 that includes the hours and minutes.
 .TP
 .B y
-2-digit year.
+2-digit year (you'll be sorry).
 .TP
 .B Y
 4-digit year.
 .TP
 .B z
-Time zone type name.
+Time zone
+.I SHHMM
+west of UTC offset where
+.I S
+is
+.B +
+or
+.BR - .
 .TP
 .B Z
 Time zone name.
 .TP
-.BI + flag
-.TP
-.BI \- flag
-Temporarily (until
-.L tmform()
-returns) sets (+) or clears (\-) the
+=[=]][-+]]\fIflag\fP
+Set (default or +) or clear (-)
+.I flag
+in
 .L tm_info.flags
-flags specified by
-.IR flag :
+for the remainder of
+.IR format ,
+or for the remainder of the process if
+.B ==
+is specified.
+.I flag
+may be:
 .RS
 .TP
 .B l
-.L TM_LEAP
+.L (TM_LEAP)
+Enable leap second adjustments.
+.TP
+.B s
+.L (TM_SUBSECOND)
+Append nanosecond
+.B .%N
+to
+.BR %S .
 .TP
 .B u
-.L TM_UTC
+.L (TM_UTC)
+UTC time zone.
 .RE
 .TP
 .B #
-Number of seconds since the epoch.
+Equivalent to
+.BR %s .
+.TP
+\fP?\fP\fIalternate\fP
+The
+.I alternate
+format is a default format override has not been specified.
+e.g.,
+.BR ls (1)
+uses
+.BR %?%l .
+Export
+\f3TM_OPTIONS="format='\fP\fIoverride\fP\f3'"\fP
+to override the default.
 .PD
 .RE
 .TP
@@ -568,6 +660,8 @@ values may get clobbered by the
 .I tm
 library routines as the
 .IR ctime (3)
+and
+.IR localtime (3)
 routines typically return pointers to a single static
 .L "struct tm"
 area.

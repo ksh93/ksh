@@ -2,6 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -784,6 +785,31 @@ r ^:test-1: set -o vi\r\n$
 w echo asdf\EbwBWa
 r ^:test-2: echo asdf\r\n$
 r ^asdf\r\n$
+!
+
+# err_exit #
+((SHOPT_ESH)) && mkdir -p emacstest/123abc && VISUAL=emacs tst $LINENO <<"!"
+L autocomplete stops numeric input
+# https://github.com/ksh93/ksh/issues/198
+
+d 15
+p :test-1:
+w cd emacste\t123abc
+r ^:test-1: cd emacstest/123abc\r\n$
+!
+
+# err_exit #
+echo '((' >$tmp/synerror
+ENV=$tmp/synerror tst $LINENO <<"!"
+L syntax error in profile causes exit on startup
+# https://github.com/ksh93/ksh/issues/281
+
+d 15
+r /synerror: syntax error: `\(' unmatched\r\n$
+p :test-1:
+w echo ok
+r ^:test-1: echo ok\r\n$
+r ^ok\r\n$
 !
 
 # ======

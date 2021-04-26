@@ -3,6 +3,39 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-04-22:
+
+- shcomp (the shell bytecode compiler) was fixed to correctly compile process
+  substitutions used as the file name to a redirection, as in 'cmd < <(cmd)'.
+
+- Fixed a bug introduced on 2020-07-13 that set LINENO to the wrong line
+  number after leaving a virtual subshell in which LINENO had been unset.
+
+2021-04-21:
+
+- Fixed a bug introduced on 2020-09-28 that caused an interactive ksh to exit
+  if a profile script (such as ~/.kshrc) contains a syntax error.
+
+2021-04-20:
+
+- Fixed three problems with the /opt/ast/bin/getconf built-in command:
+  1. The -l/--lowercase option did not change all variable names to lower case.
+  2. The -q/--quote option now quotes all string values. Previously, it only
+     quoted string values that had a space or other non-shellsafe character.
+  3. The -c/--call, -n/--name and -s/--standard options matched all variable
+     names provided by 'getconf -a', even if none were actual matches.
+
+- The readonly attribute of ksh variables is no longer imported from
+  or exported to other ksh shell instances through the environment.
+
+2021-04-16:
+
+- Fixed a bug in emacs mode: after using tab completion to complete the name
+  of a directory, it was not possible to type numbers after the slash.
+
+- Fixed an optimization bug that caused the <>; redirection operator to fail
+  when used with the last command in a -c script.
+
 2021-04-14:
 
 - Path-bound built-ins (such as /opt/ast/bin/cat) can now be executed by
@@ -31,7 +64,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Corrected a memory fault when an attempt was made to unset the default
   nameref KSH_VERSION from the shell environment prior to any other name
-  reference variable creation or modificaton.
+  reference variable creation or modification.
 
 2021-04-11:
 

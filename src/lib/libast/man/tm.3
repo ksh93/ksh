@@ -109,7 +109,7 @@ environment variable.
 Times are relative to
 .B UTC
 (universal coordinated time, i.e.,
-.BR GMT .)
+.BR GMT ).
 Otherwise times are relative to the local time zone.
 Set by
 .L tminit()
@@ -232,7 +232,7 @@ may also be preceded by
 .B E
 for alternate era representation or
 .B O
-for alternate digit representation (if supported by the current locale.)
+for alternate digit representation (if supported by the current locale).
 Finally, an integral
 .I width
 preceding
@@ -262,6 +262,9 @@ Full weekday name.
 .B b
 Abbreviated month name.
 .TP
+.B B
+Full month name.
+.TP
 .B c
 .BR ctime (3)
 style date without the trailing
@@ -285,26 +288,27 @@ Blank padded day of month number.
 Unpadded day of month number.
 .TP
 .B f
-Locale default override date format.
+Date as
+.IR %Y.%m.%d-%H:%M:%S .
 .TP
 .B F
-Locale default date format
-.RL ( tm_info.format[40] .)
+ISO 8601:2000 standard date format; equivalent to
+.IR %Y-%m-%d .
 .TP
 .B h
 Abbreviated month name.
 .TP
 .B H
-24-hour clock hour.
+24-hour clock hour, zero-padded.
 .TP
 .B i
 International
 .BR date (1)
 date that includes the time zone type name
-.RL ( tm_info.format[107] .)
+.RL ( tm_info.format[107] ).
 .TP
 .B I
-12-hour clock hour.
+12-hour clock hour, zero-padded.
 .TP
 .B j
 1-offset Julian date.
@@ -313,9 +317,7 @@ date that includes the time zone type name
 0-offset Julian date.
 .TP
 .B k
-.BR date (1)
-style date
-.RL ( tm_info.format[106] .)
+24-hour clock hour, blank-padded.
 .TP
 .B K
 Language neutral, all numeric, no embedded space date
@@ -324,12 +326,7 @@ suitable for sorting:
 .LR '"%Y-%m-%d+%H:%M:%S"' .
 .TP
 .B l
-.BR ls (1)
-.B \-l
-date that lists recent dates with
-.L %g
-and distant dates with
-.BR %G .
+12-hour clock hour, blank-padded.
 .TP
 .B m
 Month number.
@@ -342,16 +339,22 @@ Minutes.
 character.
 .TP
 .B N
-The time zone type or nation code.
+Nanoseconds 000000000-999999999.
 .TP
 .B p
 Meridian (e.g.,
 .B AM
 or
-.BR PM .)
+.BR PM ).
+.TP
+.B P
+Lowercase meridian (e.g.,
+.B am
+or
+.BR pm ).
 .TP
 .B q
-The nanosecond part of the time.
+The quarter of the year.
 .TP
 \fB%Q\fP\fI<delim>recent<delim>distant<delim>\fP
 Recent dates are formatted with
@@ -406,7 +409,7 @@ Weekday number with 1 for Monday, 7 for Sunday.
 Week number with Sunday as the first day.
 .TP
 .B V
-ISO week number (i18n is \fIfun\fP.)
+ISO week number (i18n is \fIfun\fP).
 .TP
 .B w
 Weekday number with 0 for Sunday, 6 for Saturday.
@@ -425,7 +428,7 @@ Local time style, using
 that includes the hours and minutes.
 .TP
 .B y
-2-digit year (you'll be sorry.)
+2-digit year (you'll be sorry).
 .TP
 .B Y
 4-digit year.
@@ -478,7 +481,7 @@ Equivalent to
 .BR %s .
 .TP
 \fP?\fP\fIalternate\fP
-Use
+The
 .I alternate
 format is a default format override has not been specified.
 e.g.,
@@ -486,7 +489,7 @@ e.g.,
 uses
 .BR %?%l .
 Export
-\f5TM_OPTIONS="format='\fP\fIoverride\fP\f5'"\fP
+\f3TM_OPTIONS="format='\fP\fIoverride\fP\f3'"\fP
 to override the default.
 .PD
 .RE

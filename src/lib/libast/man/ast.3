@@ -52,10 +52,10 @@ int            astquery(int \fIfd\fP, const char* \fIformat\fP , ...);
 .SH DESCRIPTION
 .L astconf
 is a string interface to the
-.IR confstr (2),
+.IR confstr (3),
 .IR pathconf (2),
 and
-.IR sysconf (2)
+.IR sysconf (3)
 calls.
 If
 .I value
@@ -74,7 +74,7 @@ In this case if
 is
 .L 0
 then
-\f5"/"\fP
+\f3"/"\fP
 is used.
 Otherwise if
 .I path
@@ -92,7 +92,7 @@ If
 is
 .L 0
 then a valid string is always returned;
-\f5""\fP
+\f3""\fP
 is returned if
 .I name
 has no configuration value.
@@ -179,7 +179,7 @@ If
 .I path
 is
 .L 0
-then \f5"/"\fP is used where appropriate.
+then \f3"/"\fP is used where appropriate.
 If
 .I flags
 is
@@ -269,4 +269,4 @@ and the environment variable
 is used to set
 .IR *cols .
 .SH "SEE ALSO"
-getconf(1), confstr(2), mmap(2), pathconf(2), read(2), sysconf(2), write(2)
+getconf(1), confstr(3), mmap(2), pathconf(2), read(2), sysconf(3), write(2)

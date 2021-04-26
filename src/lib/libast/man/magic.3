@@ -63,7 +63,7 @@ command magic file.
 .L magicopen
 returns a magic session handle that is passed to all of the other routines.
 .I flags
-may be
+may be:
 .TP
 .L MAGIC_MIME
 Return the MIME type string rather than the magic file description.
@@ -209,7 +209,7 @@ and
 .L }
 records have no other fields.
 .TP
-\fIid\f5{\fR
+\fIid\f3{\fR
 A function declaration and call for the single character identifier
 .IR id .
 The function return is a nesting block end record
@@ -217,7 +217,7 @@ The function return is a nesting block end record
 Function may be redefined.
 Functions have no arguments or return value.
 .TP
-\fIid\f5()\fR
+\fIid\f3()\fR
 A call to the function
 .IR id .
 .PP
@@ -414,7 +414,7 @@ may be an integral constant or one of the following builtin function calls:
 A recursive call to the magic algorithm starting with the data at
 .LR offset .
 .TP
-\f5loop(\fIfunction\fP,\fIoffset\fP,\fIincrement\fP)\fR
+\f3loop(\fIfunction\fP, \fIoffset\fP, \fIincrement\fP)\fR
 Call
 .I function
 starting at
@@ -446,7 +446,7 @@ then a
 .I space
 is placed between the descriptions
 (most optional descriptions start with
-.IR comma .)
+.IR comma ).
 The data value at
 .L offset
 can be referenced in the description using

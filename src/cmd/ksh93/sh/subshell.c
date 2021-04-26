@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -82,7 +83,6 @@ static struct subshell
 	pid_t		subpid;	/* child process id */
 	Sfio_t*		saveout;/* saved standard output */
 	char		*pwd;	/* present working directory */
-	const char	*shpwd;	/* saved pointer to sh.pwd */
 	void		*jobs;	/* save job info */
 	mode_t		mask;	/* saved umask */
 	short		tmpfd;	/* saved tmp file descriptor */
@@ -213,13 +213,12 @@ void sh_subfork(void)
 	else
 	{
 		/* this is the child part of the fork */
-		/* setting subpid to 1 causes subshell to exit when reached */
 		sh_onstate(SH_FORKED);
 		subshell_data = 0;
 		shp->subshell = 0;
 		shp->comsub = 0;
 		sp->subpid=0;
-		shp->st.trapcom[0] = (comsub==2 ? NULL : trap);
+		shp->st.trapcom[0] = (comsub==2 ? NIL(char*) : trap);
 		shp->savesig = 0;
 		/* sh_fork() increases ${.sh.subshell} but we forked an existing virtual subshell, so undo */
 		shgd->realsubshell--;
@@ -329,7 +328,7 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 		{
 			walk = root->walk?root->walk:root;
 			mpnext = dtnext(root,mp);
-			if(memcmp(name,mp->nvname,len) || mp->nvname[len]!='.')
+			if(strncmp(name,mp->nvname,len) || mp->nvname[len]!='.')
 				break;
 			nv_delete(mp,walk,NV_NOFREE);
 			*((Namval_t**)mp) = lp->child;
@@ -383,8 +382,9 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvenv = np->nvenv;
-		if(!nofree)
-			mp->nvfun = np->nvfun;
+		mp->nvfun = np->nvfun;
+		if(np->nvfun && nofree)
+			np->nvfun->nofree = nofree;
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -427,12 +427,21 @@ static void nv_restore(struct subshell *sp)
 Dt_t *sh_subtracktree(int create)
 {
 	register struct subshell *sp = subshell_data;
-	if(create && sh.subshell && !sh.subshare && sp && !sp->strack)
+	if(create && sh.subshell)
 	{
-		sp->strack = dtopen(&_Nvdisc,Dtset);
-		dtuserdata(sp->strack,&sh,1);
-		dtview(sp->strack,sh.track_tree);
-		sh.track_tree = sp->strack;
+		if(sh.subshare)
+		{
+			while(sp->subshare)	/* move up as long as parent is also a ${ subshare; } */
+				sp = sp->prev;
+			sp = sp->prev;		/* move to first non-subshare parent */
+		}
+		if(sp && !sp->strack)
+		{
+			sp->strack = dtopen(&_Nvdisc,Dtset);
+			dtuserdata(sp->strack,&sh,1);
+			dtview(sp->strack,sh.track_tree);
+			sh.track_tree = sp->strack;
+		}
 	}
 	return(sh.track_tree);
 }
@@ -444,39 +453,23 @@ Dt_t *sh_subtracktree(int create)
 Dt_t *sh_subfuntree(int create)
 {
 	register struct subshell *sp = subshell_data;
-	if(create && sh.subshell && !sh.subshare && sp && !sp->sfun)
+	if(create && sh.subshell)
 	{
-		sp->sfun = dtopen(&_Nvdisc,Dtoset);
-		dtuserdata(sp->sfun,&sh,1);
-		dtview(sp->sfun,sh.fun_tree);
-		sh.fun_tree = sp->sfun;
+		if(sh.subshare)
+		{
+			while(sp->subshare)	/* move up as long as parent is also a ${ subshare; } */
+				sp = sp->prev;
+			sp = sp->prev;		/* move to first non-subshare parent */
+		}
+		if(sp && !sp->sfun)
+		{
+			sp->sfun = dtopen(&_Nvdisc,Dtoset);
+			dtuserdata(sp->sfun,&sh,1);
+			dtview(sp->sfun,sh.fun_tree);
+			sh.fun_tree = sp->sfun;
+		}
 	}
 	return(sh.fun_tree);
-}
-
-/*
- * Remove and free a subshell table at *root after leaving a virtual subshell.
- * Pass 'fun' as nonzero when removing a subshell's shell functions.
- */
-static void table_unset(Shell_t *shp,register Dt_t *root,int fun)
-{
-	register Namval_t *np,*nq;
-	int flag;
-	for(np=(Namval_t*)dtfirst(root);np;np=nq)
-	{
-		nq = (Namval_t*)dtnext(root,np);
-		flag=0;
-		/* Check for autoloaded function; it must not be freed. */
-		if(fun && np->nvalue.rp && np->nvalue.rp->fname && shp->fpathdict
-		&& nv_search(np->nvalue.rp->fname,shp->fpathdict,0))
-		{
-			np->nvalue.rp->fdict = 0;
-			flag = NV_NOFREE;
-		}
-		else
-			_nv_unset(np,NV_RDONLY);
-		nv_delete(np,root,flag|NV_FUNCTION);
-	}
 }
 
 int sh_subsavefd(register int fd)
@@ -561,9 +554,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		path_get(shp,e_dot);
 		shp->pathinit = 0;
 	}
-#if _lib_fchdir
-	sp->pwdfd = -1;
-#endif /* _lib_fchdir */
 	if(!shp->pwd)
 		path_pwd(shp,0);
 	sp->bckpid = shp->bckpid;
@@ -581,11 +571,11 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->comsub = comsub;
 		job.bktick_waitall = (comsub==1);
 	}
-	if(!comsub || !shp->subshare)
+	if(!shp->subshare)
 	{
 		struct subshell *xp;
-		sp->shpwd = shp->pwd;
 #if _lib_fchdir
+		sp->pwdfd = -1;
 		for(xp=sp->prev; xp; xp=xp->prev) 
 		{
 			if(xp->pwdfd>0 && xp->pwd && strcmp(xp->pwd,shp->pwd)==0)
@@ -634,9 +624,9 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 				else if(shp->st.trapcom[isig])
 					savsig[isig] = sh_strdup(shp->st.trapcom[isig]);
 				else
-					savsig[isig] = NULL;
+					savsig[isig] = NIL(char*);
 			}
-			/* this nonsense needed for $(trap) */
+			/* this is needed for var=$(trap) */
 			shp->st.otrapcom = (char**)savsig;
 		}
 		sp->cpid = shp->cpid;
@@ -687,6 +677,17 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 #if _lib_fchdir
 			if(sp->pwdfd < 0 && !shp->subshare)	/* if we couldn't get a file descriptor to our PWD ... */
 				sh_subfork();			/* ...we have to fork, as we cannot fchdir back to it. */
+#else
+			if(!shp->subshare)
+			{
+				if(sp->pwd && access(sp->pwd,X_OK)<0)
+				{
+					free(sp->pwd);
+					sp->pwd = NIL(char*);
+				}
+				if(!sp->pwd)
+					sh_subfork();
+			}
 #endif /* _lib_fchdir */
 			sh_offstate(SH_INTERACTIVE);
 			sh_exec(t,flags);
@@ -794,37 +795,54 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	job.curpgid = savejobpgid;
 	job.exitval = saveexitval;
 	shp->bckpid = sp->bckpid;
-	if(sp->shpwd)	/* restore environment if saved */
+	if(!shp->subshare)	/* restore environment if saved */
 	{
 		int n;
 		shp->options = sp->options;
 		/* Clean up subshell hash table. */
 		if(sp->strack)
 		{
-			Namval_t *np, *prev_np;
+			Namval_t *np, *next_np;
 			/* Detach this scope from the unified view. */
 			shp->track_tree = dtview(sp->strack,0);
-			/* Delete (free) all elements of the subshell hash table. To allow dtnext() to
-			   set the pointer to the next item, we have to delete one item behind the loop. */
-			prev_np = 0;
-			np = (Namval_t*)dtfirst(sp->strack);
-			while(np)
+			/* Free all elements of the subshell hash table. */
+			for(np = (Namval_t*)dtfirst(sp->strack); np; np = next_np)
 			{
-				if(prev_np)
-					nv_delete(prev_np,sp->strack,0);
-				prev_np = np;
-				np = (Namval_t*)dtnext(sp->strack,np);
+				next_np = (Namval_t*)dtnext(sp->strack,np);
+				nv_delete(np,sp->strack,0);
 			}
-			if(prev_np)
-				nv_delete(prev_np,sp->strack,0);
 			/* Close and free the table itself. */
 			dtclose(sp->strack);
 		}
 		/* Clean up subshell function table. */
 		if(sp->sfun)
 		{
+			Namval_t *np, *next_np;
+			/* Detach this scope from the unified view. */
 			shp->fun_tree = dtview(sp->sfun,0);
-			table_unset(shp,sp->sfun,1);
+			/* Free all elements of the subshell function table. */
+			for(np = (Namval_t*)dtfirst(sp->sfun); np; np = next_np)
+			{
+				next_np = (Namval_t*)dtnext(sp->sfun,np);
+				if(!np->nvalue.rp)
+				{
+					/* Dummy node created by unall() to mask parent shell function. */
+					nv_delete(np,sp->sfun,0);
+					continue;
+				}
+				nv_onattr(np,NV_FUNCTION);  /* in case invalidated by unall() */
+				if(np->nvalue.rp->fname && shp->fpathdict && nv_search(np->nvalue.rp->fname,shp->fpathdict,0))
+				{
+					/* Autoloaded function. It must not be freed. */
+					np->nvalue.rp->fdict = 0;
+					nv_delete(np,sp->sfun,NV_FUNCTION|NV_NOFREE);
+				}
+				else
+				{
+					_nv_unset(np,NV_RDONLY);
+					nv_delete(np,sp->sfun,NV_FUNCTION);
+				}
+			}
 			dtclose(sp->sfun);
 		}
 		n = shp->st.trapmax-savst.trapmax;
@@ -842,35 +860,21 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			free((void*)savsig);
 		}
 		shp->options = sp->options;
-		if(!shp->pwd || strcmp(sp->pwd,shp->pwd))
-		{
-			/* restore PWDNOD */
-			Namval_t *pwdnod = sh_scoped(shp,PWDNOD);
-			if(shp->pwd)
-			{
+		/* restore the present working directory */
 #if _lib_fchdir
-				if(fchdir(sp->pwdfd) < 0)
+		if(sp->pwdfd > 0 && fchdir(sp->pwdfd) < 0)
 #else
-				if(chdir(sp->pwd) < 0)
+		if(sp->pwd && strcmp(sp->pwd,shp->pwd) && chdir(sp->pwd) < 0)
 #endif /* _lib_fchdir */
-				{
-					saveerrno = errno;
-					fatalerror = 2;
-				}
-				shp->pwd=sp->pwd;
-				path_newdir(shp,shp->pathlist);
-			}
-			if(nv_isattr(pwdnod,NV_NOFREE))
-				pwdnod->nvalue.cp = (const char*)sp->pwd;
-		}
-		else if(sp->shpwd != shp->pwd)
 		{
-			shp->pwd = sp->pwd;
-			if(PWDNOD->nvalue.cp==sp->shpwd)
-				PWDNOD->nvalue.cp = sp->pwd;
+			saveerrno = errno;
+			fatalerror = 2;
 		}
-		else
-			free((void*)sp->pwd);
+		else if(sp->pwd && strcmp(sp->pwd,shp->pwd))
+			path_newdir(shp,shp->pathlist);
+		if(shp->pwd)
+			free((void*)shp->pwd);
+		shp->pwd = sp->pwd;
 #if _lib_fchdir
 		if(sp->pwdclose)
 			close(sp->pwdfd);
@@ -939,17 +943,19 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			case 1:
 				shp->toomany = 1;
 				errno = saveerrno;
-				errormsg(SH_DICT,ERROR_system(1),e_redirect);
+				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,e_redirect);
 				UNREACHABLE();
 			case 2:
 				/* reinit PWD as it will be wrong */
-				shp->pwd = NULL;
+				if(shp->pwd)
+					free((void*)shp->pwd);
+				shp->pwd = NIL(const char*);
 				path_pwd(shp,0);
 				errno = saveerrno;
-				errormsg(SH_DICT,ERROR_system(1),"Failed to restore PWD upon exiting subshell");
+				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"Failed to restore PWD upon exiting subshell");
 				UNREACHABLE();
 			default:
-				errormsg(SH_DICT,ERROR_system(1),"Subshell error %d",fatalerror);
+				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"Subshell error %d",fatalerror);
 				UNREACHABLE();
 		}
 	}

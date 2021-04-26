@@ -2,6 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -257,7 +258,7 @@ static Namval_t *nextnode(struct nvdir *dp)
 {
 	if(dp->nextnode)
 		return((*dp->nextnode)(dp->hp,dp->root,dp->fun));
-	if(dp->len && memcmp(dp->data, dp->hp->nvname, dp->len))
+	if(dp->len && strncmp(dp->data, dp->hp->nvname, dp->len))
 		return(0);
 	return((Namval_t*)dtnext(dp->root,dp->hp));
 }
@@ -288,7 +289,7 @@ char *nv_dirnext(void *dir)
 					dp->hp = (*dp->nextnode)(np,(Dt_t*)0,dp->fun);
 			}
 			sh.last_table = last_table;
-			if(!dp->len || memcmp(cp,dp->data,dp->len)==0)
+			if(!dp->len || strncmp(cp,dp->data,dp->len)==0)
 			{
 				if((nfp=nextdisc(np)) && (nfp->disc->getval||nfp->disc->getnum) && nv_isvtree(np) && strcmp(cp,dp->data))
 					nfp = 0;
