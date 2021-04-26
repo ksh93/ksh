@@ -57,6 +57,7 @@ ulimit -R/--rttime
    `banner` with features added to it from the NetBSD `banner`.
    Added in commits [`312972f`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d) and [`62fbfa4`](https://github.com/JohnoKing/ksh/commit/62fbfa4b09848d507e31ec019d039a2649040fa2).
 9. The prompt printed for emacs reverse search mode is now '? ' instead of `^R`.
+10. The `shcomp` command now supports a `-d/--deparse` option. This flag causes `shcomp` to run the shell deparser on the given script, then output the result.
 
 # KornShell 93u+m
 

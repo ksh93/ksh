@@ -37,7 +37,7 @@ static const char usage[] =
 "[-license?http://www.eclipse.org/org/documents/epl-v10.html]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?shcomp - compile a shell script]"
-"[+DESCRIPTION?Unless \b-D\b is specified, \bshcomp\b takes a shell script, "
+"[+DESCRIPTION?Unless one of \b-D\b or \b-d\b is specified, \bshcomp\b takes a shell script, "
 	"\ainfile\a, and creates a binary format file, \aoutfile\a, that "
 	"\bksh\b can read and execute with the same effect as the original "
 	"script.]"
@@ -51,6 +51,7 @@ static const char usage[] =
 	"will be read from standard input.]"
 "[D:dictionary?Generate a list of strings that need to be placed in a message "
 	"catalog for internationalization.]"
+"[d:deparse?Dump a deparsed version of the shell script to \aoutfile\a.]"
 "[n:noexec?Displays warning messages for obsolete or non-conforming "
 	"constructs.] "
 "[v:verbose?Displays input from \ainfile\a onto standard error as it "
@@ -80,12 +81,15 @@ int main(int argc, char *argv[])
 	Namval_t *np;
 	Shnode_t *t;
 	char *cp;
-	int n, nflag=0, vflag=0, dflag=0;
+	int n, nflag=0, vflag=0, dflag=0, deparse=0;
 	error_info.id = argv[0];
 	while(n = optget(argv, usage )) switch(n)
 	{
 	    case 'D':
 		dflag=1;
+		break;
+	    case 'd':
+		deparse=1;
 		break;
 	    case 'v':
 		vflag=1;
@@ -138,7 +142,7 @@ int main(int argc, char *argv[])
 		sh_onoption(SH_NOEXEC);
 	if(vflag)
 		sh_onoption(SH_VERBOSE);
-	if(!dflag)
+	if(!dflag && !deparse)
 		sfwrite(out,header,sizeof(header));
 	shp->inlineno = 1;
 #if SHOPT_BRACEPAT
@@ -151,7 +155,9 @@ int main(int argc, char *argv[])
 		{
 			if((t->tre.tretyp&(COMMSK|COMSCAN))==0 && t->com.comnamp && strcmp(nv_name((Namval_t*)t->com.comnamp),"alias")==0)
 				sh_exec(t,0);
-			if(!dflag && sh_tdump(out,t) < 0)
+			if(deparse)
+				sh_deparse(out,t,0);
+			else if(!dflag && sh_tdump(out,t) < 0)
 			{
 				errormsg(SH_DICT,ERROR_exit(1),"dump failed");
 				UNREACHABLE();
