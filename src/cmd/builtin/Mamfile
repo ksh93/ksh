@@ -57,10 +57,22 @@ make install
 		bind -lutil dontcare
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -lm ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} ${mam_libcmd}
 	done pty generated
+	make fontkey.h implicit
+	done fontkey.h
+	make lpd.h implicit
+	done lpd.h
+	make pd.h implicit
+	done pd.h
+	make sysv.h implicit
+	done sysv.h
 	make banner
 		make banner.o
 			make banner.c
 				prev ${PACKAGE_ast_INCLUDE}/cmd.h implicit
+				prev fontkey.h implicit
+				prev lpd.h implicit
+				prev pd.h implicit
+				prev sysv.h implicit
 			done banner.c
 			meta banner.o %.c>%.o banner.c banner
 			prev banner.c
