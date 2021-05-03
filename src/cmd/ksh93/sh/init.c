@@ -34,6 +34,7 @@
 #include        <pwd.h>
 #include        <tmx.h>
 #include        <regex.h>
+#include	<math.h>
 #include        "variables.h"
 #include        "path.h"
 #include        "fault.h"
@@ -140,13 +141,6 @@ struct seconds
 {
 	Namfun_t	hdr;
 	Shell_t		*sh;
-};
-
-struct rand
-{
-	Namfun_t	hdr;
-	Shell_t		*sh;
-	int32_t		rand_last;
 };
 
 struct ifs
@@ -658,8 +652,8 @@ static void put_rand(register Namval_t* np,const char *val,int flags,Namfun_t *f
 	if(flags&NV_INTEGER)
 		n = *(double*)val;
 	else
-		n = sh_arith(rp->sh,val);
-	srand((int)(n&RANDMASK));
+		n = sh_arith(&sh,val);
+	srand(rp->rand_seed = (unsigned int)n);
 	rp->rand_last = -1;
 	if(!np->nvalue.lp)
 		np->nvalue.lp = &rp->rand_last;
@@ -671,10 +665,11 @@ static void put_rand(register Namval_t* np,const char *val,int flags,Namfun_t *f
  */
 static Sfdouble_t nget_rand(register Namval_t* np, Namfun_t *fp)
 {
+	struct rand *rp = (struct rand*)fp;
 	register long cur, last= *np->nvalue.lp;
 	NOT_USED(fp);
 	do
-		cur = (rand()>>rand_shift)&RANDMASK;
+		cur = (rand_r(&rp->rand_seed)>>rand_shift)&RANDMASK;
 	while(cur==last);
 	*np->nvalue.lp = cur;
 	return((Sfdouble_t)cur);
@@ -684,6 +679,17 @@ static char* get_rand(register Namval_t* np, Namfun_t *fp)
 {
 	register long n = nget_rand(np,fp);
 	return(fmtbase(n, 10, 0));
+}
+
+void sh_reseed_rand(struct rand *rp)
+{
+	struct tms		tp;
+	unsigned int		time;
+	static unsigned int	seq;
+	timeofday(&tp);
+	time = (unsigned int)remainder(dtime(&tp) * 10000.0, (double)UINT_MAX);
+	srand(rp->rand_seed = shgd->current_pid ^ time ^ ++seq);
+	rp->rand_last = -1;
 }
 
 /*
@@ -1748,7 +1754,6 @@ static Init_t *nv_init(Shell_t *shp)
 	ip->SECONDS_init.hdr.nofree = 1;
 	ip->RAND_init.hdr.disc = &RAND_disc;
 	ip->RAND_init.hdr.nofree = 1;
-	ip->RAND_init.sh = shp;
 	ip->SH_MATCH_init.hdr.disc = &SH_MATCH_disc;
 	ip->SH_MATCH_init.hdr.nofree = 1;
 	ip->SH_MATH_init.disc = &SH_MATH_disc;
@@ -1793,8 +1798,8 @@ static Init_t *nv_init(Shell_t *shp)
 	nv_stack(L_ARGNOD, &ip->L_ARG_init);
 	nv_putval(SECONDS, (char*)&d, NV_DOUBLE);
 	nv_stack(RANDNOD, &ip->RAND_init.hdr);
-	d = (shp->gd->pid&RANDMASK);
 	nv_putval(RANDNOD, (char*)&d, NV_DOUBLE);
+	sh_reseed_rand((struct rand *)RANDNOD->nvfun);
 	nv_stack(LINENO, &ip->LINENO_init);
 	SH_MATCHNOD->nvfun =  &ip->SH_MATCH_init.hdr;
 	nv_putsub(SH_MATCHNOD,(char*)0,10);

@@ -132,6 +132,12 @@ For more details, see the NEWS file and for complete details, see the git log.
 24.	The readonly attribute of ksh variables is no longer imported from
 	or exported to other ksh shell instances through the environment.
 
+25.	Subshells (even if non-forked) now keep a properly separated state
+	of the pseudorandom generator used for $RANDOM, so that using
+	$RANDOM in a non-forked subshell no longer influences a reproducible
+	$RANDOM sequence in the parent environment. In addition, upon
+	invoking a subshell, $RANDOM is now reseeded (as mksh and bash do).
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

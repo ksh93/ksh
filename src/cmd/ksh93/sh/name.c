@@ -187,7 +187,7 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 		nv_delete(np,root,NV_NOFREE);
 		np = nv_search(sp->rp->nvname,root,NV_ADD);
 	}
-	if(sp->numnodes && memcmp(np->nvname,NV_CLASS,sizeof(NV_CLASS)-1))
+	if(sp->numnodes && strncmp(np->nvname,NV_CLASS,sizeof(NV_CLASS)-1))
 	{
 		name = (sp->nodes[0])->nvname;
 		i = strlen(name);

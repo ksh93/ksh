@@ -181,7 +181,7 @@ void *nv_diropen(Namval_t *np,const char *name)
 		{
 			char *cp = nv_name(dp->hp);
 			c = strlen(cp);
-			if(memcmp(name,cp,c) || name[c]!='[')
+			if(strncmp(name,cp,c) || name[c]!='[')
 				dp->hp = (Namval_t*)dtnext(dp->root,dp->hp);
 			else
 			{

@@ -1057,6 +1057,8 @@ int hist_copy(char *s1,int size,int command,int line)
 char *hist_word(char *string,int size,int word)
 {
 	register int c;
+	register int is_space;
+	register int quoted;
 	register char *s1 = string;
 	register unsigned char *cp = (unsigned char*)s1;
 	register int flag = 0;
@@ -1064,21 +1066,32 @@ char *hist_word(char *string,int size,int word)
 	if(!hp)
 		return(NIL(char*));
 	hist_copy(string,size,(int)hp->histind-1,-1);
-	for(;c = *cp;cp++)
+	for(quoted=0;c = *cp;cp++)
 	{
-		c = isspace(c);
-		if(c && flag)
+		is_space = isspace(c) && !quoted;
+		if(is_space && flag)
 		{
 			*cp = 0;
 			if(--word==0)
 				break;
 			flag = 0;
 		}
-		else if(c==0 && flag==0)
+		else if(is_space==0 && flag==0)
 		{
 			s1 = (char*)cp;
 			flag++;
 		}
+		if (c=='\'' && !quoted)
+		{
+			for(cp++;*cp && *cp != c;cp++)
+				;
+		}
+		else if (c=='\"' && !quoted)
+		{
+			for(cp++;*cp && (*cp != c || quoted);cp++)
+				quoted = *cp=='\\' ? !quoted : 0;
+		}
+		quoted = *cp=='\\' ? !quoted : 0;
 	}
 	*cp = 0;
 	if(s1 != string)

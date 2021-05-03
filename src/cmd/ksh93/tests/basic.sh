@@ -795,7 +795,7 @@ trap - DEBUG  # bug compat
 # In ksh93v- and ksh2020 EXIT traps don't work in forked subshells
 # https://github.com/att/ast/issues/1452
 exp="forked subshell EXIT trap okay"
-got="$(ulimit -t unlimited; trap 'echo forked subshell EXIT trap okay' EXIT)"
+got="$(ulimit -t unlimited 2> /dev/null; trap 'echo forked subshell EXIT trap okay' EXIT)"
 [[ $got == $exp ]] || err_exit "EXIT trap did not trigger in forked subshell" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 

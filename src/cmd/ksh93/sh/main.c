@@ -149,8 +149,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	}
 	shp->fn_depth = shp->dot_depth = 0;
 	command = error_info.id;
-	/* set pidname '$$' */
-	srand(shp->gd->pid&0x7fff);
 	if(nv_isnull(PS4NOD))
 		nv_putval(PS4NOD,e_traceprompt,NV_RDONLY);
 	path_pwd(shp,1);

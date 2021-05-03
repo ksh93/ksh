@@ -446,7 +446,7 @@ print "Total errors: $total_e"
 # if we have the 'times' builtin and can use process substitution with output redirection.
 # See:	https://github.com/ksh93/ksh/commit/65d363fd
 #	https://github.com/ksh93/ksh/issues/2
-if 	(	ulimit -t unlimited	# fork to circumvent old ksh bugs
+if 	(	ulimit -t unlimited 2> /dev/null  # fork to circumvent old ksh bugs
 		unalias times
 		PATH=/dev/null whence -q times || exit
 		cd "$tmp" || exit

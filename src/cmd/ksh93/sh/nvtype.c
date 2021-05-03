@@ -883,7 +883,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				continue;
 		}
 		nnodes++;
-		if(name && memcmp(&name[m],&np->nvname[m],n)==0 && np->nvname[m+n]=='.')
+		if(name && strncmp(&name[m],&np->nvname[m],n)==0 && np->nvname[m+n]=='.')
 			offset -= sizeof(char*);
 		dsize = nv_datasize(np,&offset);
 		if(!nv_isarray(np) && (dp=(Namtype_t*)nv_hasdisc(np, &type_disc)))

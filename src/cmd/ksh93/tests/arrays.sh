@@ -730,4 +730,11 @@ do
 done
 
 # ======
+# https://github.com/att/ast/issues/23
+unset foo bar
+typeset -a foo=([1]=w [2]=x) bar=(a b c)
+foo+=("${bar[@]}")
+[[ $(typeset -p foo) == 'typeset -a foo=([1]=w [2]=x [3]=a [4]=b [5]=c)' ]] || err_exit 'Appending does not work if array contains empty indexes'
+
+# ======
 exit $((Errors<125?Errors:125))

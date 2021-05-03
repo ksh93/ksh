@@ -992,7 +992,7 @@ int sh_lex(Lex_t* lp)
 				mode = ST_NESTED;
 				continue;
 			case S_MOD1:
-				mode = ST_QUOTE;
+				mode = ST_MOD1;
 				continue;
 			case S_MOD2:
 #if SHOPT_KIA

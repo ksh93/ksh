@@ -31,9 +31,25 @@ bin_echo=$(whence -p echo)
 bin_sleep=$(whence -p sleep)
 bin_kill=$(whence -p kill)
 
+# ======
+# In ksh93v- and ksh2020 eval'ing a function definition may dump the function body to stdout.
+# https://github.com/att/ast/issues/1160
+got="$($SHELL -c '
+	for ((i=0; i<1025; i++))
+	do	str="${str}12345678"
+	done
+	eval "foo() { $str; }"
+
+	baz() { eval "bar() { FAILURE; }"; }
+	( baz >&3 ) 3>&1
+')"
+[[ -n "$got" ]] && err_exit "eval'ing function dumps function body to stdout" \
+	"(got $(printf %q "$got"))"
+
+# ======
+# Check for global variables and $0
 integer foo=33
 bar=bye
-# check for global variables and $0
 function foobar
 {
 	case $1 in

@@ -992,7 +992,7 @@ static int cntlmode(Vi_t *vp)
 				c = (virtual[0]=='#');
 				while(p-- >= virtual)
 				{
-					if(*p=='\n' || p<virtual)
+					if(p<virtual || *p=='\n')
 					{
 						if(c) /* delete '#' */
 						{
