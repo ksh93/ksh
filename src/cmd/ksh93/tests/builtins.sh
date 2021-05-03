@@ -890,9 +890,13 @@ $($w -pa cat)"
 		PATH=/opt/ast/bin:$PATH $w -a cat)
 	[[ $exp == "$got" ]] || err_exit "'$w -a' output is incorrect (cat command)" \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
-	exp="keyword
+	if [[ -n $($w -pa time) ]]
+	then	exp="keyword
 alias
 $($w -pa time)"
+	else
+		exp=$'keyword\nalias'
+	fi
 	got=$(alias time=nottime
 		$w -a time)
 	[[ $exp == "$got" ]] || err_exit "'$w -a' output is incorrect (time command)" \
