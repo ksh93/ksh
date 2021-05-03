@@ -311,6 +311,7 @@ make install
 						prev FEATURE/dynamic implicit
 						prev FEATURE/options implicit
 						prev ${PACKAGE_ast_INCLUDE}/option.h implicit
+						prev include/nval.h implicit
 					done include/variables.h
 					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
 					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit

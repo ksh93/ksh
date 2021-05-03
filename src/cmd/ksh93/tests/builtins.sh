@@ -40,14 +40,14 @@ got=$(getconf -l | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
 exp="GETCONF=\"$bingetconf\""
 got=$(getconf -q | grep 'GETCONF=')
 [[ $exp == "$got" ]] || err_exit "'getconf -q' fails to quote string values" \
-	"(expected $exp, got $got)"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # The -n option should only return matching names.
 # https://github.com/ksh93/ksh/issues/279
 exp="GETCONF=$bingetconf"
 got=$(getconf -n GETCONF)
 [[ $exp == "$got" ]] || err_exit "'getconf -n' doesn't match names correctly" \
-	"(expected $exp, got $got)"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # Test shell builtin commands
@@ -1280,12 +1280,12 @@ exp=$(uname -o)
 
 # Test for a possible crash (to avoid crashing the script, fork the subshell)
 (
-	ulimit -t unlimited
+	ulimit -t unlimited 2> /dev/null
 	uname -d > /dev/null
 ) || err_exit "'uname -d' crashes"
 
 # 'uname -d' shouldn't change the output of 'uname -o'
-got=$(ulimit -t unlimited; uname -d > /dev/null; uname -o)
+got=$(ulimit -t unlimited 2> /dev/null; uname -d > /dev/null; uname -o)
 [[ $exp == $got ]] || err_exit "'uname -d' changes the output of 'uname -o'" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 

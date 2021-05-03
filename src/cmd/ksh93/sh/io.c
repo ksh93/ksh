@@ -1147,13 +1147,15 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 		fn = (iof&IOUFD);
 		if(fn==1)
 		{
-			if(shp->subshare && flag==2)
+			if(shp->subshell && shp->comsub && (flag==1 || flag==2))
 			{
-				errormsg(SH_DICT,ERROR_exit(1),"cannot redirect stdout inside shared-state comsub");
-				UNREACHABLE();
-			}
-			if(shp->subshell && (flag==2 || isstring))
+				if(shp->subshare)
+				{
+					errormsg(SH_DICT,ERROR_exit(1),"cannot redirect stdout inside shared-state comsub");
+					UNREACHABLE();
+				}
 				sh_subfork();
+			}
 		}
 		if(shp->redir0 && fn==0 && !(iof&IOMOV))
 			shp->redir0 = 2;

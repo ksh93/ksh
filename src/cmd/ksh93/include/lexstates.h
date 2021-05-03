@@ -79,7 +79,8 @@
 #define ST_DOLNAME	8
 #define ST_MACRO	9
 #define ST_QNEST	10
-#define ST_NONE		11
+#define ST_MOD1		11
+#define ST_NONE		12
 
 #include "FEATURE/locale"
 

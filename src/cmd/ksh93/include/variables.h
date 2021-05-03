@@ -25,6 +25,16 @@
 #include        <option.h>
 #include        "FEATURE/options"
 #include        "FEATURE/dynamic"
+#include	<nval.h>
+
+/* used for RANDNOD ($RANDOM) */
+struct rand
+{
+	Namfun_t	hdr;
+	unsigned int	rand_seed;
+	int32_t		rand_last;
+};
+extern void sh_reseed_rand(struct rand *);
 
 /* The following defines must be kept synchronous with shtab_variables[] in data/variables.c */
 

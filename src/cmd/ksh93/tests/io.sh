@@ -283,12 +283,22 @@ EOF) == 'hello world' ]] || err_exit 'invalid readahead on stdin'
 $SHELL -c 'exec 3>; /dev/null'  2> /dev/null && err_exit '>; with exec should be an error'
 $SHELL -c ': 3>; /dev/null'  2> /dev/null || err_exit '>; not working with at all'
 print hello > $tmp/1
-if	! $SHELL -c "false >; $tmp/1"  2> /dev/null
-then	let 1;[[ $(<$tmp/1) == hello ]] || err_exit '>; not preserving file on failure'
-fi
-if	! $SHELL -c "sed -e 's/hello/hello world/' $tmp/1" >; $tmp/1  2> /dev/null
-then	[[ $(<$tmp/1) == 'hello world' ]] || err_exit '>; not updating file on success'
-fi
+$SHELL -c "false >; $tmp/1"
+status=$?
+(( status == 1 )) || err_exit "unexpected exit status" \
+	"(expected 1, got $status)"
+exp='hello'
+got=$(<$tmp/1)
+[[ $got == "$exp" ]] || err_exit '>; not preserving file on failure' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+$SHELL -c "sed -e 's/hello/hello world/' $tmp/1" >; $tmp/1
+status=$?
+(( status == 0 )) || err_exit "unexpected exit status" \
+	"(expected 0, got $status)"
+exp='hello world'
+got="$(<$tmp/1)"
+[[ $got == "$exp" ]] || err_exit '>; not updating file on success' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 $SHELL -c 'exec 3<>; /dev/null'  2> /dev/null && err_exit '<>; with exec should be an error'
 $SHELL -c ': 3<>; /dev/null'  2> /dev/null || err_exit '<>; not working with at all'
@@ -474,13 +484,6 @@ do      out=$("$binfalse" 2>/dev/null)
 	fi
 done
 
-rm -f $tmp/file1 $tmp/file2
-print foo > $tmp/file3
-ln -s $tmp/file3 $tmp/file2
-ln -s $tmp/file2 $tmp/file1
-print bar >; $tmp/file1
-[[ $(<$tmp/file3) == bar ]] || err_exit '>; not following symlinks'
-
 for i in 1
 do	:
 done	{n}< /dev/null
@@ -639,8 +642,8 @@ fi
 
 # ======
 # "&>file" redirection operator, shorthand for ">file 2>&1" (new as of 93u+m; inherited from old SHOPT_BASH)
-if	[[ -o ?posix ]]
-then	set -o posix
+if	[[ -o ?posix ]] && command set -o posix
+then
 	# This should print in a background job, then create an empty file, as '>aha1.txt' is a separate command.
 	eval '	print -u1 bad1 &>aha1.txt
 		print -u2 bad2 &>aha2.txt
@@ -654,11 +657,8 @@ then	set -o posix
 	' >/dev/null 2>&1
 	[[ $(< aha1.txt) == ok1 ]] || err_exit '&> does not redirect stdout'
 	[[ $(< aha2.txt) == ok2 ]] || err_exit '&> does not redirect stderr'
-fi
-
-# In POSIX mode, file descriptors > 2 should remain open when invoking another program
-if	[[ -o ?posix ]]
-then	(set -o posix; exec 7>ok.txt; "$SHELL" -c 'print ok >&7' 2>/dev/null)
+	# In POSIX mode, file descriptors > 2 should remain open when invoking another program
+	(set -o posix; exec 7>ok.txt; "$SHELL" -c 'print ok >&7' 2>/dev/null)
 	[[ $(<ok.txt) == ok ]] || err_exit 'File descriptors > 2 not inherited in POSIX mode'
 fi
 (exec 7>bad.txt; "$SHELL" -c 'print bad >&7' 2>/dev/null)
@@ -852,6 +852,31 @@ wait "$!"  # the procsub is run asynchronously, so wait before reading from the 
 cat >out2 < <(case x in x) cat out1;; esac)
 [[ $(<out2) == ok ]] || err_exit "process substitution not working as file name to redirection" \
 	"(expected 'ok', got $(printf %q "$(<out2)"))"
+
+# ======
+# Reading a file through a command substitution
+# https://github.com/att/ast/issues/203
+TMPF=$tmp/tmpf
+echo foo >$TMPF
+export TMPF
+[[ -n "$($SHELL -c 'echo $(<$TMPF)' <&-)" ]] || err_exit "Closing stdin causes failure when reading file through \$(<)"
+[[ -n "$($SHELL -c "$SHELL -c 'echo \$(<$TMPF) >&2' >&-" 2>&1)" ]] || err_exit "Closing stdout causes failure when reading file through \$(<)"
+[[ -n "$($SHELL -c 'echo $(<$TMPF)' 2>&-)" ]]  || err_exit "Closing stderr causes failure when reading file through \$(<)"
+
+# ======
+# Verify that symlinks are correctly canonicalized as part of a conditional redirection.
+# https://github.com/att/ast/issues/492
+mkdir -p dir1/dir2
+ln -s dir1 s1
+cd dir1
+ln -s dir2 s2
+cd ..
+exp=symlinks-resolved
+print wrong-answer > dir1/dir2/x
+print $exp >; s1/s2/x
+got=$(< dir1/dir2/x)
+[[ $got == "$exp" ]] || err_exit "symlink in conditional redirect wrong" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

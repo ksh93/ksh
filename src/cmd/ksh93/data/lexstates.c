@@ -388,13 +388,37 @@ static const char sh_lexstate9[256] =
 };
 
 /*
+ * ST_MOD1
+ * for skipping over a string S in ${v-S}, ${v+S}, ${v:-S}, ${v:+S}
+ */
+static const char sh_lexstate11[256] =
+{
+	S_EOF,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	S_NL,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	S_QUOTE,0,	S_DOL,	0,	0,	S_LIT,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	S_ESC,	0,	0,	0,
+	S_GRAVE,0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	S_RBRA,	0,	0
+};
+
+/*
  * This must be kept synchronous with all the above and the ST_* definitions in lexstates.h
  */
 const char *sh_lexrstates[ST_NONE] =
 {
 	sh_lexstate0, sh_lexstate1, sh_lexstate2, sh_lexstate3,
 	sh_lexstate4, sh_lexstate5, sh_lexstate6, sh_lexstate7,
-	sh_lexstate8, sh_lexstate9, sh_lexstate5
+	sh_lexstate8, sh_lexstate9, sh_lexstate5, sh_lexstate11
 };
 
 

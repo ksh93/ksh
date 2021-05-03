@@ -782,24 +782,19 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				if(!comvar && !iarray)
 					continue;
 			}
-
-			/* Create local scope for virtual subshell */
-			if(shp->subshell)
-			{
-				if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
-				{
-					/*
-					 * Variables with internal trap/discipline functions (LC_*, LINENO, etc.) need to be
-					 * cloned, as moving them will remove the discipline function.
-					 */
-					np=sh_assignok(np,2);
-				}
-				else
-					np=sh_assignok(np,0);
-			}
-
 			if(troot==shp->var_tree)
 			{
+				if(shp->subshell)
+				{
+					/*
+					 * Create local scope for virtual subshell. Variables with discipline functions
+					 * (LC_*, LINENO, etc.) need to be cloned, as moving them will remove the discipline.
+					 */
+					if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
+						np=sh_assignok(np,2);
+					else
+						np=sh_assignok(np,0);
+				}
 				if(iarray)
 				{
 					if(tp->tname)
@@ -884,10 +879,6 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 					errormsg(SH_DICT,ERROR_exit(1),e_badexport,name);
 					UNREACHABLE();
 				}
-#if SHOPT_BSH
-				if(flag&NV_EXPORT)
-					nv_offattr(np,NV_IMPORT);
-#endif /* SHOPT_BSH */
 				newflag = curflag;
 				if(flag&~NV_NOCHANGE)
 					newflag &= NV_NOCHANGE;
@@ -1355,22 +1346,18 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 					r=1;
 					continue;
 				}
-					
 				if(shp->subshell)
 				{
+					/*
+					 * Create local scope for virtual subshell. Variables with discipline functions
+					 * (LC_*, LINENO, etc.) need to be cloned, as moving them will remove the discipline.
+					 */
 					if(!nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np))
-					{
-						/*
-						 * Variables with internal trap/discipline functions (LC_*, LINENO, etc.) need to be
-						 * cloned, as moving them will remove the discipline function.
-						 */
 						np=sh_assignok(np,2);
-					}
 					else
 						np=sh_assignok(np,0);
 				}
 			}
-
 			/*
 			 * When aliases are removed from the tree, the NV_NOFREE attribute must be used for
 			 * preset aliases since those are given the NV_NOFREE attribute. _nv_unset discards
@@ -1594,7 +1581,7 @@ static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tda
 			if(name)
 			{
 				char *newname = nv_name(np);
-				if(memcmp(name,newname,len)==0 && newname[len]== '.')
+				if(strncmp(name,newname,len)==0 && newname[len]== '.')
 					continue;
 				name = 0;
 			}

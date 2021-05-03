@@ -26,10 +26,55 @@ unset ss
 [[ ${@ss} ]] && err_exit '${@ss} should be empty string when ss is unset'
 [[ ${!ss} == ss ]] ||  err_exit '${!ss} should be ss when ss is unset'
 [[ ${#ss} == 0 ]] ||  err_exit '${#ss} should be 0 when ss is unset'
+
 # RANDOM
 if	(( RANDOM==RANDOM || $RANDOM==$RANDOM ))
 then	err_exit RANDOM variable not working
 fi
+# When the $RANDOM variable is used in a forked subshell, it shouldn't
+# use the same pseudorandom seed as the main shell.
+# https://github.com/ksh93/ksh/issues/285
+RANDOM=123
+function rand_print {
+	ulimit -t unlimited 2> /dev/null
+	print $RANDOM
+}
+integer rand1=$(rand_print)
+integer rand2=$(rand_print)
+(( rand1 == rand2 )) && err_exit "Test 1: \$RANDOM seed in subshell doesn't change" \
+	"(both results are $rand1)"
+# Make sure we're actually using a different pseudorandom seed
+integer rand1=$(
+	ulimit -t unlimited 2> /dev/null
+	test $RANDOM
+	print $RANDOM
+)
+integer rand2=${ print $RANDOM ;}
+(( rand1 == rand2 )) && err_exit "Test 2: \$RANDOM seed in subshell doesn't change" \
+	"(both results are $rand1)"
+# $RANDOM should be reseeded when the final command is inside of a subshell
+rand1=$($SHELL -c 'RANDOM=1; (echo $RANDOM)')
+rand2=$($SHELL -c 'RANDOM=1; (echo $RANDOM)')
+(( rand1 == rand2 )) && err_exit "Test 3: \$RANDOM seed in subshell doesn't change" \
+	"(both results are $rand1)"
+# $RANDOM should be reseeded for the ( simple_command & ) optimization
+( echo $RANDOM & ) >r1
+( echo $RANDOM & ) >r2
+sleep .01
+(( $(<r1) == $(<r2) )) && err_exit "Test 4: \$RANDOM seed in ( simple_command & ) doesn't change" \
+	"(both results are $(<r1))"
+# Virtual subshells should not influence the parent shell's RANDOM sequence
+RANDOM=456
+exp="$RANDOM $RANDOM $RANDOM $RANDOM $RANDOM"
+RANDOM=456
+got=
+for((i=0; i<5; i++))
+do	: $( : $RANDOM $RANDOM $RANDOM )
+	got+=${got:+ }$RANDOM
+done
+[[ $got == "$exp" ]] || err_exit 'Using $RANDOM in subshell influences reproducible sequence in parent environment' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # SECONDS
 float secElapsed=0.0 secSleep=0.001
 let SECONDS=$secElapsed
@@ -165,7 +210,6 @@ if	[[ $LANG != "$save_LANG" ]]
 then	err_exit "$save_LANG locale not working"
 fi
 
-unset RANDOM
 unset -n foo
 foo=junk
 function foo.get
@@ -703,6 +747,12 @@ actual=$(
 expect=$'4\n3\n3\n2\n1'
 [[ $actual == "$expect" ]] || err_exit "\${.sh.subshell} failure (expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
+# ${.sh.subshell} should increment when the final command is inside of a subshell
+exp=1
+got=$($SHELL -c '(echo ${.sh.subshell})')
+[[ $exp == $got ]] || err_exit '${.sh.subshell} fails to increment when the final command is inside of a subshell' \
+	"(expected '$exp', got '$got')"
+
 unset IFS
 if	((SHOPT_BRACEPAT)) && command set -o braceexpand
 then	set -- {1..32768}
@@ -1067,6 +1117,23 @@ $SHELL -c '
 (((e = $?) == 1)) || err_exit "typeset -l/-u doesn't work on special variables" \
 	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
 
+# ... unset followed by launching a forked subshell
+$SHELL -c '
+	errors=0
+	unset -v "$@" || let errors++
+	(
+		ulimit -t unlimited 2>/dev/null
+		for var do
+			[[ $var == _ ]] && continue	# only makes sense that $_ is immediately set again
+			[[ -v $var ]] && let errors++
+		done
+		exit $((errors + 1))
+	)
+	exit $?
+' unset_to_fork_test "$@"
+(((e = $?) == 1)) || err_exit "Failure in unsetting one or more special variables followed by launching forked subshell" \
+	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+
 # ======
 # Basic test for ${$var} to make sure it works
 unset foo bar
@@ -1300,6 +1367,15 @@ EOF
 exp=5
 got=$($SHELL "$lineno_subshell")
 [[ $exp == $got ]] || err_exit "LINENO corrupted after leaving virtual subshell (expected $exp, got $got)"
+
+# ======
+# Check if ${.sh.file} is set to correct value after sourcing a file
+# https://github.com/att/ast/issues/472
+cat > $tmp/foo.sh <<EOF
+echo "foo"
+EOF
+. $tmp/foo.sh > /dev/null
+[[ ${.sh.file} == $0 ]] || err_exit "\${.sh.file} is not set to the correct value after sourcing a file"
 
 # ======
 exit $((Errors<125?Errors:125))

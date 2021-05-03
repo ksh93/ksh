@@ -1698,7 +1698,12 @@ skip:
 			}
 			else
 			{
-				sh_lexskip(lp, RBRACE, 0, sh_lexstates[ST_BRACE][c]==S_MOD1 ? ST_QUOTE : ST_NESTED);
+				int state;
+				if(sh_lexstates[ST_BRACE][c]==S_MOD1)
+					state = mp->quote ? ST_QUOTE : ST_MOD1;
+				else
+					state = ST_NESTED;
+				sh_lexskip(lp, RBRACE, 0, state);
 				stkseek(stkp,offset);
 			}
 			argp=stkptr(stkp,offset);
@@ -2114,6 +2119,7 @@ nosub:
 /*
  * This routine handles command substitution
  * <type> is 0 for older `...` version
+ * 1 for $(...) or 2 for ${ subshare; }
  */
 static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 {
@@ -2233,7 +2239,11 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			type = 3;
 		}
 		else
+		{
+			if(type==2 && sh.subshell && !sh.subshare)
+				sh_subfork();	/* subshares within virtual subshells are broken, so fork first */
 			sp = sh_subshell(mp->shp,t,sh_isstate(SH_ERREXIT),type);
+		}
 		fcrestore(&save);
 	}
 	else

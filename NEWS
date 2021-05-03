@@ -3,6 +3,39 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-05-03:
+
+- Subshells (even if non-forked) now keep a properly separated state of the
+  pseudorandom generator used for $RANDOM, so that using $RANDOM in a
+  non-forked subshell no longer influences a reproducible $RANDOM sequence in
+  the parent environment. In addition, upon invoking a subshell, $RANDOM is now
+  reseeded (as mksh and bash do).
+
+- Fixed program flow corruption that occurred in scripts on executing a
+  background job in a nested subshell, as in ( ( simple_command & ) ).
+
+- Completed the 2021-04-30 fix for ${var<OP>'{}'} where <OP> is '-', '+',
+  ':-' or ':+' by fixing a bug that caused an extra '}' to be output.
+
+2021-04-30:
+
+- The emacs 'ESC .' (M-.) and vi '_' commands now take shell quoting into
+  account when repeating a word from the previous command line. For example, if
+  the previous command is 'ls Stairway\ To\ Heaven.mp3', then they now insert
+  'Stairway\ To\ Heaven.mp3' instead of 'Heaven.mp3'. Thanks to Govind Kamat.
+
+- Fixed a bug introduced on 2020-09-05 that caused "echo ${var:+'{}'}"
+  to be misparsed.
+
+- Fixed: the effects of 'builtin', 'exec' and 'ulimit' leaked out of a parent
+  virtual subshell if run from a ${ shared-state; } command substitution.
+
+2021-04-26:
+
+- Fixed a bug introduced on 2021-02-20 in which a shared-state command
+  substitution stopped sharing its state with the calling shell environment
+  if it executed a command that locally redirected standard outpuut.
+
 2021-04-22:
 
 - shcomp (the shell bytecode compiler) was fixed to correctly compile process

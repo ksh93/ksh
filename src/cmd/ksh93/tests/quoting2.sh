@@ -251,4 +251,33 @@ actual=$(printf %q $'1\x[11]1')
 				"(expected $expect; got $actual)"
 
 # ======
+# https://github.com/ksh93/ksh/issues/290
+var=dummy
+exp='{}'
+got=$(set +x; eval 'echo ${var:+'\''{}'\''}' 2>&1)
+[[ $got == "$exp" ]] || err_exit "Single quotes misparsed in expansion operator string (1)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset var
+exp='}'
+got=$(set +x; eval 'echo ${var:-'\''}'\''}' 2>&1)
+[[ $got == "$exp" ]] || err_exit "Single quotes misparsed in expansion operator string (2)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp='x'
+got=$(var=x; set +x; eval 'echo ${var:-'\''{}'\''}' 2>&1)
+[[ $got == "$exp" ]] || err_exit "Single quotes misparsed in expansion operator string (3)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp=''
+got=$(var=; set +x; eval 'echo ${var:+'\''{}'\''}' 2>&1)
+[[ $got == "$exp" ]] || err_exit "Single quotes misparsed in expansion operator string (4)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp='{}'
+got=$(unset var; set +x; eval 'echo ${var-'\''{}'\''}' 2>&1)
+[[ $got == "$exp" ]] || err_exit "Single quotes misparsed in expansion operator string (5)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp=''
+got=$(unset var; set +x; eval 'echo ${var+'\''{}'\''}' 2>&1)
+[[ $got == "$exp" ]] || err_exit "Single quotes misparsed in expansion operator string (6)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

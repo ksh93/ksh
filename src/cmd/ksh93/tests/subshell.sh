@@ -1011,4 +1011,37 @@ unalias a
 	"expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # ======
+# Redirecting standard output for a single command should not cause a subshare to fork
+exp='good'
+got='bad'
+dummy=${ : >&2; got='good'; }
+[[ $got == "$exp" ]] || err_exit 'subshare stopped sharing state after command that redirects stdout' \
+	"(expected '$exp', got '$got')"
+
+# ======
+unset d x
+exp='end 1'
+got=$(d=${ true & x=1; echo end; }; echo $d $x)
+[[ $got == "$exp" ]] || err_exit 'subshare forks when running background job' \
+	"(expected '$exp', got '$got')"
+
+# ======
+# https://github.com/ksh93/ksh/issues/289
+got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ ulimit -t 1; }); ulimit -t)
+[[ $got == 1 ]] && err_exit "'ulimit' command run in subshare leaks out of parent virtual subshell"
+got=$(_AST_FEATURES="TEST_TMP_VAR - $$" "$SHELL" -c '(d=${ builtin getconf;}); getconf TEST_TMP_VAR' 2>&1)
+[[ $got == $$ ]] && err_exit "'builtin' command run in subshare leaks out of parent virtual subshell"
+got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ exec true; }); echo ok)
+[[ $got == ok ]] || err_exit "'exec' command run in subshare disregards parent virtual subshell"
+
+# ======
+# https://github.com/ksh93/ksh/pull/294#discussion_r624627501
+exp='this should be run once'
+$SHELL -c '( ( : & ) ); echo "this should be run once"' >r624627501.out
+sleep .01
+got=$(<r624627501.out)
+[[ $got == "$exp" ]] || err_exit 'background job optimization within virtual subshell causes program flow corruption' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
