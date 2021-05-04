@@ -17,6 +17,14 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Completed the 2021-04-30 fix for ${var<OP>'{}'} where <OP> is '-', '+',
   ':-' or ':+' by fixing a bug that caused an extra '}' to be output.
 
+- Following the resolution of Austin Group bug 1393[*] that is set to be
+  included in the next version of the POSIX standard, the 'command' prefix
+  in POSIX mode (set -o posix) no longer disables the declaration properties
+  of declaration built-ins. This reverts a change introduced on 2020-09-11.
+  [*] https://austingroupbugs.net/view.php?id=1393
+
+- Fixed arithmetic assignment operations for multidimensional indexed arrays
+
 2021-04-30:
 
 - The emacs 'ESC .' (M-.) and vi '_' commands now take shell quoting into

@@ -173,9 +173,15 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 				xp = find_begin(cp,last,')',type);
 				if(*(cp=xp)!=')')
 					bp = xp;
-				else
-					cp++;
 			}
+			break;
+		    case '`':
+			if(inquote=='\'')
+				break;
+			*type = mode;
+			xp = find_begin(cp,last,'`',type);
+			if(*(cp=xp)!='`')
+				bp = xp;
 			break;
 		    case '=':
 			if(!inquote)
@@ -447,9 +453,9 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 					out = overlaid(begin,*com++,nocase);
 			}
 			mode = (out==saveout);
-			if(out[-1]==0)
+			if(out>outbuff && out[-1]==0)
 				out--;
-			if(mode && out[-1]!='/')
+			if(mode && (out==outbuff || out>outbuff && out[-1]!='/'))
 			{
 				if(cmd_completion)
 				{

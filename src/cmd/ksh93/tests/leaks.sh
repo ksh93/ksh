@@ -35,7 +35,7 @@ then	N=512			# number of iterations for each test
 	}
 # On Linux, we can use /proc to get byte granularity for vsize (field 23).
 elif	[[ -f /proc/$$/stat && $(uname) == Linux ]]
-then	N=1024			# number of iterations for each test
+then	N=2048			# number of iterations for each test
 	unit=bytes
 	tolerance=$((4*N))	# tolerate 4 bytes per iteration to account for malloc artefacts
 	function getmem

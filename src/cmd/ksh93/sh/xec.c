@@ -1194,7 +1194,24 @@ int sh_exec(register const Shnode_t *t, int flags)
 						flgs |= NV_IDENT;
 					else
 						flgs |= NV_VARNAME;
-					nv_setlist(argp,flgs,tp);
+					/* execute the list of assignments */
+					if((!np || nv_isattr(np,BLT_SPC)) && !command)
+					{
+						/* bare assignment(s) or special builtin, and no 'command' prefix: exit on error */
+						nv_setlist(argp,flgs,tp);
+					}
+					else
+					{
+						/* avoid exit on error from nv_setlist, e.g. read-only variable */
+						struct checkpt *chkp = (struct checkpt*)stakalloc(sizeof(struct checkpt));
+						sh_pushcontext(shp,chkp,SH_JMPCMD);
+						jmpval = sigsetjmp(chkp->buff,1);
+						if(!jmpval)
+							nv_setlist(argp,flgs,tp);
+						sh_popcontext(shp,chkp);
+						if(jmpval)	/* error occurred */
+							goto setexit;
+					}
 					if(np==shp->typeinit)
 						shp->typeinit = 0;
 					shp->envlist = argp;

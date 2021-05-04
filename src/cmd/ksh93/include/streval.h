@@ -76,6 +76,7 @@ struct lval
 	const char	*expr;
 	const  void	*ptr;
 	int		nosub;
+	char		*sub;
 	short		flag;
 	short		nargs;
 	short		emode;

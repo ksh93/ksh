@@ -172,6 +172,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	node.elen = ep->elen;
 	node.value = 0;
 	node.nosub = 0;
+	node.sub = 0;
 	node.ptr = 0;
 	node.eflag = 0;
 	if(shp->arithrecursion++ >= MAXLEVEL)

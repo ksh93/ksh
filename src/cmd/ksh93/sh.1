@@ -5921,13 +5921,6 @@ executing the command as a regular built-in.
 .I "option-name"
 prevents a script from terminating when an invalid
 option name is given.)
-If
-.I name\^
-refers to a declaration built-in,
-as marked with \fB\(dd\fR in this manual,
-and the \fBposix\fR shell option is on,
-then the declaration properties are removed so that arguments containing
-\fB=\fR are not treated specially.
 .IP
 The
 .B \-p
@@ -7256,9 +7249,6 @@ disables the \fB&>\fR redirection shorthand;
 .IP \[bu]
 makes the \fB<>\fR redirection operator default to redirecting standard input
 if no file descriptor number precedes it;
-.IP \[bu]
-causes the \fBcommand\fR utility to disable declaration command properties of
-any declaration commands it invokes;
 and
 .IP \[bu]
 disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to

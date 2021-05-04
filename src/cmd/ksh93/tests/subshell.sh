@@ -477,9 +477,14 @@ then	EXP=$(printf %q "$exp")
 	err_exit "'$cmd' failed -- expected $EXP, got $GOT"
 fi
 
-(
-$SHELL -c 'sleep 20 & pid=$!; { x=$( ( seq 60000 ) );kill -9 $pid;}&;wait $pid'
-) 2> /dev/null
+("$SHELL" -c '
+	sleep 20 & pid=$!
+	{
+		x=$( ( "$SHELL" -c "integer i; for((i=1;i<=60000;i++)); do print \$i; done" ) )
+		kill -9 $pid
+	} &
+	wait $pid
+') 2> /dev/null
 (( $? )) ||  err_exit 'nested command substitution with large output hangs'
 
 (.sh.foo=foobar)

@@ -824,9 +824,9 @@ got=$(umask 777; set +x; { cat <(echo ok); } 2>&1)
 # ======
 # https://github.com/att/ast/issues/1336
 # Use the /proc pseudo filesystem on Linux as a convenient way to force a write I/O error.
-if [[ $(uname) == Linux ]]
+if [[ -e /proc/self/mem && $(uname) == Linux ]]
 then
-	actual=$($SHELL -c 'echo > /proc/self/uid_map; echo okay' 2>&1)
+	actual=$(LC_ALL=C "$SHELL" -c 'echo > /proc/self/mem; echo okay' 2>&1)
 	expect='write.*failed.*okay'
 	[[ "$actual" =~ $expect ]] || err_exit "I/O failure not handled" \
 		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
