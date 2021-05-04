@@ -1443,7 +1443,7 @@ static void getline(register Vi_t* vp,register int mode)
 
 		case cntl('G'):
 			if(mode!=SEARCH)
-				break;
+				goto fallback;
 			/* FALLTHRU */
 		case UINTR:
 				first_virt = 0;
@@ -1564,6 +1564,7 @@ static void getline(register Vi_t* vp,register int mode)
 			}
 			/* FALLTHROUGH */
 		default:
+		fallback:
 			if( mode == REPLACE )
 			{
 				if( cur_virt < last_virt )
