@@ -1151,16 +1151,20 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 					ed_ungetchar(ep->ed,cntl('A'));
 					return(-1);
 				}
-				else if(ch == ';' && ed_getchar(ep->ed,1) == '5')
+				else if(i == '1' && ch == ';')
 				{
-					switch(ed_getchar(ep->ed,1))
+					ch = ed_getchar(ep->ed,1);
+					if(ch == '3' || ch == '5') /* 3 == Alt, 5 == Ctrl */
 					{
-					    case 'D': /* Ctrl-Left arrow (go back one word) */
-						ch = 'b';
-						goto backward;
-					    case 'C': /* Ctrl-Right arrow (go forward one word) */
-						ch = 'f';
-						goto forward;
+						switch(ed_getchar(ep->ed,1))
+						{
+						    case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
+							ch = 'b';
+							goto backward;
+						    case 'C': /* Ctrl/Alt-Right arrow (go forward one word) */
+							ch = 'f';
+							goto forward;
+						}
 					}
 				}
 				ed_ungetchar(ep->ed,i);

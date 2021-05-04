@@ -24,7 +24,9 @@ Intended result
     * Support for Home key sequences `^[[1~` and `^[[7~`
     * Support for End key sequences `^[[4~` and `^[[8~`
     * Ctrl+Left Arrow:	Go back one word
+    * Alt+Left Arrow:	Go back one word
     * Ctrl+Right Arrow:	Go forward one word
+    * Alt+Right Arrow:	Go forward one word
     * Ctrl+G:		End reverse search
   * These keybinds are added just to emacs mode:  
     * Ctrl+Delete:	Delete next word
