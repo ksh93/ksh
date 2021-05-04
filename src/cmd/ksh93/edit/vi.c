@@ -1672,16 +1672,20 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed,'0');
 				return(1);
 			}
-			else if( bound==';' && ed_getchar(vp->ed,-1)=='5' )
+			else if(motion=='1' && bound==';')
 			{
-				switch(ed_getchar(vp->ed,-1))
+				bound = ed_getchar(vp->ed,-1);
+				if(bound == '3' || bound == '5') /* 3 == Alt, 5 == Ctrl */
 				{
-					case 'D': /* Ctrl-Left arrow (go back one word) */
-						ed_ungetchar(vp->ed, 'b');
-						return(1);
-					case 'C': /* Ctrl-Right arrow (go forward one word) */
-						ed_ungetchar(vp->ed, 'w');
-						return(1);
+					switch(ed_getchar(vp->ed,-1))
+					{
+						case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
+							ed_ungetchar(vp->ed, 'b');
+							return(1);
+						case 'C': /* Ctrl/Alt-Right arrow (go forward one word) */
+							ed_ungetchar(vp->ed, 'w');
+							return(1);
+					}
 				}
 			}
 			ed_ungetchar(vp->ed,motion);
