@@ -2013,6 +2013,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					_sh_fork(shp,pid,0,0);
 				if(pid==0)
 				{
+					shgd->current_pid = getpid();
 					sh_reseed_rand((struct rand*)RANDNOD->nvfun);
 					shgd->realsubshell++;
 					sh_exec(t->par.partre,flags);

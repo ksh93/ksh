@@ -850,4 +850,29 @@ got=$(
 [[ $got == *recursion* ]] && err_exit "recursion level not reset on readonly error (subshell)"
 
 # ======
+# Some math function tests and only error if function exits
+unset got
+got=0
+if ( (( exp10(3) )) ) 2> /dev/null
+then
+	(( (got=exp10(3)) == 1000 )) ||  err_exit "exp10(3) != 1000, got '$got'"
+fi
+got=0
+if ( (( int(6.89) )) ) 2> /dev/null
+then
+	(( (got=int(6.89)) == 6 )) ||  err_exit "int(6.89) != 6, got '$got'"
+fi
+got=0
+if ( (( int(-6.89) )) ) 2> /dev/null
+then
+	(( (got=int(-6.89)) == -6 )) ||  err_exit "int(-6.89) != -6, got '$got'"
+fi
+float got=-1
+if ( (( float(2./3) )) ) 2> /dev/null
+then
+	(( (got=float(2./3)) == 2./3 )) ||  err_exit "float(2./3) != 2./3, got '$got'"
+fi
+unset got
+
+# ======
 exit $((Errors<125?Errors:125))

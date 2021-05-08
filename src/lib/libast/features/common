@@ -24,8 +24,10 @@ tst	ptr_void note{ standard C void* ok }end compile{
 }end
 
 cat{
+	#pragma clang diagnostic ignored "-Wdeprecated-register"
 	#pragma clang diagnostic ignored "-Wmacro-redefined"
 	#pragma clang diagnostic ignored "-Wparentheses"
+	#pragma clang diagnostic ignored "-Wstring-plus-int"
 	#pragma clang diagnostic ignored "-Wunused-value"
 
 	/* disable non-standard linux/gnu inlines */

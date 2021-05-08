@@ -4,6 +4,7 @@
  * coded for portability
  * _SEAR_* macros for win32 self extracting archives -- see sear(1).
  */
+#pragma clang diagnostic ignored "-Wdeprecated-register"
 #pragma clang diagnostic ignored "-Wparentheses"
 
 static char id[] = "\n@(#)$Id: ratz (Jean-loup Gailly, Mark Adler, Glenn Fowler) 1.2.3 2010-10-10 $\0\n";

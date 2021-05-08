@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #               This software is part of the ast package               #
-#          Copyright (c) 1982-2012 AT&T Intellectual Property          #
+#          Copyright (c) 1982-2013 AT&T Intellectual Property          #
 #          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
@@ -21,7 +21,7 @@
 : generate the ksh math builtin table
 : include math.tab
 
-# @(#)math.sh (AT&T Research) 2012-06-13
+# @(#)math.sh (AT&T Research) 2013-08-11
 
 case $ZSH_VERSION in
 ?*)	emulate ksh ;;
@@ -164,6 +164,10 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name} r='$'TYPE_${name} a='$'ARGS_${name}
 	x)	L=Sfdouble_t R=4 ;;
 	*)	L=Sfdouble_t R=0 ;;
 	esac
+	# some identifiers can't be functions in C but can in ksh #
+	case $name in
+	float|int)	x=0 y=1 ;;
+	esac
 	F=local_$name
 	case $x:$y in
 	1:*)	f=${name}l
@@ -172,7 +176,10 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name} r='$'TYPE_${name} a='$'ARGS_${name}
 		;;
 	*:1)	f=${name}
 		t=double
-		local=$_typ_long_double
+		case $name in
+		float|int)	local=1 ;;
+		*)		local=$_typ_long_double ;;
+		esac
 		;;
 	*)	body=
 		for k in $aka
@@ -298,7 +305,15 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name} r='$'TYPE_${name} a='$'ARGS_${name}
 			esac
 			sep=","
 		done
-		code="$code){return $f($args);}"
+		code="$code)"
+
+		# catch functions not in the math lib here #
+
+		case $f in
+		float)	code="$code{return $args;}" ;;
+		int)	code="$code{return ($args < LDBL_LLONG_MIN || $args > LDBL_ULLONG_MAX) ? (Sfdouble_t)0 : ($args < 0) ? (Sfdouble_t)((Sflong_t)$args) : (Sfdouble_t)((Sfulong_t)$args);}" ;;
+		*)	code="$code{return $f($args);}" ;;
+		esac
 		echo "$code"
 		f=local_$f
 		;;

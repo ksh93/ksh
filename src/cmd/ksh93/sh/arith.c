@@ -234,10 +234,13 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 	    case ASSIGN:
 	    {
 		register Namval_t *np;
-		if (lvalue->nosub > 0 && lvalue->sub) /* indexed array ARITH_ASSIGNOP */
+		if (lvalue->sub && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
 		{
 			np = (Namval_t*)lvalue->sub; /* use saved subscript reference instead of last worked value */
 			nv_putsub(np, NIL(char*), lvalue->nosub-1);
+			/* reset nosub and sub for next assignment in a compound arithmetic expression */
+			lvalue->nosub = 0;
+			lvalue->sub = 0;
 		}
 		else
 		{

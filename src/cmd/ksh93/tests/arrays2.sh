@@ -256,6 +256,9 @@ ini() { unset arr; typeset -a arr=((10 20) 6 8); }
 [[ $( ini; ((arr[2]+=arr[0][0])); typeset -p arr) == 'typeset -a arr=((10 20) 6 18)' ]] || err_exit 'ASSIGNOP: arr[2]+=arr[0][0] failed.'
 [[ $( ini; ((arr[2]+=arr[0][1])); typeset -p arr) == 'typeset -a arr=((10 20) 6 28)' ]] || err_exit 'ASSIGNOP: arr[2]+=arr[0][1] failed.'
 [[ $( ini; ((arr[3]+=arr[0][1])); typeset -p arr) == 'typeset -a arr=((10 20) 6 8 20)' ]] || err_exit 'ASSIGNOP: arr[2]+=arr[0][1] failed.'
+[[ $( ini; ((arr[0][1]+=arr[1]+13, arr[2]=42)); typeset -p arr) == 'typeset -a arr=((10 39) 6 42)' ]] || err_exit 'ASSIGNOPs: (_+=,_=_) failed.'
+[[ $( ini; (( (arr[0][1]*=arr[2]) ? arr[0][1]+=arr[1] : arr[1]=7)); typeset -p arr) == 'typeset -a arr=((10 166) 6 8)' ]] || err_exit 'ASSIGNOPs: (_*=_)?_:_ true failed.'
+[[ $( ini; (( (arr[0][2]*=arr[2]) ? arr[0][1]+=arr[1] : arr[1]=7)); typeset -p arr) == 'typeset -a arr=((10 20 0) 7 8)' ]] || err_exit 'ASSIGNOPs: (_*=_)?_:_ false failed.'
 unset arr
 unset -f ini
 

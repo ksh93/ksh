@@ -21,8 +21,6 @@
 *                                                                      *
 ***********************************************************************/
 #pragma prototyped
-#pragma clang diagnostic ignored "-Wparentheses"
-#pragma clang diagnostic ignored "-Wstring-plus-int"
 
 /*
  * Advanced Software Technology Library
