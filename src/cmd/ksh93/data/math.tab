@@ -1,6 +1,27 @@
+########################################################################
+#                                                                      #
+#               This software is part of the ast package               #
+#          Copyright (c) 1982-2013 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#                      and is licensed under the                       #
+#                 Eclipse Public License, Version 1.0                  #
+#                    by AT&T Intellectual Property                     #
+#                                                                      #
+#                A copy of the License is available at                 #
+#          http://www.eclipse.org/org/documents/epl-v10.html           #
+#         (with md5 checksum b35adb5213ca9657e911e9befb180842)         #
+#                                                                      #
+#              Information and Software Systems Research               #
+#                            AT&T Research                             #
+#                           Florham Park NJ                            #
+#                                                                      #
+#                  David Korn <dgk@research.att.com>                   #
+#                                                                      #
+########################################################################
+
 # <return type: i:integer f:floating-point> <#floating-point-args> <function-name> [<alias> ...]
 # <function-name>l variants are handled by features/math.sh
-# @(#)math.tab (AT&T Research) 2010-10-26
+# @(#)math.tab (AT&T Research) 2013-08-11
 f 1 acos
 f 1 acosh
 f 1 asin
@@ -17,11 +38,13 @@ f 1 erf
 f 1 erfc
 f 1 exp
 f 1 exp2
+f 1 exp10
 f 1 expm1
 f 1 fabs abs
 f 2 fdim
 f 1 finite
-f 1 floor int
+f 1 float
+f 1 floor
 f 3 fma
 f 2 fmax
 f 2 fmin
@@ -30,6 +53,7 @@ i 1 fpclassify
 i 1 fpclass
 f 2 hypot
 i 1 ilogb
+f 1 int
 i 1 isfinite
 i 2 isgreater
 i 2 isgreaterequal

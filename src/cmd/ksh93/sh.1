@@ -2973,8 +2973,8 @@ can be used within an arithmetic expression:
 .PP
 .if t .RS
 .B
-.if n abs acos acosh asin asinh atan atan2 atanh cbrt ceil copysign cos cosh erf erfc exp exp2 expm1 fabs fpclassify fdim finite floor fma fmax fmin fmod hypot ilogb int isfinite sinf isnan isnormal issubnormal issubordered iszero j0 j1 jn lgamma log log10 log2 logb nearbyint nextafter nexttoward pow remainder rint round scanb signbit sin sinh sqrt tan tanh tgamma trunc y0 y1 yn
-.if t abs   acos   acosh   asin   asinh   atan   atan2   atanh   cbrt   ceil copysign   cos   cosh   erf  erfc   exp   exp2   expm1   fabs   fpclassify fdim   finite   floor  fma   fmax   fmod   j0      j1      jn      hypot   ilogb   int   isfinite   isinf   isnan   isnormal  issubnormal   issubordered   iszero lgamma   log   log10 log2   logb   nearbyint   nextafter   nexttoward  pow   rint   round   scalb   signbit sin   sinh   sqrt   tan   tanh   tgamma   trunc   y0      y1      yn
+.if n abs acos acosh asin asinh atan atan2 atanh cbrt ceil copysign cos cosh erf erfc exp exp10 exp2 expm1 fabs fdim finite float floor fma fmax fmin fmod fpclass fpclassify hypot ilogb int isfinite isgreater isgreaterequal isinf isinfinite isless islessequal islessgreater isnan isnormal issubnormal isunordered iszero j0 j1 jn ldexp lgamma log log10 log1p log2 logb nearbyint nextafter nexttoward pow remainder rint round scalb scalbn signbit sin sinh sqrt tan tanh tgamma trunc y0 y1 yn
+.if t abs   acos   acosh   asin   asinh   atan   atan2   atanh   cbrt   ceil   copysign   cos   cosh   erf   erfc   exp   exp10   exp2   expm1   fabs   fdim   finite   float   floor   fma   fmax   fmin   fmod   fpclass   fpclassify   hypot   ilogb   int   isfinite   isgreater   isgreaterequal   isinf   isinfinite   isless   islessequal   islessgreater   isnan   isnormal   issubnormal   isunordered   iszero   j0   j1   jn   ldexp   lgamma   log   log10   log1p   log2   logb   nearbyint   nextafter   nexttoward   pow   remainder   rint   round   scalb   scalbn   signbit   sin   sinh   sqrt   tan   tanh   tgamma   trunc   y0   y1   yn
 .if t .RE
 
 In addition, arithmetic functions can be defined as shell functions with a
@@ -5913,13 +5913,6 @@ executing the command as a regular built-in.
 .I "option-name"
 prevents a script from terminating when an invalid
 option name is given.)
-If
-.I name\^
-refers to a declaration built-in,
-as marked with \fB\(dd\fR in this manual,
-and the \fBposix\fR shell option is on,
-then the declaration properties are removed so that arguments containing
-\fB=\fR are not treated specially.
 .IP
 The
 .B \-p
@@ -7246,9 +7239,6 @@ disables the \fB&>\fR redirection shorthand;
 .IP \[bu]
 makes the \fB<>\fR redirection operator default to redirecting standard input
 if no file descriptor number precedes it;
-.IP \[bu]
-causes the \fBcommand\fR utility to disable declaration command properties of
-any declaration commands it invokes;
 and
 .IP \[bu]
 disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to

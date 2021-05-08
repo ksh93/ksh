@@ -267,10 +267,13 @@ x2=.000000001
 if	[[ $(printf "%g\n" x2 2>/dev/null) != 1e-09 ]]
 then	err_exit 'printf "%g" not working correctly'
 fi
-#FIXME#($SHELL read -s foobar <<\!
-#FIXME#testing
-#FIXME#!
-#FIXME#) 2> /dev/null || err_exit ksh read -s var fails
+
+(read -s foobar <<<testing_read_s) 2> /dev/null || err_exit "'read -s var' fails"
+exp=$'^[[:digit:]]+\ttesting_read_s$'
+got=$(fc -l -0)
+[[ $got =~ $exp ]] || err_exit "'read -s' did not write to history file" \
+	"(expected match of regex $(printf %q "$exp"), got $(printf %q "$got"))"
+
 if	[[ $(printf +3 2>/dev/null) !=   +3 ]]
 then	err_exit 'printf is not processing formats beginning with + correctly'
 fi
@@ -768,8 +771,23 @@ printf '\\\000' | read -r -d ''
 
 # ======
 # BUG_CMDSPASGN: Preceding a special builtin with 'command' should disable its special properties.
-foo=BUG command eval ':'
-[[ $foo == BUG ]] && err_exit "'command' fails to disable the special properties of special builtins"
+# Test that assignments preceding 'command' are local.
+for arg in '' -v -V -p -x
+do
+	for cmd in '' : true ls eval 'eval :' 'eval true' 'eval ls'
+	do
+		[[ $arg == -x ]] && ! command -xv "${cmd% *}" >/dev/null && continue
+		unset foo
+		eval "foo=BUG command $arg $cmd" >/dev/null 2>&1
+		got=$?
+		case $arg,$cmd in
+		-v, | -V, )	exp=2 ;;
+		*)		exp=0 ;;
+		esac
+		[[ $got == "$exp" ]] || err_exit "exit status of 'command $arg $cmd' is $got, expected $exp"
+		[[ -v foo ]] && err_exit "preceding assignment survives 'command $arg $cmd'"
+	done
+done
 
 # Regression that occurred after fixing the bug above: the += operator didn't work correctly.
 # https://www.mail-archive.com/ast-users@lists.research.att.com/msg00369.html
@@ -1244,6 +1262,31 @@ got=$("$SHELL" -c 'cd /; echo "$OLDPWD"' 2>&1)
 [[ $got == "$exp" ]] || err_exit "OLDPWD not correct after cd'ing from a nonexistent PWD" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 cd "$tmp"
+
+# ======
+# BUG_CMDSPEXIT
+exp='ok1ok2ok3ok4ok5ok6ok7ok8ok9ok10ok11ok12end'
+got=$(	readonly v=foo
+	exec 2>/dev/null
+	# All the "special builtins" below should fail, and not exit, so 'print end' is reached.
+	# Ref.: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html
+	# Left out are 'command exec /dev/null/nonexistent', where no shell follows the standard,
+	# as well as 'command exit' and 'command return', because, well, obviously.
+	command : </dev/null/no		|| print -n ok1
+	command . /dev/null/no		|| print -n ok2
+	command set +o bad@option	|| print -n ok3
+	command shift $(($# + 1))	|| print -n ok4
+	(unalias times; PATH=/dev/null; eval 'command times foo bar >/dev/null || print -n ok5')
+	command trap foo bar baz quux	|| print -n ok6
+	command unset v			|| print -n ok7
+	command eval "("		|| print -n ok8
+	command export v=baz		|| print -n ok9
+	command readonly v=bar		|| print -n ok10
+	command break			&& print -n ok11  # 'break' and 'continue' are POSIXly allowed to quietly...
+	command continue		&& print -n ok12  # ..."succeed" if they are used outside of a loop :-/
+	print end)
+[[ $got == "$exp" ]] || err_exit "prefixing special builtin with 'command' does not stop it from exiting the shell on error" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -858,5 +858,39 @@ w test \$\{.sh.level\t
 r ^:test-1: test \$\{.sh.level\}\r\n$
 !
 
+# err_exit #
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
+L tab completion executes command substitutions
+# https://github.com/ksh93/ksh/issues/268
+
+d 15
+p :test-1:
+w $(echo true)\t
+r ^:test-1: \$\(echo true\)\r\n$
+p :test-2:
+w `echo true`\t
+r ^:test-2: `echo true`\r\n$
+!
+
+# err_exit #
+((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"
+L emacs: keys with repeat parameters repeat extra steps
+# https://github.com/ksh93/ksh/issues/292
+
+d 15
+p :test-1:
+w : foo bar delete add\1\6\6\E3\Ed
+r ^:test-1: :  add\r\n$
+p :test-2:
+w : foo bar delete add\E3\Eh
+r ^:test-2: : foo \r\n$
+p :test-3:
+w : test_string\1\6\6\E3\E[3~
+r ^:test-3: : t_string\r\n$
+p :test-4:
+w : test_string\1\E6\E[C\4
+r ^:test-4: : teststring\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

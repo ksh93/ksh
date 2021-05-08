@@ -60,9 +60,20 @@ rand2=$($SHELL -c 'RANDOM=1; (echo $RANDOM)')
 # $RANDOM should be reseeded for the ( simple_command & ) optimization
 ( echo $RANDOM & ) >r1
 ( echo $RANDOM & ) >r2
-sleep .01
-(( $(<r1) == $(<r2) )) && err_exit "Test 4: \$RANDOM seed in ( simple_command & ) doesn't change" \
-	"(both results are $(<r1))"
+integer giveup=0
+trap '((giveup++))' USR1
+(sleep 2; kill -s USR1 $$) &
+while	[[ ! -s r1 || ! -s r2 ]]
+do	((giveup)) && break
+done
+if	((giveup))
+then	err_exit "Test 4: ( echo $RANDOM & ) does not write output"
+else	[[ $(<r1) == "$(<r2)" ]] && err_exit "Test 4: \$RANDOM seed in ( simple_command & ) doesn't change" \
+		"(both results are $(printf %q "$(<r1)"))"
+fi
+kill $! 2>/dev/null
+trap - USR1
+unset giveup
 # Virtual subshells should not influence the parent shell's RANDOM sequence
 RANDOM=456
 exp="$RANDOM $RANDOM $RANDOM $RANDOM $RANDOM"
@@ -1243,7 +1254,7 @@ Hi, I'm still a function! On line 6, my \$LINENO is 6
 ./lineno_autoload: line 9: \${bad\subst\in\main\script\on\line\9}: bad substitution
 end: main script \$LINENO == 10"
 
-got=$(FPATH=$tmp "$SHELL" ./lineno_autoload 2>&1)
+got=$(set +x; FPATH=$tmp "$SHELL" ./lineno_autoload 2>&1)
 [[ $got == "$exp" ]] || err_exit 'Regression in $LINENO and/or error messages.' \
 	$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /')"
 

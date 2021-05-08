@@ -241,4 +241,26 @@ EOF
 $SHELL "$multiarray_unset" > /dev/null || err_exit 'Multidimensional arrays with an unset method crash ksh'
 
 # ======
+# Multidimensional indexed array arithmetic assignment operation tests
+ini() { unset arr; typeset -a arr=((10 20) 6 8); }
+[[ $( ini; ((arr[0][0]+=1)); typeset -p arr) == 'typeset -a arr=((11 20) 6 8)' ]] || err_exit 'ASSIGNOP: arr[0][0]+=1 failed.'
+[[ $( ini; ((arr[0][1]+=1)); typeset -p arr) == 'typeset -a arr=((10 21) 6 8)' ]] || err_exit 'ASSIGNOP: arr[0][1]+=1 failed.'
+[[ $( ini; ((arr[0][2]+=1)); typeset -p arr) == 'typeset -a arr=((10 20 1) 6 8)' ]] || err_exit 'ASSIGNOP: arr[0][2]+=1 failed.'
+[[ $( ini; ((arr[0][1]+=arr[1])); typeset -p arr) == 'typeset -a arr=((10 26) 6 8)' ]] || err_exit 'ASSIGNOP: arr[0][1]+=arr[1] failed.'
+[[ $( ini; ((arr[0][2]+=arr[1])); typeset -p arr) == 'typeset -a arr=((10 20 6) 6 8)' ]] || err_exit 'ASSIGNOP: arr[0][2]+=arr[1] failed.'
+[[ $( ini; ((arr[1]+=1)); typeset -p arr) == 'typeset -a arr=((10 20) 7 8)' ]] || err_exit 'ASSIGNOP: arr[1]+=1 failed.'
+[[ $( ini; ((arr[2]+=1)); typeset -p arr) == 'typeset -a arr=((10 20) 6 9)' ]] || err_exit 'ASSIGNOP: arr[2]+=1 failed.'
+[[ $( ini; ((arr[3]+=1)); typeset -p arr) == 'typeset -a arr=((10 20) 6 8 1)' ]] || err_exit 'ASSIGNOP: arr[3]+=1 failed.'
+[[ $( ini; ((arr[1]+=arr[0][0])); typeset -p arr) == 'typeset -a arr=((10 20) 16 8)' ]] || err_exit 'ASSIGNOP: arr[1]+=arr[0][0] failed.'
+[[ $( ini; ((arr[1]+=arr[0][1])); typeset -p arr) == 'typeset -a arr=((10 20) 26 8)' ]] || err_exit 'ASSIGNOP: arr[1]+=arr[0][1] failed.'
+[[ $( ini; ((arr[2]+=arr[0][0])); typeset -p arr) == 'typeset -a arr=((10 20) 6 18)' ]] || err_exit 'ASSIGNOP: arr[2]+=arr[0][0] failed.'
+[[ $( ini; ((arr[2]+=arr[0][1])); typeset -p arr) == 'typeset -a arr=((10 20) 6 28)' ]] || err_exit 'ASSIGNOP: arr[2]+=arr[0][1] failed.'
+[[ $( ini; ((arr[3]+=arr[0][1])); typeset -p arr) == 'typeset -a arr=((10 20) 6 8 20)' ]] || err_exit 'ASSIGNOP: arr[2]+=arr[0][1] failed.'
+[[ $( ini; ((arr[0][1]+=arr[1]+13, arr[2]=42)); typeset -p arr) == 'typeset -a arr=((10 39) 6 42)' ]] || err_exit 'ASSIGNOPs: (_+=,_=_) failed.'
+[[ $( ini; (( (arr[0][1]*=arr[2]) ? arr[0][1]+=arr[1] : arr[1]=7)); typeset -p arr) == 'typeset -a arr=((10 166) 6 8)' ]] || err_exit 'ASSIGNOPs: (_*=_)?_:_ true failed.'
+[[ $( ini; (( (arr[0][2]*=arr[2]) ? arr[0][1]+=arr[1] : arr[1]=7)); typeset -p arr) == 'typeset -a arr=((10 20 0) 7 8)' ]] || err_exit 'ASSIGNOPs: (_*=_)?_:_ false failed.'
+unset arr
+unset -f ini
+
+# ======
 exit $((Errors<125?Errors:125))

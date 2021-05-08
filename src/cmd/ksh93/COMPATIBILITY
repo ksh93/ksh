@@ -138,9 +138,15 @@ For more details, see the NEWS file and for complete details, see the git log.
 	$RANDOM sequence in the parent environment. In addition, upon
 	invoking a subshell, $RANDOM is now reseeded (as mksh and bash do).
 
+26.	The built-in arithmetic function int() has changed to round towards
+	zero instead of negative infinity. Previously, int() was an alias to
+	floor(), but now it behaves like trunc().
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88
+
+(Written by David Korn for ksh 93u+ 2012-08-01)
 
 The following is a list of known incompatibilities between ksh-93 and ksh-88.
 I have not included cases that are clearly bugs in ksh-88.  I also have
@@ -230,6 +236,8 @@ omitted features that are completely upward compatible.
 19.	ksh-88 allowed unbalanced parentheses within ${name op val} whereas
 	ksh-93 does not.  Thus, ${foo-(} needs to be written as ${foo-\(}
 	which works with both versions.
+	[2021 UPDATE: This is now once again allowed in ksh 93u+m. Note that
+	balanced parentheses ${foo-()} were also broken and are now fixed.]
 
 20.     kill -l in ksh-93 lists only the signal names, not their numerical
 	values.
@@ -274,5 +282,6 @@ omitted features that are completely upward compatible.
 
 30.	In ksh-88, a redirection to a file name given by an empty string was
 	ignored.  In ksh-93, this is an error.
+
 I am interested in expanding this list so please let me know if you
 uncover any others.

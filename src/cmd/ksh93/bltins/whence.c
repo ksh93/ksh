@@ -85,20 +85,22 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
 		UNREACHABLE();
 	}
+	argv += opt_info.index;
 	if(argc==0)
 	{
-		if(flags & (X_FLAG|V_FLAG))
-			return(0);	/* return no offset now; sh_exec() will treat command -v/-V as normal builtin */
+		if((flags & (X_FLAG|V_FLAG)) || !*argv)
+			return(0);	/* return no offset now; sh_exec() will treat command -v/-V/(null) as normal builtin */
 		if(flags & P_FLAG)
 			sh_onstate(SH_XARG);
 		return(opt_info.index); /* offset for sh_exec() to remove 'command' prefix + options */
 	}
-	argv += opt_info.index;
-	if(error_info.errors || !*argv)
+	if(error_info.errors)
 	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage((char*)0));
 		UNREACHABLE();
 	}
+	if(!*argv)
+		return((flags & (X_FLAG|V_FLAG)) != 0 ? 2 : 0);
 	return(whence(shp,argv, flags));
 }
 

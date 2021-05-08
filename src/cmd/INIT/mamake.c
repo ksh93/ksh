@@ -19,6 +19,7 @@
 *                                                                      *
 ***********************************************************************/
 #pragma prototyped
+#pragma clang diagnostic ignored "-Wdeprecated-register"
 #pragma clang diagnostic ignored "-Wparentheses"
 
 /*

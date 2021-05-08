@@ -233,8 +233,20 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 	{
 	    case ASSIGN:
 	    {
-		register Namval_t *np = (Namval_t*)(lvalue->value);
-		np = scope(np,lvalue,1);
+		register Namval_t *np;
+		if (lvalue->sub && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
+		{
+			np = (Namval_t*)lvalue->sub; /* use saved subscript reference instead of last worked value */
+			nv_putsub(np, NIL(char*), lvalue->nosub-1);
+			/* reset nosub and sub for next assignment in a compound arithmetic expression */
+			lvalue->nosub = 0;
+			lvalue->sub = 0;
+		}
+		else
+		{
+			np = (Namval_t*)lvalue->value;
+			np = scope(np, lvalue, 1);
+		}
 		nv_putval(np, (char*)&n, NV_LDOUBLE);
 		if(lvalue->eflag)
 			lvalue->ptr = (void*)nv_hasdisc(np,&ENUM_disc);
@@ -494,7 +506,10 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		else if(nv_isattr(np,NV_DOUBLE)==NV_DOUBLE)
 			lvalue->isfloat=1;
 		if((lvalue->emode&ARITH_ASSIGNOP) && nv_isarray(np))
-			lvalue->nosub = nv_aindex(np)+1;
+		{
+			lvalue->nosub = nv_aindex(np)+1; /* subscript number of array */
+			lvalue->sub = (char*)np; /* store subscript reference for upcoming iteration of ASSIGN */
+		}
 		return(r);
 	    }
 

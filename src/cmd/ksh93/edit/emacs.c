@@ -324,7 +324,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			count = 1;
 		if(vt220_save_repeat>0)
 		{
-			count += vt220_save_repeat;
+			count = vt220_save_repeat;
 			vt220_save_repeat = 0;
 		}
 		adjust = -1;
@@ -623,6 +623,8 @@ update:
 			vt220_save_repeat = oadjust;
 		do_escape:
 			adjust = escape(ep,out,oadjust);
+			if(adjust > -1)
+				vt220_save_repeat = 0;
 			continue;
 		case cntl('R') :
 			search(ep,out,count);
