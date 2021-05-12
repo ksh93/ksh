@@ -81,10 +81,11 @@ do	[[ $locale == *[Jj][Ii][Ss] ]] || continue
 		# dangling final backslash (which is invalid) and return a nonzero exit status.
 		# Note that the byte sequence '\x95\x5c' represents a multibyte character U+8868,
 		# whereas '\x5c' is a backslash when interpreted as a single-byte character.
+		[[ $locale == *.[Ss][Jj][Ii][Ss] ]] || continue
 		printf "\x95\x$c\n" | read x || err_exit "'read' doesn't skip multibyte input correctly ($LC_ALL, \x95\x$c)"
 	done
 done
-unset LC_ALL
+unset LC_ALL chr
 
 # Test the effect of setting a locale, followed by setting a different locale
 # then setting the previous locale. The output from 'printf %T' should use

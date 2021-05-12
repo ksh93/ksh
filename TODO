@@ -1,7 +1,69 @@
-TODO for AT&T ksh93, 93u+m bugfix branch
+TODO for ksh 93u+m
 
 See the issue tracker:
 https://github.com/ksh93/ksh/issues
+
+Known bugs in ksh 93u+m 1.0.0-beta.1 (help is wanted to fix these):
+
+* Memory leak when initialising associative array in subshell
+  https://github.com/ksh93/ksh/issues/94
+
+* Command substitution botches output of non-waited-for child processes
+  https://github.com/ksh93/ksh/issues/124
+
+* Intermittent coprocess hang on Debian/Ubuntu and Solaris
+  https://github.com/ksh93/ksh/issues/132
+
+* Wrong typeset -p output after unsetting multidimensional array elements
+  https://github.com/ksh93/ksh/issues/148
+
+* File descriptor is unexpectedly closed after exec in subshell
+  https://github.com/ksh93/ksh/issues/161
+
+* printf %T date parsing: GNU-style "ago" date spec completely broken
+  https://github.com/ksh93/ksh/issues/182
+
+* typeset -L/-R: string length breaks on multibyte characters
+  https://github.com/ksh93/ksh/issues/189
+
+* Linux i386: variable expansion corruption in single-line function
+  https://github.com/ksh93/ksh/issues/203
+
+* Segfault with very large extended glob patterns
+  https://github.com/ksh93/ksh/issues/207
+
+* funcname.ksh crashes under standard malloc
+  https://github.com/ksh93/ksh/issues/212
+
+* process substitution cannot be part of a larger argument
+  https://github.com/ksh93/ksh/issues/215
+
+* Compound array regression on OpenBSD with standard malloc
+  https://github.com/ksh93/ksh/issues/229
+
+* 'typeset -m'-related crash on OpenBSD compiled with standard malloc
+  https://github.com/ksh93/ksh/issues/231
+
+* Freeze/crash on OpenBSD with -D_std_malloc involving typeset and command
+  substitution
+  https://github.com/ksh93/ksh/issues/264
+
+* Nested compound assignment misparsed in $(...) command substitution
+  https://github.com/ksh93/ksh/issues/269
+
+Enhancements to do:
+
+* Implement to-be-POSIX 'local' builtin
+  https://github.com/ksh93/ksh/issues/123
+
+* Add -T (-o functrace) option as in bash
+  https://github.com/ksh93/ksh/issues/162
+
+* Unicode code points in $'...' strings should vary according to the locale
+  https://github.com/ksh93/ksh/issues/193
+
+* Re-allow building dynamic libraries
+  https://github.com/ksh93/ksh/issues/302
 
 ______
 Fix regression test failures:
@@ -12,6 +74,9 @@ Fix regression test failures:
   is compiled with AST vmalloc disabled, so the system standard malloc(3)
   is used. These probably represent real ksh93 bugs exposed by OpenBSD's
   security hardening mechanisms.
+
+- Several known memory leaks have their tests disabled in tests/leaks.sh
+  and are marked TODO. These need tracking down and fixing.
 
 ______
 Fix currently known bugs affecting shell scripting. These are identified by
