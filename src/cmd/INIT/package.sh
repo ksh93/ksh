@@ -136,10 +136,12 @@ all_types='*.*|sun4'		# all but sun4 match *.*
 case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 0123)	USAGE=$'
 [-?
-@(#)$Id: package (AT&T Research) 2012-06-28 $
+@(#)$Id: package (ksh 93u+m) 2021-05-11 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
-[-copyright?Copyright (c) 1994-2012 AT&T Intellectual Property]
+[-author?Contributors to https://github.com/ksh93/ksh]
+[-copyright?(c) 1994-2012 AT&T Intellectual Property]
+[-copyright?(c) 2020-2021 Contributors to https://github.com/ksh93/ksh]
 [-license?http://www.eclipse.org/org/documents/epl-v10.html]
 [+NAME?package - source and binary package control]
 [+DESCRIPTION?The \bpackage\b command controls source and binary
@@ -609,8 +611,6 @@ ifs=${IFS-'
 lo=
 make=
 makeflags='-K'
-nmakeflags=
-nmakesep=
 nl="
 "
 noexec=
@@ -1642,17 +1642,6 @@ onpath() # command
 			return 0
 		fi
 	done
-	return 1
-}
-
-# true if no nmake or nmake not from AT&T or nmake too old
-
-nonmake() # nmake
-{
-	_nonmake_version=`( $1 -n -f - 'print $(MAKEVERSION:@/.*AT&T.* //:/-//G:@/.* .*/19960101/)' . ) </dev/null 2>/dev/null || echo 19840919`
-	if	test $_nonmake_version -lt 20001031
-	then	return 0
-	fi
 	return 1
 }
 
@@ -2715,8 +2704,7 @@ case $x in
 
 	OK=ok
 	KSH=$EXECROOT/bin/ksh
-	MAKE=nmake
-	NMAKE=$EXECROOT/bin/$MAKE
+	MAKE=mamake
 	SUM=$EXECROOT/bin/sum
 	TEE=$EXECROOT/bin/tee
 	INITROOT=$PACKAGEROOT/src/cmd/INIT
@@ -3106,7 +3094,7 @@ cat $INITROOT/$i.sh
 		$show export PATH
 		export PATH
 		;;
-	*)	for i in package proto nmake
+	*)	for i in package proto
 		do	if	onpath $i
 			then	EXECROOT=`echo $_onpath_ | sed -e 's,//*[^/]*//*[^/]*$,,'`
 				EXECTYPE=`echo $EXECROOT | sed -e 's,.*/,,'`
@@ -3143,8 +3131,7 @@ cat $INITROOT/$i.sh
 
 	OK=ok
 	KSH=$EXECROOT/bin/ksh
-	MAKE=nmake
-	NMAKE=$EXECROOT/bin/$MAKE
+	MAKE=mamake
 	SUM=$EXECROOT/bin/sum
 	TEE=$EXECROOT/bin/tee
 
@@ -3537,44 +3524,41 @@ int main(int argc, char** argv) { return argc || argv; }
 				echo "$command: $INITROOT: INIT package source not found" >&2
 				return 1
 			}
-			executable $INSTALLROOT/bin/nmake || {
-				# check for prototyping cc
-				# NOTE: proto.c must be K&R compatible
 
-				$CC -c $INITROOT/p.c >/dev/null 2>&1
-				c=$?
-				rm -f p.*
-				test 0 != "$c" && {
-					checkaout proto || return
-					PROTOROOT=$PACKAGEROOT/proto
-					$show PROTOROOT=$PACKAGEROOT/proto
-					export PROTOROOT
-					INITPROTO=$PROTOROOT/src/cmd/INIT
-					note proto convert $PACKAGEROOT/src into $PROTOROOT/src
-					if	test -d $PACKAGEROOT/src/cmd/nmake
-					then	dirs="src/cmd/INIT src/lib/libast src/lib/libardir  src/lib/libpp src/cmd/probe src/cmd/cpp src/cmd/nmake"
-					else	dirs="src"
+			# check for prototyping cc
+			# NOTE: proto.c must be K&R compatible
+
+			$CC -c $INITROOT/p.c >/dev/null 2>&1
+			c=$?
+			rm -f p.*
+			test 0 != "$c" && {
+				checkaout proto || return
+				PROTOROOT=$PACKAGEROOT/proto
+				$show PROTOROOT=$PACKAGEROOT/proto
+				export PROTOROOT
+				INITPROTO=$PROTOROOT/src/cmd/INIT
+				note proto convert $PACKAGEROOT/src into $PROTOROOT/src
+				dirs="src"
+				(
+					if	test -f $PROTOROOT/UPDATE
+					then	newer="-newer $PROTOROOT/UPDATE"
+					else	newer=""
 					fi
-					(
-						if	test -f $PROTOROOT/UPDATE
-						then	newer="-newer $PROTOROOT/UPDATE"
-						else	newer=""
-						fi
-						case $exec in
-						'')	cd $PACKAGEROOT
-							find $dirs -name '*.[CcHh]' $newer -print | proto -v -L - -C proto
-							;;
-						*)	$exec cd $PACKAGEROOT
-							$exec "find $dirs -name '*.[CcHh]' $newer -print | proto -L - -C proto"
-							;;
-						esac
-						$exec touch $PROTOROOT/UPDATE
-					)
-					VPATH=$INSTALLROOT:$PROTOROOT:$PACKAGEROOT$USER_VPATH
-					$show VPATH=$VPATH
-					export VPATH
-				}
+					case $exec in
+					'')	cd $PACKAGEROOT
+						find $dirs -name '*.[CcHh]' $newer -print | proto -v -L - -C proto
+						;;
+					*)	$exec cd $PACKAGEROOT
+						$exec "find $dirs -name '*.[CcHh]' $newer -print | proto -L - -C proto"
+						;;
+					esac
+					$exec touch $PROTOROOT/UPDATE
+				)
+				VPATH=$INSTALLROOT:$PROTOROOT:$PACKAGEROOT$USER_VPATH
+				$show VPATH=$VPATH
+				export VPATH
 			}
+
 			for i in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
 			do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || return
 			done
@@ -5925,10 +5909,7 @@ cat $j $k
 	*-*)	a=
 		for t in $target
 		do	case $t in
-			-[eiknFKNV]*|--*-symbols)
-				makeflags="$makeflags $t"
-				;;
-			-*)	nmakeflags="$nmakeflags $t"
+			-*)	makeflags="$makeflags $t"
 				;;
 			*)	a="$a $t"
 				;;
@@ -5937,76 +5918,6 @@ cat $j $k
 		target=$a
 		;;
 	esac
-
-	# generate nmake first if possible
-
-	if	executable ! $NMAKE && test -d $PACKAGEROOT/src/cmd/nmake
-	then	if	nonmake $MAKE
-		then	note make $NMAKE with mamake
-			c=$CC
-			a=$assign
-			case $HOSTTYPE in
-			win32*|cygwin*)
-				CC="$CC -D_BLD_STATIC"
-				accept="libast"
-				case $assign in
-				*' CC='*)	;;
-				*)		assign="$assign CC=\"\$CC\"" ;;
-				esac
-				;;
-			*)	accept=nmake
-				;;
-			esac
-			eval capture mamake \$makeflags \$nmakeflags \$noexec install nmake $assign
-			assign=$a
-			CC=$c
-			case $make$noexec in
-			'')	if	executable ! $NMAKE
-				then	echo "$command: $action: errors making $NMAKE" >&2
-					exit 1
-				fi
-				;;
-			*)	make=echo
-				;;
-			esac
-			if	test '' != "$PROTOROOT"
-			then	VPATH=$INSTALLROOT:$PACKAGEROOT$USER_VPATH
-				$show VPATH=$VPATH
-				export VPATH
-			fi
-			note believe generated files for $accept
-			eval capture \$NMAKE \$makeflags \$nmakeflags \$noexec recurse believe \$nmakesep $accept $assign
-			$exec touch $INSTALLROOT/bin/.paths
-			note make the remaining targets with $NMAKE
-		else	eval capture $MAKE \$makeflags \$nmakeflags \$noexec install nmake $assign
-			case $make$noexec in
-			'')	if	executable ! $NMAKE
-				then	echo "$command: $action: errors making $NMAKE" >&2
-					exit 1
-				fi
-				;;
-			*)	make=echo
-				;;
-			esac
-		fi
-	fi
-
-	# generate ksh next if possible
-
-	if	nonmake $MAKE
-	then	: no need to generate ksh next -- it could be the only package
-	elif	test "$KEEP_SHELL" != 1 -a -d $PACKAGEROOT/src/cmd/ksh93 && executable ! $KSH
-	then	eval capture nmake $nmakeflags \$makeflags \$noexec install ksh93 $assign
-		case $make$noexec in
-		'')	if	executable ! $KSH
-			then	echo "$command: $action: errors making $KSH" >&2
-				exit 1
-			fi
-			;;
-		*)	make=echo
-			;;
-		esac
-	fi
 
 	# mamprobe data should have been generated by this point
 
@@ -6082,7 +5993,7 @@ cat $j $k
 		;;
 	esac
 
-	# run from separate copies since nmake and ksh may be rebuilt
+	# run from separate copies since ksh may be rebuilt
 
 	case $EXECROOT in
 	$INSTALLROOT)
@@ -6100,7 +6011,7 @@ cat $j $k
 		else	rm=rm
 		fi
 		for i in \
-			ksh nmake tee cp ln mv rm \
+			ksh tee cp ln mv rm \
 			*ast*.dll *cmd*.dll *dll*.dll *shell*.dll
 		do	executable $i && {
 				cmp -s $i $OK/$i 2>/dev/null || {
@@ -6110,7 +6021,7 @@ cat $j $k
 					$exec $execrate $mv $OK/$i $OK/$i.old </dev/null
 					test -f $OK/$i &&
 					case $exec:$i in
-					:nmake|:ksh)
+					:ksh)
 						echo "$command: $OK/$i: cannot update [may be in use by a running process] remove manually and try again" >&2
 						exit 1
 						;;
@@ -6123,9 +6034,6 @@ cat $j $k
 		then	cmp -s ../lib/make/makerules.mo $OK/lib/makerules.mo ||
 			$exec $execrate $cp -p ../lib/make/makerules.mo $OK/lib/makerules.mo ||
 			$exec $execrate $cp ../lib/make/makerules.mo $OK/lib/makerules.mo
-		fi
-		if	executable $OK/nmake
-		then	MAKE="$INSTALLROOT/bin/$OK/nmake LOCALRULESPATH=$INSTALLROOT/bin/$OK/lib"
 		fi
 		if	executable $OK/tee
 		then	TEE=$INSTALLROOT/bin/$OK/tee
@@ -6145,19 +6053,13 @@ cat $j $k
 		;;
 	esac
 
-	# fall back to mamake if nmake not found or too old
+	# build with mamake
 
-	if	nonmake $MAKE
-	then	note make with mamake
-		case $target in
-		'')	target="install" ;;
-		esac
-		eval capture mamake \$makeflags \$noexec \$target $assign
-	else	case $target in
-		'')	target="install cc-" ;;
-		esac
-		eval capture \$MAKE \$makeflags \$nmakeflags \$noexec recurse \$target \$nmakesep \$package $assign
-	fi
+	note make with mamake
+	case $target in
+	'')	target="install" ;;
+	esac
+	eval capture mamake \$makeflags \$noexec \$target $assign
 	;;
 
 read)	case ${PWD:-`pwd`} in
@@ -6811,32 +6713,8 @@ results)set '' $target
 	esac
 	;;
 
-test)	requirements source $package
-	components $package
-	package=$_components_
-	case $only in
-	0)	only= ;;
-	1)	only=--recurse=only ;;
-	esac
-
-	# must have nmake
-
-	if	nonmake $MAKE
-	then	echo $command: $action: must have $MAKE to test >&2
-		exit 1
-	fi
-
-	# all work under $INSTALLROOT/src
-
-	$make cd $INSTALLROOT/src
-
-	# disable core dumps (could be disastrous over nfs)
-
-	(ulimit -c 0) > /dev/null 2>&1 && ulimit -c 0
-
-	# do the tests
-
-	eval capture \$MAKE \$makeflags \$noexec \$only recurse test \$target \$nmakesep \$package $assign
+test)	# pass control to ksh 93u+m test script
+	exec "$PACKAGEROOT/bin/shtests"
 	;;
 
 update)	# download the latest release.version for selected packages
@@ -7446,10 +7324,9 @@ write)	set '' $target
 		exit 1
 		;;
 	esac
-	if	nonmake $MAKE
-	then	echo "$command: must have $MAKE to generate archives" >&2
-		exit 1
-	fi
+
+	echo "$command: not yet reimplemented after removing nmake" >&2
+	exit 1
 
 	# all work under $PACKAGEBIN
 

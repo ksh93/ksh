@@ -17,8 +17,8 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
 
 ## Policy
 
-1. No new features; bug fixes only (but see items 3 and 4).
-   Feature development is for a future separate branch.
+1. Fixing bugs is main focus of the 1.x series.
+   Major feature development is for future versions (2.x and up).
 2. No major rewrites. No refactoring code that is not fully understood.
 3. No changes in documented behaviour, except if required for compliance with the
    [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html)
@@ -29,7 +29,7 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
 6. To help increase everyone's understanding of this code base, fixes and
    significant changes should be fully documented in commit messages.
 7. Code style varies somewhat in this historic code base.
-   Your changes should match the style of the code surrounding it.
+   Your changes should match the style of the code surrounding them.
    Indent with tabs, assuming an 8-space tab width.
    Opening braces are on a line of their own, at the same indentation level
    as their corresponding closing brace.
@@ -109,7 +109,7 @@ bin/shtests --man
 
 ### Install
 
-Automated installation is not supported.
+Automated installation is not supported yet.
 To install manually:
 ```sh
 cp arch/$(bin/package host type)/bin/ksh /usr/local/bin/

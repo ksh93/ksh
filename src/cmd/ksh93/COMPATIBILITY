@@ -35,17 +35,22 @@ For more details, see the NEWS file and for complete details, see the git log.
 	   message instead of terminating the shell.
 	-  'suspend' now refuses to suspend a login shell, as there is probably
 	   no parent shell to return to and the login session would freeze.
+	   If you really want to suspend a login shell, use 'kill -s STOP $$'.
 	-  'times' now gives high precision output in a POSIX compliant format.
 
-6.	'command' no longer expands aliases in its first argument, as this is
-	no longer required after the foregoing change. In the unlikely event
-	that you still need this behavior, you can set:
+6.	'command' and 'nohup' no longer expand aliases in their first argument,
+	as this is no longer required after the foregoing change. In the
+	unlikely event that you still need this behavior, you can set:
 		alias command='command '
+		alias nohup='nohup '
 
-7.	The undocumented 'login' and 'newgrp' builtin commands have been
-	removed. These replaced your shell session with the external commands
+7.	The 'login' and 'newgrp' special built-in commands have been removed,
+	so it is no longer an error to define shell functions by these names.
+	These built-ins replaced your shell session with the external commands
 	by the same name, as in 'exec'. If an error occurred (e.g. due to a
-	typo), you would end up immediately logged out. If you do want this
+	typo), you would end up immediately logged out, except on a few
+	commercial Unix systems whose 'login' and 'newgrp' cope with this
+	by starting a new shell session upon error. If you do want the old
 	behavior, you can restore it by setting:
 		alias login='exec login'
 		alias newgrp='exec newgrp'
@@ -55,13 +60,13 @@ For more details, see the NEWS file and for complete details, see the git log.
 	use cases that are expected to work. For example:
 		n='[0-9]'
 		case $n in
-		[0-9])	echo "$n is a number" ;;
+		[0-9])	echo "$n is a digit" ;;
 		esac
-	would output "[0-9] is a number". In the unlikely event that a script
+	would output "[0-9] is a digit". In the unlikely event that a script
 	does rely on this behavior, it can be fixed like this:
 		case $n in
 		[0-9] | "[0-9]")
-			echo "$n is a number or the number pattern" ;;
+			echo "$n is a digit or the digit pattern" ;;
 		esac
 
 9.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
@@ -71,7 +76,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 10.	If 'set -u'/'set -o nounset' is active, then the shell now errors out
 	if $! is accessed before the shell has launched any background process.
 
-11.	The 'print', 'printf' and 'echo' builtin commands now return a nonzero
+11.	The 'print', 'printf' and 'echo' built-in commands now return a nonzero
 	exit status if an input/output error occurs.
 
 12.	Four obsolete date format specifiers for 'printf %(format)T' were
@@ -80,7 +85,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 	- %f now returns a date with the format '%Y.%m.%d-%H:%M:%S'.
 	- %q now returns the quarter of the current year.
 
-13.	The 'typeset' builtin now properly detects and reports options that
+13.	The 'typeset' built-in now properly detects and reports options that
 	cannot be used together if they are given as part of the same command.
 
 14.	The DEBUG trap has reverted to pre-93t behavior. It is now once again
@@ -118,14 +123,14 @@ For more details, see the NEWS file and for complete details, see the git log.
 		ksh -c 'cd /var; PWD=/tmp cd /usr; echo $PWD'
 	now prints '/bin' followed by '/var'.
 
-23.	Path-bound builtins (such as /opt/ast/bin/cat) can now be executed
+23.	Path-bound built-ins (such as /opt/ast/bin/cat) can now be executed
 	by invoking the canonical path, so the following will now work:
 		$ /opt/ast/bin/cat --version
 		  version         cat (AT&T Research) 2012-05-31
 		$ (PATH=/opt/ast/bin:$PATH; "$(whence -p cat)" --version)
 		  version         cat (AT&T Research) 2012-05-31
 	In the event an external command by that path exists, the path-bound
-	builtin will now override it when invoked using the canonical path.
+	built-in will now override it when invoked using the canonical path.
 	To invoke a possible external command at that path, you can still use
 	a non-canonical path, e.g.: /opt//ast/bin/cat or /opt/ast/./bin/cat
 

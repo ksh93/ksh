@@ -1,0 +1,135 @@
+Announcing: KornShell 93u+m 1.0.0-beta.1
+https://github.com/ksh93/ksh
+
+In May 2020, when every KornShell (ksh93) development project was
+abandoned, development was rebooted in a new fork based on the last
+stable AT&T version: ksh 93u+. Now, one year and hundreds of bug fixes
+later, the first beta version is ready, and KornShell lives again. This
+new fork is called ksh 93u+m as a permanent nod to its origin; a standard
+semantic version number is added starting at 1.0.0-beta.1. Please test
+the beta and report any bugs you find, or help us fix known bugs.
+
+Main developers: Martijn Dekker, Johnothan King, hyenias
+
+Contributors: Andy Fiddaman, Anuradha Weeraman, Chase, Gordon Woodhull,
+Govind Kamat, Harald van Dijk, Lev Kujawski, Marc Wilson, Sterling Jensen
+
+HOW TO GET IT
+
+Please download the source code tarball from our GitHub releases page:
+
+	https://github.com/ksh93/ksh/releases
+
+To build, follow the instructions in README.md or src/cmd/ksh93/README.
+Hopefully, OS/distro packagers will make ksh 93u+m packages available soon.
+If you would like to have a binary for your OS from us, ask and we'll try
+to build one and add it to the releases page.
+
+HOW TO GET INVOLVED
+
+To report a bug, please open an issue at our GitHub page (see above).
+Alternatively, email me at martijn@inlv.org with your report.
+To get involved in development, read the brief policy information in
+README.md and then jump right in with a pull request or email a patch.
+See the TODO file in the top-level directory for a to-do list.
+
+MAIN CHANGES SINCE KSH 93U+ 2012-08-01
+
+Hundreds of bugs have been fixed, including many serious/critical bugs.
+This includes upstreamed patches from OpenSUSE, Red Hat, and Solaris, fixes
+backported from the abandoned 93v- beta and ksh2020 fork, as well as many
+new fixes from the community. See the NEWS file for more information, and
+the git commit log for complete documentation of every fix. Incompatible
+changes have been minimised, but not at the expense of fixing bugs. For a
+list of potentially incompatible changes, see src/cmd/ksh93/COMPATIBILITY.
+
+Though there was a "no new features, bugfixes only" policy, some new
+features were found necessary, either to fix serious design flaws or to
+complete functionality that was evidently intended, but not finished.
+Below is a summary of these new features.
+
+New command line editor features:
+
+- The forward-delete and End keys are now handled as expected in the
+  emacs and vi built-in line editors.
+
+- In the vi and emacs line editors, repeat count parameters can now also
+  be used for the arrow keys and the forward-delete key. E.g., in emacs
+  mode, <ESC> 7 <left-arrow> will now move the cursor seven positions to
+  the left. In vi control mode, this would be entered as: 7 <left-arrow>.
+
+New shell language features:
+
+- The &>file redirection shorthand (for >file 2>&1) is now available for
+  all scripts and interactive sessions and not only for profile/login
+  scripts, bringing ksh 93u+m in line with mksh, bash, and zsh.
+
+- File name generation (a.k.a. pathname expansion, a.k.a. globbing) now
+  never matches the special navigational names '.' (current directory)
+  and '..' (parent directory). This change makes a pattern like .*
+  useful; it now matches all hidden files (dotfiles) in the current
+  directory, without the harmful inclusion of '.' and '..'.
+
+- Tilde expansion can now be extended or modified by defining a
+  .sh.tilde.get or .sh.tilde.set discipline function. This replaces a
+  2004 undocumented attempt to add this functionality via a .sh.tilde
+  command, which never worked and crashed the shell. See the manual for
+  details on the new method.
+
+New features in built-in commands:
+
+- Usage error messages now show the --help/--man self-documentation options.
+
+- Path-bound built-ins (such as /opt/ast/bin/cat) can now be executed by
+  invoking the canonical path, so the following will now work as expected:
+	$ /opt/ast/bin/cat --version
+	  version         cat (AT&T Research) 2012-05-31
+
+- 'command -x' now looks for external commands only, skipping built-ins.
+  In addition, its xargs-like functionality no longer freezes the shell on
+  Linux and macOS, making it effectively a new feature on these systems.
+
+- 'redirect' now checks if all arguments are valid redirections before
+  performing them. If an error occurs, it issues an error message instead
+  of terminating the shell.
+
+- 'suspend' now refuses to suspend a login shell, as there is probably no
+  parent shell to return to and the login session would freeze.
+
+- 'times' now gives high precision output in a POSIX compliant format.
+
+- 'typeset' now gives an informative error message if an incompatible
+  combination of options is given.
+
+- 'whence -v/-a' now reports the location of autoloadable functions.
+
+New features in shell options:
+
+- A new --globcasedetect shell option is added on OSs where we can
+  check for a case-insensitive file system (currently Windows/Cygwin,
+  macOS, Linux and QNX 7.0+). When this option is turned on, file name
+  generation (globbing), as well as file name tab completion on
+  interactive shells, automatically become case-insensitive on file
+  systems where the difference between upper and lower case is ignored
+  for file names. This is transparently determined for each directory, so
+  a path pattern that spans multiple file systems can be part
+  case-sensitive and part case-insensitive.
+
+- A new --nobackslashctrl shell option disables the special escaping
+  behaviour of the backslash character in the emacs and vi built-in
+  editors. Particularly in the emacs editor, this makes it much easier to
+  go backward, insert a forgotten backslash into a command, and then
+  continue editing without having your next cursor key replace your
+  backslash with garbage. Note that Ctrl+V (or whatever other character
+  was set using 'stty lnext') always escapes all control characters in
+  either editing mode.
+
+- A new --posix shell option has been added to ksh 93u+m that makes the
+  ksh language more compatible with other shells by following the POSIX
+  standard more closely. See the manual page for details. It is enabled by
+  default if ksh is invoked as sh, otherwise it is disabled by default.
+
+- Enhancement to -G/--globstar: symbolic links to directories are now
+  followed if they match a normal (non-**) glob pattern. For example, if
+  '/lnk' is a symlink to a directory, '/lnk/**' and '/l?k/**' now work as
+  you would expect.

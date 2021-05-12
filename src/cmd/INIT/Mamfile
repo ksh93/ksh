@@ -726,57 +726,6 @@ make install
 		exec - then mkdir -p ${PACKAGEROOT}/lib/package
 		exec - fi
 	done ${PACKAGEROOT}/lib/package generated
-	make ${PACKAGEROOT}/lib/package/package.mk
-		prev ${PACKAGEROOT}/lib/package
-		make package.mk
-		done package.mk
-		exec - test '' = 'package.mk' || ${STDCMP} 2>/dev/null -s package.mk ${PACKAGEROOT}/lib/package/package.mk || { ${STDMV} ${PACKAGEROOT}/lib/package/package.mk ${PACKAGEROOT}/lib/package/package.mk.old 2>/dev/null || true; ${STDCP} package.mk ${PACKAGEROOT}/lib/package/package.mk ;}
-	done ${PACKAGEROOT}/lib/package/package.mk generated
-	make ${PACKAGEROOT}/lib/package/CONVERT.mk
-		make CONVERT.mk
-		done CONVERT.mk
-		exec - test '' = 'CONVERT.mk' || ${STDCMP} 2>/dev/null -s CONVERT.mk ${PACKAGEROOT}/lib/package/CONVERT.mk || { ${STDMV} ${PACKAGEROOT}/lib/package/CONVERT.mk ${PACKAGEROOT}/lib/package/CONVERT.mk.old 2>/dev/null || true; ${STDCP} CONVERT.mk ${PACKAGEROOT}/lib/package/CONVERT.mk ;}
-	done ${PACKAGEROOT}/lib/package/CONVERT.mk generated
-	make ${INSTALLROOT}/lib/make
-		exec - if test ! -d ${INSTALLROOT}/lib/make
-		exec - then mkdir -p ${INSTALLROOT}/lib/make
-		exec - fi
-	done ${INSTALLROOT}/lib/make generated
-	make ${INSTALLROOT}/lib/make/package.mk
-		prev ${INSTALLROOT}/lib/make
-		prev package.mk
-		exec - test '' = 'package.mk' || ${STDCMP} 2>/dev/null -s package.mk ${INSTALLROOT}/lib/make/package.mk || { ${STDMV} ${INSTALLROOT}/lib/make/package.mk ${INSTALLROOT}/lib/make/package.mk.old 2>/dev/null || true; ${STDCP} package.mk ${INSTALLROOT}/lib/make/package.mk ;}
-	done ${INSTALLROOT}/lib/make/package.mk generated
-	make ${INSTALLROOT}/lib/make/PROBE.mk
-		make PROBE.mk
-		done PROBE.mk
-		exec - test '' = 'PROBE.mk' || ${STDCMP} 2>/dev/null -s PROBE.mk ${INSTALLROOT}/lib/make/PROBE.mk || { ${STDMV} ${INSTALLROOT}/lib/make/PROBE.mk ${INSTALLROOT}/lib/make/PROBE.mk.old 2>/dev/null || true; ${STDCP} PROBE.mk ${INSTALLROOT}/lib/make/PROBE.mk ;}
-	done ${INSTALLROOT}/lib/make/PROBE.mk generated
-	make ${INSTALLROOT}/lib/make/TEST.mk
-		make TEST.mk
-		done TEST.mk
-		exec - test '' = 'TEST.mk' || ${STDCMP} 2>/dev/null -s TEST.mk ${INSTALLROOT}/lib/make/TEST.mk || { ${STDMV} ${INSTALLROOT}/lib/make/TEST.mk ${INSTALLROOT}/lib/make/TEST.mk.old 2>/dev/null || true; ${STDCP} TEST.mk ${INSTALLROOT}/lib/make/TEST.mk ;}
-	done ${INSTALLROOT}/lib/make/TEST.mk generated
-	make ${INSTALLROOT}/lib/make/WWW.mk
-		make WWW.mk
-		done WWW.mk
-		exec - test '' = 'WWW.mk' || ${STDCMP} 2>/dev/null -s WWW.mk ${INSTALLROOT}/lib/make/WWW.mk || { ${STDMV} ${INSTALLROOT}/lib/make/WWW.mk ${INSTALLROOT}/lib/make/WWW.mk.old 2>/dev/null || true; ${STDCP} WWW.mk ${INSTALLROOT}/lib/make/WWW.mk ;}
-	done ${INSTALLROOT}/lib/make/WWW.mk generated
-	make ${INSTALLROOT}/lib/make/MSGFUN.mk
-		make MSGFUN.mk
-		done MSGFUN.mk
-		exec - test '' = 'MSGFUN.mk' || ${STDCMP} 2>/dev/null -s MSGFUN.mk ${INSTALLROOT}/lib/make/MSGFUN.mk || { ${STDMV} ${INSTALLROOT}/lib/make/MSGFUN.mk ${INSTALLROOT}/lib/make/MSGFUN.mk.old 2>/dev/null || true; ${STDCP} MSGFUN.mk ${INSTALLROOT}/lib/make/MSGFUN.mk ;}
-	done ${INSTALLROOT}/lib/make/MSGFUN.mk generated
-	make ${INSTALLROOT}/lib/make/MSGKEY.mk
-		make MSGKEY.mk
-		done MSGKEY.mk
-		exec - test '' = 'MSGKEY.mk' || ${STDCMP} 2>/dev/null -s MSGKEY.mk ${INSTALLROOT}/lib/make/MSGKEY.mk || { ${STDMV} ${INSTALLROOT}/lib/make/MSGKEY.mk ${INSTALLROOT}/lib/make/MSGKEY.mk.old 2>/dev/null || true; ${STDCP} MSGKEY.mk ${INSTALLROOT}/lib/make/MSGKEY.mk ;}
-	done ${INSTALLROOT}/lib/make/MSGKEY.mk generated
-	make ${INSTALLROOT}/lib/make/MAPLIB.mk
-		make MAPLIB.mk
-		done MAPLIB.mk
-		exec - test '' = 'MAPLIB.mk' || ${STDCMP} 2>/dev/null -s MAPLIB.mk ${INSTALLROOT}/lib/make/MAPLIB.mk || { ${STDMV} ${INSTALLROOT}/lib/make/MAPLIB.mk ${INSTALLROOT}/lib/make/MAPLIB.mk.old 2>/dev/null || true; ${STDCP} MAPLIB.mk ${INSTALLROOT}/lib/make/MAPLIB.mk ;}
-	done ${INSTALLROOT}/lib/make/MAPLIB.mk generated
 	make ${INSTALLROOT}/bin/mamake
 		prev mamake
 		exec - test '' = 'mamake' || ${STDCMP} 2>/dev/null -s mamake ${INSTALLROOT}/bin/mamake || { ${STDMV} ${INSTALLROOT}/bin/mamake ${INSTALLROOT}/bin/mamake.old 2>/dev/null || true; ${STDCP} mamake ${INSTALLROOT}/bin/mamake ;}

@@ -9,10 +9,7 @@ operating systems and machines that ksh-93 has been known to run on.
 Most of the source code for ksh is in the src/cmd/ksh93/sh
 directory. For information on what's where, see the file DESIGN.
 
-A new '-o posix' shell option has been added to ksh 93u+m that makes the
-ksh language more compatible with other shells by following the POSIX
-standard more closely. See the manual page for details. It is enabled by
-default if ksh is invoked as sh, otherwise it is disabled by default.
+#### COMPILE-TIME OPTIONS ####
 
 The SHOPT.sh file contains several compilation options that can be set
 before compiling ksh.  Options are of the form SHOPT_option and become
@@ -22,11 +19,17 @@ A value of 0 represents off, 1 represents on, no value means probe. For
 options where no feature probe is available, probe is the same as off.
 
 The options have the following defaults and meanings:
+
     2DMATCH      on  Two-dimensional ${.sh.match} for ${var//pat/str}.
+
     ACCT         off Shell accounting.
+
     ACCTFILE     off Enable per user accounting info.
+
     AUDIT	 off For auditing specific users
+
     AUDITFILE	 "/etc/ksh_audit"
+
     BGX          on  Enables background job extensions. Noted by "J" in the
                      version string when enabled. (1) JOBMAX=n limits the
                      number of concurrent background jobs to n; the (n+1)th
@@ -35,18 +38,26 @@ The options have the following defaults and meanings:
                      completing background job gets its own trap; $! is set to
                      the job pid and $? is set to the job exit status at the
                      beginning of the trap.
+
     BRACEPAT     on  C-shell type abc{d,e}f style file generation
+
     CMDLIB_HDR   "<cmdlist.h>"
                      The header in which you can provide a custom list of
                      libcmd commands to provide as path-bound built-ins.
+
     CMDLIB_DIR   "\"/opt/ast/bin\""
                      The default virtual directory prefix for path-bound
                      built-ins. The value must include double quotes.
+
     CRNL         off <cr><nl> treated as <nl> in shell grammar.
+
     DEVFD            Use the more secure /dev/fd mechanism instead of FIFOs for
                      process substitutions. On by default on OSs with /dev/fd.
+
     DYNAMIC      on  Dynamic loading of builtins. (Requires dlopen() interface.)
+
     ECHOPRINT    off Make echo equivalent to print.
+
     EDPREDICT    off Enables history pattern search menu. As you begin a line
                      with a #, the following characters are treated as a shell
                      pattern and cause matching lines from the history file to
@@ -54,15 +65,19 @@ The options have the following defaults and meanings:
                      scroll up and down this list or you can use <ESC>nTAB to
                      make this the current line (n defaults to 1 if omitted).
                      Experimental. Bugs: https://github.com/ksh93/ksh/issues/233
+
     ESH          on  Compile with emacs command line editing.  The original
                      emacs line editor code was provided by Mike Veach at IH.
+
     FILESCAN     on  Experimental option that allows fast reading of files
                      using while < file;do ...; done and allowing fields in
                      each line to be accessed as positional parameters.
+
     FIXEDARRAY   on  When using typeset, a name in the format NAME[N]
                      creates a fixed-size array and any attempt to access a
                      subscript N or higher is an error. Multidimensional
                      fixed-size arrays NAME[N1][N2]... are also supported.
+
     GLOBCASEDET      Adds the 'globcasedetect' shell option. When this shell
                      option is turned on, file name generation (globbing)
                      and file name listing and completion automatically become
@@ -70,40 +85,64 @@ The options have the following defaults and meanings:
                      between upper- and lowercase is ignored for file names.
                      This compile-time option is enabled by default on operating
                      systems that can support case-insensitive file systems.
+
     HISTEXPAND   on  Enable !-style history expansion similar to csh(1).
+
     KIA          off Allow generation of shell cross reference database with -R.
+                     As of 2021-05-10, no tool that can parse this database is
+                     known. If you know of any, please contact us.
+
     MULTIBYTE    on  Multibyte character handling.  Requires mblen() and
                      mbctowc().
+
     NAMESPACE    on  Allows namespaces.  This is experimental, incomplete
                      and undocumented.
+
     NOECHOE      off Disable the '-e' option to the 'echo' command,
                      unless SHOPT_ECHOPRINT is enabled.
+
     OLDTERMIO    off Use either termios or termio at runtime.
+
     OPTIMIZE     on  Optimize loop invariants for with for and while loops.
+
     PFSH         off Compile with support for profile shell. (Solaris; obsolete)
+
     P_SUID       off If set, all real uids, greater than or equal to this
                      value will require the -p flag to run suid/sgid scripts.
+
     RAWONLY      on  Turn on if the vi line mode doesn't work right unless
                      you do a set -o viraw.
+
     REGRESS      off Enable the __regress__ built-in command and instrumented
                      intercepts for testing.
+
     REMOTE       off Set --rc (read profile scripts) even if ksh was invoked
                      with standard input on a socket, i.e. as a remote shell.
+
     SPAWN        on  Use posix_spawn(3) as combined fork/exec if job control
                      is not active. Improves speed.
+
     STATS	 on  Add .sh.stats compound variable.
+
     SUID_EXEC    on  Execute /etc/suid_exec for setuid, setgid script.
+
     SYSRC            Source /etc/ksh.kshrc on initializing an interactive
                      shell. This is on by default if /etc/ksh.kshrc or
                      /etc/bash.bashrc exists at compile time.
+
     TEST_L           Add 'test -l' as an alias for 'test -L'. This is on by
                      default if the OS's external 'test' command supports it.
+
     TIMEOUT      off Set this to the number of seconds for timing out and
                      exiting the shell when you don't enter a command.  If
                      non-zero, TMOUT can not be set larger than this value.
+
     TYPEDEF	 on  Enable typeset type definitions.
+
     VSH          on  Compile with vi command line editing.  The original vi
                      line editor code was provided by Pat Sullivan at CB.
+
+#### BUILDING KSH 93U+M ####
 
 To build ksh (as well as libcmd and libast libraries on which ksh depends),
 cd to the top directory and run:
@@ -139,7 +178,7 @@ For more information, run:
 Many other commands in this repo self-document via the --help, --man and
 --html options; those that do have no separate manual page.
 
-Automated installation is not supported. To install manually:
+Automated installation is not supported yet. To install manually:
 
 	cp arch/$(bin/package host type)/bin/ksh /usr/local/bin/
 	cp src/cmd/ksh93/sh.1 /usr/local/share/man/man1/ksh.1
@@ -165,11 +204,15 @@ and/or execute only script.  Note, that ksh does not read the .profile
 or $ENV file when it the real and effective user/group id's are not
 equal.
 
+#### TESTING KSH ####
+
 The tests subdirectory contains a number of regression tests for ksh.
 To run all these tests with the shell you just built, run the command
 	bin/shtests
 For help and more options, type
 	bin/shtests --man
+
+#### OTHER DOCUMENTATION ####
 
 The file PROMO.mm is an advertisement that extolls the virtues of ksh.
 The file sh.1 contains the troff (man) description of this Shell.
@@ -178,23 +221,20 @@ pair library that is needed for writing built-ins that need to
 access shell variables.
 
 The file sh.memo contains a draft troff (mm) memo describing ksh.  The
-file RELEASE88 contains the changes made for ksh88.  The file RELEASE93
-contains the changes made in this release since ksh-88.  The file
-RELEASE contains bug fixes made in this release since ksh-88.  The file
-COMPATIBILITY contains a list of incompatibilities with ksh-88.  The
-file bltins.mm is a draft troff (mm) memo describing how to write
+file builtins.mm is a draft troff (mm) memo describing how to write
 built-in commands that can be loaded at run time.
 
-Please report any problems or suggestions to:
+The file NEWS in the top-level directory contains bug fixes and other
+changes made in the ksh 93u+m fork and supporting libraries.  The file
+COMPATIBILITY contains a list of potential incompatibilities.
 
-https://github.com/ksh93/ksh
+#### TESTED SYSTEMS ####
 
-
-ksh 93u+m 1.0.0 has been compiled and alpha tested on the following.
+ksh 93u+m 1.0.0.beta-1 has been compiled and tested on the following.
 An asterisk signifies minor regression test failures (one or two minor
 things amiss), two asterisks signify moderate regression test failures
 (some functionality does not work), and three asterisks signify serious
-failures (crashes, and/or essential functionality does not work).
+failures (crashes, and/or important functionality does not work).
 
 *	AIX 7.1 on RISC (PowerPC)
 *	DragonFly BSD 5.8 on x86_64
@@ -207,9 +247,12 @@ failures (crashes, and/or essential functionality does not work).
 	GNU/Linux: NixOS 19.09 on x86_64
 	GNU/Linux: Slackware 14.2 on x86_64
 	GNU/Linux: Ubuntu 16.04 on x86_64
+	GNU/Linux: Ubuntu 18.04 on armv7l (32-bit)
+	GNU/Linux: Ubuntu 20.04 on aarch64
 	GNU/Linux: Void Linux (musl C library) on x86_64
 ***	HP-UX B.11.11 on pa-risc
 *	illumos: OmniOS 2020-08-19 (gcc) on x86_64
+	macOS 10.13.6 (High Sierra) on x86_64
 	macOS 10.14.6 (Mojave) on x86_64
 ***	NetBSD 8.1 and 9.0 on x86_64
 *	OpenBSD 6.8 on x86_64
@@ -218,6 +261,12 @@ failures (crashes, and/or essential functionality does not work).
 	Solaris 11.4 (Solaris Studio 12.5 cc) on x86_64
 *	UnixWare 7.1.4 on x86
 ***	Windows 7 using Cygwin on x86
+
+#### REPORTING BUGS ####
+
+Please report any problems or suggestions by opening an issue at:
+https://github.com/ksh93/ksh
+Alternatively, email martijn@inlv.org (timely response *not* promised).
 
 Good luck!!
 

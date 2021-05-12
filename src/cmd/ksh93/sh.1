@@ -671,10 +671,10 @@ this will create an indexed array instead.
 \f2assignment\^\fP .\|.\|.
 Compound variable assignment.
 This creates a compound variable \f2varname\^\fP with
-sub-variables of the form \f2varname\^\fP\f3.\fP\f2name\^\fP,
+subvariables of the form \f2varname\^\fP\f3.\fP\f2name\^\fP,
 where \f2name\^\fP is the name portion of \f2assignment\^\fP.
 The value of \f2varname\^\fP will contain all the assignment elements.
-Additional assignments made to sub-variables of \f2varname\^\fP
+Additional assignments made to subvariables of \f2varname\^\fP
 will also be displayed as part of the value of \f2varname\^\fP.
 If no \f2assignment\fPs are specified, \f2varname\^\fP will be
 a compound variable allowing subsequence child elements to be defined.
@@ -1500,7 +1500,7 @@ with the given
 Each occurrence of \f3\e\fP\f2n\^\fP in
 .I string
 is replaced by the portion of \f2parameter\^\fP
-that matches the \f2n\^\fP-th sub-pattern.
+that matches the \f2n\^\fP-th subpattern.
 In the first form,
 only the first occurrence of
 .I pattern\^
@@ -1670,7 +1670,7 @@ Set during a DEBUG trap to the line number for the caller of
 each function.
 .TP
 .B .sh.match
-An indexed array which stores the most recent match and sub-pattern
+An indexed array which stores the most recent match and subpattern
 matches after conditional pattern matches that match and after
 variables expansions using the operators
 .BR # ,
@@ -2584,7 +2584,7 @@ A
 signifies that all patterns must be matched whereas
 .BR |
 requires that only one pattern be matched.
-Composite patterns can be formed with one or more of the following sub-patterns:
+Composite patterns can be formed with one or more of the following subpatterns:
 .PD 0
 .RS
 .TP
@@ -2613,7 +2613,7 @@ Matches exactly one of the given patterns.
 Matches anything except one of the given patterns.
 .PD
 .RE
-By default, each pattern, or sub-pattern will match the
+By default, each pattern, or subpattern will match the
 longest string possible consistent with generating
 the longest overall match.  If more than one match is
 possible, the one starting closest to the beginning
@@ -2652,7 +2652,7 @@ Matches any character not in the \f3word\fP class.
 .PP
 A pattern of the form
 \f3%(\fP\f2pattern-pair\^\fP(s)\f3)\fP
-is a sub-pattern that
+is a subpattern that
 can be used to match nested character expressions.
 Each
 .I pattern-pair\^
@@ -2707,19 +2707,19 @@ Without the
 .B {\^}
 this pattern matches any C language string.
 .PP
-Each sub-pattern in a composite pattern is numbered,
+Each subpattern in a composite pattern is numbered,
 starting at 1, by the location of the \f3(\fP within
 the pattern.
 The sequence \f3\e\fP\f2n\^\fP, where \f2n\^\fP
 is a single digit and \f3\e\fP\f2n\^\fP comes after
-the \f2n\fP-th. sub-pattern,
-matches the same string as the sub-pattern itself.
+the \f2n\fP-th. subpattern,
+matches the same string as the subpattern itself.
 .PP
-Finally a pattern can contain sub-patterns of the form
+Finally a pattern can contain subpatterns of the form
 \f3\(ap(\fP\f2options\^\fP\f3:\fP\f2pattern-list\^\fP\f3)\fP,
 where either \f2options\^\fP or \f3:\fP\f2pattern-list\^\fP
 can be omitted.  Unlike the other compound patterns,
-these sub-patterns are not counted in the numbered sub-patterns.
+these subpatterns are not counted in the numbered subpatterns.
 \f3:\fP\f2pattern-list\^\fP must be omitted for options
 .BR F ,
 .BR G ,
@@ -2802,7 +2802,7 @@ If both \f2options\^\fP and \f3:\fP\f2pattern-list\^\fP
 are specified, then the options apply only to  \f2pattern-list\^\fP.
 Otherwise, these options remain in effect until they are disabled
 by a subsequent \f3\(ap(\fP\f2...\^\fP\f3)\fP or at the end of
-the sub-pattern containing \f3\(ap(\fP\f2...\^\fP\f3)\fP.
+the subpattern containing \f3\(ap(\fP\f2...\^\fP\f3)\fP.
 .SS Quoting.
 Each of the
 .I metacharacters\^
@@ -2961,7 +2961,7 @@ In addition, the operator
 can be used for exponentiation.
 It has higher precedence than multiplication and is left associative.
 In addition, when the value of an arithmetic variable
-or sub-expression can be represented as a long integer,
+or subexpression can be represented as a long integer,
 all C language integer arithmetic operations can be performed.
 Variables can be referenced by name within an arithmetic expression
 without using the parameter expansion syntax.
@@ -3269,7 +3269,7 @@ Any part of
 can be quoted to cause it to be matched as a string.
 With a successful match to a pattern, the
 .B .sh.match
-array variable will contain the match and sub-pattern matches.
+array variable will contain the match and subpattern matches.
 .TP
 \f2string\fP \f3=\fP \f2pattern\fP
 Same as \f3==\fP above, but is obsolete.
@@ -3285,7 +3285,7 @@ matches the
 .I pattern\^
 the
 .B .sh.match
-array variable will contain the match and sub-pattern matches.
+array variable will contain the match and subpattern matches.
 .TP
 \f2string\fP \f3=\(ap\fP \f2ere\fP
 True if
@@ -4021,30 +4021,30 @@ are permitted with each of these new built-ins.
 .PP
 An instance of a type is created by invoking the type name
 followed by one or more instance names.
-Each instance of the type is initialized with a copy of the sub-variables
-except for sub-variables that are defined with the
+Each instance of the type is initialized with a copy of the subvariables
+except for subvariables that are defined with the
 .B \-S
 option.  Variables defined with the
 .B \-S
 are shared by all instances of the type.
-Each instance can change the value of any sub-variable and can also
+Each instance can change the value of any subvariable and can also
 define new discipline functions of the same names
 as those defined by the type definition as well as any
 standard discipline names.
-No additional sub-variables can be defined for any instance.
+No additional subvariables can be defined for any instance.
 .PP
 When defining a type,
-if the value of a sub-variable is not set and the
+if the value of a subvariable is not set and the
 .B \-r
-attribute is specified, it causes the sub-variable
-to be a required sub-variable.
-Whenever an instance of a type is created, all required sub-variables
+attribute is specified, it causes the subvariable
+to be a required subvariable.
+Whenever an instance of a type is created, all required subvariables
 must be specified.
-These sub-variables become readonly in each instance.
+These subvariables become read-only in each instance.
 .PP
 When
 .B unset
-is invoked on a sub-variable within a type,
+is invoked on a subvariable within a type,
 and the
 .B \-r
 attribute has not been specified for this field,
@@ -4053,10 +4053,10 @@ the type.
 Invoking
 .B unset
 on a type instance not contained within another type deletes
-all sub-variables and the variable itself.
+all subvariables and the variable itself.
 .PP
 A type definition can be derived from another type definition
-by defining the first sub-variable name as
+by defining the first subvariable name as
 .B _
 and defining its type as the base type.
 Any remaining definitions will be additions and modifications
@@ -6904,8 +6904,8 @@ If
 .I vname\^
 is not given,
 the names and values of each variable with
-the readonly attribute is printed with the values
-quoted in a manner that allows them to be re-inputted.
+the read-only attribute is printed with the values
+quoted in a manner that allows them to be re-input.
 The
 .B \-p
 option
@@ -6915,7 +6915,7 @@ to be inserted before each one.
 Otherwise, the given
 .IR vname s
 are marked
-readonly and these
+read-only and these
 names cannot be changed
 by subsequent assignment.
 Unlike
@@ -6924,7 +6924,7 @@ Unlike
 does not create a function-local scope and the given
 .IR vname s
 are marked globally read-only by default.
-When defining a type, if the value of a readonly sub-variable is not defined
+When defining a type, if the value of a read-only subvariable is not defined,
 the value is required when creating each instance.
 .TP
 \f3redirect\fP
@@ -7225,7 +7225,7 @@ is automatically turned on upon invocation if ksh is invoked as \fBsh\fR
 or \fBrsh\fR. In that case, or if the option is turned on by
 specifying \fB-o posix\fR on the invocation command line, the invoked shell
 will not set the preset aliases even if interactive, and will not import type
-attributes for variables (such as integer or readonly) from the environment.
+attributes for variables (such as integer or left/right justify) from the environment.
 .RS 8
 .PP
 In addition, while on, the \fBposix\fR option
@@ -7727,7 +7727,7 @@ option is turned off.
 .B \-S
 When used within the
 .I assign_list\^
-of a type definition, it causes the specified sub-variable
+of a type definition, it causes the specified subvariable
 to be shared by all instances of the type.
 When used inside a function defined with the
 .B function
@@ -7837,7 +7837,7 @@ of the base64 encoding of the data.
 .TP
 .B \-h
 Used within type definitions to add information when generating
-information about the sub-variable on the man page.
+information about the subvariable on the man page.
 It is ignored when used outside of a type definition.
 When used with
 .B \-f
@@ -7900,7 +7900,7 @@ is specified, then the values are not displayed.
 The given
 .IR vname s
 are marked
-readonly and these
+read-only and these
 names cannot be changed
 by subsequent assignment.
 .TP
@@ -8152,9 +8152,9 @@ The variables given by the list of
 .IR vname s
 are unassigned,
 i.e.,
-except for sub-variables within a type,
+except for subvariables within a type,
 their values and attributes are erased.
-For sub-variables of a type, the values are reset to the
+For subvariables of a type, the values are reset to the
 default value from the type definition.
 Readonly variables cannot be unset.
 If the

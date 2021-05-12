@@ -3,6 +3,10 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-05-10:
+
+- Release 1.0.0-beta.1.
+
 2021-05-07:
 
 - Backported three ksh 93v- math.tab changes, allowing for an exp10()
