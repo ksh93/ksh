@@ -64,6 +64,7 @@
 
 #include <ast.h>
 #include <tok.h>
+#include "FEATURE/hack"
 
 static char	empty[1];
 
@@ -234,7 +235,19 @@ tokscan(register char* s, char** nxt, const char* fmt, ...)
 			prv_f = f;
 			f = va_arg(ap, char*);
 			va_copy(prv_ap, ap);
+#if _need_va_listval_workaround
+			{
+#   if _need_va_listval_workaround == 2
+				va_listarg	np;
+#   else
+				va_list		np;
+#   endif
+				np = va_listval(va_arg(ap, va_listarg));
+				va_copy(ap, np);
+			}
+#else
 			va_copy(ap, va_listval(va_arg(ap, va_listarg)));
+#endif
 			continue;
 		case 'c':
 			p_char = va_arg(ap, char*);

@@ -34,6 +34,7 @@
 #include	"FEATURE/externs"
 #include	"streval.h"
 
+#define ATTR_TO_EXPORT	(NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER)
 #define NVCACHE		8	/* must be a power of 2 */
 static char	*savesub = 0;
 static char	Null[1];
@@ -2181,7 +2182,7 @@ static void attstore(register Namval_t *np, void *data)
 		if(data && strcmp(data,e_tolower) && strcmp(data,e_toupper))
 			return;
 	}
-	flag &= (NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER);
+	flag &= ATTR_TO_EXPORT;
 	*ap->attval++ = '=';
 	if((flag&NV_DOUBLE) == NV_DOUBLE)
 	{
@@ -2210,7 +2211,7 @@ static void pushnam(Namval_t *np, void *data)
 		*ap->argnam++ = np->nvenv;
 	else if(value=nv_getval(np))
 		*ap->argnam++ = staknam(np,value);
-	if(nv_isattr(np,NV_RDONLY|NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER))
+	if(!sh_isoption(SH_POSIX) && nv_isattr(np,ATTR_TO_EXPORT))
 		ap->attsize += (strlen(nv_name(np))+4);
 }
 
@@ -2242,7 +2243,7 @@ char **sh_envgen(void)
 	/* Export variable attributes into env var named by e_envmarker, unless POSIX mode is on */
 	cp = data.attval = strcopy(*data.argnam,e_envmarker);
 	if(!sh_isoption(SH_POSIX))
-		nv_scan(shp->var_tree, attstore,&data,0,(NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER));
+		nv_scan(shp->var_tree, attstore,&data,0,ATTR_TO_EXPORT);
 	*data.attval = 0;
 	if(cp!=data.attval)
 		data.argnam++;

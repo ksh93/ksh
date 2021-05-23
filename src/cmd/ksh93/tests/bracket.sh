@@ -385,9 +385,13 @@ error=$(set +x; "$SHELL" -c '[[ AATAATCCCAATAAT =~ (AAT){2}CCC(AAT){2} ]]' 2>&1)
 # ======
 # The -v unary operator should work for names with all type attributes.
 empty=
+unset unset
 for flag in a b i l n s si u ui usi uli E F H L Mtolower Mtoupper R X lX S Z
 do	unset var
-	typeset "-$flag" var
+	case $flag in
+	n)	typeset -n var=unset ;;
+	*)	typeset "-$flag" var ;;
+	esac
 	[[ -v var ]] && err_exit "[[ -v var ]] should be false for unset var with attribute -$flag"
 	[[ -n ${var+s} ]] && err_exit "[[ -n \${var+s} ]] should be false for unset var with attribute -$flag"
 	unset var

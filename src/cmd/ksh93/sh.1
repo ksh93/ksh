@@ -1802,8 +1802,8 @@ be the value that was assigned plus the number of seconds since the assignment.
 .TP
 .SM
 .B SHLVL
-An integer variable the is incremented each time the shell
-is invoked and is exported.
+An integer variable that is incremented and exported
+each time the shell is invoked.
 If
 .SM
 .B SHLVL
@@ -6028,6 +6028,11 @@ is given,
 the command specified by
 the arguments is executed in place of this shell
 without creating a new process.
+The value of the
+.SM
+.B SHLVL
+environment variable is decreased by one,
+unless the shell replaced is a subshell.
 The
 .B \-c
 option causes the environment to be cleared before applying

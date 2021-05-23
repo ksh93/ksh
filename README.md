@@ -82,7 +82,7 @@ convenient way to keep them consistent between build and test commands.
 **Note that this system uses `CCFLAGS` instead of the usual `CFLAGS`.**
 An example that makes Solaris Studio cc produce a 64-bit binary:
 ```sh
-export CCFLAGS="-xc99 -m64 -O" LDFLAGS="-m64"
+export CCFLAGS="-m64 -O" LDFLAGS="-m64"
 bin/package make
 ```
 Alternatively you can append these to the command, and they will only be

@@ -454,7 +454,7 @@ echo begin
 # this extra comment disables an exec optimization
 EOF
 expect=$'^begin\n/.*/sigtest.sh: line 2: [1-9][0-9]*: Killed\n[1-9][0-9]{1,2}$'
-actual=$(LANG=C "$SHELL" -c '"$1" "$2" "$1"; echo "$?"' x "$SHELL" "$tmp/sigtest.sh" 2>&1)
+actual=$(export LANG=C; "$SHELL" -c '"$1" "$2" "$1"; echo "$?"' x "$SHELL" "$tmp/sigtest.sh" 2>&1)
 if	! [[ $actual =~ $expect ]]
 then	[[ $actual == *Killed*Killed* ]] && msg='ksh killed itself' || msg='unexpected output'
 	err_exit "$msg after child process signal (expected match to $(printf %q "$expect"); got $(printf %q "$actual"))"

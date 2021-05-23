@@ -1365,4 +1365,11 @@ EOF
 [[ ${.sh.file} == $0 ]] || err_exit "\${.sh.file} is not set to the correct value after sourcing a file"
 
 # ======
+# SHLVL should be decreased before exec'ing a program
+exp=$((SHLVL+1))$'\n'$((SHLVL+2))$'\n'$((SHLVL+1))
+got=$("$SHELL" -c 'echo $SHLVL; "$SHELL" -c "echo \$SHLVL"; exec "$SHELL" -c "echo \$SHLVL"')
+[[ $got == "$exp" ]] || err_exit "SHLVL not increased correctly" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

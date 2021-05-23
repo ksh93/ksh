@@ -23,8 +23,14 @@
 
 set -o nounset
 
+# ksh functions reset xtrace; remember it to re-enable it
+typeset -si xtrace=0
+[[ -o xtrace ]] && ((xtrace++))
+
 function test_arithmetric_expression_accesss_array_element_through_nameref
 {
+	((xtrace)) && set -x
+
         compound out=( typeset stdout stderr ; integer res )
 	compound -r -a tests=(
 		(
@@ -62,12 +68,6 @@ function test_arithmetric_expression_accesss_array_element_through_nameref
 	typeset cmd
 
 	for (( i=0 ; i < ${#tests[@]} ; i++ )) ; do
-		# fixme: This list should include "typeset -lX" and "typeset -X" but ast-ksh.2010-03-09 fails like this:
-		# 'typeset -X -a z ;  z[1][3]=90 ; function x { nameref nz=$1 ; print " $(( nz ))==$(( $nz ))" ; } ; x z[1][3]'
-		# + typeset -X -a z
-		# + z[1][3]=90
-		# + x 'z[1][3]'
-		# /home/test001/bin/ksh[1]: x: line 1: x1.68000000000000000000000000000000p: no parent
 		for ty in \
 			'typeset' \
 			'integer' \
@@ -140,9 +140,9 @@ function test_arithmetric_expression_accesss_array_element_through_nameref
 				esac
 								
 				testname="${0}/${cmd}"
-#set -x
+				((xtrace)) && set +x
 				out.stderr="${ { out.stdout="${ ${SHELL} -o nounset -o errexit -c "${cmd}" ; (( out.res=$? )) ; }" ; } 2>&1 ; }"
-#set +x
+				((xtrace)) && set -x
 
 			        [[ "${out.stdout}" == ${tst.stdoutpattern}      ]] || err_exit "${testname}: Expected stdout to match $(printf '%q\n' "${tst.stdoutpattern}"), got $(printf '%q\n' "${out.stdout}")"
        				[[ "${out.stderr}" == ''			]] || err_exit "${testname}: Expected empty stderr, got $(printf '%q\n' "${out.stderr}")"
@@ -156,6 +156,8 @@ function test_arithmetric_expression_accesss_array_element_through_nameref
 
 function test_has_iszero
 {
+	((xtrace)) && set -x
+
 	typeset str
 	integer i
 	

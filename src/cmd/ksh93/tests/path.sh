@@ -452,7 +452,7 @@ PATH=$PATH_orig
 # ======
 # Check that 'command -p' searches the default OS utility PATH.
 expect=/dev/null
-actual=$(PATH=/dev/null "$SHELL" -c 'command -p ls /dev/null' 2>&1)
+actual=$(set +x; PATH=/dev/null "$SHELL" -c 'command -p ls /dev/null' 2>&1)
 [[ $actual == "$expect" ]] || err_exit 'command -p fails to find standard utility' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 

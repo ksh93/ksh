@@ -1,7 +1,25 @@
 hdr	locale,wchar,wctype
 lib	locale,localeconv,wctype,iswctype,iswblank
-lib	wctrans,towctrans wctype.h
-typ	wctrans_t wctype.h
+
+tst	note{ do wctrans/towctrans work }end output{
+	/*
+	 * On NetBSD, these functions exist, but simply have no effect for some reason.
+	 * So instead of simple lib/typ tests, this custom test checks if they actually work.
+	 */
+	#include <stdio.h>
+	#include <wchar.h>
+	#include <wctype.h>
+	int main()
+	{
+		wctrans_t toupper = wctrans("toupper"), tolower = wctrans("tolower");
+		int r = towctrans('q',toupper) == 'Q' && towctrans('Q',tolower) == 'q';
+		printf("#define _lib_wctrans\t%d\n",r);
+		printf("#define _lib_towctrans\t%d\n",r);
+		printf("#define _typ_wctrans_t\t%d\n",r);
+		return !r;
+	}
+}end
+
 cat{
 	#if _PACKAGE_ast
 	#   undef  _hdr_locale

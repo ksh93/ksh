@@ -30,6 +30,11 @@ alias warning='_message "$LINENO" "warning:"'
 Command=${0##*/}
 integer Errors=0
 
+if	[[ -o xtrace ]]
+then	# PS4 is set and exported in shtests
+	typeset -F SECONDS  # show fractional seconds in xtrace output
+fi
+
 if	! [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]]
 then	print -r "$Command: \$tmp not set; run this from shtests. Aborting." >&2
 	exit 1

@@ -215,6 +215,7 @@ shift $OPTIND-1
 
 if	(( debug )) || [[ $trace ]]
 then	export PS4='+ [${SECONDS:+${SECONDS%????}s|}${.sh.pid:+P${.sh.pid},}${.sh.subshell:+S${.sh.subshell},}${.sh.file:+${.sh.file#${.sh.file%/*/*}/},}${.sh.fun:+${.sh.fun},}${LINENO:+L$LINENO,}e$?] '
+	typeset -F SECONDS  # show fractional seconds in xtrace output
 	if	(( debug ))
 	then	set -x
 	fi
