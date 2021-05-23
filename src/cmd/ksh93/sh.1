@@ -4686,6 +4686,14 @@ editor's idea of a word is a string of characters
 consisting of only letters, digits and underscores.)
 .PP
 .TP 10
+.BI M-[1;5C
+(Ctrl-Right arrow) Same as \fBM-f\fR.
+.PP
+.TP 10
+.BI M-[1;3C
+(Alt-Right arrow) Same as \fBM-f\fR.
+.PP
+.TP 10
 .BI ^B
 Move cursor backward (left) one character.
 .PP
@@ -4698,6 +4706,14 @@ Move cursor backward (left) one character.
 Move cursor backward one word.
 .PP
 .TP 10
+.BI M-[1;5D
+(Ctrl-Left arrow) Same as \fBM-b\fR.
+.PP
+.TP 10
+.BI M-[1;3D
+(Alt-Left arrow) Same as \fBM-b\fR.
+.PP
+.TP 10
 .BI ^A
 Move cursor to start of line.
 .PP
@@ -4706,12 +4722,28 @@ Move cursor to start of line.
 (Home) Same as \fB^A\fR.
 .PP
 .TP 10
+.BI M-[1~
+Same as \fB^A\fR.
+.PP
+.TP 10
+.BI M-[7~
+Same as \fB^A\fR.
+.PP
+.TP 10
 .BI ^E
 Move cursor to end of line.
 .PP
 .TP 10
 .BI M-[F
 (End) Same as \fB^E\fR.
+.PP
+.TP 10
+.BI M-[4~
+Same as \fB^E\fR.
+.PP
+.TP 10
+.BI M-[8~
+Same as \fB^E\fR.
 .PP
 .TP 10
 .BI M-[Y
@@ -4765,6 +4797,10 @@ Delete current character.
 .TP 10
 .BI M-d
 Delete current word.
+.PP
+.TP 10
+.BI M-[3;5~
+(Ctrl-Delete) Same as \fBM-d\fR.
 .PP
 .TP 10
 .BI M-^H
@@ -4936,6 +4972,10 @@ In this case a parameter of zero
 reverses the direction of the search.
 .PP
 .TP 10
+.B ^G
+Exit reverse search mode.
+.PP
+.TP 10
 .B ^O
 Operate \- Execute the current line and fetch
 the next line relative to current line from the
@@ -5063,6 +5103,10 @@ which is not subject to any shell option.
 .TP 10
 .B M-^V
 Display version of the shell.
+.PP
+.TP 10
+.BI M-[2~
+(Insert) Escape the next character.
 .PP
 .TP 10
 .B M-#
@@ -5256,6 +5300,27 @@ Cursor to start of line.
 .B ^[[H
 (Home) Same as \f30\fP.
 .TP 10
+.B ^[[1~
+Same as \f30\fP.
+.TP 10
+.B ^[[7~
+Same as \f30\fP.
+.TP 10
+.B ^[[1;5D
+(Ctrl-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;3D
+(Alt-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;5C
+(Ctrl-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[1;3C
+(Alt-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[2~
+(Insert) Same as \f3i\fP.
+.TP 10
 .B ^
 Cursor to first non-blank character in line.
 .TP 10
@@ -5265,8 +5330,17 @@ Cursor to end of line.
 .B ^[[F
 (End) Same as \f3$\fP.
 .TP 10
+.B ^[[4~
+Same as \f3$\fP.
+.TP 10
+.B ^[[8~
+Same as \f3$\fP.
+.TP 10
 .B ^[[Y
 Same as \f3$\fP.
+.TP 10
+.B ^G
+Exit reverse search mode.
 .TP 10
 .B %
 Moves to balancing
