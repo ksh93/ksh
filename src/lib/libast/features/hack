@@ -1,1 +1,51 @@
 hdr	locale_attr
+
+tst	- -DVAL=0 - -DVAL=1 - -DVAL=2 note{ probing need for va_listval() workaround }end output{
+	/*
+	 * This workaround test is needed until libast's va_listval macro from
+	 * features/common can be made to work properly on all systems (if ever).
+	 * It is used in hash/hashalloc.c and string/tokscan.c.
+	 */
+	#include "FEATURE/common"
+	#if _STD_ && _hdr_stdarg
+	#include <stdarg.h>
+	#else
+	#include <varargs.h>
+	#endif
+	void foo(int bar, ...)
+	{
+		va_list ap;
+		va_start(ap, bar);
+		if (bar==1)
+		{
+	#if VAL == 0
+			/*
+			 * Normal version. On some systems, it won't compile.
+			 */
+			va_copy(ap, va_listval(va_arg(ap, va_listarg)));
+	#elif VAL == 1
+			/*
+			 * This is the workaround from the ksh 93v- beta distribution.
+			 */
+			va_list np;
+			np = va_listval(va_arg(ap, va_listarg));
+			va_copy(ap, np);
+	#elif VAL == 2
+			/*
+			 * This is the workaround from the FreeBSD port.
+			 * https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=255308
+			 */
+			va_listarg np;
+			np = va_listval(va_arg(ap, va_listarg));
+			va_copy(ap, np);
+	#endif
+		}
+		va_end(ap);
+	}
+	int main()
+	{
+		foo(0,"one",2);
+		printf("#define _need_va_listval_workaround %d\n",VAL);
+		return 0;
+	}
+}end

@@ -128,4 +128,56 @@ exp=1
 	"(expected '$exp', got '$status')"
 
 # ======
+# Exit behaviour for commands, expansions and assignments
+# https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_08_01
+
+builtin -s | while read cmd
+do
+	[[ $cmd == : ]] && continue  # ':' never errors out
+	("$cmd" --badoption; true) 2>/dev/null \
+	&& err_exit "Special built-in utility error does not cause shell to exit ($cmd)"
+	(command "$cmd" --badoption; true) 2>/dev/null \
+	|| err_exit "Error in special built-in utility prefixed by 'command' causes shell to exit ($cmd)"
+done
+
+(command shift 10; true) 2>/dev/null \
+|| err_exit "Regular built-in utility error causes shell to exit"
+
+(readonly foo=bar; foo=baz; true) 2>/dev/null \
+&& err_exit "Variable assignment error does not cause shell to exit"
+
+(command true ${foo@bar}; true) 2>/dev/null \
+&& err_exit "Expansion error does not cause shell to exit"
+
+(/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit "Command not found causes shell to exit"
+
+# Exit behaviour for redirections
+
+(>/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit 'Error in lone redirection causes shell to exit'
+
+(: >/dev/null/nonexistent; true) 2>/dev/null \
+&& err_exit 'Redirection error with special built-in utility does not cause shell to exit'
+
+(false >/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit 'Redirection error with regular built-in utility causes shell to exit'
+
+("$(whence -p false)" >/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit 'Redirection error with external command causes shell to exit'
+
+(/dev/null/nonexistent >/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit 'Redirection error with nonexistent command causes shell to exit'
+
+(foo=bar >/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit 'Redirection error with variable assignment causes shell to exit'
+
+({ false; }; >/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit 'Redirection error with compound command causes shell to exit'
+
+# https://github.com/ksh93/ksh/issues/310
+(fn() { false; }; fn >/dev/null/nonexistent; true) 2>/dev/null \
+|| err_exit 'Redirection error with function execution causes shell to exit'
+
+# ======
 exit $((Errors<125?Errors:125))

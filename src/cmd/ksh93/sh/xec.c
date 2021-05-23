@@ -1572,7 +1572,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(io)
 					{
 						indx = shp->topfd;
-						sh_pushcontext(shp,buffp,SH_JMPCMD);
+						sh_pushcontext(shp,buffp,SH_JMPIO);
 						jmpval = sigsetjmp(buffp->buff,0);
 					}
 					if(jmpval == 0)

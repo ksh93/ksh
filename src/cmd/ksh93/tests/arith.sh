@@ -772,9 +772,9 @@ v=$(printf $'%.28a\n' 64)
 # https://github.com/ksh93/ksh/issues/152
 
 exp='array_test_1: 1$(echo INJECTION >&2): arithmetic syntax error'
-got=$(var='1$(echo INJECTION >&2)' "$SHELL" -c 'typeset -a a; ((a[$var]++)); typeset -p a' array_test_1 2>&1)
+got=$(set +x; var='1$(echo INJECTION >&2)' "$SHELL" -c 'typeset -a a; ((a[$var]++)); typeset -p a' array_test_1 2>&1)
 [[ $got == "$exp" ]] || err_exit "Array subscript quoting test 1A: expected $(printf %q "$exp"), got $(printf %q "$got")"
-got=$(var='1$(echo INJECTION >&2)' "$SHELL" -c 'typeset -a a; ((a["$var"]++)); typeset -p a' array_test_1 2>&1)
+got=$(set +x; var='1$(echo INJECTION >&2)' "$SHELL" -c 'typeset -a a; ((a["$var"]++)); typeset -p a' array_test_1 2>&1)
 [[ $got == "$exp" ]] || err_exit "Array subscript quoting test 1B: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 exp='typeset -A a=(['\''1$(echo INJECTION >&2)'\'']=1)'
@@ -836,6 +836,7 @@ fi
 integer loopcount=maxlevel+10
 got=$(
 	typeset -r -A -i ro_arr=([a]=10 [b]=20 [c]=30)
+	set +x
 	for ((i=0; i<loopcount; i++)); do
 		let "ro_arr[i+1] += 5"
 	done 2>&1
@@ -843,6 +844,7 @@ got=$(
 [[ $got == *recursion* ]] && err_exit "recursion level not reset on readonly error (main shell)"
 got=$(
 	typeset -r -A -i ro_arr=([a]=10 [b]=20 [c]=30)
+	set +x
 	for ((i=0; i<loopcount; i++)); do
 		( ((ro_arr[i+1] += 5)) )
 	done 2>&1

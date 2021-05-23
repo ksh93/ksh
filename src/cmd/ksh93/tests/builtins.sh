@@ -722,6 +722,7 @@ read baz <<< 'foo\\\\bar'
 # ======
 # Check that I/O errors are detected <https://github.com/att/ast/issues/1093>
 actual=$(
+    set +x
     {
         (
             trap "" PIPE
@@ -1322,10 +1323,10 @@ then	exp='  version         cat (*) ????-??-??'
 	got=$(PATH=/opt/ast/bin:$PATH; "${ whence -p cat; }" --version 2>&1)
 	[[ $got == $exp ]] || err_exit "path-bound builtin not executable by canonical path resulting from expansion" \
 		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-	got=$(PATH=/opt/ast/bin:$PATH "$SHELL" -o restricted -c 'cat --version' 2>&1)
+	got=$(PATH=/opt/ast/bin:$PATH; "$SHELL" -o restricted -c 'cat --version' 2>&1)
 	[[ $got == $exp ]] || err_exit "restricted shells do not recognize path-bound builtins" \
 		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-	got=$(PATH=/opt/ast/bin cat --version 2>&1)
+	got=$(set +x; PATH=/opt/ast/bin cat --version 2>&1)
 	[[ $got == $exp ]] || err_exit "path-bound builtin not found on PATH in preceding assignment" \
 		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 else	warning 'skipping path-bound builtin tests: builtin /opt/ast/bin/cat not found'

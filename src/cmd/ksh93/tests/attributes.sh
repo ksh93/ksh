@@ -539,6 +539,7 @@ typeset -A expect=(
 for flag in "${!expect[@]}"
 do	unset foo
 	actual=$(
+		set +x
 		redirect 2>&1
 		export foo
 		(typeset "-$flag" foo; readonly foo; typeset -p foo)
@@ -616,6 +617,7 @@ typeset -A expect=(
 for flag in "${!expect[@]}"
 do	unset a
 	actual=$(
+		set +x
 		redirect 2>&1
 		(typeset "-$flag" a=2; typeset -p a)
 		leak=${ typeset -p a; }

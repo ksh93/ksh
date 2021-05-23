@@ -929,19 +929,19 @@ cd "$tmp/deleted"
 tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/deleted"'
 
 exp="subPWD: ${PWD%/deleted}"$'\n'"mainPWD: $PWD"
-got=$( { "$SHELL" -c '(subshfn() { bad; }; cd ..; echo "subPWD: $PWD"); typeset -f subshfn; echo "mainPWD: $PWD"'; } 2>&1 )
+got=$(set +x; { "$SHELL" -c '(subshfn() { bad; }; cd ..; echo "subPWD: $PWD"); typeset -f subshfn; echo "mainPWD: $PWD"'; } 2>&1)
 [[ $got == "$exp" ]] || err_exit "subshell state not restored after 'cd ..' from deleted PWD" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 exp="PWD=$PWD"
-got=$( { "$SHELL" -c '(cd /; (cd /)); print -r -- "PWD=$PWD"'; } 2>&1 )
+got=$(set +x; { "$SHELL" -c '(cd /; (cd /)); print -r -- "PWD=$PWD"'; } 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore nonexistent PWD on exiting a virtual subshell' \
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 mkdir "$tmp/recreated"
 cd "$tmp/recreated"
 tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/recreated"; mkdir "$tmp/recreated"'
 exp="PWD=$PWD"
-got=$( { "$SHELL" -c '(cd /); print -r -- "PWD=$PWD"'; } 2>&1 )
+got=$(set +x; { "$SHELL" -c '(cd /); print -r -- "PWD=$PWD"'; } 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore re-created PWD on exiting a virtual subshell' \
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 cd "$tmp"

@@ -1,4 +1,4 @@
-: solaris.sparc cc wrapper for reasonable ansi C defaults and 32 bit : 2021-01-17 :
+: solaris.sparc cc wrapper for 32 bit : 2021-05-12 :
 
 HOSTTYPE=sol11.sparc
 
@@ -15,4 +15,4 @@ esac
 
 # Note: the _XPG6 macro is now defined in src/lib/libast/features/common
 
-$CC_EXPLICIT -m32 -xc99 "$@"
+$CC_EXPLICIT -m32 -std=c11 "$@"

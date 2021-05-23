@@ -523,6 +523,13 @@ make install
 			done fastfind.o generated
 			make hashalloc.o
 				make hash/hashalloc.c
+					make FEATURE/hack implicit
+						meta FEATURE/hack features/%>FEATURE/% features/hack hack
+						make features/hack
+							prev FEATURE/common implicit
+						done features/hack
+						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/hack
+					done FEATURE/hack generated
 					make hash/hashlib.h implicit
 						make include/hash.h implicit
 							make include/hashpart.h implicit
@@ -909,6 +916,7 @@ make install
 			done tokline.o generated
 			make tokscan.o
 				make string/tokscan.c
+					prev FEATURE/hack implicit
 					prev include/tok.h implicit
 					prev include/ast.h implicit
 				done string/tokscan.c
@@ -3118,12 +3126,7 @@ make install
 						make locale_attr.h implicit
 						done locale_attr.h dontcare virtual
 					done comp/gross_sgi.h dontcare
-					make FEATURE/hack implicit
-						meta FEATURE/hack features/%>FEATURE/% features/hack hack
-						make features/hack
-						done features/hack
-						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/hack
-					done FEATURE/hack generated
+					prev FEATURE/hack implicit
 					prev include/ls.h implicit
 					prev include/ast.h implicit
 				done comp/gross.c

@@ -161,6 +161,9 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		if(job_close(logdata.sh) < 0)
 			return(1);
 #endif /* JOBS */
+		/* if the main shell is about to be replaced, decrease SHLVL to cancel out a subsequent increase */
+		if(!shgd->realsubshell)
+			(*SHLVL->nvalue.ip)--;
 		/* force bad exec to terminate shell */
 		pp = (struct checkpt*)logdata.sh->jmplist;
 		pp->mode = SH_JMPEXIT;

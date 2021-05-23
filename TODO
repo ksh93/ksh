@@ -68,8 +68,6 @@ Enhancements to do:
 ______
 Fix regression test failures:
 
-- There are many regression test failures on NetBSD.
-
 - There are some serious regression test failures on OpenBSD when ksh
   is compiled with AST vmalloc disabled, so the system standard malloc(3)
   is used. These probably represent real ksh93 bugs exposed by OpenBSD's

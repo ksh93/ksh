@@ -31,6 +31,7 @@
 static const char id_hash[] = "\n@(#)$Id: hash (AT&T Research) 1996-08-11 $\0\n";
 
 #include "hashlib.h"
+#include "FEATURE/hack"
 
 Hash_info_t	hash_info = { 0 };
 
@@ -152,7 +153,19 @@ hashalloc(Hash_table_t* ref, ...)
 				va_copy(*vp, ap);
 				vp++;
 			}
+#if _need_va_listval_workaround
+			{
+#   if _need_va_listval_workaround == 2
+				va_listarg	np;
+#   else
+				va_list		np;
+#   endif
+				np = va_listval(va_arg(ap, va_listarg));
+				va_copy(ap, np);
+			}
+#else
 			va_copy(ap, va_listval(va_arg(ap, va_listarg)));
+#endif
 			break;
 		case 0:
 			if (vp > va)

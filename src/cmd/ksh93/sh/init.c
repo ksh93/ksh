@@ -76,6 +76,16 @@ static wctrans_t wctrans(const char *name)
 #define towctrans	sh_towctrans
 static int towctrans(int c, wctrans_t t)
 {
+#if _lib_towupper && _lib_towlower
+	if(mbwide())
+	{
+		if(t==1 && iswupper((wint_t)c))
+			c = (int)towlower((wint_t)c);
+		else if(t==2 && iswlower((wint_t)c))
+			c = (int)towupper((wint_t)c);
+	}
+	else
+#endif
 	if(t==1 && isupper(c))
 		c = tolower(c);
 	else if(t==2 && islower(c))

@@ -581,6 +581,7 @@ actual=$(echo begin; exec >/dev/tty; [ -n X -a -t ] && test -n X -a -t) \
 # [ -t 1 ] to fail in non-comsub virtual subshells.
 ( test -t 1 ) && echo OK9 || echo 'test -t 1 in virtual subshell fails'
 ( test -t ) && echo OK10 || echo 'test -t in virtual subshell fails'
+got=$(test -t 1 >/dev/tty && echo ok) && [[ $got == ok ]] && echo OK11 || echo 'test -t 1 in comsub fails'
 EOF
 tst $LINENO <<"!"
 L test -t 1 inside command substitution
@@ -599,6 +600,7 @@ r ^OK7\r\n$
 r ^OK8\r\n$
 r ^OK9\r\n$
 r ^OK10\r\n$
+r ^OK11\r\n$
 r ^:test-2:
 !
 
