@@ -58,3 +58,4 @@ bin/execrate
 *.core
 core
 **/#*#
+tags
