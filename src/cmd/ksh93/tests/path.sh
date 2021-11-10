@@ -879,7 +879,8 @@ got=$?
 	"(expected $exp, got $got)"
 
 # Tests for attempting to use a command name that's too long.
-long_cmd=$(awk -v ORS= 'BEGIN { for(i=0;i<500;i++) print "xxxxxxxxxx"; }')
+name_max=$(getconf NAME_MAX $PWD)
+long_cmd="$(awk -v ORS= 'BEGIN { for(i=0;i<'$name_max';i++) print "xx"; }')"
 exp=127
 PATH=$PWD $SHELL -c "$long_cmd" > /dev/null 2>&1
 got=$?
