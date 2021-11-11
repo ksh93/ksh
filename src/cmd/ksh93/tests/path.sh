@@ -879,7 +879,7 @@ got=$?
 	"(expected $exp, got $got)"
 
 # Tests for attempting to use a command name that's too long.
-name_max=$(getconf NAME_MAX $PWD)
+name_max=$(builtin getconf 2>/dev/null; getconf NAME_MAX . 2>/dev/null || echo 255)
 long_cmd="$(awk -v ORS= 'BEGIN { for(i=0;i<'$name_max';i++) print "xx"; }')"
 exp=127
 PATH=$PWD $SHELL -c "$long_cmd" > /dev/null 2>&1
