@@ -264,18 +264,22 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 	sh_onstate(SH_HISTORY);
 	sh_onstate(SH_VERBOSE);	/* echo lines as read */
 	if(replace)
+	{
 		hist_subst(error_info.id,fdo,replace);
+		sh_close(fdo);
+	}
 	else if(error_info.errors == 0)
 	{
-		char buff[IOBSIZE+1];
-		Sfio_t *iop = sfnew(NIL(Sfio_t*),buff,IOBSIZE,fdo,SF_READ);
 		/* read in and run the command */
 		if(shp->hist_depth++ > HIST_RECURSE)
 		{
+			sh_close(fdo);
 			errormsg(SH_DICT,ERROR_exit(1),e_toodeep,"history");
 			UNREACHABLE();
 		}
-		sh_eval(iop,1);
+		char buff[IOBSIZE+1];
+		Sfio_t *iop = sfnew(NIL(Sfio_t*),buff,IOBSIZE,fdo,SF_READ);
+		sh_eval(iop,1); /* this will close fdo */
 		shp->hist_depth--;
 	}
 	else
@@ -313,6 +317,7 @@ static void hist_subst(const char *command,int fd,char *replace)
 	*newp++ =  0;
 	if((sp=sh_substitute(string,replace,newp))==0)
 	{
+		sh_close(fd);
 		errormsg(SH_DICT,ERROR_exit(1),e_subst,command);
 		UNREACHABLE();
 	}

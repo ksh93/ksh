@@ -9,6 +9,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   special floating point constants Inf and NaN so that $((inf)) and $((nan))
   refer to the variables by those names as the standard requires. (BUG_ARITHNAN)
 
+- Fixed two file descriptor leaks in the hist builtin that occurred when
+  the -s flag ran a command or encountered an error.
+
 2021-11-14:
 
 - Fixed: ksh crashed after unsetting .sh.match and then matching a pattern.

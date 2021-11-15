@@ -1274,4 +1274,29 @@ got=$(	readonly v=foo
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/att/ast/issues/872
+hist_leak=$tmp/hist_leak.sh
+print 'ulimit -n 15' > "$hist_leak"
+for ((i=0; i!=11; i++)) do
+	print 'true foo\nhist -s foo=bar 2> /dev/null' >> "$hist_leak"
+done
+print 'print OK' >> "$hist_leak"
+exp="OK"
+got="$($SHELL -i "$hist_leak" 2>&1)"
+[[ $exp == "$got" ]] || err_exit "file descriptor leak in hist builtin" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# File descriptor leak after hist builtin substitution error
+hist_error_leak=$tmp/hist_error_leak.sh
+print 'ulimit -n 15' > "$hist_error_leak"
+for ((i=0; i!=11; i++)) do
+	print 'hist -s no=yes 2> /dev/null' >> "$hist_error_leak"
+done
+print 'print OK' >> "$hist_error_leak"
+exp="OK"
+got="$($SHELL -i "$hist_error_leak" 2>&1)"
+[[ $exp == "$got" ]] || err_exit "file descriptor leak after substitution error in hist builtin" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
