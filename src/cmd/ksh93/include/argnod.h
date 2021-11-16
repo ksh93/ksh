@@ -125,7 +125,6 @@ struct argnod
 #define ARG_ARITH	0x100	/* arithmetic expansion */
 #define ARG_OPTIMIZE	0x200	/* try to optimize */
 #define ARG_NOGLOB	0x400	/* no file name expansion */
-#define ARG_LET		0x800	/* processing let command arguments */
 #define ARG_ARRAYOK	0x1000	/* $x[sub] ==> ${x[sub]} */
 
 extern struct dolnod	*sh_argcreate(char*[]);

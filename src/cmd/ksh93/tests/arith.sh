@@ -21,6 +21,9 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
+integer hasposix=0
+(set -o posix) 2>/dev/null && ((hasposix++))	# not using [[ -o ?posix ]] as it's broken on 93v-
+
 trap '' FPE # NOTE: osf.alpha requires this (no ieee math)
 
 integer x=1 y=2 z=3
@@ -346,8 +349,14 @@ do	(( ipx = ip % 256 ))
 done
 unset x
 x=010
-(( x == 10 )) || err_exit 'leading zeros in x treated as octal arithmetic with $((x))'
-(( $x == 8 )) || err_exit 'leading zeros not treated as octal arithmetic with $x'
+(( x == 10 )) || err_exit 'leading zeros in x treated as octal arithmetic with ((x))'
+(( $x == 10 )) || err_exit 'leading zeros in x treated as octal arithmetic with (($x))'
+if	((hasposix))
+then	set --posix
+	((x == 8)) || err_exit 'posix: leading zeros in x not treated as octal arithmetic with ((x))'
+	(($x == 8)) || err_exit 'posix: leading zeros in x not treated as octal arithmetic with (($x))'
+	set --noposix
+fi
 unset x
 typeset -Z x=010
 (( x == 10 )) || err_exit 'leading zeros not ignored for arithmetic'
@@ -728,15 +737,26 @@ unset A
 unset r x
 integer x
 r=020
-(($r == 16)) || err_exit 'leading 0 not treated as octal inside ((...))'
+(($r == 20)) || err_exit 'leading 0 treated as octal inside ((...))'
 x=$(($r))
-(( x == 16 )) || err_exit 'leading 0 not treated as octal inside $((...))'
+((x == 20)) || err_exit 'leading 0 treated as octal inside $((...))'
 x=$r
-((x == 20 )) || err_exit 'leading 0 should not be treated as octal outside ((...))'
+((x == 20)) || err_exit 'leading 0 treated as octal outside ((...))'
 print -- -020 | read x
-((x == -20)) || err_exit 'numbers with leading -0 should not be treated as octal outside ((...))'
+((x == -20)) || err_exit 'numbers with leading -0 treated as octal outside ((...))'
 print -- -8#20 | read x
 ((x == -16)) || err_exit 'numbers with leading -8# should be treated as octal'
+if	((hasposix))
+then	set --posix
+	(($r == 16)) || err_exit 'posix: leading 0 not treated as octal inside ((...))'
+	x=$(($r))
+	(( x == 16 )) || err_exit 'posix: leading 0 not treated as octal inside $((...))'
+	x=$r
+	((x == 16)) || err_exit 'posix: leading 0 not as octal outside ((...))'
+	print -- -020 | read x
+	((x == -16)) || err_exit 'posix: numbers with leading -0 should be treated as octal outside ((...))'
+	set --noposix
+fi
 
 unset x
 x=0x1
@@ -750,8 +770,13 @@ let "$x==10" || err_exit 'arithmetic with $x where $x is 010 should be decimal i
 (( 9.$x == 9.01 )) || err_exit 'arithmetic with 9.$x where x=010 should be 9.01' 
 (( 9$x == 9010 )) || err_exit 'arithmetic with 9$x where x=010 should be 9010' 
 x010=99
-((x$x == 99 )) || err_exit 'arithtmetic with x$x where x=010 should be $x010'
-(( 3+$x == 11 )) || err_exit '3+$x where x=010 should be 11 in ((...))'
+((x$x == 99 )) || err_exit 'arithmetic with x$x where x=010 should be $x010'
+(( 3+$x == 13 )) || err_exit '3+$x where x=010 should be 13 in ((...))'
+if	((hasposix))
+then	set --posix
+	(( 3+$x == 11 )) || err_exit 'posix: 3+$x where x=010 should be 11 in ((...))'
+	set --noposix
+fi
 let "(3+$x)==13" || err_exit 'let should not recognize leading 0 as octal'
 unset x
 typeset -RZ3 x=10 
@@ -878,8 +903,9 @@ unset got
 
 # ======
 # https://github.com/ksh93/ksh/issues/326
-for m in u d i o x X
+((hasposix)) && for m in u d i o x X
 do
+	set --posix
 	case $m in
 	o)	exp="10;21;32;" ;;
 	x)	exp="8;11;1a;" ;;
@@ -887,22 +913,16 @@ do
 	*)	exp="8;17;26;" ;;
 	esac
 	got=${ printf "%$m;" 010 021 032; }
-	[[ $got == "$exp" ]] || err_exit "printf %$m does not recognize octal arguments" \
+	[[ $got == "$exp" ]] || err_exit "posix: printf %$m does not recognize octal arguments" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	set --noposix
 done
-
-# https://github.com/ksh93/ksh/issues/326#issuecomment-917707463
-exp=18
-got=$(( $(integer x; x=010; echo $x) + 010 ))
-#		       ^^^ decimal     ^^^ octal
-[[ $got == "$exp" ]] || err_exit 'Integer with leading zero incorrectly interpreted as octal in non-POSIX arith context' \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # BUG_ARITHNAN: In ksh <= 93u+m 2021-11-15 and zsh 5.6 - 5.8, the case-insensitive
 # floating point constants Inf and NaN are recognised in arithmetic evaluation,
 # overriding any variables with the names Inf, NaN, INF, nan, etc.
-if	(set --posix) 2>/dev/null
+if	((hasposix))
 then	set --posix
 	Inf=42 NaN=13
 	inf=421 nan=137
@@ -919,6 +939,13 @@ then	set --posix
 	unset -v Inf NaN inf nan INF NAN v
 	set --noposix
 fi
+
+# ======
+# https://github.com/ksh93/ksh/issues/334#issuecomment-968603087
+exp=21
+got=$(typeset -Z x=0x15; { echo $((x)); } 2>&1)
+[[ $got == "$exp" ]] || err_exit "typeset -Z corrupts hexadecimal number in arithmetic context" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

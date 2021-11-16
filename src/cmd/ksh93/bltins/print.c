@@ -884,9 +884,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 				}
 				break;
 			default:
-				shp->inarith = 1;	/* POSIX compliance: recognize octal constants, e.g. printf '%d\n' 010 */
 				d = sh_strnum(argp,&lastchar,0);
-				shp->inarith = 0;
 				if(d<longmin)
 				{
 					errormsg(SH_DICT,ERROR_warn(0),e_overflow,argp);

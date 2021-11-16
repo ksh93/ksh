@@ -332,7 +332,7 @@ The arithmetic expression
 .I expr1
 is evaluated first
 (see
-.I "Arithmetic evaluation"
+.I "Arithmetic Evaluation"
 below).
 The arithmetic expression
 .I expr2
@@ -1029,7 +1029,7 @@ for an indexed array is denoted by
 an
 .I arithmetic expression\^
 (see
-.I "Arithmetic evaluation"
+.I "Arithmetic Evaluation"
 below)
 between a
 .B [
@@ -1693,7 +1693,7 @@ is assigned a new value.
 .B .sh.math
 Used for defining arithmetic functions
 (see
-.I "Arithmetic evaluation"
+.I "Arithmetic Evaluation"
 below)
 and stores the list of user defined arithmetic functions.
 .TP
@@ -6447,7 +6447,7 @@ is a separate
 .I "arithmetic expression"
 to be evaluated.
 .B let
-only recognizes octal constants starting with
+only recognizes octal numbers starting with
 .B 0
 when the
 .B set
@@ -6456,7 +6456,7 @@ option
 is on.
 See
 .I "Arithmetic Evaluation"
-above, for a description of arithmetic expression evaluation.
+above for a description of arithmetic expression evaluation.
 .sp .5
 The exit status is
 0 if the value of the last expression
@@ -7174,7 +7174,7 @@ Same as
 .B letoctal
 The
 .B let
-command allows octal constants starting with
+command allows octal numbers starting with
 .BR 0 .
 On by default if ksh is invoked as \fBsh\fR or \fBrsh\fR.
 .TP 8
@@ -7249,6 +7249,10 @@ if no file descriptor number precedes it;
 disables the special floating point constants \fBInf\fR and \fBNaN\fR in
 arithmetic evaluation so that, e.g., \fB$((inf))\fR and \fB$((nan))\fR refer
 to the variables by those names;
+.IP \[bu]
+enables the recognition of a leading zero as introducing an octal number in
+all arithmetic evaluation contexts, except in the \fBlet\fR built-in while
+\fBletoctal\fR is off;
 .IP \[bu]
 changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
 \fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators

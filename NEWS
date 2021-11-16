@@ -3,6 +3,19 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-11-16:
+
+- By default, arithmetic expressions in ksh no longer interpret a number
+  with a leading zero as octal in any context. Use 8#octalnumber instead.
+  Before, ksh would arbitrarily recognize the leading octal zero in some
+  contexts but not others, e.g., both of:
+	$ x=010; echo "$((x)), $(($x))"
+	$ set -o letoctal; x=010; let y=$x z=010; echo "$y, $z"
+  would output '10, 8'. These now output '10, 10' and '8, 8', respectively.
+  Arithmetic expressions now also behave identically within and outside
+  ((...)) and $((...)). Setting the --posix compliance option turns on the
+  recognition of the leading octal zero for all arithmetic contexts.
+
 2021-11-15:
 
 - In arithmetic evaluation, the --posix compliance option now disables the
@@ -41,11 +54,6 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   echo/print/printf to /dev/full now always yields a non-zero exit status.
 
 2021-09-13:
-
-- Fixed a bug introduced in 93u+ 2012-02-07 that caused the 'printf' builtin
-  (and its 'print -f' equivalent) to fail to recognise integer arguments with a
-  leading zero as octal numbers. For example, 'printf "%d\n" 010' now once
-  again outputs '8' instead of '10'.
 
 - Disable the POSIX arithmetic context while running a command substitution
   invoked from within an arithmetic expression. This fixes a bug that caused

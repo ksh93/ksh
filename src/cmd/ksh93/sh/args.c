@@ -664,8 +664,6 @@ char **sh_argbuild(Shell_t *shp,int *nargs, const struct comnod *comptr,int flag
 		*nargs = 0;
 		if(ac)
 		{
-			if(ac->comnamp == SYSLET)
-				flag |= ARG_LET;
 			argp = ac->comarg;
 			while(argp)
 			{

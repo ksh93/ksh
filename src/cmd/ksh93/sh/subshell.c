@@ -470,7 +470,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	struct rand *rp;		/* current $RANDOM discipline function data */
 	unsigned int save_rand_seed;	/* parent shell $RANDOM seed */
 	int save_rand_last;		/* last random number from $RANDOM in parent shell */
-	char save_inarith;		/* flag indicating POSIX arithmetic context */
 	memset((char*)sp, 0, sizeof(*sp));
 	sfsync(shp->outpool);
 	sh_sigcheck(shp);
@@ -592,9 +591,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	{
 		if(comsub)
 		{
-			/* a comsub within an arithmetic expression must not itself be in an arithmetic context */
-			save_inarith = shp->inarith;
-			shp->inarith = 0;
 			/* disable job control */
 			shp->spid = 0;
 			sp->jobcontrol = job.jobcontrol;
@@ -738,8 +734,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			sh_close(sp->tmpfd);
 		}
 		shp->fdstatus[1] = sp->fdstatus;
-		/* restore POSIX arithmetic context flag */
-		shp->inarith = save_inarith;
 	}
 	if(!shp->subshare)
 	{

@@ -151,10 +151,15 @@ For more details, see the NEWS file and for complete details, see the git log.
 	correctly negates another '!', e.g., [[ ! ! 1 -eq 1 ]] now returns
 	0/true. Note that this has always been the case for 'test'/'['.
 
-28.	In the 'printf' builtin (and the 'print -f' equivalent), numeric
-	arguments with a leading zero are now once again recognized as octal
-	numbers as in ksh93 versions before 2012-02-07, and as POSIX requires.
-	For example, 'printf "%d\n" 010' now once again outputs '8'.
+28.	By default, arithmetic expressions in ksh no longer interpret a number
+	with a leading zero as octal in any context. Use 8#octalnumber instead.
+	Before, ksh would arbitrarily recognize the leading octal zero in some
+	contexts but not others. One of several examples is:
+		x=010; echo "$((x)), $(($x))"
+	would output '10, 8'. This now outputs '10, 10'. Arithmetic
+	expressions now also behave identically within and outside ((...))
+	and $((...)). Setting the --posix compliance option turns on the
+	recognition of the leading octal zero for all arithmetic contexts.
 
 ____________________________________________________________________________
 

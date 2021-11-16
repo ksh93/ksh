@@ -74,8 +74,6 @@ typedef struct  _mac_
 	char		patfound;	/* set if pattern character found */
 	char		assign;		/* set for assignments */
 	char		arith;		/* set for ((...)) */
-	char		let;		/* set when expanding let arguments */
-	char		zeros;		/* strip leading zeros when set */
 	char		arrayok;	/* $x[] ok for arrays */
 	char		subcopy;	/* set when copying subscript */
 	int		dotdot;		/* set for .. in subscript */
@@ -161,7 +159,6 @@ char *sh_mactrim(Shell_t *shp, char *str, register int mode)
 	savemac = *mp;
 	stkseek(stkp,0);
 	mp->arith = (mode==3);
-	mp->let = 0;
 	shp->argaddr = 0;
 	mp->pattern = (mode==1||mode==2);
 	mp->patfound = 0;
@@ -219,7 +216,6 @@ int sh_macexpand(Shell_t* shp, register struct argnod *argp, struct argnod **arg
 	mp->arghead = arghead;
 	mp->quoted = mp->lit = mp->quote = 0;
 	mp->arith = ((flag&ARG_ARITH)!=0);
-	mp->let = ((flag&ARG_LET)!=0);
 	mp->split = !(flag&ARG_ASSIGN);
 	mp->assign = !mp->split;
 	mp->pattern = mp->split && !(flag&ARG_NOGLOB) && !sh_isoption(SH_NOGLOB);
@@ -279,7 +275,7 @@ void sh_machere(Shell_t *shp,Sfio_t *infile, Sfio_t *outfile, char *string)
 	stkseek(stkp,0);
 	shp->argaddr = 0;
 	mp->sp = outfile;
-	mp->split = mp->assign = mp->pattern = mp->patfound = mp->lit = mp->arith = mp->let = 0;
+	mp->split = mp->assign = mp->pattern = mp->patfound = mp->lit = mp->arith = 0;
 	mp->quote = 1;
 	mp->ifsp = nv_getval(sh_scoped(shp,IFSNOD));
 	mp->ifs = ' ';
@@ -1101,7 +1097,6 @@ static int varsub(Mac_t *mp)
 	int		var=1,addsub=0,oldpat=mp->pattern,idnum=0,flag=0,d;
 	Stk_t		*stkp = mp->shp->stk;
 retry1:
-	mp->zeros = 0;
 	idbuff[0] = 0;
 	idbuff[1] = 0;
 	c = fcmbget(&LEN);
@@ -1461,9 +1456,6 @@ retry1:
 				else
 					v = nv_getval(np);
 				mp->atmode = (v && mp->quoted && mode=='@');
-				/* special case --- ignore leading zeros */  
-				if((mp->let || (mp->arith&&nv_isattr(np,(NV_LJUST|NV_RJUST|NV_ZFILL)))) && !nv_isattr(np,NV_INTEGER) && (offset==0 || isspace(c) || strchr(",.+-*/=%&|^?!<>",c)))
-					mp->zeros = 1;
 			}
 			if(savptr==stakptr(0))
 				stkseek(stkp,offset);
@@ -1616,7 +1608,6 @@ retry1:
 				int split = mp->split;
 				int quoted = mp->quoted;
 				int arith = mp->arith;
-				int zeros = mp->zeros;
 				int assign = mp->assign;
 				if(newops)
 				{
@@ -1633,7 +1624,7 @@ retry1:
 					mp->split = 0;
 					mp->quoted = 0;
 					mp->assign &= ~1;
-					mp->arith = mp->zeros = 0;
+					mp->arith = 0;
 					newquote = 0;
 				}
 				else if(c=='?' || c=='=')
@@ -1645,7 +1636,6 @@ retry1:
 				mp->split = split;
 				mp->quoted = quoted;
 				mp->arith = arith;
-				mp->zeros = zeros;
 				mp->assign = assign;
 				/* add null byte */
 				sfputc(stkp,0);
@@ -2106,7 +2096,6 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			t = sh_dolparen((Lex_t*)mp->shp->lex_context);
 		if(t && t->tre.tretyp==TARITH)
 		{
-			mp->shp->inarith = 1;
 			fcsave(&save);
 			if(t->ar.arcomp)
 				num = arith_exec(t->ar.arcomp);
@@ -2114,7 +2103,6 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 				num = sh_arith(mp->shp,t->ar.arexpr->argval);
 			else
 				num = sh_arith(mp->shp,sh_mactrim(mp->shp,t->ar.arexpr->argval,3));
-			mp->shp->inarith = 0;
 		out_offset:
 			stkset(stkp,savptr,savtop);
 			*mp = savemac;
@@ -2325,18 +2313,6 @@ static void mac_copy(register Mac_t *mp,register const char *str, register int s
 	Stk_t			*stkp=mp->shp->stk;
 	int			oldpat = mp->pattern;
 	nopat = (mp->quote||(mp->assign==1)||mp->arith);
-	if(mp->zeros)
-	{
-		/* prevent leading 0's from becoming octal constants */
-		while(size>1 && *str=='0')
-		{
-			if(str[1]=='x' || str[1]=='X')
-				break;
-			str++,size--;
-		}
-		mp->zeros = 0;
-		cp = str;
-	}
 	if(mp->sp)
 		sfwrite(mp->sp,str,size);
 	else if(mp->pattern>=2 || (mp->pattern && nopat) || mp->assign==3)

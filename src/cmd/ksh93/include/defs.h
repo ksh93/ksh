@@ -204,7 +204,6 @@ struct shared
 	char		used_pos;	/* used positional parameter */\
 	char		universe; \
 	char		winch; \
-	char		inarith; 	/* set when in POSIX arith context, i.e. leading zero = octal, e.g. in ((...)) */ \
 	short		arithrecursion;	/* current arithmetic recursion level */ \
 	char		indebug; 	/* set when in debug trap */ \
 	unsigned char	ignsig;		/* ignored signal in subshell */ \

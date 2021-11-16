@@ -405,11 +405,9 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			const char radix = GETDECIMAL(0);
 			lvalue->eflag = 0;
 			errno = 0;
-			if(shp->bltindata.bnode==SYSLET && !sh_isoption(SH_LETOCTAL))
-			{	/*
-				 * Since we're running the "let" builtin, disable octal number processing by
-				 * skipping all initial zeros, unless the 'letoctal' option is on.
-				 */
+			if(!sh_isoption(shp->bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX))
+			{
+				/* Skip leading zeros to avoid parsing as octal */
 				while(*val=='0' && isdigit(val[1]))
 					val++;
 			}
@@ -534,7 +532,7 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 {
 	Shell_t	*shp = sh_getinterp();
 	register Sfdouble_t d;
-	char base=(shp->inarith?0:10), *last;
+	char base = (sh_isoption(shp->bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX) ? 0 : 10), *last;
 	if(*str==0)
 	{
 		d = 0.0;
@@ -544,7 +542,7 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 	{
 		errno = 0;
 		d = strtonll(str,&last,&base,-1);
-		if(*last && !shp->inarith && sh_isstate(SH_INIT))
+		if(*last && sh_isstate(SH_INIT))
 		{
 			/* This call is to handle "base#value" literals if we're importing untrusted env vars. */
 			errno = 0;
@@ -580,6 +578,7 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 
 Sfdouble_t sh_arith(Shell_t *shp,register const char *str)
 {
+	NOT_USED(shp);
 	return(sh_strnum(str, (char**)0, 1));
 }
 
