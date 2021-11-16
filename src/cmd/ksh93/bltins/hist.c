@@ -270,6 +270,8 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 	}
 	else if(error_info.errors == 0)
 	{
+		char buff[IOBSIZE+1];
+		Sfio_t *iop;
 		/* read in and run the command */
 		if(shp->hist_depth++ > HIST_RECURSE)
 		{
@@ -277,8 +279,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_exit(1),e_toodeep,"history");
 			UNREACHABLE();
 		}
-		char buff[IOBSIZE+1];
-		Sfio_t *iop = sfnew(NIL(Sfio_t*),buff,IOBSIZE,fdo,SF_READ);
+		iop = sfnew(NIL(Sfio_t*),buff,IOBSIZE,fdo,SF_READ);
 		sh_eval(iop,1); /* this will close fdo */
 		shp->hist_depth--;
 	}
