@@ -645,12 +645,13 @@ static Sfdouble_t nget_seconds(register Namval_t* np, Namfun_t *fp)
 }
 
 /*
- * These three functions are used to get and set the RANDOM variable
+ * These four functions are used to get and set the RANDOM variable
  */
 static void put_rand(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	struct rand *rp = (struct rand*)fp;
 	register long n;
+	sh_save_rand_seed(rp, 0);
 	if(!val)
 	{
 		fp = nv_stack(np, NIL(Namfun_t*));
@@ -677,7 +678,7 @@ static Sfdouble_t nget_rand(register Namval_t* np, Namfun_t *fp)
 {
 	struct rand *rp = (struct rand*)fp;
 	register long cur, last= *np->nvalue.lp;
-	NOT_USED(fp);
+	sh_save_rand_seed(rp, 1);
 	do
 		cur = (rand_r(&rp->rand_seed)>>rand_shift)&RANDMASK;
 	while(cur==last);

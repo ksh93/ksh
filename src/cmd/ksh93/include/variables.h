@@ -35,6 +35,7 @@ struct rand
 	int32_t		rand_last;
 };
 extern void sh_reseed_rand(struct rand *);
+extern void sh_save_rand_seed(struct rand *, int);
 
 /* The following defines must be kept synchronous with shtab_variables[] in data/variables.c */
 

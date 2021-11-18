@@ -100,6 +100,9 @@ static struct subshell
 	int		subdup;
 	char		subshare;
 	char		comsub;
+	unsigned int	rand_seed;  /* parent shell $RANDOM seed */
+	int		rand_last;  /* last random number from $RANDOM in parent shell */
+	int		rand_state; /* 0 means sp->rand_seed hasn't been set, 1 is the opposite */
 #if _lib_fchdir
 	int		pwdfd;	/* file descriptor for PWD */
 	char		pwdclose;
@@ -193,6 +196,17 @@ void sh_subfork(void)
 	{
 		/* this is the child part of the fork */
 		sh_onstate(SH_FORKED);
+		/*
+		 * $RANDOM is only reseeded when it's used in a subshell, so if $RANDOM hasn't
+		 * been reseeded yet set rp->rand_last to -2. This allows sh_save_rand_seed()
+		 * to reseed $RANDOM later.
+		 */
+		if(!sp->rand_state)
+		{
+			struct rand *rp;
+			rp = (struct rand*)RANDNOD->nvfun;
+			rp->rand_last = -2;
+		}
 		subshell_data = 0;
 		shp->subshell = 0;
 		shp->comsub = 0;
@@ -229,6 +243,24 @@ int nv_subsaved(register Namval_t *np, int flags)
 		}
 	}
 	return(0);
+}
+
+/*
+ * Save the current $RANDOM seed and state, then reseed $RANDOM.
+ */
+void sh_save_rand_seed(struct rand *rp, int reseed)
+{
+	struct subshell	*sp = subshell_data;
+	if(!sh.subshare && sp && !sp->rand_state)
+	{
+		sp->rand_seed = rp->rand_seed;
+		sp->rand_last = rp->rand_last;
+		sp->rand_state = 1;
+		if(reseed)
+			sh_reseed_rand(rp);
+	}
+	else if(reseed && rp->rand_last == -2)
+		sh_reseed_rand(rp);
 }
 
 /*
@@ -467,9 +499,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
 	int argcnt;
-	struct rand *rp;		/* current $RANDOM discipline function data */
-	unsigned int save_rand_seed;	/* parent shell $RANDOM seed */
-	int save_rand_last;		/* last random number from $RANDOM in parent shell */
 	memset((char*)sp, 0, sizeof(*sp));
 	sfsync(shp->outpool);
 	sh_sigcheck(shp);
@@ -580,11 +609,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		sp->cpipe = shp->cpipe[1];
 		shp->cpid = 0;
 		sh_sigreset(0);
-		/* save the current $RANDOM seed and state; reseed $RANDOM */
-		rp = (struct rand*)RANDNOD->nvfun;
-		save_rand_seed = rp->rand_seed;
-		save_rand_last = rp->rand_last;
-		sh_reseed_rand(rp);
 	}
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval==0)
@@ -748,6 +772,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(!shp->subshare)	/* restore environment if saved */
 	{
 		int n;
+		struct rand *rp;
 		shp->options = sp->options;
 		/* Clean up subshell hash table. */
 		if(sp->strack)
@@ -841,8 +866,11 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->coutpipe = sp->coutpipe;
 		/* restore $RANDOM seed and state */
 		rp = (struct rand*)RANDNOD->nvfun;
-		srand(rp->rand_seed = save_rand_seed);
-		rp->rand_last = save_rand_last;
+		if(sp->rand_state)
+		{
+			srand(rp->rand_seed = sp->rand_seed);
+			rp->rand_last = sp->rand_last;
+		}
 	}
 	shp->subshare = sp->subshare;
 	shp->subdup = sp->subdup;
