@@ -5,9 +5,6 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-11-18:
 
-- Fixed a regression introduced on 2021-05-03 that caused forking a subshell
-  to reset $RANDOM's seed in the parent shell.
-
 - Fixed a performance regression introduced on 2021-05-03 that caused
   the shbench[*] fibonacci benchmark to run slower.
   [*]: https://github.com/ksh-community/shbench
