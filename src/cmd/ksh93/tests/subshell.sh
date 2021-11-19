@@ -1049,4 +1049,39 @@ got=$(<r624627501.out)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/305
+sleep 2 & spid=$!
+for ((i=1; i<2048; i++))
+do	print $i
+done | (		# trigger 1: read from pipe
+        foo=`: &`	# trigger 2: bg job in backtick comsub
+        while read -r line
+        do	:
+        done
+        kill $spid
+) &
+tpid=$!
+wait $spid 2>/dev/null
+if	((! $?))
+then	kill -9 $tpid
+	err_exit 'read hangs after background job in backtick command sub'
+fi
+
+# https://github.com/ksh93/ksh/issues/316
+sleep 2 & spid=$!
+(
+	for ((i=1; i<=2048; i++))
+	do	eval "z$i="
+	done
+	eval 'v=`set 2>&1`'
+	kill $spid
+) &
+tpid=$!
+wait $spid 2>/dev/null
+if	((! $?))
+then	kill -9 $tpid
+	err_exit 'backtick command substitution hangs on reproducer from issue 316'
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

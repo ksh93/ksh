@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1982-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1982-2014 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
@@ -71,17 +71,17 @@ struct printmap
 	size_t		size;
 	char		*name;
 	char		map[3];
-	const char	*description;
+	const char	*equivalent;
 };
 
-const struct printmap  Pmap[] =
+static const struct printmap  Pmap[] =
 {
-	3,	"csv",	"q+",	"Equivalent to %#q",
-	4,	"html",	"H",	"Equivalent to %H",
-	3,	"ere",	"R",	"Equivalent to %R",
-	7,	"pattern","P",	"Equivalent to %#P",
-	3,	"url",	"H+",	"Equivalent to %#H",
-	0,	0,	0,
+	3,	"csv",		"q+",	"%#q",
+	3,	"ere",		"R",	"%R",
+	4,	"html",		"H",	"%H",
+	7,	"pattern",	"P",	"%P",
+	3,	"url",		"H+",	"%#H",
+	0,	0,		0,
 };
 
 
@@ -100,6 +100,7 @@ struct print
 };
 
 static char* 	nullarg[] = { 0, 0 };
+static int	exitval;
 
 #if !SHOPT_ECHOPRINT
    int    B_echo(int argc, char *argv[],Shbltin_t *context)
@@ -158,9 +159,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	const struct printmap *pm;
 	char c='%';
 	for(pm=Pmap;pm->size>0;pm++)
-	{
-		sfprintf(sp, "[+%c(%s)q?%s.]",c,pm->name,pm->description);
-	}
+		sfprintf(sp, "[+%c(%s)q?Equivalent to %s.]",c,pm->name,pm->equivalent);
 	return(1);
 }
 
@@ -172,12 +171,14 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 int    b_print(int argc, char *argv[], Shbltin_t *context)
 {
 	register Sfio_t *outfile;
-	register int exitval=0,n, fd = 1;
+	register int n, fd = 1;
 	register Shell_t *shp = context->shp;
 	const char *options, *msg = e_file+4;
 	char *format = 0;
 	int sflag = 0, nflag=0, rflag=0, vflag=0;
+	Namval_t *vname=0;
 	Optdisc_t disc;
+	exitval = 0;
 	disc.version = OPT_VERSION;
 	disc.infof = infof;
 	opt_info.disc = &disc;
@@ -236,11 +237,21 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			else if(!sh_iovalidfd(shp,fd))
 				fd = -1;
 			else if(!(shp->inuse_bits&(1<<fd)) && (sh_inuse(shp,fd) || (shp->gd->hist_ptr && fd==sffileno(shp->gd->hist_ptr->histfp))))
-
 				fd = -1;
 			break;
 		case 'v':
-			vflag='v';
+			if(argc < 0)
+			{
+				/* prepare variable for printf -v varname */
+				vname = nv_open(opt_info.arg, shp->var_tree, NV_VARNAME);
+				if(!vname)
+				{
+					errormsg(SH_DICT, ERROR_exit(2), e_create, opt_info.arg);
+					UNREACHABLE();
+				}
+			}
+			else
+				vflag='v';
 			break;
 		case 'C':
 			vflag='C';
@@ -258,7 +269,6 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 						nflag++;
 					if(*argv && strcmp(*argv,"-n")==0)
 					{
-
 						nflag++;
 						argv++;
 					}
@@ -289,6 +299,13 @@ skip:
 	/* handle special case of '-' operand for print */
 	if(argc>0 && *argv && strcmp(*argv,"-")==0 && strcmp(argv[-1],"--"))
 		argv++;
+	if(vname)
+	{
+		if(!shp->strbuf2)
+			shp->strbuf2 = sfstropen();
+		outfile = shp->strbuf2;
+		goto printf_v;
+	}
 skip2:
 	if(fd < 0)
 	{
@@ -315,6 +332,7 @@ skip2:
 	}
 	/* turn off share to guarantee atomic writes for printf */
 	n = sfset(outfile,SF_SHARE|SF_PUBLIC,0);
+printf_v:
 	if(format)
 	{
 		/* printf style print */
@@ -335,15 +353,7 @@ skip2:
 			sfprintf(outfile,"%!",&pdata);
 		} while(*pdata.nextarg && pdata.nextarg!=argv);
 		if(pdata.nextarg == nullarg && pdata.argsize>0)
-			sfwrite(outfile,stakptr(staktell()),pdata.argsize);
-		/*
-		 * -f flag skips adding newline at the end of output, which causes issues
-		 * with syncing history if -s and -f are used together. So don't sync now
-		 * if sflag was given. History is synced later with hist_flush() function.
-		 * https://github.com/att/ast/issues/425
-		 */
-		if(!sflag && sffileno(outfile)!=sffileno(sfstderr))
-			if (sfsync(outfile) < 0)
+			if(sfwrite(outfile,stakptr(staktell()),pdata.argsize) < 0)
 				exitval = 1;
 		sfpool(sfstderr,pool,SF_WRITE);
 		if (pdata.err)
@@ -353,9 +363,11 @@ skip2:
 	{
 		while(*argv)
 		{
-			fmtbase64(outfile,*argv++,vflag=='C');
+			if(fmtbase64(outfile,*argv++,vflag=='C') < 0)
+				exitval = 1;
 			if(!nflag)
-				sfputc(outfile,'\n');
+				if(sfputc(outfile,'\n') < 0)
+					exitval = 1;
 		}
 	}
 	else
@@ -367,16 +379,20 @@ skip2:
 				exitval = 1;
 		}
 		else if(sh_echolist(shp,outfile,rflag,argv) && !nflag)
-			sfputc(outfile,'\n');
+			if(sfputc(outfile,'\n') < 0)
+				exitval = 1;
 	}
-	if(sflag)
+	if(vname)
+		nv_putval(vname, sfstruse(outfile), 0);
+	else if(sflag)
 	{
 		hist_flush(shp->gd->hist_ptr);
 		sh_offstate(SH_HISTORY);
 	}
-	else if(n&SF_SHARE)
+	else
 	{
-		sfset(outfile,SF_SHARE|SF_PUBLIC,1);
+		if(n&SF_SHARE)
+			sfset(outfile,SF_SHARE|SF_PUBLIC,1);
 		if (sfsync(outfile) < 0)
 			exitval = 1;
 	}
@@ -401,12 +417,15 @@ int sh_echolist(Shell_t *shp,Sfio_t *outfile, int raw, char *argv[])
 		if(!raw  && (n=fmtvecho(cp,&pdata))>=0)
 		{
 			if(n)
-				sfwrite(outfile,stakptr(staktell()),n);
+				if(sfwrite(outfile,stakptr(staktell()),n) < 0)
+					exitval = 1;
 		}
 		else
-			sfputr(outfile,cp,-1);
+			if(sfputr(outfile,cp,-1) < 0)
+				exitval = 1;
 		if(*argv)
-			sfputc(outfile,' ');
+			if(sfputc(outfile,' ') < 0)
+				exitval = 1;
 		sh_sigcheck(shp);
 	}
 	return(!pdata.cescape);
@@ -424,7 +443,6 @@ static char strformat(char *s)
 #if SHOPT_MULTIBYTE && defined(FMT_EXP_WIDE)
 	int		w;
 #endif
-
         b = t = s;
         for (;;)
         {
@@ -469,7 +487,6 @@ static char strformat(char *s)
                 *t++ = c;
         }
 }
-
 
 static char *genformat(char *format)
 {
@@ -633,7 +650,8 @@ static ssize_t fmtbase64(Sfio_t *iop, char *string, int alt)
 	else if(nv_isarray(np) && (ap=nv_arrayptr(np)) && array_elem(ap) && (ap->nelem&(ARRAY_UNDEF|ARRAY_SCAN)))
 	{
 		nv_outnode(np,iop,(alt?-1:0),0);
-		sfputc(iop,')');
+		if(sfputc(iop,')') < 0)
+			exitval = 1;
 		return(sftell(iop));
 	}
 	else
@@ -704,7 +722,6 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 	Shell_t		*shp = pp->sh;
 	register char*	argp = *pp->nextarg;
 	char		*w,*s;
-
 	if(fe->n_str>0 && (format=='T'||format=='Q') && varname(fe->t_str,fe->n_str) && (!argp || varname(argp,-1)))
 	{
 		if(argp)

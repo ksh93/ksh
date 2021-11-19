@@ -628,6 +628,7 @@ r ^:test-2:
 L nobackslashctrl in emacs
 
 d 15
+p :test-1:
 w set -o emacs --nobackslashctrl
 
 # --nobackslashctrl shouldn't be ignored by reverse search
@@ -641,6 +642,7 @@ r ^:test-2: \r\n$
 L emacs backslash escaping
 
 d 15
+p :test-1:
 w set -o emacs
 
 # Test for too many backslash deletions in reverse-search mode

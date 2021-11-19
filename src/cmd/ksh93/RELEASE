@@ -2384,7 +2384,7 @@ ____
 01-09-25  Some spelling errors in the documentation were corrected.
 01-09-24 +The /dev/tcp/host/port and /dev/udp/host/port now allow
 	  the ports to be specified by service name.
-01-09-24 +The change staring with ksh93g in which the appropriate
+01-09-24 +The change starting with ksh93g in which the appropriate
 	  library path variable is prepended with a corresponding library
 	  directory has been modified.  With the new method, only the
 	  library path defined in the file named .paths in the directory

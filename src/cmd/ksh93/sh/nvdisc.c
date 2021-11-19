@@ -105,14 +105,7 @@ Sfdouble_t nv_getn(Namval_t *np, register Namfun_t *nfp)
 		else
 			str = nv_getv(np,fp?fp:nfp);
 		if(str && *str)
-		{
-			if(nv_isattr(np,NV_LJUST|NV_RJUST) || (*str=='0' && !(str[1]=='x'||str[1]=='X')))
-			{
-				while(*str=='0')
-					str++;
-			}
 			d = sh_arith(shp,str);
-		}
 	}
 	return(d);
 }
@@ -1477,9 +1470,15 @@ const Namdisc_t *nv_discfun(int which)
 	return(0);
 }
 
+/*
+ * Check if a variable node has a 'get' discipline.
+ * Used by the nv_isnull() macro (see include/name.h).
+ */
 int nv_hasget(Namval_t *np)
 {
 	register Namfun_t	*fp;
+	if(np==sh_scoped(&sh,IFSNOD))
+		return(0);	/* avoid BUG_IFSISSET: always return false for IFS */
 	for(fp=np->nvfun; fp; fp=fp->next)
 	{
 		if(!fp->disc || (!fp->disc->getnum && !fp->disc->getval))

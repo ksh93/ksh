@@ -29,6 +29,26 @@
  *  Rewritten April, 1988
  *  Revised January, 1992
  *  Mended February, 2021
+ *
+ *  Aspects of job control are (de)activated using a global flag variable,
+ *  a state bit, and a shell option bit. It is important to understand the
+ *  difference and set/check them in a manner consistent with their purpose.
+ *
+ *  1. The job.jobcontrol flag is for job control on interactive shells.
+ *     It is set to nonzero by job_init() if, and only if, the shell is
+ *     interactive *and* managed to get control of the terminal. Therefore,
+ *     any changing of terminal settings (tcsetpgrp(3), tty_set()) should
+ *     only be done if job.jobcontrol is nonzero.
+ *
+ *  2. The state flag, sh_isstate(SH_MONITOR), determines whether the bits
+ *     of job control that are relevant for both scripts and interactive
+ *     shells are active, which is mostly making sure that a background job
+ *     gets its own process group (setpgid(3)).
+ *
+ *  3. The -m (-o monitor) shell option, sh_isoption(SH_MONITOR), is just
+ *     that. When the user turns it on or off, the state flag is synched
+ *     with it. It should usually not be directly checked for, as the state
+ *     may be temporarily turned off without turning off the option.
  */
 
 #include	"defs.h"

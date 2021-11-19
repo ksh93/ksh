@@ -332,7 +332,7 @@ The arithmetic expression
 .I expr1
 is evaluated first
 (see
-.I "Arithmetic evaluation"
+.I "Arithmetic Evaluation"
 below).
 The arithmetic expression
 .I expr2
@@ -416,8 +416,8 @@ that matches
 .IR word .
 The form of the patterns is
 the same as that used for
-file name generation (see
-.I "File Name Generation\^"
+pathname expansion (see
+.I "Pathname Expansion\^"
 below).
 The
 .B ;;
@@ -706,7 +706,7 @@ value is not unset and the new values are appended to the
 current ones provided that the types are compatible.
 .PP
 The right hand side of a variable assignment undergoes all the expansion
-listed below except word splitting, brace expansion, and file name generation.
+listed below except word splitting, brace expansion, and pathname expansion.
 When the left hand side is an assignment is a compound variable and
 the right hand is the name of a compound variable, the compound variable
 on the right will be copied or appended to the compound variable on the left.
@@ -911,7 +911,7 @@ side effects are possible.
 For the second form, the final
 .B }
 will be recognized as a reserved word after any token.
-.SS Arithmetic Substitution.
+.SS Arithmetic Expansion.
 An arithmetic expression enclosed in double
 parentheses preceded by a dollar sign (
 .B $((\|))
@@ -1029,7 +1029,7 @@ for an indexed array is denoted by
 an
 .I arithmetic expression\^
 (see
-.I "Arithmetic evaluation"
+.I "Arithmetic Evaluation"
 below)
 between a
 .B [
@@ -1542,7 +1542,7 @@ In this case, the
 portion of
 .I word\^
 will be re-evaluated for each element.
-.PP
+.SS Shell Variables.
 The following
 parameters
 are automatically set by the shell:
@@ -1614,7 +1614,7 @@ so that the value is safe for being evaluated by the shell.
 .TP
 .B .sh.edchar
 This variable contains the value of the keyboard character
-(or sequence of characters if the first character is an ESC, ascii
+(or sequence of characters if the first character is an ESC, ASCII
 .BR 033\^ )
 that has
 been entered when processing a
@@ -1698,7 +1698,7 @@ is assigned a new value.
 .B .sh.math
 Used for defining arithmetic functions
 (see
-.I "Arithmetic evaluation"
+.I "Arithmetic Evaluation"
 below)
 and stores the list of user defined arithmetic functions.
 .TP
@@ -1856,7 +1856,7 @@ will be turned on.
 .SM
 .B ENV
 If this variable is set, then
-parameter expansion, command substitution, and arithmetic substitution
+parameter expansion, command substitution, and arithmetic expansion
 are performed on
 the value to generate
 the pathname of the script that will be
@@ -1971,7 +1971,7 @@ The first character of the
 variable is used to separate arguments for the
 .B
 "$*"
-substitution (see
+expansion (see
 .I Quoting
 below).
 Each single occurrence of
@@ -2009,7 +2009,7 @@ characters delimit a null field.
 .SM JOBMAX
 This variable defines the maximum number running background jobs
 that can run at a time.  When this limit is reached, the
-shell will wait for a job to complete before staring a new job.
+shell will wait for a job to complete before starting a new job.
 .TP
 .B
 .SM LANG
@@ -2042,7 +2042,7 @@ collation information.
 This variable determines the locale category for character
 handling functions.
 It determines the character classes for pattern matching (see
-.I "File Name Generation\^"
+.I "Pathname Expansion\^"
 below).
 .TP
 .B
@@ -2104,7 +2104,7 @@ Each file name can be followed by a
 .B ?
 and a message that will be printed.
 The message will undergo parameter expansion, command substitution,
-and arithmetic substitution
+and arithmetic expansion
 with the variable
 .B $_
 defined as the name of the file that has changed.
@@ -2130,7 +2130,7 @@ if executing under
 Every time a new command line is started on an interactive shell,
 the value of this variable is expanded to resolve
 backslash escaping, parameter expansion, command substitution,
-and arithmetic substitution.
+and arithmetic expansion.
 The result defines the primary prompt string for that command line.
 The default is
 .RB `` "$ \|\|\|" ''.
@@ -2169,7 +2169,7 @@ loop, by default
 .SM
 .B PS4
 The value of this variable is expanded for parameter evaluation,
-command substitution, and arithmetic substitution
+command substitution, and arithmetic expansion
 and precedes each line of an execution trace.
 By default,
 .SM
@@ -2458,7 +2458,9 @@ expands to the 8 fields,
 .B z04bx
 and
 .BR z04cx .
-.SS File Name Generation.
+.SS Pathname Expansion.
+This is also known as \f2globbing\fP
+or sometimes \f2filename generation\fP.
 Following splitting, each field is scanned for the characters
 .BR * ,
 .BR ? ,
@@ -2769,7 +2771,7 @@ This is the default.
 .TP
 .B N
 This is ignored.  However, when it is the first letter and is
-used with file name generation, and no matches occur,
+used with pathname expansion, and no matches occur,
 the file pattern expands to the empty string.
 .TP
 .B X
@@ -2845,12 +2847,12 @@ Causes the remainder of the string to be ignored.
 .TP
 .B \eE
 Equivalent to the escape character
-(ascii
+(ASCII
 .BR 033 ),
 .TP
 .B \ee
 Equivalent to the escape character
-(ascii
+(ASCII
 .BR 033 ),
 .TP
 .BI \ec x
@@ -2919,24 +2921,29 @@ The recognition of function names or built-in command names listed below
 cannot be altered by quoting them.
 .SS Arithmetic Evaluation.
 The shell performs arithmetic evaluation for
-arithmetic substitution, to evaluate an arithmetic command,
+arithmetic expansion, to evaluate an arithmetic command,
 to evaluate an indexed array subscript,
 and to evaluate arguments to
 the built-in commands
 .B shift\^
 and
-.BR let .
+.B let\^
+as well as arguments to numeric format specifiers given to
+.B "print -f"\^
+and
+.BR printf .
 Evaluations are performed using
 double precision floating point
 arithmetic or long double precision floating point for
 systems that provide this data type.
 Floating point constants follow the ANSI-C programming language
 floating point conventions.
-The floating point constants
-.B Nan
+The case-insensitive floating point constants
+.B NaN
 and
 .B Inf
-can be used to represent "not a number" and infinity respectively.
+can be used to represent "not a number" and infinity respectively,
+unless the \fBposix\fR shell option is on.
 Integer constants follow the ANSI-C programming language
 integer constant conventions although only single byte
 character constants are recognized and character casts
@@ -3066,7 +3073,7 @@ the shell prompts with the value of
 .SM
 .B PS1
 after expanding it for parameter expansion, command substitution, and
-arithmetic substitution,
+arithmetic expansion,
 before reading a command.
 In addition, each single
 .B !
@@ -3088,7 +3095,7 @@ is used with the
 .B [[
 compound command to test attributes of files and to compare
 strings.
-Field splitting and file name generation are
+Field splitting and pathname expansion are
 not performed on the words between
 .B [[
 and
@@ -3408,12 +3415,12 @@ and are
 .I not\^
 passed on to the invoked command.
 Command substitution, parameter expansion,
-and arithmetic substitution occur before
+and arithmetic expansion occur before
 .I word\^
 or
 .I digit\^
 is used except as noted below.
-File name generation
+Pathname expansion
 occurs only if the shell is interactive and
 the pattern matches a single file.
 Field splitting is not performed.
@@ -3504,8 +3511,8 @@ The shell input is read up to a line that is the same as
 .IR word
 after any quoting has been removed,
 or to an end-of-file.
-No parameter substitution, command substitution, arithmetic substitution or
-file name generation is performed on
+No parameter expansion, command substitution, arithmetic expansion or
+pathname expansion is performed on
 .IR word .
 The resulting document,
 called a
@@ -3517,7 +3524,7 @@ If any character of
 is quoted, then no interpretation
 is placed upon the characters of the document;
 otherwise, parameter expansion, command substitution, and arithmetic
-substitution occur,
+expansion occur,
 .B \enew-line
 is ignored,
 and
@@ -3548,7 +3555,7 @@ purposes of determining the indentation.
 A short form of here document in which \f2word\fP becomes the
 contents of the here-document after any
 parameter expansion, command substitution, and arithmetic
-substitution occur.
+expansion occur.
 .TP
 .BI <& digit
 The standard input is duplicated from file descriptor
@@ -3975,7 +3982,7 @@ each preceded by \fB\s+2.\s-2\fP.
 Outside of a name space, a variable or function created inside a
 name space can be referenced by preceding it with the name space name.
 .PP
-By default, variables staring with
+By default, variables starting with
 \fB\s+2.\s-2sh\fP are in the
 .B sh
 name space.
@@ -4218,7 +4225,7 @@ the
 .B trap
 built-in command below).
 .SS Execution.
-Each time a command is read, the above substitutions
+Each time a command is read, the above expansions and substitutions
 are carried out.
 If the command name matches one
 of the
@@ -4638,7 +4645,7 @@ For example,
 .B M-f
 (pronounced Meta f)
 is entered by depressing ESC
-(ascii
+(ASCII
 .BR 033 )
 followed by `f'.
 .RB ( M-F
@@ -5031,7 +5038,7 @@ Same as
 .PP
 .TP 10
 .B M-*
-Attempt file name generation on the current word.
+Attempt pathname expansion on the current word.
 An asterisk is appended if the word doesn't match any file
 or contain any special
 pattern characters.
@@ -5524,7 +5531,7 @@ is omitted.
 .B *
 Causes an
 .B *
-to be appended to the current word and file name generation attempted.
+to be appended to the current word and pathname expansion attempted.
 If no match is found,
 it rings the bell.
 Otherwise, the word is replaced
@@ -5685,7 +5692,7 @@ This means that tilde expansion is performed after the
 .B =
 sign, array assignments of the form
 \f2varname\^\fP\f3=(\fP\f2assign_list\^\fP\f3)\fP
-are supported, and field splitting and file name generation are not
+are supported, and field splitting and pathname expansion are not
 performed.
 .PD
 .TP
@@ -6528,7 +6535,7 @@ is a separate
 .I "arithmetic expression"
 to be evaluated.
 .B let
-only recognizes octal constants starting with
+only recognizes octal numbers starting with
 .B 0
 when the
 .B set
@@ -6537,7 +6544,7 @@ option
 is on.
 See
 .I "Arithmetic Evaluation"
-above, for a description of arithmetic expression evaluation.
+above for a description of arithmetic expression evaluation.
 .sp .5
 The exit status is
 0 if the value of the last expression
@@ -6581,11 +6588,11 @@ escape conventions will be applied:
 .PD 0
 .TP
 .B \ea
-The alert character (ascii
+The alert character (ASCII
 .BR 07 ).
 .TP
 .B \eb
-The backspace character (ascii
+The backspace character (ASCII
 .BR 010 ).
 .TP
 .B \ec
@@ -6595,27 +6602,27 @@ to end without processing more arguments and
 not adding a new-line.
 .TP
 .B \ef
-The formfeed character (ascii
+The formfeed character (ASCII
 .BR 014 ).
 .TP
 .B \en
-The newline character (ascii
+The newline character (ASCII
 .BR 012 ).
 .TP
 .B \er
-The carriage return character (ascii
+The carriage return character (ASCII
 .BR 015 ).
 .TP
 .B \et
-The tab character (ascii
+The tab character (ASCII
 .BR 011 ).
 .TP
 .B \ev
-The vertical tab character (ascii
+The vertical tab character (ASCII
 .BR 013 ).
 .TP
 .B \eE
-The escape character (ascii
+The escape character (ASCII
 .BR 033 ).
 .TP
 .B \e\e
@@ -6682,7 +6689,7 @@ is used, no
 is added to the output.
 .RE
 .TP
-\f3printf\fP \f2format\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
+\f3printf\fP \*(OK \f3\-v\fP \f2vname\fP \*(CK \f2format\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
 The arguments
 .I arg\^
 are printed on standard output
@@ -6841,6 +6848,13 @@ formats, separates groups of digits with the grouping delimiter
 on groups of 3 in the C locale).
 .PD
 .PP
+.TP
+The \f3\-v\fP option assigns the output directly to a variable instead of
+writing it to standard output. This is faster than capturing the output using a
+command substitution and avoids the latter's stripping of final linefeed
+characters (\fB\\n\fR). The \f2vname\fP argument should be a valid variable
+name, optionally with one or more array subscripts in square brackets.
+Note that square brackets should be quoted to avoid pathname expansion.
 .RE
 .TP
 \f3pwd\fP \*(OK \f3\-LP\fP \*(CK
@@ -7089,11 +7103,11 @@ Requires
 to truncate a file when turned on.
 .TP 8
 .B \-G
-Enables recursive file name generation.
+Enables recursive pathname expansion.
 This adds the double-star pattern
 .B **
-to the file generation mechanism (see
-.I "File Name Generation\^"
+to the pathname expansion (see
+.I "Pathname Expansion\^"
 above).
 By itself, it matches the recursive contents of the current directory,
 which is to say, all files and directories in the current directory
@@ -7118,7 +7132,7 @@ itself and the recursive contents of
 Symbolic links to non-directories are not followed.
 Symbolic links to directories are followed if they are specified literally
 or match a pattern as described under
-.IR "File Name Generation\^" ,
+.IR "Pathname Expansion\^" ,
 but not if they result from a double-star pattern.
 .TP 8
 .B \-H
@@ -7154,7 +7168,7 @@ and exit.
 This mode is disabled while reading profiles.
 .TP 8
 .B \-f
-Disables file name generation.
+Disables pathname expansion.
 .TP 8
 .B \-h
 Each command
@@ -7217,7 +7231,7 @@ Same as
 .TP 8
 .B globcasedetect
 When this option is turned on, globbing (see
-.I "File Name Generation\^"
+.I "Pathname Expansion\^"
 above) and
 file name listing and completion (see
 .I "In-line Editing Options\^"
@@ -7257,12 +7271,12 @@ Same as
 .B letoctal
 The
 .B let
-command allows octal constants starting with
+command allows octal numbers starting with
 .BR 0 .
 On by default if ksh is invoked as \fBsh\fR or \fBrsh\fR.
 .TP 8
 .B markdirs
-All directory names resulting from file name generation have a trailing
+All directory names resulting from pathname expansion have a trailing
 .B /
 appended.
 .TP 8
@@ -7328,6 +7342,20 @@ disables the \fB&>\fR redirection shorthand;
 .IP \[bu]
 makes the \fB<>\fR redirection operator default to redirecting standard input
 if no file descriptor number precedes it;
+.IP \[bu]
+disables the special floating point constants \fBInf\fR and \fBNaN\fR in
+arithmetic evaluation so that, e.g., \fB$((inf))\fR and \fB$((nan))\fR refer
+to the variables by those names;
+.IP \[bu]
+enables the recognition of a leading zero as introducing an octal number in
+all arithmetic evaluation contexts, except in the \fBlet\fR built-in while
+\fBletoctal\fR is off;
+.IP \[bu]
+changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
+\fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators
+work even if \fIexpr1\fR equals "\fB!\fR" or "\fb(\fR" (which means the
+nonstandard unary \fB-a\fR \fIfile\fR and \fB-o\fR \fIoption\fR operators
+cannot be directly negated using \fB!\fR or wrapped in parentheses);
 and
 .IP \[bu]
 disables a hack that makes \fBtest -t\fR (\fB[ -t ]\fR) equivalent to
@@ -7534,14 +7562,15 @@ to those specified for the \f3[[\fP compound command under
 .I Conditional Expressions
 above, but with several important differences. The \f3=\fP, \f3==\fP and
 \f3!=\fP operators test for string (in)equality without pattern matching;
-the \f3==\fP variant is nonstandard and should not be used. The \f3=\(ap\fP,
-\f3<\fP, \f3>\fP, \f3&&\fP and \f3||\fP operators are not available. Most
+\f3==\fP is nonstandard and unportable. The f3&&\fP and \f3||\fP operators are
+not available. Instead, the \f3-a\fP and \f3-o\fP binary operators can be
+used, but they are fraught with pitfalls due to grammatical ambiguities and
+therefore deprecated in favor of invoking separate \f3test\fP commands. Most
 importantly, as \f3test\fP and \f3[\fP are simple regular commands, field
-splitting and file name generation \f2are\fP performed on all their
+splitting and pathname expansion \f2are\fP performed on all their
 arguments and all aspects of regular shell grammar (such as redirection)
 remain active. This is usually harmful, so care must be taken to quote
-arguments and expansions to avoid this. There are also certain inherent
-grammatical ambiguities in the expressions. To avoid the many pitfalls
+arguments and expansions to avoid this. To avoid the many pitfalls
 arising from these issues, the \f3[[\fP compound command should be used
 instead. The primary purpose of the \f3test\fP and \f3[\fP commands is
 compatibility with other shells that lack \f3[[\fP.
@@ -8416,7 +8445,7 @@ the file named by
 .B ENV
 if the file exists, its name being determined by
 performing parameter expansion, command substitution,
-and arithmetic substitution on
+and arithmetic expansion on
 the value of that environment variable.
 If the
 .B \-s
@@ -8676,7 +8705,6 @@ env(1),
 fgrep(1),
 gmacs(1),
 grep(1),
-pfexec(1),
 stty(1),
 test(1),
 umask(1),

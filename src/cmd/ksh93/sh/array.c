@@ -681,7 +681,10 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 				if(is_associative(ap))
 					(*ap->fun)(np, NIL(char*), NV_AFREE);
 				else if(ap->table)
+				{
 					dtclose(ap->table);
+					ap->table = 0;
+				}
 				nv_offattr(np,NV_ARRAY);
 			}
 			if(!mp || mp!=np || is_associative(ap))
@@ -1702,6 +1705,7 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 			if((ap->header.nelem&ARRAY_MASK)==0 && (ap->cur=nv_search("0",ap->header.table,0)))
 				nv_associative(np,(char*)0,NV_ADELETE);
 			dtclose(ap->header.table);
+			ap->header.table = 0;
 		}
 		return((void*)ap);
 	    case NV_ANEXT:

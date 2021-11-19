@@ -136,7 +136,7 @@ __STDPP__directive pragma pp:hide lchmod
 
 #include <cmd.h>
 #include <ls.h>
-#include <fts_fix.h>
+#include <fts.h>
 
 #include "FEATURE/symlink"
 

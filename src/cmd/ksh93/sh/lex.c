@@ -1416,15 +1416,17 @@ breakloop:
 			return(lp->token);
 		}
 		lp->lex.incase = 0;
-		c = sh_lookup(state,shtab_testops);
-		switch(c)
+		if(state[0]==']' && state[1]==']' && !state[2])
 		{
-		case TEST_END:
+			/* end of [[ ... ]] */
 			lp->lex.testop2 = lp->lex.intest = 0;
 			lp->lex.reservok = 1;
 			lp->token = ETESTSYM;
 			return(lp->token);
-
+		}
+		c = sh_lookup(state,shtab_testops);
+		switch(c)
+		{
 		case TEST_SEQ:
 			if(lp->lexd.warn && state[1]==0)
 				errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete3,shp->inlineno);
@@ -1434,7 +1436,7 @@ breakloop:
 			{
 				if(lp->lexd.warn && (c&TEST_ARITH))
 					errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete4,shp->inlineno,state);
-				if(c&TEST_PATTERN)
+				if(c&TEST_STRCMP)
 					lp->lex.incase = 1;
 				else if(c==TEST_REP)
 					lp->lex.incase = TEST_RE;

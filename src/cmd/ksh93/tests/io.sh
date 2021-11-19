@@ -879,4 +879,25 @@ got=$(< dir1/dir2/x)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# ksh misbehaved when stdout is closed
+# https://github.com/ksh93/ksh/issues/314
+"$SHELL" -c 'pwd; echo "$?" >&2; echo test; echo "$?" > file' >&- 2>stderr
+exp='1'
+[[ $(<file) == "$exp" ]] || err_exit "ksh misbehaves when stdout is closed (1)" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$(<file)"))"
+exp='0'  # TODO: exp=$'pwd: write failed \\[.*\\]\n1'
+[[ $(<stderr) =~ $exp ]] || err_exit "ksh misbehaves when stdout is closed (2)" \
+	"(expected match of $(printf %q "$exp"), got $(printf %q "$(<stderr)"))"
+for cmd in echo print printf
+do	"$cmd" hi >&- && err_exit "'$cmd' does not detect closed stdout (simple redirection)"
+	"$SHELL" -c "$cmd hi" >&- && err_exit "'$cmd' does not detect closed stdout (inherited FD)"
+done
+if	[[ -c /dev/full ]]
+then	for cmd in echo print printf
+	do	"$cmd" hi >/dev/full && err_exit "'$cmd' does not detect disk full (simple redirection)"
+		"$SHELL" -c "$cmd hi" >/dev/full && err_exit "'$cmd' does not detect disk full (inherited FD)"
+	done
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

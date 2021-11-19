@@ -811,9 +811,11 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 			ep->e_term = nv_search("TERM",shp->var_tree,0);
 		if(ep->e_term && (term=nv_getval(ep->e_term)) && strlen(term)<sizeof(ep->e_termname) && strcmp(term,ep->e_termname))
 		{
-			char was_restricted = (sh_isoption(SH_RESTRICTED)!=0);
+			Shopt_t o = shp->options;
 			sigblock(SIGINT);
 			sh_offoption(SH_RESTRICTED);
+			sh_offoption(SH_VERBOSE);
+			sh_offoption(SH_XTRACE);
 #if _tput_terminfo
 			sh_trap(".sh.subscript=$(" _pth_tput " cuu1 2>/dev/null)",0);
 #elif _tput_termcap
@@ -827,8 +829,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 				CURSOR_UP[0] = '\0';  /* no escape sequence is better than a faulty one */
 			nv_unset(SH_SUBSCRNOD);
 			strcpy(ep->e_termname,term);
-			if(was_restricted)
-				sh_onoption(SH_RESTRICTED);
+			shp->options = o;
 			sigrelease(SIGINT);
 		}
 #endif

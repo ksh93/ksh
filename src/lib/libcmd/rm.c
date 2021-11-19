@@ -70,7 +70,7 @@ static const char usage[] =
 
 #include <cmd.h>
 #include <ls.h>
-#include <fts_fix.h>
+#include <fts.h>
 
 #define RM_ENTRY	1
 

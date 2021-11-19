@@ -257,7 +257,12 @@ mkpty(int* master, int* minion)
 	tty.c_lflag |= ECHOKE;
 #endif
 	tty.c_oflag |= (ONLCR | OPOST);
-	tty.c_oflag &= ~(OCRNL | ONLRET);
+#ifdef OCRNL
+	tty.c_oflag &= ~OCRNL;
+#endif
+#ifdef ONLRET
+	tty.c_oflag &= ~ONLRET;
+#endif
 	tty.c_iflag |= BRKINT;
 	tty.c_iflag &= ~IGNBRK;
 	tty.c_cc[VTIME] = 0;

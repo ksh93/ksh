@@ -100,6 +100,9 @@ static struct subshell
 	int		subdup;
 	char		subshare;
 	char		comsub;
+	unsigned int	rand_seed;  /* parent shell $RANDOM seed */
+	int		rand_last;  /* last random number from $RANDOM in parent shell */
+	int		rand_state; /* 0 means sp->rand_seed hasn't been set, 1 is the opposite */
 #if _lib_fchdir
 	int		pwdfd;	/* file descriptor for PWD */
 	char		pwdclose;
@@ -112,14 +115,12 @@ static unsigned int subenv;
 
 
 /*
- * This routine will turn the sftmp() file into a real /tmp file or pipe
- * if the /tmp file create fails
+ * This routine will turn the sftmp() file into a real temporary file
  */
-void	sh_subtmpfile(char comsub_flag)
+void	sh_subtmpfile(Shell_t *shp)
 {
 	if(sfset(sfstdout,0,0)&SF_STRING)
 	{
-		Shell_t *shp = sh_getinterp();
 		register int fd;
 		register struct checkpt	*pp = (struct checkpt*)shp->jmplist;
 		register struct subshell *sp = subshell_data->pipe;
@@ -136,40 +137,21 @@ void	sh_subtmpfile(char comsub_flag)
 			UNREACHABLE();
 		}
 		/* popping a discipline forces a /tmp file create */
-		if(comsub_flag != 1)
-			sfdisc(sfstdout,SF_POPDISC);
+		sfdisc(sfstdout,SF_POPDISC);
 		if((fd=sffileno(sfstdout))<0)
 		{
-			/* unable to create the /tmp file so use a pipe */
-			int fds[3];
-			Sfoff_t off;
-			fds[2] = 0;
-			sh_pipe(fds);
-			sp->pipefd = fds[0];
-			sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
-			/* write the data to the pipe */
-			if(off = sftell(sfstdout))
-				write(fds[1],sfsetbuf(sfstdout,(Void_t*)sfstdout,0),(size_t)off);
-			sfclose(sfstdout);
-			if((sh_fcntl(fds[1],F_DUPFD, 1)) != 1)
-			{
-				errormsg(SH_DICT,ERROR_system(1),e_file+4);
-				UNREACHABLE();
-			}
-			sh_close(fds[1]);
+			errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"could not create temp file");
+			UNREACHABLE();
 		}
+		shp->fdstatus[fd] = IOREAD|IOWRITE;
+		sfsync(sfstdout);
+		if(fd==1)
+			fcntl(1,F_SETFD,0);
 		else
 		{
-			shp->fdstatus[fd] = IOREAD|IOWRITE;
-			sfsync(sfstdout);
-			if(fd==1)
-				fcntl(1,F_SETFD,0);
-			else
-			{
-				sfsetfd(sfstdout,1);
-				shp->fdstatus[1] = shp->fdstatus[fd];
-				shp->fdstatus[fd] = IOCLOSE;
-			}
+			sfsetfd(sfstdout,1);
+			shp->fdstatus[1] = shp->fdstatus[fd];
+			shp->fdstatus[fd] = IOCLOSE;
 		}
 		sh_iostream(shp,1);
 		sfset(sfstdout,SF_SHARE|SF_PUBLIC,1);
@@ -197,7 +179,7 @@ void sh_subfork(void)
 		trap = sh_strdup(trap);
 	/* see whether inside $(...) */
 	if(sp->pipe)
-		sh_subtmpfile(shp->comsub);
+		sh_subtmpfile(shp);
 	shp->curenv = 0;
 	shp->savesig = -1;
 	if(pid = sh_fork(shp,FSHOWME,NIL(int*)))
@@ -214,6 +196,17 @@ void sh_subfork(void)
 	{
 		/* this is the child part of the fork */
 		sh_onstate(SH_FORKED);
+		/*
+		 * $RANDOM is only reseeded when it's used in a subshell, so if $RANDOM hasn't
+		 * been reseeded yet set rp->rand_last to -2. This allows sh_save_rand_seed()
+		 * to reseed $RANDOM later.
+		 */
+		if(!sp->rand_state)
+		{
+			struct rand *rp;
+			rp = (struct rand*)RANDNOD->nvfun;
+			rp->rand_last = -2;
+		}
 		subshell_data = 0;
 		shp->subshell = 0;
 		shp->comsub = 0;
@@ -250,6 +243,24 @@ int nv_subsaved(register Namval_t *np, int flags)
 		}
 	}
 	return(0);
+}
+
+/*
+ * Save the current $RANDOM seed and state, then reseed $RANDOM.
+ */
+void sh_save_rand_seed(struct rand *rp, int reseed)
+{
+	struct subshell	*sp = subshell_data;
+	if(!sh.subshare && sp && !sp->rand_state)
+	{
+		sp->rand_seed = rp->rand_seed;
+		sp->rand_last = rp->rand_last;
+		sp->rand_state = 1;
+		if(reseed)
+			sh_reseed_rand(rp);
+	}
+	else if(reseed && rp->rand_last == -2)
+		sh_reseed_rand(rp);
 }
 
 /*
@@ -488,9 +499,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
 	int argcnt;
-	struct rand *rp;		/* current $RANDOM discipline function data */
-	unsigned int save_rand_seed;	/* parent shell $RANDOM seed */
-	int save_rand_last;		/* last random number from $RANDOM in parent shell */
 	memset((char*)sp, 0, sizeof(*sp));
 	sfsync(shp->outpool);
 	sh_sigcheck(shp);
@@ -537,10 +545,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(!shp->subshare)
 		sp->pathlist = path_dup((Pathcomp_t*)shp->pathlist);
 	if(comsub)
-	{
 		shp->comsub = comsub;
-		job.bktick_waitall = (comsub==1);
-	}
 	if(!shp->subshare)
 	{
 		struct subshell *xp;
@@ -604,11 +609,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		sp->cpipe = shp->cpipe[1];
 		shp->cpid = 0;
 		sh_sigreset(0);
-		/* save the current $RANDOM seed and state; reseed $RANDOM */
-		rp = (struct rand*)RANDNOD->nvfun;
-		save_rand_seed = rp->rand_seed;
-		save_rand_last = rp->rand_last;
-		sh_reseed_rand(rp);
 	}
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval==0)
@@ -704,8 +704,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		}
 		else
 		{
-			job.bktick_waitall = 0;
-			if(comsub!=1 && shp->spid)
+			if(shp->spid)
 			{
 				int e = shp->exitval;
 				job_wait(shp->spid);
@@ -773,6 +772,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(!shp->subshare)	/* restore environment if saved */
 	{
 		int n;
+		struct rand *rp;
 		shp->options = sp->options;
 		/* Clean up subshell hash table. */
 		if(sp->strack)
@@ -866,8 +866,11 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->coutpipe = sp->coutpipe;
 		/* restore $RANDOM seed and state */
 		rp = (struct rand*)RANDNOD->nvfun;
-		srand(rp->rand_seed = save_rand_seed);
-		rp->rand_last = save_rand_last;
+		if(sp->rand_state)
+		{
+			srand(rp->rand_seed = sp->rand_seed);
+			rp->rand_last = sp->rand_last;
+		}
 	}
 	shp->subshare = sp->subshare;
 	shp->subdup = sp->subdup;
@@ -900,7 +903,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	if(sp->subpid)
 	{
 		job_wait(sp->subpid);
-		if(comsub>1)
+		if(comsub)
 			sh_iounpipe(shp);
 	}
 	shp->comsub = sp->comsub;

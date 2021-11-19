@@ -664,7 +664,7 @@ again:
 				lvalue.flag = 0;
 			stakpush(vp,lvalue.flag,short);
 			if(vp->nextchr==0)
-				ERROR(vp,e_badnum);
+				ERROR(vp,e_number);
 			if(!(strval_precedence[op]&SEQPOINT))
 				lvalue.value = 0;
 			invalid = 0;

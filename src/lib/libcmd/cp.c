@@ -134,7 +134,7 @@ static const char usage_tail[] =
 #include <cmd.h>
 #include <ls.h>
 #include <times.h>
-#include <fts_fix.h>
+#include <fts.h>
 #include <hashkey.h>
 #include <stk.h>
 #include <tmx.h>

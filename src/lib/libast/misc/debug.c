@@ -37,9 +37,12 @@ debug_fatal(const char* file, int line)
 	abort();
 }
 
-#if defined(_sys_times) && defined(_lib_getrusage)
+#if _sys_times && _lib_getrusage
 
 #include <times.h>
+#ifndef RUSAGE_SELF
+#include <sys/resource.h>
+#endif
 double
 debug_elapsed(int set)
 {	
