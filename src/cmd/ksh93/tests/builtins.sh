@@ -1299,4 +1299,17 @@ got="$($SHELL -i "$hist_error_leak" 2>&1)"
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# printf -v works as of 2021-11-18
+integer ver=.sh.version
+exp=ok$'\f'0000$ver$'\n'
+printf -v got 'ok\f%012d\n' $ver 2>/dev/null
+[[ $got == "$exp" ]] || err_exit "printf -v not working" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset got
+printf -v 'got[1][two][3]' 'ok\f%012d\n' $ver 2>/dev/null
+[[ ${got[1]["two"][3]} == "$exp" ]] || err_exit "printf -v not working with array subscripts" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset got ver
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -14,7 +14,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 1.	Bytecode compiled by shcomp 93u+m will not run on older ksh versions.
 	(However, bytecode compiled by older shcomp will run on ksh 93u+m.)
 
-2.	File name generation (a.k.a. pathname expansion, a.k.a. globbing) now
+2.	Pathname expansion (a.k.a. filename generation, a.k.a. globbing) now
 	never matches the special navigational names '.' (current directory)
 	and '..' (parent directory). This change makes a pattern like .*
 	useful; it now matches all hidden 'dotfiles' in the current directory.

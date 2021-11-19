@@ -109,7 +109,7 @@ sh directory:
 	5.	deparse.c contains code to generate shell script from
 		a parse tree.
 	6.	expand.c contains code for file name expansion and
-		file name generation.
+		pathname expansion.
 	7.	fault.c contains code for signal processing, trap
 		handling and termination.
 	8.	fcin.c contains code for reading and writing a character

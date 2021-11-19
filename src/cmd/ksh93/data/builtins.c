@@ -1193,7 +1193,7 @@ const char sh_optprint[] =
 ;
 
 const char sh_optprintf[] =
-"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2021-09-13 $\n]"
+"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2021-11-18 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?printf - write formatted output]"
 "[+DESCRIPTION?\bprintf\b writes each \astring\a operand to "
@@ -1358,6 +1358,9 @@ const char sh_optprintf[] =
 	"time conversions will be treated as if \bnow\b were supplied.]"
 "[+?\bprintf\b is equivalent to \bprint -f\b which allows additional "
 	"options to be specified.]"
+"[v]:[name?Put the output in the variable \aname\a instead of writing to "
+	"standard output. \aname\a may include an array subscript (note that "
+	"the square brackets should be quoted to avoid pathname expansion).]"
 "\n"
 "\nformat [string ...]\n"
 "\n"
