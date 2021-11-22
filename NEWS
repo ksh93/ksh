@@ -9,6 +9,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   script is entirely parsed before (or without) being executed, such as
   dotted/sourced scripts and scripts compiled by shcomp.
 
+- Added support for the size mode to the stty(1) built-in. This mode is used
+  to display the terminal's number of rows and columns. Note that the stty
+  built-in is not compiled in by default. This can be changed by adding
+  stty to the table of built-ins in src/cmd/ksh93/data/builtins.c.
+
 2021-11-20:
 
 - Listing types with 'typeset -T' no longer displays incomplete versions of
