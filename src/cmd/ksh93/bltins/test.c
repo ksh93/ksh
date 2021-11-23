@@ -83,20 +83,6 @@ static char *nxtarg(struct test*,int);
 static int expr(struct test*,int);
 static int e3(struct test*);
 
-/*
- * POSIX requires error status > 1 for test builtin.
- * Since ksh 'test' can parse arithmetic expressions, the #define
- * override is also needed in sh/arith.c and sh/streval.c
- */
-int _ERROR_exit_b_test(int exitval)
-{
-	if((sh.bltindata.bnode==SYSTEST || sh.bltindata.bnode==SYSBRACKET) && exitval < 2)
-		exitval = 2;
-	return(ERROR_exit(exitval));
-}
-#undef ERROR_exit
-#define ERROR_exit(n) _ERROR_exit_b_test(n)
-
 static int test_strmatch(Shell_t *shp,const char *str, const char *pat)
 {
 	regoff_t match[2*(MATCH_MAX+1)],n;

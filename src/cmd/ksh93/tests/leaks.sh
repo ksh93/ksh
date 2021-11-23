@@ -38,7 +38,7 @@ then	N=512			# number of iterations for each test
 elif	[[ -f /proc/$$/stat && $(uname) == Linux ]]
 then	N=4096			# number of iterations for each test
 	unit=bytes
-	tolerance=$((8*N))	# tolerate 8 bytes per iteration to account for malloc artefacts
+	tolerance=$((9*N))	# tolerate 9 bytes per iteration to account for malloc artefacts
 	function getmem
 	{
 		cut -f 23 -d ' ' </proc/$$/stat

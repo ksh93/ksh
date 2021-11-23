@@ -80,8 +80,7 @@ got=$(set +x; redirect 2>&1; Color_t -A clr=([foo]=red [bar]=blue [bad]=BAD); pr
 	"expected status 1, *$(printf %q "$exp"); got status $e, $(printf %q "$got")"
 
 # associative enum array
-# (need 'eval' to delay parsing when testing with shcomp, as it parses the entire script without executing the type definition)
-eval 'Color_t -A Colors=([foo]=red [bar]=blue [bad]=green [zut]=orange [blauw]=blue [rood]=red [groen]=green [geel]=yellow)'
+Color_t -A Colors=([foo]=red [bar]=blue [bad]=green [zut]=orange [blauw]=blue [rood]=red [groen]=green [geel]=yellow)
 exp='green blue blue red yellow green red orange'
 got=${Colors[@]}
 [[ $got == "$exp" ]] || err_exit "\${array[@]} doesn't yield all values for associative enum arrays" \
@@ -95,8 +94,7 @@ got=$(typeset -p Colors)
 [[ -n $got ]] && err_exit "unsetting associative enum array does not work (got $(printf %q "$got"))"
 
 # indexed enum array
-# (need 'eval' to delay parsing when testing with shcomp, as it parses the entire script without executing the type definition)
-eval 'Color_t -a iColors=(red blue green orange blue red green yellow)'
+Color_t -a iColors=(red blue green orange blue red green yellow)
 exp='red blue green orange blue red green yellow'
 got=${iColors[@]}
 [[ $got == "$exp" ]] || err_exit "\${array[@]} doesn't yield all values for indexed enum arrays" \
@@ -115,6 +113,24 @@ testarray[3]=red
 exp="red red"
 got="${testarray[3]:-BUG} ${testarray[@]:-BUG}"
 [[ $got == "$exp" ]] || err_exit "assigning first enum element to indexed array failed" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/256
+cmd='enum Color_t=(red green blue); Color_t -A Colors=([rubie]=red [verde]=green [blau]=blue); typeset -p Colors'
+exp='Color_t -A Colors=([blau]=blue [rubie]=red [verde]=green)'
+got=$("$SHELL" -c "$cmd" 2>&1)
+[[ $got == "$exp" ]] || err_exit "-c failed" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+got=$("$SHELL" -c "eval '$cmd'" 2>&1)
+[[ $got == "$exp" ]] || err_exit "-c script with eval failed" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+print "$cmd" >cmd.sh
+got=$("$SHELL" -c '. ./cmd.sh' 2>&1)
+[[ $got == "$exp" ]] || err_exit "dotted script failed" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+got=$("$SHELL" -c 'source ./cmd.sh' 2>&1)
+[[ $got == "$exp" ]] || err_exit "sourced script failed" \
 	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 
 # ======

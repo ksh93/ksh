@@ -21,8 +21,8 @@
 #pragma prototyped
 #include	"defs.h"
 
-static const char enum_usage[] =
-"[-?@(#)$Id: enum (AT&T Research) 2008-01-08 $\n]"
+const char sh_optenum[] =
+"[-?@(#)$Id: enum (ksh 93u+m) 2021-11-21 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?enum - create an enumeration type]"
 "[+DESCRIPTION?\benum\b is a declaration command that creates an enumeration "
@@ -43,7 +43,7 @@ static const char enum_usage[] =
 ;
 
 static const char enum_type[] =
-"[-1c?\n@(#)$Id: type (AT&T Labs Research) 2008-01-08 $\n]"
+"[-1c?\n@(#)$Id: type (ksh 93u+m) 2021-11-21 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?\f?\f - create an instance of type \b\f?\f\b]"
 "[+DESCRIPTION?The \b\f?\f\b declaration command creates a variable for "
@@ -98,6 +98,8 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 	const char	*v;
 	np = *(Namval_t**)(fp+1);
 	ep = (struct Enum*)np->nvfun;
+	if(!ep)
+		return(0);
 	if(strcmp(str,"default")==0)
 		sfprintf(out,"\b%s\b",ep->values[0]);
 	else if(strcmp(str,"case")==0)
@@ -192,7 +194,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
 	for (;;)
 	{
-		switch (optget(argv, enum_usage))
+		switch (optget(argv, sh_optenum))
 		{
 		case 'i':
 			iflag = 'i';

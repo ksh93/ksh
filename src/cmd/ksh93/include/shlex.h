@@ -45,7 +45,7 @@ typedef struct  _shlex_
 	char		aliasok;	/* on when alias is legal */
 	char		assignok;	/* on when name=value is legal */
 	char		inexec;		/* on when processing exec */
-	char		intypeset;	/* on when processing typeset */
+	char		intypeset;	/* 1 when processing typeset, 2 when processing enum */
 	char		comp_assign;	/* in compound assignment */
 	char		comsub;		/* parsing command substitution */
 	char		noreserv;	/* reserved works not legal */

@@ -81,12 +81,12 @@ const struct shtable3 shtab_builtins[] =
 	".",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(dot_cmd),
 	"source",	NV_BLTIN|BLT_ENV,		bltin(dot_cmd),
 	"return",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
+	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
 /*
  * Builtins without offset macros in include/builtins.h follow.
  */
 	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
 	"hash",		NV_BLTIN|BLT_ENV,		bltin(alias),
-	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
 	"eval",		NV_BLTIN|BLT_ENV|BLT_SPC|BLT_EXIT,bltin(eval),
 	"exit",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
 	"fc",		NV_BLTIN|BLT_ENV|BLT_EXIT,	bltin(hist),

@@ -634,4 +634,10 @@ bar.foo+=(bam)
 "$SHELL" -c 'typeset -T al=(typeset bar); al foo=(bar=testset)' || err_exit "type names that start with 'a' don't work"
 
 # ======
+# 'typeset -T' shouldn't list types created by enum
+got=$($SHELL -c 'enum Foo_t=(foo bar); typeset -T')
+[[ -z $got ]] || err_exit "Types created by enum are listed with 'typeset -T'" \
+	"(got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

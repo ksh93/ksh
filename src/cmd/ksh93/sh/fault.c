@@ -513,7 +513,11 @@ void sh_exit(register int xno)
 	register struct checkpt	*pp = (struct checkpt*)shp->jmplist;
 	register int		sig=0;
 	register Sfio_t*	pool;
-	shp->exitval=xno;
+	/* POSIX requires exit status >= 2 for error in 'test'/'[' */
+	if(xno == 1 && (shp->bltindata.bnode==SYSTEST || shp->bltindata.bnode==SYSBRACKET))
+		shp->exitval = 2;
+	else
+		shp->exitval = xno;
 	if(xno==SH_EXITSIG)
 		shp->exitval |= (sig=shp->lastsig);
 	if(pp && pp->mode>1)

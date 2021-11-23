@@ -462,6 +462,4 @@ extern const char	e_dict[];
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */
 
-extern int		_ERROR_exit_b_test(int);
-
 #endif

@@ -49,18 +49,21 @@ done
 			done
 		EOF
 	} | head > /dev/null
-	(( $? == 0)) ||   err_exit "SIGPIPE with wrong error code $?"
-	# The below is kind of bogus as the err_exit from a bg job is never counted. But see extra check below.
-	[[ $(<out2) == $'PIPED\nPIPED' ]] || err_exit 'SIGPIPE output on standard error is not correct'
 ) &
 cop=$!
 { sleep .4; kill $cop; } 2>/dev/null &
 spy=$!
 if	wait $cop 2>/dev/null
 then	kill $spy 2>/dev/null
-else	err_exit "pipe with --pipefail PIPE trap hangs or produced an error"
+else	# 'wait $cop' will have passed on the nonzero exit status from the background job into $?
+	e=$?
+	err_exit "pipe with --pipefail PIPE trap hangs or produced an error" \
+		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 fi
 wait
+exp=$'PIPED\nPIPED'
+[[ $(<out2) == "$exp" ]] || err_exit 'SIGPIPE output on standard error is not correct' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$(<out2)"))"
 rm -f out2
 
 actual=$( trap 'print -n got_child' SIGCHLD
