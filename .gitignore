@@ -6,6 +6,7 @@ lcl
 # Flat make libs, binaries, etc
 /bin/.paths
 /bin/ar
+/bin/banner
 /bin/cc
 /bin/crossexec
 /bin/ditto

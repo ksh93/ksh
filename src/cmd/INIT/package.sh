@@ -5027,6 +5027,7 @@ clean|clobber)
 	then	$exec rm -rf \
 			bin/.paths \
 			bin/ar \
+			bin/banner \
 			bin/cc \
 			bin/crossexec \
 			bin/ditto \
