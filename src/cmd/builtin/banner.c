@@ -25,7 +25,7 @@
  */
 
 static const char usage[] =
-	"[-?\n@(#)$Id: banner (AT&T Research) 2020-10-03 $\n]"
+	"[-?\n@(#)$Id: banner (ksh 93u+m) 2021-11-22 $\n]"
 	"[-author?David Korn <dgk@research.att.com>]"
 	"[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
 	"[-license?http://www.eclipse.org/org/documents/epl-v10.html]"
@@ -54,11 +54,6 @@ static const char usage[] =
 #include "sysv.h"
 #include "pd.h"
 
-/* ignore 'restrict' if compiling with C89 */
-#if __STDC_VERSION < 199901L
-#define restrict
-#endif
-
 /* Macros for each font */
 #define SYSV 0
 #define LPD 1
@@ -74,44 +69,44 @@ static void create_banner(const char *restrict string, const char *restrict deli
 	unsigned mask;
 	const char *cp, *dp;
 
-	if (j > width / 8)
+	if(j > width / 8)
 	{
 		error(ERROR_exit(1), "up to %d char%s per arg", width / 8, (width / 8) == 1 ? "" : "s");
 		UNREACHABLE();
 	}
-	for (i = 0; i < 9; i++)
+	for(i = 0; i < 9; i++)
 	{
 		dp = delim;
-		for (n = 0, cp = string; c = *cp++ & 0x07f; dp++)
+		for(n = 0, cp = string; c = *cp++ & 0x07f; dp++)
 		{
-			if (*dp == 0)
+			if(*dp == 0)
 				dp = delim;
 
 			/* Use the specified font */
-			switch (font)
+			switch(font)
 			{
-			case SYSV:
+			    case SYSV:
 				mask = bandata_sysv[c - 32][i];
 				break;
-			case LPD:
+			    case LPD:
 				mask = bandata_lpd[c - 32][i];
 				break;
-			case PD:
+			    case PD:
 				mask = bandata_pd[c - 32][i];
 				break;
 			}
 
-			if (mask == 0)
+			if(mask == 0)
 			{
 				n += 8;
 				continue;
 			}
 
-			for (j = 0x80; j > 0; j >>= 1)
+			for(j = 0x80; j > 0; j >>= 1)
 			{
-				if (mask & j)
+				if(mask & j)
 				{
-					if (n)
+					if(n)
 					{
 						sfnputc(sfstdout, bg_char, n);
 						n = 0;
@@ -138,57 +133,55 @@ int b_banner(int argc, char *argv[], Shbltin_t *context)
 	NOT_USED(argc);
 
 	error_info.id = "banner";
-	while ((n = optget(argv, usage)))
-		switch (n)
-		{
-
-		/* Background characters (one for each banner) */
-		case 'b':
-			bg_char = opt_info.arg;
-			break;
-
-		/* Delimiter characters for each letter of a banner */
-		case 'd':
-		case 'f':
-			delim = opt_info.arg;
-			break;
-
-		/* Restrict the width of a banner (i.e. -w 80 = 10 chars) */
-		case 'w':
-			width = (short)opt_info.num;
-			break;
-
-		/* LPD Font */
-		case 'l':
-			font = LPD;
-			break;
-
-		/* PD Banner Font */
-		case 'p':
-			font = PD;
-			break;
-
-		/* Invalid argument */
-		case ':':
-			error(2, "%s", opt_info.arg);
-			break;
-		case '?':
-			error(ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
-		}
-	argv += opt_info.index;
-	if (error_info.errors || !*argv)
+	while((n = optget(argv, usage))) switch(n)
 	{
-		error(ERROR_usage(2), "%s", optusage(NULL));
+	    /* Background characters (one for each banner) */
+	    case 'b':
+		bg_char = opt_info.arg;
+		break;
+
+	    /* Delimiter characters for each letter of a banner */
+	    case 'd':
+	    case 'f':
+		delim = opt_info.arg;
+		break;
+
+	    /* Restrict the width of a banner (i.e. -w 80 = 10 chars) */
+	    case 'w':
+		width = (short)opt_info.num;
+		break;
+
+	    /* LPD Font */
+	    case 'l':
+		font = LPD;
+		break;
+
+	    /* PD Banner Font */
+	    case 'p':
+		font = PD;
+		break;
+
+	    /* Invalid argument */
+	    case ':':
+		error(2, "%s", opt_info.arg);
+		break;
+	    case '?':
+		error(ERROR_usage(2), "%s", opt_info.arg);
+		UNREACHABLE();
+	}
+	argv += opt_info.index;
+	if(error_info.errors || !*argv)
+	{
+		error(ERROR_usage(2), "%s", optusage(NiL));
 		UNREACHABLE();
 	}
 	sfset(sfstdout, SF_LINE, 0);
 
 	/* Create banners with a loop */
-	while ((cp = *argv++))
+	while((cp = *argv++))
 	{
 		create_banner(cp, delim, width, font, bg_char[x]);
-		if (strlen(bg_char) > (x + 1))
+		if(strlen(bg_char) > (x + 1))
 			x++;
 		else
 			x = 0;

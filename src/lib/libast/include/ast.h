@@ -197,11 +197,12 @@ typedef struct
 #define FMT_EXP_NONL	0x200		/* skip \n			*/
 
 /*
- * Define inline as an empty macro if we are
+ * Define inline and restrict as empty macros if we are
  * compiling with C89.
  */
 #if __STDC_VERSION__ < 199901L
 #define inline
+#define restrict
 #endif
 
 /*

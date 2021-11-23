@@ -4,9 +4,7 @@
 This is a downstream branch of ksh93u+m I maintain that adds
 a few extra features. The [upstream branch](https://github.com/ksh93/ksh) is currently focused
 on bugfixes, so (at least for now) these patches aren't going
-to be upstreamed. I used to maintain additions to ksh in gists,
-but maintaining these patches in a branch is probably a better
-idea.
+to be upstreamed.
 
 The extra features added are as follows:
 
