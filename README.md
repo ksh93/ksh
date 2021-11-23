@@ -56,6 +56,17 @@ ulimit -R/--rttime
    Added in commits [`312972f`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d) and [`62fbfa4`](https://github.com/JohnoKing/ksh/commit/62fbfa4b09848d507e31ec019d039a2649040fa2).
 8. The prompt printed for emacs reverse search mode is now '? ' instead of `^R`.
 9. The `shcomp` command now supports a `-d/--deparse` option. This flag causes `shcomp` to run the shell deparser on the given script, then output the result.
+10. Added the following long options to the libcmd builtins (to match the equivalent GNU coreutils long options):
+  * `basename --multiple` as an alias for `basename -a`.
+  * `cat --show-tabs` as an alias for `cat -T`.
+  * `chgrp --no-dereference` as an alias for `chgrp -h`.
+  * `chown --no-dereference` as an alias for `chown -h`.
+  * `cp --no-dereference` as an alias for `cp -P`.
+  * `cp --symbolic` as an alias for `cp -s`.
+  * `join --ignore-case` as an alias for `join -i`.
+  * `ln --symbolic` as an alias for `ln -s`.
+  * `mv --symbolic` as an alias for `mv -s`. (GNU coreutils doesn't support `mv --symbolic`. It was added because `cp`, `ln` and `mv` share `optget` code.)
+  * `rm --dir` as an alias for `rm -d`.
 
 # KornShell 93u+m
 

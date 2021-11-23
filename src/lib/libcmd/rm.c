@@ -43,7 +43,7 @@ static const char usage[] =
 "	writing a 0 filled buffer the same size as the file, executing"
 "	\bfsync\b(2) and closing before attempting to remove. Implemented"
 "	only on systems that support \bfsync\b(2).]"
-"[d:directory?\bremove\b(3) (or \bunlink\b(2)) directories rather than"
+"[d:directory|dir?\bremove\b(3) (or \bunlink\b(2)) directories rather than"
 "	\brmdir\b(2), and don't require that they be empty before removal."
 "	The caller requires sufficient privilege, not to mention a strong"
 "	constitution, to use this option. Even though the directory must"

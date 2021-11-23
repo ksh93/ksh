@@ -61,7 +61,7 @@ static const char usage_cp[] =
 "[U:remove-destination?Remove existing destination files before copying.]"
 "[L:logical|dereference?Follow symbolic links and copy the files they "
     "point to.]"
-"[P|d:physical|nodereference?Don't follow symbolic links; copy symbolic "
+"[P|d:physical|nodereference|no-dereference?Don't follow symbolic links; copy symbolic "
     "links rather than the files they point to.]"
 ;
 
@@ -94,7 +94,7 @@ static const char usage_tail[] =
     "quit response (\bq\b or \bQ\b) exits immediately, and all other "
     "responses skip the file.]"
 "[r|R:recursive?Operate on the contents of directories recursively.]"
-"[s:symlink|symbolic-link?Make symbolic links to destination files.]"
+"[s:symlink|symbolic|symbolic-link?Make symbolic links to destination files.]"
 "[u:update?Replace a destination file only if its modification time is "
     "older than the corresponding source file modification time.]"
 "[v:verbose?Print the name of each file before operating on it.]"

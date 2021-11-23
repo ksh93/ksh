@@ -73,7 +73,7 @@ static const char usage[] =
 "	\afileno\a, where \afileno\a is either 1 or 2, instead of the normal "
 	"output.  If \b-v\b options appear for both 1 and 2, then "
 	"all unpairable lines will be output.] ]"
-"[i:ignorecase?Ignore case in field comparisons.]"
+"[i:ignorecase|ignore-case?Ignore case in field comparisons.]"
 "[B!:mmap?Enable memory mapped reads instead of buffered.]"
 
 "[+?The following obsolete option forms are also recognized: \b-j\b \afield\a"

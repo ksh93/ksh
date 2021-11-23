@@ -47,7 +47,7 @@ static const char usage[] =
     "identical the end of \astring\a, these characters are removed. The "
     "characters not removed from \astring\a will be written on a single line "
     "to the standard output.]"
-"[a:all?All operands are treated as \astring\a and each modified "
+"[a:all|multiple?All operands are treated as \astring\a and each modified "
     "pathname is printed on a separate line on the standard output.]"
 "[s:suffix?All operands are treated as \astring\a and each modified "
     "pathname, with \asuffix\a removed if it exists, is printed on a "

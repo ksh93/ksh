@@ -65,7 +65,7 @@ static const char usage[] =
 "[E:show-ends?Causes a \b$\b to be inserted before each new-line.]"
 "[R:regress?Regression test defaults: \b-v\b buffer size 4.]"
 "[S:silent?\bcat\b is silent about non-existent files.]"
-"[T:show-blank?Causes tabs to be copied as \b^I\b and formfeeds as \b^L\b.]"
+"[T:show-blank|show-tabs?Causes tabs to be copied as \b^I\b and formfeeds as \b^L\b.]"
 
 "\n"
 "\n[file ...]\n"
