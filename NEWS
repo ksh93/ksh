@@ -9,6 +9,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   looking up functions defined with the 'function' keyword. In the POSIX
   standard and on other shells, the '.' command finds only script files.
 
+- The rm built-in's -d/--directory option has been fixed. It now properly
+  removes empty directories and refuses to remove non-empty directories
+  (as specified in https://www.austingroupbugs.net/view.php?id=802). Note
+  that the rm built-in command isn't compiled in by default.
+
 2021-11-23:
 
 - A bug was fixed that allowed arithmetic expressions to assign out-of-range
