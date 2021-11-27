@@ -904,4 +904,21 @@ got=$?
 	"(expected $exp, got $got)"
 
 # ======
+
+if	[[ -o ?posix ]]
+then	(
+		PATH=/dev/null
+		command set --posix
+		function dottest { :; }
+		. dottest
+	) 2>/dev/null && err_exit "'.' in POSIX mode finds ksh function"
+	(
+		PATH=/dev/null
+		command set --posix
+		function dottest { :; }
+		source dottest
+	) 2>/dev/null || err_exit "'source' in POSIX mode does not find ksh function"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

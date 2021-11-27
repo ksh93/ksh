@@ -892,16 +892,6 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 }
 
 /*
- * send signal <sig> to background process group if not disowned
- */
-int job_terminate(register struct process *pw,register int sig)
-{
-	if(pw->p_pgrp && !(pw->p_flag&P_DISOWN))
-		job_kill(pw,sig);
-	return(0);
-}
-
-/*
  * list the given job
  * flag JOB_LFLAG for long listing
  * flag JOB_NFLAG for list only jobs marked for notification
@@ -1113,8 +1103,8 @@ int job_kill(register struct process *pw,register int sig)
 }
 
 /*
- * Similar to job_kill, but dedicated to SIGHUP handling when session is
- * being disconnected.
+ * Kill process group with SIGHUP when the session is being disconnected.
+ * (As this is called via job_walk(), it must accept the 'sig' argument.)
  */
 int job_hup(struct process *pw, int sig)
 {
@@ -1123,36 +1113,18 @@ int job_hup(struct process *pw, int sig)
 	if(pw->p_pgrp == 0 || (pw->p_flag & P_DISOWN))
 		return(0);
 	job_lock();
-	if(pw->p_pgrp != 0)
+	/*
+	 * Only kill process group if we still have at least one process. If all the processes are P_DONE,
+	 * then our process group is already gone and its p_pgrp may now be used by an unrelated process.
+	 */
+	for(px = pw; px; px = px->p_nxtproc)
 	{
-		int	palive = 0;
-		for(px = pw; px != NULL; px = px->p_nxtproc)
-		{
-			if((px->p_flag & P_DONE) == 0)
-			{
-				palive = 1;
-				break;
-			}
-		}
-		/*
-		 * If all the processes have died, there is no guarantee that
-		 * p_pgrp is still the valid process group that we made, i.e.,
-		 * the PID may have been recycled and the same p_pgrp may have
-		 * been assigned to unrelated processes.
-		 */
-		if(palive)
+		if(!(px->p_flag & P_DONE))
 		{
 			if(killpg(pw->p_pgrp, SIGHUP) >= 0)
 				job_unstop(pw);
+			break;
 		}
-	}
-	for(; pw != NULL && pw->p_pgrp == 0; pw = pw->p_nxtproc)
-	{
-		if(pw->p_flag & P_DONE)
-			continue;
-		if(kill(pw->p_pid, SIGHUP) >= 0)
-			(void)kill(pw->p_pid, SIGCONT);
-		pw = pw->p_nxtproc;
 	}
 	job_unlock();
 	return(0);

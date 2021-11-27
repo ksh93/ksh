@@ -6094,8 +6094,8 @@ See
 for usage and description.
 .TP
 \(dd \f3enum\fP \*(OK \f3\-i\fP  \*(CK \f2type\^\fP\*(OK=(\f2value\^\fP .\|.\|.) \*(CK
-Creates a declaration command named \f2type\^\fP that is an
-integer type that allows one of the specified \f2value\fPs as
+Creates a declaration command named \f2type\^\fP that
+allows one of the specified \f2value\fPs as
 enumeration names.  If \f3=(\fP\f2value\^\ .\|.\|.\|\fP\f3)\fP is
 omitted, then \f2type\^\fP must be an indexed array variable with at
 least two elements and the values are taken from this array variable.
@@ -6104,6 +6104,16 @@ If
 is specified the values are case-insensitive.
 Declaration commands are created as special builtins that cannot be
 removed or overridden by shell functions.
+Each created declaration command has a \f3--man\fP option that
+shows documentation on its type's behavior and possible values.
+.RS
+.PP
+Within arithmetic expressions (see
+.I "Arithmetic Evaluation"
+above), enumeration type values translate to index numbers between 0 and the
+number of defined values minus 1. It is an error for an arithmetic expression
+to assign a value outside of that range. Decimal fractions are ignored.
+.RE
 .TP
 \(dg \f3eval\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
 The arguments are read as input
@@ -7350,6 +7360,9 @@ to the variables by those names;
 enables the recognition of a leading zero as introducing an octal number in
 all arithmetic evaluation contexts, except in the \fBlet\fR built-in while
 \fBletoctal\fR is off;
+.IP \[bu]
+stops the \fB.\fR command (but not \fBsource\fR) from looking up functions
+defined with the \fBfunction\fR syntax;
 .IP \[bu]
 changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
 \fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators

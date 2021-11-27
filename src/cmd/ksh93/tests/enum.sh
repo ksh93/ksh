@@ -22,7 +22,7 @@
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 enum Color_t=(red green blue orange yellow)
-enum -i Sex_t=(Male Female)
+enum -i Bool_t=(False True)
 for ((i=0; i < 1000; i++))
 do
 Color_t x
@@ -47,10 +47,10 @@ z[green]=xyz
 z[orange]=bam
 [[ ${!z[@]} == 'green orange' ]] || err_exit '${!z[@]} == "green orange"'
 unset x
-Sex_t x
-[[ $x == Male ]] || err_exit 'Sex_t not defaulting to Male'
-x=female
-[[ $x == Female ]] || err_exit 'Sex_t not case sensitive'
+Bool_t x
+[[ $x == False ]] || err_exit 'Bool_t not defaulting to False'
+x=true
+[[ $x == True ]] || err_exit 'Bool_t not case sensitive'
 unset x y z
 done
 (
@@ -132,6 +132,19 @@ got=$("$SHELL" -c '. ./cmd.sh' 2>&1)
 got=$("$SHELL" -c 'source ./cmd.sh' 2>&1)
 [[ $got == "$exp" ]] || err_exit "sourced script failed" \
 	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/335
+unset a
+Color_t a
+
+let "a=5" 2>/dev/null && err_exit "arithmetic can assign out of range (positive)"
+let "a=-1" 2>/dev/null && err_exit "arithmetic can assign out of range (negative)"
+a=yellow; let "a++" 2>/dev/null && err_exit "arithmetic can assign out of range (increment)"
+a=red; let "a--" 2>/dev/null && err_exit "arithmetic can assign out of range (decrement)"
+a=orange; let "a+=2" 2>/dev/null && err_exit "arithmetic can assign out of range (add)"
+a=green; let "a-=2" 2>/dev/null && err_exit "arithmetic can assign out of range (subtract)"
+a=blue; let "a*=3" 2>/dev/null && err_exit "arithmetic can assign out of range (multiply)"
 
 # ======
 exit $((Errors<125?Errors:125))

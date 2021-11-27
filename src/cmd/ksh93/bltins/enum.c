@@ -21,8 +21,10 @@
 #pragma prototyped
 #include	"defs.h"
 
+#define ENUM_ID "enum (ksh 93u+m) 2021-11-23"
+
 const char sh_optenum[] =
-"[-?@(#)$Id: enum (ksh 93u+m) 2021-11-21 $\n]"
+"[-?@(#)$Id: " ENUM_ID " $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?enum - create an enumeration type]"
 "[+DESCRIPTION?\benum\b is a declaration command that creates an enumeration "
@@ -30,6 +32,7 @@ const char sh_optenum[] =
     "array variable \atypename\a.]"
 "[+?If the list of \avalue\as is omitted, then \atypename\a must name an "
     "indexed array variable with at least two elements.]" 
+"[+?For more information, see \atypename\a \b--man\b.]"
 "[i:ignorecase?The values are case insensitive.]"
 "\n"
 "\n\atypename\a[\b=(\b \avalue\a ... \b)\b]\n"
@@ -43,15 +46,19 @@ const char sh_optenum[] =
 ;
 
 static const char enum_type[] =
-"[-1c?\n@(#)$Id: type (ksh 93u+m) 2021-11-21 $\n]"
+"[-?@(#)$Id: " ENUM_ID " $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?\f?\f - create an instance of type \b\f?\f\b]"
 "[+DESCRIPTION?The \b\f?\f\b declaration command creates a variable for "
     "each \aname\a with enumeration type \b\f?\f\b, a type that has been "
     "created with the \benum\b(1) command.]"
 "[+?The variable can have one of the following values: \fvalues\f. "
-    "The values are \fcase\fcase sensitive.]"
-"[+?If \b=\b\avalue\a is omitted, the default is \fdefault\f.]"
+	"The values are \fcase\fcase sensitive. "
+	"If \b=\b\avalue\a is omitted, the default is \fdefault\f.]"
+"[+?Within arithmetic expressions, these values translate to index numbers "
+	"from \b0\b (for \fdefault\f) to \flastn\f (for \flastv\f). "
+	"It is an error for an arithmetic expression to assign a value "
+	"outside of that range. Decimal fractions are ignored.]"
 "[+?If no \aname\as are specified then the names and values of all "
         "variables of this type are written to standard output.]"
 "[+?\b\f?\f\b is built in to the shell as a declaration command so that "
@@ -90,6 +97,14 @@ struct Enum
 	const char	*values[1];
 };
 
+/*
+ * For range checking in arith.c
+ */
+short b_enum_nelem(Namfun_t *fp)
+{
+	return(((struct Enum *)fp)->nelem);
+}
+
 static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 {
 	Namval_t	*np;
@@ -102,6 +117,16 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		return(0);
 	if(strcmp(str,"default")==0)
 		sfprintf(out,"\b%s\b",ep->values[0]);
+	else if(memcmp(str,"last",4)==0)
+	{
+		while(ep->values[++n])
+			;
+		n--;
+		if(str[4]=='v')
+			sfprintf(out,"\b%s\b",ep->values[n]);
+		else
+			sfprintf(out,"\b%d\b",n);
+	}
 	else if(strcmp(str,"case")==0)
 	{
 		if(ep->iflag)

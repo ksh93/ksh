@@ -64,7 +64,6 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 	register char *sub=0, *cp=(char*)np;
 	register Namval_t *mp;
 	Shell_t		*shp = lvalue->shp;
-	int	flags = HASH_NOSCOPE|HASH_SCOPE|HASH_BUCKET;
 	int	c=0,nosub = lvalue->nosub;
 	Dt_t	*sdict = (shp->st.real_fun? shp->st.real_fun->sdict:0);
 	Dt_t	*nsdict = (shp->namespace?nv_dict(shp->namespace):0);
@@ -100,10 +99,13 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 			flag = 0;
 		cp = (char*)np;
 	}
-	else if(assign==NV_ASSIGN  && nv_isnull(np) && !nv_isattr(np, ~(NV_MINIMAL|NV_NOFREE)))
-		flags |= NV_ADD;
-	if((lvalue->emode&ARITH_COMP) && dtvnext(root) && ((sdict && (mp=nv_search(cp,sdict,flags&~NV_ADD))) || (mp=nv_search(cp,root,flags&~(NV_ADD))) || (nsdict && (mp=nv_search(cp,nsdict,flags&~(NV_ADD|HASH_NOSCOPE)))) ))
-		np = mp;
+	if((lvalue->emode & ARITH_COMP) && dtvnext(root))
+	{
+		if(mp = nv_search(cp, sdict ? sdict : root, HASH_NOSCOPE|HASH_SCOPE|HASH_BUCKET))
+			np = mp;
+		else if(nsdict && (mp = nv_search(cp, nsdict, HASH_SCOPE|HASH_BUCKET)))
+			np = mp;
+	}
 	while(nv_isref(np))
 	{
 #if SHOPT_FIXEDARRAY
@@ -242,6 +244,15 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		{
 			np = (Namval_t*)lvalue->value;
 			np = scope(np, lvalue, 1);
+		}
+		if(nv_isattr(np,NV_UINT16)==NV_UINT16)
+		{
+			Namfun_t *fp = nv_hasdisc(np, &ENUM_disc);
+			if(fp && (n < 0.0 || n > (Sfdouble_t)(b_enum_nelem(fp) - 1)))
+			{
+				errormsg(SH_DICT, ERROR_exit(1), "%s: value %ld out of enum range", nv_name(np), (long)n);
+				UNREACHABLE();
+			}
 		}
 		nv_putval(np, (char*)&n, NV_LDOUBLE);
 		if(lvalue->eflag)

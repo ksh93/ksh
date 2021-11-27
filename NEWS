@@ -3,6 +3,25 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-11-24:
+
+- The --posix mode was amended to stop the '.' command (but not 'source') from
+  looking up functions defined with the 'function' keyword. In the POSIX
+  standard and on other shells, the '.' command finds only script files.
+
+- The rm built-in's -d/--directory option has been fixed. It now properly
+  removes empty directories and refuses to remove non-empty directories
+  (as specified in https://www.austingroupbugs.net/view.php?id=802). Note
+  that the rm built-in command isn't compiled in by default.
+
+2021-11-23:
+
+- A bug was fixed that allowed arithmetic expressions to assign out-of-range
+  values to variables of an enumeration type defined with the 'enum' command,
+  causing undefined behavior. Within arithmetic expressions, enumeration
+  values translate to index numbers from 0 to the number of elements minus 1.
+  That range is now checked for. Decimal fractions are ignored.
+
 2021-11-21:
 
 - It is now possible to use types defined by 'enum' in contexts where the

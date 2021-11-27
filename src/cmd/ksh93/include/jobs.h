@@ -178,7 +178,6 @@ extern void	job_chldtrap(Shell_t*, const char*,int);
 	extern void	job_init(Shell_t*,int);
 	extern int	job_close(Shell_t*);
 	extern int	job_list(struct process*,int);
-	extern int	job_terminate(struct process*,int);
 	extern int	job_hup(struct process *, int);
 	extern int	job_switch(struct process*,int);
 	extern void	job_fork(pid_t);

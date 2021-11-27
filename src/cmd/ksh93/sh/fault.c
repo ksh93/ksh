@@ -580,6 +580,7 @@ void sh_exit(register int xno)
 	sfclrlock(sfstdin);
 	if(!pp)
 		sh_done(shp,sig);
+	shp->arithrecursion = 0;
 	shp->prefix = 0;
 #if SHOPT_TYPEDEF
 	shp->mktype = 0;

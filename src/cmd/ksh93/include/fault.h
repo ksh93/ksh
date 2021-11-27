@@ -103,11 +103,11 @@ struct checkpt
 };
 
 #define sh_pushcontext(shp,bp,n)( (bp)->mode=(n) , (bp)->olist=0,  \
-				  (bp)->topfd=shp->topfd, (bp)->prev=shp->jmplist, \
+				  (bp)->topfd=(shp)->topfd, (bp)->prev=(shp)->jmplist, \
 				  (bp)->err = *ERROR_CONTEXT_BASE, \
-					shp->jmplist = (sigjmp_buf*)(&(bp)->buff) \
+					(shp)->jmplist = (sigjmp_buf*)(&(bp)->buff) \
 				)
-#define sh_popcontext(shp,bp)	(shp->jmplist=(bp)->prev, errorpop(&((bp)->err)))
+#define sh_popcontext(shp,bp)	((shp)->jmplist=(bp)->prev, errorpop(&((bp)->err)))
 
 extern noreturn void 	sh_done(void*,int);
 extern void 	sh_fault(int);

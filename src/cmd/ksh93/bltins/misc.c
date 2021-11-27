@@ -259,7 +259,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	{
 		/* check for KornShell style function first */
 		np = nv_search(script,shp->fun_tree,0);
-		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX))
+		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && shp->bltindata.bnode==SYSDOT))
 		{
 			if(!np->nvalue.ip)
 			{

@@ -161,6 +161,9 @@ For more details, see the NEWS file and for complete details, see the git log.
 	and $((...)). Setting the --posix compliance option turns on the
 	recognition of the leading octal zero for all arithmetic contexts.
 
+29.	It is now an error for arithmetic expressions to assign an out-of-range
+	index value to a variable of an enumeration type created with 'enum'.
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

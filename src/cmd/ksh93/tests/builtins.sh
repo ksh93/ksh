@@ -1395,4 +1395,45 @@ printf -v 'got[1][two][3]' 'ok\f%012d\n' $ver 2>/dev/null
 unset got ver
 
 # ======
+# The rm builtin's -d option should remove files and empty directories without
+# removing non-empty directories (unless the -r option is also passed).
+# https://www.austingroupbugs.net/view.php?id=802
+if builtin rm 2> /dev/null; then
+	echo foo > "$tmp/bar"
+	mkdir "$tmp/emptydir"
+	mkdir -p "$tmp/nonemptydir1/subfolder"
+	mkdir "$tmp/nonemptydir2"
+	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
+
+	# Tests for lone -d option
+	got=$(rm -d "$tmp/emptydir" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove empty directory with -d option' \
+		"(got $(printf %q "$got"))"
+	[[ -d $tmp/emptydir ]] && err_exit 'rm builtin fails to remove empty directory with -d option'
+	got=$(rm -d $tmp/bar 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove files with -d option' \
+		"(got $(printf %q "$got"))"
+	[[ -f $tmp/bar ]] && err_exit 'rm builtin fails to remove files with -d option'
+	rm -d "$tmp/nonemptydir1" 2> /dev/null
+	[[ ! -d $tmp/nonemptydir1/subfolder ]] && err_exit 'rm builtin has unwanted recursion with -d option on folder containing folder'
+	rm -d "$tmp/nonemptydir2" 2> /dev/null
+	[[ ! -f $tmp/nonemptydir2/shouldexist ]] && err_exit 'rm builtin has unwanted recursion with -d option on folder containing file'
+
+	# Recreate non-empty directories in case the above tests failed
+	mkdir -p "$tmp/nonemptydir1/subfolder"
+	mkdir -p "$tmp/nonemptydir2"
+	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
+
+	# Tests combining -d with -r
+	got=$(rm -rd "$tmp/nonemptydir1" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and subdirectory with -rd options' \
+		"(got $(printf %q "$got"))"
+	[[ -d $tmp/nonemptydir1/subfolder || -d $tmp/nonemptydir1 ]] && err_exit 'rm builtin fails to remove all folders with -rd options'
+	got=$(rm -rd "$tmp/nonemptydir2" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -rd options' \
+		"(got $(printf %q "$got"))"
+	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -rd options'
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

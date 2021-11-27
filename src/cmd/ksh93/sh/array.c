@@ -1777,11 +1777,11 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 				if(sh.subshell)
 					np = sh_assignok(np,1);
 				/*
-				 * type == NV_UINT16 (16-bit unsigned integer, see include/nval.h) indicates an
-				 * associative array of a type created by the enum command. nelem should not be
-				 * increased in that case or 'unset' will fail to completely unset such an array.
+				 * For enum types (NV_UINT16 with discipline ENUM_disc), nelem should not
+				 * not increased or 'unset' will fail to completely unset such an array.
 				 */
-				if(type != NV_UINT16 && (!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0)))
+				if((!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0))
+				&& !(type==NV_UINT16 && nv_hasdisc(np, &ENUM_disc)))
 					ap->header.nelem++;
 				if(nv_isnull(mp))
 				{
