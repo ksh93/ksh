@@ -32,7 +32,7 @@
 const char	e_unlimited[] = "unlimited";
 const char*	e_units[] = { 0, "block", "byte", "Kibyte", "second", "microsecond" };
 
-const int	shtab_units[] = { 1, 512, 1, 1024, 1 };
+const int	shtab_units[] = { 1, 512, 1, 1024, 1, 1 };
 
 const Limit_t	shtab_limits[] =
 {
@@ -52,7 +52,7 @@ const Limit_t	shtab_limits[] =
 "pipe",		"pipe buffer size",	RLIMIT_PIPE,	"PIPE_BUF",	'p',	LIM_BYTE,
 "rss",		"max memory size",	RLIMIT_RSS,	0,		'm',	LIM_KBYTE,
 "rtprio",	"max real-time priority",RLIMIT_RTPRIO,	0,		'r',	LIM_COUNT,
-"rttime",	"time a real-time process can run before blocking,",	RLIMIT_RTTIME,	0,		'R',	LIM_MICROSECOND,
+"rttime",	"max time before blocking",	RLIMIT_RTTIME,	0,		'R',	LIM_MICROSECOND,
 "sbsize",	"socket buffer size",	RLIMIT_SBSIZE,	"PIPE_BUF",	'b',	LIM_BYTE,
 "sigpend",	"signal queue size",	RLIMIT_SIGPENDING,"SIGQUEUE_MAX",'i',	LIM_COUNT,
 "stack",	"stack size",		RLIMIT_STACK,	0,		's',	LIM_KBYTE,
