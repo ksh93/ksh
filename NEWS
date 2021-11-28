@@ -3,6 +3,10 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-11-28:
+
+- Fixed a memory fault that prevented ksh from functioning on ARM-based Macs.
+
 2021-11-24:
 
 - The --posix mode was amended to stop the '.' command (but not 'source') from
