@@ -1436,30 +1436,9 @@ breakloop:
 			{
 				if(lp->lexd.warn && (c&TEST_ARITH))
 				{
-					char *alt;
-					switch(c)
-					{
-					    case TEST_EQ:
-						alt = "==";
-						break;
-					    case TEST_NE:
-						alt = "!=";
-						break;
-					    case TEST_LT:
-						alt = "<";
-						break;
-					    case TEST_GT:
-						alt = ">";
-						break;
-					    case TEST_LE:
-						alt = "<=";
-						break;
-					    case TEST_GE:
-						alt = ">=";
-						break;
-					}
-					errormsg(SH_DICT, ERROR_warn(0), e_lexobsolete4,
-							shp->inlineno, state, alt);
+					/* test.h: octal 040+4=36, (TEST_EQ, TEST_GE, TEST_GT, TEST_LE, TEST_LT, TEST_NE) */
+					static const char *alt[] = { "==", ">=", ">", "<=", "<", "!=" };
+					errormsg(SH_DICT, ERROR_warn(0), e_lexobsolete4, shp->inlineno, state, alt[c-36]);
 				}
 				if(c&TEST_STRCMP)
 					lp->lex.incase = 1;

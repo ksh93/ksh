@@ -39,12 +39,12 @@
 #define TEST_ANDOR	0200	/* logical operators: -a, -o */
 #define TEST_STRCMP	0100	/* literal string comparison; turn off bit for pattern matching */
 
-#define TEST_NE		(TEST_ARITH|9)
 #define TEST_EQ		(TEST_ARITH|4)
 #define TEST_GE		(TEST_ARITH|5)
 #define TEST_GT		(TEST_ARITH|6)
 #define TEST_LE		(TEST_ARITH|7)
 #define TEST_LT		(TEST_ARITH|8)
+#define TEST_NE		(TEST_ARITH|9)
 #define TEST_OR		(TEST_ANDOR|1)
 #define TEST_AND	(TEST_ANDOR|2)
 #define TEST_SNE	(TEST_STRCMP|TEST_PNE)
