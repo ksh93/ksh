@@ -3,21 +3,23 @@
 # Extras branch
 This is a downstream branch of ksh93u+m I maintain that adds
 a few extra features. The [upstream branch](https://github.com/ksh93/ksh) is currently focused
-on bugfixes, so (at least for now) these patches aren't going
-to be upstreamed.
+on bugfixes, so these patches will not be submitted upstream until development on v2.0 of ksh93u+m starts.
+To list all non-merge commits specific to the extras branch, run the following command in a terminal:
+```sh
+git log --no-merges extras ^master
+```
 
-The extra features added are as follows:
+The extra features the extras branch adds are as follows:
 
-1. Support for `${$var}` from ksh93v- has been added (commit [`fb94c2c`](https://github.com/JohnoKing/ksh/commit/fb94c2cb60722e1ea440d7a84739f4923cb2b908)),
-   where `$var` points to the name of a variable. So for example, `$var`
-    can be set to point to `$foo`:  
+1. Support for `${$var}` from ksh93v- has been added, where `$var` points to the name of a variable.
+   For example, `$var` can be set to point to `$foo`:  
 ```sh
 $ var=foo
 $ foo='Intended result'
 $ echo ${$var}
 Intended result
 ```
-2. Extra keybinds have been added to the emacs and vi editing modes (commit [`4036ec7`](https://github.com/JohnoKing/ksh/commit/4036ec7ec8c59e3ab143773e9c382cf9199a79ee)).
+2. Extra keybinds have been added to the emacs and vi editing modes.
   * The following keybinds are added to both editing modes:
     * Support for Home key sequences `^[[1~` and `^[[7~`
     * Support for End key sequences `^[[4~` and `^[[8~`
@@ -31,9 +33,10 @@ Intended result
     * Insert:		Escape next character
   * This keybind is added just to vi mode:  
     * Insert:		Switch to insert mode
-3. Extra options have been added to the `ulimit` command in commit [`7d7d960`](https://github.com/JohnoKing/ksh/commit/7d7d960481006843bf042c68730be66d3b01b462)
-   (as long as the OS supports them). These options are also present in Bash,
-   although in ksh additional long forms of each option are available:  
+3. The prompt printed for emacs reverse search mode is now `? ` instead of `^R`.
+4. Extra options have been added to the `ulimit` command (as long as the OS supports them).
+   These options are also present in Bash, although in ksh additional long forms of each option
+   are available:  
 ```
 ulimit -k/--kqueues
 	This is the maximum number of kqueues.  
@@ -42,21 +45,13 @@ ulimit -P/--npts
 ulimit -R/--rttime
 	This is the time a real-time process can running before blocking, in microseconds.
 ```
-4. Microsecond precision has been added to the `time` keyword and
-   `times` builtin (commit [`d97b64e`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c)).
-5. The `%C` time format has been backported from ksh2020. `%C` is
-   the total number of CPU seconds (i.e., the sum of `%U` and `%S`).
-   Added in commit [`d97b64e`](https://github.com/JohnoKing/ksh/commit/d97b64e29105c4e074bee261594db9aa58b6c98c).
-6. Extra options have been backported from ksh93v- for bash compatibility. The options added so far are:
-  * `read -a` as an alias for `read -A` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
-  * `type -P` as an alias for `whence -p` (commit [`1bf99db`](https://github.com/JohnoKing/ksh/commit/1bf99db2256927419ac9dad3ea0e4bd580c566d8)).
+5. Microsecond precision has been added to the `time` keyword and `times` builtin.
+6. The `%C` time format has been backported from ksh2020. `%C` is the total number of CPU seconds (i.e., the sum of `%U` and `%S`).
+7. Extra options have been backported from ksh93v- for bash compatibility. The options added so far are:
   * `type -t` has been backported from ksh93v- (it functions the same way it does in Bash).
-7. A `banner` command has been added alongside `pty`. This is the AST
-   `banner` with features added to it from the NetBSD `banner`.
-   Added in commits [`312972f`](https://github.com/JohnoKing/ksh/commit/312972fcd851d5b8efc61a5965082db726178c7d) and [`62fbfa4`](https://github.com/JohnoKing/ksh/commit/62fbfa4b09848d507e31ec019d039a2649040fa2).
-8. The prompt printed for emacs reverse search mode is now '? ' instead of `^R`.
-9. The `shcomp` command now supports a `-d/--deparse` option. This flag causes `shcomp` to run the shell deparser on the given script, then output the result.
-10. Added the following long options to the libcmd builtins (to match the equivalent GNU coreutils long options):
+  * `type -P` as an alias for `whence -p`.
+  * `read -a` as an alias for `read -A`.
+8. Added the following long options to the libcmd builtins (to match the equivalent GNU coreutils long options):
   * `basename --multiple` as an alias for `basename -a`.
   * `cat --show-tabs` as an alias for `cat -T`.
   * `chgrp --no-dereference` as an alias for `chgrp -h`.
@@ -67,6 +62,8 @@ ulimit -R/--rttime
   * `ln --symbolic` as an alias for `ln -s`.
   * `mv --symbolic` as an alias for `mv -s`. (GNU coreutils doesn't support `mv --symbolic`. It was added because `cp`, `ln` and `mv` share `optget` code.)
   * `rm --dir` as an alias for `rm -d`.
+9. The `shcomp` command now supports a `-d/--deparse` option. This flag causes `shcomp` to run the shell deparser on the given script, then output the result.
+10. A `banner` command has been added alongside `pty`. This is the AST `banner` command with features added to it from the NetBSD `banner`.
 
 # KornShell 93u+m
 
