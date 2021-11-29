@@ -601,6 +601,20 @@ eu=$(
 )
 [[ ${us:1:1} == ${eu:1:1} ]] && err_exit "The time keyword ignores the locale's radix point (both are ${eu:1:1})"
 
+# The time keyword should obey the errexit option
+# https://www.illumos.org/issues/7694
+time_errexit="$tmp/time_errexit.sh"
+cat > "$time_errexit" << 'EOF'
+time false
+echo FAILURE
+true
+EOF
+got=$($SHELL -e "$time_errexit" 2>&1)
+(( $? == 0 )) && err_exit "The time keyword ignores the errexit option" \
+	"(got $(printf %q "$got"))"
+[[ -z $got ]] || err_exit "The time keyword produces output when a timed command fails and the errexit option is on" \
+	"(got $(printf %q "$got"))"
+
 # ======
 # Expansion of multibyte characters after expansion of single-character names $1..$9, $?, $!, $-, etc.
 case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in

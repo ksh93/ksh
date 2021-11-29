@@ -1039,6 +1039,8 @@ do	case $bltin in
 		actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
 	*/*)	err_exit "strange path name in 'builtin' output: $(printf %q "$bltin")"
 		continue ;;
+	autoload | compound | float | functions | integer | nameref)
+		bltin=typeset ;&
 	*)	expect="Usage: $bltin "
 		actual=$({ "${bltin}" --this-option-does-not-exist; } 2>&1) ;;
 	esac
