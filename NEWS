@@ -10,6 +10,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - A bug that caused the time keyword to override the errexit shell option has
   been fixed.
 
+- Fixed a crash that could occur when a KEYBD trap was set and a multi-line
+  command substitution was input in an interactive shell.
+
 2021-11-24:
 
 - The --posix mode was amended to stop the '.' command (but not 'source') from

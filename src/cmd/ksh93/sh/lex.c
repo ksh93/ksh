@@ -264,6 +264,7 @@ Lex_t *sh_lexopen(Lex_t *lp, Shell_t *sp, int mode)
 	{
 		lp = (Lex_t*)sh_newof(0,Lex_t,1,0);
 		lp->sh = sp;
+		sp->lexsize = sizeof(Lex_t);
 	}
 	fcnotify(lex_advance,lp);
 	lp->lex.intest = lp->lex.incase = lp->lex.skipword = lp->lexd.warn = 0;

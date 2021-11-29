@@ -896,5 +896,16 @@ w : test_string\1\E6\E[C\4
 r ^:test-4: : teststring\r\n$
 !
 
+# err_exit #
+tst $LINENO <<"!"
+L crash with KEYBD trap after entering multi-line command substitution
+# https://www.mail-archive.com/ast-users@lists.research.att.com/msg00313.html
+
+w trap : KEYBD
+w : $(
+w true); echo "Exit status is $?"
+u Exit status is 0
+!
+
 # ======
 exit $((Errors<125?Errors:125))
