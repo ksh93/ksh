@@ -232,7 +232,6 @@ struct shared
 	int		xargmax; \
 	int		xargexit; \
 	int		nenv; \
-	int		lexsize; \
 	mode_t		mask; \
 	Env_t		*env; \
 	void		*init_context; \

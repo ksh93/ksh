@@ -52,10 +52,11 @@
 #include	"terminal.h"
 #include	"history.h"
 #include	"edit.h"
+#include	"shlex.h"
 
 static char CURSOR_UP[20] = { ESC, '[', 'A', 0 };
 static char KILL_LINE[20] = { ESC, '[', 'J', 0 };
-static char *savelex = NIL(char*);
+static Lex_t *savelex;
 
 
 #if SHOPT_MULTIBYTE
@@ -231,7 +232,7 @@ void tty_cooked(register int fd)
 {
 	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
 	if(ep->sh->st.trap[SH_KEYTRAP] && savelex)
-		memcpy(ep->sh->lex_context,savelex,ep->sh->lexsize);
+		memcpy(ep->sh->lex_context,savelex,sizeof(Lex_t));
 	ep->e_keytrap = 0;
 	if(ep->e_raw==0)
 		return;
@@ -850,8 +851,8 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	if(ep->sh->st.trap[SH_KEYTRAP])
 	{
 		if(!savelex)
-			savelex = (char*)sh_malloc(shp->lexsize);
-		memcpy(savelex, ep->sh->lex_context, ep->sh->lexsize);
+			savelex = (Lex_t*)sh_malloc(sizeof(Lex_t));
+		memcpy(savelex, ep->sh->lex_context, sizeof(Lex_t));
 	}
 }
 #endif /* SHOPT_ESH || SHOPT_VSH */
