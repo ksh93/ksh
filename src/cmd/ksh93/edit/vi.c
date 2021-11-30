@@ -119,6 +119,7 @@ typedef struct _vi_
 	int U_saved;		/* original virtual saved */
 	genchar *U_space;	/* used for U command */
 	genchar *u_space;	/* used for u command */
+	unsigned char del_word;	/* used for Ctrl-Delete */
 #ifdef FIORDCHK
 	clock_t typeahead;	/* typeahead occurred */
 #else
@@ -1718,6 +1719,13 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed,'x');
 				return(1);
 			}
+			else if(bound==';' && ed_getchar(vp->ed,-1) == '5' && ed_getchar(vp->ed,-1) == '~')
+			{
+				/* Ctrl-Delete */
+				vp->del_word = 1;
+				ed_ungetchar(vp->ed,'d');
+				return(1);
+			}
 			ed_ungetchar(vp->ed,motion);
 			return(0);
 		    case '4':
@@ -2664,6 +2672,11 @@ chgeol:
 	case 'd':		/** delete **/
 		if( mode )
 			c = vp->lastmotion;
+		else if( vp->del_word )
+		{
+			vp->del_word = 0;
+			c = 'w';
+		}
 		else
 			c = getcount(vp,ed_getchar(vp->ed,-1));
 deleol:

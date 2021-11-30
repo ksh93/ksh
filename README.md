@@ -23,16 +23,15 @@ Intended result
   * The following keybinds are added to both editing modes:
     * Support for Home key sequences `^[[1~` and `^[[7~`
     * Support for End key sequences `^[[4~` and `^[[8~`
-    * Ctrl+Left Arrow:	Go back one word
-    * Alt+Left Arrow:	Go back one word
-    * Ctrl+Right Arrow:	Go forward one word
-    * Alt+Right Arrow:	Go forward one word
-    * Ctrl+G:		End reverse search
-  * These keybinds are added just to emacs mode:  
-    * Ctrl+Delete:	Delete next word
-    * Insert:		Escape next character
-  * This keybind is added just to vi mode:  
-    * Insert:		Switch to insert mode
+    * Ctrl-Left Arrow:	Go back one word
+    * Alt-Left Arrow:	Go back one word
+    * Ctrl-Right Arrow:	Go forward one word
+    * Alt-Right Arrow:	Go forward one word
+    * Ctrl-G:		End reverse search
+    * Ctrl-Delete:	Delete next word
+  * An insert keybind has also been added which functions differently in each mode:
+    * Insert (emacs):	Escape next character
+    * Insert (vi):	Switch to insert mode
 3. The prompt printed for emacs reverse search mode is now `? ` instead of `^R`.
 4. Extra options have been added to the `ulimit` command (as long as the OS supports them).
    These options are also present in Bash, although in ksh additional long forms of each option
