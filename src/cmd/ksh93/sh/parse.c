@@ -65,10 +65,6 @@ static Shnode_t	*test_and(Lex_t*);
 static Shnode_t	*test_or(Lex_t*);
 static Shnode_t	*test_primary(Lex_t*);
 
-static void	dcl_hacktivate(void), dcl_dehacktivate(void), (*orig_exit)(int), dcl_exit(int);
-static Dt_t	*dcl_tree;
-static int	dcl_recursion;
-
 #define	sh_getlineno(lp)	(lp->lastline)
 
 #ifndef NIL
@@ -187,10 +183,13 @@ static void typeset_order(const char *str,int line)
 }
 
 /*
- * This function handles linting for 'typeset' options via typeset_order().
+ * Pre-add type declaration built-ins at parse time to avoid
+ * syntax errors when using -c, shcomp, '.'/source or eval.
  *
- * Also, upon parsing typeset -T or enum, it pre-adds the type declaration built-ins that these would create to
- * an internal tree to avoid syntax errors upon pre-execution parsing of assignment-arguments with parentheses.
+ * This hack has a bad side effect: defining a type with 'typeset -T' or 'enum'
+ * in a subshell or an 'if false' block will cause an inconsistent state. But
+ * as these built-ins alter the syntax of the shell, it's necessary for making
+ * them work if we're parsing an entire script before or without executing it.
  *
  * intypeset==1 for typeset & friends; intypeset==2 for enum
  */
@@ -250,43 +249,6 @@ static void check_typedef(struct comnod *tp, char intypeset)
 	}
 	if(cp)
 		nv_onattr(sh_addbuiltin(cp, (Shbltin_f)SYSTRUE->nvalue.bfp, NIL(void*)), NV_BLTIN|BLT_DCL);
-}
-/*
- * (De)activate an internal declaration built-ins tree into which check_typedef() can pre-add dummy type
- * declaration command nodes, allowing correct parsing of assignment-arguments with parentheses for custom
- * type declaration commands before actually executing the commands that create those commands.
- *
- * A viewpath from the main built-ins tree to this internal tree is added, unifying the two for search
- * purposes and causing new nodes to be added to the internal tree. When parsing is done, we close that
- * viewpath. This hides those pre-added nodes at execution time, avoiding an inconsistent state if a type
- * creation command is parsed but not executed.
- */
-static void dcl_hacktivate(void)
-{
-	if(!dcl_tree)
-		dcl_tree = dtopen(&_Nvdisc, Dtoset);
-	if(dcl_recursion++)
-		return;
-	dtview(sh.bltin_tree, dcl_tree);
-	orig_exit = error_info.exit;
-	error_info.exit = dcl_exit;
-}
-static void dcl_dehacktivate(void)
-{
-#if !_AST_ksh_release
-	if(!dcl_recursion || !dcl_tree)
-		abort();
-#endif
-	if(--dcl_recursion)
-		return;
-	error_info.exit = orig_exit;
-	dtview(sh.bltin_tree, NIL(Dt_t*));
-}
-static noreturn void dcl_exit(int e)
-{
-	dcl_dehacktivate();
-	(*error_info.exit)(e);
-	UNREACHABLE();
 }
 
 /*
@@ -546,7 +508,6 @@ static Shnode_t	*sh_cmd(Lex_t *lexp, register int sym, int flag)
 {
 	register Shnode_t	*left, *right;
 	register int type = FINT|FAMP;
-	dcl_hacktivate();
 	if(sym==NL)
 		lexp->lasttok = 0;
 	left = list(lexp,flag);
@@ -588,7 +549,6 @@ static Shnode_t	*sh_cmd(Lex_t *lexp, register int sym, int flag)
 				sh_syntax(lexp);
 		}
 	}
-	dcl_dehacktivate();
 	return(left);
 }
 
@@ -1090,19 +1050,8 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 		if(array && type==NV_TYPE)
 		{
 			struct argnod *arg = lexp->arg;
-			int save_recursion = dcl_recursion;
-			int p;
-			/*
-			 * Forcibly deactivate the dummy declaration built-ins tree as path_search() does an
-			 * FPATH search, which may cause arbitrary ksh code to be executed. Yes, at parse time.
-			 */
 			n = lexp->token;
-			dcl_recursion = 1;
-			dcl_dehacktivate();
-			p = path_search(lexp->sh,lexp->arg->argval,NIL(Pathcomp_t**),1);
-			dcl_hacktivate();
-			dcl_recursion = save_recursion;
-			if(p && (np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) && nv_isattr(np,BLT_DCL))
+			if(path_search(lexp->sh,lexp->arg->argval,NIL(Pathcomp_t**),1) && (np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) && nv_isattr(np,BLT_DCL))
 			{
 				lexp->token = n;
 				lexp->arg = arg;

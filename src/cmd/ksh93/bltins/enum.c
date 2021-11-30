@@ -21,7 +21,7 @@
 #pragma prototyped
 #include	"defs.h"
 
-#define ENUM_ID "enum (ksh 93u+m) 2021-11-29"
+#define ENUM_ID "enum (ksh 93u+m) 2021-11-23"
 
 const char sh_optenum[] =
 "[-?@(#)$Id: " ENUM_ID " $\n]"
@@ -239,10 +239,6 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 		error(ERROR_USAGE|2, "%s", optusage(NiL));
 		return 1;
 	}
-#ifndef STANDALONE
-	if(shp->subshell && !shp->subshare)
-		sh_subfork();
-#endif
 	while(cp = *argv++)
 	{
 		if(!(np = nv_open(cp, (void*)0, NV_VARNAME|NV_NOADD))  || !(ap=nv_arrayptr(np)) || ap->fun || (sz=ap->nelem&(((1L<<ARRAY_BITS)-1))) < 2)

@@ -5,13 +5,13 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-11-29:
 
-- Ksh no longer behaves badly when parsing a type definition command
-  ('typeset -T' or 'enum') without executing it or when executing it in
-  a subshell. Types can now safely be defined in subshells and defined
-  conditionally as in 'if condition; then enum ...; fi'.
+- Fixed a memory fault that prevented ksh from functioning on ARM-based Macs.
 
 - A bug that caused the time keyword to override the errexit shell option has
   been fixed.
+
+- Fixed a crash that could occur when a KEYBD trap was set and a multi-line
+  command substitution was input in an interactive shell.
 
 - The shell linter's warnings for obsolete arithmetic operators in [[ ... ]]
   and unnecessary variable expansion in ((...)) have been improved.

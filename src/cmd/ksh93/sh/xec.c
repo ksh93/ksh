@@ -1090,8 +1090,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 #if SHOPT_TYPEDEF
 						else if(argn>=3 && checkopt(com,'T'))
 						{
-							if(shp->subshell && !shp->subshare)
-								sh_subfork();
 #   if SHOPT_NAMESPACE
 							if(shp->namespace)
 							{

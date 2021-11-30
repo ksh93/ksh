@@ -452,24 +452,20 @@ cd "$tmp"
 FPATH=$PWD
 PATH=$PWD:$PATH
 cat > A_t <<-  \EOF
-	if	false
-	then	typeset -T Parser_shenanigans=(typeset -i foo)
-	fi
 	typeset -T A_t=(
 		B_t b
 	)
 EOF
 cat > B_t <<-  \EOF
-	PATH=/dev/null command -v Parser_shenanigans
 	typeset -T B_t=(
 		integer n=5
 	)
 EOF
 
 unset n
-if	n=$(FPATH=$PWD PATH=$PWD:$PATH "$SHELL" -c 'A_t a; print ${a.b.n}' 2>&1)
-then	[[ $n == '5' ]] || err_exit "dynamic loading of types gives wrong result (got $(printf %q "$n"))"
-else	err_exit "unable to load types dynamically (got $(printf %q "$n"))"
+if	n=$(FPATH=$PWD PATH=$PWD:$PATH $SHELL 2> /dev/null -c 'A_t a; print ${a.b.n}')
+then	(( n==5 )) || err_exit 'dynamic loading of types gives wrong result'
+else	err_exit 'unable to load types dynamically'
 fi
 
 # check that typeset -T reproduces a type.
@@ -642,20 +638,6 @@ bar.foo+=(bam)
 got=$($SHELL -c 'enum Foo_t=(foo bar); typeset -T')
 [[ -z $got ]] || err_exit "Types created by enum are listed with 'typeset -T'" \
 	"(got $(printf %q "$got"))"
-
-# ======
-# Parser shenanigans.
-if	false
-then	typeset -T PARSER_t=(typeset name=foobar)
-fi
-PATH=/dev/null command -v PARSER_t >/dev/null && err_exit "PARSER_t incompletely defined though definition was never executed"
-
-unset v
-got=$( set +x; redirect 2>&1; typeset -T Subsh_t=(typeset -i x); Subsh_t -a v=( (x=1) (x=2) (x=3) ); typeset -p v )
-exp='Subsh_t -a v=((typeset -i x=1) (typeset -i x=2) (typeset -i x=3))'
-[[ $got == "$exp" ]] || err_exit "bad typeset output for Subsh_t" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-PATH=/dev/null command -v Subsh_t >/dev/null && err_exit "Subsh_t leaked out of subshell"
 
 # ======
 exit $((Errors<125?Errors:125))
