@@ -283,11 +283,16 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		nq =  vp->disc[type=UNASSIGN];
 	if(nq && !isblocked(bp,type))
 	{
-		int bflag=0, savexit=sh.savexit;
+		int bflag=0, savexit=sh.savexit, jmpval=0;
+		struct checkpt buff;
 		block(bp,type);
 		if (type==APPEND && (bflag= !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
-		sh_fun(nq,np,(char**)0);
+		sh_pushcontext(&sh,&buff,1);
+		jmpval = sigsetjmp(buff.buff,0);
+		if(!jmpval)
+			sh_fun(nq,np,(char**)0);
+		sh_popcontext(&sh,&buff);
 		unblock(bp,type);
 		if(bflag)
 			unblock(bp,LOOKUPS);
@@ -376,7 +381,8 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 	union Value		*up = np->nvalue.up;
 	if(nq && !isblocked(bp,type))
 	{
-		int		savexit = sh.savexit;
+		int		savexit = sh.savexit, jmpval = 0;
+		struct checkpt	buff;
 		node = *SH_VALNOD;
 		if(!nv_isnull(SH_VALNOD))
 		{
@@ -389,7 +395,11 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			nv_setsize(SH_VALNOD,10);
 		}
 		block(bp,type);
-		sh_fun(nq,np,(char**)0);
+		sh_pushcontext(&sh,&buff,1);
+		jmpval = sigsetjmp(buff.buff,0);
+		if(!jmpval)
+			sh_fun(nq,np,(char**)0);
+		sh_popcontext(&sh,&buff);
 		unblock(bp,type);
 		if(!vp->disc[type])
 			chktfree(np,vp);
