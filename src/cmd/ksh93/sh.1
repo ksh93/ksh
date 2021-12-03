@@ -5800,9 +5800,9 @@ and invokes this function with an argument of
 .BR 0 .
 .TP
 .PD 0
-\f3cd\fP \*(OK \f3\-LP\fP \*(CK \*(OK \f2arg\^\fP \*(CK
+\f3cd\fP \*(OK \f3\-L\fP \*(CK \*(OK \f3-eP\fP \*(CK \*(OK \f2arg\^\fP \*(CK
 .TP
-\f3cd\fP \*(OK \f3\-LP\fP \*(CK \f2old\^\fP \f2new\^\fP
+\f3cd\fP \*(OK \f3\-L\fP \*(CK \*(OK \f3-eP\fP \*(CK \f2old\^\fP \f2new\^\fP
 .PD
 This command can be in either of two forms.
 In the first form it
@@ -5873,6 +5873,20 @@ or
 .B \-P
 on the command line
 determines which method is used.
+.sp .5
+If
+.B \-e
+and
+.B \-P
+are both in effect and the correct
+.BR PWD
+could not be determined after successfully changing the directory,
+.B cd
+will return with exit status one and produce no output.
+If any other error occurs while both flags are active,
+the exit status is greater than one.
+This means the exit status is effectively
+two unless an out of memory error occurs.
 .sp .5
 The
 .B cd\^

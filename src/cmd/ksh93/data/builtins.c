@@ -441,7 +441,7 @@ const char sh_optbuiltin[] =
 ;
 
 const char sh_optcd[] =
-"[-1c?\n@(#)$Id: cd (ksh 93u+m) 2021-01-19 $\n]"
+"[-1c?\n@(#)$Id: cd (ksh 93u+m) 2021-12-02 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?cd - change working directory ]"
 "[+DESCRIPTION?\bcd\b changes the current working directory of the "
@@ -482,13 +482,22 @@ const char sh_optcd[] =
 "[P?The present working directory is first converted to an absolute pathname "
 	"that does not contain symbolic link components and symbolic name "
 	"components are expanded in the resulting directory name.]"
+"[e?If the \b-P\b option is in effect and the correct \bPWD\b cannot be "
+	"determined, exit with status 1. All other errors encountered while "
+	"both \b-e\b and \b-P\b are active result in exit status >1 (i.e., "
+	"exit status 2 unless an out of memory error occurred).]"
 "\n"
 "\n[directory]\n"
 "old new\n"
 "\n"
 "[+EXIT STATUS?]{"
-	"[+0?Directory successfully changed.]"
-	"[+>0?An error occurred.]"
+	"[+0?Directory successfully changed and the \bPWD\b is correct.]"
+	"[+0?Directory successfully changed, the \bPWD\b couldn't be obtained "
+	"and a combination of \b-eP\b is not active.]"
+	"[+>0?An error occurred and a combination of \b-eP\b is not active.]"
+	"[+1?Directory successfully changed, the \bPWD\b couldn't be obtained "
+	"and a combination of \b-eP\b is active.]"
+	"[+>1?An error occurred and a combination of \b-eP\b is active.]"
 "}"
 "[+SEE ALSO?\bpwd\b(1), \bgetconf\b(1)]"
 ;

@@ -264,7 +264,11 @@ char *path_pwd(Shell_t *shp,int flag)
 			/* Get physical PWD (no symlinks) using getcwd(3), fall back to "." */
 			cp = getcwd(NIL(char*),0);
 			if(!cp)
+			{
+				if(errno==ENOMEM)
+					sh_nomemory(0);
 				return((char*)e_dot);
+			}
 			tofree++;
 		}
 		/* Store in PWD variable */

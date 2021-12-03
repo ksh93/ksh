@@ -220,7 +220,7 @@ static int		rand_shift;
 /*
  * out of memory routine for stak routines
  */
-static noreturn char *nomemory(int unused)
+noreturn char *sh_nomemory(int unused)
 {
 	NOT_USED(unused);
 	errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "out of memory");
@@ -235,7 +235,7 @@ void *sh_malloc(size_t size)
 {
 	void *cp = malloc(size);
 	if(!cp)
-		nomemory(0);
+		sh_nomemory(0);
 	return(cp);
 }
 
@@ -243,7 +243,7 @@ void *sh_realloc(void *ptr, size_t size)
 {
 	void *cp = realloc(ptr, size);
 	if(!cp)
-		nomemory(0);
+		sh_nomemory(0);
 	return(cp);
 }
 
@@ -251,7 +251,7 @@ void *sh_calloc(size_t nmemb, size_t size)
 {
 	void *cp = calloc(nmemb, size);
 	if(!cp)
-		nomemory(0);
+		sh_nomemory(0);
 	return(cp);
 }
 
@@ -259,7 +259,7 @@ char *sh_strdup(const char *s)
 {
 	char *dup = strdup(s);
 	if(!dup)
-		nomemory(0);
+		sh_nomemory(0);
 	return(dup);
 }
 
@@ -267,7 +267,7 @@ void *sh_memdup(const void *s, size_t n)
 {
 	void *dup = memdup(s, n);
 	if(!dup)
-		nomemory(0);
+		sh_nomemory(0);
 	return(dup);
 }
 
@@ -1300,7 +1300,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	sh_ioinit(shp);
 	/* initialize signal handling */
 	sh_siginit(shp);
-	stakinstall(NIL(Stak_t*),nomemory);
+	stakinstall(NIL(Stak_t*),sh_nomemory);
 	/* set up memory for name-value pairs */
 	shp->init_context =  nv_init(shp);
 	/* initialize shell type */

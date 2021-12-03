@@ -3,6 +3,14 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-03:
+
+- The cd built-in command now supports a -e option (as specified in
+  https://www.austingroupbugs.net/view.php?id=253). Passing -e alongside -P
+  is used to guarantee the cd built-in returns with exit status 1 if the
+  current working directory couldn't be determined after successfully changing
+  the directory.
+
 2021-12-01:
 
 - Fixed a memory fault that occurred when a discipline function exited

@@ -1355,4 +1355,46 @@ if builtin rm 2> /dev/null; then
 fi
 
 # ======
+# These are regression tests for the cd command's -e and -P flags
+mkdir -p "$tmp/failpwd1"
+cd "$tmp/failpwd1"
+rmdir ../failpwd1
+cd -P .
+got=$?; exp=0
+(( got == exp )) || err_exit "cd -P without -e exits with error status if \$PWD doesn't exist (expected $exp, got $got)"
+cd -eP .
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -eP doesn't fail if \$PWD doesn't exist (expected $exp, got $got)"
+cd "$tmp"
+cd -P "$tmp/notadir" >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+cd -eP "$tmp/notadir" >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+OLDPWD="$tmp/baddir"
+cd -P - >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+cd -eP - >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+cd "$tmp" || err_exit "couldn't change directory from nonexistent dir"
+(set -o restricted; cd -P /) >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P in restricted shell has wrong exit status (expected $exp, got $got)"
+(set -o restricted; cd -eP /) >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP in restricted shell has wrong exit status (expected $exp, got $got)"
+(set -o restricted; cd -?) >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -? shows usage info in restricted shell and has wrong exit status (expected $exp, got $got)"
+(cd -P '') >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P to empty string has wrong exit status (expected $exp, got $got)"
+(cd -eP '') >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP to empty string has wrong exit status (expected $exp, got $got)"
+
+# ======
 exit $((Errors<125?Errors:125))
