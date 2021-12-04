@@ -272,7 +272,15 @@ success:
 			return(1);
 		}
 		else
+		{
+			/* Verify the current working directory matches $PWD */
+			if(!test_inode(verify_pwd,nv_getval(pwdnod)))
+				ret = 1;
+			else
+				ret = 0;
 			free(verify_pwd);
+			return(ret);
+		}
 	}
 	return(0);
 }
