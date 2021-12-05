@@ -49,7 +49,7 @@
 #include "fontkey.h"
 
 /*
- * This is relatively easy to modify just look:
+ * This is relatively easy to modify, just look:
  */
 const char bandata_lpd[][HEIGHT] =
 {
