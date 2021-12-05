@@ -66,6 +66,13 @@ vmalloc \- virtual memory allocation
 .MW "Void_t* valloc(size_t size);"
 .MW "int setregmax(int regmax);"
 .fi
+.SH DEPRECATION NOTICE
+In the 2021 ksh 93u+m distribution, \fIvmalloc\fP(3) was deprecated for
+being unstable and wasteful in comparison to \fImalloc\fP(3) implementations
+that come with modern operating systems.
+By default, the interfaces described here map to the OS's standard
+\fImalloc\fP(3) implementation. \fIvmalloc\fP can be enabled at compile time
+by passing \fB-D_AST_vmalloc\fP in \fBCCFLAGS\fP.
 .SH DESCRIPTION
 These functions for dynamic storage allocation work in
 \fIregions\fP of memory.

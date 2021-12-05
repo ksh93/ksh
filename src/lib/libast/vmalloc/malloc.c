@@ -85,10 +85,6 @@ typedef struct ______mstats Mstats_t;
  * will simply call malloc etc.
  */
 
-#if !defined(_AST_std_malloc) && __CYGWIN__
-#define _AST_std_malloc	1
-#endif
-
 /*	malloc compatibility functions
 **
 **	These are aware of debugging/profiling and are driven by the

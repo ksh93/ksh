@@ -23,6 +23,7 @@
 
 # Determine method for running tests.
 # The 'vmstate' builtin can be used if ksh was compiled with vmalloc.
+# (Pass -D_AST_vmalloc in CCFLAGS; for testing only as it's deprecated)
 if	builtin vmstate 2>/dev/null &&
 	n=$(vmstate --format='%(busy_size)u') &&
 	let "($n) == ($n) && n > 0"	# non-zero number?
