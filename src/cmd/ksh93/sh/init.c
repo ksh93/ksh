@@ -271,6 +271,14 @@ void *sh_memdup(const void *s, size_t n)
 	return(dup);
 }
 
+char *sh_getcwd(void)
+{
+	char *cwd = getcwd(NIL(char*), 0);
+	if(!cwd && errno==ENOMEM)
+		nomemory(0);
+	return(cwd);
+}
+
 #if SHOPT_VSH || SHOPT_ESH
 /* Trap for VISUAL and EDITOR variables */
 static void put_ed(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
