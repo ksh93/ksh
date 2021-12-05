@@ -262,25 +262,8 @@ success:
 	path_newdir(shp,shp->cdpathlist);
 	if(pflag && eflag)
 	{
-		/* If the directory was changed and the PWD cannot be determined,
-		   exit with status 1. */
-		char *verify_pwd = getcwd(NIL(char*),0);
-		if(!verify_pwd)
-		{
-			if(errno==ENOMEM)
-				sh_nomemory(0);
-			return(1);
-		}
-		else
-		{
-			/* Verify the current working directory matches $PWD */
-			if(!test_inode(verify_pwd,nv_getval(pwdnod)))
-				ret = 1;
-			else
-				ret = 0;
-			free(verify_pwd);
-			return(ret);
-		}
+		/* Verify the current working directory matches $PWD */
+		return(!test_inode(e_dot,nv_getval(pwdnod)));
 	}
 	return(0);
 }

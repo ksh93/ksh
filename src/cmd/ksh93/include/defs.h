@@ -395,7 +395,6 @@ extern int 		sh_whence(char**,int);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */
-extern noreturn char	*sh_nomemory(int unused);
 extern void		*sh_malloc(size_t size);
 extern void		*sh_realloc(void *ptr, size_t size);
 extern void		*sh_calloc(size_t nmemb, size_t size);
