@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-05:
+
+- Fixed an issue on illumos that caused some parameters in the getconf
+  builtin to fail.
+
 2021-12-01:
 
 - Fixed a memory fault that occurred when a discipline function exited
