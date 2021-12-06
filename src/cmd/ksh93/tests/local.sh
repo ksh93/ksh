@@ -18,16 +18,7 @@
 # In the cases when local could return an error, it's run using
 # 'command' because it's a special builtin in ksh93v- and ksh2020.
 
-function err_exit
-{
-	print -u2 -n "\t"
-	print -u2 -r ${Command}[$1]: "${@:2}"
-	(( Errors+=1 ))
-}
-alias err_exit='err_exit $LINENO'
-
-Command=${0##*/}
-integer Errors=0
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # ======
 # This test must be run first due to the next test.
