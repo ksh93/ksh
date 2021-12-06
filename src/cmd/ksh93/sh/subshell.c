@@ -77,7 +77,6 @@ static struct subshell
 	Dt_t		*sfun;	/* function scope for subshell */
 	Dt_t		*strack;/* tracked alias scope for subshell */
 	Pathcomp_t	*pathlist; /* for PATH variable */
-	struct Error_context_s *errcontext;
 	Shopt_t		options;/* save shell options */
 	pid_t		subpid;	/* child process id */
 	Sfio_t*		saveout;/* saved standard output */
@@ -518,7 +517,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sp->shp = shp;
 	sp->sig = 0;
 	subshell_data = sp;
-	sp->errcontext = &buff.err;
 	sp->options = shp->options;
 	sp->jobs = job_subsave();
 	sp->subdup = shp->subdup;
