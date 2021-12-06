@@ -92,66 +92,64 @@ make install
 									bind -last
 									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/symlink
 								done FEATURE/symlink generated
-								make fts_fix.h implicit
-									make ${PACKAGE_ast_INCLUDE}/fts.h implicit
-										make ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_mode.h dontcare
-										make ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_fs.h dontcare
-										make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-											make ${PACKAGE_ast_INCLUDE}/regex.h implicit
-												make ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
-												done ${PACKAGE_ast_INCLUDE}/ast_api.h dontcare
-												make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
-													make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-														make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
-															prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-															make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-																prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
-															done ${PACKAGE_ast_INCLUDE}/wchar.h dontcare
-														done ${PACKAGE_ast_INCLUDE}/ast_wctype.h dontcare
-													done ${PACKAGE_ast_INCLUDE}/wctype.h dontcare
-													make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
-														make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
-															make ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-															done ${PACKAGE_ast_INCLUDE}/sfio_s.h dontcare
-															prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-														done ${PACKAGE_ast_INCLUDE}/ast_stdio.h dontcare
-													done ${PACKAGE_ast_INCLUDE}/stdio.h dontcare
-													prev ${PACKAGE_ast_INCLUDE}/stdio.h implicit
-													prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-												done ${PACKAGE_ast_INCLUDE}/ast_wchar.h dontcare
+								make ${PACKAGE_ast_INCLUDE}/fts.h implicit
+									make ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
+									done ${PACKAGE_ast_INCLUDE}/ast_mode.h dontcare
+									make ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
+									done ${PACKAGE_ast_INCLUDE}/ast_fs.h dontcare
+									make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+										make ${PACKAGE_ast_INCLUDE}/regex.h implicit
+											make ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
+											done ${PACKAGE_ast_INCLUDE}/ast_api.h dontcare
+											make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+												make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
+													make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
+														prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+														make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
+															prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+														done ${PACKAGE_ast_INCLUDE}/wchar.h dontcare
+													done ${PACKAGE_ast_INCLUDE}/ast_wctype.h dontcare
+												done ${PACKAGE_ast_INCLUDE}/wctype.h dontcare
+												make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
+													make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
+														make ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
+														done ${PACKAGE_ast_INCLUDE}/sfio_s.h dontcare
+														prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+													done ${PACKAGE_ast_INCLUDE}/ast_stdio.h dontcare
+												done ${PACKAGE_ast_INCLUDE}/stdio.h dontcare
+												prev ${PACKAGE_ast_INCLUDE}/stdio.h implicit
 												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-											done ${PACKAGE_ast_INCLUDE}/regex.h dontcare
-											make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-												make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-													prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-												done ${PACKAGE_ast_INCLUDE}/ast_getopt.h dontcare
-												prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-											done ${PACKAGE_ast_INCLUDE}/getopt.h dontcare
-											prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_botch.h dontcare
-											make ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_limits.h dontcare
-											make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h dontcare
-											prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_sys.h dontcare
-											make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_lib.h dontcare
+											done ${PACKAGE_ast_INCLUDE}/ast_wchar.h dontcare
 											prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
 											prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_std.h dontcare
+										done ${PACKAGE_ast_INCLUDE}/regex.h dontcare
+										make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
+											make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+											done ${PACKAGE_ast_INCLUDE}/ast_getopt.h dontcare
+											prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+										done ${PACKAGE_ast_INCLUDE}/getopt.h dontcare
+										prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
+										make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
+										done ${PACKAGE_ast_INCLUDE}/ast_botch.h dontcare
+										make ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
+										done ${PACKAGE_ast_INCLUDE}/ast_limits.h dontcare
+										make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
+										done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h dontcare
+										prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+										make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/getopt.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+										done ${PACKAGE_ast_INCLUDE}/ast_sys.h dontcare
+										make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
+										done ${PACKAGE_ast_INCLUDE}/ast_lib.h dontcare
+										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-									done ${PACKAGE_ast_INCLUDE}/fts.h dontcare
-								done fts_fix.h
+									done ${PACKAGE_ast_INCLUDE}/ast_std.h dontcare
+									prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+								done ${PACKAGE_ast_INCLUDE}/fts.h dontcare
 								prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
 								make ${PACKAGE_ast_INCLUDE}/ls.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
@@ -167,7 +165,7 @@ make install
 							done chgrp.c
 							make chmod.c
 								prev FEATURE/symlink implicit
-								prev fts_fix.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 								prev cmd.h implicit
 							done chmod.c
@@ -196,7 +194,7 @@ make install
 									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 								done ${PACKAGE_ast_INCLUDE}/error.h
-								prev fts_fix.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								make ${PACKAGE_ast_INCLUDE}/modex.h implicit
 									make ${PACKAGE_ast_INCLUDE}/modecanon.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
@@ -247,7 +245,7 @@ make install
 								make ${PACKAGE_ast_INCLUDE}/hashkey.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 								done ${PACKAGE_ast_INCLUDE}/hashkey.h
-								prev fts_fix.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/times.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 								prev cmd.h implicit
@@ -362,7 +360,7 @@ make install
 								prev cmd.h implicit
 							done rev.c
 							make rm.c
-								prev fts_fix.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 								prev cmd.h implicit
 							done rm.c
@@ -435,10 +433,6 @@ make install
 								prev wc.h implicit
 								prev cmd.h implicit
 							done wclib.c
-							make fts_fix.c
-								prev fts_fix.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-							done fts_fix.c
 							make lib.c
 								prev cmd.h implicit
 							done lib.c
@@ -457,7 +451,7 @@ make install
 							exec - -e 's/^b_//' \
 							exec - -e 's/(.*//' \
 							exec - -e 's/.*/extern int	b_&(int, char**, Shbltin_t*);/' \
-							exec - ${PACKAGEROOT}/src/lib/libcmd/cmdinit.c ${PACKAGEROOT}/src/lib/libcmd/basename.c ${PACKAGEROOT}/src/lib/libcmd/cat.c ${PACKAGEROOT}/src/lib/libcmd/chgrp.c ${PACKAGEROOT}/src/lib/libcmd/chmod.c ${PACKAGEROOT}/src/lib/libcmd/chown.c ${PACKAGEROOT}/src/lib/libcmd/cksum.c ${PACKAGEROOT}/src/lib/libcmd/cmp.c ${PACKAGEROOT}/src/lib/libcmd/comm.c ${PACKAGEROOT}/src/lib/libcmd/cp.c ${PACKAGEROOT}/src/lib/libcmd/cut.c ${PACKAGEROOT}/src/lib/libcmd/dirname.c ${PACKAGEROOT}/src/lib/libcmd/date.c ${PACKAGEROOT}/src/lib/libcmd/expr.c ${PACKAGEROOT}/src/lib/libcmd/fds.c ${PACKAGEROOT}/src/lib/libcmd/fmt.c ${PACKAGEROOT}/src/lib/libcmd/fold.c ${PACKAGEROOT}/src/lib/libcmd/getconf.c ${PACKAGEROOT}/src/lib/libcmd/head.c ${PACKAGEROOT}/src/lib/libcmd/id.c ${PACKAGEROOT}/src/lib/libcmd/join.c ${PACKAGEROOT}/src/lib/libcmd/ln.c ${PACKAGEROOT}/src/lib/libcmd/logname.c ${PACKAGEROOT}/src/lib/libcmd/md5sum.c ${PACKAGEROOT}/src/lib/libcmd/mkdir.c ${PACKAGEROOT}/src/lib/libcmd/mkfifo.c ${PACKAGEROOT}/src/lib/libcmd/mktemp.c ${PACKAGEROOT}/src/lib/libcmd/mv.c ${PACKAGEROOT}/src/lib/libcmd/paste.c ${PACKAGEROOT}/src/lib/libcmd/pathchk.c ${PACKAGEROOT}/src/lib/libcmd/pids.c ${PACKAGEROOT}/src/lib/libcmd/rev.c ${PACKAGEROOT}/src/lib/libcmd/rm.c ${PACKAGEROOT}/src/lib/libcmd/rmdir.c ${PACKAGEROOT}/src/lib/libcmd/stty.c ${PACKAGEROOT}/src/lib/libcmd/sum.c ${PACKAGEROOT}/src/lib/libcmd/sync.c ${PACKAGEROOT}/src/lib/libcmd/tail.c ${PACKAGEROOT}/src/lib/libcmd/tee.c ${PACKAGEROOT}/src/lib/libcmd/tty.c ${PACKAGEROOT}/src/lib/libcmd/uname.c ${PACKAGEROOT}/src/lib/libcmd/uniq.c ${PACKAGEROOT}/src/lib/libcmd/vmstate.c ${PACKAGEROOT}/src/lib/libcmd/wc.c ${PACKAGEROOT}/src/lib/libcmd/revlib.c ${PACKAGEROOT}/src/lib/libcmd/wclib.c ${PACKAGEROOT}/src/lib/libcmd/fts_fix.c ${PACKAGEROOT}/src/lib/libcmd/lib.c |
+							exec - ${PACKAGEROOT}/src/lib/libcmd/cmdinit.c ${PACKAGEROOT}/src/lib/libcmd/basename.c ${PACKAGEROOT}/src/lib/libcmd/cat.c ${PACKAGEROOT}/src/lib/libcmd/chgrp.c ${PACKAGEROOT}/src/lib/libcmd/chmod.c ${PACKAGEROOT}/src/lib/libcmd/chown.c ${PACKAGEROOT}/src/lib/libcmd/cksum.c ${PACKAGEROOT}/src/lib/libcmd/cmp.c ${PACKAGEROOT}/src/lib/libcmd/comm.c ${PACKAGEROOT}/src/lib/libcmd/cp.c ${PACKAGEROOT}/src/lib/libcmd/cut.c ${PACKAGEROOT}/src/lib/libcmd/dirname.c ${PACKAGEROOT}/src/lib/libcmd/date.c ${PACKAGEROOT}/src/lib/libcmd/expr.c ${PACKAGEROOT}/src/lib/libcmd/fds.c ${PACKAGEROOT}/src/lib/libcmd/fmt.c ${PACKAGEROOT}/src/lib/libcmd/fold.c ${PACKAGEROOT}/src/lib/libcmd/getconf.c ${PACKAGEROOT}/src/lib/libcmd/head.c ${PACKAGEROOT}/src/lib/libcmd/id.c ${PACKAGEROOT}/src/lib/libcmd/join.c ${PACKAGEROOT}/src/lib/libcmd/ln.c ${PACKAGEROOT}/src/lib/libcmd/logname.c ${PACKAGEROOT}/src/lib/libcmd/md5sum.c ${PACKAGEROOT}/src/lib/libcmd/mkdir.c ${PACKAGEROOT}/src/lib/libcmd/mkfifo.c ${PACKAGEROOT}/src/lib/libcmd/mktemp.c ${PACKAGEROOT}/src/lib/libcmd/mv.c ${PACKAGEROOT}/src/lib/libcmd/paste.c ${PACKAGEROOT}/src/lib/libcmd/pathchk.c ${PACKAGEROOT}/src/lib/libcmd/pids.c ${PACKAGEROOT}/src/lib/libcmd/rev.c ${PACKAGEROOT}/src/lib/libcmd/rm.c ${PACKAGEROOT}/src/lib/libcmd/rmdir.c ${PACKAGEROOT}/src/lib/libcmd/stty.c ${PACKAGEROOT}/src/lib/libcmd/sum.c ${PACKAGEROOT}/src/lib/libcmd/sync.c ${PACKAGEROOT}/src/lib/libcmd/tail.c ${PACKAGEROOT}/src/lib/libcmd/tee.c ${PACKAGEROOT}/src/lib/libcmd/tty.c ${PACKAGEROOT}/src/lib/libcmd/uname.c ${PACKAGEROOT}/src/lib/libcmd/uniq.c ${PACKAGEROOT}/src/lib/libcmd/vmstate.c ${PACKAGEROOT}/src/lib/libcmd/wc.c ${PACKAGEROOT}/src/lib/libcmd/revlib.c ${PACKAGEROOT}/src/lib/libcmd/wclib.c ${PACKAGEROOT}/src/lib/libcmd/lib.c |
 							exec - sort -u
 							exec - } > 1.${COTEMP}.h
 							exec - if cmp 2>/dev/null -s 1.${COTEMP}.h cmdext.h
@@ -753,12 +747,6 @@ make install
 				bind -lsum
 				exec - ${AR} x ${mam_libsum} sumlib.o
 			done sumlib.o generated
-			make fts_fix.o
-				prev fts_fix.c
-				meta fts_fix.o %.c>%.o fts_fix.c fts_fix
-				prev fts_fix.c
-				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -c fts_fix.c
-			done fts_fix.o generated
 			make lib.o
 				prev lib.c
 				meta lib.o %.c>%.o lib.c lib
@@ -766,7 +754,7 @@ make install
 				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_cmd -D_PACKAGE_ast -c lib.c
 			done lib.o generated
 			exec - ${AR} rc libcmd.a cmdinit.o basename.o cat.o chgrp.o chmod.o chown.o cksum.o cmp.o comm.o cp.o cut.o dirname.o date.o expr.o fds.o fmt.o fold.o getconf.o head.o id.o join.o ln.o logname.o md5sum.o mkdir.o mkfifo.o mktemp.o mv.o paste.o pathchk.o
-			exec - ${AR} rc libcmd.a pids.o rev.o rm.o rmdir.o stty.o sum.o sync.o tail.o tee.o tty.o uname.o uniq.o vmstate.o wc.o revlib.o wclib.o sumlib.o fts_fix.o lib.o
+			exec - ${AR} rc libcmd.a pids.o rev.o rm.o rmdir.o stty.o sum.o sync.o tail.o tee.o tty.o uname.o uniq.o vmstate.o wc.o revlib.o wclib.o sumlib.o lib.o
 			exec - (ranlib libcmd.a) >/dev/null 2>&1 || true
 		done libcmd.a generated
 	done cmd virtual
@@ -862,7 +850,6 @@ make install
 			prev wc.c
 			prev revlib.c
 			prev wclib.c
-			prev fts_fix.c
 			prev lib.c
 			exec - {
 			exec - cat <<!

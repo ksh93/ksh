@@ -108,7 +108,7 @@ __STDPP__directive pragma pp:hide lchown
 #include <cdt.h>
 #include <ls.h>
 #include <ctype.h>
-#include <fts_fix.h>
+#include <fts.h>
 
 #include "FEATURE/symlink"
 

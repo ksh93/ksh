@@ -271,6 +271,14 @@ void *sh_memdup(const void *s, size_t n)
 	return(dup);
 }
 
+char *sh_getcwd(void)
+{
+	char *cwd = getcwd(NIL(char*), 0);
+	if(!cwd && errno==ENOMEM)
+		nomemory(0);
+	return(cwd);
+}
+
 #if SHOPT_VSH || SHOPT_ESH
 /* Trap for VISUAL and EDITOR variables */
 static void put_ed(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
@@ -645,12 +653,13 @@ static Sfdouble_t nget_seconds(register Namval_t* np, Namfun_t *fp)
 }
 
 /*
- * These three functions are used to get and set the RANDOM variable
+ * These four functions are used to get and set the RANDOM variable
  */
 static void put_rand(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	struct rand *rp = (struct rand*)fp;
 	register long n;
+	sh_save_rand_seed(rp, 0);
 	if(!val)
 	{
 		fp = nv_stack(np, NIL(Namfun_t*));
@@ -677,7 +686,7 @@ static Sfdouble_t nget_rand(register Namval_t* np, Namfun_t *fp)
 {
 	struct rand *rp = (struct rand*)fp;
 	register long cur, last= *np->nvalue.lp;
-	NOT_USED(fp);
+	sh_save_rand_seed(rp, 1);
 	do
 		cur = (rand_r(&rp->rand_seed)>>rand_shift)&RANDMASK;
 	while(cur==last);
@@ -783,6 +792,9 @@ void sh_setmatch(Shell_t *shp,const char *v, int vsize, int nmatch, regoff_t mat
 	unsigned int	savesub = shp->subshell;
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
 	Namarr_t	*ap_save = ap;
+	/* do not crash if .sh.match is unset */
+	if(!ap)
+		return;
 	shp->subshell = 0;
 #if !SHOPT_2DMATCH
 	index = 0;
@@ -1164,16 +1176,16 @@ int sh_type(register const char *path)
 		}
 		break;
 	}
+#if _WINIX
+	if (!(t & SH_TYPE_KSH) && *s == 's' && *(s+1) == 'h' && (!*(s+2) || *(s+2) == '.'))
+#else
+	if (!(t & SH_TYPE_KSH) && *s == 's' && *(s+1) == 'h' && !*(s+2))
+#endif
+		t |= SH_TYPE_POSIX;
 	if (*s++ == 's' && (*s == 'h' || *s == 'u'))
 	{
 		s++;
 		t |= SH_TYPE_SH;
-#if _WINIX
-		if (!(t & SH_TYPE_KSH) && (!*s || *s == '.'))
-#else
-		if (!(t & SH_TYPE_KSH) && !*s)
-#endif
-			t |= SH_TYPE_POSIX;
 		if ((t & SH_TYPE_KSH) && *s == '9' && *(s+1) == '3')
 			s += 2;
 #if _WINIX

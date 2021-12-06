@@ -463,7 +463,7 @@ cat > B_t <<-  \EOF
 EOF
 
 unset n
-if	n=$(FPATH=$PWD PATH=$PWD:$PATH $SHELL 2> /dev/null -c 'A_t a; print ${a.b.n}') 
+if	n=$(FPATH=$PWD PATH=$PWD:$PATH $SHELL 2> /dev/null -c 'A_t a; print ${a.b.n}')
 then	(( n==5 )) || err_exit 'dynamic loading of types gives wrong result'
 else	err_exit 'unable to load types dynamically'
 fi
@@ -632,6 +632,12 @@ bar.foo+=(bam)
 # ======
 # Type names that have 'a' as the first letter should be functional
 "$SHELL" -c 'typeset -T al=(typeset bar); al foo=(bar=testset)' || err_exit "type names that start with 'a' don't work"
+
+# ======
+# 'typeset -T' shouldn't list types created by enum
+got=$($SHELL -c 'enum Foo_t=(foo bar); typeset -T')
+[[ -z $got ]] || err_exit "Types created by enum are listed with 'typeset -T'" \
+	"(got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

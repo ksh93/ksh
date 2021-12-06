@@ -29,6 +29,26 @@
  *  Rewritten April, 1988
  *  Revised January, 1992
  *  Mended February, 2021
+ *
+ *  Aspects of job control are (de)activated using a global flag variable,
+ *  a state bit, and a shell option bit. It is important to understand the
+ *  difference and set/check them in a manner consistent with their purpose.
+ *
+ *  1. The job.jobcontrol flag is for job control on interactive shells.
+ *     It is set to nonzero by job_init() if, and only if, the shell is
+ *     interactive *and* managed to get control of the terminal. Therefore,
+ *     any changing of terminal settings (tcsetpgrp(3), tty_set()) should
+ *     only be done if job.jobcontrol is nonzero.
+ *
+ *  2. The state flag, sh_isstate(SH_MONITOR), determines whether the bits
+ *     of job control that are relevant for both scripts and interactive
+ *     shells are active, which is mostly making sure that a background job
+ *     gets its own process group (setpgid(3)).
+ *
+ *  3. The -m (-o monitor) shell option, sh_isoption(SH_MONITOR), is just
+ *     that. When the user turns it on or off, the state flag is synched
+ *     with it. It should usually not be directly checked for, as the state
+ *     may be temporarily turned off without turning off the option.
  */
 
 #include	"defs.h"
@@ -872,16 +892,6 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 }
 
 /*
- * send signal <sig> to background process group if not disowned
- */
-int job_terminate(register struct process *pw,register int sig)
-{
-	if(pw->p_pgrp && !(pw->p_flag&P_DISOWN))
-		job_kill(pw,sig);
-	return(0);
-}
-
-/*
  * list the given job
  * flag JOB_LFLAG for long listing
  * flag JOB_NFLAG for list only jobs marked for notification
@@ -1093,8 +1103,8 @@ int job_kill(register struct process *pw,register int sig)
 }
 
 /*
- * Similar to job_kill, but dedicated to SIGHUP handling when session is
- * being disconnected.
+ * Kill process group with SIGHUP when the session is being disconnected.
+ * (As this is called via job_walk(), it must accept the 'sig' argument.)
  */
 int job_hup(struct process *pw, int sig)
 {
@@ -1103,36 +1113,18 @@ int job_hup(struct process *pw, int sig)
 	if(pw->p_pgrp == 0 || (pw->p_flag & P_DISOWN))
 		return(0);
 	job_lock();
-	if(pw->p_pgrp != 0)
+	/*
+	 * Only kill process group if we still have at least one process. If all the processes are P_DONE,
+	 * then our process group is already gone and its p_pgrp may now be used by an unrelated process.
+	 */
+	for(px = pw; px; px = px->p_nxtproc)
 	{
-		int	palive = 0;
-		for(px = pw; px != NULL; px = px->p_nxtproc)
-		{
-			if((px->p_flag & P_DONE) == 0)
-			{
-				palive = 1;
-				break;
-			}
-		}
-		/*
-		 * If all the processes have died, there is no guarantee that
-		 * p_pgrp is still the valid process group that we made, i.e.,
-		 * the PID may have been recycled and the same p_pgrp may have
-		 * been assigned to unrelated processes.
-		 */
-		if(palive)
+		if(!(px->p_flag & P_DONE))
 		{
 			if(killpg(pw->p_pgrp, SIGHUP) >= 0)
 				job_unstop(pw);
+			break;
 		}
-	}
-	for(; pw != NULL && pw->p_pgrp == 0; pw = pw->p_nxtproc)
-	{
-		if(pw->p_flag & P_DONE)
-			continue;
-		if(kill(pw->p_pid, SIGHUP) >= 0)
-			(void)kill(pw->p_pid, SIGCONT);
-		pw = pw->p_nxtproc;
 	}
 	job_unlock();
 	return(0);

@@ -5848,7 +5848,7 @@ cat $j $k
 	for	var in CC CCFLAGS CCLDFLAGS LDFLAGS KSH_RELFLAGS
 	do	store=$INSTALLROOT/lib/package/gen/$var
 		eval "new=\$$var"
-		if	test -e $store
+		if	test -f $store
 		then	old=`cat $store`
 			case $old in
 			"$new")	;;

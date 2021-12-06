@@ -55,7 +55,6 @@
 /*
  * IMPORTANT: The order of these struct members must be synchronous
  * with the offsets on the macros defined in include/builtins.h!
- * The order up through "return" is significant.
  */
 const struct shtable3 shtab_builtins[] =
 {
@@ -84,12 +83,12 @@ const struct shtable3 shtab_builtins[] =
 	".",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(dot_cmd),
 	"source",	NV_BLTIN|BLT_ENV,		bltin(dot_cmd),
 	"return",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
+	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
 /*
  * Builtins without offset macros in include/builtins.h follow.
  */
 	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
 	"hash",		NV_BLTIN|BLT_ENV,		bltin(alias),
-	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
 	"eval",		NV_BLTIN|BLT_ENV|BLT_SPC|BLT_EXIT,bltin(eval),
 	"exit",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
 	"fc",		NV_BLTIN|BLT_ENV|BLT_EXIT,	bltin(hist),
@@ -1196,7 +1195,7 @@ const char sh_optprint[] =
 ;
 
 const char sh_optprintf[] =
-"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2020-08-10 $\n]"
+"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2021-11-18 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?printf - write formatted output]"
 "[+DESCRIPTION?\bprintf\b writes each \astring\a operand to "
@@ -1361,6 +1360,9 @@ const char sh_optprintf[] =
 	"time conversions will be treated as if \bnow\b were supplied.]"
 "[+?\bprintf\b is equivalent to \bprint -f\b which allows additional "
 	"options to be specified.]"
+"[v]:[name?Put the output in the variable \aname\a instead of writing to "
+	"standard output. \aname\a may include an array subscript (note that "
+	"the square brackets should be quoted to avoid pathname expansion).]"
 "\n"
 "\nformat [string ...]\n"
 "\n"

@@ -57,9 +57,6 @@ tst	map_malloc note{ map malloc to _ast_malloc }end noexecute{
 	extern void* calloc _ARG_((unsigned int, unsigned int));
 	#define LOCAL()	calloc(1,1)
 	#endif
-	#if __CYGWIN__
-	#define extern __declspec(dllexport)
-	#endif
 	#define HT double
 	static HT heap[1024 * 4];
 	static HT* hp = &heap[1];
@@ -207,9 +204,13 @@ tst	malloc_hook note{ gnu malloc hooks work }end execute{
 
 cat{
 	#include "FEATURE/mmap"
-	#if _AST_ksh_release || _BLD_INSTRUMENT || cray || _UWIN && _BLD_ast
+	/* AST vmalloc is deprecated for being crashy and wasteful; ksh 93u+m uses the OS's malloc by default */
+	#undef _std_malloc
+	#undef _AST_std_malloc
+	#if !_AST_vmalloc
 	#undef	_map_malloc
 	#define _std_malloc	1	/* defer to standard malloc */
+	#define _AST_std_malloc	1
 	#endif
 	#if _mmap_anon
 	#define _mem_mmap_anon	1

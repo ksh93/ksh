@@ -39,7 +39,8 @@ The options have the following defaults and meanings:
                      the job pid and $? is set to the job exit status at the
                      beginning of the trap.
 
-    BRACEPAT     on  C-shell type abc{d,e}f style file generation
+    BRACEPAT     on  Brace expansion. Expands abc{d,e}f to abcdf abcef.
+                     This feature was inspired by the C shell.
 
     CMDLIB_HDR   "<cmdlist.h>"
                      The header in which you can provide a custom list of
@@ -79,7 +80,7 @@ The options have the following defaults and meanings:
                      fixed-size arrays NAME[N1][N2]... are also supported.
 
     GLOBCASEDET      Adds the 'globcasedetect' shell option. When this shell
-                     option is turned on, file name generation (globbing)
+                     option is turned on, pathname expansion (globbing)
                      and file name listing and completion automatically become
                      case-insensitive on file systems where the difference
                      between upper- and lowercase is ignored for file names.
@@ -95,8 +96,15 @@ The options have the following defaults and meanings:
     MULTIBYTE    on  Multibyte character handling.  Requires mblen() and
                      mbctowc().
 
-    NAMESPACE    on  Allows namespaces.  This is experimental, incomplete
-                     and undocumented.
+    NAMESPACE    on  Adds a 'namespace' reserved word that allows defining name
+                     spaces. Variables and functions defined within a block like
+                        namespace ExampleSpace { commandlist; }
+                     all have their names automatically prefixed with
+                     '.ExampleSpace.' when defining or using them, creating a
+                     separate space of names unique to the block. Outside of
+                     the namespace block, they can be accessed using
+                     .ExampleSpace.function or ${.ExampleSpace.variable}.
+                     Name spaces within name spaces are also supported.
 
     NOECHOE      off Disable the '-e' option to the 'echo' command,
                      unless SHOPT_ECHOPRINT is enabled.
@@ -254,6 +262,7 @@ failures (crashes, and/or important functionality does not work).
 *	illumos: OmniOS 2020-08-19 (gcc) on x86_64
 	macOS 10.13.6 (High Sierra) on x86_64
 	macOS 10.14.6 (Mojave) on x86_64
+*	macOS 12.0.1 (Monterey) on ARM64
 *	NetBSD 8.1 on x86_64
 *	NetBSD 9.2 on x86_64
 *	OpenBSD 6.8 on x86_64

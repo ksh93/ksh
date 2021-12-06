@@ -32,10 +32,6 @@
 #include	"variables.h"
 #include	"builtins.h"
 
-/* POSIX requires error status > 1 if called from test builtin */
-#undef ERROR_exit
-#define ERROR_exit(n) _ERROR_exit_b_test(n)
-
 #ifndef LLONG_MAX
 #define LLONG_MAX	LONG_MAX
 #endif
@@ -68,7 +64,6 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 	register char *sub=0, *cp=(char*)np;
 	register Namval_t *mp;
 	Shell_t		*shp = lvalue->shp;
-	int	flags = HASH_NOSCOPE|HASH_SCOPE|HASH_BUCKET;
 	int	c=0,nosub = lvalue->nosub;
 	Dt_t	*sdict = (shp->st.real_fun? shp->st.real_fun->sdict:0);
 	Dt_t	*nsdict = (shp->namespace?nv_dict(shp->namespace):0);
@@ -104,10 +99,13 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 			flag = 0;
 		cp = (char*)np;
 	}
-	else if(assign==NV_ASSIGN  && nv_isnull(np) && !nv_isattr(np, ~(NV_MINIMAL|NV_NOFREE)))
-		flags |= NV_ADD;
-	if((lvalue->emode&ARITH_COMP) && dtvnext(root) && ((sdict && (mp=nv_search(cp,sdict,flags&~NV_ADD))) || (mp=nv_search(cp,root,flags&~(NV_ADD))) || (nsdict && (mp=nv_search(cp,nsdict,flags&~(NV_ADD|HASH_NOSCOPE)))) ))
-		np = mp;
+	if((lvalue->emode & ARITH_COMP) && dtvnext(root))
+	{
+		if(mp = nv_search(cp, sdict ? sdict : root, HASH_NOSCOPE|HASH_SCOPE|HASH_BUCKET))
+			np = mp;
+		else if(nsdict && (mp = nv_search(cp, nsdict, HASH_SCOPE|HASH_BUCKET)))
+			np = mp;
+	}
 	while(nv_isref(np))
 	{
 #if SHOPT_FIXEDARRAY
@@ -247,6 +245,15 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			np = (Namval_t*)lvalue->value;
 			np = scope(np, lvalue, 1);
 		}
+		if(nv_isattr(np,NV_UINT16)==NV_UINT16)
+		{
+			Namfun_t *fp = nv_hasdisc(np, &ENUM_disc);
+			if(fp && (n < 0.0 || n > (Sfdouble_t)(b_enum_nelem(fp) - 1)))
+			{
+				errormsg(SH_DICT, ERROR_exit(1), "%s: value %ld out of enum range", nv_name(np), (long)n);
+				UNREACHABLE();
+			}
+		}
 		nv_putval(np, (char*)&n, NV_LDOUBLE);
 		if(lvalue->eflag)
 			lvalue->ptr = (void*)nv_hasdisc(np,&ENUM_disc);
@@ -349,14 +356,14 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				}
 				*str = 0;
 				cp = (char*)*ptr;
-				if ((cp[0] == 'i' || cp[0] == 'I') && (cp[1] == 'n' || cp[1] == 'N') && (cp[2] == 'f' || cp[2] == 'F') && cp[3] == 0)
+				if(!sh_isoption(SH_POSIX) && (cp[0] == 'i' || cp[0] == 'I') && (cp[1] == 'n' || cp[1] == 'N') && (cp[2] == 'f' || cp[2] == 'F') && cp[3] == 0)
 				{
 					Inf = strtold("Inf", NiL);
 					Infnod.nvalue.ldp = &Inf;
 					np = &Infnod;
 					nv_onattr(np,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 				}
-				else if ((cp[0] == 'n' || cp[0] == 'N') && (cp[1] == 'a' || cp[1] == 'A') && (cp[2] == 'n' || cp[2] == 'N') && cp[3] == 0)
+				else if(!sh_isoption(SH_POSIX) && (cp[0] == 'n' || cp[0] == 'N') && (cp[1] == 'a' || cp[1] == 'A') && (cp[2] == 'n' || cp[2] == 'N') && cp[3] == 0)
 				{
 					NaN = strtold("NaN", NiL);
 					NaNnod.nvalue.ldp = &NaN;
@@ -405,11 +412,9 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			const char radix = GETDECIMAL(0);
 			lvalue->eflag = 0;
 			errno = 0;
-			if(shp->bltindata.bnode==SYSLET && !sh_isoption(SH_LETOCTAL))
-			{	/*
-				 * Since we're running the "let" builtin, disable octal number processing by
-				 * skipping all initial zeros, unless the 'letoctal' option is on.
-				 */
+			if(!sh_isoption(shp->bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX))
+			{
+				/* Skip leading zeros to avoid parsing as octal */
 				while(*val=='0' && isdigit(val[1]))
 					val++;
 			}
@@ -534,30 +539,33 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 {
 	Shell_t	*shp = sh_getinterp();
 	register Sfdouble_t d;
-	char base=(shp->inarith?0:10), *last;
+	char base = (sh_isoption(shp->bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX) ? 0 : 10), *last;
 	if(*str==0)
 	{
 		d = 0.0;
 		last = (char*)str;
-	} else {
+	}
+	else
+	{
 		errno = 0;
 		d = strtonll(str,&last,&base,-1);
-		if (*last && !shp->inarith && sh_isstate(SH_INIT)) {
+		if(*last && sh_isstate(SH_INIT))
+		{
 			/* This call is to handle "base#value" literals if we're importing untrusted env vars. */
 			errno = 0;
-			d = strtonll(str, &last, NULL, -1);
+			d = strtonll(str, &last, NIL(char*), -1);
 		}
-
 		if(*last || errno)
 		{
-			if (sh_isstate(SH_INIT)) {
+			if(sh_isstate(SH_INIT))
 				/*
 				 * Initializing means importing untrusted env vars. The string does not appear to be
 				 * a recognized numeric literal, so give up. We can't safely call strval(), because
 				 * that allows arbitrary expressions, causing security vulnerability CVE-2019-14868.
 				 */
 				d = 0.0;
-			} else {
+			else
+			{
 				if(!last || *last!='.' || last[1]!='.')
 					d = strval(shp,str,&last,arith,mode);
 				if(!ptr && *last && mode>0)
@@ -566,9 +574,9 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 					UNREACHABLE();
 				}
 			}
-		} else if (!d && *str=='-') {
-			d = -0.0;
 		}
+		else if(!d && *str=='-')
+			d = -0.0;
 	}
 	if(ptr)
 		*ptr = last;
@@ -577,6 +585,7 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 
 Sfdouble_t sh_arith(Shell_t *shp,register const char *str)
 {
+	NOT_USED(shp);
 	return(sh_strnum(str, (char**)0, 1));
 }
 

@@ -86,7 +86,6 @@ const char strval_states[64] =
 
 
 const char e_argcount[]		= "%s: function has wrong number of arguments";
-const char e_badnum[]		= "%s: bad number";
 const char e_moretokens[]	= "%s: more tokens expected";
 const char e_paren[]		= "%s: unbalanced parenthesis";
 const char e_badcolon[]		= "%s: invalid use of :";

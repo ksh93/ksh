@@ -61,15 +61,6 @@
 
 #define DOTMAX	MAXDEPTH	/* maximum level of . nesting */
 
-static void     noexport(Namval_t*,void*);
-
-struct login
-{
-	Shell_t *sh;
-	int     clear;
-	char    *arg0;
-};
-
 /*
  * Handler function for nv_scan() that unsets a variable's export attribute
  */
@@ -88,23 +79,20 @@ int    b_redirect(int argc,char *argv[],Shbltin_t *context){}
 #endif
 int    b_exec(int argc,char *argv[], Shbltin_t *context)
 {
-	struct login logdata;
 	register int n;
 	struct checkpt *pp;
 	const char *pname;
-
-	logdata.clear = 0;
-	logdata.arg0 = 0;
-	logdata.sh = context->shp;
-        logdata.sh->st.ioset = 0;
+	int	clear = 0;
+	char	*arg0 = 0;
+	NOT_USED(argc);
+	sh.st.ioset = 0;
 	while (n = optget(argv, *argv[0]=='r' ? sh_optredirect : sh_optexec)) switch (n)
 	{
 	    case 'a':
-		logdata.arg0 = opt_info.arg;
-		argc = 0;
+		arg0 = opt_info.arg;
 		break;
 	    case 'c':
-		logdata.clear=1;
+		clear=1;
 		break;
 	    case ':':
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
@@ -135,42 +123,42 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 	}
 	else
 	{
-		register struct argnod *arg=logdata.sh->envlist;
+		register struct argnod *arg=sh.envlist;
 		register Namval_t* np;
 		register char *cp;
-		if(logdata.sh->subshell && !logdata.sh->subshare)
+		if(sh.subshell && !sh.subshare)
 			sh_subfork();
-		if(logdata.clear)
-			nv_scan(logdata.sh->var_tree,noexport,0,NV_EXPORT,NV_EXPORT);
+		if(clear)
+			nv_scan(sh.var_tree,noexport,0,NV_EXPORT,NV_EXPORT);
 		while(arg)
 		{
 			if((cp=strchr(arg->argval,'=')) &&
-				(*cp=0,np=nv_search(arg->argval,logdata.sh->var_tree,0)))
+				(*cp=0,np=nv_search(arg->argval,sh.var_tree,0)))
 			{
 				nv_onattr(np,NV_EXPORT);
-				sh_envput(logdata.sh->env,np);
+				sh_envput(sh.env,np);
 			}
 			if(cp)
 				*cp = '=';
 			arg=arg->argnxt.ap;
 		}
 		pname = argv[0];
-		if(logdata.arg0)
-			argv[0] = logdata.arg0;
+		if(arg0)
+			argv[0] = arg0;
 #ifdef JOBS
-		if(job_close(logdata.sh) < 0)
+		if(job_close(&sh) < 0)
 			return(1);
 #endif /* JOBS */
 		/* if the main shell is about to be replaced, decrease SHLVL to cancel out a subsequent increase */
 		if(!shgd->realsubshell)
 			(*SHLVL->nvalue.ip)--;
 		/* force bad exec to terminate shell */
-		pp = (struct checkpt*)logdata.sh->jmplist;
+		pp = (struct checkpt*)sh.jmplist;
 		pp->mode = SH_JMPEXIT;
 		sh_sigreset(2);
-		sh_freeup(logdata.sh);
-		path_exec(logdata.sh,pname,argv,NIL(struct argnod*));
-        }
+		sh_freeup(&sh);
+		path_exec(&sh,pname,argv,NIL(struct argnod*));
+	}
 	return(1);
 }
 
@@ -271,7 +259,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	{
 		/* check for KornShell style function first */
 		np = nv_search(script,shp->fun_tree,0);
-		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX))
+		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && shp->bltindata.bnode==SYSDOT))
 		{
 			if(!np->nvalue.ip)
 			{

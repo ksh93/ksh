@@ -20,6 +20,9 @@
 ***********************************************************************/
 #pragma prototyped
 
+#ifndef __builtins_h_defined
+#define __builtins_h_defined
+
 #include	<option.h>
 #include	"FEATURE/options"
 #include	"FEATURE/dynamic"
@@ -59,6 +62,7 @@
 #define SYSDOT		(shgd->bltin_cmds+22)	/* . */
 #define SYSSOURCE	(shgd->bltin_cmds+23)	/* source */
 #define SYSRETURN	(shgd->bltin_cmds+24)	/* return */
+#define SYSENUM		(shgd->bltin_cmds+25)	/* enum */
 
 /* entry point for shell special builtins */
 
@@ -123,6 +127,8 @@ extern int b_times(int, char*[],Shbltin_t*);
     extern int B_echo(int, char*[],Shbltin_t*);
 #endif /* SHOPT_ECHOPRINT */
 
+extern short		b_enum_nelem(Namfun_t*);
+
 #undef	extern
 
 extern const char	e_alrm1[];
@@ -168,6 +174,7 @@ extern const char sh_optdot[];
 #ifndef ECHOPRINT
     extern const char sh_optecho[];
 #endif /* !ECHOPRINT */
+extern const char sh_optenum[];
 extern const char sh_opteval[];
 extern const char sh_optexec[];
 extern const char sh_optredirect[];
@@ -210,3 +217,5 @@ extern const char sh_optwhence[];
 extern const char sh_opttimes[];
 
 extern const char e_dict[];
+
+#endif /* __builtins_h_defined */

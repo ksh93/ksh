@@ -23,6 +23,7 @@
 
 # Determine method for running tests.
 # The 'vmstate' builtin can be used if ksh was compiled with vmalloc.
+# (Pass -D_AST_vmalloc in CCFLAGS; for testing only as it's deprecated)
 if	builtin vmstate 2>/dev/null &&
 	n=$(vmstate --format='%(busy_size)u') &&
 	let "($n) == ($n) && n > 0"	# non-zero number?
@@ -36,9 +37,9 @@ then	N=512			# number of iterations for each test
 	}
 # On Linux, we can use /proc to get byte granularity for vsize (field 23).
 elif	[[ -f /proc/$$/stat && $(uname) == Linux ]]
-then	N=2048			# number of iterations for each test
+then	N=4096			# number of iterations for each test
 	unit=bytes
-	tolerance=$((8*N))	# tolerate 8 bytes per iteration to account for malloc artefacts
+	tolerance=$((9*N))	# tolerate 9 bytes per iteration to account for malloc artefacts
 	function getmem
 	{
 		cut -f 23 -d ' ' </proc/$$/stat

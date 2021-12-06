@@ -171,7 +171,7 @@ function valxml
 command set +o posix 2>/dev/null
 unset DISPLAY FIGNORE HISTFILE POSIXLY_CORRECT _AST_FEATURES
 export ENV=/./dev/null SHTESTS_COMMON=$PWD/_common
-trap + PIPE # unadvertized -- set SIGPIPE to SIG_DFL #
+trap + CONT PIPE	# unadvertised -- set SIGCONT and SIGPIPE to SIG_DFL
 
 integer compile=-1 posix=-1 utf8=-1
 integer debug=0 keep=0 locale=0 time=1

@@ -37,18 +37,23 @@ static const char usage[] =
 "[-license?http://www.eclipse.org/org/documents/epl-v10.html]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?shcomp - compile a shell script]"
-"[+DESCRIPTION?Unless \b-D\b is specified, \bshcomp\b takes a shell script, "
+"[+DESCRIPTION?Unless \b-D\b is specified, \b\f?\f\b takes a shell script, "
 	"\ainfile\a, and creates a binary format file, \aoutfile\a, that "
 	"\bksh\b can read and execute with the same effect as the original "
 	"script.]"
 "[+?Since aliases are processed as the script is read, alias definitions "
 	"whose value requires variable expansion will not work correctly.]"
 "[+?If \b-D\b is specified, all double quoted strings that are preceded by "
-	"\b$\b are output.  These are the messages that need to be "
+	"\b$\b are output. These are the messages that need to be "
 	"translated to locale specific versions for internationalization.]"
+"[+?If \ainfile\a is a simple command name, the shell script will be searched "
+	"on \b$PATH\b. It does not need execute permission to be found.]"
 "[+?If \aoutfile\a is omitted, then the results will be written to "
-	"standard output.  If \ainfile\a is also omitted, the shell script "
-	"will be read from standard input.]"
+	"standard output. If \ainfile\a is also omitted, the shell script "
+	"will be read from standard input. However, \b\f?\f\b will not read "
+	"a script from your keyboard unless \ainfile\a is given as "
+	"\b/dev/stdin\b, and will refuse to write binary data to a terminal "
+	"in any case.]"
 "[D:dictionary?Generate a list of strings that need to be placed in a message "
 	"catalog for internationalization.]"
 "[n:noexec?Displays warning messages for obsolete or non-conforming "
@@ -67,8 +72,10 @@ static const char usage[] =
 
 #include	<shell.h>
 #include	"defs.h"
+#include	"path.h"
 #include	"shnodes.h"
 #include	"sys/stat.h"
+#include	"terminal.h"
 
 #define CNTL(x)	((x)&037)
 static const char header[6] = { CNTL('k'),CNTL('s'),CNTL('h'),0,SHCOMP_HDR_VERSION,0 };
@@ -79,9 +86,9 @@ int main(int argc, char *argv[])
 	Shell_t	*shp;
 	Namval_t *np;
 	Shnode_t *t;
-	char *cp;
+	char *cp, *shcomp_id, *script_id;
 	int n, nflag=0, vflag=0, dflag=0;
-	error_info.id = argv[0];
+	shcomp_id = error_info.id = path_basename(argv[0]);
 	while(n = optget(argv, usage )) switch(n)
 	{
 	    case 'D':
@@ -101,9 +108,16 @@ int main(int argc, char *argv[])
 		UNREACHABLE();
 	}
 	shp = sh_init(argc,argv,(Shinit_f)0);
+	script_id = error_info.id;  /* set by sh_init() */
+	error_info.id = shcomp_id;
 	shp->shcomp = 1;
 	argv += opt_info.index;
 	argc -= opt_info.index;
+	if(argc==0 && tty_check(0))
+	{
+		errormsg(SH_DICT,ERROR_exit(0),"refusing to read script from terminal",cp);
+		error_info.errors++;
+	}
 	if(error_info.errors || argc>2)
 	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
@@ -115,7 +129,10 @@ int main(int argc, char *argv[])
 		in = sh_pathopen(cp);
 	}
 	else
+	{
+		script_id = "(stdin)";
 		in = sfstdin;
+	}
 	if(cp= *argv)
 	{
 		struct stat statb;
@@ -129,6 +146,11 @@ int main(int argc, char *argv[])
 	}
 	else
 		out = sfstdout;
+	if(tty_check(sffileno(out)))
+	{
+		errormsg(SH_DICT,ERROR_exit(1),"refusing to write binary data to terminal",cp);
+		UNREACHABLE();
+	}
 	if(dflag)
 	{
 		sh_onoption(SH_DICTIONARY);
@@ -140,10 +162,12 @@ int main(int argc, char *argv[])
 		sh_onoption(SH_VERBOSE);
 	if(!dflag)
 		sfwrite(out,header,sizeof(header));
+	sh_offoption(SH_MULTILINE);
 	shp->inlineno = 1;
 #if SHOPT_BRACEPAT
         sh_onoption(SH_BRACEEXPAND);
 #endif
+	error_info.id = script_id;
 	while(1)
 	{
 		stakset((char*)0,0);
@@ -153,6 +177,7 @@ int main(int argc, char *argv[])
 				sh_exec(t,0);
 			if(!dflag && sh_tdump(out,t) < 0)
 			{
+				error_info.id = shcomp_id;
 				errormsg(SH_DICT,ERROR_exit(1),"dump failed");
 				UNREACHABLE();
 			}
@@ -161,6 +186,7 @@ int main(int argc, char *argv[])
 			break;
 		if(sferror(in))
 		{
+			error_info.id = shcomp_id;
 			errormsg(SH_DICT,ERROR_system(1),"I/O error");
 			UNREACHABLE();
 		}
@@ -186,7 +212,8 @@ int main(int argc, char *argv[])
 		}
 	}
 	/* copy any remaining input */
-	sfmove(in,out,SF_UNBOUND,-1);
+	if(!sfeof(in))
+		sfmove(in,out,SF_UNBOUND,-1);
 	if(in!=sfstdin)
 		sfclose(in);
 	if(out!=sfstdout)

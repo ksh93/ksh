@@ -37,10 +37,6 @@
 #include	"FEATURE/externs"
 #include	"defs.h"	/* for sh.decomma */
 
-/* POSIX requires error status > 1 if called from test builtin */
-#undef ERROR_exit
-#define ERROR_exit(n) _ERROR_exit_b_test(n)
-
 #ifndef ERROR_dictionary
 #   define ERROR_dictionary(s)	(s)
 #endif
@@ -664,7 +660,7 @@ again:
 				lvalue.flag = 0;
 			stakpush(vp,lvalue.flag,short);
 			if(vp->nextchr==0)
-				ERROR(vp,e_badnum);
+				ERROR(vp,e_number);
 			if(!(strval_precedence[op]&SEQPOINT))
 				lvalue.value = 0;
 			invalid = 0;

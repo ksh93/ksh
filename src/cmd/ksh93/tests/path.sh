@@ -879,7 +879,8 @@ got=$?
 	"(expected $exp, got $got)"
 
 # Tests for attempting to use a command name that's too long.
-long_cmd=$(awk -v ORS= 'BEGIN { for(i=0;i<500;i++) print "xxxxxxxxxx"; }')
+name_max=$(builtin getconf 2>/dev/null; getconf NAME_MAX . 2>/dev/null || echo 255)
+long_cmd="$(awk -v ORS= 'BEGIN { for(i=0;i<'$name_max';i++) print "xx"; }')"
 exp=127
 PATH=$PWD $SHELL -c "$long_cmd" > /dev/null 2>&1
 got=$?
@@ -901,6 +902,23 @@ PATH=$PWD $SHELL -c "exec $long_cmd" > /dev/null 2>&1
 got=$?
 [[ $exp == $got ]] || err_exit "Test 7E: exit status or error message for exec'd command with long name wrong" \
 	"(expected $exp, got $got)"
+
+# ======
+
+if	[[ -o ?posix ]]
+then	(
+		PATH=/dev/null
+		command set --posix
+		function dottest { :; }
+		. dottest
+	) 2>/dev/null && err_exit "'.' in POSIX mode finds ksh function"
+	(
+		PATH=/dev/null
+		command set --posix
+		function dottest { :; }
+		source dottest
+	) 2>/dev/null || err_exit "'source' in POSIX mode does not find ksh function"
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

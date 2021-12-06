@@ -14,7 +14,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 1.	Bytecode compiled by shcomp 93u+m will not run on older ksh versions.
 	(However, bytecode compiled by older shcomp will run on ksh 93u+m.)
 
-2.	File name generation (a.k.a. pathname expansion, a.k.a. globbing) now
+2.	Pathname expansion (a.k.a. filename generation, a.k.a. globbing) now
 	never matches the special navigational names '.' (current directory)
 	and '..' (parent directory). This change makes a pattern like .*
 	useful; it now matches all hidden 'dotfiles' in the current directory.
@@ -146,6 +146,23 @@ For more details, see the NEWS file and for complete details, see the git log.
 26.	The built-in arithmetic function int() has changed to round towards
 	zero instead of negative infinity. Previously, int() was an alias to
 	floor(), but now it behaves like trunc().
+
+27.	The '!' logical negation operator in the '[[' compound command now
+	correctly negates another '!', e.g., [[ ! ! 1 -eq 1 ]] now returns
+	0/true. Note that this has always been the case for 'test'/'['.
+
+28.	By default, arithmetic expressions in ksh no longer interpret a number
+	with a leading zero as octal in any context. Use 8#octalnumber instead.
+	Before, ksh would arbitrarily recognize the leading octal zero in some
+	contexts but not others. One of several examples is:
+		x=010; echo "$((x)), $(($x))"
+	would output '10, 8'. This now outputs '10, 10'. Arithmetic
+	expressions now also behave identically within and outside ((...))
+	and $((...)). Setting the --posix compliance option turns on the
+	recognition of the leading octal zero for all arithmetic contexts.
+
+29.	It is now an error for arithmetic expressions to assign an out-of-range
+	index value to a variable of an enumeration type created with 'enum'.
 
 ____________________________________________________________________________
 

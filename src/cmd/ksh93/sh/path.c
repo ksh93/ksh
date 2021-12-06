@@ -262,7 +262,7 @@ char *path_pwd(Shell_t *shp,int flag)
 		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
 			/* Get physical PWD (no symlinks) using getcwd(3), fall back to "." */
-			cp = getcwd(NIL(char*),0);
+			cp = sh_getcwd();
 			if(!cp)
 				return((char*)e_dot);
 			tofree++;

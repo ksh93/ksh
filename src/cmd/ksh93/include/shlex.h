@@ -32,7 +32,48 @@
 #include	"shtable.h"
 #include	"lexstates.h"
 
+/*
+ * This structure allows for arbitrary depth nesting of (...), {...}, [...]
+ */
+struct _shlex_pvt_lexstate_
+{
+	char		incase;		/* 1 for case pattern, 2 after case */
+	char		intest;		/* 1 inside [[ ... ]] */
+	char		testop1;	/* 1 when unary test op legal */
+	char		testop2;	/* 1 when binary test op legal */
+	char		reservok;	/* >0 for reserved word legal */
+	char		skipword;	/* next word can't be reserved */
+	char		last_quote;	/* last multi-line quote character */
+	char		nestedbrace;	/* ${var op {...}} */
+};
+struct _shlex_pvt_lexdata_
+{
+	char		nocopy;
+	char		paren;
+	char		dolparen;
+	char		nest;
+	char		docword;
+	char		nested_tilde;
+	char 		*docend;
+	char		noarg;
+	char		warn;
+	char		message;
+	char		arith;
+	char 		*first;
+	int		level;
+	int		lastc;
+	int		lex_max;
+	int		*lex_match;
+	int		lex_state;
+	int		docextra;
+#if SHOPT_KIA
+	off_t		kiaoff;
+#endif
+};
 
+/*
+ * Main lexer struct.
+ */
 typedef struct  _shlex_
 {
 	Shell_t		*sh;		/* pointer to the interpreter */
@@ -45,7 +86,7 @@ typedef struct  _shlex_
 	char		aliasok;	/* on when alias is legal */
 	char		assignok;	/* on when name=value is legal */
 	char		inexec;		/* on when processing exec */
-	char		intypeset;	/* on when processing typeset */
+	char		intypeset;	/* 1 when processing typeset, 2 when processing enum */
 	char		comp_assign;	/* in compound assignment */
 	char		comsub;		/* parsing command substitution */
 	char		noreserv;	/* reserved works not legal */
@@ -62,9 +103,9 @@ typedef struct  _shlex_
 	char		*scriptname;	/* name of script file */
 	Dt_t		*entity_tree;	/* for entity ids */
 #endif /* SHOPT_KIA */
-#ifdef  _SHLEX_PRIVATE
-	_SHLEX_PRIVATE
-#endif
+	/* The following two struct members are considered private to lex.c */
+	struct _shlex_pvt_lexdata_  lexd; \
+	struct _shlex_pvt_lexstate_  lex;
 } Lex_t;
 
 /* symbols for parsing */

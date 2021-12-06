@@ -412,4 +412,54 @@ foo=10
 ([[ foo -eq 10 ]]) || err_exit 'foo -eq 10 fails in [[ ... ]] with foo=10'
 
 # ======
+# The negator should negate the negator
+# This bug was shared with bash:
+# https://lists.gnu.org/archive/html/bug-bash/2021-06/msg00006.html
+[[ ! ! -n x ]] && ! [[ ! ! ! -n x ]] && [[ ! ! ! ! -n x ]] && ! [[ ! ! ! ! ! -n x ]] \
+&& [[ ! ! -n x && ! ! ! ! -n x && ! ! ! ! ! ! -n x ]] \
+|| err_exit '! does not negate ! in [[ ... ]]'
+# The bug did not exist in 'test'/'[', but check for it anyway
+[ ! ! -n x ] && ! [ ! ! ! -n x ] && [ ! ! ! ! -n x ] && ! [ ! ! ! ! ! -n x ] \
+&& [ ! ! -n x -a ! ! ! ! -n x -a ! ! ! ! ! ! -n x ] \
+|| err_exit '! does not negate ! in [ ... ]'
+
+# ======
+# https://github.com/ksh93/ksh/issues/330
+if	(set -o posix) 2>/dev/null
+then	set -o posix -o trackall
+	test ! -a "" && err_exit "POSIX test/[: binary -a operator does not work with '!' as left-hand expression"
+	test \( -a \) 2>/dev/null || err_exit "POSIX test/[: binary -a operator does not work with '(' as left-hand expression"
+	test ! -o trackall || err_exit "POSIX test/[: binary -o operator does not work with '!' as left-hand expression"
+	test \( -o \) 2>/dev/null || err_exit "POSIX test/[: binary -o operator does not work with '(' as left-hand expression"
+	set +o posix
+fi
+
+# =====
+# test should support '<' as well as '>'; before 2021-11-13, ksh supported
+# only '>' due to '<' being missorted in shtab_testops[] in data/testops.c
+[ foo \< bar ] 2>/dev/null
+(($?==1)) || err_exit '[ foo \< bar ] not working'
+[ foo \> bar ] 2>/dev/null
+(($?==0)) || err_exit '[ foo \> bar ] not working'
+
+# as of 2021-11-13, test also supports =~
+[ att_ =~ '(att|cus)_.*' ] 2>/dev/null || err_exit 'test/[: =~ ERE not working'
+[ abc =~ 'a(b)c' ] 2>/dev/null || err_exit "[ abc =~ 'a(b)c' ] fails"
+[ abc =~ '\babc\b' ] 2>/dev/null || err_exit "[ abc =~ '\\babc\\b' ] fails"
+[ AATAAT =~ '(AAT){2}' ] 2>/dev/null || err_exit "[ AATAAT =~ '(AAT){2}' ] does not match"
+[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] 2>/dev/null || err_exit "[ AATAATCCCAATAAT =~ '(AAT){2}CCC(AAT){2}' ] does not match"
+
+# string nonemptiness tests combined with -a/-o and parentheses
+for c in "0:x -a x" "1:x -a ''" "1:'' -a x" "1:'' -a ''" \
+	 "0:x -o x" "0:x -o ''" "0:'' -o x" "1:'' -o ''" \
+	 "0:x -a !" "0:x -o !" "1:'' -a !" "0:'' -o !"
+do	e=${c%%:*}
+	c=${c#*:}
+	eval "[ \( $c \) ]" 2>/dev/null
+	(($?==e)) || err_exit "[ \( $c \) ] not working"
+	eval "test \( $c \)" 2>/dev/null
+	(($?==e)) || err_exit "test \( $c \) not working"
+done
+
+# ======
 exit $((Errors<125?Errors:125))

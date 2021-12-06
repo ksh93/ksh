@@ -240,8 +240,7 @@ fi
 if	[[ $(LC_MESSAGES=C type test) != 'test is a shell builtin' ]]
 then	err_exit 'whence -v test not a builtin'
 fi
-builtin -d test
-if	[[ $(type test) == *builtin* ]]
+if	[[ $(builtin -d test; type test) == *builtin* ]]
 then	err_exit 'whence -v test after builtin -d incorrect'
 fi
 typeset -Z3 percent=$(printf '%o\n' "'%'")
@@ -1031,7 +1030,7 @@ EOF
 "$SHELL" -i "$sleepsig" 2> /dev/null || err_exit "'sleep -s' doesn't work with intervals of more than 30 seconds"
 
 # ======
-# Builtins should handle unrecognized options correctly.
+# Builtins should handle unrecognized options correctly
 # Note: This test is run in a function for compatibility with the local builtin.
 function test_usage
 {
@@ -1043,6 +1042,8 @@ function test_usage
 			actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
 		*/*)	err_exit "strange path name in 'builtin' output: $(printf %q "$bltin")"
 			continue ;;
+		autoload | compound | float | functions | integer | nameref)
+			bltin=typeset ;&
 		*)	expect="Usage: $bltin "
 			actual=$({ "${bltin}" --this-option-does-not-exist; } 2>&1) ;;
 		esac
@@ -1074,21 +1075,10 @@ then	got=$( { "$SHELL" -c '
 fi
 
 # ==========
-# Verify that the POSIX 'test' builtin complains loudly when the '=~' operator is used rather than
-# failing silently. See https://github.com/att/ast/issues/1152.
-actual=$($SHELL -c 'test foo =~ foo' 2>&1)
-actual_status=$?
-actual=${actual#*: }
-expect='test: =~: operator not supported; use [[ ... ]]'
-expect_status=2
-[[ "$actual" = "$expect" ]] || err_exit "test =~ failed (expected $expect, got $actual)"
-[[ "$actual_status" = "$expect_status" ]] ||
-    err_exit "test =~ failed with the wrong exit status (expected $expect_status, got $actual_status)"
-
-# Invalid operators 'test' and '[[ ... ]]' both reject should also cause an error with exit status 2.
+# Verify that the POSIX 'test' builtin exits with status 2 when given an invalid binary operator.
 for operator in '===' ']]'
 do
-	actual="$($SHELL -c "test foo $operator foo" 2>&1)"
+	actual=$(test foo "$operator" foo 2>&1)
 	actual_status=$?
 	actual=${actual#*: }
 	expect="test: $operator: unknown operator"
@@ -1288,6 +1278,85 @@ got=$(	readonly v=foo
 	print end)
 [[ $got == "$exp" ]] || err_exit "prefixing special builtin with 'command' does not stop it from exiting the shell on error" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# https://github.com/att/ast/issues/872
+hist_leak=$tmp/hist_leak.sh
+print 'ulimit -n 15' > "$hist_leak"
+for ((i=0; i!=11; i++)) do
+	print 'true foo\nhist -s foo=bar 2> /dev/null' >> "$hist_leak"
+done
+print 'print OK' >> "$hist_leak"
+exp="OK"
+got="$($SHELL -i "$hist_leak" 2>&1)"
+[[ $exp == "$got" ]] || err_exit "file descriptor leak in hist builtin" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# File descriptor leak after hist builtin substitution error
+hist_error_leak=$tmp/hist_error_leak.sh
+print 'ulimit -n 15' > "$hist_error_leak"
+for ((i=0; i!=11; i++)) do
+	print 'hist -s no=yes 2> /dev/null' >> "$hist_error_leak"
+done
+print 'print OK' >> "$hist_error_leak"
+exp="OK"
+got="$($SHELL -i "$hist_error_leak" 2>&1)"
+[[ $exp == "$got" ]] || err_exit "file descriptor leak after substitution error in hist builtin" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# printf -v works as of 2021-11-18
+integer ver=.sh.version
+exp=ok$'\f'0000$ver$'\n'
+printf -v got 'ok\f%012d\n' $ver 2>/dev/null
+[[ $got == "$exp" ]] || err_exit "printf -v not working" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset got
+printf -v 'got[1][two][3]' 'ok\f%012d\n' $ver 2>/dev/null
+[[ ${got[1]["two"][3]} == "$exp" ]] || err_exit "printf -v not working with array subscripts" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset got ver
+
+# ======
+# The rm builtin's -d option should remove files and empty directories without
+# removing non-empty directories (unless the -r option is also passed).
+# https://www.austingroupbugs.net/view.php?id=802
+if builtin rm 2> /dev/null; then
+	echo foo > "$tmp/bar"
+	mkdir "$tmp/emptydir"
+	mkdir -p "$tmp/nonemptydir1/subfolder"
+	mkdir "$tmp/nonemptydir2"
+	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
+
+	# Tests for lone -d option
+	got=$(rm -d "$tmp/emptydir" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove empty directory with -d option' \
+		"(got $(printf %q "$got"))"
+	[[ -d $tmp/emptydir ]] && err_exit 'rm builtin fails to remove empty directory with -d option'
+	got=$(rm -d $tmp/bar 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove files with -d option' \
+		"(got $(printf %q "$got"))"
+	[[ -f $tmp/bar ]] && err_exit 'rm builtin fails to remove files with -d option'
+	rm -d "$tmp/nonemptydir1" 2> /dev/null
+	[[ ! -d $tmp/nonemptydir1/subfolder ]] && err_exit 'rm builtin has unwanted recursion with -d option on folder containing folder'
+	rm -d "$tmp/nonemptydir2" 2> /dev/null
+	[[ ! -f $tmp/nonemptydir2/shouldexist ]] && err_exit 'rm builtin has unwanted recursion with -d option on folder containing file'
+
+	# Recreate non-empty directories in case the above tests failed
+	mkdir -p "$tmp/nonemptydir1/subfolder"
+	mkdir -p "$tmp/nonemptydir2"
+	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
+
+	# Tests combining -d with -r
+	got=$(rm -rd "$tmp/nonemptydir1" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and subdirectory with -rd options' \
+		"(got $(printf %q "$got"))"
+	[[ -d $tmp/nonemptydir1/subfolder || -d $tmp/nonemptydir1 ]] && err_exit 'rm builtin fails to remove all folders with -rd options'
+	got=$(rm -rd "$tmp/nonemptydir2" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -rd options' \
+		"(got $(printf %q "$got"))"
+	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -rd options'
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

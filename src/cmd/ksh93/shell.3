@@ -317,6 +317,7 @@ the following public members:
       \f3char            *cmdname;\fP
       \f3Dt_t            *var_tree;\fP
 .fi
+.PP
 The \f3sh_getscope()\fP function can be used to get the
 scope information associated with existing scope.
 Scopes are numbered from \f30\fP for the global scope
@@ -324,7 +325,8 @@ up to the current scope level.  The \fIwhence\fP
 argument uses the symbolic constants associated with \f3lseek()\fP
 to indicate whether the \f3Iscope\fP argument is absolute,
 relative to the current scope, or relative to the topmost scope.
-The\f3sh_setscope()\fP function can be used to make a
+.PP
+The \f3sh_setscope()\fP function can be used to make a
 a known scope the current scope.  It returns a pointer to the
 old current scope.
 .PP

@@ -178,7 +178,6 @@ extern const char		strval_states[64];
 extern const char		e_moretokens[];
 extern const char		e_argcount[];
 extern const char		e_paren[];
-extern const char		e_badnum[];
 extern const char		e_badcolon[];
 extern const char		e_recursive[];
 extern const char		e_divzero[];

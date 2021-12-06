@@ -114,7 +114,7 @@ static const char usage[] =
 #include <sum.h>
 #include <ls.h>
 #include <modex.h>
-#include <fts_fix.h>
+#include <fts.h>
 #include <error.h>
 
 typedef struct State_s			/* program state		*/

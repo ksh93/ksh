@@ -1092,9 +1092,7 @@ utime(const char* path, const struct utimbuf* ut)
  * own bsd-like macros
  */
 
-#if !_lib_bzero || defined(bzero)
-
-#undef	bzero
+#if !_lib_bzero
 
 void
 bzero(void* b, size_t n)

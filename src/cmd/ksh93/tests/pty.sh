@@ -628,6 +628,7 @@ r ^:test-2:
 L nobackslashctrl in emacs
 
 d 15
+p :test-1:
 w set -o emacs --nobackslashctrl
 
 # --nobackslashctrl shouldn't be ignored by reverse search
@@ -641,6 +642,7 @@ r ^:test-2: \r\n$
 L emacs backslash escaping
 
 d 15
+p :test-1:
 w set -o emacs
 
 # Test for too many backslash deletions in reverse-search mode
@@ -892,6 +894,17 @@ r ^:test-3: : t_string\r\n$
 p :test-4:
 w : test_string\1\E6\E[C\4
 r ^:test-4: : teststring\r\n$
+!
+
+# err_exit #
+tst $LINENO <<"!"
+L crash with KEYBD trap after entering multi-line command substitution
+# https://www.mail-archive.com/ast-users@lists.research.att.com/msg00313.html
+
+w trap : KEYBD
+w : $(
+w true); echo "Exit status is $?"
+u Exit status is 0
 !
 
 # ======

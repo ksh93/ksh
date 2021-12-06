@@ -183,11 +183,19 @@ static void typeset_order(const char *str,int line)
 }
 
 /*
- * add type definitions when compiling with -n
+ * Pre-add type declaration built-ins at parse time to avoid
+ * syntax errors when using -c, shcomp, '.'/source or eval.
+ *
+ * This hack has a bad side effect: defining a type with 'typeset -T' or 'enum'
+ * in a subshell or an 'if false' block will cause an inconsistent state. But
+ * as these built-ins alter the syntax of the shell, it's necessary for making
+ * them work if we're parsing an entire script before or without executing it.
+ *
+ * intypeset==1 for typeset & friends; intypeset==2 for enum
  */
-static void check_typedef(struct comnod *tp)
+static void check_typedef(struct comnod *tp, char intypeset)
 {
-	char	*cp=0;
+	char	*cp=0;		/* name of built-in to pre-add */
 	if(tp->comtyp&COMSCAN)
 	{
 		struct argnod *ap = tp->comarg;
@@ -211,8 +219,21 @@ static void check_typedef(struct comnod *tp)
 	else
 	{
 		struct dolnod *dp = (struct dolnod*)tp->comarg;
-		char **argv = dp->dolval + dp->dolbot+1;
-		while((cp= *argv++) && memcmp(cp,"--",2))
+		char **argv = dp->dolval + ARG_SPARE;
+		if(intypeset==2)
+		{
+			/* Skip over possible 'command' prefix(es) */
+			while(*argv && strcmp(*argv, SYSENUM->nvname))
+				argv++;
+			/* Skip over 'enum' options */
+			opt_info.index = 0;
+			while(optget(argv, sh_optenum))
+				;
+			if(error_info.errors)
+				return;
+			cp = argv[opt_info.index];
+		}
+		else while((cp = *argv++) && memcmp(cp,"--",2))
 		{
 			if(sh_isoption(SH_NOEXEC))
 				typeset_order(cp,tp->comline);
@@ -227,11 +248,7 @@ static void check_typedef(struct comnod *tp)
 		}
 	}
 	if(cp)
-	{
-		Namval_t	*mp=(Namval_t*)tp->comnamp ,*bp;
-		bp = sh_addbuiltin(cp, (Shbltin_f)mp->nvalue.bfp, (void*)0);
-		nv_onattr(bp,nv_isattr(mp,NV_PUBLIC));
-	}
+		nv_onattr(sh_addbuiltin(cp, (Shbltin_f)SYSTRUE->nvalue.bfp, NIL(void*)), NV_BLTIN|BLT_DCL);
 }
 
 /*
@@ -286,7 +303,7 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
 	else
 	{
 		if(sh_isoption(SH_NOEXEC) && (ap->argflag&ARG_MAC) && paramsub(ap->argval))
-			errormsg(SH_DICT,ERROR_warn(0),e_lexwarnvar,lp->sh->inlineno);
+			errormsg(SH_DICT,ERROR_warn(0),e_lexwarnvar,lp->sh->inlineno,ap->argval);
 		t->ar.arcomp = 0;
 	}
 	return(t);
@@ -1333,7 +1350,7 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 	    case 0:
 		t = (Shnode_t*)simple(lexp,flag,io);
 		if(t->com.comarg && lexp->intypeset)
-			check_typedef(&t->com);
+			check_typedef(&t->com, lexp->intypeset);
 		lexp->intypeset = 0;
 		lexp->inexec = 0;
 		t->tre.tretyp |= showme;
@@ -1454,6 +1471,8 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 						assignment = 1;
 						if(np >= SYSTYPESET && np <= SYSTYPESET_END)
 							lexp->intypeset = 1;
+						else if(np == SYSENUM)
+							lexp->intypeset = 2;
 						key_on = 1;
 					}
 					else if(np==SYSCOMMAND)	/* treat 'command typeset', etc. as declaration command */
@@ -1916,7 +1935,7 @@ static Shnode_t *test_primary(Lex_t *lexp)
 	    case '!':
 		if(!(t = test_primary(lexp)))
 			sh_syntax(lexp);
-		t->tre.tretyp |= TNEGATE;
+		t->tre.tretyp ^= TNEGATE;  /* xor it, so that a '!' negates another '!' */
 		return(t);
 	    case TESTUNOP:
 		if(sh_lex(lexp))
@@ -1970,10 +1989,11 @@ static Shnode_t *test_primary(Lex_t *lexp)
 #endif /* SHOPT_KIA */
 		if(sh_lex(lexp))
 			sh_syntax(lexp);
-		if(num&TEST_PATTERN)
+		if(num&TEST_STRCMP)
 		{
+			/* If the argument is unquoted, enable pattern matching */
 			if(lexp->arg->argflag&(ARG_EXP|ARG_MAC))
-				num &= ~TEST_PATTERN;
+				num &= ~TEST_STRCMP;
 		}
 		t = getnode(tstnod);
 		t->lst.lsttyp = TTST|TTEST|TBINARY|(num<<TSHIFT);

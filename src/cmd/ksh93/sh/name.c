@@ -2957,14 +2957,7 @@ Sfdouble_t nv_getnum(register Namval_t *np)
 		}
 	}
 	else if((str=nv_getval(np)) && *str!=0)
-	{
-		if(nv_isattr(np,NV_LJUST|NV_RJUST) || (*str=='0' && !(str[1]=='x'||str[1]=='X')))
-		{
-			while(*str=='0')
-				str++;
-		}
 		r = sh_arith(shp,str);
-	}
 	return(r);
 }
 

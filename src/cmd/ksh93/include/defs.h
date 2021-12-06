@@ -204,7 +204,6 @@ struct shared
 	char		used_pos;	/* used positional parameter */\
 	char		universe; \
 	char		winch; \
-	char		inarith; 	/* set when in ((...)) */ \
 	short		arithrecursion;	/* current arithmetic recursion level */ \
 	char		indebug; 	/* set when in debug trap */ \
 	unsigned char	ignsig;		/* ignored signal in subshell */ \
@@ -381,7 +380,7 @@ extern Dt_t		*sh_subtracktree(int);
 extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
-extern void		sh_subtmpfile(char);
+extern void		sh_subtmpfile(Shell_t*);
 extern char 		*sh_substitute(const char*,const char*,char*);
 extern void		sh_timetraps(Shell_t*);
 extern const char	*_sh_translate(const char*);
@@ -401,6 +400,7 @@ extern void		*sh_realloc(void *ptr, size_t size);
 extern void		*sh_calloc(size_t nmemb, size_t size);
 extern char		*sh_strdup(const char *s);
 extern void		*sh_memdup(const void *s, size_t n);
+extern char		*sh_getcwd(void);
 #define new_of(type,x)	((type*)sh_malloc((unsigned)sizeof(type)+(x)))
 #define sh_newof(p,t,n,x)	((p)?(t*)sh_realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)sh_calloc(1,sizeof(t)*(n)+(x)))
 
@@ -462,7 +462,5 @@ extern const char	e_dict[];
 #else
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */
-
-extern int		_ERROR_exit_b_test(int);
 
 #endif

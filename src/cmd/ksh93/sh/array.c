@@ -681,7 +681,10 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 				if(is_associative(ap))
 					(*ap->fun)(np, NIL(char*), NV_AFREE);
 				else if(ap->table)
+				{
 					dtclose(ap->table);
+					ap->table = 0;
+				}
 				nv_offattr(np,NV_ARRAY);
 			}
 			if(!mp || mp!=np || is_associative(ap))
@@ -1702,6 +1705,7 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 			if((ap->header.nelem&ARRAY_MASK)==0 && (ap->cur=nv_search("0",ap->header.table,0)))
 				nv_associative(np,(char*)0,NV_ADELETE);
 			dtclose(ap->header.table);
+			ap->header.table = 0;
 		}
 		return((void*)ap);
 	    case NV_ANEXT:
@@ -1773,12 +1777,11 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 				if(sh.subshell)
 					np = sh_assignok(np,1);
 				/*
-				 * type == 0x26 == NV_INTEGER|NV_LTOU|NV_RJUST (see include/nval.h) indicates an
-				 * associative array of a type created by the enum command. nelem should not be
-				 * increased in that case or 'unset' will fail to completely unset such an array.
+				 * For enum types (NV_UINT16 with discipline ENUM_disc), nelem should not
+				 * not increased or 'unset' will fail to completely unset such an array.
 				 */
-				if(type != (NV_INTEGER|NV_LTOU|NV_RJUST)
-				&& (!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0)))
+				if((!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0))
+				&& !(type==NV_UINT16 && nv_hasdisc(np, &ENUM_disc)))
 					ap->header.nelem++;
 				if(nv_isnull(mp))
 				{

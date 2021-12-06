@@ -238,7 +238,9 @@ function foo {
 }
 foo
 EOF
-$SHELL "$multiarray_unset" > /dev/null || err_exit 'Multidimensional arrays with an unset method crash ksh'
+{ $SHELL "$multiarray_unset" > /dev/null; } 2>/dev/null
+let "(e=$?)==0" || err_exit 'Multidimensional arrays with an unset method crash ksh' \
+		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
 # Multidimensional indexed array arithmetic assignment operation tests
