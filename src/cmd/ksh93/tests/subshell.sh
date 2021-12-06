@@ -882,7 +882,7 @@ actual=${ get_value; }
 actual=`get_value`
 [[ $actual == "$expect" ]] || err_exit "\`Comsub\` failed to return output (expected '$expect', got '$actual')"
 
-# more tests from https://github.com/oracle/solaris-userland/blob/master/components/ksh93/patches/285-30771135.patch
+# more tests from https://github.com/att/ast/commit/710342926e6bce2c895833bf2a79a8711fdaa471
 tmpfile=$tmp/1116072.dummy
 touch "$tmpfile"
 exp='return value'

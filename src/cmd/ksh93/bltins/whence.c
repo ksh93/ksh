@@ -105,7 +105,7 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 }
 
 /*
- *  for the whence command
+ * for the whence and type commands
  */
 int	b_whence(int argc,char *argv[],Shbltin_t *context)
 {
@@ -113,7 +113,7 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 	register Shell_t *shp = context->shp;
 	NOT_USED(argc);
 	if(*argv[0]=='t')
-		flags = V_FLAG;
+		flags = V_FLAG;  /* <t>ype == whence -v */
 	while((n = optget(argv,sh_optwhence))) switch(n)
 	{
 	    case 'a':
@@ -193,8 +193,8 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			cp = 0;
 			aflag++;
 		}
-		/* built-ins and functions next */
 	bltins:
+		/* functions */
 		if(!(flags&F_FLAG) && (np = nv_bfsearch(name, shp->fun_tree, &nq, &notused)) && is_afunction(np))
 		{
 			if(flags&Q_FLAG)
@@ -219,6 +219,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				continue;
 			aflag++;
 		}
+		/* built-ins */
 		if((np = nv_bfsearch(name, shp->bltin_tree, &nq, &notused)) && !nv_isnull(np))
 		{
 			if(flags&V_FLAG)
@@ -309,7 +310,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				if(flags&V_FLAG)
 					 errormsg(SH_DICT,ERROR_exit(0),e_found,sh_fmtq(name));
 			}
-			/* If -a given, continue with next result */
+			/* If -a is active, continue to the next result */
 			if(aflag)
 			{
 				if(aflag<=1)

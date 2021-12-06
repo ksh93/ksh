@@ -73,7 +73,6 @@ static struct subshell
 	Shell_t		*shp;	/* shell interpreter */
 	struct subshell	*prev;	/* previous subshell data */
 	struct subshell	*pipe;	/* subshell where output goes to pipe on fork */
-	Dt_t		*var;	/* variable table at time of subshell */
 	struct Link	*svar;	/* save shell variable table */
 	Dt_t		*sfun;	/* function scope for subshell */
 	Dt_t		*strack;/* tracked alias scope for subshell */
@@ -85,8 +84,8 @@ static struct subshell
 	char		*pwd;	/* present working directory */
 	void		*jobs;	/* save job info */
 	mode_t		mask;	/* saved umask */
-	short		tmpfd;	/* saved tmp file descriptor */
-	short		pipefd;	/* read fd if pipe is created */
+	int		tmpfd;	/* saved tmp file descriptor */
+	int		pipefd;	/* read fd if pipe is created */
 	char		jobcontrol;
 	char		monitor;
 	unsigned char	fdstatus;
@@ -520,7 +519,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sp->sig = 0;
 	subshell_data = sp;
 	sp->errcontext = &buff.err;
-	sp->var = shp->var_tree;
 	sp->options = shp->options;
 	sp->jobs = job_subsave();
 	sp->subdup = shp->subdup;

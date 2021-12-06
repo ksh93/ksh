@@ -272,7 +272,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		c = mbchar(str);
 		if(isaletter(c))
 		{
-			register Namval_t *np;
+			register Namval_t *np=0;
 			int dot=0;
 			while(1)
 			{
@@ -297,7 +297,6 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				int off=stktell(shp->stk);
 				int fsize = str- (char*)(*ptr);
 				const struct mathtab *tp;
-				Namval_t	*np;
 				c = **ptr;
 				lvalue->fun = 0;
 				sfprintf(shp->stk,".sh.math.%.*s%c",fsize,*ptr,0);

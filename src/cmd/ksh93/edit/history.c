@@ -116,7 +116,6 @@ static int	hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
 
 static int	histinit;
 static mode_t	histmode;
-static History_t *wasopen;
 static History_t *hist_ptr;
 
 #if SHOPT_ACCTFILE

@@ -152,7 +152,7 @@ const struct shtable3 shtab_builtins[] =
 	CMDLIST(wc)
 	CMDLIST(sync)
 #if !_std_malloc && !_AST_std_malloc
-	CMDLIST(vmstate)
+	CMDLIST(vmstate)  /* vmstate only works with vmalloc */
 #endif
 #endif
 #if SHOPT_REGRESS
@@ -473,10 +473,7 @@ const char sh_optcd[] =
 	"written to standard output.]"
 "[+?If both \b-L\b and \b-P\b are specified, the last one specified will "
 	"be used.  If neither \b-P\b or \b-L\b is specified then the "
-	"behavior will be determined by the \bgetconf\b parameter "
-	"\bPATH_RESOLVE\b.  If \bPATH_RESOLVE\b is \bphysical\b, "
-	"then the behavior will be as if \b-P\b were specified.  Otherwise, "
-	"the behavior will be as if  \b-L\b were specified.]"
+	"behavior will default to \b-L\b.]"
 "[L?Handle each pathname component \b..\b in a logical fashion by moving "
 	"up one level by name in the present working directory.]"
 "[P?The present working directory is first converted to an absolute pathname "
@@ -1381,10 +1378,7 @@ const char sh_optpwd[] =
 	"\b.\b or \b..\b components.]"
 "[+?If both \b-L\b and \b-P\b are specified, the last one specified will "
 	"be used.  If neither \b-P\b or \b-L\b is specified then the "
-	"behavior will be determined by the \bgetconf\b parameter "
-	"\bPATH_RESOLVE\b.  If \bPATH_RESOLVE\b is \bphysical\b, "
-	"then the behavior will be as if \b-P\b were specified.  Otherwise, "
-	"the behavior will be as if  \b-L\b were specified.]"
+	"behavior will default to \b-L\b.]"
 "[L?The absolute pathname may contains symbolic link components.  This is "
 	"the default.]"
 "[P?The absolute pathname will not contain any symbolic link components.]"

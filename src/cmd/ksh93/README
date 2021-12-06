@@ -271,6 +271,8 @@ failures (crashes, and/or important functionality does not work).
 	Solaris 11.4 (Solaris Studio 12.5 cc) on x86_64
 *	UnixWare 7.1.4 on x86
 ***	Windows 7 using Cygwin on x86
+***	Windows 10 using Cygwin on x86_64
+***	Windows 11 using Cygwin on x86_64
 
 #### REPORTING BUGS ####
 

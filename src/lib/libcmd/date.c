@@ -343,7 +343,7 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 		case 'p':
 			if (!(f = newof(0, Fmt_t, 1, 0)))
 			{
-				error(ERROR_SYSTEM|3, "out of memory [format]");
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [format]");
 				UNREACHABLE();
 			}
 			f->next = fmts;

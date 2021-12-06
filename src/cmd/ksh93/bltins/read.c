@@ -53,8 +53,8 @@ struct read_save
 {
         char	**argv;
 	char	*prompt;
-        short	fd;
-        short	plen;
+        int	fd;
+        int	plen;
 	int	flags;
 	ssize_t	len;
         long	timeout;

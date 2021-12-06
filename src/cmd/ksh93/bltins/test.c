@@ -130,6 +130,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	}
 	if(argc <= 1)
 	{
+		/* POSIX requires the test builtin to return 1 if expression is missing */
 		exitval = 1;
 		goto done;
 	}
@@ -401,7 +402,7 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 	    case 'l':
 #endif
 	    case 'L':
-	    case 'h': /* undocumented, and hopefully will disappear */
+	    case 'h':
 		if(*arg==0 || arg[strlen(arg)-1]=='/' || lstat(arg,&statb)<0)
 			return(0);
 		return(S_ISLNK(statb.st_mode));

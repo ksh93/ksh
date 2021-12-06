@@ -213,8 +213,9 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	/* This mess in case the read system call fails */
 	
 	ed_setup(ep->ed,fd,reedit);
+#if !SHOPT_MULTIBYTE
 	out = (genchar*)buff;
-#if SHOPT_MULTIBYTE
+#else
 	out = (genchar*)roundof(buff-(char*)0,sizeof(genchar));
 	if(reedit)
 		ed_internal(buff,out);
@@ -829,10 +830,10 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 #endif
 			return(-1);
 
-		case 'l':	/* M-l == lower-case */
-		case 'd':
-		case 'c':
-		case 'f':
+		case 'l':	/* M-l == lowercase */
+		case 'd':	/* M-d == delete word */
+		case 'c':	/* M-c == uppercase */
+		case 'f':	/* M-f == move cursor forward one word */
 		{
 			i = cur;
 			while(value-- && i<eol)
@@ -886,10 +887,10 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		}
 		
 		
-		case 'b':
+		case 'b':	/* M-b == go backward one word */
 		case DELETE :
 		case '\b':
-		case 'h':
+		case 'h':	/* M-h == delete the previous word */
 		{
 			i = cur;
 			while(value-- && i>0)
@@ -1097,6 +1098,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				if(cur>0 && eol==cur && (cur<(SEARCHSIZE-2) || ep->prevdirection == -2))
 #endif /* SHOPT_EDPREDICT */
 				{
+					/* perform a reverse search based on the current command line */
 					if(ep->lastdraw==APPEND)
 					{
 						out[cur] = 0;
@@ -1305,7 +1307,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 				goto restore;
 			continue;
 		}
-		if(i == ep->ed->e_intr)
+		if(i == ep->ed->e_intr)  /* end reverse search */
 			goto restore;
 		if (i==usrkill)
 		{
