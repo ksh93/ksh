@@ -1397,4 +1397,21 @@ got=$?; exp=2
 (( got == exp )) || err_exit "cd -eP to empty string has wrong exit status (expected $exp, got $got)"
 
 # ======
+# The head and tail builtins should work on files without newlines
+if builtin head 2> /dev/null; then
+	print -n nonewline > "$tmp/nonewline"
+	exp=nonewline
+	got=$(head -1 "$tmp/nonewline")
+	[[ $got == $exp ]] || err_exit "head builtin fails to correctly handle files without an ending newline" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+if builtin tail 2> /dev/null; then
+	print -n 'newline\nnonewline' > "$tmp/nonewline"
+	exp=nonewline
+	got=$(tail -1 "$tmp/nonewline")
+	[[ $got == $exp ]] || err_exit "tail builtin fails to correctly handle files without an ending newline" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
