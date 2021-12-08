@@ -681,4 +681,8 @@ exit $Errors
 Errors=$?
 
 # ======
+# Test for a crash after unsetting ${.sh.match} then matching a pattern
+$SHELL -c 'unset .sh.match; [[ bar == ba* ]]' || err_exit 'crash after unsetting .sh.match then trying to match a pattern'
+
+# ======
 exit $((Errors<125?Errors:125))
