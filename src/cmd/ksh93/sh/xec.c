@@ -175,7 +175,6 @@ static int      subpipe[3],subdup,tsetio,usepipe;
 
 static int iousepipe(Shell_t *shp)
 {
-	int fd=sffileno(sfstdout),i,err=errno;
 	if(usepipe)
 	{
 		usepipe++;
@@ -191,7 +190,6 @@ static int iousepipe(Shell_t *shp)
 
 void sh_iounpipe(Shell_t *shp)
 {
-	int fd=sffileno(sfstdout),n,err=errno;
 	char buff[SF_BUFSIZE];
 	if(!usepipe)
 		return;
@@ -1564,7 +1562,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				fifo_cleanup();
 #endif
 				if(shp->topfd > topfd && !(shp->subshell && (np==SYSEXEC || np==SYSREDIR)))
-					sh_iorestore(shp,topfd,jmpval);
+					sh_iorestore(shp,topfd,jmpval);  /* avoid leaking unused file descriptors */
 				exitset();
 				break;
 			}
@@ -1834,7 +1832,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_done(shp,0);
 			}
 		    }
-		    /* FALLTHROUGH */
 
 		    case TSETIO:
 		    {
@@ -2426,7 +2423,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 #endif
 				job.waitall = 1;
 				sh_onstate(SH_TIMING);
-				sh_exec(t->par.partre,OPTIMIZE);
+				sh_exec(t->par.partre,sh_isstate(SH_ERREXIT)|OPTIMIZE);
 				if(!timer_on)
 					sh_offstate(SH_TIMING);
 				job.waitall = 0;
@@ -2916,7 +2913,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	if(parent)
 	{
 		int myjob,waitall=job.waitall;
-		shp->gd->nforks++;
 		if(job.toclear)
 			job_clear();
 		job.waitall = waitall;
@@ -2973,7 +2969,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	shp->outpipepid = ((flags&FPOU)?shgd->current_pid:0);
 	if(shp->trapnote&SH_SIGTERM)
 		sh_exit(SH_EXITSIG|SIGTERM);
-	shp->gd->nforks=0;
 	timerdel(NIL(void*));
 #ifdef JOBS
 	if(sh_isstate(SH_MONITOR))
@@ -3131,6 +3126,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	Dt_t			*last_root = shp->last_root;
 	Shopt_t			options;
 	options = shp->options;
+	NOT_USED(argn);
 	if(shp->fn_depth==0)
 		shp->glob_options =  shp->options;
 	else
@@ -3276,8 +3272,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	if(jmpval)
 		r=shp->exitval;
-	if(nsig && r>SH_EXITSIG)
-		kill(shgd->current_pid,r&SH_EXITMASK);
+	if(jmpval==SH_JMPFUN && sh.lastsig)
+		kill(shgd->current_pid, sh.lastsig);  /* pass down unhandled signal that interrupted ksh function */
 	if(jmpval > SH_JMPFUN)
 	{
 		sh_chktrap(shp);
@@ -3500,7 +3496,6 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 {
 	static pid_t	spawnpid;
 	static int	savetype;
-	static int	savejobid;
 	struct checkpt	*buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
 	int		otype=0, jmpval,jobfork=0;
 	volatile int	scope=0, sigwasset=0;
@@ -3653,7 +3648,6 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		if(grp==1)
 			job.curpgid = spawnpid;
 #endif /* JOBS */
-		savejobid = *jobid;
 		if(otype)
 			return(0);
 	}

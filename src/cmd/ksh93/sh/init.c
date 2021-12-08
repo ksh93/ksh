@@ -271,6 +271,14 @@ void *sh_memdup(const void *s, size_t n)
 	return(dup);
 }
 
+char *sh_getcwd(void)
+{
+	char *cwd = getcwd(NIL(char*), 0);
+	if(!cwd && errno==ENOMEM)
+		nomemory(0);
+	return(cwd);
+}
+
 #if SHOPT_VSH || SHOPT_ESH
 /* Trap for VISUAL and EDITOR variables */
 static void put_ed(register Namval_t* np,const char *val,int flags,Namfun_t *fp)
@@ -1055,16 +1063,6 @@ static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namf
 
 static const Namdisc_t SH_MATH_disc  = { 0, 0, get_math, 0, setdisc_any, create_math, };
 
-#if SHOPT_NAMESPACE
-    static char* get_nspace(Namval_t* np, Namfun_t *fp)
-    {
-	if(sh.namespace)
-		return(nv_name(sh.namespace));
-	return((char*)np->nvalue.cp);
-    }
-    static const Namdisc_t NSPACE_disc	= {  0, 0, get_nspace };
-#endif /* SHOPT_NAMESPACE */
-
 #ifdef _hdr_locale
     static const Namdisc_t LC_disc	= {  sizeof(Namfun_t), put_lang };
 #endif /* _hdr_locale */
@@ -1228,9 +1226,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		shgd->lim.clk_tck = getconf("CLK_TCK");
 		shgd->lim.arg_max = getconf("ARG_MAX");
 		shgd->lim.child_max = getconf("CHILD_MAX");
-		shgd->lim.ngroups_max = getconf("NGROUPS_MAX");
-		shgd->lim.posix_version = getconf("VERSION");
-		shgd->lim.posix_jobcontrol = getconf("JOB_CONTROL");
 		if(shgd->lim.arg_max <=0)
 			shgd->lim.arg_max = ARG_MAX;
 		if(shgd->lim.child_max <=0)
@@ -1302,7 +1297,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	sh_siginit(shp);
 	stakinstall(NIL(Stak_t*),nomemory);
 	/* set up memory for name-value pairs */
-	shp->init_context =  nv_init(shp);
+	shp->init_context = nv_init(shp);
 	/* initialize shell type */
 	if(argc>0)
 	{
@@ -1875,10 +1870,7 @@ Dt_t *sh_inittree(Shell_t *shp,const struct shtable2 *name_vals)
 		n++;
 	np = (Namval_t*)sh_calloc(n,sizeof(Namval_t));
 	if(!shgd->bltin_nodes)
-	{
 		shgd->bltin_nodes = np;
-		shgd->bltin_nnodes = n;
-	}
 	else if(name_vals==(const struct shtable2*)shtab_builtins)
 	{
 		shgd->bltin_cmds = np;

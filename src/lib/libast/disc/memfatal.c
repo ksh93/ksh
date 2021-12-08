@@ -55,12 +55,12 @@ nomalloc(Vmalloc_t* region, int type, void* obj, Vmdisc_t* disc)
 	{
 #ifdef VM_BADADDR
 	case VM_BADADDR:
-		error(ERROR_SYSTEM|3, "invalid pointer %p passed to free or realloc", obj);
+		error(ERROR_SYSTEM|ERROR_PANIC, "invalid pointer %p passed to free or realloc", obj);
 		UNREACHABLE();
 #endif
 	case VM_NOMEM:
 		vmstat(region, &st);
-		error(ERROR_SYSTEM|3, "storage allocator out of memory on %lu byte request ( region %lu segments %lu busy %lu:%lu:%lu free %lu:%lu:%lu )", (size_t)obj, st.extent, st.n_seg, st.n_busy, st.s_busy, st.m_busy, st.n_free, st.s_free, st.m_free);
+		error(ERROR_SYSTEM|ERROR_PANIC, "storage allocator out of memory on %lu byte request ( region %lu segments %lu busy %lu:%lu:%lu free %lu:%lu:%lu )", (size_t)obj, st.extent, st.n_seg, st.n_busy, st.s_busy, st.m_busy, st.n_free, st.s_free, st.m_free);
 		UNREACHABLE();
 	}
 	return(0);

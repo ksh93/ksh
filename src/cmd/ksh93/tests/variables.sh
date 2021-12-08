@@ -700,6 +700,8 @@ exec 2>&3-
 set -- $x
 [[ $2 == b ]] || err_exit '$2 should be b after subshell'
 
+# ======
+# BUG_KBGPID: $! was not updated under certain conditions
 : & pid=$!
 ( : & )
 [[ $pid == $! ]] || err_exit '$! value not preserved across subshells'
@@ -712,6 +714,7 @@ pid=$!
 { : |& } >&2
 [[ $pid == $! ]] && err_exit '$! value not updated after co-process in braces+redir'
 
+# ======
 unset foo
 typeset -A foo
 function foo.set

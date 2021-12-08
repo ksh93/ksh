@@ -113,9 +113,6 @@ struct limits
 	int		open_max;	/* maximum number of file descriptors */
 	int		clk_tck;	/* number of ticks per second */
 	int		child_max;	/* maximum number of children */
-	int		ngroups_max;	/* maximum number of process groups */
-	unsigned char	posix_version;	/* posix version number */
-	unsigned char	posix_jobcontrol;/* non-zero for job control systems */
 };
 
 #ifndef SH_wait_f_defined
@@ -142,15 +139,10 @@ struct shared
 	char		*shpath;
 	char		*user;
 	char		**sigmsg;
-	char		*rcfile;
 	char		**login_files;
 	void		*ed_context;
-	void		*init_context;
-	void		*job_context;
 	int		*stats;
-	int		bltin_nnodes;	/* number of bltins nodes */ 
 	int		sigmax;
-	int		nforks;
 	Shwait_f	waitevent;
 };
 
@@ -177,7 +169,6 @@ struct shared
 	unsigned int	jobenv;		/* subshell number for jobs */ \
 	int		infd;		/* input file descriptor */ \
 	short		nextprompt;	/* next prompt is PS<nextprompt> */ \
-	short		poolfiles; \
 	Namval_t	*posix_fun;	/* points to last name() function */ \
 	char		*outbuff;	/* pointer to output buffer */ \
 	char		*errbuff;	/* pointer to stderr buffer */ \
@@ -199,7 +190,6 @@ struct shared
 	char		lastbase; \
 	char		forked;	\
 	char		binscript; \
-	char		deftype; \
 	char		funload; \
 	char		used_pos;	/* used positional parameter */\
 	char		universe; \
@@ -238,7 +228,6 @@ struct shared
 	void		*mac_context; \
 	void		*lex_context; \
 	void		*arg_context; \
-	void		*job_context; \
 	void		*pathlist; \
 	void		*defpathlist; \
 	void		*cdpathlist; \
@@ -265,7 +254,6 @@ struct shared
 	Dt_t		*fpathdict; \
 	Dt_t		*typedict; \
 	Dt_t		*inpool; \
-	Dt_t		*transdict; \
 	char		ifstable[256]; \
 	unsigned long	test; \
 	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */ \
@@ -400,6 +388,7 @@ extern void		*sh_realloc(void *ptr, size_t size);
 extern void		*sh_calloc(size_t nmemb, size_t size);
 extern char		*sh_strdup(const char *s);
 extern void		*sh_memdup(const void *s, size_t n);
+extern char		*sh_getcwd(void);
 #define new_of(type,x)	((type*)sh_malloc((unsigned)sizeof(type)+(x)))
 #define sh_newof(p,t,n,x)	((p)?(t*)sh_realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)sh_calloc(1,sizeof(t)*(n)+(x)))
 

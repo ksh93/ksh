@@ -383,9 +383,6 @@ error(DEBUG_TRACE, "AHA#%d _win_iconv from=0x%04x to=0x%04x\n", __LINE__, cc->fr
 #if DEBUG_TRACE
 error(DEBUG_TRACE, "AHA#%d _win_iconv *fn=%u fz=%u[%u] *tn=%u tz=%u\n", __LINE__, *fn, fz, fz * sizeof(WCHAR), *tn, tz);
 #endif
-#if 0
-				fz *= sizeof(WCHAR);
-#endif
 			}
 			if (ub != (LPWSTR)*fb)
 				free(ub);

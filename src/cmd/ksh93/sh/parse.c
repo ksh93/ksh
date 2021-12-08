@@ -222,6 +222,9 @@ static void check_typedef(struct comnod *tp, char intypeset)
 		char **argv = dp->dolval + ARG_SPARE;
 		if(intypeset==2)
 		{
+			/* Skip over possible 'command' prefix(es) */
+			while(*argv && strcmp(*argv, SYSENUM->nvname))
+				argv++;
 			/* Skip over 'enum' options */
 			opt_info.index = 0;
 			while(optget(argv, sh_optenum))
@@ -245,11 +248,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 		}
 	}
 	if(cp)
-	{
-		Namval_t	*mp=(Namval_t*)tp->comnamp ,*bp;
-		bp = sh_addbuiltin(cp, (Shbltin_f)mp->nvalue.bfp, (void*)0);
-		nv_onattr(bp,nv_isattr(mp,NV_PUBLIC));
-	}
+		nv_onattr(sh_addbuiltin(cp, (Shbltin_f)SYSTRUE->nvalue.bfp, NIL(void*)), NV_BLTIN|BLT_DCL);
 }
 
 /*
@@ -304,7 +303,7 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
 	else
 	{
 		if(sh_isoption(SH_NOEXEC) && (ap->argflag&ARG_MAC) && paramsub(ap->argval))
-			errormsg(SH_DICT,ERROR_warn(0),e_lexwarnvar,lp->sh->inlineno);
+			errormsg(SH_DICT,ERROR_warn(0),e_lexwarnvar,lp->sh->inlineno,ap->argval);
 		t->ar.arcomp = 0;
 	}
 	return(t);
@@ -2047,7 +2046,7 @@ unsigned long kiaentity(Lex_t *lexp,const char *name,int len,int type,int first,
 		else
 			sfputr(stkp,name,0);
 	}
-	sfputc(stkp,'\0');
+	sfputc(stkp,'\0');  /* terminate name while writing database output */
 	np = nv_search(stakptr(offset),lexp->entity_tree,NV_ADD);
 	stkseek(stkp,offset);
 	np->nvalue.i = pkind;

@@ -262,6 +262,7 @@ failures (crashes, and/or important functionality does not work).
 *	illumos: OmniOS 2020-08-19 (gcc) on x86_64
 	macOS 10.13.6 (High Sierra) on x86_64
 	macOS 10.14.6 (Mojave) on x86_64
+*	macOS 12.0.1 (Monterey) on ARM64
 *	NetBSD 8.1 on x86_64
 *	NetBSD 9.2 on x86_64
 *	OpenBSD 6.8 on x86_64
@@ -270,6 +271,8 @@ failures (crashes, and/or important functionality does not work).
 	Solaris 11.4 (Solaris Studio 12.5 cc) on x86_64
 *	UnixWare 7.1.4 on x86
 ***	Windows 7 using Cygwin on x86
+***	Windows 10 using Cygwin on x86_64
+***	Windows 11 using Cygwin on x86_64
 
 #### REPORTING BUGS ####
 

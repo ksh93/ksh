@@ -262,7 +262,7 @@ char *path_pwd(Shell_t *shp,int flag)
 		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
 			/* Get physical PWD (no symlinks) using getcwd(3), fall back to "." */
-			cp = getcwd(NIL(char*),0);
+			cp = sh_getcwd();
 			if(!cp)
 				return((char*)e_dot);
 			tofree++;
@@ -1573,7 +1573,9 @@ static int path_chkpaths(Shell_t *shp,Pathcomp_t *first, Pathcomp_t* old,Pathcom
 	if((fd=open(stakptr(offset),O_RDONLY))>=0)
 	{
 		fstat(fd,&statb);
-		if (!S_ISREG(statb.st_mode)) {
+		if(!S_ISREG(statb.st_mode))
+		{
+			/* .paths cannot be a directory */
 			close(fd);
 			return 0;
 		}

@@ -642,7 +642,7 @@ void sh_printopts(Shopt_t oflags,register int mode, Shopt_t *mask)
  */
 char **sh_argbuild(Shell_t *shp,int *nargs, const struct comnod *comptr,int flag)
 {
-	register struct argnod	*argp;
+	register struct argnod	*argp=0;
 	struct argnod *arghead=0;
 	shp->xargmin = 0;
 	{

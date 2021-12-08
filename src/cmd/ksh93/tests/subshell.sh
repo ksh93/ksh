@@ -882,7 +882,7 @@ actual=${ get_value; }
 actual=`get_value`
 [[ $actual == "$expect" ]] || err_exit "\`Comsub\` failed to return output (expected '$expect', got '$actual')"
 
-# more tests from https://github.com/oracle/solaris-userland/blob/master/components/ksh93/patches/285-30771135.patch
+# more tests from https://github.com/att/ast/commit/710342926e6bce2c895833bf2a79a8711fdaa471
 tmpfile=$tmp/1116072.dummy
 touch "$tmpfile"
 exp='return value'
@@ -1082,6 +1082,13 @@ if	((! $?))
 then	kill -9 $tpid
 	err_exit 'backtick command substitution hangs on reproducer from issue 316'
 fi
+
+# ======
+# Virtual subshells should clip $? to 8 bits, as real subshells get that enforced by the kernel.
+# (Note: 'ulimit' will reliably fork a virtual subshell into a real one.)
+e1=$( (f() { return 267; }; f); echo $? )
+e2=$( (ulimit -t unlimited 2>/dev/null; f() { return 267; }; f); echo $? )
+((e1==11 && e2==11)) || err_exit "exit status of virtual ($e1) and real ($e2) subshell should both be clipped to 8 bits (11)"
 
 # ======
 exit $((Errors<125?Errors:125))

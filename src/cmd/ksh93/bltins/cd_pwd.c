@@ -20,8 +20,8 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * cd [-LP]  [dirname]
- * cd [-LP]  [old] [new]
+ * cd [-L] [-Pe] [dirname]
+ * cd [-L] [-Pe] [old] [new]
  * pwd [-LP]
  *
  *   David Korn
@@ -57,33 +57,43 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	register const char *dp;
 	register Shell_t *shp = context->shp;
 	int saverrno=0;
-	int rval,flag=0;
+	int rval,pflag=0,eflag=0,ret=1;
 	char *oldpwd;
 	Namval_t *opwdnod, *pwdnod;
-	if(sh_isoption(SH_RESTRICTED))
-	{
-		errormsg(SH_DICT,ERROR_exit(1),e_restricted+4);
-		UNREACHABLE();
-	}
 	while((rval = optget(argv,sh_optcd))) switch(rval)
 	{
+		case 'e':
+			eflag = 1;
+			break;
 		case 'L':
-			flag = 0;
+			pflag = 0;
 			break;
 		case 'P':
-			flag = 1;
+			pflag = 1;
 			break;
 		case ':':
+			if(sh_isoption(SH_RESTRICTED))
+				break;
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
+			if(sh_isoption(SH_RESTRICTED))
+				break;
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
 			UNREACHABLE();
+	}
+	if(pflag && eflag)
+		ret = 2;  /* exit status is 2 if -eP are both on and chdir failed */
+	if(sh_isoption(SH_RESTRICTED))
+	{
+		/* restricted shells cannot change the directory */
+		errormsg(SH_DICT,ERROR_exit(ret),e_restricted+4);
+		UNREACHABLE();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
 	dir =  argv[0];
-	if(error_info.errors>0 || argc >2)
+	if(error_info.errors>0 || argc>2)
 	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
@@ -95,6 +105,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
 	if(shp->subshell)
 	{
+		 /* clone $OLDPWD and $PWD into the subshell's scope */
 		opwdnod = sh_assignok(opwdnod,1);
 		pwdnod = sh_assignok(pwdnod,1);
 	}
@@ -106,7 +117,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		dir = nv_getval(opwdnod);
 	if(!dir || *dir==0)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),argc==2?e_subst+4:e_direct);
+		errormsg(SH_DICT,ERROR_exit(ret),argc==2?e_subst+4:e_direct);
 		UNREACHABLE();
 	}
 	/*
@@ -179,7 +190,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 			stakputs(last+PATH_OFFSET);
 			stakputc(0);
 		}
-		if(!flag)
+		if(!pflag)
 		{
 			register char *cp;
 			stakseek(PATH_MAX+PATH_OFFSET);
@@ -200,19 +211,19 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	{
 		if(saverrno)
 			errno = saverrno;
-		errormsg(SH_DICT,ERROR_system(1),"%s:",dir);
+		errormsg(SH_DICT,ERROR_system(ret),"%s:",dir);
 		UNREACHABLE();
 	}
 success:
 	if(dir == nv_getval(opwdnod) || argc==2)
 		dp = dir;	/* print out directory for cd - */
-	if(flag)
+	if(pflag)
 	{
 		dir = stakptr(PATH_OFFSET);
 		if (!(dir=pathcanon(dir,PATH_PHYSICAL)))
 		{
 			dir = stakptr(PATH_OFFSET);
-			errormsg(SH_DICT,ERROR_system(1),"%s:",dir);
+			errormsg(SH_DICT,ERROR_system(ret),"%s:",dir);
 			UNREACHABLE();
 		}
 		stakseek(dir-stakptr(0));
@@ -223,10 +234,10 @@ success:
 	nv_putval(opwdnod,oldpwd,NV_RDONLY);
 	if(*dir == '/')
 	{
-		flag = strlen(dir);
+		size_t len = strlen(dir);
 		/* delete trailing '/' */
-		while(--flag>0 && dir[flag]=='/')
-			dir[flag] = 0;
+		while(--len>0 && dir[len]=='/')
+			dir[len] = 0;
 		nv_putval(pwdnod,dir,NV_RDONLY);
 		nv_onattr(pwdnod,NV_EXPORT);
 		if(shp->pwd)
@@ -243,13 +254,18 @@ success:
 		path_pwd(shp,0);
 		if(*shp->pwd != '/')
 		{
-			errormsg(SH_DICT,ERROR_system(1),e_direct);
+			errormsg(SH_DICT,ERROR_system(ret),e_direct);
 			UNREACHABLE();
 		}
 	}
 	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	path_newdir(shp,shp->pathlist);
 	path_newdir(shp,shp->cdpathlist);
+	if(pflag && eflag)
+	{
+		/* Verify the current working directory matches $PWD */
+		return(!test_inode(e_dot,nv_getval(pwdnod)));
+	}
 	return(0);
 }
 

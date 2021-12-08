@@ -463,7 +463,7 @@ cat > B_t <<-  \EOF
 EOF
 
 unset n
-if	n=$(FPATH=$PWD PATH=$PWD:$PATH $SHELL 2> /dev/null -c 'A_t a; print ${a.b.n}') 
+if	n=$(FPATH=$PWD PATH=$PWD:$PATH $SHELL 2> /dev/null -c 'A_t a; print ${a.b.n}')
 then	(( n==5 )) || err_exit 'dynamic loading of types gives wrong result'
 else	err_exit 'unable to load types dynamically'
 fi

@@ -2195,7 +2195,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 		{
 			/* special case $(<file) and $(<#file) */
 			register int fd;
-			int r;
+			int r=0;
 			struct checkpt buff;
 			struct ionod *ip=0;
 			sh_pushcontext(mp->shp,&buff,SH_JMPIO);

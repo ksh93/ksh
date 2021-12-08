@@ -3,6 +3,51 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-08:
+
+- Fixed: if a function returned with a status > 256 using the 'return' command
+  and the return value corresponded to a value that could have resulted from a
+  signal, and an EXIT trap was active, then the shell mistakenly issued that
+  signal to itself. Depending on the signal, this could cause the shell to
+  terminate ungracefully, e.g. 'return 267' caused SIGSEGV ("memory fault").
+
+- For the 'return' built-in command, you can now freely specify any
+  return value that fits in a signed integer, typically a 32-bit value.
+  Note that $? is truncated to 8 bits when the current (sub)shell exits.
+
+- The head and tail builtins now correctly handle files that do not have an
+  ending newline. (Note that the tail builtin is not compiled in by default.)
+
+2021-12-05:
+
+- Fixed an issue on illumos that caused some parameters in the getconf
+  builtin to fail.
+
+- The cd built-in command now supports a -e option (as specified in
+  https://www.austingroupbugs.net/view.php?id=253). Passing -e alongside -P
+  is used to guarantee the cd built-in returns with exit status 1 if the
+  current working directory couldn't be determined after successfully changing
+  the directory.
+
+2021-12-01:
+
+- Fixed a memory fault that occurred when a discipline function exited
+  with an error from a special builtin or when a discipline function exited
+  because of a signal.
+
+2021-11-29:
+
+- Fixed a memory fault that prevented ksh from functioning on ARM-based Macs.
+
+- A bug that caused the time keyword to override the errexit shell option has
+  been fixed.
+
+- Fixed a crash that could occur when a KEYBD trap was set and a multi-line
+  command substitution was input in an interactive shell.
+
+- The shell linter's warnings for obsolete arithmetic operators in [[ ... ]]
+  and unnecessary variable expansion in ((...)) have been improved.
+
 2021-11-24:
 
 - The --posix mode was amended to stop the '.' command (but not 'source') from

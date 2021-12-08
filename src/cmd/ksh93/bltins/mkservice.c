@@ -116,7 +116,7 @@ typedef struct Service_s Service_t;
 struct Service_s
 {
 	Namfun_t	fun;
-	short		fd;
+	int		fd;
 	int		refcount;
 	int		(*acceptf)(Service_t*,int);
 	int		(*actionf)(Service_t*,int,int);
@@ -126,7 +126,7 @@ struct Service_s
 	Namval_t*	disc[elementsof(disctab)-1];
 };
 
-static short		*file_list;
+static int		*file_list;
 static Sfio_t		**poll_list;
 static Service_t	**service_list;
 static int		npoll;

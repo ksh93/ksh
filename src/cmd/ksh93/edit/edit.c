@@ -52,10 +52,11 @@
 #include	"terminal.h"
 #include	"history.h"
 #include	"edit.h"
+#include	"shlex.h"
 
 static char CURSOR_UP[20] = { ESC, '[', 'A', 0 };
 static char KILL_LINE[20] = { ESC, '[', 'J', 0 };
-
+static Lex_t *savelex;
 
 
 #if SHOPT_MULTIBYTE
@@ -230,6 +231,8 @@ int tty_set(int fd, int action, struct termios *tty)
 void tty_cooked(register int fd)
 {
 	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	if(ep->sh->st.trap[SH_KEYTRAP] && savelex)
+		memcpy(ep->sh->lex_context,savelex,sizeof(Lex_t));
 	ep->e_keytrap = 0;
 	if(ep->e_raw==0)
 		return;
@@ -816,6 +819,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 			sh_offoption(SH_RESTRICTED);
 			sh_offoption(SH_VERBOSE);
 			sh_offoption(SH_XTRACE);
+			/* get the cursor up sequence from tput */
 #if _tput_terminfo
 			sh_trap(".sh.subscript=$(" _pth_tput " cuu1 2>/dev/null)",0);
 #elif _tput_termcap
@@ -844,6 +848,12 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		while(n-- > 0)
 			ep->e_lbuf[n] = *pp++;
 		ep->e_default = 0;
+	}
+	if(ep->sh->st.trap[SH_KEYTRAP])
+	{
+		if(!savelex)
+			savelex = (Lex_t*)sh_malloc(sizeof(Lex_t));
+		memcpy(savelex, ep->sh->lex_context, sizeof(Lex_t));
 	}
 }
 #endif /* SHOPT_ESH || SHOPT_VSH */
@@ -905,6 +915,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 		if(0)
 #endif
 		{
+			/* redraw the prompt after receiving SIGWINCH */
 			Edpos_t	lastpos;
 			int	n, rows, newsize;
 			/* move cursor to start of first line */
@@ -1800,10 +1811,8 @@ int ed_histgen(Edit_t *ep,const char *pattern)
 	{
 		l = ac;
 		argv = av  = (char**)stakalloc((ac+1)*sizeof(char*));
-		for(mplast=0; l>=0 && (*av= (char*)mp); mplast=mp,mp=mp->next,av++)
-		{
+		for(; l>=0 && (*av= (char*)mp); mp=mp->next,av++)
 			l--;
-		}
 		*av = 0;
 		strsort(argv,ac,ed_sortdata);
 		mplast = (Histmatch_t*)argv[0];

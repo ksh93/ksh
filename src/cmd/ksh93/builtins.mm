@@ -452,7 +452,7 @@ while(1) switch(n=optget(argv,"xf:[file]"))
 		break;
 	case '?':
 		error(ERROR_usage(2), opt_info.arg);
-		break;
+		UNREACHABLE();
 }
 .EE
 .H 2 "Storage Management"

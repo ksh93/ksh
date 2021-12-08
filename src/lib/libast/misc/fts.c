@@ -828,6 +828,7 @@ fts_read(register FTS* fts)
 	struct stat		sb;
 #endif
 
+	f = 0;
 	for (;;)
 		switch (fts->state)
 		{

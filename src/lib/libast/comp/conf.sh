@@ -243,7 +243,7 @@ case $append$extra in
 						;;
 					*" -$f- "*)
 						;;
-					*)	if	iffe -n - hdr $f | grep _hdr_$f >/dev/null
+					*)	if	iffe -c "$cc" -n - hdr $f | grep _hdr_$f >/dev/null
 						then	hdr="$hdr $f"
 							headers=$headers$nl#include$sp'<'$1'>'
 						else	hdr="$hdr -$f-"
@@ -382,8 +382,8 @@ sort -u > $tmp.f
 {
 sed \
 	-e 's/[^ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]/ /g' \
-	-e 's/[ 	][ 	]*/\n/g' \
-	`cat $tmp.f` 2>/dev/null |
+	-e 's/[ 	][ 	]*/%/g' \
+	`cat $tmp.f` 2>/dev/null | tr '%' '\n' | \
 	egrep '^(SI|_(CS|PC|SC|SI))_.'
 	case $CONF_getconf_a in
 	?*)	$CONF_getconf $CONF_getconf_a | sed 's,[=:    ].*,,'
@@ -1546,7 +1546,7 @@ struct Conf_s
 	short		standard;
 	short		section;
 	short		call;
-	short		op;
+	int		op;
 };
 
 typedef struct Prefix_s

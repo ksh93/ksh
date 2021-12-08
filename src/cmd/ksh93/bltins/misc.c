@@ -525,6 +525,7 @@ static void	print_times(struct timeval utime, struct timeval stime)
 	sfprintf(sfstdout, "%dm%02d%c%06ds %dm%02d%c%06ds\n", ut_min, ut_sec, radix, ut_ms, st_min, st_sec, radix, st_ms);
 }
 #if _lib_getrusage
+/* getrusage tends to have higher precision */
 static void	print_cpu_times(void)
 {
 	struct rusage usage;

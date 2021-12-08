@@ -1122,6 +1122,8 @@ do	case $bltin in
 		actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
 	*/*)	err_exit "strange path name in 'builtin' output: $(printf %q "$bltin")"
 		continue ;;
+	autoload | compound | float | functions | integer | nameref)
+		bltin=typeset ;&
 	*)	expect="Usage: $bltin "
 		actual=$({ "${bltin}" --this-option-does-not-exist; } 2>&1) ;;
 	esac
@@ -1433,6 +1435,65 @@ if builtin rm 2> /dev/null; then
 	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -rd options' \
 		"(got $(printf %q "$got"))"
 	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -rd options'
+fi
+
+# ======
+# These are regression tests for the cd command's -e and -P flags
+mkdir -p "$tmp/failpwd1"
+cd "$tmp/failpwd1"
+rmdir ../failpwd1
+cd -P .
+got=$?; exp=0
+(( got == exp )) || err_exit "cd -P without -e exits with error status if \$PWD doesn't exist (expected $exp, got $got)"
+cd -eP .
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -eP doesn't fail if \$PWD doesn't exist (expected $exp, got $got)"
+cd "$tmp"
+cd -P "$tmp/notadir" >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+cd -eP "$tmp/notadir" >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+OLDPWD="$tmp/baddir"
+cd -P - >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+cd -eP - >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+cd "$tmp" || err_exit "couldn't change directory from nonexistent dir"
+(set -o restricted; cd -P /) >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P in restricted shell has wrong exit status (expected $exp, got $got)"
+(set -o restricted; cd -eP /) >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP in restricted shell has wrong exit status (expected $exp, got $got)"
+(set -o restricted; cd -?) >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -? shows usage info in restricted shell and has wrong exit status (expected $exp, got $got)"
+(cd -P '') >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P to empty string has wrong exit status (expected $exp, got $got)"
+(cd -eP '') >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP to empty string has wrong exit status (expected $exp, got $got)"
+
+# ======
+# The head and tail builtins should work on files without newlines
+if builtin head 2> /dev/null; then
+	print -n nonewline > "$tmp/nonewline"
+	exp=nonewline
+	got=$(head -1 "$tmp/nonewline")
+	[[ $got == $exp ]] || err_exit "head builtin fails to correctly handle files without an ending newline" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+if builtin tail 2> /dev/null; then
+	print -n 'newline\nnonewline' > "$tmp/nonewline"
+	exp=nonewline
+	got=$(tail -1 "$tmp/nonewline")
+	[[ $got == $exp ]] || err_exit "tail builtin fails to correctly handle files without an ending newline" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======

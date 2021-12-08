@@ -1457,6 +1457,7 @@ static void getline(register Vi_t* vp,register int mode)
 		case '\b':		/** backspace **/
 			if( sh_isoption(SH_VI) && backslash && virtual[cur_virt] == '\\' )
 			{
+				/*** escape backspace/erase char ***/
 				backslash = 0;
 				cdelete(vp,1, BAD);
 				append(vp,usrerase, mode);
@@ -1503,6 +1504,7 @@ static void getline(register Vi_t* vp,register int mode)
 		case UKILL:		/** user kill line char **/
 			if( sh_isoption(SH_VI) && backslash && virtual[cur_virt] == '\\' )
 			{
+				/*** escape kill char ***/
 				backslash = 0;
 				cdelete(vp,1, BAD);
 				append(vp,usrkill, mode);

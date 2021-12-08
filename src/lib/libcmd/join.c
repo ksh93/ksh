@@ -705,8 +705,9 @@ sfprintf(sfstdout, "[2#%d:0,%lld,%lld]", __LINE__, lo, hi);
 						jp->samesize = roundof(n2, 16);
 						if (!(jp->same = newof(jp->same, char, jp->samesize, 0)))
 						{
-							error(ERROR_SYSTEM|2, "out of memory");
-							return -1;
+							done(jp);
+							error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+							UNREACHABLE();
 						}
 					}
 					memcpy(jp->same, cp2, o2 = n2);
@@ -826,7 +827,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 #endif
 	if (!(jp = init()))
 	{
-		error(ERROR_system(1),"out of memory");
+		error(ERROR_SYSTEM|ERROR_PANIC,"out of memory");
 		UNREACHABLE();
 	}
 	jp->context = context;

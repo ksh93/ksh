@@ -21,6 +21,12 @@
 ***********************************************************************/
 #pragma prototyped
 
+#include <cmd.h>
+#include <vmalloc.h>
+#include <sfdisc.h>
+
+#if !_std_malloc  /* do not pointlessly compile this if vmalloc is disabled */
+
 #define FORMAT		"region=%(region)p method=%(method)s flags=%(flags)s size=%(size)d segments=%(segments)d busy=(%(busy_size)d,%(busy_blocks)d,%(busy_max)d) free=(%(free_size)d,%(free_blocks)d,%(free_max)d)"
 
 static const char usage[] =
@@ -48,10 +54,6 @@ static const char usage[] =
     "}"
 "[+SEE ALSO?\bvmalloc\b(3)]"
 ;
-
-#include <cmd.h>
-#include <vmalloc.h>
-#include <sfdisc.h>
 
 typedef struct State_s
 {
@@ -200,3 +202,5 @@ b_vmstate(int argc, char** argv, Shbltin_t* context)
 	}
 	return 0;
 }
+
+#endif /* !_std_malloc */

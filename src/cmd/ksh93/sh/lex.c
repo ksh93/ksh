@@ -45,6 +45,7 @@
 #include	"test.h"
 #include	"lexstates.h"
 #include	"io.h"
+#include	"shlex.h"
 
 #define TEST_RE		3
 #define SYNBAD		3	/* exit value for syntax errors */
@@ -67,53 +68,6 @@ local_iswblank(wchar_t wc)
 }
 
 #endif
-
-/*
- * This structure allows for arbitrary depth nesting of (...), {...}, [...]
- */
-struct lexstate
-{
-	char		incase;		/* 1 for case pattern, 2 after case */
-	char		intest;		/* 1 inside [[ ... ]] */
-	char		testop1;	/* 1 when unary test op legal */
-	char		testop2;	/* 1 when binary test op legal */
-	char		reservok;	/* >0 for reserved word legal */
-	char		skipword;	/* next word can't be reserved */
-	char		last_quote;	/* last multi-line quote character */
-	char		nestedbrace;	/* ${var op {...}} */
-};
-
-struct lexdata
-{
-	char		nocopy;
-	char		paren;
-	char		dolparen;
-	char		nest;
-	char		docword;
-	char		nested_tilde;
-	char 		*docend;
-	char		noarg;
-	char		warn;
-	char		message;
-	char		arith;
-	char 		*first;
-	int		level;
-	int		lastc;
-	int		lex_max;
-	int		*lex_match;
-	int		lex_state;
-	int		docextra;
-#if SHOPT_KIA
-	off_t		kiaoff;
-#endif
-};
-
-#define _SHLEX_PRIVATE \
-	struct lexdata  lexd; \
-	struct lexstate  lex;
-
-#include	"shlex.h"
-
 
 #define	pushlevel(lp,c,s)	((lp->lexd.level>=lp->lexd.lex_max?stack_grow(lp):1) &&\
 				((lp->lexd.lex_match[lp->lexd.level++]=lp->lexd.lastc),\
@@ -1435,7 +1389,39 @@ breakloop:
 			if(lp->lex.testop2)
 			{
 				if(lp->lexd.warn && (c&TEST_ARITH))
-					errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete4,shp->inlineno,state);
+				{
+					char *alt;
+					switch(c)
+					{
+					    case TEST_EQ:
+						alt = "==";  /* '-eq' --> '==' */
+						break;
+					    case TEST_NE:
+						alt = "!=";  /* '-ne' --> '!=' */
+						break;
+					    case TEST_LT:
+						alt = "<";   /* '-lt' --> '<' */
+						break;
+					    case TEST_GT:
+						alt = ">";   /* '-gt' --> '>' */
+						break;
+					    case TEST_LE:
+						alt = "<=";  /* '-le' --> '<=' */
+						break;
+					    case TEST_GE:
+						alt = ">=";  /* '-ge' --> '>=' */
+						break;
+					    default:
+#if _AST_ksh_release
+						alt = NIL(char*);	/* output '(null)' (should never happen) */
+#else
+						abort();
+#endif
+						break;
+					}
+					errormsg(SH_DICT, ERROR_warn(0), e_lexobsolete4,
+							shp->inlineno, state, alt);
+				}
 				if(c&TEST_STRCMP)
 					lp->lex.incase = 1;
 				else if(c==TEST_REP)
@@ -1542,7 +1528,7 @@ static int comsub(register Lex_t *lp, int endtok)
 	struct ionod	*inheredoc = lp->heredoc;
 	char *first,*cp=fcseek(0),word[5];
 	int off, messages=0, assignok=lp->assignok, csub;
-	struct lexstate	save;
+	struct _shlex_pvt_lexstate_ save;
 	save = lp->lex;
 	csub = lp->comsub;
 	sh_lexopen(lp,lp->sh,1);
@@ -1676,6 +1662,7 @@ done:
 	lp->assignok = (endchar(lp)==RBRACT?assignok:0);
 	if(lp->heredoc && !inheredoc)
 	{
+		/* here-document isn't fully contained in command substitution */
 		errormsg(SH_DICT,ERROR_exit(SYNBAD),e_lexsyntax5,lp->sh->inlineno,lp->heredoc->ioname);
 		UNREACHABLE();
 	}

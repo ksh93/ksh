@@ -466,17 +466,22 @@ let "${actual##*$'\n'} > 128" || err_exit "child process signal did not cause ex
 	"(got ${actual##*$'\n'})"
 
 # ======
-# Killing a non-existent job shouldn't cause a segfault. Note that `2> /dev/null` has no effect when
-# there is a segfault.
-$SHELL -c 'kill %% 2> /dev/null'; [[ $? == 1 ]] || err_exit $'`kill` doesn\'t handle a non-existent job correctly when passed \'%%\''
-$SHELL -c 'kill %+ 2> /dev/null'; [[ $? == 1 ]] || err_exit $'`kill` doesn\'t handle a non-existent job correctly when passed \'%+\''
-$SHELL -c 'kill %- 2> /dev/null'; [[ $? == 1 ]] || err_exit $'`kill` doesn\'t handle a non-existent job correctly when passed \'%-\''
+# Killing a non-existent job shouldn't cause a segfault.
+# https://github.com/ksh93/ksh/issues/34
+for c in % + -
+do	got=$( { "$SHELL" -c "kill %$c"; } 2>&1 )
+	[[ $? == 1 ]] || err_exit "'kill' doesn't handle a non-existent job correctly when passed '%$c'" \
+		"(got $(printf %q "$got"))"
+done
 
 # ======
 # SIGINFO should be supported by the kill builtin on platforms that have it.
 if "$(whence -p kill)" -INFO $$ 2> /dev/null
 then
-	kill -INFO $$ || err_exit '`kill` cannot send SIGINFO to processes when passed `-INFO`'
+	got=$(kill -INFO $$ 2>&1) || err_exit '`kill` cannot send SIGINFO to processes when passed `-INFO`' \
+		"(got $(printf %q "$got"))"
+	got=$(kill -s INFO $$ 2>&1) || err_exit '`kill` cannot send SIGINFO to processes when passed `-s INFO`' \
+		"(got $(printf %q "$got"))"
 fi
 
 # ======
@@ -522,6 +527,31 @@ got=$(export exp; "$SHELL" -c '
 got=${got% }	# rm final space
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "ksh function ignores global signal traps" \
 	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
+# Signal incorrectly issued when function returns with status > 256 and EXIT trap is active
+# https://github.com/ksh93/ksh/issues/364
+signum=${ kill -l SEGV; }
+cat > exit267 <<-EOF  # unquoted delimiter; expansion active
+	trap 'echo OK \$?' EXIT  # This trap triggers the crash
+	function foo { return $((signum+256)); }
+	foo
+EOF
+exp="OK $((signum+256))"
+got=$( { "$SHELL" exit267; } 2>&1 )
+(( (e=$?)==signum+128 )) && [[ $got == "$exp" ]] || err_exit "'return' with status > 256:" \
+	"(expected status $((signum+128)) and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+
+cat > bar <<-'EOF'
+	trap : EXIT
+	function foo { "$SHELL" -c 'kill -s SEGV $$'; }
+	foo 2> /dev/null
+	echo OK
+EOF
+exp="OK"
+got=$( { "$SHELL" bar; } 2>&1 )
+(( (e=$?)==0 )) && [[ $got == "$exp" ]] || err_exit "segfaulting child process:" \
+	"(expected status 0 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

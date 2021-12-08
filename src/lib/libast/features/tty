@@ -1,4 +1,4 @@
-hdr	termios,termio,sgtty
+hdr	termios,termio,sgtty,sys/ioctl
 sys	termios,termio,ioctl,bsdtty,nttyio,ttyio
 lib	tcgetattr,tcgetpgrp termios.h
 mac	_POSIX_VDISABLE termios.h
@@ -106,6 +106,10 @@ cat{
 #	endif /* TCSETAW */
 #   endif /* TCSANOW */
 #endif /* _hdr_termios */
+
+#if _hdr_sys_ioctl
+#   include <sys/ioctl.h>
+#endif
 
 /* set ECHOCTL if driver can echo control characters as ^c */
 #ifdef LCTLECH

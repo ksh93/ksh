@@ -73,20 +73,18 @@ static struct subshell
 	Shell_t		*shp;	/* shell interpreter */
 	struct subshell	*prev;	/* previous subshell data */
 	struct subshell	*pipe;	/* subshell where output goes to pipe on fork */
-	Dt_t		*var;	/* variable table at time of subshell */
 	struct Link	*svar;	/* save shell variable table */
 	Dt_t		*sfun;	/* function scope for subshell */
 	Dt_t		*strack;/* tracked alias scope for subshell */
 	Pathcomp_t	*pathlist; /* for PATH variable */
-	struct Error_context_s *errcontext;
 	Shopt_t		options;/* save shell options */
 	pid_t		subpid;	/* child process id */
 	Sfio_t*		saveout;/* saved standard output */
 	char		*pwd;	/* present working directory */
 	void		*jobs;	/* save job info */
 	mode_t		mask;	/* saved umask */
-	short		tmpfd;	/* saved tmp file descriptor */
-	short		pipefd;	/* read fd if pipe is created */
+	int		tmpfd;	/* saved tmp file descriptor */
+	int		pipefd;	/* read fd if pipe is created */
 	char		jobcontrol;
 	char		monitor;
 	unsigned char	fdstatus;
@@ -519,8 +517,6 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	sp->shp = shp;
 	sp->sig = 0;
 	subshell_data = sp;
-	sp->errcontext = &buff.err;
-	sp->var = shp->var_tree;
 	sp->options = shp->options;
 	sp->jobs = job_subsave();
 	sp->subdup = shp->subdup;
@@ -871,6 +867,9 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			srand(rp->rand_seed = sp->rand_seed);
 			rp->rand_last = sp->rand_last;
 		}
+		/* Real subshells have their exit status truncated to 8 bits by the kernel.
+		 * Since virtual subshells should be indistinguishable, do the same here. */
+		sh.exitval &= SH_EXITMASK;
 	}
 	shp->subshare = sp->subshare;
 	shp->subdup = sp->subdup;

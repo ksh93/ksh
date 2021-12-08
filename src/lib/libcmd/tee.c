@@ -197,7 +197,10 @@ b_tee(int argc, register char** argv, Shbltin_t* context)
 			}
 		}
 		else
-			error(ERROR_exit(0), "out of memory");
+		{
+			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+			UNREACHABLE();
+		}
 	}
 	if ((sfmove(sfstdin, sfstdout, SF_UNBOUND, -1) < 0 || !sfeof(sfstdin)) && !ERROR_PIPE(errno) && errno != EINTR)
 		error(ERROR_system(0), "read error");

@@ -32,7 +32,7 @@ AIX)	unset LIBPATH ;;
 esac
 
 command=iffe
-version=2021-02-03 # update in USAGE too #
+version=2021-12-06
 
 compile() # $cc ...
 {
@@ -660,7 +660,8 @@ ifs=${IFS-'
 in=
 includes=
 intrinsic=
-libpaths="LD_LIBRARY_PATH LD_LIBRARYN32_PATH LD_LIBRARY64_PATH LIBPATH SHLIB_PATH"
+libpaths="DYLD_LIBRARY_PATH LD_LIBRARY_PATH LD_LIBRARYN32_PATH LD_LIBRARY64_PATH LIBPATH SHLIB_PATH"
+	DYLD_LIBRARY_PATH_default=:/lib:/usr/lib
 	LD_LIBRARY_PATH_default=:/lib:/usr/lib
 	LD_LIBRARYN32_PATH_default=:/lib32:/usr/lib32
 	LD_LIBRARY64_PATH_default=:/lib64:/usr/lib64
@@ -754,7 +755,7 @@ set=
 case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 0123)	USAGE=$'
 [-?
-@(#)$Id: iffe (ksh 93u+m) 2021-02-03 $
+@(#)$Id: iffe (ksh 93u+m) '${version}$' $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Phong Vo <kpv@research.att.com>]
@@ -897,8 +898,12 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 		[+ ?#define _END_EXTERNS_]
 		[+ ?#endif]
 		[+ ?#define _NIL_(x) ((x)0)]
-		[+ ?#include <stdio.h>]
+		[+ ?#include <stdio.h> /* unless changed using the "stdio" option */]
 	}
+[+?In addition, if and when available, standards macros set as a result of the
+	\bsrc/lib/libast/features/standards\b feature test are incorporated
+	here, ensuring the compilation environment is consistent between the
+	tests and the code that uses the test results.]
 [+?= \adefault\a may be specified for the \bkey\b, \blib\b, \bmac\b, \bmth\b
 	and \btyp\b tests. If the test fails for \aarg\a then
 	\b#define\b \aarg\a \adefault\a is emitted. \bkey\b accepts multiple
@@ -1079,8 +1084,8 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 		\bsh\b(1).]
 	[+link?The block is compiled and linked (\bcc -o\b).]
 	[+macro?The block is preprocessed (\bcc -E\b) and lines containing
-		text bracketed by \b<<"\b ... \b">>\b (\aless-than less-than
-		double-quote ... double-quote greater-than greater-than\a)
+		text bracketed by \b<<"\b ... \b">>\b (\aless-than\a \aless-than\a
+		\adouble-quote\a ... \adouble-quote\a \agreater-than\a \agreater-than\a)
 		are copied to the output file with the brackets omitted.]
 	[+no?If the test fails then the block text is copied to the
 		output file. Deprecated: use { \bif\b \belif\b \belse\b
@@ -1364,6 +1369,11 @@ std='#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 #define _END_EXTERNS_
 #endif
 #define _NIL_(x)	((x)0)'
+# To ensure the environment tested is the same as that used, add standards
+# compliance macros as probed by libast as soon as they are available.
+if	test -f "${INSTALLROOT}/src/lib/libast/FEATURE/standards"
+then	std=${std}${nl}`cat "${INSTALLROOT}/src/lib/libast/FEATURE/standards"`
+fi
 tst=
 ext="#include <stdio.h>"
 

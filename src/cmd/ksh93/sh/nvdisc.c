@@ -283,11 +283,16 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		nq =  vp->disc[type=UNASSIGN];
 	if(nq && !isblocked(bp,type))
 	{
-		int bflag=0, savexit=sh.savexit;
+		int bflag=0, savexit=sh.savexit, jmpval=0;
+		struct checkpt buff;
 		block(bp,type);
 		if (type==APPEND && (bflag= !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
-		sh_fun(nq,np,(char**)0);
+		sh_pushcontext(&sh,&buff,1);
+		jmpval = sigsetjmp(buff.buff,0);
+		if(!jmpval)
+			sh_fun(nq,np,(char**)0);
+		sh_popcontext(&sh,&buff);
 		unblock(bp,type);
 		if(bflag)
 			unblock(bp,LOOKUPS);
@@ -376,7 +381,8 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 	union Value		*up = np->nvalue.up;
 	if(nq && !isblocked(bp,type))
 	{
-		int		savexit = sh.savexit;
+		int		savexit = sh.savexit, jmpval = 0;
+		struct checkpt	buff;
 		node = *SH_VALNOD;
 		if(!nv_isnull(SH_VALNOD))
 		{
@@ -389,7 +395,11 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			nv_setsize(SH_VALNOD,10);
 		}
 		block(bp,type);
-		sh_fun(nq,np,(char**)0);
+		sh_pushcontext(&sh,&buff,1);
+		jmpval = sigsetjmp(buff.buff,0);
+		if(!jmpval)
+			sh_fun(nq,np,(char**)0);
+		sh_popcontext(&sh,&buff);
 		unblock(bp,type);
 		if(!vp->disc[type])
 			chktfree(np,vp);
@@ -832,11 +842,8 @@ static void *newnode(const char *name)
 {
 	register int s;
 	register Namval_t *np = sh_newof(0,Namval_t,1,s=strlen(name)+1);
-	if(np)
-	{
-		np->nvname = (char*)np+sizeof(Namval_t);
-		memcpy(np->nvname,name,s);
-	}
+	np->nvname = (char*)np+sizeof(Namval_t);
+	memcpy(np->nvname,name,s);
 	return((void*)np);
 }
 
@@ -1202,6 +1209,7 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 		{
 			if(nv_isattr(np,BLT_SPC))
 			{
+				/* builtin(1) cannot delete special builtins */
 				errormsg(SH_DICT,ERROR_exit(1),"cannot delete: %s%s",name,is_spcbuiltin);
 				UNREACHABLE();
 			}

@@ -34,12 +34,6 @@
 #include	"builtins.h"
 #include	"FEATURE/time"
 #include	"FEATURE/poll"
-#ifdef _NEXT_SOURCE
-#   define sleep	_ast_sleep
-#endif /* _NEXT_SOURCE */
-#ifdef _lib_poll_notimer
-#   undef _lib_poll
-#endif /* _lib_poll_notimer */
 
 int	b_sleep(register int argc,char *argv[],Shbltin_t *context)
 {
@@ -122,7 +116,7 @@ skip:
 		tloc += (time_t)(d+.5);
 	}
 	if(sflag && d==0)
-		pause();
+		pause();  /* 'sleep -s' waits until a signal is sent */
 	else while(1)
 	{
 		time_t now;
@@ -142,7 +136,9 @@ skip:
 }
 
 /*
- * delay execution for time <t>
+ * Delay execution for time <t>.
+ * If sflag==1, stop sleeping when any signal is received
+ * (such as SIGWINCH in an interactive shell).
  */
 
 void sh_delay(double t, int sflag)
