@@ -548,19 +548,11 @@ sjis_mbtowc(register wchar_t* p, register const char* s, size_t n)
 
 #endif
 
-#if 0
-
-#define utf8_wctomb	wctomb
-
-#else
-
 static int
 utf8_wctomb(char* u, wchar_t w) 
 {
 	return u ? wc2utf8(u, w) : 0;
 }
-
-#endif
 
 static const uint32_t		utf8mask[] =
 {

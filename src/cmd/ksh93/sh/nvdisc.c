@@ -842,11 +842,8 @@ static void *newnode(const char *name)
 {
 	register int s;
 	register Namval_t *np = sh_newof(0,Namval_t,1,s=strlen(name)+1);
-	if(np)
-	{
-		np->nvname = (char*)np+sizeof(Namval_t);
-		memcpy(np->nvname,name,s);
-	}
+	np->nvname = (char*)np+sizeof(Namval_t);
+	memcpy(np->nvname,name,s);
 	return((void*)np);
 }
 
@@ -1212,6 +1209,7 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 		{
 			if(nv_isattr(np,BLT_SPC))
 			{
+				/* builtin(1) cannot delete special builtins */
 				errormsg(SH_DICT,ERROR_exit(1),"cannot delete: %s%s",name,is_spcbuiltin);
 				UNREACHABLE();
 			}

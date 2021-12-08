@@ -302,18 +302,4 @@ extern const Namdisc_t	*nv_discfun(int);
 #define nv_size(np)		nv_setsize((np),-1)
 #define nv_stack(np,nf)		nv_disc(np,nf,0)
 
-#if 0
-/*
- * The names of many functions were changed in early '95
- * Here is a mapping to the old names
- */
-#   define nv_istype(np)	nv_isattr(np)
-#   define nv_newtype(np)	nv_newattr(np)
-#   define nv_namset(np,a,b)	nv_open(np,a,b)
-#   define nv_free(np)		nv_unset(np,0)
-#   define nv_settype(np,a,b,c)	nv_setdisc(np,a,b,c)
-#   define nv_search(np,a,b)	nv_open(np,a,((b)?0:NV_NOADD))
-#   define settype	setdisc
-#endif
-
 #endif /* NV_DEFAULT */

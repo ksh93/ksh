@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 	argc -= opt_info.index;
 	if(argc==0 && tty_check(0))
 	{
-		errormsg(SH_DICT,ERROR_exit(0),"refusing to read script from terminal",cp);
+		errormsg(SH_DICT,ERROR_exit(0),"refusing to read script from terminal");
 		error_info.errors++;
 	}
 	if(error_info.errors || argc>2)
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 	if(vflag)
 		sh_onoption(SH_VERBOSE);
 	if(!dflag)
-		sfwrite(out,header,sizeof(header));
+		sfwrite(out,header,sizeof(header));  /* write binary shcomp header */
 	sh_offoption(SH_MULTILINE);
 	shp->inlineno = 1;
 #if SHOPT_BRACEPAT
@@ -174,6 +174,7 @@ int main(int argc, char *argv[])
 		if(t = (Shnode_t*)sh_parse(shp,in,0))
 		{
 			if((t->tre.tretyp&(COMMSK|COMSCAN))==0 && t->com.comnamp && strcmp(nv_name((Namval_t*)t->com.comnamp),"alias")==0)
+				/* Create aliases found in the script to prevent syntax errors */
 				sh_exec(t,0);
 			if(!dflag && sh_tdump(out,t) < 0)
 			{

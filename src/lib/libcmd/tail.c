@@ -626,12 +626,15 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_warn(0), "--log ignored for --notimeout");
 	}
 	if (error_info.errors)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (flags & FOLLOW)
 	{
 		if (!(fp = (Tail_t*)stakalloc(argc * sizeof(Tail_t))))
 		{
-			error(ERROR_system(1), "out of memory");
+			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
 		files = 0;

@@ -299,7 +299,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			mapdisc.size = sizeof(Key_t);
 			if (!(map = dtopen(&mapdisc, Dtset)))
 			{
-				error(ERROR_exit(1), "out of memory [id map]");
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [id map]");
 				UNREACHABLE();
 			}
 			continue;
@@ -383,7 +383,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			{
 				if (!(m = (Map_t*)stakalloc(sizeof(Map_t))))
 				{
-					error(ERROR_exit(1), "out of memory [id dictionary]");
+					error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [id dictionary]");
 					UNREACHABLE();
 				}
 				m->key = key;

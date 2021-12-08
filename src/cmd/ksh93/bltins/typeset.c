@@ -185,7 +185,7 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 			nv_scan(troot,nv_rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	}
 	else if(argv[1] && tdata.sh->subshell && !tdata.sh->subshare)
-		sh_subfork();			/* avoid affecting main shell's alias table */
+		sh_subfork();			/* avoid affecting the parent shell's alias table */
 	return(setall(argv,flag,troot,&tdata));
 }
 
@@ -652,7 +652,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 		{
 			register unsigned newflag;
 			register Namval_t *np;
-			Namarr_t	*ap;
+			Namarr_t	*ap=0;
 			Namval_t	*mp;
 			unsigned curflag;
 			if(troot == shp->fun_tree)
@@ -1359,9 +1359,8 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 				}
 			}
 			/*
-			 * When aliases are removed from the tree, the NV_NOFREE attribute must be used for
-			 * preset aliases since those are given the NV_NOFREE attribute. _nv_unset discards
-			 * NV_NOFREE so the status of NV_NOFREE is obtained now to prevent an invalid free crash.
+			 * Preset aliases have the NV_NOFREE attribute and cannot be safely freed from memory.
+			 * _nv_unset discards this flag so it's obtained now to prevent an invalid free crash.
 			 */
 			if(troot==shp->alias_tree)
 				nofree_attr = nv_isattr(np,NV_NOFREE);	/* note: returns bitmask, not boolean */

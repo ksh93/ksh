@@ -152,7 +152,7 @@ const struct shtable3 shtab_builtins[] =
 	CMDLIST(wc)
 	CMDLIST(sync)
 #if !_std_malloc && !_AST_std_malloc
-	CMDLIST(vmstate)
+	CMDLIST(vmstate)  /* vmstate only works with vmalloc */
 #endif
 #endif
 #if SHOPT_REGRESS
@@ -473,10 +473,7 @@ const char sh_optcd[] =
 	"written to standard output.]"
 "[+?If both \b-L\b and \b-P\b are specified, the last one specified will "
 	"be used.  If neither \b-P\b or \b-L\b is specified then the "
-	"behavior will be determined by the \bgetconf\b parameter "
-	"\bPATH_RESOLVE\b.  If \bPATH_RESOLVE\b is \bphysical\b, "
-	"then the behavior will be as if \b-P\b were specified.  Otherwise, "
-	"the behavior will be as if  \b-L\b were specified.]"
+	"behavior will default to \b-L\b.]"
 "[L?Handle each pathname component \b..\b in a logical fashion by moving "
 	"up one level by name in the present working directory.]"
 "[P?The present working directory is first converted to an absolute pathname "
@@ -637,7 +634,7 @@ const char sh_optexec[] =
 ;
 
 const char sh_optexit[] =
-"[-1c?\n@(#)$Id: exit (AT&T Research) 1999-07-07 $\n]"
+"[-1c?\n@(#)$Id: exit (ksh 93u+m) 2021-12-08 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?exit - exit the current shell]"
 "[+DESCRIPTION?\bexit\b is shell special built-in that causes the "
@@ -647,10 +644,10 @@ const char sh_optexit[] =
 "\n"
 "\n[n]\n"
 "\n"
-"[+EXIT STATUS?If \an\a is specified, the exit status is the least significant "
-	"eight bits of the value of \an\a.  Otherwise, the exit status is the "
-	"exit status of preceding command.  When invoked inside a trap, the "
-	"preceding command means the command that invoked the trap.]"
+"[+EXIT STATUS?The exit status is the least significant eight bits of the "
+	"value of \an\a (if specified) or of the exit status of the preceding "
+	"command. If \bexit\b is invoked inside a trap, the preceding command "
+	"means the command that invoked the trap.]"
 "[+SEE ALSO?\bbreak\b(1), \breturn\b(1)]"
 ;
 
@@ -1389,10 +1386,7 @@ const char sh_optpwd[] =
 	"\b.\b or \b..\b components.]"
 "[+?If both \b-L\b and \b-P\b are specified, the last one specified will "
 	"be used.  If neither \b-P\b or \b-L\b is specified then the "
-	"behavior will be determined by the \bgetconf\b parameter "
-	"\bPATH_RESOLVE\b.  If \bPATH_RESOLVE\b is \bphysical\b, "
-	"then the behavior will be as if \b-P\b were specified.  Otherwise, "
-	"the behavior will be as if  \b-L\b were specified.]"
+	"behavior will default to \b-L\b.]"
 "[L?The absolute pathname may contains symbolic link components.  This is "
 	"the default.]"
 "[P?The absolute pathname will not contain any symbolic link components.]"
@@ -1515,25 +1509,28 @@ const char sh_optredirect[] =
 ;
 
 const char sh_optreturn[] =
-"[-1c?\n@(#)$Id: return (AT&T Research) 1999-07-07 $\n]"
+"[-1c?\n@(#)$Id: return (ksh 93u+m) 2021-12-08 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?return - return from a function or dot script ]"
 "[+DESCRIPTION?\breturn\b is a shell special built-in that causes the "
-	"function or dot script that invokes it to exit.  "
-	"If \breturn\b is invoked outside of a function or dot script "
-	"it is equivalent to \bexit\b.]"
+	"function, dot script or profile script that invokes it to exit. "
+	"If \breturn\b is invoked outside of one of these, it behaves "
+	"exactly like \bexit\b(1); see its manual page.]"
 "[+?If \breturn\b is invoked inside a function defined with the \bfunction\b "
 	"reserved word syntax, then any \bEXIT\b trap set within the "
-	"then function will be invoked in the context of the caller "
+	"function will be invoked in the context of the caller "
 	"before the function returns.]"
 "[+?If \an\a is given, it will be used to set the exit status.]"
 "\n"
 "\n[n]\n"
 "\n"
-"[+EXIT STATUS?If \an\a is specified, the exit status is the least significant "
-	"eight bits of the value of \an\a.  Otherwise, the exit status is the "
-	"exit status of preceding command.]"
-"[+SEE ALSO?\bbreak\b(1), \bexit\b(1)]"
+"[+EXIT STATUS?If \an\a is not specified, the exit status is that of the "
+	"preceding command. Otherwise, it is the value \an\a as a signed "
+	"integer. An out-of-range value produces a warning and an exit "
+	"status of 128. The range can be shown using \bgetconf INT_MIN\b "
+	"and \bgetconf INT_MAX\b. When the current (sub)shell exits, "
+	"the exit status is truncated to 8 bits as in \bexit\b.]"
+"[+SEE ALSO?\bbreak\b(1), \bexit\b(1), \bgetconf\b(1)]"
 ;
 
 

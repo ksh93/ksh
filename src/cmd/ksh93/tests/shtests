@@ -385,7 +385,7 @@ do	[[ $i == *.sh ]] || i+='.sh'
 				(( e += $? ))
 			fi
 			if	(( e > 128 && ++total_e ))
-			then	E="(killed by SIG$(kill -l "$e"))"
+			then	E="(killed by SIG$(kill -l "$e"))"  # report signal if test crashes
 			elif	(( e == 1 && ++total_e ))
 			then	E="1 error"
 			else	E="$e errors"
@@ -417,7 +417,7 @@ do	[[ $i == *.sh ]] || i+='.sh'
 			then	echo test $o passed ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"} "[ $t $T 0 errors ]"
 			else	e=$?
 				if	(( e > 128 && ++total_e ))
-				then	E="(killed by SIG$(kill -l "$e"))"
+				then	E="(killed by SIG$(kill -l "$e"))"  # report signal if test crashes
 				elif	(( e == 1 && ++total_e ))
 				then	E="1 error"
 				else	E="$e errors"

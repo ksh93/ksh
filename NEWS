@@ -3,7 +3,17 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
-2021-12-07:
+2021-12-08:
+
+- Fixed: if a function returned with a status > 256 using the 'return' command
+  and the return value corresponded to a value that could have resulted from a
+  signal, and an EXIT trap was active, then the shell mistakenly issued that
+  signal to itself. Depending on the signal, this could cause the shell to
+  terminate ungracefully, e.g. 'return 267' caused SIGSEGV ("memory fault").
+
+- For the 'return' built-in command, you can now freely specify any
+  return value that fits in a signed integer, typically a 32-bit value.
+  Note that $? is truncated to 8 bits when the current (sub)shell exits.
 
 - The head and tail builtins now correctly handle files that do not have an
   ending newline. (Note that the tail builtin is not compiled in by default.)

@@ -1662,6 +1662,7 @@ done:
 	lp->assignok = (endchar(lp)==RBRACT?assignok:0);
 	if(lp->heredoc && !inheredoc)
 	{
+		/* here-document isn't fully contained in command substitution */
 		errormsg(SH_DICT,ERROR_exit(SYNBAD),e_lexsyntax5,lp->sh->inlineno,lp->heredoc->ioname);
 		UNREACHABLE();
 	}

@@ -1554,10 +1554,21 @@ the
 command.
 .TP
 .B ?
-The decimal value returned by the last executed command.
+The exit status returned by the last executed command. Its meaning depends
+on the command or function that defines it, but there are conventions that
+other commands often depend on: zero typically means 'success' or 'true',
+one typically means 'non-success' or 'false', and a value greater than one
+typically indicates some kind of error. Only the 8 least significant bits of
+\f3$?\fP (values 0 to 255) are preserved when the exit status is passed on
+to a parent process, but within the same (sub)shell environment, it is a
+signed integer value with a range of possible values as shown by the
+commands \f3getconf INT_MIN\fP and \f3getconf INT_MAX\fP. Shell functions
+that run in the current environment may return status values in this range.
 .TP
 .B $
-The process id of this shell.
+The process ID of the main shell process. Note that this value will not
+change in a subshell, even if the subshell runs in a different process.
+See also \f3.sh.pid\fP.
 .TP
 .B _
 Initially, the value of
@@ -6091,17 +6102,15 @@ then this command persistently modifies file descriptors as in
 Causes the shell to exit
 with the exit status specified by
 .IR n .
-The value will be the least significant 8 bits of the specified status.
-If
+The value will be the least significant 8 bits of
 .I n\^
-is omitted, then the exit status is that of the last command executed.
-An end-of-file will also cause the shell to exit
-except for a
-shell which has the
+(if specified) or of the exit status of the last command executed.
+An end-of-file will also cause the shell to exit,
+except for an interactive shell that has the
 .B ignoreeof
-option (see
+option turned on (see
 .B set
-below) turned on.
+below).
 .TP
 \(dg\(dd \f3export\fP \*(OK \f3\-p\fP \*(CK \*(OK \f2name\^\fP\*(OK\f3=\fP\f2value\^\fP\*(CK \*(CK .\|.\|.
 If
@@ -6990,25 +6999,20 @@ redirected to themselves as part of the invocation (e.g. \fB4>&4\fR)
 or if the \fBposix\fR option is set.
 .TP
 \(dg \f3return\fP \*(OK \f2n\^\fP \*(CK
-Causes a shell
-.I function
-or
-\f3\|.\fP
-script to return
-to the invoking script
-with the exit status specified by
+Causes a shell function, dot script (see \f3\|.\fP and \f3source\fP),
+or profile script to return to the invoking shell environment with the
+exit status specified by
 .IR n .
-The value will be the least significant 8 bits of the specified status.
+This status value can use the full signed integer range as shown by the
+commands \f3getconf INT_MIN\fP and \f3getconf INT_MAX\fP. A value
+outside that range will produce a warning and an exit status of 128.
 If
 .I n\^
-is omitted, then the return status is that of the last command executed.
+is omitted, then the value of \f3$?\fP is assumed, i.e., the exit
+status of the last command executed is passed on.
 If
 .B return
-is invoked while not in a
-.I function
-or a
-\f3\|.\fP
-script,
+is invoked while not in a function, dot script, or profile script,
 then it behaves the same as
 .BR exit .
 .TP
@@ -7200,7 +7204,7 @@ Same as
 .BR \-H .
 .TP 8
 .B ignoreeof
-The shell will not exit on end-of-file.
+An interactive shell will not exit on end-of-file.
 The command
 .B exit
 must be used.

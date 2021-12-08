@@ -75,7 +75,6 @@ extern int b_enum(int, char*[],Shbltin_t*);
 extern int b_exec(int, char*[],Shbltin_t*);
 extern int b_eval(int, char*[],Shbltin_t*);
 extern int b_return(int, char*[],Shbltin_t*);
-extern int B_login(int, char*[],Shbltin_t*);
 extern int b_true(int, char*[],Shbltin_t*);
 extern int b_false(int, char*[],Shbltin_t*);
 extern int b_readonly(int, char*[],Shbltin_t*);

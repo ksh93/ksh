@@ -140,7 +140,7 @@ cutinit(int mode, char* str, Delim_t* wdelim, Delim_t* ldelim, size_t reclen)
 
 	if (!(cut = (Cut_t*)stakalloc(sizeof(Cut_t) + strlen(cp) * sizeof(int))))
 	{
-		error(ERROR_exit(1), "out of memory");
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();
 	}
 	if (cut->mb = mbwide())

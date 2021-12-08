@@ -218,7 +218,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 	}
 	if (!(delim = strdup(delim)))
 	{
-		error(ERROR_system(1), "out of memory");
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();
 	}
 	dlen = dsiz = stresc(delim);
@@ -238,7 +238,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 			if (!(mp = newof(0, Delim_t, dlen, 0)))
 			{
 				free(delim);
-				error(ERROR_system(1), "out of memory");
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 				UNREACHABLE();
 			}
 			cp = delim;
@@ -263,7 +263,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 	{
 		if (!(streams = (Sfio_t**)stakalloc(n*sizeof(Sfio_t*))))
 		{
-			error(ERROR_exit(1), "out of memory");
+			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
 		n = 0;

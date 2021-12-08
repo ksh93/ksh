@@ -53,8 +53,8 @@ make install
 					exec - esac
 					exec - continue
 					exec - elif test ! -f ${INSTALLROOT}/lib/lib$i.a
-					exec - then case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} -L${INSTALLROOT}/lib ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' $x ;} | sed -e 's/[][()+@?]/#/g' || :` in
-					exec - *$x*) case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' $x ;} | sed -e 's/[][()+@?]/#/g' || :` in
+					exec - then case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} -L${INSTALLROOT}/lib ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :` in
+					exec - *$x*) case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :` in
 					exec - *$x*) continue ;;
 					exec - esac
 					exec - ;;
