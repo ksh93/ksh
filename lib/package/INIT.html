@@ -65,7 +65,7 @@ All recorded changes follow.
 12-06-06 iffe.sh: check for -l* in reverse and accumulative order (e.g., for -last &amp; -lm)
 12-06-04 package.sh: always check $INSTALLROOT/lib/package/profile
 12-05-31 Makefile: ID=ast; $(INSTALLROOT)/prototyped.h =&gt; $(INSTALLROOT)/$(ID)/prototyped.h
-12-05-28 iffe.sh: api foo YYYYMMDD =&gt; FOOAPI(rel) test macro
+12-05-28 iffe.sh: API foo YYYYMMDD =&gt; FOOAPI(rel) test macro
 12-05-24 package.sh: change admin.db comment =&gt; owner attributes
 12-04-25 ratz.c: add sear -k option to keep installation tmp dir on exit
 12-04-17 package.sh: skip sh version logic for ``use''
@@ -147,14 +147,14 @@ All recorded changes follow.
 09-10-21 iffe.sh,Makefile: test -e is not in ksh88!
 09-10-06 iffe.sh: handle cc -E #error with 0 exit status (sgi)
 09-10-06 package.sh: stub in ar intercept checks -- not used yet
-09-10-06 ar.ibm.risc: add ar intercept because some aix require -Xfoo first!!
+09-10-06 ar.ibm.risc: add ar intercept because some AIX require -Xfoo first!!
 09-09-24 regress.sh: fix UMASK logic to create test support files before umask
 09-08-28 release.c: change docs to mention stdin if no file operands
 09-08-24 package.sh: fix isascii() bug that failed on od(1) trailing space
 09-08-20 make.probe: add CC.SHARED.NAME
 09-08-20 regress.sh: add { JOB CONTINUE EXITED KILL FIFO }
 09-08-11 package.sh: filter lines containing : for package results
-09-07-31 make.probe: add CC.AR.ARFLAGS (for aix ar -xany)
+09-07-31 make.probe: add CC.AR.ARFLAGS (for AIX ar -xany)
 09-07-31 package.sh,cc.*: fix -dumpmachine to handle 32/64/* bit options
 09-06-24 package.sh: fix admin.db output formatting
 09-05-05 package.sh: export dll hackery environment vars
@@ -202,7 +202,7 @@ All recorded changes follow.
 08-04-28 regress.sh: fix EXPORT quoting
 08-04-28 regress.sh: fix UNIT set check args too
 08-04-24 rt.sh: exit code &gt; 256 =&gt; signal termination
-08-04-10 C+probe: change probe_so order to check .so last (macos ld workaround)
+08-04-10 C+probe: change probe_so order to check .so last (Mac OS X ld workaround)
 08-04-01 package.sh: handle multiple admin HOSTTYPEs per HOST
 08-03-28 C+probe: add C++ #include &lt;iostream&gt; (no extension) dir probes
 08-03-17 regress.sh: fix trap on EXIT, add terminated note to final tally
@@ -210,8 +210,8 @@ All recorded changes follow.
 08-02-02 make.probe: add CC.RUNPATH to match default -L order
 08-01-31 package.sh: check lib64 for LD_LIBRARY_PATH
 08-01-31 iffe.sh: tweak ancient /bin/sh workarounds
-08-01-28 make.probe: darwin ld export dynamic is -force_flat_namespace
-08-01-28 C+probe: handle sgi cc error message but exit 0 botch(es)
+08-01-28 make.probe: Darwin ld export dynamic is -force_flat_namespace
+08-01-28 C+probe: handle SGI cc error message but exit 0 botch(es)
 08-01-23 package.sh: fix checksum doc typo
 08-01-09 C+probe: add __FUNCTION__ to the undef (don't check) list
 07-12-14 iffe.sh: add set nooptimize
@@ -279,8 +279,8 @@ All recorded changes follow.
 06-03-05 make.probe: work around pedantic bash 3.1 mismatched " in `.`
 06-02-14 package.sh: "results failed test" == "results test failed"
 	 cc.sgi.*: add _AST_cc_OPTIONS parameterization, -OPT:Olimit=0
-	 cc.linux.ia64-icc: add for intel cc
-06-02-02 package.sh: freebsd stuck with os version for all arch
+	 cc.linux.ia64-icc: add for Intel cc
+06-02-02 package.sh: FreeBSD stuck with OS version for all arch
 06-02-01 package.mk: fix locale logic (tw -d requires dir arg)
 06-01-31 package.sh: require $CC only for make|test
 06-01-30 package.sh,hurl.sh: use the backwards-compatible --http-passwd
@@ -290,9 +290,9 @@ All recorded changes follow.
 	 hurl.sh: wget --http-pass =&gt; --http-password
 06-01-11 package.mk: pass package.license.class to make --mam too
 	 package.mk: variants=pattern =&gt; --variants=pattern
-	 package.sh: darwin rel&lt;=7 =&gt; darwin7.ppc
-	 package.sh: freebsd rel&lt;=4 =&gt; freebsd4
-	 package.sh: freebsd rel&lt;=5 =&gt; freebsd5
+	 package.sh: Darwin rel&lt;=7 =&gt; darwin7.ppc
+	 package.sh: FreeBSD rel&lt;=4 =&gt; freebsd4
+	 package.sh: FreeBSD rel&lt;=5 =&gt; freebsd5
 05-12-07 iffe.sh: don't emit &lt;stdio.h&gt; if &lt;sfio.h&gt;|&lt;ast.h&gt; (XXX)
 05-12-05 make.probe: disable readonly.exe core dump via ulimit -c 0
 05-09-22 mktest.sh: add EXEC &#0091; ++NOOUTPUT ++NOERROR ++NOEXIT &#0093;
@@ -318,7 +318,7 @@ All recorded changes follow.
 	 iffe.sh: fix 'op var - ... - ...' grouping logic
 05-04-15 rt.sh: handle autom4ate style
 05-04-11 regress.sh: fix unit name when command line unit also specified
-	 rt.sh: handle all ast package test output formats
+	 rt.sh: handle all AST package test output formats
 	 package.sh: fix make docs for options passed to underlying make
 05-04-08 package.sh: cp -p makerules.mo to $OK to preserve mtime
 	 regress.sh: add "TITLE name" to change TEST output title
@@ -333,7 +333,7 @@ All recorded changes follow.
 	 package.sh: admin action now properly resets sibling remote logs
 	 package.mk: relax unknown/unwritten package messages to warnings
 	 package.sh: handle space in command line name=value
-	 make.probe: add mvs -Wc,dll,exportall,longname,rent to CC.DLL probe
+	 make.probe: add MVS -Wc,dll,exportall,longname,rent to CC.DLL probe
 05-02-24 package.sh: hosttype *.powerpc =&gt; *.ppc
 	 cc.lynxos.ppc,ldd.lynxos.ppc: add
 05-02-22 mamake.c: fix { -G --debug-symbols -S --strip-symbols } MAMAKEFLAGS bug
@@ -386,7 +386,7 @@ All recorded changes follow.
 	 package.mk: add the runtime package type (no *.&#0091;ah&#0093;)
 	 iffe.sh: fix key test reports
 04-08-26 Makefile: { add m2.c m3.c } -lm tests for { frexp&#0091;l&#0093; ldexp&#0091;l&#0093; }
-04-08-11 package.mk: handle HOSTTYPE for solaris &gt; 9
+04-08-11 package.mk: handle HOSTTYPE for Solaris &gt; 9
 	 package.sh: add `checkaout proto' for { make view }
 	 package.sh: check for { md5sum md5 }
 	 iffe.sh: add {if|elif|else|endif} test ...
@@ -444,7 +444,7 @@ All recorded changes follow.
 04-03-18 iffe.sh: -d2 does not remove core dumps on exit
 04-03-17 package.sh: fix make recurse arg/action order
 04-02-29 package.sh: add regress action to compare current and previous tests
-	 package.sh: fix sgi.mips&#0091;23&#0093; HOSTTYPE test for old irix cc
+	 package.sh: fix sgi.mips&#0091;23&#0093; HOSTTYPE test for old IRIX cc
 	 package.sh: add `export variable ...'
 	 package.sh: admin action now handles host name with non-id chars
 	 package.sh: non-numeric M T W in admin.db disables that action
@@ -504,9 +504,9 @@ All recorded changes follow.
 03-06-04 make.probe: add +forceread +noforceread
 03-05-11 hurl.sh: handle http://host:port/path
 03-05-06 package.sh: fix setup action PACKAGEROOT and INIT logic
-03-05-05 package.mk: fix cygwin tarball names
+03-05-05 package.mk: fix Cygwin tarball names
 03-04-30 package.sh: move (cc|ld|ldd).$HOSTTYPE updates from Makefile
-03-04-27 make.probe: fix mvs CC.PREFIX.SHARED "lib" =&gt; ""
+03-04-27 make.probe: fix MVS CC.PREFIX.SHARED "lib" =&gt; ""
 	 make.probe: add CC.DLL.DIR = $(BINDIR) or $(LIBDIR)
 	 make.probe: add { CC.LD.LAZY CC.LD.NOLAZY CC.LD.RECORD CC.LD.NORECORD }
 	 probe.win32: sync with latest CC.*
@@ -524,7 +524,7 @@ All recorded changes follow.
 03-04-11 package.mk: tidy up cyg tarballs
 	 package.sh: fix old shell clash between get() and $get
 03-04-05 package.mk: restore *.inx generation somehow lost during cyg additions
-	 package.sh: add pthread_num_processors_np() last resort for cpu count
+	 package.sh: add pthread_num_processors_np() last resort for CPU count
 	 package.sh: use `make believe' to accept mamake generated files
 	 package.sh: handle `make &#0091;make-flags&#0093; &#0091;target ...&#0093;'
 	 mamake.c: ignore -e
@@ -532,14 +532,14 @@ All recorded changes follow.
 	 package.sh: switch to `package setup' instructions
 03-03-19 package.sh: add registry checks for `host cpu'
 	 package.sh: `results failed' now lists core dump messages
-03-03-17 package.sh: on cygwin verify 'ntsec binmode' in $CYGWIN or die
+03-03-17 package.sh: on Cygwin verify 'ntsec binmode' in $CYGWIN or die
 	 Makefile: install gcc wrapper if no cc
 	 package.mk: add :DETAILS: { :README: :EXPORT: :INSTALL: :TEST: } ops
 03-03-12 package.mk: add :DETAILS: for style-specific details
 03-03-11 package.sh: add beta setup/update support
 	 TEST.mk: add (TESTCC) prereq for .sh tests
 03-03-07 hurl.sh: add
-03-03-06 iffe.sh: fix lib win32 test cygwin vs native incompatibility
+03-03-06 iffe.sh: fix lib Win32 test Cygwin vs native incompatibility
 	 iffe.sh: change internal stdio.h guard to handle C++ inline vs. macro
 03-03-03 package.sh: check for curl or wget for update
 	 package.sh: add setup action == update read make
@@ -547,7 +547,7 @@ All recorded changes follow.
 	 mamake.c: treat name+=value args like name=value
 	 mamake.c: add ${var?*|value?match?no-match?}
 	 mamake.c: fix archive vs. dynamic bind logic
-03-02-28 package.sh: add the "cyg" (cygwin) package type
+03-02-28 package.sh: add the "cyg" (Cygwin) package type
 	 package.mk: add "cyg" stubs, :CATEGORY: for category name(s)
 03-02-25 mamake.c: add -D4 system(3) debug trace
 03-02-24 package.mk: change --mismatch to --corrupt=accept
@@ -584,7 +584,7 @@ All recorded changes follow.
 02-10-20 package.sh: fix lib/probe/C/make/probe update test
 02-10-18 probe.win32: update for mingw
 	 make.probe: add bash workaround to SHELLMAGIC test
-	 package.sh: work around yet another cygwin hassle
+	 package.sh: work around yet another Cygwin hassle
 02-10-17 iffe.sh: short circuit id check for *&#0091;-+/\\&#0093;*
 02-10-08 regress.sh: unset FIGNORE to avoid rm . errors
 	 package.sh: unset FIGNORE to avoid rm . errors
@@ -600,7 +600,7 @@ All recorded changes follow.
 	 iffe.sh: fix bug that didn't define mac variable on success
 02-09-22 package.sh: handle admin_action=ditto
 	 iffe.sh: --config sizeof(foo) macro is SIZEOF_foo
-	 iffe.sh: fix long.long test so it doesn't defeat uwin "typ long.long"
+	 iffe.sh: fix long.long test so it doesn't defeat UWIN "typ long.long"
 	 mamprobe.sh: convert $("foo") nmake string constants
 02-09-21 mamprobe.sh: "-" info-path writes probe info to stdout
 02-09-11 make.probe: move from nmake src to be part of mamprobe.sh
@@ -621,7 +621,7 @@ All recorded changes follow.
 	 Makefile: add LICENSE:.DONTCARE to workaround mam
 02-08-11 iffe.sh: provide defaults for LD_* additions
 02-08-07 ratz.c: change -m to use * instead of non-portable inverse video
-02-07-17 mamprobe.sh: close tmp file in trap before rm for cygwin
+02-07-17 mamprobe.sh: close tmp file in trap before rm for Cygwin
 	 package.sh: fix "type" to handle i1586 (P4)
 	 package.sh: add the view action
 02-06-28 package.sh: handle multiple packages for release action
@@ -652,7 +652,7 @@ All recorded changes follow.
 	 package.mk: add { :COVERS: :DESCRIPTION: :REQUIRES: }
 	 package.sh: handle { :COVERS: :DESCRIPTION: :REQUIRES: }
 	 Makefile: move proto.c generation to the proto component dir
-02-02-02 execrate.sh: add for .exe challenged win32 systems/commands
+02-02-02 execrate.sh: add for .exe challenged Win32 systems/commands
 	 mamprobe.sh: add STD* commands/flags
 	 mamake.c: update mamprobe info when older than mamprobe executable
 	 package.sh: move ed/ex workaround to mamprobe.sh
@@ -737,14 +737,14 @@ All recorded changes follow.
 01-04-25 package.mk: include non cc-g variants by default
 	 package.sh: *&#0091;._&#0093;* =&gt; *?&#0091;_.&#0093;* for mvs.390 /bin/sh
 01-04-24 TEST.mk: no tests for VARIANT=="DLL"
-01-04-22 package.mk,package.sh: tarball text members are ascii encoded
+01-04-22 package.mk,package.sh: tarball text members are ASCII encoded
 01-04-18 package.mk: allow package name to be the same as one of its components
          cc.mvs.390: handle .C .cpp .cxx
          cc.mvs.390: compensate for -o that does not overwrite
 01-04-01 regress: fix SAME that just skipped it -- we should regress regress!
 	 iffe: fix bug that didn't emit _hdr_foo for internal hdr tests
 	 iffe: fix lcl bug for cc -E that doesn't emit line syncs
-	 ratz: add ascii=&gt;ebcdic conversion for text archive members
+	 ratz: add ASCII=&gt;EBCDIC conversion for text archive members
 	 mamake: fix buffer overlap bug that clobbered the probe file path
 01-03-17 iffe: handle : separator as first arg
 01-03-15 mamake.c,ratz.c,release.c: add &lt;stdlib.h&gt; and &lt;string.h&gt;
@@ -757,7 +757,7 @@ All recorded changes follow.
 	 package.sh: fix INIT a.out updates for knr cc
 	 package.sh: package list now handles large tgz dirs
 	 package.sh: *-ok executables moved to ok/* for *.dll systems
-	 iffe.sh: change "exec &gt;&amp;-" to "exec &gt;/dev/null" else linux mkdir fails!
+	 iffe.sh: change "exec &gt;&amp;-" to "exec &gt;/dev/null" else Linux mkdir fails!
 	 mamake: handle `bind -lx &#0091;dontcare&#0093;'
 01-02-12 ratz.c: fix _PACKAGE_ast includes
 	 package.sh: $HOSTTYPE env overrides if $PACKAGEROOT/arch/$HOSTTYPE/
@@ -770,13 +770,13 @@ All recorded changes follow.
 01-02-02 package.sh: fix package use for $INSTALLROOT != */$HOSTTYPE
 	 package.sh: create intermediate recursion makefiles when needed
 	 package.sh: add $SECONDS to the DEBUG trace prompt
-01-01-01 ratz.c: #ifdef for uwin ncc
+01-01-01 ratz.c: #ifdef for UWIN ncc
 	 iffe.sh,package.sh: check PACKAGE_PATH for local installations
-	 package.sh: add psrinfo for osf.alpha host cpu
+	 package.sh: add psrinfo for osf.alpha host CPU
 	 package.sh: change pax --meter probe; some hang on /dev/tty
 	 package.sh: fix `install flat ARCH'
 	 mamake: eliminate loops from scan order
-	 C+probe: add probe_verbose -V for aix cc=xlc
+	 C+probe: add probe_verbose -V for AIX cc=xlc
 	 cc.ibm.risc,ldd.ibm.risc: add
 	 package.mk: list refs to top-level licenses only
 	 package.mk: add local link table to change log html
@@ -810,7 +810,7 @@ All recorded changes follow.
 00-10-22 regress: fix VIEW to skip empty dirs
 00-10-19 package.mk: $(PACKAGEROOT)/bin/nmake =&gt; $(PACKAGEROOT)/bin/manmake
 	 iffe: validate #define identifiers
-00-10-18 C+probe: mac os10 additions
+00-10-18 C+probe: Mac OS X additions
 	 package: add DYLD_LIBRARY_PATH initialization
 	 add ldd.$(CC.HOSTTYPE)
 00-10-01 iffe: handle -I* -L* options
@@ -857,7 +857,7 @@ All recorded changes follow.
 	 package.mk: beef up source and binary help =&gt; html
 00-02-08 package: mkdir man/man&#0091;138&#0093; in the new arch to cover MAM bug
 00-01-28 package,release: add -rcount to release
-	 package: fix linux "host cpu" and "host rating"
+	 package: fix Linux "host cpu" and "host rating"
 	 package: copy *.lic to $PACKAGEBIN for "make" and "write binary"
 	 package: fix 'release change log' case match
 00-01-24 package: add copyright action
@@ -908,7 +908,7 @@ All recorded changes follow.
 98-10-01 hostinfo: add unixware.*
 	 use: export PACKAGE_*
 98-08-11 C.probe: add /usr/include check (for sco CC)
-	 hostinfo: handle uwin uname update
+	 hostinfo: handle UWIN uname update
 98-05-01 regress: fix bug sometimes didn't list last test
 98-04-01 hostinfo: add cc path arg
 	 hostinfo: now works with /bin/sh
@@ -942,15 +942,15 @@ All recorded changes follow.
 	 mm2html: differentiate mm/man in some non-obvious cases
 	 hostinfo: r5000 is not mips4
 97-02-14 hostinfo: validate type with cc
-96-12-25 C.probe: uwin tweaks
+96-12-25 C.probe: UWIN tweaks
 	 iffe: use `...` instead of $(...) for alpha /bin/sh
 	 iffe: fix `typ' divide by 0
 	 iffe: `lcl' now drops X: prefix
 	 iffe: +l* -&gt; -l*
-	 iffe: eval around ${...#%...} for bsd /bin/sh
+	 iffe: eval around ${...#%...} for BSD /bin/sh
 	 use: add sgi.mips LD_LIBRARY&lt;abi&gt;_PATH variants
 	 use: add -e to list exports
-	 iffe: lcl leaves leading &#0091;a-zA-Z&#0093;: for dos
+	 iffe: lcl leaves leading &#0091;a-zA-Z&#0093;: for DOS
 	 iffe: fix no{link|output|execute} logic
 	 C.probe: don't automatically add /usr/include for non-hosted compilers
 	 C.probe: don't automatically place /usr/include last
@@ -961,10 +961,10 @@ All recorded changes follow.
 	 hostinfo: fix ncr.i386 tests
 96-10-31 iffe: work around old bsh here doc bug by running separate sh
 96-10-11 iffe: *.iffe and *.iff for iffe src files
-	 hostinfo: tighten sgi.mips cpu type check
+	 hostinfo: tighten sgi.mips CPU type check
 96-10-01 C.probe: add probe_libdir to catch alpha /usr/shlib
 96-09-17 iffe: fix typ bug that failed for single id types!
-96-08-31 hostinfo: handle recent sgi hinv cpu changes
+96-08-31 hostinfo: handle recent SGI hinv CPU changes
 96-07-17 make sure sizeof(long xxx)&gt;sizeof(xxx) for typ long.xxx
 96-05-09 C.probe: drop multiple / in stdinclude
 96-02-29 use: package root must have bin and lib subdir
@@ -974,8 +974,8 @@ All recorded changes follow.
 96-01-31 use: add pkg dir
 	 hostinfo: add tandem
 96-01-01 hostinfo: windows_nt|windows&#0091;0-9&#0093;&#0091;0-9&#0093; -&gt; win32
-95-11-24 hostinfo: linux-aout.* for non-elf linux
-95-11-11 use: add aix LIBPATH
+95-11-24 hostinfo: linux-aout.* for non-ELF Linux
+95-11-11 use: add AIX LIBPATH
 95-10-11 hostinfo: no args prints type
 95-08-11 use: add
 95-05-09 save original PATH in _probe_PATH
@@ -983,7 +983,7 @@ All recorded changes follow.
 95-04-01 use c source suffix if it still preserves the dialect
 	 add hostinfo
 	 add lib/hostinfo/typemap user type map
-	 add sol.sun4 cpu count
+	 add sol.sun4 CPU count
 	 fix C.probe to properly handle C/C++ combined compiler drivers
 	 add NeXT to hostinfo
 	 bummer: mach has /usr/bin/hostinfo

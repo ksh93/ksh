@@ -190,7 +190,7 @@ cat > $tmp/script <<- \EOF
 EOF
 chmod +x $tmp/script
 if	[[ $( $SHELL $tmp/script arg1 arg2) != arg2 ]]
-then	err_exit 'arguments not restored by posix functions'
+then	err_exit 'arguments not restored by POSIX functions'
 fi
 function foo
 {
@@ -302,7 +302,7 @@ bad()
 val=true
 bad
 if	[[ $val != false ]]
-then	err_exit 'set -e not inherited for posix functions'
+then	err_exit 'set -e not inherited for POSIX functions'
 fi
 trap - ERR
 

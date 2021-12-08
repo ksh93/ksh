@@ -1,4 +1,4 @@
-: next.i386 cc wrapper for unix message and exit code semantics : 1995-05-09 :
+: next.i386 cc wrapper for Unix message and exit code semantics : 1995-05-09 :
 
 HOSTTYPE=next.i386
 

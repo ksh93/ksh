@@ -55,7 +55,7 @@ static const char usage[] =
 "[+EXIT STATUS?]"
     "{"
         "[+0?All modes reported or set successfully.]"
-        "[+>0?Standard input not a terminaol or one or more modes "
+        "[+>0?Standard input not a terminal or one or more modes "
             "failed.]"
     "}"
 "[+SEE ALSO?\btegetattr\b(2), \btcsetattr\b(2), \bioctl\b(2)]"
@@ -200,7 +200,7 @@ static const Tty_t Ttable[] =
 #if _mem_c_line_termios
 { "line",	NUM,	C_LINE,	0,	0, 0, C("Line discipline number") },
 #endif
-{ "min",	NUM,	T_CHAR,	0,	VMIN, 0, C("Mininmum number of characters to read in raw mode") },
+{ "min",	NUM,	T_CHAR,	0,	VMIN, 0, C("Minimum number of characters to read in raw mode") },
 { "time",	NUM,	T_CHAR,	0,	VTIME, 0, C("Number of .1 second intervals with raw mode") },
 
 { "parenb",	BIT,	C_FLAG,	0,	PARENB,	PARENB, C("Enable (disable) parity generation and detection") },
@@ -232,7 +232,7 @@ static const Tty_t Ttable[] =
 { "inlcr",	BIT,	I_FLAG,	US,	INLCR, INLCR, C("Translate (do not translate) carriage return to newline") },
 { "igncr",	BIT,	I_FLAG,	US,	IGNCR, IGNCR, C("Ignore (do not ignore) carriage return") },
 #ifdef IUCLC
-{ "iuclc",	BIT,	I_FLAG,	US,	IUCLC, IUCLC, C("Map (do not map) upper-case to lower case") },
+{ "iuclc",	BIT,	I_FLAG,	US,	IUCLC, IUCLC, C("Map (do not map) uppercase to lowercase") },
 #endif /* IUCLC */
 { "ixon",	BIT,	I_FLAG,	0,	IXON, IXON, C("Enable (disable) XON/XOFF flow control. \bstop\b character stops output") },
 #ifdef IXANY

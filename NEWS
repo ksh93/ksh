@@ -227,7 +227,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   of declaration built-ins. This reverts a change introduced on 2020-09-11.
   [*] https://austingroupbugs.net/view.php?id=1393
 
-- Fixed arithmetic assignment operations for multidimensional indexed arrays
+- Fixed arithmetic assignment operations for multidimensional indexed arrays.
 
 2021-04-30:
 
@@ -246,7 +246,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed a bug introduced on 2021-02-20 in which a shared-state command
   substitution stopped sharing its state with the calling shell environment
-  if it executed a command that locally redirected standard outpuut.
+  if it executed a command that locally redirected standard output.
 
 2021-04-22:
 
@@ -596,7 +596,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-02-14:
 
-- Due to a deficiency in some UNIX veriants, the 'sleep' built-in command could
+- Due to a deficiency in some UNIX variants, the 'sleep' built-in command could
   occasionally sleep for slightly less than the time specified. It now performs
   an additional check against the system clock to make sure it sleeps at least
   the given amount of time. Thanks to Lev Kujawski for adding this feature.
@@ -987,7 +987,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Added the '${.sh.pid}' variable as an alternative to Bash's '$BASHPID'.
   This variable is set to the current shell's PID, unlike '$$' (which is
-  set to the parent shell's PID). In virtual subshells '${.sh.pid}' is not
+  set to the main shell's PID). In virtual subshells '${.sh.pid}' is not
   changed from its previous value, while in forked subshells '${.sh.pid}'
   is set to the subshell's process ID.
 

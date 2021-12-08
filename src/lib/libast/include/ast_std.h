@@ -131,7 +131,7 @@ struct lconv
 #define extern		__EXPORT__
 #endif
 
-#if !_UWIN /* for ast54 compatibility */
+#if !_UWIN /* for AST54 compatibility */
 
 #undef	getenv
 #define getenv		_ast_getenv
@@ -293,7 +293,7 @@ extern _Ast_info_t	_ast_info;
 
 #undef	extern
 
-/* largefile hackery -- ast uses the large versions by default */
+/* largefile hackery -- AST uses the large versions by default */
 
 #if _typ_ino64_t
 #undef	ino_t
@@ -363,7 +363,7 @@ extern int		_ast_getpgrp(void);
 #undef	extern
 
 /*
- * and finally, standard interfaces hijacked by ast
+ * and finally, standard interfaces hijacked by AST
  * _AST_STD_I delays headers that require <ast_map.h>
  */
 

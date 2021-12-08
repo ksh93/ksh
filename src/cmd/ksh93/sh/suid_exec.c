@@ -23,7 +23,7 @@
  * This is a program to execute 'execute only' and suid/sgid shell scripts.
  * This program must be owned by root and must have the set uid bit set.
  * It must not have the set group id bit set.  This program must be installed
- * where the define parameter THISPROG indicates to work correctly on system V
+ * where the define parameter THISPROG indicates to work correctly on System V.
  *
  *  Written by David Korn
  *  AT&T Labs
@@ -31,7 +31,7 @@
  */
 
 /* The file name of the script to execute is argv[0]
- * Argv[1] is the program name
+ * argv[1] is the program name
  * The basic idea is to open the script as standard input, set the effective
  *   user and group id correctly, and then exec the shell.
  * The complicated part is getting the effective uid of the caller and 
@@ -372,7 +372,7 @@ static void setids(int mode,int owner,int group)
 /*
  * This version of setids creates a /tmp file and copies itself into it.
  * The "clone" file is made executable with appropriate suid/sgid bits.
- * Finally, the clone is exec'ed.  This file is unlinked by a grandchild
+ * Finally, the clone is exec'd.  This file is unlinked by a grandchild
  * of this program, who waits around until the text is free.
  */
 

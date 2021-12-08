@@ -1,5 +1,5 @@
 This directory, and its subdirectories contain the source code
-for ksh-93; the language described in the second addition of
+for ksh-93; the language described in the second edition of
 the book, "The KornShell Command and Programming Language," by
 Morris Bolsky and David Korn which is published by Prentice Hall.
 ksh-93 has been compiled and run on several machines with several
@@ -89,7 +89,7 @@ The options have the following defaults and meanings:
 
     HISTEXPAND   on  Enable !-style history expansion similar to csh(1).
 
-    KIA          off Allow generation of shell cross reference database with -R.
+    KIA          off Allow generation of shell cross-reference database with -R.
                      As of 2021-05-10, no tool that can parse this database is
                      known. If you know of any, please contact us.
 
@@ -209,8 +209,7 @@ you will have to change the source code file sh/suid_exec.c explicitly.
 If you do not have ksh in one of these secure locations, /bin/sh will
 be invoked with the -p options and will fail when you execute a setuid/setgid
 and/or execute only script.  Note, that ksh does not read the .profile
-or $ENV file when it the real and effective user/group id's are not
-equal.
+or $ENV file when it the real and effective user/group ids are not equal.
 
 #### TESTING KSH ####
 
@@ -256,13 +255,13 @@ failures (crashes, and/or important functionality does not work).
 	GNU/Linux: Slackware 14.2 on x86_64
 	GNU/Linux: Ubuntu 16.04 on x86_64
 	GNU/Linux: Ubuntu 18.04 on armv7l (32-bit)
-	GNU/Linux: Ubuntu 20.04 on aarch64
+	GNU/Linux: Ubuntu 20.04 on arm64
 	GNU/Linux: Void Linux (musl C library) on x86_64
 ***	HP-UX B.11.11 on pa-risc
 *	illumos: OmniOS 2020-08-19 (gcc) on x86_64
 	macOS 10.13.6 (High Sierra) on x86_64
 	macOS 10.14.6 (Mojave) on x86_64
-*	macOS 12.0.1 (Monterey) on ARM64
+*	macOS 12.0.1 (Monterey) on arm64
 *	NetBSD 8.1 on x86_64
 *	NetBSD 9.2 on x86_64
 *	OpenBSD 6.8 on x86_64

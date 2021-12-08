@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * file name expansion - posix.2 glob with gnu and ast extensions
+ * file name expansion - POSIX.2 glob with GNU and AST extensions
  *
  *	David Korn
  *	Glenn Fowler

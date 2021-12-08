@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * ksh builtin command api
+ * ksh builtin command API
  */
 
 #ifndef _SHCMD_H

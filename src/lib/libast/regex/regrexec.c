@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex record executor
+ * POSIX regex record executor
  * multiple record sized-buffer interface
  */
 

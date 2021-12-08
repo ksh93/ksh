@@ -27,7 +27,7 @@
  * all string constants inline here instead of in data/...
  *
  *   David Korn
- *   at&t research
+ *   AT&T Research
  */
 
 #include	"defs.h"
@@ -72,7 +72,7 @@ static const char	usage[] =
     "trace line info is either \begid==rgid\b or \begid!=rgid\b. The "
     "intercepts are:]#?[original-egid:=1]"
     "{"
-        "[+getegid()?The intercept effecive gid is returned. The "
+        "[+getegid()?The intercept effective gid is returned. The "
             "\bsetgid\b() intercept may change this between the real gid and "
             "\aoriginal-egid\a.]"
         "[+setgid(gid)?Sets the intercept effective gid to \agid\a. "

@@ -259,7 +259,7 @@ Brian W. Kernighan and Dennis M. Ritchie,
 .IR "The C Programming Language" ,
 Prentice Hall, 1978.
 .RF
-ANSI-C\*(Rf,
+ANSI C\*(Rf,
 .RS
 American National Standard for Information Systems \- Programming
 Language \- C, ANSI X3.159-1989.
@@ -280,7 +280,7 @@ services for your builtins.
 The header file \f5<ast.h>\fP
 provides prototypes for many \fBlibast\fP functions
 and all the symbol and function definitions from the
-ANSI-C headers, \f5<stddef.h>\fP,
+ANSI C headers, \f5<stddef.h>\fP,
 \f5<stdlib.h>\fP, \f5<stdarg.h>\fP, \f5<limits.h>\fP,
 and \f5<string.h>\fP.
 It also provides all the symbols and definitions for the
@@ -315,7 +315,7 @@ pp. , 1991.
 to perform all I/O operations.
 The \fBsfio\fP library, which is part of \fBlibast\fP,
 provides a superset of the functionality provided by the standard
-I/O library defined in ANSI-C.
+I/O library defined in ANSI C.
 If none of the additional functionality is required,
 and if you are not familiar with \fBsfio\fP and
 you do not want to spend the time learning it,

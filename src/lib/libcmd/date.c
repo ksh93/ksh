@@ -158,7 +158,7 @@ static const char usage[] =
 "	monotonic increasing time. Not available on all systems.]"
 "[L:last?List only the last time for multiple \adate\a operands.]"
 "[l:leap-seconds?Include leap seconds in time calculations. Leap seconds"
-"	after the ast library release date are not accounted for.]"
+"	after the AST library release date are not accounted for.]"
 "[m:modify-time|mtime?List file argument modify times.]"
 "[n!:network?Set network time.]"
 "[p:parse?Add \aformat\a to the list of \bstrptime\b(3) parse conversion"

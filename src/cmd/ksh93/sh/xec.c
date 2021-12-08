@@ -275,7 +275,7 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 		if(c=='\0')
 		{
 			/* If a lone percent is the last character of the format pretend
-			   the user had written `%%` for a literal percent */
+			   the user had written '%%' for a literal percent */
 			sfwrite(stkp, "%", 1);
 			first = format + 1;
 			break;
@@ -775,7 +775,7 @@ static void free_list(struct openlist *olist)
 
 /*
  * set ${.sh.name} and ${.sh.subscript}
- * set _ to reference for ${.sh.name}[$.sh.subscript]
+ * set _ to reference for ${.sh.name}[${.sh.subscript}]
  */
 static int set_instance(Shell_t *shp,Namval_t *nq, Namval_t *node, struct Namref *nr)
 {
@@ -1104,7 +1104,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			
 						}
 #endif /* SHOPT_TYPEDEF */
-						if((shp->fn_depth && !shp->prefix))
+						if(shp->fn_depth && !shp->prefix)
 							flgs |= NV_NOSCOPE;
 					}
 					else if(np==SYSEXPORT)
@@ -1139,12 +1139,12 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			last_table = shp->last_table;
 			shp->last_table = 0;
-			if((io||argn))
+			if(io || argn)
 			{
 				Shbltin_t *bp=0;
 				static char *argv[2];
 				int tflags = 1;
-				if(np &&  nv_isattr(np,BLT_DCL))
+				if(np && nv_isattr(np,BLT_DCL))
 					tflags |= 2;
 				if(execflg && !check_exec_optimization(io))
 					execflg = 0;
@@ -2838,7 +2838,7 @@ int sh_trace(Shell_t *shp,register char *argv[], register int nl)
 
 /*
  * This routine creates a subshell by calling fork() or vfork()
- * If ((flags&COMASK)==TCOM), then vfork() is permitted
+ * If ((flags&COMMSK)==TCOM), then vfork() is permitted
  * If fork fails, the shell sleeps for exponentially longer periods
  *   and tries again until a limit is reached.
  * SH_FORKLIM is the max period between forks - power of 2 usually.
@@ -2854,7 +2854,6 @@ static void timed_out(void *handle)
 	NOT_USED(handle);
 	timeout = 0;
 }
-
 
 /*
  * called by parent and child after fork by sh_fork()
@@ -3044,8 +3043,8 @@ static void  local_exports(register Namval_t *np, void *data)
 }
 
 /*
- * This routine executes .sh.math functions from within ((...)))
-*/
+ * This routine executes .sh.math functions from within ((...))
+ */
 Sfdouble_t sh_mathfun(Shell_t *shp,void *fp, int nargs, Sfdouble_t *arg)
 {
 	Sfdouble_t	d;

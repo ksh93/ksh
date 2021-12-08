@@ -29,7 +29,7 @@ static const char usage[] =
 "[+NAME?pids - list calling shell process ids]"
 "[+DESCRIPTION?When invoked as a shell builtin, \bpids\b lists one or "
     "more of the calling process ids determined by \bgetpid\b(2), "
-    "\bgetppid\b(2), \bgetpgrp\b(2), \btcgetpgrp\b(2) and \bgetsid\b(2). "
+    "\bgetppid\b(2), \bgetpgrp\b(2), \btcgetpgrp\b(3) and \bgetsid\b(2). "
     "Unknown or invalid ids have the value \b-1\b.]"
 "[f:format?List the ids specified by \aformat\a. \aformat\a follows "
     "\bprintf\b(3) conventions, except that \bsfio\b(3) inline ids are used "
@@ -44,7 +44,7 @@ static const char usage[] =
         "[+sid?The session id.]"
     "}"
 "[+SEE ALSO?\bgetpid\b(2), \bgetppid\b(2), \bgetpgrp\b(2), "
-    "\btcgetpgrp\b(2), \bgetsid\b(2)]"
+    "\btcgetpgrp\b(3), \bgetsid\b(2)]"
 ;
 
 #include <cmd.h>

@@ -25,9 +25,9 @@
 /*
  * AT&T Research
  *
- * ast <windows.h> wrapper
+ * AST <windows.h> wrapper
  * for libast only
- * include after ast headers
+ * include after AST headers
  */
 
 #ifndef _AST_WINDOWS_H

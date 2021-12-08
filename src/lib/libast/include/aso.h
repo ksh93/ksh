@@ -30,7 +30,7 @@
 #include <ast_common.h>
 
 /*
- * ast atomic scalar operations interface definitions
+ * AST atomic scalar operations interface definitions
  */
 
 /* asometh() types (ordered mutually exclusive flags) */

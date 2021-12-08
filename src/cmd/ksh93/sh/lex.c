@@ -2417,7 +2417,7 @@ static int alias_exceptf(Sfio_t *iop,int type,void *data, Sfdisc_t *handle)
 	}
 	if(ap->nextc)
 	{
-		/* if last character is a blank, then next word can be alias */
+		/* if last character is a blank, then next word can be an alias */
 		register int c = fcpeek(-1);
 		if(isblank(c))
 			lp->aliasok = 1;

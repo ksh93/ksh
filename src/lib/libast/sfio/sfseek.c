@@ -90,7 +90,7 @@ int	type;	/* 0: from org, 1: from here, 2: from end */
 	mustsync = (type&SF_SHARE) && !(type&SF_PUBLIC) &&
 		   (f->mode&SF_READ) && !(f->flags&SF_STRING);
 
-	/* Xopen-compliant */
+	/* X/Open-compliant */
 	if((type &= (SEEK_SET|SEEK_CUR|SEEK_END)) != SEEK_SET &&
 	   type != SEEK_CUR && type != SEEK_END )
 	{	errno = EINVAL;

@@ -918,7 +918,7 @@ unset foo
 [[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] && err_exit 'date format %q is the same as %Qz'
 [[ $(printf '%(%Z)T') == $(date '+%Z') ]] || err_exit "date format %Z is incorrect (expected $(date '+%Z'), got $(printf '%(%Z)T'))"
 
-# Test manually specified blank and zero padding with 'printf  %T'
+# Test manually specified blank and zero padding with 'printf %T'
 (
 	IFS=$'\n\t' # Preserve spaces in output
 	for i in d e H I j J k l m M N S U V W y; do

@@ -133,13 +133,13 @@ set(register Header_t* hp, const char* fs, const char* dir, const char* type, co
 #if _sys_mount && ( _lib_getfsstat || _lib_getmntinfo )
 
 /*
- * 4.4 bsd getmntinfo
+ * 4.4 BSD getmntinfo
  *
  * what a crappy interface
  * data returned in static buffer -- ok
  * big chunk of allocated memory that cannot be freed -- come on
- * *and* netbsd changed the interface somewhere along the line
- * private interface? my bad -- public interface? par for the bsd course
+ * *and* NetBSD changed the interface somewhere along the line
+ * private interface? my bad -- public interface? par for the BSD course
  *
  * we assume getfsstat may suffer the same statfs/statvfs confusion
  */

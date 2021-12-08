@@ -45,7 +45,7 @@ static struct
 } state;
 
 /*
- * this is unix dadgummit
+ * this is Unix dadgummit
  */
 
 static int
@@ -183,7 +183,7 @@ static const Map_t map[] =
 #undef	extern
 
 /*
- * convert ms word date spec w to posix strftime format f
+ * convert MS Word date spec w to POSIX strftime format f
  * next char after f returned
  * the caller already made sure f is big enough
  */
@@ -376,7 +376,7 @@ native_lc_time(Lc_info_t* li)
 	if (!standardized(li, b))
 	{
 		/*
-		 * synthesize TM_TIME format from the ms word template
+		 * synthesize TM_TIME format from the MS Word template
 		 */
 
 		if (!GetLocaleInfo(lcid, LOCALE_ITIME, buf, sizeof(buf)))

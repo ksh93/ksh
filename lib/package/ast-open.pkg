@@ -13,8 +13,8 @@ ast-open :PACKAGE: \
 
 :CATEGORY: devel libs mail shells utils
 
-:INDEX: ksh, pax, nmake, sfio, and ast open source commands and libraries
+:INDEX: ksh, pax, nmake, sfio, and AST open source commands and libraries
 
 :DESCRIPTION:
 	The AT&T Software Technology ast-open package from AT&T Research
-	contains all of the ast open source commands and libraries.
+	contains all of the AST open source commands and libraries.

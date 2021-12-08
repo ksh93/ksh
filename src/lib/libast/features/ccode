@@ -3,13 +3,13 @@ tst output{
 	{
 		printf("\n");
 		printf("#define CC_ASCII	1		/* ISO-8859-1			*/\n");
-		printf("#define CC_EBCDIC_E	2		/* Xopen dd(1) EBCDIC		*/\n");
-		printf("#define CC_EBCDIC_I	3		/* Xopen dd(1) IBM		*/\n");
-		printf("#define CC_EBCDIC_O	4		/* IBM-1047 mvs OpenEdition	*/\n");
-		printf("#define CC_EBCDIC_S	5		/* Siemens posix-bc		*/\n");
+		printf("#define CC_EBCDIC_E	2		/* X/Open dd(1) EBCDIC		*/\n");
+		printf("#define CC_EBCDIC_I	3		/* X/Open dd(1) IBM		*/\n");
+		printf("#define CC_EBCDIC_O	4		/* IBM-1047 MVS OpenEdition	*/\n");
+		printf("#define CC_EBCDIC_S	5		/* Siemens POSIX-bc		*/\n");
 		printf("#define CC_EBCDIC_H	6		/* IBM-37 AS/400		*/\n");
-		printf("#define CC_EBCDIC_M	7		/* IBM mvs cobol		*/\n");
-		printf("#define CC_EBCDIC_U	8		/* microfocus cobol		*/\n");
+		printf("#define CC_EBCDIC_M	7		/* IBM MVS COBOL		*/\n");
+		printf("#define CC_EBCDIC_U	8		/* Micro Focus COBOL		*/\n");
 		printf("\n");
 		printf("#define CC_MAPS		8		/* number of code maps		*/\n");
 		printf("\n");

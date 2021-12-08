@@ -167,7 +167,7 @@ int		flags;	/* SFFMT_LONG for wchar_t		*/
 		if(*(form+1) == '-')
 		{	endc = *((uchar*)(form+2));
 #if _has_multibyte
-			if(c >= 128 || endc >= 128 ) /* range must be ascii */
+			if(c >= 128 || endc >= 128 ) /* range must be ASCII */
 				goto one_char;
 #endif
 			for(; c <= endc; ++c)
@@ -210,7 +210,7 @@ Accept_t*	ac;
 
 		if(*(form+1) == '-')
 		{	endc = *((uchar*)(form+2));
-			if(c >= 128 || endc >= 128 ) /* range must be ascii */
+			if(c >= 128 || endc >= 128 ) /* range must be ASCII */
 				goto one_char;
 			n = 3;
 		}

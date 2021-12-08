@@ -434,7 +434,7 @@ tst	socket_peek note{ recv(MSG_PEEK) works on socketpair() }end execute{
 }end
 
 tst	lib_memcmp string.h note{ standard memcmp interface that works }end execute{
-	/* sgi again -- we're sick of being their regression test */
+	/* SGI again -- we're sick of being their regression test */
 	#define L	8
 	char		a[L] = { '0' };
 	char		b[L] = { '1' };
@@ -533,7 +533,7 @@ tst	lib_memccpy string.h unistd.h stdlib.h fcntl.h signal.h sys/types.h sys/stat
 	#endif
 	
 		/*
-		 * early mac osx failed here -- fixed 3Q 2001
+		 * early Mac OS X failed here -- fixed 3Q 2001
 		 */
 
 		if (memccpy(buf, "abc", 0, sizeof(buf)) != (buf + 4))
@@ -556,7 +556,7 @@ tst	lib_memccpy string.h unistd.h stdlib.h fcntl.h signal.h sys/types.h sys/stat
 		signal(SIGBUS, gotcha);
 		signal(SIGALRM, gotcha);
 		/*
-		 * sgi ia64 dumps here as of 3Q 2001
+		 * SGI ia64 dumps here as of 3Q 2001
 		 * bug acknowledged 1Q 2003
 		 */
 		memccpy(dstbuf, srcbuf, 0, siz + 10);
@@ -679,7 +679,7 @@ tst	- output{
 	{
 	#if _UWIN
 		printf("\n");
-		printf("/* override some uwin feature tests */\n");
+		printf("/* override some UWIN feature tests */\n");
 		printf("#undef	_lib_execlp\n");
 		printf("#undef	_lib_execvp\n");
 		printf("#undef	_lib_execvpe\n");

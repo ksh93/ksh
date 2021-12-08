@@ -422,7 +422,7 @@ static History_t* hist_trim(History_t *hp, int n)
 	unlink(hist_old->histname);
 	if(access(hist_old->histname,F_OK) >= 0)
 	{
-		/* The unlink can fail on windows 95 */
+		/* The unlink can fail on Windows 95 */
 		int fd;
 		char *last, *name=hist_old->histname;
 		sh_close(sffileno(hist_old->histfp));
@@ -1138,7 +1138,7 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 	{
 		if(errno==ENOSPC || hp->histwfail++ >= 10)
 			return(0);
-		/* write failure could be NFS problem, try to re-open */
+		/* write failure could be NFS problem, try to reopen */
 		sh_close(oldfd=sffileno(fp));
 		if((newfd=open(hp->histname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
 		{

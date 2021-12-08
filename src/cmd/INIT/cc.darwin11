@@ -1,4 +1,4 @@
-: unix wrapper for Mac OS X 10.7 (Darwin 11) cc : 2020-07-17 :
+: Unix wrapper for Mac OS X 10.7 (Darwin 11) cc : 2020-07-17 :
 
 HOSTTYPE=darwin11.generic
 
@@ -45,7 +45,7 @@ cpp)	$CC -E "$@"
 	;;
 cc)	$CC -DCLK_TCK=100 "$@"
 	;;
-dll)	# what a compatibility mess -- surely they can get the apis to play nice
+dll)	# what a compatibility mess -- surely they can get the APIs to play nice
 	tmp=/tmp/cc.${USER:-$LOGNAME}.$$.err
 	trap "rm -f $tmp" EXIT
 	case `MACOSX_DEPLOYMENT_TARGET=10.7 ld -undefined dynamic_lookup 2>&1` in

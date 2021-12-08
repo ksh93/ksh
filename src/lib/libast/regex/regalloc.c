@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex alloc control
+ * POSIX regex alloc control
  */
 
 #include "reglib.h"

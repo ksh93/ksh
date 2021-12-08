@@ -235,7 +235,7 @@ struct _a_s
 struct _align_s
 {	char	data[MULTIPLE(ALIGNA,ALIGNB)];
 };
-#undef	ALIGN	/* bsd sys/param.h defines this */
+#undef	ALIGN	/* BSD sys/param.h defines this */
 #define ALIGN	sizeof(struct _align_s)
 
 /* make sure that the head of a block is a multiple of ALIGN */
@@ -343,7 +343,7 @@ struct _seg_s
 /* starting block of a segment */
 #define SEGBLOCK(s)	((Block_t*)(((Vmuchar_t*)(s)) + ROUND(sizeof(Seg_t),ALIGN)))
 
-/* short-hands for block data */
+/* shorthands for block data */
 #define SEG(b)		((b)->head.head.seg.seg)
 #define SEGLINK(b)	((b)->head.head.seg.link)
 #define	SIZE(b)		((b)->head.head.size.size)

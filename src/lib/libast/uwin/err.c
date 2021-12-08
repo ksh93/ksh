@@ -31,7 +31,7 @@ void _STUB_err(){}
 #pragma prototyped
 
 /*
- * bsd 4.4 compatibility
+ * BSD 4.4 compatibility
  *
  * NOTE: errorv(ERROR_NOID) => the first arg is the printf format
  */

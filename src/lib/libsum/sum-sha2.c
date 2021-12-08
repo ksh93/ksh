@@ -665,7 +665,7 @@ sha256_block(register Sum_t* p, const void* s, size_t len)
 		data += SHA256_BLOCK_LENGTH;
 	}
 	if (len > 0) {
-		/* There's left-overs, so save 'em */
+		/* There's leftovers, so save 'em */
 		MEMCPY_BCOPY(sha->buffer, data, len);
 		sha->bitcount += len << 3;
 	}
@@ -1028,7 +1028,7 @@ sha512_block(register Sum_t* p, const void* s, size_t len)
 		data += SHA512_BLOCK_LENGTH;
 	}
 	if (len > 0) {
-		/* There's left-overs, so save 'em */
+		/* There's leftovers, so save 'em */
 		MEMCPY_BCOPY(sha->buffer, data, len);
 		ADDINC128(sha->bitcount, len << 3);
 	}
