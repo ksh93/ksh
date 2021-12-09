@@ -28,6 +28,8 @@
 #include        "variables.h"
 #include        "builtins.h"
 #include        "path.h"
+#include	"io.h"
+#include	"shlex.h"
 
 static void assign(Namval_t*,const char*,int,Namfun_t*);
 
@@ -283,21 +285,30 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		nq =  vp->disc[type=UNASSIGN];
 	if(nq && !isblocked(bp,type))
 	{
-		int bflag=0, savexit=sh.savexit, jmpval=0;
-		struct checkpt buff;
+		struct checkpt	checkpoint;
+		int		jmpval;
+		int		savexit = sh.savexit;
+		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
+		int		bflag;
+		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
+		savelex = *lexp;
+		sh_lexopen(lexp, &sh, 0);   /* needs full init (0), not what it calls reinit (1) */
 		block(bp,type);
-		if (type==APPEND && (bflag= !isblocked(bp,LOOKUPS)))
+		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
-		sh_pushcontext(&sh,&buff,1);
-		jmpval = sigsetjmp(buff.buff,0);
+		sh_pushcontext(&sh, &checkpoint, 1);
+		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
 			sh_fun(nq,np,(char**)0);
-		sh_popcontext(&sh,&buff);
+		sh_popcontext(&sh, &checkpoint);
+		if(sh.topfd != checkpoint.topfd)
+			sh_iorestore(&sh, checkpoint.topfd, jmpval);
 		unblock(bp,type);
 		if(bflag)
 			unblock(bp,LOOKUPS);
 		if(!vp->disc[type])
 			chktfree(np,vp);
+		*lexp = savelex;
 		sh.savexit = savexit;	/* avoid influencing $? */
 	}
 	if(nv_isarray(np))
@@ -381,8 +392,13 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 	union Value		*up = np->nvalue.up;
 	if(nq && !isblocked(bp,type))
 	{
-		int		savexit = sh.savexit, jmpval = 0;
-		struct checkpt	buff;
+		struct checkpt	checkpoint;
+		int		jmpval;
+		int		savexit = sh.savexit;
+		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
+		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
+		savelex = *lexp;
+		sh_lexopen(lexp, &sh, 0);   /* needs full init (0), not what it calls reinit (1) */
 		node = *SH_VALNOD;
 		if(!nv_isnull(SH_VALNOD))
 		{
@@ -395,11 +411,13 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			nv_setsize(SH_VALNOD,10);
 		}
 		block(bp,type);
-		sh_pushcontext(&sh,&buff,1);
-		jmpval = sigsetjmp(buff.buff,0);
+		sh_pushcontext(&sh, &checkpoint, 1);
+		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
 			sh_fun(nq,np,(char**)0);
-		sh_popcontext(&sh,&buff);
+		sh_popcontext(&sh, &checkpoint);
+		if(sh.topfd != checkpoint.topfd)
+			sh_iorestore(&sh, checkpoint.topfd, jmpval);
 		unblock(bp,type);
 		if(!vp->disc[type])
 			chktfree(np,vp);
@@ -416,6 +434,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			/* restore everything but the nvlink field */
 			memcpy(&SH_VALNOD->nvname,  &node.nvname, sizeof(node)-sizeof(node.nvlink));
 		}
+		*lexp = savelex;
 		sh.savexit = savexit;	/* avoid influencing $? */
 	}
 	if(nv_isarray(np))

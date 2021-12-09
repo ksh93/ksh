@@ -669,6 +669,8 @@ make install
 			done main.o generated
 			make nvdisc.o
 				make sh/nvdisc.c
+					prev include/shlex.h implicit
+					prev include/io.h implicit
 					prev include/path.h implicit
 					prev include/builtins.h implicit
 					prev include/variables.h implicit

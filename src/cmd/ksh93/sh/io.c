@@ -2186,8 +2186,15 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 			goto done;
 		}
 		case 2:
+		{
+			/* PS2 prompt. Save stack state to avoid corrupting command substitutions
+			 * in case we're executing a PS2.get discipline function at parse time. */
+			int	savestacktop = staktell();
+			char	*savestackptr = stakfreeze(0);
 			cp = nv_getval(sh_scoped(shp,PS2NOD));
+			stakset(savestackptr, savestacktop);
 			break;
+		}
 		case 3:
 			cp = nv_getval(sh_scoped(shp,PS3NOD));
 			break;
