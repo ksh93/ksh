@@ -664,7 +664,7 @@ skip:
 				if((maxgroups=getgroups(0,(gid_t*)0)) <= 0)
 				{
 					/* pre-POSIX system */
-					maxgroups=NGROUPS_MAX;
+					maxgroups = (int)astgetconf_long("NGROUPS_MAX");
 				}
 			}
 			groups = (gid_t*)stakalloc((maxgroups+1)*sizeof(gid_t));

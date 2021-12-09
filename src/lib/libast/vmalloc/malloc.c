@@ -1124,8 +1124,6 @@ char*	ends;
 	return begs;
 }
 
-#define FD_PRIVATE	(3*OPEN_MAX/4)
-
 #if __STD_C
 int _vmfd(int fd)
 #else
@@ -1134,10 +1132,19 @@ int	fd;
 #endif
 {
 	int	pd;
+	int	fd_private = (int)(3 * astgetconf_long("OPEN_MAX") / 4);
+	if (fd_private <= 0)
+	{
+#if defined(OPEN_MAX)
+		fd_private = 3 * OPEN_MAX / 4;
+#else
+		fd_private = 3 * FOPEN_MAX / 4;
+#endif
+	}
 
 	if (fd >= 0)
 	{
-		if (fd < FD_PRIVATE && (pd = fcntl(fd, F_DUPFD, FD_PRIVATE)) >= 0)
+		if (fd < fd_private && (pd = fcntl(fd, F_DUPFD, fd_private)) >= 0)
 		{
 			close(fd);
 			fd = pd;

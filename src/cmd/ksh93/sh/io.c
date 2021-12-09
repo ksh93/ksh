@@ -402,7 +402,7 @@ int  sh_iovalidfd(Shell_t *shp, int fd)
 		return(0);
 	if(fd < shp->gd->lim.open_max)
 		return(1);
-	max = strtol(astconf("OPEN_MAX",NiL,NiL),NiL,0);
+	max = (int)astgetconf_long("OPEN_MAX");
 	if(fd >= max)
 	{
 		errno = EBADF;

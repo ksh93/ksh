@@ -144,9 +144,6 @@ char e_version[]	= "\n@(#)$Id: Version "
     extern char	**environ;
 #endif
 
-#undef	getconf
-#define getconf(x)	strtol(astconf(x,NiL,NiL),NiL,0)
-
 struct seconds
 {
 	Namfun_t	hdr;
@@ -1223,9 +1220,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		shgd->euserid=geteuid();
 		shgd->groupid=getgid();
 		shgd->egroupid=getegid();
-		shgd->lim.clk_tck = getconf("CLK_TCK");
-		shgd->lim.arg_max = getconf("ARG_MAX");
-		shgd->lim.child_max = getconf("CHILD_MAX");
+		shgd->lim.arg_max = astgetconf_long("ARG_MAX");
+		shgd->lim.child_max = (int)astgetconf_long("CHILD_MAX");
+		shgd->lim.clk_tck = (int)astgetconf_long("CLK_TCK");
 		if(shgd->lim.arg_max <=0)
 			shgd->lim.arg_max = ARG_MAX;
 		if(shgd->lim.child_max <=0)
