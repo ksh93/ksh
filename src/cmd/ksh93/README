@@ -208,8 +208,8 @@ and want to be able to run setuid/setgid and execute only scripts, then
 you will have to change the source code file sh/suid_exec.c explicitly.
 If you do not have ksh in one of these secure locations, /bin/sh will
 be invoked with the -p options and will fail when you execute a setuid/setgid
-and/or execute only script.  Note, that ksh does not read the .profile
-or $ENV file when it the real and effective user/group ids are not equal.
+and/or execute only script.  Note that ksh does not read the .profile
+or $ENV file when the real and effective user/group IDs are not equal.
 
 #### TESTING KSH ####
 
