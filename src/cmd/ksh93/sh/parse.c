@@ -29,12 +29,7 @@
  *  This is the parser for a shell language
  */
 
-#if KSHELL
 #include	"defs.h"
-#else
-#include	<shell.h>
-#include	<ctype.h>
-#endif
 #include	<fcin.h>
 #include	<error.h>
 #include	"shlex.h"
@@ -71,15 +66,6 @@ static Shnode_t	*test_primary(Lex_t*);
 #   define NIL(type)	((type)0)
 #endif /* NIL */
 #define CNTL(x)		((x)&037)
-
-
-#if !KSHELL
-static struct stdata
-{
-	struct slnod    *staklist;
-	int	cmdline;
-} st;
-#endif
 
 static int		opt_get;
 static int		loop_level;
@@ -396,9 +382,7 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 	flag &= ~SH_FUNEVAL;
 	if((flag&SH_NL) && (shp->inlineno=error_info.line+shp->st.firstline)==0)
 		shp->inlineno=1;
-#if KSHELL
 	shp->nextprompt = 2;
-#endif
 	t = sh_cmd(lexp,(flag&SH_EOF)?EOFSYM:'\n',SH_SEMI|SH_EMPTY|(flag&SH_NL));
 	fcclose();
 	fcrestore(&sav_input);

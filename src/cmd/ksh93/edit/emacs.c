@@ -66,13 +66,8 @@ One line screen editor for any program
 
 #include	<ast.h>
 #include	"FEATURE/cmds"
-#if KSHELL
-#   include	"defs.h"
-#else
-#   include	<ctype.h>
-#endif	/* KSHELL */
+#include	"defs.h"
 #include	"io.h"
-
 #include	"history.h"
 #include	"edit.h"
 #include	"terminal.h"
@@ -978,7 +973,6 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			draw(ep,UPDATE);
 			return(-1);
 		}
-#if KSHELL
 
 #if SHOPT_EDPREDICT
 		case '\n':  case '\t':
@@ -1218,16 +1212,8 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 #   else
 				return(-1);
 #   endif /* ESH_BETTER */
-#else
-		update:
-			cur = i;
-			draw(ep,UPDATE);
-			return(-1);
-
-		default:
-#endif	/* KSHELL */
-		beep();
-		return(-1);
+			beep();
+			/* FALLTHROUGH */
 	}
 	return(-1);
 }
@@ -1252,8 +1238,7 @@ static void xcommands(register Emacs_t *ep,int count)
                         draw(ep,UPDATE);
                         return;
 
-#if KSHELL
-#   ifdef ESH_BETTER
+#ifdef ESH_BETTER
                 case cntl('E'):	/* invoke emacs on current command */
 			if(ed_fulledit(ep->ed)==-1)
 				beep();
@@ -1317,8 +1302,7 @@ static void xcommands(register Emacs_t *ep,int count)
 				return;
 			}
 #	endif /* debugging code */
-#   endif /* ESH_BETTER */
-#endif /* KSHELL */
+#endif /* ESH_BETTER */
 
                 default:
                         beep();

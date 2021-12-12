@@ -907,5 +907,27 @@ w true); echo "Exit status is $?"
 u Exit status is 0
 !
 
+# err_exit #
+tst $LINENO <<"!"
+L interrupted PS2 discipline function
+# https://github.com/ksh93/ksh/issues/347
+
+d 15
+p :test-1:
+w PS2.get() { trap --bad-option 2>/dev/null; .sh.value="NOT REACHED"; }
+p :test-2:
+w echo \$\(
+r :test-2: echo \$\(
+w echo one \\
+r > echo one \\
+w two three
+r > two three
+w echo end
+r > echo end
+w \)
+r > \)
+r one two three end
+!
+
 # ======
 exit $((Errors<125?Errors:125))

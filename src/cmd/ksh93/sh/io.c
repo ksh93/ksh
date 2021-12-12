@@ -37,6 +37,7 @@
 #include	"path.h"
 #include	"io.h"
 #include	"jobs.h"
+#include	"shlex.h"
 #include	"shnodes.h"
 #include	"history.h"
 #include	"edit.h"
@@ -2154,6 +2155,7 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 		case 1:
 		{
 			register int c;
+			sh_lexopen(sh.lex_context, &sh, 0);   /* reset lexer state */
 #if defined(TIOCLBIC) && defined(LFLUSHO)
 			if(!sh_isoption(SH_VI) && !sh_isoption(SH_EMACS) && !sh_isoption(SH_GMACS))
 			{
@@ -2186,8 +2188,15 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 			goto done;
 		}
 		case 2:
+		{
+			/* PS2 prompt. Save stack state to avoid corrupting command substitutions
+			 * in case we're executing a PS2.get discipline function at parse time. */
+			int	savestacktop = staktell();
+			char	*savestackptr = stakfreeze(0);
 			cp = nv_getval(sh_scoped(shp,PS2NOD));
+			stakset(savestackptr, savestacktop);
 			break;
+		}
 		case 3:
 			cp = nv_getval(sh_scoped(shp,PS3NOD));
 			break;

@@ -241,7 +241,12 @@ then	[[ $(3<#) -eq 0 ]] || err_exit "not at position 0"
 	read -u3 && err_exit "not found pattern not positioning at eof"
 	cat $tmp/seek | read -r <# *WWW*
 	[[ $REPLY == *WWWWW* ]] || err_exit '<# not working for pipes'
-	{ < $tmp/seek <# ((2358336120)) ;} 2> /dev/null || err_exit 'long seek not working'
+	# The next test seeks past a 2 GiB boundary, which may fail on 32-bit systems. To prevent
+	# a test failure, the long seek test is only run on 64-bit systems.
+	# https://github.com/att/ast/commit/a5c692e1bd0d800e3f19be249d3170e69cbe001d
+	if [[ $(builtin getconf 2> /dev/null; getconf LONG_BIT 2>&1) == 64 ]]; then
+		{ < $tmp/seek <# ((2358336120)) ;} 2> /dev/null || err_exit 'long seek not working'
+	fi
 else	err_exit "$tmp/seek: cannot open for reading"
 fi
 redirect 3<&- || 'cannot close 3'

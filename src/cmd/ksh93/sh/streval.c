@@ -979,7 +979,7 @@ Sfdouble_t strval(Shell_t *shp,const char *s,char **end,Sfdouble_t(*conv)(const 
 
 #undef	error
 
-#if _BLD_shell && defined(__EXPORT__)
+#if defined(__EXPORT__)
 #define extern			__EXPORT__
 #endif
 

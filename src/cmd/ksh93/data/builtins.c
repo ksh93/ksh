@@ -27,16 +27,12 @@
 #include	"ulimit.h"
 #include	"name.h"
 #include	"version.h"
-#if KSHELL
-#   include	"builtins.h"
-#   include	"jobs.h"
-#   include	"FEATURE/cmds"
-#   define	bltin(x)	(b_##x)
-    /* The following is for builtins that do not accept -- options */
-#   define	Bltin(x)	(B_##x)
-#else
-#   define bltin(x)	0
-#endif
+#include	"builtins.h"
+#include	"jobs.h"
+#include	"FEATURE/cmds"
+#define	bltin(x)	(b_##x)
+/* The following is for builtins that do not accept -- options */
+#define	Bltin(x)	(B_##x)
 
 #ifndef SHOPT_CMDLIB_DIR
 #   define SHOPT_CMDLIB_DIR	SH_CMDLIB_DIR

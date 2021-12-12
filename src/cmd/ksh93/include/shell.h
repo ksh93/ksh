@@ -219,9 +219,7 @@ extern Libcomp_t *liblist;
 #undef getenv			/* -lshell provides its own */
 
 #if defined(__EXPORT__) && defined(_DLL)
-#   ifdef _BLD_shell
 #	define extern __EXPORT__
-#   endif /* _BLD_shell */
 #endif /* _DLL */
 
 extern Dt_t		*sh_bltin_tree(void);
@@ -273,11 +271,7 @@ extern int		sh_exec(const Shnode_t*,int);
 /*
  * direct access to sh is obsolete, use sh_getinterp() instead
  */
-#if !defined(_SH_PRIVATE) && defined(__IMPORT__) && !defined(_BLD_shell)
-	extern __IMPORT__  Shell_t sh;
-#else
-	extern Shell_t sh;
-#endif
+extern Shell_t sh;
 
 #ifdef _DLL
 #   undef extern
