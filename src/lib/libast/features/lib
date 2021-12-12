@@ -75,6 +75,7 @@ tst	tst_errno note{ errno can be assigned }end link{
 
 tst	lib_poll_fd_1 note{ fd is first arg to poll() }end execute{
 	#include <poll.h>
+	#include <unistd.h>
 	_BEGIN_EXTERNS_
 	extern int	pipe _ARG_((int*));
 	_END_EXTERNS_
@@ -95,6 +96,7 @@ tst	lib_poll_fd_1 note{ fd is first arg to poll() }end execute{
 
 tst	lib_poll_fd_2 note{ fd is second arg to poll() }end execute{
 	#include <poll.h>
+	#include <unistd.h>
 	_BEGIN_EXTERNS_
 	extern int	pipe _ARG_((int*));
 	_END_EXTERNS_
