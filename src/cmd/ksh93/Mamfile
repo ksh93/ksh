@@ -924,6 +924,7 @@ make install
 					prev include/edit.h implicit
 					prev include/history.h implicit
 					prev include/shnodes.h implicit
+					prev include/shlex.h implicit
 					prev include/jobs.h implicit
 					prev include/io.h implicit
 					prev include/path.h implicit

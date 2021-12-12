@@ -37,6 +37,7 @@
 #include	"path.h"
 #include	"io.h"
 #include	"jobs.h"
+#include	"shlex.h"
 #include	"shnodes.h"
 #include	"history.h"
 #include	"edit.h"
@@ -2154,6 +2155,7 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 		case 1:
 		{
 			register int c;
+			sh_lexopen(sh.lex_context, &sh, 0);   /* reset lexer state */
 #if defined(TIOCLBIC) && defined(LFLUSHO)
 			if(!sh_isoption(SH_VI) && !sh_isoption(SH_EMACS) && !sh_isoption(SH_GMACS))
 			{

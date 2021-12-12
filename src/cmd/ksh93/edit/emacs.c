@@ -1163,8 +1163,9 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				return(-1);
 #   endif /* ESH_BETTER */
 			beep();
-			return(-1);
+			/* FALLTHROUGH */
 	}
+	return(-1);
 }
 
 

@@ -68,9 +68,6 @@ void	sh_fault(register int sig)
 	register char		*trap;
 	register struct checkpt	*pp = (struct checkpt*)shp->jmplist;
 	int	action=0;
-	/* reset lexer state on Ctrl+C */
-	if(sh_isstate(SH_INTERACTIVE) && sig==SIGINT)
-		sh_lexopen(sh.lex_context, &sh, 0);
 	/* reset handler */
 	if(!(sig&SH_TRAP))
 		signal(sig, sh_fault);
@@ -437,6 +434,15 @@ void	sh_chktrap(Shell_t* shp)
 				cursig = sig;
  				sh_trap(trap,0);
 				cursig = -1;
+				/* If we're in a PS2 prompt, then we just parsed and executed a trap in the middle of parsing
+				 * another command, so the lexer state is overwritten. Escape to avoid crashing the lexer. */
+				if(sh.nextprompt == 2)
+				{
+					fcclose();		/* force lexer to abort partial command */
+					sh.nextprompt = 1;	/* next display prompt is PS1 */
+					sh.lastsig = sig;	/* make sh_exit() set $? to signal exit status */
+					sh_exit(SH_EXITSIG);	/* start a new command line */
+				}
  			}
 		}
 	}
