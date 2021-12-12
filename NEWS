@@ -9,6 +9,12 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   as SIGINT due to Ctrl+C) while the user is entering a multi-line command
   substitution in an interactive shell.
 
+- The shell linter's warning for variable expansion in ((...)) now tells the
+  user which variable is causing performance degradation.
+
+- The shell linter now warns the user x=$((expr)) is slower than ((x=expr))
+  when assigning a value to a variable.
+
 2021-12-09:
 
 - Increased the general robustness of discipline function handling, fixing

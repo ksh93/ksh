@@ -1327,7 +1327,16 @@ breakloop:
 	state = lp->arg->argval;
 	lp->comp_assign = assignment;
 	if(assignment)
+	{
 		lp->arg->argflag |= ARG_ASSIGN;
+		if(sh_isoption(SH_NOEXEC))
+		{
+			char *cp = strchr(state, '=');
+			if(cp && strncmp(++cp, "$((", 3) == 0)
+				errormsg(SH_DICT, ERROR_warn(0), e_lexarithwarn, shp->inlineno,
+					state, cp - state, state, cp + 3);
+		}
+	}
 	else if(!lp->lex.skipword)
 		lp->assignok = 0;
 	lp->arg->argchn.cp = 0;
