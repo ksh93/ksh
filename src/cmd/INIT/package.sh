@@ -5628,9 +5628,9 @@ make|view)
 				$t*)	;;
 				$b*)	cc=$b
 					;;
-				$s*)	cd $INSTALLROOT/lib/package/gen
+				$s*)	$exec cd $INSTALLROOT/lib/package/gen
 					tmp=pkg$$
-					eval '$'exec echo "'int main(){return 0;}' > $tmp.c"
+					$exec eval "echo 'int main(){return 0;}' > $tmp.c"
 					if	$exec $s -o $tmp.exe $tmp.c >/dev/null 2>&1 &&
 						test -x $tmp.exe
 					then	case $HOSTTYPE in
@@ -5863,7 +5863,7 @@ cat $j $k
 				echo "$command: $var changed from $old to $new" >&2
 				err=y ;;
 			esac
-		else	case $new in
+		else	[ -d $INSTALLROOT/lib/package/gen ] && case $new in
 			'')	;;
 			*)	echo "$new" ;;
 			esac > $store
@@ -5882,7 +5882,7 @@ cat $j $k
 
 	# record the build host name
 
-	case $noexec in
+	case $exec in
 	'')	hostinfo name
 		echo "$_hostinfo_" | sed 's,\..*,,' > $PACKAGEBIN/gen/host
 		;;
