@@ -1073,7 +1073,7 @@ then	got=$( { "$SHELL" -c '
 		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 fi
 
-# ==========
+# ======
 # Verify that the POSIX 'test' builtin exits with status 2 when given an invalid binary operator.
 for operator in '===' ']]'
 do
