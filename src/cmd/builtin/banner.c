@@ -33,14 +33,14 @@ static const char usage[] =
 	"[+NAME?banner - print large banner]"
 	"[+DESCRIPTION?\bbanner\b prints a large banner on the standard output (up to 30 characters).]"
 
-	"[b:background-characters]:[bg_delimiter?This sets the characters used for the background of each string. The "
+	"[b:background-characters]:[bg_delim?This sets the characters used for the background of each string. The "
 	"default value is ' '.]"
-	"[d|f:foreground-characters]:[delimiter?The banner print character is \achar\a, multiple can be specified for "
+	"[d|f:delimiter|foreground-characters]:[delim?The banner print character is \adelim\a, multiple can be specified for "
 	"each "
 	"letter. The default value is #.]"
 	"[l:use-lpd-font?Use NetBSD's modern LPD font instead of the classic System V font.]"
 	"[p:use-public-domain-font?Use the font from the public domain implementation of sysvbanner.]"
-	"[w:print-width]#[width?The banner print width is \awidth\a, which is an unsigned 16-bit value. The default "
+	"[w:width|print-width]#[width?The banner print width is \awidth\a, which is an unsigned 16-bit value. The default "
 	"value is 240.]"
 
 	"\n"
