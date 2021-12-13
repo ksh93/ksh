@@ -132,8 +132,8 @@ typedef struct Map_s			/* uid/gid map			*/
 } Map_t;
 
 /*
- * libast's struid() has the peculiar feature that it returns -1 in response
- * to not finding a UID for a name on the first call, and -2 for subsequent
+ * libast's strgid() and struid() functions will return -1 in response to
+ * not finding an ID for a name on the first call, and -2 for subsequent
  * calls for the same string.
  */
 #define NOID		(-1)
