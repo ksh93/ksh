@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex implementation
+ * POSIX regex implementation
  *
  * based on Doug McIlroy's C++ implementation
  * Knuth-Morris-Pratt adapted from Corman-Leiserson-Rivest
@@ -72,7 +72,7 @@ typedef struct regsubop_s
 
 #define MBSIZE(p)	((ast.tmp_int=mbsize(p))>0?ast.tmp_int:1)
 
-#undef	RE_DUP_MAX			/* posix puts this in limits.h!	*/
+#undef	RE_DUP_MAX			/* POSIX puts this in limits.h!	*/
 #define RE_DUP_MAX	(INT_MAX/2-1)	/* 2*RE_DUP_MAX won't overflow	*/
 #define RE_DUP_INF	(RE_DUP_MAX+1)	/* infinity, for *		*/
 #define BACK_REF_MAX	9

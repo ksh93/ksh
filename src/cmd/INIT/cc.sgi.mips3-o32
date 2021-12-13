@@ -1,4 +1,4 @@
-: sgi.mips3-o32 cc wrapper that generates mips3 o32 binaries : 2006-02-14 :
+: sgi.mips3-o32 cc wrapper that generates MIPS III O32 binaries : 2006-02-14 :
 
 HOSTTYPE=sgi.mips3-o32
 

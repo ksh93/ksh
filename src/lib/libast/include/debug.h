@@ -22,8 +22,8 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * common ast debug definitions
- * include after the ast headers
+ * common AST debug definitions
+ * include after the AST headers
  */
 
 #ifndef _DEBUG_H

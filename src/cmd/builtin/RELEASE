@@ -5,6 +5,6 @@
 10-04-01 pty: add --tty='stty-settings'
 10-03-19 pty: add --dialogue
 10-03-15 pty: fix select() fd management
-09-03-31 features/pty,Makefile: add pty.h and -lutil refs for linux -- great, another util library
+09-03-31 features/pty,Makefile: add pty.h and -lutil refs for Linux -- great, another util library
 09-01-30 pty.c: add <ast_time.h> (for fd_set!! on mvs.390)
 06-07-20 pty.c: add

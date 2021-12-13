@@ -32,7 +32,7 @@
 #include	"argnod.h"
 
 /* command tree for tretyp */
-#define FINT		(02<<COMBITS)		/* non-interruptable */
+#define FINT		(02<<COMBITS)		/* non-interruptible */
 #define FAMP		(04<<COMBITS)		/* background */
 #define FPIN		(010<<COMBITS)		/* input is a pipe */
 #define FPOU		(040<<COMBITS)		/* output is a pipe */
@@ -40,7 +40,7 @@
 #define FCOOP		(0200<<COMBITS)		/* cooperating process */
 #define FSHOWME		(0400<<COMBITS)		/* set for showme commands */
 #define FALTPIPE	(02000<<COMBITS)	/* alternate pipes &| */
-#define FPOSIX		(02<<COMBITS)		/* posix semantics function */
+#define FPOSIX		(02<<COMBITS)		/* POSIX semantics function */
 #define FLINENO		(04<<COMBITS)		/* for/case has line number */
 #define FOPTGET		(0200<<COMBITS)		/* function calls getopts */
 
@@ -213,7 +213,7 @@ union Shnode_u
 extern void			sh_freeup(Shell_t*);
 extern void			sh_funstaks(struct slnod*,int);
 extern Sfio_t 			*sh_subshell(Shell_t*,Shnode_t*, volatile int, int);
-#if defined(__EXPORT__) && defined(_BLD_DLL) && defined(_BLD_shell) 
+#if defined(__EXPORT__) && defined(_BLD_DLL)
    __EXPORT__
 #endif
 extern int			sh_tdump(Sfio_t*, const Shnode_t*);

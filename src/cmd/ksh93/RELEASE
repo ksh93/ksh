@@ -73,7 +73,7 @@ ____
 	  directory if they are killed or stopped.
 12-06-04  A bug in handling \\ in read has been fixed.
 12-05-31  Use getrlimit64/setrlimit64 on systems that support it.
-12-05-31  Fix 64 bit big-endian arithmetic bug that mishandled nan and inf.
+12-05-31  Fix 64 bit big-endian arithmetic bug that mishandled NaN and Inf.
 12-05-31  Handle ECONNRESET like EPIPE.
 12-05-31  Change .paths parse to use only the last BUILTIN_LIB from the top
 	  and treat BUILTIN_LIB value as a ':' separated list of lib names.
@@ -377,7 +377,7 @@ ____
 	  variable core dumps has been fixed.
 11-05-28  Two bugs in the display of arrays of compound variables with print -v
 	  have been fixed.
-11-05-27  A bug with command substitution with the shift jis locale has been
+11-05-27  A bug with command substitution in the Shift JIS locale has been
 	  fixed.
 11-05-25  A bug in which unset -f foo, called within function foo could cause
 	  the shell to core dump has been fixed.
@@ -418,7 +418,7 @@ ____
 	  the match instance.
 11-04-11  A bug in which readonly var, where var is exported could cause var
 	  to be unset has been fixed.
-11-04-06  A tokenizer bug in which ${x/{3}(\d)/ } would cause in infinite
+11-04-06  A tokenizer bug in which ${x/{3}(\d)/ } would cause an infinite
 	  loop has been fixed.
 11-04-05  A bug in which ${!x.} could cause a core dump has been fixed.
 11-04-04  A bug in which cleaning out the history file could terminate before
@@ -440,7 +440,7 @@ ____
 11-03-07  A bug in which reassigning a compound variable to an associative
 	  array index could incorrectly increase the count of the number
 	  of elements has been fixed.
-11-03-04 +The tilde expansion on windows has been modified to handle user
+11-03-04 +The tilde expansion on Windows has been modified to handle user
 	  names of the form domain/user so that ~domain/user now expands
 	  to the home directory of that domain user.
 11-03-03  A bug in which the width of the prompt was calculated incorrectly
@@ -497,7 +497,7 @@ ____
 	  signal.  This prevents a core dump to be overwritten by the shell.
 10-12-22  A bug in the expansion of  ${A[@]} ${B[@]}, introduced in 10-12-01
 	   when A="" B=B has been fixed.
-10-12-21 +Use MS_3D in b_vpath() for setting win32 WoW mount defaults.
+10-12-21 +Use MS_3D in b_vpath() for setting Win32 WoW mount defaults.
 10-12-17  A bug in the expansion of ${var:i:j} which caused a core dump when
 	  i > ${#var} has been fixed.
 10-12-16 +sleep now treats . as decimal point even in locales that use comma.
@@ -521,7 +521,7 @@ ____
 	  variables.
 10-11-29  An incorrect warning message was eliminated with the -n option for
 	  arithmetic expressions with associative arrays.
-10-11-29  Some changes were made to slightly reduces startup time.
+10-11-29  Some changes were made to slightly reduce startup time.
 10-11-24  A bug in which a name reference is make to arr[0] when arr is not
 	  an array has been fixed.
 10-11-23  If a type definition is made without a compound variable assignment it
@@ -737,7 +737,7 @@ ____
 	  the variable had an attribute but did not have a value.
 10-06-18  Modified trap handling so that if the same signal is received when
 	  executing the handler, it is deferred until the handler completes.
-10-06-16  Fixed a bug in which ulimit -v was setting the cpu limit
+10-06-16  Fixed a bug in which ulimit -v was setting the CPU limit
 	  on Linux.
 10-06-14 +The command 'typeset -T' now generates the list of type definitions
 	  in a format that can be used as input to the shell.
@@ -931,7 +931,7 @@ ____
 	  with radix char , and thousands separator . has been fixed.
 09-12-28  A bug in the handling of SIGCLD on systems that generated SIGCLD
 	  while blocked waiting for process to complete has been fixed.
-09-12-24  ast setlocale() reworked to differentiate env var changes from user
+09-12-24  AST setlocale() reworked to differentiate env var changes from user
 	  override.
 09-12-18  A bug with the SHOPT_BGX option set which disabled traps for signals
 	  < SIGCHLD when a trap for a signal > SIGCHLD was set has been fixed.
@@ -986,7 +986,7 @@ ____
 	  in command completion has been fixed.
 09-10-09  $PATH processing has been changed to delay dir stat() and .paths
 	  lookup until the directory is needed in the path search.
-09-09-28  Call the ast setlocale() intercept on unset too.
+09-09-28  Call the AST setlocale() intercept on unset too.
 09-09-24  A bug in which LANG=foo; LC_ALL=foo; unset LC_ALL; did not revert
 	  LC_CTYPE etc. to the LANG value has been fixed.
 09-09-17  A bug in which unsetting SVLVL could cause a script invoked by
@@ -1186,7 +1186,7 @@ ____
 	  instead of quoting the argument in single quotes.
 08-12-07  A bug in typeset -m which occurred when the target node was an
 	  associative array element has been fixed.
-08-12-07  A timing bug on some systems (for example darwin), that could
+08-12-07  A timing bug on some systems (for example Darwin), that could
 	  cause the last process of a pipeline entered interactively to fail
 	  with an "Exec format error" has been fixed.
 08-12-04 +SHOPT_BGX enables background job extensions. Noted by "J" in
@@ -2069,7 +2069,7 @@ ____
 03-08-07  A bug in which the KEYBD trap was not being invoked when
 	  characters with the 8th bit set has been fixed.
 03-08-02  A parser bug introduced in ksh93o which caused the character
-	  after () in a Posix function definition to be skipped
+	  after () in a POSIX function definition to be skipped
 	  when reading from standard input has been fixed.
 03-08-01  A bug in which "${foo#pattern}(x)" treated (x) as if it were
 	  part of the pattern has been fixed.
@@ -2079,7 +2079,7 @@ ____
 	  work as expected.
 
 03-07-20  --- Release ksh93o+  ---
-03-07-20  A bug in which could cause memory corruption when a posix
+03-07-20  A bug in which could cause memory corruption when a POSIX
 	  function invoked another one has been fixed.
 03-07-15  A bug in which a file descriptor>2 could be closed before
 	  executing a script has been fixed.
@@ -2377,7 +2377,7 @@ ____
 01-09-25 +The exponentiation operator ** was added to the shell arithmetic
 	  evaluation.  It has higher precedence than * and is left
 	  associative.
-01-09-25  The code was modified to use the ast multibyte macros
+01-09-25  The code was modified to use the AST multibyte macros
 	  and functions for handling multibyte locales.
 01-09-25 +The expansion ${parameter:offset:length} now handles negative
 	  offsets which cause offsets to be measured from the end.
@@ -2629,7 +2629,7 @@ ____
 	  checking name to see if it was a name reference has been fixed.
 00-09-26  A bug in the multibyte version in which the width of for
 	  non-printing characters was not correct has been fixed.
-00-09-12 +Made changes to get multibyte editing work on UWIN for windows
+00-09-12 +Made changes to get multibyte editing work on UWIN for Windows.
 00-09-12  A bug in which multibyte characters would be displayed incorrectly
 	  has been fixed.
 00-08-08  Removed build dependency on iswprint() and iswalph().
@@ -2875,7 +2875,7 @@ ____
 96-07-31  A bug that caused side effects in subscript evaluation
 	  when tracing was enabled for subscripts using ++ or --
 	  has been fixed.
-96-07-31  To conform to the Posix standard getopts has been changed
+96-07-31  To conform to the POSIX standard getopts has been changed
 	  so that the option char is set to ? when it returns with
 	  a non-zero exit status.
 96-07-31  The handling of \} inside ${name...} has been fixed so

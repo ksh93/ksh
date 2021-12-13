@@ -1,4 +1,4 @@
-: sgi.mips2 cc wrapper that generates mips2 binaries : 2006-02-14 :
+: sgi.mips2 cc wrapper that generates MIPS II binaries : 2006-02-14 :
 
 HOSTTYPE=sgi.mips2
 

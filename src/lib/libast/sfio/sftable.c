@@ -116,7 +116,7 @@ int		type;	/* >0: scanf, =0: printf, -1: internal	*/
 			for(v = 1;;)
 			{	switch(*form++)
 				{
-				case 0 :	/* not balancable, retract */
+				case 0 :	/* not balanceable, retract */
 					form = t_str;
 					t_str = NIL(char*);
 					n_str = 0;

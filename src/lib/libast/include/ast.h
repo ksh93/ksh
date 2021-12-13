@@ -26,7 +26,7 @@
  * Advanced Software Technology Library
  * AT&T Research
  *
- * std + posix + ast
+ * std + POSIX + AST
  */
 
 #ifndef _AST_H

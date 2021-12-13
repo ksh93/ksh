@@ -434,7 +434,7 @@ then	set -o posix -o trackall
 	set +o posix
 fi
 
-# =====
+# ======
 # test should support '<' as well as '>'; before 2021-11-13, ksh supported
 # only '>' due to '<' being missorted in shtab_testops[] in data/testops.c
 [ foo \< bar ] 2>/dev/null

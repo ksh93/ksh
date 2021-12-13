@@ -50,7 +50,7 @@ static const char usage[] =
         "[+0?All files copies successfully.]"
         "[+>0?An error occurred.]"
 "}"
-"[+SEE ALSO?\bcat\b(1), \bsignal\b(3)]"
+"[+SEE ALSO?\bcat\b(1), \bsignal\b(2)]"
 ;
 
 #include <cmd.h>

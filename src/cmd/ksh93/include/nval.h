@@ -237,11 +237,7 @@ struct Namval
 #define NV_DCRESTRICT	1	/* variable that are restricted in rsh */
 
 #if defined(__EXPORT__) && defined(_DLL)
-#   ifdef _BLD_shell
 #	define extern __EXPORT__
-#   else
-#	define extern __IMPORT__
-#   endif /* _BLD_shell */
 #endif /* _DLL */
 /* prototype for array interface */
 extern Namarr_t	*nv_arrayptr(Namval_t*);

@@ -26,7 +26,7 @@
  * Glenn Fowler
  * AT&T Research
  *
- * ast ftwalk interface definitions
+ * AST ftwalk interface definitions
  * ftwalk was the initial improvement on ftw and nftw
  * which formed the basis for the POSIX fts proposal
  *

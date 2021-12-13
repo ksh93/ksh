@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex fatal error interface to error()
+ * POSIX regex fatal error interface to error()
  */
 
 #include "reglib.h"

@@ -29,12 +29,7 @@
  *  This is the parser for a shell language
  */
 
-#if KSHELL
 #include	"defs.h"
-#else
-#include	<shell.h>
-#include	<ctype.h>
-#endif
 #include	<fcin.h>
 #include	<error.h>
 #include	"shlex.h"
@@ -71,15 +66,6 @@ static Shnode_t	*test_primary(Lex_t*);
 #   define NIL(type)	((type)0)
 #endif /* NIL */
 #define CNTL(x)		((x)&037)
-
-
-#if !KSHELL
-static struct stdata
-{
-	struct slnod    *staklist;
-	int	cmdline;
-} st;
-#endif
 
 static int		opt_get;
 static int		loop_level;
@@ -264,7 +250,7 @@ static Shnode_t	*makeparent(Lex_t *lp, int flag, Shnode_t *child)
 	return(par);
 }
 
-static int paramsub(const char *str)
+static const char *paramsub(const char *str)
 {
 	register int c,sub=0,lit=0;
 	while(c= *str++)
@@ -272,16 +258,20 @@ static int paramsub(const char *str)
 		if(c=='$' && !lit)
 		{
 			if(*str=='(')
-				return(0);
+				return(NIL(const char*));
 			if(sub)
 				continue;
 			if(*str=='{')
 				str++;
 			if(!isdigit(*str) && strchr("?#@*!$ ",*str)==0)
-				return(1);
+			{
+				if(str[-1]=='{')
+					str--;  /* variable in the form of ${var} */
+				return(str);
+			}
 		}
 		else if(c=='`')
-			return(0);
+			return(NIL(const char*));
 		else if(c=='[' && !lit)
 			sub++;
 		else if(c==']' && !lit)
@@ -289,7 +279,7 @@ static int paramsub(const char *str)
 		else if(c=='\'')
 			lit = !lit;
 	}
-	return(0);
+	return(NIL(const char*));
 }
 
 static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
@@ -302,8 +292,15 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
 		t->ar.arcomp = sh_arithcomp(lp->sh,ap->argval);
 	else
 	{
-		if(sh_isoption(SH_NOEXEC) && (ap->argflag&ARG_MAC) && paramsub(ap->argval))
-			errormsg(SH_DICT,ERROR_warn(0),e_lexwarnvar,lp->sh->inlineno,ap->argval);
+		const char *p, *q;
+		if(sh_isoption(SH_NOEXEC) && (ap->argflag&ARG_MAC) &&
+			((p = paramsub(ap->argval)) != NIL(const char*)))
+		{
+			for(q = p; !isspace(*q) && *q != '\0'; q++)
+				;
+			errormsg(SH_DICT, ERROR_warn(0), e_lexwarnvar,
+				lp->sh->inlineno, ap->argval, q - p, p);
+		}
 		t->ar.arcomp = 0;
 	}
 	return(t);
@@ -396,9 +393,7 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 	flag &= ~SH_FUNEVAL;
 	if((flag&SH_NL) && (shp->inlineno=error_info.line+shp->st.firstline)==0)
 		shp->inlineno=1;
-#if KSHELL
 	shp->nextprompt = 2;
-#endif
 	t = sh_cmd(lexp,(flag&SH_EOF)?EOFSYM:'\n',SH_SEMI|SH_EMPTY|(flag&SH_NL));
 	fcclose();
 	fcrestore(&sav_input);

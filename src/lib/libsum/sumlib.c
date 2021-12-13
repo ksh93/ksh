@@ -172,7 +172,7 @@ long_data(Sum_t* p, Sumdata_t* data)
  * now the library interface
  */
 
-#undef	METHOD		/* solaris <sys/localedef.h>! */
+#undef	METHOD		/* Solaris <sys/localedef.h>! */
 #define METHOD(x)	x##_match,x##_description,x##_options,x##_open,x##_init,x##_block,x##_data,x##_print,x##_done,x##_scale
 
 static const Method_t	methods[] =
@@ -206,7 +206,7 @@ static const Map_t	maps[] =
 {
 	{
 		"posix|cksum|std|standard",
-		"The posix 1003.2-1992 32 bit crc checksum. This is the"
+		"The POSIX 1003.2-1992 32 bit crc checksum. This is the"
 		" default \bcksum\b(1)  method.",
 		"crc-0x04c11db7-rotate-done-size"
 	},
@@ -228,7 +228,7 @@ static const Map_t	maps[] =
 	},
 	{
 		"ast|strsum",
-		"The \bast\b \bstrsum\b(3) PRNG hash.",
+		"The \bAST\b \bstrsum\b(3) PRNG hash.",
 		"prng-0x63c63cd9-add=0x9c39c33d"
 	},
 };

@@ -1,4 +1,4 @@
-: sgi.mips3 cc wrapper that generates mips3 binaries : 2007-04-27 :
+: sgi.mips3 cc wrapper that generates MIPS III binaries : 2007-04-27 :
 
 HOSTTYPE=sgi.mips3
 

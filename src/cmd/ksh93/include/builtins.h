@@ -64,7 +64,7 @@
 
 /* entry point for shell special builtins */
 
-#if _BLD_shell && defined(__EXPORT__)
+#if defined(__EXPORT__)
 #	define extern	__EXPORT__
 #endif
 

@@ -24,7 +24,7 @@
 
 /*
  * The preferred method is POSIX recv(2) with MSG_PEEK, which is detected as 'socket_peek'.
- * On Solaris/Illumos (__sun), _stream_peek and _lib_select are needed, as _socket_peek doesn't work correctly.
+ * On Solaris/illumos (__sun), _stream_peek and _lib_select are needed, as _socket_peek doesn't work correctly.
  * On at least macOS and Linux, sfpkrd() runs significantly faster if we disable these. However,
  * ed_read() still needs to use select to intercept SIGWINCH, so if the last argument given
  # to sfpkrd is '2' select is always used when available.

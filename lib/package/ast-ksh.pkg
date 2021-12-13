@@ -30,7 +30,7 @@ ast-ksh :PACKAGE: ksh93 libast libcmd libcoshell libsum libdll
 		option describes the self documenting options available to all
 		builtin and special commands.
 		$()
-		The standlone ksh is statically linked with the ast libcmd
+		The standlone ksh is statically linked with the AST libcmd
 		library which provides several builtin versions of /bin
 		commands. "builtin | grep /opt/ast/bin" lists the libcmd
 		builtins on the standard output. /opt/ast/bin/FOO accesses
@@ -48,21 +48,21 @@ ast-ksh :PACKAGE: ksh93 libast libcmd libcoshell libsum libdll
 		Some scripts may run significantly faster with libcmd builtins
 		enabled.
 		$()
-		The ast library checks the DOSPATHVARS environment variable
+		The AST library checks the DOSPATHVARS environment variable
 		for variable path values to convert to and from native windows
-		format when cross-executing between cygwin and non-cygwin
+		format when cross-executing between Cygwin and non-Cygwin
 		programs. The value is a space separated list of environment
-		variables to convert. PATH is handled by cygwin so it is not
-		converted by the ast library.
+		variables to convert. PATH is handled by Cygwin so it is not
+		converted by the AST library.
 		$()
-		The ast-ksh cygwin source package provides a bootstrap build
+		The ast-ksh Cygwin source package provides a bootstrap build
 		environment that is not suited for an edit/build/debug cycle.
 		If you want to explore and modify the source then you should
-		install the (non-cygwinized) ast-base package which includes
+		install the (non-Cygwinized) ast-base package which includes
 		AT&T nmake. With ast-base you will also be able to regenerate
-		the ast-ksh cygwin source and binary packages.
+		the ast-ksh Cygwin source and binary packages.
 		$()
-		For more information on ksh and other AT&T ast tools see
+		For more information on ksh and other AT&T AST tools see
 		   http://www.research.att.com/sw/download/
 	:EXPORT:
 		SHOPT_CMDLIB_DIR=1

@@ -58,7 +58,7 @@ static const char usage[] =
 	"option is specified, the delimiter will be reset to the first "
 	"element of \alist\a each time a line is processed from each file.  "
 	"The delimiter characters corresponding to \alist\a will be found "
-	"by treating \alist\a as an ANSI-C string, except that the \b\\0\b "
+	"by treating \alist\a as an ANSI C string, except that the \b\\0\b "
 	"sequence will insert the empty string instead of the null character.]"
 "\n"
 "\n[file ...]\n"

@@ -24,7 +24,7 @@
 
 #include <ast.h>
 
-#undef	_lib_getopt	/* we can satisfy the api */
+#undef	_lib_getopt	/* we can satisfy the API */
 
 #if _lib_getopt
 
@@ -32,7 +32,7 @@ NoN(getopt)
 
 #else
 
-#undef	_BLD_ast	/* enable ast imports since we're user static */
+#undef	_BLD_ast	/* enable AST imports since we're user static */
 
 #include <error.h>
 #include <option.h>

@@ -31,13 +31,7 @@
 
 #if SHOPT_VSH
 
-#if KSHELL
-#   include	"defs.h"
-#else
-#   include	<ast.h>
-#   include	"FEATURE/options"
-#   include	<ctype.h>
-#endif	/* KSHELL */
+#include	"defs.h"
 #include	"io.h"
 
 #include	"history.h"
@@ -258,14 +252,14 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		/* time the current line to determine typeahead */
 		oldtime = times(&dummy);
 #endif /* FIORDCHK */
-#if KSHELL
 		/* abort of interrupt has occurred */
 		if(ed->sh->trapnote&SH_SIGSET)
 			i = -1;
 		else
-#endif /* KSHELL */
-		/*** Read the line ***/
-		i = ed_read(context, fd, shbuf, nchar, 0);
+		{
+			/*** Read the line ***/
+			i = ed_read(context, fd, shbuf, nchar, 0);
+		}
 #ifndef FIORDCHK
 		newtime = times(&dummy);
 		vp->typeahead = ((newtime-oldtime) < NTICKS);
@@ -953,11 +947,9 @@ static int cntlmode(Vi_t *vp)
 			}
 			break;
 
-#if KSHELL
 		case 'v':
 			if(vp->repeat_set==0)
 				goto vcommand;
-#endif /* KSHELL */
 			/* FALLTHROUGH */
 
 		case 'G':		/** goto command repeat **/
@@ -975,13 +967,11 @@ static int cntlmode(Vi_t *vp)
 				goto newhist;
 			}
 
-#if KSHELL
 		vcommand:
 			if(ed_fulledit(vp->ed)==GOOD)
 				return(BIGVI);
 			else
 				goto ringbell;
-#endif	/* KSHELL */
 
 		case '#':	/** insert(delete) # to (no)comment command **/
 			if( cur_virt != INVALID )
@@ -2448,7 +2438,6 @@ addin:
 	{
 			/***** Input commands *****/
 
-#if KSHELL
         case '\t':
 		if(vp->ed->e_tabcount!=1)
 			return(BAD);
@@ -2514,7 +2503,6 @@ addin:
 		ed_ringbell();
 		return(BAD);
 
-#endif	/* KSHELL */
 	case '_':		/** append last argument of prev command **/
 		save_v(vp);
 		{

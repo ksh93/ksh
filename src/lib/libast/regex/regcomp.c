@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex compiler
+ * POSIX regex compiler
  */
 
 #include "reglib.h"

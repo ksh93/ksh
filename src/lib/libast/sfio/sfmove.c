@@ -192,7 +192,7 @@ reg int		rc;	/* record separator */
 		if(!direct)
 			fr->next += r;
 		else if((w = endb-cp) > 0)
-		{	/* move left-over to read stream */
+		{	/* move leftover to read stream */
 			if(w > fr->size)
 				w = fr->size;
 			memmove((Void_t*)fr->data,(Void_t*)cp,w);

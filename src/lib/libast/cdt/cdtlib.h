@@ -41,7 +41,7 @@
 
 #include	"debug.h"
 
-/* short-hand notations */
+/* shorthand notations */
 #define NIL(t)	((t)0)
 #define reg	register
 
@@ -138,7 +138,7 @@ typedef struct _dtlib_s
 /* map bits for upward compatibility */
 #define DTTYPE(dt,ty)		((dt)->typef ? (*(dt)->typef)((dt), (ty)) : (ty) )
 
-/* short-hands for fields in Dtlink_t.
+/* shorthands for fields in Dtlink_t.
 ** note that __hash is used as a hash value
 ** or as the position in the parent table.
 */

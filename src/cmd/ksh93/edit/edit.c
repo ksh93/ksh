@@ -40,14 +40,8 @@
 #   include	<ls.h>
 #endif
 
-#if KSHELL
-#   include	"defs.h"
-#   include	"variables.h"
-#else
-#   include	<ctype.h>
-    extern char ed_errbuf[];
-    char e_version[] = "\n@(#)$Id: Editlib version 1993-12-28 r $\0\n";
-#endif	/* KSHELL */
+#include	"defs.h"
+#include	"variables.h"
 #include	"io.h"
 #include	"terminal.h"
 #include	"history.h"
@@ -138,12 +132,7 @@ static Lex_t *savelex;
 #   endif /* TIOCGETP */
 #endif /* _hdr_sgtty */
 
-#if KSHELL
-     static int keytrap(Edit_t *,char*, int, int, int);
-#else
-     Edit_t editb;
-#endif	/* KSHELL */
-
+static int keytrap(Edit_t *,char*, int, int, int);
 
 #ifndef _POSIX_DISABLE
 #   define _POSIX_DISABLE	0
@@ -618,15 +607,11 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	ep->nhlist = 0;
 	ep->hoff = 0;
 #endif /* SHOPT_EDPREDICT */
-#if KSHELL
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
 	if(!(last = shp->prompt))
 		last = "";
 	shp->prompt = 0;
-#else
-	last = ep->e_prbuff;
-#endif /* KSHELL */
 	if(shp->gd->hist_ptr)
 	{
 		register History_t *hp = shp->gd->hist_ptr;
@@ -1033,10 +1018,8 @@ static int putstack(Edit_t *ep,char string[], register int nbyte, int type)
 			{
 				/*** user break key ***/
 				ep->e_lookahead = 0;
-#	if KSHELL
 				sh_fault(SIGINT);
 				siglongjmp(ep->e_env, UINTR);
-#	endif   /* KSHELL */
 			}
 #   endif /* CBREAK */
 
@@ -1091,10 +1074,8 @@ static int putstack(Edit_t *ep,char string[], register int nbyte, int type)
 		{
 			/*** user break key ***/
 			ep->e_lookahead = 0;
-#	if KSHELL
 			sh_fault(SIGINT);
 			siglongjmp(ep->e_env, UINTR);
-#	endif	/* KSHELL */
 		}
 #   endif /* CBREAK */
 	}
@@ -1638,7 +1619,6 @@ int tcsetattr(int fd,int mode,struct termios *tt)
 }
 #endif /* SHOPT_OLDTERMIO */
 
-#if KSHELL
 /*
  * Execute keyboard trap on given buffer <inbuff> of given size <isize>
  * <mode> < 0 for vi insert mode
@@ -1683,7 +1663,6 @@ static int keytrap(Edit_t *ep,char *inbuff,register int insize, int bufsize, int
 	nv_unset(ED_TXTNOD);
 	return(insize);
 }
-#endif /* KSHELL */
 
 #if SHOPT_EDPREDICT
 static int ed_sortdata(const char *s1, const char *s2)

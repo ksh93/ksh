@@ -31,7 +31,7 @@ static const char usage[] =
 "[-?\n@(#)$Id: logname (AT&T Research) 1999-04-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?logname - return the user's login name]"
-"[+DESCRIPTION?\blogname\b writes the users's login name to standard "
+"[+DESCRIPTION?\blogname\b writes the user's login name to standard "
 	"output.  The login name is the string that is returned by the "
 	"\bgetlogin\b(2) function.  If \bgetlogin\b(2) does not return "
 	"successfully, the name corresponding to the real user ID of the "

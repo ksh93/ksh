@@ -41,7 +41,7 @@
 #if _PACKAGE_ast
 #include <ccode.h>
 #else
-/* characters when using ebcdic or ascii */
+/* characters when using EBCDIC or ASCII */
 #if _chr_ebcdic
 #define CC_vt			013	/* vertical tab	*/
 #define CC_esc			047	/* escape	*/
@@ -248,7 +248,7 @@ loop_fmt :
 			for(v = 1;;)
 			{	switch(*form++)
 				{
-				case 0 :	/* not balancable, retract */
+				case 0 :	/* not balanceable, retract */
 					form = t_str;
 					t_str = NIL(char*);
 					n_str = 0;

@@ -21,7 +21,7 @@
 #pragma prototyped
 /*
  * Glenn Fowler
- * at&t research
+ * AT&T Research
  */
 
 #include "dlllib.h"

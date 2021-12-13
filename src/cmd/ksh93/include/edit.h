@@ -32,13 +32,6 @@
 
 #include	"FEATURE/options"
 #include        "FEATURE/locale"
-
-#if !KSHELL
-#   include	<setjmp.h>
-#   include	<sig.h>
-#   include	<ctype.h>
-#endif /* KSHELL */
-
 #include	"FEATURE/setjmp"
 #include	"terminal.h"
 
@@ -130,12 +123,8 @@ typedef struct edit
 	int	*e_globals;	/* global variables */
 	genchar	*e_window;	/* display window image */
 	char	e_inmacro;	/* processing macro expansion */
-#if KSHELL
 	char	e_vi_insert[2];	/* for sh_keytrap */
 	int32_t e_col;		/* for sh_keytrap */
-#else
-	char	e_prbuff[PRSIZE]; /* prompt buffer */
-#endif /* KSHELL */
 	struct termios	e_ttyparm;      /* initial tty parameters */
 	struct termios	e_nttyparm;     /* raw tty parameters */
 	struct termios e_savetty;	/* saved terminal state */
@@ -185,23 +174,6 @@ typedef struct edit
 		(c<'J'?c+1-'A':(c+10-'J'))))))))))))))))
 #endif
 
-#if !KSHELL
-#   define STRIP	0377
-#   define GMACS	1
-#   define EMACS	2
-#   define VIRAW	4
-#   define EDITVI	8
-#   define NOHIST	16
-#   define EDITMASK	15
-#   define is_option(m)	(opt_flag&(m))
-    extern char opt_flag;
-#   ifdef SYSCALL
-#	define read(fd,buff,n)	syscall(3,fd,buff,n)
-#   else
-#	define read(fd,buff,n)	rEAd(fd,buff,n)
-#   endif /* SYSCALL */
-#endif	/* KSHELL */
-
 extern void	ed_crlf(Edit_t*);
 extern void	ed_putchar(Edit_t*, int);
 extern void	ed_ringbell(void);
@@ -216,19 +188,17 @@ extern int	ed_read(void*, int, char*, int, int);
 extern int	ed_emacsread(void*, int, char*, int, int);
 extern Edpos_t	ed_curpos(Edit_t*, genchar*, int, int, Edpos_t);
 extern int	ed_setcursor(Edit_t*, genchar*, int, int, int);
-#if KSHELL
-	extern int	ed_macro(Edit_t*,int);
-	extern int	ed_expand(Edit_t*, char[],int*,int*,int,int);
-	extern int	ed_fulledit(Edit_t*);
-	extern void	*ed_open(Shell_t*);
-#endif /* KSHELL */
-#   if SHOPT_MULTIBYTE
+extern int	ed_macro(Edit_t*,int);
+extern int	ed_expand(Edit_t*, char[],int*,int*,int,int);
+extern int	ed_fulledit(Edit_t*);
+extern void	*ed_open(Shell_t*);
+#if SHOPT_MULTIBYTE
 	extern int ed_internal(const char*, genchar*);
 	extern int ed_external(const genchar*, char*);
 	extern void ed_gencpy(genchar*,const genchar*);
 	extern void ed_genncpy(genchar*,const genchar*,int);
 	extern int ed_genlen(const genchar*);
-#  endif /* SHOPT_MULTIBYTE */
+#endif /* SHOPT_MULTIBYTE */
 #if SHOPT_EDPREDICT
     extern int	ed_histgen(Edit_t*, const char*);
 #   if SHOPT_ESH || SHOPT_VSH
@@ -237,9 +207,6 @@ extern int	ed_setcursor(Edit_t*, genchar*, int, int, int);
 #endif /* SHOPT_EDPREDICT */
 
 extern const char	e_runvi[];
-#if !KSHELL
-   extern const char	e_version[];
-#endif /* KSHELL */
 
 #if SHOPT_HISTEXPAND
 

@@ -326,7 +326,7 @@ int job_reap(register int sig)
 			sh_offstate(SH_TTYWAIT);
 
 		/*
-		 * some systems (linux 2.6) may return EINVAL
+		 * some systems (Linux 2.6) may return EINVAL
 		 * when there are no continued children
 		 */
 
@@ -1131,7 +1131,6 @@ int job_hup(struct process *pw, int sig)
 
 /*
  * Get process structure from first letters of jobname
- *
  */
 
 static struct process *job_byname(char *name)

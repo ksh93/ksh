@@ -918,7 +918,7 @@ unset foo
 [[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] && err_exit 'date format %q is the same as %Qz'
 [[ $(printf '%(%Z)T') == $(date '+%Z') ]] || err_exit "date format %Z is incorrect (expected $(date '+%Z'), got $(printf '%(%Z)T'))"
 
-# Test manually specified blank and zero padding with 'printf  %T'
+# Test manually specified blank and zero padding with 'printf %T'
 (
 	IFS=$'\n\t' # Preserve spaces in output
 	for i in d e H I j J k l m M N S U V W y; do
@@ -1031,22 +1031,25 @@ EOF
 
 # ======
 # Builtins should handle unrecognized options correctly
-while IFS= read -r bltin <&3
-do	case $bltin in
-	echo | test | true | false | \[ | : | getconf | */getconf | uname | */uname | catclose | catgets | catopen | Dt* | _Dt* | X* | login | newgrp )
-		continue ;;
-	/*/*)	expect="Usage: ${bltin##*/} "
-		actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
-	*/*)	err_exit "strange path name in 'builtin' output: $(printf %q "$bltin")"
-		continue ;;
-	autoload | compound | float | functions | integer | nameref)
-		bltin=typeset ;&
-	*)	expect="Usage: $bltin "
-		actual=$({ "${bltin}" --this-option-does-not-exist; } 2>&1) ;;
-	esac
-	[[ $actual == *"$expect"* ]] || err_exit "$bltin should show usage info on unrecognized options" \
-			"(expected string containing $(printf %q "$expect"), got $(printf %q "$actual"))"
-done 3< <(builtin)
+function test_usage
+{
+	while IFS= read -r bltin <&3
+	do	case $bltin in
+		echo | test | true | false | \[ | : | expr | */expr | getconf | */getconf | uname | */uname | catclose | catgets | catopen | Dt* | _Dt* | X* | login | newgrp )
+			continue ;;
+		/*/*)	expect="Usage: ${bltin##*/} "
+			actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
+		*/*)	err_exit "strange path name in 'builtin' output: $(printf %q "$bltin")"
+			continue ;;
+		autoload | compound | float | functions | integer | nameref)
+			bltin=typeset ;&
+		*)	expect="Usage: $bltin "
+			actual=$({ "${bltin}" --this-option-does-not-exist; } 2>&1) ;;
+		esac
+		[[ $actual == *"$expect"* ]] || err_exit "$bltin should show usage info on unrecognized options" \
+				"(expected string containing $(printf %q "$expect"), got $(printf %q "$actual"))"
+	done 3< <(builtin)
+}; test_usage
 
 # ======
 # The 'alarm' builtin could make 'read' crash due to IFS table corruption caused by unsafe asynchronous execution.
@@ -1070,7 +1073,7 @@ then	got=$( { "$SHELL" -c '
 		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 fi
 
-# ==========
+# ======
 # Verify that the POSIX 'test' builtin exits with status 2 when given an invalid binary operator.
 for operator in '===' ']]'
 do

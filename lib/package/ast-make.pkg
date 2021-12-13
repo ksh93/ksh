@@ -15,5 +15,5 @@ ast-make :PACKAGE: \
 :DESCRIPTION:
 	The AT&T Software Technology ast-make package from AT&T Research
 	contains an almost minimal set of commands and libraries required
-	to run ast nmake. ksh, coshell, pax, tw, and the 3d user-level
+	to run AST nmake. ksh, coshell, pax, tw, and the 3d user-level
 	filesystem are also included.

@@ -25,7 +25,7 @@
  * Glenn Fowler
  * AT&T Research
  *
- * 1-6 char lower-case keyword -> long hash
+ * 1-6 char lowercase keyword -> long hash
  * digit args passed as HASHKEYN('2')
  */
 

@@ -907,5 +907,46 @@ w true); echo "Exit status is $?"
 u Exit status is 0
 !
 
+# err_exit #
+tst $LINENO <<"!"
+L interrupted PS2 discipline function
+# https://github.com/ksh93/ksh/issues/347
+
+d 15
+p :test-1:
+w PS2.get() { trap --bad-option 2>/dev/null; .sh.value="NOT REACHED"; }
+p :test-2:
+w echo \$\(
+r :test-2: echo \$\(
+w echo one \\
+r > echo one \\
+w two three
+r > two three
+w echo end
+r > echo end
+w \)
+r > \)
+r one two three end
+!
+
+# err_exit #
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
+L tab completion of '.' and '..'
+# https://github.com/ksh93/ksh/issues/372
+
+d 15
+
+# typing '.' followed by two tabs should show a menu that includes "number) ../"
+p :test-1:
+w : .\t\t
+u ) \.\./\r\n$
+
+# typing '..' followed by a tab should complete to '../' (as it is
+# known that there are no files starting with '..' in the test PWD)
+p :test-2:
+w : ..\t
+r : \.\./\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

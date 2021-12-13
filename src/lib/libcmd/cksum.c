@@ -126,7 +126,7 @@ typedef struct State_s			/* program state		*/
 	int		header;		/* list method on output	*/
 	int		list;		/* list file name too		*/
 	Sum_t*		oldsum;		/* previous sum method		*/
-	int		permissions;	/* include mode,uer,group	*/
+	int		permissions;	/* include mode,user,group	*/
 	int		haveperm;	/* permissions in the input	*/
 	int		recursive;	/* recursively descend dirs	*/
 	size_t		scale;		/* scale override		*/

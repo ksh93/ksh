@@ -159,7 +159,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     initialized. \bCC\b, \bCCFLAGS\b, \bHOSTTYPE\b and \bSHELL\b may be set
     by explicit command argument assignments to override the defaults.]
 [+?Packages are composed of components. Each component is built and
-    installed by an \bast\b \bnmake\b(1) makefile. Each package is also
+    installed by an \bAST\b \bnmake\b(1) makefile. Each package is also
     described by an \bnmake\b makefile that lists its components and
     provides a content description. The package makefile and component
     makefiles provide all the information required to read, write, build
@@ -271,10 +271,10 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             {
                 [+canon \aname\a?An external host type name to be
                     converted to \bpackage\b syntax.]
-                [+cpu?The number of cpus; 1 if the host is not a
+                [+cpu?The number of CPUs; 1 if the host is not a
                     multiprocessor.]
                 [+name?The host name.]
-                [+rating?The cpu rating in pseudo mips; the value is
+                [+rating?The CPU rating in pseudo mips; the value is
                     useful useful only in comparisons with rating values of
                     other hosts. Other than a vax rating (mercifully) fixed
                     at 1, ratings can vary wildly but consistently from
@@ -405,7 +405,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             matches for a given file then the mode, user and group are
             changed as necessary to match the checksum entry. A warning is
             printed on the standard error for each mismatch. Requires the
-            \bast\b package \bcksum\b(1) command.]
+            \bAST\b package \bcksum\b(1) command.]
         [+view\b?Initialize the architecture specific viewpath
             hierarchy. If \bflat\b is specified then the \b$INSTALLROOT\b {
             bin fun include lib } directories are linked to the same
@@ -428,12 +428,12 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             packages are written first. Package components must be listed
             in \apackage\a\b.pkg\b. \aformat\a may be one of:]
             {
-                [+cyg?Generate a \bcygwin\b package.]
+                [+cyg?Generate a \bCygwin\b package.]
                 [+exp?Generate an \bexptools\b maintainer source
                     archive and \aNPD\a file, suitable for \bexpmake\b(1)]
                 [+lcl?Generate a package archive suitable for
                     restoration into the local source tree (i.e., the
-                    source is not annotated for licencing).]
+                    source is not annotated for licensing).]
                 [+pkg?Generate a \bpkgmk\b(1) package suitable for
                     \bpkgadd\b(1).]
                 [+rpm?Generate an \brpm\b(1) package.]
@@ -452,7 +452,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
         [+?A package may be either a \bbase\b or \bdelta\b. A base
             package contains a complete copy of all components. A delta
             package contains only changes from a previous base package.
-            Delta recipients must have the \bast\b \bpax\b(1) command (in
+            Delta recipients must have the \bAST\b \bpax\b(1) command (in
             the \bast-base\b package). If neither \bbase\b nor \bdelta\b is
             specified, then the current base is overwritten if there are no
             deltas referring to the current base. Only the \btgz\b and
@@ -493,12 +493,12 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     closure of component makefile dependencies.]
 [+?\b$PACKAGEROOT/lib/package\b contains package specific files. The
     package naming convention is \agroup\a[-\apart\a]]; e.g., \bast-base\b,
-    \bgnu-fileutils\b. The *\b.pkg\b files are ast \bnmake\b(1) makefiles
+    \bgnu-fileutils\b. The *\b.pkg\b files are AST \bnmake\b(1) makefiles
     that contain the package name, package components, references to other
     packages, and a short package description. *\b.pkg\b files are used by
     \bpackage write\b to generate new source and binary packages.]
 [+?\b$PACKAGEROOT/lib/package/\b\agroup\a\b.lic\b files contain license
-    information that is used by the \bast\b \bproto\b(1) and \bnmake\b(1)
+    information that is used by the \bAST\b \bproto\b(1) and \bnmake\b(1)
     commands to generate source and binary license strings. \agroup\a is
     determined by the first \b:PACKAGE:\b operator name listed in the
     component \bnmake\b makefile. \agroup\a\b.lic\b files are part of the
@@ -534,12 +534,12 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     against \b$HOSTTYPE\b when making binaries; these are limited to
     makefile compiler workarounds, e.g., if \b$HOSTTYPE\b matches \bhp.*\b
     then turn off the optimizer for these objects. All other architecture
-    dependent logic is handled either by the \bast\b \biffe\b(1) command or
+    dependent logic is handled either by the \bAST\b \biffe\b(1) command or
     by component specific configure scripts. Explicit \b$HOSTYPE\b
     values matching *,*cc*[,-*,...]] optionally set the default \bCC\b and
     \bCCFLAGS\b. This is handy for build farms that support different
     compilers on the same architecture.]
-[+?Each component contains an \bast\b \bnmake\b(1) makefile (either
+[+?Each component contains an \bAST\b \bnmake\b(1) makefile (either
     \bNmakefile\b or \bMakefile\b) and a \bMAM\b (make abstract machine)
     file (\bMamfile\b). A Mamfile contains a portable makefile description
     that is used by \bmamake\b(1) to simulate \bnmake\b. Currently there is
@@ -556,7 +556,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     \bproto\b(1) converts an ANSI C subset to code that is compatible with
     K&R, ANSI, and C++ dialects.]
 [+?All scripts and commands under \b$PACKAGEROOT\b use \b$PATH\b
-    relative pathnames (via the \bast\b \bpathpath\b(3) function); there
+    relative pathnames (via the \bAST\b \bpathpath\b(3) function); there
     are no embedded absolute pathnames. This means that binaries generated
     under \b$PACKAGEROOT\b may be copied to a different root; users need
     only change their \b$PATH\b variable to reference the new installation
@@ -1044,7 +1044,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 			   and rsh(1) access.
 		   [remote:[[master]:]]PACKAGEROOT
 			   The absolute remote package root directory and
-			   optionally the remote prorocol (rsh or ssh) if
+			   optionally the remote protocol (rsh or ssh) if
 			   the directory is on a different server than the
 			   master package root directory. If
 			   lib/package/admin/$admin_env exists under
@@ -1092,10 +1092,10 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		order. The attributes are:
 		   canon   The next argument is a host type name to be
 			   converted to package syntax.
-		   cpu     The number of cpus; 1 if the host is not a
+		   cpu     The number of CPUs; 1 if the host is not a
 			   multiprocessor.
 		   name    The host name.
-		   rating  The cpu rating in pseudo mips; the value is useful
+		   rating  The CPU rating in pseudo mips; the value is useful
 			   useful only in comparisons with rating values of
 			   other hosts. Other than a vax rating fixed at 1,
 			   ratings can vary wildly but consistently from
@@ -1224,7 +1224,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		mode, user and group information. If the checksum matches
 		for a given file then the mode, user and group are changed
 		as necessary to match the checksum entry. A warning is printed
-		on the standard error for each mismatch. Requires the ast
+		on the standard error for each mismatch. Requires the AST
 		package cksum(1) command.
 	view
 		Initialize the architecture specific viewpath hierarchy. The
@@ -1237,7 +1237,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		Write a package archive for PACKAGE. All work is done in the
 		\$PACKAGEROOT/lib/package directory. FORMAT-specific files
 		are placed in the FORMAT subdirectory. A PACKAGE[.TYPE].tim
-		file in this directory tracksthe write time and prevents a
+		file in this directory tracks the write time and prevents a
 		package from being read in the same root it was written. If
 		more than one file is generated for a particular FORMAT then
 		those files are placed in the FORMAT/PACKAGE subdirectory.
@@ -1248,7 +1248,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		only the named packages will be written; otherwise
 		prerequisite packages are written first. Package components
 		must be listed in PACKAGE.pkg. FORMAT may be one of:
-		   cyg  generate a cygwin package
+		   cyg  generate a Cygwin package
 		   exp  generate an exptools(1) maintainer source archive
 		        and NPD file in the exp subdirectory, suitable for
 			expmake(1); support files are placed in the
@@ -1271,7 +1271,7 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 		be either a base or delta. A base package contains a
 		complete copy of all components.  A delta package contains
 		only changes from a previous base package. Delta recipients
-		must have the ast pax(1) command (in the ast-base package).
+		must have the AST pax(1) command (in the ast-base package).
 		If neither base nor delta is specified, then the current
 		base is overwritten if there are no deltas referring to the
 		current base. Only the tgz and lcl formats support delta.
@@ -1600,7 +1600,7 @@ executable() # [!] command
 }
 
 # initialize SHELLMAGIC
-# tangible proof of cygwin's disdain for unix (well, this and execrate)
+# tangible proof of Cygwin's disdain for Unix (well, this and execrate)
 
 shellmagic()
 {
@@ -3243,7 +3243,7 @@ if	test -r $INSTALLROOT/lib/package/profile
 then	. $INSTALLROOT/lib/package/profile
 fi
 
-# more cygwin hassles
+# more Cygwin hassles
 
 case $HOSTTYPE in
 cygwin.*)
@@ -3270,7 +3270,7 @@ cygwin.*)
 		;;
 	esac
 	case $lose in
-	?*)	echo "$command: $HOSTTYPE: export '$lose' in CYGWIN or languish in windows" >&2
+	?*)	echo "$command: $HOSTTYPE: export '$lose' in CYGWIN or languish in Windows" >&2
 		exit 1
 		;;
 	esac
@@ -4385,7 +4385,7 @@ checksrc()
 	esac
 }
 
-# check for native ascii 0:yes 1:no
+# check for native ASCII 0:yes 1:no
 
 __isascii__=
 
@@ -4928,7 +4928,7 @@ admin)	while	test ! -f $admin_db
 				;;
 			*)	case " $hosts " in
 				*" $2 "*)
-					: ast date command assumed :
+					: AST date command assumed :
 					E=`eval date -E \`egrep '[ 	](start|done)[ 	][ 	]*at[ 	]' $admin_log/$2 | sed -e 's/.*[ 	][ 	]*at[ 	][ 	]*//' -e 's/[ 	][ 	]*in[ 	].*$//' -e 's/.*/"&"/'\``
 					M=$6 T=$7 W=$8
 					case $admin_action in

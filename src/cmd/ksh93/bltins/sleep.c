@@ -140,7 +140,6 @@ skip:
  * If sflag==1, stop sleeping when any signal is received
  * (such as SIGWINCH in an interactive shell).
  */
-
 void sh_delay(double t, int sflag)
 {
 	Shell_t *shp = sh_getinterp();

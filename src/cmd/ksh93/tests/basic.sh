@@ -832,7 +832,7 @@ actual=$($SHELL --verson 2>&1)
 actual_status=$?
 expect='ksh: verson: bad option(s)'
 expect_status=2
-[[ "$actual" == ${expect}* ]] || err_exit "failed to get version string" \
+[[ "$actual" == *${expect}* ]] || err_exit "failed to handle invalid flag" \
 	"(expected $(printf %q ${expect}*), got $(printf %q "$actual"))"
 [[ $actual_status == $expect_status ]] ||
 	err_exit "wrong exit status (expected '$expect_status', got '$actual_status')"

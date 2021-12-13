@@ -1413,10 +1413,10 @@ void _vmoptions()
 }
 
 /*
- * ast semi-private workaround for system functions
+ * AST semi-private workaround for system functions
  * that misbehave by passing bogus addresses to free()
  *
- * not prototyped in any header to keep it ast semi-private
+ * not prototyped in any header to keep it AST semi-private
  *
  * to keep malloc() data by disabling free()
  *	extern _vmkeep(int);

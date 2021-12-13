@@ -56,8 +56,8 @@ then	LC_ALL=debug
 	unset exp LC_ALL
 fi # SHOPT_MULTIBYTE
 
-# test shift-jis \x81\x40 ... \x81\x7E encodings
-# (shift char followed by 7 bit ascii)
+# test Shift JIS \x81\x40 ... \x81\x7E encodings
+# (shift char followed by 7 bit ASCII)
 
 typeset -i16 chr
 ((SHOPT_MULTIBYTE)) && for locale in "${locales[@]}"
@@ -106,7 +106,7 @@ if [[ -n $nl_NL ]] && [[ -n $ja_JP ]]; then
 fi
 unset LC_ALL
 
-# this locale is supported by ast on all platforms
+# this locale is supported by AST on all platforms
 # EU for { decimal_point="," thousands_sep="." }
 
 if ((SHOPT_MULTIBYTE)); then
@@ -255,10 +255,10 @@ got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'\u[5929]=OK; print ${\u[5929]}' 2>&1)
 got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'function \u[5929]\n{\nprint OK;\n}; \u[5929]' 2>&1)
 [[ $got == "$exp" ]] || err_exit "multibyte ksh function definition/execution failed -- expected '$exp', got '$got'"
 got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'\u[5929]()\n{\nprint OK;\n}; \u[5929]' 2>&1)
-[[ $got == "$exp" ]] || err_exit "multibyte posix function definition/execution failed -- expected '$exp', got '$got'"
+[[ $got == "$exp" ]] || err_exit "multibyte POSIX function definition/execution failed -- expected '$exp', got '$got'"
 fi # SHOPT_MULTIBYTE
 
-# this locale is supported by ast on all platforms
+# this locale is supported by AST on all platforms
 # mainly used to debug multibyte and message translation code
 # however wctype is not supported but that's ok for these tests
 

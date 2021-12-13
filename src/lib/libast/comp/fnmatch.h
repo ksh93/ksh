@@ -22,7 +22,7 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * posix fnmatch interface definitions
+ * POSIX fnmatch interface definitions
  */
 
 #ifndef _FNMATCH_H
@@ -43,9 +43,9 @@
 #define FNM_ICASE	0x0020		/* ignore case in match		*/
 #define FNM_LEADING_DIR	0x0040		/* match up to implicit /	*/
 
-#define FNM_CASEFOLD	FNM_ICASE	/* gnu/bsd compatibility	*/
-#define FNM_IGNORECASE	FNM_ICASE	/* gnu/bsd compatibility	*/
-#define FNM_FILE_NAME	FNM_PATHNAME	/* gnu compatibility		*/
+#define FNM_CASEFOLD	FNM_ICASE	/* GNU/BSD compatibility	*/
+#define FNM_IGNORECASE	FNM_ICASE	/* GNU/BSD compatibility	*/
+#define FNM_FILE_NAME	FNM_PATHNAME	/* GNU compatibility		*/
 
 /* fnmatch error codes -- other non-zero values from <regex.h> */
 

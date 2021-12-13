@@ -138,7 +138,7 @@ struct _sffmt_s
 #define SF_WRITE	0000002	/* open for writing			*/
 #define SF_STRING	0000004	/* a string stream			*/
 #define SF_APPENDWR	0000010	/* file is in append mode only		*/
-#define SF_MALLOC	0000020	/* buffer is malloc-ed			*/
+#define SF_MALLOC	0000020	/* buffer is malloc'd			*/
 #define SF_LINE		0000040	/* line buffering			*/
 #define SF_SHARE	0000100	/* stream with shared file descriptor 	*/
 #define SF_EOF		0000200	/* eof was detected			*/

@@ -77,7 +77,7 @@ strtape(register const char* s, register char** e)
 	if (!access("/dev/rmt/.", F_OK))
 	{
 		/*
-		 * system V
+		 * System V
 		 */
 
 		if (!mtdensity) mtdensity = 'm';
@@ -94,7 +94,7 @@ strtape(register const char* s, register char** e)
 	else if (!access("/dev/nst0", F_OK))
 	{
 		/*
-		 * linux
+		 * Linux
 		 */
 
 		sfsprintf(tapefile, sizeof(tapefile), "/dev/%sst%c", mtrewind, mtunit);

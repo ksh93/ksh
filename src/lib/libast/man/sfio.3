@@ -309,7 +309,7 @@ There are three \fIstandard streams\fP:
 .PP
 .Ss "LIBRARIES"
 .PP
-This version of Sfio can be built and used for both uni-threaded and multi-threaded
+This version of Sfio can be built and used for both single-threaded and multi-threaded
 environments. In the former case, streams are not protected from
 simultaneous accesses by different threads. In the latter case, a stream
 is typically locked with a mutex during access so that another thread
@@ -327,7 +327,7 @@ native header \fBstdio.h\fP instead of the one provided by Sfio.
 .Ss "  Void_t*"
 This defines a type suitable to exchange
 data of unknown types between application and Sfio.
-\f3Void_t\fP is a macro defined as \f3void\fP for ANSI-C and C++ and
+\f3Void_t\fP is a macro defined as \f3void\fP for ANSI C and C++ and
 \f3char\fP for other compilation environments.
 .PP
 .Ss "  Sfoff_t"
@@ -626,26 +626,26 @@ If the exception handler returns a positive value,
 .Ss "THREAD SAFETY"
 .PP
 The libraries \f3libsfio.a\fP and \f3libstdio.a\fP (providing binary
-compatibility to Stdio-based code) only support uni-threaded code.
+compatibility to Stdio-based code) only support single-threaded code.
 Multi-threaded applications should link with
 \f3libsfio-mt.a\fP and \f3libstdio-mt.a\fP.
 When this is done, certain platforms may require additional
-thread libraries for linkage. For example, Linux, Irix and Solaris
+thread libraries for linkage. For example, Linux, IRIX and Solaris
 require \f3-lpthread\fP while HPUX requires \f3-lcma\fP.
 Aside from linkage differences, the Sfio API remains identical in all cases.
 
 Note that unlike Stdio streams which are in thread-safe mode by default.
-Sfio streams can be opened in either uni-threaded or multi-threaded mode.
-A uni-threaded stream is more efficient than a multi-threaded one.
+Sfio streams can be opened in either single-threaded or multi-threaded mode.
+A single-threaded stream is more efficient than a multi-threaded one.
 For example, functions such as \f3sfgetc()\fP and \f3sfputc()\fP
-remain as macro or inline functions for a uni-threaded stream while
+remain as macro or inline functions for a single-threaded stream while
 they will act as full function calls in a multi-threaded case.
 The three standard streams \f3sfstdin/sfstdout/sfstderr\fP
 are in multi-threaded mode by default
 (however, see \f3sfopen()\fP for how this may be changed).
-Other Sfio streams are normally opened uni-threaded unless
+Other Sfio streams are normally opened single-threaded unless
 the flag \f3SF_MTSAFE\fP or the option \f3m\fP were specified.
-Stdio-based code can also make a Stdio stream uni-threaded by
+Stdio-based code can also make a Stdio stream single-threaded by
 using the option \f3u\fP when opening a file.
 
 .PP
@@ -938,7 +938,7 @@ then rewrites the new data back to the stream:
 Data printing and scanning are done via the
 \f3sfprintf()\fP and \f3sfscanf()\fP family of functions.
 These functions are similar to their
-ANSI-C \f3fprintf()\fP and \f3fscanf()\fP counterparts.
+ANSI C \f3fprintf()\fP and \f3fscanf()\fP counterparts.
 However, the Sfio versions have been extended for both portability and generality.
 In particular, a notion of a formatting environment stack is introduced.
 Each formatting element on the stack
@@ -1219,7 +1219,7 @@ The length of string constructed by \f3sfprints()\fP, \f3sfsprintf()\fP, or
 The standard patterns are:
 \f3n, s, c, %, h, i, d, p, u, o, x, X, g, G, e, E, f\fP and \f3!\fP.
 Except for \f3!\fP which shall be described below,
-see the ANSI-C specification of \f3fprintf(3)\fP for details on the other patterns.
+see the ANSI C specification of \f3fprintf(3)\fP for details on the other patterns.
 Let \f3z\fP be some pattern type. A formatting pattern is defined as below:
 
 .nf
@@ -1296,7 +1296,7 @@ of data already output into a \f3short\fP integer \f3n_output\fP.
 .ft 1
 .fi
 
-Flags \f3h\fP, \f3l\fP, \f3j\fP and \f3L\fP are the ANSI-C conventions to
+Flags \f3h\fP, \f3l\fP, \f3j\fP and \f3L\fP are the ANSI C conventions to
 select the types of input objects.
 For example, \f3%hd\fP indicates a \f3short int\fP,
 while \f3%ld\fP indicates a \f3long int\fP.
@@ -1434,7 +1434,7 @@ This is useful to avoid blocking when scanning typed inputs.
 The standard scan patterns are:
 \f3i, d, u, o, x, X, p, n, f, e, E, g, G, c, %, s, []\fP and \f3!\fP.
 Except for \f3!\fP which shall be described below,
-see the ANSI-C specification of \f3fscanf(3)\fP for details on other patterns.
+see the ANSI C specification of \f3fscanf(3)\fP for details on other patterns.
 Let \f3z\fP be some pattern type. A formatting pattern is specified as below:
 
 .nf
@@ -1540,7 +1540,7 @@ shall be discarded.
 .ft 1
 .fi
 
-Flags \f3h\fP, \f3l\fP, and \f3L\fP are the ANSI-C conventions
+Flags \f3h\fP, \f3l\fP, and \f3L\fP are the ANSI C conventions
 for indicating the type of a scanned element.
 For example, \f3%hd\fP means scanning a \f3short int\fP.
 The flags \f3ll\fP and \f3L\fP mean respectively scanning an
@@ -1792,7 +1792,7 @@ Note that this lock state is not related to the mutex lock
 that protects a stream from multiple accesses by different threads
 (see section THREAD SAFETY). Rather, the stream was frozen by
 certain operations such as \f3sfreserve()\fP or \f3sfstack()\fP.
-Thus, a stream can be in this state even if the application is uni-threaded.
+Thus, a stream can be in this state even if the application is single-threaded.
 .Tp
 \f3SF_READ\fP, \f3SF_WRITE\fP:
 These events are raised around reading and writing operations.
@@ -2310,7 +2310,7 @@ an ongoing operation or a previous operation (e.g., \f3sfgetr()\fP).
 Before a process exits, the event \f3SF_ATEXIT\fP is raised for each open stream.
 .PP
 A number of disciplines were added for various processing functions.
-Of interests are disciplines to use the direct I/O feature on IRIX6.2,
+Of interests are disciplines to use the direct I/O feature on IRIX 6.2,
 read DOS text files, and decompress files compressed by Unix \fIcompress\fP.
 .PP
 Various new stream and function flags have been added. For example,
@@ -2335,7 +2335,7 @@ For most platforms, the mapping is now constant time per look-up.
 The \f3SF_BUFCONST\fP flag was deleted. This is largely unused anyway.
 .PP
 The library can be built for thread-safety. This is based largely on
-Posix pthread mutexes except for on UWIN where native Windows APIs
+POSIX pthread mutexes except for on UWIN where native Windows APIs
 are used.
 .PP
 The functions \f3sfgetm()\fP and \f3sfputm()\fP were added to encode

@@ -1778,7 +1778,7 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 					sh_assignok(np,1);
 				/*
 				 * For enum types (NV_UINT16 with discipline ENUM_disc), nelem should not
-				 * not increased or 'unset' will fail to completely unset such an array.
+				 * increase or 'unset' will fail to completely unset such an array.
 				 */
 				if((!ap->header.scope || !nv_search(sp,dtvnext(ap->header.table),0))
 				&& !(type==NV_UINT16 && nv_hasdisc(np, &ENUM_disc)))

@@ -25,7 +25,7 @@
 #include <ast.h>
 #include <ast_getopt.h>
 
-#undef	_BLD_ast	/* enable ast imports since we're user static */
+#undef	_BLD_ast	/* enable AST imports since we're user static */
 
 #include <error.h>
 #include <option.h>

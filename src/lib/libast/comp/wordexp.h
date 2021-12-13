@@ -22,7 +22,7 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * posix wordexp interface definitions
+ * POSIX wordexp interface definitions
  */
 
 #ifndef _WORDEXP_H

@@ -1639,7 +1639,6 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 				{
 					if(pattern)
 					{
-
 						if (flags & ASTCONF_matchcall)
 						{
 							if (regexec(&re, prefix[look.conf->call + CONF_call].name, 0, NiL, 0))

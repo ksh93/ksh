@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * file name expansion - posix.2 glob with gnu and ast extensions
+ * file name expansion - POSIX.2 glob with GNU and AST extensions
  *
  *	David Korn
  *	Glenn Fowler
@@ -43,7 +43,7 @@
  * for flags. If a new GLOB_* flag bit is added to glob.h, these must be adapted accordingly.
  */
 #define GLOB_MAGIC	0xAAA80000	/* 10101010101010000000000000000000 */
-#define GLOB_FLAGMASK	0x0003FFFF	/* 00000000000000111111111111111111 */
+#define GLOB_FLAGMASK	0x0007FFFF	/* 00000000000001111111111111111111 */
 
 #define MATCH_RAW	1
 #define MATCH_MAKE	2
@@ -543,9 +543,18 @@ skip:
 				*restore2 = gp->gl_delim;
 			while ((name = (*gp->gl_dirnext)(gp, dirf)) && !*gp->gl_intr)
 			{
+				/*
+				 * For security and usability, only match '..' or '.' as the final element if:
+				 *	- its' specified literally, or
+				 *	- we're in file name completion mode.
+				 * To avoid breaking globstar, make sure that '.' or '..' is skipped if, and only if, it is the
+				 * final element in the pattern (i.e., if 'pat' does not contain a slash) and is not specified
+				 * literally as '.' or '..', i.e. only if '.' or '..' was actually resolved from a glob pattern.
+				 */
 				if (!(matchdir && (pat[0] == '.' && (!pat[1] || pat[1] == '.' && !pat[2]) || strchr(pat,'/')))
-				&& name[0] == '.' && (!name[1] || name[1] == '.' && !name[2]))
-					continue;  /* never match '.' or '..' as final element unless specified literally */
+				&& name[0] == '.' && (!name[1] || name[1] == '.' && !name[2])
+				&& !(gp->gl_flags & GLOB_FCOMPLETE))
+					continue;
 				if (notdir = (gp->gl_status & GLOB_NOTDIR))
 					gp->gl_status &= ~GLOB_NOTDIR;
 				if (ire && !regexec(ire, name, 0, NiL, 0))

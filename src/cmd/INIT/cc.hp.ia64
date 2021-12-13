@@ -1,8 +1,8 @@
-: hp.ia64 cc wrapper for reasonable ansi C defaults : 2011-01-25 :
+: hp.ia64 cc wrapper for reasonable ANSI C defaults : 2011-01-25 :
 
 [ /usr/bin/cc -ef /usr/ccs/bin/cc ] || exit 1
 
-: bundled cc -- really, in the face of gcc you ship a sub-par /usr/bin/cc? :
+: bundled cc -- really, in the face of gcc you ship a subpar /usr/bin/cc? :
 
 HOSTTYPE=hp.ia64
 

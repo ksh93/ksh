@@ -61,7 +61,7 @@
 
 #define OPT_TYPE	(OPT_flag|OPT_number|OPT_string)
 
-#define STYLE_posix	0		/* posix getopt usage		*/
+#define STYLE_posix	0		/* POSIX getopt usage		*/
 #define STYLE_short	1		/* [default] short usage	*/
 #define STYLE_long	2		/* long usage			*/
 #define STYLE_match	3		/* long description of matches	*/
@@ -218,10 +218,10 @@ static const List_t	help_head[] =
 	'-',	0,
 		0,
 	'+',	C("NAME"),
-		C("options available to all \bast\b commands"),
+		C("options available to all \bAST\b commands"),
 	'+',	C("DESCRIPTION"),
 		C("\b-?\b and \b--?\b* options are the same \
-for all \bast\b commands. For any \aitem\a below, if \b--\b\aitem\a is not \
+for all \bAST\b commands. For any \aitem\a below, if \b--\b\aitem\a is not \
 supported by a given command then it is equivalent to \b--\?\?\b\aitem\a. The \
 \b--\?\?\b form should be used for portability. All output is written to the \
 standard error."),
@@ -1125,7 +1125,7 @@ init(register char* s, Optpass_t* p)
 	if (!p->version && (t = strchr(s, '(')) && strchr(t, ')') && (state.cp || (state.cp = sfstropen())))
 	{
 		/*
-		 * solaris long option compatibility
+		 * Solaris long option compatibility
 		 */
 
 		p->version = 1;
@@ -4105,7 +4105,7 @@ optusage(const char* opts)
  * convert number using strtonll() *except* that
  * 0*[[:digit:]].* is treated as [[:digit:]].*
  * i.e., it looks octal but isn't, to meet
- * posix Utility Argument Syntax -- use
+ * POSIX Utility Argument Syntax -- use
  * 0x.* or <base>#* for alternate bases
  */
 

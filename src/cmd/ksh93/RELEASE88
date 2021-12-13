@@ -118,9 +118,9 @@ of ksh.
 
     j.	An addition format for literal strings, $'....' can
 	be used where ever literal strings are valid.  The string
-	inside the single quotes will be converted using the ANSI-C
+	inside the single quotes will be converted using the ANSI C
 	escape conventions.  Additionally, the escape sequence \E
-	expands to the escape character (default \033) whenever ANSI-C
+	expands to the escape character (default \033) whenever ANSI C
 	escape sequences are recognized.
 
     k.  A typeset -n option has been added which causes the value of a
@@ -290,7 +290,7 @@ of ksh.
 	    corresponds to the give extended regular expression.
 	6.  For numerical fields, the arguments can be arithmetic
 	    expressions which will be evaluated.
-	7.  The %n format works as described in ANSI-C.
+	7.  The %n format works as described in ANSI C.
 
     k.	The following changes have been made to fc:
 	1.  It has been renamed hist.  fc is now a predefined alias.

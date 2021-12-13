@@ -24,7 +24,7 @@
 # test if feature exists
 # this script is written to make it through all sh variants
 #
-# NOTE: .exe a.out suffix and [\\/] in path patterns for dos/nt
+# NOTE: .exe a.out suffix and [\\/] in path patterns for DOS/NT
 
 (command set -o posix) 2>/dev/null && set -o posix
 case `uname -s` in
@@ -936,7 +936,7 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 	happy.]
 [+?The feature tests are:]{
 	[+# \acomment\a?Comment line - ignored.]
-	[+api \aname\a \aYYYYMMDD\a \asymbol ...\a?Emit api compatibility tests
+	[+api \aname\a \aYYYYMMDD\a \asymbol ...\a?Emit API compatibility tests
 		for \aname\a and \b#define\b \asymbol\a \asymbol\a_\aYYYYMMDD\a
 		when \aNAME\a_API is >= \aYYYYMMDD\a (\aNAME\a is \aname\a
 		converted to upper case). If \aNAME\a_API is not defined
@@ -3084,7 +3084,7 @@ int x;
 									map=
 									sep=
 									eval syms='"${'api_sym_${api}'}"'
-									# old solaris requires -k<space><junk> #
+									# old Solaris requires -k<space><junk> #
 									set x x `echo "$syms" | sort -t: -u -k 1,1 -k 2,2nr 2>/dev/null | sed 's/:/ /'`
 									case $# in
 									2)	# ancient sort doesn't have -k #

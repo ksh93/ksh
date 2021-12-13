@@ -1,4 +1,4 @@
-# ast atomic scalar operations feature tests
+# AST atomic scalar operations feature tests
 
 if	aso note{ gcc 4.1+ 64 bit memory atomic operations model }end link{
 		#include "FEATURE/common"
@@ -348,7 +348,7 @@ elif	aso note{ winix Interlocked }end link{
 		#define _aso_casptr(p,o,n)	((void*)InterlockedCompareExchange((LONG volatile*)p,(LONG)n,(LONG)o))
 		#endif
 	}
-elif	aso note{ aix fetch and add }end link{
+elif	aso note{ AIX fetch and add }end link{
 		#include <sys/atomic_op.h>
 		int main()
 		{
@@ -366,7 +366,7 @@ elif	aso note{ aix fetch and add }end link{
 		#define _aso_casptr(p,o,n)	(compare_and_swap((atomic_p)p,(int*)&o,(int)n) ? o : *(void**)p)
 		#endif
 	}
-elif	aso note{ mips compare and swap }end link{
+elif	aso note{ MIPS compare and swap }end link{
 		int main()
 		{
 			int i = 1;

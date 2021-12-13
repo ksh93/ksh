@@ -1,8 +1,8 @@
 :
 # @(#)probe.win32 (AT&T Research) 2010-01-01
 #
-# win32 specific make C probe initialization
-# wrapped cc's are easy on uwin
+# Win32 specific make C probe initialization
+# wrapped cc's are easy on UWIN
 #
 # 2> easy.err to avoid mysterious hang with bcc
 

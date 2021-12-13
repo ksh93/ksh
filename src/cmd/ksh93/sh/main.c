@@ -269,7 +269,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 					}
 #if !_WINIX
 					/*
-					 * try to undo effect of solaris 2.5+
+					 * try to undo effect of Solaris 2.5+
 					 * change for argv for setuid scripts
 					 */
 					if(shp->st.repl_index > 0)
@@ -344,7 +344,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 				sh_accbegin(error_info.id);
 #endif	/* SHOPT_ACCT */
 		}
-		/* If the shell is init'ed with std{in,out,err} closed, make the shell's FD state reflect that. */
+		/* If the shell is initialised with std{in,out,err} closed, make the shell's FD state reflect that. */
 		for(i=0; i<=2; i++)
 			if(fcntl(i,F_GETFD,NiL)==-1 && errno==EBADF)	/* closed at OS level? */
 				sh_close(i); 				/* update shell FD state */

@@ -146,7 +146,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		}
 	}
 	not = c_eq(cp,'!');
-	/* posix portion for test */
+	/* POSIX portion for test */
 	switch(argc)
 	{
 		case 5:

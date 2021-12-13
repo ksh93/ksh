@@ -1,4 +1,4 @@
-: hp.pa cc wrapper for reasonable ansi C defaults : 2004-02-29 :
+: hp.pa cc wrapper for reasonable ANSI C defaults : 2004-02-29 :
 
 HOSTTYPE=hp.pa
 

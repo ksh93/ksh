@@ -21,7 +21,7 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * lc (sub)lang definitions -- very windowsish
+ * lc (sub)lang definitions -- very Windows-ish
  */
 
 #if _WINIX
