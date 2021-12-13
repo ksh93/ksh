@@ -40,14 +40,19 @@
 .SH NAME
 strgid \- return group name given group number
 .SH SYNOPSIS
-.L "char* strgid(int gid)"
+.L "int strgid(const char* name)"
 .SH DESCRIPTION
 .I strgid
-returns the group id name string given the group number
-.IR gid .
+returns the group ID number for the given group name.
 .I strgid
 maintains an internal cache to avoid repeated password database scans
 by the low level
 .IR getgrgid (3).
+On the first error for a given name,
+.I strgid
+returns -1.
+Subsequent errors for the same name will result in
+.I strgid
+returning -2 instead.
 .SH "SEE ALSO"
 getgrent(3)

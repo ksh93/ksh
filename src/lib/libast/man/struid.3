@@ -40,14 +40,19 @@
 .SH NAME
 struid \- return user name given user number
 .SH SYNOPSIS
-.L "char* struid(int uid)"
+.L "int struid(const char* name)"
 .SH DESCRIPTION
 .I struid
-returns the user id name string given the user number
-.IR uid .
+returns the user ID number for the given user name.
 .I struid
 maintains an internal cache to avoid repeated password database scans
 by the low level
 .IR getpwuid (3).
+On the first error for a given name,
+.I struid
+returns -1.
+Subsequent errors for the same name will result in
+.I struid
+returning -2 instead.
 .SH "SEE ALSO"
 getpwent(3)

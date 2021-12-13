@@ -8,6 +8,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug introduced on 2020-08-09 that prevented '.' and '..' from
   being completed when using file name tab completion.
 
+- Fixed a bug on illumos that caused the chown builtin to fail with 'Invalid
+  argument' after failing to change the ownership of a file twice using an ID
+  that doesn't exist in /etc/passwd. (Note that the chown builtin is not
+  enabled by default.)
+
 2021-12-11:
 
 - Fixed two more crashing bugs that occurred if ksh received a signal (such
