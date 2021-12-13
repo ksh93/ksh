@@ -90,7 +90,7 @@ static inline int xaccess(const char *path, int mode)
 	int ret;
 
 	if (!pgsz)
-		pgsz = strtoul(astconf("PAGESIZE",NiL,NiL),NiL,0);
+		pgsz = astconf_ulong(CONF_PAGESIZE);
 
 	if (!path || !*path)
 	{

@@ -329,7 +329,7 @@ int eaccess(register const char *name, register int mode)
 				if((maxgroups=getgroups(0,groups)) < 0)
 				{
 					/* pre-POSIX system */
-					maxgroups = (int)astgetconf_long("NGROUPS_MAX");
+					maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
 				}
 			}
 			groups = (gid_t*)malloc((maxgroups+1)*sizeof(gid_t));

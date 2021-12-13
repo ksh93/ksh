@@ -110,7 +110,7 @@ eaccess(const char* path, register int flags)
 		if (ngroups == -2)
 		{
 			if ((ngroups = getgroups(0, (gid_t*)0)) <= 0)
-				ngroups = (int)astgetconf_long("NGROUPS_MAX");
+				ngroups = (int)astconf_long(CONF_NGROUPS_MAX);
 			if (!(groups = newof(0, gid_t, ngroups + 1, 0)))
 				ngroups = -1;
 			else

@@ -44,6 +44,8 @@ ast \- miscellaneous libast support
 #include <ast.h>
 
 char*          astconf(const char* \fIname\fP, const char* \fIpath\fP, const char* \fIvalue\fP);
+long           astconf_long(\fIarg\fP);
+unsigned long  astconf_ulong(\fIarg\fP);
 Ast_confdisc_t astconfdisc(Ast_confdisc_t new_notify);
 void           astconflist(Sfio_t* stream, const char* path, int flags);
 off_t          astcopy(int \fIrfd\fP, int \fIwfd\fP, off_t \fIn\fP);
@@ -155,6 +157,30 @@ User defined
 values may also be set and queried, but these should probably have
 some form of vendor prefix to avoid being stomped by future standards.
 .PP
+.L astconf_long
+and
+.L astconf_ulong
+are macros that call either
+.I sysconf
+or
+.LR astconf ,
+preferring
+.I sysconf
+if it's available.
+.L astconf_long
+returns a signed long value while
+.L astconf_ulong
+returns an unsigned long value.
+The argument passed to these macros may be one of the following:
+.EX
+CONF_ARG_MAX
+CONF_CHILD_MAX
+CONF_CLK_TCK
+CONF_NGROUPS_MAX
+CONF_OPEN_MAX
+CONF_PAGESIZE
+.EE
+.PP
 .L astconfdisc
 registers a discipline function
 .EX
@@ -259,7 +285,7 @@ and
 are set to
 .LR 0 .
 If
-.I ioctl (2)
+.IR ioctl (2)
 methods fail then the environment variable
 .L LINES
 is used to set

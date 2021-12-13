@@ -128,7 +128,7 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 		argc = 0;
 	for (p = environ; *p; p++)
 		n += sizeof(char**) + strlen(*p) + 1;
-	if ((x = astgetconf_long("ARG_MAX")) <= 0)
+	if ((x = astconf_long(CONF_ARG_MAX)) <= 0)
 		x = ARG_MAX;
 	if (size <= 0 || size > x)
 		size = x;

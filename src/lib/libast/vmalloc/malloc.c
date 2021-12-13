@@ -1132,7 +1132,7 @@ int	fd;
 #endif
 {
 	int	pd;
-	int	fd_private = (int)(3 * astgetconf_long("OPEN_MAX") / 4);
+	int	fd_private = (int)(3 * astconf_long(CONF_OPEN_MAX) / 4);
 	if (fd_private <= 0)
 	{
 #if defined(OPEN_MAX)

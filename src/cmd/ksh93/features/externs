@@ -46,7 +46,7 @@ tst	note{ determining extra bytes per argument for arguments list }end output{
 			for(i=0; environ[i]; i++)
 				envlen += strlen(environ[i]) + 1 + extra_bytes;
 			envlen += 1 + extra_bytes;	/* final null element */
-			argmax = (int)astgetconf_long("ARG_MAX") - envlen;
+			argmax = (int)astconf_long(CONF_ARG_MAX) - envlen;
 			if (argmax < 2048)
 			{
 				error(ERROR_ERROR|2, "argmax too small");

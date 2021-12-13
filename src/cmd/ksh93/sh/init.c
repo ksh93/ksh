@@ -1220,9 +1220,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		shgd->euserid=geteuid();
 		shgd->groupid=getgid();
 		shgd->egroupid=getegid();
-		shgd->lim.arg_max = astgetconf_long("ARG_MAX");
-		shgd->lim.child_max = (int)astgetconf_long("CHILD_MAX");
-		shgd->lim.clk_tck = (int)astgetconf_long("CLK_TCK");
+		shgd->lim.arg_max = astconf_long(CONF_ARG_MAX);
+		shgd->lim.child_max = (int)astconf_long(CONF_CHILD_MAX);
+		shgd->lim.clk_tck = (int)astconf_long(CONF_CLK_TCK);
 		if(shgd->lim.arg_max <=0)
 			shgd->lim.arg_max = ARG_MAX;
 		if(shgd->lim.child_max <=0)
