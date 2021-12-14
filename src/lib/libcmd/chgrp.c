@@ -131,14 +131,6 @@ typedef struct Map_s			/* uid/gid map			*/
 	Key_t		to;		/* map to these			*/
 } Map_t;
 
-/*
- * libast's strgid() and struid() functions will return -1 in response to
- * not finding an ID for a name on the first call, and -2 for subsequent
- * calls for the same string.
- */
-#define NOID		(-1)
-#define STILLNOID	(-2)
-
 #define OPT_CHOWN	0x0001		/* chown			*/
 #define OPT_FORCE	0x0002		/* ignore errors		*/
 #define OPT_GID		0x0004		/* have gid			*/
@@ -165,7 +157,7 @@ getids(register char* s, char** e, Key_t* key, int options)
 	char*		z;
 	char		buf[64];
 
-	key->uid = key->gid = NOID;
+	key->uid = key->gid = -1;
 	while (isspace(*s))
 		s++;
 	for (t = s; (n = *t) && n != ':' && n != '.' && !isspace(n); t++);
@@ -183,7 +175,7 @@ getids(register char* s, char** e, Key_t* key, int options)
 			n = (int)strtol(s, &z, 0);
 			if (*z || !(options & OPT_NUMERIC))
 			{
-				if ((m = struid(s)) != NOID && m != STILLNOID)
+				if ((m = struid(s)) > -1)
 					n = m;
 				else if (*z)
 				{
@@ -206,7 +198,7 @@ getids(register char* s, char** e, Key_t* key, int options)
 		n = (int)strtol(s, &z, 0);
 		if (*z || !(options & OPT_NUMERIC))
 		{
-			if ((m = strgid(s)) != NOID && m != STILLNOID)
+			if ((m = strgid(s)) > -1)
 				n = m;
 			else if (*z)
 			{
@@ -393,21 +385,21 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 					UNREACHABLE();
 				}
 				m->key = key;
-				m->to.uid = m->to.gid = NOID;
+				m->to.uid = m->to.gid = -1;
 				dtinsert(map, m);
 			}
 			getids(t, NiL, &m->to, options);
 		}
 		if (sp != sfstdin)
 			sfclose(sp);
-		keys[1].gid = keys[2].uid = NOID;
+		keys[1].gid = keys[2].uid = -1;
 	}
 	else if (!(options & (OPT_UID|OPT_GID)))
 	{
 		getids(s, NiL, &key, options);
-		if ((uid = key.uid) != NOID)
+		if ((uid = key.uid) > -1)
 			options |= OPT_UID;
-		if ((gid = key.gid) != NOID)
+		if ((gid = key.gid) > -1)
 			options |= OPT_GID;
 	}
 	switch (options & (OPT_UID|OPT_GID))
@@ -461,7 +453,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			if (map)
 			{
 				options &= ~(OPT_UID|OPT_GID);
-				uid = gid = NOID;
+				uid = gid = -1;
 				keys[0].uid = keys[1].uid = ent->fts_statp->st_uid;
 				keys[0].gid = keys[2].gid = ent->fts_statp->st_gid;
 				i = 0;
@@ -469,18 +461,18 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 				{
 					if (m = (Map_t*)dtmatch(map, &keys[i]))
 					{
-						if (uid == NOID && m->to.uid != NOID)
+						if (uid < 0 && m->to.uid > -1)
 						{
 							uid = m->to.uid;
 							options |= OPT_UID;
 						}
-						if (gid == NOID && m->to.gid != NOID)
+						if (gid < 0 && m->to.gid > -1)
 						{
 							gid = m->to.gid;
 							options |= OPT_GID;
 						}
 					}
-				} while (++i < elementsof(keys) && (uid == NOID || gid == NOID));
+				} while (++i < elementsof(keys) && (uid < 0 || gid < 0));
 			}
 			else
 			{
@@ -489,16 +481,16 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 				if (!(options & OPT_GID))
 					gid = ent->fts_statp->st_gid;
 			}
-			if ((options & OPT_UNMAPPED) && (uid == NOID || gid == NOID))
+			if ((options & OPT_UNMAPPED) && (uid < 0 || gid < 0))
 			{
-				if (uid == NOID && gid == NOID)
+				if (uid < 0 && gid < 0)
 					error(ERROR_warn(0), "%s: uid and gid not mapped", ent->fts_path);
-				else if (uid == NOID)
+				else if (uid < 0)
 					error(ERROR_warn(0), "%s: uid not mapped", ent->fts_path);
 				else
 					error(ERROR_warn(0), "%s: gid not mapped", ent->fts_path);
 			}
-			if (uid != ent->fts_statp->st_uid && uid != NOID || gid != ent->fts_statp->st_gid && gid != NOID)
+			if (uid != ent->fts_statp->st_uid && uid > -1 || gid != ent->fts_statp->st_gid && gid > -1)
 			{
 				if (options & (OPT_SHOW|OPT_VERBOSE))
 				{
