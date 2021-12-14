@@ -19,8 +19,6 @@ setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?
 setv COTEMP $$
 setv IFFEFLAGS
 setv LDFLAGS
-make ${PACKAGEROOT}/lib/package/ast.lic
-done ${PACKAGEROOT}/lib/package/ast.lic
 make install
 	make dll
 		make libdll.a archive
@@ -296,7 +294,7 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/dlldefs.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev dlldefs.h
-		exec - proto -p -s -l ${PACKAGEROOT}/lib/package/ast.lic '-o since=1997,author=gsf' dlldefs.h > 1.${COTEMP}.x
+		exec - proto -p -s dlldefs.h > 1.${COTEMP}.x
 		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/dlldefs.h 1.${COTEMP}.x
 		exec - then rm -f 1.${COTEMP}.x
 		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/dlldefs.h

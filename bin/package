@@ -253,10 +253,6 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 	    The hierarchy can be rebuilt by \bpackage make\b.]
         [+contents\b [ \apackage\a ... ]]?List description and
             components for \apackage\a on the standard output.]
-        [+copyright\b [ \apackage\a ... ]]?List the general copyright
-            notice(s) for \apackage\a on the standard output. Note that
-            individual components in \apackage\a may contain additional or
-            replacement notices.]
         [+export\b [ \avariable\a ...]]?List \aname\a=\avalue\a for
             \avariable\a, one per line. If the \bonly\b attribute is
             specified then only the variable values are listed. If no
@@ -497,15 +493,6 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     that contain the package name, package components, references to other
     packages, and a short package description. *\b.pkg\b files are used by
     \bpackage write\b to generate new source and binary packages.]
-[+?\b$PACKAGEROOT/lib/package/\b\agroup\a\b.lic\b files contain license
-    information that is used by the \bAST\b \bproto\b(1) and \bnmake\b(1)
-    commands to generate source and binary license strings. \agroup\a is
-    determined by the first \b:PACKAGE:\b operator name listed in the
-    component \bnmake\b makefile. \agroup\a\b.lic\b files are part of the
-    licensing documentation. Each component may have its own \bLICENSE\b file
-    that overrides the \agroup\a\b.lic\b file. The full text of the licenses
-    are in the \b$PACKAGEROOT/lib/package/LICENSES\b and
-    \b$INSTALLROOT/lib/package/LICENSES\b directories.]
 [+?A few files are generated in \b$PACKAGEROOT/lib/package/gen\b and
     \b$INSTALLROOT/lib/package/gen\b. \apackage\a\b.ver\b contains one line
     consisting of \apackage version release\a \b1\b for the most recent
@@ -635,7 +622,7 @@ do	case $# in
 	0)	set host type ;;
 	esac
 	case $1 in
-	admin|clean|clobber|contents|copyright|export|host|install|license|list|make|read|regress|release|remove|results|setup|test|update|use|verify|view|write|TEST)
+	admin|clean|clobber|contents|export|host|install|license|list|make|read|regress|release|remove|results|setup|test|update|use|verify|view|write|TEST)
 		action=$1
 		shift
 		break
@@ -848,15 +835,6 @@ convention is ${bI}GROUP${eI}[${bI}-PART${eI}]; e.g., ${bB}ast-base${eB}, ${bB}g
 are ${bB}ast${eB} ${Mnmake} makefiles that contain the package name, package components,
 references to other packages, and a short package description. *${bB}.pkg${eB} files
 are used by ${bF}package write${eF} to generate new source and binary packages.
-${bP}
-${bB}\$PACKAGEROOT/lib/package/${eB}${bI}GROUP${eI}${bB}.lic${eB} files contain license information that
-is used by the ${bB}ast${eB} ${Mproto} and ${Mnmake} commands to generate source and
-binary license strings. ${bI}GROUP${eI} is determined by the first ${bB}:PACKAGE:${eB} operator
-name listed in the component ${bB}nmake${eB} makefile. ${bI}GROUP${eI}${bB}.lic${eB} files are part of the
-licensing documentation.  Each component may have its own ${bB}LICENSE${eB} file that
-overrides the ${bI}GROUP${eI}${bB}.lic${eB} file.  The full text of the licenses are in the
-${bB}\$PACKAGEROOT/lib/package/LICENSES${eB} and ${bB}\$INSTALLROOT/lib/package/LICENSES${eB}
-directories.
 ${bP}
 A few files are generated in ${bB}\$PACKAGEROOT/lib/package/gen${eB} and
 ${bB}\$INSTALLROOT/lib/package/gen${eB}. ${bI}PACKAGE${eI}${bB}.ver${eB} contains one line consisting of${bX}
@@ -1073,10 +1051,6 @@ ${bT}(5)${bD}Read all unread package archive(s):${bX}
 	contents [ package ... ]
 		List description and components for PACKAGE on the standard
 		output.
-	copyright [ package ... ]
-		List the general copyright notice(s) for PACKAGE on the
-		standard output. Note that individual components in PACKAGE
-		may contain additional or replacement notices.
 	export [ VARIABLE ... ]
 		List NAME=VALUE for each VARIABLE, one per line. If the
 		\"only\" attribute is specified then only the variable
@@ -4289,26 +4263,6 @@ get() # host path [ file size ]
 	esac
 }
 
-# generate copyright notice
-
-copyright()
-{
-	if	test -f $1.lic
-	then	echo $1 package general copyright notice
-		echo
-		proto -c'#' -p -s -l $1.lic -o type=verbose,author='*' /dev/null
-		return 0
-	fi
-	case $1 in
-	*-*)	eval `echo '' $1 | sed 's/\([^-]*\)-\(.*\)/__j__="\1" __i__="\2"/'`
-		if	copyright $__i__ || copyright $__j__
-		then	return 0
-		fi
-		;;
-	esac
-	return 1
-}
-
 # run remote make on host
 
 remote() # host no-exec-background
@@ -5240,32 +5194,6 @@ contents|list)
 	esac
 	;;
 
-copyright)
-	# all work in $PACKAGESRC
-
-	cd $PACKAGESRC
-
-	# generate the package list
-
-	set '' $target $package
-	shift
-	argc=$#
-	case $# in
-	0)	set '' `echo *.lic | sed 's,\.lic,,g'`
-		shift
-		case $1 in
-		'*')	echo $command: $action: no packages >&2
-			exit 1
-			;;
-		esac
-		;;
-	esac
-	checkaout proto || exit
-	for i
-	do	copyright $i
-	done
-	;;
-
 export)	case $INSTALLROOT in
 	$PACKAGEROOT)
 		INSTALLROOT=$INSTALLROOT/arch/$HOSTTYPE
@@ -5628,9 +5556,9 @@ make|view)
 				$t*)	;;
 				$b*)	cc=$b
 					;;
-				$s*)	cd $INSTALLROOT/lib/package/gen
+				$s*)	$exec cd $INSTALLROOT/lib/package/gen
 					tmp=pkg$$
-					eval '$'exec echo "'int main(){return 0;}' > $tmp.c"
+					$exec eval "echo 'int main(){return 0;}' > $tmp.c"
 					if	$exec $s -o $tmp.exe $tmp.c >/dev/null 2>&1 &&
 						test -x $tmp.exe
 					then	case $HOSTTYPE in
@@ -5863,7 +5791,7 @@ cat $j $k
 				echo "$command: $var changed from $old to $new" >&2
 				err=y ;;
 			esac
-		else	case $new in
+		else	test -d $INSTALLROOT/lib/package/gen && case $new in
 			'')	;;
 			*)	echo "$new" ;;
 			esac > $store
@@ -5882,7 +5810,7 @@ cat $j $k
 
 	# record the build host name
 
-	case $noexec in
+	case $exec in
 	'')	hostinfo name
 		echo "$_hostinfo_" | sed 's,\..*,,' > $PACKAGEBIN/gen/host
 		;;
