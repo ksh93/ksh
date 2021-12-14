@@ -5863,7 +5863,7 @@ cat $j $k
 				echo "$command: $var changed from $old to $new" >&2
 				err=y ;;
 			esac
-		else	[ -d $INSTALLROOT/lib/package/gen ] && case $new in
+		else	test -d $INSTALLROOT/lib/package/gen && case $new in
 			'')	;;
 			*)	echo "$new" ;;
 			esac > $store
