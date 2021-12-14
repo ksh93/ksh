@@ -19,6 +19,16 @@ if tst note{ FreeBSD or DragonFly BSD }end compile{
 		#endif
 	}end {
 	}
+elif tst note{ SunOS (Solaris, illumos) }end compile{
+		#if !__sun
+		#error dark
+		#endif
+	}end {
+		#define	_XPG6		1
+		#define _XPG4		1  /* on illumos we need both XPG6 and XPG4 (system header bug?) */
+		#define	__EXTENSIONS__	1
+		#define	_XOPEN_SOURCE	9900
+	}
 elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & _GNU_SOURCE & _DARWIN_C_SOURCE & __EXTENSIONS__ works }end compile{
 		#define _ALL_SOURCE	1
 		#define _POSIX_SOURCE	1

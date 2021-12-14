@@ -36,12 +36,6 @@ cat{
 	#	define	__OPTIMIZE_SIZE__	1
 	#endif
 
-	/* enable POSIX standard on Solaris */
-	#ifdef __sun
-	#	undef	_XPG6
-	#	define	_XPG6		1
-	#endif
-
 	/* __STD_C indicates that the language is ANSI C or C++ */
 	#if !defined(__STD_C) && __STDC__
 	#	define	__STD_C		1
