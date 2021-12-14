@@ -175,7 +175,7 @@ getids(register char* s, char** e, Key_t* key, int options)
 			n = (int)strtol(s, &z, 0);
 			if (*z || !(options & OPT_NUMERIC))
 			{
-				if ((m = struid(s)) > -1)
+				if ((m = struid(s)) >= 0)
 					n = m;
 				else if (*z)
 				{
@@ -198,7 +198,7 @@ getids(register char* s, char** e, Key_t* key, int options)
 		n = (int)strtol(s, &z, 0);
 		if (*z || !(options & OPT_NUMERIC))
 		{
-			if ((m = strgid(s)) > -1)
+			if ((m = strgid(s)) >= 0)
 				n = m;
 			else if (*z)
 			{
@@ -397,9 +397,9 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	else if (!(options & (OPT_UID|OPT_GID)))
 	{
 		getids(s, NiL, &key, options);
-		if ((uid = key.uid) > -1)
+		if ((uid = key.uid) >= 0)
 			options |= OPT_UID;
-		if ((gid = key.gid) > -1)
+		if ((gid = key.gid) >= 0)
 			options |= OPT_GID;
 	}
 	switch (options & (OPT_UID|OPT_GID))
@@ -461,12 +461,12 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 				{
 					if (m = (Map_t*)dtmatch(map, &keys[i]))
 					{
-						if (uid < 0 && m->to.uid > -1)
+						if (uid < 0 && m->to.uid >= 0)
 						{
 							uid = m->to.uid;
 							options |= OPT_UID;
 						}
-						if (gid < 0 && m->to.gid > -1)
+						if (gid < 0 && m->to.gid >= 0)
 						{
 							gid = m->to.gid;
 							options |= OPT_GID;
@@ -490,7 +490,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 				else
 					error(ERROR_warn(0), "%s: gid not mapped", ent->fts_path);
 			}
-			if (uid != ent->fts_statp->st_uid && uid > -1 || gid != ent->fts_statp->st_gid && gid > -1)
+			if (uid != ent->fts_statp->st_uid && uid >= 0 || gid != ent->fts_statp->st_gid && gid >= 0)
 			{
 				if (options & (OPT_SHOW|OPT_VERBOSE))
 				{
