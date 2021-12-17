@@ -434,6 +434,15 @@ void	sh_chktrap(Shell_t* shp)
 				cursig = sig;
  				sh_trap(trap,0);
 				cursig = -1;
+				/* If we're in a PS2 prompt, then we just parsed and executed a trap in the middle of parsing
+				 * another command, so the lexer state is overwritten. Escape to avoid crashing the lexer. */
+				if(sh.nextprompt == 2)
+				{
+					fcclose();		/* force lexer to abort partial command */
+					sh.nextprompt = 1;	/* next display prompt is PS1 */
+					sh.lastsig = sig;	/* make sh_exit() set $? to signal exit status */
+					sh_exit(SH_EXITSIG);	/* start a new command line */
+				}
  			}
 		}
 	}

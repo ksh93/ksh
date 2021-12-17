@@ -346,7 +346,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		*shp->st.self = shp->st;
 	if(!infunction)
 		sh_offstate(SH_INFUNCTION);
-	/* only restore the top Shscope_t portion for posix functions */
+	/* only restore the top Shscope_t portion for POSIX functions */
 	memcpy((void*)&shp->st, (void*)prevscope, sizeof(Shscope_t));
 	shp->topscope = (Shscope_t*)prevscope;
 	nv_putval(SH_PATHNAMENOD, shp->st.filename ,NV_NOFREE);
@@ -532,6 +532,7 @@ static void	print_times(struct timeval utime, struct timeval stime)
 	sfprintf(sfstdout, "%dm%02d%c%03ds %dm%02d%c%03ds\n", ut_min, ut_sec, radix, ut_ms, st_min, st_sec, radix, st_ms);
 }
 #if _lib_getrusage
+/* getrusage tends to have higher precision */
 static void	print_cpu_times(void)
 {
 	struct rusage usage;

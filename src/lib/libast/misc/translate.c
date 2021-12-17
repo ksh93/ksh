@@ -24,7 +24,7 @@
 
 /*
  * AT&T Research and SCO
- * ast l10n message translation
+ * AST l10n message translation
  */
 
 #include "lclib.h"
@@ -188,7 +188,7 @@ init(register char* s)
 	{
 		/*
 		 * load the default locale messages
-		 * this assumes one message set for ast (AST_MESSAGE_SET or fallback to 1)
+		 * this assumes one message set for AST (AST_MESSAGE_SET or fallback to 1)
 		 * different packages can share the same message catalog
 		 * name by using different message set numbers
 		 * see <mc.h> mcindex()

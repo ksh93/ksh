@@ -295,7 +295,7 @@ Sfdisc_t*	dp;
 
 /*
  * push the more discipline on f
- * if prompt==0 then a default ansi prompt is used
+ * if prompt==0 then a default ANSI prompt is used
  * if rows==0 or cols==0 then they are determined from the tty
  * if f==sfstdout then input on sfstdin also resets the state
  */

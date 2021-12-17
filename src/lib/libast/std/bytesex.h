@@ -21,7 +21,7 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * linux/gnu compatibility
+ * Linux/GNU compatibility
  */
 
 #ifndef _BYTESEX_H

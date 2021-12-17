@@ -18,45 +18,53 @@
 #                 Glenn Fowler <gsf@research.att.com>                  #
 #                                                                      #
 ########################################################################
-### this script contains archaic constructs that work with all sh variants ###
-# package - source and binary package control
-# Glenn Fowler <gsf@research.att.com>
-
+### this sh script is POSIX compliant and compatible with shell bugs ###
+#          KornShell 93u+m build system, main control script           #
+#    based on AST 'package' by Glenn Fowler <gsf@research.att.com>     #
+#    simplified and rewritten by Martijn Dekker <martijn@inlv.org>     #
+########################################################################
 command=package
 
+# Escape from a non-POSIX shell
+min_posix='path=Bad && case $PATH in (Bad) exit 1;; esac && '\
+'PWD=Bad && cd -P -- / && case $PWD in (/) ;; (*) exit 1;; esac && '\
+'! { ! case x in ( x ) : ${0##*/} || : $( : ) ;; esac; } && '\
+'trap "exit 0" 0 && exit 1'
+if	(eval "$min_posix") 2>/dev/null
+then	: good shell
+else	"$SHELL" -c "$min_posix" 2>/dev/null && exec "$SHELL" -- "$0" ${1+"$@"}
+	sh -c "$min_posix" 2>/dev/null && exec sh -- "$0" ${1+"$@"}
+	DEFPATH=`getconf PATH` 2>/dev/null || DEFPATH=/usr/xpg4/bin:/bin:/usr/bin:/sbin:/usr/sbin
+	PATH=$DEFPATH:$PATH
+	export PATH
+	sh -c "$min_posix" 2>/dev/null && exec sh -- "$0" ${1+"$@"}
+	echo "$0: Can't escape from obsolete or broken shell. Run me with a POSIX shell." >&2
+	exit 128
+fi
+readonly min_posix	# use for checksh()
+
+# Set standards compliance mode
 (command set -o posix) 2>/dev/null && set -o posix
-path=Bad
-case $PATH in
-Bad*)	echo "Cannot be run by zsh in native mode; use a sh symlink to zsh" >&2
-	exit 1 ;;
-esac
-unset path
 
 # Sanitize 'cd'
 unset CDPATH
-case `cd / && v=$PWD && cd /dev && v=$v,$PWD && echo "$v"` in
-/,/dev)	;;
-*)	# old Bourne shell does not have $PWD; avoid inheriting it from
-	# the environment, which would kill our ${PWD:-`pwd`} fallback
-	unset PWD ;;
-esac
 
 # Make the package root the current working directory
+# This makes it possible to run '/my/path/package make' without cd'ing first
+# (for all its featuritis, the AT&T version never could manage this)
 case $0 in
--*)
+[0123456789+-]*)
 	echo "dodgy \$0: $0" >&2
-	exit 1 ;;
-*/package)
-	pwd=$0 ;;
-package)
-	pwd=`command -v package || which package` || exit ;;
+	exit 128 ;;
+*/*)
+	me=$0 ;;
 *)
-	echo "this script must be named 'package'" >&2
-	exit 1 ;;
+	me=$(command -v "$0") || exit 128 ;;
 esac
-pwd=`dirname "$pwd"`
-cd "$pwd" || exit
-case ${PWD:-`pwd`} in
+me=$(dirname "$me")
+cd "$me" || exit
+unset -v me
+case $PWD in
 */arch/*/*/bin)
 	cd .. ;;
 */arch/*/bin)
@@ -67,27 +75,11 @@ case ${PWD:-`pwd`} in
 	echo "this script must live in bin/" >&2
 	exit 1 ;;
 esac || exit
-unset pwd
 
 # shell checks
 checksh()
 {
-	"$1" -ec '
-		# reject csh
-		case 1 in
-		1)	;;
-		esac
-		# reject special use of $path (to use zsh, use a "sh -> zsh" symlink, which disables this)
-		path=Bad
-		case $PATH in
-		Bad*)	exit 1 ;;
-		esac
-		# catch (our own) pipe/socket configuration mismatches
-		date | "$1" -c "read x" || exit 1
-		# check Bourne/POSIX compatible trap exit status (should exit with status 0)
-		trap "exit 0" 0
-		exit 1
-	' x "$1" 2>/dev/null || return 1
+	"$1" -c "$min_posix" 2>/dev/null || return 1
 }
 
 LC_ALL=C
@@ -104,94 +96,55 @@ ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
 makefiles="Mamfile"  # ksh 93u+m no longer uses these: Nmakefile nmakefile Makefile makefile
 env="HOSTTYPE NPROC PACKAGEROOT INSTALLROOT PATH"
-checksum=md5sum
-checksum_commands="$checksum md5"
-checksum_empty="d41d8cd98f00b204e9800998ecf8427e"
 
 package_use='=$HOSTTYPE=$PACKAGEROOT=$INSTALLROOT=$EXECROOT=$CC='
 
-PACKAGE_admin_tail_timeout=${PACKAGE_admin_tail_timeout:-"1m"}
-
 CROSS=0
 
-admin_db=admin.db
-admin_env=admin.env
-admin_ditto="ditto --checksum --delete --verbose"
-admin_ditto_update=--update
-admin_ditto_skip="OFFICIAL|core|old|*.core|*.tmp|.nfs*"
-admin_list='PACKAGE.$type.lst'
-admin_ping="ping -c 1 -w 5"
-
-default_url=default.url
 MAKESKIP=${MAKESKIP:-"*[-.]*"}
-RATZ=ratz
 SED=
-TAR=tar
-TARFLAGS=xv
-TARPROBE=B
 TR=
 
 all_types='*.*|sun4'		# all but sun4 match *.*
 
-case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
+case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: package (ksh 93u+m) 2021-05-11 $
+@(#)$Id: '$command$' (ksh 93u+m) 2021-12-15 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
 [-copyright?(c) 1994-2012 AT&T Intellectual Property]
 [-copyright?(c) 2020-2021 Contributors to https://github.com/ksh93/ksh]
 [-license?http://www.eclipse.org/org/documents/epl-v10.html]
-[+NAME?package - source and binary package control]
-[+DESCRIPTION?The \bpackage\b command controls source and binary
-    packages. It is a \bsh\b(1) script coded for maximal portability. All
-    package files are in the \b$PACKAGEROOT\b directory tree.
-    \b$PACKAGEROOT\b must at minimum contain a \bbin/package\b command or a
-    \blib/package\b directory. Binary package files are in the
-    \b$INSTALLROOT\b (\b$PACKAGEROOT/arch/\b\ahosttype\a) tree, where
-    \ahosttpe\a=`\bpackage\b`. All \aactions\a but \bhost\b and \buse\b
-    require the current directory to be under \b$PACKAGEROOT\b. See
-    \bDETAILS\b for more information.]
+[+NAME?'$command$' - build, test and install ksh 93u+m]
+[+DESCRIPTION?The \b'$command$'\b command is the main control script
+    for building and installing KornShell 93u+m.
+    It is a POSIX \bsh\b(1) script coded for maximal portability.
+    A POSIX shell and C compiler installation are the only requirements.
+    All package files are in the \b$PACKAGEROOT\b directory tree.
+    Binary package files are in the \b$INSTALLROOT\b
+    (\b$PACKAGEROOT/arch/\b\ahosttype\a) tree, where
+    \ahosttpe\a=$(\bbin/package host type\b).
+    See \bDETAILS\b for more information.]
 [+?Note that no environment variables need be set by the user;
-    \bpackage\b determines the environment based on the current working
+    \b'$command$'\b determines the environment based on the current working
     directory. The \buse\b action starts a \bsh\b(1) with the environment
     initialized. \bCC\b, \bCCFLAGS\b, \bHOSTTYPE\b and \bSHELL\b may be set
     by explicit command argument assignments to override the defaults.]
-[+?Packages are composed of components. Each component is built and
-    installed by an \bast\b \bnmake\b(1) makefile. Each package is also
-    described by an \bnmake\b makefile that lists its components and
-    provides a content description. The package makefile and component
-    makefiles provide all the information required to read, write, build
-    and install packages.]
-[+?Package recipients only need \bsh\b(1) and \bcc\b(1) to build and
-    install source packages, and \bsh\b to install binary packages.
-    \bnmake\b and \bksh93\b are required to write new packages. An
-    \b$INSTALLROOT/bin/cc\b script may be supplied for some architectures.
-    This script supplies a reasonable set of default options for compilers
-    that accept multiple dialects or generate multiple object/executable
-    formats.]
 [+?The command arguments are composed of a sequence of words: zero or
     more \aqualifiers\a, one \aaction\a, and zero or more action-specific
-    \aarguments\a, and zero or more \aname=value\a definitions. \apackage\a
-    names a particular package. The naming scheme is a \b-\b separated
-    hierarchy; the leftmost parts describe ownership, e.g.,
-    \bgnu-fileutils\b, \bast-base\b. If no packages are specified then all
-    packages are operated on. \boptget\b(3) documentation options are also
-    supported. The default with no arguments is \bhost type\b.]
+    \aarguments\a, and zero or more \aname=value\a definitions.
+    \boptget\b(3) documentation options such as \b--man\b, \b--html\b
+    and \b--nroff\b are also supported.
+    The default with no arguments is \bhost type\b.]
 [+?The qualifiers are:]
     {
-        [+authorize \aname\a?Remote authorization user name or license
-            acceptance phrase.]
         [+debug|environment?Show environment and actions but do not
             execute.]
-        [+flat?Collapse \b$INSTALLROOT\b { bin fun include lib } onto
-            \b$PACKAGEROOT\b.]
         [+force?Force the action to override saved state.]
         [+never?Run make -N and show other actions.]
         [+only?Only operate on the specified packages.]
-        [+password \apassword\a?Remote authorization or license
-	    acceptance password.]
         [+quiet?Do not list captured action output.]
         [+show?Run make -n and show other actions.]
         [+verbose?Provide detailed action output.]
@@ -199,64 +152,9 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     }
 [+?The actions are:]
     {
-        [+admin\b [\ball\b]] [\bdb\b \afile\a]] [\bon\b \apattern\a]][\aaction\a ...]]?Apply
-            \aaction\a ... to the hosts listed in \afile\a. If \afile\a is
-            omitted then \badmin.db\b is assumed. The caller must have
-            \brcp\b(1) and \brsh\b(1) or \bscp\b(1) and \bssh\b(1) access
-            to the hosts. Output for \aaction\a is saved per-host in the
-            file \aaction\a\b.log/\b\ahost\a. Logs can be viewed by
-            \bpackage admin\b [\bon\b \ahost\a]] \bresults\b [\aaction\a]].
-            By default only local PACKAGEROOT hosts are selected from
-            \afile\a; \ball\b selects all hosts. \bon\b \apattern\a selects
-            only hosts matching the \b|\b separated \apattern\a. \afile\a
-            contains four types of lines. Blank lines and lines beginning
-            with \b#\b are ignored. Lines starting with \aid\a=\avalue\a
-            are variable assignments. Set admin_ping to local conventions
-            if \"'$admin_ping$'\" fails. If a package list is not specified
-            on the command line the \aaction\a applies to all packages; a
-            variable assignment \bpackage\b=\"\alist\a\" applies \aaction\a
-            to the packages in \alist\a for subsequent hosts in \afile\a.
-            The remaining line type is a host description consisting of 6
-            tab separated fields. The first 3 are mandatory; the remaining
-            3 are updated by the \badmin\b action. \afile\a is saved in
-            \afile\a\b.old\b before update. The fields are:]
-            {
-                [+hosttype?The host type as reported by
-                    \"\bpackage\b\".]
-                [+[user@]]host?The host name and optionally user name
-                    for \brcp\b(1) and \brsh\b(1) access.]
-                [+[remote::[[master]]::]]]]PACKAGEROOT?The absolute remote package
-                    root directory and optionally the remote protocol (rsh
-                    or ssh) if the directory is on a different server than
-                    the master package root directory. If
-                    \blib/package/admin/'$admin_env$'\b exists under this
-                    directory then it is sourced by \bsh\b(1) before
-                    \aaction\a is done. If this field begins with \b-\b
-                    then the host is ignored. If this field contains \b:\b
-                    then \bditto\b(1) is used to sync the remote \bsrc\b
-                    directory hierarchy to the local one. If [\amaster\a]]:
-		    is specified then the sync is deferred to the \amaster\a
-		    host. If \amaster\a is omitted (two :) then the sync is
-		    disabled. These directories must exist on the remote side:
-		    \blib/package\b, \bsrc/cmd\b, \bsrc/lib\b.]
-                [+date?\aYYMMDD\a of the last action.]
-                [+time?Elapsed wall time for the last action.]
-                [+M T W?The \badmin\b action \bmake\b, \btest\b and
-                    \bwrite\b action error counts. A non-numeric value in
-                    any of these fields disables the corresponding action.]
-	    	[+owner?The owner contact information.]
-		[+attributes?\aname=value\a attributes. Should at least contain
-		    \bcc\b=\acompiler-version\a.]
-            }
 	[+clean | clobber?Delete the \barch/\b\aHOSTTYPE\a hierarchy; this
 	    deletes all generated files and directories for \aHOSTTYPE\a.
-	    The hierarchy can be rebuilt by \bpackage make\b.]
-        [+contents\b [ \apackage\a ... ]]?List description and
-            components for \apackage\a on the standard output.]
-        [+copyright\b [ \apackage\a ... ]]?List the general copyright
-            notice(s) for \apackage\a on the standard output. Note that
-            individual components in \apackage\a may contain additional or
-            replacement notices.]
+	    The hierarchy can be rebuilt by \b'$command$' make\b.]
         [+export\b [ \avariable\a ...]]?List \aname\a=\avalue\a for
             \avariable\a, one per line. If the \bonly\b attribute is
             specified then only the variable values are listed. If no
@@ -270,11 +168,11 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             \aattribute\a order. The attributes are:]
             {
                 [+canon \aname\a?An external host type name to be
-                    converted to \bpackage\b syntax.]
-                [+cpu?The number of cpus; 1 if the host is not a
+                    converted to \b'$command$'\b syntax.]
+                [+cpu?The number of CPUs; 1 if the host is not a
                     multiprocessor.]
                 [+name?The host name.]
-                [+rating?The cpu rating in pseudo mips; the value is
+                [+rating?The CPU rating in pseudo mips; the value is
                     useful useful only in comparisons with rating values of
                     other hosts. Other than a vax rating (mercifully) fixed
                     at 1, ratings can vary wildly but consistently from
@@ -289,56 +187,17 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
                     release incompatibilities has for the most part been
                     futile.]
             }
-        [+html\b [ \aaction\a ]]?Display html help text on the standard
-            error (standard output for \aaction\a).]
-        [+install\b [ \aarchitecture\a ... ]] \adirectory\a [ \apackage\a ... ]]?Copy
-            the package binary hierarchy to \adirectory\a. If
-            \aarchitecture\a is omitted then all architectures are
-            installed. If \bflat\b is specified then exactly one
-            \aarchitecture\a must be specified; this architecture will be
-            installed in \adirectory\a without the \barch/\b\aHOSTTYPE\a
-            directory prefixes. Otherwise each architecture will be
-            installed in a separate \barch/\b\aHOSTTYPE\a subdirectory of
-            \adirectory\a. The \aarchitecture\a \b-\b names the current
-            architecture. \adirectory\a must be an existing directory. If
-            \apackage\a is omitted then all binary packages are installed.
-            This action requires \bnmake\b.]
-        [+license\b [ \apackage\a ... ]]?List the source license(s) for
-            \apackage\a on the standard output. Note that individual
-            components in \apackage\a may contain additional or replacement
-            licenses.]
-        [+list\b [ \apackage\a ... ]]?List the name, version and
-            prerequisites for \apackage\a on the standard output.]
+        [+install\b To be reimplemented.]
         [+make\b [ \apackage\a ]] [ \aoption\a ... ]] [ \atarget\a ... ]]?Build
 	    and install. The default \atarget\a is \binstall\b, which makes
 	    and installs \apackage\a. If the standard output is a terminal
 	    then the output is also captured in
             \b$INSTALLROOT/lib/package/gen/make.out\b. The build is done in
             the \b$INSTALLROOT\b directory tree viewpathed on top of the
-            \b$PACKAGEROOT\b directory tree. If \bflat\b is specified then
-            the \b$INSTALLROOT\b { bin fun include lib } directories are
-            linked to the same directories in the package root. Only one
-            architecture may be \bflat\b. Leaf directory names matching the
+            \b$PACKAGEROOT\b directory tree. Leaf directory names matching the
             \b|\b-separated shell pattern \b$MAKESKIP\b are ignored. The
             \bview\b action is done before making. \aoption\a operands are
 	    passed to the underlying make command.]
-        [+read\b [ \apackage\a ... | \aarchive\a ... ]]?Read the named
-            package or archive(s). Must be run from the package root
-            directory. Archives are searched for in \b.\b and
-            \blib/package/tgz\b. Each package archive is read only once.
-            The file \blib/package/tgz/\b\apackage\a[.\atype\a]]\b.tim\b
-            tracks the read time. See the \bwrite\b action for archive
-            naming conventions. Text file archive member are assumed to be
-            ASCII or UTF-8 encoded.]
-        [+regress?\bdiff\b(1) the current and previous \bpackage test\b
-            results.]
-        [+release\b [ [\aCC\a]]\aYY-MM-DD\a [ [\acc\a]]\ayy-mm-dd\a ]]]] [ \apackage\a ]]?Display
-            recent changes for the date range [\aCC\a]]\aYY-MM-DD\a (up to
-        [\acc\a]]\ayy-mm-dd\a), where \b-\b means lowest (or highest).
-            If no dates are specified then changes for the last 4 months
-            are listed. \apackage\a may be a package or component name.]
-        [+remove\b [ \apackage\a ]]?Remove files installed for
-            \apackage\a.]
         [+results\b [ \bfailed\b ]] [ \bpath\b ]] [ \bold\b ]] [\bmake\b | \btest\b | \bwrite\b ]]?List
             results and interesting messages captured by the most recent
             \bmake\b (default), \btest\b or \bwrite\b action. \bold\b
@@ -347,130 +206,26 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
             must contain an \begrep\b(1) expression of result lines to be
             ignored. \bfailed\b lists failures only and \bpath\b lists the
             results file path name only.]
-        [+setup\b [ beta ]] [ binary ]] [ source ]] [ \aarchitecture\a ... ]] [ \aurl\a ]] [ \apackage\a ... ]]?This
-            action initializes the current directory as a package root, runs the
-            \bupdate\b action to download new or out of date packages, and runs the
-            \bread\b action on those packages. If \bflat\b is specified then the
-            \b$INSTALLROOT\b { bin fun include lib } directories are linked to the
-            same directories in the package root. Only one architecture may be
-            \bflat\b. See the \bupdate\b and \bread\b action descriptions for
-            argument details.]
-        [+test\b [ \apackage\a ]]?Run the regression tests for
-            \apackage\a. If the standard output is a terminal then the
-            output is also captured in
-            \b$INSTALLROOT/lib/package/gen/test.out\b. In general a package
-            must be made before it can be tested. Components tested with
-            the \bregress\b(1) command require \bksh93\b. If \bonly\b is
-	    also specified then only the listed package components are
-	    tested, otherwise the closure of the components is tested.]
-        [+update\b [ beta ]] [ binary ]] [ source ]] [\aarchitecture\a ... ]] [ \aurl\a ]] [ \apackage\a ... ]]?Download
-            the latest release of the selected and required packages from \aurl\a
-            (e.g., \bhttp://www.research.att.com/sw/download\b) into the directory
-            \b$PACKAGEROOT/lib/package/tgz\b. \bbeta\b accesses beta packages;
-            download these at your own risk. If \aarchitecture\a is omitted then
-            only architectures already present in the \btgz\b directory will be
-            downloaded. If \aarchitecture\a is \b-\b then all posted architectures
-            will be downloaded. If \aurl\a matches \b*.url\b then it is interpreted
-            as a file containing shell variable assignments for \burl\b,
-            \bauthorize\b and \bpassword\b. If \aurl\a is omitted then the
-            definitions for \burl\b, \bauthorize\b and \bpassword\b in
-            \b$PACKAGEROOT/lib/package/tgz/default.url\b, if it exists, are used.
-            If \b$PACKAGEROOT/lib/package/tgz/default.url\b does not exist then it
-            is initialized with the current \burl\b, \bauthorize\b and \bpassword\b
-            values and read permission for the current user only. If \apackage\a is
-            omitted then only packages already present in the tgz directory will be
-            downloaded. If \apackage\a is \b-\b then all posted packages will be
-            downloaded. If \bsource\b and \bbinary\b are omitted then both source
-            and binary packages will be downloaded. If \bonly\b is specified then
-            only the named packages are updated; otherwise the closure of required
-            packages is updated. This action requires \bwget\b(1), \blynx\b(1),
-            \bcurl\b(1) or a shell that supports io to
-	    \b/dev/tcp/\b\ahost\a/\aport\a.]
+        [+test\b [ \aargument\a ... ]]?Run the regression tests for
+            \bksh\b. If the standard output is a terminal then the
+            output is also captured in \b$INSTALLROOT/lib/package/gen/test.out\b.
+            \bksh\b must be made before it can be tested.
+            All \aargument\as following \atest\a are passed to \bbin/shtests\b.
+            See \bbin/shtests --man\b for more information.]
         [+use\b [ \auid\a | \apackage\a | . [ 32 | 64 ]] | 32 | 64 | - ]] [ command ...]]?Run
             \acommand\a, or an interactive shell if \acommand\a is omitted,
             with the environment initialized for using the package (can you
             say \ashared\a \alibrary\a or \adll\a without cussing?) If
             \auid\a or \apackage\a or \a.\a is specified then it is used
 	    to determine a \b$PACKAGEROOT\b, possibly different from
-	    the current directory. For example, to try out bozo`s package:
+	    the current directory. For example, to try out bozo'\'$'s package:
             \bpackage use bozo\b. The \buse\b action may be run from any
             directory. If the file \b$INSTALLROOT/lib/package/profile\b is
             readable then it is sourced to initialize the environment. 32 or 64
 	    implies \b$PACKAGEROOT\b of . and specifies the target architecture
 	    word size (which may be silently ignored).]
-        [+verify\b [ \apackage\a ]]?Verify installed binary files
-            against the checksum files in
-            \b$INSTALLROOT/lib/\b\apackage\a\b/gen/*.sum\b. The checksum
-            files contain mode, user and group information. If the checksum
-            matches for a given file then the mode, user and group are
-            changed as necessary to match the checksum entry. A warning is
-            printed on the standard error for each mismatch. Requires the
-            \bast\b package \bcksum\b(1) command.]
         [+view\b?Initialize the architecture specific viewpath
-            hierarchy. If \bflat\b is specified then the \b$INSTALLROOT\b {
-            bin fun include lib } directories are linked to the same
-            directories in the package root. Only one architecture may be
-            \bflat\b. The \bmake\b action implicitly calls this action.]
-        [+write\b [\aformat\a]] \atype\a ... [ \apackage\a ...]]?Write
-            a package archive for \apackage\a. All work is done in the
-            \b$PACKAGEROOT/lib/package\b directory. \aformat\a-specific
-            files are placed in the \aformat\a subdirectory. A
-            \apackage\a[.\atype\a]]\b.tim\b file in this directory tracks
-            the write time and prevents a package from being read in the
-            same root it was written. If more than one file is generated
-            for a particular \aformat\a then those files are placed in the
-            \aformat\a/\apackage\a subdirectory. File names in the
-            \aformat\a subdirectory will contain the package name, a
-            \ayyyy-mm-dd\a date, and for binary packages, \aHOSTTYPE\a. If
-            \apackage\a is omitted then an ordered list of previously
-            written packages is generated. If \bonly\b is specified then
-            only the named packages will be written; otherwise prerequisite
-            packages are written first. Package components must be listed
-            in \apackage\a\b.pkg\b. \aformat\a may be one of:]
-            {
-                [+cyg?Generate a \bcygwin\b package.]
-                [+exp?Generate an \bexptools\b maintainer source
-                    archive and \aNPD\a file, suitable for \bexpmake\b(1)]
-                [+lcl?Generate a package archive suitable for
-                    restoration into the local source tree (i.e., the
-                    source is not annotated for licencing).]
-                [+pkg?Generate a \bpkgmk\b(1) package suitable for
-                    \bpkgadd\b(1).]
-                [+rpm?Generate an \brpm\b(1) package.]
-                [+tgz?Generate a \bgzip\b(1) \btar\b(1) package
-                    archive. This is the default.]
-                [+tst?Generate a \btgz\b format package archive in the
-		    \btst\b subdirectory. Version state files are not updated.]
-            }
-        [+?\btype\b specifies the package type which must be one of
-            \bsource\b, \bbinary\b or \bruntime\b. A source package
-            contains the source needed to build the corresponding binary
-            package. A binary package includes the libraries and headers
-            needed for compiling and linking against the public interfaces.
-            A runtime package contains the commands and required dynamic
-            libraries.]
-        [+?A package may be either a \bbase\b or \bdelta\b. A base
-            package contains a complete copy of all components. A delta
-            package contains only changes from a previous base package.
-            Delta recipients must have the \bast\b \bpax\b(1) command (in
-            the \bast-base\b package). If neither \bbase\b nor \bdelta\b is
-            specified, then the current base is overwritten if there are no
-            deltas referring to the current base. Only the \btgz\b and
-            \blcl\b formats support \bdelta\b. If \bbase\b is specified
-            then a new base and two delta archives are generated: one delta
-            to generate the new base from the old, and one delta to
-            generate the old base from the new; the old base is then
-            removed. If \bdelta\b is specified then a new delta referring
-            to the current base is written.]
-        [+?\apackage\a\b.pkg\b may reference other packages. By default
-            a pointer to those packages is written. The recipient \bpackage
-            read\b will then check that all required packages have been
-            downloaded. If \bclosure\b is specified then the components for
-            all package references are included in the generated package.
-            This may be useful for \blcl\b and versioning.]
-        [+?All formats but \blcl\b annotate each \bsource\b file (not
-            already annotated) with a license comment as it is written to
-            the package archive using \bproto\b(1).]
+            hierarchy. The \bmake\b action implicitly calls this action.]
     }
 [+DETAILS?The package directory hierarchy is rooted at
     \b$PACKAGEROOT\b. All source and binaries reside under this tree. A two
@@ -481,102 +236,53 @@ case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
     architectures can be made from a single copy of the source.]
 [+?Independent \b$PACKAGEROOT\b hierarchies can be combined by
     appending \b$INSTALLROOT:$PACKAGEROOT\b pairs to \bVPATH\b. The
-    \bVPATH\b viewing order is from left to right. Each \b$PACKAGEROOT\b
-    must have a \b$PACKAGEROOT/lib/package\b directory.]
-[+?Each package contains one or more components. Component source for
-    the \afoo\a command is in \b$PACKAGEROOT/src/cmd/\b\afoo\a, and source
-    for the \abar\a library is in \b$PACKAGEROOT/src/lib/lib\b\abar\a. This
-    naming is for convenience only; the underlying makefiles handle
-    inter-component build order. The \bINIT\b component, which contains
-    generic package support files, is always made first, then the
-    components named \bINIT\b*, then the component order determined by the
-    closure of component makefile dependencies.]
-[+?\b$PACKAGEROOT/lib/package\b contains package specific files. The
-    package naming convention is \agroup\a[-\apart\a]]; e.g., \bast-base\b,
-    \bgnu-fileutils\b. The *\b.pkg\b files are ast \bnmake\b(1) makefiles
-    that contain the package name, package components, references to other
-    packages, and a short package description. *\b.pkg\b files are used by
-    \bpackage write\b to generate new source and binary packages.]
-[+?\b$PACKAGEROOT/lib/package/\b\agroup\a\b.lic\b files contain license
-    information that is used by the \bast\b \bproto\b(1) and \bnmake\b(1)
-    commands to generate source and binary license strings. \agroup\a is
-    determined by the first \b:PACKAGE:\b operator name listed in the
-    component \bnmake\b makefile. \agroup\a\b.lic\b files are part of the
-    licensing documentation. Each component may have its own \bLICENSE\b file
-    that overrides the \agroup\a\b.lic\b file. The full text of the licenses
-    are in the \b$PACKAGEROOT/lib/package/LICENSES\b and
-    \b$INSTALLROOT/lib/package/LICENSES\b directories.]
-[+?A few files are generated in \b$PACKAGEROOT/lib/package/gen\b and
-    \b$INSTALLROOT/lib/package/gen\b. \apackage\a\b.ver\b contains one line
-    consisting of \apackage version release\a \b1\b for the most recent
-    instance of \apackage\a read into \b$PACKAGEROOT\b, where \apackage\a
-    is the package name, \aversion\a is the \aYYYY-MM-DD\a base version,
-    and \arelease\a is \aversion\a for the base release or \aYYYY-MM-DD\a
-    for delta releases. \apackage\a\b.req\b contains *\b.ver\b entries for
-    the packages required by \apackage\a, except that the fourth field is
-    \b0\b instead of \b1\b. All packages except \bINIT\b require the
-    \bINIT\b package. A simple sort of \apackage\a\b.pkg\b and *\b.ver\b
-    determines if the required package have been read in. Finally,
-    \apackage\a\b.README\b and \apackage\a\a.html\b contain the README text
-    for \apackage\a and all its components. Included are all changes added
-    to the component \bRELEASE\b, \bCHANGES\b or \bChangeLog\b files dated
-    since the two most recent base releases. Component \bRELEASE\b files
-    contain tag lines of the form [\aYY\a]]\aYY-MM-DD\a [ \atext\a ]] (or
-    \bdate\b(1) format dates) followed by README text, in reverse
-    chronological order (newer entries at the top of the file). \bpackage
-    release\b lists this information, and \bpackage contents ...\b lists
-    the descriptions and components.]
+    \bVPATH\b viewing order is from left to right.]
 [+?\b$HOSTYPE\b names the current binary architecture and is determined
-    by the output of \bpackage\b (no arguments). The \b$HOSTTYPE\b naming
+    by the output of \b'$command$'\b (no arguments). The \b$HOSTTYPE\b naming
     scheme is used to separate incompatible executable and object formats.
     All architecture specific binaries are placed under \b$INSTALLROOT\b
     (\b$PACKAGEROOT/arch/$HOSTTYPE\b). There are a few places that match
     against \b$HOSTTYPE\b when making binaries; these are limited to
     makefile compiler workarounds, e.g., if \b$HOSTTYPE\b matches \bhp.*\b
     then turn off the optimizer for these objects. All other architecture
-    dependent logic is handled either by the \bast\b \biffe\b(1) command or
+    dependent logic is handled either by the \bAST\b \biffe\b(1) command or
     by component specific configure scripts. Explicit \b$HOSTYPE\b
     values matching *,*cc*[,-*,...]] optionally set the default \bCC\b and
     \bCCFLAGS\b. This is handy for build farms that support different
     compilers on the same architecture.]
-[+?Each component contains an \bast\b \bnmake\b(1) makefile (either
-    \bNmakefile\b or \bMakefile\b) and a \bMAM\b (make abstract machine)
+[+?Each component contains a \bMAM\b (make abstract machine)
     file (\bMamfile\b). A Mamfile contains a portable makefile description
-    that is used by \bmamake\b(1) to simulate \bnmake\b. Currently there is
-    no support for old-make/gnu-make makefiles; if the binaries are just
-    being built then \bmamake\b will suffice; if source or makefile
-    modifications are anticipated then \bnmake\b (in the \bast-base\b
-    package) should be used. Mamfiles are automatically generated by
-    \bpackage write\b.]
+    written in a simple dependency tree language using indented
+    \bmake\b...\bdone\b blocks.]
 [+?Most component C source is prototyped. If \b$CC\b (default value
-    \bcc\b) is not a prototyping C compiler then \bpackage make\b runs
+    \bcc\b) is not a prototyping C compiler then \b'$command$' make\b runs
     \bproto\b(1) on portions of the \b$PACKAGEROOT/src\b tree and places
     the converted output files in the \b$PACKAGEROOT/proto/src\b tree.
     Converted files are then viewpathed over the original source.
     \bproto\b(1) converts an ANSI C subset to code that is compatible with
     K&R, ANSI, and C++ dialects.]
 [+?All scripts and commands under \b$PACKAGEROOT\b use \b$PATH\b
-    relative pathnames (via the \bast\b \bpathpath\b(3) function); there
+    relative pathnames (via the \bAST\b \bpathpath\b(3) function); there
     are no embedded absolute pathnames. This means that binaries generated
     under \b$PACKAGEROOT\b may be copied to a different root; users need
     only change their \b$PATH\b variable to reference the new installation
-    root \bbin\b directory. \bpackage install\b installs binary packages in
+    root \bbin\b directory. \b'$command$' install\b installs binary packages in
     a new \b$INSTALLROOT\b.]
 
 [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]
 
 [+SEE ALSO?\bautoconfig\b(1), \bcksum\b(1), \bexecrate\b(1), \bexpmake\b(1),
-	\bgzip\b(1), \bmake\b(1), \bmamake\b(1), \bnmake\b(1), \bpax\b(1),
+	\bgzip\b(1), \bmake\b(1), \bmamake\b(1), \bpax\b(1),
 	\bpkgadd\b(1), \bpkgmk\b(1), \bproto\b(1), \bratz\b(1), \brpm\b(1),
 	\bsh\b(1), \btar\b(1), \boptget\b(3)]
 '
 	case $* in
 	help)	set -- --man ;;
 	esac
-	while	getopts -a $command "$USAGE" OPT
+	while	getopts -a "$command" "$USAGE" OPT
 	do	:
 	done
-	shift $OPTIND-1
+	shift $((OPTIND-1))
 	;;
 esac
 
@@ -596,16 +302,11 @@ case $NM in
 esac
 
 action=
-admin_all=1
-admin_on=
-authorize=
 bit=
 exec=
-flat=0
 force=0
 global=
 hi=
-html=0
 ifs=${IFS-'
 	 '}
 lo=
@@ -616,15 +317,12 @@ nl="
 noexec=
 only=0
 output=
-package_src=
-password=
 quiet=0
 show=:
 tab="        "
 verbose=0
 AUTHORIZE=
 DEBUG=
-HURL=
 PROTOROOT=-
 SHELLMAGIC=-
 
@@ -635,39 +333,19 @@ do	case $# in
 	0)	set host type ;;
 	esac
 	case $1 in
-	admin|clean|clobber|contents|copyright|export|host|install|license|list|make|read|regress|release|remove|results|setup|test|update|use|verify|view|write|TEST)
+	clean|clobber|export|host|install|make|remove|results|test|use|view)
 		action=$1
 		shift
 		break
 		;;
-	authorize)
-		case $# in
-		1)	echo $command: $1: authorization user name argument expected >&2; exit 1 ;;
-		esac
-		shift
-		authorize=$1
-		shift
-		continue
-		;;
 	debug|environment)
 		exec=echo make=echo show=echo
-		;;
-	flat)	flat=1
 		;;
 	force)	force=1
 		;;
 	never)	exec=echo noexec=-N
 		;;
 	only)	only=1
-		;;
-	password)
-		case $# in
-		1)	echo $command: $1: authorization password argument expected >&2; exit 1 ;;
-		esac
-		shift
-		password=$1
-		shift
-		continue
 		;;
 	quiet)	quiet=1
 		;;
@@ -680,624 +358,192 @@ do	case $# in
 		set -x
 		;;
 	help|HELP|html|man|--[?m]*)
-		case $1 in
+                case $1 in
 		help)	code=0
 			case $2 in
 			'')	exec 1>&2 ;;
 			esac
 			;;
-		html)	code=0 html=1
+                html)	code=0 html=1
+			echo "<html><title>$command help</title><body><h1><code>$command</code> help</h1><pre>"
 			;;
 		*)	code=2
 			exec 1>&2
 			;;
 		esac
-		case $html in
-		1)	bO="<HTML>
-<HEAD>
-<TITLE>$2 package installation instructions</TITLE>
-<HEAD>
-<BODY bgcolor=white link=teal vlink=dimgray>"
-			eO='</BODY>
-</HTML>'
-			bH="<CENTER><H3><FONT face=courier color=red>"
-			eH='</FONT></H3></CENTER>'
-			bP='<P>'
-			bL='<P><TABLE cellpadding=0 cellspacing=2>'
-			bL2='<P><TABLE border=0 cellpadding=0 cellspacing=2>'
-			eL='</TABLE><P>'
-			bT='<TR><TD align=right valign=top><B>'
-			bD='</B></TD><TD align=left>'	eD='</TD></TR>'
-			bB='<B>'			eB='</B>'
-			bI='<I>'			eI='</I>'
-			bX='<PRE>'			eX='</PRE>'
-			bF='<TT>'			eF='</TT>'
-			Camp='&amp;'
-			Mcurl='<A href=../../man/man1/curl.html>curl</A>(1)'
-			Mdate='<A href=../../man/man1/date.html>date</A>(1)'
-			Mfile='<A href=../../man/man1/file.html>file</A>(1)'
-			Mgunzip='<A href=../../man/man1/gzip.html>gunzip</A>(1)'
-			Mhurl='<A href=../../man/man1/hurl.html>hurl</A>(1)'
-			Mlynx='<A href=../../man/man1/lynx.html>lynx</A>(1)'
-			Mnmake='<A href=../../man/man1/nmake.html>nmake</A>(1)'
-			Mpackage='<A href=../../man/man1/package.html>package</A>(1)'
-			Mproto='<A href=../../man/man1/proto.html>proto</A>(1)'
-			Mratz='<A href=../../man/man1/ratz.html>ratz</A>'
-			Mtar='<A href=../../man/man1/tar.html>tar</A>(1)'
-			Mwget='<A href=../../man/man1/wget.html>wget</A>(1)'
-			;;
-		*)	bO=''				eO=''
-			bH=''				eH=':'
-			bP=''
-			bL=''				eL=''
-			bL2=''
-			bT='  '
-			bD=' '				eD=''
-			bB=''				eB=''
-			bI=''				eI=''
-			bX=''				eX=''
-			bF='"'				eF='"'
-			Camp='&'
-			Mcurl='curl(1)'
-			Mdate='date(1)'
-			Mfile='file(1)'
-			Mgunzip='gunzip(1)'
-			Mhurl='hurl(1)'
-			Mlynx='lynx(1)'
-			Mnmake='nmake(1)'
-			Mpackage='package(1)'
-			Mproto='proto(1)'
-			Mratz='ratz'
-			Mtar='tar(1)'
-			Mwget='wget(1)'
-			;;
-		esac
-		case $2 in
-		binary)	echo "${bO}
-${bH}Binary Package Installation Instructions${eH}
-${bL}
-${bT}(1)${bD}Do not install packages as ${bI}root/super-user${eI}. Although some components may
-      have setuid executables, few must be owned by ${bI}root${eI}. These are best
-      changed manually when the security implications are understood.${eD}
-${bT}(2)${bD}Choose a package root directory and cd to it. This will be a local work
-      area for all packages.${eD}
-${bT}(3)${bD}These instructions bypass the ${bI}click to download${eI} package links on the
-      download site. If you already clicked, or if your system does not have
-      ${Mcurl}, ${Mhurl}, ${Mlynx} or ${Mwget} then use the alternate instructions
-      for (3),(4),(5) in plan ${bB}B${eB} below. Plan ${bB}B${eB} installs the ${Mhurl}
-      script which works with ksh and modern bash. The top level URL is:${bX}
-		URL=http://www.research.att.com/sw/download${eX}${eD}
-${bT}(4)${bD}If the ${bB}bin/package${eB} script does not exist then run:${bX}
-		test -d bin || mkdir bin
-		url=\$URL/package
-		(wget -O - \$url||curl -L \$url||hurl \$url) > bin/package
-		chmod +x bin/package${eX}${eD}
-${bT}(5)${bD}Determine the list of package names you want from the download site, then
-      use the ${Mpackage} command to do the actual download:${bX}
-		bin/package authorize \"${bI}NAME${eI}\" password \"${bI}PASSWORD${eI}\" \\
-			setup binary \$URL ${bI}PACKAGE${eI} ...${eX}
-      (Refer to the ${bB}AUTHORIZATION${eB} paragraph on the main download page for
-      ${bI}NAME${eI}/${bI}PASSWORD${eI} details.)  This downloads the closure of the latest
-      binary package(s); covered and up-to-date packages are not downloaded again unless
-      ${bB}package force ...${eB} is specified. Package content is verified using ${bB}${checksum}${eB}.
-      If the package root will contain only one architecture then you can install in ${bB}bin${eB} and
-      ${bB}lib${eB} instead of ${bB}arch/${eB}${bI}HOSTTYPE${eI}${bB}/bin${eB} and ${bB}arch/${eB}${bI}HOSTTYPE${eI}${bB}/lib${eB} by running this
-      instead:${bX}
-		bin/package authorize \"${bI}NAME${eI}\" password \"${bI}PASSWORD${eI}\" \\
-			flat setup binary \$URL ${bB}PACKAGE${eB} ...${eX}
-      To update the same packages from the same URL run:${bX}
-		bin/package setup binary${eX}${eD}
-${bT}(6)${bD}The packaged binaries are position independent, i.e., they do not
-      contain hard-coded paths. However, commands with related files, like
-      ${Mfile} and ${Mnmake}, require the path of the bin directory to be
-      exported in ${bB}PATH${eb}.${eD}
-${bT}(7)${bD}You can run the binaries directly from the package root, or you can
-      install them in a public root (requires the ${bI}AT${Camp}T${eI} ${Mnmake} command):${bX}
-		bin/package flat install ${bI}DIRECTORY PACKAGE${eI}${eX}
-      This will install in ${bI}DIRECTORY${eI}${bB}/bin${eB} and ${bI}DIRECTORY${eI}${bB}/lib${eB}. If you want to
-      preserve the ${bB}arch/${eB}${bI}HOSTTYPE${eI} hierarchy under ${bI}DIRECTORY${eI} then omit the
-      ${bB}flat${eB} argument. If you don't have ${Mnmake} then the following will do a
-      flat install:${bX}
-		cd \$INSTALLROOT
-		cp -p -r bin lib include ${bI}DIRECTORY${eI}${eX}${eD}
-${bT}(8)${bD}To summarize, after the first time, the download cycle for the latest
-      binary release is:${bX}
-		bin/package setup binary${eX}${eD}${eL}
+		echo 'NAME
+  package - build, test and install ksh 93u+m
 
-${bH}Binary Package Installation Instructions -- Plan B${eH}
-${bL}
-${bT}(3)${bD}Create the subdirectory ${bB}lib/package/tgz${eB} and download all package archives
-      into that directory.${eD}
-${bT}(4)${bD}If the ${bB}bin/package${eB} script does not exist then manually read the ${bB}INIT${eB}
-      binary package:${bX}
-		gunzip < lib/package/tgz/INIT.${bI}YYYY-MM-DD.HOSTTYPE${eI}.tgz |
-			${TAR} ${TARFLAGS}f -${eX}
-      Note that some browsers automatically unzip downloaded without warning.
-      If the gunzip fails try:
-		${TAR} ${TARFLAGS}f -${eX} lib/package/tgz/INIT.${bI}YYYY-MM-DD.HOSTTYPE${eI}.tgz
-      If your system does not have ${Mtar} or ${Mgunzip} then download the ${Mratz}
-      binary package:${bX}
-		mkdir bin
-		cp lib/package/tgz/ratz.${bI}YYYY-MM-DD.HOSTTYPE${eI}.exe bin/ratz
-		chmod +x bin/ratz
-		bin/ratz -lm < lib/package/tgz/INIT.${bI}YYYY-MM-DD/HOSTTYPE${eI}.tgz
-${bT}(5)${bD}Read all unread package archive(s):${bX}
-		bin/package read${eX}
-      Both source and binary packages will be read by this step.${eD}${eL}${eO}"
-			;;
-		intro)	echo "${bO}
-${bH}Package Hierarchy Details${eH}
-${bP}
-The package directory hierarchy is rooted at ${bB}\$PACKAGEROOT${eB}. All source and
-binaries reside under this tree. A two level viewpath is used to separate
-source and binaries. The top view is architecture specific, the bottom view
-is shared source. All building is done in the architecture specific view;
-no source view files are intentionally changed. This means that many
-different binary architectures can be made from a single copy of the source.
-${bP}
-Each package contains one or more components. Component source for the ${bI}FOO${eI}
-command is in ${bB}\$PACKAGEROOT/src/cmd/${eB}${bI}FOO${eI}, and source for the ${bI}BAR${eI} library is
-in ${bB}\$PACKAGEROOT/src/lib/lib${eB}${bI}BAR${eI}. This naming is for convenience only; the
-underlying makefiles handle inter-component build order. The ${bB}INIT${eB} component,
-which contains generic package support files, is always made first, then the
-components named ${bB}INIT${eB}*, then the order determined by the closure of component
-makefile dependencies.
-${bP}
-${bB}\$PACKAGEROOT/lib/package${eB} contains package specific files. The package naming
-convention is ${bI}GROUP${eI}[${bI}-PART${eI}]; e.g., ${bB}ast-base${eB}, ${bB}gnu-fileutils${eB}. The *${bB}.pkg${eB} files
-are ${bB}ast${eB} ${Mnmake} makefiles that contain the package name, package components,
-references to other packages, and a short package description. *${bB}.pkg${eB} files
-are used by ${bF}package write${eF} to generate new source and binary packages.
-${bP}
-${bB}\$PACKAGEROOT/lib/package/${eB}${bI}GROUP${eI}${bB}.lic${eB} files contain license information that
-is used by the ${bB}ast${eB} ${Mproto} and ${Mnmake} commands to generate source and
-binary license strings. ${bI}GROUP${eI} is determined by the first ${bB}:PACKAGE:${eB} operator
-name listed in the component ${bB}nmake${eB} makefile. ${bI}GROUP${eI}${bB}.lic${eB} files are part of the
-licensing documentation.  Each component may have its own ${bB}LICENSE${eB} file that
-overrides the ${bI}GROUP${eI}${bB}.lic${eB} file.  The full text of the licenses are in the
-${bB}\$PACKAGEROOT/lib/package/LICENSES${eB} and ${bB}\$INSTALLROOT/lib/package/LICENSES${eB}
-directories.
-${bP}
-A few files are generated in ${bB}\$PACKAGEROOT/lib/package/gen${eB} and
-${bB}\$INSTALLROOT/lib/package/gen${eB}. ${bI}PACKAGE${eI}${bB}.ver${eB} contains one line consisting of${bX}
-	${bI}PACKAGE VERSION RELEASE${eI} 1${eX}
-for the most recent instance of ${bI}PACKAGE${eI} read into ${bB}\$PACKAGEROOT${eB}, where
-${bI}PACKAGE${eI} is the package name, ${bI}VERSION${eI} is the ${bI}YYYY-MM-DD${eI} base version,
-and ${bI}RELEASE${eI} is ${bI}VERSION${eI} for the base release or ${bI}YYYY-MM-DD${eI} for delta releases.
-${bI}PACKAGE${eI}${bB}.req${eB} contains *${bB}.ver${eB} entries for the packages required by
-${bI}PACKAGE${eI}, except that the fourth field is 0 instead of 1. All packages
-except ${bB}INIT${eB} and ${Mratz} require the ${bB}INIT${eB} package. A simple sort of ${bI}PACKAGE${eI}${bB}.pkg${eB}
-and *${bB}.ver${eB} determines if the required package have been read in. Finally,
-${bI}PACKAGE${eI}${bB}.README${eB} contains the ${bB}README${eB} text for ${bI}PACKAGE${eI} and all its
-components. Included are all changes added to the component ${bB}RELEASE${eB},
-${bB}CHANGES${eB} or ${bB}ChangeLog${eB} files dated since the two most recent base
-releases. Component ${bB}RELEASE${eB} files contain tag lines of the form
-[${bI}CC${eI}]${bI}YY-MM-DD${eI} [ ${bI}TEXT${eI} ] (or ${Mdate} format dates) followed by README
-text, in reverse chronological order (newer entries at the top of the
-file). ${bF}package release${eF} generates this information, and
-${bF}package contents ...${eF} lists the descriptions and components.
-${bP}
-${bB}\$HOSTYPE${eB} names the current binary architecture and is determined by the
-output of ${bF}package${eF} (no arguments). The ${bB}\$HOSTTYPE${eB} naming scheme is used
-to separate incompatible executable and object formats. All architecture
-specific binaries are placed under ${bB}\$INSTALLROOT${eB} (${bB}\$PACKAGEROOT/arch/\$HOSTTYPE${eB}).
-There are a few places that match against ${bB}\$HOSTTYPE${eB} when making binaries; these
-are limited to makefile compiler workarounds, e.g., if ${bB}\$HOSTTYPE${eB} matches
-'hp.*' then turn off the optimizer for these objects. All other architecture
-dependent logic is handled either by ${bB}\$INSTALLROOT/bin/iffe${eB} or by component
-specific configure scripts. Explicit ${bB}\$HOSTYPE${eB} values matching *,*cc*[,-*,...]
-optionally set the default ${bB}CC${eB} and ${bB}CCFLAGS${eB}. This is handy for build
-farms that support different compilers on the same architecture.
-${bP}
-Each component contains an ${bB}ast${eB} ${Mnmake} makefile (either ${bB}Nmakefile${eB} or ${bB}Makefile${eB})
-and a ${bI}MAM${eI} (make abstract machine) file (${bB}Mamfile${eB}). A Mamfile contains a portable
-makefile description that is used by ${bB}\$INSTALLROOT/bin/mamake${eB} to simulate
-${bB}nmake${eB}. Currently there is no support for old-make/gnu-make makefiles; if
-the binaries are just being built then ${bB}mamake${eB} will suffice; if source or
-makefile modifications are anticipated then ${bB}nmake${eB} (from the ${bB}ast-open${eB} or
-${bB}ast-base${eB} package) should be used. Mamfiles are automatically generated by
-${bF}package write${eF}.
-${bP}
-Most component C source is prototyped. If ${bB}\$CC${eB} (default value ${bB}cc${eB}) is not a
-prototyping C compiler then ${bF}package make${eF} runs ${Mproto} on portions of the
-${bB}\$PACKAGEROOT/src${eB} tree and places the converted output files in the
-${bB}\$PACKAGEROOT/proto/src${eB} tree. Converted files are then viewpathed over the
-original source. The ${bB}ast${eB} ${Mproto} command converts an ANSI C subset to code
-that is compatible with K&R, ANSI, and C++ dialects.
-${bP}
-All scripts and commands under ${bB}\$PACKAGEROOT${eB} use ${bB}\$PATH${eB} relative pathnames;
-there are no embedded absolute pathnames. This means that binaries generated
-under ${bB}\$PACKAGEROOT${eB} may be copied to a different root; users need only change
-their ${bB}\$PATH${eB} variable to reference the new installation root bin directory.
-${bF}package install${eF} installs binary packages in a new ${bB}\$INSTALLROOT${eB}.
-${eO}"
-			;;
-		source)	echo "${bO}
-${bH}Source Package Installation Instructions${eH}
-${bL}
-${bT}(1)${bD}Do not install packages as ${bI}root/super-user${eI}. Although some components may
-      have setuid executables, few must be owned by ${bI}root${eI}. These are best
-      changed manually when the security implications are understood.${eD}
-${bT}(2)${bD}Choose a package root directory and cd to it. This will be a local work
-      area for all packages.
-${bT}(3)${bD}These instructions bypass the ${bI}click to download${eI} package links on the
-      download site. If you already clicked, or if your system does not have
-      ${Mcurl}, ${Mhurl}, ${Mlynx} or ${Mwget} then use the alternate instructions
-      for (3),(4),(5) in plan ${bB}B${eB} below. Plan ${bB}B${eB} installs the ${Mhurl}
-      script which works with ksh and modern bash. The top level URL is:${bX}
-		URL=http://www.research.att.com/sw/download${eX}${eD}
-${bT}(4)${bD}If the ${bB}bin/package${eB} script does not exist then run:${bX}
-		test -d bin || mkdir bin
-		url=\$URL/package
-		(wget -O - \$url||curl -L \$url||hurl \$url) > bin/package
-		chmod +x bin/package${eX}${eD}
-${bT}(5)${bD}Determine the list of package names you want from the download site, then
-      use the ${Mpackage} command to do the actual download:${bX}
-		bin/package authorize \"${bI}NAME${eI}\" password \"${bI}PASSWORD${eI}\" \\
-			setup source \$URL ${bB}PACKAGE${eB} ...${eX}
-      (Refer to the ${bB}AUTHORIZATION${eB} paragraph on the main download page for
-      ${bI}NAME${eI}/${bI}PASSWORD${eI} details.)  This downloads the closure of the latest
-      source package(s); covered and up-to-date packages are not downloaded again unless
-      ${bB}package force ...${eB} is specified. Package content is verified using ${bB}${checksum}${eB}.
-      If the package root will contain only one architecture then you can install in ${bB}bin${eB} and
-      ${bB}lib${eB} instead of ${bB}arch/${eB}${bI}HOSTTYPE${eI}${bB}/bin${eB} and ${bB}arch/${eB}${bI}HOSTTYPE${eI}${bB}/lib${eB} by running this
-      instead:${bX}
-		bin/package authorize \"${bI}NAME${eI}\" password \"${bI}PASSWORD${eI}\" \\
-			flat setup source \$URL ${bB}PACKAGE${eB} ...${eX}
-      To update the same packages from the same URL run:${bX}
-		bin/package setup source${eX}${eD}
-${bT}(6)${bD}Build and install; all generated files are placed under ${bB}arch/${eB}${bI}HOSTTYPE${eI}
-      (${bB}\$INSTALLROOT${eB}), where ${bI}HOSTTYPE${eI} is the output of ${bB}bin/package${eB} (with no
-      arguments). ${bI}name=value${eI} arguments are supported; ${bB}CC${eB} and ${bB}debug=1${eB} (compile
-      with -g instead of -O) are likely candidates. The output is written to
-      the terminal and captured in ${bB}\$INSTALLROOT/lib/package/gen/make.out${eB}:${bX}
-		bin/package make${eX}${eD}
-${bT}(7)${bD}List make results and interesting errors:${bX}
-		bin/package results${eX}
-      Run the regression tests:${bX}
-		bin/package test${eX}
-      List test results and errors:${bX}
-		bin/package results test${eX}${eD}
-${bT}(8)${bD}The generated binaries are position independent, i.e., they do not
-      contain hard-coded paths. However, commands with related files, like
-      ${Mfile} and ${Mnmake}, require the path of the bin directory to be
-      exported in ${bB}PATH${eb}.${eD}
-${bT}(9)${bD}You can run the binaries directly from the package root, or you can
-      install them in a public root after you are satisfied with the make and
-      test actions (requires the ${bI}AT${Camp}T${eI} ${Mnmake} command):${bX}
-		bin/package flat install ${bI}DIRECTORY PACKAGE${eI}${eX}
-      This will install in ${bI}DIRECTORY${eI}${bB}/bin${eB} and ${bI}DIRECTORY${eI}${bB}/lib${eB}. If you want to
-      preserve the ${bB}arch/${eB}${bI}HOSTTYPE${eI} hierarchy under ${bI}DIRECTORY${eI} then omit the
-      ${bB}flat${eB} argument. If you don't have ${Mnmake} then the following will do a
-      flat install:${bX}
-		cd \$INSTALLROOT
-		cp -p -r bin lib include ${bI}DIRECTORY${eI}${eX}${eD}
-${bT}(10)${bD}To summarize, after the first time the download, build, and test cycle
-      for the latest source release is:${bX}
-		bin/package setup source
-		bin/package make
-		bin/package test${eX}${eD}${eL}
+SYNOPSIS
+  package [ options ] [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]
 
-${bH}Source Package Installation Instructions -- Plan B${eH}
-${bL}
-${bT}(3)${bD}Create the subdirectory ${bB}lib/package/tgz${eB} and download all package archives
-      into that directory.${eD}
-${bT}(4)${bD}If the ${bB}bin/package${eB} script does not exist then manually read the ${bB}INIT${eB}
-      source package:${bX}
-		gunzip < lib/package/tgz/INIT.${bI}YYYY-MM-DD${eI}.tgz | ${TAR} ${TARFLAGS}f -${eX}
-      Note that some browsers automatically unzip downloaded without warning.
-      If the gunzip fails try:
-		${TAR} ${TARFLAGS}f -${eX} lib/package/tgz/INIT.${bI}YYYY-MM-DD${eI}.tgz
-      If your system does not have ${Mtar} or ${Mgunzip} then download the ${Mratz}
-      source package, compile it, and manually read the ${bB}INIT${eB}
-      source package:${bX}
-		mkdir bin
-		cp lib/package/tgz/ratz.${bI}YYYY-MM-DD${eI}.c lib/package/tgz/ratz.c
-		cc -o bin/ratz lib/package/tgz/ratz.c
-		bin/ratz -lm < lib/package/tgz/INIT.${bI}YYYY-MM-DD${eI}.tgz
-${bT}(5)${bD}Read all unread package archive(s):${bX}
-		bin/package read${eX}
-      Both source and binary packages will be read by this step.${eD}${eL}${eO}"
-			;;
-		*)	echo "Usage: $command [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]
+DESCRIPTION
+  The package command is the main control script for building and installing
+  KornShell 93u+m. It is a POSIX sh(1) script coded for maximal portability. A
+  POSIX shell and C compiler installation are the only requirements. All
+  package files are in the $PACKAGEROOT directory tree. Binary package files
+  are in the $INSTALLROOT ($PACKAGEROOT/arch/hosttype) tree, where
+  hosttpe=$(bin/package host type). See DETAILS for more information.
 
-   The $command command controls source and binary packages. It must be run
-   within the package root directory tree. See \"$command help intro\" for
-   details. In the following, PACKAGE names either a package or a component
-   within a package; if omitted, all packages are operated on. The default
-   action is \"host type\".
+  Note that no environment variables need be set by the user; package
+  determines the environment based on the current working directory. The use
+  action starts a sh(1) with the environment initialized. CC, CCFLAGS, HOSTTYPE
+  and SHELL may be set by explicit command argument assignments to override the
+  defaults.
 
-   qualifier:
-	authorize NAME Remote authorization name or license acceptance phrase.
-	debug|environment Show environment and actions; do not execute.
-	flat    Collapse \$INSTALLROOT { bin fun include lib } onto \$PACKAGEROOT.
-	force	Force the action to override saved state.
-	never	Run make -N; otherwise show other actions.
-	only	Only operate on the specified packages.
-	password PASSWORD Remote authorization or license acceptance password.
-	quiet	Do not list captured make and test action output.
-	show	Run make -n; otherwise show other actions.
-	DEBUG	Trace the package script actions in detail for debugging.
-   action:
-	admin [ all ] [ db FILE ] [ on PATTERN ] [ action ... ]
-		Apply ACTION ... to the hosts listed in FILE. If FILE is
-		omitted then "admin.db" is assumed. The caller must have rcp(1)
-		and rsh(1) or scp(1) and ssh(1) access to the hosts. Output
-		for the action is saved per-host in ACTION.log/HOST. Logs
-		can be viewed by \"package admin [on HOST] results [ACTION]\".
-		By default only local PACKAGEROOT hosts are selected from FILE;
-		\"all\" selects all hosts. \"on PATTERN\" selects only
-		hosts matching the | separated PATTERN. FILE contains four
-		types of lines. Blank lines and lines beginning with # are
-		ignored. Lines starting with id=value are variable assignments.
-		Set admin_ping to local conventions if \"$admin_ping\" fails.
-		If a package list is not specified on the command line the
-		action applies to all packages; a variable assignment
-		package=list applies action to the packages in list for
-		subsequent hosts in FILE. The remaining line type is a host
-		description consisting of 6 tab separated fields. The first 3
-		are mandatory; the remaining 3 are updated by the admin action:
-		   hosttype
-			   The host type as reported by package.
-		   [user@]host
-			   The host name and optionally user name for rcp(1)
-			   and rsh(1) access.
-		   [remote:[[master]:]]PACKAGEROOT
-			   The absolute remote package root directory and
-			   optionally the remote prorocol (rsh or ssh) if
-			   the directory is on a different server than the
-			   master package root directory. If
-			   lib/package/admin/$admin_env exists under
-			   this directory then it is sourced by sh(1)
-			   before ACTION is done. If this field begins with -
-			   then the host is ignored. If this field contains
-			   : then ditto(1) is used to sync the remote src
-			   directory hierarchy to the local one. If [master]:
-			   is specified then the sync is deferred to the
-			   master host. If master is omitted (two :) then
-			   the sync is disabled. These directories must exist
-			   on the remote side: lib/package, src/cmd, src/lib.
-		   date    YYMMDD of the last action.
-		   date    Elapsed wall time of the last action.
-		   M T W   The admin action make, test and write action error
-			   counts. A non-numeric value in any of these fields
-			   disables the corresponding action.
-	    	   owner   The owner contact information.
-		   attributes
-		           NAME=VALUE attributes. Should at least contain
-			   cc=compiler-version.
-	clean | clobber
-	    Delete the arch/HOSTTYPE hierarchy; this deletes all generated
-	    files and directories for HOSTTYPE. The hierarchy can be rebuilt
-	    by package make.]
-	contents [ package ... ]
-		List description and components for PACKAGE on the standard
-		output.
-	copyright [ package ... ]
-		List the general copyright notice(s) for PACKAGE on the
-		standard output. Note that individual components in PACKAGE
-		may contain additional or replacement notices.
-	export [ VARIABLE ... ]
-		List NAME=VALUE for each VARIABLE, one per line. If the
-		\"only\" attribute is specified then only the variable
-		values are listed. If no variables are specified then
-		$env are assumed.
-	help [ ACTION ]
-		Display help text on the standard error [ standard output
-		for ACTION ].
-	host [ canon cpu name rating type ... ]
-		List architecture/implementation dependent host information
-		on the standard output. type is listed if no attributes are
-		specified. Information is listed on a single line in attributes
-		order. The attributes are:
-		   canon   The next argument is a host type name to be
-			   converted to package syntax.
-		   cpu     The number of cpus; 1 if the host is not a
-			   multiprocessor.
-		   name    The host name.
-		   rating  The cpu rating in pseudo mips; the value is useful
-			   useful only in comparisons with rating values of
-			   other hosts. Other than a vax rating fixed at 1,
-			   ratings can vary wildly but consistently from
-			   vendor mips ratings. cc(1) may be required to
-			   determine the rating.
-	           type    The host type, usually of the form
-			   vendor.architecture, with an optional trailing
-			   -version. The main theme is that type names within
-			   a family of architectures are named in a similar,
-			   predictable style. Os point release information is
-			   avoided as much as possible, but vendor resistance
-			   to release incompatibilities has for the most part
-			   been futile.
-	html [ ACTION ]
-		Display html help text on the standard error [ standard output
-		for ACTION ].
-	install [ ARCHITECTURE ... ] DIR [ PACKAGE ... ]
-		Copy the package binary hierarchy to DIR. If ARCHITECTURE is
-		omitted then all architectures are installed. If the \"flat\"
-		attribute is specified then exactly one ARCHITECTURE must be
-		specified; this architecture will be installed in DIR without
-		the \"arch/HOSTTYPE\" directory prefixes. Otherwise each
-		architecture will be installed in a separate \"arch/HOSTTYPE\"
-		subdirectory of DIR. The ARCHITECTURE - names the current
-		architecture. DIR must be an existing directory. If PACKAGE
-		is omitted then all binary packages are installed. This action
-		requires nmake.
-	license [ package ... ]
-		List the source license(s) for PACKAGE on the standard output.
-		Note that individual components in PACKAGE may contain
-		additional or replacement licenses.
-	list [ PACKAGE ... ]
-		List the name, version and prerequisites for PACKAGE on the
-		standard output.
-	make [ PACKAGE ] [ OPTION ... ] [ TARGET ... ]
-		Build and install. The default TARGET is install, which
-		makes and installs all packages. If the standard output
-		is a terminal then the output is also captured in
-		\$INSTALLROOT/lib/package/gen/make.out. The build is done
-		in the \$INSTALLROOT directory tree viewpathed on top of
-		the \$PACKAGEROOT directory tree. If \"flat\" is specified then
-		the \$INSTALLROOT { bin fun include lib } directories are
-		linked to the same directories in the package root. Only
-		one architecture may be flat. Leaf directory names matching
-		the |-separated shell pattern \$MAKESKIP are ignored. The
-		view action is done before making. OPTION operands are
-		passed to the underlying make command.
-	read [ package ... | archive ... ]
-		Read the named package archive(s). Must be run from the
-		package root directory. Archives are searched for in .
-		and lib/package/tgz. Each package is read only once. The
-		file lib/package/tgz/package[.type].tim tracks the read time.
-		See the write action for archive naming conventions. Text
-		file archive member are assumed to be ASCII or UTF-8 encoded.
-	regress diff(1) the current and previous package test results.
-	release [ [CC]YY-MM-DD [ [cc]yy-mm-dd ] ] [ package ]
-		Display recent changes since [CC]YY-MM-DD (up to [cc]yy-mm-dd),
-		where - means lowest (or highest). If no dates are specified
-		then changes for the last 4 months are listed. PACKAGE may
-		be a package or component name.
-	remove PACKAGE
-		Remove files installed for PACKAGE.
-	results [ path ] [ old ] [ make | test ]
-		List results and interesting messages captured by the most
-		recent make (default), test or write action. old specifies the
-		previous results, if any (current and previous results are
-		retained). $HOME/.pkgresults, if it exists, must contain an
-		egrep(1) expression of result lines to be ignored. failed lists
-		failures only and path lists the results file path only.
-	setup [ beta ] [ binary ] [ source ] [ ARCHITECTURE ... ] [ URL ] [ PACKAGE ... ]
-		The action initializes the current directory as a package root,
-		runs the update action to download new or out of date packages,
-		and runs the read action on those packages. If \"flat\" is
-		specified then the \$INSTALLROOT { bin fun include lib }
-		directories are linked to the same directories in the package
-		root. Only one architecture may be flat. See the update and
-		read actions for argument details.
-	test [ PACKAGE ]
-		Run the regression tests for PACKAGE. If the standard output
-		is a terminal then the output is also captured in
-		\$INSTALLROOT/lib/package/gen/test.out. In general a package
-		must be made before it can be tested. Components tested with
-		the \bregress\b(1) command require \bksh93\b. If only is
-		also specified then only the listed package components are
-		tested, otherwise the closure of the components is tested.
-	update [ beta ] [ binary ] [ source ] [ ARCHITECTURE ... ] [ URL ] [ PACKAGE ... ]
-		Download the latest release of the selected and required
-		packages from URL (e.g.,
-		http://www.research.att.com/sw/download) into the directory
-		\$PACKAGEROOT/lib/package/tgz. beta accesses beta packages;
-		download these at your own risk. If ARCHITECTURE is omitted
-		then only architectures already present in the tgz directory
-		will be downloaded. If ARCHITECTURE is - then all posted
-		architectures will be downloaded. If URL matches *.url then
-		it is interpreted as a file containing shell variable
-		assignments for url, authorize and password. If URL is
-		omitted then the definitions for url, authorize and password
-		in \$PACKAGEROOT/lib/package/tgz/$default_url, if it exists,
-		are used. If \$PACKAGEROOT/lib/package/tgz/$default_url does
-		not exist then it is initialized with the current url,
-		authorize and password values and read permission for the
-		current user only. If PACKAGE is omitted then only
-		packages already present in the tgz directory will be
-		downloaded. If PACKAGE is - then all posted packages will be
-		downloaded. If source and binary are omitted then both source
-		and binary packages will be downloaded. If \bonly\b is
-		specified then only the named packages are updated; otherwise
-		the closure of required packages is updated. This action
-		requires wget(1), lynx(1), curl(1) or a shell that supports
-		io to /dev/tcp/HOST/PORT.
-   	use [ uid | PACKAGE | . [ 32 | 64 ] | 32 | 64 | - ] [ COMMAND ... ]
-   		Run COMMAND or an interactive shell if COMMAND is omitted, with
-		the environment initialized for using the package (can you say
-		shared library without cussing?) If uid or PACKAGE or . is
-		specified then it is used to determine a \$PACKAGEROOT,
-		possibly different from the current directory. For example, to
-		try out bozo's package: \"package use bozo\". In this case the
-		command may be run from any directory. If the file
-		\$INSTALLROOT/lib/package/profile is readable then it is
-		sourced to initialize the environment. 32 or 64 implies
-		\$PACKAGEROOT of . and specifies the target architecture word
-		size (which may be silently ignored).
-	verify [ PACKAGE ]
-		Verify installed binary files against the checksum files in
-		\$INSTALLROOT/lib/package/gen/*.sum. The checksum files contain
-		mode, user and group information. If the checksum matches
-		for a given file then the mode, user and group are changed
-		as necessary to match the checksum entry. A warning is printed
-		on the standard error for each mismatch. Requires the ast
-		package cksum(1) command.
-	view
-		Initialize the architecture specific viewpath hierarchy. The
-		make action implicitly calls this action. If \"flat\" is specified
-		then the \$INSTALLROOT { bin fun include lib } directories are
-		linked to the same directories in the package root. Only one
-		architecture may be flat.
-	write [closure] [cyg|exp|lcl|pkg|rpm|tgz|tst] [base|delta]
-			[binary|runtime|source] PACKAGE
-		Write a package archive for PACKAGE. All work is done in the
-		\$PACKAGEROOT/lib/package directory. FORMAT-specific files
-		are placed in the FORMAT subdirectory. A PACKAGE[.TYPE].tim
-		file in this directory tracksthe write time and prevents a
-		package from being read in the same root it was written. If
-		more than one file is generated for a particular FORMAT then
-		those files are placed in the FORMAT/PACKAGE subdirectory.
-		File names in the FORMAT subdirectory will contain the package
-		name, a YYYY-MM-DD date, and for binary packages, HOSTTYPE.
-		If PACKAGE is omitted then an ordered list of previously
-		written packages is generated. If \"only\" is specified then
-		only the named packages will be written; otherwise
-		prerequisite packages are written first. Package components
-		must be listed in PACKAGE.pkg. FORMAT may be one of:
-		   cyg  generate a cygwin package
-		   exp  generate an exptools(1) maintainer source archive
-		        and NPD file in the exp subdirectory, suitable for
-			expmake(1); support files are placed in the
-			exp/PACKAGE subdirectory
-		   lcl	generate a package archive or delta in the lcl
-			subdirectory, suitable for restoration into the
-			primary source tree (no source licence annotation)
-		   pkg	generate a pkgmk(1) package, suitable for pkgadd(1)
-		   rpm  generate an rpm(1) package
-		   tgz  generate a gzip(1) tar(1) package archive; this is
-			the default
-		   tst  generate tgz FORMAT package archive in the tst
-			subdirectory; version state files are not updated
-		The package type must be one of source, binary or runtime.
-		A source package contains the source needed to build the
-		corresponding binary package. A binary package includes the
-		libraries and headers needed for compiling and linking
-		against the public interfaces. A runtime package contains
-		the commands and required dynamic libraries.  A package may
-		be either a base or delta. A base package contains a
-		complete copy of all components.  A delta package contains
-		only changes from a previous base package. Delta recipients
-		must have the ast pax(1) command (in the ast-base package).
-		If neither base nor delta is specified, then the current
-		base is overwritten if there are no deltas referring to the
-		current base. Only the tgz and lcl formats support delta.
-		If base is specified then a new base and two delta archives
-		are generated: one delta to generate the new base from the
-		old, and one delta to generate the old base from the new;
-		the old base is then removed. If delta is specified then a
-		new delta referring to the current base is written.
-		package.pkg may reference other packages. By default a
-		pointer to those packages is written. The recipient package
-		read will then check that all required packages have been
-		downloaded. If closure is specified then the components for
-		all package references are included in the generated
-		package.  This may be useful for lcl and versioning.  All
-		formats but lcl annotate each source file (not already
-		annotated) with a license comment as it is written to the
-		package archive using proto(1).
-   name=value:
-	variable definition: typically CC=cc or CCFLAGS=-g."
-			;;
+  The command arguments are composed of a sequence of words: zero or more
+  qualifiers, one action, and zero or more action-specific arguments, and zero
+  or more name=value definitions. optget(3) documentation options such as
+  --man, --html and --nroff are also supported. The default with no arguments
+  is host type.
+
+  The qualifiers are:
+    debug|environment
+          Show environment and actions but do not execute.
+    force Force the action to override saved state.
+    never Run make -N and show other actions.
+    only  Only operate on the specified packages.
+    quiet Do not list captured action output.
+    show  Run make -n and show other actions.
+    verbose
+          Provide detailed action output.
+    DEBUG Trace the package script actions in detail.
+
+  The actions are:
+    clean | clobber
+          Delete the arch/HOSTTYPE hierarchy; this deletes all generated files
+          and directories for HOSTTYPE. The hierarchy can be rebuilt by package
+          make.
+    export [ variable ...]
+          List name=value for variable, one per line. If the only attribute is
+          specified then only the variable values are listed. If no variables
+          are specified then HOSTTYPE NPROC PACKAGEROOT INSTALLROOT PATH are
+          assumed.
+    help [ action ]
+          Display help text on the standard error (standard output for action).
+    host [ attribute ... ]
+          List architecture/implementation dependent host information on the
+          standard output. type is listed if no attributes are specified.
+          Information is listed on a single line in attribute order. The
+          attributes are:
+            canon name
+                  An external host type name to be converted to package syntax.
+            cpu   The number of CPUs; 1 if the host is not a multiprocessor.
+            name  The host name.
+            rating
+                  The CPU rating in pseudo mips; the value is useful useful
+                  only in comparisons with rating values of other hosts. Other
+                  than a vax rating (mercifully) fixed at 1, ratings can vary
+                  wildly but consistently from vendor mips ratings. cc(1) may
+                  be required to determine the rating.
+            type  The host type, usually in the form vendor.architecture, with
+                  an optional trailing -version. The main theme is that type
+                  names within a family of architectures are named in a
+                  similar, predictable style. OS point release information is
+                  avoided as much as possible, but vendor resistance to release
+                  incompatibilities has for the most part been futile.
+    install To be reimplemented.
+    make [ package ] [ option ... ] [ target ... ]
+          Build and install. The default target is install, which makes and
+          installs package. If the standard output is a terminal then the
+          output is also captured in $INSTALLROOT/lib/package/gen/make.out. The
+          build is done in the $INSTALLROOT directory tree viewpathed on top of
+          the $PACKAGEROOT directory tree. Leaf directory names matching the
+          |-separated shell pattern $MAKESKIP are ignored. The view action is
+          done before making. option operands are passed to the underlying make
+          command.
+    results [ failed ] [ path ] [ old ] [make | test | write ]
+          List results and interesting messages captured by the most recent
+          make (default), test or write action. old specifies the previous
+          results, if any (current and previous results are retained).
+          $HOME/.pkgresults, if it exists, must contain an egrep(1) expression
+          of result lines to be ignored. failed lists failures only and path
+          lists the results file path name only.
+    test [ argument ... ]
+          Run the regression tests for ksh. If the standard output is a
+          terminal then the output is also captured in
+          $INSTALLROOT/lib/package/gen/test.out. ksh must be made before it can
+          be tested. All arguments following test are passed to bin/shtests.
+          See bin/shtests --man for more information.
+    use [ uid | package | . [ 32 | 64 ] | 32 | 64 | - ] [ command ...]
+          Run command, or an interactive shell if command is omitted, with the
+          environment initialized for using the package (can you say shared
+          library or dll without cussing?) If uid or package or . is specified
+          then it is used to determine a $PACKAGEROOT, possibly different from
+          the current directory. For example, to try out bozo'\''s package:
+          package use bozo. The use action may be run from any directory. If
+          the file $INSTALLROOT/lib/package/profile is readable then it is
+          sourced to initialize the environment. 32 or 64 implies $PACKAGEROOT
+          of . and specifies the target architecture word size (which may be
+          silently ignored).
+    view  Initialize the architecture specific viewpath hierarchy. The make
+          action implicitly calls this action.
+
+DETAILS
+  The package directory hierarchy is rooted at $PACKAGEROOT. All source and
+  binaries reside under this tree. A two level viewpath is used to separate
+  source and binaries. The top view is architecture specific, the bottom view
+  is shared source. All building is done in the architecture specific view; no
+  source view files are intentionally changed. This means that many different
+  binary architectures can be made from a single copy of the source.
+
+  Independent $PACKAGEROOT hierarchies can be combined by appending
+  $INSTALLROOT:$PACKAGEROOT pairs to VPATH. The VPATH viewing order is from
+  left to right.
+
+  $HOSTYPE names the current binary architecture and is determined by the
+  output of package (no arguments). The $HOSTTYPE naming scheme is used to
+  separate incompatible executable and object formats. All architecture
+  specific binaries are placed under $INSTALLROOT
+  ($PACKAGEROOT/arch/$HOSTTYPE). There are a few places that match against
+  $HOSTTYPE when making binaries; these are limited to makefile compiler
+  workarounds, e.g., if $HOSTTYPE matches hp.* then turn off the optimizer for
+  these objects. All other architecture dependent logic is handled either by
+  the AST iffe(1) command or by component specific configure scripts. Explicit
+  $HOSTYPE values matching *,*cc*[,-*,...] optionally set the default CC and
+  CCFLAGS. This is handy for build farms that support different compilers on
+  the same architecture.
+
+  Each component contains a MAM (make abstract machine) file (Mamfile). A
+  Mamfile contains a portable makefile description written in a simple
+  dependency tree language using indented make...done blocks.
+
+  Most component C source is prototyped. If $CC (default value cc) is not a
+  prototyping C compiler then package make runs proto(1) on portions of the
+  $PACKAGEROOT/src tree and places the converted output files in the
+  $PACKAGEROOT/proto/src tree. Converted files are then viewpathed over the
+  original source. proto(1) converts an ANSI C subset to code that is
+  compatible with K&R, ANSI, and C++ dialects.
+
+  All scripts and commands under $PACKAGEROOT use $PATH relative pathnames (via
+  the AST pathpath(3) function); there are no embedded absolute pathnames. This
+  means that binaries generated under $PACKAGEROOT may be copied to a different
+  root; users need only change their $PATH variable to reference the new
+  installation root bin directory. package install installs binary packages in
+  a new $INSTALLROOT.
+
+SEE ALSO
+  autoconfig(1), cksum(1), execrate(1), expmake(1), gzip(1), make(1),
+  mamake(1), pax(1), pkgadd(1), pkgmk(1), proto(1), ratz(1), rpm(1), sh(1),
+  tar(1), optget(3)
+
+IMPLEMENTATION
+  version         package (ksh 93u+m) 2021-12-15
+  author          Glenn Fowler <gsf@research.att.com>
+  author          Contributors to https://github.com/ksh93/ksh
+  copyright       (c) 1994-2012 AT&T Intellectual Property
+  copyright       (c) 2020-2021 Contributors to https://github.com/ksh93/ksh
+  license         http://www.eclipse.org/org/documents/epl-v10.html'
+		case $1 in
+		html)	echo "</pre></body></html>" ;;
 		esac
 		exit $code
 		;;
 	*=*)	set DEFAULT host type "$@"
 		;;
-	*)	echo "Usage: $command [ options ] [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]" >&2
+	*)	# simulate AST getopt(3) usage output
+		echo "Usage: $command [ options ] [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]" >&2
+		echo " Help: $command [ --help | --man ] 2>&1" >&2
 		exit 2
 		;;
 	esac
@@ -1362,7 +608,7 @@ do	case $i in
 	*:*=*)	args="$args $i"
 		continue
 		;;
-	*=*)	eval `echo ' ' "$i" | sed 's,^[ 	]*\([^=]*\)=\(.*\),n=\1 v='\''\2'\'','`
+	*=*)	eval $(echo ' ' "$i" | sed 's,^[ 	]*\([^=]*\)=\(.*\),n=\1 v='\''\2'\'',')
 		;;
 	esac
 	case $i in
@@ -1382,8 +628,6 @@ do	case $i in
 		?*)	KEEP_HOSTTYPE=1 ;;
 		esac
 		;;
-	HURL=*)	eval $n='$'v
-		;;
 	PACKAGEROOT=*)
 		eval $n='$'v
 		case $PACKAGEROOT in
@@ -1394,11 +638,6 @@ do	case $i in
 		case $SHELL in
 		?*)	KEEP_SHELL=1 ;;
 		esac
-		;;
-	TAR=*)	eval $n='$'v
-		;;
-	TARFLAGS=*)
-		eval $n='$'v
 		;;
 	VPATH=*)eval USER_$n='$'v
 		;;
@@ -1428,13 +667,13 @@ esac
 # Add build type flags via KSH_RELFLAGS, which is used in src/cmd/ksh93/Mamfile.
 # (Avoid using CCFLAGS; setting it would overwrite autodetected optimization flags.)
 ksh_relflags=
-case `git branch 2>/dev/null` in
+case $(git branch 2>/dev/null) in
 '' | *\*\ [0-9]*.[0-9]*)
 	# If we're not on a git branch (tarball) or on a branch that starts
 	# with a number (release branch), then compile as a release version
 	ksh_relflags="${ksh_relflags:+$ksh_relflags }-D_AST_ksh_release" ;;
 *)	# Otherwise, add 8-character git commit hash if available, and if the working dir is clean
-	git_commit=`git status >/dev/null 2>&1 && git diff-index --quiet HEAD && git rev-parse --short=8 HEAD`
+	git_commit=$(git status >/dev/null 2>&1 && git diff-index --quiet HEAD && git rev-parse --short=8 HEAD)
 	case $git_commit in
 	????????)
 		ksh_relflags="${ksh_relflags:+$ksh_relflags }-D_AST_git_commit=\\\"$git_commit\\\"" ;;
@@ -1467,52 +706,6 @@ esac
 # grab action specific args
 
 case $action in
-admin)	while	:
-	do	case $# in
-		0)	set list
-			break
-			;;
-		esac
-		case $1 in
-		all)	admin_all=1
-			;;
-		db)	case $# in
-			1)	echo $command: $action: $1: db file argument expected >&2
-				exit 1
-				;;
-			esac
-			shift
-			admin_db=$1
-			;;
-		on)	case $# in
-			1)	echo $command: $action: $1: host pattern argument expected >&2
-				exit 1
-				;;
-			esac
-			shift
-			admin_on=$1
-			;;
-		*)	break
-			;;
-		esac
-		shift
-	done
-	admin_action=$1
-	admin_args=$*
-	for i
-	do	case $i in
-		debug|environment|force|never|only|quiet|show|DEBUG)
-			;;
-		*)	admin_action=$i
-			break
-			;;
-		esac
-	done
-	;;
-setup)	PACKAGEROOT=${PWD:-`pwd`}
-	export PACKAGEROOT
-	KEEP_PACKAGEROOT=1
-	;;
 use)	case $1 in
 	.|32|64)case $1 in
 		32|64)	bit=$1 ;;
@@ -1523,7 +716,7 @@ use)	case $1 in
 
 		case $HOSTTYPE in
 		win32.*)sys=uwin
-			wow=`uname -i`
+			wow=$(uname -i)
 			case $bit in
 			32)	case $HOSTTYPE in
 				*-64)	HOSTTYPE=${HOSTTYPE%-64} ;;
@@ -1576,7 +769,7 @@ use)	case $1 in
 			exit
 			;;
 		esac
-		PACKAGEROOT=${PWD:-`pwd`}
+		PACKAGEROOT=$PWD
 		$show export PACKAGEROOT
 	esac
 	;;
@@ -1600,7 +793,7 @@ executable() # [!] command
 }
 
 # initialize SHELLMAGIC
-# tangible proof of cygwin's disdain for unix (well, this and execrate)
+# tangible proof of Cygwin's disdain for Unix (well, this and execrate)
 
 shellmagic()
 {
@@ -1685,7 +878,7 @@ hostinfo() # attribute ...
 		;;
 	esac
 	case $PACKAGE_PATH in
-	?*)	for i in `echo $PACKAGE_PATH | $SED 's,:, ,g'`
+	?*)	for i in $(echo "$PACKAGE_PATH" | "$SED" 's,:, ,g')
 		do	PATH=$PATH:$i/bin
 		done
 		;;
@@ -1742,14 +935,14 @@ hostinfo() # attribute ...
 			continue
 			;;
 		esac
-		cpu=`sysctl -n hw.ncpu`
+		cpu=$(sysctl -n hw.ncpu)
 		case $cpu in
 		[123456789]*)
 			_hostinfo_="$_hostinfo_ $cpu"
 			continue
 			;;
 		esac
-		cpu=`grep -ic '^processor[ 	][ 	]*:[ 	]*[0123456789]' /proc/cpuinfo`
+		cpu=$(grep -ic '^processor[ 	][ 	]*:[ 	]*[0123456789]' /proc/cpuinfo)
 		case $cpu in
 		[123456789]*)
 			_hostinfo_="$_hostinfo_ $cpu"
@@ -1768,7 +961,7 @@ hostinfo() # attribute ...
 		do	case $# in
 			0)	break ;;
 			esac
-			i=`$1 2>/dev/null | grep -c "$2"`
+			i=$($1 2>/dev/null | grep -c "$2")
 			case $i in
 			[123456789]*)
 				cpu=$i
@@ -1786,8 +979,8 @@ hostinfo() # attribute ...
 				0)	break ;;
 				esac
 				if	executable $1
-				then	case `$1 | grep -ic '^cpu '` in
-					1)	cpu=`$1 | grep -ic '^ *[0123456789][0123456789]* '`
+				then	case $($1 | grep -ic '^cpu ') in
+					1)	cpu=$($1 | grep -ic '^ *[0123456789][0123456789]* ')
 						break
 						;;
 					esac
@@ -1809,9 +1002,9 @@ hostinfo() # attribute ...
 			do	case $# in
 				0)	break ;;
 				esac
-				i=`$1 2>/dev/null | $TR ' 	' '
+				i=$($1 2>/dev/null | $TR ' 	' '
 
-' | grep -c "^$2"`
+' | grep -c "^$2")
 				case $i in
 				[123456789]*)
 					cpu=$i
@@ -1838,7 +1031,7 @@ hostinfo() # attribute ...
 			do	case $# in
 				0)	break ;;
 				esac
-				i=`$1 2>/dev/null | $SED -e "${2}!d" -e "s${3}"`
+				i=$($1 2>/dev/null | $SED -e "${2}!d" -e "s${3}")
 				case $i in
 				[123456789]*)
 					cpu=$i
@@ -1850,7 +1043,7 @@ hostinfo() # attribute ...
 			;;
 		esac
 		case $cpu in
-		0|1)	cpu=`(
+		0|1)	cpu=$(
 			cd "$TMPDIR"
 			tmp=hi$$
 			trap 'rm -f $tmp.*' 0 1 2
@@ -1870,7 +1063,7 @@ int main()
 					break
 				fi
 			done
-			)`
+			)
 			case $cpu in
 			[0123456789]*)	;;
 			*)	cpu=1 ;;
@@ -1879,10 +1072,10 @@ int main()
 		esac
 		_hostinfo_="$_hostinfo_ $cpu"
 		;;
-	name)	_name_=`hostname || uname -n || cat /etc/whoami || echo local`
+	name)	_name_=$(hostname || uname -n || cat /etc/whoami || echo local)
 		_hostinfo_="$_hostinfo_ $_name_"
 		;;
-	rating)	for rating in `grep -i ^bogomips /proc/cpuinfo 2>/dev/null | $SED -e 's,.*:[ 	]*,,' -e 's,\(...*\)\..*,\1,' -e 's,\(\..\).*,\1,'`
+	rating)	for rating in $(grep -i ^bogomips /proc/cpuinfo 2>/dev/null | $SED -e 's,.*:[ 	]*,,' -e 's,\(...*\)\..*,\1,' -e 's,\(\..\).*,\1,')
 		do	case $rating in
 			[0123456789]*)	break ;;
 			esac
@@ -1971,7 +1164,7 @@ int main()
 			for o in -DTZ -DTD ''
 			do	if	$CC $o -O -o $tmp.exe $tmp.c >/dev/null 2>&1 ||
 					gcc $o -O -o $tmp.exe $tmp.c >/dev/null 2>&1
-				then	rating=`./$tmp.exe`
+				then	rating=$(./$tmp.exe)
 					break
 				fi
 			done
@@ -2002,10 +1195,10 @@ int main()
 			;;
 		esac
 		case $cc in
-		/*)	a=`$cc -dumpmachine $CCFLAGS 2>/dev/null`
+		/*)	a=$($cc -dumpmachine $CCFLAGS 2>/dev/null)
 			case $a in
 			'')	case $CCFLAGS in
-				?*)	a=`$cc -dumpmachine 2>/dev/null` ;;
+				?*)	a=$($cc -dumpmachine 2>/dev/null) ;;
 				esac
 				;;
 			esac
@@ -2038,10 +1231,10 @@ int main()
 			'')	case $cc in
 				/*|cc)	;;
 				*)	if	executable $i/$cc
-					then	a=`$i/$cc -dumpmachine $CCFLAGS 2>/dev/null`
+					then	a=$($i/$cc -dumpmachine $CCFLAGS 2>/dev/null)
 						case $a in
 						'')	case $CCFLAGS in
-							?*)	a=`$cc -dumpmachine 2>/dev/null` ;;
+							?*)	a=$($cc -dumpmachine 2>/dev/null) ;;
 							esac
 							;;
 						esac
@@ -2060,7 +1253,7 @@ int main()
 				;;
 			esac
 			if	test -f "$i/$f"
-			then	map="`grep -v '^#' $i/$f` $map"
+			then	map="$(grep -v '^#' $i/$f) $map"
 			fi
 		done
 
@@ -2068,25 +1261,25 @@ int main()
 
 		case -${canon}- in
 		--|*-powerpc-*)
-			h=`hostname || uname -n || cat /etc/whoami`
+			h=$(hostname || uname -n || cat /etc/whoami)
 			case $h in
 			'')	h=local ;;
 			esac
-			a=`arch || uname -m || att uname -m || uname -s || att uname -s`
+			a=$(arch || uname -m || att uname -m || uname -s || att uname -s)
 			case $a in
-			*[\ \	]*)	a=`echo $a | $SED "s/[ 	]/-/g"` ;;
+			*[\ \	]*)	a=$(echo $a | $SED "s/[ 	]/-/g") ;;
 			esac
 			case $a in
 			'')	a=unknown ;;
 			esac
-			m=`mach || machine || uname -p || att uname -p`
+			m=$(mach || machine || uname -p || att uname -p)
 			case $m in
-			*[\ \	]*)	m=`echo $m | $SED "s/[ 	]/-/g"` ;;
+			*[\ \	]*)	m=$(echo $m | $SED "s/[ 	]/-/g") ;;
 			esac
 			case $m in
 			'')	m=unknown ;;
 			esac
-			x=`uname -a || att uname -a`
+			x=$(uname -a || att uname -a)
 			case $x in
 			'')	x="unknown $host unknown unknown unknown unknown unknown" ;;
 			esac
@@ -2104,7 +1297,7 @@ int main()
 				esac
 				case $os in
 				[abcdefghijklmnopqrstuvwxyz]*[0123456789])
-					eval `echo $os | $SED -e 's/^\([^0123456789.]*\)\.*\(.*\)/os=\1 rel=\2/'`
+					eval $(echo $os | $SED -e 's/^\([^0123456789.]*\)\.*\(.*\)/os=\1 rel=\2/')
 					;;
 				esac
 				;;
@@ -2115,7 +1308,7 @@ int main()
 		esac
 		type=unknown
 		case $host in
-		*.*)	host=`echo $host | $SED -e 's/\..*//'` ;;
+		*.*)	host=$(echo $host | $SED -e 's/\..*//') ;;
 		esac
 		case $mach in
 		unknown)
@@ -2175,14 +1368,14 @@ int main()
 			9000/[78]*)
 				type=hp.pa
 				;;
-			*/*)	type=hp.`echo $arch | $SED 's,/,_,g'`
+			*/*)	type=hp.$(echo $arch | $SED 's,/,_,g')
 				;;
 			*)	type=hp.$arch
 				;;
 			esac
 			;;
 		[Ii][Rr][Ii][Xx]*)
-			set xx `hinv | $SED -e '/^CPU:/!d' -e 's/CPU:[ 	]*\([^ 	]*\)[ 	]*\([^ 	]*\).*/\1 \2/' -e q | $TR ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz`
+			set xx $(hinv | $SED -e '/^CPU:/!d' -e 's/CPU:[ 	]*\([^ 	]*\)[ 	]*\([^ 	]*\).*/\1 \2/' -e q | $TR ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz)
 			shift
 			type=$1
 			n=
@@ -2227,12 +1420,12 @@ int main()
 			fi
 			split='
 '
-			a=`strings $a < /dev/null | $SED -e 's/[^abcdefghijklmnopqrstuvwxyz0123456789]/ /g' -e 's/[ 	][ 	]*/\'"$split"'/g' | $SED -e "/^${type}[0123456789]$/!d" -e "s/^${type}//" -e q`
+			a=$(strings $a < /dev/null | $SED -e 's/[^abcdefghijklmnopqrstuvwxyz0123456789]/ /g' -e 's/[ 	][ 	]*/\'"$split"'/g' | $SED -e "/^${type}[0123456789]$/!d" -e "s/^${type}//" -e q)
 			case $a in
 			[0123456789])	n=$a ;;
 			esac
 			case $n in
-			4)	a=`$cc -${type}3 2>&1`
+			4)	a=$($cc -${type}3 2>&1)
 				case $a in
 				*unknown*|*install*|*conflict*)
 					;;
@@ -2241,7 +1434,7 @@ int main()
 				esac
 				;;
 			esac
-			a=`$cc -show F0oB@r.c 2>&1`
+			a=$($cc -show F0oB@r.c 2>&1)
 			case $n:$a in
 			[!2]:*mips2*)	n=2 ;;
 			[!23]:*mips3*)	n=3 ;;
@@ -2263,7 +1456,7 @@ int main()
 			type=sco
 			;;
 		[Ss]ol*)
-			v=`echo $rel | $SED -e 's/^[25]\.//' -e 's/\.[^.]*$//'`
+			v=$(echo $rel | $SED -e 's/^[25]\.//' -e 's/\.[^.]*$//')
 			case $v in
 			[6789]|[1-9][0-9])
 				;;
@@ -2282,7 +1475,7 @@ int main()
 			esac
 			type=sol$v.$arch
 			;;
-		[Ss]un*)type=`echo $arch | $SED -e 's/\(sun.\).*/\1/'`
+		[Ss]un*)type=$(echo $arch | $SED -e 's/\(sun.\).*/\1/')
 			case $type in
 			sparc)	type=sun4 ;;
 			esac
@@ -2303,7 +1496,7 @@ int main()
 					esac
 					;;
 				esac
-				v=`echo $rel | $SED -e 's/^[25]\.//' -e 's/\.[^.]*$//'`
+				v=$(echo $rel | $SED -e 's/^[25]\.//' -e 's/\.[^.]*$//')
 				case $v in
 				[6789]|[1-9][0-9])
 					;;
@@ -2360,7 +1553,7 @@ int main()
 			FTX*|ftx*)
 				case $mach in
 				*[0123456789][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
-					mach=`echo $mach | $SED -e 's/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]*$//'`
+					mach=$(echo $mach | $SED -e 's/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]*$//')
 					;;
 				esac
 				type=stratus.$mach
@@ -2370,7 +1563,7 @@ int main()
 					type=os2
 					arch=$rel
 					;;
-				*)	type=`echo $os | $SED -e 's/[0123456789].*//' -e 's/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789.].*//'`
+				*)	type=$(echo $os | $SED -e 's/[0123456789].*//' -e 's/[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789.].*//')
 					;;
 				esac
 				case $type in
@@ -2379,7 +1572,7 @@ int main()
 					;;
 				[Uu][Ww][Ii][Nn]*|[Ww]indows_[0123456789][0123456789]|[Ww]indows_[Nn][Tt])
 					type=win32
-					arch=`echo $arch | $SED -e 's/_[^_]*$//'`
+					arch=$(echo $arch | $SED -e 's/_[^_]*$//')
 					;;
 				esac
 				case $arch in
@@ -2428,16 +1621,16 @@ int main()
 		esac
 		case $type in
 		*[-_]32|*[-_]64|*[-_]128)
-			bits=`echo $type | $SED 's,.*[-_],,'`
-			type=`echo $type | $SED 's,[-_][0-9]*$,,'`
+			bits=$(echo $type | $SED 's,.*[-_],,')
+			type=$(echo $type | $SED 's,[-_][0-9]*$,,')
 			;;
 		*)	bits=
 			;;
 		esac
-		type=`echo $type | $SED -e 's%[-+/].*%%' | $TR ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz`
+		type=$(echo $type | $SED -e 's%[-+/].*%%' | $TR ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz)
 		case $type in
-		*.*)	lhs=`echo $type | $SED -e 's/\..*//'`
-			rhs=`echo $type | $SED -e 's/.*\.//'`
+		*.*)	lhs=$(echo $type | $SED -e 's/\..*//')
+			rhs=$(echo $type | $SED -e 's/.*\.//')
 			case $rhs in
 			[x0123456789]*86)	rhs=i$rhs ;;
 			68*)			rhs=m$rhs ;;
@@ -2447,7 +1640,7 @@ int main()
 						rhs=i386 ;;
 			powerpc)		rhs=ppc ;;
 			s[0123456789]*[0123456789]x)
-						rhs=`echo $rhs | $SED -e 's/x$/-64/'` ;;
+						rhs=$(echo $rhs | $SED -e 's/x$/-64/') ;;
 			esac
 			case $rhs in
 			arm[abcdefghijklmnopqrstuvwxyz_][0123456789]*)
@@ -2461,12 +1654,12 @@ int main()
 				?*dwarf)x=coff ;;
 				?*elf)	x=elf ;;
 				esac
-				lhs=`echo ${lhs}XXX | $SED -e "s/${x}XXX//"`
+				lhs=$(echo ${lhs}XXX | $SED -e "s/${x}XXX//")
 				;;
 			esac
 			case $lhs in
 			bsdi)			lhs=bsd ;;
-			darwin)			case `/usr/bin/cc --version` in
+			darwin)			case $(/usr/bin/cc --version) in
 						*'(GCC)'*)	case $rel in
 								[0-9].*|10.*)	lhs=darwin07 ;;
 								*)		lhs=darwin11 ;;
@@ -2475,7 +1668,7 @@ int main()
 						;;
 			freebsd)		case $rel in
 						[01234].*)	lhs=${lhs}4 ;;
-						[123456789]*.*)	lhs=${lhs}`echo $rel | $SED -e 's/\..*//'` ;;
+						[123456789]*.*)	lhs=${lhs}$(echo $rel | $SED -e 's/\..*//') ;;
 						esac
 						;;
 			hpux)			lhs=hp ;;
@@ -2504,7 +1697,7 @@ int main()
 				*) abi=-64 ;;
 				esac
 				;;
-			*)	pwd=`pwd`
+			*)	pwd=$PWD
 				cd "$TMPDIR"
 				tmp=hi$$
 				trap 'rm -f $tmp.*' 0 1 2
@@ -2529,7 +1722,7 @@ int b() { return 0; }
 								esac
 								if	$cc $abi -mips$i -c $tmp.b.c &&
 									$cc -o $tmp.exe $tmp.a.o $tmp.b.o
-								then	type=`echo $type | $SED -e 's/.$//'`$i
+								then	type=$(echo $type | $SED -e 's/.$//')$i
 									break
 								fi
 							done
@@ -2560,14 +1753,14 @@ int b() { return 0; }
 			esac
 			;;
 		*)	case $bits in
-			'')	bits=`	cd "$TMPDIR"
+			'')	bits=$(	cd "$TMPDIR"
 					LC_ALL=C
 					export LC_ALL
 					tmp=hi$$
 					trap 'rm -f $tmp.*' 0 1 2
 					echo 'int main() { return 0; }' > $tmp.a.c
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
-					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  `
+					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  )
 				case $bits in
 				*\ 64-bit* | *\ 64\ bit* | *\ 64bit*)
 					bits=64 ;;
@@ -2725,10 +1918,10 @@ case $x in
 				-|.)	;;
 				/*)	PACKAGEROOT=$1
 					;;
-				*)	i=`echo ~$1`
+				*)	i=$(echo ~$1)
 					if	packageroot $i
 					then	PACKAGEROOT=$i
-					else	for i in `echo $HOME | sed -e 's,/[^/]*$,,'` $usr $use
+					else	for i in $(echo $HOME | sed -e 's,/[^/]*$,,') $usr $use
 						do	if	packageroot $i/$1
 							then	PACKAGEROOT=$i/$1
 								break
@@ -2747,7 +1940,7 @@ case $x in
 			;;
 		esac
 		case $PACKAGEROOT in
-		'')	PACKAGEROOT=${PWD:-`pwd`} ;;
+		'')	PACKAGEROOT=$PWD ;;
 		esac
 
 		# . must be within the PACKAGEROOT tree
@@ -2814,7 +2007,7 @@ case $x in
 	export HOSTTYPE
 	INSTALLROOT=$PACKAGEROOT/arch/$HOSTTYPE
 	case $action in
-	admin|install|make|read|remove|test|verify|view|write)
+	install|make|remove|test|view)
 		;;
 	*)	if	test ! -d $INSTALLROOT
 		then	INSTALLROOT=$PACKAGEROOT
@@ -2852,16 +2045,12 @@ case $x in
 			esac
 		}
 
-		case $action in
-		admin)	;;
-		*)	for i in arch arch/$HOSTTYPE
-			do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
-			done
-			for i in lib
-			do	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
-			done
-			;;
-		esac
+		for i in arch arch/$HOSTTYPE
+		do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
+		done
+		for i in lib
+		do	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
+		done
 
 		# no $INITROOT means INIT already installed elsewhere
 
@@ -2871,7 +2060,7 @@ case $x in
 
 			for i in execrate ignore mamprobe silent
 			do	test -h $PACKAGEROOT/bin/$i 2>/dev/null ||
-				case `ls -t $INITROOT/$i.sh $PACKAGEROOT/bin/$i 2>/dev/null` in
+				case $(ls -t $INITROOT/$i.sh $PACKAGEROOT/bin/$i 2>/dev/null) in
 				"$INITROOT/$i.sh"*)
 					note update $PACKAGEROOT/bin/$i
 					shellmagic
@@ -2945,7 +2134,7 @@ cat $INITROOT/$i.sh
 			if	executable /lib32/$x || executable /lib64/$x
 			then	case $INSTALLROOT in
 				*/sgi.mips[0123456789]*)
-					u=`echo $INSTALLROOT | sed -e 's,-[^-/]*$,,' -e 's,.$,,'`
+					u=$(echo $INSTALLROOT | sed -e 's,-[^-/]*$,,' -e 's,.$,,')
 					;;
 				*)	u=
 					;;
@@ -3096,8 +2285,8 @@ cat $INITROOT/$i.sh
 		;;
 	*)	for i in package proto
 		do	if	onpath $i
-			then	EXECROOT=`echo $_onpath_ | sed -e 's,//*[^/]*//*[^/]*$,,'`
-				EXECTYPE=`echo $EXECROOT | sed -e 's,.*/,,'`
+			then	EXECROOT=$(echo $_onpath_ | sed -e 's,//*[^/]*//*[^/]*$,,')
+				EXECTYPE=$(echo $EXECROOT | sed -e 's,.*/,,')
 				break
 			fi
 		done
@@ -3140,7 +2329,7 @@ cat $INITROOT/$i.sh
 	checksh "$SHELL" || KEEP_SHELL=0
 	case $KEEP_SHELL in
 	0)	save_PATH=$PATH
-		if	PATH=`getconf PATH 2>/dev/null`
+		if	PATH=$(getconf PATH 2>/dev/null)
 		then	PATH=$PATH:$path
 		else	PATH=/bin:/usr/bin:/sbin:/usr/sbin:$path
 		fi
@@ -3224,7 +2413,6 @@ cat $INITROOT/$i.sh
 	;;
 esac
 
-PACKAGESRC=$PACKAGEROOT/lib/package
 PACKAGEBIN=$INSTALLROOT/lib/package
 case $action:$run in
 use:-)	set '' $args
@@ -3243,7 +2431,7 @@ if	test -r $INSTALLROOT/lib/package/profile
 then	. $INSTALLROOT/lib/package/profile
 fi
 
-# more cygwin hassles
+# more Cygwin hassles
 
 case $HOSTTYPE in
 cygwin.*)
@@ -3270,7 +2458,7 @@ cygwin.*)
 		;;
 	esac
 	case $lose in
-	?*)	echo "$command: $HOSTTYPE: export '$lose' in CYGWIN or languish in windows" >&2
+	?*)	echo "$command: $HOSTTYPE: export '$lose' in CYGWIN or languish in Windows" >&2
 		exit 1
 		;;
 	esac
@@ -3346,83 +2534,6 @@ view() # [test] [-|type] [src|bin|all] file
 # determine the package and targets
 
 case $action in
-admin)	case $admin_action in
-	results)action=$admin_action
-		set '' $admin_args
-		shift;shift
-		admin_args="admin $*"
-		case $admin_on in
-		'')	target=$admin_args ;;
-		*)	target="on $admin_on $admin_args" ;;
-		esac
-		;;
-	esac
-	;;
-release)set '' $args
-	target=
-	while	:
-	do	shift
-		case $1 in
-		-|[0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]|[0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789])
-			target="$target $1"
-			;;
-		*)	break
-			;;
-		esac
-	done
-	package=$*
-	;;
-setup)	# { update read } with optional (bin|fun|include|lib) symlinks
-	# flat option sets up { bin fun include lib } symlinks from
-	# $INSTALLROOT to $PACKAGEROOT
-
-	# . is the package root
-
-	set '' $args
-	shift
-	types=
-	url=
-	while	:
-	do	case $# in
-		0)	break ;;
-		esac
-		case $1 in
-		--)	shift
-			break
-			;;
-		flat)	flat=1 # backwards compatibility -- documentation dropped
-			;;
-		*://*|*.url)
-			url=$1
-			shift
-			break
-			;;
-		*)	types="$types $1"
-			;;
-		esac
-		shift
-	done
-	if	test ! -d $PACKAGEROOT/lib/package/tgz
-	then	$exec mkdir -p $PACKAGEROOT/lib/package/tgz || exit
-	fi
-	case " $types " in
-	*" source "*)
-		case " $* " in
-		'  ')	;;
-		*" INIT "*)
-			;;
-		*)	view - all src/cmd/INIT ||
-			set INIT "$@"
-			;;
-		esac
-		;;
-	esac
-	packages=`$0 $global authorize "$authorize" password "$password" update setup $types $url "$@" PACKAGEROOT=$PACKAGEROOT`
-	case $packages in
-	?*)	$0 $global read $packages PACKAGEROOT=$PACKAGEROOT
-	esac
-	exit
-	;;
 *)	package=
 	target=
 	set '' $args
@@ -3443,39 +2554,6 @@ setup)	# { update read } with optional (bin|fun|include|lib) symlinks
 			;;
 		esac
 	done
-	;;
-esac
-
-# flatten -- assumes symlink support
-
-case $flat in
-1)	case $action in
-	make|read|setup|update|use|view)
-		if	test ! -d $INSTALLROOT
-		then	$exec mkdir -p $INSTALLROOT || exit
-		fi
-		for i in bin include lib fun man share
-		do	if	test ! -d $INSTALLROOT/../../$i
-			then	$exec mkdir $INSTALLROOT/../../$i
-			fi
-			if	test ! -d $INSTALLROOT/$i
-			then	if	test ! -h $INSTALLROOT/$i
-				then	$exec ln -s ../../$i $INSTALLROOT/$i
-				fi
-			elif	test ! -h $INSTALLROOT/$i
-			then	for x in $INSTALLROOT/$i/.[a-z]* $INSTALLROOT/$i/*
-				do	if	test -f $x -o -d $x
-					then	if	test ! -d $INSTALLROOT/$i/$x || test ! -d $INSTALLROOT/../../$i/$x
-						then	$exec mv $x $INSTALLROOT/../../$i
-						fi
-					fi
-				done
-				$exec rm -rf $INSTALLROOT/$i
-				$exec ln -s ../../$i $INSTALLROOT/$i
-			fi
-		done
-		;;
-	esac
 	;;
 esac
 
@@ -3619,7 +2697,7 @@ int main(int argc, char** argv) { return argc || argv; }
 			esac
 			;;
 		esac
-		case `ls -t $INITROOT/$i.c $INSTALLROOT/bin/$i 2>/dev/null` in
+		case $(ls -t $INITROOT/$i.c $INSTALLROOT/bin/$i 2>/dev/null) in
 		"$INITROOT/$i.c"*)
 			note update $INSTALLROOT/bin/$i
 			if	test proto != "$i" && executable $INSTALLROOT/bin/proto
@@ -3656,269 +2734,6 @@ int main(int argc, char** argv) { return argc || argv; }
 	return 0
 }
 
-# check package requirements against received packages
-
-requirements() # source|binary [ package ]
-{
-	case $1 in
-	binary)	r=$VIEW_BIN ;;
-	source)	r=$VIEW_SRC ;;
-	*)	r=$VIEW_ALL ;;
-	esac
-	shift
-	case $1 in
-	'')	x= ;;
-	*)	x=$* ;;
-	esac
-	set ''
-	for d in $r
-	do	set "$@" $d/gen/*.ver
-		case $x in
-		'')	set "$@" $d/gen/*.req
-			;;
-		*)	for p in $x
-			do	set "$@" $d/gen/$p.req
-			done
-			;;
-		esac
-	done
-	shift
-	e=0
-	x=$*
-	y=
-	n=
-	set ''
-	for i in $x
-	do	p=`echo $i | sed -e 's,.*/,,' -e 's,\....$,,'`
-		if	test -f $i
-		then	set "$@" $i
-			y="$y $p"
-		else	case $p in
-			'*')	;;
-			*)	n="$n $p" ;;
-			esac
-		fi
-	done
-	for i in $n
-	do	case " $y " in
-		*" $i "*)
-			;;
-		*)	echo "$command: $i: must read or write package" >&2
-			e=1
-			;;
-		esac
-	done
-	case $e in
-	1)	exit 1 ;;
-	esac
-	shift
-	test 0 != "$#" && release=`sort -r "$@" | {
-		q=
-		e=0
-		o=
-		while	read p v r s
-		do	q="$q
-$v $r"
-			case $p in
-			$o)	continue ;;
-			esac
-			case $s in
-			0)	e=1
-				case $r in
-				base)	echo "$command: base package $p.$v or newer required" >&2 ;;
-				*)	echo "$command: delta package $p.$v.$r or newer required" >&2 ;;
-				esac
-				;;
-			esac
-			o=$p
-		done
-		case $e in
-		0)	echo "$q" | sort | { read v r; read v r; echo $v; } ;;
-		1)	echo ERROR ;;
-		esac
-	}`
-	case $release in
-	ERROR)	case $force in
-		0)	exit 1 ;;
-		esac
-		;;
-	?*)	eval `echo $release | sed -e 's,\(.*\)-\(.*\)-\(.*\),yy=\1 mm=\2 dd=\3,'`
-		# slide back 4 months
-		case $mm in
-		01)	mm=09 dd=1 ;;
-		02)	mm=10 dd=1 ;;
-		03)	mm=11 dd=1 ;;
-		04)	mm=12 dd=1 ;;
-		05)	mm=01 dd=0 ;;
-		06)	mm=02 dd=0 ;;
-		07)	mm=03 dd=0 ;;
-		08)	mm=04 dd=0 ;;
-		09)	mm=05 dd=0 ;;
-		10)	mm=06 dd=0 ;;
-		11)	mm=07 dd=0 ;;
-		12)	mm=08 dd=0 ;;
-		esac
-		case $dd in
-		1)	yy=`expr $yy - 1` ;;
-		esac
-		release=$yy-$mm-01
-		count=1
-		lo=$release
-		release="-f $release -r $count"
-		;;
-	esac
-}
-
-# write ordered package prerequisite list to the standard output
-
-order() # [ package ]
-{
-	_order_t_=lib/package/tgz
-	case $action in
-	binary)	_order_a_=.$HOSTTYPE ;;
-	*)	_order_a_= ;;
-	esac
-	_order_n_=$#
-	case $_order_n_ in
-	0)	_order_p_=
-		for _order_v_ in $VIEW_all
-		do	for _order_f_ in $_order_v_/lib/package/*.pkg
-			do	if	test -f $_order_f_
-				then	_order_p_="$_order_p_ $_order_f_"
-				fi
-			done
-		done
-		set '' $_order_p_
-		shift
-	esac
-	{
-	if	test ratz != "$*"
-	then	for _order_f_ in ratz INIT
-		do	if	view -s - src $_order_t_/$_order_f_$_order_a_.tim
-			then	echo $_order_f_ $_order_f_
-			fi
-		done
-	fi
-	for _order_f_
-	do	while	:
-		do	view - src $_order_f_ && break
-			case $_order_f_ in
-			*.pkg)	;;
-			*)	_order_f_=$_order_f_.pkg; view - src $_order_f_ && break ;;
-			esac
-			case $_order_f_ in
-			*/*)	;;
-			*)	_order_f_=lib/package/$_order_f_; view - src $_order_f_ && break ;;
-			esac
-			echo "$command: $_order_f_: not a package" >&2
-			continue 2
-		done
-		_order_f_=$_view_
-		_order_p_=`echo $_order_f_ | sed -e 's,.*/,,' -e 's,\.pkg$,,'`
-		case $_order_n_ in
-		0)	view -s - src $_order_t_/$_order_p_$_order_a_.tim || continue ;;
-		esac
-		echo $_order_p_ $_order_p_
-		case $_order_p_ in
-		INIT|ratz)
-			;;
-		*)	echo INIT $_order_p_
-			;;
-		esac
-		{
-		req= req_sep=
-		op=::
-		while	read line
-		do	IFS=' 	\\'
-			set '' $line
-			IFS=$ifs
-			while	:
-			do	shift
-				case $# in
-				0)	break ;;
-				esac
-				case $1 in
-				:*:)	op=$1
-					;;
-				INIT|'$('*|*')')
-					;;
-				*)	case $op in
-					:REQUIRES:)
-						req="$req$req_sep$1"
-						req_sep=" "
-						;;
-					esac
-					;;
-				esac
-			done
-		done
-		for _order_i_ in $req
-		do	if	view - src lib/package/$_order_i_.pkg
-			then	case $_order_u_ in
-				0)	view -s - src $_order_t_/$_order_i_$_order_a_.tim || continue ;;
-				esac
-				echo $_order_i_ $_order_i_; echo INIT $_order_i_; echo $_order_i_ $_order_p_
-			fi
-		done
-		} < $_order_f_
-	done
-	} | tsort
-}
-
-# generate the package component list in _components_
-
-components() # [ package ]
-{
-	_components_=
-	for p
-	do	case $p in
-		'')	;;
-		INIT)	case " $_components_ " in
-			*" $p "*)	;;
-			*)		_components_="$_components_ $p" ;;
-			esac
-			;;
-		*)	if	view - src lib/package/$p.pkg
-			then	p=$_view_
-				op=::
-				exec < $p
-				while	read line
-				do	IFS=' 	\\'
-					set '' $line
-					IFS=$ifs
-					while	:
-					do	shift
-						case $# in
-						0)	break ;;
-						esac
-						case $1 in
-						:*:)	op=$1
-							;;
-						INIT|'$('*|*')')
-							;;
-						*)	case $op in
-							:PACKAGE:)
-								case " $_components_ " in
-								*" $1 "*)	;;
-								*)		_components_="$_components_ $1" ;;
-								esac
-								;;
-							esac
-							;;
-						esac
-					done
-				done
-				exec < /dev/null
-			elif	test -d $PACKAGEROOT/src/cmd/$p -o -d $PACKAGEROOT/src/lib/$p
-			then	_components_="$_components_ $p"
-			else	echo "$command: $p: package or component not found" >&2
-				exit 1
-			fi
-			;;
-		esac
-	done
-}
-
 # list main environment values
 
 showenv()
@@ -3935,6 +2750,7 @@ showenv()
 
 capture() # file command ...
 {
+	tee_pid=
 	case $make:$noexec in
 	:)	case $action in
 		install|make|view)
@@ -3949,10 +2765,7 @@ capture() # file command ...
 			esac
 			;;
 		esac
-		case $action in
-		write)	d=$PACKAGESRC/gen ;;
-		*)	d=$PACKAGEBIN/gen ;;
-		esac
+		d=$PACKAGEBIN/gen
 		test -d $d || $exec mkdir $d
 		o=$d/$o
 		case $o in
@@ -3966,7 +2779,7 @@ capture() # file command ...
 				then	mv $o.out $o.out.2
 				fi
 			elif	test -f $o.out
-			then	for i in `ls -t $o.out.? 2>/dev/null`
+			then	for i in $(ls -t $o.out.? 2>/dev/null)
 				do	break
 				done
 				case $i in
@@ -3985,10 +2798,10 @@ capture() # file command ...
 			o=$o.out
 			: > $o
 			note $action output captured in $o
-			s="$command: $action start at `date` in $INSTALLROOT"
+			s="$command: $action start at $(date) in $INSTALLROOT"
 			case $quiet in
-			0)	cmd="echo \"$command: $action done  at \`date\`\" in $INSTALLROOT 2>&1 | \$TEE -a $o" ;;
-			*)	cmd="echo \"$command: $action done  at \`date\`\" in $INSTALLROOT >> $o" ;;
+			0)	cmd="echo \"$command: $action done  at \$(date)\" in $INSTALLROOT 2>&1 | \$TEE -a $o" ;;
+			*)	cmd="echo \"$command: $action done  at \$(date)\" in $INSTALLROOT >> $o" ;;
 			esac
 			trap "$cmd" 0
 			trap "$cmd; trap 1 0; kill -1 $$" 1
@@ -4000,7 +2813,7 @@ capture() # file command ...
 			then	TEE=tee
 			fi
 			# Connect 'tee' to a FIFO instead of a pipe, so that we can obtain
-			# the build's exit status with 'wait' and use it for $error_status
+			# the build's exit status and use it for $error_status
 			rm -f $o.fifo
 			mkfifo -m 600 $o.fifo || exit
 			(
@@ -4008,25 +2821,18 @@ capture() # file command ...
 				# unlink early
 				exec rm $o.fifo
 			) &
-			(
-				case $s in
-				?*)	echo "$s"  ;;
-				esac
-				showenv $action
-				"$@"
-			) < /dev/null > $o.fifo 2>&1 &
-			$TEE -a $o < $o.fifo
-			wait $!  # obtain exit status from build
-			;;
-		*)	{
-				case $s in
-				?*)	echo "$s"  ;;
-				esac
-				showenv $action
-				"$@"
-			} < /dev/null > $o 2>&1
+			$TEE -a $o < $o.fifo &
+			tee_pid=$!
+			o=$o.fifo
 			;;
 		esac
+		{
+			case $s in
+			?*)	echo "$s"  ;;
+			esac
+			showenv $action
+			"$@"
+		} < /dev/null > $o 2>&1
 		;;
 	*)	$make "$@"
 		;;
@@ -4035,49 +2841,11 @@ capture() # file command ...
 	if	test "$exit_status" -gt "$error_status"
 	then	error_status=$exit_status
 	fi
-}
-
-package_install() # dest sum
-{
-	dest=$1 sum=$2
-	ot=
-	code=0
-	sed -e '/ /!d' -e 's,[^ ]* ,,' -e 's, \(arch/[^/]*\)/, \1 ,' -e '/ arch\//!s,^[^ ]* [^ ]* [^ ]*,& .,' -e 's,/\([^ /]*\)$, \1,' $sum |
-	while	read mode user group arch dir file
-	do	case $flat:$arch in
-		1:*|?:.)t=$dest/$dir ;;
-		*)	t=$dest/$arch/$dir ;;
-		esac
-		case $t in
-		$ot)	;;
-		*)	if	test ! -d "$t"
-			then	$exec mkdir -p "$t" || exit
-			fi
-			ot=$t
-			;;
-		esac
-		case $file in
-		?*)	case $arch in
-			.)	f=$dir/$file ;;
-			*)	f=$arch/$dir/$file ;;
-			esac
-			if	test -f "$f"
-			then	t=$t/$file
-				case $quiet in
-				0)	echo "$t" ;;
-				esac
-				$exec cp -f "$f" "$t" || code=1
-				$exec chmod $mode "$t" || code=1
-			fi
-			;;
-		esac
-	done
-	return $code
-}
-
-package_verify() # sum
-{
-	$exec $SUM -cp $1
+	case $tee_pid in
+	?*)	# allow 'tee' to catch up before returning to prompt
+		wait "$tee_pid"
+		;;
+	esac
 }
 
 make_recurse() # dir
@@ -4089,310 +2857,14 @@ make_recurse() # dir
 	done
 }
 
-get() # host path [ file size ]
-{
-	case $HURL in
-	'')	HURL=.
-		for i in wget lynx curl
-		do	if	onpath $i
-			then	HURL=$i
-				break;
-			fi
-		done
-		AUTHORIZE="User-Agent: package AT&T Research\\r\\n"
-		case $HURL:$authorize in
-		.:?*)	AUTHORIZE="${AUTHORIZE}Authorization: Basic `print -n -r -- $authorize:$password | uuencode -h -x base64`\\r\\n" ;;
-		esac
-		;;
-	esac
-	getfd=8
-	case $3 in
-	'')	case $HURL in
-		.)	host=$1
-			path=$2
-			while	:
-			do	eval "exec $getfd<> /dev/tcp/$host/80" || exit
-				case $path in
-				/*)	;;
-				*)	path=/$path ;;
-				esac
-				print "GET $path HTTP/1.0\\r\\nHost: $host\\r\\n$AUTHORIZE\\r" >&$getfd
-				cat <&8 > get.tmp
-				got=`sed -e 1q get.tmp`
-				case $got in
-				*" "200" "*)
-					got=`sed -e '1,/^.$/d' -e '/^[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWYZ]/!d' get.tmp`
-					: > get.err
-					code=0
-					break
-					;;
-				*" "30[123]" "*)
-					got=`sed -e '/^Location: /!d' -e 's,^Location: \(.*\)://\([^/]*\)\(/.*\),prot='\''\1'\'' host='\''\2'\'' path='\''\3'\'',' get.tmp`
-					case $got in
-					'')	rm get.tmp
-						echo "$command: $action: $url: redirect error" >&2
-						exit 1
-						;;
-					esac
-					eval $got
-					;;
-				*)	rm get.tmp
-					echo "$command: $action: $url: $got" >&2
-					echo '' "$got" > get.err
-					code=1
-					break
-					;;
-				esac
-			done
-			;;
-		curl)	case $authorize in
-			'')	curl -s -L -o get.tmp http://$1/$2 2> get.err; code=$? ;;
-			*)	curl -s -L -o get.tmp -u "$authorize":"$password" http://$1/$2 2> get.err; code=$? ;;
-			esac
-			got=`grep '^[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWYZ]' get.tmp 2>/dev/null`
-			case $code in
-			0)	if	grep '^<H1>Authorization Required</H1>' get.tmp > get.err
-				then	code=1
-				fi
-				;;
-			esac
-			;;
-		hurl)	case $authorize in
-			'')	hurl http://$1/$2 > get.tmp 2> get.err; code=$? ;;
-			*)	hurl -a "$authorize":"$password" http://$1/$2 > get.tmp 2> get.err; code=$? ;;
-			esac
-			got=`grep '^[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWYZ]' get.tmp`
-			;;
-		lynx)	case $authorize in
-			'')	lynx -source http://$1/$2 > get.tmp 2> get.err; code=$? ;;
-			*)	lynx -source -auth "$authorize":"$password" http://$1/$2 > get.tmp 2> get.err; code=$? ;;
-			esac
-			got=`grep '^[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWYZ]' get.tmp`
-			;;
-		wget)	wget -nv -O get.tmp ${authorize:+--http-user="$authorize"} ${password:+--http-passwd="$password"} http://$1/$2 2> get.err
-			code=$?
-			got=`grep '^[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWYZ]' get.tmp 2>/dev/null`
-			;;
-		*)	echo $command: $action: $HURL: url get command not found >&2
-			exit 1
-			;;
-		esac
-		if	test 0 != "$code"
-		then	case `cat get.err get.tmp 2>/dev/null` in
-			*[Aa][Uu][Tt][Hh][Oo][Rr][Ii][SsZz]*|*[Dd][Ee][Nn][Ii][Ee][Dd]*)
-				echo $command: $action: authorization required -- see $url for license acceptance authorization name and password >&2
-				;;
-			*)	cat get.err
-				;;
-			esac
-			rm -f get.tmp get.err
-			echo $command: $action: $2: download failed >&2
-			exit 1
-		fi
-		rm -f get.tmp get.err
-		;;
-	*)	case $exec in
-		'')	echo "$3 ($4 bytes):" >&2
-			case $HURL in
-			.)	eval "exec $getfd<> /dev/tcp/$1/80" || exit
-				path=$2/$3
-				case $path in
-				/*)	;;
-				*)	path=/$path ;;
-				esac
-				print "GET $path HTTP/1.0\\r\\nHost: $host\\r\\n$AUTHORIZE\\r" >&$getfd
-				read got <&$getfd
-				case $got in
-				*" 200 "*)
-					code=0
-					: > get.err
-					;;
-				*)	echo '' "$got" > get.err
-					code=1
-					;;
-				esac
-				while	read got <&$getfd
-				do	case $got in
-					''|?)	break ;;
-					esac
-				done
-				cat <&$getfd > get.tmp
-				;;
-			curl)	case $authorize in
-				'')	curl -s -L -o get.tmp http://$1/$2/$3 2> get.err; code=$? ;;
-				*)	curl -s -L -o get.tmp -u "$authorize":"$password" http://$1/$2/$3 2> get.err; code=$?
-				esac
-				case $code in
-				0)	if	grep '^<H1>Authorization Required</H1>' get.tmp > get.err
-					then	code=1
-					fi
-					;;
-				esac
-				;;
-			hurl)	case $authorize in
-				'')	ksh -x hurl http://$1/$2/$3 > get.tmp 2> get.err; code=$? ;;
-				*)	ksh -x hurl -a "$authorize":"$password" http://$1/$2/$3 > get.tmp 2> get.err; code=$? ;;
-				esac
-				;;
-			lynx)	case $authorize in
-				'')	lynx -source http://$1/$2/$3 > get.tmp 2> get.err; code=$? ;;
-				*)	lynx -source -auth "$authorize":"$password" http://$1/$2/$3 > get.tmp 2> get.err; code=$? ;;
-				esac
-				;;
-			wget)	wget -nv -O get.tmp ${authorize:+--http-user="$authorize"} ${password:+--http-passwd="$password"} http://$1/$2/$3 2> get.err
-				code=$?
-				;;
-			*)	echo $command: $action: $HURL: url get command not found >&2
-				exit 1
-				;;
-			esac
-			if	test 0 != "$code"
-			then	case `cat get.err get.tmp` in
-				*[Aa][Uu][Tt][Hh][Oo][Rr][Ii][SsZz]*|*[Dd][Ee][Nn][Ii][Ee][Dd]*)
-					echo $command: $action: authorization required -- see $url for license acceptance authorization name and password >&2
-					;;
-				*)	cat get.err
-					;;
-				esac
-				rm get.tmp get.err
-				echo $command: $action: $3: download failed >&2
-				exit 1
-			fi
-			rm get.err
-			case $checksum:$5 in
-			:*|*:-)	z=`wc -c < get.tmp`
-				case " $z " in
-				*" $4 "*)
-					;;
-				*)	rm -f get.tmp
-					echo $command: $3: download error: expected $4 bytes, got $z >&2
-					exit 1
-					;;
-				esac
-				;;
-			*)	z=`$checksum < get.tmp | sed -e 's,^[ 	][ 	]*,,' -e 's,[ 	].*,,'`
-				case " $z " in
-				*" $5 "*)
-					;;
-				*)	rm -f get.tmp
-					echo $command: $3: download $checksum error: expected $5, got $z >&2
-					exit 1
-					;;
-				esac
-				;;
-			esac
-			mv get.tmp $3 || exit
-			;;
-		*)	echo "$3 ($4 bytes)" >&2
-			;;
-		esac
-	esac
-}
-
-# generate copyright notice
-
-copyright()
-{
-	if	test -f $1.lic
-	then	echo $1 package general copyright notice
-		echo
-		proto -c'#' -p -s -l $1.lic -o type=verbose,author='*' /dev/null
-		return 0
-	fi
-	case $1 in
-	*-*)	eval `echo '' $1 | sed 's/\([^-]*\)-\(.*\)/__j__="\1" __i__="\2"/'`
-		if	copyright $__i__ || copyright $__j__
-		then	return 0
-		fi
-		;;
-	esac
-	return 1
-}
-
-# run remote make on host
-
-remote() # host no-exec-background
-{
-	host=$1
-	background=$2
-	eval name=\$${host}_name user=\$${host}_user snarf=\$${host}_snarf type=\$${host}_type rsh=\$${host}_rsh root=\$${host}_root keep=\$${host}_keep log=\$${host}_log
-	case $keep in
-	1*)	;;
-	*)	return ;;
-	esac
-	case $host in
-	$main)	;;
-	*)	case $exec in
-		'')	exec > $admin_log/$log 2>&1 ;;
-		*)	echo "exec > $admin_log/$log 2>&1" ;;
-		esac
-		;;
-	esac
-	if	$admin_ping $name >/dev/null 2>&1 || $admin_ping $name >/dev/null 2>&1
-	then	cmd=". ./.profile"
-		case $root in
-		.)	root=
-			;;
-		*)	cmd="$cmd && cd $root"
-			root=$root/
-			;;
-		esac
-		cmd="$cmd && { test -f lib/package/admin/$admin_env && . ./lib/package/admin/$admin_env || true ;} && PATH=\${PWD:-\`pwd\`}/bin:\$PATH \${SHELL:-/bin/sh} -c 'package $admin_args PACKAGEROOT=\${PWD:-\`pwd\`} HOSTTYPE=$type VPATH='"
-		case $admin_binary in
-		'')	snarf= ;;
-		esac
-		case $snarf in
-		'')	$exec $rsh $user$name "$cmd" $background
-			;;
-		*?)	rcp=`echo $rsh | sed 's/\(.\).*/\1/'`cp
-			case $background in
-			?*)	$exec "{" ;;
-			esac
-			$exec $rsh $user$name "$cmd"
-			eval lst=$admin_list
-			case $admin_pkgs in
-			'')	filter=cat ;;
-			*)	filter="egrep lib/package/tgz/($admin_pkgs)\\." ;;
-			esac
-			if	$exec $rcp $user$name:${root}lib/package/tgz/$lst $PACKAGESRC/tgz
-			then	$exec $rcp `$filter $PACKAGESRC/tgz/$lst | sed "s,^,$user$name:,"` $PACKAGESRC/tgz
-			else	echo "$command: $user$name:${root}lib/package/tgz/$lst: not found" >&2
-			fi
-			case $background in
-			?*)	$exec "} $background" ;;
-			esac
-			;;
-		esac
-	else	echo "$command: $name: down" >&2
-	fi
-}
-
-# update package_src
-
-checksrc()
-{
-	case $package_src in
-	'')	package_src=$src
-		for _i_ in `cd $PACKAGESRC; ls *.def *.lic *.pkg 2>/dev/null | sed 's/[-.].*//'`
-		do	case " $package_src " in
-			*" $_i_ "*)
-				;;
-			*)	package_src="$package_src $_i_"
-				;;
-			esac
-		done
-		;;
-	esac
-}
-
-# check for native ascii 0:yes 1:no
+# check for native ASCII 0:yes 1:no
 
 __isascii__=
 
 isascii()
 {
 	case $__isascii__ in
-	'')	case `echo A | od -o | sed -e 's/[ 	]*$//' -e '/[ 	]/!d' -e 's/.*[ 	]//'` in
+	'')	case $(echo A | od -o | sed -e 's/[ 	]*$//' -e '/[ 	]/!d' -e 's/.*[ 	]//') in
 		005101|040412)	__isascii__=0 ;;
 		*)		__isascii__=1 ;;
 		esac
@@ -4404,866 +2876,10 @@ error_status=0
 
 case $action in
 
-admin)	while	test ! -f $admin_db
-	do	case $admin_db in
-		/*)	echo $command: $action: $admin_db: data file not found >&2
-			exit 1
-			;;
-		esac
-		view file src lib/package/admin/$admin_db || exit 1
-		admin_db=$_view_
-	done
-	admin_components=
-	case $admin_action in
-	list)	cat $admin_db
-		exit
-		;;
-	test)	set $admin_args
-		while	:
-		do	case $# in
-			1)	break ;;
-			esac
-			shift
-			case $1 in
-			*=*)	;;
-			*)	admin_components=-$1
-				break
-				;;
-			esac
-		done
-		;;
-	esac
-	: all work done in $PACKAGESRC/admin
-	cd $PACKAGESRC/admin || exit
-	checksrc
-	packages=
-	admin_log=${admin_action}${admin_components}.log
-	exec < $admin_db || exit
-	test -d $admin_log || $exec mkdir $admin_log || exit
-	case $admin_on in
-	'')	admin_on="*" ;;
-	esac
-	hostname=
-	hosts=
-	logs=
-	local_hosts=
-	local_types=
-	pids=
-	remote_hosts=
-	sync_hosts=
-	admin_host=_admin_host_
-	admin_out=
-	case " $admin_args " in
-	*" write binary "*|*" write "*" binary "*)
-		admin_binary=1
-		;;
-	*)	admin_binary=
-		;;
-	esac
-	case $only in
-	1)	admin_args="only $admin_args" ;;
-	esac
-	trap 'kill $pids >/dev/null 2>&1' 1 2 3 15
-	index=0
-	while	read type host root date time make test write owner attributes
-	do	case $type in
-		''|'#'*);;
-		*=*)	eval "$type $host $root $date $time $make $test $write $owner $attributes"
-			;;
-		*)	case $admin_action in
-			make|test|write)
-				eval f='$'$admin_action
-				case $f in
-				*[!0123456789]*)	continue ;;
-				esac
-				;;
-			esac
-			rsh=rsh
-			case $host in
-			*@*)	IFS=@
-				set '' $host
-				IFS=$ifs
-				user=${2}@
-				host=$3
-				;;
-			*)	user=
-				;;
-			esac
-			: type=$type host=$host root=$root date=$date time=$time make=$make test=$test write=$write :
-			name=$host
-			host=`echo $name | sed 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789],__,g'`
-			eval x='$'${host}_index
-			eval ${host}_index=1
-			case $x in
-			1)	i=0
-				while	:
-				do	case $i in
-					$index)	h=''
-						break
-						;;
-					esac
-					i=`expr $i + 1`
-					eval h='$'${admin_host}${i}_name
-					case $h in
-					$host)	host=${admin_host}${i}
-						eval user='$'${host}_user root='$'${host}_rsh:$host:'$'${host}_root
-						break
-						;;
-					esac
-				done
-				;;
-			esac
-			case $root in
-			*:$name:*)root=`echo '' $root | sed 's,:.*,:,'` ;;
-			esac
-			case $root in
-			*:*:*)	index=`expr $index + 1`
-				host=${admin_host}$index
-				;;
-			*:*)	case " $sync_hosts " in
-				*" $name ${admin_host}"*)
-					set '' '' $sync_hosts
-					while	:
-					do	shift
-						shift
-						case $1 in
-						$name)	host=$2
-							break
-							;;
-						esac
-					done
-					;;
-				*)	index=`expr $index + 1`
-					host=${admin_host}$index
-					sync_hosts="$sync_hosts $name $host"
-					;;
-				esac
-				;;
-			*)	index=`expr $index + 1`
-				host=${admin_host}$index
-				;;
-			esac
-			case $root in
-			-*)	continue
-				;;
-			*:*)	case $admin_all in
-				0)	continue ;;
-				esac
-				case $root in
-				*:)	root=${root}. ;;
-				esac
-				IFS=:
-				set '' $root
-				IFS=$ifs
-				sync=$host
-				case $hostname in
-				'')	hostinfo name
-					hostname=$_hostinfo_
-					;;
-				esac
-				shift
-				case $# in
-				0)	;;
-				1)	root=$1
-					;;
-				2)	rsh=$1 root=$2
-					;;
-				*)	rsh=$1 sync=$2 root=$3
-					case $sync in
-					${admin_host}*)
-						;;
-					?*)	case " $sync_hosts " in
-						*" $sync ${admin_host}"*)
-							set '' '' $sync_hosts
-							while	:
-							do	shift
-								shift
-								case $1 in
-								$sync)	sync=$2
-									break
-									;;
-								esac
-							done
-							;;
-						*)	index=`expr $index + 1`
-							x=${admin_host}$index
-							sync_hosts="$sync_hosts $sync $x"
-							sync=$x
-							;;
-						esac
-						;;
-					esac
-					;;
-				esac
-				;;
-			*)	sync=
-				;;
-			esac
-			case $name in
-			$admin_on)
-				keep=1
-				;;
-			*)	case " $admin_on " in
-				*" $name "*)	keep=1 ;;
-				*)		keep=0 ;;
-				esac
-				;;
-			esac
-			case " $admin_out " in
-			*" $name "*)
-				log=$name.$type
-				;;
-			*)	admin_out="$admin_out $name"
-				log=$name
-				;;
-			esac
-			case $sync in
-			'')	local_types="$local_types $type" ;;
-			esac
-			case $sync in
-			$host)	remote_hosts="$remote_hosts $host"
-				;;
-			?*)	eval ${sync}_share=\"\$${sync}_share $host\"
-				;;
-			'')	local_hosts="$local_hosts $host"
-				;;
-			esac
-			eval ${host}_name='$'name ${host}_type='$'type ${host}_user='$'user ${host}_sync='$'sync ${host}_snarf='$'sync ${host}_rsh='$'rsh ${host}_root='$'root ${host}_keep='$'keep ${host}_log='$'log
-			;;
-		esac
-	done
-	p=
-	for i in $admin_args
-	do	p="$i $p"
-	done
-	admin_pkgs=
-	for i in $p
-	do	if	view - src "lib/package/$i.pkg"
-		then	case $admin_pkgs in
-			'')	admin_pkgs="$i" ;;
-			*)	admin_pkgs="$admin_pkgs|$i" ;;
-			esac
-		fi
-	done
-	: "admin_binary :" $admin_binary
-	: "admin_args   :" $admin_args
-	: "admin_pkgs   :" $admin_pkgs
-	: "admin_on     :" "$admin_on"
-	: "local_hosts  :" $local_hosts
-	: "local_types  :" $local_types
-	: "remote_hosts :" $remote_hosts
-	: "sync_hosts   :" $sync_hosts
-	: "sync_share   :" $sync_share
-	case $admin_binary in
-	1)	admin_bin_types=
-		admin_bin_main=
-		for main in $local_hosts $remote_hosts
-		do	eval share=\$${main}_share keep=\$${main}_keep
-			case $keep in
-			0*)	continue ;;
-			esac
-			for host in $main $share
-			do	case " $admin_bin_hosts " in
-				*" $host "*)
-					continue
-					;;
-				esac
-				eval type=\$${host}_type
-				case " $admin_bin_types " in
-				*" $type "*)
-					continue
-					;;
-				esac
-				case " $types " in
-				"  ")	;;
-				*" $type "*)
-					;;
-				*)	continue
-					;;
-				esac
-				admin_bin_hosts="$admin_bin_hosts $host"
-				admin_bin_types="$admin_bin_types $type"
-				case " $admin_bin_hosts " in
-				*" $main "*)
-					;;
-				*)	case " $admin_bin_main " in
-					*" $main "*)
-						;;
-					*)	admin_bin_main="$admin_bin_main $main"
-						;;
-					esac
-					;;
-				esac
-			done
-		done
-		local=
-		remote=
-		for host in $admin_bin_main $admin_bin_hosts
-		do	case " $local_hosts " in
-			*" $host "*)
-				local="$local $host"
-				;;
-			*)	case " $remote_hosts " in
-				*" $host "*)
-					remote="$remote $host"
-					;;
-				esac
-				;;
-			esac
-		done
-		local_hosts=$local
-		remote_hosts=$remote
-		;;
-	esac
-	for host in $remote_hosts $local_hosts
-	do	eval share=\$${host}_share
-		case $share in
-		?*)	while	:
-			do	oshare=$share
-				for s in $share
-				do	eval r='$'${s}_share
-					case $r in
-					?*)	case " $share " in
-						*" $r "*)	;;
-						*)		share="$share $r" ;;
-						esac
-						;;
-					esac
-				done
-				case $share in
-				$oshare)	eval ${host}_share="'$share'"
-						break
-						;;
-				esac
-			done
-			;;
-		esac
-	done
-	for host in $remote_hosts
-	do	eval type=\$${host}_type
-		case " $local_types " in
-		*" $type "*)
-			eval ${host}_snarf=
-			;;
-		esac
-		eval name=\$${host}_name keep=\$${host}_keep share=\$${host}_share
-		for share in $share
-		do	eval type=\$${share}_type keep=\$keep\$${share}_keep
-			case " $local_types " in
-			*" $type "*)
-				eval ${share}_snarf=
-				;;
-			esac
-		done
-		case $keep in
-		0*1*)	keep=2$keep ;;
-		*1*)	;;
-		*)	keep=0 ;;
-		esac
-		eval ${host}_keep=$keep
-	done
-	for host in $remote_hosts $local_hosts
-	do	eval name=\$${host}_name user=\$${host}_user type=\$${host}_type sync=\$${host}_sync snarf=\$${host}_snarf share=\$${host}_share rsh=\$${host}_rsh root=\$${host}_root keep=\$${host}_keep
-		case $keep in
-		0*)	continue ;;
-		esac
-		case $sync in
-		'')	case $admin_action in
-			ditto)	continue ;;
-			esac
-			case $admin_binary in
-			1)	case $keep in
-				1*|?*1*);;
-				*)	continue ;;
-				esac
-				;;
-			esac
-			;;
-		esac
-		eval main_log='$'${host}_log
-		main=
-		share_keep=
-		for i in $host $share
-		do	eval n='$'${i}_name t='$'${i}_type q='$'${i}_sync s='$'${i}_snarf l='$'${i}_log k='$'${i}_keep
-			case $main:$k in
-			:*)	;;
-			*:0)	continue ;;
-			esac
-			case $admin_binary in
-			1)	case $s:$q in
-				:?*)	continue ;;
-				esac
-				case " $admin_bin_hosts " in
-				*" $i "*)
-					;;
-				*)	continue
-					;;
-				esac
-				;;
-			esac
-			case $main in
-			'')	main=$i ;;
-			*)	share_keep="$share_keep $i" ;;
-			esac
-			echo package "$admin_args" "[ $n $t ]"
-			case $exec in
-			'')	: > $admin_log/$l ;;
-			*)	$exec ": > $admin_log/$l" ;;
-			esac
-		done
-		host=$main
-		share=$share_keep
-		case $force in
-		0)	admin_ditto_update=--update ;;
-		*)	admin_ditto_update= ;;
-		esac
-		case $exec in
-		'')	{
-			case $admin_binary:$sync in
-			:?*)	eval syncname='$'${sync}_name
-				test -x $PACKAGEROOT/bin/package && $admin_ditto $admin_ditto_update --remote=$rsh --expr="name=='package'" $PACKAGEROOT/bin $user$syncname:$root/bin
-				test -d $PACKAGESRC && $admin_ditto $admin_ditto_update --remote=$rsh --expr="if(level>1&&path!='LICENSES/*')status=SKIP;path=='LICENSES*|*.(pkg|lic|def)'" $PACKAGESRC $user$syncname:$root/lib/package
-				for dir in $package_src
-				do	case $MAKESKIP in
-					'')	expr="--expr=if(name=='$admin_ditto_skip')status=SKIP" ;;
-					*)	expr="--expr=if(name=='$admin_ditto_skip'||level==1&&name=='$MAKESKIP')status=SKIP" ;;
-					esac
-					test -d $PACKAGEROOT/src/$dir && $admin_ditto $admin_ditto_update --remote=$rsh "$expr" $PACKAGEROOT/src/$dir $user$syncname:$root/src/$dir
-				done
-				;;
-			esac
-			case $admin_action in
-			ditto)	;;
-			?*)	pids=
-				set '' $host $share
-				while	:
-				do	shift
-					case $# in
-					0)	break
-						;;
-					1)	remote $1
-						;;
-					*)	remote $1 &
-						pids="$pids $!"
-						;;
-					esac
-				done
-				case $pids in
-				?*)	wait $pids ;;
-				esac
-				;;
-			esac
-			} < /dev/null > $admin_log/$main_log 2>&1 &
-			pids="$pids $!"
-			;;
-		*)	echo "{"
-			case $admin_binary:$sync in
-			:?*)	eval syncname='$'${sync}_name
-				test -d $PACKAGESRC && echo $admin_ditto $admin_ditto_update --remote=$rsh --expr="if(level>1)status=SKIP;name=='*.(pkg|lic|def)'" $PACKAGESRC $user$syncname:$root/lib/package
-				for dir in $package_src
-				do	case $MAKESKIP in
-					'')	expr="--expr=if(name=='$admin_ditto_skip')status=SKIP" ;;
-					*)	expr="--expr=if(name=='$admin_ditto_skip'||level==1&&name=='$MAKESKIP')status=SKIP" ;;
-					esac
-					test -d $PACKAGEROOT/src/$dir && echo $admin_ditto $admin_ditto_update --remote=$rsh "$expr" $PACKAGEROOT/src/$dir $user$syncname:$root/src/$dir
-				done
-				;;
-			esac
-			case $admin_action in
-			ditto)	;;
-			?*)	pids=
-				set '' $host $share
-				while	:
-				do	shift
-					case $# in
-					0)	break
-						;;
-					1)	remote $1
-						;;
-					*)	remote $1 "&"
-						pids=1
-						;;
-					esac
-				done
-				case $pids in
-				1)	echo wait ;;
-				esac
-				;;
-			esac
-			echo "} < /dev/null > $admin_log/$main_log 2>&1 &"
-			;;
-		esac
-		eval name='$'${main}_name
-		hosts="$hosts $name"
-		logs="$logs $main_log"
-		for share in $share
-		do	eval keep=\$${share}_keep
-			case $keep in
-			1)	eval name='$'${share}_name log='$'${share}_log
-				hosts="$hosts $name"
-				logs="$logs $log"
-				;;
-			esac
-		done
-	done
-	case $exec in
-	'')	# track the progress
-		case $quiet in
-		0)	cd $admin_log
-			tail -t $PACKAGE_admin_tail_timeout -f $logs
-			cd ..
-			;;
-		esac
-		# wait for the remote actions to complete
-		wait
-		trap - 1 2 3 15
-		# update the db
-		exec < $admin_db || exit
-		exec 9>&1
-		D=`date +%y%m%d`
-		while	read line
-		do	set -- $line
-			case $1 in
-			''|'#'*|*=*)
-				;;
-			*)	case " $hosts " in
-				*" $2 "*)
-					: ast date command assumed :
-					E=`eval date -E \`egrep '[ 	](start|done)[ 	][ 	]*at[ 	]' $admin_log/$2 | sed -e 's/.*[ 	][ 	]*at[ 	][ 	]*//' -e 's/[ 	][ 	]*in[ 	].*$//' -e 's/.*/"&"/'\``
-					M=$6 T=$7 W=$8
-					case $admin_action in
-					make|view)
-						M=`egrep -c ']:.* (\*\*\*.* code|don'\''t know) | \*\*\* termination code ' $admin_log/$2` ;;
-					test)	T=`grep -ci 'fail[es]' $admin_log/$2` ;;
-					*)	W=`grep '^[abcdefghijklmnopqrstuvwxyz][abcdefghijklmnopqrstuvwxyz]*:.' $admin_log/$2 | egrep -cv 'start at|done  at|output captured|warning:|: package not found|whence: command not found'` ;;
-					esac
-					case $1 in
-					?|??|???|????|?????|??????|???????)
-						t1='		'
-						;;
-					????????|?????????|??????????|???????????|????????????|?????????????|??????????????|???????????????)
-						t1='	'
-						;;
-					*)	t1=''
-						;;
-					esac
-					case $2 in
-					?|??|???|????|?????|??????|???????)
-						t2='	'
-						;;
-					*)	t2=''
-						;;
-					esac
-					case $3 in
-					?|??|???|????|?????|??????|???????)
-						t3='	'
-						;;
-					*)	t3=''
-						;;
-					esac
-					case $E in
-					?????)	E=" $E" ;;
-					????)	E="  $E" ;;
-					???)	E="   $E" ;;
-					??)	E="    $E" ;;
-					?)	E="     $E" ;;
-					esac
-					case $M in
-					???)	M="$M" ;;
-					??)	M=" $M" ;;
-					?)	M="  $M" ;;
-					'')	M="  0" ;;
-					esac
-					case $T in
-					???)	T="$T" ;;
-					??)	T=" $T" ;;
-					?)	T="  $T" ;;
-					'')	T="  0" ;;
-					esac
-					case $W in
-					???)	W="$W" ;;
-					??)	W=" $W" ;;
-					?)	W="  $W" ;;
-					'')	W="  0" ;;
-					esac
-					A=$1$t1
-					H=$2$t2
-					R=$3$t3
-					case $# in
-					[0-8])	O=
-						K=
-						;;
-					*)	shift 8
-						O=$1
-						K=$2
-						case $O in
-						''|?|??|???)	K="	$K" ;;
-						esac
-						case $# in
-						[0-2])	;;
-						*)	K="$K $*" ;;
-						esac
-						;;
-					esac
-					echo "$A	$H	$R	$D	$E	$M $T $W $O	$K"
-					echo "$A	$H	$R	$D	$E	$M $T $W $O	$K" >&9
-					continue
-					;;
-				esac
-				;;
-			esac
-			echo "$line"
-		done > $admin_db.new
-		mv $admin_db $admin_db.old
-		mv $admin_db.new $admin_db
-		;;
-	esac
-	;;
-
 clean|clobber)
 	cd $PACKAGEROOT
 	$exec rm -rf arch/$HOSTTYPE
-	if	test "$flat" = 1
-	then	$exec rm -rf \
-			bin/.paths \
-			bin/ar \
-			bin/cc \
-			bin/crossexec \
-			bin/ditto \
-			bin/filter \
-			bin/hurl \
-			bin/iffe \
-			bin/ksh \
-			bin/mamake \
-			bin/mktest \
-			bin/ok/ \
-			bin/proto \
-			bin/pty \
-			bin/ratz \
-			bin/regress \
-			bin/release \
-			bin/rt \
-			bin/shcomp \
-			bin/suid_exec \
-			bin/*.old \
-			fun/ \
-			include/ \
-			lib/file/ \
-			lib/lib/ \
-			lib/libast.a \
-			lib/libcmd.a \
-			lib/libdll.a \
-			lib/libshell.a \
-			lib/libsum.a \
-			lib/*.old \
-			lib/make/ \
-			lib/package/gen/ \
-			lib/probe/ \
-			man/
-	fi
 	exit
-	;;
-
-contents|list)
-	# all work in $PACKAGESRC
-
-	cd $PACKAGESRC
-
-	# generate the package list
-
-	set '' $target $package
-	shift
-	argc=$#
-	case $# in
-	0)	set '' *.pkg
-		case $2 in
-		'*.pkg')
-			echo $command: $action: no packages >&2
-			exit 1
-			;;
-		esac
-		set '' `echo $* | sed 's,\.pkg,,g'`
-		shift
-		;;
-	esac
-	sep="$nl    "
-	echo packages in $PACKAGEROOT
-	case $action in
-	list)	echo
-		echo "NAME${nl}VERSION${nl}RELEASE${nl}TYPE${nl}STATUS${nl}REQUIRES${nl}----${nl}-------${nl}-------${nl}----${nl}------${nl}--------" | pr -6 -a -o4 -t
-		;;
-	esac
-	{
-	omit=:
-	for pkg
-	do	if	test ! -f $pkg.pkg
-		then	echo $command: $action: $pkg: not a package >&2
-		else	if	test -f gen/$pkg.ver
-			then	set '' `cat gen/$pkg.ver`
-				case $3 in
-				$2)	ver=base ;;
-				*)	ver=$3 ;;
-				esac
-				if	test -s tgz/$pkg.tim
-				then	sts=local
-				else	sts=
-				fi
-			else	ver=
-				sts=unwritten
-			fi
-			typ=
-			txt=
-			cmp= cmp_sep=
-			req= req_sep=
-			op=::
-			exec < $pkg.pkg
-			while	read line
-			do	IFS=' 	\\'
-				set '' $line
-				IFS=$ifs
-				while	:
-				do	shift
-					case $# in
-					0)	break ;;
-					esac
-					case $1 in
-					:*:)	op=$1
-						;;
-					INIT|'$('*|*')')
-						;;
-					*)	case $op in
-						:DESCRIPTION:)
-							txt="$txt$sep$line"
-							break
-							;;
-						:PACKAGE:)
-							cmp="$cmp$cmp_sep$1"
-							cmp_sep=$nl
-							;;
-						:REQUIRES:)
-							req="$req$req_sep$1"
-							req_sep=" "
-							;;
-						esac
-						;;
-					esac
-				done
-			done
-			exec < /dev/null
-			case $txt in
-			?*)	txt="$nl$txt" ;;
-			esac
-			case :$ver: in
-			*::*)	;;
-			*)	case $action in
-				list)	case $sts in
-					'')	case `ls -t "tgz/$pkg.$ver.base" "tgz/$pkg.tim" 2>/dev/null` in
-						"tgz/$pkg.tim"*)
-							sts=read
-							;;
-						*)	sts=unread
-							;;
-						esac
-						;;
-					esac
-					echo "$pkg${nl}$ver${nl}base${nl}$typ${nl}$sts${nl}$req"
-					case $typ in
-					'')	omit=$omit$pkg.$ver.base: ;;
-					esac
-					;;
-				*)	case $req in
-					?*)	req=": $req" ;;
-					esac
-					echo
-					echo $pkg $ver $req "$txt"
-					case $cmp in
-					?*)	echo "${sep}Components in this package:$nl"
-						echo "$cmp" | pr -4 -o4 -t ;;
-					esac
-					;;
-				esac
-				;;
-			esac
-		fi
-	done
-	case $argc:$action in
-	0:list)	if	test -d tgz
-		then	cd tgz
-			# f:file p:package v:version r:release t:type u:update
-			for f in `find . -name '*?[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789][_.]*' -print | sed 's,^\./,,' | sort -r`
-			do	eval `echo "$f" | sed -e 's,\.c$,,' -e 's,\.gz$,,' -e 's,\.exe$,,' -e 's,\.tgz$,,' -e 's,\([^_.]*\)[_.]\([0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]\)[_.]\([0123456789][0123456789][0123456789][0123456789][^_.]*\)[_.]*\(.*\),p=\1 v=\2 r=\3 t=\4,' -e 's,\([^_.]*\)[_.]\([0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]\)[_.]*\(.*\),p=\1 v=\2 r=base t=\3,'`
-				case $t in
-				'')	case $omit in
-					*:$p.$v.$r:*)	continue ;;
-					esac
-					u=$p.tim
-					;;
-				*)	u=$p.$t.tim
-					;;
-				esac
-				if	test -s "$u"
-				then	s=local
-				elif	test -f "$u"
-				then	case `ls -t "$f" "$u" 2>/dev/null` in
-					"$u"*)	s=read ;;
-					*)	s=unread ;;
-					esac
-				else	s=unread
-				fi
-				echo "$p$nl$v$nl$r$nl$t$nl$s$nl"
-			done
-		fi
-		;;
-	esac
-	} |
-	case $action in
-	list)	pr -6 -a -o4 -t | sort -u ;;
-	*)	cat ;;
-	esac
-	case $argc in
-	0)	if	test -d $PACKAGEROOT/arch
-		then	echo
-			echo architectures in $PACKAGEROOT
-			echo
-			for i in `ls $PACKAGEROOT/arch`
-			do	if	test -f $PACKAGEROOT/arch/$i/lib/package/gen/host
-				then	h=`cat $PACKAGEROOT/arch/$i/lib/package/gen/host`
-				else	h=
-				fi
-				echo $i
-				echo $h
-				echo
-				echo
-			done | pr -4 -a -o4 -t
-		fi
-		;;
-	esac
-	;;
-
-copyright)
-	# all work in $PACKAGESRC
-
-	cd $PACKAGESRC
-
-	# generate the package list
-
-	set '' $target $package
-	shift
-	argc=$#
-	case $# in
-	0)	set '' `echo *.lic | sed 's,\.lic,,g'`
-		shift
-		case $1 in
-		'*')	echo $command: $action: no packages >&2
-			exit 1
-			;;
-		esac
-		;;
-	esac
-	checkaout proto || exit
-	for i
-	do	copyright $i
-	done
 	;;
 
 export)	case $INSTALLROOT in
@@ -5290,199 +2906,13 @@ export)	case $INSTALLROOT in
 	;;
 
 install)cd $PACKAGEROOT
-	set '' $package
-	shift
-	case $only in
-	0)	set '' `order "$@"`
-		shift
-		;;
-	esac
-	case $# in
-	0)	echo "$command: at least one package name expected" >&2
-		exit 1
-		;;
-	esac
-	package=$*
-	requirements - $package
-	set '' $target
-	shift
-	case $1 in
-	flat)	flat=1 # backwards compatibility -- documentation dropped
-		shift
-		;;
-	esac
-	case $# in
-	0)	echo "$command: $action: target directory argument expected" >&2
-		exit 1
-		;;
-	esac
-	target=
-	while	:
-	do	case $# in
-		1)	directory=$1
-			break
-			;;
-		esac
-		target="$target $1"
-		shift
-	done
-	if	test ! -d $directory
-	then	echo "$command: $action: $directory: target directory not found" >&2
-		exit 1
-	fi
-	case $target in
-	'')	cd arch
-		set '' *
-		shift
-		target=$*
-		cd ..
-		;;
-	esac
-	code=0
-	makecheck=1
-	for a in $target
-	do	case $a in
-		-)	a=$HOSTTYPE ;;
-		esac
-		case $flat:$a in
-		1:*|?:.)dest=$directory
-			;;
-		*)	dest=$directory/arch/$a
-			if	test "" = "$exec" -a ! -d $dest
-			then	mkdir -p $dest || {
-					echo "$command: $dest: destination directory must exist" >&2
-					exit 1
-				}
-			fi
-			;;
-		esac
-		for i in $package
-		do	if	test "ratz" = "$i"
-			then	: skip
-			elif	test -f arch/$a/lib/package/gen/$i.sum
-			then	package_install $directory arch/$a/lib/package/gen/$i.sum || code=1
-			elif	test ! -d arch/$a/bin
-			then	echo "$command: $a: invalid architecture" >&2
-			elif	test ! -d $dest
-			then	echo "$command: $dest: destination directory must exist" >&2
-			else	if	test "" != "$makecheck"
-				then	if	onpath $MAKE
-					then	MAKE=$_onpath_
-					else	echo "$command: $MAKE: not found" >&2
-						exit 1
-					fi
-					makecheck=
-				fi
-				if	test "" != "$exec"
-				then	(
-						trap - 0 1 2 15
-						echo "=== $i installation manifest ==="
-						cd arch/$a
-						(
-						cd lib/package
-						INSTALLROOT=$PACKAGEROOT/arch/$a
-						VPATH=$INSTALLROOT:$PACKAGEROOT:$VPATH
-						export INSTALLROOT VPATH
-						$MAKE -s $makeflags -f $i.pkg $qualifier list.installed $assign
-						) | sort -u
-					)
-				else	(
-						set -
-						cd arch/$a
-						(
-						cd lib/package
-						INSTALLROOT=$PACKAGEROOT/arch/$a
-						VPATH=$INSTALLROOT:$PACKAGEROOT:$VPATH
-						export INSTALLROOT VPATH
-						echo lib/$command
-						$MAKE -s $makeflags -f $i.pkg $qualifier list.installed $assign
-						) | sort -u | pax -drw -ps $dest
-					)
-				fi
-			fi
-		done
-	done
-	exit $code
-	;;
-
-license)# all work in $PACKAGESRC/LICENSES
-
-	cd $PACKAGESRC/LICENSES || exit
-
-	# generate the package list
-
-	set '' $target $package
-	shift
-	argc=$#
-	case $# in
-	0)	set '' *
-		shift
-		case $1 in
-		'*')	echo $command: $action: no licenses >&2
-			exit 1
-			;;
-		esac
-		;;
-	*)	checkaout proto || exit
-		a=
-		for i
-		do	while	:
-			do	if	test -f ../$i.lic
-				then	j=`proto -df -l ../$i.lic -o query=type /dev/null 2>/dev/null`
-					case $j in
-					?*)	if	test -f $j
-						then	case " $a " in
-							*" $j "*)	;;
-							*)		a="$a $j" ;;
-							esac
-						fi
-						break
-						;;
-					esac
-				fi
-				case $i in
-				*-*)	i=`echo $i | sed 's/-[^-]*$//'`
-					;;
-				*)	echo "$command: $i: package license not found" >&2
-					break
-					;;
-				esac
-			done
-		done
-		set '' $a
-		shift
-		;;
-	esac
-	for i
-	do	case $exec in
-		'')	echo
-			echo "		--- $i source license ---"
-			echo
-			cat $i
-			;;
-		*)	echo $PACKAGESRC/LICENSES/$i
-			;;
-		esac
-	done
+	echo "A proper installation command is coming back soon, sorry." >&2
+	echo "Meanwhile, copy ksh and shcomp from: $INSTALLROOT/arch/$HOSTTYPE/bin" >&2
+	exit 1
 	;;
 
 make|view)
 	cd $PACKAGEROOT
-	case $package in
-	'')	lic="lib/package/*.lic"
-		;;
-	*) 	for i in $package
-		do	lic="$lic lib/package/$i.lic"
-			case $i in
-			*-*)	lic="$lic lib/package/"`echo $i | sed 's,-.*,,'`".lic" ;;
-			esac
-		done
-		;;
-	esac
-	checksrc
-	requirements source $package
-	components $package
-	package=$_components_
 
 	# check for some required commands
 
@@ -5559,12 +2989,12 @@ make|view)
 		k="$k$i"
 	done
 	o="( $o ) -print"
-	for d in $package_src
+	for d in $src
 	do	i=src/$d
 		if	test -d $i
 		then	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
 			make_recurse $i
-			for j in `cd $i; find . $o 2>/dev/null | sed -e 's,^\./,,' -e '/\//!d' -e 's,/[^/]*$,,' | sort -u`
+			for j in $(cd $i; find . $o 2>/dev/null | sed -e 's,^\./,,' -e '/\//!d' -e 's,/[^/]*$,,' | sort -u)
 			do	case $j in
 				$k|$MAKESKIP) continue ;;
 				esac
@@ -5573,34 +3003,12 @@ make|view)
 			done
 		fi
 	done
-	def=
-	for i in $lic
-	do	test -f $i || continue
-		cmp -s $i $INSTALLROOT/$i 2>/dev/null ||
-		$exec cp $PACKAGEROOT/$i $INSTALLROOT/$i
-		for j in `grep '^. .*\.def$' $i`
-		do	case $j in
-			.)	;;
-			*)	case " $def " in
-				*" $i "*)	;;
-				*)		def="$def $i" ;;
-				esac
-				;;
-			esac
-		done
-	done
-	for i in $def
-	do	i=lib/package/$i
-		test -f $i || continue
-		cmp -s $i $INSTALLROOT/$i 2>/dev/null ||
-		$exec cp $PACKAGEROOT/$i $INSTALLROOT/$i
-	done
 
 	# check $CC and { ar cc ld ldd } intercepts
 
 	h="${HOSTTYPE} ${HOSTTYPE}.*"
 	case $HOSTTYPE in
-	*.*)	t=`echo $HOSTTYPE | sed 's/[.][^.]*//'`
+	*.*)	t=$(echo $HOSTTYPE | sed 's/[.][^.]*//')
 		h="$h $t"
 		;;
 	*)	t=$HOSTTYPE
@@ -5608,7 +3016,7 @@ make|view)
 	esac
 	case $t in
 	*[0123456789])
-		t=`echo $t | sed 's/[0123456789]*$//'`
+		t=$(echo $t | sed 's/[0123456789]*$//')
 		h="$h $t"
 		;;
 	esac
@@ -5624,13 +3032,13 @@ make|view)
 				then	intercept=1
 					break 2
 				fi
-				case `ls -t "$t" "$b" "$s" 2>/dev/null` in
+				case $(ls -t "$t" "$b" "$s" 2>/dev/null) in
 				$t*)	;;
 				$b*)	cc=$b
 					;;
-				$s*)	cd $INSTALLROOT/lib/package/gen
+				$s*)	$exec cd $INSTALLROOT/lib/package/gen
 					tmp=pkg$$
-					eval '$'exec echo "'int main(){return 0;}' > $tmp.c"
+					$exec eval "echo 'int main(){return 0;}' > $tmp.c"
 					if	$exec $s -o $tmp.exe $tmp.c >/dev/null 2>&1 &&
 						test -x $tmp.exe
 					then	case $HOSTTYPE in
@@ -5659,7 +3067,7 @@ make|view)
 			for k in $h
 			do	for s in $INITROOT/$c.$k
 				do	test -x "$s" || continue
-					case `ls -t "$b" "$s" 2>/dev/null` in
+					case $(ls -t "$b" "$s" 2>/dev/null) in
 					$b*)	;;
 					$s*)	$exec cp "$s" "$b"
 						note update $b
@@ -5677,7 +3085,7 @@ make|view)
 	do	s=$INITROOT/$c.$t
 		test -x "$s" || continue
 		onpath $c ||
-		case `ls -t "$b" "$s" 2>/dev/null` in
+		case $(ls -t "$b" "$s" 2>/dev/null) in
 		$b*)	;;
 		$s*)	$exec cp "$s" "$b"
 			note update $b
@@ -5689,31 +3097,13 @@ make|view)
 	for t in $h
 	do	s=$INITROOT/$c.$t
 		test -x "$s" || continue
-		case `ls -t "$b" "$s" 2>/dev/null` in
+		case $(ls -t "$b" "$s" 2>/dev/null) in
 		$b*)	;;
 		$s*)	$exec cp "$s" "$b"
 			note update $b
 			;;
 		esac
 	done
-# following code stubbed out just in case ar.ibm.risc is needed
-#	c=ar
-#	b=$INSTALLROOT/bin/$c
-#	for t in $h
-#	do	s=$INITROOT/$c.$t
-#		test -x "$s" || continue
-#		onpath $c ||
-#		case `ls -t "$b" "$s" 2>/dev/null` in
-#		$b*)	;;
-#		$s*)	x=`$s -tv /foo/bar.a 2>&1 | egrep -i 'option|usage'`
-#			case $x in
-#			'')	$exec cp "$s" "$b"
-#				note update $b
-#				;;
-#			esac
-#			;;
-#		esac
-#	done
 	case $cc in
 	/*)	;;
 	*)	echo "$command: $CC: not found -- set CC=C-compiler" >&2
@@ -5746,7 +3136,7 @@ make|view)
 	case $CC in
 	cc)	;;
 	*)	if	test -x $INSTALLROOT/bin/cc
-		then	case `sed 1q $INSTALLROOT/bin/cc` in
+		then	case $(sed 1q $INSTALLROOT/bin/cc) in
 			": $CC :")
 				CC=cc
 				export CC
@@ -5787,7 +3177,7 @@ make|view)
 		i=$INSTALLROOT/lib/probe/C/make/probe
 		j=$INITROOT/C+probe
 		k=$INITROOT/make.probe
-		case `ls -t $i $j $k 2>/dev/null` in
+		case $(ls -t $i $j $k 2>/dev/null) in
 		$i*)	;;
 		*)	if	test -f $j -a -f $k
 			then	note update $i
@@ -5814,7 +3204,7 @@ cat $j $k
 
 	# initialize a few mamake related commands
 
-	checkaout mamake proto ratz release || exit
+	checkaout mamake proto ratz || exit
 
 	# execrate if necessary
 
@@ -5849,7 +3239,7 @@ cat $j $k
 	do	store=$INSTALLROOT/lib/package/gen/$var
 		eval "new=\$$var"
 		if	test -f $store
-		then	old=`cat $store`
+		then	old=$(cat $store)
 			case $old in
 			"$new")	;;
 			*)	case $old in
@@ -5863,7 +3253,7 @@ cat $j $k
 				echo "$command: $var changed from $old to $new" >&2
 				err=y ;;
 			esac
-		else	case $new in
+		else	test -d $INSTALLROOT/lib/package/gen && case $new in
 			'')	;;
 			*)	echo "$new" ;;
 			esac > $store
@@ -5882,7 +3272,7 @@ cat $j $k
 
 	# record the build host name
 
-	case $noexec in
+	case $exec in
 	'')	hostinfo name
 		echo "$_hostinfo_" | sed 's,\..*,,' > $PACKAGEBIN/gen/host
 		;;
@@ -6030,11 +3420,6 @@ cat $j $k
 				}
 			}
 		done
-		if	test -f ../lib/make/makerules.mo
-		then	cmp -s ../lib/make/makerules.mo $OK/lib/makerules.mo ||
-			$exec $execrate $cp -p ../lib/make/makerules.mo $OK/lib/makerules.mo ||
-			$exec $execrate $cp ../lib/make/makerules.mo $OK/lib/makerules.mo
-		fi
 		if	executable $OK/tee
 		then	TEE=$INSTALLROOT/bin/$OK/tee
 		fi
@@ -6062,507 +3447,6 @@ cat $j $k
 	eval capture mamake \$makeflags \$noexec \$target $assign
 	;;
 
-read)	case ${PWD:-`pwd`} in
-	$PACKAGEROOT)
-		;;
-	*)	echo "$command: must be in package root directory" >&2
-		exit 1
-		;;
-	esac
-	PAX=
-	if	onpath pax
-	then	case `$_onpath_ -rw --?meter 2>&1` in
-		*--meter*)	PAX=pax ;;
-		esac
-	fi
-	code=0
-	i=
-	x=
-	remove=
-	touch=
-	set '' $target
-	case $2 in
-	lcl|tgz)tgz=$2
-		shift 2
-		target=$*
-		;;
-	*)	tgz=tgz
-		;;
-	esac
-	set '' $package $target
-	case $# in
-	1)	verbose=:
-		set '' `ls lib/package/$tgz/*?[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789][_.]* 2>/dev/null`
-		;;
-	*)	verbose=
-		;;
-	esac
-	shift
-	files=
-	for f
-	do	if	test -f "$f"
-		then	: ok
-		elif	test -f "lib/package/$tgz/$f"
-		then	f=lib/package/$tgz/$f
-		else	set '' `ls -r ${f}[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789][_.]* 2>/dev/null`
-			if	test '' != "$2" -a -f "$2"
-			then	f=$2
-			else	set '' `ls -r lib/package/$tgz/${f}[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789][_.]* 2>/dev/null`
-				if	test '' != "$2" -a -f "$2"
-				then	f=$2
-				else	echo "$command: $f: package archive not found" >&2
-					continue
-				fi
-			fi
-		fi
-		files="$files $f"
-	done
-	case $files in
-	'')	echo "$command: lib/package/$tgz: no package archives" >&2
-		exit 1
-		;;
-	esac
-	set '' `ls -r $files 2>/dev/null`
-	shift
-	f1= f2= f3= f4=
-	for f
-	do	case $f in
-		ratz.*|*/ratz.*)
-			f1="$f1 $f"
-			;;
-		INIT.*|*/INIT.*)
-			f2="$f2 $f"
-			;;
-		INIT*|*/INIT*)
-			f3="$f3 $f"
-			;;
-		*)	f4="$f4 $f"
-			;;
-		esac
-	done
-	gen=
-	set '' $f1 $f2 $f3 $f4
-	while	:
-	do	shift
-		case $# in
-		0)	break ;;
-		esac
-		f=$1
-		case $f in
-		*.gz)	: standalone packages unbundled manually
-			continue
-			;;
-		*.md5)	: tarball checksum
-			continue
-			;;
-		*?[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789][_.]*)
-			;;
-		*)	echo "$command: $f: not a package archive" >&2
-			code=1
-			continue
-			;;
-		esac
-		case $f in
-		*/*)	eval `echo "$f" | sed -e 's,\(.*/\)\(.*\),d=\1 a=\2,'` ;;
-		*)	d= a=$f ;;
-		esac
-		# f:file d:dir a:base p:package v:version r:release t:type
-		eval `echo "$a" | sed -e 's,\.c$,,' -e 's,\.gz$,,' -e 's,\.exe$,,' -e 's,\.tgz$,,' -e 's,\([^_.]*\)[_.]\([0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]\)[_.]\([0123456789][0123456789][0123456789][0123456789][^_.]*\)[_.]*\(.*\),p=\1 v=\2 r=\3 t=\4,' -e 's,\([^_.]*\)[_.]\([0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]\)[_.]*\(.*\),p=\1 v=\2 r=base t=\3,'`
-		case $r in
-		base)	y=$p.base ;;
-		*)	y=$p.delta ;;
-		esac
-		case " $x " in
-		*" $y "*)
-			continue
-			;;
-		esac
-		case $t in
-		'')	w=$PACKAGESRC
-			q=
-			Q=
-			m=
-			;;
-		*)	w=$PACKAGEROOT/arch/$t/lib/package
-			q=".$t"
-			Q="_$t"
-			m="[_.]$t"
-			;;
-		esac
-		u=$d$p$q.tim
-		if	test -s "$u"
-		then	continue
-		else	case $force in
-			0)	case `ls -t "$f" "$u" 2>/dev/null` in
-				"$u"*)	case $verbose in
-					1)	note $p already read ;;
-					esac
-					continue
-					;;
-				esac
-				;;
-			esac
-		fi
-		case $p in
-		INIT)	if	test -f $PACKAGEROOT/bin/package
-			then	$exec mv $PACKAGEROOT/bin/package $PACKAGEROOT/bin/package.old
-			fi
-			;;
-		esac
-		z=
-		case $r in
-		base)	# base archive
-			if	test ratz = "$p"
-			then	# ratz packages are not archives
-				case $t in
-				'')	for i in src src/cmd src/cmd/INIT
-					do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
-					done
-					$exec cp $f $PACKAGEROOT/src/cmd/INIT/$p.c
-					;;
-				*)	for i in arch arch/$t arch/$t/bin
-					do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
-					done
-					$exec cp $f $PACKAGEROOT/arch/$t/bin/$p &&
-					$exec chmod +x $PACKAGEROOT/arch/$t/bin/$p
-					;;
-				esac
-			elif	test "" != "$PAX"
-			then	$exec pax -L --from=ascii --local -m -ps -rvf "$f" || {
-					code=1
-					continue
-				}
-			else	if	onpath gunzip && onpath $TAR && isascii
-				then	case $TARPROBE in
-					?*)	for i in $TARPROBE
-						do	if	$TAR ${i}f - /dev/null > /dev/null 2>&1
-							then	TARFLAGS=$TARFLAGS$i
-							fi
-						done
-						TARPROBE=
-						;;
-					esac
-					if	gunzip -l < "$f" > /dev/null 2>&1
-					then	case $exec in
-						'')	$exec gunzip < "$f" | $TAR ${TARFLAGS}f - ;;
-						*)	$exec "gunzip < $f | $TAR ${TARFLAGS}f -" ;;
-						esac || {
-							code=1
-							continue
-						}
-					else	$exec $TAR ${TARFLAGS}f "$f" || {
-							code=1
-							continue
-						}
-					fi
-				else	checkaout ratz && onpath ratz || {
-						code=1
-						continue
-					}
-					RATZ=$_onpath_
-					case $exec in
-					'')	echo $f:
-						$exec $RATZ -lm < "$f"
-						;;
-					*)	$exec "$RATZ -lm < $f"
-						;;
-					esac || {
-						code=1
-						continue
-					}
-				fi
-				if	test -f $PACKAGEBIN/gen/$p.sum
-				then	while	read md5 mode usr grp file
-					do	case $file in
-						-*)	file=./$file ;;
-						esac
-						case $mode in
-						[01234567][01234567][01234567][01234567])
-							case $grp in
-							-)	;;
-							*)	$exec chgrp $grp "$file" ;;
-							esac
-							case $usr in
-							-)	;;
-							*)	$exec chown $usr "$file" ;;
-							esac
-							$exec chmod $mode "$file"
-							;;
-						esac
-					done < $PACKAGEBIN/gen/$p.sum
-				fi
-			fi
-			;;
-		*)	# delta archive
-			test "" != "$PAX" || {
-				echo "$command: $f: pax required to read delta archive" >&2
-				code=1
-				continue
-			}
-			case `echo "$v:
-$r:" | sort` in
-			$r:*)	y=$p.base
-				b=${d}${p}_${r}${Q}.tgz
-				test -f "$b" || b=${d}${p}.${r}${q}.tgz
-				test -f "$b" || {
-					case " $gen " in
-					*" $b "*)
-						;;
-					*)	case $# in
-						1)	echo "$command: $f: base archive $b required to read delta" >&2
-							code=1
-							;;
-						*)	shift
-							y=$1
-							shift
-						set '' $y $f "$@"
-						esac
-						continue
-						;;
-					esac
-				}
-				# -m with delta bug fixed 2005-02-08
-				$exec pax -L --from=ascii --local -ps -rvf "$f" -z "$b" || {
-					code=1
-					continue
-				}
-				note $f: generate new base $d$p.$v$q.tgz
-				$exec pax -rf "$f" -z "$b" -wf $d$p.$v$q.tgz -x tgz || {
-					code=1
-					continue
-				}
-				case $exec in
-				'')	echo $p $v $v 1 > $w/gen/$p.ver
-					;;
-				*)	z=$d${p}[_.]$v$q.tgz
-					$exec "echo $p $v $v 1 > $w/gen/$p.ver"
-					gen="$gen $d$p.$v$q.tgz"
-					;;
-				esac
-				case " $remove " in
-				*" $f "*)	;;
-				*)		remove="$remove $f" ;;
-				esac
-				;;
-			*)	b=${d}${p}_${v}${Q}.tgz
-				test -f "$b" || b=${d}${p}.${v}${q}.tgz
-				test -f "$b" || {
-					case " $gen " in
-					*" $b "*)
-						;;
-					*)	case $# in
-						1)	echo "$command: $f: base archive $b required to read delta" >&2
-							code=1
-							;;
-						*)	shift
-							y=$1
-							shift
-							set '' $y $f "$@"
-						esac
-						continue
-						;;
-					esac
-				}
-				# -m with delta bug fixed 2005-02-08
-				$exec pax -L --from=ascii --local -ps -rvf "$f" -z "$b" || {
-					code=1
-					continue
-				}
-				;;
-			esac
-			;;
-		*)	echo "$command: $f: unknown archive type" >&2
-			code=1
-			continue
-			;;
-		esac
-
-		# check for ini files
-
-		if	executable $w/$p.ini
-		then	$exec $w/$p.ini read || {
-				code=1
-				continue
-			}
-		fi
-
-		# add to the obsolete list
-
-		k=
-		for i in `ls $d$p[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789][_.]????$m* $z 2>/dev/null`
-		do	case $i in
-			*.md5)	continue
-				;;
-			$d${p}[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789][_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]$m*)
-				;;
-			$d${p}[_.][0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]$m*)
-				continue
-				;;
-			esac
-			case $k in
-			?*)	case " $remove " in
-				*" $k "*)	;;
-				*)		remove="$remove $k" ;;
-				esac
-				;;
-			esac
-			k=$i
-		done
-		x="$x $y"
-		case " $touch " in
-		*" $u "*)	;;
-		*)		touch="$touch $u" ;;
-		esac
-	done
-	if	test ! -f $PACKAGEROOT/bin/package -a -f $PACKAGEROOT/bin/package.old
-	then	$exec cp $PACKAGEROOT/bin/package.old $PACKAGEROOT/bin/package
-	fi
-
-	# drop obsolete archives
-
-	case $remove in
-	?*)	$exec rm -f $remove ;;
-	esac
-
-	# mark the updated archives
-
-	case $touch in
-	?*)	sleep 1; $exec touch $touch ;;
-	esac
-
-	# check the requirements
-
-	case $code$exec in
-	0)	requirements - $x ;;
-	esac
-	exit $code
-	;;
-
-regress)if	test ! -d $PACKAGEBIN/gen
-	then	echo "$command: 'package make' and 'package test' required for regression" >&2
-		exit 1
-	fi
-	dir=$PACKAGEBIN/gen
-	cd $dir
-	for s in out old
-	do	case `ls -t regress.$s test.$s 2>/dev/null` in
-		regress*)
-			;;
-		test*)	if	test -f regress.$s
-			then	$exec mv regress.$s regress.old
-			fi
-			case $exec in
-			'')	egrep -i '\*\*\*|FAIL|^TEST.* [123456789][0123456789]* error|core.*dump' test.$s |
-				sed 	-e '/\*\*\* [0123456789]/d' \
-					-e '/^TEST.\//s,/[^ ]*/,,' \
-					-e 's,[ 	][ 	]*$,,' \
-					-e 's/[0123456789][0123456789]*:* \([abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789 ]*([abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789 ]*[Cc][Oo][Rr][Ee][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789 ]*)\)/\1/' \
-					-e 's/\.sh failed at .* with /.sh failed /' \
-					> regress.$s
-				;;
-			*)	$exec filter test failures from $dir/test.$s to $dir/regress.$s
-				;;
-			esac
-			;;
-		esac
-	done
-	if	test -f regress.out -a -f regress.old
-	then	$exec diff -b regress.out regress.old
-	else	echo "$command: at least 2 test runs required for regression" >&2
-			exit 1
-	fi
-	;;
-
-release)count= lo= hi=
-	checksrc
-	checkaout release || exit
-	requirements source $package
-	components $package
-	package=$_components_
-	set '' $target
-	shift
-	case $# in
-	0)	;;
-	*)	case $1 in
-		-|[0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]|[0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789])
-			case $1 in
-			-)	lo= release= ;;
-			*)	lo=$1 release="-f $1" ;;
-			esac
-			shift
-			case $1 in
-			-|[0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789]|[0123456789][0123456789][0123456789][0123456789]-[0123456789][0123456789]-[0123456789][0123456789])
-				case $1 in
-				-)	hi= ;;
-				*)	hi=$1 release="$release -t $1" ;;
-				esac
-				shift
-				;;
-			esac
-			;;
-		[0123456789]|[0123456789][0123456789]|[0123456789][0123456789][0123456789]|[0123456789][0123456789][0123456789][0123456789]|[0123456789][0123456789][0123456789][0123456789][0123456789]*)
-			count=$1
-			release="-r $count"
-			shift
-			;;
-		esac
-		;;
-	esac
-	case $# in
-	0)	case $package in
-		'')	package=* ;;
-		esac
-		;;
-	*)	case $package in
-		'')	package=$*
-			;;
-		*)	echo $command: $*: lo-date hi-date arguments expected >&2
-			exit 1
-			;;
-		esac
-		;;
-	esac
-	echo
-	case $count:$lo:$hi in
-	::)	echo "All recorded changes follow." ;;
-	1::)	echo "Changes since the last release follow." ;;
-	?*::)	echo "Changes since the last $count releases follow." ;;
-	1:?*:)	echo "Changes since $lo or the last release follow." ;;
-	*:?*:*)	echo "Changes since $lo follow." ;;
-	*::?*)	echo "Changes before $hi follow." ;;
-	*)	echo "Changes between $lo and $hi follow." ;;
-	esac
-	x=
-	for r in $INSTALLROOT $PACKAGEROOT
-	do	for s in $package_src
-		do	d=$r/src/$s
-			if	test -d $d
-			then	cd $d
-				for i in $package
-				do	if	test -h $i 2>/dev/null
-					then	continue
-					fi
-					case " $x " in
-					*" $i "*)	continue ;;
-					esac
-					for f in RELEASE CHANGES ChangeLog
-					do	if	test -f $i/$f
-						then	$exec release $release $i/$f
-							x="$x $i"
-							for f in $i/*/$f
-							do	if	test -f $f
-								then	$exec release $release $f
-								fi
-							done
-							break
-						fi
-					done
-				done
-			fi
-		done
-	done
-	;;
-
 remove)	echo "$command: $action: not implemented yet" >&2
 	exit 1
 	;;
@@ -6586,12 +3470,10 @@ results)set '' $target
 		--)	shift
 			break
 			;;
-		admin)	dir=$PACKAGESRC/admin
-			;;
 		error*|fail*)
 			filter=errors
 			;;
-		make|test|view|write)
+		make|test|view)
 			def=$1
 			case $filter:$1:$SHELL in
 			errors:*:*)	;;
@@ -6686,7 +3568,7 @@ results)set '' $target
 			cat)	cat $m
 				;;
 			*)	if	test -f $HOME/.pkgresults
-				then	i="`cat $HOME/.pkgresults`"
+				then	i=$(cat $HOME/.pkgresults)
 					case $i in
 					'|'*)	;;
 					*)	i="|$i" ;;
@@ -6714,483 +3596,13 @@ results)set '' $target
 	;;
 
 test)	# pass control to ksh 93u+m test script
-	exec "$PACKAGEROOT/bin/shtests"
-	;;
-
-update)	# download the latest release.version for selected packages
-
-	# all work in $PACKAGEROOT/lib/package/tgz
-
-	if	test ! -d $PACKAGEROOT/lib/package/tgz
-	then	$exec mkdir -p $PACKAGEROOT/lib/package/tgz || exit
-		$exec cd $PACKAGEROOT/lib/package/tgz
-	else	cd $PACKAGEROOT/lib/package/tgz
-	fi
-
-	# get the architectures, update query url, and packages
-
-	set '' $args
-	op=update
-	tgz=tgz
-	source=
-	binary=
-	setup=
-	types=
-	url=
-	urlfile=$default_url
-	while	:
-	do	shift
-		case $# in
-		0)	break ;;
-		esac
-		case $1 in
-		--)	shift
-			break
-			;;
-		beta)	op=beta
-			tgz=beta
-			;;
-		binary)	binary=1
-			;;
-		setup)	setup=1
-			;;
-		source)	source=1
-			;;
-		*://*)	url=$1
-			shift
-			break
-			;;
-		*.url)	urlfile=$1
-			if	test ! -s $urlfile
-			then	echo $command: $urlfile: not found >&2; exit 1
-			fi
-			break
-			;;
-		$all_types)
-			binary=1
-			types="$types $1"
-			;;
-		*)	break
-			;;
-		esac
-	done
-	case $source:$binary in
-	:)	source=1 binary=1
-		;;
-	:1)	case $types in
-		'')	types=$HOSTTYPE ;;
-		esac
-		;;
-	esac
-	case $url in
-	'')	case $urlfile in
-		$default_url)
-			if	test ! -s $urlfile
-			then	echo $command: url argument expected >&2; exit 1
-			fi
-			;;
-		*)	default_url=
-			;;
-		esac
-		url=
-		if	grep '^url=' $urlfile >/dev/null
-		then	a=$authorize
-			p=$password
-			case $urlfile in
-			*/*)	;;
-			*)	urlfile=./$urlfile ;;
-			esac
-			. $urlfile
-			case $a:$p in
-			$authorize:$password)
-				default_url=
-				;;
-			*)	case $a in
-				?*)	authorize=$a ;;
-				esac
-				case $p in
-				?*)	password=$p ;;
-				esac
-				;;
-			esac
-		else	url=`cat $urlfile`
-		fi
-		;;
-	esac
-	case $exec in
-	?*)	default_url= ;;
-	esac
-
-	# get the update list
-
-	eval `echo $url | sed 's,\(.*\)://\([^/]*\)/\(.*\),prot=\"\1\" host=\"\2\" dir=\"\3\",'`
-	get $host $dir/$op.html
-
-	# get/check the package names
-
-	case " $* " in
-	*" - "*)case $source in
-		1)	source_packages=$* ;;
-		*)	source_packages= ;;
-		esac
-		case $binary in
-		1)	binary_packages=$* ;;
-		*)	binary_packages= ;;
-		esac
-		package_hit=$*
-		;;
-	"  ")	nl="
-"
-		case $source in
-		1)	p=
-			for f in `ls *.????-??-??.* 2>/dev/null`
-			do	case $f in
-				*.????-??-??.????-??-??.*.*)
-					;;
-				*.????-??-??.????-??-??.*)
-					p=$p$nl$f
-					;;
-				*.????-??-??.*.*)
-					;;
-				*.????-??-??.*)
-					p=$p$nl$f
-					;;
-				esac
-			done
-			set '' `echo "$p" | sed 's,\..*,,' | sort -u`
-			shift
-			source_packages=$*
-			;;
-		*)	source_packages=
-			;;
-		esac
-		case $binary in
-		1)	p=
-			for f in `ls *.????-??-??.* 2>/dev/null`
-			do	case $f in
-				*.????-??-??.????-??-??.*.*)
-					p=$p$nl$f
-					;;
-				*.????-??-??.????-??-??.*)
-					;;
-				*.????-??-??.*.*)
-					p=$p$nl$f
-					;;
-				*.????-??-??.*)
-					;;
-				esac
-			done
-			set '' `echo "$p" | sed 's,\..*,,' | sort -u`
-			shift
-			binary_packages=$*
-			;;
-		*)	binary_packages=
-			;;
-		esac
-		package_hit="$source_packages $binary_packages"
-		;;
-	*)	case $source in
-		1)	source_packages=$* ;;
-		*)	source_packages= ;;
-		esac
-		case $binary in
-		1)	binary_packages=$* ;;
-		*)	binary_packages= ;;
-		esac
-		package_hit=
-		;;
-	esac
-
-	# get the latest updates
-
-	types_test=
-	types_local=
-	dir=$dir/$tgz
-	case $default_url in
-	?*)	echo "url='$url' authorize='$authorize' password='$password'" > $default_url
-		case $authorize in
-		?*)	chmod go-rwx $default_url ;;
-		esac
-		;;
-	esac
-	echo "$got" > got.tmp
-	case $only in
-	0)	exec < got.tmp
-		covered=
-		while	read name suffix type base base_size delta delta_size sync sync_size requires covers base_sum delta_sum sync_sum comment
-		do	case $requires in
-			''|-*)	continue ;;
-			esac
-			IFS=:
-			set '' $requires
-			IFS=$ifs
-			case $type in
-			-)	case " $source_packages " in
-				*" $name "*|*" - "*)
-					for name
-					do	case " $source_packages " in
-						*" $name "*)
-							;;
-						*)	source_packages="$source_packages $name"
-							covered=$covered:$covers
-							;;
-						esac
-					done
-					;;
-				esac
-				;;
-			*)	case " $binary_packages " in
-				*" $name "*|*" - "*)
-					for name
-					do	case " $binary_packages " in
-						*" $name "*)
-							;;
-						*)	binary_packages="$binary_packages $name"
-							covered=$covered:$covers
-							;;
-						esac
-					done
-					;;
-				esac
-				;;
-			esac
-		done
-		case $covered in
-		?*)	x=$source_packages
-			source_packages=
-			for name in $x
-			do	case :$covered: in
-				*:$name:*)	;;
-				*)		source_packages="$source_packages $name" ;;
-				esac
-			done
-			x=$binary_packages
-			binary_packages=
-			for name in $x
-			do	case :$covered: in
-				*:$name:*)	;;
-				*)		binary_packages="$binary_packages $name" ;;
-				esac
-			done
-			;;
-		esac
-		;;
-	esac
-	checksum=
-	for i in $checksum_commands
-	do	case `( $i ) < /dev/null 2> /dev/null` in
-		${checksum_empty}|${checksum_empty}[\ \	]*)
-			checksum=$i
-			break
-			;;
-		esac
-	done
-	case $checksum in
-	'')	echo $command: warning: '{' $checksum_commands '}' command not found -- only download sizes will be checked >&2 ;;
-	esac
-	exec < got.tmp
-	while	read name suffix type base base_size delta delta_size sync sync_size requires covers base_sum delta_sum sync_sum comment
-	do	case $verbose in
-		1)	case $type in
-			-)	i= ;;
-			*)	i=.$type ;;
-			esac
-			j="$name.$base$i.$suffix"
-			case $delta in
-			-)	j="$j -" ;;
-			*)	j="$j $name.$base.$delta$i.$suffix" ;;
-			esac
-			case $sync in
-			-)	j="$j -" ;;
-			*)	j="$j $name.$base.$sync$i.$suffix" ;;
-			esac
-			echo $command: $j $base_size:$base_sum $delta_size:$delta_sum $sync_size:$sync_sum $requires >&2
-		esac
-		case " $package_hit " in
-		*" $name "*|*" - "*)
-			;;
-		*)	package_hit="$package_hit $name"
-			;;
-		esac
-		case $type in
-		-)	case " $source_packages " in
-			*" $name "*|*" - "*)
-				if	test -s $name.tim
-				then	continue
-				fi
-				lcl=$name.$base.$suffix
-				if	test -f $lcl
-				then	case $checksum:$base_sum in
-					:*|*:-)	size=`wc -c < $lcl | sed 's, ,,g'` sum=$base_sum ;;
-					*)	size=$base_size sum=`$checksum < $lcl | sed -e 's,^[ 	][ 	]*,,' -e 's,[ 	].*,,'` ;;
-					esac
-				else	size=X sum=X
-				fi
-				if	test "0" != "$force" -a "X-" = "X$delta" -o "$base_size" != "$size" -o "$base_sum" != "$sum"
-				then	rmt=
-					case $sync:$sync_size in
-					-*|*[-:])
-						;;
-					*)	lcl=$name.$base.$sync.$suffix
-						if	test -f $lcl
-						then	rmt=1
-							get $host $dir $lcl $sync_size $sync_sum
-						fi
-						;;
-					esac
-					case $base:$base_size in
-					-*|*[-:])
-						;;
-					*)	case $rmt in
-						'')	lcl=$name.$base.$suffix
-							get $host $dir $lcl $base_size $base_sum
-							;;
-						esac
-						;;
-					esac
-				fi
-				case $delta:$delta_size in
-				-*|*[-:])
-					;;
-				*)	lcl=$name.$delta.$base.$suffix
-					if	test -f $lcl
-					then	case $checksum:$delta_sum in
-						:*|*:-)	size=`wc -c < $lcl | sed 's, ,,g'` sum=$delta_sum ;;
-						*)	size=$base_size sum=`$checksum < $lcl | sed -e 's,^[ 	][ 	]*,,' -e 's,[ 	].*,,'` ;;
-						esac
-					else	size=X sum=X
-					fi
-					if	test "0" != "$force" -o "$delta_size" != "$size" -o "$delta_sum" != "$sum"
-					then	get $host $dir $lcl $delta_size $delta_sum
-					fi
-					;;
-				esac
-				;;
-			esac
-			;;
-		*)	case " $binary_packages " in
-			*" $name "*|*" - "*)
-				if	test -s $name.$type.tim
-				then	continue
-				fi
-				case " $types " in
-				*" - "*);;
-				"  ")	case " $types_test " in
-					*" $type "*)
-						;;
-					*)	types_test="$types_test $type"
-						for i in *.????-??-??.$type.* *.????-??-??.????-??-??.$type.*
-						do	if	test -f $i
-							then	types_local="$types_local $type"
-							fi
-							break
-						done
-						;;
-					esac
-					case " $types_local " in
-					*" $type "*)
-						;;
-					*)	continue
-						;;
-					esac
-					;;
-				*)	case " $types " in
-					*" $type "*)
-						;;
-					*)	continue
-						;;
-					esac
-					;;
-				esac
-				lcl=$name.$base.$type.$suffix
-				if	test -f $lcl
-				then	case $checksum:$base_sum in
-					:*|*:-)	size=`wc -c < $lcl | sed 's, ,,g'` sum=$base_sum ;;
-					*)	size=$base_size sum=`$checksum < $lcl | sed -e 's,^[ 	][ 	]*,,' -e 's,[ 	].*,,'` ;;
-					esac
-				else	size=X sum=X
-				fi
-				if	test "0" != "$force" -a "X-" = "X$delta" -o "$base_size" != "$size" -o "$base_sum" != "$sum"
-				then	rmt=
-					case $sync:$sync_size in
-					-*|*[-:])
-						;;
-					*)	lcl=$name.$base.$sync.$type.$suffix
-						if	test -f $lcl
-						then	rmt=1
-							get $host $dir $lcl $sync_size $sync_sum
-						fi
-						;;
-					esac
-					case $base:$base_size in
-					-*|*[-:])
-						;;
-					*)	case $rmt in
-						'')	lcl=$name.$base.$type.$suffix
-							get $host $dir $lcl $base_size $base_sum
-							;;
-						esac
-						;;
-					esac
-				fi
-				case $delta:$delta_size in
-				-*|*[-:])
-					;;
-				*)	lcl=$name.$delta.$base.$type.$suffix
-					if	test -f $lcl
-					then	sum=`$checksum < $lcl | sed -e 's,^[ 	][ 	]*,,' -e 's,[ 	].*,,'`
-					else	sum=X
-					fi
-					if	test -f $lcl
-					then	case $checksum:$delta_sum in
-						:*|*:-)	size=`wc -c < $lcl | sed 's, ,,g'` sum=$delta_sum ;;
-						*)	size=$base_size sum=`$checksum < $lcl | sed -e 's,^[ 	][ 	]*,,' -e 's,[ 	].*,,'` ;;
-						esac
-					else	size=X sum=X
-					fi
-					if	test "0" != "$force" -o "$delta_size" != "$size" -o "$delta_sum" != "$sum"
-					then	get $host $dir $lcl $delta_size $delta_sum
-					fi
-					;;
-				esac
-				;;
-			esac
-			;;
-		esac
-	done
-	closure=
-	for name in $source_packages $binary_packages
-	do	case $name in
-		-)	;;
-		*)	case " $package_hit " in
-			*" $name "*)
-				case $setup in
-				1)	case " $closure " in
-					*" $name "*)
-						;;
-					*)	closure="$closure $name"
-						;;
-					esac
-					;;
-				esac
-				;;
-			*)	echo $command: $name: unknown package >&2
-				;;
-			esac
-			;;
-		esac
-	done
-	exec <&-
-	rm -f got.tmp
-	case $closure in
-	?*)	echo $closure ;;
-	esac
+	capture "$PACKAGEROOT/bin/shtests" $args
 	;;
 
 use)	# finalize the environment
 
 	x=:..
-	for d in `( cd $PACKAGEROOT; ls src/*/Mamfile 2>/dev/null | sed 's,/[^/]*$,,' | sort -u )`
+	for d in $( cd $PACKAGEROOT; ls src/*/Mamfile 2>/dev/null | sed 's,/[^/]*$,,' | sort -u )
 	do	x=$x:$INSTALLROOT/$d
 	done
 	x=$x:$INSTALLROOT
@@ -7235,125 +3647,6 @@ use)	# finalize the environment
 	*)	$exec exec $SHELL -c "$run"
 		;;
 	esac
-	;;
-
-verify)	cd $PACKAGEROOT
-	requirements binary $package
-	if	executable ! $SUM
-	then	echo "$command: $action: $SUM command required" >&2
-		exit 1
-	fi
-	case $target in
-	'')	cd arch
-		set '' *
-		shift
-		target=$*
-		cd ..
-		;;
-	esac
-	code=0
-	for a in $target
-	do	case $package in
-		'')	set '' arch/$a/lib/package/gen/*.sum
-			shift
-			if	test -f $1
-			then	for i
-				do	package_verify $i || code=1
-				done
-			else	echo "$command: warning: $a: no binary packages" >&2
-			fi
-			;;
-		*)	for i in $package
-			do	if	test -f arch/$a/lib/package/gen/$i.sum
-				then	package_verify arch/$a/lib/package/gen/$i.sum || code=1
-				else	echo "$command: warning: $a: no binary package for $i" >&2
-				fi
-			done
-			;;
-		esac
-	done
-	exit $code
-	;;
-
-write)	set '' $target
-	shift
-	action=
-	list=
-	qualifier=
-	while	:
-	do	case $1 in
-		base|closure|delta|exp|lcl|pkg|rpm|tgz)
-			qualifier="$qualifier $1"
-			;;
-		binary)	action=$1
-			type=$HOSTTYPE
-			eval list=$PACKAGESRC/tgz/$admin_list
-			;;
-		cyg)	qualifier="$qualifier $1"
-			assign="$assign closure=1"
-			only=1
-			;;
-		runtime|source)
-			action=$1
-			;;
-		tst)	qualifier="$qualifier tgz"
-			assign="$assign copyright=0 'PACKAGEDIR=\$(PACKAGESRC)/tst'"
-			;;
-		nocopyright)
-			assign="$assign copyright=0"
-			;;
-		*)	break
-			;;
-		esac
-		shift
-	done
-	case $action in
-	'')	echo "$command: binary or source operand expected" >&2
-		exit 1
-		;;
-	esac
-	set '' "$@" $package
-	shift
-	case $only in
-	0)	set '' `order "$@"`
-		shift
-		;;
-	esac
-	case $# in
-	0)	echo "$command: at least one package name expected" >&2
-		exit 1
-		;;
-	esac
-
-	echo "$command: not yet reimplemented after removing nmake" >&2
-	exit 1
-
-	# all work under $PACKAGEBIN
-
-	$make cd $PACKAGEBIN
-	case $list in
-	?*)	$exec rm -f $list ;;
-	esac
-
-	# go for it
-
-	for package
-	do	if	view - all $package.pkg || view - all lib/package/$package.pkg
-		then	eval capture \$MAKE \$makeflags -X ignore \$noexec -f \$package.pkg \$qualifier \$action $assign
-		else	echo "$command: $package: not a package" >&2
-		fi
-	done
-	;;
-
-TEST)	set '' $target $package
-	shift
-	case $1 in
-	binary|source)
-		action=$1
-		shift
-		;;
-	esac
-	order "$@"
 	;;
 
 *)	echo "$command: $action: internal error" >&2

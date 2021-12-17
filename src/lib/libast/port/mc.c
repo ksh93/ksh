@@ -339,7 +339,7 @@ mcopen(register Sfio_t* ip)
 /*
  * return the <set,num> message in mc
  * msg returned on error
- * utf message text converted to ucs
+ * UTF message text converted to UCS
  */
 
 char*

@@ -32,7 +32,7 @@ NoN(errno)
 
 /*
  * this avoids multiple definitions with some libc's
- * that define both an ast library supplied routine and
+ * that define both an AST library supplied routine and
  * errno in the same .o
  */
 

@@ -487,7 +487,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 		    case S_ESC:
 			if(ansi_c)
 			{
-				/* process ANSI-C escape character */
+				/* process ANSI C escape character */
 				char *addr= --cp;
 				if(c)
 					sfwrite(stkp,first,c);
@@ -2147,7 +2147,6 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 		mp->shp->inlineno = c;
 		type = 1;
 	}
-#if KSHELL
 	if(t)
 	{
 		fcsave(&save);
@@ -2156,7 +2155,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 		{
 			/* special case $(<file) and $(<#file) */
 			register int fd;
-			int r;
+			int r=0;
 			struct checkpt buff;
 			struct ionod *ip=0;
 			sh_pushcontext(mp->shp,&buff,SH_JMPIO);
@@ -2198,9 +2197,6 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 		sh_onstate(SH_HISTORY);
 	if(was_verbose)
 		sh_onstate(SH_VERBOSE);
-#else
-	sp = sfpopen(NIL(Sfio_t*),str,"r");
-#endif
 	*mp = savemac;
 	np = sh_scoped(mp->shp,IFSNOD);
 	nv_putval(np,mp->ifsp,NV_RDONLY);

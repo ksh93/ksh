@@ -577,11 +577,11 @@ fi
 
 # wrong path to tracked aliases after loading builtin: https://github.com/ksh93/ksh/pull/25
 actual=$("$SHELL" -c '
-	hash chmod
-	builtin chmod
-	whence -a chmod
+	hash cat
+	builtin cat
+	whence -a cat
 ')
-expect=$'chmod is a shell builtin\n'$(all_paths chmod | sed '1 s/^/chmod is a tracked alias for /; 2,$ s/^/chmod is /')
+expect=$'cat is a shell builtin\n'$(all_paths cat | sed '1 s/^/cat is a tracked alias for /; 2,$ s/^/cat is /')
 [[ $actual == "$expect" ]] || err_exit "'whence -a' does not work correctly with tracked aliases" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 

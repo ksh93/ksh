@@ -27,16 +27,12 @@
 #include	"ulimit.h"
 #include	"name.h"
 #include	"version.h"
-#if KSHELL
-#   include	"builtins.h"
-#   include	"jobs.h"
-#   include	"FEATURE/cmds"
-#   define	bltin(x)	(b_##x)
-    /* The following is for builtins that do not accept -- options */
-#   define	Bltin(x)	(B_##x)
-#else
-#   define bltin(x)	0
-#endif
+#include	"builtins.h"
+#include	"jobs.h"
+#include	"FEATURE/cmds"
+#define	bltin(x)	(b_##x)
+/* The following is for builtins that do not accept -- options */
+#define	Bltin(x)	(B_##x)
 
 #ifndef SHOPT_CMDLIB_DIR
 #   define SHOPT_CMDLIB_DIR	SH_CMDLIB_DIR
@@ -141,20 +137,16 @@ const struct shtable3 shtab_builtins[] =
 #include SHOPT_CMDLIB_HDR
 #else
 	CMDLIST(basename)
-	CMDLIST(chmod)
+	CMDLIST(cat)
+	CMDLIST(cp)
+	CMDLIST(cut)
 	CMDLIST(dirname)
 	CMDLIST(getconf)
-	CMDLIST(head)
-	CMDLIST(mkdir)
-	CMDLIST(logname)
-	CMDLIST(cat)
-	CMDLIST(cmp)
-	CMDLIST(cut)
-	CMDLIST(uname)
-	CMDLIST(wc)
-	CMDLIST(sync)
+	CMDLIST(ln)
+	CMDLIST(mktemp)
+	CMDLIST(mv)
 #if !_std_malloc && !_AST_std_malloc
-	CMDLIST(vmstate)
+	CMDLIST(vmstate)  /* vmstate only works with vmalloc */
 #endif
 #endif
 #if SHOPT_REGRESS
@@ -443,7 +435,7 @@ const char sh_optbuiltin[] =
 ;
 
 const char sh_optcd[] =
-"[-1c?\n@(#)$Id: cd (ksh 93u+m) 2021-01-19 $\n]"
+"[-1c?\n@(#)$Id: cd (ksh 93u+m) 2021-12-05 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?cd - change working directory ]"
 "[+DESCRIPTION?\bcd\b changes the current working directory of the "
@@ -475,22 +467,27 @@ const char sh_optcd[] =
 	"written to standard output.]"
 "[+?If both \b-L\b and \b-P\b are specified, the last one specified will "
 	"be used.  If neither \b-P\b or \b-L\b is specified then the "
-	"behavior will be determined by the \bgetconf\b parameter "
-	"\bPATH_RESOLVE\b.  If \bPATH_RESOLVE\b is \bphysical\b, "
-	"then the behavior will be as if \b-P\b were specified.  Otherwise, "
-	"the behavior will be as if  \b-L\b were specified.]"
+	"behavior will default to \b-L\b.]"
 "[L?Handle each pathname component \b..\b in a logical fashion by moving "
 	"up one level by name in the present working directory.]"
 "[P?The present working directory is first converted to an absolute pathname "
 	"that does not contain symbolic link components and symbolic name "
 	"components are expanded in the resulting directory name.]"
+"[e?If the \b-P\b option is in effect and the correct \bPWD\b cannot be "
+	"determined, exit with status 1. All other errors encountered while "
+	"both \b-e\b and \b-P\b are active result in exit status >1.]"
 "\n"
 "\n[directory]\n"
 "old new\n"
 "\n"
 "[+EXIT STATUS?]{"
-	"[+0?Directory successfully changed.]"
-	"[+>0?An error occurred.]"
+	"[+0?Directory successfully changed and the \bPWD\b is correct.]"
+	"[+0?Directory successfully changed, the \bPWD\b couldn't be obtained "
+	"and a combination of \b-eP\b is not active.]"
+	"[+>0?An error occurred and a combination of \b-eP\b is not active.]"
+	"[+1?Directory successfully changed, the \bPWD\b couldn't be obtained "
+	"and a combination of \b-eP\b is active.]"
+	"[+>1?An error occurred and a combination of \b-eP\b is active.]"
 "}"
 "[+SEE ALSO?\bpwd\b(1), \bgetconf\b(1)]"
 ;
@@ -631,7 +628,7 @@ const char sh_optexec[] =
 ;
 
 const char sh_optexit[] =
-"[-1c?\n@(#)$Id: exit (AT&T Research) 1999-07-07 $\n]"
+"[-1c?\n@(#)$Id: exit (ksh 93u+m) 2021-12-08 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?exit - exit the current shell]"
 "[+DESCRIPTION?\bexit\b is shell special built-in that causes the "
@@ -641,10 +638,10 @@ const char sh_optexit[] =
 "\n"
 "\n[n]\n"
 "\n"
-"[+EXIT STATUS?If \an\a is specified, the exit status is the least significant "
-	"eight bits of the value of \an\a.  Otherwise, the exit status is the "
-	"exit status of preceding command.  When invoked inside a trap, the "
-	"preceding command means the command that invoked the trap.]"
+"[+EXIT STATUS?The exit status is the least significant eight bits of the "
+	"value of \an\a (if specified) or of the exit status of the preceding "
+	"command. If \bexit\b is invoked inside a trap, the preceding command "
+	"means the command that invoked the trap.]"
 "[+SEE ALSO?\bbreak\b(1), \breturn\b(1)]"
 ;
 
@@ -923,11 +920,11 @@ const char sh_optjobs[] =
 	"shell removes the jobs from the list of known jobs in "
 	"the current shell environment.]"
 _JOB_
-"[l?\bjobs\b displays process id's after the job number in addition "
+"[l?\bjobs\b displays process ids after the job number in addition "
 	"to the usual information]"
 "[n?Only the jobs whose status has changed since the last prompt "
 	"is displayed.]"
-"[p?The process group leader id's for the specified jobs are displayed.]"
+"[p?The process group leader ids for the specified jobs are displayed.]"
 "\n"
 "\n[job ...]\n"
 "\n"
@@ -1323,7 +1320,7 @@ const char sh_optprintf[] =
 	"appropriate for that format specifier, an error will occur, "
 	"but remaining \astring\a operands will continue to be processed.]"
 "[+?In addition to the format specifier extensions, the following "
-	"extensions of ANSI-C are permitted in format specifiers:]{"
+	"extensions of ANSI C are permitted in format specifiers:]{"
 	"[+-?The escape sequences \b\\E\b and \b\\e\b expand to the escape "
 		"character which is octal \b033\b in ASCII.]"
 	"[+-?The escape sequence \b\\c\b\ax\a expands to Control-\ax\a.]"
@@ -1383,10 +1380,7 @@ const char sh_optpwd[] =
 	"\b.\b or \b..\b components.]"
 "[+?If both \b-L\b and \b-P\b are specified, the last one specified will "
 	"be used.  If neither \b-P\b or \b-L\b is specified then the "
-	"behavior will be determined by the \bgetconf\b parameter "
-	"\bPATH_RESOLVE\b.  If \bPATH_RESOLVE\b is \bphysical\b, "
-	"then the behavior will be as if \b-P\b were specified.  Otherwise, "
-	"the behavior will be as if  \b-L\b were specified.]"
+	"behavior will default to \b-L\b.]"
 "[L?The absolute pathname may contains symbolic link components.  This is "
 	"the default.]"
 "[P?The absolute pathname will not contain any symbolic link components.]"
@@ -1509,25 +1503,28 @@ const char sh_optredirect[] =
 ;
 
 const char sh_optreturn[] =
-"[-1c?\n@(#)$Id: return (AT&T Research) 1999-07-07 $\n]"
+"[-1c?\n@(#)$Id: return (ksh 93u+m) 2021-12-08 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?return - return from a function or dot script ]"
 "[+DESCRIPTION?\breturn\b is a shell special built-in that causes the "
-	"function or dot script that invokes it to exit.  "
-	"If \breturn\b is invoked outside of a function or dot script "
-	"it is equivalent to \bexit\b.]"
+	"function, dot script or profile script that invokes it to exit. "
+	"If \breturn\b is invoked outside of one of these, it behaves "
+	"exactly like \bexit\b(1); see its manual page.]"
 "[+?If \breturn\b is invoked inside a function defined with the \bfunction\b "
 	"reserved word syntax, then any \bEXIT\b trap set within the "
-	"then function will be invoked in the context of the caller "
+	"function will be invoked in the context of the caller "
 	"before the function returns.]"
 "[+?If \an\a is given, it will be used to set the exit status.]"
 "\n"
 "\n[n]\n"
 "\n"
-"[+EXIT STATUS?If \an\a is specified, the exit status is the least significant "
-	"eight bits of the value of \an\a.  Otherwise, the exit status is the "
-	"exit status of preceding command.]"
-"[+SEE ALSO?\bbreak\b(1), \bexit\b(1)]"
+"[+EXIT STATUS?If \an\a is not specified, the exit status is that of the "
+	"preceding command. Otherwise, it is the value \an\a as a signed "
+	"integer. An out-of-range value produces a warning and an exit "
+	"status of 128. The range can be shown using \bgetconf INT_MIN\b "
+	"and \bgetconf INT_MAX\b. When the current (sub)shell exits, "
+	"the exit status is truncated to 8 bits as in \bexit\b.]"
+"[+SEE ALSO?\bbreak\b(1), \bexit\b(1), \bgetconf\b(1)]"
 ;
 
 
@@ -1590,7 +1587,7 @@ const char sh_optksh[] =
 "[P?Invoke the shell as a profile shell.  See \bpfexec\b(1).]"
 #endif
 #if SHOPT_KIA
-"[R]:[file?Do not execute the script, but create a cross reference database "
+"[R]:[file?Do not execute the script, but create a cross-reference database "
 	"in \afile\a that can be used in a separate shell script browser. The "
 	"-R option requires a script to be specified as the first operand.]"
 #endif /* SHOPT_KIA */
@@ -1766,11 +1763,11 @@ const char sh_opttrap[] =
         "[+>0?An error occurred.]"
 "}"
 
-"[+SEE ALSO?\bkill\b(1), \beval\b(1), \bsignal\b(3)]"
+"[+SEE ALSO?\bkill\b(1), \beval\b(1), \bsignal\b(2)]"
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2021-04-08 $\n]"
+"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2021-12-17 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -2039,7 +2036,7 @@ const char sh_optwait[]	=
 	"\ajob\a operands are specified, \bwait\b waits until all of them "
 	"have completed.]"
 _JOB_
-"[+?If one ore more \ajob\a operands is a process id or process group id "
+"[+?If one or more \ajob\a operands is a process id or process group id "
 	"not known by the current shell environment, \bwait\b treats each "
 	"of them as if it were a process that exited with status 127.]"
 "\n"

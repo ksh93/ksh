@@ -58,7 +58,7 @@ static const char usage[] =
 	"option is specified, the delimiter will be reset to the first "
 	"element of \alist\a each time a line is processed from each file.  "
 	"The delimiter characters corresponding to \alist\a will be found "
-	"by treating \alist\a as an ANSI-C string, except that the \b\\0\b "
+	"by treating \alist\a as an ANSI C string, except that the \b\\0\b "
 	"sequence will insert the empty string instead of the null character.]"
 "\n"
 "\n[file ...]\n"
@@ -218,7 +218,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 	}
 	if (!(delim = strdup(delim)))
 	{
-		error(ERROR_system(1), "out of memory");
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();
 	}
 	dlen = dsiz = stresc(delim);
@@ -238,7 +238,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 			if (!(mp = newof(0, Delim_t, dlen, 0)))
 			{
 				free(delim);
-				error(ERROR_system(1), "out of memory");
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 				UNREACHABLE();
 			}
 			cp = delim;
@@ -263,7 +263,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 	{
 		if (!(streams = (Sfio_t**)stakalloc(n*sizeof(Sfio_t*))))
 		{
-			error(ERROR_exit(1), "out of memory");
+			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
 		n = 0;

@@ -1,4 +1,4 @@
-: next.m68k cc wrapper that enables posix : 2000-12-15 :
+: next.m68k cc wrapper that enables POSIX : 2000-12-15 :
 
 HOSTTYPE=next.m68k
 

@@ -918,7 +918,7 @@ unset foo
 [[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] && err_exit 'date format %q is the same as %Qz'
 [[ $(printf '%(%Z)T') == $(date '+%Z') ]] || err_exit "date format %Z is incorrect (expected $(date '+%Z'), got $(printf '%(%Z)T'))"
 
-# Test manually specified blank and zero padding with 'printf  %T'
+# Test manually specified blank and zero padding with 'printf %T'
 (
 	IFS=$'\n\t' # Preserve spaces in output
 	for i in d e H I j J k l m M N S U V W y; do
@@ -1031,12 +1031,11 @@ EOF
 
 # ======
 # Builtins should handle unrecognized options correctly
-# Note: This test is run in a function for compatibility with the local builtin.
 function test_usage
 {
 	while IFS= read -r bltin <&3
 	do	case $bltin in
-		echo | test | true | false | \[ | : | getconf | */getconf | uname | */uname | catclose | catgets | catopen | Dt* | _Dt* | X* | login | newgrp )
+		echo | test | true | false | \[ | : | expr | */expr | getconf | */getconf | uname | */uname | catclose | catgets | catopen | Dt* | _Dt* | X* | login | newgrp )
 			continue ;;
 		/*/*)	expect="Usage: ${bltin##*/} "
 			actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
@@ -1074,7 +1073,7 @@ then	got=$( { "$SHELL" -c '
 		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
 fi
 
-# ==========
+# ======
 # Verify that the POSIX 'test' builtin exits with status 2 when given an invalid binary operator.
 for operator in '===' ']]'
 do
@@ -1101,14 +1100,16 @@ got=$($SHELL -c 't=good; t=bad command -@; print $t' 2>/dev/null)
 
 # ======
 # Regression test for https://github.com/att/ast/issues/949
-foo_script='#!/bin/sh
-exit 0'
-echo "$foo_script" > "$tmp/foo1.sh"
-echo "$foo_script" > "$tmp/foo2.sh"
-builtin chmod
-chmod +x "$tmp/foo1.sh" "$tmp/foo2.sh"
-$SHELL "$tmp/foo1.sh" || err_exit "builtin 'chmod +x' doesn't work on first script"
-$SHELL "$tmp/foo2.sh" || err_exit "builtin 'chmod +x' doesn't work on second script"
+if	(builtin chmod) 2>/dev/null
+then	foo_script='#!/bin/sh
+	exit 0'
+	echo "$foo_script" > "$tmp/foo1.sh"
+	echo "$foo_script" > "$tmp/foo2.sh"
+	builtin chmod
+	chmod +x "$tmp/foo1.sh" "$tmp/foo2.sh"
+	$SHELL "$tmp/foo1.sh" || err_exit "builtin 'chmod +x' doesn't work on first script"
+	$SHELL "$tmp/foo2.sh" || err_exit "builtin 'chmod +x' doesn't work on second script"
+fi
 
 # ======
 # In ksh93v- 2013-10-10 alpha cd doesn't fail on directories without execute permission.
@@ -1209,19 +1210,21 @@ got=$(
 # ======
 # Test for bugs related to 'uname -d'
 # https://github.com/att/ast/pull/1187
-builtin uname
-exp=$(uname -o)
+if	(builtin uname) 2>/dev/null
+then	builtin uname
+	exp=$(uname -o)
 
-# Test for a possible crash (to avoid crashing the script, fork the subshell)
-(
-	ulimit -t unlimited 2> /dev/null
-	uname -d > /dev/null
-) || err_exit "'uname -d' crashes"
+	# Test for a possible crash (to avoid crashing the script, fork the subshell)
+	(
+		ulimit -t unlimited 2> /dev/null
+		uname -d > /dev/null
+	) || err_exit "'uname -d' crashes"
 
-# 'uname -d' shouldn't change the output of 'uname -o'
-got=$(ulimit -t unlimited 2> /dev/null; uname -d > /dev/null; uname -o)
-[[ $exp == $got ]] || err_exit "'uname -d' changes the output of 'uname -o'" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	# 'uname -d' shouldn't change the output of 'uname -o'
+	got=$(ulimit -t unlimited 2> /dev/null; uname -d > /dev/null; uname -o)
+	[[ $exp == $got ]] || err_exit "'uname -d' changes the output of 'uname -o'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
 
 # ======
 # https://github.com/ksh93/ksh/issues/138
@@ -1356,6 +1359,65 @@ if builtin rm 2> /dev/null; then
 	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -rd options' \
 		"(got $(printf %q "$got"))"
 	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -rd options'
+fi
+
+# ======
+# These are regression tests for the cd command's -e and -P flags
+mkdir -p "$tmp/failpwd1"
+cd "$tmp/failpwd1"
+rmdir ../failpwd1
+cd -P .
+got=$?; exp=0
+(( got == exp )) || err_exit "cd -P without -e exits with error status if \$PWD doesn't exist (expected $exp, got $got)"
+cd -eP .
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -eP doesn't fail if \$PWD doesn't exist (expected $exp, got $got)"
+cd "$tmp"
+cd -P "$tmp/notadir" >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+cd -eP "$tmp/notadir" >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP fails with wrong exit status on nonexistent dir (expected $exp, got $got)"
+OLDPWD="$tmp/baddir"
+cd -P - >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P without -e fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+cd -eP - >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP fails with wrong exit status on \$OLDPWD (expected $exp, got $got)"
+cd "$tmp" || err_exit "couldn't change directory from nonexistent dir"
+(set -o restricted; cd -P /) >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P in restricted shell has wrong exit status (expected $exp, got $got)"
+(set -o restricted; cd -eP /) >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP in restricted shell has wrong exit status (expected $exp, got $got)"
+(set -o restricted; cd -?) >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -? shows usage info in restricted shell and has wrong exit status (expected $exp, got $got)"
+(cd -P '') >/dev/null 2>&1
+got=$?; exp=1
+(( got == exp )) || err_exit "cd -P to empty string has wrong exit status (expected $exp, got $got)"
+(cd -eP '') >/dev/null 2>&1
+got=$?; exp=2
+(( got == exp )) || err_exit "cd -eP to empty string has wrong exit status (expected $exp, got $got)"
+
+# ======
+# The head and tail builtins should work on files without newlines
+if builtin head 2> /dev/null; then
+	print -n nonewline > "$tmp/nonewline"
+	exp=nonewline
+	got=$(head -1 "$tmp/nonewline")
+	[[ $got == $exp ]] || err_exit "head builtin fails to correctly handle files without an ending newline" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+if builtin tail 2> /dev/null; then
+	print -n 'newline\nnonewline' > "$tmp/nonewline"
+	exp=nonewline
+	got=$(tail -1 "$tmp/nonewline")
+	[[ $got == $exp ]] || err_exit "tail builtin fails to correctly handle files without an ending newline" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======

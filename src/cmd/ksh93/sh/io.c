@@ -37,6 +37,7 @@
 #include	"path.h"
 #include	"io.h"
 #include	"jobs.h"
+#include	"shlex.h"
 #include	"shnodes.h"
 #include	"history.h"
 #include	"edit.h"
@@ -402,7 +403,7 @@ int  sh_iovalidfd(Shell_t *shp, int fd)
 		return(0);
 	if(fd < shp->gd->lim.open_max)
 		return(1);
-	max = strtol(astconf("OPEN_MAX",NiL,NiL),NiL,0);
+	max = (int)astconf_long(CONF_OPEN_MAX);
 	if(fd >= max)
 	{
 		errno = EBADF;
@@ -1135,7 +1136,6 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 	int r, indx = shp->topfd, perm= -1;
 	char *tname=0, *after="", *trace = shp->st.trap[SH_DEBUGTRAP];
 	Namval_t *np=0;
-	int isstring = shp->subshell?(sfset(sfstdout,0,0)&SF_STRING):0;
 
 	if(flag==2 && !sh_isoption(SH_POSIX))
 		clexec = 1;
@@ -1189,6 +1189,7 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 		}
 		if((iof&IOPROCSUB) && !(iof&IOLSEEK))
 		{
+			/* handle process substitution passed to redirection */
 			struct argnod *ap = (struct argnod*)stakalloc(ARGVAL+strlen(iop->ioname));
 			memset(ap, 0, ARGVAL);
 			if(iof&IOPUT)
@@ -1450,7 +1451,6 @@ int	sh_redirect(Shell_t *shp,struct ionod *iop, int flag)
 				else
 				{
 					regex_t *rp;
-					extern const char e_notimp[];
 					if(!(r&IOREAD))
 					{
 						message = e_noread;
@@ -2143,6 +2143,8 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 		flag = 0;
 	if(flag==0)
 		return(sfsync(sfstderr));
+	/* Temporarily disable 'set -o notify' while expanding the prompt to avoid
+	   possible crashes (https://github.com/ksh93/ksh/issues/103). */
 	was_ttywait_on = sh_isstate(SH_TTYWAIT);
 	sh_offstate(SH_TTYWAIT);
 	sfflags = sfset(sfstderr,SF_SHARE|SF_PUBLIC|SF_READ,0);
@@ -2153,6 +2155,7 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 		case 1:
 		{
 			register int c;
+			sh_lexopen(sh.lex_context, &sh, 0);   /* reset lexer state */
 #if defined(TIOCLBIC) && defined(LFLUSHO)
 			if(!sh_isoption(SH_VI) && !sh_isoption(SH_EMACS) && !sh_isoption(SH_GMACS))
 			{
@@ -2165,7 +2168,7 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 			}
 #endif	/* TIOCLBIC */
 			cp = sh_mactry(shp,nv_getval(sh_scoped(shp,PS1NOD)));
-			shp->exitval = 0;
+			shp->exitval = 0;  /* avoid sending a signal on termination */
 			for(;c= *cp;cp++)
 			{
 				if(c==HIST_CHAR)
@@ -2185,8 +2188,15 @@ static int	io_prompt(Shell_t *shp,Sfio_t *iop,register int flag)
 			goto done;
 		}
 		case 2:
+		{
+			/* PS2 prompt. Save stack state to avoid corrupting command substitutions
+			 * in case we're executing a PS2.get discipline function at parse time. */
+			int	savestacktop = staktell();
+			char	*savestackptr = stakfreeze(0);
 			cp = nv_getval(sh_scoped(shp,PS2NOD));
+			stakset(savestackptr, savestacktop);
 			break;
+		}
 		case 3:
 			cp = nv_getval(sh_scoped(shp,PS3NOD));
 			break;
@@ -2199,7 +2209,7 @@ done:
 	if(*shp->prompt && (endprompt=(char*)sfreserve(sfstderr,0,0)))
 		*endprompt = 0;
 	if(was_ttywait_on)
-		sh_onstate(SH_TTYWAIT);
+		sh_onstate(SH_TTYWAIT);  /* re-enable 'set -o notify' */
 	sfset(sfstderr,sfflags&SF_READ|SF_SHARE|SF_PUBLIC,1);
 	return(sfsync(sfstderr));
 }

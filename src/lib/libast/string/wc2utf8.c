@@ -25,7 +25,7 @@
  * Glenn Fowler
  * AT&T Research
  *
- * convert wide character to utf8 in s
+ * convert wide character to UTF-8 in s
  * s must have room for at least 6 bytes
  * return value is the number of chars placed in s
  * thanks Tom Duff

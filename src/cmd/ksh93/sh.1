@@ -1017,7 +1017,7 @@ later with the
 .B typeset\^
 special built-in command.
 Exported variables pass their attributes to the environment so that a newly
-invoked ksh that is a child or exec'ed process of the current shell will
+invoked ksh that is a child or exec'd process of the current shell will
 automatically import them, unless the \fBposix\fR shell option is on.
 .PP
 The shell supports both indexed and associative arrays.
@@ -1554,10 +1554,21 @@ the
 command.
 .TP
 .B ?
-The decimal value returned by the last executed command.
+The exit status returned by the last executed command. Its meaning depends
+on the command or function that defines it, but there are conventions that
+other commands often depend on: zero typically means 'success' or 'true',
+one typically means 'non-success' or 'false', and a value greater than one
+typically indicates some kind of error. Only the 8 least significant bits of
+\f3$?\fP (values 0 to 255) are preserved when the exit status is passed on
+to a parent process, but within the same (sub)shell environment, it is a
+signed integer value with a range of possible values as shown by the
+commands \f3getconf INT_MIN\fP and \f3getconf INT_MAX\fP. Shell functions
+that run in the current environment may return status values in this range.
 .TP
 .B $
-The process id of this shell.
+The process ID of the main shell process. Note that this value will not
+change in a subshell, even if the subshell runs in a different process.
+See also \f3.sh.pid\fP.
 .TP
 .B _
 Initially, the value of
@@ -2553,7 +2564,7 @@ and
 .BR \*(CK\^ ,
 character classes can be specified with the syntax
 \f3[:\fP\f2class\fP\f3:]\fP
-where class is one of the following classes defined in the ANSI-C standard:
+where class is one of the following classes defined in the ANSI C standard:
 (Note that \f3word\fP is equivalent to \f3alnum\fP plus the character \f3_\fP.)
 .br
 .B
@@ -2629,7 +2640,7 @@ to be used.
 .PP
 When \f2pattern-list\^\fP is contained within parentheses,
 the backslash character \f3\e\fP is treated specially even
-when inside a character class.   All ANSI-C character escapes are
+when inside a character class.   All ANSI C character escapes are
 recognized and match the specified character.  In addition
 the following escape sequences are recognized:
 .PD 0
@@ -2833,7 +2844,7 @@ are quoted.
 A single quote cannot appear within the single quotes.
 A single quoted string preceded by an unquoted
 .B $
-is processed as an ANSI-C string
+is processed as an ANSI C string
 except for the following:
 .PD 0
 .TP
@@ -2931,7 +2942,7 @@ Evaluations are performed using
 double precision floating point
 arithmetic or long double precision floating point for
 systems that provide this data type.
-Floating point constants follow the ANSI-C programming language
+Floating point constants follow the ANSI C programming language
 floating point conventions.
 The case-insensitive floating point constants
 .B NaN
@@ -2939,7 +2950,7 @@ and
 .B Inf
 can be used to represent "not a number" and infinity respectively,
 unless the \fBposix\fR shell option is on.
-Integer constants follow the ANSI-C programming language
+Integer constants follow the ANSI C programming language
 integer constant conventions although only single byte
 character constants are recognized and character casts
 are not recognized.
@@ -5803,9 +5814,9 @@ and invokes this function with an argument of
 .BR 0 .
 .TP
 .PD 0
-\f3cd\fP \*(OK \f3\-LP\fP \*(CK \*(OK \f2arg\^\fP \*(CK
+\f3cd\fP \*(OK \f3\-L\fP \*(CK \*(OK \f3-eP\fP \*(CK \*(OK \f2arg\^\fP \*(CK
 .TP
-\f3cd\fP \*(OK \f3\-LP\fP \*(CK \f2old\^\fP \f2new\^\fP
+\f3cd\fP \*(OK \f3\-L\fP \*(CK \*(OK \f3-eP\fP \*(CK \f2old\^\fP \f2new\^\fP
 .PD
 This command can be in either of two forms.
 In the first form it
@@ -5876,6 +5887,18 @@ or
 .B \-P
 on the command line
 determines which method is used.
+.sp .5
+If
+.B \-e
+and
+.B \-P
+are both in effect and the correct
+.BR PWD
+could not be determined after successfully changing the directory,
+.B cd
+will return with exit status one and produce no output.
+If any other error occurs while both flags are active,
+the exit status is greater than one.
 .sp .5
 The
 .B cd\^
@@ -6079,17 +6102,15 @@ then this command persistently modifies file descriptors as in
 Causes the shell to exit
 with the exit status specified by
 .IR n .
-The value will be the least significant 8 bits of the specified status.
-If
+The value will be the least significant 8 bits of
 .I n\^
-is omitted, then the exit status is that of the last command executed.
-An end-of-file will also cause the shell to exit
-except for a
-shell which has the
+(if specified) or of the exit status of the last command executed.
+An end-of-file will also cause the shell to exit,
+except for an interactive shell that has the
 .B ignoreeof
-option (see
+option turned on (see
 .B set
-below) turned on.
+below).
 .TP
 \(dg\(dd \f3export\fP \*(OK \f3\-p\fP \*(CK \*(OK \f2name\^\fP\*(OK\f3=\fP\f2value\^\fP\*(CK \*(CK .\|.\|.
 If
@@ -6624,7 +6645,7 @@ is added to the output.
 The arguments
 .I arg\^
 are printed on standard output
-in accordance with the ANSI-C
+in accordance with the ANSI C
 formatting rules associated with the format string
 .IR format .
 If the number of arguments exceeds the number of
@@ -6978,25 +6999,20 @@ redirected to themselves as part of the invocation (e.g. \fB4>&4\fR)
 or if the \fBposix\fR option is set.
 .TP
 \(dg \f3return\fP \*(OK \f2n\^\fP \*(CK
-Causes a shell
-.I function
-or
-\f3\|.\fP
-script to return
-to the invoking script
-with the exit status specified by
+Causes a shell function, dot script (see \f3\|.\fP and \f3source\fP),
+or profile script to return to the invoking shell environment with the
+exit status specified by
 .IR n .
-The value will be the least significant 8 bits of the specified status.
+This status value can use the full signed integer range as shown by the
+commands \f3getconf INT_MIN\fP and \f3getconf INT_MAX\fP. A value
+outside that range will produce a warning and an exit status of 128.
 If
 .I n\^
-is omitted, then the return status is that of the last command executed.
+is omitted, then the value of \f3$?\fP is assumed, i.e., the exit
+status of the last command executed is passed on.
 If
 .B return
-is invoked while not in a
-.I function
-or a
-\f3\|.\fP
-script,
+is invoked while not in a function, dot script, or profile script,
 then it behaves the same as
 .BR exit .
 .TP
@@ -7188,7 +7204,7 @@ Same as
 .BR \-H .
 .TP 8
 .B ignoreeof
-The shell will not exit on end-of-file.
+An interactive shell will not exit on end-of-file.
 The command
 .B exit
 must be used.
@@ -7916,9 +7932,9 @@ Used with
 or
 .BR \-F ,
 to indicate long integer, or long float.
-Otherwise, all upper-case characters are
-converted to lower-case.
-The upper-case option,
+Otherwise, all uppercase characters are
+converted to lowercase.
+The uppercase option,
 .BR \-u ,
 is turned off.
 Equivalent to
@@ -7972,9 +7988,9 @@ meaning to the shell.
 When given along with
 .BR \-i ,
 specifies unsigned integer.
-Otherwise, all lower-case characters are converted
-to upper-case.
-The lower-case option,
+Otherwise, all lowercase characters are converted
+to uppercase.
+The lowercase option,
 .BR \-l ,
 is turned off.
 Equivalent to
@@ -8699,7 +8715,3 @@ won't be executed until the foreground job terminates.
 It is a good idea to leave a space after the comma operator in
 arithmetic expressions to prevent the comma from being interpreted
 as the decimal point character in certain locales.
-.PP
-Commands that add type definitions (\f3enum\fP, \f3typeset -T\fP)
-must be run unconditionally and in the main shell environment.
-Defining types conditionally or in a subshell will cause undefined behavior.

@@ -1,2 +1,2 @@
-: mac os10 ldd
+: Mac OS X ldd
 otool -L "$@"

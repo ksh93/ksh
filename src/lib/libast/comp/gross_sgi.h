@@ -23,9 +23,9 @@
 #if __sgi && _hdr_locale_attr
 
 /*
- * irix 6.5 introduced __libc_attr referenced by
+ * IRIX 6.5 introduced __libc_attr referenced by
  * ctype and locale macros; this hack lets
- * 6.5 a.outs run on irix < 6.5
+ * 6.5 a.outs run on IRIX < 6.5
  *
  * NOTE: this hack also freezes the US locale
  */

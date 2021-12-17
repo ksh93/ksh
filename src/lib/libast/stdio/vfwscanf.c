@@ -67,13 +67,6 @@ wideread(Sfio_t* f, Void_t* buf, size_t size, Sfdisc_t* dp)
 {
 	register Wide_t*	w = (Wide_t*)dp;
 	wchar_t			wuf[2];
-
-#if 0
-	if (sfread(w->f, wuf, sizeof(wuf[0])) != sizeof(wuf[0]))
-		return -1;
-	wuf[1] = 0;
-	return wcstombs(buf, wuf, size);
-#else
 	ssize_t	r;
 
 	r = sfread(w->f, wuf, sizeof(wuf[0]));
@@ -82,7 +75,6 @@ wideread(Sfio_t* f, Void_t* buf, size_t size, Sfdisc_t* dp)
 	wuf[1] = 0;
 	r = wcstombs(buf, wuf, size);
 	return r;
-#endif
 }
 
 int
@@ -100,7 +92,7 @@ vfwscanf(Sfio_t* f, const wchar_t* fmt, va_list args)
 	n = wcstombs(NiL, fmt, 0);
 	if (w = newof(0, Wide_t, 1, n))
 	{
-		if (t = sfnew(NiL, buf, sizeof(buf), OPEN_MAX+1, SF_READ))
+		if (t = sfnew(NiL, buf, sizeof(buf), (int)astconf_long(CONF_OPEN_MAX)+1, SF_READ))
 		{
 			w->sfdisc.exceptf = wideexcept;
 			w->sfdisc.readf = wideread;

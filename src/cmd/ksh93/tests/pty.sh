@@ -45,7 +45,7 @@ esac
 # To avoid false regressions, we have to set 'erase' and 'kill' on the real terminal.
 if	test -t 0 2>/dev/null </dev/tty && stty_restore=$(stty -g </dev/tty)
 then	trap 'stty "$stty_restore" </dev/tty' EXIT  # note: on ksh, the EXIT trap is also triggered for termination due to a signal
-	stty erase ^H kill ^X
+	stty erase ^H kill ^X </dev/tty >/dev/tty 2>&1
 else	warning "cannot set tty state -- tests skipped"
 	exit 0
 fi
@@ -75,7 +75,7 @@ function tst
 	integer lineno=$1 offset
 	typeset text
 
-	pty $debug --dialogue --messages='/dev/fd/1' $SHELL |
+	pty $debug --dialogue --messages='/dev/fd/1' 2>/dev/tty $SHELL |
 	while	read -r text
 	do	if	[[ $text == *debug* ]]
 		then	print -u2 -r -- "$text"
@@ -905,6 +905,89 @@ w trap : KEYBD
 w : $(
 w true); echo "Exit status is $?"
 u Exit status is 0
+!
+
+# err_exit #
+tst $LINENO <<"!"
+L interrupted PS2 discipline function
+# https://github.com/ksh93/ksh/issues/347
+
+d 15
+p :test-1:
+w PS2.get() { trap --bad-option 2>/dev/null; .sh.value="NOT REACHED"; }
+p :test-2:
+w echo \$\(
+r :test-2: echo \$\(
+w echo one \\
+r > echo one \\
+w two three
+r > two three
+w echo end
+r > echo end
+w \)
+r > \)
+r one two three end
+!
+
+# err_exit #
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
+L tab completion of '.' and '..'
+# https://github.com/ksh93/ksh/issues/372
+
+d 15
+
+# typing '.' followed by two tabs should show a menu that includes "number) ../"
+p :test-1:
+w : .\t\t
+u ) \.\./\r\n$
+
+# typing '..' followed by a tab should complete to '../' (as it is
+# known that there are no files starting with '..' in the test PWD)
+p :test-2:
+w : ..\t
+r : \.\./\r\n$
+!
+
+# err_exit #
+tst $LINENO <<"!"
+L Ctrl+C with SIGINT ignored
+# https://github.com/ksh93/ksh/issues/343
+
+d 15
+
+# SIGINT ignored by child
+p :test-1:
+w PS1=':child-!: ' "$SHELL"
+p :child-1:
+w trap '' INT
+p :child-2:
+c \\\cC
+r :child-2:
+w echo "OK $PS1"
+u ^OK :child-!: \r\n$
+w exit
+
+# SIGINT ignored by parent
+p :test-2:
+w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
+p :child-1:
+c \\\cC
+r :child-1:
+w echo "OK $PS1"
+u ^OK :child-!: \r\n$
+w exit
+
+# SIGINT ignored by parent, trapped in child
+p :test-3:
+w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
+p :child-1:
+w trap 'echo test' INT
+p :child-2:
+c \\\cC
+r :child-2:
+w echo "OK $PS1"
+u ^OK :child-!: \r\n$
+w exit
 !
 
 # ======

@@ -1,18 +1,21 @@
-Announcing: KornShell 93u+m 1.0.0-beta.1
+******************************** WARNING *********************************
+* This is the ANNOUNCE file from the development branch. It's not in a   *
+* finished state and some information may be missing, obsolete or wrong. *
+**************************************************************************
+
+Announcing: KornShell 93u+m 1.1.0, released <insert date here>
 https://github.com/ksh93/ksh
 
-In May 2020, when every KornShell (ksh93) development project was
-abandoned, development was rebooted in a new fork based on the last
-stable AT&T version: ksh 93u+. Now, one year and hundreds of bug fixes
-later, the first beta version is ready, and KornShell lives again. This
-new fork is called ksh 93u+m as a permanent nod to its origin; a standard
-semantic version number is added starting at 1.0.0-beta.1. Please test
-the beta and report any bugs you find, or help us fix known bugs.
+In May 2020, when every KornShell (ksh93) development project was abandoned,
+development was rebooted in a new fork based on the last stable AT&T
+version: ksh 93u+. This new fork is called ksh 93u+m as a permanent nod to
+its origin; a standard semantic version number is added starting at 1.0.0.
 
 Main developers: Martijn Dekker, Johnothan King, hyenias
 
 Contributors: Andy Fiddaman, Anuradha Weeraman, Chase, Gordon Woodhull,
-Govind Kamat, Harald van Dijk, Lev Kujawski, Marc Wilson, Sterling Jensen
+Govind Kamat, Harald van Dijk, Lev Kujawski, Marc Wilson, Ryan Schmidt,
+Sterling Jensen
 
 HOW TO GET IT
 
@@ -33,7 +36,11 @@ To get involved in development, read the brief policy information in
 README.md and then jump right in with a pull request or email a patch.
 See the TODO file in the top-level directory for a to-do list.
 
-MAIN CHANGES SINCE KSH 93U+ 2012-08-01
+MAIN CHANGES BETWEEN KSH 93U+M 1.0 AND 1.1
+
+- TODO
+
+MAIN CHANGES BETWEEN KSH 93U+ 2012-08-01 AND 93U+M 1.0
 
 Hundreds of bugs have been fixed, including many serious/critical bugs.
 This includes upstreamed patches from OpenSUSE, Red Hat, and Solaris, fixes

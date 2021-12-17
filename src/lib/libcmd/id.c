@@ -231,10 +231,10 @@ getids(Sfio_t* sp, const char* name, register int flags)
 			 */
 
 			if ((maxgroups = getgroups(0, groups)) <= 0)
-				maxgroups = NGROUPS_MAX;
+				maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
 			if (!(groups = newof(0, gid_t, maxgroups + 1, 0)))
 			{
-				error(ERROR_exit(1), "out of memory [group array]");
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [group array]");
 				UNREACHABLE();
 			}
 		}

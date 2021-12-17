@@ -1,4 +1,4 @@
-: cc wrapper for aix risc xlc : 2012-04-17 :
+: cc wrapper for AIX RISC xlc : 2012-04-17 :
 
 hosttype=ibm.risc
 
@@ -33,7 +33,7 @@ case " $@ " in
 	;;
 esac
 if	test -x $bin/c99
-then	# the xlc optimizer vintage that supports c99 is flawed and causes the ast build to fail #
+then	# the xlc optimizer vintage that supports c99 is flawed and causes the AST build to fail #
 	case " $* " in
 	*" -O "*)
 		set '' "$@" ''

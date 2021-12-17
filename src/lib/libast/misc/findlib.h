@@ -37,7 +37,7 @@
 #include <vmalloc.h>
 
 #define FF_old		1	/* old format - 7 bit bigram		*/
-#define FF_gnu		2	/* gnu 8 bit no bigram			*/
+#define FF_gnu		2	/* GNU 8 bit no bigram			*/
 #define FF_dir		3	/* FF_gnu, dirs have trailing /		*/
 #define FF_typ		4	/* FF_dir with types			*/
 

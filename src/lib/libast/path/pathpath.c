@@ -90,7 +90,6 @@ pathpath_20100601(const char* p, const char* a, int mode, register char* path, s
 		a = 0;
 	else if (s = (char*)a)
 	{
-		x = s;
 		if (strchr(p, '/'))
 		{
 			a = p;

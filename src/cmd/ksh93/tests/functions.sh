@@ -190,7 +190,7 @@ cat > $tmp/script <<- \EOF
 EOF
 chmod +x $tmp/script
 if	[[ $( $SHELL $tmp/script arg1 arg2) != arg2 ]]
-then	err_exit 'arguments not restored by posix functions'
+then	err_exit 'arguments not restored by POSIX functions'
 fi
 function foo
 {
@@ -302,7 +302,7 @@ bad()
 val=true
 bad
 if	[[ $val != false ]]
-then	err_exit 'set -e not inherited for posix functions'
+then	err_exit 'set -e not inherited for POSIX functions'
 fi
 trap - ERR
 
@@ -1210,11 +1210,11 @@ function foo
 	let 1
 	return $1
 }
-invals=(135 255 256 267 -1)
-outvals=(135 255 0 267 255)
-for ((i=0; i < ${#invals[@]}; i++))
-do	foo ${invals[i]}
-	[[ $? == "${outvals[i]}" ]] || err_exit "function exit ${invals[i]} should set \$? to ${outvals[i]}"
+# As of ksh 93u+m 2021-12-08, you can use arbitrary signed integer return values in the current (sub)shell.
+vals=(135 255 256 267 -1 1234 -4567)
+for ((i=0; i < ${#vals[@]}; i++))
+do	foo ${vals[i]}
+	[[ $? == "${vals[i]}" ]] || err_exit "function exit ${vals[i]} should set \$? to ${vals[i]}"
 done
 
 function foo
@@ -1262,12 +1262,15 @@ expect_status=0
 
 # ======
 # When a function unsets itself, it should not fail to be unset
-$SHELL -c 'PATH=/dev/null; fn() { unset -f fn; true; }; fn' || err_exit 'unset of POSIX function in the calling stack fails'
-$SHELL -c 'PATH=/dev/null; function ftest { ftest2; }; function ftest2 { unset -f ftest; }; ftest' || err_exit 'unset of ksh function in the calling stack fails'
-$SHELL -c 'PATH=/dev/null; fn() { unset -f fn; true; }; fn; fn' 2> /dev/null
-[[ $? != 127 ]] && err_exit 'unset of POSIX function fails when it is still running'
-$SHELL -c 'PATH=/dev/null; function fn { unset -f fn; true; }; fn; fn' 2> /dev/null
-[[ $? != 127 ]] && err_exit 'unset of ksh function fails when it is still running'
+# https://github.com/ksh93/ksh/issues/21
+got=$( { "$SHELL" -c 'PATH=/dev/null; fn() { unset -f fn; true; }; fn'; } 2>&1 )
+(( (e=$?)==0 )) || err_exit 'unset of POSIX function in the calling stack fails' "(got status $e, $(printf %q "$got"))"
+got=$( { "$SHELL" -c 'PATH=/dev/null; function ftest { ftest2; }; function ftest2 { unset -f ftest; }; ftest'; } 2>&1 )
+(( (e=$?)==0 )) || err_exit 'unset of ksh function in the calling stack fails' "(got status $e, $(printf %q "$got"))"
+got=$( { "$SHELL" -c 'PATH=/dev/null; fn() { unset -f fn; true; }; fn; fn'; } 2>&1 )
+(( (e=$?)==127 )) ||  err_exit 'unset of POSIX function fails when it is still running' "(got status $e, $(printf %q "$got"))"
+got=$( { "$SHELL" -c 'PATH=/dev/null; function fn { unset -f fn; true; }; fn; fn'; } 2>&1 )
+(( (e=$?)==127 )) || err_exit 'unset of ksh function fails when it is still running' "(got status $e, $(printf %q "$got"))"
 
 # ======
 # Check if environment variables passed while invoking a function are exported

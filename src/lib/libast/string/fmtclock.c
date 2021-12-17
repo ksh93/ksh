@@ -36,16 +36,16 @@ fmtclock(register Sfulong_t t)
 	char*			buf;
 	int			z;
 
-	static unsigned int	clk_tck;
+	static unsigned long	clk_tck;
 
 	if (!clk_tck)
 	{
 #ifdef CLOCKS_PER_SEC
 		clk_tck = CLOCKS_PER_SEC;
 #else
-		if (!(clk_tck = (unsigned int)strtoul(astconf("CLK_TCK", NiL, NiL), NiL, 10)))
+		if (!(clk_tck = astconf_ulong(CONF_CLK_TCK)))
 			clk_tck = 60;
-#endif
+#endif /* CLOCKS_PER_SEC */
 	}
 	if (t == 0)
 		return "0";

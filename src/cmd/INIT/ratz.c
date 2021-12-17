@@ -2,7 +2,7 @@
  * ratz -- read a tar gzip archive from the standard input
  *
  * coded for portability
- * _SEAR_* macros for win32 self extracting archives -- see sear(1).
+ * _SEAR_* macros for Win32 self extracting archives -- see sear(1).
  */
 #pragma clang diagnostic ignored "-Wdeprecated-register"
 #pragma clang diagnostic ignored "-Wparentheses"
@@ -38,8 +38,8 @@ static const char usage[] =
 #endif
 "[l:local?Reject files that traverse outside the current directory.]"
 "[m:meter?Display a one line text meter showing archive read progress.]"
-"[n!:convert?In ebcdic environments convert text archive members from ascii"
-"	to the native ebcdic.]"
+"[n!:convert?In EBCDIC environments convert text archive members from ASCII"
+"	to the native EBCDIC.]"
 "[t:list?List each file path on the standard output but do not extract.]"
 "[v:verbose?List each file path on the standard output as it is extracted.]"
 "[V?Print the program version and exit.]"
@@ -305,9 +305,9 @@ static const char usage[] =
 #  endif
 #endif
 
-/* The following definitions for FAR are needed only for MSDOS mixed
+/* The following definitions for FAR are needed only for MS-DOS mixed
  * model programming (small or medium model with some far allocations).
- * This was tested only with MSC; for other MSDOS compilers you may have
+ * This was tested only with MSC; for other MS-DOS compilers you may have
  * to define NO_MEMCPY in zutil.h.  If you don't need the mixed model,
  * just define FAR to be empty.
  */
@@ -473,7 +473,7 @@ typedef uLong FAR uLongf;
   stream interface.
 
      Compression can be done in a single step if the buffers are large
-  enough (for example if an input file is mmap'ed), or can be done by
+  enough (for example if an input file is mmap'd), or can be done by
   repeated calls of the compression function.  In the latter case, the
   application must provide more input and/or consume the output
   (providing more output space) before each call.
@@ -764,7 +764,7 @@ typedef unsigned long  ulg;
 #  define HAVE_MEMCPY
 #endif
 #ifdef HAVE_MEMCPY
-#  ifdef SMALL_MEDIUM /* MSDOS small or medium model */
+#  ifdef SMALL_MEDIUM /* MS-DOS small or medium model */
 #    define zmemcpy _fmemcpy
 #    define zmemcmp _fmemcmp
 #    define zmemzero(dest, len) _fmemset(dest, 0, len)
@@ -811,10 +811,6 @@ void   zcfree  OF((voidpf opaque, voidpf ptr));
 
 #ifndef _ZUTIL_C
 #define _ZUTIL_C
-
-#if 0 && !_PACKAGE_ast && !defined(STDC)
-extern void exit OF((int));
-#endif
 
 #ifndef HAVE_MEMCPY
 
@@ -880,7 +876,7 @@ typedef struct ptr_table_s {
 local ptr_table table[MAX_PTR];
 /* This table is used to remember the original form of pointers
  * to large buffers (64K). Such pointers are normalized with a zero offset.
- * Since MSDOS is not a preemptive multitasking OS, this table is not
+ * Since MS-DOS is not a preemptive multitasking OS, this table is not
  * protected from concurrent access. This hack doesn't work anyway on
  * a protected system like OS/2. Use Microsoft C instead.
  */
@@ -962,14 +958,6 @@ void  zcfree (voidpf opaque, voidpf ptr)
 
 
 #ifndef MY_ZCALLOC /* Any system without a special alloc function */
-
-#if 0 && !_PACKAGE_ast
-#ifndef STDC
-extern voidp  malloc OF((uInt size));
-extern voidp  calloc OF((uInt items, uInt size));
-extern void   free   OF((voidpf ptr));
-#endif
-#endif
 
 voidpf zcalloc (opaque, items, size)
     voidpf opaque;
@@ -1328,7 +1316,7 @@ typedef struct internal_state {
      * bytes. With this organization, matches are limited to a distance of
      * wSize-MAX_MATCH bytes, but this ensures that IO is always
      * performed with a length multiple of the block size. Also, it limits
-     * the window size to 64K, which is quite useful on MSDOS.
+     * the window size to 64K, which is quite useful on MS-DOS.
      * To do: use the user input buffer as sliding window.
      */
 
@@ -2019,7 +2007,7 @@ unsigned short FAR *work;
    - Pentium III (Anderson)
    - M68060 (Nikl)
  */
-#undef	OFF		/* (ancient) sunos <locale.h> */
+#undef	OFF		/* (ancient) SunOS <locale.h> */
 #ifdef POSTINC
 #  define OFF 0
 #  define PUP(a) *(a)++
@@ -3626,20 +3614,13 @@ typedef voidp gzFile;
    FILE *fdopen(int, const char *);
 #endif
 
-#if 0 && !_PACKAGE_ast
-#ifndef STDC
-extern voidp  malloc OF((uInt size));
-extern void   free   OF((voidpf ptr));
-#endif
-#endif
-
 #define ALLOC(size) malloc(size)
 #define TRYFREE(p) {if (p) free(p);}
 
 static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 
 /* gzip flag byte */
-#define ASCII_FLAG   0x01 /* bit 0 set: file probably ascii text */
+#define ASCII_FLAG   0x01 /* bit 0 set: file probably ASCII text */
 #define HEAD_CRC     0x02 /* bit 1 set: header CRC present */
 #define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
 #define ORIG_NAME    0x08 /* bit 3 set: original file name present */
@@ -3999,7 +3980,7 @@ int ZEXPORT gzread (file, buf, len)
 {
     gz_stream *s = (gz_stream*)file;
     Bytef *start = (Bytef*)buf; /* starting point for crc computation */
-    Byte  *next_out; /* == stream.next_out but not forced far (for MSDOS) */
+    Byte  *next_out; /* == stream.next_out but not forced far (for MS-DOS) */
 
     if (s == NULL || s->mode != 'r') return Z_STREAM_ERROR;
 
@@ -4360,7 +4341,7 @@ static const unsigned char a2i[] =
 };
 
 /*
- * the mvs OpenEdition EBCDIC table
+ * the MVS OpenEdition EBCDIC table
  */
 
 static const unsigned char a2o[] =
@@ -4400,7 +4381,7 @@ static const unsigned char a2o[] =
 };
 
 /*
- * ascii text vs. control
+ * ASCII text vs. control
  */
 
 static const unsigned char ascii_text[] =
@@ -4556,7 +4537,7 @@ sear_rm_r(char* dir)
 }
 
 /*
- * system(3) without PATH search that should work on all windows variants
+ * system(3) without PATH search that should work on all Windows variants
  */
 
 static int

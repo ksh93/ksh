@@ -675,6 +675,8 @@ actual=$("$SHELL" -c 'A[0]="'\''" B[0]=aa C[0]=aa; typeset -a') \
 
 # ======
 # Arrays in virtual/non-forked subshells
+# https://github.com/att/ast/issues/416
+# https://github.com/ksh93/ksh/issues/88
 
 unset foo
 (typeset -a foo)

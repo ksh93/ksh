@@ -22,7 +22,7 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * posix syslog implementation definitions
+ * POSIX syslog implementation definitions
  */
 
 #ifndef _SYSLOGLIB_H

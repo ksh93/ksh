@@ -291,7 +291,7 @@ visit(State_t* state, register FTSENT* ent)
 	{
 		if ((state->postsiz + len) > state->pathsiz && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + len, PATH_CHUNK), 0)))
 		{
-			error(ERROR_SYSTEM|3, "out of memory");
+			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
 		if (state->hierarchy && ent->fts_level == 0 && strchr(base, '/'))
@@ -400,15 +400,6 @@ visit(State_t* state, register FTSENT* ent)
 			return 0;
 		}
 		break;
-#if 0
-	case FTS_SL:
-		if (state->op == CP)
-		{
-			error(2, "%s: cannot copy non-terminal symbolic link", ent->fts_path);
-			return 0;
-		}
-		break;
-#endif
 	}
 	if (state->directory)
 		memcpy(state->path + state->postsiz, base, len);
@@ -696,7 +687,7 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 	{
 		if (!(state = newof(0, State_t, 1, 0)))
 		{
-			error(ERROR_SYSTEM|3, "out of memory");
+			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
 		if (sh)
@@ -874,7 +865,7 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 			continue;
 		case '?':
 			error(ERROR_USAGE|4, "%s", opt_info.arg);
-			continue;
+			UNREACHABLE();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
@@ -890,7 +881,7 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 	}
 	if (!(v = (char**)stkalloc(stkstd, (argc + 2) * sizeof(char*))))
 	{
-		error(ERROR_SYSTEM|3, "out of memory");
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();
 	}
 	memcpy(v, argv, (argc + 1) * sizeof(char*));
@@ -986,7 +977,7 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 	state->postsiz = strlen(file);
 	if (state->pathsiz < roundof(state->postsiz + 2, PATH_CHUNK) && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + 2, PATH_CHUNK), 0)))
 	{
-		error(ERROR_SYSTEM|3, "out of memory");
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();
 	}
 	memcpy(state->path, file, state->postsiz + 1);

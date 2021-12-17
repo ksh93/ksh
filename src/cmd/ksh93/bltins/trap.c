@@ -85,7 +85,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 				/*
 				 * NOTE: 2007-11-26: workaround for tests/signal.sh
 				 * if function semantics can be worked out then it
-				 * may merit a -d,--default option
+				 * may merit a -d/--default option
 				 */
 				else if(*action=='+' && action[1]==0 && shp->st.self == &shp->global)
 				{
@@ -375,12 +375,13 @@ static int sig_number(Shell_t *shp,const char *string)
 		}
 		if(n<0 && shp->gd->sigruntime[1] && (name=stakptr(o)) && *name++=='R' && *name++=='T')
 		{
-			if(name[0]=='M' && name[1]=='I' && name[2]=='N' && name[3]=='+')
+			/* Real-time signals */
+			if(name[0]=='M' && name[1]=='I' && name[2]=='N' && name[3]=='+')	/* MIN+ */
 			{
 				if((sig=(int)strtol(name+4,&name,10)) >= 0 && !*name)
 					n = shp->gd->sigruntime[SH_SIGRTMIN] + sig;
 			}
-			else if(name[0]=='M' && name[1]=='A' && name[2]=='X' && name[3]=='-')
+			else if(name[0]=='M' && name[1]=='A' && name[2]=='X' && name[3]=='-')	/* MAX- */
 			{
 				if((sig=(int)strtol(name+4,&name,10)) >= 0 && !*name)
 					n = shp->gd->sigruntime[SH_SIGRTMAX] - sig;

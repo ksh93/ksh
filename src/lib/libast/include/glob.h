@@ -22,7 +22,7 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * posix glob interface definitions with gnu extensions
+ * POSIX glob interface definitions with GNU extensions
  */
 
 #ifndef _GLOB_H
@@ -72,7 +72,7 @@ struct _glob_
 	int		(*gl_type)(glob_t*, const char*, int);
 	int		(*gl_attr)(glob_t*, const char*, int);
 
-	/* gnu extensions -- but how do you synthesize dirent and stat? */
+	/* GNU extensions -- but how do you synthesize dirent and stat? */
 
 	void*		(*gl_opendir)(const char*);
 	struct dirent*	(*gl_readdir)(void*);
@@ -80,7 +80,7 @@ struct _glob_
 	int		(*gl_stat)(const char*, struct stat*);
 	int		(*gl_lstat)(const char*, struct stat*);
 
-	/* ast additions */
+	/* AST additions */
 
 	char*		(*gl_nextdir)(glob_t*, char*);
 	unsigned long	gl_status;
@@ -113,14 +113,15 @@ struct _glob_
 #define GLOB_STARSTAR	0x0080		/* enable [/]**[/] expansion	*/
 #define GLOB_BRACE	0x0100		/* enable {...} expansion	*/
 #define GLOB_ICASE	0x0200		/* ignore case on match		*/
-#define GLOB_COMPLETE	0x0400		/* shell file completion	*/
+#define GLOB_COMPLETE	0x0400		/* shell command completion	*/
 #define GLOB_AUGMENTED	0x0800		/* augmented shell patterns	*/
 #define GLOB_STACK	0x1000		/* allocate on current stack	*/
 #define GLOB_LIST	0x2000		/* just create gl_list		*/
-#define GLOB_ALTDIRFUNC	0x4000		/* gnu discipline functions	*/
+#define GLOB_ALTDIRFUNC	0x4000		/* GNU discipline functions	*/
 #define GLOB_DISC	0x8000		/* discipline initialized	*/
 #define GLOB_GROUP	0x10000		/* REG_SHELL_GROUP		*/
 #define GLOB_DCASE	0x20000		/* detect FS case insensitivity	*/
+#define GLOB_FCOMPLETE	0x40000		/* shell file name completion	*/
 
 /* gl_status */
 #define GLOB_NOTDIR	0x0001		/* last gl_dirnext() not a dir	*/

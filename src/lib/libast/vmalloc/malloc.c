@@ -1124,8 +1124,6 @@ char*	ends;
 	return begs;
 }
 
-#define FD_PRIVATE	(3*OPEN_MAX/4)
-
 #if __STD_C
 int _vmfd(int fd)
 #else
@@ -1134,10 +1132,19 @@ int	fd;
 #endif
 {
 	int	pd;
+	int	fd_private = (int)(3 * astconf_long(CONF_OPEN_MAX) / 4);
+	if (fd_private <= 0)
+	{
+#if defined(OPEN_MAX)
+		fd_private = 3 * OPEN_MAX / 4;
+#else
+		fd_private = 3 * FOPEN_MAX / 4;
+#endif
+	}
 
 	if (fd >= 0)
 	{
-		if (fd < FD_PRIVATE && (pd = fcntl(fd, F_DUPFD, FD_PRIVATE)) >= 0)
+		if (fd < fd_private && (pd = fcntl(fd, F_DUPFD, fd_private)) >= 0)
 		{
 			close(fd);
 			fd = pd;
@@ -1406,10 +1413,10 @@ void _vmoptions()
 }
 
 /*
- * ast semi-private workaround for system functions
+ * AST semi-private workaround for system functions
  * that misbehave by passing bogus addresses to free()
  *
- * not prototyped in any header to keep it ast semi-private
+ * not prototyped in any header to keep it AST semi-private
  *
  * to keep malloc() data by disabling free()
  *	extern _vmkeep(int);

@@ -26,7 +26,7 @@
  * Advanced Software Technology Library
  * AT&T Research
  *
- * std + posix + ast
+ * std + POSIX + AST
  */
 
 #ifndef _AST_H
@@ -280,9 +280,29 @@ extern char*		astconf(const char*, const char*, const char*);
 extern Ast_confdisc_f	astconfdisc(Ast_confdisc_f);
 extern void		astconflist(Sfio_t*, const char*, int, const char*);
 extern off_t		astcopy(int, int, off_t);
-extern int		astlicense(char*, int, char*, char*, int, int, int);
 extern int		astquery(int, const char*, ...);
 extern void		astwinsize(int, int*, int*);
+#if _lib_sysconf
+/* prefer sysconf for astconf_long and astconf_ulong to improve performance */
+#define CONF_ARG_MAX		_SC_ARG_MAX
+#define CONF_CHILD_MAX		_SC_CHILD_MAX
+#define CONF_CLK_TCK		_SC_CLK_TCK
+#define CONF_NGROUPS_MAX	_SC_NGROUPS_MAX
+#define CONF_OPEN_MAX		_SC_OPEN_MAX
+#define CONF_PAGESIZE		_SC_PAGESIZE
+#define astconf_long(x)		sysconf(x)
+#define astconf_ulong(x)	(unsigned long)sysconf(x)
+#else
+/* fallback in case sysconf isn't available */
+#define CONF_ARG_MAX		"ARG_MAX"
+#define CONF_CHILD_MAX		"CHILD_MAX"
+#define CONF_CLK_TCK		"CLK_TCK"
+#define CONF_NGROUPS_MAX	"NGROUPS_MAX"
+#define CONF_OPEN_MAX		"OPEN_MAX"
+#define CONF_PAGESIZE		"PAGESIZE"
+#define astconf_long(x)		strtol(astconf(x,NiL,NiL),NiL,0)
+#define astconf_ulong(x)	strtoul(astconf(x,NiL,NiL),NiL,0)
+#endif
 
 extern ssize_t		base64encode(const void*, size_t, void**, void*, size_t, void**);
 extern ssize_t		base64decode(const void*, size_t, void**, void*, size_t, void**);

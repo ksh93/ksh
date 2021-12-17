@@ -19,8 +19,6 @@ setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?
 setv COTEMP $$
 setv IFFEFLAGS
 setv LDFLAGS ""
-make ${PACKAGEROOT}/lib/package/ast.lic
-done ${PACKAGEROOT}/lib/package/ast.lic
 make install
 	make cmd
 		make libcmd.a archive
@@ -44,8 +42,8 @@ make install
 				exec - esac
 				exec - continue
 				exec - elif test ! -f ${INSTALLROOT}/lib/lib$i.a
-				exec - then case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -L${INSTALLROOT}/lib ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' $x ;} | sed -e 's/[][()+@?]/#/g' || :` in
-				exec - *$x*) case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' $x ;} | sed -e 's/[][()+@?]/#/g' || :` in
+				exec - then case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -L${INSTALLROOT}/lib ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :` in
+				exec - *$x*) case `{ ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :` in
 				exec - *$x*) continue ;;
 				exec - esac
 				exec - ;;
@@ -788,7 +786,7 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/cmd.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev cmd.h
-		exec - proto -p -s -l ${PACKAGEROOT}/lib/package/ast.lic '-o since=1992,author=gsf+dgk' cmd.h > 1.${COTEMP}.x
+		exec - proto -p -s cmd.h > 1.${COTEMP}.x
 		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/cmd.h 1.${COTEMP}.x
 		exec - then rm -f 1.${COTEMP}.x
 		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/cmd.h
@@ -796,7 +794,7 @@ make install
 	done ${PACKAGE_ast_INCLUDE}/cmd.h generated
 	make ${PACKAGE_ast_INCLUDE}/cmdext.h
 		prev cmdext.h
-		exec - proto -p -s -l ${PACKAGEROOT}/lib/package/ast.lic '-o since=1992,author=gsf+dgk' cmdext.h > 1.${COTEMP}.x
+		exec - proto -p -s cmdext.h > 1.${COTEMP}.x
 		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/cmdext.h 1.${COTEMP}.x
 		exec - then rm -f 1.${COTEMP}.x
 		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/cmdext.h
@@ -872,7 +870,7 @@ make install
 			exec - else mv 1.${COTEMP}.h cmdlist.h
 			exec - fi
 		done cmdlist.h generated
-		exec - proto -p -s -l ${PACKAGEROOT}/lib/package/ast.lic '-o since=1992,author=gsf+dgk' cmdlist.h > 1.${COTEMP}.x
+		exec - proto -p -s cmdlist.h > 1.${COTEMP}.x
 		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/cmdlist.h 1.${COTEMP}.x
 		exec - then rm -f 1.${COTEMP}.x
 		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/cmdlist.h

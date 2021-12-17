@@ -25,7 +25,7 @@
  * Glenn Fowler
  * AT&T Research
  *
- * convert native path to posix fs representation in <buf,siz>
+ * convert native path to POSIX fs representation in <buf,siz>
  * length of converted path returned
  * if return length >= siz then buf is indeterminate, but another call
  * with siz=length+1 would work

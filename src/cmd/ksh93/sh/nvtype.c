@@ -29,7 +29,7 @@
 #include        "variables.h"
 
 static const char sh_opttype[] =
-"[-1c?\n@(#)$Id: type (AT&T Labs Research) 2008-07-01 $\n]"
+"[-1c?\n@(#)$Id: type (ksh 93u+m) 2021-12-17 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - set the type of variables to \b\f?\f\b]"
 "[+DESCRIPTION?\b\f?\f\b sets the type on each of the variables specified "

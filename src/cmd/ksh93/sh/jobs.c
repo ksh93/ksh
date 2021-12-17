@@ -317,8 +317,7 @@ int job_reap(register int sig)
 	{
 		if(!(flags&WNOHANG) && !sh.intrap && job.pwlist)
 		{
-			if(!was_ttywait_on)
-				sh_onstate(SH_TTYWAIT);
+			sh_onstate(SH_TTYWAIT);
 			if(waitevent && (*waitevent)(-1,-1L,0))
 				flags |= WNOHANG;
 		}
@@ -327,7 +326,7 @@ int job_reap(register int sig)
 			sh_offstate(SH_TTYWAIT);
 
 		/*
-		 * some systems (linux 2.6) may return EINVAL
+		 * some systems (Linux 2.6) may return EINVAL
 		 * when there are no continued children
 		 */
 
@@ -1020,8 +1019,8 @@ int job_kill(register struct process *pw,register int sig)
 #endif	/* SIGTSTP */
 	job_lock();
 	errno = ECHILD;
-	if(pw==0)
-		goto error;
+	if(!pw)
+		goto error;  /* not an actual shell job */
 	shp = pw->p_shp;
 	pid = pw->p_pid;
 	if(by_number)
@@ -1132,7 +1131,6 @@ int job_hup(struct process *pw, int sig)
 
 /*
  * Get process structure from first letters of jobname
- *
  */
 
 static struct process *job_byname(char *name)

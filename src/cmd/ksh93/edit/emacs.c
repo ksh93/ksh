@@ -66,13 +66,8 @@ One line screen editor for any program
 
 #include	<ast.h>
 #include	"FEATURE/cmds"
-#if KSHELL
-#   include	"defs.h"
-#else
-#   include	<ctype.h>
-#endif	/* KSHELL */
+#include	"defs.h"
 #include	"io.h"
-
 #include	"history.h"
 #include	"edit.h"
 #include	"terminal.h"
@@ -112,8 +107,8 @@ typedef struct _emacs_
 	int 	in_mult;
 	char	cr_ok;
 	char	CntrlO;
-	char	overflow;		/* Screen overflow flag set */
-	char	scvalid;		/* Screen is up to date */
+	char	overflow;	/* Screen overflow flag set */
+	char	scvalid;	/* Screen is up to date */
 	char	lastdraw;	/* last update type */
 	int	offset;		/* Screen offset */
 	enum
@@ -213,8 +208,9 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	/* This mess in case the read system call fails */
 	
 	ed_setup(ep->ed,fd,reedit);
+#if !SHOPT_MULTIBYTE
 	out = (genchar*)buff;
-#if SHOPT_MULTIBYTE
+#else
 	out = (genchar*)roundof(buff-(char*)0,sizeof(genchar));
 	if(reedit)
 		ed_internal(buff,out);
@@ -829,10 +825,10 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 #endif
 			return(-1);
 
-		case 'l':	/* M-l == lower-case */
-		case 'd':
-		case 'c':
-		case 'f':
+		case 'l':	/* M-l == lowercase */
+		case 'd':	/* M-d == delete word */
+		case 'c':	/* M-c == uppercase */
+		case 'f':	/* M-f == move cursor forward one word */
 		{
 			i = cur;
 			while(value-- && i<eol)
@@ -886,10 +882,10 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		}
 		
 		
-		case 'b':
+		case 'b':	/* M-b == go backward one word */
 		case DELETE :
 		case '\b':
-		case 'h':
+		case 'h':	/* M-h == delete the previous word */
 		{
 			i = cur;
 			while(value-- && i>0)
@@ -975,7 +971,6 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			draw(ep,UPDATE);
 			return(-1);
 		}
-#if KSHELL
 
 #if SHOPT_EDPREDICT
 		case '\n':  case '\t':
@@ -1097,6 +1092,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				if(cur>0 && eol==cur && (cur<(SEARCHSIZE-2) || ep->prevdirection == -2))
 #endif /* SHOPT_EDPREDICT */
 				{
+					/* perform a reverse search based on the current command line */
 					if(ep->lastdraw==APPEND)
 					{
 						out[cur] = 0;
@@ -1166,16 +1162,8 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 #   else
 				return(-1);
 #   endif /* ESH_BETTER */
-#else
-		update:
-			cur = i;
-			draw(ep,UPDATE);
-			return(-1);
-
-		default:
-#endif	/* KSHELL */
-		beep();
-		return(-1);
+			beep();
+			/* FALLTHROUGH */
 	}
 	return(-1);
 }
@@ -1200,8 +1188,7 @@ static void xcommands(register Emacs_t *ep,int count)
                         draw(ep,UPDATE);
                         return;
 
-#if KSHELL
-#   ifdef ESH_BETTER
+#ifdef ESH_BETTER
                 case cntl('E'):	/* invoke emacs on current command */
 			if(ed_fulledit(ep->ed)==-1)
 				beep();
@@ -1265,8 +1252,7 @@ static void xcommands(register Emacs_t *ep,int count)
 				return;
 			}
 #	endif /* debugging code */
-#   endif /* ESH_BETTER */
-#endif /* KSHELL */
+#endif /* ESH_BETTER */
 
                 default:
                         beep();
@@ -1305,7 +1291,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 				goto restore;
 			continue;
 		}
-		if(i == ep->ed->e_intr)
+		if(i == ep->ed->e_intr)  /* end reverse search */
 			goto restore;
 		if (i==usrkill)
 		{

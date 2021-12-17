@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex ed(1) style substitute execute
+ * POSIX regex ed(1) style substitute execute
  */
 
 #include "reglib.h"

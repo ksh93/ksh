@@ -163,7 +163,7 @@ native_setlocale(int category, const char* locale)
 		return 0;
 
 	/*
-	 * win32 doesn't have LC_MESSAGES
+	 * Win32 doesn't have LC_MESSAGES
 	 */
 
 	if (category == LC_MESSAGES)
@@ -527,7 +527,7 @@ set_collate(Lc_category_t* cp)
 }
 
 /*
- * workaround the interesting sjis that translates unshifted 7 bit ascii!
+ * workaround the interesting SJIS that translates unshifted 7 bit ASCII!
  */
 
 #if _hdr_wchar && _typ_mbstate_t && _lib_mbrtowc
@@ -548,19 +548,11 @@ sjis_mbtowc(register wchar_t* p, register const char* s, size_t n)
 
 #endif
 
-#if 0
-
-#define utf8_wctomb	wctomb
-
-#else
-
 static int
 utf8_wctomb(char* u, wchar_t w) 
 {
 	return u ? wc2utf8(u, w) : 0;
 }
-
-#endif
 
 static const uint32_t		utf8mask[] =
 {
@@ -2282,7 +2274,7 @@ set_ctype(Lc_category_t* cp)
 #ifdef mb_state
 		{
 			/*
-			 * check for sjis that translates unshifted 7 bit ascii!
+			 * check for SJIS that translates unshifted 7 bit ASCII!
 			 */
 
 			char*	s;
@@ -2420,7 +2412,7 @@ default_setlocale(int category, const char* locale)
 #if !_UWIN
 
 /*
- * workaround for systems that shall not be named (solaris,freebsd)
+ * workaround for Solaris and FreeBSD systems
  * the call free() with addresses that look like the came from the stack
  */
 

@@ -1,4 +1,4 @@
-: linux.ia64 icc wrapper : 2021-01-31 :
+: linux.i386 icc wrapper : 2021-01-31 :
 
 HOSTTYPE=linux.ia64-icc
 

@@ -268,7 +268,7 @@ double x,p;
 #else	/* defined(vax)||defined(tahoe) */
         if( ( *px & mexp ) == mexp )
 #endif	/* defined(vax)||defined(tahoe) */
-		return  (x-p)-(x-p);	/* create nan if x is inf */
+		return  (x-p)-(x-p);	/* create NaN if x is Inf */
 	if (p == zero) {
 #if defined(vax)||defined(tahoe)
 		return(infnan(EDOM));

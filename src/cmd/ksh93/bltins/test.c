@@ -130,6 +130,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	}
 	if(argc <= 1)
 	{
+		/* POSIX requires the test builtin to return 1 if expression is missing */
 		exitval = 1;
 		goto done;
 	}
@@ -145,7 +146,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		}
 	}
 	not = c_eq(cp,'!');
-	/* posix portion for test */
+	/* POSIX portion for test */
 	switch(argc)
 	{
 		case 5:
@@ -401,7 +402,7 @@ int test_unop(Shell_t *shp,register int op,register const char *arg)
 	    case 'l':
 #endif
 	    case 'L':
-	    case 'h': /* undocumented, and hopefully will disappear */
+	    case 'h':
 		if(*arg==0 || arg[strlen(arg)-1]=='/' || lstat(arg,&statb)<0)
 			return(0);
 		return(S_ISLNK(statb.st_mode));
@@ -663,7 +664,7 @@ skip:
 				if((maxgroups=getgroups(0,(gid_t*)0)) <= 0)
 				{
 					/* pre-POSIX system */
-					maxgroups=NGROUPS_MAX;
+					maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
 				}
 			}
 			groups = (gid_t*)stakalloc((maxgroups+1)*sizeof(gid_t));
@@ -677,7 +678,7 @@ skip:
 				}
 			}
 		}
-#   endif /* _lib_getgroups */
+#endif /* _lib_getgroups */
 		if(statb.st_mode & mode)
 			return(0);
 	}

@@ -356,10 +356,6 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 		case 'N':	/* (AST|GNU) nanosecond part */
 			cp = number(cp, ep, (long)tm->tm_nsec, 9, width, pad);
 			continue;
-#if 0
-		case 'o':	/* (UNUSED) */
-			continue;
-#endif
 		case 'p':	/* meridian */
 			n = TM_MERIDIAN + (tm->tm_hour >= 12);
 			goto index;
@@ -574,10 +570,6 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 		case 'U':	/* week number, Sunday as first day */
 			cp = number(cp, ep, (long)tmweek(tm, 0, -1, -1), 2, width, pad);
 			continue;
-#if 0
-		case 'v':	/* (UNUSED) */
-			continue;
-#endif
 		case 'V':	/* ISO week number */
 			cp = number(cp, ep, (long)tmweek(tm, 2, -1, -1), 2, width, pad);
 			continue;

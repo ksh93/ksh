@@ -29,12 +29,7 @@
  *  This is the parser for a shell language
  */
 
-#if KSHELL
 #include	"defs.h"
-#else
-#include	<shell.h>
-#include	<ctype.h>
-#endif
 #include	<fcin.h>
 #include	<error.h>
 #include	"shlex.h"
@@ -65,21 +60,16 @@ static Shnode_t	*test_and(Lex_t*);
 static Shnode_t	*test_or(Lex_t*);
 static Shnode_t	*test_primary(Lex_t*);
 
+static void	dcl_hacktivate(void), dcl_dehacktivate(void), (*orig_exit)(int), dcl_exit(int);
+static Dt_t	*dcl_tree;
+static unsigned	dcl_recursion;
+
 #define	sh_getlineno(lp)	(lp->lastline)
 
 #ifndef NIL
 #   define NIL(type)	((type)0)
 #endif /* NIL */
 #define CNTL(x)		((x)&037)
-
-
-#if !KSHELL
-static struct stdata
-{
-	struct slnod    *staklist;
-	int	cmdline;
-} st;
-#endif
 
 static int		opt_get;
 static int		loop_level;
@@ -183,13 +173,10 @@ static void typeset_order(const char *str,int line)
 }
 
 /*
- * Pre-add type declaration built-ins at parse time to avoid
- * syntax errors when using -c, shcomp, '.'/source or eval.
+ * This function handles linting for 'typeset' options via typeset_order().
  *
- * This hack has a bad side effect: defining a type with 'typeset -T' or 'enum'
- * in a subshell or an 'if false' block will cause an inconsistent state. But
- * as these built-ins alter the syntax of the shell, it's necessary for making
- * them work if we're parsing an entire script before or without executing it.
+ * Also, upon parsing typeset -T or enum, it pre-adds the type declaration built-ins that these would create to
+ * an internal tree to avoid syntax errors upon pre-execution parsing of assignment-arguments with parentheses.
  *
  * intypeset==1 for typeset & friends; intypeset==2 for enum
  */
@@ -250,6 +237,40 @@ static void check_typedef(struct comnod *tp, char intypeset)
 	if(cp)
 		nv_onattr(sh_addbuiltin(cp, (Shbltin_f)SYSTRUE->nvalue.bfp, NIL(void*)), NV_BLTIN|BLT_DCL);
 }
+/*
+ * (De)activate an internal declaration built-ins tree into which check_typedef() can pre-add dummy type
+ * declaration command nodes, allowing correct parsing of assignment-arguments with parentheses for custom
+ * type declaration commands before actually executing the commands that create those commands.
+ *
+ * A viewpath from the main built-ins tree to this internal tree is added, unifying the two for search
+ * purposes and causing new nodes to be added to the internal tree. When parsing is done, we close that
+ * viewpath. This hides those pre-added nodes at execution time, avoiding an inconsistent state if a type
+ * creation command is parsed but not executed.
+ */
+static void dcl_hacktivate(void)
+{
+	if(dcl_recursion++)
+		return;
+	if(!dcl_tree)
+		dcl_tree = dtopen(&_Nvdisc, Dtoset);
+	dtview(sh.bltin_tree, dcl_tree);
+	orig_exit = error_info.exit;
+	error_info.exit = dcl_exit;
+}
+static void dcl_dehacktivate(void)
+{
+	if(!dcl_recursion || --dcl_recursion)
+		return;
+	error_info.exit = orig_exit;
+	dtview(sh.bltin_tree, NIL(Dt_t*));
+}
+static noreturn void dcl_exit(int e)
+{
+	dcl_recursion = 1;
+	dcl_dehacktivate();
+	(*error_info.exit)(e);
+	UNREACHABLE();
+}
 
 /*
  * Make a parent node for fork() or io-redirection
@@ -264,7 +285,7 @@ static Shnode_t	*makeparent(Lex_t *lp, int flag, Shnode_t *child)
 	return(par);
 }
 
-static int paramsub(const char *str)
+static const char *paramsub(const char *str)
 {
 	register int c,sub=0,lit=0;
 	while(c= *str++)
@@ -272,16 +293,20 @@ static int paramsub(const char *str)
 		if(c=='$' && !lit)
 		{
 			if(*str=='(')
-				return(0);
+				return(NIL(const char*));
 			if(sub)
 				continue;
 			if(*str=='{')
 				str++;
 			if(!isdigit(*str) && strchr("?#@*!$ ",*str)==0)
-				return(1);
+			{
+				if(str[-1]=='{')
+					str--;  /* variable in the form of ${var} */
+				return(str);
+			}
 		}
 		else if(c=='`')
-			return(0);
+			return(NIL(const char*));
 		else if(c=='[' && !lit)
 			sub++;
 		else if(c==']' && !lit)
@@ -289,7 +314,7 @@ static int paramsub(const char *str)
 		else if(c=='\'')
 			lit = !lit;
 	}
-	return(0);
+	return(NIL(const char*));
 }
 
 static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
@@ -302,8 +327,15 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
 		t->ar.arcomp = sh_arithcomp(lp->sh,ap->argval);
 	else
 	{
-		if(sh_isoption(SH_NOEXEC) && (ap->argflag&ARG_MAC) && paramsub(ap->argval))
-			errormsg(SH_DICT,ERROR_warn(0),e_lexwarnvar,lp->sh->inlineno,ap->argval);
+		const char *p, *q;
+		if(sh_isoption(SH_NOEXEC) && (ap->argflag&ARG_MAC) &&
+			((p = paramsub(ap->argval)) != NIL(const char*)))
+		{
+			for(q = p; !isspace(*q) && *q != '\0'; q++)
+				;
+			errormsg(SH_DICT, ERROR_warn(0), e_lexwarnvar,
+				lp->sh->inlineno, ap->argval, q - p, p);
+		}
 		t->ar.arcomp = 0;
 	}
 	return(t);
@@ -396,9 +428,7 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 	flag &= ~SH_FUNEVAL;
 	if((flag&SH_NL) && (shp->inlineno=error_info.line+shp->st.firstline)==0)
 		shp->inlineno=1;
-#if KSHELL
 	shp->nextprompt = 2;
-#endif
 	t = sh_cmd(lexp,(flag&SH_EOF)?EOFSYM:'\n',SH_SEMI|SH_EMPTY|(flag&SH_NL));
 	fcclose();
 	fcrestore(&sav_input);
@@ -508,6 +538,7 @@ static Shnode_t	*sh_cmd(Lex_t *lexp, register int sym, int flag)
 {
 	register Shnode_t	*left, *right;
 	register int type = FINT|FAMP;
+	dcl_hacktivate();
 	if(sym==NL)
 		lexp->lasttok = 0;
 	left = list(lexp,flag);
@@ -549,6 +580,7 @@ static Shnode_t	*sh_cmd(Lex_t *lexp, register int sym, int flag)
 				sh_syntax(lexp);
 		}
 	}
+	dcl_dehacktivate();
 	return(left);
 }
 
@@ -1050,8 +1082,19 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 		if(array && type==NV_TYPE)
 		{
 			struct argnod *arg = lexp->arg;
+			unsigned save_recursion = dcl_recursion;
+			int p;
+			/*
+			 * Forcibly deactivate the dummy declaration built-ins tree as path_search()
+			 * does an FPATH search, which may execute arbitrary code at parse time.
+			 */
 			n = lexp->token;
-			if(path_search(lexp->sh,lexp->arg->argval,NIL(Pathcomp_t**),1) && (np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) && nv_isattr(np,BLT_DCL))
+			dcl_recursion = 1;
+			dcl_dehacktivate();
+			p = path_search(lexp->sh,lexp->arg->argval,NIL(Pathcomp_t**),1);
+			dcl_hacktivate();
+			dcl_recursion = save_recursion;
+			if(p && (np=nv_search(lexp->arg->argval,lexp->sh->fun_tree,0)) && nv_isattr(np,BLT_DCL))
 			{
 				lexp->token = n;
 				lexp->arg = arg;
@@ -2046,7 +2089,7 @@ unsigned long kiaentity(Lex_t *lexp,const char *name,int len,int type,int first,
 		else
 			sfputr(stkp,name,0);
 	}
-	sfputc(stkp,'\0');
+	sfputc(stkp,'\0');  /* terminate name while writing database output */
 	np = nv_search(stakptr(offset),lexp->entity_tree,NV_ADD);
 	stkseek(stkp,offset);
 	np->nvalue.i = pkind;

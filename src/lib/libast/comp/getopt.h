@@ -22,7 +22,7 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * gnu getopt interface
+ * GNU getopt interface
  */
 
 #ifndef _GETOPT_H

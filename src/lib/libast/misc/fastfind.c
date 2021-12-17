@@ -29,7 +29,7 @@
  *
  * 0-2*FF_OFF	 likeliest differential counts + offset to make nonnegative 
  * FF_ESC	 4 byte big-endian out-of-range count+FF_OFF follows
- * FF_MIN-FF_MAX ascii residue
+ * FF_MIN-FF_MAX ASCII residue
  * >=FF_MAX	 bigram codes
  *
  * a two-tiered string search technique is employed

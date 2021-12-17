@@ -175,7 +175,6 @@ static int      subpipe[3],subdup,tsetio,usepipe;
 
 static int iousepipe(Shell_t *shp)
 {
-	int fd=sffileno(sfstdout),i,err=errno;
 	if(usepipe)
 	{
 		usepipe++;
@@ -191,7 +190,6 @@ static int iousepipe(Shell_t *shp)
 
 void sh_iounpipe(Shell_t *shp)
 {
-	int fd=sffileno(sfstdout),n,err=errno;
 	char buff[SF_BUFSIZE];
 	if(!usepipe)
 		return;
@@ -277,7 +275,7 @@ static void p_time(Shell_t *shp, Sfio_t *out, const char *format, clock_t *tm)
 		if(c=='\0')
 		{
 			/* If a lone percent is the last character of the format pretend
-			   the user had written `%%` for a literal percent */
+			   the user had written '%%' for a literal percent */
 			sfwrite(stkp, "%", 1);
 			first = format + 1;
 			break;
@@ -777,7 +775,7 @@ static void free_list(struct openlist *olist)
 
 /*
  * set ${.sh.name} and ${.sh.subscript}
- * set _ to reference for ${.sh.name}[$.sh.subscript]
+ * set _ to reference for ${.sh.name}[${.sh.subscript}]
  */
 static int set_instance(Shell_t *shp,Namval_t *nq, Namval_t *node, struct Namref *nr)
 {
@@ -1111,6 +1109,8 @@ int sh_exec(register const Shnode_t *t, int flags)
 #if SHOPT_TYPEDEF
 						else if(argn>=3 && checkopt(com,'T'))
 						{
+							if(sh.subshell && !sh.subshare)
+								sh_subfork();
 #   if SHOPT_NAMESPACE
 							if(shp->namespace)
 							{
@@ -1127,7 +1127,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			
 						}
 #endif /* SHOPT_TYPEDEF */
-						if((shp->fn_depth && !shp->prefix))
+						if(shp->fn_depth && !shp->prefix)
 							flgs |= NV_NOSCOPE;
 					}
 					else if(np==SYSEXPORT)
@@ -1162,12 +1162,12 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			last_table = shp->last_table;
 			shp->last_table = 0;
-			if((io||argn))
+			if(io || argn)
 			{
 				Shbltin_t *bp=0;
 				static char *argv[2];
 				int tflags = 1;
-				if(np &&  nv_isattr(np,BLT_DCL))
+				if(np && nv_isattr(np,BLT_DCL))
 					tflags |= 2;
 				if(execflg && !check_exec_optimization(io))
 					execflg = 0;
@@ -1563,7 +1563,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				fifo_cleanup();
 #endif
 				if(shp->topfd > topfd && !(shp->subshell && (np==SYSEXEC || np==SYSREDIR)))
-					sh_iorestore(shp,topfd,jmpval);
+					sh_iorestore(shp,topfd,jmpval);  /* avoid leaking unused file descriptors */
 				exitset();
 				break;
 			}
@@ -1833,7 +1833,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_done(shp,0);
 			}
 		    }
-		    /* FALLTHROUGH */
 
 		    case TSETIO:
 		    {
@@ -2862,7 +2861,7 @@ int sh_trace(Shell_t *shp,register char *argv[], register int nl)
 
 /*
  * This routine creates a subshell by calling fork() or vfork()
- * If ((flags&COMASK)==TCOM), then vfork() is permitted
+ * If ((flags&COMMSK)==TCOM), then vfork() is permitted
  * If fork fails, the shell sleeps for exponentially longer periods
  *   and tries again until a limit is reached.
  * SH_FORKLIM is the max period between forks - power of 2 usually.
@@ -2878,7 +2877,6 @@ static void timed_out(void *handle)
 	NOT_USED(handle);
 	timeout = 0;
 }
-
 
 /*
  * called by parent and child after fork by sh_fork()
@@ -2915,7 +2913,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	if(parent)
 	{
 		int myjob,waitall=job.waitall;
-		shp->gd->nforks++;
 		if(job.toclear)
 			job_clear();
 		job.waitall = waitall;
@@ -2972,7 +2969,6 @@ pid_t _sh_fork(Shell_t *shp,register pid_t parent,int flags,int *jobid)
 	shp->outpipepid = ((flags&FPOU)?shgd->current_pid:0);
 	if(shp->trapnote&SH_SIGTERM)
 		sh_exit(SH_EXITSIG|SIGTERM);
-	shp->gd->nforks=0;
 	timerdel(NIL(void*));
 #ifdef JOBS
 	if(sh_isstate(SH_MONITOR))
@@ -3070,8 +3066,8 @@ static void  local_exports(register Namval_t *np, void *data)
 }
 
 /*
- * This routine executes .sh.math functions from within ((...)))
-*/
+ * This routine executes .sh.math functions from within ((...))
+ */
 Sfdouble_t sh_mathfun(Shell_t *shp,void *fp, int nargs, Sfdouble_t *arg)
 {
 	Sfdouble_t	d;
@@ -3130,6 +3126,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	Dt_t			*last_root = shp->last_root;
 	Shopt_t			options;
 	options = shp->options;
+	NOT_USED(argn);
 	if(shp->fn_depth==0)
 		shp->glob_options =  shp->options;
 	else
@@ -3281,8 +3278,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	if(jmpval)
 		r=shp->exitval;
-	if(nsig && r>SH_EXITSIG)
-		kill(shgd->current_pid,r&SH_EXITMASK);
+	if(jmpval==SH_JMPFUN && sh.lastsig)
+		kill(shgd->current_pid, sh.lastsig);  /* pass down unhandled signal that interrupted ksh function */
 	if(jmpval > SH_JMPFUN)
 	{
 		sh_chktrap(shp);
@@ -3505,7 +3502,6 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 {
 	static pid_t	spawnpid;
 	static int	savetype;
-	static int	savejobid;
 	struct checkpt	*buffp = (struct checkpt*)stkalloc(shp->stk,sizeof(struct checkpt));
 	int		otype=0, jmpval,jobfork=0;
 	volatile int	scope=0, sigwasset=0;
@@ -3658,7 +3654,6 @@ static pid_t sh_ntfork(Shell_t *shp,const Shnode_t *t,char *argv[],int *jobid,in
 		if(grp==1)
 			job.curpgid = spawnpid;
 #endif /* JOBS */
-		savejobid = *jobid;
 		if(otype)
 			return(0);
 	}

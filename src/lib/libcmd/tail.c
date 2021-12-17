@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1992-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1992-2013 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
@@ -15,8 +15,8 @@
 *                            AT&T Research                             *
 *                           Florham Park NJ                            *
 *                                                                      *
-*                 Glenn Fowler <gsf@research.att.com>                  *
-*                  David Korn <dgk@research.att.com>                   *
+*               Glenn Fowler <glenn.s.fowler@gmail.com>                *
+*                    David Korn <dgkorn@gmail.com>                     *
 *                                                                      *
 ***********************************************************************/
 #pragma prototyped
@@ -29,7 +29,7 @@
  */
 
 static const char usage[] =
-"+[-?\n@(#)$Id: tail (AT&T Research) 2012-10-10 $\n]"
+"+[-?\n@(#)$Id: tail (AT&T Research) 2013-09-19 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?tail - output trailing portion of one or more files ]"
 "[+DESCRIPTION?\btail\b copies one or more input files to standard output "
@@ -164,6 +164,7 @@ tailpos(register Sfio_t* fp, register Sfoff_t number, int delim)
 	register Sfoff_t	last;
 	register char*		s;
 	register char*		t;
+	unsigned char		incomplete;
 	struct stat		st;
 
 	last = sfsize(fp);
@@ -175,6 +176,7 @@ tailpos(register Sfio_t* fp, register Sfoff_t number, int delim)
 			return first;
 		return offset;
 	}
+	incomplete = 1;
 	for (;;)
 	{
 		if ((offset = last - SF_BUFSIZE) < first)
@@ -184,6 +186,15 @@ tailpos(register Sfio_t* fp, register Sfoff_t number, int delim)
 		if (!(s = sfreserve(fp, n, SF_LOCKR)))
 			return -1;
 		t = s + n;
+		if (incomplete)
+		{
+			if (t > s && *(t - 1) != delim && number-- <= 0)
+			{
+				sfread(fp, s, 0);
+				return offset + (t - s);
+			}
+			incomplete = 0;
+		}
 		while (t > s)
 			if (*--t == delim && number-- <= 0)
 			{
@@ -415,6 +426,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 	char*			t;
 	char*			r;
 	char*			file;
+	Sfoff_t			moved;
 	Sfoff_t			offset;
 	Sfoff_t			number = DEFAULT;
 	unsigned long		timeout = 0;
@@ -614,12 +626,15 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_warn(0), "--log ignored for --notimeout");
 	}
 	if (error_info.errors)
+	{
 		error(ERROR_usage(2), "%s", optusage(NiL));
+		UNREACHABLE();
+	}
 	if (flags & FOLLOW)
 	{
 		if (!(fp = (Tail_t*)stakalloc(argc * sizeof(Tail_t))))
 		{
-			error(ERROR_system(1), "out of memory");
+			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
 		files = 0;
@@ -762,8 +777,8 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 			if (number < 0 || !number && (flags & POSITIVE))
 			{
 				sfset(ip, SF_SHARE, 1);
-				if (number < -1)
-					sfmove(ip, NiL, -number - 1, delim);
+				if (number < -1 && (moved = sfmove(ip, NiL, -(number + 1), delim)) >= 0 && delim >= 0 && moved < -(number + 1))
+					(void)sfgetr(ip, delim, SF_LASTR);
 				if (flags & REVERSE)
 					rev_line(ip, sfstdout, sfseek(ip, (Sfoff_t)0, SEEK_CUR));
 				else

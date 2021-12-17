@@ -87,7 +87,7 @@
 #include	<ast_tty.h>
 #include	<ls.h>
 
-/* ast always provides multibyte handling */
+/* AST always provides multibyte handling */
 #undef _hdr_wchar
 #undef _lib_mbrtowc
 #undef _lib_wcrtomb
@@ -322,7 +322,7 @@
 #else
 
 #if _hdr_wchar && _typ_mbstate_t && _lib_wcrtomb && _lib_mbrtowc
-#define _has_multibyte		1	/* Xopen-compliant	*/
+#define _has_multibyte		1	/* X/Open-compliant	*/
 #if _typ___va_list && !defined(__va_list)
 #define __va_list	va_list
 #endif
@@ -542,7 +542,7 @@
 #define ASSERT(p)
 #endif
 
-/* short-hands */
+/* shorthands */
 #define NIL(t)		((t)0)
 #define reg		register
 #ifndef uchar
@@ -999,7 +999,7 @@ typedef struct _sfextern_s
 
 #define SF_MAXCHAR	((uchar)(~0))
 
-/* floating point to ascii conversion */
+/* floating point to ASCII conversion */
 #define SF_MAXEXP10	6
 #define SF_MAXPOW10	(1 << SF_MAXEXP10)
 #if !_ast_fltmax_double
@@ -1045,7 +1045,7 @@ struct _sfieee_s
 typedef struct _sftab_
 {	Sfdouble_t	sf_pos10[SF_MAXEXP10];	/* positive powers of 10	*/
 	Sfdouble_t	sf_neg10[SF_MAXEXP10];	/* negative powers of 10	*/
-	uchar		sf_dec[200];		/* ascii reps of values < 100	*/
+	uchar		sf_dec[200];		/* ASCII reps of values < 100	*/
 	char*		sf_digits;		/* digits for general bases	*/ 
 	int		(*sf_cvinitf)();	/* initialization function	*/
 	int		sf_cvinit;		/* initialization state		*/

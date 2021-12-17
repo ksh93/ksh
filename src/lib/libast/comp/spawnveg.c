@@ -116,7 +116,7 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 #include <spawn.h>
 
 /*
- * open-edition/mvs/zos fork+exec+(setpgid)
+ * MVS OpenEdition / z/OS fork+exec+(setpgid)
  */
 
 pid_t
@@ -172,10 +172,6 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 #endif
 #endif
 
-#if 0
-	if (access(path, X_OK))
-		return -1;
-#endif
 	if (!envv)
 		envv = environ;
 #if _lib_spawnve

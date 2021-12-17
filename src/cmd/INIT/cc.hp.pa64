@@ -1,4 +1,4 @@
-: hp.pa64 cc wrapper for reasonable ansi C defaults : 2001-02-11 :
+: hp.pa64 cc wrapper for reasonable ANSI C defaults : 2001-02-11 :
 
 HOSTTYPE=hp.pa64
 

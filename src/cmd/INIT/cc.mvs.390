@@ -1,4 +1,4 @@
-: mvs.390 cc wrapper for unix message and exit code semantics : 2012-01-20 :
+: mvs.390 cc wrapper for Unix message and exit code semantics : 2012-01-20 :
 
 HOSTTYPE=mvs.390
 

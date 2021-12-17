@@ -27,7 +27,7 @@
  * AT&T Research
  *
  * iconv intercept
- * minimally provides { utf*<=>bin ascii<=>ebcdic* }
+ * minimally provides { UTF*<=>bin ASCII<=>EBCDIC* }
  */
 
 #include <ast.h>
@@ -281,7 +281,7 @@ error(DEBUG_TRACE, "AHA#%d _win_iconv from=0x%04x to=0x%04x\n", __LINE__, cc->fr
 		un = *fn;
 
 		/*
-		 * from => ucs-2
+		 * from => UCS-2
 		 */
 
 		if (cc->to.index == CP_UCS2)
@@ -340,7 +340,7 @@ error(DEBUG_TRACE, "AHA#%d _win_iconv from=0x%04x to=0x%04x\n", __LINE__, cc->fr
 				goto nope;
 
 			/*
-			 * ucs-2 => to
+			 * UCS-2 => to
 			 */
 
 			if (tz = WideCharToMultiByte(cc->to.index, 0, (LPCWSTR)ub, un, *tb, *tn, 0, 0))
@@ -382,9 +382,6 @@ error(DEBUG_TRACE, "AHA#%d _win_iconv from=0x%04x to=0x%04x\n", __LINE__, cc->fr
 					goto nope;
 #if DEBUG_TRACE
 error(DEBUG_TRACE, "AHA#%d _win_iconv *fn=%u fz=%u[%u] *tn=%u tz=%u\n", __LINE__, *fn, fz, fz * sizeof(WCHAR), *tn, tz);
-#endif
-#if 0
-				fz *= sizeof(WCHAR);
 #endif
 			}
 			if (ub != (LPWSTR)*fb)
@@ -519,7 +516,7 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 }
 
 /*
- * convert utf-8 to bin
+ * convert UTF-8 to bin
  */
 
 static size_t
@@ -593,7 +590,7 @@ utf2bin(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 }
 
 /*
- * convert bin to utf-8
+ * convert bin to UTF-8
  */
 
 static size_t
@@ -703,7 +700,7 @@ umeinit(void)
 }
 
 /*
- * convert utf-7 to bin
+ * convert UTF-7 to bin
  */
 
 static size_t
@@ -779,7 +776,7 @@ ume2bin(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 }
 
 /*
- * convert bin to utf-7
+ * convert bin to UTF-7
  */
 
 static size_t
@@ -853,7 +850,7 @@ bin2ume(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 }
 
 /*
- * convert ucs-2 to bin with no byte swap
+ * convert UCS-2 to bin with no byte swap
  */
 
 static size_t
@@ -898,7 +895,7 @@ ucs2bin(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 }
 
 /*
- * convert bin to ucs-2 with no byte swap
+ * convert bin to UCS-2 with no byte swap
  */
 
 static size_t
@@ -944,7 +941,7 @@ bin2ucs(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 }
 
 /*
- * convert ucs-2 to bin with byte swap
+ * convert UCS-2 to bin with byte swap
  */
 
 static size_t
@@ -989,7 +986,7 @@ scu2bin(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 }
 
 /*
- * convert bin to ucs-2 with byte swap
+ * convert bin to UCS-2 with byte swap
  */
 
 static size_t
@@ -1058,7 +1055,7 @@ error(DEBUG_TRACE, "AHA#%d _ast_iconv_open f=%s t=%s\n", __LINE__, f, t);
 		f = name_native;
 
 	/*
-	 * the ast identify is always (iconv_t)(0)
+	 * the AST identify is always (iconv_t)(0)
 	 */
 
 	if (t == f)
@@ -1346,7 +1343,7 @@ _ast_iconv_write(_ast_iconv_t cd, Sfio_t* op, char** fb, size_t* fn, Iconv_disc_
 	Iconv_disc_t	compat;
 
 	/*
-	 * the old api had optional size_t* instead of Iconv_disc_t*
+	 * the old API had optional size_t* instead of Iconv_disc_t*
 	 */
 
 	if (!disc || disc->version < 20110101L || disc->version >= 30000101L)
@@ -1448,7 +1445,7 @@ _ast_iconv_move(_ast_iconv_t cd, Sfio_t* ip, Sfio_t* op, size_t n, Iconv_disc_t*
 	Iconv_disc_t	compat;
 
 	/*
-	 * the old api had optional size_t* instead of Iconv_disc_t*
+	 * the old API had optional size_t* instead of Iconv_disc_t*
 	 */
 
 	if (!disc || disc->version < 20110101L || disc->version >= 30000101L)

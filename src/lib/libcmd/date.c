@@ -158,7 +158,7 @@ static const char usage[] =
 "	monotonic increasing time. Not available on all systems.]"
 "[L:last?List only the last time for multiple \adate\a operands.]"
 "[l:leap-seconds?Include leap seconds in time calculations. Leap seconds"
-"	after the ast library release date are not accounted for.]"
+"	after the AST library release date are not accounted for.]"
 "[m:modify-time|mtime?List file argument modify times.]"
 "[n!:network?Set network time.]"
 "[p:parse?Add \aformat\a to the list of \bstrptime\b(3) parse conversion"
@@ -343,7 +343,7 @@ b_date(int argc, register char** argv, Shbltin_t* context)
 		case 'p':
 			if (!(f = newof(0, Fmt_t, 1, 0)))
 			{
-				error(ERROR_SYSTEM|3, "out of memory [format]");
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [format]");
 				UNREACHABLE();
 			}
 			f->next = fmts;

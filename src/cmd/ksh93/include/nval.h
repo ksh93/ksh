@@ -237,11 +237,7 @@ struct Namval
 #define NV_DCRESTRICT	1	/* variable that are restricted in rsh */
 
 #if defined(__EXPORT__) && defined(_DLL)
-#   ifdef _BLD_shell
 #	define extern __EXPORT__
-#   else
-#	define extern __IMPORT__
-#   endif /* _BLD_shell */
 #endif /* _DLL */
 /* prototype for array interface */
 extern Namarr_t	*nv_arrayptr(Namval_t*);
@@ -301,19 +297,5 @@ extern const Namdisc_t	*nv_discfun(int);
 #define nv_unset(np)		_nv_unset(np,0)
 #define nv_size(np)		nv_setsize((np),-1)
 #define nv_stack(np,nf)		nv_disc(np,nf,0)
-
-#if 0
-/*
- * The names of many functions were changed in early '95
- * Here is a mapping to the old names
- */
-#   define nv_istype(np)	nv_isattr(np)
-#   define nv_newtype(np)	nv_newattr(np)
-#   define nv_namset(np,a,b)	nv_open(np,a,b)
-#   define nv_free(np)		nv_unset(np,0)
-#   define nv_settype(np,a,b,c)	nv_setdisc(np,a,b,c)
-#   define nv_search(np,a,b)	nv_open(np,a,((b)?0:NV_NOADD))
-#   define settype	setdisc
-#endif
 
 #endif /* NV_DEFAULT */

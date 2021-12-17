@@ -77,29 +77,11 @@
 #include	<error.h>
 #include	<ls.h>
 #include	"defs.h"
-#if KSHELL
-#   include	"variables.h"
-#   include	"path.h"
-#   include	"builtins.h"
-#   include	"io.h"
-#else
-#   include	<ctype.h>
-#endif	/* KSHELL */
+#include	"variables.h"
+#include	"path.h"
+#include	"builtins.h"
+#include	"io.h"
 #include	"history.h"
-
-#if !KSHELL
-#   define NIL(type)		((type)0)
-#   define path_relative(s,x)	(s,x)
-#   ifdef __STDC__
-#	define nv_getval(s)	getenv(#s)
-#   else
-#	define nv_getval(s)	getenv("s")
-#   endif /* __STDC__ */
-#   define e_unknown	 	"unknown"
-#   define sh_translate(x)	(x)
-    char login_sh =		0;
-    const char hist_fname[] =	"/.history";
-#endif	/* KSHELL */
 
 #ifndef O_BINARY
 #   define O_BINARY	0
@@ -116,7 +98,6 @@ static int	hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
 
 static int	histinit;
 static mode_t	histmode;
-static History_t *wasopen;
 static History_t *hist_ptr;
 
 #if SHOPT_ACCTFILE
@@ -269,10 +250,8 @@ retry:
 	}
 	if(fd < 0)
 	{
-#if KSHELL
 		/* don't allow root a history_file in /tmp */
 		if(shgd->userid)
-#endif	/* KSHELL */
 		{
 			if(!(fname = pathtmp(NIL(char*),0,0,NIL(int*))))
 				return(0);
@@ -347,9 +326,7 @@ retry:
 		hp = hist_trim(hp,(int)hp->histind-maxlines);
 	}
 	sfdisc(hp->histfp,&hp->histdisc);
-#if KSHELL
 	(HISTCUR)->nvalue.lp = (&hp->histind);
-#endif /* KSHELL */
 	sh_timeradd(1000L*(HIST_RECENT-30), 1, hist_touch, (void*)hp->histname);
 #if SHOPT_ACCTFILE
 	if(sh_isstate(SH_INTERACTIVE))
@@ -445,7 +422,7 @@ static History_t* hist_trim(History_t *hp, int n)
 	unlink(hist_old->histname);
 	if(access(hist_old->histname,F_OK) >= 0)
 	{
-		/* The unlink can fail on windows 95 */
+		/* The unlink can fail on Windows 95 */
 		int fd;
 		char *last, *name=hist_old->histname;
 		sh_close(sffileno(hist_old->histfp));
@@ -956,11 +933,9 @@ Histloc_t hist_find(register History_t*hp,char *string,register int index1,int f
 			location.hist_command = index1;
 			return(location);
 		}
-#if KSHELL
 		/* allow a search to be aborted */
 		if(((Shell_t*)hp->histshell)->trapnote&SH_SIGSET)
 			break;
-#endif /* KSHELL */
 	}
 	return(location);
 }
@@ -1163,7 +1138,7 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 	{
 		if(errno==ENOSPC || hp->histwfail++ >= 10)
 			return(0);
-		/* write failure could be NFS problem, try to re-open */
+		/* write failure could be NFS problem, try to reopen */
 		sh_close(oldfd=sffileno(fp));
 		if((newfd=open(hp->histname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
 		{

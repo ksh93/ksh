@@ -1,4 +1,4 @@
-tst	note{ check for win32 .exe botches }end output{
+tst	note{ check for Win32 .exe botches }end output{
 	#include <unistd.h>
 	#include <fcntl.h>
 	#include <sys/types.h>
@@ -87,7 +87,7 @@ tst	note{ check for win32 .exe botches }end output{
 	}
 }end
 
-tst	win32_botch_alarm note{ win32 alarm(2) return botched }end noexecute{
+tst	win32_botch_alarm note{ Win32 alarm(2) return botched }end noexecute{
 	#include <signal.h>
 	#include <unistd.h>
 	#include <time.h>

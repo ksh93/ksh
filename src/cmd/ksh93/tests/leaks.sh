@@ -39,7 +39,7 @@ then	N=512			# number of iterations for each test
 elif	[[ -f /proc/$$/stat && $(uname) == Linux ]]
 then	N=4096			# number of iterations for each test
 	unit=bytes
-	tolerance=$((9*N))	# tolerate 9 bytes per iteration to account for malloc artefacts
+	tolerance=$((16*N))	# tolerate 16 bytes per iteration to account for malloc artefacts
 	function getmem
 	{
 		cut -f 23 -d ' ' </proc/$$/stat
@@ -61,7 +61,7 @@ elif	n=$(ps -o rss= -p "$$" 2>/dev/null) &&
 	let "($n) == ($n) && n > 0"
 then	N=16384
 	unit=KiB
-	tolerance=$((8*N/1024))	# tolerate 8 bytes per iteration to account for malloc/ps artefacts
+	tolerance=$((12*N/1024)) # tolerate 12 bytes per iteration to account for malloc/ps artefacts
 	function getmem
 	{
 		ps -o rss= -p "$$"
@@ -86,7 +86,7 @@ before=0 after=0 i=0 u=0
 
 
 # Check results.
-# The function has 'err_exit' in the name so that shtests counts each call as at test.
+# The function has 'err_exit' in the name so that shtests counts each call as a test.
 function err_exit_if_leak
 {
 	if	((after > before + tolerance))

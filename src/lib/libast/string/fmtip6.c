@@ -31,7 +31,7 @@
 #if !_PACKAGE_ast
 
 /*
- * return a pointer to n bytes from a circular re-use buffer
+ * return a pointer to n bytes from a circular reuse buffer
  */
 
 static char*

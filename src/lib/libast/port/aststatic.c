@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * ast static data initialization
+ * AST static data initialization
  */
 
 #include <ast.h>

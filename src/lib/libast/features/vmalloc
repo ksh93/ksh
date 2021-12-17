@@ -149,7 +149,7 @@ tst	stk_down note{ stack grows downward }end execute{
 	int main() { return growdown() ? 0 : 1; }
 }end
 
-tst	malloc_hook note{ gnu malloc hooks work }end execute{
+tst	malloc_hook note{ GNU malloc hooks work }end execute{
 	#include <malloc.h>
 
 	static int      	test_free_hit = 0;

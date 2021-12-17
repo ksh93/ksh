@@ -1,20 +1,33 @@
 TODO for ksh 93u+m
 
-See the issue tracker:
+See the issue tracker for up-to-date information:
 https://github.com/ksh93/ksh/issues
 
-Known bugs in ksh 93u+m 1.0.0-beta.1 (help is wanted to fix these):
+______
+Enhancements to do:
+
+* Add -T (-o functrace) option as in bash
+  https://github.com/ksh93/ksh/issues/162
+
+* History pattern search menu (SHOPT_EDPREDICT) needs work
+  https://github.com/ksh93/ksh/issues/233
+
+* Use real pipes instead of sockets
+  https://github.com/ksh93/ksh/issues/327
+
+______
+Known bugs in ksh 93u+m 1.0.0-beta.2 (HELP IS WANTED to fix these):
 
 * Memory leak when initialising associative array in subshell
   https://github.com/ksh93/ksh/issues/94
 
-* Command substitution botches output of non-waited-for child processes
+* command substitution botches output of non-waited-for child processes
   https://github.com/ksh93/ksh/issues/124
 
 * Intermittent coprocess hang on Debian/Ubuntu and Solaris
   https://github.com/ksh93/ksh/issues/132
 
-* Wrong typeset -p output after unsetting multidimensional array elements
+* wrong typeset -p output after unsetting multidimensional array elements
   https://github.com/ksh93/ksh/issues/148
 
 * File descriptor is unexpectedly closed after exec in subshell
@@ -44,26 +57,44 @@ Known bugs in ksh 93u+m 1.0.0-beta.1 (help is wanted to fix these):
 * 'typeset -m'-related crash on OpenBSD compiled with standard malloc
   https://github.com/ksh93/ksh/issues/231
 
-* Freeze/crash on OpenBSD with -D_std_malloc involving typeset and command
-  substitution
+* Freeze/crash on OpenBSD with -D_std_malloc involving typeset and command substitution
   https://github.com/ksh93/ksh/issues/264
 
 * Nested compound assignment misparsed in $(...) command substitution
   https://github.com/ksh93/ksh/issues/269
 
-Enhancements to do:
+* Crash on bin/shtests -px heredoc
+  https://github.com/ksh93/ksh/issues/306
 
-* Implement to-be-POSIX 'local' builtin
-  https://github.com/ksh93/ksh/issues/123
+* Multibyte characters get corrupted when KEYBD trap is set
+  https://github.com/ksh93/ksh/issues/307
 
-* Add -T (-o functrace) option as in bash
-  https://github.com/ksh93/ksh/issues/162
+* .sh.match index array result issues, crash after unset
+  https://github.com/ksh93/ksh/issues/308
 
-* Unicode code points in $'...' strings should vary according to the locale
-  https://github.com/ksh93/ksh/issues/193
+* Builtins don't handle I/O errors
+  https://github.com/ksh93/ksh/issues/313
 
-* Re-allow building dynamic libraries
-  https://github.com/ksh93/ksh/issues/302
+* block devices not seekable when open on fd 0, 1 or 2
+  https://github.com/ksh93/ksh/issues/318
+
+* bug in printf when %b and %x$ are used in same format
+  https://github.com/ksh93/ksh/issues/324
+
+* namespaces don't work properly when defined within functions
+  https://github.com/ksh93/ksh/issues/325
+
+* Associative arrays of various types fail to be unset
+  https://github.com/ksh93/ksh/issues/345
+
+* types survive exec of hashbangless script
+  https://github.com/ksh93/ksh/issues/350
+
+* Backtick command substitutions can't nest double quotes
+  https://github.com/ksh93/ksh/issues/352
+
+* Line continuation breakage within $(comsub)
+  https://github.com/ksh93/ksh/issues/367
 
 ______
 Fix regression test failures:

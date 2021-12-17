@@ -47,7 +47,7 @@ main()
 	printf("\n");
 	printf("/*\n");
 	printf(" * prototypes provided for standard interfaces hijacked\n");
-	printf(" * by ast and mapped to _ast_* but already prototyped\n");
+	printf(" * by AST and mapped to _ast_* but already prototyped\n");
 	printf(" * unmapped in native headers included by <ast_std.h>\n");
 	printf(" */\n");
 	printf("\n");

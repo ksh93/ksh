@@ -22,12 +22,12 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * ast library system(3)
+ * AST library system(3)
  */
 
 #define system		______system
 
-#define _STDLIB_H_	1	/* uwin workaround */
+#define _STDLIB_H_	1	/* UWIN workaround */
 
 #include <ast.h>
 #include <proc.h>

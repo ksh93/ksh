@@ -21,11 +21,11 @@
 10-10-20 ln: fix 'cannot replace existing file' logic
 10-10-10 cp,mv: add --remove-destination
 10-08-11 cp.c,expr.c: use conformance("standard",0) test
-10-08-11 cut.c: use mbnsize() instead of mblen() (for ast C.UTF-8)
+10-08-11 cut.c: use mbnsize() instead of mblen() (for AST C.UTF-8)
 10-07-28 chgrp.c,chmod.c,cksum.c: fts_path for diagnostics, not fts_accpath!
 10-06-14 rm.c: fix -rfu logic
 10-06-12 paste.c: repeat after me: do not modify argv[i]
-10-06-01 sync with ast api 20100601
+10-06-01 sync with AST API 20100601
 10-05-09 tail.c: fix -0f bug that initially listed the entire file
 10-05-06 basename.c: add { -a,--all -s,--suffux=suffix } from BSD
 10-04-12 cat.c: fix -v bug that dumped core and make consistent with cmp --print-chars
@@ -99,13 +99,13 @@
 07-11-29 rev.c: honor multibyte locales
 07-11-27 cp.c: open non-existent destination with O_EXCL
 07-11-27 stty.c: add -t,--terminal-group to list tty pgrp
-07-11-27 cksum.c: --silent -s => -S, -s == -x sys5 for gnu compatibility
-07-11-11 tee.c: drop ancient bsd compatibility "-" operand => SIGINT
+07-11-27 cksum.c: --silent -s => -S, -s == -x sys5 for GNU compatibility
+07-11-11 tee.c: drop ancient BSD compatibility "-" operand => SIGINT
 07-10-29 cksum.c: add SUM_LEGACY for -r
 07-10-12 cp.c: plug usage string memory leak by using per-builtin state
-07-09-21 cksum.c: add sumprint() default scale arg, --scale, --bsd for solaris
+07-09-21 cksum.c: add sumprint() default scale arg, --scale, --bsd for Solaris
 07-09-10 chmod.c: add --show,-n
-07-07-27 wclib.c: bias <wchar.h> checks for modern unix
+07-07-27 wclib.c: bias <wchar.h> checks for modern Unix
 07-07-17 cat.c: fix --squeeze-blank to reduce multiple blank lines to *one*
 07-05-20 cmd.h: handle msvc's balk at if(0)0=0;
 07-05-20 cksum.c: #include <modex.h>
@@ -156,8 +156,8 @@
 06-08-28 uniq.c: add -D,--all-repeated
 06-08-25 wc.c,wclib.c: add -L,--longest-line,WC_LONGEST
 06-08-24 wc.c,wclib.c: implement -m and WC_MBYTE
-06-08-24 rmdir.c: -sp applies to every message, add gnu -e
-06-08-23 rmdir.c: add solaris --suppress, -s
+06-08-24 rmdir.c: -sp applies to every message, add GNU -e
+06-08-23 rmdir.c: add Solaris --suppress, -s
 06-08-23 mkdir.c: don't add 0300 to -p final dir mode
 06-07-17 cut.c: handle last line with no newline
 06-07-17 cut.c: --output-delimiter == --line-delimiter
@@ -244,7 +244,7 @@
 01-05-31 date: fix /bin/date fallback logic
 	 stty: fix a few mismatched flags, -a and -g option logic
 	 stty: tone down sane to modify current settings rather than from zero
-01-05-01 uname: -i => -h, add sol.sun4 -i, add sgi -R, punt to /usr/bin/uname
+01-05-01 uname: -i => -h, add sol.sun4 -i, add SGI -R, punt to /usr/bin/uname
 01-04-17 date,rm: add
 01-03-07 cp: fix readonly string mod on "."
 01-01-23 cp: `cp foo' => `cp foo .' only for CONFORMANCE!=standard

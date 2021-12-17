@@ -31,7 +31,7 @@
 #ifndef _MNT_H
 #define _MNT_H	1
 
-#undef	MNT_REMOTE			/* aix clash			*/
+#undef	MNT_REMOTE			/* AIX clash			*/
 #define MNT_REMOTE	(1<<0)		/* remote mount			*/
 
 typedef struct

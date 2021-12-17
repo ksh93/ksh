@@ -164,6 +164,10 @@ For more details, see the NEWS file and for complete details, see the git log.
 29.	It is now an error for arithmetic expressions to assign an out-of-range
 	index value to a variable of an enumeration type created with 'enum'.
 
+30.	For the 'return' built-in command, you can now freely specify any
+	return value that fits in a signed integer, typically a 32-bit value.
+	Note that $? is truncated to 8 bits when the current (sub)shell exits.
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88
@@ -201,7 +205,7 @@ omitted features that are completely upward compatible.
 	for trap without arguments has a format that can be used as input.
 
 6.	With ksh-88, a dollar sign ($') followed by a single quote was
-	interpreted literally.  Now it is an ANSI-C string.  You
+	interpreted literally.  Now it is an ANSI C string.  You
 	must quote the dollar sign to get the previous behavior.
 	Also, a $ in front of a " indicates that the string needs
 	to be translated for locales other than C or POSIX.  The $

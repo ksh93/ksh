@@ -108,7 +108,7 @@ static const char usage[] =
 	"[+2?Invalid expressions.]"
 	"[+>2?An error occurred.]"
 	"}"
-"[+SEE ALSO?\bregcomp\b(5), \bgrep\b(1), \bsh\b(1)]"
+"[+SEE ALSO?\bregcomp\b(3), \bgrep\b(1), \bsh\b(1)]"
 ;
 
 #include	<cmd.h>
@@ -537,38 +537,31 @@ b_expr(int argc, char** argv, Shbltin_t* context)
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	state.standard = !!conformance(0, 0);
-#if 0
-	if (state.standard)
-		state.arglist = argv+1;
-	else
-#endif
+	while (n=optget(argv, usage))
 	{
-		while (n=optget(argv, usage))
+		/*
+		 * NOTE: this loop ignores all but literal -- and -?
+		 *	 out of kindness for obsolescent usage
+		 *	 (and is ok with the standard) but strict
+		 *	 getopt conformance would give usage for all
+		 *	 unknown - options
+		 */
+		if(n=='?')
 		{
-			/*
-			 * NOTE: this loop ignores all but literal -- and -?
-			 *	 out of kindness for obsolescent usage
-			 *	 (and is ok with the standard) but strict
-			 *	 getopt conformance would give usage for all
-			 *	 unknown - options
-			 */
-			if(n=='?')
-			{
-				error(ERROR_usage(2), "%s", opt_info.arg);
-				UNREACHABLE();
-			}
-			if (opt_info.option[1] != '?')
-				break;
 			error(ERROR_usage(2), "%s", opt_info.arg);
 			UNREACHABLE();
 		}
-		if (error_info.errors)
-		{
-			error(ERROR_usage(2),"%s",optusage((char*)0));
-			UNREACHABLE();
-		}
-		state.arglist = argv+opt_info.index;
+		if (opt_info.option[1] != '?')
+			break;
+		error(ERROR_usage(2), "%s", opt_info.arg);
+		UNREACHABLE();
 	}
+	if (error_info.errors)
+	{
+		error(ERROR_usage(2),"%s",optusage((char*)0));
+		UNREACHABLE();
+	}
+	state.arglist = argv+opt_info.index;
 	if (expr_or(&state, &node))
 	{
 		error(ERROR_exit(2),"syntax error");
