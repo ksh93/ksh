@@ -10,6 +10,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   a subshell. Types can now safely be defined in subshells and defined
   conditionally as in 'if condition; then enum ...; fi'.
 
+- Single digits can now be compared lexically in [[ ... ]] with the
+  < and > operators.
+
 2021-12-16:
 
 - Changed the default selection of compiled-in /opt/ast/bin built-in libcmd

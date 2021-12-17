@@ -462,4 +462,58 @@ do	e=${c%%:*}
 done
 
 # ======
+# [[ ... ]] shouldn't error out when using '>' and '<' with or without a
+# space in between strings (including when a number is handled as a string).
+exp=0
+$SHELL -c '[[ 3>2 ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle '3>2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ 3 > 2 ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle '3 > 2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ 1<2 ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle '1<2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ 1 < 2 ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle '1 < 2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ a<b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'a<b'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ a < b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'a < b'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ c>b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'c>b'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ c > b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'c > b'" \
+	"(expected $exp, got $got)"
+exp=1
+$SHELL -c '[[ 3<2 ]]' || got=$?
+((exp == got )) || err_exit "[[ ... ]] cannot handle '3<2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ 3 < 2 ]]' || got=$?
+((exp == got )) || err_exit "[[ ... ]] cannot handle '3 < 2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ 1>2 ]]'; got=$?
+((exp == got )) || err_exit "[[ ... ]] cannot handle '1>2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ 1 > 2 ]]'; got=$?
+((exp == got )) || err_exit "[[ ... ]] cannot handle '1 > 2'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ a>b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'a>b'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ a > b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'a > b'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ c<b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'c<b'" \
+	"(expected $exp, got $got)"
+$SHELL -c '[[ c < b ]]'; got=$?
+((exp == got)) || err_exit "[[ ... ]] cannot handle 'c < b'" \
+	"(expected $exp, got $got)"
+
+# ======
 exit $((Errors<125?Errors:125))

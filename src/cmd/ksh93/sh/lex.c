@@ -1264,7 +1264,7 @@ breakloop:
 	{
 		/* check for numbered redirection */
 		n = state[0];
-		if((c=='<' || c=='>') && isadigit(n))
+		if(!lp->lex.intest && (c=='<' || c=='>') && isadigit(n))
 		{
 			c = sh_lex(lp);
 			lp->digits = (n-'0'); 
