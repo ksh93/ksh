@@ -1060,7 +1060,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 
 /*
  * construct System V echo string out of <cp>
- * If there are not escape sequences, returns -1
+ * If there are no escape sequences, returns -1
  * Otherwise, puts null-terminated result on stack, but doesn't freeze it
  * returns length of output.
  */

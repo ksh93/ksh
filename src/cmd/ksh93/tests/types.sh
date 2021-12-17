@@ -351,7 +351,7 @@ expected=$'(\n\ttypeset -l -i h=0\n\tbenchcmd_t -a m\n\ttypeset -l -E o=0\n)'
 expected=$'Std_file_t db.file[/etc/profile]=(action=preserve;typeset -A sum=([8242e663d6f7bb4c5427a0e58e2925f3]=1);)'
 {
   got=$($SHELL <<- \EOF 
-	MAGIC='stdinstall (at&t research) 2009-08-25'
+	MAGIC='stdinstall (AT&T Research) 2009-08-25'
 	typeset -T Std_file_t=(
 		typeset action
 		typeset -A sum
@@ -360,7 +360,7 @@ expected=$'Std_file_t db.file[/etc/profile]=(action=preserve;typeset -A sum=([82
 		typeset magic=$MAGIC
 		Std_file_t -A file
 	)
-	Std_t db=(magic='stdinstall (at&t research) 2009-08-25';Std_file_t -A file=( [/./home/gsf/.env.sh]=(action=preserve;typeset -A sum=([9b67ab407d01a52b3e73e3945b9a3ee0]=1);)[/etc/profile]=(action=preserve;typeset -A sum=([8242e663d6f7bb4c5427a0e58e2925f3]=1);)[/home/gsf/.profile]=(action=preserve;typeset -A sum=([3ce23137335219672bf2865d003a098e]=1);));)
+	Std_t db=(magic='stdinstall (AT&T Research) 2009-08-25';Std_file_t -A file=( [/./home/gsf/.env.sh]=(action=preserve;typeset -A sum=([9b67ab407d01a52b3e73e3945b9a3ee0]=1);)[/etc/profile]=(action=preserve;typeset -A sum=([8242e663d6f7bb4c5427a0e58e2925f3]=1);)[/home/gsf/.profile]=(action=preserve;typeset -A sum=([3ce23137335219672bf2865d003a098e]=1);));)
 	typeset -p db.file[/etc/profile]
 	EOF)
 } 2> /dev/null
@@ -452,20 +452,24 @@ cd "$tmp"
 FPATH=$PWD
 PATH=$PWD:$PATH
 cat > A_t <<-  \EOF
+	if	false
+	then	typeset -T Parser_shenanigans=(typeset -i foo)
+	fi
 	typeset -T A_t=(
 		B_t b
 	)
 EOF
 cat > B_t <<-  \EOF
+	PATH=/dev/null command -v Parser_shenanigans
 	typeset -T B_t=(
 		integer n=5
 	)
 EOF
 
 unset n
-if	n=$(FPATH=$PWD PATH=$PWD:$PATH $SHELL 2> /dev/null -c 'A_t a; print ${a.b.n}')
-then	(( n==5 )) || err_exit 'dynamic loading of types gives wrong result'
-else	err_exit 'unable to load types dynamically'
+if	n=$(FPATH=$PWD PATH=$PWD:$PATH "$SHELL" -c 'A_t a; print ${a.b.n}' 2>&1)
+then	[[ $n == '5' ]] || err_exit "dynamic loading of types gives wrong result (got $(printf %q "$n"))"
+else	err_exit "unable to load types dynamically (got $(printf %q "$n"))"
 fi
 
 # check that typeset -T reproduces a type.
@@ -638,6 +642,20 @@ bar.foo+=(bam)
 got=$($SHELL -c 'enum Foo_t=(foo bar); typeset -T')
 [[ -z $got ]] || err_exit "Types created by enum are listed with 'typeset -T'" \
 	"(got $(printf %q "$got"))"
+
+# ======
+# Parser shenanigans.
+if	false
+then	typeset -T PARSER_t=(typeset name=foobar)
+fi
+PATH=/dev/null command -v PARSER_t >/dev/null && err_exit "PARSER_t incompletely defined though definition was never executed"
+
+unset v
+got=$( set +x; redirect 2>&1; typeset -T Subsh_t=(typeset -i x); Subsh_t -a v=( (x=1) (x=2) (x=3) ); typeset -p v )
+exp='Subsh_t -a v=((typeset -i x=1) (typeset -i x=2) (typeset -i x=3))'
+[[ $got == "$exp" ]] || err_exit "bad typeset output for Subsh_t" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+PATH=/dev/null command -v Subsh_t >/dev/null && err_exit "Subsh_t leaked out of subshell"
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -107,8 +107,8 @@ typedef struct _emacs_
 	int 	in_mult;
 	char	cr_ok;
 	char	CntrlO;
-	char	overflow;		/* Screen overflow flag set */
-	char	scvalid;		/* Screen is up to date */
+	char	overflow;	/* Screen overflow flag set */
+	char	scvalid;	/* Screen is up to date */
 	char	lastdraw;	/* last update type */
 	int	offset;		/* Screen offset */
 	enum

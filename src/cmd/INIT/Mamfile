@@ -17,46 +17,7 @@ setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv COTEMP $$
 setv LDFLAGS
-make ${PACKAGEROOT}/lib/package/ast.lic
-done ${PACKAGEROOT}/lib/package/ast.lic
 make install
-	make hurl
-		make hurl.sh
-		done hurl.sh
-		meta hurl %.sh>% hurl.sh hurl
-		prev hurl.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : hurl contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n hurl.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) cp hurl.sh hurl
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < hurl.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat hurl.sh
-		exec - } > hurl
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - hurl.sh > hurl <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w hurl -a -x hurl || chmod u+w,+x hurl
-	done hurl generated
 	make iffe
 		make iffe.sh
 		done iffe.sh
@@ -279,43 +240,6 @@ make install
 		exec - esac
 		exec - test -w crossexec -a -x crossexec || chmod u+w,+x crossexec
 	done crossexec generated
-	make ditto
-		make ditto.sh
-		done ditto.sh
-		meta ditto %.sh>% ditto.sh ditto
-		prev ditto.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : ditto contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n ditto.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 232 in
-		exec - 0) cp ditto.sh ditto
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < ditto.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat ditto.sh
-		exec - } > ditto
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - ditto.sh > ditto <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w ditto -a -x ditto || chmod u+w,+x ditto
-	done ditto generated
 	make execrate
 		make execrate.sh
 		done execrate.sh
@@ -519,17 +443,6 @@ make install
 		done ratz.o generated
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o ratz ratz.o
 	done ratz generated
-	make release
-		make release.o
-			make release.c
-				prev ast.h implicit
-			done release.c
-			meta release.o %.c>%.o release.c release
-			prev release.c
-			exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -c release.c
-		done release.o generated
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o release release.o
-	done release generated
 	make mprobe
 		make mprobe.sh
 		done mprobe.sh
@@ -620,11 +533,6 @@ make install
 		exec - then mkdir -p ${INSTALLROOT}/bin
 		exec - fi
 	done ${INSTALLROOT}/bin generated
-	make ${INSTALLROOT}/bin/hurl
-		prev ${INSTALLROOT}/bin
-		prev hurl
-		exec - test '' = 'hurl' || ${STDCMP} 2>/dev/null -s hurl ${INSTALLROOT}/bin/hurl || { ${STDMV} ${INSTALLROOT}/bin/hurl ${INSTALLROOT}/bin/hurl.old 2>/dev/null || true; ${STDCP} hurl ${INSTALLROOT}/bin/hurl ;}
-	done ${INSTALLROOT}/bin/hurl generated
 	make ${INSTALLROOT}/bin/iffe
 		prev iffe
 		exec - test '' = 'iffe' || ${STDCMP} 2>/dev/null -s iffe ${INSTALLROOT}/bin/iffe || { ${STDMV} ${INSTALLROOT}/bin/iffe ${INSTALLROOT}/bin/iffe.old 2>/dev/null || true; ${STDCP} iffe ${INSTALLROOT}/bin/iffe ;}
@@ -713,10 +621,6 @@ make install
 		prev crossexec
 		exec - test '' = 'crossexec' || ${STDCMP} 2>/dev/null -s crossexec ${INSTALLROOT}/bin/crossexec || { ${STDMV} ${INSTALLROOT}/bin/crossexec ${INSTALLROOT}/bin/crossexec.old 2>/dev/null || true; ${STDCP} crossexec ${INSTALLROOT}/bin/crossexec ;}
 	done ${INSTALLROOT}/bin/crossexec generated
-	make ${INSTALLROOT}/bin/ditto
-		prev ditto
-		exec - test '' = 'ditto' || ${STDCMP} 2>/dev/null -s ditto ${INSTALLROOT}/bin/ditto || { ${STDMV} ${INSTALLROOT}/bin/ditto ${INSTALLROOT}/bin/ditto.old 2>/dev/null || true; ${STDCP} ditto ${INSTALLROOT}/bin/ditto ;}
-	done ${INSTALLROOT}/bin/ditto generated
 	make ${INSTALLROOT}/bin/filter
 		prev filter
 		exec - test '' = 'filter' || ${STDCMP} 2>/dev/null -s filter ${INSTALLROOT}/bin/filter || { ${STDMV} ${INSTALLROOT}/bin/filter ${INSTALLROOT}/bin/filter.old 2>/dev/null || true; ${STDCP} filter ${INSTALLROOT}/bin/filter ;}
@@ -738,10 +642,6 @@ make install
 		prev ratz
 		exec - test '' = 'ratz' || ${STDCMP} 2>/dev/null -s ratz ${INSTALLROOT}/bin/ratz || { ${STDMV} ${INSTALLROOT}/bin/ratz ${INSTALLROOT}/bin/ratz.old 2>/dev/null || true; ${STDCP} ratz ${INSTALLROOT}/bin/ratz ;}
 	done ${INSTALLROOT}/bin/ratz generated
-	make ${INSTALLROOT}/bin/release
-		prev release
-		exec - test '' = 'release' || ${STDCMP} 2>/dev/null -s release ${INSTALLROOT}/bin/release || { ${STDMV} ${INSTALLROOT}/bin/release ${INSTALLROOT}/bin/release.old 2>/dev/null || true; ${STDCP} release ${INSTALLROOT}/bin/release ;}
-	done ${INSTALLROOT}/bin/release generated
 	make ${INSTALLROOT}/bin/mkdir
 		make mkdir.sh
 		done mkdir.sh

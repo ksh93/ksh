@@ -22,7 +22,7 @@
 ***********************************************************************/
 #include	"sfhdr.h"
 
-/*	Set some control flags or file descript for the stream
+/*	Set some control flags or file descriptor for the stream
 **
 **	Written by Kiem-Phong Vo.
 */

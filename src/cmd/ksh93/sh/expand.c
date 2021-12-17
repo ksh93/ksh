@@ -84,7 +84,7 @@ int path_expand(Shell_t *shp,const char *pattern, struct argnod **arghead)
 	if(sh_isoption(SH_GLOBCASEDET))
 		flags |= GLOB_DCASE;
 #endif
-	if(sh_isstate(SH_COMPLETE))
+	if(sh_isstate(SH_COMPLETE))	/* command completion */
 	{
 		extra += scantree(shp->alias_tree,pattern,arghead); 
 		extra += scantree(shp->fun_tree,pattern,arghead); 
@@ -92,6 +92,8 @@ int path_expand(Shell_t *shp,const char *pattern, struct argnod **arghead)
 		flags |= GLOB_COMPLETE;
 		flags &= ~GLOB_NOCHECK;
 	}
+	if(sh_isstate(SH_FCOMPLETE))	/* file name completion */
+		flags |= GLOB_FCOMPLETE;
 	gp->gl_fignore = nv_getval(sh_scoped(shp,FIGNORENOD));
 	if(suflen)
 		gp->gl_suffix = sufstr;

@@ -105,7 +105,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
 	if(shp->subshell)
 	{
-		 /* clone $OLDPWD and $PWD into the subshell's scope */
+		/* clone $OLDPWD and $PWD into the subshell's scope */
 		opwdnod = sh_assignok(opwdnod,1);
 		pwdnod = sh_assignok(pwdnod,1);
 	}

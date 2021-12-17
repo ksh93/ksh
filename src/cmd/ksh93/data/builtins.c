@@ -135,18 +135,14 @@ const struct shtable3 shtab_builtins[] =
 #include SHOPT_CMDLIB_HDR
 #else
 	CMDLIST(basename)
-	CMDLIST(chmod)
+	CMDLIST(cat)
+	CMDLIST(cp)
+	CMDLIST(cut)
 	CMDLIST(dirname)
 	CMDLIST(getconf)
-	CMDLIST(head)
-	CMDLIST(mkdir)
-	CMDLIST(logname)
-	CMDLIST(cat)
-	CMDLIST(cmp)
-	CMDLIST(cut)
-	CMDLIST(uname)
-	CMDLIST(wc)
-	CMDLIST(sync)
+	CMDLIST(ln)
+	CMDLIST(mktemp)
+	CMDLIST(mv)
 #if !_std_malloc && !_AST_std_malloc
 	CMDLIST(vmstate)  /* vmstate only works with vmalloc */
 #endif
@@ -922,11 +918,11 @@ const char sh_optjobs[] =
 	"shell removes the jobs from the list of known jobs in "
 	"the current shell environment.]"
 _JOB_
-"[l?\bjobs\b displays process id's after the job number in addition "
+"[l?\bjobs\b displays process ids after the job number in addition "
 	"to the usual information]"
 "[n?Only the jobs whose status has changed since the last prompt "
 	"is displayed.]"
-"[p?The process group leader id's for the specified jobs are displayed.]"
+"[p?The process group leader ids for the specified jobs are displayed.]"
 "\n"
 "\n[job ...]\n"
 "\n"
@@ -1322,7 +1318,7 @@ const char sh_optprintf[] =
 	"appropriate for that format specifier, an error will occur, "
 	"but remaining \astring\a operands will continue to be processed.]"
 "[+?In addition to the format specifier extensions, the following "
-	"extensions of ANSI-C are permitted in format specifiers:]{"
+	"extensions of ANSI C are permitted in format specifiers:]{"
 	"[+-?The escape sequences \b\\E\b and \b\\e\b expand to the escape "
 		"character which is octal \b033\b in ASCII.]"
 	"[+-?The escape sequence \b\\c\b\ax\a expands to Control-\ax\a.]"
@@ -1589,7 +1585,7 @@ const char sh_optksh[] =
 "[P?Invoke the shell as a profile shell.  See \bpfexec\b(1).]"
 #endif
 #if SHOPT_KIA
-"[R]:[file?Do not execute the script, but create a cross reference database "
+"[R]:[file?Do not execute the script, but create a cross-reference database "
 	"in \afile\a that can be used in a separate shell script browser. The "
 	"-R option requires a script to be specified as the first operand.]"
 #endif /* SHOPT_KIA */
@@ -1766,11 +1762,11 @@ const char sh_opttrap[] =
         "[+>0?An error occurred.]"
 "}"
 
-"[+SEE ALSO?\bkill\b(1), \beval\b(1), \bsignal\b(3)]"
+"[+SEE ALSO?\bkill\b(1), \beval\b(1), \bsignal\b(2)]"
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2021-02-10 $\n]"
+"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2021-12-17 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -2034,7 +2030,7 @@ const char sh_optwait[]	=
 	"\ajob\a operands are specified, \bwait\b waits until all of them "
 	"have completed.]"
 _JOB_
-"[+?If one ore more \ajob\a operands is a process id or process group id "
+"[+?If one or more \ajob\a operands is a process id or process group id "
 	"not known by the current shell environment, \bwait\b treats each "
 	"of them as if it were a process that exited with status 127.]"
 "\n"

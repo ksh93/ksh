@@ -3,11 +3,46 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-17:
+
+- Ksh no longer behaves badly when parsing a type definition command
+  ('typeset -T' or 'enum') without executing it or when executing it in
+  a subshell. Types can now safely be defined in subshells and defined
+  conditionally as in 'if condition; then enum ...; fi'.
+
+- Single digits can now be compared lexically in [[ ... ]] with the
+  < and > operators.
+
+2021-12-16:
+
+- Changed the default selection of compiled-in /opt/ast/bin built-in libcmd
+  command to: basename, cat, cp, cut, dirname, getconf, ln, mktemp, mv.
+  Add /opt/ast/bin to your $PATH to use these. Type 'cp --man', etc. for info.
+
+- A bug introduced on 2020-09-17 was fixed that caused interactive ksh to exit
+  if Ctrl+C was pressed while SIGINT was being ignored (as in "trap '' INT").
+
+2021-12-13:
+
+- Fixed a bug introduced on 2020-08-09 that prevented '.' and '..' from
+  being completed when using file name tab completion.
+
+- Fixed a bug on illumos that caused the chown builtin to fail with 'Invalid
+  argument' after failing to change the ownership of a file twice using an ID
+  that doesn't exist in /etc/passwd. (Note that the chown builtin is not
+  enabled by default.)
+
 2021-12-11:
 
 - Fixed two more crashing bugs that occurred if ksh received a signal (such
   as SIGINT due to Ctrl+C) while the user is entering a multi-line command
   substitution in an interactive shell.
+
+- The shell linter's warning for variable expansion in ((...)) now tells the
+  user which variable is causing performance degradation.
+
+- The shell linter now warns the user x=$((expr)) is slower than ((x=expr))
+  when assigning a value to a variable.
 
 2021-12-09:
 
@@ -233,7 +268,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   of declaration built-ins. This reverts a change introduced on 2020-09-11.
   [*] https://austingroupbugs.net/view.php?id=1393
 
-- Fixed arithmetic assignment operations for multidimensional indexed arrays
+- Fixed arithmetic assignment operations for multidimensional indexed arrays.
 
 2021-04-30:
 
@@ -252,7 +287,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed a bug introduced on 2021-02-20 in which a shared-state command
   substitution stopped sharing its state with the calling shell environment
-  if it executed a command that locally redirected standard outpuut.
+  if it executed a command that locally redirected standard output.
 
 2021-04-22:
 
@@ -602,7 +637,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-02-14:
 
-- Due to a deficiency in some UNIX veriants, the 'sleep' built-in command could
+- Due to a deficiency in some UNIX variants, the 'sleep' built-in command could
   occasionally sleep for slightly less than the time specified. It now performs
   an additional check against the system clock to make sure it sleeps at least
   the given amount of time. Thanks to Lev Kujawski for adding this feature.
@@ -993,7 +1028,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Added the '${.sh.pid}' variable as an alternative to Bash's '$BASHPID'.
   This variable is set to the current shell's PID, unlike '$$' (which is
-  set to the parent shell's PID). In virtual subshells '${.sh.pid}' is not
+  set to the main shell's PID). In virtual subshells '${.sh.pid}' is not
   changed from its previous value, while in forked subshells '${.sh.pid}'
   is set to the subshell's process ID.
 

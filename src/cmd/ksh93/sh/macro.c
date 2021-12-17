@@ -488,7 +488,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 		    case S_ESC:
 			if(ansi_c)
 			{
-				/* process ANSI-C escape character */
+				/* process ANSI C escape character */
 				char *addr= --cp;
 				if(c)
 					sfwrite(stkp,first,c);

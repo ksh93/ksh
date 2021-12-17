@@ -1017,7 +1017,7 @@ later with the
 .B typeset\^
 special built-in command.
 Exported variables pass their attributes to the environment so that a newly
-invoked ksh that is a child or exec'ed process of the current shell will
+invoked ksh that is a child or exec'd process of the current shell will
 automatically import them, unless the \fBposix\fR shell option is on.
 .PP
 The shell supports both indexed and associative arrays.
@@ -2572,7 +2572,7 @@ and
 .BR \*(CK\^ ,
 character classes can be specified with the syntax
 \f3[:\fP\f2class\fP\f3:]\fP
-where class is one of the following classes defined in the ANSI-C standard:
+where class is one of the following classes defined in the ANSI C standard:
 (Note that \f3word\fP is equivalent to \f3alnum\fP plus the character \f3_\fP.)
 .br
 .B
@@ -2648,7 +2648,7 @@ to be used.
 .PP
 When \f2pattern-list\^\fP is contained within parentheses,
 the backslash character \f3\e\fP is treated specially even
-when inside a character class.   All ANSI-C character escapes are
+when inside a character class.   All ANSI C character escapes are
 recognized and match the specified character.  In addition
 the following escape sequences are recognized:
 .PD 0
@@ -2852,7 +2852,7 @@ are quoted.
 A single quote cannot appear within the single quotes.
 A single quoted string preceded by an unquoted
 .B $
-is processed as an ANSI-C string
+is processed as an ANSI C string
 except for the following:
 .PD 0
 .TP
@@ -2950,7 +2950,7 @@ Evaluations are performed using
 double precision floating point
 arithmetic or long double precision floating point for
 systems that provide this data type.
-Floating point constants follow the ANSI-C programming language
+Floating point constants follow the ANSI C programming language
 floating point conventions.
 The case-insensitive floating point constants
 .B NaN
@@ -2958,7 +2958,7 @@ and
 .B Inf
 can be used to represent "not a number" and infinity respectively,
 unless the \fBposix\fR shell option is on.
-Integer constants follow the ANSI-C programming language
+Integer constants follow the ANSI C programming language
 integer constant conventions although only single byte
 character constants are recognized and character casts
 are not recognized.
@@ -6730,7 +6730,7 @@ is added to the output.
 The arguments
 .I arg\^
 are printed on standard output
-in accordance with the ANSI-C
+in accordance with the ANSI C
 formatting rules associated with the format string
 .IR format .
 If the number of arguments exceeds the number of
@@ -8019,9 +8019,9 @@ Used with
 or
 .BR \-F ,
 to indicate long integer, or long float.
-Otherwise, all upper-case characters are
-converted to lower-case.
-The upper-case option,
+Otherwise, all uppercase characters are
+converted to lowercase.
+The uppercase option,
 .BR \-u ,
 is turned off.
 Equivalent to
@@ -8075,9 +8075,9 @@ meaning to the shell.
 When given along with
 .BR \-i ,
 specifies unsigned integer.
-Otherwise, all lower-case characters are converted
-to upper-case.
-The lower-case option,
+Otherwise, all lowercase characters are converted
+to uppercase.
+The lowercase option,
 .BR \-l ,
 is turned off.
 Equivalent to
@@ -8817,7 +8817,3 @@ won't be executed until the foreground job terminates.
 It is a good idea to leave a space after the comma operator in
 arithmetic expressions to prevent the comma from being interpreted
 as the decimal point character in certain locales.
-.PP
-Commands that add type definitions (\f3enum\fP, \f3typeset -T\fP)
-must be run unconditionally and in the main shell environment.
-Defining types conditionally or in a subshell will cause undefined behavior.

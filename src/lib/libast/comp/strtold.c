@@ -28,7 +28,7 @@
 #define S2F_type	2
 
 /*
- * ast strtold() => strtod() when double == long double
+ * AST strtold() => strtod() when double == long double
  */
 
 #define _AST_STD_H	1

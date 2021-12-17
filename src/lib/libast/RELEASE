@@ -13,12 +13,12 @@
 12-06-13 features/standards: handle __MACH__ POSIX peculiarities
 12-06-08 sfio/sfclose.c,sfmode.c: sfclose() for sfopopen() stream returns sh-compatible $?
 12-06-08 comp/strtold.c: fix header botch that missed ldexpl() prototype -- ouch
-12-06-06 misc/proclib.h: partially undo <ast_standards.h> for leaked ancient bsd-isms
-12-05-31 misc/proclib.h: <ast_standards.h> for linux undefined struct mmsghdr*
+12-06-06 misc/proclib.h: partially undo <ast_standards.h> for leaked ancient BSD-isms
+12-05-31 misc/proclib.h: <ast_standards.h> for Linux undefined struct mmsghdr*
 12-05-31 error.h: add ERROR_PIPE(errno) to handle EPIPE and ECONNRESET
 12-05-31 Makefile: don't install $(INCLUDEDIR)/prototyped.h: src/cmd/INIT does it
 12-05-31 regcomp.c: add (?V...) ~(V...) REG_REGEXP switch
-12-05-28 regex: regoff_t in => ssize_t via api 20120528
+12-05-28 regex: regoff_t in => ssize_t via API 20120528
 12-05-21 features/asometh: split intrinsic and method tests so code only instantiated in aso.c
 12-05-21 comp/strdup.c: use oldof() since mem overwritten by string copy
 12-05-18 misc/stk.c: fix access of moved realloc() data
@@ -27,16 +27,16 @@
 12-05-11 regex/regcoll.c: avoid memcpy() to self
 12-05-01 port/astconf.c: fix astconflist() to list standard minmax value if defined
 12-04-26 sfio/sftmp.c: fix memory leak due to inadvertent SF_STATIC copy
-12-04-26 sfio/sfwrite.c: fix subtle memory leak (with Vmlast or Vmpool or freeBSD malloc)
+12-04-26 sfio/sfwrite.c: fix subtle memory leak (with Vmlast or Vmpool or FreeBSD malloc)
 12-04-26 vmalloc/vmbest.c: SIGSEGV overcommit check for __linux__ only
 12-04-25 vmalloc: add _vmfd() for private close-on-exec fds
 12-04-23 sfio_t.h: change getr to 32 bits to prepare for UTF-8 delimiters
 12-04-23 features/signal.c: add SIGSTKFLT
 12-04-17 regex/regcomp.c: fix (E:...) vs (E)... scoping
-12-04-11 features/sys: add aix's _LARGE_FILE_API to the _LARGEFILE(64)?_SOURCE mix -- anyone else?
+12-04-11 features/sys: add AIX's _LARGE_FILE_API to the _LARGEFILE(64)?_SOURCE mix -- anyone else?
 12-04-11 include/cmdarg.h,misc/cmdarg.c: (finally!) add a discipline with Cmdrun_f
 12-03-28 vmalloc: int vs [s]size_t cleanup
-12-03-27 sfio: fix #if logic that caused syntax errors (on 64 bit uwin)
+12-03-27 sfio: fix #if logic that caused syntax errors (on 64 bit UWIN)
 12-03-10 misc/optget.c: HELP_index for "PLUGIN" too
 12-02-29 include/shcmd.h: PLUGIN_VERSION 20111111 for cdt disc/meth change
 12-02-29 comp/spawnveg.c: fix sigcritical() to include waitpid() for internal child
@@ -46,7 +46,7 @@
 12-02-24 astsa/astsa.omk: clean up standalone old make makefile interactions
 12-02-21 misc/cmdarg.c: fix bug that set argv[0]
 12-02-10 sfvprintf.c: fix 1 byte too long buffer access
-12-02-07 malloc.c/features/vmalloc: add gnu __malloc_hook tests
+12-02-07 malloc.c/features/vmalloc: add GNU __malloc_hook tests
 12-02-06 vmmopen.c: fix ALIGN vs sys/param.h macro conflict
 12-02-02 astlicense.c: add license.component for component-specific licenses
 12-01-31 spawnveg.c: fix transient bug that made invalid setpgid() call
@@ -60,12 +60,12 @@
 12-01-10 tmxdate.c: handle { n>=1000 } TM_PARTS
 11-12-21 plug up some memory links -- thanks mhlavink
 11-12-21 vmprivate.c: enclose VM_NONMEM exception in CLRLOCK(vm,0) ... SETLOCK(vm,0)
-11-12-13 aso: in -lposix for uwin, not -last -- just like vmalloc
+11-12-13 aso: in -lposix for UWIN, not -last -- just like vmalloc
 11-12-13 sfpoll.c: all streams SF_IOINTR => don't ignore EINTR
 11-12-13 sfdcslow.c: set SF_IOINTR
 11-12-09 malloc.c: add _vmkeep() for setlocale() intercept _SYS_setlocale_free_OK
 11-12-04 sfio: _Sfmaxr=0 (unlimited) by default; use ulimit -M|-d or SFIO_OPTIONS
-11-12-01 aso: sync to new api
+11-12-01 aso: sync to new API
 11-11-11 optget.c: move .TH to the top for --nroff to get our macros first
 11-11-11 aso,cdt,vmalloc: resync with kpv
 11-11-11 cdt: preserve bits and Dt_link_t for CDT_VERSION < 20111111
@@ -74,18 +74,18 @@
 11-10-10 aso: add _WIN32 support
 11-09-26 vmalloc: sync with kpv
 11-08-29 features/{dirent,wchar,wctype}: eliminate #include with no header
-11-08-25 #pragma prototyped tweaks -- sun4 is dead, long live sun4
+11-08-25 #pragma prototyped tweaks -- SunOS 4 is dead, long live SunOS 4
 11-08-25 ftwalk.c: FTS_SLNONE => FTW_SL
 11-08-11 features/wchar: fix #include _nxt_wchar for K&R C
 11-08-04 optget.c: tweak --html rendering
 11-07-24 mime.c: add %(default)[st] default if arg == ""
 11-07-21 setlocale.c: fix debug locale to treat "<<" as two single byte chars
 11-06-14 spawnveg.c: pgid -1: new session -2: setpgrp()&&tcsetpgid()
-11-06-14 pathprog.c: add darwin _NSGetExecutablePath
-11-05-14 features/common,features/align.c: { _X86_ _X64_ } conditionals for generic uwin
+11-06-14 pathprog.c: add Darwin _NSGetExecutablePath
+11-05-14 features/common,features/align.c: { _X86_ _X64_ } conditionals for generic UWIN
 11-05-13 tm/tminit.c: tweak tzname[] prototype
 11-05-09 astlicense.c: add ". file" parent-relative include and depth 4 input stack
-11-05-05 cmdarg: update to cmdopen_20110505 api
+11-05-05 cmdarg: update to cmdopen_20110505 API
 11-05-03 sfio/sfclose.c: make sure close() errors propagate to sfclose() return value
 11-04-20 port/astlicense.c: add { id name } keys
 11-04-15 fmtdev.c: fix to work for non-{blk,chr} special
@@ -95,18 +95,18 @@
 11-03-17 misc/stk.c: fixed bug that could delete an active stack frame
 11-03-10 sfio/sfvprintf.c: add %0<width>s to preserve <width> trailing chars in string arg
 11-03-09 misc/magic.c: add %d...%s where if %d==1 then %s=="" else %s=="s"
-11-03-09 misc/magic.tab: add windows ico
+11-03-09 misc/magic.tab: add Windows ico
 11-02-08 misc/stk.c: change STK_FSIZE to (1024*sizeof(char*)) for 64 bit normalization
 11-02-02 sfio/sfmode.c: don't call sfsetbuf() on unbuffered stream to make it unbuffered
 11-02-02 features/wchar: handle hp.ia64 va_list interactions
 11-02-02 comp/omitted.c: fix mismatch between stat() vs _stat()
 11-01-31 std/wctype,features/wctype: add to handle <wchar.h> interactions
-11-01-28 add -lw for ancient sunos
+11-01-28 add -lw for ancient SunOS
 11-01-28 include/magic.h,misc/magic.c: add MAGIC_ALL
 11-01-27 tm/tmxfmt.c,tmpoff.c: %_z for SHH:MM
 11-01-25 features/wchar: change <wctype.h> <wchar.h> ordering
 10-12-24 sfstrtof.h: fix thousand grouping bug that did not check last group
-10-12-21 pathkey.c: add win32 { /32 /64 } preroot to hash
+10-12-21 pathkey.c: add Win32 { /32 /64 } preroot to hash
 10-12-09 pathprog.c: handle intermediate path != '* and fix invalid pathpath() call
 10-12-01 astconf.c: fix look.standard undefined variable reference
 10-12-01 sfset.c: SF_LINE|SF_WCWIDTH => no need for sfsetbuf() to call isatty()
@@ -120,13 +120,13 @@
 10-11-19 regcomp.c: REG_SHELL => REG_CLASS_ESCAPE
 10-11-16 vmalloc.h: add VMFL tracing to vmstrdup()
 10-11-16 ast.h: simplify VMDEBUG _BLD_DEBUG and VMFL logic
-10-11-12 tm/tmlocale.c: ast TM_* extensions default to C locale
+10-11-12 tm/tmlocale.c: AST TM_* extensions default to C locale
 10-11-10 regex/regnexec.c,vmalloc/vmstat.c: eliminate strict-aliasing puns
 10-10-20 misc/translate.c: change debug translation to drop " in (a,b,c,"d")
 10-10-10 misc/glob.c: drop ancient D_FILENO(d)!=0 test and trust readdir()
 10-10-06 misc/translate.c: fix "debug" locale logic
 10-10-04 misc/magic.c: fix magic() skip check to honor the continuation
-10-10-04 regex/regcoll.c: add wchar_t* args to regcollate(), drop ucs name lookup
+10-10-04 regex/regcoll.c: add wchar_t* args to regcollate(), drop UCS name lookup
 10-09-28 comp/setlocale.c: add utf8_wctomb()
 10-09-28 string/chresc.c,regex/regcoll.c: fix \S[.X.] (\C[.X.] never worked!)
 10-09-24 string/chresc.c: \Cc for control c, \S[.X.] for collating symbol X
@@ -152,10 +152,10 @@
 10-06-28 comp/conf.tab: another PID_MAX tweak -- default to 99999 for most
 10-06-28 port/astconf.c: lone "CONFORMANCE = standard" => all defaults standard
 10-06-25 misc/optget.c: avoid sfprints() call during initialization
-10-06-01 features/api, ast_api.h: formalized forwards/backwards api compatibility
+10-06-01 features/api, ast_api.h: formalized forwards/backwards API compatibility
 10-06-01 _AST_API=20100601: add size_t args for all path*() output buffers
 10-06-01 comp/setlocale.c: handle C.UTF-8 test locale
-10-06-01 include/mc.h: add size_t to mcfind() for result buffer (internal api)
+10-06-01 include/mc.h: add size_t to mcfind() for result buffer (internal API)
 10-06-01 use strlcpy() instead of strncpy()
 10-05-28 include/ast_version.h: add AST_PLUGIN_VERSION for dllplugin()
 10-05-28 include/shcmd.h: add SH_PLUGIN_VERSION for dllplugin()
@@ -175,7 +175,7 @@
 10-04-22 misc/optget.c: check for html entities in <A name="...">
 10-04-22 misc/getcwd.c: add features/syscall check for SYSGETCWD() { linux solaris }
 10-04-22 string/stresc.c: wide chars absent locale guidance default to UTF-8
-10-04-12 port/mnt.c: favor bsd getfsstat() over getmntinfo()
+10-04-12 port/mnt.c: favor BSD getfsstat() over getmntinfo()
 10-04-11 string/strtoi.h: k (1000) and ki (1024) now differentiated
 10-04-10 misc/recstr.c: fix 'd[delimiter]' parse
 10-04-08 include/vmalloc.h,vmalloc/vmstat.c: add Vmstat_t.mode region mode bits
@@ -202,9 +202,9 @@
 10-01-29 misc/optget.c: [+NAME?...] overrides error_info.id for >= STYLE_man
 10-01-25 vmalloc/vmprivate.c: fix seg ptr initialization bug (24 years old!!)
 10-01-20 misc/optget.c: handle nested {...} rendering
-10-01-20 misc/state.c: add ast.version for runtime api version
+10-01-20 misc/state.c: add ast.version for runtime API version
 10-01-20 port/astconf.c: "_AST_VERSION" now returns ast.version
-10-01-20 include/ast_std.h: add ast.version for runtime api version
+10-01-20 include/ast_std.h: add ast.version for runtime API version
 10-01-19 astlicense.c: add epl
 10-01-01 vmalloc: VMALLOC_OPTIONS env var for all runtime options
 10-01-01 include: change some <ast.h> refs to less intrusive <ast_*.h>
@@ -212,7 +212,7 @@
 10-01-01 comp/setlocale.c: AST_LC_setenv defers to LC_ALL (for sh)
 10-01-01 ast_std.h: add { AST_LC_internal AST_LC_setenv }
 09-12-24 comp/setlocale.c: fix setlocale(LC_ALL,"") when already initialized
-09-12-17 misc/optget.c: handle mixed solaris usage="x:f:(in)yo:(out)"
+09-12-17 misc/optget.c: handle mixed Solaris usage="x:f:(in)yo:(out)"
 09-12-11 regex/regcomp.c: POSIX semantics for [z-a]
 09-12-11 regex/regcomp.c: fix BRE/ERE ^^ logic
 09-12-11 regex/regcomp.c: fix regcomb() for REG_LEFT|REG_RIGHT
@@ -280,7 +280,7 @@
 08-12-21 tm/tmdata.c: add 2008-12-31+23:59:60-0000 leap second event
 08-12-19 tm/tmxdate.c: check for dates near the epoch rolling back to the future
 08-12-19 tm/tmxfmt.c: change %s for now==0 to be the epoch
-08-12-07 include/ast_std.h,misc/getenv.c: no _ast_getenv for uwin ast54 compatibility
+08-12-07 include/ast_std.h,misc/getenv.c: no _ast_getenv for UWIN AST54 compatibility
 08-12-07 tm/tmxfmt.c: add %[_][EO]K for [space pad] [full|long] iso
 08-12-07 sfio/sfvscanf.c: fix ok[] short by one allocation
 08-12-07 comp/setlocale.c: fix off by one composite initialization loop test
@@ -295,7 +295,7 @@
 08-09-05 Makefile: ibm.risc joins the :NOOPTIMIZE: crowd
 08-09-04 regex/regnexec.c: fix nested delimiter match beyond end of subject
 08-08-20 misc/fts.c: fix st_nlink stat() optimization logic
-08-08-19 sfio/sfpkrd.c: workaround macosx recv(PEEK) data consumption on non-socket
+08-08-19 sfio/sfpkrd.c: workaround Mac OS X recv(PEEK) data consumption on non-socket
 08-08-19 strn?tol?d: handle long double with smaller exponent range than double
 08-08-18 sfio/sfcvt.c: eliminate excessive multiplies and integral overprecision
 08-08-11 tm/tmxfmt.c: handle %10N and %010N
@@ -345,7 +345,7 @@
 07-12-02 sfio/sfreserve.c: preserve SF_SHARE sfrd() via sfreserve(f,0,0)
 07-11-21 comp/setlocale.c: add sjis_mbtowc() to work around [\~] translation
 07-11-15 features/signal.c: RT(1) .. RT(MAX-1) => RTMIN+1 .. RTMAX-1
-07-11-14 features/float: favor sscanf() due to gnu strto[l]d() nan bugs
+07-11-14 features/float: favor sscanf() due to GNU strto[l]d() NaN bugs
 07-10-31 regex/regcomp.c: fix REX_COLL_CLASS node allocation size
 07-10-31 sfio/sfcvt.c: use signbit() if available
 07-10-31 features/isoc99: _ISOC99_SOURCE tests
@@ -382,8 +382,8 @@
 07-04-20 port/(lclang.h|lc.c|mc.c|lclib.h|lcgen.c): separate lctab.c
 07-04-20 comp/conf.sh: defer to systems without 'grep -q' -- sigh
 07-04-20 comp/conf.sh: probe for LL integer constant initializer suffix
-07-04-20 include/syslog.h: <namval.h> => <ast_namval.h> for win32
-07-04-20 ast_namval.h: add as copy of include/namval.h for win32
+07-04-20 include/syslog.h: <namval.h> => <ast_namval.h> for Win32
+07-04-20 ast_namval.h: add as copy of include/namval.h for Win32
 07-04-19 comp/conf.tab: fix SVID SI entries to probe SI_* (not _SI_*)
 07-04-13 tm/tmxdate.c,tm/tmzone.c: handle [-+]0000 UTC zone offset
 07-04-11 sfio/sfvprintf.c: add %F, propagate SFFMT_UPPER
@@ -425,7 +425,7 @@
 06-12-11 comp/conf.tab: always defer ARG_MAX
 06-12-07 Makefile: fix conftab.c generation CCFLAGS to match build - doh
 06-12-04 sfio/sfcvt.c: fix (int) vs. (long) cast mismatches
-06-12-01 comp/conf.tab: add changes to cover solaris { bin xpg4 xpg6 }
+06-12-01 comp/conf.tab: add changes to cover Solaris { bin xpg4 xpg6 }
 06-12-01 regex/reginit.c: adjust { SRE KRE } escaped (){}*? inside [...]
 06-12-01 sfio/sfcvt.c: add signbit/copysign tests
 06-11-22 comp/spawnveg.c: fix _real_vfork logic to work with 3d
@@ -462,7 +462,7 @@
 06-10-01 comp/putenv.c: always enable setenv() for procopen()
 06-10-01 misc/procopen.c: use pathshell() or astconf("SHELL",0,0) if PARANOID
 06-10-01 path/pathshell.c: localize the shell path patterns and accept ksh93
-06-09-28 Makefile: avoid ast <stdio.h> vix iffe -X ast -- doh
+06-09-28 Makefile: avoid AST <stdio.h> with iffe -X ast -- doh
 06-09-27 regex/regdecomp.c: add
 06-09-26 regex/regcomp.c: handle KRE ~(...)<invalid-kre>
 06-09-25 reorganize to avoid native header intercepts
@@ -483,7 +483,7 @@
 06-08-22 misc/glob.c: handle ~(...) pattern options
 06-08-16 string/strelapsed.c: fix off-by-one (too far) parse bug
 06-08-16 regex/regcomp.c: accept but ignore ~(N)
-06-08-14 features/libpath.sh: add solaris LD_LIBRARY_PATH_64 check
+06-08-14 features/libpath.sh: add Solaris LD_LIBRARY_PATH_64 check
 06-08-05 sfio/sfpool.c: pool SF_READ|SF_WRITE loop fix
 06-08-02 misc/fts.c: fix FTS_NOSTAT optimization to check for ..
 06-07-28 include/glob.h: add gl_extra for user globlist_t expansion
@@ -498,19 +498,19 @@
 06-07-17 regex/regcomp.c: inline a:REG_LEFT|REG_RIGHT p:~REG_LENIENT
 06-07-17 string/chresc.c: add \Uxxxxxxxx
 06-07-17 sfio/sfstrtof.h: ignore thousands sep after decimal
-06-07-17 string/tokline.c: splice() => spliceline() for bsd
+06-07-17 string/tokline.c: splice() => spliceline() for BSD
 06-06-27 features/float,sfio/sfcvt.c: fix Nan logic
 06-06-27 port/astmath.c: fix long double isnan() test
 06-06-27 features/map.c: _map_libc for std => _ast_std
 06-06-25 string/strperm.c: handle POSIX = w.r.t. umask
-06-06-19 port/mnt.c,features/fs: handle netbsd getmntent api change
+06-06-19 port/mnt.c,features/fs: handle NetBSD getmntent API change
 06-06-18 regex/regstat.c: add REG_LITERAL check
 06-06-11 cdt/dtview.c: update from kpv
 06-05-31 sfio/sfhdr.h: fix _SFOPEN() typo
 06-05-09 comp/conf.sh: add native getconf -a names to the mix
-06-04-28 misc/optget.c: add solaris long option name compatibility
+06-04-28 misc/optget.c: add Solaris long option name compatibility
 06-03-09 string/strmatch.c: add REG_ADVANCE => REG_* flags
-06-02-14 comp/iconv.c: fix uwin iconv_list() /reg/ generator
+06-02-14 comp/iconv.c: fix UWIN iconv_list() /reg/ generator
 06-02-10 port/astconf.c: relax standard prefix filter
 06-02-08 sfrd.c,sfsync.c: lock logic bug fix
 06-02-01 port/astlicense.c: add { parent incorporation }
@@ -520,7 +520,7 @@
 06-01-01 include/sfio.h: export { _Sfi _Sfmaxr }
 05-12-13 string/chresc.c: handle \C-X => control-X, \M- => ESC
 05-11-22 regex/regcache.c: add, convert string/strmatch.c to regcache()
-05-10-06 string/ccmap.c: update ebcdic-u to be idempotent
+05-10-06 string/ccmap.c: update EBCDIC-U to be idempotent
 05-09-28 vmalloc: snarf from kpv; fixes large block brk() thrashing
 05-09-26 misc/magic.c,misc/magic.tab: handle latest vcodex header
 05-09-12 misc/optget.c: reset opt_info.offset on error
@@ -531,16 +531,16 @@
 05-08-03 sfio: snarf sfvaprints sfaprints
 05-07-21 port/astconf.c: retain most recent synthesized lookup
 05-07-20 sfio/sfsetbuf.c: default file io size now 64K on all systems
-05-07-17 ccmap*: add microfocus cobol EBCDIC_U
+05-07-17 ccmap*: add Micro Focus COBOL EBCDIC_U
 05-06-29 regex/regcomp.c: fix the A & B inline flag logic
 05-06-15 include/recfmt.h: add fs format flag to fmtrec()
 05-06-14 error.c: add ERROR_OPTIONS { break count match }
 05-06-07 features/stdio: drop FEATURE/limits to fix bootstrap circular dep
 05-06-02 features/*,Makefile: drop vestigel iffeio.h bootstrap workaround
 05-05-31 string/fmtbuf.c: unlock (spin) before each return -- doh
-05-05-30 sfio/sfpkrd.c: work around macos 10.4 recv(MSG_PEEK) bug
+05-05-30 sfio/sfpkrd.c: work around Mac OS X 10.4 recv(MSG_PEEK) bug
 05-05-27 regex: add REX_NEST (?%[S.][T.][OT])
-	 magic.tab: amend bsd db magic
+	 magic.tab: amend BSD db magic
 05-05-23 regex: REX_NEST (?%[D.][E.][L.][Q.][oc]...)
 05-05-21 regex: state.fold[] is now locale specific -- doh
 05-05-19 regex: add REX_NEST (?%\\()<>[]""...) %(...) nested match
@@ -559,9 +559,9 @@
 05-03-31 misc/optget.c: fix option { - _ } separator matching
 05-03-30 misc/glob.c: eliminate superfluous GLOB_NOMATCH stat() calls
 05-03-24 port/astwinsize.c: include <sys/ioctl.h> if possible
-05-03-23 string/ccmap.c: add ebcdic-m mvs cobol table
+05-03-23 string/ccmap.c: add EBCDIC-M MVS COBOL table
 05-03-11 comp/omitted.c: handle utime[s](const,const)
-	 comp/conf.tab: fix linux PID_MAX probe
+	 comp/conf.tab: fix Linux PID_MAX probe
 05-03-10 comp/setlocale.c: LC_* value "" => unset -- doh
 	 misc/optget.c: reorder _PACKAGE_astsa code for msgcc
 05-03-08 misc/optget.c: delete leading space in STYLE_nroff output
@@ -575,7 +575,7 @@
 05-02-04 features/lib: add _std_strtol (for lynxos)
 	 include/ast_std.h: add _std_strtol tests
 	 comp/strtod.c: #define S2F_function strtod
-	 misc/signal.c: fix ancient bsd SV_INTERRUPT vs. SV_ABORT clash
+	 misc/signal.c: fix ancient BSD SV_INTERRUPT vs. SV_ABORT clash
 05-01-11 sfio/sfmove.c: try to seek(fr) when fw==0
 	 comp/omitted.c: intercept utimes() too
 	 comp/omitted.c: add DOSPATHVARS env var path value conversions
@@ -594,7 +594,7 @@
 04-12-01 tm/tmsleep.c: add
 	 tv.h,tv*.c,tv.3: move from pax
 	 tmx.h,tmx*.c,tmx.3: add high resolution tm(3) counterparts
-	 features/lib: add *another* sgi linux.ia64 memccpy bug check
+	 features/lib: add *another* SGI linux.ia64 memccpy bug check
 04-10-31 Makefile: __OBSOLETE__ now computed <6 months ago year>0101
 	 ccode.h,ccmapid.c: add ccmaplist(Ccmap_t*) iterator
 	 option.h,optesc.c: add 3rd arg, 1 => quote '?' too
@@ -639,7 +639,7 @@
 04-07-19 comp/open.c,sfio/_sfopen.c: { O_RDONLY O_WRONLY O_RDWR } are values
 04-06-28 misc/error.c: check level after error_info.auxilliary
 04-06-24 string/strmatch.c: strgrpmatch() match[] now variable size array
-04-06-17 features/common: change _DLL null define to (the standard ast) 1
+04-06-17 features/common: change _DLL null define to (the standard AST) 1
 04-06-11 misc/optget.c: allow optional [-|+|--|++] optstr() option prefix
 	 misc/optget.c: reset optstr() state on 0 return
 	 misc/optget.c: text()=>textout() linux.ppc symbol hijack workaround
@@ -660,12 +660,12 @@
 04-03-17 features/stdio: no __FILE override for __CYGWIN_ (sys/reent.h clash)
 	 sfio/sfhdr.h,sfio/sfsetbuf.c: lower sfmove() default buf size 4x
 04-02-29 comp/omitted.c: move env trace after PATH fixup
-	 comp/omitted.c: cygwin spawn _P_DETACH => _P_NOWAIT+setpgid(pid,0)
+	 comp/omitted.c: Cygwin spawn _P_DETACH => _P_NOWAIT+setpgid(pid,0)
 	 misc/optget.c: fix html mailto: match
 	 port/astlicense.c: add type=test for fixed 2001 date
 	 features/float: check local NaNQ first
 	 vmalloc/vmhdr.h: fix _vmextern_ vm_truncate return type
-	 misc/magic.tab: add elf s390 index=22
+	 misc/magic.tab: add ELF s390 index=22
 04-02-26 vmalloc: VMCHECK a:assertions c:arena-check w:warn-instead-of-abort
 	 sfio/sfvscanf.c: fix extf arg selection
 04-02-24 features/dirent: set nodefine to avoid ast_std.h _typ_off64_t undef
@@ -683,7 +683,7 @@
 04-01-31 features/vmalloc: fix typo that missed _mmap_zero
 04-01-23 string/strerror.c: handle real strerror() return value overwrite
 04-01-11 path/pathpath.c: fix size vs. sizeof(buf) typo
-03-12-22 misc/magic.tab: dos EXE tweaks
+03-12-22 misc/magic.tab: DOS EXE tweaks
 03-12-05 vmalloc: sync with kpv, adding exceptf announcements
 03-12-04 port/astlicense.c: fix expand() loop sentinel bug
 03-12-02 include/ast.h: mbchar() advances by 1 on mbtowc() error
@@ -706,10 +706,10 @@
 03-09-23 modedata.c: table is for external modes, so no arch specific hacks
 	 optget.c: fix option prefix match translation bug
 	 optget.c: add `<length> <name>=<value>\n' to optstr()
-	 features/lib: add memcmp() test for sgi optimization bug
+	 features/lib: add memcmp() test for SGI optimization bug
 03-09-22 regex.h,regcomp.c: add regncomp()
 	 regclass.c: fix for loop dangling ; in regaddclass()
-03-09-20 sftable.c,sfvprintf.c: fix SFFMT_CHAR handling to match extf api
+03-09-20 sftable.c,sfvprintf.c: fix SFFMT_CHAR handling to match extf API
 03-09-19 sfmode.c: update release to kpv's
 03-09-17 regcomp.c: add pedantic backref error checks
 03-09-16 regnexec.c: exec time REG_LEFT => don't advance past initial position
@@ -724,10 +724,10 @@
 	 features/lib: _AST_no_spawnveg==1 falls back to fork/exec
 03-08-22 features/stdio,stdio/asprintf.c,stdio/vasprintf.c: add
 03-08-21 path/pathnative.c,path/pathposix.c: interix updates
-	 features/botched: add cygwin _stat => _stat64
-03-08-15 include/ast.h: map out bsd strmode()
+	 features/botched: add Cygwin _stat => _stat64
+03-08-15 include/ast.h: map out BSD strmode()
 	 features/common: add interix _ast_intmax_t workarounds
-	 misc/fs3d.c: 3d mount test now uses "" instead of NiL (or cygwin dumps)
+	 misc/fs3d.c: 3d mount test now uses "" instead of NiL (or Cygwin dumps)
 03-08-11 string/fmtesc.c: fix optional quoting checks
 	 tm/tmdate.c: fix > 1 year of seconds arithmetic
 	 tm/tmfix.c: fix leap year adjustments
@@ -820,7 +820,7 @@
 	 tm/tmfmt.c: add %Q<delim>recent<delim>distant<delim>
 	 misc/optget.c: fix trailing '*' for option and option args
 	 sfio/sfmode.c: getenv("_AST_SFIO_OPTIONS") [,]SF_LINE[,] for fd {0,1,2}
-	 vmalloc/*: kpv sync for uwin build independent of libast
+	 vmalloc/*: kpv sync for UWIN build independent of libast
 03-03-18 port/astconf.c: switch to dynamic string values (saves 7K data/bss)
 	 string/strmatch.c: switch to dynamic regex cache (saves 3K data/bss)
 	 regex/regcoll.c,ucs_names.h: initialize rw tables from smaller ro data
@@ -836,7 +836,7 @@
 	 disc/sfdcdos.c: change sfslen() => sfvalue(f)
 03-03-10 misc/optget.c: handle [f\f:x:lll\f?ddd]
 03-03-07 port/astconf.c: uninitialized CONFORMANCE + POSIXLY_CORRECT => standard
-03-03-05 comp/omitted.c: make sure at least /bin is in PATH to find cygwin dlls
+03-03-05 comp/omitted.c: make sure at least /bin is in PATH to find Cygwin dlls
 03-03-02 path/pathshell.c: write access to /bin is effectively root
 03-02-28 features/float: add (FLT|DBL|LDBL)_U?(LONG|LONGLONG|INTMAX)_(MIN|MAX)
 03-02-25 features/lib: change vfork() test to use _exit() instead of exit()
@@ -853,8 +853,8 @@
 03-02-01 string/strelapsed.c: handle ps style [day-][hour:]min:sec
 03-01-31 port/astlicense.c: fix author=* match
 03-01-30 include/tm.h: add tmisleapyear() macro
-03-01-29 comp/getopt.h,comp/getoptl.c: add gnu getopt_long(), getopt_long_only()
-	 include/ast_getopt.h: for non-gnu part of comp/getopt.h
+03-01-29 comp/getopt.h,comp/getoptl.c: add GNU getopt_long(), getopt_long_only()
+	 include/ast_getopt.h: for non-GNU part of comp/getopt.h
 	 include/ast_std.h: include <ast_getopt.h> instead of <getopt.h>
 03-01-28 ast.h,string/base64.c: add base64encode() and base64decode()
 	 path/pathfind.c: verify S_ISREG()
@@ -867,10 +867,10 @@
 03-01-03 include/regex.h,regex/regcomp.h: add REG_SHELL_GROUP
 	 include/ast.h,string/strmatch.c: add STR_GROUP for REG_SHELL_GROUP
 02-12-15 include/error.h: errorcontext => Error_context_s (compatible til 2004)
-02-12-06 misc/sigdata.c: add NoF(sigdadata) -- why nmake was uninterruptible!
-02-12-03 comp/omitted.c,features/omitted: handle cygwin alarm() return botch
+02-12-06 misc/sigdata.c: add NoF(sigdata) -- why nmake was uninterruptible!
+02-12-03 comp/omitted.c,features/omitted: handle Cygwin alarm() return botch
 02-11-27 misc/swapop.c: op=3,size=4 => op=7
-	 string/strlcat.c,strlcpy.c: fix uwin decl clash
+	 string/strlcat.c,strlcpy.c: fix UWIN decl clash
 02-11-26 sfio/sfvprintf.c: fix sfsprintf() '\0' termination bug
 02-11-22 misc/glob.c: move static struniq() to libast extern
 	 string/fmtversion.c,include/ast.h: add fmtversion
@@ -892,14 +892,14 @@
 02-10-18 include/ast_std.h: avoid off_t,ftruncate,lseek,truncate redefinitions
 02-10-17 misc/mime.c: handle type/* match, fix bogus header parse
 02-10-04 sfio/sfstrtof.h: S2F_static <0:export =0:private >0:static
-02-10-02 features/common: don't define _WIN32; define _WINIX => unix on windows
-	 features/tty: finally stomp the bsd _POSIX_VDISABLE redefinition
+02-10-02 features/common: don't define _WIN32; define _WINIX => Unix on Windows
+	 features/tty: finally stomp the BSD _POSIX_VDISABLE redefinition
 	 misc/fastfind.c: add more specific findwrite() error messages
-	 comp/omitted.c: fix cygwin utime() to update st_ctime
+	 comp/omitted.c: fix Cygwin utime() to update st_ctime
 	 comp/strtol.c,strtoul.c: __CYGWIN__ static link workaround XXX
 	 string/fmtls.c,fmttime.c: tmform() => tmfmt()
 02-09-22 port/astconf.c: return values in fmtbuf() buffer instead of stack
-	 port/mnt.c: don't set MNT_REMOTE for win32 ?:\* paths
+	 port/mnt.c: don't set MNT_REMOTE for Win32 ?:\* paths
 	 sfio/sfvscanf.c: _sfdscan() is library global (not static)
 02-09-21 path/pathkey.c: add tool arg for mamake compatible hash
 	 features/fcntl.c: handle iffe _hdr_lcl_* => _lcl_* change
@@ -914,11 +914,11 @@
 	 sfio/sfvscanf.c,sfstrtof.h: add flag arg to char get, fix NaN loop
 02-09-10 vmalloc/vmhdr.h: enable getpagesize() and sbrk() prototypes
 	 features/fcntl.c: enable mmap64() prototype
-	 include/ast_windows.h: windows.h wrapper with ast namespace workarounds
+	 include/ast_windows.h: windows.h wrapper with AST namespace workarounds
 02-09-07 misc/mime.c: fix quoted value parse bug that ate the whole line
 02-09-05 features/vmalloc: add free() to _std_malloc test
 	 include/ast.h: NoF(x) now defines _DATA_x for !_BLD_DLL too
-	 tm/tmlocale.c: { C POSIX en } == unix dadgummit
+	 tm/tmlocale.c: { C POSIX en } == Unix dadgummit
 02-08-29 path/pathfind.c: initialize Dir_t.next=0
 02-08-28 uwin/rint.c: update
 	 features/libpath.sh: "bin" is now the default value
@@ -934,19 +934,19 @@
 02-08-12 regex/regnexec.c: fix REG_MINIMAL REX_DOT mb bug
 02-08-08 features/iconv: <ast_common.h> instead of <sys/types.h> <ast_common.h>
 02-08-07 regex/regcomp.c: recognize anchors in BRE subexpressions
-02-08-06 comp/iconv.c: handle win32 cpNNNN == windows-NNNN aliases
+02-08-06 comp/iconv.c: handle Win32 cpNNNN == windows-NNNN aliases
 02-08-05 cdt/*: sync with kpv src
 02-08-02 features/iconv: include sys/types.h for ast_types.h
 02-08-01 misc/magic.c: magic file "." names the default
-	 misc/magic.c: handle addr type (from irix string)
+	 misc/magic.c: handle addr type (from IRIX string)
 	 features/lib: move malloc tests to features/vmalloc
 	 features/vmalloc: snarf tests from features/lib
 	 vmalloc/*: sync with kpv src
 	 comp/libc.c: dropped -- __libc_* intercepts moved to vmalloc/malloc.c
 02-07-30 features/lib: handle __libc_malloc() in _std_malloc test
-	 vmalloc/malloc.c: add gnu pvalloc()
+	 vmalloc/malloc.c: add GNU pvalloc()
 	 features/vmalloc: fix alloca check
-02-07-29 features/limits.c: handle netbsd guards
+02-07-29 features/limits.c: handle NetBSD guards
 02-07-27 sfio/sfpoll.c: handle rw pipes
 02-07-25 features/iconv: include ast_types.h for size_t in ast_iconv.h
 02-07-18 apply LARGEFILE64 header prototype clash patches
@@ -960,7 +960,7 @@
 02-07-15 comp/fnmatch.c: fix memory leak caused by missing regfree()
 	 comp/strstr.c: fix broken interpretation and implementation
 	 comp/iconv.c: intercept (but no-op) null to and from buffer pointers
-02-06-27 ast_std.h: map _sysconf => _ast_sysconf for sun
+02-06-27 ast_std.h: map _sysconf => _ast_sysconf for Sun
 02-06-26 cdt,sfio,vmalloc: kpv sync -- is this ever easy?
 02-06-24 sfio: kpv sync, vfwscanf(),fputw() fix (wcslen(x)*sizeof(wchar_t)!!)
 	 misc/fts.c: fix symlink chdir() optimization bug
@@ -975,9 +975,9 @@
 02-05-16 tm/tmfix.c: fix '60+n min/sec ago' bug for n min/sec after the hour
 02-05-14 regex/regsub.c: fix (^|x) null match early termination bug
 02-05-13 dir/dirlib.h: drop errant extern==__EXPORT__
-	 features/uwin: add uwin lib tests
+	 features/uwin: add UWIN lib tests
 	 uwin/*.c: check features/uwin for stubs
-	 features/float: add nan representation generation
+	 features/float: add NaN representation generation
 	 sfio/sftable.h: used _ast_*_nan_init for huge values
 02-05-09 misc/fts.c: fix virtual top to force ``child'' stat()
 	 features/common: define va_copy() only if not in <stdarg.h>
@@ -997,7 +997,7 @@
 02-03-29 ast.h: drop strerror() prototype -- already in <ast_std.h>
 	 features/stdio: check for _SFIO_H redundant _Sfstd* declarations
 02-03-26 misc/glob.c: fix GLOB_LIST gl_flags values
-02-03-24 port/mnt.c: update bsd fstype name and mount option logic
+02-03-24 port/mnt.c: update BSD fstype name and mount option logic
 02-03-23 Makefile: add ast_wchar.h to the .check.hdr list (for mamake)
 02-03-17 features/stdio: hack around g++ 3.* clashes
 	 Makefile: add ast_nl_types.h to the .check.hdr list (for mamake)
@@ -1024,14 +1024,14 @@
 	 fmtfmt: add
 	 include/ast.h: add { PATH_TOUCH_CREATE PATH_TOUCH_VERBATIM }
 	 Makefile: add std/*.h for std header iffe overrides
-	 comp/iconv.c: fix non-C win32 sfreserve() loop
+	 comp/iconv.c: fix non-C Win32 sfreserve() loop
 02-02-11 features/common: separate long long / long double tests
 	 features/common: verify printf handles long long / long double
 02-02-02 include/ast_std.h,sfio/sfhdr.h: drop _hdr_locale tests -- always on now
 	 include/ast_std.h: trust _UWIN <unistd.h>
-02-01-31 port/mnt.c: add aix options field
+02-01-31 port/mnt.c: add AIX options field
 02-01-30 comp/strstr.c: add for ancient s5
-	 stdio/_flsbuf.c: only on systems that transfer to native (e.g., uwin)
+	 stdio/_flsbuf.c: only on systems that transfer to native (e.g., UWIN)
 	 string/strtoi.h: cat min/max error return values
 02-01-28 features/tty: add cf[gs]et[io]speed macros for <termio.h>
 	 comp/rename.c: punt to (ancient) /usr/lib/mv_dir on EISDIR
@@ -1048,12 +1048,12 @@
 02-01-16 misc/magic.c: add version type for YYYYMMDD or [a.][b.]c.d
 	 misc/magic.c: recode mime %s parse -- sensible and no buffer overflow
 02-01-15 misc/magic.tab,magicid.h: add generic binary magic number and header
-02-01-12 tm/tmlocale.c: override win32 default date for {C,POSIX,en} locales
-	 comp/omitted.c: fix cygwin workaround logic bugs
+02-01-12 tm/tmlocale.c: override Win32 default date for {C,POSIX,en} locales
+	 comp/omitted.c: fix Cygwin workaround logic bugs
 02-01-09 stdio/fseeko.c,ftello.c: add from UNIX98
 02-01-08 comp/conf.sh: use $cc instead of cc
-02-01-07 string/strlcat.c,string/strlcpy.c: add bsd api
-01-12-18 comp/conf.tab: fix LFS_CFLAGS default for sun _CS_LFS_CFLAGS botch
+02-01-07 string/strlcat.c,string/strlcpy.c: add BSD API
+01-12-18 comp/conf.tab: fix LFS_CFLAGS default for Sun _CS_LFS_CFLAGS botch
 	 features/common: add hdr stdarg test
 	 tm/tmdate.c: handle YYYY/MM/DD
 01-12-10 misc/magic.tab: add generic 0x00010203 binary magic
@@ -1065,10 +1065,10 @@
 01-11-26 misc/fts.c: empty path is an error
 01-11-14 misc/optget.c: fix --?+SECTION queries to include paragraphs
 01-11-20 regex/regnexec.c: fix REG_MINIMAL character class match bug
-01-11-19 features/lib: retain _lib_confstr for all solaris releases
+01-11-19 features/lib: retain _lib_confstr for all Solaris releases
 01-11-16 comp/setlocale.c: fix !_lib_setlocale typo
 01-10-31 regex/ucs_names.h: add string catenation to keep line length low
-	 misc/fastfind.c: handle gnu slocate db read
+	 misc/fastfind.c: handle GNU slocate db read
 	 misc/optget.c: add --?+SECTION queries
 	 comp/fnmatch.h: add FNM_NOSYS
 01-10-30 tm/tmdate.c: fix cron specs when both wday and mday are specified
@@ -1081,8 +1081,8 @@
 	 comp/getdate.c: __ia64 workaround fixed by proper CC.DLL probe
 	 features/lib: add lib getdate
 01-10-18 features/lib: check for strtod static link collision
-	 features/float: add another signed cast for old bsd cc
-	 features/wchar: add <stdlib.h> <stdio.h> before <wchar.h> for old bsd
+	 features/float: add another signed cast for old BSD cc
+	 features/wchar: add <stdlib.h> <stdio.h> before <wchar.h> for old BSD
 01-10-17 sfio/sfcvt.c: limit max precision to { FLT_DIG DBL_DIG LDBL_DIG }
 	 sfio/sfcvt.c: fix %[aA] format to always have leading 0[xX]1.
 	 sfio/sfvprintf.c: handle %C %lc %S %ls for wchar_t args
@@ -1112,7 +1112,7 @@
 01-09-11 pathnative.c: add for native fs representation
 	 regex.h: fix regerror_t prototype
 01-09-04 regex/regnexec.c: fix REG_ICASE for multi-char collating elements
-	 tm/tmlocale.c: fix old ascii LC_TIME load
+	 tm/tmlocale.c: fix old ASCII LC_TIME load
 	 locale*: add new LC_* categories
 	 comp/omitted.c: add CYGWIN workarounds
 	 features/lib: add CYGWIN workarounds
@@ -1133,7 +1133,7 @@
 	 regex/regsub: handle REG_SHELL ~(nnn) rhs backrefs
 01-06-11 regex: handle embedded \0 in pattern and subject string
 	 regex: add (?nnn) for backrefs > 9
-	 comp/fnmatch: add FNM_LEADING_DIR for gnu compatibility
+	 comp/fnmatch: add FNM_LEADING_DIR for GNU compatibility
 	 features/float: _ast_flt_unsigned_max_t for bsd.i386 omission
 01-06-06 misc/optget.c: add o option for old ps,ar,tar with optional leading -
 	 regex/regcomp.c: REG_LENIENT|REG_DELIMITED \<newline> => <newline>
@@ -1142,7 +1142,7 @@
 	 regex/regnexec.c: negation must also check REG_SHELL_DOT
 01-06-03 sprintf.c: change buf size from SF_BUFSIZE to INT_MAX
 01-05-31 glob: fix gl_fignore to ignore leading . by default
-	 features/lib: add botch_d_ino_dirent64 for linux botch
+	 features/lib: add botch_d_ino_dirent64 for Linux botch
 01-05-25 port/lc.tab: add a few missing language_territory's
 01-05-23 string/chresc: \C[.collation-element.]
 	 fmtmatch,fmtre: update for <regex.h> syntax extensions
@@ -1151,22 +1151,22 @@
 01-05-09 path/pathtemp.c: pathtemp(0,0,0,"/private",0) for mode S_IRUSR|S_IWUSR
 	 port/touch.c: handle utime(2) EPERM to fix bug that truncated
 	 regex: change REG_MINIMAL to avoid negation -- much faster now
-01-05-08 *.h: add some off_t macro guards for suse linux
+01-05-08 *.h: add some off_t macro guards for SUSE Linux
 01-05-03 regcomp.c: optimize ((x)!)* to ((x)!)
 	 wchar: add <wchar.h> and stdio wchar routines
 01-05-02 feaures/wchar: add <wchar.h> intercept, add stdio wchar functions
 01-05-01 string/strtoi.h: signed strtoi accepts qualified unsigned constants
 01-04-30 comp/setlocale.c: fix code that relied on 2 simultaneous getenv()'s
 	 tm/tmlocale.c: check for UTF-8 encoded LC_TIME files
-	 misc/magic.tab: add utf-8 and utf-16 U+FEFF magic
+	 misc/magic.tab: add UTF-8 and UTF-16 U+FEFF magic
 01-04-26 features/common: some cc's have _ast_int8_t but not LL constants
-01-04-24 features/lib: add _std_strtod for mac os X
-01-04-23 ccode: add CC_sub for ms embedded EOF char on ebcdic -- no joke
-01-04-20 iconv: handle ebcdic<=>utf
+01-04-24 features/lib: add _std_strtod for Mac OS X
+01-04-23 ccode: add CC_sub for ms embedded EOF char on EBCDIC -- no joke
+01-04-20 iconv: handle EBCDIC<=>UTF
 	 mc.h,mc.c: add mcindex()
 	 ast_std.h: add AST_MESSAGE_SET
-01-04-18 features/libpath.sh: fix mvs probe
-	 *: sundry mvs fixes
+01-04-18 features/libpath.sh: fix MVS probe
+	 *: sundry MVS fixes
 	 glob: fix GLOB_NOCHECK to avoid stat() and properly trim patterns
 01-04-01 strtod,strtold: add
 	 strtol,strtoul,strtoll,strtoull,strton,strtonl: handle locale & ERANGE
@@ -1175,7 +1175,7 @@
 	 setlocale: add LC_NUMERIC decimal_point,thousands_sep init
 	 ast_std.h: __OPTIMIZE_SIZE__==1 to disable non-std __GNUC__ inlines
 	 pathexists: path cache to cut down pathpath() access(2) calls
-	 features/stdio: __FILE_TAG == _sfio_s for solaris
+	 features/stdio: __FILE_TAG == _sfio_s for Solaris
 01-03-23 iconv: fix iconv_move buffer boundary bug that stopped at 1 block
 01-03-19 glob: add GLOB_AUGMENTED
 	 regex: REG_SHELL syntax error implies REG_LITERAL match
@@ -1204,15 +1204,15 @@
 	 sfhdr.h: map <sfio_s.h> _foo to foo
 	 sfio.h: SF_APPEND=>SF_APPENDWR, SF_CLOSE=>SF_CLOSING
 01-02-14 comp/conf.sh: probe <unistd.h> for _(CS|PC|SC)_* getconf symbols
-	 stdio/*: update for uwin stdio.dll binary compatibility
+	 stdio/*: update for UWIN stdio.dll binary compatibility
 	 sfread: finally fixed premature pipe read EOF bug
 	 fmtscale: format tenths for number > 0 && number < 10
 01-02-09 _sfmode(),_sftype(),_Sfextern: UWIN binary stdio compatibility exports
-01-02-08 sfgetm,sfputm,_sfputm: fix max clash with k&r max() macro
-	 setlocale: undef valid for sun4 k&r valid() macro
+01-02-08 sfgetm,sfputm,_sfputm: fix max clash with K&R max() macro
+	 setlocale: undef valid for SunOS 4 K&R valid() macro
 01-02-07 catopen.c: don't do native catopen for the debug locale
 01-02-06 sfraise.c: add SF_FINAL check to avoid (possibly) freed disciplines
-01-01-01 features/common: fix uwin __DEFINE__
+01-01-01 features/common: fix UWIN __DEFINE__
 	 sftable: initialize decimal and thousand
 	 magic.tab: add corel wordperfect document
 	 syslog: add LOG_LEVEL, add '\n' only if needed
@@ -1221,8 +1221,8 @@
 	 ast_std.h: add AST_LC_multibyte for MB_CUR_MAX>1
 	 setlocale: set AST_LC_multibyte
 	 strmatch: check AST_LC_multibyte
-	 features/limits.c: add _BITS_POSIX1_LIM_H guard for linux
-	 features/libpath.sh: fix for aix LIBPATH
+	 features/limits.c: add _BITS_POSIX1_LIM_H guard for Linux
+	 features/libpath.sh: fix for AIX LIBPATH
 	 procopen,procclose: block SIGCHLD if PROC_FOREGROUND (e.g., system(3))
 	 optget.c: add enumerated option argument values
 	 optget.c: add <!--INTERNAL--> for private --html
@@ -1235,7 +1235,7 @@
 	 features/time: add default for CLOCKS_PER_SEC
 	 features/lib: std_malloc now handles NeXT
 00-12-13 strton: recognize qualifier only if preceded by a digit
-	 features/lib: change return in vfork() test to exit() for linux sparc
+	 features/lib: change return in vfork() test to exit() for Linux SPARC
 	 fmtquote: fix $'...' quote logic
 00-12-11 tmdate: fix cron format bug that mishandled months
 00-12-01 optget: handle $Id: ... $ in --?-version
@@ -1247,17 +1247,17 @@
 00-10-31 tmdate: add TM_DATESTYLE and mmddHHMM[cc]yy
 	 astlicense.c: #include <hashkey.h> MAM workaround
 	 astlicense.c: check for non-empty CONTRIBUTORS
-00-10-26 features/stdio: add _FILE and __FILE for gnu
+00-10-26 features/stdio: add _FILE and __FILE for GNU
 	 misc/stk.c: fix stack pointer check off-by-one (dgk does it too!)
-00-10-23 syslog.h: sync with bsd values
+00-10-23 syslog.h: sync with BSD values
 00-10-18 _STUB_* now functions instead of common symbols
 	 all extern data declared with definition to eliminate common symbols
-	 fastfind: add mac/bsd /var/db/locate.database
-00-10-17 features/lib: add apple osX (darwin.ppc) workarounds
+	 fastfind: add Mac/BSD /var/db/locate.database
+00-10-17 features/lib: add Mac OS X (darwin.ppc) workarounds
 00-10-12 add: fmtbuf(), fmtclock(), fmtip4(), strtoip4()
 	 fmt*() now use fmtbuf() for tmp fmt buf allocation
 00-10-05 regex: add REG_DISCIPLINE and regdisc_t for alloc/error disc
-00-09-29 features/lib: pipe_rw==0 for sgi: boot rw == bin incompatibility
+00-09-29 features/lib: pipe_rw==0 for SGI: boot rw == bin incompatibility
 00-09-21 astlicense: handle \' and \" in license values
 00-09-20 sfwrite: fix write() error in sfprintf() loop
 00-08-11 hdr,vmhdr.h: check/hide { getpagesize sbrk } prototypes
@@ -1269,11 +1269,11 @@
 	 sfio/stdio: a few more errno tweaks
 	 astquery: sfstdin/sfstderr by default
 00-05-26 sfmode: errno=EBADF for invalid stream use
-00-05-22 rewind: fix for xopen test
+00-05-22 rewind: fix for X/Open test
 00-05-18 mcfind: returns absolute path
 00-05-16 optget: --keys must catch \f...\f too
 	 translate,mc: errno cleanup
-00-05-09 magic: add netbsd binary magic
+00-05-09 magic: add NetBSD binary magic
 	 fts: PATH_RESOLVE!=logical => FTS_SEEDOTDIR
 	 ftwflags: call fts_flags()
 	 astconf: astconf(0,0,0) re-syncs with _AST_FEATURES
@@ -1292,7 +1292,7 @@
 	 ast_std.h: provide LC_* defaults if not defined
 	 sfnew: check ${_AST_sfio_bufsize} -- don't tell kpv
 	 catopen,nl_types.h: add intercept to mc* routines
-	 magic.tab: add ast message catalog
+	 magic.tab: add AST message catalog
 	 strerror: add _ast_strerror intercept with ERROR_translate("errno")
 	 fmtquote: escapes >0177 only if (flags&2)
 00-03-17 feof: stdio macro functions only for _UWIN
@@ -1308,7 +1308,7 @@
 00-03-10 ast_std.h: do _LARGEFILE_SOURCE initialization before std headers
 	 fmtquote: handle $'...' quotes
 00-03-07 optget: fix numeric option support test
-	 sfkeyprintf: add %q for '...' quoting with ansi escapes
+	 sfkeyprintf: add %q for '...' quoting with ANSI escapes
 00-03-06 features/stdio: fix _sfflsbuf prototype (dingold@gte.net)
 00-02-14 pathtmp: fix pid cache bug that sometimes repeated after ~10 attempts
 	 optget: "..." attribute quote
@@ -1348,9 +1348,9 @@
 99-10-22 tmfmt: %C=2-digit-century, %k=date(1), %y=2-digit-year-in-century
 99-10-18 fastfind: expanded default db lookup
 99-08-11 magic: fix off by one registry malloc
-	 features/fs: add __RENAME checks for stat family (netbsd)
+	 features/fs: add __RENAME checks for stat family (NetBSD)
 	 features/fs: major()/minor() fixes for s5
-	 features/libpath.sh: netbsd fix -- ld.so not in std places
+	 features/libpath.sh: NetBSD fix -- ld.so not in std places
 	 misc/fastfind: fix codes path generation bug
 	 optget: beef up --?* description, fix <TR>...</TR> nesting
 	 pathprobe: check for override (writable key file) first
@@ -1358,12 +1358,12 @@
 	 optget: fix opt_info.num, even if opt_info.arg!=0
 	 fts: FTS_PHYSICAL => FTS_SEEDOTDIR, add FTS_CHOP
 	 fastfind: init dir tab with logical and physical name
-	 glob: add gnu GLOB_ALTDIRFUNC
+	 glob: add GNU GLOB_ALTDIRFUNC
 99-07-17 sfio: kpv update and sfhdr.h sync!
 99-06-24 stdio: fix fflush() to ignore sfseek(0) return value
 99-06-23 magic: '\r' is text not control to placate m$
 99-06-08 stdio: fix fseek,ftell semantics
-	 uwin stdio: fflush() => _doflsh() to avoid __cplusplus clash
+	 UWIN stdio: fflush() => _doflsh() to avoid __cplusplus clash
 	 getopt: call liberror() to avoid error() conflict
 	 tmfmt,tmscan: %N zone type (nation code), %z zone minutes west offset
 	 tmfmt: - no pad _ space pad 0 leading 0 pad
@@ -1382,7 +1382,7 @@
 	 fmtquote: added; most general fmtesc() form
 99-03-22 fmtesc.c,ast.h: add fmtnesq()
 	 optget: --?x works for -x option flag
-99-03-17 features/limits.c: workaround solaris __EXTENSIONS__ _timespec bug
+99-03-17 features/limits.c: workaround Solaris __EXTENSIONS__ _timespec bug
 	 workaround limits.h circular prereq with ignore stdio.h
 	 sfvprintf: %04e left-pad zero fixed
 99-03-03 fts: uncle already: add FTS_SEEDOTDIR to retain leading ./
@@ -1393,10 +1393,10 @@
 99-02-11 pathcanon(): don't cache astconf("PATH_LEADING_SLASHES", NiL, NiL)
 99-01-23 optget: move <old_opt.h> back into <option.h>, no open-close
 	 optget: add "[index:long-name:description]" for --long-name
-	 comp/gross: add weak __libc_attr for irix < 6.5 compatibility
+	 comp/gross: add weak __libc_attr for IRIX < 6.5 compatibility
 	 features/limits.c: tweak the guards again
 99-01-11 fastfind: handle old format count byte order
-	 magic.tab: fix elf to use real phdr offset
+	 magic.tab: fix ELF to use real phdr offset
 	 magic.c,magic.tab: fix | to act like switch/case
 	 comp/fross.c,features/hack: for gross hacks
 	 features/stdio: avoid sfio namespace pollution
@@ -1433,7 +1433,7 @@
 98-04-01 error: error_info.time for all msgs, just after cmd id
 	 error: no sfsync(sfstdin)
 	 sfio: sfpool, Sffmt_t update
-	 magic.tab: sgi core dumps -- why aren't these elf?
+	 magic.tab: SGI core dumps -- why aren't these ELF?
 	 stropt: (v+n) for unknown option is option value if n!=0
 	 procopen: fix setsid() for spawnveg() only
 98-03-19 malloc: add realloc foreign region check
@@ -1444,7 +1444,7 @@
 	 pathcanon: add PATH_VERIFIED
 	 tmdate: add skip[] to expand separator char set
 	 fastfind: FIND_OLD for old 7 bit db, FIND_TYPE for new 8 bit typed db
-	 fastfind: default generates gnu LOCATE02 8 bit db
+	 fastfind: default generates GNU LOCATE02 8 bit db
 	 magic: handle %s in mime description
 	 cdt: kpv update
 	 sfio: kpv update
@@ -1466,7 +1466,7 @@
 98-01-23 _WIN32: changed the #if logic again to accommodate _GNUC_
 	 mnt: grab the mount options too
 	 ast_std.h: hide getopt,getsubopt from stdlib.h
-	 features/limits.c: add gnu guard macros to avoid limits.h recursion
+	 features/limits.c: add GNU guard macros to avoid limits.h recursion
 	 features/mode.c: include "limits.h" instead of "FEATURE/limits.lcl"
 98-01-11 sfio.h: use Astlong_t, move Sfio_t Sfdisc_t typedef to top for stdio.h
 	 sfhdr.h: #undef SETLOCAL for hpux
@@ -1474,7 +1474,7 @@
 	 handle ftruncate64 and truncate64
 	 dtopen.c: __hppa dll needs Dtset Dtlist Dttree refs here
 97-12-18 fmtnum: add
-97-12-11 magic: handle sgi 64 bit core dumps
+97-12-11 magic: handle SGI 64 bit core dumps
 97-12-07 pathtmp: add override for TMPPATH,TMPDIR and cycling
 97-11-11 tm: handle 0 return from gmtime(),localtime() (dos negative time_t)
 	 features/stdio: fix fflush() macro to do physical sync
@@ -1500,14 +1500,14 @@
 	 ccmapid: fix buf copy loop limit
 	 ccmapname,ccmapcpy: add
 	 sfstrtmp: add
-97-05-09 streval: fix up casts for pseudo-ansi cc
+97-05-09 streval: fix up casts for pseudo-ANSI cc
 	 features/types: use _ast_int_8 vars to verify support
 	 string/modedata: check for mvs.390 S_IFMT
 	 include/ast(_std).h: add #define __FILE_typedef
 	 magic: add ccode text check
 	 include/ftwalk.h: FTW_PATH=>FTS_NOCHDIR to avoid FTS_AGAIN (duh)
 	 fts: clear status for FTS_AGAIN (fixes rm -r bug)
-	 mnt: add mvs openedition w_getmntent()
+	 mnt: add MVS OpenEdition w_getmntent()
 	 sfhdr: _hdr_float && <float.h> for correct MAXDOUBLE
 	 vmalloc/vmbest: if _std_malloc then use malloc()/free() not sbrk()
 	 remove: check _std_remove
@@ -1517,9 +1517,9 @@
 	 __EXTERN__(type,object)
 	 __DEFINE__(type,object,value)
 	 magic: check strings in !CC_NATIVE code set too
-	 system: cmd==0 means check for shell access (xopen)
+	 system: cmd==0 means check for shell access (X/Open)
 	 sfhdr.h: fix sfrsrv prototype
-	 add __libc_malloc etc for gnu/linux
+	 add __libc_malloc etc for GNU/Linux
 	 astconf(NiL,path,name) == astconf(name,path,NiL) + no liberror
 	 fts_open: if toplist() stat fails return 0
 	 ftwalk: handle fts_open()==0 via one phony userf() call
@@ -1527,9 +1527,9 @@
 	 features/lib: _WIN32 _lib_vfork=1 by default
 	 unsigned<0 comparison and other fixes via sgi.mips4 cc
 	 stk.c: use <align.h> ALIGN_BOUND for stkalloc()
-	 features/lib,vfork: uwin fix
+	 features/lib,vfork: UWIN fix
 	 ast_std.h: fix strto[u]ll prototypes with features/types _ast_int_8
-	 getsubopt: add for xopen 4.2 compatibility
+	 getsubopt: add for X/Open 4.2 compatibility
 	 drop function __IMPORT__
 	 magic: more magic
 	 change #define FILE from Sfio_t to struct _sfio_s
@@ -1540,17 +1540,17 @@
 	 magic.c: add | op for switch
 	 Makefile: stdio.h was on both HEADERSRC and HEADERGEN -- don't do that
 	 drop pp:notice to get <sfio.h> ... <ast.h> to work
-	 regex: add [[:<:]]==\< and [[:>:]]==\> for bsd compat
+	 regex: add [[:<:]]==\< and [[:>:]]==\> for BSD compat
 	 mime.c: ignore X-* headers while scanning for Content-*
 	 magic.c: check for negative indirect offsets
-	 magic.tab: fix dos entry that generated negative indirect offsets
+	 magic.tab: fix DOS entry that generated negative indirect offsets
 	 vmalloc.h: add vmstrdup() prototype
 	 hash.h: add hashgetbucket() macro
 	 magic.c: MAGIFILE is now a : file list
-	 mnt.c: another 4.4 bsd fix -- users must include <sys/crap.h>
+	 mnt.c: another 4.4 BSD fix -- users must include <sys/crap.h>
 	 common: fix _WIN32 chicken&egg with va_copy
 	 sfio: forgot to set f->val along with _Sfi in sfexcept()
-	 Makefile: add mini target for uwin libmini.a
+	 Makefile: add mini target for UWIN libmini.a
 	 sfcvt.c: workaround for flaky long double optimizers
 	 features/common: fix to work with va_list==void*
 	 regexec.c: fix REG_STARTEND subexpression offsets
@@ -1558,11 +1558,11 @@
 	 regrexec.c: fix REG_INVERT end boundary bug that missed last record
 	 astconf.c: notify(0,0,"a=b") called for each setenviron("a=b")
 	 pathcanon.c: check astconf(PATH_LEADING_SLASHES) to preserve //*
-96-11-28 _LARGEFILE64_SOURCE by default if possible: NOTE: assumes xopen
-	 regerror: fix for xopen
-	 getopt: fix for xopen
+96-11-28 _LARGEFILE64_SOURCE by default if possible: NOTE: assumes X/Open
+	 regerror: fix for X/Open
+	 getopt: fix for X/Open
 	 magic: add ciao virtual database
-	 astconf: POSIX/strict/xopen implies "standard" conformance
+	 astconf: posix/strict/xopen implies "standard" conformance
 	 fs3d.h: hide mount prototype
 	 ast_std.h,mnt.c,features/fs: ncr port tweaks
 96-10-31 version 5.0
@@ -1574,8 +1574,8 @@
 	 sfio,cdt,vmalloc: kpv update
 96-10-11 <ccode.h>: add character code map support
 	 procclose: return shell style exit status
-	 features/fs: pun statvfs.f_basetype to statvfs.f_reserved7 for mvs
-	 uwin: add subdir for uwin additions
+	 features/fs: pun statvfs.f_basetype to statvfs.f_reserved7 for MVS
+	 uwin: add subdir for UWIN additions
 	 ast_std.h: swab() is from <stdlib.h>
 	 sfio.h: <ast_std.h> if _PACKAGE_ast
 	 magic.tab: add mips[1-4], 64-bit
@@ -1655,7 +1655,7 @@
 	 AT&T Research now
 	 sfgetr optimization
 	 regex buglets
-96-01-05 tweak magic.tab for win32
+96-01-05 tweak magic.tab for Win32
 95-12-25 add !(...) -> (...)! to fmtre()
 	 nt tweaks -- functions with no header proto must be defined extern
 95-11-24 version 4.1
@@ -1680,7 +1680,7 @@
 	 add !<xxx> magic to misc/magic.tab
 	 add FTW_TOP to inhibit recursion (for ftw side effects on top level)
 	 add memfatal() common malloc fatal exception message
-	 add dos \r\n test to misc/magic.c/cklang()
+	 add DOS \r\n test to misc/magic.c/cklang()
 	 sftmp() O_EXCL+random to avoid collisions
 	 pathtemp() uses sftmp() randomizing
 	 features/fs uses SF_APPENDWR
@@ -1694,13 +1694,13 @@
 	 oops object / shared library compat with _sfgetl2 _sfgetu2
 95-09-11 add getopt() compatibility
 	 add fstat,lstat,mknod,stat fixes for _x versions in sys/stat.h
-	 add getconf CONFORMANCE - POSIX for things that aren't ast default
+	 add getconf CONFORMANCE - POSIX for things that aren't AST default
 	 sfio_t.h: #ifndef _SFIO_H #include "sfio.h" #endif
 	 snarf vmalloc from kpv
 95-08-11 fix malloc bug in magic
-	 update linux and bsd 386 magic entries
+	 update Linux and BSD 386 magic entries
 	 error_info.auxilliary returns new level, |=ERROR_OUTPUT if msg done
-	 drop fnmatch from strmatch for sparc (solaris) until it collates
+	 drop fnmatch from strmatch for SPARC (Solaris) until it collates
 95-07-17 fix port/astconf universe initialization
 	 fix misc/optget opt_info.nopt initialization
 	 drop tmset() TZ=... because it only worked when TZ=... was ignored
@@ -1759,7 +1759,7 @@
 	 magic data in magic.tab
 	 fix stropt() pointer cast
 	 vmalloc() exception handler replaces nomalloc()
-	 merge sigdata.c into fmtsignal.c -- sun link needs function w/ data!
+	 merge sigdata.c into fmtsignal.c -- Sun link needs function w/ data!
 	 sftmp() bug fix
 	 drop local <unistd.h> even with _POSIX_SOURCE
 	 fix vmstrdup() macro arg miscount

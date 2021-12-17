@@ -116,7 +116,7 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 #include <spawn.h>
 
 /*
- * open-edition/mvs/zos fork+exec+(setpgid)
+ * MVS OpenEdition / z/OS fork+exec+(setpgid)
  */
 
 pid_t

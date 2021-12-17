@@ -22,8 +22,6 @@ setv COTEMP $$
 setv IFFEFLAGS
 setv LDFLAGS
 setv SH_DICT \"libshell\"
-make ${PACKAGEROOT}/lib/package/ast.lic
-done ${PACKAGEROOT}/lib/package/ast.lic
 make install
 	make ksh
 		make SHOPT.sh implicit
@@ -1510,7 +1508,7 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/nval.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev include/nval.h
-		exec - proto -p -s -l ${PACKAGEROOT}/lib/package/ast.lic '-o since=1982,author=dgk' include/nval.h > 1.${COTEMP}.x
+		exec - proto -p -s include/nval.h > 1.${COTEMP}.x
 		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/nval.h 1.${COTEMP}.x
 		exec - then rm -f 1.${COTEMP}.x
 		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/nval.h
@@ -1518,7 +1516,7 @@ make install
 	done ${PACKAGE_ast_INCLUDE}/nval.h generated
 	make ${PACKAGE_ast_INCLUDE}/shell.h
 		prev include/shell.h
-		exec - proto -p -s -l ${PACKAGEROOT}/lib/package/ast.lic '-o since=1982,author=dgk' include/shell.h > 1.${COTEMP}.x
+		exec - proto -p -s include/shell.h > 1.${COTEMP}.x
 		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/shell.h 1.${COTEMP}.x
 		exec - then rm -f 1.${COTEMP}.x
 		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/shell.h
@@ -1526,7 +1524,7 @@ make install
 	done ${PACKAGE_ast_INCLUDE}/shell.h generated
 	make ${PACKAGE_ast_INCLUDE}/history.h
 		prev include/history.h
-		exec - proto -p -s -l ${PACKAGEROOT}/lib/package/ast.lic '-o since=1982,author=dgk' include/history.h > 1.${COTEMP}.x
+		exec - proto -p -s include/history.h > 1.${COTEMP}.x
 		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/history.h 1.${COTEMP}.x
 		exec - then rm -f 1.${COTEMP}.x
 		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/history.h

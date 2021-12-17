@@ -855,7 +855,7 @@ again:
 				}
 				else
 					d = chresc(pos+1,(char**)&vp->nextchr);
-				/* posix allows the trailing ' to be optional */
+				/* POSIX allows the trailing ' to be optional */
 				if(*vp->nextchr=='\'')
 					vp->nextchr++;
 			}

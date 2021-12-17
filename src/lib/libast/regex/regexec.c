@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex executor
+ * POSIX regex executor
  * single unsized-string interface
  */
 
@@ -34,7 +34,7 @@
  */
 
 int
-regexec(const regex_t* p, const char* s, size_t nmatch, regmatch_t* match, regflags_t flags)
+regexec_20120528(const regex_t* p, const char* s, size_t nmatch, regmatch_t* match, regflags_t flags)
 {
 	if (flags & REG_STARTEND)
 	{

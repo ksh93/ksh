@@ -54,7 +54,7 @@ int		endc;
 	return to;
 }
 
-/* convert a long value to an ascii representation */
+/* convert a long value to an ASCII representation */
 #if __STD_C
 static char* tritoa(Vmulong_t v, int type)
 #else

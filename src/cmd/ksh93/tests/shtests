@@ -8,7 +8,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2021-03-23 $
+@(#)$Id: shtests (ksh 93u+m) 2021-12-16 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -18,8 +18,9 @@ USAGE=$'
 [+NAME?shtests - ksh regression test harness]
 [+DESCRIPTION?\bshtests\b is the \bksh\b(1) regression test harness for
     \b$SHELL\b or \bksh\b if \bSHELL\b is not defined and exported. If
-    none of the \b--posix --utf8 --compile\b options are specified then
-    all three are enabled.]
+    none of the \b--posix\b \b--utf8\b \b--compile\b options are specified then
+    all three are enabled for most tests, whereas only \b--posix\b \b--utf8\b
+    are enabled for the \bpty\b tests for the interactive shell.]
 [+INPUT FILES?\bshtests\b regression test files are shell scripts that
     run in an environment controlled by \bshtests\b. An identification
     message is printed before and after each test on the standard output.
@@ -400,7 +401,8 @@ do	[[ $i == *.sh ]] || i+='.sh'
 			esac
 		done
 	fi
-	if	(( compile ))
+	# Skip pty tests for shcomp, unless -c was explicitly specified (compile==2)
+	if	[[ compile -gt 0 && ! ($u == pty && compile -lt 2) ]]
 	then	c=$tmp/shcomp-$u.ksh
 		o="$u(shcomp)"
 		echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}

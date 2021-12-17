@@ -19,8 +19,6 @@ setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
 setv LDFLAGS
-make ${PACKAGEROOT}/lib/package/ast.lic
-done ${PACKAGEROOT}/lib/package/ast.lic
 make .INIT
 	make ${PACKAGE_ast_INCLUDE}/cmdlist.h
 		make ${PACKAGE_ast_INCLUDE}/prototyped.h implicit

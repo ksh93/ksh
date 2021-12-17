@@ -21,7 +21,7 @@
 #pragma prototyped
 
 /*
- * sum(3) wrapper for solaris -lmd message digest library
+ * sum(3) wrapper for Solaris -lmd message digest library
  */
 
 typedef void (*Lmd_init_f)(void*);
@@ -106,7 +106,7 @@ lmd_data(Sum_t* p, Sumdata_t* data)
 #include <md4.h>
 
 #define md4_description "RFC1320 MD4 message digest. Cryptographically weak. The block count is not printed."
-#define md4_options	"[+(version)?md4 (solaris -lmd) 2005-07-26]"
+#define md4_options	"[+(version)?md4 (Solaris -lmd) 2005-07-26]"
 #define md4_match	"md4|MD4"
 #define md4_scale	0
 #define md4_init	lmd_init
@@ -146,7 +146,7 @@ md4_open(const Method_t* method, const char* name)
 #include <md5.h>
 
 #define md5_description	"RFC1321 MD5 message digest. Cryptographically weak. The block count is not printed."
-#define md5_options	"[+(version)?md5 (solaris -lmd) 2005-07-26]"
+#define md5_options	"[+(version)?md5 (Solaris -lmd) 2005-07-26]"
 #define md5_match	"md5|MD5"
 #define md5_scale	0
 #define md5_init	lmd_init
@@ -186,7 +186,7 @@ md5_open(const Method_t* method, const char* name)
 #include <sha1.h>
 
 #define sha1_description "RFC3174 / FIPS 180-1 SHA-1 secure hash algorithm 1. Cryptographically weak. The block count is not printed."
-#define sha1_options	"[+(version)?sha1 (solaris -lmd) 2005-07-26]"
+#define sha1_options	"[+(version)?sha1 (Solaris -lmd) 2005-07-26]"
 #define sha1_match	"sha1|SHA1|sha-1|SHA-1"
 #define sha1_scale	0
 #define sha1_init	lmd_init
@@ -227,7 +227,7 @@ sha1_open(const Method_t* method, const char* name)
 #include <sha2.h>
 
 #define sha256_description "FIPS 180-2 SHA256 secure hash algorithm.  The block count is not printed."
-#define sha256_options	"[+(version)?sha256 (solaris -lmd) 2005-07-26]"
+#define sha256_options	"[+(version)?sha256 (Solaris -lmd) 2005-07-26]"
 #define sha256_match	"sha256|sha-256|SHA256|SHA-256"
 #define sha256_scale	0
 #define sha256_init	lmd_init
@@ -261,7 +261,7 @@ sha256_open(const Method_t* method, const char* name)
 }
 
 #define sha384_description "FIPS 180-2 SHA384 secure hash algorithm.  The block count is not printed."
-#define sha384_options	"[+(version)?sha384 (solaris -lmd) 2005-07-26]"
+#define sha384_options	"[+(version)?sha384 (Solaris -lmd) 2005-07-26]"
 #define sha384_match	"sha384|sha-384|SHA384|SHA-384"
 #define sha384_scale	0
 #define sha384_init	lmd_init
@@ -295,7 +295,7 @@ sha384_open(const Method_t* method, const char* name)
 }
 
 #define sha512_description "FIPS 180-2 SHA512 secure hash algorithm.  The block count is not printed."
-#define sha512_options	"[+(version)?sha512 (solaris -lmd) 2005-07-26]"
+#define sha512_options	"[+(version)?sha512 (Solaris -lmd) 2005-07-26]"
 #define sha512_match	"sha512|sha-512|SHA512|SHA-512"
 #define sha512_scale	0
 #define sha512_init	lmd_init

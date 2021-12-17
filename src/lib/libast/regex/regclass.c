@@ -43,7 +43,7 @@ struct Ctype_s
 static Ctype_t*		ctypes;
 
 /*
- * this stuff gets around posix failure to define isblank,
+ * this stuff gets around pre-POSIX.1 failure to define isblank,
  * and the fact that ctype functions are macros
  * and any local extensions that may not even have functions or macros
  */

@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex compiler
+ * POSIX regex compiler
  */
 
 #include "reglib.h"
@@ -1083,6 +1083,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 			if (cc > 0)
 			{
 				cc = -1;
+				mbinit();
 				k += mbconv((char*)k, c);
 			}
 			else
@@ -1093,6 +1094,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 		if (ep)
 		{
 			k = key;
+			mbinit();
 			c = mbchar(k);
 			if (iswupper(c))
 				bt = COLL_range_uc;
@@ -1124,6 +1126,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 				s = (char*)ep;
 				if (ic)
 				{
+					mbinit();
 					c = mbchar(s);
 					if (iswupper(c))
 					{
@@ -1139,6 +1142,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 				if (cc > 0)
 				{
 					cc = -1;
+					mbinit();
 					k += mbconv((char*)k, c);
 				}
 				else
@@ -1147,6 +1151,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 			*k = 0;
 			mbxfrm(ce->end, key, COLL_KEY_MAX);
 			k = key;
+			mbinit();
 			c = mbchar(k);
 			if (iswupper(c))
 				et = COLL_range_uc;
@@ -1516,6 +1521,7 @@ bra(Cenv_t* env)
 								if (env->token.len > 1 || w >= 0 && w < T_META)
 								{
 									c = w;
+									mbinit();
 									w = mbconv(mbc, c);
 									pp = (unsigned char*)mbc;
 									env->cursor += env->token.len;
@@ -1614,6 +1620,7 @@ bra(Cenv_t* env)
 							if (iswupper(wc))
 							{
 								wc = towlower(wc);
+								mbinit();
 								rw = mbconv((char*)pp, wc);
 								c = 'u';
 							}
@@ -1667,6 +1674,7 @@ bra(Cenv_t* env)
 								wc = towupper(wc);
 								c = 'U';
 							}
+							mbinit();
 							rw = mbconv((char*)pp, wc);
 							i = 0;
 						}
@@ -2098,7 +2106,7 @@ grp(Cenv_t* env, int parno)
 			switch (c)
 			{
 			case ')':
-				if (!(env->flags & REG_LITERAL))
+				if (!(env->flags & (REG_LITERAL|REG_SHELL)))
 				{
 					env->error = REG_BADRPT;
 					return 0;
@@ -2531,7 +2539,7 @@ grp(Cenv_t* env, int parno)
 	}
 	c = token(env);
 	env->parnest--;
-	if (c != T_CLOSE && (!(env->flags & REG_LITERAL) || c != ')'))
+	if (c != T_CLOSE && (c != ')' || !(env->flags & (REG_LITERAL|REG_SHELL))))
 	{
 		env->error = REG_EPAREN;
 		goto nope;
@@ -2617,6 +2625,7 @@ seq(Cenv_t* env)
 					c = towupper(c);
 				if ((&buf[sizeof(buf)] - s) < MB_CUR_MAX)
 					break;
+				mbinit();
 				if ((n = mbconv((char*)s, c)) < 0)
 					*s++ = c;
 				else if (n)
@@ -3392,7 +3401,7 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 		p->re_nsub /= 2;
 	if (env.flags & REG_DELIMITED)
 	{
-		p->re_npat = env.cursor - env.pattern + 1;
+		p->re_npat = env.cursor - (unsigned char*)pattern + 1;
 		if (*env.cursor == env.delimiter)
 			p->re_npat++;
 		else if (env.flags & REG_MUSTDELIM)

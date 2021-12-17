@@ -205,7 +205,7 @@ omitted features that are completely upward compatible.
 	for trap without arguments has a format that can be used as input.
 
 6.	With ksh-88, a dollar sign ($') followed by a single quote was
-	interpreted literally.  Now it is an ANSI-C string.  You
+	interpreted literally.  Now it is an ANSI C string.  You
 	must quote the dollar sign to get the previous behavior.
 	Also, a $ in front of a " indicates that the string needs
 	to be translated for locales other than C or POSIX.  The $

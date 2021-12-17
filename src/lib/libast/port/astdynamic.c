@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * ast dynamic data initialization
+ * AST dynamic data initialization
  */
 
 #ifdef _UWIN

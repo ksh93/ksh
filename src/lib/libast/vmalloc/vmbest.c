@@ -1065,7 +1065,7 @@ int		local;
 		CACHE(vd)[C_INDEX(SIZE(tp))] = tp;
 	}
 
-	/* free left-over if too big */
+	/* free leftover if too big */
 	if((s = SIZE(np) - size) >= sizeof(Block_t))
 	{	SIZE(np) = size;
 

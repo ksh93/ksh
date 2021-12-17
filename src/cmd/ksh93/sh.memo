@@ -1098,7 +1098,7 @@ A
 immediately preceding
 a single quoted string
 causes all the characters until the matching single quote
-to be interpreted as an ANSI-C language string.
+to be interpreted as an ANSI C language string.
 Thus, \f5'\en'\fP represents characters \f5\e\fP and
 \f5n\fP, whereas, \f5$'\en'\fP 
 represents the new-line character.
@@ -1661,7 +1661,7 @@ so that another notation was required.
 The arithmetic expression
 inside the double parentheses
 follows the same syntax, associativity and precedence
-as the ANSI-C\*(Rf
+as the ANSI C\*(Rf
 .RS
 American National Standard for Information Systems \- Programming
 Language \- C, ANSI X3.159-1989.
@@ -1675,7 +1675,7 @@ without additional quoting.
 All arithmetic evaluations are performed using
 double precision floating point arithmetic.
 Floating point constants follow the same rules as
-the ANSI-C programming language.
+the ANSI C programming language.
 Integer arithmetic constants are written as
 .ce
 .IB base # number,
@@ -1738,7 +1738,7 @@ The syntax,
 .ce
 \f5for\fP \fB((\fP \fIexpr1\fP\fB;\fP \fIexpr2\fP \fB;\fP \fIexpr3 \fP\fB))\fP
 can be used as the first line of a \f5for\fP loop with the same semantics
-as the \f5for\fP statement in the ANSI-C programming language.
+as the \f5for\fP statement in the ANSI C programming language.
 .P
 Arithmetic evaluations can also be performed as part of the evaluation
 of a command line.
@@ -1865,12 +1865,12 @@ and that ends in
 .BR a\-z .
 The sequence \f5[:alpha:]\fP
 inside a character class, matches any set of characters in
-the ANSI-C
+the ANSI C
 .B alpha
 class.
 Similarly, \f5[:\fP\fIclass\fP\f5:]\fP matches
 each of the characters in the given \fIclass\fP
-for all the ANSI-C character classes.
+for all the ANSI C character classes.
 For example, \f5[[:alnum:]_]\fP
 matches any alphanumeric character or the character
 .BR _ .
@@ -2292,8 +2292,8 @@ The IEEE POSIX shell and utilities standard committee was unable
 to reconcile the differences between the System V and BSD
 versions of \f5echo\fP.
 They introduced a new command named \f5printf\fP
-which takes an ANSI-C format string and a list of options
-and outputs the strings using the ANSI-C formatting rules.
+which takes an ANSI C format string and a list of options
+and outputs the strings using the ANSI C formatting rules.
 Since \f5ksh\fP is POSIX conforming, it accepts \f5printf\fP.
 However, there is a
 .B \-f
@@ -3113,7 +3113,7 @@ D. G Korn
 TM-59554-860602-03, 1986.
 .RF
 .H 1 "CODE CHANGES"
-\f5ksh\fP is written in ANSI-C as a reusable library.
+\f5ksh\fP is written in ANSI C as a reusable library.
 The code can be compiled with C++ and older K&R C as well.
 The code uses the IEEE POSIX 1003.1 and ISO 9945-1 standard\*(Rf
 .RS

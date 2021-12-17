@@ -447,14 +447,14 @@ static unsigned char CIFP[] = {		/* compressed/interleaved permutation */
 	45, 46, 47, 48,   61, 62, 63, 64,
 };
 
-static unsigned char itoa64[] =		/* 0..63 => ascii-64 */
+static unsigned char itoa64[] =		/* 0..63 => ASCII-64 */
 	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 
 /* =====  Tables that are initialized at run time  ==================== */
 
 
-static unsigned char a64toi[128];	/* ascii-64 => 0..63 */
+static unsigned char a64toi[128];	/* ASCII-64 => 0..63 */
 
 /* Initial key schedule permutation */
 static C_block	PC1ROT[64/CHUNKBITS][1<<CHUNKBITS];
@@ -914,7 +914,7 @@ extern char * crypt(register const char *key, register const char *setting) {
 		return (NULL);
 
 	/*
-	 * Encode the 64 cipher bits as 11 ascii characters.
+	 * Encode the 64 cipher bits as 11 ASCII characters.
 	 */
 	i = ((long)((rsltblock.b[0]<<8) | rsltblock.b[1])<<8) | rsltblock.b[2];
 	encp[3] = itoa64[i&0x3f];	i >>= 6;

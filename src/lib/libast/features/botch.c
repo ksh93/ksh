@@ -25,7 +25,7 @@
  * Glenn Fowler
  * AT&T Bell Laboratories
  *
- * generate ast traps for botched standard prototypes
+ * generate AST traps for botched standard prototypes
  */
 
 #include <sys/types.h>

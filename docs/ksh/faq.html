@@ -101,7 +101,7 @@ the man page for ksh93 is kept up to date.
 
 The only major new interactive features are key binding and tab completion.
 Major new language features are floating point arithmetic,
-associative arrays, complete ANSI-C printf, name reference
+associative arrays, complete ANSI C printf, name reference
 variables, new expansion operators, dynamic loading of
 built-in commands, active variables, and compound variables.
 Active and compound variables allow shell variables to
@@ -164,7 +164,7 @@ bash compatibility mode.
 </UL>
 <LI>
 <EM>version</EM>--
-a lower-case letter signifying major release points.
+a lowercase letter signifying major release points.
 An optional <STRONG>-</STRONG> following <EM>features</EM> signifies an alpha release.
 The first stable release has no <STRONG>-</STRONG>.
 An optional <STRONG>+</STRONG> signifies a stable release with bug patches and minor enhancements.
@@ -180,7 +180,7 @@ in a numeric context is an integer that encodes the release
 <DT>What new features are planned for ksh?<DD>
 
 We are in the early stage of planning but the likely additions
-are namespaces, ability to read xml and json object into shell variables,
+are namespaces, ability to read XML and JSON object into shell variables,
 and handling of queued signals.
 Support for multi-threading is also being considered.
 
@@ -464,7 +464,7 @@ is to make the command a builtin.  On systems in which the cmd
 library is installed, you can invoke 'builtin &#45;f cmd mv' to make
 mv a shell builtin in which case the line length limit no longer
 applies.  Another alternative is to use a for loop and invoke
-the mv command for each file, for exampe,
+the mv command for each file, for example,
 'for i in *;do mv $i ../elsewhere;done'.
 Starting with ksh93o+, a new feature was added to ksh to overcome
 this limit in some cases.  If a command is preceded by
@@ -549,9 +549,9 @@ read x
 The $'...' string literal syntax was added to ksh93 to solve the problem
 of entering special characters in scripts.
 It uses
-ANSI-C rules to translate the string between the '...'.
+ANSI C rules to translate the string between the '...'.
 It would have been cleaner to have all "..." strings handle
-ANSI-C escapes, but that would not be backward compatible.
+ANSI C escapes, but that would not be backward compatible.
 
 <DT>What is the -n option used for?<DD>
 
@@ -773,7 +773,7 @@ or indexed, use ${!var&#0091;@&#0093;}.
 Use // instead of / for global substitution, ${var//aa/bb} will
 expand to the value of var with each "aa" replaced by "bb".
 
-<DT>How can I convert %XX values to ascii?<DD>
+<DT>How can I convert %XX values to ASCII?<DD>
 
 You can convert this to a sequence of ANSI C strings and then eval that
 string, for example suppose the variable 'foo' contains %XX strings, then	
@@ -782,7 +782,7 @@ string, for example suppose the variable 'foo' contains %XX strings, then
 eval print -r -- "\$'${foo//'%'@(??)/'\x\1"'\$'"}'"
 </DIV>
 </PRE>
-will print out the string in ascii.
+will print out the string in ASCII.
 
 <DT>I want to use exec to open a file. How do I prevent the script from exiting if the exec fails?<DD>
 

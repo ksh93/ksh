@@ -61,7 +61,7 @@
  *		automatic	(default) cycled with each tmp file
  *		manual		cycled by application with dir=(nil)
  *		(nil)		cycle TMPPATH
- *	/prefix		dir specifies the default prefix (default ast)
+ *	/prefix		dir specifies the default prefix (default AST)
  *	/private	private file/dir modes
  *	/public		public file/dir modes
  *	/seed		dir specifies pseudo-random generator seed
@@ -90,7 +90,7 @@ static inline int xaccess(const char *path, int mode)
 	int ret;
 
 	if (!pgsz)
-		pgsz = strtoul(astconf("PAGESIZE",NiL,NiL),NiL,0);
+		pgsz = astconf_ulong(CONF_PAGESIZE);
 
 	if (!path || !*path)
 	{

@@ -32,7 +32,7 @@ NoN(aso)
 #else
 
 /*
- * ast atomic scalar operations
+ * AST atomic scalar operations
  * AT&T Research
  *
  * cas { 8 16 32 [64] } subset snarfed from the work by

@@ -478,9 +478,9 @@ done
 # SIGINFO should be supported by the kill builtin on platforms that have it.
 if "$(whence -p kill)" -INFO $$ 2> /dev/null
 then
-	got=$(kill -INFO $$ 2>&1) || err_exit '`kill` cannot send SIGINFO to processes when passed `-INFO`' \
+	got=$(kill -INFO $$ 2>&1) || err_exit "kill builtin cannot send SIGINFO to processes when passed '-INFO'" \
 		"(got $(printf %q "$got"))"
-	got=$(kill -s INFO $$ 2>&1) || err_exit '`kill` cannot send SIGINFO to processes when passed `-s INFO`' \
+	got=$(kill -s INFO $$ 2>&1) || err_exit "kill builtin cannot send SIGINFO to processes when passed '-s INFO'" \
 		"(got $(printf %q "$got"))"
 fi
 

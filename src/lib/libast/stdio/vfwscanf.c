@@ -92,7 +92,7 @@ vfwscanf(Sfio_t* f, const wchar_t* fmt, va_list args)
 	n = wcstombs(NiL, fmt, 0);
 	if (w = newof(0, Wide_t, 1, n))
 	{
-		if (t = sfnew(NiL, buf, sizeof(buf), OPEN_MAX+1, SF_READ))
+		if (t = sfnew(NiL, buf, sizeof(buf), (int)astconf_long(CONF_OPEN_MAX)+1, SF_READ))
 		{
 			w->sfdisc.exceptf = wideexcept;
 			w->sfdisc.readf = wideread;

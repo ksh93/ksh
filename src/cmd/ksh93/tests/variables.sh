@@ -606,14 +606,14 @@ chmod +x $tmp/script
 . $tmp/script  1
 [[ $file == $tmp/script ]] || err_exit ".sh.file not working for dot scripts"
 [[ $($SHELL $tmp/script) == $tmp/script ]] || err_exit ".sh.file not working for scripts"
-[[ $(posixfun .sh.file) == $tmp/script ]] || err_exit ".sh.file not working for posix functions"
+[[ $(posixfun .sh.file) == $tmp/script ]] || err_exit ".sh.file not working for POSIX functions"
 [[ $(fun .sh.file) == $tmp/script ]] || err_exit ".sh.file not working for functions"
-[[ $(posixfun .sh.fun) == posixfun ]] || err_exit ".sh.fun not working for posix functions"
+[[ $(posixfun .sh.fun) == posixfun ]] || err_exit ".sh.fun not working for POSIX functions"
 [[ $(fun .sh.fun) == fun ]] || err_exit ".sh.fun not working for functions"
-[[ $(posixfun .sh.subshell) == 1 ]] || err_exit ".sh.subshell not working for posix functions"
+[[ $(posixfun .sh.subshell) == 1 ]] || err_exit ".sh.subshell not working for POSIX functions"
 [[ $(fun .sh.subshell) == 1 ]] || err_exit ".sh.subshell not working for functions"
 (
-    [[ $(posixfun .sh.subshell) == 2 ]]  || err_exit ".sh.subshell not working for posix functions in subshells"
+    [[ $(posixfun .sh.subshell) == 2 ]]  || err_exit ".sh.subshell not working for POSIX functions in subshells"
     [[ $(fun .sh.subshell) == 2 ]]  || err_exit ".sh.subshell not working for functions in subshells"
     (( .sh.subshell == 1 )) || err_exit ".sh.subshell not working in a subshell"
 )
@@ -700,12 +700,12 @@ exec 2>&3-
 set -- $x
 [[ $2 == b ]] || err_exit '$2 should be b after subshell'
 
-# ======
-# BUG_KBGPID: $! was not updated under certain conditions
 : & pid=$!
 ( : & )
 [[ $pid == $! ]] || err_exit '$! value not preserved across subshells'
 
+# ======
+# BUG_KBGPID: $! was not updated under certain conditions
 pid=$!
 { : & } >&2
 [[ $pid == $! ]] && err_exit '$! value not updated after bg job in braces+redir'

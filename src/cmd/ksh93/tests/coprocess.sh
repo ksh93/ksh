@@ -23,7 +23,7 @@
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 if	[[ -d /cygdrive ]]
-then	err_exit cygwin detected - coprocess tests disabled - enable at the risk of wedging your system
+then	err_exit 'Cygwin detected - coprocess tests disabled - enable at the risk of wedging your system'
 	exit $((Errors))
 fi
 

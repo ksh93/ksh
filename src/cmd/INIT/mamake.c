@@ -1153,7 +1153,7 @@ input(void)
 /*
  * pass shell action s to ${SHELL:-/bin/sh}
  * the -c wrapper ensures that scripts are run in the selected shell
- * even on systems that otherwise demand #! magic (can you say cygwin)
+ * even on systems that otherwise demand #! magic (can you say Cygwin)
  */
 
 static int

@@ -35,7 +35,7 @@
 #include	<ast_common.h>
 #include	<error.h>
 
-/* ast doesn't do threads yet */
+/* AST doesn't do threads yet */
 #if _PACKAGE_ast && !defined(vt_threaded)
 #define vt_threaded     0
 #endif

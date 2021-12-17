@@ -14,7 +14,7 @@ performed at shell-level without a significant loss in performance.
 In addition, "sh" scripts can be run on KSH-93 without modification.
 .P
 The code should conform to the IEEE POSIX 1003.1 standard and to the
-proposed ANSI-C standard so that it should be portable to all
+proposed ANSI C standard so that it should be portable to all
 such systems.  Like the previous version, KSH-88,
 it is designed to accept eight bit character sets
 transparently, thereby making it internationally compatible.

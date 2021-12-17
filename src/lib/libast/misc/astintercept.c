@@ -30,7 +30,7 @@
  */
 
 /*
- * set/clear ast intercept callouts
+ * set/clear AST intercept callouts
  */
 
 int

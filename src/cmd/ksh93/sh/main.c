@@ -269,7 +269,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 					}
 #if !_WINIX
 					/*
-					 * try to undo effect of solaris 2.5+
+					 * try to undo effect of Solaris 2.5+
 					 * change for argv for setuid scripts
 					 */
 					if(shp->st.repl_index > 0)
@@ -344,7 +344,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 				sh_accbegin(error_info.id);
 #endif	/* SHOPT_ACCT */
 		}
-		/* If the shell is init'ed with std{in,out,err} closed, make the shell's FD state reflect that. */
+		/* If the shell is initialised with std{in,out,err} closed, make the shell's FD state reflect that. */
 		for(i=0; i<=2; i++)
 			if(fcntl(i,F_GETFD,NiL)==-1 && errno==EBADF)	/* closed at OS level? */
 				sh_close(i); 				/* update shell FD state */
@@ -535,20 +535,31 @@ static void	exfile(register Shell_t *shp, register Sfio_t *iop,register int fno)
 		errno = 0;
 		if(tdone || !sfreserve(iop,0,0))
 		{
+			int	sferr;
 		eof_or_error:
-			if(sh_isstate(SH_INTERACTIVE) && !sferror(iop)) 
+			sferr = sferror(iop);
+			if(sh_isstate(SH_INTERACTIVE))
 			{
-				if(--maxtry>0 && sh_isoption(SH_IGNOREEOF) &&
-					 !sferror(sfstderr) && (shp->fdstatus[fno]&IOTTY))
+				if(!sferr)
 				{
-					sfclrerr(iop);
-					errormsg(SH_DICT,0,e_logout);
+					if(--maxtry>0 && sh_isoption(SH_IGNOREEOF)
+					&& !sferror(sfstderr) && (shp->fdstatus[fno]&IOTTY))
+					{
+						sfclrerr(iop);
+						errormsg(SH_DICT,0,e_logout);
+						continue;
+					}
+					else if(job_close(shp)<0)
+						continue;
+				}
+				else if(sferr==SH_EXITSIG)
+				{
+					/* Ctrl+C with SIGINT ignored */
+					sfputc(sfstderr,'\n');
 					continue;
 				}
-				else if(job_close(shp)<0)
-					continue;
 			}
-			if(errno==0 && sferror(iop) && --maxtry>0)
+			if(errno==0 && sferr && --maxtry>0)
 			{
 				sfclrlock(iop);
 				sfclrerr(iop);

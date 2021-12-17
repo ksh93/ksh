@@ -30,19 +30,13 @@ cat{
 	#pragma clang diagnostic ignored "-Wstring-plus-int"
 	#pragma clang diagnostic ignored "-Wunused-value"
 
-	/* disable non-standard linux/gnu inlines */
+	/* disable non-standard Linux/GNU inlines */
 	#ifdef __GNUC__	
 	#	undef	__OPTIMIZE_SIZE__
 	#	define	__OPTIMIZE_SIZE__	1
 	#endif
 
-	/* enable POSIX standard on Solaris */
-	#ifdef __sun
-	#	undef	_XPG6
-	#	define	_XPG6		1
-	#endif
-
-	/* __STD_C indicates that the language is ANSI-C or C++ */
+	/* __STD_C indicates that the language is ANSI C or C++ */
 	#if !defined(__STD_C) && __STDC__
 	#	define	__STD_C		1
 	#endif
@@ -98,7 +92,7 @@ cat{
 	#	endif
 	#endif
 
-	/* windows variants and veneers */
+	/* Windows variants and veneers */
 	#if !defined(_WINIX) && (_UWIN || __CYGWIN__ || __EMX__)
 	#	define _WINIX		1
 	#endif

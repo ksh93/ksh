@@ -155,6 +155,11 @@ got=$(eval 2>&1 'command command command enum -i -i -iii --igno -ii PARSER_t=(r 
 exp='PARSER_t -r -A hack=([C]=g)'
 [[ $got == "$exp" ]] || err_exit "incorrect typeset output for enum with command prefix and options" \
 	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+PATH=/dev/null command -v PARSER_t >/dev/null && err_exit "PARSER_t leaked out of subshell"
+if	false
+then	enum PARSER2_t=(a b)
+fi
+PATH=/dev/null command -v PARSER2_t >/dev/null && err_exit "PARSER2_t incompletely defined though definition was never executed"
 
 # ======
 exit $((Errors<125?Errors:125))

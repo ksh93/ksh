@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
@@ -23,7 +23,7 @@
 #pragma prototyped
 
 /*
- * posix regex executor
+ * POSIX regex executor
  * single sized-record interface
  */
 
@@ -628,6 +628,7 @@ collic(register Celt_t* ce, char* key, register char* nxt, int c, int x)
 			c = towlower(c);
 		else
 			return 0;
+		mbinit();
 		x = mbconv(key, c);
 		key[x] = 0;
 		return collelt(ce, key, c, 0);
@@ -880,6 +881,7 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			}
 			else
 			{
+				mbinit();
 				while (s < e)
 				{
 					c = mbchar(s);
@@ -1530,6 +1532,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; s < e && i < n; i++, s = t)
 						{
 							t = s;
+							mbinit();
 							if (mbchar(t) != c)
 								break;
 							b[i] = t - s;
@@ -1540,6 +1543,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; s < e && i < n; i++, s = t)
 						{
 							t = s;
+							mbinit();
 							if (towupper(mbchar(t)) != c)
 								break;
 							b[i] = t - s;
@@ -1622,6 +1626,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; i < m && s < e; i++, s = t)
 						{
 							t = s;
+							mbinit();
 							if (mbchar(t) != c)
 								return r;
 						}
@@ -1637,7 +1642,10 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							case GOOD:
 								return BEST;
 							}
-							if (s >= e || mbchar(s) != c)
+							if (s >= e)
+								break;
+							mbinit();
+							if (mbchar(s) != c)
 								break;
 						}
 					}
@@ -1646,6 +1654,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; i < m && s < e; i++, s = t)
 						{
 							t = s;
+							mbinit();
 							if (towupper(mbchar(t)) != c)
 								return r;
 						}
@@ -1661,7 +1670,10 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							case GOOD:
 								return BEST;
 							}
-							if (s >= e || towupper(mbchar(s)) != c)
+							if (s >= e)
+								break;
+							mbinit();
+							if (towupper(mbchar(s)) != c)
 								break;
 						}
 					}
@@ -1844,7 +1856,7 @@ list(Env_t* env, Rex_t* rex)
  */
 
 int
-regnexec(const regex_t* p, const char* s, size_t len, size_t nmatch, regmatch_t* match, regflags_t flags)
+regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, regmatch_t* match, regflags_t flags)
 {
 	register ssize_t	n;
 	register int		i;
@@ -1916,7 +1928,8 @@ regnexec(const regex_t* p, const char* s, size_t len, size_t nmatch, regmatch_t*
 			DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d REX_BM len=%d right=%d left=%d size=%d %d %d\n", __LINE__, len, e->re.bm.right, e->re.bm.left, e->re.bm.size, index, mid)),(0));
 			for (;;)
 			{
-				while ((index += skip[buf[index]]) < mid);
+				while (index < mid)
+					index += skip[buf[index]];
 				if (index < HIT)
 				{
 					DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d REG_NOMATCH %d %d\n", __LINE__, index, HIT)),(0));

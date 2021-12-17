@@ -146,7 +146,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		}
 	}
 	not = c_eq(cp,'!');
-	/* posix portion for test */
+	/* POSIX portion for test */
 	switch(argc)
 	{
 		case 5:
@@ -664,7 +664,7 @@ skip:
 				if((maxgroups=getgroups(0,(gid_t*)0)) <= 0)
 				{
 					/* pre-POSIX system */
-					maxgroups=NGROUPS_MAX;
+					maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
 				}
 			}
 			groups = (gid_t*)stakalloc((maxgroups+1)*sizeof(gid_t));
@@ -678,7 +678,7 @@ skip:
 				}
 			}
 		}
-#   endif /* _lib_getgroups */
+#endif /* _lib_getgroups */
 		if(statb.st_mode & mode)
 			return(0);
 	}

@@ -1,5 +1,5 @@
 #!/bin/env sh
-: cygwin.i386 ldd -- how many ways does this confirm the windows bias?
+: cygwin.i386 ldd -- how many ways does this confirm the Windows bias?
 for f
 do	case $f in
 	*.exe)	;;

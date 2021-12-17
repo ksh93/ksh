@@ -1,4 +1,4 @@
-: sgi.mips4 cc wrapper that generates mips4 binaries : 2007-04-27 :
+: sgi.mips4 cc wrapper that generates MIPS IV binaries : 2007-04-27 :
 
 HOSTTYPE=sgi.mips4
 

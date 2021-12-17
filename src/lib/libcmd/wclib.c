@@ -111,7 +111,7 @@ static int invalid(const char *file, int nlines)
 }
 
 /*
- * handle utf space characters
+ * handle UTF space characters
  */
 
 static int chkstate(int state, register unsigned int c)

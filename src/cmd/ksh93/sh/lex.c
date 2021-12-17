@@ -1264,7 +1264,7 @@ breakloop:
 	{
 		/* check for numbered redirection */
 		n = state[0];
-		if((c=='<' || c=='>') && isadigit(n))
+		if(!lp->lex.intest && (c=='<' || c=='>') && isadigit(n))
 		{
 			c = sh_lex(lp);
 			lp->digits = (n-'0'); 
@@ -1327,7 +1327,16 @@ breakloop:
 	state = lp->arg->argval;
 	lp->comp_assign = assignment;
 	if(assignment)
+	{
 		lp->arg->argflag |= ARG_ASSIGN;
+		if(sh_isoption(SH_NOEXEC))
+		{
+			char *cp = strchr(state, '=');
+			if(cp && strncmp(++cp, "$((", 3) == 0)
+				errormsg(SH_DICT, ERROR_warn(0), e_lexarithwarn, shp->inlineno,
+					state, cp - state, state, cp + 3);
+		}
+	}
 	else if(!lp->lex.skipword)
 		lp->assignok = 0;
 	lp->arg->argchn.cp = 0;
@@ -2417,7 +2426,7 @@ static int alias_exceptf(Sfio_t *iop,int type,void *data, Sfdisc_t *handle)
 	}
 	if(ap->nextc)
 	{
-		/* if last character is a blank, then next word can be alias */
+		/* if last character is a blank, then next word can be an alias */
 		register int c = fcpeek(-1);
 		if(isblank(c))
 			lp->aliasok = 1;

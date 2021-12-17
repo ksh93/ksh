@@ -44,7 +44,7 @@ static const char usage[] =
 "	\bfsync\b(2) and closing before attempting to remove. Implemented"
 "	only on systems that support \bfsync\b(2).]"
 "[d:directory|dir?If the current entry is a directory then remove it using "
-    "\brmdir\b(3) instead of the default \bunlink\b(2). If \b--recursive\b "
+    "\brmdir\b(2) instead of the default \bunlink\b(2). If \b--recursive\b "
     "is not specified then non-empty directories will not be removed.]"
 "[f:force?Ignore nonexistent files, ignore no file operands specified,"
 "	and never prompt the user.]"

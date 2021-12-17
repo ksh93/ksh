@@ -89,7 +89,7 @@ echo '#if mips && !sgi || __CYGWIN__
 CONST char x[]={1,2,3,4,5,6,7,8,9,0};
 int main(){*(char*)x=0; return x[0];}
 #endif' > readonly.$src
-# NOTE:	sfclose() defined on uwin, not defined on all other systems
+# NOTE:	sfclose() defined on UWIN, not defined on all other systems
 echo 'extern int sfclose(); extern int ShareD(){return(sfclose());}' > shared.$src
 echo '#define g(a,b) a ## b
 volatile int a;
@@ -404,7 +404,7 @@ int main() { f(); return 0; }' > picok.$src
 			}
 			case $1 in
 			-Wc,*exportall*)
-				# get specific since sgi gets this far too
+				# get specific since SGI gets this far too
 				rm -f pic.$exe pic.x
 				$cc -Wl,dll -o pic.$exe pic.$obj || continue
 				test -f pic.$exe || continue
@@ -660,7 +660,7 @@ case $cc_dll:$cc_pic:$so:$dynamic:$static in
 			if	$cc -shared -Wl,--enable-auto-image-base -Wl,--out-implib=xxx.lib -o xxx.dll exp.$obj &&
 				test -f xxx.lib -a -f xxx.dll
 			then
-				: cygwin
+				: Cygwin
 				cc_dll=$cc_dll_def
 				dll_dir='$(BINDIR)'
 				sd=.dll
@@ -1445,7 +1445,7 @@ case $stdlib in
 							ok=0
 							for x in $xs
 							do	case $x in
-								*_p)	continue ;; # linux gcc known to hang for -lc_p
+								*_p)	continue ;; # Linux gcc known to hang for -lc_p
 								esac
 								if	$cc -o doti.$exe doti.$obj -l$x 2>e
 								then	ok=1

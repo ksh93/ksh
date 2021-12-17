@@ -339,7 +339,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	}
 	if (shp->st.self != &savst)
 		*shp->st.self = shp->st;
-	/* only restore the top Shscope_t portion for posix functions */
+	/* only restore the top Shscope_t portion for POSIX functions */
 	memcpy((void*)&shp->st, (void*)prevscope, sizeof(Shscope_t));
 	shp->topscope = (Shscope_t*)prevscope;
 	nv_putval(SH_PATHNAMENOD, shp->st.filename ,NV_NOFREE);

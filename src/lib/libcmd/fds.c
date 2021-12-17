@@ -54,9 +54,6 @@ static const char usage[] =
 #define major(x)	(int)(((unsigned int)(x)>>8)&0xff)
 #endif
 
-#undef	getconf
-#define getconf(x)	strtol(astconf(x,NiL,NiL),NiL,0)
-
 #ifdef S_IFSOCK
 
 typedef struct NV_s
@@ -214,8 +211,14 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_usage(2), "%s", optusage(NiL));
 		UNREACHABLE();
 	}
-	if ((open_max = getconf("OPEN_MAX")) <= 0)
+	if ((open_max = (int)astconf_long(CONF_OPEN_MAX)) <= 0)
+	{
+#if defined(OPEN_MAX)
 		open_max = OPEN_MAX;
+#else
+		open_max = FOPEN_MAX;
+#endif
+	}
 	if (unit == 1)
 		sp = sfstdout;
 	else if (fstat(unit, &st) || !(sp = sfnew(NiL, NiL, SF_UNBOUND, unit, SF_WRITE)))

@@ -1466,7 +1466,7 @@ case $verbose in
 1)	echo "$command: generate ${base}.h string table header" >&2 ;;
 esac
 case $shell in
-ksh)	((name_max=name_max+3)); ((name_max=name_max/4*4)) ;; # bsd /bin/sh !
+ksh)	((name_max=name_max+3)); ((name_max=name_max/4*4)) ;; # BSD /bin/sh !
 *)	name_max=`expr \( $name_max + 3 \) / 4 \* 4` ;;
 esac
 {

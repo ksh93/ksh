@@ -22,7 +22,7 @@
 ***********************************************************************/
 #pragma prototyped
 /*
- * ast POSIX wait/exit support
+ * AST POSIX wait/exit support
  */
 
 #ifndef _WAIT_H

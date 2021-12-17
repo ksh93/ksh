@@ -1,4 +1,4 @@
-: sgi.mips4-n32 cc wrapper that generates mips4 n32 binaries : 2006-02-14 :
+: sgi.mips4-n32 cc wrapper that generates MIPS IV N32 binaries : 2006-02-14 :
 
 HOSTTYPE=sgi.mips4-n32
 

@@ -86,7 +86,7 @@ before=0 after=0 i=0 u=0
 
 
 # Check results.
-# The function has 'err_exit' in the name so that shtests counts each call as at test.
+# The function has 'err_exit' in the name so that shtests counts each call as a test.
 function err_exit_if_leak
 {
 	if	((after > before + tolerance))
