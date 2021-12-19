@@ -125,9 +125,9 @@ X_t x
 [[ ${x.s} == ${x.x} ]] || err_exit 'x.s should be x.x'
 typeset -T Y_t=( X_t r )
 Y_t z
-[[ ${z.r.x} == foo ]] || err_exit 'z.r.x should be foo'
-[[ ${z.r.y} == bam ]] || err_exit 'z.r.y should be bam'
-[[ ${z.r.s} == ${z.r.x} ]] || err_exit 'z.r.s should be z.r.x'
+[[ ${z.r.x} == foo ]] || err_exit "z.r.x should be foo (got $(printf %q "${z.r.x}"))"
+[[ ${z.r.y} == bam ]] || err_exit "z.r.y should be bam (got $(printf %q "${z.r.y}"))"
+[[ ${z.r.s} == ${z.r.x} ]] || err_exit "z.r.s should be z.r.x (expected $(printf %q "${z.r.x}"), got $(printf %q "${z.r.s}"))"
 
 unset xx yy
 typeset -T xx=(typeset yy=zz)
