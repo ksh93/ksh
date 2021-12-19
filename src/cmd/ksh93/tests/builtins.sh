@@ -31,7 +31,7 @@ bad_result=$(getconf --version 2>&1)
 
 # The -l option should convert all variable names to lowercase.
 # https://github.com/att/ast/issues/1171
-got=$(getconf -l | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
+got=$(getconf -lq | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
 [[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
 	"(got $(printf %q "$got"))"
 
@@ -1363,9 +1363,10 @@ fi
 
 # ======
 # These are regression tests for the cd command's -e and -P flags
-mkdir -p "$tmp/failpwd1"
+mkdir -p "$tmp/failpwd"
+ln -s "$tmp/failpwd" "$tmp/failpwd1"
 cd "$tmp/failpwd1"
-rmdir ../failpwd1
+rm ../failpwd1
 cd -P .
 got=$?; exp=0
 (( got == exp )) || err_exit "cd -P without -e exits with error status if \$PWD doesn't exist (expected $exp, got $got)"
