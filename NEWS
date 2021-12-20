@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-20:
+- Ported performance optimizations from illumos to improve the performance
+  of the cksum builtin. (Note that the cksum builtin is not enabled by
+  default.)
+
 2021-12-17:
 
 - Ksh no longer behaves badly when parsing a type definition command

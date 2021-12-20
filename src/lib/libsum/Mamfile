@@ -90,14 +90,10 @@ make install
 							done ${PACKAGE_ast_INCLUDE}/prototyped.h dontcare
 						done ${PACKAGE_ast_INCLUDE}/fnv.h
 					done sum-prng.c
-					make sum-crc.c implicit
-					done sum-crc.c
 					make sum-bsd.c implicit
 					done sum-bsd.c
 					make sum-ast4.c implicit
 					done sum-ast4.c
-					make sum-att.c implicit
-					done sum-att.c
 					make FEATURE/sum implicit
 						meta FEATURE/sum features/%>FEATURE/% features/sum sum
 						make features/sum
@@ -180,6 +176,12 @@ make install
 							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/ast.h dontcare
 					done sum.h
+					make sum-att.c implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+					done sum-att.c
+					make sum-crc.c implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+					done sum-crc.c
 				done sumlib.c
 				meta sumlib.o %.c>%.o sumlib.c sumlib
 				prev sumlib.c
