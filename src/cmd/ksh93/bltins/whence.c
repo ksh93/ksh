@@ -305,8 +305,8 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			}
 			else if(cp)
 			{
-				cp = path_fullname(shp,cp);  /* resolve '.' & '..' */
 				int is_pathbound_builtin = 0;
+				cp = path_fullname(shp,cp);  /* resolve '.' & '..' */
 				if(flags&(V_FLAG|T_FLAG))
 				{
 					if(!(flags&T_FLAG))
