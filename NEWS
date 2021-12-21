@@ -3,7 +3,19 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-21:
+
+- 'whence -P/type -P' has been backported from ksh93v- (it functions
+  as an alias to the existing -p flag).
+
+- 'whence -t/type -t' has been backported from ksh93v-. This flag will
+  cause these built-ins to only print the type of a command. Example:
+	$ type -t typeset; whence -t sh
+	builtin
+	file
+
 2021-12-20:
+
 - Ported performance optimizations from illumos to improve the performance
   of the cksum builtin. (Note that the cksum builtin is not enabled by
   default.)

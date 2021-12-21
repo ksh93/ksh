@@ -110,6 +110,15 @@ New features in built-in commands:
 
 - 'whence -v/-a' now reports the location of autoloadable functions.
 
+- 'whence -P/type -P' has been backported from ksh93v- (it functions
+  as an alias to the existing -p flag).
+
+- 'whence -t/type -t' has been backported from ksh93v-. This flag will
+  cause these built-ins to only print the type of a command. Example:
+	$ type -t typeset; whence -t sh
+	builtin
+	file
+
 New features in shell options:
 
 - A new --globcasedetect shell option is added on OSs where we can
