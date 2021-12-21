@@ -21,6 +21,7 @@
 #pragma prototyped
 /*
  * command [-pvVx] name [arg...]
+ * type [-afpPqt] name...
  * whence [-afpPqtv] name...
  *
  *   David Korn
