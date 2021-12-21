@@ -2063,7 +2063,7 @@ const char sh_optwhence[] =
 "[+?The \btype\b command is equivalent to \bwhence -v\b.]"
 "[a?Like \b-v\b but displays all uses for each \aname\a rather than the first.]"
 "[f?Do not check for functions.]"
-"[p?Do not check to see if \aname\a is a reserved word, a built-in, "
+"[p|P?Do not check to see if \aname\a is a reserved word, a built-in, "
 	"an alias, or a function.  This turns off the \b-v\b option.]"
 "[q?Quiet mode. Returns 0 if all arguments are built-ins, functions, or are "
 	"programs found on the path.]"

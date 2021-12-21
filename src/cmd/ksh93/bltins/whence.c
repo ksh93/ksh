@@ -21,7 +21,7 @@
 #pragma prototyped
 /*
  * command [-pvVx] name [arg...]
- * whence [-afpqv] name...
+ * whence [-afpPqv] name...
  *
  *   David Korn
  *   AT&T Labs
@@ -125,6 +125,7 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 	    case 'f':
 		flags |= F_FLAG;
 		break;
+	    case 'P':
 	    case 'p':
 		flags |= P_FLAG;
 		flags &= ~V_FLAG;
