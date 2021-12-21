@@ -192,7 +192,7 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 	{
 		name = (sp->nodes[0])->nvname;
 		i = strlen(name);
-		if(memcmp(np->nvname,name,i))
+		if(strncmp(np->nvname,name,i))
 			return(np);
 	}
 	if(sp->rp && sp->numnodes)

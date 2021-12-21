@@ -1053,7 +1053,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			np->nvenv = 0;
 		}
 		nq->nvname = cp;
-		if(name && memcmp(name,&np->nvname[m],n)==0 && np->nvname[m+n]=='.')
+		if(name && strncmp(name,&np->nvname[m],n)==0 && np->nvname[m+n]=='.')
 			offset -= sizeof(char*);
 		dsize = nv_datasize(np,&offset);
 		cp = strcopy(name=cp, &np->nvname[m]);
