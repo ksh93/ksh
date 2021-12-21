@@ -8305,13 +8305,13 @@ The
 option skips the search for functions.
 The
 .B \-p
-option
-does a path search for
+and
+.B \-P
+options
+do a path search for
 .I name\^
 even if name is an alias, a function, or a reserved word.
-The
-.B \-p
-option turns off the
+Both of these options turn off the
 .B \-v
 option.
 The
@@ -8325,6 +8325,14 @@ are programs found on the path.
 The
 .B \-t
 option only outputs the type of the given command.
+Like
+.B \-p
+and
+.BR \-P ,
+.B \-t
+will turn off the
+.B \-v
+option.
 The
 .B \-a
 option
