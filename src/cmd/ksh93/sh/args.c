@@ -761,6 +761,7 @@ struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
 	/* turn off job control */
 	sh_offstate(SH_INTERACTIVE);
 	sh_offstate(SH_MONITOR);
+	sh_offstate(SH_PROFILE);
 	job.jobcontrol = 0;
 	/* run the process substitution */
 	shp->subshell = 0;

@@ -666,7 +666,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			{
 				if(comsub)
 					sigblock(SIGTSTP);
-				else if(!sh_isstate(SH_PROFILE))
+				else
 					sh_subfork();
 			}
 #endif
