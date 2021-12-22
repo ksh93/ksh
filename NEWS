@@ -3,6 +3,11 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2021-12-22:
+
+- Process substitutions run in a profile script no longer print their
+  process ID when run.
+
 2021-12-21:
 
 - Fixed a bug that caused subshells (such as code blocks in parentheses) to
