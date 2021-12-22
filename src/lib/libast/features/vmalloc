@@ -116,6 +116,12 @@ tst	mal_alloca note{ alloca is based on malloc() }end execute{
 	#if __CYGWIN__
 	int main() { return 1; }
 	#else
+	#if _hdr_stdnoreturn
+	#include	<stdnoreturn.h>
+	#elif !defined(noreturn)
+	#define noreturn
+	#endif
+	extern noreturn void exit(int);
 	#if _hdr_alloca
 	#include	<alloca.h>
 	#endif

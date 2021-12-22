@@ -10,6 +10,7 @@ tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 	#include <signal.h>
 	#include <sys/types.h>
 	#include <sys/socket.h>
+	#include <sys/wait.h>
 	#ifndef SHUT_RD
 	#define SHUT_RD		0
 	#endif

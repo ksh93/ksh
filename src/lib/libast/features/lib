@@ -7,6 +7,7 @@ hdr	locale,ndir,nl_types,process,spawn,syslog,utime,vfork
 hdr	linux/fs,linux/msdos_fs,sys/ioctl
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 	#include <wchar.h>
+	extern int iswalnum(wint_t);  /* work around implicit declaration warning or error */
 	int
 	main()
 	{
@@ -202,6 +203,7 @@ tst	pipe_rw note{ full duplex pipes }end execute{
 
 tst	lib_vfork unistd.h stdlib.h vfork.h note{ vfork exists and it works }end execute{
 	#include <signal.h>
+	#include <sys/wait.h>
 	int
 	main(argc, argv)
 	int	argc;

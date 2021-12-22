@@ -130,6 +130,8 @@ tst	lib_cvt note{ native floating point conversions ok }end link{
 }end
 
 tst	xopen_stdio note{ Stdio fseek/fflush are X/Open-compliant }end execute{
+	#include <fcntl.h>
+	#include <unistd.h>
 	#define Failed(file)	(unlink(file),1)
 	int
 	main(argc, argv)
