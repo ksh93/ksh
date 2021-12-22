@@ -160,9 +160,11 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	else
 		sh_onoption(SH_BRACEEXPAND);
 #endif
-	if((beenhere++)==0)
+	if(!beenhere)
 	{
+		beenhere++;
 		sh_onstate(SH_PROFILE);
+		shp->sigflag[SIGTSTP] |= SH_SIGIGNORE;
 		if(shp->gd->ppid==1)
 			shp->login_sh++;
 		if(shp->login_sh >= 2)
@@ -236,6 +238,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 				sh_source(shp, iop, e_suidprofile);
 		}
 		shp->st.cmdname = error_info.id = command;
+		shp->sigflag[SIGTSTP] &= ~(SH_SIGIGNORE);
 		sh_offstate(SH_PROFILE);
 		if(rshflag)
 			sh_onoption(SH_RESTRICTED);

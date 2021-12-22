@@ -5,14 +5,29 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-12-21:
 
-- 'whence -P/type -P' has been backported from ksh93v- (it functions
-  as an alias to the existing -p flag).
+- Two bash-like flags for 'whence' where backported from ksh 93v-:
+  - 'whence -P/type -P' is an alias to the existing -p flag.
+  - 'whence -t/type -t' will print only the type of a command in a simple
+    format that is designed to be easy to use for scripts. Example:
+        $ type -t typeset; whence -t sh
+        builtin
+        file
 
-- 'whence -t/type -t' has been backported from ksh93v-. This flag will
-  cause these built-ins to only print the type of a command. Example:
-	$ type -t typeset; whence -t sh
-	builtin
-	file
+- Fixed a bug that caused subshells (such as code blocks in parentheses) to
+  partially behave like the interactive main shell after running anything
+  that invokes the parser. For example:
+	$ (eval :; sleep 1 & echo done)
+	[1]	30909      <--- incorrect job control output from subshell
+	done
+
+- Fixed: after suspending (Ctrl+Z) a subshell that is running an external
+  command, resuming the subshell with 'fg' failed and the job was lost.
+	$ (vi)    <--- press Ctrl+Z
+	[2] + Stopped                  (vi)
+	$ fg
+	(vi)      <--- vi failed to resume; immediate return to command line
+	$ fg
+	ksh: no such job
 
 2021-12-20:
 

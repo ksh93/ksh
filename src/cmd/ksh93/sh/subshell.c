@@ -660,6 +660,16 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 					sh_subfork();
 			}
 #endif /* _lib_fchdir */
+#ifdef SIGTSTP
+			/* Virtual subshells are not safe to suspend (^Z, SIGTSTP) in the interactive main shell. */
+			if(sh_isstate(SH_INTERACTIVE))
+			{
+				if(comsub)
+					sigblock(SIGTSTP);
+				else if(!sh_isstate(SH_PROFILE))
+					sh_subfork();
+			}
+#endif
 			sh_offstate(SH_INTERACTIVE);
 			sh_exec(t,flags);
 		}
@@ -686,6 +696,10 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	nv_restore(sp);
 	if(comsub)
 	{
+#ifdef SIGTSTP
+		if(savst.states & sh_state(SH_INTERACTIVE))
+			sigrelease(SIGTSTP);
+#endif
 		/* re-enable job control */
 		if(!sp->nofork)
 			sh_offstate(SH_NOFORK);
