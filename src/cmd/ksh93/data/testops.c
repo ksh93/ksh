@@ -104,11 +104,7 @@ const char sh_opttest[] =
 	"[+-e \afile\a?\afile\a exists and is not a broken symlink.]"
 	"[+-f \afile\a?\afile\a is a regular file.]"
 	"[+-g \afile\a?\afile\a has its set-group-id bit set.]"
-	"[+-h \afile\a?Same as \b-L\b.]"
 	"[+-k \afile\a *?\afile\a has its sticky bit on.]"
-#if SHOPT_TEST_L
-	"[+-l \afile\a *?Same as \b-L\b.]"
-#endif
 	"[+-n \astring\a?Length of \astring\a is non-zero.]"
 	"[+-o \aoption\a *?Shell option \aoption\a is enabled.]"
 	"[+-p \afile\a?\afile\a is a FIFO.]"
@@ -123,7 +119,11 @@ const char sh_opttest[] =
 	"[+-z \astring\a?\astring\a is a zero-length string.]"
 	"[+-G \afile\a *?Group of \afile\a is the effective "
 		"group ID of the current process.]"
-	"[+-L \afile\a?\afile\a is a symbolic link.]"
+#if SHOPT_TEST_L
+	"[+-L|l|h \afile\a?\afile\a is a symbolic link.]"
+#else
+	"[+-L|h \afile\a?\afile\a is a symbolic link.]"
+#endif
 	"[+-N \afile\a *?\afile\a has been modified since it was last read.]"
 	"[+-O \afile\a *?\afile\a exists and owner is the effective "
 		"user ID of the current process.]"
