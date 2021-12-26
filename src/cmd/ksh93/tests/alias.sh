@@ -151,29 +151,6 @@ got=$(
 [[ $exp == $got ]] || err_exit "Specifying an alias with 'alias -p' doesn't work" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# The -x option should be ignored
-exp='bar=FOO
-bar2=FOO2
-bar=FOO
-bar2=FOO2
-boo=BOO
-foo=BAR
-alias foo=BAR
-alias bar=FOO
-alias bar2=FOO2
-alias boo=BOO
-alias foo=BAR'
-got=$(
-	unalias -a
-	alias bar=FOO foo=BAR boo=BOO bar2=FOO2
-	alias -x bar bar2
-	alias -x
-	alias -px foo
-	alias -px
-)
-[[ $exp == $got ]] || err_exit "The alias command doesn't ignore the obsolete -x option" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-
 exp="cat=$(whence -p cat)
 alias -t cat"
 got=$(

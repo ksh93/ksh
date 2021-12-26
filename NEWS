@@ -27,10 +27,6 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Attempting to list 256 non-existent aliases now errors out with the exit
   status set to one.
 
-- The alias command now ignores the obsolete -x option in all contexts,
-  including when listing specific aliases (i.e., 'alias -x foo' now works
-  identically to 'alias foo').
-
 2021-12-22:
 
 - Process substitutions run in a profile script no longer print their
