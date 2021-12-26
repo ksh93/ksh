@@ -708,7 +708,10 @@ int sh_close(register int fd)
 	register Sfio_t *sp;
 	register int r = 0;
 	if(fd<0)
+	{
+		errno = EBADF;
 		return(-1);
+	}
 	if(fd >= shp->gd->lim.open_max)
 		sh_iovalidfd(shp,fd);
 	if(!(sp=shp->sftable[fd]) || sfclose(sp) < 0)
