@@ -138,7 +138,7 @@ alias -t ls
 alias -t
 alias -pt
 EOF
-got=$(redirect 2>&1; $SHELL <($SHCOMP "$alias_script"))
+got=$(set +x; redirect 2>&1; $SHELL <($SHCOMP "$alias_script"))
 [[ $exp == $got ]] || err_exit "Listing aliases corrupts shcomp bytecode" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
@@ -167,6 +167,7 @@ vi: tracked alias not found
 alias -t cat
 alias -t chmod'
 got=$(
+	set +x
 	redirect 2>&1
 	hash -r cat chmod
 	alias -pt cat vi  # vi shouldn't be added to the hash table
@@ -182,6 +183,7 @@ exp='foo: alias not found
 bar: alias not found
 nosuchalias: alias not found'
 got=$(
+	set +x
 	redirect 2>&1
 	unalias -a
 	alias foo bar nosuchalias
@@ -199,6 +201,7 @@ bar: alias not found
 nosuchalias: alias not found
 stillnoalias: alias not found'
 got=$(
+	set +x
 	redirect 2>&1
 	unalias -a
 	alias -p foo bar nosuchalias stillnoalias
@@ -213,6 +216,7 @@ ret=$?
 exp='rm: tracked alias not found
 ls: tracked alias not found'
 got=$(
+	set +x
 	redirect 2>&1
 	hash -r
 	alias -pt rm ls
