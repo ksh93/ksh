@@ -115,6 +115,7 @@ const char e_nounattr[]		= "cannot unset attribute C or A or a";
 const char e_selfref[]		= "%s: invalid self reference";
 const char e_globalref[]	= "%s: global reference cannot refer to local variable";
 const char e_noalias[]		= "%s: alias not found\n";
+const char e_notrackedalias[]	= "%s: tracked alias not found\n";
 const char e_format[]		= "%s: bad format";
 const char e_redef[]		= "%s: type cannot be redefined";
 const char e_required[]		= "%s: is a required element of %s";

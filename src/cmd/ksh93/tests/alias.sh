@@ -105,4 +105,194 @@ err=$(set +x; { "$SHELL" -i -c 'unalias history; unalias r'; } 2>&1) && [[ -z $e
 || err_exit "the 'history' and 'r' aliases can't be removed (got $(printf %q "$err"))"
 
 # ======
+# Listing aliases in a script shouldn't break shcomp bytecode
+exp="alias foo='bar('
+alias four=4
+alias three=3
+alias two=2
+foo='bar('
+foo='bar('
+four=4
+three=3
+two=2
+foo='bar('
+four=4
+three=3
+two=2
+noalias: alias not found
+ls=$(whence -p ls)
+alias -t ls"
+alias_script=$tmp/alias_script.sh
+cat > "$alias_script" << EOF
+unalias -a
+alias foo='bar('
+alias two=2
+alias three=3
+alias four=4
+alias -p
+alias foo
+alias -x
+alias
+alias noalias
+alias -t ls
+alias -t
+alias -pt
+EOF
+got=$(redirect 2>&1; $SHELL <($SHCOMP "$alias_script"))
+[[ $exp == $got ]] || err_exit "Listing aliases corrupts shcomp bytecode" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Specifying an alias with 'alias -p' should print that alias in a reusable form
+exp='alias foo=BAR'
+got=$(
+	alias foo=BAR bar=FOO
+	alias -p foo
+)
+[[ $exp == $got ]] || err_exit "Specifying an alias with 'alias -p' doesn't work" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# The -x option should be ignored
+exp='bar=FOO
+bar2=FOO2
+bar=FOO
+bar2=FOO2
+boo=BOO
+foo=BAR
+alias foo=BAR
+alias bar=FOO
+alias bar2=FOO2
+alias boo=BOO
+alias foo=BAR'
+got=$(
+	unalias -a
+	alias bar=FOO foo=BAR boo=BOO bar2=FOO2
+	alias -x bar bar2
+	alias -x
+	alias -px foo
+	alias -px
+)
+[[ $exp == $got ]] || err_exit "The alias command doesn't ignore the obsolete -x option" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+exp="cat=$(whence -p cat)
+alias -t cat"
+got=$(
+	hash -r cat
+	alias -tx
+	alias -ptx
+)
+[[ $exp == $got ]] || err_exit "The alias command doesn't ignore the obsolete -x option when -t is passed" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Listing members of the hash table with 'alias -pt' should work
+exp='alias -t cat
+vi: tracked alias not found
+alias -t cat
+alias -t chmod'
+got=$(
+	redirect 2>&1
+	hash -r cat chmod
+	alias -pt cat vi  # vi shouldn't be added to the hash table
+	alias -pt
+)
+[[ $exp == $got ]] || err_exit "Listing members of the hash table with 'alias -pt' doesn't work" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Attempting to list a non-existent alias or tracked alias should fail
+# with an error message. Note that the exit status should match the
+# number of aliases passed that don't exist.
+exp='foo: alias not found
+bar: alias not found
+nosuchalias: alias not found'
+got=$(
+	redirect 2>&1
+	unalias -a
+	alias foo bar nosuchalias
+)
+ret=$?
+[[ $exp == $got ]] || err_exit "Listing non-existent aliases with 'alias' should fail with an error message" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((ret == 3)) || err_exit "Listing non-existent aliases with 'alias' has wrong exit status" \
+	"(expected 3, got $ret)"
+
+# Same as above, but tests alias -p with a different number
+# of non-existent aliases.
+exp='foo: alias not found
+bar: alias not found
+nosuchalias: alias not found
+stillnoalias: alias not found'
+got=$(
+	redirect 2>&1
+	unalias -a
+	alias -p foo bar nosuchalias stillnoalias
+)
+ret=$?
+[[ $exp == $got ]] || err_exit "Listing non-existent aliases with 'alias -p' should fail with an error message" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((ret == 4)) || err_exit "Listing non-existent aliases with 'alias -p' has wrong exit status" \
+	"(expected 4, got $ret)"
+
+# Tracked aliases next.
+exp='rm: tracked alias not found
+ls: tracked alias not found'
+got=$(
+	redirect 2>&1
+	hash -r
+	alias -pt rm ls
+)
+ret=$?
+[[ $exp == $got ]] || err_exit "Listing non-existent tracked aliases with 'alias -pt' should fail with an error message" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((ret == 2)) || err_exit "Listing non-existent tracked aliases with 'alias -pt' has wrong exit status" \
+	"(expected 2, got $ret)"
+
+# Detect zombie aliases with 'alias'.
+exp='vi: alias not found
+chmod: alias not found'
+got=$($SHELL -c '
+	hash vi chmod
+	hash -r
+	alias vi chmod
+' 2>&1)
+ret=$?
+[[ $exp == $got ]] || err_exit "Listing removed tracked aliases with 'alias' should fail with an error message" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((ret == 2)) || err_exit "Listing removed tracked aliases with 'alias' has wrong exit status" \
+	"(expected 2, got $ret)"
+
+# Detect zombie aliases with 'alias -p'.
+exp='vi: alias not found
+chmod: alias not found'
+got=$($SHELL -c '
+	hash vi chmod
+	hash -r
+	alias -p vi chmod
+' 2>&1)
+ret=$?
+[[ $exp == $got ]] || err_exit "Listing removed tracked aliases with 'alias -p' should fail with an error message" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((ret == 2)) || err_exit "Listing removed tracked aliases with 'alias -p' has wrong exit status" \
+	"(expected 2, got $ret)"
+
+# Detect zombie tracked aliases.
+exp='vi: tracked alias not found
+chmod: tracked alias not found'
+got=$($SHELL -c '
+	hash vi chmod
+	hash -r
+	alias -pt vi chmod
+' 2>&1)
+ret=$?
+[[ $exp == $got ]] || err_exit "Listing removed tracked aliases with 'alias -pt' should fail with an error message" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((ret == 2)) || err_exit "Listing removed tracked aliases with 'alias -pt' has wrong exit status" \
+	"(expected 2, got $ret)"
+
+# The exit status on error must be >0, including when handling
+# 256 non-existent aliases.
+(unalias -a; alias $(awk -v ORS= 'BEGIN { for(i=0;i<256;i++) print "x "; }') 2> /dev/null)
+got=$?
+((got > 0)) || err_exit "Exit status is zero when alias is passed 256 non-existent aliases"
+
+# ======
 exit $((Errors<125?Errors:125))
