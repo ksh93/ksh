@@ -336,7 +336,7 @@ const char sh_optcont[] =
 
 const char sh_optalarm[]	= "r [varname seconds]";
 const char sh_optalias[] =
-"[-1c?\n@(#)$Id: alias (ksh 93u+m) 2020-06-10 $\n]"
+"[-1c?\n@(#)$Id: alias (ksh 93u+m) 2021-12-26 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?alias - define or display aliases]"
 "[+DESCRIPTION?\balias\b creates or redefines alias definitions "
