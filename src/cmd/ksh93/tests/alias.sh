@@ -151,15 +151,15 @@ got=$(
 [[ $exp == $got ]] || err_exit "Specifying an alias with 'alias -p' doesn't work" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-exp="cat=$(whence -p cat)
-alias -t cat"
 got=$(
 	hash -r cat
 	alias -tx
 	alias -ptx
+	alias -ptx cat
+	alias -ptx nosuchcommand
 )
-[[ $exp == $got ]] || err_exit "The alias command doesn't ignore the obsolete -x option when -t is passed" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+[[ -z $got ]] || err_exit "The -x option should prevent output when combined with -t" \
+	"(got $(printf %q "$got"))"
 
 # Listing members of the hash table with 'alias -pt' should work
 exp='alias -t cat

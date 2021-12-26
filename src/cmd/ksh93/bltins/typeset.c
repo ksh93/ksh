@@ -132,7 +132,7 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 {
 	register unsigned flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
 	register Dt_t *troot;
-	register int rflag=0, n;
+	register int rflag=0, xflag=0, n;
 	struct tdata tdata;
 	NOT_USED(argc);
 	memset((void*)&tdata,0,sizeof(tdata));
@@ -158,6 +158,7 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 			break;
 		    case 'x':
 			/* obsolete, ignored */
+			xflag = 1;
 			break;
 		    case 'r':
 			rflag=1;
@@ -193,6 +194,8 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 	}
 	else if(argv[1] && tdata.sh->subshell && !tdata.sh->subshare)
 		sh_subfork();			/* avoid affecting the parent shell's alias table */
+	if(xflag && (flag&NV_TAGGED))
+		return(0);			/* do nothing for 'alias -tx' */
 	return(setall(argv,flag,troot,&tdata));
 }
 
