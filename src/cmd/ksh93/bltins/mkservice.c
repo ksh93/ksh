@@ -25,6 +25,8 @@
  * AT&T Labs
  */
 
+#if SHOPT_MKSERVICE
+
 static const char mkservice_usage[] =
 "[-?\n@(#)$Id: mkservice (AT&T Research) 2001-06-13 $\n]"
 "[--catalog?" SH_DICT "]"
@@ -258,7 +260,8 @@ static int waitnotify(int fd, long timeout, int rw)
 
 static int service_init(void)
 {
-	file_list = sh_newof(NULL,short,n,0);
+	int n = 20;
+	file_list = (int*)sh_newof(NULL,short,n,0);
 	poll_list = sh_newof(NULL,Sfio_t*,n,0);
 	service_list = sh_newof(NULL,Service_t*,n,0);
 	covered_fdnotify = sh_fdnotify(fdnotify);
@@ -377,7 +380,7 @@ static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 	if (!val)
 	{
 		register int i;
-		for(i=0; i< sh.lim.open_max; i++)
+		for(i=0; i< sh.gd->lim.open_max; i++)
 		{
 			if(service_list[i]==sp)
 			{
@@ -409,7 +412,6 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 	register int		fd;
 
 	NOT_USED(argc);
-	NOT_USED(context);
 	for (;;)
 	{
 		switch (optget(argv, mkservice_usage))
@@ -494,3 +496,5 @@ int	b_eloop(int argc, char** argv, Shbltin_t *context)
 	}
 	return(errno != 0);
 }
+
+#endif /* SHOPT_MKSERVICE */

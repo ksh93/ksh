@@ -25,6 +25,7 @@ SHOPT FIXEDARRAY=1			# fixed dimension indexed array
 SHOPT GLOBCASEDET=			# -o globcasedetect: adapt globbing/completion to case-insensitive file systems
 SHOPT HISTEXPAND=1			# csh-style history file expansions
 SHOPT KIA=				# ksh -R <outfile> <script> generates cross-ref database from script
+SHOPT MKSERVICE=0			# enable the mkservice and eloop builtins
 SHOPT MULTIBYTE=1			# multibyte character handling
 SHOPT NAMESPACE=1			# allow namespaces
 SHOPT NOECHOE=0				# turn off 'echo -e' when SHOPT_ECHOPRINT is disabled

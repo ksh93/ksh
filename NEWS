@@ -20,6 +20,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   xtrace (set -x) is on and the $PS4 prompt contains parameter expansions or
   command substitutions.
 
+- The mkservice and eloop builtins can now be built by enabling the
+  new SHOPT_MKSERVICE setting in src/cmd/ksh93/SHOPT.sh.
+
 2021-12-26:
 
 - Listing aliases or tracked aliases in a script no longer corrupts
