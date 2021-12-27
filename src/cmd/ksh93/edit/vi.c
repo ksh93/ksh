@@ -1433,7 +1433,7 @@ static void getline(register Vi_t* vp,register int mode)
 		case cntl('G'):
 			if(mode!=SEARCH)
 				goto fallback;
-			/* FALLTHRU */
+			/* FALLTHROUGH */
 		case UINTR:
 				first_virt = 0;
 				cdelete(vp,cur_virt+1, BAD);
