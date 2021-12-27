@@ -56,15 +56,7 @@ typedef struct
  * we assume line-at-a-time input
  */
 
-#if __STD_C
 static ssize_t moreread(Sfio_t* f, void* buf, size_t n, Sfdisc_t* dp)
-#else
-static ssize_t moreread(f, buf, n, dp)
-Sfio_t*		f;
-void*		buf;
-size_t		n;
-Sfdisc_t*	dp;
-#endif
 {
 	register More_t*	more = (More_t*)dp;
 
@@ -79,15 +71,7 @@ Sfdisc_t*	dp;
  * return < -1 is -(signal + 1)
  */
 
-#if __STD_C
 static int ttyquery(Sfio_t* rp, Sfio_t* wp, const char* label, Sfdisc_t* dp)
-#else
-static int ttyquery(rp, wp, label, dp)
-Sfio_t*		rp;
-Sfio_t*		wp;
-char*		label;
-Sfdisc_t*	dp;
-#endif
 {
 	register int	r;
 	int		n;
@@ -144,15 +128,7 @@ Sfdisc_t*	dp;
  * more write
  */
 
-#if __STD_C
-static ssize_t morewrite(Sfio_t* f, const Void_t* buf, register size_t n, Sfdisc_t* dp)
-#else
-static ssize_t morewrite(f, buf, n, dp)
-Sfio_t* 	f;
-Void_t*		buf;
-register size_t	n;
-Sfdisc_t*	dp;
-#endif
+static ssize_t morewrite(Sfio_t* f, const void* buf, register size_t n, Sfdisc_t* dp)
 {
 	register More_t*	more = (More_t*)dp;
 	register char*		b;
@@ -257,15 +233,7 @@ Sfdisc_t*	dp;
  * remove the discipline on close
  */
 
-#if __STD_C
-static int moreexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* dp)
-#else
-static int moreexcept(f, type, data, dp)
-Sfio_t*		f;
-int		type;
-Void_t*		data;
-Sfdisc_t*	dp;
-#endif
+static int moreexcept(Sfio_t* f, int type, void* data, Sfdisc_t* dp)
 {
 	register More_t*	more = (More_t*)dp;
 
@@ -300,15 +268,7 @@ Sfdisc_t*	dp;
  * if f==sfstdout then input on sfstdin also resets the state
  */
 
-#if __STD_C
 int sfdcmore(Sfio_t* f, const char* prompt, int rows, int cols)
-#else
-int sfdcmore(f, prompt, rows, cols)
-Sfio_t*		f;
-char*		prompt;
-int		rows;
-int		cols;
-#endif
 {
 	register More_t*	more;
 	size_t			n;

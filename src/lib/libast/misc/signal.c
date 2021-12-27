@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * signal that disables syscall restart on interrupt with clear signal mask

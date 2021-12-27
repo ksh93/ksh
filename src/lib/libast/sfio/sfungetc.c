@@ -26,15 +26,7 @@
 **
 **	Written by Kiem-Phong Vo.
 */
-#if __STD_C
-static int _uexcept(Sfio_t* f, int type, Void_t* val, Sfdisc_t* disc)
-#else
-static int _uexcept(f,type,val,disc)
-Sfio_t		*f;
-int		type;
-Void_t*		val;
-Sfdisc_t	*disc;
-#endif
+static int _uexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 {	
 	NOTUSED(val);
 
@@ -49,13 +41,8 @@ Sfdisc_t	*disc;
 	return 1;
 }
 
-#if __STD_C
-int sfungetc(Sfio_t* f, int c)
-#else
-int sfungetc(f,c)
-Sfio_t*		f;	/* push back one byte to this stream */
-int		c;	/* the value to be pushed back */
-#endif
+int sfungetc(Sfio_t*	f,	/* push back one byte to this stream */
+	     int	c)	/* the value to be pushed back */
 {
 	reg Sfio_t*	uf;
 	SFMTXDECL(f);

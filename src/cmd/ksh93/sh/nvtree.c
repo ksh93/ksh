@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * code for tree nodes and name walking

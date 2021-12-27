@@ -19,7 +19,6 @@
 *                    David Korn <dgkorn@gmail.com>                     *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Glenn Fowler
  * AT&T Research

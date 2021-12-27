@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 
 #include	"defs.h"
@@ -337,7 +336,7 @@ const char sh_optcont[] =
 
 const char sh_optalarm[]	= "r [varname seconds]";
 const char sh_optalias[] =
-"[-1c?\n@(#)$Id: alias (ksh 93u+m) 2020-06-10 $\n]"
+"[-1c?\n@(#)$Id: alias (ksh 93u+m) 2021-12-26 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?alias - define or display aliases]"
 "[+DESCRIPTION?\balias\b creates or redefines alias definitions "
@@ -364,7 +363,9 @@ const char sh_optalias[] =
 "[t?Each \aname\a is looked up as a command in \b$PATH\b and its path is "
 	"added to the hash table as a 'tracked alias'. If no \aname\a is "
 	"given, this prints the hash table. See \bhash(1)\b.]"
-"[x?Ignored, this option is obsolete.]"
+"[x?This option is obsolete. In most contexts the \b-x\b option is ignored, "
+	"although when it's combined with \b-t\b it will make \balias\b do "
+	"nothing.]"
 "\n"
 "\n[name[=value]...]\n"
 "\n"
@@ -2050,7 +2051,7 @@ _JOB_
 ;
 
 const char sh_optwhence[] =
-"[-1c?\n@(#)$Id: whence (ksh 93u+m) 2020-09-25 $\n]"
+"[-1c?\n@(#)$Id: whence (ksh 93u+m) 2021-12-27 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?whence, type - locate a command and describe its type]"
 "[+DESCRIPTION?Without \b-v\b, \bwhence\b writes on standard output an "
@@ -2063,8 +2064,11 @@ const char sh_optwhence[] =
 "[+?The \btype\b command is equivalent to \bwhence -v\b.]"
 "[a?Like \b-v\b but displays all uses for each \aname\a rather than the first.]"
 "[f?Do not check for functions.]"
-"[p?Do not check to see if \aname\a is a reserved word, a built-in, "
+"[p|P?Do not check to see if \aname\a is a reserved word, a built-in, "
 	"an alias, or a function.  This turns off the \b-v\b option.]"
+"[t?Output only a single-word type indicator for each \aname\a found: "
+	"\bkeyword\b, \balias\b, \bbuiltin\b, \bfunction\b or \bfile\b. "
+	"This turns off the \b-v\b option.]"
 "[q?Quiet mode. Returns 0 if all arguments are built-ins, functions, or are "
 	"programs found on the path.]"
 "[v?For each name you specify, the shell displays a line that indicates "

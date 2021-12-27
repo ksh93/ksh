@@ -1,4 +1,3 @@
-set	prototyped
 set	nooptimize
 set	stdio FEATURE/standards
 hdr	float,limits,math,values
@@ -261,11 +260,7 @@ tst	- note{ missing floating point limits }end output{
 	#include <signal.h>
 	#ifdef SIGFPE
 	static int caught = 0;
-	#if _STD_
 	static void catch(int sig)
-	#else
-	static void catch(sig) int sig;
-	#endif
 	{
 		signal(sig, SIG_IGN);
 		caught++;
@@ -1025,15 +1020,7 @@ tst	- -DSCAN=1 - -lm -DSTRTO=1 - -DMAC=1 - -DDIV=1 - -DEXP=1 - -DADD=1 - -DMPY=1
 	#undef	LDBL_MAX
 	#endif
 	static void
-	#if _STD_
 	list(const char* typ, const char* var, void* val, int siz)
-	#else
-	list(typ, var, val, siz)
-	char* typ;
-	char* var;
-	void* val;
-	int siz;
-	#endif
 	{
 		register unsigned char*	u = (unsigned char*)val;
 		register unsigned char*	e = u + siz;

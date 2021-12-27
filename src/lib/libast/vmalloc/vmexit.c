@@ -40,12 +40,7 @@ void _STUB_vmexit(){}
 
 #if _lib_onexit
 
-#if __STD_C
 int atexit(void (*exitf)(void))
-#else
-int atexit(exitf)
-void	(*exitf)();
-#endif
 {
 	return onexit(exitf);
 }
@@ -54,16 +49,11 @@ void	(*exitf)();
 
 typedef struct _exit_s
 {	struct _exit_s*	next;
-	void(*		exitf)_ARG_((void));
+	void(*		exitf)(void);
 } Exit_t;
 static Exit_t*	Exit;
 
-#if __STD_C
 atexit(void (*exitf)(void))
-#else
-atexit(exitf)
-void	(*exitf)();
-#endif
 {	Exit_t*	e;
 
 	if(!(e = (Exit_t*)malloc(sizeof(Exit_t))) )
@@ -74,12 +64,7 @@ void	(*exitf)();
 	return 0;
 }
 
-#if __STD_C
 void exit(int type)
-#else
-void exit(type)
-int	type;
-#endif
 {
 	Exit_t*	e;
 

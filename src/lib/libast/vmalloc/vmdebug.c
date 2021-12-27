@@ -45,7 +45,7 @@ static Dbfile_t*	Dbfile;
 /* global watch list */
 #define S_WATCH	32
 static int	Dbnwatch;
-static Void_t*	Dbwatch[S_WATCH];
+static void*	Dbwatch[S_WATCH];
 
 /* types of warnings reported by dbwarn() */
 #define	DB_CHECK	0
@@ -64,12 +64,7 @@ static void dbinit()
 }
 
 static int	Dbfd = 2;	/* default warning file descriptor */
-#if __STD_C
 int vmdebug(int fd)
-#else
-int vmdebug(fd)
-int	fd;
-#endif
 {
 	int	old = Dbfd;
 	Dbfd = fd;
@@ -78,14 +73,7 @@ int	fd;
 
 
 /* just an entry point to make it easy to set break point */
-#if __STD_C
 static void vmdbwarn(Vmalloc_t* vm, char* mesg, int n)
-#else
-static void vmdbwarn(vm, mesg, n)
-Vmalloc_t*	vm;
-char*		mesg;
-int		n;
-#endif
 {
 	reg Vmdata_t*	vd = vm->data;
 
@@ -95,19 +83,13 @@ int		n;
 }
 
 /* issue a warning of some type */
-#if __STD_C
-static void dbwarn(Vmalloc_t* vm, Void_t* data, int where,
-		   char* file, int line, Void_t* func, int type)
-#else
-static void dbwarn(vm, data, where, file, line, func, type)
-Vmalloc_t*	vm;	/* region holding the block	*/
-Void_t*		data;	/* data block			*/
-int		where;	/* byte that was corrupted	*/
-char*		file;	/* file where call originates	*/
-int		line;	/* line number of call		*/
-Void_t*		func;	/* function called from		*/
-int		type;	/* operation being done		*/
-#endif
+static void dbwarn(Vmalloc_t*	vm,	/* region holding the block	*/
+		   void*	data,	/* data block			*/
+		   int		where,	/* byte that was corrupted	*/
+		   char*	file,	/* file where call originates	*/
+		   int		line,	/* line number of call		*/
+		   void*	func,	/* function called from		*/
+		   int		type)	/* operation being done		*/
 {
 	char	buf[1024], *bufp, *endbuf, *s;
 #define SLOP	64	/* enough for a message and an int */
@@ -184,18 +166,8 @@ int		type;	/* operation being done		*/
 }
 
 /* check for watched address and issue warnings */
-#if __STD_C
-static void dbwatch(Vmalloc_t* vm, Void_t* data,
-		    char* file, int line, Void_t* func, int type)
-#else
-static void dbwatch(vm, data, file, line, func, type)
-Vmalloc_t*	vm;
-Void_t*		data;
-char*		file;
-int		line;
-Void_t*		func;
-int		type;
-#endif
+static void dbwatch(Vmalloc_t* vm, void* data,
+		    char* file, int line, void* func, int type)
 {
 	reg int		n;
 
@@ -208,15 +180,10 @@ int		type;
 }
 
 /* record information about the block */
-#if __STD_C
-static void dbsetinfo(Vmuchar_t* data, size_t size, char* file, int line)
-#else
-static void dbsetinfo(data, size, file, line)
-Vmuchar_t*	data;	/* real address not the one from Vmbest	*/
-size_t		size;	/* the actual requested size		*/
-char*		file;	/* file where the request came from	*/
-int		line;	/* and line number			*/
-#endif
+static void dbsetinfo(Vmuchar_t*	data,	/* real address not the one from Vmbest	*/
+		      size_t		size,	/* the actual requested size		*/
+		      char*		file,	/* file where the request came from	*/
+		      int		line)	/* and line number			*/
 {
 	reg Vmuchar_t	*begp, *endp;
 	reg Dbfile_t	*last, *db;
@@ -261,14 +228,7 @@ int		line;	/* and line number			*/
 ** This returns -(offset+1) if block is already freed, +(offset+1)
 ** if block is live, 0 if no match.
 */
-#if __STD_C
-static long dbaddr(Vmalloc_t* vm, Void_t* addr, int local)
-#else
-static long dbaddr(vm, addr, local)
-Vmalloc_t*	vm;
-Void_t*		addr;
-int		local;
-#endif
+static long dbaddr(Vmalloc_t* vm, void* addr, int local)
 {
 	reg Block_t	*b, *endb;
 	reg Seg_t	*seg;
@@ -320,14 +280,7 @@ done:
 }
 
 
-#if __STD_C
-static long dbsize(Vmalloc_t* vm, Void_t* addr, int local)
-#else
-static long dbsize(vm, addr, local)
-Vmalloc_t*	vm;
-Void_t*		addr;
-int		local;
-#endif
+static long dbsize(Vmalloc_t* vm, void* addr, int local)
 {
 	Block_t		*b, *endb;
 	Seg_t		*seg;
@@ -344,7 +297,7 @@ int		local;
 		   (Vmuchar_t*)addr >= (Vmuchar_t*)endb)
 			continue;
 		while(b < endb)
-		{	if(addr == (Void_t*)DB2DEBUG(DATA(b)))
+		{	if(addr == (void*)DB2DEBUG(DATA(b)))
 			{	if(ISBUSY(SIZE(b)) && !ISJUNK(SIZE(b)) )
 					size = (long)DBSIZE(addr);
 				goto done;
@@ -359,20 +312,13 @@ done:
 	return size;
 }
 
-#if __STD_C
-static Void_t* dballoc(Vmalloc_t* vm, size_t size, int local)
-#else
-static Void_t* dballoc(vm, size, local)
-Vmalloc_t*	vm;
-size_t		size;
-int		local;
-#endif
+static void* dballoc(Vmalloc_t* vm, size_t size, int local)
 {
 	size_t		s;
 	Vmuchar_t	*data;
 	char		*file;
 	int		line;
-	Void_t		*func;
+	void		*func;
 	Vmdata_t	*vd = vm->data;
 	VMFLF(vm,file,line,func);
 
@@ -404,22 +350,15 @@ int		local;
 done:
 	CLRLOCK(vm, local);
 
-	return (Void_t*)data;
+	return (void*)data;
 }
 
 
-#if __STD_C
-static int dbfree(Vmalloc_t* vm, Void_t* data, int local )
-#else
-static int dbfree(vm, data, local )
-Vmalloc_t*	vm;
-Void_t*		data;
-int		local;
-#endif
+static int dbfree(Vmalloc_t* vm, void* data, int local )
 {
 	char		*file;
 	int		line;
-	Void_t		*func;
+	void		*func;
 	long		offset;
 	int		rv, *ip, *endip;
 	Vmdata_t	*vd = vm->data;
@@ -452,7 +391,7 @@ int		local;
 		while(ip < endip)
 			*ip++ = 0;
 
-		rv = KPVFREE((vm), (Void_t*)DB2BEST(data), (*Vmbest->freef));
+		rv = KPVFREE((vm), (void*)DB2BEST(data), (*Vmbest->freef));
 	}
 
 	CLRLOCK(vm, local);
@@ -460,23 +399,18 @@ int		local;
 }
 
 /*	Resizing an existing block */
-#if __STD_C
-static Void_t* dbresize(Vmalloc_t* vm, Void_t* addr, reg size_t size, int type, int local)
-#else
-static Void_t* dbresize(vm, addr, size, type, local)
-Vmalloc_t*	vm;	/* region allocating from	*/
-Void_t*		addr;	/* old block of data		*/
-reg size_t	size;	/* new size			*/
-int		type;	/* !=0 for movable, >0 for copy	*/
-int		local;
-#endif
+static void* dbresize(Vmalloc_t*	vm,	/* region allocating from	*/
+		      void*		addr,	/* old block of data		*/
+		      reg size_t	size,	/* new size			*/
+		      int		type,	/* !=0 for movable, >0 for copy	*/
+		      int		local)
 {
 	Vmuchar_t	*data;
 	long		offset;
 	size_t		s, oldsize;
 	char		*file, *oldfile;
 	int		line, oldline;
-	Void_t		*func;
+	void		*func;
 	Vmdata_t	*vd = vm->data;
 	VMFLF(vm,file,line,func);
 
@@ -484,13 +418,13 @@ int		local;
 	{	vm->file = file; vm->line = line;
 		data = (Vmuchar_t*)dballoc(vm, size, local);
 		if(data && (type&VM_RSZERO) )
-			memset((Void_t*)data, 0, size);
+			memset((void*)data, 0, size);
 		return data;
 	}
 	if(size == 0)
 	{	vm->file = file; vm->line = line;
 		(void)dbfree(vm, addr, local);
-		return NIL(Void_t*);
+		return NIL(void*);
 	}
 
 	SETLOCK(vm, local);
@@ -516,7 +450,7 @@ int		local;
 		s = ROUND(size,ALIGN) + DB_EXTRA;
 		if(s < sizeof(Body_t))
 			s = sizeof(Body_t);
-		data = (Vmuchar_t*)KPVRESIZE(vm,(Void_t*)data,s,
+		data = (Vmuchar_t*)KPVRESIZE(vm,(void*)data,s,
 					 (type&~VM_RSZERO),(*(Vmbest->resizef)) );
 		if(!data) /* failed, reset data for old block */
 		{	dbwarn(vm,NIL(Vmuchar_t*),DB_ALLOC,file,line,func,DB_RESIZE);
@@ -542,28 +476,17 @@ int		local;
 
 	CLRLOCK(vm, local);
 
-	return (Void_t*)data;
+	return (void*)data;
 }
 
 /* compact any residual free space */
-#if __STD_C
 static int dbcompact(Vmalloc_t* vm, int local)
-#else
-static int dbcompact(vm, local)
-Vmalloc_t*	vm;
-int		local;
-#endif
 {
 	return (*(Vmbest->compactf))(vm, local);
 }
 
 /* check for memory overwrites over all live blocks */
-#if __STD_C
 int vmdbcheck(Vmalloc_t* vm)
-#else
-int vmdbcheck(vm)
-Vmalloc_t*	vm;
-#endif
 {
 	reg Block_t	*b, *endb;
 	reg Seg_t*	seg;
@@ -619,17 +542,12 @@ Vmalloc_t*	vm;
 }
 
 /* set/delete an address to watch */
-#if __STD_C
-Void_t* vmdbwatch(Void_t* addr)
-#else
-Void_t* vmdbwatch(addr)
-Void_t*		addr;	/* address to insert	*/
-#endif
+void* vmdbwatch(void* addr)
 {
 	reg int		n;
-	reg Void_t*	out;
+	reg void*	out;
 
-	out = NIL(Void_t*);
+	out = NIL(void*);
 	if(!addr)
 		Dbnwatch = 0;
 	else
@@ -651,26 +569,18 @@ Void_t*		addr;	/* address to insert	*/
 	return out;
 }
 
-#if __STD_C
-static Void_t* dbalign(Vmalloc_t* vm, size_t size, size_t align, int local)
-#else
-static Void_t* dbalign(vm, size, align, local)
-Vmalloc_t*	vm;
-size_t		size;
-size_t		align;
-int		local;
-#endif
+static void* dbalign(Vmalloc_t* vm, size_t size, size_t align, int local)
 {
 	Vmuchar_t	*data;
 	size_t		s;
 	char		*file;
 	int		line;
-	Void_t		*func;
+	void		*func;
 	Vmdata_t	*vd = vm->data;
 	VMFLF(vm,file,line,func);
 
 	if(size <= 0 || align <= 0)
-		return NIL(Void_t*);
+		return NIL(void*);
 
 	SETLOCK(vm, local);
 
@@ -689,16 +599,11 @@ int		local;
 
 	CLRLOCK(vm, local);
 
-	return (Void_t*)data;
+	return (void*)data;
 }
 
 /* print statistics of region vm. If vm is NULL, use Vmregion */
-#if __STD_C
 ssize_t vmdbstat(Vmalloc_t* vm)
-#else
-ssize_t vmdbstat(vm)
-Vmalloc_t*	vm;
-#endif
 {	Vmstat_t	st;
 	char		buf[1024], *bufp;
 

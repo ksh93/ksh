@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * echo [arg...]
  * print [-enprsvC] [-f format] [-u fd] [string ...]

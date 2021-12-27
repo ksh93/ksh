@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Glenn Fowler
  * AT&T Bell Laboratories

@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * This is a program to execute 'execute only' and suid/sgid shell scripts.
  * This program must be owned by root and must have the set uid bit set.

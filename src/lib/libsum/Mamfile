@@ -86,8 +86,6 @@ make install
 					make sum-prng.c implicit
 						make ${PACKAGE_ast_INCLUDE}/fnv.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-							make ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-							done ${PACKAGE_ast_INCLUDE}/prototyped.h dontcare
 						done ${PACKAGE_ast_INCLUDE}/fnv.h
 					done sum-prng.c
 					make sum-bsd.c implicit
@@ -102,11 +100,9 @@ make install
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} : run features/sum
 					done FEATURE/sum generated
 					make ${PACKAGE_ast_INCLUDE}/hashpart.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/hashpart.h
 					make ${PACKAGE_ast_INCLUDE}/swap.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/swap.h
 					prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
 					make sum.h implicit
@@ -138,13 +134,10 @@ make install
 											prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
 										done ${PACKAGE_ast_INCLUDE}/ast_wchar.h dontcare
 										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 									done ${PACKAGE_ast_INCLUDE}/regex.h dontcare
 									make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
 										make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 										done ${PACKAGE_ast_INCLUDE}/ast_getopt.h dontcare
-										prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 									done ${PACKAGE_ast_INCLUDE}/getopt.h dontcare
 									prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
 									make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
@@ -164,7 +157,6 @@ make install
 									make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
 									done ${PACKAGE_ast_INCLUDE}/ast_lib.h dontcare
 									prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 								done ${PACKAGE_ast_INCLUDE}/ast_std.h dontcare
 							done ${PACKAGE_ast_INCLUDE}/vmalloc.h dontcare
 							make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
@@ -173,7 +165,6 @@ make install
 								prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
 							done ${PACKAGE_ast_INCLUDE}/sfio.h dontcare
 							prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/ast.h dontcare
 					done sum.h
 					make sum-att.c implicit
@@ -221,10 +212,9 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/sum.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev sum.h
-		exec - proto -p -s sum.h > 1.${COTEMP}.x
-		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/sum.h 1.${COTEMP}.x
-		exec - then rm -f 1.${COTEMP}.x
-		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/sum.h
+		exec - if cmp 2>/dev/null -s sum.h ${PACKAGE_ast_INCLUDE}/sum.h
+		exec - then :
+		exec - else ${STDCP} sum.h ${PACKAGE_ast_INCLUDE}/sum.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/sum.h generated
 done install virtual

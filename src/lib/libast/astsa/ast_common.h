@@ -26,11 +26,23 @@
 #include <ast_sa.h>
 #include <sys/types.h>
 
-#define Void_t	void
-#define _ARG_(x)	x
-#define _BEGIN_EXTERNS_
-#define _END_EXTERNS_
-#define __STD_C		1
+/* AST backwards compatibility macros */
+#undef	_NIL_
+#define	_NIL_(x)	((x)0)
+#undef	_STD_
+#define	_STD_		1
+#undef	_ARG_
+#define	_ARG_(x)	x
+#undef	_VOID_
+#define	_VOID_		void
+#undef	_BEGIN_EXTERNS_
+#define	_BEGIN_EXTERNS_
+#undef	_END_EXTERNS_
+#define	_END_EXTERNS_
+#undef	__STD_C
+#define	__STD_C		1
+#undef	Void_t
+#define	Void_t		void
 
 #if _hdr_stdint
 #include <stdint.h>

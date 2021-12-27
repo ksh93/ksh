@@ -108,7 +108,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2021-12-15 $
+@(#)$Id: '$command$' (ksh 93u+m) 2021-12-22 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -252,13 +252,6 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     file (\bMamfile\b). A Mamfile contains a portable makefile description
     written in a simple dependency tree language using indented
     \bmake\b...\bdone\b blocks.]
-[+?Most component C source is prototyped. If \b$CC\b (default value
-    \bcc\b) is not a prototyping C compiler then \b'$command$' make\b runs
-    \bproto\b(1) on portions of the \b$PACKAGEROOT/src\b tree and places
-    the converted output files in the \b$PACKAGEROOT/proto/src\b tree.
-    Converted files are then viewpathed over the original source.
-    \bproto\b(1) converts an ANSI C subset to code that is compatible with
-    K&R, ANSI, and C++ dialects.]
 [+?All scripts and commands under \b$PACKAGEROOT\b use \b$PATH\b
     relative pathnames (via the \bAST\b \bpathpath\b(3) function); there
     are no embedded absolute pathnames. This means that binaries generated
@@ -271,7 +264,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 
 [+SEE ALSO?\bautoconfig\b(1), \bcksum\b(1), \bexecrate\b(1), \bexpmake\b(1),
 	\bgzip\b(1), \bmake\b(1), \bmamake\b(1), \bpax\b(1),
-	\bpkgadd\b(1), \bpkgmk\b(1), \bproto\b(1), \bratz\b(1), \brpm\b(1),
+	\bpkgadd\b(1), \bpkgmk\b(1), \brpm\b(1),
 	\bsh\b(1), \btar\b(1), \boptget\b(3)]
 '
 	case $* in
@@ -321,7 +314,6 @@ tab="        "
 verbose=0
 AUTHORIZE=
 DEBUG=
-PROTOROOT=-
 SHELLMAGIC=-
 
 unset FIGNORE BINDIR DLLDIR ETCDIR FUNDIR INCLUDEDIR LIBDIR LOCALEDIR MANDIR SHAREDIR 2>/dev/null || true
@@ -507,13 +499,6 @@ DETAILS
   Mamfile contains a portable makefile description written in a simple
   dependency tree language using indented make...done blocks.
 
-  Most component C source is prototyped. If $CC (default value cc) is not a
-  prototyping C compiler then package make runs proto(1) on portions of the
-  $PACKAGEROOT/src tree and places the converted output files in the
-  $PACKAGEROOT/proto/src tree. Converted files are then viewpathed over the
-  original source. proto(1) converts an ANSI C subset to code that is
-  compatible with K&R, ANSI, and C++ dialects.
-
   All scripts and commands under $PACKAGEROOT use $PATH relative pathnames (via
   the AST pathpath(3) function); there are no embedded absolute pathnames. This
   means that binaries generated under $PACKAGEROOT may be copied to a different
@@ -523,11 +508,10 @@ DETAILS
 
 SEE ALSO
   autoconfig(1), cksum(1), execrate(1), expmake(1), gzip(1), make(1),
-  mamake(1), pax(1), pkgadd(1), pkgmk(1), proto(1), ratz(1), rpm(1), sh(1),
-  tar(1), optget(3)
+  mamake(1), pax(1), pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2021-12-15
+  version         package (ksh 93u+m) 2021-12-22
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -2257,7 +2241,7 @@ cat $INITROOT/$i.sh
 		$show export PATH
 		export PATH
 		;;
-	*)	for i in package proto
+	*)	for i in package
 		do	if	onpath $i
 			then	EXECROOT=$(echo $_onpath_ | sed -e 's,//*[^/]*//*[^/]*$,,')
 				EXECTYPE=$(echo $EXECROOT | sed -e 's,.*/,,')
@@ -2375,9 +2359,6 @@ cat $INITROOT/$i.sh
 			?*)	USER_VPATH=$USER_VPATH:$i
 				USER_VPATH_CHAIN="$USER_VPATH_CHAIN $p $i"
 				p=$i
-				case $PROTOROOT in
-				-)	executable $i/bin/mamake && PROTOROOT= ;;
-				esac
 				;;
 			esac
 		done
@@ -2533,87 +2514,18 @@ esac
 
 checkaout()	# cmd ...
 {
-	case $PROTOROOT in
-	-)	PROTOROOT=
-		case $* in
-		ratz)	if	test -f $INITROOT/ratz.c -a -w $PACKAGEROOT
-			then	test -f $INITROOT/hello.c || {
-					cat > $INITROOT/hello.c <<'!'
-#ifndef printf
-#include <stdio.h>
-#endif
-int main() { int new = 0; printf("hello world\n"); return new;}
-!
-				}
-				test -f $INITROOT/p.c || {
-					cat > $INITROOT/p.c <<'!'
-/*
- * small test for prototyping cc
- */
-
-int main(int argc, char** argv) { return argc || argv; }
-!
-				}
-			fi
-			;;
-		esac
-		test -f $INITROOT/hello.c -a -f $INITROOT/p.c -a -w $PACKAGEROOT || {
-			for i
-			do	onpath $i || {
-					note "$i: command not found"
-					return 1
-				}
-			done
-			return 0
+	case $cc in
+	'')	_PACKAGE_cc=0
+		;;
+	*)	_PACKAGE_cc=1
+		test -f $INITROOT/hello.c -a -f $INITROOT/p.c || {
+			note "$INITROOT: INIT package source not found"
+			return 1
 		}
-		case $cc in
-		'')	_PACKAGE_cc=0
-			;;
-		*)	_PACKAGE_cc=1
-			test -f $INITROOT/hello.c -a -f $INITROOT/p.c || {
-				note "$INITROOT: INIT package source not found"
-				return 1
-			}
 
-			# check for prototyping cc
-			# NOTE: proto.c must be K&R compatible
-
-			$CC -c $INITROOT/p.c >/dev/null 2>&1
-			c=$?
-			rm -f p.*
-			test 0 != "$c" && {
-				checkaout proto || return
-				PROTOROOT=$PACKAGEROOT/proto
-				$show PROTOROOT=$PACKAGEROOT/proto
-				export PROTOROOT
-				INITPROTO=$PROTOROOT/src/cmd/INIT
-				note "proto convert $PACKAGEROOT/src into $PROTOROOT/src"
-				dirs="src"
-				(
-					if	test -f $PROTOROOT/UPDATE
-					then	newer="-newer $PROTOROOT/UPDATE"
-					else	newer=""
-					fi
-					case $exec in
-					'')	cd $PACKAGEROOT
-						find $dirs -name '*.[CcHh]' $newer -print | proto -v -L - -C proto
-						;;
-					*)	$exec cd $PACKAGEROOT
-						$exec "find $dirs -name '*.[CcHh]' $newer -print | proto -L - -C proto"
-						;;
-					esac
-					$exec touch $PROTOROOT/UPDATE
-				)
-				VPATH=$INSTALLROOT:$PROTOROOT:$PACKAGEROOT$USER_VPATH
-				$show VPATH=$VPATH
-				export VPATH
-			}
-
-			for i in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
-			do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || return
-			done
-			;;
-		esac
+		for i in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
+		do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || return
+		done
 		;;
 	esac
 	case $_PACKAGE_cc in
@@ -2672,30 +2584,12 @@ int main(int argc, char** argv) { return argc || argv; }
 		case $(ls -t $INITROOT/$i.c $INSTALLROOT/bin/$i 2>/dev/null) in
 		"$INITROOT/$i.c"*)
 			note "update $INSTALLROOT/bin/$i"
-			if	test proto != "$i" && executable $INSTALLROOT/bin/proto
-			then	case $exec in
-				'')	$INSTALLROOT/bin/proto -p $INITROOT/$i.c > $i.c || return ;;
-				*)	$exec "$INSTALLROOT/bin/proto -p $INITROOT/$i.c > $i.c" ;;
-				esac
-				$exec $CC $CCFLAGS -o $INSTALLROOT/bin/$i $i.c || return
-				$exec rm -f $i.c
-			else	if	test ! -d $INSTALLROOT/bin
-				then	for j in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
-					do	test -d $PACKAGEROOT/$j || $exec mkdir $PACKAGEROOT/$j || return
-					done
-				fi
-				if	test '' != "$PROTOROOT" -a -f $INITPROTO/$i.c
-				then	$exec $CC $CCFLAGS -o $INSTALLROOT/bin/$i $INITPROTO/$i.c || return
-				else	$exec $CC $CCFLAGS -o $INSTALLROOT/bin/$i $INITROOT/$i.c || return
-				fi
-				case $i:$exec in
-				proto:)	test -d $INSTALLROOT/include || mkdir $INSTALLROOT/include
-					$INSTALLROOT/bin/proto -f /dev/null > $i.c
-					cmp -s $i.c $INSTALLROOT/include/prototyped.h 2>/dev/null || cp $i.c $INSTALLROOT/include/prototyped.h
-					rm $i.c
-					;;
-				esac
+			if	test ! -d $INSTALLROOT/bin
+			then	for j in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
+				do	test -d $PACKAGEROOT/$j || $exec mkdir $PACKAGEROOT/$j || return
+				done
 			fi
+			$exec $CC $CCFLAGS -o $INSTALLROOT/bin/$i $INITROOT/$i.c || return
 			test -f $i.o && $exec rm -f $i.o
 			i=$PATH
 			PATH=/bin
@@ -3172,9 +3066,9 @@ cat $j $k
 		esac
 	fi
 
-	# initialize a few mamake related commands
+	# initialize mamake
 
-	checkaout mamake proto ratz || exit
+	checkaout mamake || exit
 
 	# execrate if necessary
 
@@ -3529,7 +3423,7 @@ results)set '' $target
 					case $filter in
 					errors)	$exeg egrep '^pax:|\*\*\*' $j
 						;;
-					*)	$exec egrep -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|pragma.*prototyped|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
+					*)	$exec egrep -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
 						$exec grep :
 						;;
 					esac
@@ -3564,6 +3458,7 @@ use)	# finalize the environment
 	esac
 	eval PACKAGE_USE=$package_use
 	export PACKAGE_USE
+	unset LC_ALL  # respect the user's locale again; avoids multibyte corruption
 
 	# run the command
 

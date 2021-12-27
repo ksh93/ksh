@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * AT&T Bell Laboratories
  * return 1 if dir [any dir] is the preroot

@@ -1,5 +1,3 @@
-set	prototyped
-
 set	nodefine
 lib	stat64
 typ	off64_t

@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * AT&T Bell Laboratories
  * force current command to run under dir preroot

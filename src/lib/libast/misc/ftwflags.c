@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * return default FTW_* flags conditioned by astconf()

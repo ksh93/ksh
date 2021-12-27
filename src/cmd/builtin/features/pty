@@ -1,5 +1,3 @@
-set	prototyped
-
 header	sys/types.h
 header	pty.h
 header	libutil.h

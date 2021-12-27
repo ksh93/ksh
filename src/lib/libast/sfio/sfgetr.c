@@ -28,14 +28,9 @@
 **	Written by Kiem-Phong Vo
 */
 
-#if __STD_C
-char* sfgetr(Sfio_t *f, int rc, int type)
-#else
-char* sfgetr(f,rc,type)
-Sfio_t*		f;	/* stream to read from	*/
-int		rc;	/* record separator	*/
-int		type;
-#endif
+char* sfgetr(Sfio_t*	f,	/* stream to read from	*/
+	     int	rc,	/* record separator	*/
+	     int	type)
 {
 	ssize_t		n, un;
 	uchar		*s, *ends, *us;

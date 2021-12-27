@@ -244,8 +244,7 @@ then	utf8=0
 	if	! let 1.0 2>/dev/null
 	then	export LC_NUMERIC=C
 	fi
-else	unset LANG LC_ALL
-	export LC_NUMERIC=C
+else	unset LANG ${!LC_*}
 fi
 if	[[ $VMALLOC_OPTIONS ]]
 then	vmalloc_options=$VMALLOC_OPTIONS

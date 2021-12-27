@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #if defined(__STDPP__directive) && defined(__STDPP__hide)
 __STDPP__directive pragma pp:hide strstr

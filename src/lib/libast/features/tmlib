@@ -1,5 +1,3 @@
-set	prototyped
-
 _cc_export_dynamic = note{ probe CC.EXPORT.DYNAMIC supported }end run{
 	case `{ probe -l C make cc | grep '^CC.EXPORT.DYNAMIC = .'; } 2>/dev/null` in
 	'')	exit 1 ;;
@@ -16,12 +14,7 @@ tst	tzset_environ note{ tzset() bypasses user getenv() }end execute{
 	#include <time.h>
 	extern char**	environ;
 	extern char*	tzname[2];
-	#if _STD_
 	extern char* getenv(char* s)
-	#else
-	extern char* getenv(s)
-	char*	s;
-	#endif
 	{
 		return "foo0bar";
 	}

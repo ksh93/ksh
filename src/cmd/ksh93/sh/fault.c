@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Fault handling routines
  *
@@ -50,7 +49,7 @@ static int	cursig = -1;
     /*
      * This exception handler is called after vmalloc() unlocks the region
      */
-    static int malloc_done(Vmalloc_t* vm, int type, Void_t* val, Vmdisc_t* dp)
+    static int malloc_done(Vmalloc_t* vm, int type, void* val, Vmdisc_t* dp)
     {
 	dp->exceptf = 0;
 	sh_exit(SH_EXITSIG);

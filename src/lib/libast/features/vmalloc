@@ -49,12 +49,11 @@ tst	map_malloc note{ map malloc to _ast_malloc }end noexecute{
 	int main() { return 1; }
 	#else
 	static int user = 0;
-	_BEGIN_EXTERNS_
 	#if _lib_strdup
-	extern char* strdup _ARG_((const char*));
+	extern char* strdup(const char*);
 	#define LOCAL()	strdup("s")
 	#else
-	extern void* calloc _ARG_((unsigned int, unsigned int));
+	extern void* calloc(unsigned int, unsigned int);
 	#define LOCAL()	calloc(1,1)
 	#endif
 	#define HT double
@@ -63,7 +62,6 @@ tst	map_malloc note{ map malloc to _ast_malloc }end noexecute{
 	static HT* op;
 	#define MALLOC(n) if(user)return&heap[0];op=hp;hp+=(n+sizeof(HT)-1)/sizeof(HT);return(void*)op;
 	#define INTERCEPTED(p) (((char*)(p))==((char*)&heap[0]))
-	#if _STD_
 	extern void free(void* p) { }
 	extern void _free(void* p) { }
 	extern void __free(void* p) { }
@@ -72,17 +70,6 @@ tst	map_malloc note{ map malloc to _ast_malloc }end noexecute{
 	extern void* _malloc(unsigned int n) { MALLOC(n); }
 	extern void* __malloc(unsigned int n) { MALLOC(n); }
 	extern void* __libc_malloc(unsigned int n) { MALLOC(n); }
-	#else
-	extern void free(p) char* p; { }
-	extern void _free(p) char* p; { }
-	extern void __free(p) char* p; { }
-	extern void __libc_free(p) char* p; { }
-	extern void* malloc(n) unsigned int n; { MALLOC(n); }
-	extern void* _malloc(n) unsigned int n; { MALLOC(n); }
-	extern void* __malloc(n) unsigned int n; { MALLOC(n); }
-	extern void* __libc_malloc(n) unsigned int n; { MALLOC(n); }
-	#endif
-	_END_EXTERNS_
 	int main() { user = 1; return !INTERCEPTED(LOCAL()); }
 	#endif
 }end
@@ -91,13 +78,7 @@ tst	map_malloc note{ map malloc to _ast_malloc -- wimp-o mach? }end noexecute{
 	#if _map_malloc
 	int main() { return 0; }
 	#else
-	_BEGIN_EXTERNS_
-	#if _STD_
 	void* calloc(unsigned n, unsigned m) { exit(1); }
-	#else
-	void* calloc(n, m) unsigned n, m; { exit(1); }
-	#endif
-	_END_EXTERNS_
 	int main() { return 0; }
 	#endif
 }end

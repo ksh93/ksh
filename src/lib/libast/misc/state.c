@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 static const char id[] = "\n@(#)$Id: ast (AT&T Research) 2012-05-28 $\0\n";
 

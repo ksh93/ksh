@@ -27,13 +27,7 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
 static int _sfdup(int fd, int newfd)
-#else
-static int _sfdup(fd,newfd)
-int	fd;
-int	newfd;
-#endif
 {
 	reg int	dupfd;
 
@@ -56,13 +50,7 @@ int	newfd;
 #endif
 }
 
-#if __STD_C
 int sfsetfd(Sfio_t* f, int newfd)
-#else
-int sfsetfd(f,newfd)
-Sfio_t	*f;
-int	newfd;
-#endif
 {
 	reg int		oldfd;
 	SFMTXDECL(f);

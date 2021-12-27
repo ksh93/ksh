@@ -73,14 +73,9 @@ static Pfobj_t**	Pftable;	/* hash table		*/
 #define PFTABLE		1019		/* table size		*/
 static Vmalloc_t*	Vmpf;		/* heap for our own use	*/
 
-#if __STD_C
-static Pfobj_t* pfsearch(Vmalloc_t* vm, char* file, int line)
-#else
-static Pfobj_t* pfsearch(vm, file, line)
-Vmalloc_t*	vm;	/* region allocating from			*/
-char*		file;	/* the file issuing the allocation request	*/
-int		line;	/* line number					*/
-#endif
+static Pfobj_t* pfsearch(Vmalloc_t*	vm,	/* region allocating from			*/
+			 char*		file,	/* the file issuing the allocation request	*/
+			 int		line)	/* line number					*/
 {
 	reg Pfobj_t	*pf, *last;
 	reg Vmulong_t	h;
@@ -179,12 +174,7 @@ int		line;	/* line number					*/
 	return pf;
 }
 
-#if __STD_C
 static void pfclose(Vmalloc_t* vm)
-#else
-static void pfclose(vm)
-Vmalloc_t*	vm;
-#endif
 {
 	reg int		n;
 	reg Pfobj_t	*pf, *next, *last;
@@ -207,16 +197,7 @@ Vmalloc_t*	vm;
 	}
 }
 
-#if __STD_C
 static void pfsetinfo(Vmalloc_t* vm, Vmuchar_t* data, size_t size, char* file, int line)
-#else
-static void pfsetinfo(vm, data, size, file, line)
-Vmalloc_t*	vm;
-Vmuchar_t*	data;
-size_t		size;
-char*		file;
-int		line;
-#endif
 {
 	reg Pfobj_t*	pf;
 	reg Vmulong_t	s;
@@ -247,12 +228,7 @@ int		line;
 }
 
 /* sort by file names and line numbers */
-#if __STD_C
 static Pfobj_t* pfsort(Pfobj_t* pf)
-#else
-static Pfobj_t* pfsort(pf)
-Pfobj_t*	pf;
-#endif
 {
 	reg Pfobj_t	*one, *two, *next;
 	reg int		cmp;
@@ -317,19 +293,8 @@ Pfobj_t*	pf;
 	}
 }
 
-#if __STD_C
 static char* pfsummary(char* buf, Vmulong_t na, Vmulong_t sa,
 			Vmulong_t nf, Vmulong_t sf, Vmulong_t max, Vmulong_t size)
-#else
-static char* pfsummary(buf, na, sa, nf, sf, max, size)
-char*		buf;
-Vmulong_t	na;
-Vmulong_t	sa;
-Vmulong_t	nf;
-Vmulong_t	sf;
-Vmulong_t	max;
-Vmulong_t	size;
-#endif
 {
 	buf = (*_Vmstrcpy)(buf,"n_alloc", '=');
 	buf = (*_Vmstrcpy)(buf, (*_Vmitoa)(na,-1), ':');
@@ -351,13 +316,7 @@ Vmulong_t	size;
 }
 
 /* print profile data */
-#if __STD_C
 int vmprofile(Vmalloc_t* vm, int fd)
-#else
-int vmprofile(vm, fd)
-Vmalloc_t*	vm;
-int		fd;
-#endif
 {
 	reg Pfobj_t	*pf, *list, *next, *last;
 	reg int		n;
@@ -461,20 +420,13 @@ int		fd;
 	return 0;
 }
 
-#if __STD_C
-static Void_t* pfalloc(Vmalloc_t* vm, size_t size, int local)
-#else
-static Void_t* pfalloc(vm, size, local)
-Vmalloc_t*	vm;
-size_t		size;
-int		local;
-#endif
+static void* pfalloc(Vmalloc_t* vm, size_t size, int local)
 {
 	reg size_t	s;
-	reg Void_t	*data;
+	reg void	*data;
 	reg char	*file;
 	reg int		line;
-	reg Void_t	*func;
+	reg void	*func;
 	reg Vmdata_t	*vd = vm->data;
 
 	VMFLF(vm,file,line,func);
@@ -496,20 +448,13 @@ int		local;
 	return data;
 }
 
-#if __STD_C
-static int pffree(Vmalloc_t* vm, Void_t* data, int local)
-#else
-static int pffree(vm, data, local)
-Vmalloc_t*	vm;
-Void_t*		data;
-int		local;
-#endif
+static int pffree(Vmalloc_t* vm, void* data, int local)
 {
 	reg Pfobj_t	*pf;
 	reg size_t	s;
 	reg char	*file;
 	reg int		line, rv;
-	reg Void_t	*func;
+	reg void	*func;
 	reg Vmdata_t	*vd = vm->data;
 
 	VMFLF(vm,file,line,func);
@@ -535,30 +480,21 @@ int		local;
 		(*_Vmtrace)(vm,(Vmuchar_t*)data,NIL(Vmuchar_t*),s,0);
 	}
 
-	rv = KPVFREE((vm), (Void_t*)data, (*Vmbest->freef));
+	rv = KPVFREE((vm), (void*)data, (*Vmbest->freef));
 
         CLRLOCK(vm, local);
 
 	return rv;
 }
 
-#if __STD_C
-static Void_t* pfresize(Vmalloc_t* vm, Void_t* data, size_t size, int type, int local)
-#else
-static Void_t* pfresize(vm, data, size, type, local)
-Vmalloc_t*	vm;
-Void_t*		data;
-size_t		size;
-int		type;
-int		local;
-#endif
+static void* pfresize(Vmalloc_t* vm, void* data, size_t size, int type, int local)
 {
 	reg Pfobj_t	*pf;
 	reg size_t	s, news;
-	reg Void_t	*addr;
+	reg void	*addr;
 	reg char	*file;
 	reg int		line;
-	reg Void_t	*func;
+	reg void	*func;
 	reg size_t	oldsize;
 	reg Vmdata_t	*vd = vm->data;
 
@@ -570,7 +506,7 @@ int		local;
 	}
 	if(size == 0)
 	{	(void)pffree(vm, data, local);
-		return NIL(Void_t*);
+		return NIL(void*);
 	}
 
 	VMFLF(vm,file,line,func);
@@ -618,56 +554,28 @@ int		local;
 	return addr;
 }
 
-#if __STD_C
-static long pfsize(Vmalloc_t* vm, Void_t* addr, int local)
-#else
-static long pfsize(vm, addr, local)
-Vmalloc_t*	vm;
-Void_t*		addr;
-int		local;
-#endif
+static long pfsize(Vmalloc_t* vm, void* addr, int local)
 {
 	return (*Vmbest->addrf)(vm, addr, local) != 0 ? -1L : (long)PFSIZE(addr);
 }
 
-#if __STD_C
-static long pfaddr(Vmalloc_t* vm, Void_t* addr, int local)
-#else
-static long pfaddr(vm, addr, local)
-Vmalloc_t*	vm;
-Void_t*		addr;
-int		local;
-#endif
+static long pfaddr(Vmalloc_t* vm, void* addr, int local)
 {
 	return (*Vmbest->addrf)(vm, addr, local);
 }
 
-#if __STD_C
 static int pfcompact(Vmalloc_t* vm, int local)
-#else
-static int pfcompact(vm, local)
-Vmalloc_t*	vm;
-int		local;
-#endif
 {
 	return (*Vmbest->compactf)(vm, local);
 }
 
-#if __STD_C
-static Void_t* pfalign(Vmalloc_t* vm, size_t size, size_t align, int local)
-#else
-static Void_t* pfalign(vm, size, align, local)
-Vmalloc_t*	vm;
-size_t		size;
-size_t		align;
-int		local;
-#endif
+static void* pfalign(Vmalloc_t* vm, size_t size, size_t align, int local)
 {
 	reg size_t	s;
-	reg Void_t	*data;
+	reg void	*data;
 	reg char	*file;
 	reg int		line;
-	reg Void_t	*func;
+	reg void	*func;
 	reg Vmdata_t	*vd = vm->data;
 
 	VMFLF(vm,file,line,func);

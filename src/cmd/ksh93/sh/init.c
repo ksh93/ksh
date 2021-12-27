@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  *
  * Shell initialization
@@ -2005,43 +2004,32 @@ static void env_import_attributes(Shell_t *shp, char *next)
 }
 
 /*
- * terminate shell and free up the space
+ * libshell ABI compatibility functions
  */
-int sh_term(void)
-{
-	sfdisc(sfstdin,SF_POPDISC);
-	free((char*)sh.outbuff);
-	stakset(NIL(char*),0);
-	return(0);
-}
+#define BYPASS_MACRO
 
-/* function versions of these */
-
-#define DISABLE	/* proto workaround */
-
-unsigned long sh_isoption DISABLE (int opt)
+unsigned long sh_isoption BYPASS_MACRO (int opt)
 {
 	return(sh_isoption(opt));
 }
 
-unsigned long sh_onoption DISABLE (int opt)
+unsigned long sh_onoption BYPASS_MACRO (int opt)
 {
 	return(sh_onoption(opt));
 }
 
-unsigned long sh_offoption DISABLE (int opt)
+unsigned long sh_offoption BYPASS_MACRO (int opt)
 {
 	return(sh_offoption(opt));
 }
 
-void	sh_sigcheck DISABLE (Shell_t *shp)
+void	sh_sigcheck BYPASS_MACRO (Shell_t *shp)
 {
-	if(!shp)
-		shp = sh_getinterp();
-	sh_sigcheck(shp);
+	NOT_USED(shp);
+	sh_sigcheck(&sh);
 }
 
-Dt_t*	sh_bltin_tree DISABLE (void)
+Dt_t*	sh_bltin_tree(void)
 {
 	return(sh.bltin_tree);
 }

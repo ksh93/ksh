@@ -69,9 +69,6 @@
 #include	<varargs.h>
 #endif
 #include	"FEATURE/common"
-#if !__STD_C
-#define const	
-#endif
 #endif /* !_PACKAGE_ast */
 
 #include	"sfio_t.h"
@@ -374,7 +371,7 @@
 		{	(_mf_) = (ff); \
 			if(sfmutex((ff), SFMTX_LOCK) != 0) return(rv); \
 			if(_Sfnotify) \
-			{	(*_Sfnotify)((_mf_), SF_MTACCESS, (Void_t*)(&(ff)) ); \
+			{	(*_Sfnotify)((_mf_), SF_MTACCESS, (void*)(&(ff)) ); \
 				if(!(ff)) (ff) = (_mf_); \
 			} \
 		} \
@@ -382,7 +379,7 @@
 #define SFMTXend(ff,_mf_) \
 	{	if((ff)->_flags&SF_MTSAFE) \
 		{	if(_Sfnotify) \
-				(*_Sfnotify)((_mf_), SF_MTACCESS, NIL(Void_t*) ); \
+				(*_Sfnotify)((_mf_), SF_MTACCESS, NIL(void*) ); \
 			sfmutex((ff), SFMTX_UNLOCK); \
 			(ff) = (_mf_); \
 		} \
@@ -483,11 +480,7 @@
 #endif
 
 /* to get rid of pesky compiler warnings */
-#if __STD_C
 #define NOTUSED(x)	(void)(x)
-#else
-#define NOTUSED(x)	(&x,1)
-#endif
 
 /* Private flags in the "bits" field */
 #define SF_MMAP		00000001	/* in memory mapping mode		*/
@@ -713,7 +706,7 @@ typedef union
 #endif
 	char		c, *s, **sp;
 	uchar		uc, *us, **usp;
-	Void_t		*vp;
+	void		*vp;
 	Sffmt_t		*ft;
 } Argv_t;
 
@@ -779,7 +772,7 @@ struct _fmtpos_s
 #define SFFMT_CLASS	040		/* %[			*/
 
 /* local variables used across sf-functions */
-typedef void  (*Sfnotify_f)_ARG_((Sfio_t*, int, void*));
+typedef void  (*Sfnotify_f)(Sfio_t*, int, void*);
 #define _Sfpage		(_Sfextern.sf_page)
 #define _Sfpool		(_Sfextern.sf_pool)
 #define _Sfpmove	(_Sfextern.sf_pmove)
@@ -796,16 +789,16 @@ typedef void  (*Sfnotify_f)_ARG_((Sfio_t*, int, void*));
 typedef struct _sfextern_s
 {	ssize_t			sf_page;
 	struct _sfpool_s	sf_pool;
-	int			(*sf_pmove)_ARG_((Sfio_t*, int));
-	Sfio_t*			(*sf_stack)_ARG_((Sfio_t*, Sfio_t*));
-	void			(*sf_notify)_ARG_((Sfio_t*, int, void*));
-	int			(*sf_stdsync)_ARG_((Sfio_t*));
+	int			(*sf_pmove)(Sfio_t*, int);
+	Sfio_t*			(*sf_stack)(Sfio_t*, Sfio_t*);
+	void			(*sf_notify)(Sfio_t*, int, void*);
+	int			(*sf_stdsync)(Sfio_t*);
 	struct _sfdisc_s	sf_udisc;
-	void			(*sf_cleanup)_ARG_((void));
+	void			(*sf_cleanup)(void);
 	int			sf_exiting;
 	int			sf_done;
 	Vtonce_t*		sf_once;
-	void			(*sf_oncef)_ARG_((void));
+	void			(*sf_oncef)(void);
 	Vtmutex_t*		sf_mutex;
 } Sfextern_t;
 
@@ -885,8 +878,8 @@ typedef struct _sfextern_s
 #define SFISALL(f,v)	((((v) = (f)->mode&SF_RV) ? ((f)->mode &= ~SF_RV) : 0), \
 			 ((v) || ((f)->flags&(SF_SHARE|SF_APPENDWR|SF_WHOLE)) ) )
 #define SFSK(f,a,o,d)	(SETLOCAL(f),sfsk(f,(Sfoff_t)a,o,d))
-#define SFRD(f,b,n,d)	(SETLOCAL(f),sfrd(f,(Void_t*)b,n,d))
-#define SFWR(f,b,n,d)	(SETLOCAL(f),sfwr(f,(Void_t*)b,n,d))
+#define SFRD(f,b,n,d)	(SETLOCAL(f),sfrd(f,(void*)b,n,d))
+#define SFWR(f,b,n,d)	(SETLOCAL(f),sfwr(f,(void*)b,n,d))
 #define SFSYNC(f)	(SETLOCAL(f),sfsync(f))
 #define SFCLOSE(f)	(SETLOCAL(f),sfclose(f))
 #define SFFLSBUF(f,n)	(SETLOCAL(f),_sfflsbuf(f,n))
@@ -1049,8 +1042,8 @@ typedef struct _sftab_
 	char*		sf_digits;		/* digits for general bases	*/ 
 	int		(*sf_cvinitf)();	/* initialization function	*/
 	int		sf_cvinit;		/* initialization state		*/
-	Fmtpos_t*	(*sf_fmtposf)_ARG_((Sfio_t*,const char*,va_list,Sffmt_t*,int));
-	char*		(*sf_fmtintf)_ARG_((const char*,int*));
+	Fmtpos_t*	(*sf_fmtposf)(Sfio_t*,const char*,va_list,Sffmt_t*,int);
+	char*		(*sf_fmtintf)(const char*,int*);
 	float*		sf_flt_pow10;		/* float powers of 10		*/
 	double*		sf_dbl_pow10;		/* double powers of 10		*/
 	Sfdouble_t*	sf_ldbl_pow10;		/* Sfdouble_t powers of 10	*/
@@ -1132,7 +1125,7 @@ typedef struct _sftab_
 /* note that MEMCPY advances the associated pointers */
 #define MEMCPY(to,fr,n) \
 	switch(n) \
-	{ default : memcpy((Void_t*)to,(Void_t*)fr,n); to += n; fr += n; break; \
+	{ default : memcpy((void*)to,(void*)fr,n); to += n; fr += n; break; \
 	  case  7 : *to++ = *fr++;	\
 		/* FALLTHROUGH */	\
 	  case  6 : *to++ = *fr++;	\
@@ -1149,7 +1142,7 @@ typedef struct _sftab_
 	}
 #define MEMSET(s,c,n) \
 	switch(n) \
-	{ default : memset((Void_t*)s,(int)c,n); s += n; break; \
+	{ default : memset((void*)s,(int)c,n); s += n; break; \
 	  case  7 : *s++ = c;		\
 		    /* FALLTHROUGH */	\
 	  case  6 : *s++ = c;		\
@@ -1165,17 +1158,15 @@ typedef struct _sftab_
 	  case  1 : *s++ = c;		\
 	}
 
-_BEGIN_EXTERNS_
-
 extern Sftab_t		_Sftable;
 
-extern int		_sfpopen _ARG_((Sfio_t*, int, int, int));
-extern int		_sfpclose _ARG_((Sfio_t*));
-extern int		_sfexcept _ARG_((Sfio_t*, int, ssize_t, Sfdisc_t*));
-extern Sfrsrv_t*	_sfrsrv _ARG_((Sfio_t*, ssize_t));
-extern int		_sfsetpool _ARG_((Sfio_t*));
-extern char*		_sfcvt _ARG_((Void_t*,char*,size_t,int,int*,int*,int*,int));
-extern char**		_sfgetpath _ARG_((char*));
+extern int		_sfpopen(Sfio_t*, int, int, int);
+extern int		_sfpclose(Sfio_t*);
+extern int		_sfexcept(Sfio_t*, int, ssize_t, Sfdisc_t*);
+extern Sfrsrv_t*	_sfrsrv(Sfio_t*, ssize_t);
+extern int		_sfsetpool(Sfio_t*);
+extern char*		_sfcvt(void*,char*,size_t,int,int*,int*,int*,int);
+extern char**		_sfgetpath(char*);
 
 #if _BLD_sfio && defined(__EXPORT__)
 #define extern		__EXPORT__
@@ -1186,8 +1177,8 @@ extern char**		_sfgetpath _ARG_((char*));
 
 extern Sfextern_t	_Sfextern;
 
-extern int		_sfmode _ARG_((Sfio_t*, int, int));
-extern int		_sftype _ARG_((const char*, int*, int*, int*));
+extern int		_sfmode(Sfio_t*, int, int);
+extern int		_sftype(const char*, int*, int*, int*);
 
 #undef	extern
 
@@ -1201,7 +1192,7 @@ extern int		errno;
 #define frexpl		frexp
 #endif
 #if !_lib_frexpl
-extern Sfdouble_t	frexpl _ARG_((Sfdouble_t, int*));
+extern Sfdouble_t	frexpl(Sfdouble_t, int*);
 #endif
 #endif
 #ifndef ldexpl
@@ -1209,94 +1200,65 @@ extern Sfdouble_t	frexpl _ARG_((Sfdouble_t, int*));
 #define ldexpl		ldexp
 #endif
 #if !_lib_ldexpl
-extern Sfdouble_t	ldexpl _ARG_((Sfdouble_t, int));
+extern Sfdouble_t	ldexpl(Sfdouble_t, int);
 #endif
 #endif
 
 #if !_PACKAGE_ast
 
-#if !__STDC__ && !_hdr_stdlib
-extern void	abort _ARG_((void));
-extern int	atexit _ARG_((void(*)(void)));
-extern char*	getenv _ARG_((const char*));
-extern void*	malloc _ARG_((size_t));
-extern void*	realloc _ARG_((void*, size_t));
-extern void	free _ARG_((void*));
-extern size_t	strlen _ARG_((const char*));
-extern char*	strcpy _ARG_((char*, const char*));
-
-extern Void_t*	memset _ARG_((void*, int, size_t));
-extern Void_t*	memchr _ARG_((const void*, int, size_t));
-extern Void_t*	memccpy _ARG_((void*, const void*, int, size_t));
-#ifndef memcpy
-extern Void_t*	memcpy _ARG_((void*, const void*, size_t));
-#endif
-#if !defined(strtod)
-extern double	strtod _ARG_((const char*, char**));
-#endif
-#if !defined(remove)
-extern int	sysremovef _ARG_((const char*));
-#endif
-#endif /* !__STDC__ && !_hdr_stdlib */
-
 #if !_hdr_unistd
-#if _proto_open && __cplusplus
-extern int	sysopenf _ARG_((const char*, int, ...));
-#endif
-extern int	sysclosef _ARG_((int));
-extern ssize_t	sysreadf _ARG_((int, void*, size_t));
-extern ssize_t	syswritef _ARG_((int, const void*, size_t));
-extern sfoff_t	syslseekf _ARG_((int, sfoff_t, int));
-extern int	sysdupf _ARG_((int));
-extern int	syspipef _ARG_((int*));
-extern int	sysaccessf _ARG_((const char*, int));
-extern int	sysremovef _ARG_((const char*));
-extern int	sysfstatf _ARG_((int, sfstat_t*));
-extern int	sysstatf _ARG_((const char*, sfstat_t*));
+extern int	sysclosef(int);
+extern ssize_t	sysreadf(int, void*, size_t);
+extern ssize_t	syswritef(int, const void*, size_t);
+extern sfoff_t	syslseekf(int, sfoff_t, int);
+extern int	sysdupf(int);
+extern int	syspipef(int*);
+extern int	sysaccessf(const char*, int);
+extern int	sysremovef(const char*);
+extern int	sysfstatf(int, sfstat_t*);
+extern int	sysstatf(const char*, sfstat_t*);
 
-extern int	isatty _ARG_((int));
+extern int	isatty(int);
 
-extern int	wait _ARG_((int*));
-extern uint	sleep _ARG_((uint));
-extern int	execl _ARG_((const char*, const char*,...));
-extern int	execv _ARG_((const char*, char**));
+extern int	wait(int*);
+extern uint	sleep(uint);
+extern int	execl(const char*, const char*,...);
+extern int	execv(const char*, char**);
 #if !defined(fork)
-extern int	fork _ARG_((void));
+extern int	fork(void);
 #endif
 #if _lib_unlink
-extern int	unlink _ARG_((const char*));
+extern int	unlink(const char*);
 #endif
 
 #endif /*_hdr_unistd*/
 
 #if _lib_bcopy && !_proto_bcopy
-extern void	bcopy _ARG_((const void*, void*, size_t));
+extern void	bcopy(const void*, void*, size_t);
 #endif
 #if _lib_bzero && !_proto_bzero
-extern void	bzero _ARG_((void*, size_t));
+extern void	bzero(void*, size_t);
 #endif
 
-extern time_t	time _ARG_((time_t*));
-extern int	waitpid _ARG_((int,int*,int));
-extern void	_exit _ARG_((int));
-typedef int(*	Onexit_f)_ARG_((void));
-extern Onexit_f	onexit _ARG_((Onexit_f));
+extern time_t	time(time_t*);
+extern int	waitpid(int,int*,int);
+extern void	_exit(int);
+typedef int(*	Onexit_f)(void);
+extern Onexit_f	onexit(Onexit_f);
 
 #if _lib_vfork && !_hdr_vfork && !_sys_vfork
-extern pid_t	vfork _ARG_((void));
+extern pid_t	vfork(void);
 #endif /*_lib_vfork*/
 
 #if _lib_poll
 #if _lib_poll_fd_1
-extern int	poll _ARG_((struct pollfd*, ulong, int));
+extern int	poll(struct pollfd*, ulong, int);
 #else
-extern int	poll _ARG_((ulong, struct pollfd*, int));
+extern int	poll(ulong, struct pollfd*, int);
 #endif
 #endif /*_lib_poll*/
 
 #endif /* _PACKAGE_ast */
-
-_END_EXTERNS_
 
 #ifdef _SF_HIDESFFLAGS
 #undef SFIO_FLAGS

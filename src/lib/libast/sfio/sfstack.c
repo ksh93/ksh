@@ -38,18 +38,13 @@
 	  return(rv); \
 	}
 
-#if __STD_C
-Sfio_t* sfstack(Sfio_t* f1, Sfio_t* f2)
-#else
-Sfio_t* sfstack(f1,f2)
-Sfio_t*	f1;	/* base of stack	*/
-Sfio_t*	f2;	/* top of stack	*/
-#endif
+Sfio_t* sfstack(Sfio_t*	f1,	/* base of stack	*/
+	        Sfio_t*	f2)	/* top of stack	*/
 {
 	reg int		n;
 	reg Sfio_t*	rf;
 	reg Sfrsrv_t*	rsrv;
-	reg Void_t*	mtx;
+	reg void*	mtx;
 
 	STKMTXLOCK(f1,f2);
 

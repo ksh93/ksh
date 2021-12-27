@@ -32,13 +32,7 @@ void _STUB_vmstrdup(){}
  * return a copy of s using vmalloc
  */
 
-#if __STD_C
 char* vmstrdup(Vmalloc_t* v, register const char* s)
-#else
-char* vmstrdup(v, s)
-Vmalloc_t*	v;
-register char*	s;
-#endif
 {
 	register char*	t;
 	register size_t	n;

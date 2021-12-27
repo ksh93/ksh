@@ -1,4 +1,3 @@
-set	prototyped
 hdr	dl,dlfcn,dll,rld_interface,mach-o/dyld
 sys	ldr
 lib	dlopen -ldl

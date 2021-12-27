@@ -27,14 +27,9 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
-ssize_t sfwrite(Sfio_t* f, const Void_t* buf, size_t n)
-#else
-ssize_t sfwrite(f,buf,n)
-Sfio_t*		f;	/* write to this stream. 	*/
-Void_t*		buf;	/* buffer to be written.	*/
-size_t		n;	/* number of bytes. 		*/
-#endif
+ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
+		const void*	buf,	/* buffer to be written.	*/
+		size_t		n)	/* number of bytes. 		*/
 {
 	reg uchar	*s, *begs, *next;
 	reg ssize_t	w;

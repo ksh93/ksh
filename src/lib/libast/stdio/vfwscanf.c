@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #include "stdhdr.h"
 
@@ -63,7 +62,7 @@ wideexcept(Sfio_t* f, int op, void* val, Sfdisc_t* dp)
  */
 
 static ssize_t
-wideread(Sfio_t* f, Void_t* buf, size_t size, Sfdisc_t* dp)
+wideread(Sfio_t* f, void* buf, size_t size, Sfdisc_t* dp)
 {
 	register Wide_t*	w = (Wide_t*)dp;
 	wchar_t			wuf[2];

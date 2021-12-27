@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef NV_DEFAULT
 /*
  * David Korn
@@ -87,7 +86,7 @@ struct Namarray
 	Namfun_t	hdr;
 	long		nelem;				/* number of elements */
 	void	*(*fun)(Namval_t*,const char*,int);	/* associative arrays */
-	void		*fixed;			/* for fixed sized arrays */
+	void		*fixed;			/* for fixed-size arrays */
 	Dt_t		*table;			/* for subscripts */
 	void		*scope;			/* non-zero when scoped */
 };

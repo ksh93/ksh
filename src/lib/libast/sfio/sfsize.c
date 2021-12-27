@@ -26,12 +26,7 @@
 **
 **	Written by Kiem-Phong Vo.
 */
-#if __STD_C
 Sfoff_t sfsize(Sfio_t* f)
-#else
-Sfoff_t sfsize(f)
-Sfio_t*	f;
-#endif
 {
 	Sfdisc_t*	disc;
 	reg int		mode;

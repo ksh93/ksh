@@ -1,4 +1,3 @@
-set	prototyped
 hdr	nc,exec_attr
 mem	exception.name,_exception.name math.h
 lib	setreuid,setregid,nice,fork,spawnveg,fchdir
@@ -21,15 +20,11 @@ tst	note{ determining extra bytes per argument for arguments list }end output{
 	 * even if all the arguments should fit in ARG_MAX based on their length.
 	 */
 
-	/* AST includes */
 	#include <ast.h>
 	#include <error.h>
 	#include <sfio.h>
 	#include <stak.h>
 	#include <wait.h>
-
-	/* Standard includes */
-	#include <errno.h>
 
 	int main(int argc,char *argv[])
 	{

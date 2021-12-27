@@ -45,21 +45,16 @@
 #define STREAM_PEEK	001
 #define SOCKET_PEEK	002
 
-#if __STD_C
-ssize_t sfpkrd(int fd, Void_t* argbuf, size_t n, int rc, long tm, int action)
-#else
-ssize_t sfpkrd(fd, argbuf, n, rc, tm, action)
-int	fd;	/* file descriptor */
-Void_t*	argbuf;	/* buffer to read data */
-size_t	n;	/* buffer size */
-int	rc;	/* record character */
-long	tm;	/* time-out */
-int	action;	/* >0: peeking, if rc>=0, get action records,
-		   <0: no peeking, if rc>=0, get action records,
-		   =0: no peeking, if rc>=0, must get a single record
-		   =2: same as >0, but always use select(2)
-		*/
-#endif
+ssize_t sfpkrd(int	fd,	/* file descriptor */
+	       void*	argbuf,	/* buffer to read data */
+	       size_t	n,	/* buffer size */
+	       int	rc,	/* record character */
+	       long	tm,	/* time-out */
+	       int	action)	/* >0: peeking, if rc>=0, get action records,
+				   <0: no peeking, if rc>=0, get action records,
+				   =0: no peeking, if rc>=0, must get a single record
+				   =2: same as >0, but always use select(2)
+				*/
 {
 	reg ssize_t	r;
 	reg int		ntry, t;

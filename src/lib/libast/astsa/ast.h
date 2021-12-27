@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * standalone mini ast+sfio interface
  */
@@ -104,13 +103,8 @@ typedef struct
 #define offsetof(type,member) ((unsigned long)&(((type*)0)->member))
 #endif
 
-#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 #define NiL			0
-#define NoP(x)			(void)(x)
-#else
-#define NiL			((char*)0)
-#define NoP(x)			(&x,1)
-#endif
+#define NoP(x)			do (void)(x); while(0)	/* for silencing "unused parameter" warnings */
 
 #define conformance(a,b)	"ast"
 #define fmtident(s)		((char*)(s)+10)

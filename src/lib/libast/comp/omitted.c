@@ -1,4 +1,3 @@
-#pragma prototyped noticed
 
 /*
  * workarounds to bring the native interface close to POSIX and X/Open

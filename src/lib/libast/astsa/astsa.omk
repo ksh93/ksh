@@ -27,7 +27,6 @@ ASTSA_HDRS = \
 	magicid.h \
 	option.h \
 	optlib.h \
-	prototyped.h \
 	sfstr.h \
 	times.h \
 	vmalloc.h

@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * AT&T Bell Laboratories
  * return the real absolute pathname of the preroot dir for cmd

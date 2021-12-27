@@ -66,14 +66,7 @@ typedef struct _hash_s
 } Hash_t;
 
 /* object delete function */
-#if __STD_C
-static void hashfree(Dt_t* dt, Void_t* obj, Dtdisc_t* disc)
-#else
-static void hashfree(dt, obj, disc)
-Dt_t*		dt;
-Void_t*		obj;
-Dtdisc_t*	disc;
-#endif
+static void hashfree(Dt_t* dt, void* obj, Dtdisc_t* disc)
 {
 	free(((Hash_t*)obj)->item.key);
 	free(obj);
@@ -91,12 +84,7 @@ static Dtdisc_t	Hashdisc =	/* discipline		*/
 };
 
 extern
-#if __STD_C
 int hcreate(size_t nel)
-#else
-int hcreate(nel)
-size_t	nel;
-#endif
 {
 	if(Hashtab)	/* already opened */
 		return 0;
@@ -114,13 +102,7 @@ extern void hdestroy()
 }
 
 extern
-#if __STD_C
 ENTRY* hsearch(ENTRY item, ACTION action)
-#else
-ENTRY* hsearch(item, action)
-ENTRY	item;
-ACTION	action;
-#endif
 {
 	reg Hash_t*	o;
 

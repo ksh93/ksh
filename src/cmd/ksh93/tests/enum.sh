@@ -150,7 +150,7 @@ a=blue; let "a*=3" 2>/dev/null && err_exit "arithmetic can assign out of range (
 # Enum types should parse with 'command' prefix(es) and options and instantly
 # recognise subsequent builtins it creates, even as a oneliner, even with
 # shcomp. (This requires an ugly parser hack that this tests for.)
-got=$(eval 2>&1 'command command command enum -i -i -iii --igno -ii PARSER_t=(r g b); '\
+got=$(set +x; eval 2>&1 'command command command enum -i -i -iii --igno -ii PARSER_t=(r g b); '\
 'command command PARSER_t -r -rrAAA -A -rArArA -Arrrrrrr hack=([C]=G); typeset -p hack')
 exp='PARSER_t -r -A hack=([C]=g)'
 [[ $got == "$exp" ]] || err_exit "incorrect typeset output for enum with command prefix and options" \

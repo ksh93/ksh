@@ -5712,7 +5712,9 @@ is given, the name
 and value of the alias is printed.
 The obsolete
 .B \-x
-option has no effect.
+option has no effect in most contexts, although if it's used with
+.B \-t
+it will suppress all output.
 The exit status is non-zero if a
 .I name\^
 is given, but no value, and no alias has been defined for the
@@ -7670,7 +7672,7 @@ Does nothing, and exits 0. Used with
 .B while
 for infinite loops.
 .TP
-\f3type\fP \*(OK \f3\-afpq\fP \*(CK \f2name\^\fP .\|.\|.
+\f3type\fP \*(OK \f3\-afpPqt\fP \*(CK \f2name\^\fP .\|.\|.
 The same as
 .BR whence\ \-v .
 .TP
@@ -8290,7 +8292,7 @@ See
 for a description of the format of
 .IR job .
 .TP
-\f3whence\fP \*(OK \f3\-afpqv\fP \*(CK \f2name\^\fP .\|.\|.
+\f3whence\fP \*(OK \f3\-afpPqtv\fP \*(CK \f2name\^\fP .\|.\|.
 For each
 .IR name ,
 indicate how it
@@ -8305,13 +8307,13 @@ The
 option skips the search for functions.
 The
 .B \-p
-option
-does a path search for
+and
+.B \-P
+options
+do a path search for
 .I name\^
 even if name is an alias, a function, or a reserved word.
-The
-.B \-p
-option turns off the
+Both of these options turn off the
 .B \-v
 option.
 The
@@ -8322,6 +8324,17 @@ to enter quiet mode.
 .BR whence
 will return zero if all arguments are built-ins, functions, or
 are programs found on the path.
+The
+.B \-t
+option only outputs the type of the given command.
+Like
+.B \-p
+and
+.BR \-P ,
+.B \-t
+will turn off the
+.B \-v
+option.
 The
 .B \-a
 option

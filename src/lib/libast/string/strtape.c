@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * local device pathname for portable tape unit specification is returned
  * if e is non-null then it is set to the next unused char in s

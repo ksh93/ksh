@@ -36,8 +36,7 @@ esac
 echo "#include <signal.h>
 int xxx;" > $tmp.c
 $cc -c $tmp.c >/dev/null 2>$tmp.e
-echo "#pragma prototyped
-#define sig_info	_sig_info_
+echo "#define sig_info	_sig_info_
 
 #if defined(__STDPP__directive) && defined(__STDPP__hide)
 __STDPP__directive pragma pp:hide kill killpg
@@ -57,11 +56,7 @@ __STDPP__directive pragma pp:nohide kill killpg
 #endif"
 echo "#include <signal.h>
 #ifdef TYPE
-#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 typedef TYPE (*Sig_handler_t)(ARG);
-#else
-typedef TYPE (*Sig_handler_t)();
-#endif
 #endif
 Sig_handler_t f()
 {

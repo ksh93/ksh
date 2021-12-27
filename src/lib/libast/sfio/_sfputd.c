@@ -27,13 +27,7 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
 int _sfputd(Sfio_t* f, Sfdouble_t v)
-#else
-int _sfputd(f,v)
-Sfio_t*		f;
-Sfdouble_t	v;
-#endif
 {
 #define N_ARRAY		(16*sizeof(Sfdouble_t))
 	reg ssize_t	n, w;
@@ -90,7 +84,7 @@ Sfdouble_t	v;
 
 	/* write out coded bytes */
 	n = ends - s + 1;
-	w = SFWRITE(f,(Void_t*)s,n) == n ? w+n : -1;
+	w = SFWRITE(f,(void*)s,n) == n ? w+n : -1;
 
 	SFOPEN(f,0);
 	SFMTXRETURN(f,w);

@@ -27,13 +27,7 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
 static void newpos(Sfio_t* f, Sfoff_t p)
-#else
-static void newpos(f, p)
-Sfio_t*	f;
-Sfoff_t p;
-#endif
 {
 #ifdef MAP_TYPE
 	if((f->bits&SF_MMAP) && f->data)
@@ -49,14 +43,9 @@ Sfoff_t p;
 	}
 }
 
-#if __STD_C
-Sfoff_t sfseek(Sfio_t* f, Sfoff_t p, int type)
-#else
-Sfoff_t sfseek(f,p,type)
-Sfio_t*	f;	/* seek to a new location in this stream */
-Sfoff_t	p;	/* place to seek to */
-int	type;	/* 0: from org, 1: from here, 2: from end */
-#endif
+Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
+	       Sfoff_t	p,	/* place to seek to */
+	       int	type)	/* 0: from org, 1: from here, 2: from end */
 {
 	Sfoff_t	r, s;
 	int	mode, local, hardseek, mustsync;
@@ -207,7 +196,7 @@ int	type;	/* 0: from org, 1: from here, 2: from end */
 	{	/* if mmap is not great, stop mmapping if moving around too much */
 #if _mmap_worthy < 2
 		if((f->next - f->data) < ((f->endb - f->data)/4) )
-		{	SFSETBUF(f,(Void_t*)f->tiny,(size_t)SF_UNBOUND);
+		{	SFSETBUF(f,(void*)f->tiny,(size_t)SF_UNBOUND);
 			hardseek = 1; /* this forces a hard seek below */
 		}
 		else

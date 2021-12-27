@@ -46,11 +46,7 @@
 #define NiL		((void*)0)
 #endif
 #ifndef NoN 
-#if defined(__STDC__) || defined(__STDPP__)
 #define NoN(x)		void _STUB_ ## x () {}
-#else
-#define NoN(x)		void _STUB_/**/x () {}
-#endif
 #if !defined(_STUB_)
 #define _STUB_
 #endif

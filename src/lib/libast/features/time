@@ -1,4 +1,3 @@
-set	prototyped
 lib	getrusage,nanosleep,usleep,_strftime
 typ	clock_t = uint32_t
 typ	time_t = uint32_t

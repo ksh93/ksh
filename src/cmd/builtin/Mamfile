@@ -21,8 +21,6 @@ setv IFFEFLAGS
 setv LDFLAGS
 make .INIT
 	make ${PACKAGE_ast_INCLUDE}/cmdlist.h
-		make ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-		done ${PACKAGE_ast_INCLUDE}/prototyped.h dontcare
 	done ${PACKAGE_ast_INCLUDE}/cmdlist.h
 	exec - sed -e '/^CMDLIST(.*)$/!d' -e 's/CMDLIST(\(.*\))/\1/' -e '/^getconf$/d' -e '/^ln$/d' -e '/^mv$/d' -e '/^md5sum$/d' -e '/^sum$/d' ${PACKAGE_ast_INCLUDE}/cmdlist.h
 	bind -lcmd
@@ -43,7 +41,6 @@ make install
 				prev ${PACKAGE_ast_INCLUDE}/regex.h implicit
 				make ${PACKAGE_ast_INCLUDE}/proc.h implicit
 					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 				done ${PACKAGE_ast_INCLUDE}/proc.h
 				prev ${PACKAGE_ast_INCLUDE}/error.h implicit
 				prev ${PACKAGE_ast_INCLUDE}/cmd.h implicit

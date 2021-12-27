@@ -102,14 +102,10 @@ make install
 												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
 											done ${PACKAGE_ast_INCLUDE}/ast_wchar.h dontcare
 											prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-											make ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-											done ${PACKAGE_ast_INCLUDE}/prototyped.h dontcare
 										done ${PACKAGE_ast_INCLUDE}/regex.h dontcare
 										make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
 											make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 											done ${PACKAGE_ast_INCLUDE}/ast_getopt.h dontcare
-											prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 										done ${PACKAGE_ast_INCLUDE}/getopt.h dontcare
 										prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
 										make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
@@ -129,7 +125,6 @@ make install
 										make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
 										done ${PACKAGE_ast_INCLUDE}/ast_lib.h dontcare
 										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 									done ${PACKAGE_ast_INCLUDE}/ast_std.h dontcare
 								done ${PACKAGE_ast_INCLUDE}/vmalloc.h dontcare
 								make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
@@ -138,12 +133,9 @@ make install
 									prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
 								done ${PACKAGE_ast_INCLUDE}/sfio.h dontcare
 								prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 							done ${PACKAGE_ast_INCLUDE}/ast.h dontcare
-							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/option.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/error.h
 					make dlldefs.h implicit
 						make FEATURE/dll
@@ -230,7 +222,6 @@ make install
 						done ${PACKAGE_ast_INCLUDE}/ast_mode.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/fts.h
 					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
 					prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
@@ -294,10 +285,9 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/dlldefs.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev dlldefs.h
-		exec - proto -p -s dlldefs.h > 1.${COTEMP}.x
-		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/dlldefs.h 1.${COTEMP}.x
-		exec - then rm -f 1.${COTEMP}.x
-		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/dlldefs.h
+		exec - if cmp 2>/dev/null -s dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
+		exec - then :
+		exec - else ${STDCP} dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/dlldefs.h generated
 done install virtual

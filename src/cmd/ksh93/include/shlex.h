@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef NOTSYM
 /*
  *	UNIX shell
@@ -104,7 +103,7 @@ typedef struct  _shlex_
 	Dt_t		*entity_tree;	/* for entity ids */
 #endif /* SHOPT_KIA */
 	/* The following two struct members are considered private to lex.c */
-	struct _shlex_pvt_lexdata_  lexd; \
+	struct _shlex_pvt_lexdata_  lexd;
 	struct _shlex_pvt_lexstate_  lex;
 } Lex_t;
 

@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * ksh builtin command API
@@ -34,11 +33,7 @@
 #endif
 #define SH_PLUGIN_VERSION	AST_PLUGIN_VERSION(20111111L)
 
-#if __STDC__
 #define SHLIB(m)	unsigned long	plugin_version(void) { return SH_PLUGIN_VERSION; }
-#else
-#define SHLIB(m)	unsigned long	plugin_version() { return SH_PLUGIN_VERSION; }
-#endif
 
 #ifndef SH_VERSION
 #   define Shell_t	void

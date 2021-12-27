@@ -77,10 +77,7 @@ make install
 						done ${PACKAGE_ast_INCLUDE}/dlldefs.h dontcare
 						make ${PACKAGE_ast_INCLUDE}/cmdext.h implicit
 							make ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
-								make ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
-								done ${PACKAGE_ast_INCLUDE}/prototyped.h dontcare
 							done ${PACKAGE_ast_INCLUDE}/shcmd.h dontcare
-							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/cmdext.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
 						make ${PACKAGE_ast_INCLUDE}/stak.h implicit
@@ -120,13 +117,10 @@ make install
 												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
 											done ${PACKAGE_ast_INCLUDE}/ast_wchar.h dontcare
 											prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 										done ${PACKAGE_ast_INCLUDE}/regex.h dontcare
 										make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
 											make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 											done ${PACKAGE_ast_INCLUDE}/ast_getopt.h dontcare
-											prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 										done ${PACKAGE_ast_INCLUDE}/getopt.h dontcare
 										prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
 										make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
@@ -146,12 +140,9 @@ make install
 										make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
 										done ${PACKAGE_ast_INCLUDE}/ast_lib.h dontcare
 										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 									done ${PACKAGE_ast_INCLUDE}/ast_std.h dontcare
 								done ${PACKAGE_ast_INCLUDE}/sfio.h dontcare
-								prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 							done ${PACKAGE_ast_INCLUDE}/stk.h dontcare
-							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/stak.h dontcare
 						make ${PACKAGE_ast_INCLUDE}/error.h implicit
 							make ${PACKAGE_ast_INCLUDE}/option.h implicit
@@ -163,15 +154,11 @@ make install
 									done ${PACKAGE_ast_INCLUDE}/vmalloc.h dontcare
 									prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 								done ${PACKAGE_ast_INCLUDE}/ast.h dontcare
-								prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 							done ${PACKAGE_ast_INCLUDE}/option.h dontcare
 							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/error.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/cmd.h dontcare
 					prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
 					make include/nval.h implicit
@@ -213,7 +200,6 @@ make install
 							make ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
 							done ${PACKAGE_ast_INCLUDE}/ast_time.h dontcare
 							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/times.h dontcare
 					done FEATURE/time generated
 					make include/builtins.h implicit
@@ -292,7 +278,6 @@ make install
 						done ${PACKAGE_ast_INCLUDE}/ast_mode.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/ls.h
 					prev include/builtins.h implicit
 					prev include/name.h implicit
@@ -442,7 +427,6 @@ make install
 						make ${PACKAGE_ast_INCLUDE}/ast_ccode.h implicit
 						done ${PACKAGE_ast_INCLUDE}/ast_ccode.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/ccode.h
 					make ${PACKAGE_ast_INCLUDE}/tmx.h implicit
 						make ${PACKAGE_ast_INCLUDE}/tv.h implicit
@@ -451,7 +435,6 @@ make install
 						make ${PACKAGE_ast_INCLUDE}/tm.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/times.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 						done ${PACKAGE_ast_INCLUDE}/tm.h dontcare
 					done ${PACKAGE_ast_INCLUDE}/tmx.h
 					make include/streval.h implicit
@@ -800,12 +783,10 @@ make install
 						make dirlib.h implicit
 						done dirlib.h dontcare virtual
 						prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/ast_dir.h
 					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
 					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
 					make ${PACKAGE_ast_INCLUDE}/glob.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/glob.h
 					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
 					prev include/test.h implicit
@@ -946,7 +927,6 @@ make install
 						make ${PACKAGE_ast_INCLUDE}/ast_wait.h implicit
 						done ${PACKAGE_ast_INCLUDE}/ast_wait.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
 					done ${PACKAGE_ast_INCLUDE}/wait.h
 					prev include/defs.h implicit
 				done sh/jobs.c
@@ -1508,26 +1488,23 @@ make install
 	make ${PACKAGE_ast_INCLUDE}/nval.h
 		prev ${PACKAGE_ast_INCLUDE}
 		prev include/nval.h
-		exec - proto -p -s include/nval.h > 1.${COTEMP}.x
-		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/nval.h 1.${COTEMP}.x
-		exec - then rm -f 1.${COTEMP}.x
-		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/nval.h
+		exec - if cmp 2>/dev/null -s include/nval.h ${PACKAGE_ast_INCLUDE}/nval.h
+		exec - then :
+		exec - else ${STDCP} include/nval.h ${PACKAGE_ast_INCLUDE}/nval.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/nval.h generated
 	make ${PACKAGE_ast_INCLUDE}/shell.h
 		prev include/shell.h
-		exec - proto -p -s include/shell.h > 1.${COTEMP}.x
-		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/shell.h 1.${COTEMP}.x
-		exec - then rm -f 1.${COTEMP}.x
-		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/shell.h
+		exec - if cmp 2>/dev/null -s include/shell.h ${PACKAGE_ast_INCLUDE}/shell.h
+		exec - then :
+		exec - else ${STDCP} include/shell.h ${PACKAGE_ast_INCLUDE}/shell.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/shell.h generated
 	make ${PACKAGE_ast_INCLUDE}/history.h
 		prev include/history.h
-		exec - proto -p -s include/history.h > 1.${COTEMP}.x
-		exec - if cmp 2>/dev/null -s ${PACKAGE_ast_INCLUDE}/history.h 1.${COTEMP}.x
-		exec - then rm -f 1.${COTEMP}.x
-		exec - else mv 1.${COTEMP}.x ${PACKAGE_ast_INCLUDE}/history.h
+		exec - if cmp 2>/dev/null -s include/history.h ${PACKAGE_ast_INCLUDE}/history.h
+		exec - then :
+		exec - else ${STDCP} include/history.h ${PACKAGE_ast_INCLUDE}/history.h
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE}/history.h generated
 	make ${INSTALLROOT}/bin/suid_exec

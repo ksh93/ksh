@@ -30,66 +30,33 @@ cat{
 	#pragma clang diagnostic ignored "-Wstring-plus-int"
 	#pragma clang diagnostic ignored "-Wunused-value"
 
+	/* AST backwards compatibility macros */
+	#undef	_NIL_
+	#define	_NIL_(x)	((x)0)
+	#undef	_STD_
+	#define	_STD_		1
+	#undef	_ARG_
+	#define	_ARG_(x)	x
+	#undef	_VOID_
+	#define	_VOID_		void
+	#undef	_BEGIN_EXTERNS_
+	#define	_BEGIN_EXTERNS_
+	#undef	_END_EXTERNS_
+	#define	_END_EXTERNS_
+	#undef	__STD_C
+	#define	__STD_C		1
+	#undef	Void_t
+	#define	Void_t		void
+
 	/* disable non-standard Linux/GNU inlines */
 	#ifdef __GNUC__	
 	#	undef	__OPTIMIZE_SIZE__
 	#	define	__OPTIMIZE_SIZE__	1
 	#endif
 
-	/* __STD_C indicates that the language is ANSI C or C++ */
-	#if !defined(__STD_C) && __STDC__
-	#	define	__STD_C		1
-	#endif
-	#if !defined(__STD_C) && (__cplusplus || c_plusplus)
-	#	define __STD_C		1
-	#endif
-	#if !defined(__STD_C) && _std_proto
-	#	define __STD_C		1
-	#endif
-	#if !defined(__STD_C)
-	#	define __STD_C		0
-	#endif
-
-	/* extern symbols must be protected against C++ name mangling */
-	#ifndef _BEGIN_EXTERNS_
-	#	if __cplusplus || c_plusplus
-	#		define _BEGIN_EXTERNS_	extern "C" {
-	#		define _END_EXTERNS_	}
-	#	else
-	#		define _BEGIN_EXTERNS_
-	#		define _END_EXTERNS_
-	#	endif
-	#endif
-
-	/* _ARG_ simplifies function prototyping among flavors of C */
-	#ifndef _ARG_
-	#	if __STD_C
-	#		define _ARG_(x)	x
-	#	else
-	#		define _ARG_(x)	()
-	#	endif
-	#endif
-
-	/* _NIL_ simplifies defining nil pointers to a given type */
-	#ifndef _NIL_
-	#	define _NIL_(x)	((x)0)
-	#endif
-
 	/* __INLINE__, if defined, is the inline keyword */
-	#if !defined(__INLINE__) && defined(__cplusplus)
-	#	define __INLINE__	inline
-	#endif
 	#if !defined(__INLINE__) && defined(_WIN32) && !defined(__GNUC__)
 	#	define __INLINE__	__inline
-	#endif
-
-	/* Void_t is defined so that Void_t* can address any type */
-	#ifndef Void_t
-	#	if __STD_C
-	#		define Void_t		void
-	#	else
-	#		define Void_t		char
-	#	endif
 	#endif
 
 	/* Windows variants and veneers */
@@ -130,13 +97,8 @@ cat{
 	#	endif
 	#endif
 	#if _dll_import && ( !_BLD_DLL || _WINIX && !_UWIN )
-	#	ifdef __STDC__
 	#	define __EXTERN__(T,obj)	extern T obj; T* _imp__ ## obj = &obj
 	#	define __DEFINE__(T,obj,val)	T obj = val; T* _imp__ ## obj = &obj
-	#	else
-	#	define __EXTERN__(T,obj)	extern T obj; T* _imp__/**/obj = &obj
-	#	define __DEFINE__(T,obj,val)	T obj = val; T* _imp__/**/obj = &obj
-	#	endif
 	#else
 	#	define __EXTERN__(T,obj)	extern T obj
 	#	define __DEFINE__(T,obj,val)	T obj = val
@@ -179,7 +141,6 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 	#include <string.h>
 	#include <sys/types.h>
 
-	#if _STD_
 	#if N == 1
 	#define _ast_int8_t	long
 	#define _ast_int8_str	"long"
@@ -211,7 +172,6 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 	#if N == 8
 	#define _ast_int8_t	int64
 	#define _ast_int8_str	"int64"
-	#endif
 	#endif
 
 	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
@@ -368,7 +328,7 @@ tst	- -DN=1 - -DN=0 output{
 	#include <string.h>
 	#include <sys/types.h>
 
-	#if !N || !_STD_
+	#if !N
 	#undef	_typ_long_double
 	#endif
 
@@ -483,7 +443,7 @@ typ uintptr_t stdint.h inttypes.h no{
 }end
 
 tst	- -DTRY=1 - -DTRY=1 -Dvoid=char - -DTRY=2 - -DTRY=3 - -DTRY=4 output{
-	#if _STD_ && _hdr_stdarg
+	#if _hdr_stdarg
 	#include <stdarg.h>
 	static void
 	varyfunny(int* p, ...)
@@ -530,11 +490,7 @@ tst	- -DTRY=1 - -DTRY=1 -Dvoid=char - -DTRY=2 - -DTRY=3 - -DTRY=4 output{
 
 		printf("\n#ifndef va_listref\n");
 		printf("#ifndef	va_start\n");
-		printf("#if __STD_C\n");
 		printf("#include <stdarg.h>\n");
-		printf("#else\n");
-		printf("#include <varargs.h>\n");
-		printf("#endif\n");
 		printf("#endif\n");
 	#if TRY == 4
 		printf("#define va_listref(p) (&(p))\t");
@@ -595,7 +551,7 @@ tst	- -DTRY=1 - -DTRY=1 -Dvoid=char - -DTRY=2 - -DTRY=3 - -DTRY=4 output{
 
 cat{
 	#ifndef _AST_STD_H
-	#	if __STD_C && _hdr_stddef
+	#	if _hdr_stddef
 	#	include	<stddef.h>
 	#	endif
 	#	if _sys_types
