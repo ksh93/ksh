@@ -5,9 +5,12 @@ cmd	universe
 hdr	dirent,direntry,filio,fmtmsg,fnmatch,jioctl,libgen,limits
 hdr	locale,ndir,nl_types,process,spawn,syslog,utime,vfork
 hdr	linux/fs,linux/msdos_fs,sys/ioctl
+hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 	#include <wchar.h>
-	extern int iswalnum(wint_t);  /* work around implicit declaration warning or error */
+	#if _hdr_wctype
+	#include <wctype.h>
+	#endif
 	int
 	main()
 	{
@@ -15,7 +18,6 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 		return iswalnum(w) == 0;
 	}
 }end
-hdr	wctype wchar.h
 
 dat	_tzname,tzname
 
