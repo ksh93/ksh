@@ -2051,7 +2051,7 @@ _JOB_
 ;
 
 const char sh_optwhence[] =
-"[-1c?\n@(#)$Id: whence (ksh 93u+m) 2021-12-22 $\n]"
+"[-1c?\n@(#)$Id: whence (ksh 93u+m) 2021-12-27 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?whence, type - locate a command and describe its type]"
 "[+DESCRIPTION?Without \b-v\b, \bwhence\b writes on standard output an "
