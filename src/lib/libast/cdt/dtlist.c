@@ -34,7 +34,7 @@ typedef struct _dtlist_s
 } Dtlist_t;
 
 #ifdef DEBUG
-int dtlistprint(Dt_t* dt, Dtlink_t* here, char* (*objprintf)(Void_t*) )
+int dtlistprint(Dt_t* dt, Dtlink_t* here, char* (*objprintf)(void*) )
 {
 	int		k;
 	char		*obj, *endb, buf[1024];
@@ -59,13 +59,7 @@ int dtlistprint(Dt_t* dt, Dtlink_t* here, char* (*objprintf)(Void_t*) )
 #endif
 
 /* terminal objects: DT_FIRST|DT_LAST */
-#if __STD_C
-Void_t* lfirstlast(Dt_t* dt, int type)
-#else
-Void_t* lfirstlast(dt, type)
-Dt_t*	dt;
-int	type;
-#endif
+void* lfirstlast(Dt_t* dt, int type)
 {
 	Dtlink_t	*lnk;
 	Dtdisc_t	*disc = dt->disc;
@@ -77,16 +71,11 @@ int	type;
 		list->here = lnk; /* finger points to this */
 	}
 
-	return lnk ? _DTOBJ(disc,lnk) : NIL(Void_t*);
+	return lnk ? _DTOBJ(disc,lnk) : NIL(void*);
 }
 
 /* DT_CLEAR */
-#if __STD_C
-Void_t* lclear(Dt_t* dt)
-#else
-Void_t* lclear(dt)
-Dt_t*	dt;
-#endif
+void* lclear(Dt_t* dt)
 {
 	Dtlink_t	*lnk, *next;
 	Dtdisc_t	*disc = dt->disc;
@@ -103,24 +92,17 @@ Dt_t*	dt;
 		}
 	}
 
-	return NIL(Void_t*);
+	return NIL(void*);
 }
 
 /* DT_FLATTEN|DT_EXTRACT|DT_RESTORE */
-#if __STD_C
-Void_t* llist(Dt_t* dt, Dtlink_t* lnk, int type)
-#else
-Void_t* llist(dt, lnk, type)
-Dt_t*		dt;
-Dtlink_t*	lnk;
-int		type;
-#endif
+void* llist(Dt_t* dt, Dtlink_t* lnk, int type)
 {
 	Dtlist_t	*list = (Dtlist_t*)dt->data;
 
 	if(type&(DT_FLATTEN|DT_EXTRACT) )
 	{	if(lnk) /* error on calling */
-			return NIL(Void_t*);
+			return NIL(void*);
 
 		lnk = list->link;
 		if(type&DT_EXTRACT)
@@ -130,7 +112,7 @@ int		type;
 	}
 	else /* if(type&DT_RESTORE) */
 	{	if(list->link != NIL(Dtlink_t*))
-			return NIL(Void_t*);
+			return NIL(void*);
 
 		list->link = lnk;
 
@@ -139,16 +121,10 @@ int		type;
 			dt->data->size += 1;
 	}
 
-	return (Void_t*)lnk;
+	return (void*)lnk;
 }
 
-#if __STD_C
-static Void_t* listat(Dt_t* dt, Dtstat_t* st)
-#else
-static Void_t* listat(dt, st)
-Dt_t*		dt;
-Dtstat_t*	st;
-#endif
+static void* listat(Dt_t* dt, Dtstat_t* st)
 {
 	if(st)
 	{	memset(st, 0, sizeof(Dtstat_t));
@@ -157,26 +133,19 @@ Dtstat_t*	st;
 		st->space = sizeof(Dtlist_t) + (dt->disc->link >= 0 ? 0 : dt->data->size*sizeof(Dthold_t));
 	}
 
-	return (Void_t*)dt->data->size;
+	return (void*)dt->data->size;
 }
 
-#if __STD_C
-static Void_t* dtlist(Dt_t* dt, Void_t* obj, int type)
-#else
-static Void_t* dtlist(dt, obj, type)
-Dt_t*	dt;
-Void_t*	obj;
-int	type;
-#endif
+static void* dtlist(Dt_t* dt, void* obj, int type)
 {
 	Dtlink_t	*r, *t, *h;
-	Void_t		*key, *o, *k;
+	void		*key, *o, *k;
 	Dtdisc_t	*disc = dt->disc;
 	Dtlist_t	*list = (Dtlist_t*)dt->data;
 
 	type = DTTYPE(dt,type); /* map type for upward compatibility */
 	if(!(type&DT_OPERATIONS) )
-		return NIL(Void_t*);
+		return NIL(void*);
 
 	DTSETLOCK(dt);
 
@@ -196,7 +165,7 @@ int	type;
 	{	if((type&(DT_DELETE|DT_DETACH|DT_REMOVE)) && (dt->meth->type&(DT_STACK|DT_QUEUE)) )
 			if((r = list->link) ) /* special case for destack or dequeue */
 				goto dt_delete;
-		DTRETURN(obj, NIL(Void_t*)); /* error, needing non-void object */
+		DTRETURN(obj, NIL(void*)); /* error, needing non-void object */
 	}
 
 	if(type&DT_RELINK) /* relink object after some processing */
@@ -206,7 +175,7 @@ int	type;
 	else if(type&(DT_INSERT|DT_INSTALL|DT_APPEND|DT_ATTACH))
 	{
 		if(!(r = _dtmake(dt, obj, type)) )
-			DTRETURN(obj, NIL(Void_t*));
+			DTRETURN(obj, NIL(void*));
 		dt->data->size += 1;
 
 	do_insert:
@@ -264,7 +233,7 @@ int	type;
 	/* define key to match */
 	if(type&DT_MATCH)
 	{	key = obj;
-		obj = NIL(Void_t*);
+		obj = NIL(void*);
 	}
 	else	key = _DTKEY(disc, obj);
 
@@ -293,7 +262,7 @@ int	type;
 		r = h ? h : r;
 	}
 	if(!r) /* not found */
-		DTRETURN(obj, NIL(Void_t*));
+		DTRETURN(obj, NIL(void*));
 
 	if(type&(DT_DELETE|DT_DETACH|DT_REMOVE))
 	{ dt_delete:
@@ -328,7 +297,7 @@ int	type;
 	list->here = r;
 	if(r)
 		DTRETURN(obj, _DTOBJ(disc,r));
-	else	DTRETURN(obj, NIL(Void_t*));
+	else	DTRETURN(obj, NIL(void*));
 
 dt_return:
 	DTANNOUNCE(dt,obj,type);
@@ -336,14 +305,7 @@ dt_return:
 	return obj;
 }
 
-#if __STD_C
-static int listevent(Dt_t* dt, int event, Void_t* arg)
-#else
-static int listevent(dt, event, arg)
-Dt_t*	dt;
-int	event;
-Void_t*	arg;
-#endif
+static int listevent(Dt_t* dt, int event, void* arg)
 {
 	Dtlist_t	*list = (Dtlist_t*)dt->data;
 
@@ -363,7 +325,7 @@ Void_t*	arg;
 			return 0;
 		if(list->link) /* remove all items */
 			(void)lclear(dt);
-		(void)(*dt->memoryf)(dt, (Void_t*)list, 0, dt->disc);
+		(void)(*dt->memoryf)(dt, (void*)list, 0, dt->disc);
 		dt->data = NIL(Dtdata_t*);
 		return 0;
 	}

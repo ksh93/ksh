@@ -18,7 +18,6 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * AST4

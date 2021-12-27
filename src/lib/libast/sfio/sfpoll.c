@@ -29,14 +29,9 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
-int sfpoll(Sfio_t** fa, reg int n, int tm)
-#else
-int sfpoll(fa, n, tm)
-Sfio_t**	fa;	/* array of streams to poll		*/
-reg int		n;	/* number of streams in array		*/
-int		tm;	/* time in milliseconds for select/poll	*/
-#endif
+int sfpoll(Sfio_t** fa,	/* array of streams to poll		*/
+	   reg int n,	/* number of streams in array		*/
+	   int tm)	/* time in milliseconds for select/poll	*/
 {
 	reg int		r, c, m, np, eintr;
 	reg Sfio_t*	f;
@@ -160,7 +155,7 @@ int		tm;	/* time in milliseconds for select/poll	*/
 			}
 		}
 
-		free((Void_t*)fds);
+		free((void*)fds);
 	}
 #endif /*_lib_poll*/
 
@@ -238,7 +233,7 @@ int		tm;	/* time in milliseconds for select/poll	*/
 
 		/* announce status */
 		if(f->disc && f->disc->exceptf)
-			(*f->disc->exceptf)(f,SF_READY,(Void_t*)(long)status[c],f->disc);
+			(*f->disc->exceptf)(f,SF_READY,(void*)(long)status[c],f->disc);
 
 		if(c > r) /* move to front of list */
 		{	fa[c] = fa[r];
@@ -247,6 +242,6 @@ int		tm;	/* time in milliseconds for select/poll	*/
 		r += 1;
 	}
 
-	free((Void_t*)status);
+	free((void*)status);
 	return r ? r : np < 0 ? -1 : 0;
 }

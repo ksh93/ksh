@@ -28,7 +28,6 @@ void _STUB_err(){}
 
 #else
 
-#pragma prototyped
 
 /*
  * BSD 4.4 compatibility

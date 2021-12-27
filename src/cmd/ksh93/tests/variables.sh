@@ -822,7 +822,7 @@ Errors=$?  # ensure error count survives subshell
 (
 	# $x must be an unknown locale.
 	for x in x x.b@d xx_XX xx_XX.b@d
-	do	errmsg=$({ LANG=$x; } 2>&1)
+	do	errmsg=$(set +x; { LANG=$x; } 2>&1)
 		[[ -n $errmsg ]] && break
 	done
 	if	[[ -z $errmsg ]]

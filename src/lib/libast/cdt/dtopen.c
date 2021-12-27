@@ -36,14 +36,7 @@ static int _dttype2005(Dt_t* dt, int type)
 	return type;
 }
 
-#if __STD_C
 Dt_t* _dtopen(Dtdisc_t* disc, Dtmethod_t* meth, unsigned long version)
-#else
-Dt_t*	_dtopen(disc, meth, version)
-Dtdisc_t*	disc;
-Dtmethod_t*	meth;
-unsigned long	version;
-#endif
 {
 	Dtdata_t	*data;
 	Dt_t		*dt, pdt;
@@ -62,7 +55,7 @@ unsigned long	version;
 	dtdisc(&pdt,disc,0); /* note that this sets pdt.memoryf */
 
 	if(disc->eventf)
-	{	if((ev = (*disc->eventf)(&pdt,DT_OPEN,(Void_t*)(&data),disc)) < 0)
+	{	if((ev = (*disc->eventf)(&pdt,DT_OPEN,(void*)(&data),disc)) < 0)
 			return NIL(Dt_t*); /* something bad happened */
 		else if(ev > 0)
 		{	if(data) /* shared data are being restored */
@@ -80,7 +73,7 @@ unsigned long	version;
 	}
 
 	if(!pdt.data) /* allocate method-specific data */
-		if((*meth->eventf)(&pdt, DT_OPEN, NIL(Void_t*)) < 0 || !pdt.data )
+		if((*meth->eventf)(&pdt, DT_OPEN, NIL(void*)) < 0 || !pdt.data )
 			return NIL(Dt_t*);
 	pdt.data->type |= type;
 
@@ -88,7 +81,7 @@ unsigned long	version;
 	if(pdt.data->type&DT_INDATA)
 		dt = &pdt.data->dict;
 	else if(!(dt = (Dt_t*) malloc(sizeof(Dt_t))) )
-	{	(void)(*meth->eventf)(&pdt, DT_CLOSE, NIL(Void_t*));
+	{	(void)(*meth->eventf)(&pdt, DT_CLOSE, NIL(void*));
 		DTERROR(&pdt, "Error in allocating a new dictionary");
 		return NIL(Dt_t*);
 	}
@@ -98,7 +91,7 @@ unsigned long	version;
 	dt->user = &dt->data->user; /* space allocated for application usage */
 
 	if(disc->eventf) /* signal opening is done */
-		(void)(*disc->eventf)(dt, DT_ENDOPEN, (Void_t*)0, disc);
+		(void)(*disc->eventf)(dt, DT_ENDOPEN, (void*)0, disc);
 
 	/* set mapping of operation bits between versions as needed */
 	if(version < 20111111L)
@@ -108,19 +101,13 @@ unsigned long	version;
 }
 
 #undef dtopen /* deal with binary upward compatibility for op bits */
-#if __STD_C
 Dt_t* dtopen(Dtdisc_t* disc, Dtmethod_t* meth)
-#else
-Dt_t*	dtopen(disc, meth)
-Dtdisc_t*	disc;
-Dtmethod_t*	meth;
-#endif
 {
 	return _dtopen(disc, meth, 20050420L);
 }
 
 /* below are private functions used across CDT modules */
-Dtlink_t* _dtmake(Dt_t* dt, Void_t* obj, int type)
+Dtlink_t* _dtmake(Dt_t* dt, void* obj, int type)
 {
 	Dthold_t	*h;
 	Dtdisc_t	*disc = dt->disc;
@@ -133,7 +120,7 @@ Dtlink_t* _dtmake(Dt_t* dt, Void_t* obj, int type)
 		return _DTLNK(disc, obj);
 
 	/* create a holder to hold obj */
-	if((h = (Dthold_t*)(dt->memoryf)(dt, NIL(Void_t*), sizeof(Dthold_t), disc)) )
+	if((h = (Dthold_t*)(dt->memoryf)(dt, NIL(void*), sizeof(Dthold_t), disc)) )
 		h->obj = obj;
 	else
 	{	DTERROR(dt, "Error in allocating an object holder");
@@ -152,5 +139,5 @@ void _dtfree(Dt_t* dt, Dtlink_t* l, int type)
 		(void)(*disc->freef)(dt, _DTOBJ(disc,l), disc);
 
 	if(disc->link < 0) /* free holder */
-		(void)(*dt->memoryf)(dt, (Void_t*)l, 0, disc);
+		(void)(*dt->memoryf)(dt, (void*)l, 0, disc);
 }

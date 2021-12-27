@@ -1267,7 +1267,7 @@ For each of these attributes, a width can be defined explicitly or else
 it is defined the first time an assignment is made to the variable.
 Each assignment causes justification of the field, truncating
 if necessary.
-Assignment to fixed sized variables
+Assignment to fixed-size variables
 provides one way to generate a substring consisting of
 a fixed number of characters from
 the beginning or end of a string.

@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * tables for the test builtin [[ ... ]] and [ ... ]

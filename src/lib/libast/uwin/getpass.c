@@ -28,7 +28,6 @@ void _STUB_getpass(){}
 
 #else
 
-#pragma prototyped
 
 #define getpass	______getpass
 

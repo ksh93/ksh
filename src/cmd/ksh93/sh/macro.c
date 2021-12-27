@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Shell macro expander
  * expands ~
@@ -125,6 +124,7 @@ void *sh_macopen(Shell_t *shp)
 
 /*
  * perform only parameter substitution and catch failures
+ * (also save lexer state to allow use while in here-docs)
  */
 char *sh_mactry(Shell_t *shp,register char *string)
 {
@@ -133,11 +133,13 @@ char *sh_mactry(Shell_t *shp,register char *string)
 		int		jmp_val;
 		int		savexit = shp->savexit;
 		struct checkpt	buff;
+		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex = *lexp;
 		sh_pushcontext(shp,&buff,SH_JMPSUB);
 		jmp_val = sigsetjmp(buff.buff,0);
 		if(jmp_val == 0)
 			string = sh_mactrim(shp,string,0);
 		sh_popcontext(shp,&buff);
+		*lexp = savelex;
 		shp->savexit = savexit;
 		return(string);
 	}

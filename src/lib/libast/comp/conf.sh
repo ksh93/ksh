@@ -1477,10 +1477,6 @@ $systeminfo
 
 ${generated}
 
-#if !defined(const) && !defined(__STDC__) && !defined(__cplusplus) && !defined(c_plusplus)
-#define const
-#endif
-
 #define conf		_ast_conf_data
 #define conf_elements	_ast_conf_ndata
 

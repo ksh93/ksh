@@ -1,4 +1,3 @@
-#pragma prototyped
 
 #if _typ_int64_t
 

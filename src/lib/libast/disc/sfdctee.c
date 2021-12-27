@@ -37,15 +37,10 @@ typedef struct _tee_s
 } Tee_t;
 
 /*	write to the teed stream.  */
-#if __STD_C
-static ssize_t teewrite(Sfio_t* f, const Void_t* buf, size_t size, Sfdisc_t* disc)
-#else
-static ssize_t teewrite(f,buf,size,disc)
-Sfio_t* 	f;	/* the stream being written to */
-Void_t*		buf;	/* the buffer of data being output */
-size_t		size;	/* the data size */
-Sfdisc_t*	disc;	/* the tee discipline */
-#endif
+static ssize_t teewrite(Sfio_t* 	f,	/* the stream being written to */
+			const void*	buf,	/* the buffer of data being output */
+			size_t		size,	/* the data size */
+			Sfdisc_t*	disc)	/* the tee discipline */
 {
 	reg Tee_t*	te = (Tee_t*)disc;
 
@@ -58,15 +53,7 @@ Sfdisc_t*	disc;	/* the tee discipline */
 }
 
 /* on close, remove the discipline */
-#if __STD_C
-static int teeexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
-#else
-static int teeexcept(f,type,data,disc)
-Sfio_t*		f;
-int		type;
-Void_t*		data;
-Sfdisc_t*	disc;
-#endif
+static int teeexcept(Sfio_t* f, int type, void* data, Sfdisc_t* disc)
 {
 	if(type == SF_FINAL || type == SF_DPOP)
 		free(disc);
@@ -74,13 +61,8 @@ Sfdisc_t*	disc;
 	return 0;
 }
 
-#if __STD_C
-int sfdctee(Sfio_t* f, Sfio_t* tee)
-#else
-int sfdctee(f, tee)
-Sfio_t*	f;	/* stream to tee from	*/
-Sfio_t*	tee;	/* stream to tee to	*/
-#endif
+int sfdctee(Sfio_t*	f,	/* stream to tee from	*/
+	    Sfio_t*	tee)	/* stream to tee to	*/
 {
 	reg Tee_t*	te;
 

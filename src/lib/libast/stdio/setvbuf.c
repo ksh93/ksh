@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #include "stdhdr.h"
 
@@ -43,7 +42,7 @@ setvbuf(Sfio_t* f, char* buf, int type, size_t size)
 		if (size == 0)
 			size = SF_BUFSIZE;
 		sfsync(f);
-		sfsetbuf(f, (Void_t*)buf, size);
+		sfsetbuf(f, (void*)buf, size);
 	}
 	return 0;
 }

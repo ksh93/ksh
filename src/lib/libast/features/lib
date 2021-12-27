@@ -58,7 +58,6 @@ typ	ino64_t,off64_t
 typ	struct.dirent64 dirent.h
 
 tst	tst_errno note{ errno can be assigned }end link{
-	_BEGIN_EXTERNS_
 	#define error		______error
 	#define strerror	______strerror
 	#include <errno.h>
@@ -69,16 +68,13 @@ tst	tst_errno note{ errno can be assigned }end link{
 	#endif
 	error() { }
 	strerror() { }
-	_END_EXTERNS_
 	int main() { errno = 0; error(); strerror(); return 0; }
 }end
 
 tst	lib_poll_fd_1 note{ fd is first arg to poll() }end execute{
 	#include <poll.h>
 	#include <unistd.h>
-	_BEGIN_EXTERNS_
-	extern int	pipe _ARG_((int*));
-	_END_EXTERNS_
+	extern int	pipe(int*);
 	int
 	main()
 	{	int		rw[2];
@@ -97,9 +93,7 @@ tst	lib_poll_fd_1 note{ fd is first arg to poll() }end execute{
 tst	lib_poll_fd_2 note{ fd is second arg to poll() }end execute{
 	#include <poll.h>
 	#include <unistd.h>
-	_BEGIN_EXTERNS_
-	extern int	pipe _ARG_((int*));
-	_END_EXTERNS_
+	extern int	pipe(int*);
 	int
 	main()
 	{	int		rw[2];
@@ -121,9 +115,7 @@ exp	_lib_poll	_lib_poll_fd_1||_lib_poll_fd_2
 tst	lib_poll_notimer note{ poll with no fds ignores timeout }end execute{
 	#include <sys/types.h>
 	#include <poll.h>
-	_BEGIN_EXTERNS_
-	extern time_t	time _ARG_((time_t*));
-	_END_EXTERNS_
+	extern time_t	time(time_t*);
 	#define TIMEOUT		4
 	int
 	main()
@@ -172,12 +164,10 @@ tst	sys_select note{ select() requires <sys/select.h> }end link{
 }end
 
 tst	pipe_rw note{ full duplex pipes }end execute{
-	_BEGIN_EXTERNS_
-	extern int	pipe _ARG_((int*));
-	extern int	read _ARG_((int, void*, int));
-	extern int	strcmp _ARG_((const char*, const char*));
-	extern int	write _ARG_((int, void*, int));
-	_END_EXTERNS_
+	extern int	pipe(int*);
+	extern int	read(int, void*, int);
+	extern int	strcmp(const char*, const char*);
+	extern int	write(int, void*, int);
 	int
 	main()
 	{
@@ -229,10 +219,8 @@ tst	lib_vfork unistd.h stdlib.h vfork.h note{ vfork exists and it works }end exe
 }end
  
 tst	real_vfork note{ vfork child shares data with parent }end execute{
-	_BEGIN_EXTERNS_
-	extern int	_exit _ARG_((int));
-	extern int	vfork _ARG_((void));
-	_END_EXTERNS_
+	extern int	_exit(int);
+	extern int	vfork(void);
 	int		code;
 	int
 	main()
@@ -254,9 +242,9 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 	#include <string.h>
 	/* if it uses fork() why bother? */
 	#undef fork
-	pid_t fork _ARG_((void)) { NOTE("uses fork()"); return -1; }
-	pid_t _fork _ARG_((void)) { NOTE("uses _fork()"); return -1; }
-	pid_t __fork _ARG_((void)) { NOTE("uses __fork()"); return -1; }
+	pid_t fork(void)) { NOTE("uses fork()"; return -1; }
+	pid_t _fork(void)) { NOTE("uses _fork()"; return -1; }
+	pid_t __fork(void)) { NOTE("uses __fork()"; return -1; }
 	int
 	main(argc, argv)
 	int	argc;
@@ -451,21 +439,13 @@ tst	lib_memccpy string.h unistd.h stdlib.h fcntl.h signal.h sys/types.h sys/stat
 	#ifndef MAP_FAILED
 	#define MAP_FAILED ((void*)-1)	/* introduced in POSIX-1.2017 */
 	#endif
-	#if _STD_
 	static void gotcha(int sig)
-	#else
-	static int gotcha(sig) int sig;
-	#endif
 	{
 		exit(1);
 	}
 	#ifdef MAP_PRIVATE
 	static const char x[] = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxN";
-	#if _STD_
 	static int indict_sgi_ia64_4Q_2004(int n)
-	#else
-	static int indict_sgi_ia64_4Q_2004(n) int n;
-	#endif
 	{
 		char*		b;
 		char*		s;
@@ -579,9 +559,7 @@ tst	lib_memccpy string.h unistd.h stdlib.h fcntl.h signal.h sys/types.h sys/stat
 
 tst	lib_utime_now note{ utime works with 0 time vector }end execute{
 	#include <sys/types.h>
-	_BEGIN_EXTERNS_
-	extern int	utime _ARG_((const char*, void*));
-	_END_EXTERNS_
+	extern int	utime(const char*, void*);
 	int
 	main()
 	{
@@ -602,32 +580,22 @@ tst	cross{
 }end
 
 std	cleanup note{ stuck with standard _cleanup }end noexecute{
-	_BEGIN_EXTERNS_
-	extern void exit _ARG_((int));
-	extern void _exit _ARG_((int));
+	extern void exit(int);
+	extern void _exit(int);
 	extern void _cleanup();
 	void _cleanup() { _exit(0); }
-	_END_EXTERNS_
 	int main() { printf("cleanup\n"); exit(1); }
 }end
 
 std	remove note{ stuck with standard remove() }end nostatic{
-	_BEGIN_EXTERNS_
-	extern int unlink _ARG_((const char*));
-	_END_EXTERNS_
-	#if _STD_
+	extern int unlink(const char*);
 	int remove(const char* path) { return 0; }
-	#else
-	int remove(path) char* path; { return 0; }
-	#endif
 	int main() { return unlink("foo"); }
 }end
 
 std	signal note{ stuck with standard signal }end nolink{
-	_BEGIN_EXTERNS_
 	extern int abort();
 	int signal() { return 0; }
-	_END_EXTERNS_
 	int main() { signal(); abort(); return 0; }
 }end
 
@@ -644,37 +612,18 @@ std	strcoll note{ standard strcoll works }end execute{
 }end
 
 std	strtod stdlib.h note{ stuck with standard strtod }end nostatic{
-	_BEGIN_EXTERNS_
-	#if _STD_
 	double strtod(const char* s, char** e) { return 0.0; }
-	#else
-	double strtod(s, e) char* s; char** e; { return 0.0; }
-	#endif
-	_END_EXTERNS_
 	int main() { printf(""); return strtod("1",0) != 0; }
 }end
 
 std	strtold stdlib.h note{ stuck with standard strtold }end nostatic{
-	_BEGIN_EXTERNS_
-	#if _STD_
 	long double strtold(const char* s, char** e) { return 0.0; }
-	#else
-	long double strtold(s, e) char* s; char** e; { return 0.0; }
-	#endif
-	_END_EXTERNS_
 	int main() { printf(""); return strtold("1",0) != 0; }
 }end
 
 std	strtol note{ stuck with standard strtol }end nostatic{
-	_BEGIN_EXTERNS_
-	#if _STD_
 	extern long atol(const char*);
 	long strtol(const char* s, char** e, int b) { return 0; }
-	#else
-	extern long atol();
-	long strtol(s, e, b) char* s; char** e; int b; { return 0; }
-	#endif
-	_END_EXTERNS_
 	int main() { printf(""); return (atol("1") + strtol("1",(char**)0,0)) != 0; }
 }end
 

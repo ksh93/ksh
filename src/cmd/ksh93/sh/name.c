@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * AT&T Labs
  *
@@ -192,7 +191,7 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 	{
 		name = (sp->nodes[0])->nvname;
 		i = strlen(name);
-		if(memcmp(np->nvname,name,i))
+		if(strncmp(np->nvname,name,i))
 			return(np);
 	}
 	if(sp->rp && sp->numnodes)
@@ -3703,28 +3702,25 @@ char *nv_name(register Namval_t *np)
 
 Namval_t *nv_lastdict(void)
 {
-	Shell_t *shp = sh_getinterp();
-	return(shp->last_table);
+	return(sh.last_table);
 }
 
-#undef nv_context
 /*
- * returns the data context for a builtin
+ * libshell ABI compatibility functions
  */
-void *nv_context(Namval_t *np)
+#define BYPASS_MACRO
+
+void *nv_context BYPASS_MACRO (Namval_t *np)
 {
-	return((void*)np->nvfun);
+	return(nv_context(np));
 }
 
-#define DISABLE /* proto workaround */
-
-int nv_isnull DISABLE (register Namval_t *np)
+int nv_isnull BYPASS_MACRO (Namval_t *np)
 {
 	return(nv_isnull(np));
 }
 
-#undef nv_setsize
-int nv_setsize(register Namval_t *np, int size)
+int nv_setsize BYPASS_MACRO (Namval_t *np, int size)
 {
 	int oldsize = nv_size(np);
 	if(size>=0)
@@ -3732,9 +3728,7 @@ int nv_setsize(register Namval_t *np, int size)
 	return(oldsize);
 }
 
-#undef nv_unset
-
-void	nv_unset(register Namval_t *np)
+void nv_unset BYPASS_MACRO (Namval_t *np)
 {
 	_nv_unset(np,0);
 	return;

@@ -33,14 +33,7 @@ void _STUB_vmlast(){}
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 01/16/94.
 */
 
-#if __STD_C
-static Void_t* lastalloc(Vmalloc_t* vm, size_t size, int local)
-#else
-static Void_t* lastalloc(vm, size, local)
-Vmalloc_t*	vm;
-size_t		size;
-int		local;
-#endif
+static void* lastalloc(Vmalloc_t* vm, size_t size, int local)
 {
 	Block_t		*tp, *next;
 	Seg_t		*seg, *last;
@@ -86,17 +79,10 @@ got_block:
 done:
 	CLRLOCK(vm, local);
 
-	return (Void_t*)tp;
+	return (void*)tp;
 }
 
-#if __STD_C
-static int lastfree(Vmalloc_t* vm, reg Void_t* data, int local )
-#else
-static int lastfree(vm, data, local)
-Vmalloc_t*	vm;
-Void_t*		data;
-int		local;
-#endif
+static int lastfree(Vmalloc_t* vm, reg void* data, int local )
 {
 	Seg_t		*seg;
 	Block_t		*fp;
@@ -108,8 +94,8 @@ int		local;
 
 	SETLOCK(vm, local);
 
-	if(data != (Void_t*)vd->free)
-		data = NIL(Void_t*); /* signaling an error */
+	if(data != (void*)vd->free)
+		data = NIL(void*); /* signaling an error */
 	else
 	{	seg = vd->seg;
 		if(!local && (vd->mode&VM_TRACE) && _Vmtrace)
@@ -132,23 +118,14 @@ int		local;
 	return data ? 0 : -1;
 }
 
-#if __STD_C
-static Void_t* lastresize(Vmalloc_t* vm, reg Void_t* data, size_t size, int type, int local)
-#else
-static Void_t* lastresize(vm, data, size, type, local )
-Vmalloc_t*	vm;
-reg Void_t*	data;
-size_t		size;
-int		type;
-int		local;
-#endif
+static void* lastresize(Vmalloc_t* vm, reg void* data, size_t size, int type, int local)
 {
 	Block_t		*tp;
 	Seg_t		*seg;
 	ssize_t		s, ds;
-	Void_t		*addr;
+	void		*addr;
 	size_t		oldsize = 0;
-	Void_t		*orgdata = data;
+	void		*orgdata = data;
 	size_t		orgsize = size;
 	Vmdata_t	*vd = vm->data;
 
@@ -160,21 +137,21 @@ int		local;
 	}
 	if(size <= 0)
 	{	(void)lastfree(vm, data, local);
-		return NIL(Void_t*);
+		return NIL(void*);
 	}
 
 	SETLOCK(vm, local);
 
-	if(data == (Void_t*)vd->free)
+	if(data == (void*)vd->free)
 		seg = vd->seg;
 	else
 	{	/* see if it was one of ours */
 		for(seg = vd->seg; seg; seg = seg->next)
-			if(data >= seg->addr && data < (Void_t*)seg->baddr)
+			if(data >= seg->addr && data < (void*)seg->baddr)
 				break;
 		if(!seg || (VLONG(data)%ALIGN) != 0 ||
 		   (seg->last && (Vmuchar_t*)data > (Vmuchar_t*)seg->last) )
-		{	data = NIL(Void_t*);
+		{	data = NIL(void*);
 			goto done;
 		}
 	}
@@ -214,12 +191,12 @@ int		local;
 		else
 		{ do_alloc:
 			if(!(type&(VM_RSMOVE|VM_RSCOPY)) )
-				data = NIL(Void_t*);
+				data = NIL(void*);
 			else
 			{	tp = vd->free;
 				if(!(addr = KPVALLOC(vm,size,lastalloc)) )
 				{	vd->free = tp;
-					data = NIL(Void_t*);
+					data = NIL(void*);
 				}
 				else
 				{	if(type&VM_RSCOPY)
@@ -259,7 +236,7 @@ int		local;
 			(*_Vmtrace)(vm,(Vmuchar_t*)orgdata,(Vmuchar_t*)data,orgsize,0);
 
 		if((type&VM_RSZERO) && size > oldsize)
-			memset((Void_t*)((Vmuchar_t*)data + oldsize), 0, size-oldsize);
+			memset((void*)((Vmuchar_t*)data + oldsize), 0, size-oldsize);
 	}
 
 done:	CLRLOCK(vm, local);
@@ -268,21 +245,14 @@ done:	CLRLOCK(vm, local);
 }
 
 
-#if __STD_C
-static long lastaddr(Vmalloc_t* vm, Void_t* addr, int local)
-#else
-static long lastaddr(vm, addr, local)
-Vmalloc_t*	vm;
-Void_t*		addr;
-int		local;
-#endif
+static long lastaddr(Vmalloc_t* vm, void* addr, int local)
 {
 	long		offset;
 	Vmdata_t	*vd = vm->data;
 
 	SETLOCK(vm, local);
 
-	if(!vd->free || addr < (Void_t*)vd->free || addr >= (Void_t*)vd->seg->baddr)
+	if(!vd->free || addr < (void*)vd->free || addr >= (void*)vd->seg->baddr)
 		offset = -1L;
 	else	offset = (long)((Vmuchar_t*)addr - (Vmuchar_t*)vd->free);
 
@@ -291,21 +261,14 @@ int		local;
 	return offset;
 }
 
-#if __STD_C
-static long lastsize(Vmalloc_t* vm, Void_t* addr, int local)
-#else
-static long lastsize(vm, addr, local)
-Vmalloc_t*	vm;
-Void_t*		addr;
-int		local;
-#endif
+static long lastsize(Vmalloc_t* vm, void* addr, int local)
 {
 	long		size;
 	Vmdata_t	*vd = vm->data;
 
 	SETLOCK(vm, local);
 
-	if(!vd->free || addr != (Void_t*)vd->free )
+	if(!vd->free || addr != (void*)vd->free )
 		size = -1L;
 	else if(vd->seg->free)
 		size = (long)((Vmuchar_t*)vd->seg->free - (Vmuchar_t*)addr);
@@ -316,13 +279,7 @@ int		local;
 	return size;
 }
 
-#if __STD_C
 static int lastcompact(Vmalloc_t* vm, int local)
-#else
-static int lastcompact(vm, local)
-Vmalloc_t*	vm;
-int		local;
-#endif
 {
 	ssize_t		s;
 	Block_t		*fp;
@@ -353,15 +310,7 @@ int		local;
 	return 0;
 }
 
-#if __STD_C
-static Void_t* lastalign(Vmalloc_t* vm, size_t size, size_t align, int local)
-#else
-static Void_t* lastalign(vm, size, align, local)
-Vmalloc_t*	vm;
-size_t		size;
-size_t		align;
-int		local;
-#endif
+static void* lastalign(Vmalloc_t* vm, size_t size, size_t align, int local)
 {
 	Vmuchar_t	*data;
 	Seg_t		*seg;
@@ -370,7 +319,7 @@ int		local;
 	Vmdata_t	*vd = vm->data;
 
 	if(size <= 0 || align <= 0)
-		return NIL(Void_t*);
+		return NIL(void*);
 
 	SETLOCK(vm, local);
 
@@ -407,7 +356,7 @@ int		local;
 done:
 	CLRLOCK(vm, local);
 
-	return (Void_t*)data;
+	return (void*)data;
 }
 
 /* Public method for free-1 allocation */

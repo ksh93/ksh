@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef _SHNODES_H
 #define _SHNODES_H	1
 /*

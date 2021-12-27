@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #include	"defs.h"
 #include	<stak.h>
 #include	<ls.h>

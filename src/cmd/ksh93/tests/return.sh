@@ -171,6 +171,9 @@ fi
 
 # ======
 # Tests for 'return' and 'exit' without argument: they should pass down the previous exit status
+#
+# Some of these tests use 'function foo' instead of foo() to locally turn off
+# xtrace; otherwise the 2>&1 redirection would write xtrace to standard output.
 
 foo() { return; }
 false
@@ -187,23 +190,25 @@ foo && err_exit "'return &&' does not preserve exit status"
 foo() { false; while return; do true; done; }
 foo && err_exit "'while return' does not preserve exit status"
 
-foo() { false; while return; do true; done 2>&1; }
+function foo { false; while return; do true; done 2>&1; }
 foo && err_exit "'while return' with redirection does not preserve exit status"
 
 foo() { false; until return; do true; done; }
 foo && err_exit "'until return' does not preserve exit status"
 
-foo() { false; until return; do true; done 2>&1; }
+function foo { false; until return; do true; done 2>&1; }
 foo && err_exit "'until return' with redirection does not preserve exit status"
 
 foo() { false; for i in 1; do return; done; }
 foo && err_exit "'return' within 'for' does not preserve exit status"
 
-foo() { false; for i in 1; do return; done 2>&1; }
+function foo { false; for i in 1; do return; done 2>&1; }
 foo && err_exit "'return' within 'for' with redirection does not preserve exit status"
 
-foo() { false; { return; } 2>&1; }
+function foo { false; { return; } 2>&1; }
 foo && err_exit "'return' within { block; } with redirection does not preserve exit status"
+
+# Subshell functions. These have no ksh variant, but we can just turn off xtrace directly in them (set +x).
 
 foo() ( exit )
 false
@@ -220,22 +225,22 @@ foo && err_exit "'exit &&' does not preserve exit status"
 foo() ( false; while exit; do true; done )
 foo && err_exit "'while exit' does not preserve exit status"
 
-foo() ( false; while exit; do true; done 2>&1 )
+foo() ( set +x; false; while exit; do true; done 2>&1 )
 foo && err_exit "'while exit' with redirection does not preserve exit status"
 
 foo() ( false; until exit; do true; done )
 foo && err_exit "'until exit' does not preserve exit status"
 
-foo() ( false; until exit; do true; done 2>&1 )
+foo() ( set +x; false; until exit; do true; done 2>&1 )
 foo && err_exit "'until exit' with redirection does not preserve exit status"
 
 foo() ( false; for i in 1; do exit; done )
 foo && err_exit "'exit' within 'for' does not preserve exit status"
 
-foo() ( false; for i in 1; do exit; done 2>&1 )
+foo() ( set +x; false; for i in 1; do exit; done 2>&1 )
 foo && err_exit "'exit' within 'for' with redirection does not preserve exit status"
 
-foo() ( false; { exit; } 2>&1 )
+foo() ( set +x; false; { exit; } 2>&1 )
 foo && err_exit "'exit' within { block; } with redirection does not preserve exit status"
 
 foo() { false; (exit); }

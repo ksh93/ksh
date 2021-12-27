@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 
 #include	"defs.h"
@@ -337,7 +336,7 @@ const char sh_optcont[] =
 
 const char sh_optalarm[]	= "r [varname seconds]";
 const char sh_optalias[] =
-"[-1c?\n@(#)$Id: alias (ksh 93u+m) 2020-06-10 $\n]"
+"[-1c?\n@(#)$Id: alias (ksh 93u+m) 2021-12-26 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?alias - define or display aliases]"
 "[+DESCRIPTION?\balias\b creates or redefines alias definitions "
@@ -364,7 +363,9 @@ const char sh_optalias[] =
 "[t?Each \aname\a is looked up as a command in \b$PATH\b and its path is "
 	"added to the hash table as a 'tracked alias'. If no \aname\a is "
 	"given, this prints the hash table. See \bhash(1)\b.]"
-"[x?Ignored, this option is obsolete.]"
+"[x?This option is obsolete. In most contexts the \b-x\b option is ignored, "
+	"although when it's combined with \b-t\b it will make \balias\b do "
+	"nothing.]"
 "\n"
 "\n[name[=value]...]\n"
 "\n"

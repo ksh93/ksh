@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * David Korn
  * AT&T Labs
@@ -1526,7 +1525,7 @@ static Pathcomp_t *path_addcomp(Shell_t *shp,Pathcomp_t *first, Pathcomp_t *old,
 		len = strlen(name);
 	for(pp=first; pp; pp=pp->next)
 	{
-		if(len == pp->len && memcmp(name,pp->name,len)==0)
+		if(len == pp->len && strncmp(name,pp->name,len)==0)
 		{
 			pp->flags |= flag;
 			return(first);
@@ -1817,7 +1816,7 @@ Pathcomp_t *path_dirfind(Pathcomp_t *first,const char *name,int c)
 	register Pathcomp_t *pp=first;
 	while(pp)
 	{
-		if(memcmp(name,pp->name,pp->len)==0 && name[pp->len]==c) 
+		if(strncmp(name,pp->name,pp->len)==0 && name[pp->len]==c)
 			return(pp);
 		pp = pp->next;
 	}

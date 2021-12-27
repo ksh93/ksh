@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * AT&T Labs
  *
@@ -33,7 +32,7 @@
 
 static void assign(Namval_t*,const char*,int,Namfun_t*);
 
-int nv_compare(Dt_t* dict, Void_t *sp, Void_t *dp, Dtdisc_t *disc)
+int nv_compare(Dt_t* dict, void *sp, void *dp, Dtdisc_t *disc)
 {
 	if(sp==dp)
 		return(0);

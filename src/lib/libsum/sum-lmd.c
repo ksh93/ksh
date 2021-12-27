@@ -18,7 +18,6 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * sum(3) wrapper for Solaris -lmd message digest library

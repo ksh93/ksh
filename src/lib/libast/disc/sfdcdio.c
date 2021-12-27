@@ -45,16 +45,7 @@ typedef struct _direct_s
 
 #ifdef F_DIOINFO
 
-#if __STD_C
-static ssize_t diordwr(Sfio_t* f, Void_t* buf, size_t n, Direct_t* di, int type)
-#else
-static ssize_t diordwr(f, buf, n, di, type)
-Sfio_t*		f;
-Void_t*		buf;
-size_t		n;
-Direct_t*	di;
-int		type;
-#endif
+static ssize_t diordwr(Sfio_t* f, void* buf, size_t n, Direct_t* di, int type)
 {
 	size_t	rw, done;
 	ssize_t	rv;
@@ -81,7 +72,7 @@ int		type;
 
 			if(rv > 0)
 			{	rw -= rv; done += rv;
-				buf = (Void_t*)((char*)buf + rv);
+				buf = (void*)((char*)buf + rv);
 			}
 
 			if(rv < io || rw < di->dio.d_miniosz)
@@ -102,41 +93,17 @@ int		type;
 	return done ? done : rv;
 }
 
-#if __STD_C
-static ssize_t dioread(Sfio_t* f, Void_t* buf, size_t n, Sfdisc_t* disc)
-#else
-static ssize_t dioread(f, buf, n, disc)
-Sfio_t*		f;
-Void_t*		buf;
-size_t		n;
-Sfdisc_t*	disc;
-#endif
+static ssize_t dioread(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 {
 	return diordwr(f, buf, n, (Direct_t*)disc, SF_READ);
 }
 
-#if __STD_C
-static ssize_t diowrite(Sfio_t* f, const Void_t* buf, size_t n, Sfdisc_t* disc)
-#else
-static ssize_t diowrite(f, buf, n, disc)
-Sfio_t*		f;
-Void_t*		buf;
-size_t		n;
-Sfdisc_t*	disc;
-#endif
+static ssize_t diowrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 {
-	return diordwr(f, (Void_t*)buf, n, (Direct_t*)disc, SF_WRITE);
+	return diordwr(f, (void*)buf, n, (Direct_t*)disc, SF_WRITE);
 }
 
-#if __STD_C
-static int dioexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
-#else
-static int dioexcept(f,type,data,disc)
-Sfio_t*		f;
-int		type;
-Void_t*		data;
-Sfdisc_t*	disc;
-#endif
+static int dioexcept(Sfio_t* f, int type, void* data, Sfdisc_t* disc)
 {
 	Direct_t*	di = (Direct_t*)disc;
 
@@ -154,20 +121,14 @@ Sfdisc_t*	disc;
 
 #endif /* F_DIOINFO */
 
-#if __STD_C
 int sfdcdio(Sfio_t* f, size_t bufsize)
-#else
-int sfdcdio(f, bufsize)
-Sfio_t*	f;
-size_t	bufsize;
-#endif
 {
 #ifndef F_DIOINFO
 	return -1;
 #else
 	int		cntl;
 	struct dioattr	dio;
-	Void_t*		buf;
+	void*		buf;
 	Direct_t*	di;
 
 	if(f->extent < 0 || (f->flags&SF_STRING))
@@ -195,7 +156,7 @@ size_t	bufsize;
 	if(!(di = (Direct_t*)malloc(sizeof(Direct_t))) )
 		goto no_direct;
 
-	if(!(buf = (Void_t*)memalign(dio.d_mem,bufsize)) )
+	if(!(buf = (void*)memalign(dio.d_mem,bufsize)) )
 	{	free(di);
 		goto no_direct;
 	}

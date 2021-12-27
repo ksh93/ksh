@@ -39,16 +39,7 @@ typedef struct _subfile_s
 	Sfoff_t		here;	/* current seek location */
 } Subfile_t;
 
-#if __STD_C
-static ssize_t streamio(Sfio_t* f, Void_t* buf, size_t n, Sfdisc_t* disc, int type)
-#else
-static ssize_t streamio(f, buf, n, disc, type)
-Sfio_t*		f;
-Void_t*		buf;
-size_t		n;
-Sfdisc_t*	disc;
-int		type;
-#endif
+static ssize_t streamio(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc, int type)
 {
 	reg Subfile_t	*su;
 	reg Sfoff_t	here, parent;
@@ -83,41 +74,17 @@ int		type;
 	return io;
 }
 
-#if __STD_C
-static ssize_t streamwrite(Sfio_t* f, const Void_t* buf, size_t n, Sfdisc_t* disc)
-#else
-static ssize_t streamwrite(f, buf, n, disc)
-Sfio_t*		f;
-Void_t*		buf;
-size_t		n;
-Sfdisc_t*	disc;
-#endif
+static ssize_t streamwrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 {
-	return streamio(f,(Void_t*)buf,n,disc,SF_WRITE);
+	return streamio(f,(void*)buf,n,disc,SF_WRITE);
 }
 
-#if __STD_C
-static ssize_t streamread(Sfio_t* f, Void_t* buf, size_t n, Sfdisc_t* disc)
-#else
-static ssize_t streamread(f, buf, n, disc)
-Sfio_t*		f;
-Void_t*		buf;
-size_t		n;
-Sfdisc_t*	disc;
-#endif
+static ssize_t streamread(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 {
 	return streamio(f,buf,n,disc,SF_READ);
 }
 
-#if __STD_C
 static Sfoff_t streamseek(Sfio_t* f, Sfoff_t pos, int type, Sfdisc_t* disc)
-#else
-static Sfoff_t streamseek(f, pos, type, disc)
-Sfio_t*		f;
-Sfoff_t		pos;
-int		type;
-Sfdisc_t*	disc;
-#endif
 {
 	reg Subfile_t*	su;
 	reg Sfoff_t	here, parent;
@@ -154,30 +121,17 @@ Sfdisc_t*	disc;
 	return (su->here = pos);
 }
 
-#if __STD_C
-static int streamexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
-#else
-static int streamexcept(f, type, data, disc)
-Sfio_t*		f;
-int		type;
-Void_t*		data;
-Sfdisc_t*	disc;
-#endif
+static int streamexcept(Sfio_t* f, int type, void* data, Sfdisc_t* disc)
 {
 	if(type == SF_FINAL || type == SF_DPOP)
 		free(disc);
 	return 0;
 }
 
-#if __STD_C
-Sfio_t* sfdcsubstream(Sfio_t* f, Sfio_t* parent, Sfoff_t offset, Sfoff_t extent)
-#else
-Sfio_t* sfdcsubstream(f, parent, offset, extent)
-Sfio_t*	f;	/* stream */
-Sfio_t*	parent;	/* parent stream */
-Sfoff_t	offset;	/* offset in f */
-Sfoff_t	extent;	/* desired size */
-#endif
+Sfio_t* sfdcsubstream(Sfio_t*	f,	/* stream */
+		      Sfio_t*	parent,	/* parent stream */
+		      Sfoff_t	offset,	/* offset in f */
+		      Sfoff_t	extent)	/* desired size */
 {
 	reg Sfio_t*	sp;
 	reg Subfile_t*	su;
@@ -189,7 +143,7 @@ Sfoff_t	extent;	/* desired size */
 	else	sfseek(parent,here,SEEK_SET);
 	sfpurge(parent);
 
-	if (!(sp = f) && !(sp = sfnew(NIL(Sfio_t*), NIL(Void_t*), (size_t)SF_UNBOUND, dup(sffileno(parent)), parent->flags)))
+	if (!(sp = f) && !(sp = sfnew(NIL(Sfio_t*), NIL(void*), (size_t)SF_UNBOUND, dup(sffileno(parent)), parent->flags)))
 		return 0;
 
 	if(!(su = (Subfile_t*)malloc(sizeof(Subfile_t))))

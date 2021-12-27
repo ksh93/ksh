@@ -95,7 +95,7 @@ static int htable(Dt_t* dt)
 	return 0;
 }
 
-static Void_t* hclear(Dt_t* dt)
+static void* hclear(Dt_t* dt)
 {
 	Dtlink_t	**t, **endt, *l, *next;
 	Dthash_t	*hash = (Dthash_t*)dt->data;
@@ -111,10 +111,10 @@ static Void_t* hclear(Dt_t* dt)
 		*t = NIL(Dtlink_t*);
 	}
 
-	return NIL(Void_t*);
+	return NIL(void*);
 }
 
-static Void_t* hfirst(Dt_t* dt)
+static void* hfirst(Dt_t* dt)
 {
 	Dtlink_t	**t, **endt, *l;
 	Dthash_t	*hash = (Dthash_t*)dt->data;
@@ -126,10 +126,10 @@ static Void_t* hfirst(Dt_t* dt)
 		return _DTOBJ(dt->disc, l);
 	}
 
-	return NIL(Void_t*);
+	return NIL(void*);
 }
 
-static Void_t* hnext(Dt_t* dt, Dtlink_t* l)
+static void* hnext(Dt_t* dt, Dtlink_t* l)
 {
 	Dtlink_t	**t, **endt, *next;
 	Dthash_t	*hash = (Dthash_t*)dt->data;
@@ -147,11 +147,11 @@ static Void_t* hnext(Dt_t* dt, Dtlink_t* l)
 			hash->here = l;
 			return _DTOBJ(dt->disc, l);
 		}
-		return NIL(Void_t*);
+		return NIL(void*);
 	}
 }
 
-static Void_t* hflatten(Dt_t* dt, int type)
+static void* hflatten(Dt_t* dt, int type)
 {
 	Dtlink_t	**t, **endt, *head, *tail, *l;
 	Dthash_t	*hash = (Dthash_t*)dt->data;
@@ -174,7 +174,7 @@ static Void_t* hflatten(Dt_t* dt, int type)
 		}
 		else	hash->data.size = 0;
 
-		return (Void_t*)head;
+		return (void*)head;
 	}
 	else /* restoring a previous flattened list */
 	{	head = hash->here;
@@ -186,7 +186,7 @@ static Void_t* hflatten(Dt_t* dt, int type)
 			for(l = head; l && l != *t; l = l->_rght)
 				;
 			if(!l) /* something is seriously wrong */
-				return NIL(Void_t*);
+				return NIL(void*);
 
 			*t = head; /* head of list for this slot */
 			head = l->_rght; /* head of next list */
@@ -196,13 +196,13 @@ static Void_t* hflatten(Dt_t* dt, int type)
 		hash->here = NIL(Dtlink_t*);
 		hash->type &= ~H_FLATTEN;
 
-		return NIL(Void_t*);
+		return NIL(void*);
 	}
 }
 
-static Void_t* hlist(Dt_t* dt, Dtlink_t* list, int type)
+static void* hlist(Dt_t* dt, Dtlink_t* list, int type)
 {
-	Void_t		*obj;
+	void		*obj;
 	Dtlink_t	*l, *next;
 	Dtdisc_t	*disc = dt->disc;
 
@@ -215,14 +215,14 @@ static Void_t* hlist(Dt_t* dt, Dtlink_t* list, int type)
 		for(l = list; l; l = next)
 		{	next = l->_rght;
 			obj = _DTOBJ(disc,l);
-			if((*dt->meth->searchf)(dt, (Void_t*)l, DT_RELINK) == obj)
+			if((*dt->meth->searchf)(dt, (void*)l, DT_RELINK) == obj)
 				dt->data->size += 1;
 		}
-		return (Void_t*)list;
+		return (void*)list;
 	}
 }
 
-static Void_t* hstat(Dt_t* dt, Dtstat_t* st)
+static void* hstat(Dt_t* dt, Dtstat_t* st)
 {
 	ssize_t		n;
 	Dtlink_t	**t, **endt, *l;
@@ -247,32 +247,25 @@ static Void_t* hstat(Dt_t* dt, Dtstat_t* st)
 		}
 	}
 
-	return (Void_t*)hash->data.size;
+	return (void*)hash->data.size;
 }
 
-#if __STD_C
-static Void_t* dthashchain(Dt_t* dt, Void_t* obj, int type)
-#else
-static Void_t* dthashchain(dt,obj,type)
-Dt_t*	dt;
-Void_t*	obj;
-int	type;
-#endif
+static void* dthashchain(Dt_t* dt, void* obj, int type)
 {
 	Dtlink_t	*lnk, *pp, *ll, *p, *l, **tbl;
-	Void_t		*key, *k, *o;
+	void		*key, *k, *o;
 	uint		hsh;
 	Dtdisc_t	*disc = dt->disc;
 	Dthash_t	*hash = (Dthash_t*)dt->data;
 
 	type = DTTYPE(dt,type); /* map type for upward compatibility */
 	if(!(type&DT_OPERATIONS) )
-		return NIL(Void_t*);
+		return NIL(void*);
 
 	DTSETLOCK(dt);
 
 	if(!hash->htbl && htable(dt) < 0 ) /* initialize hash table */
-		DTRETURN(obj, NIL(Void_t*));
+		DTRETURN(obj, NIL(void*));
 
 	if(hash->type&H_FLATTEN) /* restore flattened list */
 		hflatten(dt, 0);
@@ -307,7 +300,7 @@ int	type;
 	{	lnk = NIL(Dtlink_t*);
 		if((type&DT_MATCH) )
 		{	key = obj;
-			obj = NIL(Void_t*);
+			obj = NIL(void*);
 		}
 		else	key = _DTKEY(disc,obj);
 	}
@@ -350,7 +343,7 @@ int	type;
 		{	if(dt->meth->type&DT_BAG)
 				goto do_insert;
 			else if(!(lnk = _dtmake(dt, obj, type)) )
-				DTRETURN(obj, NIL(Void_t*) );
+				DTRETURN(obj, NIL(void*) );
 			else /* replace old object with new one */
 			{	if(pp) /* remove old object */
 					pp->_rght = ll->_rght;
@@ -381,7 +374,7 @@ int	type;
 	}
 	else /* no matching object */
 	{	if(!(type&(DT_INSERT|DT_INSTALL|DT_APPEND|DT_ATTACH|DT_RELINK)) )
-			DTRETURN(obj, NIL(Void_t*));
+			DTRETURN(obj, NIL(void*));
 
 	do_insert: /* inserting a new object */
 		if(hash->tblz < HLOAD(hash->data.size) )
@@ -391,7 +384,7 @@ int	type;
 
 		if(!lnk) /* inserting a new object */
 		{	if(!(lnk = _dtmake(dt, obj, type)) )
-				DTRETURN(obj, NIL(Void_t*));
+				DTRETURN(obj, NIL(void*));
 			hash->data.size += 1;
 		}
 
@@ -408,7 +401,7 @@ dt_return:
 	return obj;
 }
 
-static int hashevent(Dt_t* dt, int event, Void_t* arg)
+static int hashevent(Dt_t* dt, int event, void* arg)
 {
 	Dthash_t	*hash = (Dthash_t*)dt->data;
 

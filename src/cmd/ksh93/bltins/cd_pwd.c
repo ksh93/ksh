@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * cd [-L] [-Pe] [dirname]
  * cd [-L] [-Pe] [old] [new]

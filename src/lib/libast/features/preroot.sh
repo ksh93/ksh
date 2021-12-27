@@ -35,7 +35,6 @@ case $# in
 esac
 if	/etc/preroot / /bin/echo >/dev/null
 then	cat <<!
-#pragma prototyped
 
 #define FS_PREROOT	1			/* preroot enabled	*/
 #define PR_BASE		"CCS"			/* preroot base env var	*/

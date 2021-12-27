@@ -123,7 +123,6 @@ tst	socketpair_shutdown_mode note{ fchmod() after socketpair() shutdown() }end e
 	}
 }end
 cat{
-	#pragma prototyped
 	#ifdef _lib_poll
 	#   define poll _SYS_poll
 	#else

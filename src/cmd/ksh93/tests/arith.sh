@@ -943,7 +943,7 @@ fi
 # ======
 # https://github.com/ksh93/ksh/issues/334#issuecomment-968603087
 exp=21
-got=$(typeset -Z x=0x15; { echo $((x)); } 2>&1)
+got=$(typeset -Z x=0x15; set +x; { echo $((x)); } 2>&1)
 [[ $got == "$exp" ]] || err_exit "typeset -Z corrupts hexadecimal number in arithmetic context" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 

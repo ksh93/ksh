@@ -114,11 +114,9 @@ tst	vax_asm note{ register layout ok for vax string operations }end execute{
 }end
 
 tst	lib_cvt note{ native floating point conversions ok }end link{
-	_BEGIN_EXTERNS_
-	extern char* ecvt _ARG_((double, int, int*, int*));
-	extern char* fcvt _ARG_((double, int, int*, int*));
-	extern double strtod _ARG_((const char*, char**));
-	_END_EXTERNS_
+	extern char* ecvt(double, int, int*, int*);
+	extern char* fcvt(double, int, int*, int*);
+	extern double strtod(const char*, char**);
 	int
 	main()
 	{

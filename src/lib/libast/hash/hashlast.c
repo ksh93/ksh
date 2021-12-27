@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /* OBSOLETE 19960229 -- use tab->root->last.{table|bucket} */
 

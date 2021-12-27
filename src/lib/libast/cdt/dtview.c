@@ -32,23 +32,16 @@
 			 DT_ATTACH|DT_DETACH|DT_RELINK|DT_CLEAR| \
 			 DT_FLATTEN|DT_EXTRACT|DT_RESTORE|DT_STAT)
 
-#if __STD_C
-static Void_t* dtvsearch(Dt_t* dt, reg Void_t* obj, reg int type)
-#else
-static Void_t* dtvsearch(dt,obj,type)
-Dt_t*		dt;
-reg Void_t*	obj;
-reg int		type;
-#endif
+static void* dtvsearch(Dt_t* dt, reg void* obj, reg int type)
 {
 	int		cmp;
 	Dt_t		*d, *p;
-	Void_t		*o, *n, *oky, *nky;
+	void		*o, *n, *oky, *nky;
 
 	if(type&DT_NOVIEWPATH)
 		return (*(dt->meth->searchf))(dt,obj,type);
 
-	o = NIL(Void_t*);
+	o = NIL(void*);
 
 	/* these ops look for the first appearance of an object of the right type */
 	if((type & (DT_MATCH|DT_SEARCH)) ||
@@ -62,10 +55,10 @@ reg int		type;
 
 	if(dt->meth->type & DT_ORDERED) /* ordered sets/bags */
 	{	if(!(type & (DT_FIRST|DT_LAST|DT_NEXT|DT_PREV|DT_ATLEAST|DT_ATMOST)) )
-			return NIL(Void_t*);
+			return NIL(void*);
 
 		/* find the min/max element that satisfies the op requirement */
-		n = nky = NIL(Void_t*); p = NIL(Dt_t*);
+		n = nky = NIL(void*); p = NIL(Dt_t*);
 		for(d = dt; d; d = d->view)
 		{	if(!(o = (*d->meth->searchf)(d, obj, type)) )
 				continue;
@@ -91,7 +84,7 @@ reg int		type;
 
 	/* unordered collections */
 	if(!(type&(DT_NEXT|DT_PREV)) )
-		return NIL(Void_t*);
+		return NIL(void*);
 
 	if(!dt->walk )
 	{	for(d = dt; d; d = d->view)
@@ -99,7 +92,7 @@ reg int		type;
 				break;
 		dt->walk = d;
 		if(!(obj = o) )
-			return NIL(Void_t*);
+			return NIL(void*);
 	}
 
 	for(d = dt->walk, obj = (*d->meth->searchf)(d, obj, type);; )
@@ -114,20 +107,14 @@ reg int		type;
 		}
 
 		if(!(d = dt->walk = d->view) ) /* move on to next dictionary */
-			return NIL(Void_t*);
+			return NIL(void*);
 		else if(type&DT_NEXT)
-			obj = (*(d->meth->searchf))(d,NIL(Void_t*),DT_FIRST);
-		else	obj = (*(d->meth->searchf))(d,NIL(Void_t*),DT_LAST);
+			obj = (*(d->meth->searchf))(d,NIL(void*),DT_FIRST);
+		else	obj = (*(d->meth->searchf))(d,NIL(void*),DT_LAST);
 	}
 }
 
-#if __STD_C
 Dt_t* dtview(reg Dt_t* dt, reg Dt_t* view)
-#else
-Dt_t* dtview(dt,view)
-reg Dt_t*	dt;
-reg Dt_t*	view;
-#endif
 {
 	reg Dt_t*	d;
 

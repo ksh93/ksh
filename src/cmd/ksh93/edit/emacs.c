@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /* Original version by Michael T. Veach 
  * Adapted for ksh by David Korn */
 /* EMACS_MODES: c tabstop=4 

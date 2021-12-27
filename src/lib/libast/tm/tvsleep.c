@@ -20,7 +20,6 @@
 *                     Phong Vo <phongvo@gmail.com>                     *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #include <assert.h>
 #include <tv.h>

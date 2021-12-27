@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef _NV_PRIVATE
 /*
  * This is the implementation header file for name-value pairs
@@ -76,7 +75,7 @@ union Value
 #if SHOPT_FIXEDARRAY
 #   define ARRAY_FIXED	ARRAY_NOCLONE		/* For index values */
 #endif /* SHOPT_FIXEDARRAY */
-#define NV_FARRAY	0x10000000		/* fixed sized arrays */
+#define NV_FARRAY	0x10000000		/* fixed-size arrays */
 #define NV_ASETSUB	8			/* set subscript */
 
 /* These flags are used as options to array_get() */
@@ -213,7 +212,7 @@ extern Namval_t		*nv_parent(Namval_t*);
 extern char		*nv_getbuf(size_t);
 extern Namval_t		*nv_mount(Namval_t*, const char *name, Dt_t*);
 extern Namval_t		*nv_arraychild(Namval_t*, Namval_t*, int);
-extern int		nv_compare(Dt_t*, Void_t*, Void_t*, Dtdisc_t*);
+extern int		nv_compare(Dt_t*, void*, void*, Dtdisc_t*);
 extern void		nv_outnode(Namval_t*,Sfio_t*, int, int);
 extern int		nv_subsaved(Namval_t*, int);
 extern void		nv_typename(Namval_t*, Sfio_t*);
@@ -243,6 +242,7 @@ extern const char	e_restricted[];
 extern const char	e_ident[];
 extern const char	e_varname[];
 extern const char	e_noalias[];
+extern const char	e_notrackedalias[];
 extern const char	e_noarray[];
 extern const char	e_notenum[];
 extern const char	e_nounattr[];

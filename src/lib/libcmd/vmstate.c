@@ -19,7 +19,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #include <cmd.h>
 #include <vmalloc.h>

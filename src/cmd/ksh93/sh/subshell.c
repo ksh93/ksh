@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  *   Create and manage subshells avoiding forks when possible
  *
@@ -493,7 +492,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	int *saveexitval = job.exitval;
 	char **savsig;
 	Sfio_t *iop=0;
-	struct checkpt buff;
+	struct checkpt checkpoint;
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
 	int argcnt;
@@ -510,7 +509,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	}
 	shp->curenv = ++subenv;
 	savst = shp->st;
-	sh_pushcontext(shp,&buff,SH_JMPSUB);
+	sh_pushcontext(&sh,&checkpoint,SH_JMPSUB);
 	shp->subshell++;		/* increase level of virtual subshells */
 	shgd->realsubshell++;		/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
@@ -606,7 +605,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		shp->cpid = 0;
 		sh_sigreset(0);
 	}
-	jmpval = sigsetjmp(buff.buff,0);
+	jmpval = sigsetjmp(checkpoint.buff,0);
 	if(jmpval==0)
 	{
 		if(comsub)
@@ -666,7 +665,7 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 			{
 				if(comsub)
 					sigblock(SIGTSTP);
-				else if(!sh_isstate(SH_PROFILE))
+				else
 					sh_subfork();
 			}
 #endif
@@ -682,10 +681,10 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 		sh_trap(trap,0);
 		free(trap);
 	}
-	sh_popcontext(shp,&buff);
-	if(shp->subshell==0)	/* must be child process */
+	if(sh.subshell==0)	/* we must have forked with sh_subfork(); this is the child process */
 	{
 		subshell_data = sp->prev;
+		sh_popcontext(&sh,&checkpoint);
 		if(jmpval==SH_JMPSCRIPT)
 			siglongjmp(*shp->jmplist,jmpval);
 		shp->exitval &= SH_EXITMASK;
@@ -887,16 +886,14 @@ Sfio_t *sh_subshell(Shell_t *shp,Shnode_t *t, volatile int flags, int comsub)
 	}
 	shp->subshare = sp->subshare;
 	shp->subdup = sp->subdup;
-	if(shp->subshell)
-	{
-		shp->subshell--;		/* decrease level of virtual subshells */
-		shgd->realsubshell--;		/* decrease ${.sh.subshell} */
-	}
+	sh.subshell--;			/* decrease level of virtual subshells */
+	shgd->realsubshell--;		/* decrease ${.sh.subshell} */
 	subshell_data = sp->prev;
+	sh_popcontext(&sh,&checkpoint);
 	if(!argsav  ||  argsav->dolrefcnt==argcnt)
 		sh_argfree(shp,argsav,0);
-	if(shp->topfd != buff.topfd)
-		sh_iorestore(shp,buff.topfd|IOSUBSHELL,jmpval);
+	if(sh.topfd != checkpoint.topfd)
+		sh_iorestore(&sh,checkpoint.topfd|IOSUBSHELL,jmpval);
 	if(sp->sig)
 	{
 		if(sp->prev)

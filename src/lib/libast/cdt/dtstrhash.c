@@ -27,14 +27,7 @@
 ** Written by Kiem-Phong Vo (01/10/2012)
 */
 
-#if __STD_C
-uint dtstrhash(uint h, Void_t* args, ssize_t n)
-#else
-uint dtstrhash(h,args,n)
-uint	h;
-Void_t*		args;
-ssize_t		n;
-#endif
+uint dtstrhash(uint h, void* args, ssize_t n)
 {
 	unsigned char	*s = (unsigned char*)args;
 

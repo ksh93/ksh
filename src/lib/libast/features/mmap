@@ -17,13 +17,7 @@ tst	lib_mmap note{ standard mmap interface that works }end execute{
 	#define Failed(file)	(remove(file),1)
 
 	int
-	#if _STD_
 	main(int argc, char** argv)
-	#else
-	main(argc,argv)
-	int     argc;
-	char**  argv;
-	#endif
 	{
 		caddr_t		mm;
 		char		*t, *u, *f;
@@ -239,13 +233,7 @@ tst	note{ mmap is fast enough to be worth using }end output{
 	#define Failed(file)	(remove(file),1)
 	
 	int
-	#if _STD_
 	main(int argc, char** argv)
-	#else
-	main(argc,argv)
-	int     argc;
-	char**  argv;
-	#endif
 	{
 		caddr_t		mm;
 		char		*t, *f;

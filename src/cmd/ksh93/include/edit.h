@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef SEARCHSIZE
 /*
  *  edit.h -  common data structure for vi and emacs edit options
@@ -238,11 +237,11 @@ extern int hist_expand(const char *, char **);
 #endif /* SHOPT_HISTEXPAND */
 
 #if SHOPT_ESH
-extern void	emacs_redraw(Void_t*);
+extern void	emacs_redraw(void*);
 #endif /* SHOPT_ESH */
 
 #if SHOPT_VSH
-extern void	vi_redraw(Void_t*);
+extern void	vi_redraw(void*);
 #endif /* SHOPT_VSH */
 
 #endif /* !SEARCHSIZE */

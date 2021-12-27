@@ -27,14 +27,9 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
-ssize_t sfnputc(Sfio_t* f, int c, size_t n)
-#else
-ssize_t sfnputc(f,c,n)
-Sfio_t*		f;	/* file to write */
-int		c;	/* char to be written */
-size_t		n;	/* number of time to repeat */
-#endif
+ssize_t sfnputc(Sfio_t*		f,	/* file to write */
+		int		c,	/* char to be written */
+		size_t		n)	/* number of time to repeat */
 {
 	reg uchar*	ps;
 	reg ssize_t	p, w;
@@ -69,7 +64,7 @@ size_t		n;	/* number of time to repeat */
 
 	for(;;)
 	{	/* hard write of data */
-		if((p = SFWRITE(f,(Void_t*)ps,p)) <= 0 || (n -= p) <= 0)
+		if((p = SFWRITE(f,(void*)ps,p)) <= 0 || (n -= p) <= 0)
 		{	w -= n;
 			goto done;
 		}

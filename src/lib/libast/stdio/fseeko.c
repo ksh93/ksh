@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #ifndef _NO_LARGEFILE64_SOURCE
 #define _NO_LARGEFILE64_SOURCE	1

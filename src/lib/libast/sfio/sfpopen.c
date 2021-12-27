@@ -41,12 +41,7 @@
 static char	Meta[1<<CHAR_BIT], **Path;
 
 /* execute command directly if possible; else use the shell */
-#if __STD_C
 static void execute(const char* argcmd)
-#else
-static void execute(argcmd)
-char*	argcmd;
-#endif
 {
 	reg char	*s, *cmd, **argv, **p, *interp;
 	reg int		n;
@@ -131,14 +126,9 @@ do_interp:
 
 #endif /*_PACKAGE_ast*/
 
-#if __STD_C
-Sfio_t*	sfpopen(Sfio_t* f, const char* command, const char* mode)
-#else
-Sfio_t*	sfpopen(f,command,mode)
-Sfio_t*	f;
-char*	command;	/* command to execute */
-char*	mode;		/* mode of the stream */
-#endif
+Sfio_t*	sfpopen(Sfio_t*		f,
+		const char*	command,	/* command to execute */
+		const char*	mode)		/* mode of the stream */
 {
 #if _PACKAGE_ast
 	reg Proc_t*	proc;
@@ -169,7 +159,7 @@ char*	mode;		/* mode of the stream */
 	av[3] = 0;
 	if (!(proc = procopen(0, av, 0, 0, flags)))
 		return 0;
-	if (!(f = sfnew(f, NIL(Void_t*), (size_t)SF_UNBOUND,
+	if (!(f = sfnew(f, NIL(void*), (size_t)SF_UNBOUND,
 	       		(sflags&SF_READ) ? proc->rfd : proc->wfd, sflags|((sflags&SF_RDWR)?0:SF_READ))) ||
 	    _sfpopen(f, (sflags&SF_READ) ? proc->wfd : -1, proc->pid, pflags) < 0)
 	{
@@ -223,7 +213,7 @@ char*	mode;		/* mode of the stream */
 		else	stdio = 0;
 
 		/* make the streams */
-		if(!(f = sfnew(f,NIL(Void_t*),(size_t)SF_UNBOUND,parent[pkeep],sflags|((sflags&SF_RDWR)?0:SF_READ))))
+		if(!(f = sfnew(f,NIL(void*),(size_t)SF_UNBOUND,parent[pkeep],sflags|((sflags&SF_RDWR)?0:SF_READ))))
 			goto error;
 		if(sflags&SF_RDWR)
 		{	CLOSE(parent[!pkeep]);

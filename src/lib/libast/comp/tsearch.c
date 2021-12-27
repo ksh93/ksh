@@ -53,7 +53,7 @@ void _STUB_tsearch(){}
 
 #include	"dthdr.h"
 
-extern Void_t*		dtfinger(Dt_t*);
+extern void*		dtfinger(Dt_t*);
 
 /*	POSIX tsearch library based on libcdt
 **	Written by Kiem-Phong Vo (AT&T Research, 07/19/95)
@@ -61,12 +61,12 @@ extern Void_t*		dtfinger(Dt_t*);
 
 typedef struct _tree_s
 {	Dtlink_t	link;
-	Void_t*		key;
+	void*		key;
 } Tree_t;
 
 typedef struct _treedisc_s
 {	Dtdisc_t	disc;
-	int(*		comparf)_ARG_((const Void_t*, const Void_t*));
+	int(*		comparf)(const void*, const void*);
 } Treedisc_t;
 
 #if defined(__EXPORT__)
@@ -74,17 +74,9 @@ typedef struct _treedisc_s
 #endif
 
 /* compare function */
-#if __STD_C
 static int treecompare(Dt_t* dt, char* one, char* two, Dtdisc_t* disc)
-#else
-static int treecompare(dt, one, two, disc)
-Dt_t*		dt;
-char*		one;
-char*		two;
-Dtdisc_t*	disc;
-#endif
 {
-	return (*((Treedisc_t*)disc)->comparf)((Void_t*)one,(Void_t*)two);
+	return (*((Treedisc_t*)disc)->comparf)((void*)one,(void*)two);
 }
 
 static Treedisc_t	Treedisc =
@@ -100,60 +92,46 @@ static Treedisc_t	Treedisc =
 };
 
 extern
-#if __STD_C
-Void_t* tsearch(const Void_t* key, Void_t** rootp,
-		int(*comparf)(const Void_t*,const Void_t*) )
-#else
-Void_t* tsearch(key, rootp, comparf)
-Void_t*		key;
-Void_t**	rootp;
-int(*		comparf)();
-#endif
+void* tsearch(const void* key, void** rootp,
+		int(*comparf)(const void*,const void*) )
 {
 	reg Dt_t*	dt;
 	reg Tree_t*	o;
 
 	if(!rootp ||
 	   (!(dt = *((Dt_t**)rootp)) && !(dt = dtopen((Dtdisc_t*)(&Treedisc),Dtoset))) )
-		return NIL(Void_t*);
+		return NIL(void*);
 
 	/* dangerous to set comparf on each call but that's tsearch */
 	Treedisc.comparf = comparf;
 
 	if(!(o = (Tree_t*)dtmatch(dt,key)) )
 	{	if(!(o = (Tree_t*)malloc(sizeof(Tree_t))) )
-			return NIL(Void_t*);
-		o->key = (Void_t*)key;
+			return NIL(void*);
+		o->key = (void*)key;
 		dtinsert(dt,o);
 	}
 
 	if(o)
-		*rootp = (Void_t*)dt;
-	else if(*rootp == NIL(Void_t*) )
+		*rootp = (void*)dt;
+	else if(*rootp == NIL(void*) )
 		dtclose(dt);
 
-	return (Void_t*)(&o->key);
+	return (void*)(&o->key);
 }
 
 extern
-#if __STD_C
-Void_t* tfind(const Void_t* key, Void_t*const* rootp,
-		int(*comparf)(const Void_t*, const Void_t*) )
-#else
-Void_t* tfind(key, rootp, comparf)
-Void_t*		key;
-Void_t**	rootp;
-int(*		comparf)();
-#endif
+void* tfind(const void* key, void*const* rootp,
+		int(*comparf)(const void*, const void*) )
 {
 	reg Dt_t*	dt;
 	reg Tree_t*	o;
 
 	if(!rootp || !(dt = *((Dt_t**)rootp)) )
-		return NIL(Void_t*);
+		return NIL(void*);
 	Treedisc.comparf = comparf;
 
-	return (o = (Tree_t*)dtmatch(dt,key)) ? (Void_t*)(&o->key) : NIL(Void_t*);
+	return (o = (Tree_t*)dtmatch(dt,key)) ? (void*)(&o->key) : NIL(void*);
 }
 
 /* the original tdelete() specifies that it will return the parent pointer
@@ -162,34 +140,27 @@ int(*		comparf)();
 ** returns the key of the new root.
 */
 extern
-#if __STD_C
-Void_t* tdelete(const Void_t* key, Void_t** rootp,
-		int(*comparf)(const Void_t*, const Void_t*) )
-#else
-Void_t* tdelete(key, rootp, comparf)
-Void_t*		key;
-Void_t**	rootp;
-int(*		comparf)();
-#endif
+void* tdelete(const void* key, void** rootp,
+		int(*comparf)(const void*, const void*) )
 {
 	reg Dt_t*	dt;
 	reg Tree_t*	o;
 	Tree_t		obj;
 
 	if(!rootp || !(dt = *((Dt_t**)rootp)) )
-		return NIL(Void_t*);
+		return NIL(void*);
 
 	Treedisc.comparf = comparf;
 
-	obj.key = (Void_t*)key;
+	obj.key = (void*)key;
 	dtdelete(dt,&obj);
 
 	if(!(o = dtfinger(dt)) )
 	{	dtclose(dt);
-		*rootp = NIL(Void_t*);
+		*rootp = NIL(void*);
 	}
 
-	return o ? (Void_t*)(&o->key) : NIL(Void_t*);
+	return o ? (void*)(&o->key) : NIL(void*);
 }
 
 /* the below routine assumes a particular layout of Dtlink_t.
@@ -198,24 +169,17 @@ int(*		comparf)();
 #define lchild	link.lh.__left
 #define rchild	link.rh.__rght
 
-#if __STD_C
-static void _twalk(Tree_t* obj, void(*action)(const Void_t*,VISIT,int), int level)
-#else
-static void _twalk(obj,action,level)
-Tree_t*	obj;
-void(*		action)();
-int		level;
-#endif
+static void _twalk(Tree_t* obj, void(*action)(const void*,VISIT,int), int level)
 {	if(!obj->lchild && !obj->rchild)
-		(*action)((Void_t*)obj,leaf,level);
+		(*action)((void*)obj,leaf,level);
 	else
-	{	(*action)((Void_t*)obj,preorder,level);
+	{	(*action)((void*)obj,preorder,level);
 		if(obj->lchild)
 			_twalk((Tree_t*)obj->lchild,action,level+1);
-		(*action)((Void_t*)obj,postorder,level);
+		(*action)((void*)obj,postorder,level);
 		if(obj->rchild)
 			_twalk((Tree_t*)obj->rchild,action,level+1);
-		(*action)((Void_t*)obj,endorder,level);
+		(*action)((void*)obj,endorder,level);
 	}
 }
 
@@ -224,13 +188,7 @@ int		level;
 ** at whichever node happens to be current root.
 */
 extern
-#if __STD_C
-void twalk(const Void_t* root, void(*action)(const Void_t*,VISIT,int) )
-#else
-void twalk(root, action)
-Void_t*	root;
-void(*	action)();
-#endif
+void twalk(const void* root, void(*action)(const void*,VISIT,int) )
 {
 	reg Tree_t*	o;
 

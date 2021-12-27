@@ -7,7 +7,7 @@ tst	- -DVAL=0 - -DVAL=1 - -DVAL=2 note{ probing need for va_listval() workaround
 	 * It is used in hash/hashalloc.c and string/tokscan.c.
 	 */
 	#include "FEATURE/common"
-	#if _STD_ && _hdr_stdarg
+	#if _hdr_stdarg
 	#include <stdarg.h>
 	#else
 	#include <varargs.h>

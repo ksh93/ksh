@@ -72,7 +72,6 @@ extern int i;
 int i = 1;
 extern int f(){return(!i);}
 int main(){FILE* fp=stdin;return(f());}' > pic.$src
-echo 'class x {int n;} m;' > plusplus.$src
 echo 'int prefix(){return 0;}' > prefix.$src
 echo 'template<class T> int gt(T a, T b);
 template<class T> int gt(T a, T b) { return a > b; }
@@ -102,9 +101,7 @@ int i;
 int main(){int j;j = i * 10;return j;}' > strip.$src
 echo 'template <class T> void f(T){}
 int main(){f(1);return 0;}' > toucho.$src
-echo '#if defined(__STDC__) || defined(__cplusplus)
-extern type call(int);
-#endif
+echo 'extern type call(int);
 int main() {call(0);return(0);}' > tstlib.$src
 echo 'int main(){return 0;}' > warn.$src
 echo 'int f(){return 0;}' > warn1.$src
@@ -154,7 +151,6 @@ nmedit=
 nmflags=
 no_protect=
 optimize=
-plusplus=
 prefix_archive=lib
 prefix_dynamic=
 prefix_shared=lib
@@ -433,7 +429,6 @@ int main() { f(); return 0; }' > picok.$src
 	esac
 fi
 
-$cc -c plusplus.$src && plusplus=1
 $cc -E -dD dDflag.$src > t
 case `grep '#define[ 	][ 	]*dDflag[ 	][ 	]*on' t` in
 ?*)	dDflag=1 ;;
@@ -441,90 +436,7 @@ esac
 case `grep '#define.*_GNUC_' t` in
 ?*)	gnu=1 ;;
 esac
-case $plusplus in
-"")	$cc -c stdc.$src && stdc=1 ;;
-*)	mkdir ptr
-	cd ptr
-	$cc -c ../ptr.$src &
-	NFS_locks_are_botched=$!
-	cd ..
-	if	$cc -c require.$src && $cc require.$obj
-	then	set x `$cc require.$obj 2>&1`
-		d=
-		while	:
-		do	shift
-			case $# in
-			0)	break ;;
-			esac
-			case $1 in
-			-l*)	d="$d $1" ;;
-			esac
-		done
-		for f in ++
-		do	if $cc require.$obj -l$f
-			then	set x `$cc require.$obj -l$f 2>&1`
-				r=
-				while	:
-				do	shift
-					case $# in
-					0)	break ;;
-					esac
-					case $1 in
-					-l*)	case " $d $r " in
-						*" "$1" "*)	;;
-						*)		r="$r $1" ;;
-						esac
-					esac
-				done
-				case $r in
-				?*)	require="$require $f"
-					echo '' $r > req.$f
-					;;
-				esac
-			fi
-		done
-	fi
-	cd ptr
-	for i in *
-	do	if	test -d $i
-		then	repository=$i
-			break
-		fi
-	done
-	cd ..
-	kill -9 $NFS_locks_are_botched
-	rm -rf ptr
-	case $repository in
-	*?)	mkdir ptr
-		cd ptr
-		i=PTR
-		case $repository in
-		$i)	i=$i$i ;;
-		esac
-		$cc -ptr$i -c ../ptr.$src &
-		NFS_locks_are_botched=$!
-		cd ..
-		sleep 5
-		if	test -d ptr/$i/$repository
-		then	ptrimplicit=1
-		fi
-		kill -9 $NFS_locks_are_botched
-		rm -rf ptr
-		;;
-	esac
-	$cc -o implc implc.$src && $executable implc && implicitc=1
-	if	$cc -c toucho.$src && test -f toucho.$obj
-	then	o=`ls -l toucho.$obj`
-		if	$cc -o toucho toucho.$obj && $executable toucho
-		then	n=`ls -l touch.$obj`
-			case $n in
-			"$o")	;;
-			*)	toucho=1 ;;
-			esac
-		fi
-	fi
-	;;
-esac
+$cc -c stdc.$src && stdc=1
 
 if	$cc -c pic.$src
 then	eval set x $probe_nmflags
@@ -713,37 +625,34 @@ case $cc_dll:$cc_pic:$so:$dynamic:$static in
 		esac
 		dld=$xx
 		shared=$1
-		# does -nostartfiles make sense for C?
-		case $plusplus in
-		'')	z=`wc -c < xxx$dll`
-			eval set x $probe_shared_nostart
-			while	:
-			do	shift
-				case $# in
-				0)	break ;;
-				esac
-				rm -f xxx$dll
-				if	$dld $shared $1 -o xxx$dll shared.$obj 2>e && test -r xxx$dll
-				then	case `wc -c < xxx$dll` in
-					$z)	;;
-					*)	if	test -s e
-						then	case `cat e` in
-							*[Ee][Rr][Rr][Oo][Rr]*|*[Ww][Aa][Rr][Nn][Ii][Nn][Gg]*|*[Oo][Pp][Tt][Ii][Oo][Nn]*)
-								continue
-								;;
-							esac
-						fi
-						case $shared in
-						'')	shared=$1 ;;
-						*)	shared="$shared $1" ;;
+		# does -nostartfiles make sense?
+		z=`wc -c < xxx$dll`
+		eval set x $probe_shared_nostart
+		while	:
+		do	shift
+			case $# in
+			0)	break ;;
+			esac
+			rm -f xxx$dll
+			if	$dld $shared $1 -o xxx$dll shared.$obj 2>e && test -r xxx$dll
+			then	case `wc -c < xxx$dll` in
+				$z)	;;
+				*)	if	test -s e
+					then	case `cat e` in
+						*[Ee][Rr][Rr][Oo][Rr]*|*[Ww][Aa][Rr][Nn][Ii][Nn][Gg]*|*[Oo][Pp][Tt][Ii][Oo][Nn]*)
+							continue
+							;;
 						esac
-						break
-						;;
+					fi
+					case $shared in
+					'')	shared=$1 ;;
+					*)	shared="$shared $1" ;;
 					esac
-				fi
-			done
-			;;
-		esac
+					break
+					;;
+				esac
+			fi
+		done
 		case $cc_dll in
 		"")	cc_dll=$cc_dll_def ;;
 		esac
@@ -1319,9 +1228,7 @@ case $stdlib in
 	fi
 	tstlib="$tstlib $implib"
 	if	$cc -Dtype=void -Dcall=exit -c tstlib.$src && mv tstlib.$obj tst.$obj
-	then	case $plusplus in
-		'')	probe_lxx= ;;
-		esac
+	then	probe_lxx=
 		l=
 		for sym in $probe_l $probe_lxx
 		do	case $l in
@@ -1665,9 +1572,6 @@ done
 
 case $stdc in
 ?*)	dialect="$dialect ANSI" ;;
-esac
-case $plusplus in
-?*)	dialect="$dialect C++" ;;
 esac
 case $hosted in
 "")	dialect="$dialect CROSS" ;;

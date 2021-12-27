@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * KornShell lexical analyzer
  *
@@ -145,7 +144,7 @@ static void lex_advance(Sfio_t *iop, const char *buff, register int size, void *
 		sfwrite(shp->strbuf,lp->lexd.docend,n);
 		lp->lexd.docextra  += n;
 		if(sffileno(iop)>=0)
-			lp->lexd.docend = sfsetbuf(iop,(Void_t*)iop,0);
+			lp->lexd.docend = sfsetbuf(iop,(void*)iop,0);
 		else
 			lp->lexd.docend = fcfirst();
 	}
@@ -1736,7 +1735,7 @@ void sh_lexskip(Lex_t *lp,int close, register int copy, int  state)
 }
 
 #if SHOPT_CRNL
-    ssize_t _sfwrite(Sfio_t *sp, const Void_t *buff, size_t n)
+    ssize_t _sfwrite(Sfio_t *sp, const void *buff, size_t n)
     {
 	const char *cp = (const char*)buff, *next=cp, *ep = cp + n;
 	int m=0,k;

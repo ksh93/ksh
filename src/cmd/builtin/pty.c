@@ -19,7 +19,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 static const char usage[] =
 "[-?\n@(#)pty (AT&T Research) 2013-05-22\n]"

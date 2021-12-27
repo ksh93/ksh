@@ -19,7 +19,6 @@
 *                    David Korn <dgkorn@gmail.com>                     *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * David Korn
  * AT&T Bell Laboratories

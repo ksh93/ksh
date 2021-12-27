@@ -32,14 +32,9 @@
 #define extern	__EXPORT__
 #endif
 
-#if __STD_C
-extern ssize_t sfpeek(reg Sfio_t* f, Void_t** bp, reg size_t size)
-#else
-extern ssize_t sfpeek(f,bp,size)
-reg Sfio_t*	f;	/* file to peek */
-Void_t**	bp;	/* start of data area */
-reg size_t	size;	/* size of peek */
-#endif
+extern ssize_t sfpeek(reg Sfio_t*	f,	/* file to peek */
+		      void**		bp,	/* start of data area */
+		      reg size_t	size)	/* size of peek */
 {	reg ssize_t	n, sz;
 	reg int		mode;
 
@@ -57,7 +52,7 @@ reg size_t	size;	/* size of peek */
 		if(!bp)
 			return n;
 		else if(n > 0)	/* size == 0 */
-		{	*bp = (Void_t*)f->next;
+		{	*bp = (void*)f->next;
 			return 0;
 		}
 		/* else fall down and fill buffer */
@@ -74,7 +69,7 @@ reg size_t	size;	/* size of peek */
 		return sz;
 
 	if((n = sfvalue(f)) > 0)
-	{	*bp = (Void_t*)f->next;
+	{	*bp = (void*)f->next;
 		if(sz < 0)
 		{	f->mode |= SF_PEEK;
 			f->endr = f->endw = f->data;

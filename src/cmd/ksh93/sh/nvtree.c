@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * code for tree nodes and name walking
@@ -860,7 +859,7 @@ static char **genvalue(char **argv, const char *prefix, int n, struct Walk *wp)
 					continue;
 				break;
 			}
-			else if(outfile && !wp->nofollow && argv[1] && memcmp(arg,argv[1],l=strlen(arg))==0 && argv[1][l]=='[')
+			else if(outfile && !wp->nofollow && argv[1] && strncmp(arg,argv[1],l=strlen(arg))==0 && argv[1][l]=='[')
 			{
 				int	k=1;
 				Namarr_t *ap=0;

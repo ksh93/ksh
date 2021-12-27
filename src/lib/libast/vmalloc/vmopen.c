@@ -53,14 +53,9 @@ typedef struct _vminit_s
 	Block_t		block[16];	/* space for a few blocks	*/
 } Vminit_t;
 
-#if __STD_C
-Vmalloc_t* vmopen(Vmdisc_t* disc, Vmethod_t* meth, int mode)
-#else
-Vmalloc_t* vmopen(disc, meth, mode)
-Vmdisc_t*	disc;	/* discipline to get segments	*/
-Vmethod_t*	meth;	/* method to manage space	*/
-int		mode;	/* type of region		*/
-#endif
+Vmalloc_t* vmopen(Vmdisc_t*	disc,	/* discipline to get segments	*/
+		  Vmethod_t*	meth,	/* method to manage space	*/
+		  int		mode)	/* type of region		*/
 {
 	Vmalloc_t	*vm, *vmp, vmproto;
 	Vmdata_t	*vd;
@@ -89,7 +84,7 @@ int		mode;	/* type of region		*/
 
 	if(disc->exceptf)
 	{	addr = NIL(Vmuchar_t*);
-		if((rv = (*disc->exceptf)(vmp,VM_OPEN,(Void_t*)(&addr),disc)) < 0)
+		if((rv = (*disc->exceptf)(vmp,VM_OPEN,(void*)(&addr),disc)) < 0)
 			return NIL(Vmalloc_t*);
 		else if(rv == 0 )
 		{	if(addr) /* vm itself is in memory from disc->memoryf */
@@ -108,7 +103,7 @@ int		mode;	/* type of region		*/
 	incr = disc->round <= 0 ? _Vmpagesize : disc->round;
 	incr = MULTIPLE(incr,ALIGN);
 	size = ROUND(sizeof(Vminit_t),incr); /* get initial memory */
-	if(!(addr = (Vmuchar_t*)(*disc->memoryf)(vmp, NIL(Void_t*), 0, size, disc)) )
+	if(!(addr = (Vmuchar_t*)(*disc->memoryf)(vmp, NIL(void*), 0, size, disc)) )
 		return NIL(Vmalloc_t*);
 	memset(addr, 0, size);
 
@@ -134,7 +129,7 @@ int		mode;	/* type of region		*/
 	seg = vd->seg;
 	seg->next = NIL(Seg_t*);
 	seg->vmdt = vd;
-	seg->addr = (Void_t*)addr;
+	seg->addr = (void*)addr;
 	seg->extent = size;
 	seg->baddr = addr + size;
 	seg->size = size; /* Note: this size is unusually large to mark seg as
@@ -173,7 +168,7 @@ done:	/* now make the region handle */
 	vm->data = vd;
 
 	if(disc->exceptf) /* signaling that vmopen succeeded */
-		(void)(*disc->exceptf)(vm, VM_ENDOPEN, NIL(Void_t*), disc);
+		(void)(*disc->exceptf)(vm, VM_ENDOPEN, NIL(void*), disc);
 
 	/* add to the linked list of regions */
 	_vmlock(NIL(Vmalloc_t*), 1);

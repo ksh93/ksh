@@ -33,7 +33,7 @@ ssize_t dtstat(Dt_t* dt, Dtstat_t* dtst)
 	char	*str;
 	char	*end;
 
-	sz = (ssize_t)(*dt->meth->searchf)(dt, (Void_t*)dtst, DT_STAT);
+	sz = (ssize_t)(*dt->meth->searchf)(dt, (void*)dtst, DT_STAT);
 
 	str = dtst->mesg;
 	end = &dtst->mesg[sizeof(dtst->mesg)] - 1;

@@ -35,12 +35,7 @@ void _STUB_vmregion(){}
 **
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 01/16/94.
 */
-#if __STD_C
-Vmalloc_t* vmregion(Void_t* addr)
-#else
-Vmalloc_t* vmregion(addr)
-Void_t*	addr;
-#endif
+Vmalloc_t* vmregion(void* addr)
 {
 	Vmalloc_t	*vm;
 	Vmdata_t	*vd;

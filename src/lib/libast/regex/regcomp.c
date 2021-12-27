@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * POSIX regex compiler
@@ -3279,6 +3278,8 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 	if (!(p->env = (Env_t*)alloc(disc, 0, sizeof(Env_t))))
 		return fatal(disc, REG_ESPACE, pattern);
 	memset(p->env, 0, sizeof(*p->env));
+	if (!(p->env->mst = stkopen(STK_SMALL|STK_NULL)))
+		return fatal(disc, REG_ESPACE, pattern);
 	memset(&env, 0, sizeof(env));
 	env.regex = p;
 	env.flags = flags;

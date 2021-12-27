@@ -1,4 +1,3 @@
-set	prototyped
 hdr	vfork
 sys	vfork
 

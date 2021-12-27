@@ -538,7 +538,7 @@ cat > exit267 <<-EOF  # unquoted delimiter; expansion active
 	foo
 EOF
 exp="OK $((signum+256))"
-got=$( { "$SHELL" exit267; } 2>&1 )
+got=$( set +x; { "$SHELL" exit267; } 2>&1 )
 (( (e=$?)==signum+128 )) && [[ $got == "$exp" ]] || err_exit "'return' with status > 256:" \
 	"(expected status $((signum+128)) and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
@@ -549,7 +549,7 @@ cat > bar <<-'EOF'
 	echo OK
 EOF
 exp="OK"
-got=$( { "$SHELL" bar; } 2>&1 )
+got=$( set +x; { "$SHELL" bar; } 2>&1 )
 (( (e=$?)==0 )) && [[ $got == "$exp" ]] || err_exit "segfaulting child process:" \
 	"(expected status 0 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 

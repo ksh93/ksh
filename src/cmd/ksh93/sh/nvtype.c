@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * David Korn
  * AT&T Labs
@@ -1053,7 +1052,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			np->nvenv = 0;
 		}
 		nq->nvname = cp;
-		if(name && memcmp(name,&np->nvname[m],n)==0 && np->nvname[m+n]=='.')
+		if(name && strncmp(name,&np->nvname[m],n)==0 && np->nvname[m+n]=='.')
 			offset -= sizeof(char*);
 		dsize = nv_datasize(np,&offset);
 		cp = strcopy(name=cp, &np->nvname[m]);
@@ -1407,129 +1406,6 @@ Fields_t foo[]=
 	FIELD(time,c),
 	0
 }; 
-
-
-Namval_t *nv_mkstruct(const char *name, int rsize, Fields_t *fields) 
-{
-	Namval_t	*mp, *nq, *nr, *tp;
-	Fields_t	*fp;
-	Namtype_t	*dp, *pp;
-	char		*cp, *sp;
-	int		nnodes=0, offset=staktell(), n, r, i, j;
-	size_t		m, size=0;
-	stakputs(NV_CLASS);
-	stakputc('.');
-	r = staktell();
-	stakputs(name);
-	stakputc(0);
-	mp = nv_open(stakptr(offset), sh.var_tree, NV_VARNAME);
-	stakseek(r);
-
-	for(fp=fields; fp->name; fp++)
-	{
-		m = strlen(fp->name)+1;
-		size += m;
-		nnodes++;
-		if(memcmp(fp->type,"typeset",7))
-		{
-			stakputs(fp->type);
-			stakputc(0);
-			tp = nv_open(stakptr(offset), sh.var_tree, NV_VARNAME|NV_NOADD|NV_NOFAIL);
-			stakseek(r);
-			if(!tp)
-			{
-				errormsg(SH_DICT,ERROR_exit(1),e_unknowntype,strlen(fp->type),fp->type);
-				UNREACHABLE();
-			}
-			if(dp = (Namtype_t*)nv_hasdisc(tp,&type_disc))
-			{
-				nnodes += dp->numnodes;
-				if((i=dp->strsize) < 0)
-					i = -i;
-				size += i + dp->numnodes*m;
-			}
-		}
-	}
-	pp = sh_newof(NiL,Namtype_t, 1,  nnodes*NV_MINSZ + rsize + size);
-	pp->fun.dsize = sizeof(Namtype_t)+nnodes*NV_MINSZ +rsize;
-	pp->fun.type = mp;
-	pp->np = mp;
-	pp->childfun.fun.disc = &chtype_disc;
-	pp->childfun.fun.nofree = 1;
-	pp->childfun.ttype = pp;
-	pp->childfun.ptype = pp;
-	pp->fun.disc = &type_disc;
-	pp->nodes = (char*)(pp+1);
-	pp->numnodes = nnodes;
-	pp->strsize = size;
-	pp->data = pp->nodes + nnodes*NV_MINSZ;
-	cp = pp->data + rsize;
-	for(i=0,fp=fields; fp->name; fp++)
-	{
-		nq = nv_namptr(pp->nodes,i++);
-		nq->nvname = cp;
-		nq->nvalue.cp = pp->data + fp->offset;
-		nv_onattr(nq,NV_MINIMAL|NV_NOFREE);
-		m = strlen(fp->name)+1;
-		memcpy(cp, fp->name, m);
-		cp += m;
-		if(memcmp(fp->type,"typeset",7))
-		{
-			stakputs(fp->type);
-			stakputc(0);
-			tp = nv_open(stakptr(offset), sh.var_tree, NV_VARNAME);
-			stakseek(r);
-			clone_all_disc(tp,nq,NV_RDONLY);
-			nq->nvflag = tp->nvflag|NV_MINIMAL|NV_NOFREE;
-			nq->nvsize = tp->nvsize;
-			if(dp = (Namtype_t*)nv_hasdisc(nq,&type_disc))
-				dp->strsize = -dp->strsize;
-			if(dp = (Namtype_t*)nv_hasdisc(tp,&type_disc))
-			{
-				if(nv_hasdisc(nq,&chtype_disc))
-					nv_disc(nq, &pp->childfun.fun, NV_LAST);
-				sp = (char*)nq->nvalue.cp;
-				memcpy(sp, dp->data, nv_size(tp));
-				for(j=0; j < dp->numnodes; j++)
-				{
-					nr = nv_namptr(dp->nodes,j);
-					nq = nv_namptr(pp->nodes,i++);
-					nq->nvname = cp;
-					memcpy(cp,fp->name,m);
-					cp[m-1] = '.';
-					cp += m;
-					n = strlen(nr->nvname)+1;
-					memcpy(cp,nr->nvname,n);
-					cp += n;
-					if(nr->nvalue.cp>=dp->data && nr->nvalue.cp < (char*)pp + pp->fun.dsize)
-					{
-						nq->nvalue.cp = sp + (nr->nvalue.cp-dp->data);
-					}
-					nq->nvflag = nr->nvflag;
-					nq->nvsize = nr->nvsize;
-				}
-			}
-		}
-		else if(strmatch(fp->type+7,"*-*i*")==0)
-		{
-			nv_onattr(nq,NV_NOFREE|NV_RDONLY|NV_INTEGER);
-			if(strmatch(fp->type+7,"*-*s*")==0)
-				nv_onattr(nq,NV_INT16P);
-			else if(strmatch(fp->type+7,"*-*l*")==0)
-				nv_onattr(nq,NV_INT64);
-			if(strmatch(fp->type+7,"*-*u*")==0)
-				nv_onattr(nq,NV_UNSIGN);
-		}
-		
-	}
-	stakseek(offset);
-	nv_onattr(mp,NV_RDONLY|NV_NOFREE|NV_BINARY);
-	nv_setsize(mp,rsize);
-	nv_disc(mp, &pp->fun, NV_LAST);
-	mp->nvalue.cp = pp->data;
-	nv_newtype(mp);
-	return(mp);
-}
 
 static void write_indent(Sfio_t *out,char *str,int n,int indent)
 {

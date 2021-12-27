@@ -28,11 +28,7 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
 static int _sfall(void)
-#else
-static int _sfall()
-#endif
 {
 	reg Sfpool_t	*p, *next;
 	reg Sfio_t*	f;
@@ -80,12 +76,7 @@ static int _sfall()
 	return rv;
 }
 
-#if __STD_C
 int sfsync(reg Sfio_t* f)
-#else
-int sfsync(f)
-reg Sfio_t*	f;	/* stream to be synchronized */
-#endif
 {
 	int	local, rv, mode, lock;
 	Sfio_t*	origf;
@@ -115,7 +106,7 @@ reg Sfio_t*	f;	/* stream to be synchronized */
 	for(; f; f = f->push)
 	{	
 		if((f->flags&SF_IOCHECK) && f->disc && f->disc->exceptf)
-			(void)(*f->disc->exceptf)(f,SF_SYNC,(Void_t*)((int)1),f->disc);
+			(void)(*f->disc->exceptf)(f,SF_SYNC,(void*)((int)1),f->disc);
 
 		SFLOCK(f,local);
 
@@ -162,7 +153,7 @@ reg Sfio_t*	f;	/* stream to be synchronized */
 		SFOPEN(f,local);
 
 		if((f->flags&SF_IOCHECK) && f->disc && f->disc->exceptf)
-			(void)(*f->disc->exceptf)(f,SF_SYNC,(Void_t*)((int)0),f->disc);
+			(void)(*f->disc->exceptf)(f,SF_SYNC,(void*)((int)0),f->disc);
 	}
 
 done:

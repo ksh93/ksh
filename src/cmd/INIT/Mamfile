@@ -408,41 +408,6 @@ make install
 		done mamake.o generated
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o mamake mamake.o
 	done mamake generated
-	make proto
-		make proto.o
-			make proto.c
-			done proto.c
-			meta proto.o %.c>%.o proto.c proto
-			prev proto.c
-			exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -c proto.c
-		done proto.o generated
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o proto proto.o
-	done proto generated
-	make ratz
-		make ratz.o
-			make ratz.c
-				make unix.h implicit
-				done unix.h dontcare virtual
-				make alloc.h implicit
-				done alloc.h dontcare virtual
-				make unixio.h implicit
-				done unixio.h dontcare virtual
-				make ast_std.h implicit
-				done ast_std.h dontcare virtual
-				make windows.h implicit
-				done windows.h dontcare virtual
-				make io.h implicit
-				done io.h dontcare virtual
-				make direct.h implicit
-				done direct.h dontcare virtual
-				prev ast.h implicit
-			done ratz.c
-			meta ratz.o %.c>%.o ratz.c ratz
-			prev ratz.c
-			exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -c ratz.c
-		done ratz.o generated
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS} -o ratz ratz.o
-	done ratz generated
 	make mprobe
 		make mprobe.sh
 		done mprobe.sh
@@ -634,14 +599,16 @@ make install
 		prev mamake
 		exec - test '' = 'mamake' || ${STDCMP} 2>/dev/null -s mamake ${INSTALLROOT}/bin/mamake || { ${STDMV} ${INSTALLROOT}/bin/mamake ${INSTALLROOT}/bin/mamake.old 2>/dev/null || true; ${STDCP} mamake ${INSTALLROOT}/bin/mamake ;}
 	done ${INSTALLROOT}/bin/mamake generated
-	make ${INSTALLROOT}/bin/proto
-		prev proto
-		exec - test '' = 'proto' || ${STDCMP} 2>/dev/null -s proto ${INSTALLROOT}/bin/proto || { ${STDMV} ${INSTALLROOT}/bin/proto ${INSTALLROOT}/bin/proto.old 2>/dev/null || true; ${STDCP} proto ${INSTALLROOT}/bin/proto ;}
-	done ${INSTALLROOT}/bin/proto generated
-	make ${INSTALLROOT}/bin/ratz
-		prev ratz
-		exec - test '' = 'ratz' || ${STDCMP} 2>/dev/null -s ratz ${INSTALLROOT}/bin/ratz || { ${STDMV} ${INSTALLROOT}/bin/ratz ${INSTALLROOT}/bin/ratz.old 2>/dev/null || true; ${STDCP} ratz ${INSTALLROOT}/bin/ratz ;}
-	done ${INSTALLROOT}/bin/ratz generated
+	make __proto_stub
+		note *
+		note * proto(1) has been removed, but install a backwards compatibility stub
+		note * that allows old Mamfiles containing proto commands to keep working.
+		note *
+		exec - src=${PACKAGEROOT}/src/cmd/INIT/proto.sh
+		exec - dst=${INSTALLROOT}/bin/proto
+		exec - ${STDCMP} 2>/dev/null -s $src $dst || { ${STDMV} $dst $dst.old 2>/dev/null || true; ${STDCP} $src $dst ;}
+		exec - test -w $dst && test -x $dst || chmod u+w,+x $dst
+	done __proto_stub dontcare virtual
 	make ${INSTALLROOT}/bin/mkdir
 		make mkdir.sh
 		done mkdir.sh
@@ -876,18 +843,6 @@ make install
 		exec - then mkdir -p ${INSTALLROOT}/include/ast
 		exec - fi
 	done ${INSTALLROOT}/include/ast generated
-	make ${INSTALLROOT}/include/ast/prototyped.h
-		prev ${INSTALLROOT}/include/ast
-		make prototyped.h
-			prev ${INSTALLROOT}/bin/proto
-			exec - proto -f /dev/null > h.${COTEMP}.h
-			exec - if cmp 2>/dev/null -s h.${COTEMP}.h prototyped.h
-			exec - then rm -f h.${COTEMP}.h
-			exec - else mv h.${COTEMP}.h prototyped.h
-			exec - fi
-		done prototyped.h generated
-		exec - test '' = 'prototyped.h' || ${STDCMP} 2>/dev/null -s prototyped.h ${INSTALLROOT}/include/ast/prototyped.h || { ${STDMV} ${INSTALLROOT}/include/ast/prototyped.h ${INSTALLROOT}/include/ast/prototyped.h.old 2>/dev/null || true; ${STDCP} prototyped.h ${INSTALLROOT}/include/ast/prototyped.h ;}
-	done ${INSTALLROOT}/include/ast/prototyped.h generated
 	make ${INSTALLROOT}/lib/lib
 		exec - if test ! -d ${INSTALLROOT}/lib/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib/lib

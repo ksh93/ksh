@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #if _UWIN && __STDPP__
 __STDPP__directive pragma pp:hide getenv

@@ -29,34 +29,22 @@
 **	Written by Kiem-Phong Vo (5/26/96)
 */
 
-#if __STD_C
-static Void_t* dtmemory(Dt_t* dt, Void_t* addr, size_t size, Dtdisc_t* disc)
-#else
-static Void_t* dtmemory(dt, addr, size, disc)
-Dt_t* 		dt;	/* dictionary			*/
-Void_t* 	addr;	/* address to be manipulate	*/
-size_t		size;	/* size to obtain		*/
-Dtdisc_t* 	disc;	/* discipline			*/
-#endif
+static void* dtmemory(Dt_t* 	dt,	/* dictionary			*/
+		      void* 	addr,	/* address to be manipulate	*/
+		      size_t	size,	/* size to obtain		*/
+		      Dtdisc_t* disc)	/* discipline			*/
 {
 	if(addr)
 	{	if(size == 0)
 		{	free(addr);
-			return NIL(Void_t*);
+			return NIL(void*);
 		}
 		else	return realloc(addr,size);
 	}
-	else	return size > 0 ? malloc(size) : NIL(Void_t*);
+	else	return size > 0 ? malloc(size) : NIL(void*);
 }
 
-#if __STD_C
 Dtdisc_t* dtdisc(Dt_t* dt, Dtdisc_t* disc, int type)
-#else
-Dtdisc_t* dtdisc(dt,disc,type)
-Dt_t*		dt;
-Dtdisc_t*	disc;
-int		type;
-#endif
 {
 	Dtdisc_t	*old;
 	Dtlink_t	*list;
@@ -71,7 +59,7 @@ int		type;
 	if(!disc) /* only want to know current discipline */
 		return old;
 
-	if(old->eventf && (*old->eventf)(dt,DT_DISC,(Void_t*)disc,old) < 0)
+	if(old->eventf && (*old->eventf)(dt,DT_DISC,(void*)disc,old) < 0)
 		return NIL(Dtdisc_t*);
 
 	if((type & (DT_SAMEHASH|DT_SAMECMP)) != (DT_SAMEHASH|DT_SAMECMP) )

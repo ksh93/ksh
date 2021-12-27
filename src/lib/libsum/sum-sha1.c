@@ -1,4 +1,3 @@
-#pragma prototyped
 
 /*
  * SHA-1 in C

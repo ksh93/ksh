@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef S_BREAK
 #define S_BREAK	1	/* end of token */
 #define S_EOF	2	/* end of buffer */

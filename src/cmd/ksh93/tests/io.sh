@@ -590,10 +590,11 @@ result=$("$SHELL" -c 'echo ok > >(sed s/ok/good/); wait' 2>&1)
 [[ $result == good ]] || err_exit 'process substitution does not work with redirections' \
 				"(expected 'good', got $(printf %q "$result"))"
 
-# Process substitution in an interactive shell shouldn't print the
-# process ID of the asynchronous process.
-result=$("$SHELL" -ic 'echo >(true) >/dev/null' 2>&1)
-[[ -z $result ]] || err_exit 'interactive shells print a PID during process substitution' \
+# Process substitution in an interactive shell or profile script shouldn't
+# print the process ID of the asynchronous process.
+echo 'false >(false)' > "$tmp/procsub-envtest"
+result=$(set +x; ENV=$tmp/procsub-envtest "$SHELL" -ic 'true >(true)' 2>&1)
+[[ -z $result ]] || err_exit 'interactive shells and/or profile scripts print a PID during process substitution' \
 				"(expected '', got $(printf %q "$result"))"
 
 # ======
