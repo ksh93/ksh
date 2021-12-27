@@ -924,10 +924,10 @@ int sh_lex(Lex_t* lp)
 				if(c=='*' || (n=sh_lexstates[ST_BRACE][c])!=S_MOD1 && n!=S_MOD2)
 				{
 					/* see whether inside `...` */
-					mode = oldmode(lp);
-					poplevel(lp);
 					if((n = endchar(lp)) != '`')
 						goto err;
+					mode = oldmode(lp);
+					poplevel(lp);
 					pushlevel(lp,RBRACE,mode);
 				}
 				else
