@@ -30,28 +30,29 @@ function abspath
         print $newdir/$base
 }
 # test for proper exit of shell
-builtin getconf
-ABSHELL=$(abspath)
-print exit 0 >.profile
-${ABSHELL}  <<!
-HOME=$PWD \
-PATH=$PATH \
-SHELL=$ABSSHELL \
-$(
-	v=$(getconf LIBPATH)
-	for v in ${v//,/ }
-	do	v=${v#*:}
-		v=${v%%:*}
-		eval [[ \$$v ]] && eval print -n \" \"\$v=\"\$$v\"
-	done
-) \
-exec -c -a -ksh ${ABSHELL} -c "exit 1" 1>/dev/null 2>&1
+if builtin getconf 2> /dev/null; then
+	ABSHELL=$(abspath)
+	print exit 0 >.profile
+	${ABSHELL}  <<!
+	HOME=$PWD \
+	PATH=$PATH \
+	SHELL=$ABSSHELL \
+	$(
+		v=$(getconf LIBPATH)
+		for v in ${v//,/ }
+		do	v=${v#*:}
+			v=${v%%:*}
+			eval [[ \$$v ]] && eval print -n \" \"\$v=\"\$$v\"
+		done
+	) \
+	exec -c -a -ksh ${ABSHELL} -c "exit 1" 1>/dev/null 2>&1
 !
-status=$(echo $?)
-if	[[ -o noprivileged && $status != 0 ]]
-then	err_exit 'exit in .profile is ignored'
-elif	[[ -o privileged && $status == 0 ]]
-then	err_exit 'privileged .profile not ignored'
+	status=$(echo $?)
+	if	[[ -o noprivileged && $status != 0 ]]
+	then	err_exit 'exit in .profile is ignored'
+	elif	[[ -o privileged && $status == 0 ]]
+	then	err_exit 'privileged .profile not ignored'
+	fi
 fi
 if	[[ $(trap 'code=$?; echo $code; trap 0; exit $code' 0; exit 123) != 123 ]]
 then	err_exit 'exit not setting $?'
@@ -65,7 +66,9 @@ then	err_exit 'subshell trap on exit overwrites parent trap'
 fi
 cd /
 cd ~- || err_exit "cd back failed"
-$SHELL -c 'builtin -f cmd getconf; getconf --"?-version"; exit 0' >/dev/null 2>&1 || err_exit 'ksh plugin exit failed -- was ksh built with CCFLAGS+=$(CC.EXPORT.DYNAMIC)?'
+if builtin getconf 2> /dev/null; then
+	$SHELL -c 'builtin -f cmd getconf; getconf --"?-version"; exit 0' >/dev/null 2>&1 || err_exit 'ksh plugin exit failed -- was ksh built with CCFLAGS+=$(CC.EXPORT.DYNAMIC)?'
+fi
 
 # ======
 # Verify the 'exit' command behaves as expected

@@ -23,7 +23,7 @@
 
 typeset -F SECONDS  # for fractional seconds in PS4
 
-builtin getconf
+builtin getconf 2> /dev/null
 bincat=$(PATH=$(getconf PATH) whence -p cat)
 binecho=$(PATH=$(getconf PATH) whence -p echo)
 # make an external 'sleep' command that supports fractional seconds
@@ -340,54 +340,54 @@ actual=$(
 #
 # the tests and timeouts are done in async subshells to prevent
 # the test harness from hanging
+if builtin cat 2> /dev/null; then
+	SUB=(
+		( BEG='$( '	END=' )'	)
+		( BEG='${ '	END='; }'	)
+	)
+	CAT=(  cat  $bincat  )
+	INS=(  ""  "builtin cat; "  "builtin -d cat $bincat; "  ": > /dev/null; "  )
+	APP=(  ""  "; :"  )
+	TST=(
+		( CMD='print foo | $cat'			EXP=3		)
+		( CMD='$cat < $tmp/lin'						)
+		( CMD='cat $tmp/lin | $cat'					)
+		( CMD='read v < $tmp/buf; print $v'		LIM=4*1024	)
+		( CMD='cat $tmp/buf | read v; print $v'		LIM=4*1024	)
+	)
 
-SUB=(
-	( BEG='$( '	END=' )'	)
-	( BEG='${ '	END='; }'	)
-)
-CAT=(  cat  $bincat  )
-INS=(  ""  "builtin cat; "  "builtin -d cat $bincat; "  ": > /dev/null; "  )
-APP=(  ""  "; :"  )
-TST=(
-	( CMD='print foo | $cat'			EXP=3		)
-	( CMD='$cat < $tmp/lin'						)
-	( CMD='cat $tmp/lin | $cat'					)
-	( CMD='read v < $tmp/buf; print $v'		LIM=4*1024	)
-	( CMD='cat $tmp/buf | read v; print $v'		LIM=4*1024	)
-)
+	if	cat /dev/fd/3 3</dev/null >/dev/null 2>&1 || whence mkfifo > /dev/null
+	then	T=${#TST[@]}
+		TST[T].CMD='$cat <(print foo)'
+		TST[T].EXP=3
+	fi
 
-if	cat /dev/fd/3 3</dev/null >/dev/null 2>&1 || whence mkfifo > /dev/null
-then	T=${#TST[@]}
-	TST[T].CMD='$cat <(print foo)'
-	TST[T].EXP=3
-fi
+	# prime the two data files to 512 bytes each
+	# $tmp/lin has newlines every 16 bytes and $tmp/buf has no newlines
+	# the outer loop doubles the file size at top
 
-# prime the two data files to 512 bytes each
-# $tmp/lin has newlines every 16 bytes and $tmp/buf has no newlines
-# the outer loop doubles the file size at top
+	buf=$'1234567890abcdef'
+	lin=$'\n1234567890abcde'
+	for ((i=0; i<5; i++))
+	do	buf=$buf$buf
+		lin=$lin$lin
+	done
+	print -n "$buf" > $tmp/buf
+	print -n "$lin" > $tmp/lin
 
-buf=$'1234567890abcdef'
-lin=$'\n1234567890abcde'
-for ((i=0; i<5; i++))
-do	buf=$buf$buf
-	lin=$lin$lin
-done
-print -n "$buf" > $tmp/buf
-print -n "$lin" > $tmp/lin
-
-unset SKIP
-for ((n=1024; n<=1024*1024; n*=2))
-do	cat $tmp/buf $tmp/buf > $tmp/tmp
-	mv $tmp/tmp $tmp/buf
-	cat $tmp/lin $tmp/lin > $tmp/tmp
-	mv $tmp/tmp $tmp/lin
-	for ((S=0; S<${#SUB[@]}; S++))
-	do	for ((C=0; C<${#CAT[@]}; C++))
-		do	cat=${CAT[C]}
-			for ((I=0; I<${#INS[@]}; I++))
-			do	for ((A=0; A<${#APP[@]}; A++))
-				do	for ((T=0; T<${#TST[@]}; T++))
-					do	#undent...#
+	unset SKIP
+	for ((n=1024; n<=1024*1024; n*=2))
+	do	cat $tmp/buf $tmp/buf > $tmp/tmp
+		mv $tmp/tmp $tmp/buf
+		cat $tmp/lin $tmp/lin > $tmp/tmp
+		mv $tmp/tmp $tmp/lin
+		for ((S=0; S<${#SUB[@]}; S++))
+		do	for ((C=0; C<${#CAT[@]}; C++))
+			do	cat=${CAT[C]}
+				for ((I=0; I<${#INS[@]}; I++))
+				do	for ((A=0; A<${#APP[@]}; A++))
+					do	for ((T=0; T<${#TST[@]}; T++))
+						do	#undent...#
 
 	if	[[ ! ${SKIP[S][C][I][A][T]} ]]
 	then	eval "{ x=${SUB[S].BEG}${INS[I]}${TST[T].CMD}${APP[A]}${SUB[S].END}; print \${#x}; } >\$tmp/out &"
@@ -419,13 +419,14 @@ do	cat $tmp/buf $tmp/buf > $tmp/tmp
 		fi
 	fi
 
-						#...indent#
+							#...indent#
+						done
 					done
 				done
 			done
 		done
 	done
-done
+fi
 
 # specifics -- there's more?
 
@@ -602,7 +603,7 @@ trap ERR ERR
 [[ $(trap -p) == *ERR* ]] || err_exit 'trap -p in subshell does not contain ERR'
 trap - USR1 ERR
 
-( builtin getconf && PATH=$(getconf PATH)
+( builtin getconf 2> /dev/null && PATH=$(getconf PATH)
 dot=$(cat <<-EOF
 		$(ls -d .)
 	EOF
