@@ -16,6 +16,7 @@
 #                           Florham Park NJ                            #
 #                                                                      #
 #                  David Korn <dgk@research.att.com>                   #
+#                  Martijn Dekker <martijn@inlv.org>                   #
 #                                                                      #
 ########################################################################
 
@@ -27,31 +28,22 @@
 if	builtin vmstate 2>/dev/null &&
 	n=$(vmstate --format='%(busy_size)u') &&
 	let "($n) == ($n) && n > 0"	# non-zero number?
-then	N=512			# number of iterations for each test
-	unit=bytes
-	tolerance=$((4*N))	# tolerate 4 bytes per iteration to account for vmalloc artefacts
-	vmalloc=enabled
-	function getmem
+then	vmalloc=enabled
+	getmem()
 	{
-		vmstate --format='%(busy_size)u'
+		print $(( $(vmstate --format='%(busy_size)u') / 1024 ))
 	}
 # On Linux, we can use /proc to get byte granularity for vsize (field 23).
 elif	[[ -f /proc/$$/stat && $(uname) == Linux ]]
-then	N=4096			# number of iterations for each test
-	unit=bytes
-	tolerance=$((16*N))	# tolerate 16 bytes per iteration to account for malloc artefacts
-	function getmem
+then	getmem()
 	{
-		cut -f 23 -d ' ' </proc/$$/stat
+		print $(( $(cut -f 23 -d ' ' </proc/$$/stat ) / 1024 ))
 	}
 # On UnixWare, read the process virtual size with ps
 elif	[[ $(uname) == UnixWare ]] &&
 	n=$(ps -o vsz= -p "$$" 2>/dev/null) &&
 	let "($n) == ($n) && n > 0"
-then	N=16384
-	unit=KiB
-	tolerance=$((4*N/1024))	# tolerate 4 bytes per iteration to account for malloc artefacts
-	function getmem
+then	getmem()
 	{
 		ps -o vsz= -p "$$"
 	}
@@ -59,10 +51,7 @@ then	N=16384
 # of the 'ps' command (the standard 'vsz', virtual size, is not usable).
 elif	n=$(ps -o rss= -p "$$" 2>/dev/null) &&
 	let "($n) == ($n) && n > 0"
-then	N=16384
-	unit=KiB
-	tolerance=$((12*N/1024)) # tolerate 12 bytes per iteration to account for malloc/ps artefacts
-	function getmem
+then	getmem()
 	{
 		ps -o rss= -p "$$"
 	}
@@ -70,79 +59,104 @@ else	warning 'cannot find method to measure memory usage; skipping tests'
 	exit 0
 fi
 
-# test for variable reset leak #
+# Parameters for test blocks.
+# Intended to cope with all non-deterministic OS memory management artefacts.
+#
+# Theory: if we can get a sequence of $min_good_blocks blocks of $block_iter iterations without the memory state changing,
+# then we can safely assume it's not a memory leak, break the loop, and consider the test succeeded. To allow for
+# unpredictable OS memory management artefacts, that sequence is allowed to occur anywhere within $max_iter iterations.
+# This speeds up the tests, as successful tests can bow out at $((min_good_blocks * block_iter)) iterations if they're
+# lucky. If the OS decides to randomly grow the memory heap, it may take more tries, but hopefully not more than
+# $max_iter iterations. If the loop counter reaches $max_iter, then we assume a memory leak and throw a test failure.
 
-function test_reset
-{
-	integer i N=$1
+typeset -ir max_iter=16384 block_iter=128 min_good_blocks=16
 
-	for ((i = 0; i < N; i++))
-	do	u=$i
-	done
-}
+# Set up test block construct.
+# Known leaks can be marked known=y to turn them into non-fail warnings.
+#
+# Usage:
+#	TEST	title='description' [ known=y [ url=<issue tracker URL> ] ]
+#		<optional preparatory commands>
+#	DO
+#		<test payload commands>
+#	DONE
+#
+# To avoid messing up $LINENO, aliases should not contain newline characters.
+# To keep things readable, backslash line continuation is used instead.
 
-# Initialise variables used below to avoid false leaks
-before=0 after=0 i=0 u=0
+typeset .lt	# create lt (leak test) namespace for internal variables
+typeset -i .lt.before=0 .lt.after=0 .lt.total=0 .lt.good=0 .lt.i=0 .lt.j=0
+alias TEST=\
+'for .lt.i in 1; do '\
+'	unset -v known url; '
+	# optional preparatory commands go here
+alias DO=\
+'	if	[[ -v known && ! -v DEBUG ]]; '\
+'	then	warning "skipping test for known leak \"$title\";" '\
+'			"export DEBUG=y to test" ${url:+"and help us fix it at: $url"}; '\
+'		break; '\
+'	fi; '\
+'	.lt.before=$(getmem) .lt.good=0 .lt.total=0; '\
+'	for ((.lt.i = 0; .lt.i < max_iter; .lt.i += block_iter)); '\
+'	do	for ((.lt.j = 0; .lt.j < block_iter; .lt.j++)); '\
+'		do '
+			# test payload commands go here
+alias DONE=\
+'		done; '\
+'		.lt.after=$(getmem); '\
+'		if	((.lt.after <= .lt.before)); '\
+'		then	((.lt.good++ == min_good_blocks)) && break; '\
+'		else 	((_good = 0)); '\
+'			((.lt.total += (.lt.after - .lt.before))); '\
+'			.lt.before=$(getmem); '\
+'		fi; '\
+'	done; '\
+'	if	((.lt.i >= max_iter)); '\
+'	then	if	[[ -v known ]]; '\
+'		then	err_exit "known leak: $title: leaked approx ${.lt.total} KiB after ${.lt.i} iterations" '\
+'				${url:+"-- help us fix it at: $url"}; '\
+'		else	err_exit "$title: leaked approx ${.lt.total} KiB after ${.lt.i} iterations"; '\
+'		fi; '\
+'	elif	[[ -v known ]]; '\
+'	then	warning "did not detect known leak \"$title\": succeeded after ${.lt.i} iterations)" ${url:+"-- see: $url"}; '\
+'	elif	[[ -v DEBUG ]]; '\
+'	then	_message "$LINENO" "[DEBUG] test \"$title\" succeeded after ${.lt.i} iterations"; '\
+'	fi; '\
+'done'
 
+# ____ Begin memory leak tests ____
 
-# Check results.
-# The function has 'err_exit' in the name so that shtests counts each call as a test.
-function err_exit_if_leak
-{
-	if	((after > before + tolerance))
-	then	err\_exit "$1" "$2 (leaked approx $((after - before)) $unit after $N iterations)"
-	fi
-}
-alias err_exit_if_leak='err_exit_if_leak "$LINENO"'
+TEST	title='variable value reset'
+	integer i=0
+	u=foo
+DO
+	u=$((++i))
+DONE
 
-# one round to get to steady state -- sensitive to -x
-
-test_reset $N
-test_reset $N
-before=$(getmem)
-test_reset $N
-after=$(getmem)
-err_exit_if_leak "variable value reset memory leak"
-
-# buffer boundary tests
-
-for exp in 65535 65536
-do	got=$($SHELL -c 'x=$(printf "%.*c" '$exp' x); print ${#x}' 2>&1)
-	[[ $got == $exp ]] || err_exit "large command substitution failed -- expected $exp, got $got"
-done
-
+# data for the next two tests...
 data="(v=;sid=;di=;hi=;ti='1328244300';lv='o';id='172.3.161.178';var=(k='conn_num._total';u=;fr=;l='Number of Connections';n='22';t='number';))"
 read -C stat <<< "$data"
-for ((i=0; i < 8; i++))	# steady state first
-do	print -r -- "$data" | while read -u$n -C stat; do :; done {n}<&0-
-done
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	print -r -- "$data"
-done |	while read -u$n -C stat
-	do	:
-	done	{n}<&0-
-after=$(getmem)
-err_exit_if_leak "memory leak with read -C when deleting compound variable"
 
-# extra 'read's to get to steady state
-for ((i=0; i < 10; i++))
-do	read -C stat <<< "$data"
-done
-before=$(getmem)
-for ((i=0; i < N; i++))
-do      read -C stat <<< "$data"
-done
-after=$(getmem)
-err_exit_if_leak "memory leak with read -C when using <<<"
+while	:
+do	print -r -- "$data"
+done | \
+TEST	title='read -C when deleting compound variable'
+DO	read -u$n -C stat
+DONE {n}<&0-
+
+TEST	title='read -C when using <<<'
+DO
+	read -C stat <<< "$data"
+DONE
+
+unset data stat
 
 # ======
 # Unsetting an associative array shouldn't cause a memory leak
 # See https://www.mail-archive.com/ast-users@lists.research.att.com/msg01016.html
-typeset -A stuff
-before=$(getmem)
-for (( i=0; i < N; i++ ))
-do
+TEST	title='unset of associative array'
+	typeset -A stuff
+DO
 	unset stuff[xyz]
 	typeset -A stuff[xyz]
 	stuff[xyz][elem0]="data0"
@@ -150,106 +164,82 @@ do
 	stuff[xyz][elem2]="data2"
 	stuff[xyz][elem3]="data3"
 	stuff[xyz][elem4]="data4"
-done
-unset stuff
-after=$(getmem)
-err_exit_if_leak 'unset of associative array causes memory leak'
+DONE
+
+# https://github.com/ksh93/ksh/issues/94
+TEST	title='defining associative array in subshell' known=y url=https://github.com/ksh93/ksh/issues/94
+DO
+	(typeset -A foo=([a]=1 [b]=2 [c]=3))
+DONE
 
 # ======
 # Memory leak when resetting PATH and clearing hash table
-# ...steady memory state:
-command -v ls >/dev/null	# add something to hash table
-PATH=/dev/null true		# set/restore PATH & clear hash table
 # ...test for leak:
-before=$(getmem)
-for	((i=0; i < N; i++))
-do	PATH=/dev/null true	# set/restore PATH & clear hash table
+TEST	title='PATH reset before PATH search'
+DO
+	PATH=/dev/null true	# set/restore PATH & clear hash table
 	command -v ls		# do PATH search, add to hash table
-done >/dev/null
-after=$(getmem)
-err_exit_if_leak 'memory leak on PATH reset before PATH search'
+DONE >/dev/null
 # ...test for another leak that only shows up when building with nmake:
-before=$(getmem)
-for	((i=0; i < N; i++))
-do	PATH=/dev/null true	# set/restore PATH & clear hash table
-done >/dev/null
-after=$(getmem)
-err_exit_if_leak 'memory leak on PATH reset'
+TEST	title='PATH reset'
+DO
+	PATH=/dev/null true	# set/restore PATH & clear hash table
+DONE >/dev/null
 
 # ======
 # Defining a function in a virtual subshell
 # https://github.com/ksh93/ksh/issues/114
 
-unset -f foo
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(function foo { :; }; foo)
-done
-after=$(getmem)
-err_exit_if_leak 'ksh function defined in virtual subshell'
-typeset -f foo >/dev/null && err_exit 'ksh function leaks out of subshell'
+TEST	title='ksh function defined in virtual subshell'
+	unset -f foo
+DO
+	(function foo { :; }; foo)
+DONE
 
-unset -f foo
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(foo() { :; }; foo)
-done
-after=$(getmem)
-err_exit_if_leak 'POSIX function defined in virtual subshell'
-typeset -f foo >/dev/null && err_exit 'POSIX function leaks out of subshell'
+TEST	title='POSIX function defined in virtual subshell'
+	unset -f foo
+DO
+	(foo() { :; }; foo)
+DONE
 
 # Unsetting a function in a virtual subshell
 
-function foo { echo bar; }
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(unset -f foo)
-done
-after=$(getmem)
-err_exit_if_leak 'ksh function unset in virtual subshell'
-typeset -f foo >/dev/null || err_exit 'ksh function unset in subshell was unset in main shell'
+TEST	title='ksh function unset in virtual subshell'
+	function foo { echo bar; }
+DO
+	(unset -f foo)
+DONE
 
-foo() { echo bar; }
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(unset -f foo)
-done
-after=$(getmem)
-err_exit_if_leak 'POSIX function unset in virtual subshell'
-typeset -f foo >/dev/null || err_exit 'POSIX function unset in subshell was unset in main shell'
+TEST	title='POSIX function unset in virtual subshell'
+	foo() { echo bar; }
+DO
+	(unset -f foo)
+DONE
 
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(function foo { echo baz; }; unset -f foo)
-done
-after=$(getmem)
-err_exit_if_leak 'ksh function defined and unset in virtual subshell'
+TEST	title='ksh function defined and unset in virtual subshell'
+DO
+	(function foo { echo baz; }; unset -f foo)
+DONE
 
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(foo() { echo baz; }; unset -f foo)
-done
-after=$(getmem)
-err_exit_if_leak 'POSIX function defined and unset in virtual subshell'
+TEST	title='POSIX function defined and unset in virtual subshell'
+DO
+	(foo() { echo baz; }; unset -f foo)
+DONE
 
 # ======
 # Sourcing a dot script in a virtual subshell
 
-echo 'echo "$@"' > $tmp/dot.sh
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(. "$tmp/dot.sh" dot one two three >/dev/null)
-done
-after=$(getmem)
-err_exit_if_leak 'script dotted in virtual subshell'
+TEST	title='script dotted in virtual subshell'
+	echo 'echo "$@"' > $tmp/dot.sh
+DO
+	(. "$tmp/dot.sh" dot one two three >/dev/null)
+DONE
 
-echo 'echo "$@"' > $tmp/dot.sh
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(source "$tmp/dot.sh" source four five six >/dev/null)
-done
-after=$(getmem)
-err_exit_if_leak 'script sourced in virtual subshell'
+TEST	title='script sourced in virtual subshell'
+	echo 'echo "$@"' > $tmp/dot.sh
+DO
+	(source "$tmp/dot.sh" source four five six >/dev/null)
+DONE
 
 # ======
 # Multiple leaks when using arrays in functions (Red Hat #921455)
@@ -259,31 +249,27 @@ err_exit_if_leak 'script sourced in virtual subshell'
 # after the patch) when run in a non-C locale.
 [[ $vmalloc == enabled ]] && saveLANG=$LANG && LANG=C	# comment out to test remaining leak (1/2)
 
-function _hash
-{
-	typeset w=([abc]=1 [def]=31534 [xyz]=42)
-	print -u2 $w 2>&-
-	# accessing the var will leak
-}
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	_hash
-done
-after=$(getmem)
-err_exit_if_leak 'associative array in function'
+TEST	title='associative array in function'
+	function _hash
+	{
+		typeset w=([abc]=1 [def]=31534 [xyz]=42)
+		print -u2 $w 2>&-
+		# accessing the var will leak
+	}
+DO
+	_hash
+DONE
 
-function _array
-{
-	typeset w=(1 31534 42)
-	print -u2 $w 2>&-
-	# unset w will prevent leak
-}
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	_array
-done
-after=$(getmem)
-err_exit_if_leak 'indexed array in function'
+TEST	title='indexed array in function'
+	function _array
+	{
+		typeset w=(1 31534 42)
+		print -u2 $w 2>&-
+		# unset w will prevent leak
+	}
+DO
+	_array
+DONE
 
 [[ $vmalloc == enabled ]] && LANG=$saveLANG	# comment out to test remaining leak (2/2)
 
@@ -292,175 +278,126 @@ err_exit_if_leak 'indexed array in function'
 # Fix based on: https://src.fedoraproject.org/rpms/ksh/blob/642af4d6/f/ksh-20120801-memlik3.patch
 # The fix was backported from ksh 93v- beta.
 
-function myFunction
-{
-	typeset toPrint="something"
-	echo "${toPrint}"
-}
-state=$(myFunction)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	state=$(myFunction)
-done
-after=$(getmem)
-err_exit_if_leak 'typeset in function called by command substitution'
+TEST	title='typeset in function called by command substitution'
+	function myFunction
+	{
+		typeset toPrint="something"
+		echo "${toPrint}"
+	}
+DO
+	state=$(myFunction)
+DONE
 
 # ======
 # Check that unsetting an alias frees both the node and its value
 
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	alias "test$i=command$i"
+TEST	title='unalias'
+DO
+	alias "test$i=command$i"
 	unalias "test$i"
-done
-after=$(getmem)
-err_exit_if_leak 'unalias'
+DONE
 
 # ======
 # Red Hat bug rhbz#982142: command substitution leaks
 
 # case1: Nested command substitutions
 # (reportedly already fixed in 93u+, but let's keep the test)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	a=`true 1 + \`true 1 + 1\``	# was: a=`expr 1 + \`expr 1 + 1\``
-done
-after=$(getmem)
-err_exit_if_leak 'nested command substitutions'
+TEST	title='nested command substitutions'
+DO
+	a=`true 1 + \`true 1 + 1\``	# was: a=`expr 1 + \`expr 1 + 1\``
+DONE
 
 # case2: Command alias
-alias ls='true -ltr'			# was: alias ls='ls -ltr'
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	eval 'a=`ls`'
-done
-after=$(getmem)
-unalias ls
-err_exit_if_leak 'alias in command substitution'
+TEST	title='alias in command substitution'
+	alias ls='true -ltr'		# was: alias ls='ls -ltr'
+DO
+	eval 'a=`ls`'
+DONE
 
 # case3: Function call via autoload
-cat >$tmp/func1 <<\EOF
-function func1
-{
-    echo "func1 call";
-}
-EOF
-FPATH=$tmp
-autoload func1
-a=`func1`  # steady memory state
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	a=`func1`
-done
-after=$(getmem)
-unset -f func1
-unset -v FPATH
-err_exit_if_leak 'function call via autoload in command substitution'
+TEST	title='function call via autoload in command substitution'
+	cat >$tmp/func1 <<-\EOF
+	function func1
+	{
+	    echo "func1 call";
+	}
+	EOF
+	FPATH=$tmp
+	autoload func1
+DO
+	a=`func1`
+DONE
 
 # ======
 
 # add some random utilities to the hash table to detect memory leak on hash table reset when changing PATH
 random_utils=(chmod cp mv awk sed diff comm cut sort uniq date env find mkdir rmdir pr sleep)
-
 save_PATH=$PATH
-hash "${random_utils[@]}"
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	hash -r
-	hash "${random_utils[@]}"
-done
-after=$(getmem)
-err_exit_if_leak 'clear hash table (hash -r) in main shell'
 
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	PATH=/dev/null
+TEST	title='clear hash table (hash -r) in main shell'
+DO
+	hash -r
+	hash "${random_utils[@]}"
+DONE
+
+TEST	title='set PATH value in main shell'
+DO
+	PATH=/dev/null
 	PATH=$save_PATH
 	hash "${random_utils[@]}"
-done
-after=$(getmem)
-err_exit_if_leak 'set PATH value in main shell'
+DONE
 
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	PATH=/dev/null command true
-done
-after=$(getmem)
-err_exit_if_leak 'run command with preceding PATH assignment in main shell'
+TEST	title='run command with preceding PATH assignment in main shell'
+DO
+	PATH=/dev/null command true
+DONE
 
-: <<'disabled'	# TODO: known leak (approx 73552 bytes after 512 iterations)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	typeset -A PATH
+TEST	title='set PATH attribute in main shell' known=y url=https://github.com/ksh93/ksh/issues/405
+DO
+	typeset -A PATH
 	unset PATH
 	PATH=$save_PATH
 	hash "${random_utils[@]}"
-done
-after=$(getmem)
-err_exit_if_leak 'set PATH attribute in main shell'
-disabled
+DONE
 
-: <<'disabled'	# TODO: known leak (approx 99568 bytes after 512 iterations)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	unset PATH
+TEST	title='unset PATH in main shell' known=y url=https://github.com/ksh93/ksh/issues/405
+DO
+	unset PATH
 	PATH=$save_PATH
 	hash "${random_utils[@]}"
-done
-after=$(getmem)
-err_exit_if_leak 'unset PATH in main shell'
-disabled
+DONE
 
-hash "${random_utils[@]}"
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(hash -r)
-done
-after=$(getmem)
-err_exit_if_leak 'clear hash table (hash -r) in subshell'
+TEST	title='clear hash table (hash -r) in subshell'
+	hash "${random_utils[@]}"
+DO
+	(hash -r)
+DONE
 
-: <<'disabled'	# TODO: known leak (approx 123520 bytes after 512 iterations)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(PATH=/dev/null)
-done
-after=$(getmem)
-err_exit_if_leak 'set PATH value in subshell'
-disabled
+TEST	title='set PATH value in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+DO
+	(PATH=/dev/null)
+DONE
 
-: <<'disabled'	# TODO: known leak (approx 24544 bytes after 512 iterations)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(PATH=/dev/null command true)
-done
-after=$(getmem)
-err_exit_if_leak 'run command with preceding PATH assignment in subshell'
-disabled
+TEST	title='run command with preceding PATH assignment in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+DO
+	(PATH=/dev/null command true)
+DONE
 
-: <<'disabled'	# TODO: known leak (approx 131200 bytes after 512 iterations)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(readonly PATH)
-done
-after=$(getmem)
-err_exit_if_leak 'set PATH attribute in subshell'
-disabled
+TEST	title='set PATH attribute in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+DO
+	(readonly PATH)
+DONE
 
-: <<'disabled'	# TODO: known leak (approx 229440 bytes after 512 iterations)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	(unset PATH)
-done
-after=$(getmem)
-err_exit_if_leak 'unset PATH in subshell'
-disabled
+TEST	title='unset PATH in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+DO
+	(unset PATH)
+DONE
 
 # ======
 # Test for a memory leak after 'cd' (in relation to $PWD and $OLDPWD)
-original_pwd=$PWD
-before=$(getmem)
-for ((i=0; i < N; i++))
-do	cd /tmp
+TEST	title='PWD and/or OLDPWD changed by cd'
+DO
+	cd /tmp
 	cd - > /dev/null
 	PWD=/foo
 	OLDPWD=/bar
@@ -471,23 +408,14 @@ do	cd /tmp
 	cd - > /dev/null
 	unset OLDPWD PWD
 	cd /bin
-	cd /tmp
-done
-after=$(getmem)
-err_exit_if_leak 'PWD and/or OLDPWD changed by cd'
-cd $original_pwd
+	cd "$tmp"
+DONE
 
 # ======
-# https://github.com/ksh93/ksh/issues/253#issuecomment-815308466
-: <<'disabled'	# TODO: known leak(s) (approx 1008 KiB after 16384 iterations)
-before=$(getmem)
-for ((i=0; i < N; i++))
-do
+TEST	title='variable with discipline function in subshell' known=y url=https://github.com/ksh93/ksh/issues/404
+DO
 	(SECONDS=1; LANG=C)
-done
-after=$(getmem)
-err_exit_if_leak 'Variable with discipline function in subshell causes memory leak'
-disabled
+DONE
 
 # ======
 exit $((Errors<125?Errors:125))
