@@ -1902,7 +1902,7 @@ const char sh_opttypeset[] =
 ;
 
 const char sh_optulimit[] =
-"[-1c?@(#)$Id: ulimit (AT&T Research) 2003-06-21 $\n]"
+"[-1c?@(#)$Id: ulimit (ksh 93u+m) 2021-12-28 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?ulimit - set or display resource limits]"
 "[+DESCRIPTION?\bulimit\b sets or displays resource limits.  These "
