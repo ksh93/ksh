@@ -1408,6 +1408,7 @@ static noreturn void exscript(Shell_t *shp,register char *path,register char *ar
 	if(shp->sigflag[SIGCHLD]==SH_SIGOFF)
 		shp->sigflag[SIGCHLD] = SH_SIGFAULT;
 	siglongjmp(*shp->jmplist,SH_JMPSCRIPT);
+	UNREACHABLE();  /* silence warning on Haiku */
 }
 
 #if SHOPT_ACCT

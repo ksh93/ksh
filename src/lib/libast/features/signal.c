@@ -120,6 +120,10 @@ static struct _m_ map[] =
 #define HAD_SIGILL	1
 "Illegal instruction",		"ILL",		SIGILL,
 #endif
+#ifdef SIGINFO
+#define HAD_SIGINFO	1
+"Information request", 		"INFO",		SIGINFO,
+#endif
 #ifdef SIGINT
 #define HAD_SIGINT	1
 "Interrupt",			"INT",		SIGINT,
@@ -135,6 +139,10 @@ static struct _m_ map[] =
 #ifdef SIGKILL
 #define HAD_SIGKILL	1
 "Killed",			"KILL",		SIGKILL,
+#endif
+#ifdef SIGKILLTHR
+#define HAD_SIGKILLTHR	1
+"Kill Thread",			"KILLTHR",	SIGKILLTHR,
 #endif
 #ifdef SIGLAB
 #define HAD_SIGLAB	1

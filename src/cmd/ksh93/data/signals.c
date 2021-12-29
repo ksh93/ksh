@@ -128,6 +128,9 @@ const struct shtable2 shtab_signals[] =
 #ifdef SIGKILL
 	"KILL",		VAL(SIGKILL,0),					S("Killed"),
 #endif /* SIGKILL */
+#ifdef SIGKILLTHR
+	"KILLTHR",	VAL(SIGKILLTHR,SH_SIGDONE),			S("Kill Thread"),
+#endif /* SIGKILLTHR */
 #ifdef SIGLAB
 	"LAB",		VAL(SIGLAB,0),					S("Security label changed"),
 #endif	/* SIGLAB */
