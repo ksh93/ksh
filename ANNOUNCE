@@ -60,6 +60,22 @@ New command line editor features:
 - The forward-delete and End keys are now handled as expected in the
   emacs and vi built-in line editors.
 
+- Added support for Home key sequences ^[[1~ and ^[[7~ and End key
+  sequences ^[[4~ and ^[[8~.
+
+- Added support for the following keyboard shortcuts:
+  - Ctrl-Left Arrow:  Go back one word
+  - Alt-Left Arrow:   Go back one word
+  - Ctrl-Right Arrow: Go forward one word
+  - Alt-Right Arrow:  Go forward one word
+  - Ctrl-G:           Cancel reverse search
+  - Ctrl-Delete:      Delete next word
+
+- Added a keybind for the Insert key, which differs in the emacs and vi
+  editing modes:
+  - In emacs mode, Insert escapes the next character.
+  - In vi mode, Insert will switch the editor to insert mode (like in vim).
+
 - In the vi and emacs line editors, repeat count parameters can now also
   be used for the arrow keys and the forward-delete key. E.g., in emacs
   mode, <ESC> 7 <left-arrow> will now move the cursor seven positions to
