@@ -27,8 +27,6 @@
 # read the pty manual by running: arch/*/bin/pty --man
 #
 # Do not globally set the locale; these tests must pass for all locales.
-#
-# The # err_exit # comments are to enable shtests to count the tests.
 
 # the trickiest part of the tests is avoiding typeahead
 # in the pty dialogue
@@ -101,7 +99,6 @@ then	warning "pty command hangs on $bintrue -- tests skipped"
 	exit 0
 fi
 
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 026(C)
 
@@ -125,7 +122,6 @@ w wait
 u (Killed|Done)
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 028(C)
 
@@ -148,7 +144,6 @@ w wait
 u (Killed|Done)
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 029(C)
 
@@ -171,7 +166,6 @@ w wait
 u (Killed|Done)
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 091(C)
 
@@ -188,7 +182,6 @@ w o
 u ^hello\r?\n$
 !
 
-# err_exit #
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 093(C)
 
@@ -204,7 +197,6 @@ w e
 u ^goodbye\r?\n$
 !
 
-# err_exit #
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 094(C)
 
@@ -221,7 +213,6 @@ u ^hello\r?\n$
 if	[[ $(id -u) == 0 ]]
 then	warning "running as root: skipping test POSIX sh 096(C)"
 else
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 096(C)
 
@@ -251,7 +242,6 @@ r history
 !
 fi
 
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 097(C)
 
@@ -267,7 +257,6 @@ u ^ok\r?\n$
 if	[[ $(id -u) == 0 ]]
 then	warning "running as root: skipping test POSIX sh 099(C)"
 else
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 099(C)
 
@@ -297,7 +286,6 @@ r history
 !
 fi
 
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 100(C)
 
@@ -313,7 +301,6 @@ w echo ok
 u ^ok\r?\n$
 !
 
-# err_exit #
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L POSIX sh 101(C)
 
@@ -358,7 +345,6 @@ w echo interrupt=:\cV\cC:
 u ^interrupt=:\cC:\r?\n$
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L POSIX sh 104(C)
 
@@ -378,7 +364,6 @@ u ^done\r?\n$
 if	[[ $(id -u) == 0 ]]
 then	warning "running as root: skipping test POSIX sh 111(C)"
 else
-# err_exit #
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 111(C)
 
@@ -402,7 +387,6 @@ fi
 if	[[ $(id -u) == 0 ]]
 then	warning "running as root: skipping test POSIX sh 251(C)"
 else
-# err_exit #
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 251(C)
 
@@ -461,7 +445,6 @@ u yes-yes
 !
 disabled
 
-# err_exit #
 # Test file name completion in vi mode
 if((SHOPT_VSH)); then
 mkdir "/tmp/fakehome_$$" && tst $LINENO <<!
@@ -478,7 +461,6 @@ u ^/tmp/fakehome_$$/testfile_$$\r?\n$
 rm -r "/tmp/fakehome_$$"
 fi # SHOPT_VSH
 
-# err_exit #
 VISUAL='' tst $LINENO <<"!"
 L raw Bourne mode literal tab characters
 
@@ -494,7 +476,6 @@ r ^:test-1: true (/de\tv/nu\tl\tl|/de       v/nu    l       l)\r\n$
 p :test-2:
 !
 
-# err_exit #
 VISUAL='' tst $LINENO <<"!"
 L raw Bourne mode backslash handling
 
@@ -511,8 +492,6 @@ w true incorrect\\\cXtrue correct
 r ^:test-3: true correct\r\n$
 !
 
-# err_exit #
-# err_exit #
 set --
 ((SHOPT_VSH)) && set -- "$@" vi
 ((SHOPT_ESH)) && set -- "$@" emacs gmacs
@@ -532,7 +511,6 @@ r ^:test-2: true string\\r\\n$
 !
 done
 
-# err_exit #
 tst $LINENO <<"!"
 L notify job state changes
 
@@ -543,7 +521,6 @@ w set -b; sleep .01 &
 u Done
 !
 
-# err_exit #
 # Tests for 'test -t'. These were moved here from bracket.sh because they require a tty.
 cat >test_t.sh <<"EOF"
 integer n
@@ -604,7 +581,6 @@ r ^OK11\r\n$
 r ^:test-2:
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L race condition while launching external commands
 
@@ -623,7 +599,6 @@ r ^/dev/null\r\n$
 r ^:test-2:
 !
 
-# err_exit #
 ((SHOPT_ESH)) && [[ -o ?backslashctrl ]] && tst $LINENO <<"!"
 L nobackslashctrl in emacs
 
@@ -637,7 +612,6 @@ w \cR\\\cH\cH
 r ^:test-2: \r\n$
 !
 
-# err_exit #
 ((SHOPT_ESH)) && tst $LINENO <<"!"
 L emacs backslash escaping
 
@@ -655,7 +629,6 @@ w true \\\cC
 r true \^C
 !
 
-# err_exit #
 ((SHOPT_VSH)) && touch vi_completion_A_file vi_completion_B_file && tst $LINENO <<"!"
 L vi filename completion menu
 
@@ -690,7 +663,6 @@ r ^:test-3: ls vi_completion_A_file\r\n$
 r ^vi_completion_A_file\r\n$
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L syntax error added to history file
 
@@ -706,7 +678,6 @@ r ^:test-2: fc -lN1\r\n$
 r \tdo something\r\n$
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L value of $? after the shell uses a variable with a discipline function
 
@@ -730,7 +701,6 @@ w echo "Exit status is: $?"
 u Exit status is: 1
 !
 
-# err_exit #
 ((SHOPT_ESH)) && ((SHOPT_VSH)) && tst $LINENO <<"!"
 L crash after switching from emacs to vi mode
 
@@ -751,7 +721,6 @@ r ^:test-2: echo Success\r\n$
 r ^Success\r\n$
 !
 
-# err_exit #
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L value of $? after tilde expansion in tab completion
 
@@ -769,7 +738,6 @@ w echo $? ~\t
 u 42 /tmp
 !
 
-# err_exit #
 ((SHOPT_MULTIBYTE && (SHOPT_VSH || SHOPT_ESH))) &&
 [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
 touch $'XXX\xc3\xa1' $'XXX\xc3\xab' &&
@@ -783,7 +751,6 @@ w : XX\t
 r ^:test-1: : XXX\r\n$
 !
 
-# err_exit #
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L Using b, B, w and W commands in vi mode
 # https://github.com/att/ast/issues/1467
@@ -797,7 +764,6 @@ r ^:test-2: echo asdf\r\n$
 r ^asdf\r\n$
 !
 
-# err_exit #
 ((SHOPT_ESH)) && mkdir -p emacstest/123abc && VISUAL=emacs tst $LINENO <<"!"
 L autocomplete stops numeric input
 # https://github.com/ksh93/ksh/issues/198
@@ -808,7 +774,6 @@ w cd emacste\t123abc
 r ^:test-1: cd emacstest/123abc\r\n$
 !
 
-# err_exit #
 echo '((' >$tmp/synerror
 ENV=$tmp/synerror tst $LINENO <<"!"
 L syntax error in profile causes exit on startup
@@ -822,7 +787,6 @@ r ^:test-1: echo ok\r\n$
 r ^ok\r\n$
 !
 
-# err_exit #
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L split on quoted whitespace when extracting words from command history
 # https://github.com/ksh93/ksh/pull/291
@@ -836,7 +800,6 @@ w :\E_
 r ^:test-2: : One\\ "Two Three"\$'Four Five'\.mp3\r\n$
 !
 
-# err_exit #
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L crash when entering comment into history file (vi mode)
 # https://github.com/att/ast/issues/798
@@ -851,7 +814,6 @@ r \t#foo\r\n$
 r \thist -lnN 1\r\n$
 !
 
-# err_exit #
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L tab completion while expanding ${.sh.*} variables
 # https://github.com/att/ast/issues/1461
@@ -862,7 +824,6 @@ w test \$\{.sh.level\t
 r ^:test-1: test \$\{.sh.level\}\r\n$
 !
 
-# err_exit #
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L tab completion executes command substitutions
 # https://github.com/ksh93/ksh/issues/268
@@ -876,7 +837,6 @@ w `echo true`\t
 r ^:test-2: `echo true`\r\n$
 !
 
-# err_exit #
 ((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"
 L emacs: keys with repeat parameters repeat extra steps
 # https://github.com/ksh93/ksh/issues/292
@@ -896,7 +856,6 @@ w : test_string\1\E6\E[C\4
 r ^:test-4: : teststring\r\n$
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L crash with KEYBD trap after entering multi-line command substitution
 # https://www.mail-archive.com/ast-users@lists.research.att.com/msg00313.html
@@ -907,7 +866,6 @@ w true); echo "Exit status is $?"
 u Exit status is 0
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L interrupted PS2 discipline function
 # https://github.com/ksh93/ksh/issues/347
@@ -929,7 +887,6 @@ r > \)
 r one two three end
 !
 
-# err_exit #
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
 L tab completion of '.' and '..'
 # https://github.com/ksh93/ksh/issues/372
@@ -948,7 +905,6 @@ w : ..\t
 r : \.\./\r\n$
 !
 
-# err_exit #
 tst $LINENO <<"!"
 L Ctrl+C with SIGINT ignored
 # https://github.com/ksh93/ksh/issues/343

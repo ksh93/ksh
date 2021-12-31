@@ -271,7 +271,7 @@ ret=$?
 
 # The exit status on error must be >0, including when handling
 # 256 non-existent aliases.
-(unalias -a; alias $(integer -s i; for((i=0;i<256;i++)) do print -n "x "; done) 2> /dev/null)
+(unalias -a; alias $(integer -s i=0; for((i=0;i<256;i++)) do print -n "x "; done) 2> /dev/null)
 got=$?
 ((got > 0)) || err_exit "Exit status is zero when alias is passed 256 non-existent aliases"
 

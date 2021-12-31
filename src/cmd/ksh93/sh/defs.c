@@ -31,7 +31,6 @@
 #include	"timeout.h"
 
 Shell_t			sh = {0};
-struct	shared		*shgd;
 #ifdef	__IMPORT__
     Shell_t		*_imp__sh = &sh;
 #endif

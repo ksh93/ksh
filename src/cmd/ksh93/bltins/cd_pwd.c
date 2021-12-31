@@ -140,7 +140,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	&& !(dir[0]=='.' && (dir[1]=='/' || dir[1]==0))
 	&& !(dir[0]=='.' && dir[1]=='.' && (dir[2]=='/' || dir[2]==0)))
 	{
-		if(!(cdpath = (Pathcomp_t*)shp->cdpathlist) && (dp=sh_scoped(shp,CDPNOD)->nvalue.cp))
+		if((dp=sh_scoped(&sh,CDPNOD)->nvalue.cp) && !(cdpath = (Pathcomp_t*)shp->cdpathlist))
 		{
 			if(cdpath=path_addpath(shp,(Pathcomp_t*)0,dp,PATH_CDPATH))
 			{

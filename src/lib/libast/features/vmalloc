@@ -78,7 +78,8 @@ tst	map_malloc note{ map malloc to _ast_malloc -- wimp-o mach? }end noexecute{
 	#if _map_malloc
 	int main() { return 0; }
 	#else
-	void* calloc(unsigned n, unsigned m) { exit(1); }
+	#include <stdlib.h>
+	void* calloc(size_t n, size_t m) { exit(1); }
 	int main() { return 0; }
 	#endif
 }end
@@ -100,7 +101,8 @@ tst	mal_alloca note{ alloca is based on malloc() }end execute{
 	#if _hdr_alloca
 	#include	<alloca.h>
 	#endif
-	void* malloc(unsigned int size)
+	#include <stdlib.h>
+	void* malloc(size_t size)
 	{	exit(0);
 		return 0;
 	}

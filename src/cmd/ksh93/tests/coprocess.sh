@@ -39,9 +39,9 @@ function ping # id
 }
 
 bincat=$(whence -p cat)
-builtin cat
+builtin cat 2> /dev/null && builtincat=cat
 
-for cat in cat $bincat
+for cat in $builtincat $bincat
 do
 
 	$cat |&

@@ -184,25 +184,27 @@ x=$( ("$binecho" foo) ; ("$binecho" bar) )
 if	[[ $x != $'foo\nbar' ]]
 then	err_exit " ( ("$binecho");("$binecho" bar ) failed"
 fi
-cat > $tmp/script <<\!
-if	[[ -p /dev/fd/0 ]]
-then	builtin cat
-	cat - > /dev/null
-	[[ -p /dev/fd/0 ]] && print ok
-else	print no
-fi
+if (builtin cat) 2> /dev/null; then
+	cat > $tmp/script <<\!
+	if	[[ -p /dev/fd/0 ]]
+	then	builtin cat
+		cat - > /dev/null
+		[[ -p /dev/fd/0 ]] && print ok
+	else	print no
+	fi
 !
-chmod +x $tmp/script
-case $( (print) | $tmp/script;:) in
-ok)	;;
-no)	err_exit "[[ -p /dev/fd/0 ]] fails for standard input pipe" ;;
-*)	err_exit "builtin replaces standard input pipe" ;;
-esac
-print 'print $0' > $tmp/script
-print ". $tmp/script" > $tmp/scriptx
-chmod +x $tmp/scriptx
-if	[[ $($tmp/scriptx) != $tmp/scriptx ]]
-then	err_exit '$0 not correct for . script'
+	chmod +x $tmp/script
+	case $( (print) | $tmp/script;:) in
+	ok)	;;
+	no)	err_exit "[[ -p /dev/fd/0 ]] fails for standard input pipe" ;;
+	*)	err_exit "builtin replaces standard input pipe" ;;
+	esac
+	print 'print $0' > $tmp/script
+	print ". $tmp/script" > $tmp/scriptx
+	chmod +x $tmp/scriptx
+	if	[[ $($tmp/scriptx) != $tmp/scriptx ]]
+	then	err_exit '$0 not correct for . script'
+	fi
 fi
 cd $tmp || { err_exit "cd $tmp failed"; exit 1; }
 print ./b > ./a; print ./c > b; print ./d > c; print ./e > d; print "echo \"hello there\"" > e
@@ -521,17 +523,18 @@ float sec=SECONDS
 . $tmp/foo.sh  | cat > /dev/null
 (( (SECONDS-sec) < .07 ))  && err_exit '. script does not restore output redirection with eval'
 
-file=$tmp/foobar
-builtin cat
-for ((n=0; n < 1000; n++))
-do
-	> $file
-	{ sleep .001;echo $? >$file;} | cat > /dev/null
-	if	[[ !  -s $file ]]
-	then	err_exit 'output from pipe is lost with pipe to builtin'
-		break;
-	fi
-done
+if builtin cat 2> /dev/null; then
+	file=$tmp/foobar
+	for ((n=0; n < 1000; n++))
+	do
+		> $file
+		{ sleep .001;echo $? >$file;} | cat > /dev/null
+		if	[[ !  -s $file ]]
+		then	err_exit 'output from pipe is lost with pipe to builtin'
+			break;
+		fi
+	done
+fi
 
 $SHELL -c 'kill -0 123456789123456789123456789' 2> /dev/null && err_exit 'kill not catching process id overflows'
 

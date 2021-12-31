@@ -5,8 +5,12 @@ cmd	universe
 hdr	dirent,direntry,filio,fmtmsg,fnmatch,jioctl,libgen,limits
 hdr	locale,ndir,nl_types,process,spawn,syslog,utime,vfork
 hdr	linux/fs,linux/msdos_fs,sys/ioctl
+hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 	#include <wchar.h>
+	#if _hdr_wctype
+	#include <wctype.h>
+	#endif
 	int
 	main()
 	{
@@ -14,7 +18,6 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 		return iswalnum(w) == 0;
 	}
 }end
-hdr	wctype wchar.h
 
 dat	_tzname,tzname
 
@@ -192,6 +195,7 @@ tst	pipe_rw note{ full duplex pipes }end execute{
 
 tst	lib_vfork unistd.h stdlib.h vfork.h note{ vfork exists and it works }end execute{
 	#include <signal.h>
+	#include <sys/wait.h>
 	int
 	main(argc, argv)
 	int	argc;
@@ -655,7 +659,8 @@ tst	- output{
 	}
 
 }end fail{
-	echo '#error The output block in src/lib/libast/features/lib failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
+	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
+	exit 1
 }end
 
 tst	no64 note{ largefile 64 broken }end execute{

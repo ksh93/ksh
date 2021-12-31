@@ -114,6 +114,10 @@ const struct shtable3 shtab_builtins[] =
 #endif	/* JOBS */
 	"false",	NV_BLTIN|BLT_ENV,		bltin(false),
 	"getopts",	NV_BLTIN|BLT_ENV,		bltin(getopts),
+#if SHOPT_MKSERVICE
+	"mkservice",	NV_BLTIN|BLT_ENV,		bltin(mkservice),
+	"eloop",	NV_BLTIN|BLT_ENV,		bltin(eloop),
+#endif /* SHOPT_MKSERVICE */
 	"print",	NV_BLTIN|BLT_ENV,		bltin(print),
 	"printf",	NV_BLTIN|BLT_ENV,		bltin(printf),
 	"pwd",		NV_BLTIN,			bltin(pwd),
@@ -1902,7 +1906,7 @@ const char sh_opttypeset[] =
 ;
 
 const char sh_optulimit[] =
-"[-1c?@(#)$Id: ulimit (AT&T Research) 2003-06-21 $\n]"
+"[-1c?@(#)$Id: ulimit (ksh 93u+m) 2021-12-28 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?ulimit - set or display resource limits]"
 "[+DESCRIPTION?\bulimit\b sets or displays resource limits.  These "

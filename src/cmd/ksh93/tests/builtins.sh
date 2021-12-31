@@ -25,29 +25,30 @@ bincat=$(whence -p cat)
 
 # ======
 # These are regression tests for the getconf builtin.
-builtin getconf
-bingetconf=$(getconf GETCONF)
-bad_result=$(getconf --version 2>&1)
+if builtin getconf 2> /dev/null; then
+	bingetconf=$(getconf GETCONF)
+	bad_result=$(getconf --version 2>&1)
 
-# The -l option should convert all variable names to lowercase.
-# https://github.com/att/ast/issues/1171
-got=$(getconf -lq | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
-[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
-	"(got $(printf %q "$got"))"
+	# The -l option should convert all variable names to lowercase.
+	# https://github.com/att/ast/issues/1171
+	got=$(getconf -lq | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
+	[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
+		"(got $(printf %q "$got"))"
 
-# The -q option should quote all string values.
-# https://github.com/att/ast/issues/1173
-exp="GETCONF=\"$bingetconf\""
-got=$(getconf -q | grep 'GETCONF=')
-[[ $exp == "$got" ]] || err_exit "'getconf -q' fails to quote string values" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	# The -q option should quote all string values.
+	# https://github.com/att/ast/issues/1173
+	exp="GETCONF=\"$bingetconf\""
+	got=$(getconf -q | grep 'GETCONF=')
+	[[ $exp == "$got" ]] || err_exit "'getconf -q' fails to quote string values" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# The -n option should only return matching names.
-# https://github.com/ksh93/ksh/issues/279
-exp="GETCONF=$bingetconf"
-got=$(getconf -n GETCONF)
-[[ $exp == "$got" ]] || err_exit "'getconf -n' doesn't match names correctly" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	# The -n option should only return matching names.
+	# https://github.com/ksh93/ksh/issues/279
+	exp="GETCONF=$bingetconf"
+	got=$(getconf -n GETCONF)
+	[[ $exp == "$got" ]] || err_exit "'getconf -n' doesn't match names correctly" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
 
 # ======
 # Test shell builtin commands
@@ -411,14 +412,16 @@ wait $pid1
 wait $pid2
 (( $? == 127 )) || err_exit "subshell job known to parent"
 env=
-v=$(getconf LIBPATH)
-for v in ${v//,/ }
-do	v=${v#*:}
-	v=${v%%:*}
-	eval [[ \$$v ]] && env="$env $v=\"\$$v\""
-done
-if	[[ $(foo=bar; eval foo=\$foo $env exec -c \$SHELL -c \'print \$foo\') != bar ]]
-then	err_exit '"name=value exec -c ..." not working'
+if builtin getconf 2> /dev/null; then
+	v=$(getconf LIBPATH)
+	for v in ${v//,/ }
+	do	v=${v#*:}
+		v=${v%%:*}
+		eval [[ \$$v ]] && env="$env $v=\"\$$v\""
+	done
+	if	[[ $(foo=bar; eval foo=\$foo $env exec -c \$SHELL -c \'print \$foo\') != bar ]]
+	then	err_exit '"name=value exec -c ..." not working'
+	fi
 fi
 $SHELL -c 'OPTIND=-1000000; getopts a opt -a' 2> /dev/null
 [[ $? == 1 ]] || err_exit 'getopts with negative OPTIND not working'
@@ -583,8 +586,10 @@ fi
 	while (( i <2))
 	do	(( i++))
 	done) == $'0\n0\n1\n1\n2' ]]  || err_exit  "DEBUG trap not working"
-getconf UNIVERSE - ucb
-[[ $($SHELL -c 'echo -3') == -3 ]] || err_exit "echo -3 not working in ucb universe"
+if builtin getconf 2> /dev/null; then
+	getconf UNIVERSE - ucb
+	[[ $($SHELL -c 'echo -3') == -3 ]] || err_exit "echo -3 not working in ucb universe"
+fi
 typeset -F3 start_x=SECONDS total_t delay=0.02
 typeset reps=50 leeway=5
 sleep $(( 2 * leeway * reps * delay )) |
@@ -635,11 +640,11 @@ t=$(ulimit -t)
 $SHELL 2> /dev/null -c 'cd ""' && err_exit 'cd "" not producing an error'
 [[ $($SHELL 2> /dev/null -c 'cd "";print hi') != hi ]] && err_exit 'cd "" should not terminate script'
 
-builtin cat
-out=$tmp/seq.out
-for ((i=1; i<=11; i++)); do print "$i"; done >$out
-cmp -s <(print -- "$($bincat<( $bincat $out ) )") <(print -- "$(cat <( cat $out ) )") || err_exit "builtin cat differs from $bincat"
-builtin -d cat
+if builtin cat 2> /dev/null; then
+	out=$tmp/seq.out
+	for ((i=1; i<=11; i++)); do print "$i"; done >$out
+	cmp -s <(print -- "$($bincat<( $bincat $out ) )") <(print -- "$(cat <( cat $out ) )") || err_exit "builtin cat differs from $bincat"
+fi
 
 [[ $($SHELL -c '{ printf %R "["; print ok;}' 2> /dev/null) == ok ]] || err_exit $'\'printf %R "["\' causes shell to abort'
 
@@ -859,7 +864,8 @@ for w in 'whence -t' 'type -t' 'whence -t -v'; do
 	got=$($w export)
 	[[ $exp == "$got" ]] || err_exit "'$w' has the wrong output for special builtins" \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
-	if [[ $(PATH=/opt/ast/bin type cat) != "cat is a shell builtin version of /opt/ast/bin/cat" ]]
+	builtin -d cat
+	if [[ $(set +x; PATH=/opt/ast/bin type cat 2>&1) != "cat is a shell builtin version of /opt/ast/bin/cat" ]]
 	then	warning "/opt/ast/bin/cat isn't a builtin; skipping path-bound builtin tests"
 	else
 		got=$(PATH=/opt/ast/bin $w cat)
@@ -899,15 +905,18 @@ for w in 'whence -t' 'type -t' 'whence -t -v'; do
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 
 	# The final few tests are for '-t -a'
-	exp="alias
+	builtin -d cat
+	if [[ $(set +x; PATH=/opt/ast/bin type cat 2>&1) == "cat is a shell builtin version of /opt/ast/bin/cat" ]]
+	then	exp="alias
 function
 builtin
 $($w -pa cat)"
-	got=$(alias cat=false
-		autoload cat
-		PATH=/opt/ast/bin:$PATH $w -a cat)
-	[[ $exp == "$got" ]] || err_exit "'$w -a' output is incorrect (cat command)" \
-		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+		got=$(alias cat=false
+			autoload cat
+			PATH=/opt/ast/bin:$PATH $w -a cat)
+		[[ $exp == "$got" ]] || err_exit "'$w -a' output is incorrect (cat command)" \
+			"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	fi
 	if [[ -n $($w -pa time) ]]
 	then	exp="keyword
 alias

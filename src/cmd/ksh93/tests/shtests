@@ -8,7 +8,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2021-12-20 $
+@(#)$Id: shtests (ksh 93u+m) 2021-12-28 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -344,6 +344,8 @@ do	[[ $i == *.sh ]] || i+='.sh'
 	fi
 	t=$(	case $i in
 		glob.sh)	grep -c '^[[:blank:]]*test_[a-z]\{3,\}' $i ;;
+		leaks.sh)	grep -c ^TEST $i ;;
+		pty.sh)		grep -c 'tst ' $i ;;
 		*)		grep -c err_exit $i ;;
 		esac	)
 	tests[$i]=$t

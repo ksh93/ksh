@@ -21,7 +21,7 @@ _message()
 }
 function err_exit
 {
-	_message "$@"
+	_message "$1" "FAIL:" "${@:2}"
 	let Errors+=1
 }
 alias err_exit='err_exit $LINENO'  # inaccurate err_exit name kept for historical integrity :)

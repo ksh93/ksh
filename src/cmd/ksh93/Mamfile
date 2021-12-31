@@ -72,6 +72,89 @@ make install
 					exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/externs
 				done FEATURE/externs generated
 				make include/shell.h implicit
+					make include/fault.h implicit
+						make FEATURE/sigfeatures implicit
+							meta FEATURE/sigfeatures features/%>FEATURE/% features/sigfeatures sigfeatures
+							make features/sigfeatures
+							done features/sigfeatures
+							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/sigfeatures
+						done FEATURE/sigfeatures dontcare generated
+						make FEATURE/setjmp implicit
+							meta FEATURE/setjmp features/%>FEATURE/% features/setjmp setjmp
+							make features/setjmp
+							done features/setjmp
+							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/setjmp
+						done FEATURE/setjmp dontcare generated
+						prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/error.h implicit
+						make ${PACKAGE_ast_INCLUDE}/sig.h implicit
+						done ${PACKAGE_ast_INCLUDE}/sig.h dontcare
+					done include/fault.h dontcare
+					make ${PACKAGE_ast_INCLUDE}/stk.h implicit
+						make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
+							make ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
+							done ${PACKAGE_ast_INCLUDE}/sfio_s.h dontcare
+							make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+								make ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
+								done ${PACKAGE_ast_INCLUDE}/ast_map.h dontcare
+								make ${PACKAGE_ast_INCLUDE}/endian.h implicit
+									make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+									done ${PACKAGE_ast_INCLUDE}/bytesex.h dontcare
+								done ${PACKAGE_ast_INCLUDE}/endian.h dontcare
+							done ${PACKAGE_ast_INCLUDE}/ast_common.h dontcare
+							make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+								make ${PACKAGE_ast_INCLUDE}/regex.h implicit
+									make ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
+									done ${PACKAGE_ast_INCLUDE}/ast_api.h dontcare
+									make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+										make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
+											make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+												make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
+													prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+												done ${PACKAGE_ast_INCLUDE}/wchar.h dontcare
+											done ${PACKAGE_ast_INCLUDE}/ast_wctype.h dontcare
+										done ${PACKAGE_ast_INCLUDE}/wctype.h dontcare
+										make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
+											make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+											done ${PACKAGE_ast_INCLUDE}/ast_stdio.h dontcare
+										done ${PACKAGE_ast_INCLUDE}/stdio.h dontcare
+										prev ${PACKAGE_ast_INCLUDE}/stdio.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+									done ${PACKAGE_ast_INCLUDE}/ast_wchar.h dontcare
+									prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+								done ${PACKAGE_ast_INCLUDE}/regex.h dontcare
+								make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
+									make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+									done ${PACKAGE_ast_INCLUDE}/ast_getopt.h dontcare
+								done ${PACKAGE_ast_INCLUDE}/getopt.h dontcare
+								prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
+								make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
+								done ${PACKAGE_ast_INCLUDE}/ast_botch.h dontcare
+								make ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
+								done ${PACKAGE_ast_INCLUDE}/ast_limits.h dontcare
+								make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
+									make ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
+									done ${PACKAGE_ast_INCLUDE}/ast_fs.h dontcare
+								done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h dontcare
+								prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+								make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/getopt.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+								done ${PACKAGE_ast_INCLUDE}/ast_sys.h dontcare
+								make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
+								done ${PACKAGE_ast_INCLUDE}/ast_lib.h dontcare
+								prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							done ${PACKAGE_ast_INCLUDE}/ast_std.h dontcare
+						done ${PACKAGE_ast_INCLUDE}/sfio.h dontcare
+					done ${PACKAGE_ast_INCLUDE}/stk.h dontcare
+					make include/history.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+					done include/history.h dontcare
 					make ${PACKAGE_ast_INCLUDE}/cmd.h implicit
 						make ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit
 						done ${PACKAGE_ast_INCLUDE}/dlldefs.h dontcare
@@ -81,68 +164,7 @@ make install
 						done ${PACKAGE_ast_INCLUDE}/cmdext.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
 						make ${PACKAGE_ast_INCLUDE}/stak.h implicit
-							make ${PACKAGE_ast_INCLUDE}/stk.h implicit
-								make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-									make ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-									done ${PACKAGE_ast_INCLUDE}/sfio_s.h dontcare
-									make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-										make ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_map.h dontcare
-										make ${PACKAGE_ast_INCLUDE}/endian.h implicit
-											make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-											done ${PACKAGE_ast_INCLUDE}/bytesex.h dontcare
-										done ${PACKAGE_ast_INCLUDE}/endian.h dontcare
-									done ${PACKAGE_ast_INCLUDE}/ast_common.h dontcare
-									make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-										make ${PACKAGE_ast_INCLUDE}/regex.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_api.h dontcare
-											make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
-												make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-													make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
-														prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-														make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-															prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
-														done ${PACKAGE_ast_INCLUDE}/wchar.h dontcare
-													done ${PACKAGE_ast_INCLUDE}/ast_wctype.h dontcare
-												done ${PACKAGE_ast_INCLUDE}/wctype.h dontcare
-												make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
-													make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
-														prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-														prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-													done ${PACKAGE_ast_INCLUDE}/ast_stdio.h dontcare
-												done ${PACKAGE_ast_INCLUDE}/stdio.h dontcare
-												prev ${PACKAGE_ast_INCLUDE}/stdio.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_wchar.h dontcare
-											prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-										done ${PACKAGE_ast_INCLUDE}/regex.h dontcare
-										make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_getopt.h dontcare
-										done ${PACKAGE_ast_INCLUDE}/getopt.h dontcare
-										prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-										make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_botch.h dontcare
-										make ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_limits.h dontcare
-										make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_fs.h dontcare
-										done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h dontcare
-										prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-										make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_sys.h dontcare
-										make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_lib.h dontcare
-										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_std.h dontcare
-								done ${PACKAGE_ast_INCLUDE}/sfio.h dontcare
-							done ${PACKAGE_ast_INCLUDE}/stk.h dontcare
+							prev ${PACKAGE_ast_INCLUDE}/stk.h implicit
 						done ${PACKAGE_ast_INCLUDE}/stak.h dontcare
 						make ${PACKAGE_ast_INCLUDE}/error.h implicit
 							make ${PACKAGE_ast_INCLUDE}/option.h implicit
@@ -232,27 +254,6 @@ make install
 						make include/argnod.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
 						done include/argnod.h dontcare
-						make include/fault.h implicit
-							make FEATURE/sigfeatures implicit
-								meta FEATURE/sigfeatures features/%>FEATURE/% features/sigfeatures sigfeatures
-								make features/sigfeatures
-								done features/sigfeatures
-								exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/sigfeatures
-							done FEATURE/sigfeatures dontcare generated
-							make FEATURE/setjmp implicit
-								meta FEATURE/setjmp features/%>FEATURE/% features/setjmp setjmp
-								make features/setjmp
-								done features/setjmp
-								exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/setjmp
-							done FEATURE/setjmp dontcare generated
-							prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-							make ${PACKAGE_ast_INCLUDE}/sig.h implicit
-							done ${PACKAGE_ast_INCLUDE}/sig.h dontcare
-						done include/fault.h dontcare
-						make include/history.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-						done include/history.h dontcare
 						prev ${PACKAGE_ast_INCLUDE}/cdt.h implicit
 						prev FEATURE/options implicit
 						prev FEATURE/externs implicit
@@ -421,6 +422,18 @@ make install
 				prev SHOPT.sh
 				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c bltins/misc.c
 			done misc.o generated
+			make mkservice.o
+				make bltins/mkservice.c
+					prev ${PACKAGE_ast_INCLUDE}/cmd.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
+					prev include/nval.h implicit
+					prev include/defs.h implicit
+				done bltins/mkservice.c
+				meta mkservice.o %.c>%.o bltins/mkservice.c mkservice
+				prev bltins/mkservice.c
+				prev SHOPT.sh
+				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/mkservice.c
+			done mkservice.o generated
 			make print.o
 				make bltins/print.c
 					make ${PACKAGE_ast_INCLUDE}/ccode.h implicit
@@ -1364,7 +1377,7 @@ make install
 				prev SHOPT.sh
 				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_PACKAGE_ast -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/hexpand.c
 			done hexpand.o generated
-			exec - ${AR} rc libshell.a alarm.o cd_pwd.o cflow.o deparse.o enum.o getopts.o hist.o misc.o print.o read.o sleep.o trap.o test.o typeset.o ulimit.o umask.o whence.o main.o nvdisc.o nvtype.o arith.o args.o array.o completion.o defs.o edit.o expand.o regress.o fault.o fcin.o
+			exec - ${AR} rc libshell.a alarm.o cd_pwd.o cflow.o deparse.o enum.o getopts.o hist.o misc.o mkservice.o print.o read.o sleep.o trap.o test.o typeset.o ulimit.o umask.o whence.o main.o nvdisc.o nvtype.o arith.o args.o array.o completion.o defs.o edit.o expand.o regress.o fault.o fcin.o
 			exec - ${AR} rc libshell.a history.o init.o io.o jobs.o lex.o macro.o name.o nvtree.o parse.o path.o string.o streval.o subshell.o tdump.o timers.o trestore.o waitevent.o xec.o limits.o msg.o strdata.o testops.o keywords.o options.o signals.o aliases.o builtins.o variables.o lexstates.o emacs.o vi.o hexpand.o
 			exec - (ranlib libshell.a) >/dev/null 2>&1 || true
 		done libshell.a generated

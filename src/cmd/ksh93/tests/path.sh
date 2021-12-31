@@ -288,7 +288,7 @@ typeset foo=$(PATH=/xyz:/abc :)
 y=$(whence rm)
 [[ $x != "$y" ]] && err_exit 'PATH not restored after command substitution'
 whence getconf > /dev/null  &&  err_exit 'getconf should not be found'
-builtin /bin/getconf
+builtin /bin/getconf 2> /dev/null
 PATH=/bin
 PATH=$(getconf PATH)
 x=$(whence ls)
@@ -309,11 +309,12 @@ status=$($SHELL -c $'trap \'print $?\' ERR;/dev/null 2> /dev/null')
 
 # universe via PATH
 
-builtin getconf
-getconf UNIVERSE - att # override sticky default 'UNIVERSE = foo'
+if builtin getconf 2> /dev/null; then
+	getconf UNIVERSE - att # override sticky default 'UNIVERSE = foo'
 
-[[ $(PATH=/usr/ucb/bin:/usr/bin echo -n ucb) == 'ucb' ]] || err_exit "ucb universe echo ignores -n option"
-[[ $(PATH=/usr/xpg/bin:/usr/bin echo -n att) == '-n att' ]] || err_exit "att universe echo does not ignore -n option"
+	[[ $(PATH=/usr/ucb/bin:/usr/bin echo -n ucb) == 'ucb' ]] || err_exit "ucb universe echo ignores -n option"
+	[[ $(PATH=/usr/xpg/bin:/usr/bin echo -n att) == '-n att' ]] || err_exit "att universe echo does not ignore -n option"
+fi
 
 PATH=$path
 
@@ -435,7 +436,7 @@ x=$(whence -p echo 2> /dev/null)
 [[ $x == "$tmp/new/bin/echo" ]] ||  err_exit 'nonexistent FPATH directory in .paths file causes path search to fail'
 
 $SHELL 2> /dev/null <<- \EOF || err_exit 'path search problem with non-existent directories in PATH'
-	builtin getconf
+	builtin getconf 2> /dev/null
 	PATH=$(getconf PATH)
 	PATH=/dev/null/nogood1/bin:/dev/null/nogood2/bin:$PATH
 	tail /dev/null && tail /dev/null
@@ -489,7 +490,7 @@ actual=$(set +x; PATH=$tmp; redirect 2>&1; hash ls; command -p ls /dev/null)
 actual=$(set +x; PATH=$tmp; redirect 2>&1; hash ls; command -p ls /dev/null; exit)  # the 'exit' disables subshell optimization
 [[ $actual == "$expect" ]] || err_exit "'command -p' fails to search default path if tracked alias exists" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-expect=$(builtin getconf; PATH=$(getconf PATH); whence -p ls)
+expect=$(builtin getconf 2> /dev/null; PATH=$(getconf PATH); whence -p ls)
 actual=$(set +x; PATH=$tmp; redirect 2>&1; hash ls; command -p -v ls)
 [[ $actual == "$expect" ]] || err_exit "'command -p -v' fails to search default path if tracked alias exists" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
@@ -527,7 +528,8 @@ sleep_pid=$!
 (
 	export LC_ALL=C
 	unset IFS; set +f
-	builtin getconf && arg_max=$(getconf ARG_MAX) && let arg_max || { err_exit "getconf ARG_MAX not working"; exit 1; }
+	builtin getconf 2> /dev/null
+	arg_max=$(getconf ARG_MAX) && let arg_max || { err_exit "getconf ARG_MAX not working"; exit 1; }
 	set +x	# trust me, you don't want to xtrace what follows
 	# let's try to use a good variety of argument lengths
 	set -- $(typeset -p) $(functions) /dev/* /tmp/* /* *
@@ -576,14 +578,16 @@ fi
 # whence -a/-v tests
 
 # wrong path to tracked aliases after loading builtin: https://github.com/ksh93/ksh/pull/25
-actual=$("$SHELL" -c '
-	hash cat
-	builtin cat
-	whence -a cat
-')
-expect=$'cat is a shell builtin\n'$(all_paths cat | sed '1 s/^/cat is a tracked alias for /; 2,$ s/^/cat is /')
-[[ $actual == "$expect" ]] || err_exit "'whence -a' does not work correctly with tracked aliases" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+if (builtin cat) 2> /dev/null; then
+	actual=$("$SHELL" -c '
+		hash cat
+		builtin cat
+		whence -a cat
+	')
+	expect=$'cat is a shell builtin\n'$(all_paths cat | sed '1 s/^/cat is a tracked alias for /; 2,$ s/^/cat is /')
+	[[ $actual == "$expect" ]] || err_exit "'whence -a' does not work correctly with tracked aliases" \
+		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+fi
 
 # spurious 'undefined function' message: https://github.com/ksh93/ksh/issues/26
 actual=$("$SHELL" -c 'whence -a printf')

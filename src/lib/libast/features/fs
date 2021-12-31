@@ -136,6 +136,16 @@ lib	w_getmntent
 lib	statfs,statvfs
 
 lib	statfs4 sys/types.h - sys/statfs.h - sys/vfs.h - sys/mount.h compile{
+	#include <sys/types.h>
+	#if _sys_statfs
+	#include <sys/statfs.h>
+	#endif
+	#if _sys_vfs
+	#include <sys/vfs.h>
+	#endif
+	#if _sys_mount
+	#include <sys/mount.h>
+	#endif
 	int f()
 	{
 		struct statfs fs;

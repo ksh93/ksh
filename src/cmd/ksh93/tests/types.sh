@@ -127,9 +127,7 @@ typeset -T Y_t=( X_t r )
 Y_t z
 [[ ${z.r.x} == foo ]] || err_exit "z.r.x should be foo (got $(printf %q "${z.r.x}"))"
 [[ ${z.r.y} == bam ]] || err_exit "z.r.y should be bam (got $(printf %q "${z.r.y}"))"
-[[ ${z.r.s} == ${z.r.x} ]] || warning "z.r.s should be z.r.x" \
-	"(expected $(printf %q "${z.r.x}"), got $(printf %q "${z.r.s}"))" \
-	"-- known intermittent failure, please help fix it at https://github.com/ksh93/ksh/issues/400"
+[[ ${z.r.s} == ${z.r.x} ]] || err_exit "z.r.s should be z.r.x (expected $(printf %q "${z.r.x}"), got $(printf %q "${z.r.s}"))"
 
 unset xx yy
 typeset -T xx=(typeset yy=zz)

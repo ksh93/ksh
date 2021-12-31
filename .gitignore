@@ -5,43 +5,24 @@ lcl
 
 # Flat make libs, binaries, etc
 /bin/.paths
-/bin/ar
-/bin/cc
 /bin/crossexec
-/bin/ditto
+/bin/execrate
 /bin/filter
-/bin/hurl
 /bin/iffe
 /bin/ksh
 /bin/mamake
-/bin/mktest
-/bin/ok/
 /bin/proto
+/bin/mktest
 /bin/pty
-/bin/ratz
 /bin/regress
-/bin/release
 /bin/rt
 /bin/shcomp
 /bin/suid_exec
 /fun/
 /include/
 /lib/file/
-/lib/lib/
-/lib/libast.a
-/lib/libcmd.a
-/lib/libdll.a
-/lib/libshell.a
-/lib/libsum.a
-/lib/make/
-/lib/package/gen/
-/lib/probe/
+/lib/*.a
 /man/
-
-# This one keeps changing its license header, causing git to show an
-# uncommitted file. It's always re-copied anyway, and not for direct
-# invocation, so exclude. The source file is: src/cmd/INIT/execrate.sh
-bin/execrate
 
 # Miscellaneous artefacts
 *.bak
