@@ -60,7 +60,7 @@ New command line editor features:
 - The forward-delete and End keys are now handled as expected in the
   emacs and vi built-in line editors.
 
-- Added support for Home key sequences ^[[1~ and ^[[7~ and End key
+- Added support for Home key sequences ^[[1~ and ^[[7~ as well as End key
   sequences ^[[4~ and ^[[8~.
 
 - Added support for the following keyboard shortcuts:
