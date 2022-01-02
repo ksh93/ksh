@@ -764,7 +764,10 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 			free((void*)aq->xp);
 		}
 		if((nfp = nv_disc(np,(Namfun_t*)ap,NV_POP)) && !(nfp->nofree&1))
+		{
+			ap = 0;
 			free((void*)nfp);
+		}
 		if(!nv_isnull(np))
 		{
 			if(!np->nvfun)
@@ -776,7 +779,7 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 		if(np->nvalue.cp==Empty)
 			np->nvalue.cp = 0;
 	}
-	if(!string && (flags&NV_TYPE))
+	if(!string && (flags&NV_TYPE) && ap)
 		array_unscope(np,ap);
 }
 
