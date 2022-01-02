@@ -519,8 +519,9 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					}
 					else if(((np->nvalue.cp && np->nvalue.cp!=Empty)||nv_isvtree(np)|| nv_arrayptr(np)) && !nv_type(np))
 					{
-						_nv_unset(np,NV_EXPORT);
-						if(ap && ap->fun)
+						int was_assoc_array = ap && ap->fun;
+						_nv_unset(np,NV_EXPORT);  /* this can free ap */
+						if(was_assoc_array)
 							 nv_setarray(np,nv_associative);
 				
 					}
