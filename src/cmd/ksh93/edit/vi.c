@@ -1528,7 +1528,6 @@ static void getline(register Vi_t* vp,register int mode)
 			if(sh_isoption(SH_VI) &&
 				mode != SEARCH &&
 				last_virt >= 0 &&
-				(vp->ed->e_tabcount || !isblank(cur_virt)) &&
 				vp->ed->sh->nextprompt)
 			{
 				if(virtual[cur_virt]=='\\')
@@ -2479,7 +2478,7 @@ addin:
 			--cur_virt;
 			--last_virt;
 			vp->ocur_virt = MAXCHAR;
-			if(c=='=' || (mode<cur_virt && (virtual[cur_virt]==' ' || virtual[cur_virt]=='/')))
+			if(c=='=' || (mode<cur_virt && virtual[cur_virt]=='/'))
 				vp->ed->e_tabcount = 0;
 			return(APPEND);
 		}
