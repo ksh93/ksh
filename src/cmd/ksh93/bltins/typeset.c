@@ -511,7 +511,7 @@ endargs:
 		Stk_t *stkp = tdata.sh->stk;
 		int off=0,offset = stktell(stkp);
 		if(!tdata.prefix)
-			return(sh_outtype(tdata.sh,sfstdout));
+			return(sh_outtype(sfstdout));
 		sfputr(stkp,NV_CLASS,-1);
 #if SHOPT_NAMESPACE
 		if(tdata.sh->namespace)
@@ -591,7 +591,7 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 		/* output types from namespace */
 		tp->sh->namespace = 0;
 		tp->sh->prefix = nv_name(np)+1;
-		sh_outtype(tp->sh,iop);
+		sh_outtype(iop);
 		tp->sh->prefix = 0;
 		tp->sh->namespace = np;
 		tp->sh->last_root = root;
@@ -684,7 +684,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 					}
 #if SHOPT_NAMESPACE
 					if(shp->namespace)
-						np = sh_fsearch(shp,name,NV_ADD|HASH_NOSCOPE);
+						np = sh_fsearch(name,NV_ADD|HASH_NOSCOPE);
 					else
 #endif /* SHOPT_NAMESPACE */
 					np = nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE);
@@ -699,7 +699,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 #if SHOPT_NAMESPACE
 					np = 0;
 					if(shp->namespace)
-						np = sh_fsearch(shp,name,HASH_NOSCOPE);
+						np = sh_fsearch(name,HASH_NOSCOPE);
 					if(!np)
 #endif /* SHOPT_NAMESPACE */
 					if(np=nv_search(name,troot,0))
@@ -745,7 +745,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			if(troot==shp->track_tree && tp->aflag=='-')
 			{
 				np = nv_search(name,troot,NV_ADD|HASH_NOSCOPE);
-				path_alias(np,path_absolute(shp,nv_name(np),NIL(Pathcomp_t*),0));
+				path_alias(np,path_absolute(nv_name(np),NIL(Pathcomp_t*),0));
 				continue;
 			}
 			np = nv_open(name,troot,nvflags|((nvflags&NV_ASSIGN)?0:NV_ARRAY)|((iarray|(nvflags&(NV_REF|NV_NOADD)==NV_REF))?NV_FARRAY:0));
@@ -1115,7 +1115,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	tdata.sh = context->shp;
 	stkp = tdata.sh->stk;
 	if(!tdata.sh->pathlist)
-		path_absolute(tdata.sh,argv[0],NIL(Pathcomp_t*),0);
+		path_absolute(argv[0],NIL(Pathcomp_t*),0);
 	while (n = optget(argv,sh_optbuiltin)) switch (n)
 	{
 	    case 's':
@@ -1248,7 +1248,7 @@ int    b_set(int argc,register char *argv[],Shbltin_t *context)
 	tdata.prefix=0;
 	if(argv[1])
 	{
-		if(sh_argopts(argc,argv,tdata.sh) < 0)
+		if(sh_argopts(argc,argv) < 0)
 			return(2);
 		if(sh_isoption(SH_VERBOSE))
 			sh_onstate(SH_VERBOSE);
@@ -1343,7 +1343,7 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 		{
 #if SHOPT_NAMESPACE
 			if(shp->namespace && troot!=shp->var_tree)
-				np = sh_fsearch(shp,name,nflag?HASH_NOSCOPE:0);
+				np = sh_fsearch(name,nflag?HASH_NOSCOPE:0);
 			if(!np)
 #endif /* SHOPT_NAMESPACE */
 			np=nv_open(name,troot,NV_NOADD|nflag);

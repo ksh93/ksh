@@ -63,7 +63,6 @@ typedef struct pathcomp
 	char		*blib;
 	unsigned short	len;
 	unsigned short	flags;
-	Shell_t		*shp;
 } Pathcomp_t;
 
 #ifndef ARG_RAW
@@ -71,34 +70,36 @@ typedef struct pathcomp
 #endif /* !ARG_RAW */
 
 /* pathname handling routines */
-extern void		path_newdir(Shell_t*,Pathcomp_t*);
+extern void		path_newdir(Pathcomp_t*);
 extern Pathcomp_t	*path_dirfind(Pathcomp_t*,const char*,int);
-extern Pathcomp_t	*path_unsetfpath(Shell_t*);
-extern Pathcomp_t	*path_addpath(Shell_t*,Pathcomp_t*,const char*,int);
+extern Pathcomp_t	*path_unsetfpath(void);
+extern Pathcomp_t	*path_addpath(Pathcomp_t*,const char*,int);
 extern Pathcomp_t	*path_dup(Pathcomp_t*);
 extern void		path_delete(Pathcomp_t*);
 extern void 		path_alias(Namval_t*,Pathcomp_t*);
-extern Pathcomp_t 	*path_absolute(Shell_t*, const char*, Pathcomp_t*, int);
+extern Pathcomp_t 	*path_absolute(const char*, Pathcomp_t*, int);
 extern char 		*path_basename(const char*);
-extern char 		*path_fullname(Shell_t*,const char*);
-extern int 		path_expand(Shell_t*,const char*, struct argnod**);
-extern noreturn void 	path_exec(Shell_t*,const char*,char*[],struct argnod*);
-extern pid_t		path_spawn(Shell_t*,const char*,char*[],char*[],Pathcomp_t*,int);
+extern char 		*path_fullname(const char*);
+extern int 		path_expand(const char*, struct argnod**);
+extern noreturn void 	path_exec(const char*,char*[],struct argnod*);
+extern pid_t		path_spawn(const char*,char*[],char*[],Pathcomp_t*,int);
 #if defined(__EXPORT__) && defined(_BLD_DLL)
 #   define extern __EXPORT__
 #endif
-extern int		path_open(Shell_t*,const char*,Pathcomp_t*);
-extern Pathcomp_t 	*path_get(Shell_t*,const char*);
+extern int		path_open(const char*,Pathcomp_t*);
+extern Pathcomp_t 	*path_get(const char*);
 #undef extern
-extern char 		*path_pwd(Shell_t*,int);
-extern Pathcomp_t	*path_nextcomp(Shell_t*,Pathcomp_t*,const char*,Pathcomp_t*);
-extern int		path_search(Shell_t*,const char*,Pathcomp_t**,int);
-extern char		*path_relative(Shell_t*,const char*);
-extern int		path_complete(Shell_t*,const char*, const char*,struct argnod**);
+extern char 		*path_pwd(void);
+extern Pathcomp_t	*path_nextcomp(Pathcomp_t*,const char*,Pathcomp_t*);
+extern int		path_search(const char*,Pathcomp_t**,int);
+extern char		*path_relative(const char*);
+extern int		path_complete(const char*, const char*,struct argnod**);
 #if SHOPT_BRACEPAT
-    extern int 		path_generate(Shell_t*,struct argnod*,struct argnod**);
+    extern int 		path_generate(struct argnod*,struct argnod**);
 #endif /* SHOPT_BRACEPAT */
-    extern int		path_xattr(Shell_t*, const char*, char*);
+#if SHOPT_PFSH
+    extern int		path_xattr(const char*, char*);
+#endif /* SHOPT_PFSH */
 
 /* builtin/plugin routines */
 extern int		sh_addlib(Shell_t*,void*,char*,Pathcomp_t*);

@@ -4,13 +4,14 @@ tgz
 lcl
 
 # Flat make libs, binaries, etc
+*.a
+*.o
+*.req
+FEATURE/
 /bin/.paths
-/bin/ar
-/bin/cc
 /bin/crossexec
-/bin/ditto
+/bin/execrate
 /bin/filter
-/bin/hurl
 /bin/iffe
 /bin/ksh
 /bin/mamake
@@ -18,32 +19,47 @@ lcl
 /bin/ok/
 /bin/proto
 /bin/pty
-/bin/ratz
 /bin/regress
-/bin/release
 /bin/rt
 /bin/shcomp
 /bin/suid_exec
 /fun/
 /include/
-/lib/file/
-/lib/lib/
-/lib/libast.a
-/lib/libcmd.a
-/lib/libdll.a
-/lib/libshell.a
-/lib/libsum.a
-/lib/make/
-/lib/package/gen/
-/lib/probe/
+/lib/
 /man/
-
-# This one keeps changing its license header, causing git to show an
-# uncommitted file. It's always re-copied anyway, and not for direct
-# invocation, so exclude. The source file is: src/cmd/INIT/execrate.sh
-bin/execrate
+/src/cmd/INIT/crossexec
+/src/cmd/INIT/execrate
+/src/cmd/INIT/filter
+/src/cmd/INIT/iffe
+/src/cmd/INIT/ignore
+/src/cmd/INIT/mamake
+/src/cmd/INIT/mamprobe
+/src/cmd/INIT/mktest
+/src/cmd/INIT/mprobe
+/src/cmd/INIT/package
+/src/cmd/INIT/probe
+/src/cmd/INIT/probe.ini
+/src/cmd/INIT/probe.sh
+/src/cmd/INIT/regress
+/src/cmd/INIT/rt
+/src/cmd/INIT/silent
+/src/cmd/builtin/pty
+/src/cmd/ksh93/ksh
+/src/cmd/ksh93/shcomp
+/src/cmd/ksh93/suid_exec
+/src/lib/libast/*.h
+/src/lib/libast/astmath.exe
+/src/lib/libast/conf
+/src/lib/libast/conftab.c
+/src/lib/libast/lcgen
+/src/lib/libast/lctab.c
+/src/lib/libast/t.c
+/src/lib/libcmd/cmdext.h
+/src/lib/libcmd/cmdlist.h
+/src/lib/libdll/dlldefs.h
 
 # Miscellaneous artefacts
+*.dSYM/
 *.bak
 *.sav
 *.old

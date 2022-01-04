@@ -222,7 +222,7 @@ int  sh_histinit(void *sh_context)
 		histname = stakptr(offset);
 	}
 retry:
-	cp = path_relative(shp,histname);
+	cp = path_relative(histname);
 	if(!histinit)
 		histmode = S_IRUSR|S_IWUSR;
 	if((fd=open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)

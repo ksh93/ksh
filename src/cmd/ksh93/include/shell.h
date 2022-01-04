@@ -18,7 +18,8 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#ifndef SH_INTERACTIVE
+#ifndef shell_h_defined
+#define shell_h_defined
 /*
  * David Korn
  * AT&T Labs
@@ -27,15 +28,18 @@
  *
  */
 
-#define SH_VERSION	20071012
+#define SH_VERSION	20211229
 
 #include	<ast.h>
 #include	<cdt.h>
-#ifdef _SH_PRIVATE
+#include	<history.h>
+#include	<stk.h>
+#ifdef defs_h_defined
 #   include	"name.h"
 #else
 #   include	<nval.h>
-#endif /* _SH_PRIVATE */
+#endif /* defs_h_defined */
+#include	"fault.h"
 
 /* options */
 typedef struct
@@ -168,6 +172,49 @@ typedef struct sh_scope
 	struct sh_scope	*self;
 } Shscope_t;
 
+struct sh_scoped
+{
+	struct sh_scoped *prevst;	/* pointer to previous state */
+	int		dolc;
+	char		**dolv;
+	char		*cmdname;
+	char		*filename;
+	char		*funname;
+	int		lineno;
+	Dt_t		*save_tree;	/* var_tree for calling function */
+	struct sh_scoped *self;		/* pointer to copy of this scope */
+	Dt_t		*var_local;	/* local level variables for name() */
+	struct slnod	*staklist;	/* link list of function stacks */
+	int		states;		/* shell state bits used by sh_isstate(), etc. */
+	int		breakcnt;
+	int		execbrk;
+	int		loopcnt;
+	int		firstline;
+	int32_t		optindex;
+	int32_t		optnum;
+	int32_t		tmout;		/* value for TMOUT */
+	short		optchar;
+	short		opterror;
+	int		ioset;
+	unsigned short	trapmax;
+	char		*trap[SH_DEBUGTRAP+1];
+	char		**otrap;
+	char		**trapcom;
+	char		**otrapcom;
+	void		*timetrap;
+	struct Ufunction *real_fun;	/* current 'function name' function */
+	int             repl_index;
+	char            *repl_arg;
+};
+
+struct limits
+{
+	long		arg_max;	/* max arg+env exec() size */
+	int		open_max;	/* maximum number of file descriptors */
+	int		clk_tck;	/* number of ticks per second */
+	int		child_max;	/* maximum number of children */
+};
+
 /*
  * Saves the state of the shell
  */
@@ -179,16 +226,164 @@ struct Shell_s
 	Dt_t		*fun_tree;	/* for shell functions */
 	Dt_t		*alias_tree;	/* for alias names */
 	Dt_t		*bltin_tree;    /* for builtin commands */
+	Dt_t		*track_tree;	/* for tracked aliases */
 	Shscope_t	*topscope;	/* pointer to top-level scope */
 	int		inlineno;	/* line number of current input file */
 	int		exitval;	/* exit status of the command currently being run */
 	int		savexit;	/* $? == exit status of the last command executed */
-	unsigned char	trapnote;	/* set when trap/signal is pending */
+
+	/* These are the former 'struct shared' (shgd) members. */
+	struct limits	lim;
+	uid_t		userid;
+	uid_t		euserid;
+	gid_t		groupid;
+	gid_t		egroupid;
+	pid_t		pid;		/* $$, the main shell's PID (invariable) */
+	pid_t		ppid;		/* $PPID, the main shell's parent's PID */
+	pid_t		current_pid;	/* ${.sh.pid}, PID of current ksh process (updates when subshell forks) */
+	unsigned char	sigruntime[2];
+	Namval_t	*bltin_nodes;
+	Namval_t	*bltin_cmds;
+	History_t	*hist_ptr;
+	char		*shpath;
+	char		*user;
+	char		**sigmsg;
+	char		**login_files;
+	void		*ed_context;
+	int		sigmax;
+	Shwait_f	waitevent;
+#if SHOPT_STATS
+	int		*stats;
+#endif
+
+	/* The following members are not considered to be part of the documented API.
+	 * Programs using libshell should not rely on them as they may change. */
+	Shell_t		*gd;		/* pointer to self for backwards compatibility (was: global data) */
+	int		subshell;	/* set for virtual subshell */
+	int		realsubshell;	/* ${.sh.subshell}, actual subshell level (including virtual and forked) */
 	char		shcomp;		/* set when running shcomp */
-	unsigned int	subshell;	/* set for virtual subshell */
-#ifdef _SH_PRIVATE
-	_SH_PRIVATE
-#endif /* _SH_PRIVATE */
+	unsigned char	trapnote;	/* set when trap/signal is pending */
+	struct sh_scoped st;		/* scoped information */
+	Stk_t		*stk;		/* stack pointer */
+	Sfio_t		*heredocs;	/* current here-doc temp file */
+	Sfio_t		*funlog;	/* for logging function definitions */
+	int		**fdptrs;	/* pointer to file numbers */
+	char		*lastarg;
+	char		*lastpath;	/* last absolute path found */
+	int		path_err;	/* last error on path search */
+	Dt_t		*var_base;	/* global level variables */
+	Dt_t		*fun_base;	/* global level functions */
+	Dt_t		*openmatch;
+	Namval_t	*namespace;	/* current active namespace */
+	Namval_t	*last_table;	/* last table used in last nv_open */
+	Namval_t	*prev_table;	/* previous table used in nv_open */
+	Sfio_t		*outpool;	/* output stream pool */
+	long		timeout;	/* read timeout */
+	unsigned int	curenv;		/* current subshell number */
+	unsigned int	jobenv;		/* subshell number for jobs */
+	int		infd;		/* input file descriptor */
+	short		nextprompt;	/* next prompt is PS<nextprompt> */
+	Namval_t	*posix_fun;	/* points to last name() function */
+	char		*outbuff;	/* pointer to output buffer */
+	char		*errbuff;	/* pointer to stderr buffer */
+	char		*prompt;	/* pointer to prompt string */
+	char		*shname;	/* shell name */
+	char		*comdiv;	/* points to sh -c argument */
+	char		*prefix;	/* prefix for compound assignment */
+	sigjmp_buf	*jmplist;	/* longjmp return stack */
+	pid_t		bckpid;		/* background process id */
+	pid_t		cpid;
+	pid_t		spid; 		/* subshell process id */
+	pid_t		pipepid;
+	pid_t		outpipepid;
+	int		topfd;
+	int		savesig;
+	unsigned char	*sigflag;	/* pointer to signal states */
+	char		intrap;
+	char		login_sh;
+	char		lastbase;
+	char		forked;
+	char		binscript;
+	char		funload;
+	char		used_pos;	/* used positional parameter */
+	char		universe;
+	char		winch;
+	short		arithrecursion;	/* current arithmetic recursion level */
+	char		indebug; 	/* set when in debug trap */
+	unsigned char	ignsig;		/* ignored signal in subshell */
+	unsigned char	lastsig;	/* last signal received */
+	char		pathinit;	/* pathinit called from subshell */
+	char		comsub;		/* set to 1 when in `...`, 2 when in ${ ...; }, 3 when in $(...) */
+	char		subshare;	/* set when comsub==2 (shared-state ${ ...; } command substitution) */
+	char		toomany;	/* set when out of fd's */
+	char		instance;	/* in set_instance */
+	char		decomma;	/* decimal_point=',' */
+	char		redir0;		/* redirect of 0 */
+	char		*readscript;	/* set before reading a script */
+	int		subdup;		/* bitmask for dups of 1 */
+	int		*inpipe;	/* input pipe pointer */
+	int		*outpipe;	/* output pipe pointer */
+	int		cpipe[3];
+	int		coutpipe;
+	int		inuse_bits;
+	struct argnod	*envlist;
+	struct dolnod	*arglist;
+	int		fn_depth;
+	int		fn_reset;
+	int		dot_depth;
+	int		hist_depth;
+	int		xargmin;
+	int		xargmax;
+	int		xargexit;
+	int		nenv;
+	mode_t		mask;
+	void		*env;		/* environment */
+	void		*init_context;
+	void		*mac_context;
+	void		*lex_context;
+	void		*arg_context;
+	void		*pathlist;
+	void		*defpathlist;
+	void		*cdpathlist;
+	char		**argaddr;
+	void		*optlist;
+	struct sh_scoped global;
+	struct checkpt	checkbase;
+	Shinit_f	userinit;
+	Shbltin_f	bltinfun;
+	Shbltin_t	bltindata;
+	char		*cur_line;
+	int		offsets[10];
+	Sfio_t		**sftable;
+	unsigned char	*fdstatus;
+	const char	*pwd;
+	void		*jmpbuffer;
+	void		*mktype;
+	Sfio_t		*strbuf;
+	Sfio_t		*strbuf2;
+	Dt_t		*first_root;
+	Dt_t		*prefix_root;
+	Dt_t		*last_root;
+	Dt_t		*prev_root;
+	Dt_t		*fpathdict;
+	Dt_t		*typedict;
+	Dt_t		*inpool;
+	char		ifstable[256];
+	unsigned long	test;
+	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */
+	Shopt_t		glob_options;
+	Namval_t	*typeinit;
+	Namfun_t	nvfun;
+	char		*mathnodes;
+	char		*bltin_dir;
+	struct Regress_s*regress;
+	char 		exittrap;
+	char 		errtrap;
+	char 		end_fn;
+#if !SHOPT_DEVFD
+	char		*fifo;		/* FIFO name for current process substitution */
+	Dt_t		*fifo_tree;	/* for cleaning up process substitution FIFOs */
+#endif /* !SHOPT_DEVFD */
 };
 
 /* used for builtins */
@@ -248,7 +443,6 @@ extern int		sh_fchdir(int);
 extern int		sh_fcntl(int, int, ...);
 extern Sfio_t		*sh_fd2sfio(int);
 extern int		(*sh_fdnotify(int(*)(int,int)))(int,int);
-extern Shell_t		*sh_getinterp(void);
 extern int		sh_open(const char*, int, ...);
 extern int		sh_openmax(void);
 extern Sfio_t		*sh_pathopen(const char*);
@@ -268,9 +462,13 @@ extern int 		sh_waitsafe(void);
 extern int		sh_exec(const Shnode_t*,int);
 
 /*
- * direct access to sh is obsolete, use sh_getinterp() instead
+ * As of 93u+m, direct access to sh is no longer obsolete, and
+ * shgd ("global data") is no longer a separately allocated struct;
+ * sh_getinterp() and shgd are provided here for compatibility.
  */
-extern Shell_t sh;
+extern Shell_t		sh;
+#define	sh_getinterp()	(&sh)
+#define shgd		(&sh)
 
 #ifdef _DLL
 #   undef extern
@@ -278,7 +476,7 @@ extern Shell_t sh;
 
 #define chdir(a)	sh_chdir(a)
 #define fchdir(a)	sh_fchdir(a)
-#ifndef _SH_PRIVATE
+#ifndef defs_h_defined
 #   define access(a,b)	sh_access(a,b)
 #   define close(a)	sh_close(a)
 #   define exit(a)	sh_exit(a)
@@ -295,11 +493,11 @@ extern Shell_t sh;
 #	define open	sh_open
 #	define lseek	sh_seek
 #   endif
-#endif /* !_SH_PRIVATE */
+#endif /* !defs_h_defined */
 
 #define SH_SIGSET	4
 #define SH_EXITSIG	0400	/* signal exit bit */
 #define SH_EXITMASK	(SH_EXITSIG-1)	/* normal exit status bits */
 #define SH_RUNPROG	-1022	/* needs to be negative and < 256 */
 
-#endif /* SH_INTERACTIVE */
+#endif /* !shell_h_defined */

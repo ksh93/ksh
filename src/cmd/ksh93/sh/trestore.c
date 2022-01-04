@@ -107,7 +107,7 @@ static Shnode_t *r_tree(Shell_t *shp)
 			t->ar.arexpr = r_arg(shp);
 			t->ar.arcomp = 0;
 			if((t->ar.arexpr)->argflag&ARG_RAW)
-				 t->ar.arcomp = sh_arithcomp(shp,(t->ar.arexpr)->argval);
+				 t->ar.arcomp = sh_arithcomp((t->ar.arexpr)->argval);
 			break;
 		case TFOR:
 			t = getnode(shp->stk,fornod);

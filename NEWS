@@ -12,6 +12,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2021-12-28:
 
+- Fixed a bug that caused CDPATH to continue working after unsetting it.
+
 - Added three options to the ulimit builtin with the same names and
   functionality as in Bash:
   - 'ulimit -k' sets the maximum number of kqueues.

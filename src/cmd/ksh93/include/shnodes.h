@@ -209,9 +209,9 @@ union Shnode_u
 	struct arithnod	ar;
 };
 
-extern void			sh_freeup(Shell_t*);
+extern void			sh_freeup(void);
 extern void			sh_funstaks(struct slnod*,int);
-extern Sfio_t 			*sh_subshell(Shell_t*,Shnode_t*, volatile int, int);
+extern Sfio_t 			*sh_subshell(Shnode_t*, volatile int, int);
 #if defined(__EXPORT__) && defined(_BLD_DLL)
    __EXPORT__
 #endif

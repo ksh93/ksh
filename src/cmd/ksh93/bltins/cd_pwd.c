@@ -97,9 +97,9 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	oldpwd = path_pwd(shp,0);
-	opwdnod = sh_scoped(shp,OLDPWDNOD);
-	pwdnod = sh_scoped(shp,PWDNOD);
+	oldpwd = path_pwd();
+	opwdnod = sh_scoped(OLDPWDNOD);
+	pwdnod = sh_scoped(PWDNOD);
 	if(oldpwd == e_dot && pwdnod->nvalue.cp)
 		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
 	if(shp->subshell)
@@ -140,13 +140,10 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	&& !(dir[0]=='.' && (dir[1]=='/' || dir[1]==0))
 	&& !(dir[0]=='.' && dir[1]=='.' && (dir[2]=='/' || dir[2]==0)))
 	{
-		if(!(cdpath = (Pathcomp_t*)shp->cdpathlist) && (dp=sh_scoped(shp,CDPNOD)->nvalue.cp))
+		if((dp=sh_scoped(CDPNOD)->nvalue.cp) && !(cdpath = (Pathcomp_t*)shp->cdpathlist))
 		{
-			if(cdpath=path_addpath(shp,(Pathcomp_t*)0,dp,PATH_CDPATH))
-			{
+			if(cdpath=path_addpath((Pathcomp_t*)0,dp,PATH_CDPATH))
 				shp->cdpathlist = (void*)cdpath;
-				cdpath->shp = shp;
-			}
 		}
 	}
 	if(*dir!='/')
@@ -169,7 +166,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	do
 	{
 		dp = cdpath?cdpath->name:"";
-		cdpath = path_nextcomp(shp,cdpath,dir,0);
+		cdpath = path_nextcomp(cdpath,dir,0);
 #if _WINIX
                 if(*stakptr(PATH_OFFSET+1)==':' && isalpha(*stakptr(PATH_OFFSET)))
 		{
@@ -197,13 +194,13 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 				if(!pathcanon(cp,PATH_DOTDOT))
 					continue;
 		}
-		if((rval=chdir(path_relative(shp,stakptr(PATH_OFFSET)))) >= 0)
+		if((rval=chdir(path_relative(stakptr(PATH_OFFSET)))) >= 0)
 			goto success;
 		if(errno!=ENOENT && saverrno==0)
 			saverrno=errno;
 	}
 	while(cdpath);
-	if(rval<0 && *dir=='/' && *(path_relative(shp,stakptr(PATH_OFFSET)))!='/')
+	if(rval<0 && *dir=='/' && *(path_relative(stakptr(PATH_OFFSET)))!='/')
 		rval = chdir(dir);
 	/* use absolute chdir() if relative chdir() fails */
 	if(rval<0)
@@ -250,7 +247,7 @@ success:
 		if(shp->pwd)
 			free((void*)shp->pwd);
 		shp->pwd = NIL(const char*);
-		path_pwd(shp,0);
+		path_pwd();
 		if(*shp->pwd != '/')
 		{
 			errormsg(SH_DICT,ERROR_system(ret),e_direct);
@@ -258,8 +255,8 @@ success:
 		}
 	}
 	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);
-	path_newdir(shp,shp->pathlist);
-	path_newdir(shp,shp->cdpathlist);
+	path_newdir(sh.pathlist);
+	path_newdir(sh.cdpathlist);
 	if(pflag && eflag)
 	{
 		/* Verify the current working directory matches $PWD */
@@ -294,7 +291,7 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	if(*(cp = path_pwd(shp,0)) != '/')
+	if(*(cp = path_pwd()) != '/')
 	{
 		errormsg(SH_DICT,ERROR_system(1), e_pwd);
 		UNREACHABLE();

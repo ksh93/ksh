@@ -305,6 +305,8 @@ x=$(cd ${tmp#/})
 if	[[ $x != $tmp ]]
 then	err_exit "CDPATH ${tmp#/} does not display new directory"
 fi
+unset CDPATH
+cd "${tmp#/}" >/dev/null 2>&1 && err_exit "CDPATH not deactivated after unset"
 cd "$tmp" || exit
 TMOUT=100
 (TMOUT=20)

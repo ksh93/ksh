@@ -63,7 +63,6 @@
 
 struct vars				/* vars stacked per invocation */
 {
-	Shell_t		*shp;
 	const char	*expr;		/* current expression */	
 	const char	*nextchr;	/* next char in current expression */	
 	const char	*errchr; 	/* next char after error	*/
@@ -160,8 +159,6 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	int	lastsub;
 	Math_f fun;
 	struct lval node;
-	Shell_t	*shp = ep->shp;
-	node.shp = shp;
 	node.emode = ep->emode;
 	node.expr = ep->expr;
 	node.elen = ep->elen;
@@ -170,7 +167,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	node.sub = 0;
 	node.ptr = 0;
 	node.eflag = 0;
-	if(shp->arithrecursion++ >= MAXLEVEL)
+	if(sh.arithrecursion++ >= MAXLEVEL)
 	{
 		arith_error(e_recursive,ep->expr,ep->emode);
 		return(0);
@@ -242,7 +239,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			if(node.flag = c)
 				lastval = 0;
 			node.isfloat=0;
-			node.level = shp->arithrecursion;
+			node.level = sh.arithrecursion;
 			node.nosub = 0;
 			num = (*ep->fun)(&ptr,&node,VALUE,num);
 			if(node.emode&ARITH_ASSIGNOP)
@@ -427,7 +424,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				c &= ~T_BINARY;
 				arg[0] = num;
 				arg[1] = 0;
-				num = sh_mathfun(shp,(void*)fun,1,arg);
+				num = sh_mathfun(&sh,(void*)fun,1,arg);
 				break;
 			}
 			num = (*((Math_1f_f)fun))(num);
@@ -448,7 +445,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				arg[0] = sp[1];
 				arg[1] = num;
 				arg[2] = 0;
-				num = sh_mathfun(shp,(void*)fun,2,arg);
+				num = sh_mathfun(&sh,(void*)fun,2,arg);
 				break;
 			}
 			if(c&T_NOFLOAT)
@@ -473,7 +470,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				arg[1] = sp[2];
 				arg[2] = num;
 				arg[3] = 0;
-				num = sh_mathfun(shp,(void*)fun,3,arg);
+				num = sh_mathfun(&sh,(void*)fun,3,arg);
 				break;
 			}
 			num = (*((Math_3f_f)fun))(sp[1],sp[2],num);
@@ -490,8 +487,8 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 		*sp = num;
 		*tp = type;
 	}
-	if(shp->arithrecursion>0)
-		shp->arithrecursion--;
+	if(sh.arithrecursion>0)
+		sh.arithrecursion--;
 	if(type==0 && !num)
 		num = 0;
 	return(num);
@@ -516,7 +513,7 @@ static int gettok(register struct vars *vp)
 			vp->nextchr--;
 			break;
 		    case A_COMMA:
-			if(vp->shp->decomma && (c=peekchr(vp))>='0' && c<='9')
+			if(sh.decomma && (c=peekchr(vp))>='0' && c<='9')
 			{
 				op = A_DIG;
 		    		goto keep;
@@ -579,7 +576,6 @@ static int expr(register struct vars *vp,register int precedence)
 	lvalue.value = 0;
 	lvalue.nargs = 0;
 	lvalue.fun = 0;
-	lvalue.shp =  vp->shp;
 again:
 	op = gettok(vp);
 	c = 2*MAXPREC+1;
@@ -897,13 +893,12 @@ again:
 	return(1);
 }
 
-Arith_t *arith_compile(Shell_t *shp,const char *string,char **last,Sfdouble_t(*fun)(const char**,struct lval*,int,Sfdouble_t),int emode)
+Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const char**,struct lval*,int,Sfdouble_t),int emode)
 {
 	struct vars cur;
 	register Arith_t *ep;
 	int offset;
 	memset((void*)&cur,0,sizeof(cur));
-	cur.shp = shp;
      	cur.expr = cur.nextchr = string;
 	cur.convert = fun;
 	cur.emode = emode;
@@ -925,7 +920,6 @@ Arith_t *arith_compile(Shell_t *shp,const char *string,char **last,Sfdouble_t(*f
 	stakputc(0);
 	offset = staktell();
 	ep = (Arith_t*)stakfreeze(0);
-	ep->shp = shp;
 	ep->expr = string;
 	ep->elen = strlen(string);
 	ep->code = (unsigned char*)(ep+1);
@@ -948,10 +942,10 @@ Arith_t *arith_compile(Shell_t *shp,const char *string,char **last,Sfdouble_t(*f
  * point to the next non-converted character; if typ is MESSAGE then string
  * points to an error message string
  *
- * NOTE: (*convert)() may call strval()
+ * NOTE: (*convert)() may call arith_strval()
  */
 
-Sfdouble_t strval(Shell_t *shp,const char *s,char **end,Sfdouble_t(*conv)(const char**,struct lval*,int,Sfdouble_t),int emode)
+Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const char**,struct lval*,int,Sfdouble_t), int emode)
 {
 	Arith_t *ep;
 	Sfdouble_t d;
@@ -959,7 +953,7 @@ Sfdouble_t strval(Shell_t *shp,const char *s,char **end,Sfdouble_t(*conv)(const 
 	int offset;
 	if(offset=staktell())
 		sp = stakfreeze(1);
-	ep = arith_compile(shp,s,end,conv,emode);
+	ep = arith_compile(s,end,convert,emode);
 	ep->emode = emode;
 	d = arith_exec(ep);
 	stakset(sp?sp:(char*)ep,offset);

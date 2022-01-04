@@ -606,7 +606,8 @@ x=$(
 	foo[1]=(x=3)
 	typeset -p foo
 ) 2> /dev/null
-[[ $x == "$exp" ]] || err_exit 'setting element 1 of array to compound variable failed'
+[[ $x == "$exp" ]] || err_exit 'setting element 1 of array to compound variable failed' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$x"))"
 
 # test for cloning a very large indexed array - can core dump
 (	

@@ -1206,9 +1206,12 @@ fi
 # ======
 # In ksh93v- 2013-10-10 alpha cd doesn't fail on directories without execute permission.
 # Additionally, ksh93v- added a regression test for attempting to use cd on a file.
-mkdir "$tmp/noexecute"
-chmod -x "$tmp/noexecute"
-$SHELL -c "cd $tmp/noexecute" 2> /dev/null && err_exit "'cd' on directories without an execute bit doesn't fail"
+if	[[ $(id -u) == 0 ]]
+then	warning "running as root: skipping test if cd fails on directory without execute permission"
+else	mkdir "$tmp/noexecute"
+	chmod -x "$tmp/noexecute"
+	"$SHELL" -c "cd $tmp/noexecute" 2>/dev/null && err_exit "'cd' on directories without an execute bit doesn't fail"
+fi
 touch "$tmp/notadir"
 $SHELL -c "cd $tmp/notadir" 2> /dev/null && err_exit "'cd' on a normal file doesn't fail"
 

@@ -219,7 +219,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				{
 					sfprintf(sfstdout,sh_translate(is_ufunction));
 					pp = 0;
-					while(!path_search(shp,name,&pp,3) && pp && (pp = pp->next))
+					while(!path_search(name,&pp,3) && pp && (pp = pp->next))
 						;
 					if(*stakptr(PATH_OFFSET)=='/')
 						sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
@@ -262,7 +262,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			/*
 			 * See comments in sh/path.c for info on what path_search()'s true/false return values mean
 			 */
-			if(path_search(shp, name, &pp, aflag>1 ? 3 : 2))
+			if(path_search(name, &pp, aflag>1 ? 3 : 2))
 			{
 				cp = name;
 				if(*cp!='/')
@@ -305,7 +305,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			else if(cp)
 			{
 				int is_pathbound_builtin = 0;
-				cp = path_fullname(shp,cp);  /* resolve '.' & '..' */
+				cp = path_fullname(cp);  /* resolve '.' & '..' */
 				if(flags&(V_FLAG|T_FLAG))
 				{
 					if(!(flags&T_FLAG))

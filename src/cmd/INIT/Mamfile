@@ -590,11 +590,6 @@ make install
 		prev filter
 		exec - test '' = 'filter' || ${STDCMP} 2>/dev/null -s filter ${INSTALLROOT}/bin/filter || { ${STDMV} ${INSTALLROOT}/bin/filter ${INSTALLROOT}/bin/filter.old 2>/dev/null || true; ${STDCP} filter ${INSTALLROOT}/bin/filter ;}
 	done ${INSTALLROOT}/bin/filter generated
-	make ${PACKAGEROOT}/lib/package
-		exec - if test ! -d ${PACKAGEROOT}/lib/package
-		exec - then mkdir -p ${PACKAGEROOT}/lib/package
-		exec - fi
-	done ${PACKAGEROOT}/lib/package generated
 	make ${INSTALLROOT}/bin/mamake
 		prev mamake
 		exec - test '' = 'mamake' || ${STDCMP} 2>/dev/null -s mamake ${INSTALLROOT}/bin/mamake || { ${STDMV} ${INSTALLROOT}/bin/mamake ${INSTALLROOT}/bin/mamake.old 2>/dev/null || true; ${STDCP} mamake ${INSTALLROOT}/bin/mamake ;}
