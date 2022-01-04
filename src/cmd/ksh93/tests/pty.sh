@@ -946,7 +946,7 @@ u ^OK :child-!: \r\n$
 w exit
 !
 
-mkdir -p "$tmp/foo bar"
+touch "$tmp/foo bar"
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<!
 L tab completion with space in string
 # https://github.com/ksh93/ksh/pull/413
