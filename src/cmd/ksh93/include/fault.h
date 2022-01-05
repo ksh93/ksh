@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef SH_SIGBITS
 /*
  *	UNIX shell
@@ -109,11 +108,11 @@ struct checkpt
 				)
 #define sh_popcontext(shp,bp)	((shp)->jmplist=(bp)->prev, errorpop(&((bp)->err)))
 
-extern noreturn void 	sh_done(void*,int);
+extern noreturn void 	sh_done(int);
 extern void 	sh_fault(int);
 extern void 	sh_sigclear(int);
 extern void 	sh_sigdone(void);
-extern void	sh_siginit(void*);
+extern void	sh_siginit(void);
 extern void 	sh_sigtrap(int);
 extern void 	sh_sigreset(int);
 extern void 	*sh_timeradd(unsigned long,int ,void (*)(void*),void*);

@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * bash style history expansion
  *
@@ -591,7 +590,7 @@ getsel:
 				{
 					/* preset old with match from !?string? */
 					if(!sb.str[0] && wm)
-						sb.str[0] = sh_strdup(sfsetbuf(wm, (Void_t*)1, 0));
+						sb.str[0] = sh_strdup(sfsetbuf(wm, (void*)1, 0));
 					cp = parse_subst(cp, &sb);
 				}
 
@@ -608,7 +607,7 @@ getsel:
 				}
 
 				/* need pointer for strstr() */
-				str = sfsetbuf(tmp, (Void_t*)1, 0);
+				str = sfsetbuf(tmp, (void*)1, 0);
 
 				flag |= HIST_SUBSTITUTE;
 				while(flag & HIST_SUBSTITUTE)

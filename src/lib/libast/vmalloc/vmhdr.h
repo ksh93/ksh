@@ -31,18 +31,6 @@
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 01/16/94.
 */
 
-#ifndef __STD_C	/* this is normally in vmalloc.h but it's included late here */
-#ifdef __STDC__
-#define	__STD_C		1
-#else
-#if __cplusplus || c_plusplus
-#define __STD_C		1
-#else
-#define __STD_C		0
-#endif /*__cplusplus*/
-#endif /*__STDC__*/
-#endif /*__STD_C*/
-
 #if _PACKAGE_ast
 
 #if !_UWIN
@@ -103,11 +91,7 @@ typedef struct _pfobj_s	Pfobj_t;
 
 #define NIL(t)		((t)0)
 #define reg		register
-#if __STD_C
 #define NOTUSED(x)	(void)(x)
-#else
-#define NOTUSED(x)	(&x,1)
-#endif
 
 
 /* convert an address to an integral value */
@@ -138,7 +122,7 @@ typedef struct _pfobj_s	Pfobj_t;
 #endif /*_BLD_DEBUG*/
 #endif /*DEBUG*/
 #if DEBUG
-extern void		_vmmessage _ARG_((const char*, long, const char*, long));
+extern void		_vmmessage(const char*, long, const char*, long);
 #define MESSAGE(s)	_vmmessage(__FILE__,__LINE__,s,0)
 #define ABORT()		(_Vmassert & VM_abort)
 #define CHECK()		(_Vmassert & VM_check)
@@ -332,7 +316,7 @@ struct _vmdata_s /* core region data - could be in shared/persistent memory	*/
 struct _seg_s
 {	Vmdata_t*	vmdt;	/* the data region holding this	*/
 	Seg_t*		next;	/* next segment			*/
-	Void_t*		addr;	/* starting segment address	*/
+	void*		addr;	/* starting segment address	*/
 	size_t		extent;	/* extent of segment		*/
 	Vmuchar_t*	baddr;	/* bottom of usable memory	*/
 	size_t		size;	/* allocable size		*/
@@ -352,7 +336,7 @@ struct _seg_s
 #define LEFT(b)		((b)->body.body.left)
 #define RIGHT(b)	((b)->body.body.right)
 
-#define DATA(b)		((Void_t*)((b)->body.data) )
+#define DATA(b)		((void*)((b)->body.data) )
 #define BLOCK(d)	((Block_t*)((char*)(d) - sizeof(Head_t)) )
 #define SELF(b)		(b)->body.self[SIZE(b)/sizeof(Block_t*)-1]
 #define LAST(b)		(*((Block_t**)(((char*)(b)) - sizeof(Block_t*)) ) )
@@ -384,7 +368,7 @@ struct _seg_s
 
 #define VMFLF(vm,fi,ln,fn)	((fi) = (vm)->file, (vm)->file = NIL(char*), \
 		 		 (ln) = (vm)->line, (vm)->line = 0 , \
-		 		 (fn) = (vm)->func, (vm)->func = NIL(Void_t*) )
+		 		 (fn) = (vm)->func, (vm)->func = NIL(void*) )
 
 /* The lay-out of a Vmprofile block is this:
 **	seg_ size ----data---- _pf_ size
@@ -448,16 +432,15 @@ struct _seg_s
 
 
 /* external symbols for use inside vmalloc only */
-typedef Block_t*	(*Vmsearch_f)_ARG_((Vmdata_t*, size_t, Block_t*));
+typedef Block_t*	(*Vmsearch_f)(Vmdata_t*, size_t, Block_t*);
 typedef struct _vmextern_s
-{	Block_t*	(*vm_extend)_ARG_((Vmalloc_t*, size_t, Vmsearch_f ));
-	ssize_t		(*vm_truncate)_ARG_((Vmalloc_t*, Seg_t*, size_t, int));
+{	Block_t*	(*vm_extend)(Vmalloc_t*, size_t, Vmsearch_f );
+	ssize_t		(*vm_truncate)(Vmalloc_t*, Seg_t*, size_t, int);
 	size_t		vm_pagesize;
-	char*		(*vm_strcpy)_ARG_((char*, const char*, int));
-	char*		(*vm_itoa)_ARG_((Vmulong_t, int));
-	void		(*vm_trace)_ARG_((Vmalloc_t*,
-					  Vmuchar_t*, Vmuchar_t*, size_t, size_t));
-	void		(*vm_pfclose)_ARG_((Vmalloc_t*));
+	char*		(*vm_strcpy)(char*, const char*, int);
+	char*		(*vm_itoa)(Vmulong_t, int);
+	void		(*vm_trace)(Vmalloc_t*, Vmuchar_t*, Vmuchar_t*, size_t, size_t);
+	void		(*vm_pfclose)(Vmalloc_t*);
 	unsigned int	vm_lock;
 	int		vm_assert;
 	int		vm_options;
@@ -476,23 +459,21 @@ typedef struct _vmextern_s
 
 #define VMOPTIONS()     do { if (!_Vmoptions) { _vmoptions(); } } while (0)
 
-extern int		_vmbestcheck _ARG_((Vmdata_t*, Block_t*));
-extern int		_vmfd _ARG_((int));
-extern int		_vmlock _ARG_((Vmalloc_t*, int));
-extern void		_vmoptions _ARG_((void));
-
-_BEGIN_EXTERNS_
+extern int		_vmbestcheck(Vmdata_t*, Block_t*);
+extern int		_vmfd(int);
+extern int		_vmlock(Vmalloc_t*, int);
+extern void		_vmoptions(void);
 
 extern Vmextern_t	_Vmextern;
 
 #if _PACKAGE_ast
 
 #if _npt_getpagesize
-extern int		getpagesize _ARG_((void));
+extern int		getpagesize(void);
 #endif
 #if _npt_sbrk
-extern int		brk _ARG_(( void* ));
-extern Void_t*		sbrk _ARG_(( ssize_t ));
+extern int		brk( void* );
+extern void*		sbrk( ssize_t );
 #endif
 
 #else
@@ -500,29 +481,19 @@ extern Void_t*		sbrk _ARG_(( ssize_t ));
 #if _hdr_unistd
 #include	<unistd.h>
 #else
-extern void		abort _ARG_(( void ));
-extern ssize_t		write _ARG_(( int, const void*, size_t ));
-extern int		getpagesize _ARG_((void));
-extern Void_t*		sbrk _ARG_((ssize_t));
+extern void		abort( void );
+extern ssize_t		write( int, const void*, size_t );
+extern int		getpagesize(void);
+extern void*		sbrk(ssize_t);
 #endif
 
-#if !__STDC__ && !_hdr_stdlib
-extern size_t		strlen _ARG_(( const char* ));
-extern char*		strcpy _ARG_(( char*, const char* ));
-extern int		strcmp _ARG_(( const char*, const char* ));
-extern int		atexit _ARG_(( void(*)(void) ));
-extern char*		getenv _ARG_(( const char* ));
-extern Void_t*		memcpy _ARG_(( Void_t*, const Void_t*, size_t ));
-extern Void_t*		memset _ARG_(( Void_t*, int, size_t ));
-#else
 #include	<stdlib.h>
 #include	<string.h>
-#endif
 
 /* for vmexit.c */
-extern int		onexit _ARG_(( void(*)(void) ));
-extern void		_exit _ARG_(( int ));
-extern void		_cleanup _ARG_(( void ));
+extern int		onexit( void(*)(void) );
+extern void		_exit( int );
+extern void		_cleanup( void );
 
 #endif /*_PACKAGE_ast*/
 
@@ -530,7 +501,5 @@ extern void		_cleanup _ARG_(( void ));
 #if !_typ_ssize_t
 typedef int		ssize_t;
 #endif
-
-_END_EXTERNS_
 
 #endif /* _VMHDR_H */

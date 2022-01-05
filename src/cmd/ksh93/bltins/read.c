@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * read [-ACprsSv] [-d delim] [-u fd] [-t timeout] [-n count] [-N count] [var?prompt] [var ...]
  *
@@ -132,12 +131,12 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		break;
 	    case 'u':
 		fd = (int)opt_info.num;
-		if(opt_info.num<0 || opt_info.num>INT_MAX || (fd>=shp->gd->lim.open_max && !sh_iovalidfd(shp,fd)))
+		if(opt_info.num<0 || opt_info.num>INT_MAX || (fd>=shp->gd->lim.open_max && !sh_iovalidfd(fd)))
 		{
 			errormsg(SH_DICT,ERROR_exit(1),e_file,opt_info.arg); /* reject invalid file descriptors */
 			UNREACHABLE();
 		}
-		if(sh_inuse(shp,fd))
+		if(sh_inuse(fd))
 			fd = -1;
 		break;
 	    case 'v':
@@ -157,7 +156,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		UNREACHABLE();
 	}
 	if(!((r=shp->fdstatus[fd])&IOREAD)  || !(r&(IOSEEK|IONOSEEK)))
-		r = sh_iocheckfd(shp,fd);
+		r = sh_iocheckfd(fd);
 	if(fd<0 || !(r&IOREAD))
 	{
 		errormsg(SH_DICT,ERROR_system(1),e_file+4);
@@ -243,7 +242,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 	char			inquote = 0;
 	struct	checkpt		buff;
 	Edit_t			*ep = (struct edit*)shp->gd->ed_context;
-	if(!(iop=shp->sftable[fd]) && !(iop=sh_iostream(shp,fd)))
+	if(!(iop=sh.sftable[fd]) && !(iop=sh_iostream(fd)))
 		return(1);
 	sh_stats(STAT_READS);
 	if(names && (name = *names))
@@ -310,7 +309,7 @@ int sh_readline(register Shell_t *shp,char **names, volatile int fd, int flags,s
 	{
 		Namval_t *mp;
 		/* set up state table based on IFS */
-		ifs = nv_getval(mp=sh_scoped(shp,IFSNOD));
+		ifs = nv_getval(mp=sh_scoped(IFSNOD));
 		if((flags&R_FLAG) && shp->ifstable['\\']==S_ESC)
 			shp->ifstable['\\'] = 0;
 		else if(!(flags&R_FLAG) && shp->ifstable['\\']==0)

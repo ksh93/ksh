@@ -19,20 +19,14 @@
 #                                                                      #
 ########################################################################
 # non-ksh script for the nmake ignore prefix
-# @(#)ignore (AT&T Research) 1992-08-11
-
-(command set -o posix) 2>/dev/null && set -o posix
-modern_export=`v=; export v=ok 2>/dev/null; echo "$v"`
+# @(#)ignore (ksh 93u+m) 2021-12-31
 
 while	:
 do	case $# in
 	0)	exit 0 ;;
 	esac
 	case $1 in
-	*=*)	case $modern_export in
-		ok)	export "$1" ;;
-		*)	`echo $1 | sed "s/\\([^=]*\\)=\\(.*\\)/eval \\1='\\2'; export \\1/"` ;;
-		esac
+	*=*)	export "$1"
 		shift
 		;;
 	*)	break

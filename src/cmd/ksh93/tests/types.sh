@@ -125,9 +125,9 @@ X_t x
 [[ ${x.s} == ${x.x} ]] || err_exit 'x.s should be x.x'
 typeset -T Y_t=( X_t r )
 Y_t z
-[[ ${z.r.x} == foo ]] || err_exit 'z.r.x should be foo'
-[[ ${z.r.y} == bam ]] || err_exit 'z.r.y should be bam'
-[[ ${z.r.s} == ${z.r.x} ]] || err_exit 'z.r.s should be z.r.x'
+[[ ${z.r.x} == foo ]] || err_exit "z.r.x should be foo (got $(printf %q "${z.r.x}"))"
+[[ ${z.r.y} == bam ]] || err_exit "z.r.y should be bam (got $(printf %q "${z.r.y}"))"
+[[ ${z.r.s} == ${z.r.x} ]] || err_exit "z.r.s should be z.r.x (expected $(printf %q "${z.r.x}"), got $(printf %q "${z.r.s}"))"
 
 unset xx yy
 typeset -T xx=(typeset yy=zz)
@@ -467,7 +467,7 @@ cat > B_t <<-  \EOF
 EOF
 
 unset n
-if	n=$(FPATH=$PWD PATH=$PWD:$PATH "$SHELL" -c 'A_t a; print ${a.b.n}' 2>&1)
+if	n=$(set +x; FPATH=$PWD PATH=$PWD:$PATH "$SHELL" -c 'A_t a; print ${a.b.n}' 2>&1)
 then	[[ $n == '5' ]] || err_exit "dynamic loading of types gives wrong result (got $(printf %q "$n"))"
 else	err_exit "unable to load types dynamically (got $(printf %q "$n"))"
 fi
@@ -596,10 +596,10 @@ $SHELL << \EOF
 	}
 	main
 EOF
-} 2> /dev/null
+}
 if	(( exitval=$?))
-then	if	[[ $(kill -l $exitval) == SEGV ]]
-	then	err_exit 'typeset -m in type discipline causes exception'
+then	if	((exitval>128))
+	then	err_exit "typeset -m in type discipline crashed with SIG$(kill -l $exitval)"
 	else	err_exit 'typeset -m in type discipline gives wrong value'
 	fi
 fi

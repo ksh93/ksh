@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Array processing routines
  *
@@ -765,7 +764,10 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 			free((void*)aq->xp);
 		}
 		if((nfp = nv_disc(np,(Namfun_t*)ap,NV_POP)) && !(nfp->nofree&1))
+		{
+			ap = 0;
 			free((void*)nfp);
+		}
 		if(!nv_isnull(np))
 		{
 			if(!np->nvfun)
@@ -777,7 +779,7 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 		if(np->nvalue.cp==Empty)
 			np->nvalue.cp = 0;
 	}
-	if(!string && (flags&NV_TYPE))
+	if(!string && (flags&NV_TYPE) && ap)
 		array_unscope(np,ap);
 }
 
@@ -1192,7 +1194,7 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 				size = nv_getnum(mp);
 			}
 			else
-				size = (int)sh_arith(&sh,(char*)sp);
+				size = (int)sh_arith((char*)sp);
 		}
 		if(size <0 && ap)
 			size += array_maxindex(np);
@@ -1408,12 +1410,12 @@ static int array_fixed_init(Namval_t *np, char *sub, char *cp)
 	fp->max = (int*)(fp+1);
 	fp->incr = fp->max+n;
 	fp->cur = fp->incr+n;
-	fp->max[0] = (int)sh_arith(&sh,(char*)sub);
+	fp->max[0] = (int)sh_arith((char*)sub);
 	for(n=1,ep=cp;*ep=='['; ep=cp)
 	{
 		cp = nv_endsubscript(np,ep,0);
 		cp[-1]=0;
-		fp->max[n++] = sz = (int)sh_arith(&sh,(char*)ep+1);
+		fp->max[n++] = sz = (int)sh_arith((char*)ep+1);
 		if(sz<0)
 		{
 			free((void*)ap);
@@ -1452,7 +1454,7 @@ static char *array_fixed(Namval_t *np, char *sub, char *cp,int mode)
 	}
 	else
 		fp->curi = 0;
-	size = (int)sh_arith(&sh,(char*)sub);
+	size = (int)sh_arith((char*)sub);
 	fp->cur[n] = size;
 	if(size >= fp->max[n] || (size < 0))
 	{
@@ -1470,7 +1472,7 @@ static char *array_fixed(Namval_t *np, char *sub, char *cp,int mode)
 		}
 		cp = nv_endsubscript(np,ep,0);
 		cp[-1]=0;
-		size = (int)sh_arith(&sh,(char*)ep+1);
+		size = (int)sh_arith((char*)ep+1);
 		if(size >= fp->max[n] || (size < 0))
 		{
 			errormsg(SH_DICT,ERROR_exit(1),e_subscript, nv_name(np));

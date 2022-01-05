@@ -1,9 +1,0 @@
-: OpenBSD cc wrapper
-
-HOSTTYPE=openbsd.generic
-
-case " $* " in
-*" -dumpmachine "*) echo $HOSTTYPE; exit ;;
-esac
-
-exec /usr/bin/cc -P "$@"

@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * This is a program to execute 'execute only' and suid/sgid shell scripts.
  * This program must be owned by root and must have the set uid bit set.
@@ -490,7 +489,7 @@ static void setids(int mode,uid_t owner,gid_t group)
 static void maketemp(char *template)
 {
 	register char *cp = template;
-	register pid_t n = shgd->current_pid;
+	register pid_t n = getpid();
 	/* skip to end of string */
 	while(*++cp);
 	/* convert process id to string */

@@ -234,19 +234,21 @@ do	exp=$1
 	shift 4
 done
 
-# setocale(LC_ALL,"") after setlocale() initialization
+# setlocale(LC_ALL,"") after setlocale() initialization
 
-printf 'f1\357\274\240f2\n' > input1
-printf 't2\357\274\240f1\n' > input2
-printf '\357\274\240\n' > delim
-print "export LC_ALL=$locale
-builtin cut || exit
-cut -f 1 -d \$(cat delim) input1 input2 > out" > script
-$SHELL -c 'unset LANG ${!LC_*}; $SHELL ./script' ||
-err_exit "'cut' builtin failed -- exit code $?"
-exp=$'f1\nt2'
-got="$(<out)"
-[[ $got == "$exp" ]] || err_exit "LC_ALL test script failed -- expected '$exp', got '$got'"
+if builtin cut 2> /dev/null; then
+	printf 'f1\357\274\240f2\n' > input1
+	printf 't2\357\274\240f1\n' > input2
+	printf '\357\274\240\n' > delim
+	print "export LC_ALL=$locale
+	builtin cut
+	cut -f 1 -d \$(cat delim) input1 input2 > out" > script
+	$SHELL -c 'unset LANG ${!LC_*}; $SHELL ./script' || err_exit "'cut' builtin failed -- exit code $?"
+	exp=$'f1\nt2'
+	got="$(<out)"
+	[[ $got == "$exp" ]] || err_exit "LC_ALL test script failed" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
 
 # multibyte identifiers
 

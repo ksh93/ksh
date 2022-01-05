@@ -18,9 +18,8 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
- * ulimit [-HSaMctdfxlqenupmrbiswTv] [limit]
+ * ulimit [-HSaMctdfkxlqenuPpmrRbiswTv] [limit]
  *
  *   David Korn
  *   AT&T Labs
@@ -79,7 +78,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	char* conf;
 	int label, unit, nosupport;
 	rlim_t i;
-	char tmp[32];
+	char tmp[41];
         Optdisc_t disc;
         memset(&disc, 0, sizeof(disc));
         disc.version = OPT_VERSION;
@@ -219,7 +218,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 					sfsprintf(tmp,sizeof(tmp),"%s (%ss)", tp->description, e_units[tp->type]);
 				else
 					sfsprintf(tmp,sizeof(tmp),"%s", tp->name);
-				sfprintf(sfstdout,"%-30s (-%c)  ",tmp,tp->option);
+				sfprintf(sfstdout,"%-39s (-%c)  ",tmp,tp->option);
 			}
 			if(nosupport)
 			{

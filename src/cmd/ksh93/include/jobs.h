@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef JOB_NFLAG
 /*
  *	Interface to job control for shell
@@ -60,7 +59,6 @@ struct process
 {
 	struct process *p_nxtjob;	/* next job structure */
 	struct process *p_nxtproc;	/* next process in current job */
-	Shell_t		*p_shp;		/* shell that posted the job */
 	int		*p_exitval;	/* place to store the exitval */
 	pid_t		p_pid;		/* process id */
 	pid_t		p_pgrp;		/* process group */
@@ -168,23 +166,23 @@ extern void	job_bwait(char**);
 extern int	job_walk(Sfio_t*,int(*)(struct process*,int),int,char*[]);
 extern int	job_kill(struct process*,int);
 extern int	job_wait(pid_t);
-extern int	job_post(Shell_t*,pid_t,pid_t);
+extern int	job_post(pid_t,pid_t);
 extern void	*job_subsave(void);
 extern void	job_subrestore(void*);
 #if SHOPT_BGX
-extern void	job_chldtrap(Shell_t*, const char*,int);
+extern void	job_chldtrap(const char*,int);
 #endif /* SHOPT_BGX */
 #ifdef JOBS
-	extern void	job_init(Shell_t*,int);
-	extern int	job_close(Shell_t*);
+	extern void	job_init(int);
+	extern int	job_close(void);
 	extern int	job_list(struct process*,int);
 	extern int	job_hup(struct process *, int);
 	extern int	job_switch(struct process*,int);
 	extern void	job_fork(pid_t);
 	extern int	job_reap(int);
 #else
-#	define job_init(s,flag)
-#	define job_close(s)	(0)
+#	define job_init(flag)
+#	define job_close()	(0)
 #	define job_fork(p)
 #endif	/* JOBS */
 

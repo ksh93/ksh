@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * some systems may pull in <ast_common.h> and its <ast_map.h>
@@ -43,8 +42,6 @@
 int
 main()
 {
-	printf("#pragma prototyped\n");
-	printf("\n");
 	printf("/*\n");
 	printf(" * prototypes provided for standard interfaces hijacked\n");
 	printf(" * by AST and mapped to _ast_* but already prototyped\n");

@@ -91,30 +91,26 @@ typedef struct _vtmutex_s	Vtmutex_t;
 typedef struct _vtonce_s	Vtonce_t;
 typedef struct _vthread_s	Vthread_t;
 
-_BEGIN_EXTERNS_
+extern Vthread_t*	vtopen(Vthread_t*, int);
+extern int		vtclose(Vthread_t*);
+extern int		vtset(Vthread_t*, int, void*);
+extern int		vtrun(Vthread_t*, void*(*)(void*), void*);
+extern int		vtkill(Vthread_t*);
+extern int		vtwait(Vthread_t*);
 
-extern Vthread_t*	vtopen _ARG_((Vthread_t*, int));
-extern int		vtclose _ARG_((Vthread_t*));
-extern int		vtset _ARG_((Vthread_t*, int, Void_t*));
-extern int		vtrun _ARG_((Vthread_t*, void*(*)(void*), void*));
-extern int		vtkill _ARG_((Vthread_t*));
-extern int		vtwait _ARG_((Vthread_t*));
+extern int		vtonce(Vtonce_t*, void(*)() );
 
-extern int		vtonce _ARG_((Vtonce_t*, void(*)() ));
+extern Vtmutex_t*	vtmtxopen(Vtmutex_t*, int);
+extern int		vtmtxclose(Vtmutex_t*);
+extern int 		vtmtxlock(Vtmutex_t*);
+extern int 		vtmtxtrylock(Vtmutex_t*);
+extern int 		vtmtxunlock(Vtmutex_t*);
+extern int 		vtmtxclrlock(Vtmutex_t*);
 
-extern Vtmutex_t*	vtmtxopen _ARG_((Vtmutex_t*, int));
-extern int		vtmtxclose _ARG_((Vtmutex_t*));
-extern int 		vtmtxlock _ARG_((Vtmutex_t*));
-extern int 		vtmtxtrylock _ARG_((Vtmutex_t*));
-extern int 		vtmtxunlock _ARG_((Vtmutex_t*));
-extern int 		vtmtxclrlock _ARG_((Vtmutex_t*));
-
-extern Void_t*		vtstatus _ARG_((Vthread_t*));
-extern int		vterror _ARG_((Vthread_t*));
-extern int		vtmtxerror _ARG_((Vtmutex_t*));
-extern int		vtonceerror _ARG_((Vtonce_t*));
-
-_END_EXTERNS_
+extern void*		vtstatus(Vthread_t*);
+extern int		vterror(Vthread_t*);
+extern int		vtmtxerror(Vtmutex_t*);
+extern int		vtonceerror(Vtonce_t*);
 
 #if vt_threaded
 
@@ -135,7 +131,7 @@ struct _vthread_s
 	size_t		stack;		/* stack size		*/
 	int		state;		/* execution state	*/
 	int		error;		/* error status 	*/
-	Void_t*		exit;		/* exit value		*/
+	void*		exit;		/* exit value		*/
 };
 
 /* structure for exactly once execution */
@@ -197,7 +193,7 @@ typedef int		_vtattr_t;
 #define vtmtxunlock(mtx)	(-1)
 #define vtmtxclrlock(mtx)	(-1)
 
-#define vtstatus(vt)		((Void_t*)0)
+#define vtstatus(vt)		((void*)0)
 #define vterror(vt)		(0)
 #define vtmtxerror(mtx)		(0)
 #define vtonceerror(once)	(0)

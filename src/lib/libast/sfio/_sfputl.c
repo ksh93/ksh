@@ -27,13 +27,8 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#if __STD_C
-int _sfputl(Sfio_t* f, Sflong_t v)
-#else
-int _sfputl(f,v)
-Sfio_t*		f;	/* write a portable long to this stream */
-Sflong_t	v;	/* the value to be written */
-#endif
+int _sfputl(Sfio_t*	f,	/* write a portable long to this stream */
+	    Sflong_t	v)	/* the value to be written */
 {
 #define N_ARRAY		(2*sizeof(Sflong_t))
 	reg uchar	*s, *ps;
@@ -62,7 +57,7 @@ Sflong_t	v;	/* the value to be written */
 	n = (ps-s)+1;
 
 	if(n > 8 || SFWPEEK(f,ps,p) < n)
-		n = SFWRITE(f,(Void_t*)s,n); /* write the hard way */
+		n = SFWRITE(f,(void*)s,n); /* write the hard way */
 	else
 	{	switch(n)
 		{

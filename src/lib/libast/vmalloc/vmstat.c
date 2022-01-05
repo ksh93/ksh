@@ -33,19 +33,13 @@ void _STUB_vmstat(){}
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 01/16/94.
 */
 
-#if __STD_C
 int vmstat(Vmalloc_t* vm, Vmstat_t* st)
-#else
-int vmstat(vm, st)
-Vmalloc_t*	vm;
-Vmstat_t*	st;
-#endif
 {
 	size_t		s;
 	Seg_t		*seg;
 	Block_t		*b, *endb;
 	Vmdata_t	*vd;
-	Void_t		*d;
+	void		*d;
 
 	if(!st) /* just checking lock state of region */
 		return (vm ? vm : Vmregion)->data->lock;

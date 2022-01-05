@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * export [-p] [arg...]
  * readonly [-p] [arg...]
@@ -135,7 +134,7 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 {
 	register unsigned flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
 	register Dt_t *troot;
-	register int rflag=0, n;
+	register int rflag=0, xflag=0, n;
 	struct tdata tdata;
 	NOT_USED(argc);
 	memset((void*)&tdata,0,sizeof(tdata));
@@ -154,20 +153,26 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 		{
 		    case 'p':
 			tdata.prefix = argv[0];
+			tdata.pflag = 1;
 			break;
 		    case 't':
 			flag |= NV_TAGGED;
 			break;
 		    case 'x':
 			/* obsolete, ignored */
+			xflag = 1;
 			break;
 		    case 'r':
 			rflag=1;
 			break;
 		    case ':':
+			if(sh.shcomp)
+				return(2);  /* don't print usage info while shcomp is compiling */
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		    case '?':
+			if(sh.shcomp)
+				return(2);
 			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
 			return(2);
 		}
@@ -182,12 +187,17 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 	if(flag&NV_TAGGED)
 	{
 		troot = sh_subtracktree(1);	/* use hash table */
-		tdata.aflag = '-';		/* make setall() treat 'hash' like 'alias -t' */
+		if(tdata.pflag)
+			tdata.aflag = '+';	/* for 'alias -pt', don't add anything to the hash table */
+		else
+			tdata.aflag = '-';	/* make setall() treat 'hash' like 'alias -t' */
 		if(rflag)			/* hash -r: clear hash table */
 			nv_scan(troot,nv_rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	}
 	else if(argv[1] && tdata.sh->subshell && !tdata.sh->subshare)
 		sh_subfork();			/* avoid affecting the parent shell's alias table */
+	if(xflag && (flag&NV_TAGGED))
+		return(0);			/* do nothing for 'alias -tx' */
 	return(setall(argv,flag,troot,&tdata));
 }
 
@@ -513,7 +523,7 @@ endargs:
 		Stk_t *stkp = tdata.sh->stk;
 		int off=0,offset = stktell(stkp);
 		if(!tdata.prefix)
-			return(sh_outtype(tdata.sh,sfstdout));
+			return(sh_outtype(sfstdout));
 		sfputr(stkp,NV_CLASS,-1);
 #if SHOPT_NAMESPACE
 		if(tdata.sh->namespace)
@@ -593,7 +603,7 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 		/* output types from namespace */
 		tp->sh->namespace = 0;
 		tp->sh->prefix = nv_name(np)+1;
-		sh_outtype(tp->sh,iop);
+		sh_outtype(iop);
 		tp->sh->prefix = 0;
 		tp->sh->namespace = np;
 		tp->sh->last_root = root;
@@ -610,6 +620,8 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 		sfwrite(iop,"}\n",2);
 		return;
 	}
+	if(tp->prefix && *tp->prefix=='a' && !nv_isattr(np,NV_TAGGED))
+		sfprintf(iop,"%s ", tp->prefix);
 	table = tp->sh->last_table;
 	sfputr(iop,nv_name(np),aflag=='+'?'\n':'=');
 	tp->sh->last_table = table;
@@ -684,7 +696,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 					}
 #if SHOPT_NAMESPACE
 					if(shp->namespace)
-						np = sh_fsearch(shp,name,NV_ADD|HASH_NOSCOPE);
+						np = sh_fsearch(name,NV_ADD|HASH_NOSCOPE);
 					else
 #endif /* SHOPT_NAMESPACE */
 					np = nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE);
@@ -699,7 +711,7 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 #if SHOPT_NAMESPACE
 					np = 0;
 					if(shp->namespace)
-						np = sh_fsearch(shp,name,HASH_NOSCOPE);
+						np = sh_fsearch(name,HASH_NOSCOPE);
 					if(!np)
 #endif /* SHOPT_NAMESPACE */
 					if(np=nv_search(name,troot,0))
@@ -745,12 +757,20 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			if(troot==shp->track_tree && tp->aflag=='-')
 			{
 				np = nv_search(name,troot,NV_ADD|HASH_NOSCOPE);
-				path_alias(np,path_absolute(shp,nv_name(np),NIL(Pathcomp_t*),0));
+				path_alias(np,path_absolute(nv_name(np),NIL(Pathcomp_t*),0));
 				continue;
 			}
 			np = nv_open(name,troot,nvflags|((nvflags&NV_ASSIGN)?0:NV_ARRAY)|((iarray|(nvflags&(NV_REF|NV_NOADD)==NV_REF))?NV_FARRAY:0));
-			if(!np)
+			if(!np || (troot==sh.track_tree && nv_isattr(np,NV_NOALIAS)))
+			{
+				if(troot==sh.alias_tree || troot==sh.track_tree)
+				{
+					if(!sh.shcomp)
+						sfprintf(sfstderr,sh_translate(troot==sh.alias_tree ? e_noalias: e_notrackedalias),name);
+					r++;
+				}
 				continue;
+			}
 			if(np->nvflag&NV_RDONLY && !tp->pflag
 			&& (flag & ~(NV_ASSIGN|NV_RDONLY|NV_EXPORT)))	/* allow readonly/export on readonly vars */
 			{
@@ -788,7 +808,8 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			{
 				if(troot!=shp->var_tree && (nv_isnull(np) || !print_namval(sfstdout,np,0,tp)))
 				{
-					sfprintf(sfstderr,sh_translate(e_noalias),name);
+					if(!sh.shcomp)
+						sfprintf(sfstderr,sh_translate(e_noalias),name);
 					r++;
 				}
 				if(!comvar && !iarray)
@@ -992,6 +1013,14 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 			print_all(sfstdout,troot,tp);
 		sfsync(sfstdout);
 	}
+	/* This is to handle cases where more than 255 non-existent
+	   aliases were passed to the alias command. */
+	if(r>255)
+	{
+		r &= SH_EXITMASK;
+		if(r==0)
+			r = 1;  /* ensure the exit status is at least 1 */
+	}
 	return(r);
 }
 
@@ -1098,7 +1127,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	tdata.sh = context->shp;
 	stkp = tdata.sh->stk;
 	if(!tdata.sh->pathlist)
-		path_absolute(tdata.sh,argv[0],NIL(Pathcomp_t*),0);
+		path_absolute(argv[0],NIL(Pathcomp_t*),0);
 	while (n = optget(argv,sh_optbuiltin)) switch (n)
 	{
 	    case 's':
@@ -1231,7 +1260,7 @@ int    b_set(int argc,register char *argv[],Shbltin_t *context)
 	tdata.prefix=0;
 	if(argv[1])
 	{
-		if(sh_argopts(argc,argv,tdata.sh) < 0)
+		if(sh_argopts(argc,argv) < 0)
 			return(2);
 		if(sh_isoption(SH_VERBOSE))
 			sh_onstate(SH_VERBOSE);
@@ -1326,7 +1355,7 @@ static int unall(int argc, char **argv, register Dt_t *troot, Shell_t* shp)
 		{
 #if SHOPT_NAMESPACE
 			if(shp->namespace && troot!=shp->var_tree)
-				np = sh_fsearch(shp,name,nflag?HASH_NOSCOPE:0);
+				np = sh_fsearch(name,nflag?HASH_NOSCOPE:0);
 			if(!np)
 #endif /* SHOPT_NAMESPACE */
 			np=nv_open(name,troot,NV_NOADD|nflag);
@@ -1417,6 +1446,8 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 		flag = '\n';
 	if(tp->noref && nv_isref(np))
 		return(0);
+	if(sh.shcomp)
+		return(1);  /* print nothing while shcomp is compiling */
 	if(nv_isattr(np,NV_NOPRINT|NV_INTEGER)==NV_NOPRINT)
 	{
 		if(is_abuiltin(np))
@@ -1431,7 +1462,9 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 	isfun = is_afunction(np);
 	if(tp->prefix)
 	{
-		outname = (*tp->prefix=='t' &&  (!nv_isnull(np) || nv_isattr(np,NV_FLOAT|NV_RDONLY|NV_BINARY|NV_RJUST|NV_NOPRINT)));
+		outname = (*tp->prefix=='t' && (!nv_isnull(np) || nv_isattr(np,NV_FLOAT|NV_RDONLY|NV_BINARY|NV_RJUST|NV_NOPRINT)));
+		if(tp->scanroot==sh.track_tree && *tp->prefix=='a')
+			tp->prefix = "alias -t";
 		if(indent && (isfun || outname || *tp->prefix!='t'))
 		{
 			sfnputc(file,'\t',indent);
@@ -1440,7 +1473,7 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 		if(!isfun)
 		{
 			if(*tp->prefix=='t')
-			nv_attribute(np,tp->outfile,tp->prefix,tp->aflag);
+				nv_attribute(np,tp->outfile,tp->prefix,tp->aflag);
 			else
 				sfputr(file,tp->prefix,' ');
 		}

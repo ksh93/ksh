@@ -1,4 +1,3 @@
-../../../../include/prototyped.h
 ../cdt/cdtlib.h
 ../cdt/dtclose.c
 ../cdt/dtdisc.c

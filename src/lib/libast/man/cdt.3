@@ -27,7 +27,7 @@
 .Ce
 .Ss "DICTIONARY TYPES"
 .Cs
-Void_t*;
+void*;
 Dt_t;
 Dtdisc_t;
 Dtmethod_t;
@@ -45,8 +45,8 @@ Dtmethod_t* dtmethod(Dt_t* dt, const Dtmethod_t* meth);
 Dt_t*       dtview(Dt_t* dt, Dt_t* view);
 int         dtcustomize(Dt_t* dt, int type, int action);
 int         dtuserlock(Dt_t* dt, unsigned int key, int action);
-Void_t*     dtuserdata(Dt_t* dt, Void_t* data, int set);
-int         dtuserevent(Dt_t* dt, int flags, Void_t* data);
+void*       dtuserdata(Dt_t* dt, void* data, int set);
+int         dtuserevent(Dt_t* dt, int flags, void* data);
 .Ce
 .Ss "STORAGE METHODS"
 .Cs
@@ -65,37 +65,37 @@ Dtmethod_t* Dtdeque;
 .Cs
 #define DTOFFSET(struct_s,member)
 #define DTDISC(disc,key,size,link,makef,freef,comparf,hashf,memoryf,eventf)
-typedef Void_t*      (*Dtmake_f)(Dt_t*, Void_t*, Dtdisc_t*);
-typedef void         (*Dtfree_f)(Dt_t*, Void_t*, Dtdisc_t*);
-typedef int          (*Dtcompar_f)(Dt_t*, Void_t*, Void_t*, Dtdisc_t*);
-typedef unsigned int (*Dthash_f)(Dt_t*, Void_t*, Dtdisc_t*);
-typedef Void_t*      (*Dtmemory_f)(Dt_t*, Void_t*, size_t, Dtdisc_t*);
-typedef int          (*Dtevent_f)(Dt_t*, int, Void_t*, Dtdisc_t*);
+typedef void*      (*Dtmake_f)(Dt_t*, void*, Dtdisc_t*);
+typedef void         (*Dtfree_f)(Dt_t*, void*, Dtdisc_t*);
+typedef int          (*Dtcompar_f)(Dt_t*, void*, void*, Dtdisc_t*);
+typedef unsigned int (*Dthash_f)(Dt_t*, void*, Dtdisc_t*);
+typedef void*      (*Dtmemory_f)(Dt_t*, void*, size_t, Dtdisc_t*);
+typedef int          (*Dtevent_f)(Dt_t*, int, void*, Dtdisc_t*);
 .Ce
 .Ss "OBJECT OPERATIONS"
 .Cs
-Void_t*   dtinsert(Dt_t* dt, Void_t* obj);
-Void_t*   dtinstall(Dt_t* dt, Void_t* obj);
-Void_t*   dtappend(Dt_t* dt, Void_t* obj);
-Void_t*   dtdelete(Dt_t* dt, Void_t* obj);
-Void_t*   dtremove(Dt_t* dt, Void_t* obj);
-Void_t*   dtattach(Dt_t* dt, Void_t* obj);
-Void_t*   dtdetach(Dt_t* dt, Void_t* obj);
-Void_t*   dtsearch(Dt_t* dt, Void_t* obj);
-Void_t*   dtmatch(Dt_t* dt, Void_t* key);
-Void_t*   dtfirst(Dt_t* dt);
-Void_t*   dtnext(Dt_t* dt, Void_t* obj);
-Void_t*   dtlast(Dt_t* dt);
-Void_t*   dtprev(Dt_t* dt, Void_t* obj);
-Void_t*   dtatleast(Dt_t* dt, Void_t* obj);
-Void_t*   dtatmost(Dt_t* dt, Void_t* obj);
-int       dtwalk(Dt_t* dt, int (*userf)(Dt_t*, Void_t*, Void_t*), Void_t*);
-Void_t*   dtstart(Dt_t* dt, Void_t* obj);
-Void_t*   dtstep(Dt_t* dt, Void_t* path);
-Void_t*   dtstop(Dt_t* dt, Void_t* path);
+void*     dtinsert(Dt_t* dt, void* obj);
+void*     dtinstall(Dt_t* dt, void* obj);
+void*     dtappend(Dt_t* dt, void* obj);
+void*     dtdelete(Dt_t* dt, void* obj);
+void*     dtremove(Dt_t* dt, void* obj);
+void*     dtattach(Dt_t* dt, void* obj);
+void*     dtdetach(Dt_t* dt, void* obj);
+void*     dtsearch(Dt_t* dt, void* obj);
+void*     dtmatch(Dt_t* dt, void* key);
+void*     dtfirst(Dt_t* dt);
+void*     dtnext(Dt_t* dt, void* obj);
+void*     dtlast(Dt_t* dt);
+void*     dtprev(Dt_t* dt, void* obj);
+void*     dtatleast(Dt_t* dt, void* obj);
+void*     dtatmost(Dt_t* dt, void* obj);
+int       dtwalk(Dt_t* dt, int (*userf)(Dt_t*, void*, void*), void*);
+void*     dtstart(Dt_t* dt, void* obj);
+void*     dtstep(Dt_t* dt, void* path);
+void*     dtstop(Dt_t* dt, void* path);
 Dtlink_t* dtflatten(Dt_t* dt);
 Dtlink_t* dtlink(Dt_t* dt, Dtlink_t* link);
-Void_t*   dtobj(Dt_t* dt, Dtlink_t* link);
+void*     dtobj(Dt_t* dt, Dtlink_t* link);
 Dtlink_t* dtextract(Dt_t* dt);
 Dtlink_t* dtrestore(Dt_t* dt, Dtlink_t* link);
 .Ce
@@ -118,9 +118,9 @@ unordered set/multiset, ordered set/multiset, list, stack, and queue.
 .PP
 .Ss "DICTIONARY TYPES"
 .PP
-.Ss "  Void_t*"
+.Ss "  void*"
 This type is used to pass objects between \fICdt\fP and application code.
-\f3Void_t\fP is defined as \f3void\fP for ANSI C and C++
+\f3void\fP is defined as \f3void\fP for ANSI C and C++
 and \f3char\fP for older C compilation environments.
 .PP
 .Ss "  Dt_t"
@@ -152,7 +152,7 @@ to use this structure in anyway that it sees fit.
 .Cs
     typedef struct
     {   unsigned int lock; /* for locking a shared dictionary */
-        Void_t*      data; /* for application-specific data   */
+        void*        data; /* for application-specific data   */
     } Dtuser_t;
 .Ce
 .PP
@@ -254,12 +254,12 @@ application for their own use and has nothing to do with dictionary operations
 which may or may not employ their own locking schemes based on the semantics
 of the container data structures in use.
 .PP
-.Ss "  Void_t* dtuserdata(Dt_t* dt, Void_t* data, int set)"
+.Ss "  void* dtuserdata(Dt_t* dt, void* data, int set)"
 This function returns the current value of \f3dt->user->data\fP.
 In addition, if \f3set\fP is non-zero,
 the value of \f3dt->user->data\fP will be changed to \f3data\fP.
 .PP
-.Ss "  int dtuserevent(Dt_t* dt, int flags, Void_t* data)"
+.Ss "  int dtuserevent(Dt_t* dt, int flags, void* data)"
 This function invokes the discipline event function
 with the event \f3DT_ANNOUNCE|DT_USER|flags\fP and the given data.
 
@@ -333,11 +333,11 @@ defined in the type \f3Dtdisc_t\fP:
 Each object \f3obj\fP is identified by a key used for object comparison or hashing.
 \f3key\fP should be non-negative and defines an offset into \f3obj\fP.
 If \f3size\fP is negative, the key is a null-terminated
-string with starting address \f3*(Void_t**)((char*)obj+key)\fP.
+string with starting address \f3*(void**)((char*)obj+key)\fP.
 If \f3size\fP is zero, the key is a null-terminated string with starting address
-\f3(Void_t*)((char*)obj+key)\fP.
+\f3(void*)((char*)obj+key)\fP.
 Finally, if \f3size\fP is positive, the key is a byte array of length \f3size\fP
-starting at \f3(Void_t*)((char*)obj+key)\fP.
+starting at \f3(void*)((char*)obj+key)\fP.
 .PP
 .Ss "  ssize_t link"
 Let \f3obj\fP be an object to be inserted into \f3dt\fP.
@@ -347,17 +347,17 @@ Otherwise, \f3obj\fP should have
 a \f3Dtlink_t\fP structure embedded \f3link\fP bytes into it,
 i.e., at address \f3(Dtlink_t*)((char*)obj+link)\fP.
 .PP
-.Ss "  Void_t* (*makef)(Dt_t* dt, Void_t* obj, Dtdisc_t* disc)"
+.Ss "  void* (*makef)(Dt_t* dt, void* obj, Dtdisc_t* disc)"
 If \f3makef\fP is not \f3NULL\fP,
 \f3dtinsert()\fP, \f3dtinstall()\fP or \f3dtappend()\fP will call it
 to make a copy of \f3obj\fP suitable for insertion into \f3dt\fP.
 If \f3makef\fP is \f3NULL\fP, \f3obj\fP itself will be inserted into \f3dt\fP.
 .PP
-.Ss "  void (*freef)(Dt_t* dt, Void_t* obj, Dtdisc_t* disc)"
+.Ss "  void (*freef)(Dt_t* dt, void* obj, Dtdisc_t* disc)"
 If not \f3NULL\fP,
 \f3freef\fP is used to destroy data associated with \f3obj\fP.
 .PP
-.Ss "int (*comparf)(Dt_t* dt, Void_t* key1, Void_t* key2, Dtdisc_t* disc)"
+.Ss "int (*comparf)(Dt_t* dt, void* key1, void* key2, Dtdisc_t* disc)"
 If not \f3NULL\fP, \f3comparf\fP is used to compare two keys.
 Its return value should be \f3<0\fP, \f3=0\fP, or \f3>0\fP to indicate
 whether \f3key1\fP is smaller, equal to, or larger than \f3key2\fP.
@@ -367,14 +367,14 @@ indicates equality and a non-zero value indicates inequality.
 If \f3(*comparf)()\fP is \f3NULL\fP, an internal function is used
 to compare the keys as defined by the \f3Dtdisc_t.size\fP field.
 .PP
-.Ss "  unsigned int (*hashf)(Dt_t* dt, Void_t* key, Dtdisc_t* disc)"
+.Ss "  unsigned int (*hashf)(Dt_t* dt, void* key, Dtdisc_t* disc)"
 If not \f3NULL\fP,
 \f3hashf\fP is used to compute the hash value of \f3key\fP.
 It is required that keys compared equal will also have same hash values.
 If \f3hashf\fP is \f3NULL\fP, an internal function is used to hash
 the key as defined by the \f3Dtdisc_t.size\fP field.
 .PP
-.Ss "  Void_t* (*memoryf)(Dt_t* dt, Void_t* addr, size_t size, Dtdisc_t* disc)"
+.Ss "  void* (*memoryf)(Dt_t* dt, void* addr, size_t size, Dtdisc_t* disc)"
 If not \f3NULL\fP, \f3memoryf\fP is used to allocate and free memory.
 When \f3addr\fP is \f3NULL\fP, a memory segment of size \f3size\fP is requested.
 If \f3addr\fP is not \f3NULL\fP and \f3size\fP is zero, \f3addr\fP is to be freed.
@@ -382,7 +382,7 @@ If \f3addr\fP is not \f3NULL\fP and \f3size\fP is positive,
 \f3addr\fP is to be resized to the given size.
 If \f3memoryf\fP is \f3NULL\fP, \fImalloc(3)\fP is used.
 .PP
-.Ss "  int (*eventf)(Dt_t* dt, int type, Void_t* data, Dtdisc_t* disc)"
+.Ss "  int (*eventf)(Dt_t* dt, int type, void* data, Dtdisc_t* disc)"
 If not \f3NULL\fP, \f3eventf\fP announces various events.
 Each event may have particular handling of the return values from \f3eventf\fP.
 But a negative return value typically means failure.
@@ -390,20 +390,20 @@ Following are the events:
 .Tp
 \f3DT_OPEN\fP:
 This event is raised at the start of the process to open a new dictionary.
-The argument \f3data\fP will be a pointer to an object of type \f3Void_t*\fP
+The argument \f3data\fP will be a pointer to an object of type \f3void*\fP
 initialized to \f3NULL\fP before the call. The return value of \f3eventf()\fP
 is significant as follows:
 
 On a negative return value, \f3dtopen()\fP will return failure.
 
-On a zero return value, \f3eventf()\fP may set \f3*(Void_t**)data\fP to some non-\f3NULL\fP
+On a zero return value, \f3eventf()\fP may set \f3*(void**)data\fP to some non-\f3NULL\fP
 value to indicate that the dictionary structure itself should be allocated
 along with the \f3Dt_t.data\fP section.
 Otherwise, it will be allocated separately with \f3malloc(3)\fP.
 
 On a positive return value, the dictionary is being reconstructed
 based on the existing states of some previous dictionary.
-In this case, \f3eventf()\fP should set \f3*(Void_t**)data\fP to point to
+In this case, \f3eventf()\fP should set \f3*(void**)data\fP to point to
 the field \f3Dt_t.data\fP of the corresponding previous dictionary (see \f3DT_CLOSE\fP below).
 If the handle of the previous dictionary was created as discussed above
 in the case of the zero return value, it will be exactly restored.
@@ -500,9 +500,9 @@ with the given values.
 .PP
 .Ss "OBJECT OPERATIONS"
 .PP
-.Ss "  Void_t* dtinsert(Dt_t* dt, Void_t* obj)"
-.Ss "  Void_t* dtinstall(Dt_t* dt, Void_t* obj)"
-.Ss "  Void_t* dtappend(Dt_t* dt, Void_t* obj)"
+.Ss "  void* dtinsert(Dt_t* dt, void* obj)"
+.Ss "  void* dtinstall(Dt_t* dt, void* obj)"
+.Ss "  void* dtappend(Dt_t* dt, void* obj)"
 These functions add an object prototyped by \f3obj\fP into \f3dt\fP.
 See \f3Dtdisc_t.makef\fP for object construction.
 \f3dtinsert()\fP and \f3dtappend()\fP perform the same function
@@ -517,8 +517,8 @@ On failure, \f3dtinsert()\fP and \f3dtinstall()\fP return \f3NULL\fP.
 Otherwise, the return value is either the newly inserted object
 or the matching object as noted.
 .PP
-.Ss "  Void_t* dtdelete(Dt_t* dt, Void_t* obj)"
-.Ss "  Void_t* dtremove(Dt_t* dt, Void_t* obj)"
+.Ss "  void* dtdelete(Dt_t* dt, void* obj)"
+.Ss "  void* dtremove(Dt_t* dt, void* obj)"
 When \f3obj\fP is not \f3NULL\fP, \f3dtdelete()\fP removes some object \fImatching\fP \f3obj\fP
 while \f3dtremove()\fP removes \f3obj\fP itself if it exists.
 When \f3obj\fP is \f3NULL\fP, if the method is \f3Dtstack\fP or \f3Dtqueue\fP
@@ -526,25 +526,25 @@ then the stack top or queue head is respectively deleted.
 See \f3Dtdisc_t.freef\fP for object destruction.
 \f3dtdelete()\fP and \f3dtremove()\fP return the deleted object or \f3NULL\fP.
 .PP
-.Ss "  Void_t* dtattach(Dt_t* dt, Void_t* obj)"
+.Ss "  void* dtattach(Dt_t* dt, void* obj)"
 This function is similar to \f3dtinsert()\fP but \f3obj\fP itself
 will be inserted into \f3dt\fP even if a discipline
 function \f3makef\fP is defined.
 .PP
-.Ss "  Void_t* dtdetach(Dt_t* dt, Void_t* obj)"
+.Ss "  void* dtdetach(Dt_t* dt, void* obj)"
 This function is similar to \f3dtdelete()\fP but the object to be deleted
 from \f3dt\fP will not be freed (via the discipline \f3freef\fP function).
 .PP
-.Ss "  Void_t* dtsearch(Dt_t* dt, Void_t* obj)"
-.Ss "  Void_t* dtmatch(Dt_t* dt, Void_t* key)"
+.Ss "  void* dtsearch(Dt_t* dt, void* obj)"
+.Ss "  void* dtmatch(Dt_t* dt, void* key)"
 These functions find an object matching \f3obj\fP or \f3key\fP either from \f3dt\fP or
 from some dictionary accessible from \f3dt\fP via a viewpath (see \f3dtview()\fP).
 The return value is the matching object or \f3NULL\fP.
 .PP
-.Ss "  Void_t* dtfirst(Dt_t* dt)"
-.Ss "  Void_t* dtnext(Dt_t* dt, Void_t* obj)"
-.Ss "  Void_t* dtlast(Dt_t* dt)"
-.Ss "  Void_t* dtprev(Dt_t* dt, Void_t* obj)"
+.Ss "  void* dtfirst(Dt_t* dt)"
+.Ss "  void* dtnext(Dt_t* dt, void* obj)"
+.Ss "  void* dtlast(Dt_t* dt)"
+.Ss "  void* dtprev(Dt_t* dt, void* obj)"
 These functions assume some object ordering (more below) and can be used
 to iterate over all objects.
 \f3dtfirst()\fP returns the first object in \f3dt\fP or \f3NULL\fP if the
@@ -585,8 +585,8 @@ then the returned object will be immediately after the last or before the first
 of the group respectively.
 .PP
 .PP
-.Ss "  Void_t* dtatleast(Dt_t* dt, Void_t* obj)"
-.Ss "  Void_t* dtatmost(Dt_t* dt, Void_t* obj)"
+.Ss "  void* dtatleast(Dt_t* dt, void* obj)"
+.Ss "  void* dtatmost(Dt_t* dt, void* obj)"
 \f3dtatleast()\fP returns the smallest object greater or equal to \f3obj\fP.
 \f3dtatmost()\fP returns the largest object smaller or equal to \f3obj\fP.
 In addition, if there are multiple such objects in \f3dt\fP
@@ -604,7 +604,7 @@ Storage methods other than \f3Dtoset\fP and \f3Dtobag\fP do not have
 an explicit ordering so \f3dtatmost()\fP
 and \f3dtatleast()\fP will return \f3NULL\fP when there are no matching objects.
 .PP
-.Ss "  dtwalk(Dt_t* dt, int (*userf)(Dt_t*, Void_t*, Void_t*), Void_t* data)"
+.Ss "  dtwalk(Dt_t* dt, int (*userf)(Dt_t*, void*, void*), void* data)"
 This function calls \f3(*userf)(walk,obj,data)\fP on each object in \f3dt\fP and
 other dictionaries viewable from it.
 \f3walk\fP is the dictionary containing \f3obj\fP.
@@ -614,7 +614,7 @@ If \f3userf()\fP returns a \f3<0\fP value,
 .PP
 .Ss "  Dtlink_t* dtflatten(Dt_t* dt)"
 .Ss "  Dtlink_t* dtlink(Dt_t* dt, Dtlink_t* link)"
-.Ss "  Void_t* dtobj(Dt_t* dt, Dtlink_t* link)"
+.Ss "  void* dtobj(Dt_t* dt, Dtlink_t* link)"
 Using \f3dtfirst()/dtnext()\fP or \f3dtlast()/dtprev()\fP
 to walk a single dictionary can incur significant cost due to function calls.
 For efficient walking of a single directory (i.e., no viewpathing),
@@ -626,7 +626,7 @@ Objects in \f3dt\fP are made into a linked list and walked as follows:
 .Ce
 .PP
 Note that \f3dtflatten()\fP returns a list of type \f3Dtlink_t*\fP,
-not \f3Void_t*\fP. That is, it returns a dictionary holder pointer,
+not \f3void*\fP. That is, it returns a dictionary holder pointer,
 not a user object pointer
 (although both are the same if the discipline field \f3link\fP is zero).
 The macro function \f3dtlink()\fP
@@ -638,7 +638,7 @@ if any dictionary operation other than \f3dtlink()\fP is performed
 (for example, this is important to watch out for
 if a dictionary is in \f3DT_SHARE\fP mode).
 .PP
-.Ss "  Void_t* dtstart(Dt_t* dt, Void_t* obj);"
+.Ss "  void* dtstart(Dt_t* dt, void* obj);"
 This function starts a path for walking a dictionary.
 Note that such a path is restricted to \f3dt\fP only while disregarding
 all viewpath dictionaries (see \f3dtview()\fP).
@@ -650,10 +650,10 @@ If \f3obj\fP is \f3NULL\fP, the path starts at the same object returned by \f3dt
 If \f3obj\fP is not \f3NULL\fP, it must match some object in the dictionary \f3dt\fP
 and the path will start there. No matching object will result in error.
 .PP
-.Ss "  Void_t* dtstop(Dt_t* dt, Void_t* path);"
+.Ss "  void* dtstop(Dt_t* dt, void* path);"
 This function ends a path and releases all memory source associated with it.
 .PP
-.Ss "  Void_t* dtstep(Dt_t* dt, Void_t* path);"
+.Ss "  void* dtstep(Dt_t* dt, void* path);"
 This function returns the object at current position in the given \f3path\fP.
 Successive calls move forward one object at a time in the same order that \f3dtnext()\fP
 does in the example \f3for(;;)\fP loop above. If there is no more object in the path,
@@ -788,7 +788,7 @@ Below are the relevant discipline functions \f3Dtdisc_t.eventf\fP
 and \f3Dtdisc_t.freef\fP to handle events and to free an object:
 
 .Cs
-    int eventf(Dt_t* dt, int type, Void_t* arg, Dtdisc_t* disc)
+    int eventf(Dt_t* dt, int type, void* arg, Dtdisc_t* disc)
     {
         if(type & DT_ANNOUNCE)
         {
@@ -808,7 +808,7 @@ and \f3Dtdisc_t.freef\fP to handle events and to free an object:
         ...
     }
 
-    void freef(Dt_t* dt, Void_t* arg, Dtdisc_t* disc)
+    void freef(Dt_t* dt, void* arg, Dtdisc_t* disc)
     {
         Obj_t  *obj = (Obj_t*)arg;
 

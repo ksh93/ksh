@@ -279,9 +279,6 @@ typedef union {
 #define	OR(d,d0,d1,bl)			d0 |= (bl).b32.i0, d1 |= (bl).b32.i1
 #define	STORE(s,s0,s1,bl)		(bl).b32.i0 = s0, (bl).b32.i1 = s1
 #define	DCL_BLOCK(d,d0,d1)		long d0, d1
-/* proto(1) workarounds -- barf */
-#define DCL_BLOCK_D			DCL_BLOCK(D,D0,D1)
-#define DCL_BLOCK_K			DCL_BLOCK(K,K0,K1)
 
 #if defined(LARGEDATA)
 	/* Waste memory like crazy.  Also, do permutations in line */
@@ -311,7 +308,7 @@ typedef union {
 	{ C_block tblk; permute(cpp,&tblk,p,4); LOAD (d,d0,d1,tblk); }
 
 static void permute(unsigned char *cp, C_block *out, register C_block *p, int chars_in) {
-	register DCL_BLOCK_D;
+	register DCL_BLOCK(D,D0,D1);
 	register C_block *tp;
 	register int t;
 
@@ -650,7 +647,7 @@ static C_block	KS[KS_SIZE];
  * Set up the key schedule from the key.
  */
 static int des_setkey(register const char *key) {
-	register DCL_BLOCK_K;
+	register DCL_BLOCK(K,K0,K1);
 	register C_block *ptabp;
 	register int i;
 	static int des_ready = 0;

@@ -1,9 +1,0 @@
-: linux cc wrapper : 2021-04-08 :
-
-HOSTTYPE=linux.generic
-
-case " $* " in
-*" -dumpmachine "*) echo $HOSTTYPE; exit ;;
-esac
-
-exec /usr/bin/cc -P -D_LARGEFILE64_SOURCE "$@"

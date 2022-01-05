@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Glenn Fowler
  * AT&T Research
@@ -37,9 +36,6 @@
 int
 procrun(const char* path, char** argv, int flags)
 {
-#if __OBSOLETE__ < 20090101
-	flags &= argv ? PROC_ARGMOD : PROC_CHECK;
-#endif
 	if (flags & PROC_CHECK)
 	{
 		char	buf[PATH_MAX];

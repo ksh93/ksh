@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #include	"defs.h"
 #include	<stak.h>
 #include	<ls.h>
@@ -237,7 +236,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 	sfclose(outfile);
 	hist_eof(hp);
 	arg = edit;
-	if(!arg && !(arg=nv_getval(sh_scoped(shp,HISTEDIT))) && !(arg=nv_getval(sh_scoped(shp,FCEDNOD))))
+	if(!arg && !(arg=nv_getval(sh_scoped(HISTEDIT))) && !(arg=nv_getval(sh_scoped(FCEDNOD))))
 	{
 		arg = (char*)e_defedit;
 		if(*arg!='/')

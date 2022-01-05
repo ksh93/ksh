@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * regression test intercept control
  * enable with 'SHOPT REGRESS=1' in src/cmd/ksh93/SHOPT.sh

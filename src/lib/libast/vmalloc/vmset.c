@@ -33,14 +33,9 @@ void _STUB_vmset(){}
 **
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 01/16/94.
 */
-#if __STD_C
-int vmset(reg Vmalloc_t* vm, int flags, int on)
-#else
-int vmset(vm, flags, on)
-reg Vmalloc_t*	vm;	/* region being worked on		*/
-int		flags;	/* flags must be in VM_FLAGS		*/
-int		on;	/* !=0 if turning on, else turning off	*/
-#endif
+int vmset(reg Vmalloc_t*	vm,	/* region being worked on		*/
+	  int			flags,	/* flags must be in VM_FLAGS		*/
+	  int			on)	/* !=0 if turning on, else turning off	*/
 {
 	int		mode;
 	Vmdata_t	*vd = vm->data;

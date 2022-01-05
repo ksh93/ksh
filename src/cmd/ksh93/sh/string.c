@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * string processing routines for Korn shell
  *
@@ -40,11 +39,6 @@
 #if !_lib_iswprint && !defined(iswprint)
 #   define iswprint(c)		(((c)&~0377) || isprint(c))
 #endif
-
-#ifndef isxdigit
-#   define isxdigit(c)		((c)>='0'&&(c)<='9'||(c)>='a'&&(c)<='f'||(c)>='A'&&(c)<='F')
-#endif
-
 
 /*
  *  Table lookup routine

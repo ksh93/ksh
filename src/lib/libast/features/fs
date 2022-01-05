@@ -1,4 +1,3 @@
-set	prototyped
 lib	_fxstat,__fxstat,_lxstat,__lxstat,_xmknod,__xmknod,_xstat,__xstat,lstat,mknod,sync sys/types.h sys/stat.h
 lib	_fxstat64,__fxstat64,_lxstat64,__lxstat64,_xstat64,__xstat64 sys/types.h sys/stat.h
 mac	fstat,lstat,stat,mknod sys/types.h sys/stat.h
@@ -7,13 +6,7 @@ lcl	xstat link{
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	struct stat64 { int xxx; }; /* disable if stat64 available */
-	#if _STD_
 	extern int stat(const char* path, struct stat* st)
-	#else
-	int stat(path, st)
-	char*		path;
-	struct stat*	st;
-	#endif
 	{
 	#if _lib___xstat
 		return __xstat(_STAT_VER, path, st);
@@ -32,12 +25,7 @@ lcl	xstat link{
 lcl	xstat64 link{
 	#include <sys/types.h>
 	#include <sys/stat.h>
-	#if _STD_
 	extern int stat64(const char* path, struct stat64* st)
-	#else
-	int stat64(path, st)
-	char*		path;
-	#endif
 	{
 	#if _lib___xstat64
 		return __xstat64(_STAT_VER, path, st);
@@ -148,6 +136,16 @@ lib	w_getmntent
 lib	statfs,statvfs
 
 lib	statfs4 sys/types.h - sys/statfs.h - sys/vfs.h - sys/mount.h compile{
+	#include <sys/types.h>
+	#if _sys_statfs
+	#include <sys/statfs.h>
+	#endif
+	#if _sys_vfs
+	#include <sys/vfs.h>
+	#endif
+	#if _sys_mount
+	#include <sys/mount.h>
+	#endif
 	int f()
 	{
 		struct statfs fs;

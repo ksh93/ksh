@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef ARG_RAW
 /*
  *	struct to hold a word argument
@@ -129,7 +128,7 @@ struct argnod
 
 extern struct dolnod	*sh_argcreate(char*[]);
 extern char 		*sh_argdolminus(void*);
-extern int		sh_argopts(int,char*[],void*);
+extern int		sh_argopts(int,char*[]);
 
 
 extern const char	e_heading[];

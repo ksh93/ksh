@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Advanced Software Technology Library
  * AT&T Research
@@ -318,8 +317,6 @@ extern int		truncate64(const char*, off64_t);
 
 /* direct macro access for bsd crossover */
 
-#if !defined(__cplusplus)
-
 #if !defined(memcpy) && !defined(_lib_memcpy) && defined(_lib_bcopy)
 #define memcpy(t,f,n)	(bcopy(f,t,n),(t))
 #endif
@@ -330,8 +327,6 @@ extern int		truncate64(const char*, off64_t);
 #else
 #define memzero(b,n)	(bzero(b,n),(b))
 #endif
-#endif
-
 #endif
 
 #if !defined(remove)

@@ -19,7 +19,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * command initialization
  */
@@ -58,19 +57,3 @@ _cmd_init(int argc, char** argv, Shbltin_t* context, const char* catalog, int fl
 	opt_info.index = 0;
 	return 0;
 }
-
-#if __OBSOLETE__ < 20080101
-
-#if defined(__EXPORT__)
-#define extern	__EXPORT__
-#endif
-
-#undef	cmdinit
-
-extern void
-cmdinit(char** argv, Shbltin_t* context, const char* catalog, int flags)
-{
-	_cmd_init(0, argv, context, catalog, flags);
-}
-
-#endif

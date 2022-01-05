@@ -1,7 +1,6 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 1982-2012 AT&T Intellectual Property          #
 #             Copyright (c) 2021 Contributors to ksh 93u+m             #
 #                    <https://github.com/ksh93/ksh>                    #
 #                      and is licensed under the                       #
@@ -15,27 +14,22 @@
 #                                                                      #
 ########################################################################
 
-_message()
-{
-	print -r $'\t'"${Command}[$1]: ${@:2}" >&2
-}
-function err_exit
-{
-	_message "$1" "FAIL:" "${@:2}"
-	let Errors+=1
-}
-alias err_exit='err_exit $LINENO'  # inaccurate err_exit name kept for historical integrity :)
-alias warning='_message "$LINENO" "warning:"'
+# proto(1) has been removed. This is a backwards compatibility stub that allows
+# compiling older AST code (with Mamfiles containing proto commands) using the
+# current INIT system. This stub ignores all options, then invokes 'cat'.
 
-Command=${0##*/}
-integer Errors=0
-
-if	[[ -o xtrace ]]
-then	# PS4 is set and exported in shtests
-	typeset -F SECONDS  # show fractional seconds in xtrace output
-fi
-
-if	! [[ -d $tmp && -w $tmp && $tmp == "$PWD" ]]
-then	print -r "$Command: \$tmp not set; run this from shtests. Aborting." >&2
-	exit 1
-fi
+while	getopts ':dfhinprstvzPSC:e:l:o:L:' opt
+do	case $opt in
+	\?)	case $OPTARG in
+		+)	;;
+		*)	echo "proto: $OPTARG: unknown option"
+			echo 'Usage: proto [-dfhinprstvzP+S] [-C directory] [-e package] [-l file]'
+			echo '             [-o "name='\''value'\'' ..."] [-L file] file ...'
+			exit 2
+			;;
+		esac >&2
+		;;
+	esac
+done
+shift $((OPTIND - 1))
+exec cat -- "$@"

@@ -26,14 +26,9 @@
 **
 **	Written by Kiem-Phong Vo.
 */
-#if __STD_C
-ssize_t sfputr(Sfio_t* f, const char* s, int rc)
-#else
-ssize_t sfputr(f,s,rc)
-Sfio_t*		f;	/* write to this stream	*/
-char*		s;	/* string to write	*/
-int		rc;	/* record separator.	*/
-#endif
+ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
+	       const char*	s,	/* string to write	*/
+	       int		rc)	/* record separator 	*/
 {
 	ssize_t		p, n, w, sn;
 	uchar		*ps;
@@ -128,7 +123,7 @@ int		rc;	/* record separator.	*/
 	{	if(n > w)
 			n = w;
 		f->next -= n;
-		(void)SFWRITE(f,(Void_t*)f->next,n);
+		(void)SFWRITE(f,(void*)f->next,n);
 	}
 
 	SFOPEN(f,0);

@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #include	"shell.h"
 #include	"shlex.h"
 #include	"FEATURE/options"

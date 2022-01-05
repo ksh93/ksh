@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * bg [job...]
  * disown [job...]
@@ -146,7 +145,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		if(arg0)
 			argv[0] = arg0;
 #ifdef JOBS
-		if(job_close(&sh) < 0)
+		if(job_close() < 0)
 			return(1);
 #endif /* JOBS */
 		/* if the main shell is about to be replaced, decrease SHLVL to cancel out a subsequent increase */
@@ -156,8 +155,8 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		pp = (struct checkpt*)sh.jmplist;
 		pp->mode = SH_JMPEXIT;
 		sh_sigreset(2);
-		sh_freeup(&sh);
-		path_exec(&sh,pname,argv,NIL(struct argnod*));
+		sh_freeup();
+		path_exec(pname,argv,NIL(struct argnod*));
 	}
 	return(1);
 }
@@ -184,7 +183,7 @@ int    b_let(int argc,char *argv[],Shbltin_t *context)
 		UNREACHABLE();
 	}
 	while(arg= *argv++)
-		r = !sh_arith(shp,arg);
+		r = !sh_arith(arg);
 	return(r);
 }
 
@@ -263,7 +262,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		{
 			if(!np->nvalue.ip)
 			{
-				path_search(shp,script,NIL(Pathcomp_t**),0);
+				path_search(script,NIL(Pathcomp_t**),0);
 				if(np->nvalue.ip)
 				{
 					if(nv_isattr(np,NV_FPOSIX))
@@ -280,12 +279,12 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			np = 0;
 		if(!np)
 		{
-			if((fd=path_open(shp,script,path_get(shp,script))) < 0)
+			if((fd=path_open(script,path_get(script))) < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_open,script);
 				UNREACHABLE();
 			}
-			filename = path_fullname(shp,stkptr(shp->stk,PATH_OFFSET));
+			filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 		}
 	}
 	if(np)
@@ -313,7 +312,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	nv_putval(SH_PATHNAMENOD, shp->st.filename ,NV_NOFREE);
 	shp->posix_fun = 0;
 	if(np || argv[1])
-		argsave = sh_argnew(shp,argv,&saveargfor);
+		argsave = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(shp,&buff,SH_JMPDOT);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
@@ -336,7 +335,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		free(tofree);
 	shp->dot_depth--;
 	if((np || argv[1]) && jmpval!=SH_JMPSCRIPT)
-		sh_argreset(shp,(struct dolnod*)argsave,saveargfor);
+		sh_argreset((struct dolnod*)argsave,saveargfor);
 	else
 	{
 		prevscope->dolc = shp->st.dolc;
@@ -396,7 +395,7 @@ int    b_shift(register int n, register char *argv[], Shbltin_t *context)
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
-	n = ((arg= *argv)?(int)sh_arith(shp,arg):1);
+	n = ((arg= *argv)?(int)sh_arith(arg):1);
 	if(n<0 || shp->st.dolc<n)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_number,arg);

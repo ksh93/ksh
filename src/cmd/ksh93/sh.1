@@ -5712,7 +5712,9 @@ is given, the name
 and value of the alias is printed.
 The obsolete
 .B \-x
-option has no effect.
+option has no effect in most contexts, although if it's used with
+.B \-t
+it will suppress all output.
 The exit status is non-zero if a
 .I name\^
 is given, but no value, and no alias has been defined for the
@@ -7670,7 +7672,7 @@ Does nothing, and exits 0. Used with
 .B while
 for infinite loops.
 .TP
-\f3type\fP \*(OK \f3\-afpq\fP \*(CK \f2name\^\fP .\|.\|.
+\f3type\fP \*(OK \f3\-afpPqt\fP \*(CK \f2name\^\fP .\|.\|.
 The same as
 .BR whence\ \-v .
 .TP
@@ -8077,7 +8079,7 @@ that have attributes
 are printed.
 .RE
 .TP
-\f3ulimit\fP \*(OK \f3\-HSaMctdfxlqenupmrbiswTv\fP \*(CK \*(OK \f2limit\^\fP \*(CK
+\f3ulimit\fP \*(OK \f3\-HSaMctdfkxlqenuPpmrRbiswTv\fP \*(CK \*(OK \f2limit\^\fP \*(CK
 Set or display a resource limit.
 The available resource limits are listed below.
 Many systems do not support one or more of these limits.
@@ -8135,6 +8137,9 @@ current process or by child processes (files of any size may be read).
 .B \-i
 The signal queue size.
 .TP
+.B \-k
+The max number of kqueues created by the current user.
+.TP
 .B \-l
 The locked address space in K-bytes.
 .TP
@@ -8147,11 +8152,20 @@ The number of K-bytes on the size of physical memory.
 .B \-n
 The number of file descriptors plus 1.
 .TP
+.B \-P
+The max number of pseudo-terminals created by the current user.
+.TP
 .B \-p
 The number of 512-byte blocks for pipe buffering.
 .TP
 .B \-q
 The message queue size in K-bytes.
+.TP
+.B \-R
+The max time a real-time process can run before blocking, in microseconds. If this limit is exceeded
+the process is sent a
+.B SIGXCPU
+signal.
 .TP
 .B \-r
 The max real-time priority.
@@ -8290,7 +8304,7 @@ See
 for a description of the format of
 .IR job .
 .TP
-\f3whence\fP \*(OK \f3\-afpqv\fP \*(CK \f2name\^\fP .\|.\|.
+\f3whence\fP \*(OK \f3\-afpPqtv\fP \*(CK \f2name\^\fP .\|.\|.
 For each
 .IR name ,
 indicate how it
@@ -8305,13 +8319,13 @@ The
 option skips the search for functions.
 The
 .B \-p
-option
-does a path search for
+and
+.B \-P
+options
+do a path search for
 .I name\^
 even if name is an alias, a function, or a reserved word.
-The
-.B \-p
-option turns off the
+Both of these options turn off the
 .B \-v
 option.
 The
@@ -8322,6 +8336,17 @@ to enter quiet mode.
 .BR whence
 will return zero if all arguments are built-ins, functions, or
 are programs found on the path.
+The
+.B \-t
+option only outputs the type of the given command.
+Like
+.B \-p
+and
+.BR \-P ,
+.B \-t
+will turn off the
+.B \-v
+option.
 The
 .B \-a
 option

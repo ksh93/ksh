@@ -1,9 +1,0 @@
-: FreeBSD cc wrapper
-
-HOSTTYPE=freebsd.generic
-
-case " $* " in
-*" -dumpmachine "*) echo $HOSTTYPE; exit ;;
-esac
-
-exec /usr/bin/cc -P "$@"

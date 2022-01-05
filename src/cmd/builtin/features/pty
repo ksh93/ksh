@@ -1,5 +1,3 @@
-set	prototyped
-
 header	sys/types.h
 header	pty.h
 header	libutil.h
@@ -52,7 +50,8 @@ tst - -lm output{
 		return 0;
 	}
 }end fail{
-	echo '#error The output block in src/cmd/builtin/features/pty failed to compile. Rebuild with IFFEFLAGS=-d1 to debug.'
+	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
+	exit 1
 }end
 
 extern	_getpty		char*		(int*, int, mode_t, int)

@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Glenn Fowler
  * AT&T Bell Laboratories
@@ -51,21 +50,3 @@ fmtbase(intmax_t n, int b, int p)
 	sfsprintf(buf, z, p ? "%#..*I*u" : "%..*I*u", b, sizeof(n), n);
 	return buf;
 }
-
-#if __OBSOLETE__ < 20140101
-
-#undef	fmtbasell
-
-#if defined(__EXPORT__)
-#define extern		__EXPORT__
-#endif
-
-extern char*
-fmtbasell(intmax_t n, int b, int p)
-{
-	return fmtbase(n, b, p);
-}
-
-#undef	extern
-
-#endif

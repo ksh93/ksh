@@ -10,6 +10,7 @@ tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 	#include <signal.h>
 	#include <sys/types.h>
 	#include <sys/socket.h>
+	#include <sys/wait.h>
 	#ifndef SHUT_RD
 	#define SHUT_RD		0
 	#endif
@@ -123,7 +124,6 @@ tst	socketpair_shutdown_mode note{ fchmod() after socketpair() shutdown() }end e
 	}
 }end
 cat{
-	#pragma prototyped
 	#ifdef _lib_poll
 	#   define poll _SYS_poll
 	#else

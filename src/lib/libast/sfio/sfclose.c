@@ -27,15 +27,10 @@
 **	Written by Kiem-Phong Vo
 */
 
-#if __STD_C
 int sfclose(Sfio_t* f)
-#else
-int sfclose(f)
-Sfio_t*	f;
-#endif
 {
 	reg int		local, ex, rv;
-	Void_t*		data = NIL(Void_t*);
+	void*		data = NIL(void*);
 	SFMTXDECL(f); /* declare a local stream variable for multithreading */
 
 	SFMTXENTER(f, -1);
@@ -72,7 +67,7 @@ Sfio_t*	f;
 	SFLOCK(f,0);
 
 	/* raise discipline exceptions */
-	if(f->disc && (ex = SFRAISE(f,local ? SF_NEW : SF_CLOSING,NIL(Void_t*))) != 0)
+	if(f->disc && (ex = SFRAISE(f,local ? SF_NEW : SF_CLOSING,NIL(void*))) != 0)
 		SFMTXRETURN(f,ex);
 
 	if(!local && f->pool)
@@ -111,7 +106,7 @@ Sfio_t*	f;
 		else
 #endif
 		if(f->flags&SF_MALLOC)
-			data = (Void_t*)f->data;
+			data = (void*)f->data;
 
 		f->data = NIL(uchar*);
 		f->size = -1;
@@ -158,7 +153,7 @@ Sfio_t*	f;
 	}
 
 	if(!local)
-	{	if(f->disc && (ex = SFRAISE(f,SF_FINAL,NIL(Void_t*))) != 0 )
+	{	if(f->disc && (ex = SFRAISE(f,SF_FINAL,NIL(void*))) != 0 )
 		{	rv = ex;
 			goto done;
 		}
@@ -167,7 +162,7 @@ Sfio_t*	f;
 			free(f);
 		else
 		{	f->disc = NIL(Sfdisc_t*);
-			f->stdio = NIL(Void_t*);
+			f->stdio = NIL(void*);
 			f->mode = SF_AVAIL;
 		}
 	}

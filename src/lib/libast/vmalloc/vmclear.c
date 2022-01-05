@@ -32,12 +32,7 @@ void _STUB_vmclear(){}
 **
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 01/16/94.
 */
-#if __STD_C
 int vmclear(Vmalloc_t* vm)
-#else
-int vmclear(vm)
-Vmalloc_t*	vm;
-#endif
 {
 	Seg_t		*seg, *next;
 	Block_t		*tp;

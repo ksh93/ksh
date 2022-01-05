@@ -620,8 +620,8 @@ ____
 10-09-29  A bug in which loading a function from FPATH could leave a file
 	  descriptor open has been fixed.
 10-09-28 +A new compile option SHOPT_FIXEDARRAY has been added and is being
-	  evaluated.  It allows fixed sized indexed arrays be to defined
-	  using "typeset array[dim1][dim2]...[dimn]".  Fixed sized arrays
+	  evaluated.  It allows fixed-size indexed arrays be to defined
+	  using "typeset array[dim1][dim2]...[dimn]".  Fixed-size arrays
 	  are used the same way indexed arrays are.  Currently, only fixed
 	  arrays of fixed objects (float, int, and justified objects) are
 	  supported.

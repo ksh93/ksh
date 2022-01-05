@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Shell arithmetic - uses streval library
  *   David Korn
@@ -63,11 +62,10 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 	register int flag = lvalue->flag;
 	register char *sub=0, *cp=(char*)np;
 	register Namval_t *mp;
-	Shell_t		*shp = lvalue->shp;
 	int	c=0,nosub = lvalue->nosub;
-	Dt_t	*sdict = (shp->st.real_fun? shp->st.real_fun->sdict:0);
-	Dt_t	*nsdict = (shp->namespace?nv_dict(shp->namespace):0);
-	Dt_t	*root = shp->var_tree;
+	Dt_t	*sdict = (sh.st.real_fun? sh.st.real_fun->sdict:0);
+	Dt_t	*nsdict = (sh.namespace?nv_dict(sh.namespace):0);
+	Dt_t	*root = sh.var_tree;
 	assign = assign?NV_ASSIGN:NV_NOASSIGN;
 	lvalue->nosub = 0;
 	if(nosub<0 && lvalue->ovalue)
@@ -79,20 +77,21 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 		/* do binding to node now */
 		int c = cp[flag];
 		cp[flag] = 0;
-		if((!(np = nv_open(cp,shp->var_tree,assign|NV_VARNAME|NV_NOADD|NV_NOFAIL)) || nv_isnull(np)) && sh_macfun(shp,cp, offset = staktell()))
+		if((!(np = nv_open(cp,sh.var_tree,assign|NV_VARNAME|NV_NOADD|NV_NOFAIL)) || nv_isnull(np))
+		&& sh_macfun(cp, offset = staktell()))
 		{
-			Fun = sh_arith(shp,sub=stakptr(offset));
+			Fun = sh_arith(sub=stakptr(offset));
 			FunNode.nvalue.ldp = &Fun;
 			nv_onattr(&FunNode,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 			cp[flag] = c;
 			return(&FunNode);
 		}
 		if(!np && assign)
-			np = nv_open(cp,shp->var_tree,assign|NV_VARNAME);
+			np = nv_open(cp,sh.var_tree,assign|NV_VARNAME);
 		cp[flag] = c;
 		if(!np)
 			return(0);
-		root = shp->last_root;
+		root = sh.last_root;
 		if(cp[flag+1]=='[')
 			flag++;
 		else
@@ -157,13 +156,13 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 			*cp = 0;
 			if(c || hasdot)
 			{
-				sfprintf(shp->strbuf,"%s%s%c",nv_name(np),sub,0);
-				sub = sfstruse(shp->strbuf);
+				sfprintf(sh.strbuf,"%s%s%c",nv_name(np),sub,0);
+				sub = sfstruse(sh.strbuf);
 			}
 			*cp = flag;
 			if(c || hasdot)
 			{
-				np = nv_open(sub,shp->var_tree,NV_VARNAME|assign);
+				np = nv_open(sub,sh.var_tree,NV_VARNAME|assign);
 				return(np);
 			}
 #if SHOPT_FIXEDARRAY
@@ -183,7 +182,7 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 				if(ap && !ap->table)
 				{
 					ap->table = dtopen(&_Nvdisc,Dtoset);
-					dtuserdata(ap->table,shp,1);
+					dtuserdata(ap->table,&sh,1);
 				}
 				if(ap && ap->table && (nq=nv_search(nv_getsub(np),ap->table,NV_ADD)))
 					nq->nvenv = (char*)np;
@@ -223,7 +222,6 @@ int	sh_mathstd(const char *name)
 
 static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdouble_t n)
 {
-	Shell_t		*shp = lvalue->shp;
 	register Sfdouble_t r= 0;
 	char *str = (char*)*ptr;
 	register char *cp;
@@ -294,14 +292,14 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			}
 			if(c=='(')
 			{
-				int off=stktell(shp->stk);
+				int off=stktell(sh.stk);
 				int fsize = str- (char*)(*ptr);
 				const struct mathtab *tp;
 				c = **ptr;
 				lvalue->fun = 0;
-				sfprintf(shp->stk,".sh.math.%.*s%c",fsize,*ptr,0);
-				stkseek(shp->stk,off);
-				if(np=nv_search(stkptr(shp->stk,off),shp->fun_tree,0))
+				sfprintf(sh.stk,".sh.math.%.*s%c",fsize,*ptr,0);
+				stkseek(sh.stk,off);
+				if(np=nv_search(stkptr(sh.stk,off),sh.fun_tree,0))
 				{
 						lvalue->nargs = -np->nvalue.rp->argc;
 						lvalue->fun = (Math_f)np;
@@ -330,7 +328,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			{
 				int offset = staktell();
 				char *saveptr = stakfreeze(0);
-				Dt_t  *root = (lvalue->emode&ARITH_COMP)?shp->var_base:shp->var_tree;
+				Dt_t  *root = (lvalue->emode&ARITH_COMP)?sh.var_base:sh.var_tree;
 				*str = c;
 				cp = str;
 				while(c=='[' || c=='.')
@@ -411,7 +409,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			const char radix = GETDECIMAL(0);
 			lvalue->eflag = 0;
 			errno = 0;
-			if(!sh_isoption(shp->bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX))
+			if(!sh_isoption(sh.bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX))
 			{
 				/* Skip leading zeros to avoid parsing as octal */
 				while(*val=='0' && isdigit(val[1]))
@@ -536,9 +534,8 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 
 Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 {
-	Shell_t	*shp = sh_getinterp();
 	register Sfdouble_t d;
-	char base = (sh_isoption(shp->bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX) ? 0 : 10), *last;
+	char base = (sh_isoption(sh.bltindata.bnode==SYSLET ? SH_LETOCTAL : SH_POSIX) ? 0 : 10), *last;
 	if(*str==0)
 	{
 		d = 0.0;
@@ -559,14 +556,14 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 			if(sh_isstate(SH_INIT))
 				/*
 				 * Initializing means importing untrusted env vars. The string does not appear to be
-				 * a recognized numeric literal, so give up. We can't safely call strval(), because
+				 * a recognized numeric literal, so give up. We can't safely call arith_strval(), because
 				 * that allows arbitrary expressions, causing security vulnerability CVE-2019-14868.
 				 */
 				d = 0.0;
 			else
 			{
 				if(!last || *last!='.' || last[1]!='.')
-					d = strval(shp,str,&last,arith,mode);
+					d = arith_strval(str,&last,arith,mode);
 				if(!ptr && *last && mode>0)
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*last,str);
@@ -582,17 +579,16 @@ Sfdouble_t sh_strnum(register const char *str, char** ptr, int mode)
 	return(d);
 }
 
-Sfdouble_t sh_arith(Shell_t *shp,register const char *str)
+Sfdouble_t sh_arith(register const char *str)
 {
-	NOT_USED(shp);
 	return(sh_strnum(str, (char**)0, 1));
 }
 
-void	*sh_arithcomp(Shell_t *shp,register char *str)
+void	*sh_arithcomp(register char *str)
 {
 	const char *ptr = str;
 	Arith_t *ep;
-	ep = arith_compile(shp,str,(char**)&ptr,arith,ARITH_COMP|1);
+	ep = arith_compile(str,(char**)&ptr,arith,ARITH_COMP|1);
 	if(*ptr)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*ptr,str);

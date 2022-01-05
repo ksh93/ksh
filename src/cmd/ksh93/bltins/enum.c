@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #include	"defs.h"
 
 #define ENUM_ID "enum (ksh 93u+m) 2021-12-17"

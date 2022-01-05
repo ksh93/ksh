@@ -35,28 +35,18 @@
 ** link list and during such walks may free up streams&pools. Free pools will be
 ** reused in newpool().
 */
-#if __STD_C
 static int delpool(reg Sfpool_t* p)
-#else
-static int delpool(p)
-reg Sfpool_t*	p;
-#endif
 {
 	POOLMTXENTER(p);
 
 	if(p->s_sf && p->sf != p->array)
-		free((Void_t*)p->sf);
+		free((void*)p->sf);
 	p->mode = SF_AVAIL;
 
 	POOLMTXRETURN(p,0);
 }
 
-#if __STD_C
 static Sfpool_t* newpool(reg int mode)
-#else
-static Sfpool_t* newpool(mode)
-reg int	mode;
-#endif
 {
 	reg Sfpool_t	*p, *last = &_Sfpool;
 
@@ -96,14 +86,9 @@ reg int	mode;
 }
 
 /* move a stream to head */
-#if __STD_C
-static int _sfphead(Sfpool_t* p, Sfio_t* f, int n)
-#else
-static int _sfphead(p, f, n)
-Sfpool_t*	p;	/* the pool			*/
-Sfio_t*		f;	/* the stream			*/
-int		n;	/* current position in pool	*/
-#endif
+static int _sfphead(Sfpool_t*	p,	/* the pool			*/
+		    Sfio_t*	f,	/* the stream			*/
+		    int		n)	/* current position in pool	*/
 {
 	reg Sfio_t*	head;
 	reg ssize_t	k, w, v;
@@ -167,14 +152,9 @@ done:
 }
 
 /* delete a stream from its pool */
-#if __STD_C
-static int _sfpdelete(Sfpool_t* p, Sfio_t* f, int n)
-#else
-static int _sfpdelete(p, f, n)
-Sfpool_t*	p;	/* the pool		*/
-Sfio_t*		f;	/* the stream		*/
-int		n;	/* position in pool	*/
-#endif
+static int _sfpdelete(Sfpool_t*	p,	/* the pool		*/
+		      Sfio_t*	f,	/* the stream		*/
+		      int	n)	/* position in pool	*/
 {
 	POOLMTXENTER(p);
 
@@ -217,13 +197,8 @@ done:
 	POOLMTXRETURN(p,0);
 }
 
-#if __STD_C
-static int _sfpmove(reg Sfio_t* f, reg int type)
-#else
-static int _sfpmove(f,type)
-reg Sfio_t*	f;
-reg int		type;	/* <0 : deleting, 0: move-to-front, >0: inserting */
-#endif
+static int _sfpmove(reg Sfio_t*	f,
+		    reg int	type)	/* <0 : deleting, 0: move-to-front, >0: inserting */
 {
 	reg Sfpool_t*	p;
 	reg int		n;
@@ -243,14 +218,7 @@ reg int		type;	/* <0 : deleting, 0: move-to-front, >0: inserting */
 	}
 }
 
-#if __STD_C
 Sfio_t* sfpool(reg Sfio_t* f, reg Sfio_t* pf, reg int mode)
-#else
-Sfio_t* sfpool(f,pf,mode)
-reg Sfio_t*	f;
-reg Sfio_t*	pf;
-reg int		mode;
-#endif
 {
 	int		k;
 	Sfpool_t*	p;

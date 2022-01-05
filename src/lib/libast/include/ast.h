@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 /*
  * Advanced Software Technology Library
@@ -241,13 +240,8 @@ typedef struct
 #define strneq(a,b,n)	(*(a)==*(b)&&!strncmp(a,b,n))
 #define strsignal(s)	fmtsignal(s)
 
-#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 #define NiL		0
 #define NoP(x)		do (void)(x); while(0)	/* for silencing "unused parameter" warnings */
-#else
-#define NiL		((char*)0)
-#define NoP(x)		(&x,1)
-#endif
 
 #if !defined(NoF)
 #define NoF(x)		void _DATA_ ## x () {}
@@ -312,7 +306,6 @@ extern int		chrtoi(const char*);
 extern char*		conformance(const char*, size_t);
 extern int		eaccess(const char*, int);
 extern char*		fmtbase(intmax_t, int, int);
-#define fmtbasell(a,b,c) fmtbase(a,b,c) /* until 2014-01-01 */
 extern char*		fmtbuf(size_t);
 extern char*		fmtclock(Sfulong_t);
 extern char*		fmtelapsed(unsigned long, int);

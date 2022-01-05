@@ -20,7 +20,6 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * Glenn Fowler
  * AT&T Research
@@ -131,11 +130,7 @@ int main()
 
 #ifndef UCHAR_MAX
 	val = uc;
-	printf("#if defined(__STDC__)\n");
 	printf("#define UCHAR_MAX	%luU\n", val);
-	printf("#else\n");
-	printf("#define UCHAR_MAX	%lu\n", val);
-	printf("#endif\n");
 #endif
 
 #ifndef SCHAR_MIN
@@ -171,11 +166,7 @@ int main()
 
 #ifndef USHRT_MAX
 	val = us;
-	printf("#if defined(__STDC__)\n");
 	printf("#define USHRT_MAX	%luU\n", val);
-	printf("#else\n");
-	printf("#define USHRT_MAX	%lu\n", val);
-	printf("#endif\n");
 #endif
 
 #ifndef SHRT_MIN
@@ -206,11 +197,7 @@ int main()
 	{
 #ifndef UINT_MAX
 		val = ui;
-		printf("#if defined(__STDC__)\n");
 		printf("#define UINT_MAX	%luU\n", val);
-		printf("#else\n");
-		printf("#define UINT_MAX	%lu\n", val);
-		printf("#endif\n");
 #endif
 
 #ifndef INT_MIN
@@ -243,11 +230,7 @@ int main()
 	{
 #ifndef ULONG_MAX
 		val = ul;
-		printf("#if defined(__STDC__)\n");
 		printf("#define ULONG_MAX	%luLU\n", val);
-		printf("#else\n");
-		printf("#define ULONG_MAX	%lu\n", val);
-		printf("#endif\n");
 #endif
 
 #ifndef LONG_MIN
@@ -281,7 +264,7 @@ int main()
 #ifndef ULLONG_MAX
 		vll = ull;
 		printf("#ifndef ULLONG_MAX\n");
-		printf("#if defined(__STDC__) && _ast_LL\n");
+		printf("#if _ast_LL\n");
 		printf("#define ULLONG_MAX	%lluULL\n", vll);
 		printf("#else\n");
 		printf("#define ULLONG_MAX	%llu\n", vll);
@@ -292,7 +275,7 @@ int main()
 #ifndef LLONG_MIN
 		vll = (uint64_t)(ull >> 1) + 1;
 		printf("#ifndef LLONG_MIN\n");
-		printf("#if defined(__STDC__) && _ast_LL\n");
+		printf("#if _ast_LL\n");
 		printf("#define LLONG_MIN	(-%lluLL-1LL)\n", vll - 1);
 		printf("#else\n");
 		printf("#define LLONG_MIN	(-%llu-1)\n", vll - 1);
@@ -303,7 +286,7 @@ int main()
 #ifndef LLONG_MAX
 		vll = (uint64_t)(ull >> 1);
 		printf("#ifndef LLONG_MAX\n");
-		printf("#if defined(__STDC__) && _ast_LL\n");
+		printf("#if _ast_LL\n");
 		printf("#define LLONG_MAX	%lluLL\n", vll);
 		printf("#else\n");
 		printf("#define LLONG_MAX	%llu\n", vll);

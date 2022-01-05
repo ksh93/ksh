@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 #ifndef NOTSYM
 /*
  *	UNIX shell
@@ -76,7 +75,6 @@ struct _shlex_pvt_lexdata_
  */
 typedef struct  _shlex_
 {
-	Shell_t		*sh;		/* pointer to the interpreter */
 	struct argnod	*arg;		/* current word */
 	struct ionod	*heredoc;	/* pending here document list */
 	int		token;		/* current token number */
@@ -104,7 +102,7 @@ typedef struct  _shlex_
 	Dt_t		*entity_tree;	/* for entity ids */
 #endif /* SHOPT_KIA */
 	/* The following two struct members are considered private to lex.c */
-	struct _shlex_pvt_lexdata_  lexd; \
+	struct _shlex_pvt_lexdata_  lexd;
 	struct _shlex_pvt_lexstate_  lex;
 } Lex_t;
 
@@ -188,7 +186,7 @@ extern const char		e_newline[];
 
 extern int		sh_lex(Lex_t*);
 extern Shnode_t		*sh_dolparen(Lex_t*);
-extern Lex_t		*sh_lexopen(Lex_t*, Shell_t*, int);
+extern Lex_t		*sh_lexopen(Lex_t*, int);
 extern void 		sh_lexskip(Lex_t*,int,int,int);
 extern noreturn void 	sh_syntax(Lex_t*);
 #if SHOPT_KIA

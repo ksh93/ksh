@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 
 #ifndef __builtins_h_defined
 #define __builtins_h_defined
@@ -104,6 +103,10 @@ extern int b_builtin(int, char*[],Shbltin_t*);
 extern int b_cd(int, char*[],Shbltin_t*);
 extern int b_command(int, char*[],Shbltin_t*);
 extern int b_getopts(int, char*[],Shbltin_t*);
+#if SHOPT_MKSERVICE
+extern int b_mkservice(int, char*[],Shbltin_t*);
+extern int b_eloop(int, char*[],Shbltin_t*);
+#endif /* SHOPT_MKSERVICE */
 extern int b_hist(int, char*[],Shbltin_t*);
 extern int b_let(int, char*[],Shbltin_t*);
 extern int b_read(int, char*[],Shbltin_t*);

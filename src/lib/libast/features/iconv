@@ -1,4 +1,3 @@
-set	prototyped
 hdr	iconv
 lib	iconv_open,iconv_close,iconv iconv.h -liconv
 nxt	iconv

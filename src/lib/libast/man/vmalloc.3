@@ -17,25 +17,25 @@ vmalloc \- virtual memory allocation
 .MW "Vmalloc_t* Vmheap;"
 .MW "Vmdisc_t* vmdisc(Vmalloc_t* region, Vmdisc_t* disc);"
 .MW "Vmalloc_t* vmmopen(char* file, int project, ssize_t size);"
-.MW "Void_t* vmmvalue(Vmalloc_t* vm, int key, Void_t* value, int op);"
-.MW "Void_t* vmmcleanup(Vmalloc_t* vm);"
-.MW "Void_t* vmmaddress(size_t size);"
+.MW "void* vmmvalue(Vmalloc_t* vm, int key, void* value, int op);"
+.MW "void* vmmcleanup(Vmalloc_t* vm);"
+.MW "void* vmmaddress(size_t size);"
 .fi
 .SS "Allocation functions"
 .nf
-.MW "Void_t* vmalloc(Vmalloc_t* region, size_t size);"
-.MW "Void_t* vmalign(Vmalloc_t* region, size_t size, size_t align);"
-.MW "Void_t* vmresize(Vmalloc_t* region, Void_t* addr, size_t size, int type);"
-.MW "int vmfree(Vmalloc_t* region, Void_t* addr);"
-.MW "Void_t* vmnewof(Vmalloc_t* region, Void_t* addr, type, size_t n, size_t x);"
-.MW "Void_t* vmoldof(Vmalloc_t* region, Void_t* addr, type, size_t n, size_t x);"
-.MW "Void_t* vmgetmem(Vmalloc_t* region, Void_t* addr, size_t size);"
+.MW "void* vmalloc(Vmalloc_t* region, size_t size);"
+.MW "void* vmalign(Vmalloc_t* region, size_t size, size_t align);"
+.MW "void* vmresize(Vmalloc_t* region, void* addr, size_t size, int type);"
+.MW "int vmfree(Vmalloc_t* region, void* addr);"
+.MW "void* vmnewof(Vmalloc_t* region, void* addr, type, size_t n, size_t x);"
+.MW "void* vmoldof(Vmalloc_t* region, void* addr, type, size_t n, size_t x);"
+.MW "void* vmgetmem(Vmalloc_t* region, void* addr, size_t size);"
 .fi
 .SS "Debugging"
 .nf
 .MW "int vmdebug(int);"
 .MW "int vmdbcheck(Vmalloc_t* vm);"
-.MW "int vmdbwatch(Void_t* addr);"
+.MW "int vmdbwatch(void* addr);"
 .MW "static void vmdbwarn(Vmalloc_t*, char* mesg, int n);"
 .fi
 .SS "Profiling"
@@ -45,25 +45,25 @@ vmalloc \- virtual memory allocation
 .SS "Information and statistics"
 .nf
 .MW "int vmbusy(Vmalloc_t* region);"
-.MW "Vmalloc_t* vmregion(Void_t* addr);"
-.MW "Void_t* vmsegment(Vmalloc_t* region, Void_t* addr);"
-.MW "int vmwalk(Vmalloc_t* region, int(*walkf)(Vmalloc_t*, Void_t*, size_t, Vmdisc_t*);"
-.MW "long vmaddr(Vmalloc_t* region, Void_t* addr);"
-.MW "long vmsize(Vmalloc_t* region, Void_t* addr);"
+.MW "Vmalloc_t* vmregion(void* addr);"
+.MW "void* vmsegment(Vmalloc_t* region, void* addr);"
+.MW "int vmwalk(Vmalloc_t* region, int(*walkf)(Vmalloc_t*, void*, size_t, Vmdisc_t*);"
+.MW "long vmaddr(Vmalloc_t* region, void* addr);"
+.MW "long vmsize(Vmalloc_t* region, void* addr);"
 .MW "int vmstat(Vmalloc_t* vm, Vmstat_t* statb);"
 .MW "int vmtrace(int fd);"
 .MW "int vmtrbusy(Vmalloc_t* vm);"
-.MW "Void_t* vmdata(Vmalloc_t* vm);"
+.MW "void* vmdata(Vmalloc_t* vm);"
 .fi
 .SS "Malloc-compatible functions"
 .nf
-.MW "Void_t* malloc(size_t size);"
-.MW "Void_t* realloc(Void_t* addr, size_t size);"
-.MW "Void_t* calloc(size_t n_obj, size_t s_obj);"
-.MW "int cfree(Void_t* addr);"
-.MW "void free(Void_t* addr);"
-.MW "Void_t* memalign(size_t align, size_t size);"
-.MW "Void_t* valloc(size_t size);"
+.MW "void* malloc(size_t size);"
+.MW "void* realloc(void* addr, size_t size);"
+.MW "void* calloc(size_t n_obj, size_t s_obj);"
+.MW "int cfree(void* addr);"
+.MW "void free(void* addr);"
+.MW "void* memalign(size_t align, size_t size);"
+.MW "void* valloc(size_t size);"
 .MW "int setregmax(int regmax);"
 .fi
 .SH DEPRECATION NOTICE
@@ -82,8 +82,8 @@ for parceling out blocks of storage and a
 Automatic locking prevents interference by reentrant
 access to a region.
 .PP
-Pointers to space have type \f3Void_t*\fP
-where \f3Void_t\fP is \f3#define\fPd as \f3void\fP if possible, otherwise \f3char\fP.
+Pointers to space have type \f3void*\fP
+where \f3void\fP is \f3#define\fPd as \f3void\fP if possible, otherwise \f3char\fP.
 Space is counted in type \f3size_t\fP.
 
 .ne 4
@@ -267,10 +267,10 @@ Memory disciplines have type \f3Vmdisc_t\fP,
 a structure with these members:
 .in +.5i
 .nf
-.MW "Void_t* (*memoryf)(Vmalloc_t *region, Void_t* obj,"
+.MW "void* (*memoryf)(Vmalloc_t *region, void* obj,"
 .ti +.5i
 .MW "size_t csz, size_t nsz, Vmdisc_t *disc);"
-.MW "int (*exceptf)(Vmalloc_t *region, int type, Void_t* obj, Vmdisc_t *disc);"
+.MW "int (*exceptf)(Vmalloc_t *region, int type, void* obj, Vmdisc_t *disc);"
 .MW "int round;"
 .fi
 .in -.5i
@@ -316,13 +316,13 @@ function is called for events identified by \fItype\fP, which is coded thus:
 .TP
 .MW VM_OPEN
 This event is raised at the start of the process to open a new region.
-Argument \fIobj\fP will be a pointer to an object of type \f3Void_t*\fP
+Argument \fIobj\fP will be a pointer to an object of type \f3void*\fP
 initialized to NULL before the call. The return value of \fIexceptf\fP
 is significant as follows:
 
 On a negative return value, \fIvmopen\fP will terminate with failure.
 
-On a zero return value, \fIexceptf\fP may set \f3*((Void_t**)obj)\fP
+On a zero return value, \fIexceptf\fP may set \f3*((void**)obj)\fP
 to some non-NULL value to tell \fIvmopen\fP
 to allocate the region handle itself via \fImemoryf\fP. Otherwise,
 the region handle will be allocated from the \f3Vmheap\fP region.
@@ -330,7 +330,7 @@ the region handle will be allocated from the \f3Vmheap\fP region.
 On a positive return value,
 the new region is being reconstructed
 based on existing states of some previous region.
-In this case, \fIexceptf\fP should set \f3*(Void_t**)\fP\fIobj\fP to point to
+In this case, \fIexceptf\fP should set \f3*(void**)\fP\fIobj\fP to point to
 the field \f3Vmalloc_t.data\fP of the corresponding previous region
 (see \f3VM_CLOSE\fP below).
 If the handle of the previous region was allocated

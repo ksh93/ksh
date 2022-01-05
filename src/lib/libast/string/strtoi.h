@@ -90,10 +90,6 @@
 
 #include "sfhdr.h"
 
-#if !__STD_C && !defined(const)
-#define const
-#endif
-
 #define QL		01
 #define QU		02
 
@@ -194,31 +190,15 @@ extern S2I_type
 #undef	extern
 #if S2I_size
 #if S2I_multiplier
-#if __STD_C
 S2I_function(const char* a, size_t size, char** e, char* basep, int m)
 #else
-S2I_function(a, size, e, basep, m) const char* a; size_t size; char** e; char* basep; int m;
-#endif
-#else
-#if __STD_C
 S2I_function(const char* a, size_t size, char** e, int base)
-#else
-S2I_function(a, size, e, base) const char* a; size_t size; char** e; int base;
-#endif
 #endif
 #else
 #if S2I_multiplier
-#if __STD_C
 S2I_function(const char* a, char** e, char* basep, int m)
 #else
-S2I_function(a, e, basep, m) const char* a; char** e; char* basep; int m;
-#endif
-#else
-#if __STD_C
 S2I_function(const char* a, char** e, int base)
-#else
-S2I_function(a, e, base) const char* a; char** e; int base;
-#endif
 #endif
 #endif
 {

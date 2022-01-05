@@ -116,7 +116,7 @@ initialize this library before any other commands in this library
 are invoked.
 The arguments \fIargc\fP and \fIargv\fP are the number
 of arguments and the vector of arguments as supplied by the shell.
-It returns a pointer the \f3Shell_t\fP.
+It returns a pointer to the \f3Shell_t\fP shell state structure.
 .TP
 .B 3
 To build a new version of \f3ksh\fP with extended capabilities,
@@ -143,12 +143,12 @@ The \f3Shell_t\fP structure contains the following fields:
 	Dt_t            *\fIvar_tree\fP;      \fR/* shell variable dictionary */\fP
 	Dt_t            *\fIfun_tree\fP;      \fR/* shell function dictionary */\fP
 	Dt_t            *\fIalias_tree\fP;    \fR/* shell alias dictionary */\fP
-	Dt_t            *\fIbltin_tree\fP;    \fR/* shell built-in dictionary */\fP
-	Dt_t            *\fItrack_tree\fP;    \fR/* shell hash table */\fP
+	Dt_t            *\fIbltin_tree\fP;    \fR/* shell built-in command dictionary */\fP
+	Dt_t            *\fItrack_tree\fP;    \fR/* shell hash table (tracked alias dictionary) */\fP
 	Shscope_t       *\fItopscope\fP;      \fR/* pointer to top-level scope */\fP
-	char            *\fIinfile_name\fP;   \fR/* path name of current input file */\fP
 	int             \fIinlineno\fP;       \fR/* line number of current input file */\fP
-	int             \fIexitval\fP;        \fR/* most recent exit value */\fP
+	int             \fIexitval\fP;        \fR/* exit status of the command currently being run */\fP
+	int             \fIsavexit\fP;        \fR/* $? == exit status of the last command executed */\fP
 .ft R
 .fi
 This structure is returned by \f3sh_init()\fP but can also be retrieved

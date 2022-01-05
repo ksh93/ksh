@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * echo [arg...]
  * print [-enprsvC] [-f format] [-u fd] [string ...]
@@ -234,9 +233,9 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			fd = (int)strtol(opt_info.arg,&opt_info.arg,10);
 			if(*opt_info.arg)
 				fd = -1;
-			else if(!sh_iovalidfd(shp,fd))
+			else if(!sh_iovalidfd(fd))
 				fd = -1;
-			else if(!(shp->inuse_bits&(1<<fd)) && (sh_inuse(shp,fd) || (shp->gd->hist_ptr && fd==sffileno(shp->gd->hist_ptr->histfp))))
+			else if(!(sh.inuse_bits&(1<<fd)) && (sh_inuse(fd) || (sh.hist_ptr && fd==sffileno(sh.hist_ptr->histfp))))
 				fd = -1;
 			break;
 		case 'v':
@@ -313,7 +312,7 @@ skip2:
 		n = 0;
 	}
 	else if(!(n=shp->fdstatus[fd]))
-		n = sh_iocheckfd(shp,fd);
+		n = sh_iocheckfd(fd);
 	if(!(n&IOWRITE))
 	{
 		/* don't print error message for stdout for compatibility */

@@ -31,15 +31,10 @@
 */
 #define MAX_SSIZE	((ssize_t)((~((size_t)0)) >> 1))
 
-#if __STD_C
-Sfoff_t sfmove(Sfio_t* fr, Sfio_t* fw, Sfoff_t n, reg int rc)
-#else
-Sfoff_t sfmove(fr,fw,n,rc)
-Sfio_t*	fr;	/* moving data from this stream */
-Sfio_t*	fw;	/* moving data to this stream */
-Sfoff_t		n;	/* number of bytes/records to move. <0 for unbounded move */
-reg int		rc;	/* record separator */
-#endif
+Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
+	       Sfio_t*	fw,	/* moving data to this stream */
+               Sfoff_t	n,	/* number of bytes/records to move. <0 for unbounded move */
+	       reg int	rc)	/* record separator */
 {
 	reg uchar	*cp, *next;
 	reg ssize_t	r, w;
@@ -195,7 +190,7 @@ reg int		rc;	/* record separator */
 		{	/* move leftover to read stream */
 			if(w > fr->size)
 				w = fr->size;
-			memmove((Void_t*)fr->data,(Void_t*)cp,w);
+			memmove((void*)fr->data,(void*)cp,w);
 			fr->endb = fr->data+w;
 			if((w = endb - (cp+w)) > 0)
 				(void)SFSK(fr,(Sfoff_t)(-w),SEEK_CUR,fr->disc);
@@ -205,10 +200,10 @@ reg int		rc;	/* record separator */
 		{	if(direct == SF_WRITE)
 				fw->next += r;
 			else if(r <= (fw->endb-fw->next) )
-			{	memmove((Void_t*)fw->next,(Void_t*)next,r);
+			{	memmove((void*)fw->next,(void*)next,r);
 				fw->next += r;
 			}
-			else if((w = SFWRITE(fw,(Void_t*)next,r)) != r)
+			else if((w = SFWRITE(fw,(void*)next,r)) != r)
 			{	/* a write error happened */
 				if(w > 0)
 				{	r -= w;

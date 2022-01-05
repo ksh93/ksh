@@ -1,4 +1,3 @@
-set	prototyped
 lib	catopen,nl_langinfo
 hdr	nl_types,langinfo
 nxt	nl_types

@@ -18,7 +18,6 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                                                                      *
 ***********************************************************************/
-#pragma prototyped
 /*
  * test expression
  * [ expression ]
@@ -105,7 +104,7 @@ static int test_strmatch(Shell_t *shp,const char *str, const char *pat)
 	if(m==0 && n==1)
 		match[1] = strlen(str);
 	if(n)
-		sh_setmatch(shp, str, -1, n, match, 0);
+		sh_setmatch(str, -1, n, match, 0);
 	return(n);
 }
 
@@ -515,8 +514,8 @@ int test_binop(Shell_t *shp,register int op,const char *left,const char *right)
 			left++;
 		while(*right=='0')
 			right++;
-		lnum = sh_arith(shp,left);
-		rnum = sh_arith(shp,right);
+		lnum = sh_arith(left);
+		rnum = sh_arith(right);
 	}
 	switch(op)
 	{

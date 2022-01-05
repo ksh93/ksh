@@ -8,7 +8,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2021-12-16 $
+@(#)$Id: shtests (ksh 93u+m) 2021-12-28 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -244,8 +244,7 @@ then	utf8=0
 	if	! let 1.0 2>/dev/null
 	then	export LC_NUMERIC=C
 	fi
-else	unset LANG LC_ALL
-	export LC_NUMERIC=C
+else	unset LANG ${!LC_*}
 fi
 if	[[ $VMALLOC_OPTIONS ]]
 then	vmalloc_options=$VMALLOC_OPTIONS
@@ -345,6 +344,8 @@ do	[[ $i == *.sh ]] || i+='.sh'
 	fi
 	t=$(	case $i in
 		glob.sh)	grep -c '^[[:blank:]]*test_[a-z]\{3,\}' $i ;;
+		leaks.sh)	grep -c ^TEST $i ;;
+		pty.sh)		grep -c 'tst ' $i ;;
 		*)		grep -c err_exit $i ;;
 		esac	)
 	tests[$i]=$t
@@ -408,11 +409,10 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		echo test $o begins ${time:+"at $(date +%Y-%m-%d+%H:%M:%S)"}
 		tmp_s=$tmp/$u.shcomp
 		mkdir -m700 "$tmp_s" || exit
-		# must incorporate _common in script itself so the aliases are expanded at compile time
-		sed '/^\. .*\/_common/ {
-			r _common
-			d
-		}' < $i > $c.orig
+		# Must define aliases from _common in script itself so they are expanded at compile time.
+		# Replace the first few lines with those to avoid affecting $LINENO; they are comments anyway.
+		num_alias=$(grep -c '^alias [[:alnum:]_]\{2,\}=' _common)
+		{ grep '^alias [[:alnum:]_]\{2,\}=' _common; sed "1,$num_alias d" "$i"; } >$c.orig
 		cd "$tmp_s" || exit
 		if	"$SHCOMP" "$c.orig" > $c
 		then	if	tmp=$tmp_s $valgrind $SHELL $trace $c
