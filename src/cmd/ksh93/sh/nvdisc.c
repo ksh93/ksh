@@ -1336,9 +1336,12 @@ static Namfun_t *clone_table(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp
 	return(&ntp->fun);
 }
 
+/*
+ * The first two fields must correspond with those in 'struct adata' in name.c and 'struct tdata' in typeset.c
+ * (those fields are used via a type conversion in scanfilter() in name.c)
+ */
 struct adata
 {
-	Shell_t		*sh;
 	Namval_t	*tp;
 	char		*mapname;
 	char		**argnam;
@@ -1366,7 +1369,6 @@ static void put_table(register Namval_t* np, const char* val, int flags, Namfun_
 		return;
 	memset(&data,0,sizeof(data));
 	data.mapname = nv_name(np);
-	data.sh = &sh;
 	nv_scan(sh.fun_tree,delete_fun,(void*)&data,NV_FUNCTION,NV_FUNCTION|NV_NOSCOPE);
 	dtview(root,0);
 	for(mp=(Namval_t*)dtfirst(root);mp;mp=nq)

@@ -177,7 +177,7 @@ void sh_subfork(void)
 		sh_subtmpfile();
 	sh.curenv = 0;
 	sh.savesig = -1;
-	if(pid = sh_fork(&sh,FSHOWME,NIL(int*)))
+	if(pid = sh_fork(FSHOWME,NIL(int*)))
 	{
 		sh.curenv = curenv;
 		/* this is the parent part of the fork */
@@ -910,7 +910,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	{
 		job_wait(sp->subpid);
 		if(comsub)
-			sh_iounpipe(&sh);
+			sh_iounpipe();
 	}
 	sh.comsub = sp->comsub;
 	if(comsub && iop && sp->pipefd<0)

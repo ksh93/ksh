@@ -64,9 +64,12 @@ static char	*staknam(Namval_t*, char*);
 static void	rightjust(char*, int, int);
 static char	*lastdot(char*, int);
 
+/*
+ * The first two fields must correspond with those in 'struct adata' in nvdisc.c and 'struct tdata' in typeset.c
+ * (those fields are used via a type conversion in scanfilter() in name.c)
+ */
 struct adata
 {
-	Shell_t		*sh;
 	Namval_t	*tp;
 	char		*mapname;
 	char		**argnam;
@@ -441,10 +444,10 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 						if(arg->argflag&ARG_APPEND)
 							n = '+';
 						if(trap)
-							sh_debug(&sh,trap,name,(char*)0,argv,(arg->argflag&ARG_APPEND)|ARG_ASSIGN);
+							sh_debug(trap,name,(char*)0,argv,(arg->argflag&ARG_APPEND)|ARG_ASSIGN);
 						if(traceon)
 						{
-							sh_trace(&sh,NIL(char**),0);
+							sh_trace(NIL(char**),0);
 							sfputr(sfstderr,name,n);
 							sfwrite(sfstderr,"=( ",3);
 							while(cp= *argv++)
@@ -630,7 +633,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 			}
 			if(traceon)
 			{
-				sh_trace(&sh,NIL(char**),0);
+				sh_trace(NIL(char**),0);
 				nv_outname(sfstderr,name,-1);
 				if(sub)
 					sfprintf(sfstderr,"[%s]",sh_fmtq(sub));
@@ -646,7 +649,7 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					char *av[2];
 					av[0] = cp;
 					av[1] = 0;
-					sh_debug(&sh,trap,name,sub,av,append);
+					sh_debug(trap,name,sub,av,append);
 			}
 		}
 #if SHOPT_TYPEDEF
@@ -2167,7 +2170,6 @@ static void attstore(register Namval_t *np, void *data)
 {
 	register int flag = np->nvflag;
 	register struct adata *ap = (struct adata*)data;
-	ap->sh = &sh;
 	ap->tp = 0;
 	if(!(flag&NV_EXPORT) || (flag&NV_FUNCT))
 		return;
@@ -2200,7 +2202,6 @@ static void pushnam(Namval_t *np, void *data)
 {
 	register char *value;
 	register struct adata *ap = (struct adata*)data;
-	ap->sh = &sh;
 	ap->tp = 0;
 	if(nv_isattr(np,NV_IMPORT) && np->nvenv)
 		*ap->argnam++ = np->nvenv;
@@ -2220,7 +2221,6 @@ char **sh_envgen(void)
 	register int namec;
 	register char *cp;
 	struct adata data;
-	data.sh = &sh;
 	data.tp = 0;
 	data.mapname = 0;
 	/* L_ARGNOD gets generated automatically as full path name of command */
@@ -2254,14 +2254,11 @@ struct scan
 	void    *scandata;
 };
 
-static int scanfilter(Dt_t *dict, void *arg, void *data)
+static int scanfilter(Namval_t *np, struct scan *sp)
 {
-	register Namval_t *np = (Namval_t*)arg;
 	register int k=np->nvflag;
-	register struct scan *sp = (struct scan*)data;
 	register struct adata *tp = (struct adata*)sp->scandata;
 	char	*cp;
-	NOT_USED(dict);
 #if SHOPT_TYPEDEF
 	if(!is_abuiltin(np) && tp && tp->tp && nv_type(np)!=tp->tp)
 		return(0);
@@ -2321,19 +2318,17 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,int mask, int fl
 	Namval_t *np;
 	Dt_t *base=0;
 	struct scan sdata;
-	int (*hashfn)(Dt_t*, void*, void*);
 	sdata.scanmask = mask;
 	sdata.scanflags = flags&~NV_NOSCOPE;
 	sdata.scanfn = fn;
 	sdata.scancount = 0;
 	sdata.scandata = data;
-	hashfn = scanfilter;
 	if(flags&NV_NOSCOPE)
 		base = dtview((Dt_t*)root,0);
 	for(np=(Namval_t*)dtfirst(root);np; np=(Namval_t*)dtnext(root,np))
-		hashfn(root, np, &sdata);
+		scanfilter(np, &sdata);
 	if(base)
-		 dtview((Dt_t*)root,base);
+		dtview((Dt_t*)root,base);
 	return(sdata.scancount);
 }
 
@@ -2377,7 +2372,7 @@ void sh_scope(struct argnod *envlist, int fun)
 
 void	sh_envnolocal (register Namval_t *np, void *data)
 {
-	struct adata *tp = (struct adata*)data;
+	NOT_USED(data);
 	char *cp=0;
 	if(np==VERSIONNOD && nv_isref(np))
 		return;

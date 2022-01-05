@@ -297,7 +297,7 @@ int sh_argopts(int argc,register char *argv[])
 		trace = 0;
 	}
 	if(trace)
-		sh_trace(&sh,argv,1);
+		sh_trace(argv,1);
 	argc -= opt_info.index;
 	argv += opt_info.index;
 	if(action==PRINT)

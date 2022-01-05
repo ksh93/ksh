@@ -424,7 +424,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				c &= ~T_BINARY;
 				arg[0] = num;
 				arg[1] = 0;
-				num = sh_mathfun(&sh,(void*)fun,1,arg);
+				num = sh_mathfun((void*)fun,1,arg);
 				break;
 			}
 			num = (*((Math_1f_f)fun))(num);
@@ -445,7 +445,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				arg[0] = sp[1];
 				arg[1] = num;
 				arg[2] = 0;
-				num = sh_mathfun(&sh,(void*)fun,2,arg);
+				num = sh_mathfun((void*)fun,2,arg);
 				break;
 			}
 			if(c&T_NOFLOAT)
@@ -470,7 +470,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				arg[1] = sp[2];
 				arg[2] = num;
 				arg[3] = 0;
-				num = sh_mathfun(&sh,(void*)fun,3,arg);
+				num = sh_mathfun((void*)fun,3,arg);
 				break;
 			}
 			num = (*((Math_3f_f)fun))(sp[1],sp[2],num);

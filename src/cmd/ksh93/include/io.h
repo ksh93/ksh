@@ -69,7 +69,7 @@ extern int 	sh_iovalidfd(int);
 extern int	sh_iosafefd(int);
 extern int 	sh_inuse(int);
 extern void 	sh_iounsave(void);
-extern void	sh_iounpipe(Shell_t*);
+extern void	sh_iounpipe(void);
 extern int	sh_chkopen(const char*);
 extern int	sh_ioaccess(int,int);
 extern int	sh_devtofd(const char*);

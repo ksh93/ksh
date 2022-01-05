@@ -410,7 +410,7 @@ void	sh_chktrap(void)
 		}
 	}
 	if(sh.sigflag[SIGALRM]&SH_SIGALRM)
-		sh_timetraps(&sh);
+		sh_timetraps();
 #if SHOPT_BGX
 	if((sh.sigflag[SIGCHLD]&SH_SIGTRAP) && sh.st.trapcom[SIGCHLD])
 		job_chldtrap(sh.st.trapcom[SIGCHLD],1);
@@ -542,7 +542,7 @@ void sh_exit(register int xno)
 		sh_offstate(SH_STOPOK);
 		sh.trapnote = 0;
 		sh.forked = 1;
-		if(sh_isstate(SH_INTERACTIVE) && (sig=sh_fork(&sh,0,NIL(int*))))
+		if(sh_isstate(SH_INTERACTIVE) && (sig=sh_fork(0,NIL(int*))))
 		{
 			job.curpgid = 0;
 			job.parent = (pid_t)-1;

@@ -70,7 +70,6 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	register char *limit;
 	register int mode=0, n;
 	register unsigned long hit = 0;
-	Shell_t *shp = context->shp;
 #ifdef _lib_getrlimit
 	struct rlimit rlp;
 #endif /* _lib_getrlimit */
@@ -80,6 +79,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	rlim_t i;
 	char tmp[41];
         Optdisc_t disc;
+        NOT_USED(context);
         memset(&disc, 0, sizeof(disc));
         disc.version = OPT_VERSION;
         disc.infof = infof;
@@ -135,7 +135,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 		unit = shtab_units[tp->type];
 		if(limit)
 		{
-			if(shp->subshell && !shp->subshare)
+			if(sh.subshell && !sh.subshare)
 				sh_subfork();
 			if(strcmp(limit,e_unlimited)==0)
 				i = INFINITY;

@@ -122,11 +122,11 @@ static const char*	regress_options[] =
 	"etc",
 };
 
-void sh_regress_init(Shell_t* shp)
+void sh_regress_init(void)
 {
 	static Regress_t	state;
 
-	shp->regress = &state;
+	sh.regress = &state;
 }
 
 /*
@@ -261,7 +261,6 @@ char* sh_regress_etc(const char* path, unsigned int line, const char* file)
 
 int b___regress__(int argc, char** argv, Shbltin_t *context)
 {
-	register Shell_t*	shp = context->shp;
 	int			n;
 
 	for (;;)

@@ -192,17 +192,11 @@ node(FTS* fts, FTSENT* parent, register char* name, register size_t namelen)
 	f->status = 0;
 	f->symlink = 0;
 	f->fts_level = (f->fts_parent = parent)->fts_level + 1;
-#if __OBSOLETE__ < 20140101
-	f->_fts_level = (short)f->fts_level;
-#endif
 	f->fts_link = 0;
 	f->fts_pointer = 0;
 	f->fts_number = 0;
 	f->fts_errno = 0;
 	f->fts_namelen = namelen;
-#if __OBSOLETE__ < 20140101
-	f->_fts_namelen = (unsigned short)f->fts_namelen;
-#endif
 	f->fts_name = f->name;
 	f->fts_statp = &f->statb;
 	memcpy(f->fts_name, name, namelen + 1);
@@ -635,9 +629,6 @@ toplist(FTS* fts, register char* const* pathnames)
 			*s = 0;
 			f->fts_namelen = s - path;
 		}
-#if __OBSOLETE__ < 20140101
-		f->_fts_namelen = (unsigned short)f->fts_namelen;
-#endif
 		if (!*path)
 		{
 			errno = ENOENT;
@@ -775,9 +766,6 @@ fts_open(char* const* pathnames, int flags, int (*comparf)(FTSENT* const*, FTSEN
 	fts->parent->fts_info = FTS_D;
 	memcpy(fts->parent->fts_accpath = fts->parent->fts_path = fts->parent->fts_name = fts->parent->name, ".", 2);
 	fts->parent->fts_level = -1;
-#if __OBSOLETE__ < 20140101
-	fts->parent->_fts_level = (short)fts->parent->fts_level;
-#endif
 	fts->parent->fts_statp = &fts->parent->statb;
 	fts->parent->must = 2;
 	fts->parent->type = DT_UNKNOWN;
@@ -1415,9 +1403,6 @@ fts_read(register FTS* fts)
 
 		}
  note:
-#if __OBSOLETE__ < 20140101
-	f->_fts_pathlen = (unsigned short)f->fts_pathlen;
-#endif
 	for (p = notify; p; p = p->next)
 		if ((n = (*p->notifyf)(fts, f, p->context)) > 0)
 			break;

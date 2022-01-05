@@ -263,7 +263,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 #ifdef ESH_NFIRST
 		ed_ungetchar(ep->ed,cntl('N'));
 #else
-		location = hist_locate(shgd->hist_ptr,location.hist_command,location.hist_line,1);
+		location = hist_locate(sh.hist_ptr,location.hist_command,location.hist_line,1);
 		if (location.hist_command < histlines)
 		{
 			hline = location.hist_command;
@@ -350,7 +350,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			continue;
 #endif	/* u370 */
 		case '\t':
-			if(cur>0  && ep->ed->sh->nextprompt)
+			if(cur>0  && sh.nextprompt)
 			{
 				if(ep->ed->e_tabcount==0)
 				{
@@ -684,7 +684,7 @@ update:
 			hline = location.hist_command;	/* start at saved position */
 			hloff = location.hist_line;
 #endif /* ESH_NFIRST */
-			location = hist_locate(shgd->hist_ptr,hline,hloff,count);
+			location = hist_locate(sh.hist_ptr,hline,hloff,count);
 			if (location.hist_command > histlines)
 			{
 				beep();
@@ -1348,7 +1348,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	}
 	else
 		direction = ep->prevdirection ;
-	location = hist_find(shgd->hist_ptr,(char*)lstring,hline,1,direction);
+	location = hist_find(sh.hist_ptr,(char*)lstring,hline,1,direction);
 	i = location.hist_command;
 	if(i>0)
 	{

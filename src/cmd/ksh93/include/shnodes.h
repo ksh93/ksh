@@ -216,6 +216,6 @@ extern Sfio_t 			*sh_subshell(Shnode_t*, volatile int, int);
    __EXPORT__
 #endif
 extern int			sh_tdump(Sfio_t*, const Shnode_t*);
-extern Shnode_t			*sh_trestore(Shell_t*, Sfio_t*);
+extern Shnode_t			*sh_trestore(Sfio_t*);
 
 #endif /* _SHNODES_H */

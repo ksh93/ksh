@@ -394,7 +394,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 		if(nv_isnull(PS1NOD))
 			nv_putval(PS1NOD,(sh.euserid?e_stdprompt:e_supprompt),NV_RDONLY);
 		sh_sigdone();
-		if(sh_histinit((void*)&sh))
+		if(sh_histinit())
 			sh_onoption(SH_HISTORY);
 	}
 	else

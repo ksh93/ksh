@@ -38,11 +38,11 @@ int	b_sleep(register int argc,char *argv[],Shbltin_t *context)
 {
 	register char *cp;
 	register double d=0;
-	register Shell_t *shp = context->shp;
 	int sflag=0;
 	time_t tloc = 0;
 	char *last;
-	if(!(shp->sigflag[SIGALRM]&(SH_SIGFAULT|SH_SIGOFF)))
+	NOT_USED(context);
+	if(!(sh.sigflag[SIGALRM]&(SH_SIGFAULT|SH_SIGOFF)))
 		sh_sigtrap(SIGALRM);
 	while((argc = optget(argv,sh_optsleep))) switch(argc)
 	{
@@ -73,7 +73,7 @@ int	b_sleep(register int argc,char *argv[],Shbltin_t *context)
 			ns = 0;
 			if(*cp == 'P' || *cp == 'p')
 				ns = tmxdate(cp, &last, now);
-			else if(*last=='.' && shp->decomma && d==(unsigned long)d)
+			else if(*last=='.' && sh.decomma && d==(unsigned long)d)
 			{
 				*(pp=last) = ',';
 				if(!strchr(cp,'.'))
@@ -120,16 +120,16 @@ skip:
 	{
 		time_t now;
 		errno = 0;
-		shp->lastsig=0;
+		sh.lastsig=0;
 		sh_delay(d,sflag);
-		if(sflag || tloc==0 || errno!=EINTR || shp->lastsig)
+		if(sflag || tloc==0 || errno!=EINTR || sh.lastsig)
 			break;
-		sh_sigcheck(shp);
+		sh_sigcheck(&sh);
 		if(tloc < (now=time(NIL(time_t*))))
 			break;
 		d = (double)(tloc-now);
-		if(shp->sigflag[SIGALRM]&SH_SIGTRAP)
-			sh_timetraps(shp);
+		if(sh.sigflag[SIGALRM]&SH_SIGTRAP)
+			sh_timetraps();
 	}
 	return(0);
 }
@@ -141,7 +141,6 @@ skip:
  */
 void sh_delay(double t, int sflag)
 {
-	Shell_t *shp = sh_getinterp();
 	int n = (int)t;
 	Tv_t ts, tx;
 
@@ -149,7 +148,7 @@ void sh_delay(double t, int sflag)
 	ts.tv_nsec = 1000000000 * (t - (double)n);
 	while(tvsleep(&ts, &tx) < 0)
 	{
-		if ((shp->trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
+		if ((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
 			return;
 		ts = tx;
 	}

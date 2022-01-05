@@ -1127,7 +1127,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 	if(flag==2 && !sh_isoption(SH_POSIX))
 		clexec = 1;
 	if(iop)
-		traceon = sh_trace(&sh,NIL(char**),0);
+		traceon = sh_trace(NIL(char**),0);
 	for(;iop;iop=iop->ionxt)
 	{
 		iof=iop->iofile;
@@ -1399,7 +1399,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				}
 				else
 					av +=3;
-				sh_debug(&sh,trace,(char*)0,(char*)0,av,ARG_NOGLOB);
+				sh_debug(trace,(char*)0,(char*)0,av,ARG_NOGLOB);
 			}
 			if(iof&IOLSEEK)
 			{
@@ -2610,7 +2610,7 @@ Sfio_t *sh_iogetiop(int fd, int mode)
 	switch(fd)
 	{
 	    case SH_IOHISTFILE:
-		if(!sh_histinit((void*)&sh))
+		if(!sh_histinit())
 			return(iop);
 		fd = sffileno(sh.hist_ptr->histfp);
 		break;

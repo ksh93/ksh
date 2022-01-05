@@ -101,9 +101,11 @@ extern int		path_complete(const char*, const char*,struct argnod**);
     extern int		path_xattr(const char*, char*);
 #endif /* SHOPT_PFSH */
 
+#if SHOPT_DYNAMIC
 /* builtin/plugin routines */
-extern int		sh_addlib(Shell_t*,void*,char*,Pathcomp_t*);
-extern Shbltin_f	sh_getlib(Shell_t*,char*,Pathcomp_t*);
+extern int		sh_addlib(void*,char*,Pathcomp_t*);
+extern Shbltin_f	sh_getlib(char*,Pathcomp_t*);
+#endif /* SHOPT_DYNAMIC */
 
 /* constant strings needed for whence */
 extern const char e_timeformat[];

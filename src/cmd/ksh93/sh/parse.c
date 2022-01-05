@@ -375,7 +375,7 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 	int	sav_prompt = sh.nextprompt;
 	NOT_USED(shp);  /* keep for compat as sh_parse() is a documented interface */
 	if(sh.binscript && (sffileno(iop)==sh.infd || (flag&SH_FUNEVAL)))
-		return((void*)sh_trestore(&sh,iop));
+		return((void*)sh_trestore(iop));
 	fcsave(&sav_input);
 	sh.st.staklist = 0;
 	lexp->noreserv = 0;
@@ -409,13 +409,13 @@ void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
 			if(sffileno(iop)==sh.infd || (flag&SH_FUNEVAL))
 				sh.binscript = 1;
 			sfgetc(iop);
-			t = sh_trestore(&sh,iop);
+			t = sh_trestore(iop);
 			if(flag&SH_NL)
 			{
 				Shnode_t *tt;
 				while(1)
 				{
-					if(!(tt = sh_trestore(&sh,iop)))
+					if(!(tt = sh_trestore(iop)))
 						break;
 					t =makelist(lexp,TLST, t, tt);
 				}
