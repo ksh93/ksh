@@ -84,6 +84,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 	int	clear = 0;
 	char	*arg0 = 0;
 	NOT_USED(argc);
+	NOT_USED(context);
 	sh.st.ioset = 0;
 	while (n = optget(argv, *argv[0]=='r' ? sh_optredirect : sh_optexec)) switch (n)
 	{
@@ -145,18 +146,18 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		if(arg0)
 			argv[0] = arg0;
 #ifdef JOBS
-		if(job_close(&sh) < 0)
+		if(job_close() < 0)
 			return(1);
 #endif /* JOBS */
 		/* if the main shell is about to be replaced, decrease SHLVL to cancel out a subsequent increase */
-		if(!shgd->realsubshell)
+		if(!sh.realsubshell)
 			(*SHLVL->nvalue.ip)--;
 		/* force bad exec to terminate shell */
 		pp = (struct checkpt*)sh.jmplist;
 		pp->mode = SH_JMPEXIT;
 		sh_sigreset(2);
-		sh_freeup(&sh);
-		path_exec(&sh,pname,argv,NIL(struct argnod*));
+		sh_freeup();
+		path_exec(pname,argv,NIL(struct argnod*));
 	}
 	return(1);
 }
@@ -165,8 +166,8 @@ int    b_let(int argc,char *argv[],Shbltin_t *context)
 {
 	register int r;
 	register char *arg;
-	Shell_t *shp = context->shp;
 	NOT_USED(argc);
+	NOT_USED(context);
 	while (r = optget(argv,sh_optlet)) switch (r)
 	{
 	    case ':':
@@ -183,15 +184,15 @@ int    b_let(int argc,char *argv[],Shbltin_t *context)
 		UNREACHABLE();
 	}
 	while(arg= *argv++)
-		r = !sh_arith(shp,arg);
+		r = !sh_arith(arg);
 	return(r);
 }
 
 int    b_eval(int argc,char *argv[], Shbltin_t *context)
 {
 	register int r;
-	register Shell_t *shp = context->shp;
 	NOT_USED(argc);
+	NOT_USED(context);
 	while (r = optget(argv,sh_opteval)) switch (r)
 	{
 	    case ':':
@@ -212,7 +213,7 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 		sh_offstate(SH_MONITOR);
 		sh_eval(sh_sfeval(argv),0);
 	}
-	return(shp->exitval);
+	return(sh.exitval);
 }
 
 #if 0
@@ -224,8 +225,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	register char *script;
 	register Namval_t *np;
 	register int jmpval;
-	register Shell_t *shp = context->shp;
-	struct sh_scoped savst, *prevscope = shp->st.self;
+	struct sh_scoped savst, *prevscope = sh.st.self;
 	char *filename=0, *buffer=0, *tofree;
 	int	fd;
 	struct dolnod   *saveargfor;
@@ -233,6 +233,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	struct checkpt buff;
 	Sfio_t *iop=0;
 	short level;
+	NOT_USED(context);
 	while (n = optget(argv,sh_optdot)) switch (n)
 	{
 	    case ':':
@@ -249,20 +250,20 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	if(shp->dot_depth+1 > DOTMAX)
+	if(sh.dot_depth+1 > DOTMAX)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,script);
 		UNREACHABLE();
 	}
-	if(!(np=shp->posix_fun))
+	if(!(np=sh.posix_fun))
 	{
 		/* check for KornShell style function first */
-		np = nv_search(script,shp->fun_tree,0);
-		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && shp->bltindata.bnode==SYSDOT))
+		np = nv_search(script,sh.fun_tree,0);
+		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && sh.bltindata.bnode==SYSDOT))
 		{
 			if(!np->nvalue.ip)
 			{
-				path_search(shp,script,NIL(Pathcomp_t**),0);
+				path_search(script,NIL(Pathcomp_t**),0);
 				if(np->nvalue.ip)
 				{
 					if(nv_isattr(np,NV_FPOSIX))
@@ -279,40 +280,40 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			np = 0;
 		if(!np)
 		{
-			if((fd=path_open(shp,script,path_get(shp,script))) < 0)
+			if((fd=path_open(script,path_get(script))) < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_open,script);
 				UNREACHABLE();
 			}
-			filename = path_fullname(shp,stkptr(shp->stk,PATH_OFFSET));
+			filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 		}
 	}
-	*prevscope = shp->st;
-	shp->st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
-	shp->st.var_local = shp->st.save_tree = shp->var_tree;
+	*prevscope = sh.st;
+	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
+	sh.st.var_local = sh.st.save_tree = sh.var_tree;
 	if(filename)
 	{
-		shp->st.filename = filename;
-		shp->st.lineno = 1;
+		sh.st.filename = filename;
+		sh.st.lineno = 1;
 	}
-	level  = shp->fn_depth+shp->dot_depth+1;
+	level  = sh.fn_depth+sh.dot_depth+1;
 	nv_putval(SH_LEVELNOD,(char*)&level,NV_INT16);
-	shp->st.prevst = prevscope;
-	shp->st.self = &savst;
-	shp->topscope = (Shscope_t*)shp->st.self;
-	prevscope->save_tree = shp->var_tree;
-	tofree = shp->st.filename;
+	sh.st.prevst = prevscope;
+	sh.st.self = &savst;
+	sh.topscope = (Shscope_t*)sh.st.self;
+	prevscope->save_tree = sh.var_tree;
+	tofree = sh.st.filename;
 	if(np)
-		shp->st.filename = np->nvalue.rp->fname;
-	nv_putval(SH_PATHNAMENOD, shp->st.filename ,NV_NOFREE);
-	shp->posix_fun = 0;
+		sh.st.filename = np->nvalue.rp->fname;
+	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
+	sh.posix_fun = 0;
 	if(np || argv[1])
-		argsave = sh_argnew(shp,argv,&saveargfor);
-	sh_pushcontext(shp,&buff,SH_JMPDOT);
+		argsave = sh_argnew(argv,&saveargfor);
+	sh_pushcontext(&sh,&buff,SH_JMPDOT);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
-		shp->dot_depth++;
+		sh.dot_depth++;
 		if(np)
 			sh_exec((Shnode_t*)(nv_funtree(np)),sh_isstate(SH_ERREXIT));
 		else
@@ -323,28 +324,28 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			sh_eval(iop,sh_isstate(SH_PROFILE)?SH_FUNEVAL:0);
 		}
 	}
-	sh_popcontext(shp,&buff);
+	sh_popcontext(&sh,&buff);
 	if(buffer)
 		free(buffer);
 	if(!np)
 		free(tofree);
-	shp->dot_depth--;
+	sh.dot_depth--;
 	if((np || argv[1]) && jmpval!=SH_JMPSCRIPT)
-		sh_argreset(shp,(struct dolnod*)argsave,saveargfor);
+		sh_argreset((struct dolnod*)argsave,saveargfor);
 	else
 	{
-		prevscope->dolc = shp->st.dolc;
-		prevscope->dolv = shp->st.dolv;
+		prevscope->dolc = sh.st.dolc;
+		prevscope->dolv = sh.st.dolv;
 	}
-	if (shp->st.self != &savst)
-		*shp->st.self = shp->st;
+	if (sh.st.self != &savst)
+		*sh.st.self = sh.st;
 	/* only restore the top Shscope_t portion for POSIX functions */
-	memcpy((void*)&shp->st, (void*)prevscope, sizeof(Shscope_t));
-	shp->topscope = (Shscope_t*)prevscope;
-	nv_putval(SH_PATHNAMENOD, shp->st.filename ,NV_NOFREE);
+	memcpy((void*)&sh.st, (void*)prevscope, sizeof(Shscope_t));
+	sh.topscope = (Shscope_t*)prevscope;
+	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
 	if(jmpval && jmpval!=SH_JMPFUN)
-		siglongjmp(*shp->jmplist,jmpval);
-	return(shp->exitval);
+		siglongjmp(*sh.jmplist,jmpval);
+	return(sh.exitval);
 }
 
 /*
@@ -372,7 +373,7 @@ int    b_false(int argc,register char *argv[], Shbltin_t *context)
 int    b_shift(register int n, register char *argv[], Shbltin_t *context)
 {
 	register char *arg;
-	register Shell_t *shp = context->shp;
+	NOT_USED(context);
 	while((n = optget(argv,sh_optshift))) switch(n)
 	{
 		case ':':
@@ -388,23 +389,23 @@ int    b_shift(register int n, register char *argv[], Shbltin_t *context)
 		UNREACHABLE();
 	}
 	argv += opt_info.index;
-	n = ((arg= *argv)?(int)sh_arith(shp,arg):1);
-	if(n<0 || shp->st.dolc<n)
+	n = ((arg= *argv)?(int)sh_arith(arg):1);
+	if(n < 0 || sh.st.dolc < n)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_number,arg);
 		UNREACHABLE();
 	}
 	else
 	{
-		shp->st.dolv += n;
-		shp->st.dolc -= n;
+		sh.st.dolv += n;
+		sh.st.dolc -= n;
 	}
 	return(0);
 }
 
 int    b_wait(int n,register char *argv[],Shbltin_t *context)
 {
-	register Shell_t *shp = context->shp;
+	NOT_USED(context);
 	while((n = optget(argv,sh_optwait))) switch(n)
 	{
 		case ':':
@@ -421,7 +422,7 @@ int    b_wait(int n,register char *argv[],Shbltin_t *context)
 	}
 	argv += opt_info.index;
 	job_bwait(argv);
-	return(shp->exitval);
+	return(sh.exitval);
 }
 
 #ifdef JOBS
@@ -433,8 +434,8 @@ int    b_wait(int n,register char *argv[],Shbltin_t *context)
 int    b_bg(register int n,register char *argv[],Shbltin_t *context)
 {
 	register int flag = **argv;
-	register Shell_t *shp = context->shp;
 	register const char *optstr = sh_optbg; 
+	NOT_USED(context);
 	if(*argv[0]=='f')
 		optstr = sh_optfg;
 	else if(*argv[0]=='d')
@@ -466,13 +467,13 @@ int    b_bg(register int n,register char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_exit(1),e_no_job);
 		UNREACHABLE();
 	}
-	return(shp->exitval);
+	return(sh.exitval);
 }
 
 int    b_jobs(register int n,char *argv[],Shbltin_t *context)
 {
 	register int flag = 0;
-	register Shell_t *shp = context->shp;
+	NOT_USED(context);
 	while((n = optget(argv,sh_optjobs))) switch(n)
 	{
 	    case 'l':
@@ -505,7 +506,7 @@ int    b_jobs(register int n,char *argv[],Shbltin_t *context)
 		UNREACHABLE();
 	}
 	job_wait((pid_t)0);
-	return(shp->exitval);
+	return(sh.exitval);
 }
 #endif
 
@@ -540,7 +541,7 @@ static void	print_cpu_times(void)
 {
 	struct timeval utime, stime;
 	double dtime;
-	int clk_tck = shgd->lim.clk_tck;
+	int clk_tck = sh.lim.clk_tck;
 	struct tms cpu_times;
 	times(&cpu_times);
 	/* Print the time (user & system) consumed by the shell. */

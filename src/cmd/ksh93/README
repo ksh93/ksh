@@ -277,6 +277,7 @@ failures (crashes, and/or important functionality does not work).
 ***	Windows 7 using Cygwin on x86
 ***	Windows 10 using Cygwin on x86_64
 ***	Windows 11 using Cygwin on x86_64
+***	Haiku R1/beta3 on x86_64
 
 #### REPORTING BUGS ####
 

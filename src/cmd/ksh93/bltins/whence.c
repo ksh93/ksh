@@ -44,7 +44,7 @@
 #define Q_FLAG	(1 << 5)
 #define T_FLAG	(1 << 6)
 
-static int whence(Shell_t *,char**, int);
+static int whence(char**, int);
 
 /*
  * command is called with argc==0 when checking for -V or -v option
@@ -54,7 +54,6 @@ static int whence(Shell_t *,char**, int);
 int	b_command(register int argc,char *argv[],Shbltin_t *context)
 {
 	register int n, flags=0;
-	register Shell_t *shp = context->shp;
 	opt_info.index = opt_info.offset = 0;
 	while((n = optget(argv,sh_optcommand))) switch(n)
 	{
@@ -102,7 +101,7 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 	}
 	if(!*argv)
 		return((flags & (X_FLAG|V_FLAG)) != 0 ? 2 : 0);
-	return(whence(shp,argv, flags));
+	return(whence(argv, flags));
 }
 
 /*
@@ -111,7 +110,6 @@ int	b_command(register int argc,char *argv[],Shbltin_t *context)
 int	b_whence(int argc,char *argv[],Shbltin_t *context)
 {
 	register int flags=0, n;
-	register Shell_t *shp = context->shp;
 	NOT_USED(argc);
 	if(*argv[0]=='t')
 		flags = V_FLAG;  /* <t>ype == whence -v */
@@ -151,10 +149,10 @@ int	b_whence(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),optusage((char*)0));
 		UNREACHABLE();
 	}
-	return(whence(shp, argv, flags));
+	return(whence(argv, flags));
 }
 
-static int whence(Shell_t *shp,char **argv, register int flags)
+static int whence(char **argv, register int flags)
 {
 	register const char *name;
 	register Namval_t *np;
@@ -187,7 +185,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			aflag++;
 		}
 		/* non-tracked aliases */
-		if((np=nv_search(name,shp->alias_tree,0))
+		if((np=nv_search(name,sh.alias_tree,0))
 			&& !nv_isnull(np) && !nv_isattr(np,NV_TAGGED)
 			&& (cp=nv_getval(np))) 
 		{
@@ -207,7 +205,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 		}
 	bltins:
 		/* functions */
-		if(!(flags&F_FLAG) && (np = nv_bfsearch(name, shp->fun_tree, &nq, &notused)) && is_afunction(np))
+		if(!(flags&F_FLAG) && (np = nv_bfsearch(name, sh.fun_tree, &nq, &notused)) && is_afunction(np))
 		{
 			if(flags&Q_FLAG)
 				continue;
@@ -219,7 +217,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 				{
 					sfprintf(sfstdout,sh_translate(is_ufunction));
 					pp = 0;
-					while(!path_search(shp,name,&pp,3) && pp && (pp = pp->next))
+					while(!path_search(name,&pp,3) && pp && (pp = pp->next))
 						;
 					if(*stakptr(PATH_OFFSET)=='/')
 						sfprintf(sfstdout,sh_translate(e_autoloadfrom),sh_fmtq(stakptr(PATH_OFFSET)));
@@ -235,7 +233,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			aflag++;
 		}
 		/* built-ins */
-		if((np = nv_bfsearch(name, shp->bltin_tree, &nq, &notused)) && !nv_isnull(np))
+		if((np = nv_bfsearch(name, sh.bltin_tree, &nq, &notused)) && !nv_isnull(np))
 		{
 			if(flags&V_FLAG)
 				if(nv_isattr(np,BLT_SPC))
@@ -262,7 +260,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			/*
 			 * See comments in sh/path.c for info on what path_search()'s true/false return values mean
 			 */
-			if(path_search(shp, name, &pp, aflag>1 ? 3 : 2))
+			if(path_search(name, &pp, aflag>1 ? 3 : 2))
 			{
 				cp = name;
 				if(*cp!='/')
@@ -288,7 +286,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			else if(maybe_undef_fn)
 			{
 				/* Skip defined function or builtin (already done above) */
-				if(!nv_search(cp,shp->fun_tree,0))
+				if(!nv_search(cp,sh.fun_tree,0))
 				{
 					/* Undefined/autoloadable function on FPATH */
 					sfputr(sfstdout,sh_fmtq(cp),-1);
@@ -305,13 +303,13 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 			else if(cp)
 			{
 				int is_pathbound_builtin = 0;
-				cp = path_fullname(shp,cp);  /* resolve '.' & '..' */
+				cp = path_fullname(cp);  /* resolve '.' & '..' */
 				if(flags&(V_FLAG|T_FLAG))
 				{
 					if(!(flags&T_FLAG))
 						sfputr(sfstdout,sh_fmtq(name),' ');
 					/* built-in version of program */
-					if(nv_search(cp,shp->bltin_tree,0))
+					if(nv_search(cp,sh.bltin_tree,0))
 					{
 						if(flags&T_FLAG)
 							is_pathbound_builtin = 1;
@@ -320,7 +318,7 @@ static int whence(Shell_t *shp,char **argv, register int flags)
 					}
 					/* tracked aliases next */
 					else if(!sh_isstate(SH_DEFPATH)
-					&& (np = nv_search(name,shp->track_tree,0))
+					&& (np = nv_search(name,sh.track_tree,0))
 					&& !nv_isattr(np,NV_NOALIAS)
 					&& strcmp(cp,nv_getval(np))==0)
 						msg = sh_translate(is_talias);

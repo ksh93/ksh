@@ -33,33 +33,33 @@
  * IMPORTANT: The offsets on these macros must be synchronous
  * with the order of shtab_builtins[] in data/builtins.c!
  */
-#define SYSEXEC		(shgd->bltin_cmds)	/* exec */
-#define SYSREDIR	(shgd->bltin_cmds+1)	/* redirect */
-#define SYSSET		(shgd->bltin_cmds+2)	/* set */
+#define SYSEXEC		(sh.bltin_cmds)		/* exec */
+#define SYSREDIR	(sh.bltin_cmds+1)	/* redirect */
+#define SYSSET		(sh.bltin_cmds+2)	/* set */
 						/* : */
-#define SYSTRUE		(shgd->bltin_cmds+4)	/* true */
-#define SYSCOMMAND	(shgd->bltin_cmds+5)	/* command */
-#define SYSCD		(shgd->bltin_cmds+6)	/* cd */
-#define SYSBREAK	(shgd->bltin_cmds+7)	/* break */
-#define SYSCONT		(shgd->bltin_cmds+8)	/* continue */
+#define SYSTRUE		(sh.bltin_cmds+4)	/* true */
+#define SYSCOMMAND	(sh.bltin_cmds+5)	/* command */
+#define SYSCD		(sh.bltin_cmds+6)	/* cd */
+#define SYSBREAK	(sh.bltin_cmds+7)	/* break */
+#define SYSCONT		(sh.bltin_cmds+8)	/* continue */
 
-#define SYSTYPESET	(shgd->bltin_cmds+9)	/* typeset     \		*/
+#define SYSTYPESET	(sh.bltin_cmds+9)	/* typeset     \		*/
 						/* autoload	|		*/
-#define SYSCOMPOUND	(shgd->bltin_cmds+11)	/* compound	|		*/
+#define SYSCOMPOUND	(sh.bltin_cmds+11)	/* compound	|		*/
 						/* float	 >typeset range	*/
 						/* functions	|		*/
 						/* integer	|		*/
-#define SYSNAMEREF	(shgd->bltin_cmds+15)	/* nameref      |		*/
-#define SYSTYPESET_END	(shgd->bltin_cmds+15)	/*	       /		*/
+#define SYSNAMEREF	(sh.bltin_cmds+15)	/* nameref      |		*/
+#define SYSTYPESET_END	(sh.bltin_cmds+15)	/*	       /		*/
 
-#define SYSTEST		(shgd->bltin_cmds+16)	/* test */
-#define SYSBRACKET	(shgd->bltin_cmds+17)	/* [ */
-#define SYSLET		(shgd->bltin_cmds+18)	/* let */
-#define SYSEXPORT	(shgd->bltin_cmds+19)	/* export */
-#define SYSDOT		(shgd->bltin_cmds+20)	/* . */
-#define SYSSOURCE	(shgd->bltin_cmds+21)	/* source */
-#define SYSRETURN	(shgd->bltin_cmds+22)	/* return */
-#define SYSENUM		(shgd->bltin_cmds+23)	/* enum */
+#define SYSTEST		(sh.bltin_cmds+16)	/* test */
+#define SYSBRACKET	(sh.bltin_cmds+17)	/* [ */
+#define SYSLET		(sh.bltin_cmds+18)	/* let */
+#define SYSEXPORT	(sh.bltin_cmds+19)	/* export */
+#define SYSDOT		(sh.bltin_cmds+20)	/* . */
+#define SYSSOURCE	(sh.bltin_cmds+21)	/* source */
+#define SYSRETURN	(sh.bltin_cmds+22)	/* return */
+#define SYSENUM		(sh.bltin_cmds+23)	/* enum */
 
 /* entry point for shell special builtins */
 

@@ -196,6 +196,7 @@ extern int	tty_raw(int,int);
 extern int	tty_check(int);
 extern int	tty_set(int, int, struct termios*);
 extern int	sh_ioctl(int,int,void*,int);
+#undef ioctl
 #define ioctl(a,b,c)	sh_ioctl(a,b,c,sizeof(c))
 #ifdef _lib_tcgetattr
     extern int	sh_tcgetattr(int,struct termios*);

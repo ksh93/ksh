@@ -78,7 +78,6 @@ Sfdouble_t nv_getn(Namval_t *np, register Namfun_t *nfp)
 {
 	register Namfun_t	*fp;
 	register Sfdouble_t	d=0;
-	Shell_t			*shp = sh_getinterp();
 	char *str;
 	if((fp = nfp) != NIL(Namfun_t*) && !nv_local)
 		fp = nfp = nfp->next;
@@ -106,7 +105,7 @@ Sfdouble_t nv_getn(Namval_t *np, register Namfun_t *nfp)
 		else
 			str = nv_getv(np,fp?fp:nfp);
 		if(str && *str)
-			d = sh_arith(shp,str);
+			d = sh_arith(str);
 	}
 	return(d);
 }
@@ -291,7 +290,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		int		bflag;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
-		sh_lexopen(lexp, &sh, 0);   /* needs full init (0), not what it calls reinit (1) */
+		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		block(bp,type);
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
@@ -301,7 +300,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 			sh_fun(nq,np,(char**)0);
 		sh_popcontext(&sh, &checkpoint);
 		if(sh.topfd != checkpoint.topfd)
-			sh_iorestore(&sh, checkpoint.topfd, jmpval);
+			sh_iorestore(checkpoint.topfd, jmpval);
 		unblock(bp,type);
 		if(bflag)
 			unblock(bp,LOOKUPS);
@@ -397,7 +396,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
-		sh_lexopen(lexp, &sh, 0);   /* needs full init (0), not what it calls reinit (1) */
+		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		node = *SH_VALNOD;
 		if(!nv_isnull(SH_VALNOD))
 		{
@@ -416,7 +415,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			sh_fun(nq,np,(char**)0);
 		sh_popcontext(&sh, &checkpoint);
 		if(sh.topfd != checkpoint.topfd)
-			sh_iorestore(&sh, checkpoint.topfd, jmpval);
+			sh_iorestore(checkpoint.topfd, jmpval);
 		unblock(bp,type);
 		if(!vp->disc[type])
 			chktfree(np,vp);
@@ -1114,7 +1113,6 @@ Namval_t *nv_search(const char *name, Dt_t *root, int mode)
  */ 
 Namval_t *nv_bfsearch(const char *name, Dt_t *root, Namval_t **var, char **last)
 {
-	Shell_t		*shp = sh_getinterp();
 	int		c,offset = staktell();
 	register char	*sp, *cp=0;
 	Namval_t	*np, *nq;
@@ -1172,12 +1170,12 @@ Namval_t *nv_bfsearch(const char *name, Dt_t *root, Namval_t **var, char **last)
 #if SHOPT_NAMESPACE
 	if(nv_istable(nq))
 	{
-		Namval_t *nsp = shp->namespace;
+		Namval_t *nsp = sh.namespace;
 		if(last==0)
 			return(nv_search(name,root,0));
-		shp->namespace = 0;
+		sh.namespace = 0;
 		stakputs(nv_name(nq));
-		shp->namespace = nsp;
+		sh.namespace = nsp;
 		stakputs(dname-1);
 		stakputc(0);
 		np = nv_search(stakptr(offset),root,0);
@@ -1300,7 +1298,6 @@ struct table
 {
 	Namfun_t	fun;
 	Namval_t	*parent;
-	Shell_t		*shp;
 	Dt_t		*dict;
 };
 
@@ -1316,7 +1313,7 @@ static Namval_t *next_table(register Namval_t* np, Dt_t *root,Namfun_t *fp)
 static Namval_t *create_table(Namval_t *np,const char *name,int flags,Namfun_t *fp)
 {
 	struct table *tp = (struct table *)fp;
-	tp->shp->last_table = np;
+	sh.last_table = np;
 	return(nv_create(name, tp->dict, flags, fp));
 }
 
@@ -1339,9 +1336,12 @@ static Namfun_t *clone_table(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp
 	return(&ntp->fun);
 }
 
+/*
+ * The first two fields must correspond with those in 'struct adata' in name.c and 'struct tdata' in typeset.c
+ * (those fields are used via a type conversion in scanfilter() in name.c)
+ */
 struct adata
 {
-	Shell_t		*sh;
 	Namval_t	*tp;
 	char		*mapname;
 	char		**argnam;
@@ -1351,8 +1351,7 @@ struct adata
 
 static void delete_fun(Namval_t *np, void *data)
 {
-	Shell_t *shp = ((struct adata*)data)->sh;
-	nv_delete(np,shp->fun_tree,NV_NOFREE);
+	nv_delete(np,sh.fun_tree,NV_NOFREE);
 }
 
 static void put_table(register Namval_t* np, const char* val, int flags, Namfun_t* fp)
@@ -1370,8 +1369,7 @@ static void put_table(register Namval_t* np, const char* val, int flags, Namfun_
 		return;
 	memset(&data,0,sizeof(data));
 	data.mapname = nv_name(np);
-	data.sh = ((struct table*)fp)->shp;
-	nv_scan(data.sh->fun_tree,delete_fun,(void*)&data,NV_FUNCTION,NV_FUNCTION|NV_NOSCOPE);
+	nv_scan(sh.fun_tree,delete_fun,(void*)&data,NV_FUNCTION,NV_FUNCTION|NV_NOSCOPE);
 	dtview(root,0);
 	for(mp=(Namval_t*)dtfirst(root);mp;mp=nq)
 	{
@@ -1439,14 +1437,13 @@ Namval_t *nv_parent(Namval_t *np)
 
 Dt_t *nv_dict(Namval_t* np)
 {
-	Shell_t 	*shp=sh_getinterp();
 	struct table *tp = (struct table*)nv_hasdisc(np,&table_disc);
 	if(tp)
 		return(tp->dict);
-	np = shp->last_table;
+	np = sh.last_table;
 	if(np && (tp = (struct table*)nv_hasdisc(np,&table_disc)))
 		return(tp->dict);
-	return(shp->var_tree);
+	return(sh.var_tree);
 }
 
 int nv_istable(Namval_t *np)
@@ -1476,7 +1473,6 @@ Namval_t *nv_mount(Namval_t *np, const char *name, Dt_t *dict)
 	nv_offattr(mp,NV_TABLE);
 	if(!nv_isnull(mp))
 		_nv_unset(mp,NV_RDONLY);
-	tp->shp = sh_getinterp();
 	tp->dict = dict;
 	tp->parent = pp;
 	tp->fun.disc = &table_disc;
@@ -1503,7 +1499,7 @@ const Namdisc_t *nv_discfun(int which)
 int nv_hasget(Namval_t *np)
 {
 	register Namfun_t	*fp;
-	if(np==sh_scoped(&sh,IFSNOD))
+	if(np==sh_scoped(IFSNOD))
 		return(0);	/* avoid BUG_IFSISSET: always return false for IFS */
 	for(fp=np->nvfun; fp; fp=fp->next)
 	{
@@ -1515,13 +1511,12 @@ int nv_hasget(Namval_t *np)
 }
 
 #if SHOPT_NAMESPACE
-Namval_t *sh_fsearch(Shell_t *shp, const char *fname, int add)
+Namval_t *sh_fsearch(const char *fname, int add)
 {
-	Stk_t	*stkp = shp->stk;
-	int	offset = stktell(stkp);
-	sfputr(stkp,nv_name(shp->namespace),'.');
-	sfputr(stkp,fname,0);
-	fname = stkptr(stkp,offset);
+	int	offset = stktell(sh.stk);
+	sfputr(sh.stk,nv_name(sh.namespace),'.');
+	sfputr(sh.stk,fname,0);
+	fname = stkptr(sh.stk,offset);
 	return(nv_search(fname,sh_subfuntree(add&NV_ADD),add));
 }
 #endif /* SHOPT_NAMESPACE */

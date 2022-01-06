@@ -54,11 +54,11 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	register char *dir;
 	Pathcomp_t *cdpath = 0;
 	register const char *dp;
-	register Shell_t *shp = context->shp;
 	int saverrno=0;
 	int rval,pflag=0,eflag=0,ret=1;
 	char *oldpwd;
 	Namval_t *opwdnod, *pwdnod;
+	NOT_USED(context);
 	while((rval = optget(argv,sh_optcd))) switch(rval)
 	{
 		case 'e':
@@ -97,12 +97,12 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	oldpwd = path_pwd(shp,0);
-	opwdnod = sh_scoped(shp,OLDPWDNOD);
-	pwdnod = sh_scoped(shp,PWDNOD);
+	oldpwd = path_pwd();
+	opwdnod = sh_scoped(OLDPWDNOD);
+	pwdnod = sh_scoped(PWDNOD);
 	if(oldpwd == e_dot && pwdnod->nvalue.cp)
 		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
-	if(shp->subshell)
+	if(sh.subshell)
 	{
 		/* clone $OLDPWD and $PWD into the subshell's scope */
 		opwdnod = sh_assignok(opwdnod,1);
@@ -123,7 +123,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	 * If sh_subshell() in subshell.c cannot use fchdir(2) to restore the PWD using a saved file descriptor,
 	 * we must fork any virtual subshell now to avoid the possibility of ending up in the wrong PWD on exit.
 	 */
-	if(shp->subshell && !shp->subshare)
+	if(sh.subshell && !sh.subshare)
 	{
 #if _lib_fchdir
 		if(!test_inode(nv_getval(pwdnod),e_dot))
@@ -140,28 +140,25 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	&& !(dir[0]=='.' && (dir[1]=='/' || dir[1]==0))
 	&& !(dir[0]=='.' && dir[1]=='.' && (dir[2]=='/' || dir[2]==0)))
 	{
-		if((dp=sh_scoped(&sh,CDPNOD)->nvalue.cp) && !(cdpath = (Pathcomp_t*)shp->cdpathlist))
+		if((dp=sh_scoped(CDPNOD)->nvalue.cp) && !(cdpath = (Pathcomp_t*)sh.cdpathlist))
 		{
-			if(cdpath=path_addpath(shp,(Pathcomp_t*)0,dp,PATH_CDPATH))
-			{
-				shp->cdpathlist = (void*)cdpath;
-				cdpath->shp = shp;
-			}
+			if(cdpath=path_addpath((Pathcomp_t*)0,dp,PATH_CDPATH))
+				sh.cdpathlist = (void*)cdpath;
 		}
 	}
 	if(*dir!='/')
 	{
 		/* check for leading .. */
 		char *cp;
-		sfprintf(shp->strbuf,"%s",dir);
-		cp = sfstruse(shp->strbuf);
+		sfprintf(sh.strbuf,"%s",dir);
+		cp = sfstruse(sh.strbuf);
 		pathcanon(cp, 0);
 		if(cp[0]=='.' && cp[1]=='.' && (cp[2]=='/' || cp[2]==0))
 		{
-			if(!shp->strbuf2)
-				shp->strbuf2 = sfstropen();
-			sfprintf(shp->strbuf2,"%s/%s",oldpwd,cp);
-			dir = sfstruse(shp->strbuf2);
+			if(!sh.strbuf2)
+				sh.strbuf2 = sfstropen();
+			sfprintf(sh.strbuf2,"%s/%s",oldpwd,cp);
+			dir = sfstruse(sh.strbuf2);
 			pathcanon(dir, 0);
 		}
 	}
@@ -169,7 +166,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	do
 	{
 		dp = cdpath?cdpath->name:"";
-		cdpath = path_nextcomp(shp,cdpath,dir,0);
+		cdpath = path_nextcomp(cdpath,dir,0);
 #if _WINIX
                 if(*stakptr(PATH_OFFSET+1)==':' && isalpha(*stakptr(PATH_OFFSET)))
 		{
@@ -197,13 +194,13 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 				if(!pathcanon(cp,PATH_DOTDOT))
 					continue;
 		}
-		if((rval=chdir(path_relative(shp,stakptr(PATH_OFFSET)))) >= 0)
+		if((rval=chdir(path_relative(stakptr(PATH_OFFSET)))) >= 0)
 			goto success;
 		if(errno!=ENOENT && saverrno==0)
 			saverrno=errno;
 	}
 	while(cdpath);
-	if(rval<0 && *dir=='/' && *(path_relative(shp,stakptr(PATH_OFFSET)))!='/')
+	if(rval<0 && *dir=='/' && *(path_relative(stakptr(PATH_OFFSET)))!='/')
 		rval = chdir(dir);
 	/* use absolute chdir() if relative chdir() fails */
 	if(rval<0)
@@ -239,27 +236,27 @@ success:
 			dir[len] = 0;
 		nv_putval(pwdnod,dir,NV_RDONLY);
 		nv_onattr(pwdnod,NV_EXPORT);
-		if(shp->pwd)
-			free((void*)shp->pwd);
-		shp->pwd = sh_strdup(pwdnod->nvalue.cp);
+		if(sh.pwd)
+			free((void*)sh.pwd);
+		sh.pwd = sh_strdup(pwdnod->nvalue.cp);
 	}
 	else
 	{
 		/* pathcanon() failed to canonicalize the directory, which happens when 'cd' is invoked from a
 		   nonexistent PWD with a relative path as the argument. Reinitialize $PWD as it will be wrong. */
-		if(shp->pwd)
-			free((void*)shp->pwd);
-		shp->pwd = NIL(const char*);
-		path_pwd(shp,0);
-		if(*shp->pwd != '/')
+		if(sh.pwd)
+			free((void*)sh.pwd);
+		sh.pwd = NIL(const char*);
+		path_pwd();
+		if(*sh.pwd != '/')
 		{
 			errormsg(SH_DICT,ERROR_system(ret),e_direct);
 			UNREACHABLE();
 		}
 	}
 	nv_scan(sh_subtracktree(1),rehash,(void*)0,NV_TAGGED,NV_TAGGED);
-	path_newdir(shp,shp->pathlist);
-	path_newdir(shp,shp->cdpathlist);
+	path_newdir(sh.pathlist);
+	path_newdir(sh.cdpathlist);
 	if(pflag && eflag)
 	{
 		/* Verify the current working directory matches $PWD */
@@ -272,8 +269,8 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 {
 	register int n, flag = 0;
 	register char *cp;
-	register Shell_t *shp = context->shp;
 	NOT_USED(argc);
+	NOT_USED(context);
 	while((n = optget(argv,sh_optpwd))) switch(n)
 	{
 		case 'L':
@@ -294,7 +291,7 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	if(*(cp = path_pwd(shp,0)) != '/')
+	if(*(cp = path_pwd()) != '/')
 	{
 		errormsg(SH_DICT,ERROR_system(1), e_pwd);
 		UNREACHABLE();

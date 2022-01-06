@@ -46,11 +46,7 @@
 struct Shbltin_s;
 typedef struct Shbltin_s Shbltin_t;
 
-#ifdef _SHTABLE_H /* pre-ksh93u+ -- obsolete */
-typedef int (*Shbltin_f)(int, char**, void*);
-#else
 typedef int (*Shbltin_f)(int, char**, Shbltin_t*);
-#endif /* _SHTABLE_H */
 
 struct Shbltin_s
 {

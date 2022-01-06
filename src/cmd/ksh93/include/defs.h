@@ -124,59 +124,56 @@ extern char*	sh_setenviron(const char*);
 #define SH_READEVAL		0x4000	/* for sh_eval */
 #define SH_FUNEVAL		0x10000	/* for sh_eval for function load */
 
-extern void		sh_applyopts(Shell_t*,Shopt_t);
-extern char 		**sh_argbuild(Shell_t*,int*,const struct comnod*,int);
-extern struct dolnod	*sh_argfree(Shell_t *, struct dolnod*,int);
-extern struct dolnod	*sh_argnew(Shell_t*,char*[],struct dolnod**);
-extern void 		*sh_argopen(Shell_t*);
-extern struct argnod	*sh_argprocsub(Shell_t*,struct argnod*);
-extern void 		sh_argreset(Shell_t*,struct dolnod*,struct dolnod*);
+extern char 		**sh_argbuild(int*,const struct comnod*,int);
+extern struct dolnod	*sh_argfree(struct dolnod*,int);
+extern struct dolnod	*sh_argnew(char*[],struct dolnod**);
+extern void 		*sh_argopen(void);
+extern struct argnod	*sh_argprocsub(struct argnod*);
+extern void 		sh_argreset(struct dolnod*,struct dolnod*);
 extern Namval_t		*sh_assignok(Namval_t*,int);
-extern struct dolnod	*sh_arguse(Shell_t*);
+extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
-extern void		sh_chktrap(Shell_t*);
+extern void		sh_chktrap(void);
 extern void		sh_deparse(Sfio_t*,const Shnode_t*,int);
-extern int		sh_debug(Shell_t *shp,const char*,const char*,const char*,char *const[],int);
-extern int 		sh_echolist(Shell_t*,Sfio_t*, int, char**);
-extern struct argnod	*sh_endword(Shell_t*,int);
+extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
 extern char 		**sh_envgen(void);
 extern void 		sh_envnolocal(Namval_t*,void*);
-extern Sfdouble_t	sh_arith(Shell_t*,const char*);
-extern void		*sh_arithcomp(Shell_t *,char*);
-extern pid_t 		sh_fork(Shell_t*,int,int*);
-extern pid_t		_sh_fork(Shell_t*,pid_t, int ,int*);
-extern char 		*sh_mactrim(Shell_t*,char*,int);
-extern int 		sh_macexpand(Shell_t*,struct argnod*,struct argnod**,int);
-extern int		sh_macfun(Shell_t*,const char*,int);
-extern void 		sh_machere(Shell_t*,Sfio_t*, Sfio_t*, char*);
-extern void 		*sh_macopen(Shell_t*);
-extern char 		*sh_macpat(Shell_t*,struct argnod*,int);
-extern Sfdouble_t	sh_mathfun(Shell_t*, void*, int, Sfdouble_t*);
-extern int		sh_outtype(Shell_t*, Sfio_t*);
-extern char 		*sh_mactry(Shell_t*,char*);
+extern Sfdouble_t	sh_arith(const char*);
+extern void		*sh_arithcomp(char*);
+extern pid_t 		sh_fork(int,int*);
+extern pid_t		_sh_fork(pid_t, int ,int*);
+extern char 		*sh_mactrim(char*,int);
+extern int 		sh_macexpand(struct argnod*,struct argnod**,int);
+extern int		sh_macfun(const char*,int);
+extern void 		sh_machere(Sfio_t*, Sfio_t*, char*);
+extern void 		*sh_macopen(void);
+extern char 		*sh_macpat(struct argnod*,int);
+extern Sfdouble_t	sh_mathfun(void*, int, Sfdouble_t*);
+extern int		sh_outtype(Sfio_t*);
+extern char 		*sh_mactry(char*);
 extern int		sh_mathstd(const char*);
 extern void		sh_printopts(Shopt_t,int,Shopt_t*);
-extern int 		sh_readline(Shell_t*,char**,volatile int,int,ssize_t,long);
+extern int 		sh_readline(char**,volatile int,int,ssize_t,long);
 extern Sfio_t		*sh_sfeval(char*[]);
-extern void		sh_setmatch(Shell_t*,const char*,int,int,int[],int);
-extern void             sh_scope(Shell_t*, struct argnod*, int);
-extern Namval_t		*sh_scoped(Shell_t*, Namval_t*);
+extern void		sh_setmatch(const char*,int,int,int[],int);
+extern void             sh_scope(struct argnod*, int);
+extern Namval_t		*sh_scoped(Namval_t*);
 extern Dt_t		*sh_subtracktree(int);
 extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
-extern void		sh_subtmpfile(Shell_t*);
+extern void		sh_subtmpfile(void);
 extern char 		*sh_substitute(const char*,const char*,char*);
-extern void		sh_timetraps(Shell_t*);
+extern void		sh_timetraps(void);
 extern const char	*_sh_translate(const char*);
-extern int		sh_trace(Shell_t*,char*[],int);
+extern int		sh_trace(char*[],int);
 extern void		sh_trim(char*);
 extern int		sh_type(const char*);
-extern void             sh_unscope(Shell_t*);
+extern void             sh_unscope(void);
 extern void		sh_utol(const char*, char*);
 extern int 		sh_whence(char**,int);
 #if SHOPT_NAMESPACE
-    extern Namval_t	*sh_fsearch(Shell_t*,const char *,int);
+    extern Namval_t	*sh_fsearch(const char *,int);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */
@@ -214,7 +211,7 @@ extern char		*sh_getcwd(void);
 #define	sh_getstate()	(sh.st.states)
 #define	sh_setstate(x)	(sh.st.states = (x))
 
-#define sh_sigcheck(shp) do{if((shp)->trapnote&SH_SIGSET)sh_exit(SH_EXITSIG);} while(0)
+#define sh_sigcheck()	do { if(sh.trapnote & SH_SIGSET) sh_exit(SH_EXITSIG); } while(0)
 
 extern int32_t		sh_mailchk;
 extern const char	e_dict[];
@@ -243,7 +240,7 @@ extern const char	e_dict[];
 #   define	STAT_SPAWN	12
 #   define	STAT_SUBSHELL	13
     extern const Shtable_t shtab_stats[];
-#   define sh_stats(x)	(shgd->stats[(x)]++)
+#   define sh_stats(x)	(sh.stats[(x)]++)
 #else
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */

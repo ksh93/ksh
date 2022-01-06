@@ -1408,15 +1408,6 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 	Lookup_t	look;
 	Sfio_t*		tmp;
 
-#if __OBSOLETE__ < 20080101
-	if (pointerof(flags) == (void*)errorf)
-	{
-		conferror = errorf;
-		flags = ASTCONF_error;
-	}
-	else if (conferror && conferror != errorf)
-		conferror = 0;
-#endif
 	if (!name)
 	{
 		if (path)

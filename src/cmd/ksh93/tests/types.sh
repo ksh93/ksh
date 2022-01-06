@@ -596,10 +596,10 @@ $SHELL << \EOF
 	}
 	main
 EOF
-} 2> /dev/null
+}
 if	(( exitval=$?))
-then	if	[[ $(kill -l $exitval) == SEGV ]]
-	then	err_exit 'typeset -m in type discipline causes exception'
+then	if	((exitval>128))
+	then	err_exit "typeset -m in type discipline crashed with SIG$(kill -l $exitval)"
 	else	err_exit 'typeset -m in type discipline gives wrong value'
 	fi
 fi

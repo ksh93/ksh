@@ -380,7 +380,7 @@ static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 	if (!val)
 	{
 		register int i;
-		for(i=0; i< sh.gd->lim.open_max; i++)
+		for(i=0; i< sh.lim.open_max; i++)
 		{
 			if(service_list[i]==sp)
 			{

@@ -19,6 +19,9 @@ tst	output{
 		printf("#include <%s>	/* the native nl_types.h */\n", _nxt_nl_types_str);
 	#endif
 		printf("\n");
+		printf("#ifdef __HAIKU__\n");
+		printf("typedef int	nl_item;  /* workaround system header bug */\n");
+		printf("#endif\n");
 	#ifndef NL_SETMAX
 		printf("#undef	NL_SETMAX\n");
 		printf("#define NL_SETMAX	1023\n");

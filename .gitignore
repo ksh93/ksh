@@ -4,6 +4,10 @@ tgz
 lcl
 
 # Flat make libs, binaries, etc
+*.a
+*.o
+*.req
+FEATURE/
 /bin/.paths
 /bin/crossexec
 /bin/execrate
@@ -11,8 +15,9 @@ lcl
 /bin/iffe
 /bin/ksh
 /bin/mamake
-/bin/proto
 /bin/mktest
+/bin/ok/
+/bin/proto
 /bin/pty
 /bin/regress
 /bin/rt
@@ -20,11 +25,41 @@ lcl
 /bin/suid_exec
 /fun/
 /include/
-/lib/file/
-/lib/*.a
+/lib/
 /man/
+/src/cmd/INIT/crossexec
+/src/cmd/INIT/execrate
+/src/cmd/INIT/filter
+/src/cmd/INIT/iffe
+/src/cmd/INIT/ignore
+/src/cmd/INIT/mamake
+/src/cmd/INIT/mamprobe
+/src/cmd/INIT/mktest
+/src/cmd/INIT/mprobe
+/src/cmd/INIT/package
+/src/cmd/INIT/probe
+/src/cmd/INIT/probe.ini
+/src/cmd/INIT/probe.sh
+/src/cmd/INIT/regress
+/src/cmd/INIT/rt
+/src/cmd/INIT/silent
+/src/cmd/builtin/pty
+/src/cmd/ksh93/ksh
+/src/cmd/ksh93/shcomp
+/src/cmd/ksh93/suid_exec
+/src/lib/libast/*.h
+/src/lib/libast/astmath.exe
+/src/lib/libast/conf
+/src/lib/libast/conftab.c
+/src/lib/libast/lcgen
+/src/lib/libast/lctab.c
+/src/lib/libast/t.c
+/src/lib/libcmd/cmdext.h
+/src/lib/libcmd/cmdlist.h
+/src/lib/libdll/dlldefs.h
 
 # Miscellaneous artefacts
+*.dSYM/
 *.bak
 *.sav
 *.old

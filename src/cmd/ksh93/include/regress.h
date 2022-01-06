@@ -52,7 +52,7 @@ typedef struct Regress_s
 #define SHOPT_P_SUID		sh_regress_p_suid(__LINE__, __FILE__)
 
 extern int			b___regress__(int, char**, Shbltin_t*);
-extern void			sh_regress_init(Shell_t*);
+extern void			sh_regress_init(void);
 extern void			sh_regress(unsigned int, const char*, const char*, unsigned int, const char*);
 extern uid_t			sh_regress_p_suid(unsigned int, const char*);
 extern char*			sh_regress_etc(const char*, unsigned int, const char*);

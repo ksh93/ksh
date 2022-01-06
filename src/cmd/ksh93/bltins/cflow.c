@@ -99,7 +99,7 @@ int	b_break(register int n, register char *argv[],Shbltin_t *context)
 {
 	char *arg;
 	register int cont= **argv=='c';
-	register Shell_t *shp = context->shp;
+	NOT_USED(context);
 	while((n = optget(argv,cont?sh_optcont:sh_optbreak))) switch(n)
 	{
 	    case ':':
@@ -125,13 +125,13 @@ int	b_break(register int n, register char *argv[],Shbltin_t *context)
 			UNREACHABLE();
 		}
 	}
-	if(shp->st.loopcnt)
+	if(sh.st.loopcnt)
 	{
-		shp->st.execbrk = shp->st.breakcnt = n;
-		if(shp->st.breakcnt > shp->st.loopcnt)
-			shp->st.breakcnt = shp->st.loopcnt;
+		sh.st.execbrk = sh.st.breakcnt = n;
+		if(sh.st.breakcnt > sh.st.loopcnt)
+			sh.st.breakcnt = sh.st.loopcnt;
 		if(cont)
-			shp->st.breakcnt = -shp->st.breakcnt;
+			sh.st.breakcnt = -sh.st.breakcnt;
 	}
 	return(0);
 }

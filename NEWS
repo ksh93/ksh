@@ -21,6 +21,13 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   - In emacs mode, Insert escapes the next character.
   - In vi mode, Insert will switch the editor to insert mode (like in vim).
 
+2021-12-29:
+
+- Fixed numerous build errors that prevented ksh from running on Haiku OS.
+
+- Added support for the SIGKILLTHR signal on operating systems that
+  implement it.
+
 2021-12-28:
 
 - Fixed a bug that caused CDPATH to continue working after unsetting it.

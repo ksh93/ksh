@@ -128,7 +128,7 @@ struct argnod
 
 extern struct dolnod	*sh_argcreate(char*[]);
 extern char 		*sh_argdolminus(void*);
-extern int		sh_argopts(int,char*[],void*);
+extern int		sh_argopts(int,char*[]);
 
 
 extern const char	e_heading[];

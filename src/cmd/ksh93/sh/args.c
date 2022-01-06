@@ -83,7 +83,6 @@ static const int flagval[]  =
 
 typedef struct _arg_
 {
-	Shell_t		*sh;
 	struct dolnod	*argfor; /* linked list of blocks to be cleaned up */
 	struct dolnod	*dolh;
 	char flagadr[NUM_OPTS+1];
@@ -92,18 +91,16 @@ typedef struct _arg_
 #endif /* SHOPT_KIA */
 } Arg_t;
 
-static int 		arg_expand(Shell_t*,struct argnod*,struct argnod**,int);
-static void 		sh_argset(Arg_t*, char *[]);
+static int 		arg_expand(struct argnod*,struct argnod**,int);
+static void 		argset(Arg_t*, char *[]);
+static void		applyopts(Shopt_t);
 
 
 /* ======== option handling	======== */
 
-void *sh_argopen(Shell_t *shp)
+void *sh_argopen(void)
 {
-	void *addr = sh_newof(0,Arg_t,1,0);
-	Arg_t *ap = (Arg_t*)addr;
-	ap->sh = shp;
-	return(addr);
+	return(sh_newof(0,Arg_t,1,0));
 }
 
 static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
@@ -119,13 +116,12 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
  *  The -o option is used to set option by name
  *  This routine returns the number of non-option arguments
  */
-int sh_argopts(int argc,register char *argv[], void *context)
+int sh_argopts(int argc,register char *argv[])
 {
-	Shell_t		*shp = (Shell_t*)context;
 	register int	n,o;
-	register Arg_t	*ap = (Arg_t*)(shp->arg_context);
+	register Arg_t	*ap = (Arg_t*)(sh.arg_context);
 #if SHOPT_KIA
-	Lex_t		*lp = (Lex_t*)(shp->lex_context);
+	Lex_t		*lp = (Lex_t*)(sh.lex_context);
 #endif
 	Shopt_t		newflags;
 	int		defaultflag=0, setflag=0, action=0, trace=(int)sh_isoption(SH_XTRACE);
@@ -133,7 +129,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 	const char *cp;
 	int verbose,f;
 	Optdisc_t disc;
-	newflags=ap->sh->options;
+	newflags=sh.options;
 	memset(&disc, 0, sizeof(disc));
 	disc.version = OPT_VERSION;
 	disc.infof = infof;
@@ -150,7 +146,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		switch(n)
 		{
 	 	    case 'A':
-			np = nv_open(opt_info.arg,ap->sh->var_tree,NV_NOASSIGN|NV_ARRAY|NV_VARNAME);
+			np = nv_open(opt_info.arg,sh.var_tree,NV_NOASSIGN|NV_ARRAY|NV_VARNAME);
 			if(f)
 				nv_unset(np);
 			continue;
@@ -193,9 +189,9 @@ int sh_argopts(int argc,register char *argv[], void *context)
 			goto skip;
 		    case 'T':
 			if (opt_info.num)
-				ap->sh->test |= opt_info.num;
+				sh.test |= opt_info.num;
 			else
-				ap->sh->test = 0;
+				sh.test = 0;
 		    	continue;
 		    case 's':
 			if(setflag)
@@ -263,7 +259,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 				on_option(&newflags,SH_LETOCTAL);
 			}
 			on_option(&newflags,o);
-			off_option(&ap->sh->offoptions,o);
+			off_option(&sh.offoptions,o);
 		}
 		else
 		{
@@ -283,7 +279,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 				trace = 0;
 			off_option(&newflags,o);
 			if(setflag==0)
-				on_option(&ap->sh->offoptions,o);
+				on_option(&sh.offoptions,o);
 		}
 	}
 	if(error_info.errors)
@@ -301,7 +297,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		trace = 0;
 	}
 	if(trace)
-		sh_trace(shp,argv,1);
+		sh_trace(argv,1);
 	argc -= opt_info.index;
 	argv += opt_info.index;
 	if(action==PRINT)
@@ -313,7 +309,7 @@ int sh_argopts(int argc,register char *argv[], void *context)
 			if(argc>0)
 				strsort(argv,argc,strcoll);
 			else
-				strsort(ap->sh->st.dolv+1,ap->sh->st.dolc,strcoll);
+				strsort(sh.st.dolv+1,sh.st.dolc,strcoll);
 		}
 		if(np)
 		{
@@ -321,11 +317,11 @@ int sh_argopts(int argc,register char *argv[], void *context)
 			nv_close(np);
 		}
 		else if(argc>0 || ((cp=argv[-1]) && strcmp(cp,"--")==0))
-			sh_argset(ap,argv-1);
+			argset(ap,argv-1);
 	}
 	else if(is_option(&newflags,SH_CFLAG))
 	{
-		if(!(ap->sh->comdiv = *argv++))
+		if(!(sh.comdiv = *argv++))
 		{
 			errormsg(SH_DICT,2,e_cneedsarg);
 			errormsg(SH_DICT,ERROR_usage(2),optusage(NIL(char*)));
@@ -333,8 +329,8 @@ int sh_argopts(int argc,register char *argv[], void *context)
 		}
 		argc--;
 	}
-	/* SH_INTERACTIVE and SH_PRIVILEGED are handled in sh_applyopts() */
-	sh_applyopts(ap->sh,newflags);
+	/* SH_INTERACTIVE and SH_PRIVILEGED are handled in applyopts() */
+	applyopts(newflags);
 #if SHOPT_KIA
 	if(ap->kiafile)
 	{
@@ -370,28 +366,29 @@ int sh_argopts(int argc,register char *argv[], void *context)
 
 /* apply new options */
 
-void sh_applyopts(Shell_t* shp,Shopt_t newflags)
+static void applyopts(Shopt_t newflags)
 {
 	/* cannot set -n for interactive shells since there is no way out */
 	if(sh_isoption(SH_INTERACTIVE))
 		off_option(&newflags,SH_NOEXEC);
 	if(is_option(&newflags,SH_PRIVILEGED))
 		on_option(&newflags,SH_NOUSRPROFILE);
-	if(!sh_isstate(SH_INIT) && is_option(&newflags,SH_PRIVILEGED) != sh_isoption(SH_PRIVILEGED) || sh_isstate(SH_INIT) && is_option(&((Arg_t*)shp->arg_context)->sh->offoptions,SH_PRIVILEGED) && shp->gd->userid!=shp->gd->euserid)
+	if(!sh_isstate(SH_INIT) && is_option(&newflags,SH_PRIVILEGED) != sh_isoption(SH_PRIVILEGED)
+	|| sh_isstate(SH_INIT) && is_option(&sh.offoptions,SH_PRIVILEGED) && sh.userid!=sh.euserid)
 	{
 		if(!is_option(&newflags,SH_PRIVILEGED))
 		{
-			setuid(shp->gd->userid);
-			setgid(shp->gd->groupid);
-			if(shp->gd->euserid==0)
+			setuid(sh.userid);
+			setgid(sh.groupid);
+			if(sh.euserid==0)
 			{
-				shp->gd->euserid = shp->gd->userid;
-				shp->gd->egroupid = shp->gd->groupid;
+				sh.euserid = sh.userid;
+				sh.egroupid = sh.groupid;
 			}
 		}
-		else if((shp->gd->userid!=shp->gd->euserid && setuid(shp->gd->euserid)<0) ||
-			(shp->gd->groupid!=shp->gd->egroupid && setgid(shp->gd->egroupid)<0) ||
-			(shp->gd->userid==shp->gd->euserid && shp->gd->groupid==shp->gd->egroupid))
+		else if((sh.userid!=sh.euserid && setuid(sh.euserid)<0) ||
+			(sh.groupid!=sh.egroupid && setgid(sh.egroupid)<0) ||
+			(sh.userid==sh.euserid && sh.groupid==sh.egroupid))
 				off_option(&newflags,SH_PRIVILEGED);
 	}
 	/* sync monitor (part of job control) state with -o monitor option change */
@@ -399,7 +396,7 @@ void sh_applyopts(Shell_t* shp,Shopt_t newflags)
 		sh_onstate(SH_MONITOR);
 	else if(sh_isoption(SH_MONITOR) && !is_option(&newflags,SH_MONITOR))
 		sh_offstate(SH_MONITOR);
-	shp->options = newflags;
+	sh.options = newflags;
 }
 
 /*
@@ -424,15 +421,15 @@ char *sh_argdolminus(void* context)
 /*
  * set up positional parameters 
  */
-static void sh_argset(Arg_t *ap,char *argv[])
+static void argset(Arg_t *ap,char *argv[])
 {
-	sh_argfree(ap->sh,ap->dolh,0);
+	sh_argfree(ap->dolh,0);
 	ap->dolh = sh_argcreate(argv);
 	/* link into chain */
 	ap->dolh->dolnxt = ap->argfor;
 	ap->argfor = ap->dolh;
-	ap->sh->st.dolc = ap->dolh->dolnum-1;
-	ap->sh->st.dolv = ap->dolh->dolval;
+	sh.st.dolc = ap->dolh->dolnum-1;
+	sh.st.dolv = ap->dolh->dolval;
 }
 
 /*
@@ -442,11 +439,11 @@ static void sh_argset(Arg_t *ap,char *argv[])
  * Delete the blk from the argfor chain
  * If flag is set, then the block dolh is not freed
  */
-struct dolnod *sh_argfree(Shell_t *shp, struct dolnod *blk,int flag)
+struct dolnod *sh_argfree(struct dolnod *blk,int flag)
 {
 	register struct dolnod*	argr=blk;
 	register struct dolnod*	argblk;
-	register Arg_t *ap = (Arg_t*)shp->arg_context;
+	register Arg_t *ap = (Arg_t*)sh.arg_context;
 	if(argblk=argr)
 	{
 		if((--argblk->dolrefcnt)==0)
@@ -507,39 +504,39 @@ struct dolnod *sh_argcreate(register char *argv[])
 /*
  *  used to set new arguments for functions
  */
-struct dolnod *sh_argnew(Shell_t *shp,char *argi[], struct dolnod **savargfor)
+struct dolnod *sh_argnew(char *argi[], struct dolnod **savargfor)
 {
-	register Arg_t *ap = (Arg_t*)shp->arg_context;
+	register Arg_t *ap = (Arg_t*)sh.arg_context;
 	register struct dolnod *olddolh = ap->dolh;
 	*savargfor = ap->argfor;
 	ap->dolh = 0;
 	ap->argfor = 0;
-	sh_argset(ap,argi);
+	argset(ap,argi);
 	return(olddolh);
 }
 
 /*
  * reset arguments as they were before function
  */
-void sh_argreset(Shell_t *shp,struct dolnod *blk, struct dolnod *afor)
+void sh_argreset(struct dolnod *blk, struct dolnod *afor)
 {
-	register Arg_t *ap = (Arg_t*)shp->arg_context;
-	while(ap->argfor=sh_argfree(shp,ap->argfor,0));
+	register Arg_t *ap = (Arg_t*)sh.arg_context;
+	while(ap->argfor=sh_argfree(ap->argfor,0));
 	ap->argfor = afor;
 	if(ap->dolh = blk)
 	{
-		shp->st.dolc = ap->dolh->dolnum-1;
-		shp->st.dolv = ap->dolh->dolval;
+		sh.st.dolc = ap->dolh->dolnum-1;
+		sh.st.dolv = ap->dolh->dolval;
 	}
 }
 
 /*
- * increase the use count so that an sh_argset will not make it go away
+ * increase the use count so that an argset will not make it go away
  */
-struct dolnod *sh_arguse(Shell_t* shp)
+struct dolnod *sh_arguse(void)
 {
 	register struct dolnod *dh;
-	register Arg_t *ap = (Arg_t*)shp->arg_context;
+	register Arg_t *ap = (Arg_t*)sh.arg_context;
 	if(dh=ap->dolh)
 		dh->dolrefcnt++;
 	return(dh);
@@ -639,11 +636,11 @@ void sh_printopts(Shopt_t oflags,register int mode, Shopt_t *mask)
 /*
  * build an argument list
  */
-char **sh_argbuild(Shell_t *shp,int *nargs, const struct comnod *comptr,int flag)
+char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 {
 	register struct argnod	*argp=0;
 	struct argnod *arghead=0;
-	shp->xargmin = 0;
+	sh.xargmin = 0;
 	{
 		register const struct comnod	*ac = comptr;
 		register int n;
@@ -659,19 +656,19 @@ char **sh_argbuild(Shell_t *shp,int *nargs, const struct comnod *comptr,int flag
 			*nargs = ap->dolnum;
 			return(ap->dolval+ap->dolbot);
 		}
-		shp->lastpath = 0;
+		sh.lastpath = 0;
 		*nargs = 0;
 		if(ac)
 		{
 			argp = ac->comarg;
 			while(argp)
 			{
-				n = arg_expand(shp,argp,&arghead,flag);
+				n = arg_expand(argp,&arghead,flag);
 				if(n>1)
 				{
-					if(shp->xargmin==0)
-						shp->xargmin = *nargs;
-					shp->xargmax = *nargs+n;
+					if(sh.xargmin==0)
+						sh.xargmin = *nargs;
+					sh.xargmax = *nargs+n;
 				}
 				*nargs += n;
 				argp = argp->argnxt.ap;
@@ -687,7 +684,7 @@ char **sh_argbuild(Shell_t *shp,int *nargs, const struct comnod *comptr,int flag
 		/* allow room to prepend args */
 		argn += 1;
 
-		comargn=(char**)stkalloc(shp->stk,(unsigned)(argn+1)*sizeof(char*));
+		comargn=(char**)stkalloc(sh.stk,(unsigned)(argn+1)*sizeof(char*));
 		comargm = comargn += argn;
 		*comargn = NIL(char*);
 		if(!argp)
@@ -710,7 +707,7 @@ char **sh_argbuild(Shell_t *shp,int *nargs, const struct comnod *comptr,int flag
 				comargm = comargn;
 			}
 		}
-		shp->last_table = 0;
+		sh.last_table = 0;
 		return(comargn);
 	}
 }
@@ -719,83 +716,83 @@ char **sh_argbuild(Shell_t *shp,int *nargs, const struct comnod *comptr,int flag
 #   define sh_pipe(a)	sh_rpipe(a)
 #endif
 
-struct argnod *sh_argprocsub(Shell_t *shp,struct argnod *argp)
+struct argnod *sh_argprocsub(struct argnod *argp)
 {
 	/* argument of the form <(cmd) or >(cmd) */
 	register struct argnod *ap;
 	int fd, pv[3];
 	int savestates = sh_getstate();
 	char savejobcontrol = job.jobcontrol;
-	unsigned int savesubshell = shp->subshell;
-	ap = (struct argnod*)stkseek(shp->stk,ARGVAL);
+	unsigned int savesubshell = sh.subshell;
+	ap = (struct argnod*)stkseek(sh.stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
 	fd = argp->argflag&ARG_RAW;
-	if(fd==0 && shp->subshell)
-		sh_subtmpfile(shp);
+	if(fd==0 && sh.subshell)
+		sh_subtmpfile();
 #if SHOPT_DEVFD
-	sfwrite(shp->stk,e_devfdNN,8);
+	sfwrite(sh.stk,e_devfdNN,8);
 	pv[2] = 0;
 	sh_pipe(pv);
 #else
 	pv[0] = -1;
-	while(shp->fifo = pathtemp(0,0,0,"ksh.fifo",0), shp->fifo && mkfifo(shp->fifo,0)<0)
+	while(sh.fifo = pathtemp(0,0,0,"ksh.fifo",0), sh.fifo && mkfifo(sh.fifo,0)<0)
 	{
 		if(errno==EEXIST || errno==EACCES || errno==ENOENT || errno==ENOTDIR || errno==EROFS)
 			continue;		/* lost race (name conflict or tmp dir change); try again */
-		shp->fifo = 0;
+		sh.fifo = 0;
 		break;
 	}
-	if(!shp->fifo)
+	if(!sh.fifo)
 	{
 		errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "process substitution: FIFO creation failed");
 		UNREACHABLE();
 	}
-	chmod(shp->fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
-	sfputr(shp->stk,shp->fifo,0);
+	chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
+	sfputr(sh.stk,sh.fifo,0);
 #endif /* SHOPT_DEVFD */
-	sfputr(shp->stk,fmtbase((long)pv[fd],10,0),0);
-	ap = (struct argnod*)stkfreeze(shp->stk,0);
-	shp->inpipe = shp->outpipe = 0;
+	sfputr(sh.stk,fmtbase((long)pv[fd],10,0),0);
+	ap = (struct argnod*)stkfreeze(sh.stk,0);
+	sh.inpipe = sh.outpipe = 0;
 	/* turn off job control */
 	sh_offstate(SH_INTERACTIVE);
 	sh_offstate(SH_MONITOR);
 	sh_offstate(SH_PROFILE);
 	job.jobcontrol = 0;
 	/* run the process substitution */
-	shp->subshell = 0;
+	sh.subshell = 0;
 	if(fd)
-		shp->inpipe = pv;
+		sh.inpipe = pv;
 	else
-		shp->outpipe = pv;
+		sh.outpipe = pv;
 	sh_exec((Shnode_t*)argp->argchn.ap,(int)sh_isstate(SH_ERREXIT));
 	/* restore the previous state */
-	shp->subshell = savesubshell;
+	sh.subshell = savesubshell;
 	job.jobcontrol = savejobcontrol;
 	sh_setstate(savestates);
 #if SHOPT_DEVFD
 	sh_close(pv[1-fd]);
-	sh_iosave(shp,-pv[fd], shp->topfd, (char*)0);
+	sh_iosave(-pv[fd], sh.topfd, (char*)0);
 #else
 	/* remember the FIFO for cleanup in case the command never opens it (see fifo_cleanup(), xec.c) */
-	if(!shp->fifo_tree)
-		shp->fifo_tree = dtopen(&_Nvdisc,Dtoset);
-	nv_search(shp->fifo,shp->fifo_tree,NV_ADD);
-	free(shp->fifo);
-	shp->fifo = 0;
+	if(!sh.fifo_tree)
+		sh.fifo_tree = dtopen(&_Nvdisc,Dtoset);
+	nv_search(sh.fifo,sh.fifo_tree,NV_ADD);
+	free(sh.fifo);
+	sh.fifo = 0;
 #endif /* SHOPT_DEVFD */
 	return(ap);
 }
 
 /* Argument expansion */
-static int arg_expand(Shell_t *shp,register struct argnod *argp, struct argnod **argchain,int flag)
+static int arg_expand(register struct argnod *argp, struct argnod **argchain,int flag)
 {
 	register int count = 0;
 	argp->argflag &= ~ARG_MAKE;
 	if(*argp->argval==0 && (argp->argflag&ARG_EXP))
 	{
 		struct argnod *ap;
-		ap = sh_argprocsub(shp,argp);
+		ap = sh_argprocsub(argp);
 		ap->argchn.ap = *argchain;
 		*argchain = ap;
 		count++;
@@ -819,7 +816,7 @@ static int arg_expand(Shell_t *shp,register struct argnod *argp, struct argnod *
 		}
 		else
 #endif /* SHOPT_OPTIMIZE */
-		count = sh_macexpand(shp,argp,argchain,flag);
+		count = sh_macexpand(argp,argchain,flag);
 	}
 	else
 	{
