@@ -669,7 +669,7 @@ struct _sfrsrv_s
 /* co-process structure */
 typedef struct _sfproc_s	Sfproc_t;
 struct _sfproc_s
-{	int		pid;	/* process id			*/
+{	int		pid;	/* process ID			*/
 	uchar*		rdata;	/* read data being cached	*/
 	int		ndata;	/* size of cached data		*/
 	int		size;	/* buffer size			*/

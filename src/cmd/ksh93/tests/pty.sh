@@ -946,5 +946,17 @@ u ^OK :child-!: \r\n$
 w exit
 !
 
+touch "$tmp/foo bar"
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<!
+L tab completion with space in string
+# https://github.com/ksh93/ksh/pull/413
+
+d 15
+p :test-1:
+w echo $tmp/foo\\\\ \\t
+r ^:test-1: echo $tmp/foo\\\\ bar \\r\\n$
+r ^$tmp/foo bar\\r\\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

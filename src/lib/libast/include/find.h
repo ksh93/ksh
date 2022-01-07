@@ -63,7 +63,7 @@ typedef struct Finddisc_s
 
 typedef struct Find_s
 {
-	const char*	id;		/* library id string		*/
+	const char*	id;		/* library ID string		*/
 	unsigned long	stamp;		/* codes time stamp		*/
 
 #ifdef _FIND_PRIVATE_

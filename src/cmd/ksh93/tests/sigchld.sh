@@ -126,7 +126,7 @@ then	err_exit "CHLD trap failed -- expected 4 args, got $#"
 elif	(( $4 != 0 ))
 then	err_exit "CHLD trap failed -- exit code $4"
 elif	(( $1 != $2 ))
-then	err_exit "child pid mismatch -- got '$1' != '$2'"
+then	err_exit "child PID mismatch -- got '$1' != '$2'"
 elif	(( $3 != 9 ))
 then	err_exit "child status mismatch -- expected '9', got '$3'"
 fi

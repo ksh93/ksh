@@ -86,7 +86,7 @@ typedef struct State_s			/* program state		*/
 	int		interactive;	/* prompt for approval		*/
 	int		recursive;	/* remove subtrees too		*/
 	int		terminal;	/* attached to terminal		*/
-	int		uid;		/* caller uid			*/
+	int		uid;		/* caller UID			*/
 	int		unconditional;	/* enable dir rwx on preorder	*/
 	int		verbose;	/* display each file		*/
 #if _lib_fsync

@@ -128,7 +128,7 @@ unit [ command [ arg ... ] ]
             the files.]
         [+INFO \b\adescription\a?\adescription\a is printed on the
             standard error.]
-        [+INITIALIZE?Called by \bregress\b to initialize a each
+        [+INITIALIZE?Called by \bregress\b to initialize each
             \bTEST\b group.]
         [+INPUT \b[ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?The
 	    standard input is set to either the contents of \afile\a

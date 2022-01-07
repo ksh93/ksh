@@ -1158,7 +1158,7 @@ static void del_line(register Vi_t *vp, int mode)
 
 /*{	DELMOTION( motion, mode )
  *
- *	Delete thru motion.
+ *	Delete through motion.
  *
  *	mode	= 'd', save deleted characters, delete
  *		= 'c', do not save characters, change
@@ -1533,7 +1533,6 @@ static void getline(register Vi_t* vp,register int mode)
 			if(sh_isoption(SH_VI) &&
 				mode != SEARCH &&
 				last_virt >= 0 &&
-				(vp->ed->e_tabcount || !isblank(cur_virt)) &&
 				sh.nextprompt)
 			{
 				if(virtual[cur_virt]=='\\')
@@ -2537,7 +2536,7 @@ addin:
 			--cur_virt;
 			--last_virt;
 			vp->ocur_virt = MAXCHAR;
-			if(c=='=' || (mode<cur_virt && (virtual[cur_virt]==' ' || virtual[cur_virt]=='/')))
+			if(c=='=' || (mode<cur_virt && virtual[cur_virt]=='/'))
 				vp->ed->e_tabcount = 0;
 			return(APPEND);
 		}
@@ -2762,7 +2761,7 @@ deleol:
 		c = '$';
 		goto yankeol;
 
-	case 'y':		/** yank thru motion **/
+	case 'y':		/** yank through motion **/
 		if( mode )
 			c = vp->lastmotion;
 		else

@@ -595,7 +595,7 @@ int test_inode(const char *file1,const char *file2)
 
 
 /*
- * This version of access checks against effective uid/gid
+ * This version of access checks against the effective UID/GID
  * The static buffer statb is shared with test_mode.
  */
 
@@ -612,15 +612,15 @@ int sh_access(register const char *name, register int mode)
 	if(sh.userid==sh.euserid && sh.groupid==sh.egroupid)
 		return(access(name,mode));
 #ifdef _lib_setreuid
-	/* swap the real uid to effective, check access then restore */
-	/* first swap real and effective gid, if different */
+	/* swap the real UID to effective, check access then restore */
+	/* first swap real and effective GID, if different */
 	if(sh.groupid==sh.euserid || setregid(sh.egroupid,sh.groupid)==0)
 	{
-		/* next swap real and effective uid, if needed */
+		/* next swap real and effective UID, if needed */
 		if(sh.userid==sh.euserid || setreuid(sh.euserid,sh.userid)==0)
 		{
 			mode = access(name,mode);
-			/* restore ids */
+			/* restore IDs */
 			if(sh.userid!=sh.euserid)
 				setreuid(sh.userid,sh.euserid);
 			if(sh.groupid!=sh.egroupid)

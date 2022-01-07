@@ -464,7 +464,7 @@ runve(int mode, const char* path, char* const* argv, char* const* envv)
 	{
 		/*
 		 * 2004-02-29 Cygwin _P_DETACH is useless:
-		 *	spawn*() returns 0 instead of the spawned pid
+		 *	spawn*() returns 0 instead of the spawned PID
 		 *	spawned { pgid sid } are the same as the parent
 		 */
 

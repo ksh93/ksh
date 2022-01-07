@@ -126,7 +126,7 @@ struct _vtmutex_s
 /* structure for states of thread */
 struct _vthread_s
 {	_vtself_t	self;		/* self-handle		*/
-	_vtid_t		id;		/* thread id		*/
+	_vtid_t		id;		/* thread ID		*/
 	_vtattr_t	attrs;		/* attributes		*/
 	size_t		stack;		/* stack size		*/
 	int		state;		/* execution state	*/

@@ -83,7 +83,7 @@ string:
 	strls		ls -l format support
 	strmatch	Korn shell file pattern match
 	strmode		return ls -l style output given st.st_mode
-	strsignal	return signal id string given SIG* number
+	strsignal	return signal ID string given SIG* number
 	strtape		convert generic tape unit to /dev/* file
 	token		generate space separated tokens in string
 

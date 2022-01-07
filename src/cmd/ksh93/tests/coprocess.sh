@@ -29,7 +29,7 @@ fi
 
 bintrue=$(whence -p true)
 
-function ping # id
+function ping # ID
 {
 	integer x=0
 	while ((x++ < 5))

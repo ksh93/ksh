@@ -2897,7 +2897,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 		{
 			/*
 			 * errno==EPERM means that an earlier processes
-			 * completed.  Make parent the job group id.
+			 * completed.  Make parent the job group ID.
 			 */
 			if(postid==0)
 				job.curpgid = parent;

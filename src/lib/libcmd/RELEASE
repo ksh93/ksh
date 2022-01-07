@@ -92,7 +92,7 @@
 08-04-01 stty.c: fix off2 uninitialized reference
 08-03-28 chgrp.c: add --before=file
 08-03-14 pids.c: add
-08-03-11 chgrp.c: fix -m to use uid:gid as lookup key
+08-03-11 chgrp.c: fix -m to use UID:GID as lookup key
 08-02-11 Makefile: add -lmd possibly required by sumlib.o -- hack alert
 08-01-30 expr.c: fix <=0 type that broke substr * 1 * -- wow
 07-12-13 cp.c: fix builtin state reinitialization
@@ -299,7 +299,7 @@
 	 mkdir: fix -p default mode
 97-12-07 mkdir: fix umask() reset
 97-11-11 chown,chgrp: proper interpretation of -h,-l for lchown()
-	 chown,chgrp: only chown() if uid or gid change
+	 chown,chgrp: only chown() if UID or GID change
 97-10-31 mkdir: do umask right
 97-08-11 cmdinit: clear opt_info.index to allow multiple calls
 	 cp,ln,mv: add
@@ -324,7 +324,7 @@
 	 add void* context 3rd arg to b_main()
 95-05-09 add getconf
 	 cat -u avoids mmap
-	 add chown|chgrp -m uid|gid map file
+	 add chown|chgrp -m UID|GID map file
 	 add chown|chgrp -P for systems with lchown(2)
 	 chown|chgrp -P => lstat() too!
 	 chmod|chown|chgrp -HLP

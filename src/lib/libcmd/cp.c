@@ -45,7 +45,7 @@ static const char usage_cp[] =
 "[A:attributes?Preserve selected file attributes:]:[eipt]"
     "{"
         "[+e?Everything permissible.]"
-        "[+i?Owner uid and gid.]"
+        "[+i?Owner UID and GID.]"
         "[+p?Permissions.]"
         "[+t?Access and modify times.]"
     "}"
@@ -144,7 +144,7 @@ static const char usage_tail[] =
 #define LN		2
 #define MV		3
 
-#define PRESERVE_IDS	0x1		/* preserve uid gid		*/
+#define PRESERVE_IDS	0x1		/* preserve UID and GID		*/
 #define PRESERVE_PERM	0x2		/* preserve permissions		*/
 #define PRESERVE_TIME	0x4		/* preserve times		*/
 
@@ -172,7 +172,7 @@ typedef struct State_s			/* program state		*/
 	int		remove;		/* remove destination before op	*/
 	int		suflen;		/* strlen(state.suffix)		*/
 	int		sync;		/* fsync() each file after copy	*/
-	int		uid;		/* caller uid			*/
+	int		uid;		/* caller UID			*/
 	int		update;		/* replace only if newer	*/
 	int		verbose;	/* list each file before op	*/
 	int		wflags;		/* open() for write flags	*/

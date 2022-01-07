@@ -50,7 +50,7 @@ function grep
 	done
 	noprint=$vflag$cflag$lflag		# don't print if these flags are set
 	integer n=0 c=0 tc=0 nargs=$#		# initialize counters
-	for i in "$@"				# go thru the files
+	for i in "$@"				# go through the files
 	do	if	((nargs<=1))
 		then	fname=''
 		else	fname="$i":

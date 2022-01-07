@@ -66,31 +66,31 @@ static const char	usage[] =
     "the specific intercept for \aoption\a, and \ainfo\a is \aoption\a "
     "specific information. Unless noted otherwise, one regression test trace "
     "line is produced each time an enabled intercept is called.]"
-"[101:egid?The intercept effective gid is set to \aoriginal-egid\a. The "
-    "effective gid of the underlying system process is not affected. The "
+"[101:egid?The intercept effective GID is set to \aoriginal-egid\a. The "
+    "effective GID of the underlying system process is not affected. The "
     "trace line info is either \begid==rgid\b or \begid!=rgid\b. The "
     "intercepts are:]#?[original-egid:=1]"
     "{"
-        "[+getegid()?The intercept effective gid is returned. The "
-            "\bsetgid\b() intercept may change this between the real gid and "
+        "[+getegid()?The intercept effective GID is returned. The "
+            "\bsetgid\b() intercept may change this between the real GID and "
             "\aoriginal-egid\a.]"
-        "[+setgid(gid)?Sets the intercept effective gid to \agid\a. "
-            "Fails if \agid\a is neither the real gid nor "
+        "[+setgid(gid)?Sets the intercept effective GID to \agid\a. "
+            "Fails if \agid\a is neither the real GID nor "
             "\aoriginal-egid\a.]"
     "}"
-"[102:euid?The intercept effective uid is set to \aoriginal-euid\a. The "
-    "effective uid of the underlying system process is not affected. The "
+"[102:euid?The intercept effective UID is set to \aoriginal-euid\a. The "
+    "effective UID of the underlying system process is not affected. The "
     "trace line info is either \beuid==ruid\b or \beuid!=ruid\b. The "
     "intercepts are:]#?[original-euid:=1]"
     "{"
-        "[+geteuid()?The intercept effective uid is returned. The "
-            "\bsetuid\b() intercept may change this between the real uid and "
+        "[+geteuid()?The intercept effective UID is returned. The "
+            "\bsetuid\b() intercept may change this between the real UID and "
             "\aoriginal-euid\a.]"
-        "[+setuid(uid)?Sets the intercept effective uid to \auid\a. "
-            "Fails if \auid\a is neither the real uid nor "
+        "[+setuid(uid)?Sets the intercept effective UID to \auid\a. "
+            "Fails if \auid\a is neither the real UID nor "
             "\aoriginal-euid\a.]"
     "}"
-"[103:p_suid?Specifies a value for SHOPT_P_SUID. Effective uids greater "
+"[103:p_suid?Specifies a value for SHOPT_P_SUID. Effective UIDs greater "
     "than the non-privileged-uid disable the privileged mode. The intercepts "
     "are:]#?[non-privileged-uid:=1]"
     "{"
@@ -146,7 +146,7 @@ void sh_regress(unsigned int index, const char* intercept, const char* info, uns
 }
 
 /*
- * egid intercepts
+ * EGID intercepts
  */
 
 static gid_t	intercept_sgid = 0;
@@ -189,7 +189,7 @@ int setgid(gid_t gid)
 }
 
 /*
- * euid intercepts
+ * EUID intercepts
  */
 
 static uid_t	intercept_suid = 0;

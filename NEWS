@@ -3,7 +3,7 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
-2021-12-31:
+2022-01-07:
 
 - Added support for Home key sequences ^[[1~ and ^[[7~ as well as End key
   sequences ^[[4~ and ^[[8~.
@@ -20,6 +20,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   editing modes:
   - In emacs mode, Insert escapes the next character.
   - In vi mode, Insert will switch the editor to insert mode (like in vim).
+
+2022-01-04:
+
+- Fixed an issue in vi mode that caused tab completion to fail if the
+  last character on the command line was a space.
 
 2021-12-29:
 

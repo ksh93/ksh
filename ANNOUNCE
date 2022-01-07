@@ -99,6 +99,12 @@ New shell language features:
   command, which never worked and crashed the shell. See the manual for
   details on the new method.
 
+- A new ${.sh.pid} variable has been added with similar functionality to
+  Bash's $BASHPID variable. It is set to the current shell's PID, unlike
+  $$ (which is set to the main shell's PID). In virtual subshells
+  ${.sh.pid} is not changed from its previous value, while in forked
+  subshells ${.sh.pid} is set to the subshell's process ID.
+
 New features in built-in commands:
 
 - Usage error messages now show the --help/--man self-documentation options.

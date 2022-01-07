@@ -43,7 +43,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     template commands in the \aunit\a.\brt\b file. The generated test
     script writes temporary output to '$PREFIX$'\aunit\a.tmp and compares
     it to the expected output in '$PREFIX$'\aunit\a.out. Run the test
-    script with the \b--accept\b option to (re)generate the
+    script with the \b--accept\b option to (re)generate
     '$PREFIX$'\aunit\a.out.]
 [s:style?The script style:]:[style:='$STYLE$']
     {

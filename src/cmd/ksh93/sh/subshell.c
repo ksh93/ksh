@@ -76,7 +76,7 @@ static struct subshell
 	Dt_t		*strack;/* tracked alias scope for subshell */
 	Pathcomp_t	*pathlist; /* for PATH variable */
 	Shopt_t		options;/* save shell options */
-	pid_t		subpid;	/* child process id */
+	pid_t		subpid;	/* child process ID */
 	Sfio_t*		saveout;/* saved standard output */
 	char		*pwd;	/* present working directory */
 	void		*jobs;	/* save job info */

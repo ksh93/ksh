@@ -55,7 +55,7 @@ static const char usage[] =
 "[i:implementation|platform|hardware-platform?The hardware implementation;"
 "	this is \b--host-id\b on some systems.]"
 "[o:operating-system?The generic operating system name.]"
-"[h:host-id|id?The host id in hex.]"
+"[h:host-id|id?The host ID in hex.]"
 "[d:domain?The domain name returned by \agetdomainname\a(2).]"
 "[R:extended-release?The extended release name.]"
 "[A:everything?Equivalent to \b-snrvmpiohdR\b.]"

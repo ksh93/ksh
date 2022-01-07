@@ -1556,7 +1556,7 @@ static void	print_attribute(register Namval_t *np,void *data)
 
 /*
  * print the nodes in tree <root> which have attributes <flag> set
- * of <option> is non-zero, no subscript or value is printed.
+ * if <option> is non-zero, no subscript or value is printed
  */
 
 static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tdata *tp)
@@ -1566,7 +1566,7 @@ static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tda
 	register int namec;
 	Namval_t *onp = 0;
 	char	*name=0;
-	int	len;
+	size_t	len;
 	sh.last_table=0;
 	flag &= ~NV_ASSIGN;
 	tp->scanmask = flag&~NV_NOSCOPE;

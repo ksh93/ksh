@@ -51,7 +51,7 @@ extern int		setpgrp(void);
 #endif
 
 /*
- * set process group id
+ * set process group ID
  */
 
 int

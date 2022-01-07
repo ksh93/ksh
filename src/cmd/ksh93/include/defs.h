@@ -91,8 +91,8 @@ extern char*	sh_setenviron(const char*);
 #define SH_CMDLIB_DIR	"/opt/ast/bin"
 #endif
 
-#define SH_ID			"ksh"	/* ksh id */
-#define SH_STD			"sh"	/* standard sh id */
+#define SH_ID			"ksh"	/* ksh ID */
+#define SH_STD			"sh"	/* standard sh ID */
 
 /* defines for sh_type() */
 

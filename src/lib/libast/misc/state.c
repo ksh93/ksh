@@ -29,7 +29,7 @@ static const char id[] = "\n@(#)$Id: ast (AT&T Research) 2012-05-28 $\0\n";
 
 _Ast_info_t	_ast_info =
 {
-	"libast",	/* id */
+	"libast",	/* ID */
 	{ 0 },
 	0,0,0,0,0,
 	strcmp,		/* collate */

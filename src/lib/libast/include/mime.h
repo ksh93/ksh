@@ -64,7 +64,7 @@ struct Mimedisc_s
 
 struct Mime_s
 {
-	const char*	id;		/* library id string		*/
+	const char*	id;		/* library ID string		*/
 
 #ifdef _MIME_PRIVATE_
 	_MIME_PRIVATE_

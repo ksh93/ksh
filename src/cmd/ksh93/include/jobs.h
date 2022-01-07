@@ -60,7 +60,7 @@ struct process
 	struct process *p_nxtjob;	/* next job structure */
 	struct process *p_nxtproc;	/* next process in current job */
 	int		*p_exitval;	/* place to store the exitval */
-	pid_t		p_pid;		/* process id */
+	pid_t		p_pid;		/* process ID */
 	pid_t		p_pgrp;		/* process group */
 	pid_t		p_fgrp;		/* process group when stopped */
 	short		p_job;		/* job number of process */
@@ -78,11 +78,11 @@ struct jobs
 {
 	struct process	*pwlist;	/* head of process list */
 	int		*exitval;	/* pipe exit values */
-	pid_t		curpgid;	/* current process gid id */
+	pid_t		curpgid;	/* current process GID */
 	pid_t		parent;		/* set by fork() */
-	pid_t		mypid;		/* process id of shell */
-	pid_t		mypgid;		/* process group id of shell */
-	pid_t		mytgid;		/* terminal group id of shell */
+	pid_t		mypid;		/* process ID of shell */
+	pid_t		mypgid;		/* process group ID of shell */
+	pid_t		mytgid;		/* terminal group ID of shell */
 	int		curjobid;
 	unsigned int	in_critical;	/* >0 => in critical region */
 	int		savesig;	/* active signal */
