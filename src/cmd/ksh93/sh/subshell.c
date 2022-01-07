@@ -495,7 +495,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	int argcnt;
 	memset((char*)sp, 0, sizeof(*sp));
 	sfsync(sh.outpool);
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	sh.savesig = -1;
 	if(argsav = sh_arguse())
 		argcnt = argsav->dolrefcnt;
@@ -900,7 +900,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sh_chktrap();
 		}
 	}
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	sh.trapnote = 0;
 	nsig = sh.savesig;
 	sh.savesig = 0;

@@ -570,7 +570,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 			sh_onstate(SH_HISTORY);
 		job.waitall = job.curpgid = 0;
 		error_info.flags |= ERROR_INTERACTIVE;
-		t = (Shnode_t*)sh_parse(&sh,iop,0);
+		t = (Shnode_t*)sh_parse(iop,0);
 		if(!sh_isstate(SH_INTERACTIVE) && !sh_isoption(SH_CFLAG))
 			error_info.flags &= ~ERROR_INTERACTIVE;
 		sh.readscript = 0;

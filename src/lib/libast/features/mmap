@@ -19,6 +19,9 @@ tst	lib_mmap note{ standard mmap interface that works }end execute{
 	int
 	main(int argc, char** argv)
 	{
+	#ifdef __HAIKU__
+		return 1;  /* don't even bother, on Haiku it freezes the system */
+	#endif
 		caddr_t		mm;
 		char		*t, *u, *f;
 		int		i, fd, okfixed;

@@ -211,7 +211,7 @@ extern char		*sh_getcwd(void);
 #define	sh_getstate()	(sh.st.states)
 #define	sh_setstate(x)	(sh.st.states = (x))
 
-#define sh_sigcheck(shp) do{if((shp)->trapnote&SH_SIGSET)sh_exit(SH_EXITSIG);} while(0)
+#define sh_sigcheck()	do { if(sh.trapnote & SH_SIGSET) sh_exit(SH_EXITSIG); } while(0)
 
 extern int32_t		sh_mailchk;
 extern const char	e_dict[];
@@ -240,7 +240,7 @@ extern const char	e_dict[];
 #   define	STAT_SPAWN	12
 #   define	STAT_SUBSHELL	13
     extern const Shtable_t shtab_stats[];
-#   define sh_stats(x)	(shgd->stats[(x)]++)
+#   define sh_stats(x)	(sh.stats[(x)]++)
 #else
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */

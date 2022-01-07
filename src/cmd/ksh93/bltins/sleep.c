@@ -124,7 +124,7 @@ skip:
 		sh_delay(d,sflag);
 		if(sflag || tloc==0 || errno!=EINTR || sh.lastsig)
 			break;
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		if(tloc < (now=time(NIL(time_t*))))
 			break;
 		d = (double)(tloc-now);

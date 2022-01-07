@@ -36,7 +36,7 @@ unsigned int	sh_isoption(int \fIoption\fP);
 unsigned int	sh_onoption(int \fIoption\fP);
 unsigned int	sh_offoption(int \fIoption\fP);
 
-void		*sh_parse(Shell_t *\fIshp\fP, Sfio_t *\fIsp\fP, int \fIflags\fP);
+void		*sh_parse(Sfio_t *\fIsp\fP, int \fIflags\fP);
 int 		sh_trap(const char *\fIstring\fP, int \fImode\fP);
 int		sh_run(int \fIargc\fP, char *\fIargv\fP[]);
 int 		sh_eval(Sfio_t *\fIsp\fP, int \fImode\fP);
@@ -116,7 +116,11 @@ initialize this library before any other commands in this library
 are invoked.
 The arguments \fIargc\fP and \fIargv\fP are the number
 of arguments and the vector of arguments as supplied by the shell.
-It returns a pointer to the \f3Shell_t\fP shell state structure.
+It returns a pointer to the \f3sh\fP shell state structure
+which is of type \f3Shell_t\fP.
+Since only one shell interpreter per process is supported,
+there is only one instance of \f3sh\fP,
+so it does not matter whether it is accessed directly or via a pointer.
 .TP
 .B 3
 To build a new version of \f3ksh\fP with extended capabilities,
@@ -151,8 +155,13 @@ The \f3Shell_t\fP structure contains the following fields:
 	int             \fIsavexit\fP;        \fR/* $? == exit status of the last command executed */\fP
 .ft R
 .fi
-This structure is returned by \f3sh_init()\fP but can also be retrieved
+As of ksh 93u+m, it is once again officially supported to access this
+structure directly as \f3sh\fP. In addition, a pointer to
+this structure is returned by \f3sh_init()\fP but can also be retrieved
 by a call to \f3sh_getinterp()\fP.
+There are other fields not documented here, but they should be considered
+unstable and subject to change between releases; programs using libshell
+should not rely on them.
 .PP
 All built-in commands to the shell are invoked with
 three arguments.  The first two arguments give the
@@ -291,8 +300,8 @@ If \fImode\fP is non-zero and the history file has
 been created, the stream defined by \fIsp\fP
 will be appended to the history file as a command.
 .PP
-The \f3sh_parse()\fP function takes a pointer to the
-shell interpreter \fIshp\fP, a pointer to a string or file stream
+The \f3sh_parse()\fP function takes
+a pointer to a string or file stream
 \fIsp\fP, and compilation flags, and returns a pointer
 to a parse tree of the compiled stream.  This pointer can
 be used in subsequent calls to \f3sh_trap()\fP.

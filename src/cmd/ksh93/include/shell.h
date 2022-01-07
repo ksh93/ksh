@@ -28,7 +28,7 @@
  *
  */
 
-#define SH_VERSION	20211229
+#define SH_VERSION	20220106
 
 #include	<ast.h>
 #include	<cdt.h>
@@ -258,7 +258,6 @@ struct Shell_s
 
 	/* The following members are not considered to be part of the documented API.
 	 * Programs using libshell should not rely on them as they may change. */
-	Shell_t		*gd;		/* pointer to self for backwards compatibility (was: global data) */
 	int		subshell;	/* set for virtual subshell */
 	int		realsubshell;	/* ${.sh.subshell}, actual subshell level (including virtual and forked) */
 	char		shcomp;		/* set when running shcomp */
@@ -416,13 +415,12 @@ extern Libcomp_t *liblist;
 #	define extern __EXPORT__
 #endif /* _DLL */
 
-extern Dt_t		*sh_bltin_tree(void);
 extern void		sh_subfork(void);
 extern Shell_t		*sh_init(int,char*[],Shinit_f);
 extern int		sh_reinit(char*[]);
 extern int 		sh_eval(Sfio_t*,int);
 extern void 		sh_delay(double,int);
-extern void		*sh_parse(Shell_t*, Sfio_t*,int);
+extern void		*sh_parse(Sfio_t*,int);
 extern int 		sh_trap(const char*,int);
 extern int 		sh_fun(Namval_t*,Namval_t*, char*[]);
 extern int 		sh_funscope(int,char*[],int(*)(void*),void*,int);
@@ -454,7 +452,7 @@ extern mode_t 		sh_umask(mode_t);
 extern void		*sh_waitnotify(Shwait_f);
 extern Shscope_t	*sh_getscope(int,int);
 extern Shscope_t	*sh_setscope(Shscope_t*);
-extern void		sh_sigcheck(Shell_t*);
+extern void		sh_sigcheck(void);
 extern unsigned long	sh_isoption(int);
 extern unsigned long	sh_onoption(int);
 extern unsigned long	sh_offoption(int);
@@ -464,11 +462,10 @@ extern int		sh_exec(const Shnode_t*,int);
 /*
  * As of 93u+m, direct access to sh is no longer obsolete, and
  * shgd ("global data") is no longer a separately allocated struct;
- * sh_getinterp() and shgd are provided here for compatibility.
+ * sh_getinterp() is here for compatibility with the documented interface.
  */
 extern Shell_t		sh;
 #define	sh_getinterp()	(&sh)
-#define shgd		(&sh)
 
 #ifdef _DLL
 #   undef extern

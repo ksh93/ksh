@@ -776,7 +776,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 	sh.path_err = 0;
 	while(1)
 	{
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		sh.bltin_dir = 0;
 		/* In this loop, oldpp is the current pointer.
 		   pp is the next pointer. */
@@ -1042,7 +1042,7 @@ noreturn void path_exec(register const char *arg0,register char *argv[],struct a
 		pp = pp->next;
 	if(pp || slash) do
 	{
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		if(libpath=pp)
 		{
 			pp = path_nextcomp(pp,arg0,0);
@@ -1198,7 +1198,7 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 	envp[0][0] =  '_';
 	envp[0][1] =  '=';
 	sfsync(sfstderr);
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	path = path_relative(opath);
 #ifdef SHELLMAGIC
 	if(*path!='/' && path!=opath)
@@ -1417,6 +1417,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 	if(sh.sigflag[SIGCHLD]==SH_SIGOFF)
 		sh.sigflag[SIGCHLD] = SH_SIGFAULT;
 	siglongjmp(*sh.jmplist,SH_JMPSCRIPT);
+	UNREACHABLE();  /* silence warning on Haiku */
 }
 
 #if SHOPT_ACCT

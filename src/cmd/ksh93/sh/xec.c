@@ -699,7 +699,7 @@ int sh_eval(register Sfio_t *iop, int mode)
 			if(traceon=sh_isoption(SH_XTRACE))
 				sh_offoption(SH_XTRACE);
 		}
-		t = (Shnode_t*)sh_parse(&sh,iop,(mode&(SH_READEVAL|SH_FUNEVAL))?mode&SH_FUNEVAL:SH_NL);
+		t = (Shnode_t*)sh_parse(iop,(mode&(SH_READEVAL|SH_FUNEVAL))?mode&SH_FUNEVAL:SH_NL);
 		if(!(mode&SH_FUNEVAL) || !sfreserve(iop,0,0))
 		{
 			if(!(mode&SH_READEVAL))
@@ -917,7 +917,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 {
 	Stk_t			*stkp = sh.stk;
 	int			unpipe=0;
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	if(t && !sh.st.execbrk && !sh_isoption(SH_NOEXEC))
 	{
 		register int 	type = flags;
@@ -976,7 +976,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			{
 				argp = t->com.comarg;
 				if(argp && *com && !(argp->argflag&ARG_RAW))
-					sh_sigcheck(&sh);
+					sh_sigcheck();
 			}
 			np = (Namval_t*)(t->com.comnamp);
 			nq = (Namval_t*)(t->com.comnamq);
@@ -2864,7 +2864,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	int	sig,nochild;
 	if(parent<0)
 	{
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		if((forkcnt *= 2) > 1000L*SH_FORKLIM)
 		{
 			forkcnt=1000L;
@@ -2991,7 +2991,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	sh.savesig = 0;
 	if(sig>0)
 		kill(sh.current_pid,sig);
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	usepipe=0;
 	return(0);
 }

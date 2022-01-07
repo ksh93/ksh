@@ -8,6 +8,13 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed an issue in vi mode that caused tab completion to fail if the
   last character on the command line was a space.
 
+2021-12-29:
+
+- Fixed numerous build errors that prevented ksh from running on Haiku OS.
+
+- Added support for the SIGKILLTHR signal on operating systems that
+  implement it.
+
 2021-12-28:
 
 - Fixed a bug that caused CDPATH to continue working after unsetting it.

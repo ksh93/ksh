@@ -1414,7 +1414,7 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 {
 	register char *cp;
 	int	indent=tp->indent, outname=0, isfun;
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	if(flag)
 		flag = '\n';
 	if(tp->noref && nv_isref(np))

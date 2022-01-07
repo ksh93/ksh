@@ -366,14 +366,13 @@ static Shnode_t	*makelist(Lex_t *lexp, int type, Shnode_t *l, Shnode_t *r)
  * Flag can be the union of SH_EOF|SH_NL
  */
 
-void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
+void	*sh_parse(Sfio_t *iop, int flag)
 {
 	register Shnode_t	*t;
 	Lex_t			*lexp = (Lex_t*)sh.lex_context;
 	Fcin_t	sav_input;
 	struct argnod *sav_arg = lexp->arg;
 	int	sav_prompt = sh.nextprompt;
-	NOT_USED(shp);  /* keep for compat as sh_parse() is a documented interface */
 	if(sh.binscript && (sffileno(iop)==sh.infd || (flag&SH_FUNEVAL)))
 		return((void*)sh_trestore(iop));
 	fcsave(&sav_input);
@@ -814,7 +813,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		if(fcfill() >= 0)
 			fcseek(-1);
 		if(sh_isstate(SH_HISTORY) && sh.hist_ptr)
-			t->funct.functloc = sfseek(sh.gd->hist_ptr->histfp,(off_t)0,SEEK_CUR);
+			t->funct.functloc = sfseek(sh.hist_ptr->histfp, (off_t)0, SEEK_CUR);
 		else
 		{
 			/* copy source to temporary file */

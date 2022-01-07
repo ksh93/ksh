@@ -2141,7 +2141,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 		sp = sfnew(NIL(Sfio_t*),str,c,-1,SF_STRING|SF_READ);
 		c = sh.inlineno;
 		sh.inlineno = error_info.line+sh.st.firstline;
-		t = (Shnode_t*)sh_parse(&sh, sp,SH_EOF|SH_NL);
+		t = (Shnode_t*)sh_parse(sp,SH_EOF|SH_NL);
 		sh.inlineno = c;
 		type = 1;
 	}

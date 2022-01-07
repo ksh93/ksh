@@ -1221,7 +1221,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		error_info.id = path_basename(argv[0]);
 	}
 	umask(sh.mask=umask(0));
-	sh.gd = &sh;	/* backwards compatibility pointer (there was formerly a separate global data struct) */
 	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
 	sh.lex_context = (void*)sh_lexopen(0,1);
@@ -1240,8 +1239,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 
 		regress[0] = "__regress__";
 		regress[2] = 0;
-		/* NOTE: only shp is used by __regress__ at this point */
-		sh.bltindata.shp = &sh;
 		while ((a = *++av) && a[0] == '-' && (a[1] == 'I' || a[1] == '-' && a[2] == 'r'))
 		{
 			if (a[1] == 'I')
@@ -1986,6 +1983,7 @@ static void env_import_attributes(char *next)
 
 /*
  * libshell compatibility functions
+ * (libshell programs do not get the macros)
  */
 #define BYPASS_MACRO
 
@@ -2004,15 +2002,9 @@ unsigned long sh_offoption BYPASS_MACRO (int opt)
 	return(sh_offoption(opt));
 }
 
-void	sh_sigcheck BYPASS_MACRO (Shell_t *shp)
+void	sh_sigcheck BYPASS_MACRO (void)
 {
-	NOT_USED(shp);
-	sh_sigcheck(&sh);
-}
-
-Dt_t*	sh_bltin_tree(void)
-{
-	return(sh.bltin_tree);
+	sh_sigcheck();
 }
 
 /*

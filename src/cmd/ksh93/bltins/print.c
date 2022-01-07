@@ -419,7 +419,7 @@ static int echolist(Sfio_t *outfile, int raw, char *argv[])
 		if(*argv)
 			if(sfputc(outfile,' ') < 0)
 				exitval = 1;
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 	}
 	return(!pdata.cescape);
 }

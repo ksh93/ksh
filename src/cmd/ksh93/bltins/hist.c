@@ -226,7 +226,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			sfputc(outfile,'\t');
 		hist_list(sh.hist_ptr,outfile,hist_tell(sh.hist_ptr,range[flag]),0,arg);
 		if(lflag)
-			sh_sigcheck(&sh);
+			sh_sigcheck();
 		if(range[flag] == range[1-flag])
 			break;
 		range[flag] += incr;
