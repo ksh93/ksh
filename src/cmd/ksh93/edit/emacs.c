@@ -1083,6 +1083,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			return(-1);
 #endif
 		case '[':	/* feature not in book */
+		case 'O':	/* Haiku terminal */
 			switch(i=ed_getchar(ep->ed,1))
 			{
 			    case 'A':
@@ -1185,6 +1186,18 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				else if(ch == ';' && ed_getchar(ep->ed,1) == '5' && ed_getchar(ep->ed,1) == '~')
 				{ /* Ctrl-Delete (delete next word) */
 					ch = 'd';
+					goto forward;
+				}
+				ed_ungetchar(ep->ed,i);
+				return(-1);
+			    case '5':  /* Haiku terminal Ctrl-Arrow key */
+				switch(ed_getchar(ep->ed,1))
+				{
+				    case 'D': /* Ctrl-Left arrow (go back one word) */
+					ch = 'b';
+					goto backward;
+				    case 'C': /* Ctrl-Right arrow (go forward one word) */
+					ch = 'f';
 					goto forward;
 				}
 				ed_ungetchar(ep->ed,i);

@@ -1618,7 +1618,8 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		tcur_virt = last_virt;
 		break;
 
-	case '[':
+	case '[':	/* feature not in book */
+	case 'O':	/* Haiku terminal */
 		switch(motion=ed_getchar(vp->ed,-1))
 		{
 		    case 'A':
@@ -1680,12 +1681,12 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				{
 					switch(ed_getchar(vp->ed,-1))
 					{
-						case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
-							ed_ungetchar(vp->ed, 'b');
-							return(1);
-						case 'C': /* Ctrl/Alt-Right arrow (go forward one word) */
-							ed_ungetchar(vp->ed, 'w');
-							return(1);
+					    case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
+						ed_ungetchar(vp->ed, 'b');
+						return(1);
+					    case 'C': /* Ctrl/Alt-Right arrow (go forward one word) */
+						ed_ungetchar(vp->ed, 'w');
+						return(1);
 					}
 				}
 			}
@@ -1714,6 +1715,18 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				/* Ctrl-Delete */
 				vp->del_word = 1;
 				ed_ungetchar(vp->ed,'d');
+				return(1);
+			}
+			ed_ungetchar(vp->ed,motion);
+			return(0);
+		    case '5':  /* Haiku terminal Ctrl-Arrow key */
+			switch(ed_getchar(vp->ed,-1))
+			{
+			    case 'D': /* Ctrl-Left arrow (go back one word) */
+				ed_ungetchar(vp->ed, 'b');
+				return(1);
+			    case 'C': /* Ctrl-Right arrow (go forward one word) */
+				ed_ungetchar(vp->ed, 'w');
 				return(1);
 			}
 			ed_ungetchar(vp->ed,motion);
