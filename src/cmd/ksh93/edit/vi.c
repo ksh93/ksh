@@ -754,7 +754,7 @@ static int cntlmode(Vi_t *vp)
 		if(mvcursor(vp,c))
 		{
 			sync_cursor(vp);
-			if( c != '[' )
+			if( c != '[' && c != 'O' )
 				vp->repeat = 1;
 			continue;
 		}
@@ -1037,7 +1037,7 @@ static int cntlmode(Vi_t *vp)
 			if(lookahead)
 			{
 				ed_ungetchar(vp->ed,c=ed_getchar(vp->ed,1));
-				if(c=='[')
+				if(c=='[' || c=='O')
 					continue;
 			}
 			/* FALLTHROUGH */
@@ -1619,7 +1619,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		break;
 
 	case '[':	/* feature not in book */
-	case 'O':	/* Haiku terminal */
+	case 'O':	/* after running top <ESC>O instead of <ESC>[ */
 		switch(motion=ed_getchar(vp->ed,-1))
 		{
 		    case 'A':

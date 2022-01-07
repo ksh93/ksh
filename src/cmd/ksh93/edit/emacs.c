@@ -1083,7 +1083,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			return(-1);
 #endif
 		case '[':	/* feature not in book */
-		case 'O':	/* Haiku terminal */
+		case 'O':	/* after running top <ESC>O instead of <ESC>[ */
 			switch(i=ed_getchar(ep->ed,1))
 			{
 			    case 'A':
