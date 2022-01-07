@@ -129,7 +129,7 @@ ccmaplist(Ccmap_t* mp)
 }
 
 /*
- * return ccode map id given name
+ * return ccode map ID given name
  */
 
 int
@@ -158,7 +158,7 @@ ccmapid(const char* name)
 }
 
 /*
- * return ccode map name given id
+ * return ccode map name given ID
  */
 
 char*

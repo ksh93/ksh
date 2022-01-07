@@ -112,7 +112,7 @@ typedef struct Error_context_s Error_context_t;
 	int	line;			/* input|output line number	*/ \
 	int	warnings;		/* ERROR_WARNING count		*/ \
 	char*	file;			/* input|output file name	*/ \
-	char*	id;			/* command id			*/
+	char*	id;			/* command ID			*/
 
 struct Error_context_s			/* context stack element	*/
 {

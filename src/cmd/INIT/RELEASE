@@ -528,7 +528,7 @@
 02-10-18 probe.win32: update for mingw
 	 make.probe: add bash workaround to SHELLMAGIC test
 	 package.sh: work around yet another Cygwin hassle
-02-10-17 iffe.sh: short circuit id check for *[-+/\\]*
+02-10-17 iffe.sh: short circuit ID check for *[-+/\\]*
 02-10-08 regress.sh: unset FIGNORE to avoid rm . errors
 	 package.sh: unset FIGNORE to avoid rm . errors
 	 package.sh: $CC must at least compile and executable hello world
@@ -580,7 +580,7 @@
 02-03-24 mamake.c: all shell actions wrapped with -c to avoid #! problems
 02-03-23 package.sh: recover $PACKAGEROOT/bin/package if not in INIT package
 	 package.sh: precheck $CC, not `cc'
-	 package.sh: fix install to use pax -ps to preserve set-uid/gid
+	 package.sh: fix install to use pax -ps to preserve setuid/setgid
 	 package.sh: fix install to use list.installed for existing files only
 02-03-17 package.sh: fix PAX initialization that was sometimes omitted for read
 	 package.sh: fix update delta sync fetch
@@ -906,7 +906,7 @@
 96-10-11 iffe: *.iffe and *.iff for iffe src files
 	 hostinfo: tighten sgi.mips CPU type check
 96-10-01 C.probe: add probe_libdir to catch alpha /usr/shlib
-96-09-17 iffe: fix typ bug that failed for single id types!
+96-09-17 iffe: fix typ bug that failed for single ID types!
 96-08-31 hostinfo: handle recent SGI hinv CPU changes
 96-07-17 make sure sizeof(long xxx)>sizeof(xxx) for typ long.xxx
 96-05-09 C.probe: drop multiple / in stdinclude

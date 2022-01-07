@@ -139,7 +139,7 @@ typedef struct Push_s
 typedef struct Tag_s
 {
 	unsigned char	level;		/* indent level			*/
-	unsigned char	id;		/* TAG_* id			*/
+	unsigned char	id;		/* TAG_* ID			*/
 } Tag_t;
 
 typedef struct Indent_s

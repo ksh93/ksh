@@ -29,7 +29,7 @@ static char**		ids;
 static const char*	dflt[] = { "ast", "standard", 0 };
 
 /*
- * initialize the conformance() id list
+ * initialize the conformance() ID list
  */
 
 static char**
@@ -97,8 +97,8 @@ initconformance(void)
 }
 
 /*
- * return conformance id if s size n is in conformance
- * prefix match of s on the conformance id table
+ * return conformance ID if s size n is in conformance
+ * prefix match of s on the conformance ID table
  * s==0 => "standard"
  */
 

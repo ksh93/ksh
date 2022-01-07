@@ -1042,7 +1042,7 @@ function foo
 	typeset pid
 	$tmp1 > $tmp2 & pid=$!
 	wait $!
-	[[ $(< $tmp2) == $pid ]] || err_exit 'wrong pid for & job in function'
+	[[ $(< $tmp2) == $pid ]] || err_exit 'wrong PID for & job in function'
 }
 foo
 # make sure compiled functions work

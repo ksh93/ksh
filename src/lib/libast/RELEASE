@@ -223,7 +223,7 @@
 09-12-04 features/options: add "opt map-libc" check
 09-12-03 tm/tmxdate.c: fix 'next month final day' for dec -> jan
 09-11-21 misc/magic.tab: add gimp XCF
-09-11-20 vmalloc/vmtrace.c: add pid to assertion diagnostics
+09-11-20 vmalloc/vmtrace.c: add PID to assertion diagnostics
 09-11-11 regex.h,regcomp.c: add REG_CLASS_ESCAPE, \ inside [...] literal by default
 09-11-03 regex/regcache.c: change to variable length pattern strings
 09-10-28 include/error.h: fix ERROR_translate() arg parens
@@ -1300,7 +1300,7 @@
 	 astgetconf: add for thread safe error message control
 	 astlicense: fix type=special but with non-null notice
 	 errorx: add for ERROR_translate() support
-	 ERROR_translate: add locale id args for alternate dictionary
+	 ERROR_translate: add locale ID args for alternate dictionary
 	 option.h: move _OPT_PRIVATE_ to pointer to avoid dll size mismatch
 	 ftwalk: fix FTW_CHILDREN bug that hit top level non-dirs twice
 	 translate.c: default error_info.translate
@@ -1310,7 +1310,7 @@
 00-03-07 optget: fix numeric option support test
 	 sfkeyprintf: add %q for '...' quoting with ANSI escapes
 00-03-06 features/stdio: fix _sfflsbuf prototype (dingold@gte.net)
-00-02-14 pathtmp: fix pid cache bug that sometimes repeated after ~10 attempts
+00-02-14 pathtmp: fix PID cache bug that sometimes repeated after ~10 attempts
 	 optget: "..." attribute quote
 	 pathfind: eliminate *: prefix in lib, not type
 	 proc: PROC_FOREGROUND for system(3) semantics (wait status return)
@@ -1372,7 +1372,7 @@
 99-05-21 tm*: add TM_WINDOW==69 for consistent century windowing guard year
 99-05-18 tmtime: add century leap year calc anticipating unsigned time_t
 99-05-17 sfkeyprintf: handle %o and %x!!
-99-05-09 pathprobe: $HOME/.probe if not suid and st_uid!=geteuid()
+99-05-09 pathprobe: $HOME/.probe if not SUID and st_uid!=geteuid()
 99-04-28 magic,magic.tab: add registry()
 99-04-24 regcomp: fix ksh pattern +! parse
 	 regfatalpat: add
@@ -1430,7 +1430,7 @@
 98-06-01 disc/sf*.c: memset(0) after disc malloc()
 98-05-11 strelapsed: y==Y
 	 fts: pathcanon() top list
-98-04-01 error: error_info.time for all msgs, just after cmd id
+98-04-01 error: error_info.time for all msgs, just after cmd ID
 	 error: no sfsync(sfstdin)
 	 sfio: sfpool, Sffmt_t update
 	 magic.tab: SGI core dumps -- why aren't these ELF?
@@ -1486,7 +1486,7 @@
 	 sfio: update including SF_WHOLE
 97-10-01 sfdostext: add \r\n => \n sfio discipline
 	 stropt: NiL table => p=name for all name=value
-97-08-11 pathtmp: check pid to note forks
+97-08-11 pathtmp: check PID to note forks
 	 procopen: FD_CLOEXEC rfd && wfd
 	 fts: fts_close() after fts_children() with no fts_read() now works
 97-07-17 error: sfsync(sfstdin,sfstdout,sfstderr) instead of sfsync(NiL)

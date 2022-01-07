@@ -24,7 +24,7 @@
  * Glenn Fowler
  * AT&T Bell Laboratories
  *
- * uid number -> name
+ * UID number -> user name
  */
 
 #if defined(__STDPP__directive) && defined(__STDPP__hide)
@@ -53,7 +53,7 @@ typedef struct Id_s
 } Id_t;
 
 /*
- * return uid name given uid number
+ * return user name for given UID number
  */
 
 char*

@@ -21,7 +21,7 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * access() euid/egid implementation
+ * access() EUID/EGID implementation
  */
 
 #include <ast.h>

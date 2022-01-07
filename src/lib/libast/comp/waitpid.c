@@ -23,7 +23,7 @@
 /*
  * POSIX waitpid()
  *
- * pid < -1 WUNTRACED may not be fully supported
+ * PID < -1 WUNTRACED may not be fully supported
  * process group specifics ignored by non-{waitpid,wait4}
  */
 

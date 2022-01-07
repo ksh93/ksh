@@ -35,7 +35,7 @@
 /*
  * return 1 if files a and b are the same under preroot
  *
- * NOTE: the kernel disables preroot for set-uid processes
+ * NOTE: the kernel disables preroot for setuid processes
  */
 
 static int

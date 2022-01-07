@@ -536,7 +536,7 @@ if builtin cat 2> /dev/null; then
 	done
 fi
 
-$SHELL -c 'kill -0 123456789123456789123456789' 2> /dev/null && err_exit 'kill not catching process id overflows'
+$SHELL -c 'kill -0 123456789123456789123456789' 2> /dev/null && err_exit 'kill not catching process ID overflows'
 
 [[ $($SHELL -c '{ cd..; print ok;}' 2> /dev/null) == ok ]] || err_exit 'command name ending in .. causes shell to abort'
 

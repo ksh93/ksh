@@ -163,8 +163,8 @@ const char e_autoloadfrom[]	= " (autoload from %s)";
     const char e_jobsrunning[]	= "You have running jobs";
     const char e_no_job[]	= "no such job";
     const char e_no_proc[]	= "no such process";
-    const char e_badpid[]	= "%s: invalid process id";
-    const char e_jobusage[]	= "%s: Arguments must be %%job or process ids";
+    const char e_badpid[]	= "%s: invalid process ID";
+    const char e_jobusage[]	= "%s: Arguments must be %%job or process IDs";
 #endif /* JOBS */
 const char e_coredump[]		= "(coredump)";
 const char e_alphanum[]		= "[_[:alpha:]]*([_[:alnum:]])";

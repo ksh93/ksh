@@ -123,7 +123,7 @@
 #define REG_ENULL	14		/* empty subexpr in pattern	*/
 #define REG_ECOUNT	15		/* re component count overflow	*/
 #define REG_BADESC	16		/* invalid \char escape		*/
-#define REG_VERSIONID	17		/* version id (pseudo error)	*/
+#define REG_VERSIONID	17		/* version ID (pseudo error)	*/
 #define REG_EFLAGS	18		/* flags conflict		*/
 #define REG_EDELIM	19		/* invalid or omitted delimiter	*/
 #define REG_PANIC	20		/* unrecoverable internal error	*/

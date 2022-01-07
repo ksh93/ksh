@@ -157,8 +157,8 @@ const struct shtable3 shtab_builtins[] =
 };
 
 #define _JOB_	"[+?Each \ajob\a can be specified as one of the following:]{" \
-        "[+\anumber\a?\anumber\a refers to a process id.]" \
-        "[+-\anumber\a?\anumber\a refers to a process group id.]" \
+        "[+\anumber\a?\anumber\a refers to a process ID.]" \
+        "[+-\anumber\a?\anumber\a refers to a process group ID.]" \
         "[+%\anumber\a?\anumber\a refer to a job number.]" \
         "[+%\astring\a?Refers to a job whose name begins with \astring\a.]" \
         "[+%??\astring\a?Refers to a job whose name contains \astring\a.]" \
@@ -272,12 +272,12 @@ const char sh_set[] =
 	"to \b-o posix\b and \b--noposix\b is equivalent to \b+o posix\b. "
 	"However, option names with a \bno\b prefix "
 	"are turned on by omitting \bno\b.]"
-"[p?Privileged mode.  Disabling \b-p\b sets the effective user id to the "
-	"real user id, and the effective group id to the real group id.  "
-	"Enabling \b-p\b restores the effective user and group ids to their "
+"[p?Privileged mode.  Disabling \b-p\b sets the effective user ID to the "
+	"real user ID, and the effective group ID to the real group ID.  "
+	"Enabling \b-p\b restores the effective user and group IDs to their "
 	"values when the shell was invoked.  The \b-p\b option is on "
-	"whenever the real and effective user id is not equal or the "
-	"real and effective group id is not equal.  User profiles are "
+	"whenever the real and effective user ID is not equal or the "
+	"real and effective group ID is not equal.  User profiles are "
 	"not processed when \b-p\b is enabled.]"
 "[r?restricted.  Enables restricted shell.  This option cannot be unset once "
 	"enabled.]"
@@ -923,11 +923,11 @@ const char sh_optjobs[] =
 	"shell removes the jobs from the list of known jobs in "
 	"the current shell environment.]"
 _JOB_
-"[l?\bjobs\b displays process ids after the job number in addition "
+"[l?\bjobs\b displays process IDs after the job number in addition "
 	"to the usual information]"
 "[n?Only the jobs whose status has changed since the last prompt "
 	"is displayed.]"
-"[p?The process group leader ids for the specified jobs are displayed.]"
+"[p?The process group leader IDs for the specified jobs are displayed.]"
 "\n"
 "\n[job ...]\n"
 "\n"
@@ -2035,7 +2035,7 @@ const char sh_optwait[]	=
 	"\ajob\a operands are specified, \bwait\b waits until all of them "
 	"have completed.]"
 _JOB_
-"[+?If one or more \ajob\a operands is a process id or process group id "
+"[+?If one or more \ajob\a operands is a process ID or process group ID "
 	"not known by the current shell environment, \bwait\b treats each "
 	"of them as if it were a process that exited with status 127.]"
 "\n"
@@ -2047,7 +2047,7 @@ _JOB_
 	"Otherwise, it will be one of the following:]{"
 	"[+0?\bwait\b utility was invoked with no operands and all "
 		"processes known by the invoking process have terminated.]"
-	"[+127?\ajob\a is a process id or process group id that is unknown "
+	"[+127?\ajob\a is a process ID or process group ID that is unknown "
 		"to the current shell environment.]"
 "}"
 

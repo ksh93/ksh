@@ -99,7 +99,7 @@ typedef struct  _shlex_
 	unsigned long	unknown;	/* <unknown> entity number */
 	off_t		kiabegin;	/* offset of first entry */
 	char		*scriptname;	/* name of script file */
-	Dt_t		*entity_tree;	/* for entity ids */
+	Dt_t		*entity_tree;	/* for entity IDs */
 #endif /* SHOPT_KIA */
 	/* The following two struct members are considered private to lex.c */
 	struct _shlex_pvt_lexdata_  lexd;
@@ -167,7 +167,7 @@ typedef struct  _shlex_
 #define	SH_ASSIGN	020
 #define	SH_FUNDEF	040
 #define SH_ARRAY	0100
-#define SH_SEMI		0200	/* semi-colon after NL ok */
+#define SH_SEMI		0200	/* semicolon after NL ok */
 
 #define SH_COMPASSIGN	010	/* allow compound assignments only */
 

@@ -36,7 +36,7 @@ The options have the following defaults and meanings:
                      background job will block until a running background job
                      completes. (2) SIGCHLD traps are queued so that each
                      completing background job gets its own trap; $! is set to
-                     the job pid and $? is set to the job exit status at the
+                     the job PID and $? is set to the job exit status at the
                      beginning of the trap.
 
     BRACEPAT     on  Brace expansion. Expands abc{d,e}f to abcdf abcef.
@@ -120,8 +120,8 @@ The options have the following defaults and meanings:
 
     PFSH         off Compile with support for profile shell. (Solaris; obsolete)
 
-    P_SUID       off If set, all real uids, greater than or equal to this
-                     value will require the -p flag to run suid/sgid scripts.
+    P_SUID       off If set, all real UIDs, greater than or equal to this
+                     value will require the -p flag to run SUID/SGID scripts.
 
     RAWONLY      on  Turn on if the vi line mode doesn't work right unless
                      you do a set -o viraw.
@@ -208,7 +208,7 @@ permission, the SUID_EXEC compile option must be on, and ksh must be installed
 in the /bin directory, the /usr/bin directory, the /usr/lbin directory,
 or the /usr/local/bin directory and the name must end in sh. The program
 suid_exec must be installed in the /etc directory, must be owned by root,
-and must be a suid program.  If you must install ksh in some other directory
+and must be an SUID program.  If you must install ksh in some other directory
 and want to be able to run setuid/setgid and execute only scripts, then
 you will have to change the source code file sh/suid_exec.c explicitly.
 If you do not have ksh in one of these secure locations, /bin/sh will
@@ -251,6 +251,7 @@ failures (crashes, and/or important functionality does not work).
 *	AIX 7.1 on RISC (PowerPC)
 *	DragonFly BSD 5.8 on x86_64
 	FreeBSD 12.2 on x86_64
+	FreeBSD 13.0 on x86_64
 	FreeBSD 12.2 on arm64 (thanks to hyenias for donating access to a Pi)
 	GNU/Linux: Alpine 3.12.3 (musl C library) on x86_64
 	GNU/Linux: CentOS 8.2 on x86_64
@@ -270,6 +271,7 @@ failures (crashes, and/or important functionality does not work).
 *	NetBSD 8.1 on x86_64
 *	NetBSD 9.2 on x86_64
 *	OpenBSD 6.8 on x86_64
+	OpenBSD 7.0 on x86_64
 **	QNX 6.5.0 on i386
 *	Solaris 11.4 (gcc) on x86_64
 	Solaris 11.4 (Solaris Studio 12.5 cc) on x86_64
@@ -278,6 +280,7 @@ failures (crashes, and/or important functionality does not work).
 ***	Windows 10 using Cygwin on x86_64
 ***	Windows 11 using Cygwin on x86_64
 ***	Haiku R1/beta3 on x86_64
+*	Windows 11 using WSL 2 with Ubuntu 20.04 on x86_64
 
 #### REPORTING BUGS ####
 

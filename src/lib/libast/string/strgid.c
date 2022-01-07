@@ -24,7 +24,7 @@
  * Glenn Fowler
  * AT&T Bell Laboratories
  *
- * gid name -> number
+ * group name -> GID number
  */
 
 #if defined(__STDPP__directive) && defined(__STDPP__hide)
@@ -60,8 +60,8 @@ typedef struct Id_s
 } Id_t;
 
 /*
- * return gid number given gid/uid name
- * gid attempted first, then uid->pw_gid
+ * return GID number for given group name
+ * gr->gr_gid attempted first, then pw->pw_gid
  * -1 on first error for a given name
  * -2 on subsequent errors for a given name
  */

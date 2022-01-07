@@ -204,7 +204,7 @@ static int mminit(Mmdisc_t* mmdc)
 		 		     MAP_SHARED, fd, (off_t)0 );
 	}
 	else 
-	{	/* make the key and get/create an id for the share mem segment */
+	{	/* make the key and get/create an ID for the share mem segment */
 		if((key = ftok(mmdc->file, mmdc->proj)) < 0 )
 			goto done;
 		if((mmdc->shmid = shmget(key, size, IPC_CREAT|FILE_MODE)) < 0 )

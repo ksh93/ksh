@@ -226,7 +226,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 	if (lib && *lib && (*lib != '-' || *(lib + 1)))
 	{
 		/*
-		 * grab the local part of the library id
+		 * grab the local part of the library ID
 		 */
 
 		if (s = strrchr(lib, ':'))

@@ -47,7 +47,7 @@ typedef struct Optdisc_s
 {
 	unsigned long	version;	/* OPT_VERSION			*/
 	unsigned long	flags;		/* OPT_* flags			*/
-	char*		catalog;	/* error catalog id		*/
+	char*		catalog;	/* error catalog ID		*/
 	Optinfo_f	infof;		/* runtime info function	*/
 } Optdisc_t;
 

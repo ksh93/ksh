@@ -24,7 +24,7 @@
  * Glenn Fowler
  * AT&T Bell Laboratories
  *
- * cached gid number -> name
+ * cached GID number -> group name
  */
 
 #if defined(__STDPP__directive) && defined(__STDPP__hide)
@@ -53,7 +53,7 @@ typedef struct Id_s
 } Id_t;
 
 /*
- * return gid name given gid number
+ * return group name for given GID number
  */
 
 char*

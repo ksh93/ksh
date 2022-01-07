@@ -159,7 +159,7 @@ characters in the middle of the line.
 
 typedef enum
 {
-	FIRST,		/* First time thru for logical line, prompt on screen */
+	FIRST,		/* First time through for logical line, prompt on screen */
 	REFRESH,	/* Redraw entire screen */
 	APPEND,		/* Append char before cursor to screen */
 	UPDATE,		/* Update the screen as need be */
@@ -1509,8 +1509,8 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	}
 			
 	/*********************
-	 Is the range of screen[0] thru screen[w_size] up-to-date
-	 with nscreen[offset] thru nscreen[offset+w_size] ?
+	 Is the range of screen[0] through screen[w_size] up-to-date
+	 with nscreen[offset] through nscreen[offset+w_size] ?
 	 If not, update as need be.
 	***********************/
 	

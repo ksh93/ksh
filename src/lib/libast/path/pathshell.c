@@ -36,7 +36,7 @@
  *
  * SHELL is read from the environment and must start with /
  *
- * if set-uid or set-gid then the executable and its containing
+ * if setuid or setgid then the executable and its containing
  * directory must not be owned by the real user/group
  *
  * root/administrator has its own test

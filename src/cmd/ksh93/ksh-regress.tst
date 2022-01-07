@@ -6,7 +6,7 @@ UNIT ksh-regress
 
 EXPORT HOME=. ENV=.env.sh LC_ALL=C HISTFILE=''
 
-TEST 01 'mode suid/sgid combinations'
+TEST 01 'mode SUID/SGID combinations'
 
 	EXEC	--regress=etc=. --regress=source
 		INPUT - 'set --state'

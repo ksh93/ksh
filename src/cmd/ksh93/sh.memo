@@ -1692,7 +1692,7 @@ The digits are represented by the characters
 For bases less than or equal to 36,
 upper and lower case characters can
 be used interchangeably to represent the digits
-from 10 thru 35.
+from 10 through 35.
 .P
 Arithmetic expressions are made from constants,
 variables, and operators.
@@ -2836,7 +2836,7 @@ Assignment to this variable sets the seed for the
 random number generator.
 .P
 The parameter \fB\s-1PPID\s+1\fP
-is used to generate the process id of the process which invoked this shell.
+is used to generate the process ID of the process which invoked this shell.
 .H 2 "Added Traps"
 A new trap named
 \fB\s-1ERR\s+1\fP
@@ -3007,8 +3007,8 @@ in his or her local bin, then the same technique described above can
 be employed to compromise the security of the system.
 To close up this and other security holes,
 \f5ksh\fP
-resets the effective user id to the real user id and the effective 
-group id to the real group id unless the
+resets the effective user ID to the real user ID and the effective
+group ID to the real group ID unless the
 .I privileged
 option
 .RB ( \-p\^ )
@@ -3046,7 +3046,7 @@ If the
 or
 .I setgid
 bits are on for this file, then the interpreter
-is run with the effective uid and/or gid set accordingly.
+is run with the effective UID and/or GID set accordingly.
 This scheme has three major drawbacks.
 First of all,
 putting the pathname of the interpreter into the script

@@ -556,7 +556,7 @@ char	*path_basename(register const char *name)
 
 char *path_fullname(const char *name)
 {
-	int len=strlen(name)+1,dirlen=0;
+	size_t len=strlen(name)+1,dirlen=0;
 	char *path,*pwd;
 	if(*name!='/')
 	{
@@ -1356,7 +1356,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 		if((euserid=geteuid()) != sh.userid)
 		{
 			strncpy(name+9,fmtbase((long)sh.current_pid,10,0),sizeof(name)-10);
-			/* create a suid open file with owner equal effective uid */
+			/* create an SUID open file with owner equal to effective UID */
 			if((n=open(name,O_CREAT|O_TRUNC|O_WRONLY,S_ISUID|S_IXUSR)) < 0)
 				goto fail;
 			unlink(name);

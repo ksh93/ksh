@@ -66,7 +66,7 @@ struct Cmddisc_s
 
 typedef struct Cmdarg_s			/* cmdopen() handle		*/
 {
-	const char*	id;		/* library id string		*/
+	const char*	id;		/* library ID string		*/
 
 #ifdef _CMDARG_PRIVATE_
 	_CMDARG_PRIVATE_

@@ -27,7 +27,7 @@ then	x=$(print -r -- ~root)
 	[[ $x == ~root ]] || err_exit '~user expanded in subshell prevent ~user from working'
 fi
 
-function home # id
+function home # ID
 {
 	typeset IFS=: pwd=/etc/passwd
 	set -o noglob

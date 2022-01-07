@@ -1157,7 +1157,7 @@ static void del_line(register Vi_t *vp, int mode)
 
 /*{	DELMOTION( motion, mode )
  *
- *	Delete thru motion.
+ *	Delete through motion.
  *
  *	mode	= 'd', save deleted characters, delete
  *		= 'c', do not save characters, change
@@ -2699,7 +2699,7 @@ deleol:
 		c = '$';
 		goto yankeol;
 
-	case 'y':		/** yank thru motion **/
+	case 'y':		/** yank through motion **/
 		if( mode )
 			c = vp->lastmotion;
 		else

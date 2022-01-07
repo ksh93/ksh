@@ -196,7 +196,7 @@ cat{
 	unsigned long	f_files;	/* total # of file nodes (inodes) */
 	unsigned long	f_ffree;	/* total # of free file nodes */
 	unsigned long	f_favail;	/* # of free nodes avail to non-superuser */
-	unsigned long	f_fsid;		/* file system id (dev for now) */
+	unsigned long	f_fsid;		/* file system ID (dev for now) */
 	char		f_basetype[16]; /* target fs type name, null-terminated */
 	unsigned long	f_flag;		/* bit-mask of flags */
 	unsigned long	f_namemax;	/* maximum file name length */
