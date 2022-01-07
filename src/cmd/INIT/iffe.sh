@@ -2551,7 +2551,7 @@ int x;
 					do	c=${x#-l}
 						case $c in
 						*[!abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*)
-							c=$(echo '' $c | sed -e 's,.*[\\\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
+							c=$(echo '' $c | sed -e 's,.*[\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
 							;;
 						esac
 						case $config in
@@ -2954,7 +2954,7 @@ int x;
 							*)	case $regress in
 								'')	case $x in
 									*-*)	;;
-									*)	x=$(pwd | sed -e 's,.*[\\\\/],,' -e 's,\\..*,,' -e 's,^lib,,' -e 's,^,'${x}_',' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g')
+									*)	x=$(pwd | sed -e 's,.*[\\/],,' -e 's,\..*,,' -e 's,^lib,,' -e 's,^,'${x}_',' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g')
 										# ksh n+ bug workaround
 										case $x in
 										*[!_]*)	;;
@@ -3005,7 +3005,7 @@ int x;
 						?*)	continue ;;
 						esac
 						case $v in
-						*.*)	for x in $(echo $v | sed 's,\\., ,g')
+						*.*)	for x in $(echo $v | sed 's,\., ,g')
 							do	pre="$pre$nl#undef	$x"
 							done
 							;;
@@ -3062,7 +3062,7 @@ int x;
 					esac
 					case $c in
 					*[!abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*)
-						c=$(echo '' $c | sed -e 's,.*[\\\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
+						c=$(echo '' $c | sed -e 's,.*[\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
 						;;
 					esac
 					case $config in
@@ -3557,7 +3557,7 @@ $inc
 						*)	e='-e /[\\\\\/]sys[\\\\\/]'$f'\\.h"/d' ;;
 						esac
 						if	compile $cc -E $tmp.c <&$nullin >$tmp.i
-						then	i=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\\\/].*[\\\\\/]'$f'\\.h"/!d' $e -e s'/.*"\\(.*\\)".*/\\1/' -e 's,\\\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
+						then	i=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\/].*[\\\/]'$f'\.h"/!d' $e -e 's/.*"\(.*\)".*/\1/' -e 's,\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
 							case $i in
 							[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]:[\\/]*)
 								;;
@@ -3568,7 +3568,7 @@ $ext
 $inc
 #include <$k>" > $tmp.c
 								if	compile $cc -E $tmp.c <&$nullin >$tmp.i
-								then	j=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\\\/].*[\\\\\/]'$f'\\.h"/!d' $e -e s'/.*"\\(.*\\)".*/\\1/' -e 's,\\\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
+								then	j=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\/].*[\\\/]'$f'\.h"/!d' $e -e 's/.*"\(.*\)".*/\1/' -e 's,\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
 									wi=$(wc < "$i")
 									wj=$(wc < "$j")
 									case $wi in
@@ -4000,9 +4000,9 @@ int _iffe_int = $v / 2;
 							if	compile $cc -E $tmp.c <&$nullin >$tmp.i
 							then	c=$i
 								case $c in
-								*[\\/]*)	c=$(echo $c | sed 's,[\\\\/],[\\\\/],g') ;;
+								*[\\/]*)	c=$(echo $c | sed 's,[\\/],[\\/],g') ;;
 								esac
-								case $(sed -e '/^#[line 	]*1[ 	][ 	]*"[\\\\\/].*[\\\\\/]'$c'"/!d' $tmp.i) in
+								case $(sed -e '/^#[line 	]*1[ 	][ 	]*"[\\\/].*[\\\/]'$c'"/!d' $tmp.i) in
 								?*)	break ;;
 								esac
 							fi
