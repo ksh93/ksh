@@ -8,8 +8,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Added support for Home key sequences ^[[1~ and ^[[7~ as well as End key
   sequences ^[[4~ and ^[[8~.
 
+- Added support for arrow key sequences ^[OA, ^[OB, ^[OC and ^[OD.
+
 - Added support for the following keyboard shortcuts (if the platform
-  supports the expected control sequence):
+  supports the expected escape sequence):
   - Ctrl-Left Arrow:  Go back one word
   - Alt-Left Arrow:   Go back one word        (Not supported on Haiku)
   - Ctrl-Right Arrow: Go forward one word

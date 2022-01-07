@@ -63,13 +63,16 @@ New command line editor features:
 - Added support for Home key sequences ^[[1~ and ^[[7~ as well as End key
   sequences ^[[4~ and ^[[8~.
 
-- Added support for the following keyboard shortcuts:
+- Added support for arrow key sequences ^[OA, ^[OB, ^[OC and ^[OD.
+
+- Added support for the following keyboard shortcuts (if the platform
+  supports the expected escape sequence):
   - Ctrl-Left Arrow:  Go back one word
-  - Alt-Left Arrow:   Go back one word
+  - Alt-Left Arrow:   Go back one word        (Not supported on Haiku)
   - Ctrl-Right Arrow: Go forward one word
-  - Alt-Right Arrow:  Go forward one word
+  - Alt-Right Arrow:  Go forward one word     (Not supported on Haiku)
   - Ctrl-G:           Cancel reverse search
-  - Ctrl-Delete:      Delete next word
+  - Ctrl-Delete:      Delete next word        (Not supported on Haiku)
 
 - Added a keybind for the Insert key, which differs in the emacs and vi
   editing modes:
