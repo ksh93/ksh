@@ -185,6 +185,8 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 	/* 'alias -t', 'hash' */
 	if(flag&NV_TAGGED)
 	{
+		if(xflag)
+			return(0);			/* do nothing for 'alias -tx' */
 		troot = sh_subtracktree(1);	/* use hash table */
 		if(tdata.pflag)
 			tdata.aflag = '+';	/* for 'alias -pt', don't add anything to the hash table */
@@ -193,10 +195,8 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 		if(rflag)			/* hash -r: clear hash table */
 			nv_scan(troot,nv_rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	}
-	else if(argv[1] && sh.subshell && !sh.subshare)
+	else if(argv[1] && !tdata.pflag && sh.subshell && !sh.subshare)
 		sh_subfork();			/* avoid affecting the parent shell's alias table */
-	if(xflag && (flag&NV_TAGGED))
-		return(0);			/* do nothing for 'alias -tx' */
 	return(setall(argv,flag,troot,&tdata));
 }
 
@@ -1256,8 +1256,6 @@ int    b_set(int argc,register char *argv[],Shbltin_t *context)
 int    b_unalias(int argc,register char *argv[],Shbltin_t *context)
 {
 	NOT_USED(context);
-	if(sh.subshell && !sh.subshare)
-		sh_subfork();
 	return(unall(argc,argv,sh.alias_tree));
 }
 
@@ -1309,6 +1307,8 @@ static int unall(int argc, char **argv, register Dt_t *troot)
 	}
 	if(!troot)
 		return(1);
+	else if(troot==sh.alias_tree && sh.subshell && !sh.subshare)
+		sh_subfork();  /* avoid affecting the parent shell's alias tree */
 	r = 0;
 	if(troot==sh.var_tree)
 		nflag |= NV_VARNAME;
