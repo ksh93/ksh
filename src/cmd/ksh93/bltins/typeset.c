@@ -1308,7 +1308,7 @@ static int unall(int argc, char **argv, register Dt_t *troot)
 	if(!troot)
 		return(1);
 	else if(troot==sh.alias_tree && sh.subshell && !sh.subshare)
-		sh_subfork();  /* avoid affecting the parent shell's alias tree */
+		sh_subfork();  /* avoid affecting the parent shell's alias table */
 	r = 0;
 	if(troot==sh.var_tree)
 		nflag |= NV_VARNAME;
