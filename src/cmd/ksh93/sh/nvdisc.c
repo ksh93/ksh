@@ -409,6 +409,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			nv_setsize(SH_VALNOD,10);
 		}
 		block(bp,type);
+		block(bp, UNASSIGN);   /* make sure nv_setdisc doesn't invalidate 'vp' by freeing it */
 		sh_pushcontext(&sh, &checkpoint, 1);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
@@ -416,6 +417,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		sh_popcontext(&sh, &checkpoint);
 		if(sh.topfd != checkpoint.topfd)
 			sh_iorestore(checkpoint.topfd, jmpval);
+		unblock(bp,UNASSIGN);
 		unblock(bp,type);
 		if(!vp->disc[type])
 			chktfree(np,vp);
