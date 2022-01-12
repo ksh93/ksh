@@ -88,6 +88,8 @@ The options have the following defaults and meanings:
                      systems that can support case-insensitive file systems.
 
     HISTEXPAND   on  Enable !-style history expansion similar to csh(1).
+                     This is turned on by the -H/--histexpand shell option and
+                     can be modified using --histreedit and --histverify.
 
     KIA          off Allow generation of shell cross-reference database with -R.
                      As of 2021-05-10, no tool that can parse this database is

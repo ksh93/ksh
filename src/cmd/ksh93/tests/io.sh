@@ -906,4 +906,18 @@ then	for cmd in echo print printf
 fi
 
 # ======
+# Command substitution hangs, writing infinite zero bytes, when redirecting standard output on a built-in that forks
+# https://github.com/ksh93/ksh/issues/416
+exp='line'
+"$SHELL" -c 'echo "$(ulimit -t unlimited >/dev/null 2>&1; echo "ok $$")"' >out 2>&1 &
+pid=$!
+(sleep 1; kill -9 "$pid") 2>/dev/null &
+if	wait "$pid" 2>/dev/null
+then	kill "$!"  # the sleep process
+	[[ $(<out) == "ok $pid" ]] || err_exit "comsub fails after fork with stdout redirection" \
+		"(expected 'ok $pid', got $(printf %q "$(<out)"))"
+else	err_exit "comsub hangs after fork with stdout redirection"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

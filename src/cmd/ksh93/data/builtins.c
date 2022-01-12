@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -228,6 +228,13 @@ const char sh_set[] =
 #endif
 #if SHOPT_HISTEXPAND
 		"[+histexpand?Equivalent to \b-H\b.]"
+		"[+histreedit?If a history expansion (see \bhistexpand\b) "
+			"fails, the command line is reloaded into the next "
+			"prompt's edit buffer, allowing corrections.]"
+		"[+histverify?The results of a history expansion (see "
+			"\bhistexpand\b) are not immediately executed. "
+			"Instead, the expanded line is loaded into the next "
+			"prompt's edit buffer, allowing further changes.]"
 #endif
 		"[+ignoreeof?Prevents an interactive shell from exiting on "
 			"reading an end-of-file.]"

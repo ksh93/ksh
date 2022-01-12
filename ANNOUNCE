@@ -164,6 +164,13 @@ New features in shell options:
   a path pattern that spans multiple file systems can be part
   case-sensitive and part case-insensitive.
 
+- The new --histreedit and --histverify options modify history expansion
+  (--histexpand). If --histreedit is on and a history expansion fails, the
+  command line is reloaded into the next prompt's edit buffer, allowing
+  corrections. If --histverify is on, the results of a history expansion are
+  not immediately executed but instead loaded into the next prompt's edit
+  buffer, allowing further changes.
+
 - A new --nobackslashctrl shell option disables the special escaping
   behaviour of the backslash character in the emacs and vi built-in
   editors. Particularly in the emacs editor, this makes it much easier to

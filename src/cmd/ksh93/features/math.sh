@@ -21,15 +21,16 @@
 : generate the ksh math builtin table
 : include math.tab
 
-# @(#)math.sh (AT&T Research) 2013-08-11
+# @(#)math.sh (ksh 93u+m) 2022-01-09
 
 case $ZSH_VERSION in
 ?*)	emulate ksh ;;
 *)	(command set -o posix) 2>/dev/null && set -o posix ;;
 esac
+set -o noglob
 
 command=$0
-iffeflags="-n -v"
+iffeflags="$IFFEFLAGS -n -v"
 iffehdrs="ast_float.h"
 iffelibs="-lm"
 table=/dev/null

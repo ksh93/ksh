@@ -3,7 +3,10 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
-2022-01-07:
+2022-01-12:
+
+- Added bash-inspired --histreedit and --histverify options that modify history
+  expansion (--histexpand), allowing editing on failure or before execution.
 
 - Added support for Home key sequences ^[[1~ and ^[[7~ as well as End key
   sequences ^[[4~ and ^[[8~.

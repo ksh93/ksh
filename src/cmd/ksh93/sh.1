@@ -7231,6 +7231,19 @@ style in-line editor for command entry.
 Same as
 .BR \-H .
 .TP 8
+.B histreedit
+If a history expansion (see
+.BR histexpand )
+fails, the command line is reloaded
+into the next prompt's edit buffer, allowing corrections.
+.TP 8
+.B histverify
+The results of a history expansion (see
+.BR histexpand )
+are not immediately executed.
+Instead, the expanded line is loaded into the next prompt's edit buffer,
+allowing further changes.
+.TP 8
 .B ignoreeof
 An interactive shell will not exit on end-of-file.
 The command

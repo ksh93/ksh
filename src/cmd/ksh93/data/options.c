@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -52,6 +52,8 @@ const Shtable_t shtab_options[] =
 #endif
 #if SHOPT_HISTEXPAND
 	"histexpand",			SH_HISTEXPAND,
+	"histreedit",			SH_HISTREEDIT,
+	"histverify",			SH_HISTVERIFY,
 #endif
 	"ignoreeof",			SH_IGNOREEOF,
 	"interactive",			SH_INTERACTIVE|SH_COMMANDLINE,

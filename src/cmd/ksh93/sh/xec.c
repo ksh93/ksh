@@ -1296,6 +1296,25 @@ int sh_exec(register const Shnode_t *t, int flags)
 								}
 							else
 								type = (execflg && !sh.subshell && !sh.st.trapcom[0]);
+							/*
+							 * A command substitution will hang on exit, writing infinite '\0', if,
+							 * within it, standard output (FD 1) is redirected for a built-in command
+							 * that calls sh_subfork(), or redirected permanently using 'exec' or
+							 * 'redirect'. This forking workaround is necessary to avoid that bug.
+							 * For shared-state comsubs, forking is incorrect, so error out then.
+							 * TODO: actually fix the bug and remove this workaround.
+							 */
+							if((io->iofile & IOUFD)==1 && sh.subshell && sh.comsub)
+							{
+								if(!sh.subshare)
+									sh_subfork();
+								else if(type==2)  /* block stdout perma-redirects: would hang */
+								{
+									errormsg(SH_DICT,ERROR_exit(1),"cannot redirect stdout"
+												" inside shared-state comsub");
+									UNREACHABLE();
+								}
+							}
 							sh.redir0 = 1;
 							sh_redirect(io,type);
 							for(item=buffp->olist;item;item=item->next)
@@ -1688,6 +1707,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				struct ionod *iop;
 				int	rewrite=0;
 #if !SHOPT_DEVFD
+				char	*save_sh_fifo = sh.fifo;
 				if(sh.fifo_tree)
 				{
 					/* do not clean up process substitution FIFOs in child; parent handles this */
@@ -1727,8 +1747,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					fn = sh_open(sh.fifo,fd?O_WRONLY:O_RDONLY);
 					save_errno = errno;
 					timerdel(fifo_timer);
-					unlink(sh.fifo);
-					free(sh.fifo);
 					sh.fifo = 0;
 					if(fn<0)
 					{
@@ -1803,6 +1821,13 @@ int sh_exec(register const Shnode_t *t, int flags)
 					path_exec(com0,com,t->com.comset);
 				}
 			done:
+#if !SHOPT_DEVFD
+				if(save_sh_fifo)
+				{
+					unlink(save_sh_fifo);
+					free(save_sh_fifo);
+				}
+#endif
 				sh_popcontext(&sh,buffp);
 				if(jmpval>SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
