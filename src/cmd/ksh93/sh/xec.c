@@ -225,7 +225,7 @@ static void l_time(Sfio_t *outfile,register clock_t t,int precision)
 	if(precision)
 	{
 		frac = t%sh.lim.clk_tck;
-		frac = (frac*100)/sh.lim.clk_tck;
+		frac = (frac*(int)pow(10,precision))/sh.lim.clk_tck;
 	}
 	t /= sh.lim.clk_tck;
 	sec = t%60;
