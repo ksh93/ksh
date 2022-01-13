@@ -276,4 +276,22 @@ got=$?
 ((got > 0)) || err_exit "Exit status is zero when alias is passed 256 non-existent aliases"
 
 # ======
+# https://github.com/ksh93/ksh/pull/417
+
+alias foo=bar
+(unalias -a)
+alias foo >/dev/null 2>&1 || err_exit "unalias -a leaked out of subshell"
+unalias foo
+(alias foo=bar)
+alias foo >/dev/null 2>&1 && err_exit "alias leaked out of subshell"
+
+alias foo=bar
+exp="0 $$"
+got=$(alias foo='echo "$? $$"'; eval foo)
+[[ $got == "$exp" ]] || err_exit "alias in subshell: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(unalias foo; echo "$? $$")
+[[ $got == "$exp" ]] || err_exit "unalias in subshell: expected $(printf %q "$exp"), got $(printf %q "$got")"
+unalias foo
+
+# ======
 exit $((Errors<125?Errors:125))
