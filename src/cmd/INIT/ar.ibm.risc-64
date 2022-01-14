@@ -1,0 +1,9 @@
+: still stupid to require a non-standard option for ar to work : 2022-01-14 :
+
+op=$1
+shift
+case $op in
+-*)	;;
+*)	op=-$op ;;
+esac
+/usr/bin/ar -X64 "$op" "$@"
