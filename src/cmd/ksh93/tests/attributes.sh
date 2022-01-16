@@ -706,4 +706,16 @@ do
 done
 
 # ======
+# https://github.com/att/ast/issues/537
+# Export each variable that gets assigned.
+unset bar
+set -a
+test ${bar:=baz}
+exp='typeset -x bar=baz'
+got=$(typeset -p bar)
+[[ $exp == $got ]] || err_exit 'Variable ${bar} should be exported' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+set +a
+
+# ======
 exit $((Errors<125?Errors:125))

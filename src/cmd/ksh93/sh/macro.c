@@ -2012,6 +2012,8 @@ retry2:
 				if(sh.subshell)
 					np = sh_assignok(np,1);
 				nv_putval(np,argp,0);
+				if(sh_isoption(SH_ALLEXPORT))
+					nv_onattr(np,NV_EXPORT);  /* export variable */
 				v = nv_getval(np);
 				nulflg = 0;
 				stkseek(stkp,offset);
