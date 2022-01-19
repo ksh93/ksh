@@ -124,7 +124,7 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 #ifdef MAP_TYPE
 		if(f->bits&SF_MMAP)
 		{	reg ssize_t	a, round;
-			sfstat_t	st;
+			struct stat	st;
 
 			/* determine if we have to copy data to buffer */
 			if((uchar*)buf >= f->data && (uchar*)buf <= f->endb)
@@ -140,7 +140,7 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 
 			/* before mapping, make sure we have data to map */
 			if((f->flags&SF_SHARE) || (size_t)(r = f->extent-f->here) < n)
-			{	if((r = sysfstatf(f->file,&st)) < 0)
+			{	if((r = fstat(f->file,&st)) < 0)
 					goto do_except;
 				if((r = (f->extent = st.st_size) - f->here) <= 0 )
 				{	r = 0;	/* eof */
@@ -162,10 +162,10 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 				SFMUNMAP(f, f->data, f->endb-f->data);
 
 			for(;;)
-			{	f->data = (uchar*) sysmmapf((caddr_t)0, (size_t)r,
+			{	f->data = (uchar*) mmap((caddr_t)0, (size_t)r,
 							(PROT_READ|PROT_WRITE),
 							MAP_PRIVATE,
-							f->file, (sfoff_t)f->here);
+							f->file, (off_t)f->here);
 				if(f->data && (caddr_t)f->data != (caddr_t)(-1))
 					break;
 				else
@@ -259,7 +259,7 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 				else	f->mode |= SF_RC;
 			}
 		}
-		else	r = sysreadf(f->file,buf,n);
+		else	r = read(f->file,buf,n);
 
 		if(errno == 0 )
 			errno = oerrno;

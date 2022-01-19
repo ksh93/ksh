@@ -65,11 +65,7 @@ tst	note{ check for Win32 .exe botches }end output{
 		else
 			_rename("foo.exe", "aha.exe");
 		if (_stat("bar", &st))
-		{
 			fix++,printf("#define _win32_botch_stat	1\n");
-			if (sizeof(st.st_ino) == 8)
-				printf("#define _stat			_stat64\n");
-		}
 		if (_truncate("aha", 0))
 			fix++,printf("#define _win32_botch_truncate	1\n");
 		if (_unlink("bar"))

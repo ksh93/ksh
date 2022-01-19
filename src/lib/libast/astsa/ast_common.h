@@ -50,9 +50,7 @@
 #include <inttypes.h>
 #endif
 
-#if _hdr_unistd
 #include <unistd.h>
-#endif
 
 #define _typ_int32_t	1
 #ifdef _ast_int8_t

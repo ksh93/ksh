@@ -73,9 +73,9 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 		if(f->file >= 0 )
 		{	if ((oflags &= (O_TEXT|O_BINARY|O_APPEND)) != 0 )
 			{	/* set file access control */
-				int ctl = sysfcntlf(f->file, F_GETFL, 0);
+				int ctl = fcntl(f->file, F_GETFL, 0);
 				ctl = (ctl & ~(O_TEXT|O_BINARY|O_APPEND)) | oflags;
-				sysfcntlf(f->file, F_SETFL, ctl);
+				fcntl(f->file, F_SETFL, ctl);
 			}
 #if !O_cloexec
 			if (fflags & SF_FD_CLOEXEC)
@@ -96,10 +96,10 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 			return NIL(Sfio_t*);
 
 #if _has_oflags /* open the file */
-		while((fd = sysopenf((char*)file,oflags,SF_CREATMODE)) < 0 && errno == EINTR)
+		while((fd = open((char*)file,oflags,SF_CREATMODE)) < 0 && errno == EINTR)
 			errno = 0;
 #else
-		while((fd = sysopenf(file,oflags&O_ACCMODE)) < 0 && errno == EINTR)
+		while((fd = open(file,oflags&O_ACCMODE)) < 0 && errno == EINTR)
 			errno = 0;
 		if(fd >= 0)
 		{	if((oflags&(O_CREAT|O_EXCL)) == (O_CREAT|O_EXCL) )
@@ -108,19 +108,19 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 			}
 			if(oflags&O_TRUNC )	/* truncate file */
 			{	reg int	tf;
-				while((tf = syscreatf(file,SF_CREATMODE)) < 0 &&
+				while((tf = creat(file,SF_CREATMODE)) < 0 &&
 				      errno == EINTR)
 					errno = 0;
 				CLOSE(tf);
 			}
 		}
 		else if(oflags&O_CREAT)
-		{	while((fd = syscreatf(file,SF_CREATMODE)) < 0 && errno == EINTR)
+		{	while((fd = creat(file,SF_CREATMODE)) < 0 && errno == EINTR)
 				errno = 0;
 			if((oflags&O_ACCMODE) != O_WRONLY)
 			{	/* the file now exists, reopen it for read/write */
 				CLOSE(fd);
-				while((fd = sysopenf(file,oflags&O_ACCMODE)) < 0 &&
+				while((fd = open(file,oflags&O_ACCMODE)) < 0 &&
 				      errno == EINTR)
 					errno = 0;
 			}

@@ -32,12 +32,12 @@ static int _sfdup(int fd, int newfd)
 	reg int	dupfd;
 
 #ifdef F_DUPFD	/* the simple case */
-	while((dupfd = sysfcntlf(fd,F_DUPFD,newfd)) < 0 && errno == EINTR)
+	while((dupfd = fcntl(fd,F_DUPFD,newfd)) < 0 && errno == EINTR)
 		errno = 0;
 	return dupfd;
 
 #else	/* do it the hard way */
-	if((dupfd = sysdupf(fd)) < 0 || dupfd >= newfd)
+	if((dupfd = dup(fd)) < 0 || dupfd >= newfd)
 		return dupfd;
 
 	/* dup() succeeded but didn't get the right number, recurse */

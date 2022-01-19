@@ -21,10 +21,6 @@
 *                                                                      *
 ***********************************************************************/
 
-#ifndef _NO_LARGEFILE64_SOURCE
-#define _NO_LARGEFILE64_SOURCE	1
-#endif
-
 #include "stdhdr.h"
 
 int
@@ -34,15 +30,3 @@ fsetpos(Sfio_t* f, const fpos_t* pos)
 
 	return sfseek(f, (Sfoff_t)pos->_sf_offset, SF_PUBLIC) == (Sfoff_t)pos->_sf_offset ? 0 : -1;
 }
-
-#ifdef _typ_int64_t
-
-int
-fsetpos64(Sfio_t* f, const fpos64_t* pos)
-{
-	STDIO_INT(f, "fsetpos64", int, (Sfio_t*, const fpos64_t*), (f, pos))
-
-	return sfseek(f, (Sfoff_t)pos->_sf_offset, SF_PUBLIC) == (Sfoff_t)pos->_sf_offset ? 0 : -1;
-}
-
-#endif

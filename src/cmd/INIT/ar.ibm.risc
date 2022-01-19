@@ -1,4 +1,4 @@
-: stupid stupid stupid to require a non-standard option for ar to work : 2009-10-06 :
+: ar requires a non-standard option to work : 2009-10-06 :
 
 op=$1
 shift

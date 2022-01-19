@@ -23,12 +23,15 @@ make install
 	make ast
 		make libast.a archive
 			make ast.req
-				make FEATURE/standards
-					meta FEATURE/standards features/%>FEATURE/% features/standards standards
-					make features/standards
-					done features/standards
-					exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/standards
-				done FEATURE/standards generated
+				make ast_standards.h implicit
+					make FEATURE/standards
+						meta FEATURE/standards features/%>FEATURE/% features/standards standards
+						make features/standards
+						done features/standards
+						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/standards
+					done FEATURE/standards generated
+					exec - cmp 2>/dev/null -s FEATURE/standards ast_standards.h || { rm -f ast_standards.h; ${STDCP} FEATURE/standards ast_standards.h; }
+				done ast_standards.h generated
 				make FEATURE/lib
 					meta FEATURE/lib features/%>FEATURE/% features/lib lib
 					make features/lib
@@ -262,6 +265,7 @@ make install
 											exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} ${LDFLAGS}" run features/fs
 										done FEATURE/fs generated
 										prev FEATURE/lib implicit
+										prev FEATURE/standards implicit
 									done features/fcntl.c
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd  ${LDFLAGS}" run features/fcntl.c
 									make ast_fs.h implicit
@@ -282,6 +286,7 @@ make install
 								exec - cmp 2>/dev/null -s FEATURE/lib ast_lib.h || { rm -f ast_lib.h; silent test -d . || mkdir .; ${STDCP} FEATURE/lib ast_lib.h; }
 							done ast_lib.h dontcare generated
 							prev ast_common.h implicit
+							prev ast_standards.h implicit
 						done include/ast_std.h dontcare
 					done FEATURE/stdio generated
 					exec - cmp 2>/dev/null -s FEATURE/stdio ast_stdio.h || { rm -f ast_stdio.h; silent test -d . || mkdir .; ${STDCP} FEATURE/stdio ast_stdio.h; }
@@ -1482,10 +1487,7 @@ make install
 					done include/mc.h
 					prev ast_wchar.h implicit
 					prev port/lclib.h implicit
-					make ast_standards.h implicit
-						prev FEATURE/standards
-						exec - cmp 2>/dev/null -s FEATURE/standards ast_standards.h || { rm -f ast_standards.h; silent test -d . || mkdir .; ${STDCP} FEATURE/standards ast_standards.h; }
-					done ast_standards.h generated
+					prev ast_standards.h implicit
 				done comp/setlocale.c
 				meta setlocale.o %.c>%.o comp/setlocale.c setlocale
 				prev comp/setlocale.c
@@ -2104,7 +2106,6 @@ make install
 						done include/wait.h dontcare
 						prev sig.h implicit
 						prev include/ast.h implicit
-						prev ast_standards.h implicit
 					done misc/proclib.h
 				done misc/procopen.c
 				meta procopen.o %.c>%.o misc/procopen.c procopen
@@ -3207,14 +3208,6 @@ make install
 				prev comp/waitpid.c
 				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd -D_PACKAGE_ast -c comp/waitpid.c
 			done waitpid.o generated
-			make creat64.o
-				make comp/creat64.c
-					prev include/ast.h implicit
-				done comp/creat64.c
-				meta creat64.o %.c>%.o comp/creat64.c creat64
-				prev comp/creat64.c
-				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd -D_PACKAGE_ast -c comp/creat64.c
-			done creat64.o generated
 			make fcntl.o
 				make comp/fcntl.c
 					prev include/error.h implicit
@@ -4703,6 +4696,7 @@ make install
 					make stdio/stdhdr.h implicit
 						prev std/stdio.h implicit
 						prev sfio/sfhdr.h implicit
+						prev ast_standards.h implicit
 					done stdio/stdhdr.h
 				done stdio/clearerr.c
 				meta clearerr.o %.c>%.o stdio/clearerr.c clearerr
@@ -6075,7 +6069,7 @@ make install
 			exec - ${AR} rc libast.a state.o transition.o opendir.o readdir.o rewinddir.o seekdir.o telldir.o getcwd.o fastfind.o hashalloc.o hashdump.o hashfree.o hashlast.o hashlook.o hashscan.o hashsize.o hashview.o hashwalk.o memhash.o memsum.o strhash.o strkey.o strsum.o stracmp.o strnacmp.o ccmap.o ccmapid.o ccnative.o chresc.o chrtoi.o
 			exec - ${AR} rc libast.a streval.o strexpr.o strmatch.o strcopy.o modei.o modex.o strmode.o strlcat.o strlcpy.o strlook.o strncopy.o strsearch.o strpsearch.o stresc.o stropt.o strtape.o strpcmp.o strnpcmp.o strvcmp.o strnvcmp.o tok.o tokline.o tokscan.o pathaccess.o pathcat.o pathcanon.o pathcheck.o pathpath.o pathexists.o pathfind.o pathicase.o pathkey.o pathprobe.o pathrepl.o pathnative.o pathposix.o pathtemp.o pathtmp.o pathstat.o pathgetlink.o pathsetlink.o pathbin.o pathshell.o pathcd.o pathprog.o ftwalk.o ftwflags.o fts.o astintercept.o conformance.o getenv.o setenviron.o optget.o optjoin.o optesc.o optctx.o strsort.o struniq.o magic.o mime.o mimetype.o signal.o sigflag.o systrace.o error.o errorf.o errormsg.o errorx.o localeconv.o setlocale.o translate.o catopen.o iconv.o lc.o lctab.o mc.o base64.o recfmt.o recstr.o reclen.o fmtrec.o fmtbase.o fmtbuf.o fmtclock.o fmtdev.o fmtelapsed.o fmterror.o fmtesc.o fmtfmt.o fmtfs.o fmtident.o fmtint.o fmtip4.o fmtip6.o fmtls.o fmtmatch.o fmtmode.o fmtnum.o fmtperm.o fmtre.o fmttime.o
 			exec - ${AR} rc libast.a fmtuid.o fmtgid.o fmtsignal.o fmtscale.o fmttmx.o fmttv.o fmtversion.o strelapsed.o strperm.o struid.o strgid.o strtoip4.o strtoip6.o stack.o stk.o swapget.o swapmem.o swapop.o swapput.o sigdata.o sigcrit.o sigunblock.o procopen.o procclose.o procrun.o procfree.o tmdate.o tmequiv.o tmfix.o tmfmt.o tmform.o tmgoff.o tminit.o tmleap.o tmlex.o tmlocale.o tmmake.o tmpoff.o tmscan.o tmsleep.o tmtime.o tmtype.o tmweek.o tmword.o tmzone.o tmxdate.o tmxduration.o tmxfmt.o tmxgettime.o tmxleap.o tmxmake.o tmxscan.o tmxsettime.o tmxsleep.o tmxtime.o tmxtouch.o tvcmp.o tvgettime.o tvsettime.o tvsleep.o tvtouch.o cmdarg.o vecargs.o vecfile.o vecfree.o vecload.o vecstring.o univdata.o touch.o mnt.o debug.o memccpy.o memchr.o memcmp.o memcpy.o memdup.o memmove.o memset.o mkdir.o mkfifo.o mknod.o rmdir.o remove.o rename.o link.o unlink.o strdup.o strchr.o strrchr.o strstr.o strtod.o strtold.o strtol.o strtoll.o strtoul.o strtoull.o strton.o strtonll.o strntod.o strntold.o strnton.o
-			exec - ${AR} rc libast.a strntonll.o strntol.o strntoll.o strntoul.o strntoull.o strcasecmp.o strncasecmp.o strerror.o mktemp.o tmpnam.o fsync.o execlp.o execve.o execvp.o execvpe.o spawnveg.o vfork.o killpg.o hsearch.o tsearch.o getlogin.o putenv.o setenv.o unsetenv.o lstat.o statvfs.o eaccess.o gross.o omitted.o readlink.o symlink.o getpgrp.o setpgid.o setsid.o waitpid.o creat64.o fcntl.o open.o atexit.o getdents.o getwd.o dup2.o errno.o getpreroot.o ispreroot.o realopen.o setpreroot.o getgroups.o mount.o system.o iblocks.o modedata.o tmdata.o memfatal.o sfkeyprintf.o sfdcdio.o sfdcdos.o sfdcfilter.o sfdcseekable.o sfdcslow.o sfdcsubstr.o sfdctee.o sfdcunion.o sfdcmore.o sfdcprefix.o wc.o wc2utf8.o basename.o closelog.o dirname.o fmtmsglib.o fnmatch.o ftw.o getdate.o getsubopt.o glob.o nftw.o openlog.o re_comp.o resolvepath.o realpath.o regcmp.o regexp.o setlogmask.o strftime.o strptime.o swab.o syslog.o tempnam.o wordexp.o mktime.o regalloc.o regclass.o regcoll.o regcomp.o regcache.o regdecomp.o regerror.o regexec.o regfatal.o reginit.o
+			exec - ${AR} rc libast.a strntonll.o strntol.o strntoll.o strntoul.o strntoull.o strcasecmp.o strncasecmp.o strerror.o mktemp.o tmpnam.o fsync.o execlp.o execve.o execvp.o execvpe.o spawnveg.o vfork.o killpg.o hsearch.o tsearch.o getlogin.o putenv.o setenv.o unsetenv.o lstat.o statvfs.o eaccess.o gross.o omitted.o readlink.o symlink.o getpgrp.o setpgid.o setsid.o waitpid.o fcntl.o open.o atexit.o getdents.o getwd.o dup2.o errno.o getpreroot.o ispreroot.o realopen.o setpreroot.o getgroups.o mount.o system.o iblocks.o modedata.o tmdata.o memfatal.o sfkeyprintf.o sfdcdio.o sfdcdos.o sfdcfilter.o sfdcseekable.o sfdcslow.o sfdcsubstr.o sfdctee.o sfdcunion.o sfdcmore.o sfdcprefix.o wc.o wc2utf8.o basename.o closelog.o dirname.o fmtmsglib.o fnmatch.o ftw.o getdate.o getsubopt.o glob.o nftw.o openlog.o re_comp.o resolvepath.o realpath.o regcmp.o regexp.o setlogmask.o strftime.o strptime.o swab.o syslog.o tempnam.o wordexp.o mktime.o regalloc.o regclass.o regcoll.o regcomp.o regcache.o regdecomp.o regerror.o regexec.o regfatal.o reginit.o
 			exec - ${AR} rc libast.a regnexec.o regsubcomp.o regsubexec.o regsub.o regrecord.o regrexec.o regstat.o dtclose.o dtdisc.o dthash.o dtlist.o dtmethod.o dtopen.o dtstat.o dtstrhash.o dttree.o dtuser.o dtview.o dtwalk.o dtnew.o dtcomp.o sfclose.o sfclrlock.o sfdisc.o sfdlen.o sfexcept.o sfgetl.o sfgetu.o sfcvt.o sfecvt.o sffcvt.o sfextern.o sffilbuf.o sfflsbuf.o sfprints.o sfgetd.o sfgetr.o sfllen.o sfmode.o sfmove.o sfnew.o sfpkrd.o sfnotify.o sfnputc.o sfopen.o sfpeek.o sfpoll.o sfpool.o sfpopen.o sfprintf.o sfputd.o sfputl.o sfputr.o sfputu.o sfrd.o sfread.o sfreserve.o sfscanf.o sfseek.o sfset.o sfsetbuf.o sfsetfd.o sfsize.o sfsk.o sfstack.o sfstrtod.o sfsync.o sfswap.o sftable.o sftell.o sftmp.o sfungetc.o sfvprintf.o sfvscanf.o sfwr.o sfwrite.o sfpurge.o sfraise.o sfwalk.o sfgetm.o sfmutex.o sfputm.o sfresize.o _sfclrerr.o _sfeof.o _sferror.o _sffileno.o _sfopen.o _sfstacked.o _sfvalue.o _sfgetc.o _sfgetl.o _sfgetl2.o _sfgetu.o _sfgetu2.o _sfdlen.o _sfllen.o _sfslen.o _sfulen.o _sfputc.o _sfputd.o _sfputl.o _sfputm.o
 			exec - ${AR} rc libast.a _sfputu.o clearerr.o fclose.o fdopen.o feof.o ferror.o fflush.o fgetc.o fgetpos.o fgets.o fileno.o fopen.o fprintf.o fpurge.o fputc.o fputs.o fread.o freopen.o fscanf.o fseek.o fseeko.o fsetpos.o ftell.o ftello.o fwrite.o flockfile.o ftrylockfile.o funlockfile.o getc.o getchar.o getw.o pclose.o popen.o printf.o putc.o putchar.o puts.o putw.o rewind.o scanf.o setbuf.o setbuffer.o setlinebuf.o setvbuf.o snprintf.o sprintf.o sscanf.o asprintf.o vasprintf.o tmpfile.o ungetc.o vfprintf.o vfscanf.o vprintf.o vscanf.o vsnprintf.o vsprintf.o vsscanf.o _doprnt.o _doscan.o _filbuf.o _flsbuf.o _stdfun.o _stdopen.o _stdprintf.o _stdscanf.o _stdsprnt.o _stdvbuf.o _stdvsnprnt.o _stdvsprnt.o _stdvsscn.o fgetwc.o fwprintf.o putwchar.o vfwscanf.o wprintf.o fgetws.o fwscanf.o swprintf.o vswprintf.o wscanf.o fputwc.o getwc.o swscanf.o vswscanf.o fputws.o getwchar.o ungetwc.o vwprintf.o fwide.o putwc.o vfwprintf.o vwscanf.o stdio_c99.o fcloseall.o fmemopen.o getdelim.o getline.o frexp.o frexpl.o astcopy.o
 			exec - ${AR} rc libast.a astconf.o astdynamic.o astquery.o astwinsize.o conftab.o aststatic.o getopt.o getoptl.o aso.o asolock.o asometh.o asorelax.o aso-sem.o aso-fcntl.o vmbest.o vmclear.o vmclose.o vmdcheap.o vmdebug.o vmdisc.o vmexit.o vmlast.o vmopen.o vmpool.o vmprivate.o vmprofile.o vmregion.o vmsegment.o vmset.o vmstat.o vmstrdup.o vmtrace.o vmwalk.o vmmopen.o malloc.o vmgetmem.o a64l.o acosh.o asinh.o atanh.o cbrt.o crypt.o erf.o err.o exp.o exp__E.o expm1.o gamma.o getpass.o lgamma.o log.o log1p.o log__L.o rand48.o random.o rcmd.o rint.o support.o

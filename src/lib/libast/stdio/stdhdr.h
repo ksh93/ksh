@@ -24,10 +24,7 @@
 #ifndef _STDHDR_H
 #define _STDHDR_H	1
 
-#ifndef _NO_LARGEFILE64_SOURCE
-#define _NO_LARGEFILE64_SOURCE	1
-#endif
-#undef	_LARGEFILE64_SOURCE
+#include <ast_standards.h>
 
 #define _ast_fseeko	______fseeko
 #define _ast_ftello	______ftello

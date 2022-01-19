@@ -70,7 +70,7 @@ Sfoff_t sfsk(Sfio_t* f, Sfoff_t addr, int type, Sfdisc_t* disc)
 			{	SFDCSK(f,addr,type,dc,p);
 			}
 			else
-			{	p = syslseekf(f->file,(sfoff_t)addr,type);
+			{	p = lseek(f->file,(off_t)addr,type);
 			}
 			if(p >= 0)
 				SFMTXRETURN(f,p);

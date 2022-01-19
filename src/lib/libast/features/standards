@@ -128,23 +128,14 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 	}
 elif tst note{ GNU (glibc) or Cygwin }end compile{
 		/*
-		 * GNU (GNU's Not UNIX). From feature_test_macros(7) on a GNU/Linux system with glibc 2.32:
-		 *
-		 *   _GNU_SOURCE
-		 *          Defining this macro (with any value) implicitly defines _ATFILE_SOURCE, _LARGE‐
-		 *          FILE64_SOURCE,    _ISOC99_SOURCE,    _XOPEN_SOURCE_EXTENDED,     _POSIX_SOURCE,
-		 *          _POSIX_C_SOURCE  with the value 200809L (200112L in glibc versions before 2.10;
-		 *          199506L in glibc versions before 2.5; 199309L in glibc versions before 2.1) and
-		 *          _XOPEN_SOURCE  with  the  value  700 (600 in glibc versions before 2.10; 500 in
-		 *          glibc versions before 2.2).  In addition, various GNU-specific  extensions  are
-		 *          also exposed.
-		 *          Since glibc 2.19, defining _GNU_SOURCE also has the effect of implicitly defin‐
-		 *          ing _DEFAULT_SOURCE.  In glibc versions before 2.20, defining _GNU_SOURCE  also
-		 *          had the effect of implicitly defining _BSD_SOURCE and _SVID_SOURCE.
-		 *
-		 * Additionally, on Cygwin we must use _GNU_SOURCE to enable all features required by libast.
+		 * On GNU (GNU's Not UNIX) and Cygwin, _GNU_SOURCE is the "everything and the kitchen sink" macro
+		 * (see feature_test_macros(7)), but on GNU we also need to define _FILE_OFFSET_BITS to get large
+		 * file support. We also need to define 'basename' to stop string.h from declaring a GNU-specific
+		 * version of basename(3) which on Cygwin has a declaration that conflicts with AST basename(3).
 		 */
 		#define _GNU_SOURCE	1
+		#define _FILE_OFFSET_BITS 64
+		#define basename	basename
 		#include <limits.h>
 		#include <unistd.h>
 		#include <features.h>
@@ -164,9 +155,9 @@ elif tst note{ GNU (glibc) or Cygwin }end compile{
 			return 0;
 		}
 	}end {
-		#ifndef _GNU_SOURCE
 		#define _GNU_SOURCE	1
-		#endif
+		#define _FILE_OFFSET_BITS 64
+		#define basename	basename	/* avoid string.h defining this in conflict with AST basename(3) */
 	}
 elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{
 		#define _ALL_SOURCE	1

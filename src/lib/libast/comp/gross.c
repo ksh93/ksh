@@ -62,37 +62,6 @@ extern int stat(const char* path, struct stat* st)
 
 #endif
 
-#if _lcl_xstat64
-
-extern int fstat64(int fd, struct stat64* st)
-{
-#if _lib___fxstat64
-	return __fxstat64(_STAT_VER, fd, st);
-#else
-	return _fxstat64(_STAT_VER, fd, st);
-#endif
-}
-
-extern int lstat64(const char* path, struct stat64* st)
-{
-#if _lib___lxstat64
-	return __lxstat64(_STAT_VER, path, st);
-#else
-	return _lxstat64(_STAT_VER, path, st);
-#endif
-}
-
-extern int stat64(const char* path, struct stat64* st)
-{
-#if _lib___xstat64
-	return __xstat64(_STAT_VER, path, st);
-#else
-	return _xstat64(_STAT_VER, path, st);
-#endif
-}
-
-#endif
-
 #if __sgi && _hdr_locale_attr
 
 #include "gross_sgi.h"

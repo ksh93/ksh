@@ -1,26 +1,7 @@
-set	nodefine
-lib	stat64
-typ	off64_t
-set	define
-
 lib	opendir
 hdr	dirent,ndir
 sys	dir
 nxt	dirent
-
-tst	botch_d_ino_dirent64 note{ dirent64.d_ino vs. readdir64 mismatch }end compile{
-	#if !__arm__
-	)
-	#endif
-	#include <dirent.h>
-	int
-	main()
-	{
-		struct dirent64	ent;
-		char		aha[5-((int)sizeof(ent.d_ino))];
-		return sizeof(aha);
-	}
-}end
 
 if ( ! _lib_opendir ) {
 	/*
@@ -63,94 +44,6 @@ if ( ! _lib_opendir ) {
 
 	#endif
 }
-elif ( _nxt_dirent && _lib_stat64 && _typ_off64_t && _botch_d_ino_dirent64 ) pass{
-cat <<!
-	/*
-	 * <dirent.h> for [fl]stat64 and off64_t with sizeof(ino64_t)==4
-	 */
-
-	#ifndef _AST_STD_H
-
-	#include ${_nxt_dirent-_nxt_dirent}	/* the native <dirent.h> */
-
-	#else
-
-	#ifndef _DIR64_H
-	#define _DIR64_H
-
-	#include <ast_std.h>
-
-	#if _typ_off64_t
-	#undef	off_t
-	#endif
-
-	#undef	__ino64_t
-	#define __ino64_t	int64_t
-
-	#include ${_nxt_dirent-_nxt_dirent}	/* the native <dirent.h> */
-
-	#undef	__ino64_t
-	#define __ino64_t	__ino64_t
-
-	#if _typ_off64_t
-	#define	off_t		off64_t
-	#endif
-
-	#if _lib_readdir64 && _typ_struct_dirent64
-	#ifndef	dirent
-	#define dirent		dirent64
-	#endif
-	#ifndef	readdir
-	#define readdir		readdir64
-	#endif
-	#endif
-
-	#endif
-
-	#endif
-!
-}end
-elif ( _nxt_dirent && _lib_stat64 && _typ_off64_t ) pass{
-cat <<!
-	/*
-	 * <dirent.h> for [fl]stat64 and off64_t
-	 */
-
-	#ifndef _AST_STD_H
-
-	#include ${_nxt_dirent-_nxt_dirent}	/* the native <dirent.h> */
-
-	#else
-
-	#ifndef _DIR64_H
-	#define _DIR64_H
-
-	#include <ast_std.h>
-
-	#if _typ_off64_t
-	#undef	off_t
-	#endif
-
-	#include ${_nxt_dirent-_nxt_dirent}	/* the native <dirent.h> */
-
-	#if _typ_off64_t
-	#define	off_t		off64_t
-	#endif
-
-	#if _lib_readdir64 && _typ_struct_dirent64
-	#ifndef	dirent
-	#define dirent		dirent64
-	#endif
-	#ifndef	readdir
-	#define readdir		readdir64
-	#endif
-	#endif
-
-	#endif
-
-	#endif
-!
-}end
 elif ( _nxt_dirent && _hdr_dirent ) pass{
 cat <<!
 	/*

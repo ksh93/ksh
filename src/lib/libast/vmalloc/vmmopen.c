@@ -30,9 +30,7 @@ void _STUB_vmmapopen(){}
 #include	"vmhdr.h"
 #include	<sys/types.h>
 #include	<string.h>
-#if _hdr_unistd
 #include	<unistd.h>
-#endif
 
 #undef	ALIGN	/* some sys/param.h define this */
 

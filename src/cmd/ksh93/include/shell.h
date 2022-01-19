@@ -491,13 +491,8 @@ extern Shell_t		sh;
 #   define write(a,b,c)	sh_write(a,b,c)
 #   define umask(a)	sh_umask(a)
 #   define dup		sh_dup
-#   if _lib_lseek64
-#	define open64	sh_open
-#	define lseek64	sh_seek
-#   else
-#	define open	sh_open
-#	define lseek	sh_seek
-#   endif
+#   define open		sh_open
+#   define lseek	sh_seek
 #endif /* !defs_h_defined */
 
 #define SH_SIGSET	4
