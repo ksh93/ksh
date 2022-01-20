@@ -156,11 +156,9 @@ int hist_expand(const char *ln, char **xp)
 	Histloc_t hl;	/* history location */
 	static Namval_t *np = 0;	/* histchars variable */
 	static struct subst	sb = {0,0};	/* substitution strings */
-	static Sfio_t	*wm=0;	/* word match from !?string? event designator */
+	static Sfio_t	*wm;	/* word match from !?string? event designator */
 
-	if(!wm)
-		wm = sfopen(NULL, NULL, "swr");
-
+	wm = sfopen(NULL, NULL, "swr");
 	hc[0] = '!';
 	hc[1] = '^';
 	hc[2] = 0;
@@ -590,7 +588,13 @@ getsel:
 				{
 					/* preset old with match from !?string? */
 					if(!sb.str[0] && wm)
-						sb.str[0] = sh_strdup(sfsetbuf(wm, (void*)1, 0));
+					{
+						char *sbuf = sfsetbuf(wm, (void*)1, 0);
+						int n = sftell(wm);
+						sb.str[0] = malloc(n + 1);
+						sb.str[n] = '\0';
+						memcpy(sb.str[0], sbuf, n);
+					}
 					cp = parse_subst(cp, &sb);
 				}
 
