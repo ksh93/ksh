@@ -156,9 +156,11 @@ int hist_expand(const char *ln, char **xp)
 	Histloc_t hl;	/* history location */
 	static Namval_t *np = 0;	/* histchars variable */
 	static struct subst	sb = {0,0};	/* substitution strings */
-	static Sfio_t	*wm;	/* word match from !?string? event designator */
+	static Sfio_t	*wm=0;	/* word match from !?string? event designator */
 
-	wm = sfopen(NULL, NULL, "swr");
+	if(!wm)
+		wm = sfopen(NULL, NULL, "swr");
+
 	hc[0] = '!';
 	hc[1] = '^';
 	hc[2] = 0;
