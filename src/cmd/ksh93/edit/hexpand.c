@@ -592,7 +592,7 @@ getsel:
 						char *sbuf = sfsetbuf(wm, (void*)1, 0);
 						int n = sftell(wm);
 						sb.str[0] = sh_malloc(n + 1);
-						sb.str[n] = '\0';
+						sb.str[0][n] = '\0';
 						memcpy(sb.str[0], sbuf, n);
 					}
 					cp = parse_subst(cp, &sb);
