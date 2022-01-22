@@ -105,9 +105,6 @@ const struct shtable2 shtab_variables[] =
 	".sh.pid",	NV_INTEGER|NV_NOFREE,		(char*)0,
 	".sh.tilde",	0,				(char*)0,
 	"SHLVL",	NV_INTEGER|NV_NOFREE|NV_EXPORT,	(char*)0,
-#if SHOPT_MULTIBYTE
-	"CSWIDTH",	0,				(char*)0,
-#endif /* SHOPT_MULTIBYTE */
 	"",	0,					(char*)0
 };
 

@@ -3523,7 +3523,7 @@ results)set '' $target
 	;;
 
 test)	# pass control to ksh 93u+m test script
-	capture "$PACKAGEROOT/bin/shtests" $args
+	capture "$SHELL" "$PACKAGEROOT/bin/shtests" $args
 	;;
 
 use)	# finalize the environment

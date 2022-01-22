@@ -833,24 +833,27 @@ done
 # ksh2020 regression: https://github.com/att/ast/issues/1284
 actual=$($SHELL --verson 2>&1)
 actual_status=$?
-expect='ksh: verson: bad option(s)'
+expect=': verson: bad option(s)'
 expect_status=2
 [[ "$actual" == *${expect}* ]] || err_exit "failed to handle invalid flag" \
-	"(expected $(printf %q ${expect}*), got $(printf %q "$actual"))"
+	"(expected *$(printf %q "$expect")*, got $(printf %q "$actual"))"
 [[ $actual_status == $expect_status ]] ||
 	err_exit "wrong exit status (expected '$expect_status', got '$actual_status')"
 
 # ======
 # Test for illegal seek error (ksh93v- regression)
 # https://www.mail-archive.com/ast-users@lists.research.att.com/msg00816.html
-if [[ $(uname -s) != SunOS ]]  # Solaris 11.4 join(1) hangs on this test -- not ksh's fault
-then
-exp='1
-2'
-got="$(join <(printf '%d\n' 1 2) <(printf '%d\n' 1 2))"
-[[ $exp == $got ]] || err_exit "pipeline fails with illegal seek error" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-fi  # $(uname -s) != SunOS
+case $(uname -s) in
+AIX | SunOS)
+	# AIX and Solaris join(1) hang on this test -- not ksh's fault
+	;;
+*)
+	exp=$'1\n2'
+	got=$(join <(printf '%d\n' 1 2) <(printf '%d\n' 1 2))
+	[[ $exp == "$got" ]] || err_exit "pipeline fails with illegal seek error" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	;;
+esac
 
 # ======
 exit $((Errors<125?Errors:125))

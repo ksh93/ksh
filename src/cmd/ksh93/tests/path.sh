@@ -795,10 +795,17 @@ PATH=$PWD:$PWD/cmddir $SHELL -c 'noexecute; exit $?'
 got=$?
 [[ $exp == $got ]] || err_exit "Test 3B: failed to run executable command after encountering non-executable command" \
 	"(expected $exp, got $got)"
-PATH=$PWD:$PWD/cmddir $SHELL -ic 'noexecute; exit $?'
-got=$?
-[[ $exp == $got ]] || err_exit "Test 3C: failed to run executable command after encountering non-executable command" \
-	"(expected $exp, got $got)"
+case $(uname -s) in
+AIX)
+	# ksh -ic hangs on AIX
+	;;
+*)
+	PATH=$PWD:$PWD/cmddir $SHELL -ic 'noexecute; exit $?'
+	got=$?
+	[[ $exp == $got ]] || err_exit "Test 3C: failed to run executable command after encountering non-executable command" \
+		"(expected $exp, got $got)"
+	;;
+esac
 PATH=$PWD:$PWD/cmddir $SHELL -c 'command -x noexecute; exit $?'
 got=$?
 [[ $exp == $got ]] || err_exit "Test 3D: failed to run executable command after encountering non-executable command" \

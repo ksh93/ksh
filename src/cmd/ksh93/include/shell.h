@@ -377,7 +377,6 @@ struct Shell_s
 	Dt_t		*typedict;
 	Dt_t		*inpool;
 	char		ifstable[256];
-	unsigned long	test;
 	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */
 	Shopt_t		glob_options;
 	Namval_t	*typeinit;

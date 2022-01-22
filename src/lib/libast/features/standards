@@ -4,7 +4,10 @@ set stdio
 # Flag systems that omit necessary definitions such as u_long
 # when _POSIX_SOURCE or _XOPEN_SOURCE are defined.
 # Affected: Mac OS X, UnixWare.
+# Do not emit a #define for this test, just remember it for the next tests in this file.
+set nodefine
 typ u_long
+set define
 
 #
 # The following tests try to define the features/standards macros that expose
@@ -82,10 +85,9 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 elif tst note{ SunOS (Solaris, illumos) }end compile{
 		/*
 		 * On Solaris/illumos, we ignore the standards(5) manual completely because
-		 * defining any standards macro, and even defining __EXTENSIONS__ (!), will
-		 * disable functionality that libast depends on. Instead we define unofficial
-		 * _XPG* macros that enable up-to-date declarations and functionality in
-		 * Solaris system headers.
+		 * defining recommended standards macros will disable functionality that
+		 * libast depends on. Instead we define unofficial _XPG* macros that enable
+		 * up-to-date declarations and functionality in Solaris system headers.
 		 * (Note that we must also avoid passing any -std=... flag to the compiler,
 		 * because that will disable essential functionality as well.)
 		 */
@@ -155,8 +157,12 @@ elif tst note{ GNU (glibc) or Cygwin }end compile{
 			return 0;
 		}
 	}end {
+		#ifndef _GNU_SOURCE
 		#define _GNU_SOURCE	1
+		#endif
+		#ifndef _FILE_OFFSET_BITS
 		#define _FILE_OFFSET_BITS 64
+		#endif
 		#define basename	basename	/* avoid string.h defining this in conflict with AST basename(3) */
 	}
 elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{
@@ -326,20 +332,6 @@ else tst note{ __EXTENSIONS__ works }end compile{
 	}end {
 		#ifndef __EXTENSIONS__
 		#define __EXTENSIONS__	1
-		#endif
-	}
-endif
-
-if tst -D_ISOC99_SOURCE -lm note{ _ISOC99_SOURCE plays nice }end link{
-		#include <sys/types.h>
-		#include <sys/stat.h>
-		#include <stdlib.h>
-		#include <unistd.h>
-		#include <math.h>
-		int main() { return signbit(-0.0); }
-	}end {
-		#ifndef _ISOC99_SOURCE
-		#define _ISOC99_SOURCE	1
 		#endif
 	}
 endif

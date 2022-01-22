@@ -1610,12 +1610,10 @@ const char sh_optksh[] =
 	"the first command line option(s).]"
 #endif
 "\fabc\f"
-"?"
-"[T?Enable implementation specific test code defined by mask.]#[mask]"
 "\n"
 "\n[arg ...]\n"
 "\n"
-"[+EXIT STATUS?If \b\f?\f\b executes command, the exit status will be that "
+"[+EXIT STATUS?If \b\f?\f\b executes commands, the exit status will be that "
         "of the last command executed.  Otherwise, it will be one of "
         "the following:]{"
         "[+0?The script or command line to be executed consists entirely "

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -590,7 +590,13 @@ getsel:
 				{
 					/* preset old with match from !?string? */
 					if(!sb.str[0] && wm)
-						sb.str[0] = sh_strdup(sfsetbuf(wm, (void*)1, 0));
+					{
+						char *sbuf = sfsetbuf(wm, (void*)1, 0);
+						int n = sftell(wm);
+						sb.str[0] = sh_malloc(n + 1);
+						sb.str[0][n] = '\0';
+						memcpy(sb.str[0], sbuf, n);
+					}
 					cp = parse_subst(cp, &sb);
 				}
 

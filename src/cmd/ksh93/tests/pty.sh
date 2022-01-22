@@ -958,5 +958,17 @@ r ^:test-1: echo $tmp/foo\\\\ bar \\r\\n$
 r ^$tmp/foo bar\\r\\n$
 !
 
+((SHOPT_HISTEXPAND)) && HISTFILE=$tmp/tmp_histfile tst $LINENO <<!
+L history expansion of an out-of-range event
+
+d 15
+p :test-1:
+w set -H
+p :test-2:
+w echo "!99"
+r !99
+r : !99: event not found\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

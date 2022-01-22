@@ -846,6 +846,8 @@ off_t hist_tell(register History_t *hp, int n)
  */
 off_t hist_seek(register History_t *hp, int n)
 {
+	if(!(n >= hist_min(hp) && n < hist_max(hp)))
+		return(-1);
 	return(sfseek(hp->histfp,hp->histcmds[hist_ind(hp,n)],SEEK_SET));
 }
 

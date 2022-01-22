@@ -65,16 +65,22 @@ z.bar[1]=(x=12 y=5)
 eval val="$z"
 (
 	z.foo[three]=good
-	[[ ${z.foo[three]} == good ]] || err_exit 'associative array assignment in subshell not working'
-)
+	[[ ${z.foo[three]} == good ]]
+) || err_exit 'associative array assignment in subshell not working'
 [[ $z == "$val" ]] || err_exit 'compound variable changes after associative array assignment'
 eval val="$z"
 (
 	z.foo[two]=ok
-	[[ ${z.foo[two]} == ok ]] || err_exit 'associative array assignment to compound variable in subshell not working'
+	[[ ${z.foo[two]} == ok ]] || exit 101
 	z.bar[1]=yes
-	[[ ${z.bar[1]} == yes ]] || err_exit 'indexed array assignment to compound variable in subshell not working'
+	[[ ${z.bar[1]} == yes ]] || exit 102
 )
+case $? in
+0)	;;
+101)	err_exit 'associative array assignment to compound variable in subshell not working' ;;
+102)	err_exit 'indexed array assignment to compound variable in subshell not working' ;;
+*)	err_exit 'assignment to compound variable in subshell fails' ;;
+esac
 [[ $z == "$val" ]] || err_exit 'compound variable changes after associative array assignment'
 
 x=(
@@ -84,10 +90,16 @@ x=(
 eval val="$x"
 (
 	unset x.foo
-	[[ ${x.foo.qqq} ]] && err_exit 'x.foo.qqq should be unset'
+	[[ ${x.foo.qqq} ]] && exit 101
 	x.foo=good
-	[[ ${x.foo} == good ]] || err_exit 'x.foo should be good'
+	[[ ${x.foo} == good ]] || exit 102
 )
+case $? in
+0)	;;
+101)	err_exit 'x.foo.qqq should be unset' ;;
+102)	err_exit 'x.foo should be good' ;;
+*)	err_exit "x.foo fails" ;;
+esac
 [[ $x == "$val" ]] || err_exit 'compound variable changes after unset leaves'
 unset l
 (
