@@ -140,7 +140,7 @@ static pid_t _spawnveg(const char *path, char* const argv[], char* const envp[],
 	while(1)
 	{
 		sh_stats(STAT_SPAWN);
-		pid = spawnveg(path,argv,envp,pgid);
+		pid = spawnveg(path,argv,envp,pgid,job.jobcontrol?job.fd:-1);
 		if(pid>=0 || errno!=EAGAIN)
 			break;
 	}

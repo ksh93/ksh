@@ -240,9 +240,9 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 	#include <string.h>
 	/* if it uses fork() why bother? */
 	#undef fork
-	pid_t fork(void)) { NOTE("uses fork()"; return -1; }
-	pid_t _fork(void)) { NOTE("uses _fork()"; return -1; }
-	pid_t __fork(void)) { NOTE("uses __fork()"; return -1; }
+	pid_t fork(void) { NOTE("uses fork()"); return -1; }
+	pid_t _fork(void) { NOTE("uses _fork()"); return -1; }
+	pid_t __fork(void) { NOTE("uses __fork()"); return -1; }
 	int
 	main(argc, argv)
 	int	argc;
@@ -343,6 +343,7 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 		_exit(n);
  	}
 }end
+lib	posix_spawnattr_tcsetpgrp_np
 
 tst	lib_spawn_mode unistd.h stdlib.h note{ first spawn arg is mode and it works }end execute{
 	#include <signal.h>

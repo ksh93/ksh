@@ -1623,7 +1623,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 					fifo_save_ppid = sh.current_pid;
 #endif
 #if SHOPT_SPAWN
+#if !_lib_posix_spawnattr_tcsetpgrp_np
 				if(com && !job.jobcontrol)
+#else
+				if(com)
+#endif /* !_lib_posix_spawnattr_tcsetpgrp_np */
 				{
 					parent = sh_ntfork(t,com,&jobid,ntflag);
 					if(parent<0)
@@ -3462,7 +3466,8 @@ static void sigreset(int mode)
 
 /*
  * A combined fork/exec for systems with slow fork().
- * Incompatible with job control on interactive shells (job.jobcontrol).
+ * Incompatible with job control on interactive shells (job.jobcontrol) if
+ * the system does not support posix_spawnattr_tcsetpgrp_np().
  */
 static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 {
@@ -3474,6 +3479,9 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 	char		**arge, *path;
 	volatile pid_t	grp = 0;
 	Pathcomp_t	*pp;
+#if _lib_posix_spawnattr_tcsetpgrp_np
+	volatile int	jobwasset=0;
+#endif /* _lib_posix_spawnattr_tcsetpgrp_np */
 	if(flag)
 	{
 		otype = savetype;
@@ -3538,8 +3546,21 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 		}
 		arge = sh_envgen();
 		sh.exitval = 0;
+#if _lib_posix_spawnattr_tcsetpgrp_np
+		if(job.jobcontrol)
+		{
+			signal(SIGTTIN,SIG_DFL);
+			signal(SIGTTOU,SIG_DFL);
+			signal(SIGTSTP,SIG_DFL);
+			jobwasset++;
+		}
+#endif /* _lib_posix_spawnattr_tcsetpgrp_np */
 #ifdef JOBS
+#if _lib_posix_spawnattr_tcsetpgrp_np
+		if(sh_isstate(SH_MONITOR) && (job.jobcontrol || (otype&FAMP)))
+#else
 		if(sh_isstate(SH_MONITOR) && (otype&FAMP))
+#endif /* _lib_posix_spawnattr_tcsetpgrp_np */
 		{
 			if((otype&FAMP) || job.curpgid==0)
 				grp = 1;
@@ -3600,6 +3621,17 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 	sh_popcontext(buffp);
 	if(buffp->olist)
 		free_list(buffp->olist);
+#if _lib_posix_spawnattr_tcsetpgrp_np
+	if(jobwasset)
+	{
+		signal(SIGTTIN,SIG_IGN);
+		signal(SIGTTOU,SIG_IGN);
+		if(sh_isstate(SH_INTERACTIVE))
+			signal(SIGTSTP,SIG_IGN);
+		else
+			signal(SIGTSTP,SIG_DFL);
+	}
+#endif /* _lib_posix_spawnattr_tcsetpgrp_np */
 	if(sigwasset)
 		sigreset(1);	/* restore ignored signals */
 	if(scope)

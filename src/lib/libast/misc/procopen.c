@@ -744,7 +744,7 @@ sfsync(sfstderr);
 			if (forked || (flags & PROC_OVERLAY))
 				execve(path, p, environ);
 #if _use_spawnveg
-			else if ((proc->pid = spawnveg(path, p, environ, proc->pgrp)) != -1)
+			else if ((proc->pid = spawnveg(path, p, environ, proc->pgrp, -1)) != -1)
 				goto cleanup;
 #endif
 			if (errno != ENOEXEC)
@@ -773,7 +773,7 @@ sfsync(sfstderr);
 			execve(env + 2, p, environ);
 #if _use_spawnveg
 		else
-			proc->pid = spawnveg(env + 2, p, environ, proc->pgrp);
+			proc->pid = spawnveg(env + 2, p, environ, proc->pgrp, -1);
 #endif
 	cleanup:
 		if (forked)

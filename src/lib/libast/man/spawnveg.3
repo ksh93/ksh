@@ -42,7 +42,7 @@ spawnveg \- process spawn with process group and session control
 .SH SYNOPSIS
 .L "#include <ast.h>"
 .sp
-.L "int spawnveg(const char* command, char** argv, char** envv, pid_t pgid);"
+.L "int spawnveg(const char* command, char** argv, char** envv, pid_t pgid, int tcfd);"
 .SH DESCRIPTION
 .L spawnveg
 combines
@@ -81,10 +81,35 @@ The new process becomes a process group leader.
 .L >1
 The new process joins the process group
 .IR pgid .
-.SH CAVEATS
+.PP
 The
+.L tcfd
+argument is currently only used if the operating system supports the
+.I posix_spawnattr_tcsetpgrp_np
+function.
+When
+.L tcfd
+is
+.L >=0
+and
+.L pgid
+is
+.LR >0 ,
+spawnveg will set the controlling terminal for the new process to
+.IR tcfd .
+.SH CAVEATS
+If the
+.I posix_spawnattr_tcsetpgrp_np
+function is not available, then
 .L spawnveg
-function cannot set the terminal process group.
+cannot reliably set the terminal process group.
 As a result, it is incompatible with job control when used with terminals.
+Additionally, if the
+.L POSIX_SPAWN_SETSID
+attribute is not supported, then
+.L spawnveg
+cannot make the new process a session leader when using the
+.I posix_spawn
+API.
 .SH "SEE ALSO"
-fork(2), exec(2), setpgid(2), setsid(2), spawnve(2)
+fork(2), posix_spawn(3), exec(2), setpgid(2), setsid(2), spawnve(2)
