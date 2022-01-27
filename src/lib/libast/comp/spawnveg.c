@@ -44,7 +44,7 @@ NoN(spawnveg)
 
 #else
 
-#if _lib_posix_spawn > 1	/* reports underlying exec() errors */
+#if _lib_posix_spawn
 
 #include <spawn.h>
 #include <error.h>

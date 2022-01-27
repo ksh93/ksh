@@ -50,6 +50,10 @@ __STDPP__directive pragma pp:nohide wait waitpid
 #define WNOHANG		1
 #endif
 
+#ifndef WNOWAIT
+#define WNOWAIT		0
+#endif
+
 #ifndef WUNTRACED
 #define WUNTRACED	2
 #endif
