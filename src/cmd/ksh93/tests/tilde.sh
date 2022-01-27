@@ -27,7 +27,7 @@ then	x=$(print -r -- ~root)
 	[[ $x == ~root ]] || err_exit '~user expanded in subshell prevent ~user from working'
 fi
 
-function home # id
+function home # ID
 {
 	typeset IFS=: pwd=/etc/passwd
 	set -o noglob
@@ -113,7 +113,7 @@ HOME=$saveHOME
 if builtin .sh.tilde 2>/dev/null
 then	got=$(.sh.tilde & wait "$!" 2>&1)
 	((!(e = $?))) || err_exit ".sh.tilde builtin crashes the shell" \
-		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 fi
 
 # ... and replaced by a proper use of discipline functions that allows customising tilde expansion.
@@ -164,7 +164,7 @@ do	(
 	if	((!(e = $?)))
 	then	read Errors <$tmp/Errors
 	else	err_exit ".sh.tilde.$disc discipline function crashes the shell" \
-			"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$(<crashmsg)"))"
+			"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$(<crashmsg)"))"
 	fi
 done
 

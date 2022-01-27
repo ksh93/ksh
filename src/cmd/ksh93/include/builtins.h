@@ -33,25 +33,25 @@
  * IMPORTANT: The offsets on these macros must be synchronous
  * with the order of shtab_builtins[] in data/builtins.c!
  */
-#define SYSEXEC		(shgd->bltin_cmds)	/* exec */
-#define SYSREDIR	(shgd->bltin_cmds+1)	/* redirect */
-#define SYSSET		(shgd->bltin_cmds+2)	/* set */
+#define SYSEXEC		(sh.bltin_cmds)		/* exec */
+#define SYSREDIR	(sh.bltin_cmds+1)	/* redirect */
+#define SYSSET		(sh.bltin_cmds+2)	/* set */
 						/* : */
-#define SYSTRUE		(shgd->bltin_cmds+4)	/* true */
-#define SYSCOMMAND	(shgd->bltin_cmds+5)	/* command */
-#define SYSCD		(shgd->bltin_cmds+6)	/* cd */
-#define SYSBREAK	(shgd->bltin_cmds+7)	/* break */
-#define SYSCONT		(shgd->bltin_cmds+8)	/* continue */
+#define SYSTRUE		(sh.bltin_cmds+4)	/* true */
+#define SYSCOMMAND	(sh.bltin_cmds+5)	/* command */
+#define SYSCD		(sh.bltin_cmds+6)	/* cd */
+#define SYSBREAK	(sh.bltin_cmds+7)	/* break */
+#define SYSCONT		(sh.bltin_cmds+8)	/* continue */
 
-#define SYSTYPESET	(shgd->bltin_cmds+9)	/* typeset     \		*/
+#define SYSTYPESET	(sh.bltin_cmds+9)	/* typeset     \		*/
 						/* autoload	|		*/
-#define SYSCOMPOUND	(shgd->bltin_cmds+11)	/* compound	|		*/
+#define SYSCOMPOUND	(sh.bltin_cmds+11)	/* compound	|		*/
 						/* float	 >typeset range	*/
 						/* functions	|		*/
 						/* integer	|		*/
 #define SYSNAMEREF	(shgd->bltin_cmds+15)	/* nameref      |		*/
-#define SYSLOCAL	(shgd->bltin_cmds+16)	/* local */
-#define SYSDECLARE	(shgd->bltin_cmds+17)	/* declare */
+#define SYSLOCAL	(shgd->bltin_cmds+16)	/* local        |		*/
+#define SYSDECLARE	(shgd->bltin_cmds+17)	/* declare      |		*/
 #define SYSTYPESET_END	(shgd->bltin_cmds+17)	/*	       /		*/
 
 #define SYSTEST		(shgd->bltin_cmds+18)	/* test */

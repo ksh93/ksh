@@ -383,7 +383,6 @@ is set to
 The contents of the line read from standard input is
 saved in
 the variable
-.SM
 .BR REPLY .
 The
 .I list\^
@@ -811,7 +810,6 @@ A
 by itself, or in front of a
 .BR / ,
 is replaced by
-.SM
 .BR $HOME ,
 unless the
 .B HOME
@@ -1233,7 +1231,6 @@ is substituted,
 separated by
 the first character of
 the value of
-.SM
 .BR IFS .
 .TP
 \f3${#\fP\f2parameter\^\fP\f3}\fP
@@ -1597,7 +1594,7 @@ the new type is derived from the type of the first variable. (See
 below.)
 .TP
 .B !
-The process id or the pool name and job number of the last background command
+The process ID or the pool name and job number of the last background command
 invoked or the most recent job put in the background with the
 .B bg
 built-in command.
@@ -1780,7 +1777,7 @@ built-in command.
 .TP
 .B
 .SM PPID
-The process id of the parent of the shell.
+The process ID of the parent of the shell.
 .TP
 .B
 .SM PWD
@@ -1794,7 +1791,6 @@ Each time this variable is referenced, a random integer,
 uniformly distributed between 0 and 32767, is generated.
 The sequence of random numbers can be initialized by assigning
 a numeric value to
-.SM
 .BR RANDOM .
 .TP
 .B
@@ -1919,7 +1915,6 @@ If an executable file with the name of that command is found,
 then it is read and executed
 in the current environment.
 Unlike
-.SM
 .BR PATH ,
 the current directory must be represented
 explicitly by
@@ -1928,6 +1923,16 @@ rather than by adjacent
 .B :
 characters or a beginning or ending
 .BR : .
+.TP
+.B
+.SM histchars
+This variable can be used to specify up to three ASCII characters
+that control history expansion (see \f2History Expansion\fP below).
+The first (default: \f3!\fP) signals the start of a history expansion.
+The second (default: \f3^\fP) is used for short-form substitutions.
+The third (default: \f3#\fP), when found as the first character of a word,
+causes history expansion to be skipped for the rest of the words on the line.
+Multi-byte characters (e.g. UTF-8) are not supported and produce undefined results.
 .TP
 .B
 .SM HISTCMD
@@ -2001,11 +2006,9 @@ that belong to the \f2isspace\^\fP character class,
 delimit a field.
 In addition, if the same \f2isspace\^\fP character appears
 consecutively inside
-.SM
 .BR IFS ,
 this character is treated as if it were not in the \f2isspace\^\fP
 class, so that if
-.SM
 .BR IFS
 consists of two
 .B tab
@@ -2028,7 +2031,6 @@ starting with
 .B
 .SM LC_
 or
-.SM
 .BR LANG .
 .TP
 .B
@@ -2306,12 +2308,10 @@ The shell gives default values to
 \f3\s-1PS3\s+1\fP, \f3\s-1PS4\s+1\fP, \f3\s-1MAILCHECK\s+1\fP, \f3\s-1FCEDIT\s+1\fP,
 \f3\s-1TMOUT\s+1\fP and \f3\s-1IFS\s+1\fP,
 while
-.SM
 .BR HOME ,
-.SM
 .BR SHELL ,
-.SM
 .BR ENV ,
+.BR histchars ,
 and
 .SM
 .B MAIL
@@ -2423,7 +2423,7 @@ must both be either upper case or both be lower case characters
 in the C locale.  In this case a field is created for each character
 from
 .I l1\^
-thru
+through
 .IR l2\^ .
 .PP
 In the remaining forms, a field is created for each number starting at
@@ -3072,7 +3072,6 @@ attribute.
 Assigning a floating point number to a
 variable whose type is an integer causes the fractional
 part to be truncated.
-.PP
 .SS Prompting.
 When used interactively,
 the shell prompts with the value of
@@ -3236,12 +3235,12 @@ exists and the modification time is greater than the last access time.
 \f3\-O\fP \f2file\fP
 True, if
 .I file\^
-exists and is owned by the effective user id of this process.
+exists and is owned by the effective user ID of this process.
 .TP
 \f3\-G\fP \f2file\fP
 True, if
 .I file\^
-exists and its group matches the effective group id of this process.
+exists and its group matches the effective group ID of this process.
 .TP
 \f3\-R\fP \f2name\fP
 True if variable
@@ -3489,8 +3488,8 @@ built-ins.
 Use file
 .I word\^
 as standard output.
-If the file exists, then output is appended to it (by first seeking to the end-of-file);
-otherwise, the file is created.
+If the file exists, then output is appended to it (by
+first seeking to the end-of-file); otherwise, the file is created.
 .TP
 .BI <> word
 Open file
@@ -3701,9 +3700,9 @@ first associates file descriptor 1 with file
 It then associates file descriptor 2 with the file associated with file
 descriptor 1 (i.e.
 .IR fname\^ ).
-If the order of redirections were reversed, file descriptor 2 would be associated
-with the terminal (assuming file descriptor 1 had been) and then file descriptor
-1 would be associated with file
+If the order of redirections were reversed, file descriptor 2
+would be associated with the terminal (assuming file descriptor 1 had
+been) and then file descriptor 1 would be associated with file
 .IR fname\^ .
 .PP
 If a command is followed by
@@ -3799,7 +3798,6 @@ for early versions of the shell and its use in new scripts
 is strongly discouraged.
 It is likely to disappear someday.
 .SS Functions.
-.PP
 For historical reasons, there are two
 ways to define functions,
 the
@@ -4093,7 +4091,6 @@ command with the
 and no option argument or operands will write all the type definitions to
 standard output in a form that can be read in to create all they types.
 .SS Jobs.
-.PP
 If the
 .B monitor
 option of the
@@ -4113,7 +4110,7 @@ like:
 	[1] 1234
 .PP
 indicating that the job which was started asynchronously was job number
-1 and had one (top-level) process, whose process id was 1234.
+1 and had one (top-level) process, whose process ID was 1234.
 .PP
 This paragraph and the next require features that are
 not in all versions of UNIX and may not apply.
@@ -4147,7 +4144,7 @@ A job pool is a collection of jobs started with
 associated with a name.
 .PP
 There are several ways to refer to jobs in the shell.
-A job can be referred to by the process id of any process of the job
+A job can be referred to by the process ID of any process of the job
 or by one of the following:
 .PD 0
 .TP
@@ -4408,7 +4405,6 @@ A shell can access the commands of
 all
 .I interactive
 shells which use the same named
-.SM
 .BR HISTFILE .
 The built-in command
 .B hist\^
@@ -4462,6 +4458,249 @@ replacing the first occurrence of the string
 .B bad
 with the string
 .BR good .
+.\"
+.\"
+.\" The History Expansion section was adapted from the History Substitution
+.\" section in the tcsh(1) manual page, and is licensed under the 3-clause
+.\" BSD license. See the COPYRIGHT file that comes with ksh for the license.
+.\"
+.SS History Expansion.
+History expansions introduce words from the history list into the input
+stream, making it easy to repeat commands, repeat arguments of a previous
+command in the current command, or fix typos in the previous command.
+The history expansion facility is an alternative to history control via the
+.B fc
+or
+.B hist
+built-in command.
+To enable it, turn on the \f3\-H\fP or \f3histexpand\fP option using the
+.B set
+command (see \f2Built-in Commands\fP below).
+.PP
+History expansions begin with the character \f3!\fP.
+They may begin anywhere in the input.
+The \f3!\fP may be preceded by a \f3\\\fP or enclosed in single quotes
+to prevent its special meaning.
+A \f3!\fP is also passed unchanged when it is followed by
+a space, tab, newline, \f3=\fP or \f3(\fP.
+History expansions do not nest.
+They are parsed separately before the shell parser is invoked,
+so they can override shell grammar rules.
+.PP
+By default, the expanded version of any line that contains a history expansion
+is printed, added to the history, and then immediately executed.
+History expansions are never added to the history themselves,
+regardless of whether they succeed or fail due to an error.
+Normally, this means that a command line with an erroneous history expansion
+is lost and needs to be retyped from scratch,
+but if the \f3histreedit\fP shell option is turned on
+and a line editor is active (see \f2In-line Editing Options\fP below),
+the erroneous line is pre-filled into the next prompt's input buffer for correcting.
+The \f3histverify\fP option causes the same to be done for successful
+history expansions, allowing verification and editing before execution.
+.PP
+A history expansion may have an \f2event specification\fP, which indicates
+the event from which words are to be taken, a \f2word designator\fP, which
+selects particular words from the chosen event, and/or a \f2modifier\fP,
+which manipulates the selected words.
+.PP
+An event specification can be:
+.PP
+.PD 0
+.RS +4
+.TP 8
+.I n
+A number, referring to a particular event.
+.TP 8
+\f3\-\fP\f2n\fP
+An offset, referring to the event \f2n\fP before the current event.
+.TP 8
+.B #
+The current event.
+.TP 8
+.B !
+The previous event (equivalent to \f3\-1\fP).
+.TP 8
+.I s
+The most recent event whose first word begins with the string \f2s\fP.
+.TP 8
+\f3?\fP\f2s\fP\f3?\fP
+The most recent event which contains the string \f2s\fP.
+The second \f3?\fP can be omitted if it is immediately followed by a newline.
+.RE
+.PD
+.PP
+For example, consider this bit of someone's history list as might be
+output by the \f3hist -l\fP command:
+.IP "" 4
+9        nroff \-man wumpus.man
+.br
+10       cp wumpus.man wumpus.man.old
+.br
+11       vi wumpus.man
+.br
+12       diff wumpus.man.old wumpus.man
+.PP
+The commands are shown with their event numbers.
+The current event, which we haven't typed in yet, is event 13.
+\f3!11\fP and \f3!\-2\fP refer to event 11.
+\f3!!\fP refers to the previous event, 12.  \f3!!\fP can be abbreviated \f3!\fP if it is
+followed by \f3:\fP (see below).
+\f3!n\fP refers to event 9, which begins with \f3n\fP.
+\f3!?old?\fP also refers to event 12, which contains \f3old\fP.
+Without word designators or modifiers, history references simply expand to the
+entire event, so we might type \f3!cp\fP to redo the copy command or \f3!!|more\fP
+if the \f3diff\fP output scrolled off the top of the screen.
+.PP
+To select words from an event,
+the event specification can be followed by a \f3:\fP
+and a designator for the desired words.
+The words of an input line are numbered from 0,
+the first word (usually the command name) being 0,
+the second word (first argument) being 1, etc.
+The basic word designators are:
+.PP
+.PD 0
+.RS +4
+.TP 8
+.B 0
+The first word (command name).
+.TP 8
+.I n
+The \f2n\fPth argument.
+.TP 8
+.B ^
+The first argument, equivalent to \f31\fP.
+.TP 8
+.B $
+The last argument.
+.TP 8
+.B %
+The word matched by the most recent \f3?\fP\f2s\fP\f3?\fP search.
+.TP 8
+\f3x\fP\f2\-\fP\f3y\fP
+A range of words.
+.TP 8
+\f3\-\fP\f2y\fP
+Equivalent to \f30\-\fP\f2y\fP.
+.TP 8
+.B *
+Equivalent to \f3^\-$\fP, but returns nothing if the event contains only 1 word.
+.TP 8
+\f2x\fP\f3*\fP
+Equivalent to \f2x\fP\f3\-$\fP.
+.TP 8
+\f2x\fP\f3\-\fP
+Equivalent to \f2x\fP\f3*\fP, but omitting the last word (\f3$\fP).
+.PD
+.RE
+.PP
+Selected words are inserted into the command line separated by single blanks.
+For example, the \f3diff\fP command in the previous example might have been
+typed as \f3diff !!:1.old !!:1\fP (using \f3:1\fP to select the first argument
+from the previous event) or \f3diff !\-2:2 !\-2:1\fP to select and swap the
+arguments from the \f3cp\fP command.  If we didn't care about the order of the
+\f3diff\fP, we might have said \f3diff !\-2:1\-2\fP or simply \f3diff !\-2:*\fP.
+The \f3cp\fP command might have been written \f3cp wumpus.man !#:1.old\fP,
+using \f3#\fP to refer to the current event.
+\f3!n:\- hurkle.man\fP would reuse the first two words from the \f3nroff\fP command
+to say \f3nroff \-man hurkle.man\fP.
+.PP
+The \f3:\fP separating the event specification from the word designator
+can be omitted if the argument selector begins with a
+\f3^\fP, \f3$\fP, \f3*\fP, \f3%\fP or \f3\-\fP.
+For example, our \f3diff\fP command might have been \f3diff !!^.old !!^\fP
+or, equivalently, \f3diff !!$.old !!$\fP.
+However, if \f3!!\fP is abbreviated \f3!\fP,
+an argument selector beginning with \f3\-\fP will be interpreted as an event specification.
+.PP
+The word(s) in a history reference can be edited
+by following them with one or more modifiers,
+each preceded by a colon (\f3:\fP):
+.PP
+.PD 0
+.RS +4
+.TP 8
+.B h
+Remove a trailing pathname component, leaving the head.
+.TP 8
+.B t
+Remove all leading pathname components, leaving the tail.
+.TP 8
+.B r
+Remove a filename extension \f3.xxx\fP, leaving the root name.
+.TP 8
+.B e
+Remove all but the extension.
+.TP 8
+\f3s/\fP\f2l\fP\f3/\fP\f2r\fP\f3/\fP
+Substitute \f2l\fP for \f2r\fP.
+\f2l\fP is simply a string like \f2r\fP,
+not a regular expression as in the eponymous \f2ed\fP(1) command.
+Any character may be used as the delimiter in place of \f3/\fP;
+a \f3\\\fP can be used to quote the delimiter inside \f2l\fP and \f2r\fP.
+The character \f3&\fP in the \f2r\fP is replaced by \f2l\fP;
+\f3\\\fP also quotes \f3&\fP.
+If \f2l\fP is empty,
+the \f2l\fP from the previous substitution is used,
+or if there is none,
+the \f2s\fP from the most recent \f3?\fP\f2s\fP\f3?\fP search.
+The trailing delimiter may be omitted if it is immediately followed by a newline.
+.TP 8
+.B &
+Repeat the previous substitution.
+.TP 8
+.B g
+Global substitution, for example \f3:gs/foo/bar/\fP or \f3:g&\fP.
+Applies the \f3s\fP or \f3&\fP modifier to the entire command line.
+.TP 8
+.B a
+Same as \f3g\fP.
+.TP 8
+.B p
+Print the new command line but do not execute it.
+.TP 8
+.B q
+Quote the expanded words, preventing further expansions.
+.TP 8
+.B x
+Like \f3q\fP, but break into words at blanks, tabs and newlines.
+.PD
+.RE
+.PP
+Modifiers are applied to only the first modifiable word
+(unless \f3g\fP or \f3a\fP is used).
+It is an error for no word to be modifiable.
+.PP
+For example, the \f3diff\fP command might have been written as
+\f3diff wumpus.man.old !#^:r\fP,
+using \f3:r\fP to remove \f3.old\fP
+from the first argument on the same line (\f3!#^\fP).
+We might follow \f3mail \-s "I forgot my password" rot\fP
+with \f3!:s/rot/root\fP to correct the spelling of \f3root\fP.
+.PP
+History expansions also occur when an input line begins with \f3^\fP.
+When it is the first character on an input line, it is an abbreviation of \f3!:s^\fP.
+Thus we might have said \f3^rot^root\fP to make the spelling correction in the previous example.
+This is the only history expansion that does not explicitly begin with \f3!\fP.
+.PP
+If a word on a command line begins with the history comment character \f3#\fP,
+history expansion is ignored for the rest of that line.
+This usually causes the shell parser
+(which uses the same character to signal a comment)
+to treat the rest of the line as a comment as well,
+but as history expansion is parsed separately from the shell grammar and with different rules,
+this cannot be guaranteed in all cases.
+If the history comment character is changed,
+the shell grammar comment character does not change along with it.
+.PP
+The three characters used to signal history expansion can be changed using the
+.B histchars
+shell variable; see \f2Shell Variables\fP above.
+.\"
+.\" End of BSD-licensed content adapted from the tcsh(1) manual page.
+.\"
+.\"
 .SS In-line Editing Options.
 Normally, each command line entered from a terminal device is simply
 typed followed by a \f3new-line\fP (`RETURN' or `LINE\ FEED').
@@ -4672,11 +4911,9 @@ in question, which are indicated in parentheses.
 .TP 10
 .BI ^F
 Move cursor forward (right) one character.
-.PP
 .TP 10
 .BI M-[C
 (Right arrow) Same as \fB^F\fR.
-.PP
 .TP 10
 .BI M-f
 Move cursor forward one word.
@@ -4684,55 +4921,43 @@ Move cursor forward one word.
 .B emacs
 editor's idea of a word is a string of characters
 consisting of only letters, digits and underscores.)
-.PP
 .TP 10
 .BI ^B
 Move cursor backward (left) one character.
-.PP
 .TP 10
 .BI M-[D
 (Left arrow) Same as \fB^B\fR.
-.PP
 .TP 10
 .BI M-b
 Move cursor backward one word.
-.PP
 .TP 10
 .BI ^A
 Move cursor to start of line.
-.PP
 .TP 10
 .BI M-[H
 (Home) Same as \fB^A\fR.
-.PP
 .TP 10
 .BI ^E
 Move cursor to end of line.
-.PP
 .TP 10
 .BI M-[F
 (End) Same as \fB^E\fR.
-.PP
 .TP 10
 .BI M-[Y
 Same as \fB^E\fR.
-.PP
 .TP 10
 .BI ^] char
 Move cursor forward to character
 .I char
 on current line.
-.PP
 .TP 10
 .BI M-^] char
 Move cursor backward to character
 .I char
 on current line.
-.PP
 .TP 10
 .BI ^X^X
 Interchange the cursor and mark.
-.PP
 .TP 10
 .I erase
 (User defined erase character as defined
@@ -4741,7 +4966,6 @@ by the
 command, usually
 .B ^H .)
 Delete previous character.
-.PP
 .TP 10
 .I lnext
 (User defined literal next character as defined
@@ -4753,33 +4977,26 @@ or
 if not defined.)
 Removes the next character's
 editing features (if any).
-.PP
 .TP 10
 .BI ^D
 Delete current character.
-.PP
 .TP 10
 .BI M-[3~
 (Forward delete) Same as \fB^D\fR.
-.PP
 .TP 10
 .BI M-d
 Delete current word.
-.PP
 .TP 10
 .BI M-^H
 (Meta-backspace) Delete previous word.
-.PP
 .TP 10
 .BI M-h
 Delete previous word.
-.PP
 .TP 10
 .BI M-^?
 (Meta-DEL) Delete previous word (if your interrupt character is
 .B ^?
 (DEL, the default) then this command will not work).
-.PP
 .TP 10
 .BI ^T
 Transpose current character with previous character
@@ -4790,19 +5007,15 @@ mode.
 Transpose two previous characters in
 .I gmacs
 mode.
-.PP
 .TP 10
 .BI ^C
 Capitalize current character.
-.PP
 .TP 10
 .BI M-c
 Capitalize current word.
-.PP
 .TP 10
 .BI M-l
 Change the current word to lower case.
-.PP
 .TP 10
 .BI ^K
 Delete from the cursor to the end of the line.
@@ -4812,15 +5025,12 @@ up to the cursor.
 If preceded by a numerical parameter whose value is greater than the
 current cursor position, then delete from cursor up to
 given cursor position.
-.PP
 .TP 10
 .BI ^W
 Kill from the cursor to the mark.
-.PP
 .TP 10
 .BI M-p
 Push the region from the cursor to the mark on the stack.
-.PP
 .TP 10
 .I kill
 (User defined kill character as defined
@@ -4835,35 +5045,27 @@ kill characters from then on cause a line feed
 A subsequent pair of
 .I kill
 characters undoes this change.
-.PP
 .TP 10
 .BI ^Y
 Restore last item removed from line. (Yank item back to the line.)
-.PP
 .TP 10
 .BI ^L
 Line feed and print current line.
-.PP
 .TP 10
 .BI M-^L
 Clear the screen.
-.PP
 .TP 10
 .BI ^@
 (Null character) Set mark.
-.PP
 .TP 10
 .BI M- space
 (Meta space) Set mark.
-.PP
 .TP 10
 .BI ^J
 (New\ line) Execute the current line.
-.PP
 .TP 10
 .BI ^M
 (Return) Execute the current line.
-.PP
 .TP 10
 .I eof
 End-of-file character,
@@ -4871,7 +5073,6 @@ normally
 .BR ^D ,
 is processed as an End-of-file only
 if the current line is null.
-.PP
 .TP 10
 .BI ^P
 Fetch previous command.
@@ -4880,7 +5081,6 @@ Each time
 is entered
 the previous command back in time is accessed.
 Moves back one line when not on the first line of a multi-line command.
-.PP
 .TP 10
 .BI M-[A
 (Up arrow)
@@ -4892,15 +5092,12 @@ set to the contents of the current line.
 Otherwise, it is
 equivalent to
 .BR ^P .
-.PP
 .TP 10
 .BI M-<
 Fetch the least recent (oldest) history line.
-.PP
 .TP 10
 .BI M->
 Fetch the most recent (youngest) history line.
-.PP
 .TP 10
 .BI ^N
 Fetch next command line.
@@ -4908,13 +5105,11 @@ Each time
 .B ^N
 is entered
 the next command line forward in time is accessed.
-.PP
 .TP 10
 .BI M-[B
 (Down arrow)
 Equivalent to
 .BR ^N .
-.PP
 .TP 10
 .BI ^R string
 Reverse search history for a previous command line containing
@@ -4934,13 +5129,11 @@ then the next command line containing the most recent
 is accessed.
 In this case a parameter of zero
 reverses the direction of the search.
-.PP
 .TP 10
 .B ^O
 Operate \- Execute the current line and fetch
 the next line relative to current line from the
 history file.
-.PP
 .TP 10
 .BI M- digits
 (Escape) Define numeric parameter, the digits
@@ -4968,7 +5161,6 @@ The commands that accept a parameter are
 .BR M-l ,
 .BR M-^H ,
 and the arrow keys and forward-delete key.
-.PP
 .TP 10
 .BI M- letter
 Soft-key \- Your alias list is searched for an
@@ -4979,7 +5171,6 @@ value will be inserted on the input queue.
 The
 .I letter
 must not be one of the above meta-functions.
-.PP
 .TP 10
 .BI M-[ letter
 Soft-key \- Your alias list is searched for an
@@ -4988,7 +5179,6 @@ alias by the name
 and if an alias of this name is defined, its
 value will be inserted on the input queue.
 This can be used to program function keys on many terminals.
-.PP
 .TP 10
 .B M-.
 The last word of the previous command is inserted
@@ -4996,23 +5186,19 @@ on the line.
 If preceded by a numeric parameter, the value
 of this parameter determines which word to insert rather than
 the last word.
-.PP
 .TP 10
 .B M-_
 Same as
 .BR M-. .
-.PP
 .TP 10
 .B M-*
 Attempt pathname expansion on the current word.
 An asterisk is appended if the word doesn't match any file
 or contain any special
 pattern characters.
-.PP
 .TP 10
 .B M-ESC
 Command or file name completion as described above.
-.PP
 .TP 10
 .BI ^I " tab"
 Attempts command or file name completion as described above.
@@ -5025,7 +5211,6 @@ If no match is found or entered after
 a
 .I tab\^
 is inserted.
-.PP
 .TP 10
 .B M-=
 If not preceded by a numeric parameter,
@@ -5035,16 +5220,15 @@ Otherwise, the word under the cursor is replaced by
 the item corresponding to the value of the numeric parameter
 from the most recently generated command or file list.
 If the cursor is not on a word, it is inserted instead.
-.PP
 .TP 10
 .BI ^U
 Multiply parameter of next command by 4.
-.PP
 .TP 10
 .BI \e
 If the
 .B backslashctrl
-shell option is on (which is the default setting), this escapes the next character.
+shell option is on (which is the default setting), this escapes
+the next character.
 Editing characters, the user's erase, kill and
 interrupt (normally
 .BR ^C )
@@ -5059,11 +5243,9 @@ editing features (if any).
 See also
 .I lnext
 which is not subject to any shell option.
-.PP
 .TP 10
 .B M-^V
 Display version of the shell.
-.PP
 .TP 10
 .B M-#
 If the line does not begin with a
@@ -5120,7 +5302,6 @@ These sequences can use preceding repeat count parameters, but only when the
 \fB^[\fR and the subsequent \fB[\fR are entered into the input buffer at the
 same time, such as when pressing one of those keys.
 .SS "\ \ \ \ \ Input Edit Commands"
-.PP
 .RS
 By default the editor is in input mode.
 .PD 0
@@ -5870,7 +6051,6 @@ substitutes the string
 for the string
 .I old
 in the current directory name,
-.SM
 .BR PWD ,
 and tries to change to this new directory.
 .sp .5
@@ -5955,7 +6135,6 @@ option causes
 the operating system's standard utilities path
 (as output by \f3getconf PATH\fP) to be searched
 rather than the one defined by the value of
-.SM
 .BR PATH .
 .IP
 The
@@ -6258,12 +6437,10 @@ begins with a
 The index of the next
 .I arg
 is stored in
-.SM
 .BR OPTIND .
 The option argument,
 if any,
 gets stored in
-.SM
 .BR OPTARG .
 .sp .5
 A leading
@@ -6274,7 +6451,6 @@ causes
 .B getopts
 to store the letter of an invalid
 option in
-.SM
 .BR OPTARG ,
 and to set
 .I vname
@@ -6409,7 +6585,7 @@ Lists information about each given job; or all active jobs if
 is omitted.
 The
 .B \-l
-option lists process ids in addition to the normal information.
+option lists process IDs in addition to the normal information.
 The
 .B \-n
 option only displays jobs that have stopped or exited since last
@@ -6453,7 +6629,7 @@ then the job or process will be sent a CONT (continue) signal
 if it is stopped.
 The argument
 .I job\^
-can be the process id of a process that is not a member of one of the
+can be the process ID of a process that is not a member of one of the
 active jobs.
 See
 .I Jobs
@@ -6769,11 +6945,13 @@ The
 flag, when used with the
 .B %d
 format without an output base,
-displays the output in powers of 1000 indicated by one of the following suffixes:
+displays the output in powers of 1000 indicated by one of the
+following suffixes:
 .BR "k M G T P E" ,
 and when used with the
 .B %i
-format displays the output in powers of 1024 indicated by one of the following suffixes:
+format displays the output in powers of 1024 indicated by one of
+the following suffixes:
 .BR "Ki Mi Gi Ti Pi Ei" .
 .TP
 .B =
@@ -6801,7 +6979,6 @@ formats, separates groups of digits with the grouping delimiter
 .RB  ( ,
 on groups of 3 in the C locale).
 .PD
-.PP
 .TP
 The \f3\-v\fP option assigns the output directly to a variable instead of
 writing it to standard output. This is faster than capturing the output using a
@@ -7085,6 +7262,7 @@ but not if they result from a double-star pattern.
 .B \-H
 Enable \f3!\fP-style history expansion similar to
 .IR csh (1).
+See \f2History Expansion\fP above.
 .
 .TP 8
 .B \-a
@@ -7122,7 +7300,8 @@ Each command
 becomes a tracked alias when first encountered.
 .TP 8
 .B \-k
-(Obsolete). All variable assignment arguments are placed in the environment for a command,
+(Obsolete).
+All variable assignment arguments are placed in the environment for a command,
 not just those that precede the command name.
 .TP 8
 .B \-m
@@ -7205,6 +7384,19 @@ style in-line editor for command entry.
 Same as
 .BR \-H .
 .TP 8
+.B histreedit
+If a history expansion (see
+.BR \-H )
+fails, the command line is reloaded
+into the next prompt's edit buffer, allowing corrections.
+.TP 8
+.B histverify
+The results of a history expansion (see
+.BR \-H )
+are not immediately executed.
+Instead, the expanded line is loaded into the next prompt's edit buffer,
+allowing further changes.
+.TP 8
 .B ignoreeof
 An interactive shell will not exit on end-of-file.
 The command
@@ -7275,7 +7467,8 @@ is automatically turned on upon invocation if ksh is invoked as \fBsh\fR
 or \fBrsh\fR. In that case, or if the option is turned on by
 specifying \fB-o posix\fR on the invocation command line, the invoked shell
 will not set the preset aliases even if interactive, and will not import type
-attributes for variables (such as integer or left/right justify) from the environment.
+attributes for variables (such as integer or left/right justify)
+from the environment.
 .RS 8
 .PP
 In addition, while on, the \fBposix\fR option
@@ -7377,10 +7570,10 @@ instead of the
 .SM
 .B ENV
 file.
-This mode is on whenever the effective uid (gid)
-is not equal to the real uid (gid).
-Turning this off causes the effective uid and gid to be
-set to the real uid and gid.
+This mode is on whenever the effective UID (GID)
+is not equal to the real UID (GID).
+Turning this off causes the effective UID and GID to be
+set to the real UID and GID.
 .TP 8
 .B \-r
 Enables the restricted shell.  This option cannot be unset
@@ -7643,7 +7836,6 @@ on exit from the shell.
 If
 .I sig\^
 is
-.SM
 .BR KEYBD ,
 then
 .I action\^
@@ -7857,9 +8049,12 @@ and
 .BR \-x .
 The \-S
 can be used with discipline functions defined in a type to indicate that
-the function is static.  For a static function, the same method will be used by all instances of that type no matter which instance references it.  In addition,
-it can only use value of variables from the original type definition.  These
-discipline functions cannot be redefined in any type instance.
+the function is static.
+For a static function, the same method will be used by all instances of
+that type no matter which instance references it.
+In addition, it can only use value of variables from the original
+type definition.
+These discipline functions cannot be redefined in any type instance.
 The
 .B \-t
 option
@@ -8162,8 +8357,8 @@ The number of 512-byte blocks for pipe buffering.
 The message queue size in K-bytes.
 .TP
 .B \-R
-The max time a real-time process can run before blocking, in microseconds. If this limit is exceeded
-the process is sent a
+The max time a real-time process can run before blocking, in microseconds.
+If this limit is exceeded the process is sent a
 .B SIGXCPU
 signal.
 .TP
@@ -8267,19 +8462,12 @@ that it references.
 The default is equivalent to
 .BR \-v .
 Unsetting
-.SM
 .BR LINENO ,
-.SM
 .BR MAILCHECK ,
-.SM
 .BR OPTARG ,
-.SM
 .BR OPTIND ,
-.SM
 .BR RANDOM ,
-.SM
 .BR SECONDS ,
-.SM
 .BR TMOUT ,
 and
 .SM
@@ -8493,7 +8681,8 @@ is also specified.
 If the
 .B \-i
 option is present or
-if the shell's standard input and standard error are attached to a terminal (as told by
+if the shell's standard input and standard error are attached
+to a terminal (as told by
 .IR tcgetattr (3)),
 then this shell is
 .IR interactive .
@@ -8541,14 +8730,10 @@ changing directory (see
 .IR cd (1)),
 .br
 setting or unsetting the value or attributes of
-.SM
 .BR SHELL ,
-.SM
 .BR ENV ,
-.SM
 .BR FPATH ,
 or
-.SM
 .BR PATH\*S,
 .br
 specifying path or
@@ -8650,7 +8835,7 @@ is not set.
 .TP
 .B /etc/suid_profile
 Alternative initialization file, executed instead of the personal initialization
-file when the real and effective user or group id do not match.
+file when the real and effective user or group ID do not match.
 .TP
 .B /dev/null
 NULL device
@@ -8698,7 +8883,6 @@ Prentice Hall, 1995.
 .IR "POSIX \- Part 2: Shell and Utilities" ,
 IEEE Std 1003.2-1992, ISO/IEC 9945-2, IEEE, 1993.
 .SH CAVEATS
-.PP
 If a command
 is executed, and then a command with the same name is
 installed in a directory in the search path before the directory where the

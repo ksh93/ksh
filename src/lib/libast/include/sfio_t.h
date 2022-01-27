@@ -42,7 +42,7 @@
 	struct _sfdisc_s*	disc;	/* discipline			*/ \
 	struct _sfpool_s*	pool;	/* the pool containing this	*/ \
 	struct _sfrsrv_s*	rsrv;	/* reserved buffer		*/ \
-	struct _sfproc_s*	proc;	/* coprocess id, etc.		*/ \
+	struct _sfproc_s*	proc;	/* coprocess ID, etc.		*/ \
 	void*			mutex;	/* mutex for thread-safety	*/ \
 	void*			stdio;	/* stdio FILE if any		*/ \
 	Sfoff_t			lpos;	/* last seek position		*/ \

@@ -714,7 +714,7 @@ got=$(command -x cat <(command -x echo foo) 2>&1) || err_exit "process substitut
 	exit
 ' empty_redir_crash_test "$tmp"
 ((!(e = $?))) || err_exit 'crash on null-command redirection with DEBUG trap' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
 # stdout was misdirected if an EXIT/ERR trap handler was defined in a -c script
@@ -800,7 +800,12 @@ procsub_pid=$(
 	true >(true) <(true) >(true) <(true)
 	echo "$!"
 )
-sleep .1
+integer -s i=0
+while	kill -0 "$procsub_pid"	# on the Alpine Linux console (no GUI), these take about a second to disappear
+do	sleep .1
+	((++i > 10)) && break
+done 2>/dev/null
+unset i
 if kill -0 "$procsub_pid" 2>/dev/null; then
 	kill -TERM "$procsub_pid" # don't leave around what is effectively a zombie process
 	err_exit "process substitutions loop or linger after parent shell finishes"
@@ -903,6 +908,20 @@ then	for cmd in echo print printf
 	do	"$cmd" hi >/dev/full && err_exit "'$cmd' does not detect disk full (simple redirection)"
 		"$SHELL" -c "$cmd hi" >/dev/full && err_exit "'$cmd' does not detect disk full (inherited FD)"
 	done
+fi
+
+# ======
+# Command substitution hangs, writing infinite zero bytes, when redirecting standard output on a built-in that forks
+# https://github.com/ksh93/ksh/issues/416
+exp='line'
+"$SHELL" -c 'echo "$(ulimit -t unlimited >/dev/null 2>&1; echo "ok $$")"' >out 2>&1 &
+pid=$!
+(sleep 1; kill -9 "$pid") 2>/dev/null &
+if	wait "$pid" 2>/dev/null
+then	kill "$!"  # the sleep process
+	[[ $(<out) == "ok $pid" ]] || err_exit "comsub fails after fork with stdout redirection" \
+		"(expected 'ok $pid', got $(printf %q "$(<out)"))"
+else	err_exit "comsub hangs after fork with stdout redirection"
 fi
 
 # ======

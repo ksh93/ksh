@@ -659,7 +659,7 @@ make install
 				meta main.o %.c>%.o sh/main.c main
 				prev sh/main.c
 				prev SHOPT.sh
-				exec - ${CC} ${mam_cc_FLAGS} ${SHOPT_TIMEOUT+-DSHOPT_TIMEOUT=${SHOPT_TIMEOUT}} ${SHOPT_ACCT+-DSHOPT_ACCT=${SHOPT_ACCT}} ${SHOPT_SYSRC+-DSHOPT_SYSRC=${SHOPT_SYSRC}} ${SHOPT_REMOTE+-DSHOPT_REMOTE=${SHOPT_REMOTE}} ${SHOPT_OLDTERMIO+-DSHOPT_OLDTERMIO=${SHOPT_OLDTERMIO}} ${SHOPT_SPAWN+-DSHOPT_SPAWN=${SHOPT_SPAWN}} ${SHOPT_P_SUID+-DSHOPT_P_SUID=${SHOPT_P_SUID}} ${SHOPT_REGRESS+-DSHOPT_REGRESS=${SHOPT_REGRESS}} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${DEBUG+-DDEBUG=${DEBUG}} -DSH_DICT=${SH_DICT} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/main.c
+				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${DEBUG+-DDEBUG=${DEBUG}} -DSH_DICT=${SH_DICT} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/main.c
 			done main.o generated
 			make nvdisc.o
 				make sh/nvdisc.c
@@ -1147,7 +1147,7 @@ make install
 				meta trestore.o %.c>%.o sh/trestore.c trestore
 				prev sh/trestore.c
 				prev SHOPT.sh
-				exec - ${CC} ${mam_cc_FLAGS} ${SHOPT_SYSRC+-DSHOPT_SYSRC=${SHOPT_SYSRC}} ${SHOPT_ACCT+-DSHOPT_ACCT=${SHOPT_ACCT}} ${SHOPT_SPAWN+-DSHOPT_SPAWN=${SHOPT_SPAWN}} ${SHOPT_P_SUID+-DSHOPT_P_SUID=${SHOPT_P_SUID}} ${SHOPT_REGRESS+-DSHOPT_REGRESS=${SHOPT_REGRESS}} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/trestore.c
+				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/trestore.c
 			done trestore.o generated
 			make waitevent.o
 				make sh/waitevent.c
@@ -1235,7 +1235,7 @@ make install
 				meta strdata.o %.c>%.o data/strdata.c strdata
 				prev data/strdata.c
 				prev SHOPT.sh
-				exec - ${CC} ${mam_cc_FLAGS} ${SHOPT_P_SUID+-DSHOPT_P_SUID=${SHOPT_P_SUID}} ${SHOPT_REGRESS+-DSHOPT_REGRESS=${SHOPT_REGRESS}} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c data/strdata.c
+				exec - ${CC} ${mam_cc_FLAGS} ${KSH_RELFLAGS} ${KSH_SHOPTFLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c data/strdata.c
 			done strdata.o generated
 			make testops.o
 				make data/testops.c

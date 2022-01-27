@@ -71,8 +71,8 @@
  * bits used in mode field
  */
 
-#define TSUID		04000		/* set uid on exec		*/
-#define TSGID		02000		/* set gid on exec		*/
+#define TSUID		04000		/* setuid on exec		*/
+#define TSGID		02000		/* setgid on exec		*/
 #define TSVTX		01000		/* sticky bit -- reserved	*/
 
 /*

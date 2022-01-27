@@ -36,7 +36,7 @@ unsigned int	sh_isoption(int \fIoption\fP);
 unsigned int	sh_onoption(int \fIoption\fP);
 unsigned int	sh_offoption(int \fIoption\fP);
 
-void		*sh_parse(Shell_t *\fIshp\fP, Sfio_t *\fIsp\fP, int \fIflags\fP);
+void		*sh_parse(Sfio_t *\fIsp\fP, int \fIflags\fP);
 int 		sh_trap(const char *\fIstring\fP, int \fImode\fP);
 int		sh_run(int \fIargc\fP, char *\fIargv\fP[]);
 int 		sh_eval(Sfio_t *\fIsp\fP, int \fImode\fP);
@@ -116,7 +116,11 @@ initialize this library before any other commands in this library
 are invoked.
 The arguments \fIargc\fP and \fIargv\fP are the number
 of arguments and the vector of arguments as supplied by the shell.
-It returns a pointer to the \f3Shell_t\fP shell state structure.
+It returns a pointer to the \f3sh\fP shell state structure
+which is of type \f3Shell_t\fP.
+Since only one shell interpreter per process is supported,
+there is only one instance of \f3sh\fP,
+so it does not matter whether it is accessed directly or via a pointer.
 .TP
 .B 3
 To build a new version of \f3ksh\fP with extended capabilities,
@@ -124,7 +128,7 @@ for example \f3tksh\fP(1).
 In this case, the user writes a \f3main()\fP function that
 calls \f3sh_main()\fP with the \fIargc\fP and \fIargv\fP arguments
 from \f3main\fP and pointer to function, \fIfn\fP as a third
-argument..  The function \fIfn\fP will
+argument.  The function \fIfn\fP will
 be invoked with argument \f30\fP after \f3ksh\fP has done initialization,
 but before \f3ksh\fP has processed any start up files or executed
 any commands.  The function \fIfn\fP
@@ -151,8 +155,13 @@ The \f3Shell_t\fP structure contains the following fields:
 	int             \fIsavexit\fP;        \fR/* $? == exit status of the last command executed */\fP
 .ft R
 .fi
-This structure is returned by \f3sh_init()\fP but can also be retrieved
+As of ksh 93u+m, it is once again officially supported to access this
+structure directly as \f3sh\fP. In addition, a pointer to
+this structure is returned by \f3sh_init()\fP but can also be retrieved
 by a call to \f3sh_getinterp()\fP.
+There are other fields not documented here, but they should be considered
+unstable and subject to change between releases; programs using libshell
+should not rely on them.
 .PP
 All built-in commands to the shell are invoked with
 three arguments.  The first two arguments give the
@@ -163,7 +172,7 @@ of type \f3Shbltin_t\fP.  This structure contains \f3shp\fP which is a pointer
 to the shell interpreter, and \f3ptr\fP which is a pointer that
 can be associated with each built-in.
 The \f3sh_addbuiltin()\fP function is used to add, replace or delete
-built-in commands. 
+built-in commands.
 It takes the name of the built-in, \fIname\fP, a pointer
 to the function that implements the built-in, \fIfn\fP, and
 a pointer that will be passed to the function in the \f3ptr\fP field when
@@ -244,9 +253,9 @@ Cause the shell to fail with an error of an unset variable is
 referenced.
 .IP
 \f3SH_PRIVILEGED\fP:
-This mode is on whenever the effective uid (gid) is not equal to the real
-uid (gid). Turning this off causes the effective uid and gid to be set to
-the real uid and gid.
+This mode is on whenever the effective UID (GID) is not equal to the real
+UID (GID). Turning this off causes the effective UID and GID to be set to
+the real UID and GID.
 .IP
 \f3SH_VERBOSE\fP:
 Cause each line to be echoed as it is read by the parser.
@@ -261,7 +270,6 @@ The vi edit mode.
 \f3SH_VIRAW\fP:
 Read character at a time rather than line at a time when
 in vi edit mode.
-.IP
 .PP
 The \f3sh_trap()\fP function can be used to compile and execute
 a string or file.
@@ -280,10 +288,10 @@ The return value of \f3sh_trap()\fP is the exit status of
 the last command executed by the string or file.
 .PP
 The \f3sh_run()\fP function will run the command given by
-by the argument list \fIargv\fP containing \fIargc\fP elements. 
+by the argument list \fIargv\fP containing \fIargc\fP elements.
 If \fIargv\fP\f3[0]\fP does not contain a \f3/\fP, it will
 be checked to see if it is a built-in or function before
-performing a path search. 
+performing a path search.
 .PP
 The \f3sh_eval()\fP function executes a string or file
 stream \fIsp\fP.
@@ -291,8 +299,8 @@ If \fImode\fP is non-zero and the history file has
 been created, the stream defined by \fIsp\fP
 will be appended to the history file as a command.
 .PP
-The \f3sh_parse()\fP function takes a pointer to the
-shell interpreter \fIshp\fP, a pointer to a string or file stream
+The \f3sh_parse()\fP function takes
+a pointer to a string or file stream
 \fIsp\fP, and compilation flags, and returns a pointer
 to a parse tree of the compiled stream.  This pointer can
 be used in subsequent calls to \f3sh_trap()\fP.
@@ -339,13 +347,13 @@ as arguments.
 .PP
 The \f3sh_fun()\fP function can be called within a
 discipline function or built-in extension to execute a
-discipline function script. 
+discipline function script.
 The argument \fIfunnode\fP is a pointer to the shell function
 or built-in to execute.
 The argument \fIvarnode\fP is a pointer to the name
 value pair that has defined this discipline.
 The array \fIargv\fP is a \f3NULL\fP terminated list of
-arguments that are passed to the function. 
+arguments that are passed to the function.
 .PP
 By default, \f3ksh\fP only records but does not act
 on signals when running a built-in command.
@@ -392,7 +400,7 @@ The second is a timeout in milliseconds.
 A value of \f3\-1\fP for the timeout means that
 no timeout should be set.
 The third argument is 0 for input file descriptors
-and 1 for output file descriptor. 
+and 1 for output file descriptor.
 The function needs to return a value \f3>0\fP if there
 is input on the file descriptor, and a value \f3<0\fP
 if the timeout is reached or a signal has occurred.

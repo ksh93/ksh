@@ -147,7 +147,7 @@ int _sfsetpool(Sfio_t* f)
 	}
 
 	/* always add at end of array because if this was done during some sort
-	   of walk thru all streams, we'll want the new stream to be seen.
+	   of walk through all streams, we'll want the new stream to be seen.
 	*/
 	p->sf[p->n_sf++] = f;
 	rv = 0;

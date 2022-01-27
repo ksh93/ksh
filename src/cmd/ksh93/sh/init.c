@@ -347,7 +347,7 @@ static void put_history(register Namval_t* np,const char *val,int flags,Namfun_t
 	if(histopen)
 	{
 		if(val)
-			sh_histinit(&sh);
+			sh_histinit();
 		else
 			hist_close(histopen);
 	}
@@ -1200,7 +1200,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	{
 		beenhere = 1;
 #if SHOPT_REGRESS
-		sh_regress_init(&sh);
+		sh_regress_init();
 #endif
 		sh.current_pid = sh.pid = getpid();
 		sh.ppid = getppid();
@@ -1217,11 +1217,10 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 			sh.lim.child_max = CHILD_MAX;
 		if(sh.lim.clk_tck <=0)
 			sh.lim.clk_tck = CLK_TCK;
-		sh.ed_context = (void*)ed_open(&sh);
+		sh.ed_context = (void*)ed_open();
 		error_info.id = path_basename(argv[0]);
 	}
 	umask(sh.mask=umask(0));
-	sh.gd = &sh;	/* backwards compatibility pointer (there was formerly a separate global data struct) */
 	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
 	sh.lex_context = (void*)sh_lexopen(0,1);
@@ -1240,8 +1239,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 
 		regress[0] = "__regress__";
 		regress[2] = 0;
-		/* NOTE: only shp is used by __regress__ at this point */
-		sh.bltindata.shp = &sh;
 		while ((a = *++av) && a[0] == '-' && (a[1] == 'I' || a[1] == '-' && a[2] == 'r'))
 		{
 			if (a[1] == 'I')
@@ -1337,7 +1334,9 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 #endif /* SHOPT_TIMEOUT */
 	/* initialize jobs table */
 	job_clear();
+#if SHOPT_ESH || SHOPT_VSH
 	sh_onoption(SH_MULTILINE);
+#endif
 	if(argc>0)
 	{
 		int dolv_index;
@@ -1450,7 +1449,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	 */
 	error_info.id = sh_strdup(sh.st.dolv[0]); /* error_info.id is $0 */
 	sh.jmpbuffer = (void*)&sh.checkbase;
-	sh_pushcontext(&sh,&sh.checkbase,SH_JMPSCRIPT);
+	sh_pushcontext(&sh.checkbase,SH_JMPSCRIPT);
 	sh.st.self = &sh.global;
         sh.topscope = (Shscope_t*)sh.st.self;
 	sh_offstate(SH_INIT);
@@ -1492,11 +1491,6 @@ int sh_reinit(char *argv[])
 	Shopt_t opt;
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
-	struct adata
-	{
-		Shell_t		*sh;
-		void		*extra[2];
-	} data;
 	for(np=dtfirst(sh.fun_tree);np;np=npnext)
 	{
 		if((dp=sh.fun_tree)->walk)
@@ -1523,10 +1517,8 @@ int sh_reinit(char *argv[])
 	}
 	/* remove locals */
 	sh_onstate(SH_INIT);
-	memset(&data,0,sizeof(data));
-	data.sh = &sh;
-	nv_scan(sh.var_tree,sh_envnolocal,(void*)&data,NV_EXPORT,0);
-	nv_scan(sh.var_tree,sh_envnolocal,(void*)&data,NV_ARRAY,NV_ARRAY);
+	nv_scan(sh.var_tree,sh_envnolocal,NIL(void*),NV_EXPORT,0);
+	nv_scan(sh.var_tree,sh_envnolocal,NIL(void*),NV_ARRAY,NV_ARRAY);
 	sh_offstate(SH_INIT);
 	memset(sh.st.trapcom,0,(sh.st.trapmax+1)*sizeof(char*));
 	memset((void*)&opt,0,sizeof(opt));
@@ -1993,6 +1985,7 @@ static void env_import_attributes(char *next)
 
 /*
  * libshell compatibility functions
+ * (libshell programs do not get the macros)
  */
 #define BYPASS_MACRO
 
@@ -2011,15 +2004,9 @@ unsigned long sh_offoption BYPASS_MACRO (int opt)
 	return(sh_offoption(opt));
 }
 
-void	sh_sigcheck BYPASS_MACRO (Shell_t *shp)
+void	sh_sigcheck BYPASS_MACRO (void)
 {
-	NOT_USED(shp);
-	sh_sigcheck(&sh);
-}
-
-Dt_t*	sh_bltin_tree(void)
-{
-	return(sh.bltin_tree);
+	sh_sigcheck();
 }
 
 /*

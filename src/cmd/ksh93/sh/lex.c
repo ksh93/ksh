@@ -1536,7 +1536,6 @@ static int comsub(register Lex_t *lp, int endtok)
 	{
 		if(endtok==LPAREN && lp->lexd.paren)
 		{
-
 			if(first==lp->lexd.first)
 			{
 				n = cp+1-(char*)fcseek(0);

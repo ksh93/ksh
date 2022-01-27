@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -28,7 +28,7 @@
  *
  */
 
-#define SH_VERSION	20211229
+#define SH_VERSION	20220106
 
 #include	<ast.h>
 #include	<cdt.h>
@@ -134,8 +134,17 @@ typedef union Shnode_u Shnode_t;
 #if SHOPT_BRACEPAT
 #define SH_BRACEEXPAND	42
 #endif
+#if SHOPT_HISTEXPAND
+#define SH_HISTEXPAND	43
+#if SHOPT_ESH || SHOPT_VSH
+#define SH_HISTREEDIT	44
+#define SH_HISTVERIFY	45
+#endif
+#endif
 #define SH_POSIX	46
+#if SHOPT_ESH || SHOPT_VSH
 #define SH_MULTILINE	47
+#endif
 #define SH_NOBACKSLCTRL	48
 #define SH_LOGIN_SHELL	67
 #define SH_NOUSRPROFILE	79	/* internal use only */
@@ -259,7 +268,6 @@ struct Shell_s
 
 	/* The following members are not considered to be part of the documented API.
 	 * Programs using libshell should not rely on them as they may change. */
-	Shell_t		*gd;		/* pointer to self for backwards compatibility (was: global data) */
 	int		subshell;	/* set for virtual subshell */
 	int		realsubshell;	/* ${.sh.subshell}, actual subshell level (including virtual and forked) */
 	char		shcomp;		/* set when running shcomp */
@@ -370,7 +378,6 @@ struct Shell_s
 	Dt_t		*typedict;
 	Dt_t		*inpool;
 	char		ifstable[256];
-	unsigned long	test;
 	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */
 	Shopt_t		glob_options;
 	Namval_t	*typeinit;
@@ -417,13 +424,12 @@ extern Libcomp_t *liblist;
 #	define extern __EXPORT__
 #endif /* _DLL */
 
-extern Dt_t		*sh_bltin_tree(void);
 extern void		sh_subfork(void);
 extern Shell_t		*sh_init(int,char*[],Shinit_f);
 extern int		sh_reinit(char*[]);
 extern int 		sh_eval(Sfio_t*,int);
 extern void 		sh_delay(double,int);
-extern void		*sh_parse(Shell_t*, Sfio_t*,int);
+extern void		*sh_parse(Sfio_t*,int);
 extern int 		sh_trap(const char*,int);
 extern int 		sh_fun(Namval_t*,Namval_t*, char*[]);
 extern int 		sh_funscope(int,char*[],int(*)(void*),void*,int);
@@ -455,7 +461,7 @@ extern mode_t 		sh_umask(mode_t);
 extern void		*sh_waitnotify(Shwait_f);
 extern Shscope_t	*sh_getscope(int,int);
 extern Shscope_t	*sh_setscope(Shscope_t*);
-extern void		sh_sigcheck(Shell_t*);
+extern void		sh_sigcheck(void);
 extern unsigned long	sh_isoption(int);
 extern unsigned long	sh_onoption(int);
 extern unsigned long	sh_offoption(int);
@@ -463,13 +469,11 @@ extern int 		sh_waitsafe(void);
 extern int		sh_exec(const Shnode_t*,int);
 
 /*
- * As of 93u+m, direct access to sh is no longer obsolete, and
- * shgd ("global data") is no longer a separately allocated struct;
- * sh_getinterp() and shgd are provided here for compatibility.
+ * As of 93u+m, direct access to sh is no longer obsolete;
+ * sh_getinterp() is here for compatibility with the documented interface.
  */
 extern Shell_t		sh;
 #define	sh_getinterp()	(&sh)
-#define shgd		(&sh)
 
 #ifdef _DLL
 #   undef extern
@@ -487,18 +491,12 @@ extern Shell_t		sh;
 #   define write(a,b,c)	sh_write(a,b,c)
 #   define umask(a)	sh_umask(a)
 #   define dup		sh_dup
-#   if _lib_lseek64
-#	define open64	sh_open
-#	define lseek64	sh_seek
-#   else
-#	define open	sh_open
-#	define lseek	sh_seek
-#   endif
+#   define open		sh_open
+#   define lseek	sh_seek
 #endif /* !defs_h_defined */
 
 #define SH_SIGSET	4
 #define SH_EXITSIG	0400	/* signal exit bit */
 #define SH_EXITMASK	(SH_EXITSIG-1)	/* normal exit status bits */
-#define SH_RUNPROG	-1022	/* needs to be negative and < 256 */
 
 #endif /* !shell_h_defined */

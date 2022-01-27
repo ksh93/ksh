@@ -365,7 +365,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 	int maxtry=IOMAXTRY, tdone=0, execflags;
 	int states,jmpval;
 	struct checkpt buff;
-	sh_pushcontext(&sh,&buff,SH_JMPERREXIT);
+	sh_pushcontext(&buff,SH_JMPERREXIT);
 	/* open input stream */
 	nv_putval(SH_PATHNAMENOD, sh.st.filename, NV_NOFREE);
 	if(!iop)
@@ -394,7 +394,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 		if(nv_isnull(PS1NOD))
 			nv_putval(PS1NOD,(sh.euserid?e_stdprompt:e_supprompt),NV_RDONLY);
 		sh_sigdone();
-		if(sh_histinit((void*)&sh))
+		if(sh_histinit())
 			sh_onoption(SH_HISTORY);
 	}
 	else
@@ -570,7 +570,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 			sh_onstate(SH_HISTORY);
 		job.waitall = job.curpgid = 0;
 		error_info.flags |= ERROR_INTERACTIVE;
-		t = (Shnode_t*)sh_parse(&sh,iop,0);
+		t = (Shnode_t*)sh_parse(iop,0);
 		if(!sh_isstate(SH_INTERACTIVE) && !sh_isoption(SH_CFLAG))
 			error_info.flags &= ~ERROR_INTERACTIVE;
 		sh.readscript = 0;
@@ -600,7 +600,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 		}
 	}
 done:
-	sh_popcontext(&sh,&buff);
+	sh_popcontext(&buff);
 	if(sh_isstate(SH_INTERACTIVE))
 	{
 		if(isatty(0) && !sh_isoption(SH_CFLAG))

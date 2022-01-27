@@ -422,7 +422,7 @@ char *_stkseek(register Sfio_t *stream, register ssize_t n)
 
 /*
  * advance the stack to the current top
- * if extra is non-zero, first add a extra bytes and zero the first
+ * if extra is non-zero, first add extra bytes and zero the first
  */
 char	*stkfreeze(register Sfio_t *stream, register size_t extra)
 {

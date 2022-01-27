@@ -33,9 +33,10 @@ esac
 case $HOSTTYPE in
 ibm.*)	unset LIBPATH ;;  # AIX: avoid failure to link to libiconv
 esac
+set -o noglob
 
 command=iffe
-version=2021-12-31
+version=2022-01-09
 
 compile() # $cc ...
 {
@@ -170,6 +171,18 @@ pkg() # package
 	pth="$pth . } $*"
 }
 
+show_test()
+{
+	case $shell in
+	ksh)	print -n - "$command: test: $* ..." ;;
+	*)	printf '%s: test: %s ...' "$command" "$*" ;;
+	esac
+	case $debug in
+	0)	;;
+	*)	echo ;;  # when debugging, add newline before compiler error messages
+	esac
+} >&$stderr
+
 is() # op name
 {
 	case $verbose in
@@ -217,7 +230,7 @@ is() # op name
 			case $ii in
 			[abcdefghijklmnopqrstuvwxyz]*[abcdefghijklmnopqrstuvwxyz]'{') ii="$ii ... }end" ;;
 			esac
-			$show "$command: test:" $yy $ii $mm "...$SHOW" >&$stderr
+			show_test $yy $ii $mm
 			complete=1
 			;;
 		esac
@@ -241,7 +254,7 @@ success()
 	case $complete:$verbose in
 	1:1)	case $suspended in
 		1)	suspended=0
-			$show "$command: test:" $yy $ii $mm "...$SHOW" >&$stderr
+			show_test $yy $ii $mm
 			;;
 		esac
 		complete=0
@@ -270,7 +283,7 @@ failure()
 	case $complete:$verbose in
 	1:1)	case $suspended in
 		1)	suspended=0
-			$show "$command: test:" $yy $ii $mm "...$SHOW" >&$stderr
+			show_test $yy $ii $mm
 			;;
 		esac
 		complete=0
@@ -410,6 +423,8 @@ noisy()
 
 copy() # "output-file" "data-that-must-not-be-processed-by-echo"
 {
+	# Some ksh88 clones (pdksh, mksh) lack 'printf' as a built-in utility, so if a
+	# ksh-type shell was detected, use the 'print' built-in for better peformance.
 	case $1 in
 	-)	case $shell in
 		ksh)	print -r - "$2"
@@ -564,14 +579,6 @@ optimize=1
 occ=cc
 one=
 out=
-case $( (set -f && set x * && echo $# && set +f) 2>/dev/null ) in
-2)	posix_noglob="set -f" posix_glob="set +f" ;;
-*)	case $( (set -F && set x * && echo $# && set +F) 2>/dev/null ) in
-	2)	posix_noglob="set -F" posix_glob="set +F" ;;
-	*)	posix_noglob=":" posix_glob=":" ;;
-	esac
-	;;
-esac
 puthdr=
 putlib=
 pragma=
@@ -1183,17 +1190,6 @@ case " $* " in
 	;;
 esac
 
-# prompt complications
-
-case $(print -n aha </dev/null 2>/dev/null) in
-aha)	show='print -n' SHOW='' ;;
-*)	case $(echo -n aha 2>/dev/null) in
-	-n*)	show=echo SHOW='\c' ;;
-	*)	show='echo -n' SHOW='' ;;
-	esac
-	;;
-esac
-
 # tmp files cleaned up on exit
 # status: 0:success 1:failure 2:interrupt
 
@@ -1208,7 +1204,7 @@ case $debug in
 	fi
 	;;
 esac
-trap "rm -f $core $tmp*" 0
+trap "(set +o noglob; exec rm -f $core $tmp*)" 0
 if	(:>$tmp.c) 2>/dev/null
 then	rm -f $tmp.c
 else	echo "$command: cannot create tmp files in current dir" >&2
@@ -1261,18 +1257,14 @@ do	case $in in
 	*)	case $ini in
 		'')	if	read lin
 			then	line=$((line+1))
-				$posix_noglob
 				set x $lin
-				$posix_glob
 				case $# in
 				1)	continue ;;
 				esac
 			else	set x
 			fi
 			;;
-		*)	$posix_noglob
-			set x $ini
-			$posix_glob
+		*)	set x $ini
 			ini=
 			;;
 		esac
@@ -1351,13 +1343,8 @@ do	case $in in
 				exit 1
 				;;
 			esac
-			case $shell in
-			ksh)	ifelse=${ifstack%%:*}
-				ifstack=${ifstack#*:}
-				;;
-			*)	eval $(echo $ifstack | sed 's,\([^:]*\):\(.*\),ifelse=\1 ifstack=\2,')
-				;;
-			esac
+			ifelse=${ifstack%%:*}
+			ifstack=${ifstack#*:}
 			shift
 			;;
 		*)	break
@@ -1524,21 +1511,35 @@ do	case $in in
 		debug)	debug=$arg
 			case $arg in
 			0)	exec 2>&$nullout
-				set -
-				show=echo
-				SHOW=
+				set +v +x
 				;;
 			""|1)	exec 2>&$stderr
-				set -
-				show=echo
-				SHOW=
+				set +v +x
 				;;
 			2|3)	exec 2>&$stderr
-				case $shell in
-				ksh)	eval 'PS4="${PS4%+*([ 	])}+\$LINENO+ "'
+				# Useful shell-dependent PS4 trace prompts from modernish.
+				# The ${foo#{foo%/*/*}/} substitutions below are to trace just the last two
+				# elements of path names, instead of the full paths which can be very long.
+				case ${ZSH_VERSION:+Zsh}${NETBSD_SHELL:+Netsh}${KSH_VERSION:+Ksh}${BASH_VERSION:+Bash} in
+				Zsh)	typeset -F SECONDS
+					PS4='+ [${SECONDS:+${SECONDS%????}s|}${ZSH_SUBSHELL:+S$ZSH_SUBSHELL,}${funcfiletrace:+${funcfiletrace#${funcfiletrace%/*/*}/},}${funcstack:+${funcstack#${funcstack%/*/*}/},}${LINENO:+L$LINENO,}e$?] ' ;;
+				Netsh)	PS4='+ [${ToD:+$ToD|}${LINENO:+L$LINENO,}e$?] ' ;;
+				Ksh)	case $KSH_VERSION in
+					'Version '*)
+						typeset -F SECONDS
+						PS4='+ [${SECONDS:+${SECONDS%????}s|}${.sh.pid:+P${.sh.pid},}${.sh.subshell:+S${.sh.subshell},}${.sh.file:+${.sh.file#${.sh.file%/*/*}/},}${.sh.fun:+${.sh.fun},}${LINENO:+L$LINENO,}e$?] ' ;;
+					@\(*)	PS4='+ [${EPOCHREALTIME:+${EPOCHREALTIME#???????}s|}${BASHPID:+P$BASHPID,}${LINENO:+L$LINENO,}e$?] ' ;;
+					esac ;;
+				Bash)	case ${EPOCHREALTIME:+s} in
+					s)	PS4='+ [${EPOCHREALTIME:+${EPOCHREALTIME#???????}s|}' ;;
+					'')	PS4='+ [${SECONDS:+${SECONDS}s|}' ;;
+					esac
+					PS4=$PS4'${BASHPID:+P$BASHPID,}${BASH_SOURCE:+${BASH_SOURCE#${BASH_SOURCE%/*/*}/},}${FUNCNAME:+$FUNCNAME,}${LINENO:+L$LINENO,}e$?] ' ;;
+				'')	case ${SECONDS:+s} in
+					s)	PS4='+ [${SECONDS:+${SECONDS}s|}${LINENO:+L$LINENO,}e$?] ' ;;
+					'')	PS4='+ [${LINENO:+L$LINENO,}e$?] ' ;;
+					esac ;;
 				esac
-				show=echo
-				SHOW=
 				set -x
 				;;
 			*)	echo "$command: $arg: debug levels are 0, 1, 2, 3" >&$stderr
@@ -1609,7 +1610,7 @@ do	case $in in
 			continue
 			;;
 		nodebug)exec 2>&$nullout
-			set -
+			set +v +x
 			continue
 			;;
 		nodefine)
@@ -1880,9 +1881,7 @@ do	case $in in
 								done
 								case $eof in
 								0)	line=$((line+1))
-									$posix_noglob
 									set x $lin
-									$posix_glob
 									case $2 in
 									$v)	n=$((n+1))
 										;;
@@ -1977,10 +1976,7 @@ do	case $in in
 					ref)	cc="$cc $1"
 						occ="$occ $1"
 						case $1 in
-						-L*)	case $shell in
-							ksh)	x=${1#-L} ;;
-							*)	x=$(echo x$1 | sed 's,^x-L,,') ;;
-							esac
+						-L*)	x=${1#-L}
 							for y in $libpaths
 							do	eval $y=\"\$$y:\$x\$${y}_default\"
 								eval export $y
@@ -2551,7 +2547,7 @@ int x;
 					do	c=${x#-l}
 						case $c in
 						*[!abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*)
-							c=$(echo '' $c | sed -e 's,.*[\\\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
+							c=$(echo '' $c | sed -e 's,.*[\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
 							;;
 						esac
 						case $config in
@@ -2954,7 +2950,7 @@ int x;
 							*)	case $regress in
 								'')	case $x in
 									*-*)	;;
-									*)	x=$(pwd | sed -e 's,.*[\\\\/],,' -e 's,\\..*,,' -e 's,^lib,,' -e 's,^,'${x}_',' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g')
+									*)	x=$(pwd | sed -e 's,.*[\\/],,' -e 's,\..*,,' -e 's,^lib,,' -e 's,^,'${x}_',' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g')
 										# ksh n+ bug workaround
 										case $x in
 										*[!_]*)	;;
@@ -3005,7 +3001,7 @@ int x;
 						?*)	continue ;;
 						esac
 						case $v in
-						*.*)	for x in $(echo $v | sed 's,\\., ,g')
+						*.*)	for x in $(echo $v | sed 's,\., ,g')
 							do	pre="$pre$nl#undef	$x"
 							done
 							;;
@@ -3056,13 +3052,10 @@ int x;
 				# set up the candidate lib list
 
 				for x in $lib $deflib
-				do	case $shell in
-					ksh)	eval 'c=${x#-l}' ;;
-					*)	c=$(echo X$x | sed 's,X-l,,') ;;
-					esac
+				do	c=${x#-l}
 					case $c in
 					*[!abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*)
-						c=$(echo '' $c | sed -e 's,.*[\\\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
+						c=$(echo '' $c | sed -e 's,.*[\\/],,' -e 's,\.[^.]*$,,' -e 's,[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_],_,g' -e '/^lib./s,^lib,,')
 						;;
 					esac
 					case $config in
@@ -3104,10 +3097,7 @@ int x;
 						$u)	;;
 						*)	case $m in
 							hdr_*|lib_*|sys_*)
-								case $shell in
-								ksh)	u=${u#????} ;;
-								*)	u=$(echo $u | sed 's/....//') ;;
-								esac
+								u=${u#????}
 								;;
 							esac
 							m=HAVE_${u}
@@ -3120,10 +3110,7 @@ int x;
 					mth)	m=HAVE${u}_MATH ;;
 					npt)	m=HAVE${u}_DECL ;;
 					pth)	m=${u}_PATH
-						case $shell in
-						ksh)	m=${m#_} ;;
-						*)	m=$(echo $m | sed 's,^_,,') ;;
-						esac
+						m=${m#_}
 						;;
 					nxt)	m=HAVE${u}_NEXT ;;
 					siz)	m=SIZEOF${u} ;;
@@ -3218,7 +3205,7 @@ $src
 					esac
 				done
 			fi
-			rm -f ${tmp}s.*
+			(set +o noglob; exec rm -f ${tmp}s.*)
 								#...INDENT
 								;;
 							esac
@@ -3557,7 +3544,7 @@ $inc
 						*)	e='-e /[\\\\\/]sys[\\\\\/]'$f'\\.h"/d' ;;
 						esac
 						if	compile $cc -E $tmp.c <&$nullin >$tmp.i
-						then	i=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\\\/].*[\\\\\/]'$f'\\.h"/!d' $e -e s'/.*"\\(.*\\)".*/\\1/' -e 's,\\\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
+						then	i=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\/].*[\\\/]'$f'\.h"/!d' $e -e 's/.*"\(.*\)".*/\1/' -e 's,\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
 							case $i in
 							[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]:[\\/]*)
 								;;
@@ -3568,7 +3555,7 @@ $ext
 $inc
 #include <$k>" > $tmp.c
 								if	compile $cc -E $tmp.c <&$nullin >$tmp.i
-								then	j=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\\\/].*[\\\\\/]'$f'\\.h"/!d' $e -e s'/.*"\\(.*\\)".*/\\1/' -e 's,\\\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
+								then	j=$(sed -e '/^#[line 	]*[0123456789][0123456789]*[ 	][ 	]*"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:]*[\\\/].*[\\\/]'$f'\.h"/!d' $e -e 's/.*"\(.*\)".*/\1/' -e 's,\\,/,g' -e 's,///*,/,g' $tmp.i | sed 1q)
 									wi=$(wc < "$i")
 									wj=$(wc < "$j")
 									case $wi in
@@ -4000,9 +3987,9 @@ int _iffe_int = $v / 2;
 							if	compile $cc -E $tmp.c <&$nullin >$tmp.i
 							then	c=$i
 								case $c in
-								*[\\/]*)	c=$(echo $c | sed 's,[\\\\/],[\\\\/],g') ;;
+								*[\\/]*)	c=$(echo $c | sed 's,[\\/],[\\/],g') ;;
 								esac
-								case $(sed -e '/^#[line 	]*1[ 	][ 	]*"[\\\\\/].*[\\\\\/]'$c'"/!d' $tmp.i) in
+								case $(sed -e '/^#[line 	]*1[ 	][ 	]*"[\\\/].*[\\\/]'$c'"/!d' $tmp.i) in
 								?*)	break ;;
 								esac
 							fi

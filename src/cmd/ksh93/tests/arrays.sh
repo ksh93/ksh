@@ -598,7 +598,7 @@ x=$(
 	foo[1]=(66)
 	typeset -p foo
 ) 2> /dev/null
-[[ $x == "$exp" ]] || err_exit 'setting element 1 to index fooay failed'
+[[ $x == "$exp" ]] || err_exit 'setting element 1 of indexed array foo failed'
 unset foo
 exp='typeset -a foo=((11 22) (x=3))'
 x=$(

@@ -21,10 +21,6 @@
 *                                                                      *
 ***********************************************************************/
 
-#ifndef _NO_LARGEFILE64_SOURCE
-#define _NO_LARGEFILE64_SOURCE	1
-#endif
-
 #include "stdhdr.h"
 
 long
@@ -34,15 +30,3 @@ ftell(Sfio_t* f)
 
 	return (long)sfseek(f, (Sfoff_t)0, SEEK_CUR);
 }
-
-#if _typ_int64_t
-
-int64_t
-ftell64(Sfio_t* f)
-{
-	STDIO_INT(f, "ftell64", int64_t, (Sfio_t*), (f))
-
-	return (int64_t)sfseek(f, (Sfoff_t)0, SEEK_CUR);
-}
-
-#endif

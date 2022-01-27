@@ -6,8 +6,8 @@
 #
 
 SHOPT 2DMATCH=1				# two dimensional ${.sh.match} for ${var//pat/str}
-SHOPT ACCT=				# accounting
-SHOPT ACCTFILE=				# per-user accounting info
+SHOPT ACCT=0				# accounting
+SHOPT ACCTFILE=0			# per-user accounting info
 SHOPT AUDIT=1				# enable auditing per SHOPT_AUDITFILE
 SHOPT AUDITFILE='\"/etc/ksh_audit\"'	# auditing file
 SHOPT BGX=1				# one SIGCHLD trap per completed job
@@ -32,13 +32,13 @@ SHOPT NOECHOE=0				# turn off 'echo -e' when SHOPT_ECHOPRINT is disabled
 SHOPT OLDTERMIO=			# support both TCGETA and TCGETS
 SHOPT OPTIMIZE=1			# optimize loop invariants
 SHOPT PFSH=0				# Solaris exec_attr(4) profile execution (obsolete)
-SHOPT P_SUID=				# real uids that require -p for set[ug]id (do not set to 0 to turn off)
+SHOPT P_SUID=				# real UIDs that require -p for set[ug]id (do not set to 0 to turn off)
 SHOPT RAWONLY=1				# make viraw the only vi mode
 SHOPT REGRESS=				# enable __regress__ builtin and instrumented intercepts for testing
 SHOPT REMOTE=				# enable --rc if running as a remote shell
 SHOPT SPAWN=				# use spawnveg for fork/exec
 SHOPT STATS=1				# add .sh.stats variable
-SHOPT SUID_EXEC=1			# allow (safe) suid/sgid shell scripts
+SHOPT SUID_EXEC=1			# allow (safe) SUID/SGID shell scripts
 SHOPT SYSRC=				# attempt . /etc/ksh.kshrc if interactive
 SHOPT TEST_L=				# add 'test -l' as an alias for 'test -L'
 SHOPT TIMEOUT=				# number of seconds for shell timeout

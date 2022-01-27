@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                    <https://github.com/ksh93/ksh>                    #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #

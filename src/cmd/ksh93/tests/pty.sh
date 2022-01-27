@@ -946,5 +946,29 @@ u ^OK :child-!: \r\n$
 w exit
 !
 
+touch "$tmp/foo bar"
+((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<!
+L tab completion with space in string
+# https://github.com/ksh93/ksh/pull/413
+
+d 15
+p :test-1:
+w echo $tmp/foo\\\\ \\t
+r ^:test-1: echo $tmp/foo\\\\ bar \\r\\n$
+r ^$tmp/foo bar\\r\\n$
+!
+
+((SHOPT_HISTEXPAND)) && HISTFILE=$tmp/tmp_histfile tst $LINENO <<!
+L history expansion of an out-of-range event
+
+d 15
+p :test-1:
+w set -H
+p :test-2:
+w echo "!99"
+r !99
+r : !99: event not found\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

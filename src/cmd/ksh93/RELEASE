@@ -261,7 +261,7 @@ ____
 12-01-21  A bug in which typeset -L and typeset -R did not handle multibyte
 	  characters correctly has been fixed.
 12-01-20  A bug that could cause the shell to hang waiting for an incorrect
-	  job pid has been fixed.
+	  job PID has been fixed.
 12-01-19  A memory leak which occurred for a nested command substitution has been
 	  fixed.
 12-01-17  A bug in which typeset -u PS1 could enable the uppercase attribute
@@ -312,12 +312,12 @@ ____
 	  with more than twenty-five open files has been fixed.
 11-10-06  A bug in the scoping of name references in functions called by other
 	  functions has been fixed.
-11-10-05  A bug in which wait on a pid may return the exit status of an
-	  earlier background job with that pid instead has been fixed.
+11-10-05  A bug in which wait on a PID may return the exit status of an
+	  earlier background job with that PID instead has been fixed.
 11-09-22  A bug in which a read timed out with TMOUT did not always restore
 	  the terminal state has been fixed.
 11-09-21  An optimization that allowed the last command in a script to use
-	  the same process id as the script has been eliminated.
+	  the same process ID as the script has been eliminated.
 11-09-21  Added letoctal option that enables the let command to recognize
 	  octal constants starting with 0.
 11-09-20  A bug in which ${var.} could cause a core dump has been fixed.
@@ -394,7 +394,7 @@ ____
 	  been fixed.
 11-05-02  A bug in which the shell discards saved exit status of a job if it is
 	  followed by a subshell execution has been fixed.
-11-04-28  The shell now checks for numerical overflows with process ids.
+11-04-28  The shell now checks for numerical overflows with process IDs.
 11-04-28  Another scoping bug with compound variables defined by name references
 	  inside a function has been fixed.
 11-04-28  A bug which caused a core dump on 32 bit systems with the basic.sh
@@ -684,7 +684,7 @@ ____
 10-08-09 +Modified the expansion of message strings, $"...", so that they
 	  are expanded each time they are referenced rather than expanding
 	  them when the script is compiled or read in.
-10-08-06 +The process id for jobs in job pools is now of the form poolname.n
+10-08-06 +The process ID for jobs in job pools is now of the form poolname.n
 	  where n is the jobid in that pool.  Commands that accept job names
 	  or numbers now understand names in this format.
 10-08-05  A bug in which an assignment from within an arithmetic expression
@@ -973,7 +973,7 @@ ____
 	  decimal_point=','.
 09-11-02  A bug where "return" in .profile did not restore the shell state
 	  has been fixed.
-09-10-31  A bug that corrupted saved exit status when pids wrapped around has
+09-10-31  A bug that corrupted saved exit status when PIDs wrapped around has
 	  been fixed.
 09-10-26  A bug in { LANG LC_ALL LC_category } ordering has been fixed in -last.
 09-10-16  A bug where notification to libast that the environment has changed
@@ -1099,13 +1099,13 @@ ____
 09-03-24 +ksh now only uses the value of the _ variable on startup if it can
 	  verify that it was set by the invoking process rather than being
 	  inherited by some other ancestor.
-09-03-24 +When ksh is invoked without -p and ruid!=euid, and the shell is
-	  compiled without SHOPT_P_UID or ruid<SHOPT_P_UID, the shell now
+09-03-24 +When ksh is invoked without -p and RUID != EUID, and the shell is
+	  compiled without SHOPT_P_UID or RUID < SHOPT_P_UID, the shell now
 	  enables the -p option.  The previous version instead set the
-	  euid to the ruid as it does for set +p.
+	  EUID to the RUID as it does for set +p.
 09-03-24 +When SHOPT_P_UID is defined at compile time and the shell is started
-	  without -p and ruid!=euid and ruid>=SHOPT_P_UID then euid is set
-	  to ruid. A bug that did the wrong test (ruid<SHOPT_P_UID) was fixed.
+	  without -p and RUID != EUID and RUID >= SHOPT_P_UID then EUID is set
+	  to RUID. A bug that did the wrong test (RUID < SHOPT_P_UID) was fixed.
 09-03-17 +The sleep(1) builtin now accept and ISO 8601 PnYnMnDTnHnMnS
 	  duration or date(1) compatible date/time operand.
 09-03-10  If a variable that was left or right justified or zero-filled was
@@ -1194,7 +1194,7 @@ ____
 	  of concurrent & jobs to n; the n+1 & job will block until a
 	  running background job completes. (2) SIGCHLD traps are queued
 	  so that each completing background job gets its own trap; $! is
-	  set to the job pid and $? is set to the job exit status at the
+	  set to the job PID and $? is set to the job exit status at the
 	  beginning of the trap. (3) sleep -s added to sleep until the time
 	  expires or until a signal is delivered.
 08-12-04  The sign of floating point zero is preserved across arithmetic
@@ -1214,8 +1214,8 @@ ____
 	  set for an instance could appear twice when displaying the variable
 	  has been fixed.
 08-11-11  A bug in which running a simple command & inside a function would
-	  not return the correct process id has been fixed.
-08-11-10  A bug in which the exit status of a command could be lost if the pid
+	  not return the correct process ID has been fixed.
+08-11-10  A bug in which the exit status of a command could be lost if the PID
 	  was that of the most recent command substitution that had completed
 	  has been fixed.
 08-11-10  The maximum depth for subshells has been increased from 256 to 65536.
@@ -1369,7 +1369,7 @@ ____
 08-06-09  A bug in which the return value for an assignment command containing
 	  a command substitution with that failed was zero when the assignment
 	  contained redirections has been fixed.
-08-06-09  A bug in the quoting of $ inside a ERE pattern ~(E)(pattern)
+08-06-09  A bug in the quoting of $ inside an ERE pattern ~(E)(pattern)
 	  has been fixed.
 08-06-06  A bug when processing `` command substitution with the character
 	  sequence \$' has been fixed.
@@ -1710,7 +1710,7 @@ ____
 06-10-26 +The printf modifier # when used with d produces units in thousands
 	  with a single letter suffix added.  The modifier # when used with
 	  the i specification provides units of 1024 with a two letter suffix.
-06-10-24  The value of $! is now set to the process id of a job put
+06-10-24  The value of $! is now set to the process ID of a job put
 	  into the background with the bg command as required by POSIX.
 06-10-23  A bug in which the value of $! was affected by a background
 	  job started from a subshell has been fixed.
@@ -1735,7 +1735,7 @@ ____
 	  is only needed when using the ([subscript]=value ...) form.
 06-09-06 +The showme option was added.  Each simple command not beginning
 	  with a redirection and not occurring with in the while, until, if,
-	  select condition can be preceded by a semi-colon which will
+	  select condition can be preceded by a semicolon which will
 	  be ignored when showme is off.  When showme is on, any command
 	  preceded by a colon will be traced but not executed.
 06-08-16 +As a new feature, a leading ~(N) on a pattern has no effect
@@ -2344,7 +2344,7 @@ ____
 	  the original trap wasn't executed.
 01-11-26 +The value for 0 is now preceded by the base number when
 	  the base was not 10.
-01-11-26 +The default has compilation mode has been changes so that
+01-11-26 +The default compilation mode has been changed so that
 	  viraw mode will always be on.
 
 01-10-31  --- Release ksh93m  ---
@@ -2487,7 +2487,7 @@ ____
 	  were previously processed in undefined ways.
 01-05-09  A bug in which the output of select was not flushed before the
 	  read when input did not come from the terminal has been fixed.
-01-05-08  A bug in which job ids would not be freed for interactive shells
+01-05-08  A bug in which job IDs would not be freed for interactive shells
 	  when subshells ran built-ins in the background has been fixed.
 01-05-08 +The FPATH variable now requires an explicit . to cause the
 	  current directory to be treated as a function directory.
@@ -2573,7 +2573,7 @@ ____
 	  directory of the script has been fixed.
 01-02-19  A shell script did not always pick up tty mode changes
 	  made by external commands such as stty which could
-	  effect the behavior of read.
+	  affect the behavior of read.
 01-02-19  The -u, -g, and -k unary tests did not give the correct
 	  results when used with negation and this has been fixed.
 

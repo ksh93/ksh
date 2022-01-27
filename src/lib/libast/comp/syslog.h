@@ -83,7 +83,7 @@
 
 /* openlog flags */
 
-#define	LOG_PID		0x01	/* log the pid with each message	*/
+#define	LOG_PID		0x01	/* log the PID with each message	*/
 #define	LOG_CONS	0x02	/* log to console if errors in sending	*/
 #define LOG_NDELAY	0x08	/* open right now			*/
 #define	LOG_ODELAY	0x04	/* delay open until syslog() is called	*/

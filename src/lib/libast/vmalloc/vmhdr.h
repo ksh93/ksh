@@ -478,15 +478,7 @@ extern void*		sbrk( ssize_t );
 
 #else
 
-#if _hdr_unistd
 #include	<unistd.h>
-#else
-extern void		abort( void );
-extern ssize_t		write( int, const void*, size_t );
-extern int		getpagesize(void);
-extern void*		sbrk(ssize_t);
-#endif
-
 #include	<stdlib.h>
 #include	<string.h>
 

@@ -77,7 +77,6 @@ static ssize_t pfxwrite(Sfio_t* f, const void* buf, register size_t n, Sfdisc_t*
 	} while ((s = t + 1) < e);
 	pfx->skip = skip;
 	return w;
-
 }
 
 /*

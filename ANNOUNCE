@@ -83,6 +83,12 @@ New shell language features:
   command, which never worked and crashed the shell. See the manual for
   details on the new method.
 
+- A new ${.sh.pid} variable has been added with similar functionality to
+  Bash's $BASHPID variable. It is set to the current shell's PID, unlike
+  $$ (which is set to the main shell's PID). In virtual subshells
+  ${.sh.pid} is not changed from its previous value, while in forked
+  subshells ${.sh.pid} is set to the subshell's process ID.
+
 New features in built-in commands:
 
 - Usage error messages now show the --help/--man self-documentation options.
@@ -138,6 +144,13 @@ New features in shell options:
   for file names. This is transparently determined for each directory, so
   a path pattern that spans multiple file systems can be part
   case-sensitive and part case-insensitive.
+
+- The new --histreedit and --histverify options modify history expansion
+  (--histexpand). If --histreedit is on and a history expansion fails, the
+  command line is reloaded into the next prompt's edit buffer, allowing
+  corrections. If --histverify is on, the results of a history expansion are
+  not immediately executed but instead loaded into the next prompt's edit
+  buffer, allowing further changes.
 
 - A new --nobackslashctrl shell option disables the special escaping
   behaviour of the backslash character in the emacs and vi built-in

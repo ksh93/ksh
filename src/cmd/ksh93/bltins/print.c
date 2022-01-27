@@ -62,7 +62,6 @@ struct printf
 	char		*lastarg;
 	char		cescape;
 	char		err;
-	Shell_t		*sh;
 };
 
 struct printmap
@@ -84,15 +83,13 @@ static const struct printmap  Pmap[] =
 };
 
 
+static int		echolist(Sfio_t*, int, char**);
 static int		extend(Sfio_t*,void*, Sffmt_t*);
-static const char   	preformat[] = "";
 static char		*genformat(char*);
 static int		fmtvecho(const char*, struct printf*);
 static ssize_t		fmtbase64(Sfio_t*, char*, int);
-
 struct print
 {
-	Shell_t         *sh;
 	const char	*options;
 	char		raw;
 	char		echon;
@@ -108,15 +105,15 @@ static int	exitval;
 	struct print prdata;
 	prdata.options = sh_optecho+5;
 	prdata.raw = prdata.echon = 0;
-	prdata.sh = context->shp;
 	NOT_USED(argc);
+	NOT_USED(context);
 	/* This mess is because /bin/echo on BSD is different */
-	if(!prdata.sh->universe)
+	if(!sh.universe)
 	{
 		register char *universe;
 		if(universe=astconf("UNIVERSE",0,0))
 			bsd_univ = (strcmp(universe,"ucb")==0);
-		prdata.sh->universe = 1;
+		sh.universe = 1;
 	}
 	if(!bsd_univ)
 		return(b_print(0,argv,(Shbltin_t*)&prdata));
@@ -147,8 +144,8 @@ int    b_printf(int argc, char *argv[],Shbltin_t *context)
 {
 	struct print prdata;
 	NOT_USED(argc);
+	NOT_USED(context);
 	memset(&prdata,0,sizeof(prdata));
-	prdata.sh = context->shp;
 	prdata.options = sh_optprintf;
 	return(b_print(-1,argv,(Shbltin_t*)&prdata));
 }
@@ -171,7 +168,6 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 {
 	register Sfio_t *outfile;
 	register int n, fd = 1;
-	register Shell_t *shp = context->shp;
 	const char *options, *msg = e_file+4;
 	char *format = 0;
 	int sflag = 0, nflag=0, rflag=0, vflag=0;
@@ -190,7 +186,6 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 	else
 	{
 		struct print *pp = (struct print*)context;
-		shp = pp->sh;
 		options = pp->options;
 		if(argc==0)
 		{
@@ -206,7 +201,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			nflag++;
 			break;
 		case 'p':
-			fd = shp->coutpipe;
+			fd = sh.coutpipe;
 			msg = e_query;
 			break;
 		case 'f':
@@ -214,12 +209,12 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			break;
 		case 's':
 			/* print to history file */
-			if(!sh_histinit((void*)shp))
+			if(!sh_histinit())
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_history);
 				UNREACHABLE();
 			}
-			fd = sffileno(shp->gd->hist_ptr->histfp);
+			fd = sffileno(sh.hist_ptr->histfp);
 			sh_onstate(SH_HISTORY);
 			sflag++;
 			break;
@@ -242,7 +237,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			if(argc < 0)
 			{
 				/* prepare variable for printf -v varname */
-				vname = nv_open(opt_info.arg, shp->var_tree, NV_VARNAME);
+				vname = nv_open(opt_info.arg, sh.var_tree, NV_VARNAME);
 				if(!vname)
 				{
 					errormsg(SH_DICT, ERROR_exit(2), e_create, opt_info.arg);
@@ -300,9 +295,9 @@ skip:
 		argv++;
 	if(vname)
 	{
-		if(!shp->strbuf2)
-			shp->strbuf2 = sfstropen();
-		outfile = shp->strbuf2;
+		if(!sh.strbuf2)
+			sh.strbuf2 = sfstropen();
+		outfile = sh.strbuf2;
 		goto printf_v;
 	}
 skip2:
@@ -311,7 +306,7 @@ skip2:
 		errno = EBADF;
 		n = 0;
 	}
-	else if(!(n=shp->fdstatus[fd]))
+	else if(!(n=sh.fdstatus[fd]))
 		n = sh_iocheckfd(fd);
 	if(!(n&IOWRITE))
 	{
@@ -321,13 +316,13 @@ skip2:
 		errormsg(SH_DICT,ERROR_system(1),msg);
 		UNREACHABLE();
 	}
-	if(!(outfile=shp->sftable[fd]))
+	if(!(outfile=sh.sftable[fd]))
 	{
 		sh_onstate(SH_NOTRACK);
 		n = SF_WRITE|((n&IOREAD)?SF_READ:0);
-		shp->sftable[fd] = outfile = sfnew(NIL(Sfio_t*),shp->outbuff,IOBSIZE,fd,n);
+		sh.sftable[fd] = outfile = sfnew(NIL(Sfio_t*),sh.outbuff,IOBSIZE,fd,n);
 		sh_offstate(SH_NOTRACK);
-		sfpool(outfile,shp->outpool,SF_WRITE);
+		sfpool(outfile,sh.outpool,SF_WRITE);
 	}
 	/* turn off share to guarantee atomic writes for printf */
 	n = sfset(outfile,SF_SHARE|SF_PUBLIC,0);
@@ -338,7 +333,6 @@ printf_v:
 		Sfio_t *pool;
 		struct printf pdata;
 		memset(&pdata, 0, sizeof(pdata));
-		pdata.sh = shp;
 		pdata.hdr.version = SFIO_VERSION;
 		pdata.hdr.extf = extend;
 		pdata.nextarg = argv;
@@ -346,7 +340,7 @@ printf_v:
 		pool=sfpool(sfstderr,NIL(Sfio_t*),SF_WRITE);
 		do
 		{
-			if(shp->trapnote&SH_SIGSET)
+			if(sh.trapnote&SH_SIGSET)
 				break;
 			pdata.hdr.form = format;
 			sfprintf(outfile,"%!",&pdata);
@@ -377,7 +371,7 @@ printf_v:
 			if (sfsync((Sfio_t*)0) < 0)
 				exitval = 1;
 		}
-		else if(sh_echolist(shp,outfile,rflag,argv) && !nflag)
+		else if(echolist(outfile,rflag,argv) && !nflag)
 			if(sfputc(outfile,'\n') < 0)
 				exitval = 1;
 	}
@@ -385,7 +379,7 @@ printf_v:
 		nv_putval(vname, sfstruse(outfile), 0);
 	else if(sflag)
 	{
-		hist_flush(shp->gd->hist_ptr);
+		hist_flush(sh.hist_ptr);
 		sh_offstate(SH_HISTORY);
 	}
 	else
@@ -404,7 +398,7 @@ printf_v:
  * returns 0 for \c otherwise 1.
  */
 
-int sh_echolist(Shell_t *shp,Sfio_t *outfile, int raw, char *argv[])
+static int echolist(Sfio_t *outfile, int raw, char *argv[])
 {
 	register char	*cp;
 	register int	n;
@@ -425,7 +419,7 @@ int sh_echolist(Shell_t *shp,Sfio_t *outfile, int raw, char *argv[])
 		if(*argv)
 			if(sfputc(outfile,' ') < 0)
 				exitval = 1;
-		sh_sigcheck(shp);
+		sh_sigcheck();
 	}
 	return(!pdata.cescape);
 }
@@ -491,10 +485,9 @@ static char *genformat(char *format)
 {
 	register char *fp;
 	stakseek(0);
-	stakputs(preformat);
 	stakputs(format);
 	fp = (char*)stakfreeze(1);
-	strformat(fp+sizeof(preformat)-1);
+	strformat(fp);
 	return(fp);
 }
 
@@ -718,7 +711,6 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 	int		fold = fe->base;
 	union types_t*	value = (union types_t*)v;
 	struct printf*	pp = (struct printf*)fe;
-	Shell_t		*shp = pp->sh;
 	register char*	argp = *pp->nextarg;
 	char		*w,*s;
 	if(fe->n_str>0 && (format=='T'||format=='Q') && varname(fe->t_str,fe->n_str) && (!argp || varname(argp,-1)))
@@ -729,8 +721,8 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 			argp = pp->lastarg;
 		if(argp)
 		{
-			sfprintf(pp->sh->strbuf,"%s.%.*s%c",argp,fe->n_str,fe->t_str,0);
-			argp = sfstruse(pp->sh->strbuf);
+			sfprintf(sh.strbuf,"%s.%.*s%c",argp,fe->n_str,fe->t_str,0);
+			argp = sfstruse(sh.strbuf);
 		}
 	}
 	else
@@ -804,7 +796,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		case 'n':
 		{
 			Namval_t *np;
-			np = nv_open(argp,shp->var_tree,NV_VARNAME|NV_NOASSIGN|NV_NOARRAY);
+			np = nv_open(argp,sh.var_tree,NV_VARNAME|NV_NOASSIGN|NV_NOARRAY);
 			_nv_unset(np,0);
 			nv_onattr(np,NV_INTEGER);
 			if (np->nvalue.lp = new_of(int32_t,0))
@@ -998,10 +990,10 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		}
 		break;
 	case 'B':
-		if(!shp->strbuf2)
-			shp->strbuf2 = sfstropen();
-		fe->size = fmtbase64(shp->strbuf2,value->s, fe->flags&SFFMT_ALTER);
-		value->s = sfstruse(shp->strbuf2);
+		if(!sh.strbuf2)
+			sh.strbuf2 = sfstropen();
+		fe->size = fmtbase64(sh.strbuf2,value->s, fe->flags&SFFMT_ALTER);
+		value->s = sfstruse(sh.strbuf2);
 		fe->flags |= SFFMT_SHORT;
 		break;
 	case 'H':

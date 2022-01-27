@@ -101,7 +101,7 @@ typedef struct Optstate_s
 	Dtdisc_t	msgdisc;	/* msgdict discipline		*/
 	Dt_t*		msgdict;	/* default ast.id catalog msgs	*/
 	Optcache_t*	cache;		/* OPT_cache cache		*/
-	char**		conformance;	/* conformance id vector	*/
+	char**		conformance;	/* conformance ID vector	*/
 } Optstate_t;
 
 #define _OPT_PRIVATE_ \

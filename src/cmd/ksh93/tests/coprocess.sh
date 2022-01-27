@@ -23,13 +23,13 @@
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 if	[[ -d /cygdrive ]]
-then	err_exit 'Cygwin detected - coprocess tests disabled - enable at the risk of wedging your system'
-	exit $((Errors))
+then	warning 'Cygwin detected - coprocess tests disabled - enable at the risk of wedging your system'
+	exit 0
 fi
 
 bintrue=$(whence -p true)
 
-function ping # id
+function ping # ID
 {
 	integer x=0
 	while ((x++ < 5))

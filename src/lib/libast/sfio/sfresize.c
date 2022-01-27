@@ -63,7 +63,7 @@ int sfresize(Sfio_t* f, Sfoff_t size)
 	{	if(f->next > f->data)
 			SFSYNC(f);
 #if _lib_ftruncate
-		if(ftruncate(f->file, (sfoff_t)size) < 0)
+		if(ftruncate(f->file, (off_t)size) < 0)
 			SFMTXRETURN(f, -1);
 #else
 		SFMTXRETURN(f, -1);

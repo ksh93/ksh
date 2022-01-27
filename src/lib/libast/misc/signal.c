@@ -26,7 +26,7 @@
  * fun==SIG_DFL also unblocks signal
  */
 
-#if !_UWIN
+#if !_UWIN && !__HAIKU__
 
 #undef	signal
 #define signal		______signal

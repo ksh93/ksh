@@ -294,11 +294,11 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		block(bp,type);
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
-		sh_pushcontext(&sh, &checkpoint, 1);
+		sh_pushcontext(&checkpoint, 1);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
 			sh_fun(nq,np,(char**)0);
-		sh_popcontext(&sh, &checkpoint);
+		sh_popcontext(&checkpoint);
 		if(sh.topfd != checkpoint.topfd)
 			sh_iorestore(checkpoint.topfd, jmpval);
 		unblock(bp,type);
@@ -409,13 +409,15 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 			nv_setsize(SH_VALNOD,10);
 		}
 		block(bp,type);
-		sh_pushcontext(&sh, &checkpoint, 1);
+		block(bp, UNASSIGN);   /* make sure nv_setdisc doesn't invalidate 'vp' by freeing it */
+		sh_pushcontext(&checkpoint, 1);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
 			sh_fun(nq,np,(char**)0);
-		sh_popcontext(&sh, &checkpoint);
+		sh_popcontext(&checkpoint);
 		if(sh.topfd != checkpoint.topfd)
 			sh_iorestore(checkpoint.topfd, jmpval);
+		unblock(bp,UNASSIGN);
 		unblock(bp,type);
 		if(!vp->disc[type])
 			chktfree(np,vp);
@@ -1336,9 +1338,12 @@ static Namfun_t *clone_table(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp
 	return(&ntp->fun);
 }
 
+/*
+ * The first two fields must correspond with those in 'struct adata' in name.c and 'struct tdata' in typeset.c
+ * (those fields are used via a type conversion in scanfilter() in name.c)
+ */
 struct adata
 {
-	Shell_t		*sh;
 	Namval_t	*tp;
 	char		*mapname;
 	char		**argnam;
@@ -1366,7 +1371,6 @@ static void put_table(register Namval_t* np, const char* val, int flags, Namfun_
 		return;
 	memset(&data,0,sizeof(data));
 	data.mapname = nv_name(np);
-	data.sh = &sh;
 	nv_scan(sh.fun_tree,delete_fun,(void*)&data,NV_FUNCTION,NV_FUNCTION|NV_NOSCOPE);
 	dtview(root,0);
 	for(mp=(Namval_t*)dtfirst(root);mp;mp=nq)

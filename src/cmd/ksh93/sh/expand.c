@@ -100,7 +100,7 @@ int path_expand(const char *pattern, struct argnod **arghead)
 	if(memcmp(pattern,"~(N",3)==0)
 		flags &= ~GLOB_NOCHECK;
 	glob(pattern, flags, 0, gp);
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	for(ap= (struct argnod*)gp->gl_list; ap; ap = ap->argnxt.ap)
 	{
 		ap->argchn.ap = ap->argnxt.ap;
@@ -346,7 +346,7 @@ endloop1:
 	endloop2:
 		brace = *cp;
 		*cp = 0;
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		ap = (struct argnod*)stakseek(ARGVAL);
 		ap->argflag = ARG_RAW;
 		ap->argchn.ap = todo;

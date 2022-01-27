@@ -19,6 +19,9 @@ tst	lib_mmap note{ standard mmap interface that works }end execute{
 	int
 	main(int argc, char** argv)
 	{
+	#ifdef __HAIKU__
+		return 1;  /* don't even bother, on Haiku it freezes the system */
+	#endif
 		caddr_t		mm;
 		char		*t, *u, *f;
 		int		i, fd, okfixed;
@@ -109,71 +112,6 @@ tst	lib_mmap note{ standard mmap interface that works }end execute{
 		mmtm = (etm.tms_utime-stm.tms_utime) + (etm.tms_stime-stm.tms_stime);
 
 		return rdtm+60 < mmtm ? 1 : 0;
-	}
-}end
-
-tst	lib_mmap64 note{ mmap64 interface and implementation work }end execute{
-	#if !_lib_mmap
-	(
-	#endif
-	
-	#include <unistd.h>
-	#include <fcntl.h>
-	#include <sys/types.h>
-	#include <sys/mman.h>
-	#include <sys/stat.h>
-	#include <stdlib.h>
-	#include <string.h>
-	
-	int
-	main()
-	{
-	        off64_t         off;
-	        int             fd;
-	        int             n;
-	        char*           s;
-		struct stat64	st;
-	        char            file[32] = {'/','t','m','p','/','m','m','X','X','X','X','X','X'};
-	
-		/* hey, stubs are supposed to fail! */
-		if (stat64(".", &st) || !st.st_mode || !st.st_mtime)
-			return 1;
-	        if (!mktemp(file) || (fd = open64(file, O_CREAT|O_WRONLY, 0600)) < 0)
-	        {
-	                remove(file);
-	                return 1;
-	        }
-	        off = (1<<8);
-	        off *= off;
-	        if (lseek64(fd, off, SEEK_SET) != off)
-	        {
-	                remove(file);
-	                return 1;
-	        }
-	        n = strlen(file) + 1;
-	        if (write(fd, file, n) != n)
-	        {
-	                remove(file);
-	                return 1;
-	        }
-	        if (close(fd) < 0 || (fd = open64(file, O_RDWR)) < 0)
-	        {
-	                remove(file);
-	                return 1;
-	        }
-	        if (!(s = mmap64((caddr_t)0, (size_t)n, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, off)))
-	        {
-	                remove(file);
-	                return 1;
-	        }
-	        if (strcmp(s, file))
-	        {
-	                remove(file);
-	                return 1;
-	        }
-	        close(fd);
-	        remove(file);
-	        return 0;
 	}
 }end
 
@@ -325,7 +263,6 @@ cat{
 
 	#if _NO_MMAP
 	#undef	_lib_mmap
-	#undef	_lib_mmap64
 	#undef	_mmap_anon
 	#undef	_mmap_devzero
 	#undef	_mmap_worthy

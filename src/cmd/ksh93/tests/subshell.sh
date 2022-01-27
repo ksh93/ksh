@@ -65,16 +65,22 @@ z.bar[1]=(x=12 y=5)
 eval val="$z"
 (
 	z.foo[three]=good
-	[[ ${z.foo[three]} == good ]] || err_exit 'associative array assignment in subshell not working'
-)
+	[[ ${z.foo[three]} == good ]]
+) || err_exit 'associative array assignment in subshell not working'
 [[ $z == "$val" ]] || err_exit 'compound variable changes after associative array assignment'
 eval val="$z"
 (
 	z.foo[two]=ok
-	[[ ${z.foo[two]} == ok ]] || err_exit 'associative array assignment to compound variable in subshell not working'
+	[[ ${z.foo[two]} == ok ]] || exit 101
 	z.bar[1]=yes
-	[[ ${z.bar[1]} == yes ]] || err_exit 'indexed array assignment to compound variable in subshell not working'
+	[[ ${z.bar[1]} == yes ]] || exit 102
 )
+case $? in
+0)	;;
+101)	err_exit 'associative array assignment to compound variable in subshell not working' ;;
+102)	err_exit 'indexed array assignment to compound variable in subshell not working' ;;
+*)	err_exit 'assignment to compound variable in subshell fails' ;;
+esac
 [[ $z == "$val" ]] || err_exit 'compound variable changes after associative array assignment'
 
 x=(
@@ -84,10 +90,16 @@ x=(
 eval val="$x"
 (
 	unset x.foo
-	[[ ${x.foo.qqq} ]] && err_exit 'x.foo.qqq should be unset'
+	[[ ${x.foo.qqq} ]] && exit 101
 	x.foo=good
-	[[ ${x.foo} == good ]] || err_exit 'x.foo should be good'
+	[[ ${x.foo} == good ]] || exit 102
 )
+case $? in
+0)	;;
+101)	err_exit 'x.foo.qqq should be unset' ;;
+102)	err_exit 'x.foo should be good' ;;
+*)	err_exit "x.foo fails" ;;
+esac
 [[ $x == "$val" ]] || err_exit 'compound variable changes after unset leaves'
 unset l
 (
@@ -551,11 +563,16 @@ $SHELL <<- \EOF
 		print -u2 done
 	}
 	out=$(eval "foo | cat" 2>&1)
-	(( ${#out} == 96011 )) || err_exit "\${#out} is ${#out} should be 96011"
+	print "${#out}" >out
 EOF
 } & pid=$!
-$SHELL -c "{ sleep .4 && kill $pid ;}" 2> /dev/null
-(( $? == 0 )) &&  err_exit 'process has hung'
+(sleep 4; kill -s KILL "$pid" 2>/dev/null) &	# another bg job to kill frozen test job
+{ wait "$pid"; } 2>/dev/null			# get job's exit status, suppressing signal messages
+if	((!(e = $?)))
+then	[[ $(<out) == '96011' ]] || err_exit "\${#out} is $(printf %q "$(<out)"), should be 96011"
+else	err_exit "process has hung (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+fi
+kill "$!" 2>/dev/null				# kill sleep process
 
 {
 x=$( $SHELL  <<- \EOF
@@ -848,7 +865,7 @@ test_pid=$!
 (sleep 10; kill -s KILL "$test_pid" 2>/dev/null) &	# another bg job to kill frozen test job
 sleep_pid=$!
 { wait "$test_pid"; } 2>/dev/null			# get job's exit status, suppressing signal messages
-((!(e = $?))) || err_exit "backtick comsub crash/freeze (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+((!(e = $?))) || err_exit "backtick comsub crash/freeze (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 kill "$sleep_pid" 2>/dev/null
 
 # ======
@@ -858,7 +875,7 @@ test_pid=$!
 (sleep 2; kill -s KILL "$test_pid" 2>/dev/null) &
 sleep_pid=$!
 { wait "$test_pid"; } 2>/dev/null
-((!(e = $?))) || err_exit "backtick comsub hang (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+((!(e = $?))) || err_exit "backtick comsub hang (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 kill "$sleep_pid" 2>/dev/null
 
 # Backtick command substitution with pipe hangs when filling out pipe buffer (rhbz#1138751)
@@ -867,7 +884,7 @@ test_pid=$!
 (sleep 2; kill -s KILL "$test_pid" 2>/dev/null) &
 sleep_pid=$!
 { wait "$test_pid"; } 2>/dev/null
-((!(e = $?))) || err_exit "backtick comsub with pipe hangs (got status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+((!(e = $?))) || err_exit "backtick comsub with pipe hangs (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 kill "$sleep_pid" 2>/dev/null
 
 # ======
@@ -924,7 +941,7 @@ cat >$tmp/crash_rhbz1117404.ksh <<-'EOF'
 EOF
 got=$( { "$SHELL" "$tmp/crash_rhbz1117404.ksh"; } 2>&1)
 ((!(e = $?))) || err_exit 'crash while handling subshell trap' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
 # Segmentation fault when using cd in a subshell, when current directory cannot be determined
@@ -941,14 +958,14 @@ got=$(set +x; { "$SHELL" -c '(subshfn() { bad; }; cd ..; echo "subPWD: $PWD"); t
 exp="PWD=$PWD"
 got=$(set +x; { "$SHELL" -c '(cd /; (cd /)); print -r -- "PWD=$PWD"'; } 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore nonexistent PWD on exiting a virtual subshell' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 mkdir "$tmp/recreated"
 cd "$tmp/recreated"
 tmp=$tmp "$SHELL" -c 'cd /; rmdir "$tmp/recreated"; mkdir "$tmp/recreated"'
 exp="PWD=$PWD"
 got=$(set +x; { "$SHELL" -c '(cd /); print -r -- "PWD=$PWD"'; } 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit 'failed to restore re-created PWD on exiting a virtual subshell' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 cd "$tmp"
 
 # ======

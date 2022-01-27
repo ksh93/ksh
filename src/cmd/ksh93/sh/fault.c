@@ -410,7 +410,7 @@ void	sh_chktrap(void)
 		}
 	}
 	if(sh.sigflag[SIGALRM]&SH_SIGALRM)
-		sh_timetraps(&sh);
+		sh_timetraps();
 #if SHOPT_BGX
 	if((sh.sigflag[SIGCHLD]&SH_SIGTRAP) && sh.st.trapcom[SIGCHLD])
 		job_chldtrap(sh.st.trapcom[SIGCHLD],1);
@@ -464,7 +464,7 @@ int sh_trap(const char *trap, int mode)
 	sh_offstate(SH_HISTORY);
 	sh_offstate(SH_VERBOSE);
 	sh.intrap++;
-	sh_pushcontext(&sh,&buff,SH_JMPTRAP);
+	sh_pushcontext(&buff,SH_JMPTRAP);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
@@ -491,7 +491,7 @@ int sh_trap(const char *trap, int mode)
 			jmpval=SH_JMPTRAP;
 		}
 	}
-	sh_popcontext(&sh,&buff);
+	sh_popcontext(&buff);
 	sh.intrap--;
 	sfsync(sh.outpool);
 	savxit_return = sh.exitval;

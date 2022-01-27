@@ -396,7 +396,6 @@ void nv_attribute(register Namval_t *np,Sfio_t *out,char *prefix,int noname)
 	}
 	if(np==typep)
 	{
-
 		fp = 0;
 		typep = 0;
 	}

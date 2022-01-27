@@ -83,8 +83,8 @@
 
 typedef struct
 {
-	pid_t	pid;			/* process id			*/
-	pid_t	pgrp;			/* process group id		*/
+	pid_t	pid;			/* process ID			*/
+	pid_t	pgrp;			/* process group ID		*/
 	int	rfd;			/* read fd if applicable	*/
 	int	wfd;			/* write fd if applicable	*/
 

@@ -477,7 +477,7 @@ e=$?
 trap - TERM INT
 [[ $sleep_pid ]] && kill $sleep_pid
 ((!e)) && [[ $(<$ofile) == ok ]] || err_exit "PATH containing .paths directory:" \
-	"got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$(<$ofile)")"
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$(<$ofile)")"
 
 # ======
 # Check that 'command -p' and 'command -p -v' do not use the hash table (a.k.a. tracked aliases).
@@ -560,7 +560,7 @@ trap - TERM INT
 if	[[ ${ kill -l "$e"; } == KILL ]]
 then	warning "'command -x' test killed, probably due to lack of memory; skipping test"
 else	if	let "e > 0"
-	then	err_exit "'command -x' test yielded exit status $e$( let "e>128" && print -n / && kill -l "$e")"
+	then	err_exit "'command -x' test yielded exit status $e$( let "e>128" && print -n /SIG && kill -l "$e")"
 	fi
 	if	[[ ! -s $ofile ]]
 	then	err_exit "'command -x' test failed to produce output"
@@ -698,7 +698,7 @@ e=$?
 trap - TERM INT
 [[ $sleep_pid ]] && kill $sleep_pid
 ((e == 127)) || err_exit "Long nonexistent command name:" \
-	"got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$(<$ofile)")"
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$(<$ofile)")"
 
 # ======
 # A function autoload recursion loop used to crash
@@ -716,7 +716,7 @@ $SHELL: function, built-in or type definition for self2 not found in $tmp/fun.$$
 $SHELL: function, built-in or type definition for self not found in $tmp/fun.$$/self"
 got=$({ FPATH=$tmp/fun.$$ "$SHELL" -c self; } 2>&1)
 (((e = $?) == 126)) || err_exit 'Function autoload recursion loop:' \
-	"got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got")"
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got")"
 
 # ======
 # If a shared-state ${ command substitution; } changed the value of $PATH, the variable
@@ -795,10 +795,17 @@ PATH=$PWD:$PWD/cmddir $SHELL -c 'noexecute; exit $?'
 got=$?
 [[ $exp == $got ]] || err_exit "Test 3B: failed to run executable command after encountering non-executable command" \
 	"(expected $exp, got $got)"
-PATH=$PWD:$PWD/cmddir $SHELL -ic 'noexecute; exit $?'
-got=$?
-[[ $exp == $got ]] || err_exit "Test 3C: failed to run executable command after encountering non-executable command" \
-	"(expected $exp, got $got)"
+case $(uname -s) in
+AIX)
+	# ksh -ic hangs on AIX
+	;;
+*)
+	PATH=$PWD:$PWD/cmddir $SHELL -ic 'noexecute; exit $?'
+	got=$?
+	[[ $exp == $got ]] || err_exit "Test 3C: failed to run executable command after encountering non-executable command" \
+		"(expected $exp, got $got)"
+	;;
+esac
 PATH=$PWD:$PWD/cmddir $SHELL -c 'command -x noexecute; exit $?'
 got=$?
 [[ $exp == $got ]] || err_exit "Test 3D: failed to run executable command after encountering non-executable command" \

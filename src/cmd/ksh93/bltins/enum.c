@@ -209,7 +209,6 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 	Namarr_t		*ap;
 	char			*cp,*sp;
 	struct Enum		*ep;
-	Shell_t			*shp = context->shp;
 	struct {
 	    Optdisc_t	opt;
 	    Namval_t	*np;
@@ -251,7 +250,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 		}
 		n = staktell();
 		sfprintf(stkstd,"%s.%s%c",NV_CLASS,np->nvname,0);
-		tp = nv_open(stakptr(n), shp->var_tree, NV_VARNAME);
+		tp = nv_open(stakptr(n), sh.var_tree, NV_VARNAME);
 		stakseek(n);
 		n = sz;
 		i = 0;
@@ -296,12 +295,12 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 #ifdef STANDALONE
 void lib_init(int flag, void* context)
 {
-	Shell_t		*shp = ((Shbltin_t*)context)->shp;
 	Namval_t	*mp,*bp;
+	NOT_USED(context);
 	if(flag)
 		return;
 	bp = sh_addbuiltin("Enum", enum_create, (void*)0); 
-	mp = nv_search("typeset",shp->bltin_tree,0);
+	mp = nv_search("typeset",sh.bltin_tree,0);
 	nv_onattr(bp,nv_isattr(mp,NV_PUBLIC));
 }
 #endif

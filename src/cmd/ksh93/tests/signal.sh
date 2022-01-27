@@ -496,7 +496,7 @@ got=$(export sig; "$SHELL" -c '
 	trap - "$sig"
 ' 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "failed to handle SIG$sig from subshell" \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 got=$(export sig; "$SHELL" -c '
 	function tryTrap
@@ -508,7 +508,7 @@ got=$(export sig; "$SHELL" -c '
 	trap - "$sig"
 ' 2>&1)
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "failed to handle SIG$sig from ksh function" \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
 # ksh-style functions didn't handle signals other than SIGINT and SIGQUIT (rhbz#1454804)
@@ -526,7 +526,7 @@ got=$(export exp; "$SHELL" -c '
 ' 2>&1)
 got=${got% }	# rm final space
 ((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "ksh function ignores global signal traps" \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
 # Signal incorrectly issued when function returns with status > 256 and EXIT trap is active

@@ -153,7 +153,7 @@ struct Namval
 #define NV_RAW		NV_LJUST	/* used only with NV_BINARY */
 #define NV_HOST		(NV_RJUST|NV_LJUST)	/* map to host filename */
 
-/* The following attributes do not effect the value */
+/* The following attributes do not affect the value */
 #define NV_RDONLY	0x1	/* readonly bit */
 #define NV_EXPORT	0x2000	/* export bit */
 #define NV_TAGGED	0x8000	/* user define tag bit */

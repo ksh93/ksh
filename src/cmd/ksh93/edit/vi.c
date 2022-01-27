@@ -217,7 +217,7 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 #if SHOPT_RAWONLY
 #   define viraw	1
 #else
-	int viraw = (sh_isoption(SH_VIRAW) || ed->sh->st.trap[SH_KEYTRAP]);
+	int viraw = (sh_isoption(SH_VIRAW) || sh.st.trap[SH_KEYTRAP]);
 #   ifndef FIORDCHK
 	clock_t oldtime, newtime;
 	struct tms dummy;
@@ -252,7 +252,7 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		oldtime = times(&dummy);
 #endif /* FIORDCHK */
 		/* abort of interrupt has occurred */
-		if(ed->sh->trapnote&SH_SIGSET)
+		if(sh.trapnote&SH_SIGSET)
 			i = -1;
 		else
 		{
@@ -1157,7 +1157,7 @@ static void del_line(register Vi_t *vp, int mode)
 
 /*{	DELMOTION( motion, mode )
  *
- *	Delete thru motion.
+ *	Delete through motion.
  *
  *	mode	= 'd', save deleted characters, delete
  *		= 'c', do not save characters, change
@@ -1528,8 +1528,7 @@ static void getline(register Vi_t* vp,register int mode)
 			if(sh_isoption(SH_VI) &&
 				mode != SEARCH &&
 				last_virt >= 0 &&
-				(vp->ed->e_tabcount || !isblank(cur_virt)) &&
-				vp->ed->sh->nextprompt)
+				sh.nextprompt)
 			{
 				if(virtual[cur_virt]=='\\')
 				{
@@ -2302,7 +2301,7 @@ static int search(register Vi_t* vp,register int mode)
 		i = INVALID;
 		if( new_direction==1 && curhline >= histmax )
 			curhline = histmin + 1;
-		location = hist_find(shgd->hist_ptr,((char*)virtual)+1, curhline, 1, new_direction);
+		location = hist_find(sh.hist_ptr,((char*)virtual)+1, curhline, 1, new_direction);
 	}
 	cur_virt = i;
 	strncpy(lsearch, ((char*)virtual)+1, SEARCHSIZE-1);
@@ -2479,7 +2478,7 @@ addin:
 			--cur_virt;
 			--last_virt;
 			vp->ocur_virt = MAXCHAR;
-			if(c=='=' || (mode<cur_virt && (virtual[cur_virt]==' ' || virtual[cur_virt]=='/')))
+			if(c=='=' || (mode<cur_virt && virtual[cur_virt]=='/'))
 				vp->ed->e_tabcount = 0;
 			return(APPEND);
 		}
@@ -2699,7 +2698,7 @@ deleol:
 		c = '$';
 		goto yankeol;
 
-	case 'y':		/** yank thru motion **/
+	case 'y':		/** yank through motion **/
 		if( mode )
 			c = vp->lastmotion;
 		else

@@ -187,12 +187,6 @@ int sh_argopts(int argc,register char *argv[])
 	 	    case 'D':
 			on_option(&newflags,SH_NOEXEC);
 			goto skip;
-		    case 'T':
-			if (opt_info.num)
-				sh.test |= opt_info.num;
-			else
-				sh.test = 0;
-		    	continue;
 		    case 's':
 			if(setflag)
 			{

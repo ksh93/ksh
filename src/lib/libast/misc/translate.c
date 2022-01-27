@@ -349,7 +349,7 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 	     !(cp = mp->cat))
 	{
 #if DEBUG_trace > 1
-sfprintf(sfstderr, "AHA#%d:%s cmd %s cat %s:%s id %s msg `%s'\n", __LINE__, __FILE__, cmd, cat, error_info.catalog, ast.id, msg);
+sfprintf(sfstderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FILE__, cmd, cat, error_info.catalog, ast.id, msg);
 #endif
 		cp = 0;
 		goto done;

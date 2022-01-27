@@ -70,9 +70,7 @@ __STDPP__directive pragma pp:hide getpagesize getdtablesize
 #include "FEATURE/lib"
 #include "FEATURE/common"
 
-#if _hdr_unistd
 #include <unistd.h>
-#endif
 
 #include "FEATURE/param"
 

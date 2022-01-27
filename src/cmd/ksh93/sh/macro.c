@@ -130,11 +130,11 @@ char *sh_mactry(register char *string)
 		int		savexit = sh.savexit;
 		struct checkpt	buff;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex = *lexp;
-		sh_pushcontext(&sh,&buff,SH_JMPSUB);
+		sh_pushcontext(&buff,SH_JMPSUB);
 		jmp_val = sigsetjmp(buff.buff,0);
 		if(jmp_val == 0)
 			string = sh_mactrim(string,0);
-		sh_popcontext(&sh,&buff);
+		sh_popcontext(&buff);
 		*lexp = savelex;
 		sh.savexit = savexit;
 		return(string);
@@ -2141,7 +2141,7 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 		sp = sfnew(NIL(Sfio_t*),str,c,-1,SF_STRING|SF_READ);
 		c = sh.inlineno;
 		sh.inlineno = error_info.line+sh.st.firstline;
-		t = (Shnode_t*)sh_parse(&sh, sp,SH_EOF|SH_NL);
+		t = (Shnode_t*)sh_parse(sp,SH_EOF|SH_NL);
 		sh.inlineno = c;
 		type = 1;
 	}
@@ -2156,14 +2156,14 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			int r=0;
 			struct checkpt buff;
 			struct ionod *ip=0;
-			sh_pushcontext(&sh,&buff,SH_JMPIO);
+			sh_pushcontext(&buff,SH_JMPIO);
 			if((ip=t->tre.treio) && 
 				((ip->iofile&IOLSEEK) || !(ip->iofile&IOUFD)) &&
 				(r=sigsetjmp(buff.buff,0))==0)
 				fd = sh_redirect(ip,3);
 			else
 				fd = sh_chkopen(e_devnull);
-			sh_popcontext(&sh,&buff);
+			sh_popcontext(&buff);
 			if(r==0 && ip && (ip->iofile&IOLSEEK))
 			{
 				if(sp=sh.sftable[fd])

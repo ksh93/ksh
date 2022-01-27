@@ -66,7 +66,7 @@ aso_init_semaphore(void* data, const char* details)
 	{
 		/*
 		 * semaphore 0 is the reference count
-		 * the id is dropped on last reference
+		 * the ID is dropped on last reference
 		 */
 
 		sem.sem_num = 0;

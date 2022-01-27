@@ -104,7 +104,7 @@ native_locale(const char* locale, char* buf, size_t siz)
 	const Lc_attribute_list_t*	ap;
 	int				i;
 	unsigned long			lcid;
-	unsigned long			lang;
+	unsigned long			langidx;
 	unsigned long			ctry;
 	char				lbuf[128];
 	char				cbuf[128];
@@ -113,7 +113,7 @@ native_locale(const char* locale, char* buf, size_t siz)
 	{
 		if (!(lc = lcmake(locale)))
 			return 0;
-		lang = lc->language->index;
+		langidx = lc->language->index;
 		ctry = 0;
 		for (ap = lc->attributes; ap; ap = ap->next)
 			if (ctry = ap->attribute->index)
@@ -128,12 +128,12 @@ native_locale(const char* locale, char* buf, size_t siz)
 				}
 			if (!ctry)
 			{
-				if (!lang)
+				if (!langidx)
 					return 0;
 				ctry = SUBLANG_DEFAULT;
 			}
 		}
-		lcid = MAKELCID(MAKELANGID(lang, ctry), SORT_DEFAULT);
+		lcid = MAKELCID(MAKELANGID(langidx, ctry), SORT_DEFAULT);
 	}
 	else
 		lcid = GetUserDefaultLCID();
@@ -2412,7 +2412,7 @@ default_setlocale(int category, const char* locale)
 
 /*
  * workaround for Solaris and FreeBSD systems
- * the call free() with addresses that look like the came from the stack
+ * they call free() with addresses that look like they came from the stack
  */
 
 extern int	_vmkeep(int);

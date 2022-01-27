@@ -40,9 +40,9 @@
 .SH NAME
 strmatch \- match shell file patterns
 .SH SYNOPSIS
-.L "int strmatch(char* s, char* p)"
+.L "int strmatch(const char* s, const char* p)"
 .br
-.L "char* submatch(char* s, char* p, int m)"
+.L "char* submatch(const char* s, const char* p, int flags)"
 .SH DESCRIPTION
 .I strmatch
 compares the string
@@ -56,7 +56,7 @@ does a leading substring match of the shell pattern
 with the string
 .IR s .
 If
-.I m
+.I flags
 is 0 then the match is minimal, otherwise a maximal match is done.
 A pointer to the first character after the matched substring is returned,
 .I 0

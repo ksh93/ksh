@@ -202,7 +202,6 @@ function myexport
 	typeset val
 	val=$(export | grep "^$1=")
 	print ${val#"$1="}
-
 }
 export dgk=base
 if	[[ $(myexport dgk fun) != fun ]]

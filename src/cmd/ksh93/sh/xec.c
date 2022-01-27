@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -71,7 +71,6 @@ static void	coproc_init(int pipes[]);
 static void	*timeout;
 static char	nlock;
 static char	pipejob;
-static int	restorefd;
 
 struct funenv
 {
@@ -225,7 +224,7 @@ static void l_time(Sfio_t *outfile,register clock_t t,int precision)
 	if(precision)
 	{
 		frac = t%sh.lim.clk_tck;
-		frac = (frac*100)/sh.lim.clk_tck;
+		frac = (frac*(int)pow(10,precision))/sh.lim.clk_tck;
 	}
 	t /= sh.lim.clk_tck;
 	sec = t%60;
@@ -688,7 +687,7 @@ int sh_eval(register Sfio_t *iop, int mode)
 		mode ^= SH_TOPFUN;
 		sh.fn_reset = 1;
 	}
-	sh_pushcontext(&sh,buffp,SH_JMPEVAL);
+	sh_pushcontext(buffp,SH_JMPEVAL);
 	buffp->olist = pp->olist;
 	jmpval = sigsetjmp(buffp->buff,0);
 	while(jmpval==0)
@@ -699,7 +698,7 @@ int sh_eval(register Sfio_t *iop, int mode)
 			if(traceon=sh_isoption(SH_XTRACE))
 				sh_offoption(SH_XTRACE);
 		}
-		t = (Shnode_t*)sh_parse(&sh,iop,(mode&(SH_READEVAL|SH_FUNEVAL))?mode&SH_FUNEVAL:SH_NL);
+		t = (Shnode_t*)sh_parse(iop,(mode&(SH_READEVAL|SH_FUNEVAL))?mode&SH_FUNEVAL:SH_NL);
 		if(!(mode&SH_FUNEVAL) || !sfreserve(iop,0,0))
 		{
 			if(!(mode&SH_READEVAL))
@@ -719,7 +718,7 @@ int sh_eval(register Sfio_t *iop, int mode)
 		if(!(mode&SH_FUNEVAL))
 			break;
 	}
-	sh_popcontext(&sh,buffp);
+	sh_popcontext(buffp);
 	sh.binscript = binscript;
 	sh.comsub = comsub;
 	if(traceon)
@@ -917,7 +916,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 {
 	Stk_t			*stkp = sh.stk;
 	int			unpipe=0;
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	if(t && !sh.st.execbrk && !sh_isoption(SH_NOEXEC))
 	{
 		register int 	type = flags;
@@ -976,7 +975,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			{
 				argp = t->com.comarg;
 				if(argp && *com && !(argp->argflag&ARG_RAW))
-					sh_sigcheck(&sh);
+					sh_sigcheck();
 			}
 			np = (Namval_t*)(t->com.comnamp);
 			nq = (Namval_t*)(t->com.comnamq);
@@ -1142,11 +1141,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						/* avoid exit on error from nv_setlist, e.g. read-only variable */
 						struct checkpt *chkp = (struct checkpt*)stakalloc(sizeof(struct checkpt));
-						sh_pushcontext(&sh,chkp,SH_JMPCMD);
+						sh_pushcontext(chkp,SH_JMPCMD);
 						jmpval = sigsetjmp(chkp->buff,1);
 						if(!jmpval)
 							nv_setlist(argp,flgs,tp);
-						sh_popcontext(&sh,chkp);
+						sh_popcontext(chkp);
 						if(jmpval)	/* error occurred */
 							goto setexit;
 					}
@@ -1294,7 +1293,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 					if(execflg)
 						sh_onstate(SH_NOFORK);
-					sh_pushcontext(&sh,buffp,SH_JMPCMD);
+					sh_pushcontext(buffp,SH_JMPCMD);
 					jmpval = sigsetjmp(buffp->buff,1);
 					if(jmpval == 0)
 					{
@@ -1317,6 +1316,25 @@ int sh_exec(register const Shnode_t *t, int flags)
 								}
 							else
 								type = (execflg && !sh.subshell && !sh.st.trapcom[0]);
+							/*
+							 * A command substitution will hang on exit, writing infinite '\0', if,
+							 * within it, standard output (FD 1) is redirected for a built-in command
+							 * that calls sh_subfork(), or redirected permanently using 'exec' or
+							 * 'redirect'. This forking workaround is necessary to avoid that bug.
+							 * For shared-state comsubs, forking is incorrect, so error out then.
+							 * TODO: actually fix the bug and remove this workaround.
+							 */
+							if((io->iofile & IOUFD)==1 && sh.subshell && sh.comsub)
+							{
+								if(!sh.subshare)
+									sh_subfork();
+								else if(type==2)  /* block stdout perma-redirects: would hang */
+								{
+									errormsg(SH_DICT,ERROR_exit(1),"cannot redirect stdout"
+												" inside shared-state comsub");
+									UNREACHABLE();
+								}
+							}
 							sh.redir0 = 1;
 							sh_redirect(io,type);
 							for(item=buffp->olist;item;item=item->next)
@@ -1327,7 +1345,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 							if(!sh.pwd)
 								path_pwd();
 							if(sh.pwd)
-								stat(".",&statb);
+								stat(e_dot,&statb);
 							sfsync(NULL);
 							share = sfset(sfstdin,SF_SHARE,0);
 							sh_onstate(SH_STOPOK);
@@ -1373,7 +1391,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						bp->data = (void*)save_data;
 						if(sh.exitval && errno==EINTR && sh.lastsig)
 							sh.exitval = SH_EXITSIG|sh.lastsig;
-						else if(!nv_isattr(np,BLT_EXIT) && sh.exitval!=SH_RUNPROG)
+						else if(!nv_isattr(np,BLT_EXIT))
 							sh.exitval &= SH_EXITMASK;
 					}
 					else
@@ -1412,7 +1430,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						if(sh.pwd)
 						{
 							struct stat stata;
-							stat(".",&stata);
+							stat(e_dot,&stata);
 							/* restore directory changed */
 							if(statb.st_ino!=stata.st_ino || statb.st_dev!=stata.st_dev)
 								chdir(sh.pwd);
@@ -1425,7 +1443,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sfpool(sfstdin,NIL(Sfio_t*),SF_WRITE);
 						sh.nextprompt = save_prompt;
 					}
-					sh_popcontext(&sh,buffp);
+					sh_popcontext(buffp);
 					errorpop(&buffp->err);
 					error_info.flags &= ~(ERROR_SILENT|ERROR_NOTIFY);
 					sh.bltinfun = 0;
@@ -1510,7 +1528,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(io)
 					{
 						indx = sh.topfd;
-						sh_pushcontext(&sh,buffp,SH_JMPIO);
+						sh_pushcontext(buffp,SH_JMPIO);
 						jmpval = sigsetjmp(buffp->buff,0);
 					}
 					if(jmpval == 0)
@@ -1540,7 +1558,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						if(buffp->olist)
 							free_list(buffp->olist);
-						sh_popcontext(&sh,buffp);
+						sh_popcontext(buffp);
 						sh_iorestore(indx,jmpval);
 					}
 					if(nq)
@@ -1616,7 +1634,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				}
 #endif /* SHOPT_BGX */
 				nv_getval(RANDNOD);
-				restorefd = sh.topfd;
 				if(type&FCOOP)
 				{
 					pipes[2] = 0;
@@ -1709,6 +1726,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				struct ionod *iop;
 				int	rewrite=0;
 #if !SHOPT_DEVFD
+				char	*save_sh_fifo = sh.fifo;
 				if(sh.fifo_tree)
 				{
 					/* do not clean up process substitution FIFOs in child; parent handles this */
@@ -1718,7 +1736,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 #endif
 				if(no_fork)
 					sh_sigreset(2);
-				sh_pushcontext(&sh,buffp,SH_JMPEXIT);
+				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval)
 					goto done;
@@ -1748,8 +1766,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 					fn = sh_open(sh.fifo,fd?O_WRONLY:O_RDONLY);
 					save_errno = errno;
 					timerdel(fifo_timer);
-					unlink(sh.fifo);
-					free(sh.fifo);
 					sh.fifo = 0;
 					if(fn<0)
 					{
@@ -1824,7 +1840,14 @@ int sh_exec(register const Shnode_t *t, int flags)
 					path_exec(com0,com,t->com.comset);
 				}
 			done:
-				sh_popcontext(&sh,buffp);
+#if !SHOPT_DEVFD
+				if(save_sh_fifo)
+				{
+					unlink(save_sh_fifo);
+					free(save_sh_fifo);
+				}
+#endif
+				sh_popcontext(buffp);
 				if(jmpval>SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
 				sh_done(0);
@@ -1841,7 +1864,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int 	jmpval, waitall = 0;
 			int 	simple = (t->fork.forktre->tre.tretyp&COMMSK)==TCOM;
 			struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
-			sh_pushcontext(&sh,buffp,SH_JMPIO);
+			sh_pushcontext(buffp,SH_JMPIO);
 			if(type&FPIN)
 			{
 				was_interactive = sh_isstate(SH_INTERACTIVE);
@@ -1875,7 +1898,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			else
 				sfsync(sh.outpool);
-			sh_popcontext(&sh,buffp);
+			sh_popcontext(buffp);
 			sh_iorestore(buffp->topfd,jmpval);
 			if(buffp->olist)
 				free_list(buffp->olist);
@@ -1925,11 +1948,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_reseed_rand((struct rand*)RANDNOD->nvfun);
 				sh.realsubshell++;
 				sh_sigreset(0);
-				sh_pushcontext(&sh,buffp,SH_JMPEXIT);
+				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval==0)
 					sh_exec(t->par.partre,flags);
-				sh_popcontext(&sh,buffp);
+				sh_popcontext(buffp);
 				if(jmpval > SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
 				if(sh.exitval > 256)
@@ -2113,7 +2136,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			void *optlist = sh.optlist;
 			sh.optlist = 0;
 			sh_tclear(t->for_.fortre);
-			sh_pushcontext(&sh,buffp,jmpval);
+			sh_pushcontext(buffp,jmpval);
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval)
 				goto endfor;
@@ -2149,7 +2172,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					save_prompt = sh.nextprompt;
 					sh.nextprompt = 3;
 					sh.timeout = 0;
-					sh.exitval=sh_readline(&sh,&nullptr,0,1,(size_t)0,1000*sh.st.tmout);
+					sh.exitval=sh_readline(&nullptr,0,1,(size_t)0,1000*sh.st.tmout);
 					sh.nextprompt = save_prompt;
 					if(sh.exitval||sfeof(sfstdin)||sferror(sfstdin))
 					{
@@ -2209,7 +2232,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #if SHOPT_OPTIMIZE
 		endfor:
-			sh_popcontext(&sh,buffp);
+			sh_popcontext(buffp);
 			sh_tclear(t->for_.fortre);
 			sh_optclear(optlist);
 			if(jmpval)
@@ -2241,7 +2264,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			sh.optlist = 0;
 			sh_tclear(t->wh.whtre);
 			sh_tclear(t->wh.dotre);
-			sh_pushcontext(&sh,buffp,jmpval);
+			sh_pushcontext(buffp,jmpval);
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval)
 				goto endwhile;
@@ -2282,7 +2305,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #if SHOPT_OPTIMIZE
 		endwhile:
-			sh_popcontext(&sh,buffp);
+			sh_popcontext(buffp);
 			sh_tclear(t->wh.whtre);
 			sh_tclear(t->wh.dotre);
 			sh_optclear(optlist);
@@ -2690,7 +2713,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						argv[4] = 0;
 						sh_debug(trap,(char*)0,(char*)0,argv, 0);
 					}
-					n = test_unop(&sh,n,left);
+					n = test_unop(n,left);
 				}
 				else if(type&TBINARY)
 				{
@@ -2710,7 +2733,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						argv[5] = 0;
 						sh_debug(trap,(char*)0,(char*)0,argv, pattern);
 					}
-					n = test_binop(&sh,n,left,right);
+					n = test_binop(n,left,right);
 					if(traceon)
 					{
 						sfprintf(sfstderr,"%s %s ",sh_fmtq(left),op);
@@ -2885,7 +2908,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	int	sig,nochild;
 	if(parent<0)
 	{
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		if((forkcnt *= 2) > 1000L*SH_FORKLIM)
 		{
 			forkcnt=1000L;
@@ -2918,7 +2941,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 		{
 			/*
 			 * errno==EPERM means that an earlier processes
-			 * completed.  Make parent the job group id.
+			 * completed.  Make parent the job group ID.
 			 */
 			if(postid==0)
 				job.curpgid = parent;
@@ -3012,7 +3035,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	sh.savesig = 0;
 	if(sig>0)
 		kill(sh.current_pid,sig);
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	usepipe=0;
 	return(0);
 }
@@ -3173,7 +3196,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	sh_sigreset(0);
 	argsav = sh_argnew(argv,&saveargfor);
-	sh_pushcontext(&sh,buffp,SH_JMPFUN);
+	sh_pushcontext(buffp,SH_JMPFUN);
 	errorpush(&buffp->err,0);
 	error_info.id = argv[0];
 	sh.st.var_local = sh.var_tree;
@@ -3227,7 +3250,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,argv[0]);
 		UNREACHABLE();
 	}
-	sh_popcontext(&sh,buffp);
+	sh_popcontext(buffp);
 	sh_unscope();
 	sh.namespace = nspace;
 	sh.var_tree = (Dt_t*)prevscope->save_tree;
@@ -3376,7 +3399,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 		int jmpval;
 		struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
 		Shbltin_t *bp = &sh.bltindata;
-		sh_pushcontext(&sh,buffp,SH_JMPCMD);
+		sh_pushcontext(buffp,SH_JMPCMD);
 		jmpval = sigsetjmp(buffp->buff,1);
 		if(jmpval == 0)
 		{
@@ -3389,7 +3412,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 			sh.exitval = 0;
 			sh.exitval = ((Shbltin_f)funptr(np))(n,argv,bp);
 		}
-		sh_popcontext(&sh,buffp);
+		sh_popcontext(buffp);
 		if(jmpval>SH_JMPCMD)
 			siglongjmp(*sh.jmplist,jmpval);
 	}
@@ -3402,20 +3425,6 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 		stakset(base,offset);
 	sh.prefix = prefix;
 	return(sh.exitval);
-}
-
-/*
- * This dummy routine is called by built-ins that do recursion
- * on the file system (chmod, chgrp, chown).  It causes
- * the shell to invoke the non-builtin version in this case
- */
-int cmdrecurse(int argc, char* argv[], int ac, char* av[])
-{
-	NOT_USED(argc);
-	NOT_USED(argv[0]);
-	NOT_USED(ac);
-	NOT_USED(av[0]);
-	return(SH_RUNPROG);
 }
 
 /*
@@ -3495,7 +3504,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 		otype = savetype;
 		savetype=0;
 	}
-	sh_pushcontext(&sh,buffp,SH_JMPCMD);
+	sh_pushcontext(buffp,SH_JMPCMD);
 	errorpush(&buffp->err,ERROR_SILENT);
 	job_lock();		/* errormsg will unlock */
 	jmpval = sigsetjmp(buffp->buff,0);
@@ -3613,7 +3622,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 	}
 	else
 		exitset();
-	sh_popcontext(&sh,buffp);
+	sh_popcontext(buffp);
 	if(buffp->olist)
 		free_list(buffp->olist);
 	if(sigwasset)

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -31,7 +31,7 @@ if builtin getconf 2> /dev/null; then
 
 	# The -l option should convert all variable names to lowercase.
 	# https://github.com/att/ast/issues/1171
-	got=$(getconf -lq | awk '{ gsub(/=.*/, "") } /[[:upper:]]/ { print }')
+	got=$(getconf -lq | LC_ALL=C sed -n -e 's/=.*//' -e '/[A-Z]/p')
 	[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
 		"(got $(printf %q "$got"))"
 
@@ -1162,7 +1162,7 @@ then	got=$( { "$SHELL" -c '
 		done
 	'; } 2>&1)
 	((!(e = $?))) || err_exit 'crash with alarm and IFS' \
-		"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 fi
 
 # ======
@@ -1515,6 +1515,11 @@ if builtin tail 2> /dev/null; then
 	[[ $got == $exp ]] || err_exit "tail builtin fails to correctly handle files without an ending newline" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
+
+# ======
+# ksh93v- accidentally broke the sleep builtin's support for
+# using microseconds in the form of <num>U.
+got=$(sleep 1U 2>&1) || err_exit "sleep builtin cannot handle microseconds in the form of <num>U (got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

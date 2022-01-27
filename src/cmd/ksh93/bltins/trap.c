@@ -40,14 +40,13 @@
 
 static const char trapfmt[] = "trap -- %s %s\n";
 
-static int	sig_number(Shell_t*,const char*);
-static void	sig_list(Shell_t*,int);
+static int	sig_number(const char*);
+static void	sig_list(int);
 
 int	b_trap(int argc,char *argv[],Shbltin_t *context)
 {
 	register char *arg = argv[1];
 	register int sig, clear = 0, dflag = 0, pflag = 0;
-	register Shell_t *shp = context->shp;
 	NOT_USED(argc);
 	while (sig = optget(argv, sh_opttrap)) switch (sig)
 	{
@@ -86,7 +85,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 				 * if function semantics can be worked out then it
 				 * may merit a -d/--default option
 				 */
-				else if(*action=='+' && action[1]==0 && shp->st.self == &shp->global)
+				else if(*action=='+' && action[1]==0 && sh.st.self == &sh.global)
 				{
 					clear++;
 					dflag++;
@@ -100,7 +99,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 		}
 		while(arg = *argv++)
 		{
-			sig = sig_number(shp,arg);
+			sig = sig_number(arg);
 			if(sig<0)
 			{
 				errormsg(SH_DICT,2,e_trap,arg);
@@ -109,7 +108,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 			/* internal traps */
 			if(sig&SH_TRAP)
 			{
-				char **trap = (shp->st.otrap?shp->st.otrap:shp->st.trap);
+				char **trap = (sh.st.otrap ? sh.st.otrap : sh.st.trap);
 				sig &= ~SH_TRAP;
 				if(sig>SH_DEBUGTRAP)
 				{
@@ -122,37 +121,37 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 						sfputr(sfstdout,sh_fmtq(arg),'\n');
 					continue;
 				}
-				shp->st.otrap = 0;
-				if(shp->st.trap[sig])
-					free(shp->st.trap[sig]);
-				shp->st.trap[sig] = 0;
+				sh.st.otrap = 0;
+				if(sh.st.trap[sig])
+					free(sh.st.trap[sig]);
+				sh.st.trap[sig] = 0;
 				if(!clear && *action)
-					shp->st.trap[sig] = sh_strdup(action);
+					sh.st.trap[sig] = sh_strdup(action);
 				if(sig == SH_DEBUGTRAP)
 				{
-					if(shp->st.trap[sig])
-						shp->trapnote |= SH_SIGTRAP;
+					if(sh.st.trap[sig])
+						sh.trapnote |= SH_SIGTRAP;
 					else
-						shp->trapnote = 0;
+						sh.trapnote = 0;
 
 				}
 				if(sig == SH_ERRTRAP)
 				{
 					if(clear)
-						shp->errtrap = 0;
-					else if(!shp->fn_depth || shp->end_fn)
-						shp->errtrap = 1;
+						sh.errtrap = 0;
+					else if(!sh.fn_depth || sh.end_fn)
+						sh.errtrap = 1;
 				}
 				continue;
 			}
-			if(sig>shp->gd->sigmax)
+			if(sig > sh.sigmax)
 			{
 				errormsg(SH_DICT,2,e_trap,arg);
 				return(1);
 			}
 			else if(pflag)
 			{
-				char **trapcom = (shp->st.otrapcom?shp->st.otrapcom:shp->st.trapcom);
+				char **trapcom = (sh.st.otrapcom ? sh.st.otrapcom : sh.st.trapcom);
 				if(arg=trapcom[sig])
 					sfputr(sfstdout,arg,'\n');
 			}
@@ -160,26 +159,26 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 			{
 				sh_sigclear(sig);
 				if(sig == 0)
-					shp->exittrap = 0;
+					sh.exittrap = 0;
 				if(dflag)
 					signal(sig,SIG_DFL);
 			}
 			else
 			{
-				if(sig >= shp->st.trapmax)
-					shp->st.trapmax = sig+1;
-				arg = shp->st.trapcom[sig];
+				if(sig >= sh.st.trapmax)
+					sh.st.trapmax = sig+1;
+				arg = sh.st.trapcom[sig];
 				sh_sigtrap(sig);
-				shp->st.trapcom[sig] = (shp->sigflag[sig]&SH_SIGOFF) ? Empty : sh_strdup(action);
+				sh.st.trapcom[sig] = (sh.sigflag[sig]&SH_SIGOFF) ? Empty : sh_strdup(action);
 				if(arg && arg != Empty)
 					free(arg);
-				if(sig == 0 && (!shp->fn_depth || shp->end_fn))
-					shp->exittrap = 1;
+				if(sig == 0 && (!sh.fn_depth || sh.end_fn))
+					sh.exittrap = 1;
 			}
 		}
 	}
 	else /* print out current traps */
-		sig_list(shp,-2);
+		sig_list(-2);
 	return(0);
 }
 
@@ -191,7 +190,6 @@ int	b_kill(int argc,char *argv[],Shbltin_t *context)
 {
 	register char *signame;
 	register int sig=SIGTERM, flag=0, n;
-	register Shell_t *shp = context->shp;
 	int usemenu = 0;
 	NOT_USED(argc);
 #if defined(JOBS) && defined(SIGSTOP)
@@ -206,7 +204,7 @@ int	b_kill(int argc,char *argv[],Shbltin_t *context)
 #endif /* defined(JOBS) && defined(SIGSTOP) */
 	{
 		case ':':
-			if((signame=argv[opt_info.index++]) && (sig=sig_number(shp,signame+1))>=0)
+			if((signame=argv[opt_info.index++]) && (sig=sig_number(signame+1))>=0)
 				goto endopts;
 			opt_info.index--;
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
@@ -242,35 +240,35 @@ endopts:
 	if(flag&L_FLAG)
 	{
 		if(!(*argv))
-			sig_list(shp,usemenu);
+			sig_list(usemenu);
 		else while(signame = *argv++)
 		{
 			if(isdigit(*signame))
-				sig_list(shp,((int)strtol(signame, (char**)0, 10)&0177)+1);
+				sig_list(((int)strtol(signame, (char**)0, 10)&0177)+1);
 			else
 			{
-				if((sig=sig_number(shp,signame))<0)
+				if((sig=sig_number(signame))<0)
 				{
-					shp->exitval = 2;
+					sh.exitval = 2;
 					errormsg(SH_DICT,ERROR_exit(1),e_nosignal,signame);
 					UNREACHABLE();
 				}
 				sfprintf(sfstdout,"%d\n",sig);
 			}
 		}
-		return(shp->exitval);
+		return(sh.exitval);
 	}
 	if(flag&S_FLAG)
 	{
-		if((sig=sig_number(shp,signame)) < 0 || sig > shp->gd->sigmax)
+		if((sig=sig_number(signame)) < 0 || sig > sh.sigmax)
 		{
 			errormsg(SH_DICT,ERROR_exit(1),e_nosignal,signame);
 			UNREACHABLE();
 		}
 	}
 	if(job_walk(sfstdout,job_kill,sig,argv))
-		shp->exitval = 1;
-	return(shp->exitval);
+		sh.exitval = 1;
+	return(sh.exitval);
 }
 
 #if defined(JOBS) && defined(SIGSTOP)
@@ -306,9 +304,9 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT, ERROR_exit(1), "cannot suspend a login shell");
 		UNREACHABLE();
 	}
-	if(kill(context->shp->gd->pid, SIGSTOP) != 0)
+	if(kill(sh.pid, SIGSTOP) != 0)
 	{
-		errormsg(SH_DICT, ERROR_exit(1), "could not signal main shell at PID %d", context->shp->gd->pid);
+		errormsg(SH_DICT, ERROR_exit(1), "could not signal main shell at PID %d", sh.pid);
 		UNREACHABLE();
 	}
 	return(0);
@@ -319,7 +317,7 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
  * Given the name or number of a signal return the signal number
  */
 
-static int sig_number(Shell_t *shp,const char *string)
+static int sig_number(const char *string)
 {
 	const Shtable_t	*tp;
 	register int	n,o,sig=0;
@@ -365,29 +363,29 @@ static int sig_number(Shell_t *shp,const char *string)
 				n = tp->sh_number;
 		}
 		if((n>>SH_SIGBITS)&SH_SIGRUNTIME)
-			n = shp->gd->sigruntime[(n&((1<<SH_SIGBITS)-1))-1];
+			n = sh.sigruntime[(n&((1<<SH_SIGBITS)-1))-1];
 		else
 		{
 			n &= (1<<SH_SIGBITS)-1;
 			if(n < SH_TRAP)
 				n--;
 		}
-		if(n<0 && shp->gd->sigruntime[1] && (name=stakptr(o)) && *name++=='R' && *name++=='T')
+		if(n<0 && sh.sigruntime[1] && (name=stakptr(o)) && *name++=='R' && *name++=='T')
 		{
 			/* Real-time signals */
 			if(name[0]=='M' && name[1]=='I' && name[2]=='N' && name[3]=='+')	/* MIN+ */
 			{
 				if((sig=(int)strtol(name+4,&name,10)) >= 0 && !*name)
-					n = shp->gd->sigruntime[SH_SIGRTMIN] + sig;
+					n = sh.sigruntime[SH_SIGRTMIN] + sig;
 			}
 			else if(name[0]=='M' && name[1]=='A' && name[2]=='X' && name[3]=='-')	/* MAX- */
 			{
 				if((sig=(int)strtol(name+4,&name,10)) >= 0 && !*name)
-					n = shp->gd->sigruntime[SH_SIGRTMAX] - sig;
+					n = sh.sigruntime[SH_SIGRTMAX] - sig;
 			}
 			else if((sig=(int)strtol(name,&name,10)) > 0 && !*name)
-				n = shp->gd->sigruntime[SH_SIGRTMIN] + sig - 1;
-			if(n<shp->gd->sigruntime[SH_SIGRTMIN] || n>shp->gd->sigruntime[SH_SIGRTMAX])
+				n = sh.sigruntime[SH_SIGRTMIN] + sig - 1;
+			if(n < sh.sigruntime[SH_SIGRTMIN] || n > sh.sigruntime[SH_SIGRTMAX])
 				n = -1;
 		}
 	}
@@ -398,29 +396,29 @@ static int sig_number(Shell_t *shp,const char *string)
  * synthesize signal name for sig in buf
  * pfx!=0 prepends SIG to default signal number
  */
-static char* sig_name(Shell_t *shp,int sig, char* buf, int pfx)
+static char* sig_name(int sig, char* buf, int pfx)
 {
 	register int	i;
 
 	i = 0;
-	if(sig>shp->gd->sigruntime[SH_SIGRTMIN] && sig<shp->gd->sigruntime[SH_SIGRTMAX])
+	if(sig > sh.sigruntime[SH_SIGRTMIN] && sig < sh.sigruntime[SH_SIGRTMAX])
 	{
 		buf[i++] = 'R';
 		buf[i++] = 'T';
 		buf[i++] = 'M';
-		if(sig>shp->gd->sigruntime[SH_SIGRTMIN]+(shp->gd->sigruntime[SH_SIGRTMAX]-shp->gd->sigruntime[SH_SIGRTMIN])/2)
+		if(sig > sh.sigruntime[SH_SIGRTMIN] + (sh.sigruntime[SH_SIGRTMAX] - sh.sigruntime[SH_SIGRTMIN]) / 2)
 		{
 			buf[i++] = 'A';
 			buf[i++] = 'X';
 			buf[i++] = '-';
-			sig = shp->gd->sigruntime[SH_SIGRTMAX]-sig;
+			sig = sh.sigruntime[SH_SIGRTMAX] - sig;
 		}
 		else
 		{
 			buf[i++] = 'I';
 			buf[i++] = 'N';
 			buf[i++] = '+';
-			sig = sig-shp->gd->sigruntime[SH_SIGRTMIN];
+			sig = sig - sh.sigruntime[SH_SIGRTMIN];
 		}
 	}
 	else if(pfx)
@@ -440,7 +438,7 @@ static char* sig_name(Shell_t *shp,int sig, char* buf, int pfx)
  * if <flag> is -1, then print all signal names in menu format
  * if <flag> is <-1, then print all traps
  */
-static void sig_list(register Shell_t *shp,register int flag)
+static void sig_list(register int flag)
 {
 	register const struct shtable2	*tp;
 	register int sig;
@@ -452,7 +450,7 @@ static void sig_list(register Shell_t *shp,register int flag)
 	if(flag<=0)
 	{
 		/* not all signals may be defined, so initialize */
-		for(sig=shp->gd->sigmax; sig>=0; sig--)
+		for(sig=sh.sigmax; sig>=0; sig--)
 			names[sig] = 0;
 		for(sig=SH_DEBUGTRAP; sig>=0; sig--)
 			traps[sig] = 0;
@@ -460,7 +458,7 @@ static void sig_list(register Shell_t *shp,register int flag)
 	for(; *tp->sh_name; tp++)
 	{
 		sig = tp->sh_number&((1<<SH_SIGBITS)-1);
-		if (((tp->sh_number>>SH_SIGBITS) & SH_SIGRUNTIME) && (sig = shp->gd->sigruntime[sig-1]+1) == 1)
+		if (((tp->sh_number>>SH_SIGBITS) & SH_SIGRUNTIME) && (sig = sh.sigruntime[sig-1]+1) == 1)
 			continue;
 		if(sig==flag)
 		{
@@ -473,25 +471,25 @@ static void sig_list(register Shell_t *shp,register int flag)
 			names[sig] = (char*)tp->sh_name;
 	}
 	if(flag > 0)
-		sfputr(sfstdout, sig_name(shp,flag-1,name,0), '\n');
+		sfputr(sfstdout, sig_name(flag-1,name,0), '\n');
 	else if(flag<-1)
 	{
 		/* print the traps */
 		register char *trap,**trapcom;
-		sig = shp->st.trapmax;
+		sig = sh.st.trapmax;
 		/* use parent traps if otrapcom is set (for $(trap)  */
-		trapcom = (shp->st.otrapcom?shp->st.otrapcom:shp->st.trapcom);
+		trapcom = (sh.st.otrapcom ? sh.st.otrapcom : sh.st.trapcom);
 		while(--sig >= 0)
 		{
 			if(!(trap=trapcom[sig]))
 				continue;
-			if(sig > shp->gd->sigmax || !(sname=(char*)names[sig]))
-				sname = sig_name(shp,sig,name,1);
+			if(sig > sh.sigmax || !(sname=(char*)names[sig]))
+				sname = sig_name(sig,name,1);
 			sfprintf(sfstdout,trapfmt,sh_fmtq(trap),sname);
 		}
 		for(sig=SH_DEBUGTRAP; sig>=0; sig--)
 		{
-			if(!(trap=shp->st.otrap?shp->st.otrap[sig]:shp->st.trap[sig]))
+			if(!(trap=sh.st.otrap ? sh.st.otrap[sig] : sh.st.trap[sig]))
 				continue;
 			sfprintf(sfstdout,trapfmt,sh_fmtq(trap),traps[sig]);
 		}
@@ -499,11 +497,11 @@ static void sig_list(register Shell_t *shp,register int flag)
 	else
 	{
 		/* print all the signal names */
-		for(sig=1; sig <= shp->gd->sigmax; sig++)
+		for(sig=1; sig <= sh.sigmax; sig++)
 		{
 			if(!(sname=(char*)names[sig]))
 			{
-				sname = sig_name(shp,sig,name,1);
+				sname = sig_name(sig,name,1);
 				if(flag)
 					sname = stakcopy(sname);
 			}
@@ -515,7 +513,7 @@ static void sig_list(register Shell_t *shp,register int flag)
 		if(flag)
 		{
 			names[sig] = 0;
-			sh_menu(sfstdout,shp->gd->sigmax,(char**)names+1);
+			sh_menu(sfstdout,sh.sigmax,(char**)names+1);
 		}
 	}
 }

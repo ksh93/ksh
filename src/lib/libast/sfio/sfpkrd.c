@@ -61,7 +61,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 	reg char	*buf = (char*)argbuf, *endbuf;
 
 	if(rc < 0 && tm < 0 && action <= 0)
-		return sysreadf(fd,buf,n);
+		return read(fd,buf,n);
 
 	t = (action > 0 || rc >= 0) ? (STREAM_PEEK|SOCKET_PEEK) : 0;
 #if !_stream_peek
@@ -94,7 +94,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 			{	t &= ~SOCKET_PEEK;
 				if(r > 0 && (r = pbuf.databuf.len) <= 0)
 				{	if(action <= 0)	/* read past eof */
-						r = sysreadf(fd,buf,1);
+						r = read(fd,buf,1);
 					return r;
 				}
 				if(r == 0)
@@ -151,7 +151,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 
 			if(r > 0)		/* there is data now */
 			{	if(action <= 0 && rc < 0)
-					return sysreadf(fd,buf,n);
+					return read(fd,buf,n);
 				else	r = -1;
 			}
 			else if(tm >= 0)	/* timeout exceeded */
@@ -176,7 +176,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 					break;
 				else	/* read past eof */
 				{	if(action <= 0)
-						r = sysreadf(fd,buf,1);
+						r = read(fd,buf,1);
 					return r;
 				}
 			}
@@ -192,7 +192,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 			if((action = action ? -action : 1) > (int)n)
 				action = n;
 			r = 0;
-			while((t = sysreadf(fd,buf,action)) > 0)
+			while((t = read(fd,buf,action)) > 0)
 			{	r += t;
 				for(endbuf = buf+t; buf < endbuf;)
 					if(*buf++ == rc)
@@ -218,7 +218,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 
 	/* advance */
 	if(action <= 0)
-		r = sysreadf(fd,buf,r);
+		r = read(fd,buf,r);
 
 	return r;
 }

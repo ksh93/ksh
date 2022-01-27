@@ -159,7 +159,7 @@ characters in the middle of the line.
 
 typedef enum
 {
-	FIRST,		/* First time thru for logical line, prompt on screen */
+	FIRST,		/* First time through for logical line, prompt on screen */
 	REFRESH,	/* Redraw entire screen */
 	APPEND,		/* Append char before cursor to screen */
 	UPDATE,		/* Update the screen as need be */
@@ -263,7 +263,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 #ifdef ESH_NFIRST
 		ed_ungetchar(ep->ed,cntl('N'));
 #else
-		location = hist_locate(shgd->hist_ptr,location.hist_command,location.hist_line,1);
+		location = hist_locate(sh.hist_ptr,location.hist_command,location.hist_line,1);
 		if (location.hist_command < histlines)
 		{
 			hline = location.hist_command;
@@ -350,7 +350,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			continue;
 #endif	/* u370 */
 		case '\t':
-			if(cur>0  && ep->ed->sh->nextprompt)
+			if(cur>0  && sh.nextprompt)
 			{
 				if(ep->ed->e_tabcount==0)
 				{
@@ -684,7 +684,7 @@ update:
 			hline = location.hist_command;	/* start at saved position */
 			hloff = location.hist_line;
 #endif /* ESH_NFIRST */
-			location = hist_locate(shgd->hist_ptr,hline,hloff,count);
+			location = hist_locate(sh.hist_ptr,hline,hloff,count);
 			if (location.hist_command > histlines)
 			{
 				beep();
@@ -714,7 +714,6 @@ update:
 			draw(ep,UPDATE);
 			continue;
 		}
-		
 	}
 	
 process:
@@ -879,7 +878,6 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				return(-1);
 			}
 		}
-		
 		
 		case 'b':	/* M-b == go backward one word */
 		case DELETE :
@@ -1348,7 +1346,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	}
 	else
 		direction = ep->prevdirection ;
-	location = hist_find(shgd->hist_ptr,(char*)lstring,hline,1,direction);
+	location = hist_find(sh.hist_ptr,(char*)lstring,hline,1,direction);
 	i = location.hist_command;
 	if(i>0)
 	{
@@ -1429,9 +1427,7 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	
 	if ((lookahead)&&(option != FINAL))
 	{
-		
 		ep->scvalid = 0; /* Screen is out of date, APPEND will not work */
-		
 		return;
 	}
 	
@@ -1441,7 +1437,6 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	and the window has room for another character,
 	then output the character and adjust the screen only.
 	*****************************************/
-	
 
 	if(logcursor > drawbuff)
 		i = *(logcursor-1);	/* last character inserted */
@@ -1509,8 +1504,8 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	}
 			
 	/*********************
-	 Is the range of screen[0] thru screen[w_size] up-to-date
-	 with nscreen[offset] thru nscreen[offset+w_size] ?
+	 Is the range of screen[0] through screen[w_size] up-to-date
+	 with nscreen[offset] through nscreen[offset+w_size] ?
 	 If not, update as need be.
 	***********************/
 	

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -29,8 +29,8 @@
 #define defs_h_defined
 
 #include	<ast.h>
-#if !defined(AST_VERSION) || AST_VERSION < 20111111L
-#error libast version 20111111 or later is required
+#if !defined(AST_VERSION) || AST_VERSION < 20220101
+#error libast version 20220101 or later is required
 #endif
 #if !_lib_fork
 #error In 2021, ksh joined the 21st century and started requiring fork(2).
@@ -91,8 +91,8 @@ extern char*	sh_setenviron(const char*);
 #define SH_CMDLIB_DIR	"/opt/ast/bin"
 #endif
 
-#define SH_ID			"ksh"	/* ksh id */
-#define SH_STD			"sh"	/* standard sh id */
+#define SH_ID			"ksh"	/* ksh ID */
+#define SH_STD			"sh"	/* standard sh ID */
 
 /* defines for sh_type() */
 
@@ -102,14 +102,6 @@ extern char*	sh_setenviron(const char*);
 #define SH_TYPE_LOGIN		010
 #define SH_TYPE_PROFILE		020
 #define SH_TYPE_RESTRICTED	040
-
-#if SHOPT_HISTEXPAND
-#   define SH_HISTAPPEND	60
-#   define SH_HISTEXPAND	43
-#   define SH_HISTORY2		44
-#   define SH_HISTREEDIT	61
-#   define SH_HISTVERIFY	62
-#endif
 
 #ifndef PIPE_BUF
 #   define PIPE_BUF		512
@@ -136,7 +128,6 @@ extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
 extern void		sh_deparse(Sfio_t*,const Shnode_t*,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
-extern int 		sh_echolist(Shell_t*,Sfio_t*, int, char**);
 extern char 		**sh_envgen(void);
 extern void 		sh_envnolocal(Namval_t*,void*);
 extern Sfdouble_t	sh_arith(const char*);
@@ -154,7 +145,7 @@ extern int		sh_outtype(Sfio_t*);
 extern char 		*sh_mactry(char*);
 extern int		sh_mathstd(const char*);
 extern void		sh_printopts(Shopt_t,int,Shopt_t*);
-extern int 		sh_readline(Shell_t*,char**,volatile int,int,ssize_t,long);
+extern int 		sh_readline(char**,volatile int,int,ssize_t,long);
 extern Sfio_t		*sh_sfeval(char*[]);
 extern void		sh_setmatch(const char*,int,int,int[],int);
 extern void             sh_scope(struct argnod*, int);
@@ -165,7 +156,7 @@ extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
 extern void		sh_subtmpfile(void);
 extern char 		*sh_substitute(const char*,const char*,char*);
-extern void		sh_timetraps(Shell_t*);
+extern void		sh_timetraps(void);
 extern const char	*_sh_translate(const char*);
 extern int		sh_trace(char*[],int);
 extern void		sh_trim(char*);
@@ -212,7 +203,7 @@ extern char		*sh_getcwd(void);
 #define	sh_getstate()	(sh.st.states)
 #define	sh_setstate(x)	(sh.st.states = (x))
 
-#define sh_sigcheck(shp) do{if((shp)->trapnote&SH_SIGSET)sh_exit(SH_EXITSIG);} while(0)
+#define sh_sigcheck()	do { if(sh.trapnote & SH_SIGSET) sh_exit(SH_EXITSIG); } while(0)
 
 extern int32_t		sh_mailchk;
 extern const char	e_dict[];
@@ -241,7 +232,7 @@ extern const char	e_dict[];
 #   define	STAT_SPAWN	12
 #   define	STAT_SUBSHELL	13
     extern const Shtable_t shtab_stats[];
-#   define sh_stats(x)	(shgd->stats[(x)]++)
+#   define sh_stats(x)	(sh.stats[(x)]++)
 #else
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */

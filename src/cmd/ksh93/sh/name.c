@@ -64,9 +64,12 @@ static char	*staknam(Namval_t*, char*);
 static void	rightjust(char*, int, int);
 static char	*lastdot(char*, int);
 
+/*
+ * The first two fields must correspond with those in 'struct adata' in nvdisc.c and 'struct tdata' in typeset.c
+ * (those fields are used via a type conversion in scanfilter() in name.c)
+ */
 struct adata
 {
-	Shell_t		*sh;
 	Namval_t	*tp;
 	char		*mapname;
 	char		**argnam;
@@ -2167,7 +2170,6 @@ static void attstore(register Namval_t *np, void *data)
 {
 	register int flag = np->nvflag;
 	register struct adata *ap = (struct adata*)data;
-	ap->sh = &sh;
 	ap->tp = 0;
 	if(!(flag&NV_EXPORT) || (flag&NV_FUNCT))
 		return;
@@ -2200,7 +2202,6 @@ static void pushnam(Namval_t *np, void *data)
 {
 	register char *value;
 	register struct adata *ap = (struct adata*)data;
-	ap->sh = &sh;
 	ap->tp = 0;
 	if(nv_isattr(np,NV_IMPORT) && np->nvenv)
 		*ap->argnam++ = np->nvenv;
@@ -2220,7 +2221,6 @@ char **sh_envgen(void)
 	register int namec;
 	register char *cp;
 	struct adata data;
-	data.sh = &sh;
 	data.tp = 0;
 	data.mapname = 0;
 	/* L_ARGNOD gets generated automatically as full path name of command */
@@ -2375,7 +2375,7 @@ void sh_scope(struct argnod *envlist, int fun)
 
 void	sh_envnolocal (register Namval_t *np, void *data)
 {
-	struct adata *tp = (struct adata*)data;
+	NOT_USED(data);
 	char *cp=0;
 	if(np==VERSIONNOD && nv_isref(np))
 		return;
@@ -2438,8 +2438,6 @@ static void table_unset(register Dt_t *root, int flags, Dt_t *oroot)
 					Sfdouble_t d = nv_getnum(nq);
 					nv_putval(nq,(char*)&d,NV_LDOUBLE);
 				}
-				else if(sh.test&4)
-					nv_putval(nq, sh_strdup(nv_getval(nq)), NV_RDONLY);
 				else
 					nv_putval(nq, nv_getval(nq), NV_RDONLY);
 				sh.subshell = subshell;
@@ -2570,7 +2568,6 @@ void	_nv_unset(register Namval_t *np,int flags)
 		up = np->nvalue.up;
 	else if(nv_isref(np) && !nv_isattr(np,NV_EXPORT|NV_MINIMAL) && np->nvalue.nrp)
 	{
-
 		if(np->nvalue.nrp->root && Refdict)
 			dtdelete(Refdict,(void*)np->nvalue.nrp);
 		if(np->nvalue.nrp->sub)

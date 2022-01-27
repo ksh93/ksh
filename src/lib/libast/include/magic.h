@@ -63,7 +63,7 @@ typedef struct Magicdisc_s
 
 typedef struct Magic_s
 {
-	const char*	id;		/* library id string		*/
+	const char*	id;		/* library ID string		*/
 
 #ifdef _MAGIC_PRIVATE_
 	_MAGIC_PRIVATE_

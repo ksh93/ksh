@@ -151,7 +151,6 @@ Only the top level scope is used.
 Just return \f3NULL\fP when an error occurs.
 By default an error message is displayed and the current command
 is aborted.
-.IP
 .PP
 If a name-value pair by this name does not already exist, it is
 created unless \fIflags\fP contains the \f3NV_NOADD\fP flag.
@@ -212,7 +211,7 @@ The \f3nv_setsize()\fP function returns the size of the field for
 justified variables, the arithmetic base for integer variables,
 and the precision or number of places after the decimal point
 for floating point variables.  If \fIsize\fP is greater than or
-equal to zero, the current size is changed to this value. 
+equal to zero, the current size is changed to this value.
 The \f3nv_size()\fP function is equivalent to \f3nv_setsize()\fP
 with the second argument negative.
 .PP
@@ -349,7 +348,7 @@ variable discipline if the node \fInp\fP is a compound variable
 or \f3NULL\fP otherwise.
 .PP
 The \f3nv_isarray()\fP function returns a non-zero value if the specified
-name-value pair is an array. 
+name-value pair is an array.
 .PP
 The \f3nv_scan()\fP function is used to walk through
 all name-value pairs in the dictionary given by \fIdict\fP.
@@ -357,11 +356,11 @@ If the \f3flags\fP variable contains the \f3NV_NOSCOPE\fP
 flag, then only the top scope will be examined.
 The remaining flags will be used in conjunction with \fImask\fP
 to further restrict the walk.
-If \fImask\fP is non-zero, only the nodes for which 
+If \fImask\fP is non-zero, only the nodes for which
 \f3nv_isattr(\fP\fInode\fP\f3,\fP\fImask\fP\f3)\fP
 is equal to \fIflags\fP will be visited.
 If \fIfn\fP is non-zero, then this function will be executed
-for each name-value pair in the walk. 
+for each name-value pair in the walk.
 The arguments to \fIfn\fP will be a pointer to the name-value pair
 and the \fIdata\fP pointer passed to \f3nv_scan()\fP.
 The number of elements visited will be returned.
@@ -375,11 +374,11 @@ to manage the creation of sub-variables,
 and to extend the operations permitted on a name-value pair.
 A discipline consists of a set of one or more functions and related
 data that are used to override and extend the operations
-on a name-value pair. 
+on a name-value pair.
 A discipline is defined by the types
 \f3Namfun_t\fP and \f3Namdisc_t\fP.
 The \f3Namdisc_t\fP is not modified by any of these functions and
-can therefore be shared by several name-value pairs. 
+can therefore be shared by several name-value pairs.
 It contains following public fields in the order listed:
 .nf
       \f3size_t	dsize;\fP
@@ -460,7 +459,7 @@ builtins or functions whose name is of the
 form \fIvarname\fP\f3.\fP\fIaction\fP to be defined.
 By default, each name-value pair can have a \f3get\fP,
 \f3set\fP, and \f3unset\fP discipline associated with it.
-Whenever a builtin or function whose name is of the 
+Whenever a builtin or function whose name is of the
 form \fIvarname\fP\f3.\fP\fIaction\fP is defined or is unset,
 and \fIaction\fP is not \f3get\fP,
 \f3set\fP, or \f3unset\fP, the \fIsetdisc\fP\f3()\fP function is invoked
@@ -557,7 +556,7 @@ A pointer to this discipline is returned.
 .PP
 The \f3nv_aindex()\fP function returns
 the current index for
-the indexed array given by the name-value pair pointer \fInp\fP. 
+the indexed array given by the name-value pair pointer \fInp\fP.
 The return value is negative if \fInp\fP refers to
 an associative array.
 .PP
@@ -620,7 +619,7 @@ when the pointer is no longer needed.
 The \f3nv_putsub()\fP function is used to
 set the subscript for the next reference to \f3np\fP.
 If the \f3name\fP argument is not \f3NULL\fP,
-it defines the value of the next subscript. 
+it defines the value of the next subscript.
 The \f3mode\fP argument can contain one or more of the following flags:
 .IP
 \f3ARRAY_ADD\fP:
@@ -660,7 +659,7 @@ a shell compound assignment.
 .PP
 The \f3nv_type()\fP function returns a name_value pair pointer
 that contains the type definition for the specified name-value pair.
-The \fInvname\fP field contains the name for the type. 
+The \fInvname\fP field contains the name for the type.
 .PP
 The \f3nv_settype()\fP function converts the name-value pair
 given by \fInp\fP into the type given by \fItp\fP.

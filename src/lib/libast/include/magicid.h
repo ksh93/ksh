@@ -22,7 +22,7 @@
 ***********************************************************************/
 
 /*
- * generic binary magic id definitions
+ * generic binary magic ID definitions
  */
 
 #ifndef _MAGICID_H

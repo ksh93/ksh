@@ -131,12 +131,13 @@ typedef struct edit
 	char	e_macro[4];	/* macro buffer */
 	void	*e_vi;		/* vi specific data */
 	void	*e_emacs;	/* emacs specific data */
-	Shell_t	*sh;		/* interpreter pointer */ 
 	char	*e_stkptr;	/* saved stack pointer */
 	int	e_stkoff;	/* saved stack offset */
 	char	**e_clist;	/* completion list after <ESC>= */
 	int	e_nlist;	/* number of elements on completion list */
+#if SHOPT_ESH || SHOPT_VSH
 	int	e_multiline;	/* allow multiple lines for editing */
+#endif
 	int	e_winsz;	/* columns in window */ 
 	Edpos_t	e_curpos;	/* cursor line and column */
 	Namval_t *e_default;	/* variable containing default value */
@@ -190,7 +191,7 @@ extern int	ed_setcursor(Edit_t*, genchar*, int, int, int);
 extern int	ed_macro(Edit_t*,int);
 extern int	ed_expand(Edit_t*, char[],int*,int*,int,int);
 extern int	ed_fulledit(Edit_t*);
-extern void	*ed_open(Shell_t*);
+extern void	*ed_open(void);
 #if SHOPT_MULTIBYTE
 	extern int ed_internal(const char*, genchar*);
 	extern int ed_external(const genchar*, char*);

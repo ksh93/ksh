@@ -366,14 +366,13 @@ static Shnode_t	*makelist(Lex_t *lexp, int type, Shnode_t *l, Shnode_t *r)
  * Flag can be the union of SH_EOF|SH_NL
  */
 
-void	*sh_parse(Shell_t *shp, Sfio_t *iop, int flag)
+void	*sh_parse(Sfio_t *iop, int flag)
 {
 	register Shnode_t	*t;
 	Lex_t			*lexp = (Lex_t*)sh.lex_context;
 	Fcin_t	sav_input;
 	struct argnod *sav_arg = lexp->arg;
 	int	sav_prompt = sh.nextprompt;
-	NOT_USED(shp);  /* keep for compat as sh_parse() is a documented interface */
 	if(sh.binscript && (sffileno(iop)==sh.infd || (flag&SH_FUNEVAL)))
 		return((void*)sh_trestore(iop));
 	fcsave(&sav_input);
@@ -772,7 +771,6 @@ static Shnode_t	*arithfor(Lex_t *lexp,register Shnode_t *tf)
 	tw->wh.dotre = sh_cmd(lexp,n==DOSYM?DONESYM:RBRACE,SH_NL|SH_SEMI);
 	tw->wh.whtyp = TWH;
 	return(tf);
-
 }
 
 static Shnode_t *funct(Lex_t *lexp)
@@ -814,7 +812,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		if(fcfill() >= 0)
 			fcseek(-1);
 		if(sh_isstate(SH_HISTORY) && sh.hist_ptr)
-			t->funct.functloc = sfseek(sh.gd->hist_ptr->histfp,(off_t)0,SEEK_CUR);
+			t->funct.functloc = sfseek(sh.hist_ptr->histfp, (off_t)0, SEEK_CUR);
 		else
 		{
 			/* copy source to temporary file */
@@ -876,7 +874,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 	if((flag && lexp->token!=LBRACE) || lexp->token==EOFSYM)
 		sh_syntax(lexp);
-	sh_pushcontext(&sh,&buff,1);
+	sh_pushcontext(&buff,1);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
@@ -928,7 +926,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 	else if(sh.shcomp)
 		exit(1);
-	sh_popcontext(&sh,&buff);
+	sh_popcontext(&buff);
 	loop_level = saveloop;
 	label_last = savelabel;
 	/* restore the old stack */

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -319,7 +319,7 @@ static char *dotpaths_lib(Pathcomp_t *pp, char *path)
 	if(last)
 		*last = 0;
 	else
-		path = ".";
+		path = (char*)e_dot;
 	r = stat(path,&statb);
 	if(last)
 		*last = '/';
@@ -556,7 +556,7 @@ char	*path_basename(register const char *name)
 
 char *path_fullname(const char *name)
 {
-	int len=strlen(name)+1,dirlen=0;
+	size_t len=strlen(name)+1,dirlen=0;
 	char *path,*pwd;
 	if(*name!='/')
 	{
@@ -776,7 +776,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 	sh.path_err = 0;
 	while(1)
 	{
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		sh.bltin_dir = 0;
 		/* In this loop, oldpp is the current pointer.
 		   pp is the next pointer. */
@@ -807,7 +807,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 			stakputs("b_");
 			stakputs(name);
 			stakputc(0);
-			if((addr = sh_getlib(&sh, stakptr(n), oldpp)) &&
+			if((addr = sh_getlib(stakptr(n), oldpp)) &&
 			   (np = sh_addbuiltin(stakptr(PATH_OFFSET),addr,NiL)) &&
 			   nv_isattr(np,NV_BLTINOPT))
 			{
@@ -860,7 +860,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 					return(oldpp);
 				}
 				if (dll = dllplugin(SH_ID, stakptr(m), NiL, SH_PLUGIN_VERSION, NiL, RTLD_LAZY, NiL, 0))
-					sh_addlib(&sh,dll,stakptr(m),oldpp);
+					sh_addlib(dll,stakptr(m),oldpp);
 				if(dll &&
 				   (addr=(Shbltin_f)dlllook(dll,stakptr(n))) &&
 				   (!(np = sh_addbuiltin(stakptr(PATH_OFFSET),NiL,NiL)) || np->nvalue.bfp!=(Nambfp_f)addr) &&
@@ -1042,7 +1042,7 @@ noreturn void path_exec(register const char *arg0,register char *argv[],struct a
 		pp = pp->next;
 	if(pp || slash) do
 	{
-		sh_sigcheck(&sh);
+		sh_sigcheck();
 		if(libpath=pp)
 		{
 			pp = path_nextcomp(pp,arg0,0);
@@ -1198,7 +1198,7 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 	envp[0][0] =  '_';
 	envp[0][1] =  '=';
 	sfsync(sfstderr);
-	sh_sigcheck(&sh);
+	sh_sigcheck();
 	path = path_relative(opath);
 #ifdef SHELLMAGIC
 	if(*path!='/' && path!=opath)
@@ -1214,6 +1214,28 @@ pid_t path_spawn(const char *opath,register char **argv, char **envp, Pathcomp_t
 		path = sp;
 	}
 #endif /* SHELLMAGIC */
+#if __CYGWIN__
+	/*
+	 * On Cygwin, execve(2) happily executes shell scripts without a #! path with /bin/sh (which is bash --posix).
+	 * However, ksh relies on execve(2) executing binaries or #! only, as it uses an ENOEXEC failure to decide
+	 * whether to fork and execute a #!-less shell script with a reinitialized copy of itself via exscript() below.
+	 * So, simulate that failure if the file is not a Windows executable or a script with a #! path.
+	 */
+	if((n = sh_open(opath,O_RDONLY,0)) >= 0)
+	{
+		uint16_t mz;
+		r = !(read(n,&mz,2)==2 && (mz==0x5A4D || mz==0x2123));  /* "MZ" or "#!" */
+		sh_close(n);
+	}
+	else
+		r = 0;
+	if(r)
+	{
+		pid = -1;
+		errno = ENOEXEC;
+	}
+	else
+#endif
 #if SHOPT_PFSH
 	if(spawn && !sh_isoption(SH_PFSH))
 		pid = _spawnveg(opath, &argv[0], envp, spawn>>1);
@@ -1356,7 +1378,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 		if((euserid=geteuid()) != sh.userid)
 		{
 			strncpy(name+9,fmtbase((long)sh.current_pid,10,0),sizeof(name)-10);
-			/* create a suid open file with owner equal effective uid */
+			/* create an SUID open file with owner equal to effective UID */
 			if((n=open(name,O_CREAT|O_TRUNC|O_WRONLY,S_ISUID|S_IXUSR)) < 0)
 				goto fail;
 			unlink(name);
@@ -1417,6 +1439,7 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 	if(sh.sigflag[SIGCHLD]==SH_SIGOFF)
 		sh.sigflag[SIGCHLD] = SH_SIGFAULT;
 	siglongjmp(*sh.jmplist,SH_JMPSCRIPT);
+	UNREACHABLE();  /* silence warning on Haiku */
 }
 
 #if SHOPT_ACCT
@@ -1670,7 +1693,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, register const char *path,int type)
 		if(*cp==':')
 		{
 			if(type!=PATH_FPATH)
-				first = path_addcomp(first,old,".",type);
+				first = path_addcomp(first,old,e_dot,type);
 			while(*++path == ':');
 		}
 		else

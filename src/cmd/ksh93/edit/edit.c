@@ -148,11 +148,11 @@ static const char bellchr[] = "\a";	/* bell char */
  */
 int tty_check(int fd)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	struct termios tty;
 	Sfio_t *sp;
 	ep->e_savefd = -1;
-	if(fd < 0 || fd > shgd->lim.open_max || sh.fdstatus[fd] == IOCLOSE
+	if(fd < 0 || fd > sh.lim.open_max || sh.fdstatus[fd] == IOCLOSE
 	|| (sp = sh.sftable[fd]) && (sfset(sp,0,0) & SF_STRING))
 		return(0);
 	return(tty_get(fd,&tty)==0);
@@ -166,7 +166,7 @@ int tty_check(int fd)
 
 int tty_get(register int fd, register struct termios *tty)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	if(fd == ep->e_savefd)
 		*tty = ep->e_savetty;
 	else
@@ -194,7 +194,7 @@ int tty_get(register int fd, register struct termios *tty)
 
 int tty_set(int fd, int action, struct termios *tty)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	if(fd >=0)
 	{
 		while(tcsetattr(fd, action, tty) == SYSERR)
@@ -218,9 +218,9 @@ int tty_set(int fd, int action, struct termios *tty)
 
 void tty_cooked(register int fd)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
-	if(ep->sh->st.trap[SH_KEYTRAP] && savelex)
-		memcpy(ep->sh->lex_context,savelex,sizeof(Lex_t));
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
+	if(sh.st.trap[SH_KEYTRAP] && savelex)
+		memcpy(sh.lex_context,savelex,sizeof(Lex_t));
 	ep->e_keytrap = 0;
 	if(ep->e_raw==0)
 		return;
@@ -257,7 +257,7 @@ int tty_raw(register int fd, int echomode)
 #ifdef L_MASK
 	struct ltchars lchars;
 #endif	/* L_MASK */
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	if(ep->e_raw==RAWMODE)
 		return(echo?-1:0);
 	else if(ep->e_raw==ECHOMODE)
@@ -381,7 +381,7 @@ int tty_raw(register int fd, int echomode)
 #   ifdef TIOCGETC
 int tty_alt(register int fd)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	int mask;
 	struct tchars ttychars;
 	switch(ep->e_raw)
@@ -429,7 +429,7 @@ int tty_alt(register int fd)
 
 int tty_alt(register int fd)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	switch(ep->e_raw)
 	{
 	    case ECHOMODE:
@@ -580,7 +580,6 @@ void ed_crlf(register Edit_t *ep)
 
 void	ed_setup(register Edit_t *ep, int fd, int reedit)
 {
-	Shell_t *shp = ep->sh;
 	register char *pp;
 	register char *last, *prev;
 	char *ppmax;
@@ -588,18 +587,24 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	register int qlen = 1, qwid;
 	char inquote = 0;
 	ep->e_fd = fd;
-	ep->e_multiline = sh_isoption(SH_MULTILINE)!=0;
+#if SHOPT_ESH && SHOPT_VSH
+	ep->e_multiline = sh_isoption(SH_MULTILINE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS) || sh_isoption(SH_VI));
+#elif SHOPT_ESH
+	ep->e_multiline = sh_isoption(SH_MULTILINE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS));
+#else
+	ep->e_multiline = sh_isoption(SH_MULTILINE) && sh_isoption(SH_VI);
+#endif
 #ifdef SIGWINCH
-	if(!(shp->sigflag[SIGWINCH]&SH_SIGFAULT))
+	if(!(sh.sigflag[SIGWINCH]&SH_SIGFAULT))
 	{
 		signal(SIGWINCH,sh_fault);
-		shp->sigflag[SIGWINCH] |= SH_SIGFAULT;
+		sh.sigflag[SIGWINCH] |= SH_SIGFAULT;
 	}
-	pp = shp->st.trapcom[SIGWINCH];
-	shp->st.trapcom[SIGWINCH] = 0;
+	pp = sh.st.trapcom[SIGWINCH];
+	sh.st.trapcom[SIGWINCH] = 0;
 	sh_fault(SIGWINCH);
-	shp->st.trapcom[SIGWINCH] = pp;
-	ep->sh->winch = 0;
+	sh.st.trapcom[SIGWINCH] = pp;
+	sh.winch = 0;
 #endif
 #if SHOPT_EDPREDICT
 	ep->hlist = 0;
@@ -608,12 +613,12 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 #endif /* SHOPT_EDPREDICT */
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
-	if(!(last = shp->prompt))
+	if(!(last = sh.prompt))
 		last = "";
-	shp->prompt = 0;
-	if(shp->gd->hist_ptr)
+	sh.prompt = 0;
+	if(sh.hist_ptr)
 	{
-		register History_t *hp = shp->gd->hist_ptr;
+		register History_t *hp = sh.hist_ptr;
 		ep->e_hismax = hist_max(hp);
 		ep->e_hismin = hist_min(hp);
 	}
@@ -762,6 +767,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	if(pp-ep->e_prompt > qlen)
 		ep->e_plen = pp - ep->e_prompt - qlen;
 	*pp = 0;
+#if SHOPT_ESH || SHOPT_VSH
 	if(!ep->e_multiline && (ep->e_wsize -= ep->e_plen) < 7)
 	{
 		register int shift = 7-ep->e_wsize;
@@ -771,6 +777,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		ep->e_plen -= shift;
 		last[-ep->e_plen-2] = '\r';
 	}
+#endif /* SHOPT_ESH || SHOPT_VSH */
 	sfsync(sfstderr);
 	if(fd == sffileno(sfstderr))
 	{
@@ -790,15 +797,16 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		sfset(sfstderr,SF_READ,1);
 	sfwrite(sfstderr,ep->e_outptr,0);
 	ep->e_eol = reedit;
+#if SHOPT_ESH || SHOPT_VSH
 	if(ep->e_multiline)
 	{
 #if defined(_pth_tput) && (_tput_terminfo || _tput_termcap)
 		char *term;
 		if(!ep->e_term)
-			ep->e_term = nv_search("TERM",shp->var_tree,0);
+			ep->e_term = nv_search("TERM",sh.var_tree,0);
 		if(ep->e_term && (term=nv_getval(ep->e_term)) && strlen(term)<sizeof(ep->e_termname) && strcmp(term,ep->e_termname))
 		{
-			Shopt_t o = shp->options;
+			Shopt_t o = sh.options;
 			sigblock(SIGINT);
 			sh_offoption(SH_RESTRICTED);
 			sh_offoption(SH_VERBOSE);
@@ -817,12 +825,13 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 				CURSOR_UP[0] = '\0';  /* no escape sequence is better than a faulty one */
 			nv_unset(SH_SUBSCRNOD);
 			strcpy(ep->e_termname,term);
-			shp->options = o;
+			sh.options = o;
 			sigrelease(SIGINT);
 		}
 #endif
 		ep->e_wsize = MAXLINE - (ep->e_plen+1);
 	}
+#endif /* SHOPT_ESH || SHOPT_VSH */
 	if(ep->e_default && (pp = nv_getval(ep->e_default)))
 	{
 		n = strlen(pp);
@@ -833,11 +842,11 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 			ep->e_lbuf[n] = *pp++;
 		ep->e_default = 0;
 	}
-	if(ep->sh->st.trap[SH_KEYTRAP])
+	if(sh.st.trap[SH_KEYTRAP])
 	{
 		if(!savelex)
 			savelex = (Lex_t*)sh_malloc(sizeof(Lex_t));
-		memcpy(savelex, ep->sh->lex_context, sizeof(Lex_t));
+		memcpy(savelex, sh.lex_context, sizeof(Lex_t));
 	}
 }
 #endif /* SHOPT_ESH || SHOPT_VSH */
@@ -871,9 +880,8 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	register Edit_t *ep = (Edit_t*)context;
 	register int rv= -1;
 	register int delim = ((ep->e_raw&RAWMODE)?nttyparm.c_cc[VEOL]:'\n');
-	Shell_t *shp = ep->sh;
 	int mode = -1;
-	int (*waitevent)(int,long,int) = shp->gd->waitevent;
+	int (*waitevent)(int,long,int) = sh.waitevent;
 	/* sfpkrd must use select(2) to intercept SIGWINCH for ed_read */
 	if(ep->e_raw==ALTMODE)
 		mode = 2;
@@ -884,19 +892,18 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	}
 	sh_onstate(SH_TTYWAIT);
 	errno = EINTR;
-	shp->gd->waitevent = 0;
+	sh.waitevent = 0;
 	while(rv<0 && errno==EINTR)
 	{
-		if(shp->trapnote&(SH_SIGSET|SH_SIGTRAP))
+		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
 			goto done;
+#if SHOPT_ESH || SHOPT_VSH
 #if SHOPT_ESH && SHOPT_VSH
-		if(shp->winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
+		if(sh.winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
 #elif SHOPT_ESH
-		if(shp->winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
-#elif SHOPT_VSH
-		if(shp->winch && sh_isstate(SH_INTERACTIVE) && sh_isoption(SH_VI))
+		if(sh.winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
 #else
-		if(0)
+		if(sh.winch && sh_isstate(SH_INTERACTIVE) && sh_isoption(SH_VI))
 #endif
 		{
 			/* redraw the prompt after receiving SIGWINCH */
@@ -941,7 +948,8 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			emacs_redraw(ep->e_emacs);
 #endif
 		}
-		shp->winch = 0;
+#endif /* SHOPT_ESH || SHOPT_VSH */
+		sh.winch = 0;
 		/* an interrupt that should be ignored */
 		errno = 0;
 		if(!waitevent || (rv=(*waitevent)(fd,-1L,0))>=0)
@@ -976,7 +984,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			rv = read(fd,buff,size);
 			if(rv>=0 || errno!=EINTR)
 				break;
-			if(shp->trapnote&(SH_SIGSET|SH_SIGTRAP))
+			if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
 				goto done;
 			/* an interrupt that should be ignored */
 			fixtime();
@@ -985,7 +993,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	else if(rv>=0 && mode>0)
 		rv = read(fd,buff,rv>0?rv:1);
 done:
-	shp->gd->waitevent = waitevent;
+	sh.waitevent = waitevent;
 	sh_offstate(SH_TTYWAIT);
 	return(rv);
 }
@@ -1114,7 +1122,7 @@ int ed_getchar(register Edit_t *ep,int mode)
 				killpg(getpgrp(),SIGINT);
 				siglongjmp(ep->e_env, UINTR);
 			}
-			if(mode<=0 && ep->sh->st.trap[SH_KEYTRAP])
+			if(mode<=0 && sh.st.trap[SH_KEYTRAP])
 			{
 				ep->e_keytrap = 1;
 				n=1;
@@ -1559,7 +1567,7 @@ int	ed_genlen(register const genchar *str)
 
 int tcgetattr(int fd, struct termios *tt)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	register int r,i;
 	ep->e_tcgeta = 0;
 	ep->e_echoctl = (ECHOCTL!=0);
@@ -1581,7 +1589,7 @@ int tcgetattr(int fd, struct termios *tt)
 
 int tcsetattr(int fd,int mode,struct termios *tt)
 {
-	register Edit_t *ep = (Edit_t*)(shgd->ed_context);
+	register Edit_t *ep = (Edit_t*)(sh.ed_context);
 	register int r;
 	if(ep->e_tcgeta)
 	{
@@ -1626,7 +1634,6 @@ static int keytrap(Edit_t *ep,char *inbuff,register int insize, int bufsize, int
 {
 	register char *cp;
 	int savexit;
-	Shell_t *shp = ep->sh;
 #if SHOPT_MULTIBYTE
 	char buff[MAXLINE];
 	ed_external(ep->e_inbuf,cp=buff);
@@ -1646,9 +1653,9 @@ static int keytrap(Edit_t *ep,char *inbuff,register int insize, int bufsize, int
 	nv_putval(ED_COLNOD,(char*)&ep->e_col,NV_NOFREE|NV_INTEGER);
 	nv_putval(ED_TXTNOD,(char*)cp,NV_NOFREE);
 	nv_putval(ED_MODENOD,ep->e_vi_insert,NV_NOFREE);
-	savexit = shp->savexit;
-	sh_trap(shp->st.trap[SH_KEYTRAP],0);
-	shp->savexit = savexit;
+	savexit = sh.savexit;
+	sh_trap(sh.st.trap[SH_KEYTRAP],0);
+	sh.savexit = savexit;
 	if((cp = nv_getval(ED_CHRNOD)) == inbuff)
 		nv_unset(ED_CHRNOD);
 	else if(bufsize>0)
@@ -1709,7 +1716,6 @@ static int ed_histlencopy(const char *cp, char *dp)
 					*dp++ = *oldcp++;
 			}
 		}
-		
 	}
 	return(n);
 }
@@ -1723,7 +1729,7 @@ int ed_histgen(Edit_t *ep,const char *pattern)
 	size_t		m;
 	char		*cp, **argv=0, **av, **ar;
 	static		int maxmatch;
-	if(!(hp=ep->sh->gd->hist_ptr) && (!nv_getval(HISTFILE) || !sh_histinit(ep->sh)))
+	if(!(hp=sh.hist_ptr) && (!nv_getval(HISTFILE) || !sh_histinit()))
 		return(0);
 	if(ep->e_cur <=2)
 		maxmatch = 0;
@@ -1733,7 +1739,7 @@ int ed_histgen(Edit_t *ep,const char *pattern)
 		ep->hfirst = 0;
 		return(0);
 	}
-	hp = ep->sh->gd->hist_ptr;
+	hp = sh.hist_ptr;
 	if(*pattern=='#' && *++pattern=='#')
 		return(0);
 	cp = stakalloc(m=strlen(pattern)+6);
@@ -1881,10 +1887,9 @@ void	ed_histlist(Edit_t *ep,int n)
 
 #endif /* SHOPT_EDPREDICT */
 
-void	*ed_open(Shell_t *shp)
+void	*ed_open(void)
 {
 	Edit_t *ed = sh_newof(0,Edit_t,1,0);
-	ed->sh = shp;
 	strcpy(ed->e_macro,"_??");
 	return((void*)ed);
 }

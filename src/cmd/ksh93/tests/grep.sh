@@ -50,7 +50,7 @@ function grep
 	done
 	noprint=$vflag$cflag$lflag		# don't print if these flags are set
 	integer n=0 c=0 tc=0 nargs=$#		# initialize counters
-	for i in "$@"				# go thru the files
+	for i in "$@"				# go through the files
 	do	if	((nargs<=1))
 		then	fname=''
 		else	fname="$i":
@@ -85,11 +85,12 @@ and some lines contain bar only.
 However, many lines contain both foo and also bar.
 A line containing foobar should also be counted.
 There should be six lines with foo and bar.
-There are only two line with out foo but with bar.
+There are only two lines without foo but with bar.
 !
 
-if	(( $(grep -c 'foo*bar' $tmp/grep ) != 6))
-then	err_exit
+got=$(grep -c 'foo*bar' $tmp/grep 2>&1)
+if	[[ $got != 6 ]]
+then	err_exit "shell version of grep fails (expected 6, got $(printf %q "$got"))"
 fi
 
 exit $((Errors<125?Errors:125))

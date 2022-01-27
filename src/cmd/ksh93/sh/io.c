@@ -1132,18 +1132,6 @@ int	sh_redirect(struct ionod *iop, int flag)
 	{
 		iof=iop->iofile;
 		fn = (iof&IOUFD);
-		if(fn==1)
-		{
-			if(sh.subshell && sh.comsub && (flag==1 || flag==2))
-			{
-				if(sh.subshare)
-				{
-					errormsg(SH_DICT,ERROR_exit(1),"cannot redirect stdout inside shared-state comsub");
-					UNREACHABLE();
-				}
-				sh_subfork();
-			}
-		}
 		if(sh.redir0 && fn==0 && !(iof&IOMOV))
 			sh.redir0 = 2;
 		io_op[0] = '0'+(iof&IOUFD);
@@ -1959,21 +1947,22 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 	int	reedit=0, rsize;
 #if SHOPT_HISTEXPAND
 	char    *xp=0;
-#endif
-#   if SHOPT_ESH
+#endif /* SHOPT_HISTEXPAND */
+#if SHOPT_ESH
 	if(sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
 		readf = ed_emacsread;
 	else
-#   endif	/* SHOPT_ESH */
-#   if SHOPT_VSH
-#	if SHOPT_RAWONLY
-	    if(sh_isoption(SH_VI) || ((SHOPT_RAWONLY-0) && mbwide()))
-#	else
+#endif	/* SHOPT_ESH */
+#if SHOPT_VSH
+#   if SHOPT_RAWONLY
+	    /* In multibyte locales, vi handles the no-editor mode as well. TODO: is this actually still needed? */
+	    if(sh_isoption(SH_VI) || mbwide())
+#   else
 	    if(sh_isoption(SH_VI))
-#	endif
+#   endif
 		readf = ed_viread;
 	else
-#   endif	/* SHOPT_VSH */
+#endif	/* SHOPT_VSH */
 		readf = ed_read;
 	if(sh.trapnote)
 	{
@@ -2001,11 +1990,19 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 				xp = 0;
 			}
 			r = hist_expand(buff, &xp);
+			if(r == HIST_PRINT && xp)
+			{
+				/* !event:p -- print history expansion without executing */
+				sfputr(sfstderr, xp, -1);
+				continue;
+			}
 			if((r & (HIST_EVENT|HIST_PRINT)) && !(r & HIST_ERROR) && xp)
 			{
 				strlcpy(buff, xp, size);
 				rsize = strlen(buff);
+#if SHOPT_ESH || SHOPT_VSH
 				if(!sh_isoption(SH_HISTVERIFY) || readf==ed_read)
+#endif /* SHOPT_ESH || SHOPT_VSH */
 				{
 					sfputr(sfstderr, xp, -1);
 					break;
@@ -2013,18 +2010,20 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 				reedit = rsize - 1;
 				continue;
 			}
+#if SHOPT_ESH || SHOPT_VSH
 			if((r & HIST_ERROR) && sh_isoption(SH_HISTREEDIT))
 			{
 				reedit  = rsize - 1;
 				continue;
 			}
+#endif /* SHOPT_ESH || SHOPT_VSH */
 			if(r & (HIST_ERROR|HIST_PRINT))
 			{
 				*(char*)buff = '\n';
 				rsize = 1;
 			}
 		}
-#endif
+#endif /* SHOPT_HISTEXPAND */
 		break;
 	}
 	return(rsize);
@@ -2610,7 +2609,7 @@ Sfio_t *sh_iogetiop(int fd, int mode)
 	switch(fd)
 	{
 	    case SH_IOHISTFILE:
-		if(!sh_histinit((void*)&sh))
+		if(!sh_histinit())
 			return(iop);
 		fd = sffileno(sh.hist_ptr->histfp);
 		break;

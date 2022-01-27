@@ -44,7 +44,6 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 	register History_t *hp;
 	register char *arg;
 	register int flag,fdo;
-	register Shell_t *shp = context->shp;
 	Sfio_t *outfile;
 	char *fname;
 	int range[2], incr, index2, indx= -1;
@@ -56,12 +55,13 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 #endif
 	Histloc_t location;
 	NOT_USED(argc);
-	if(!sh_histinit((void*)shp))
+	NOT_USED(context);
+	if(!sh_histinit())
 	{
 		errormsg(SH_DICT,ERROR_system(1),e_histopen);
 		UNREACHABLE();
 	}
-	hp = shp->gd->hist_ptr;
+	hp = sh.hist_ptr;
 	while((flag = optget(argv,sh_opthist))) switch(flag)
 	{
 	    case 'e':
@@ -214,7 +214,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_system(1),e_create,fname);
 			UNREACHABLE();
 		}
-		outfile= sfnew(NIL(Sfio_t*),shp->outbuff,IOBSIZE,fdo,SF_WRITE);
+		outfile= sfnew(NIL(Sfio_t*),sh.outbuff,IOBSIZE,fdo,SF_WRITE);
 		arg = "\n";
 		nflag++;
 	}
@@ -224,9 +224,9 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			sfprintf(outfile,"%d\t",range[flag]);
 		else if(lflag)
 			sfputc(outfile,'\t');
-		hist_list(shp->gd->hist_ptr,outfile,hist_tell(shp->gd->hist_ptr,range[flag]),0,arg);
+		hist_list(sh.hist_ptr,outfile,hist_tell(sh.hist_ptr,range[flag]),0,arg);
 		if(lflag)
-			sh_sigcheck(shp);
+			sh_sigcheck();
 		if(range[flag] == range[1-flag])
 			break;
 		range[flag] += incr;
@@ -272,7 +272,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 		char buff[IOBSIZE+1];
 		Sfio_t *iop;
 		/* read in and run the command */
-		if(shp->hist_depth++ > HIST_RECURSE)
+		if(sh.hist_depth++ > HIST_RECURSE)
 		{
 			sh_close(fdo);
 			errormsg(SH_DICT,ERROR_exit(1),e_toodeep,"history");
@@ -280,7 +280,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 		}
 		iop = sfnew(NIL(Sfio_t*),buff,IOBSIZE,fdo,SF_READ);
 		sh_eval(iop,1); /* this will close fdo */
-		shp->hist_depth--;
+		sh.hist_depth--;
 	}
 	else
 	{
@@ -289,7 +289,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			sh_offstate(SH_VERBOSE);
 		sh_offstate(SH_HISTORY);
 	}
-	return(shp->exitval);
+	return(sh.exitval);
 }
 
 

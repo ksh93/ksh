@@ -160,7 +160,9 @@ int main(int argc, char *argv[])
 		sh_onoption(SH_VERBOSE);
 	if(!dflag)
 		sfwrite(out,header,sizeof(header));  /* write binary shcomp header */
+#if SHOPT_ESH || SHOPT_VSH
 	sh_offoption(SH_MULTILINE);
+#endif
 	sh.inlineno = 1;
 #if SHOPT_BRACEPAT
         sh_onoption(SH_BRACEEXPAND);
@@ -169,7 +171,7 @@ int main(int argc, char *argv[])
 	while(1)
 	{
 		stakset((char*)0,0);
-		if(t = (Shnode_t*)sh_parse(&sh,in,0))
+		if(t = (Shnode_t*)sh_parse(in,0))
 		{
 			if((t->tre.tretyp&(COMMSK|COMSCAN))==0 && t->com.comnamp && strcmp(nv_name((Namval_t*)t->com.comnamp),"alias")==0)
 				/* Create aliases found in the script to prevent syntax errors */
