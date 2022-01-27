@@ -32,19 +32,13 @@
 
 #include <ast.h>
 
-/* Make sure posix_spawn was detected correctly to avoid
-   creating difficult to debug race conditions. */
-#if !_lib_posix_spawn && _lib_posix_spawnattr_tcsetpgrp_np
-#error "The posix_spawn feature test is borked."
-#endif
-
 #if _lib_spawnveg
 
 NoN(spawnveg)
 
 #else
 
-#if _lib_posix_spawn
+#if _lib_posix_spawn > 1	/* reports underlying exec() errors */
 
 #include <spawn.h>
 #include <error.h>
@@ -90,15 +84,6 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 			goto bad;
 	}
 	posix_spawnattr_destroy(&attr);
-#if _lib_posix_spawn < 2
-	if (waitpid(pid, &err, WNOHANG|WNOWAIT) == pid && EXIT_STATUS(err) == 127)
-	{
-		while (waitpid(pid, NiL, 0) == -1 && errno == EINTR);
-		if (!access(path, X_OK))
-			errno = ENOEXEC;
-		pid = -1;
-	}
-#endif
 	return pid;
  bad:
 	posix_spawnattr_destroy(&attr);
