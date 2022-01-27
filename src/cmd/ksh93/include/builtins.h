@@ -49,19 +49,19 @@
 						/* float	 >typeset range	*/
 						/* functions	|		*/
 						/* integer	|		*/
-#define SYSNAMEREF	(shgd->bltin_cmds+15)	/* nameref      |		*/
-#define SYSLOCAL	(shgd->bltin_cmds+16)	/* local        |		*/
-#define SYSDECLARE	(shgd->bltin_cmds+17)	/* declare      |		*/
-#define SYSTYPESET_END	(shgd->bltin_cmds+17)	/*	       /		*/
+#define SYSNAMEREF	(sh.bltin_cmds+15)	/* nameref      |		*/
+#define SYSLOCAL	(sh.bltin_cmds+16)	/* local        |		*/
+#define SYSDECLARE	(sh.bltin_cmds+17)	/* declare      |		*/
+#define SYSTYPESET_END	(sh.bltin_cmds+17)	/*	       /		*/
 
-#define SYSTEST		(shgd->bltin_cmds+18)	/* test */
-#define SYSBRACKET	(shgd->bltin_cmds+19)	/* [ */
-#define SYSLET		(shgd->bltin_cmds+20)	/* let */
-#define SYSEXPORT	(shgd->bltin_cmds+21)	/* export */
-#define SYSDOT		(shgd->bltin_cmds+22)	/* . */
-#define SYSSOURCE	(shgd->bltin_cmds+23)	/* source */
-#define SYSRETURN	(shgd->bltin_cmds+24)	/* return */
-#define SYSENUM		(shgd->bltin_cmds+25)	/* enum */
+#define SYSTEST		(sh.bltin_cmds+18)	/* test */
+#define SYSBRACKET	(sh.bltin_cmds+19)	/* [ */
+#define SYSLET		(sh.bltin_cmds+20)	/* let */
+#define SYSEXPORT	(sh.bltin_cmds+21)	/* export */
+#define SYSDOT		(sh.bltin_cmds+22)	/* . */
+#define SYSSOURCE	(sh.bltin_cmds+23)	/* source */
+#define SYSRETURN	(sh.bltin_cmds+24)	/* return */
+#define SYSENUM		(sh.bltin_cmds+25)	/* enum */
 
 /* entry point for shell special builtins */
 
