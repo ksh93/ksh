@@ -740,4 +740,19 @@ foo+=("${bar[@]}")
 [[ $(typeset -p foo) == 'typeset -a foo=([1]=w [2]=x [3]=a [4]=b [5]=c)' ]] || err_exit 'Appending does not work if array contains empty indexes'
 
 # ======
+# Array expansion should work without crashing or
+# causing spurious syntax errors.
+exp='b c'
+got=$("$SHELL" -c '
+       typeset -a ar=([0]=a [1]=b [2]=c)
+       integer a=1 b=2
+       print ${ar[${a}..${b}]}
+' 2>&1)
+[[ $exp == $got ]] || err_exit $'Substituting array elements with ${ar[${a}..${b}]} doesn\'t work' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$("$SHELL" -c 'test -z ${foo[${bar}..${baz}]}' 2>&1)
+[[ -z $got ]] || err_exit $'Using ${foo[${bar}..${baz}]} when the variable ${foo} isn\'t set fails in error' \
+	"(got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

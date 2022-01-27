@@ -438,6 +438,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 	int		ansi_c = 0;
 	int		paren = 0;
 	int		ere = 0;
+	int		dotdot = 0;
 	int		brace = 0;
 	Sfio_t		*sp = mp->sp;
 	Stk_t		*stkp = sh.stk;
@@ -843,7 +844,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 			{
 				sfwrite(stkp,first,c);
 				sfputc(stkp,0);
-				mp->dotdot = stktell(stkp);
+				dotdot = stktell(stkp);
 				cp = first = fcseek(c+2);
 			}
 			break;
@@ -851,6 +852,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 	}
 done:
 	mp->sp = sp;
+	mp->dotdot = dotdot;
 	mp->quote = oldquote;
 }
 

@@ -8,6 +8,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - On Cygwin, ksh now executes scripts that do not have a #! path itself,
   like it does on other systems, instead of with /bin/sh.
 
+- Fixed a spurious syntax error which occurred when attempting to use array
+  subscript expansion with unset variables (i.e., ${foo[${bar}..${baz}]}).
+
 2022-01-24:
 
 - Fixed a crashing bug in history expansion that could occur when using the "&"
