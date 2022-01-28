@@ -56,8 +56,9 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 #if POSIX_SPAWN_SETSID
 	if (pgid == -1)
 		flags |= POSIX_SPAWN_SETSID;
+	else
 #endif
-	if (pgid > 0)
+	if (pgid)
 	{
 		flags |= POSIX_SPAWN_SETPGROUP;
 #if _lib_posix_spawnattr_tcsetpgrp_np
@@ -67,7 +68,7 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 	}
 	if (flags && (err = posix_spawnattr_setflags(&attr, flags)))
 		goto bad;
-	if (pgid > 0)
+	if (pgid && pgid != -1)
 	{
 		if (pgid <= 1)
 			pgid = 0;
