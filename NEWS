@@ -3,6 +3,12 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-01-28:
+
+- Fixed longstanding job control breakage that occurred on the interactive
+  shell when suspending (Ctrl+Z) an external command invoked by a dot script
+  or POSIX shell function, or via 'eval'.
+
 2022-01-26:
 
 - On Cygwin, ksh now executes scripts that do not have a #! path itself,

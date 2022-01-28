@@ -1590,16 +1590,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 			&& !sh.st.trap[SH_ERRTRAP]
 			&& ((struct checkpt*)sh.jmplist)->mode!=SH_JMPEVAL
 			&& (execflg2 || (execflg && sh.fn_depth==0 && !(pipejob && sh_isoption(SH_PIPEFAIL))));
-			if(sh_isstate(SH_PROFILE) || sh.dot_depth)
-			{
-				/* disable foreground job monitor */
-				if(!(type&FAMP))
-					sh_offstate(SH_MONITOR);
-#if SHOPT_DEVFD
-				else if(!(type&FINT))
-					sh_offstate(SH_MONITOR);
-#endif /* SHOPT_DEVFD */
-			}
 			if(no_fork)
 				job.parent=parent=0;
 			else

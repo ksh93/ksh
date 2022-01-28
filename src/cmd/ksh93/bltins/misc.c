@@ -209,10 +209,7 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 	}
 	argv += opt_info.index;
 	if(*argv && **argv)
-	{
-		sh_offstate(SH_MONITOR);
 		sh_eval(sh_sfeval(argv),0);
-	}
 	return(sh.exitval);
 }
 

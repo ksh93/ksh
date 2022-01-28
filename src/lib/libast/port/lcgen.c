@@ -128,7 +128,7 @@ static struct State_s
 #define MAP		4
 
 #define elementsof(x)	(sizeof(x)/sizeof(x[0]))
-#define newof(p,t,n,x)	((t*)malloc(sizeof(t)*(n)+(x)))
+#define newof(p,t,n,x)	((t*)calloc(1,sizeof(t)*(n)+(x)))
 
 static Link_t*
 enter(register Table_t* tab, register Link_t* v)
