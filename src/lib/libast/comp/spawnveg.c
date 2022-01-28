@@ -32,12 +32,6 @@
 
 #include <ast.h>
 
-#if _lib_spawnveg
-
-NoN(spawnveg)
-
-#else
-
 #if _lib_posix_spawn > 1	/* reports underlying exec() errors */
 
 #include <spawn.h>
@@ -294,8 +288,6 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 	return -1;
 #endif
 }
-
-#endif
 
 #endif
 
