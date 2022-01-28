@@ -228,10 +228,8 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 			{
 #if _lib_tcgetpgrp
 				tcsetpgrp(2, pgid);
-#else
-#ifdef TIOCSPGRP
+#elif defined(TIOCSPGRP)
 				ioctl(2, TIOCSPGRP, &pgid);
-#endif
 #endif
 			}
 		}
