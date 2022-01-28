@@ -224,14 +224,13 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 				pgid = getpid();
 			if (setpgid(0, pgid) < 0 && errno == EPERM)
 				setpgid(pgid, 0);
-			if (m)
-			{
 #if _lib_tcgetpgrp
+			if (m)
 				tcsetpgrp(2, pgid);
 #elif defined(TIOCSPGRP)
+			if (m)
 				ioctl(2, TIOCSPGRP, &pgid);
 #endif
-			}
 		}
 		execve(path, argv, envv);
 #if _real_vfork
