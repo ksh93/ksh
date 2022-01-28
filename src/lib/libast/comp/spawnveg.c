@@ -47,19 +47,26 @@ NoN(spawnveg)
 pid_t
 spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 {
-	int			err;
+	int			err, flags = 0;
 	pid_t			pid;
 	posix_spawnattr_t	attr;
 
 	if (err = posix_spawnattr_init(&attr))
 		goto nope;
+#if POSIX_SPAWN_SETSID
+	if (pgid == -1)
+		flags |= POSIX_SPAWN_SETSID;
+	else
+#endif
 	if (pgid)
+		flags |= POSIX_SPAWN_SETPGROUP;
+	if (flags && (err = posix_spawnattr_setflags(&attr, flags)))
+		goto bad;
+	if (pgid && pgid != -1)
 	{
 		if (pgid <= 1)
 			pgid = 0;
 		if (err = posix_spawnattr_setpgroup(&attr, pgid))
-			goto bad;
-		if (err = posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETPGROUP))
 			goto bad;
 	}
 	if (err = posix_spawn(&pid, path, NiL, &attr, argv, envv ? envv : environ))
@@ -68,15 +75,6 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid)
 			goto bad;
 	}
 	posix_spawnattr_destroy(&attr);
-#if _lib_posix_spawn < 2
-	if (waitpid(pid, &err, WNOHANG|WNOWAIT) == pid && EXIT_STATUS(err) == 127)
-	{
-		while (waitpid(pid, NiL, 0) == -1 && errno == EINTR);
-		if (!access(path, X_OK))
-			errno = ENOEXEC;
-		pid = -1;
-	}
-#endif
 	return pid;
  bad:
 	posix_spawnattr_destroy(&attr);

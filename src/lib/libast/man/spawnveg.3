@@ -68,7 +68,7 @@ are as in
 .L pgid
 controls the new process group and session:
 .TP
-.L <0
+.L -1
 The new process becomes a session leader.
 It is called in the child context.
 .TP
@@ -86,5 +86,12 @@ The
 .L spawnveg
 function cannot set the terminal process group.
 As a result, it is incompatible with job control when used with terminals.
+Additionally, if the
+.L POSIX_SPAWN_SETSID
+attribute is not supported, then
+.L spawnveg
+cannot make the new process a session leader when using the
+.I posix_spawn
+API.
 .SH "SEE ALSO"
-fork(2), exec(2), setpgid(2), setsid(2), spawnve(2)
+fork(2), posix_spawn(3), exec(2), setpgid(2), setsid(2), spawnve(2)
