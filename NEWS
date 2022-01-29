@@ -9,6 +9,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   shell when suspending (Ctrl+Z) an external command invoked by a dot script
   or POSIX shell function, or via 'eval'.
 
+- Fixed a memory leak that occurred when running a command that was found on
+  the PATH.
+
 2022-01-26:
 
 - On Cygwin, ksh now executes scripts that do not have a #! path itself,

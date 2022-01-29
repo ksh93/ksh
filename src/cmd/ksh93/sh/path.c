@@ -58,14 +58,21 @@ static int		checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,int);
 static void		checkdup(register Pathcomp_t*);
 static Pathcomp_t	*defpathinit(void);
 
-static const char	*defpath;	/* default path that finds standard utilities */
+static const char *std_path(void)
+{
+	static const char *defpath;		/* default path that finds standard utilities */
+	if(!defpath)
+	{
+		if(!(defpath = astconf("PATH",NIL(char*),NIL(char*))))
+			abort();
+		defpath = sh_strdup(defpath);   /* the value returned by astconf() is short-lived */
+	}
+	return(defpath);
+}
 
 static int ondefpath(const char *name)
 {
-	const char *cp;
-	if(!defpath)
-		defpathinit();
-	cp = defpath;
+	const char *cp = std_path();
 	if(cp)
 	{
 		const char *sp;
@@ -433,13 +440,7 @@ Pathcomp_t *path_nextcomp(register Pathcomp_t *pp, const char *name, Pathcomp_t 
 
 static Pathcomp_t* defpathinit(void)
 {
-	if(!defpath)
-	{
-		if(!(defpath = astconf("PATH",NIL(char*),NIL(char*))))
-			abort();
-		defpath = sh_strdup(defpath);	/* the value returned by astconf() is short-lived */
-	}
-	return(path_addpath((Pathcomp_t*)0,(defpath),PATH_PATH));
+	return(path_addpath((Pathcomp_t*)0,std_path(),PATH_PATH));
 }
 
 static void pathinit(void)
