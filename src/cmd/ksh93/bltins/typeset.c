@@ -1094,10 +1094,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	Stk_t	*stkp;
 	char *errmsg;
 #if SHOPT_DYNAMIC
-	void *library=0;
-	unsigned long ver;
 	int list = 0;
-	char path[1024];
 #endif
 	NOT_USED(argc);
 	memset(&tdata,0,sizeof(tdata));
@@ -1158,6 +1155,9 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #if SHOPT_DYNAMIC
 	if(arg)
 	{
+		unsigned long ver;
+		char path[PATH_MAX];
+		void *library;
 		if(!(library = dllplugin(SH_ID, arg, NiL, SH_PLUGIN_VERSION, &ver, RTLD_LAZY, path, sizeof(path))))
 		{
 			errormsg(SH_DICT,ERROR_exit(0),"%s: %s",arg,dllerror(0));
