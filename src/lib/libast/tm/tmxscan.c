@@ -173,7 +173,6 @@ scan(register const char* s, char** e, const char* format, char** f, Time_t t, l
 	register char*	p;
 	register Tm_t*	tm;
 	const char*	b;
-	char*		u;
 	char*		stack[4];
 	int		m;
 	int		hi;
@@ -184,6 +183,7 @@ scan(register const char* s, char** e, const char* format, char** f, Time_t t, l
 	Tm_zone_t*	zp;
 	Tm_t		ts;
 
+	char*		u = 0;
 	char**		sp = &stack[0];
 
 	while (isspace(*s))
@@ -397,7 +397,7 @@ scan(register const char* s, char** e, const char* format, char** f, Time_t t, l
 				s = b;
 				goto again;
 			case '&':
-				x = gen(tm, &set);
+				(void)gen(tm, &set);
 				x = tmxdate(s, e, t);
 				if (s == (const char*)*e)
 					goto next;

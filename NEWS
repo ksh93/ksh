@@ -858,7 +858,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   the parent environment was corrupted or the shell crashed.
   When a redirection was used in a DEBUG trap action, the trap was disabled.
   DEBUG traps were also incorrectly inherited by subshells and ksh functions.
-  All this was caused by a bug introduced in ksh 93t 2008-07-25.
+  All this was caused by a bug introduced in ksh 93t 2008-06-24.
 
 2021-01-22:
 
@@ -869,7 +869,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Fixed: executing a DEBUG trap in a command substitution had side effects
   on the exit status ($?) of non-trap commands.
-  This bug was introduced in ksh 93t 2008-11-04.
+  This bug was introduced in ksh 93t 2008-09-21.
 
 - The typeset builtin command now gives an informative error message if an
   incompatible combination of options is given.

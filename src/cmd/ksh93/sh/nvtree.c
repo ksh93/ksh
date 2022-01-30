@@ -744,7 +744,9 @@ static void outval(char *name, const char *vname, struct Walk *wp)
 	{
 		if(*name!='.')
 		{
+#if SHOPT_FIXEDARRAY
 			Namarr_t *ap;
+#endif
 			nv_attribute(np,wp->out,"typeset",'=');
 #if SHOPT_FIXEDARRAY
 			if((ap=nv_arrayptr(np)) && ap->fixed)

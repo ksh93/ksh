@@ -59,7 +59,9 @@ static char*	Version = "\n@(#)$Id: sfio (AT&T Labs - Research) 2009-09-15 $\0\n"
 #include		<signal.h>
 typedef void(*		Sfsignal_f)(int);
 #endif
+#ifdef SIGPIPE
 static int		_Sfsigp = 0; /* # of streams needing SIGPIPE protection */ 
+#endif
 
 /* done at exiting time */
 static void _sfcleanup(void)

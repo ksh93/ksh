@@ -70,7 +70,7 @@ const char e_restricted[]	= "%s: restricted";
 #if SHOPT_PFSH
 const char e_pfsh[]		= "%s: disabled in profile shell";
 #endif
-const char e_pexists[]		= "process already exists";
+const char e_copexists[]	= "coprocess is running; cannot create a new coprocess";
 const char e_exists[]		= "%s: file already exists";
 const char e_pipe[]		= "cannot create pipe";
 const char e_alarm[]		= "cannot set alarm";

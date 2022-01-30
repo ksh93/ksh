@@ -34,6 +34,8 @@ static void* dtmemory(Dt_t* 	dt,	/* dictionary			*/
 		      size_t	size,	/* size to obtain		*/
 		      Dtdisc_t* disc)	/* discipline			*/
 {
+	NOT_USED(dt);
+	NOT_USED(disc);
 	if(addr)
 	{	if(size == 0)
 		{	free(addr);

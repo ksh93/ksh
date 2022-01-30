@@ -430,11 +430,11 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 						nv_putsub(nq,cp,ARRAY_ADD|ARRAY_NOSCOPE);
 						if(array_assoc(ap))
 						{
-							Namval_t *mp = (Namval_t*)((*ap->fun)(nr,NIL(char*),NV_ACURRENT));
+							Namval_t *mr = (Namval_t*)((*ap->fun)(nr,NIL(char*),NV_ACURRENT));
 							Namval_t *mq = (Namval_t*)((*ap->fun)(nq,NIL(char*),NV_ACURRENT));
-							nv_clone(mp,mq,NV_MOVE);
+							nv_clone(mr,mq,NV_MOVE);
 							ap->nelem--;
-							nv_delete(mp,ap->table,0);
+							nv_delete(mr,ap->table,0);
 						}
 						else
 						{

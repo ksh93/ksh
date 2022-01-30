@@ -21,7 +21,7 @@
 /*
  * echo [arg...]
  * print [-enprsvC] [-f format] [-u fd] [string ...]
- * printf format [string ...]
+ * printf [-v var] format [string ...]
  *
  *   David Korn
  *   AT&T Labs

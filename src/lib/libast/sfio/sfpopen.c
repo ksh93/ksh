@@ -62,9 +62,8 @@ static void execute(const char* argcmd)
 			goto do_interp;
 
 	/* try to construct argv */
-	if(!(cmd = (char*)malloc(strlen(argcmd)+1)) )
+	if(!(cmd = strdup(argcmd)) )
 		goto do_interp;
-	strcpy(cmd,argcmd);
 	if(!(argv = (char**)malloc(16*sizeof(char*))) )
 		goto do_interp;
 	for(n = 0, s = cmd;; )
@@ -120,7 +119,7 @@ do_interp:
 	for(s = interp+strlen(interp)-1; s >= interp; --s)
 		if(*s == '/')
 			break;
-	execl(interp, s+1, "-c", argcmd, NIL(char*));
+	execl(interp, s+1, "-c", "--", argcmd, NIL(char*));
 	_exit(EXIT_NOTFOUND);
 }
 
@@ -135,7 +134,7 @@ Sfio_t*	sfpopen(Sfio_t*		f,
 	reg int		sflags;
 	reg long	flags;
 	reg int		pflags;
-	char*		av[4];
+	char*		av[5];
 
 	if (!command || !command[0] || !mode)
 		return 0;
@@ -155,8 +154,9 @@ Sfio_t*	sfpopen(Sfio_t*		f,
 		flags |= PROC_WRITE;
 	av[0] = "sh";
 	av[1] = "-c";
-	av[2] = (char*)command;
-	av[3] = 0;
+	av[2] = "--";
+	av[3] = (char*)command;
+	av[4] = 0;
 	if (!(proc = procopen(0, av, 0, 0, flags)))
 		return 0;
 	if (!(f = sfnew(f, NIL(void*), (size_t)SF_UNBOUND,

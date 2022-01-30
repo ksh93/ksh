@@ -1090,9 +1090,9 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	struct tdata tdata;
 	Shbltin_f addr;
 	Stk_t	*stkp;
-	void *library=0;
 	char *errmsg;
 #if SHOPT_DYNAMIC
+	void *library=0;
 	unsigned long ver;
 	int list = 0;
 	char path[1024];
@@ -1354,8 +1354,8 @@ static int unall(int argc, char **argv, register Dt_t *troot)
 			isfun = is_afunction(np);
 			if(troot==sh.var_tree)
 			{
-				Namarr_t *ap;
 #if SHOPT_FIXEDARRAY
+				Namarr_t *ap;
 				if((ap=nv_arrayptr(np)) && !ap->fixed  && name[strlen(name)-1]==']' && !nv_getsub(np))
 #else
 				if(nv_isarray(np) && name[strlen(name)-1]==']' && !nv_getsub(np))

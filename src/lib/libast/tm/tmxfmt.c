@@ -137,7 +137,6 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 	{
 		if ((c = *format++) == delimiter)
 		{
-			delimiter = 0;
 			if (sp <= &stack[0])
 				break;
 			sp--;

@@ -1351,10 +1351,10 @@ print(Sfio_t* sp, register Lookup_t* look, const char* name, const char* path, i
  * return read stream to native getconf utility
  */
 
+#ifdef _pth_getconf_a
 static Sfio_t*
 nativeconf(Proc_t** pp, const char* operand)
 {
-#ifdef _pth_getconf
 	Sfio_t*		sp;
 	char*		cmd[3];
 	long		ops[2];
@@ -1376,9 +1376,9 @@ nativeconf(Proc_t** pp, const char* operand)
 		}
 		procclose(*pp);
 	}
-#endif
 	return 0;
 }
+#endif
 
 /*
  * value==0 gets value for name

@@ -3396,7 +3396,7 @@ static void coproc_init(int pipes[])
 	int outfd;
 	if(sh.coutpipe>=0 && sh.cpid)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),e_pexists);
+		errormsg(SH_DICT,ERROR_exit(1),e_copexists);
 		UNREACHABLE();
 	}
 	sh.cpid = 0;

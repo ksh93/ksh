@@ -770,7 +770,9 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 	Pathcomp_t	*oldpp;
 	Namval_t	*np;
 	char		*cp;
+#if SHOPT_DYNAMIC
 	char		*bp;
+#endif
 	sh.path_err = ENOENT;
 	if(!pp && !(pp=path_get(Empty)))
 		return(0);
@@ -885,7 +887,10 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 		{
 			*cp = 0;
 			if(nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE))
+			{
+				sh_close(f);
 				f = -1;
+			}
 			*cp = '.';
 		}
 		if(isfun && f>=0)
@@ -895,7 +900,7 @@ Pathcomp_t *path_absolute(register const char *name, Pathcomp_t *pp, int flag)
 				nv_onattr(nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE),NV_LTOU|NV_FUNCTION);
 				funload(f,name);
 			}
-			close(f);
+			sh_close(f);
 			return(0);
 		}
 		else if(f>=0 && (oldpp->flags & PATH_STD_DIR))
