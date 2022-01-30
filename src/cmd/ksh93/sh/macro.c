@@ -2268,10 +2268,8 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			str[c] = 0;
 		else
 		{
-			ssize_t len = 1;
-
 			/* can't write past buffer so save last character */
-			c -= len;
+			c -= 1;
 			lastc = str[c];
 			str[c] = 0;
 		}

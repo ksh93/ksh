@@ -29,7 +29,7 @@
 #if defined(_sys_resource) && defined(_lib_getrlimit)
 #   include	<sys/resource.h>
 #   if !defined(RLIMIT_FSIZE) && defined(_sys_vlimit)
-	/* This handles hp/ux problem */ 
+	/* This handles HP/UX problem */
 #	include	<sys/vlimit.h>
 #	define RLIMIT_FSIZE	(LIM_FSIZE-1)
 #	define RLIMIT_DATA	(LIM_DATA-1)
