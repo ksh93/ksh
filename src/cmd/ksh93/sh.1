@@ -4922,11 +4922,14 @@ Move cursor forward one word.
 editor's idea of a word is a string of characters
 consisting of only letters, digits and underscores.)
 .TP 10
+.BI M-[1;3C
+(Alt-Right arrow) Same as \fBM-f\fR.
+.TP 10
 .BI M-[1;5C
 (Ctrl-Right arrow) Same as \fBM-f\fR.
 .TP 10
-.BI M-[1;3C
-(Alt-Right arrow) Same as \fBM-f\fR.
+.BI M-[1;9C
+(iTerm2 Alt-Right arrow) Same as \fBM-f\fR.
 .TP 10
 .BI ^B
 Move cursor backward (left) one character.
@@ -4937,11 +4940,14 @@ Move cursor backward (left) one character.
 .BI M-b
 Move cursor backward one word.
 .TP 10
+.BI M-[1;3D
+(Alt-Left arrow) Same as \fBM-b\fR.
+.TP 10
 .BI M-[1;5D
 (Ctrl-Left arrow) Same as \fBM-b\fR.
 .TP 10
-.BI M-[1;3D
-(Alt-Left arrow) Same as \fBM-b\fR.
+.BI M-[1;9D
+(iTerm2 Alt-Left arrow) Same as \fBM-b\fR.
 .TP 10
 .BI ^A
 Move cursor to start of line.
@@ -5494,17 +5500,23 @@ Same as \f30\fP.
 .B ^[[7~
 Same as \f30\fP.
 .TP 10
+.B ^[[1;3D
+(Alt-Left arrow) Same as \f3b\fP.
+.TP 10
 .B ^[[1;5D
 (Ctrl-Left arrow) Same as \f3b\fP.
 .TP 10
-.B ^[[1;3D
-(Alt-Left arrow) Same as \f3b\fP.
+.B ^[[1;9D
+(iTerm2 Alt-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;3C
+(Alt-Right arrow) Same as \f3w\fP.
 .TP 10
 .B ^[[1;5C
 (Ctrl-Right arrow) Same as \f3w\fP.
 .TP 10
-.B ^[[1;3C
-(Alt-Right arrow) Same as \f3w\fP.
+.B ^[[1;9C
+(iTerm2 Alt-Right arrow) Same as \f3w\fP.
 .TP 10
 .B ^[[2~
 (Insert) Same as \f3i\fP.
