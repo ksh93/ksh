@@ -1757,9 +1757,9 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed,'$');
 				return(1);
 			}
+			ed_ungetchar(vp->ed,bound);
 			/* FALLTHROUGH */
 		    default:
-			ed_ungetchar(vp->ed,bound);
 			ed_ungetchar(vp->ed,motion);
 			return(0);
 		}
