@@ -3,6 +3,25 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-01-31:
+
+- Improved keyboard support for the vi and emacs built-in line editors:
+  - Added support for Home key sequences ^[[1~ and ^[[7~ as well as End key
+    sequences ^[[4~ and ^[[8~.
+  - Added support for arrow key sequences ^[OA, ^[OB, ^[OC and ^[OD.
+  - Added support for the following keyboard shortcuts (if the platform
+    supports the expected escape sequence):
+    - Ctrl-Left Arrow:  Go back one word
+    - Alt-Left Arrow:   Go back one word        (Not supported on Haiku)
+    - Ctrl-Right Arrow: Go forward one word
+    - Alt-Right Arrow:  Go forward one word     (Not supported on Haiku)
+    - Ctrl-G:           Cancel reverse search
+    - Ctrl-Delete:      Delete next word        (Not supported on Haiku)
+  - Added a keybind for the Insert key, which differs in the emacs and vi
+    editing modes:
+    - In emacs mode, Insert escapes the next character.
+    - In vi mode, Insert will switch the editor to insert mode (like in vim).
+
 2022-01-28:
 
 - Fixed longstanding job control breakage that occurred on the interactive
@@ -46,25 +65,6 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Added bash-inspired --histreedit and --histverify options that modify history
   expansion (--histexpand), allowing editing on failure or before execution.
-
-- Added support for Home key sequences ^[[1~ and ^[[7~ as well as End key
-  sequences ^[[4~ and ^[[8~.
-
-- Added support for arrow key sequences ^[OA, ^[OB, ^[OC and ^[OD.
-
-- Added support for the following keyboard shortcuts (if the platform
-  supports the expected escape sequence):
-  - Ctrl-Left Arrow:  Go back one word
-  - Alt-Left Arrow:   Go back one word        (Not supported on Haiku)
-  - Ctrl-Right Arrow: Go forward one word
-  - Alt-Right Arrow:  Go forward one word     (Not supported on Haiku)
-  - Ctrl-G:           Cancel reverse search
-  - Ctrl-Delete:      Delete next word        (Not supported on Haiku)
-
-- Added a keybind for the Insert key, which differs in the emacs and vi
-  editing modes:
-  - In emacs mode, Insert escapes the next character.
-  - In vi mode, Insert will switch the editor to insert mode (like in vim).
 
 2022-01-04:
 
