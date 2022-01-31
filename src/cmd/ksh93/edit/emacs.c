@@ -1148,7 +1148,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				else if(i == '1' && ch == ';')
 				{
 					ch = ed_getchar(ep->ed,1);
-					if(ch == '3' || ch == '5') /* 3 == Alt, 5 == Ctrl */
+					if(ch == '3' || ch == '5' || ch == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm Alt */
 					{
 						switch(ed_getchar(ep->ed,1))
 						{

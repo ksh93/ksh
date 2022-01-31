@@ -1677,7 +1677,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 			else if(motion=='1' && bound==';')
 			{
 				bound = ed_getchar(vp->ed,-1);
-				if(bound == '3' || bound == '5') /* 3 == Alt, 5 == Ctrl */
+				if(bound == '3' || bound == '5' || bound == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm Alt */
 				{
 					switch(ed_getchar(vp->ed,-1))
 					{
