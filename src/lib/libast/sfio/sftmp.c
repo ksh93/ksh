@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -159,11 +159,10 @@ char** _sfgetpath(char* path)
 	}
 	if(n == 0 || !(dirs = (char**)malloc((n+1)*sizeof(char*))) )
 		return NIL(char**);
-	if(!(p = (char*)malloc(strlen(path)+1)) )
+	if(!(p = strdup(path)) )
 	{	free(dirs);
 		return NIL(char**);
 	}
-	strcpy(p,path);
 	for(n = 0;; ++n)
 	{	while(*p == ':')
 			++p;
@@ -218,12 +217,11 @@ static int _tmpfd(Sfio_t* f)
 			return -1;
 		if(!(file = getenv("TMPDIR")) )
 			file = TMPDFLT;
-		if(!(Tmppath[0] = (char*)malloc(strlen(file)+1)) )
+		if(!(Tmppath[0] = strdup(file)) )
 		{	free(Tmppath);
 			Tmppath = NIL(char**);
 			return -1;
 		}
-		strcpy(Tmppath[0],file);
 		Tmppath[1] = NIL(char*);
 	}
 

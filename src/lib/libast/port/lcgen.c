@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -128,7 +128,7 @@ static struct State_s
 #define MAP		4
 
 #define elementsof(x)	(sizeof(x)/sizeof(x[0]))
-#define newof(p,t,n,x)	((t*)malloc(sizeof(t)*(n)+(x)))
+#define newof(p,t,n,x)	((t*)calloc(1,sizeof(t)*(n)+(x)))
 
 static Link_t*
 enter(register Table_t* tab, register Link_t* v)

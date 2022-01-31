@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -714,7 +714,6 @@ update:
 			draw(ep,UPDATE);
 			continue;
 		}
-		
 	}
 	
 process:
@@ -879,7 +878,6 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				return(-1);
 			}
 		}
-		
 		
 		case 'b':	/* M-b == go backward one word */
 		case DELETE :
@@ -1429,9 +1427,7 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	
 	if ((lookahead)&&(option != FINAL))
 	{
-		
 		ep->scvalid = 0; /* Screen is out of date, APPEND will not work */
-		
 		return;
 	}
 	
@@ -1441,7 +1437,6 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	and the window has room for another character,
 	then output the character and adjust the screen only.
 	*****************************************/
-	
 
 	if(logcursor > drawbuff)
 		i = *(logcursor-1);	/* last character inserted */

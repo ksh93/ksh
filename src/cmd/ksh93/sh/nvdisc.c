@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -294,11 +294,11 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		block(bp,type);
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
-		sh_pushcontext(&sh, &checkpoint, 1);
+		sh_pushcontext(&checkpoint, 1);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
 			sh_fun(nq,np,(char**)0);
-		sh_popcontext(&sh, &checkpoint);
+		sh_popcontext(&checkpoint);
 		if(sh.topfd != checkpoint.topfd)
 			sh_iorestore(checkpoint.topfd, jmpval);
 		unblock(bp,type);
@@ -410,11 +410,11 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		}
 		block(bp,type);
 		block(bp, UNASSIGN);   /* make sure nv_setdisc doesn't invalidate 'vp' by freeing it */
-		sh_pushcontext(&sh, &checkpoint, 1);
+		sh_pushcontext(&checkpoint, 1);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
 			sh_fun(nq,np,(char**)0);
-		sh_popcontext(&sh, &checkpoint);
+		sh_popcontext(&checkpoint);
 		if(sh.topfd != checkpoint.topfd)
 			sh_iorestore(checkpoint.topfd, jmpval);
 		unblock(bp,UNASSIGN);
@@ -1326,7 +1326,6 @@ static Namfun_t *clone_table(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp
 	Dt_t		*oroot=tp->dict,*nroot=dtopen(&_Nvdisc,Dtoset);
 	if(!nroot)
 		return(0);
-	dtuserdata(nroot,dtuserdata(oroot,0,0),1);
 	memcpy((void*)ntp,(void*)fp,sizeof(struct table));
 	ntp->dict = nroot;
 	ntp->parent = nv_lastdict();

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -21,7 +21,7 @@
 /*
  * echo [arg...]
  * print [-enprsvC] [-f format] [-u fd] [string ...]
- * printf format [string ...]
+ * printf [-v var] format [string ...]
  *
  *   David Korn
  *   AT&T Labs

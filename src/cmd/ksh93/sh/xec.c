@@ -687,7 +687,7 @@ int sh_eval(register Sfio_t *iop, int mode)
 		mode ^= SH_TOPFUN;
 		sh.fn_reset = 1;
 	}
-	sh_pushcontext(&sh,buffp,SH_JMPEVAL);
+	sh_pushcontext(buffp,SH_JMPEVAL);
 	buffp->olist = pp->olist;
 	jmpval = sigsetjmp(buffp->buff,0);
 	while(jmpval==0)
@@ -718,7 +718,7 @@ int sh_eval(register Sfio_t *iop, int mode)
 		if(!(mode&SH_FUNEVAL))
 			break;
 	}
-	sh_popcontext(&sh,buffp);
+	sh_popcontext(buffp);
 	sh.binscript = binscript;
 	sh.comsub = comsub;
 	if(traceon)
@@ -1120,11 +1120,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						/* avoid exit on error from nv_setlist, e.g. read-only variable */
 						struct checkpt *chkp = (struct checkpt*)stakalloc(sizeof(struct checkpt));
-						sh_pushcontext(&sh,chkp,SH_JMPCMD);
+						sh_pushcontext(chkp,SH_JMPCMD);
 						jmpval = sigsetjmp(chkp->buff,1);
 						if(!jmpval)
 							nv_setlist(argp,flgs,tp);
-						sh_popcontext(&sh,chkp);
+						sh_popcontext(chkp);
 						if(jmpval)	/* error occurred */
 							goto setexit;
 					}
@@ -1272,7 +1272,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					}
 					if(execflg)
 						sh_onstate(SH_NOFORK);
-					sh_pushcontext(&sh,buffp,SH_JMPCMD);
+					sh_pushcontext(buffp,SH_JMPCMD);
 					jmpval = sigsetjmp(buffp->buff,1);
 					if(jmpval == 0)
 					{
@@ -1422,7 +1422,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 						sfpool(sfstdin,NIL(Sfio_t*),SF_WRITE);
 						sh.nextprompt = save_prompt;
 					}
-					sh_popcontext(&sh,buffp);
+					sh_popcontext(buffp);
 					errorpop(&buffp->err);
 					error_info.flags &= ~(ERROR_SILENT|ERROR_NOTIFY);
 					sh.bltinfun = 0;
@@ -1507,7 +1507,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(io)
 					{
 						indx = sh.topfd;
-						sh_pushcontext(&sh,buffp,SH_JMPIO);
+						sh_pushcontext(buffp,SH_JMPIO);
 						jmpval = sigsetjmp(buffp->buff,0);
 					}
 					if(jmpval == 0)
@@ -1537,7 +1537,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						if(buffp->olist)
 							free_list(buffp->olist);
-						sh_popcontext(&sh,buffp);
+						sh_popcontext(buffp);
 						sh_iorestore(indx,jmpval);
 					}
 					if(nq)
@@ -1586,16 +1586,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 			&& !sh.st.trap[SH_ERRTRAP]
 			&& ((struct checkpt*)sh.jmplist)->mode!=SH_JMPEVAL
 			&& (execflg2 || (execflg && sh.fn_depth==0 && !(pipejob && sh_isoption(SH_PIPEFAIL))));
-			if(sh_isstate(SH_PROFILE) || sh.dot_depth)
-			{
-				/* disable foreground job monitor */
-				if(!(type&FAMP))
-					sh_offstate(SH_MONITOR);
-#if SHOPT_DEVFD
-				else if(!(type&FINT))
-					sh_offstate(SH_MONITOR);
-#endif /* SHOPT_DEVFD */
-			}
 			if(no_fork)
 				job.parent=parent=0;
 			else
@@ -1715,7 +1705,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 #endif
 				if(no_fork)
 					sh_sigreset(2);
-				sh_pushcontext(&sh,buffp,SH_JMPEXIT);
+				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval)
 					goto done;
@@ -1826,7 +1816,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					free(save_sh_fifo);
 				}
 #endif
-				sh_popcontext(&sh,buffp);
+				sh_popcontext(buffp);
 				if(jmpval>SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
 				sh_done(0);
@@ -1843,7 +1833,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			int 	jmpval, waitall = 0;
 			int 	simple = (t->fork.forktre->tre.tretyp&COMMSK)==TCOM;
 			struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
-			sh_pushcontext(&sh,buffp,SH_JMPIO);
+			sh_pushcontext(buffp,SH_JMPIO);
 			if(type&FPIN)
 			{
 				was_interactive = sh_isstate(SH_INTERACTIVE);
@@ -1877,7 +1867,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 			else
 				sfsync(sh.outpool);
-			sh_popcontext(&sh,buffp);
+			sh_popcontext(buffp);
 			sh_iorestore(buffp->topfd,jmpval);
 			if(buffp->olist)
 				free_list(buffp->olist);
@@ -1927,11 +1917,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_reseed_rand((struct rand*)RANDNOD->nvfun);
 				sh.realsubshell++;
 				sh_sigreset(0);
-				sh_pushcontext(&sh,buffp,SH_JMPEXIT);
+				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval==0)
 					sh_exec(t->par.partre,flags);
-				sh_popcontext(&sh,buffp);
+				sh_popcontext(buffp);
 				if(jmpval > SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
 				if(sh.exitval > 256)
@@ -2115,7 +2105,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			void *optlist = sh.optlist;
 			sh.optlist = 0;
 			sh_tclear(t->for_.fortre);
-			sh_pushcontext(&sh,buffp,jmpval);
+			sh_pushcontext(buffp,jmpval);
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval)
 				goto endfor;
@@ -2211,7 +2201,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #if SHOPT_OPTIMIZE
 		endfor:
-			sh_popcontext(&sh,buffp);
+			sh_popcontext(buffp);
 			sh_tclear(t->for_.fortre);
 			sh_optclear(optlist);
 			if(jmpval)
@@ -2243,7 +2233,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			sh.optlist = 0;
 			sh_tclear(t->wh.whtre);
 			sh_tclear(t->wh.dotre);
-			sh_pushcontext(&sh,buffp,jmpval);
+			sh_pushcontext(buffp,jmpval);
 			jmpval = sigsetjmp(buffp->buff,0);
 			if(jmpval)
 				goto endwhile;
@@ -2284,7 +2274,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			}
 #if SHOPT_OPTIMIZE
 		endwhile:
-			sh_popcontext(&sh,buffp);
+			sh_popcontext(buffp);
 			sh_tclear(t->wh.whtre);
 			sh_tclear(t->wh.dotre);
 			sh_optclear(optlist);
@@ -2506,7 +2496,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				else
 				{
 					root = dtopen(&_Nvdisc,Dtoset);
-					dtuserdata(root,&sh,1);
 					nv_mount(np, (char*)0, root);
 					np->nvalue.cp = Empty;
 					dtview(root,sh.var_base);
@@ -2625,10 +2614,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(!sh.fpathdict)
 						sh.fpathdict = dtopen(&_Rpdisc,Dtobag);
 					if(sh.fpathdict)
-					{
-						dtuserdata(sh.fpathdict,&sh,1);
 						dtinsert(sh.fpathdict,rp);
-					}
 				}
 			}
 			else
@@ -3173,7 +3159,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	sh_sigreset(0);
 	argsav = sh_argnew(argv,&saveargfor);
-	sh_pushcontext(&sh,buffp,SH_JMPFUN);
+	sh_pushcontext(buffp,SH_JMPFUN);
 	errorpush(&buffp->err,0);
 	error_info.id = argv[0];
 	sh.st.var_local = sh.var_tree;
@@ -3227,7 +3213,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,argv[0]);
 		UNREACHABLE();
 	}
-	sh_popcontext(&sh,buffp);
+	sh_popcontext(buffp);
 	sh_unscope();
 	sh.namespace = nspace;
 	sh.var_tree = (Dt_t*)prevscope->save_tree;
@@ -3374,7 +3360,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 		int jmpval;
 		struct checkpt *buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
 		Shbltin_t *bp = &sh.bltindata;
-		sh_pushcontext(&sh,buffp,SH_JMPCMD);
+		sh_pushcontext(buffp,SH_JMPCMD);
 		jmpval = sigsetjmp(buffp->buff,1);
 		if(jmpval == 0)
 		{
@@ -3387,7 +3373,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 			sh.exitval = 0;
 			sh.exitval = ((Shbltin_f)funptr(np))(n,argv,bp);
 		}
-		sh_popcontext(&sh,buffp);
+		sh_popcontext(buffp);
 		if(jmpval>SH_JMPCMD)
 			siglongjmp(*sh.jmplist,jmpval);
 	}
@@ -3410,7 +3396,7 @@ static void coproc_init(int pipes[])
 	int outfd;
 	if(sh.coutpipe>=0 && sh.cpid)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),e_pexists);
+		errormsg(SH_DICT,ERROR_exit(1),e_copexists);
 		UNREACHABLE();
 	}
 	sh.cpid = 0;
@@ -3479,7 +3465,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 		otype = savetype;
 		savetype=0;
 	}
-	sh_pushcontext(&sh,buffp,SH_JMPCMD);
+	sh_pushcontext(buffp,SH_JMPCMD);
 	errorpush(&buffp->err,ERROR_SILENT);
 	job_lock();		/* errormsg will unlock */
 	jmpval = sigsetjmp(buffp->buff,0);
@@ -3597,7 +3583,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 	}
 	else
 		exitset();
-	sh_popcontext(&sh,buffp);
+	sh_popcontext(buffp);
 	if(buffp->olist)
 		free_list(buffp->olist);
 	if(sigwasset)

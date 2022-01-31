@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1990,6 +1990,12 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 				xp = 0;
 			}
 			r = hist_expand(buff, &xp);
+			if(r == HIST_PRINT && xp)
+			{
+				/* !event:p -- print history expansion without executing */
+				sfputr(sfstderr, xp, -1);
+				continue;
+			}
 			if((r & (HIST_EVENT|HIST_PRINT)) && !(r & HIST_ERROR) && xp)
 			{
 				strlcpy(buff, xp, size);

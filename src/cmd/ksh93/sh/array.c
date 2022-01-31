@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -94,7 +94,6 @@ static Namarr_t *array_scope(Namval_t *np, Namarr_t *ap, int flags)
 	if(is_associative(aq))
 	{
 		aq->scope = (void*)dtopen(&_Nvdisc,Dtoset);
-		dtuserdata(aq->scope,&sh,1);
 		dtview((Dt_t*)aq->scope,aq->table);
 		aq->table = (Dt_t*)aq->scope;
 		return(aq);
@@ -379,10 +378,7 @@ static Namval_t *array_find(Namval_t *np,Namarr_t *arp, int flag)
 		{
 			char *cp;
 			if(!ap->header.table)
-			{
 				ap->header.table = dtopen(&_Nvdisc,Dtoset);
-				dtuserdata(ap->header.table,&sh,1);
-			}
 			sfprintf(sh.strbuf,"%d",ap->cur);
 			cp = sfstruse(sh.strbuf);
 			mp = nv_search(cp, ap->header.table, NV_ADD);
@@ -415,10 +411,7 @@ int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, int flags)
 	Namarr_t	*ap = nv_arrayptr(np);
 	sh.last_table = 0;
 	if(!ap->table)
-	{
 		ap->table = dtopen(&_Nvdisc,Dtoset);
-		dtuserdata(ap->table,&sh,1);
-	}
 	if(nq = nv_search(sub, ap->table, NV_ADD))
 	{
 		char	*saved_value = NIL(char*);
@@ -481,7 +474,6 @@ static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp
 	if(ap->table)
 	{
 		ap->table = dtopen(&_Nvdisc,Dtoset);
-		dtuserdata(ap->table,&sh,1);
 		if(ap->scope && !(flags&NV_COMVAR))
 		{
 			ap->scope = ap->table;
@@ -827,7 +819,7 @@ static struct index_array *array_grow(Namval_t *np, register struct index_array 
 		errormsg(SH_DICT,ERROR_exit(1),e_subscript, fmtbase((long)maxi,10,0));
 		UNREACHABLE();
 	}
-	i = (newsize-1)*sizeof(union Value*)+newsize;
+	i = (newsize-1)*sizeof(union Value)+newsize;
 	ap = new_of(struct index_array,i);
 	memset((void*)ap,0,sizeof(*ap)+i);
 	ap->maxi = newsize;
@@ -863,7 +855,6 @@ static struct index_array *array_grow(Namval_t *np, register struct index_array 
 		if(nv_hasdisc(np,&array_disc) || (nv_type(np) && nv_isvtree(np)))
 		{
 			ap->header.table = dtopen(&_Nvdisc,Dtoset);
-			dtuserdata(ap->header.table,&sh,1);
 			mp = nv_search("0", ap->header.table,NV_ADD);
 			if(mp && nv_isnull(mp))
 			{
@@ -1248,10 +1239,7 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 					char *cp;
 					Namval_t *mp;
 					if(!ap->header.table)
-					{
 						ap->header.table = dtopen(&_Nvdisc,Dtoset);
-						dtuserdata(ap->header.table,&sh,1);
-					}
 					sfprintf(sh.strbuf,"%d",ap->cur);
 					cp = sfstruse(sh.strbuf);
 					mp = nv_search(cp, ap->header.table, NV_ADD);
@@ -1676,7 +1664,6 @@ void *nv_associative(register Namval_t *np,const char *sp,int mode)
 	    case NV_AINIT:
 		ap = (struct assoc_array*)sh_calloc(1,sizeof(struct assoc_array));
 		ap->header.table = dtopen(&_Nvdisc,Dtoset);
-		dtuserdata(ap->header.table,&sh,1);
 		ap->cur = 0;
 		ap->pos = 0;
 		ap->header.hdr.disc = &array_disc;

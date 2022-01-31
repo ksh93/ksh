@@ -23,12 +23,18 @@ The options have the following defaults and meanings:
     2DMATCH      on  Two-dimensional ${.sh.match} for ${var//pat/str}.
 
     ACCT         off Shell accounting.
+                     Noted by "L" in the version string when enabled.
+                     See README-AUDIT.md.
 
     ACCTFILE     off Enable per user accounting info.
+                     See README-AUDIT.md.
 
-    AUDIT	 off For auditing specific users
+    AUDIT        on  For auditing specific users.
+                     Noted by "A" in the version string when enabled.
+                     See README-AUDIT.md.
 
-    AUDITFILE	 "/etc/ksh_audit"
+    AUDITFILE    "/etc/ksh_audit"
+                     See README-AUDIT.md.
 
     BGX          on  Enables background job extensions. Noted by "J" in the
                      version string when enabled. (1) JOBMAX=n limits the
@@ -137,7 +143,7 @@ The options have the following defaults and meanings:
     SPAWN        on  Use posix_spawn(3) as combined fork/exec if job control
                      is not active. Improves speed.
 
-    STATS	 on  Add .sh.stats compound variable.
+    STATS        on  Add .sh.stats compound variable.
 
     SUID_EXEC    on  Execute /etc/suid_exec for setuid, setgid script.
 
@@ -152,7 +158,7 @@ The options have the following defaults and meanings:
                      exiting the shell when you don't enter a command.  If
                      non-zero, TMOUT can not be set larger than this value.
 
-    TYPEDEF	 on  Enable typeset type definitions.
+    TYPEDEF      on  Enable typeset type definitions.
 
     VSH          on  Compile with vi command line editing.  The original vi
                      line editor code was provided by Pat Sullivan at CB.
@@ -185,6 +191,10 @@ run the build scripts this way. For example:
 
 	bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" \
 		LDFLAGS="-L/opt/local/lib"
+
+Note: Do not add compiler flags that cause the compiler to emit terminal
+escape codes, such as -fdiagnostics-color=always; this will cause the build
+to fail as the probing code greps compiler diagnostics.
 
 For more information, run:
 

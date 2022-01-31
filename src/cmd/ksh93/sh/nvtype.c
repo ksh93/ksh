@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -430,11 +430,11 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 						nv_putsub(nq,cp,ARRAY_ADD|ARRAY_NOSCOPE);
 						if(array_assoc(ap))
 						{
-							Namval_t *mp = (Namval_t*)((*ap->fun)(nr,NIL(char*),NV_ACURRENT));
+							Namval_t *mr = (Namval_t*)((*ap->fun)(nr,NIL(char*),NV_ACURRENT));
 							Namval_t *mq = (Namval_t*)((*ap->fun)(nq,NIL(char*),NV_ACURRENT));
-							nv_clone(mp,mq,NV_MOVE);
+							nv_clone(mr,mq,NV_MOVE);
 							ap->nelem--;
-							nv_delete(mp,ap->table,0);
+							nv_delete(mr,ap->table,0);
 						}
 						else
 						{

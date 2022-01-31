@@ -42,7 +42,7 @@ Between 2017 and 2020 there was an ultimately unsuccessful
 [attempt](https://github.com/att/ast/tree/2020.0.1)
 to breathe new life into the KornShell by extensively refactoring the last
 unstable AST beta version (93v-).
-While that ksh2020 branch is now abandoned and still has many critical bugs,
+While that ksh2020 effort is now abandoned and still has many critical bugs,
 it also had a lot of bugs fixed. More importantly, the AST issue tracker
 now contains a lot of documentation on how to fix those bugs, which made
 it possible to backport many of them to the last stable release instead.
@@ -57,8 +57,10 @@ as well as many new fixes from the community
 [2](https://github.com/ksh93/ksh/issues?q=is%3Aissue+is%3Aclosed+label%3Abug)).
 Though there are many
 [bugs left to fix](https://github.com/ksh93/ksh/issues),
-we are confident at this point that 93u+m is already the least buggy branch
+we are confident at this point that 93u+m is already the least buggy version
 of ksh93 ever released.
+As of late 2021, distributions such as Debian and Slackware have begun
+to package it as their default version of ksh93.
 
 ## Build
 
@@ -91,6 +93,10 @@ to run the build scripts this way. For example:
 ```sh
 bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" LDFLAGS="-L/opt/local/lib"
 ```
+
+**Note:** Do not add compiler flags that cause the compiler to emit terminal
+escape codes, such as `-fdiagnostics-color=always`; this will cause the
+build to fail as the probing code greps compiler diagnostics.
 
 For more information run
 ```sh

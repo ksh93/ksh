@@ -240,9 +240,9 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 	#include <string.h>
 	/* if it uses fork() why bother? */
 	#undef fork
-	pid_t fork(void)) { NOTE("uses fork()"; return -1; }
-	pid_t _fork(void)) { NOTE("uses _fork()"; return -1; }
-	pid_t __fork(void)) { NOTE("uses __fork()"; return -1; }
+	pid_t fork(void) { NOTE("uses fork()"); return -1; }
+	pid_t _fork(void) { NOTE("uses _fork()"); return -1; }
+	pid_t __fork(void) { NOTE("uses __fork()"); return -1; }
 	int
 	main(argc, argv)
 	int	argc;

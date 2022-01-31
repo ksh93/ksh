@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -130,11 +130,11 @@ char *sh_mactry(register char *string)
 		int		savexit = sh.savexit;
 		struct checkpt	buff;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex = *lexp;
-		sh_pushcontext(&sh,&buff,SH_JMPSUB);
+		sh_pushcontext(&buff,SH_JMPSUB);
 		jmp_val = sigsetjmp(buff.buff,0);
 		if(jmp_val == 0)
 			string = sh_mactrim(string,0);
-		sh_popcontext(&sh,&buff);
+		sh_popcontext(&buff);
 		*lexp = savelex;
 		sh.savexit = savexit;
 		return(string);
@@ -438,6 +438,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 	int		ansi_c = 0;
 	int		paren = 0;
 	int		ere = 0;
+	int		dotdot = 0;
 	int		brace = 0;
 	Sfio_t		*sp = mp->sp;
 	Stk_t		*stkp = sh.stk;
@@ -843,7 +844,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 			{
 				sfwrite(stkp,first,c);
 				sfputc(stkp,0);
-				mp->dotdot = stktell(stkp);
+				dotdot = stktell(stkp);
 				cp = first = fcseek(c+2);
 			}
 			break;
@@ -851,6 +852,7 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 	}
 done:
 	mp->sp = sp;
+	mp->dotdot = dotdot;
 	mp->quote = oldquote;
 }
 
@@ -2158,14 +2160,14 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			int r=0;
 			struct checkpt buff;
 			struct ionod *ip=0;
-			sh_pushcontext(&sh,&buff,SH_JMPIO);
+			sh_pushcontext(&buff,SH_JMPIO);
 			if((ip=t->tre.treio) && 
 				((ip->iofile&IOLSEEK) || !(ip->iofile&IOUFD)) &&
 				(r=sigsetjmp(buff.buff,0))==0)
 				fd = sh_redirect(ip,3);
 			else
 				fd = sh_chkopen(e_devnull);
-			sh_popcontext(&sh,&buff);
+			sh_popcontext(&buff);
 			if(r==0 && ip && (ip->iofile&IOLSEEK))
 			{
 				if(sp=sh.sftable[fd])
@@ -2268,10 +2270,8 @@ static void comsubst(Mac_t *mp,register Shnode_t* t, int type)
 			str[c] = 0;
 		else
 		{
-			ssize_t len = 1;
-
 			/* can't write past buffer so save last character */
-			c -= len;
+			c -= 1;
 			lastc = str[c];
 			str[c] = 0;
 		}
@@ -2730,10 +2730,7 @@ static char *sh_tilde(register const char *string)
 skip:
 #endif /* _WINIX */
 	if(!logins_tree)
-	{
 		logins_tree = dtopen(&_Nvdisc,Dtbag);
-		dtuserdata(logins_tree,&sh,1);
-	}
 	if(np=nv_search(string,logins_tree,NV_ADD))
 	{
 		save = sh.subshell;

@@ -55,9 +55,11 @@ There is a preset initial active stack.
 To use an additional stack, it is necessary to create it and to
 install it as the active stack.
 A stack is created with the \f3stkopen\fP() function.
-A \fIflags\fP argument of \f3STK_SMALL\fP indicates that unused
-space on the stack should be freed whenever this stack ceases
-to be the active stack.
+The \fIflags\fP argument is an options bitmask.
+If the \f3STK_SMALL\fP bit is set, the stack allocates memory in
+small blocks, optimizing for memory usage at the expense of performance.
+If the \f3STK_NULL\fP bit is set, a stack overflow will cause stack
+operations to return a null pointer instead of throwing an error.
 If successful,
 \f3stkopen\fP() returns a pointer to a stack whose reference
 count is 1.

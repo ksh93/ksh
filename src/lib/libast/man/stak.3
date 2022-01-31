@@ -54,9 +54,9 @@ There is a preset initial active stack.
 To use an additional stack, it is necessary to create it and to
 install it as the active stack.
 A stack is created with the \f3stakcreate\fP() function.
-A \fIflags\fP argument of \f3STAK_SMALL\fP indicates that unused
-space on the stack should be freed whenever this stack ceases
-to be the active stack.
+The \fIflags\fP argument is an options bitmask.
+If the \f3STAK_SMALL\fP bit is set, the stack allocates memory in
+small blocks, optimizing for memory usage at the expense of performance.
 If successful,
 \f3stakcreate\fP() returns a pointer to a stack whose reference
 count is 1.

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -101,12 +101,20 @@ struct checkpt
 	Error_context_t err;
 };
 
-#define sh_pushcontext(shp,bp,n)( (bp)->mode=(n) , (bp)->olist=0,  \
-				  (bp)->topfd=(shp)->topfd, (bp)->prev=(shp)->jmplist, \
-				  (bp)->err = *ERROR_CONTEXT_BASE, \
-					(shp)->jmplist = (sigjmp_buf*)(&(bp)->buff) \
-				)
-#define sh_popcontext(shp,bp)	((shp)->jmplist=(bp)->prev, errorpop(&((bp)->err)))
+#define sh_pushcontext(bp,n) \
+( \
+	(bp)->mode = (n), \
+	(bp)->olist = 0, \
+	(bp)->topfd = sh.topfd, \
+	(bp)->prev = sh.jmplist, \
+	(bp)->err = *ERROR_CONTEXT_BASE, \
+	sh.jmplist = (sigjmp_buf*)(&(bp)->buff) \
+)
+#define sh_popcontext(bp) \
+( \
+	sh.jmplist = (bp)->prev, \
+	errorpop(&((bp)->err)) \
+)
 
 extern noreturn void 	sh_done(int);
 extern void 	sh_fault(int);

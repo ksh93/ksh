@@ -1925,6 +1925,16 @@ characters or a beginning or ending
 .BR : .
 .TP
 .B
+.SM histchars
+This variable can be used to specify up to three ASCII characters
+that control history expansion (see \f2History Expansion\fP below).
+The first (default: \f3!\fP) signals the start of a history expansion.
+The second (default: \f3^\fP) is used for short-form substitutions.
+The third (default: \f3#\fP), when found as the first character of a word,
+causes history expansion to be skipped for the rest of the words on the line.
+Multi-byte characters (e.g. UTF-8) are not supported and produce undefined results.
+.TP
+.B
 .SM HISTCMD
 Number of the current command in the history file.
 .TP
@@ -2301,6 +2311,7 @@ while
 .BR HOME ,
 .BR SHELL ,
 .BR ENV ,
+.BR histchars ,
 and
 .SM
 .B MAIL
@@ -4447,6 +4458,249 @@ replacing the first occurrence of the string
 .B bad
 with the string
 .BR good .
+.\"
+.\"
+.\" The History Expansion section was adapted from the History Substitution
+.\" section in the tcsh(1) manual page, and is licensed under the 3-clause
+.\" BSD license. See the COPYRIGHT file that comes with ksh for the license.
+.\"
+.SS History Expansion.
+History expansions introduce words from the history list into the input
+stream, making it easy to repeat commands, repeat arguments of a previous
+command in the current command, or fix typos in the previous command.
+The history expansion facility is an alternative to history control via the
+.B fc
+or
+.B hist
+built-in command.
+To enable it, turn on the \f3\-H\fP or \f3histexpand\fP option using the
+.B set
+command (see \f2Built-in Commands\fP below).
+.PP
+History expansions begin with the character \f3!\fP.
+They may begin anywhere in the input.
+The \f3!\fP may be preceded by a \f3\\\fP or enclosed in single quotes
+to prevent its special meaning.
+A \f3!\fP is also passed unchanged when it is followed by
+a space, tab, newline, \f3=\fP or \f3(\fP.
+History expansions do not nest.
+They are parsed separately before the shell parser is invoked,
+so they can override shell grammar rules.
+.PP
+By default, the expanded version of any line that contains a history expansion
+is printed, added to the history, and then immediately executed.
+History expansions are never added to the history themselves,
+regardless of whether they succeed or fail due to an error.
+Normally, this means that a command line with an erroneous history expansion
+is lost and needs to be retyped from scratch,
+but if the \f3histreedit\fP shell option is turned on
+and a line editor is active (see \f2In-line Editing Options\fP below),
+the erroneous line is pre-filled into the next prompt's input buffer for correcting.
+The \f3histverify\fP option causes the same to be done for successful
+history expansions, allowing verification and editing before execution.
+.PP
+A history expansion may have an \f2event specification\fP, which indicates
+the event from which words are to be taken, a \f2word designator\fP, which
+selects particular words from the chosen event, and/or a \f2modifier\fP,
+which manipulates the selected words.
+.PP
+An event specification can be:
+.PP
+.PD 0
+.RS +4
+.TP 8
+.I n
+A number, referring to a particular event.
+.TP 8
+\f3\-\fP\f2n\fP
+An offset, referring to the event \f2n\fP before the current event.
+.TP 8
+.B #
+The current event.
+.TP 8
+.B !
+The previous event (equivalent to \f3\-1\fP).
+.TP 8
+.I s
+The most recent event whose first word begins with the string \f2s\fP.
+.TP 8
+\f3?\fP\f2s\fP\f3?\fP
+The most recent event which contains the string \f2s\fP.
+The second \f3?\fP can be omitted if it is immediately followed by a newline.
+.RE
+.PD
+.PP
+For example, consider this bit of someone's history list as might be
+output by the \f3hist -l\fP command:
+.IP "" 4
+9        nroff \-man wumpus.man
+.br
+10       cp wumpus.man wumpus.man.old
+.br
+11       vi wumpus.man
+.br
+12       diff wumpus.man.old wumpus.man
+.PP
+The commands are shown with their event numbers.
+The current event, which we haven't typed in yet, is event 13.
+\f3!11\fP and \f3!\-2\fP refer to event 11.
+\f3!!\fP refers to the previous event, 12.  \f3!!\fP can be abbreviated \f3!\fP if it is
+followed by \f3:\fP (see below).
+\f3!n\fP refers to event 9, which begins with \f3n\fP.
+\f3!?old?\fP also refers to event 12, which contains \f3old\fP.
+Without word designators or modifiers, history references simply expand to the
+entire event, so we might type \f3!cp\fP to redo the copy command or \f3!!|more\fP
+if the \f3diff\fP output scrolled off the top of the screen.
+.PP
+To select words from an event,
+the event specification can be followed by a \f3:\fP
+and a designator for the desired words.
+The words of an input line are numbered from 0,
+the first word (usually the command name) being 0,
+the second word (first argument) being 1, etc.
+The basic word designators are:
+.PP
+.PD 0
+.RS +4
+.TP 8
+.B 0
+The first word (command name).
+.TP 8
+.I n
+The \f2n\fPth argument.
+.TP 8
+.B ^
+The first argument, equivalent to \f31\fP.
+.TP 8
+.B $
+The last argument.
+.TP 8
+.B %
+The word matched by the most recent \f3?\fP\f2s\fP\f3?\fP search.
+.TP 8
+\f3x\fP\f2\-\fP\f3y\fP
+A range of words.
+.TP 8
+\f3\-\fP\f2y\fP
+Equivalent to \f30\-\fP\f2y\fP.
+.TP 8
+.B *
+Equivalent to \f3^\-$\fP, but returns nothing if the event contains only 1 word.
+.TP 8
+\f2x\fP\f3*\fP
+Equivalent to \f2x\fP\f3\-$\fP.
+.TP 8
+\f2x\fP\f3\-\fP
+Equivalent to \f2x\fP\f3*\fP, but omitting the last word (\f3$\fP).
+.PD
+.RE
+.PP
+Selected words are inserted into the command line separated by single blanks.
+For example, the \f3diff\fP command in the previous example might have been
+typed as \f3diff !!:1.old !!:1\fP (using \f3:1\fP to select the first argument
+from the previous event) or \f3diff !\-2:2 !\-2:1\fP to select and swap the
+arguments from the \f3cp\fP command.  If we didn't care about the order of the
+\f3diff\fP, we might have said \f3diff !\-2:1\-2\fP or simply \f3diff !\-2:*\fP.
+The \f3cp\fP command might have been written \f3cp wumpus.man !#:1.old\fP,
+using \f3#\fP to refer to the current event.
+\f3!n:\- hurkle.man\fP would reuse the first two words from the \f3nroff\fP command
+to say \f3nroff \-man hurkle.man\fP.
+.PP
+The \f3:\fP separating the event specification from the word designator
+can be omitted if the argument selector begins with a
+\f3^\fP, \f3$\fP, \f3*\fP, \f3%\fP or \f3\-\fP.
+For example, our \f3diff\fP command might have been \f3diff !!^.old !!^\fP
+or, equivalently, \f3diff !!$.old !!$\fP.
+However, if \f3!!\fP is abbreviated \f3!\fP,
+an argument selector beginning with \f3\-\fP will be interpreted as an event specification.
+.PP
+The word(s) in a history reference can be edited
+by following them with one or more modifiers,
+each preceded by a colon (\f3:\fP):
+.PP
+.PD 0
+.RS +4
+.TP 8
+.B h
+Remove a trailing pathname component, leaving the head.
+.TP 8
+.B t
+Remove all leading pathname components, leaving the tail.
+.TP 8
+.B r
+Remove a filename extension \f3.xxx\fP, leaving the root name.
+.TP 8
+.B e
+Remove all but the extension.
+.TP 8
+\f3s/\fP\f2l\fP\f3/\fP\f2r\fP\f3/\fP
+Substitute \f2l\fP for \f2r\fP.
+\f2l\fP is simply a string like \f2r\fP,
+not a regular expression as in the eponymous \f2ed\fP(1) command.
+Any character may be used as the delimiter in place of \f3/\fP;
+a \f3\\\fP can be used to quote the delimiter inside \f2l\fP and \f2r\fP.
+The character \f3&\fP in the \f2r\fP is replaced by \f2l\fP;
+\f3\\\fP also quotes \f3&\fP.
+If \f2l\fP is empty,
+the \f2l\fP from the previous substitution is used,
+or if there is none,
+the \f2s\fP from the most recent \f3?\fP\f2s\fP\f3?\fP search.
+The trailing delimiter may be omitted if it is immediately followed by a newline.
+.TP 8
+.B &
+Repeat the previous substitution.
+.TP 8
+.B g
+Global substitution, for example \f3:gs/foo/bar/\fP or \f3:g&\fP.
+Applies the \f3s\fP or \f3&\fP modifier to the entire command line.
+.TP 8
+.B a
+Same as \f3g\fP.
+.TP 8
+.B p
+Print the new command line but do not execute it.
+.TP 8
+.B q
+Quote the expanded words, preventing further expansions.
+.TP 8
+.B x
+Like \f3q\fP, but break into words at blanks, tabs and newlines.
+.PD
+.RE
+.PP
+Modifiers are applied to only the first modifiable word
+(unless \f3g\fP or \f3a\fP is used).
+It is an error for no word to be modifiable.
+.PP
+For example, the \f3diff\fP command might have been written as
+\f3diff wumpus.man.old !#^:r\fP,
+using \f3:r\fP to remove \f3.old\fP
+from the first argument on the same line (\f3!#^\fP).
+We might follow \f3mail \-s "I forgot my password" rot\fP
+with \f3!:s/rot/root\fP to correct the spelling of \f3root\fP.
+.PP
+History expansions also occur when an input line begins with \f3^\fP.
+When it is the first character on an input line, it is an abbreviation of \f3!:s^\fP.
+Thus we might have said \f3^rot^root\fP to make the spelling correction in the previous example.
+This is the only history expansion that does not explicitly begin with \f3!\fP.
+.PP
+If a word on a command line begins with the history comment character \f3#\fP,
+history expansion is ignored for the rest of that line.
+This usually causes the shell parser
+(which uses the same character to signal a comment)
+to treat the rest of the line as a comment as well,
+but as history expansion is parsed separately from the shell grammar and with different rules,
+this cannot be guaranteed in all cases.
+If the history comment character is changed,
+the shell grammar comment character does not change along with it.
+.PP
+The three characters used to signal history expansion can be changed using the
+.B histchars
+shell variable; see \f2Shell Variables\fP above.
+.\"
+.\" End of BSD-licensed content adapted from the tcsh(1) manual page.
+.\"
+.\"
 .SS In-line Editing Options.
 Normally, each command line entered from a terminal device is simply
 typed followed by a \f3new-line\fP (`RETURN' or `LINE\ FEED').
@@ -7008,6 +7262,7 @@ but not if they result from a double-star pattern.
 .B \-H
 Enable \f3!\fP-style history expansion similar to
 .IR csh (1).
+See \f2History Expansion\fP above.
 .
 .TP 8
 .B \-a
@@ -7041,11 +7296,9 @@ This mode is disabled while reading profiles.
 Disables pathname expansion.
 .TP 8
 .B \-h
-Each command
-becomes a tracked alias when first encountered.
+Obsolete; no effect.
 .TP 8
 .B \-k
-(Obsolete).
 All variable assignment arguments are placed in the environment for a command,
 not just those that precede the command name.
 .TP 8
@@ -7131,13 +7384,13 @@ Same as
 .TP 8
 .B histreedit
 If a history expansion (see
-.BR histexpand )
+.BR \-H )
 fails, the command line is reloaded
 into the next prompt's edit buffer, allowing corrections.
 .TP 8
 .B histverify
 The results of a history expansion (see
-.BR histexpand )
+.BR \-H )
 are not immediately executed.
 Instead, the expanded line is loaded into the next prompt's edit buffer,
 allowing further changes.
