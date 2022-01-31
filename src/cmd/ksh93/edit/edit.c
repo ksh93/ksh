@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -587,7 +587,13 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	register int qlen = 1, qwid;
 	char inquote = 0;
 	ep->e_fd = fd;
-	ep->e_multiline = sh_isoption(SH_MULTILINE)!=0;
+#if SHOPT_ESH && SHOPT_VSH
+	ep->e_multiline = sh_isoption(SH_MULTILINE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS) || sh_isoption(SH_VI));
+#elif SHOPT_ESH
+	ep->e_multiline = sh_isoption(SH_MULTILINE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS));
+#else
+	ep->e_multiline = sh_isoption(SH_MULTILINE) && sh_isoption(SH_VI);
+#endif
 #ifdef SIGWINCH
 	if(!(sh.sigflag[SIGWINCH]&SH_SIGFAULT))
 	{
@@ -761,6 +767,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	if(pp-ep->e_prompt > qlen)
 		ep->e_plen = pp - ep->e_prompt - qlen;
 	*pp = 0;
+#if SHOPT_ESH || SHOPT_VSH
 	if(!ep->e_multiline && (ep->e_wsize -= ep->e_plen) < 7)
 	{
 		register int shift = 7-ep->e_wsize;
@@ -770,6 +777,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		ep->e_plen -= shift;
 		last[-ep->e_plen-2] = '\r';
 	}
+#endif /* SHOPT_ESH || SHOPT_VSH */
 	sfsync(sfstderr);
 	if(fd == sffileno(sfstderr))
 	{
@@ -789,6 +797,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		sfset(sfstderr,SF_READ,1);
 	sfwrite(sfstderr,ep->e_outptr,0);
 	ep->e_eol = reedit;
+#if SHOPT_ESH || SHOPT_VSH
 	if(ep->e_multiline)
 	{
 #if defined(_pth_tput) && (_tput_terminfo || _tput_termcap)
@@ -822,6 +831,7 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 #endif
 		ep->e_wsize = MAXLINE - (ep->e_plen+1);
 	}
+#endif /* SHOPT_ESH || SHOPT_VSH */
 	if(ep->e_default && (pp = nv_getval(ep->e_default)))
 	{
 		n = strlen(pp);
@@ -887,14 +897,13 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	{
 		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
 			goto done;
+#if SHOPT_ESH || SHOPT_VSH
 #if SHOPT_ESH && SHOPT_VSH
 		if(sh.winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_VI) || sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
 #elif SHOPT_ESH
 		if(sh.winch && sh_isstate(SH_INTERACTIVE) && (sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS)))
-#elif SHOPT_VSH
-		if(sh.winch && sh_isstate(SH_INTERACTIVE) && sh_isoption(SH_VI))
 #else
-		if(0)
+		if(sh.winch && sh_isstate(SH_INTERACTIVE) && sh_isoption(SH_VI))
 #endif
 		{
 			/* redraw the prompt after receiving SIGWINCH */
@@ -939,6 +948,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			emacs_redraw(ep->e_emacs);
 #endif
 		}
+#endif /* SHOPT_ESH || SHOPT_VSH */
 		sh.winch = 0;
 		/* an interrupt that should be ignored */
 		errno = 0;
@@ -1706,7 +1716,6 @@ static int ed_histlencopy(const char *cp, char *dp)
 					*dp++ = *oldcp++;
 			}
 		}
-		
 	}
 	return(n);
 }

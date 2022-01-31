@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -63,7 +63,7 @@ int sfresize(Sfio_t* f, Sfoff_t size)
 	{	if(f->next > f->data)
 			SFSYNC(f);
 #if _lib_ftruncate
-		if(ftruncate(f->file, (sfoff_t)size) < 0)
+		if(ftruncate(f->file, (off_t)size) < 0)
 			SFMTXRETURN(f, -1);
 #else
 		SFMTXRETURN(f, -1);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -50,13 +50,7 @@ __STDPP__directive pragma pp:hide getdents getdirentries
 
 #ifndef _DIRENT_H
 #if _hdr_dirent
-#if _typ_off64_t
-#undef	off_t
-#endif
 #include <dirent.h>
-#if _typ_off64_t
-#define off_t	off64_t
-#endif
 #else
 #if _hdr_ndir
 #include <ndir.h>
@@ -99,13 +93,7 @@ __STDPP__directive pragma pp:hide DIR closedir opendir readdir seekdir telldir
 
 #ifndef _DIRENT_H
 #if _hdr_dirent
-#if _typ_off64_t
-#undef	off_t
-#endif
 #include <dirent.h>
-#if _typ_off64_t
-#define off_t	off64_t
-#endif
 #else
 #if _hdr_direntry
 #include <direntry.h>

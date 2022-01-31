@@ -339,7 +339,7 @@ of ksh.
             the variable it references was the subject of a compound
 	    assignment has been fixed.
 	e.  A bug which in which assignment to array variables in
-	    a subshell could effect the parent shell has been
+	    a subshell could affect the parent shell has been
 	    fixed.
 	f.  read name?prompt was putting a 0 byte at the end of the
 	    prompt on standard error.

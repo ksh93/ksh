@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -153,7 +153,7 @@ struct Namval
 #define NV_RAW		NV_LJUST	/* used only with NV_BINARY */
 #define NV_HOST		(NV_RJUST|NV_LJUST)	/* map to host filename */
 
-/* The following attributes do not effect the value */
+/* The following attributes do not affect the value */
 #define NV_RDONLY	0x1	/* readonly bit */
 #define NV_EXPORT	0x2000	/* export bit */
 #define NV_TAGGED	0x8000	/* user define tag bit */

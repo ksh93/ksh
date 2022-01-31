@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -62,9 +62,8 @@ static void execute(const char* argcmd)
 			goto do_interp;
 
 	/* try to construct argv */
-	if(!(cmd = (char*)malloc(strlen(argcmd)+1)) )
+	if(!(cmd = strdup(argcmd)) )
 		goto do_interp;
-	strcpy(cmd,argcmd);
 	if(!(argv = (char**)malloc(16*sizeof(char*))) )
 		goto do_interp;
 	for(n = 0, s = cmd;; )
@@ -192,9 +191,9 @@ Sfio_t*	sfpopen(Sfio_t*		f,
 	/* make pipes */
 	parent[0] = parent[1] = child[0] = child[1] = -1;
 	if(sflags&SF_RDWR)
-	{	if(syspipef(parent) < 0)
+	{	if(pipe(parent) < 0)
 			goto error;
-		if((sflags&SF_RDWR) == SF_RDWR && syspipef(child) < 0)
+		if((sflags&SF_RDWR) == SF_RDWR && pipe(child) < 0)
 			goto error;
 	}
 
@@ -251,7 +250,7 @@ Sfio_t*	sfpopen(Sfio_t*		f,
 
 		/* must be careful so not to close something useful */
 		if((sflags&SF_RDWR) == SF_RDWR && pkeep == child[ckeep])
-			if((child[ckeep] = sysdupf(pkeep)) < 0)
+			if((child[ckeep] = dup(pkeep)) < 0)
 				_exit(EXIT_NOTFOUND);
 
 		if(sflags&SF_RDWR)

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -25,10 +25,6 @@
  *   AT&T Labs
  *
  */
-
-#ifdef __linux__
-#define _GNU_SOURCE	/* needed for O_PATH */
-#endif
 
 #include	"defs.h"
 #include	<ls.h>
@@ -416,7 +412,6 @@ Dt_t *sh_subtracktree(int create)
 		if(sp && !sp->strack)
 		{
 			sp->strack = dtopen(&_Nvdisc,Dtset);
-			dtuserdata(sp->strack,&sh,1);
 			dtview(sp->strack,sh.track_tree);
 			sh.track_tree = sp->strack;
 		}
@@ -436,7 +431,6 @@ Dt_t *sh_subfuntree(int create)
 		if(sp && !sp->sfun)
 		{
 			sp->sfun = dtopen(&_Nvdisc,Dtoset);
-			dtuserdata(sp->sfun,&sh,1);
 			dtview(sp->sfun,sh.fun_tree);
 			sh.fun_tree = sp->sfun;
 		}
@@ -506,7 +500,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	}
 	sh.curenv = ++subenv;
 	savst = sh.st;
-	sh_pushcontext(&sh,&checkpoint,SH_JMPSUB);
+	sh_pushcontext(&checkpoint,SH_JMPSUB);
 	sh.subshell++;		/* increase level of virtual subshells */
 	sh.realsubshell++;		/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
@@ -680,7 +674,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	if(sh.subshell==0)	/* we must have forked with sh_subfork(); this is the child process */
 	{
 		subshell_data = sp->prev;
-		sh_popcontext(&sh,&checkpoint);
+		sh_popcontext(&checkpoint);
 		if(jmpval==SH_JMPSCRIPT)
 			siglongjmp(*sh.jmplist,jmpval);
 		sh.exitval &= SH_EXITMASK;
@@ -885,7 +879,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	sh.subshell--;			/* decrease level of virtual subshells */
 	sh.realsubshell--;		/* decrease ${.sh.subshell} */
 	subshell_data = sp->prev;
-	sh_popcontext(&sh,&checkpoint);
+	sh_popcontext(&checkpoint);
 	if(!argsav  ||  argsav->dolrefcnt==argcnt)
 		sh_argfree(argsav,0);
 	if(sh.topfd != checkpoint.topfd)

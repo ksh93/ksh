@@ -52,8 +52,10 @@ const Shtable_t shtab_options[] =
 #endif
 #if SHOPT_HISTEXPAND
 	"histexpand",			SH_HISTEXPAND,
+#if SHOPT_ESH || SHOPT_VSH
 	"histreedit",			SH_HISTREEDIT,
 	"histverify",			SH_HISTVERIFY,
+#endif
 #endif
 	"ignoreeof",			SH_IGNOREEOF,
 	"interactive",			SH_INTERACTIVE|SH_COMMANDLINE,
@@ -63,7 +65,9 @@ const Shtable_t shtab_options[] =
 	"login_shell",			SH_LOGIN_SHELL|SH_COMMANDLINE,
 	"markdirs",			SH_MARKDIRS,
 	"monitor",			SH_MONITOR,
+#if SHOPT_ESH || SHOPT_VSH
 	"multiline",			SH_MULTILINE,
+#endif
 	"notify",			SH_NOTIFY,
 	"pipefail",			SH_PIPEFAIL,
 	"posix",			SH_POSIX,

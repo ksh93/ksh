@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -209,10 +209,7 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 	}
 	argv += opt_info.index;
 	if(*argv && **argv)
-	{
-		sh_offstate(SH_MONITOR);
 		sh_eval(sh_sfeval(argv),0);
-	}
 	return(sh.exitval);
 }
 
@@ -309,7 +306,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	sh.posix_fun = 0;
 	if(np || argv[1])
 		argsave = sh_argnew(argv,&saveargfor);
-	sh_pushcontext(&sh,&buff,SH_JMPDOT);
+	sh_pushcontext(&buff,SH_JMPDOT);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
@@ -324,7 +321,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			sh_eval(iop,sh_isstate(SH_PROFILE)?SH_FUNEVAL:0);
 		}
 	}
-	sh_popcontext(&sh,&buff);
+	sh_popcontext(&buff);
 	if(buffer)
 		free(buffer);
 	if(!np)

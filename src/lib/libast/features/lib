@@ -41,9 +41,6 @@ lib	strchr,strcoll,strdup,strerror,strcasecmp,strncasecmp,strrchr,strstr
 lib	strmode,strxfrm,strftime,swab,symlink,sysconf,sysinfo,syslog
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
-lib	creat64,fstat64,fstatvfs64,ftruncate64
-lib	lseek64,lstat64
-lib	open64,readdir64,stat64,statvfs64,truncate64
 
 lib,npt	strtod,strtold,strtol,strtoll,strtoul,strtoull stdlib.h
 lib,npt	sigflag signal.h
@@ -56,9 +53,6 @@ mem	inheritance.pgroup spawn.h
 
 sys	dir,filio,jioctl,localedef,ptem,resource
 sys	socket,stream,systeminfo,universe,vfork
-
-typ	ino64_t,off64_t
-typ	struct.dirent64 dirent.h
 
 tst	tst_errno note{ errno can be assigned }end link{
 	#define error		______error
@@ -246,9 +240,9 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 	#include <string.h>
 	/* if it uses fork() why bother? */
 	#undef fork
-	pid_t fork(void)) { NOTE("uses fork()"; return -1; }
-	pid_t _fork(void)) { NOTE("uses _fork()"; return -1; }
-	pid_t __fork(void)) { NOTE("uses __fork()"; return -1; }
+	pid_t fork(void) { NOTE("uses fork()"); return -1; }
+	pid_t _fork(void) { NOTE("uses _fork()"); return -1; }
+	pid_t __fork(void) { NOTE("uses __fork()"); return -1; }
 	int
 	main(argc, argv)
 	int	argc;
@@ -661,37 +655,4 @@ tst	- output{
 }end fail{
 	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
 	exit 1
-}end
-
-tst	no64 note{ largefile 64 broken }end execute{
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	int
-	main()
-	{
-		struct stat64	st;
-		return !stat64(".", &st) && st.st_mode && st.st_mtime;
-	}
-}end pass{
-	echo "/* can we at least agree that a successful return means success? */"
-	echo "#undef	_lib_creat64"
-	echo "#undef	_lib_fstat64"
-	echo "#undef	_lib_fstatvfs64"
-	echo "#undef	_lib_ftruncate64"
-	echo "#undef	_lib_lseek64"
-	echo "#undef	_lib_lstat64"
-	echo "#undef	_lib_mmap64"
-	echo "#undef	_lib_stat64"
-	echo "#undef	_lib_statvfs64"
-	echo "#undef	_lib_truncate64"
-}end
-
-tst	need64 note{ off64_t necessary }end nocompile{
-	#include <sys/types.h>
-	typedef off64_t __ast_off64_t__;
-	typedef off_t __ast_off_t__;
-	extern __ast_off64_t__ x;
-	__ast_off_t__ x;
-}end fail{
-	echo "#undef	_typ_off64_t"
 }end

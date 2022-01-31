@@ -389,7 +389,7 @@ procedure (the shell equivalent of an include file)
 is read all at once (unlike
 start up files
 which are read a command at
-a time) so that any aliases defined there will not effect any commands
+a time) so that any aliases defined there will not affect any commands
 within this script.
 Predefined aliases do not have this problem.
 .H 2 "Command Re-entry"
@@ -2680,7 +2680,7 @@ part of the language rather than user definable commands.
 The best examples of commands that fit this description
 are \f5break\fP and \f5continue\fP.
 Because they are not reserved words, they can be the
-result of shell expansions and are not effected by quoting. 
+result of shell expansions and are not affected by quoting.
 These commands have the following special properties:
 .BL
 .LI

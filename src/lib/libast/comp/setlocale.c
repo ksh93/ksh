@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -2412,7 +2412,7 @@ default_setlocale(int category, const char* locale)
 
 /*
  * workaround for Solaris and FreeBSD systems
- * the call free() with addresses that look like the came from the stack
+ * they call free() with addresses that look like they came from the stack
  */
 
 extern int	_vmkeep(int);

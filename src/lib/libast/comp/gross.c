@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -57,37 +57,6 @@ extern int stat(const char* path, struct stat* st)
 	return __xstat(_STAT_VER, path, st);
 #else
 	return _xstat(_STAT_VER, path, st);
-#endif
-}
-
-#endif
-
-#if _lcl_xstat64
-
-extern int fstat64(int fd, struct stat64* st)
-{
-#if _lib___fxstat64
-	return __fxstat64(_STAT_VER, fd, st);
-#else
-	return _fxstat64(_STAT_VER, fd, st);
-#endif
-}
-
-extern int lstat64(const char* path, struct stat64* st)
-{
-#if _lib___lxstat64
-	return __lxstat64(_STAT_VER, path, st);
-#else
-	return _lxstat64(_STAT_VER, path, st);
-#endif
-}
-
-extern int stat64(const char* path, struct stat64* st)
-{
-#if _lib___xstat64
-	return __xstat64(_STAT_VER, path, st);
-#else
-	return _xstat64(_STAT_VER, path, st);
 #endif
 }
 

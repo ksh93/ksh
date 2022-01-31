@@ -29,8 +29,8 @@
 #define defs_h_defined
 
 #include	<ast.h>
-#if !defined(AST_VERSION) || AST_VERSION < 20111111L
-#error libast version 20111111 or later is required
+#if !defined(AST_VERSION) || AST_VERSION < 20220101
+#error libast version 20220101 or later is required
 #endif
 #if !_lib_fork
 #error In 2021, ksh joined the 21st century and started requiring fork(2).
@@ -102,12 +102,6 @@ extern char*	sh_setenviron(const char*);
 #define SH_TYPE_LOGIN		010
 #define SH_TYPE_PROFILE		020
 #define SH_TYPE_RESTRICTED	040
-
-#if SHOPT_HISTEXPAND
-#   define SH_HISTEXPAND	43
-#   define SH_HISTREEDIT	61
-#   define SH_HISTVERIFY	62
-#endif
 
 #ifndef PIPE_BUF
 #   define PIPE_BUF		512

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1536,7 +1536,6 @@ static int comsub(register Lex_t *lp, int endtok)
 	{
 		if(endtok==LPAREN && lp->lexd.paren)
 		{
-
 			if(first==lp->lexd.first)
 			{
 				n = cp+1-(char*)fcseek(0);

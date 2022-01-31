@@ -306,7 +306,6 @@ There are three \fIstandard streams\fP:
 \f3sfstdout\fP for normal output (file descriptor \f31\fP), and
 \f3sfstderr\fP for error output (file descriptor \f32\fP).
 
-.PP
 .Ss "LIBRARIES"
 .PP
 This version of Sfio can be built and used for both single-threaded and multi-threaded
@@ -321,26 +320,20 @@ The libraries \fBlibstdio.a\fP and \fBlibstdio-mt.a\fP provide
 corresponding Stdio functions to link with code already compiled using the
 native header \fBstdio.h\fP instead of the one provided by Sfio.
 
-.PP
 .Ss "DATA TYPES"
-.PP
 .Ss "  void*"
 This defines a type suitable to exchange
 data of unknown types between application and Sfio.
 \f3void\fP is a macro defined as \f3void\fP for ANSI C and C++ and
 \f3char\fP for other compilation environments.
-.PP
 .Ss "  Sfoff_t"
 This defines an integral type suitable to address
 the largest possible file extent.
-.PP
 .Ss "  Sfulong_t, Sflong_t, Sfdouble_t"
 These are respectively the largest
 unsigned integer, signed integer, and floating point value types on the local platform.
-.PP
 .Ss "  Sfio_t"
 This defines the type of a stream handle.
-.PP
 .Ss "  Sfdisc_t"
 .Ss "  ssize_t (*Sfread_f)(Sfio_t*, void*, size_t, Sfdisc_t*)"
 .Ss "  ssize_t (*Sfwrite_f)(Sfio_t*, const void*, size_t, Sfdisc_t*)"
@@ -352,7 +345,6 @@ of discipline functions to replace the system calls:
 \f3read(2)\fP, \f3write(2)\fP and \f3lseek(2)\fP.
 \f3Sfexcept_f\fP is the type of an event-handling function.
 See \f3sfdisc()\fP for more details.
-.PP
 .Ss "  Sffmt_t"
 .Ss "  int (*Sffmtext_f)(Sfio_t*, void*, Sffmt_t*)"
 .Ss "  int (*Sffmtevent_f)(Sfio_t*, int, void*, Sffmt_t*)"
@@ -361,7 +353,6 @@ to extend scanning and printing in the \f3sfprint()/sfscanf()\fP
 functions. \f3Sffmtext_f\fP and \f3Sffmtevent_f\fP define the types
 of extension functions definable in \f3Sffmt_t\fP.
 See \f3Sffmt_t\fP below for more details.
-.PP
 .Ss "  SFIO_VERSION"
 This is a macro value of type \f3long int\fP that defines
 the current version number of Sfio. For example, the Sfio2000's
@@ -462,9 +453,7 @@ that certain operating systems (e.g., BSD Unix systems) may automatically
 resume interrupted system calls outside the scope of the library. On such systems,
 \f3SF_IOINTR\fP will be ineffective.
 
-.PP
 .Ss "OPENING/CLOSING STREAMS"
-.PP
 .Ss "  Sfio_t* sfnew(Sfio_t* f, void* buf, size_t size, int fd, int flags)"
 This function creates or renews a stream.
 It returns the new stream on success and \f3NULL\fP on error.
@@ -622,7 +611,6 @@ In either case, if the exception handler returns a negative value,
 If the exception handler returns a positive value,
 \f3sfclose()\fP will immediately return a zero value.
 
-.PP
 .Ss "THREAD SAFETY"
 .PP
 The libraries \f3libsfio.a\fP and \f3libstdio.a\fP (providing binary
@@ -648,7 +636,6 @@ the flag \f3SF_MTSAFE\fP or the option \f3m\fP were specified.
 Stdio-based code can also make a Stdio stream single-threaded by
 using the option \f3u\fP when opening a file.
 
-.PP
 .Ss "int sfmutex(Sfio_t* f, int type)"
 This function acquires or releases a mutex
 (mutually exclusive) lock on the stream \f3f\fP.
@@ -691,9 +678,7 @@ Resetting the lock count to \f30\fP and releasing the stream.
 As with \f3SFMTX_LOCK\fP,
 an attempt to clear the lock count without a previously successful lock
 may result in undefined behavior.
-.PP
 .Ss "INPUT/OUTPUT OPERATIONS"
-.PP
 .Ss "  int sfgetc(Sfio_t* f)"
 .Ss "  int sfputc(Sfio_t* f, int c)"
 These functions read/write a byte from/to stream \f3f\fP.
@@ -932,7 +917,6 @@ then rewrites the new data back to the stream:
 .fi
 
 .ne 6
-.PP
 .Ss "DATA FORMATTING"
 .PP
 Data printing and scanning are done via the
@@ -1411,7 +1395,6 @@ to be passed to the extension function \f3Sffmt_t.extf\fP.
 Parentheses shall be balanced.
 If \f3extfdata\fP is \f3*\fP, the string is obtained from the argument list.
 
-.PP
 .Ss "  int sfscanf(Sfio_t* f, const char* format, ...)"
 .Ss "  int sfsscanf(const char* s, const char* format, ...)"
 .Ss "  int sfvsscanf(const char* s, const char* format, va_list args)"
@@ -1568,9 +1551,7 @@ If \fIbase\fP is larger than \f336\fP, the set of digits is:
 .ft 1
 .fi
 
-.PP
 .Ss "BUFFERING, SYNCHRONIZATION"
-.PP
 .Ss "  void* sfsetbuf(Sfio_t* f, void* buf, size_t size)"
 This function changes the buffering scheme for the stream \f3f\fP.
 The stream will be synchronized before any buffer modification.
@@ -1698,7 +1679,6 @@ After purging, if \f3f\fP has flag \f3SF_IOCHECK\fP,
 the event \f3SF_PURGE\fP is raised.
 \f3sfpurge()\fP returns \f3-1\fP for failure and \f30\fP for success.
 
-.PP
 .Ss "DISCIPLINE, EVENT-HANDLING"
 .PP
 A file stream uses the system calls \f3read(2)\fP, \f3write(2)\fP
@@ -1891,9 +1871,7 @@ They should not be used in any other context.
 On error, all three functions return a negative value which should be \f3-1\fP
 or the value returned by the exception handler.
 
-.PP
 .Ss "STREAM CONTROL"
-.PP
 .Ss "  int sfresize(Sfio_t* f, Sfoff_t size)"
 This function resizes the stream \f3f\P so that its extent is \f3size\fP.
 If the stream corresponds to a file, the file size is set to \f3size\fP
@@ -1976,9 +1954,7 @@ If \f3f2\fP is \f3NULL\fP, a new stream is constructed as a duplicate of \f3f1\f
 \f3sfswap()\fP returns \f3f2\fP or \f3f1\fP duplicate on success and
 \f3NULL\fP on failure.
 
-.PP
 .Ss "STREAM INFORMATION"
-.PP
 .Ss "  Sfoff_t sfsize(Sfio_t* f)"
 This function returns the size of stream \f3f\fP (see \f3sfnew()\fP).
 If \f3f\fP is not seekable or if its size is not determinable,
@@ -2070,9 +2046,7 @@ opened for reading. Similarly, \f3sfwalk(walkf, data, SF_READ|SF_WRITE)\fP
 iterates over all streams opened for both reading and writing.
 Lastly, \f3sfwalk(walkf, data, 0)\fP iterates over all streams.
 
-.PP
 .Ss "MISCELLANEOUS FUNCTIONS"
-.PP
 .Ss "  ssize_t sfmaxr(ssize_t maxr, int set)"
 Certain records may require too much memory for storage, thus, causing
 undesirable side effects. Therefore, the library normally bounds the amount
@@ -2122,9 +2096,7 @@ If \f3action <= 0\fP, \f3sfpkrd()\fP will not peek and there are two cases.
 If \f3rsc < 0\fP, an attempt is made to read \f3n\fP bytes.
 If \f3rsc >= 0\fP, an attempt is made to read one record.
 
-.PP
 .Ss "FULL STRUCTURE SFIO_T"
-.PP
 .Ss "  #include <sfio_t.h>"
 Most applications based on Sfio only need to include
 the header file \f3sfio.h\fP which defines an abbreviated \f3Sfio_t\fP
@@ -2152,7 +2124,6 @@ This is composed from bit flags described above.
 \f3disc\fP:
 This defines a discipline if any.
 
-.PP
 .Ss "EXAMPLE DISCIPLINES"
 .PP
 The below functions create disciplines and insert them into
@@ -2201,7 +2172,6 @@ the Unix \fBcompress\fP program.
 This creates a discipline for reading/writing data compressed by zlib.
 The argument \f3opt\fP defines the optimization level.
 
-.PP
 .Ss "STDIO-COMPATIBILITY"
 .PP
 Sfio provides compatibility functions for all various popular
@@ -2301,7 +2271,6 @@ int    clearerr(FILE* stream);
 .ft 1
 .fi
 
-.PP
 .Ss "RECENT CHANGES"
 .PP
 A few exception types have been added. In particular, exception handlers shall

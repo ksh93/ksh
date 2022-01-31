@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -116,7 +116,7 @@ int sfclose(Sfio_t* f)
 	if(_Sfnotify)
 		(*_Sfnotify)(f, SF_CLOSING, (void*)((long)f->file));
 	if(f->file >= 0 && !(f->flags&SF_STRING))
-	{	while(sysclosef(f->file) < 0 )
+	{	while(close(f->file) < 0 )
 		{	if(errno == EINTR)
 				errno = 0;
 			else

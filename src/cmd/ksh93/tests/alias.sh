@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -274,6 +274,24 @@ ret=$?
 (unalias -a; alias $(integer -s i=0; for((i=0;i<256;i++)) do print -n "x "; done) 2> /dev/null)
 got=$?
 ((got > 0)) || err_exit "Exit status is zero when alias is passed 256 non-existent aliases"
+
+# ======
+# https://github.com/ksh93/ksh/pull/417
+
+alias foo=bar
+(unalias -a)
+alias foo >/dev/null 2>&1 || err_exit "unalias -a leaked out of subshell"
+unalias foo
+(alias foo=bar)
+alias foo >/dev/null 2>&1 && err_exit "alias leaked out of subshell"
+
+alias foo=bar
+exp="0 $$"
+got=$(alias foo='echo "$? $$"'; eval foo)
+[[ $got == "$exp" ]] || err_exit "alias in subshell: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(unalias foo; echo "$? $$")
+[[ $got == "$exp" ]] || err_exit "unalias in subshell: expected $(printf %q "$exp"), got $(printf %q "$got")"
+unalias foo
 
 # ======
 exit $((Errors<125?Errors:125))

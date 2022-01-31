@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -976,7 +976,6 @@ function _Dbg_print_frame
 
 function _Dbg_debug_trap_handler
 {
-
 	integer .level=.sh.level .max=.sh.level-1
 	while((--.level>=0))
 	do
@@ -1340,7 +1339,7 @@ cat >$tmp/crash_rhbz1117404.ksh <<-'EOF'
 EOF
 got=$( { "$SHELL" "$tmp/crash_rhbz1117404.ksh"; } 2>&1)
 ((!(e = $?))) || err_exit 'crash while handling function-local trap' \
-	"(got status $e$( ((e>128)) && print -n / && kill -l "$e"), $(printf %q "$got"))"
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

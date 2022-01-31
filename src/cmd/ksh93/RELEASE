@@ -2344,7 +2344,7 @@ ____
 	  the original trap wasn't executed.
 01-11-26 +The value for 0 is now preceded by the base number when
 	  the base was not 10.
-01-11-26 +The default has compilation mode has been changes so that
+01-11-26 +The default compilation mode has been changed so that
 	  viraw mode will always be on.
 
 01-10-31  --- Release ksh93m  ---
@@ -2573,7 +2573,7 @@ ____
 	  directory of the script has been fixed.
 01-02-19  A shell script did not always pick up tty mode changes
 	  made by external commands such as stty which could
-	  effect the behavior of read.
+	  affect the behavior of read.
 01-02-19  The -u, -g, and -k unary tests did not give the correct
 	  results when used with negation and this has been fixed.
 

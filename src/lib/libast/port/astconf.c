@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1351,10 +1351,10 @@ print(Sfio_t* sp, register Lookup_t* look, const char* name, const char* path, i
  * return read stream to native getconf utility
  */
 
+#ifdef _pth_getconf_a
 static Sfio_t*
 nativeconf(Proc_t** pp, const char* operand)
 {
-#ifdef _pth_getconf
 	Sfio_t*		sp;
 	char*		cmd[3];
 	long		ops[2];
@@ -1376,9 +1376,9 @@ nativeconf(Proc_t** pp, const char* operand)
 		}
 		procclose(*pp);
 	}
-#endif
 	return 0;
 }
+#endif
 
 /*
  * value==0 gets value for name

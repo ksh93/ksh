@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -62,7 +62,7 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 			for(w = n; w > 0; )
 			{	if((r = w) > sizeof(buf))
 					r = sizeof(buf);
-				if((r = sysreadf(f->file,buf,r)) <= 0)
+				if((r = read(f->file,buf,r)) <= 0)
 				{	n -= w;
 					break;
 				}

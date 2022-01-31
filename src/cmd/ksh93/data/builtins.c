@@ -180,9 +180,8 @@ const char sh_set[] =
 	"[++?contained in the pipeline following \b!\b.]"
 "}"
 "[f?Pathname expansion is disabled.]"
-"[h?Obsolete.  Causes each command whose name has the syntax of an "
-	"alias to become a tracked alias when it is first encountered.]"
-"[k?This is obsolete.  All arguments of the form \aname\a\b=\b\avalue\a "
+"[h?Obsolete; no effect.]"
+"[k?All arguments of the form \aname\a\b=\b\avalue\a "
 	"are removed and placed in the variable assignment list for "
 	"the command.  Ordinarily, variable assignments must precede "
 	"command arguments.]"
@@ -228,6 +227,7 @@ const char sh_set[] =
 #endif
 #if SHOPT_HISTEXPAND
 		"[+histexpand?Equivalent to \b-H\b.]"
+#if SHOPT_ESH || SHOPT_VSH
 		"[+histreedit?If a history expansion (see \bhistexpand\b) "
 			"fails, the command line is reloaded into the next "
 			"prompt's edit buffer, allowing corrections.]"
@@ -235,6 +235,7 @@ const char sh_set[] =
 			"\bhistexpand\b) are not immediately executed. "
 			"Instead, the expanded line is loaded into the next "
 			"prompt's edit buffer, allowing further changes.]"
+#endif
 #endif
 		"[+ignoreeof?Prevents an interactive shell from exiting on "
 			"reading an end-of-file.]"
@@ -244,8 +245,10 @@ const char sh_set[] =
 		"[+markdirs?A trailing \b/\b is appended to directories "
 			"resulting from pathname expansion.]"
 		"[+monitor?Equivalent to \b-m\b.]"
+#if SHOPT_ESH || SHOPT_VSH
 		"[+multiline?Use multiple lines when editing lines that are "
 			"longer than the window width.]"
+#endif
 		"[+noclobber?Equivalent to \b-C\b.]"
 		"[+noexec?Equivalent to \b-n\b.]"
 		"[+noglob?Equivalent to \b-f\b.]"
@@ -368,7 +371,7 @@ const char sh_optalias[] =
 	"field splitting and pathname expansion are not performed on "
 	"the arguments.  Tilde expansion occurs on \avalue\a.  An alias "
 	"definition only affects scripts read by the current shell "
-	"environment.  It does not effect scripts run by this shell.]"
+	"environment.  It does not affect scripts run by this shell.]"
 "[p?Causes the output to be in the form of alias commands that can be used "
 	"as input to the shell to recreate the current aliases.]"
 "[t?Each \aname\a is looked up as a command in \b$PATH\b and its path is "
@@ -1606,12 +1609,10 @@ const char sh_optksh[] =
 	"the first command line option(s).]"
 #endif
 "\fabc\f"
-"?"
-"[T?Enable implementation specific test code defined by mask.]#[mask]"
 "\n"
 "\n[arg ...]\n"
 "\n"
-"[+EXIT STATUS?If \b\f?\f\b executes command, the exit status will be that "
+"[+EXIT STATUS?If \b\f?\f\b executes commands, the exit status will be that "
         "of the last command executed.  Otherwise, it will be one of "
         "the following:]{"
         "[+0?The script or command line to be executed consists entirely "

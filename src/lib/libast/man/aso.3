@@ -105,25 +105,19 @@ int		asoloop(uintmax_t);
 int		asorelax(long);
 .Ce
 .SH DESCRIPTION
-.PP
 \fIASO\fP provides functions to perform atomic scalar operations.
 The functions on the type \f3uint32_t\fP will be fully described below.
 Other functions work similarly on their respective types.
 Some of the functions may be macros that call other functions.
 64 bit operations are provided if the compiler supports 64 bit integers and/or pointers.
-.PP
 .Ss "TYPES"
-.PP
 \f3uint8_t, uint16_t, uint32_t, uint64_t\fP
 
 These are \fIunsigned integer\fP types of different sizes in bits.
 For example, \f3uint32_t\fP represents the type of unsigned integer with 32 bits or 4 bytes.
-.PP
 .Ss "OPERATIONS"
-.PP
 .Ss "  uint32_t asoget32(uint32_t* from);"
 This function returns the value \f3*from\fP.
-.PP
 .Ss "  uint32_t asoinc32(uint32_t* dest);"
 .Ss "  uint32_t asodec32(uint32_t* dest);"
 These functions increment \f3*dest\fP by 1 and decrement \f3*dest\fP by 1 in an atomic step.
@@ -138,19 +132,16 @@ That should be contrasted with a situation where, instead of \f3asoinc32()\fP or
 only normal increment (++) or decrement (--) were used.
 Then, the end result could be either \f3*dest += 1\fP or \f3*dest += 2\fP,
 depending on states of the hardware cache and process scheduling.
-.PP
 .Ss "  uint32_t asocas32(uint32_t* dest, uint32_t tstval, uint32_t newval);"
 This function provides the atomic \fIcompare-and-swap\fP operation.
 If the current content of \f3dest\fP is equal to \f3tstval\fP then it will be set to \f3newval\fP.
 If multiple threads/processes are performing the same operations only one will succeed with a
 return value of \f3tstval\fP.
 The return value is the old value in \f3*dest\fP.
-.PP
 .Ss "  void asorelax(long nsec)"
 This function causes the calling process or thread to briefly pause
 for \f3nsec\fP nanoseconds.
 It is useful to implement tight loops that occasionally yield control.
-.PP
 .Ss "  int asolock(unsigned int* lock, unsigned int key, int type)"
 This function uses \f3key\fP, a non-zero unsigned integer, to lock or unlock the \f3lock\fP.
 It returns \f30\fP on success and \f3-1\fP on failure.
@@ -174,7 +165,6 @@ this call will always wait until the lock is open, then lock it with the given \
 Note that, if the lock is already locked with \f3key\fP, this call can result
 in a deadlock unless that lock can be opened by some other mechanism, e.g.,
 by a different process or thread.
-.PP
 .Ss "  int asoloop(uintmax_t iteration);"
 This function is used to implement spin locks that periodically relinquish the processor:
 .Cs
@@ -194,9 +184,7 @@ If \f3Asodisc_t.hung != 0\fP and \f3Asodisc_t.errorf != 0\fP and
 \f3iteration mod (2**Asodisc_t.hung-1)\fP is \f30\fP,
 then \f3Asodisc_t.errorf\fP is called with type \f3ASO_HUNG\fP
 and \f3-1\fP is returned.
-.PP
 .Ss "DISCIPLINE"
-.PP
 The Asodisc_t discipline structure allows the caller to modify default behavior.
 The \fIASO\fP discipline is global for all threads and forked children of the current process.
 The discipline is set and modified by the \f3asoinit()\fP function, described below.
@@ -220,12 +208,9 @@ If \f3errorf\fP != \f30\fP then it is called for each \fIASO\fP fatal library co
 \f32**Asometh_t.hung\fP times with no access to the loop resource.
 \f3mesg\fP is a 0-terminated message description.
 .Ss "  void ASODISC(Asodisc_t* disc, Asoerror_f errorf);"
-.PP
 This function-like-macro initializes \f3disc->version = ASO_VERSION\fP, \f3disc->errorf = errorf\fP,
 and the remaining \f3disc\fP members to \f30\fP.
-.PP
 .Ss "METHODS"
-.PP
 Several atomic locking methods are implemented for atomic operations
 not supported by \fIintrinsic\fP functions or assembly instructions.
 Methods are controlled by the \f3asometh()\fP and \f3asoinit()\fP
@@ -337,7 +322,6 @@ if (data || !(asometh(0, 0)->type & (ASO_INTRINSIC|ASO_THREAD))) {
 A multi-process application would check for \f3(ASO_INTRINSIC|ASO_PROCESS)\fP
 instead of \f3(ASO_INTRINSIC|ASO_THREAD)\fP.
 
-.PP
 .SH IMPLEMENTATION NOTES
 Unlike other \fIAST\fP library discipline/method functions which can instantiate
 multiple discipline/method handles within a single process, the \fIASO\fP
@@ -352,6 +336,5 @@ so the subsequent \fIASO\fP operation operates on the physical memory location
 instead of the cached location. There is currently no other portable mechanism
 that guarantees this other than the \f3ASO_INTRINSIC\fP method.
 
-.PP
 .SH AUTHOR
 Kiem-Phong Vo, Adam Edgar, and Glenn Fowler

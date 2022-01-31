@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -180,10 +180,7 @@ static Namval_t *scope(register Namval_t *np,register struct lval *lvalue,int as
 			{
 				ap = nv_arrayptr(np);
 				if(ap && !ap->table)
-				{
 					ap->table = dtopen(&_Nvdisc,Dtoset);
-					dtuserdata(ap->table,&sh,1);
-				}
 				if(ap && ap->table && (nq=nv_search(nv_getsub(np),ap->table,NV_ADD)))
 					nq->nvenv = (char*)np;
 				if(nq && nv_isnull(nq))

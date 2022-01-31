@@ -4,7 +4,10 @@ set stdio
 # Flag systems that omit necessary definitions such as u_long
 # when _POSIX_SOURCE or _XOPEN_SOURCE are defined.
 # Affected: Mac OS X, UnixWare.
+# Do not emit a #define for this test, just remember it for the next tests in this file.
+set nodefine
 typ u_long
+set define
 
 #
 # The following tests try to define the features/standards macros that expose
@@ -27,6 +30,7 @@ if tst note{ BSD (Free, Net, Open, et al) }end compile{
 		#include <unistd.h>
 		#include <sys/param.h>
 		#include <sys/types.h>
+		#include <wchar.h>
 		#if !(BSD && !__APPLE__ && !__MACH__ && !NeXTBSD)  /* NeXT/macOS falsely claim to be BSD */
 		#error not BSD
 		#endif
@@ -34,6 +38,12 @@ if tst note{ BSD (Free, Net, Open, et al) }end compile{
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		/* No standards or features macro here. On BSD, everything is enabled by default */
 	}
@@ -53,6 +63,7 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 		#include <unistd.h>
 		#include <sys/param.h>
 		#include <sys/types.h>
+		#include <wchar.h>
 		#if !(__APPLE__ && __MACH__ && NeXTBSD)
 		#error not Darwin
 		#endif
@@ -60,6 +71,12 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		#ifndef _DARWIN_C_SOURCE
 		#define _DARWIN_C_SOURCE 1
@@ -68,10 +85,9 @@ elif tst note{ Darwin (macOS, Mac OS X) }end compile{
 elif tst note{ SunOS (Solaris, illumos) }end compile{
 		/*
 		 * On Solaris/illumos, we ignore the standards(5) manual completely because
-		 * defining any standards macro, and even defining __EXTENSIONS__ (!), will
-		 * disable functionality that libast depends on. Instead we define unofficial
-		 * _XPG* macros that enable up-to-date declarations and functionality in
-		 * Solaris system headers.
+		 * defining recommended standards macros will disable functionality that
+		 * libast depends on. Instead we define unofficial _XPG* macros that enable
+		 * up-to-date declarations and functionality in Solaris system headers.
 		 * (Note that we must also avoid passing any -std=... flag to the compiler,
 		 * because that will disable essential functionality as well.)
 		 */
@@ -87,6 +103,7 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#include <limits.h>
 		#include <unistd.h>
 		#include <sys/types.h>
+		#include <wchar.h>
 		#if !__sun
 		#error dark
 		#endif
@@ -94,6 +111,12 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		#define _XPG7
 		#define	_XPG6
@@ -105,38 +128,42 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#define	_XOPEN_SOURCE	9900
 		#undef _POSIX_C_SOURCE
 	}
-elif tst note{ GNU (glibc) }end compile{
+elif tst note{ GNU (glibc) or Cygwin }end compile{
 		/*
-		 * GNU (GNU's Not UNIX). From feature_test_macros(7) on a GNU/Linux system with glibc 2.32:
-		 *
-		 *   _GNU_SOURCE
-		 *          Defining this macro (with any value) implicitly defines _ATFILE_SOURCE, _LARGE‐
-		 *          FILE64_SOURCE,    _ISOC99_SOURCE,    _XOPEN_SOURCE_EXTENDED,     _POSIX_SOURCE,
-		 *          _POSIX_C_SOURCE  with the value 200809L (200112L in glibc versions before 2.10;
-		 *          199506L in glibc versions before 2.5; 199309L in glibc versions before 2.1) and
-		 *          _XOPEN_SOURCE  with  the  value  700 (600 in glibc versions before 2.10; 500 in
-		 *          glibc versions before 2.2).  In addition, various GNU-specific  extensions  are
-		 *          also exposed.
-		 *          Since glibc 2.19, defining _GNU_SOURCE also has the effect of implicitly defin‐
-		 *          ing _DEFAULT_SOURCE.  In glibc versions before 2.20, defining _GNU_SOURCE  also
-		 *          had the effect of implicitly defining _BSD_SOURCE and _SVID_SOURCE.
+		 * On GNU (GNU's Not UNIX) and Cygwin, _GNU_SOURCE is the "everything and the kitchen sink" macro
+		 * (see feature_test_macros(7)), but on GNU we also need to define _FILE_OFFSET_BITS to get large
+		 * file support. We also need to define 'basename' to stop string.h from declaring a GNU-specific
+		 * version of basename(3) which on Cygwin has a declaration that conflicts with AST basename(3).
 		 */
 		#define _GNU_SOURCE	1
+		#define _FILE_OFFSET_BITS 64
+		#define basename	basename
 		#include <limits.h>
 		#include <unistd.h>
 		#include <features.h>
 		#include <sys/types.h>
-		#if !__GLIBC__
-		#error not GNU
+		#include <wchar.h>
+		#if !__GLIBC__ && !__CYGWIN__
+		#error not GNU or Cygwin
 		#endif
 		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long
 		u_long _test_dummy_;
 		#endif
+		int main(void)
+		{
+			wchar_t _wchar_dummy_ = 0;
+			wcwidth(_wchar_dummy_);
+			return 0;
+		}
 	}end {
 		#ifndef _GNU_SOURCE
 		#define _GNU_SOURCE	1
 		#endif
+		#ifndef _FILE_OFFSET_BITS
+		#define _FILE_OFFSET_BITS 64
+		#endif
+		#define basename	basename	/* avoid string.h defining this in conflict with AST basename(3) */
 	}
 elif tst note{ _ALL_SOURCE & _POSIX_SOURCE & _POSIX_C_SOURCE & _XOPEN_SOURCE & __EXTENSIONS__ works }end compile{
 		#define _ALL_SOURCE	1
@@ -305,20 +332,6 @@ else tst note{ __EXTENSIONS__ works }end compile{
 	}end {
 		#ifndef __EXTENSIONS__
 		#define __EXTENSIONS__	1
-		#endif
-	}
-endif
-
-if tst -D_ISOC99_SOURCE -lm note{ _ISOC99_SOURCE plays nice }end link{
-		#include <sys/types.h>
-		#include <sys/stat.h>
-		#include <stdlib.h>
-		#include <unistd.h>
-		#include <math.h>
-		int main() { return signbit(-0.0); }
-	}end {
-		#ifndef _ISOC99_SOURCE
-		#define _ISOC99_SOURCE	1
 		#endif
 	}
 endif

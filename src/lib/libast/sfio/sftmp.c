@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -85,7 +85,7 @@ static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 				(*_Sfnotify)(f,SF_CLOSING,f->file);
 			CLOSE(f->file);
 			f->file = -1;
-			while(sysremovef(ff->name) < 0 && errno == EINTR)
+			while(remove(ff->name) < 0 && errno == EINTR)
 				errno = 0;
 
 			free((void*)ff);
@@ -130,7 +130,7 @@ static int _rmtmp(Sfio_t* f, char* file)
 	(void)vtmtxunlock(_Sfmutex);
 
 #else	/* can remove now */
-	while(sysremovef(file) < 0 && errno == EINTR)
+	while(remove(file) < 0 && errno == EINTR)
 		errno = 0;
 #endif
 
@@ -159,11 +159,10 @@ char** _sfgetpath(char* path)
 	}
 	if(n == 0 || !(dirs = (char**)malloc((n+1)*sizeof(char*))) )
 		return NIL(char**);
-	if(!(p = (char*)malloc(strlen(path)+1)) )
+	if(!(p = strdup(path)) )
 	{	free(dirs);
 		return NIL(char**);
 	}
-	strcpy(p,path);
 	for(n = 0;; ++n)
 	{	while(*p == ':')
 			++p;
@@ -218,12 +217,11 @@ static int _tmpfd(Sfio_t* f)
 			return -1;
 		if(!(file = getenv("TMPDIR")) )
 			file = TMPDFLT;
-		if(!(Tmppath[0] = (char*)malloc(strlen(file)+1)) )
+		if(!(Tmppath[0] = strdup(file)) )
 		{	free(Tmppath);
 			Tmppath = NIL(char**);
 			return -1;
 		}
-		strcpy(Tmppath[0],file);
 		Tmppath[1] = NIL(char*);
 	}
 
@@ -253,22 +251,22 @@ static int _tmpfd(Sfio_t* f)
 		if(!file)
 			return -1;
 #if _has_oflags
-		if((fd = sysopenf(file,O_RDWR|O_CREAT|O_EXCL|O_TEMPORARY,SF_CREATMODE)) >= 0)
+		if((fd = open(file,O_RDWR|O_CREAT|O_EXCL|O_TEMPORARY,SF_CREATMODE)) >= 0)
 			break;
 #else
-		if((fd = sysopenf(file,O_RDONLY)) >= 0)
+		if((fd = open(file,O_RDONLY)) >= 0)
 		{	/* file already exists */
 			CLOSE(fd);
 			fd = -1;
 		}
-		else if((fd = syscreatf(file,SF_CREATMODE)) >= 0)
+		else if((fd = creat(file,SF_CREATMODE)) >= 0)
 		{	/* reopen for read and write */
 			CLOSE(fd);
-			if((fd = sysopenf(file,O_RDWR)) >= 0)
+			if((fd = open(file,O_RDWR)) >= 0)
 				break;
 
 			/* don't know what happened but must remove file */
-			while(sysremovef(file) < 0 && errno == EINTR)
+			while(remove(file) < 0 && errno == EINTR)
 				errno = 0;
 		}
 #endif /* _has_oflags */

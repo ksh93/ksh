@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -33,6 +33,7 @@
 #define _AST_STD_H		1
 #define _AST_STD_I		1
 
+#include <ast_standards.h>
 #include <ast_common.h>
 
 #if _BLD_ast
@@ -291,29 +292,6 @@ typedef struct
 extern _Ast_info_t	_ast_info;
 
 #undef	extern
-
-/* largefile hackery -- AST uses the large versions by default */
-
-#if _typ_ino64_t
-#undef	ino_t
-#define ino_t		ino64_t
-#endif
-#if _typ_off64_t
-#undef	off_t
-#define off_t		off64_t
-#endif
-#if !defined(ftruncate) && _lib_ftruncate64
-#define ftruncate	ftruncate64
-extern int		ftruncate64(int, off64_t);
-#endif
-#if !defined(lseek) && _lib_lseek64
-#define lseek		lseek64
-extern off64_t		lseek64(int, off64_t, int);
-#endif
-#if !defined(truncate) && _lib_truncate64
-#define truncate	truncate64
-extern int		truncate64(const char*, off64_t);
-#endif
 
 /* direct macro access for bsd crossover */
 

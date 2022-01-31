@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -27,6 +27,8 @@
  * generate POSIX fcntl.h
  */
 
+#include "FEATURE/standards"
+
 #include <sys/types.h>
 
 #include "FEATURE/lib"
@@ -35,17 +37,10 @@
 #define getpagesize	______getpagesize
 #define ioctl		______ioctl
 
-#if _typ_off64_t
-#undef	off_t
-#define	off_t		off_t
-#endif
-
 #if _hdr_fcntl
 #include <fcntl.h>
 #endif
-#if _hdr_unistd
 #include <unistd.h>
-#endif
 
 #include <sys/stat.h>
 
@@ -57,11 +52,6 @@
 
 #include "FEATURE/tty"
 
-#if _typ_off64_t
-#undef	off_t
-#define	off_t	off64_t
-#endif
-
 int
 main()
 {
@@ -69,18 +59,7 @@ main()
 	int		f_lck = 0;
 	int		o_local = 2;
 
-	printf("#if _typ_off64_t\n");
-	printf("#undef	off_t\n");
-	printf("#define	off_t		off_t\n");
-	printf("#endif\n");
-	printf("\n");
 	printf("#include <ast_fs.h>\n");
-	printf("\n");
-	printf("#if _typ_off64_t\n");
-	printf("#undef	off_t\n");
-	printf("#define	off_t		off_t\n");
-	printf("#endif\n");
-	printf("\n");
 	printf("#include <fcntl.h>\n");
 #if _hdr_mman
 	printf("#include <mman.h>\n");
@@ -334,29 +313,6 @@ main()
 #endif
 	printf("\n");
 	printf("#include <ast_fs.h>\n");
-	printf("#if _typ_off64_t\n");
-	printf("#undef	off_t\n");
-	printf("#define	off_t		off64_t\n");
-	printf("#endif\n");
-	printf("#if _lib_fstat64\n");
-	printf("#define fstat		fstat64\n");
-	printf("#endif\n");
-	printf("#if _lib_lstat64\n");
-	printf("#define lstat		lstat64\n");
-	printf("#endif\n");
-	printf("#if _lib_stat64\n");
-	printf("#define stat		stat64\n");
-	printf("#endif\n");
-	printf("#if _lib_creat64\n");
-	printf("#define creat		creat64\n");
-	printf("#endif\n");
-	printf("#if _lib_mmap64\n");
-	printf("#define mmap		mmap64\n");
-	printf("#endif\n");
-	printf("#if _lib_open64\n");
-	printf("#undef	open\n");
-	printf("#define open		open64\n");
-	printf("#endif\n");
 
 	return 0;
 }

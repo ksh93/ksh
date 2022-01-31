@@ -6,8 +6,8 @@
 #
 
 SHOPT 2DMATCH=1				# two dimensional ${.sh.match} for ${var//pat/str}
-SHOPT ACCT=				# accounting
-SHOPT ACCTFILE=				# per-user accounting info
+SHOPT ACCT=0				# accounting
+SHOPT ACCTFILE=0			# per-user accounting info
 SHOPT AUDIT=1				# enable auditing per SHOPT_AUDITFILE
 SHOPT AUDITFILE='\"/etc/ksh_audit\"'	# auditing file
 SHOPT BGX=1				# one SIGCHLD trap per completed job

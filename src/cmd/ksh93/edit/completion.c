@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -326,7 +326,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		sh_onoption(SH_MARKDIRS);
 	{
 		register char	**com;
-		char		*cp=begin, *left=0, *saveout=".";
+		char		*cp=begin, *left=0, *saveout=(char*)e_dot;
 		int	 	nocase=0,narg,cmd_completion=0;
 		register 	int size='x';
 		while(cp>outbuff && ((size=cp[-1])==' ' || size=='\t'))

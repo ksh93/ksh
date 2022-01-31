@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -174,7 +174,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 				/* preset aliases for interactive non-POSIX ksh */
 				dtclose(sh.alias_tree);
 				sh.alias_tree = sh_inittree(shtab_aliases);
-				dtuserdata(sh.alias_tree,&sh,1);
 			}
 		}
 #if SHOPT_REMOTE
@@ -365,7 +364,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 	int maxtry=IOMAXTRY, tdone=0, execflags;
 	int states,jmpval;
 	struct checkpt buff;
-	sh_pushcontext(&sh,&buff,SH_JMPERREXIT);
+	sh_pushcontext(&buff,SH_JMPERREXIT);
 	/* open input stream */
 	nv_putval(SH_PATHNAMENOD, sh.st.filename, NV_NOFREE);
 	if(!iop)
@@ -600,7 +599,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 		}
 	}
 done:
-	sh_popcontext(&sh,&buff);
+	sh_popcontext(&buff);
 	if(sh_isstate(SH_INTERACTIVE))
 	{
 		if(isatty(0) && !sh_isoption(SH_CFLAG))

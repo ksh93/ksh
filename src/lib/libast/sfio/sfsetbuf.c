@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -51,8 +51,8 @@ struct stat
 {	int	st_mode;
 	int	st_size;
 };
-#undef sysfstatf
-#define sysfstatf(fd,st)	(-1)
+#undef fstat
+#define fstat(fd,st)	(-1)
 #endif /*_sys_stat*/
 
 #if _PACKAGE_ast && !defined(SFSETLINEMODE)
@@ -107,7 +107,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 	int		sf_malloc, oflags, init, okmmap, local;
 	ssize_t		bufsize, blksz;
 	Sfdisc_t*	disc;
-	sfstat_t	st;
+	struct stat	st;
 	uchar*		obuf = NIL(uchar*);
 	ssize_t		osize = 0;
 	SFMTXDECL(f);
@@ -227,7 +227,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 		}
 
 		/* get file descriptor status */
-		if(sysfstatf((int)f->file,&st) < 0)
+		if(fstat((int)f->file,&st) < 0)
 			f->here = -1;
 		else
 		{
@@ -243,7 +243,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 
 #if O_TEXT /* no memory mapping with O_TEXT because read()/write() alter data stream */
 			if(okmmap && f->here >= 0 &&
-			   (sysfcntlf((int)f->file,F_GETFL,0) & O_TEXT) )
+			   (fcntl((int)f->file,F_GETFL,0) & O_TEXT) )
 				okmmap = 0;
 #endif
 		}
@@ -291,7 +291,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 						dev = (int)st.st_dev;	
 						ino = (int)st.st_ino;	
 						if(!null_checked)
-						{	if(sysstatf(DEVNULL,&st) < 0)
+						{	if(stat(DEVNULL,&st) < 0)
 								null_checked = -1;
 							else
 							{	null_checked = 1;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -160,7 +160,9 @@ int main(int argc, char *argv[])
 		sh_onoption(SH_VERBOSE);
 	if(!dflag)
 		sfwrite(out,header,sizeof(header));  /* write binary shcomp header */
+#if SHOPT_ESH || SHOPT_VSH
 	sh_offoption(SH_MULTILINE);
+#endif
 	sh.inlineno = 1;
 #if SHOPT_BRACEPAT
         sh_onoption(SH_BRACEEXPAND);

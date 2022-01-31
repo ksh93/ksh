@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -187,12 +187,6 @@ int sh_argopts(int argc,register char *argv[])
 	 	    case 'D':
 			on_option(&newflags,SH_NOEXEC);
 			goto skip;
-		    case 'T':
-			if (opt_info.num)
-				sh.test |= opt_info.num;
-			else
-				sh.test = 0;
-		    	continue;
 		    case 's':
 			if(setflag)
 			{

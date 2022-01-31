@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -619,8 +619,10 @@ chmod +x $tmp/script
     [[ $(fun .sh.subshell) == 2 ]]  || err_exit ".sh.subshell not working for functions in subshells"
     (( .sh.subshell == 1 )) || err_exit ".sh.subshell not working in a subshell"
 )
-TIMEFORMAT='this is a test'
-[[ $(set +x; { { time :;} 2>&1;}) == "$TIMEFORMAT" ]] || err_exit 'TIMEFORMAT not working'
+(
+	TIMEFORMAT='this is a test'
+	[[ $(set +x; { { time :;} 2>&1;}) == "$TIMEFORMAT" ]]
+) || err_exit 'TIMEFORMAT not working'
 alias _test_alias=true
 : ${.sh.version}
 [[ $(alias _test_alias) == *.sh.* ]] && err_exit '.sh. prefixed to alias name'
@@ -965,75 +967,25 @@ actual=$(env SHLVL="2#11+x[\$(env echo Exploited vuln CVE-2019-14868 >&2)0]" "$S
 # ======
 # Check unset, attribute and cleanup/restore behavior of special variables.
 
-# Keep the list in sync (minus ".sh") with shtab_variables[] in src/cmd/ksh93/data/variables.c
-set -- \
-	"PATH" \
-	"PS1" \
-	"PS2" \
-	"IFS" \
-	"PWD" \
-	"HOME" \
-	"MAIL" \
-	"REPLY" \
-	"SHELL" \
-	"EDITOR" \
-	"MAILCHECK" \
-	"RANDOM" \
-	"ENV" \
-	"HISTFILE" \
-	"HISTSIZE" \
-	"HISTEDIT" \
-	"HISTCMD" \
-	"FCEDIT" \
-	"CDPATH" \
-	"MAILPATH" \
-	"PS3" \
-	"OLDPWD" \
-	"VISUAL" \
-	"COLUMNS" \
-	"LINES" \
-	"PPID" \
-	"_" \
-	"TMOUT" \
-	"SECONDS" \
-	"LINENO" \
-	"OPTARG" \
-	"OPTIND" \
-	"PS4" \
-	"FPATH" \
-	"LANG" \
-	"LC_ALL" \
-	"LC_COLLATE" \
-	"LC_CTYPE" \
-	"LC_MESSAGES" \
-	"LC_NUMERIC" \
-	"LC_TIME" \
-	"FIGNORE" \
-	"KSH_VERSION" \
-	"JOBMAX" \
-	".sh.edchar" \
-	".sh.edcol" \
-	".sh.edtext" \
-	".sh.edmode" \
-	".sh.name" \
-	".sh.subscript" \
-	".sh.value" \
-	".sh.version" \
-	".sh.dollar" \
-	".sh.match" \
-	".sh.command" \
-	".sh.file" \
-	".sh.fun" \
-	".sh.lineno" \
-	".sh.subshell" \
-	".sh.level" \
-	".sh.stats" \
-	".sh.math" \
-	".sh.pool" \
-	".sh.pid" \
-	".sh.tilde" \
-	"SHLVL" \
-	"CSWIDTH"
+# ... to avoid forgetting to keep this script synched with shtab_variables[], read from the source
+set -- $(
+	srcdir=${SHTESTS_COMMON%/tests/*}
+	redirect < $srcdir/data/variables.c || exit
+	# skip lines until finding shtab_variables struct
+	while	read -r line || exit
+	do	[[ $line == *" shtab_variables[] =" ]] && break
+	done
+	read -r line
+	[[ $line == '{' ]] || exit
+	# read variable names until '};'
+	IFS=\"
+	while	read -r first varname junk
+	do	[[ $first == '};' ]] && exit
+		[[ -z $junk ]] && continue
+		[[ -n $varname && $varname != '.sh' ]] && print -r -- "$varname"
+	done
+)
+(($# >= 66)) || err_exit "could not read shtab_variables[]; adjust test script ($# items read)"
 
 # ... unset
 $SHELL -c '
@@ -1052,7 +1004,7 @@ $SHELL -c '
 	exit $((errors + 1))	# a possible erroneous asynchronous fork would cause exit status 0
 ' unset_test "$@"
 (((e = $?) == 1)) || err_exit "Failure in unsetting one or more special variables" \
-	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+	"(exit status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ... unset in virtual subshell inside of nested function
 $SHELL -c '
@@ -1082,7 +1034,7 @@ $SHELL -c '
 	exit $((errors + 1))	# a possible erroneous asynchronous fork would cause exit status 0
 ' unset_subsh_fun_test "$@"
 (((e = $?) == 1)) || err_exit "Unset of special variable(s) in a virtual subshell within a nested function fails" \
-	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+	"(exit status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ... readonly in subshell
 $SHELL -c '
@@ -1106,7 +1058,7 @@ $SHELL -c '
 	exit $((errors + 1))	# a possible erroneous asynchronous fork would cause exit status 0
 ' readonly_test "$@"
 (((e = $?) == 1)) || err_exit "Failure in making one or more special variables readonly in a subshell" \
-	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+	"(exit status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ... subshell leak test
 $SHELL -c '
@@ -1123,7 +1075,7 @@ $SHELL -c '
 	exit $((errors + 1))
 ' subshell_leak_test "$@"
 (((e = $?) == 1)) || err_exit "One or more special variables leak out of a subshell" \
-	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+	"(exit status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ... upper/lowercase test
 $SHELL -c '
@@ -1159,7 +1111,7 @@ $SHELL -c '
 	exit $((errors + 1))
 ' changecase_test "$@"
 (((e = $?) == 1)) || err_exit "typeset -l/-u doesn't work on special variables" \
-	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+	"(exit status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ... unset followed by launching a forked subshell
 $SHELL -c '
@@ -1176,7 +1128,7 @@ $SHELL -c '
 	exit $?
 ' unset_to_fork_test "$@"
 (((e = $?) == 1)) || err_exit "Failure in unsetting one or more special variables followed by launching forked subshell" \
-	"(exit status $e$( ((e>128)) && print -n / && kill -l "$e"))"
+	"(exit status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
 # ${.sh.pid} should be the forked subshell's PID

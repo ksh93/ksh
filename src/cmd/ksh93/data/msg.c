@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -70,7 +70,7 @@ const char e_restricted[]	= "%s: restricted";
 #if SHOPT_PFSH
 const char e_pfsh[]		= "%s: disabled in profile shell";
 #endif
-const char e_pexists[]		= "process already exists";
+const char e_copexists[]	= "coprocess is running; cannot create a new coprocess";
 const char e_exists[]		= "%s: file already exists";
 const char e_pipe[]		= "cannot create pipe";
 const char e_alarm[]		= "cannot set alarm";

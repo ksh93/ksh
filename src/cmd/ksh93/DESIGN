@@ -153,12 +153,10 @@ sh directory:
 	28.	timers.c contains code for multiple event timeouts.
 	29.	trestore contains the code for restoring the parse
 		tree from the file created by tdump.
-	30.	userinit.c contains a dummy userinit() function.
-		This is now obsolete with the new version of sh_main().
-	31.	waitevent.c contains the sh_waitnotify function so
+	30.	waitevent.c contains the sh_waitnotify function so
 		that builtins can handle processing events when the
 		shell is waiting for input or for process completion.
-	32.	xec.c is the main shell execution loop.
+	31.	xec.c is the main shell execution loop.
 
 edit directory:
 	1.      completion.c contains code for command and file generation and

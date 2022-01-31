@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -771,7 +771,6 @@ static Shnode_t	*arithfor(Lex_t *lexp,register Shnode_t *tf)
 	tw->wh.dotre = sh_cmd(lexp,n==DOSYM?DONESYM:RBRACE,SH_NL|SH_SEMI);
 	tw->wh.whtyp = TWH;
 	return(tf);
-
 }
 
 static Shnode_t *funct(Lex_t *lexp)
@@ -875,7 +874,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 	if((flag && lexp->token!=LBRACE) || lexp->token==EOFSYM)
 		sh_syntax(lexp);
-	sh_pushcontext(&sh,&buff,1);
+	sh_pushcontext(&buff,1);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
@@ -927,7 +926,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 	else if(sh.shcomp)
 		exit(1);
-	sh_popcontext(&sh,&buff);
+	sh_popcontext(&buff);
 	loop_level = saveloop;
 	label_last = savelabel;
 	/* restore the old stack */

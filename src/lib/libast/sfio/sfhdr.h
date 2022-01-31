@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -47,22 +47,6 @@
 /* define va_list, etc. before including sfio_t.h (sfio.h) */
 #if !_PACKAGE_ast
 
-/* some systems don't know large files */
-#if defined(_NO_LARGEFILE64_SOURCE) || _mips == 2 /* || __hppa */
-#undef _NO_LARGEFILE64_SOURCE
-#define _NO_LARGEFILE64_SOURCE	1
-#undef	_LARGEFILE64_SOURCE
-#undef	_LARGEFILE_SOURCE
-#endif
-
-#if !_NO_LARGEFILE64_SOURCE && _typ_off64_t && _lib_lseek64 && _lib_stat64
-#undef	_LARGEFILE64_SOURCE
-#undef	_LARGEFILE_SOURCE
-#undef	_FILE_OFFSET_BITS
-#define _LARGEFILE64_SOURCE	1	/* enabling the *64 stuff */
-#define _LARGEFILE_SOURCE	1	
-#endif
-
 #if _hdr_stdarg
 #include	<stdarg.h>
 #else
@@ -99,24 +83,6 @@
 #if _lib_localeconv && _hdr_locale
 #define _lib_locale	1
 #endif
-
-#define sfoff_t		off_t
-#define sfstat_t	struct stat
-#define sysclosef	close
-#define syscreatf	creat
-#define sysdupf		dup
-#define sysfcntlf	fcntl
-#define sysfstatf	fstat
-#define sysftruncatef	ftruncate
-#define syslseekf	lseek
-#define sysmmapf	mmap
-#define sysmunmapf	munmap
-#define sysopenf	open
-#define syspipef	pipe
-#define sysreadf	read
-#define sysremovef	remove
-#define sysstatf	stat
-#define syswritef	write
 
 #else /*!_PACKAGE_ast*/
 
@@ -187,28 +153,9 @@
 #endif /*_FIOCLEX*/
 #endif /*F_SETFD*/
 
-#if _hdr_unistd
 #include	<unistd.h>
-#endif
-
-#if !_LARGEFILE64_SOURCE	/* turn off the *64 stuff */
-#undef	_typ_off64_t
-#undef	_typ_struct_stat64
-#undef	_lib_creat64
-#undef	_lib_open64
-#undef	_lib_close64
-#undef	_lib_stat64
-#undef	_lib_fstat64
-#undef	_lib_ftruncate64
-#undef	_lib_lseek64
-#undef	_lib_mmap64
-#undef	_lib_munmap64
-#endif /*!_LARGEFILE64_SOURCE */
 
 /* see if we can use memory mapping for io */
-#if _LARGEFILE64_SOURCE && !_lib_mmap64
-#undef _mmap_worthy
-#endif
 #if !_mmap_worthy
 #undef _hdr_mman
 #undef _sys_mman
@@ -220,76 +167,9 @@
 #include	<sys/mman.h>
 #endif
 
-/* standardize system calls and types dealing with files */
-#if _typ_off64_t
-#define sfoff_t		off64_t
-#else
-#define sfoff_t		off_t
+#if !_lib_remove
+#define remove		unlink
 #endif
-#if _typ_struct_stat64
-#define sfstat_t	struct stat64
-#else
-#define sfstat_t	struct stat
-#endif
-#if _lib_lseek64
-#define syslseekf	lseek64
-#else
-#define syslseekf	lseek
-#endif
-#if _lib_stat64
-#define sysstatf	stat64
-#else
-#define sysstatf	stat
-#endif
-#if _lib_fstat64
-#define sysfstatf	fstat64
-#else
-#define sysfstatf	fstat
-#endif
-#if _lib_mmap64
-#define sysmmapf	mmap64
-#else
-#define sysmmapf	mmap
-#endif
-#if _lib_munmap64
-#define sysmunmapf	munmap64
-#else
-#define sysmunmapf	munmap
-#endif
-#if _lib_open64
-#define sysopenf	open64
-#else
-#define sysopenf	open
-#endif
-#if _lib_creat64
-#define syscreatf	creat64
-#else
-#define syscreatf	creat
-#endif
-#if _lib_close64
-#define sysclosef	close64
-#else
-#define sysclosef	close
-#endif
-#if _lib_ftruncate64
-#undef _lib_ftruncate
-#define _lib_ftruncate	1
-#define sysftruncatef	ftruncate64
-#endif
-#if !_lib_ftruncate64 && _lib_ftruncate
-#define sysftruncatef	ftruncate
-#endif
-#if _lib_remove
-#define sysremovef	remove
-#else
-#define sysremovef	unlink
-#endif
-
-#define sysreadf	read
-#define syswritef	write
-#define syspipef	pipe
-#define sysdupf		dup
-#define sysfcntlf	fcntl
 
 #endif /*_PACKAGE_ast*/
 
@@ -460,7 +340,13 @@
 #endif
 
 #if _socket_peek
+#if __FreeBSD__ && __BSD_VISIBLE
+#undef __BSD_VISIBLE	/* Hide conflicting SF_SYNC definition. [Added 2022-01-20. TODO: review periodically] */
 #include	<sys/socket.h>
+#define	__BSD_VISIBLE	1
+#else
+#include	<sys/socket.h>
+#endif
 #endif
 
 /* to test for executable access mode of a file */
@@ -553,7 +439,7 @@
 
 #define SECOND		1000	/* millisecond units */
 
-/* macros do determine stream types from sfstat_t data */
+/* macros to determine stream types from 'struct stat' data */
 #ifndef S_IFDIR
 #define S_IFDIR	0
 #endif
@@ -851,12 +737,12 @@ typedef struct _sfextern_s
 #define SFMMSEQOFF(f,a,s)
 #endif
 
-#define SFMUNMAP(f,a,s)		(sysmunmapf((caddr_t)(a),(size_t)(s)), \
+#define SFMUNMAP(f,a,s)		(munmap((caddr_t)(a),(size_t)(s)), \
 				 ((f)->endb = (f)->endr = (f)->endw = (f)->next = \
 				  (f)->data = NIL(uchar*)) )
 
 /* safe closing function */
-#define CLOSE(f)	{ while(sysclosef(f) < 0 && errno == EINTR) errno = 0; }
+#define CLOSE(f)	{ while(close(f) < 0 && errno == EINTR) errno = 0; }
 
 /* the bottomless bit bucket */
 #define DEVNULL		"/dev/null"
@@ -1205,33 +1091,6 @@ extern Sfdouble_t	ldexpl(Sfdouble_t, int);
 #endif
 
 #if !_PACKAGE_ast
-
-#if !_hdr_unistd
-extern int	sysclosef(int);
-extern ssize_t	sysreadf(int, void*, size_t);
-extern ssize_t	syswritef(int, const void*, size_t);
-extern sfoff_t	syslseekf(int, sfoff_t, int);
-extern int	sysdupf(int);
-extern int	syspipef(int*);
-extern int	sysaccessf(const char*, int);
-extern int	sysremovef(const char*);
-extern int	sysfstatf(int, sfstat_t*);
-extern int	sysstatf(const char*, sfstat_t*);
-
-extern int	isatty(int);
-
-extern int	wait(int*);
-extern uint	sleep(uint);
-extern int	execl(const char*, const char*,...);
-extern int	execv(const char*, char**);
-#if !defined(fork)
-extern int	fork(void);
-#endif
-#if _lib_unlink
-extern int	unlink(const char*);
-#endif
-
-#endif /*_hdr_unistd*/
 
 #if _lib_bcopy && !_proto_bcopy
 extern void	bcopy(const void*, void*, size_t);

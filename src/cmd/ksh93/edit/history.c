@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -430,7 +430,7 @@ static History_t* hist_trim(History_t *hp, int n)
 			*last = '/';
 		}
 		else
-			pathtmp(tmpname,".","hist",NIL(int*));
+			pathtmp(tmpname,e_dot,"hist",NIL(int*));
 		if(rename(name,tmpname) < 0)
 		{
 			free(tmpname);
@@ -846,6 +846,8 @@ off_t hist_tell(register History_t *hp, int n)
  */
 off_t hist_seek(register History_t *hp, int n)
 {
+	if(!(n >= hist_min(hp) && n < hist_max(hp)))
+		return(-1);
 	return(sfseek(hp->histfp,hp->histcmds[hist_ind(hp,n)],SEEK_SET));
 }
 
