@@ -1148,10 +1148,10 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				}
 				else if(i == '1' && ch == ';')
 				{
-					char c = ed_getchar(ep->ed,1);
+					int c = ed_getchar(ep->ed,1);
 					if(c == '3' || c == '5' || c == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm Alt */
 					{
-						char d = ed_getchar(ep->ed,1);
+						int d = ed_getchar(ep->ed,1);
 						switch(d)
 						{
 						    case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
