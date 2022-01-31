@@ -780,7 +780,7 @@ static void putstring(Emacs_t* ep,register char *sp)
 static int escape(register Emacs_t* ep,register genchar *out,int count)
 {
 	register int i,value;
-	int digit,ch;
+	int digit,ch,c,d;
 	digit = 0;
 	value = 0;
 	while ((i=ed_getchar(ep->ed,0)),digit(i))
@@ -1148,10 +1148,10 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				}
 				else if(i == '1' && ch == ';')
 				{
-					int c = ed_getchar(ep->ed,1);
-					if(c == '3' || c == '5' || c == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm Alt */
+					c = ed_getchar(ep->ed,1);
+					if(c == '3' || c == '5' || c == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm2 Alt */
 					{
-						int d = ed_getchar(ep->ed,1);
+						d = ed_getchar(ep->ed,1);
 						switch(d)
 						{
 						    case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
@@ -1171,12 +1171,12 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			    case '2': /* Insert key */
 				ch = ed_getchar(ep->ed,1);
 				if(ch == '~')
-					ed_ungetchar(ep->ed, cntl('V'));
-				else
 				{
-					ed_ungetchar(ep->ed,ch);
-					ed_ungetchar(ep->ed,i);
+					ed_ungetchar(ep->ed, cntl('V'));
+					return(-1);
 				}
+				ed_ungetchar(ep->ed,ch);
+				ed_ungetchar(ep->ed,i);
 				return(-1);
 			    case '3':
 				ch = ed_getchar(ep->ed,1);
@@ -1191,10 +1191,21 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 						ed_ungetchar(ep->ed,ERASECHAR);
 					return(-1);
 				}
-				else if(ch == ';' && ed_getchar(ep->ed,1) == '5' && ed_getchar(ep->ed,1) == '~')
-				{ /* Ctrl-Delete (delete next word) */
-					ch = 'd';
-					goto forward;
+				else if(ch == ';')
+				{
+					c = ed_getchar(ep->ed,1);
+					if(c == '5')
+					{
+						d = ed_getchar(ep->ed,1);
+						if(d == '~')
+						{
+							/* Ctrl-Delete (delete next word) */
+							ch = 'd';
+							goto forward;
+						}
+						ed_ungetchar(ep->ed,d);
+					}
+					ed_ungetchar(ep->ed,c);
 				}
 				ed_ungetchar(ep->ed,ch);
 				ed_ungetchar(ep->ed,i);

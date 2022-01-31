@@ -1589,7 +1589,7 @@ static void getline(register Vi_t* vp,register int mode)
 
 static int mvcursor(register Vi_t* vp,register int motion)
 {
-	register int count;
+	register int count, c, d;
 	register int tcur_virt;
 	register int incr = -1;
 	register int bound = 0;
@@ -1676,10 +1676,11 @@ static int mvcursor(register Vi_t* vp,register int motion)
 			}
 			else if(motion=='1' && bound==';')
 			{
-				bound = ed_getchar(vp->ed,-1);
-				if(bound == '3' || bound == '5' || bound == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm Alt */
+				c = ed_getchar(vp->ed,-1);
+				if(c == '3' || c == '5' || c == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm2 Alt */
 				{
-					switch(ed_getchar(vp->ed,-1))
+					d = ed_getchar(vp->ed,-1);
+					switch(d)
 					{
 					    case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
 						ed_ungetchar(vp->ed, 'b');
@@ -1688,8 +1689,11 @@ static int mvcursor(register Vi_t* vp,register int motion)
 						ed_ungetchar(vp->ed, 'w');
 						return(1);
 					}
+					ed_ungetchar(vp->ed,d);
 				}
+				ed_ungetchar(vp->ed,c);
 			}
+			ed_ungetchar(vp->ed,bound);
 			ed_ungetchar(vp->ed,motion);
 			return(0);
 		    case '2':
@@ -1700,6 +1704,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed,'i');
 				return(1);
 			}
+			ed_ungetchar(vp->ed,bound);
 			ed_ungetchar(vp->ed,motion);
 			return(0);
 		    case '3':
@@ -1710,17 +1715,29 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed,'x');
 				return(1);
 			}
-			else if(bound==';' && ed_getchar(vp->ed,-1) == '5' && ed_getchar(vp->ed,-1) == '~')
+			else if(bound==';')
 			{
-				/* Ctrl-Delete */
-				vp->del_word = 1;
-				ed_ungetchar(vp->ed,'d');
-				return(1);
+				c = ed_getchar(vp->ed,-1);
+				if(c == '5')
+				{
+					d = ed_getchar(vp->ed,-1);
+					if(d == '~')
+					{
+						/* Ctrl-Delete */
+						vp->del_word = 1;
+						ed_ungetchar(vp->ed,'d');
+						return(1);
+					}
+					ed_ungetchar(vp->ed,d);
+				}
+				ed_ungetchar(vp->ed,c);
 			}
+			ed_ungetchar(vp->ed,bound);
 			ed_ungetchar(vp->ed,motion);
 			return(0);
 		    case '5':  /* Haiku terminal Ctrl-Arrow key */
-			switch(ed_getchar(vp->ed,-1))
+			bound = ed_getchar(vp->ed,-1);
+			switch(bound)
 			{
 			    case 'D': /* Ctrl-Left arrow (go back one word) */
 				ed_ungetchar(vp->ed, 'b');
@@ -1729,6 +1746,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 				ed_ungetchar(vp->ed, 'w');
 				return(1);
 			}
+			ed_ungetchar(vp->ed,bound);
 			ed_ungetchar(vp->ed,motion);
 			return(0);
 		    case '4':
@@ -1741,6 +1759,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 			}
 			/* FALLTHROUGH */
 		    default:
+			ed_ungetchar(vp->ed,bound);
 			ed_ungetchar(vp->ed,motion);
 			return(0);
 		}
