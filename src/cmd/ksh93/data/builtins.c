@@ -169,8 +169,8 @@ const struct shtable3 shtab_builtins[] =
 
 const char sh_set[] =
 "[a?All subsequent variables defined will have the export attribute set "
-	"(but note that only variables whose names do not contain a \b.\b "
-	"are exported into the environment).]"
+	"(but note that only variables without a dot in their name are "
+	"exported into the environment).]"
 "[b?The shell writes a message to standard error as soon it detects that "
 	"a background job completes rather than waiting until the next prompt.]"
 "[e?A simple command that has an non-zero exit status will cause the shell "
