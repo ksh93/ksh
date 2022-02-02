@@ -98,4 +98,36 @@ false
 false
 [[ $(.x.runxrun) ==  'xfun local bar' ]] || err_exit 'namespace function on FPATH failed'
 
+# ======
+# Namespace variables should retain their exoprt attribute, even
+# though they are not actually exported outside the namespace block.
+set -o allexport
+namespace foo_nam {
+	typeset bar
+	typeset foo
+	typeset baz=baz
+	integer three
+}
+: ${.foo_nam.bar:=BAZ}
+exp='typeset -x .foo_nam.bar=BAZ'
+got=$(typeset -p .foo_nam.bar)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.bar} dit not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+.foo_nam.foo=FOO
+exp='typeset -x .foo_nam.foo=FOO'
+got=$(typeset -p .foo_nam.foo)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.foo} dit not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp='typeset -x .foo_nam.baz=baz'
+got=$(typeset -p .foo_nam.baz)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.baz} dit not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((.foo_nam.three=3))
+exp='typeset -x -l -i .foo_nam.three=3'
+got=$(typeset -p .foo_nam.three)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.three} dit not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+set +o allexport
+
+# ======
 exit $((Errors<125?Errors:125))

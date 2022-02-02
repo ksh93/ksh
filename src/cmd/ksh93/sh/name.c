@@ -289,8 +289,6 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 		flags |= NV_NOSCOPE;
 #endif /* SHOPT_NAMESPACE */
 	flags &= ~(NV_TYPE|NV_ARRAY|NV_IARRAY);
-	if(sh_isoption(SH_ALLEXPORT))
-		flags |= NV_EXPORT;
 	if(sh.prefix)
 	{
 		flags &= ~(NV_IDENT|NV_EXPORT);
@@ -1617,7 +1615,12 @@ void nv_putval(register Namval_t *np, const char *string, int flags)
 	sh.argaddr = 0;
 	if(sh.subshell && !nv_local && !(flags&NV_RDONLY))
 		np = sh_assignok(np,1);
-
+	/* Export the variable if 'set -o allexport' is enabled */
+	if(sh_isoption(SH_ALLEXPORT))
+	{
+		flags |= NV_EXPORT;
+		nv_onattr(np,NV_EXPORT);
+	}
 	if(np->nvfun && np->nvfun->disc && !(flags&NV_NODISC) && !nv_isref(np))
 	{
 		/* This function contains disc */

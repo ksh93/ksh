@@ -9,6 +9,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   a line editor if the VISUAL or EDITOR variable does not indicate emacs,
   gmacs or vi; instead, it now turns on the emacs option by default.
 
+- Fixed the -a/allexport option to export all variables that are assigned
+  values. Previously, arithmetic $((var=1)) or conditional ${var:=value}
+  assignments were not exported even with allexport on.
+
 2022-01-31:
 
 - Improved keyboard support for the vi and emacs built-in line editors:
@@ -70,11 +74,6 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   Previously these were accepted, resulting in corrupted expansions.
 
 - Fixed a potential crash in history expansion due to a buffer overflow.
-
-2022-01-16:
-
-- Setting a variable with a ${var:=value} expansion while the allexport shell
-  option is on now exports the variable.
 
 2022-01-12:
 

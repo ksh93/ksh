@@ -706,16 +706,29 @@ do
 done
 
 # ======
-# https://github.com/att/ast/issues/537
-# Export each variable that gets assigned.
+# allexport tests
+# https://github.com/ksh93/ksh/pull/431
+set -o allexport
 unset bar
-set -a
-test ${bar:=baz}
+: ${bar:=baz}
 exp='typeset -x bar=baz'
 got=$(typeset -p bar)
-[[ $exp == $got ]] || err_exit 'Variable ${bar} should be exported' \
+[[ $got == "$exp" ]] || err_exit 'Variable ${bar} should be exported' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-set +a
+# Set variable in arithmetic expressions
+unset bar
+((bar=1))
+exp='typeset -x bar=1'
+got=$(typeset -p bar)
+[[ $got == "$exp" ]] || err_exit 'Variable ${bar} should be exported' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset bar
+: $((bar=2))
+exp='typeset -x bar=2'
+got=$(typeset -p bar)
+[[ $got == "$exp" ]] || err_exit 'Variable ${bar} should be exported' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+set +o allexport
 
 # ======
 exit $((Errors<125?Errors:125))
