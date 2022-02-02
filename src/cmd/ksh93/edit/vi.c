@@ -112,6 +112,7 @@ typedef struct _vi_
 	int U_saved;		/* original virtual saved */
 	genchar *U_space;	/* used for U command */
 	genchar *u_space;	/* used for u command */
+	unsigned char del_word;	/* used for Ctrl-Delete */
 #ifdef FIORDCHK
 	clock_t typeahead;	/* typeahead occurred */
 #else
@@ -753,7 +754,7 @@ static int cntlmode(Vi_t *vp)
 		if(mvcursor(vp,c))
 		{
 			sync_cursor(vp);
-			if( c != '[' )
+			if( c != '[' && c != 'O' )
 				vp->repeat = 1;
 			continue;
 		}
@@ -1036,7 +1037,7 @@ static int cntlmode(Vi_t *vp)
 			if(lookahead)
 			{
 				ed_ungetchar(vp->ed,c=ed_getchar(vp->ed,1));
-				if(c=='[')
+				if(c=='[' || c=='O')
 					continue;
 			}
 			/* FALLTHROUGH */
@@ -1430,6 +1431,10 @@ static void getline(register Vi_t* vp,register int mode)
 			}
 			break;
 
+		case cntl('G'):
+			if(mode!=SEARCH)
+				goto fallback;
+			/* FALLTHROUGH */
 		case UINTR:
 				first_virt = 0;
 				cdelete(vp,cur_virt+1, BAD);
@@ -1550,6 +1555,7 @@ static void getline(register Vi_t* vp,register int mode)
 			}
 			/* FALLTHROUGH */
 		default:
+		fallback:
 			if( mode == REPLACE )
 			{
 				if( cur_virt < last_virt )
@@ -1583,7 +1589,7 @@ static void getline(register Vi_t* vp,register int mode)
 
 static int mvcursor(register Vi_t* vp,register int motion)
 {
-	register int count;
+	register int count, c, d;
 	register int tcur_virt;
 	register int incr = -1;
 	register int bound = 0;
@@ -1612,7 +1618,8 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		tcur_virt = last_virt;
 		break;
 
-	case '[':
+	case '[':	/* feature not in book */
+	case 'O':	/* after running top <ESC>O instead of <ESC>[ */
 		switch(motion=ed_getchar(vp->ed,-1))
 		{
 		    case 'A':
@@ -1659,12 +1666,95 @@ static int mvcursor(register Vi_t* vp,register int motion)
 			/* VT220 End key */
 			ed_ungetchar(vp->ed,'$');
 			return(1);
+		    case '1':
+		    case '7':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound=='~')
+			{ /* Home key */
+				ed_ungetchar(vp->ed,'0');
+				return(1);
+			}
+			else if(motion=='1' && bound==';')
+			{
+				c = ed_getchar(vp->ed,-1);
+				if(c == '3' || c == '5' || c == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm2 Alt */
+				{
+					d = ed_getchar(vp->ed,-1);
+					switch(d)
+					{
+					    case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
+						ed_ungetchar(vp->ed, 'b');
+						return(1);
+					    case 'C': /* Ctrl/Alt-Right arrow (go forward one word) */
+						ed_ungetchar(vp->ed, 'w');
+						return(1);
+					}
+					ed_ungetchar(vp->ed,d);
+				}
+				ed_ungetchar(vp->ed,c);
+			}
+			ed_ungetchar(vp->ed,bound);
+			ed_ungetchar(vp->ed,motion);
+			return(0);
+		    case '2':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound=='~')
+			{
+				/* VT220 insert key */
+				ed_ungetchar(vp->ed,'i');
+				return(1);
+			}
+			ed_ungetchar(vp->ed,bound);
+			ed_ungetchar(vp->ed,motion);
+			return(0);
 		    case '3':
 			bound = ed_getchar(vp->ed,-1);
 			if(bound=='~')
 			{
 				/* VT220 forward-delete key */
 				ed_ungetchar(vp->ed,'x');
+				return(1);
+			}
+			else if(bound==';')
+			{
+				c = ed_getchar(vp->ed,-1);
+				if(c == '5')
+				{
+					d = ed_getchar(vp->ed,-1);
+					if(d == '~')
+					{
+						/* Ctrl-Delete */
+						vp->del_word = 1;
+						ed_ungetchar(vp->ed,'d');
+						return(1);
+					}
+					ed_ungetchar(vp->ed,d);
+				}
+				ed_ungetchar(vp->ed,c);
+			}
+			ed_ungetchar(vp->ed,bound);
+			ed_ungetchar(vp->ed,motion);
+			return(0);
+		    case '5':  /* Haiku terminal Ctrl-Arrow key */
+			bound = ed_getchar(vp->ed,-1);
+			switch(bound)
+			{
+			    case 'D': /* Ctrl-Left arrow (go back one word) */
+				ed_ungetchar(vp->ed, 'b');
+				return(1);
+			    case 'C': /* Ctrl-Right arrow (go forward one word) */
+				ed_ungetchar(vp->ed, 'w');
+				return(1);
+			}
+			ed_ungetchar(vp->ed,bound);
+			ed_ungetchar(vp->ed,motion);
+			return(0);
+		    case '4':
+		    case '8':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound=='~')
+			{ /* End key */
+				ed_ungetchar(vp->ed,'$');
 				return(1);
 			}
 			ed_ungetchar(vp->ed,bound);
@@ -2602,6 +2692,11 @@ chgeol:
 	case 'd':		/** delete **/
 		if( mode )
 			c = vp->lastmotion;
+		else if( vp->del_word )
+		{
+			vp->del_word = 0;
+			c = 'w';
+		}
 		else
 			c = getcount(vp,ed_getchar(vp->ed,-1));
 deleol:

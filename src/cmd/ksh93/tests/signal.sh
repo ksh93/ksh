@@ -76,6 +76,8 @@ expect=01got_child23
 [[ $actual == "$expect" ]] || err_exit 'SIGCHLD not working' \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
+# ======
+
 # begin standalone SIGINT test generation
 
 cat > tst <<'!'
@@ -243,14 +245,14 @@ chmod +x tst tst-?
 
 # end standalone test generation
 
-export PATH=$PATH:
+PATH=:$PATH
 typeset -A expected
 expected[---]="3-intr"
 expected[--d]="3-intr"
 expected[-t-]="3-intr 2-intr 1-intr 1-0258"
 expected[-td]="3-intr 2-intr 1-intr 1-0258"
-expected[x--]="3-intr 2-intr 1-0000"
-expected[x-d]="3-intr 2-intr 1-0000"
+expected[x--]="3-intr 2-intr"
+expected[x-d]="3-intr 2-intr"
 expected[xt-]="3-intr 2-intr 1-intr 1-0000"
 expected[xtd]="3-intr 2-intr 1-intr 1-0000"
 expected[z--]="3-intr 2-intr 1-0000"
@@ -263,6 +265,10 @@ tst $SHELL > tst.got
 while	read ops out
 do	[[ $out == ${expected[$ops]} ]] || err_exit "interrupt $ops test failed -- expected '${expected[$ops]}', got '$out'"
 done < tst.got
+unset expected
+PATH=${PATH#:}
+
+# ======
 
 if	[[ ${SIG[USR1]} ]]
 then	float s=$SECONDS
@@ -552,6 +558,15 @@ exp="OK"
 got=$( set +x; { "$SHELL" bar; } 2>&1 )
 (( (e=$?)==0 )) && [[ $got == "$exp" ]] || err_exit "segfaulting child process:" \
 	"(expected status 0 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+
+# ======
+# A script that SIGINTs only itself (not the process group) should not cause the parent script to be interrupted
+trap '' INT  # workaround for old ksh -- ignore SIGINT or the entire test suite gets interrupted
+exp='258, continuing'
+got=$("$SHELL" -c 'trap + INT; "$SHELL" -c '\''kill -s INT $$'\''; echo "$?, continuing"')
+((!(e = $?))) && [[ $got == "$exp" ]] || err_exit "child process interrupting itself interrupts parent" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+trap - INT
 
 # ======
 exit $((Errors<125?Errors:125))

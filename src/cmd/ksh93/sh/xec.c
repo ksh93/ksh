@@ -1650,7 +1650,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						if(!(sh.sigflag[SIGINT]&(SH_SIGFAULT|SH_SIGOFF)))
 							sh_sigtrap(SIGINT);
-						sh.trapnote |= SH_SIGIGNORE;
+						sigblock(SIGINT);
 					}
 					if(sh.pipepid)
 						sh.pipepid = parent;
@@ -1665,11 +1665,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(usepipe && tsetio && subdup && unpipe)
 						sh_iounpipe();
 					if(!sh_isstate(SH_MONITOR))
-					{
-						sh.trapnote &= ~SH_SIGIGNORE;
-						if(sh.exitval == (SH_EXITSIG|SIGINT))
-							kill(sh.current_pid,SIGINT);
-					}
+						sigrelease(SIGINT);
 				}
 				if(type&FAMP)
 				{

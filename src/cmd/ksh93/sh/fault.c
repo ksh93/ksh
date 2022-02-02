@@ -113,8 +113,6 @@ void	sh_fault(register int sig)
 	flag = sh.sigflag[sig]&~SH_SIGOFF;
 	if(!trap)
 	{
-		if(sig==SIGINT && (sh.trapnote&SH_SIGIGNORE))
-			return;
 		if(flag&SH_SIGIGNORE)
 		{
 			if(sh.subshell)
@@ -386,7 +384,7 @@ void	sh_chktrap(void)
 {
 	register int 	sig=sh.st.trapmax;
 	register char *trap;
-	if(!(sh.trapnote&~SH_SIGIGNORE))
+	if(!sh.trapnote)
 		sig=0;
 	sh.trapnote &= ~SH_SIGTRAP;
 	/* execute errexit trap first */

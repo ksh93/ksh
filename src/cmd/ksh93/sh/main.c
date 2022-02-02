@@ -346,7 +346,18 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		fixargs(sh.st.dolv,1);
 	}
 	if(sh_isoption(SH_INTERACTIVE))
+	{
 		sh_onstate(SH_INTERACTIVE);
+#if SHOPT_ESH
+		/* do not leave users without a line editor */
+		if(!sh_isoption(SH_GMACS)
+#if SHOPT_VSH
+		&& !sh_isoption(SH_VI)
+#endif /* SHOPT_VSH */
+		)
+			sh_onoption(SH_EMACS);
+#endif /* SHOPT_ESH */
+	}
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
 	exfile(iop,fdin);
 	sh_done(0);
