@@ -170,7 +170,7 @@ extern int	job_post(pid_t,pid_t);
 extern void	*job_subsave(void);
 extern void	job_subrestore(void*);
 #if SHOPT_BGX
-extern void	job_chldtrap(const char*,int);
+extern void	job_chldtrap(int);
 #endif /* SHOPT_BGX */
 #ifdef JOBS
 	extern void	job_init(int);

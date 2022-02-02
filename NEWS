@@ -3,6 +3,13 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-02-02:
+
+- Fixed a few memory leaks that occurred when using traps.
+
+- Fixed a use after free issue that could occur when modifying or setting
+  a SIGCHLD trap.
+
 2022-02-01:
 
 - Upon invocation, the interactive shell no longer leaves the user without
