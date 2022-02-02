@@ -3,15 +3,17 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-02-02:
+
+- Fixed the -a/allexport option to export all variables that are assigned
+  values. Previously, arithmetic $((var=1)) or conditional ${var:=value}
+  assignments were not exported even with allexport on.
+
 2022-02-01:
 
 - Upon invocation, the interactive shell no longer leaves the user without
   a line editor if the VISUAL or EDITOR variable does not indicate emacs,
   gmacs or vi; instead, it now turns on the emacs option by default.
-
-- Fixed the -a/allexport option to export all variables that are assigned
-  values. Previously, arithmetic $((var=1)) or conditional ${var:=value}
-  assignments were not exported even with allexport on.
 
 2022-01-31:
 
