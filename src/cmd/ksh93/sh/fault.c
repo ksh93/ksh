@@ -326,7 +326,8 @@ void	sh_sigreset(register int mode)
 			flag  = sh.sigflag[sig]&~(SH_SIGTRAP|SH_SIGSET);
 			if(*trap)
 			{
-				free(trap);
+				if(mode)
+					free(trap);
 				sh.st.trapcom[sig] = 0;
 			}
 			else if(sig && mode>1)
