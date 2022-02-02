@@ -7387,7 +7387,9 @@ See \f2History Expansion\fP above.
 .
 .TP 8
 .B \-a
-All subsequent variables that are defined are automatically exported.
+All subsequent variables defined will have the export attribute set
+(but note that only variables without a dot in their name are exported
+into the environment).
 .TP 8
 .B \-b
 Prints job completion messages as soon as a background job changes
