@@ -102,7 +102,8 @@ false
 # Namespace variables should retain their exoprt attribute, even
 # though they are not actually exported outside the namespace block.
 set -o allexport
-namespace foo_nam {
+namespace foo_nam
+{
 	typeset bar
 	typeset foo
 	typeset baz=baz
