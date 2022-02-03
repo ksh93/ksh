@@ -57,8 +57,12 @@ Below is a summary of these new features.
 
 New command line editor features:
 
-- The forward-delete and End keys are now handled as expected in the
-  emacs and vi built-in line editors.
+- Various keys on extended PC keyboards are now handled as expected in the
+  emacs and vi built-in line editors: Delete (forward delete), Home, End,
+  Ctrl or Alt + left or right arrow (go back or forward one word), Ctrl+G
+  (cancel reverse search), Ctrl+Delete (delete next word). In addition, the
+  Insert key now escapes the next character in emacs and enters insert mode
+  in vi, and the arrow keys are recognized on more terminals.
 
 - In the vi and emacs line editors, repeat count parameters can now also
   be used for the arrow keys and the forward-delete key. E.g., in emacs

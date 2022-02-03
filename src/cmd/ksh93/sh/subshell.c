@@ -412,7 +412,6 @@ Dt_t *sh_subtracktree(int create)
 		if(sp && !sp->strack)
 		{
 			sp->strack = dtopen(&_Nvdisc,Dtset);
-			dtuserdata(sp->strack,&sh,1);
 			dtview(sp->strack,sh.track_tree);
 			sh.track_tree = sp->strack;
 		}
@@ -432,7 +431,6 @@ Dt_t *sh_subfuntree(int create)
 		if(sp && !sp->sfun)
 		{
 			sp->sfun = dtopen(&_Nvdisc,Dtoset);
-			dtuserdata(sp->sfun,&sh,1);
 			dtview(sp->sfun,sh.fun_tree);
 			sh.fun_tree = sp->sfun;
 		}

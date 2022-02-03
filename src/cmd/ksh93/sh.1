@@ -1848,15 +1848,11 @@ If the
 .B
 .SM VISUAL
 variable is not set,
-the value of this variable will be checked for the patterns
-as described with
+the value of this variable will be checked for certain patterns
+and the corresponding editing option will be turned on as described with
 .B
 .SM VISUAL
-below and the corresponding editing option
-(see Special Command
-.B set
-below)
-will be turned on.
+below.
 .TP
 .SM
 .B ENV
@@ -2274,26 +2270,34 @@ for this value which cannot be exceeded.)
 .TP
 .B
 .SM VISUAL
-If the value of this variable matches the pattern
-.IR *[Vv][Ii]* ,
-then the
-.B vi
-option
-(see Special Command
-.B set
+The value of this variable is scanned when the shell is invoked
+and whenever its value is changed;
+if it is found to match certain patterns,
+the corresponding line editor
+(see
+.I In-line Editing Options
 below)
-is turned on.
-If the value matches the pattern
-.I *gmacs* ,
+is activated.
+If it matches the pattern
+.IR *[Vv][Ii]* ,
+the
+.B vi
+option is turned on;
+else if it matches the pattern
+.IR *gmacs* ,
 the
 .B gmacs
-option is turned on.
-If the value matches the pattern
+option is turned on;
+else if it matches the pattern
 .IR *macs* ,
-then the
+the
 .B emacs
-option
-will be turned on.
+option is turned on.
+If none of the patterns match,
+.B emacs
+is turned on by default upon initializing an interactive shell.
+If the value is changed by assignment and none of the patterns match,
+no options are changed.
 The value of
 .B
 .SM VISUAL
@@ -4710,7 +4714,7 @@ If either the
 or
 .B vi
 option is active, the user can edit the command line.
-To be in either of these edit modes
+To be in either of these edit modes,
 .B set
 the corresponding
 option.
@@ -4720,8 +4724,11 @@ An editing option is automatically selected each time the
 or
 .SM
 .B EDITOR
-variable is assigned a value ending in either of these
-option names.
+variable is assigned a value matching any of these editor names;
+for details, see
+.I Shell Variables
+above under
+.BR VISUAL .
 .PP
 The editing features require that the user's terminal
 accept `RETURN' as carriage return without line feed
@@ -4742,8 +4749,8 @@ at least 8 columns to enter input, the prompt is truncated from the
 left.
 If the line is longer than the window width minus two, a mark is
 displayed at the end of the window to notify the user.
-As the cursor moves and reaches the window boundaries the window will be
-centered about the cursor.
+As the cursor moves and reaches the window boundaries,
+the window will be centered about the cursor.
 The mark is a
 .BR > " (<" ,
 .BR * )
@@ -4922,6 +4929,15 @@ Move cursor forward one word.
 editor's idea of a word is a string of characters
 consisting of only letters, digits and underscores.)
 .TP 10
+.BI M-[1;3C
+(Alt-Right arrow) Same as \fBM-f\fR.
+.TP 10
+.BI M-[1;5C
+(Ctrl-Right arrow) Same as \fBM-f\fR.
+.TP 10
+.BI M-[1;9C
+(iTerm2 Alt-Right arrow) Same as \fBM-f\fR.
+.TP 10
 .BI ^B
 Move cursor backward (left) one character.
 .TP 10
@@ -4931,11 +4947,26 @@ Move cursor backward (left) one character.
 .BI M-b
 Move cursor backward one word.
 .TP 10
+.BI M-[1;3D
+(Alt-Left arrow) Same as \fBM-b\fR.
+.TP 10
+.BI M-[1;5D
+(Ctrl-Left arrow) Same as \fBM-b\fR.
+.TP 10
+.BI M-[1;9D
+(iTerm2 Alt-Left arrow) Same as \fBM-b\fR.
+.TP 10
 .BI ^A
 Move cursor to start of line.
 .TP 10
 .BI M-[H
 (Home) Same as \fB^A\fR.
+.TP 10
+.BI M-[1~
+Same as \fB^A\fR.
+.TP 10
+.BI M-[7~
+Same as \fB^A\fR.
 .TP 10
 .BI ^E
 Move cursor to end of line.
@@ -4943,8 +4974,32 @@ Move cursor to end of line.
 .BI M-[F
 (End) Same as \fB^E\fR.
 .TP 10
+.BI M-[4~
+Same as \fB^E\fR.
+.TP 10
+.BI M-[8~
+Same as \fB^E\fR.
+.TP 10
 .BI M-[Y
 Same as \fB^E\fR.
+.TP 10
+.BI M-OA
+(Up Arrow) Same as \fBM-[A\fR.
+.TP 10
+.BI M-OB
+(Down Arrow) Same as \fBM-[B\fR.
+.TP 10
+.BI M-OC
+(Right Arrow) Same as \fBM-[C\fR.
+.TP 10
+.BI M-OD
+(Left Arrow) Same as \fBM-[D\fR.
+.TP 10
+.BI M-O5C
+(Ctrl-Right Arrow) Same as \fBM-f\fR.
+.TP 10
+.BI M-O5D
+(Ctrl-Left Arrow) Same as \fBM-b\fR.
 .TP 10
 .BI ^] char
 Move cursor forward to character
@@ -4986,6 +5041,9 @@ Delete current character.
 .TP 10
 .BI M-d
 Delete current word.
+.TP 10
+.BI M-[3;5~
+(Ctrl-Delete) Same as \fBM-d\fR.
 .TP 10
 .BI M-^H
 (Meta-backspace) Delete previous word.
@@ -5130,6 +5188,9 @@ is accessed.
 In this case a parameter of zero
 reverses the direction of the search.
 .TP 10
+.B ^G
+Exit reverse search mode.
+.TP 10
 .B ^O
 Operate \- Execute the current line and fetch
 the next line relative to current line from the
@@ -5246,6 +5307,9 @@ which is not subject to any shell option.
 .TP 10
 .B M-^V
 Display version of the shell.
+.TP 10
+.BI M-[2~
+(Insert) Escape the next character.
 .TP 10
 .B M-#
 If the line does not begin with a
@@ -5437,6 +5501,54 @@ Cursor to start of line.
 .B ^[[H
 (Home) Same as \f30\fP.
 .TP 10
+.B ^[[1~
+Same as \f30\fP.
+.TP 10
+.B ^[[7~
+Same as \f30\fP.
+.TP 10
+.B ^[[1;3D
+(Alt-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;5D
+(Ctrl-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;9D
+(iTerm2 Alt-Left arrow) Same as \f3b\fP.
+.TP 10
+.B ^[[1;3C
+(Alt-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[1;5C
+(Ctrl-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[1;9C
+(iTerm2 Alt-Right arrow) Same as \f3w\fP.
+.TP 10
+.B ^[[2~
+(Insert) Same as \f3i\fP.
+.TP 10
+.B ^[[3;5~
+(Ctrl-Delete) Same as \f3dw\fP.
+.TP 10
+.B ^[OA
+(Up Arrow) Same as \f3^[[A\fP.
+.TP 10
+.B ^[OB
+(Down Arrow) Same as \f3^[[B\fP.
+.TP 10
+.B ^[OC
+(Right Arrow) Same as \f3^[[C\fP.
+.TP 10
+.B ^[OD
+(Left Arrow) Same as \f3^[[D\fP.
+.TP 10
+.B ^[O5C
+(Ctrl-Right Arrow) Same as \f3w\fP.
+.TP 10
+.B ^[O5D
+(Ctrl-Left Arrow) Same as \f3b\fP.
+.TP 10
 .B ^
 Cursor to first non-blank character in line.
 .TP 10
@@ -5446,8 +5558,17 @@ Cursor to end of line.
 .B ^[[F
 (End) Same as \f3$\fP.
 .TP 10
+.B ^[[4~
+Same as \f3$\fP.
+.TP 10
+.B ^[[8~
+Same as \f3$\fP.
+.TP 10
 .B ^[[Y
 Same as \f3$\fP.
+.TP 10
+.B ^G
+Exit reverse search mode.
 .TP 10
 .B %
 Moves to balancing
@@ -7296,11 +7417,9 @@ This mode is disabled while reading profiles.
 Disables pathname expansion.
 .TP 8
 .B \-h
-Each command
-becomes a tracked alias when first encountered.
+Obsolete; no effect.
 .TP 8
 .B \-k
-(Obsolete).
 All variable assignment arguments are placed in the environment for a command,
 not just those that precede the command name.
 .TP 8

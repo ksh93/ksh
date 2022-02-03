@@ -1454,6 +1454,14 @@ if builtin rm 2> /dev/null; then
 	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -rd options' \
 		"(got $(printf %q "$got"))"
 	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -rd options'
+
+	# Additional test: 'rm -f' without additional arguments should act
+	# as a no-op command. This bug was fixed in ksh93u+ 2012-02-14.
+	got=$(rm -f 2>&1)
+	if (($? != 0)) || [[ ! -z $got ]]
+	then	err_exit 'rm -f without additional arguments does not work correctly' \
+		"(got $(printf %q "$got"))"
+	fi
 fi
 
 # ======

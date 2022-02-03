@@ -1658,7 +1658,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					{
 						if(!(sh.sigflag[SIGINT]&(SH_SIGFAULT|SH_SIGOFF)))
 							sh_sigtrap(SIGINT);
-						sh.trapnote |= SH_SIGIGNORE;
+						sigblock(SIGINT);
 					}
 					if(sh.pipepid)
 						sh.pipepid = parent;
@@ -1673,11 +1673,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(usepipe && tsetio && subdup && unpipe)
 						sh_iounpipe();
 					if(!sh_isstate(SH_MONITOR))
-					{
-						sh.trapnote &= ~SH_SIGIGNORE;
-						if(sh.exitval == (SH_EXITSIG|SIGINT))
-							kill(sh.current_pid,SIGINT);
-					}
+						sigrelease(SIGINT);
 				}
 				if(type&FAMP)
 				{
@@ -2504,7 +2500,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 				else
 				{
 					root = dtopen(&_Nvdisc,Dtoset);
-					dtuserdata(root,&sh,1);
 					nv_mount(np, (char*)0, root);
 					np->nvalue.cp = Empty;
 					dtview(root,sh.var_base);
@@ -2623,10 +2618,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 					if(!sh.fpathdict)
 						sh.fpathdict = dtopen(&_Rpdisc,Dtobag);
 					if(sh.fpathdict)
-					{
-						dtuserdata(sh.fpathdict,&sh,1);
 						dtinsert(sh.fpathdict,rp);
-					}
 				}
 			}
 			else
@@ -3408,7 +3400,7 @@ static void coproc_init(int pipes[])
 	int outfd;
 	if(sh.coutpipe>=0 && sh.cpid)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),e_pexists);
+		errormsg(SH_DICT,ERROR_exit(1),e_copexists);
 		UNREACHABLE();
 	}
 	sh.cpid = 0;

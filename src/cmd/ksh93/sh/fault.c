@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -113,8 +113,6 @@ void	sh_fault(register int sig)
 	flag = sh.sigflag[sig]&~SH_SIGOFF;
 	if(!trap)
 	{
-		if(sig==SIGINT && (sh.trapnote&SH_SIGIGNORE))
-			return;
 		if(flag&SH_SIGIGNORE)
 		{
 			if(sh.subshell)
@@ -386,7 +384,7 @@ void	sh_chktrap(void)
 {
 	register int 	sig=sh.st.trapmax;
 	register char *trap;
-	if(!(sh.trapnote&~SH_SIGIGNORE))
+	if(!sh.trapnote)
 		sig=0;
 	sh.trapnote &= ~SH_SIGTRAP;
 	/* execute errexit trap first */

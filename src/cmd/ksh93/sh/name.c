@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -811,7 +811,6 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 				{
 					Dt_t *dp = dtview(sh.var_tree,(Dt_t*)0);
 					rp->sdict = dtopen(&_Nvdisc,Dtoset);
-					dtuserdata(rp->sdict,&sh,1);
 					dtview(rp->sdict,dp);
 					dtview(sh.var_tree,rp->sdict);
 				}
@@ -1164,10 +1163,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 								ap = nv_arrayptr(np);
 							}
 							if(n && ap && !ap->table)
-							{
 								ap->table = dtopen(&_Nvdisc,Dtoset);
-								dtuserdata(ap->table,&sh,1);
-							}
 							if(ap && ap->table && (nq=nv_search(sub,ap->table,n)))
 								nq->nvenv = (char*)np;
 							if(nq && nv_isnull(nq))
@@ -2344,7 +2340,6 @@ void sh_scope(struct argnod *envlist, int fun)
 		newroot = nv_dict(sh.namespace);
 #endif /* SHOPT_NAMESPACE */
 	newscope = dtopen(&_Nvdisc,Dtoset);
-	dtuserdata(newscope,&sh,1);
 	if(envlist)
 	{
 		dtview(newscope,(Dt_t*)sh.var_tree);
@@ -3334,10 +3329,7 @@ int nv_rename(register Namval_t *np, int flags)
 		if(ap=nv_arrayptr(np))
 		{
 			if(!ap->table)
-			{
 				ap->table = dtopen(&_Nvdisc,Dtoset);
-				dtuserdata(ap->table,&sh,1);
-			}
 			if(ap->table)
 				mp = nv_search(nv_getsub(np),ap->table,NV_ADD);
 			nv_arraychild(np,mp,0);

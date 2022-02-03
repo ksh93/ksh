@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -780,7 +780,7 @@ static void putstring(Emacs_t* ep,register char *sp)
 static int escape(register Emacs_t* ep,register genchar *out,int count)
 {
 	register int i,value;
-	int digit,ch;
+	int digit,ch,c,d;
 	digit = 0;
 	value = 0;
 	while ((i=ed_getchar(ep->ed,0)),digit(i))
@@ -827,6 +827,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case 'd':	/* M-d == delete word */
 		case 'c':	/* M-c == uppercase */
 		case 'f':	/* M-f == move cursor forward one word */
+		forward:
 		{
 			i = cur;
 			while(value-- && i<eol)
@@ -883,6 +884,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case DELETE :
 		case '\b':
 		case 'h':	/* M-h == delete the previous word */
+		backward:
 		{
 			i = cur;
 			while(value-- && i>0)
@@ -1079,6 +1081,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			return(-1);
 #endif
 		case '[':	/* feature not in book */
+		case 'O':	/* after running top <ESC>O instead of <ESC>[ */
 			switch(i=ed_getchar(ep->ed,1))
 			{
 			    case 'A':
@@ -1131,8 +1134,53 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				/* VT220 End key */
 				ed_ungetchar(ep->ed,cntl('E'));
 				return(-1);
+			    case '1':
+			    case '7':
+				/*
+				 * ed_getchar() can only be run once on each character
+				 * and shouldn't be used on non-existent characters.
+				 */
+				ch = ed_getchar(ep->ed,1);
+				if(ch == '~')
+				{ /* Home key */
+					ed_ungetchar(ep->ed,cntl('A'));
+					return(-1);
+				}
+				else if(i == '1' && ch == ';')
+				{
+					c = ed_getchar(ep->ed,1);
+					if(c == '3' || c == '5' || c == '9') /* 3 == Alt, 5 == Ctrl, 9 == iTerm2 Alt */
+					{
+						d = ed_getchar(ep->ed,1);
+						switch(d)
+						{
+						    case 'D': /* Ctrl/Alt-Left arrow (go back one word) */
+							ch = 'b';
+							goto backward;
+						    case 'C': /* Ctrl/Alt-Right arrow (go forward one word) */
+							ch = 'f';
+							goto forward;
+						}
+						ed_ungetchar(ep->ed,d);
+					}
+					ed_ungetchar(ep->ed,c);
+				}
+				ed_ungetchar(ep->ed,ch);
+				ed_ungetchar(ep->ed,i);
+				return(-1);
+			    case '2': /* Insert key */
+				ch = ed_getchar(ep->ed,1);
+				if(ch == '~')
+				{
+					ed_ungetchar(ep->ed, cntl('V'));
+					return(-1);
+				}
+				ed_ungetchar(ep->ed,ch);
+				ed_ungetchar(ep->ed,i);
+				return(-1);
 			    case '3':
-				if((ch=ed_getchar(ep->ed,1))=='~')
+				ch = ed_getchar(ep->ed,1);
+				if(ch == '~')
 				{	/*
 					 * VT220 forward-delete key.
 					 * Since ERASECHAR and EOFCHAR are usually both mapped to ^D, we
@@ -1141,6 +1189,47 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 					 */
 					if(cur < eol)
 						ed_ungetchar(ep->ed,ERASECHAR);
+					return(-1);
+				}
+				else if(ch == ';')
+				{
+					c = ed_getchar(ep->ed,1);
+					if(c == '5')
+					{
+						d = ed_getchar(ep->ed,1);
+						if(d == '~')
+						{
+							/* Ctrl-Delete (delete next word) */
+							ch = 'd';
+							goto forward;
+						}
+						ed_ungetchar(ep->ed,d);
+					}
+					ed_ungetchar(ep->ed,c);
+				}
+				ed_ungetchar(ep->ed,ch);
+				ed_ungetchar(ep->ed,i);
+				return(-1);
+			    case '5':  /* Haiku terminal Ctrl-Arrow key */
+				ch = ed_getchar(ep->ed,1);
+				switch(ch)
+				{
+				    case 'D': /* Ctrl-Left arrow (go back one word) */
+					ch = 'b';
+					goto backward;
+				    case 'C': /* Ctrl-Right arrow (go forward one word) */
+					ch = 'f';
+					goto forward;
+				}
+				ed_ungetchar(ep->ed,ch);
+				ed_ungetchar(ep->ed,i);
+				return(-1);
+			    case '4':
+			    case '8': /* rxvt */
+				ch = ed_getchar(ep->ed,1);
+				if(ch == '~')
+				{
+					ed_ungetchar(ep->ed,cntl('E')); /* End key */
 					return(-1);
 				}
 				ed_ungetchar(ep->ed,ch);
@@ -1288,7 +1377,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 				goto restore;
 			continue;
 		}
-		if(i == ep->ed->e_intr)  /* end reverse search */
+		if(i == ep->ed->e_intr || i == cntl('G'))  /* end reverse search */
 			goto restore;
 		if (i==usrkill)
 		{

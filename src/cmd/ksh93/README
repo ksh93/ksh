@@ -192,6 +192,10 @@ run the build scripts this way. For example:
 	bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" \
 		LDFLAGS="-L/opt/local/lib"
 
+Note: Do not add compiler flags that cause the compiler to emit terminal
+escape codes, such as -fdiagnostics-color=always; this will cause the build
+to fail as the probing code greps compiler diagnostics.
+
 For more information, run:
 
 	bin/package help

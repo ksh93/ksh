@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -744,7 +744,9 @@ static void outval(char *name, const char *vname, struct Walk *wp)
 	{
 		if(*name!='.')
 		{
+#if SHOPT_FIXEDARRAY
 			Namarr_t *ap;
+#endif
 			nv_attribute(np,wp->out,"typeset",'=');
 #if SHOPT_FIXEDARRAY
 			if((ap=nv_arrayptr(np)) && ap->fixed)

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1805,13 +1805,9 @@ static Init_t *nv_init(void)
 	(OPTINDNOD)->nvalue.lp = (&sh.st.optindex);
 	/* set up the seconds clock */
 	sh.alias_tree = dtopen(&_Nvdisc,Dtoset);
-	dtuserdata(sh.alias_tree,&sh,1);
 	sh.track_tree = dtopen(&_Nvdisc,Dtset);
-	dtuserdata(sh.track_tree,&sh,1);
 	sh.bltin_tree = sh_inittree((const struct shtable2*)shtab_builtins);
-	dtuserdata(sh.bltin_tree,&sh,1);
 	sh.fun_base = sh.fun_tree = dtopen(&_Nvdisc,Dtoset);
-	dtuserdata(sh.fun_tree,&sh,1);
 	dtview(sh.fun_tree,sh.bltin_tree);
 	nv_mount(DOTSHNOD, "type", sh.typedict=dtopen(&_Nvdisc,Dtoset));
 	nv_adddisc(DOTSHNOD, shdiscnames, (Namval_t**)0);
@@ -1853,7 +1849,6 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 		nbltins = n;
 	}
 	base_treep = treep = dtopen(&_Nvdisc,Dtoset);
-	dtuserdata(treep,&sh,1);
 	treep->user = (void*)&sh;
 	for(tp=name_vals;*tp->sh_name;tp++,np++)
 	{

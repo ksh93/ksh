@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -699,13 +699,15 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 						np = sh_fsearch(name,HASH_NOSCOPE);
 					if(!np)
 #endif /* SHOPT_NAMESPACE */
-					if(np=nv_search(name,troot,0))
 					{
-						if(!is_afunction(np))
-							np = 0;
+						if(np=nv_search(name,troot,0))
+						{
+							if(!is_afunction(np))
+								np = 0;
+						}
+						else if(memcmp(name,".sh.math.",9)==0 && sh_mathstd(name+9))
+							continue;
 					}
-					else if(memcmp(name,".sh.math.",9)==0 && sh_mathstd(name+9))
-						continue;
 				}
 				if(np && ((flag&NV_LTOU) || !nv_isnull(np) || nv_isattr(np,NV_LTOU)))
 				{
@@ -1090,12 +1092,9 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	struct tdata tdata;
 	Shbltin_f addr;
 	Stk_t	*stkp;
-	void *library=0;
 	char *errmsg;
 #if SHOPT_DYNAMIC
-	unsigned long ver;
 	int list = 0;
-	char path[1024];
 #endif
 	NOT_USED(argc);
 	memset(&tdata,0,sizeof(tdata));
@@ -1156,6 +1155,9 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #if SHOPT_DYNAMIC
 	if(arg)
 	{
+		unsigned long ver;
+		char path[PATH_MAX];
+		void *library;
 		if(!(library = dllplugin(SH_ID, arg, NiL, SH_PLUGIN_VERSION, &ver, RTLD_LAZY, path, sizeof(path))))
 		{
 			errormsg(SH_DICT,ERROR_exit(0),"%s: %s",arg,dllerror(0));
@@ -1354,8 +1356,8 @@ static int unall(int argc, char **argv, register Dt_t *troot)
 			isfun = is_afunction(np);
 			if(troot==sh.var_tree)
 			{
-				Namarr_t *ap;
 #if SHOPT_FIXEDARRAY
+				Namarr_t *ap;
 				if((ap=nv_arrayptr(np)) && !ap->fixed  && name[strlen(name)-1]==']' && !nv_getsub(np))
 #else
 				if(nv_isarray(np) && name[strlen(name)-1]==']' && !nv_getsub(np))

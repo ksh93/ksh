@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -62,9 +62,8 @@ static void execute(const char* argcmd)
 			goto do_interp;
 
 	/* try to construct argv */
-	if(!(cmd = (char*)malloc(strlen(argcmd)+1)) )
+	if(!(cmd = strdup(argcmd)) )
 		goto do_interp;
-	strcpy(cmd,argcmd);
 	if(!(argv = (char**)malloc(16*sizeof(char*))) )
 		goto do_interp;
 	for(n = 0, s = cmd;; )

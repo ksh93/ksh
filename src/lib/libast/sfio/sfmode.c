@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -59,7 +59,9 @@ static char*	Version = "\n@(#)$Id: sfio (AT&T Labs - Research) 2009-09-15 $\0\n"
 #include		<signal.h>
 typedef void(*		Sfsignal_f)(int);
 #endif
+#ifdef SIGPIPE
 static int		_Sfsigp = 0; /* # of streams needing SIGPIPE protection */ 
+#endif
 
 /* done at exiting time */
 static void _sfcleanup(void)

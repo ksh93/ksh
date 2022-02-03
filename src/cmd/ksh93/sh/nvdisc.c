@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -1326,7 +1326,6 @@ static Namfun_t *clone_table(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp
 	Dt_t		*oroot=tp->dict,*nroot=dtopen(&_Nvdisc,Dtoset);
 	if(!nroot)
 		return(0);
-	dtuserdata(nroot,dtuserdata(oroot,0,0),1);
 	memcpy((void*)ntp,(void*)fp,sizeof(struct table));
 	ntp->dict = nroot;
 	ntp->parent = nv_lastdict();

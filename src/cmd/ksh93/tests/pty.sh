@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -471,9 +471,11 @@ L raw Bourne mode literal tab characters
 # characters to spaces on the command line. See slowread() in io.c.
 
 p :test-1:
-w true /de\tv/nu\tl\tl
-r ^:test-1: true (/de\tv/nu\tl\tl|/de       v/nu    l       l)\r\n$
+w set +o emacs 2>/dev/null
 p :test-2:
+w true /de\tv/nu\tl\tl
+r ^:test-2: true (/de\tv/nu\tl\tl|/de       v/nu    l       l)\r\n$
+p :test-3:
 !
 
 VISUAL='' tst $LINENO <<"!"
@@ -483,13 +485,15 @@ L raw Bourne mode backslash handling
 # This is tested with both erase and kill characters.
 
 p :test-1:
-w stty erase ^H kill ^X
+w set +o emacs 2>/dev/null
 p :test-2:
-w true string\\\\\cH\cH
-r ^:test-2: true string\r\n$
+w stty erase ^H kill ^X
 p :test-3:
+w true string\\\\\cH\cH
+r ^:test-3: true string\r\n$
+p :test-4:
 w true incorrect\\\cXtrue correct
-r ^:test-3: true correct\r\n$
+r ^:test-4: true correct\r\n$
 !
 
 set --
