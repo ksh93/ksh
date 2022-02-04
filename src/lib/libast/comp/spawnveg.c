@@ -41,25 +41,21 @@
 pid_t
 spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
 {
-	int			err, flags = 0;
-	pid_t			pid;
-	posix_spawnattr_t	attr;
+	int				err, flags = 0;
+	pid_t				pid;
+	posix_spawnattr_t		attr;
+#if _lib_posix_spawn_file_actions_addtcsetpgrp_np
+	posix_spawn_file_actions_t	actions;
+#endif
 
 	if (err = posix_spawnattr_init(&attr))
 		goto nope;
 #if POSIX_SPAWN_SETSID
 	if (pgid == -1)
 		flags |= POSIX_SPAWN_SETSID;
-	else
 #endif
-	if (pgid)
-	{
+	if (pgid && pgid != -1)
 		flags |= POSIX_SPAWN_SETPGROUP;
-#if _lib_posix_spawnattr_tcsetpgrp_np
-		if (tcfd >= 0)
-			flags |= POSIX_SPAWN_TCSETPGROUP;
-#endif
-	}
 	if (flags && (err = posix_spawnattr_setflags(&attr, flags)))
 		goto bad;
 	if (pgid && pgid != -1)
@@ -68,18 +64,34 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 			pgid = 0;
 		if (err = posix_spawnattr_setpgroup(&attr, pgid))
 			goto bad;
-#if _lib_posix_spawnattr_tcsetpgrp_np
-		if (tcfd >= 0 && (err = posix_spawnattr_tcsetpgrp_np(&attr, tcfd)))
-			goto bad;
-#endif
 	}
+#if _lib_posix_spawn_file_actions_addtcsetpgrp_np
+	if (tcfd >= 0)
+	{
+		if (err = posix_spawn_file_actions_init(&actions))
+			goto bad;
+		if (err = posix_spawn_file_actions_addtcsetpgrp_np(&actions, tcfd))
+			goto fail;
+	}
+	if (err = posix_spawn(&pid, path, (tcfd >= 0) ? &actions : NiL, &attr, argv, envv ? envv : environ))
+#else
 	if (err = posix_spawn(&pid, path, NiL, &attr, argv, envv ? envv : environ))
+#endif
 	{
 		if ((err != EPERM) || (err = posix_spawn(&pid, path, NiL, NiL, argv, envv ? envv : environ)))
-			goto bad;
+			goto fail;
 	}
+#if _lib_posix_spawn_file_actions_addtcsetpgrp_np
+	if (tcfd >= 0)
+		posix_spawn_file_actions_destroy(&actions);
+#endif
 	posix_spawnattr_destroy(&attr);
 	return pid;
+ fail:
+#if _lib_posix_spawn_file_actions_addtcsetpgrp_np
+	if (tcfd >= 0)
+		posix_spawn_file_actions_destroy(&actions);
+#endif
  bad:
 	posix_spawnattr_destroy(&attr);
  nope:

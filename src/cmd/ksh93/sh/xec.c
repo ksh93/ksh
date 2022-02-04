@@ -55,7 +55,7 @@
 #   include <sys/resource.h>
 #endif
 
-#if _lib_posix_spawn > 1 && _lib_posix_spawnattr_tcsetpgrp_np
+#if _lib_posix_spawn > 1 && _lib_posix_spawn_file_actions_addtcsetpgrp_np
 #define _use_ntfork_tcpgrp 1
 #endif
 
@@ -3453,7 +3453,7 @@ static void sigreset(int mode)
 /*
  * A combined fork/exec for systems with slow fork().
  * Incompatible with job control on interactive shells (job.jobcontrol) if
- * the system does not support posix_spawnattr_tcsetpgrp_np().
+ * the system does not support posix_spawn_file_actions_addtcsetpgrp_np().
  */
 static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 {

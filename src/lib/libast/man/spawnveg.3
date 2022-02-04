@@ -85,21 +85,17 @@ The new process joins the process group
 The
 .L tcfd
 argument is currently only used if the operating system supports the
-.I posix_spawnattr_tcsetpgrp_np
+.I posix_spawn_file_actions_addtcsetpgrp_np
 function.
 When
 .L tcfd
 is
-.L >=0
-and
-.L pgid
-is
-.LR >0 ,
+.LR >=0 ,
 spawnveg will set the controlling terminal for the new process to
 .IR tcfd .
 .SH CAVEATS
 If the
-.I posix_spawnattr_tcsetpgrp_np
+.I posix_spawn_file_actions_addtcsetpgrp_np
 function is not available, then
 .L spawnveg
 cannot reliably set the terminal process group.
