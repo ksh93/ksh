@@ -764,7 +764,7 @@ got=$("$SHELL" -c '
 	function Y_ARR.unset {
 		:
 	}
-	print -n "len=${#arr[@]}: "
+	print -n "len=${#Y_ARR[@]}: "
 	typeset -p Y_ARR
 ')
 [[ $exp == $got ]] || err_exit 'Giving an array a .unset discipline function adds a spurious [0] element' \
@@ -777,7 +777,7 @@ got=$("$SHELL" -c '
 	unset X_ARR[2]
 	unset X_ARR[1]
 	unset X_ARR[0]
-	print -n "len=${#arr[@]}: "
+	print -n "len=${#X_ARR[@]}: "
 	typeset -p X_ARR
 ')
 [[ $exp == $got ]] || err_exit 'Unsetting all elements of an array adds a spurious [0] element' \
