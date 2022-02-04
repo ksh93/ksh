@@ -142,8 +142,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	}
 	sh.fn_depth = sh.dot_depth = 0;
 	command = error_info.id;
-	if(nv_isnull(PS4NOD))
-		nv_putval(PS4NOD,e_traceprompt,NV_RDONLY);
 	path_pwd();
 	iop = (Sfio_t*)0;
 	if(sh_isoption(SH_POSIX))
@@ -358,7 +356,15 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 			sh_onoption(SH_EMACS);
 #endif /* SHOPT_ESH */
 	}
+	/* (Re)set PS4 and IFS, but don't export these now even if allexport is on. */
+	i = (sh_isoption(SH_ALLEXPORT) != 0);
+	sh_offoption(SH_ALLEXPORT);
+	if(nv_isnull(PS4NOD))
+		nv_putval(PS4NOD,e_traceprompt,NV_RDONLY);
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
+	if(i)
+		sh_onoption(SH_ALLEXPORT);
+	/* Start main execution loop. */
 	exfile(iop,fdin);
 	sh_done(0);
 }

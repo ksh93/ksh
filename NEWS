@@ -5,7 +5,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2022-02-02:
 
-- Fixed a few memory leaks that occurred when using traps.
+- Fixed the -a/allexport option to export all variables that are assigned
+  values. Previously, arithmetic $((var=1)) or conditional ${var:=value}
+  assignments were not exported even with allexport on.
+
+- Fixed a memory leak that could occur when using traps.
 
 - Fixed a use after free issue that could occur when modifying or setting
   a SIGCHLD trap.

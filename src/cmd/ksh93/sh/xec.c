@@ -55,6 +55,10 @@
 #   include <sys/resource.h>
 #endif
 
+#if _lib_posix_spawn > 1 && _lib_posix_spawn_file_actions_addtcsetpgrp_np
+#define _use_ntfork_tcpgrp 1
+#endif
+
 #define SH_NTFORK	SH_TIMING
 #define NV_BLTPFSH	NV_ARRAY
 
@@ -1613,7 +1617,11 @@ int sh_exec(register const Shnode_t *t, int flags)
 					fifo_save_ppid = sh.current_pid;
 #endif
 #if SHOPT_SPAWN
+#if _use_ntfork_tcpgrp
+				if(com)
+#else
 				if(com && !job.jobcontrol)
+#endif /* _use_ntfork_tcpgrp */
 				{
 					parent = sh_ntfork(t,com,&jobid,ntflag);
 					if(parent<0)
@@ -3444,7 +3452,8 @@ static void sigreset(int mode)
 
 /*
  * A combined fork/exec for systems with slow fork().
- * Incompatible with job control on interactive shells (job.jobcontrol).
+ * Incompatible with job control on interactive shells (job.jobcontrol) if
+ * the system does not support posix_spawn_file_actions_addtcsetpgrp_np().
  */
 static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 {
@@ -3456,6 +3465,9 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 	char		**arge, *path;
 	volatile pid_t	grp = 0;
 	Pathcomp_t	*pp;
+#if _use_ntfork_tcpgrp
+	volatile int	jobwasset=0;
+#endif /* _use_ntfork_tcpgrp */
 	if(flag)
 	{
 		otype = savetype;
@@ -3520,8 +3532,21 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 		}
 		arge = sh_envgen();
 		sh.exitval = 0;
+#if _use_ntfork_tcpgrp
+		if(job.jobcontrol)
+		{
+			signal(SIGTTIN,SIG_DFL);
+			signal(SIGTTOU,SIG_DFL);
+			signal(SIGTSTP,SIG_DFL);
+			jobwasset++;
+		}
+#endif /* _use_ntfork_tcpgrp */
 #ifdef JOBS
+#if _use_ntfork_tcpgrp
+		if(sh_isstate(SH_MONITOR) && (job.jobcontrol || (otype&FAMP)))
+#else
 		if(sh_isstate(SH_MONITOR) && (otype&FAMP))
+#endif /* _use_ntfork_tcpgrp */
 		{
 			if((otype&FAMP) || job.curpgid==0)
 				grp = 1;
@@ -3582,6 +3607,17 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 	sh_popcontext(buffp);
 	if(buffp->olist)
 		free_list(buffp->olist);
+#if _use_ntfork_tcpgrp
+	if(jobwasset)
+	{
+		signal(SIGTTIN,SIG_IGN);
+		signal(SIGTTOU,SIG_IGN);
+		if(sh_isstate(SH_INTERACTIVE))
+			signal(SIGTSTP,SIG_IGN);
+		else
+			signal(SIGTSTP,SIG_DFL);
+	}
+#endif /* _use_ntfork_tcpgrp */
 	if(sigwasset)
 		sigreset(1);	/* restore ignored signals */
 	if(scope)

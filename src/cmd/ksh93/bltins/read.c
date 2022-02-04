@@ -801,11 +801,6 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 		}
 		while(1)
 		{
-			if(sh_isoption(SH_ALLEXPORT)&&!strchr(nv_name(np),'.') && !nv_isattr(np,NV_EXPORT))
-			{
-				nv_onattr(np,NV_EXPORT);
-				sh_envput(sh.env,np);
-			}
 			if(name)
 			{
 				nv_close(np);

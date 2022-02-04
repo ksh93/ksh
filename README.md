@@ -10,7 +10,7 @@ The sources in this repository were forked from the
 GitHub [AST repository](https://github.com/att/ast)
 which is no longer under active development.
 
-For user-visible fixes, see [NEWS](https://github.com/ksh93/ksh/blame/master/NEWS)
+For user-visible fixes, see [NEWS](https://github.com/ksh93/ksh/blame/dev/NEWS)
 and click on commit messages for full details.
 For all fixes, see [the commit log](https://github.com/ksh93/ksh/commits/).
 To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/issues).
@@ -65,7 +65,7 @@ to package it as their default version of ksh93.
 ## Build
 
 To build ksh with a custom configuration of features, edit
-[`src/cmd/ksh93/SHOPT.sh`](https://github.com/ksh93/ksh/blob/master/src/cmd/ksh93/SHOPT.sh).
+[`src/cmd/ksh93/SHOPT.sh`](https://github.com/ksh93/ksh/blob/dev/src/cmd/ksh93/SHOPT.sh).
 
 Then `cd` to the top directory and run:
 ```sh

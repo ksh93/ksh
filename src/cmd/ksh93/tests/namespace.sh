@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -98,4 +98,37 @@ false
 false
 [[ $(.x.runxrun) ==  'xfun local bar' ]] || err_exit 'namespace function on FPATH failed'
 
+# ======
+# Namespace variables should retain their exoprt attribute, even
+# though they are not actually exported outside the namespace block.
+set -o allexport
+namespace foo_nam
+{
+	typeset bar
+	typeset foo
+	typeset baz=baz
+	integer three
+}
+: ${.foo_nam.bar:=BAZ}
+exp='typeset -x .foo_nam.bar=BAZ'
+got=$(typeset -p .foo_nam.bar)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.bar} did not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+.foo_nam.foo=FOO
+exp='typeset -x .foo_nam.foo=FOO'
+got=$(typeset -p .foo_nam.foo)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.foo} did not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp='typeset -x .foo_nam.baz=baz'
+got=$(typeset -p .foo_nam.baz)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.baz} did not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+((.foo_nam.three=3))
+exp='typeset -x -l -i .foo_nam.three=3'
+got=$(typeset -p .foo_nam.three)
+[[ $got == "$exp" ]] || err_exit 'Variable ${.foo_nam.three} did not retain -x attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+set +o allexport
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2021 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 1.0                  #
 #                    by AT&T Intellectual Property                     #
@@ -704,6 +704,31 @@ do
 	typeset "-$flag" var=0
 	(( ${var:=1} == 0 )) || err_exit "\${var:=1} should yield 0 after typeset -$flag var=0 (got '$var')"
 done
+
+# ======
+# allexport tests
+# https://github.com/ksh93/ksh/pull/431
+set -o allexport
+unset bar
+: ${bar:=baz}
+exp='typeset -x bar=baz'
+got=$(typeset -p bar)
+[[ $got == "$exp" ]] || err_exit 'Variable ${bar} should be exported' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# Set variable in arithmetic expressions
+unset bar
+((bar=1))
+exp='typeset -x bar=1'
+got=$(typeset -p bar)
+[[ $got == "$exp" ]] || err_exit 'Variable ${bar} should be exported' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset bar
+: $((bar=2))
+exp='typeset -x bar=2'
+got=$(typeset -p bar)
+[[ $got == "$exp" ]] || err_exit 'Variable ${bar} should be exported' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+set +o allexport
 
 # ======
 exit $((Errors<125?Errors:125))
