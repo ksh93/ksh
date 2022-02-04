@@ -755,4 +755,33 @@ got=$("$SHELL" -c 'test -z ${foo[${bar}..${baz}]}' 2>&1)
 	"(got $(printf %q "$got"))"
 
 # ======
+# Empty arrays shouldn't have a spurious [0] element added to them.
+# https://github.com/ksh93/ksh/issues/420
+# https://github.com/att/ast/issues/69#issuecomment-325435618
+exp='len=0: typeset -a Y_ARR=()'
+got=$("$SHELL" -c '
+	typeset -a Y_ARR
+	function Y_ARR.unset {
+		:
+	}
+	print -n len="${#arr[@]}: "
+	typeset -p Y_ARR
+')
+[[ $exp == $got ]] || err_exit 'Giving an array a .unset discipline function adds a spurious [0] element' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# https://github.com/att/ast/issues/69#issuecomment-325551035
+exp='len=0: typeset -a X_ARR=()'
+got=$("$SHELL" -c '
+	typeset -a X_ARR=(aa bb cc)
+	unset X_ARR[2]
+	unset X_ARR[1]
+	unset X_ARR[0]
+	print -n len="${#arr[@]}: "
+	typeset -p X_ARR
+')
+[[ $exp == $got ]] || err_exit 'Unsetting all elements of an array adds a spurious [0] element' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

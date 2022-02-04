@@ -556,9 +556,11 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 	Indent = indent;
 	if(ap)
 	{
+		sfputc(out,'(');
+		if(array_elem(ap)==0)
+			return;
 		if(!(ap->nelem&ARRAY_SCAN))
 			nv_putsub(np,NIL(char*),ARRAY_SCAN);
-		sfputc(out,'(');
 		if(indent>=0)
 		{
 			sfputc(out,'\n');
