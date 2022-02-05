@@ -5,11 +5,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 2022-02-04:
 
-- Adding a .unset discipline function to an indexed array no longer adds
-  an extra '[0]' element to the array.
-
-- Unsetting all elements of an indexed array no longer adds a spurious
-  '[0]' element to the array.
+- Fixed a bug in 'typeset -p': for an indexed array variable that is set
+  but empty, it will no longer output a nonexistent '[0]=' element.
 
 2022-02-02:
 

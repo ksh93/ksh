@@ -755,7 +755,7 @@ got=$("$SHELL" -c 'test -z ${foo[${bar}..${baz}]}' 2>&1)
 	"(got $(printf %q "$got"))"
 
 # ======
-# Empty arrays shouldn't have a spurious [0] element added to them.
+# Spurious '[0]=' element in 'typeset -p' output for indexed array variable that is set but empty
 # https://github.com/ksh93/ksh/issues/420
 # https://github.com/att/ast/issues/69#issuecomment-325435618
 exp='len=0: typeset -a Y_ARR=()'
