@@ -971,7 +971,7 @@ static Shnode_t *funct(Lex_t *lexp)
 static int check_array(Lex_t *lexp)
 {
 	int n,c;
-	if(lexp->token==0 && strcmp(lexp->arg->argval,"typeset")==0)
+	if(lexp->token==0 && strcmp(lexp->arg->argval, SYSTYPESET->nvname)==0)
 	{
 		while((c=fcgetc(n))==' ' || c=='\t');
 		if(c=='-')
