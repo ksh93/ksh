@@ -159,7 +159,7 @@ done
 
 $SHELL 2> /dev/null -c 'compound c;float -a c.ar;(( c.ar[2][3][3] = 5))' || 'multidimensional arrays in arithmetic expressions not working'
 
-expected='typeset -a -l -E c.ar=([2]=([3]=([3]=5) ) )'
+expected='typeset -a -l -E c.ar=(typeset -a [2]=(typeset -a [3]=([3]=5) ) )'
 unset c
 float c.ar
 c.ar[2][3][3]=5

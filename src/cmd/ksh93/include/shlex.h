@@ -90,6 +90,7 @@ typedef struct  _shlex_
 	char		noreserv;	/* reserved works not legal */
 	int		inlineno;	/* saved value of sh.inlineno */
 	int		firstline;	/* saved value of sh.st.firstline */
+	int		assignlevel;	/* nesting level for assignment */
 #if SHOPT_KIA
 	Sfio_t		*kiafile;	/* kia output file */
 	Sfio_t		*kiatmp;	/* kia reference file */

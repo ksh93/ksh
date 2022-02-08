@@ -195,7 +195,7 @@ static struct argnod *r_arg(void)
 		ap = (struct argnod*)stkfreeze(stkp,0);
 		if(*ap->argval==0 && (ap->argflag&ARG_EXP))
 			ap->argchn.ap = (struct argnod*)r_tree();
-		else if(*ap->argval==0 && (ap->argflag&~(ARG_APPEND|ARG_MESSAGE|ARG_QUOTED))==0)
+		else if(*ap->argval==0 && (ap->argflag&~(ARG_APPEND|ARG_MESSAGE|ARG_QUOTED|ARG_ARRAY))==0)
 		{
 			struct fornod *fp = (struct fornod*)getnode(fornod);
 			fp->fortyp = sfgetu(infile);

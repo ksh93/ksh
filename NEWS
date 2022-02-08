@@ -3,6 +3,13 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-02-07:
+
+- A bug in which the output of a two dimensional sparse indexed array would
+  cause the second subscript to be treated as an associative array when read
+  back in has been fixed. Elements that are sparse indexed arrays are now
+  prefixed with "typeset -a".
+
 2022-02-05:
 
 - Fixed: for indexed arrays, given an unset array member a[i] with i > 0,

@@ -377,6 +377,7 @@ void	*sh_parse(Sfio_t *iop, int flag)
 		return((void*)sh_trestore(iop));
 	fcsave(&sav_input);
 	sh.st.staklist = 0;
+	lexp->assignlevel = 0;
 	lexp->noreserv = 0;
 	lexp->heredoc = 0;
 	lexp->inlineno = sh.inlineno;
@@ -967,6 +968,30 @@ static Shnode_t *funct(Lex_t *lexp)
 	return(t);
 }
 
+static int check_array(Lex_t *lexp)
+{
+	int n,c;
+	if(lexp->token==0 && strcmp(lexp->arg->argval,"typeset")==0)
+	{
+		while((c=fcgetc(n))==' ' || c=='\t');
+		if(c=='-')
+		{
+			if(fcgetc(n)=='a')
+			{
+				lexp->assignok = SH_ASSIGN;
+				lexp->noreserv = 1;
+				sh_lex(lexp);
+				return(1);
+			}
+			else
+				fcseek(-2);
+		}
+		else
+			fcseek(-1);
+	}
+	return(0);
+}
+
 /*
  * Compound assignment
  */
@@ -978,6 +1003,7 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 	Stk_t	*stkp = sh.stk;
 	int array=0, index=0;
 	Namval_t *np;
+	lexp->assignlevel++;
 	n = strlen(ap->argval)-1;
 	if(ap->argval[n]!='=')
 		sh_syntax(lexp);
@@ -1002,14 +1028,14 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 	ap->argflag &= ARG_QUOTED;
 	ap->argflag |= array;
 	lexp->assignok = SH_ASSIGN;
-	if(type==NV_ARRAY)
+	if(type&NV_ARRAY)
 	{
 		lexp->noreserv = 1;
 		lexp->assignok = 0;
 	}
 	else
 		lexp->aliasok = 2;
-	array= (type==NV_ARRAY)?SH_ARRAY:0;
+	array= (type&NV_ARRAY)?SH_ARRAY:0;
 	if((n=skipnl(lexp,0))==RPAREN || n==LPAREN)
 	{
 		struct argnod *ar,*aq,**settail;
@@ -1148,6 +1174,7 @@ static struct argnod *assign(Lex_t *lexp, register struct argnod *ap, int type)
 	}
 	*tp = (Shnode_t*)ac;
 	lexp->assignok = 0;
+	lexp->assignlevel--;
 	return(ap);
 }
 
@@ -1432,7 +1459,9 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 	Stk_t		*stkp = sh.stk;
 	struct argnod	**argtail;
 	struct argnod	**settail;
-	int	cmdarg=0;
+	int	cmdarg = 0;
+	int	type = 0;
+	int	was_assign = 0;
 	int	argno = 0;
 	int	assignment = 0;
 	int	key_on = (!(flag&SH_NOIO) && sh_isoption(SH_KEYWORD));
@@ -1452,8 +1481,11 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 	t->comnamq = 0;
 	t->comstate = 0;
 	settail = &(t->comset);
+	if(lexp->assignlevel && (flag&SH_ARRAY) && check_array(lexp))
+		type |= NV_ARRAY;
 	while(lexp->token==0)
 	{
+		was_assign = 0;
 		argp = lexp->arg;
 		if(*argp->argval==LBRACE && (flag&SH_FUNDEF) && argp->argval[1]==0)
 		{
@@ -1531,6 +1563,8 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		}
 	retry:
 		tok = sh_lex(lexp);
+		if(was_assign && check_array(lexp))
+			type = NV_ARRAY;
 		if(tok==LABLSYM && (flag&SH_ASSIGN))
 			lexp->token = tok = 0;
 		if((tok==IPROCSYM || tok==OPROCSYM))
@@ -1546,7 +1580,6 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			if(argp->argflag&ARG_ASSIGN)
 			{
 				int intypeset = lexp->intypeset;
-				int type = 0;
 				lexp->intypeset = 0;
 				if(t->comnamp == SYSCOMPOUND)
 					type = NV_COMVAR;
@@ -1558,18 +1591,21 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 						if(*ap->argval!='-')
 							break;
 						if(strchr(ap->argval,'T'))
-							type = NV_TYPE;
+							type |= NV_TYPE;
 						else if(strchr(ap->argval,'a'))
-							type = NV_ARRAY;
+							type |= NV_ARRAY;
 						else if(strchr(ap->argval,'C'))
-							type = NV_COMVAR;
+							type |= NV_COMVAR;
 						else
 							continue;
-						break;
 					}
 				}
 				argp = assign(lexp,argp,type);
+				if(type==NV_ARRAY)
+					argp->argflag |= ARG_ARRAY;
 				lexp->intypeset = intypeset;
+				if(lexp->assignlevel)
+					was_assign = 1;
 				if(associative)
 					lexp->assignok |= SH_ASSIGN;
 				goto retry;

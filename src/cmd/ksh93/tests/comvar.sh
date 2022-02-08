@@ -668,7 +668,7 @@ compound  -a c.board
 for ((i=2; i < 4; i++))
 do	c.board[1][$i]=(foo=bar)
 done
-exp=$'(\n\ttypeset -C -a board=(\n\t\t[1]=(\n\t\t\t[2]=(\n\t\t\t\tfoo=bar\n\t\t\t)\n\t\t\t[3]=(\n\t\t\t\tfoo=bar\n\t\t\t)\n\t\t)\n\t)\n)'
+exp=$'(\n\ttypeset -C -a board=(\n\t\ttypeset -a [1]=(\n\t\t\t[2]=(\n\t\t\t\tfoo=bar\n\t\t\t)\n\t\t\t[3]=(\n\t\t\t\tfoo=bar\n\t\t\t)\n\t\t)\n\t)\n)'
 [[ "$(print -v c)" == "$exp" ]] || err_exit 'compound variable assignment to two dimensional array not working'
 
 unset zz
