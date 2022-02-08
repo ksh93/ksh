@@ -591,7 +591,7 @@ $SHELL << \EOF
 			 compound p=( hello=world )
 			 c.b.binsert p 1 $i
 		done
-		exp='typeset -C c=(board_t b=(typeset -a board_y=( [1]=(typeset -a board_x=( [0]=(field=(hello=world;))[1]=(field=(hello=world)));));))'
+		exp='typeset -C c=(board_t b=(typeset -C -a board_y=( [1]=(typeset -a board_x=( [0]=(field=(hello=world;))[1]=(field=(hello=world)));));))'
 		[[ $(typeset -p c) == "$exp" ]] || exit 1
 	}
 	main
@@ -632,6 +632,13 @@ typeset -T Bar_t=(
 Bar_t bar
 bar.foo+=(bam)
 [[ ${bar.foo[0]} == bam ]] || err_exit 'appending to empty array variable in type does not create element 0'
+
+# ======
+# Compound arrays listed with 'typeset -p' should have their -C attribute
+# preserved in the output.
+typeset -T Z_t=(compound -a x)
+Z_t z
+[[ $(typeset -p z.x) ==  *'-C -a'* ]] || err_exit 'typeset -p for compound array element does not display all attributes'
 
 # ======
 # Type names that have 'a' as the first letter should be functional

@@ -139,6 +139,8 @@ static const Namdisc_t type_disc =
 	0,
 };
 
+static char *Null = "";
+
 size_t nv_datasize(Namval_t *np, size_t *offset)
 {
 	size_t s=0, a=0;
@@ -333,6 +335,8 @@ static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp,int f
 				nv_offattr(nq,NV_NOFREE);
 			}
 		}
+		else if(nq->nvalue.cp==Null)
+			nq->nvalue.cp = Empty;
 		else if(nq->nvalue.cp==Empty)
 			nv_offattr(nq,NV_NOFREE);
 	
@@ -1159,7 +1163,12 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 					free((void*)np->nvalue.cp);
 			}
 			if(!nq->nvalue.cp && nq->nvfun== &pp->childfun.fun)
-				nq->nvalue.cp = Empty;
+			{
+				if(nv_isattr(np,NV_ARRAY|NV_NOFREE)==(NV_ARRAY|NV_NOFREE))
+					nq->nvalue.cp = Null;
+				else
+					nq->nvalue.cp = Empty;
+			}
 			np->nvalue.cp = 0;
 			offset += (dsize?dsize:4);
 		}
