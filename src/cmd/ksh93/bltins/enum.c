@@ -88,6 +88,8 @@ static const char enum_type[] =
 "[+SEE ALSO?\benum\b(1), \btypeset\b(1)]"
 ;
 
+extern const char is_spcbuiltin[];
+
 struct Enum
 {
 	Namfun_t	hdr;
@@ -243,6 +245,13 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 #endif
 	while(cp = *argv++)
 	{
+		/* Do not allow 'enum' to override special built-ins -- however, exclude
+		 * previously created type commands from this search as that is handled elsewhere. */
+		if((tp=nv_search(cp,sh.bltin_tree,0)) && nv_isattr(tp,BLT_SPC) && !nv_search(cp,sh.typedict,0))
+		{
+			errormsg(SH_DICT,ERROR_exit(1),"%s:%s",cp,is_spcbuiltin);
+			UNREACHABLE();
+		}
 		if(!(np = nv_open(cp, (void*)0, NV_VARNAME|NV_NOADD))  || !(ap=nv_arrayptr(np)) || ap->fun || (sz=ap->nelem&(((1L<<ARRAY_BITS)-1))) < 2)
 		{
 			error(ERROR_exit(1), "%s must name an array containing at least two elements",cp);

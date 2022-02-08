@@ -319,6 +319,13 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 					cp = sh_mactrim(fp->fornam,-1);
 				else
 					cp = fp->fornam;
+				/* Do not allow 'typeset -T' to override special built-ins -- however, exclude
+				 * previously created type commands from this search as that is handled elsewhere. */
+				if(maketype && (np=nv_search(cp,sh.bltin_tree,0)) && nv_isattr(np,BLT_SPC) && !nv_search(cp,sh.typedict,0))
+				{
+					errormsg(SH_DICT,ERROR_exit(1),"%s:%s",cp,is_spcbuiltin);
+					UNREACHABLE();
+				}
 				error_info.line = fp->fortyp-sh.st.firstline;
 				if(!array && tp->tre.tretyp!=TLST && tp->com.comset && !tp->com.comarg && tp->com.comset->argval[0]==0 && tp->com.comset->argval[1]=='[')
 					array |= (tp->com.comset->argflag&ARG_MESSAGE)?NV_IARRAY:NV_ARRAY;

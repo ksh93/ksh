@@ -162,4 +162,11 @@ fi
 PATH=/dev/null command -v PARSER2_t >/dev/null && err_exit "PARSER2_t incompletely defined though definition was never executed"
 
 # ======
+# https://github.com/ksh93/ksh/issues/350#issuecomment-982168684
+got=$("$SHELL" -c 'enum trap=(BAD TYPE)' 2>&1)
+exp=': trap: is a special shell builtin'
+[[ $got == *"$exp" ]] || err_exit "enum overrides special builtin" \
+	"(expected match of *$(printf %q "$exp"); got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
