@@ -27,6 +27,9 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   associative array when read back in by the shell. Elements that are sparse
   indexed arrays are now prefixed with "typeset -a".
 
+- The rewritten .sh.match code from ksh93v- has been backported to ksh93u+m,
+  fixing many bugs and improving performance by a considerable amount.
+
 2022-02-05:
 
 - Fixed: for indexed arrays, given an unset array member a[i] with i > 0,

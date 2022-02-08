@@ -5,7 +5,6 @@
 # For a more complete description of the options, see src/cmd/ksh93/README.
 #
 
-SHOPT 2DMATCH=1				# two dimensional ${.sh.match} for ${var//pat/str}
 SHOPT ACCT=0				# accounting
 SHOPT ACCTFILE=0			# per-user accounting info
 SHOPT AUDIT=1				# enable auditing per SHOPT_AUDITFILE

@@ -152,4 +152,21 @@ then	if	[[ $(kill -l $exitval) == SEGV ]]
 	else	err_exit 'typeset -m "c.board[1][i]=el" gives wrong value'
 	fi
 fi
+
+function f2
+{
+	nameref mar=$1 exp=$2
+	typeset dummy x="-1a2b3c4d9u"
+	dummy="${x//~(E)([[:digit:]])|([[:alpha:]])/D}"
+	exp=${ print -v .sh.match;}
+	typeset -m "mar=.sh.match"
+}
+function f1
+{
+	typeset matchar exp
+	f2 matchar exp
+	[[ ${ print -v matchar;} == "$exp" ]] || err_exit 'moving .sh.match to a function local variable using a name reference fails'
+}
+f1
+
 exit $((Errors<125?Errors:125))

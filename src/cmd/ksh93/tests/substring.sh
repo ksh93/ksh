@@ -252,7 +252,7 @@ then	err_exit '${var//+(\S)/Q} not workding'
 fi
 
 var=$($SHELL -c 'v=/vin:/usr/vin r=vin; : ${v//vin/${r//v/b}};typeset -p .sh.match') 2> /dev/null
-((SHOPT_2DMATCH)) && exp='typeset -a .sh.match=((vin vin) )' || exp='typeset -a .sh.match=(vin)'
+exp='typeset -a .sh.match=((vin vin) )'
 [[ $var == "$exp" ]] || err_exit '.sh.match not correct when replacement pattern contains a substring match' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$var"))"
 
@@ -682,6 +682,25 @@ Errors=$?
 # ======
 # Test for a crash after unsetting ${.sh.match} then matching a pattern
 $SHELL -c 'unset .sh.match; [[ bar == ba* ]]' || err_exit 'crash after unsetting .sh.match then trying to match a pattern'
+
+# Tests for ${.sh.match} backported from ksh93v-
+unset v d
+v=abbbc
+d="${v/~(E)b{2,4}/dummy}"
+[[ ${.sh.match} == bbb ]] || err_exit '.sh.match wrong after ${s/~(E)b{2,4}/dummy}'
+[[ $d == adummyc ]] || err_exit '${s/~(E)b{2,4}/dummy} not working'
+
+x=1234
+: "${x//~(X)([012])|([345])/}"
+[[ ${.sh.match[1][600..602]} ]] && err_exit '${.sh.match[0][600..602]} is not the empty string'
+
+: "${x//~(X)([012])|([345])/}"
+x=$(print -v .sh.match)
+compound co
+typeset -m co.array=.sh.match
+[[ $x == "$(print -v co.array)" ]] || err_exit 'typeset -m for .sh.match to compound variable not working (1)'
+: "${x//~(X)([345])|([012])/}"
+[[ $x == "$(print -v co.array)" ]] || err_exit 'typeset -m for .sh.match to compound variable not working (2)'
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -2811,9 +2811,11 @@ int sh_trace(register char *argv[], register int nl)
 			cp = "+ ";
 		else
 		{
+			sh.intrace = 1;
 			sh_offoption(SH_XTRACE);
 			cp = sh_mactry(cp);
 			sh_onoption(SH_XTRACE);
+			sh.intrace = 0;
 		}
 		if(*cp)
 			sfputr(sfstderr,cp,-1);

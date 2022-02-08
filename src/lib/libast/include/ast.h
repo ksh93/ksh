@@ -169,11 +169,12 @@ typedef struct
  * strgrpmatch() flags
  */
 
-#define STR_MAXIMAL	01		/* maximal match		*/
-#define STR_LEFT	02		/* implicit left anchor		*/
-#define STR_RIGHT	04		/* implicit right anchor	*/
-#define STR_ICASE	010		/* ignore case			*/
-#define STR_GROUP	020		/* (|&) inside [@|&](...) only	*/
+#define STR_MAXIMAL	0x01		/* maximal match		*/
+#define STR_LEFT	0x02		/* implicit left anchor		*/
+#define STR_RIGHT	0x04		/* implicit right anchor	*/
+#define STR_ICASE	0x08		/* ignore case			*/
+#define STR_GROUP	0x10		/* (|&) inside [@|&](...) only	*/
+#define STR_INT		0x20		/* int* match array		*/
 
 /*
  * fmtquote() flags
@@ -371,8 +372,8 @@ extern int		strexp(char*, int);
 extern long		streval(const char*, char**, long(*)(const char*, char**));
 extern long		strexpr(const char*, char**, long(*)(const char*, char**, void*), void*);
 extern int		strgid(const char*);
-extern int		strgrpmatch(const char*, const char*, int*, int, int);
-extern int		strgrpmatch_20120528(const char*, const char*, ssize_t*, int, int);
+extern int		strgrpmatch(const char*, const char*, ssize_t*, int, int);
+extern int		strngrpmatch(const char*, size_t, const char*, ssize_t*, int, int);
 extern unsigned int	strhash(const char*);
 extern void*		strlook(const void*, size_t, const char*);
 extern int		strmatch(const char*, const char*);

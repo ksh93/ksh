@@ -25,7 +25,7 @@ jobs:
         LANG=ja_JP.SJIS  script -q -e -c "bin/shtests --locale --nocompile" &&
         : disable most SHOPTs, rebuild ksh &&
         sed --regexp-extended --in-place=.orig \
-          '/^SHOPT (2DMATCH|AUDIT|BGX|BRACEPAT|DEVFD|DYNAMIC|EDPREDICT|ESH|FIXEDARRAY|HISTEXPAND|MULTIBYTE|NAMESPACE|OPTIMIZE|SPAWN|STATS|SUID_EXEC|VSH)=/ s/=1?/=0/' \
+          '/^SHOPT (AUDIT|BGX|BRACEPAT|DEVFD|DYNAMIC|EDPREDICT|ESH|FIXEDARRAY|HISTEXPAND|MULTIBYTE|NAMESPACE|OPTIMIZE|SPAWN|STATS|SUID_EXEC|VSH)=/ s/=1?/=0/' \
           src/cmd/ksh93/SHOPT.sh &&
         bin/package make &&
         : default regression tests with SHOPTs disabled &&

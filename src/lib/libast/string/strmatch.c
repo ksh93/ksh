@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -64,8 +64,6 @@ static struct State_s
 	int		nmatch;
 } matchstate;
 
-#define STR_INT		040000
-
 /*
  * subgroup match
  * 0 returned if no match
@@ -77,7 +75,7 @@ static struct State_s
  */
 
 int
-strgrpmatch(const char* b, const char* p, ssize_t* sub, int n, register int flags)
+strngrpmatch(const char* b, size_t z, const char* p, ssize_t* sub, int n, register int flags)
 {
 	register regex_t*	re;
 	register ssize_t*	end;
@@ -140,7 +138,7 @@ strgrpmatch(const char* b, const char* p, ssize_t* sub, int n, register int flag
 			return 0;
 		matchstate.nmatch = n;
 	}
-	if (regexec(re, b, n, matchstate.match, reflags & ~(REG_MINIMAL|REG_SHELL_GROUP|REG_LEFT|REG_RIGHT|REG_ICASE)))
+	if (regnexec(re, b, z, n, matchstate.match, reflags & ~(REG_MINIMAL|REG_SHELL_GROUP|REG_LEFT|REG_RIGHT|REG_ICASE)))
 		return 0;
 	if (!sub || n <= 0)
 		return 1;
@@ -176,7 +174,7 @@ strgrpmatch(const char* b, const char* p, ssize_t* sub, int n, register int flag
 int
 strmatch(const char* s, const char* p)
 {
-	return strgrpmatch(s, p, NiL, 0, STR_MAXIMAL|STR_LEFT|STR_RIGHT);
+	return strngrpmatch(s, s ? strlen(s) : 0, p, NiL, 0, STR_MAXIMAL|STR_LEFT|STR_RIGHT);
 }
 
 /*
@@ -192,7 +190,7 @@ strsubmatch(const char* s, const char* p, int flags)
 {
 	ssize_t	match[2];
 
-	return strgrpmatch(s, p, match, 1, (flags ? STR_MAXIMAL : 0)|STR_LEFT) ? (char*)s + match[1] : (char*)0;
+	return strngrpmatch(s, s ? strlen(s) : 0, p, match, 1, (flags ? STR_MAXIMAL : 0)|STR_LEFT) ? (char*)s + match[1] : (char*)0;
 }
 
 #undef	strgrpmatch
@@ -201,7 +199,7 @@ strsubmatch(const char* s, const char* p, int flags)
 #endif
 
 int
-strgrpmatch(const char* b, const char* p, int* sub, int n, int flags)
+strgrpmatch(const char* b, const char* p, ssize_t* sub, int n, int flags)
 {
-	return strgrpmatch_20120528(b, p, (ssize_t*)sub, n, flags|STR_INT);
+	return strngrpmatch(b, b ? strlen(b) : 0, p, sub, n, flags|STR_INT);
 }

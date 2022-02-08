@@ -3355,7 +3355,28 @@ int nv_rename(register Namval_t *np, int flags)
 		}
 		else
 			mp = np;
-		nv_clone(nr,mp,(flags&NV_MOVE)|NV_COMVAR);
+		if(nr==SH_MATCHNOD)
+		{
+			Sfio_t *iop;
+			Dt_t *save_root = sh.var_tree;
+			int trace = sh_isoption(SH_XTRACE);
+			sfprintf(sh.strbuf,"typeset -a %s=",nv_name(mp));
+			nv_outnode(nr,sh.strbuf,-1,0);
+			sfwrite(sh.strbuf,")\n",2);
+			cp = sfstruse(sh.strbuf);
+			iop = sfopen((Sfio_t*)0,cp,"s");
+			if(trace)
+				sh_offoption(SH_XTRACE);
+			sh.var_tree = last_root;
+			sh_eval(iop,SH_READEVAL);
+			sh.var_tree = save_root;
+			if(trace)
+				sh_onoption(SH_XTRACE);
+			if(flags&NV_MOVE)
+				sh_setmatch(0,0,0,0,0);
+		}
+		else
+			nv_clone(nr,mp,(flags&NV_MOVE)|NV_COMVAR);
 		mp->nvenv = nvenv;
 		if(flags&NV_MOVE)
 		{
@@ -3632,6 +3653,8 @@ char *nv_name(register Namval_t *np)
 #endif /* SHOPT_NAMESPACE */
 		return(np->nvname);
 	}
+	if(!np->nvname)
+		goto skip;
 #if SHOPT_FIXEDARRAY
 	ap = nv_arrayptr(np);
 #endif /* SHOPT_FIXEDARRAY */
@@ -3651,6 +3674,7 @@ char *nv_name(register Namval_t *np)
 		sh.last_table = nv_parent(np);
 	else if(!nv_isref(np))
 	{
+	skip:
 		for(fp= np->nvfun ; fp; fp=fp->next)
 		if(fp->disc && fp->disc->namef)
 		{

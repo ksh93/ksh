@@ -552,7 +552,8 @@ compound -a b.ca
 b_t b.ca[4].b
 exp='typeset -C b=(typeset -C -a ca=( [4]=(b_t b=(a_t b=(a=hello))));)'
 got=$(typeset -p b)
-[[ $got == "$exp" ]] || err_exit 'typeset -p of nested type not correct'
+[[ $got == "$exp" ]] || err_exit 'typeset -p of nested type not correct' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 typeset -T u_t=(
 	integer dummy 

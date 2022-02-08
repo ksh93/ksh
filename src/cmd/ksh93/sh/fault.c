@@ -585,6 +585,7 @@ void sh_exit(register int xno)
 	if(!pp)
 		sh_done(sig);
 	sh.arithrecursion = 0;
+	sh.intrace = 0;
 	sh.prefix = 0;
 #if SHOPT_TYPEDEF
 	sh.mktype = 0;

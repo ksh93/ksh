@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2021 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 1.0                  *
 *                    by AT&T Intellectual Property                     *
@@ -322,6 +322,8 @@ main()
 	printf("#define strgid		_ast_strgid\n");
 	printf("#undef	strgrpmatch\n");
 	printf("#define strgrpmatch	_ast_strgrpmatch\n");
+	printf("#undef	strngrpmatch\n");
+	printf("#define strngrpmatch	_ast_strngrpmatch\n");
 	printf("#undef	strhash\n");
 	printf("#define strhash		_ast_strhash\n");
 	printf("#undef	strkey\n");

@@ -1695,6 +1695,13 @@ element stores the complete match and the
 element stores the
 .IR i\^ -th
 submatch.
+For
+.B //
+the array is two dimensional with the first subscript indicating the
+most recent match and subpattern match and the second script indicating
+which match with
+.B 0
+representing the first match.
 The
 .B .sh.match
 variable

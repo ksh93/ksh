@@ -327,6 +327,7 @@ struct Shell_s
 	char		instance;	/* in set_instance */
 	char		decomma;	/* decimal_point=',' */
 	char		redir0;		/* redirect of 0 */
+	char		intrace;	/* set when trace expands PS4 */
 	char		*readscript;	/* set before reading a script */
 	int		subdup;		/* bitmask for dups of 1 */
 	int		*inpipe;	/* input pipe pointer */

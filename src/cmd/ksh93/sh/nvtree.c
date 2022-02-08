@@ -670,11 +670,12 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 static void outval(char *name, const char *vname, struct Walk *wp)
 {
 	register Namval_t *np, *nq=0, *last_table=sh.last_table;
-        register Namfun_t *fp;
+	register Namfun_t *fp;
 	int isarray=0, special=0,mode=0;
+	Dt_t *root = wp->root?wp->root:sh.var_base;
 	if(*name!='.' || vname[strlen(vname)-1]==']')
 		mode = NV_ARRAY;
-	if(!(np=nv_open(vname,wp->root,mode|NV_VARNAME|NV_NOADD|NV_NOASSIGN|NV_NOFAIL|wp->noscope)))
+	if(!(np=nv_open(vname,root,mode|NV_VARNAME|NV_NOADD|NV_NOASSIGN|NV_NOFAIL|wp->noscope)))
 	{
 		sh.last_table = last_table;
 		return;

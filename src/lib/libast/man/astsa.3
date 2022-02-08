@@ -124,7 +124,7 @@ Returns the error message text corresponding to the
 \fIerrno\fP.
 .Ss "char* strerror(int \fIerrno\fP)"
 Equivalent to fmterror(\fIerrno\fP).
-.Ss "int strgrpmatch(const char* \fIstring\fP, const char* \fIpattern\fP, int* \fIsub\fP, int \fInsub\fP, int \fIflags\fP)"
+.Ss "int strgrpmatch(const char* \fIstring\fP, const char* \fIpattern\fP, ssize_t* \fIsub\fP, int \fInsub\fP, int \fIflags\fP)"
 Matches the null-terminated \fIstring\fP against the null-terminated
 .BR ksh (1)
 augmented \fIpattern\fP.
@@ -148,8 +148,6 @@ Ignore case.
 .Tp
 \f3STR_GROUP\fP:
 (|&) inside [@|*|+{n,m}](...) only.
-.Ss "int strmatch(const char* \fIstring\fP, const char* \fIpattern\fP, int* \fIsub\fP, int \fInsub\fP, int \fIflags\fP)"
-Equivalent to strgrpmatch(\fIstring\fP,\fIpattern\fP,0,0,STR_MAXIMAL|STR_LEFT|STR_RIGHT).
 .SH "SEE ALSO"
 .BR ast (3),
 .BR ccode (3),

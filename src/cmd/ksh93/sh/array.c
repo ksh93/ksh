@@ -1176,7 +1176,7 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 	if(!ap || !ap->header.fun)
 #endif /* SHOPT_FIXEDARRAY */
 	{
-		if(sp)
+		if(sp && sp!=Empty)
 		{
 			if(ap && ap->xp && !strmatch(sp,"+([0-9])"))
 			{
@@ -1185,7 +1185,11 @@ Namval_t *nv_putsub(Namval_t *np,register char *sp,register long mode)
 				size = nv_getnum(mp);
 			}
 			else
+			{
+				Dt_t *root = sh.last_root;
 				size = (int)sh_arith((char*)sp);
+				sh.last_root = root;
+			}
 		}
 		if(size <0 && ap)
 			size += array_maxindex(np);

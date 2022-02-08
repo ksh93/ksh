@@ -20,8 +20,6 @@ options where no feature probe is available, probe is the same as off.
 
 The options have the following defaults and meanings:
 
-    2DMATCH      on  Two-dimensional ${.sh.match} for ${var//pat/str}.
-
     ACCT         off Shell accounting.
                      Noted by "L" in the version string when enabled.
                      See README-AUDIT.md.
