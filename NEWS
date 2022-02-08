@@ -17,6 +17,11 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Compound arrays belonging to a type created with 'typeset -T' now have
   their -C attribute preserved in the output of 'typeset -p'.
 
+- A bug has been fixed in which the 'typeset -p' output of a two-dimensional
+  sparse indexed array would cause the second subscript to be treated as an
+  associative array when read back in by the shell. Elements that are sparse
+  indexed arrays are now prefixed with "typeset -a".
+
 2022-02-05:
 
 - Fixed: for indexed arrays, given an unset array member a[i] with i > 0,

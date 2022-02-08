@@ -308,13 +308,15 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 		else
 		{
 			stakseek(0);
-			if(*arg->argval==0 && arg->argchn.ap && !(arg->argflag&~(ARG_APPEND|ARG_QUOTED|ARG_MESSAGE)))
+			if(*arg->argval==0 && arg->argchn.ap && !(arg->argflag&~(ARG_APPEND|ARG_QUOTED|ARG_MESSAGE|ARG_ARRAY)))
 			{
 				int flag = (NV_VARNAME|NV_ARRAY|NV_ASSIGN);
 				int sub=0;
 				struct fornod *fp=(struct fornod*)arg->argchn.ap;
 				register Shnode_t *tp=fp->fortre;
 				flag |= (flags&(NV_NOSCOPE|NV_STATIC|NV_FARRAY));
+				if(arg->argflag&ARG_ARRAY)
+					array |= NV_IARRAY;
 				if(arg->argflag&ARG_QUOTED)
 					cp = sh_mactrim(fp->fornam,-1);
 				else

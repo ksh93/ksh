@@ -587,6 +587,9 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 		tabs=0;
 		if(associative||special)
 		{
+			Namarr_t *aq;
+			if(mp && (aq=nv_arrayptr(mp)) && !aq->fun && array_elem(aq) < nv_aimax(mp)+1)
+				sfwrite(out,"typeset -a ",11);
 			if(!(fmtq = nv_getsub(np)))
 				break;
 			sfprintf(out,"[%s]",sh_fmtq(fmtq));

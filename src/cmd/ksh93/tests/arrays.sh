@@ -804,4 +804,20 @@ got=$(set +x; redirect 2>&1; foo[42]=''; : ${foo[42]:?})
 	"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# A multidimensional indexed array should be printed correctly by
+# 'typeset -p'. Additionally, the printed command must produce the
+# same result when reinput to the shell.
+unset foo
+typeset -a foo[1][2]=bar
+exp='typeset -a foo=(typeset -a [1]=([2]=bar) )'
+got=$(typeset -p foo)
+[[ $exp == "$got" ]] || err_exit "Multidimensional indexed arrays are not printed correctly with 'typeset -p'" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset foo
+typeset -a foo=(typeset -a [1]=([2]=bar) )
+got=$(typeset -p foo)
+[[ $exp == "$got" ]] || err_exit "Output from 'typeset -p' for indexed array cannot be used for reinput" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
