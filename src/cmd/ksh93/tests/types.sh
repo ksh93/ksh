@@ -565,8 +565,9 @@ unset z
 u_t -a x | read z
 [[ $z == unset ]]  && err_exit 'unset discipline called on type creation'
 
-{ z=$($SHELL 2> /dev/null 'typeset -T foo; typeset -T') ;} 2> /dev/null
-[[ $z == 'typeset -T foo' ]] || err_exit '"typeset -T foo; typeset -T" failed'
+got=$("$SHELL" -c 'typeset -T foo; typeset -T' 2>&1)
+[[ -z $got ]] || err_exit '"typeset -T foo; typeset -T" exposed incomplete type builtin' \
+	"(got $(printf %q "$got"))"
 
 { z=$($SHELL 2> /dev/null 'typeset -T foo=bar; typeset -T') ;} 2> /dev/null
 [[ $z ]] && err_exit '"typeset -T foo=bar" should not creates type foo'
@@ -656,6 +657,13 @@ exp='Subsh_t -a v=((typeset -i x=1) (typeset -i x=2) (typeset -i x=3))'
 [[ $got == "$exp" ]] || err_exit "bad typeset output for Subsh_t" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 PATH=/dev/null command -v Subsh_t >/dev/null && err_exit "Subsh_t leaked out of subshell"
+
+# ======
+# https://github.com/ksh93/ksh/issues/350#issuecomment-982168684
+got=$("$SHELL" -c 'typeset -T trap=( typeset -i i )' 2>&1)
+exp=': trap: is a special shell builtin'
+[[ $got == *"$exp" ]] || err_exit "typeset -T overrides special builtin" \
+	"(expected match of *$(printf %q "$exp"); got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

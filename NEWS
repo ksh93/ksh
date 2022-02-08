@@ -3,7 +3,16 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
-2022-02-07:
+2022-02-08:
+
+- To avoid an inconsistent state, the 'enum' and 'typeset -T' commands are
+  no longer allowed to replace special built-in commands. For instance,
+  'enum trap=(a b c)' is now an error because 'trap' is a special built-in.
+  The ability of 'typeset -T' to redefine a type is not affected.
+
+- A command like 'typeset -T foo_t' without any assignment no longer creates
+  an incompletely defined 'foo_t' built-in comamnd that will crash the shell
+  when used. Instead, it is now silently ignored for backwards compatibility.
 
 - A bug in which the output of a two dimensional sparse indexed array would
   cause the second subscript to be treated as an associative array when read

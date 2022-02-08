@@ -536,7 +536,7 @@ endargs:
 			errormsg(SH_DICT,ERROR_exit(1),"%s: unknown type",tdata.prefix);
 			UNREACHABLE();
 		}
-		else if(nv_isnull(tdata.tp))
+		else if(nv_isnull(tdata.tp) && sh.envlist)   /* only create a type command if there were assignment(s) */
 			nv_newtype(tdata.tp);
 		tdata.tp->nvenv = tdata.help;
 		flag &= ~NV_TYPE;
