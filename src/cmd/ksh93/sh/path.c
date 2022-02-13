@@ -41,12 +41,12 @@
 #define LIBCMD	"cmd"
 
 
-static int			canexecute(char*,int);
-static void			funload(int,const char*);
-static void noreturn		exscript(char*, char*[], char**);
-static int			checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,int);
-static void			checkdup(register Pathcomp_t*);
-static inline Pathcomp_t	*defpathinit(void);
+static int		canexecute(char*,int);
+static void		funload(int,const char*);
+static void noreturn	exscript(char*, char*[], char**);
+static int		checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,int);
+static void		checkdup(register Pathcomp_t*);
+static Pathcomp_t	*defpathinit(void);
 
 static const char *std_path(void)
 {
@@ -366,7 +366,7 @@ Pathcomp_t *path_nextcomp(register Pathcomp_t *pp, const char *name, Pathcomp_t 
 	return((Pathcomp_t*)0);
 }
 
-static inline Pathcomp_t* defpathinit(void)
+static Pathcomp_t* defpathinit(void)
 {
 	return(path_addpath((Pathcomp_t*)0,std_path(),PATH_PATH));
 }
