@@ -349,7 +349,6 @@ struct Shell_s
 	void		*lex_context;
 	void		*arg_context;
 	void		*pathlist;
-	void		*defpathlist;
 	void		*cdpathlist;
 	char		**argaddr;
 	char		cond_expan;	/* set while processing ${var=val}, ${var:=val}, ${var?err}, ${var:?err} */
