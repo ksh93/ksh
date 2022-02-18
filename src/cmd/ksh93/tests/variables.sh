@@ -1357,4 +1357,13 @@ got=$("$SHELL" -c 'echo $SHLVL; "$SHELL" -c "echo \$SHLVL"; exec "$SHELL" -c "ec
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# The += operator should not free variables outside of its
+# scope when used in an invocation-local assignment.
+exp='baz_foo
+baz'
+got=$("$SHELL" -c $'foo=baz; foo+=_foo "$SHELL" -c \'print $foo\'; print $foo')
+[[ $exp == "$got" ]] || err_exit "using the += operator for invocation-local assignments changes variables outside of the invocation-local scope" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
