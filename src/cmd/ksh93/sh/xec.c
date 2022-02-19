@@ -3596,6 +3596,15 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 		if(spawnpid == -1)
 		{
 #if _use_ntfork_tcpgrp
+			if(jobwasset)
+			{
+				signal(SIGTTIN,SIG_IGN);
+				signal(SIGTTOU,SIG_IGN);
+				if(sh_isstate(SH_INTERACTIVE))
+					signal(SIGTSTP,SIG_IGN);
+				else
+					signal(SIGTSTP,SIG_DFL);
+			}
 			if(job.jobcontrol)
 				tcsetpgrp(job.fd,job.mypgid);
 #endif /* _use_ntfork_tcpgrp */
