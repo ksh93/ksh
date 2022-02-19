@@ -3593,19 +3593,26 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 	fail:
 		if(jobfork && spawnpid<0) 
 			job_fork(-2);
-		if(spawnpid == -1) switch(errno=sh.path_err)
+		if(spawnpid == -1)
 		{
-		    case ENOENT:
-			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
-			UNREACHABLE();
+#if _use_ntfork_tcpgrp
+			if(job.jobcontrol)
+				tcsetpgrp(job.fd,job.mypgid);
+#endif /* _use_ntfork_tcpgrp */
+			switch(errno=sh.path_err)
+			{
+			    case ENOENT:
+				errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
+				UNREACHABLE();
 #ifdef ENAMETOOLONG
-		    case ENAMETOOLONG:
-			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong+4);
-			UNREACHABLE();
+			    case ENAMETOOLONG:
+				errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong+4);
+				UNREACHABLE();
 #endif
-		    default:
-			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
-			UNREACHABLE();
+			    default:
+				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
+				UNREACHABLE();
+			}
 		}
 		job_unlock();
 	}
