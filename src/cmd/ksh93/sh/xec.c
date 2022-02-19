@@ -3606,7 +3606,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int flag)
 					signal(SIGTSTP,SIG_DFL);
 			}
 			if(job.jobcontrol)
-				tcsetpgrp(job.fd,job.mypgid);
+				tcsetpgrp(job.fd,sh.pid);
 #endif /* _use_ntfork_tcpgrp */
 			switch(errno=sh.path_err)
 			{
