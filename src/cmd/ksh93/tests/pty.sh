@@ -977,5 +977,26 @@ r !99
 r : !99: event not found\r\n$
 !
 
+mkfifo testfifo
+tst $LINENO <<"!"
+L suspend a blocked write to a FIFO
+# https://github.com/ksh93/ksh/issues/464
+
+d 15
+p :test-1:
+w echo >testfifo
+r echo
+# untrapped SIGTSTP (Ctrl+Z) should be ineffective here and just print ^Z
+c \cZ
+r ^\^Z$
+# Ctrl+C should interrupt it and trigger an error message
+c \cC
+r ^\^C.*: testfifo: cannot create \[.*\]\r\n$
+p :test-2:
+w echo ok
+r echo
+r ^ok\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

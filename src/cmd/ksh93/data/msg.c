@@ -78,7 +78,7 @@ const char e_badpattern[]	= "%s: invalid shell pattern";
 const char e_noread[]		= "%s: pattern seek requires read access";
 const char e_logout[]		= "Use 'exit' to terminate this shell";
 const char e_exec[]		= "%s: cannot execute";
-const char e_pwd[]		= "cannot access parent directories";
+const char e_pwd[]		= "cannot determine present working directory";
 const char e_found[]		= "%s: not found";
 #ifdef ENAMETOOLONG
 const char e_toolong[]		= "%s: file name too long";

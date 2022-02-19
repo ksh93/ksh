@@ -234,7 +234,14 @@ static void check_typedef(struct comnod *tp, char intypeset)
 		}
 	}
 	if(cp)
+	{
+		if(!dcl_tree)
+		{
+			dcl_tree = dtopen(&_Nvdisc, Dtoset);
+			dtview(sh.bltin_tree, dcl_tree);
+		}
 		nv_onattr(sh_addbuiltin(cp, (Shbltin_f)SYSTRUE->nvalue.bfp, NIL(void*)), NV_BLTIN|BLT_DCL);
+	}
 }
 /*
  * (De)activate an internal declaration built-ins tree into which check_typedef() can pre-add dummy type
@@ -250,9 +257,8 @@ static void dcl_hacktivate(void)
 {
 	if(dcl_recursion++)
 		return;
-	if(!dcl_tree)
-		dcl_tree = dtopen(&_Nvdisc, Dtoset);
-	dtview(sh.bltin_tree, dcl_tree);
+	if(dcl_tree)
+		dtview(sh.bltin_tree, dcl_tree);
 	orig_exit = error_info.exit;
 	error_info.exit = dcl_exit;
 }
@@ -261,7 +267,12 @@ static void dcl_dehacktivate(void)
 	if(!dcl_recursion || --dcl_recursion)
 		return;
 	error_info.exit = orig_exit;
-	dtview(sh.bltin_tree, NIL(Dt_t*));
+	if(dcl_tree)
+	{
+		dtview(sh.bltin_tree, NIL(Dt_t*));
+		if(!sh.shcomp)
+			dtclear(dcl_tree);
+	}
 }
 static noreturn void dcl_exit(int e)
 {

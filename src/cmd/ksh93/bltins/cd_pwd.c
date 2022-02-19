@@ -100,8 +100,6 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	oldpwd = path_pwd();
 	opwdnod = sh_scoped(OLDPWDNOD);
 	pwdnod = sh_scoped(PWDNOD);
-	if(oldpwd == e_dot && pwdnod->nvalue.cp)
-		oldpwd = (char*)pwdnod->nvalue.cp;  /* if path_pwd() failed to get the pwd, use $PWD */
 	if(sh.subshell)
 	{
 		/* clone $OLDPWD and $PWD into the subshell's scope */
@@ -126,7 +124,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	if(sh.subshell && !sh.subshare)
 	{
 #if _lib_fchdir
-		if(!test_inode(nv_getval(pwdnod),e_dot))
+		if(!test_inode(sh.pwd,e_dot))
 #endif
 			sh_subfork();
 	}
@@ -228,6 +226,7 @@ success:
 	if(*dp && (*dp!='.'||dp[1]) && strchr(dir,'/'))
 		sfputr(sfstdout,dir,'\n');
 	nv_putval(opwdnod,oldpwd,NV_RDONLY);
+	free((void*)sh.pwd);
 	if(*dir == '/')
 	{
 		size_t len = strlen(dir);
@@ -236,16 +235,12 @@ success:
 			dir[len] = 0;
 		nv_putval(pwdnod,dir,NV_RDONLY);
 		nv_onattr(pwdnod,NV_EXPORT);
-		if(sh.pwd)
-			free((void*)sh.pwd);
-		sh.pwd = sh_strdup(pwdnod->nvalue.cp);
+		sh.pwd = sh_strdup(dir);
 	}
 	else
 	{
 		/* pathcanon() failed to canonicalize the directory, which happens when 'cd' is invoked from a
 		   nonexistent PWD with a relative path as the argument. Reinitialize $PWD as it will be wrong. */
-		if(sh.pwd)
-			free((void*)sh.pwd);
 		sh.pwd = NIL(const char*);
 		path_pwd();
 		if(*sh.pwd != '/')
@@ -291,7 +286,7 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage((char*)0));
 		UNREACHABLE();
 	}
-	if(*(cp = path_pwd()) != '/')
+	if(*(cp = path_pwd()) != '/' || !test_inode(cp,e_dot))
 	{
 		errormsg(SH_DICT,ERROR_system(1), e_pwd);
 		UNREACHABLE();

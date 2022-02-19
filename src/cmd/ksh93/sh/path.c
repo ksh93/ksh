@@ -186,7 +186,11 @@ char *path_pwd(void)
 	Namval_t *pwdnod;
 	/* Don't bother if PWD already set */
 	if(sh.pwd)
-		return((char*)sh.pwd);
+	{
+		if(*sh.pwd=='/')
+			return((char*)sh.pwd);
+		free((void*)sh.pwd);
+	}
 	/* First see if PWD variable is correct */
 	pwdnod = sh_scoped(PWDNOD);
 	cp = nv_getval(pwdnod);
@@ -198,22 +202,29 @@ char *path_pwd(void)
 		cp = nv_getval(sh_scoped(HOME));
 		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
-			/* Get physical PWD (no symlinks) using getcwd(3), fall back to "." */
+			/* Get physical PWD (no symlinks) using getcwd(3) */
 			cp = sh_getcwd();
-			if(!cp)
-				return((char*)e_dot);
-			tofree++;
+			if(cp)
+				tofree++;
 		}
 		/* Store in PWD variable */
-		if(sh.subshell)
-			pwdnod = sh_assignok(pwdnod,1);
-		nv_putval(pwdnod,cp,NV_RDONLY);
+		if(cp)
+		{
+			if(sh.subshell)
+				pwdnod = sh_assignok(pwdnod,1);
+			nv_putval(pwdnod,cp,NV_RDONLY);
+		}
 		if(tofree)
-			free(cp);
+			free((void*)cp);
 	}
 	nv_onattr(pwdnod,NV_EXPORT);
+	/* Neither obtained the pwd nor can fall back to sane-ish $PWD: fall back to "." */
+	if(!cp)
+		cp = nv_getval(pwdnod);
+	if(!cp || *cp!='/')
+		nv_putval(pwdnod,cp=(char*)e_dot,NV_RDONLY);
 	/* Set shell PWD */
-	sh.pwd = sh_strdup(pwdnod->nvalue.cp);
+	sh.pwd = sh_strdup(cp);
 	return((char*)sh.pwd);
 }
 

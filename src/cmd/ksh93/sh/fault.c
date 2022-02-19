@@ -181,15 +181,15 @@ void	sh_fault(register int sig)
 		sh.lastsig = sig;
 		flag = SH_SIGSET;
 #ifdef SIGTSTP
-		if(sig==SIGTSTP)
+		if(sig==SIGTSTP && pp->mode==SH_JMPCMD)
 		{
-			sh.trapnote |= SH_SIGTSTP;
-			if(pp->mode==SH_JMPCMD && sh_isstate(SH_STOPOK))
+			if(sh_isstate(SH_STOPOK))
 			{
+				sh.trapnote |= SH_SIGTSTP;
 				sigrelease(sig);
 				sh_exit(SH_EXITSIG);
-				return;
 			}
+			return;
 		}
 #endif /* SIGTSTP */
 	}

@@ -932,4 +932,18 @@ then	(
 fi
 
 # ======
+# Crash after unsetting PWD
+(unset PWD; (cd /); :) &	# the : avoids optimizing out the subshell
+wait "$!" 2>/dev/null
+((!(e = $?))) || err_exit "shell crashes on 'cd' in subshell exit with unset PWD" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+mkdir "$tmp/testdir"
+cd "$tmp/testdir"
+"$SHELL" -c 'cd /; rmdir "$1"' x "$tmp/testdir"
+(unset PWD; exec "$SHELL" -c '(cd /); :') &
+wait "$!" 2>/dev/null
+((!(e = $?))) || err_exit 'shell crashes on failure obtain the PWD on init' \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+
+# ======
 exit $((Errors<125?Errors:125))
