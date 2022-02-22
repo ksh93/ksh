@@ -972,7 +972,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 		mp->nvflag |= (np->nvflag&NV_MINIMAL);
 	if(mp->nvalue.cp==val && !nv_isattr(np,NV_INTEGER))
 	{
-		if(np->nvalue.cp && np->nvalue.cp!=Empty && (flags&NV_COMVAR) && !(flags&NV_MOVE))
+		if(np->nvalue.cp && np->nvalue.cp!=Empty && (!flags || ((flags&NV_COMVAR) && !(flags&NV_MOVE))))
 		{
 			if(size)
 				mp->nvalue.cp = (char*)sh_memdup(np->nvalue.cp,size);

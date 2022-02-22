@@ -183,6 +183,7 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 char *path_pwd(void)
 {
 	register char *cp;
+	char tofree = 0;
 	Namval_t *pwdnod;
 	/* Don't bother if PWD already set */
 	if(sh.pwd)
@@ -198,7 +199,6 @@ char *path_pwd(void)
 	{
 		/* Check if $HOME is a path to the PWD; this ensures $PWD == $HOME
 		   at login, even if $HOME is a path that contains symlinks */
-		char tofree = 0;
 		cp = nv_getval(sh_scoped(HOME));
 		if(!(cp && *cp=='/' && test_inode(cp,e_dot)))
 		{
@@ -214,8 +214,6 @@ char *path_pwd(void)
 				pwdnod = sh_assignok(pwdnod,1);
 			nv_putval(pwdnod,cp,NV_RDONLY);
 		}
-		if(tofree)
-			free((void*)cp);
 	}
 	nv_onattr(pwdnod,NV_EXPORT);
 	/* Neither obtained the pwd nor can fall back to sane-ish $PWD: fall back to "." */
@@ -224,7 +222,9 @@ char *path_pwd(void)
 	if(!cp || *cp!='/')
 		nv_putval(pwdnod,cp=(char*)e_dot,NV_RDONLY);
 	/* Set shell PWD */
-	sh.pwd = sh_strdup(cp);
+	if(!tofree)
+		cp = sh_strdup(cp);
+	sh.pwd = cp;
 	return((char*)sh.pwd);
 }
 

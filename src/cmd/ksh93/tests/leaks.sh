@@ -425,4 +425,21 @@ DO
 DONE
 
 # ======
+# Possible memory leak when using the += operator on variables
+# in an invocation-local scope.
+bintrue=$(whence -p true)
+testfunc() { true; }
+alias testalias=testfunc
+TEST title='+= operator used before command'
+DO
+	baz=bar
+	baz+=baz :          # Special builtin
+	baz+=foo true       # Regular builtin
+	baz+=foo "$bintrue" # External command
+	baz+=foo testfunc   # Function
+	baz+=foo testalias  # Alias
+	unset baz
+DONE
+
+# ======
 exit $((Errors<125?Errors:125))

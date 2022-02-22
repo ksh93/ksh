@@ -3,7 +3,13 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
-2022-01-17:
+2022-02-18:
+
+- Fixed a regression introduced on 2021-04-11 that caused the += operator in
+  invocation-local assignments to crash the shell or modify variables outside
+  of the invocation-local scope.
+
+2022-02-17:
 
 - Fixed a crash, introduced on 2021-01-19, that occurred when using 'cd' in
   a subshell with the PWD variable unset.
@@ -11,7 +17,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a crash that could occur when or after entering the suspend character
   (Ctrl+Z) while the shell was blocked trying to write to a FIFO special file.
 
-2022-01-16:
+2022-02-16:
 
 - Backported minor additions to the 'read' built-in command from ksh 93v-:
   '-a' is now the same as '-A' and '-u p' is the same as '-p'. This is for

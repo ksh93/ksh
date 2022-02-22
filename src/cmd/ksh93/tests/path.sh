@@ -944,6 +944,15 @@ cd "$tmp/testdir"
 wait "$!" 2>/dev/null
 ((!(e = $?))) || err_exit 'shell crashes on failure obtain the PWD on init' \
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+cd "$tmp"
+
+# ======
+# https://github.com/ksh93/ksh/issues/467
+[[ -d emptydir ]] || mkdir emptydir
+got=$(unset PWD; "$SHELL" -c 'echo "$PWD"; pwd; cd emptydir' 2>&1)
+exp=$PWD$'\n'$PWD
+[[ $got == "$exp" ]] || err_exit "child shell failed to obtain PWD" \
+        "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
