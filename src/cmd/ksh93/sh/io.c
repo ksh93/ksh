@@ -1944,7 +1944,7 @@ static ssize_t piperead(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *handle)
 {
 	int	(*readf)(void*, int, char*, int, int);
-	int	reedit=0, rsize;
+	int	reedit=0, rsize, n, fno;
 #if SHOPT_HISTEXPAND
 	char    *xp=0;
 #endif /* SHOPT_HISTEXPAND */
@@ -1969,6 +1969,14 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 		errno = EINTR;
 		return(-1);
 	}
+	fno = sffileno(iop);
+#ifdef O_NONBLOCK
+	if((n=fcntl(fno,F_GETFL,0))!=-1 && n&O_NONBLOCK)
+	{
+		n &= ~O_NONBLOCK;
+		fcntl(fno, F_SETFL, n);
+	}
+#endif /* O_NONBLOCK */
 	while(1)
 	{
 		if(io_prompt(iop,sh.nextprompt)<0 && errno==EIO)
