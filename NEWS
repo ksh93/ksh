@@ -3,11 +3,18 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
-2022-08-23:
+2022-02-23:
 
 - When reading input from the keyboard, ksh now turns off nonblocking I/O
   mode for standard input if a previously ran program left it on, so that
   interactive programs that expect it to be off work properly.
+
+- Fixed a regression introduced on 2022-02-02 that caused interactive shells
+  to enter an infinite loop when a command failed to execute on Linux
+  systems with version 2.35 of glibc.
+
+- Fixed a SIGTTOU lockup that could cause ksh to freeze under strace(1) after
+  a command failed to execute in an interactive shell.
 
 2022-02-18:
 
