@@ -574,4 +574,36 @@ let "(e=$?)==1" && [[ $got == 'ERR trap' ]] || err_exit 'ERR trap + pipefail fai
 	"(expected status 1, 'ERR trap'; got status $e, $(printf %q "$got"))"
 
 # ======
+# Basic test for 'ksh -v' backported from ksh93v- 2013-09-13
+exp=:
+got=$("$SHELL" -vc : 2>&1)
+[[ $exp == $got ]] || err_exit 'incorrect output with ksh -v' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Tests that set -m puts background jobs in a separate process group.
+LINENO=$LINENO "$SHELL" -m <<- \EOF
+	. "${SHTESTS_COMMON:-${0%/*}/_common}"
+	[[ $- == *m* ]] || err_exit '$- does not contain m when monitor mode specified'
+	float t=SECONDS
+	sleep 2 & pid=$!
+	kill -KILL -$pid 2> /dev/null || err_exit 'kill to background group failed'
+	wait 2> /dev/null
+	(( (SECONDS-t) > 1 )) && err_exit 'kill did not kill background sleep'
+	exit $Errors
+EOF
+((Errors+=$?))
+
+# ======
+# Test for 'set -u' from ksh93v- 2013-04-09
+"$SHELL" 2> /dev/null <<- \EOF && err_exit 'unset variable with set -u on does not terminate script'
+	set -e -u -o pipefail
+	ls | while read file
+	do
+		files[${#files[*]}]=$fil
+	done
+	exit
+EOF
+
+# ======
 exit $((Errors<125?Errors:125))

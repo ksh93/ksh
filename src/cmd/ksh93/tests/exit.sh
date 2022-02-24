@@ -183,4 +183,25 @@ done
 || err_exit 'Redirection error with function execution causes shell to exit'
 
 # ======
+# Backported regression test from ksh93v- 2014-09-29 for the
+# exit status of functions in command substitutions.
+foo() {
+  print -r foo | read
+  return 1
+}
+o1=$(foo "foo")
+status=$?
+exp=1
+((exp == status)) ||  err_exit 'function which fails inside of a command substitution returns wrong exit status' \
+	"(expected '$exp', got '$status')"
+
+# Backported test from ksh93v- 2014-07-21 for the exit status
+# of subshells with a failing command without pipefail enabled.
+x=$({ sleep .1; false;} | true)
+status=$?
+exp=0
+(( exp == status )) || err_exit 'without pipefail, non-zero exit in pipeline causes command substitution to fail' \
+	"(expected '$exp', got '$status')"
+
+# ======
 exit $((Errors<125?Errors:125))

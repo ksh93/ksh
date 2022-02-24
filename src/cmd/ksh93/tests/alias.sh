@@ -163,14 +163,14 @@ got=$(
 
 # Listing members of the hash table with 'alias -pt' should work
 exp='alias -t cat
-vi: tracked alias not found
+ls: tracked alias not found
 alias -t cat
 alias -t chmod'
 got=$(
 	set +x
 	redirect 2>&1
 	hash -r cat chmod
-	alias -pt cat vi  # vi shouldn't be added to the hash table
+	alias -pt cat ls  # ls shouldn't be added to the hash table
 	alias -pt
 )
 [[ $exp == $got ]] || err_exit "Listing members of the hash table with 'alias -pt' doesn't work" \
@@ -228,12 +228,12 @@ ret=$?
 	"(expected 2, got $ret)"
 
 # Detect zombie aliases with 'alias'.
-exp='vi: alias not found
+exp='ls: alias not found
 chmod: alias not found'
 got=$($SHELL -c '
-	hash vi chmod
+	hash ls chmod
 	hash -r
-	alias vi chmod
+	alias ls chmod
 ' 2>&1)
 ret=$?
 [[ $exp == $got ]] || err_exit "Listing removed tracked aliases with 'alias' should fail with an error message" \
@@ -242,12 +242,12 @@ ret=$?
 	"(expected 2, got $ret)"
 
 # Detect zombie aliases with 'alias -p'.
-exp='vi: alias not found
+exp='ls: alias not found
 chmod: alias not found'
 got=$($SHELL -c '
-	hash vi chmod
+	hash ls chmod
 	hash -r
-	alias -p vi chmod
+	alias -p ls chmod
 ' 2>&1)
 ret=$?
 [[ $exp == $got ]] || err_exit "Listing removed tracked aliases with 'alias -p' should fail with an error message" \
@@ -256,12 +256,12 @@ ret=$?
 	"(expected 2, got $ret)"
 
 # Detect zombie tracked aliases.
-exp='vi: tracked alias not found
+exp='ls: tracked alias not found
 chmod: tracked alias not found'
 got=$($SHELL -c '
-	hash vi chmod
+	hash ls chmod
 	hash -r
-	alias -pt vi chmod
+	alias -pt ls chmod
 ' 2>&1)
 ret=$?
 [[ $exp == $got ]] || err_exit "Listing removed tracked aliases with 'alias -pt' should fail with an error message" \

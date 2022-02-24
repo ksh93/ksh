@@ -355,6 +355,9 @@ test ! ! ! 2> /dev/null || err_exit 'test ! ! ! should return 0'
 test ! ! x 2> /dev/null || err_exit 'test ! ! x should return 0'
 test ! ! '' 2> /dev/null && err_exit 'test ! ! "" should return non-zero'
 
+x=10
+([[ x -eq 10 ]]) 2> /dev/null || err_exit 'x -eq 10 fails in [[...]] with x=10'
+
 # ======
 # The POSIX mode should disable the ancient 'test -t' compatibility hack.
 if	[[ -o ?posix ]]

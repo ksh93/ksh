@@ -1113,4 +1113,45 @@ e2=$( (ulimit -t unlimited 2>/dev/null; f() { return 267; }; f); echo $? )
 ((e1==11 && e2==11)) || err_exit "exit status of virtual ($e1) and real ($e2) subshell should both be clipped to 8 bits (11)"
 
 # ======
+# Regression test backported from ksh93v- 2014-04-15 for
+# a nonexistent command at the end of a pipeline in ``
+"$SHELL" -c 'while((SECONDS<3)); do test -z `/bin/false | /bin/false | /bin/doesnotexist`; done; :' 2> /dev/null || \
+	err_exit 'nonexistent last command in pipeline causes `` command substitution to fail'
+
+# Regression test backported from ksh93v- 2013-07-19 for the
+# effects of .sh.value on shared-state command substitutions.
+function foo
+{
+       .sh.value=bam
+}
+got=${ foo; }
+[[ $got ]] && err_exit "setting .sh.value in a function affects shared-state command substitution output when it shouldn't print anything" \
+	"(got $(printf %q "$got"))"
+
+# Regression test from ksh93v- 2012-11-21 for testing nested
+# command substitutions with a 2>&1 redirection.
+fun()
+{
+	echo=$(whence -p echo)
+	foo=` $echo foo`
+	print -n stdout=$foo
+	print -u2 stderr=$foo
+}
+[[ `fun 2>&1` == 'stdout=foostderr=foo' ]] || err_exit 'nested command substitution with 2>&1 not working'
+
+# Various regression tests from ksh93v- 2012-10-04 and 2012-10-24
+$SHELL > /dev/null -c 'echo $(for x in whatever; do case y in *) true;; esac; done)' || err_exit 'syntax error with case in command substitution'
+
+print 'print OK' | got=$("$SHELL")
+exp=OK
+[[ $got == $exp ]] || err_exit '$() command substitution not waiting for process completion' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+print 'print OK' | out=$( "$SHELL" 2>&1 )
+got="${out}$?"
+exp=OK0
+[[ $got == $exp ]] || err_exit "capturing output from ksh when piped doesn't work correctly" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

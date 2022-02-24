@@ -561,6 +561,10 @@ actual=$*
 [[ $actual == "$expect" ]] || err_exit "IFS failed with invalid multi-byte character" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
+# Backported test from ksh93v- 2013-06-28 for 'unset IFS'
+unset IFS
+[[ ${IFS+abc} ]] && err_exit "testing for unset IFS not working"
+
 # ^^^ end: IFS tests ^^^
 # restore default split:
 unset IFS

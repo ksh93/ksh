@@ -224,6 +224,13 @@ exp=3
 [[ ${foo[bar][x]} == $exp ]] || err_exit "subscript gets added incorrectly to an associative array when ++ operator is called" \
 	"(expected '$exp', got '${foo[bar][x]}')"
 
+unset A
+typeset -A A
+typeset -A A[a]
+A[a][z]=1
+[[ ${!A[a][@]} == z ]] || err_exit 'A[a] should only have subscript z' \
+	"(got $(printf %q "${!A[a][@]}"))"
+
 # ======
 # Multidimensional arrays with an unset method shouldn't cause a crash.
 # The test itself must be run inside of a function.

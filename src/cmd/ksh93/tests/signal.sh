@@ -568,5 +568,11 @@ got=$("$SHELL" -c 'trap + INT; "$SHELL" -c '\''kill -s INT $$'\''; echo "$?, con
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 trap - INT
 
+# Test for 'trap - INT' backported from ksh93v- 2013-07-27
+float s=SECONDS
+(trap - INT; exec sleep 2) & sleep .5; kill -sINT $!
+wait $!
+(( (SECONDS-s) < 1.8)) && err_exit "'trap - INT' causing trap to not be ignored"
+
 # ======
 exit $((Errors<125?Errors:125))

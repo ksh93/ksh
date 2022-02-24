@@ -210,7 +210,7 @@ cat >"${testscript}" <<-TEST1SCRIPT
 			printf '\\n'
 		} >"\${tmpfile}"
 
-		diff -u <( printf '%s\\n' "\${xtext}") "\${tmpfile}"
+		diff -u <( printf '%s\\n' "\${xtext}") "\${tmpfile}" | sed '/No differences encountered/d'
 		if cmp <( printf '%s\\n' "\${xtext}") "\${tmpfile}" ; then
 			printf "#input and output OK (%d characters).\\n" "\$(wc -m <"\${tmpfile}")"
 		else

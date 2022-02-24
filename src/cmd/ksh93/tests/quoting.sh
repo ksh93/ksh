@@ -362,4 +362,13 @@ ARGS=("$@")
 set -- "${ARGS[@]}"
 (( $# )) &&  err_exit 'set -- "${ARGS[@]}" for empty array should not produce arguments'
 
+# ======
+# Backported tests from ksh93v- 2013-04-22 for using
+# backslashes in variables.
+x=\\x
+[[ x == $x ]] && err_exit "\$x='$x' should not match x"
+case x in
+$x) err_exit "case \$x='$x' should not match x";;
+esac
+
 exit $((Errors<125?Errors:125))

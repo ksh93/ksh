@@ -306,7 +306,7 @@ done
 
 (
 PS4=$tmpPS4
-[[ $(string=$string $SHELL -c  ": \${string/$pattern/}; print \${.sh.match[26]}") == Z ]] || err_exit -u2 'sh.match[26] not Z'
+[[ $(string=$string $SHELL -c  ": \${string/$pattern/}; print \${.sh.match[26]}") == Z ]] || err_exit 'sh.match[26] not Z'
 : ${string/$pattern/}
 (( ${#.sh.match[@]} == 53 )) || err_exit '.sh.match has wrong number of elements'
 [[ ${.sh.match[@]:2:4} == 'B C D E'  ]] || err_exit '${.sh.match[@]:2:4} incorrect'

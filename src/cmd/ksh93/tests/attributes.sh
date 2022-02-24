@@ -738,4 +738,17 @@ unset .foo.bar .foo
 set +o allexport
 
 # ======
+# Regression test from ksh93v- 2012-10-24 for testing the zerofill width
+# after exporting a variable.
+unset exp got
+typeset -Z4 VAR1
+VAR1=1
+exp=$(typeset -p VAR1)
+export VAR1
+got=$(typeset -p VAR1)
+got=${got/ -x/}
+[[ $got == "$exp" ]] || err_exit 'typeset -x causes zerofill width to change' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

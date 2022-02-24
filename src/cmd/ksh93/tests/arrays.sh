@@ -820,4 +820,8 @@ got=$(typeset -p foo)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Regression test for 'typeset -a' from ksh93v- 2013-04-02
+"$SHELL" -c 'a=(foo bar); [[ $(typeset -a) == *"a=("*")"* ]]' || err_exit "'typeset -a' doesn't work correctly"
+
+# ======
 exit $((Errors<125?Errors:125))

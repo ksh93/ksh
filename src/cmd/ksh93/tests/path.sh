@@ -955,4 +955,17 @@ exp=$PWD$'\n'$PWD
         "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Test backported from ksh93v- 2013-06-28 for deleting
+# a loaded libcmd builtin.
+if builtin cat 2> /dev/null
+then	path=$PATH
+	PATH=/bin:/usr/bin
+	if [[ $(type -t cat) == builtin ]]
+	then	builtin -d cat
+		[[ $(type -t cat) == builtin ]] && err_exit 'builtin -d does not delete builtin libcmd builtin'
+	fi
+fi
+PATH=$path
+
+# ======
 exit $((Errors<125?Errors:125))

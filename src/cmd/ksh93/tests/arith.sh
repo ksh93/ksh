@@ -948,4 +948,39 @@ got=$(typeset -Z x=0x15; set +x; { echo $((x)); } 2>&1)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Test for 'set -u' backported from ksh93v- 2013-09-26
+unset IFS i
+set -u
+float -a ar
+function f
+{
+	integer i=0 ar_i=0
+	for	(( i=0 ; i < 3 ; i++ ))
+	do	(( ar[ar_i++]=i))
+	done
+	printf "%q\n" "${ar[*]}"
+}
+[[ $(f) == "'0 1 2'" ]] || err_exit '0 value for variable in arithmetic expression inside function with set -u fails'
+set +u
+
+# Test for unset x.NOT_KNOWN floating point variable (backported
+# from ksh93v- 2013-09-13).
+unset x
+float x
+((x.NOT_KNOWN == 0)) || err_exit 'x.NOT_KNOWN is unknown and should have value 0'
+
+# Test for a bug with short integers that causes core dumps
+# (backported from ksh93v- 2013-08-07).
+"$SHELL" <<- \EOF || err_exit 'detected short integer bug that causes core dumps'
+       typeset -s -i -a t
+       typeset -s -i p
+       (( p=2**17 )) # tape start position
+       (( t[p]+=13))
+       while (( t[p] != 0 ))
+       do      ((t[p]-=1 , p+=1))
+       done
+       exit 0
+EOF
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -392,7 +392,7 @@ function closure
 	done
 	return $r
 }
-closure 0 || err_exit -u2 'for loop function optimization bug2'
+closure 0 || err_exit 'for loop function optimization bug'
 dir=$tmp/dir
 mkdir $dir
 cd $dir || { err_exit "cd $dir failed"; exit 1; }

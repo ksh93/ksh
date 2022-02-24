@@ -801,19 +801,41 @@ integer foo=1
 exp=4
 got=$(foo+=3 command eval 'echo $foo')
 [[ $exp == $got ]] || err_exit "Test 1: += assignment for environment variables doesn't work with 'command special_builtin'" \
-	"(expected $exp, got $got)"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 foo+=3 command eval 'test $foo'
-(( foo == 1 )) || err_exit "environment isn't restored after 'command special_builtin'" \
-	"(expected 1, got $foo)"
+exp=1
+(( foo == exp )) || err_exit "environment isn't restored after 'command special_builtin'" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 got=$(foo+=3 eval 'echo $foo')
+exp=4
 [[ $exp == $got ]] || err_exit "+= assignment for environment variables doesn't work with builtins" \
-	"(expected $exp, got $got)"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 unset foo
 exp=barbaz
 got=$(foo=bar; foo+=baz command eval 'echo $foo')
 [[ $exp == $got ]] || err_exit "Test 2: += assignment for environment variables doesn't work with 'command special_builtin'" \
-	"(expected $exp, got $got)"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+unset y
+exp='outside f, 1, 2, 3, outside f'
+got=$(
+	f() {
+		if [ -n "${_called_f+_}" ]; then
+			for y; do
+				printf '%s, ' "$y"
+			done
+		else
+			_called_f= y= command eval '{ typeset +x y; } 2>/dev/null; f "$@"'
+		fi
+	}
+	y='outside f'
+	printf "$y, "
+	f 1 2 3
+	echo "$y"
+)
+[[ $got == "$exp" ]] || err_exit 'assignments to "command special_built-in" leaving side effects' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Attempting to modify a readonly variable with the += operator should fail
 exp=2
@@ -1027,7 +1049,9 @@ unset foo
 			[[ $expect != $actual ]] && err_exit "Specifying $padding padding with format '%$i' doesn't work (expected '$expect', got '$actual')"
 		done
 	done
+	exit $Errors
 )
+Errors=$?  # Ensure error count survives subshell
 
 # ======
 # Test various AST getopts usage/manual outputs
@@ -1543,6 +1567,22 @@ kill "$sleep_pid" 2>/dev/null
 # ...It failed to implement co-process compatibility for 'read -p .dot.varname' or 'read -p varname?prompt'
 (echo ok |& read -p .sh.foo"?dummy prompt: " && [[ ${.sh.foo} == ok ]]) </dev/null \
 || err_exit "'read -p' co-process usage is not fully backward compatible with ksh 93u+"
+
+# Backported ksh93v- 2014-06-25 test for eval bug when called
+# from . script in a startup file.
+print $'eval : foo\nprint ok' > "$tmp/evalbug"
+print ". $tmp/evalbug" > "$tmp/envfile"
+[[ $(ENV=$tmp/envfile "$SHELL" -i -c : 2> /dev/null) == ok ]] || err_exit 'eval inside dot script called from profile file not working'
+
+# Backported ksh93v- 2013-03-18 test for 'read -A', where
+# IFS sets the delimiter to a newline while -d specifies
+# no delimiter (-d takes priority over IFS).
+if ((SHOPT_BRACEPAT)); then
+	got=$(printf %s\\n {a..f} | IFS=$'\n' read -rd '' -A a; typeset -p a)
+	exp=$'typeset -a a=($\'a\\nb\\nc\\nd\\ne\\nf\\n\')'
+	[[ $got == "$exp" ]] || err_exit "IFS overrides the delimiter specified by the read command's -d option" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

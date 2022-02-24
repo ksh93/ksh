@@ -652,6 +652,11 @@ test_read_type_crash
 test_read_C_into_array
 test_read_C_special_shell_keywords
 
+unset bar
+enum bool=(false true)
+bool -a bar
+bar[3]=true
+[[ $((5+bar[3])) != 6 ]] && err_exit '$((5+bar[3])) should be 6'
 
 # tests done
 exit $((Errors<125?Errors:125))
