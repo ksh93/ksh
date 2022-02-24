@@ -621,7 +621,6 @@ function main
 	for ((i=2 ; i < 8 ; i++ )) ; do
 		pawn_t c.board[1][$i]
 	done
-	
 }
 main 2> /dev/null && err_exit 'type assignment to compound array instance should generate an error'
 
