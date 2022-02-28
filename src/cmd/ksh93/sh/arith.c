@@ -516,7 +516,6 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		sfsync(NIL(Sfio_t*));
 		if(lvalue->emode&ARITH_COMP)
 			return(-1);
-			
 		errormsg(SH_DICT,ERROR_exit((lvalue->emode&3)!=0),lvalue->value,*ptr);
 	}
 	*ptr = str;

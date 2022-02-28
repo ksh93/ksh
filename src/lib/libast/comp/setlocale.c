@@ -2512,7 +2512,6 @@ single(int category, Lc_t* lc, unsigned int flags)
 			ast.locale.set &= ~(1<<category);
 		else
 			ast.locale.set |= (1<<category);
-		
 	}
 	else if (lc_categories[category].flags ^ flags)
 	{

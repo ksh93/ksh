@@ -659,7 +659,6 @@ static void putdisc(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 		nv_disc(np,fp,NV_POP);
 		if(!(fp->nofree&1))
 			free((void*)fp);
-			
 	}
 }
 

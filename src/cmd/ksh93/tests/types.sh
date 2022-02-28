@@ -725,7 +725,7 @@ exp=$'start1\ntypeset -x a=one\nstart2\ntypeset -x a=one\nend2\nend1'
 
 # Backported regression test from ksh93v- 2013-08-07 for
 # short integer arrays in types.
-got=$("$SHELL" 2>&1 <<- \EOF
+got=$(set +x; "$SHELL" 2>&1 <<- \EOF
        typeset -T X_t=(typeset -si -a arr=(7 8) )
        X_t x
        print -r -- $((x.arr[1]))

@@ -1432,7 +1432,6 @@ static noreturn void exscript(register char *path,register char *argv[],char **e
 		close( fd);
 	}
     }
- 
     /*
      * Produce a pseudo-floating point representation
      * with 3 bits base-8 exponent, 13 bits fraction.
@@ -1605,7 +1604,6 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, register const char *path,int type)
 	Pathcomp_t *old=0;
 	int offset = staktell();
 	char *savptr;
-	
 	if(!path && type!=PATH_PATH)
 		return(first);
 	if(type!=PATH_FPATH)
@@ -1756,7 +1754,6 @@ Pathcomp_t *path_unsetfpath(void)
 				}
 				continue;
 			}
-			
 		}
 		old = pp;
 		pp = pp->next;

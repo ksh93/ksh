@@ -339,7 +339,6 @@ static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp,int f
 			nq->nvalue.cp = Empty;
 		else if(nq->nvalue.cp==Empty)
 			nv_offattr(nq,NV_NOFREE);
-	
 	}
 	if(fp)
 		nv_disc(nq, &dp->childfun.fun, NV_LAST);
@@ -603,7 +602,6 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 	Namval_t	*np,*nq,*tp;
 	int		n, i, offset=staktell();
 	Sfio_t		*sp;
-	
 	np = *(Namval_t**)(fp+1);
 	stakputs(NV_CLASS);
 	stakputc('.');

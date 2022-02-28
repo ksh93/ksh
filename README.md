@@ -112,7 +112,7 @@ To run the default test sets for ksh and the build system, use:
 ```sh
 bin/package test
 ```
-For ksh, use the `shtests` command direclty to control the regression test runs.
+For ksh, use the `shtests` command directly to control the regression test runs.
 Start by reading the information printed by:
 ```sh
 bin/shtests --man

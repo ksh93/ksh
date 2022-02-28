@@ -483,7 +483,6 @@ int test_unop(register int op,register const char *arg)
 				np = nv_refnode(np);
 			else
 				return(0);
-			
 		}
 		if(ap = nv_arrayptr(np))
 			return(nv_arrayisset(np,ap));

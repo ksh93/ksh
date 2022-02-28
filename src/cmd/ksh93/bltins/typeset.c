@@ -906,7 +906,6 @@ static int     setall(char **argv,register int flag,Dt_t *troot,struct tdata *tp
 				{
 					if(!(flag&NV_RJUST))
 						newflag &= ~NV_RJUST;
-					
 					else if(!(flag&NV_LJUST))
 						newflag &= ~NV_LJUST;
 				}
@@ -1601,7 +1600,6 @@ static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tda
 				}
 				else if((flag&NV_IARRAY))
 					continue;
-				
 			}
 			tp->scanmask = flag&~NV_NOSCOPE;
 			tp->scanroot = root;

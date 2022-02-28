@@ -874,7 +874,6 @@ static char **genvalue(char **argv, const char *prefix, int n, struct Walk *wp)
 					continue;
 				if((wp->array = nv_isarray(np)) && (ap=nv_arrayptr(np)))
 					k = array_elem(ap);
-					
 				if(wp->indent>0)
 					sfnputc(outfile,'\t',wp->indent);
 				nv_attribute(np,outfile,"typeset",1);

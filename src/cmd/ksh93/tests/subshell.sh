@@ -1137,7 +1137,7 @@ fun()
 	print -n stdout=$foo
 	print -u2 stderr=$foo
 }
-[[ `fun 2>&1` == 'stdout=foostderr=foo' ]] || err_exit 'nested command substitution with 2>&1 not working'
+[[ `set +x; fun 2>&1` == 'stdout=foostderr=foo' ]] || err_exit 'nested command substitution with 2>&1 not working'
 
 # Various regression tests from ksh93v- 2012-10-04 and 2012-10-24
 $SHELL > /dev/null -c 'echo $(for x in whatever; do case y in *) true;; esac; done)' || err_exit 'syntax error with case in command substitution'

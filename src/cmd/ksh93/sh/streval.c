@@ -870,7 +870,6 @@ again:
 				stakpush(vp,d,Sfdouble_t);
 				stakputc(lvalue.isfloat);
 			}
-	
 			/* check for function call */
 			if(lvalue.fun)
 				continue;

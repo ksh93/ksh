@@ -348,7 +348,6 @@ void	sh_sigreset(register int mode)
 				free(trap);
 			sh.st.trap[sig] = 0;
 		}
-		
 	}
 	if(sh.st.trapcom[0] && sh.st.trapcom[0] != Empty)
 		free(sh.st.trapcom[0]);

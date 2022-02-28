@@ -69,7 +69,6 @@ static Lex_t *savelex;
     {
 	switch(c)
 	{
-	    
 	    case cntl('A'): return('A');
 	    case cntl('B'): return('B');
 	    case cntl('C'): return('C');

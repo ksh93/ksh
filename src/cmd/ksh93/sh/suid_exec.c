@@ -498,7 +498,6 @@ static void maketemp(char *template)
 		*--cp = (n%10) + '0';
 		n /= 10;
 	}
-	
 }
 
 /*

@@ -1994,7 +1994,6 @@ static int here_copy(Lex_t *lp,register struct ionod *iop)
 				special++;
 			fcget();
 			break;
-				
 		    case S_GRAVE:
 		    case S_DOL:
 			special++;

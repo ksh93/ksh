@@ -1077,7 +1077,6 @@ static char* get_math(register Namval_t* np, Namfun_t *fp)
 	}
 	val = sfstruse(sh.strbuf);
 	return(val);
-	
 }
 
 static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namfun_t *fp)
@@ -1169,7 +1168,6 @@ int sh_type(register const char *path)
 {
 	register const char*	s;
 	register int		t = 0;
-	
 	if (s = (const char*)strrchr(path, '/'))
 	{
 		if (*path == '-')

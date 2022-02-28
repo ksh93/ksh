@@ -54,7 +54,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 
 - Filescan loops are now disabled at runtime if the --posix option is active
   as they break a portable use case: POSIXly, 'while <file; do stuff; done'
-  repeatedly excutes 'stuff' while 'file' can successfully be opened for
+  repeatedly executes 'stuff' while 'file' can successfully be opened for
   reading, without actually reading from 'file'.
 
 2022-02-12:
@@ -84,7 +84,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   The ability of 'typeset -T' to redefine a type is not affected.
 
 - A command like 'typeset -T foo_t' without any assignment no longer creates
-  an incompletely defined 'foo_t' built-in comamnd that will crash the shell
+  an incompletely defined 'foo_t' built-in command that will crash the shell
   when used. Instead, it is now silently ignored for backwards compatibility.
 
 - Compound arrays belonging to a type created with 'typeset -T' now have
@@ -310,7 +310,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 2021-12-16:
 
 - Changed the default selection of compiled-in /opt/ast/bin built-in libcmd
-  command to: basename, cat, cp, cut, dirname, getconf, ln, mktemp, mv.
+  commands to: basename, cat, cp, cut, dirname, getconf, ln, mktemp, mv.
   Add /opt/ast/bin to your $PATH to use these. Type 'cp --man', etc. for info.
 
 - A bug introduced on 2020-09-17 was fixed that caused interactive ksh to exit
@@ -1152,7 +1152,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   to lose the output of the commands they ran. This bug occurred when ksh was
   compiled with the SHOPT_SPAWN compile-time option.
 
-- Bugfix: var=$(< file) now reads the file even if the standard inout, standard
+- Bugfix: var=$(< file) now reads the file even if the standard input, standard
   output and/or standard error file descriptors are closed.
 
 2020-09-20:

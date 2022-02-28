@@ -1506,7 +1506,6 @@ retry1:
 			{
 				ap->nelem &= ~ARRAY_SCAN;
 				dolg = 0;
-		
 			}
 		}
 		break;
@@ -2659,7 +2658,6 @@ static void tilde_expand2(register int offset)
  * If ~name  is replaced with login directory of name.
  * If string doesn't start with ~ or ~... not found then 0 returned.
  */
-                                                            
 static char *sh_tilde(register const char *string)
 {
 	register char		*cp;

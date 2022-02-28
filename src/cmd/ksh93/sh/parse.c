@@ -1641,7 +1641,6 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 				lexp->comp_assign = 2;
 				goto retry;
 			}
-			
 		}
 		if(!(flag&SH_NOIO))
 		{

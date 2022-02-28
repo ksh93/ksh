@@ -424,7 +424,7 @@ noisy()
 copy() # "output-file" "data-that-must-not-be-processed-by-echo"
 {
 	# Some ksh88 clones (pdksh, mksh) lack 'printf' as a built-in utility, so if a
-	# ksh-type shell was detected, use the 'print' built-in for better peformance.
+	# ksh-type shell was detected, use the 'print' built-in for better performance.
 	case $1 in
 	-)	case $shell in
 		ksh)	print -r - "$2"

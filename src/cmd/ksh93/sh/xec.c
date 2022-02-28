@@ -55,7 +55,7 @@
 #   include <sys/resource.h>
 #endif
 
-#if _lib_posix_spawn > 1 && _lib_posix_spawn_file_actions_addtcsetpgrp_np
+#if SHOPT_SPAWN && _lib_posix_spawn > 1 && _lib_posix_spawn_file_actions_addtcsetpgrp_np
 #define _use_ntfork_tcpgrp 1
 #endif
 
@@ -578,7 +578,6 @@ static void put_level(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 	{
 		sh_setscope(sp);
 		error_info.id = sp->cmdname;
-		
 	}
 }
 
@@ -1088,7 +1087,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 #endif /* SHOPT_NAMESPACE */
 							sh.prefix = NV_CLASS;
 							flgs |= NV_TYPE;
-			
 						}
 						if(sh.fn_depth && !sh.prefix)
 							flgs |= NV_NOSCOPE;
@@ -1465,7 +1463,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 #endif /* SHOPT_NAMESPACE */
 							np = nv_search(com0,sh.fun_tree,HASH_NOSCOPE);
 						}
-						
 						if(!np->nvalue.ip)
 						{
 							if(indx==1)
@@ -1777,7 +1774,6 @@ int sh_exec(register const Shnode_t *t, int flags)
 						job_wait(parent);
 						sh_iorestore(topfd,SH_JMPCMD);
 						sh_done((sh.exitval&SH_EXITSIG)?(sh.exitval&SH_EXITMASK):0);
-
 					}
 					job_unlock();
 				}
@@ -3430,7 +3426,6 @@ static void coproc_init(int pipes[])
 		if(fcntl(*sh.cpipe,F_SETFD,FD_CLOEXEC)>=0)
 			sh.fdstatus[sh.cpipe[0]] |= IOCLEX;
 		sh.fdptrs[sh.cpipe[0]] = sh.cpipe;
-			
 		if(fcntl(sh.cpipe[1],F_SETFD,FD_CLOEXEC) >=0)
 			sh.fdstatus[sh.cpipe[1]] |= IOCLEX;
 	}

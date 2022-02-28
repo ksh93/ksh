@@ -103,7 +103,7 @@ Next we turn our attention to the auditing facility. Assuming ksh has been
 compiled with the `SHOPT_AUDIT` option (the default), you must create an audit
 configuration file on each system to tell ksh93 where to store the audit
 records and to specify which users are to be audited. The configuration file
-must be readable by the users whose activites are audited. Its default
+must be readable by the users whose activities are audited. Its default
 location is `/etc/ksh_audit` but that can be changed in the `SHOPT.sh` file.
 The configuration file should contain a line that defines the file to write
 the audit records to, followed by the UID of each user whose commands are to

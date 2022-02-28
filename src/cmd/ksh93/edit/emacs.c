@@ -205,7 +205,6 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	}
 	raw = 1;
 	/* This mess in case the read system call fails */
-	
 	ed_setup(ep->ed,fd,reedit);
 #if !SHOPT_MULTIBYTE
 	out = (genchar*)buff;
@@ -715,9 +714,7 @@ update:
 			continue;
 		}
 	}
-	
 process:
-
 	if (c == (-1))
 	{
 		lookahead = 0;
@@ -1414,7 +1411,6 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	}
 	skip:
 	i = genlen(string);
-	
 	if(ep->prevdirection == -2 && i!=2 || direction!=1)
 		ep->prevdirection = -1;
 	if (direction < 1)
@@ -1583,7 +1579,6 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	**********************/
 	
 	i = ncursor - nscreen;
-	
 	if ((ep->offset && i<=ep->offset)||(i >= (ep->offset+w_size)))
 	{
 		/* Center the cursor on the screen */
@@ -1600,12 +1595,9 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	
 	nptr = &nscreen[ep->offset];
 	sptr = ep->screen;
-	
 	i = w_size;
-	
 	while (i-- > 0)
 	{
-		
 		if (*nptr == '\0')
 		{
 			*(nptr + 1) = '\0';
@@ -1638,7 +1630,6 @@ static void draw(register Emacs_t *ep,Draw_t option)
 	if(ep->ed->e_multiline && option == REFRESH)
 		ed_setcursor(ep->ed, ep->screen, ep->ed->e_peol, ep->ed->e_peol, -1);
 
-	
 	/******************
 	
 	Screen overflow checks 

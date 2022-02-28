@@ -313,7 +313,6 @@ Namval_t *sh_assignok(register Namval_t *np,int add)
 			nv_delete(mp,walk,NV_NOFREE);
 			*((Namval_t**)mp) = lp->child;
 			lp->child = mp;
-			
 		}
 	}
 	lp->dict = dp;

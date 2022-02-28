@@ -178,7 +178,6 @@ static int sh_checkaudit(History_t *hp, const char *name, char *logbuf, size_t l
 done:
 	sh_close(fd);
 	return(r);
-	
 }
 #endif /* SHOPT_AUDIT */
 
@@ -1014,7 +1013,6 @@ int hist_copy(char *s1,int size,int command,int line)
 			}
 			*s1++ = c;
 		}
-			
 	}
 	sfseek(hp->histfp,(off_t)0,SEEK_END);
 	if(s1==0)

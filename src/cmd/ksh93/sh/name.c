@@ -353,7 +353,6 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 						while(ap->argnxt.ap)
 							ap = ap->argnxt.ap;
 						ap->argnxt.ap = tp->com.comarg;
-						
 					}
 					tp->com.comarg = tp->com.comset;
 					tp->com.comset = 0;
@@ -506,7 +505,6 @@ void nv_setlist(register struct argnod *arg,register int flags, Namval_t *typ)
 						_nv_unset(np,NV_EXPORT);  /* this can free ap */
 						if(was_assoc_array)
 							 nv_setarray(np,nv_associative);
-				
 					}
 				}
 				else
@@ -1045,7 +1043,6 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 						flags &= ~NV_FARRAY;
 						if(fixed)
 							flags &= ~NV_ARRAY;
-							
 #endif /* SHOPT_FIXEDARRAY */
 					}
 					else
@@ -1101,7 +1098,6 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 							memcpy(sp+1,sub,n-2);
 							sp[n-1] = ']';
 							cp = sp+n;
-							
 						}
 					}
 					else if(c==0 && mode && (n=nv_aindex(np))>0)
@@ -1311,7 +1307,6 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 #if NVCACHE
 	struct Cache_entry	*xp;
 #endif
-	
 	sh_stats(STAT_NVOPEN);
 	memset(&fun,0,sizeof(fun));
 	sh.openmatch = 0;
@@ -2333,7 +2328,6 @@ void sh_scope(struct argnod *envlist, int fun)
 	{
 		dtview(rp->sdict,newroot);
 		newroot = rp->sdict;
-	
 	}
 	dtview(newscope,(Dt_t*)newroot);
 	sh.var_tree = newscope;
