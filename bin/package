@@ -249,7 +249,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 [+?Independent \b$PACKAGEROOT\b hierarchies can be combined by
     appending \b$INSTALLROOT:$PACKAGEROOT\b pairs to \bVPATH\b. The
     \bVPATH\b viewing order is from left to right.]
-[+?\b$HOSTYPE\b names the current binary architecture and is determined
+[+?\b$HOSTTYPE\b names the current binary architecture and is determined
     by the output of \b'$command$'\b (no arguments). The \b$HOSTTYPE\b naming
     scheme is used to separate incompatible executable and object formats.
     All architecture specific binaries are placed under \b$INSTALLROOT\b
@@ -258,7 +258,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     makefile compiler workarounds, e.g., if \b$HOSTTYPE\b matches \bhp.*\b
     then turn off the optimizer for these objects. All other architecture
     dependent logic is handled either by the \bAST\b \biffe\b(1) command or
-    by component specific configure scripts. Explicit \b$HOSTYPE\b
+    by component specific configure scripts. Explicit \b$HOSTTYPE\b
     values matching *,*cc*[,-*,...]] optionally set the default \bCC\b and
     \bCCFLAGS\b. This is handy for build farms that support different
     compilers on the same architecture.]
@@ -509,7 +509,7 @@ DETAILS
   $INSTALLROOT:$PACKAGEROOT pairs to VPATH. The VPATH viewing order is from
   left to right.
 
-  $HOSTYPE names the current binary architecture and is determined by the
+  $HOSTTYPE names the current binary architecture and is determined by the
   output of package (no arguments). The $HOSTTYPE naming scheme is used to
   separate incompatible executable and object formats. All architecture
   specific binaries are placed under $INSTALLROOT
@@ -518,7 +518,7 @@ DETAILS
   workarounds, e.g., if $HOSTTYPE matches hp.* then turn off the optimizer for
   these objects. All other architecture dependent logic is handled either by
   the AST iffe(1) command or by component specific configure scripts. Explicit
-  $HOSTYPE values matching *,*cc*[,-*,...] optionally set the default CC and
+  $HOSTTYPE values matching *,*cc*[,-*,...] optionally set the default CC and
   CCFLAGS. This is handy for build farms that support different compilers on
   the same architecture.
 
