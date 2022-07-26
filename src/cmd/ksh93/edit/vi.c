@@ -2566,7 +2566,7 @@ addin:
 			last_virt = i;
 			ed_ringbell();
 		}
-		else if((c=='=' || (c=='\\'&&virtual[last_virt]=='/')) && !vp->repeat_set)
+		else if(vp->ed->e_nlist!=0 && !vp->repeat_set)
 		{
 			last_virt = i;
 			vi_redraw((void*)vp);
