@@ -251,6 +251,7 @@ struct Shell_s
 	pid_t		pid;		/* $$, the main shell's PID (invariable) */
 	pid_t		ppid;		/* $PPID, the main shell's parent's PID */
 	pid_t		current_pid;	/* ${.sh.pid}, PID of current ksh process (updates when subshell forks) */
+	pid_t		current_ppid;	/* PPID of current ksh process (updates when subshell forks) */
 	unsigned char	sigruntime[2];
 	Namval_t	*bltin_nodes;
 	Namval_t	*bltin_cmds;

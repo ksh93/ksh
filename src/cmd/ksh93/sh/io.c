@@ -1092,8 +1092,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 		ep = sp;
 		stakseek(0);
 	}
-	stakputc('.');
-	sfprintf(stkstd,"%<#d_%d{;.tmp",sh.current_pid,fno);
+	sfprintf(stkstd, ".<#%lld_%d{;.tmp", (Sflong_t)sh.current_pid, fno);
 	tname = stakfreeze(1);
 	switch(mode)
 	{
@@ -2227,7 +2226,7 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 #ifdef DEBUG
 	if(flag==SF_READ || flag==SF_WRITE)
 	{
-		char *z = fmtbase((long)sh.current_pid,0,0);
+		char *z = fmtbase((intmax_t)sh.current_pid,0,0);
 		write(ERRIO,z,strlen(z));
 		write(ERRIO,": ",2);
 		write(ERRIO,"attempt to ",11);

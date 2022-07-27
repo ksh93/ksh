@@ -67,3 +67,39 @@ tst	note{ can we probe file system case insensitivity }end output{
 		return !r;
 	}
 }end
+
+tst	note{ determining size of PID variables }end output{
+	#include <ast.h>
+	#include <sfio.h>
+	int main(void)
+	{
+		const int s = sizeof(pid_t);
+		char *a;
+		Sfio_t *b;
+		/*
+		 * For $$, $PPID, ${.sh.pid} and ${.sh.ppid} to work correctly, the size
+		 * of pid_t must be one of the integer sizes supported by nv_getval().
+		 * If there is ever a system where this test returns 1, then both this
+		 * test and nv_getval() must learn a new integer size attribute.
+		 */
+		if(s==sizeof(int16_t))		/* union Value: sp */
+			a="NV_INTEGER|NV_SHORT";
+		else if(s==sizeof(int32_t))	/* union Value: lp */
+			a="NV_INTEGER";
+		else if(s==sizeof(Sflong_t))	/* union Value: llp */
+			a="NV_INTEGER|NV_LONG";
+		else
+			return 1;
+		/* write NV_PID attribute definition */
+		sfprintf(sfstdout,"#define NV_PID\t(%s)\t/* integer attribute(s) corresponding to sizeof(pid_t)==%d */\n",a,s);
+		/* show nice test result output on FD 9 */
+		b = sfstropen();
+		sfprintf(b," %s (%d bytes) ... ",a,s);
+		a = sfstruse(b);
+		write(9,a,strlen(a));
+		return 0;
+	}
+}end fail{
+	echo "$0: cannot determine size of PID variables" >&2
+	exit 1
+}end

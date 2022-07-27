@@ -23,6 +23,12 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(vswprintf)
+
+#else
+
 int
 vswprintf(wchar_t* s, size_t n, const wchar_t* fmt, va_list args)
 {
@@ -53,3 +59,5 @@ vswprintf(wchar_t* s, size_t n, const wchar_t* fmt, va_list args)
 	_Sfi = f.next - f.data;
 	return v;
 }
+
+#endif /* !_has_multibyte */

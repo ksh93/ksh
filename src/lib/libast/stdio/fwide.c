@@ -23,6 +23,12 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(fwide)
+
+#else
+
 int
 fwide(Sfio_t* f, int mode)
 {
@@ -47,3 +53,5 @@ fwide(Sfio_t* f, int mode)
 	}
 	return 0;
 }
+
+#endif /* !_has_multibyte */

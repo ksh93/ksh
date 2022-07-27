@@ -180,7 +180,9 @@
 #include	<ctype.h>
 
 /* deal with multi-byte character and string conversions */
-#if _PACKAGE_ast
+#if AST_NOMULTIBYTE
+#undef	_has_multibyte
+#elif _PACKAGE_ast
 
 #include	<wchar.h>
 

@@ -2853,6 +2853,7 @@ pid_t _sh_fork(register pid_t parent,int flags,int *jobid)
 	vmtrace(-1);
 #endif
 	/* This is the child process */
+	sh.current_ppid = sh.current_pid;
 	sh.current_pid = getpid();  /* ${.sh.pid} */
 	sh.outpipepid = ((flags&FPOU)?sh.current_pid:0);
 	if(sh.trapnote&SH_SIGTERM)

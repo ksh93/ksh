@@ -717,7 +717,7 @@ static Sfdouble_t nget_rand(register Namval_t* np, Namfun_t *fp)
 
 static char* get_rand(register Namval_t* np, Namfun_t *fp)
 {
-	register long n = nget_rand(np,fp);
+	intmax_t n = (intmax_t)nget_rand(np,fp);
 	return(fmtbase(n, 10, 0));
 }
 
@@ -728,7 +728,7 @@ void sh_reseed_rand(struct rand *rp)
 	static unsigned int	seq;
 	timeofday(&tp);
 	time = (unsigned int)remainder(dtime(&tp) * 10000.0, (double)UINT_MAX);
-	srand(rp->rand_seed = sh.current_pid ^ time ^ ++seq);
+	srand(rp->rand_seed = (unsigned int)sh.current_pid ^ time ^ ++seq);
 	rp->rand_last = -1;
 }
 
@@ -767,7 +767,7 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 
 static char* get_lineno(register Namval_t* np, Namfun_t *fp)
 {
-	long n = (long)nget_lineno(np,fp);
+	intmax_t n = (intmax_t)nget_lineno(np,fp);
 	return(fmtbase(n, 10, 0));
 }
 
@@ -1276,7 +1276,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		sh_regress_init();
 #endif
 		sh.current_pid = sh.pid = getpid();
-		sh.ppid = getppid();
+		sh.current_ppid = sh.ppid = getppid();
 		sh.userid=getuid();
 		sh.euserid=geteuid();
 		sh.groupid=getgid();
@@ -1697,9 +1697,9 @@ int sh_reinit(char *argv[])
 	sh.inpipe = sh.outpipe = 0;
 	job_clear();
 	job.in_critical = 0;
-	/* update ${.sh.pid}, $$, $PPID */
-	sh.ppid = sh.current_pid;
-	sh.current_pid = sh.pid = getpid();
+	/* update $$, $PPID */
+	sh.ppid = sh.current_ppid;
+	sh.pid = sh.current_pid;
 	/* call user init function, if any */
 	if(sh.userinit)
 		(*sh.userinit)(&sh, 1);
@@ -1923,6 +1923,7 @@ static Init_t *nv_init(void)
 #endif /* _hdr_locale */
 	(PPIDNOD)->nvalue.pidp = (&sh.ppid);
 	(SH_PIDNOD)->nvalue.pidp = (&sh.current_pid);
+	(SH_PPIDNOD)->nvalue.pidp = (&sh.current_ppid);
 	(SH_SUBSHELLNOD)->nvalue.ip = (&sh.realsubshell);
 	(TMOUTNOD)->nvalue.lp = (&sh.st.tmout);
 	(MCHKNOD)->nvalue.lp = (&sh_mailchk);

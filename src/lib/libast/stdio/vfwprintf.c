@@ -23,6 +23,12 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(vfwprintf)
+
+#else
+
 int
 vfwprintf(Sfio_t* f, const wchar_t* fmt, va_list args)
 {
@@ -64,3 +70,5 @@ vfwprintf(Sfio_t* f, const wchar_t* fmt, va_list args)
 		v = -1;
 	return v;
 }
+
+#endif /* !_has_multibyte */

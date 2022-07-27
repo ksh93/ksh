@@ -504,4 +504,19 @@ command eval 'x=([x]=1 [y)' 2>/dev/null
 PATH=$savePATH
 
 # ======
+# Two more shining examples of superior AT&T quality standards :P
+
+x0A=WTF
+unset WTF
+got=$([[ 0x0A -eq 010 ]] 2>&1) || err_exit "0x0A != 010 in [[ (got $(printf %q "$got"))"
+got=$(test 0x0A -eq 010 2>&1) || err_exit "0x0A != 010 in test (got $(printf %q "$got"))"
+unset XA
+
+typeset -lF x=18446744073709551615 y=x+1
+if	((x != y))
+then	[[ x -eq y ]] && err_exit "comparing long floats fails"
+fi
+unset x y
+
+# ======
 exit $((Errors<125?Errors:125))

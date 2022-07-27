@@ -147,9 +147,16 @@ fi
 # PPID
 exp=$$
 got=${ $SHELL -c 'print $PPID'; }
-if	[[ ${ $SHELL -c 'print $PPID'; } != $$ ]]
-then	err_exit "PPID variable failed -- expected '$exp', got '$got'"
-fi
+[[ $got == $$ ]] || err_exit "PPID variable failed in -c script -- expected '$exp', got '$got'"
+print 'print $PPID' >ppid.sh
+chmod +x ppid.sh
+./ppid.sh >|out
+got=$(<out)
+[[ $got == $$ ]] || err_exit "PPID variable failed in script without #! -- expected '$exp', got '$got'"
+print -r "#!$SHELL"$'\nprint $PPID' >|ppid.sh
+./ppid.sh >|out
+got=$(<out)
+[[ $got == $$ ]] || err_exit "PPID variable failed in script with #! -- expected '$exp', got '$got'"
 # OLDPWD
 old=$PWD
 cd /
@@ -1095,10 +1102,10 @@ $SHELL -c '
 	typeset -l lower
 	errors=0
 	PS1=/dev/null/test_my_case_too
-	PS2=$PS1 PS3=$PS1 PS4=$PS1 OPTARG=$PS1 IFS=$PS1 FPATH=$PS1 FIGNORE=$PS1 CSWIDTH=$PS1
+	PS2=$PS1 PS3=$PS1 PS4=$PS1 OPTARG=$PS1 IFS=$PS1 FPATH=$PS1 FIGNORE=$PS1
 	for var
 	do	case $var in
-		RANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats)
+		RANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats | .sh.match)
 			# these are expected to fail below as their values change; just test against crashing
 			typeset -u "$var"
 			typeset -l "$var"

@@ -627,7 +627,7 @@ int ed_fulledit(Edit_t *ep)
 		hist_flush(sh.hist_ptr);
 	}
 	cp = strcopy((char*)ep->e_inbuf,e_runvi);
-	cp = strcopy(cp, fmtbase((long)ep->e_hline,10,0));
+	cp = strcopy(cp, fmtbase((intmax_t)ep->e_hline,10,0));
 #if SHOPT_VSH
 	ep->e_eol = ((unsigned char*)cp - (unsigned char*)ep->e_inbuf)-(sh_isoption(SH_VI)!=0);
 #else

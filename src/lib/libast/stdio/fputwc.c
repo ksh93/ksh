@@ -23,9 +23,17 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(fputwc)
+
+#else
+
 wint_t
 fputwc(wchar_t c, Sfio_t* f)
 {
 	FWIDE(f, WEOF);
 	return (sfwrite(f, &c, sizeof(c)) == sizeof(c)) ? c : WEOF;
 }
+
+#endif /* !_has_multibyte */

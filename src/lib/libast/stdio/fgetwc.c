@@ -23,6 +23,12 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(fgetwc)
+
+#else
+
 wint_t
 fgetwc(Sfio_t* f)
 {
@@ -31,3 +37,5 @@ fgetwc(Sfio_t* f)
 	FWIDE(f, WEOF);
 	return (sfread(f, &c, sizeof(c)) == sizeof(c)) ? c : WEOF;
 }
+
+#endif /* !_has_multibyte */

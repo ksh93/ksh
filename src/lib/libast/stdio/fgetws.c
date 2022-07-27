@@ -23,6 +23,12 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(fgetws)
+
+#else
+
 wchar_t*
 fgetws(wchar_t* s, int n, Sfio_t* f)
 {
@@ -48,3 +54,5 @@ getws(wchar_t* s)
 	*p = 0;
 	return s;
 }
+
+#endif /* !_has_multibyte */

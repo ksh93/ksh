@@ -192,9 +192,9 @@ shell option is on)
 by a
 .IR pipe (2)
 to the standard input of the next command.
-Each command,
-except possibly the last,
-is run as a separate process.
+Each command except the last is run asynchronously in a subshell (see
+.I Subshells\^
+below).
 If the
 .B monitor
 or
@@ -562,7 +562,9 @@ status is 0, otherwise the exit status is 1.
 .br
 Execute
 .I list\^
-in a separate environment.
+in a subshell (see
+.I Subshells\^
+below).
 Note, that if two adjacent open parentheses are
 needed for nesting, a space must be inserted to avoid
 evaluation as an arithmetic command as described above.
@@ -927,6 +929,55 @@ If this value is non-empty and does not start with a
 .BR \(ap ,
 it replaces the default tilde expansion when the function terminates.
 Otherwise, the tilde expansion is left unchanged.
+.SS Subshells.
+A
+.I subshell\^
+is a separate execution environment that is a complete duplicate of the
+current shell environment, except for two things: all traps are reset to
+default except those for signals that are being ignored, and subshells
+cannot be interactive (i.e., they have no command prompt).
+Changes made within a subshell do not affect the parent environment and are
+lost when the subshell exits.
+.PP
+Particular care should be taken not to confuse a subshell with a newly
+invoked shell that is merely a child process of the current shell,
+and which (unlike a subshell) starts from scratch in terms of
+variables and functions and may be interactive.
+Beware of shell tutorials on the Internet that confuse these.
+.PP
+Subshells are not themselves invoked as commands.
+Instead, the following are automatically run in or from a subshell:
+.RS 8
+.IP \[bu] 3
+any command or group of commands enclosed in parentheses;
+.IP \[bu]
+command substitutions of the first and third form (see
+.I "Command Substitution"
+below);
+.IP \[bu]
+process substitutions (see
+.I "Process Substitution"
+below);
+.IP \[bu]
+all elements of a pipeline except the last;
+.IP \[bu]
+any command executed asynchronously (i.e., in a background process).
+.RE
+.PP
+Creating processes is expensive, so as a performance optimization, a
+subshell of a non-interactive shell may share the process of its parent
+environment. Such a subshell is known as a virtual subshell.
+Subshells are virtual unless or until something (such as asynchronous
+execution, or an attempt to set a process limit using the
+.B ulimit
+built-in command, or other implementation- or system-defined requirements)
+makes it necessary to fork it into a separate process.
+Barring any bugs in the shell, virtual subshells should be indistinguishable
+from real subshells except by their execution speed and their process ID.
+See the description of the
+.B .sh.pid
+variable below for more information.
+.RE
 .SS Command Substitution.
 The standard output from a command list enclosed in
 parentheses preceded by a dollar sign (
@@ -1614,7 +1665,8 @@ that run in the current environment may return status values in this range.
 .B $
 The process ID of the main shell process. Note that this value will not
 change in a subshell, even if the subshell runs in a different process.
-See also \f3.sh.pid\fP.
+See also
+.BR .sh.pid .
 .TP
 .B _
 Initially, the value of
@@ -1783,14 +1835,30 @@ discipline function is invoked.
 The current depth for subshells and command substitution.
 .TP
 .B .sh.pid
-Set to the process ID of the current shell.
-This is distinct from
-.B $$
-as in forked subshells this is set to the process ID of the
-subshell instead of the parent shell's process ID.
-In virtual subshells
+Set to the process ID of the current shell process.
+Unlike
+.BR $$ ,
+this is updated in a subshell when it forks into a new process.
+Note that a virtual subshell may have to fork mid-execution
+due to various system- and implementation-dependent requirements,
+so the value should not be counted on to remain the same
+from one command to the next.
+If a persistent process ID is required for a subshell,
+it must be ensured it is running in its own process first.
+Any attempt to set a process limit using the
+.B ulimit
+built-in command, such as
+.BR "ulimit -t unlimited 2>/dev/null" ,
+is a reliable way to make a subshell fork if it hasn't already.
+.TP
+.B .sh.ppid
+Set to the process ID of the parent of the current shell process.
+Unlike
+.BR $PPID ,
+this is updated in a subshell when it forks into a new process.
+The same note as for
 .B .sh.pid
-retains its previous value.
+applies.
 .TP
 .B .sh.value
 Set to the value of the variable at the time that the
@@ -1864,7 +1932,11 @@ built-in command.
 .TP
 .B
 .SM PPID
-The process ID of the parent of the shell.
+The process ID of the parent of the main shell process.
+Note that this value will not change in a subshell,
+even if the subshell runs in a different process.
+See also
+.BR .sh.ppid .
 .TP
 .B
 .SM PWD
@@ -7793,6 +7865,18 @@ built-ins;
 stops the \fB.\fR command (but not \fBsource\fR) from looking up functions
 defined with the \fBfunction\fR syntax;
 .IP \[bu]
+disables the recognition of unexpanded shell arithmetic expressions in the
+numerical comparison operators
+.BR \-eq ,
+.BR \-ne ,
+.BR \-gt ,
+.BR \-ge ,
+.B \-lt
+and
+.B \-le
+of the \fBtest\fR/\fB[\fR built-in command, causing them to accept only
+decimal numbers as operands;
+.IP \[bu]
 changes the \fBtest\fR/\fB[\fR built-in command to make its deprecated
 \fIexpr1\fR \fB-a\fR \fIexpr2\fR and \fIexpr1\fR \fB-o\fR \fIexpr2\fR operators
 work even if \fIexpr1\fR equals "\fB!\fR" or "\fb(\fR" (which means the
@@ -8004,7 +8088,7 @@ to those specified for the \f3[[\fP compound command under
 .I Conditional Expressions
 above, but with several important differences. The \f3=\fP, \f3==\fP and
 \f3!=\fP operators test for string (in)equality without pattern matching;
-\f3==\fP is nonstandard and unportable. The f3&&\fP and \f3||\fP operators are
+\f3==\fP is nonstandard and unportable. The \f3&&\fP and \f3||\fP operators are
 not available. Instead, the \f3-a\fP and \f3-o\fP binary operators can be
 used, but they are fraught with pitfalls due to grammatical ambiguities and
 therefore deprecated in favor of invoking separate \f3test\fP commands. Most

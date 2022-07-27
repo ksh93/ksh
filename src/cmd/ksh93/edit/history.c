@@ -316,7 +316,7 @@ retry:
 	if(hist_clean(fd) && hist_start>1 && hsize > HIST_MAX)
 	{
 #ifdef DEBUG
-		sfprintf(sfstderr,"%d: hist_trim hsize=%d\n",sh.current_pid,hsize);
+		sfprintf(sfstderr,"%lld: hist_trim hsize=%d\n",(Sflong_t)sh.current_pid,hsize);
 		sfsync(sfstderr);
 #endif /* DEBUG */
 		hp = hist_trim(hp,(int)hp->histind-maxlines);

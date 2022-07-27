@@ -3,6 +3,20 @@ For full details, see the git log at: https://github.com/ksh93/ksh
 
 Any uppercase BUG_* names are modernish shell bug IDs.
 
+2022-07-27:
+
+- Fixed a bug introduced on 2022-02-08 where $PPID was incorrect when a script
+  without a #! path was executed.
+
+2022-07-26:
+
+- Fixed incorrect handling of initial zeros in test/[ and [[ arithmetic
+  comparison operators. For example, [[ 0x0A -eq 10 ]] yielded false but
+  [[ 1+0x0A -eq 11 ]] yielded true.
+
+- Fixed comparing long floating point (typeset -lF) values in test/[ and [[;
+  the values were reduced to standard floating point before comparing.
+
 2022-07-24:
 
 - Add new 'man' function in src/cmd/ksh93/fun/man. This integrates the --man

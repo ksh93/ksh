@@ -744,7 +744,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
 	sfputr(sh.stk,sh.fifo,0);
 #endif /* SHOPT_DEVFD */
-	sfputr(sh.stk,fmtbase((long)pv[fd],10,0),0);
+	sfputr(sh.stk,fmtbase((intmax_t)pv[fd],10,0),0);
 	ap = (struct argnod*)stkfreeze(sh.stk,0);
 	sh.inpipe = sh.outpipe = 0;
 	/* turn off job control */

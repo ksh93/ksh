@@ -23,6 +23,12 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(fwscanf)
+
+#else
+
 int
 fwscanf(Sfio_t* f, const wchar_t* fmt, ...)
 {
@@ -35,3 +41,5 @@ fwscanf(Sfio_t* f, const wchar_t* fmt, ...)
 	va_end(args);
 	return v;
 }
+
+#endif /* !_has_multibyte */

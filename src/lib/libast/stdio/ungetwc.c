@@ -23,6 +23,12 @@
 
 #include "stdhdr.h"
 
+#if !_has_multibyte
+
+NoN(ungetwc)
+
+#else
+
 wint_t
 ungetwc(wint_t c, Sfio_t* f)
 {
@@ -35,3 +41,5 @@ ungetwc(wint_t c, Sfio_t* f)
 			return WEOF;
 	return c;
 }
+
+#endif /* !_has_multibyte */

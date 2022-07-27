@@ -299,7 +299,7 @@ int job_reap(register int sig)
 			abort();
 	}
 #ifdef DEBUG
-	if(sfprintf(sfstderr,"ksh: job line %4d: reap PID=%d critical=%d signal=%d\n",__LINE__,sh.current_pid,job.in_critical,sig) <=0)
+	if(sfprintf(sfstderr,"ksh: job line %4d: reap PID=%lld critical=%d signal=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,sig) <=0)
 		write(2,"waitsafe\n",9);
 	sfsync(sfstderr);
 #endif /* DEBUG */
@@ -352,7 +352,7 @@ int job_reap(register int sig)
 		if(!(pw=job_bypid(pid)))
 		{
 #ifdef DEBUG
-			sfprintf(sfstderr,"ksh: job line %4d: reap PID=%d critical=%d unknown job PID=%d pw=%x\n",__LINE__,sh.current_pid,job.in_critical,pid,pw);
+			sfprintf(sfstderr,"ksh: job line %4d: reap PID=%lld critical=%d unknown job PID=%d pw=%x\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pid,pw);
 #endif /* DEBUG */
 			if (WIFCONTINUED(wstat) && wcontinued)
 				continue;
@@ -460,7 +460,7 @@ int job_reap(register int sig)
 				jp->exitval |= SH_EXITSIG;
 		}
 #ifdef DEBUG
-		sfprintf(sfstderr,"ksh: job line %4d: reap PID=%d critical=%d job %d with PID %d flags=%o complete with status=%x exit=%d\n",__LINE__,sh.current_pid,job.in_critical,pw->p_job,pid,pw->p_flag,wstat,pw->p_exit);
+		sfprintf(sfstderr,"ksh: job line %4d: reap PID=%lld critical=%d job %d with PID %d flags=%o complete with status=%x exit=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_job,pid,pw->p_flag,wstat,pw->p_exit);
 		sfsync(sfstderr);
 #endif /* DEBUG */
 		/* only top-level process in job should have notify set */
@@ -1300,7 +1300,7 @@ int job_post(pid_t pid, pid_t join)
 		pw->p_fgrp = 0;
 	pw->p_pgrp = pw->p_fgrp;
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: post PID=%d critical=%d job=%d PID=%d PGID=%d savesig=%d join=%d\n",__LINE__,sh.current_pid,job.in_critical,pw->p_job,
+	sfprintf(sfstderr,"ksh: job line %4d: post PID=%lld critical=%d job=%d PID=%d PGID=%d savesig=%d join=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_job,
 		pw->p_pid,pw->p_pgrp,job.savesig,join);
 	sfsync(sfstderr);
 #endif /* DEBUG */
@@ -1448,9 +1448,9 @@ int	job_wait(register pid_t pid)
 	}
 	pwfg = pw;
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: wait PID=%d critical=%d job=%d PID=%d\n",__LINE__,sh.current_pid,job.in_critical,jobid,pid);
+	sfprintf(sfstderr,"ksh: job line %4d: wait PID=%lld critical=%d job=%d PID=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,jobid,pid);
 	if(pw)
-		sfprintf(sfstderr,"ksh: job line %4d: wait PID=%d critical=%d flags=%o\n",__LINE__,sh.current_pid,job.in_critical,pw->p_flag);
+		sfprintf(sfstderr,"ksh: job line %4d: wait PID=%lld critical=%d flags=%o\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_flag);
 #endif /* DEBUG */
 	errno = 0;
 	if(sh.coutpipe>=0 && lastpid && sh.cpid==lastpid)
@@ -1700,7 +1700,7 @@ static struct process *job_unpost(register struct process *pwtop,int notify)
 	register struct process *pw;
 	/* make sure all processes are done */
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: drop PID=%d critical=%d PID=%d env=%u\n",__LINE__,sh.current_pid,job.in_critical,pwtop->p_pid,pwtop->p_env);
+	sfprintf(sfstderr,"ksh: job line %4d: drop PID=%lld critical=%d PID=%d env=%u\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pwtop->p_pid,pwtop->p_env);
 	sfsync(sfstderr);
 #endif /* DEBUG */
 	pwtop = pw = job_byjid((int)pwtop->p_job);
@@ -1741,7 +1741,7 @@ static struct process *job_unpost(register struct process *pwtop,int notify)
 	}
 	pwtop->p_pid = 0;
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: free PID=%d critical=%d job=%d\n",__LINE__,sh.current_pid,job.in_critical,pwtop->p_job);
+	sfprintf(sfstderr,"ksh: job line %4d: free PID=%lld critical=%d job=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pwtop->p_job);
 	sfsync(sfstderr);
 #endif /* DEBUG */
 	job_free((int)pwtop->p_job);
@@ -1937,7 +1937,7 @@ void job_subrestore(void* ptr)
 void job_fork(pid_t parent)
 {
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: fork PID=%d critical=%d parent=%d\n",__LINE__,sh.current_pid,job.in_critical,parent);
+	sfprintf(sfstderr,"ksh: job line %4d: fork PID=%lld critical=%d parent=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,parent);
 #endif /* DEBUG */
 	switch (parent)
 	{
