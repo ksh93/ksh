@@ -8,6 +8,10 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Fixed a bug introduced on 2022-02-08 where $PPID was incorrect when a script
   without a #! path was executed.
 
+- Fixed a completion bug in the vi line editor. It now correctly completes
+  the sole member of a directory when tab is pressed immediately after /.
+  Thanks to K. Eugene Carlson for the report and the fix.
+
 2022-07-26:
 
 - Fixed incorrect handling of initial zeros in test/[ and [[ arithmetic
