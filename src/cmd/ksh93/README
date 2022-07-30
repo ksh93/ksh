@@ -277,8 +277,10 @@ failures (crashes, and/or important functionality does not work).
 	GNU/Linux: Ubuntu 18.04 on armv7l (32-bit)
 	GNU/Linux: Ubuntu 20.04 on arm64
 	GNU/Linux: Void Linux (musl C library) on x86_64
+***	Haiku R1/beta3 on x86_64
 ***	HP-UX B.11.11 on pa-risc
 *	illumos: OmniOS 2020-08-19 (gcc) on x86_64
+	illumos: OmniOS r151040 (gcc) on x86_64
 	macOS 10.13.6 (High Sierra) on x86_64
 	macOS 10.14.6 (Mojave) on x86_64
 *	macOS 12.0.1 (Monterey) on arm64
@@ -293,8 +295,7 @@ failures (crashes, and/or important functionality does not work).
 ***	Windows 7 using Cygwin on x86
 ***	Windows 10 using Cygwin on x86_64
 ***	Windows 11 using Cygwin on x86_64
-*	Windows 11 using WSL 2 with Ubuntu 20.04 on x86_64
-***	Haiku R1/beta3 on x86_64
+	Windows 11 using WSL 2 with Ubuntu 20.04 on x86_64
 
 #### REPORTING BUGS ####
 

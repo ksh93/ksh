@@ -2125,7 +2125,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			&& tt->com.comio				/* ...and one I/O redirection... */
 			&& !tt->com.comio->ionxt			/* ...but not more than one... */
 			&& !(tt->com.comio->iofile & (IOPUT|IOAPP))	/* ...and not > or >> */
-			&& !sh_isoption(SH_POSIX))			/* not in POSIX compilance mode */
+			&& !sh_isoption(SH_POSIX))			/* not in POSIX compliance mode */
 			{
 				iop = openstream(tt->com.comio,&savein);
 			}

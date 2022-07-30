@@ -16,6 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 #include "FEATURE/vmalloc"
+#include <ast.h>
 #if !_hdr_sys_shm
 
 NoN(vmmapopen)

@@ -51,7 +51,7 @@ namespace man
 	# Check for a built-in with --man, i.e., if:
 	# - 'whence -t' says it is a built-in;
 	# - it is not :, true, false, or echo;
-	# - the name or path we would excute appears in output of 'builtin'.
+	# - the name or path we would execute appears in output of 'builtin'.
 	# This way, path-bound built-ins' --man is only used if found in $PATH.
 
 	builtin_has_selfdoc()
@@ -77,7 +77,7 @@ namespace man
 	# codes even if standard error is not on a terminal. Note that, in
 	# fact, all --man output is a glorified error message! Strange but
 	# true. So to capture the output, we need to redirect standard error to
-	# standard ouput (2>&1). Also, 'test' and '[' need special invocations.
+	# standard output (2>&1). Also, 'test' and '[' need special invocations.
 	#   Also note: '--??man' is safer as some programs may override --man;
 	# see any_builtin --??help (e.g., 'whence --??help') for more info.
 

@@ -477,7 +477,7 @@ int sh_lex(Lex_t* lp)
 						{
 							if(lp->lex.intest)
 								return(c);
-							/* '((' arithmetic comamnd */
+							/* '((' arithmetic command */
 							lp->lexd.nest=1;
 							lp->lastline = sh.inlineno;
 							lp->lexd.lex_state = ST_NESTED;

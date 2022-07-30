@@ -89,7 +89,7 @@ Any uppercase BUG_* names are modernish shell bug IDs.
   For example, this now writes 'OK' to standard error: cat >&2 <(echo OK)
 
 - Fixed the detection of a syntax error in compound assignments to
-  associative arays.
+  associative arrays.
 
 2022-07-02:
 
@@ -1743,8 +1743,8 @@ Any uppercase BUG_* names are modernish shell bug IDs.
 - Four of the date formats accepted by 'printf %()T' have had their
   functionality altered to the common behavior of date(1):
   - '%k' and '%l' print the current hour with blank padding, the former
-    based on a 24-hour clock and the latter a twelve hour clock. These
-    are common extensions present on Linux and *BSD.
+    based on a 24-hour clock and the latter a 12-hour clock. These are
+    common extensions present on Linux and *BSD.
   - '%f' prints a date with the format string '%Y.%m.%d-%H:%M:%S' (BusyBox).
   - '%q' prints the quarter of the year (GNU).
 
