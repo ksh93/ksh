@@ -16,7 +16,9 @@
 *                                                                      *
 ***********************************************************************/
 #include "FEATURE/vmalloc"
-#include <ast.h>
+#if !(__APPLE__)
+ #include <ast.h>
+#endif
 #if !_hdr_sys_shm
 
 NoN(vmmapopen)
