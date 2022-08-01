@@ -1025,7 +1025,7 @@ will run process
 .I list
 asynchronously connected to some file in
 .B /dev/fd
-if this directory exists, or else a fifo a temporary directory.
+if this directory exists, or else a fifo in a temporary directory.
 The name of this file will become the argument to the command.
 If the form with
 .B >
@@ -1179,7 +1179,6 @@ may be assigned by writing:
 \*(CK .\|.\|.
 .RE
 .PP
-.PD 0
 or
 .PP
 .RS
@@ -1187,13 +1186,11 @@ or
 \*(OK
 .IB vname [ subscript ]= value\^
 \*(CK .\|.\|.
-.sp .5
 .RE
+.PP
 Note that no space is allowed before or after the
 .BR = .
-.sp .5
 .PP
-.PD 0
 Attributes assigned by the
 .I typeset\^
 special built-in command apply to all elements of the array.
@@ -1209,7 +1206,6 @@ third element of the indexed array, use
 .BI ${ vname [ 3 ][ foobar ]}
 .sp .5
 .PP
-.PD 0
 A
 .I nameref\^
 is a variable that is a reference to another variable.
@@ -1354,7 +1350,6 @@ The number of elements in the array
 .I vname\^
 is substituted.
 .TP
-.PD 0
 \f3${@\fP\f2vname\^\fP\f3}\fP
 Expands to the type name (See
 .I "Type Variables"\^
@@ -1412,6 +1407,7 @@ inclusive using the same quoting rules as
 .PD 0
 \f3${!\fP\f2prefix\^\fP\f3@}\fP
 .TP
+.PD
 \f3${!\fP\f2prefix\^\fP\f3*}\fP
 These both expand to the names of the variables whose names begin with
 .IR prefix .
@@ -1476,6 +1472,7 @@ is set or not.
 .PD 0
 \f3${\fP\f2parameter\^\fP\f3:\fP\f2offset\^\fP\f3:\fP\f2length\^\fP\f3}\fP
 .TP
+.PD
 \f3${\fP\f2parameter\^\fP\f3:\fP\f2offset\^\fP\f3}\fP
 Expands to the portion of the value of
 .I parameter\^
@@ -1643,6 +1640,7 @@ are automatically set by the shell:
 .TP
 .B #
 The number of positional parameters in decimal.
+.PD
 .TP
 .B \-
 Options supplied to the shell on invocation or by
@@ -1992,6 +1990,7 @@ are used by the shell:
 The search path for the
 .B cd
 command.
+.PD
 .TP
 .B
 .SM EDITOR
@@ -2780,8 +2779,9 @@ Matches exactly one of the given patterns.
 .TP
 \f3!(\fP\f2pattern-list\^\fP\f3)\fP
 Matches anything except one of the given patterns.
-.PD
 .RE
+.PD
+.PP
 By default, each pattern or subpattern will match the
 longest string possible consistent with generating
 the longest overall match.  If more than one match is
@@ -2859,6 +2859,7 @@ Causes the ending character to be interpreted as a quote character,
 causing all characters other than any escape character to be ignored
 when looking for a match.
 .PD
+.PP
 .RE
 Thus,
 \f3%(\^{\^}Q"E\e\^)\fP,
@@ -2974,6 +2975,7 @@ Right-anchor the pattern.  This is the default for
 .B K
 style patterns.
 .PD
+.PP
 .RE
 If both \f2options\^\fP and \f3:\fP\f2pattern-list\^\fP
 are specified, then the options apply only to  \f2pattern-list\^\fP.
@@ -3007,6 +3009,7 @@ A single quoted string preceded by an unquoted
 .B $
 is processed as an ANSI C string
 except for the following:
+.RS
 .PD 0
 .TP
 .B \e0
@@ -3027,6 +3030,7 @@ Expands to the character control-\f2x\fP.
 .TP
 .BI \eC[. name .]
 Expands to the collating element \f2name\fP.
+.RE
 .PD
 .PP
 Inside double quote marks
@@ -3268,6 +3272,7 @@ and
 .BR ]] .
 Each expression can be constructed from one or more
 of the following unary or binary expressions:
+.RS
 .PD 0
 .TP
 \f2string\fP
@@ -3490,8 +3495,11 @@ True, if
 comes after
 .I string2\^
 based on ASCII value of their characters.
+.RE
+.PD
 .PP
 The following obsolete arithmetic comparisons are also permitted:
+.RS
 .PD 0
 .TP
 \f2exp1\fP \f3\-eq\fP \f2exp2\fP
@@ -3529,6 +3537,7 @@ True, if
 .I exp1\^
 is greater than or equal to
 .IR exp2 .
+.RE
 .PD
 .PP
 In each of the above expressions, if
@@ -3543,7 +3552,8 @@ descriptor number is
 .IR n .
 .PP
 A compound expression can be constructed from these primitives by
-using any of the following, listed in decreasing order of precedence.
+using any of the following, listed in decreasing order of precedence:
+.RS
 .PD 0
 .TP
 \f3(\fP\f2expression\fP\f3)\fP
@@ -3571,6 +3581,7 @@ or
 .I expression2\^
 is true.
 .PD
+.RE
 .SS Input/Output.
 Before a command is executed, its input and output
 may be redirected using a special notation interpreted by the shell.
@@ -3954,6 +3965,7 @@ echo \|a=b \|c
 .ft R
 .fi
 .RE
+.PP
 This feature is intended for use with scripts written
 for early versions of the shell and its use in new scripts
 is strongly discouraged.
@@ -4306,6 +4318,7 @@ There are several ways to refer to jobs in the shell.
 A job can be referred to by the process ID of any process of the job
 or by one of the following:
 .PD 0
+.RS
 .TP
 .BI % number
 The job with the given number.
@@ -4337,7 +4350,9 @@ Equivalent to
 .TP
 .BI %\-
 Previous job.
+.RE
 .PD
+.PP
 In addition, unless noted otherwise, wherever a job can be specified,
 the name of a background job pool can be used to represent all the
 jobs in that pool.
@@ -5525,6 +5540,7 @@ same time, such as when pressing one of those keys.
 .SS "\ \ \ \ \ Input Edit Commands"
 .RS
 By default the editor is in input mode.
+.PP
 .PD 0
 .TP 10
 .I erase
@@ -5580,9 +5596,13 @@ a
 .I tab\^
 is inserted.
 .RE
+.PD
+.PP
 .SS "\ \ \ \ \ Motion Edit Commands"
 .RS
 These commands will move the cursor.
+.PP
+.PD 0
 .TP 10
 [\f2count\fP]\f3l\fP
 Cursor forward (right) one character.
@@ -5740,9 +5760,13 @@ If cursor is not on one of the above characters,
 the remainder of the line is searched for the first
 occurrence of one of the above characters first.
 .RE
+.PD
+.PP
 .SS "\ \ \ \ \ Search Edit Commands"
 .RS
 These commands access your command history.
+.PP
+.PD 0
 .TP 10
 [\f2count\fP]\f3k\fP
 Fetch previous command.
@@ -5817,9 +5841,13 @@ or
 .BR ? ,
 but in reverse direction.
 .RE
+.PD
+.PP
 .SS "\ \ \ \ \ Text Modification Edit Commands"
 .RS
 These commands will modify the line.
+.PP
+.PD 0
 .TP 10
 .B a
 Enter input mode and enter text after the current character.
@@ -5931,9 +5959,13 @@ by the matching pattern and input mode is entered.
 .B \e
 Command or file name completion as described above.
 .RE
+.PD
+.PP
 .SS "\ \ \ \ \ Other Edit Commands"
 .RS
 Miscellaneous commands.
+.PP
+.PD 0
 .TP 10
 [\f2count\fP]\f3y\fP\f2motion\fP
 .TP 10
@@ -6059,6 +6091,7 @@ Commands that are preceded by a \(dg symbol below are
 .I special\ built-in\ commands
 and are treated specially in the following ways:
 .PD 0
+.RS
 .TP
 1.
 Variable assignment lists preceding the command
@@ -6074,6 +6107,8 @@ that contains them to abort.
 .TP
 4.
 They are not valid function names.
+.RE
+.PD
 .PP
 Commands that are preceded by a \(dd symbol below are
 .IR declaration\ commands .
@@ -7268,6 +7303,7 @@ or
 formats, separates groups of digits with the grouping delimiter
 .RB  ( ,
 on groups of 3 in the C locale).
+.PD
 .PP
 The \f3\-v\fP option assigns the output directly to a variable instead of
 writing it to standard output. This is faster than capturing the output using a
@@ -7938,6 +7974,7 @@ line delimiters, and may be helpful for certain terminals.
 .B xtrace
 Same as
 .BR \-x .
+.PD
 .PP
 If no option name is supplied, then the current option settings are printed.
 .RE
@@ -7955,6 +7992,7 @@ This mode is on whenever the effective UID (GID)
 is not equal to the real UID (GID).
 Turning this off causes the effective UID and GID to be
 set to the real UID and GID.
+.PD 0
 .TP 8
 .B \-r
 Enables the restricted shell.  This option cannot be unset
@@ -9120,36 +9158,35 @@ are identical to those of
 .if \nZ=2 .BR ksh93\^ ,
 except that the following are disallowed:
 .RS
-.PD 0
-.PP
-unsetting the restricted option,
-.br
+.IP \[bu]
+unsetting the restricted option
+.IP \[bu]
 changing directory (see
-.IR cd (1)),
-.br
+.IR cd (1))
+.IP \[bu]
 setting or unsetting the value or attributes of
 .BR SHELL ,
 .BR ENV ,
 .BR FPATH ,
 or
-.BR PATH\*S,
-.br
+.BR PATH\*S
+.IP \[bu]
 specifying path or
 command names containing
-.BR / ,
-.br
+.BR / 
+.IP \[bu]
 redirecting output
 .RB ( > ,
 .BR >| ,
 .BR <> ,
 and
-.BR >> ) ,
-.br
-adding or deleting built-in commands,
-.br
+.BR >> ) 
+.IP \[bu]
+adding or deleting built-in commands
+.IP \[bu]
 using
 .B "command -p"
-to invoke a command.
+to invoke a command
 .PD
 .RE
 .PP
