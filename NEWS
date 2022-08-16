@@ -2,7 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2022-08-15:
+2022-08-16:
+
+- Fixed an old bug in history expansion (set -H) where any use of the history
+  comment character caused processing to be aborted as if it were an invalid
+  history expansion. (On 2022-01-24 the history comment character was set to
+  '#' instead of being disabled by default, which exposed this bug.)
 
 - Fixed a bug introduced on 2022-02-12 that would cause the optional head
   builtin's -s option to fail.

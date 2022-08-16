@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -104,15 +105,11 @@ pathcanon_20100601(char* path, size_t size, int flags)
 					}
 					*(t - 2) = '.';
 				}
-#if PRESERVE_TRAILING_SLASH
-				if (t - 5 < r) r = t;
-#else
 				if (t - 5 < r)
 				{
 					if (t - 4 == r) t = r + 1;
 					else r = t;
 				}
-#endif
 				else for (t -= 5; t > r && *(t - 1) != '/'; t--);
 				break;
 			case 3:
@@ -166,11 +163,7 @@ pathcanon_20100601(char* path, size_t size, int flags)
 			{
 				if (t > path && !*(t - 1)) t--;
 				if (t == path) *t++ = '.';
-#if DONT_PRESERVE_TRAILING_SLASH
-				else if (t > path + 1 && *(t - 1) == '/') t--;
-#else
 				else if ((s <= path || *(s - 1) != '/') && t > path + 1 && *(t - 1) == '/') t--;
-#endif
 				*t = 0;
 				errno = oerrno;
 				return t;

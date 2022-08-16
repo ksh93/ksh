@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -53,15 +54,16 @@ fmtquote(const char* as, const char* qb, const char* qe, size_t n, int flags)
 	register int		doublequote;
 	register int		singlequote;
 	int			shell;
+	size_t			len;
 	char*			f;
 	char*			buf;
 
-	c = 4 * (n + 1);
+	len = 4 * (n + 1);
 	if (qb)
-		c += strlen((char*)qb);
+		len += strlen((char*)qb);
 	if (qe)
-		c += strlen((char*)qe);
-	b = buf = fmtbuf(c);
+		len += strlen((char*)qe);
+	b = buf = fmtbuf(len);
 	shell = 0;
 	doublequote = 0;
 	singlequote = 0;
