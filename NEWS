@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-08-16:
+
+- Fixed a bug that would cause the read builtin's -a flag to fail after
+  either -A or -a was used once.
+
 2022-08-06:
 
 - Fixed an interactive shell crashing on redefining, then unsetting one of

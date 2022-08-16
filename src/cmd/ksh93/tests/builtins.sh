@@ -1597,5 +1597,43 @@ if ((SHOPT_BRACEPAT)); then
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
+# The read builtin's -a and -A flags should function identically
+read_a_test=$tmp/read_a_test.sh
+cat > "$read_a_test" << 'EOF'
+. "${SHTESTS_COMMON}"
+exp=foo
+exp1=bar
+exp2=baz
+read -a foo_a <<< 'foo bar baz'
+if [[ ${foo_a[0]} != ${exp} ]] || [[ ${foo_a[1]} != ${exp1} ]] || [[ ${foo_a[2]} != ${exp2} ]]
+then
+	err_exit "read -a fails to create array with first use" \
+		"(foo_a[0] is $(printf %q "${foo_a[0]}"), foo_a[1] is $(printf %q "${foo_a[1]}"), foo_a[2] is $(printf %q "${foo_a[2]}"))"
+fi
+unset foo_a
+read -a foo_a <<< 'foo bar baz'
+if [[ ${foo_a[0]} != ${exp} ]] || [[ ${foo_a[1]} != ${exp1} ]] || [[ ${foo_a[2]} != ${exp2} ]]
+then
+	err_exit "read -a fails to create array with second use" \
+		"(foo_a[0] is $(printf %q "${foo_a[0]}"), foo_a[1] is $(printf %q "${foo_a[1]}"), foo_a[2] is $(printf %q "${foo_a[2]}"))"
+fi
+read -A foo_A <<< 'foo bar baz'
+if [[ ${foo_A[0]} != ${exp} ]] || [[ ${foo_A[1]} != ${exp1} ]] || [[ ${foo_A[2]} != ${exp2} ]]
+then
+	err_exit "read -A fails to create array with first use" \
+		"(foo_A[0] is $(printf %q "${foo_A[0]}"), foo_A[1] is $(printf %q "${foo_A[1]}"), foo_A[2] is $(printf %q "${foo_A[2]}"))"
+fi
+unset foo_A
+read -A foo_A <<< 'foo bar baz'
+if [[ ${foo_A[0]} != ${exp} ]] || [[ ${foo_A[1]} != ${exp1} ]] || [[ ${foo_A[2]} != ${exp2} ]]
+then
+	err_exit "read -A fails to create array with second use" \
+		"(foo_A[0] is $(printf %q "${foo_A[0]}"), foo_A[1] is $(printf %q "${foo_A[1]}"), foo_A[2] is $(printf %q "${foo_A[2]}"))"
+fi
+exit $Errors
+EOF
+"$SHELL" "$read_a_test"
+let Errors+=$?
+
 # ======
 exit $((Errors<125?Errors:125))
