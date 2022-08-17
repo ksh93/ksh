@@ -16,7 +16,6 @@
 #                                                                      #
 ########################################################################
 
-
 # Tests for `wc` builtin
 #   wc - print the number of bytes, words, and lines in files
 
