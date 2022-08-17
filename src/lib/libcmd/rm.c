@@ -347,7 +347,6 @@ b_rm(int argc, register char** argv, Shbltin_t* context)
 			state.force = 0;
 			continue;
 		case 'r':
-		case 'R':
 			state.recursive = 1;
 			continue;
 		case 'F':

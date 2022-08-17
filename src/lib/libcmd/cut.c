@@ -655,7 +655,6 @@ b_cut(int argc, char** argv, Shbltin_t* context)
 			mode |= C_NONEWLINE;
 			continue;
 		case 'R':
-		case 'r':
 			if(opt_info.num>0)
 				reclen = opt_info.num;
 			continue;

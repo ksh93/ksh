@@ -1479,6 +1479,20 @@ if builtin rm 2> /dev/null; then
 		"(got $(printf %q "$got"))"
 	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -rd options'
 
+	# Repeat the above tests with -R instead of -r (because of possible optget bugs)
+	mkdir -p "$tmp/nonemptydir1/subfolder"
+	mkdir -p "$tmp/nonemptydir2"
+	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
+	got=$(rm -Rd "$tmp/nonemptydir1" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and subdirectory with -Rd options' \
+		"(got $(printf %q "$got"))"
+	[[ -d $tmp/nonemptydir1/subfolder || -d $tmp/nonemptydir1 ]] && err_exit 'rm builtin fails to remove all folders with -Rd options'
+	got=$(rm -Rd "$tmp/nonemptydir2" 2>&1)
+	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -Rd options' \
+		"(got $(printf %q "$got"))"
+	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -Rd options'
+
+
 	# Additional test: 'rm -f' without additional arguments should act
 	# as a no-op command. This bug was fixed in ksh93u+ 2012-02-14.
 	got=$(rm -f 2>&1)

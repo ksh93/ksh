@@ -4549,6 +4549,8 @@ optget(register char** argv, const char* oopts)
 		{
 			if (cache)
 			{
+				if (c >= 0 && c < sizeof(map) && map[c] && cache->equiv[map[c]])
+					c = cache->equiv[map[c]];
 				if (k = cache->flags[map[c]])
 				{
 					opt_info.arg = 0;
@@ -4979,6 +4981,7 @@ optget(register char** argv, const char* oopts)
 						v = f;
 						for (;;)
 						{
+							char	eqv;
 							if (isdigit(*f) && isdigit(*(f + 1)))
 								while (isdigit(*(f + 1)))
 									f++;
@@ -4987,12 +4990,17 @@ optget(register char** argv, const char* oopts)
 							else
 								cache->flags[map[*f]] = m;
 							j = 0;
+							/*
+							 * parse and cache short option equivalents,
+							 * e.g. x|y|z means -y and -z yield -x
+							 */
+							eqv = *f;
 							while (*(f + 1) == '|')
 							{
 								f += 2;
 								if (!(j = *f) || j == '!' || j == '=' || j == ':' || j == '?' || j == ']')
 									break;
-								cache->flags[map[j]] = m;
+								cache->equiv[map[j]] = eqv;
 							}
 							if (j != '!' || (m & OPT_cache_invert))
 								break;

@@ -111,7 +111,6 @@ b_wc(int argc,register char **argv, Shbltin_t* context)
 				mode |= WC_NOUTF8;
 			continue;
 		case 'm':
-		case 'C':
 			mode |= WC_MBYTE;
 			continue;
 		case 'q':

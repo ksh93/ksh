@@ -71,6 +71,7 @@ typedef struct Optcache_s
 	Optpass_t		pass;
 	int			caching;
 	unsigned char		flags[sizeof(OPT_FLAGS)];
+	char			equiv[sizeof(OPT_FLAGS)];	/* short option equivalents */
 } Optcache_t;
 
 typedef struct Optstate_s
