@@ -25,7 +25,6 @@ if ! builtin wc 2> /dev/null; then
 	exit 0
 fi
 
-
 cat > "$tmp/file1" <<EOF
 This is line 1 in file1
 This is line 2 in file1
@@ -45,19 +44,19 @@ This is the longest line in file2
 EOF
 cp "$tmp/file2" "/tmp"
 
-# ==========
+# ======
 #   -l, --lines     List the line counts.
 got=$(wc -l "$tmp/file1")
 exp=$"       5 $tmp/file1"
 [[ "$got" = "$exp" ]] || err_exit "'wc -l' failed" "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# ==========
+# ======
 #   -w, --words     List the word counts.
 got=$(wc -w "$tmp/file1")
 exp=$"      30 $tmp/file1"
 [[ "$got" = "$exp" ]] || err_exit "'wc -w' failed" "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# ==========
+# ======
 #   -c, --bytes|chars
 #                   List the byte counts.
 got=$(wc -c "$tmp/file1")
@@ -65,7 +64,7 @@ exp=$"     120 $tmp/file1"
 [[ "$got" = "$exp" ]] || err_exit "'wc -c' failed" "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 if ((SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]]; then
-	# ==========
+	# ======
 	#   -m|C, --multibyte-chars
 	#                   List the character counts.
 	got=$(wc -m "$tmp/file2")
@@ -75,7 +74,7 @@ if ((SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?
 	exp=$"     156 $tmp/file2"
 	[[ "$got" = "$exp" ]] || err_exit "'wc -C' failed" "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-	# ==========
+	# ======
 	#   -q, --quiet     Suppress invalid multibyte character warnings.
 	got=$(wc -q -m "$tmp/file2")
 	exp=$"     156 $tmp/file2"
@@ -85,7 +84,7 @@ if ((SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?
 	[[ "$got" = "$exp" ]] || err_exit "'wc -q -C' failed" "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
-# ==========
+# ======
 #   -L, --longest-line|max-line-length
 #                   List the longest line length; the newline,if any, is not
 #                   counted in the length.
@@ -93,7 +92,7 @@ got=$(wc -L "$tmp/file2")
 exp=$"      33 $tmp/file2"
 [[ "$got" = "$exp" ]] || err_exit "'wc -l' failed" "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# ==========
+# ======
 #   -N, --utf8      For UTF-8 locales --noutf8 disables UTF-8 optimzations and
 #                   relies on the native mbtowc(3). On by default; -N means
 #                   --noutf8.
