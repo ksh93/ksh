@@ -349,7 +349,7 @@ b_rm(int argc, register char** argv, Shbltin_t* context)
 		case 'r':
 			state.recursive = 1;
 			continue;
-		case 'F':
+		case 'c':
 #if _lib_fsync
 			state.clobber = 1;
 #else
