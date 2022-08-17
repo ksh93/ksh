@@ -145,7 +145,6 @@ const struct shtable3 shtab_builtins[] =
 	CMDLIST(ln)
 	CMDLIST(mktemp)
 	CMDLIST(mv)
-	CMDLIST(rm)
 #if !_std_malloc && !_AST_std_malloc
 	CMDLIST(vmstate)  /* vmstate only works with vmalloc */
 #endif
