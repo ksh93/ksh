@@ -1342,7 +1342,7 @@ make install
 			prev sh/shcomp.c
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_API_ast=20100309 -D_PACKAGE_ast -DERROR_CONTEXT_T=Error_context_t -c sh/shcomp.c
 		done shcomp.o generated
-		prev libshell.a archive
+		prev ksh
 		prev +ljobs
 		prev +li
 		prev ${mam_libsocket}

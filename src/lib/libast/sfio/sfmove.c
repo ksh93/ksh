@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -41,7 +42,6 @@ Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 	ssize_t		rsize = 0;
 
 	if(!(fr)) return (Sfoff_t)0;
-	if(fw)
 
 	for(n_move = 0; n != 0; )
 	{
