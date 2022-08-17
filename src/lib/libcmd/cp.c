@@ -806,8 +806,12 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 			continue;
 		case 'r':
 			state->recursive = 1;
-			if (path_resolve < 0)
-				path_resolve = 0;
+			if (path_resolve < 1)
+			{
+				state->flags &= ~FTS_META;
+				state->flags |= FTS_PHYSICAL;
+				path_resolve = 1;
+			}
 			continue;
 		case 's':
 			state->op = LN;
@@ -843,12 +847,6 @@ b_cp(int argc, register char** argv, Shbltin_t* context)
 			path_resolve = 1;
 			continue;
 		case 'P':
-			state->flags &= ~FTS_META;
-			state->flags |= FTS_PHYSICAL;
-			path_resolve = 1;
-			continue;
-		case 'R':
-			state->recursive = 1;
 			state->flags &= ~FTS_META;
 			state->flags |= FTS_PHYSICAL;
 			path_resolve = 1;

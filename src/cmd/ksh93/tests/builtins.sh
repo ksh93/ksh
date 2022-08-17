@@ -1650,4 +1650,40 @@ EOF
 let Errors+=$?
 
 # ======
+# The cp builtin's -r/-R flag should not interfere with the -L and -P flags
+if builtin cp 2> /dev/null; then
+	echo 'test file' > "$tmp/cp_testfile"
+	ln -s "$tmp/cp_testfile" "$tmp/symlink1"
+	cp -r "$tmp/symlink1" "$tmp/symlink2"
+	{ test -f "$tmp/symlink2" && test -L "$tmp/symlink2"; } || err_exit "default behavior of 'cp -r' follows symlinks"
+	rm "$tmp/symlink2"
+	cp -R "$tmp/symlink1" "$tmp/symlink2"
+	{ test -f "$tmp/symlink2" && test -L "$tmp/symlink2"; } || err_exit "default behavior of 'cp -R' follows symlinks"
+	rm "$tmp/symlink2"
+	cp -Pr "$tmp/symlink1" "$tmp/symlink2"
+	{ test -f "$tmp/symlink2" && test -L "$tmp/symlink2"; } || err_exit "'cp -Pr' follows symlinks"
+	rm "$tmp/symlink2"
+	cp -PR "$tmp/symlink1" "$tmp/symlink2"
+	{ test -f "$tmp/symlink2" && test -L "$tmp/symlink2"; } || err_exit "'cp -PR' follows symlinks"
+	rm "$tmp/symlink2"
+	cp -rP "$tmp/symlink1" "$tmp/symlink2"
+	{ test -f "$tmp/symlink2" && test -L "$tmp/symlink2"; } || err_exit "'cp -rP' follows symlinks"
+	rm "$tmp/symlink2"
+	cp -RP "$tmp/symlink1" "$tmp/symlink2"
+	{ test -f "$tmp/symlink2" && test -L "$tmp/symlink2"; } || err_exit "'cp -RP' follows symlinks"
+	rm "$tmp/symlink2"
+	cp -Lr "$tmp/symlink1" "$tmp/testfile2"
+	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -Lr' doesn't follow symlinks"
+	rm "$tmp/testfile2"
+	cp -LR "$tmp/symlink1" "$tmp/testfile2"
+	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -LR' doesn't follow symlinks"
+	rm "$tmp/testfile2"
+	cp -rL "$tmp/symlink1" "$tmp/testfile2"
+	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -Lr' doesn't follow symlinks"
+	rm "$tmp/testfile2"
+	cp -RL "$tmp/symlink1" "$tmp/testfile2"
+	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -LR' doesn't follow symlinks"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
