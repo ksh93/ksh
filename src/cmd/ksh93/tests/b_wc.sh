@@ -1,3 +1,22 @@
+########################################################################
+#                                                                      #
+#               This software is part of the ast package               #
+#           Copyright (c) 2019-2020 Contributors to ksh2020            #
+#             Copyright (c) 2022 Contributors to ksh 93u+m             #
+#                      and is licensed under the                       #
+#                 Eclipse Public License, Version 2.0                  #
+#                                                                      #
+#                A copy of the License is available at                 #
+#      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      #
+#         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
+#                                                                      #
+#              Siteshwar Vashisht <svashisht@redhat.com>               #
+#                 Kurtis Rader <krader@skepticism.us>                  #
+#            Johnothan King <johnothanking@protonmail.com>             #
+#                                                                      #
+########################################################################
+
+
 # Tests for `wc` builtin
 #   wc - print the number of bytes, words, and lines in files
 
