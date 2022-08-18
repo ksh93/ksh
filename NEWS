@@ -2,10 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2022-08-17:
+2022-08-18:
 
-- Fixed a bug that would cause the read builtin's -a flag to fail after
-  either -A or -a was used once.
+- Fixed a bug in optget that caused many builtin's options to be ignored
+  after one use (e.g., 'read -a', 'chmod -l', 'stty -F', etc.).
+
+- Fixed a bug in the cp builtin that caused the -r and -R options to
+  sometimes ignore -P, -L and -H.
 
 2022-08-16:
 
