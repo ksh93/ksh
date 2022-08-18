@@ -1650,7 +1650,7 @@ EOF
 let Errors+=$?
 
 # ======
-# The cp builtin's -r/-R flag should not interfere with the -L and -P flags
+# The cp builtin's -r/-R flag should not interfere with the -L, -P and -H flags
 if builtin cp 2> /dev/null; then
 	echo 'test file' > "$tmp/cp_testfile"
 	ln -s "$tmp/cp_testfile" "$tmp/symlink1"
@@ -1679,10 +1679,28 @@ if builtin cp 2> /dev/null; then
 	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -LR' doesn't follow symlinks"
 	rm "$tmp/testfile2"
 	cp -rL "$tmp/symlink1" "$tmp/testfile2"
-	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -Lr' doesn't follow symlinks"
+	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -rL' doesn't follow symlinks"
 	rm "$tmp/testfile2"
 	cp -RL "$tmp/symlink1" "$tmp/testfile2"
-	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -LR' doesn't follow symlinks"
+	{ test -f "$tmp/testfile2" && ! test -L "$tmp/testfile2"; } || err_exit "'cp -RL' doesn't follow symlinks"
+	mkdir -p "$tmp/cp_testdir/dir1"
+	ln -s "$tmp/cp_testdir" "$tmp/testdir_symlink"
+	ln -s "$tmp/testfile2" "$tmp/cp_testdir/testfile2_sym"
+	cp -RH "$tmp/testdir_symlink" "$tmp/result"
+	{ test -d "$tmp/result" && ! test -L "$tmp/result"; } || err_exit "'cp -RH' didn't follow the given symlink"
+	{ test -f "$tmp/result/testfile2_sym" && test -L "$tmp/result/testfile2_sym"; } || err_exit "'cp -RH' follows symlinks not given on the command line"
+	rm -r "$tmp/result"
+	cp -rH "$tmp/testdir_symlink" "$tmp/result"
+	{ test -d "$tmp/result" && ! test -L "$tmp/result"; } || err_exit "'cp -rH' didn't follow the given symlink"
+	{ test -f "$tmp/result/testfile2_sym" && test -L "$tmp/result/testfile2_sym"; } || err_exit "'cp -rH' follows symlinks not given on the command line"
+	rm -r "$tmp/result"
+	cp -Hr "$tmp/testdir_symlink" "$tmp/result"
+	{ test -d "$tmp/result" && ! test -L "$tmp/result"; } || err_exit "'cp -Hr' didn't follow the given symlink"
+	{ test -f "$tmp/result/testfile2_sym" && test -L "$tmp/result/testfile2_sym"; } || err_exit "'cp -Hr' follows symlinks not given on the command line"
+	rm -r "$tmp/result"
+	cp -HR "$tmp/testdir_symlink" "$tmp/result"
+	{ test -d "$tmp/result" && ! test -L "$tmp/result"; } || err_exit "'cp -HR' didn't follow the given symlink"
+	{ test -f "$tmp/result/testfile2_sym" && test -L "$tmp/result/testfile2_sym"; } || err_exit "'cp -HR' follows symlinks not given on the command line"
 fi
 
 # ======
