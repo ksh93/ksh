@@ -11,7 +11,6 @@
 #         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
 #                                                                      #
 #              Siteshwar Vashisht <svashisht@redhat.com>               #
-#                 Kurtis Rader <krader@skepticism.us>                  #
 #            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
