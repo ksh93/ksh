@@ -963,8 +963,9 @@ static Shnode_t *funct(Lex_t *lexp)
 		if(slp && slp->slptr)
 		{
 			sh.st.staklist = slp->slnext;
-			stakdelete(slp->slptr);
+			Stak_t *slptr_save = slp->slptr;
 			slp->slptr = NIL(Stak_t*);
+			stakdelete(slptr_save);
 		}
 		siglongjmp(*sh.jmplist,jmpval);
 	}

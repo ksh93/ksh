@@ -1417,8 +1417,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 					sh_funstaks(slp->slchild,-1);
 					if(slp->slptr)
 					{
-						stakdelete(slp->slptr);
+						Stak_t *sp = slp->slptr;
 						slp->slptr = NIL(Stak_t*);
+						stakdelete(sp);
 					}
 					if(jmpval > SH_JMPFUN || (io && jmpval > SH_JMPIO))
 						siglongjmp(*sh.jmplist,jmpval);
@@ -2463,8 +2464,9 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_funstaks(slp->slchild,-1);
 				if(slp->slptr)
 				{
-					stakdelete(slp->slptr);
+					Stak_t *sp = slp->slptr;
 					slp->slptr = NIL(Stak_t*);
+					stakdelete(sp);
 				}
 				if(rp->sdict)
 				{
