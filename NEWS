@@ -4,12 +4,13 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2022-08-20:
 
-- Fixed a bug in optget that caused many builtin options to be ignored
-  after one use (e.g., 'read -a', 'chmod -l', 'stty -F', etc.).
+- Fixed a bug in command line options processing that caused short-form
+  option equivalents on some built-in commands to be ignored after one use,
+  e.g., the new read -a equivalent of read -A (introduced on 2022-02-16).
 
-- Fixed a bug in the cp builtin that caused the -r and -R options to
-  sometimes ignore -P, -L and -H. Additionally, the -r and -R options no
-  longer follow symlinks by default.
+- Fixed a bug in the /opt/ast/bin/cp built-in command that caused the -r and
+  -R options to sometimes ignore -P, -L and -H. Additionally, the -r and -R
+  options no longer follow symlinks by default.
 
 2022-08-16:
 
