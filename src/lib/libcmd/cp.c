@@ -24,7 +24,7 @@
  */
 
 static const char usage_head[] =
-"[-?@(#)$Id: cp (AT&T Research) 2012-04-20 $\n]"
+"[-?@(#)$Id: cp (ksh 93u+m) 2022-08-20 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 

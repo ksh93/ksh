@@ -16,6 +16,9 @@
 #                                                                      #
 ########################################################################
 
+# Tests for special and regular built-in commands (except those for
+# libcmd path-bound built-ins; they should go into libcmd.sh instead)
+
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 bincat=$(whence -p cat)
@@ -1213,19 +1216,6 @@ got=$($SHELL -c 't=good; t=bad command -@; print $t' 2>/dev/null)
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
-# Regression test for https://github.com/att/ast/issues/949
-if	(builtin chmod) 2>/dev/null
-then	foo_script='#!/bin/sh
-	exit 0'
-	echo "$foo_script" > "$tmp/foo1.sh"
-	echo "$foo_script" > "$tmp/foo2.sh"
-	builtin chmod
-	chmod +x "$tmp/foo1.sh" "$tmp/foo2.sh"
-	$SHELL "$tmp/foo1.sh" || err_exit "builtin 'chmod +x' doesn't work on first script"
-	$SHELL "$tmp/foo2.sh" || err_exit "builtin 'chmod +x' doesn't work on second script"
-fi
-
-# ======
 # In ksh93v- 2013-10-10 alpha cd doesn't fail on directories without execute permission.
 # Additionally, ksh93v- added a regression test for attempting to use cd on a file.
 if	[[ $(id -u) == 0 ]]
@@ -1344,26 +1334,6 @@ then	builtin uname
 fi
 
 # ======
-# https://github.com/ksh93/ksh/issues/138
-builtin -d cat
-if	[[ $'\n'${ builtin; }$'\n' == *$'\n/opt/ast/bin/cat\n'* ]]
-then	exp='  version         cat (*) ????-??-??'
-	got=$(/opt/ast/bin/cat --version 2>&1)
-	[[ $got == $exp ]] || err_exit "path-bound builtin not executable by literal canonical path" \
-		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-	got=$(PATH=/opt/ast/bin:$PATH; "${ whence -p cat; }" --version 2>&1)
-	[[ $got == $exp ]] || err_exit "path-bound builtin not executable by canonical path resulting from expansion" \
-		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-	got=$(PATH=/opt/ast/bin:$PATH; "$SHELL" -o restricted -c 'cat --version' 2>&1)
-	[[ $got == $exp ]] || err_exit "restricted shells do not recognize path-bound builtins" \
-		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-	got=$(set +x; PATH=/opt/ast/bin cat --version 2>&1)
-	[[ $got == $exp ]] || err_exit "path-bound builtin not found on PATH in preceding assignment" \
-		"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-else	warning 'skipping path-bound builtin tests: builtin /opt/ast/bin/cat not found'
-fi
-
-# ======
 # part of https://github.com/ksh93/ksh/issues/153
 mkdir "$tmp/deleted"
 cd "$tmp/deleted"
@@ -1440,69 +1410,6 @@ unset got ver
 }
 
 # ======
-# The rm builtin's -d option should remove files and empty directories without
-# removing non-empty directories (unless the -r option is also passed).
-# https://www.austingroupbugs.net/view.php?id=802
-if builtin rm 2> /dev/null; then
-	echo foo > "$tmp/bar"
-	mkdir "$tmp/emptydir"
-	mkdir -p "$tmp/nonemptydir1/subfolder"
-	mkdir "$tmp/nonemptydir2"
-	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
-
-	# Tests for lone -d option
-	got=$(rm -d "$tmp/emptydir" 2>&1)
-	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove empty directory with -d option' \
-		"(got $(printf %q "$got"))"
-	[[ -d $tmp/emptydir ]] && err_exit 'rm builtin fails to remove empty directory with -d option'
-	got=$(rm -d $tmp/bar 2>&1)
-	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove files with -d option' \
-		"(got $(printf %q "$got"))"
-	[[ -f $tmp/bar ]] && err_exit 'rm builtin fails to remove files with -d option'
-	rm -d "$tmp/nonemptydir1" 2> /dev/null
-	[[ ! -d $tmp/nonemptydir1/subfolder ]] && err_exit 'rm builtin has unwanted recursion with -d option on folder containing folder'
-	rm -d "$tmp/nonemptydir2" 2> /dev/null
-	[[ ! -f $tmp/nonemptydir2/shouldexist ]] && err_exit 'rm builtin has unwanted recursion with -d option on folder containing file'
-
-	# Recreate non-empty directories in case the above tests failed
-	mkdir -p "$tmp/nonemptydir1/subfolder"
-	mkdir -p "$tmp/nonemptydir2"
-	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
-
-	# Tests combining -d with -r
-	got=$(rm -rd "$tmp/nonemptydir1" 2>&1)
-	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and subdirectory with -rd options' \
-		"(got $(printf %q "$got"))"
-	[[ -d $tmp/nonemptydir1/subfolder || -d $tmp/nonemptydir1 ]] && err_exit 'rm builtin fails to remove all folders with -rd options'
-	got=$(rm -rd "$tmp/nonemptydir2" 2>&1)
-	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -rd options' \
-		"(got $(printf %q "$got"))"
-	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -rd options'
-
-	# Repeat the above tests with -R instead of -r (because of possible optget bugs)
-	mkdir -p "$tmp/nonemptydir1/subfolder"
-	mkdir -p "$tmp/nonemptydir2"
-	echo dummyfile > "$tmp/nonemptydir2/shouldexist"
-	got=$(rm -Rd "$tmp/nonemptydir1" 2>&1)
-	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and subdirectory with -Rd options' \
-		"(got $(printf %q "$got"))"
-	[[ -d $tmp/nonemptydir1/subfolder || -d $tmp/nonemptydir1 ]] && err_exit 'rm builtin fails to remove all folders with -Rd options'
-	got=$(rm -Rd "$tmp/nonemptydir2" 2>&1)
-	[[ $? == 0 ]] || err_exit 'rm builtin fails to remove non-empty directory and file with -Rd options' \
-		"(got $(printf %q "$got"))"
-	[[ -f $tmp/nonemptydir2/shouldexist || -d $tmp/nonemptydir2 ]] && err_exit 'rm builtin fails to remove all folders and files with -Rd options'
-
-
-	# Additional test: 'rm -f' without additional arguments should act
-	# as a no-op command. This bug was fixed in ksh93u+ 2012-02-14.
-	got=$(rm -f 2>&1)
-	if (($? != 0)) || [[ ! -z $got ]]
-	then	err_exit 'rm -f without additional arguments does not work correctly' \
-		"(got $(printf %q "$got"))"
-	fi
-fi
-
-# ======
 # These are regression tests for the cd command's -e and -P flags
 if ((.sh.version >= 20211205))
 then
@@ -1556,23 +1463,6 @@ then
 	(cd -eP '') >/dev/null 2>&1
 	got=$?; exp=2
 	(( got == exp )) || err_exit "cd -eP to empty string has wrong exit status (expected $exp, got $got)"
-fi
-
-# ======
-# The head and tail builtins should work on files without newlines
-if builtin head 2> /dev/null; then
-	print -n nonewline > "$tmp/nonewline"
-	exp=nonewline
-	got=$(head -1 "$tmp/nonewline")
-	[[ $got == $exp ]] || err_exit "head builtin fails to correctly handle files without an ending newline" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-fi
-if builtin tail 2> /dev/null; then
-	print -n 'newline\nnonewline' > "$tmp/nonewline"
-	exp=nonewline
-	got=$(tail -1 "$tmp/nonewline")
-	[[ $got == $exp ]] || err_exit "tail builtin fails to correctly handle files without an ending newline" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======

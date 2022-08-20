@@ -23,7 +23,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: cut (AT&T Research) 2010-08-11 $\n]"
+"[-?\n@(#)$Id: cut (ksh 93u_m) 2022-08-20 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?cut - cut out selected columns or fields of each line of a file]"
 "[+DESCRIPTION?\bcut\b bytes, characters, or character-delimited fields "
