@@ -1175,14 +1175,12 @@ int sh_lex(Lex_t* lp)
 					goto do_reg;
 				}
 				isfirst = (lp->lexd.first&&fcseek(0)==lp->lexd.first+1);
-				fcgetc(n);
+				if(fcgetc(n)<=0)
+					break;
 				/* check for {} */
 				if(c==LBRACE && n==RBRACE)
 					break;
-				if(n>0)
-					fcseek(-LEN);
-				else if(lp->lex.reservok)
-					break;
+				fcseek(-LEN);
 				/* check for reserved word { or } */
 				if(lp->lex.reservok && state[n]==S_BREAK && isfirst)
 					break;

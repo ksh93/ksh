@@ -53,7 +53,7 @@ struct comnod
 #define COMSCAN		(01<<COMBITS)
 #define COMFIXED	(02<<COMBITS)
 
-struct slnod 	/* struct for link list of stacks */
+struct slnod 	/* struct for linked list of stacks */
 {
 	struct slnod	*slnext;
 	struct slnod	*slchild;

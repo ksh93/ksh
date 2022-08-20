@@ -1444,4 +1444,21 @@ unset var1 var2
 [[ $got == one ]] || err_exit ".sh.value not restored after second .get discipline call (got $(printf %q "$got"))"
 
 # ======
+# TODO: this is known to fail with a .get or .getn discipline function
+for disc in set append unset
+do
+	for type in i F E
+	do
+		got=$(eval "
+			typeset -$type x
+			function x.$disc { :; }
+			x[0]=0
+			unset x
+			typeset -p x
+		")
+		[[ -z $got ]] || err_exit "-$type array with .$disc discipline fails to be unset (got $(printf %q "$got"))"
+	done
+done
+
+# ======
 exit $((Errors<125?Errors:125))

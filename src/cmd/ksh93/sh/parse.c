@@ -528,8 +528,16 @@ void sh_funstaks(register struct slnod *slp,int flag)
 		{
 			if(flag<=0)
 			{
-				stakdelete(slpold->slptr);
+				/*
+				 * Since we're dealing with a linked list of stacks, slpold may be inside the allocated region
+				 * pointed to by slpold->slptr, meaning the stakdelete() call may invalidate slpold as well as
+				 * slpold->slptr. So if we do 'stakdelete(slpold->slptr); slpold->slptr = NIL(Stak_t*)' as may
+				 * seem obvious, the assignment may be a use-after-free of slpold. Therefore, save the pointer
+				 * value and reset the pointer before closing/freeing the stack.
+				 */
+				Stak_t *sp = slpold->slptr;
 				slpold->slptr = NIL(Stak_t*);
+				stakdelete(sp);
 			}
 			else
 				staklink(slpold->slptr);
@@ -955,8 +963,9 @@ static Shnode_t *funct(Lex_t *lexp)
 		if(slp && slp->slptr)
 		{
 			sh.st.staklist = slp->slnext;
-			stakdelete(slp->slptr);
+			Stak_t *slptr_save = slp->slptr;
 			slp->slptr = NIL(Stak_t*);
+			stakdelete(slptr_save);
 		}
 		siglongjmp(*sh.jmplist,jmpval);
 	}

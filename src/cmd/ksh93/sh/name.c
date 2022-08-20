@@ -2466,8 +2466,9 @@ void	_nv_unset(register Namval_t *np,int flags)
 			}
 			if(slp->slptr)
 			{
-				stakdelete(slp->slptr);
+				Stak_t *sp = slp->slptr;
 				slp->slptr = NIL(Stak_t*);
+				stakdelete(sp);
 			}
 			free((void*)np->nvalue.ip);
 			np->nvalue.ip = 0;
