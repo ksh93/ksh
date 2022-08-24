@@ -1350,7 +1350,7 @@ static void getline(register Vi_t* vp,register int mode)
 {
 	register int c;
 	register int tmp;
-	int	max_virt=0, last_save=0, backslash=0;
+	int	max_virt=0, last_save=0, backslash=0, x, allempty=1;
 	genchar saveline[MAXLINE];
 	vp->addnl = 1;
 
@@ -1537,6 +1537,17 @@ static void getline(register Vi_t* vp,register int mode)
 			return;
 
 		case '\t':		/** command completion **/
+			for(x=0; x <= cur_virt; x++)
+				if(!isspace(virtual[x]))
+				{
+					allempty = 0;
+					break;
+				}
+			if(allempty == 1)
+			{
+				ed_ringbell();
+				break;
+			}
 			if(sh_isoption(SH_VI) &&
 				mode != SEARCH &&
 				last_virt >= 0 &&
