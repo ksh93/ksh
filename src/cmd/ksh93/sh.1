@@ -4990,6 +4990,8 @@ will provide a numbered list of matching alternatives.
 A specific selection can be made by entering the
 selection number followed by a
 .IR tab .
+Neither completion nor listing operations are attempted before
+the first character in a line.
 .SS Key Bindings.
 The
 .B
@@ -5584,10 +5586,9 @@ or
 character.
 .TP 10
 .BI ^I  " tab"
-Except at the start of the line, attempts command or
-file name completion as described above and returns to
-input mode. If a partial completion occurs, repeating
-this will behave as if
+Attempts command or file name completion as described
+above and returns to input mode. If a partial completion
+occurs, repeating this will behave as if
 .B =
 were entered from control mode.
 If no match is found or entered after

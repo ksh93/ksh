@@ -779,8 +779,10 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 {
 	register int i,value;
 	int digit,ch,c,d;
+	int x,allempty;
 	digit = 0;
 	value = 0;
+	allempty = 1;
 	while ((i=ed_getchar(ep->ed,0)),digit(i))
 	{
 		value *= 10;
@@ -1002,7 +1004,13 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case '*':		/* filename expansion */
 		case '=':	/* escape = - list all matching file names */
 			ep->mark = cur;
-			if(cur<1)
+			for(x=0; x <= cur; x++)
+				if(out[x] > ' ')
+				{
+					allempty = 0;
+					break;
+				}
+			if(cur<1 || allempty==1)
 			{
 				beep();
 				return(-1);

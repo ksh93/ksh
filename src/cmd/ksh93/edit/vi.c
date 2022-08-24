@@ -2520,6 +2520,8 @@ static int textmod(register Vi_t *vp,register int c, int mode)
 	register int trepeat = vp->repeat;
 	genchar *savep;
 	int ch;
+	int x;
+	int allempty = 1;
 
 	if(mode && (fold(vp->lastmotion)=='F' || fold(vp->lastmotion)=='T')) 
 		vp->lastmotion = ';';
@@ -2545,7 +2547,13 @@ addin:
 	case '*':		/** do file name expansion in place **/
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
-		if( cur_virt == INVALID )
+		for(x=0; x <= cur_virt; x++)
+			if(virtual[x] > ' ')
+			{
+				allempty = 0;
+				break;
+			}
+		if( cur_virt == INVALID || allempty == 1 )
 			return(BAD);
 		/* FALLTHROUGH */
 		save_v(vp);
