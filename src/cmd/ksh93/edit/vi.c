@@ -2548,7 +2548,7 @@ addin:
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
 		for(x=0; x <= cur_virt; x++)
-			if(virtual[x] > ' ')
+			if(!isspace(virtual[x]))
 			{
 				allempty = 0;
 				break;

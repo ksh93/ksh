@@ -1005,7 +1005,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case '=':	/* escape = - list all matching file names */
 			ep->mark = cur;
 			for(x=0; x <= cur; x++)
-				if(out[x] > ' ')
+				if(!isspace(out[x]))
 				{
 					allempty = 0;
 					break;
