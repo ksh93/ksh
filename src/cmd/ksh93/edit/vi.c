@@ -1350,7 +1350,7 @@ static void getline(register Vi_t* vp,register int mode)
 {
 	register int c;
 	register int tmp;
-	int	max_virt=0, last_save=0, backslash=0, x, allempty=1;
+	int	max_virt=0, last_save=0, backslash=0;
 	genchar saveline[MAXLINE];
 	vp->addnl = 1;
 
@@ -1537,13 +1537,18 @@ static void getline(register Vi_t* vp,register int mode)
 			return;
 
 		case '\t':		/** command completion **/
+		{
+			char allempty = 1;
+			int x;
 			for(x=0; x <= cur_virt; x++)
+			{
 				if(!isspace(virtual[x]))
 				{
 					allempty = 0;
 					break;
 				}
-			if(allempty == 1)
+			}
+			if(allempty)
 			{
 				ed_ringbell();
 				break;
@@ -1577,6 +1582,7 @@ static void getline(register Vi_t* vp,register int mode)
 				break;
 			}
 			/* FALLTHROUGH */
+		}
 		default:
 		fallback:
 			if( mode == REPLACE )
@@ -2531,8 +2537,6 @@ static int textmod(register Vi_t *vp,register int c, int mode)
 	register int trepeat = vp->repeat;
 	genchar *savep;
 	int ch;
-	int x;
-	int allempty = 1;
 
 	if(mode && (fold(vp->lastmotion)=='F' || fold(vp->lastmotion)=='T')) 
 		vp->lastmotion = ';';
@@ -2558,13 +2562,18 @@ addin:
 	case '*':		/** do file name expansion in place **/
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
+	{
+		char allempty = 1;
+		int x;
 		for(x=0; x <= cur_virt; x++)
+		{
 			if(!isspace(virtual[x]))
 			{
 				allempty = 0;
 				break;
 			}
-		if( cur_virt == INVALID || allempty == 1 )
+		}
+		if(cur_virt == INVALID || allempty)
 			return(BAD);
 		/* FALLTHROUGH */
 		save_v(vp);
@@ -2603,6 +2612,7 @@ addin:
 			return(APPEND);
 		}
 		break;
+	}
 
 	case '@':		/** macro expansion **/
 		if( mode )

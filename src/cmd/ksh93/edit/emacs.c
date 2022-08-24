@@ -779,10 +779,8 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 {
 	register int i,value;
 	int digit,ch,c,d;
-	int x,allempty;
 	digit = 0;
 	value = 0;
-	allempty = 1;
 	while ((i=ed_getchar(ep->ed,0)),digit(i))
 	{
 		value *= 10;
@@ -1003,14 +1001,19 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			/* FALLTHROUGH */
 		case '*':		/* filename expansion */
 		case '=':	/* escape = - list all matching file names */
+		{
+			char allempty = 1;
+			int x;
 			ep->mark = cur;
 			for(x=0; x < cur; x++)
+			{
 				if(!isspace(out[x]))
 				{
 					allempty = 0;
 					break;
 				}
-			if(cur<1 || allempty==1)
+			}
+			if(cur<1 || allempty)
 			{
 				beep();
 				return(-1);
@@ -1048,6 +1051,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				draw(ep,UPDATE);
 			}
 			return(-1);
+		}
 
 		/* search back for character */
 		case cntl(']'):	/* feature not in book */
