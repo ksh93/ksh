@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-08-24:
+
+- Fixed a bug that caused ksh in the vi editor mode to crash or produce
+  invalid completions if ESC = was used at the beginning of a line. Both
+  tab and = completions are now disabled at the start of the command line.
+
 2022-08-20:
 
 - Fixed a bug in command line options processing that caused short-form
