@@ -741,6 +741,9 @@ static int cntlmode(Vi_t *vp)
 	{
 		vp->repeat_set = 0;
 		was_inmacro = inmacro;
+
+		/*** see if it's a repeat count parameter ***/
+
 		if( digit(c) )
 		{
 			c = getcount(vp,c);
