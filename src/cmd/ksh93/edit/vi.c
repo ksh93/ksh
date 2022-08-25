@@ -2567,7 +2567,7 @@ addin:
 		int x;
 		for(x=0; x <= cur_virt; x++)
 		{
-			if(!isspace(virtual[x]))
+			if(!isspace(virtual[x]) && virtual[x] != 0)
 			{
 				allempty = 0;
 				break;
