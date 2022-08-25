@@ -749,6 +749,10 @@ static int cntlmode(Vi_t *vp)
 				cur_virt = 0;
 				sync_cursor(vp);
 			}
+			else
+			{
+				ed_ringbell();	
+			}
 			continue;
 		}
 
@@ -1631,13 +1635,19 @@ static int mvcursor(register Vi_t* vp,register int motion)
 
 	case '0':		/** First column **/
 		if(cur_virt == INVALID)
+		{
+			ed_ringbell();
 			return(ABORT);	
+		}
 		tcur_virt = 0;
 		break;
 
 	case '^':		/** First nonblank character **/
 		if(cur_virt == INVALID)
+		{
+			ed_ringbell();
 			return(ABORT);
+		}
 		tcur_virt = first_virt;
 		while( tcur_virt < last_virt && isblank(tcur_virt) )
 			++tcur_virt;
