@@ -741,17 +741,6 @@ static int cntlmode(Vi_t *vp)
 	{
 		vp->repeat_set = 0;
 		was_inmacro = inmacro;
-		if( c == '0' )
-		{
-			/*** move to leftmost column ***/
-			if(cur_virt > 0)
-			{
-				cur_virt = 0;
-				sync_cursor(vp);
-			}
-			continue;
-		}
-
 		if( digit(c) )
 		{
 			c = getcount(vp,c);
@@ -1628,6 +1617,12 @@ static int mvcursor(register Vi_t* vp,register int motion)
 	switch(motion)
 	{
 		/***** Cursor move commands *****/
+
+	case '0':		/** First column **/
+		if(cur_virt <= 0)
+			return(ABORT);
+		tcur_virt = 0;
+		break;
 
 	case '^':		/** First nonblank character **/
 		if(cur_virt <= 0)
