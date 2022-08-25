@@ -744,8 +744,11 @@ static int cntlmode(Vi_t *vp)
 		if( c == '0' )
 		{
 			/*** move to leftmost column ***/
-			cur_virt = 0;
-			sync_cursor(vp);
+			if(cur_virt != INVALID)
+			{
+				cur_virt = 0;
+				sync_cursor(vp);
+			}
 			continue;
 		}
 
@@ -1627,10 +1630,14 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		/***** Cursor move commands *****/
 
 	case '0':		/** First column **/
+		if(cur_virt == INVALID)
+			return(ABORT);	
 		tcur_virt = 0;
 		break;
 
 	case '^':		/** First nonblank character **/
+		if(cur_virt == INVALID)
+			return(ABORT);
 		tcur_virt = first_virt;
 		while( tcur_virt < last_virt && isblank(tcur_virt) )
 			++tcur_virt;
@@ -2567,7 +2574,7 @@ addin:
 		int x;
 		for(x=0; x <= cur_virt; x++)
 		{
-			if(!isspace(virtual[x]) && virtual[x] != 0)
+			if(!isspace(virtual[x]))
 			{
 				allempty = 0;
 				break;
