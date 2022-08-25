@@ -1629,12 +1629,6 @@ static int mvcursor(register Vi_t* vp,register int motion)
 	{
 		/***** Cursor move commands *****/
 
-	case '0':		/** First column **/
-		if(cur_virt <= 0)
-			return(ABORT);
-		tcur_virt = 0;
-		break;
-
 	case '^':		/** First nonblank character **/
 		if(cur_virt <= 0)
 			return(ABORT);
