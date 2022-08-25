@@ -744,7 +744,7 @@ static int cntlmode(Vi_t *vp)
 		if( c == '0' )
 		{
 			/*** move to leftmost column ***/
-			if(cur_virt != INVALID)
+			if(cur_virt > 0)
 			{
 				cur_virt = 0;
 				sync_cursor(vp);
@@ -1634,7 +1634,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		/***** Cursor move commands *****/
 
 	case '0':		/** First column **/
-		if(cur_virt == INVALID)
+		if(cur_virt <= 0)
 		{
 			ed_ringbell();
 			return(ABORT);	
@@ -1643,7 +1643,7 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		break;
 
 	case '^':		/** First nonblank character **/
-		if(cur_virt == INVALID)
+		if(cur_virt <= 0)
 		{
 			ed_ringbell();
 			return(ABORT);
