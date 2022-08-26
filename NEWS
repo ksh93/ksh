@@ -2,6 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-08-26:
+
+- Aliases for many GNU long options have been added to the /opt/ast/bin
+  built-in commands. Additionally, 'kill -s' now has a --signal long option
+  alias compatible with the util-linux option.
+
+- All of the /opt/ast/bin built-ins available in src/lib/libcmd (excluding
+  vmstate if vmalloc isn't enabled) can now be enabled with the new
+  SHOPT_ALL_LIBCMD setting in src/cmd/ksh93/SHOPT.sh.
+
 2022-08-25:
 
 - In the vi line editor, a bug was fixed that caused erratic behaviour after
