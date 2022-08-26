@@ -2598,8 +2598,10 @@ addin:
 		}
 		return(APPEND);
 
-	case 'I':		/** insert at beginning of line **/
+	case 'I':		/** insert to the left of the first character **/
 		cur_virt = first_virt;
+		while( cur_virt < last_virt && isblank(cur_virt) )
+			++cur_virt;
 		sync_cursor(vp);
 		/* FALLTHROUGH */
 
