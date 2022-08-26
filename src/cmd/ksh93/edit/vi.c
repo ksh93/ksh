@@ -2617,9 +2617,16 @@ addin:
   		}
 		return(INSERT);
 
-	case 'C':		/** change to eol **/
-		c = '$';
-		goto chgeol;
+	case 'C':		/** change to eol and insert**/
+		if(cur_virt != INVALID)
+		{
+			c = '$';
+			goto chgeol;
+		}
+		else
+		{
+			return(INSERT);
+		}
 
 	case 'c':		/** change **/
 		if( mode )
