@@ -2619,7 +2619,7 @@ addin:
   		}
 		return(INSERT);
 
-	case 'C':		/** change to eol and insert**/
+	case 'C':		/** change to eol and insert **/
 		c = '$';
 		goto chgeol;
 
