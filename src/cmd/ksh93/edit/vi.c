@@ -2620,15 +2620,8 @@ addin:
 		return(INSERT);
 
 	case 'C':		/** change to eol and insert**/
-		if(cur_virt != INVALID)
-		{
-			c = '$';
-			goto chgeol;
-		}
-		else
-		{
-			return(INSERT);
-		}
+		c = '$';
+		goto chgeol;
 
 	case 'c':		/** change **/
 		if( mode )
@@ -2637,6 +2630,8 @@ addin:
 			c = getcount(vp,ed_getchar(vp->ed,-1));
 chgeol:
 		vp->lastmotion = c;
+		if( cur_virt == INVALID)
+			return(INSERT);
 		if( c == 'c' )
 		{
 			del_line(vp,GOOD);
