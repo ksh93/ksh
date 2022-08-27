@@ -2630,7 +2630,7 @@ addin:
 			c = getcount(vp,ed_getchar(vp->ed,-1));
 chgeol:
 		vp->lastmotion = c;
-		if( cur_virt == INVALID)
+		if( cur_virt == INVALID )
 			return(INSERT);
 		if( c == 'c' )
 		{
