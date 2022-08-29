@@ -549,7 +549,7 @@ if builtin cat 2> /dev/null; then
 	exp=""
 	[[ $got == "$exp" ]] || err_exit "cat -S should give no error on non-existent files (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-	# -T, --show-blank
+	# -T, --show-blank|show-tabs
 	#  Causes tabs to be copied as ^I.
 	print "a\tb" > "$tmp/file_with_tabs"
 	got=$(cat -T "$tmp/file_with_tabs")
@@ -609,8 +609,9 @@ if builtin basename 2> /dev/null; then
 	exp="foo"
 	[[ $got == "$exp" ]] || err_exit "basename failed to strip suffix (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-	# -a, --all All operands are treated as string and each modified pathname
-	#           is printed on a separate line on the standard output.
+	# -a, --all|multiple
+	#  All operands are treated as string and each modified pathname
+	#  is printed on a separate line on the standard output.
 	got=$(basename -a "$tmp/foo.bar" "$tmp/bar.bar" "$tmp/baz.bar")
 	exp=$'foo.bar\nbar.bar\nbaz.bar'
 	[[ $got == "$exp" ]] || err_exit "basename -a failed (expected $(printf %q "$exp"), got $(printf %q "$got"))"
