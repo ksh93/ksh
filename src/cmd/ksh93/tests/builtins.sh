@@ -602,7 +602,7 @@ then	err_exit "read -t in pipe taking $total_t secs - $(( reps * delay )) minimu
 elif	(( total_t < reps * delay ))
 then	err_exit "read -t in pipe taking $total_t secs - $(( reps * delay )) minimum - too fast"
 fi
-$SHELL -c 'sleep $(printf "%a" .95)' 2> /dev/null || err_exit "sleep doesn't except %a format constants"
+$SHELL -c 'sleep $(printf "%a" .95)' 2> /dev/null || err_exit "sleep doesn't accept %a format constants"
 $SHELL -c 'test \( ! -e \)' 2> /dev/null ; [[ $? == 1 ]] || err_exit 'test \( ! -e \) not working'
 [[ $(ulimit) == "$(ulimit -fS)" ]] || err_exit 'ulimit is not the same as ulimit -fS'
 tmpfile=$tmp/file.2
@@ -1145,6 +1145,84 @@ else
 fi
 EOF
 "$SHELL" -i "$sleepsig" 2> /dev/null || err_exit "'sleep -s' doesn't work with intervals of more than 30 seconds"
+
+# ======
+# integer
+# The number of seconds to sleep.
+SECONDS=0
+sleep 1
+got=$SECONDS
+exp=1
+(( got >= exp )) ||
+    err_exit "sleep 1 should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# floating point
+# The number of seconds to sleep. The got granularity depends on the
+# underlying system, normally around 1 millisecond.
+SECONDS=0
+sleep 0.1
+got=$SECONDS
+exp=0.1
+(( got >= exp )) ||
+	err_exit "sleep 0.1 should sleep for at least 0.1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# PnYnMnDTnHnMnS
+# An ISO 8601 duration where at least one of the duration parts must be
+# specified.
+SECONDS=0
+sleep 'P0Y0M0DT0H0M1S'
+got=$SECONDS
+exp=1.0
+(( got >= exp )) ||
+    err_exit "sleep 'P0Y0M0DT0H0M1S' should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# PnW   An ISO 8601 duration specifying n weeks.
+# Sleep for 0 weeks
+sleep P0W || err_exit "sleep does not recocgnize PnW"
+
+# ======
+# pnYnMnDTnHnMnS
+# A case insensitive ISO 8601 duration except that M specifies months,
+# m before s or S specifies minutes and after specifies milliseconds, u
+# or U specifies microseconds, and n specifies nanoseconds.
+SECONDS=0
+sleep 'p0Y0M0DT0H0M1S'
+got=$SECONDS
+exp=1.0
+(( got >= exp )) ||
+    err_exit "sleep 'p0Y0M0DT0H0M1S' should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# date/time
+#       Sleep until the date(1) compatible date/time.
+today=$(date +"%Y-%m-%d")
+# This should return immediately
+sleep "$today" || err_exit "sleep does not recognize date parameter"
+
+# ======
+# -s Sleep until a signal or a timeout is received. If duration is
+#    omitted or 0 then no timeout will be used.
+SECONDS=0
+sleep -s 1
+got=$SECONDS
+exp=1.0
+(( got >= exp )) ||
+    err_exit "sleep -s 1 should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Verify unexpected arguments result in an error.
+exp="sleep: one operand expected"
+got=$(sleep 0 .3 2>&1)
+[[ $got == $exp ]] || err_exit "unexpected arguments isn't an error (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Verify an invalid interval results in an error.
+exp="sleep: 1sx: bad number"
+got=$(sleep 1sx 2>&1)
+[[ $got == $exp ]] || err_exit "invalid interval isn't an error (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # Builtins should handle unrecognized options correctly

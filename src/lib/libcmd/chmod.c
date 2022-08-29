@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: chmod (AT&T Research) 2012-04-20 $\n]"
+"[-?\n@(#)$Id: chmod (ksh 93u+m) 2022-08-28 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?chmod - change the access permissions of files]"
 "[+DESCRIPTION?\bchmod\b changes the permission of each file "
@@ -101,7 +101,7 @@ static const char usage[] =
 "[L:logical|follow?Follow symbolic links when traversing directories.]"
 "[P:physical|nofollow?Don't follow symbolic links when traversing directories.]"
 "[R:recursive?Change the mode for files in subdirectories recursively.]"
-"[c:changes?Describe only files whose permission actually change.]"
+"[c:changes?Describe only files whose permissions actually change.]"
 "[f:quiet|silent?Do not report files whose permissions fail to change.]"
 "[h|l:symlink?Change the mode of symbolic links on systems that "
     "support \blchmod\b(2). Implies \b--physical\b.]"
