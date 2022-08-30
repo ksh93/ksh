@@ -136,7 +136,7 @@ const struct shtable3 shtab_builtins[] =
 #undef	mktemp		/* undo possible map-libc mktemp => _ast_mktemp */
 #include SHOPT_CMDLIB_HDR
 #else
-#ifdef SHOPT_ALL_LIBCMD
+#if SHOPT_ALL_LIBCMD
 	CMDLIST(chgrp)
 	CMDLIST(chmod)
 	CMDLIST(chown)
