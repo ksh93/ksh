@@ -102,13 +102,11 @@ if builtin head 2> /dev/null; then
 	This is line 5 in file2
 	EOF2
 
-	# -*n*; i.e., an integer presented as a flag.
-	#
-	# The `awk` invocation is to strip whitespace around the output of `wc` since it might pad the
-	# value.
+	# -<integer>, legacy and non-standard form of -n <integer>.
+	# (The arithmetic expansion renders whitespace around the output of 'wc' irrelevant.)
 	exp=11
-	got=$(head -11 < "$tmp/file1" | wc -l | awk '{ print $1 }')
-	[[ $got == "$exp" ]] || err_exit "'head -n' failed (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	got=$(( $(head -11 < "$tmp/file1" | wc -l) ))
+	((got==exp)) || err_exit "'head -<integer>' failed (expected $exp, got $got)"
 
 	#   -n, --lines=l
 	#                   Copy l lines from each file. The default value is 10.
@@ -301,16 +299,16 @@ if builtin chmod 2>/dev/null; then
 	touch a b d/e d/f
 
 	# Create a function to report the pathname permissions in a fashion that works on BSD, Linux, and
-	# other platforms. This could be simplified if ksh supported a `stat` builtin.
+	# other platforms. This could be simplified if ksh supported a 'stat' builtin.
 	if [[ $(stat -f '%Sp' a 2>/dev/null) == '-rw-------' ]]
 	then
-		# This appears to be a BSD `stat` command that supports the `-f` flag.
+		# This appears to be a BSD 'stat' command that supports the '-f' flag.
 		function stat_perms {
 			stat -f '%Sp' "$@"
 		}
 	elif [[ $(stat --format '%A' a 2>/dev/null) == '-rw-------' ]]
 	then
-		# This appears to be a GNU `stat` command that supports the `-A` flag.
+		# This appears to be a GNU 'stat' command that supports the '-A' flag.
 		function stat_perms {
 			stat -c '%A' "$@"
 		}
@@ -453,7 +451,7 @@ if builtin chmod 2>/dev/null; then
 		[[ $got == "$exp" ]] || err_exit "Invalid numeric perms not handled (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 		# Invalid numeric perms produce an error.
-		# Note: the use of `z` rather than `r`, `w`, or other symbolic mode is deliberate.
+		# Note: the use of 'z' rather than 'r', 'w', or other symbolic mode is deliberate.
 		# See https://github.com/att/ast/issues/1358.
 		exp="chmod: 123z: invalid mode"
 		got=$(chmod 123z a 2>&1)
@@ -793,7 +791,6 @@ if builtin cut 2> /dev/null; then
 
 	#   -N, --newline   Output new-lines at end of each record when used with the -b
 	#                   or -c option. On by default; -N means --nonewline.
-	#
 	got=$(cut -N -d: -f1 "$tmp/foo")
 	exp=$'foo\nbar\nbaz\nfoobarbaz'
 	[[ $got == "$exp" ]] || err_exit "'cut -d' failed (expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -806,12 +803,10 @@ if builtin cut 2> /dev/null; then
 	exp='cut: f option already specified'
 	[[ $got =~ "$exp" ]] || err_exit "'cut -f1 c1' should show an error (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-	# ======
 	got=$(cut "$tmp/foo" 2>&1)
 	exp='cut: b, c or f option must be specified'
 	[[ $got =~ "$exp" ]] || err_exit "'cut' without b, c or f options should show an error (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-	# ======
 	got=$(cut -c -xyz "$tmp/foo" 2>&1)
 	exp='cut: bad list for c/f option'
 	[[ $got =~ "$exp" ]] || err_exit "'cut -b1 f1' should show an error (expected $(printf %q "$exp"), got $(printf %q "$got"))"
