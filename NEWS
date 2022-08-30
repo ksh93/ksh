@@ -4,6 +4,11 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2022-08-30:
 
+- In the vi line editor, 'C' and 'c$' at the start of a line now enter insert
+  mode instead of beeping, and 'I' jumps to the first non-blank character on
+  the line instead of the start of the line. These changes are consistent
+  with standard vi(1) behavior and with Bolsky & Korn (1995, p. 121).
+
 - Aliases for many GNU long options have been added to the /opt/ast/bin
   built-in commands. Additionally, 'kill -s' now has a --signal long option
   alias compatible with the util-linux option.
