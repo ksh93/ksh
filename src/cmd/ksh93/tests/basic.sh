@@ -584,6 +584,19 @@ actual=$(
 [[ $actual == "$expect" ]] || err_exit "'%' is not treated literally when placed after a format specifier" \
 	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
+# A precision level of six should work, while the default
+# level of precision should be three.
+exp='0m00.[0-9]{6}s
+0m00.[0-9]{3}s'
+got=$(
+	TIMEFORMAT=$'%6lR\n%lC'
+	redirect 2>&1
+	set +x
+	time :
+)
+[[ $got =~ $exp ]] || err_exit "the supported precision levels in TIMEFORMAT don't function correctly" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # The locale's radix point shouldn't be ignored
 us=$(
 	LC_ALL='C.UTF-8' # radix point '.'
