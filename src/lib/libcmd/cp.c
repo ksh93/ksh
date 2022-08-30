@@ -90,7 +90,7 @@ static const char usage_tail[] =
     "quit response (\bq\b or \bQ\b) exits immediately, and all other "
     "responses skip the file.]"
 "[r|R:recursive?Operate on the contents of directories recursively.]"
-"[s:symlink|symbolic|symbolic-link?Make symbolic links to destination files.]"
+"[s:symlink|symbolic-link?Make symbolic links to destination files.]"
 "[u:update?Replace a destination file only if its modification time is "
     "older than the corresponding source file modification time.]"
 "[v:verbose?Print the name of each file before operating on it.]"

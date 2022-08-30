@@ -1147,16 +1147,6 @@ EOF
 "$SHELL" -i "$sleepsig" 2> /dev/null || err_exit "'sleep -s' doesn't work with intervals of more than 30 seconds"
 
 # ======
-# integer
-# The number of seconds to sleep.
-SECONDS=0
-sleep 1
-got=$SECONDS
-exp=1
-(( got >= exp )) ||
-    err_exit "sleep 1 should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
-
-# ======
 # floating point
 # The number of seconds to sleep. The got granularity depends on the
 # underlying system, normally around 1 millisecond.
@@ -1172,9 +1162,9 @@ exp=0.1
 # An ISO 8601 duration where at least one of the duration parts must be
 # specified.
 SECONDS=0
-sleep 'P0Y0M0DT0H0M1S'
+sleep 'P0Y0M0DT0H0M0.1S'
 got=$SECONDS
-exp=1.0
+exp=0.1
 (( got >= exp )) ||
     err_exit "sleep 'P0Y0M0DT0H0M1S' should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
@@ -1189,9 +1179,9 @@ sleep P0W || err_exit "sleep does not recocgnize PnW"
 # m before s or S specifies minutes and after specifies milliseconds, u
 # or U specifies microseconds, and n specifies nanoseconds.
 SECONDS=0
-sleep 'p0Y0M0DT0H0M1S'
+sleep 'p0Y0M0DT0H0M0.1S'
 got=$SECONDS
-exp=1.0
+exp=0.1
 (( got >= exp )) ||
     err_exit "sleep 'p0Y0M0DT0H0M1S' should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
@@ -1206,9 +1196,9 @@ sleep "$today" || err_exit "sleep does not recognize date parameter"
 # -s Sleep until a signal or a timeout is received. If duration is
 #    omitted or 0 then no timeout will be used.
 SECONDS=0
-sleep -s 1
+sleep -s 0.1
 got=$SECONDS
-exp=1.0
+exp=0.1
 (( got >= exp )) ||
     err_exit "sleep -s 1 should sleep for at least 1 second (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
