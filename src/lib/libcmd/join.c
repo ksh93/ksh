@@ -13,6 +13,7 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -24,7 +25,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: join (AT&T Research) 2009-12-10 $\n]"
+"[-?\n@(#)$Id: join (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?join - relational database operator]"
 "[+DESCRIPTION?\bjoin\b performs an \aequality join\a on the files \afile1\a "
@@ -68,7 +69,7 @@ static const char usage[] =
 "	\afileno\a, where \afileno\a is either 1 or 2, instead of the normal "
 	"output.  If \b-v\b options appear for both 1 and 2, then "
 	"all unpairable lines will be output.] ]"
-"[i:ignorecase?Ignore case in field comparisons.]"
+"[i:ignorecase|ignore-case?Ignore case in field comparisons.]"
 "[B!:mmap?Enable memory mapped reads instead of buffered.]"
 
 "[+?The following obsolete option forms are also recognized: \b-j\b \afield\a"

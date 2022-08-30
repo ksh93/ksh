@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: wc (ksh 93u+m) 2022-08-20 $\n]"
+"[-?\n@(#)$Id: wc (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?wc - print the number of bytes, words, and lines in files]"
 "[+DESCRIPTION?\bwc\b reads one or more input files and, by default, "
@@ -47,8 +47,8 @@ static const char usage[] =
 "[c:bytes|chars:chars?List the byte counts.]"
 "[m|C:multibyte-chars?List the character counts.]"
 "[q:quiet?Suppress invalid multibyte character warnings.]"
-"[L:longest-line|max-line-length?List the longest line length; the newline,"
-    "if any, is not counted in the length.]"
+"[L:longest-line|max-line-length?List the longest line length; the newline "
+    "(if any) is not counted in the length.]"
 "[N!:utf8?For \bUTF-8\b locales \b--noutf8\b disables \bUTF-8\b "
     "optimizations and relies on the native \bmbtowc\b(3).]"
 "\n"

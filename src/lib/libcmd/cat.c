@@ -13,6 +13,7 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -27,7 +28,7 @@
 #include <fcntl.h>
 
 static const char usage[] =
-"[-?\n@(#)$Id: cat (AT&T Research) 2012-05-31 $\n]"
+"[-?\n@(#)$Id: cat (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?cat - concatenate files]"
 "[+DESCRIPTION?\bcat\b copies each \afile\a in sequence to the standard"
@@ -60,7 +61,7 @@ static const char usage[] =
 "[E:show-ends?Causes a \b$\b to be inserted before each new-line.]"
 "[R:regress?Regression test defaults: \b-v\b buffer size 4.]"
 "[S:silent?\bcat\b is silent about non-existent files.]"
-"[T:show-blank?Causes tabs to be copied as \b^I\b and formfeeds as \b^L\b.]"
+"[T:show-blank|show-tabs?Causes tabs to be copied as \b^I\b.]"
 
 "\n"
 "\n[file ...]\n"

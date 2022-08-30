@@ -27,6 +27,10 @@ The options have the following defaults and meanings:
     ACCTFILE     off Enable per user accounting info.
                      See README-AUDIT.md.
 
+    ALL_LIBCMD   off Enables all of the available /opt/ast/bin builtin commands
+                     in src/lib/libcmd (excludes vmstate if vmalloc is not
+                     enabled).
+
     AUDIT        on  For auditing specific users.
                      Noted by "A" in the version string when enabled.
                      See README-AUDIT.md.

@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: rm (ksh 93u+m) 2022-08-20 $\n]"
+"[-?\n@(#)$Id: rm (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?rm - remove files]"
 "[+DESCRIPTION?\brm\b removes the named \afile\a arguments. By default it"
@@ -39,7 +39,7 @@ static const char usage[] =
 "	writing a 0 filled buffer the same size as the file, executing"
 "	\bfsync\b(2) and closing before attempting to remove. Implemented"
 "	only on systems that support \bfsync\b(2).]"
-"[d:directory?If the current entry is a directory then remove it using "
+"[d:directory|dir?If the current entry is a directory then remove it using "
     "\brmdir\b(2) instead of the default \bunlink\b(2). If \b--recursive\b "
     "is not specified then non-empty directories will not be removed.]"
 "[f:force?Ignore nonexistent files, ignore no file operands specified,"

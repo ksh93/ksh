@@ -24,7 +24,7 @@
  */
 
 static const char usage_head[] =
-"[-?@(#)$Id: cp (ksh 93u+m) 2022-08-20 $\n]"
+"[-?@(#)$Id: cp (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -57,7 +57,7 @@ static const char usage_cp[] =
 "[U:remove-destination?Remove existing destination files before copying.]"
 "[L:logical|dereference?Follow symbolic links and copy the files they "
     "point to.]"
-"[P|d:physical|nodereference?Don't follow symbolic links; copy symbolic "
+"[P|d:physical|nodereference|no-dereference?Don't follow symbolic links; copy symbolic "
     "links rather than the files they point to.]"
 ;
 

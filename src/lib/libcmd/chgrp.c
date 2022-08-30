@@ -25,7 +25,7 @@
  */
 
 static const char usage_1[] =
-"[-?@(#)$Id: chgrp (AT&T Research) 2012-04-20 $\n]"
+"[-?@(#)$Id: chgrp (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -50,7 +50,7 @@ static const char usage_2[] =
     "\bmtime\b of \afile\a.]:[file]"
 "[c:changes?Describe only files whose ownership actually changes.]"
 "[f:quiet|silent?Do not report files whose ownership fails to change.]"
-"[h|l:symlink?Change the ownership of symbolic links on systems that "
+"[h|l:symlink|no-dereference?Change the ownership of symbolic links on systems that "
     "support \blchown\b(2). Implies \b--physical\b.]"
 "[m:map?The first operand is interpreted as a file that contains a map "
     "of space separated \afrom_uid:from_gid to_uid:to_gid\a pairs. The "

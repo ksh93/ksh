@@ -136,6 +136,41 @@ const struct shtable3 shtab_builtins[] =
 #undef	mktemp		/* undo possible map-libc mktemp => _ast_mktemp */
 #include SHOPT_CMDLIB_HDR
 #else
+#if SHOPT_ALL_LIBCMD
+	CMDLIST(chgrp)
+	CMDLIST(chmod)
+	CMDLIST(chown)
+	CMDLIST(cksum)
+	CMDLIST(cmp)
+	CMDLIST(comm)
+	CMDLIST(date)
+	CMDLIST(expr)
+	CMDLIST(fds)
+	CMDLIST(fmt)
+	CMDLIST(fold)
+	CMDLIST(head)
+	CMDLIST(id)
+	CMDLIST(join)
+	CMDLIST(logname)
+	CMDLIST(md5sum)
+	CMDLIST(mkdir)
+	CMDLIST(mkfifo)
+	CMDLIST(paste)
+	CMDLIST(pathchk)
+	CMDLIST(pids)
+	CMDLIST(rev)
+	CMDLIST(rm)
+	CMDLIST(rmdir)
+	CMDLIST(stty)
+	CMDLIST(sum)
+	CMDLIST(sync)
+	CMDLIST(tail)
+	CMDLIST(tee)
+	CMDLIST(tty)
+	CMDLIST(uname)
+	CMDLIST(uniq)
+	CMDLIST(wc)
+#endif
 	CMDLIST(basename)
 	CMDLIST(cat)
 	CMDLIST(cp)
@@ -1047,7 +1082,7 @@ const char sh_opthist[]	=
 ;
 
 const char sh_optkill[]	 = 
-"[-1c?\n@(#)$Id: kill (AT&T Research) 2012-04-13 $\n]"
+"[-1c?\n@(#)$Id: kill (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?kill - terminate or signal process]"
 "[+DESCRIPTION?With the first form in which \b-l\b is not specified, "
@@ -1067,8 +1102,8 @@ _JOB_
 "[l?List signal names or signal numbers rather than sending signals as "
 	"described above.  "
 	"The \b-n\b and \b-s\b options cannot be specified.]"
-"[L?Same as \b-l\b except that of no argument is specified the signals will "
-	"be listed in menu format as with select compound command.]"
+"[L?Same as \b-l\b except that if no argument is specified the signals will "
+	"be listed in menu format with corresponding signal numbers.]"
 "[n]#[signum?Specify a signal number to send.  Signal numbers are not "
 	"portable across platforms, except for the following:]{"
 		"[+0?No signal]"
@@ -1080,7 +1115,7 @@ _JOB_
 		"[+14?\bALRM\b]"
 		"[+15?\bTERM\b]"
 	"}"
-"[s]:[signame?Specify a signal name to send.  The signal names are derived "
+"[s:signal]:[signame?Specify a signal name to send.  The signal names are derived "
 	"from their names in \b<signal.h>\b without the \bSIG\b prefix and "
 	"are case insensitive.  \bkill -l\b will generate the list of "
 	"signals on the current platform.]"

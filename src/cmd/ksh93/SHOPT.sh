@@ -7,6 +7,7 @@
 
 SHOPT ACCT=0				# accounting
 SHOPT ACCTFILE=0			# per-user accounting info
+SHOPT ALL_LIBCMD=0			# enable all available builtins in src/lib/libcmd (excludes vmstate if vmalloc isn't enabled)
 SHOPT AUDIT=1				# enable auditing per SHOPT_AUDITFILE
 SHOPT AUDITFILE='"/etc/ksh_audit"'	# auditing file
 SHOPT BGX=1				# one SIGCHLD trap per completed job

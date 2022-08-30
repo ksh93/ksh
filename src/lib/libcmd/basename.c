@@ -13,6 +13,7 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -25,7 +26,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: basename (AT&T Research) 2010-05-06 $\n]"
+"[-?\n@(#)$Id: basename (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?basename - strip directory and suffix from filenames]"
 "[+DESCRIPTION?\bbasename\b removes all leading directory components "
@@ -42,7 +43,7 @@ static const char usage[] =
     "identical the end of \astring\a, these characters are removed. The "
     "characters not removed from \astring\a will be written on a single line "
     "to the standard output.]"
-"[a:all?All operands are treated as \astring\a and each modified "
+"[a:all|multiple?All operands are treated as \astring\a and each modified "
     "pathname is printed on a separate line on the standard output.]"
 "[s:suffix?All operands are treated as \astring\a and each modified "
     "pathname, with \asuffix\a removed if it exists, is printed on a "
