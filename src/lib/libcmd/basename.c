@@ -26,7 +26,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: basename (ksh 93u+m) 2022-08-26 $\n]"
+"[-?\n@(#)$Id: basename (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?basename - strip directory and suffix from filenames]"
 "[+DESCRIPTION?\bbasename\b removes all leading directory components "

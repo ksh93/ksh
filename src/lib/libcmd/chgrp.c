@@ -25,7 +25,7 @@
  */
 
 static const char usage_1[] =
-"[-?@(#)$Id: chgrp (ksh 93u+m) 2022-08-26 $\n]"
+"[-?@(#)$Id: chgrp (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 

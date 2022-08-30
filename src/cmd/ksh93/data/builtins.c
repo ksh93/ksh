@@ -1082,7 +1082,7 @@ const char sh_opthist[]	=
 ;
 
 const char sh_optkill[]	 = 
-"[-1c?\n@(#)$Id: kill (ksh 93u+m) 2022-08-26 $\n]"
+"[-1c?\n@(#)$Id: kill (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?kill - terminate or signal process]"
 "[+DESCRIPTION?With the first form in which \b-l\b is not specified, "

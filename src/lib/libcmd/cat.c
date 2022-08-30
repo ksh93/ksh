@@ -28,7 +28,7 @@
 #include <fcntl.h>
 
 static const char usage[] =
-"[-?\n@(#)$Id: cat (ksh 93u+m) 2022-08-26 $\n]"
+"[-?\n@(#)$Id: cat (ksh 93u+m) 2022-08-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?cat - concatenate files]"
 "[+DESCRIPTION?\bcat\b copies each \afile\a in sequence to the standard"
