@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-09-01:
+
+- Fixed a bug where 'command -x' would create a tracked alias for a command,
+  causing 'whence' not to find an /opt/ast/bin built-in command correctly.
+
 2022-08-30:
 
 - When printing a function definition, 'typeset -f function_name' now
