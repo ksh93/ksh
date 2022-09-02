@@ -7,6 +7,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a bug where 'command -x' would create a tracked alias for a command,
   causing 'whence' not to find an /opt/ast/bin built-in command correctly.
 
+- Fixed a bug in the 'time' keyword where the default precision of a format
+  specifier (e.g. %lU) was six instead of three, as documented.
+
 2022-08-30:
 
 - When printing a function definition, 'typeset -f function_name' now
