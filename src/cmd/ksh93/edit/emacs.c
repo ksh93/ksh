@@ -1313,15 +1313,17 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	genncpy(str_buff,string,sizeof(str_buff)/sizeof(*str_buff));
 	string[0] = '^';
 	string[1] = 'R';
-	string[2] = '\0';
-	sl = 2;
+	string[2] = ':';
+	string[3] = ' ';
+	string[4] = '\0';
+	sl = 4;
 	cur = sl;
 	draw(ep,UPDATE);
 	while ((i = ed_getchar(ep->ed,1))&&(i != '\r')&&(i != '\n'))
 	{
 		if (i==usrerase || i==DELETE || i=='\b' || i==ERASECHAR)
 		{
-			if (sl > 2)
+			if (sl > 4)
 			{
 				string[--sl] = '\0';
 				cur = sl;
@@ -1368,7 +1370,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	}
 	skip:
 	i = genlen(string);
-	if(ep->prevdirection == -2 && i!=2 || direction!=1)
+	if(ep->prevdirection == -4 && i!=4 || direction!=1)
 		ep->prevdirection = -1;
 	if (direction < 1)
 	{
@@ -1377,12 +1379,12 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	}
 	else
 		direction = -1;
-	if (i != 2)
+	if (i != 4)
 	{
 #if SHOPT_MULTIBYTE
 		ed_external(string,(char*)string);
 #endif /* SHOPT_MULTIBYTE */
-		strncopy(lstring,((char*)string)+2,SEARCHSIZE-1);
+		strncopy(lstring,((char*)string)+4,SEARCHSIZE-1);
 		lstring[SEARCHSIZE-1] = 0;
 		ep->prevdirection = direction;
 	}
