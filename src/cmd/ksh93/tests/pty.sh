@@ -1045,5 +1045,76 @@ w echo @ !non_existent
 u @ !non_existent\r\n$
 !
 
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L reverse search isn't canceled after an interrupt in vi mode
+
+d 15
+p :test-1:
+w echo WRONG
+p :test-2:
+w print CORREC
+p :test-3:
+w echo foo
+p :test-4:
+w sleep 0
+p :test-5:
+c e\E[A\E[A\cC\E[A\E[A\E[A
+w $aT
+u CORRECT
+!
+
+((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"
+L failure to start new reverse search in emacs mode
+# https://github.com/ksh93/ksh/commit/b5e52703
+
+d 15
+p :test-1:
+w echo WRON
+p :test-2:
+w print CORREC
+p :test-3:
+w e\E[AG
+u WRONG
+p :test-4:
+w p\E[AT
+u CORRECT
+!
+
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L backwards reverse search in vi mode
+
+d 15
+p :test-1:
+w print bar
+p :test-2:
+w print foo
+p :test-3:
+w false BAD ENTRY
+p :test-4:
+w print Correc
+p :test-5:
+c p\E[A\E[A\E[A\E[B\E[B
+w $at
+u Correct
+!
+
+((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"
+L backwards reverse search in emacs mode
+
+d 15
+p :test-1:
+w print bar
+p :test-2:
+w print foo
+p :test-3:
+w false BAD ENTRY
+p :test-4:
+w print Correc
+p :test-5:
+c p\E[A\E[A\E[A\E[B\E[B
+w t
+u Correct
+!
+
 # ======
 exit $((Errors<125?Errors:125))

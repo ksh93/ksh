@@ -2,6 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-09-10:
+
+- The down arrow key can now be used to perform a backwards reverse search,
+  similar to how the up arrow key functions. Additionally, the Page Up and
+  Page Down keys can now be used to perform reverse searches forwards and
+  backwards.
+
+- Fixed a bug in vi mode that caused reverse search to remain active after
+  receiving an interrupt.
+
 2022-09-01:
 
 - Fixed a bug where 'command -x' would create a tracked alias for a command,
