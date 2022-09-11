@@ -953,8 +953,8 @@ ____
 09-11-30  A bug in which a trap could be inherited by the first element of
 	  a pipeline when the command had more than 63 arguments that did
 	  not contain any macro expansions has been fixed.
-09-11-19  When read from a terminal was called from with a while or for loop,
-	  and an edit mode was on, a backspace or erase no longer will
+09-11-19  When read was called in a terminal from within a while or for loop
+	  and an edit mode was on, a backspace or erase will no longer
 	  overwrite the prompt.
 09-11-17 +Change .paths parse to handle BUILTIN_LIB=foo BUILTIN_LIB=foo-1.2.
 09-11-17  Inside a function, typeset foo.bar will bind foo to global variable
@@ -1106,7 +1106,7 @@ ____
 09-03-24 +When SHOPT_P_UID is defined at compile time and the shell is started
 	  without -p and RUID != EUID and RUID >= SHOPT_P_UID then EUID is set
 	  to RUID. A bug that did the wrong test (RUID < SHOPT_P_UID) was fixed.
-09-03-17 +The sleep(1) builtin now accept and ISO 8601 PnYnMnDTnHnMnS
+09-03-17 +The sleep(1) builtin now accepts an ISO 8601 PnYnMnDTnHnMnS
 	  duration or date(1) compatible date/time operand.
 09-03-10  If a variable that was left or right justified or zero-filled was
 	  changed with a typeset statement that was left or right justified
@@ -1314,7 +1314,7 @@ ____
 08-08-01  A for loop optimizer bug that treats .sh.lineno as an invariant
 	  has been fixed.
 08-07-30  A bug in which expanding compound variable that had a get discipline
-	  from with a here document could cause a syntax error has been fixed.
+	  from within a here document could cause a syntax error has been fixed.
 08-07-18  A bug in which a nameref caused a local variable to be created
 	  rather than binding to an existing variable in the global scope
 	  has been fixed.
@@ -1337,7 +1337,7 @@ ____
 	  was three characters or less has been fixed.
 08-06-23  A bug in which the SIGCLD was not be triggered when background
 	  jobs completed has been fixed.
-08-06-23  _KSH_VERSION added as a name reference to .sh.version.
+08-06-23 +Added KSH_VERSION as a name reference to .sh.version.
 08-06-20  type now outputs 'special builtin' for special builtins.
 08-06-19  A couple of bugs in multidimensional arrays have been fixed.
 08-06-19  A bug in which a syntax error in a dot script could generate
@@ -1456,7 +1456,7 @@ ____
 	  not flushed before sleep has been fixed.
 08-03-17  A bug in which a signal sent to $$ while in a subshell would be
 	  sent to the subshell rather than the parent has been fixed.
-08-03-17 + A --default option added to set(1) to handle set +o POSIX semantics.
+08-03-17 +Added a --default option to set(1) to handle set +o POSIX semantics.
 	  set --state added as a long name alias for set +o.
 08-03-14  A bug in which using monitor mode from within a script could
 	  cause the terminal group to change has been fixed.
@@ -1601,7 +1601,7 @@ ____
           LANG=value command has been fixed.
 07-09-20  A bug in which a nameref to a compound variable that was local
 	  to the calling function would not expand correctly when displaying
-	  is value has been fixed.
+	  its value has been fixed.
 07-09-19  A bug which could cause a core dump if .sh.edchar returned
 	  80 characters or more from a keyboard trap has been fixed.
 07-09-14  A bug in which could cause a core dump when more than 8 file
@@ -1652,7 +1652,7 @@ ____
 	  ${var/pattern/rep} when it was not followed by \ or a digit has
 	  been fixed.
 07-05-10  A bug in which ksh -R file core dumped if no script was specified
-	  has been fixed.  it not displays an error message.
+	  has been fixed.  It now displays an error message.
 07-05-07  Added additional Solaris signals to signal table.
 07-04-30  A bug in which a pipeline with command substitution inside a
 	  function could cause a pipeline that invokes this function to
@@ -1700,7 +1700,7 @@ ____
 	  to act independently.  Currently, the discipline function will not
 	  be called when called from a discipline function of the same variable.
 06-11-14  A bug which could cause a core dump if a file descriptor for
-	  an internal file was closed from with a subshell has been fixed.
+	  an internal file was closed from within a subshell has been fixed.
 06-10-30 +The redirections <# pattern, and <## pattern have been added.
 	  Both seek forward to the beginning of the next line that contains
 	  the pattern.  The <## form copies the skipped portion to standard
@@ -2093,9 +2093,9 @@ ____
 	  could cause to core dump has been fixed.
 03-06-26  A bug in which process substitution embedded within command
 	  substitution would generate a syntax error has been fixed.
-03-96-23  A bug in which ${@:offset:len} could core dump when there
+03-06-23  A bug in which ${@:offset:len} could core dump when there
 	  were no arguments has been fixed.
-03-96-23  A bug in which ${X[@]:offset:len} could core dump when X
+03-06-23  A bug in which ${X[@]:offset:len} could core dump when X
 	  was unset has been fixed.
 03-06-22 +The -x option was added to the command builtin.  If this
 	  option is on, and the number of arguments would exceed ARG_MAX,

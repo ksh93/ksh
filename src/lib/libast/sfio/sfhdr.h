@@ -290,9 +290,6 @@
 #define fork	vfork
 #endif
 
-/* to get rid of pesky compiler warnings */
-#define NOTUSED(x)	(void)(x)
-
 /* Private flags in the "bits" field */
 #define SF_MMAP		00000001	/* in memory mapping mode		*/
 #define SF_BOTH		00000002	/* both read/write			*/

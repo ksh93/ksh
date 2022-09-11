@@ -44,7 +44,7 @@ static ssize_t sfoutput(Sfio_t* f, char* buf, size_t n)
 			sp = buf+1;
 			if(buf[0] == 0 && buf[_Sfpage-1] == 0)
 			{	/* check byte at a time until int-aligned */
-				while(((ulong)sp)%sizeof(int))
+				while((uintptr_t)sp % sizeof(int))
 				{	if(*sp != 0)
 						goto chk_hole;
 					sp += 1;

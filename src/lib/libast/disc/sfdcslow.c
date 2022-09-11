@@ -26,9 +26,9 @@
 
 static int slowexcept(Sfio_t* f, int type, void* v, Sfdisc_t* disc)
 {
-	NOTUSED(f);
-	NOTUSED(v);
-	NOTUSED(disc);
+	NOT_USED(f);
+	NOT_USED(v);
+	NOT_USED(disc);
 
 	switch (type)
 	{

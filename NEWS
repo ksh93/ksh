@@ -2186,8 +2186,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   status on the 'print', 'printf' and 'echo' builtins and prevent possible
   infinite loops if SIGPIPE is ignored.
 
-- Add a convenient bin/run_ksh_tests script to the source tree that
-  sets up the necessary environment and runs the ksh regression tests.
+- Add a convenient bin/shtests script to the source tree that sets up the
+  necessary environment and runs the ksh regression tests.
 
 2020-05-13:
 

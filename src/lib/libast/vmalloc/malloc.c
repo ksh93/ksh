@@ -78,10 +78,10 @@
 
 static Vmulong_t	_Vmdbstart = 0;
 static Vmulong_t	_Vmdbcheck = 0;
-static Vmulong_t	_Vmdbtime = 0;
 static int		_Vmpffd = -1;
 
 #if ( !_std_malloc || !_BLD_ast ) && !_AST_std_malloc
+static Vmulong_t	_Vmdbtime = 0;
 
 #if !_map_malloc
 #undef calloc

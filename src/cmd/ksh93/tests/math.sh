@@ -23,7 +23,7 @@ set -o nounset
 typeset -si xtrace=0
 [[ -o xtrace ]] && ((xtrace++))
 
-function test_arithmetric_expression_accesss_array_element_through_nameref
+function test_arithmetic_expression_accesss_array_element_through_nameref
 {
 	((xtrace)) && set -x
 
@@ -179,7 +179,7 @@ function test_has_iszero
 }
 
 # run tests
-test_arithmetric_expression_accesss_array_element_through_nameref
+test_arithmetic_expression_accesss_array_element_through_nameref
 test_has_iszero
 
 # ======
