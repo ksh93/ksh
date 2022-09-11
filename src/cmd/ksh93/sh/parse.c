@@ -942,8 +942,8 @@ static Shnode_t *funct(Lex_t *lexp)
 	{
 		if(slp && slp->slptr)
 		{
-			sh.st.staklist = slp->slnext;
 			Stak_t *slptr_save = slp->slptr;
+			sh.st.staklist = slp->slnext;
 			slp->slptr = NIL(Stak_t*);
 			stakdelete(slptr_save);
 		}

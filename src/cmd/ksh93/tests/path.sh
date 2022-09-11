@@ -974,4 +974,12 @@ fi
 PATH=$path
 
 # ======
+if builtin cat 2>/dev/null
+then	got=$(PATH=/opt/ast/bin:$PATH "$SHELL" -c 'command -x cat /dev/null; whence -v cat')
+	exp='cat is a shell builtin version of /opt/ast/bin/cat'
+	[[ $got == "$exp" ]] || err_exit "'command -x' creates tracked alias" \
+	        "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

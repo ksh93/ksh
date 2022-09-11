@@ -317,12 +317,14 @@ mkpty(int* master, int* minion)
 		return -1;
 #endif
 #ifdef I_PUSH
-	struct termios	tst;
-	if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
 	{
-		close(*minion);
-		close(*master);
-		return -1;
+		struct termios	tst;
+		if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
+		{
+			close(*minion);
+			close(*master);
+			return -1;
+		}
 	}
 #endif
 #endif

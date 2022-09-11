@@ -303,9 +303,8 @@ endopts:
  */
 int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 {
-	NOT_USED(argc);
-
 	int n;
+	NOT_USED(argc);
 	while((n = optget(argv, sh_optsuspend))) switch(n)
 	{
 		case ':':

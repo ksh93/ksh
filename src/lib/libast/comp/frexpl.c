@@ -42,13 +42,13 @@ NoN(frexpl)
 
 #else
 
-static _ast_fltmax_t	pow2tab[LDBL_MAX_EXP + 1];
+static long double	pow2tab[LDBL_MAX_EXP + 1];
 
 static int
 init(void)
 {
 	register int		x;
-	_ast_fltmax_t		g;
+	long double		g;
 
 	g = 1;
 	for (x = 0; x < elementsof(pow2tab); x++)
@@ -69,12 +69,12 @@ init(void)
 
 #undef	frexpl
 
-extern _ast_fltmax_t
-frexpl(_ast_fltmax_t f, int* p)
+extern long double
+frexpl(long double f, int* p)
 {
 	register int		k;
 	register int		x;
-	_ast_fltmax_t		g;
+	long double		g;
 
 	INIT();
 
@@ -139,8 +139,8 @@ frexpl(_ast_fltmax_t f, int* p)
 
 #undef	ldexpl
 
-extern _ast_fltmax_t
-ldexpl(_ast_fltmax_t f, register int x)
+extern long double
+ldexpl(long double f, register int x)
 {
 	INIT();
 	if (x < 0)

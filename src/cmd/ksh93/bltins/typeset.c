@@ -1482,6 +1482,13 @@ static int print_namval(Sfio_t *file,register Namval_t *np,register int flag, st
 		sfputr(file,cp,-1);
 		if(nv_isattr(np,NV_FPOSIX))
 			sfwrite(file,"()",2);
+		else if(np->nvalue.rp)
+		{
+			int i;
+			/* output function reference list (for .sh.math.* functions) */
+			for(i = 0; i < np->nvalue.rp->argc; i++)
+				sfprintf(file," %s",np->nvalue.rp->argv[i]);
+		}
 		if(np->nvalue.rp && nv_funtree(np))
 			fname = np->nvalue.rp->fname;
 		else

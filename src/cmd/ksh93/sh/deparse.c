@@ -310,31 +310,33 @@ static void p_tree(register const Shnode_t *t,register int tflags)
 			p_keyword("esac",END);
 			break;
 
+		/* function definition */
 		case TFUN:
+			if(begin_line && level>0)
+				sfnputc(outfile,'\t',level);
 			if(t->tre.tretyp&FPOSIX)
-			{
-				sfprintf(outfile,"%s",t->funct.functnam);
-				p_keyword("()\n",BEGIN);
-			}
+				sfprintf(outfile,"%s()\n",t->funct.functnam);
 			else
 			{
-				p_keyword("function",BEGIN|NOTAB);
-				tflags = (t->funct.functargs?' ':'\n');
-				sfputr(outfile,t->funct.functnam,tflags);
+				sfprintf(outfile,"function %s",t->funct.functnam);
 				if(t->funct.functargs)
 				{
-					tflags = end_line;
+					/* function reference list (for .sh.math.* functions) */
+					int e = end_line;
+					sfputc(outfile,' ');
 					end_line = '\n';
 					p_comarg(t->funct.functargs);
-					end_line = tflags;
+					end_line = e;
 				}
+				else
+					sfputc(outfile,'\n');
 			}
 			begin_line = 1;
-			p_keyword("{\n",MIDDLE);
-			begin_line = 1;
+			p_keyword("{",BEGIN);
 			p_tree(t->funct.functtre,0); 
 			p_keyword("}",END);
 			break;
+
 		/* new test compound command */
 		case TTST:
 			if(!(tflags&NO_BRACKET))

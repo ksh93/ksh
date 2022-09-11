@@ -1,7 +1,25 @@
 set	nooptimize
 set	stdio FEATURE/standards
 hdr	float,limits,math,values
-lib,npt	frexp,frexpl,ldexp,ldexpl,finite,finitel,isinfl,isnanl,copysign,copysignl,powf,pow,powl FEATURE/standards math.h -lm
+lib,npt	frexp,ldexp,finite,finitel,isinfl,isnanl,copysign,copysignl,powf,pow,powl FEATURE/standards math.h -lm
+lib	frexpl -lm note{ frexpl present and works }end link{
+		#include <math.h>
+		int main(void)
+		{
+			int e;
+			long double f = frexpl(123.456789,&e);
+			return !(e==7 && f>0.964506 && f<0.964507);
+		}
+	}end
+lib	ldexpl -lm note{ ldexpl present and works }end link{
+		#include <math.h>
+		int main(void)
+		{
+			long double f = ldexpl(0.96450616406250000434141611549421213567256927490234375, 7);
+			return !(f>=123.4567890 && f<123.4567891);
+		}
+	}end
+npt	frexpl,ldexpl
 lib	fpclassify -lm note{ fpclassify present and works }end link{
 		#include <sys/types.h>
 		#include <sys/stat.h>
@@ -878,13 +896,13 @@ tst	- note{ missing floating point limits }end output{
 		printf("extern double		frexp(double, int*);\n");
 	#endif
 	#if !_lib_frexpl || _npt_frexpl
-		printf("extern _ast_fltmax_t	frexpl(_ast_fltmax_t, int*);\n");
+		printf("extern long double	frexpl(long double, int*);\n");
 	#endif
 	#if !_lib_ldexp || _npt_ldexp
 		printf("extern double		ldexp(double, int);\n");
 	#endif
 	#if !_lib_ldexpl || _npt_ldexpl
-		printf("extern _ast_fltmax_t	ldexpl(_ast_fltmax_t, int);\n");
+		printf("extern long double	ldexpl(long double, int);\n");
 	#endif
 
 		return 0;
