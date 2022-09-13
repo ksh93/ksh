@@ -511,7 +511,7 @@ const char sh_optcd[] =
 	"is replaced by the string \anew\a and the resulting string "
 	"is used as the directory to which to change.]"
 "[+?When invoked without operands and when the \bHOME\b environment "
-	"variable is set to a nonempty value,  the directory named by "
+	"variable is set to a nonempty value, the directory named by "
 	"the \bHOME\b environment variable will be used.  If \bHOME\b "
 	"is empty or unset, \bcd\b will fail.]"
 "[+?When \bcd\b is successful, the \bPWD\b environment variable will be set "

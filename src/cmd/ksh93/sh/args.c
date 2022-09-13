@@ -471,7 +471,8 @@ struct dolnod *sh_argcreate(register char *argv[])
 {
 	register struct dolnod *dp;
 	register char **pp=argv, *sp;
-	register int 	size=0,n;
+	register int 	n;
+	register size_t	size=0;
 	/* count args and number of bytes of arglist */
 	while(sp= *pp++)
 		size += strlen(sp);

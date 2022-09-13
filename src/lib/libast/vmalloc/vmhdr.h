@@ -83,7 +83,6 @@ typedef struct _pfobj_s	Pfobj_t;
 
 #define NIL(t)		((t)0)
 #define reg		register
-#define NOTUSED(x)	(void)(x)
 
 
 /* convert an address to an integral value */

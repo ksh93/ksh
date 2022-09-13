@@ -380,7 +380,7 @@ sed \
 	-e 's/[^ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]/ /g' \
 	-e 's/[ 	][ 	]*/%/g' \
 	`cat $tmp.f` 2>/dev/null | tr '%' '\n' | \
-	egrep '^(SI|_(CS|PC|SC|SI))_.'
+	grep -E '^(SI|_(CS|PC|SC|SI))_.'
 	case $CONF_getconf_a in
 	?*)	$CONF_getconf $CONF_getconf_a | sed 's,[=:    ].*,,'
 		;;
@@ -395,7 +395,7 @@ sed \
 		;;
 	esac 2>/dev/null
 } |
-egrep -v '^_[ABCDEFGHIJKLMNOPQRSTUVWXYZ]+_(COUNT|LAST|N|STR)$' |
+grep -E -v '^_[ABCDEFGHIJKLMNOPQRSTUVWXYZ]+_(COUNT|LAST|N|STR)$' |
 sort -u > $tmp.g
 {
 	grep '^_' $tmp.g
@@ -834,7 +834,7 @@ unsigned int conf[] = {
 		grep '^[_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz][_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789]*$' |
 		sort -u > $tmp.n
 		cmp -s $tmp.n $tmp.p && break
-		fgrep -x -v -f $tmp.n $1 > $tmp.y
+		grep -F -x -v -f $tmp.n $1 > $tmp.y
 		mv $tmp.y $1
 		mv $tmp.n $tmp.p
 	done
@@ -852,7 +852,7 @@ ${tail}
 	$cc -E $tmp.c 2>/dev/null |
 	sed -e '/conf[ 	]*".*"[ 	]*=[ 	]*/!d' -e '/[_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789][ 	]*(/!d' -e 's/.*"\(.*\)".*/\1/' > $tmp.n
 	if	test -s $tmp.n
-	then	fgrep -x -v -f $tmp.n $1 > $tmp.y
+	then	grep -F -x -v -f $tmp.n $1 > $tmp.y
 		mv $tmp.y $1
 	fi
 }

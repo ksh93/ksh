@@ -127,7 +127,7 @@ There is no replacement.
 The shell command line option
 .B \-t
 is obsolete.  This option causes the shell to exit after reading
-and executing one command.  The is no replacement (although ending
+and executing one command.  There is no replacement (although ending
 \&"command" with the exit builtin should have the same effect).
 .LI
 As an obsolete feature of the "set" builtin,

@@ -48,9 +48,9 @@ pathexists(char* path, int mode)
 	register char*		e;
 	register Tree_t*	p;
 	register Tree_t*	t;
-	register int		c;
+	register char		c;
 	char*			ee;
-	int			cc;
+	char			cc;
 	int			x;
 	struct stat		st;
 	int			(*cmp)(const char*, const char*);

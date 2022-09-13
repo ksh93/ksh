@@ -164,7 +164,7 @@ static void* poolresize(Vmalloc_t* vm, void* data, size_t size, int type, int lo
 {
 	Vmdata_t	*vd = vm->data;
 
-	NOTUSED(type);
+	NOT_USED(type);
 
 	if(!data)
 	{	data = poolalloc(vm, size, local);
@@ -230,9 +230,9 @@ static int poolcompact(Vmalloc_t* vm, int local)
 
 static void* poolalign(Vmalloc_t* vm, size_t size, size_t align, int local)
 {
-	NOTUSED(vm);
-	NOTUSED(size);
-	NOTUSED(align);
+	NOT_USED(vm);
+	NOT_USED(size);
+	NOT_USED(align);
 	return NIL(void*);
 }
 

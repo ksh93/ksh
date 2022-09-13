@@ -2,12 +2,17 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2022-09-10:
+2022-09-13:
 
 - The down arrow key can now be used to perform a backwards reverse search,
   similar to how the up arrow key functions. Additionally, the Page Up and
   Page Down keys can now be used to perform reverse searches forwards and
   backwards.
+
+2022-09-11:
+
+- Fixed a bug introduced in ksh93u+ 2012-04-23 that caused LINENO to have the
+  wrong value after parsing a multi-line compound assignment.
 
 - Fixed a bug in vi mode that caused reverse search to remain active after
   receiving an interrupt.
@@ -2204,8 +2209,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   status on the 'print', 'printf' and 'echo' builtins and prevent possible
   infinite loops if SIGPIPE is ignored.
 
-- Add a convenient bin/run_ksh_tests script to the source tree that
-  sets up the necessary environment and runs the ksh regression tests.
+- Add a convenient bin/shtests script to the source tree that sets up the
+  necessary environment and runs the ksh regression tests.
 
 2020-05-13:
 

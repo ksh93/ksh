@@ -118,11 +118,11 @@ pathcanon_20100601(char* path, size_t size, int flags)
 			default:
 				if ((flags & PATH_PHYSICAL) && loop < 32 && (t - 1) > path)
 				{
-					int	c;
+					char	c;
 					char	buf[PATH_MAX];
 
 					c = *(t - 1);
-					*(t - 1) = 0;
+					*(t - 1) = '\0';
 					dots = pathgetlink(phys, buf, sizeof(buf));
 					*(t - 1) = c;
 					if (dots > 0)

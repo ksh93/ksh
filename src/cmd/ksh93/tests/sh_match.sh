@@ -126,13 +126,6 @@ function test_xmlfragment1
 {
 	typeset -r testscript='test1_script.sh'
 cat >"${testscript}" <<-TEST1SCRIPT
-	# memory safeguards to prevent out-of-control memory consumption
-	{
-		ulimit -M \$(( 1024 * 1024 ))
-		ulimit -v \$(( 1024 * 1024 ))
-		ulimit -d \$(( 1024 * 1024 ))
-	} 2>/dev/null
-
 	# input text
 	xmltext="\$( < "\$1" )"
 

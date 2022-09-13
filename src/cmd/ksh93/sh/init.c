@@ -1252,7 +1252,7 @@ int sh_type(register const char *path)
 Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 {
 	static int beenhere;
-	register int n;
+	register size_t n;
 	int type = 0;
 	char *save_envmarker;
 	static char *login_files[2];
@@ -2178,7 +2178,8 @@ Namfun_t	*nv_mapchar(Namval_t *np,const char *name)
 {
 	wctrans_t	trans = name?wctrans(name):0;
 	struct Mapchar	*mp=0;
-	int		n=0,low;
+	int		low;
+	size_t		n=0;
 	if(np)
 		mp = (struct Mapchar*)nv_hasdisc(np,&TRANS_disc);
 	if(!name)

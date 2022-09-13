@@ -394,7 +394,7 @@ printed again.
 Otherwise the value of the variable
 .I vname\^
 is set to
-.IR null .
+the empty string.
 The contents of the line read from standard input is
 saved in
 the variable
@@ -410,7 +410,7 @@ If the
 .SM
 .B REPLY
 variable is set to
-.I null\^
+the empty string
 by the execution of
 .IR list ,
 then the selection list is printed before
@@ -1381,8 +1381,10 @@ is
 .BR * ,
 the list of array subscripts for \f2vname\^\fP
 is generated.
-For a variable that is not an array, the value is 0 if the variable
-is set.  Otherwise it is null.
+For a variable that is not an array, the value is
+.I 0\^
+if the variable is set.
+Otherwise it is the empty string.
 When
 .I subscript\^
 is
@@ -1417,14 +1419,14 @@ The expansions otherwise work like \f3$@\fP and \f3$*\fP, respectively
 \f3${\fP\f2parameter\^\fP\f3:\-\fP\f2word\^\fP\f3}\fP
 If
 .I parameter\^
-is set and is non-null then substitute its value;
+is set and has a non-empty value, then substitute its value;
 otherwise substitute
 .IR word .
 .TP
 \f3${\fP\f2parameter\^\fP\f3:=\fP\f2word\^\fP\f3}\fP
 If
 .I parameter\^
-is not set or is null then set it to
+is not set or has the empty string value, then set it to
 .IR word ;
 the value of the parameter is then substituted.
 Positional parameters may not be assigned to
@@ -1433,7 +1435,7 @@ in this way.
 \f3${\fP\f2parameter\^\fP\f3:?\fP\f2word\^\fP\f3}\fP
 If
 .I parameter\^
-is set and is non-null then substitute its value;
+is set and has a non-empty value, then substitute its value;
 otherwise, print
 .I word\^
 and exit from the shell (if not interactive).
@@ -1444,9 +1446,9 @@ is omitted then a standard message is printed.
 \f3${\fP\f2parameter\^\fP\f3:+\fP\f2word\^\fP\f3}\fP
 If
 .I parameter\^
-is set and is non-null then substitute
+is set and has a non-empty value then substitute
 .IR word ;
-otherwise substitute nothing.
+otherwise substitute the empty string.
 .PP
 In the above,
 .I word\^
@@ -1456,14 +1458,14 @@ so that, in the following example,
 .B pwd
 is executed only if
 .B d
-is not set or is null:
+is not set or has the empty string value:
 .PP
 .RS
 print \|${d:\-\^$(\^pwd\^)\^}
 .RE
 .PP
-If the colon (
-.B : )
+If the colon
+.RB ( : )
 is omitted from the above expressions,
 then the shell only checks whether
 .I parameter\^
@@ -1609,7 +1611,7 @@ while the fourth form restricts the pattern match to the end of
 the string.
 When
 .I string\^
-is null, the
+is empty, the
 .I pattern\^
 will be deleted and the
 .B /
@@ -1739,27 +1741,22 @@ The character position of the cursor at the time of the most recent
 trap.
 .TP
 .B .sh.edmode
-The value is set to ESC when processing a
+Upon executing a
 .B
 .SM KEYBD
-trap while in
+trap action, the value of this variable is set
+to the ESC control character if the shell is in
 .B vi
-insert mode.  (See
+insert mode (See
 .I "Vi Editing Mode"\^
-below.)
-Otherwise,
-.B .sh.edmode
-is null when processing a
-.B
-.SM KEYBD
-trap.
+below), or to the empty string value otherwise.
 .TP
 .B .sh.edtext
 The characters in the input buffer at the time of the most recent
 .B
 .SM KEYBD
 trap.
-The value is null when not processing a
+The variable is unset when not processing a
 .B
 .SM KEYBD
 trap.
@@ -2164,7 +2161,7 @@ consists of two
 characters,
 then two adjacent
 .B tab
-characters delimit a null field.
+characters delimit an empty field.
 .TP
 .B
 .SM JOBMAX
@@ -2397,8 +2394,10 @@ shell option is on.
 .IP
 All other characters are output without change and a trailing
 newline is added.
-If unset, the default value, \fB$'\enreal\et%3lR\enuser\et%3lU\ensys\et%3lS'\fP,
-is used.  If the value is null, no timing information is displayed.
+If the variable is unset, the default value,
+\fB$'\enreal\et%3lR\enuser\et%3lU\ensys\et%3lS'\fP,
+is used.
+If the value is empty, no timing information is displayed.
 .TP
 .B
 .SM TMOUT
@@ -2491,11 +2490,14 @@ characters (those found in
 .B IFS\^\c
 )
 and split into distinct fields where such characters are found.
-Explicit null fields (\^\f3"\^"\fP or \f3\(fm\^\(fm\fP\^) are retained.
-Implicit null fields
+Explicit empty fields (\^\f3"\^"\fP or \f3\(fm\^\(fm\fP\^) are retained.
+Implicit empty fields
 (those resulting from
 .I parameters\^
-that have no values or command substitutions with no output) are removed.
+that are unset or have empty string values
+or from command substitutions yielding the empty string,
+and that are not quoted with \^\f3"\^"\fP)
+are removed.
 .SS Brace Expansion.
 If the
 .B braceexpand
@@ -2676,7 +2678,7 @@ are not treated specially.
 .RS
 .TP
 .B *
-Matches any string, including the null string.
+Matches any string, including the empty string.
 When used for filename expansion,
 if the
 .B globstar
@@ -3276,101 +3278,102 @@ of the following unary or binary expressions:
 .PD 0
 .TP
 \f2string\fP
-True, if
+Same as
+.B \-n
 .I string
-is not null.
+below.
 .TP
 \f3\-a\fP \f2file\fP
 Same as \f3\-e\fP below.
 This is obsolete.
 .TP
 \f3\-b\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is a block special file.
 .TP
 \f3\-c\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is a character special file.
 .TP
 \f3\-d\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is a directory.
 .TP
 \f3\-e\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists.
 .TP
 \f3\-f\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is an ordinary file.
 .TP
 \f3\-g\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and it has its setgid bit set.
 .TP
 \f3\-k\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and it has its sticky bit set.
 .TP
 \f3\-n\fP \f2string\fP
-True, if length of
+True if length of
 .I string\^
 is non-zero.
 .TP
 \f3\-o\fP \f3?\fP\f2option\fP
-True, if option named
+True if option named
 .I option\^
 is a valid option name.
 .TP
 \f3\-o\fP \f2option\fP
-True, if option named
+True if option named
 .I option\^
 is on.
 .TP
 \f3\-p\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is a fifo special file or a pipe.
 .TP
 \f3\-r\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is readable by current process.
 .TP
 \f3\-s\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and has size greater than zero.
 .TP
 \f3\-t\fP \f2fildes\fP
-True, if file descriptor number
+True if file descriptor number
 .I fildes\^
 is open and associated with a terminal device.
 .TP
 \f3\-u\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and it has its setuid bit set.
 .TP
 \f3\-v\fP \f2name\fP
-True, if variable
+True if variable
 .I name\^
 is a valid variable name and is set.
 .TP
 \f3\-w\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is writable by current process.
 .TP
 \f3\-x\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is executable by current process.
 If
@@ -3379,32 +3382,32 @@ exists and is a directory, then true if the current process
 has permission to search in the directory.
 .TP
 \f3\-z\fP \f2string\fP
-True, if length of
+True if length of
 .I string\^
 is zero.
 .TP
 \f3\-L\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is a symbolic link.
 .TP
 \f3\-h\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is a symbolic link.
 .TP
 \f3\-N\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and the modification time is greater than the last access time.
 .TP
 \f3\-O\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is owned by the effective user ID of this process.
 .TP
 \f3\-G\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and its group matches the effective group ID of this process.
 .TP
@@ -3414,12 +3417,12 @@ True if variable
 is a name reference.
 .TP
 \f3\-S\fP \f2file\fP
-True, if
+True if
 .I file\^
 exists and is a socket.
 .TP
 \f2file1\fP \f3\-nt\fP \f2file2\fP
-True, if
+True if
 .I file1\^
 exists and
 .I file2\^
@@ -3429,7 +3432,7 @@ is newer than
 .IR file2 .
 .TP
 \f2file1\fP \f3\-ot\fP \f2file2\fP
-True, if
+True if
 .I file2\^
 exists and
 .I file1\^
@@ -3439,14 +3442,14 @@ is older than
 .IR file2 .
 .TP
 \f2file1\fP \f3\-ef\fP \f2file2\fP
-True, if
+True if
 .I file1\^
 and
 .I file2\^
 exist and refer to the same file.
 .TP
 \f2string\fP \f3==\fP \f2pattern\fP
-True, if
+True if
 .I string\^
 matches
 .IR pattern .
@@ -3461,7 +3464,7 @@ array variable will contain the match and subpattern matches.
 Same as \f3==\fP above, but is obsolete.
 .TP
 \f2string\fP \f3!=\fP \f2pattern\fP
-True, if
+True if
 .I string\^
 does not match
 .IR pattern .
@@ -3483,14 +3486,14 @@ where
 is an extended regular expression.
 .TP
 \f2string1\fP \f3<\fP \f2string2\fP
-True, if
+True if
 .I string1\^
 comes before
 .I string2\^
 based on ASCII value of their characters.
 .TP
 \f2string1\fP \f3>\fP \f2string2\fP
-True, if
+True if
 .I string1\^
 comes after
 .I string2\^
@@ -3503,37 +3506,37 @@ The following obsolete arithmetic comparisons are also permitted:
 .PD 0
 .TP
 \f2exp1\fP \f3\-eq\fP \f2exp2\fP
-True, if
+True if
 .I exp1\^
 is equal to
 .IR exp2 .
 .TP
 \f2exp1\fP \f3\-ne\fP \f2exp2\fP
-True, if
+True if
 .I exp1\^
 is not equal to
 .IR exp2 .
 .TP
 \f2exp1\fP \f3\-lt\fP \f2exp2\fP
-True, if
+True if
 .I exp1\^
 is less than
 .IR exp2 .
 .TP
 \f2exp1\fP \f3\-gt\fP \f2exp2\fP
-True, if
+True if
 .I exp1\^
 is greater than
 .IR exp2 .
 .TP
 \f2exp1\fP \f3\-le\fP \f2exp2\fP
-True, if
+True if
 .I exp1\^
 is less than or equal to
 .IR exp2 .
 .TP
 \f2exp1\fP \f3\-ge\fP \f2exp2\fP
-True, if
+True if
 .I exp1\^
 is greater than or equal to
 .IR exp2 .
@@ -3557,7 +3560,7 @@ using any of the following, listed in decreasing order of precedence:
 .PD 0
 .TP
 \f3(\fP\f2expression\fP\f3)\fP
-True, if
+True if
 .I expression\^
 is true.
 Used to group expressions.
@@ -3568,14 +3571,14 @@ True if
 is false.
 .TP
 \f2expression1\fP \f3&&\fP \f2expression2\fP
-True, if
+True if
 .I expression1\^
 and
 .I expression2\^
 are both true.
 .TP
 \f2expression1\fP \f3||\fP \f2expression2\fP
-True, if either
+True if either
 .I expression1\^
 or
 .I expression2\^
@@ -4143,7 +4146,7 @@ Similarly, a function defined by a command in the
 .I list\^
 is created using the name space name preceded by a \fB\s+2.\s-2\fP.
 .PP
-When  the
+When the
 .I list\^
 of a
 .B namespace
@@ -5022,12 +5025,13 @@ is set to
 ESC
 when in
 .B vi
-insert mode (see below) and is null otherwise.
-By prepending
+insert mode (see below)
+and set to the empty string otherwise.
+Prepending
 .B ${.sh.editmode}
 to a value assigned to
 .B .sh.edchar
-it will cause the shell
+will cause the shell
 to change to control mode if it is not already in this mode.
 .PP
 This trap is not invoked for characters entered as arguments to
@@ -5304,7 +5308,7 @@ End-of-file character,
 normally
 .BR ^D ,
 is processed as an End-of-file only
-if the current line is null.
+if the current line is empty.
 .TP 10
 .BI ^P
 Fetch previous command.
@@ -5821,7 +5825,7 @@ If string is preceded by a
 .BR ^ ,
 the matched line must begin with
 .IR string .
-If \fIstring\fP is null, the previous string will be used.
+If \fIstring\fP is empty, the previous string will be used.
 .TP 10
 .BI ? string
 Same as
@@ -6346,10 +6350,12 @@ Alternative directory names are separated by
 a colon
 .RB ( : ).
 The default path is
-.B <null>
+the empty string
 (specifying the current directory).
-Note that the current directory is specified by a null path name,
-which can appear immediately after the equal sign
+Note that the current directory may be specified by a dot
+.RB ( . )
+or by an empty path name,
+either of which can appear immediately after the equal sign
 or between the colon delimiters anywhere else in the path list.
 If
 .I arg
@@ -8190,8 +8196,8 @@ are reset
 to their original values.
 If
 .I action\^
-is the null
-string then this signal is ignored by the shell and by the commands
+is the empty string,
+then this signal is ignored by the shell and by the commands
 it invokes.
 If
 .I sig\^
@@ -9275,18 +9281,16 @@ Alternative initialization file, executed instead of the personal initialization
 file when the real and effective user or group ID do not match.
 .TP
 .B /dev/null
-NULL device
+The null device.
 .SH SEE ALSO
 .IR cat (1),
 .IR cd (1),
 .IR chmod (1),
 .IR cut (1),
 .IR date (1),
-.IR egrep (1),
 .IR echo (1),
 .IR emacs (1),
 .IR env (1),
-.IR fgrep (1),
 .IR gmacs (1),
 .IR grep (1),
 .IR stty (1),
