@@ -1050,14 +1050,16 @@ L reverse search isn't canceled after an interrupt in vi mode
 
 d 15
 p :test-1:
-w echo WRONG
+w set -o arrowkeysearch
 p :test-2:
-w print CORREC
+w echo WRONG
 p :test-3:
-w echo foo
+w print CORREC
 p :test-4:
-w sleep 0
+w echo foo
 p :test-5:
+w sleep 0
+p :test-6:
 c e\E[A\E[A\cC\E[A\E[A\E[A
 w $aT
 u CORRECT
@@ -1069,13 +1071,15 @@ L failure to start new reverse search in emacs mode
 
 d 15
 p :test-1:
-w echo WRON
+w set -o arrowkeysearch
 p :test-2:
-w print CORREC
+w echo WRON
 p :test-3:
+w print CORREC
+p :test-4:
 w e\E[AG
 u WRONG
-p :test-4:
+p :test-5:
 w p\E[AT
 u CORRECT
 !
@@ -1089,7 +1093,7 @@ w print bar
 p :test-2:
 w print foo
 p :test-3:
-w false BAD ENTRY
+w set -o arrowkeysearch
 p :test-4:
 w print Correc
 p :test-5:
@@ -1107,7 +1111,7 @@ w print bar
 p :test-2:
 w print foo
 p :test-3:
-w false BAD ENTRY
+w set -o arrowkeysearch
 p :test-4:
 w print Correc
 p :test-5:
