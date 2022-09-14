@@ -1045,13 +1045,13 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			{
 			    case 'A':
 				/* VT220 up arrow */
-				if(dosearch(ep,out,1))
+				if(sh_isoption(SH_ARROWSEARCH) && dosearch(ep,out,1))
 					return(-1);
 				ed_ungetchar(ep->ed,cntl('P'));
 				return(-1);
 			    case 'B':
 				/* VT220 down arrow */
-				if(dosearch(ep,out,0))
+				if(sh_isoption(SH_ARROWSEARCH) && dosearch(ep,out,0))
 					return(-1);
 				ed_ungetchar(ep->ed,cntl('N'));
 				return(-1);

@@ -236,6 +236,8 @@ const char sh_set[] =
 	"It must resolve to one of the following:]"
 	"{"
 		"[+allexport?Equivalent to \b-a\b.]"
+		"[+arrowkeysearch?The up and down arrow keys will do a "
+		"reverse search based on the current line.]"
 		"[+backslashctrl?The backslash character \b\\\b escapes the "
 			"next control character in the \bemacs\b built-in "
 			"editor and the next \aerase\a or \akill\a character "
