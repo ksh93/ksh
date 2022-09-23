@@ -107,21 +107,21 @@
 #if SHOPT_MULTIBYTE
 #   define LEN		_Fcin.fclen
 #   define SETLEN(x)	(_Fcin.fclen = x)
-#   define isaname(c)	((c)>0x7f?isalpha(c): sh_lexstates[ST_NAME][(c)]==0)
-#   define isaletter(c)	((c)>0x7f?isalpha(c): sh_lexstates[ST_DOL][(c)]==S_ALP && (c)!='.')
+#   define isaname(c)	((c) < 0 ? 0 : ((c) > 0x7f ? isalpha(c) : sh_lexstates[ST_NAME][(c)] == 0))
+#   define isaletter(c)	((c) < 0 ? 0 : ((c) > 0x7f ? isalpha(c) : sh_lexstates[ST_DOL][(c)] == S_ALP && (c) != '.'))
 #else
 #   undef mbwide
 #   define mbwide()	(0)
 #   define LEN		1
 #   define SETLEN(x)	(x)
-#   define isaname(c)	(sh_lexstates[ST_NAME][c]==0)
-#   define isaletter(c)	(sh_lexstates[ST_DOL][c]==S_ALP && (c)!='.')
+#   define isaname(c)	((c) < 0 ? 0 : sh_lexstates[ST_NAME][c] == 0)
+#   define isaletter(c)	((c) < 0 ? 0 : (sh_lexstates[ST_DOL][c] == S_ALP && (c) != '.'))
 #endif
-#define STATE(s,c)	(s[mbwide()?((c=fcmbget(&LEN)),LEN>1?'a':c):(c=fcget())])
-#define isadigit(c)	(sh_lexstates[ST_DOL][c]==S_DIG)
-#define isastchar(c)	((c)=='@' || (c)=='*')
-#define isexp(c)	(sh_lexstates[ST_MACRO][c]==S_PAT||(c)=='$'||(c)=='`')
-#define ismeta(c)	(sh_lexstates[ST_NAME][c]==S_BREAK)
+#define STATE(s,c)	(s[mbwide() ? ((c = fcmbget(&LEN)), LEN > 1 ? 'a' : c) : (c = fcget())])
+#define isadigit(c)	((c) < 0 ? 0 : sh_lexstates[ST_DOL][c] == S_DIG)
+#define isastchar(c)	((c) == '@' || (c) == '*')
+#define isexp(c)	((c) < 0 ? 0 : (sh_lexstates[ST_MACRO][c] == S_PAT || (c) == '$' || (c) == '`'))
+#define ismeta(c)	((c) < 0 ? 0 : sh_lexstates[ST_NAME][c] == S_BREAK)
 
 extern char *sh_lexstates[ST_NONE];
 extern const char *sh_lexrstates[ST_NONE];
