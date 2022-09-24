@@ -29,8 +29,8 @@ int
 chrtoi(register const char* s)
 {
 	register int	c;
-	register int	n;
 	register int	x;
+	register size_t	n;
 	char*		p;
 
 	c = 0;

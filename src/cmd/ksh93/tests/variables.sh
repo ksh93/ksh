@@ -1461,4 +1461,18 @@ do
 done
 
 # ======
+# A regression introduced in ksh93u+ 2012-04-23 caused LINENO to have
+# the wrong value after parsing a multi-line compound assignment.
+# https://github.com/ksh93/ksh/issues/484
+exp=3
+got=$("$SHELL" <<-\EOF
+	x=(typeset -a x=(
+	                [1]=))
+	echo $LINENO
+	EOF
+)
+((exp == got)) || err_exit 'LINENO is wrong after a multi-line compound assignment' \
+	"(expected $exp, got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

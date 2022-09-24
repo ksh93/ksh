@@ -3405,9 +3405,9 @@ results)set '' $target
 				case $filter in
 				cat)	$exec cat $j
 					;;
-				errors)	$exec egrep -i '\*\*\*|FAIL[ES]|^TEST.* [123456789][0123456789]* error|core.*dump' $j | sed -e '/^TEST.\//s,/[^ ]*/,,'
+				errors)	$exec grep -E -i '\*\*\*|FAIL[ES]|^TEST.* [123456789][0123456789]* error|core.*dump' $j | sed -e '/^TEST.\//s,/[^ ]*/,,'
 					;;
-				*)	$exec egrep -i '^TEST|FAIL' $j
+				*)	$exec grep -E -i '^TEST|FAIL' $j
 					;;
 				esac
 			done
@@ -3434,9 +3434,9 @@ results)set '' $target
 				do	echo "$sep==> $j <=="
 					sep=$nl
 					case $filter in
-					errors)	$exeg egrep '^pax:|\*\*\*' $j
+					errors)	$exeg grep -E '^pax:|\*\*\*' $j
 						;;
-					*)	$exec egrep -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
+					*)	$exec grep -E -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
 						$exec grep :
 						;;
 					esac

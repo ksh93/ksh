@@ -112,6 +112,9 @@ typedef union Shnode_u Shnode_t;
 #define SH_TRACKALL	20
 #define	SH_SFLAG	21
 #define	SH_NOEXEC	22
+#if SHOPT_ESH || SHOPT_VSH
+#define SH_NOARROWSRCH	23
+#endif
 #if SHOPT_ESH
 #define SH_GMACS	24
 #define SH_EMACS	25

@@ -180,13 +180,6 @@ Sfrsrv_t* _sfrsrv(reg Sfio_t* f, reg ssize_t size)
 	return size >= 0 ? rsrv : NIL(Sfrsrv_t*);
 }
 
-#ifdef SIGPIPE
-static void ignoresig(int sig)
-{
-	signal(sig, ignoresig);
-}
-#endif
-
 int _sfpopen(reg Sfio_t* f, int fd, int pid, int stdio)	/* stdio popen() does not reset SIGPIPE handler */
 {
 	reg Sfproc_t*	p;
@@ -207,8 +200,7 @@ int _sfpopen(reg Sfio_t* f, int fd, int pid, int stdio)	/* stdio popen() does no
 	if(p->sigp)
 	{	Sfsignal_f	handler;
 
-		if((handler = signal(SIGPIPE, ignoresig)) != SIG_DFL &&
-		    handler != ignoresig)
+		if((handler = signal(SIGPIPE, SIG_IGN)) != SIG_DFL && handler != SIG_IGN)
 			signal(SIGPIPE, handler); /* honor user handler */
 		_Sfsigp += 1;
 	}
@@ -255,8 +247,7 @@ int _sfpclose(reg Sfio_t* f)
 #ifdef SIGPIPE
 		if(p->sigp && (_Sfsigp -= 1) <= 0)
 		{	Sfsignal_f	handler;
-			if((handler = signal(SIGPIPE,SIG_DFL)) != SIG_DFL &&
-			   handler != ignoresig)
+			if((handler = signal(SIGPIPE,SIG_DFL)) != SIG_DFL && handler != SIG_IGN)
 				signal(SIGPIPE,handler); /* honor user handler */
 			_Sfsigp = 0;
 		}
@@ -504,10 +495,10 @@ int _sfmode(reg Sfio_t*	f,	/* change r/w mode and sync file pointer for this str
 
 		/* reset buffer and seek pointer */
 		if(!(f->mode&SF_SYNCED) )
-		{	n = f->endb - f->next;
-			if(f->extent >= 0 && (n > 0 || (f->data && (f->bits&SF_MMAP))) )
+		{	intptr_t nn = f->endb - f->next;
+			if(f->extent >= 0 && (nn > 0 || (f->data && (f->bits&SF_MMAP))) )
 			{	/* reset file pointer */
-				addr = f->here - n;
+				addr = f->here - nn;
 				if(SFSK(f,addr,SEEK_SET,f->disc) < 0)
 					goto err_notify;
 				f->here = addr;

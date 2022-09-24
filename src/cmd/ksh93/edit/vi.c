@@ -188,6 +188,7 @@ static void	restore_v(Vi_t*);
 static void	save_last(Vi_t*);
 static void	save_v(Vi_t*);
 static int	search(Vi_t*,int);
+static int	dosearch(Vi_t *vp, int direction);
 static void	sync_cursor(Vi_t*);
 static int	textmod(Vi_t*,int,int);
 
@@ -1602,25 +1603,14 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		{
 		    case 'A':
 			/* VT220 up arrow */
-			if(cur_virt>=0  && cur_virt<(SEARCHSIZE-2) && cur_virt == last_virt)
-			{
-				virtual[last_virt + 1] = '\0';
-#if SHOPT_MULTIBYTE
-				ed_external(virtual,lsearch+1);
-#else
-				strcopy(lsearch+1,virtual);
-#endif /* SHOPT_MULTIBYTE */
-				*lsearch = '^';
-				vp->direction = -2;
-				ed_ungetchar(vp->ed,'n');
-			}
-			else if(cur_virt==0 && vp->direction == -2)
-				ed_ungetchar(vp->ed,'n');
-			else
-				ed_ungetchar(vp->ed,'k');
+			if(!sh_isoption(SH_NOARROWSRCH) && dosearch(vp,1))
+				return(1);
+			ed_ungetchar(vp->ed,'k');
 			return(1);
 		    case 'B':
 			/* VT220 down arrow */
+			if(!sh_isoption(SH_NOARROWSRCH) && dosearch(vp,0))
+				return(1);
 			ed_ungetchar(vp->ed,'j');
 			return(1);
 		    case 'C':
@@ -1719,6 +1709,24 @@ static int mvcursor(register Vi_t* vp,register int motion)
 			    case 'C': /* Ctrl-Right arrow (go forward one word) */
 				ed_ungetchar(vp->ed, 'w');
 				return(1);
+			    case '~': /* Page Up (perform reverse search) */
+				if(dosearch(vp,1))
+					return(1);
+				ed_ungetchar(vp->ed,'k');
+				return(1);
+			}
+			ed_ungetchar(vp->ed,bound);
+			ed_ungetchar(vp->ed,motion);
+			return(0);
+		    case '6':
+			bound = ed_getchar(vp->ed,-1);
+			if(bound == '~')
+			{
+				/* Page Down (perform backwards reverse search) */
+				if(dosearch(vp,0))
+					return(1);
+				ed_ungetchar(vp->ed,'j');
+				return(1);
 			}
 			ed_ungetchar(vp->ed,bound);
 			ed_ungetchar(vp->ed,motion);
@@ -1727,7 +1735,8 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		    case '8':
 			bound = ed_getchar(vp->ed,-1);
 			if(bound=='~')
-			{ /* End key */
+			{
+				/* End key */
 				ed_ungetchar(vp->ed,'$');
 				return(1);
 			}
@@ -2286,9 +2295,9 @@ static int search(register Vi_t* vp,register int mode)
 	register int i;
 	Histloc_t  location;
 
-	if( vp->direction == -2 && mode != 'n')
+	if( vp->direction == -2 && mode != 'n' && mode != 'N' )
 		vp->direction = -1;
-	if( mode == '/' || mode == '?')
+	if( mode == '/' || mode == '?' )
 	{
 		/*** new search expression ***/
 		del_line(vp,BAD);
@@ -2355,6 +2364,46 @@ static int search(register Vi_t* vp,register int mode)
 
 	curhline = oldcurhline;
 	return(BAD);
+}
+
+/*
+ * Prepare a reverse search based on the current command line.
+ * If direction is >0, search forwards in the history.
+ * If direction is <=0, search backwards in the history.
+ *
+ * Returns 1 if the shell did a reverse search or 0 if it
+ * could not.
+ */
+
+static int dosearch(Vi_t *vp, int direction)
+{
+	int mode;
+
+	if(direction)
+		mode = 'n';
+	else
+		mode = 'N';
+
+	if(cur_virt>=0 && cur_virt<(SEARCHSIZE-2) && cur_virt == last_virt)
+	{
+		virtual[last_virt + 1] = '\0';
+#if SHOPT_MULTIBYTE
+		ed_external(virtual,lsearch+1);
+#else
+		strcopy(lsearch+1,virtual);
+#endif /* SHOPT_MULTIBYTE */
+		*lsearch = '^';
+		vp->direction = -2;
+		ed_ungetchar(vp->ed,mode);
+	}
+	else if(cur_virt==0 && vp->direction == -2)
+		ed_ungetchar(vp->ed,mode);
+	else
+	{
+		vp->direction = -1;  /* cancel active reverse search if necessary */
+		return(0);
+	}
+	return(1);
 }
 
 /*{	SYNC_CURSOR()

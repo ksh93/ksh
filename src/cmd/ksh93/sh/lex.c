@@ -256,7 +256,9 @@ int sh_lex(Lex_t* lp)
 	if(lp->noreserv)
 	{
 		lp->lex.reservok = 0;
-		while((fcgetc(c)) && c==' ' || c== '\t' || c=='\n');
+		while((fcgetc(c)) && (c==' ' || c== '\t' || c=='\n'))
+			if(c=='\n')
+				sh.inlineno++;
 		fcseek(-LEN);
 		if(c=='[')
 			lp->assignok = SH_ASSIGN;

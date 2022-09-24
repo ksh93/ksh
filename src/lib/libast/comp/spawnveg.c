@@ -43,6 +43,8 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 	posix_spawnattr_t		attr;
 #if _lib_posix_spawn_file_actions_addtcsetpgrp_np
 	posix_spawn_file_actions_t	actions;
+#else
+	NOT_USED(tcfd);
 #endif
 
 	if (err = posix_spawnattr_init(&attr))

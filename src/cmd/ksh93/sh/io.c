@@ -2297,7 +2297,7 @@ struct eval
 {
 	Sfdisc_t	disc;
 	char		**argv;
-	short		slen;
+	int		slen;
 	char		addspace;
 };
 
@@ -2348,7 +2348,7 @@ static int eval_exceptf(Sfio_t *iop,int type, void *data, Sfdisc_t *handle)
 	if(!ep->addspace)
 	{
 		/* get the length of this string */
-		ep->slen = len = strlen(cp);
+		ep->slen = len = (int)strlen(cp);
 		/* move to next string */
 		ep->argv++;
 	}

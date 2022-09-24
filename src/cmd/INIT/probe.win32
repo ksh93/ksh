@@ -66,7 +66,7 @@ echo '#endif'
 include=
 
 $cc -E easy.c 2>&1 |
-egrep -i '^(#(line)? 1 .*\.[hH]| *int +_Pr0b3_[a-zA-Z_]* *= *[0-9])' |
+grep -E -i '^(#(line)? 1 .*\.[hH]| *int +_Pr0b3_[a-zA-Z_]* *= *[0-9])' |
 sed	-e 's,_Pr0b3_,,' \
 	-e 's/.*"\(.*\)".*/\1/' \
 	-e 's,^  *,,' \

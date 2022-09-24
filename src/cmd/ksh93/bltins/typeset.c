@@ -185,12 +185,17 @@ int    b_alias(int argc,register char *argv[],Shbltin_t *context)
 	{
 		if(xflag)
 			return(0);		/* do nothing for 'alias -tx' */
-		troot = sh_subtracktree(1);	/* use hash table */
 		if(tdata.pflag)
-			tdata.aflag = '+';	/* for 'alias -pt', don't add anything to the hash table */
+		{
+			troot = sh_subtracktree(0);	/* use existing hash table */
+			tdata.aflag = '+';		/* for 'alias -pt', don't add anything to the hash table */
+		}
 		else
-			tdata.aflag = '-';	/* make setall() treat 'hash' like 'alias -t' */
-		if(rflag)			/* hash -r: clear hash table */
+		{
+			troot = sh_subtracktree(1);	/* use hash table, creating a new one if needed */
+			tdata.aflag = '-';		/* make setall() treat 'hash' like 'alias -t' */
+		}
+		if(rflag)				/* hash -r: clear hash table */
 			nv_scan(troot,nv_rehash,(void*)0,NV_TAGGED,NV_TAGGED);
 	}
 	return(setall(argv,flag,troot,&tdata));

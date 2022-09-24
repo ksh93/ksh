@@ -41,7 +41,7 @@ probe_readonly="-R -Krodata -xMerge -Wa,-r"
 probe_shared="'' -G -b -c -shared -Wl,dll"
 probe_shared_name="-Wl,-soname= -h"
 probe_shared_nostart="-nostartfiles"
-case `gcc -v 2>&1 | egrep gcc.version` in
+case `gcc -v 2>&1 | grep -E gcc.version` in
 *version' '[0123456].*) ;;
 *) probe_shared_nostart= ;;  # gcc 7+
 esac
@@ -603,7 +603,7 @@ case $cc_dll:$cc_pic:$so:$dynamic:$static in
 				# UNDENT ...
 
 	if	$xx $1 -o xxx$dll shared.$obj 2>e && test -r xxx$dll
-	then	if	test -s e && egrep -i 'unknown|invalid|option' e > /dev/null
+	then	if	test -s e && grep -E -i 'unknown|invalid|option' e > /dev/null
 		then	continue
 		fi
 		case `PATH=/bin:/usr/bin:$PATH file xxx$dll` in
@@ -613,7 +613,7 @@ case $cc_dll:$cc_pic:$so:$dynamic:$static in
 			;;
 		*ELF*|*elf*)
 			$executable xxx$dll || continue
-			case `strings xxx$dll | sed -e 's,.*[ |],,' | sort -u | egrep -i '^([._](dynamic|dynstr|dynsym))$'` in
+			case `strings xxx$dll | sed -e 's,.*[ |],,' | sort -u | grep -E -i '^([._](dynamic|dynstr|dynsym))$'` in
 			[012])	continue ;;
 			esac
 			;;
@@ -1340,9 +1340,9 @@ case $stdlib in
 					done
 				done > tmp.tmp
 				if	test -s tmp.tmp
-				then	if	egrep -i "^${prefix_archive}[abcdefghijklmnopqrstuvwxyz0123456789_][abcdefghijklmnopqrstuvwxyz0123456789_]*\\.$lib\$" tmp.tmp >lib.tmp ||
-						egrep -i "\\.$obj\$" tmp.tmp >/dev/null ||
-						egrep -i "^${prefix_shared}[abcdefghijklmnopqrstuvwxyz0123456789_][abcdefghijklmnopqrstuvwxyz0123456789_]*\\$so(.[0-9]+)*\$" tmp.tmp >>lib.tmp
+				then	if	grep -E -i "^${prefix_archive}[abcdefghijklmnopqrstuvwxyz0123456789_][abcdefghijklmnopqrstuvwxyz0123456789_]*\\.$lib\$" tmp.tmp >lib.tmp ||
+						grep -E -i "\\.$obj\$" tmp.tmp >/dev/null ||
+						grep -E -i "^${prefix_shared}[abcdefghijklmnopqrstuvwxyz0123456789_][abcdefghijklmnopqrstuvwxyz0123456789_]*\\$so(.[0-9]+)*\$" tmp.tmp >>lib.tmp
 					then	if	test -s lib.tmp
 						then	sed -e "s,.*/,," -e 's,^'${prefix_archive}'\(.*\)\.'$lib'$,\1,g' -e 's,^'${prefix_shared}'\(.*\)\'$so'[.0-9]*,\1,g' lib.tmp | sort -u > tmp.tmp
 							xs=`sort all.tmp all.tmp tmp.tmp | uniq -u`
@@ -1356,8 +1356,8 @@ case $stdlib in
 								esac
 								if	$cc -o doti.$exe doti.$obj -l$x 2>e
 								then	ok=1
-								else	if	test -s e && egrep -i ":.*[ 	](find|found|locate|search|-l$x)[ 	]" e > /dev/null
-									then	if	egrep -i ":.*[ 	](access|permission)[ 	]" e
+								else	if	test -s e && grep -E -i ":.*[ 	](find|found|locate|search|-l$x)[ 	]" e > /dev/null
+									then	if	grep -E -i ":.*[ 	](access|permission)[ 	]" e
 										then	: maybe
 										else	ok=0
 											break
