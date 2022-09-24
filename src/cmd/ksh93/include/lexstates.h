@@ -107,8 +107,8 @@
 #if SHOPT_MULTIBYTE
 #   define LEN		_Fcin.fclen
 #   define SETLEN(x)	(_Fcin.fclen = x)
-#   define isaname(c)	((c) < 0 ? 0 : ((c) > 0x7f ? iswalpha(c) : sh_lexstates[ST_NAME][(c)] == 0))
-#   define isaletter(c)	((c) < 0 ? 0 : ((c) > 0x7f ? iswalpha(c) : sh_lexstates[ST_DOL][(c)] == S_ALP && (c) != '.'))
+#   define isaname(c)	((c) < 0 ? 0 : ((c) > 0x7f ? isalpha(c) : sh_lexstates[ST_NAME][(c)] == 0))
+#   define isaletter(c)	((c) < 0 ? 0 : ((c) > 0x7f ? isalpha(c) : sh_lexstates[ST_DOL][(c)] == S_ALP && (c) != '.'))
 #else
 #   undef mbwide
 #   define mbwide()	(0)
