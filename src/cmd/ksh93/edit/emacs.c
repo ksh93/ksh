@@ -1419,8 +1419,8 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	skip:
 	i = genlen(string);
 	if(backwards_search)
-		ep->prevdirection = -4;
-	if(ep->prevdirection == -4 && i!=4 || direction!=1)
+		ep->prevdirection = -2;
+	if(ep->prevdirection == -2 && i!=4 || direction!=1)
 		ep->prevdirection = -1;
 	if (direction < 1)
 	{

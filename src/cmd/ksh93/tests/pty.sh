@@ -1090,8 +1090,10 @@ w print bar
 p :test-2:
 w print foo
 p :test-3:
-w print Correc
+w echo WRONG
 p :test-4:
+w print Correc
+p :test-5:
 c p\E[A\E[A\E[A\E[B\E[B
 w $at
 u Correct
@@ -1106,8 +1108,10 @@ w print bar
 p :test-2:
 w print foo
 p :test-3:
-w print Correc
+w echo WRONG
 p :test-4:
+w print Correc
+p :test-5:
 c p\E[A\E[A\E[A\E[B\E[B
 w t
 u Correct
