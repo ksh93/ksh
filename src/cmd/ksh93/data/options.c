@@ -29,6 +29,9 @@
 const Shtable_t shtab_options[] =
 {
 	"allexport",			SH_ALLEXPORT,
+#if SHOPT_ESH || SHOPT_VSH
+	"noarrowkeysearch",		SH_NOARROWSRCH,
+#endif
 	"nobackslashctrl",		SH_NOBACKSLCTRL,
 	"bgnice",			SH_BGNICE,
 #if SHOPT_BRACEPAT

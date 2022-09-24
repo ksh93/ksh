@@ -170,6 +170,7 @@ typedef enum
 static void draw(Emacs_t*,Draw_t);
 static int escape(Emacs_t*,genchar*, int);
 static void putstring(Emacs_t*,char*);
+static int dosearch(Emacs_t*,genchar*,int);
 static void search(Emacs_t*,genchar*,int);
 static void setcursor(Emacs_t*,int, int);
 static void show_info(Emacs_t*,const char*);
@@ -1044,31 +1045,14 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			{
 			    case 'A':
 				/* VT220 up arrow */
-				if(cur>0 && eol==cur && (cur<(SEARCHSIZE-2) || ep->prevdirection == -2))
-				{
-					/* perform a reverse search based on the current command line */
-					if(ep->lastdraw==APPEND)
-					{
-						out[cur] = 0;
-						gencpy((genchar*)lstring+1,out);
-#if SHOPT_MULTIBYTE
-						ed_external((genchar*)lstring+1,lstring+1);
-#endif /* SHOPT_MULTIBYTE */
-						*lstring = '^';
-						ep->prevdirection = -2;
-					}
-					if(*lstring)
-					{
-						ed_ungetchar(ep->ed,'\r');
-						ed_ungetchar(ep->ed,cntl('R'));
-						return(-1);
-					}
-				}
-				*lstring = 0;
+				if(!sh_isoption(SH_NOARROWSRCH) && dosearch(ep,out,1))
+					return(-1);
 				ed_ungetchar(ep->ed,cntl('P'));
 				return(-1);
 			    case 'B':
 				/* VT220 down arrow */
+				if(!sh_isoption(SH_NOARROWSRCH) && dosearch(ep,out,0))
+					return(-1);
 				ed_ungetchar(ep->ed,cntl('N'));
 				return(-1);
 			    case 'C':
@@ -1174,6 +1158,24 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				    case 'C': /* Ctrl-Right arrow (go forward one word) */
 					ch = 'f';
 					goto forward;
+				    case '~': /* Page Up (perform reverse search) */
+					if(dosearch(ep,out,1))
+						return(-1);
+					ed_ungetchar(ep->ed,cntl('P'));
+					return(-1);
+				}
+				ed_ungetchar(ep->ed,ch);
+				ed_ungetchar(ep->ed,i);
+				return(-1);
+			    case '6':
+				ch = ed_getchar(ep->ed,1);
+				if(ch == '~')
+				{
+					/* Page Down (perform backwards reverse search) */
+					if(dosearch(ep,out,0))
+						return(-1);
+					ed_ungetchar(ep->ed,cntl('N'));
+					return(-1);
 				}
 				ed_ungetchar(ep->ed,ch);
 				ed_ungetchar(ep->ed,i);
@@ -1183,7 +1185,8 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				ch = ed_getchar(ep->ed,1);
 				if(ch == '~')
 				{
-					ed_ungetchar(ep->ed,cntl('E')); /* End key */
+					/* End key */
+					ed_ungetchar(ep->ed,cntl('E'));
 					return(-1);
 				}
 				ed_ungetchar(ep->ed,ch);
@@ -1300,6 +1303,50 @@ static void xcommands(register Emacs_t *ep,int count)
 	}
 }
 
+
+/*
+ * Prepare a reverse search based on the current command line.
+ * If direction is >0, search forwards in the history.
+ * If direction is <=0, search backwards in the history.
+ *
+ * Returns 1 if the shell did a reverse search or 0 if it
+ * could not.
+ */
+
+static int dosearch(Emacs_t *ep, genchar *out, int direction)
+{
+	if(cur>0 && eol==cur && (cur<(SEARCHSIZE-2) || ep->prevdirection == -2))
+	{
+		if(ep->lastdraw==APPEND)
+		{
+			/* Fetch the current command line and save it for later searches */
+			out[cur] = 0;
+			gencpy((genchar*)lstring+1,out);
+#if SHOPT_MULTIBYTE
+			ed_external((genchar*)lstring+1,lstring+1);
+#endif /* SHOPT_MULTIBYTE */
+			*lstring = '^';
+			ep->prevdirection = -2;
+		}
+		if(*lstring)
+		{
+			if(direction<=0)
+				ep->prevdirection = -3;  /* Tell search() to go backwards in history */
+			ed_ungetchar(ep->ed,'\r');
+			ed_ungetchar(ep->ed,cntl('R'));  /* Calls search() */
+			return(1);
+		}
+	}
+	/* Couldn't do a reverse search */
+	*lstring = 0;
+	return(0);
+}
+
+
+/*
+ * This function is used to perform reverse searches.
+ */
+
 static void search(Emacs_t* ep,genchar *out,int direction)
 {
 #ifndef ESH_NFIRST
@@ -1310,18 +1357,21 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	register genchar *string = drawbuff;
 	/* save current line */
 	int sav_cur = cur;
+	int backwards_search = ep->prevdirection == -3;
 	genncpy(str_buff,string,sizeof(str_buff)/sizeof(*str_buff));
 	string[0] = '^';
 	string[1] = 'R';
-	string[2] = '\0';
-	sl = 2;
+	string[2] = ':';
+	string[3] = ' ';
+	string[4] = '\0';
+	sl = 4;
 	cur = sl;
 	draw(ep,UPDATE);
 	while ((i = ed_getchar(ep->ed,1))&&(i != '\r')&&(i != '\n'))
 	{
 		if (i==usrerase || i==DELETE || i=='\b' || i==ERASECHAR)
 		{
-			if (sl > 2)
+			if (sl > 4)
 			{
 				string[--sl] = '\0';
 				cur = sl;
@@ -1368,7 +1418,9 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	}
 	skip:
 	i = genlen(string);
-	if(ep->prevdirection == -2 && i!=2 || direction!=1)
+	if(backwards_search)
+		ep->prevdirection = -4;
+	if(ep->prevdirection == -4 && i!=4 || direction!=1)
 		ep->prevdirection = -1;
 	if (direction < 1)
 	{
@@ -1377,18 +1429,18 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	}
 	else
 		direction = -1;
-	if (i != 2)
+	if (i != 4)
 	{
 #if SHOPT_MULTIBYTE
 		ed_external(string,(char*)string);
 #endif /* SHOPT_MULTIBYTE */
-		strncopy(lstring,((char*)string)+2,SEARCHSIZE-1);
+		strncopy(lstring,((char*)string)+4,SEARCHSIZE-1);
 		lstring[SEARCHSIZE-1] = 0;
 		ep->prevdirection = direction;
 	}
 	else
 		direction = ep->prevdirection ;
-	location = hist_find(sh.hist_ptr,(char*)lstring,hline,1,direction);
+	location = hist_find(sh.hist_ptr,(char*)lstring,hline,1,backwards_search ? -direction : direction);
 	i = location.hist_command;
 	if(i>0)
 	{

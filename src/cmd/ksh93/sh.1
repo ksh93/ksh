@@ -5318,8 +5318,8 @@ is entered
 the previous command back in time is accessed.
 Moves back one line when not on the first line of a multi-line command.
 .TP 10
-.BI M-[A
-(Up arrow)
+.BI M-[5~
+(Page up)
 If the cursor is at the end of the line, it is equivalent to
 .B ^R
 with
@@ -5327,6 +5327,15 @@ with
 set to the contents of the current line.
 Otherwise, it is
 equivalent to
+.BR ^P .
+.TP 10
+.BI M-[A
+(Up arrow)
+If the
+.B arrowkeysearch
+option is on, it is equivalent to
+.BR M-[5~ .
+Otherwise, it is equivalent to
 .BR ^P .
 .TP 10
 .BI M-<
@@ -5342,9 +5351,23 @@ Each time
 is entered
 the next command line forward in time is accessed.
 .TP 10
+.BI M-[6~
+(Page down)
+If the cursor is at the end of the line, a backwards reverse search
+is performed with
+.I string\^
+set to the contents of the current line.
+Otherwise, it is
+equivalent to
+.BR ^N .
+.TP 10
 .BI M-[B
 (Down arrow)
-Equivalent to
+If the
+.B arrowkeysearch
+option is on, it is equivalent to
+.BR ^[[6~ .
+Otherwise, it is equivalent to
 .BR ^N .
 .TP 10
 .BI ^R string
@@ -5784,13 +5807,22 @@ the previous command back in time is accessed.
 Equivalent to
 .BR k .
 .TP 10
-[\f2count\fP]\f3^[[A\fP
-(Up arrow)
+[\f2count\fP]\f3^[[5~\fP
+(Page up)
 If cursor is at the end of the line it is equivalent to
 .B /
 with
 .I string\^
 set to the contents of the current line.
+Otherwise, it is equivalent to
+.BR k .
+.TP 10
+[\f2count\fP]\f3^[[A\fP
+(Up arrow)
+If the
+.B arrowkeysearch
+option is on, it is equivalent to
+.BR ^[[5~ .
 Otherwise, it is equivalent to
 .BR k .
 .TP 10
@@ -5805,9 +5837,23 @@ the next command forward in time is accessed.
 Equivalent to
 .BR j .
 .TP 10
+[\f2count\fP]\f3^[[6~\fP
+(Page down)
+If cursor is at the end of the line it is equivalent to
+.B N
+with
+.I string\^
+set to the contents of the current line.
+Otherwise, it is equivalent to
+.BR j .
+.TP 10
 [\f2count\fP]\f3^[[B\fP
 (Down arrow)
-Equivalent to
+If the
+.B arrowkeysearch
+option is on, it is equivalent to
+.BR ^[[6~ .
+Otherwise, it is equivalent to
 .BR j .
 .TP 10
 [\f2count\fP]\f3G\fP
@@ -7686,6 +7732,10 @@ The following argument can be one of the following option names:
 .B allexport
 Same as
 .BR \-a .
+.TP 8
+.B arrowkeysearch
+The up and down arrow keys will do a reverse search based on the current line.
+On by default.
 .TP 8
 .B backslashctrl
 The backslash character

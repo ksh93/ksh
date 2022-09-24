@@ -1080,5 +1080,37 @@ w p\E[AT
 u CORRECT
 !
 
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L backwards reverse search in vi mode
+
+d 15
+p :test-1:
+w print bar
+p :test-2:
+w print foo
+p :test-3:
+w print Correc
+p :test-4:
+c p\E[A\E[A\E[A\E[B\E[B
+w $at
+u Correct
+!
+
+((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"
+L backwards reverse search in emacs mode
+
+d 15
+p :test-1:
+w print bar
+p :test-2:
+w print foo
+p :test-3:
+w print Correc
+p :test-4:
+c p\E[A\E[A\E[A\E[B\E[B
+w t
+u Correct
+!
+
 # ======
 exit $((Errors<125?Errors:125))

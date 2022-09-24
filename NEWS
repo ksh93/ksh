@@ -2,6 +2,20 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-09-24:
+
+- The down arrow key can now be used to perform a backwards reverse search,
+  similar to how the up arrow key functions.
+
+- The Page Up and Page Down keys can now also be used to perform reverse
+  searches forwards and backwards.
+
+- A new arrowkeysearch shell option can be used to disable backwards reverse
+  search using the arrow keys. (Page Up and Page Down will still search).
+
+- In the emacs line editor, the Ctrl+R reverse-search prompt is now visually
+  distinct from a literal control character ("^R: " instead of "^R").
+
 2022-09-11:
 
 - Fixed a bug introduced in ksh93u+ 2012-04-23 that caused LINENO to have the
