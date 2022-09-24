@@ -1603,13 +1603,13 @@ static int mvcursor(register Vi_t* vp,register int motion)
 		{
 		    case 'A':
 			/* VT220 up arrow */
-			if(sh_isoption(SH_ARROWSEARCH) && dosearch(vp,1))
+			if(!sh_isoption(SH_NOARROWSRCH) && dosearch(vp,1))
 				return(1);
 			ed_ungetchar(vp->ed,'k');
 			return(1);
 		    case 'B':
 			/* VT220 down arrow */
-			if(sh_isoption(SH_ARROWSEARCH) && dosearch(vp,0))
+			if(!sh_isoption(SH_NOARROWSRCH) && dosearch(vp,0))
 				return(1);
 			ed_ungetchar(vp->ed,'j');
 			return(1);
