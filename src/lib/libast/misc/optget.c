@@ -1882,7 +1882,7 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 		{
 			if ((c = *s) != '?')
 				return skip(s, 0, 0, 0, 1, level, 1, version);
-			w = C("version");
+			w = &C(" version")[1];
 			par = item(sp, w, about, level, style, ip, version, id, ID, hflags);
 			for (;;)
 			{
@@ -2962,7 +2962,7 @@ opthelp(const char* oopts, const char* what)
 					else if (style == STYLE_match && *what == '-')
 					{
 						if (*(p + 1) == '?' || *(s = skip(p + 1, ':', '?', 0, 1, 0, 0, version)) == '?' && isspace(*(s + 1)))
-							s = C("version");
+							s = &C(" version")[1];
 						else
 							s = p + 1;
 						w = (char*)what;
@@ -3394,7 +3394,7 @@ opthelp(const char* oopts, const char* what)
 							if (f)
 								sfprintf(sp_info, " %s; -\b%c\b %s --\bno%-.*s\b.", T(NiL, ID, "On by default"), f, T(NiL, ID, "means"), u - w, w);
 							else
-								sfprintf(sp_info, " %s %s\bno%-.*s\b %s.", T(NiL, ID, "On by default; use"), "--"+2-prefix, u - w, w, T(NiL, ID, "to turn off"));
+								sfprintf(sp_info, " %s %s\bno%-.*s\b %s.", T(NiL, ID, "On by default; use"), &"--"[2-prefix], u - w, w, T(NiL, ID, "to turn off"));
 							if (!(t = sfstruse(sp_info)))
 								goto nospace;
 							textout(sp_body, t, 0, 0, style, 0, 0, sp_info, version, NiL, NiL, &bflags);
