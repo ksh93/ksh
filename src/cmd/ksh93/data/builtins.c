@@ -1196,12 +1196,12 @@ const char sh_optlet[]	=
 ;
 
 const char sh_optprint[] =
-"[-1c?\n@(#)$Id: print (AT&T Research) 2008-11-26 $\n]"
+"[-1c?\n@(#)$Id: print (ksh 93u+m) 2022-09-26 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?print - write arguments to standard output]"
 "[+DESCRIPTION?By default, \bprint\b writes each \astring\a operand to "
 	"standard output and appends a newline character.]"  
-"[+?Unless, the \b-r\b or \b-f\b option is specified, each \b\\\b "
+"[+?Unless the \b-r\b or \b-f\b option is specified, each \b\\\b "
 	"character in each \astring\a operand is processed specially as "
 	"follows:]{"
 		"[+\\a?Alert character.]"
@@ -1235,7 +1235,8 @@ const char sh_optprint[] =
 	"above.]"
 "[s?Write the output as an entry in the shell history file instead of "
 	"standard output.]"
-"[u]:[fd:=1?Write to file descriptor number \afd\a instead of standard output.]"
+"[u]:[fd:=1?Write to file descriptor number \afd\a instead of standard output. "
+	"If \afd\a is \bp\b, write to the co-process; same as \b-p\b.]"
 "[v?Treat each \astring\a as a variable name and write the value in \b%B\b "
 	"format.  Cannot be used with \b-f\b.]"
 "[C?Treat each \astring\a as a variable name and write the value in \b%#B\b "
