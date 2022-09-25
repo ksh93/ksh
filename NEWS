@@ -4,6 +4,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2022-09-25:
 
+- Backported support for 'print -u p' from ksh93v- 2014-06-06 (this is
+  equivalent to using 'print -p').
+
 - Fixed a bug introduced on 2021-04-04 that incorrectly allowed 'typeset' to
   turn off the readonly and export attributes on a readonly variable.
 
