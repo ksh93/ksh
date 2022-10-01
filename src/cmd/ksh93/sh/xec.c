@@ -2659,6 +2659,22 @@ int sh_exec(register const Shnode_t *t, int flags)
 				sh_done(0);
 			if(sh.lastarg!= lastarg && sh.lastarg)
 				free(sh.lastarg);
+
+                        /* phidebian@github: ISSUE:XXX
+                         * comn may be NULL here when in iteractive mode
+                         * with nounset and a discipline function access an
+                         * unset variable.
+                         * The root cause is the generation of a NULL ptr in
+                         * the arglist, that is illegal.
+                         * The quick and dirty fix here don't address the root
+                         * cause, yet it prevent core cumping in a safe way,
+                         * should other bug generates NULL  ptr in arglist.
+                         *
+                         * It is ok to change comn here as we are on the return
+                         * path.
+                         */
+                        comn=comn?comn:"";
+                        
 			if(strlen(comn) < sizeof(lastarg))
 			{
 				nv_onattr(L_ARGNOD,NV_NOFREE);
