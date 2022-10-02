@@ -1531,4 +1531,15 @@ exp='Line 3 is 3'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/545
+# phidebian@github
+# streamline by @hyenias
+errmsg=$'\n'
+errmsg+=$'        unset variable access in discipline function\n'
+errmsg+=$'        on interactive ksh\n' 
+$SHELL +E -uc $'a=A; function a.get { : $z; }\necho $a' >/dev/null 2>&1 ||
+{ err_exit "$errmsg" "(expected success, got core dump)"
+}
+
+# ======
 exit $((Errors<125?Errors:125))
