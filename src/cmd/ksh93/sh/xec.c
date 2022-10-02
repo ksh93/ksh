@@ -2660,7 +2660,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			if(sh.lastarg!= lastarg && sh.lastarg)
 				free(sh.lastarg);
 
-                        /* phidebian@github: ISSUE:XXX
+                        /* phidebian@github: ISSUE:545
                          * comn may be NULL here when in iteractive mode
                          * with nounset and a discipline function access an
                          * unset variable.
