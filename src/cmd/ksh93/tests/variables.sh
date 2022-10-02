@@ -1533,11 +1533,11 @@ exp='Line 3 is 3'
 # ======
 # https://github.com/ksh93/ksh/issues/545
 # phidebian@github
+# streamline by @hyenias
 errmsg=$'\n'
 errmsg+=$'        unset variable access in discipline function\n'
 errmsg+=$'        on interactive ksh\n' 
-$SHELL +E -iuc  \
-   $'i=1\nfunction i.get\n{ echo $z;i+=$i\n}\necho $i' >/dev/null 2>&1 ||
+$SHELL +E -uc $'a=A; function a.get { : $z; }\necho $a' >/dev/null 2>&1 ||
 { err_exit "$errmsg" "(expected success, got core dump)"
 }
 
