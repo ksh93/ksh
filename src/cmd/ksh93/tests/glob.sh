@@ -411,4 +411,25 @@ test_glob '<d_un/d_sym//d_3> <d_un/d_sym//d_3/d_4> <d_un/d_sym//d_tres> <d_un/d_
 set --noglobstar
 
 # ======
+# Shell quoting within bracket expressions in glob patterns had no effect
+# https://github.com/ksh93/ksh/issues/488
+
+mkdir BUG_BRACQUOT
+cd BUG_BRACQUOT
+: > b
+test_glob '<[a-c]>' [a'-'c]
+test_glob '<[!N]>' ['!'N]
+test_glob '<[^N]>' ['^'N]
+test_glob '<[a-c]>' [a$'-'c]
+test_glob '<[!N]>' [$'!'N]
+test_glob '<[^N]>' [$'^'N]
+test_glob '<[a-c]>' [a"-"c]
+test_glob '<[!N]>' ["!"N]
+test_glob '<[^N]>' ["^"N]
+test_glob '<[a-c]>' [a\-c]
+test_glob '<[!N]>' [\!N]
+test_glob '<[^N]>' [\^N]
+cd ..
+
+# ======
 exit $((Errors<125?Errors:125))

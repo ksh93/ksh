@@ -517,4 +517,38 @@ fi
 unset x y
 
 # ======
+# Shell quoting within bracket expressions in glob patterns had no effect
+# https://github.com/ksh93/ksh/issues/488
+
+[[ b == *[a'-'c]* ]] && err_exit 'BUG_BRACQUOT: 1A'
+[[ b == *['!'N]* ]] && err_exit 'BUG_BRACQUOT: 1B'
+[[ b == *['^'N]* ]] && err_exit 'BUG_BRACQUOT: 1C'
+[[ b == *[a$'-'c]* ]] && err_exit 'BUG_BRACQUOT: 2A'
+[[ b == *[$'!'N]* ]] && err_exit 'BUG_BRACQUOT: 2B'
+[[ b == *[$'^'N]* ]] && err_exit 'BUG_BRACQUOT: 2C'
+[[ b == *[a"-"c]* ]] && err_exit 'BUG_BRACQUOT: 3A'
+[[ b == *["!"N]* ]] && err_exit 'BUG_BRACQUOT: 3B'
+[[ b == *["^"N]* ]] && err_exit 'BUG_BRACQUOT: 3C'
+[[ b == *[a\-c]* ]] && err_exit 'BUG_BRACQUOT: 4A'
+[[ b == *[\!N]* ]] && err_exit 'BUG_BRACQUOT: 4B'
+[[ b == *[\^N]* ]] && err_exit 'BUG_BRACQUOT: 4C'
+p='*[a\-c]*'; [[ b == $p ]] && err_exit 'BUG_BRACQUOT: 5A'
+p='*[\!N]*'; [[ b == $p ]] && err_exit 'BUG_BRACQUOT: 5B'
+p='*[\^N]*'; [[ b == $p ]] && err_exit 'BUG_BRACQUOT: 5C'
+p='*[a\-c]*'; [[ - == $p ]] || err_exit 'BUG_BRACQUOT: 6A'
+p='*[\!N]*'; [[ \! == $p ]] || err_exit 'BUG_BRACQUOT: 6B'
+p='*[\^N]*'; [[ ^ == $p ]] || err_exit 'BUG_BRACQUOT: 6C'
+
+# also test bracket expressions with ] as the first character, e.g. []abc]
+[[ b == *[]a'-'c]* ]] && err_exit 'BUG_BRACQUOT: B1'
+[[ b == *[]a$'-'c]* ]] && err_exit 'BUG_BRACQUOT: B2'
+[[ b == *[]a"-"c]* ]] && err_exit 'BUG_BRACQUOT: B3'
+[[ b == *[]a\-c]* ]] && err_exit 'BUG_BRACQUOT: B4'
+
+# make sure we didn't break extended regular expressions
+[[ \\ == [a"-"z] ]] && err_exit 'internal backslash escape incorrectly applied to glob [a"-"z]'
+[[ \\ =~ [a"-"z] ]] && err_exit 'internal backslash escape incorrectly applied to ERE [a"-"z]'
+[[ \\ == ~(E:[a"-"z]) ]] && err_exit 'internal backslash escape incorrectly applied to ERE via ksh glob ~(E:[a"-"z])'
+
+# ======
 exit $((Errors<125?Errors:125))

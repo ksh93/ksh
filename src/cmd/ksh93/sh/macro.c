@@ -430,13 +430,14 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 	register const char	*state = sh_lexstates[ST_MACRO];
 	register char	*cp,*first;
 	Lex_t		*lp = (Lex_t*)sh.lex_context;
-	int		tilde = -1;
-	int		oldquote = mp->quote;
-	int		ansi_c = 0;
-	int		paren = 0;
-	int		ere = 0;
-	int		dotdot = 0;
-	int		brace = 0;
+	int		tilde = -1;		/* offset for tilde expansion */
+	int		dotdot = 0;		/* offset for '..' in subscript */
+	int		paren = 0;		/* level of (parentheses) */
+	int		brace = 0;		/* level of {braces} */
+	char		oldquote = mp->quote;	/* save "double quoted" state */
+	char		ansi_c = 0;		/* set when processing ANSI C escape codes */
+	char		ere = 0;		/* set when processing an extended regular expression */
+	char		bracketexpr = 0; 	/* set when in [brackets] within a non-ERE glob pattern */
 	Sfio_t		*sp = mp->sp;
 	Stk_t		*stkp = sh.stk;
 	char		*resume = 0;
@@ -530,6 +531,9 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				n = S_PAT;
 			if(mp->pattern)
 			{
+				/* preserve \ for escaping glob pattern bracket expression operators */
+				if(bracketexpr && n==S_BRAOP)
+					break;
 				/* preserve \digit for pattern matching */
 				/* also \alpha for extended patterns */
 				if(!mp->lit && !mp->quote)
@@ -631,6 +635,8 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				mp->pattern = c;
 			break;
 		    case S_ENDCH:
+			if(bracketexpr && cp[-1]==RBRACT)
+				bracketexpr--;
 			if((mp->lit || cp[-1]!=endch || mp->quote!=newquote))
 				goto pattern;
 			if(endch==RBRACE && mp->pattern && brace)
@@ -730,6 +736,13 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				}
 				cp = first = fcseek(0);
 				break;
+			}
+			if(mp->pattern==1 && !ere && !bracketexpr)
+			{
+				bracketexpr++;
+				/* a ] following [, as in []abc], should not close the bracket expression */
+				if(cp[0]==RBRACT && cp[1])
+					bracketexpr++;
 			}
 			/* FALLTHROUGH */
 		    case S_PAT:
@@ -844,6 +857,14 @@ static void copyto(register Mac_t *mp,int endch, int newquote)
 				dotdot = stktell(stkp);
 				cp = first = fcseek(c+2);
 			}
+			break;
+		    case S_BRAOP:
+			/* escape a quoted !^- within a bracket expression */
+			if(c)
+				sfwrite(stkp,first,c);
+			first = fcseek(c);
+			if(bracketexpr && (mp->quote || mp->lit))
+				sfputc(stkp,ESCAPE);
 			break;
 		}
 	}

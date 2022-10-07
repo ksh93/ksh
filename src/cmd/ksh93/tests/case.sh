@@ -98,4 +98,33 @@ got=$(set +x; { "$SHELL" -c 'case x in [x[:bogus:]]) echo x ;; esac'; } 2>&1)
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# Shell quoting within bracket expressions in glob patterns had no effect
+# https://github.com/ksh93/ksh/issues/488
+
+case b in *[a'-'c]*) err_exit 'BUG_BRACQUOT: 1a';; esac
+case b in *['!'N]*) err_exit 'BUG_BRACQUOT: 1b';; esac
+case b in *['^'N]*) err_exit 'BUG_BRACQUOT: 1c';; esac
+case b in *[a$'-'c]*) err_exit 'BUG_BRACQUOT: 2a';; esac
+case b in *[$'!'N]*) err_exit 'BUG_BRACQUOT: 2b';; esac
+case b in *[$'^'N]*) err_exit 'BUG_BRACQUOT: 2c';; esac
+case b in *[a"-"c]*) err_exit 'BUG_BRACQUOT: 3a';; esac
+case b in *["!"N]*) err_exit 'BUG_BRACQUOT: 3b';; esac
+case b in *["^"N]*) err_exit 'BUG_BRACQUOT: 3c';; esac
+case b in *[a\-c]*) err_exit 'BUG_BRACQUOT: 4a';; esac
+case b in *[\!N]*) err_exit 'BUG_BRACQUOT: 4b';; esac
+case b in *[\^N]*) err_exit 'BUG_BRACQUOT: 4c';; esac
+p='*[a\-c]*'; case b in $p) err_exit 'BUG_BRACQUOT: 5a';; esac
+p='*[\!N]*'; case b in $p) err_exit 'BUG_BRACQUOT: 5b';; esac
+p='*[\^N]*'; case b in $p) err_exit 'BUG_BRACQUOT: 5c';; esac
+p='*[a\-c]*'; case - in $p) ;; *) err_exit 'BUG_BRACQUOT: 6a';; esac
+p='*[\!N]*'; case \! in $p) ;; *) err_exit 'BUG_BRACQUOT: 6b';; esac
+p='*[\^N]*'; case ^ in $p) ;; *) err_exit 'BUG_BRACQUOT: 6c';; esac
+
+# also test bracket expressions with ] as the first character, e.g. []abc]
+case b in *[]a'-'c]*) err_exit 'BUG_BRACQUOT: A1';; esac
+case b in *[]a$'-'c]*) err_exit 'BUG_BRACQUOT: A2';; esac
+case b in *[]a"-"c]*) err_exit 'BUG_BRACQUOT: A3';; esac
+case b in *[]a\-c]*) err_exit 'BUG_BRACQUOT: A4';; esac
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -55,6 +55,7 @@
 #define S_DELIM	S_RES	/* IFS delimiter characters */
 #define S_MBYTE S_NAME	/* IFS first byte of multi-byte char */
 #define S_BLNK	36	/* space or tab */
+#define S_BRAOP	S_RES	/* potentially a glob pattern bracket expression operator (!, ^, -) */
 /* The following must be the highest numbered states */
 #define S_QUOTE	37	/* double quote character */
 #define S_GRAVE	38	/* old comsub character */

@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-10-07:
+
+- Fixed BUG_BRACQUOT: single and double shell quotes did not work to escape
+  the !, ^ or - operators in a bracket expression within a glob pattern.
+
 2022-09-28:
 
 - Fixed a bug where LINENO was reset to 1 after being temporarily changed in
