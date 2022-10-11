@@ -2270,11 +2270,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 				{
 					register char *s;
 					if(rex->argflag&ARG_MAC)
-					{
 						s = sh_macpat(rex,OPTIMIZE|ARG_EXP);
-						while(*s=='\\' && s[1]==0)
-							s+=2;
-					}
 					else
 						s = rex->argval;
 					type = (rex->argflag&ARG_RAW);

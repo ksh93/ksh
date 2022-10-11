@@ -98,6 +98,36 @@ got=$(set +x; { "$SHELL" -c 'case x in [x[:bogus:]]) echo x ;; esac'; } 2>&1)
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# Handling of escapes in pattern matching contexts
+# https://marc.info/?l=ast-users&m=136562952931688&w=2
+exp=no
+got=$(	x=\\x
+	if [[ x == $x ]]
+	then	echo yes
+	else	echo no
+	fi
+)
+[[ $exp == $got ]] || err_exit '[[ does not handle escapes correctly' \
+	"(expected $exp, got $(printf %q "$got"))"
+got=$(	x=\\x
+	case x in
+	$x) echo yes ;;
+	*) echo no ;;
+	esac
+)
+[[ $exp == $got ]] || err_exit 'case statements do not handle escapes correctly' \
+	"(expected $exp, got $(printf %q "$got"))"
+# https://github.com/ksh93/ksh/issues/488#issuecomment-1262641076
+exp=result
+got=$(	backslash=\\
+	case \\ in
+	$backslash)	echo result ;;
+	esac
+)
+[[ $exp == $got ]] || err_exit 'case statements do not correctly handle a dangling backslash' \
+	"(expected $exp, got $(printf %q "$got"))"
+
+# ======
 # Shell quoting within bracket expressions in glob patterns had no effect
 # https://github.com/ksh93/ksh/issues/488
 
