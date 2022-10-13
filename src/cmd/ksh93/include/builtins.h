@@ -132,6 +132,7 @@ extern const char	e_nolabels[];
 extern const char	e_notimp[];
 extern const char	e_nosupport[];
 extern const char	e_badbase[];
+extern const char	e_limit[];
 extern const char	e_overlimit[];
 
 extern const char	e_eneedsarg[];

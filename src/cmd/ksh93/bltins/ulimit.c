@@ -16,7 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * ulimit [-HSaMctdfkxlqenuPpmrRbiswTv] [limit]
+ * ulimit [-HSaMctdfkxlqenVuPpmrRbiswTv] [limit]
  *
  *   David Korn
  *   AT&T Labs
@@ -73,7 +73,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 #endif /* _lib_getrlimit */
 	const Limit_t* tp;
 	char* conf;
-	int label, unit, nosupport;
+	int label, unit, nosupport, ret=0;
 	rlim_t i;
 	char tmp[41];
         Optdisc_t disc;
@@ -189,10 +189,11 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			if(!nosupport)
 			{
 #ifdef  _lib_getrlimit
-				if(getrlimit(n,&rlp) <0)
+				if(getrlimit(n,&rlp)<0)
 				{
-					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
-					UNREACHABLE();
+					errormsg(SH_DICT,ERROR_system(0),e_limit,tp->description);
+					ret++;
+					continue;
 				}
 				if(mode&HARD)
 					i = rlp.rlim_max;
@@ -205,8 +206,9 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 				i = -1;
 				if((i=vlimit(n,i)) < 0)
 				{
-					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
-					UNREACHABLE();
+					errormsg(SH_DICT,ERROR_system(0),e_limit,tp->description);
+					ret++;
+					continue;
 				}
 #endif /* _lib_getrlimit */
 			}
@@ -233,6 +235,6 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 				sfputr(sfstdout,e_unlimited,'\n');
 		}
 	}
-	return(0);
+	return(ret);
 }
 #endif /* _no_ulimit */

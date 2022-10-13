@@ -880,4 +880,30 @@ if builtin mkdir 2> /dev/null; then
 fi
 
 # ======
+# Tests for the getconf builtin
+if builtin getconf 2> /dev/null; then
+	hosttype=$(getconf HOSTTYPE)
+	bad_result=$(getconf --version 2>&1)
+
+	# The -l option should convert all variable names to lowercase.
+	# https://github.com/att/ast/issues/1171
+	got=$(getconf -lq | LC_ALL=C sed -n -e 's/=.*//' -e '/[A-Z]/p')
+	[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
+		"(got $(printf %q "$got"))"
+
+	# The -q option should quote all string values.
+	# https://github.com/att/ast/issues/1173
+	exp="HOSTTYPE=\"$hosttype\""
+	got=$(getconf -q | grep 'HOSTTYPE=')
+	[[ $exp == "$got" ]] || err_exit "'getconf -q' fails to quote string values" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# The -n option should only return matching names.
+	# https://github.com/ksh93/ksh/issues/279
+	exp="HOSTTYPE=$hosttype"
+	got=$(getconf -n HOSTTYPE)
+	[[ $exp == "$got" ]] || err_exit "'getconf -n' doesn't match names correctly" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+# ======
 exit $((Errors<125?Errors:125))

@@ -129,6 +129,7 @@ const char e_badrange[]		= "%d-%d: invalid range";
 const char e_eneedsarg[]	= "-e - requires single argument";
 const char e_badbase[]		= "%s unknown base";
 const char e_loop[]		= "%s: would cause loop";
+const char e_limit[]		= "%s: could not get limit";
 const char e_overlimit[]	= "%s: limit exceeded";
 const char e_badsyntax[]	= "incorrect syntax";
 const char e_badwrite[]		= "write to %d failed";

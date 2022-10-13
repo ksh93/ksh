@@ -431,7 +431,14 @@ print $'#!'$SHELL$'\nkill -KILL $$' > command-kill
 print $'kill -KILL $$' > script-kill
 chmod +x command-kill script-kill
 export PATH=.:$PATH
-exp='Killed'
+if [[ $(uname) == Haiku ]]; then
+	# On Haiku signal numbers 9 and 21 (SIGKILL and SIGKILLTHR)
+	# both result in a 'Kill Thread' message, regardless of which
+	# shell or kill utility used.
+	exp='Kill Thread'
+else
+	exp='Killed'
+fi
 for ((S=0; S<${#SUB[@]}; S++))
 do	for ((P=0; P<${#PAR[@]}; P++))
 	do	for ((C=0; C<${#CMD[@]}; C++))

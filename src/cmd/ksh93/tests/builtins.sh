@@ -24,33 +24,6 @@
 bincat=$(whence -p cat)
 
 # ======
-# These are regression tests for the getconf builtin.
-if builtin getconf 2> /dev/null; then
-	bingetconf=$(getconf GETCONF)
-	bad_result=$(getconf --version 2>&1)
-
-	# The -l option should convert all variable names to lowercase.
-	# https://github.com/att/ast/issues/1171
-	got=$(getconf -lq | LC_ALL=C sed -n -e 's/=.*//' -e '/[A-Z]/p')
-	[[ -n $got ]] && err_exit "'getconf -l' doesn't convert all variable names to lowercase" \
-		"(got $(printf %q "$got"))"
-
-	# The -q option should quote all string values.
-	# https://github.com/att/ast/issues/1173
-	exp="GETCONF=\"$bingetconf\""
-	got=$(getconf -q | grep 'GETCONF=')
-	[[ $exp == "$got" ]] || err_exit "'getconf -q' fails to quote string values" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-
-	# The -n option should only return matching names.
-	# https://github.com/ksh93/ksh/issues/279
-	exp="GETCONF=$bingetconf"
-	got=$(getconf -n GETCONF)
-	[[ $exp == "$got" ]] || err_exit "'getconf -n' doesn't match names correctly" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-fi
-
-# ======
 # Test shell builtin commands
 : ${foo=bar} || err_exit ": failed"
 [[ $foo == bar ]] || err_exit ": side effects failed"
@@ -648,7 +621,8 @@ fi
 
 [[ $($SHELL -c '{ printf %R "["; print ok;}' 2> /dev/null) == ok ]] || err_exit $'\'printf %R "["\' causes shell to abort'
 
-v=$( $SHELL -c $'
+exp=$'usr1\ndone'
+got=$( $SHELL -c $'
 	trap \'print "usr1"\' USR1
 	trap exit USR2
 	sleep 1 && {
@@ -657,8 +631,9 @@ v=$( $SHELL -c $'
 	} &
 	sleep 2 | read
 	echo done
-' ) 2> /dev/null
-[[ $v == $'usr1\ndone' ]] ||  err_exit 'read not terminating when receiving USR1 signal'
+' )
+[[ $got == $exp ]] || err_exit 'read not terminating when receiving USR1 signal' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 mkdir $tmp/tmpdir1
 cd $tmp/tmpdir1
@@ -689,12 +664,17 @@ cd ../..
 cd /etc
 cd .././..
 [[ $(pwd) == / ]] || err_exit 'cd /etc;cd .././..;pwd is not /'
-cd /usr/bin
+if [[ ! -d /usr/bin ]]; then
+	dir=/system  # For Haiku, fallback to /system
+else
+	dir=/usr
+fi
+cd "$dir/bin"
 cd ../..
-[[ $(pwd) == / ]] || err_exit 'cd /usr/bin;cd ../..;pwd is not /'
-cd /usr/bin
+[[ $(pwd) == / ]] || err_exit "'cd $dir/bin; cd ../..; pwd' is not /"
+cd "$dir/bin"
 cd ..
-[[ $(pwd) == /usr ]] || err_exit 'cd /usr/bin;cd ..;pwd is not /usr'
+[[ $(pwd) == "$dir" ]] || err_exit "cd '$dir/bin; cd ..; pwd' is not $dir"
 cd "$tmp"
 if	mkdir $tmp/t1
 then	(
@@ -1359,7 +1339,7 @@ got=$(
 	PWD=/dev
 	OLDPWD=/tmp
 	(
-		cd /usr; cd /bin
+		cd /etc; cd /bin
 		cd - > /dev/null
 	)
 	echo $OLDPWD $PWD
@@ -1369,12 +1349,12 @@ got=$(
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # $OLDPWD and $PWD should survive after being set in a subshare
-exp='/usr /bin'
+exp='/etc /bin'
 got=$(
 	PWD=/dev
 	OLDPWD=/tmp
 	foo=${
-		cd /usr; cd /bin
+		cd /etc; cd /bin
 	}
 	echo $OLDPWD $PWD
 )

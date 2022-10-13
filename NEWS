@@ -2,6 +2,17 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-10-13:
+
+- Added a -V/--novmon option to ulimit that supports setting the number of open
+  vnodes (only applies to Haiku).
+
+- Fixed a bug on Haiku that caused the ulimit command to print '(null)' in the
+  error string when 'ulimit -t' fails.
+
+- 'ulimit -a' no longer exits immediately after an error occurs when failing
+  to get the current limits for cpu time and file size on Haiku.
+
 2022-10-11:
 
 - Fixed a bug that caused inconsistent behavior when handling a dangling

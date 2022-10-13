@@ -96,7 +96,9 @@ bin/package make SHELL=/bin/bash CCFLAGS="-O2 -I/opt/local/include" LDFLAGS="-L/
 
 **Note:** Do not add compiler flags that cause the compiler to emit terminal
 escape codes, such as `-fdiagnostics-color=always`; this will cause the
-build to fail as the probing code greps compiler diagnostics.
+build to fail as the probing code greps compiler diagnostics. Additionally,
+do not add the `-ffast-math` compiler flag; arithmetic bugs will occur when
+using that flag.
 
 For more information run
 ```sh

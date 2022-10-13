@@ -1306,7 +1306,7 @@ got=$(
 	num=3.25+4.5 f1
 	typeset -p num
 )
-[[ $got == "$exp" ]] || echo 'assignment preceding POSIX function call is not correctly exported or propagated' \
+[[ $got == "$exp" ]] || err_exit 'assignment preceding POSIX function call is not correctly exported or propagated' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
