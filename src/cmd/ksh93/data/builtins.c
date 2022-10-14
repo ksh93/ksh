@@ -1964,7 +1964,7 @@ const char sh_opttypeset[] =
 
 #ifndef _no_ulimit
 const char sh_optulimit[] =
-"[-1c?@(#)$Id: ulimit (ksh 93u+m) 2021-12-28 $\n]"
+"[-1c?@(#)$Id: ulimit (ksh 93u+m) 2022-10-13 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?ulimit - set or display resource limits]"
 "[+DESCRIPTION?\bulimit\b sets or displays resource limits.  These "
