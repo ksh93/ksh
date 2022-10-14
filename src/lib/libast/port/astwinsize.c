@@ -30,6 +30,8 @@
 #include <sys/ioctl.h>
 #endif
 
+#undef ioctl
+#undef sleep
 #define ioctl		______ioctl
 #define sleep		______sleep
 
