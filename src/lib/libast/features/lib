@@ -404,11 +404,11 @@ tst	socket_peek note{ recv(MSG_PEEK) works on socketpair() }end execute{
 
 		static char	msg[] = "abcd";
 
-#ifdef __HAIKU__
+	#ifdef __HAIKU__
 		/* On Haiku this test will either fail (without additional LDFLAGS),
 		   or with -lnetwork it will lock up. */
 		return 1;
-#else
+	#else
 		if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds))
 			return 1;
 		if (write(fds[1], msg, sizeof(msg)) != sizeof(msg))
@@ -424,7 +424,7 @@ tst	socket_peek note{ recv(MSG_PEEK) works on socketpair() }end execute{
 			if (buf[i] != msg[i])
 				return 1;
 		return 0;
-#endif
+	#endif
 	}
 }end
 
