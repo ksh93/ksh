@@ -228,19 +228,19 @@ tmxdate(register const char* s, char** e, Time_t now)
 		while (isspace(*s))
 			s++;
 		message((-1, "AHA#%d state=" FFMT " set=" FFMT " '%s'", __LINE__, FLAGS(state), FLAGS(set), s));
+
+                f=1;
 		for (;;)
 		{
 			if (*s == '.' || *s == '-' || *s == '+')
-			{
+			{       f=(*s=='-')?-1:1; 
 				if (((set|state) & (MONTH|HOUR|MINUTE|ZONE)) == (MONTH|HOUR|MINUTE) && (i = tmgoff(s, &t, TM_LOCALZONE)) != TM_LOCALZONE)
 				{
 					zone = i;
 					state |= ZONE;
 					if (!*(s = t))
 						break;
-				}
-				else if (*s == '+')
-					break;
+				}				
 			}
 			else if (!skip[*s])
 				break;
@@ -499,21 +499,7 @@ tmxdate(register const char* s, char** e, Time_t now)
 			} while (c);
 			continue;
 		}
-		f = -1;
-		if (*s == '+')
-		{
-			while (isspace(*++s) || *s == '_');
-			n = strtol(s, &t, 0);
-			if (w = t - s)
-			{
-				for (s = t; skip[*s]; s++);
-				state |= (f = n) ? NEXT : THIS;
-				set &= ~(EXACT|LAST|NEXT|THIS);
-				set |= state & (EXACT|LAST|NEXT|THIS);
-			}
-			else
-				s = last;
-		}
+		
 		if (!(state & CRON))
 		{
 			/*
@@ -1037,8 +1023,8 @@ tmxdate(register const char* s, char** e, Time_t now)
 							if (i < 12)
 								tm->tm_hour = i += 12;
 							break;
-						}
-						if (f >= 0 || (state & (LAST|NEXT)))
+						} //PHI: ( f>= 0)||
+						if ( (state & (LAST|NEXT)) )
 						{
 							message((-1, "AHA#%d f=%d i=%d j=%d k=%d l=%d", __LINE__, f, i, j, k, l));
 							state &= ~HOLD;
@@ -1310,6 +1296,7 @@ tmxdate(register const char* s, char** e, Time_t now)
 								if ((k = tmlex(s, &t, tm_info.format + TM_LAST, TM_NOISE - TM_LAST, NiL, 0)) >= 0)
 								{
 									s = t;
+                                                                        /* PHI: k==1 is AGO, handled as LAST */
 									if (k <= 2)
 										state |= LAST;
 									else if (k <= 5)
@@ -1368,10 +1355,10 @@ tmxdate(register const char* s, char** e, Time_t now)
 						}
 						message((-1, "AHA#%d disambiguate LAST k=%d", __LINE__, k));
 						if (state & LAST)
-							n = -n;
+							f = -f;
 						else if (!(state & NEXT))
-							n--;
-						m = (f > 0) ? f * n : n;
+                                                        n--; //PHI:
+						m =  f * n;
 						message((-1, "AHA#%d f=%d n=%d i=%d j=%d k=%d l=%d m=%d state=" FFMT, __LINE__, f, n, i, j, k, l, m, FLAGS(state)));
 						switch (j)
 						{
@@ -1416,7 +1403,7 @@ tmxdate(register const char* s, char** e, Time_t now)
 							goto clear_hour;
 						case TM_PARTS+4:
 							tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone);
-							tm->tm_mday += 7 * m - tm->tm_wday + 1;
+                                                        tm->tm_hour += (m * 7 * 24 );
 							set |= DAY;
 							goto clear_hour;
 						case TM_PARTS+5:
@@ -1478,7 +1465,7 @@ tmxdate(register const char* s, char** e, Time_t now)
 							goto clear_hour;
 						else if (state & (LAST|NEXT|THIS))
 						{
-							if (f >= 0)
+                                                        if (f >= 0)
 								day = -1;
 							else if (m > 0 && (state & (NEXT|YEAR|MONTH)) == NEXT && j >= 0)
 								m--;
