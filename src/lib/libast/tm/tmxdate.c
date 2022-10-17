@@ -1023,7 +1023,7 @@ tmxdate(register const char* s, char** e, Time_t now)
 							if (i < 12)
 								tm->tm_hour = i += 12;
 							break;
-						} //PHI: ( f>= 0)||
+						}
 						if ( (state & (LAST|NEXT)) )
 						{
 							message((-1, "AHA#%d f=%d i=%d j=%d k=%d l=%d", __LINE__, f, i, j, k, l));
@@ -1357,7 +1357,7 @@ tmxdate(register const char* s, char** e, Time_t now)
 						if (state & LAST)
 							f = -f;
 						else if (!(state & NEXT))
-                                                        n--; //PHI:
+                                                        n--;
 						m =  f * n;
 						message((-1, "AHA#%d f=%d n=%d i=%d j=%d k=%d l=%d m=%d state=" FFMT, __LINE__, f, n, i, j, k, l, m, FLAGS(state)));
 						switch (j)
