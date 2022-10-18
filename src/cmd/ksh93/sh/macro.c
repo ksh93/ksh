@@ -15,6 +15,7 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *         hyenias <58673227+hyenias@users.noreply.github.com>          *
 *                   Marc Wilson <posguy99@gmail.com>                   *
+*                      Phi <phi.debian@gmail.com>                      *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -902,7 +903,7 @@ static void mac_substitute(Mac_t *mp, register char *cp,char *str,register int s
 		while((c= *cp++) && c!=ESCAPE);
 		if(c==0)
 			break;
-		if((n= *cp++)=='\\' || n==RBRACE || (n>='0' && n<='9' && (n-='0')<subsize))
+		if((n= *cp++)=='\\' || n==RBRACE || (n>='0' && n<='9'))
 		{
 			c = cp-first-2;
 			if(c)
@@ -913,7 +914,8 @@ static void mac_substitute(Mac_t *mp, register char *cp,char *str,register int s
 				first--;
 				continue;
 			}
-			if((c=subexp[2*n])>=0)
+			n -= '0';
+			if(n<subsize && (c=subexp[2*n])>=0)
 			{
 				if((n=subexp[2*n+1]-c)>0)
 					mac_copy(mp,str+c,n);

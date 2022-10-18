@@ -75,6 +75,20 @@ static const Namval_t		options[] =
 	0,		0
 };
 
+static int
+ast_setenv(const char* name, const char* value, int overwrite)
+{
+	char*	s;
+
+	if (overwrite || !getenv(name))
+	{
+		if (!(s = sfprints("%s=%s", name, value)) || !(s = strdup(s)))
+			return -1;
+		return setenviron(s) ? 0 : -1;
+	}
+	return 0;
+}
+
 /*
  * called by stropt() to set options
  */
@@ -674,7 +688,7 @@ procopen(const char* cmd, char** argv, char** envv, long* modv, int flags)
 			if (!setenviron(env))
 				goto cleanup;
 		}
-		if ((flags & PROC_PARANOID) && setenv("PATH", astconf("PATH", NiL, NiL), 1))
+		if ((flags & PROC_PARANOID) && ast_setenv("PATH", astconf("PATH", NiL, NiL), 1))
 			goto cleanup;
 		if ((p = envv) && p != (char**)environ)
 			while (*p)

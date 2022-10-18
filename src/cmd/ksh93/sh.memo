@@ -251,12 +251,12 @@ Some commands, referred to as
 .IR built-ins ,
 are carried out by \f5ksh\fP itself,
 without creating a separate process.
-The reasons that some commands are built-in are presented later.
+The reasons that some commands are built in are presented later.
 In nearly all cases the distinction
-between a command that is built-in and one that
+between a command that is built in and one that
 is not is invisible to the user.
 However, nearly
-all commands that are built-in follow command line conventions.
+all commands that are built in follow command line conventions.
 .P
 \f5ksh\fP has several options that can be set by the user
 as command line arguments at invocation and as option arguments to the
@@ -2693,7 +2693,7 @@ or function that contains them to abort.
 They cannot be overridden by shell functions.
 .LE
 .P
-Other commands are built-in because they perform side effects
+Other commands are built in because they perform side effects
 on the current environment that would be nearly impossible
 to implement otherwise.
 Built-ins such as \f5cd\fP and \f5read\fP
@@ -2713,7 +2713,7 @@ to all sites that run \f5ksh\fP.
 The final reason for having a command be a built-in is
 for performance.
 On most systems it is more than an order of magnitude
-faster to initiate a command that is built-in than
+faster to initiate a command that is built in than
 to create a separate process to run the command.
 Examples that fit this category are \f5test\fP
 and \f5pwd\fP.
@@ -2733,7 +2733,7 @@ Special built-ins.
 .LI
 Functions.
 .LI
-Commands that are built-in that are not associated with a pathname
+Commands that are built in that are not associated with a pathname
 such as \f5cd\fP and \f5print\fP.
 .LI
 If the command name contains a

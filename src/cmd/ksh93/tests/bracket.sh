@@ -546,4 +546,29 @@ p='*[\^N]*'; [[ ^ == $p ]] || err_exit 'BUG_BRACQUOT: 6C'
 [[ \\ == ~(E:[a"-"z]) ]] && err_exit 'internal backslash escape incorrectly applied to ERE via ksh glob ~(E:[a"-"z])'
 
 # ======
+# Test various backslash behaviours in glob patterns. Thanks to Daniel Douglas for these.
+# https://gist.github.com/ormaaj/6195070
+# https://github.com/ksh93/ksh/pull/556#issuecomment-1278528579
+# The cases that include unquoted ${p} in the pattern are unspecified by POSIX and shells vary widely,
+# so it may be acceptable to change them if necessary to implement another fix in a reasonable manner.
+# (True, '[[' is not specified in POSIX, but the glob patterns its '==' operator uses are.)
+p=\\
+[[ \\x == "${p}""${p}"x ]] &&	err_exit "match: ormaaj case test 1"
+[[ \\x == "${p}"${p}x ]] &&	warning "match: ormaaj case test 2 [unspecified]"
+[[ \\x == "${p}""\\"x ]] &&	err_exit "match: ormaaj case test 3"
+[[ \\x == "${p}"\\x ]] &&	err_exit "match: ormaaj case test 4"
+[[ \\x == ${p}"${p}"x ]] &&	warning "match: ormaaj case test 5 [unspecified]"
+[[ \\x != ${p}${p}x ]] &&	warning "non-match: ormaaj case test 6 [unspecified]"
+[[ \\x == ${p}"\\"x ]] &&	warning "match: ormaaj case test 7 [unspecified]"
+[[ \\x == ${p}\\x ]] &&		warning "match: ormaaj case test 8 [unspecified]"
+[[ \\x == "\\""${p}"x ]] &&	err_exit "match: ormaaj case test 9"
+[[ \\x == "\\"${p}x ]] &&	warning "match: ormaaj case test 10 [unspecified]"
+[[ \\x == "\\""\\"x ]] &&	err_exit "match: ormaaj case test 11"
+[[ \\x == "\\"\\x ]] &&		err_exit "match: ormaaj case test 12"
+[[ \\x == \\"${p}"x ]] &&	err_exit "match: ormaaj case test 13"
+[[ \\x == \\${p}x ]] &&		warning "match: ormaaj case test 14 [unspecified]"
+[[ \\x == \\"\\"x ]] &&		err_exit "match: ormaaj case test 15"
+[[ \\x == \\\\x ]] &&		err_exit "match: ormaaj case test 16"
+
+# ======
 exit $((Errors<125?Errors:125))

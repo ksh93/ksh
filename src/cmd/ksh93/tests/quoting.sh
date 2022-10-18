@@ -13,6 +13,7 @@
 #                  David Korn <dgk@research.att.com>                   #
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #            Johnothan King <johnothanking@protonmail.com>             #
+#                      Phi <phi.debian@gmail.com>                      #
 #                                                                      #
 ########################################################################
 
@@ -309,10 +310,10 @@ string='\3'
 string='\\3'
 [[ ${subject/${re}/${string}} != '\3' ]] && err_exit 'string replacement with $string not working with string=\\3'
 [[ ${subject/${re}/"${string}"} != '\\3' ]] && err_exit 'string replacement with "$string" not working with string=\\3'
-[[ ${subject/${re}/\4} != '\4' ]] && err_exit 'string replacement with \4 not working'
+[[ ${subject/${re}/\4} != '' ]] && err_exit 'string replacement with \4 not working'
 [[ ${subject/${re}/'\4'} != '\4' ]] && err_exit 'string replacement with '\4' not working'
 string='\4'
-[[ ${subject/${re}/${string}} != '\4' ]] && err_exit 'string replacement with $string not working with string=\4'
+[[ ${subject/${re}/${string}} != '' ]] && err_exit 'string replacement with $string not working with string=\4'
 [[ ${subject/${re}/"${string}"} != '\4' ]] && err_exit 'string replacement with "$string" not working with string=\4'
 string='&foo'
 [[ ${subject/${re}/${string}} != '&foo' ]] && err_exit 'string replacement with $string not working with string=&foo'

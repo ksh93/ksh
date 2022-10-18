@@ -23,7 +23,7 @@
  * AT&T Research
  *
  * command line option parser and usage formatter
- * its a monster but its all in one place
+ * it's a monster but it's all in one place
  * widen your window while you're at it
  */
 

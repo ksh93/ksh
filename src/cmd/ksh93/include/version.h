@@ -18,7 +18,7 @@
 
 #define SH_RELEASE_FORK	"93u+m"		/* only change if you develop a new ksh93 fork */
 #define SH_RELEASE_SVER	"1.1.0-alpha"	/* semantic version number: https://semver.org */
-#define SH_RELEASE_DATE	"2022-10-14"	/* must be in this format for $((.sh.version)) */
+#define SH_RELEASE_DATE	"2022-10-18"	/* must be in this format for $((.sh.version)) */
 #define SH_RELEASE_CPYR	"(c) 2020-2022 Contributors to ksh " SH_RELEASE_FORK
 
 /* Scripts sometimes field-split ${.sh.version}, so don't change amount of whitespace. */

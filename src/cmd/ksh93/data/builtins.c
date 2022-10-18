@@ -13,6 +13,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *
+*                 Harald van Dijk <harald@gigawatt.nl>                 *
 *                                                                      *
 ***********************************************************************/
 
@@ -407,11 +408,9 @@ const char sh_optalias[] =
 	"specified, the current value of the alias corresponding to "
 	"\aname\a is written to standard output.  If \b=\b\avalue\a is "
 	"specified, the alias \aname\a will be created or redefined.]" 
-"[+?\balias\b is built-in to the shell as a declaration command so that "
-	"field splitting and pathname expansion are not performed on "
-	"the arguments.  Tilde expansion occurs on \avalue\a.  An alias "
-	"definition only affects scripts read by the current shell "
-	"environment.  It does not affect scripts run by this shell.]"
+"[+?Aliasing is performed when scripts are read, not while they are executed. "
+	"So, for an alias to take effect, the alias definition command must "
+	"be executed before the command that references the alias is read.]"
 "[p?Causes the output to be in the form of alias commands that can be used "
 	"as input to the shell to recreate the current aliases.]"
 "[t?Each \aname\a is looked up as a command in \b$PATH\b and its path is "
@@ -715,7 +714,7 @@ const char sh_optexport[] =
 	"set to \avalue\a.]"
 "[+?If no \aname\as are specified then the names and values of all "
 	"exported variables are written to standard output.]" 
-"[+?\bexport\b is built-in to the shell as a declaration command so that "
+"[+?\bexport\b is built in to the shell as a declaration command so that "
 	"field splitting and pathname expansion are not performed on "
 	"the arguments.  Tilde expansion occurs on \avalue\a.]"
 "[p?Causes the output to be in the form of \bexport\b commands that can be "
@@ -1525,7 +1524,7 @@ const char sh_optreadonly[] =
         "and the value is readonly for each instance.]"
 "[+?If no \aname\as are specified then the names and values of all "
 	"readonly variables are written to standard output.]" 
-"[+?\breadonly\b is built-in to the shell as a declaration command so that "
+"[+?\breadonly\b is built in to the shell as a declaration command so that "
 	"field splitting and pathname expansion are not performed on "
 	"the arguments.  Tilde expansion occurs on \avalue\a.]"
 "[p?Causes the output to be in a form of \breadonly\b commands that can be "

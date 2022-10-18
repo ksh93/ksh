@@ -976,7 +976,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
  * name-value node found, or NULL if not found. <mode> is an options bitmask:
  * - If NV_NOSCOPE is set, the search is only done in <root> itself and
  *   not in any trees it has a view to (i.e. is connected to through scoping).
- * - If NV_ADD is set and <name> is not fond, a node by that name is created
+ * - If NV_ADD is set and <name> is not found, a node by that name is created
  *   in <root> and a pointer to the newly created node is returned.
  * - If NV_REF is set, <name> is a pointer to a name-value node, and that
  *   node's name is used.

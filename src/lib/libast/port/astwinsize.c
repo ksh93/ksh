@@ -15,6 +15,7 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *               Anuradha Weeraman <anuradha@debian.org>                *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -30,6 +31,8 @@
 #include <sys/ioctl.h>
 #endif
 
+#undef ioctl
+#undef sleep
 #define ioctl		______ioctl
 #define sleep		______sleep
 

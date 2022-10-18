@@ -45,7 +45,7 @@ tst	mem_sbrk note{ brk()/sbrk() work as expected }end execute{
 }end
 
 tst	map_malloc note{ map malloc to _ast_malloc }end noexecute{
-	#if __CYGWIN__
+	#if __CYGWIN__ || __HAIKU__
 	int main() { return 1; }
 	#else
 	static int user = 0;
@@ -95,7 +95,7 @@ lib	alloca note{ alloca exists }end link{
 }end
 
 tst	mal_alloca note{ alloca is based on malloc() }end execute{
-	#if __CYGWIN__
+	#if __CYGWIN__ || __HAIKU__
 	int main() { return 1; }
 	#else
 	#if _hdr_alloca

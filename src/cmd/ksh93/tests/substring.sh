@@ -13,6 +13,7 @@
 #                  David Korn <dgk@research.att.com>                   #
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #            Johnothan King <johnothanking@protonmail.com>             #
+#                      Phi <phi.debian@gmail.com>                      #
 #                                                                      #
 ########################################################################
 
@@ -698,6 +699,50 @@ typeset -m co.array=.sh.match
 [[ $x == "$(print -v co.array)" ]] || err_exit 'typeset -m for .sh.match to compound variable not working (1)'
 : "${x//~(X)([345])|([012])/}"
 [[ $x == "$(print -v co.array)" ]] || err_exit 'typeset -m for .sh.match to compound variable not working (2)'
+
+# ======
+# Out-of-range \n back-references were left unexpanded instead of yielding empty
+# https://github.com/ksh93/ksh/issues/447
+
+x='AB'
+got=${x/@(A)B/\0:\1:\2}
+exp='AB:A:'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
+
+x='AB'
+got=${x/@(A)/:\0:\1:\2}
+exp=':A:A:B'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
+
+x='ab'
+got=${x//@(@(a)|b)/<\1+\2>}
+exp='<a+a><b+>'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
+
+x='bc'
+got=${x//@(@(a)|b)@(c)/<\2,\3>}
+exp='<,c>'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
+
+x='a1b2'
+got=${x//@(@(a)|b)@(?)/[1:<\1> 2:<\2> 3:<\3>]}
+exp='[1:<a> 2:<a> 3:<1>][1:<b> 2:<> 3:<2>]'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
+
+x='ab'
+got=${x//@(@(a)|@(b))/<\1+\2>}
+exp='<a+a><b+>'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
+
+x='ab'
+got=${x//@(@(a)|@(b))/<\1+\2+\3>}
+exp='<a+a+><b++b>'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
+
+x='ab'
+got=${x//~(E:(a)|b)/<\1>}
+exp='<a><>'
+[[ $got == "$exp" ]] || err_exit "back-reference (got $(printf %q "$got"), expected $(printf %q "$exp"))"
 
 # ======
 exit $((Errors<125?Errors:125))

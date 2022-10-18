@@ -142,4 +142,28 @@ case b in *[]a"-"c]*) err_exit 'BUG_BRACQUOT: A3';; esac
 case b in *[]a\-c]*) err_exit 'BUG_BRACQUOT: A4';; esac
 
 # ======
+# Test various backslash behaviours in glob patterns. Thanks to Daniel Douglas for these.
+# https://gist.github.com/ormaaj/6195070
+# https://github.com/ksh93/ksh/pull/556#issuecomment-1278528579
+# The cases that include unquoted ${p} in the pattern are unspecified by POSIX and shells vary widely,
+# so it may be acceptable to change them if necessary to implement another fix in a reasonable manner.
+p=\\
+case \\x in "${p}""${p}"x)	err_exit "match: ormaaj case test 1";; esac
+case \\x in "${p}"${p}x)	warning "match: ormaaj case test 2 [unspecified]";; esac
+case \\x in "${p}""\\"x)	err_exit "match: ormaaj case test 3";; esac
+case \\x in "${p}"\\x)		err_exit "match: ormaaj case test 4";; esac
+case \\x in ${p}"${p}"x)	warning "match: ormaaj case test 5 [unspecified]";; esac
+case \\x in ${p}${p}x) ;; *)	warning "non-match: ormaaj case test 6 [unspecified]";; esac
+case \\x in ${p}"\\"x)		warning "match: ormaaj case test 7 [unspecified]";; esac
+case \\x in ${p}\\x)		warning "match: ormaaj case test 8 [unspecified]";; esac
+case \\x in "\\""${p}"x)	err_exit "match: ormaaj case test 9";; esac
+case \\x in "\\"${p}x)		warning "match: ormaaj case test 10 [unspecified]";; esac
+case \\x in "\\""\\"x)		err_exit "match: ormaaj case test 11";; esac
+case \\x in "\\"\\x)		err_exit "match: ormaaj case test 12";; esac
+case \\x in \\"${p}"x)		err_exit "match: ormaaj case test 13";; esac
+case \\x in \\${p}x)		warning "match: ormaaj case test 14 [unspecified]";; esac
+case \\x in \\"\\"x)		err_exit "match: ormaaj case test 15";; esac
+case \\x in \\\\x)		err_exit "match: ormaaj case test 16";; esac
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -22,7 +22,6 @@
 #include <ast.h>
 
 #undef	setenv
-#undef	_lib_setenv	/* procopen() calls setenv() */
 
 #if _lib_setenv
 

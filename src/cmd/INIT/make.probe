@@ -77,7 +77,7 @@ echo 'template<class T> int gt(T a, T b);
 template<class T> int gt(T a, T b) { return a > b; }
 int main () { return gt(2,1); }' > ptr.$src
 echo 'int main(){return 0;}' > require.$src
-echo '#if mips && !sgi || __CYGWIN__
+echo '#if mips && !sgi || __CYGWIN__ || __HAIKU__ || __APPLE__
 ( /* some systems choke on this probe */
 #else
 #if test_const

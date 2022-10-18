@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-10-18:
+
+- Fixed the expansion of out-of-range \n back references in the string part of
+  ${parameter//pattern/string}. For example:  v=AB; echo "${v/@(A)B/\0:\1:\2}"
+  now yields 'AB:A:' instead of 'AB:A:\2'.
+
 2022-10-14:
 
 - Fixed: the generic --version option was not recognised for the built-in
@@ -10,6 +16,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a bug introduced by the 2022-10-07 BUG_BRACQUOT fix, which caused the
   fallback string in an expansion like ${emptyvar:-fallback string} to fail to
   split into fields correctly if the fallback string contained a !, ^ or -.
+
+- Fixed a few different build errors on Haiku that prevented ksh from compiling
+  with the mkservice and eloop builtins enabled, caused compiling with -lnetwork
+  to fail, and could interrupt the build with crash report popups.
 
 2022-10-13:
 
