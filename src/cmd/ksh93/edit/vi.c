@@ -917,7 +917,21 @@ static int cntlmode(Vi_t *vp)
 
 		case 'v':
 			if(vp->repeat_set==0)
+			{
+				char allempty = 1;
+				int x;
+				for(x=0; x <= cur_virt; x++)
+				{
+					if(!isspace(virtual[x]))
+					{
+						allempty = 0;
+						break;
+					}
+				}
+				if(allempty || cur_virt == INVALID)
+					virtual[last_virt++] = '\n';
 				goto vcommand;
+			}
 			/* FALLTHROUGH */
 
 		case 'G':		/** goto command repeat **/
