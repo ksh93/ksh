@@ -929,7 +929,12 @@ static int cntlmode(Vi_t *vp)
 					}
 				}
 				if(allempty || cur_virt == INVALID)
+				{
+					cur_virt = 0;
+					last_virt = cur_virt;
+					refresh(vp,TRANSLATE);
 					virtual[last_virt++] = '\n';
+				}
 				goto vcommand;
 			}
 			/* FALLTHROUGH */
