@@ -181,6 +181,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	Edit_t *ed = (Edit_t*)context;
 	register int c;
 	register int i;
+	register int uparrow;
 	register genchar *out;
 	register int count;
 	register Emacs_t *ep = ed->e_emacs;
@@ -645,6 +646,7 @@ update:
 				continue;
 #endif
 			}
+			uparrow = 1;
 			goto common;
 
 		case cntl('O') :
@@ -671,6 +673,7 @@ update:
 			}
 			hline = location.hist_command;
 			hloff = location.hist_line;
+			uparrow = 0;
 		common:
 #ifdef ESH_NFIRST
 			location.hist_command = hline;	/* save current position */
@@ -686,6 +689,25 @@ update:
 			eol = genlen(out);
 			cur = eol;
 			draw(ep,UPDATE);
+
+			char allempty = 1;
+			int x;
+			ep->mark = cur;
+			for(x=0; x < cur; x++)
+			{
+				if(!isspace(out[x]))
+				{
+					allempty = 0;
+					break;
+				}
+			}
+			if(allempty)
+			{
+				if(!uparrow && hline != histlines)
+					ed_ungetchar(ep->ed,cntl('N'));
+				if(uparrow && hline != hismin)
+					ed_ungetchar(ep->ed,cntl('P'));
+			}
 			continue;
 		}
 	}
