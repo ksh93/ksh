@@ -704,6 +704,7 @@ static int cntlmode(Vi_t *vp)
 {
 	register int c;
 	register int i;
+	register int uparrow;
 	genchar tmp_u_space[MAXLINE];	/* temporary u_space */
 	genchar *real_u_space;		/* points to real u_space */
 	int tmp_u_column = INVALID;	/* temporary u_column */
@@ -859,7 +860,7 @@ static int cntlmode(Vi_t *vp)
 			}
 			save_v(vp);
 			cur_virt = INVALID;
-			vp->direction = 0;
+			uparrow = 0;
 			goto newhist;
 
 		case 'k':		/** get previous command **/
@@ -882,7 +883,7 @@ static int cntlmode(Vi_t *vp)
 			}
 			save_v(vp);
 			cur_virt = INVALID;
-			vp->direction = 1;
+			uparrow = 1;
 		newhist:
 			if(curhline!=histmax || cur_virt==INVALID)
 				hist_copy((char*)virtual, MAXLINE, curhline,-1);
@@ -910,9 +911,12 @@ static int cntlmode(Vi_t *vp)
 			}
 			if(allempty)
 			{
-				if(vp->direction > 0 && curhline != histmin)
+				if((uparrow || vp->direction > 0) && curhline != histmin)
+				{
 					ed_ungetchar(vp->ed,'k');
-				if(vp->direction <= 0 && curhline != histmax)
+					break;
+				}
+				if((!uparrow || vp->direction <= 0) && curhline != histmax)
 					ed_ungetchar(vp->ed,'j');
 			} 
 			break;
