@@ -1696,9 +1696,7 @@ static char allempty(register Emacs_t *ep, register genchar *out)
 	for(x=0; x < cur; x++)
 	{
 		if(!isspace(out[x]))
-		{
 			return(0);
-		}
 	}
 	return(1);
 }
