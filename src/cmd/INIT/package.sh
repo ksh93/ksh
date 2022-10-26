@@ -110,7 +110,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-08-20 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-10-23 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -182,12 +182,6 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
                 [+cpu?The number of CPUs; 1 if the host is not a
                     multiprocessor.]
                 [+name?The host name.]
-                [+rating?The CPU rating in pseudo mips; the value is
-                    useful useful only in comparisons with rating values of
-                    other hosts. Other than a vax rating (mercifully) fixed
-                    at 1, ratings can vary wildly but consistently from
-                    vendor mips ratings. \bcc\b(1) may be required to
-                    determine the rating.]
                 [+type?The host type, usually in the form
                     \avendor\a.\aarchitecture\a, with an optional trailing
                     -\aversion\a. The main theme is that type names within
@@ -453,12 +447,6 @@ DESCRIPTION
                   An external host type name to be converted to package syntax.
             cpu   The number of CPUs; 1 if the host is not a multiprocessor.
             name  The host name.
-            rating
-                  The CPU rating in pseudo mips; the value is useful useful
-                  only in comparisons with rating values of other hosts. Other
-                  than a vax rating (mercifully) fixed at 1, ratings can vary
-                  wildly but consistently from vendor mips ratings. cc(1) may
-                  be required to determine the rating.
             type  The host type, usually in the form vendor.architecture, with
                   an optional trailing -version. The main theme is that type
                   names within a family of architectures are named in a
@@ -550,7 +538,7 @@ SEE ALSO
   mamake(1), pax(1), pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2022-08-20
+  version         package (ksh 93u+m) 2022-10-23
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -801,7 +789,7 @@ hostinfo() # attribute ...
 			canon)	canon=-
 				something=1
 				;;
-			cpu|name|rating|type)
+			cpu|name|type)
 				something=1
 				;;
 			*)	err_out "$action: $info: unknown attribute"
@@ -969,107 +957,6 @@ int main()
 	name)	_name_=$(hostname || uname -n || cat /etc/whoami || echo local)
 		_hostinfo_="$_hostinfo_ $_name_"
 		;;
-	rating)	for rating in $(grep -i ^bogomips /proc/cpuinfo 2>/dev/null | sed -e 's,.*:[ 	]*,,' -e 's,\(...*\)\..*,\1,' -e 's,\(\..\).*,\1,')
-		do	case $rating in
-			[0123456789]*)	break ;;
-			esac
-		done
-		case $rating in
-		[0123456789]*)	;;
-		*)	cd "$TMPDIR"
-			tmp=hi$$
-			trap 'rm -f $tmp.*' 0 1 2
-			cat > $tmp.c <<!
-#include <stdio.h>
-#include <sys/types.h>
-#if TD || TZ
-#include <sys/time.h>
-#else
-extern time_t	time();
-#endif
-int main()
-{
-	register unsigned long	i;
-	register unsigned long	j;
-	register unsigned long	k;
-	unsigned long		l;
-	unsigned long		m;
-	unsigned long		t;
-	int			x;
-#if TD || TZ
-	struct timeval		b;
-	struct timeval		e;
-#if TZ
-	struct timezone		z;
-#endif
-#endif
-	l = 500;
-	m = 890;
-	x = 0;
-	for (;;)
-	{
-#if TD || TZ
-#if TZ
-		gettimeofday(&b, &z);
-#else
-		gettimeofday(&b);
-#endif
-#else
-		t = (unsigned long)time((time_t*)0);
-#endif
-		k = 0;
-		for (i = 0; i < l; i++)
-			for (j = 0; j < 50000; j++)
-				k += j;
-#if TD || TZ
-#if TZ
-		gettimeofday(&e, &z);
-#else
-		gettimeofday(&e);
-#endif
-		t = (e.tv_sec - b.tv_sec) * 1000 + (e.tv_usec - b.tv_usec) / 1000;
-		if (!x++ && t < 1000)
-		{
-			t = 10000 / t;
-			l = (l * t) / 10;
-			continue;
-		}
-#else
-		t = ((unsigned long)time((time_t*)0) - t) * 1000;
-		if (!x++ && t < 20000)
-		{
-			t = 200000l / t;
-			l = (l * t) / 10;
-			continue;
-		}
-#endif
-#if PR
-		printf("[ k=%lu l=%lu m=%lu t=%lu ] ", k, l, m, t);
-#endif
-		if (t == 0)
-			t = 1;
-		break;
-	}
-	printf("%lu\n", ((l * m) / 10) / t);
-	return k == 0;
-}
-!
-			rating=
-			for o in -DTZ -DTD ''
-			do	if	$CC $o -O -o $tmp.exe $tmp.c >/dev/null 2>&1 ||
-					gcc $o -O -o $tmp.exe $tmp.c >/dev/null 2>&1
-				then	rating=$(./$tmp.exe)
-					break
-				fi
-			done
-			case $rating in
-			[0123456789]*)	;;
-			*)	rating=1 ;;
-			esac
-			;;
-		esac
-		_hostinfo_="$_hostinfo_ $rating"
-		;;
 	type|canon)
 		case $CROSS:$canon in
 		0:)	case $cc in
@@ -1088,28 +975,25 @@ int main()
 			esac
 			;;
 		esac
-		case $cc in
-		/*)	a=$($cc -dumpmachine $CCFLAGS 2>/dev/null)
-			case $a in
-			'')	case $CCFLAGS in
-				?*)	a=$($cc -dumpmachine 2>/dev/null) ;;
-				esac
-				;;
+		a=$($cc -dumpmachine $CCFLAGS 2>/dev/null)
+		case $a in
+		'')	case $CCFLAGS in
+			?*)	a=$($cc -dumpmachine 2>/dev/null) ;;
 			esac
-			case $a in
-			''|*' '*|*/*:*)
-				;;
-			*.*-*)	_hostinfo_="$_hostinfo_ $a"
-				continue
-				;;
-			*-*-*)	case $canon in
-				'')	canon=$a ;;
-				esac
-				;;
-			*)	_hostinfo_="$_hostinfo_ $a"
-				continue
-				;;
+			;;
+		esac
+		case $a in
+		''|*' '*|*/*:*)
+			;;
+		*.*-*)	_hostinfo_="$_hostinfo_ $a"
+			continue
+			;;
+		*-*-*)	case $canon in
+			'')	canon=$a ;;
 			esac
+			;;
+		*)	_hostinfo_="$_hostinfo_ $a"
+			continue
 			;;
 		esac
 		IFS=:
