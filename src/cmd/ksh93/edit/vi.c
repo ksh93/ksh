@@ -912,11 +912,8 @@ static int cntlmode(Vi_t *vp)
 			if(allempty)
 			{
 				if((uparrow || vp->direction > 0) && curhline != histmin)
-				{
 					ed_ungetchar(vp->ed,'k');
-					break;
-				}
-				if((!uparrow || vp->direction <= 0) && curhline != histmax)
+				else if((!uparrow || vp->direction <= 0) && curhline != histmax)
 					ed_ungetchar(vp->ed,'j');
 			} 
 			break;
