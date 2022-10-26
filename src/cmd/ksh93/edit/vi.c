@@ -859,7 +859,7 @@ static int cntlmode(Vi_t *vp)
 			}
 			save_v(vp);
 			cur_virt = INVALID;
-			vp->direction = 2;
+			vp->direction = 0;
 			goto newhist;
 
 		case 'k':		/** get previous command **/
@@ -882,7 +882,7 @@ static int cntlmode(Vi_t *vp)
 			}
 			save_v(vp);
 			cur_virt = INVALID;
-			vp->direction = -2;
+			vp->direction = 1;
 		newhist:
 			if(curhline!=histmax || cur_virt==INVALID)
 				hist_copy((char*)virtual, MAXLINE, curhline,-1);
@@ -910,9 +910,9 @@ static int cntlmode(Vi_t *vp)
 			}
 			if(allempty)
 			{
-				if(vp->direction == -2 && curhline != histmin)
+				if(vp->direction > 0 && curhline != histmin)
 					ed_ungetchar(vp->ed,'k');
-				if(vp->direction == 2 && curhline != histmax)
+				if(vp->direction <= 0 && curhline != histmax)
 					ed_ungetchar(vp->ed,'j');
 			} 
 			break;
