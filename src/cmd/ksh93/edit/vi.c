@@ -174,6 +174,7 @@ typedef struct _vi_
 
 static const char paren_chars[] = "([{)]}";   /* for % command */
 
+static char	allempty(Vi_t*);
 static void	cursor(Vi_t*, int);
 static void	del_line(Vi_t*,int);
 static int	getcount(Vi_t*,int);
@@ -899,17 +900,7 @@ static int cntlmode(Vi_t *vp)
 #endif /* SHOPT_MULTIBYTE */
 			if((last_virt=genlen(virtual)-1) >= 0  && cur_virt == INVALID)
 				cur_virt = 0;
-			char allempty = 1;
-			int x;
-			for(x=0; x <= cur_virt; x++)
-			{
-				if(!isspace(virtual[x]))
-				{
-					allempty = 0;
-					break;
-				}
-			}
-			if(allempty)
+			if(allempty(vp))
 			{
 				if(uparrow && curhline != histmin)
 					ed_ungetchar(vp->ed,'k');
@@ -938,17 +929,7 @@ static int cntlmode(Vi_t *vp)
 		case 'v':
 			if(vp->repeat_set==0)
 			{
-				char allempty = 1;
-				int x;
-				for(x=0; x <= cur_virt; x++)
-				{
-					if(!isspace(virtual[x]))
-					{
-						allempty = 0;
-						break;
-					}
-				}
-				if(allempty || cur_virt == INVALID)
+				if(allempty(vp) || cur_virt == INVALID)
 				{
 					cur_virt = 0;
 					last_virt = cur_virt;
@@ -1524,17 +1505,7 @@ static void getline(register Vi_t* vp,register int mode)
 
 		case '\t':		/** command completion **/
 		{
-			char allempty = 1;
-			int x;
-			for(x=0; x <= cur_virt; x++)
-			{
-				if(!isspace(virtual[x]))
-				{
-					allempty = 0;
-					break;
-				}
-			}
-			if(allempty)
+			if(allempty(vp))
 			{
 				ed_ringbell();
 				break;
@@ -2572,17 +2543,7 @@ addin:
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
 	{
-		char allempty = 1;
-		int x;
-		for(x=0; x <= cur_virt; x++)
-		{
-			if(!isspace(virtual[x]))
-			{
-				allempty = 0;
-				break;
-			}
-		}
-		if(cur_virt == INVALID || allempty)
+		if(cur_virt == INVALID || allempty(vp))
 			return(BAD);
 		/* FALLTHROUGH */
 		save_v(vp);
@@ -2922,6 +2883,20 @@ yankeol:
 	return((v&~STRIP)==0 && isspace(v));
     }
 #endif	/* SHOPT_MULTIBYTE */
+
+/*
+ * determine if a line is entirely blank
+ */
+static char allempty(register Vi_t *vp)
+{
+	int x;
+	for(x=0; x <= cur_virt; x++)
+	{
+		if(!isspace(virtual[x]))
+			return(0);
+	}
+	return(1);
+}
 
 /*
  * get a character, after ^V processing

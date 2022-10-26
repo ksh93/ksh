@@ -175,6 +175,7 @@ static void search(Emacs_t*,genchar*,int);
 static void setcursor(Emacs_t*,int, int);
 static void show_info(Emacs_t*,const char*);
 static void xcommands(Emacs_t*,int);
+static char allempty(Emacs_t*, genchar*);
 
 int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 {
@@ -690,18 +691,7 @@ update:
 			cur = eol;
 			draw(ep,UPDATE);
 
-			char allempty = 1;
-			int x;
-			ep->mark = cur;
-			for(x=0; x < cur; x++)
-			{
-				if(!isspace(out[x]))
-				{
-					allempty = 0;
-					break;
-				}
-			}
-			if(allempty)
+			if(allempty(ep,out))
 			{
 				if(!uparrow && hline != histlines)
 					ed_ungetchar(ep->ed,cntl('N'));
@@ -973,18 +963,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case '*':		/* filename expansion */
 		case '=':	/* escape = - list all matching file names */
 		{
-			char allempty = 1;
-			int x;
-			ep->mark = cur;
-			for(x=0; x < cur; x++)
-			{
-				if(!isspace(out[x]))
-				{
-					allempty = 0;
-					break;
-				}
-			}
-			if(cur<1 || allempty)
+			if(cur<1 || allempty(ep,out))
 			{
 				beep();
 				return(-1);
@@ -1710,4 +1689,17 @@ static int _isword(register int c)
 }
 #endif /* SHOPT_MULTIBYTE */
 
+static char allempty(register Emacs_t *ep, register genchar *out)
+{
+	int x;
+	ep->mark = cur;
+	for(x=0; x < cur; x++)
+	{
+		if(!isspace(out[x]))
+		{
+			return(0);
+		}
+	}
+	return(1);
+}
 #endif /* SHOPT_ESH */
