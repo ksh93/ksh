@@ -1376,7 +1376,7 @@ make install
 	done shell virtual
 	prev libshell.a archive
 	make ${INSTALLROOT}/bin
-		exec - if silent test ! -d ${INSTALLROOT}/bin
+		exec - if test ! -d ${INSTALLROOT}/bin
 		exec - then mkdir -p ${INSTALLROOT}/bin
 		exec - fi
 	done ${INSTALLROOT}/bin generated
@@ -1386,7 +1386,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s ksh ${INSTALLROOT}/bin/ksh || { ${STDMV} ${INSTALLROOT}/bin/ksh ${INSTALLROOT}/bin/ksh.old 2>/dev/null || true; ${STDCP} ksh ${INSTALLROOT}/bin/ksh ;}
 	done ${INSTALLROOT}/bin/ksh generated
 	make ${INSTALLROOT}/man/man1
-		exec - if silent test ! -d ${INSTALLROOT}/man/man1
+		exec - if test ! -d ${INSTALLROOT}/man/man1
 		exec - then mkdir -p ${INSTALLROOT}/man/man1
 		exec - fi
 	done ${INSTALLROOT}/man/man1 generated
@@ -1397,7 +1397,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s sh.1 ${INSTALLROOT}/man/man1/sh.1 || { ${STDMV} ${INSTALLROOT}/man/man1/sh.1 ${INSTALLROOT}/man/man1/sh.1.old 2>/dev/null || true; ${STDCP} sh.1 ${INSTALLROOT}/man/man1/sh.1 ;}
 	done ${INSTALLROOT}/man/man1/sh.1 generated
 	make ${INSTALLROOT}/lib
-		exec - if silent test ! -d ${INSTALLROOT}/lib
+		exec - if test ! -d ${INSTALLROOT}/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib
 		exec - fi
 	done ${INSTALLROOT}/lib generated
@@ -1408,7 +1408,7 @@ make install
 		exec - (ranlib ${INSTALLROOT}/lib/libshell.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libshell.a generated
 	make ${INSTALLROOT}/man/man3
-		exec - if silent test ! -d ${INSTALLROOT}/man/man3
+		exec - if test ! -d ${INSTALLROOT}/man/man3
 		exec - then mkdir -p ${INSTALLROOT}/man/man3
 		exec - fi
 	done ${INSTALLROOT}/man/man3 generated
@@ -1424,7 +1424,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s nval.3 ${INSTALLROOT}/man/man3/nval.3 || { ${STDMV} ${INSTALLROOT}/man/man3/nval.3 ${INSTALLROOT}/man/man3/nval.3.old 2>/dev/null || true; ${STDCP} nval.3 ${INSTALLROOT}/man/man3/nval.3 ;}
 	done ${INSTALLROOT}/man/man3/nval.3 generated
 	make ${INSTALLROOT}/lib/lib
-		exec - if silent test ! -d ${INSTALLROOT}/lib/lib
+		exec - if test ! -d ${INSTALLROOT}/lib/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib/lib
 		exec - fi
 	done ${INSTALLROOT}/lib/lib generated
@@ -1434,7 +1434,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s shell.req ${INSTALLROOT}/lib/lib/shell || { ${STDMV} ${INSTALLROOT}/lib/lib/shell ${INSTALLROOT}/lib/lib/shell.old 2>/dev/null || true; ${STDCP} shell.req ${INSTALLROOT}/lib/lib/shell ;}
 	done ${INSTALLROOT}/lib/lib/shell generated
 	make ${PACKAGE_ast_INCLUDE}
-		exec - if silent test ! -d ${PACKAGE_ast_INCLUDE}
+		exec - if test ! -d ${PACKAGE_ast_INCLUDE}
 		exec - then mkdir -p ${PACKAGE_ast_INCLUDE}
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE} generated
@@ -1466,7 +1466,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s shcomp ${INSTALLROOT}/bin/shcomp || { ${STDMV} ${INSTALLROOT}/bin/shcomp ${INSTALLROOT}/bin/shcomp.old 2>/dev/null || true; ${STDCP} shcomp ${INSTALLROOT}/bin/shcomp ;}
 	done ${INSTALLROOT}/bin/shcomp generated
 	make ${INSTALLROOT}/fun
-		exec - if silent test ! -d ${INSTALLROOT}/fun
+		exec - if test ! -d ${INSTALLROOT}/fun
 		exec - then mkdir -p ${INSTALLROOT}/fun
 		exec - fi
 	done ${INSTALLROOT}/fun generated

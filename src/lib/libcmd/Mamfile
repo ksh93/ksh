@@ -680,7 +680,7 @@ make install
 	done cmd virtual
 	prev libcmd.a archive
 	make ${INSTALLROOT}/lib
-		exec - if silent test ! -d ${INSTALLROOT}/lib
+		exec - if test ! -d ${INSTALLROOT}/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib
 		exec - fi
 	done ${INSTALLROOT}/lib generated
@@ -691,7 +691,7 @@ make install
 		exec - (ranlib ${INSTALLROOT}/lib/libcmd.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libcmd.a generated
 	make ${INSTALLROOT}/lib/lib
-		exec - if silent test ! -d ${INSTALLROOT}/lib/lib
+		exec - if test ! -d ${INSTALLROOT}/lib/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib/lib
 		exec - fi
 	done ${INSTALLROOT}/lib/lib generated
@@ -701,7 +701,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s cmd.req ${INSTALLROOT}/lib/lib/cmd || { ${STDMV} ${INSTALLROOT}/lib/lib/cmd ${INSTALLROOT}/lib/lib/cmd.old 2>/dev/null || true; ${STDCP} cmd.req ${INSTALLROOT}/lib/lib/cmd ;}
 	done ${INSTALLROOT}/lib/lib/cmd generated
 	make ${PACKAGE_ast_INCLUDE}
-		exec - if silent test ! -d ${PACKAGE_ast_INCLUDE}
+		exec - if test ! -d ${PACKAGE_ast_INCLUDE}
 		exec - then mkdir -p ${PACKAGE_ast_INCLUDE}
 		exec - fi
 	done ${PACKAGE_ast_INCLUDE} generated

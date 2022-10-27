@@ -125,7 +125,7 @@ make install
 										done features/map.c
 										exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I.  ${LDFLAGS}" run features/map.c
 									done FEATURE/map generated
-									exec - cmp -s FEATURE/map ast_map.h || { rm -f ast_map.h; silent test -d . || mkdir .; ${STDCP} FEATURE/map ast_map.h; }
+									exec - cmp -s FEATURE/map ast_map.h || { rm -f ast_map.h; ${STDCP} FEATURE/map ast_map.h; }
 								done ast_map.h dontcare generated
 							done ast_common.h dontcare generated
 						done std/bytesex.h dontcare
@@ -178,7 +178,7 @@ make install
 									exec - !
 									exec - ;;
 									exec - esac
-									exec - silent test -w conf -a -x conf || chmod u+w,+x conf
+									exec - test -w conf -a -x conf || chmod u+w,+x conf
 								done conf generated
 								make comp/conf.tab
 								done comp/conf.tab
@@ -202,7 +202,7 @@ make install
 						done features/limits.c
 						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd  ${LDFLAGS}" run features/limits.c
 					done FEATURE/limits generated
-					exec - cmp -s FEATURE/limits ast_limits.h || { rm -f ast_limits.h; silent test -d . || mkdir .; ${STDCP} FEATURE/limits ast_limits.h; }
+					exec - cmp -s FEATURE/limits ast_limits.h || { rm -f ast_limits.h; ${STDCP} FEATURE/limits ast_limits.h; }
 				done ast_limits.h generated
 				make ast_stdio.h
 					make FEATURE/stdio
@@ -215,7 +215,7 @@ make install
 							make include/regex.h implicit
 								make ast_api.h implicit
 									prev FEATURE/api
-									exec - cmp -s FEATURE/api ast_api.h || { rm -f ast_api.h; silent test -d . || mkdir .; ${STDCP} FEATURE/api ast_api.h; }
+									exec - cmp -s FEATURE/api ast_api.h || { rm -f ast_api.h; ${STDCP} FEATURE/api ast_api.h; }
 								done ast_api.h dontcare generated
 								make ast_wchar.h implicit
 									make FEATURE/wchar
@@ -234,7 +234,7 @@ make install
 														prev ast_wchar.h implicit
 													done std/wchar.h dontcare
 												done FEATURE/wctype generated
-												exec - cmp -s FEATURE/wctype ast_wctype.h || { rm -f ast_wctype.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wctype ast_wctype.h; }
+												exec - cmp -s FEATURE/wctype ast_wctype.h || { rm -f ast_wctype.h; ${STDCP} FEATURE/wctype ast_wctype.h; }
 											done ast_wctype.h dontcare generated
 										done std/wctype.h dontcare
 										make std/stdio.h implicit
@@ -243,7 +243,7 @@ make install
 										prev std/stdio.h implicit
 										prev ast_common.h implicit
 									done FEATURE/wchar generated
-									exec - cmp -s FEATURE/wchar ast_wchar.h || { rm -f ast_wchar.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wchar ast_wchar.h; }
+									exec - cmp -s FEATURE/wchar ast_wchar.h || { rm -f ast_wchar.h; ${STDCP} FEATURE/wchar ast_wchar.h; }
 									prev std/stdio.h implicit
 									prev ast_common.h implicit
 								done ast_wchar.h dontcare generated
@@ -265,7 +265,7 @@ make install
 									done features/botch.c
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd  ${LDFLAGS}" run features/botch.c
 								done FEATURE/botch generated
-								exec - cmp -s FEATURE/botch ast_botch.h || { rm -f ast_botch.h; silent test -d . || mkdir .; ${STDCP} FEATURE/botch ast_botch.h; }
+								exec - cmp -s FEATURE/botch ast_botch.h || { rm -f ast_botch.h; ${STDCP} FEATURE/botch ast_botch.h; }
 							done ast_botch.h dontcare generated
 							prev ast_limits.h implicit
 							make ast_fcntl.h implicit
@@ -287,26 +287,26 @@ make install
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd  ${LDFLAGS}" run features/fcntl.c
 									make ast_fs.h implicit
 										prev FEATURE/fs
-										exec - cmp -s FEATURE/fs ast_fs.h || { rm -f ast_fs.h; silent test -d . || mkdir .; ${STDCP} FEATURE/fs ast_fs.h; }
+										exec - cmp -s FEATURE/fs ast_fs.h || { rm -f ast_fs.h; ${STDCP} FEATURE/fs ast_fs.h; }
 									done ast_fs.h dontcare generated
 								done FEATURE/fcntl generated
-								exec - cmp -s FEATURE/fcntl ast_fcntl.h || { rm -f ast_fcntl.h; silent test -d . || mkdir .; ${STDCP} FEATURE/fcntl ast_fcntl.h; }
+								exec - cmp -s FEATURE/fcntl ast_fcntl.h || { rm -f ast_fcntl.h; ${STDCP} FEATURE/fcntl ast_fcntl.h; }
 								prev ast_fs.h implicit
 							done ast_fcntl.h dontcare generated
 							prev include/ast_getopt.h implicit
 							make ast_sys.h implicit
 								prev FEATURE/sys
-								exec - cmp -s FEATURE/sys ast_sys.h || { rm -f ast_sys.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sys ast_sys.h; }
+								exec - cmp -s FEATURE/sys ast_sys.h || { rm -f ast_sys.h; ${STDCP} FEATURE/sys ast_sys.h; }
 							done ast_sys.h dontcare generated
 							make ast_lib.h implicit
 								prev FEATURE/lib
-								exec - cmp -s FEATURE/lib ast_lib.h || { rm -f ast_lib.h; silent test -d . || mkdir .; ${STDCP} FEATURE/lib ast_lib.h; }
+								exec - cmp -s FEATURE/lib ast_lib.h || { rm -f ast_lib.h; ${STDCP} FEATURE/lib ast_lib.h; }
 							done ast_lib.h dontcare generated
 							prev ast_common.h implicit
 							prev ast_standards.h implicit
 						done include/ast_std.h dontcare
 					done FEATURE/stdio generated
-					exec - cmp -s FEATURE/stdio ast_stdio.h || { rm -f ast_stdio.h; silent test -d . || mkdir .; ${STDCP} FEATURE/stdio ast_stdio.h; }
+					exec - cmp -s FEATURE/stdio ast_stdio.h || { rm -f ast_stdio.h; ${STDCP} FEATURE/stdio ast_stdio.h; }
 					prev include/sfio_s.h implicit
 					prev include/ast_std.h implicit
 				done ast_stdio.h dontcare generated
@@ -316,7 +316,7 @@ make install
 						done features/nl_types
 						exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/nl_types
 					done FEATURE/nl_types generated
-					exec - cmp -s FEATURE/nl_types ast_nl_types.h || { rm -f ast_nl_types.h; silent test -d . || mkdir .; ${STDCP} FEATURE/nl_types ast_nl_types.h; }
+					exec - cmp -s FEATURE/nl_types ast_nl_types.h || { rm -f ast_nl_types.h; ${STDCP} FEATURE/nl_types ast_nl_types.h; }
 				done ast_nl_types.h generated
 				prev ast_wchar.h
 				prev ast_wctype.h
@@ -411,7 +411,7 @@ make install
 						done direntry.h dontcare virtual
 						make ast_param.h implicit
 							prev FEATURE/param
-							exec - cmp -s FEATURE/param ast_param.h || { rm -f ast_param.h; silent test -d . || mkdir .; ${STDCP} FEATURE/param ast_param.h; }
+							exec - cmp -s FEATURE/param ast_param.h || { rm -f ast_param.h; ${STDCP} FEATURE/param ast_param.h; }
 						done ast_param.h dontcare generated
 						make std/dirent.h implicit
 							make ast_dirent.h implicit
@@ -421,7 +421,7 @@ make install
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/dirent
 									prev include/ast_std.h implicit
 								done FEATURE/dirent generated
-								exec - cmp -s FEATURE/dirent ast_dirent.h || { rm -f ast_dirent.h; silent test -d . || mkdir .; ${STDCP} FEATURE/dirent ast_dirent.h; }
+								exec - cmp -s FEATURE/dirent ast_dirent.h || { rm -f ast_dirent.h; ${STDCP} FEATURE/dirent ast_dirent.h; }
 								prev include/ast_std.h implicit
 							done ast_dirent.h dontcare generated
 						done std/dirent.h dontcare
@@ -438,7 +438,7 @@ make install
 									done features/mode.c
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -Istd  ${LDFLAGS}" run features/mode.c
 								done FEATURE/mode generated
-								exec - cmp -s FEATURE/mode ast_mode.h || { rm -f ast_mode.h; silent test -d . || mkdir .; ${STDCP} FEATURE/mode ast_mode.h; }
+								exec - cmp -s FEATURE/mode ast_mode.h || { rm -f ast_mode.h; ${STDCP} FEATURE/mode ast_mode.h; }
 							done ast_mode.h dontcare generated
 							prev ast_fs.h implicit
 							prev include/ast_std.h implicit
@@ -641,7 +641,7 @@ make install
 								done features/ccode
 								exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/ccode
 							done FEATURE/ccode generated
-							exec - cmp -s FEATURE/ccode ast_ccode.h || { rm -f ast_ccode.h; silent test -d . || mkdir .; ${STDCP} FEATURE/ccode ast_ccode.h; }
+							exec - cmp -s FEATURE/ccode ast_ccode.h || { rm -f ast_ccode.h; ${STDCP} FEATURE/ccode ast_ccode.h; }
 						done ast_ccode.h dontcare generated
 						prev ast_common.h implicit
 					done include/ccode.h
@@ -912,7 +912,7 @@ make install
 								done features/time
 								exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/time
 							done FEATURE/time generated
-							exec - cmp -s FEATURE/time ast_time.h || { rm -f ast_time.h; silent test -d . || mkdir .; ${STDCP} FEATURE/time ast_time.h; }
+							exec - cmp -s FEATURE/time ast_time.h || { rm -f ast_time.h; ${STDCP} FEATURE/time ast_time.h; }
 						done ast_time.h dontcare generated
 						prev include/ast.h implicit
 					done include/times.h
@@ -995,7 +995,7 @@ make install
 							done features/preroot.sh
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/preroot.sh
 						done FEATURE/preroot generated
-						exec - cmp -s FEATURE/preroot preroot.h || { rm -f preroot.h; silent test -d . || mkdir .; ${STDCP} FEATURE/preroot preroot.h; }
+						exec - cmp -s FEATURE/preroot preroot.h || { rm -f preroot.h; ${STDCP} FEATURE/preroot preroot.h; }
 					done preroot.h generated
 					prev include/ast.h implicit
 				done path/pathkey.c
@@ -1051,7 +1051,7 @@ make install
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/tv
 							prev include/ast.h implicit
 						done FEATURE/tv generated
-						exec - cmp -s FEATURE/tv tv.h || { rm -f tv.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tv tv.h; }
+						exec - cmp -s FEATURE/tv tv.h || { rm -f tv.h; ${STDCP} FEATURE/tv tv.h; }
 						prev include/ast.h implicit
 					done tv.h generated
 					prev include/ls.h implicit
@@ -1306,7 +1306,7 @@ make install
 							done features/sig.sh
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/sig.sh
 						done FEATURE/sig generated
-						exec - cmp -s FEATURE/sig sig.h || { rm -f sig.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sig sig.h; }
+						exec - cmp -s FEATURE/sig sig.h || { rm -f sig.h; ${STDCP} FEATURE/sig sig.h; }
 					done sig.h generated
 					prev include/ast.h implicit
 				done misc/signal.c
@@ -1413,7 +1413,7 @@ make install
 								prev include/ccode.h implicit
 								prev ast_common.h implicit
 							done FEATURE/iconv generated
-							exec - cmp -s FEATURE/iconv ast_iconv.h || { rm -f ast_iconv.h; silent test -d . || mkdir .; ${STDCP} FEATURE/iconv ast_iconv.h; }
+							exec - cmp -s FEATURE/iconv ast_iconv.h || { rm -f ast_iconv.h; ${STDCP} FEATURE/iconv ast_iconv.h; }
 							prev include/ccode.h implicit
 							prev ast_common.h implicit
 						done ast_iconv.h generated
@@ -1493,7 +1493,7 @@ make install
 						prev include/ls.h implicit
 						make ast_tty.h implicit
 							prev FEATURE/tty
-							exec - cmp -s FEATURE/tty ast_tty.h || { rm -f ast_tty.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tty ast_tty.h; }
+							exec - cmp -s FEATURE/tty ast_tty.h || { rm -f ast_tty.h; ${STDCP} FEATURE/tty ast_tty.h; }
 						done ast_tty.h dontcare generated
 						prev ast_time.h implicit
 						prev include/ast.h implicit
@@ -1750,7 +1750,7 @@ make install
 							prev tv.h implicit
 							prev include/tm.h implicit
 						done FEATURE/tmx generated
-						exec - cmp -s FEATURE/tmx tmx.h || { rm -f tmx.h; silent test -d . || mkdir .; ${STDCP} FEATURE/tmx tmx.h; }
+						exec - cmp -s FEATURE/tmx tmx.h || { rm -f tmx.h; ${STDCP} FEATURE/tmx tmx.h; }
 						prev tv.h implicit
 						prev include/tm.h implicit
 					done tmx.h generated
@@ -1839,7 +1839,7 @@ make install
 							done features/align.c
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I.  ${LDFLAGS}" run features/align.c
 						done FEATURE/align generated
-						exec - cmp -s FEATURE/align align.h || { rm -f align.h; silent test -d . || mkdir .; ${STDCP} FEATURE/align align.h; }
+						exec - cmp -s FEATURE/align align.h || { rm -f align.h; ${STDCP} FEATURE/align align.h; }
 					done align.h generated
 					prev include/ast.h implicit
 					prev include/sfio_t.h implicit
@@ -1928,7 +1928,7 @@ make install
 									done features/wait
 									exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/wait
 								done FEATURE/wait generated
-								exec - cmp -s FEATURE/wait ast_wait.h || { rm -f ast_wait.h; silent test -d . || mkdir .; ${STDCP} FEATURE/wait ast_wait.h; }
+								exec - cmp -s FEATURE/wait ast_wait.h || { rm -f ast_wait.h; ${STDCP} FEATURE/wait ast_wait.h; }
 							done ast_wait.h dontcare generated
 							prev include/ast.h implicit
 						done include/wait.h dontcare
@@ -2720,7 +2720,7 @@ make install
 							done features/vfork
 							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/vfork
 						done FEATURE/vfork generated
-						exec - cmp -s FEATURE/vfork ast_vfork.h || { rm -f ast_vfork.h; silent test -d . || mkdir .; ${STDCP} FEATURE/vfork ast_vfork.h; }
+						exec - cmp -s FEATURE/vfork ast_vfork.h || { rm -f ast_vfork.h; ${STDCP} FEATURE/vfork ast_vfork.h; }
 					done ast_vfork.h dontcare generated
 					prev ast_tty.h implicit
 					prev sig.h implicit
@@ -3159,7 +3159,7 @@ make install
 						make comp/syslog.h implicit
 							make ast_namval.h implicit
 								prev include/namval.h
-								exec - cmp -s include/namval.h ast_namval.h || { rm -f ast_namval.h; silent test -d . || mkdir .; ${STDCP} include/namval.h ast_namval.h; }
+								exec - cmp -s include/namval.h ast_namval.h || { rm -f ast_namval.h; ${STDCP} include/namval.h ast_namval.h; }
 							done ast_namval.h dontcare generated
 						done comp/syslog.h dontcare
 					done comp/sysloglib.h dontcare
@@ -4839,7 +4839,7 @@ make install
 					prev include/ls.h implicit
 					make ast_mmap.h implicit
 						prev FEATURE/mmap
-						exec - cmp -s FEATURE/mmap ast_mmap.h || { rm -f ast_mmap.h; silent test -d . || mkdir .; ${STDCP} FEATURE/mmap ast_mmap.h; }
+						exec - cmp -s FEATURE/mmap ast_mmap.h || { rm -f ast_mmap.h; ${STDCP} FEATURE/mmap ast_mmap.h; }
 					done ast_mmap.h generated
 					prev include/ast.h implicit
 				done port/astcopy.c
@@ -5166,7 +5166,7 @@ make install
 	done ast virtual
 	prev libast.a archive
 	make ${INSTALLROOT}/lib
-		exec - if silent test ! -d ${INSTALLROOT}/lib
+		exec - if test ! -d ${INSTALLROOT}/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib
 		exec - fi
 	done ${INSTALLROOT}/lib generated
@@ -5177,7 +5177,7 @@ make install
 		exec - (ranlib ${INSTALLROOT}/lib/libast.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libast.a generated
 	make ${INSTALLROOT}/man/man3
-		exec - if silent test ! -d ${INSTALLROOT}/man/man3
+		exec - if test ! -d ${INSTALLROOT}/man/man3
 		exec - then mkdir -p ${INSTALLROOT}/man/man3
 		exec - fi
 	done ${INSTALLROOT}/man/man3 generated
@@ -5463,7 +5463,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s man/vmalloc.3 ${INSTALLROOT}/man/man3/vmalloc.3 || { ${STDMV} ${INSTALLROOT}/man/man3/vmalloc.3 ${INSTALLROOT}/man/man3/vmalloc.3.old 2>/dev/null || true; ${STDCP} man/vmalloc.3 ${INSTALLROOT}/man/man3/vmalloc.3 ;}
 	done ${INSTALLROOT}/man/man3/vmalloc.3 generated
 	make ${INSTALLROOT}/lib/lib
-		exec - if silent test ! -d ${INSTALLROOT}/lib/lib
+		exec - if test ! -d ${INSTALLROOT}/lib/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib/lib
 		exec - fi
 	done ${INSTALLROOT}/lib/lib generated
@@ -5473,7 +5473,7 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s ast.req ${INSTALLROOT}/lib/lib/ast || { ${STDMV} ${INSTALLROOT}/lib/lib/ast ${INSTALLROOT}/lib/lib/ast.old 2>/dev/null || true; ${STDCP} ast.req ${INSTALLROOT}/lib/lib/ast ;}
 	done ${INSTALLROOT}/lib/lib/ast generated
 	make ${INSTALLROOT}/include/ast
-		exec - if silent test ! -d ${INSTALLROOT}/include/ast
+		exec - if test ! -d ${INSTALLROOT}/include/ast
 		exec - then mkdir -p ${INSTALLROOT}/include/ast
 		exec - fi
 	done ${INSTALLROOT}/include/ast generated
@@ -5960,7 +5960,7 @@ make install
 	make ${INSTALLROOT}/include/ast/ast_float.h
 		make ast_float.h
 			prev FEATURE/float
-			exec - cmp -s FEATURE/float ast_float.h || { rm -f ast_float.h; silent test -d . || mkdir .; ${STDCP} FEATURE/float ast_float.h; }
+			exec - cmp -s FEATURE/float ast_float.h || { rm -f ast_float.h; ${STDCP} FEATURE/float ast_float.h; }
 			prev ast_common.h implicit
 		done ast_float.h generated
 		exec - if ! cmp -s ast_float.h ${INSTALLROOT}/include/ast/ast_float.h
@@ -6005,7 +6005,7 @@ make install
 				exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/ndbm
 				prev std/stdio.h implicit
 			done FEATURE/ndbm generated
-			exec - cmp -s FEATURE/ndbm ast_ndbm.h || { rm -f ast_ndbm.h; silent test -d . || mkdir .; ${STDCP} FEATURE/ndbm ast_ndbm.h; }
+			exec - cmp -s FEATURE/ndbm ast_ndbm.h || { rm -f ast_ndbm.h; ${STDCP} FEATURE/ndbm ast_ndbm.h; }
 		done ast_ndbm.h generated
 		exec - if ! cmp -s ast_ndbm.h ${INSTALLROOT}/include/ast/ast_ndbm.h
 		exec - then ${STDCP} ast_ndbm.h ${INSTALLROOT}/include/ast/ast_ndbm.h
@@ -6066,7 +6066,7 @@ make install
 				done features/sizeof
 				exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/sizeof
 			done FEATURE/sizeof generated
-			exec - cmp -s FEATURE/sizeof ast_sizeof.h || { rm -f ast_sizeof.h; silent test -d . || mkdir .; ${STDCP} FEATURE/sizeof ast_sizeof.h; }
+			exec - cmp -s FEATURE/sizeof ast_sizeof.h || { rm -f ast_sizeof.h; ${STDCP} FEATURE/sizeof ast_sizeof.h; }
 		done ast_sizeof.h generated
 		exec - if ! cmp -s ast_sizeof.h ${INSTALLROOT}/include/ast/ast_sizeof.h
 		exec - then ${STDCP} ast_sizeof.h ${INSTALLROOT}/include/ast/ast_sizeof.h
@@ -6109,7 +6109,7 @@ make install
 		exec - fi
 	done ${INSTALLROOT}/include/ast/ast_wctype.h generated
 	make ${INSTALLROOT}/lib/file
-		exec - if silent test ! -d ${INSTALLROOT}/lib/file
+		exec - if test ! -d ${INSTALLROOT}/lib/file
 		exec - then mkdir -p ${INSTALLROOT}/lib/file
 		exec - fi
 	done ${INSTALLROOT}/lib/file generated
@@ -6127,7 +6127,7 @@ make install
 	exec - then ${STDCP} comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
 	exec - fi
 	exec - ;;
-	exec - *) silent grep -l 'define[ 	][ 	]*_[hl][di][rb]_fmtmsg' ast_lib.h > /dev/null || {
+	exec - *) grep -q 'define[ 	][ 	]*_[hl][di][rb]_fmtmsg' ast_lib.h || {
 	exec - if ! cmp -s comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
 	exec - then ${STDCP} comp/fmtmsg.h ${INSTALLROOT}/include/ast/fmtmsg.h
 	exec - fi
@@ -6142,7 +6142,7 @@ make install
 	exec - then ${STDCP} comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
 	exec - fi
 	exec - ;;
-	exec - *) silent grep -l 'define[ 	][ 	]*_[hl][di][rb]_libgen' ast_lib.h > /dev/null || {
+	exec - *) grep -q 'define[ 	][ 	]*_[hl][di][rb]_libgen' ast_lib.h || {
 	exec - if ! cmp -s comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
 	exec - then ${STDCP} comp/libgen.h ${INSTALLROOT}/include/ast/libgen.h
 	exec - fi
@@ -6157,7 +6157,7 @@ make install
 	exec - then ${STDCP} comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
 	exec - fi
 	exec - ;;
-	exec - *) silent grep -l 'define[ 	][ 	]*_[hl][di][rb]_syslog' ast_lib.h > /dev/null || {
+	exec - *) grep -q 'define[ 	][ 	]*_[hl][di][rb]_syslog' ast_lib.h || {
 	exec - if ! cmp -s comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
 	exec - then ${STDCP} comp/syslog.h ${INSTALLROOT}/include/ast/syslog.h
 	exec - fi

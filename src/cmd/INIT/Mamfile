@@ -195,156 +195,6 @@ make install
 		exec - esac
 		exec - test -w crossexec -a -x crossexec || chmod u+w,+x crossexec
 	done crossexec generated
-	make execrate
-		make execrate.sh
-		done execrate.sh
-		prev execrate.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : execrate contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n execrate.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) cp execrate.sh execrate
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < execrate.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat execrate.sh
-		exec - } > execrate
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - execrate.sh > execrate <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w execrate -a -x execrate || chmod u+w,+x execrate
-	done execrate generated
-	make filter
-		make filter.sh
-		done filter.sh
-		prev filter.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : filter contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n filter.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) cp filter.sh filter
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < filter.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat filter.sh
-		exec - } > filter
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - filter.sh > filter <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w filter -a -x filter || chmod u+w,+x filter
-	done filter generated
-	make ignore
-		make ignore.sh
-		done ignore.sh
-		prev ignore.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : ignore contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n ignore.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 0 in
-		exec - 0) cp ignore.sh ignore
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < ignore.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat - ignore.sh <<'!'
-		exec -
-		exec - !
-		exec - } > ignore
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - ignore.sh > ignore <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec -
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w ignore -a -x ignore || chmod u+w,+x ignore
-	done ignore generated
-	make silent
-		make silent.sh
-		done silent.sh
-		prev silent.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : silent contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n silent.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 0 in
-		exec - 0) cp silent.sh silent
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < silent.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - cat - silent.sh <<'!'
-		exec -
-		exec - !
-		exec - } > silent
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) cat - silent.sh > silent <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec -
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w silent -a -x silent || chmod u+w,+x silent
-	done silent generated
 	make mamake
 		make mamake.o
 			make mamake.c
@@ -467,15 +317,6 @@ make install
 		exec - then mkdir -p ${PACKAGEROOT}/bin
 		exec - fi
 	done ${PACKAGEROOT}/bin generated
-	make ${PACKAGEROOT}/bin/execrate
-		prev ${PACKAGEROOT}/bin
-		prev execrate
-		exec - ${STDCMP} 2>/dev/null -s execrate ${PACKAGEROOT}/bin/execrate || { ${STDMV} ${PACKAGEROOT}/bin/execrate ${PACKAGEROOT}/bin/execrate.old 2>/dev/null || true; ${STDCP} execrate ${PACKAGEROOT}/bin/execrate ;}
-	done ${PACKAGEROOT}/bin/execrate generated
-	make ${PACKAGEROOT}/bin/ignore
-		prev ignore
-		exec - ${STDCMP} 2>/dev/null -s ignore ${PACKAGEROOT}/bin/ignore || { ${STDMV} ${PACKAGEROOT}/bin/ignore ${PACKAGEROOT}/bin/ignore.old 2>/dev/null || true; ${STDCP} ignore ${PACKAGEROOT}/bin/ignore ;}
-	done ${PACKAGEROOT}/bin/ignore generated
 	make ${PACKAGEROOT}/bin/mamprobe
 		make mamprobe
 			make mamprobe.sh
@@ -521,18 +362,10 @@ make install
 		prev package
 		exec - ${STDCMP} 2>/dev/null -s package ${PACKAGEROOT}/bin/package || { ${STDMV} ${PACKAGEROOT}/bin/package ${PACKAGEROOT}/bin/package.old 2>/dev/null || true; ${STDCP} package ${PACKAGEROOT}/bin/package ;}
 	done ${PACKAGEROOT}/bin/package generated
-	make ${PACKAGEROOT}/bin/silent
-		prev silent
-		exec - ${STDCMP} 2>/dev/null -s silent ${PACKAGEROOT}/bin/silent || { ${STDMV} ${PACKAGEROOT}/bin/silent ${PACKAGEROOT}/bin/silent.old 2>/dev/null || true; ${STDCP} silent ${PACKAGEROOT}/bin/silent ;}
-	done ${PACKAGEROOT}/bin/silent generated
 	make ${INSTALLROOT}/bin/crossexec
 		prev crossexec
 		exec - ${STDCMP} 2>/dev/null -s crossexec ${INSTALLROOT}/bin/crossexec || { ${STDMV} ${INSTALLROOT}/bin/crossexec ${INSTALLROOT}/bin/crossexec.old 2>/dev/null || true; ${STDCP} crossexec ${INSTALLROOT}/bin/crossexec ;}
 	done ${INSTALLROOT}/bin/crossexec generated
-	make ${INSTALLROOT}/bin/filter
-		prev filter
-		exec - ${STDCMP} 2>/dev/null -s filter ${INSTALLROOT}/bin/filter || { ${STDMV} ${INSTALLROOT}/bin/filter ${INSTALLROOT}/bin/filter.old 2>/dev/null || true; ${STDCP} filter ${INSTALLROOT}/bin/filter ;}
-	done ${INSTALLROOT}/bin/filter generated
 	make ${INSTALLROOT}/bin/mamake
 		prev mamake
 		exec - ${STDCMP} 2>/dev/null -s mamake ${INSTALLROOT}/bin/mamake || { ${STDMV} ${INSTALLROOT}/bin/mamake ${INSTALLROOT}/bin/mamake.old 2>/dev/null || true; ${STDCP} mamake ${INSTALLROOT}/bin/mamake ;}
@@ -547,18 +380,6 @@ make install
 		exec - ${STDCMP} 2>/dev/null -s $src $dst || { ${STDMV} $dst $dst.old 2>/dev/null || true; ${STDCP} $src $dst ;}
 		exec - test -w $dst && test -x $dst || chmod u+w,+x $dst
 	done __proto_stub dontcare virtual
-	make ${INSTALLROOT}/bin/mkdir
-		make mkdir.sh
-		done mkdir.sh
-		exec - if test ! -x ${INSTALLROOT}/bin/mkdir -a -x /bin/mkdir
-		exec - then mkdir -p 2>/dev/null || :
-		exec - if test -d ./-p
-		exec - then rmdir ./-p
-		exec - cp mkdir.sh ${INSTALLROOT}/bin/mkdir
-		exec - chmod +x ${INSTALLROOT}/bin/mkdir
-		exec - fi
-		exec - fi
-	done ${INSTALLROOT}/bin/mkdir generated
 	make ${INSTALLROOT}/bin/.paths
 		exec - if test ! -f ${INSTALLROOT}/bin/.paths -o -w ${INSTALLROOT}/bin/.paths
 		exec - then N='
@@ -748,34 +569,6 @@ make install
 		prev probe
 		exec - ${STDCMP} 2>/dev/null -s probe ${INSTALLROOT}/lib/probe/C/make/probe || { ${STDMV} ${INSTALLROOT}/lib/probe/C/make/probe ${INSTALLROOT}/lib/probe/C/make/probe.old 2>/dev/null || true; ${STDCP} probe ${INSTALLROOT}/lib/probe/C/make/probe ;}
 	done ${INSTALLROOT}/lib/probe/C/make/probe generated
-	make ${INSTALLROOT}/lib/probe/C/make/probe.ini
-		make probe.ini
-			make probe.win32
-			done probe.win32
-			exec - t=${mam_cc_HOSTTYPE}
-			exec - ifs=$IFS
-			exec - IFS=.
-			exec - set x $t
-			exec - IFS=$ifs
-			exec - t=$2
-			exec - set x probe.win32
-			exec - while :
-			exec - do shift
-			exec - case $# in
-			exec - 0) break ;;
-			exec - esac
-			exec - case $1 in
-			exec - *probe.$t)
-			exec - break
-			exec - esac
-			exec - done
-			exec - case $1 in
-			exec - ?*) cmp -s $1 probe.ini || cp $1 probe.ini ;;
-			exec - *) : > probe.ini
-			exec - esac
-		done probe.ini generated
-		exec - ${STDCMP} 2>/dev/null -s probe.ini ${INSTALLROOT}/lib/probe/C/make/probe.ini || { ${STDMV} ${INSTALLROOT}/lib/probe/C/make/probe.ini ${INSTALLROOT}/lib/probe/C/make/probe.ini.old 2>/dev/null || true; ${STDCP} probe.ini ${INSTALLROOT}/lib/probe/C/make/probe.ini ;}
-	done ${INSTALLROOT}/lib/probe/C/make/probe.ini generated
 	make ${INSTALLROOT}/include/ast
 		exec - if test ! -d ${INSTALLROOT}/include/ast
 		exec - then mkdir -p ${INSTALLROOT}/include/ast

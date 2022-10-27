@@ -24,7 +24,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2022-07-15"
+#define RELEASE_DATE "2022-10-26"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -1220,7 +1220,31 @@ run(Rule_t* r, register char* s)
 	else
 		x = state.exec;
 	if (x)
-		append(buf, "trap - 1 2 3 15\nPATH=.:$PATH\nset -x\n");
+		append(buf,
+			/* stub for nmake's silent prefix (for backward compat) */
+			"silent()\n"
+			"(\n"
+				"while	test \"$#\" -gt 0\n"
+				"do	case $1 in\n"
+					"*=*)	export \"$1\"; shift;;\n"
+					"*)	break;;\n"
+					"esac\n"
+				"done\n"
+				"\"$@\"\n"
+			")\n"
+			/* stub for nmake's ignore prefix (for backward compat) */
+			"ignore()\n"
+			"{\n"
+				"silent \"$@\" || :\n"  /* always return status 0 */
+			"}\n"
+			/* find commands in the current working directory first */
+			"case $PATH in\n"
+			".:*)	;;\n"
+			"*)	PATH=.:$PATH;;\n"
+			"esac\n"
+			/* show trace for the shell action commands */
+			"set -x\n"
+		);
 	if (state.view)
 	{
 		do

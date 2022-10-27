@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)C probe (AT&T Research) 2012-02-29
+# @(#)C probe (ksh 93u+m) 2022-10-26
 #
 # probe [ -d ] c-compiler-path [ attributes ]
 #
@@ -158,11 +158,6 @@ do	shift
 		;;
 	esac
 done
-
-if	test -f "$dir/probe.ini"
-then	. "$dir/probe.ini"
-	IFS=$ifs
-fi
 
 mkdir suffix
 cd suffix

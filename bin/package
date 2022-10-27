@@ -110,7 +110,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-10-23 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-10-26 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -278,7 +278,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 
 [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]
 
-[+SEE ALSO?\bautoconfig\b(1), \bcksum\b(1), \bexecrate\b(1), \bexpmake\b(1),
+[+SEE ALSO?\bautoconfig\b(1), \bcksum\b(1), \bexpmake\b(1),
 	\bgzip\b(1), \bmake\b(1), \bmamake\b(1), \bpax\b(1),
 	\bpkgadd\b(1), \bpkgmk\b(1), \brpm\b(1),
 	\bsh\b(1), \btar\b(1), \boptget\b(3)]
@@ -534,8 +534,8 @@ DETAILS
   a new $INSTALLROOT.
 
 SEE ALSO
-  autoconfig(1), cksum(1), execrate(1), expmake(1), gzip(1), make(1),
-  mamake(1), pax(1), pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
+  autoconfig(1), cksum(1), expmake(1), gzip(1), make(1), mamake(1), pax(1),
+  pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
   version         package (ksh 93u+m) 2022-10-23
@@ -703,7 +703,7 @@ executable() # [!] command
 }
 
 # initialize SHELLMAGIC
-# tangible proof of Cygwin's disdain for Unix (well, this and execrate)
+# tangible proof of Cygwin's disdain for Unix
 
 shellmagic()
 {
@@ -1842,7 +1842,7 @@ case $x in
 		then
 			# update the basic package commands
 
-			for i in execrate ignore mamprobe silent
+			for i in mamprobe
 			do	test -h $PACKAGEROOT/bin/$i 2>/dev/null ||
 				case $(ls -t $INITROOT/$i.sh $PACKAGEROOT/bin/$i 2>/dev/null) in
 				"$INITROOT/$i.sh"*)
@@ -2940,28 +2940,6 @@ cat $j $k
 
 	checkaout mamake || exit
 
-	# execrate if necessary
-
-	if	(execrate) >/dev/null 2>&1
-	then	execrate=execrate
-		$make cd $INSTALLROOT/bin
-		for i in chmod chgrp cmp cp ln mv rm
-		do	if	test ! -x "ok/$i" && test -x "/bin/$i.exe"
-			then	shellmagic
-				case $exec in
-				'')	echo "$SHELLMAGIC"'execrate /bin/'$i' "$@"' > ok/$i
-					chmod +x ok/$i
-					;;
-				*)	$exec echo \'"$SHELLMAGIC"'execrate /bin/'$i' "$@"'\'' >' ok/$i
-					$exec chmod +x ok/$i
-					;;
-				esac
-			fi
-		done
-		PATH=$INSTALLROOT/bin/ok:$PATH
-		export PATH
-	else	execrate=
-	fi
 	case $action in
 	view)	exit 0 ;;
 	esac
@@ -3125,16 +3103,16 @@ cat $j $k
 		do	executable $i && {
 				cmp -s $i ok/$i 2>/dev/null || {
 					test -f ok/$i &&
-					$exec $execrate $rm ok/$i </dev/null
+					$exec $rm ok/$i </dev/null
 					test -f ok/$i &&
-					$exec $execrate $mv ok/$i ok/$i.old </dev/null
+					$exec $mv ok/$i ok/$i.old </dev/null
 					test -f ok/$i &&
 					case $exec:$i in
 					:ksh)
 						err_out "ok/$i: cannot update [may be in use by a running process] remove manually and try again"
 						;;
 					esac
-					$exec $execrate $cp $i ok/$i
+					$exec $cp $i ok/$i
 				}
 			}
 		done
