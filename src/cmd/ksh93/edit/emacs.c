@@ -1234,6 +1234,21 @@ static void xcommands(register Emacs_t *ep,int count)
 
 #ifdef ESH_BETTER
                 case cntl('E'):	/* invoke emacs on current command */
+			if(eol>=0 && sh.hist_ptr)
+			{
+				if(allempty(ep,drawbuff))
+				{
+					cur = 0;
+					eol = 1;
+					drawbuff[cur] = '\n';
+					drawbuff[eol] = '\0';
+				}
+				else
+				{
+					drawbuff[eol] = '\n';
+					drawbuff[eol+1] = '\0';
+				}
+			} 
 			if(ed_fulledit(ep->ed)==-1)
 				beep();
 			else
