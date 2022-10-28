@@ -52,6 +52,7 @@
 
 #if SHOPT_MULTIBYTE
 #   include	"lexstates.h"
+#   include	<wctype.h>
 #   define gencpy(a,b)	ed_gencpy(a,b)
 #   define genncpy(a,b,n)	ed_genncpy(a,b,n)
 #   define genlen(str)	ed_genlen(str)
@@ -2892,7 +2893,11 @@ static char allempty(register Vi_t *vp)
 	int x;
 	for(x=0; x <= cur_virt; x++)
 	{
+#if SHOPT_MULTIBYTE
+		if(!iswspace((wchar_t)virtual[x]))
+#else
 		if(!isspace(virtual[x]))
+#endif /* SHOPT_MULTIBYTE */
 			return(0);
 	}
 	return(1);

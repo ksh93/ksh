@@ -71,6 +71,9 @@ One line screen editor for any program
 #include	"history.h"
 #include	"edit.h"
 #include	"terminal.h"
+#if SHOPT_MULTIBYTE
+#include	<wctype.h>
+#endif /* SHOPT_MULTIBYTE */
 
 #define ESH_NFIRST
 #define ESH_KAPPEND
@@ -1710,7 +1713,11 @@ static char allempty(register Emacs_t *ep, register genchar *out)
 	ep->mark = cur;
 	for(x=0; x < cur; x++)
 	{
+#if SHOPT_MULTIBYTE
+		if(!iswspace((wchar_t)out[x]))
+#else
 		if(!isspace(out[x]))
+#endif /* SHOPT_MULTIBYTE */
 			return(0);
 	}
 	return(1);
