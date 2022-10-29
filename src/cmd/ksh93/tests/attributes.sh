@@ -89,11 +89,14 @@ fi
 if	[[ $($SHELL -c 'echo $x') != export ]]
 then	err_exit export fails
 fi
-if	[[ $($SHELL -c 'xi=xi+4;echo $xi') != 24 ]]
-then	err_exit export attributes fails
+if	[[ $($SHELL -c 'xi=xi+4;echo $xi') != "xi+4" ]]
+then	err_exit "attributes exported"
 fi
 if	[[ -o ?posix && $(set -o posix; "$SHELL" -c 'xi=xi+4;echo $xi') != "xi+4" ]]
 then	err_exit "attributes exported despite posix mode (-o posix)"
+fi
+if	[[ $("$SHELL" -c 'xi=xi+4;echo $xi') != "xi+4" ]]
+then	err_exit "attributes imported"
 fi
 if	[[ -o ?posix && $("$SHELL" -o posix -c 'xi=xi+4;echo $xi') != "xi+4" ]]
 then	err_exit "attributes imported despite posix mode (-o posix)"
@@ -797,13 +800,13 @@ got=${got/ -x/}
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
-# Check import of float attribute/value from environment
-exp='typeset -x -F 5 num=7.75000'
+# Check non-import of float attribute/value from environment
+exp='typeset -x num=7.75000'
 got=$(typeset -xF5 num=7.75; "$SHELL" -c 'typeset -p num')
 [[ $got == "$exp" ]] || err_exit "floating '.' attribute/value not imported correctly" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 # try again with AST debug locale which has the comma as the radix point
-exp='typeset -x -F 5 num=7,75000'
+exp='typeset -x num=7,75000'
 got=$(export LC_NUMERIC=debug; typeset -xF5 num=7,75; "$SHELL" -c 'typeset -p num')
 [[ $got == "$exp" ]] || err_exit "floating ',' attribute/value not imported correctly" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -811,10 +814,11 @@ got=$(export LC_NUMERIC=debug; typeset -xF5 num=7,75; "$SHELL" -c 'typeset -p nu
 # ======
 # Check that assignments preceding commands correctly honour existing attributes
 # https://github.com/ksh93/ksh/issues/465
-exp='typeset -x -F 5 num=7.75000'
+exp='typeset -x num=7.75000'
 got=$(typeset -F5 num; num=3.25+4.5 "$SHELL" -c 'typeset -p num')
 [[ $got == "$exp" ]] || err_exit 'assignment preceding external command call does not honour pre-set attributes' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp='typeset -x -F 5 num=7.75000'
 got=$(typeset -F5 num; num=3.25+4.5 command eval 'typeset -p num')
 [[ $got == "$exp" ]] || err_exit 'assignment preceding built-in command call does not honour pre-set attributes' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"

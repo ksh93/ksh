@@ -1114,9 +1114,6 @@ The attributes supported by the shell are described
 later with the
 .B typeset\^
 special built-in command.
-Exported variables pass their attributes to the environment so that a newly
-invoked ksh that is a child or exec'd process of the current shell will
-automatically import them, unless the \fBposix\fR shell option is on.
 .PP
 The shell supports both indexed and associative arrays.
 An element of an array variable is referenced by a
@@ -7896,18 +7893,13 @@ controlled independently in between.) Furthermore, the \fBposix\fR option
 is automatically turned on upon invocation if the shell is invoked as \fBsh\fR
 or \fBrsh\fR, or if \fB\-o posix\fR or \fB\-\-posix\fR is specified on the
 shell invocation command line, or when executing scripts without a \fB#!\fR path
-with this option active in the invoking shell. In that case, the invoked shell
-will not import type attributes for variables (such as integer or left/right
-justify) from the environment.
+with this option active in the invoking shell.
 .RS 8
 .PP
-In addition, while on, the \fBposix\fR option
-.IP \[bu] 3
-disables exporting variable type attributes to the environment for other ksh
-processes to import;
+While on, the \fBposix\fR option
 .IP \[bu]
-if the \fB\-B\fR/\fBbraceexpand\fR option is turned back on,
-disallows brace expansion on the results of unquoted expansions;
+disallows brace expansion on the results of unquoted expansions
+(if the \fB\-B\fR/\fBbraceexpand\fR option is turned back on);
 .IP \[bu]
 disables the special handling of repeated
 .I isspace

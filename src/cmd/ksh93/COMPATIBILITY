@@ -1,3 +1,16 @@
+		ksh 93u+m/1.1 vs. 93u+m/1.0
+
+The following is a list of changes between ksh 93u+m/1.1.* and the previous
+93u+m/1.0.* series that could cause incompatibilities in rare corner cases.
+For more details, see the NEWS file and for complete details, see the git log.
+
+1.	Type attributes of variables are no longer exported to or imported
+	from the environment. Any script that depends on this will need to
+	be changed to typeset the expected attributes itself.
+
+
+____________________________________________________________________________
+
 		ksh 93u+m vs. ksh 93u+
 
 The following is a list of changes between ksh 93u+ 2012-08-01 and the new

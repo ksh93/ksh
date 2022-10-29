@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2022-10-28:
+
+- [1.1 change] For security reasons, type attributes of variables are no longer
+  exported to or imported from the environment. Any script that depends on this
+  will need to be changed to typeset the expected attributes itself.
+
 2022-10-18:
 
 - Fixed the expansion of out-of-range \n back references in the string part of

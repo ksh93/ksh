@@ -242,7 +242,6 @@ extern const char	e_badsubscript[];
 extern const char	e_noref[];
 extern const char	e_selfref[];
 extern const char	e_staticfun[];
-extern const char	e_envmarker[];
 extern const char	e_badlocale[];
 extern const char	e_loop[];
 extern const char	e_redef[];

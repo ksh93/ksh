@@ -216,8 +216,7 @@ typedef struct _init_
 
 static int		lctype;
 static int		nvars;
-static char		*env_init(void);
-static void		env_import_attributes(char*);
+static void		env_init(void);
 static Init_t		*nv_init(void);
 #if SHOPT_STATS
 static void		stat_init(void);
@@ -1256,7 +1255,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	static int beenhere;
 	register size_t n;
 	int type = 0;
-	char *save_envmarker;
 	static char *login_files[2];
 	memfatal();
 	n = strlen(e_version);
@@ -1358,8 +1356,8 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 			sh_onoption(SH_LETOCTAL);
 		}
 	}
-	/* read the environment; don't import attributes yet, but save pointer to them */
-	save_envmarker = env_init();
+	/* read the environment */
+	env_init();
 	if(!ENVNOD->nvalue.cp)
 	{
 		sfprintf(sh.strbuf,"%s/.kshrc",nv_getval(HOME));
@@ -1464,9 +1462,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 			beenhere = 2;
 		}
 	}
-	/* import variable attributes from environment */
-	if(!sh_isoption(SH_POSIX))
-		env_import_attributes(save_envmarker);
 	/* set[ug]id scripts require the -p flag */
 	if(sh.userid!=sh.euserid || sh.groupid!=sh.egroupid)
 	{
@@ -1568,24 +1563,16 @@ int sh_reinit(char *argv[])
 			continue;
 		if(nv_isattr(np,NV_EXPORT))
 		{
-			if(sh_isoption(SH_POSIX))
+			char *cp = NIL(char*);
+			/* do not export attributes */
+			if(nv_isattr(np,NV_INTEGER))			/* any kind of numeric? */
 			{
-				char *cp = NIL(char*);
-				/* do not export attributes */
-				if(nv_isattr(np,NV_INTEGER))		/* any kind of numeric? */
-				{
-					cp = sh_strdup(nv_getval(np));	/* save string value */
-					_nv_unset(np,NV_RDONLY);	/* free numeric value */
-				}
-				nv_setattr(np,NV_EXPORT);		/* turn off everything except export */
-				if(cp)
-					np->nvalue.cp = cp;		/* replace by string value */
+				cp = sh_strdup(nv_getval(np));		/* save string value */
+				_nv_unset(np,NV_RDONLY);		/* free numeric value */
 			}
-			else
-			{
-				/* export all attributes except readonly */
-				nv_offattr(np,NV_RDONLY);
-			}
+			nv_setattr(np,NV_EXPORT);			/* turn off everything except export */
+			if(cp)
+				np->nvalue.cp = cp;			/* replace by string value */
 			/* unset discipline */
 			if(np->nvfun && np->nvfun->disc)
 				np->nvfun->disc = NIL(const Namdisc_t*);
@@ -2007,23 +1994,17 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 /*
  * read in the process environment and set up name-value pairs
  * skip over items that are not name-value pairs
- *
- * Returns pointer to A__z env var from which to import attributes, or 0.
  */
-static char *env_init(void)
+void env_init(void)
 {
 	register char		*cp;
 	register Namval_t	*np;
 	register char		**ep=environ;
-	char			*next = 0;	/* pointer to A__z env var */
 	if(ep)
 	{
 		while(cp = *ep++)
 		{
-			/* The magic A__z env var is an invention of ksh88. See e_envmarker[]. */
-			if(*cp=='A' && cp[1]=='_' && cp[2]=='_' && cp[3]=='z' && cp[4]=='=')
-				next = cp + 4;
-			else if(strncmp(cp,"KSH_VERSION=",12)==0)
+			if(strncmp(cp,"KSH_VERSION=",12)==0)
 				continue;
 			else if(np = nv_open(cp,sh.var_tree,(NV_EXPORT|NV_IDENT|NV_ASSIGN|NV_NOFAIL)))
 			{
@@ -2044,58 +2025,6 @@ static char *env_init(void)
 	}
 	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
 		sh_onoption(SH_RESTRICTED); /* restricted shell */
-	return(next);
-}
-
-/*
- * Import variable attributes from magic A__z env var pointed to by 'next'.
- * If next == 0, this function does nothing.
- */
-static void env_import_attributes(char *next)
-{
-	register char		*cp;
-	register Namval_t	*np;
-	while(cp=next)
-	{
-		if(next = strchr(++cp,'='))
-			*next = 0;
-		np = nv_search(cp+2,sh.var_tree,NV_ADD);
-		if(np!=SHLVL && nv_isattr(np,NV_IMPORT|NV_EXPORT))
-		{
-			int flag = *(unsigned char*)cp-' ';
-			int size = *(unsigned char*)(cp+1)-' ';
-			if((flag&NV_INTEGER) && size==0)
-			{
-				/* check for floating */
-				char *dp, *val = nv_getval(np);
-				strtol(val,&dp,10);
-				if(*dp==sh.radixpoint || *dp=='e' || *dp=='E')
-				{
-					char *lp;
-					flag |= NV_DOUBLE;
-					if(*dp==sh.radixpoint)
-					{
-						strtol(dp+1,&lp,10);
-						if(*lp)
-							dp = lp;
-					}
-					if(*dp && *dp!=sh.radixpoint)
-					{
-						flag |= NV_EXPNOTE;
-						size = dp-val;
-					}
-					else
-						size = strlen(dp);
-					size--;
-				}
-			}
-			flag &= ~NV_RDONLY;	/* refuse to import readonly attribute */
-			if(!flag)
-				continue;
-			nv_newattr(np,flag|NV_IMPORT|NV_EXPORT,size);
-		}
-	}
-	return;
 }
 
 /*

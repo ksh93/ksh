@@ -63,8 +63,6 @@ fi
 # Furthermore, the posix option is automatically turned on upon invocation if the shell is invoked as sh or rsh,
 # or if -o posix or --posix is specified on the shell invocation command line, or when executing scripts
 # without a #! path with this option active in the invoking shell.
-# In that case, the invoked shell will not set the preset aliases even if interactive, and will not import
-# type attributes for variables (such as integer or left/right justify) from the environment.
 set --noposix
 ln -s "$SHELL" sh
 ln -s "$SHELL" rsh
@@ -98,7 +96,7 @@ got=$("$SHELL" --posix -c "$(<script)")
 [[ $got == "$exp" ]] || err_exit "incorrect --posix settings on invoking -c script from posix shell" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 set --noposix
-exp=$'1\ntypeset -x -i testint=123'
+exp=$'1\ntypeset -x testint=123'
 got=$(./script)
 [[ $got == "$exp" ]] || err_exit "incorrect --posix settings on invoking hashbangless script from noposix shell" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -106,18 +104,6 @@ set --posix
 
 # In addition, while on, the posix option:
 #
-# disables exporting variable type attributes to the environment for other ksh processes to import;
-exp='typeset -x testint=123'
-got=$("$SHELL" -c 'typeset -p testint')
-[[ $got == "$exp" ]] || err_exit "variable attributes incorrectly exported in --posix mode" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-set --noposix
-exp='typeset -x -i testint=123'
-got=$("$SHELL" -c 'typeset -p testint')
-[[ $got == "$exp" ]] || err_exit "variable attributes not exported in --noposix mode" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-set --posix
-
 # disables the special handling of repeated isspace class characters in the IFS variable;
 IFS=$'x\t\ty' val=$'\tun\t\tduo\ttres\t'
 got=$(set $val; echo "$#")

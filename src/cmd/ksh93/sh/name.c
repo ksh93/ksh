@@ -32,7 +32,6 @@
 #include	"FEATURE/externs"
 #include	"streval.h"
 
-#define ATTR_TO_EXPORT	(NV_UTOL|NV_LTOU|NV_RJUST|NV_LJUST|NV_ZFILL|NV_INTEGER)
 #define NVCACHE		8	/* must be a power of 2 */
 static char	*savesub = 0;
 static Namval_t	NullNode;
@@ -42,7 +41,6 @@ static Dtdisc_t	_Refdisc =
 	offsetof(struct Namref,np),sizeof(struct Namval_t*),sizeof(struct Namref)
 };
 
-static void	attstore(Namval_t*,void*);
 static void	pushnam(Namval_t*,void*);
 static char	*staknam(Namval_t*, char*);
 static void	rightjust(char*, int, int);
@@ -57,8 +55,6 @@ struct adata
 	Namval_t	*tp;
 	char		*mapname;
 	char		**argnam;
-	int		attsize;
-	char		*attval;
 };
 
 /* for a 'typeset -T' type */
@@ -2109,41 +2105,6 @@ static char *staknam(register Namval_t *np, char *value)
 }
 
 /*
- * put the name and attribute into value of attributes variable
- */
-static void attstore(register Namval_t *np, void *data)
-{
-	register int flag = np->nvflag;
-	register struct adata *ap = (struct adata*)data;
-	ap->tp = 0;
-	if(!(flag&NV_EXPORT) || (flag&NV_FUNCT))
-		return;
-	if((flag&(NV_UTOL|NV_LTOU|NV_INTEGER)) == (NV_UTOL|NV_LTOU))
-	{
-		data = (void*)nv_mapchar(np,0);
-		if(data && strcmp(data,e_tolower) && strcmp(data,e_toupper))
-			return;
-	}
-	flag &= ATTR_TO_EXPORT;
-	*ap->attval++ = '=';
-	if((flag&NV_DOUBLE) == NV_DOUBLE)
-	{
-		/* export doubles as integers for ksh88 compatibility */
-		*ap->attval++ = ' '+ NV_INTEGER|(flag&~(NV_DOUBLE|NV_EXPNOTE));
-		*ap->attval = ' ';
-	}
-	else
-	{
-		*ap->attval++ = ' '+flag;
-		if(flag&NV_INTEGER)
-			*ap->attval = ' ' + nv_size(np);
-		else
-			*ap->attval = ' ';
-	}
-	ap->attval = strcopy(++ap->attval,nv_name(np));
-}
-
-/*
  * Called from sh_envgen() to push an individual variable to export
  */
 static void pushnam(Namval_t *np, void *data)
@@ -2157,8 +2118,6 @@ static void pushnam(Namval_t *np, void *data)
 		*ap->argnam++ = np->nvenv;
 	else if(value=nv_getval(np))
 		*ap->argnam++ = staknam(np,value);
-	if(!sh_isoption(SH_POSIX) && nv_isattr(np,ATTR_TO_EXPORT))
-		ap->attsize += (strlen(nv_name(np))+4);
 }
 
 /*
@@ -2174,7 +2133,6 @@ char **sh_envgen(void)
 	data.mapname = 0;
 	/* L_ARGNOD gets generated automatically as full path name of command */
 	nv_offattr(L_ARGNOD,NV_EXPORT);
-	data.attsize = 6;
 	namec = nv_scan(sh.var_tree,nullscan,(void*)0,NV_EXPORT,NV_EXPORT);
 	namec += sh.nenv;
 	er = (char**)stakalloc((namec+4)*sizeof(char*));
@@ -2182,14 +2140,6 @@ char **sh_envgen(void)
 	if(sh.nenv)
 		memcpy((void*)er,environ,sh.nenv*sizeof(char*));
 	nv_scan(sh.var_tree, pushnam,&data,NV_EXPORT, NV_EXPORT);
-	*data.argnam = (char*)stakalloc(data.attsize);
-	/* Export variable attributes into env var named by e_envmarker, unless POSIX mode is on */
-	cp = data.attval = strcopy(*data.argnam,e_envmarker);
-	if(!sh_isoption(SH_POSIX))
-		nv_scan(sh.var_tree, attstore,&data,0,ATTR_TO_EXPORT);
-	*data.attval = 0;
-	if(cp!=data.attval)
-		data.argnam++;
 	*data.argnam = 0;
 	return(er);
 }
