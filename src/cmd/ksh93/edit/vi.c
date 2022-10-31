@@ -175,7 +175,7 @@ typedef struct _vi_
 
 static const char paren_chars[] = "([{)]}";   /* for % command */
 
-static char	allempty(Vi_t*);
+static char	allwhitespace(Vi_t*);
 static void	cursor(Vi_t*, int);
 static void	del_line(Vi_t*,int);
 static int	getcount(Vi_t*,int);
@@ -901,13 +901,13 @@ static int cntlmode(Vi_t *vp)
 #endif /* SHOPT_MULTIBYTE */
 			if((last_virt=genlen(virtual)-1) >= 0  && cur_virt == INVALID)
 				cur_virt = 0;
-			if(allempty(vp))
+			if(allwhitespace(vp))
 			{
 				if(uparrow && curhline != histmin)
 					ed_ungetchar(vp->ed,'k');
 				if(!uparrow && curhline != histmax)
 					ed_ungetchar(vp->ed,'j');
-			} 
+			}
 			break;
 
 
@@ -930,7 +930,7 @@ static int cntlmode(Vi_t *vp)
 		case 'v':
 			if(vp->repeat_set==0)
 			{
-				if(allempty(vp) || cur_virt == INVALID)
+				if(allwhitespace(vp) || cur_virt == INVALID)
 				{
 					cur_virt = 0;
 					last_virt = cur_virt;
@@ -1506,7 +1506,7 @@ static void getline(register Vi_t* vp,register int mode)
 
 		case '\t':		/** command completion **/
 		{
-			if(allempty(vp))
+			if(allwhitespace(vp))
 			{
 				ed_ringbell();
 				break;
@@ -2544,7 +2544,7 @@ addin:
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
 	{
-		if(cur_virt == INVALID || allempty(vp))
+		if(cur_virt == INVALID || allwhitespace(vp))
 			return(BAD);
 		/* FALLTHROUGH */
 		save_v(vp);
@@ -2888,7 +2888,7 @@ yankeol:
 /*
  * determine if a line is entirely blank
  */
-static char allempty(register Vi_t *vp)
+static char allwhitespace(register Vi_t *vp)
 {
 	int x;
 	for(x=0; x <= cur_virt; x++)

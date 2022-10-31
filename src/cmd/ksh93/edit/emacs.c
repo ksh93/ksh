@@ -178,7 +178,7 @@ static void search(Emacs_t*,genchar*,int);
 static void setcursor(Emacs_t*,int, int);
 static void show_info(Emacs_t*,const char*);
 static void xcommands(Emacs_t*,int);
-static char allempty(Emacs_t*, genchar*);
+static char allwhitespace(Emacs_t*, genchar*);
 
 int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 {
@@ -694,7 +694,7 @@ update:
 			cur = eol;
 			draw(ep,UPDATE);
 
-			if(allempty(ep,out))
+			if(allwhitespace(ep,out))
 			{
 				if(!uparrow && hline != histlines)
 					ed_ungetchar(ep->ed,cntl('N'));
@@ -966,7 +966,7 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 		case '*':		/* filename expansion */
 		case '=':	/* escape = - list all matching file names */
 		{
-			if(cur<1 || allempty(ep,out))
+			if(cur<1 || allwhitespace(ep,out))
 			{
 				beep();
 				return(-1);
@@ -1239,7 +1239,7 @@ static void xcommands(register Emacs_t *ep,int count)
                 case cntl('E'):	/* invoke emacs on current command */
 			if(eol>=0 && sh.hist_ptr)
 			{
-				if(allempty(ep,drawbuff))
+				if(allwhitespace(ep,drawbuff))
 				{
 					cur = 0;
 					eol = 1;
@@ -1251,7 +1251,7 @@ static void xcommands(register Emacs_t *ep,int count)
 					drawbuff[eol] = '\n';
 					drawbuff[eol+1] = '\0';
 				}
-			} 
+			}
 			if(ed_fulledit(ep->ed)==-1)
 				beep();
 			else
@@ -1707,7 +1707,7 @@ static int _isword(register int c)
 }
 #endif /* SHOPT_MULTIBYTE */
 
-static char allempty(register Emacs_t *ep, register genchar *out)
+static char allwhitespace(register Emacs_t *ep, register genchar *out)
 {
 	int x;
 	ep->mark = cur;
