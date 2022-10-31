@@ -693,7 +693,6 @@ update:
 			eol = genlen(out);
 			cur = eol;
 			draw(ep,UPDATE);
-
 			if(allwhitespace(ep,out))
 			{
 				if(!uparrow && hline != histlines)
