@@ -542,9 +542,6 @@ void ed_ringbell(void)
 }
 
 #if SHOPT_ESH || SHOPT_VSH
-/*
- * send a carriage return line feed to the terminal
- */
 
 #ifdef _pth_tput
 /*
@@ -741,7 +738,6 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	if(pp-ep->e_prompt > qlen)
 		ep->e_plen = pp - ep->e_prompt - qlen;
 	*pp = 0;
-#if SHOPT_ESH || SHOPT_VSH
 	if(!ep->e_multiline && (ep->e_wsize -= ep->e_plen) < 7)
 	{
 		register int shift = 7-ep->e_wsize;
@@ -751,7 +747,6 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		ep->e_plen -= shift;
 		last[-ep->e_plen-2] = '\r';
 	}
-#endif /* SHOPT_ESH || SHOPT_VSH */
 	sfsync(sfstderr);
 	if(fd == sffileno(sfstderr))
 	{
@@ -771,7 +766,6 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		sfset(sfstderr,SF_READ,1);
 	sfwrite(sfstderr,ep->e_outptr,0);
 	ep->e_eol = reedit;
-#if SHOPT_ESH || SHOPT_VSH
 	if(ep->e_multiline)
 	{
 #ifdef _pth_tput
@@ -787,7 +781,6 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 #endif /* _pth_tput */
 		ep->e_wsize = MAXLINE - (ep->e_plen+1);
 	}
-#endif /* SHOPT_ESH || SHOPT_VSH */
 	if(ep->e_default && (pp = nv_getval(ep->e_default)))
 	{
 		n = strlen(pp);
@@ -799,7 +792,6 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 		ep->e_default = 0;
 	}
 }
-#endif /* SHOPT_ESH || SHOPT_VSH */
 
 static void ed_putstring(register Edit_t *ep, const char *str)
 {
@@ -813,6 +805,7 @@ static void ed_nputchar(register Edit_t *ep, int n, int c)
 	while(n-->0)
 		ed_putchar(ep,c);
 }
+#endif /* SHOPT_ESH || SHOPT_VSH */
 
 /*
  * Do read, restart on interrupt unless SH_SIGSET or SH_SIGTRAP is set

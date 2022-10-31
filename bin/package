@@ -110,7 +110,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-10-26 $
+@(#)$Id: '$command$' (ksh 93u+m) 2022-10-31 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -1037,6 +1037,13 @@ int main()
 
 		# inconsistent -dumpmachine filtered here
 
+		case $canon in
+		*-*-linux-gnu*)
+			;;
+		*-linux-gnu*)
+			# fix missing machine field, e.g. aarch64-linux-gnu => aarch64-unknown-linux-gnu
+			canon=${canon%%-*}-unknown-${canon#*-} ;;
+		esac
 		case -${canon}- in
 		--|*-powerpc-*)
 			h=$(hostname || uname -n || cat /etc/whoami)
@@ -1087,6 +1094,12 @@ int main()
 		type=unknown
 		case $host in
 		*.*)	host=$(echo $host | sed -e 's/\..*//') ;;
+		esac
+		case $arch in
+		aarch64)
+			# some call it aarch64, some arm64 -- let's stick to one
+			arch=arm64
+			;;
 		esac
 		case $mach in
 		unknown)

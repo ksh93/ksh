@@ -423,17 +423,6 @@ static void put_cdpath(register Namval_t* np,const char *val,int flags,Namfun_t 
 	sh.cdpathlist = (void*)path_addpath((Pathcomp_t*)sh.cdpathlist,val,PATH_CDPATH);
 }
 
-static void init_radixpoint(void)
-{
-#if _hdr_locale && _lib_localeconv
-	struct lconv *lp;
-	if((lp = localeconv()) && lp->decimal_point && *lp->decimal_point)
-		sh.radixpoint = *lp->decimal_point;
-	else
-#endif
-		sh.radixpoint = '.';
-}
-
 #ifdef _hdr_locale
     /* Trap for the LC_* and LANG variables */
     static void put_lang(Namval_t* np,const char *val,int flags,Namfun_t *fp)
@@ -462,7 +451,7 @@ static void init_radixpoint(void)
 #endif
 	else
 		type= -1;
-	if(!sh_isstate(SH_INIT) && (type>=0 || type==LC_ALL || type==LC_LANG))
+	if(type>=0 || type==LC_ALL || type==LC_NUMERIC || type==LC_LANG)
 	{
 		char*		r;
 #ifdef AST_LC_setenv
@@ -480,8 +469,15 @@ static void init_radixpoint(void)
 		}
 	}
 	nv_putv(np, val, flags, fp);
+#if _lib_localeconv
 	if(type==LC_ALL || type==LC_NUMERIC || type==LC_LANG)
-		init_radixpoint();
+	{
+		struct lconv *lp = localeconv();
+		char *cp = lp->decimal_point;
+		/* Multibyte radix points are not (yet?) supported */
+		sh.radixpoint = strlen(cp)==1 ? *cp : '.';
+	}
+#endif
 	if(CC_NATIVE!=CC_ASCII && (type==LC_ALL || type==LC_LANG || type==LC_CTYPE))
 	{
 		if(sh_lexstates[ST_BEGIN]!=sh_lexrstates[ST_BEGIN])
@@ -1252,11 +1248,13 @@ int sh_type(register const char *path)
  */
 Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 {
-	static int beenhere;
 	register size_t n;
 	int type = 0;
 	static char *login_files[2];
+	sh_onstate(SH_INIT);
+#if !_std_malloc
 	memfatal();
+#endif
 	n = strlen(e_version);
 	if(e_version[n-1]=='$' && e_version[n-2]==' ')
 		e_version[n-2]=0;
@@ -1265,35 +1263,31 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 #else
 	init_ebcdic();
 #endif
-	if(!beenhere)
-	{
-		beenhere = 1;
 #if SHOPT_REGRESS
-		sh_regress_init();
+	sh_regress_init();
 #endif
-		sh.current_pid = sh.pid = getpid();
-		sh.current_ppid = sh.ppid = getppid();
-		sh.userid=getuid();
-		sh.euserid=geteuid();
-		sh.groupid=getgid();
-		sh.egroupid=getegid();
-		sh.lim.child_max = (int)astconf_long(CONF_CHILD_MAX);
-		sh.lim.clk_tck = (int)astconf_long(CONF_CLK_TCK);
-		if(sh.lim.child_max <=0)
-			sh.lim.child_max = CHILD_MAX;
-		if(sh.lim.clk_tck <=0)
-			sh.lim.clk_tck = CLK_TCK;
-		sh.ed_context = (void*)ed_open();
-		error_info.id = path_basename(argv[0]);
-	}
-	umask(sh.mask=umask(0));
+	sh.current_pid = sh.pid = getpid();
+	sh.current_ppid = sh.ppid = getppid();
+	sh.userid = getuid();
+	sh.euserid = geteuid();
+	sh.groupid = getgid();
+	sh.egroupid = getegid();
+	sh.lim.child_max = (int)astconf_long(CONF_CHILD_MAX);
+	sh.lim.clk_tck = (int)astconf_long(CONF_CLK_TCK);
+	if(sh.lim.child_max <= 0)
+		sh.lim.child_max = CHILD_MAX;
+	if(sh.lim.clk_tck <= 0)
+		sh.lim.clk_tck = CLK_TCK;
+	sh.ed_context = (void*)ed_open();
+	error_info.id = path_basename(argv[0]);
+	umask(sh.mask = umask(0));
 	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
 	sh.lex_context = (void*)sh_lexopen(0,1);
+	sh.radixpoint = '.';  /* pre-locale init */
 	sh.strbuf = sfstropen();
 	sh.stk = stkstd;
 	sfsetbuf(sh.strbuf,(char*)0,64);
-	sh_onstate(SH_INIT);
 	error_info.catalog = e_dict;
 #if SHOPT_REGRESS
 	{
@@ -1456,11 +1450,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 			}
 #endif /* _WINIX */
 		}
-		if(beenhere==1)
-		{
-			init_radixpoint();
-			beenhere = 2;
-		}
 	}
 	/* set[ug]id scripts require the -p flag */
 	if(sh.userid!=sh.euserid || sh.groupid!=sh.egroupid)
@@ -1492,7 +1481,6 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 	sh_pushcontext(&sh.checkbase,SH_JMPSCRIPT);
 	sh.st.self = &sh.global;
         sh.topscope = (Shscope_t*)sh.st.self;
-	sh_offstate(SH_INIT);
 	login_files[0] = (char*)e_profile;
 	sh.login_files = login_files;
 	sh.bltindata.version = SH_VERSION;
@@ -1517,6 +1505,7 @@ Shell_t *sh_init(register int argc,register char *argv[], Shinit_f userinit)
 		dtksh_init();
 	}
 #endif /* BUILD_DTKSH */
+	sh_offstate(SH_INIT);
 	return(&sh);
 }
 
