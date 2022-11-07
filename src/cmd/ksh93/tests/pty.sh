@@ -1117,5 +1117,36 @@ w t
 u Correct
 !
 
+((SHOPT_ESH)) && mkdir -p fullcomplete/foe && VISUAL=emacs tst $LINENO <<"!"
+L full-word completion in emacs mode
+# https://github.com/ksh93/ksh/pull/580
+
+d 15
+p :test-1:
+w rm -f fullcomplete/foi\cb\t
+r ^:test-1: rm -f fullcomplete/foi\r\n
+p :test-2:
+w rm -f fullcomplete/foi\cb=
+r ^:test-2: rm -f fullcomplete/foi\r\n
+p :test-3:
+w rm -f fullcomplete/foi\cb*
+r ^:test-3: rm -f fullcomplete/foi\r\n
+!
+
+((SHOPT_VSH)) && mkdir -p fullcomplete/fov && VISUAL=vi tst $LINENO <<"!"
+L full-word completion in vi mode
+# https://github.com/ksh93/ksh/pull/580
+
+d 15
+w rm -f fullcomplete/foi\Eh\\a
+r ^:test-1: rm -f fullcomplete/foi\r\n
+p :test-2:
+w rm -f fullcomplete/foi\Eh=a
+r ^:test-2: rm -f fullcomplete/foi\r\n
+p :test-3:
+w rm -f fullcomplete/foi\Eh*a
+r ^:test-3: rm -f fullcomplete/foi\r\n
+!
+
 # ======
 exit $((Errors<125?Errors:125))
