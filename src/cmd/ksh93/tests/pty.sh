@@ -1117,5 +1117,17 @@ w t
 u Correct
 !
 
+((SHOPT_VSH && SHOPT_MULTIBYTE)) &&
+[[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+mkdir -p vitest/aあb && VISUAL=vi tst $LINENO <<"!"
+L vi completion from wide produces corrupt characters
+# https://github.com/ksh93/ksh/issues/571
+
+d 15
+p :test-1:
+w cd vitest/aあ\t
+r ^:test-1: cd vitest/aあb/\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
