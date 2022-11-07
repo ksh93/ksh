@@ -2550,6 +2550,11 @@ addin:
 		ch = c;
 		if(mode>=0 && c=='\\' && virtual[mode+1]=='/')
 			c = '=';
+#if SHOPT_MULTIBYTE
+		char d[CHARSIZE+1];
+		wchar_t *savechar = &virtual[cur_virt];
+		vp->ed->e_savedwidth = mbconv(d,*savechar);
+#endif /* SHOPT_MULTIBYTE */
 		if(ed_expand(vp->ed,(char*)virtual, &cur_virt, &last_virt, ch, vp->repeat_set?vp->repeat:-1)<0)
 		{
 			if(vp->ed->e_tabcount)
