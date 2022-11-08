@@ -1587,6 +1587,11 @@ EOF
 "$SHELL" "$read_a_test"
 let Errors+=$?
 
+# . can find a file with a relative path
+tmpfile=dottest
+print $'\nprint -r -- working' > $tmpfile
+[[ $( . "$tmpfile") == "working" ]] || err_exit 'dot command did not find relative path'
+
 # ======
 # Most built-ins should handle --version
 while IFS= read -r bltin <&3
