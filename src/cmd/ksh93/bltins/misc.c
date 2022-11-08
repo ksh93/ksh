@@ -217,7 +217,7 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 #endif
 int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 {
-	register char *script;
+	register char *script, *absolute;
 	register Namval_t *np;
 	register int jmpval;
 	struct sh_scoped savst, *prevscope = sh.st.self;
@@ -274,7 +274,8 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			np = 0;
 		if(!np)
 		{
-			if((fd=path_open(script,path_get(path_fullname(script)))) < 0)
+			absolute = path_fullname(script);
+			if((fd=path_open(absolute,path_get(absolute))) < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_open,script);
 				UNREACHABLE();
@@ -323,7 +324,10 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 	if(buffer)
 		free(buffer);
 	if(!np)
+	{
 		free(tofree);
+		free(absolute);
+	}
 	sh.dot_depth--;
 	update_sh_level();
 	if((np || argv[1]) && jmpval!=SH_JMPSCRIPT)
