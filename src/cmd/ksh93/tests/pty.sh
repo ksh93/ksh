@@ -1138,6 +1138,7 @@ L full-word completion in vi mode
 # https://github.com/ksh93/ksh/pull/580
 
 d 15
+p :test-1:
 w true fullcomplete/foi\Eh\\a
 r ^:test-1: true fullcomplete/foi\r\n
 p :test-2:
