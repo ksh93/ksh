@@ -1587,6 +1587,7 @@ EOF
 "$SHELL" "$read_a_test"
 let Errors+=$?
 
+# ======
 # . can find a file with a relative path
 tmpfile=dottest
 print $'\nprint -r -- working' > $tmpfile
