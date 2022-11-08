@@ -274,7 +274,7 @@ int    b_dot_cmd(register int n,char *argv[],Shbltin_t *context)
 			np = 0;
 		if(!np)
 		{
-			if((fd=path_open(path_fullname(script),path_get(path_fullname(script)))) < 0)
+			if((fd=path_open(script,path_get(path_fullname(script)))) < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_open,script);
 				UNREACHABLE();
