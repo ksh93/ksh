@@ -391,6 +391,7 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		vp->lastmotion = '\0';
 		vp->lastrepeat = 1;
 		vp->repeat = 1;
+		*vp->lastline = 0;
 		if(!yankbuf)
 			return(-1);
 		*yankbuf = 0;
