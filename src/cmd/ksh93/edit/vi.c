@@ -900,7 +900,6 @@ static int cntlmode(Vi_t *vp)
 				cur_virt = 0;
 			virtual[last_virt+1] = '\0';
 			gencpy(vp->U_space, virtual);
-			vp->U_saved = 1;
 			/* skip blank lines when going up/down in history */
 			if((c=='k' || c=='-') && curhline != histmin && blankline(vp))
 				ed_ungetchar(vp->ed,'k');
