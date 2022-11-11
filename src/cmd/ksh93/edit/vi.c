@@ -898,6 +898,9 @@ static int cntlmode(Vi_t *vp)
 #endif /* SHOPT_MULTIBYTE */
 			if((last_virt=genlen(virtual)-1) >= 0  && cur_virt == INVALID)
 				cur_virt = 0;
+			virtual[last_virt+1] = '\0';
+			gencpy(vp->U_space, virtual);
+			vp->U_saved = 1;
 			/* skip blank lines when going up/down in history */
 			if((c=='k' || c=='-') && curhline != histmin && blankline(vp))
 				ed_ungetchar(vp->ed,'k');
