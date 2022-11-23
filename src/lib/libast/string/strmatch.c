@@ -198,5 +198,5 @@ strsubmatch(const char* s, const char* p, int flags)
 int
 strgrpmatch(const char* b, const char* p, ssize_t* sub, int n, int flags)
 {
-	return strngrpmatch(b, b ? strlen(b) : 0, p, sub, n, flags|STR_INT);
+	return strngrpmatch(b, b ? strlen(b) : 0, p, sub, n, flags);
 }
