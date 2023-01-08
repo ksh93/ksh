@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2023-01-08:
+
+- Fixed a completion bug in vi mode in multibyte character locales, in which
+  one or more invalid characters were output at the end of the completion if
+  the cursor was on a "wide" character (or if the last character of the word
+  is wide and the cursor is in the immediately-following position).
+
 2022-10-31:
 
 - In vi mode, issuing the v command from a completely empty line now invokes
