@@ -110,7 +110,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2022-10-31 $
+@(#)$Id: '$command$' (ksh 93u+m) 2023-01-08 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -538,7 +538,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2022-10-23
+  version         package (ksh 93u+m) 2023-01-08
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -990,6 +990,10 @@ int main()
 			;;
 		*-*-*)	case $canon in
 			'')	canon=$a ;;
+			esac
+			;;
+		*-*)	case $canon in
+			'')	canon=${a%-*}-unknown-${a#*-} ;;
 			esac
 			;;
 		*)	_hostinfo_="$_hostinfo_ $a"
@@ -1452,7 +1456,8 @@ int main()
 			bsdi)			lhs=bsd ;;
 			darwin)			case $(/usr/bin/cc --version) in
 						*'(GCC)'*)	case $rel in
-								[0-9].*|10.*)	lhs=darwin07 ;;
+								'' | [0-9].* | 10.*)
+										lhs=darwin07 ;;
 								*)		lhs=darwin11 ;;
 								esac ;;
 						esac

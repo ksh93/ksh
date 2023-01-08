@@ -595,6 +595,9 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	sh.winch = 0;
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
+#if SHOPT_MULTIBYTE
+	ep->e_savedwidth = 0;
+#endif /* SHOPT_MULTIBYTE */
 	if(!(last = sh.prompt))
 		last = "";
 	sh.prompt = 0;
