@@ -9,6 +9,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   the cursor was on a "wide" character (or if the last character of the word
   is wide and the cursor is in the immediately-following position).
 
+- Fixed a bug in vi and emacs in which using = or * completion from within
+  a word failed to replace the word; any trailing characters were printed
+  at the end of the completion. (Bolsky and Korn, pp. 105-106 and 114-115)
+
 2022-10-31:
 
 - In vi mode, issuing the v command from a completely empty line now invokes
