@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -218,15 +218,6 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 	int Globals[9];			/* local global variables */
 	int esc_or_hang=0;		/* <ESC> or hangup */
 	char cntl_char=0;		/* TRUE if control character present */
-#if SHOPT_RAWONLY
-#   define viraw	1
-#else
-	int viraw = (sh_isoption(SH_VIRAW) || sh.st.trap[SH_KEYTRAP]);
-#   ifndef FIORDCHK
-	clock_t oldtime, newtime;
-	struct tms dummy;
-#   endif /* FIORDCHK */
-#endif /* SHOPT_RAWONLY */
 	if(!vp)
 	{
 		ed->e_vi = vp = sh_newof(0,Vi_t,1,0);
@@ -241,109 +232,9 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 	ed_setup(vp->ed,fd, reedit);
 	shbuf[reedit] = 0;
 
-#if !SHOPT_RAWONLY
-	if(!viraw)
-	{
-		/*** Change the eol characters to '\r' and eof  ***/
-		/* in addition to '\n' and make eof an ESC	*/
-		if(tty_alt(ERRIO) < 0)
-			return(reedit?reedit:ed_read(context, fd, shbuf, nchar,0));
-
-#ifdef FIORDCHK
-		ioctl(fd,FIORDCHK,&vp->typeahead);
-#else
-		/* time the current line to determine typeahead */
-		oldtime = times(&dummy);
-#endif /* FIORDCHK */
-		/* abort of interrupt has occurred */
-		if(sh.trapnote&SH_SIGSET)
-			i = -1;
-		else
-		{
-			/*** Read the line ***/
-			i = ed_read(context, fd, shbuf, nchar, 0);
-		}
-#ifndef FIORDCHK
-		newtime = times(&dummy);
-		vp->typeahead = ((newtime-oldtime) < NTICKS);
-#endif /* FIORDCHK */
-	    if(echoctl)
-	    {
-		if( i <= 0 )
-		{
-			/*** read error or eof typed ***/
-			tty_cooked(ERRIO);
-			return(i);
-		}
-		term_char = shbuf[--i];
-		if( term_char == '\r' )
-			term_char = '\n';
-		if( term_char=='\n' || term_char==ESC )
-			shbuf[i--] = '\0';
-		else
-			shbuf[i+1] = '\0';
-	    }
-	    else
-	    {
-		register int c = shbuf[0];
-
-		/*** Save and remove the last character if it's an eol, ***/
-		/* changing '\r' to '\n' */
-
-		if( i == 0 )
-		{
-			/*** ESC was typed as first char of line ***/
-			esc_or_hang = 1;
-			term_char = ESC;
-			shbuf[i--] = '\0';	/* null-terminate line */
-		}
-		else if( i<0 || c==usreof )
-		{
-			/*** read error or eof typed ***/
-			tty_cooked(ERRIO);
-			if( c == usreof )
-				i = 0;
-			return(i);
-		}
-		else
-		{
-			term_char = shbuf[--i];
-			if( term_char == '\r' )
-				term_char = '\n';
-#if !defined(VEOL2) && !defined(ECHOCTL)
-			if(term_char=='\n')
-			{
-				tty_cooked(ERRIO);
-				return(i+1);
-			}
-#endif
-			if( term_char=='\n' || term_char==usreof )
-			{
-				/*** remove terminator & null-terminate ***/
-				shbuf[i--] = '\0';
-			}
-			else
-			{
-				/** terminator was ESC, which is not emitted **/
-				term_char = ESC;
-				shbuf[i+1] = '\0';
-			}
-		}
-	    }
-	}
-	else
-#endif /* SHOPT_RAWONLY */
 	{
 		/*** Set raw mode ***/
 
-#if !SHOPT_RAWONLY
-		if( editb.e_ttyspeed == 0 )
-		{
-			/*** never did TCGETA, so do it ***/
-			/* avoids problem if user does 'sh -o viraw' */
-			tty_alt(ERRIO);
-		}
-#endif /* SHOPT_RAWONLY */
 		if(tty_raw(ERRIO,0) < 0 )
 			return(reedit?reedit:ed_read(context, fd, shbuf, nchar,0));
 		i = last_virt-1;
@@ -404,156 +295,6 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		nchar = MAXCHAR - plen;
 	max_col = nchar - 2;
 
-	if( !viraw )
-	{
-		int kill_erase = 0;
-		for(i=(echoctl?last_virt:0); i<last_virt; ++i )
-		{
-			/*** change \r to \n, check for control characters, ***/
-			/* delete appropriate ^Vs,			*/
-			/* and estimate last physical column */
-
-			if( virtual[i] == '\r' )
-				virtual[i] = '\n';
-		    if(!echoctl)
-		    {
-			register int c = virtual[i];
-			if( c<=usrerase)
-			{
-				/*** user typed escaped erase or kill char ***/
-				cntl_char = 1;
-				if(is_print(c))
-					kill_erase++;
-			}
-			else if( !is_print(c) )
-			{
-				cntl_char = 1;
-
-				if( c == usrlnext )
-				{
-					if( i == last_virt )
-					{
-						/*** eol/eof was escaped ***/
-						/* so replace ^V with it */
-						virtual[i] = term_char;
-						break;
-					}
-
-					/*** delete ^V ***/
-					gencpy((&virtual[i]), (&virtual[i+1]));
-					--cur_virt;
-					--last_virt;
-				}
-			}
-		    }
-		}
-
-		/*** copy virtual image to window ***/
-		if(last_virt > 0)
-			last_phys = ed_virt_to_phys(vp->ed,virtual,physical,last_virt,0,0);
-		if( last_phys >= w_size )
-		{
-			/*** line longer than window ***/
-			vp->last_wind = w_size - 1;
-		}
-		else
-			vp->last_wind = last_phys;
-		genncpy(window, virtual, vp->last_wind+1);
-
-		if( term_char!=ESC  && (last_virt==INVALID
-			|| virtual[last_virt]!=term_char) )
-		{
-			/*** Line not terminated with ESC or escaped (^V) ***/
-			/* eol, so return after doing a total update */
-			/* if( (speed is greater or equal to 1200 */
-			/* and something was typed) and */
-			/* (control character present */
-			/* or typeahead occurred) ) */
-
-			tty_cooked(ERRIO);
-			if( editb.e_ttyspeed==FAST && last_virt!=INVALID
-				&& (vp->typeahead || cntl_char) )
-			{
-				refresh(vp,TRANSLATE);
-				pr_string(vp,Prompt);
-				putstring(vp,0, last_phys+1);
-				if(echoctl)
-				{
-					putchar('\n');
-					ed_flush(vp->ed);
-				}
-				else
-					while(kill_erase-- > 0)
-						putchar(' ');
-			}
-
-			if( term_char=='\n' )
-			{
-				if(!echoctl)
-				{
-					putchar('\n');
-					ed_flush(vp->ed);
-				}
-				virtual[++last_virt] = '\n';
-			}
-			vp->last_cmd = 'i';
-			save_last(vp);
-#if SHOPT_MULTIBYTE
-			virtual[last_virt+1] = 0;
-			last_virt = ed_external(virtual,shbuf);
-			return(last_virt);
-#else
-			return(++last_virt);
-#endif /* SHOPT_MULTIBYTE */
-		}
-
-		/*** Line terminated with escape, or escaped eol/eof, ***/
-		/*** so set raw mode ***/
-
-		if( tty_raw(ERRIO,0) < 0 )
-		{
-			tty_cooked(ERRIO);
-			/*
-			 * The following prevents drivers that return 0 on
-			 * causing an infinite loop
-			 */
-			if(esc_or_hang)
-				return(-1);
-			virtual[++last_virt] = '\n';
-#if SHOPT_MULTIBYTE
-			virtual[last_virt+1] = 0;
-			last_virt = ed_external(virtual,shbuf);
-			return(last_virt);
-#else
-			return(++last_virt);
-#endif /* SHOPT_MULTIBYTE */
-		}
-
-		if(echoctl) /*** for cntl-echo erase the ^[ ***/
-			pr_string(vp,"\b\b\b\b      \b\b");
-
-
-		if(crallowed)
-		{
-			/*** start over since there may be ***/
-			/*** a control char, or cursor might not ***/
-			/*** be at left margin (this lets us know ***/
-			/*** where we are) ***/
-			cur_phys = 0;
-			window[0] = '\0';
-			pr_string(vp,Prompt);
-			if( term_char==ESC && (last_virt<0 || virtual[last_virt]!=ESC))
-				refresh(vp,CONTROL);
-			else
-				refresh(vp,INPUT);
-		}
-		else
-		{
-			/*** just update everything internally ***/
-			refresh(vp,TRANSLATE);
-		}
-	}
-
 	/*** Handle usrintr, usrquit, or EOF ***/
 
 	i = sigsetjmp(editb.e_env,0);
@@ -589,12 +330,7 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		vp->ofirst_wind = INVALID;
 		refresh(vp,INPUT);
 	}
-	if(viraw)
-		getline(vp,APPEND);
-	else if(last_virt>=0 && virtual[last_virt]==term_char)
-		getline(vp,APPEND);
-	else
-		getline(vp,ESC);
+	getline(vp,APPEND);
 	if(vp->ed->e_multiline)
 		cursor(vp, last_phys);
 	/*** add a new line if user typed unescaped \n ***/
@@ -2515,6 +2251,7 @@ static int textmod(register Vi_t *vp,register int c, int mode)
 	register genchar *p = vp->lastline;
 	register int trepeat = vp->repeat;
 	genchar *savep;
+	int savecur;
 	int ch;
 
 	if(mode && (fold(vp->lastmotion)=='F' || fold(vp->lastmotion)=='T')) 
@@ -2550,11 +2287,22 @@ addin:
 		++last_virt;
 		mode = cur_virt-1;
 		virtual[last_virt] = 0;
+		savecur = cur_virt;
+		while(isalph(cur_virt) && isalph(cur_virt+1))
+			cur_virt++;
 		ch = c;
 		if(mode>=0 && c=='\\' && virtual[mode+1]=='/')
 			c = '=';
+#if SHOPT_MULTIBYTE
+		{
+			char d[CHARSIZE+1];
+			wchar_t *savechar = &virtual[cur_virt];
+			vp->ed->e_savedwidth = mbconv(d,*savechar);
+		}
+#endif /* SHOPT_MULTIBYTE */
 		if(ed_expand(vp->ed,(char*)virtual, &cur_virt, &last_virt, ch, vp->repeat_set?vp->repeat:-1)<0)
 		{
+			cur_virt = savecur;
 			if(vp->ed->e_tabcount)
 			{
 				vp->ed->e_tabcount=2;
@@ -2568,6 +2316,7 @@ addin:
 		else if(vp->ed->e_nlist!=0 && !vp->repeat_set)
 		{
 			last_virt = i;
+			cur_virt = savecur;
 			vi_redraw((void*)vp);
 			return(GOOD);
 		}

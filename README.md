@@ -71,6 +71,7 @@ Then `cd` to the top directory and run:
 ```sh
 bin/package make
 ```
+In some non-POSIX shells you might need to prepend `sh` to all calls to `bin/package`.
 
 The compiled binaries are stored in the `arch` directory, in a subdirectory
 that corresponds to your architecture. The command `bin/package host type`

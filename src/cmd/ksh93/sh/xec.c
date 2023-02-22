@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -2250,36 +2250,35 @@ int sh_exec(register const Shnode_t *t, int flags)
 		     */
 		    case TSW:
 		    {
-			Shnode_t *tt = (Shnode_t*)t;
-			char *trap, *r = sh_macpat(tt->sw.swarg,OPTIMIZE);
-			error_info.line = t->sw.swline-sh.st.firstline;
-			t= (Shnode_t*)(tt->sw.swlst);
-			if(trap=sh.st.trap[SH_DEBUGTRAP])
+			const int eflag = flags & sh_state(SH_ERREXIT);
+			char *r = sh_macpat(t->sw.swarg,OPTIMIZE);
+			error_info.line = t->sw.swline - sh.st.firstline;
+			if(sh.st.trap[SH_DEBUGTRAP])
 			{
 				char *av[4];
 				av[0] = "case";
 				av[1] = r;
 				av[2] = "in";
 				av[3] = 0;
-				sh_debug(trap, (char*)0, (char*)0, av, 0);
+				sh_debug(sh.st.trap[SH_DEBUGTRAP], NIL(char*), NIL(char*), av, 0);
 			}
+			t = (Shnode_t*)t->sw.swlst;
 			while(t)
 			{
-				register struct argnod	*rex=(struct argnod*)t->reg.regptr;
+				struct argnod *rex = t->reg.regptr;
 				while(rex)
 				{
+					const unsigned char raw = rex->argflag & ARG_RAW;
 					register char *s;
 					if(rex->argflag&ARG_MAC)
 						s = sh_macpat(rex,OPTIMIZE|ARG_EXP);
 					else
 						s = rex->argval;
-					type = (rex->argflag&ARG_RAW);
-					if((type && strcmp(r,s)==0) ||
-						(!type && strmatch(r,s)))
+					if(raw && strcmp(r,s)==0 || !raw && strmatch(r,s))
 					{
-						do	sh_exec(t->reg.regcom,(t->reg.regflag?(flags&sh_state(SH_ERREXIT)):flags));
-						while(t->reg.regflag &&
-							(t=(Shnode_t*)t->reg.regnxt));
+						do
+							sh_exec(t->reg.regcom, t->reg.regflag ? eflag : flags);
+						while(t->reg.regflag && (t = (Shnode_t*)t->reg.regnxt));
 						t=0;
 						break;
 					}
@@ -2643,8 +2642,7 @@ int sh_exec(register const Shnode_t *t, int flags)
 			break;
 		    }
 		}
-		if(sh.trapnote || (sh.exitval && sh_isstate(SH_ERREXIT)) &&
-			t && echeck) 
+		if(sh.trapnote || (sh.exitval && sh_isstate(SH_ERREXIT)) && t && echeck)
 			sh_chktrap();
 		/* set $_ */
 		if(mainloop && com0)

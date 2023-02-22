@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -107,7 +107,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	if(argc==2)
 		dir = sh_substitute(oldpwd,dir,argv[1]);
 	else if(!dir)
-		dir = nv_getval(HOME);
+		dir = nv_getval(sh_scoped(HOME));
 	else if(*dir == '-' && dir[1]==0)
 		dir = nv_getval(opwdnod);
 	if(!dir || *dir==0)
@@ -175,7 +175,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 			char *last=(char*)stakfreeze(1);
 			stakseek(PATH_OFFSET);
 			stakputs(oldpwd);
-			/* don't add '/' of oldpwd is / itself */
+			/* don't add '/' if oldpwd is / itself */
 			if(*oldpwd!='/' || oldpwd[1])
 				stakputc('/');
 			stakputs(last+PATH_OFFSET);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -58,7 +58,7 @@
 #endif
 
 #define	permission(a,f)		(sh_access(a,f)==0)
-static time_t	test_time(const char*, const char*);
+static int	test_time(const char*, const char*);
 static int	test_stat(const char*, struct stat*);
 static int	test_mode(const char*);
 
@@ -568,9 +568,11 @@ int test_binop(register int op,const char *left,const char *right)
 }
 
 /*
- * returns the modification time of f1 - modification time of f2
+ * returns 1 if file1 was modified more recently than file2, or if file1 exists and file2 does not
+ * returns -1 if file2 was modified more recently than file1, or if file2 exists and file1 does not
+ * returns 0 if file1 was modified at the same time as file2, or if neither file1 nor file2 exist
  */
-static time_t test_time(const char *file1,const char *file2)
+static int test_time(const char *file1,const char *file2)
 {
 	Time_t t1, t2;
 	struct stat statb1,statb2;

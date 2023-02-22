@@ -8,6 +8,8 @@ For more details, see the NEWS file and for complete details, see the git log.
 	from the environment. Any script that depends on this will need to
 	be changed to typeset the expected attributes itself.
 
+2.	The obsolete --nolog, -h/--trackall, and --viraw shell options have
+	been removed. Their use is no longer ignored and is now an error.
 
 ____________________________________________________________________________
 

@@ -2,6 +2,40 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2023-02-20:
+
+- The obsolete -h/--trackall and --nolog shell options have been removed.
+  (They had no effect as of 93l 2001-06-01 and 93o 2003-04-22, respectively.)
+
+- The SHOPT_RAWONLY compile-time option and the --viraw shell option have been
+  removed. Ksh's vi editor now always operates in raw mode (but note that "raw
+  only" was already the default compiled-in behaviour as of 93m+ 2002-03-17).
+
+2023-02-16:
+
+- Fixed a bug in 'cd' with no arguments. When changing the working directory
+  to the default value ($HOME), it incorrectly used the global scope of the
+  HOME variable even if a local scope was active.
+
+2023-01-09:
+
+- Fixed a bug causing incorrect greedy ${.sh.match} results when matching
+  the pattern [^]] in a non-ASCII locale.
+
+- Fixed a crash on initialisation that occurred if ksh was launched from a
+  parent process with a very high or very low open files limit (ulimit -n).
+
+2023-01-08:
+
+- Fixed a completion bug in vi mode in multibyte character locales, in which
+  one or more invalid characters were output at the end of the completion if
+  the cursor was on a "wide" character (or if the last character of the word
+  is wide and the cursor is in the immediately-following position).
+
+- Fixed a bug in vi and emacs in which using = or * completion from within
+  a word failed to replace the word; any trailing characters were printed
+  at the end of the completion. (Bolsky and Korn, pp. 105-106 and 114-115)
+
 2022-10-31:
 
 - In vi mode, issuing the v command from a completely empty line now invokes

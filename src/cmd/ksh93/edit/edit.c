@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -110,7 +110,6 @@ static char *ERASE_EOS = Empty;  /* erase to end of screen */
 #define MINWINDOW	15	/* minimum width window */
 #define DFLTWINDOW	80	/* default window width */
 #define RAWMODE		1
-#define ALTMODE		2
 #define ECHOMODE	3
 #define	SYSERR	-1
 
@@ -265,13 +264,8 @@ int tty_raw(register int fd, int echomode)
 		return(echo?-1:0);
 	else if(ep->e_raw==ECHOMODE)
 		return(echo?0:-1);
-#if !SHOPT_RAWONLY
-	if(ep->e_raw != ALTMODE)
-#endif /* SHOPT_RAWONLY */
-	{
-		if(tty_get(fd,&ttyparm) == SYSERR)
-			return(-1);
-	}
+	if(tty_get(fd,&ttyparm) == SYSERR)
+		return(-1);
 #if  L_MASK || VENIX
 	if(ttyparm.sg_flags&LCASE)
 		return(-1);
@@ -373,131 +367,6 @@ int tty_raw(register int fd, int echomode)
 	return(0);
 }
 
-#if !SHOPT_RAWONLY
-
-/*
- *
- *	Get tty parameters and make ESC and '\r' wakeup characters.
- *
- */
-
-#   ifdef TIOCGETC
-int tty_alt(register int fd)
-{
-	register Edit_t *ep = (Edit_t*)(sh.ed_context);
-	int mask;
-	struct tchars ttychars;
-	switch(ep->e_raw)
-	{
-	    case ECHOMODE:
-		return(-1);
-	    case ALTMODE:
-		return(0);
-	    case RAWMODE:
-		tty_cooked(fd);
-	}
-	l_changed = 0;
-	if( ep->e_ttyspeed == 0)
-	{
-		if((tty_get(fd,&ttyparm) != SYSERR))
-			ep->e_ttyspeed = (ttyparm.sg_ospeed>=B1200?FAST:SLOW);
-		ep->e_raw = ALTMODE;
-	}
-	if(ioctl(fd,TIOCGETC,&l_ttychars) == SYSERR)
-		return(-1);
-	if(ioctl(fd,TIOCLGET,&l_mask)==SYSERR)
-		return(-1);
-	ttychars = l_ttychars;
-	mask =  LCRTBS|LCRTERA|LCTLECH|LPENDIN|LCRTKIL;
-	if((l_mask|mask) != l_mask)
-		l_changed = L_MASK;
-	if(ioctl(fd,TIOCLBIS,&mask)==SYSERR)
-		return(-1);
-	if(ttychars.t_brkc!=ESC)
-	{
-		ttychars.t_brkc = ESC;
-		l_changed |= T_CHARS;
-		if(ioctl(fd,TIOCSETC,&ttychars) == SYSERR)
-			return(-1);
-	}
-	return(0);
-}
-#   else
-#	ifndef PENDIN
-#	    define PENDIN	0
-#	endif /* PENDIN */
-#	ifndef IEXTEN
-#	    define IEXTEN	0
-#	endif /* IEXTEN */
-
-int tty_alt(register int fd)
-{
-	register Edit_t *ep = (Edit_t*)(sh.ed_context);
-	switch(ep->e_raw)
-	{
-	    case ECHOMODE:
-		return(-1);
-	    case ALTMODE:
-		return(0);
-	    case RAWMODE:
-		tty_cooked(fd);
-	}
-	if((tty_get(fd, &ttyparm)==SYSERR) || (!(ttyparm.c_lflag&ECHO)))
-		return(-1);
-#	ifdef FLUSHO
-	    ttyparm.c_lflag &= ~FLUSHO;
-#	endif /* FLUSHO */
-	nttyparm = ttyparm;
-	ep->e_eof = ttyparm.c_cc[VEOF];
-#	ifdef ECHOCTL
-	    /* escape character echos as ^[ */
-	    nttyparm.c_lflag |= (ECHOE|ECHOK|ECHOCTL|PENDIN|IEXTEN);
-	    nttyparm.c_cc[VEOL] = ESC;
-#	else
-	    /* switch VEOL2 and EOF, since EOF isn't echo'd by driver */
-	    nttyparm.c_lflag |= (ECHOE|ECHOK);
-	    nttyparm.c_cc[VEOF] = ESC;	/* make ESC the eof char */
-#	    ifdef VEOL2
-		nttyparm.c_iflag &= ~(IGNCR|ICRNL);
-		nttyparm.c_iflag |= INLCR;
-		nttyparm.c_cc[VEOL] = '\r';	/* make CR an eol char */
-		nttyparm.c_cc[VEOL2] = ep->e_eof; /* make EOF an eol char */
-#	    else
-		nttyparm.c_cc[VEOL] = ep->e_eof; /* make EOF an eol char */
-#	    endif /* VEOL2 */
-#	endif /* ECHOCTL */
-#	ifdef VREPRINT
-		nttyparm.c_cc[VREPRINT] = _POSIX_DISABLE;
-#	endif /* VREPRINT */
-#	ifdef VDISCARD
-		nttyparm.c_cc[VDISCARD] = _POSIX_DISABLE;
-#	endif /* VDISCARD */
-#	ifdef VWERASE
-	    if(ttyparm.c_cc[VWERASE] == _POSIX_DISABLE)
-		    nttyparm.c_cc[VWERASE] = cntl('W');
-	    ep->e_werase = nttyparm.c_cc[VWERASE];
-#	else
-	    ep->e_werase = cntl('W');
-#	endif /* VWERASE */
-#	ifdef VLNEXT
-	    if(ttyparm.c_cc[VLNEXT] == _POSIX_DISABLE )
-		    nttyparm.c_cc[VLNEXT] = cntl('V');
-	    ep->e_lnext = nttyparm.c_cc[VLNEXT];
-#	else
-	    ep->e_lnext = cntl('V');
-#	endif /* VLNEXT */
-	ep->e_erase = ttyparm.c_cc[VERASE];
-	ep->e_kill = ttyparm.c_cc[VKILL];
-	if( tty_set(fd, TCSADRAIN, &nttyparm) == SYSERR )
-		return(-1);
-	ep->e_ttyspeed = (cfgetospeed(&ttyparm)>=B1200?FAST:SLOW);
-	ep->e_raw = ALTMODE;
-	return(0);
-}
-
-#   endif /* TIOCGETC */
-#endif	/* SHOPT_RAWONLY */
-
 /*
  *	ED_WINDOW()
  *
@@ -595,6 +464,9 @@ void	ed_setup(register Edit_t *ep, int fd, int reedit)
 	sh.winch = 0;
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
+#if SHOPT_MULTIBYTE
+	ep->e_savedwidth = 0;
+#endif /* SHOPT_MULTIBYTE */
 	if(!(last = sh.prompt))
 		last = "";
 	sh.prompt = 0;
@@ -826,8 +698,6 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	int mode = -1;
 	int (*waitevent)(int,long,int) = sh.waitevent;
 	/* sfpkrd must use select(2) to intercept SIGWINCH for ed_read */
-	if(ep->e_raw==ALTMODE)
-		mode = 2;
 	if(size < 0)
 	{
 		mode = 2;

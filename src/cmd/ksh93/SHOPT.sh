@@ -31,7 +31,6 @@ SHOPT NOECHOE=0				# turn off 'echo -e' when SHOPT_ECHOPRINT is disabled
 SHOPT OLDTERMIO=			# support both TCGETA and TCGETS
 SHOPT OPTIMIZE=1			# optimize loop invariants
 SHOPT P_SUID=0				# real UIDs >= this value require -p for set[ug]id (to turn off, use empty, not 0)
-SHOPT RAWONLY=1				# make viraw the only vi mode
 SHOPT REGRESS=				# enable __regress__ builtin and instrumented intercepts for testing
 SHOPT REMOTE=				# enable --rc if running as a remote shell
 SHOPT SPAWN=				# use spawnveg for fork/exec

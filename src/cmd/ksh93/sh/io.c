@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -388,13 +388,16 @@ static short		filemapsize;
 int  sh_iovalidfd(int fd)
 {
 	Sfio_t		**sftable = sh.sftable;
-	int		max,n, **fdptrs = sh.fdptrs;
+	int		n, **fdptrs = sh.fdptrs;
 	unsigned char	*fdstatus = sh.fdstatus;
+	long		max;
 	if(fd<0)
 		return(0);
 	if(fd < sh.lim.open_max)
 		return(1);
-	max = (int)astconf_long(CONF_OPEN_MAX);
+	max = astconf_long(CONF_OPEN_MAX);
+	if(max > INT_MAX)
+		max = INT_MAX;
 	if(fd >= max)
 	{
 		errno = EBADF;
@@ -452,7 +455,11 @@ void sh_ioinit(void)
 {
 	filemapsize = 8;
 	filemap = (struct fdsave*)sh_malloc(filemapsize*sizeof(struct fdsave));
-	sh_iovalidfd(16);
+	if(!sh_iovalidfd(16))
+	{
+		errormsg(SH_DICT,ERROR_PANIC,"open files limit insufficient");
+		UNREACHABLE();
+	}
 	sh.sftable[0] = sfstdin;
 	sh.sftable[1] = sfstdout;
 	sh.sftable[2] = sfstderr;
@@ -1949,12 +1956,8 @@ static ssize_t slowread(Sfio_t *iop,void *buff,register size_t size,Sfdisc_t *ha
 	else
 #endif	/* SHOPT_ESH */
 #if SHOPT_VSH
-#   if SHOPT_RAWONLY
-	    /* In multibyte locales, vi handles the no-editor mode as well. TODO: is this actually still needed? */
-	    if(sh_isoption(SH_VI) || mbwide())
-#   else
-	    if(sh_isoption(SH_VI))
-#   endif
+	/* In multibyte locales, vi handles the no-editor mode as well. TODO: is this actually still needed? */
+	if(sh_isoption(SH_VI) || mbwide())
 		readf = ed_viread;
 	else
 #endif	/* SHOPT_VSH */

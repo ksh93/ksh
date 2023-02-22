@@ -126,9 +126,6 @@ The options have the following defaults and meanings:
     P_SUID       0   If set, all real UIDs greater than or equal to this value
                      will require the -p option to run the shell setuid/setgid.
 
-    RAWONLY      on  Turn on if the vi line mode doesn't work right unless
-                     you do a set -o viraw.
-
     REGRESS      off Enable the __regress__ built-in command and instrumented
                      intercepts for testing.
 

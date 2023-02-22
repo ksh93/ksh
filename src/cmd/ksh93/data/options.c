@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -64,7 +64,6 @@ const Shtable_t shtab_options[] =
 	"interactive",			SH_INTERACTIVE|SH_COMMANDLINE,
 	"keyword",			SH_KEYWORD,
 	"letoctal",			SH_LETOCTAL,
-	"nolog",			SH_NOLOG,
 	"login_shell",			SH_LOGIN_SHELL|SH_COMMANDLINE,
 	"markdirs",			SH_MARKDIRS,
 	"monitor",			SH_MONITOR,
@@ -78,12 +77,10 @@ const Shtable_t shtab_options[] =
 	"rc",				SH_RC|SH_COMMANDLINE,
 	"restricted",			SH_RESTRICTED,
 	"showme",			SH_SHOWME,
-	"trackall",			SH_TRACKALL,
 	"nounset",			SH_NOUNSET,
 	"verbose",			SH_VERBOSE,
 #if SHOPT_VSH
 	"vi",				SH_VI,
-	"viraw",			SH_VIRAW,
 #endif
 	"xtrace",			SH_XTRACE,
 	"",				0

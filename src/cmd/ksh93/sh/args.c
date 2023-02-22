@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -47,7 +47,7 @@ static	char		*null;
 
 /* The following order is determined by sh_optset */
 static  const char optksh[] =
-	"Dircabefhkmnpstuvx"
+	"Dircabefkmnpstuvx"
 #if SHOPT_BRACEPAT
 	"B"
 #endif
@@ -59,7 +59,7 @@ static  const char optksh[] =
 static const int flagval[]  =
 {
 	SH_DICTIONARY, SH_INTERACTIVE, SH_RESTRICTED, SH_CFLAG,
-	SH_ALLEXPORT, SH_NOTIFY, SH_ERREXIT, SH_NOGLOB, SH_TRACKALL,
+	SH_ALLEXPORT, SH_NOTIFY, SH_ERREXIT, SH_NOGLOB,
 	SH_KEYWORD, SH_MONITOR, SH_NOEXEC, SH_PRIVILEGED, SH_SFLAG, SH_TFLAG,
 	SH_NOUNSET, SH_VERBOSE,  SH_XTRACE,
 #if SHOPT_BRACEPAT
@@ -595,9 +595,6 @@ void sh_printopts(Shopt_t oflags,register int mode, Shopt_t *mask)
 			sfputc(sfstdout,'\n');
 		return;
 	}
-#if SHOPT_VSH && SHOPT_RAWONLY
-	on_option(&oflags,SH_VIRAW);
-#endif
 	if(!(mode&(PRINT_ALL|PRINT_VERBOSE))) /* only print set options */
 		sfwrite(sfstdout,"set --default",13);
 	for(tp=shtab_options; value=tp->sh_number; tp++)

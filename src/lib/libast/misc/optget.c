@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -457,11 +457,13 @@ secname(char* section)
 	}
 	s = 0;
 	for (i = 0; i < elementsof(sections); i++)
+	{
 		if (section[0] == sections[i].section[0] && (section[1] == sections[i].section[1] || !sections[i].section[1]))
 		{
 			s = sections[i].name;
 			break;
 		}
+	}
 	if (!s)
 	{
 		t = strcopy(t, "SECTION ");
@@ -1081,6 +1083,7 @@ init(register char* s, Optpass_t* p)
 	if (*s != '[')
 	{
 		for (t = s, a = 0; *t; t++)
+		{
 			if (!a && *t == '-')
 			{
 				p->flags |= OPT_minus;
@@ -1090,6 +1093,7 @@ init(register char* s, Optpass_t* p)
 				a++;
 			else if (*t == ']')
 				a--;
+		}
 	}
 	if (!p->version && (t = strchr(s, '(')) && strchr(t, ')') && (state.cp || (state.cp = sfstropen())))
 	{
@@ -1312,7 +1316,7 @@ label(register Sfio_t* sp, int sep, register char* s, int about, int z, int leve
 		if (*(p = next(p, version)) == '[')
 			y = p + 1;
 	}
-	if (X(catalog) && (!level || *s == '\a' || s <= save_s || *(s - 1) != '+') &&
+	if (X(catalog) && (!level || *s == '\a' || s == save_s || *(s - 1) != '+') &&
 	    (tsp = localize(psp, s, e, (sep || level) ? '?' : 0, sep || level, ip, version, id, catalog)))
 	{
 		psp = tsp;
@@ -1435,6 +1439,7 @@ label(register Sfio_t* sp, int sep, register char* s, int about, int z, int leve
 								, t - w - 1, w + 1
 								);
 							for (q = s; q < w - 1; q++)
+							{
 								if (*q == ':' && q < w - 2 && *(q + 1) == ':')
 								{
 									sfputc(sp, '-');
@@ -1442,6 +1447,7 @@ label(register Sfio_t* sp, int sep, register char* s, int about, int z, int leve
 								}
 								else
 									sfputc(sp, *q);
+							}
 							sfprintf(sp, ".html\">%s%-.*s%s</A>%-.*s</NOBR>"
 								, font(a, style, 1)
 								, w - s - 1, s
@@ -1486,6 +1492,7 @@ label(register Sfio_t* sp, int sep, register char* s, int about, int z, int leve
 				sfputr(sp, "&lt;", -1);
 				c = 0;
 				for (t = s; t < e; t++)
+				{
 					if (!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
 					{
 						if (*t == '@')
@@ -1506,6 +1513,7 @@ label(register Sfio_t* sp, int sep, register char* s, int about, int z, int leve
 						else
 							break;
 					}
+				}
 				continue;
 			}
 			break;
@@ -1720,12 +1728,16 @@ item(Sfio_t* sp, char* s, int about, int level, int style, Sfio_t* ip, int versi
 			}
 			sfputr(sp, "<A name=\"", -1);
 			if (s[-1] == '-' && s[0] == 'l' && s[1] == 'i' && s[2] == 'c' && s[3] == 'e' && s[4] == 'n' && s[5] == 's' && s[6] == 'e' && s[7] == '?')
+			{
 				for (t = s + 8; *t && *t != ']'; t++)
+				{
 					if (t[0] == 'p' && (!strncmp(t, "proprietary", 11) || !strncmp(t, "private", 7)) || t[0] == 'n' && !strncmp(t, "noncommercial", 13))
 					{
 						state.flags |= OPT_proprietary;
 						break;
 					}
+				}
+			}
 			label(sp, 0, s, about, -1, level, style, -1, ip, version, id, catalog);
 			sfputr(sp, "\">", -1);
 			label(sp, 0, s, about, -1, level, style, level ? FONT_BOLD : 0, ip, version, id, catalog);
@@ -2037,12 +2049,16 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 										vl = m - 1;
 									}
 									else
+									{
 										for (j = 0; j < elementsof(attrs); j++)
+										{
 											if (strneq(t, attrs[j].name, m))
 											{
 												a |= attrs[j].flag;
 												break;
 											}
+										}
+									}
 								}
 							}
 							if (a & OPT_optional)
@@ -2151,6 +2167,7 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 								, t - w - 1, w + 1
 								);
 							for (q = s; q < w - 1; q++)
+							{
 								if (*q == ':' && q < w - 2 && *(q + 1) == ':')
 								{
 									sfputc(sp, '-');
@@ -2158,6 +2175,7 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 								}
 								else
 									sfputc(sp, *q);
+							}
 							sfprintf(sp, ".html\">%s%-.*s%s</A>%-.*s</NOBR>"
 								, font(a, style, 1)
 								, w - s - 1, s
@@ -2217,6 +2235,7 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 					sfputr(sp, "&lt;", -1);
 					c = 0;
 					for (t = s; *t; t++)
+					{
 						if (!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
 						{
 							if (*t == '@')
@@ -2237,6 +2256,7 @@ textout(Sfio_t* sp, register char* s, char* conform, int conformlen, int style, 
 							else
 								break;
 						}
+					}
 					continue;
 				}
 				break;
@@ -2438,11 +2458,13 @@ opthelp(const char* oopts, const char* what)
 	if (opts)
 	{
 		for (i = 0; i < state.npass; i++)
+		{
 			if (state.pass[i].oopts == opts)
 			{
 				o = &state.pass[i];
 				break;
 			}
+		}
 		if (i >= state.npass)
 		{
 			o = &one;
@@ -3188,12 +3210,16 @@ opthelp(const char* oopts, const char* what)
 								vl = m - 1;
 							}
 							else
+							{
 								for (j = 0; j < elementsof(attrs); j++)
+								{
 									if (strneq(t, attrs[j].name, m))
 									{
 										a |= attrs[j].flag;
 										break;
 									}
+								}
+							}
 						}
 						if (*p == '?')
 							u = p;
@@ -3301,18 +3327,24 @@ opthelp(const char* oopts, const char* what)
 							sfputc(sp_body, ' ');
 							m = a & OPT_TYPE;
 							for (j = 0; j < elementsof(attrs); j++)
+							{
 								if (m & attrs[j].flag)
 								{
 									sfputr(sp_body, attrs[j].name, -1);
 									break;
 								}
+							}
 							if (m = (a & ~m) | mode)
+							{
 								for (j = 0; j < elementsof(attrs); j++)
+								{
 									if (m & attrs[j].flag)
 									{
 										sfputc(sp_body, ':');
 										sfputr(sp_body, attrs[j].name, -1);
 									}
+								}
+							}
 							sfputc(sp_body, ' ');
 							if (y)
 								label(sp_body, 0, y, 0, -1, 0, style, 0, sp_info, version, id, catalog);
@@ -3777,12 +3809,14 @@ opthelp(const char* oopts, const char* what)
 						pt->level = j;
 						pt->id = TAG_NONE;
 						for (y = p; *y && *y != '\n'; y++)
+						{
 							if (*y == '\t')
 							{
 								pt->id = TAG_DL;
 								sfprintf(mp, "<DL>\n");
 								break;
 							}
+						}
 					}
 					else
 						while (j < pt->level && pt > ptstk)
@@ -3899,12 +3933,14 @@ opthelp(const char* oopts, const char* what)
 						else if (n && strneq(p, "/NOBR>", 6) && !--n)
 						{
 							for (y = p += 6; (c = *p) && c != ' ' && c != '\t' && c != '\n' && c != '<'; p++)
+							{
 								if (c == '[')
 									sfputr(mp, "&#0091;", -1);
 								else if (c == ']')
 									sfputr(mp, "&#0093;", -1);
 								else
 									sfputc(mp, c);
+							}
 							sfwrite(mp, "</NOBR", 6);
 							c = '>';
 							co += p - y + 6;
@@ -3913,12 +3949,14 @@ opthelp(const char* oopts, const char* what)
 					else if (c == '>' && !n)
 					{
 						for (y = --p; (c = *p) && c != ' ' && c != '\t' && c != '\n' && c != '<'; p++)
+						{
 							if (c == '[')
 								sfputr(mp, "&#0091;", -1);
 							else if (c == ']')
 								sfputr(mp, "&#0093;", -1);
 							else
 								sfputc(mp, c);
+						}
 						c = *sfstrseek(mp, -1, SEEK_CUR);
 						if (p > y + 1)
 						{

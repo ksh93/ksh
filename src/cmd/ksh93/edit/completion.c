@@ -278,9 +278,13 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 #endif /* SHOPT_MULTIBYTE */
 #if SHOPT_VSH
 	out = outbuff + *cur + (sh_isoption(SH_VI)!=0);
+#if SHOPT_MULTIBYTE
+	if(sh_isoption(SH_VI) && ep->e_savedwidth > 0)
+		out += (ep->e_savedwidth - 1);
+#endif /* SHOPT_MULTIBYTE */
 #else
 	out = outbuff + *cur;
-#endif
+#endif /* SHOPT_VSH */
 	if(out[-1]=='"' || out[-1]=='\'')
 	{
 #if SHOPT_VSH

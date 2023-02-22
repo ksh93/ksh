@@ -10,18 +10,18 @@ TEST 01 'mode SUID/SGID combinations'
 
 	EXEC	--regress=etc=. --regress=source
 		INPUT - 'set --state'
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -31,7 +31,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -46,7 +46,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -56,7 +56,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -71,7 +71,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -81,7 +81,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -90,18 +90,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -111,7 +111,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -126,7 +126,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -136,7 +136,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -151,7 +151,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -161,7 +161,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -170,18 +170,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -191,7 +191,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -206,7 +206,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -216,7 +216,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -231,7 +231,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -241,7 +241,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -250,18 +250,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -271,7 +271,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -286,7 +286,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -296,7 +296,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -311,7 +311,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -321,7 +321,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -330,18 +330,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -351,7 +351,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -366,7 +366,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -376,7 +376,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -391,7 +391,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -401,7 +401,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -410,18 +410,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -431,7 +431,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -446,7 +446,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -456,7 +456,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -471,7 +471,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -481,7 +481,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -490,20 +490,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -514,7 +514,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -529,7 +529,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -540,7 +540,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -555,7 +555,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -566,7 +566,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -575,20 +575,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -599,7 +599,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -614,7 +614,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -625,7 +625,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -640,7 +640,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -651,7 +651,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -660,20 +660,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -684,7 +684,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -699,7 +699,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -710,7 +710,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -725,7 +725,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -736,7 +736,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -745,7 +745,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --noprivileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --noprivileged
@@ -896,7 +896,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --noprivileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --noprivileged --restricted
@@ -972,7 +972,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --noprivileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --noprivileged --norc
@@ -1123,7 +1123,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --noprivileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --noprivileged --norc --restricted
@@ -1199,7 +1199,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --noprivileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -1372,7 +1372,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --noprivileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -1459,11 +1459,11 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --privileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1524,11 +1524,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1589,11 +1589,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1654,11 +1654,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1719,11 +1719,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1784,11 +1784,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1849,11 +1849,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1914,11 +1914,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -1979,11 +1979,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2044,18 +2044,18 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2065,7 +2065,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2080,7 +2080,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2090,7 +2090,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2105,7 +2105,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2115,7 +2115,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2124,18 +2124,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2145,7 +2145,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2160,7 +2160,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2170,7 +2170,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2185,7 +2185,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2195,7 +2195,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2204,18 +2204,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2225,7 +2225,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2240,7 +2240,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2250,7 +2250,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2265,7 +2265,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2275,7 +2275,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2284,18 +2284,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2305,7 +2305,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2320,7 +2320,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2330,7 +2330,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2345,7 +2345,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2355,7 +2355,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2364,18 +2364,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2385,7 +2385,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2400,7 +2400,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2410,7 +2410,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2425,7 +2425,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2435,7 +2435,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2444,18 +2444,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2465,7 +2465,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2480,7 +2480,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2490,7 +2490,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2505,7 +2505,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2515,7 +2515,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2524,20 +2524,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2548,7 +2548,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2563,7 +2563,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2574,7 +2574,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2589,7 +2589,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2600,7 +2600,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2609,20 +2609,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2633,7 +2633,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2648,7 +2648,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2659,7 +2659,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2674,7 +2674,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2685,7 +2685,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2694,20 +2694,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2718,7 +2718,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -2733,7 +2733,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2744,7 +2744,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -2759,7 +2759,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2770,7 +2770,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -2779,7 +2779,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --noprivileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --noprivileged
@@ -2930,7 +2930,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --noprivileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --noprivileged --restricted
@@ -3006,7 +3006,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --noprivileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --noprivileged --norc
@@ -3157,7 +3157,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --noprivileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --noprivileged --norc --restricted
@@ -3233,7 +3233,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nologin --noprivileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -3406,7 +3406,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nologin --noprivileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -3493,11 +3493,11 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -3558,11 +3558,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -3623,11 +3623,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -3688,11 +3688,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -3753,11 +3753,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -3818,11 +3818,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -3883,11 +3883,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -3948,11 +3948,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4013,11 +4013,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nologin --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nologin --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4078,7 +4078,7 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4087,7 +4087,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4096,7 +4096,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4110,7 +4110,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4129,7 +4129,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4143,7 +4143,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4162,7 +4162,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4176,7 +4176,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4187,7 +4187,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4196,7 +4196,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4205,7 +4205,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4219,7 +4219,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4238,7 +4238,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4252,7 +4252,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4271,7 +4271,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4285,7 +4285,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4296,7 +4296,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4305,7 +4305,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4314,7 +4314,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4328,7 +4328,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4347,7 +4347,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4361,7 +4361,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4380,7 +4380,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4394,7 +4394,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4405,7 +4405,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4414,7 +4414,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4423,7 +4423,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4437,7 +4437,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4456,7 +4456,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4470,7 +4470,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4489,7 +4489,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4503,7 +4503,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4514,7 +4514,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4523,7 +4523,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4532,7 +4532,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4546,7 +4546,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4565,7 +4565,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4579,7 +4579,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4598,7 +4598,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4612,7 +4612,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4623,7 +4623,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4632,7 +4632,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4641,7 +4641,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4655,7 +4655,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4674,7 +4674,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4688,7 +4688,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4707,7 +4707,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4721,7 +4721,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4732,7 +4732,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4742,7 +4742,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4751,7 +4751,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4766,7 +4766,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4785,7 +4785,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4800,7 +4800,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4819,7 +4819,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4834,7 +4834,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4845,7 +4845,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4855,7 +4855,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4864,7 +4864,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4879,7 +4879,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4898,7 +4898,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4913,7 +4913,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -4932,7 +4932,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4947,7 +4947,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -4958,7 +4958,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -4968,7 +4968,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4977,7 +4977,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -4992,7 +4992,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -5011,7 +5011,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -5026,7 +5026,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -5045,7 +5045,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -5060,7 +5060,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -5071,7 +5071,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --noprivileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -5304,7 +5304,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --noprivileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -5421,7 +5421,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --noprivileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -5654,7 +5654,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --noprivileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -5771,7 +5771,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --noprivileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -6024,7 +6024,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --noprivileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -6151,14 +6151,14 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6237,14 +6237,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6323,14 +6323,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6409,14 +6409,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6495,14 +6495,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6581,14 +6581,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6667,14 +6667,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6753,14 +6753,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6839,14 +6839,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --login --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --login --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6925,18 +6925,18 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6946,7 +6946,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -6961,7 +6961,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -6971,7 +6971,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -6986,7 +6986,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -6996,7 +6996,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7005,18 +7005,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7026,7 +7026,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7041,7 +7041,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7051,7 +7051,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7066,7 +7066,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7076,7 +7076,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7085,18 +7085,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7106,7 +7106,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7121,7 +7121,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7131,7 +7131,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7146,7 +7146,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7156,7 +7156,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7165,18 +7165,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7186,7 +7186,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7201,7 +7201,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7211,7 +7211,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7226,7 +7226,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7236,7 +7236,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7245,18 +7245,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7266,7 +7266,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7281,7 +7281,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7291,7 +7291,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7306,7 +7306,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7316,7 +7316,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7325,18 +7325,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7346,7 +7346,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7361,7 +7361,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7371,7 +7371,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7386,7 +7386,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7396,7 +7396,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7405,20 +7405,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7429,7 +7429,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7444,7 +7444,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7455,7 +7455,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7470,7 +7470,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7481,7 +7481,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7490,20 +7490,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7514,7 +7514,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7529,7 +7529,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7540,7 +7540,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7555,7 +7555,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7566,7 +7566,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7575,20 +7575,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7599,7 +7599,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -7614,7 +7614,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7625,7 +7625,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -7640,7 +7640,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7651,7 +7651,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -7660,7 +7660,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --noprivileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --noprivileged
@@ -7811,7 +7811,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --noprivileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --noprivileged --restricted
@@ -7887,7 +7887,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --noprivileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --noprivileged --norc
@@ -8038,7 +8038,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --noprivileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --noprivileged --norc --restricted
@@ -8114,7 +8114,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --noprivileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -8287,7 +8287,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --noprivileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -8374,11 +8374,11 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8439,11 +8439,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8504,11 +8504,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8569,11 +8569,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8634,11 +8634,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8699,11 +8699,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8764,11 +8764,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8829,11 +8829,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8894,11 +8894,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8959,18 +8959,18 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8980,7 +8980,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -8995,7 +8995,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9005,7 +9005,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9020,7 +9020,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9030,7 +9030,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9039,18 +9039,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9060,7 +9060,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9075,7 +9075,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9085,7 +9085,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9100,7 +9100,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9110,7 +9110,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9119,18 +9119,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9140,7 +9140,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9155,7 +9155,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9165,7 +9165,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9180,7 +9180,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9190,7 +9190,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9199,18 +9199,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9220,7 +9220,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9235,7 +9235,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9245,7 +9245,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9260,7 +9260,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9270,7 +9270,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9279,18 +9279,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9300,7 +9300,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9315,7 +9315,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9325,7 +9325,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9340,7 +9340,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9350,7 +9350,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9359,18 +9359,18 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9380,7 +9380,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9395,7 +9395,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9405,7 +9405,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:euid:setuid:euid==ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9420,7 +9420,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9430,7 +9430,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:0
 ksh:REGRESS:egid:setgid:egid==rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9439,20 +9439,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9463,7 +9463,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9478,7 +9478,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9489,7 +9489,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9504,7 +9504,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9515,7 +9515,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9524,20 +9524,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9548,7 +9548,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9563,7 +9563,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9574,7 +9574,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9589,7 +9589,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9600,7 +9600,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9609,20 +9609,20 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9633,7 +9633,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -9648,7 +9648,7 @@ ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9659,7 +9659,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -9674,7 +9674,7 @@ ksh:REGRESS:egid:__regress__:1
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9685,7 +9685,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --nologin --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -9694,7 +9694,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --noprivileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --noprivileged
@@ -9845,7 +9845,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --noprivileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --noprivileged --restricted
@@ -9921,7 +9921,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --noprivileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --noprivileged --norc
@@ -10072,7 +10072,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --noprivileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --noprivileged --norc --restricted
@@ -10148,7 +10148,7 @@ ksh:REGRESS:egid:getegid:egid!=rgid
 ksh:REGRESS:p_suid:SHOPT_P_SUID:99999'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --noprivileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -10321,7 +10321,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --noprivileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
@@ -10408,11 +10408,11 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10473,11 +10473,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10538,11 +10538,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10603,11 +10603,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10668,11 +10668,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10733,11 +10733,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10798,11 +10798,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10863,11 +10863,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10928,11 +10928,11 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --nologin --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --nologin --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -10993,7 +10993,7 @@ ksh:REGRESS:p_suid:__regress__:99999
 ksh:REGRESS:egid:getegid:egid!=rgid'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11002,7 +11002,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11011,7 +11011,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11025,7 +11025,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11044,7 +11044,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11058,7 +11058,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11077,7 +11077,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11091,7 +11091,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11102,7 +11102,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11111,7 +11111,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11120,7 +11120,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11134,7 +11134,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11153,7 +11153,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11167,7 +11167,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11186,7 +11186,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11200,7 +11200,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11211,7 +11211,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11220,7 +11220,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11229,7 +11229,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11243,7 +11243,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11262,7 +11262,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11276,7 +11276,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11295,7 +11295,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11309,7 +11309,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11320,7 +11320,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11329,7 +11329,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11338,7 +11338,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11352,7 +11352,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11371,7 +11371,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11385,7 +11385,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11404,7 +11404,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11418,7 +11418,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11429,7 +11429,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11438,7 +11438,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11447,7 +11447,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11461,7 +11461,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11480,7 +11480,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11494,7 +11494,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11513,7 +11513,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11527,7 +11527,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11538,7 +11538,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11547,7 +11547,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11556,7 +11556,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11570,7 +11570,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11589,7 +11589,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11603,7 +11603,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11622,7 +11622,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11636,7 +11636,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11647,7 +11647,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11657,7 +11657,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11666,7 +11666,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11681,7 +11681,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11700,7 +11700,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11715,7 +11715,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11734,7 +11734,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11749,7 +11749,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11760,7 +11760,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11770,7 +11770,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11779,7 +11779,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11794,7 +11794,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11813,7 +11813,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11828,7 +11828,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11847,7 +11847,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11862,7 +11862,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11873,7 +11873,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -11883,7 +11883,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11892,7 +11892,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11907,7 +11907,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -11926,7 +11926,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11941,7 +11941,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -11960,7 +11960,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11975,7 +11975,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --nointeractive --login --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -11986,7 +11986,7 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --noprivileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -12219,7 +12219,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --noprivileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -12336,7 +12336,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --noprivileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -12569,7 +12569,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --noprivileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -12686,7 +12686,7 @@ ksh:REGRESS:source:sh_source:./.profile:ENOENT
 ksh:REGRESS:source:sh_source:.profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --noprivileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -12939,7 +12939,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --noprivileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -13066,14 +13066,14 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13152,14 +13152,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13238,14 +13238,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13324,14 +13324,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --norc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --norc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13410,14 +13410,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --norc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13496,14 +13496,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --norc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13582,14 +13582,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --rc
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --rc
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13668,14 +13668,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --rc --norestricted
-		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13754,14 +13754,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --nointeractive --login --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --nointeractive --login --privileged --rc --restricted
-		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi --viraw'
+		OUTPUT - 'set --default --braceexpand --privileged --restricted --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13840,14 +13840,14 @@ ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
 ksh:REGRESS:source:sh_source:/etc/profile:ENOENT'
 
 	EXEC	--regress=etc=. --regress=source --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13857,7 +13857,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13869,7 +13869,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13890,7 +13890,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -13902,7 +13902,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -13923,7 +13923,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -13935,7 +13935,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -13947,14 +13947,14 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13964,7 +13964,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13976,7 +13976,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -13997,7 +13997,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14009,7 +14009,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14030,7 +14030,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14042,7 +14042,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14054,7 +14054,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -14062,7 +14062,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14072,7 +14072,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14085,7 +14085,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14106,7 +14106,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14119,7 +14119,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14140,7 +14140,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14153,7 +14153,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14165,11 +14165,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14179,7 +14179,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14190,7 +14190,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14211,7 +14211,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14222,7 +14222,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14243,7 +14243,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14254,7 +14254,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14266,11 +14266,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14280,7 +14280,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14291,7 +14291,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14312,7 +14312,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14323,7 +14323,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14344,7 +14344,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14355,7 +14355,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14367,12 +14367,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14382,7 +14382,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14394,7 +14394,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14415,7 +14415,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14427,7 +14427,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14448,7 +14448,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14460,7 +14460,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14472,14 +14472,14 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14489,7 +14489,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14501,7 +14501,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14522,7 +14522,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14534,7 +14534,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14555,7 +14555,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14567,7 +14567,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14579,14 +14579,14 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14596,7 +14596,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14608,7 +14608,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14629,7 +14629,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14641,7 +14641,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14662,7 +14662,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14674,7 +14674,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14686,7 +14686,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -14694,7 +14694,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14704,7 +14704,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14717,7 +14717,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -14738,7 +14738,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14751,7 +14751,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -14772,7 +14772,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14785,7 +14785,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -14797,7 +14797,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --noprivileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -14990,7 +14990,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --noprivileged --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -15087,7 +15087,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --noprivileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --noprivileged --norc
@@ -15256,7 +15256,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --noprivileged --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --noprivileged --norc --restricted
@@ -15341,7 +15341,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --noprivileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -15534,7 +15534,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --noprivileged --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -15631,11 +15631,11 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -15723,11 +15723,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -15815,12 +15815,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -15908,11 +15908,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16000,11 +16000,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16092,12 +16092,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16185,11 +16185,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16277,11 +16277,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16369,12 +16369,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --privileged --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --privileged --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16462,14 +16462,14 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16479,7 +16479,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16491,7 +16491,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16512,7 +16512,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16524,7 +16524,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16545,7 +16545,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16557,7 +16557,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16569,14 +16569,14 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16586,7 +16586,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16598,7 +16598,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16619,7 +16619,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16631,7 +16631,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16652,7 +16652,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16664,7 +16664,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16676,7 +16676,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -16684,7 +16684,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16694,7 +16694,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16707,7 +16707,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16728,7 +16728,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16741,7 +16741,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16762,7 +16762,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16775,7 +16775,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16787,11 +16787,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16801,7 +16801,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16812,7 +16812,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16833,7 +16833,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16844,7 +16844,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16865,7 +16865,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16876,7 +16876,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16888,11 +16888,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16902,7 +16902,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16913,7 +16913,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -16934,7 +16934,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16945,7 +16945,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -16966,7 +16966,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16977,7 +16977,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -16989,12 +16989,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17004,7 +17004,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17016,7 +17016,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17037,7 +17037,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17049,7 +17049,7 @@ ksh:REGRESS:euid:setuid:euid==ruid
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17070,7 +17070,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17082,7 +17082,7 @@ ksh:REGRESS:egid:setgid:egid==rgid
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17094,14 +17094,14 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17111,7 +17111,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17123,7 +17123,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17144,7 +17144,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17156,7 +17156,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17177,7 +17177,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17189,7 +17189,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17201,14 +17201,14 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17218,7 +17218,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17230,7 +17230,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17251,7 +17251,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17263,7 +17263,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17284,7 +17284,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17296,7 +17296,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17308,7 +17308,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -17316,7 +17316,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17326,7 +17326,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --nologin --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17339,7 +17339,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --nologin --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -17360,7 +17360,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --nologin --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17373,7 +17373,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --nologin --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -17394,7 +17394,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --nologin --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17407,7 +17407,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --nologin --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -17419,7 +17419,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --noprivileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -17612,7 +17612,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --noprivileged --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -17709,7 +17709,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --noprivileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --noprivileged --norc
@@ -17878,7 +17878,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --noprivileged --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --noprivileged --norc --restricted
@@ -17963,7 +17963,7 @@ ksh:REGRESS:p_suid:SHOPT_P_SUID:99999
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --noprivileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -18156,7 +18156,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --noprivileged --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:source:sh_source:.env.sh:ENOENT
@@ -18253,11 +18253,11 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18345,11 +18345,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18437,12 +18437,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18530,11 +18530,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18622,11 +18622,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18714,12 +18714,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18807,11 +18807,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18899,11 +18899,11 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -18991,12 +18991,12 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --nologin --privileged --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.\nksh:REGRESS:source:__regress__:on\n'
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --nologin --privileged --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19084,7 +19084,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -19095,7 +19095,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19107,7 +19107,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19123,7 +19123,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19148,7 +19148,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19164,7 +19164,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19189,7 +19189,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19205,7 +19205,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19219,7 +19219,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -19230,7 +19230,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19242,7 +19242,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19258,7 +19258,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19283,7 +19283,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19299,7 +19299,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19324,7 +19324,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19340,7 +19340,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19354,7 +19354,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -19366,7 +19366,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19378,7 +19378,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19395,7 +19395,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19420,7 +19420,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19437,7 +19437,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19462,7 +19462,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19479,7 +19479,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19493,7 +19493,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -19503,7 +19503,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19515,7 +19515,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19530,7 +19530,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19555,7 +19555,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19570,7 +19570,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19595,7 +19595,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19610,7 +19610,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19624,7 +19624,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -19634,7 +19634,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19646,7 +19646,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19661,7 +19661,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19686,7 +19686,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19701,7 +19701,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19726,7 +19726,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19741,7 +19741,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19755,7 +19755,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -19766,7 +19766,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19778,7 +19778,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19794,7 +19794,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19819,7 +19819,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19835,7 +19835,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19860,7 +19860,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19876,7 +19876,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -19890,7 +19890,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -19901,7 +19901,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19913,7 +19913,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19929,7 +19929,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -19954,7 +19954,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19970,7 +19970,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -19995,7 +19995,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -20011,7 +20011,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -20025,7 +20025,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -20036,7 +20036,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -20048,7 +20048,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -20064,7 +20064,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -20089,7 +20089,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -20105,7 +20105,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -20130,7 +20130,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -20146,7 +20146,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -20160,7 +20160,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -20172,7 +20172,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -20184,7 +20184,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=0 --interactive --login --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -20201,7 +20201,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --regress=p_suid=99999 --interactive --login --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -20226,7 +20226,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=0 --interactive --login --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -20243,7 +20243,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=1 --regress=p_suid=99999 --interactive --login --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:1
@@ -20268,7 +20268,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=0 --interactive --login --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -20285,7 +20285,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=egid=1 --regress=p_suid=99999 --interactive --login --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:egid:__regress__:1
@@ -20299,7 +20299,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --noprivileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -20572,7 +20572,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --noprivileged --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -20709,7 +20709,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --noprivileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -20962,7 +20962,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --noprivileged --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21089,7 +21089,7 @@ ksh:REGRESS:source:sh_source:.profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --noprivileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21362,7 +21362,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --noprivileged --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21499,7 +21499,7 @@ ksh:REGRESS:source:sh_source:.env.sh:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21507,7 +21507,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -21613,7 +21613,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21621,7 +21621,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -21727,7 +21727,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21736,7 +21736,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -21842,7 +21842,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21850,7 +21850,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --norc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -21956,7 +21956,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -21964,7 +21964,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --norc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -22070,7 +22070,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --norc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -22079,7 +22079,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --norc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -22185,7 +22185,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -22193,7 +22193,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --rc
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -22299,7 +22299,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -22307,7 +22307,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --rc --norestricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -22413,7 +22413,7 @@ ksh:REGRESS:source:sh_source:/etc/suid_profile:ENOENT
 '
 
 	EXEC	--regress=etc=. --regress=source --interactive --login --privileged --rc --restricted
-		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi --viraw'
+		OUTPUT - 'set --default --bgnice --braceexpand --monitor --restricted --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:etc:sh_open:/etc/profile => ./profile
@@ -22422,7 +22422,7 @@ ksh:REGRESS:source:sh_source:/etc/profile:ENOENT
 
 	EXEC	--regress=etc=. --regress=source --regress=euid=0 --interactive --login --privileged --rc --restricted
 		OUTPUT - 'set --default --bgnice --braceexpand --monitor --privileged --restricted --v'\
-'i --viraw'
+'i'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:source:__regress__:on
 ksh:REGRESS:euid:__regress__:0
@@ -22532,10 +22532,10 @@ TEST 02 'privileged/noprivileged sequence'
 	EXEC	--regress=etc=. --regress=euid=1 --privileged
 		INPUT - 'set --state; set --noprivileged; set --state; set --privileged; set --state;'\
 ' set --noprivileged; set --state'
-		OUTPUT - $'set --default --braceexpand --privileged --trackall --vi --viraw
-set --default --braceexpand --trackall --vi --viraw
-set --default --braceexpand --privileged --trackall --vi --viraw
-set --default --braceexpand --trackall --vi --viraw'
+		OUTPUT - $'set --default --braceexpand --privileged --trackall --vi
+set --default --braceexpand --trackall --vi
+set --default --braceexpand --privileged --trackall --vi
+set --default --braceexpand --trackall --vi'
 		ERROR - $'ksh:REGRESS:etc:__regress__:.
 ksh:REGRESS:euid:__regress__:1
 ksh:REGRESS:euid:geteuid:euid!=ruid
