@@ -81,6 +81,9 @@ typedef struct edit
 	int	e_lookahead;	/* index in look-ahead buffer */
 	int	e_fcol;		/* first column */
 	int	e_wsize;	/* width of display window */
+#if SHOPT_MULTIBYTE
+	int	e_savedwidth;	/* saved width of a character */
+#endif /* SHOPT_MULTIBYTE */
 	char	*e_outbase;	/* pointer to start of output buffer */
 	char	*e_outptr;	/* pointer to position in output buffer */
 	char	*e_outlast;	/* pointer to end of output buffer */

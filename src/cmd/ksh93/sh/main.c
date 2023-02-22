@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -417,10 +417,7 @@ static void	exfile(register Sfio_t *iop,register int fno)
 	else
 	{
 		if(!sh_isstate(SH_PROFILE))
-		{
 			buff.mode = SH_JMPEXIT;
-			sh_onoption(SH_TRACKALL);
-		}
 		if(sh_isoption(SH_MONITOR))
 			sh_onstate(SH_MONITOR);
 		sh_offstate(SH_HISTORY);

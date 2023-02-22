@@ -1117,5 +1117,49 @@ w t
 u Correct
 !
 
+((SHOPT_ESH)) && mkdir -p fullcomplete/foe && VISUAL=emacs tst $LINENO <<"!"
+L full-word completion in emacs mode
+# https://github.com/ksh93/ksh/pull/580
+
+d 15
+p :test-1:
+w true fullcomplete/foi\cb\t
+r ^:test-1: true fullcomplete/foi\r\n
+p :test-2:
+w true fullcomplete/foi\cb=
+r ^:test-2: true fullcomplete/foi\r\n
+p :test-3:
+w true fullcomplete/foi\cb*
+r ^:test-3: true fullcomplete/foi\r\n
+!
+
+((SHOPT_VSH)) && mkdir -p fullcomplete/fov && VISUAL=vi tst $LINENO <<"!"
+L full-word completion in vi mode
+# https://github.com/ksh93/ksh/pull/580
+
+d 15
+p :test-1:
+w true fullcomplete/foi\Eh\\a
+r ^:test-1: true fullcomplete/foi\r\n
+p :test-2:
+w true fullcomplete/foi\Eh=a
+r ^:test-2: true fullcomplete/foi\r\n
+p :test-3:
+w true fullcomplete/foi\Eh*a
+r ^:test-3: true fullcomplete/foi\r\n
+!
+
+((SHOPT_VSH && SHOPT_MULTIBYTE)) &&
+[[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+mkdir -p vitest/aあb && VISUAL=vi tst $LINENO <<"!"
+L vi completion from wide produces corrupt characters
+# https://github.com/ksh93/ksh/issues/571
+
+d 15
+p :test-1:
+w cd vitest/aあ\t
+r ^:test-1: cd vitest/aあb/\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

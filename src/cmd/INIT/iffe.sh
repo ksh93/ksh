@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -33,11 +33,15 @@ esac
 set -o noglob
 
 command=iffe
-version=2022-01-09
+version=2023-02-21
 
 compile() # $cc ...
 {
-	"$@" 2>$tmp.err
+	case $debug in
+	1)	# level 1 doesn't xtrace, but compiler command lines are useful
+		(set -x; "$@") ;;
+	*)	"$@" ;;
+	esac 2>$tmp.err
 	_compile_status=$?
 	if	test -s $tmp.err
 	then	cat $tmp.err >&2
@@ -675,7 +679,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 	upper case. \b--config\b is set by default if the command arguments
 	contain a \brun\b op on an input file with the base name \bconfig\b.]
 [d:debug?Sets the debug level. Level 0 inhibits most
-	error messages, level 1 shows compiler messages, and
+	error messages, level 1 shows compiler command lines and messages, and
 	level 2 traces internal \biffe\b \bsh\b(1) actions and does
 	not remove core dumps on exit.]#[level]
 [D:define?Successful test macro definitions are emitted. This is the default.]

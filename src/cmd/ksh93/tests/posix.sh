@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2022-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2022-2023 Contributors to ksh 93u+m           #
 #                    <https://github.com/ksh93/ksh>                    #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
@@ -220,8 +220,8 @@ got=$(set --noposix; PATH=.:$PATH; source scrunction)
 # https://github.com/ksh93/ksh/issues/330
 test ! -a "" && err_exit "POSIX test/[: binary -a operator does not work with '!' as left-hand expression"
 test \( -a \) 2>/dev/null || err_exit "POSIX test/[: binary -a operator does not work with '(' as left-hand expression"
-(set --trackall; test ! -o trackall) || err_exit "POSIX test/[: binary -o operator does not work with '!' as left-hand expression"
-(set --noposix --trackall; test ! -o trackall) && err_exit "ksh test/[: unary -o operator does not work with '!' negator"
+(set --allexport; test ! -o allexport) || err_exit "POSIX test/[: binary -o operator does not work with '!' as left-hand expression"
+(set --noposix --allexport; test ! -o allexport) && err_exit "ksh test/[: unary -o operator does not work with '!' negator"
 test \( -o \) 2>/dev/null || err_exit "POSIX test/[: binary -o operator does not work with '(' as left-hand expression"
 
 # disables a hack that makes test -t ([ -t ]) equivalent to test -t 1 ([ -t 1 ]).

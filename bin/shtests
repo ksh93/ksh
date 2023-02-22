@@ -1,4 +1,3 @@
-#! /bin/sh
 # Wrapper script to run the ksh93 regression tests without requiring nmake.
 # By Martijn Dekker <martijn@inlv.org> 2020-05-14
 # Public domain. http://creativecommons.org/publicdomain/zero/1.0/

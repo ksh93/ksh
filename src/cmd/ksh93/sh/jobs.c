@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -553,9 +553,6 @@ void job_init(int lflag)
 	if(job.linedisc!=NTTYDISC && job.linedisc!=OTTYDISC)
 	{
 		/* no job control when running with MPX */
-#   if SHOPT_VSH
-		sh_onoption(SH_VIRAW);
-#   endif /* SHOPT_VSH */
 		return;
 	}
 	if(job.linedisc==NTTYDISC)

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1598,6 +1598,25 @@ do	case $bltin in
 	got=$({ "$bltin" --version; } 2>&1)  # the extra { } are needed for 'redirect'
 	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --version (got $(printf %q "$got"))"
 done 3< <(builtin)
+
+# ======
+# https://github.com/ksh-community/ksh/issues/19
+# https://github.com/ksh93/ksh/issues/602
+cd /
+cd
+[[ $PWD == "$HOME" ]] || err_exit "'cd' does not chdir to \$HOME"
+
+HOME=/dev cd
+[[ $PWD == /dev ]] || err_exit "'cd' does not chdir to \$HOME (preceding assignment)"
+
+function fn
+{
+	typeset HOME=/tmp
+	cd
+}
+fn
+unset -f fn
+[[ $PWD == /tmp ]] || err_exit "'cd' does not chdir to \$HOME (local assignment)"
 
 # ======
 exit $((Errors<125?Errors:125))

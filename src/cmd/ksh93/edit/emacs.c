@@ -762,7 +762,7 @@ static void putstring(Emacs_t* ep,register char *sp)
 static int escape(register Emacs_t* ep,register genchar *out,int count)
 {
 	register int i,value;
-	int digit,ch,c,d;
+	int digit,ch,c,d,savecur;
 	digit = 0;
 	value = 0;
 	while ((i=ed_getchar(ep->ed,0)),digit(i))
@@ -965,11 +965,15 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 				beep();
 				return(-1);
 			}
+			savecur = cur;
+			while(isword(cur))
+				cur++;
 			ch = i;
 			if(i=='\\' && out[cur-1]=='/')
 				i = '=';
 			if(ed_expand(ep->ed,(char*)out,&cur,&eol,ch,count) < 0)
 			{
+				cur = savecur;
 				if(ep->ed->e_tabcount==1)
 				{
 					ep->ed->e_tabcount=2;
@@ -980,6 +984,8 @@ static int escape(register Emacs_t* ep,register genchar *out,int count)
 			}
 			else if(i=='=' || (i=='\\' && out[cur-1]=='/'))
 			{
+				if(ch == '=' && count == -1 && ep->ed->e_nlist > 1)
+					cur = savecur;
 				draw(ep,REFRESH);
 				if(count>0 || i=='\\')
 					ep->ed->e_tabcount=0;

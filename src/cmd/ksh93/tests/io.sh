@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -786,8 +786,10 @@ got=$(export tmp; "$SHELL" -ec \
 	}
 	consumer <(producer) > /dev/null
 } & pid=$!
-(sleep 5; kill -HUP $pid) 2> /dev/null &
+(sleep 15; kill -HUP $pid) 2> /dev/null &
+pid2=$!
 wait $pid 2> /dev/null || err_exit "process substitution hangs"
+kill $pid2 2> /dev/null
 
 # ======
 # Test for looping or lingering process substitution processes
@@ -1000,6 +1002,13 @@ got=$(set +x; eval 'cat >out <(echo OK)' 2>&1; echo ===; cat out)
 exp=$'===\nOK'
 [[ $got == "$exp" ]] || err_exit "process substitution nixes output redirection" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/591
+(ulimit -n 2147483648; "$SHELL" --version) 2>/dev/null
+let "$? < 128" || err_exit "crash on huge RLIMIT_NOFILE"
+(ulimit -n 8; "$SHELL" --version) 2>/dev/null
+let "$? < 128" || err_exit "crash on tiny RLIMIT_NOFILE"
 
 # ======
 exit $((Errors<125?Errors:125))

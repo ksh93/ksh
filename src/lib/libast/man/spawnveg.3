@@ -70,10 +70,11 @@ controls the new process group and session:
 .TP
 .L -1
 The new process becomes a session leader.
-It is called in the child context.
+.IR setsid (2)
+is called in the child context.
 .TP
 .L 0
-The new process is in the callers process group.
+The new process is in the caller's process group.
 .TP
 .L 1
 The new process becomes a process group leader.

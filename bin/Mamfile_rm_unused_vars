@@ -1,4 +1,3 @@
-#!/usr/bin/env sh
 IFS=''; set -fCu  # safe mode: no split/glob = no quoting headaches
 CCn='
 '  # newline

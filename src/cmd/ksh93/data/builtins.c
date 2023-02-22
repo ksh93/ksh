@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -214,7 +214,6 @@ const char sh_set[] =
 	"[++?contained in the pipeline following \b!\b.]"
 "}"
 "[f?Pathname expansion is disabled.]"
-"[h?Obsolete; no effect.]"
 "[k?All arguments of the form \aname\a\b=\b\avalue\a "
 	"are removed and placed in the variable assignment list for "
 	"the command.  Ordinarily, variable assignments must precede "
@@ -296,7 +295,6 @@ const char sh_set[] =
 		"[+multiline?Use multiple lines when editing lines that are "
 			"longer than the window width.]"
 #endif
-		"[+log?Obsolete; has no effect.]"
 		"[+notify?Equivalent to \b-b\b.]"
 		"[+pipefail?A pipeline will not complete until all components "
 			"of the pipeline have completed, and the exit status "
@@ -307,13 +305,10 @@ const char sh_set[] =
 		"[+privileged?Equivalent to \b-p\b.]"
 		"[+showme?Simple commands preceded by a \b;\b will be traced "
 			"as if \b-x\b were enabled but not executed.]"
-		"[+trackall?Equivalent to \b-h\b.]"
 		"[+unset?Opposite of \b-u\b.]"
 		"[+verbose?Equivalent to \b-v\b.]"
 #if SHOPT_VSH
 		"[+vi?Enables/disables \bvi\b editing mode.]"
-		"[+viraw?Does not use canonical input mode when using \bvi\b "
-			"edit mode.]"
 #endif
 		"[+xtrace?Equivalent to \b-x\b.]"
 	"}"
@@ -493,7 +488,7 @@ const char sh_optbuiltin[] =
 ;
 
 const char sh_optcd[] =
-"[-1c?\n@(#)$Id: cd (ksh 93u+m) 2021-12-05 $\n]"
+"[-1c?\n@(#)$Id: cd (ksh 93u+m) 2023-02-16 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?cd - change working directory ]"
 "[+DESCRIPTION?\bcd\b changes the current working directory of the "
@@ -502,7 +497,7 @@ const char sh_optcd[] =
 	"\b/\b, or if the first component is \b.\b or \b..\b, the "
 	"directory will be changed to this directory.  If directory is \b-\b, "
 	"the directory will be changed to the last directory visited.  " 
-	"Otherwise, if the \bCDPATH\b environment variable is set, \bcd\b "
+	"Otherwise, if the \bCDPATH\b variable is set, \bcd\b "
 	"searches for \adirectory\a relative to each directory named in "
 	"the colon separated list of directories defined by \bCDPATH\b.  "
 	"If \bCDPATH\b not set, \bcd\b changes to the directory specified "
@@ -511,14 +506,13 @@ const char sh_optcd[] =
 	"contained in the pathname of the present working directory "
 	"is replaced by the string \anew\a and the resulting string "
 	"is used as the directory to which to change.]"
-"[+?When invoked without operands and when the \bHOME\b environment "
-	"variable is set to a nonempty value, the directory named by "
-	"the \bHOME\b environment variable will be used.  If \bHOME\b "
-	"is empty or unset, \bcd\b will fail.]"
-"[+?When \bcd\b is successful, the \bPWD\b environment variable will be set "
+"[+?When invoked without operands and when the \bHOME\b variable is set to a "
+	"nonempty value, the directory named by \bHOME\b will be used. "
+	"If \bHOME\b is empty or unset, \bcd\b will fail.]"
+"[+?When \bcd\b is successful, the \bPWD\b variable will be set "
 	"to the name of an absolute pathname that does not contain any "
 	"\b..\b components corresponding to the new directory.  The "
-	"environment variable \bOLDPWD\b will be set to the previous "
+	"variable \bOLDPWD\b will be set to the previous "
 	"value of \bPWD\b.  If the new directory is found by searching "
 	"the directories named by \bCDPATH\b, or if \adirectory\a is \b-\b, "
 	"or if the two operand form is used, the new value of \bPWD\b will be "
