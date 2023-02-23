@@ -20,7 +20,7 @@ make install
 	make dll
 		make libdll.a archive
 			make dll.req
-				exec - set -
+				exec - set +v +x
 				exec - echo 'int main(){return 0;}' > 1.${COTEMP}.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c 1.${COTEMP}.c &&
 				exec - x=`${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l'*' 2>&1 | sed -e 's/[][()+@?]/#/g' || :` &&

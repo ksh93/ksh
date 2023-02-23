@@ -285,6 +285,9 @@ int ed_viread(void *context, int fd, register char *shbuf, int nchar, int reedit
 		if(!yankbuf)
 			return(-1);
 		*yankbuf = 0;
+		if(!vp->lastline)
+			return(-1);
+		*vp->lastline = 0;
 	}
 
 	/*** fiddle around with prompt length ***/

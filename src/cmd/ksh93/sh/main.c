@@ -554,12 +554,18 @@ static void	exfile(register Sfio_t *iop,register int fno)
 					else if(job_close()<0)
 						continue;
 				}
-				else if(sferr==SH_EXITSIG)
+				else if(errno)
 				{
 					/* Ctrl+C with SIGINT ignored */
 					sfputc(sfstderr,'\n');
 					continue;
 				}
+			}
+			else if(errno && sferr)
+			{
+				/* Error reading from running script; panic */
+				errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,e_readscript);
+				UNREACHABLE();
 			}
 			if(errno==0 && sferr && --maxtry>0)
 			{

@@ -20,36 +20,34 @@ make install
 	make cmd
 		make libcmd.a archive
 			make cmd.req
-				exec - set -
+				exec - set +v +x
 				exec - echo 'int main(){return 0;}' > 1.${COTEMP}.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c 1.${COTEMP}.c &&
-				exec - x=`${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l'*' 2>&1 | sed -e 's/[][()+@?]/#/g' || :` &&
+				note * Obtain error message for library not found by linking to a library called '*';
+				note * the '*' will be repeated in the error message and serve as a wildcard for 'case' below
+				exec - x=$(${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l'*' 2>&1 | sed -e 's/[][()+@?]/#/g' || :) &&
 				exec - {
-				exec - case "" in
-				exec - *?) echo " " ;;
-				exec - esac
-				exec - for i in cmd fsg md util ast
-				exec - do case $i in
-				exec - "cmd"|cmd)
-				exec - ;;
-				exec - *) if test -f ${INSTALLROOT}/lib/lib/$i
-				exec - then y=`cat ${INSTALLROOT}/lib/lib/$i`
-				exec - case $y in
-				exec - *-?*) echo "" $y ;;
-				exec - esac
-				exec - continue
-				exec - elif test ! -f ${INSTALLROOT}/lib/lib$i.a
-				exec - then case `{ ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -L${INSTALLROOT}/lib ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :` in
-				exec - *$x*) case `{ ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :` in
-				exec - *$x*) continue ;;
-				exec - esac
-				exec - ;;
-				exec - esac
-				exec - fi
-				exec - ;;
-				exec - esac
-				exec - echo " -l$i"
-				exec - done
+				exec -	for i in cmd fsg md util ast
+				exec -	do	case $i in
+				exec -		"cmd")	;;
+				exec -		*)	if test -f ${INSTALLROOT}/lib/lib/$i
+				exec -			then	y=$(cat ${INSTALLROOT}/lib/lib/$i)
+				exec -				case $y in
+				exec -				*-?*)	echo "" $y ;;
+				exec -				esac
+				exec -				continue
+				exec -			elif	test ! -f ${INSTALLROOT}/lib/lib$i.a
+				exec -			then	case $({ ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -L${INSTALLROOT}/lib ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 && ./1.${COTEMP}.x || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :) in
+				exec -				*$x*)	case $({ ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l$i 2>&1 && ./1.${COTEMP}.x || echo '' "$x" ;} | sed -e 's/[][()+@?]/#/g' || :) in
+				exec -					*$x*)	continue ;;
+				exec -					esac
+				exec -					;;
+				exec -				esac
+				exec -			fi
+				exec -			;;
+				exec -		esac
+				exec -		echo " -l$i"
+				exec -	done
 				exec - } > cmd.req
 				exec - rm -f 1.${COTEMP}.*
 			done cmd.req generated

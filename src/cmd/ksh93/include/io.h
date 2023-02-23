@@ -97,6 +97,7 @@ extern const char	e_formspec[];
 extern const char	e_badregexp[];
 extern const char	e_open[];
 extern const char	e_notseek[];
+extern const char	e_readscript[];
 extern const char	e_noread[];
 extern const char	e_badseek[];
 extern const char	e_badwrite[];

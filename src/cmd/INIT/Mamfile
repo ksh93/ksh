@@ -584,7 +584,7 @@ make install
 		make dl.req
 			make dl.c
 			done dl.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in dl.c
 			exec - do if ${CC} -c $i > /dev/null
@@ -614,7 +614,7 @@ make install
 		make iconv.req
 			make iconv.c
 			done iconv.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in iconv.c
 			exec - do if ${CC} -c $i > /dev/null
@@ -646,7 +646,7 @@ make install
 			done w.c
 			make w2.c
 			done w2.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in w.c w2.c
 			exec - do if ${CC} -c $i > /dev/null
@@ -676,7 +676,7 @@ make install
 		make intl.req
 			make intl.c
 			done intl.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in intl.c
 			exec - do if ${CC} -c $i > /dev/null
@@ -716,7 +716,7 @@ make install
 			done m5.c
 			make m6.c
 			done m6.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in m.c m2.c m3.c m4.c m5.c m6.c
 			exec - do if ${CC} -c $i > /dev/null
@@ -746,7 +746,7 @@ make install
 		make nsl.req
 			make nsl.c
 			done nsl.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in nsl.c
 			exec - do if ${CC} -c $i > /dev/null
@@ -777,7 +777,7 @@ make install
 			make socket.c
 			done socket.c
 			prev nsl.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in socket.c nsl.c
 			exec - do if ${CC} -c $i > /dev/null
@@ -817,7 +817,7 @@ make install
 				make ndbm.h implicit
 				done ndbm.h dontcare virtual
 			done gdbm2.c
-			exec - set -
+			exec - set +v +x
 			exec - r='-'
 			exec - for i in db.c gdbm.c gdbm1.c gdbm2.c
 			exec - do if ${CC} -c $i > /dev/null

@@ -70,6 +70,7 @@ const char e_pipe[]		= "cannot create pipe";
 const char e_alarm[]		= "cannot set alarm";
 const char e_open[]		= "%s: cannot open";
 const char e_notseek[]		= "%s: not seekable";
+const char e_readscript[]	= "read from script failed";
 const char e_badseek[]		= "%s: invalid seek offset";
 const char e_badpattern[]	= "%s: invalid shell pattern";
 const char e_noread[]		= "%s: pattern seek requires read access";

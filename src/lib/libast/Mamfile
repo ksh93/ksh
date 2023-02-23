@@ -324,7 +324,7 @@ make install
 				exec - rm -rf dirent.h iconv.h nl_types.h stdio.h wchar.h wctype.h ast_hdr.h ast_types.h ast_unistd.h iffeio.h \
 				exec - ${INSTALLROOT}/include/ast/limits.h ${INSTALLROOT}/include/ast/unistd.h \
 				exec - ${PACKAGEROOT}/src/lib/libast/std/limits.h
-				exec - set -
+				exec - set +v +x
 				exec - echo 'int main(){return 0;}' > 1.${COTEMP}.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c 1.${COTEMP}.c &&
 				exec - x=`${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o 1.${COTEMP}.x 1.${COTEMP}.o -l'*' 2>&1 | sed -e 's/[][()+@?]/#/g' || :` &&

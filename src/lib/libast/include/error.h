@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -31,7 +31,7 @@
 #include <option.h>
 #include <errno.h>
 
-#define ERROR_VERSION	20070319L
+#define ERROR_VERSION	20230222L
 
 #if !defined(errno) && defined(__DYNAMIC__)
 #define errno		__DYNAMIC__(errno)
@@ -60,7 +60,7 @@
 #define ERROR_FATAL	3		/* error message with err_exit	*/
 #define ERROR_NOEXEC	EXIT_NOEXEC	/* shell convention		*/
 #define ERROR_NOENT	EXIT_NOTFOUND	/* shell convention		*/
-#define ERROR_PANIC	77		/* panic message with err_exit	*/
+#define ERROR_PANIC	130		/* panic message with err_exit	*/
 
 #define ERROR_LEVEL	0x00ff		/* level portion of status	*/
 #define ERROR_SYSTEM	0x0100		/* report system errno message	*/
