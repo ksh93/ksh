@@ -2,6 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2023-02-22:
+
+- ksh now throws a panic and exits if a read error (such as an I/O error)
+  occurs while trying to read the next command(s) from a running script.
+  Previously, ksh acted as if EOF was reached, and the script ended normally.
+
+- The '.' and 'source' commands now throw an error if a dot script can be only
+  partially read, instead of ignoring the error. As ksh reads the entire dot
+  script before running it, no part of the script is executed in that case.
+
 2023-02-20:
 
 - The obsolete -h/--trackall and --nolog shell options have been removed.

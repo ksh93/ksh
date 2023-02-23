@@ -640,7 +640,14 @@ int sh_eval(register Sfio_t *iop, int mode)
 			if(traceon=sh_isoption(SH_XTRACE))
 				sh_offoption(SH_XTRACE);
 		}
+		/* Read and parse the entire script into one node before executing */
 		t = (Shnode_t*)sh_parse(iop,(mode&(SH_READEVAL|SH_FUNEVAL))?mode&SH_FUNEVAL:SH_NL);
+		if(errno && sferror(iop))
+		{
+			/* Error reading, presumably from dot script file */
+			errormsg(SH_DICT,ERROR_system(1),e_readscript);
+			UNREACHABLE();
+		}
 		if(!(mode&SH_FUNEVAL) || !sfreserve(iop,0,0))
 		{
 			if(!(mode&SH_READEVAL))
