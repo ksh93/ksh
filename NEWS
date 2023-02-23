@@ -7,6 +7,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a crash or corrupted output that occurred on some systems if the vi
   '.' repeater command was used immediately after starting ksh in vi mode.
 
+- In vi mode, when navigating back in the command history and then editing a
+  line from the history, the U command now correctly undoes the latest edit
+  to the history line instead of jumping back to the current command line.
+
 2023-02-22:
 
 - ksh now throws a panic and exits if a read error (such as an I/O error)
