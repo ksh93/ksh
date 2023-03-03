@@ -7,6 +7,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed an intermittent crash in 'command -x' experienced on some arm/arm64
   systems running Linux.
 
+- Fixed a bug that caused 'printf "%(%Z)T\n" now' to print nonsense strings
+  such as 'ica' on Cygwin.
+
 2023-03-24:
 
 - Fixed a crash in read -d D in multibyte locales that occurred when a byte

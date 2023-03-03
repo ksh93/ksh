@@ -293,24 +293,6 @@ tmlocal(void)
 			s = "";
 		local.daylight = s;
 	}
-	else if ((s = getenv("TZ")) && *s && *s != ':' && (s = strdup(s)))
-	{
-		/*
-		 * POSIX style but skipped by tmlocaltime()
-		 */
-
-		local.standard = s;
-		if (*++s && *++s && *++s)
-		{
-			*s++ = 0;
-			tmgoff(s, &t, 0);
-			for (s = t; isalpha(*t); t++);
-			*t = 0;
-		}
-		else
-			s = "";
-		local.daylight = s;
-	}
 	else
 	{
 		/*
