@@ -47,7 +47,7 @@ make install
 			exec -	exec >shopt.h
 			exec -	echo '/* Generated from ksh93/SHOPT.sh by ksh93/Mamfile */'
 			exec -	. "$PACKAGEROOT/src/cmd/ksh93/SHOPT.sh"
-			exec -	exec cat <<-EOF
+			exec -	cat <<-EOF
 			exec -		/* overrides */
 			exec -		#if SHOPT_SCRIPTONLY
 			exec -		#undef SHOPT_ACCT
