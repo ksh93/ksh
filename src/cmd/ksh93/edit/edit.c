@@ -1021,12 +1021,13 @@ void	ed_putchar(Edit_t *ep,int c)
 		buf[0] = c;
 		size = 1;
 	}
-#endif	/* SHOPT_MULTIBYTE */
+#else
 	if (buf[0] == '_' && size==1)
 	{
 		*dp++ = ' ';
 		*dp++ = '\b';
 	}
+#endif	/* SHOPT_MULTIBYTE */
 	*dp++ = c;
 	*dp = '\0';
 	if(dp >= ep->e_outlast)
