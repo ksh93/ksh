@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2023-03-26
+version=2023-04-06
 
 compile() # $cc ...
 {
@@ -71,7 +71,16 @@ is_hdr() # [ - ] [ file.c ] hdr
 	*)	_is_hdr_file=$tmp.c ;;
 	esac
 	is hdr $1
-	compile $cc -c $_is_hdr_file <&$nullin >&$nullout 2>$tmp.e
+	case $1 in
+	sys/types.h | limits.h | stdio.h | unistd.h)
+		# These are often tested for repeatedly, especially sys/types.h.
+		# But POSIX has specified these since issue 1 (1988). It's 2023.
+		# Skip the compile to save time, but act like a positive test.
+		: 2>$tmp.e
+		;;
+	*)	compile $cc -c $_is_hdr_file <&$nullin >&$nullout 2>$tmp.e
+		;;
+	esac
 	_is_hdr_status=$?
 	case $_is_hdr_status in
 	0)	if	test -s $tmp.e
@@ -659,7 +668,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 	are fundamental differences. The latter tend to generate global
 	headers accessed by all components in a package, whereas \biffe\b is
 	aimed at localized, self contained feature testing.]
-[+?Output is generated in \bFEATURE/\b\atest\a by default, where \atest\a is
+[+?Output is generated in \b'"$dir"$'/\b\atest\a by default, where \atest\a is
 	the base name of \afile\a\b.iffe\b or the \biffe\b \brun\b
 	file operand. Output is first generated in a temporary file; the
 	output file is updated if it does not exist or if the temporary file
@@ -770,7 +779,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 		[+ ?#define _VOID_ void]
 		[+ ?#define _BEGIN_EXTERNS_]
 		[+ ?#define _END_EXTERNS_]
-		[+ ?/* if/when available, "$INSTALLROOT/src/lib/libast/FEATURE/standards" is included here */]
+		[+ ?/* if/when available, "$INSTALLROOT/src/lib/libast/'"$dir"$'/standards" is included here */]
 		[+ ?/* then <stdio.h> is included, unless this was disabled using the "stdio" option */]
 	}
 [+?= \adefault\a may be specified for the \bkey\b, \blib\b, \bmac\b, \bmth\b
@@ -791,17 +800,17 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 		[+--output=\afile\a?Output is \afile\a.]
 		[+set out \afile\a?Output is \afile\a.]
 		[+[run]] [\adirectory\a/]]\abase\a[\a.suffix\a]]?Output is
-			\bFEATURE/\b\abase\a.]
+			\b'"$dir"$'/\b\abase\a.]
 	}
 [+?Generated \biffe\b headers are often referenced in C source as:
-	\b#include "FEATURE/\b\afile\a". The \bnmake\b(1) base rules contain
-	metarules for generating \bFEATURE/\b\afile\a from
+	\b#include "'"$dir"$'/\b\afile\a". The \bnmake\b(1) base rules contain
+	metarules for generating \b'"$dir"$'/\b\afile\a from
 	\bfeatures/\b\afile\a[\asuffix\a]], where \asuffix\a may be omitted,
 	\b.c\b, or \b.sh\b (see the \brun\b test below). Because
 	\b#include\b prerequisites are automatically detected, \bnmake\b(1)
 	ensures that all prerequisite \biffe\b headers are generated before
 	compilation. Note that the directories are deliberately named
-	\bFEATURE\b and \bfeatures\b to keep case-ignorant file systems
+	\b'"$dir"$'\b and \bfeatures\b to keep case-ignorant file systems
 	happy.]
 [+?The feature tests are:]{
 	[+# \acomment\a?Comment line - ignored.]
@@ -1191,6 +1200,47 @@ case " $* " in
 	;;
 esac
 
+# If the arguments contain a *.iffe script argument or a command of the form
+#	run <script-file> [ <input-file> ]
+# then check if there are up-to-date results; the output file must be newer
+# than the script file and, if the input file is given, newer than it as well.
+#
+# We check for this early by doing a dedicated scan for a 'run' command in
+# the positional parameters, otherwise iffe will still run preliminary tests
+# before determining and opening the output file. The ( subshell ) allows
+# us to scan the PPs destructively, which makes life easier.
+
+(	case $1 in
+	-)	# write to stdout: no check
+		exit 1
+		;;
+	*.iffe | *.iff)
+		set run "$@"
+		;;
+	*)	# discard PPs until we find a 'run' command
+		while	test "$#" -gt 0 && test "$1" != "run"
+		do	while	test "$#" -gt 0 && test "$1" != ":"
+			do	shift
+			done
+			shift
+		done
+		;;
+	esac
+	test "$#" -ge 2 || exit 1
+	# convert script path to output path
+	o=${2##*[\\/]}	# rm base dir
+	o=$dir/${o%.*}	# prefix dest dir, rm extension
+	# check if the results are newer than the test script
+	test -f "$o" && test -f "$2" && test "$o" -nt "$2" &&
+	{	test "$#" -lt 3 || test "$3" = ":" ||
+		{	test -f "$3" && test "$o" -nt "$3"
+		}
+	} || exit 1
+	echo "$command: test results in $o are up to date" >&$stderr
+	# update timestamp for correct dependency resolution in mamake
+	touch "$o" || kill "$$"
+) && exit 0
+
 # tmp files cleaned up on exit
 # status: 0:success 1:failure 2:interrupt
 
@@ -1224,8 +1274,8 @@ std='/* AST backward compatibility macros */
 #define _END_EXTERNS_'
 # To ensure the environment tested is the same as that used, add standards
 # compliance macros as probed by libast as soon as they are available.
-if	test -f "${INSTALLROOT}/src/lib/libast/FEATURE/standards"
-then	std=${std}${nl}$(cat "${INSTALLROOT}/src/lib/libast/FEATURE/standards")
+if	test -f "${INSTALLROOT}/src/lib/libast/${dir}/standards"
+then	std=${std}${nl}$(cat "${INSTALLROOT}/src/lib/libast/${dir}/standards")
 fi
 tst=
 ext="#include <stdio.h>"
@@ -2871,9 +2921,10 @@ int x;
 								if	cmp -s $tmp.c $tmp.t
 								then	rm -f $tmp.h
 									case $verbose in
-									1)	echo "$command: $x: unchanged" >&$stderr ;;
+									1)	echo "$command: $x: unchanged;" \
+											"updating timestamp" >&$stderr ;;
 									esac
-									touch "$x"  # avoid rerunning test on subsequent runs
+									touch "$x"  # needed for mamake dependency tree integrity
 								else	case $x in
 									${dir}[\\/]$cur)	test -d $dir || mkdir $dir || exit 1 ;;
 									esac
