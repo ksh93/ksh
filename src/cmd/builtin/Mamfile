@@ -33,34 +33,125 @@ make install
 				done FEATURE/pty generated
 				make ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
 				done ${PACKAGE_ast_INCLUDE}/ast_time.h
-				prev ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
+				make ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
+					make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+						make ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
+						done ${PACKAGE_ast_INCLUDE}/ast_map.h
+						make ${PACKAGE_ast_INCLUDE}/endian.h implicit
+							make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							done ${PACKAGE_ast_INCLUDE}/bytesex.h
+						done ${PACKAGE_ast_INCLUDE}/endian.h
+					done ${PACKAGE_ast_INCLUDE}/ast_common.h
+					make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+						make ${PACKAGE_ast_INCLUDE}/regex.h implicit
+							make ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
+							done ${PACKAGE_ast_INCLUDE}/ast_api.h
+							make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+								make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
+									make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+										make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+										done ${PACKAGE_ast_INCLUDE}/wchar.h
+									done ${PACKAGE_ast_INCLUDE}/ast_wctype.h
+								done ${PACKAGE_ast_INCLUDE}/wctype.h
+								make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
+									make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
+										make ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
+										done ${PACKAGE_ast_INCLUDE}/sfio_s.h
+										prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+									done ${PACKAGE_ast_INCLUDE}/ast_stdio.h
+								done ${PACKAGE_ast_INCLUDE}/stdio.h
+								prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							done ${PACKAGE_ast_INCLUDE}/ast_wchar.h
+							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							make ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+							done ${PACKAGE_ast_INCLUDE}/prototyped.h
+						done ${PACKAGE_ast_INCLUDE}/regex.h
+						make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
+							make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+							done ${PACKAGE_ast_INCLUDE}/ast_getopt.h
+							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+						done ${PACKAGE_ast_INCLUDE}/getopt.h
+						prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
+						make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
+						done ${PACKAGE_ast_INCLUDE}/ast_botch.h
+						make ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
+						done ${PACKAGE_ast_INCLUDE}/ast_limits.h
+						make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
+							make ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
+							done ${PACKAGE_ast_INCLUDE}/ast_fs.h
+						done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h
+						prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+						make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/getopt.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+						done ${PACKAGE_ast_INCLUDE}/ast_sys.h
+						make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
+						done ${PACKAGE_ast_INCLUDE}/ast_lib.h
+						prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+					done ${PACKAGE_ast_INCLUDE}/ast_std.h
+				done ${PACKAGE_ast_INCLUDE}/vmalloc.h
 				prev ${PACKAGE_ast_INCLUDE}/regex.h implicit
 				make ${PACKAGE_ast_INCLUDE}/proc.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+					make ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
+						make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+						done ${PACKAGE_ast_INCLUDE}/sfio.h
+						prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+					done ${PACKAGE_ast_INCLUDE}/ast.h
 				done ${PACKAGE_ast_INCLUDE}/proc.h
-				prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-				prev ${PACKAGE_ast_INCLUDE}/cmd.h implicit
+				make ${PACKAGE_ast_INCLUDE}/error.h implicit
+					make ${PACKAGE_ast_INCLUDE}/option.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+					done ${PACKAGE_ast_INCLUDE}/option.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+				done ${PACKAGE_ast_INCLUDE}/error.h
+				make ${PACKAGE_ast_INCLUDE}/cmd.h implicit
+					make ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit
+					done ${PACKAGE_ast_INCLUDE}/dlldefs.h
+					make ${PACKAGE_ast_INCLUDE}/cmdext.h implicit
+						make ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+						done ${PACKAGE_ast_INCLUDE}/shcmd.h
+						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+					done ${PACKAGE_ast_INCLUDE}/cmdext.h
+					prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
+					make ${PACKAGE_ast_INCLUDE}/stak.h implicit
+						make ${PACKAGE_ast_INCLUDE}/stk.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+						done ${PACKAGE_ast_INCLUDE}/stk.h
+						prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+					done ${PACKAGE_ast_INCLUDE}/stak.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/prototyped.h implicit
+				done ${PACKAGE_ast_INCLUDE}/cmd.h
 			done pty.c
-			prev pty.c
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=\""builtin"\" -DCMD_STANDALONE=b_pty -c pty.c
 		done pty.o generated
 		bind -lutil dontcare
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} -lm ${mam_libcmd}
 	done pty generated
 	make ${INSTALLROOT}/bin
-		exec - if test ! -d ${INSTALLROOT}/bin
-		exec - then mkdir -p ${INSTALLROOT}/bin
-		exec - fi
+		exec - mkdir -p ${INSTALLROOT}/bin
 	done ${INSTALLROOT}/bin generated
 	make ${INSTALLROOT}/bin/pty
 		prev pty
 		exec - ${STDCMP} 2>/dev/null -s pty ${INSTALLROOT}/bin/pty || { ${STDMV} ${INSTALLROOT}/bin/pty ${INSTALLROOT}/bin/pty.old 2>/dev/null || true; ${STDCP} pty ${INSTALLROOT}/bin/pty ;}
 	done ${INSTALLROOT}/bin/pty generated
-	make ${INSTALLROOT}/bin
-		exec - if test ! -d ${INSTALLROOT}/bin
-		exec - then mkdir -p ${INSTALLROOT}/bin
-		exec - fi
-	done ${INSTALLROOT}/bin virtual
 done install virtual
 make test
 done test dontcare virtual

@@ -23,7 +23,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2022-10-26"
+#define RELEASE_DATE "2023-04-06"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -346,16 +346,16 @@ dont(Rule_t* r, int code, int keepgoing)
 {
 	identify(stderr);
 	if (!code)
-		fprintf(stderr, "don't know how to make %s\n", r->name);
+		report(keepgoing ? 1 : 3, "missing prerequisite", r->name, 0);
 	else
 	{
 		fprintf(stderr, "*** exit code %d making %s%s\n", code, r->name, state.ignore ? " ignored" : "");
 		unlink(r->name);
 		if (state.ignore)
 			return;
+		if (!keepgoing)
+			exit(1);
 	}
-	if (!keepgoing)
-		exit(1);
 	state.errors++;
 	r->flags |= RULE_error;
 }
@@ -1583,7 +1583,7 @@ require(char* lib, int dontcare)
 		}
 		else if (dontcare)
 		{
-			append(tmp, "set -\n");
+			append(tmp, "set +v +x\n");
 			append(tmp, "cd \"${TMPDIR:-/tmp}\"\n");
 			append(tmp, "echo 'int main(){return 0;}' > x.${!-$$}.c\n");
 			append(tmp, "${CC} ${CCFLAGS} -o x.${!-$$}.x x.${!-$$}.c ");

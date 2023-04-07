@@ -18,7 +18,6 @@ make install
 	make iffe
 		make iffe.sh
 		done iffe.sh
-		prev iffe.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -54,7 +53,6 @@ make install
 	make mktest
 		make mktest.sh
 		done mktest.sh
-		prev mktest.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -90,7 +88,6 @@ make install
 	make package
 		make package.sh
 		done package.sh
-		prev package.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -126,7 +123,6 @@ make install
 	make regress
 		make regress.sh
 		done regress.sh
-		prev regress.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -162,7 +158,6 @@ make install
 	make crossexec
 		make crossexec.sh
 		done crossexec.sh
-		prev crossexec.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -203,15 +198,51 @@ make install
 				make ast.h implicit
 				done ast.h dontcare virtual
 			done mamake.c
-			prev mamake.c
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c mamake.c
 		done mamake.o generated
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o mamake mamake.o
 	done mamake generated
+	make mkreq
+		make mkreq.sh
+		done mkreq.sh
+		exec - case static,port:$OPTIND:$RANDOM in
+		exec - ?*:*:*|*::*|*:*:$RANDOM)
+		exec - ;;
+		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
+		exec - then if grep '### .*archaic.* ###' >/dev/null
+		exec - then : mkreq contains archaic constructs :
+		exec - else ENV= LC_ALL=C $SHELL -n mkreq.sh
+		exec - fi
+		exec - fi
+		exec - ;;
+		exec - esac
+		exec - case '${mam_cc_SHELLMAGIC}' in
+		exec - "") case 0 in
+		exec - 0) cp mkreq.sh mkreq
+		exec - ;;
+		exec - *) {
+		exec - i=`(read x; echo $x) < mkreq.sh`
+		exec - case $i in
+		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
+		exec - esac
+		exec - cat - mkreq.sh <<'!'
+		exec -
+		exec - !
+		exec - } > mkreq
+		exec - ;;
+		exec - esac
+		exec - ;;
+		exec - *) cat - mkreq.sh > mkreq <<'!'
+		exec - ${mam_cc_SHELLMAGIC}
+		exec -
+		exec - !
+		exec - ;;
+		exec - esac
+		exec - test -w mkreq -a -x mkreq || chmod u+w,+x mkreq
+	done mkreq generated
 	make mprobe
 		make mprobe.sh
 		done mprobe.sh
-		prev mprobe.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -255,7 +286,6 @@ make install
 			done make.probe
 			exec - cat C+probe make.probe > probe.sh
 		done probe.sh generated
-		prev probe.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -300,6 +330,10 @@ make install
 		prev iffe
 		exec - ${STDCMP} 2>/dev/null -s iffe ${INSTALLROOT}/bin/iffe || { ${STDMV} ${INSTALLROOT}/bin/iffe ${INSTALLROOT}/bin/iffe.old 2>/dev/null || true; ${STDCP} iffe ${INSTALLROOT}/bin/iffe ;}
 	done ${INSTALLROOT}/bin/iffe generated
+	make ${INSTALLROOT}/bin/mkreq
+		prev mkreq
+		exec - ${STDCMP} 2>/dev/null -s mkreq ${INSTALLROOT}/bin/mkreq || { ${STDMV} ${INSTALLROOT}/bin/mkreq ${INSTALLROOT}/bin/mkreq.old 2>/dev/null || true; ${STDCP} mkreq ${INSTALLROOT}/bin/mkreq ;}
+	done ${INSTALLROOT}/bin/mkreq generated
 	make ${INSTALLROOT}/bin/mktest
 		prev mktest
 		exec - ${STDCMP} 2>/dev/null -s mktest ${INSTALLROOT}/bin/mktest || { ${STDMV} ${INSTALLROOT}/bin/mktest ${INSTALLROOT}/bin/mktest.old 2>/dev/null || true; ${STDCP} mktest ${INSTALLROOT}/bin/mktest ;}
@@ -544,13 +578,11 @@ make install
 		exec - then mkdir -p ${INSTALLROOT}/lib/probe/C/make
 		exec - fi
 	done ${INSTALLROOT}/lib/probe/C/make generated
-	prev ${INSTALLROOT}/lib/probe/C/make
 	make ${INSTALLROOT}/lib/probe/C/pp
 		exec - if test ! -d ${INSTALLROOT}/lib/probe/C/pp
 		exec - then mkdir -p ${INSTALLROOT}/lib/probe/C/pp
 		exec - fi
 	done ${INSTALLROOT}/lib/probe/C/pp generated
-	prev ${INSTALLROOT}/lib/probe/C/pp
 	make ${INSTALLROOT}/lib/probe/C/mam
 		exec - if test ! -d ${INSTALLROOT}/lib/probe/C/mam
 		exec - then mkdir -p ${INSTALLROOT}/lib/probe/C/mam
