@@ -460,7 +460,11 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	int qlen = 1, qwid;
 	char inquote = 0;
 	ep->e_fd = fd;
+#ifdef _pth_tput
 	ep->e_multiline = sh_editor_active() && sh_isoption(SH_MULTILINE);
+#else
+	ep->e_multiline = 0;
+#endif /* _pth_tput */
 	sh.winch = 0;
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
