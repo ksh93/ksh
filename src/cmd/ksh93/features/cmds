@@ -7,13 +7,12 @@ pth	ed fail{
 pth	tput
 
 tput_terminfo note{ does tput support terminfo codes }end run{
-	TERM=ansi
+	TERM=vt520
 	export TERM
 	case ${_pth_tput-} in
 	\"/*/tput\")
 		tput=`echo "${_pth_tput}" | sed 's/^"//; s/"$//'`
-		if	"$tput" sgr0 >/dev/null 2>&1 &&
-			"$tput" ed >/dev/null 2>&1 &&
+		if	"$tput" ed >/dev/null 2>&1 &&
 			"$tput" cuu1 >/dev/null 2>&1
 		then	echo '#define _tput_terminfo	1	/* tput supports terminfo codes */'
 		else	echo '#define _tput_terminfo	0	/* tput does not support terminfo codes */'
@@ -24,13 +23,12 @@ tput_terminfo note{ does tput support terminfo codes }end run{
 }end
 
 tput_termcap note{ does tput support termcap codes }end run{
-	TERM=ansi
+	TERM=vt520
 	export TERM
 	case ${_pth_tput-} in
 	\"/*/tput\")
 		tput=`echo "${_pth_tput}" | sed 's/^"//; s/"$//'`
-		if	"$tput" me >/dev/null 2>&1 &&
-			"$tput" cd >/dev/null 2>&1 &&
+		if	"$tput" cd >/dev/null 2>&1 &&
 			"$tput" up >/dev/null 2>&1
 		then	echo '#define _tput_termcap	1	/* tput supports termcap codes */'
 		else	echo '#define _tput_termcap	0	/* tput does not support termcap codes */'
