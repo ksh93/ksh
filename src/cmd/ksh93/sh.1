@@ -7832,8 +7832,11 @@ Same as
 .B multiline
 The built-in editors will use multiple lines on the screen for lines
 that are longer than the width of the screen.  This may not work
-for all terminals, and will have no effect on systems with neither \fBterminfo\fR
-nor \fBtermcap\fR support.
+for all terminals. The option is forced off on systems with neither
+.B terminfo (5)
+nor
+.B termcap (5)
+support.
 .TP 8
 .B noclobber
 Same as

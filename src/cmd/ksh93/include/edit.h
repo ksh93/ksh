@@ -27,6 +27,7 @@
 
 #define SEARCHSIZE	80
 
+#include	"FEATURE/cmds"
 #include        "FEATURE/locale"
 #include	"terminal.h"
 

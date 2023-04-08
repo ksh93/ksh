@@ -67,7 +67,6 @@ NoN(emacs)
 #else
 
 #include	<releaseflags.h>
-#include	"FEATURE/cmds"
 #include	"defs.h"
 #include	"io.h"
 #include	"history.h"
@@ -85,6 +84,11 @@ NoN(emacs)
 #define putchar(ed,c)	ed_putchar(ed,c)
 #define beep()		ed_ringbell()
 
+#if _tput_terminfo || _tput_termcap
+#define E_MULTILINE	ep->ed->e_multiline
+#else
+#define E_MULTILINE	0
+#endif
 
 #if SHOPT_MULTIBYTE
 #   define gencpy(a,b)	ed_gencpy(a,b)
@@ -244,7 +248,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	i = sigsetjmp(env,0);
 	if (i !=0)
 	{
-		if(ep->ed->e_multiline)
+		if(E_MULTILINE)
 		{
 			cur = eol;
 			draw(ep,FINAL);
@@ -1629,7 +1633,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 		}
 #endif /* SHOPT_MULTIBYTE */
 	}
-	if(ep->ed->e_multiline && option == REFRESH)
+	if(E_MULTILINE && option == REFRESH)
 		ed_setcursor(ep->ed, ep->screen, ep->ed->e_peol, ep->ed->e_peol, -1);
 
 	/******************
@@ -1660,7 +1664,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 	}
 	i = (ncursor-nscreen) - ep->offset;
 	setcursor(ep,i,0);
-	if(option==FINAL && ep->ed->e_multiline)
+	if(option==FINAL && E_MULTILINE)
 		setcursor(ep,nscend+1-nscreen,0);
 	ep->scvalid = 1;
 	return;

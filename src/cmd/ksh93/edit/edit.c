@@ -32,7 +32,6 @@
 #include	<ccode.h>
 #include	<fault.h>
 #include	"FEATURE/time"
-#include	"FEATURE/cmds"
 #ifdef _hdr_utime
 #   include	<utime.h>
 #   include	<ls.h>
@@ -49,13 +48,17 @@
 static char *CURSOR_UP = Empty;  /* move cursor up one line */
 static char *ERASE_EOS = Empty;  /* erase to end of screen */
 #if _tput_terminfo
+#define E_MULTILINE	ep->e_multiline
 #define TPUT_CURSOR_UP	"cuu1"
 #define TPUT_ERASE_EOS	"ed"
 #elif _tput_termcap
+#define E_MULTILINE	ep->e_multiline
 #define TPUT_CURSOR_UP	"up"
 #define TPUT_ERASE_EOS	"cd"
 #else
-#undef _pth_tput
+#define E_MULTILINE	0
+#define TPUT_CURSOR_UP	""
+#define TPUT_ERASE_EOS	""
 #endif /* _tput_terminfo */
 
 #if SHOPT_MULTIBYTE
@@ -460,11 +463,9 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	int qlen = 1, qwid;
 	char inquote = 0;
 	ep->e_fd = fd;
-#ifdef _pth_tput
+#if _tput_terminfo || _tput_termcap
 	ep->e_multiline = sh_editor_active() && sh_isoption(SH_MULTILINE);
-#else
-	ep->e_multiline = 0;
-#endif /* _pth_tput */
+#endif /* _tput_terminfo || _tput_termcap */
 	sh.winch = 0;
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
@@ -614,7 +615,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	if(pp-ep->e_prompt > qlen)
 		ep->e_plen = pp - ep->e_prompt - qlen;
 	*pp = 0;
-	if(!ep->e_multiline && (ep->e_wsize -= ep->e_plen) < 7)
+	if(!E_MULTILINE && (ep->e_wsize -= ep->e_plen) < 7)
 	{
 		int shift = 7-ep->e_wsize;
 		ep->e_wsize = 7;
@@ -642,7 +643,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 		sfset(sfstderr,SF_READ,1);
 	sfwrite(sfstderr,ep->e_outptr,0);
 	ep->e_eol = reedit;
-	if(ep->e_multiline)
+	if(E_MULTILINE)
 	{
 #ifdef _pth_tput
 		char *term;
@@ -729,7 +730,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			 * failure-prone if the window size changed, especially on modern terminals
 			 * that break the whole terminal abstraction by rewrapping lines themselves :(
 			 */
-			if(ep->e_multiline)
+			if(E_MULTILINE)
 			{
 				n = (ep->e_plen + ep->e_cur) / newsize;
 				while(n--)
@@ -746,7 +747,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			ep->e_winsz = newsize-1;
 			if(ep->e_winsz < MINWINDOW)
 				ep->e_winsz = MINWINDOW;
-			if(!ep->e_multiline && ep->e_wsize < MAXLINE)
+			if(!E_MULTILINE && ep->e_wsize < MAXLINE)
 				ep->e_wsize = ep->e_winsz-2;
 			/* redraw command line */
 #if SHOPT_ESH && SHOPT_VSH
@@ -1108,7 +1109,7 @@ int ed_setcursor(Edit_t *ep,genchar *physical,int old,int new,int first)
 	}
 	if( delta == 0  &&  !clear)
 		return new;
-	if(ep->e_multiline)
+	if(E_MULTILINE)
 	{
 		ep->e_curpos = ed_curpos(ep, physical, old,0,ep->e_curpos);
 		if(clear && old>=ep->e_peol && (clear=ep->e_winsz-ep->e_curpos.col)>0)
