@@ -1026,12 +1026,6 @@ void	ed_putchar(Edit_t *ep,int c)
 		buf[0] = c;
 		size = 1;
 	}
-#else
-	if (buf[0] == '_' && size==1)
-	{
-		*dp++ = ' ';
-		*dp++ = '\b';
-	}
 #endif	/* SHOPT_MULTIBYTE */
 	*dp++ = c;
 	*dp = '\0';
