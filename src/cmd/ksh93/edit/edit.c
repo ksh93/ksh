@@ -1022,10 +1022,7 @@ void	ed_putchar(Edit_t *ep,int c)
 		c = buf[i];
 	}
 	else
-	{
 		buf[0] = c;
-		size = 1;
-	}
 #endif	/* SHOPT_MULTIBYTE */
 	*dp++ = c;
 	*dp = '\0';
