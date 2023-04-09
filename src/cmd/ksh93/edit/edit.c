@@ -747,10 +747,13 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			ep->e_winsz = newsize-1;
 			if(ep->e_winsz < MINWINDOW)
 				ep->e_winsz = MINWINDOW;
-			if(!E_MULTILINE && ep->e_wsize < MAXLINE)
-				ep->e_wsize = ep->e_winsz-2;
-			if(ep->e_wsize > ep->e_plen)
-				ep->e_wsize -= ep->e_plen;
+			if(!E_MULTILINE)
+			{
+				if(ep->e_wsize < MAXLINE)
+					ep->e_wsize = ep->e_winsz-2;
+				if(ep->e_wsize > ep->e_plen)
+					ep->e_wsize -= ep->e_plen;
+			}
 			/* redraw command line */
 #if SHOPT_ESH && SHOPT_VSH
 			if(sh_isoption(SH_VI))
