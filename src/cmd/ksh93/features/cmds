@@ -3,37 +3,3 @@ cmd	universe
 pth	ed fail{
 	echo '#define _pth_ed	"ed" /* ed not found on standard PATH */'
 }end
-
-pth	tput
-
-tput_terminfo note{ does tput support terminfo codes }end run{
-	export TERM=xterm
-	case ${_pth_tput-} in
-	\"/*/tput\")
-		tput=${_pth_tput#\"}
-		tput=${tput%\"}
-		if	"$tput" ed >/dev/null 2>&1 &&
-			"$tput" cuu1 >/dev/null 2>&1
-		then	echo '#define _tput_terminfo	1	/* tput supports terminfo codes */'
-		else	echo '#define _tput_terminfo	0	/* tput does not support terminfo codes */'
-			exit 1
-		fi ;;
-	*)	exit 1 ;;
-	esac
-}end
-
-tput_termcap note{ does tput support termcap codes }end run{
-	export TERM=xterm
-	case ${_pth_tput-} in
-	\"/*/tput\")
-		tput=${_pth_tput#\"}
-		tput=${tput%\"}
-		if	"$tput" cd >/dev/null 2>&1 &&
-			"$tput" up >/dev/null 2>&1
-		then	echo '#define _tput_termcap	1	/* tput supports termcap codes */'
-		else	echo '#define _tput_termcap	0	/* tput does not support termcap codes */'
-			exit 1
-		fi ;;
-	*)	exit 1 ;;
-	esac
-}end

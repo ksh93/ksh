@@ -7833,7 +7833,7 @@ Same as
 The built-in editors will use multiple lines on the screen for lines
 that are longer than the width of the screen.  This may not work
 for all terminals.
-The shell uses the system's
+The shell uses the system default
 .BR tput (1)
 command to obtain the terminal escape codes for the necessary operations.
 Multi-line editing is disabled if this fails.
@@ -7842,7 +7842,7 @@ On most systems, setting the
 variable to your terminal's type and exporting it corrects this situation.
 The
 .B multiline
-option is permanently forced off on systems whose
+option is ineffectual on systems whose
 .BR tput (1)
 command supports neither
 .BR terminfo (5)

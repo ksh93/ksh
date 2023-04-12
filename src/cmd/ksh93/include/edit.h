@@ -151,6 +151,12 @@ typedef struct edit
 		(c<'J'?c+1-'A':(c+10-'J'))))))))))))))))
 #endif
 
+/* required terminfo and termcap control sequences for multiline */
+#define TINF_CURSOR_UP	"cuu1"
+#define TINF_ERASE_EOS	"ed"
+#define TCAP_CURSOR_UP	"up"
+#define TCAP_ERASE_EOS	"cd"
+
 extern void	ed_putchar(Edit_t*, int);
 extern void	ed_ringbell(void);
 extern void	ed_setup(Edit_t*,int, int);

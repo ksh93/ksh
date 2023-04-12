@@ -89,11 +89,7 @@ NoN(vi)
 #define iswascii(c)	(!((c)&(~0177)))
 #endif
 
-#if _tput_terminfo || _tput_termcap
 #define E_MULTILINE	vp->ed->e_multiline
-#else
-#define E_MULTILINE	0
-#endif
 
 typedef struct _vi_
 {

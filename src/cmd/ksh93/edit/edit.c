@@ -47,19 +47,7 @@
 
 static char *cursor_up;  /* move cursor up one line */
 static char *erase_eos;  /* erase to end of screen */
-#if _tput_terminfo
 #define E_MULTILINE	ep->e_multiline
-#define TPUT_CURSOR_UP	"cuu1"
-#define TPUT_ERASE_EOS	"ed"
-#elif _tput_termcap
-#define E_MULTILINE	ep->e_multiline
-#define TPUT_CURSOR_UP	"up"
-#define TPUT_ERASE_EOS	"cd"
-#else
-#define E_MULTILINE	0
-#define TPUT_CURSOR_UP	""
-#define TPUT_ERASE_EOS	""
-#endif /* _tput_terminfo */
 
 #if SHOPT_MULTIBYTE
 #   define is_cntrl(c)	((c<=STRIP) && iscntrl(c))
@@ -415,7 +403,6 @@ void ed_ringbell(void)
 
 #if SHOPT_ESH || SHOPT_VSH
 
-#if defined(_pth_tput) && (_tput_terminfo || _tput_termcap)
 /*
  * Get or update a tput (terminfo or termcap) capability string.
  */
@@ -427,7 +414,7 @@ static void get_tput(char *tp, char **cpp)
 	sh_offoption(SH_RESTRICTED);
 	sh_offoption(SH_VERBOSE);
 	sh_offoption(SH_XTRACE);
-	sfprintf(sh.strbuf,".sh.value=${ " _pth_tput " %s 2>/dev/null;}",tp);
+	sfprintf(sh.strbuf,".sh.value=${ \\command -p tput %s 2>/dev/null;}",tp);
 	sh_trap(sfstruse(sh.strbuf),0);
 	if((cp = nv_getval(SH_VALNOD)) && (!*cpp || strcmp(cp,*cpp)!=0))
 	{
@@ -445,9 +432,6 @@ static void get_tput(char *tp, char **cpp)
 	sh.options = o;
 	sigrelease(SIGINT);
 }
-#else
-#define get_tput(tp,cpp)  /* empty */
-#endif /* defined(_pth_tput) && (_tput_terminfo || _tput_termcap) */
 
 /*	ED_SETUP( max_prompt_size )
  *
@@ -471,9 +455,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	int qlen = 1, qwid;
 	char inquote = 0;
 	ep->e_fd = fd;
-#if _tput_terminfo || _tput_termcap
 	ep->e_multiline = sh_editor_active() && sh_isoption(SH_MULTILINE);
-#endif /* _tput_terminfo || _tput_termcap */
 	sh.winch = 0;
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
@@ -634,8 +616,12 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 			term = "";
 		if(!oldterm || strcmp(term,oldterm))
 		{
-			get_tput(TPUT_CURSOR_UP,&cursor_up);
-			get_tput(TPUT_ERASE_EOS,&erase_eos);
+			get_tput(TINF_CURSOR_UP,&cursor_up);
+			get_tput(TINF_ERASE_EOS,&erase_eos);
+			if(!cursor_up)
+				get_tput(TCAP_CURSOR_UP,&cursor_up);
+			if(!erase_eos)
+				get_tput(TCAP_ERASE_EOS,&erase_eos);
 			if(oldterm)
 				free(oldterm);
 			oldterm = sh_strdup(term);

@@ -84,11 +84,7 @@ NoN(emacs)
 #define putchar(ed,c)	ed_putchar(ed,c)
 #define beep()		ed_ringbell()
 
-#if _tput_terminfo || _tput_termcap
 #define E_MULTILINE	ep->ed->e_multiline
-#else
-#define E_MULTILINE	0
-#endif
 
 #if SHOPT_MULTIBYTE
 #   define gencpy(a,b)	ed_gencpy(a,b)
@@ -1043,12 +1039,10 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 			cur = i;
 			draw(ep,UPDATE);
 			return -1;
-#ifdef _pth_tput
 		case cntl('L'): /* clear screen */
-			system(_pth_tput " clear");
+			system("\\command -p tput clear 2> /dev/null");
 			draw(ep,REFRESH);
 			return -1;
-#endif
 		case '[':	/* feature not in book */
 		case 'O':	/* after running top <ESC>O instead of <ESC>[ */
 			switch(i=ed_getchar(ep->ed,1))

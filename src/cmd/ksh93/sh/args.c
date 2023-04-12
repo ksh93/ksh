@@ -598,9 +598,6 @@ void sh_printopts(Shopt_t oflags,int mode, Shopt_t *mask)
 #if SHOPT_VSH
 	on_option(&oflags,SH_VIRAW);
 #endif
-#if !_tput_terminfo && !_tput_termcap
-	off_option(&oflags,SH_MULTILINE);
-#endif
 	if(!(mode&(PRINT_ALL|PRINT_VERBOSE))) /* only print set options */
 		sfwrite(sfstdout,"set --default",13);
 	for(tp=shtab_options; value=tp->sh_number; tp++)

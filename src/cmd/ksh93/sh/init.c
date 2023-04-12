@@ -1392,7 +1392,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 #endif /* SHOPT_TIMEOUT */
 	/* initialize jobs table */
 	job_clear();
-#if (SHOPT_ESH || SHOPT_VSH) && (_tput_terminfo || _tput_termcap)
+#if (SHOPT_ESH || SHOPT_VSH)
 	sh_onoption(SH_MULTILINE);
 #endif
 	if(argc>0)

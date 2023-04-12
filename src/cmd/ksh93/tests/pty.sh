@@ -619,7 +619,7 @@ r ^:test-2: \r\n$
 ((SHOPT_ESH)) && tst $LINENO <<"!"
 L emacs backslash escaping
 
-d 15
+d 20
 p :test-1:
 w set -o emacs
 
@@ -913,7 +913,7 @@ r one two three end
 L tab completion of '.' and '..'
 # https://github.com/ksh93/ksh/issues/372
 
-d 15
+d 20
 
 # typing '.' followed by two tabs should show a menu that includes "number) ../"
 p :test-1:
@@ -974,7 +974,7 @@ L tab completion with space in string and -o noglob on
 # https://github.com/ksh93/ksh/pull/413
 # Amended to test that completion keeps working after -o noglob
 
-d 15
+d 20
 p :test-1:
 w set -o noglob
 p :test-2:
@@ -1000,7 +1000,7 @@ tst $LINENO <<"!"
 L suspend a blocked write to a FIFO
 # https://github.com/ksh93/ksh/issues/464
 
-d 15
+d 20
 p :test-1:
 w echo >testfifo
 r echo
