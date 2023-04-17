@@ -6,6 +6,7 @@ note * Mamfiles are processed by mamake (src/cmd/INIT/mamake.c); we added
 note * indentation to improve readability. The language is documented in
 note * src/cmd/INIT/README-mamake.md.
 note *
+setv MAMAKE_STRICT
 setv INSTALLROOT ../../..
 setv PACKAGEROOT ../../../../..
 setv CC cc
@@ -16,8 +17,7 @@ setv COTEMP $$
 setv LDFLAGS
 make install
 	make iffe
-		make iffe.sh
-		done iffe.sh
+		prev iffe.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -51,8 +51,7 @@ make install
 		exec - test -w iffe -a -x iffe || chmod u+w,+x iffe
 	done iffe generated
 	make mktest
-		make mktest.sh
-		done mktest.sh
+		prev mktest.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -86,8 +85,7 @@ make install
 		exec - test -w mktest -a -x mktest || chmod u+w,+x mktest
 	done mktest generated
 	make package
-		make package.sh
-		done package.sh
+		prev package.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -121,8 +119,7 @@ make install
 		exec - test -w package -a -x package || chmod u+w,+x package
 	done package generated
 	make regress
-		make regress.sh
-		done regress.sh
+		prev regress.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -156,8 +153,7 @@ make install
 		exec - test -w regress -a -x regress || chmod u+w,+x regress
 	done regress generated
 	make crossexec
-		make crossexec.sh
-		done crossexec.sh
+		prev crossexec.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -193,18 +189,15 @@ make install
 	make mamake
 		make mamake.o
 			make mamake.c
-				make shlib-compat.h implicit
-				done shlib-compat.h dontcare virtual
-				make ast.h implicit
-				done ast.h dontcare virtual
+				prev shlib-compat.h implicit dontcare virtual
+				prev ast.h implicit dontcare virtual
 			done mamake.c
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c mamake.c
 		done mamake.o generated
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o mamake mamake.o
 	done mamake generated
 	make mkreq
-		make mkreq.sh
-		done mkreq.sh
+		prev mkreq.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -241,8 +234,7 @@ make install
 		exec - test -w mkreq -a -x mkreq || chmod u+w,+x mkreq
 	done mkreq generated
 	make mprobe
-		make mprobe.sh
-		done mprobe.sh
+		prev mprobe.sh
 		exec - case static,port:$OPTIND:$RANDOM in
 		exec - ?*:*:*|*::*|*:*:$RANDOM)
 		exec - ;;
@@ -280,10 +272,8 @@ make install
 	done mprobe generated
 	make probe
 		make probe.sh
-			make C+probe
-			done C+probe
-			make make.probe
-			done make.probe
+			prev C+probe
+			prev make.probe
 			exec - cat C+probe make.probe > probe.sh
 		done probe.sh generated
 		exec - case static,port:$OPTIND:$RANDOM in
@@ -353,8 +343,7 @@ make install
 	done ${PACKAGEROOT}/bin generated
 	make ${PACKAGEROOT}/bin/mamprobe
 		make mamprobe
-			make mamprobe.sh
-			done mamprobe.sh
+			prev mamprobe.sh
 			exec - case static,port:$OPTIND:$RANDOM in
 			exec - ?*:*:*|*::*|*:*:$RANDOM)
 			exec - ;;
@@ -614,8 +603,7 @@ make install
 	make ${INSTALLROOT}/lib/lib/dl
 		prev ${INSTALLROOT}/lib/lib
 		make dl.req
-			make dl.c
-			done dl.c
+			prev dl.c
 			exec - set +v +x
 			exec - r='-'
 			exec - for i in dl.c
@@ -644,8 +632,7 @@ make install
 	done ${INSTALLROOT}/lib/lib/dl generated
 	make ${INSTALLROOT}/lib/lib/iconv
 		make iconv.req
-			make iconv.c
-			done iconv.c
+			prev iconv.c
 			exec - set +v +x
 			exec - r='-'
 			exec - for i in iconv.c
@@ -674,10 +661,8 @@ make install
 	done ${INSTALLROOT}/lib/lib/iconv generated
 	make ${INSTALLROOT}/lib/lib/w
 		make w.req
-			make w.c
-			done w.c
-			make w2.c
-			done w2.c
+			prev w.c
+			prev w2.c
 			exec - set +v +x
 			exec - r='-'
 			exec - for i in w.c w2.c
@@ -706,8 +691,7 @@ make install
 	done ${INSTALLROOT}/lib/lib/w generated
 	make ${INSTALLROOT}/lib/lib/intl
 		make intl.req
-			make intl.c
-			done intl.c
+			prev intl.c
 			exec - set +v +x
 			exec - r='-'
 			exec - for i in intl.c
@@ -736,18 +720,12 @@ make install
 	done ${INSTALLROOT}/lib/lib/intl generated
 	make ${INSTALLROOT}/lib/lib/m
 		make m.req
-			make m.c
-			done m.c
-			make m2.c
-			done m2.c
-			make m3.c
-			done m3.c
-			make m4.c
-			done m4.c
-			make m5.c
-			done m5.c
-			make m6.c
-			done m6.c
+			prev m.c
+			prev m2.c
+			prev m3.c
+			prev m4.c
+			prev m5.c
+			prev m6.c
 			exec - set +v +x
 			exec - r='-'
 			exec - for i in m.c m2.c m3.c m4.c m5.c m6.c
@@ -776,8 +754,7 @@ make install
 	done ${INSTALLROOT}/lib/lib/m generated
 	make ${INSTALLROOT}/lib/lib/nsl
 		make nsl.req
-			make nsl.c
-			done nsl.c
+			prev nsl.c
 			exec - set +v +x
 			exec - r='-'
 			exec - for i in nsl.c
@@ -806,8 +783,7 @@ make install
 	done ${INSTALLROOT}/lib/lib/nsl generated
 	make ${INSTALLROOT}/lib/lib/socket
 		make socket.req
-			make socket.c
-			done socket.c
+			prev socket.c
 			prev nsl.c
 			exec - set +v +x
 			exec - r='-'
@@ -837,17 +813,13 @@ make install
 	done ${INSTALLROOT}/lib/lib/socket generated
 	make ${INSTALLROOT}/lib/lib/dbm
 		make dbm.req
-			make db.c
-			done db.c
-			make gdbm.c
-			done gdbm.c
+			prev db.c
+			prev gdbm.c
 			make gdbm1.c
-				make gdbm-ndbm.h implicit
-				done gdbm-ndbm.h dontcare virtual
+				prev gdbm-ndbm.h implicit dontcare virtual
 			done gdbm1.c
 			make gdbm2.c
-				make ndbm.h implicit
-				done ndbm.h dontcare virtual
+				prev ndbm.h implicit dontcare virtual
 			done gdbm2.c
 			exec - set +v +x
 			exec - r='-'
@@ -878,14 +850,12 @@ make install
 done install virtual
 make test
 	make test.iffe
-		make iffe.tst
-		done iffe.tst
+		prev iffe.tst
 		exec - exec "$SHELL" "$INSTALLROOT/bin/regress" iffe.tst iffe
 	done test.iffe virtual
 	make test.mamake
 		make mamake.tst
-			make mamake.rt
-			done mamake.rt
+			prev mamake.rt
 			exec - if test mamake.rt -nt mamake.tst
 			exec - then "$SHELL" "$INSTALLROOT/bin/mktest" --style=regress mamake.rt > mamake.tst
 			exec - fi

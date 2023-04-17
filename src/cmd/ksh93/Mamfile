@@ -6,6 +6,7 @@ note * Mamfiles are processed by mamake (src/cmd/INIT/mamake.c); we added
 note * indentation to improve readability. The language is documented in
 note * src/cmd/INIT/README-mamake.md.
 note *
+setv MAMAKE_STRICT
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv PACKAGEROOT ../../../../..
@@ -31,13 +32,11 @@ make install
 		done shell.req generated
 		make shopt.h implicit
 			make FEATURE/options implicit
-				make features/options
-				done features/options
+				prev features/options
 				prev shell.req
 				exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/options
 			done FEATURE/options generated
-			make SHOPT.sh
-			done SHOPT.sh
+			prev SHOPT.sh
 			note * the SHOPT.sh file calls the SHOPT function once for each option
 			exec -	set +v +x
 			exec -
@@ -103,131 +102,118 @@ make install
 		make pmain.o
 			make sh/pmain.c
 				make FEATURE/externs implicit
-					make features/externs
-					done features/externs
+					prev features/externs
 					exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/externs
 				done FEATURE/externs generated
 				make include/shell.h implicit
 					make include/fault.h implicit
 						make FEATURE/sigfeatures implicit
-							make features/sigfeatures
-							done features/sigfeatures
+							prev features/sigfeatures
 							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/sigfeatures
 						done FEATURE/sigfeatures generated
 						make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-							make ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-							done ${PACKAGE_ast_INCLUDE}/sfio_s.h
+							prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
 							make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-								make ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-								done ${PACKAGE_ast_INCLUDE}/ast_map.h
+								prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
 								make ${PACKAGE_ast_INCLUDE}/endian.h implicit
 									make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 									done ${PACKAGE_ast_INCLUDE}/bytesex.h
 								done ${PACKAGE_ast_INCLUDE}/endian.h
 							done ${PACKAGE_ast_INCLUDE}/ast_common.h
 							make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
 								make ${PACKAGE_ast_INCLUDE}/regex.h implicit
-									make ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_api.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
 									make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
 										make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
 											make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/endian.h
 												make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-													prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+													prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
 												done ${PACKAGE_ast_INCLUDE}/wchar.h
 											done ${PACKAGE_ast_INCLUDE}/ast_wctype.h
 										done ${PACKAGE_ast_INCLUDE}/wctype.h
 										make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
 											make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/sfio_s.h
+												prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 											done ${PACKAGE_ast_INCLUDE}/ast_stdio.h
 										done ${PACKAGE_ast_INCLUDE}/stdio.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 									done ${PACKAGE_ast_INCLUDE}/ast_wchar.h
-									prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 								done ${PACKAGE_ast_INCLUDE}/regex.h
 								make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-									make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_getopt.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
 								done ${PACKAGE_ast_INCLUDE}/getopt.h
-								prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-								make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
-								done ${PACKAGE_ast_INCLUDE}/ast_botch.h
-								make ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
-								done ${PACKAGE_ast_INCLUDE}/ast_limits.h
+								prev ${PACKAGE_ast_INCLUDE}/ast_map.h
+								prev ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
 								make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
-									make ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_fs.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
 								done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h
-								prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h
 								make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/getopt.h
+									prev ${PACKAGE_ast_INCLUDE}/endian.h
+									prev ${PACKAGE_ast_INCLUDE}/endian.h
 								done ${PACKAGE_ast_INCLUDE}/ast_sys.h
-								make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
-								done ${PACKAGE_ast_INCLUDE}/ast_lib.h
-								prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 							done ${PACKAGE_ast_INCLUDE}/ast_std.h
 						done ${PACKAGE_ast_INCLUDE}/sfio.h
 						make ${PACKAGE_ast_INCLUDE}/error.h implicit
 							make ${PACKAGE_ast_INCLUDE}/option.h implicit
 								make ${PACKAGE_ast_INCLUDE}/ast.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_api.h
 									make ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_common.h
+										prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 									done ${PACKAGE_ast_INCLUDE}/vmalloc.h
-									prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/sfio.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 								done ${PACKAGE_ast_INCLUDE}/ast.h
 							done ${PACKAGE_ast_INCLUDE}/option.h
-							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast.h
 						done ${PACKAGE_ast_INCLUDE}/error.h
-						make ${PACKAGE_ast_INCLUDE}/sig.h implicit
-						done ${PACKAGE_ast_INCLUDE}/sig.h
+						prev ${PACKAGE_ast_INCLUDE}/sig.h implicit
 					done include/fault.h
 					make ${PACKAGE_ast_INCLUDE}/stk.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/sfio.h
 					done ${PACKAGE_ast_INCLUDE}/stk.h
 					make include/history.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/history.h
 					make ${PACKAGE_ast_INCLUDE}/cmd.h implicit
-						make ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit
-						done ${PACKAGE_ast_INCLUDE}/dlldefs.h
+						prev ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit
 						make ${PACKAGE_ast_INCLUDE}/cmdext.h implicit
-							make ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
-							done ${PACKAGE_ast_INCLUDE}/shcmd.h
+							prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
 						done ${PACKAGE_ast_INCLUDE}/cmdext.h
-						prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/shcmd.h
 						make ${PACKAGE_ast_INCLUDE}/stak.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/stk.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/stk.h
 						done ${PACKAGE_ast_INCLUDE}/stak.h
-						prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/error.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done ${PACKAGE_ast_INCLUDE}/cmd.h
-					prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/shcmd.h
 					make include/nval.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/option.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/option.h
 						make ${PACKAGE_ast_INCLUDE}/cdt.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast_common.h
+							prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 						done ${PACKAGE_ast_INCLUDE}/cdt.h
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/nval.h
 					make include/name.h implicit
-						prev include/nval.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/cdt.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev include/nval.h
+						prev ${PACKAGE_ast_INCLUDE}/cdt.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/name.h
-					prev ${PACKAGE_ast_INCLUDE}/cdt.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/cdt.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done include/shell.h
-				prev shopt.h implicit
+				prev shopt.h
 			done sh/pmain.c
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/pmain.c
 		done pmain.o generated
@@ -236,309 +222,297 @@ make install
 			make alarm.o
 				make bltins/alarm.c
 					make FEATURE/time implicit
-						make features/time
-						done features/time
+						prev features/time
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/time
 						make ${PACKAGE_ast_INCLUDE}/times.h implicit
-							make ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
-							done ${PACKAGE_ast_INCLUDE}/ast_time.h
-							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast.h
 						done ${PACKAGE_ast_INCLUDE}/times.h
 					done FEATURE/time generated
 					make include/builtins.h implicit
-						make include/shtable.h implicit
-						done include/shtable.h
-						make FEATURE/dynamic implicit
-							make features/dynamic
-							done features/dynamic
-							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/dynamic
-							prev ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit
-						done FEATURE/dynamic generated
-						prev ${PACKAGE_ast_INCLUDE}/option.h implicit
-					done include/builtins.h
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					make include/defs.h implicit
-						make include/regress.h implicit
-						done include/regress.h
 						prev include/shtable.h implicit
-						prev include/shell.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-						prev include/name.h implicit
+						make FEATURE/dynamic implicit
+							prev features/dynamic
+							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/dynamic
+							prev ${PACKAGE_ast_INCLUDE}/dlldefs.h
+						done FEATURE/dynamic generated
+						prev ${PACKAGE_ast_INCLUDE}/option.h
+					done include/builtins.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					make include/defs.h implicit
+						prev include/regress.h implicit
+						prev include/shtable.h
+						prev include/shell.h
+						prev ${PACKAGE_ast_INCLUDE}/endian.h
+						prev include/name.h
 						make include/argnod.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/stak.h
 						done include/argnod.h
-						prev ${PACKAGE_ast_INCLUDE}/cdt.h implicit
-						prev FEATURE/externs implicit
-						prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/cdt.h
+						prev FEATURE/externs
+						prev ${PACKAGE_ast_INCLUDE}/error.h
+						prev ${PACKAGE_ast_INCLUDE}/sfio.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/defs.h
-					prev shopt.h implicit
+					prev shopt.h
 				done bltins/alarm.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/alarm.c
 			done alarm.o generated
 			make cd_pwd.o
 				make bltins/cd_pwd.c
 					make include/test.h implicit
-						prev include/shtable.h implicit
-						prev include/defs.h implicit
+						prev include/shtable.h
+						prev include/defs.h
 					done include/test.h
 					make ${PACKAGE_ast_INCLUDE}/ls.h implicit
-						make ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
-						done ${PACKAGE_ast_INCLUDE}/ast_mode.h
-						prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast_fs.h
+						prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 					done ${PACKAGE_ast_INCLUDE}/ls.h
-					prev include/builtins.h implicit
-					prev include/name.h implicit
+					prev include/builtins.h
+					prev include/name.h
 					make include/path.h implicit
 						make FEATURE/acct implicit
 							prev Mamfile
 							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : def acct
 						done FEATURE/acct generated
-						prev include/defs.h implicit
-						prev include/nval.h implicit
+						prev include/defs.h
+						prev include/nval.h
 					done include/path.h
 					make include/variables.h implicit
-						prev FEATURE/dynamic implicit
-						prev ${PACKAGE_ast_INCLUDE}/option.h implicit
-						prev include/nval.h implicit
+						prev FEATURE/dynamic
+						prev ${PACKAGE_ast_INCLUDE}/option.h
+						prev include/nval.h
 					done include/variables.h
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/cd_pwd.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/cd_pwd.c
 			done cd_pwd.o generated
 			make cflow.o
 				make bltins/cflow.c
-					prev include/builtins.h implicit
+					prev include/builtins.h
 					make include/shnodes.h implicit
-						prev include/argnod.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev include/argnod.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/shnodes.h
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/cflow.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/cflow.c
 			done cflow.o generated
 			make deparse.o
 				make sh/deparse.c
-					prev include/test.h implicit
-					prev include/shnodes.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/test.h
+					prev include/shnodes.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/deparse.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/deparse.c
 			done deparse.o generated
 			make enum.o
 				make bltins/enum.c
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/defs.h
+					prev shopt.h
 				done bltins/enum.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=${SH_DICT} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/enum.c
 			done enum.o generated
 			make getopts.o
 				make bltins/getopts.c
-					prev include/builtins.h implicit
-					prev include/nval.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/nval.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/variables.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/getopts.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/getopts.c
 			done getopts.o generated
 			make hist.o
 				make bltins/hist.c
 					make include/edit.h implicit
-						make include/national.h implicit
-						done include/national.h
+						prev include/national.h implicit
 						make include/terminal.h implicit
 							make FEATURE/ttys implicit
-								make features/ttys
-								done features/ttys
+								prev features/ttys
 								exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/ttys
 							done FEATURE/ttys generated
 						done include/terminal.h
-						prev ${PACKAGE_ast_INCLUDE}/sig.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/sig.h
 						make FEATURE/locale implicit
-							make features/locale
-							done features/locale
+							prev features/locale
 							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/locale
 						done FEATURE/locale generated
 						make FEATURE/cmds implicit
-							make features/cmds
-							done features/cmds
+							prev features/cmds
 							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/cmds
 						done FEATURE/cmds generated
 					done include/edit.h
-					prev include/builtins.h implicit
-					prev include/history.h implicit
-					prev include/name.h implicit
+					prev include/builtins.h
+					prev include/history.h
+					prev include/name.h
 					make include/io.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/sfio.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/io.h
-					prev include/variables.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/variables.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/hist.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/hist.c
 			done hist.o generated
 			make misc.o
 				make bltins/misc.c
-					prev ${PACKAGE_ast_INCLUDE}/times.h implicit
-					prev FEATURE/time implicit
-					prev FEATURE/locale implicit
+					prev ${PACKAGE_ast_INCLUDE}/times.h
+					prev FEATURE/time
+					prev FEATURE/locale
 					make include/jobs.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
-						prev include/terminal.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/vmalloc.h
+						prev include/terminal.h
 						make ${PACKAGE_ast_INCLUDE}/aso.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 						done ${PACKAGE_ast_INCLUDE}/aso.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/sfio.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/jobs.h
-					prev include/builtins.h implicit
-					prev include/history.h implicit
-					prev include/name.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/shnodes.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/history.h
+					prev include/name.h
+					prev include/io.h
+					prev include/path.h
+					prev include/shnodes.h
+					prev include/variables.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/misc.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/misc.c
 			done misc.o generated
 			make mkservice.o
 				make bltins/mkservice.c
-					prev ${PACKAGE_ast_INCLUDE}/cmd.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/nval.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/cmd.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/nval.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/mkservice.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/mkservice.c
 			done mkservice.o generated
 			make print.o
 				make bltins/print.c
 					make ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-						make ${PACKAGE_ast_INCLUDE}/ast_ccode.h implicit
-						done ${PACKAGE_ast_INCLUDE}/ast_ccode.h
-						prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast_ccode.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 					done ${PACKAGE_ast_INCLUDE}/ccode.h
 					make ${PACKAGE_ast_INCLUDE}/tmx.h implicit
 						make ${PACKAGE_ast_INCLUDE}/tv.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast.h
 						done ${PACKAGE_ast_INCLUDE}/tv.h
 						make ${PACKAGE_ast_INCLUDE}/tm.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/times.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/times.h
+							prev ${PACKAGE_ast_INCLUDE}/ast.h
 						done ${PACKAGE_ast_INCLUDE}/tm.h
 					done ${PACKAGE_ast_INCLUDE}/tmx.h
 					make include/streval.h implicit
 						make ${PACKAGE_ast_INCLUDE}/ast_float.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/endian.h
+							prev ${PACKAGE_ast_INCLUDE}/endian.h
+							prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 						done ${PACKAGE_ast_INCLUDE}/ast_float.h
-						prev include/defs.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev include/defs.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done include/streval.h
-					prev include/builtins.h implicit
-					prev include/history.h implicit
-					prev include/name.h implicit
-					prev include/io.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/history.h
+					prev include/name.h
+					prev include/io.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/print.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/print.c
 			done print.o generated
 			make read.o
 				make bltins/read.c
-					prev include/edit.h implicit
-					prev include/terminal.h implicit
-					prev include/history.h implicit
-					prev include/builtins.h implicit
-					prev include/name.h implicit
-					prev include/io.h implicit
+					prev include/edit.h
+					prev include/terminal.h
+					prev include/history.h
+					prev include/builtins.h
+					prev include/name.h
+					prev include/io.h
 					make include/lexstates.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-						prev FEATURE/locale implicit
+						prev ${PACKAGE_ast_INCLUDE}/wctype.h
+						prev ${PACKAGE_ast_INCLUDE}/wchar.h
+						prev FEATURE/locale
 					done include/lexstates.h
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/variables.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done bltins/read.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/read.c
 			done read.o generated
 			make sleep.o
 				make bltins/sleep.c
 					make FEATURE/poll implicit
-						make features/poll
-						done features/poll
+						prev features/poll
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/poll
 					done FEATURE/poll generated
-					prev FEATURE/time implicit
-					prev include/builtins.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/tmx.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev FEATURE/time
+					prev include/builtins.h
+					prev ${PACKAGE_ast_INCLUDE}/tmx.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/sleep.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/sleep.c
 			done sleep.o generated
 			make trap.o
 				make bltins/trap.c
-					prev include/builtins.h implicit
-					prev include/jobs.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/jobs.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/trap.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/trap.c
 			done trap.o generated
 			make test.o
 				make bltins/test.c
-					prev ${PACKAGE_ast_INCLUDE}/tmx.h implicit
-					prev FEATURE/poll implicit
-					prev FEATURE/externs implicit
-					prev include/builtins.h implicit
-					prev include/test.h implicit
-					prev include/terminal.h implicit
-					prev include/io.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/regex.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/tmx.h
+					prev FEATURE/poll
+					prev FEATURE/externs
+					prev include/builtins.h
+					prev include/test.h
+					prev include/terminal.h
+					prev include/io.h
+					prev ${PACKAGE_ast_INCLUDE}/regex.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/test.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/test.c
 			done test.o generated
 			make typeset.o
 				make bltins/typeset.c
-					prev FEATURE/dynamic implicit
-					prev include/variables.h implicit
-					prev include/builtins.h implicit
-					prev include/history.h implicit
-					prev include/name.h implicit
-					prev include/path.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev FEATURE/dynamic
+					prev include/variables.h
+					prev include/builtins.h
+					prev include/history.h
+					prev include/name.h
+					prev include/path.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/typeset.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/typeset.c
 			done typeset.o generated
@@ -546,59 +520,56 @@ make install
 				make bltins/ulimit.c
 					make include/ulimit.h implicit
 						make FEATURE/rlimits implicit
-							make features/rlimits
-							done features/rlimits
+							prev features/rlimits
 							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : run features/rlimits
 						done FEATURE/rlimits generated
-						prev FEATURE/time implicit
+						prev FEATURE/time
 					done include/ulimit.h
-					prev include/name.h implicit
-					prev include/builtins.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/name.h
+					prev include/builtins.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/sfio.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done bltins/ulimit.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/ulimit.c
 			done ulimit.o generated
 			make umask.o
 				make bltins/umask.c
-					prev include/builtins.h implicit
-					prev include/shell.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/shell.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/sfio.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done bltins/umask.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/umask.c
 			done umask.o generated
 			make whence.o
 				make bltins/whence.c
-					prev include/builtins.h implicit
+					prev include/builtins.h
 					make include/shlex.h implicit
-						prev include/lexstates.h implicit
-						prev include/shtable.h implicit
-						prev include/shnodes.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/cdt.h implicit
+						prev include/lexstates.h
+						prev include/shtable.h
+						prev include/shnodes.h
+						prev ${PACKAGE_ast_INCLUDE}/cdt.h
 					done include/shlex.h
-					prev include/path.h implicit
-					prev include/name.h implicit
-					prev include/shtable.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/path.h
+					prev include/name.h
+					prev include/shtable.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/whence.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/whence.c
 			done whence.o generated
 			make main.o
 				make sh/main.c
-					make execargs.h implicit
-					done execargs.h dontcare virtual
-					make nc.h implicit
-					done nc.h dontcare virtual
-					prev FEATURE/externs implicit
+					prev execargs.h implicit dontcare virtual
+					prev nc.h implicit dontcare virtual
+					prev FEATURE/externs
 					make FEATURE/execargs implicit
 						prev Mamfile
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : def execargs
@@ -611,500 +582,494 @@ make install
 						prev Mamfile
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} : def setproctitle
 					done FEATURE/setproctitle generated
-					prev FEATURE/time implicit
-					make include/timeout.h implicit
-					done include/timeout.h
-					prev include/history.h implicit
-					prev include/shnodes.h implicit
-					prev include/shlex.h implicit
-					prev include/jobs.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
+					prev FEATURE/time
+					prev include/timeout.h implicit
+					prev include/history.h
+					prev include/shnodes.h
+					prev include/shlex.h
+					prev include/jobs.h
+					prev include/io.h
+					prev include/path.h
+					prev include/variables.h
+					prev include/defs.h
 					make include/fcin.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/sfio.h
 					done include/fcin.h
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev ${PACKAGE_ast_INCLUDE}/sfio.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done sh/main.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${DEBUG+-DDEBUG=${DEBUG}} -DSH_DICT=${SH_DICT} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/main.c
 			done main.o generated
 			make nvdisc.o
 				make sh/nvdisc.c
-					prev include/shlex.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/builtins.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/shlex.h
+					prev include/io.h
+					prev include/path.h
+					prev include/builtins.h
+					prev include/variables.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/nvdisc.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/nvdisc.c
 			done nvdisc.o generated
 			make nvtype.o
 				make sh/nvtype.c
-					prev include/variables.h implicit
-					prev include/io.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/variables.h
+					prev include/io.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/nvtype.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/nvtype.c
 			done nvtype.o generated
 			make arith.o
 				make sh/arith.c
-					prev include/builtins.h implicit
-					prev include/variables.h implicit
-					prev include/streval.h implicit
-					prev include/name.h implicit
-					prev include/lexstates.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/variables.h
+					prev include/streval.h
+					prev include/name.h
+					prev include/lexstates.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/arith.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/arith.c
 			done arith.o generated
 			make args.o
 				make sh/args.c
-					prev include/io.h implicit
-					prev include/shlex.h implicit
-					prev FEATURE/poll implicit
-					prev include/edit.h implicit
-					prev include/terminal.h implicit
-					prev include/builtins.h implicit
-					prev include/jobs.h implicit
-					prev include/path.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/io.h
+					prev include/shlex.h
+					prev FEATURE/poll
+					prev include/edit.h
+					prev include/terminal.h
+					prev include/builtins.h
+					prev include/jobs.h
+					prev include/path.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/args.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/args.c
 			done args.o generated
 			make array.o
 				make sh/array.c
-					prev include/name.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/name.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/array.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/array.c
 			done array.o generated
 			make completion.o
 				make edit/completion.c
-					prev include/history.h implicit
-					prev include/edit.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/lexstates.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/history.h
+					prev include/edit.h
+					prev include/io.h
+					prev include/path.h
+					prev include/lexstates.h
+					prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
+					prev include/defs.h
+					prev shopt.h
 				done edit/completion.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/completion.c
 			done completion.o generated
 			make defs.o
 				make sh/defs.c
-					prev include/timeout.h implicit
-					prev include/edit.h implicit
-					prev include/shlex.h implicit
-					prev include/jobs.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/timeout.h
+					prev include/edit.h
+					prev include/shlex.h
+					prev include/jobs.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/defs.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/defs.c
 			done defs.o generated
 			make edit.o
 				make edit/edit.c
-					prev include/shlex.h implicit
-					prev include/edit.h implicit
-					prev include/history.h implicit
-					prev include/terminal.h implicit
-					prev include/io.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev FEATURE/time implicit
-					prev include/fault.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/shlex.h
+					prev include/edit.h
+					prev include/history.h
+					prev include/terminal.h
+					prev include/io.h
+					prev include/variables.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev FEATURE/time
+					prev include/fault.h
+					prev ${PACKAGE_ast_INCLUDE}/ccode.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done edit/edit.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/edit.c
 			done edit.o generated
 			make expand.o
 				make sh/expand.c
-					prev include/path.h implicit
-					prev include/io.h implicit
+					prev include/path.h
+					prev include/io.h
 					make ${PACKAGE_ast_INCLUDE}/ast_dir.h implicit
 						make ${PACKAGE_ast_INCLUDE}/dirent.h implicit
 							make ${PACKAGE_ast_INCLUDE}/ast_dirent.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 							done ${PACKAGE_ast_INCLUDE}/ast_dirent.h
 						done ${PACKAGE_ast_INCLUDE}/dirent.h
-						make dirlib.h implicit
-						done dirlib.h dontcare virtual
-						prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
+						prev dirlib.h implicit dontcare virtual
+						prev ${PACKAGE_ast_INCLUDE}/ast_lib.h
 					done ${PACKAGE_ast_INCLUDE}/ast_dir.h
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					make ${PACKAGE_ast_INCLUDE}/glob.h implicit
-					done ${PACKAGE_ast_INCLUDE}/glob.h
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev include/test.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev ${PACKAGE_ast_INCLUDE}/glob.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev include/test.h
+					prev include/variables.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/expand.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/expand.c
 			done expand.o generated
 			make regress.o
 				make bltins/regress.c
-					prev ${PACKAGE_ast_INCLUDE}/tmx.h implicit
-					prev include/builtins.h implicit
-					prev include/io.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/tmx.h
+					prev include/builtins.h
+					prev include/io.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/defs.h
+					prev shopt.h
 				done bltins/regress.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c bltins/regress.c
 			done regress.o generated
 			make fault.o
 				make sh/fault.c
-					prev ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
-					prev include/ulimit.h implicit
-					prev include/builtins.h implicit
-					prev include/path.h implicit
-					prev include/jobs.h implicit
-					prev include/variables.h implicit
-					prev include/shlex.h implicit
-					prev include/history.h implicit
-					prev include/io.h implicit
-					prev include/fcin.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/vmalloc.h
+					prev include/ulimit.h
+					prev include/builtins.h
+					prev include/path.h
+					prev include/jobs.h
+					prev include/variables.h
+					prev include/shlex.h
+					prev include/history.h
+					prev include/io.h
+					prev include/fcin.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/fault.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/fault.c
 			done fault.o generated
 			make fcin.o
 				make sh/fcin.c
-					prev include/fcin.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/fcin.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/sfio.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done sh/fcin.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/fcin.c
 			done fcin.o generated
 			make history.o
 				make edit/history.c
-					prev ${PACKAGE_ast_INCLUDE}/stdio.h implicit
-					prev include/history.h implicit
-					prev include/io.h implicit
-					prev include/builtins.h implicit
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev FEATURE/time implicit
-					prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/stdio.h
+					prev include/history.h
+					prev include/io.h
+					prev include/builtins.h
+					prev include/path.h
+					prev include/variables.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev FEATURE/time
+					prev ${PACKAGE_ast_INCLUDE}/sfio.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done edit/history.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/history.c
 			done history.o generated
 			make init.o
 				make sh/init.c
-					prev ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/wctype.h
+					prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
 					make include/version.h implicit
-						make ${PACKAGE_ast_INCLUDE}/releaseflags.h implicit
-						done ${PACKAGE_ast_INCLUDE}/releaseflags.h
+						prev ${PACKAGE_ast_INCLUDE}/releaseflags.h implicit
 					done include/version.h
-					prev include/lexstates.h implicit
-					prev FEATURE/externs implicit
-					prev FEATURE/dynamic implicit
-					prev FEATURE/time implicit
-					prev include/builtins.h implicit
-					prev include/shlex.h implicit
-					prev include/io.h implicit
-					prev include/jobs.h implicit
-					prev include/edit.h implicit
-					prev include/name.h implicit
-					prev include/fault.h implicit
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/regex.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/tmx.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/lexstates.h
+					prev FEATURE/externs
+					prev FEATURE/dynamic
+					prev FEATURE/time
+					prev include/builtins.h
+					prev include/shlex.h
+					prev include/io.h
+					prev include/jobs.h
+					prev include/edit.h
+					prev include/name.h
+					prev include/fault.h
+					prev include/path.h
+					prev include/variables.h
+					prev ${PACKAGE_ast_INCLUDE}/regex.h
+					prev ${PACKAGE_ast_INCLUDE}/tmx.h
+					prev ${PACKAGE_ast_INCLUDE}/ccode.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/init.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/init.c
 			done init.o generated
 			make io.o
 				make sh/io.c
-					prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-					prev FEATURE/poll implicit
-					prev FEATURE/dynamic implicit
-					prev FEATURE/externs implicit
-					prev include/timeout.h implicit
-					prev include/edit.h implicit
-					prev include/history.h implicit
-					prev include/shnodes.h implicit
-					prev include/shlex.h implicit
-					prev include/jobs.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/regex.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev include/fcin.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/endian.h
+					prev FEATURE/poll
+					prev FEATURE/dynamic
+					prev FEATURE/externs
+					prev include/timeout.h
+					prev include/edit.h
+					prev include/history.h
+					prev include/shnodes.h
+					prev include/shlex.h
+					prev include/jobs.h
+					prev include/io.h
+					prev include/path.h
+					prev include/variables.h
+					prev ${PACKAGE_ast_INCLUDE}/regex.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev include/fcin.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/io.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/io.c
 			done io.o generated
 			make jobs.o
 				make sh/jobs.c
-					prev include/history.h implicit
-					prev include/jobs.h implicit
-					prev include/io.h implicit
+					prev include/history.h
+					prev include/jobs.h
+					prev include/io.h
 					make ${PACKAGE_ast_INCLUDE}/wait.h implicit
-						make ${PACKAGE_ast_INCLUDE}/ast_wait.h implicit
-						done ${PACKAGE_ast_INCLUDE}/ast_wait.h
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast_wait.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done ${PACKAGE_ast_INCLUDE}/wait.h
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/defs.h
+					prev shopt.h
 				done sh/jobs.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/jobs.c
 			done jobs.o generated
 			make lex.o
 				make sh/lex.c
-					prev include/shlex.h implicit
-					prev include/io.h implicit
-					prev include/lexstates.h implicit
-					prev include/test.h implicit
-					prev include/argnod.h implicit
-					prev include/shell.h implicit
-					prev include/defs.h implicit
-					prev include/nval.h implicit
-					prev include/fcin.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/releaseflags.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/shlex.h
+					prev include/io.h
+					prev include/lexstates.h
+					prev include/test.h
+					prev include/argnod.h
+					prev include/shell.h
+					prev include/defs.h
+					prev include/nval.h
+					prev include/fcin.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev ${PACKAGE_ast_INCLUDE}/releaseflags.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done sh/lex.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/lex.c
 			done lex.o generated
 			make macro.o
 				make sh/macro.c
-					prev include/streval.h implicit
-					prev include/national.h implicit
-					prev include/path.h implicit
-					prev include/shnodes.h implicit
-					prev include/jobs.h implicit
-					prev include/io.h implicit
-					prev include/shlex.h implicit
-					prev include/variables.h implicit
-					prev include/name.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/regex.h implicit
-					prev include/fcin.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/streval.h
+					prev include/national.h
+					prev include/path.h
+					prev include/shnodes.h
+					prev include/jobs.h
+					prev include/io.h
+					prev include/shlex.h
+					prev include/variables.h
+					prev include/name.h
+					prev ${PACKAGE_ast_INCLUDE}/regex.h
+					prev include/fcin.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/macro.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/macro.c
 			done macro.o generated
 			make name.o
 				make sh/name.c
-					prev include/builtins.h implicit
-					prev include/shnodes.h implicit
-					prev include/streval.h implicit
-					prev FEATURE/externs implicit
-					prev include/timeout.h implicit
-					prev include/lexstates.h implicit
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/shnodes.h
+					prev include/streval.h
+					prev FEATURE/externs
+					prev include/timeout.h
+					prev include/lexstates.h
+					prev include/path.h
+					prev include/variables.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/name.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/name.c
 			done name.o generated
 			make nvtree.o
 				make sh/nvtree.c
-					prev include/lexstates.h implicit
-					prev include/argnod.h implicit
-					prev include/name.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/lexstates.h
+					prev include/argnod.h
+					prev include/name.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/nvtree.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/nvtree.c
 			done nvtree.o generated
 			make parse.o
 				make sh/parse.c
-					prev include/path.h implicit
-					prev include/test.h implicit
-					prev include/builtins.h implicit
-					prev include/history.h implicit
-					prev include/shlex.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/fcin.h implicit
-					prev include/shell.h implicit
-					prev include/defs.h implicit
-					prev include/version.h implicit
-					prev shopt.h implicit
+					prev include/path.h
+					prev include/test.h
+					prev include/builtins.h
+					prev include/history.h
+					prev include/shlex.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/fcin.h
+					prev include/shell.h
+					prev include/defs.h
+					prev include/version.h
+					prev shopt.h
 				done sh/parse.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/parse.c
 			done parse.o generated
 			make path.o
 				make sh/path.c
-					prev FEATURE/time implicit
-					prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-					make exec_attr.h implicit
-					done exec_attr.h dontcare virtual
-					prev FEATURE/dynamic implicit
-					prev include/test.h implicit
-					prev include/history.h implicit
-					prev include/jobs.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev include/nval.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev include/fcin.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev FEATURE/time
+					prev ${PACKAGE_ast_INCLUDE}/endian.h
+					prev exec_attr.h implicit dontcare virtual
+					prev FEATURE/dynamic
+					prev include/test.h
+					prev include/history.h
+					prev include/jobs.h
+					prev include/io.h
+					prev include/path.h
+					prev include/variables.h
+					prev include/nval.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev include/fcin.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/path.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/path.c
 			done path.o generated
 			make string.o
 				make sh/string.c
-					prev ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-					prev include/national.h implicit
-					prev include/lexstates.h implicit
-					prev include/shtable.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/wctype.h
+					prev include/national.h
+					prev include/lexstates.h
+					prev include/shtable.h
+					prev ${PACKAGE_ast_INCLUDE}/ccode.h
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done sh/string.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/string.c
 			done string.o generated
 			make streval.o
 				make sh/streval.c
-					prev FEATURE/externs implicit
-					prev ${PACKAGE_ast_INCLUDE}/stak.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev include/streval.h implicit
-					prev shopt.h implicit
+					prev FEATURE/externs
+					prev ${PACKAGE_ast_INCLUDE}/stak.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev include/streval.h
+					prev shopt.h
 				done sh/streval.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/streval.c
 			done streval.o generated
 			make subshell.o
 				make sh/subshell.c
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev include/jobs.h implicit
-					prev include/shlex.h implicit
-					prev include/shnodes.h implicit
-					prev include/fault.h implicit
-					prev include/io.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/path.h
+					prev include/variables.h
+					prev include/jobs.h
+					prev include/shlex.h
+					prev include/shnodes.h
+					prev include/fault.h
+					prev include/io.h
+					prev ${PACKAGE_ast_INCLUDE}/ls.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/subshell.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/subshell.c
 			done subshell.o generated
 			make tdump.o
 				make sh/tdump.c
-					prev ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/shnodes.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/ccode.h
+					prev include/io.h
+					prev include/path.h
+					prev include/shnodes.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/tdump.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/tdump.c
 			done tdump.o generated
 			make timers.o
 				make sh/timers.c
-					prev FEATURE/time implicit
-					prev FEATURE/sigfeatures implicit
-					prev include/defs.h implicit
-					prev include/fault.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/sig.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev FEATURE/time
+					prev FEATURE/sigfeatures
+					prev include/defs.h
+					prev include/fault.h
+					prev ${PACKAGE_ast_INCLUDE}/error.h
+					prev ${PACKAGE_ast_INCLUDE}/sig.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done sh/timers.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/timers.c
 			done timers.o generated
 			make trestore.o
 				make sh/trestore.c
-					prev ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/shnodes.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/ccode.h
+					prev include/io.h
+					prev include/path.h
+					prev include/shnodes.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/trestore.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/trestore.c
 			done trestore.o generated
 			make waitevent.o
 				make sh/waitevent.c
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/defs.h
+					prev shopt.h
 				done sh/waitevent.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/waitevent.c
 			done waitevent.o generated
 			make xec.o
 				make sh/xec.c
-					prev ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
-					prev include/streval.h implicit
-					prev FEATURE/locale implicit
-					prev FEATURE/externs implicit
-					prev FEATURE/time implicit
-					prev include/builtins.h implicit
-					prev include/test.h implicit
-					prev include/jobs.h implicit
-					prev include/shnodes.h implicit
-					prev include/io.h implicit
-					prev include/name.h implicit
-					prev include/path.h implicit
-					prev include/variables.h implicit
-					prev include/fcin.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev ${PACKAGE_ast_INCLUDE}/vmalloc.h
+					prev include/streval.h
+					prev FEATURE/locale
+					prev FEATURE/externs
+					prev FEATURE/time
+					prev include/builtins.h
+					prev include/test.h
+					prev include/jobs.h
+					prev include/shnodes.h
+					prev include/io.h
+					prev include/name.h
+					prev include/path.h
+					prev include/variables.h
+					prev include/fcin.h
+					prev include/defs.h
+					prev shopt.h
 				done sh/xec.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/xec.c
 			done xec.o generated
 			make limits.o
 				make data/limits.c
-					prev include/ulimit.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/ulimit.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done data/limits.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -c data/limits.c
 			done limits.o generated
 			make msg.o
 				make data/msg.c
-					prev include/edit.h implicit
-					prev include/jobs.h implicit
-					prev include/builtins.h implicit
-					prev include/history.h implicit
-					prev include/timeout.h implicit
-					prev include/shlex.h implicit
-					prev include/io.h implicit
-					prev include/path.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/edit.h
+					prev include/jobs.h
+					prev include/builtins.h
+					prev include/history.h
+					prev include/timeout.h
+					prev include/shlex.h
+					prev include/io.h
+					prev include/path.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done data/msg.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/msg.c
 			done msg.o generated
@@ -1112,135 +1077,132 @@ make install
 				make data/strdata.c
 					make FEATURE/math implicit
 						make features/math.sh
-							make data/math.tab implicit
-							done data/math.tab
+							prev data/math.tab implicit
 						done features/math.sh
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdll} ${mam_libcmd} ${mam_libast} ${mam_libm} ${mam_libnsl} -lm : run features/math.sh ${PACKAGEROOT}/src/cmd/ksh93/data/math.tab
-						make ${PACKAGE_ast_INCLUDE}/ast_standards.h implicit
-						done ${PACKAGE_ast_INCLUDE}/ast_standards.h
+						prev ${PACKAGE_ast_INCLUDE}/ast_standards.h implicit
 						make ${INSTALLROOT}/src/lib/libast/FEATURE/float implicit
-							make ${INSTALLROOT}/src/lib/libast/FEATURE/standards implicit
-							done ${INSTALLROOT}/src/lib/libast/FEATURE/standards
-							prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+							prev ${INSTALLROOT}/src/lib/libast/FEATURE/standards implicit
+							prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 						done ${INSTALLROOT}/src/lib/libast/FEATURE/float
 					done FEATURE/math generated
-					prev include/streval.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast_standards.h implicit
-					prev shopt.h implicit
+					prev include/streval.h
+					prev ${PACKAGE_ast_INCLUDE}/ast_standards.h
+					prev shopt.h
 				done data/strdata.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} ${SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=${SH_CMDLIB_DIR}} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/strdata.c
 			done strdata.o generated
 			make testops.o
 				make data/testops.c
-					prev include/test.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/test.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done data/testops.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/testops.c
 			done testops.o generated
 			make keywords.o
 				make data/keywords.c
-					prev include/shlex.h implicit
-					prev include/shell.h implicit
-					prev shopt.h implicit
+					prev include/shlex.h
+					prev include/shell.h
+					prev shopt.h
 				done data/keywords.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/keywords.c
 			done keywords.o generated
 			make options.o
 				make data/options.c
-					prev include/shtable.h implicit
-					prev include/name.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/shtable.h
+					prev include/name.h
+					prev include/defs.h
+					prev shopt.h
 				done data/options.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/options.c
 			done options.o generated
 			make signals.o
 				make data/signals.c
-					prev include/jobs.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/jobs.h
+					prev include/defs.h
+					prev shopt.h
 				done data/signals.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/signals.c
 			done signals.o generated
 			make aliases.o
 				make data/aliases.c
-					prev FEATURE/dynamic implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev FEATURE/dynamic
+					prev include/defs.h
+					prev shopt.h
 				done data/aliases.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/aliases.c
 			done aliases.o generated
 			make builtins.o
 				make data/builtins.c
-					prev FEATURE/poll implicit
-					prev FEATURE/cmds implicit
-					prev include/jobs.h implicit
-					prev include/builtins.h implicit
-					prev include/version.h implicit
-					prev include/name.h implicit
-					prev include/ulimit.h implicit
-					prev include/shtable.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev FEATURE/poll
+					prev FEATURE/cmds
+					prev include/jobs.h
+					prev include/builtins.h
+					prev include/version.h
+					prev include/name.h
+					prev include/ulimit.h
+					prev include/shtable.h
+					prev include/defs.h
+					prev shopt.h
 				done data/builtins.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -DSH_DICT=${SH_DICT} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/builtins.c
 			done builtins.o generated
 			make variables.o
 				make data/variables.c
-					prev include/builtins.h implicit
-					prev include/variables.h implicit
-					prev include/defs.h implicit
-					prev include/name.h implicit
-					prev include/shtable.h implicit
-					prev include/shell.h implicit
-					prev FEATURE/dynamic implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/builtins.h
+					prev include/variables.h
+					prev include/defs.h
+					prev include/name.h
+					prev include/shtable.h
+					prev include/shell.h
+					prev FEATURE/dynamic
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done data/variables.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c data/variables.c
 			done variables.o generated
 			make lexstates.o
 				make data/lexstates.c
-					prev include/lexstates.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/lexstates.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done data/lexstates.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -c data/lexstates.c
 			done lexstates.o generated
 			make emacs.o
 				make edit/emacs.c
-					prev include/terminal.h implicit
-					prev include/edit.h implicit
-					prev include/history.h implicit
-					prev include/io.h implicit
-					prev include/defs.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/releaseflags.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev shopt.h implicit
+					prev include/terminal.h
+					prev include/edit.h
+					prev include/history.h
+					prev include/io.h
+					prev include/defs.h
+					prev ${PACKAGE_ast_INCLUDE}/releaseflags.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev shopt.h
 				done edit/emacs.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/emacs.c
 			done emacs.o generated
 			make vi.o
 				make edit/vi.c
-					prev include/lexstates.h implicit
-					prev FEATURE/time implicit
-					prev include/terminal.h implicit
-					prev include/edit.h implicit
-					prev include/history.h implicit
-					prev include/io.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/lexstates.h
+					prev FEATURE/time
+					prev include/terminal.h
+					prev include/edit.h
+					prev include/history.h
+					prev include/io.h
+					prev ${PACKAGE_ast_INCLUDE}/ast.h
+					prev include/defs.h
+					prev shopt.h
 				done edit/vi.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/vi.c
 			done vi.o generated
 			make hexpand.o
 				make edit/hexpand.c
-					prev include/edit.h implicit
-					prev include/defs.h implicit
-					prev shopt.h implicit
+					prev include/edit.h
+					prev include/defs.h
+					prev shopt.h
 				done edit/hexpand.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c edit/hexpand.c
 			done hexpand.o generated
@@ -1249,38 +1211,28 @@ make install
 			exec - (ranlib libshell.a) >/dev/null 2>&1 || true
 		done libshell.a generated
 		bind -lshell
-		prev +ljobs
-		prev +li
-		prev ${mam_libsocket}
-		prev ${mam_libsecdb}
-		prev ${mam_libnetwork}
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o ksh pmain.o ${mam_libshell} ${mam_libnsl} ${mam_libast} -lm
 	done ksh generated
 	make shcomp
 		make shcomp.o
 			make sh/shcomp.c
-				prev include/terminal.h implicit
-				prev include/shnodes.h implicit
-				prev include/path.h implicit
-				prev include/defs.h implicit
-				prev include/shell.h implicit
-				prev include/version.h implicit
-				prev shopt.h implicit
+				prev include/terminal.h
+				prev include/shnodes.h
+				prev include/path.h
+				prev include/defs.h
+				prev include/shell.h
+				prev include/version.h
+				prev shopt.h
 			done sh/shcomp.c
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Iinclude -I${PACKAGE_ast_INCLUDE} -DSH_DICT=${SH_DICT} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c sh/shcomp.c
 		done shcomp.o generated
 		prev ksh
-		prev +ljobs
-		prev +li
-		prev ${mam_libsocket}
-		prev ${mam_libsecdb}
-		prev ${mam_libnetwork}
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o shcomp shcomp.o ${mam_libshell} ${mam_libnsl} ${mam_libast} -lm
 	done shcomp generated
 	make shell
-		prev libshell.a archive
+		prev libshell.a
 	done shell virtual
-	prev libshell.a archive
+	prev libshell.a
 	make ${INSTALLROOT}/bin
 		exec - if test ! -d ${INSTALLROOT}/bin
 		exec - then mkdir -p ${INSTALLROOT}/bin
@@ -1298,8 +1250,7 @@ make install
 	done ${INSTALLROOT}/man/man1 generated
 	make ${INSTALLROOT}/man/man1/sh.1
 		prev ${INSTALLROOT}/man/man1
-		make sh.1
-		done sh.1
+		prev sh.1
 		exec - ${STDCMP} 2>/dev/null -s sh.1 ${INSTALLROOT}/man/man1/sh.1 || { ${STDMV} ${INSTALLROOT}/man/man1/sh.1 ${INSTALLROOT}/man/man1/sh.1.old 2>/dev/null || true; ${STDCP} sh.1 ${INSTALLROOT}/man/man1/sh.1 ;}
 	done ${INSTALLROOT}/man/man1/sh.1 generated
 	make ${INSTALLROOT}/lib
@@ -1309,7 +1260,7 @@ make install
 	done ${INSTALLROOT}/lib generated
 	make ${INSTALLROOT}/lib/libshell.a archive
 		prev ${INSTALLROOT}/lib
-		prev libshell.a archive
+		prev libshell.a
 		exec - ${STDCMP} 2>/dev/null -s libshell.a ${INSTALLROOT}/lib/libshell.a || { ${STDMV} ${INSTALLROOT}/lib/libshell.a ${INSTALLROOT}/lib/libshell.a.old 2>/dev/null || true; ${STDCP} libshell.a ${INSTALLROOT}/lib/libshell.a ;}
 		exec - (ranlib ${INSTALLROOT}/lib/libshell.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libshell.a generated
@@ -1320,13 +1271,11 @@ make install
 	done ${INSTALLROOT}/man/man3 generated
 	make ${INSTALLROOT}/man/man3/shell.3
 		prev ${INSTALLROOT}/man/man3
-		make shell.3
-		done shell.3
+		prev shell.3
 		exec - ${STDCMP} 2>/dev/null -s shell.3 ${INSTALLROOT}/man/man3/shell.3 || { ${STDMV} ${INSTALLROOT}/man/man3/shell.3 ${INSTALLROOT}/man/man3/shell.3.old 2>/dev/null || true; ${STDCP} shell.3 ${INSTALLROOT}/man/man3/shell.3 ;}
 	done ${INSTALLROOT}/man/man3/shell.3 generated
 	make ${INSTALLROOT}/man/man3/nval.3
-		make nval.3
-		done nval.3
+		prev nval.3
 		exec - ${STDCMP} 2>/dev/null -s nval.3 ${INSTALLROOT}/man/man3/nval.3 || { ${STDMV} ${INSTALLROOT}/man/man3/nval.3 ${INSTALLROOT}/man/man3/nval.3.old 2>/dev/null || true; ${STDCP} nval.3 ${INSTALLROOT}/man/man3/nval.3 ;}
 	done ${INSTALLROOT}/man/man3/nval.3 generated
 	make ${INSTALLROOT}/lib/lib
@@ -1374,37 +1323,31 @@ make install
 	done ${INSTALLROOT}/fun generated
 	make ${INSTALLROOT}/fun/autocd
 		prev ${INSTALLROOT}/fun
-		make fun/autocd
-		done fun/autocd
+		prev fun/autocd
 		exec - ${STDCMP} 2>/dev/null -s fun/autocd ${INSTALLROOT}/fun/autocd || { ${STDMV} ${INSTALLROOT}/fun/autocd ${INSTALLROOT}/fun/autocd.old 2>/dev/null || true; ${STDCP} fun/autocd ${INSTALLROOT}/fun/autocd && chmod ugo+x ${INSTALLROOT}/fun/autocd ;}
 	done ${INSTALLROOT}/fun/autocd generated
 	make ${INSTALLROOT}/fun/dirs
 		prev ${INSTALLROOT}/fun
-		make fun/dirs
-		done fun/dirs
+		prev fun/dirs
 		exec - ${STDCMP} 2>/dev/null -s fun/dirs ${INSTALLROOT}/fun/dirs || { ${STDMV} ${INSTALLROOT}/fun/dirs ${INSTALLROOT}/fun/dirs.old 2>/dev/null || true; ${STDCP} fun/dirs ${INSTALLROOT}/fun/dirs && chmod ugo+x ${INSTALLROOT}/fun/dirs ;}
 	done ${INSTALLROOT}/fun/dirs generated
 	make ${INSTALLROOT}/fun/man
 		prev ${INSTALLROOT}/fun
-		make fun/man
-		done fun/man
+		prev fun/man
 		exec - ${STDCMP} 2>/dev/null -s fun/man ${INSTALLROOT}/fun/man || { ${STDMV} ${INSTALLROOT}/fun/man ${INSTALLROOT}/fun/man.old 2>/dev/null || true; ${STDCP} fun/man ${INSTALLROOT}/fun/man && chmod ugo+x ${INSTALLROOT}/fun/man ;}
 	done ${INSTALLROOT}/fun/man generated
 	make ${INSTALLROOT}/fun/popd
-		make fun/popd
-		done fun/popd
+		prev fun/popd
 		exec - ${STDCMP} 2>/dev/null -s fun/popd ${INSTALLROOT}/fun/popd || { ${STDMV} ${INSTALLROOT}/fun/popd ${INSTALLROOT}/fun/popd.old 2>/dev/null || true; ${STDCP} fun/popd ${INSTALLROOT}/fun/popd && chmod ugo+x ${INSTALLROOT}/fun/popd ;}
 	done ${INSTALLROOT}/fun/popd generated
 	make ${INSTALLROOT}/fun/pushd
-		make fun/pushd
-		done fun/pushd
+		prev fun/pushd
 		exec - ${STDCMP} 2>/dev/null -s fun/pushd ${INSTALLROOT}/fun/pushd || { ${STDMV} ${INSTALLROOT}/fun/pushd ${INSTALLROOT}/fun/pushd.old 2>/dev/null || true; ${STDCP} fun/pushd ${INSTALLROOT}/fun/pushd && chmod ugo+x ${INSTALLROOT}/fun/pushd ;}
 	done ${INSTALLROOT}/fun/pushd generated
 done install virtual
 make test
 	make test.ksh
-		make tests/shtests
-		done tests/shtests
+		prev tests/shtests
 		exec - cd "$PACKAGEROOT/src/cmd/ksh93/tests"
 		exec - exec "$SHELL" shtests
 	done test.ksh virtual

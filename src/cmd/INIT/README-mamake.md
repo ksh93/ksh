@@ -31,6 +31,8 @@ ksh 93u+m made a few minor changes to `mamake` that make it easier to maintain M
 * Indentation and word separators may use any whitespace (e.g. tabs), not only spaces.
 * Unrecognized commands and rule attributes throw an error instead of being silently ignored.
 * Fixed some crashing bugs and memory leaks.
+* The `prev` command may now be used without a prior `make`...`done` to declare a simple
+  prerequisite, provided the `MAMAKE_STRICT` variable is set.
 
 ## Commands ##
 
@@ -95,15 +97,25 @@ by appending them to the `make` or `done` command:
   By convention, a virtual rule named `all` makes everything,
   and a virtual rule named `install` performs installation.
 
-### Referencing previously defined rules ###
+### Referencing prerequisites or previously defined rules ###
 
 `prev` *rule* [ *attribute* ... ]
 
-This command references a rule that has previously been defined by `make`...`done`,
-regardless of block nesting level.
-It can be used to make a rule a prerequisite of multiple `make`...`done` blocks without repeating the rule.
-By convention, the *attribute*s of the referenced block are repeated in the `prev` command.
-However, `mamake` ignores anything after *rule*.
+The `prev` command is used in two ways:
+
+1. If *rule* is a previously defined rule, `prev` adds a dependency on that rule to the current rule.
+   This can be used to make a rule a prerequisite of multiple `make`...`done` blocks without repeating the rule.
+   No attributes should be given for this use of `prev`, because the attributes of the referenced rule are used.
+   Superfluous attributes are an error if the `MAMAKE_STRICT` variable has been set, otherwise they are ignored.
+
+2. If *rule* is not a previously defined rule, the following applies.
+   If the `MAMAKE_STRICT` variable is not set, `prev` creates an empty dummy
+   *rule* and ignores the *attribute*s; this is for backward compatibility.
+   If the `MAMAKE_STRICT` variable is set,
+   `prev` creates a rule that declares a dependency on a prerequisite file named by *rule*
+   in a manner equivalent to an empty `make`...`done` block,
+   with any *attribute*s given applied to the new rule, and
+   a nonexistent prerequisite is an error unless a `virtual` or `dontcare` attribute is given.
 
 ### MAM variables ###
 

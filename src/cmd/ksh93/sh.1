@@ -4645,7 +4645,7 @@ is lost and needs to be retyped from scratch,
 but if the \f3histreedit\fP shell option is turned on
 and a line editor is active (see \f2In-line Editing Options\fP below),
 the erroneous line is pre-filled into the next prompt's input buffer for correcting.
-The \f3histverify\fP option causes the same to be done for successful
+The \f3histverify\fP option causes the same to be done for the results of successful
 history expansions, allowing verification and editing before execution.
 .PP
 A history expansion may have an \f2event specification\fP, which indicates
@@ -6474,11 +6474,11 @@ rather than the one defined by the value of
 .IP
 The
 .B \-x
-option runs
+option searches for
 .I name\^
 as an external command, bypassing built-ins.
 If the arguments contain at least one word that expands to multiple arguments,
-such as \f3"$@"\fP or \f3*.txt\fP, then the
+for example \f3*.txt\fP or \f3"$@"\fP, then the
 .B \-x
 option also allows executing external commands with argument lists that are
 longer than the operating system allows. This functionality is similar to
@@ -6487,7 +6487,7 @@ but is easier to use. The shell does this by invoking the external command
 multiple times if needed, dividing the expanded argument list over the
 invocations. Any arguments that come before the first word that expands to
 multiple arguments, as well as any that follow the last such word, are
-considered static arguments and are repeated for each invocation. This allows
+repeated for each invocation. This allows
 each invocation to use the same command options, as well as the same trailing
 destination arguments for commands like
 .BR cp (1)

@@ -14,6 +14,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                 Harald van Dijk <harald@gigawatt.nl>                 *
+*               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *                                                                      *
 ***********************************************************************/
 
@@ -549,7 +550,7 @@ const char sh_optcommand[] =
 "[-1c?\n@(#)$Id: command (ksh 93u+m) 2023-03-20 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?command - execute a simple command disabling special properties]"
-"[+DESCRIPTION?Without \b-v\b or \b-V\b,  \bcommand\b executes \acmd\a "
+"[+DESCRIPTION?Without \b-v\b or \b-V\b, \bcommand\b executes \acmd\a "
 	"with arguments given by \aarg\a, suppressing the shell function lookup "
 	"that normally occurs. If \acmd\a is a special built-in command, "
 	"then the special properties are removed so that failures will not "
@@ -566,8 +567,8 @@ const char sh_optcommand[] =
 "[V?Equivalent to \bwhence \b-v\b \acmd\a [\aarg\a ...]].]"
 "[x?Search \acmd\a as an external command, bypassing built-ins. "
 	"If the \aarg\as include a word "
-	"such as \b\"$@\"\b or \b\"*.txt\"\b "
 	"that expands to multiple arguments, "
+	"for example \b*.txt\b or \b\"$@\"\b, "
 	"and the size of the expanded \aarg\a list "
 	"exceeds \bgetconf ARG_MAX\b bytes, "
 	"then \acmd\a will be run multiple times, "
@@ -575,14 +576,15 @@ const char sh_optcommand[] =
 	"Any \aarg\as that come before the first "
 	"word that expands to multiple arguments, "
 	"as well as any that follow the last such word, "
-	"are considered static and will be repeated for each invocation "
-	"so as to allow all invocations to use the same command options. "
-	"The exit status will be the highest returned by the invocations.]"
+	"will be repeated for each invocation "
+	"so as to allow all invocations to use the same command options.]"
 "\n"
 "\n[cmd [arg ...]]\n"
 "\n"
 "[+EXIT STATUS?If \acmd\a is invoked, the exit status of \bcommand\b "
-	"will be that of \acmd\a. Otherwise, it will be one of "
+	"will be that of \acmd\a or, if \b-x\b is used, "
+	"the highest exit status of all the \acmd\a invocations. "
+	"Otherwise, it will be one of "
 	"the following:]{"
 	"[+0?\bcommand\b completed successfully.]"
 	"[+>0?\b-v\b or \b-V\b has been specified and an error occurred.]"

@@ -377,7 +377,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 				break;
 			    }
 			    case S_PAR:
-				comsubst(mp,NULL,3);
+				comsubst(mp,NULL,1);
 				break;
 			    case S_EOF:
 				if((c=fcfill()) > 0)
@@ -1200,7 +1200,7 @@ retry1:
 	    case S_PAR:
 		if(type)
 			goto nosub;
-		comsubst(mp,NULL,3);
+		comsubst(mp,NULL,1);
 		return 1;
 	    case S_DIG:
 		var = 0;
@@ -2232,7 +2232,6 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 				char *cp = (char*)sh_malloc(IOBSIZE+1);
 				sp = sfnew(NULL,cp,IOBSIZE,fd,SF_READ|SF_MALLOC);
 			}
-			type = 3;
 		}
 		else
 		{
@@ -2675,7 +2674,7 @@ static int	charlen(const char *string,int len)
  */
 static void tilde_expand2(int offset)
 {
-	char		*cp = NULL;		/* character pointer for tilde expansion result */
+	char		*cp = NULL;			/* character pointer for tilde expansion result */
 	char		*stakp = stakptr(0);		/* current stack object (&stakp[offset] is tilde string) */
 	int		curoff = staktell();		/* current offset of current stack object */
 	static char	block;				/* for disallowing tilde expansion in .get/.set to change ${.sh.tilde} */
@@ -2690,7 +2689,7 @@ static void tilde_expand2(int offset)
 		cp = nv_getval(SH_TILDENOD);
 		block--;
 		if(cp[0]=='\0' || cp[0]=='~')
-			cp = NULL;		/* do not use empty or unexpanded result */
+			cp = NULL;			/* do not use empty or unexpanded result */
 		stakset(stakp,curoff);			/* restore stack to state on function entry */
 	}
 	/*

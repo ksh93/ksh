@@ -1668,6 +1668,12 @@ got=$(
 [[ e=$? -eq 0 && $got == "$exp" ]] || err_exit "read -N8 && printf -v %B" \
 	"(expected status 0, '$exp';" \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+# one proposed fix used the stack, breaking %q
+s='one two'
+exp="'$s' / '$s' / '$s'"
+printf -v got "%q / %q / %q" "$s" "$s" "$s"
+[[ $got == "$exp" ]] || err_exit "printf repeated %q" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

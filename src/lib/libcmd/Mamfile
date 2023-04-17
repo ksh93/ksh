@@ -6,6 +6,7 @@ note * Mamfiles are processed by mamake (src/cmd/INIT/mamake.c); we added
 note * indentation to improve readability. The language is documented in
 note * src/cmd/INIT/README-mamake.md.
 note *
+setv MAMAKE_STRICT
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv PACKAGEROOT ../../../../..
@@ -26,354 +27,331 @@ make install
 			prev cmd.req
 			make cmdinit.o
 				make cmdinit.c
-					make ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
-					done ${PACKAGE_ast_INCLUDE}/shcmd.h
+					prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
 					make cmd.h implicit
-						make ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit
-						done ${PACKAGE_ast_INCLUDE}/dlldefs.h
+						prev ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit dontcare
 						make cmdext.h implicit
 							prev cmdinit.c
 							make basename.c
-								prev cmd.h implicit
+								prev cmd.h
 							done basename.c
 							make cat.c
 								make ${PACKAGE_ast_INCLUDE}/endian.h implicit
 									make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
 										make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_map.h
+											prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
 										done ${PACKAGE_ast_INCLUDE}/ast_common.h
 									done ${PACKAGE_ast_INCLUDE}/bytesex.h
 								done ${PACKAGE_ast_INCLUDE}/endian.h
-								prev cmd.h implicit
+								prev cmd.h
 							done cat.c
 							make chgrp.c
 								make FEATURE/symlink implicit
-									make features/symlink
-									done features/symlink
+									prev features/symlink
 									bind -lutil
 									bind -last
 									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/symlink
 								done FEATURE/symlink generated
 								make ${PACKAGE_ast_INCLUDE}/fts.h implicit
-									make ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_mode.h
-									make ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_fs.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
 									make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
 										make ${PACKAGE_ast_INCLUDE}/regex.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_api.h
+											prev ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
 											make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
 												make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
 													make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
-														prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+														prev ${PACKAGE_ast_INCLUDE}/endian.h
 														make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-															prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
+															prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
 														done ${PACKAGE_ast_INCLUDE}/wchar.h
 													done ${PACKAGE_ast_INCLUDE}/ast_wctype.h
 												done ${PACKAGE_ast_INCLUDE}/wctype.h
 												make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
 													make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
-														make ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-														done ${PACKAGE_ast_INCLUDE}/sfio_s.h
-														prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+														prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
+														prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 													done ${PACKAGE_ast_INCLUDE}/ast_stdio.h
 												done ${PACKAGE_ast_INCLUDE}/stdio.h
-												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 											done ${PACKAGE_ast_INCLUDE}/ast_wchar.h
-											prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 										done ${PACKAGE_ast_INCLUDE}/regex.h
 										make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_getopt.h
+											prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
 										done ${PACKAGE_ast_INCLUDE}/getopt.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-										make ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_botch.h
-										make ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_limits.h
+										prev ${PACKAGE_ast_INCLUDE}/ast_map.h
+										prev ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
 										make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast_fs.h
 										done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h
 										make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/getopt.h
+											prev ${PACKAGE_ast_INCLUDE}/endian.h
+											prev ${PACKAGE_ast_INCLUDE}/endian.h
 										done ${PACKAGE_ast_INCLUDE}/ast_sys.h
-										make ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_lib.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 									done ${PACKAGE_ast_INCLUDE}/ast_std.h
 								done ${PACKAGE_ast_INCLUDE}/fts.h
-								prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/endian.h
 								make ${PACKAGE_ast_INCLUDE}/ls.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_mode.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_fs.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 								done ${PACKAGE_ast_INCLUDE}/ls.h
 								make ${PACKAGE_ast_INCLUDE}/cdt.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_common.h
+									prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 								done ${PACKAGE_ast_INCLUDE}/cdt.h
-								prev cmd.h implicit
+								prev cmd.h
 							done chgrp.c
 							make chmod.c
-								prev FEATURE/symlink implicit
-								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev FEATURE/symlink
+								prev ${PACKAGE_ast_INCLUDE}/fts.h
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done chmod.c
 							make chown.c
-								prev cmd.h implicit
+								prev cmd.h
 							done chown.c
 							make cksum.c
 								make ${PACKAGE_ast_INCLUDE}/error.h implicit
 									make ${PACKAGE_ast_INCLUDE}/option.h implicit
 										make ${PACKAGE_ast_INCLUDE}/ast.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast_api.h
 											make ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/ast_common.h
+												prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 											done ${PACKAGE_ast_INCLUDE}/vmalloc.h
 											make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+												prev ${PACKAGE_ast_INCLUDE}/sfio_s.h
+												prev ${PACKAGE_ast_INCLUDE}/ast_common.h
+												prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 											done ${PACKAGE_ast_INCLUDE}/sfio.h
-											prev ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 										done ${PACKAGE_ast_INCLUDE}/ast.h
 									done ${PACKAGE_ast_INCLUDE}/option.h
-									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast.h
 								done ${PACKAGE_ast_INCLUDE}/error.h
-								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h
 								make ${PACKAGE_ast_INCLUDE}/modex.h implicit
-									make ${PACKAGE_ast_INCLUDE}/modecanon.h implicit
-									done ${PACKAGE_ast_INCLUDE}/modecanon.h
-									prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/modecanon.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_fs.h
 								done ${PACKAGE_ast_INCLUDE}/modex.h
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
 								make ${PACKAGE_ast_INCLUDE}/sum.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast.h
 								done ${PACKAGE_ast_INCLUDE}/sum.h
-								prev cmd.h implicit
+								prev cmd.h
 							done cksum.c
 							make cmp.c
 								make ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-									make ${PACKAGE_ast_INCLUDE}/ast_ccode.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_ccode.h
-									prev ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_ccode.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 								done ${PACKAGE_ast_INCLUDE}/ccode.h
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done cmp.c
 							make comm.c
-								prev cmd.h implicit
+								prev cmd.h
 							done comm.c
 							make cp.c
 								make ${PACKAGE_ast_INCLUDE}/tmx.h implicit
 									make ${PACKAGE_ast_INCLUDE}/tv.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast.h
 									done ${PACKAGE_ast_INCLUDE}/tv.h
 									make ${PACKAGE_ast_INCLUDE}/tm.h implicit
 										make ${PACKAGE_ast_INCLUDE}/times.h implicit
-											make ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
-											done ${PACKAGE_ast_INCLUDE}/ast_time.h
-											prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
+											prev ${PACKAGE_ast_INCLUDE}/ast.h
 										done ${PACKAGE_ast_INCLUDE}/times.h
-										prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+										prev ${PACKAGE_ast_INCLUDE}/ast.h
 									done ${PACKAGE_ast_INCLUDE}/tm.h
 								done ${PACKAGE_ast_INCLUDE}/tmx.h
 								make ${PACKAGE_ast_INCLUDE}/stk.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/sfio.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/sfio.h
 								done ${PACKAGE_ast_INCLUDE}/stk.h
-								make ${PACKAGE_ast_INCLUDE}/hashkey.h implicit
-								done ${PACKAGE_ast_INCLUDE}/hashkey.h
-								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/times.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/hashkey.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h
+								prev ${PACKAGE_ast_INCLUDE}/times.h
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done cp.c
 							make cut.c
-								prev cmd.h implicit
+								prev cmd.h
 							done cut.c
 							make dirname.c
-								prev cmd.h implicit
+								prev cmd.h
 							done dirname.c
 							make date.c
-								prev ${PACKAGE_ast_INCLUDE}/times.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/tmx.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/times.h
+								prev ${PACKAGE_ast_INCLUDE}/tmx.h
 								make ${PACKAGE_ast_INCLUDE}/proc.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast.h
 								done ${PACKAGE_ast_INCLUDE}/proc.h
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done date.c
 							make expr.c
-								prev ${PACKAGE_ast_INCLUDE}/regex.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/regex.h
+								prev cmd.h
 							done expr.c
 							make fds.c
-								prev ${PACKAGE_ast_INCLUDE}/endian.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/endian.h
 								make FEATURE/sockets implicit
-									make features/sockets
-									done features/sockets
+									prev features/sockets
 									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/sockets
 								done FEATURE/sockets generated
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done fds.c
 							make fmt.c
-								prev cmd.h implicit
+								prev cmd.h
 							done fmt.c
 							make fold.c
-								prev cmd.h implicit
+								prev cmd.h
 							done fold.c
 							make getconf.c
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/proc.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev ${PACKAGE_ast_INCLUDE}/proc.h
+								prev cmd.h
 							done getconf.c
 							make head.c
-								prev cmd.h implicit
+								prev cmd.h
 							done head.c
 							make id.c
-								make fsg.h implicit
-								done fsg.h dontcare virtual
-								prev ${PACKAGE_ast_INCLUDE}/stdio.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/stdio.h implicit
+								prev fsg.h implicit dontcare virtual
+								prev ${PACKAGE_ast_INCLUDE}/stdio.h
+								prev ${PACKAGE_ast_INCLUDE}/stdio.h
 								make FEATURE/ids implicit
-									make features/ids
-									done features/ids
+									prev features/ids
 									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/ids
 								done FEATURE/ids generated
-								prev cmd.h implicit
+								prev cmd.h
 							done id.c
 							make join.c
-								prev ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/wchar.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/wctype.h
+								prev ${PACKAGE_ast_INCLUDE}/wchar.h
 								make ${PACKAGE_ast_INCLUDE}/sfdisc.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast.h
 								done ${PACKAGE_ast_INCLUDE}/sfdisc.h
-								prev cmd.h implicit
+								prev cmd.h
 							done join.c
 							make ln.c
-								prev cmd.h implicit
+								prev cmd.h
 							done ln.c
 							make logname.c
-								prev cmd.h implicit
+								prev cmd.h
 							done logname.c
 							make md5sum.c
-								prev cmd.h implicit
+								prev cmd.h
 							done md5sum.c
 							make mkdir.c
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done mkdir.c
 							make mkfifo.c
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done mkfifo.c
 							make mktemp.c
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done mktemp.c
 							make mv.c
-								prev cmd.h implicit
+								prev cmd.h
 							done mv.c
 							make paste.c
-								prev cmd.h implicit
+								prev cmd.h
 							done paste.c
 							make pathchk.c
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done pathchk.c
 							make pids.c
-								prev ${PACKAGE_ast_INCLUDE}/sfdisc.h implicit
-								make ${PACKAGE_ast_INCLUDE}/ast_tty.h implicit
-								done ${PACKAGE_ast_INCLUDE}/ast_tty.h
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/sfdisc.h
+								prev ${PACKAGE_ast_INCLUDE}/ast_tty.h implicit
+								prev cmd.h
 							done pids.c
 							make rev.c
-								make rev.h implicit
-								done rev.h
-								prev cmd.h implicit
+								prev rev.h implicit
+								prev cmd.h
 							done rev.c
 							make rm.c
-								prev ${PACKAGE_ast_INCLUDE}/fts.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/fts.h
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done rm.c
 							make rmdir.c
-								prev cmd.h implicit
+								prev cmd.h
 							done rmdir.c
 							make stty.c
-								prev ${PACKAGE_ast_INCLUDE}/ast_tty.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ccode.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ast_tty.h
+								prev ${PACKAGE_ast_INCLUDE}/ccode.h
+								prev cmd.h
 							done stty.c
 							make sum.c
-								prev cmd.h implicit
+								prev cmd.h
 							done sum.c
 							make sync.c
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done sync.c
 							make tail.c
-								prev rev.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/tv.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev rev.h
+								prev ${PACKAGE_ast_INCLUDE}/tv.h
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done tail.c
 							make tee.c
-								make ${PACKAGE_ast_INCLUDE}/sig.h implicit
-								done ${PACKAGE_ast_INCLUDE}/sig.h
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/sig.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
+								prev cmd.h
 							done tee.c
 							make tty.c
-								prev cmd.h implicit
+								prev cmd.h
 							done tty.c
 							make uname.c
 								make FEATURE/utsname implicit
-									make features/utsname
-									done features/utsname
+									prev features/utsname
 									exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run features/utsname
 								done FEATURE/utsname generated
-								prev ${PACKAGE_ast_INCLUDE}/proc.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/proc.h
+								prev cmd.h
 							done uname.c
 							make uniq.c
-								prev cmd.h implicit
+								prev cmd.h
 							done uniq.c
 							make vmstate.c
-								prev ${PACKAGE_ast_INCLUDE}/sfdisc.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/sfdisc.h
+								prev ${PACKAGE_ast_INCLUDE}/vmalloc.h
+								prev cmd.h
 							done vmstate.c
 							make wc.c
-								prev ${PACKAGE_ast_INCLUDE}/ls.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/ls.h
 								make wc.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast.h
 								done wc.h
-								prev cmd.h implicit
+								prev cmd.h
 							done wc.c
 							make revlib.c
-								prev rev.h implicit
-								prev cmd.h implicit
+								prev rev.h
+								prev cmd.h
 							done revlib.c
 							make wclib.c
 								make ${PACKAGE_ast_INCLUDE}/lc.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+									prev ${PACKAGE_ast_INCLUDE}/ast.h
 								done ${PACKAGE_ast_INCLUDE}/lc.h
-								prev ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-								prev wc.h implicit
-								prev cmd.h implicit
+								prev ${PACKAGE_ast_INCLUDE}/wctype.h
+								prev ${PACKAGE_ast_INCLUDE}/wchar.h
+								prev wc.h
+								prev cmd.h
 							done wclib.c
 							make lib.c
-								prev cmd.h implicit
+								prev cmd.h
 							done lib.c
 							exec - {
 							exec - cat <<!
@@ -396,14 +374,14 @@ make install
 							exec - then rm -f 1.${COTEMP}.h
 							exec - else mv 1.${COTEMP}.h cmdext.h
 							exec - fi
-							prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/shcmd.h
 						done cmdext.h dontcare generated
-						prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/shcmd.h
 						make ${PACKAGE_ast_INCLUDE}/stak.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/stk.h implicit
+							prev ${PACKAGE_ast_INCLUDE}/stk.h
 						done ${PACKAGE_ast_INCLUDE}/stak.h
-						prev ${PACKAGE_ast_INCLUDE}/error.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast.h implicit
+						prev ${PACKAGE_ast_INCLUDE}/error.h
+						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done cmd.h
 				done cmdinit.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_cmd -c cmdinit.c
@@ -647,7 +625,7 @@ make install
 			exec - (ranlib libcmd.a) >/dev/null 2>&1 || true
 		done libcmd.a generated
 	done cmd virtual
-	prev libcmd.a archive
+	prev libcmd.a
 	make ${INSTALLROOT}/lib
 		exec - if test ! -d ${INSTALLROOT}/lib
 		exec - then mkdir -p ${INSTALLROOT}/lib
@@ -655,7 +633,7 @@ make install
 	done ${INSTALLROOT}/lib generated
 	make ${INSTALLROOT}/lib/libcmd.a archive
 		prev ${INSTALLROOT}/lib
-		prev libcmd.a archive
+		prev libcmd.a
 		exec - ${STDCMP} 2>/dev/null -s libcmd.a ${INSTALLROOT}/lib/libcmd.a || { ${STDMV} ${INSTALLROOT}/lib/libcmd.a ${INSTALLROOT}/lib/libcmd.a.old 2>/dev/null || true; ${STDCP} libcmd.a ${INSTALLROOT}/lib/libcmd.a ;}
 		exec - (ranlib ${INSTALLROOT}/lib/libcmd.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libcmd.a generated

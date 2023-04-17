@@ -10,7 +10,6 @@ lcl
 FEATURE/
 /bin/.paths
 /bin/crossexec
-/bin/filter
 /bin/iffe
 /bin/ksh
 /bin/mamake
@@ -19,15 +18,12 @@ FEATURE/
 /bin/proto
 /bin/pty
 /bin/regress
-/bin/rt
 /bin/shcomp
-/bin/suid_exec
 /fun/
 /include/
 /lib/
 /man/
 /src/cmd/INIT/crossexec
-/src/cmd/INIT/filter
 /src/cmd/INIT/iffe
 /src/cmd/INIT/mamake
 /src/cmd/INIT/mamprobe
@@ -35,14 +31,11 @@ FEATURE/
 /src/cmd/INIT/mprobe
 /src/cmd/INIT/package
 /src/cmd/INIT/probe
-/src/cmd/INIT/probe.ini
 /src/cmd/INIT/probe.sh
 /src/cmd/INIT/regress
-/src/cmd/INIT/rt
 /src/cmd/builtin/pty
 /src/cmd/ksh93/ksh
 /src/cmd/ksh93/shcomp
-/src/cmd/ksh93/suid_exec
 /src/lib/libast/*.h
 /src/lib/libast/astmath.exe
 /src/lib/libast/conf
@@ -71,3 +64,4 @@ FEATURE/
 core
 **/#*#
 tags
+cscope.out
