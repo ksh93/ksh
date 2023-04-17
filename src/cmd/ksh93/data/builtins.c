@@ -292,7 +292,8 @@ const char sh_set[] =
 #if SHOPT_ESH || SHOPT_VSH
 		"[+multiline?Use multiple lines when editing lines that are "
 			"longer than the window width. Has no effect on systems "
-			"with neither \bterminfo\b nor \btermcap\b support.]"
+			"with neither \bterminfo\b nor \btermcap\b support for "
+			"the running terminal.]"
 #endif
 		"[+log?Obsolete; no effect.]"
 		"[+notify?Equivalent to \b-b\b.]"
