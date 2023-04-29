@@ -1167,5 +1167,27 @@ w cd vitest/aあ\t
 r ^:test-1: cd vitest/aあb/\r\n$
 !
 
+((SHOPT_HISTEXPAND)) && ((SHOPT_VSH || SHOPT_ESH)) &&
+mkdir -p excltest/aa\!b && tst $LINENO <<"!"
+L tab-completing with an exclamation mark in the result
+d 20
+p :test-1:
+w set -o histexpand
+p :test-2:
+w ls excltest/a\t
+r ^:test-2: ls excltest/aa\!b/\r\n$
+p :test-3: 
+w ls excltest/aa\!\t
+r ^:test-3: ls excltest/aa\!b/\r\n$
+p :test-4:
+w set +o histexpand
+p :test-5:
+w ls excltest/a\t
+r ^:test-5: ls excltest/aa!b/\r\n$
+p :test-6:
+w ls excltest/aa!\t
+r ^:test-6: ls excltest/aa!b/\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
