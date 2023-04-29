@@ -44,7 +44,11 @@ static char *fmtx(const char *string)
 	if(*cp=='#' || *cp=='~')
 		stakputc('\\');
 	mbinit();
+#if SHOPT_HISTEXPAND
+	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && (!sh_isoption(SH_HISTEXPAND) || c!='!'));
+#else
 	while((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT);
+#endif /* SHOPT_HISTEXPAND */
 	if(n==S_EOF && *string!='#')
 		return (char*)string;
 	stakwrite(string,--cp-string);
@@ -52,7 +56,7 @@ static char *fmtx(const char *string)
 	{
 		if((n=cp-string)==1)
 		{
-			if((n=state[c]) && n!=S_EPAT)
+			if((n=state[c]) && (n!=S_EPAT || c=='!'))
 				stakputc('\\');
 			stakputc(c);
 		}
