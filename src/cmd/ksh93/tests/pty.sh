@@ -1168,20 +1168,49 @@ r ^:test-1: cd vitest/aあb/\r\n$
 !
 
 ((SHOPT_HISTEXPAND)) && ((SHOPT_VSH || SHOPT_ESH)) &&
-mkdir -p 'excltest/aa!b' && tst $LINENO <<"!"
-L tab-completing with an exclamation mark in the result
+mkdir -p 'chrtest/aa#b' && tst $LINENO <<"!"
+L tab-completing with first histchar
 
 d 20
 p :test-1:
-w set +o histexpand
+w histchars='#^!'
 p :test-2:
-w ls excltest/a\t
-r ^:test-2: ls excltest/aa!b/\r\n$
+w set +o histexpand
 p :test-3:
-w set -o histexpand
+w ls chrtest/a\t
+r ^:test-3: ls chrtest/aa#b/\r\n$
 p :test-4:
-w ls excltest/a\t
-r ^:test-4: ls excltest/aa\\!b/\r\n$
+w set -o histexpand
+p :test-5:
+w ls chrtest/a\t
+r ^:test-5: ls chrtest/aa\\#b/\r\n$
+p :test-6:
+w unset histchars
+!
+
+((SHOPT_HISTEXPAND)) && ((SHOPT_VSH || SHOPT_ESH)) &&
+mkdir -p 'chrtest2/@a@b' && tst $LINENO <<"!"
+L tab-completing with third histchar
+
+d 20
+p :test-1:
+w histchars='!^@'
+p :test-2:
+w cd chrtest2
+p :test-3:
+w set +o histexpand
+p :test-4:
+w ls \t
+r ^:test-4: ls @a@b/\r\n$
+p :test-5:
+w set -o histexpand
+p :test-6:
+w ls \t
+r ^:test-6: ls \\@a@b/\r\n$
+p :test-7:
+w unset histchars
+p :test-8:
+w cd ..
 !
 
 # ======
