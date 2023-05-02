@@ -79,9 +79,9 @@ static char *fmtx(const char *string)
 		if((n=cp-string)==1)
 		{
 #if SHOPT_HISTEXPAND
-			if(((n=state[c]) && (n!=S_EPAT)) || ((c==hc[0] && !added) || (c==hc[2] && !x)))
+			if(((n=state[c]) && n!=S_EPAT) || ((c==hc[0] && !added) || (c==hc[2] && !x)))
 #else
-			if((n=state[c]) && (n!=S_EPAT))
+			if((n=state[c]) && n!=S_EPAT)
 #endif /* SHOPT_HISTEXPAND */
 				stakputc('\\');
 			stakputc(c);
