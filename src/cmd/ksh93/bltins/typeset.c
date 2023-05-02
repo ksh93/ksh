@@ -265,7 +265,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 		{
 			case 'a':
 				flag |= NV_IARRAY;
-				if(opt_info.arg && *opt_info.arg!='[')
+				if(opt_info.arg && !(opt_info.arg[0]=='[' && opt_info.arg[strlen(opt_info.arg)-1]==']'))
 				{
 					opt_info.index--;
 					goto endargs;

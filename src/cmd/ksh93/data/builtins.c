@@ -1841,7 +1841,7 @@ const char sh_opttrap[] =
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2022-06-01 $\n]"
+"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2023-05-01 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -1883,7 +1883,8 @@ const char sh_opttypeset[] =
 "[a]:?[[type]]?Indexed array. This is the default. Subscripts start at 0. "
 #if SHOPT_FIXEDARRAY
 	"Each simple \aname\a creates a dynamic-size array with arbitrary "
-	"dimensions. A \aname\a in the format \aname\a\b[\b\an\a\b]]\b creates "
+	"dimensions. A \aname\a in the format \aname\a\b[\b\an\a\b]]\b (the "
+	"square brackets should be quoted to avoid pathname expansion) creates "
 	"a fixed-size array and any attempt to access a subscript \an\a or "
 	"higher is an error. Multidimensional fixed-size arrays "
 	"\aname\a\b[\b\an1\a\b]][\b\an2\a\b]]\b... are also supported. "
@@ -1891,7 +1892,8 @@ const char sh_opttypeset[] =
 	"Each \aname\a creates a dynamic-size array with arbitrary dimensions. "
 #endif
 	"An option value in the format \b[\b\atype\a\b]]\b (including the "
-	"square brackets), where \atype\a must be the name of an enumeration "
+	"square brackets, which should be quoted to avoid pathname expansion), "
+	"where \atype\a must be the name of an enumeration "
 	"type created with \benum\b(1), allows enumeration constants to be "
 	"used as subscripts.]"
 "[b?Each \aname\a may contain binary data. Its value is the MIME base64 "

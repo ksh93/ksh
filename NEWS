@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2023-05-01:
+
+- Fixes for indexed arrays declared to use enum constants for subscripts:
+  - Syntax validation: add missing check for ] in 'typeset -a \[type] array'.
+  - Fixed error message when type in 'typeset -a \[type] array' is unknown.
+  - Fixed 'typeset -p' output of such arrays to quote the square brackets.
+
 2023-04-09:
 
 - Fixed command line redrawing on resizing the window with --multiline off.
