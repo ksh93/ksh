@@ -70,7 +70,7 @@ static char *fmtx(const char *string)
 #if SHOPT_HISTEXPAND
 	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && (!sh_isoption(SH_HISTEXPAND) || ((c!=hc[0]) && (c!=hc[2] || !first))));
 #else
-	while(((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT));
+	while((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT);
 #endif /* SHOPT_HISTEXPAND */
 	if(n==S_EOF && *string!='#')
 		return (char*)string;
