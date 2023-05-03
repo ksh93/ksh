@@ -1224,7 +1224,21 @@ p :test-2:
 w ls ~a\t
 r ^:test-2: ls ~ab/\r\n$
 p :test-3:
-cd ..
+w cd ..
+!
+
+((SHOPT_VSH || SHOPT_ESH)) &&
+mkdir -p 'chrtest4/~' && tst $LINENO <<"!"
+L tab-completing with ~ as a name
+
+d 20
+p :test-1:
+w cd chrtest4
+p :test-2:
+w ls \\~\t
+r ^:test-2: ls \\~/\r\n$
+p :test-3:
+w cd ..
 !
 
 # ======
