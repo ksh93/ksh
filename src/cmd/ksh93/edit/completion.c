@@ -39,23 +39,14 @@ static char *fmtx(const char *string)
 {
 	const char	*cp = string;
 	int	 	n,c;
-	int		x = 0;
+	int		pos = 0;
 	unsigned char 	*state = (unsigned char*)sh_lexstates[2]; 
-	char		added = 0;
 	int offset = staktell();
 #if SHOPT_HISTEXPAND
 	char 		hc[3];
 	char		*hp,first;
 	int		i;
 	Namval_t	*np;
-#endif /* SHOPT_HISTEXPAND */
-	if(*cp=='#' || *cp=='~')
-	{
-		stakputc('\\');
-		added = *cp;
-	}
-	mbinit();
-#if SHOPT_HISTEXPAND
 	hc[0] = '!';
 	hc[1] = '^';
 	hc[2] = '#';
@@ -69,10 +60,17 @@ static char *fmtx(const char *string)
 				break;
 		}
 	}
-	first = (string[0]==hc[2]) && sh_isoption(SH_HISTEXPAND && !added);
-	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && (!sh_isoption(SH_HISTEXPAND) || ((c!=hc[0]) && (!c==hc[2] || !first))));
+	first = (string[0]==hc[2] && sh_isoption(SH_HISTEXPAND));
+	if((!sh_isoption(SH_HISTEXPAND) || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#'))
 #else
-	while((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT);
+	if(*cp=='#')
+#endif /* SHOPT_HISTEXPAND */
+		stakputc('\\');
+	mbinit();
+#if SHOPT_HISTEXPAND
+	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && (!sh_isoption(SH_HISTEXPAND) || ((c!=hc[0]) && (c!=hc[2] || !first))));
+#else
+	while(((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT));
 #endif /* SHOPT_HISTEXPAND */
 	if(n==S_EOF && *string!='#')
 		return (char*)string;
@@ -82,7 +80,7 @@ static char *fmtx(const char *string)
 		if((n=cp-string)==1)
 		{
 #if SHOPT_HISTEXPAND
-			if(((n=state[c]) && n!=S_EPAT) || ((c==hc[0] && c!=added) || (c==hc[2] && !x)))
+			if(((n=state[c]) && n!=S_EPAT) || ((c==hc[0]) || (c==hc[2] && !pos)))
 #else
 			if((n=state[c]) && n!=S_EPAT)
 #endif /* SHOPT_HISTEXPAND */
@@ -91,8 +89,7 @@ static char *fmtx(const char *string)
 		}
 		else
 			stakwrite(string,n);
-		added = 0;
-		x++;
+		pos++;
 	}
 	stakputc(0);
 	return stakptr(offset);
@@ -383,7 +380,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			mode = '*';
 		if(var!='$' && mode=='\\' && out[-1]!='*')
 			addstar = '*';
-		if(*begin=='~' && !strchr(begin,'/'))
+		if(*begin=='~' && !strchr(begin,'/') && begin==last-1)
 			addstar = 0;
 		stakputc(addstar);
 		ap = (struct argnod*)stakfreeze(1);

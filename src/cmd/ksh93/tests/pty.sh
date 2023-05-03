@@ -1213,5 +1213,19 @@ p :test-8:
 w cd ..
 !
 
+((SHOPT_VSH || SHOPT_ESH)) &&
+mkdir -p 'chrtest3/~ab' && tst $LINENO <<"!"
+L tab-completing with ~ in the filename
+
+d 20
+p :test-1:
+w cd chrtest3
+p :test-2:
+w ls ~a\t
+r ^:test-2: ls ~ab/\r\n$
+p :test-3:
+cd ..
+!
+
 # ======
 exit $((Errors<125?Errors:125))
