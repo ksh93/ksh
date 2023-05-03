@@ -61,16 +61,16 @@ static char *fmtx(const char *string)
 		}
 	}
 	first = (string[0]==hc[2] && sh_isoption(SH_HISTEXPAND));
-	if((!sh_isoption(SH_HISTEXPAND) || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#'))
+	if((!sh_isoption(SH_HISTEXPAND) || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#' || (*cp=='~' && (cp[1]=='\0' || cp[1]=='/'))))
 #else
-	if(*cp=='#')
+	if(*cp=='#' || (*cp=='~' && (cp[1]=='\0' || cp[1]=='/')))
 #endif /* SHOPT_HISTEXPAND */
 		stakputc('\\');
 	mbinit();
 #if SHOPT_HISTEXPAND
-	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && (!sh_isoption(SH_HISTEXPAND) || ((c!=hc[0]) && (c!=hc[2] || !first))));
+	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && (!sh_isoption(SH_HISTEXPAND) || ((c!=hc[0]) && (c!=hc[2] || !first))) && c!='~');
 #else
-	while((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT);
+	while(((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && c!='~');
 #endif /* SHOPT_HISTEXPAND */
 	if(n==S_EOF && *string!='#')
 		return (char*)string;
