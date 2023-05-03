@@ -80,7 +80,7 @@ static char *fmtx(const char *string)
 		if((n=cp-string)==1)
 		{
 #if SHOPT_HISTEXPAND
-			if(((n=state[c]) && n!=S_EPAT) || ((c==hc[0]) || (c==hc[2] && !pos)))
+			if(((n=state[c]) && n!=S_EPAT) || (sh_isoption(SH_HISTEXPAND) && ((c==hc[0]) || (c==hc[2] && !pos))))
 #else
 			if((n=state[c]) && n!=S_EPAT)
 #endif /* SHOPT_HISTEXPAND */
