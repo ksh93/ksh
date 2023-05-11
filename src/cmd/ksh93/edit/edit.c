@@ -47,19 +47,6 @@
 
 static char *cursor_up;  /* move cursor up one line */
 static char *erase_eos;  /* erase to end of screen */
-#if _tput_terminfo
-#define E_MULTILINE	ep->e_multiline
-#define TPUT_CURSOR_UP	"cuu1"
-#define TPUT_ERASE_EOS	"ed"
-#elif _tput_termcap
-#define E_MULTILINE	ep->e_multiline
-#define TPUT_CURSOR_UP	"up"
-#define TPUT_ERASE_EOS	"cd"
-#else
-#define E_MULTILINE	0
-#define TPUT_CURSOR_UP	""
-#define TPUT_ERASE_EOS	""
-#endif /* _tput_terminfo */
 
 #if SHOPT_MULTIBYTE
 #   define is_cntrl(c)	((c<=STRIP) && iscntrl(c))
@@ -415,7 +402,6 @@ void ed_ringbell(void)
 
 #if SHOPT_ESH || SHOPT_VSH
 
-#if defined(_pth_tput) && (_tput_terminfo || _tput_termcap)
 /*
  * Get or update a tput (terminfo or termcap) capability string.
  */
@@ -427,7 +413,7 @@ static void get_tput(char *tp, char **cpp)
 	sh_offoption(SH_RESTRICTED);
 	sh_offoption(SH_VERBOSE);
 	sh_offoption(SH_XTRACE);
-	sfprintf(sh.strbuf,".sh.value=${ " _pth_tput " %s 2>/dev/null;}",tp);
+	sfprintf(sh.strbuf,".sh.value=${ \\command -p tput %s 2>/dev/null;}",tp);
 	sh_trap(sfstruse(sh.strbuf),0);
 	if((cp = nv_getval(SH_VALNOD)) && (!*cpp || strcmp(cp,*cpp)!=0))
 	{
@@ -445,9 +431,6 @@ static void get_tput(char *tp, char **cpp)
 	sh.options = o;
 	sigrelease(SIGINT);
 }
-#else
-#define get_tput(tp,cpp)  /* empty */
-#endif /* defined(_pth_tput) && (_tput_terminfo || _tput_termcap) */
 
 /*	ED_SETUP( max_prompt_size )
  *
@@ -471,9 +454,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	int qlen = 1, qwid;
 	char inquote = 0;
 	ep->e_fd = fd;
-#if _tput_terminfo || _tput_termcap
 	ep->e_multiline = sh_editor_active() && sh_isoption(SH_MULTILINE);
-#endif /* _tput_terminfo || _tput_termcap */
 	sh.winch = 0;
 	ep->e_stkoff = staktell();
 	ep->e_stkptr = stakfreeze(0);
@@ -623,7 +604,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	if(pp-ep->e_prompt > qlen)
 		ep->e_plen = pp - ep->e_prompt - qlen;
 	*pp = 0;
-	if(E_MULTILINE)
+	if(ep->e_multiline)
 	{
 		static char *oldterm;
 		Namval_t *np = nv_search("TERM",sh.var_tree,0);
@@ -634,8 +615,12 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 			term = "";
 		if(!oldterm || strcmp(term,oldterm))
 		{
-			get_tput(TPUT_CURSOR_UP,&cursor_up);
-			get_tput(TPUT_ERASE_EOS,&erase_eos);
+			get_tput(TINF_CURSOR_UP,&cursor_up);
+			get_tput(TINF_ERASE_EOS,&erase_eos);
+			if(!cursor_up)
+				get_tput(TCAP_CURSOR_UP,&cursor_up);
+			if(!erase_eos)
+				get_tput(TCAP_ERASE_EOS,&erase_eos);
 			if(oldterm)
 				free(oldterm);
 			oldterm = sh_strdup(term);
@@ -645,7 +630,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 		else
 			ep->e_multiline = 0;
 	}
-	if(!E_MULTILINE && (ep->e_wsize -= ep->e_plen) < 7)
+	if(!ep->e_multiline && (ep->e_wsize -= ep->e_plen) < 7)
 	{
 		int shift = 7-ep->e_wsize;
 		ep->e_wsize = 7;
@@ -746,7 +731,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			 * failure-prone if the window size changed, especially on modern terminals
 			 * that break the whole terminal abstraction by rewrapping lines themselves :(
 			 */
-			if(E_MULTILINE)
+			if(ep->e_multiline)
 			{
 				n = (ep->e_plen + ep->e_peol) / ep->e_winsz;
 				while(n-- > 0)
@@ -767,7 +752,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			ep->e_winsz = newsize-1;
 			if(ep->e_winsz < MINWINDOW)
 				ep->e_winsz = MINWINDOW;
-			if(!E_MULTILINE)
+			if(!ep->e_multiline)
 			{
 				if(ep->e_wsize < MAXLINE)
 					ep->e_wsize = ep->e_winsz-2;
@@ -1125,7 +1110,7 @@ int ed_setcursor(Edit_t *ep,genchar *physical,int old,int new,int first)
 	}
 	if( delta == 0  &&  !clear)
 		return new;
-	if(E_MULTILINE)
+	if(ep->e_multiline)
 	{
 		ep->e_curpos = ed_curpos(ep, physical, old,0,ep->e_curpos);
 		if(clear && old>=ep->e_peol && (clear=ep->e_winsz-ep->e_curpos.col)>0)

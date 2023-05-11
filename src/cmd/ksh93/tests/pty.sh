@@ -567,7 +567,7 @@ EOF
 tst $LINENO <<"!"
 L test -t 1 inside command substitution
 p :test-1:
-d 20
+d 40
 w . ./test_t.sh
 r ^:test-1: \. \./test_t\.sh\r\n$
 r ^OK0\r\n$
@@ -592,7 +592,7 @@ L race condition while launching external commands
 # See discussion at: https://github.com/ksh93/ksh/issues/79
 
 p :test-1:
-d 20
+d 40
 w printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done
 r ^:test-1: printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done\r\n$
 r ^/dev/null\r\n$
@@ -619,7 +619,7 @@ r ^:test-2: \r\n$
 ((SHOPT_ESH)) && tst $LINENO <<"!"
 L emacs backslash escaping
 
-d 15
+d 20
 p :test-1:
 w set -o emacs
 
@@ -672,7 +672,7 @@ L syntax error added to history file
 
 # https://github.com/ksh93/ksh/issues/209
 
-d 20
+d 40
 p :test-1:
 w do something
 r ^:test-1: do something\r\n$
@@ -711,7 +711,7 @@ L crash after switching from emacs to vi mode
 # In ksh93r using the vi 'r' command after switching from emacs mode could
 # trigger a memory fault: https://bugzilla.opensuse.org/show_bug.cgi?id=179917
 
-d 20
+d 40
 p :test-1:
 w exec "$SHELL" -o emacs
 r ^:test-1: exec "\$SHELL" -o emacs\r\n$
@@ -749,7 +749,7 @@ tst $LINENO <<"!"
 L autocomplete should not fill partial multibyte characters
 # https://github.com/ksh93/ksh/issues/223
 
-d 20
+d 40
 p :test-1:
 w : XX\t
 r ^:test-1: : XXX\r\n$
@@ -759,7 +759,7 @@ r ^:test-1: : XXX\r\n$
 L Using b, B, w and W commands in vi mode
 # https://github.com/att/ast/issues/1467
 
-d 20
+d 40
 p :test-1:
 w set -o vi
 r ^:test-1: set -o vi\r\n$
@@ -783,7 +783,7 @@ ENV=$tmp/synerror tst $LINENO <<"!"
 L syntax error in profile causes exit on startup
 # https://github.com/ksh93/ksh/issues/281
 
-d 20
+d 40
 r /synerror: syntax error: `\(' unmatched\r\n$
 p :test-1:
 w echo ok
@@ -809,7 +809,7 @@ r ^:test-2: : One\\ "Two Three"\$'Four Five'\.mp3\r\n$
 L crash when entering comment into history file (vi mode)
 # https://github.com/att/ast/issues/798
 
-d 20
+d 40
 p :test-1:
 c foo \E#
 r ^:test-1: #foo\r\n$
@@ -824,7 +824,7 @@ L tab completion while expanding ${.sh.*} variables
 # https://github.com/att/ast/issues/1461
 # also tests $'...' string: https://github.com/ksh93/ksh/issues/462
 
-d 20
+d 40
 p :test-1:
 w test \$'foo\\'bar' \$\{.sh.level\t
 r ^:test-1: test \$'foo\\'bar' \$\{.sh.level\}\r\n$
@@ -835,7 +835,7 @@ L tab completion executes command substitutions
 # https://github.com/ksh93/ksh/issues/268
 # https://github.com/ksh93/ksh/issues/462#issuecomment-1038482307
 
-d 20
+d 40
 p :test-1:
 w $(echo true)\t
 r ^:test-1: \$\(echo true\)\r\n$
@@ -913,7 +913,7 @@ r one two three end
 L tab completion of '.' and '..'
 # https://github.com/ksh93/ksh/issues/372
 
-d 15
+d 40
 
 # typing '.' followed by two tabs should show a menu that includes "number) ../"
 p :test-1:
@@ -974,7 +974,7 @@ L tab completion with space in string and -o noglob on
 # https://github.com/ksh93/ksh/pull/413
 # Amended to test that completion keeps working after -o noglob
 
-d 15
+d 20
 p :test-1:
 w set -o noglob
 p :test-2:
@@ -1000,7 +1000,7 @@ tst $LINENO <<"!"
 L suspend a blocked write to a FIFO
 # https://github.com/ksh93/ksh/issues/464
 
-d 15
+d 20
 p :test-1:
 w echo >testfifo
 r echo
@@ -1143,7 +1143,7 @@ r ^:test-3: true fullcomplete/foi\r\n
 L full-word completion in vi mode
 # https://github.com/ksh93/ksh/pull/580
 
-d 20
+d 40
 p :test-1:
 w true fullcomplete/foi\Eh\\a
 r ^:test-1: true fullcomplete/foi\r\n
@@ -1161,7 +1161,7 @@ mkdir -p vitest/aあb && VISUAL=vi tst $LINENO <<"!"
 L vi completion from wide produces corrupt characters
 # https://github.com/ksh93/ksh/issues/571
 
-d 20
+d 40
 p :test-1:
 w cd vitest/aあ\t
 r ^:test-1: cd vitest/aあb/\r\n$

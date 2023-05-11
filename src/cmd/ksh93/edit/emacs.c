@@ -84,12 +84,6 @@ NoN(emacs)
 #define putchar(ed,c)	ed_putchar(ed,c)
 #define beep()		ed_ringbell()
 
-#if _tput_terminfo || _tput_termcap
-#define E_MULTILINE	ep->ed->e_multiline
-#else
-#define E_MULTILINE	0
-#endif
-
 #if SHOPT_MULTIBYTE
 #   define gencpy(a,b)	ed_gencpy(a,b)
 #   define genncpy(a,b,n)	ed_genncpy(a,b,n)
@@ -248,7 +242,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	i = sigsetjmp(env,0);
 	if (i !=0)
 	{
-		if(E_MULTILINE)
+		if(ep->ed->e_multiline)
 		{
 			cur = eol;
 			draw(ep,FINAL);
@@ -1043,12 +1037,19 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 			cur = i;
 			draw(ep,UPDATE);
 			return -1;
-#ifdef _pth_tput
 		case cntl('L'): /* clear screen */
-			system(_pth_tput " clear");
+		{
+			Shopt_t	o = sh.options;
+			sigblock(SIGINT);
+			sh_offoption(SH_RESTRICTED);
+			sh_offoption(SH_VERBOSE);
+			sh_offoption(SH_XTRACE);
+			sh_trap("\\command -p tput clear 2>/dev/null",0);
+			sh.options = o;
+			sigrelease(SIGINT);
 			draw(ep,REFRESH);
 			return -1;
-#endif
+		}
 		case '[':	/* feature not in book */
 		case 'O':	/* after running top <ESC>O instead of <ESC>[ */
 			switch(i=ed_getchar(ep->ed,1))
@@ -1633,7 +1634,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 		}
 #endif /* SHOPT_MULTIBYTE */
 	}
-	if(E_MULTILINE && option == REFRESH)
+	if(ep->ed->e_multiline && option == REFRESH)
 		ed_setcursor(ep->ed, ep->screen, ep->ed->e_peol, ep->ed->e_peol, -1);
 
 	/******************
@@ -1664,7 +1665,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 	}
 	i = (ncursor-nscreen) - ep->offset;
 	setcursor(ep,i,0);
-	if(option==FINAL && E_MULTILINE)
+	if(option==FINAL && ep->ed->e_multiline)
 		setcursor(ep,nscend+1-nscreen,0);
 	ep->scvalid = 1;
 	return;
