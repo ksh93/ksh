@@ -89,8 +89,6 @@ NoN(vi)
 #define iswascii(c)	(!((c)&(~0177)))
 #endif
 
-#define E_MULTILINE	vp->ed->e_multiline
-
 typedef struct _vi_
 {
 	int direction;
@@ -303,7 +301,7 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 	i = sigsetjmp(editb.e_env,0);
 	if( i != 0 )
 	{
-		if(E_MULTILINE)
+		if(vp->ed->e_multiline)
 		{
 			cur_virt = last_virt;
 			sync_cursor(vp);
@@ -334,7 +332,7 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 		refresh(vp,INPUT);
 	}
 	getline(vp,APPEND);
-	if(E_MULTILINE)
+	if(vp->ed->e_multiline)
 		cursor(vp, last_phys);
 	/*** add a new line if user typed unescaped \n ***/
 	/* to cause the shell to process the line */
@@ -1863,7 +1861,7 @@ static void refresh(Vi_t* vp, int mode)
 		vp->long_line = vp->long_char;
 	}
 
-	if(E_MULTILINE && vp->ofirst_wind==INVALID)
+	if(vp->ed->e_multiline && vp->ofirst_wind==INVALID)
 		ed_setcursor(vp->ed, physical, last_phys+1, last_phys+1, -1);
 	vp->ocur_phys = ncur_phys;
 	vp->ocur_virt = cur_virt;

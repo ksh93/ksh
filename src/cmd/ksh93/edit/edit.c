@@ -47,7 +47,6 @@
 
 static char *cursor_up;  /* move cursor up one line */
 static char *erase_eos;  /* erase to end of screen */
-#define E_MULTILINE	ep->e_multiline
 
 #if SHOPT_MULTIBYTE
 #   define is_cntrl(c)	((c<=STRIP) && iscntrl(c))
@@ -605,7 +604,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	if(pp-ep->e_prompt > qlen)
 		ep->e_plen = pp - ep->e_prompt - qlen;
 	*pp = 0;
-	if(E_MULTILINE)
+	if(ep->e_multiline)
 	{
 		static char *oldterm;
 		Namval_t *np = nv_search("TERM",sh.var_tree,0);
@@ -631,7 +630,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 		else
 			ep->e_multiline = 0;
 	}
-	if(!E_MULTILINE && (ep->e_wsize -= ep->e_plen) < 7)
+	if(!ep->e_multiline && (ep->e_wsize -= ep->e_plen) < 7)
 	{
 		int shift = 7-ep->e_wsize;
 		ep->e_wsize = 7;
@@ -732,7 +731,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			 * failure-prone if the window size changed, especially on modern terminals
 			 * that break the whole terminal abstraction by rewrapping lines themselves :(
 			 */
-			if(E_MULTILINE)
+			if(ep->e_multiline)
 			{
 				n = (ep->e_plen + ep->e_peol) / ep->e_winsz;
 				while(n-- > 0)
@@ -753,7 +752,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			ep->e_winsz = newsize-1;
 			if(ep->e_winsz < MINWINDOW)
 				ep->e_winsz = MINWINDOW;
-			if(!E_MULTILINE)
+			if(!ep->e_multiline)
 			{
 				if(ep->e_wsize < MAXLINE)
 					ep->e_wsize = ep->e_winsz-2;
@@ -1111,7 +1110,7 @@ int ed_setcursor(Edit_t *ep,genchar *physical,int old,int new,int first)
 	}
 	if( delta == 0  &&  !clear)
 		return new;
-	if(E_MULTILINE)
+	if(ep->e_multiline)
 	{
 		ep->e_curpos = ed_curpos(ep, physical, old,0,ep->e_curpos);
 		if(clear && old>=ep->e_peol && (clear=ep->e_winsz-ep->e_curpos.col)>0)

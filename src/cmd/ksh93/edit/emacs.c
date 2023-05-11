@@ -84,8 +84,6 @@ NoN(emacs)
 #define putchar(ed,c)	ed_putchar(ed,c)
 #define beep()		ed_ringbell()
 
-#define E_MULTILINE	ep->ed->e_multiline
-
 #if SHOPT_MULTIBYTE
 #   define gencpy(a,b)	ed_gencpy(a,b)
 #   define genncpy(a,b,n)	ed_genncpy(a,b,n)
@@ -244,7 +242,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	i = sigsetjmp(env,0);
 	if (i !=0)
 	{
-		if(E_MULTILINE)
+		if(ep->ed->e_multiline)
 		{
 			cur = eol;
 			draw(ep,FINAL);
@@ -1636,7 +1634,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 		}
 #endif /* SHOPT_MULTIBYTE */
 	}
-	if(E_MULTILINE && option == REFRESH)
+	if(ep->ed->e_multiline && option == REFRESH)
 		ed_setcursor(ep->ed, ep->screen, ep->ed->e_peol, ep->ed->e_peol, -1);
 
 	/******************
@@ -1667,7 +1665,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 	}
 	i = (ncursor-nscreen) - ep->offset;
 	setcursor(ep,i,0);
-	if(option==FINAL && E_MULTILINE)
+	if(option==FINAL && ep->ed->e_multiline)
 		setcursor(ep,nscend+1-nscreen,0);
 	ep->scvalid = 1;
 	return;
