@@ -1207,10 +1207,6 @@ w set -o histexpand
 p :test-6:
 w ls \t
 r ^:test-6: ls \\@a@b/\r\n$
-p :test-7:
-w unset histchars
-p :test-8:
-w cd ..
 !
 
 ((SHOPT_VSH || SHOPT_ESH)) &&
@@ -1223,8 +1219,6 @@ w cd chrtest3
 p :test-2:
 w ls ~a\t
 r ^:test-2: ls ~ab/\r\n$
-p :test-3:
-w cd ..
 !
 
 ((SHOPT_VSH || SHOPT_ESH)) &&
@@ -1237,8 +1231,6 @@ w cd chrtest4
 p :test-2:
 w ls \\~\t
 r ^:test-2: ls \\~/\r\n$
-p :test-3:
-w cd ..
 !
 
 # ======
