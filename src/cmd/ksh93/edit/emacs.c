@@ -1040,9 +1040,18 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 			draw(ep,UPDATE);
 			return -1;
 		case cntl('L'): /* clear screen */
-			system("\\command -p tput clear 2> /dev/null");
+		{
+			Shopt_t	o = sh.options;
+			sigblock(SIGINT);
+			sh_offoption(SH_RESTRICTED);
+			sh_offoption(SH_VERBOSE);
+			sh_offoption(SH_XTRACE);
+			sh_trap("\\command -p tput clear 2>/dev/null",0);
+			sh.options = o;
+			sigrelease(SIGINT);
 			draw(ep,REFRESH);
 			return -1;
+		}
 		case '[':	/* feature not in book */
 		case 'O':	/* after running top <ESC>O instead of <ESC>[ */
 			switch(i=ed_getchar(ep->ed,1))
