@@ -188,4 +188,26 @@ bool -A baa
 (( baa[3] == 0 )) || err_exit 'empty associative array element should be numerically 0'
 
 # ======
+# https://github.com/ksh93/ksh/issues/638
+enum colors=(red green blue)
+typeset -a \[colors] bar
+bar[blue]=test
+exp="typeset -a '[colors]' bar=([blue]=test)"
+got=$(typeset -p bar)
+[[ $got == "$exp" ]] || err_exit 'typeset -p output for [type] syntax needs quoting' \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+exp=': typeset: [colors}: invalid variable name'
+got=$(typeset -a [colors} baz 2>&1)
+[[ e=$? -eq 1 && $got == *"$exp" ]] || err_exit 'typeset -a [type] syntax does not validate final ]' \
+	"(expected status 1, match of *$(printf %q "$exp"); got status $e, $(printf %q "$got"))"
+exp=': foo: unknown type'
+got=$(typeset -a \[foo] bar 2>&1)
+[[ e=$? -eq 1 && $got == *"$exp" ]] || err_exit 'typeset -a [type] syntax gives bad error message for unknown type' \
+	"(expected status 1, match of *$(printf %q "$exp"); got status $e, $(printf %q "$got"))"
+exp=': foo: not an enumeration type'
+got=$(typeset -T foo; typeset -a \[foo] bar 2>&1)
+[[ e=$? -eq 1 && $got == *"$exp" ]] || err_exit 'typeset -a [type] syntax gives bad error message for non-enum type' \
+	"(expected status 1, match of *$(printf %q "$exp"); got status $e, $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

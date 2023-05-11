@@ -884,7 +884,7 @@ int nv_atypeindex(Namval_t *np, const char *tname)
 	int		offset = staktell();
 	size_t		n = strlen(tname)-1;
 	sfprintf(stkstd,"%s.%.*s%c",NV_CLASS,n,tname,0);
-	tp = nv_open(stakptr(offset), sh.var_tree, NV_NOADD|NV_VARNAME);
+	tp = nv_open(stakptr(offset), sh.var_tree, NV_NOADD|NV_VARNAME|NV_NOFAIL);
 	stakseek(offset);
 	if(tp)
 	{

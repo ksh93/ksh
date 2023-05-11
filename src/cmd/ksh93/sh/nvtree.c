@@ -491,7 +491,7 @@ void nv_attribute(Namval_t *np,Sfio_t *out,char *prefix,int noname)
 						sfprintf(out,"%.2s ",tp->sh_name);
 					if(ip)
 					{
-						sfprintf(out,"[%s] ",ip);
+						sfprintf(out,"'[%s]' ",ip);
 						ip = 0;
 					}
 				}
