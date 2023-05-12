@@ -42,36 +42,20 @@ static char *fmtx(const char *string)
 	int		pos = 0;
 	unsigned char 	*state = (unsigned char*)sh_lexstates[2]; 
 	int offset = staktell();
+	char		hc[3];
 #if SHOPT_HISTEXPAND
-	char 		hc[3];
-	char		*hp,first;
-	int		i;
-	Namval_t	*np;
-	hc[0] = '!';
-	hc[1] = '^';
-	hc[2] = '#';
-	if((np = nv_open("histchars",sh.var_tree,NV_NOADD)) && (hp = nv_getval(np)))
-	{
-		for(i=0;i<3;i++)
-		{
-			if(hp[i])
-				hc[i] = hp[i];
-			else
-				break;
-		}
-	}
-	first = (string[0]==hc[2] && sh_isoption(SH_HISTEXPAND));
-	if((!sh_isoption(SH_HISTEXPAND) || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#' || (*cp=='~' && (cp[1]=='\0' || cp[1]=='/'))))
+	const char	hexp = sh_isoption(SH_HISTEXPAND)!=0;
+	if(hexp)
+		hist_setchars(hc);
 #else
-	if(*cp=='#' || (*cp=='~' && (cp[1]=='\0' || cp[1]=='/')))
+	const char	hexp = 0;
 #endif /* SHOPT_HISTEXPAND */
+	if((!hexp || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#' || (*cp=='~' && (cp[1]=='\0' || cp[1]=='/'))))
 		stakputc('\\');
 	mbinit();
-#if SHOPT_HISTEXPAND
-	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && (!sh_isoption(SH_HISTEXPAND) || ((c!=hc[0]) && (c!=hc[2] || !first))) && c!='~');
-#else
-	while(((c=mbchar(cp)),(c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT) && c!='~');
-#endif /* SHOPT_HISTEXPAND */
+	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT)
+	&& (!hexp || ((c!=hc[0]) && (c!=hc[2] || string[0]!=hc[2]))) && c!='~')
+		;
 	if(n==S_EOF && *string!='#')
 		return (char*)string;
 	stakwrite(string,--cp-string);
@@ -79,11 +63,7 @@ static char *fmtx(const char *string)
 	{
 		if((n=cp-string)==1)
 		{
-#if SHOPT_HISTEXPAND
-			if(((n=state[c]) && n!=S_EPAT) || (sh_isoption(SH_HISTEXPAND) && ((c==hc[0]) || (c==hc[2] && !pos))))
-#else
-			if((n=state[c]) && n!=S_EPAT)
-#endif /* SHOPT_HISTEXPAND */
+			if(((n=state[c]) && n!=S_EPAT) || (hexp && ((c==hc[0]) || (c==hc[2] && !pos))))
 				stakputc('\\');
 			stakputc(c);
 		}

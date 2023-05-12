@@ -1167,7 +1167,7 @@ w cd vitest/aあ\t
 r ^:test-1: cd vitest/aあb/\r\n$
 !
 
-((SHOPT_HISTEXPAND)) && ((SHOPT_VSH || SHOPT_ESH)) &&
+((SHOPT_HISTEXPAND && (SHOPT_VSH || SHOPT_ESH))) &&
 mkdir -p 'chrtest/aa#b' && tst $LINENO <<"!"
 L tab-completing with first histchar
 
@@ -1188,7 +1188,7 @@ p :test-6:
 w unset histchars
 !
 
-((SHOPT_HISTEXPAND)) && ((SHOPT_VSH || SHOPT_ESH)) &&
+((SHOPT_HISTEXPAND && (SHOPT_VSH || SHOPT_ESH))) &&
 mkdir -p 'chrtest2/@a@b' && tst $LINENO <<"!"
 L tab-completing with third histchar
 

@@ -209,6 +209,7 @@ extern const char	e_runvi[];
 
 #define	HIST_FLAG_RETURN_MASK	(HIST_EVENT|HIST_PRINT|HIST_ERROR)
 
+extern void hist_setchars(char *);
 extern int hist_expand(const char *, char **);
 
 #endif /* SHOPT_HISTEXPAND */

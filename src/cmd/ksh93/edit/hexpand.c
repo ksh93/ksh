@@ -139,6 +139,23 @@ static int is_wordboundary(char c)
 }
 
 /*
+ * assign history expansion characters to an array of 3
+ */
+
+void hist_setchars(char *hc)
+{
+	Namval_t *np;
+	char *cp;
+	int i;
+	hc[0] = '!';
+	hc[1] = '^';
+	hc[2] = '#';
+	if((np = nv_open("histchars",sh.var_tree,NV_NOADD)) && (cp = nv_getval(np)))
+		for(i=0; i<3 && cp[i]; i++)
+			hc[i] = cp[i];
+}
+
+/*
  * history expansion main routine
  */
 
@@ -163,29 +180,13 @@ int hist_expand(const char *ln, char **xp)
 		*tmp=0,	/* temporary line buffer */
 		*tmp2=0;/* temporary line buffer */
 	Histloc_t hl;	/* history location */
-	Namval_t *np;	/* histchars variable */
 	static struct subst	sb = {0,0};	/* substitution strings */
 	static Sfio_t	*wm=0;	/* word match from !?string? event designator */
 
 	if(!wm)
 		wm = sfopen(NULL, NULL, "swr");
 
-	hc[0] = '!';
-	hc[1] = '^';
-	hc[2] = '#';
-	if((np = nv_open("histchars",sh.var_tree,NV_NOADD)) && (cp = nv_getval(np)))
-	{
-		if(cp[0])
-		{
-			hc[0] = cp[0];
-			if(cp[1])
-			{
-				hc[1] = cp[1];
-				if(cp[2])
-					hc[2] = cp[2];
-			}
-		}
-	}
+	hist_setchars(hc);
 
 	/* save shell stack */
 	if(off = staktell())
