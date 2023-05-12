@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2023-05-12:
+
+- If history expansion is active, then command and file name completion now
+  quotes the history expansion characters with a backslash as needed to
+  avoid triggering history expansion failures if one of those characters
+  occurs in a command or file name.
+
 2023-05-11:
 
 - The ability to use multi-line editing is now detected at runtime instead of

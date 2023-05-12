@@ -40,8 +40,8 @@ static char *fmtx(const char *string)
 	const char	*cp = string;
 	int	 	n,c;
 	int		pos = 0;
-	unsigned char 	*state = (unsigned char*)sh_lexstates[2]; 
-	int offset = staktell();
+	unsigned char 	*state = (unsigned char*)sh_lexstates[2];
+	int		offset = staktell();
 	char		hc[3];
 #if SHOPT_HISTEXPAND
 	const char	hexp = sh_isoption(SH_HISTEXPAND)!=0;
