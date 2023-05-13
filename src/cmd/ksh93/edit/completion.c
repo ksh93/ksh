@@ -50,7 +50,7 @@ static char *fmtx(const char *string)
 #else
 	const char	hexp = 0;
 #endif /* SHOPT_HISTEXPAND */
-	if((!hexp || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#' || (*cp=='~' && (cp[1]=='\0' || cp[1]=='/'))))
+	if((!hexp || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#' || *cp=='~'))
 		stakputc('\\');
 	mbinit();
 	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT)
@@ -360,7 +360,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			mode = '*';
 		if(var!='$' && mode=='\\' && out[-1]!='*')
 			addstar = '*';
-		if(*begin=='~' && !strchr(begin,'/') && begin==last-1)
+		if(*begin=='~' && !strchr(begin,'/'))
 			addstar = 0;
 		stakputc(addstar);
 		ap = (struct argnod*)stakfreeze(1);
