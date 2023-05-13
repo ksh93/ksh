@@ -360,7 +360,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			mode = '*';
 		if(var!='$' && mode=='\\' && out[-1]!='*')
 			addstar = '*';
-		if(*begin=='~' && !strchr(begin,'/'))
+		if(*begin=='~' && !strchr(begin,'/') && begin[-1]!='\'' && begin[-1]!='"')
 			addstar = 0;
 		stakputc(addstar);
 		ap = (struct argnod*)stakfreeze(1);

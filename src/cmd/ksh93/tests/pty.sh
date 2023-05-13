@@ -1219,6 +1219,15 @@ w cd chrtest3
 p :test-2:
 w ls \\~\t
 r ^:test-2: ls \\~ab/\r\n$
+p :test-3:
+w ls '~\t
+r ^:test-3: ls \\~ab/\r\n$
+p :test-4:
+w ls "~\t
+r ^:test-4: ls \\~ab/\r\n$
+p :test-5:
+w ls $'~\t
+r ^:test-5: ls \\~ab/\r\n$
 !
 
 # ======
