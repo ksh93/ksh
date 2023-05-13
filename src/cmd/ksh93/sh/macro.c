@@ -441,7 +441,7 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 	mp->sp = NULL;
 	mp->quote = newquote;
 	first = cp = fcseek(0);
-	if(!mp->quote && *cp=='~' && cp[1]!=LPAREN)
+	if(!mp->quote && *cp=='~' && cp[1]!=LPAREN && !sh_isstate(SH_FCOMPLETE))
 		tilde = stktell(stkp);
 	/* handle // operator specially */
 	if(mp->pattern==2 && *cp=='/')
