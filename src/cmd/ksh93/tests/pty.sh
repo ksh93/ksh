@@ -1215,7 +1215,7 @@ L tab-completing with escaped ~
 
 d 20
 p :test-1:
-w cd chrtest3
+w cd chrtest3; .sh.tilde.get() { print -n WRONG_TILDE_EXPANSION >&2; };
 p :test-2:
 w ls \\~\t
 r ^:test-2: ls \\~ab/\r\n$

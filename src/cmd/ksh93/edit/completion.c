@@ -360,8 +360,14 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			mode = '*';
 		if(var!='$' && mode=='\\' && out[-1]!='*')
 			addstar = '*';
-		if(*begin=='~' && !strchr(begin,'/') && begin[-1]!='\'' && begin[-1]!='"')
-			addstar = 0;
+		if(*begin=='~')
+		{
+			/* do not perform tilde expansion while completing a quoted string */
+			if(begin>outbuff && (begin[-1]=='"' || begin[-1]=='\''))
+				sh_onstate(SH_NOTILDEXP);
+			else if(!strchr(begin,'/'))
+				addstar = 0;
+		}
 		stakputc(addstar);
 		ap = (struct argnod*)stakfreeze(1);
 	}
@@ -560,6 +566,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 	}
  done:
 	sh_offstate(SH_FCOMPLETE);
+	sh_offstate(SH_NOTILDEXP);
 	if(!ep->e_nlist)
 		stakset(ep->e_stkptr,ep->e_stkoff);
 	if(nomarkdirs)

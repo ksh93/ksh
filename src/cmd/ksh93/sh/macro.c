@@ -441,7 +441,7 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 	mp->sp = NULL;
 	mp->quote = newquote;
 	first = cp = fcseek(0);
-	if(!mp->quote && *cp=='~' && cp[1]!=LPAREN)
+	if(!mp->quote && *cp=='~' && cp[1]!=LPAREN && !sh_isstate(SH_NOTILDEXP))
 		tilde = stktell(stkp);
 	/* handle // operator specially */
 	if(mp->pattern==2 && *cp=='/')
@@ -807,7 +807,7 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 		    case S_EQ:
 			if(mp->assign==1)
 			{
-				if(*cp=='~' && !endch && !mp->quote && !mp->lit)
+				if(*cp=='~' && !endch && !mp->quote && !mp->lit && !sh_isstate(SH_NOTILDEXP))
 					tilde = stktell(stkp)+(c+1);
 				mp->assign = 2;
 			}
@@ -830,7 +830,7 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 				tilde = -1;
 				c=0;
 			}
-			if(n==S_COLON && mp->assign==2 && *cp=='~' && endch==0 && !mp->quote &&!mp->lit)
+			if(n==S_COLON && mp->assign==2 && *cp=='~' && endch==0 && !mp->quote && !mp->lit && !sh_isstate(SH_NOTILDEXP))
 				tilde = stktell(stkp)+(c+1);
 			else if(n==S_SLASH && mp->pattern==2)
 			{
