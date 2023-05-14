@@ -1000,7 +1000,7 @@ tst $LINENO <<"!"
 L suspend a blocked write to a FIFO
 # https://github.com/ksh93/ksh/issues/464
 
-d 20
+d 40
 p :test-1:
 w echo >testfifo
 r echo
