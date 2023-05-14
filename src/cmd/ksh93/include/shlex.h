@@ -155,7 +155,6 @@ typedef struct  _shlex_
 #define EOFSYM		04000	/* end-of-file */
 #define TESTUNOP	04001
 #define TESTBINOP	04002
-#define LABLSYM		04003
 #define IOVNAME		04004
 
 /* additional parser flag, others in <shell.h> */

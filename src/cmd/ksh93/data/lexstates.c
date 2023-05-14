@@ -92,7 +92,7 @@ static const char sh_lexstate1[256] =
 	S_BREAK,S_EPAT,	S_QUOTE,S_REG,	S_DOL,	S_EPAT,	S_BREAK,S_LIT,
 	S_BREAK,S_BREAK,S_PAT,	S_EPAT,	S_REG,	S_EPAT,	S_DOT,	S_REG,
 	0,	0,	0,	0,	0,	0,	0,	0,
-	0,	0,	S_LABEL,S_BREAK,S_BREAK,S_EQ,	S_BREAK,S_PAT,
+	0,	0,	S_REG,	S_BREAK,S_BREAK,S_EQ,	S_BREAK,S_PAT,
 
 	S_EPAT,	0,	0,	0,	0,	0,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,

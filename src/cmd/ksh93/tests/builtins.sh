@@ -163,9 +163,6 @@ fi
 if	[[ $(print -f "%(pattern)q" "[^x].*b\$") != '*[!x]*b' ]]
 then	err_exit 'print -f "%(pattern)q" not working'
 fi
-if	[[ $(abc: for i in foo bar;do print $i;break abc;done) != foo ]]
-then	err_exit 'break labels not working'
-fi
 if	[[ $(command -v if)	!= if ]]
 then	err_exit	'command -v not working'
 fi

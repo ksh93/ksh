@@ -9,6 +9,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   avoid triggering history expansion failures if one of those characters
   occurs in a command or file name.
 
+- Undocumented and non-functional goto label functionality has been removed.
+  Command names can now end in ':' like on other shells, as POSIX requires.
+
 2023-05-11:
 
 - The ability to use multi-line editing is now detected at runtime instead of

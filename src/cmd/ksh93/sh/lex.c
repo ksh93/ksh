@@ -1114,18 +1114,6 @@ int sh_lex(Lex_t* lp)
 						fcseek(-LEN);
 				}
 				break;
-			case S_LABEL:
-				if(lp->lex.reservok && !lp->lex.incase)
-				{
-					c = fcget();
-					fcseek(-LEN);
-					if(state[c]==S_BREAK)
-					{
-						assignment = -1;
-						goto breakloop;
-					}
-				}
-				break;
 			case S_BRACT:
 				/* check for possible subscript */
 				if((n=endchar(lp))==RBRACT || n==RPAREN || 
@@ -1293,13 +1281,6 @@ breakloop:
 	}
 	else
 		c = wordflags;
-	if(assignment<0)
-	{
-		stkseek(sh.stk,stktell(sh.stk)-1);
-		lp->arg = (struct argnod*)stkfreeze(sh.stk,1);
-		lp->lex.reservok = 1;
-		return lp->token=LABLSYM;
-	}
 	if(assignment || (lp->lex.intest&&!lp->lex.incase) || mode==ST_NONE)
 		c &= ~ARG_EXP;
 	if((c&ARG_EXP) && (c&ARG_QUOTED))

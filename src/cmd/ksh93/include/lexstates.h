@@ -46,7 +46,6 @@
 #define S_ENDCH	28	/* macro expansion terminator */
 #define S_SLASH	29	/* / character terminates ~ expansion */
 #define S_COLON	30	/* for character : */
-#define S_LABEL	31	/* for goto label */
 #define S_EDOL	32	/* ends $identifier */
 #define S_BRACE	33	/* left brace */
 #define S_DOT	34	/* . char */

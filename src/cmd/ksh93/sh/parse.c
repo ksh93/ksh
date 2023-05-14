@@ -67,9 +67,6 @@ static unsigned	dcl_recursion;
 #define CNTL(x)		((x)&037)
 
 static int		opt_get;
-static int		loop_level;
-static struct argnod	*label_list;
-static struct argnod	*label_last;
 
 #define getnode(type)	((Shnode_t*)stakalloc(sizeof(struct type)))
 
@@ -389,8 +386,6 @@ void	*sh_parse(Sfio_t *iop, int flag)
 	lexp->inlineno = sh.inlineno;
 	lexp->firstline = sh.st.firstline;
 	sh.nextprompt = 1;
-	loop_level = 0;
-	label_list = label_last = 0;
 	if(sh_isoption(SH_VERBOSE))
 		sh_onstate(SH_VERBOSE);
 	sh_lexopen(lexp,0);
@@ -802,8 +797,7 @@ static Shnode_t *funct(Lex_t *lexp)
 #if SHOPT_KIA
 	unsigned long current = lexp->current;
 #endif /* SHOPT_KIA */
-	int nargs=0,size=0,jmpval, saveloop=loop_level;
-	struct argnod *savelabel = label_last;
+	int nargs=0,size=0,jmpval;
 	struct  checkpt buff;
 	int save_optget = opt_get;
 	void	*in_mktype = sh.mktype;
@@ -895,8 +889,6 @@ static Shnode_t *funct(Lex_t *lexp)
 		fp->functline = t->funct.functline;
 		if(sh.st.filename)
 			fp->functnam = stakcopy(sh.st.filename);
-		loop_level = 0;
-		label_last = label_list;
 		if(size)
 		{
 			struct dolnod *dp = (struct dolnod*)stakalloc(size);
@@ -925,8 +917,6 @@ static Shnode_t *funct(Lex_t *lexp)
 	else if(sh.shcomp)
 		exit(1);
 	sh_popcontext(&buff);
-	loop_level = saveloop;
-	label_last = savelabel;
 	/* restore the old stack */
 	if(slp)
 	{
@@ -1308,10 +1298,7 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 			while((tok=sh_lex(lexp))==NL);
 		if(tok!=DOSYM && tok!=LBRACE)
 			sh_syntax(lexp);
-		loop_level++;
 		t->for_.fortre=sh_cmd(lexp,tok==DOSYM?DONESYM:RBRACE,SH_NL|SH_SEMI);
-		if(--loop_level==0)
-			label_last = label_list;
 		break;
 	    }
 
@@ -1339,38 +1326,10 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 	    case UNTILSYM:
 		t = getnode(whnod);
 		t->wh.whtyp=(lexp->token==WHILESYM ? TWH : TUN);
-		loop_level++;
 		t->wh.whtre = sh_cmd(lexp,DOSYM,SH_NL);
 		t->wh.dotre = sh_cmd(lexp,DONESYM,SH_NL|SH_SEMI);
-		if(--loop_level==0)
-			label_last = label_list;
 		t->wh.whinc = 0;
 		break;
-
-	    case LABLSYM:
-	    {
-		struct argnod *argp = label_list;
-		while(argp)
-		{
-			if(strcmp(argp->argval,lexp->arg->argval)==0)
-			{
-				errormsg(SH_DICT,ERROR_exit(3),e_lexsyntax3,sh.inlineno,argp->argval);
-				UNREACHABLE();
-			}
-			argp = argp->argnxt.ap;
-		}
-		lexp->arg->argnxt.ap = label_list;
-		label_list = lexp->arg;
-		label_list->argchn.len = sh_getlineno(lexp);
-		label_list->argflag = loop_level;
-		skipnl(lexp,flag);
-		if(!(t = item(lexp,SH_NL)))
-			sh_syntax(lexp);
-		tok = (t->tre.tretyp&(COMSCAN|COMSCAN-1));
-		if(sh_isoption(SH_NOEXEC) && tok!=TWH && tok!=TUN && tok!=TFOR && tok!=TSELECT)
-			errormsg(SH_DICT,ERROR_warn(0),e_lexlabignore,label_list->argchn.len,label_list->argval);
-		return t;
-	    }
 
 	    /* command group with {...} */
 	    case LBRACE:
@@ -1554,8 +1513,6 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		tok = sh_lex(lexp);
 		if(was_assign && check_array(lexp))
 			type = NV_ARRAY;
-		if(tok==LABLSYM && (flag&SH_ASSIGN))
-			lexp->token = tok = 0;
 		if(tok==IPROCSYM || tok==OPROCSYM)
 		{
 	procsub:
@@ -1663,41 +1620,11 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		}
 	}
 #endif /* SHOPT_KIA */
-	if(t->comnamp && (argp=t->comarg->argnxt.ap))
-	{ 
-		Namval_t *np=(Namval_t*)t->comnamp;
-		if((np==SYSBREAK || np==SYSCONT) && (argp->argflag&ARG_RAW) && !isdigit(*argp->argval))
-		{
-			char *cp = argp->argval;
-			/* convert break/continue labels to numbers */
-			tok = 0;
-			for(argp=label_list;argp!=label_last;argp=argp->argnxt.ap)
-			{
-				if(strcmp(cp,argp->argval))
-					continue;
-				tok = loop_level-argp->argflag;
-				if(tok>=1)
-				{
-					argp = t->comarg->argnxt.ap;
-					if(tok>9)
-					{
-						argp->argval[1] = '0'+tok%10;
-						argp->argval[2] = 0;
-						tok /= 10;
-					}
-					else
-						argp->argval[1] = 0;
-					*argp->argval = '0'+tok;
-				}
-				break;
-			}
-			if(sh_isoption(SH_NOEXEC) && tok==0)
-				errormsg(SH_DICT,ERROR_warn(0),e_lexlabunknown,sh.inlineno-(lexp->token=='\n'),cp);
-		}
-		else if(sh_isoption(SH_NOEXEC) && np==SYSSET && ((tok= *argp->argval)=='-'||tok=='+') &&
-			(argp->argval[1]==0||strchr(argp->argval,'k')))
-			errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,sh.inlineno-(lexp->token=='\n'),argp->argval);
-	}
+	/* noexec: warn about set - and set -k */
+	if(sh_isoption(SH_NOEXEC) && t->comnamp && (argp = t->comarg->argnxt.ap)
+	&& (Namval_t*)t->comnamp==SYSSET && ((tok = *argp->argval)=='-' || tok=='+')
+	&& (argp->argval[1]==0 || strchr(argp->argval,'k')))
+		errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,sh.inlineno-(lexp->token=='\n'),argp->argval);
 	/* expand argument list if possible */
 	if(argno>0 && !(flag&(SH_ARRAY|NV_APPEND)))
 		t->comarg = qscan(t,argno);
