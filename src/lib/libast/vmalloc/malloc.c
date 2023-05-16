@@ -88,7 +88,6 @@ static Vmulong_t	_Vmdbtime = 0;
 #undef calloc
 #undef cfree
 #undef free
-#undef mallinfo
 #undef malloc
 #undef mallopt
 #undef memalign
@@ -737,7 +736,6 @@ extern void*	__libc_valloc(size_t n) { return valloc(n); }
 
 #include	<malloc.h>
 
-typedef struct mallinfo Mallinfo_t;
 typedef struct mstats Mstats_t;
 
 #if _lib_mallopt
@@ -747,24 +745,6 @@ extern int mallopt(int cmd, int value)
 	return 0;
 }
 #endif /*_lib_mallopt*/
-
-#if _lib_mallinfo && _mem_arena_mallinfo
-extern Mallinfo_t mallinfo(void)
-{
-	Vmstat_t	sb;
-	Mallinfo_t	mi;
-
-	VMFLINIT();
-	memset(&mi,0,sizeof(mi));
-	if(vmstat(Vmregion,&sb) >= 0)
-	{	mi.arena = sb.extent;
-		mi.ordblks = sb.n_busy+sb.n_free;
-		mi.uordblks = sb.s_busy;
-		mi.fordblks = sb.s_free;
-	}
-	return mi;
-}
-#endif /* _lib_mallinfo */
 
 #if _lib_mstats && _mem_bytes_total_mstats
 extern Mstats_t mstats(void)
@@ -818,7 +798,6 @@ extern void*	_ast_valloc(size_t n) { return valloc(n); }
 
 #if _hdr_malloc
 
-#undef	mallinfo
 #undef	mallopt
 #undef	mstats
 
@@ -832,15 +811,10 @@ extern void*	_ast_valloc(size_t n) { return valloc(n); }
 
 #include	<malloc.h>
 
-typedef struct mallinfo Mallinfo_t;
 typedef struct mstats Mstats_t;
 
 #if _lib_mallopt
 extern int	_ast_mallopt(int cmd, int value) { return mallopt(cmd, value); }
-#endif
-
-#if _lib_mallinfo && _mem_arena_mallinfo
-extern Mallinfo_t	_ast_mallinfo(void) { return mallinfo(); }
 #endif
 
 #if _lib_mstats && _mem_bytes_total_mstats

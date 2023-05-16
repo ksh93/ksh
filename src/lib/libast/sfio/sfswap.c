@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -28,8 +29,9 @@
 
 Sfio_t* sfswap(Sfio_t* f1, Sfio_t* f2)
 {
-	Sfio_t	tmp;
-	int	f1pool, f2pool, f1mode, f2mode, f1flags, f2flags;
+	Sfio_t		tmp;
+	int		f1pool, f2pool, f1flags, f2flags;
+	unsigned int	f1mode, f2mode;
 
 	if(!f1 || (f1->mode&SF_AVAIL) || (SFFROZEN(f1) && (f1->mode&SF_PUSH)) )
 		return NULL;

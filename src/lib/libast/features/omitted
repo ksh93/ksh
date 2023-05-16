@@ -1,6 +1,7 @@
 tst	note{ check for Win32 .exe botches }end output{
 	#include <unistd.h>
 	#include <fcntl.h>
+	#include <stdlib.h>
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	static int

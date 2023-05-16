@@ -8,11 +8,11 @@
 
 ref	-D_def_map_ast=1
 
-lib	atexit,getpagesize,mallinfo,mallopt,memalign,mstats
+lib	atexit,getpagesize,mallopt,memalign,mstats
 lib	onexit,pvalloc,strdup,valloc,vmalloc
 lib	_malloc,__malloc,__libc_malloc
 hdr	alloca,malloc,stat,stdlib,unistd,sys/shm
-mem	mallinfo.arena,mstats.bytes_total malloc.h
+mem	mstats.bytes_total malloc.h
 sys	stat
 typ	ssize_t
 
@@ -114,7 +114,7 @@ tst	mal_alloca note{ alloca is based on malloc() }end execute{
 }end
 
 tst	stk_down note{ stack grows downward }end execute{
-	static growdown()
+	static int growdown()
 	{	static char*	addr = 0;
 		char		array[4];
 		if(!addr)

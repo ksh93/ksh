@@ -1964,9 +1964,9 @@ int sh_exec(const Shnode_t *t, int flags)
 			int nargs;
 			Namval_t *np;
 			int flag = errorflg|OPTIMIZE_FLAG;
-			struct dolnod	*argsav=0;
+			struct dolnod	*argsav = NULL;
 			struct comnod	*tp;
-			char *cp, *trap, *nullptr = 0;
+			char *cp, *trap, *null_pointer = NULL;
 			int nameref, refresh=1;
 			char *av[5];
 #if SHOPT_OPTIMIZE
@@ -2010,7 +2010,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					save_prompt = sh.nextprompt;
 					sh.nextprompt = 3;
 					sh.timeout = 0;
-					sh.exitval=sh_readline(&nullptr,0,1,0,1000*sh.st.tmout);
+					sh.exitval=sh_readline(&null_pointer,0,1,0,1000*sh.st.tmout);
 					sh.nextprompt = save_prompt;
 					if(sh.exitval||sfeof(sfstdin)||sferror(sfstdin))
 					{
@@ -2798,8 +2798,8 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 		if(sh_isstate(SH_MONITOR))
 		{
 			/*
-			 * errno==EPERM means that an earlier processes
-			 * completed.  Make parent the job group ID.
+			 * errno == EPERM means that an earlier process has
+			 * finished running. Make the parent the job group ID.
 			 */
 			if(postid==0)
 				job.curpgid = parent;

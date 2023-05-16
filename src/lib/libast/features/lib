@@ -63,8 +63,8 @@ tst	tst_errno note{ errno can be assigned }end link{
 	#ifndef errno
 	extern int errno;
 	#endif
-	error() { }
-	strerror() { }
+	void error() { }
+	void strerror() { }
 	int main() { errno = 0; error(); strerror(); return 0; }
 }end
 

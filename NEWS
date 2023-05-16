@@ -33,7 +33,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Multiline editing is now automatically disabled if and when the TERM
   environment variable is unset, not exported, or set to a terminal type
   that does not support the necessary operations. It is automatically
-  reenabled when the TERM variable is corrected and --multiline is on.
+  re-enabled when the TERM variable is corrected and --multiline is on.
 
 2023-04-08:
 

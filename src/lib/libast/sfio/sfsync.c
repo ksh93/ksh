@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -74,7 +75,7 @@ static int _sfall(void)
 
 int sfsync(Sfio_t* f)
 {
-	int	local, rv, mode, lock;
+	int	local, rv, lock;
 	Sfio_t*	origf;
 
 	if(!(origf = f) )
@@ -99,7 +100,9 @@ int sfsync(Sfio_t* f)
 	}
 
 	for(; f; f = f->push)
-	{	
+	{
+		unsigned int mode;
+
 		if((f->flags&SF_IOCHECK) && f->disc && f->disc->exceptf)
 			(void)(*f->disc->exceptf)(f,SF_SYNC,(void*)((int)1),f->disc);
 
@@ -114,8 +117,8 @@ int sfsync(Sfio_t* f)
 			goto next;
 
 		if((f->mode&SF_WRITE) && (f->next > f->data || (f->bits&SF_HOLE)) )
-		{	/* sync the buffer, make sure pool don't move */
-			int pool = f->mode&SF_POOL;
+		{	/* sync the buffer, make sure pool doesn't move */
+			unsigned int pool = f->mode&SF_POOL;
 			f->mode &= ~SF_POOL;
 			if(f->next > f->data && (SFWRALL(f), SFFLSBUF(f,-1)) < 0)
 				rv = -1;

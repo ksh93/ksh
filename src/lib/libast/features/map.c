@@ -419,10 +419,6 @@ main()
 	printf("#undef	free\n");
 	printf("#define free		_ast_free\n");
 	printf("extern void		free(void*);\n");
-#if _lib_mallinfo
-	printf("#undef	mallinfo\n");
-	printf("#define mallinfo	_ast_mallinfo\n");
-#endif
 	printf("#undef	malloc\n");
 	printf("#define malloc		_ast_malloc\n");
 	printf("extern void*		malloc(size_t);\n");
