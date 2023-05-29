@@ -32,11 +32,11 @@ function _cd
     case $1 in
     -|-1|2) # \cd -
         n=_push_top type=1
-        ((_mcd_called>0)) && shift
+        shift
         ;;
     -[1-9]*([0-9])) # \cd -n
         n=_push_top+${1#-}-1 type=2
-        ((_mcd_called>0)) && shift
+        shift
         ;;
     1)  # keep present directory
         print -r - "$PWD"
@@ -44,7 +44,7 @@ function _cd
         ;;      
     [1-9]*([0-9])) # \cd n
         n=_push_top+${1}-2 type=2
-        ((_mcd_called>0)) && shift
+        shift
         ;;
     *)  if    ((_push_top <= 0))
         then  type=3 n=_push_max
