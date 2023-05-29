@@ -32,17 +32,11 @@ function _cd
     case $1 in
     -|-1|2) # \cd -
         n=_push_top type=1
-        while (($#))
-        do
-              shift
-        done
+        set --
         ;;
     -[1-9]*([0-9])) # \cd -n
         n=_push_top+${1#-}-1 type=2
-        while (($#))
-        do
-              shift
-        done
+        set --
         ;;
     1)  # keep present directory
         print -r - "$PWD"
@@ -50,10 +44,7 @@ function _cd
         ;;      
     [1-9]*([0-9])) # \cd n
         n=_push_top+${1}-2 type=2
-        while (($#))
-        do
-              shift
-        done
+        set --
         ;;
     *)  if    ((_push_top <= 0))
         then  type=3 n=_push_max
@@ -69,11 +60,11 @@ function _cd
     case $dir in
     \~*)   dir=$HOME${dir#\~}
     esac
-    # mcd passes escaped ~, which must be dealt with
+    # Deal with escaped ~ from mcd.
     if     ((_mcd_called>0))
-    then   case "$@" in
+    then   case $1 in
            \~*)  dir=$HOME${@#\~}
-                shift
+                set --
            esac
     fi
     # If there are no arguments, use $dir if non-empty.
