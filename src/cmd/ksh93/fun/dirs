@@ -101,6 +101,7 @@ function _cd
         _push_stack[_push_top=_push_top-1]=$dir
         ;;
     esac
+    _mcd_called=0
     print -r - "$PWD"
 }
 
