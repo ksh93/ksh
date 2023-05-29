@@ -576,4 +576,17 @@ p=\\
 [[ \\x == \\\\x ]] &&		err_exit "match: ormaaj case test 16"
 
 # ======
+# negator quoting
+[[ \\ == [!X] ]] || err_exit "negator ! not working"
+[[ \\ == [^X] ]] || err_exit "negator ^ not working"
+[[ \\ == [\!X] ]] && err_exit "\\ mismatches \\!"
+[[ \\ == [\^X] ]] && err_exit "\\ mismatches \\^"
+[[ \\ == ['!'X] ]] && err_exit "\\ mismatches '!'"
+[[ \\ == ['^'X] ]] && err_exit "\\ mismatches '^'"
+[[ \\ == ["!"X] ]] && err_exit "\\ mismatches \"!\""
+[[ \\ == ["^"X] ]] && err_exit "\\ mismatches \"^\""
+[[ \\ == [$'!'X] ]] && err_exit "\\ mismatches \$'!'"
+[[ \\ == [$'^'X] ]] && err_exit "\\ mismatches \$'^'"
+
+# ======
 exit $((Errors<125?Errors:125))

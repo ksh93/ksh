@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -161,11 +161,11 @@ typedef struct regsubop_s
 #define T_SPACE_NOT	(T_ALNUM+5)
 #define T_BACK		(T_ALNUM+6)
 
-#define BRE		0
-#define ERE		3
-#define ARE		6
-#define SRE		9
-#define KRE		12
+#define BRE		0		/* basic regular expression */
+#define ERE		3		/* extended regular expression */
+#define ARE		6		/* augmented/AST regular expression */
+#define SRE		9		/* sh glob pattern */
+#define KRE		12		/* ksh glob pattern */
 
 #define HIT		SSIZE_MAX
 

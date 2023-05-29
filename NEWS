@@ -2,6 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2023-05-29:
+
+- Fixed a bug in bracket expressions in glob patterns where quoting a '!'
+  (e.g., to disable its negator function) caused a '\' to be wrongly matched.
+  For example,
+	case '\' in ['!'X]) echo BAD;; esac
+  no longer outputs BAD, and
+	touch '\'; ls ['!'X]
+  no longer incorrectly lists the file '\'.
+
 2023-05-28:
 
 - Fixed a bug, introduced on 2020-06-08 and exacerbated on 2022-07-02, where

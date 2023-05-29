@@ -197,9 +197,12 @@ static int must_disallow_bracepat(char *cp, int withbackslash)
 		return -1;
 	while ((c = *cp++) && c != ':' && c != ')') switch (c)
 	{
+		case 'A':  /* augmented regular expression (AST) */
+		case 'B':  /* basic regular expression */
 		case 'E':  /* extended regular expression */
 		case 'F':  /* fixed pattern */
 		case 'G':  /* basic regular expression */
+		case 'L':  /* fixed pattern */
 		case 'P':  /* Perl regular expression */
 		case 'V':  /* System V regular expression */
 		case 'X':  /* augmented regular expression (AST) */
@@ -212,7 +215,8 @@ static int must_disallow_bracepat(char *cp, int withbackslash)
 				incompat &= ~(1 << c - 'A');
 			change = 1;
 			break;
-		case 'K':  /* shell pattern */
+		case 'K':  /* ksh glob pattern */
+		case 'S':  /* sh glob pattern */
 			shellpat = !minus;
 			change = 1;
 			break;

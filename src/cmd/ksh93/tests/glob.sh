@@ -416,7 +416,7 @@ set --noglobstar
 
 mkdir BUG_BRACQUOT
 cd BUG_BRACQUOT
-: > b
+: > b > \\
 test_glob '<[a-c]>' [a'-'c]
 test_glob '<[!N]>' ['!'N]
 test_glob '<[^N]>' ['^'N]
