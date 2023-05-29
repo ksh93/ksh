@@ -10,7 +10,7 @@ alias cd=_cd
 # Display directory stack -- $HOME displayed as ~
 function dirs
 {
-    typeset dir="${PWD#$HOME/}"
+    typeset dir=${PWD#$HOME/} PS3=''
     case $dir in
     $HOME)
         dir=\~
@@ -18,7 +18,6 @@ function dirs
     /*) ;;
     *)  dir=\~/$dir
     esac
-    PS3=
     select i in "$dir" "${_push_stack[@]}"
     do	:
     done < /dev/null
@@ -63,7 +62,7 @@ function _cd
     # Deal with escaped ~ from mcd.
     if     ((_mcd_called>0))
     then   case $1 in
-           \~*)  dir=$HOME${@#\~}
+           \~*)  dir=$HOME${1#\~}
                 set --
            esac
     fi
@@ -71,13 +70,8 @@ function _cd
     (($#)) || set -- ${dir:+"$dir"}
     # \cd prevents alias substitution.
     # You can use command cd with 12/28/93 and newer.
-    \cd "$@" >| /dev/null || return 1
+    \cd "$@" >| /dev/null || return
     dir=${OLDPWD#$HOME/}
-    case $TERM in
-    630)
-	    print "\033[?${#PWD};2v$PWD\c"
-	    ;;
-    esac
     case $dir in
     $HOME)
         dir=\~
@@ -109,7 +103,7 @@ function _cd
 function mcd
 {
     _mcd_called=1
-    typeset dir="${PWD#$HOME/}"
+    typeset dir=${PWD#$HOME/} PS3='Select by number or enter a name: '
     case $dir in
     $HOME)
         dir=\~
@@ -117,9 +111,8 @@ function mcd
     /*) ;;
     *)  dir=\~/$dir
     esac
-    PS3='Select by number or enter a name: '
     select dir in "$dir" "${_push_stack[@]}"
-    do  if    _cd $REPLY
+    do  if    _cd "$REPLY"
         then  return
         fi
     done
