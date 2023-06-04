@@ -142,8 +142,7 @@ static int scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
 	struct argnod *ap;
 	int nmatch=0;
 	char *cp;
-	np = (Namval_t*)dtfirst(tree);
-	for(;np;(np = (Namval_t*)dtnext(tree,np)))
+	for(np=(Namval_t*)dtfirst(tree); np; np=(Namval_t*)dtnext(tree,np))
 	{
 		if(nv_isnull(np))
 			continue;

@@ -1249,5 +1249,21 @@ w cmd_complet\t
 r cmd_complete_me \r\n$
 !
 
+((SHOPT_VSH || SHOPT_ESH)) &&
+mkdir functest && FPATH=./functest && tst $LINENO <<"!"
+L function and builtin completion when a function is undefined
+# https://github.com/ksh93/ksh/issues/650
+
+p :test-1:
+w echo "function zzzzzzz { echo zzzzzzz; }" > functest/zzzzzzz
+p :test-2:
+w zzzzzzz
+p :test-3:
+w autoload aaaaaaa
+p :test-4:
+w zzz\t
+r ^:test-4: zzzzzzz \r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
