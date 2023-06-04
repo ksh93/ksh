@@ -1169,7 +1169,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					if(execflg)
 						sh_onstate(SH_NOFORK);
 					sh_pushcontext(buffp,SH_JMPCMD);
-					jmpval = sigsetjmp(buffp->buff,1);
+					jmpval = sigsetjmp(buffp->buff,0);
 					if(jmpval == 0)
 					{
 						if(!(nv_isattr(np,BLT_ENV)))
