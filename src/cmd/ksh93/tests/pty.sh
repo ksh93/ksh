@@ -1257,7 +1257,7 @@ L function and builtin completion when a function is undefined
 
 d 40
 p :test-1:
-w _ksh_93u_m_cmdcomplete_test_; autoload _some_nonexistent_function_
+w _ksh_93u_m_cmdcomplete_test_; autoload _a_nonexistent_function_
 u ^RUN\r\n$
 p :test-2:
 w _ksh_93u_m_cmdcompl\t
