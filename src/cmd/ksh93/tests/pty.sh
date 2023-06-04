@@ -1250,19 +1250,18 @@ r cmd_complete_me \r\n$
 !
 
 ((SHOPT_VSH || SHOPT_ESH)) &&
-mkdir functest && FPATH=./functest && tst $LINENO <<"!"
+echo "function _ksh_93u_m_cmdcomplete_test_ { echo RUN; }" > _ksh_93u_m_cmdcomplete_test_ &&
+FPATH=$PWD tst $LINENO <<"!"
 L function and builtin completion when a function is undefined
 # https://github.com/ksh93/ksh/issues/650
 
+d 40
 p :test-1:
-w echo "function zzzzzzz { echo zzzzzzz; }" > functest/zzzzzzz
+w _ksh_93u_m_cmdcomplete_test_; autoload _some_nonexistent_function_
+u ^RUN\r\n$
 p :test-2:
-w zzzzzzz
-p :test-3:
-w autoload aaaaaaa
-p :test-4:
-w zzz\t
-r ^:test-4: zzzzzzz \r\n$
+w _ksh_93u_m_cmdcompl\t
+r :test-2: _ksh_93u_m_cmdcomplete_test_ \r\n$
 !
 
 # ======
