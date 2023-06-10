@@ -6,7 +6,7 @@ _cc_export_dynamic = note{ probe CC.EXPORT.DYNAMIC supported }end run{
 
 tst	tzset_environ note{ tzset() bypasses user getenv() }end execute{
 	#if !_cc_export_dynamic
-	int main()
+	int main(void)
 	{
 		return 0;
 	}
@@ -18,7 +18,7 @@ tst	tzset_environ note{ tzset() bypasses user getenv() }end execute{
 	{
 		return "foo0bar";
 	}
-	int main()
+	int main(void)
 	{
 		tzset();
 		return tzname[0] && !strcmp(tzname[0], "foo") &&

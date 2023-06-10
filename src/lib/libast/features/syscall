@@ -1,7 +1,7 @@
 lib	sysgetcwd note{ syscall(SYS_getcwd,buf,len) implemented }end link{
 	#include <sys/syscall.h>
 	#include <unistd.h>
-	int main()
+	int main(void)
 	{
 		char	buf[256];
 		return syscall(SYS_getcwd, buf, sizeof(buf)) < 0;

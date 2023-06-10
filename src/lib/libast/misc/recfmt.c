@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -138,24 +139,3 @@ recfmt(const void* buf, size_t size, off_t total)
 	free(q);
 	return n ? REC_F_TYPE(n) : REC_N_TYPE();
 }
-
-#if MAIN
-
-main()
-{
-	void*	s;
-	size_t	size;
-	off_t	total;
-
-	if (!(s = sfreserve(sfstdin, SF_UNBOUND, 0)))
-	{
-		sfprintf(sfstderr, "read error\n");
-		return 1;
-	}
-	size = sfvalue(sfstdin);
-	total = sfsize(sfstdin);
-	sfprintf(sfstdout, "%d\n", recfmt(s, size, total));
-	return 0;
-}
-
-#endif

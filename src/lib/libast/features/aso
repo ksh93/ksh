@@ -2,7 +2,7 @@
 
 if	aso note{ gcc 4.1+ 64 bit memory atomic operations model }end link{
 		#include "FEATURE/common"
-		int main()
+		int main(void)
 		{
 			uint64_t i = 0;
 			uint32_t j = 0;
@@ -31,7 +31,7 @@ if	aso note{ gcc 4.1+ 64 bit memory atomic operations model }end link{
 	}
 elif	aso note{ gcc 4.1+ 32 bit memory atomic operations model }end link{
 		#include "FEATURE/common"
-		int main()
+		int main(void)
 		{
 			uint32_t i = 0;
 			uint16_t j = 0;
@@ -53,7 +53,7 @@ elif	aso note{ gcc 4.1+ 32 bit memory atomic operations model }end link{
 elif	aso note{ <atomic.h> atomic_cas_64 }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint64_t i = 0;
 			uint32_t j = 1;
@@ -82,7 +82,7 @@ elif	aso note{ <atomic.h> atomic_cas_64 }end link{
 elif	aso note{ <atomic.h> atomic_cas_32 }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint32_t i = 0;
 			return atomic_cas_32(&i, 0, 1) != 0 || (atomic_add_32_nv(&i, 1) - 1) != 1;
@@ -103,7 +103,7 @@ elif	aso note{ <atomic.h> atomic_cas_32 }end link{
 elif	aso -latomic note{ <atomic.h> atomic_cas_64 with -latomic }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint64_t i = 0;
 			uint32_t j = 1;
@@ -133,7 +133,7 @@ elif	aso -latomic note{ <atomic.h> atomic_cas_64 with -latomic }end link{
 elif	aso note{ <atomic.h> atomic_cas_32 with -latomic }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint32_t i = 0;
 			return atomic_cas_32(&i, 0, 1) != 0 || (atomic_add_32_nv(&i, 1) - 1) != 1;
@@ -155,7 +155,7 @@ elif	aso note{ <atomic.h> atomic_cas_32 with -latomic }end link{
 elif	aso note{ <atomic.h> cas64 }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint64_t i = 0;
 			uint32_t j = 1;
@@ -184,7 +184,7 @@ elif	aso note{ <atomic.h> cas64 }end link{
 elif	aso note{ <atomic.h> just cas64 }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint64_t i = 0;
 			uint32_t j = 1;
@@ -207,7 +207,7 @@ elif	aso note{ <atomic.h> just cas64 }end link{
 elif	aso note{ <atomic.h> cas32 }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint32_t i = 0;
 			return cas32(&i, 0, 1) != 0 || (atomic_add_32_nv(&i, 1) - 1) != 1;
@@ -228,7 +228,7 @@ elif	aso note{ <atomic.h> cas32 }end link{
 elif	aso note{ <atomic.h> just cas32 }end link{
 		#include "FEATURE/common"
 		#include <atomic.h>
-		int main()
+		int main(void)
 		{
 			uint32_t j = 1;
 			uint16_t k = 1;
@@ -244,7 +244,7 @@ elif	aso note{ <atomic.h> just cas32 }end link{
 	}
 elif	aso note{ winix Interlocked }end link{
 		#include <windows.h>
-		int main()
+		int main(void)
 		{
 			LONG		i = 0;
 			LONGLONG	j = 0;
@@ -350,7 +350,7 @@ elif	aso note{ winix Interlocked }end link{
 	}
 elif	aso note{ AIX fetch and add }end link{
 		#include <sys/atomic_op.h>
-		int main()
+		int main(void)
 		{
 			int i = 0;
 			return fetch_and_add((atomic_p)&i,1);
@@ -367,7 +367,7 @@ elif	aso note{ AIX fetch and add }end link{
 		#endif
 	}
 elif	aso note{ MIPS compare and swap }end link{
-		int main()
+		int main(void)
 		{
 			int i = 1;
 			return __compare_and_swap(&i, 0, 1) != 1;
@@ -415,7 +415,7 @@ elif	aso note{ i386|i386-64 asm compare and swap }end link{
 
 		#endif
 
-		int main()
+		int main(void)
 		{
 			uint32_t	i = 0;
 			uint64_t	j = 0;
@@ -491,7 +491,7 @@ elif	aso note{ ia64 asm compare and swap }end link{
 			return r;
 		}
 
-		int main()
+		int main(void)
 		{
 			uint32_t	i = 0;
 			uint64_t	j = 0;
@@ -575,7 +575,7 @@ elif	aso note{ ppc asm compare and swap }end link{
 			return r ? *p : o;
 		}
 
-		int main()
+		int main(void)
 		{
 			uint32_t	i = 0;
 			uint64_t	j = 0;

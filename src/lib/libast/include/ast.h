@@ -266,14 +266,14 @@ typedef struct
 #define NoP(x)		do (void)(x); while(0)	/* for silencing "unused parameter" warnings */
 
 #if !defined(NoF)
-#define NoF(x)		void _DATA_ ## x () {}
+#define NoF(x)		void _DATA_ ## x (void) {}
 #if !defined(_DATA_)
 #define _DATA_
 #endif
 #endif
 
 #if !defined(NoN)
-#define NoN(x)		void _STUB_ ## x () {}
+#define NoN(x)		void _STUB_ ## x (void) {}
 #if !defined(_STUB_)
 #define _STUB_
 #endif

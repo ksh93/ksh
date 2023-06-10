@@ -134,8 +134,8 @@ set(Header_t* hp, const char* fs, const char* dir, const char* type, const char*
  * what a crappy interface
  * data returned in static buffer -- ok
  * big chunk of allocated memory that cannot be freed -- come on
- * *and* NetBSD changed the interface somewhere along the line
- * private interface? my bad -- public interface? par for the BSD course
+ * *and* NetBSD changed the interface somewhere along the line to a
+ * private interface? par for the BSD course
  *
  * we assume getfsstat may suffer the same statfs/statvfs confusion
  */

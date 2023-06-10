@@ -21,7 +21,7 @@ tst - -lm - - output{
 	#include	<sys/types.h>
 	#include	<sys/stat.h>
 	#include	<sfio.h>
-	int main()
+	int main(void)
 	{
 		int		i;
 		struct stat	statb;

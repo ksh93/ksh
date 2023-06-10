@@ -2541,7 +2541,7 @@ int x;
 			lib=
 			p=
 			hit=0
-			echo "int main(){return(0);}" > $tmp.c
+			echo "int main(void){return(0);}" > $tmp.c
 			for x in $z
 			do	p=$x
 				case " $gotlib " in
@@ -3221,7 +3221,7 @@ $src
 							'')	#UNDENT...
 
 			reallystatictest=.
-			echo "$tst$nl$ext${nl}int main(){printf("hello");return(0);}" > ${tmp}s.c
+			echo "$tst$nl$ext${nl}int main(void){printf("hello");return(0);}" > ${tmp}s.c
 			rm -f ${tmp}s.exe
 			if	compile $cc -c ${tmp}s.c <&$nullin >&$nullout &&
 				compile $cc -o ${tmp}s.exe ${tmp}s.o <&$nullin >&$nullout 2>${tmp}s.e &&
@@ -3346,7 +3346,7 @@ $tst
 $ext
 $usr
 extern int $statictest;
-int main(){char* i = (char*)&$statictest; return ((unsigned int)i)^0xaaaa;}
+int main(void){char* i = (char*)&$statictest; return ((unsigned int)i)^0xaaaa;}
 "
 						rm -f $tmp.exe
 						if	compile $cc -o $tmp.exe $tmp.c <&$nullin >&$nullout && $executable $tmp.exe
@@ -3355,7 +3355,7 @@ int main(){char* i = (char*)&$statictest; return ((unsigned int)i)^0xaaaa;}
 								copy $tmp.c "$std
 $tst
 $ext
-int main(){printf("hello");return(0);}
+int main(void){printf("hello");return(0);}
 "
 								rm -f $tmp.exe
 								if	compile $cc -c $tmp.c <&$nullin >&$nullout &&
@@ -3462,7 +3462,7 @@ $pre
 #else
 #define _REF_	&
 #endif
-int main(){char* i = (char*) _REF_ $v; return ((unsigned int)i)^0xaaaa;}"
+int main(void){char* i = (char*) _REF_ $v; return ((unsigned int)i)^0xaaaa;}"
 					} > $tmp.c
 					is $o $v
 					rm -f $tmp.exe
@@ -3744,7 +3744,7 @@ $inc
 $pre
 $tst
 $ext
-int f(){int $w = 1;return($w);}" > $tmp.c
+int f(void){int $w = 1;return($w);}" > $tmp.c
 						if	compile $cc -c $tmp.c <&$nullin >&$nullout
 						then	failure
 							case $set in
@@ -3826,9 +3826,9 @@ $v i;
 #else
 typedef int (*_IFFE_fun)();
 #ifdef _IFFE_extern
-extern int $v();
+extern int $v(void);
 #endif
-static _IFFE_fun i=(_IFFE_fun)$v;int main(){return ((unsigned int)i)^0xaaaa;}
+static _IFFE_fun i=(_IFFE_fun)$v;int main(void){return ((unsigned int)i)^0xaaaa;}
 #endif
 "
 					d=-D_IFFE_extern
@@ -3866,8 +3866,8 @@ $ext
 $usr
 $pre
 $inc
-extern int foo();
-static int ((*i)())=foo;int main(){return(i==0);}
+extern int foo(void);
+static int ((*i)())=foo;int main(void){return(i==0);}
 "
 								compile $cc -c $tmp.c <&$nullin >&$nullout
 								intrinsic=$?
@@ -3974,7 +3974,7 @@ $tst
 $ext
 $inc
 static $p i;
-unsigned long f() { return (unsigned long)i; }" > $tmp.c
+unsigned long f(void) { return (unsigned long)i; }" > $tmp.c
 							if	compile $cc -c $tmp.c <&$nullin >&$nullout
 							then	c=1
 							else	c=0
@@ -4182,7 +4182,7 @@ $tst
 $ext
 $inc
 static $x$v i;
-$x$v f() {
+$x$v f(void) {
 $x$v v; i = 1; v = i;"
 						echo "i = v * i; i = i / v; v = v + i; i = i - v;"
 						case $v in
@@ -4196,17 +4196,17 @@ $pre
 $inc
 struct xxx { $x$v mem; };
 static struct xxx v;
-struct xxx* f() { return &v; }"
+struct xxx* f(void) { return &v; }"
 						;;
 					esac
 					case $x in
 					""|"struct "|"union ")
-						echo "int g() { return 0; }"
+						echo "int g(void) { return 0; }"
 						;;
-					*)	echo "int g() { return sizeof($x$v)<=sizeof($v); }" ;;
+					*)	echo "int g(void) { return sizeof($x$v)<=sizeof($v); }" ;;
 					esac
 					copy - "
-int main() {
+int main(void) {
 		f();
 		g();
 		printf(\"%u\\n\", sizeof($x$v));
@@ -4277,7 +4277,7 @@ $tst
 $ext
 $inc
 static $x$v i;
-$x$v f() {
+$x$v f(void) {
 $x$v v; i = 1; v = i;"
 						echo "i = v * i; i = i / v; v = v + i; i = i - v;"
 						case $v in
@@ -4293,13 +4293,13 @@ $ext
 $inc
 struct xxx { $x$v mem; };
 static struct xxx v;
-struct xxx* f() { return &v; }"
+struct xxx* f(void) { return &v; }"
 						;;
 					esac
 					case $x in
 					""|"struct "|"union ")
-						echo "int main() { f(); return 0; }" ;;
-					*)	echo "int main() { f(); return sizeof($x$v)<=sizeof($v); }" ;;
+						echo "int main(void) { f(); return 0; }" ;;
+					*)	echo "int main(void) { f(); return sizeof($x$v)<=sizeof($v); }" ;;
 					esac
 					} > $tmp.c
 					rm -f $tmp.exe

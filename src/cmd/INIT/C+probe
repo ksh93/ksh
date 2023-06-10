@@ -162,7 +162,7 @@ done
 mkdir suffix
 cd suffix
 for src in $probe_src
-do	echo "int main(){return 0;}" > ../test.$src
+do	echo "int main(void){return 0;}" > ../test.$src
 	rm -f test*
 	if	$cc -c ../test.$src
 	then	set test.*
@@ -195,7 +195,7 @@ case $src in
 c)	;;
 *)	echo '// (
 int
-main()
+main(void)
 {
 	class { public: int i; } j;
 	j.i = 0;
@@ -262,8 +262,8 @@ case $hosttype in
 esac
 
 echo '#include <stdio.h>
-int main(){printf("hello");return 0;}' > dynamic.$src
-echo 'extern int sfclose() { return 0; }' > fun.$src
+int main(void){printf("hello");return 0;}' > dynamic.$src
+echo 'extern int sfclose(void) { return 0; }' > fun.$src
 if	$cc -c dynamic.$src && $cc -c fun.$src
 then	eval set x $probe_so
 	while	:
@@ -397,7 +397,7 @@ done
 case $version_stamp in
 '')	eval set x $probe_version
 	shift
-	echo 'int main() { return 0; }' > version.i
+	echo 'int main(void) { return 0; }' > version.i
 	for o in "$@"
 	do	if	$cc -c $o version.i > version.out 2>&1
 		then	version_string=`sed -e '/ is /d' -e 's/;/ /g' version.out | sed -e 1q`
@@ -413,7 +413,7 @@ case $version_stamp in
 	;;
 esac
 
-echo 'int main(){return 0;}' > hosted.$src
+echo 'int main(void){return 0;}' > hosted.$src
 $cc -o hosted.$exe hosted.$src && ./hosted.$exe && hosted=1
 
 echo '#!'$sh'

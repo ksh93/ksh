@@ -918,7 +918,7 @@ hostinfo() # attribute ...
 			cat > $tmp.c <<!
 #include <stdio.h>
 #include <pthread.h>
-int main()
+int main(void)
 {
 	printf("%d\n", pthread_num_processors_np());
 	return 0;
@@ -1484,11 +1484,11 @@ int main()
 				tmp=hi$$
 				trap 'set +o noglob; rm -rf $tmp.*' 0 1 2
 				cat > $tmp.a.c <<!
-extern int b();
-int main() { return b(); }
+extern int b(void);
+int main(void) { return b(); }
 !
 				cat > $tmp.b.c <<!
-int b() { return 0; }
+int b(void) { return 0; }
 !
 				abi=
 				if	$cc -c $tmp.a.c
@@ -1539,7 +1539,7 @@ int b() { return 0; }
 					cd "$TMPDIR"
 					tmp=hi$$
 					trap 'set +o noglob; exec rm -rf "$tmp".*' 0 1 2
-					echo 'int main() { return 0; }' > $tmp.a.c
+					echo 'int main(void) { return 0; }' > $tmp.a.c
 					checkcc
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
 					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  )
@@ -2749,7 +2749,7 @@ make|view)
 					;;
 				$s*)	$exec cd $INSTALLROOT/lib/package/gen
 					tmp=pkg$$
-					$exec eval "echo 'int main(){return 0;}' > $tmp.c"
+					$exec eval "echo 'int main(void){return 0;}' > $tmp.c"
 					if	$exec $s -o $tmp.exe $tmp.c >/dev/null 2>&1 &&
 						test -x $tmp.exe
 					then	case $HOSTTYPE in
@@ -2823,7 +2823,7 @@ make|view)
 	case $exec in
 	'')	cd $INSTALLROOT/lib/package/gen
 		tmp=pkg$$
-		echo 'int main(){return 0;}' > $tmp.c
+		echo 'int main(void){return 0;}' > $tmp.c
 		if	$CC -o $tmp.exe $tmp.c > /dev/null 2> $tmp.err &&
 			test -x $tmp.exe
 		then	: ok

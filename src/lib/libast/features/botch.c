@@ -34,7 +34,7 @@ extern int		getgroups(int, gid_t*);
 #endif
 
 int
-main()
+main(void)
 {
 #if _lib_getgroups
 	if (sizeof(int) > sizeof(gid_t))

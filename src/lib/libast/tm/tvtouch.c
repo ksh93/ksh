@@ -14,6 +14,7 @@
 *                    David Korn <dgkorn@gmail.com>                     *
 *                     Phong Vo <phongvo@gmail.com>                     *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -24,10 +25,6 @@
  */
 
 #define utime		______utime
-
-#ifndef _ATFILE_SOURCE
-#define _ATFILE_SOURCE	1
-#endif
 
 #include <ast.h>
 #include <ls.h>

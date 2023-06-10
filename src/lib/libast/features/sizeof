@@ -1,7 +1,7 @@
 tst	- note{ sizeof(integral-type) }end output{
 	#include "FEATURE/common"
 	int
-	main()
+	main(void)
 	{
 		printf("#define _ast_sizeof_char	%d\n", sizeof(char));
 		printf("#define _ast_sizeof_short	%d\n", sizeof(short));

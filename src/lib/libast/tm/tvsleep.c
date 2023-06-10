@@ -15,9 +15,11 @@
 *                     Phong Vo <phongvo@gmail.com>                     *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                  Lev Kujawski <int21h@mailbox.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
+#include <ast.h>
 #include <assert.h>
 #include <tv.h>
 #include <tm.h>

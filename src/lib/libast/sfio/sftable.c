@@ -479,7 +479,7 @@ static const unsigned char	ldbl_inf[] = { _ast_ldbl_inf_init };
 #endif
 
 /* function to initialize conversion tables */
-static int sfcvinit()
+static int sfcvinit(void)
 {	int		d, l;
 
 	for(d = 0; d <= SF_MAXCHAR; ++d)

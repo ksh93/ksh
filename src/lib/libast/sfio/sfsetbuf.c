@@ -50,7 +50,7 @@ struct stat
 
 #if SFSETLINEMODE
 
-static int sfsetlinemode()
+static int sfsetlinemode(void)
 {	char*			astsfio;
 	char*			endw;
 
