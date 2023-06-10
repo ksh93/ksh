@@ -1259,6 +1259,12 @@ static void xcommands(Emacs_t *ep,int count)
 					drawbuff[eol+1] = '\0';
 				}
 			}
+			if(hline == histlines && sh.hist_ptr)
+			{
+				hist_eof(sh.hist_ptr);
+				histlines = (int)sh.hist_ptr->histind;
+				hline = histlines;
+			}
 			if(ed_fulledit(ep->ed)==-1)
 				beep();
 			else

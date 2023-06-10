@@ -694,6 +694,12 @@ static int cntlmode(Vi_t *vp)
 			}
 
 		vcommand:
+			if(curhline == histmax && sh.hist_ptr)
+			{
+				hist_eof(sh.hist_ptr);
+				histmax = (int)sh.hist_ptr->histind;
+				curhline = histmax;
+			}
 			if(ed_fulledit(vp->ed)==GOOD)
 				return BIGVI;
 			else
