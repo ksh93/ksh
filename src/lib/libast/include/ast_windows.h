@@ -31,6 +31,15 @@
 
 #undef	SF_ERROR			/* clash in <oaidl.h>		*/
 
+/*
+ * For some reason, DECLSPEC_NORETURN breaks when compiling with
+ * -std=c99. C11 does not have this problem, so for C99 and below
+ * avoid this problem by avoiding use of __declspec().
+ */
+#if __STDC_VERSION__ < 201112L
+#define DECLSPEC_NORETURN __attribute__((__noreturn__))
+#endif
+
 #include <windows.h>
 
 #endif

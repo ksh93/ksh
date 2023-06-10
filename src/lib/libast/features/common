@@ -64,7 +64,15 @@ cat{
 
 	#if !_std_noreturn
 	#if defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4))
+	#if __CYGWIN__
+	/*
+	 * On Cygwin, for whatever reason, -std=c99 breaks the compile unless
+	 * noreturn is specifically '__attribute__((__noreturn__))'.
+	 */
+	#define noreturn __attribute__((__noreturn__))
+	#else
 	#define noreturn __attribute__((noreturn))
+	#endif
 	#else
 	#define noreturn
 	#endif /* __GNUC__ */
