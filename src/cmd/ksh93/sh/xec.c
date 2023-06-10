@@ -530,7 +530,12 @@ static void put_level(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 	if(level==oldlevel)
 		return;
 	if(sp = sh_getscope(level,SEEK_SET))
+	{
+		/* switch scopes, except for loop flow control state */
+		int breakcnt = sh.st.breakcnt, loopcnt = sh.st.loopcnt;
 		sh_setscope(sp);
+		sh.st.breakcnt = breakcnt, sh.st.loopcnt = loopcnt;
+	}
 }
 
 static const Namdisc_t level_disc = { sizeof(Namfun_t), put_level };

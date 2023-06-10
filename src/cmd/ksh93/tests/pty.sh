@@ -996,7 +996,8 @@ w exit
 !
 
 touch "$tmp/foo bar"
-((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<!
+# needs non-dumb terminal for multiline editing
+((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<!
 L tab completion with space in string and -o noglob on
 # https://github.com/ksh93/ksh/pull/413
 # Amended to test that completion keeps working after -o noglob

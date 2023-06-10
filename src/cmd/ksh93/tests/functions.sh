@@ -943,6 +943,16 @@ def()
 [[ $(def) == def ]] || err_exit '.sh.fun.set not capturing name()'
 unset -f .sh.fun.set
 
+# the traceback function above has set .sh.level in a loop; this should not break 'break'/'continue'
+for i in 1
+do	break
+	err_exit "'break' broken after setting .sh.level in a loop"
+done
+for i in 1
+do	continue
+	err_exit "'continue' broken after setting .sh.level in a loop"
+done
+
 # tests for debug functions
 basefile=${.sh.file}
 integer baseline
