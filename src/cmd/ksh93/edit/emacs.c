@@ -1259,6 +1259,9 @@ static void xcommands(Emacs_t *ep,int count)
 					drawbuff[eol+1] = '\0';
 				}
 			}
+			/* If hist_eof is not used here, activity in a
+			 * separate session could result in the wrong
+			 * line being edited. */
 			if(hline == histlines && sh.hist_ptr)
 			{
 				hist_eof(sh.hist_ptr);

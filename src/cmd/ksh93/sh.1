@@ -5301,6 +5301,11 @@ characters undoes this change.
 .BI ^Y
 Restore last item removed from line. (Yank item back to the line.)
 .TP 10
+.BI ^X^E
+Return the command 
+.BI "hist \-e ${\s-1VISUAL\s+1:\-${\s-1EDITOR\s+1:\-vi}}"
+in the input buffer.
+.TP 10
 .BI ^L
 Line feed and print current line.
 .TP 10
