@@ -5301,6 +5301,13 @@ characters undoes this change.
 .BI ^Y
 Restore last item removed from line. (Yank item back to the line.)
 .TP 10
+.BI ^X^E
+Return the command
+.BI "hist \-e ${\s-1VISUAL\s+1:\-${\s-1EDITOR\s+1:\-vi}}"
+in the input buffer to call a full editor \(em
+.BI vi
+by default \(em on the current command line.
+.TP 10
 .BI ^L
 Line feed and print current line.
 .TP 10
@@ -6057,7 +6064,9 @@ Undo all the text modifying commands performed on the line.
 [\f2count\fP]\f3v\fP
 Returns the command
 .BI "hist \-e ${\s-1VISUAL\s+1:\-${\s-1EDITOR\s+1:\-vi}}" " count"
-in the input buffer.
+in the input buffer to call a full editor \(em
+.BI vi
+by default \(em on a history entry.
 If
 .I count\^
 is omitted, then the current line is used.
