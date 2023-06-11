@@ -707,6 +707,7 @@ process:
 		beep();
 		*out = '\0';
 	}
+	/* ep->ehist: do not print the literal hist command after ^X^E. */
 	if (!ep->ehist)
 		draw(ep,FINAL);
 	else
@@ -1264,6 +1265,7 @@ static void xcommands(Emacs_t *ep,int count)
 					drawbuff[eol+1] = '\0';
 				}
 			}
+			/* Do not print the literal hist command. */
 			ep->ehist = 1;
 			if(ed_fulledit(ep->ed)==-1)
 			{
