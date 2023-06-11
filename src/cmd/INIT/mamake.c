@@ -102,7 +102,7 @@ static const char usage[] =
  */
 
 /* macOS */
-#if (defined(__APPLE__) || defined(__MACH__) || defined(NeXTBSD)) && !defined(_DARWIN_C_SOURCE)
+#if (defined(__APPLE__) && defined(__MACH__) && defined(NeXTBSD)) && !defined(_DARWIN_C_SOURCE)
 #define _DARWIN_C_SOURCE 1
 
 /* Solaris and illumos */
@@ -126,8 +126,8 @@ static const char usage[] =
 #define NULL    0
 #endif /* __SUNPRO_C */
 
-/* Linux */
-#elif defined(__linux__) && !defined(_GNU_SOURCE)
+/* Linux and Cygwin */
+#elif (defined(__linux__) || __CYGWIN__) && !defined(_GNU_SOURCE)
 #define _GNU_SOURCE 1
 
 /* QNX */
