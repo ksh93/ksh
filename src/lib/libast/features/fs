@@ -168,7 +168,7 @@ lib	getfsstat_statfs note{ getfsstat uses statfs }end compile{
 	int
 	gfs(struct statfs* fs)
 	{
-		fs->f_flag = 0;
+		fs->f_flags = 0;
 		return getfsstat(fs, sizeof(struct statfs), MNT_WAIT);
 	}
 }end pass{
