@@ -104,7 +104,7 @@ ary	f_reserved7 sys/types.h sys/statvfs.h note{ statvfs.f_reserved7 can double f
 	int f(struct statvfs *vp){return vp->f_reserved7[0] = 1;}
 }end
 
-lib	getfsstat,getmntent,getmntinfo,mntctl,mntopen,mntread,mntclose,setmntent
+lib	getmntent,getmntinfo,mntctl,mntopen,mntread,mntclose,setmntent
 lib	w_getmntent
 lib	statfs,statvfs
 
@@ -139,13 +139,42 @@ lib	getmntinfo_statvfs note{ getmntinfo uses statvfs -- since when? }end compile
 
 lib	getfsstat_statvfs note{ getfsstat uses statvfs -- just in case it is confused like getmntinfo }end compile{
 	#include <sys/types.h>
+	#if _sys_mount
 	#include <sys/mount.h>
+	#endif
 	int
 	gfs(struct statvfs* fs)
 	{
 		fs->f_flag = 0;
 		return getfsstat(fs, sizeof(struct statvfs), MNT_WAIT);
 	}
+}end pass{
+	cat <<!
+	#define _lib_getfsstat 1	/* getfsstat() uses statvfs and compiles successfully */
+	!
+}end
+
+lib	getfsstat_statfs note{ getfsstat uses statfs }end compile{
+	#include <sys/types.h>
+	#if _sys_mount
+	#include <sys/mount.h>
+	#endif
+	#if _sys_param
+	#include <sys/param.h>
+	#endif
+	#if _sys_ucred
+	#include <sys/ucred.h>
+	#endif
+	int
+	gfs(struct statfs* fs)
+	{
+		fs->f_flag = 0;
+		return getfsstat(fs, sizeof(struct statfs), MNT_WAIT);
+	}
+}end pass{
+	cat <<!
+	#define _lib_getfsstat 1	/* getfsstat() uses statfs and compiles successfully */
+	!
 }end
 
 cat{
@@ -178,17 +207,6 @@ cat{
 	};
 	extern int	fstatvfs(int, struct statvfs*);
 	extern int	statvfs(const char*, struct statvfs*);
-	#endif
-
-	/*
-	 * NetBSD only provides getfsstat for binary compatibility, and
-	 * does not expose it in the system headers. Using it will
-	 * cause the build to fail with C99 because of an implicit
-	 * function error. We don't actually need this function,
-	 * so it's better to just avoid using it.
-	 */
-	#if defined(__NetBSD__)
-	#undef _lib_getfsstat
 	#endif
 }end
 
