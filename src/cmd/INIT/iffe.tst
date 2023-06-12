@@ -896,7 +896,7 @@ TEST 06 'block side effects'
 		INPUT t.iffe $'iff -
 tst	output{
 	int
-	main()
+	main(void)
 	{
 		printf("HIT\\n");
 		return 0;
@@ -912,7 +912,7 @@ HIT'
 		INPUT t.iffe $'iff
 tst	- output{
 	int
-	main()
+	main(void)
 	{
 		printf("HIT\\n");
 		return 0;
@@ -925,7 +925,7 @@ tst	- output{
 		INPUT t.iffe $'iff
 tst	- output{
 	int
-	main()
+	main(void)
 	{
 		printf("HIT\\n");
 		return 1;
@@ -940,7 +940,7 @@ tst	- output{
 		INPUT t.iffe $'iff
 tst	- nooutput{
 	int
-	main()
+	main(void)
 	{
 		printf("HIT\\n");
 		return 1;

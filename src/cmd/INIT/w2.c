@@ -19,7 +19,7 @@
 #include <wctype.h>
 
 int
-main()
+main(void)
 {
 	wchar_t	w = ' ';
 	return iswspace(w) == 0;

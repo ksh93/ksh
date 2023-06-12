@@ -1,5 +1,5 @@
 tst output{
-	int main()
+	int main(void)
 	{
 		printf("\n");
 		printf("#define CC_ASCII	1		/* ISO-8859-1			*/\n");

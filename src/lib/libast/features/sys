@@ -81,7 +81,7 @@ typ ldiv_t fail{
 tst	typ_signed_size_t output{
 	#include <sys/types.h>
 	int
-	main()
+	main(void)
 	{
 		unsigned long u = ~0;
 		size_t s = ~0;

@@ -100,7 +100,7 @@ output{
 	#define TMP_MAX		33520641
 	#endif
 	int
-	main()
+	main(void)
 	{
 		printf("#ifndef FILENAME_MAX\n");
 		printf("#define FILENAME_MAX	%d\n", FILENAME_MAX);

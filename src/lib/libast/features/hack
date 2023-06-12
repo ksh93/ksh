@@ -42,7 +42,7 @@ tst	- -DVAL=0 - -DVAL=1 - -DVAL=2 note{ probing need for va_listval() workaround
 		}
 		va_end(ap);
 	}
-	int main()
+	int main(void)
 	{
 		foo(0,"one",2);
 		printf("#define _need_va_listval_workaround %d\n",VAL);

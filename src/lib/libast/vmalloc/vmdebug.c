@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -48,7 +49,7 @@ static void*	Dbwatch[S_WATCH];
 
 static int Dbinit = 0;
 #define DBINIT()	(Dbinit ? 0 : (dbinit(), Dbinit=1) )
-static void dbinit()
+static void dbinit(void)
 {	int	fd;	
 	if((fd = vmtrace(-1)) >= 0)
 		vmtrace(fd);

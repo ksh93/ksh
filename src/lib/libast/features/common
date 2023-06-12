@@ -43,12 +43,6 @@ cat{
 	#undef	Void_t
 	#define	Void_t		void
 
-	/* disable non-standard Linux/GNU inlines */
-	#ifdef __GNUC__	
-	#	undef	__OPTIMIZE_SIZE__
-	#	define	__OPTIMIZE_SIZE__	1
-	#endif
-
 	/* __INLINE__, if defined, is the inline keyword */
 	#if !defined(__INLINE__) && defined(_WIN32) && !defined(__GNUC__)
 	#	define __INLINE__	__inline
@@ -70,7 +64,11 @@ cat{
 
 	#if !_std_noreturn
 	#if defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4))
-	#define noreturn __attribute__((noreturn))
+	/*
+	 * Note: Cygwin needs noreturn to be __noreturn__ to avoid
+	 * a build failure when using -std=c99.
+	 */
+	#define noreturn __attribute__((__noreturn__))
 	#else
 	#define noreturn
 	#endif /* __GNUC__ */
@@ -173,7 +171,7 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 	static int	int_size[] = { 1, 2, 4, 8 };
 	
 	int
-	main()
+	main(void)
 	{
 		int	t;
 		int	s;
@@ -262,7 +260,7 @@ tst	- output{
 	};
 	
 	int
-	main()
+	main(void)
 	{
 		int	t;
 
@@ -313,7 +311,7 @@ tst	- -DN=1 - -DN=0 output{
 	};
 	
 	int
-	main()
+	main(void)
 	{
 		int	t;
 		int	m = 1;
@@ -458,7 +456,7 @@ tst	- -DTRY=1 - -DTRY=1 -Dvoid=char - -DTRY=2 - -DTRY=3 - -DTRY=4 output{
 	}
 	#endif
 	int
-	main()
+	main(void)
 	{
 		int	r;
 

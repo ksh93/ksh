@@ -49,6 +49,15 @@ static char		*Zero = "0";
 #if !_lib_isnanl
 #undef	isnanl
 #define isnanl(n)	isnan(n)
+#elif defined(__HAIKU__) && __STDC_VERSION__ >= 199901L
+/*
+ * On Haiku, no definition of isnanl() is provided by the math.h
+ * header file (at /boot/system/develop/headers/posix/math.h).
+ * As a result, using it causes an implicit function error that
+ * kills the build with C99. The fpclassify function works just
+ * fine, so that's used instead.
+ */
+#define isnanl(n)	(fpclassify(n)==FP_NAN)
 #endif
 #endif
 

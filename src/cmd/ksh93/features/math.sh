@@ -44,11 +44,11 @@ eval `iffe $iffeflags -c "$cc" - typ long.double 2>&$stderr`
 
 : check ast_standards.h
 
-eval `iffe $iffeflags -F ast_standards.h -c "$cc" - tst use_ast_standards -lm 'note{' 'math.h needs ast_standards.h' '}end' 'link{' '#include <math.h>' '#ifndef isgreater' '#define isgreater(a,b) 0' '#endif' 'int main() { return isgreater(0.0,1.0); }' '}end'`
+eval `iffe $iffeflags -F ast_standards.h -c "$cc" - tst use_ast_standards -lm 'note{' 'math.h needs ast_standards.h' '}end' 'link{' '#include <math.h>' '#ifndef isgreater' '#define isgreater(a,b) 0' '#endif' 'int main(void) { return isgreater(0.0,1.0); }' '}end'`
 case $_use_ast_standards in
 1)	iffeflags="$iffeflags -F ast_standards.h" ;;
 esac
-eval `iffe $iffeflags -c "$cc" - tst use_ieeefp -lm 'note{' 'ieeefp.h plays nice' '}end' 'link{' '#include <math.h>' '#include <ieeefp.h>' 'int main() { return 0; }' '}end'`
+eval `iffe $iffeflags -c "$cc" - tst use_ieeefp -lm 'note{' 'ieeefp.h plays nice' '}end' 'link{' '#include <math.h>' '#include <ieeefp.h>' 'int main(void) { return 0; }' '}end'`
 case $_use_ieeefp in
 1)	iffehdrs="$iffehdrs ieeefp.h" ;;
 esac
@@ -251,7 +251,7 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name} r='$'TYPE_${name} a='$'ARGS_${name}
 				sep=","
 			done
 			_it_links_=0
-			eval `iffe $iffeflags -c "$cc" - tst it_links_ note{ $F function links }end link{ "static $L $F($ta)$td${body}int main(){return $F($tc)!=0;}" }end sfio.h $iffehdrs $iffelibs 2>&$stderr`
+			eval `iffe $iffeflags -c "$cc" - tst it_links_ note{ $F function links }end link{ "static $L $F($ta)$td${body}int main(void){return $F($tc)!=0;}" }end sfio.h $iffehdrs $iffelibs 2>&$stderr`
 			case $_it_links_ in
 			1)	code="$code)$body"
 				echo "$code"

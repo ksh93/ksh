@@ -14,6 +14,7 @@
 #                  David Korn <dgk@research.att.com>                   #
 #                   Phong Vo <kpv@research.att.com>                    #
 #                  Martijn Dekker <martijn@inlv.org>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 : generate sig features
@@ -46,7 +47,7 @@ echo "#include <signal.h>
 #ifdef TYPE
 typedef TYPE (*Sig_handler_t)(ARG);
 #endif
-Sig_handler_t f()
+Sig_handler_t f(void)
 {
 	Sig_handler_t	handler;
 	handler = signal(1, SIG_IGN);

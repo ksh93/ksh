@@ -453,6 +453,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 	}
 	if(jmpval >= SH_JMPFUN)
 		siglongjmp(*sh.jmplist,jmpval);
+	sh_sigcheck();
 	return cp;
 }
 

@@ -9,7 +9,7 @@ tst	note{ do wctrans/towctrans work }end output{
 	#include <stdio.h>
 	#include <wchar.h>
 	#include <wctype.h>
-	int main()
+	int main(void)
 	{
 		wctrans_t toupper = wctrans("toupper"), tolower = wctrans("tolower");
 		int r = towctrans('q',toupper) == 'Q' && towctrans('Q',tolower) == 'q';

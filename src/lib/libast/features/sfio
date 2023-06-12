@@ -9,7 +9,7 @@ typ	struct.sf_hdtr sys/socket.h
 tst	- note{ number of bits in pointer }end output{
 	#include <stdio.h>
 	int
-	main()
+	main(void)
 	{
 		printf("#define _ptr_bits	%d\n", sizeof(char*) * 8);
 		return 0;
@@ -23,7 +23,7 @@ tst	tmp_rmfail note{ open files cannot be removed }end execute{
 	#include <string.h>
 	#include <time.h>
 	int
-	main()
+	main(void)
 	{
 		int		n;
 		char*		s;
@@ -76,7 +76,7 @@ tst	tmp_rmfail note{ open files cannot be removed }end execute{
 
 more void_int note{ voidptr is larger than int }end execute{
 	int
-	main()
+	main(void)
 	{
 		return sizeof(char*) > sizeof(int) ? 0 : 1;
 	}
@@ -84,7 +84,7 @@ more void_int note{ voidptr is larger than int }end execute{
 
 more long_int note{ long is larger than int }end execute{
 	int
-	main()
+	main(void)
 	{
 		return sizeof(long) > sizeof(int) ? 0 : 1;
 	}
@@ -92,7 +92,7 @@ more long_int note{ long is larger than int }end execute{
 
 tst	vax_asm note{ layout ok for vax string operations }end execute{
 	int
-	main()
+	main(void)
 	{
 	#ifndef vax
 		return absurd = -1;
@@ -117,7 +117,7 @@ tst	lib_cvt note{ native floating point conversions ok }end link{
 	extern char* fcvt(double, int, int*, int*);
 	extern double strtod(const char*, char**);
 	int
-	main()
+	main(void)
 	{
 		ecvt(0.0, 0, 0, 0);
 		fcvt(0.0, 0, 0, 0);
@@ -131,9 +131,7 @@ tst	xopen_stdio note{ Stdio fseek/fflush are X/Open-compliant }end execute{
 	#include <unistd.h>
 	#define Failed(file)	(unlink(file),1)
 	int
-	main(argc, argv)
-	int	argc;
-	char**	argv;
+	main(int argc, char **argv)
 	{	FILE	*f1, *f2;
 		char	file[1024], buf[1024], *f, *t;
 		int	i, fd;

@@ -3,7 +3,7 @@ lib	lchmod note{ lchmod implemented }end execute{
 	#include <sys/stat.h>
 	#include <errno.h>
 	int
-	main()
+	main(void)
 	{
 		lchmod("No-FiLe", 0);
 		return errno != ENOENT;
@@ -15,7 +15,7 @@ lib	lchown note{ lchown implemented }end execute{
 	#include <sys/stat.h>
 	#include <errno.h>
 	int
-	main()
+	main(void)
 	{
 		lchown("No-FiLe", 0, 0);
 		return errno != ENOENT;

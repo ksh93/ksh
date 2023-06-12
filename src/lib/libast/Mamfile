@@ -1962,6 +1962,7 @@ make install
 					prev include/error.h
 					prev include/tm.h
 					prev tv.h
+					prev include/ast.h
 				done tm/tvsleep.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd -c tm/tvsleep.c
 			done tvsleep.o generated
