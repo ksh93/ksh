@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -55,7 +56,7 @@ static union _u_	u;
 static union _u_	v;
 
 int
-main()
+main(void)
 {
 	int		i;
 	int		j;

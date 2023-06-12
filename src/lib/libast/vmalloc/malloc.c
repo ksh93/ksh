@@ -279,7 +279,7 @@ static void addfreelist(Regfree_t* data)
 	}
 }
 
-static void clrfreelist()
+static void clrfreelist(void)
 {
 	Regfree_t	*list, *next;
 	Vmalloc_t	*vm;

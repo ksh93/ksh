@@ -289,7 +289,7 @@ extern char*		strsignal(int);
 #endif
 
 int
-main()
+main(void)
 {
 	int	i;
 	int	j;

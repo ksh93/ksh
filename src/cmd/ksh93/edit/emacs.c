@@ -1265,6 +1265,17 @@ static void xcommands(Emacs_t *ep,int count)
 					drawbuff[eol+1] = '\0';
 				}
 			}
+			/* If hist_eof is not used here, activity in a
+			 * separate session could result in the wrong
+			 * line being edited. */
+			if(hline == histlines && sh.hist_ptr)
+			{
+				hist_eof(sh.hist_ptr);
+				histlines = (int)sh.hist_ptr->histind;
+				hline = histlines;
+				if(histlines >= sh.hist_ptr->histsize)
+					hist_flush(sh.hist_ptr);
+			}
 			/* Do not print the literal hist command. */
 			ep->ehist = 1;
 			if(ed_fulledit(ep->ed)==-1)

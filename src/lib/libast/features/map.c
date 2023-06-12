@@ -37,7 +37,7 @@
 #endif
 
 int
-main()
+main(void)
 {
 	printf("/*\n");
 	printf(" * prototypes provided for standard interfaces hijacked\n");

@@ -21,7 +21,7 @@ tst	mem_sbrk note{ brk()/sbrk() work as expected }end execute{
 	#include        <unistd.h>
 	#undef	uchar
 	#define	uchar	unsigned char
-	int main()
+	int main(void)
 	{	uchar	*brk0, *brk1;
 
 		/* allocate a big chunk */
@@ -46,7 +46,7 @@ tst	mem_sbrk note{ brk()/sbrk() work as expected }end execute{
 
 tst	map_malloc note{ map malloc to _ast_malloc }end noexecute{
 	#if __CYGWIN__ || __HAIKU__
-	int main() { return 1; }
+	int main(void) { return 1; }
 	#else
 	static int user = 0;
 	#if _lib_strdup
@@ -70,17 +70,17 @@ tst	map_malloc note{ map malloc to _ast_malloc }end noexecute{
 	extern void* _malloc(unsigned int n) { MALLOC(n); }
 	extern void* __malloc(unsigned int n) { MALLOC(n); }
 	extern void* __libc_malloc(unsigned int n) { MALLOC(n); }
-	int main() { user = 1; return !INTERCEPTED(LOCAL()); }
+	int main(void) { user = 1; return !INTERCEPTED(LOCAL()); }
 	#endif
 }end
 
 tst	map_malloc note{ map malloc to _ast_malloc -- wimp-o mach? }end noexecute{
 	#if _map_malloc
-	int main() { return 0; }
+	int main(void) { return 0; }
 	#else
 	#include <stdlib.h>
 	void* calloc(size_t n, size_t m) { exit(1); }
-	int main() { return 0; }
+	int main(void) { return 0; }
 	#endif
 }end
 
@@ -89,14 +89,14 @@ lib	alloca note{ alloca exists }end link{
 	#include	<alloca.h>
 	#endif
 	int
-	main()
+	main(void)
 	{	alloca(10);
 	}
 }end
 
 tst	mal_alloca note{ alloca is based on malloc() }end execute{
 	#if __CYGWIN__ || __HAIKU__
-	int main() { return 1; }
+	int main(void) { return 1; }
 	#else
 	#if _hdr_alloca
 	#include	<alloca.h>
@@ -106,7 +106,7 @@ tst	mal_alloca note{ alloca is based on malloc() }end execute{
 	{	exit(0);
 		return 0;
 	}
-	int main()
+	int main(void)
 	{	alloca(10);
 		return 1;
 	}
@@ -114,7 +114,7 @@ tst	mal_alloca note{ alloca is based on malloc() }end execute{
 }end
 
 tst	stk_down note{ stack grows downward }end execute{
-	static int growdown()
+	static int growdown(void)
 	{	static char*	addr = 0;
 		char		array[4];
 		if(!addr)
@@ -125,7 +125,7 @@ tst	stk_down note{ stack grows downward }end execute{
 			return 0;
 		else	return 1;	
 	}
-	int main() { return growdown() ? 0 : 1; }
+	int main(void) { return growdown() ? 0 : 1; }
 }end
 
 tst	malloc_hook note{ GNU malloc hooks work }end execute{
@@ -169,7 +169,7 @@ tst	malloc_hook note{ GNU malloc hooks work }end execute{
 
 	void    (*__malloc_initialize_hook)(void) = test_initialize_hook;
 
-	int main()
+	int main(void)
 	{
 	        void*   p;
 

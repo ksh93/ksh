@@ -12,7 +12,7 @@ tst	output{
 	#endif
 
 	int
-	main()
+	main(void)
 	{
 		printf("#include <limits.h>\n");
 	#if _hdr_nl_types && defined(_nxt_nl_types_str)

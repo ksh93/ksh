@@ -17,12 +17,11 @@ tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 	#ifndef SHUT_WR
 	#define SHUT_WR		1
 	#endif
-	static void handler(sig)
-	int	sig;
+	static void handler(int sig)
 	{
 		_exit(0);
 	}
-	int main()
+	int main(void)
 	{
 		int		n;
 		int		pfd[2];
@@ -71,7 +70,7 @@ tst	socketpair_devfd note{ /dev/fd/N handles socketpair() }end execute{
 	#include <ast.h>
 	#include <sys/types.h>
 	#include <sys/socket.h>
-	int main()
+	int main(void)
 	{
 		int		devfd;
 		int		n;
@@ -98,7 +97,7 @@ tst	socketpair_shutdown_mode note{ fchmod() after socketpair() shutdown() }end e
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	#include <sys/socket.h>
-	int main()
+	int main(void)
 	{
 		int		sfd[2];
 		struct stat	st0;

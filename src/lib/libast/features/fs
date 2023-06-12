@@ -13,7 +13,7 @@ lcl	xstat link{
 	#endif
 	}
 	int
-	main()
+	main(void)
 	{
 		struct stat	st;
 		return stat(".",&st) < 0;
@@ -101,10 +101,10 @@ mem	statfs.f_files,statfs.f_bavail sys/types.h - sys/statfs.h - sys/vfs.h - sys/
 mem	statvfs.f_basetype,statvfs.f_frsize sys/types.h sys/statvfs.h
 
 ary	f_reserved7 sys/types.h sys/statvfs.h note{ statvfs.f_reserved7 can double for statvfs.f_basetype }end compile{
-	int f(vp)struct statvfs* vp;{return vp->f_reserved7[0] = 1;}
+	int f(struct statvfs *vp){return vp->f_reserved7[0] = 1;}
 }end
 
-lib	getfsstat,getmntent,getmntinfo,mntctl,mntopen,mntread,mntclose,setmntent
+lib	getmntent,getmntinfo,mntctl,mntopen,mntread,mntclose,setmntent
 lib	w_getmntent
 lib	statfs,statvfs
 
@@ -119,7 +119,7 @@ lib	statfs4 sys/types.h - sys/statfs.h - sys/vfs.h - sys/mount.h compile{
 	#if _sys_mount
 	#include <sys/mount.h>
 	#endif
-	int f()
+	int f(void)
 	{
 		struct statfs fs;
 		return statfs("/",&fs,sizeof(fs),0);
@@ -139,13 +139,42 @@ lib	getmntinfo_statvfs note{ getmntinfo uses statvfs -- since when? }end compile
 
 lib	getfsstat_statvfs note{ getfsstat uses statvfs -- just in case it is confused like getmntinfo }end compile{
 	#include <sys/types.h>
+	#if _sys_mount
 	#include <sys/mount.h>
+	#endif
 	int
 	gfs(struct statvfs* fs)
 	{
 		fs->f_flag = 0;
 		return getfsstat(fs, sizeof(struct statvfs), MNT_WAIT);
 	}
+}end pass{
+	cat <<!
+	#define _lib_getfsstat 1	/* getfsstat() uses statvfs and compiles successfully */
+	!
+}end
+
+lib	getfsstat_statfs note{ getfsstat uses statfs }end compile{
+	#include <sys/types.h>
+	#if _sys_mount
+	#include <sys/mount.h>
+	#endif
+	#if _sys_param
+	#include <sys/param.h>
+	#endif
+	#if _sys_ucred
+	#include <sys/ucred.h>
+	#endif
+	int
+	gfs(struct statfs* fs)
+	{
+		fs->f_flags = 0;
+		return getfsstat(fs, sizeof(struct statfs), MNT_WAIT);
+	}
+}end pass{
+	cat <<!
+	#define _lib_getfsstat 1	/* getfsstat() uses statfs and compiles successfully */
+	!
 }end
 
 cat{
@@ -182,25 +211,25 @@ cat{
 }end
 
 str	st_fstype sys/types.h sys/stat.h note{ stat.st_fstype is a string }end compile{
-	int f(st)struct stat* st;{return st->st_fstype[0];}
+	int f(struct stat *st){return st->st_fstype[0];}
 }end
 
 int	st_fstype sys/types.h sys/stat.h note{ stat.st_fstype is an int }end compile{
-	int f(st)struct stat* st;{return st->st_fstype = 1;}
+	int f(struct stat *st){return st->st_fstype = 1;}
 }end
 
 int	st_spare1 sys/types.h sys/stat.h note{ stat.st_spare1 is an int }end compile{
-	int f(st)struct stat* st;{return st->st_spare1 = 1;}
+	int f(struct stat *st){return st->st_spare1 = 1;}
 }end
 
 ary	st_spare4 sys/types.h sys/stat.h note{ stat.st_spare4 is an array }end compile{
-	int f(st)struct stat* st;{return st->st_spare4[0] = 1;}
+	int f(struct stat *st){return st->st_spare4[0] = 1;}
 }end
 
 ary	st_extra sys/types.h sys/stat.h note{ stat.st_extra is an array }end compile{
-	int f(st)struct stat* st;{return st->st_extra[0] = 1;}
+	int f(struct stat *st){return st->st_extra[0] = 1;}
 }end
 
 ary	st_pad4 sys/types.h sys/stat.h note{ stat.st_pad4 is an array }end compile{
-	int f(st)struct stat* st;{return st->st_pad4[0] = 1;}
+	int f(struct stat *st){return st->st_pad4[0] = 1;}
 }end

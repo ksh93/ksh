@@ -1109,7 +1109,7 @@ bzero(void* b, size_t n)
 #endif
 
 int
-getpagesize()
+getpagesize(void)
 {
 	return _AST_PAGESIZE;
 }

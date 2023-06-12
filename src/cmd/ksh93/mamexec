@@ -153,7 +153,7 @@ do	IFS=$_ifs_
 			set -
 			mkdir /tmp/mam$$
 			cd /tmp/mam$$
-			echo 'main(){return 0;}' > main.c
+			echo 'main(void){return 0;}' > main.c
 			code=1
 			if	$CC -c main.c 2>/dev/null
 			then	if	$CC -L. main.o -lc 2>/dev/null

@@ -55,28 +55,28 @@ probe_warn="-Wall -fullwarn -w3 '-A -A' +w1"
 
 echo '#pragma pp:version' > libpp.$src
 echo '#define dDflag on' > dDflag.$src
-echo 'int main(){return 0;}' > doti.$src
-echo 'int code(){return 0;} int main(){return code();}' > export.$src
+echo 'int main(void){return 0;}' > doti.$src
+echo 'int code(void){return 0;} int main(void){return code();}' > export.$src
 echo '#include <stdio.h>' > imstd.$src
 echo '#include "_i_.h"' > imusr.$src
 echo 'int x;' > _i_.h
 mkdir im
 echo '(' > im/stdio.h
 echo '#include "implc_x.h"
-int main(){f(1);return 0;}' > implc.$src
+int main(void){f(1);return 0;}' > implc.$src
 echo 'template <class T> void f(T){}' > implc_x.$src
 echo 'template <class T> void f(T);' > implc_x.h
-echo 'extern int NotalL() { return 0; }' > notall.$src
+echo 'extern int NotalL(void) { return 0; }' > notall.$src
 echo '#include <stdio.h>
 extern int i;
 int i = 1;
-extern int f() { return !i; }
-int main() { FILE* fp=stdin; return f(); }' > pic.$src
-echo 'int prefix(){return 0;}' > prefix.$src
+extern int f(void) { return !i; }
+int main(void) { FILE* fp=stdin; return f(); }' > pic.$src
+echo 'int prefix(void){return 0;}' > prefix.$src
 echo 'template<class T> int gt(T a, T b);
 template<class T> int gt(T a, T b) { return a > b; }
-int main () { return gt(2,1); }' > ptr.$src
-echo 'int main(){return 0;}' > require.$src
+int main (void) { return gt(2,1); }' > ptr.$src
+echo 'int main(void){return 0;}' > require.$src
 echo '#if mips && !sgi || __CYGWIN__ || __HAIKU__ || __APPLE__
 ( /* some systems choke on this probe */
 #else
@@ -86,28 +86,28 @@ echo '#if mips && !sgi || __CYGWIN__ || __HAIKU__ || __APPLE__
 #define CONST
 #endif
 CONST char x[]={1,2,3,4,5,6,7,8,9,0};
-int main(){*(char*)x=0; return x[0];}
+int main(void){*(char*)x=0; return x[0];}
 #endif' > readonly.$src
-echo 'extern int sfclose(); extern int ShareD() { return sfclose(); }' > shared.$src
+echo 'extern int sfclose(void); extern int ShareD(void) { return sfclose(); }' > shared.$src
 echo '#define g(a,b) a ## b
 volatile int a;
 const int g(x,y)=1;
 extern int c(int);' > stdc.$src
-echo 'extern int f(); int main() { return f(); }' > sovmain.$src
-echo 'int f() { return 0; }' > sovlib.$src
+echo 'extern int f(void); int main(void) { return f(); }' > sovmain.$src
+echo 'int f(void) { return 0; }' > sovlib.$src
 echo '#include <stdio.h>
 int i;
-int main(){int j;j = i * 10;return j;}' > strip.$src
+int main(void){int j;j = i * 10;return j;}' > strip.$src
 echo 'template <class T> void f(T){}
-int main(){f(1);return 0;}' > toucho.$src
+int main(void){f(1);return 0;}' > toucho.$src
 echo 'extern type call(int);
-int main() { call(0); return 0; }' > tstlib.$src
-echo 'int main(){return 0;}' > warn.$src
-echo 'int f(){return 0;}' > warn1.$src
-echo 'int f(){}' > warn2.$src
-echo 'int f(){int i; return 0;}' > warn3.$src
-echo 'int f(){int i; return i;}' > warn4.$src
-echo 'int f(){return g();}' > warn5.$src
+int main(void) { call(0); return 0; }' > tstlib.$src
+echo 'int main(void){return 0;}' > warn.$src
+echo 'int f(void){return 0;}' > warn1.$src
+echo 'int f(void){}' > warn2.$src
+echo 'int f(void){int i; return 0;}' > warn3.$src
+echo 'int f(void){int i; return i;}' > warn4.$src
+echo 'int f(void){return g();}' > warn5.$src
 warn_enum="1 2 3 4 5"
 
 chmod -w *.$src
@@ -371,8 +371,8 @@ then	e=`wc -l e`
 	case $hosted:$cc_pic in
 	1:?*)   if	./pic.$exe
 		then	# this catches lynxos.ppc gcc that dumps -fpic and not -mshared
-			echo 'static int* f() { static int v; return &v; }
-int main() { f(); return 0; }' > picok.$src
+			echo 'static int* f(void) { static int v; return &v; }
+int main(void) { f(); return 0; }' > picok.$src
 			$cc $cc_pic -o picok.$exe picok.$src && ./picok.$exe || cc_pic=
 		else	cc_pic=
 		fi
@@ -565,7 +565,7 @@ case $cc_dll:$cc_pic:$so:$dynamic:$static in
 	: last chance dynamic checks
 	while	:
 	do
-		echo '__declspec(dllexport) int fun() { return 0; }' > exp.$src
+		echo '__declspec(dllexport) int fun(void) { return 0; }' > exp.$src
 		if	$cc -c $cc_dll_def exp.$src
 		then	rm -f xxx.dll xxx.lib
 			if	$cc -shared -Wl,--enable-auto-image-base -Wl,--out-implib=xxx.lib -o xxx.dll exp.$obj &&
@@ -944,10 +944,10 @@ case $shared in
 	esac
 	;;
 *)	case $lib_dll in
-	symbol)	echo 'extern int f();
-	int main() { f(); return 0; }' > main.$src
+	symbol)	echo 'extern int f(void);
+	int main(void) { f(); return 0; }' > main.$src
 		echo '#include <stdio.h>
-	int f() { printf("hello world"); return 0; }' > member.$src
+	int f(void) { printf("hello world"); return 0; }' > member.$src
 		if	$cc -c main.$src && $cc -c member.$src
 		then	echo f > lib.exp
 			rm -f lib.$obj main.exe
@@ -1017,14 +1017,14 @@ option)	case $hosttype in
 SYMBOL)	lib_dll=symbol
 	;;
 symbol)	echo "#include <stdio.h>
-extern int fun()
+extern int fun(void)
 {
 	puts(\"fun\");
 	return 0;
 }" > dllib.$src
-	echo "extern int fun();
+	echo "extern int fun(void);
 int
-main()
+main(void)
 {
 	return fun();
 }" > dlmain.$src

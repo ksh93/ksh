@@ -12,7 +12,7 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 	#include <wctype.h>
 	#endif
 	int
-	main()
+	main(void)
 	{
 		wchar_t	w = 'a';
 		return iswalnum(w) == 0;
@@ -63,9 +63,9 @@ tst	tst_errno note{ errno can be assigned }end link{
 	#ifndef errno
 	extern int errno;
 	#endif
-	void error() { }
-	void strerror() { }
-	int main() { errno = 0; error(); strerror(); return 0; }
+	void error(void) { }
+	void strerror(void) { }
+	int main(void) { errno = 0; error(); strerror(); return 0; }
 }end
 
 tst	lib_poll_fd_1 note{ fd is first arg to poll() }end execute{
@@ -73,7 +73,7 @@ tst	lib_poll_fd_1 note{ fd is first arg to poll() }end execute{
 	#include <unistd.h>
 	extern int	pipe(int*);
 	int
-	main()
+	main(void)
 	{	int		rw[2];
 		struct pollfd	fd;
 		if (pipe(rw) < 0) return 1;
@@ -92,7 +92,7 @@ tst	lib_poll_fd_2 note{ fd is second arg to poll() }end execute{
 	#include <unistd.h>
 	extern int	pipe(int*);
 	int
-	main()
+	main(void)
 	{	int		rw[2];
 		struct pollfd	fd;
 		if (pipe(rw) < 0) return 1;
@@ -115,7 +115,7 @@ tst	lib_poll_notimer note{ poll with no fds ignores timeout }end execute{
 	extern time_t	time(time_t*);
 	#define TIMEOUT		4
 	int
-	main()
+	main(void)
 	{
 		unsigned long	start;
 		unsigned long	finish;
@@ -133,7 +133,7 @@ tst	lib_select sys/select.h note{ select() has standard 5 arg interface }end lin
 	#include <sys/time.h>
 	#include <sys/socket.h>
 	int
-	main()
+	main(void)
 	{	struct timeval	tmb;
 		fd_set		rd;
 		FD_ZERO(&rd);
@@ -148,7 +148,7 @@ tst	lib_select sys/select.h note{ select() has standard 5 arg interface }end lin
 tst	sys_select note{ select() requires <sys/select.h> }end link{
 	#include <sys/select.h>
 	int
-	main()
+	main(void)
 	{	struct timeval	tmb;
 		fd_set		rd;
 		FD_ZERO(&rd);
@@ -166,7 +166,7 @@ tst	pipe_rw note{ full duplex pipes }end execute{
 	extern int	strcmp(const char*, const char*);
 	extern int	write(int, void*, int);
 	int
-	main()
+	main(void)
 	{
 	#if defined(__sgi) || defined(_sgi) || defined(sgi)
 		/* boot tuneable pipes force one way for bin compatibility */
@@ -201,9 +201,7 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 	pid_t _fork(void) { NOTE("uses _fork()"); return -1; }
 	pid_t __fork(void) { NOTE("uses __fork()"); return -1; }
 	int
-	main(argc, argv)
-	int	argc;
-	char**	argv;
+	main(int argc, char **argv)
 	{
 		char*			s;
 		pid_t			pid;
@@ -309,9 +307,7 @@ tst	lib_spawn_mode unistd.h stdlib.h note{ first spawn arg is mode and it works 
 	#define P_NOWAIT _P_NOWAIT
 	#endif
 	int
-	main(argc, argv)
-	int	argc;
-	char**	argv;
+	main(int argc, char **argv)
 	{
 		int	status;
 		char*	cmd[3];
@@ -333,7 +329,7 @@ tst	stream_peek note{ ioctl(I_PEEK) works on pipe() }end execute{
 	#include <unistd.h>
 	#include <stropts.h>
 	int
-	main()
+	main(void)
 	{	struct strpeek	peek;
 		int		fds[2];
 		char		ctlbuf[32];
@@ -353,7 +349,7 @@ tst	socket_peek note{ recv(MSG_PEEK) works on socketpair() }end execute{
 	#include <sys/types.h>
 	#include <sys/socket.h>
 	int
-	main()
+	main(void)
 	{	
 		int		i;
 		int		fds[2];
@@ -391,7 +387,7 @@ tst	lib_memcmp string.h note{ standard memcmp interface that works }end execute{
 	char		a[L] = { '0' };
 	char		b[L] = { '1' };
 	int
-	main()
+	main(void)
 	{
 		return memcmp(a, b, L) >= 0;
 	}
@@ -459,7 +455,7 @@ tst	lib_memccpy string.h unistd.h stdlib.h fcntl.h signal.h sys/types.h sys/stat
 	#endif
 
 	int
-	main ()
+	main(void)
 	{
 		char	buf[1024];
 	#ifdef MAP_PRIVATE
@@ -523,7 +519,7 @@ tst	lib_utime_now note{ utime works with 0 time vector }end execute{
 	#include <sys/types.h>
 	extern int	utime(const char*, void*);
 	int
-	main()
+	main(void)
 	{
 		return utime(".", NULL) == -1;
 	}
@@ -544,28 +540,28 @@ tst	cross{
 std	cleanup note{ stuck with standard _cleanup }end noexecute{
 	extern void exit(int);
 	extern void _exit(int);
-	extern void _cleanup();
-	void _cleanup() { _exit(0); }
-	int main() { printf("cleanup\n"); exit(1); }
+	extern void _cleanup(void);
+	void _cleanup(void) { _exit(0); }
+	int main(void) { printf("cleanup\n"); exit(1); }
 }end
 
 std	remove note{ stuck with standard remove() }end nostatic{
 	extern int unlink(const char*);
 	int remove(const char* path) { return 0; }
-	int main() { return unlink("foo"); }
+	int main(void) { return unlink("foo"); }
 }end
 
 std	signal note{ stuck with standard signal }end nolink{
-	extern int abort();
-	int signal() { return 0; }
-	int main() { signal(); abort(); return 0; }
+	extern void abort(void);
+	int signal(void) { return 0; }
+	int main(void) { signal(); abort(); return 0; }
 }end
 
 std	strcoll note{ standard strcoll works }end execute{
 	#include <string.h>
 	#define S	"hello world"
 	int
-	main()
+	main(void)
 	{
 		char	s[] = S;
 		char	t[] = S;
@@ -575,23 +571,23 @@ std	strcoll note{ standard strcoll works }end execute{
 
 std	strtod stdlib.h note{ stuck with standard strtod }end nostatic{
 	double strtod(const char* s, char** e) { return 0.0; }
-	int main() { printf(""); return strtod("1",0) != 0; }
+	int main(void) { printf(""); return strtod("1",0) != 0; }
 }end
 
 std	strtold stdlib.h note{ stuck with standard strtold }end nostatic{
 	long double strtold(const char* s, char** e) { return 0.0; }
-	int main() { printf(""); return strtold("1",0) != 0; }
+	int main(void) { printf(""); return strtold("1",0) != 0; }
 }end
 
 std	strtol note{ stuck with standard strtol }end nostatic{
 	extern long atol(const char*);
 	long strtol(const char* s, char** e, int b) { return 0; }
-	int main() { printf(""); return (atol("1") + strtol("1",NULL,0)) != 0; }
+	int main(void) { printf(""); return (atol("1") + strtol("1",NULL,0)) != 0; }
 }end
 
 tst	- output{
 	int
-	main()
+	main(void)
 	{
 	#if _lib_posix_spawn || _lib_spawn_mode || _lib_spawn && _hdr_spawn && _mem_pgroup_inheritance
 		printf("#if !_AST_no_spawnveg\n");

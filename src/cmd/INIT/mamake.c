@@ -93,7 +93,53 @@ static const char usage[] =
 #define elementsof(x)	(sizeof(x)/sizeof(x[0]))
 #define newof(p,t,n,x)	((p)?(t*)realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)calloc(1,sizeof(t)*(n)+(x)))
 
+/*
+ * For compatibility with compiler flags such as -std=c99, feature macros
+ * must be enabled to prevent the build from failing at the very start.
+ * These are normally handled in src/lib/libast/features/standards; further
+ * information can be found there. Mamake shouldn't need all that much enabled,
+ * so not much is enabled here.
+ */
+
+/* macOS */
+#if (defined(__APPLE__) && defined(__MACH__) && defined(NeXTBSD)) && !defined(_DARWIN_C_SOURCE)
+#define _DARWIN_C_SOURCE 1
+
+/* Solaris and illumos */
+#elif defined(__sun)
+#define _XPG7
+#define _XPG6
+#define _XPG5
+#define _XPG4_2
+#define _XPG4
+#define _XPG3
+#define __EXTENSIONS__	1
+#define _XOPEN_SOURCE	9900
+#undef _POSIX_C_SOURCE
+/*
+ * Though POSIX says it must be allowed, Solaris Studio cc dislikes NULL, a.k.a.
+ * (void*)0, being used for function pointers. It warns, or in some cases it even
+ * throws an error. Just use 0 for NULL, as that is always acceptable in C.
+ */
+#if __SUNPRO_C
+#undef  NULL
+#define NULL    0
+#endif /* __SUNPRO_C */
+
+/* Linux and Cygwin */
+#elif (defined(__linux__) || __CYGWIN__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1
+
+/* QNX */
+#elif defined(__QNX__) && !defined(_QNX_SOURCE)
+#define _QNX_SOURCE 1
+
+/* Everything else (minus BSD, as the defaults there are acceptable) */
+#elif !(BSD && !__APPLE__ && !__MACH__ && !NeXTBSD) && !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 21000101L
 #endif
+
+#endif /* _PACKAGE_ast */
 
 #include <stdio.h>
 #include <unistd.h>
@@ -259,7 +305,7 @@ extern char**		environ;
  */
 
 static void
-usage()
+usage(void)
 {
 	fprintf(stderr, "Usage: %s"
 		" [-iknFKNV]"
@@ -1595,7 +1641,7 @@ require(char* lib, int dontcare)
 		{
 			append(tmp, "set +v +x\n");
 			append(tmp, "cd \"${TMPDIR:-/tmp}\"\n");
-			append(tmp, "echo 'int main(){return 0;}' > x.${!-$$}.c\n");
+			append(tmp, "echo 'int main(void){return 0;}' > x.${!-$$}.c\n");
 			append(tmp, "${CC} ${CCFLAGS} -o x.${!-$$}.x x.${!-$$}.c ");
 			append(tmp, r);
 			append(tmp, " >/dev/null 2>&1\n");

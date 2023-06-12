@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -24,7 +25,7 @@
 #include "FEATURE/float"
 
 int
-main()
+main(void)
 {
 	int		i;
 #if _ast_fltmax_double

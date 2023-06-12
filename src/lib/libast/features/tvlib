@@ -1,11 +1,11 @@
 hdr	time
 lib	clock_settime,gettimeofday,settimeofday,stime,utimes
 lib	nanosleep,usleep
-lib	utimensat -D_ATFILE_SOURCE sys/stat.h note{ complete utimensat implementation }end link{
+lib	utimensat sys/stat.h note{ complete utimensat implementation }end link{
 	#include <fcntl.h>
 	static struct timespec	ts[2];
 	int
-	main()
+	main(void)
 	{
 		ts[0].tv_nsec = UTIME_NOW;
 		ts[1].tv_nsec = UTIME_OMIT;
@@ -25,7 +25,7 @@ endif
 lib	clock_gettime execute{
 	#include <time.h>
 	int
-	main()
+	main(void)
 	{
 		struct timespec	tv;
 		return clock_gettime(CLOCK_REALTIME, &tv) != 0;
@@ -37,7 +37,7 @@ lib	utimets link{
 	#include <sys/time.h>
 	static struct timespec	tv;
 	int
-	main()
+	main(void)
 	{
 		return utimets(".", &tv) != 0;
 	}
@@ -52,7 +52,7 @@ tst	prefer_poll note{ is select less precise than 1 ms }end execute{
 	# include <sys/socket.h>
 	#endif
 	int
-	main()
+	main(void)
 	{
 		struct timeval tvSleep = { 0, 1 }, tvBefore, tvAfter;
 		int i;
@@ -79,7 +79,7 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 output{
 	#include <sys/types.h>
 	#include <sys/time.h>
 	int
-	main()
+	main(void)
 	{
 		struct timeval	tv;
 #if N == 1

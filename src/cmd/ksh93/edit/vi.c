@@ -694,6 +694,17 @@ static int cntlmode(Vi_t *vp)
 			}
 
 		vcommand:
+			/* If hist_eof is not used here, activity in a
+			 * separate session could result in the wrong
+			 * line being edited. */
+			if(curhline == histmax && sh.hist_ptr)
+			{
+				hist_eof(sh.hist_ptr);
+				histmax = (int)sh.hist_ptr->histind;
+				curhline = histmax;
+				if(histmax >= sh.hist_ptr->histsize)
+					hist_flush(sh.hist_ptr);
+			}
 			if(ed_fulledit(vp->ed)==GOOD)
 				return BIGVI;
 			else

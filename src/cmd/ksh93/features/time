@@ -4,7 +4,7 @@ mem	timeval.tv_usec sys/time.h
 tst	lib_2_timeofday note{ 2 arg gettimeofday() }end link{
 	#include <sys/types.h>
 	#include <sys/time.h>
-	int main()
+	int main(void)
 	{
 		struct timeval tv;
 		struct timezone tz;
@@ -14,7 +14,7 @@ tst	lib_2_timeofday note{ 2 arg gettimeofday() }end link{
 tst	lib_1_timeofday note{ 1 arg gettimeofday() }end link{
 	#include <sys/types.h>
 	#include <sys/time.h>
-	int main()
+	int main(void)
 	{
 		struct timeval tv;
 		return gettimeofday(&tv);
