@@ -1267,6 +1267,8 @@ static void xcommands(Emacs_t *ep,int count)
 				hist_eof(sh.hist_ptr);
 				histlines = (int)sh.hist_ptr->histind;
 				hline = histlines;
+				if(histlines >= sh.hist_ptr->histsize)
+					hist_flush(sh.hist_ptr);
 			}
 			if(ed_fulledit(ep->ed)==-1)
 				beep();
