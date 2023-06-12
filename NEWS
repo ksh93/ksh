@@ -8,6 +8,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   editor to edit the command line, could cause the wrong command line to be
   edited if two shell sessions share a .sh_history file.
 
+- In the emacs line editor, ^X^E no longer echos the hist command it invokes.
+
 2023-06-10:
 
 - Ksh can now compile on most operating systems when using -std=c99 in CCFLAGS.
