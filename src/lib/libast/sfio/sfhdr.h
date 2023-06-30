@@ -103,21 +103,12 @@
 #if _sys_select
 #include	<sys/select.h>
 #endif
-#else
-#if _lib_poll_fd_1 || _lib_poll_fd_2
-#define _lib_poll	1
-#endif
 #endif /*_lib_select_*/
 
 #if _lib_poll
 #include	<poll.h>
-
-#if _lib_poll_fd_1
 #define SFPOLL(pfd,n,tm)	poll((pfd),(ulong)(n),(tm))
-#else
-#define SFPOLL(pfd,n,tm)	poll((ulong)(n),(pfd),(tm))
 #endif
-#endif /*_lib_poll*/
 
 #if _stream_peek
 #include	<stropts.h>
