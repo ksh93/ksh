@@ -202,8 +202,6 @@ unset x f
 # Tests for printf %T with relative date spec and 'exact' keyword
 # https://github.com/ksh93/ksh/issues/182
 
-export TZ=UTC
-
 # Check printf against a string
 function do_test # 1:LINENO 2:printf-STRING 3:match-string
 {	printf -v got "%($format)T" "$2"
@@ -211,7 +209,15 @@ function do_test # 1:LINENO 2:printf-STRING 3:match-string
 		"expected $(printf %q "$3"), got $(printf %q "$got")"
 }
 
+# The first test requires a time zone with one or more historical changes.
+format='%Y-%m-%d %H:%M:%S %Z'
+export TZ=Europe/Istanbul
+
+C='Historical changes' # https://github.com/ksh93/ksh/issues/669
+T '#236961303'				'1977-07-05 17:35:03 EEST'
+
 format='%Y-%m-%d'
+export TZ=UTC
 
 C='Calendar dates'
 T '2020-01-14'				'2020-01-14'
