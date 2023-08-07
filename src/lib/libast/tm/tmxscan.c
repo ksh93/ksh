@@ -133,13 +133,13 @@ gen(Tm_t* tm, Set_t* set)
 	if (set->yday >= 0)
 	{
 		z = 1;
-		tm = tmxtm(tm, t, tm->tm_zone);
+		tm = tmxtm(tm, t, tm->tm_zone, 0);
 		tm->tm_mday += set->yday - tm->tm_yday;
 	}
 	else if (set->wday >= 0)
 	{
 		z = 1;
-		tm = tmxtm(tm, t, tm->tm_zone);
+		tm = tmxtm(tm, t, tm->tm_zone, 0);
 		if ((n = set->wday - tm->tm_wday) < 0)
 			n += 7;
 		tm->tm_mday += n;
@@ -151,7 +151,7 @@ gen(Tm_t* tm, Set_t* set)
 		if (!z)
 		{
 			z = 1;
-			tm = tmxtm(tm, t, tm->tm_zone);
+			tm = tmxtm(tm, t, tm->tm_zone, 0);
 		}
 		tm->tm_nsec = set->nsec;
 	}
@@ -188,7 +188,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 	b = s;
  again:
 	CLEAR(set);
-	tm = tmxtm(&ts, t, NULL);
+	tm = tmxtm(&ts, t, NULL, 0);
 	pedantic = (flags & TM_PEDANTIC) != 0;
 	for (;;)
 	{
@@ -323,7 +323,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 				x = strtoul(s, &u, 0);
 				if (s == u)
 					goto next;
-				tm = tmxtm(tm, tmxsns(x, 0), tm->tm_zone);
+				tm = tmxtm(tm, tmxsns(x, 0), tm->tm_zone, 0);
 				s = u;
 				CLEAR(set);
 				continue;

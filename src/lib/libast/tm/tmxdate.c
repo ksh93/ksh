@@ -204,7 +204,7 @@ tmxdate(const char* s, char** e, Time_t now)
 	 * use now for defaults
 	 */
 
-	tm = tmxtm(&ts, now, NULL);
+	tm = tmxtm(&ts, now, NULL, 1);
 	tm_info.date = tm->tm_zone;
 	day = -1;
 	dir = 0;
@@ -631,7 +631,7 @@ tmxdate(const char* s, char** e, Time_t now)
 				if (flags & (MONTH|MDAY|WDAY))
 				{
 					fix = tmxtime(tm, zone);
-					tm = tmxtm(tm, fix, tm->tm_zone);
+					tm = tmxtm(tm, fix, tm->tm_zone, 0);
 					i = tm->tm_mon + 1;
 					j = tm->tm_mday;
 					k = tm->tm_wday;
@@ -649,7 +649,7 @@ tmxdate(const char* s, char** e, Time_t now)
 							tt = tmxtime(tm, zone);
 							if (tt < fix)
 								goto done;
-							tm = tmxtm(tm, tt, tm->tm_zone);
+							tm = tmxtm(tm, tt, tm->tm_zone, 0);
 							i = tm->tm_mon + 1;
 							j = tm->tm_mday;
 							k = tm->tm_wday;
@@ -670,7 +670,7 @@ tmxdate(const char* s, char** e, Time_t now)
 							{
 								tm->tm_mon = i - 1;
 								tm->tm_mday = j;
-								tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone);
+								tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 0);
 								i = tm->tm_mon + 1;
 								j = tm->tm_mday;
 								k = tm->tm_wday;
@@ -1450,7 +1450,7 @@ tmxdate(const char* s, char** e, Time_t now)
 								set |= HOUR;
 							goto clear_hour;
 						case TM_PARTS+4:
-							tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone);
+							tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 0);
 							tm->tm_hour += m * 7 * 24;
 							set |= DAY;
 							goto clear_hour;
@@ -1483,7 +1483,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						}
 						if (m >= 0 && (state & ORDINAL))
 							tm->tm_mday = 1;
-						tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone);
+						tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 0);
 						day = j -= TM_DAY;
 						if (!dir)
 							dir = m;
@@ -1753,7 +1753,7 @@ tmxdate(const char* s, char** e, Time_t now)
 			tm->tm_mday = 1;
 		else if (m < 0)
 			m++;
-		tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone);
+		tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 0);
 		j = day - tm->tm_wday;
 		if (j < 0)
 			j += 7;

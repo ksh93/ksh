@@ -41,7 +41,7 @@ tmtype(const char* s, char** e)
 	Tm_zone_t*	zp;
 	char*		t;
 
-	tmset(tm_info.zone);
+	tmset(tm_info.zone, time(NULL), 0);
 	zp = tm_info.local;
 	do
 	{

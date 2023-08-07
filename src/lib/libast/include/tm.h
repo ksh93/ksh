@@ -33,7 +33,7 @@
 
 #undef	daylight
 
-#define tmset(z)	tminit(z)
+#define tmset(x, y, z)	tminit(x, y, z)
 #define tmisleapyear(y)	(!((y)%4)&&(((y)%100)||!((((y)<1900)?((y)+1900):(y))%400)))
 
 #define TM_ADJUST	(1<<0)		/* local doesn't do leap secs	*/
@@ -156,7 +156,7 @@ extern Tm_t*		tmfix(Tm_t*);
 extern char*		tmfmt(char*, size_t, const char*, time_t*);
 extern char*		tmform(char*, const char*, time_t*);
 extern int		tmgoff(const char*, char**, int);
-extern void		tminit(Tm_zone_t*);
+extern void		tminit(Tm_zone_t*, time_t, const char);
 extern time_t		tmleap(time_t*);
 extern int		tmlex(const char*, char**, char**, int, char**, int);
 extern char**		tmlocale(void);

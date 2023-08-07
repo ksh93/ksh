@@ -121,7 +121,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 	char		fmt[32];
 
 	tmlocale();
-	tm = tmxtm(&ts, t, NULL);
+	tm = tmxtm(&ts, t, NULL, 0);
 	if (!format || !*format)
 		format = tm_info.deformat;
 	oformat = format;
@@ -444,7 +444,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 									{
 										flags |= n;
 										tm_info.flags |= n;
-										tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone);
+										tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone, 0);
 										if (!i)
 											tm_info.flags &= ~n;
 									}
@@ -453,7 +453,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 								{
 									flags &= ~n;
 									tm_info.flags &= ~n;
-									tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone);
+									tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone, 0);
 									if (!i)
 										tm_info.flags |= n;
 								}
@@ -590,7 +590,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 			if (arg)
 			{
 				if ((zp = tmzone(arg, &f, 0, 0)) && !*f && tm->tm_zone != zp)
-					tm = tmxtm(tm, tmxtime(tm, tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0)), zp);
+					tm = tmxtm(tm, tmxtime(tm, tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0)), zp, 0);
 				continue;
 			}
 			if ((ep - cp) >= 16)
@@ -601,7 +601,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 			{
 				if ((zp = tmzone(arg, &f, 0, 0)) && !*f && tm->tm_zone != zp)
 				{
-					tm = tmxtm(tm, tmxtime(tm, tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0)), zp);
+					tm = tmxtm(tm, tmxtime(tm, tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0)), zp, 0);
 					if (zp->west || zp->dst)
 						flags &= ~TM_UTC;
 				}
@@ -676,7 +676,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 				{
 					flags |= n;
 					tm_info.flags |= n;
-					tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone);
+					tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone, 0);
 					if (!i)
 						tm_info.flags &= ~n;
 				}
@@ -685,7 +685,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 			{
 				flags &= ~n;
 				tm_info.flags &= ~n;
-				tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone);
+				tm = tmxtm(tm, t, (flags & TM_UTC) ? &tm_data.zone[2] : tm->tm_zone, 0);
 				if (!i)
 					tm_info.flags |= n;
 			}

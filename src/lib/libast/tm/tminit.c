@@ -186,7 +186,7 @@ tmopt(void* a, const void* p, int n, const char* v)
  */
 
 static void
-tmlocal(void)
+tmlocal(time_t now)
 {
 	Tm_zone_t*		zp;
 	int			n;
@@ -197,7 +197,6 @@ tmlocal(void)
 	int			isdst;
 	char*			t;
 	struct tm*		tp;
-	time_t			now;
 	char			buf[16];
 
 	static Tm_zone_t	local;
@@ -238,7 +237,6 @@ tmlocal(void)
 	 */
 
 	tm_info.zone = tm_info.local = &local;
-	time(&now);
 	n = tzwest(&now, &isdst);
 
 	/*
@@ -415,7 +413,7 @@ tmlocal(void)
  */
 
 void
-tminit(Tm_zone_t* zp)
+tminit(Tm_zone_t* zp, time_t now, const char newzone)
 {
 	static uint32_t		serial = ~(uint32_t)0;
 
@@ -428,9 +426,9 @@ tminit(Tm_zone_t* zp)
 			tm_info.local = 0;
 		}
 	}
-	if (!tm_info.local)
-		tmlocal();
-	if (!zp)
+	if (!tm_info.local || newzone)
+		tmlocal(now);
+	if (!zp || newzone)
 		zp = tm_info.local;
 	tm_info.zone = zp;
 }
