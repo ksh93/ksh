@@ -494,7 +494,7 @@ to override the default.
 .PD
 .RE
 .TP
-.L "void tminit(Tm_zone_t* zone)"
+.L "void tminit(Tm_zone_t* zone, time_t now, const char newzone)"
 Implicitly called by the other
 .I tm
 library routines to initialize global data, including the
@@ -508,14 +508,18 @@ If
 .L "zone != 0"
 then it specifies a time zone other that the local time zone.
 .TP
-.L "void tmset(Tm_zone_t* zone);"
+.L "void tmset(Tm_zone_t* zone, time_t now, const char newzone);"
 .L tmset
 sets the reference timezone to
 .LR zone .
 .L tm_info.local
 points to the local timezone and
 .L tm_info.zone
-points to the current reference timezone.
+points to the reference timezone at a given time
+.L now
+if
+.L newzone
+is non-zero, or to the current reference timezone otherwise.
 .TP
 .L "time_t tmleap(time_t* clock)"
 Returns a
