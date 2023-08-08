@@ -213,12 +213,12 @@ function do_test # 1:LINENO 2:printf-STRING 3:match-string
 format='%Y-%m-%d %H:%M:%S %z'
 export TZ=Europe/Istanbul
 
-C='Historical changes: time' # https://github.com/ksh93/ksh/issues/669
+C='Historical changes (bad time)' # https://github.com/ksh93/ksh/issues/669
 T '#236961303'				'1977-07-05 17:35:03 +0300'
 
 format='%Y-%m-%d %H:%M:%S %Z'
 
-C='Historical changes: zone name'
+C='Historical changes (bad zone name)'
 T '#0'					'1970-01-01 02:00:00 EET'
 
 format='%Y-%m-%d'
