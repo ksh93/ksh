@@ -143,7 +143,7 @@ tzwest(time_t* clock, int* isdst)
 	 */
 
 	tp = tmlocaltime(clock);
-#ifdef __USE_MISC
+#if _mem_tm_zone_tm
 	if (tp->tm_zone && !tz_abbr)
 		tz_abbr = strdup(tp->tm_zone);
 #endif
