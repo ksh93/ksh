@@ -143,7 +143,7 @@ tzwest(time_t* clock, int* isdst)
 	 */
 
 	tp = tmlocaltime(clock);
-#ifdef tp->tm_zone
+#ifdef __USE_MISC
 	if (tp->tm_zone && !tz_abbr)
 		tz_abbr = strdup(tp->tm_zone);
 #endif
@@ -206,6 +206,9 @@ tmlocal(time_t now)
 	char			buf[16];
 
 	static Tm_zone_t	local;
+
+	local.standard = 0;
+	local.daylight = 0;
 
 #if _tzset_environ
 	{
