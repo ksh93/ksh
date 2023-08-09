@@ -143,8 +143,10 @@ tzwest(time_t* clock, int* isdst)
 	 */
 
 	tp = tmlocaltime(clock);
+#ifdef tp->tm_zone
 	if (tp->tm_zone && !tz_abbr)
 		tz_abbr = strdup(tp->tm_zone);
+#endif
 	if (n = tp->tm_yday - n)
 	{
 		if (n > 1)
