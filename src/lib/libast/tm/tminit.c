@@ -69,6 +69,8 @@ static const Namval_t		options[] =
 static Tm_info_t	_tm_info_ = { 0 };
 Tm_info_t*		_tm_infop_ = &_tm_info_;
 
+static char*		tz_abbr;
+
 #if _tzset_environ
 
 static char	TZ[256];
@@ -141,6 +143,8 @@ tzwest(time_t* clock, int* isdst)
 	 */
 
 	tp = tmlocaltime(clock);
+	if (tp->tm_zone && !tz_abbr)
+		tz_abbr = strdup(tp->tm_zone);
 	if (n = tp->tm_yday - n)
 	{
 		if (n > 1)
@@ -266,6 +270,13 @@ tmlocal(time_t now)
 	 * now get the time zone names
 	 */
 
+	if (tz_abbr)
+	{
+		if (!isdst)
+			local.standard = strdup(tz_abbr);
+		else
+			local.daylight = strdup(tz_abbr);
+	}
 #if _dat_tzname
 	if (tzname[0])
 	{
@@ -273,8 +284,10 @@ tmlocal(time_t now)
 		 * POSIX
 		 */
 
-		local.standard = strdup(tzname[0]);
-		local.daylight = strdup(tzname[1]);
+		if (!local.standard)
+			local.standard = strdup(tzname[0]);
+		if (!local.daylight)
+			local.daylight = strdup(tzname[1]);
 	}
 	else
 #endif
@@ -284,12 +297,16 @@ tmlocal(time_t now)
 		 * BSD
 		 */
 
-		local.standard = s;
-		if (s = strchr(s, ','))
-			*s++ = 0;
-		else
-			s = "";
-		local.daylight = s;
+		if (!local.standard)
+			local.standard = s;
+		if (!local.daylight)
+		{
+			if (s = strchr(s, ','))
+				*s++ = 0;
+			else
+				s = "";
+			local.daylight = s;
+		}
 	}
 	else
 	{
@@ -305,7 +322,8 @@ tmlocal(time_t now)
 			if (zp->west == n && zp->dst == m)
 			{
 				local.type = t;
-				local.standard = zp->standard;
+				if (!local.standard)
+					local.standard = zp->standard;
 				if (!(s = zp->daylight))
 				{
 					e = (s = buf) + sizeof(buf);
@@ -317,7 +335,8 @@ tmlocal(time_t now)
 					}
 					s = strdup(buf);
 				}
-				local.daylight = s;
+				if (!local.daylight)
+					local.daylight = s;
 				break;
 			}
 		}
@@ -329,12 +348,14 @@ tmlocal(time_t now)
 
 			e = (s = buf) + sizeof(buf);
 			s = tmpoff(s, e - s, tm_info.format[TM_UT], n, 0);
-			local.standard = strdup(buf);
+			if (!local.standard)
+				local.standard = strdup(buf);
 			if (s < e - 1)
 			{
 				*s++ = ' ';
 				tmpoff(s, e - s, tm_info.format[TM_UT], m, TM_DST);
-				local.daylight = strdup(buf);
+				if (!local.daylight)
+					local.daylight = strdup(buf);
 			}
 		}
 	}
@@ -417,6 +438,7 @@ tminit(Tm_zone_t* zp, time_t now, const char newzone)
 {
 	static uint32_t		serial = ~(uint32_t)0;
 
+	tz_abbr = 0;
 	if (serial != ast.env_serial)
 	{
 		serial = ast.env_serial;
