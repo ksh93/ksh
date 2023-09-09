@@ -115,7 +115,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2023-05-28 $
+@(#)$Id: '$command$' (ksh 93u+m) 2023-06-18 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -543,7 +543,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2023-03-29
+  version         package (ksh 93u+m) 2023-06-18
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -1028,9 +1028,9 @@ int main(void)
 		# inconsistent -dumpmachine filtered here
 
 		case $canon in
-		*-*-linux-gnu*)
+		*-*-linux-gnu* | *-*-linux-musl*)
 			;;
-		*-linux-gnu*)
+		*-linux-gnu* | *-linux-musl*)
 			# fix missing machine field, e.g. aarch64-linux-gnu => aarch64-unknown-linux-gnu
 			canon=${canon%%-*}-unknown-${canon#*-} ;;
 		esac

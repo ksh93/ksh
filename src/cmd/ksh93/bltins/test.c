@@ -600,7 +600,6 @@ int test_inode(const char *file1,const char *file2)
 
 /*
  * This version of access checks against the effective UID/GID
- * The static buffer statb is shared with test_mode.
  */
 int sh_access(const char *name, int mode)
 {
