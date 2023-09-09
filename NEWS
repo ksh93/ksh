@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2023-09-09:
+
+- Fixed incorrect rejection of the tab key while reading input using the `read`
+  built-in command. Bugs introduced on 2021-02-26 (emacs) and 2022-08-24 (vi).
+
 2023-06-13:
 
 - Fixed a serious regression in pathname expansion where quoted wildcard
