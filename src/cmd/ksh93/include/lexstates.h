@@ -129,7 +129,6 @@ extern const char *sh_lexrstates[ST_NONE];
 extern const char e_lexversion[];
 extern const char e_lexspace[];
 extern const char e_lexslash[];
-extern const char e_lexlabunknown[];
 extern const char e_lexsyntax1[];
 extern const char e_lexsyntax2[];
 extern const char e_lexsyntax3[];

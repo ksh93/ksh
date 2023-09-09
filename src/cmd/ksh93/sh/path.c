@@ -408,18 +408,14 @@ static void pathinit(void)
 	const char *val;
 	Pathcomp_t *pp;
 	if(val=sh_scoped((PATHNOD))->nvalue.cp)
-	{
 		sh.pathlist = pp = path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_PATH);
-	}
 	else
 	{
 		pp = defpathinit();
 		sh.pathlist = path_dup(pp);
 	}
 	if(val=sh_scoped((FPATHNOD))->nvalue.cp)
-	{
 		pp = path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_FPATH);
-	}
 }
 
 /*
@@ -437,9 +433,7 @@ Pathcomp_t *path_get(const char *name)
 		pp = (Pathcomp_t*)sh.pathlist;
 	}
 	if(!pp && (!(sh_scoped(PATHNOD)->nvalue.cp)) || sh_isstate(SH_DEFPATH))
-	{
 		pp = defpathinit();
-	}
 	return pp;
 }
 

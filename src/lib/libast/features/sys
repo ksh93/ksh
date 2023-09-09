@@ -228,7 +228,4 @@ extern	wctomb		int		(char*, wchar_t)
 extern	write		ssize_t		(int, const void*, size_t)
 
 print	#undef	extern
-
-# <stdarg.h> is handled by proto so this must be after the last test
-
 print	#include <stdarg.h>
