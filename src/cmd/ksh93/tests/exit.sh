@@ -226,4 +226,11 @@ exp=123
 unset exp got sig
 
 # ======
+# trap status tests
+
+exp=1
+(trap 'false; exit' EXIT; true)
+let "(got=$?)==exp" || err_exit "passing down exit status from EXIT trap failed (got $got, expected $exp)"
+
+# ======
 exit $((Errors<125?Errors:125))

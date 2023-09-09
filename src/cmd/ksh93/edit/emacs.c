@@ -372,8 +372,11 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 				}
 				ep->ed->e_tabcount = 0;
 			}
-			beep();
-			continue;
+			if(sh.nextprompt)
+			{
+				beep();
+				continue;
+			}
 		do_default_processing:
 		default:
 

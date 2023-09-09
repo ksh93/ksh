@@ -736,7 +736,6 @@ const char e_lexsyntax4[]	= "syntax error at line %d: invalid reference list";
 const char e_lexsyntax5[]	= "syntax error at line %d: `<<%s' here-document not contained within command substitution";
 const char e_lexwarnvar[]	= "line %d: in '((%s))', using '$' as in '$%.*s' is slower and can introduce rounding errors";
 const char e_lexarithwarn[]	= "line %d: %s is slower than ((%.*s%s";
-const char e_lexlabunknown[]	= "line %d: %s unknown label";
 const char e_lexobsolete1[]	= "line %d: `...` obsolete, use $(...)";
 const char e_lexobsolete2[]	= "line %d: -a obsolete, use -e";
 const char e_lexobsolete3[]	= "line %d: '=' obsolete, use '=='";

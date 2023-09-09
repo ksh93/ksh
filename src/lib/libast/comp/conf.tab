@@ -390,6 +390,9 @@ PBS_MESSAGE			POSIX	SC 2 FUW
 PBS_TRACK			POSIX	SC 2 FUW
 PHYS_PAGES			SUN	SC 1 0
 PID_MAX				SVID	SC 1 LMU	30000	cc{
+	#include <fcntl.h>
+	#include <stdio.h>
+	#include <stdlib.h>
 	int main(void)
 	{
 		long	v;
