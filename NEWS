@@ -10,6 +10,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a minor bug that could cause '/opt/ast/bin/getconf PID_MAX' to
   return the wrong value when ksh is built with strict C99.
 
+- Fixed a bug in printf %T: when using dates and times in the past, time
+  zones for the present were incorrectly used, ignoring historical changes.
+
 2023-06-13:
 
 - Fixed a serious regression in pathname expansion where quoted wildcard

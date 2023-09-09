@@ -12,6 +12,7 @@
 #                                                                      #
 #                      Phi <phi.debian@gmail.com>                      #
 #                  Martijn Dekker <martijn@inlv.org>                   #
+#               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
 #                                                                      #
 ########################################################################
 

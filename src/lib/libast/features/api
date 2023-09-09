@@ -1,6 +1,6 @@
 iff AST_API
 
-ver ast 20220801
+ver ast 20230909
 
 api ast 20120528 regexec regnexec regrexec regsubexec
 
