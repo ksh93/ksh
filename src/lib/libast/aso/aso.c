@@ -827,9 +827,9 @@ asocasptr(void volatile* p, void* o, void* n)
 {
 	ssize_t		k;
 
-#if defined(_aso_cas64)
+#if defined(_aso_casptr)
 	if (!state.lockf)
-		return _aso_cas64((void**)p, o, n);
+		return _aso_casptr((void**)p, o, n);
 #endif
 	k = lock(state.data, 0, p);
 	if (*(void* volatile*)p == o)
