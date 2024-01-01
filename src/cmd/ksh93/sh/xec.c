@@ -3018,8 +3018,11 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	else
 		sh.infunction = 1;
 	prevscope->save_tree = sh.var_tree;
-	n = dtvnext(prevscope->save_tree)!= (sh.namespace?sh.var_base:0);
-	sh_scope(envlist,1);
+	n = dtvnext(prevscope->save_tree) != (sh.namespace?sh.var_base:0);
+	if(posix_fun)
+		sh_scope(envlist,2);
+	else
+		sh_scope(envlist,1);
 	if(n)
 	{
 		/* eliminate parent scope */
@@ -3093,7 +3096,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		sh.fn_depth++;
 		update_sh_level();
 		if(fun)
-			r= (*fun)(arg);
+			r = (*fun)(arg);
 		else
 		{
 			char		**arg = sh.st.real_fun->argv;

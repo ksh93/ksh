@@ -2304,7 +2304,14 @@ void sh_scope(struct argnod *envlist, int fun)
 	{
 		dtview(newscope,(Dt_t*)sh.var_tree);
 		sh.var_tree = newscope;
-		nv_setlist(envlist,NV_EXPORT|NV_NOSCOPE|NV_IDENT|NV_ASSIGN,0);
+		if(fun==2)
+			/* TODO: See if this really is the only way to fix the functions.sh
+			 * test failure. This part of the code is surprisingly fragile,
+			 * so if possible I'd rather not change anything here at all.
+			 */
+			nv_setlist(envlist,NV_NOSCOPE|NV_IDENT|NV_ASSIGN,0);
+		else
+			nv_setlist(envlist,NV_EXPORT|NV_NOSCOPE|NV_IDENT|NV_ASSIGN,0);
 		if(!fun)
 			return;
 		sh.var_tree = dtview(newscope,0);

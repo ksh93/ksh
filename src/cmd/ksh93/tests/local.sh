@@ -223,5 +223,75 @@ got=$("$SHELL" "$tst")
 [[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX funtions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# Test 7
+cat > "$tst" << 'EOF'
+nxt() {
+	echo $bar
+}
+foo() {
+	typeset bar=1
+	nxt
+	typeset bar=2
+	infun() {
+		echo $bar
+	}
+	infun
+	typeset bar=3
+}
+foo
+echo $bar
+EOF
+exp=$'1\n2\n3'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX funtions with nested POSIX functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 8
+cat > "$tst" << 'EOF'
+nxt() {
+	echo $bar
+}
+foo() {
+	local bar=1
+	nxt
+	local bar=2
+	infun() {
+		echo $bar
+	}
+	infun
+	local bar=BAD
+}
+foo
+echo ${bar}3
+EOF
+exp=$'1\n2\n3'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Cannot create local variables with local builtin in POSIX funtions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 9
+cat > "$tst" << 'EOF'
+nxt() {
+	echo $bar
+}
+foo() {
+	bar=1
+	nxt
+	bar=2
+	function infun {
+		echo $bar
+	}
+	infun
+	bar=3
+}
+foo
+echo $bar
+EOF
+exp=$'1\n2\n3'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Cannot create global variables in POSIX funtions without direct typeset invocation" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+
 # ======
 exit $((Errors<125?Errors:125))
