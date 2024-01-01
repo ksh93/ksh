@@ -1212,7 +1212,7 @@ function test_usage
 			actual=$({ PATH=${bltin%/*}; "${bltin##*/}" --this-option-does-not-exist; } 2>&1) ;;
 		*/*)	err_exit "strange path name in 'builtin' output: $(printf %q "$bltin")"
 			continue ;;
-		autoload | compound | float | functions | integer | nameref)
+		autoload | compound | float | functions | integer | nameref | local | declare)
 			bltin=typeset ;&
 		*)	expect="Usage: $bltin "
 			actual=$({ "${bltin}" --this-option-does-not-exist; } 2>&1) ;;

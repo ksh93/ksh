@@ -1515,7 +1515,7 @@ int sh_reinit(char *argv[])
 	int	nofree;
 	char	*savfpath = NULL;
 	sh_onstate(SH_INIT);
-	sh.subshell = sh.realsubshell = sh.comsub = sh.curenv = sh.jobenv = sh.inuse_bits = sh.fn_depth = sh.dot_depth = 0;
+	sh.subshell = sh.realsubshell = sh.comsub = sh.curenv = sh.jobenv = sh.inuse_bits = sh.fn_depth = sh.dot_depth = sh.infunction = 0;
 	sh.envlist = NULL;
 	sh.last_root = sh.var_tree;
 	if(sh.heredocs)

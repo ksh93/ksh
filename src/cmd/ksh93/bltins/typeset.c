@@ -21,6 +21,8 @@
  * export [-p] [arg...]
  * readonly [-p] [arg...]
  * typeset [options] [arg...]
+ * declare [options] [arg...]
+ * local [options] [arg...]
  * autoload [options] [arg...]
  * compound [options] [arg...]
  * float [options] [arg...]
@@ -208,6 +210,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
     /* for the dictionary generator */
     int    b_autoload(int argc,char *argv[],Shbltin_t *context){}
     int    b_compound(int argc,char *argv[],Shbltin_t *context){}
+    int    b_declare(int argc,char *argv[],Shbltin_t *context){}
     int    b_float(int argc,char *argv[],Shbltin_t *context){}
     int    b_functions(int argc,char *argv[],Shbltin_t *context){}
     int    b_integer(int argc,char *argv[],Shbltin_t *context){}
@@ -221,17 +224,18 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
-	int		isfloat=0, isadjust=0, shortint=0, sflag=0;
+	int		isfloat=0, isadjust=0, shortint=0, sflag=0, local;
 
 	memset(&tdata,0,sizeof(tdata));
 	troot = sh.var_tree;
+	local = argv[0][0] == 'l';
 	if(ntp)					/* custom declaration command added using enum */
 	{
 		tdata.tp = ntp->tp;
 		opt_info.disc = (Optdisc_t*)ntp->optinfof;
 		optstring = ntp->optstring;
 	}
-	else if(argv[0][0] != 't')		/* not <t>ypeset */
+	else if(argv[0][0] != 't' && argv[0][0] != 'd' && !local) /* not <t>ypeset, <d>eclare or <l>ocal */
 	{
 		char **new_argv = (char **)stkalloc(sh.stk, (argc + 2) * sizeof(char*));
 		error_info.id = new_argv[0] = SYSTYPESET->nvname;
@@ -444,6 +448,12 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 endargs:
 	argv += opt_info.index;
 	opt_info.disc = 0;
+	/* 'local' builtin */
+	if(local && !sh.infunction)
+	{
+		errormsg(SH_DICT,ERROR_exit(1), "can only be used in a function");
+		UNREACHABLE();
+	}
 	/* handle argument of + and - specially */
 	if(*argv && argv[0][1]==0 && (*argv[0]=='+' || *argv[0]=='-'))
 		tdata.aflag = *argv[0];
@@ -647,17 +657,21 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	char *last = 0;
 	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
-	Dt_t *save_vartree;
+	Dt_t *save_vartree, *save_varlocal = 0;
 	Namval_t *save_namespace;
-	if(flag&NV_GLOBAL)
+	if((flag&NV_GLOBAL) || (sh.infunction==1 && sh.st.var_local == sh.var_base))
 	{
 		save_vartree = sh.var_tree;
-		troot = sh.var_tree = sh.var_base;
+		save_varlocal = sh.st.var_local;
+		troot = sh.var_tree = sh.st.var_local = sh.var_base;
+	}
 #if SHOPT_NAMESPACE
+	if(flag&NV_GLOBAL)
+	{
 		save_namespace = sh.namespace;
 		sh.namespace = NULL;
-#endif
 	}
+#endif
 	if(!sh.prefix)
 	{
 		if(!tp->pflag)
@@ -1031,13 +1045,15 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 		if(r==0)
 			r = 1;  /* ensure the exit status is at least 1 */
 	}
-	if(flag&NV_GLOBAL)
+	if((flag&NV_GLOBAL) || (sh.infunction==1 && save_varlocal))
 	{
 		sh.var_tree = save_vartree;
+		sh.st.var_local = save_varlocal;
+	}
 #if SHOPT_NAMESPACE
+	if(flag&NV_GLOBAL)
 		sh.namespace = save_namespace;
 #endif
-	}
 	return r;
 }
 

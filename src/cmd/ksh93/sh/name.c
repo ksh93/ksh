@@ -233,19 +233,23 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	struct Namref	nr;
 	int		maketype = flags&NV_TYPE;  /* make a 'typeset -T' type definition command */
 	struct sh_type	shtp;
-	Dt_t		*vartree, *save_vartree;
+	Dt_t		*vartree, *save_vartree, *save_varlocal = 0;
 #if SHOPT_NAMESPACE
 	Namval_t	*save_namespace;
 #endif
-	if(flags&NV_GLOBAL)
+	if((flags&NV_GLOBAL) || (sh.infunction==1 && sh.st.var_local == sh.var_base))
 	{
 		save_vartree = sh.var_tree;
-		sh.var_tree = sh.var_base;
+		save_varlocal = sh.st.var_local;
+		sh.var_tree = sh.st.var_local = sh.var_base;
+	}
 #if SHOPT_NAMESPACE
+	if(flags&NV_GLOBAL)
+	{
 		save_namespace = sh.namespace;
 		sh.namespace = NULL;
-#endif
 	}
+#endif
 	if(maketype)
 	{
 		shtp.previous = sh.mktype;
@@ -382,6 +386,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					Dt_t	*last_root = sh.last_root;
 					char **argv = sh_argbuild(&argc,&tp->com,0);
 					sh.last_root = last_root;
+					/* TODO: Implement a proper check for POSIX functions here */
 					if(sh.mktype && sh.dot_depth==0 && np==((struct sh_type*)sh.mktype)->nodes[0])
 					{
 						sh.mktype = 0;
@@ -657,13 +662,15 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 		}
 		/* continue loop */
 	}
-	if(flags&NV_GLOBAL)
+	if((flags&NV_GLOBAL) || (sh.infunction==1 && save_varlocal))
 	{
 		sh.var_tree = save_vartree;
+		sh.st.var_local = save_varlocal;
+	}
 #if SHOPT_NAMESPACE
+	if(flags&NV_GLOBAL)
 		sh.namespace = save_namespace;
 #endif
-	}
 }
 
 /*
@@ -2283,7 +2290,10 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,int mask, int fl
  */
 void sh_scope(struct argnod *envlist, int fun)
 {
-	Dt_t		*newscope, *newroot=sh.var_base;
+	/* TODO: This is a very limited approach for dynamic scoping.
+	 * 	 Implement a more flexible approach that allows for static scoping as well.
+	 */
+	Dt_t		*newscope, *newroot = sh.st.var_local ? sh.st.var_local : sh.var_base;
 	struct Ufunction	*rp;
 #if SHOPT_NAMESPACE
 	if(sh.namespace)

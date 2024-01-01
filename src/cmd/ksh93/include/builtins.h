@@ -46,16 +46,18 @@
 						/* functions	|		*/
 						/* integer	|		*/
 #define SYSNAMEREF	(sh.bltin_cmds+15)	/* nameref      |		*/
-#define SYSTYPESET_END	(sh.bltin_cmds+15)	/*	       /		*/
+#define SYSLOCAL	(sh.bltin_cmds+16)	/* local	|		*/
+#define SYSDECLARE	(sh.bltin_cmds+17)	/* declare	|		*/
+#define SYSTYPESET_END	(sh.bltin_cmds+17)	/*	       /		*/
 
-#define SYSTEST		(sh.bltin_cmds+16)	/* test */
-#define SYSBRACKET	(sh.bltin_cmds+17)	/* [ */
-#define SYSLET		(sh.bltin_cmds+18)	/* let */
-#define SYSEXPORT	(sh.bltin_cmds+19)	/* export */
-#define SYSDOT		(sh.bltin_cmds+20)	/* . */
-#define SYSSOURCE	(sh.bltin_cmds+21)	/* source */
-#define SYSRETURN	(sh.bltin_cmds+22)	/* return */
-#define SYSENUM		(sh.bltin_cmds+23)	/* enum */
+#define SYSTEST		(sh.bltin_cmds+18)	/* test */
+#define SYSBRACKET	(sh.bltin_cmds+19)	/* [ */
+#define SYSLET		(sh.bltin_cmds+20)	/* let */
+#define SYSEXPORT	(sh.bltin_cmds+21)	/* export */
+#define SYSDOT		(sh.bltin_cmds+22)	/* . */
+#define SYSSOURCE	(sh.bltin_cmds+23)	/* source */
+#define SYSRETURN	(sh.bltin_cmds+24)	/* return */
+#define SYSENUM		(sh.bltin_cmds+25)	/* enum */
 
 /* entry point for shell special builtins */
 

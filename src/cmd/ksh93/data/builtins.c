@@ -70,6 +70,8 @@ const struct shtable3 shtab_builtins[] =
 	"functions",	NV_BLTIN|BLT_ENV,		bltin(typeset),
 	"integer",	NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(typeset),
 	"nameref",	NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(typeset),
+	"local",	NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(typeset),
+	"declare",	NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(typeset),
 	"test",		NV_BLTIN|BLT_ENV,		bltin(test),
 	"[",		NV_BLTIN|BLT_ENV,		bltin(test),
 	"let",		NV_BLTIN|BLT_ENV,		bltin(let),
@@ -729,7 +731,7 @@ const char sh_optexport[] =
         "[+>0?An error occurred.]"
 "}"
 
-"[+SEE ALSO?\bsh\b(1), \btypeset\b(1)]"
+"[+SEE ALSO?\bsh\b(1), \btypeset\b(1), \blocal\b(1)]"
 ;
 
 const char sh_optgetopts[] =
@@ -1544,7 +1546,7 @@ const char sh_optreadonly[] =
         "[+>0?An error occurred.]"
 "}"
 
-"[+SEE ALSO?\bsh\b(1), \btypeset\b(1)]"
+"[+SEE ALSO?\bsh\b(1), \btypeset\b(1), \blocal\b(1)]"
 ;
 
 const char sh_optredirect[] =
@@ -1692,6 +1694,7 @@ const char sh_optksh[] =
 
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"
 ;
+
 const char sh_optset[] =
 "+[-1c?\n@(#)$Id: set (ksh 93u+m) 2023-05-18 $\n]"
 "[--catalog?" SH_DICT "]"
@@ -1728,10 +1731,8 @@ const char sh_optset[] =
         "[+>0?An error occurred.]"
 "}"
 
-"[+SEE ALSO?\btypeset\b(1), \bshift\b(1)]"
+"[+SEE ALSO?\btypeset\b(1), \blocal\b(1), \bshift\b(1)]"
 ;
-
-
 
 const char sh_optshift[] =
 "[-1c?\n@(#)$Id: shift (AT&T Research) 1999-07-07 $\n]"
@@ -1857,7 +1858,12 @@ const char sh_opttypeset[] =
 "[+?When \btypeset\b is called inside a function defined with the "
 	"\bfunction\b reserved word, and \aname\a does not contain a "
 	"\b.\b, then a local variable statically scoped to that function "
-	"will be created.]"
+	"will be created. If \btypeset\b is used in a POSIX function, a "
+	"variable is created in the global scope.]"
+"[+?\btypeset\b can also be invoked as \bdeclare\b, or (in functions "
+	"only) as \blocal\b. A variable created or modified by either \bdeclare\b "
+	"or \blocal\b is given a dynamic scope limited to the function the "
+	"variable was created in.]"
 "[+?Not all option combinations are possible. For example, the numeric "
 	"options \b-i\b, \b-E\b, and \b-F\b cannot be specified with "
 	"the justification options \b-L\b, \b-R\b, and \b-Z\b.]"
@@ -2076,7 +2082,7 @@ const char sh_optunset[] =
 	"or an error occurred.]"
 "}"
 
-"[+SEE ALSO?\btypeset\b(1)]"
+"[+SEE ALSO?\btypeset\b(1), \blocal\b(1)]"
 ;
 
 const char sh_optunalias[] =

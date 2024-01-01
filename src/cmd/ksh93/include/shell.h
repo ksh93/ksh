@@ -198,6 +198,7 @@ struct sh_scoped
 	int		lineno;
 	Dt_t		*save_tree;	/* var_tree for calling function */
 	struct sh_scoped *self;		/* pointer to copy of this scope */
+	Dt_t		*var_local;	/* local level variables used by 'local' and 'declare' */
 	struct slnod	*staklist;	/* link list of function stacks */
 	int		states;		/* shell state bits used by sh_isstate(), etc. */
 	int		breakcnt;	/* number of levels to 'break'/'continue' (negative if 'continue') */
@@ -294,7 +295,6 @@ struct Shell_s
 	unsigned int	jobenv;		/* subshell number for jobs */
 	int		infd;		/* input file descriptor */
 	short		nextprompt;	/* next prompt is PS<nextprompt> */
-	Namval_t	*posix_fun;	/* points to last name() function */
 	char		*outbuff;	/* pointer to output buffer */
 	char		*errbuff;	/* pointer to stderr buffer */
 	char		*prompt;	/* pointer to prompt string */
@@ -317,6 +317,7 @@ struct Shell_s
 	char		funload;
 	char		used_pos;	/* used positional parameter */
 	char		universe;
+	char		infunction;	/* 0 outside of functions, 1 in ksh functions run from '.' and POSIX functions, 2 in regular ksh functions */
 	char		winch;		/* set upon window size change or 'set -b' notification */
 	short		arithrecursion;	/* current arithmetic recursion level */
 	char		indebug; 	/* set when in debug trap */

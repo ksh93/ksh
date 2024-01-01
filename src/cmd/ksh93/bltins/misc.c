@@ -220,7 +220,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	int jmpval;
 	struct sh_scoped savst, *prevscope = sh.st.self;
 	char *filename=0, *buffer=0, *tofree;
-	int	fd;
+	int	fd, infunction=-1;
 	struct dolnod   *saveargfor;
 	volatile struct dolnod   *argsave=0;
 	struct checkpt buff;
@@ -247,56 +247,57 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,script);
 		UNREACHABLE();
 	}
-	if(!(np=sh.posix_fun))
+	/* check for KornShell style function first */
+	np = nv_search(script,sh.fun_tree,0);
+	if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && sh.bltindata.bnode==SYSDOT))
 	{
-		/* check for KornShell style function first */
-		np = nv_search(script,sh.fun_tree,0);
-		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && sh.bltindata.bnode==SYSDOT))
+		if(!np->nvalue.ip)
 		{
-			if(!np->nvalue.ip)
+			path_search(script,NULL,0);
+			if(np->nvalue.ip)
 			{
-				path_search(script,NULL,0);
-				if(np->nvalue.ip)
-				{
-					if(nv_isattr(np,NV_FPOSIX))
-						np = 0;
-				}
-				else
-				{
-					errormsg(SH_DICT,ERROR_exit(1),e_found,script);
-					UNREACHABLE();
-				}
+				if(nv_isattr(np,NV_FPOSIX))
+					np = 0;
 			}
-		}
-		else
-			np = 0;
-		if(!np)
-		{
-			if((fd=path_open(script,path_get(script))) < 0)
+			else
 			{
-				errormsg(SH_DICT,ERROR_system(1),e_open,script);
+				errormsg(SH_DICT,ERROR_exit(1),e_found,script);
 				UNREACHABLE();
 			}
-			filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 		}
 	}
+	else
+		np = 0;
+	if(!np)
+	{
+		if((fd=path_open(script,path_get(script))) < 0)
+		{
+			errormsg(SH_DICT,ERROR_system(1),e_open,script);
+			UNREACHABLE();
+		}
+		filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
+	}
 	*prevscope = sh.st;
+	sh.st.prevst = prevscope;
+	sh.st.self = &savst;
+	sh.topscope = (Shscope_t*)sh.st.self;
+	prevscope->save_tree = sh.var_tree;
+	if(np)
+	{
+		infunction = sh.infunction;
+		sh.infunction = 1;
+	}
 	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
-	sh.st.save_tree = sh.var_tree;
+	sh.st.save_tree = sh.st.var_local = sh.var_tree;
 	if(filename)
 	{
 		sh.st.filename = filename;
 		sh.st.lineno = 1;
 	}
-	sh.st.prevst = prevscope;
-	sh.st.self = &savst;
-	sh.topscope = (Shscope_t*)sh.st.self;
-	prevscope->save_tree = sh.var_tree;
 	tofree = sh.st.filename;
 	if(np)
 		sh.st.filename = np->nvalue.rp->fname;
 	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
-	sh.posix_fun = 0;
 	if(np || argv[1])
 		argsave = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(&buff,SH_JMPDOT);
@@ -331,12 +332,14 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		prevscope->dolc = sh.st.dolc;
 		prevscope->dolv = sh.st.dolv;
 	}
-	if (sh.st.self != &savst)
+	if(sh.st.self != &savst)
 		*sh.st.self = sh.st;
-	/* only restore the top Shscope_t portion for POSIX functions */
+	if(infunction != -1)
+		sh.infunction = infunction;
+	/* only restore the top Shscope_t portion */
 	memcpy(&sh.st, prevscope, sizeof(Shscope_t));
 	sh.topscope = (Shscope_t*)prevscope;
-	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
+	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 	if(jmpval && jmpval!=SH_JMPFUN)
 		siglongjmp(*sh.jmplist,jmpval);
 	return sh.exitval;
