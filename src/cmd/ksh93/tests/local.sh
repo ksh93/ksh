@@ -85,6 +85,8 @@ declare foo=bar
 [[ $foo == bar ]] || err_exit "'declare' doesn't work outside of functions"
 
 # Test 1: make dynamic $bar static with typeset(1) in ksh function
+# TODO: This doesn't work, likely because the static scope is effectively lost
+#       after a dynamic scope is made. That will need to be fixed.
 tst=$tmp/tst.sh
 cat > "$tst" << 'EOF'
 function nxt {
@@ -99,11 +101,12 @@ function foo {
 	}
 	typeset bar=BAD
 	infun
+	nxt
 }
 foo
 echo $bar
 EOF
-exp=$'1\n2\n'
+exp=$'1\n2\n2'
 got=$("$SHELL" "$tst")
 [[ $exp == "$got" ]] || err_exit "Cannot switch from dynamic scope to static scope in ksh functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -139,12 +142,12 @@ nxt() {
 foo() {
 	local bar=1
 	nxt
-	typeset bar=2
+	typeset bar=3
+	declare bar=2
 	function infun {
 		echo $bar
 	}
 	infun
-	typeset bar=3
 }
 foo
 echo $bar
@@ -325,14 +328,18 @@ function nxt {
 function foo {
 	local bar=1
 	nxt
-	local -g bar=2
+	local -g bar=3
+	local bar=2
 	function infun {
+		# The dynamic scope still applies, so the $bar value
+		# from 'function foo' is inherited and used instead
+		# of the global value.
 		echo $bar
 	}
 	infun
-	typeset -g bar=3
 }
 foo
+# This will be '3' because of the earlier 'local -g'
 echo $bar
 EOF
 exp=$'1\n2\n3'
