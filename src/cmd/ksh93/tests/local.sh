@@ -347,5 +347,101 @@ got=$("$SHELL" "$tst")
 [[ $exp == "$got" ]] || err_exit "Cannot switch from dynamic scope to global scope in KornShell functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# Test 12: Variables shouldn't leak out of nested POSIX functions
+tst=$tmp/tst.sh
+cat > "$tst" << 'EOF'
+foo() {
+	local foo=foo
+	bar() {
+		local foo=bar
+		baz() {
+			local foo=baz
+			echo $foo
+		}
+		baz
+		echo $foo
+	}
+	bar
+	echo $foo
+}
+foo
+EOF
+exp=$'baz\nbar\nfoo'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Local variables from nested POSIX functions leak out into the parent functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 13: Variables shouldn't leak out of nested KornShell functions
+tst=$tmp/tst.sh
+cat > "$tst" << 'EOF'
+function foo {
+	local foo=foo
+	function bar {
+		local foo=bar
+		function baz {
+			local foo=baz
+			echo $foo
+		}
+		baz
+		echo $foo
+	}
+	bar
+	echo $foo
+}
+foo
+EOF
+exp=$'baz\nbar\nfoo'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Local variables from nested KornShell functions leak out into the parent functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 14: Variables shouldn't leak out into other POSIX functions
+tst=$tmp/tst.sh
+cat > "$tst" << 'EOF'
+baz() {
+	local foo=baz
+	echo $foo
+}
+bar() {
+	local foo=bar
+	baz
+	echo $foo
+}
+foo() {
+	local foo=foo
+	bar
+	echo $foo
+}
+foo
+EOF
+exp=$'baz\nbar\nfoo'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Local variables from POSIX functions leak out into other functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 15: Variables shouldn't leak out into other KornShell functions
+tst=$tmp/tst.sh
+cat > "$tst" << 'EOF'
+function baz {
+	local foo=baz
+	echo $foo
+}
+function bar {
+	local foo=bar
+	baz
+	echo $foo
+}
+function foo {
+	local foo=foo
+	bar
+	echo $foo
+}
+foo
+EOF
+exp=$'baz\nbar\nfoo'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Local variables from KornShell functions leak out into other functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ======
 exit $((Errors<125?Errors:125))
