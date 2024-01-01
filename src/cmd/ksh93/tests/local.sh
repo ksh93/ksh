@@ -174,7 +174,7 @@ echo $bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create local version of \$bar in POSIX funtions" \
+[[ $exp == "$got" ]] || err_exit "Cannot create local version of \$bar in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 5: ensure local really works in POSIX functions
@@ -197,7 +197,7 @@ echo ${bar}3
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create local variables in POSIX funtions" \
+[[ $exp == "$got" ]] || err_exit "Cannot create local variables in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 6: ensure typeset doesn't default to making static variables in POSIX functions
@@ -220,7 +220,7 @@ echo $bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX funtions" \
+[[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 7
@@ -243,7 +243,7 @@ echo $bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX funtions with nested POSIX functions" \
+[[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX functions with nested POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 8
@@ -266,7 +266,7 @@ echo ${bar}3
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create local variables with local builtin in POSIX funtions" \
+[[ $exp == "$got" ]] || err_exit "Cannot create local variables with local builtin in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 9
@@ -289,7 +289,7 @@ echo $bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create global variables in POSIX funtions without direct typeset invocation" \
+[[ $exp == "$got" ]] || err_exit "Cannot create global variables in POSIX functions without direct typeset invocation" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 10: Make static variable global in KornShell function

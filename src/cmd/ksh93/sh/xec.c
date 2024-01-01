@@ -1022,13 +1022,6 @@ int sh_exec(const Shnode_t *t, int flags)
 						 * to the function in which they are called. This should be
 						 * skipped when not in a function.
 						 */
-						if(np == SYSLOCAL || (sh.infunction && np == SYSDECLARE))
-							sh.st.var_local = sh.var_tree;
-						else
-						{
-							/* The other typeset builtins have a static scope */
-							sh.st.var_local = sh.var_base;
-						}
 						if(np==SYSCOMPOUND || checkopt(com,'C'))
 							flgs |= NV_COMVAR;
 						if(checkopt(com,'S'))
@@ -1037,6 +1030,8 @@ int sh_exec(const Shnode_t *t, int flags)
 							flgs |= NV_MOVE;
 						if(checkopt(com,'g'))
 							flgs |= NV_GLOBAL;
+						if(checkopt(com,'D'))
+							flgs |= NV_DYNAMIC;
 						if(np==SYSNAMEREF || checkopt(com,'n'))
 							flgs |= NV_NOREF;
 						else if(argn>=3 && checkopt(com,'T'))
@@ -1056,6 +1051,14 @@ int sh_exec(const Shnode_t *t, int flags)
 							sh.prefix = NV_CLASS;
 							flgs |= NV_TYPE;
 						}
+						if((np==SYSLOCAL || np==SYSDECLARE) && !(flgs&NV_GLOBAL))
+							flgs |= NV_DYNAMIC;
+						else if(sh.infunction==1 && !(flgs&NV_DYNAMIC))
+							flgs |= NV_GLOBAL;
+						if(flgs&NV_DYNAMIC)
+							sh.st.var_local = sh.var_tree;
+						else
+							sh.st.var_local = sh.var_base;
 						if(sh.fn_depth && !sh.prefix)
 							flgs |= NV_NOSCOPE;
 					}

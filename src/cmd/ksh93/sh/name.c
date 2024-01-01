@@ -237,12 +237,16 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 #if SHOPT_NAMESPACE
 	Namval_t	*save_namespace;
 #endif
-	if((flags&NV_GLOBAL) || (sh.infunction==1 && sh.st.var_local == sh.var_base))
+	if(flags&NV_GLOBAL)
 	{
 		save_vartree = sh.var_tree;
 		save_varlocal = sh.st.var_local;
 		sh.var_tree = sh.st.var_local = sh.var_base;
 	}
+	/*else if(flags&NV_DYNAMIC)
+		sh.st.var_local = sh.var_tree;
+	else
+		sh.st.var_local = sh.var_base;*/
 #if SHOPT_NAMESPACE
 	if(flags&NV_GLOBAL)
 	{
@@ -662,11 +666,16 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 		}
 		/* continue loop */
 	}
-	if((flags&NV_GLOBAL) || (sh.infunction==1 && save_varlocal))
+	if(flags&NV_GLOBAL)
 	{
 		sh.var_tree = save_vartree;
 		sh.st.var_local = save_varlocal;
 	}
+	/*else if(flags&NV_DYNAMIC)
+	{
+		sh.var_tree = save_vartree;
+		sh.st.var_local = save_varlocal;
+	}*/
 #if SHOPT_NAMESPACE
 	if(flags&NV_GLOBAL)
 		sh.namespace = save_namespace;
@@ -2293,12 +2302,14 @@ void sh_scope(struct argnod *envlist, int fun)
 	/* TODO: This is a very limited approach for dynamic scoping.
 	 * 	 Implement a more flexible approach that allows for static scoping as well.
 	 */
-	Dt_t		*newscope, *newroot = sh.st.var_local ? sh.st.var_local : sh.var_base;
+	Dt_t		*newscope, *newroot;
 	struct Ufunction	*rp;
 #if SHOPT_NAMESPACE
 	if(sh.namespace)
 		newroot = nv_dict(sh.namespace);
+	else
 #endif /* SHOPT_NAMESPACE */
+		newroot = sh.st.var_local ? sh.st.var_local : sh.var_base;
 	newscope = dtopen(&_Nvdisc,Dtoset);
 	if(envlist)
 	{

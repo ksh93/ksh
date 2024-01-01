@@ -435,7 +435,12 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				flag |= (NV_EXPORT|NV_IDENT);
 				break;
 			case 'g':
+				flag &= ~NV_DYNAMIC;
 				flag |= NV_GLOBAL;
+				break;
+			case 'D':
+				flag &= ~NV_GLOBAL;
+				flag |= NV_DYNAMIC;
 				break;
 			case ':':
 				errormsg(SH_DICT,2, "%s", opt_info.arg);
@@ -455,8 +460,13 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(1), "can only be used in a function");
 		UNREACHABLE();
 	}
-	else if(sh.infunction==1 && !(local || declare) && !sh.mktype && troot==sh.var_tree)
-		flag |= NV_GLOBAL;
+	if(troot == sh.var_tree && !sh.mktype)
+	{
+		if(sh.infunction==1 && !(local || declare) && !(flag&NV_DYNAMIC))
+			flag |= NV_GLOBAL;
+		else if(sh.infunction && (local || declare) && !(flag&NV_GLOBAL))
+			flag |= NV_DYNAMIC;
+	}
 	/* handle argument of + and - specially */
 	if(*argv && argv[0][1]==0 && (*argv[0]=='+' || *argv[0]=='-'))
 		tdata.aflag = *argv[0];
@@ -479,9 +489,9 @@ endargs:
 		errormsg(SH_DICT,2,e_optincompat1,"-m");
 		error_info.errors++;
 	}
-	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_GLOBAL)))
+	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_GLOBAL|NV_DYNAMIC)))
 	{
-		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -g");
+		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -g and -D");
 		error_info.errors++;
 	}
 	if((flag&NV_TYPE) && (flag&~(NV_TYPE|NV_VARNAME|NV_ASSIGN)))
@@ -510,9 +520,10 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(2),"option argument cannot be greater than %d",SHRT_MAX);
 		UNREACHABLE();
 	}
-	if((flag&NV_GLOBAL) && sh.mktype)
+	if((flag&(NV_GLOBAL|NV_DYNAMIC)) && sh.mktype)
 	{
-		errormsg(SH_DICT,ERROR_exit(2),"-g: type members cannot be global");
+		/* TODO: Improve unfinished error message */
+		errormsg(SH_DICT,ERROR_exit(2),"type members cannot be global or dynamic");
 		UNREACHABLE();
 	}
 	if(isfloat)
@@ -662,12 +673,16 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
 	Dt_t *save_vartree, *save_varlocal = 0;
 	Namval_t *save_namespace;
-	if((flag&NV_GLOBAL) || (sh.infunction==1 && sh.st.var_local == sh.var_base))
+	if(flag&NV_GLOBAL)
 	{
 		save_vartree = sh.var_tree;
 		save_varlocal = sh.st.var_local;
 		troot = sh.var_tree = sh.st.var_local = sh.var_base;
 	}
+	/*else if(flag&NV_DYNAMIC)
+		sh.st.var_local = sh.var_tree;
+	else
+		sh.st.var_local = sh.var_base;*/
 #if SHOPT_NAMESPACE
 	if(flag&NV_GLOBAL)
 	{
@@ -1048,11 +1063,16 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 		if(r==0)
 			r = 1;  /* ensure the exit status is at least 1 */
 	}
-	if((flag&NV_GLOBAL) || (sh.infunction==1 && save_varlocal))
+	if(flag&NV_GLOBAL)
 	{
 		sh.var_tree = save_vartree;
 		sh.st.var_local = save_varlocal;
 	}
+	/*else if(flag&NV_DYNAMIC)
+	{
+		sh.var_tree = save_vartree;
+		sh.st.var_local = save_varlocal;
+	}*/
 #if SHOPT_NAMESPACE
 	if(flag&NV_GLOBAL)
 		sh.namespace = save_namespace;

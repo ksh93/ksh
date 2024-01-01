@@ -183,6 +183,7 @@ struct Namval
 #define NV_NODISC	NV_IDENT	/* ignore disciplines */
 #define NV_UNATTR	0x800000	/* unset attributes before assignment */
 #define NV_GLOBAL	0x20000000	/* create global variable, ignoring local scope */
+#define NV_DYNAMIC	0x40000000	/* create dynamically scoped variable */
 
 #define NV_FUNCT	NV_IDENT	/* option for nv_create */
 #define NV_BLTINOPT	NV_ZFILL	/* mark builtins in libcmd */

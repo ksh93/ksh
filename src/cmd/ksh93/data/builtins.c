@@ -1969,6 +1969,7 @@ const char sh_opttypeset[] =
 	"unset prior to processing the assignment list.]"
 "[T]:?[tname?\atname\a is the name of a type name given to each \aname\a.]"
 "[Z]#?[n?Zero fill. If \an\a is given it represents the field width.]"
+"[D?Dynamic option test.]"
 "\n"
 "\n[name[=value]...]\n"
 " -f [-tu] [name...]\n"
