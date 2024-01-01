@@ -224,10 +224,11 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
-	int		isfloat=0, isadjust=0, shortint=0, sflag=0, local;
+	int		isfloat=0, isadjust=0, shortint=0, sflag=0, local, declare;
 
 	memset(&tdata,0,sizeof(tdata));
 	troot = sh.var_tree;
+	declare = argv[0][0] == 'd';
 	local = argv[0][0] == 'l';
 	if(ntp)					/* custom declaration command added using enum */
 	{
@@ -235,7 +236,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 		opt_info.disc = (Optdisc_t*)ntp->optinfof;
 		optstring = ntp->optstring;
 	}
-	else if(argv[0][0] != 't' && argv[0][0] != 'd' && !local) /* not <t>ypeset, <d>eclare or <l>ocal */
+	else if(argv[0][0] != 't' && !declare && !local) /* not <t>ypeset, <d>eclare or <l>ocal */
 	{
 		char **new_argv = (char **)stkalloc(sh.stk, (argc + 2) * sizeof(char*));
 		error_info.id = new_argv[0] = SYSTYPESET->nvname;
@@ -454,6 +455,8 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(1), "can only be used in a function");
 		UNREACHABLE();
 	}
+	else if(sh.infunction==1 && !(local || declare) && !sh.mktype)
+		flag |= NV_GLOBAL;
 	/* handle argument of + and - specially */
 	if(*argv && argv[0][1]==0 && (*argv[0]=='+' || *argv[0]=='-'))
 		tdata.aflag = *argv[0];
