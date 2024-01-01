@@ -2920,7 +2920,7 @@ pid_t sh_fork(int flags, int *jobid)
 /*
  * add exports from previous scope to the new scope
  */
-void  local_exports(Namval_t *np, void *data)
+static void  local_exports(Namval_t *np, void *data)
 {
 	Namval_t	*mp;
 	NOT_USED(data);

@@ -220,7 +220,8 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	int jmpval;
 	struct sh_scoped savst, *prevscope = sh.st.self;
 	char *filename=0, *buffer=0, *tofree;
-	int	fd, infunction=-1;
+	int	fd;
+	char infunction = -1;
 	struct dolnod   *saveargfor;
 	volatile struct dolnod   *argsave=0;
 	struct checkpt buff;
@@ -277,23 +278,23 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		}
 		filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 	}
-	*prevscope = sh.st;
-	sh.st.prevst = prevscope;
-	sh.st.self = &savst;
-	sh.topscope = (Shscope_t*)sh.st.self;
-	prevscope->save_tree = sh.var_tree;
-	if(np)
+	else
 	{
 		infunction = sh.infunction;
 		sh.infunction = 1;
 	}
+	*prevscope = sh.st;
 	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
-	sh.st.save_tree = sh.st.var_local = sh.var_tree;
+	sh.st.save_tree = sh.var_tree;
 	if(filename)
 	{
 		sh.st.filename = filename;
 		sh.st.lineno = 1;
 	}
+	sh.st.prevst = prevscope;
+	sh.st.self = &savst;
+	sh.topscope = (Shscope_t*)sh.st.self;
+	prevscope->save_tree = sh.var_tree;
 	tofree = sh.st.filename;
 	if(np)
 		sh.st.filename = np->nvalue.rp->fname;

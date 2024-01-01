@@ -128,7 +128,6 @@ extern int		sh_macfun(const char*,int);
 extern void 		sh_machere(Sfio_t*, Sfio_t*, char*);
 extern void 		*sh_macopen(void);
 extern char 		*sh_macpat(struct argnod*,int);
-extern void		local_exports(Namval_t*, void*);
 extern Sfdouble_t	sh_mathfun(void*, int, Sfdouble_t*);
 extern int		sh_outtype(Sfio_t*);
 extern char 		*sh_mactry(char*);
