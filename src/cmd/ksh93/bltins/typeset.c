@@ -679,10 +679,10 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 		save_varlocal = sh.st.var_local;
 		troot = sh.var_tree = sh.st.var_local = sh.var_base;
 	}
-	/*else if(flag&NV_DYNAMIC)
+	else if(flag&NV_DYNAMIC)
 		sh.st.var_local = sh.var_tree;
 	else
-		sh.st.var_local = sh.var_base;*/
+		sh.st.var_local = sh.var_base;
 #if SHOPT_NAMESPACE
 	if(flag&NV_GLOBAL)
 	{

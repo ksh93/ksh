@@ -243,10 +243,10 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 		save_varlocal = sh.st.var_local;
 		sh.var_tree = sh.st.var_local = sh.var_base;
 	}
-	/*else if(flags&NV_DYNAMIC)
+	else if(flags&NV_DYNAMIC)
 		sh.st.var_local = sh.var_tree;
 	else
-		sh.st.var_local = sh.var_base;*/
+		sh.st.var_local = sh.var_base;
 #if SHOPT_NAMESPACE
 	if(flags&NV_GLOBAL)
 	{

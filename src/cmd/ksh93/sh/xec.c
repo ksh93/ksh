@@ -1055,10 +1055,6 @@ int sh_exec(const Shnode_t *t, int flags)
 							flgs |= NV_DYNAMIC;
 						else if(sh.infunction==1 && !(flgs&NV_DYNAMIC))
 							flgs |= NV_GLOBAL;
-						if(flgs&NV_DYNAMIC)
-							sh.st.var_local = sh.var_tree;
-						else
-							sh.st.var_local = sh.var_base;
 						if(sh.fn_depth && !sh.prefix)
 							flgs |= NV_NOSCOPE;
 					}
