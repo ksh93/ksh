@@ -455,7 +455,7 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(1), "can only be used in a function");
 		UNREACHABLE();
 	}
-	else if(sh.infunction==1 && !(local || declare) && !sh.mktype)
+	else if(sh.infunction==1 && !(local || declare) && !sh.mktype && troot==sh.var_tree)
 		flag |= NV_GLOBAL;
 	/* handle argument of + and - specially */
 	if(*argv && argv[0][1]==0 && (*argv[0]=='+' || *argv[0]=='-'))
