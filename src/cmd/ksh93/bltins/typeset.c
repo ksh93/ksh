@@ -460,13 +460,6 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(1), "can only be used in a function");
 		UNREACHABLE();
 	}
-	if(troot == sh.var_tree && !sh.mktype)
-	{
-		if(sh.infunction==1 && !(local || declare) && !(flag&NV_DYNAMIC))
-			flag |= NV_GLOBAL;
-		else if(sh.infunction && (local || declare) && !(flag&NV_GLOBAL))
-			flag |= NV_DYNAMIC;
-	}
 	/* handle argument of + and - specially */
 	if(*argv && argv[0][1]==0 && (*argv[0]=='+' || *argv[0]=='-'))
 		tdata.aflag = *argv[0];
@@ -525,6 +518,13 @@ endargs:
 		/* TODO: Improve unfinished error message */
 		errormsg(SH_DICT,ERROR_exit(2),"type members cannot be global or dynamic");
 		UNREACHABLE();
+	}
+	if(troot == sh.var_tree && !sh.mktype)
+	{
+		if(sh.infunction==1 && !(local || declare) && !(flag&NV_DYNAMIC))
+			flag |= NV_GLOBAL;
+		else if(sh.infunction && (local || declare) && !(flag&NV_GLOBAL))
+			flag |= NV_DYNAMIC;
 	}
 	if(isfloat)
 		flag |= NV_DOUBLE;

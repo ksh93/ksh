@@ -795,5 +795,37 @@ e=$?
 let "e==0" || err_exit 'crash involving short int as first type member' \
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
+# -T must work with typeset, local and declare
+got=$({ "$SHELL" -c '
+	typeset -T Coord_t=(
+		typeset -i x
+	)
+	declare -T Job_t=(
+		typeset -si BUGTRIGGER
+		Coord_t pos
+		set_pos() { _.pos.x=0 ;}
+	)
+	Job_t job
+	job.set_pos
+	job.set_pos
+	posix_fun() {
+		local -T Bar_t=(
+			declare -li val
+			declare -si var
+			typeset string
+		)
+		Bar_t mrbar
+		mrbar.val=34
+		mrbar.var=34
+		mrbar.string=teststr
+		[[ ${mrbar.string} == teststr ]]
+		((mrbar.var == mrbar.val))
+	}
+	posix_fun
+'; } 2>&1)
+e=$?
+let "e==0" || err_exit 'cannot use -T flag with typeset, local and/or declare reliably' \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
 # ======
 exit $((Errors<125?Errors:125))
