@@ -292,6 +292,53 @@ got=$("$SHELL" "$tst")
 [[ $exp == "$got" ]] || err_exit "Cannot create global variables in POSIX funtions without direct typeset invocation" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# Test 10: Make static variable global in KornShell function
+tst=$tmp/tst.sh
+cat > "$tst" << 'EOF'
+function nxt {
+	echo ${bar}1
+}
+function foo {
+	typeset bar=BAD
+	nxt
+	typeset -g bar=2
+	function infun {
+		echo $bar
+	}
+	infun
+	typeset -g bar=3
+}
+foo
+echo $bar
+EOF
+exp=$'1\n2\n3'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Cannot switch from static scope to global scope in KornShell functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 11: Make dynamic variables global in KornShell functions
+tst=$tmp/tst.sh
+cat > "$tst" << 'EOF'
+function nxt {
+	echo ${bar}
+}
+function foo {
+	local bar=1
+	nxt
+	local -g bar=2
+	function infun {
+		echo $bar
+	}
+	infun
+	typeset -g bar=3
+}
+foo
+echo $bar
+EOF
+exp=$'1\n2\n3'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "Cannot switch from dynamic scope to global scope in KornShell functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
