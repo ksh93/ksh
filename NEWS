@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-01-14:
+
+- Fixed a regression introduced on 2022-11-01 that caused ksh to enter
+  an infinite loop after using the up arrow in emacs mode with an empty
+  history file.
+
 2024-01-11:
 
 - Fixed ancient incorrect behaviour in the 'kill' built-in: it sent SIGCONT
