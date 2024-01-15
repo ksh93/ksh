@@ -519,11 +519,11 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(2),"type members cannot be global or dynamic");
 		UNREACHABLE();
 	}
-	if(troot == sh.var_tree && !sh.mktype)
+	if(troot==sh.var_tree && !sh.mktype && sh.infunction)
 	{
 		if(sh.infunction==1 && !(local || declare) && !(flag&NV_DYNAMIC))
 			flag |= NV_GLOBAL;
-		else if(sh.infunction && (local || declare) && !(flag&NV_GLOBAL))
+		else if((local || declare) && !(flag&NV_GLOBAL))
 			flag |= NV_DYNAMIC;
 	}
 	if(isfloat)
@@ -671,18 +671,15 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	char *last = 0;
 	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
-	Dt_t *save_vartree, *save_varlocal = 0;
+	Dt_t *save_vartree;
 	Namval_t *save_namespace;
 	if(flag&NV_GLOBAL)
 	{
 		save_vartree = sh.var_tree;
-		save_varlocal = sh.st.var_local;
-		troot = sh.var_tree = sh.st.var_local = sh.var_base;
+		troot = sh.var_tree = sh.var_base;
 	}
 	else if(flag&NV_DYNAMIC)
-		sh.st.var_local = sh.var_tree;
-	else
-		sh.st.var_local = sh.var_base;
+		nvflags |= NV_TAGGED;
 #if SHOPT_NAMESPACE
 	if(flag&NV_GLOBAL)
 	{
@@ -1066,13 +1063,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	if(flag&NV_GLOBAL)
 	{
 		sh.var_tree = save_vartree;
-		sh.st.var_local = save_varlocal;
 	}
-	/*else if(flag&NV_DYNAMIC)
-	{
-		sh.var_tree = save_vartree;
-		sh.st.var_local = save_varlocal;
-	}*/
 #if SHOPT_NAMESPACE
 	if(flag&NV_GLOBAL)
 		sh.namespace = save_namespace;

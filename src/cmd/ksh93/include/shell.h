@@ -198,7 +198,6 @@ struct sh_scoped
 	int		lineno;
 	Dt_t		*save_tree;	/* var_tree for calling function */
 	struct sh_scoped *self;		/* pointer to copy of this scope */
-	Dt_t		*var_local;	/* local level variables used by 'local' and 'declare' */
 	struct slnod	*staklist;	/* link list of function stacks */
 	int		states;		/* shell state bits used by sh_isstate(), etc. */
 	int		breakcnt;	/* number of levels to 'break'/'continue' (negative if 'continue') */

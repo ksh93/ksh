@@ -56,27 +56,35 @@ for i in declare local; do
 	# The local and declare builtins should have a dynamic scope
 	# Tests for the scope of POSIX functions
 	foo=globalscope
+	exp=dynscope
 	subfunc() {
-		[[ $foo == dynscope ]]
+		print $foo
 	}
 	mainfunc() {
-		$i foo=dynscope
+		$i foo=$exp
 		subfunc
 	}
-	mainfunc || err_exit "'$i' is not using a dynamic scope in POSIX functions"
-	[[ $foo == globalscope ]] || err_exit "'$i' changes variables outside of a POSIX function's scope"
+	got=${ mainfunc }
+	[[ $exp == $got ]] || err_exit "'$i' is not using a dynamic scope in POSIX functions" \
+			"(expected $exp, got $(printf %q "$got"))"
+	[[ $foo == globalscope ]] || err_exit "'$i' changes variables outside of a POSIX function's scope" \
+			"(expected globalscope, got $(printf %q "$foo"))"
 
 	# Tests for the scope of KornShell functions
 	bar=globalscope
+	exp=dynscope
 	function subfunc_b {
-		[[ $bar == dynscope ]]
+		print $bar
 	}
 	function mainfunc_b {
 		$i bar=dynscope
 		subfunc_b
 	}
-	mainfunc_b || err_exit "'$i' is not using a dynamic scope in KornShell functions"
-	[[ $bar == globalscope ]] || err_exit "'$i' changes variables outside of a KornShell function's scope"
+	got=${ mainfunc_b }
+	[[ $exp == $got ]] || err_exit "'$i' is not using a dynamic scope in KornShell functions" \
+			"(expected $exp, got $(printf %q "$got"))"
+	[[ $bar == globalscope ]] || err_exit "'$i' changes variables outside of a KornShell function's scope" \
+			"(expected globalscope, got $(printf %q "$bar"))"
 done
 
 # The declare builtin should work outside of functions
@@ -84,9 +92,9 @@ unset foo
 declare foo=bar
 [[ $foo == bar ]] || err_exit "'declare' doesn't work outside of functions"
 
+# TODO: Implement optional static scoping via a flag, for use in POSIX functions.
+
 # Test 1: make dynamic $bar static with typeset(1) in ksh function
-# TODO: This doesn't work, likely because the static scope is effectively lost
-#       after a dynamic scope is made. That will need to be fixed.
 tst=$tmp/tst.sh
 cat > "$tst" << 'EOF'
 function nxt {
@@ -95,18 +103,22 @@ function nxt {
 function foo {
 	local bar=1
 	nxt
-	local bar=2
+	local bar=BAD1
 	function infun {
 		echo $bar
 	}
-	typeset bar=BAD
+	# The current implementation does not make a seperate version of var for the static scope.
+	# Rather, it changes foo()'s $bar variable back to a static scope, which prevents it from being
+	# accessed by called functions as $bar is no longer in a dynamic scope. Consequently, both infun
+	# and nxt are expected to print only a newline.
+	typeset bar=BAD2
 	infun
 	nxt
 }
 foo
 echo $bar
 EOF
-exp=$'1\n2\n2'
+exp=1
 got=$("$SHELL" "$tst")
 [[ $exp == "$got" ]] || err_exit "Cannot switch from dynamic scope to static scope in ksh functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"

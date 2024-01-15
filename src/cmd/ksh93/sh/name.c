@@ -233,20 +233,17 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	struct Namref	nr;
 	int		maketype = flags&NV_TYPE;  /* make a 'typeset -T' type definition command */
 	struct sh_type	shtp;
-	Dt_t		*vartree, *save_vartree, *save_varlocal = 0;
+	Dt_t		*vartree, *save_vartree;
 #if SHOPT_NAMESPACE
 	Namval_t	*save_namespace;
 #endif
 	if(flags&NV_GLOBAL)
 	{
 		save_vartree = sh.var_tree;
-		save_varlocal = sh.st.var_local;
-		sh.var_tree = sh.st.var_local = sh.var_base;
+		sh.var_tree = sh.var_base;
 	}
 	else if(flags&NV_DYNAMIC)
-		sh.st.var_local = sh.var_tree;
-	else
-		sh.st.var_local = sh.var_base;
+		flags |= NV_TAGGED;
 #if SHOPT_NAMESPACE
 	if(flags&NV_GLOBAL)
 	{
@@ -669,13 +666,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	if(flags&NV_GLOBAL)
 	{
 		sh.var_tree = save_vartree;
-		sh.st.var_local = save_varlocal;
 	}
-	/*else if(flags&NV_DYNAMIC)
-	{
-		sh.var_tree = save_vartree;
-		sh.st.var_local = save_varlocal;
-	}*/
 #if SHOPT_NAMESPACE
 	if(flags&NV_GLOBAL)
 		sh.namespace = save_namespace;
@@ -2309,7 +2300,7 @@ void sh_scope(struct argnod *envlist, int fun)
 		newroot = nv_dict(sh.namespace);
 	else
 #endif /* SHOPT_NAMESPACE */
-		newroot = sh.st.var_local ? sh.st.var_local : sh.var_base;
+		newroot = sh.var_base;
 	newscope = dtopen(&_Nvdisc,Dtoset);
 	if(envlist)
 	{
