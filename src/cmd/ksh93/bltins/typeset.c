@@ -521,7 +521,7 @@ endargs:
 	}
 	if(troot==sh.var_tree && !sh.mktype && sh.infunction)
 	{
-		if(sh.infunction==2 && !(local || declare) && !(flag&NV_DYNAMIC))
+		if((sh.infunction==FUN_POSIX && !(local || declare) && !(flag&NV_DYNAMIC)) || sh.infunction==FUN_KSHDOT)
 			flag |= NV_GLOBAL;
 		else if((local || declare) && !(flag&NV_GLOBAL))
 			flag |= NV_DYNAMIC;

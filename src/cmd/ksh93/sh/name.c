@@ -386,7 +386,6 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					Dt_t	*last_root = sh.last_root;
 					char **argv = sh_argbuild(&argc,&tp->com,0);
 					sh.last_root = last_root;
-					/* TODO: Implement a proper check for POSIX functions here */
 					if(sh.mktype && sh.dot_depth==0 && np==((struct sh_type*)sh.mktype)->nodes[0])
 					{
 						sh.mktype = 0;
@@ -2305,14 +2304,7 @@ void sh_scope(struct argnod *envlist, int fun)
 	{
 		dtview(newscope,(Dt_t*)sh.var_tree);
 		sh.var_tree = newscope;
-		if(fun==2)
-			/* TODO: See if this really is the only way to fix the functions.sh
-			 * test failure. This part of the code is surprisingly fragile,
-			 * so if possible I'd rather not change anything here at all.
-			 */
-			nv_setlist(envlist,NV_NOSCOPE|NV_IDENT|NV_ASSIGN,0);
-		else
-			nv_setlist(envlist,NV_EXPORT|NV_NOSCOPE|NV_IDENT|NV_ASSIGN,0);
+		nv_setlist(envlist,NV_EXPORT|NV_NOSCOPE|NV_IDENT|NV_ASSIGN,0);
 		if(!fun)
 			return;
 		sh.var_tree = dtview(newscope,0);

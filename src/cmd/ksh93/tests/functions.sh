@@ -1208,13 +1208,15 @@ function foo
 		esac
 	done
 	shift $((OPTIND - 1))
-	(( OPTIND == 4 )) || err_exit "OPTIND is $OPTIND at end of function foo; it should be 4"  
+	(( OPTIND == 4 )) || err_exit "OPTIND is $OPTIND at end of function foo; it should be 4"
 	[[ $1 == foo2 ]] || err_exit "\$1 is $1, not foo after getopts in function"
 }
-OPTIND=6 OPTARG=xxx
+OPTIND=6 OPTARG=xxx exp=xxx exptwo=6
 foo -h -i foobar foo2
-[[ $OPTARG == xxx ]] || err_exit 'getopts in function changes global OPTARG'
-(( OPTIND == 6 )) || err_exit 'getopts in function changes global OPTIND'
+[[ $OPTARG == $exp ]] || err_exit 'getopts in KornShell function changes global OPTARG' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$OPTARG"))"
+(( OPTIND == exptwo )) || err_exit 'getopts in KornShell function changes global OPTIND' \
+	"(expected $(printf %q "$exptwo"), got $(printf %q "$OPTIND"))"
 
 if	[[ ! $compiled ]]
 then	function foo { getopts --man; }
