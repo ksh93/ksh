@@ -2985,10 +2985,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	Shopt_t			options;
 	options = sh.options;
 	NOT_USED(argn);
-	if(sh.fn_depth==0)
-		sh.glob_options =  sh.options;
-	else
-		sh.options = sh.glob_options;
 	*prevscope = sh.st;
 	sh.st.prevst = prevscope;
 	sh.st.self = savst;
@@ -3006,6 +3002,10 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	infunction = sh.infunction;
 	if(!posix_fun)
 	{
+		if(sh.fn_depth==0)
+			sh.glob_options =  sh.options;
+		else
+			sh.options = sh.glob_options;
 		sh.infunction = 1;
 		sh_offoption(SH_ERREXIT);
 	}
