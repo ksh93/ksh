@@ -1027,6 +1027,8 @@ int sh_exec(const Shnode_t *t, int flags)
 							flgs |= NV_GLOBAL;
 						if(checkopt(com,'D'))
 							flgs |= NV_DYNAMIC;
+						if(checkopt(com,'c'))
+							flgs |= NV_STATSCOPE;
 						if(np==SYSNAMEREF || checkopt(com,'n'))
 							flgs |= NV_NOREF;
 						else if(argn>=3 && checkopt(com,'T'))
@@ -1046,9 +1048,9 @@ int sh_exec(const Shnode_t *t, int flags)
 							sh.prefix = NV_CLASS;
 							flgs |= NV_TYPE;
 						}
-						if((np==SYSLOCAL || np==SYSDECLARE) && !(flgs&NV_GLOBAL))
+						if((np==SYSLOCAL || np==SYSDECLARE) && !(flgs&(NV_GLOBAL|NV_STATSCOPE)))
 							flgs |= NV_DYNAMIC;
-						else if(sh.infunction==FUN_POSIX && !(flgs&NV_DYNAMIC))
+						else if(sh.infunction==FUN_POSIX && !(flgs&(NV_DYNAMIC|NV_STATSCOPE)))
 							flgs |= NV_GLOBAL;
 						if((sh.infunction==FUN_POSIX || sh.fn_depth) && !sh.prefix)
 							flgs |= NV_NOSCOPE;
@@ -3040,8 +3042,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		 * function (i.e., nested functions have no scoping.) This design flaw in
 		 * ksh93v- made its scoping code unsalvageable.
 		 */
-		nv_scan(prevscope->save_tree, local_exports, NULL, NV_EXPORT, NV_EXPORT|NV_NOSCOPE);
-		nv_scan(prevscope->save_tree, local_exports, NULL, NV_DYNAMIC, NV_DYNAMIC|NV_NOSCOPE);
+		nv_scan(prevscope->save_tree, local_exports, NULL, 0, NV_EXPORT|NV_DYNAMIC|NV_NOSCOPE);
 	}
 	sh.st.save_tree = sh.var_tree;
 	if(!fun)

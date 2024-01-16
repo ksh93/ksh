@@ -87,373 +87,478 @@ for i in declare local; do
 			"(expected globalscope, got $(printf %q "$bar"))"
 done
 
+got=$(command declare -cDg invalid=cannotset 2>&1)
+status=$?
+((status == 2)) || err_exit "attempting to combine -c, -D and -g doesn't fail correctly" \
+			"(returned exit status $status and output $(printf %q "$got"))"
+
 # The declare builtin should work outside of functions
 unset foo
 declare foo=bar
 [[ $foo == bar ]] || err_exit "'declare' doesn't work outside of functions"
 
-# TODO: Implement optional static scoping via a flag, for use in POSIX functions.
+# Run all of the tests with 'command ' prefixes, as
+# the underlying code treats 'typeset' and 'command typeset'
+# differently (see sh_exec()).
+
+for command in "" "command"; do
+# Beginning of non-indented loop
+
+unset prefix
+[[ $command == command ]] && prefix="(using command(1)) "
 
 # Test 1: make dynamic $bar static with typeset(1) in ksh function
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 function nxt {
-	echo $bar
+	echo \$bar
 }
 function foo {
-	local bar=1
+	$command local bar=1
 	nxt
-	local bar=BAD1
+	$command local bar=BAD1
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	# The current implementation does not make a seperate version of var for the static scope.
 	# Rather, it changes foo()'s $bar variable back to a static scope, which prevents it from being
 	# accessed by called functions as $bar is no longer in a dynamic scope. Consequently, both infun
 	# and nxt are expected to print only a newline.
-	typeset bar=BAD2
+	$command typeset bar=BAD2
 	infun
 	nxt
 }
 foo
-echo $bar
+echo \$bar
 EOF
 exp=1
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot switch from dynamic scope to static scope in ksh functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot switch from dynamic scope to static scope in ksh functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 2: make static $bar dynamic with local(1) in ksh function
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 function nxt {
-	echo $bar
+	echo \$bar
 }
 function foo {
-	typeset bar=BAD
+	$command typeset bar=BAD
 	nxt
-	local bar=1
+	$command local bar=1
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	infun
 }
 foo
-echo ${bar}2
+echo \${bar}2
 EOF
 exp=$'\n1\n2'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot switch from static scope to dynamic scope in ksh functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot switch from static scope to dynamic scope in ksh functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 3: make dynamic $bar global with typeset(1) in POSIX function
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 nxt() {
-	echo $bar
+	echo \$bar
 }
 foo() {
-	local bar=1
+	$command local bar=1
 	nxt
-	typeset bar=3
-	declare bar=2
+	$command typeset bar=3
+	$command declare bar=2
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	infun
 }
 foo
-echo $bar
+echo \$bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot switch from dynamic scope to global scope in POSIX functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot switch from dynamic scope to global scope in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 4: make local duplicate of global bar created with typeset in POSIX function
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 nxt() {
-	echo $bar
+	echo \$bar
 }
 foo() {
-	typeset bar=1
+	$command typeset bar=1
 	nxt
-	typeset bar=3
-	local bar=2
+	$command typeset bar=3
+	$command local bar=2
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	infun
 }
 foo
-echo $bar
+echo \$bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create local version of \$bar in POSIX functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot create local version of \$bar in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 5: ensure local really works in POSIX functions
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 nxt() {
-	echo $bar
+	echo \$bar
 }
 foo() {
-	local bar=1
+	$command local bar=1
 	nxt
-	local bar=2
+	$command local bar=2
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	infun
-	local bar=BAD
+	$command local bar=BAD
 }
 foo
-echo ${bar}3
+echo \${bar}3
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create local variables in POSIX functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot create local variables in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 6: ensure typeset doesn't default to making static variables in POSIX functions
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 nxt() {
-	echo $bar
+	echo \$bar
 }
 foo() {
-	typeset bar=1
+	$command typeset bar=1
 	nxt
-	typeset bar=2
+	$command typeset bar=2
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	infun
-	typeset bar=3
+	$command typeset bar=3
 }
 foo
-echo $bar
+echo \$bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot create global variables with plain typeset invocation in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 7
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 nxt() {
-	echo $bar
+	echo \$bar
 }
 foo() {
-	typeset bar=1
+	$command typeset bar=1
 	nxt
-	typeset bar=2
+	$command typeset bar=2
 	infun() {
-		echo $bar
+		echo \$bar
 	}
 	infun
-	typeset bar=3
+	$command typeset bar=3
 }
 foo
-echo $bar
+echo \$bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create global variables with plain typeset invocation in POSIX functions with nested POSIX functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot create global variables with plain typeset invocation in POSIX functions with nested POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 8
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 nxt() {
-	echo $bar
+	echo \$bar
 }
 foo() {
-	local bar=1
+	$command local bar=1
 	nxt
-	local bar=2
+	$command local bar=2
 	infun() {
-		echo $bar
+		echo \$bar
 	}
 	infun
-	local bar=BAD
+	$command local bar=BAD
 }
 foo
-echo ${bar}3
+echo \${bar}3
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create local variables with local builtin in POSIX functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot create local variables with local builtin in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 9
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 nxt() {
-	echo $bar
+	echo \$bar
 }
 foo() {
 	bar=1
 	nxt
 	bar=2
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	infun
 	bar=3
 }
 foo
-echo $bar
+echo \$bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot create global variables in POSIX functions without direct typeset invocation" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot create global variables in POSIX functions without direct typeset invocation" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 10: Make static variable global in KornShell function
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 function nxt {
-	echo ${bar}1
+	echo \${bar}1
 }
 function foo {
-	typeset bar=BAD
+	$command typeset bar=BAD
 	nxt
-	typeset -g bar=2
+	$command typeset -g bar=2
 	function infun {
-		echo $bar
+		echo \$bar
 	}
 	infun
-	typeset -g bar=3
+	$command typeset -g bar=3
 }
 foo
-echo $bar
+echo \$bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot switch from static scope to global scope in KornShell functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot switch from static scope to global scope in KornShell functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 11: Make dynamic variables global in KornShell functions
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 function nxt {
-	echo ${bar}
+	echo \${bar}
 }
 function foo {
-	local bar=1
+	$command local bar=1
 	nxt
-	local -g bar=3
-	local bar=2
+	$command local -g bar=3
+	$command local bar=2
 	function infun {
 		# The dynamic scope still applies, so the $bar value
 		# from 'function foo' is inherited and used instead
 		# of the global value.
-		echo $bar
+		echo \$bar
 	}
 	infun
 }
 foo
 # This will be '3' because of the earlier 'local -g'
-echo $bar
+echo \$bar
 EOF
 exp=$'1\n2\n3'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Cannot switch from dynamic scope to global scope in KornShell functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot switch from dynamic scope to global scope in KornShell functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 12: Variables shouldn't leak out of nested POSIX functions
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 foo() {
-	local foo=foo
+	$command local foo=foo
 	bar() {
-		local foo=bar
+		$command local foo=bar
 		baz() {
-			local foo=baz
-			echo $foo
+			$command local foo=baz
+			echo \$foo
 		}
 		baz
-		echo $foo
+		echo \$foo
 	}
 	bar
-	echo $foo
+	echo \$foo
 }
 foo
 EOF
 exp=$'baz\nbar\nfoo'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Local variables from nested POSIX functions leak out into the parent functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Local variables from nested POSIX functions leak out into the parent functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 13: Variables shouldn't leak out of nested KornShell functions
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 function foo {
-	local foo=foo
+	$command local foo=foo
 	function bar {
-		local foo=bar
+		$command local foo=bar
 		function baz {
-			local foo=baz
-			echo $foo
+			$command local foo=baz
+			echo \$foo
 		}
 		baz
-		echo $foo
+		echo \$foo
 	}
 	bar
-	echo $foo
+	echo \$foo
 }
 foo
 EOF
 exp=$'baz\nbar\nfoo'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Local variables from nested KornShell functions leak out into the parent functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Local variables from nested KornShell functions leak out into the parent functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 14: Variables shouldn't leak out into other POSIX functions
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 baz() {
-	local foo=baz
-	echo $foo
+	$command local foo=baz
+	echo \$foo
 }
 bar() {
-	local foo=bar
+	$command local foo=bar
 	baz
-	echo $foo
+	echo \$foo
 }
 foo() {
-	local foo=foo
+	$command local foo=foo
 	bar
-	echo $foo
+	echo \$foo
 }
 foo
 EOF
 exp=$'baz\nbar\nfoo'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Local variables from POSIX functions leak out into other functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Local variables from POSIX functions leak out into other functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test 15: Variables shouldn't leak out into other KornShell functions
 tst=$tmp/tst.sh
-cat > "$tst" << 'EOF'
+cat > "$tst" << EOF
 function baz {
-	local foo=baz
-	echo $foo
+	$command local foo=baz
+	echo \$foo
 }
 function bar {
-	local foo=bar
+	$command local foo=bar
 	baz
-	echo $foo
+	echo \$foo
 }
 function foo {
-	local foo=foo
+	$command local foo=foo
 	bar
-	echo $foo
+	echo \$foo
 }
 foo
 EOF
 exp=$'baz\nbar\nfoo'
 got=$("$SHELL" "$tst")
-[[ $exp == "$got" ]] || err_exit "Local variables from KornShell functions leak out into other functions" \
+[[ $exp == "$got" ]] || err_exit "${prefix}Local variables from KornShell functions leak out into other functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 16: 'typeset -c' should use static scoping in POSIX functions
+tst=$tmp/tst.sh
+cat > "$tst" << EOF
+foo=global
+bar() {
+	echo \$foo
+	$command typeset -c foo=static2
+	echo \$foo
+}
+foo() {
+	$command typeset -c foo=static
+	echo \$foo
+	bar
+	echo \$foo
+}
+echo \$foo
+foo
+echo \$foo
+EOF
+exp=$'global\nstatic\nglobal\nstatic2\nstatic\nglobal'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot use static scoping in POSIX functions with 'local -c'" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 17: 'local -c' should use static scoping in KornShell functions
+tst=$tmp/tst.sh
+cat > "$tst" << EOF
+foo=global
+function bar {
+	echo \$foo
+	$command local -c foo=static2
+	echo \$foo
+}
+function foo {
+	$command local -c foo=static
+	echo \$foo
+	bar
+	echo \$foo
+}
+echo \$foo
+foo
+echo \$foo
+EOF
+exp=$'global\nstatic\nglobal\nstatic2\nstatic\nglobal'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot use static scoping in KornShell functions with 'local -c'" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 18: Make static $bar dynamic in POSIX functions
+cat > "$tst" << EOF
+nxt() {
+	echo \$bar
+}
+foo() {
+	$command typeset -c bar=BAD
+	nxt
+	$command local bar=1
+	function infun {
+		echo \$bar
+	}
+	infun
+}
+foo
+echo \${bar}2
+EOF
+exp=$'\n1\n2'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot switch from static scope to dynamic scope in ksh functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Test 19: Make static $bar separate from global $bar in POSIX functions
+cat > "$tst" << EOF
+typeset bar=global
+nxt() {
+	echo \$bar
+}
+foo() {
+	$command local -c bar=static
+	nxt
+	echo \$bar
+}
+echo \${bar}
+foo
+echo \${bar}
+EOF
+exp=$'global\nglobal\nstatic\nglobal'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "${prefix}Cannot switch from static scope to dynamic scope in ksh functions" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+done  # End of non-indented loop
 
 # ======
 exit $((Errors<125?Errors:125))

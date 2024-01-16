@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -185,11 +185,13 @@ struct Namval
 #define NV_UNATTR	0x800000	/* unset attributes before assignment */
 #define NV_GLOBAL	0x20000000	/* create global variable, ignoring local scope */
 #define NV_DYNAMIC	0x40000000	/* create dynamically scoped variable */
+#define NV_STATSCOPE	0x80000000	/* force creation of statically scoped variable */
 
 #define NV_FUNCT	NV_IDENT	/* option for nv_create */
 #define NV_BLTINOPT	NV_ZFILL	/* mark builtins in libcmd */
 
 #define NV_PUBLIC	(~(NV_NOSCOPE|NV_ASSIGN|NV_IDENT|NV_VARNAME|NV_NOADD))
+#define NV_SCOPES	(NV_DYNAMIC|NV_GLOBAL|NV_STATSCOPE)
 
 /* numeric types */
 /* NV_INT16 and NV_UINT16 store values directly in the node; all the others use pointers */

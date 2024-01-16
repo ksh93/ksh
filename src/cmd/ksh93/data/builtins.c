@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1918,7 +1918,10 @@ const char sh_opttypeset[] =
 "[n?Name reference. The value is the name of a variable that \aname\a "
 	"references. \aname\a cannot contain a \b.\b.]"
 "[p?Causes the output to be in a format that can be used as input to the "
-	"shell to recreate the attributes for variables.]"
+	"shell to recreate the attributes for variables. If this flag "
+	"is used by \btypeset\b in a POSIX function without also passing "
+	"\b-D\b or \b-c\b, the local scope is ignored and \btypeset\b will "
+	"only use the global scope.]"
 "[r?Enables readonly. Once enabled it cannot be disabled. See "
 	"\breadonly\b(1).]"
 "[s?Used with \b-i\b to restrict integer size to short.]"
@@ -1968,7 +1971,8 @@ const char sh_opttypeset[] =
 	"unset prior to processing the assignment list.]"
 "[T]:?[tname?\atname\a is the name of a type name given to each \aname\a.]"
 "[Z]#?[n?Zero fill. If \an\a is given it represents the field width.]"
-"[D?Gives the created or modified variable a dynamic scope in functions.]"
+"[D?Modifies variables using a dynamic local scope in functions.]"
+"[c?Modifies variables using a static local scope in functions.]"
 "\n"
 "\n[name[=value]...]\n"
 " -f [-tu] [name...]\n"

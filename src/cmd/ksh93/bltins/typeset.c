@@ -224,7 +224,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
-	int		isfloat=0, isadjust=0, shortint=0, sflag=0, local, declare;
+	int		isfloat=0, isadjust=0, shortint=0, sflag=0, local, declare, scoping_flags = 0;
 
 	memset(&tdata,0,sizeof(tdata));
 	troot = sh.var_tree;
@@ -435,12 +435,19 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				flag |= (NV_EXPORT|NV_IDENT);
 				break;
 			case 'g':
-				flag &= ~NV_DYNAMIC;
+				flag &= ~(NV_SCOPES);
 				flag |= NV_GLOBAL;
+				scoping_flags++;
 				break;
 			case 'D':
-				flag &= ~NV_GLOBAL;
+				flag &= ~(NV_SCOPES);
 				flag |= NV_DYNAMIC;
+				scoping_flags++;
+				break;
+			case 'c':
+				flag &= ~(NV_SCOPES);
+				flag |= NV_STATSCOPE;
+				scoping_flags++;
 				break;
 			case ':':
 				errormsg(SH_DICT,2, "%s", opt_info.arg);
@@ -482,9 +489,9 @@ endargs:
 		errormsg(SH_DICT,2,e_optincompat1,"-m");
 		error_info.errors++;
 	}
-	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_GLOBAL|NV_DYNAMIC)))
+	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_SCOPES)))
 	{
-		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -g and -D");
+		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -c, -D and -g");
 		error_info.errors++;
 	}
 	if((flag&NV_TYPE) && (flag&~(NV_TYPE|NV_VARNAME|NV_ASSIGN)))
@@ -513,16 +520,21 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(2),"option argument cannot be greater than %d",SHRT_MAX);
 		UNREACHABLE();
 	}
-	if((flag&(NV_GLOBAL|NV_DYNAMIC)) && sh.mktype)
+	if((flag&NV_SCOPES) && sh.mktype)
 	{
-		errormsg(SH_DICT,ERROR_exit(2),"type members cannot be global or dynamic");
+		errormsg(SH_DICT,ERROR_exit(2),"type members cannot use the scoping flags -c, -D and -g");
+		UNREACHABLE();
+	}
+	if(scoping_flags > 1)
+	{
+		errormsg(SH_DICT,ERROR_exit(2),"the scoping flags -c, -D and -g cannot be combined");
 		UNREACHABLE();
 	}
 	if(troot==sh.var_tree && !sh.mktype && sh.infunction)
 	{
-		if(sh.infunction==FUN_POSIX && !(local || declare) && !(flag&NV_DYNAMIC))
+		if(sh.infunction==FUN_POSIX && !(local || declare) && !(flag&(NV_DYNAMIC|NV_STATSCOPE)))
 			flag |= NV_GLOBAL;
-		else if((local || declare) && !(flag&NV_GLOBAL))
+		else if((local || declare) && !(flag&(NV_GLOBAL|NV_STATSCOPE)))
 			flag |= NV_DYNAMIC;
 	}
 	if(isfloat)
