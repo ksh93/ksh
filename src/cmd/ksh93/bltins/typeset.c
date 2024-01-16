@@ -671,22 +671,20 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	char *last = 0;
 	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
+	unsigned char dynscope=0;
 	Dt_t *save_vartree;
 	Namval_t *save_namespace;
 	if(flag&NV_GLOBAL)
 	{
 		save_vartree = sh.var_tree;
 		troot = sh.var_tree = sh.var_base;
-	}
-	else if(flag&NV_DYNAMIC)
-		nvflags |= NV_TAGGED;
 #if SHOPT_NAMESPACE
-	if(flag&NV_GLOBAL)
-	{
 		save_namespace = sh.namespace;
 		sh.namespace = NULL;
-	}
 #endif
+	}
+	if(flag&NV_DYNAMIC)
+		dynscope = 1;
 	if(!sh.prefix)
 	{
 		if(!tp->pflag)
@@ -811,6 +809,10 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 				}
 				continue;
 			}
+			// TODO: Move this into nv_open
+			if(troot==sh.var_tree)
+				np->dynscope = dynscope;
+			//
 			if(np->nvflag&NV_RDONLY && !tp->pflag
 			&& (tp->aflag=='+' || flag & ~(NV_ASSIGN|NV_RDONLY|NV_EXPORT)))	/* allow readonly/export on readonly vars */
 			{

@@ -228,6 +228,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	char		*prefix = sh.prefix;
 	int		traceon = (sh_isoption(SH_XTRACE)!=0);
 	int		array = (flags&(NV_ARRAY|NV_IARRAY));
+	unsigned char	dynscope = 0;
 	Namarr_t	*ap;
 	Namval_t	node;
 	struct Namref	nr;
@@ -241,16 +242,13 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	{
 		save_vartree = sh.var_tree;
 		sh.var_tree = sh.var_base;
-	}
-	else if(flags&NV_DYNAMIC)
-		flags |= NV_TAGGED;
 #if SHOPT_NAMESPACE
-	if(flags&NV_GLOBAL)
-	{
 		save_namespace = sh.namespace;
 		sh.namespace = NULL;
-	}
 #endif
+	}
+	if(flags&NV_DYNAMIC)
+		dynscope = 1;
 	if(maketype)
 	{
 		shtp.previous = sh.mktype;
@@ -324,6 +322,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					}
 				}
 				np = nv_open(cp,sh.var_tree,flag|NV_ASSIGN);
+				np->dynscope = dynscope;
 				if((arg->argflag&ARG_APPEND) && (tp->tre.tretyp&COMMSK)==TCOM && tp->com.comset && !nv_isvtree(np) && (((ap=nv_arrayptr(np)) && !ap->fun && !nv_opensub(np))  || (!ap && nv_isarray(np) && tp->com.comarg && !((mp=nv_search(tp->com.comarg->argval,sh.fun_tree,0)) && nv_isattr(mp,BLT_DCL)))))
 				{
 					if(tp->com.comarg)
@@ -441,9 +440,11 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 							{
 								unsigned short nvflag = np->nvflag;
 								uint32_t nvsize = np->nvsize;
+								uint32_t nvdynscope = np->dynscope;
 								_nv_unset(np,NV_EXPORT);
 								np->nvflag = nvflag;
 								np->nvsize = nvsize;
+								np->dynscope = nvdynscope;
 							}
 							else
 							{
@@ -556,6 +557,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 				{
 					L_ARGNOD->nvalue.nrp = node.nvalue.nrp;
 					L_ARGNOD->nvflag = node.nvflag;
+					L_ARGNOD->dynscope = node.dynscope;
 					L_ARGNOD->nvfun = node.nvfun;
 				}
 				sh.prefix = prefix;
@@ -592,6 +594,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 				mp = nv_search(cp,vartree,NV_ADD|NV_NOSCOPE);
 				mp->nvname = np->nvname;  /* put_lang() (init.c) compares nvname pointers */
 				mp->nvflag = np->nvflag;
+				mp->dynscope = np->dynscope;
 				mp->nvsize = np->nvsize;
 				mp->nvfun = nv_cover(np);
 			}
@@ -658,6 +661,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 			{
 				L_ARGNOD->nvalue.nrp = node.nvalue.nrp;
 				L_ARGNOD->nvflag = node.nvflag;
+				L_ARGNOD->dynscope = node.dynscope;
 				L_ARGNOD->nvfun = node.nvfun;
 			}
 		}
@@ -2211,14 +2215,16 @@ struct scan
 
 static int scanfilter(Namval_t *np, struct scan *sp)
 {
-	int k=np->nvflag;
+	int np_flags = np->nvflag;
 	struct adata *tp = (struct adata*)sp->scandata;
 	char	*cp;
 	if(!is_abuiltin(np) && tp && tp->tp && nv_type(np)!=tp->tp)
 		return 0;
 	if(sp->scanmask==NV_TABLE && nv_isvtree(np))
-		k = NV_TABLE;
-	if(sp->scanmask?(k&sp->scanmask)==sp->scanflags:(!sp->scanflags || (k&sp->scanflags)))
+		np_flags = NV_TABLE;
+	else if(np->dynscope==1)
+		np_flags |= NV_DYNAMIC;
+	if(sp->scanmask?(np_flags&sp->scanmask)==sp->scanflags:(!sp->scanflags || (np_flags&sp->scanflags)))
 	{
 		if(tp && tp->mapname)
 		{
@@ -2260,7 +2266,7 @@ void nv_rehash(Namval_t *np,void *data)
 
 /*
  * Walk through the name-value pairs
- * if <mask> is non-zero, then only nodes with (nvflags&mask)==flags
+ * if <mask> is non-zero, then only nodes with (nvflag&mask)==flags
  *	are visited
  * If <mask> is zero, and <flags> non-zero, then nodes with one or
  *	more of <flags> is visited

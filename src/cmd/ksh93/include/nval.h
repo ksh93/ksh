@@ -108,15 +108,16 @@ struct Namval
 #if _ast_sizeof_pointer == 8
 #   if _ast_intswap > 0
 	unsigned short	nvflag; 	/* attributes */
-	unsigned short	pad1;
+	unsigned short	dynscope;
 #   else
-	unsigned short	pad1;
+	unsigned short	dynscope;
 	unsigned short	nvflag; 	/* attributes */
 #   endif
 	uint32_t  	nvsize;		/* size or base */
 #else
 	unsigned short	nvflag; 	/* attributes */
 	unsigned short 	nvsize;		/* size or base */
+	unsigned int	dynscope;
 #endif
 #ifdef _NV_PRIVATE
 	_NV_PRIVATE

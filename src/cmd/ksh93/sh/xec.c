@@ -3025,25 +3025,22 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	if(n)
 	{
 		/*
-		 * Dynamic variables are implemented by being marked with NV_TAGGED, then imported into nested functions
-		 * via the nv_scan call below (currently this is separated from NV_EXPORT to avoid confusion with -x).
-		 * The old method ksh93v- uses for its bash mode creates a viewport between sh.var_tree and sh.var_base
-		 * with the help of a sh.st.var_local pointer. This could fake dynamic scoping convincingly for the
-		 * bash mode, but in reality that only creates a global scope local to the top level function (i.e.,
-		 * nested functions have no scoping.) This design flaw in ksh93v- made its scoping code unsalvageable.
+		 * Dynamic variables are implemented by being marked via np->dynscope, then
+		 * imported into nested functions via the nv_scan call below with scanflags
+		 * set to NV_DYNAMIC. The separate variable is necessary because np->nvflag
+		 * is an unsigned short and cannot hold the NV_DYNAMIC bitflag. It cannot
+		 * be changed to an unsigned int because the codebase makes too many assumptions
+		 * about its size (cf. https://github.com/att/ast/issues/1038).
 		 *
-		 * However, this approach is not free of pitfalls either. The nvflag variable the NV_* bits
-		 * are retrieved from is an unsigned short variable. It cannot be changed to an unsigned int because
-		 * the codebase make too many assumptions about its size (cf. https://github.com/att/ast/issues/1038).
-		 * Perhaps adding an nvscope variable would be a suitable workaround...
-		 *
-		 * In any case the NV_TAGGED feature is directly tied to 'typeset -t', which is supposed to be a
-		 * user-defined feature that the shell itself otherwise leaves untouched. The current approach here
-		 * is not backward compatible and runs the risk of breaking many scripts, so it really needs to be
-		 * changed.
+		 * The old method ksh93v- uses for its bash mode creates a viewport between
+		 * sh.var_tree and sh.var_base with the help of a sh.st.var_local pointer.
+		 * This could fake dynamic scoping convincingly for the bash mode, but in
+		 * reality that only manages to create a global scope local to the top level
+		 * function (i.e., nested functions have no scoping.) This design flaw in
+		 * ksh93v- made its scoping code unsalvageable.
 		 */
-		nv_scan(prevscope->save_tree, local_exports, NULL, NV_TAGGED, NV_TAGGED|NV_NOSCOPE);
 		nv_scan(prevscope->save_tree, local_exports, NULL, NV_EXPORT, NV_EXPORT|NV_NOSCOPE);
+		nv_scan(prevscope->save_tree, local_exports, NULL, NV_DYNAMIC, NV_DYNAMIC|NV_NOSCOPE);
 	}
 	if(posix_fun)
 		/* TODO: Is this even necessary anymore? */
