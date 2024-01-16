@@ -285,13 +285,13 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	}
 	*prevscope = sh.st;
 	sh.st.lineno = np ? ((struct functnod*)nv_funtree(np))->functline : 1;
+	sh.st.save_tree = sh.var_tree;
 	if(filename)
 		sh.st.filename = filename;
 	sh.st.prevst = prevscope;
 	sh.st.self = &savst;
 	sh.topscope = (Shscope_t*)sh.st.self;
 	prevscope->save_tree = sh.var_tree;
-	sh.st.save_tree = sh.var_tree;
 	tofree = sh.st.filename;
 	if(np)
 		sh.st.filename = np->nvalue.rp->fname;

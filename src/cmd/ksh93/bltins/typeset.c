@@ -515,7 +515,6 @@ endargs:
 	}
 	if((flag&(NV_GLOBAL|NV_DYNAMIC)) && sh.mktype)
 	{
-		/* TODO: Improve unfinished error message */
 		errormsg(SH_DICT,ERROR_exit(2),"type members cannot be global or dynamic");
 		UNREACHABLE();
 	}
