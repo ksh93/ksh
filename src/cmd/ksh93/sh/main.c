@@ -138,7 +138,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		/* begin script execution here */
 		sh_reinit(NULL);
 	}
-	sh.fn_depth = sh.dot_depth = 0;
+	sh.fn_depth = sh.dot_depth = sh.infunction = 0;
 	command = error_info.id;
 	path_pwd();
 	iop = NULL;

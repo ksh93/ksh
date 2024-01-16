@@ -3007,8 +3007,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 			sh.glob_options = sh.options;
 		else
 			sh.options = sh.glob_options;
-		sh.infunction = FUN_KSH;
 		sh_offoption(SH_ERREXIT);
+		sh.infunction = FUN_KSH;
 	}
 	else
 	{
@@ -3019,6 +3019,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		}
 		sh.infunction = FUN_POSIX;
 	}
+	/* Create a local scope for the function */
 	prevscope->save_tree = sh.var_tree;
 	dtret = dtvnext(prevscope->save_tree) != (sh.namespace?sh.var_base:0);
 	sh_scope(envlist,1);
@@ -3147,7 +3148,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		sh.dot_depth--;
 	update_sh_level();
 	sh.infunction = save_infunction;
-	if(!posix_fun && sh.fn_depth==1 && jmpval==SH_JMPERRFN)
+	if(sh.fn_depth==1 && jmpval==SH_JMPERRFN)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,argv[0]);
 		UNREACHABLE();
@@ -3156,8 +3157,13 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh_unscope();
 	sh.namespace = nspace;
 	sh.var_tree = (Dt_t*)prevscope->save_tree;
-	if(!posix_fun || jmpval!=SH_JMPSCRIPT)
+	if((posix_fun && jmpval!=SH_JMPSCRIPT) || !posix_fun)
 		sh_argreset(argsav,saveargfor);
+	else
+	{
+		prevscope->dolc = sh.st.dolc;
+		prevscope->dolv = sh.st.dolv;
+	}
 	if(!posix_fun)
 	{
 		trap = sh.st.trapcom[0];
