@@ -1048,7 +1048,7 @@ int sh_exec(const Shnode_t *t, int flags)
 						}
 						if((np==SYSLOCAL || np==SYSDECLARE) && !(flgs&NV_GLOBAL))
 							flgs |= NV_DYNAMIC;
-						else if((sh.infunction==FUN_POSIX && !(flgs&NV_DYNAMIC)) || sh.infunction==FUN_KSHDOT)
+						else if(sh.infunction==FUN_POSIX && !(flgs&NV_DYNAMIC))
 							flgs |= NV_GLOBAL;
 						if((sh.infunction==FUN_POSIX || sh.fn_depth) && !sh.prefix)
 							flgs |= NV_NOSCOPE;
