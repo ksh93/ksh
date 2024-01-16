@@ -3154,6 +3154,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		UNREACHABLE();
 	}
 	sh_popcontext(buffp);
+	/* Reinstate the previous scope */
 	sh_unscope();
 	sh.namespace = nspace;
 	sh.var_tree = (Dt_t*)prevscope->save_tree;
@@ -3177,7 +3178,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	{
 		if(sh.st.self != &savst)
 			*sh.st.self = sh.st;
-		sh.st.loopcnt = save_loopcnt;
 		/* Only restore the top Shscope_t portion for POSIX functions */
 		memcpy(&sh.st, prevscope, sizeof(Shscope_t));
 		sh.topscope = (Shscope_t*)prevscope;
@@ -3191,7 +3191,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	 */
 	sh.st = *prevscope;
 	sh.topscope = (Shscope_t*)prevscope;
-	sh.last_root = last_root;
 	nv_getval(sh_scoped(IFSNOD));
 	if(nsig)
 	{
@@ -3203,6 +3202,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	sh.trapnote = 0;
 	sh.options = save_options;
+	sh.last_root = last_root;
 	if(jmpval == SH_JMPSUB)
 		siglongjmp(*sh.jmplist,jmpval);
 	if(trap)
