@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -179,7 +179,7 @@ static struct process	*job_bystring(char*);
 static struct termios	my_stty;  /* terminal state for shell */
 static char		*job_string;
 
-    static void		job_unstop(struct process*);
+    static void		job_unstop(struct process*, int);
     static void		job_fgrp(struct process*, int);
 #ifndef _lib_tcgetpgrp
 #	ifdef TIOCGPGRP
@@ -735,7 +735,7 @@ static void job_set(struct process *pw)
 		tcsetpgrp(job.fd,pw->p_fgrp);
 	/* if job is stopped, resume it in the background */
 	if(!sh.forked)
-		job_unstop(pw);
+		job_unstop(pw,1);
 	sh.forked = 0;
 }
 
@@ -966,14 +966,24 @@ static struct process *job_bystring(char *ajob)
 }
 
 /*
+ * Helper function for job_kill().
+ * sh.1: "If the signal being sent is TERM (terminate) or HUP (hangup), then
+ * the job or process will be sent a CONT (continue) signal if it is stopped."
+ * As this is not specified anywhere in POSIX, this is disabled for POSIX mode.
+ */
+static int also_send_sigcont(struct process *pw,int sig)
+{
+	return !sh_isoption(SH_POSIX) && (sig==SIGHUP || sig==SIGTERM) && pw && (pw->p_flag & P_STOPPED);
+}
+
+/*
  * Kill a job or process
  */
 int job_kill(struct process *pw,int sig)
 {
 	pid_t pid;
-	int r;
+	int r = -1;
 	const char *msg;
-	int stopsig = (sig==SIGSTOP||sig==SIGTSTP||sig==SIGTTIN||sig==SIGTTOU);
 	job_lock();
 	errno = ECHILD;
 	if(!pw)
@@ -989,26 +999,28 @@ int job_kill(struct process *pw,int sig)
 			errno = EPERM;
 			r = -1;
 		}
+		else if(pid>=0)
+		{
+			r = kill(pid,sig);
+			if(r>=0)
+			{
+				if(also_send_sigcont(pw,sig))
+					kill(pid,sig = SIGCONT);
+				if(sig==SIGCONT && (pw->p_flag&P_STOPPED))
+					pw->p_flag &= ~(P_STOPPED|P_SIGNALLED|P_NOTIFY);
+			}
+		}
 		else
 		{
-			if(pid>=0)
+			pid = -pid;
+			pw = job_bypid(pid);
+			r = killpg(pid,sig);
+			if(r>=0)
 			{
-				if((r = kill(pid,sig))>=0 && !stopsig)
-				{
-					if(pw->p_flag&P_STOPPED)
-						pw->p_flag &= ~(P_STOPPED|P_SIGNALLED);
-					if(sig)
-						kill(pid,SIGCONT);
-				}
-			}
-			else
-			{
-				if((r = killpg(-pid,sig))>=0 && !stopsig)
-				{
-					job_unstop(job_bypid(pw->p_pid));
-					if(sig)
-						killpg(-pid,SIGCONT);
-				}
+				if(sig==SIGCONT)
+					job_unstop(pw,0);
+				else if(also_send_sigcont(pw,sig))
+					job_unstop(pw,1);
 			}
 		}
 	}
@@ -1017,15 +1029,22 @@ int job_kill(struct process *pw,int sig)
 		if(pid = pw->p_pgrp)
 		{
 			r = killpg(pid,sig);
-			if(r>=0 && (sig==SIGHUP||sig==SIGTERM || sig==SIGCONT))
-				job_unstop(pw);
 			if(r>=0)
+			{
+				if(sig==SIGCONT)
+					job_unstop(pw,0);
+				else if(also_send_sigcont(pw,sig))
+					job_unstop(pw,1);
 				sh_delay(.05,0);
+			}
 		}
 		while(pw && pw->p_pgrp==0 && (r=kill(pw->p_pid,sig))>=0) 
 		{
-			if(sig==SIGHUP || sig==SIGTERM)
+			if(also_send_sigcont(pw,sig))
+			{
 				kill(pw->p_pid,SIGCONT);
+				pw->p_flag &= ~(P_STOPPED|P_SIGNALLED|P_NOTIFY);
+			}
 			pw = pw->p_nxtproc;
 		}
 	}
@@ -1066,7 +1085,7 @@ int job_hup(struct process *pw, int sig)
 		if(!(px->p_flag & P_DONE))
 		{
 			if(killpg(pw->p_pgrp, SIGHUP) >= 0)
-				job_unstop(pw);
+				job_unstop(pw,1);
 			break;
 		}
 	}
@@ -1567,7 +1586,7 @@ int job_switch(struct process *pw,int bgflag)
 		job.waitall = 0;
 	}
 	else if(pw->p_flag&P_STOPPED)
-		job_unstop(pw);
+		job_unstop(pw,1);
 	job_unlock();
 	return 0;
 }
@@ -1584,7 +1603,7 @@ static void job_fgrp(struct process *pw, int newgrp)
 /*
  * turn off STOP state of a process group and send CONT signals
  */
-static void job_unstop(struct process *px)
+static void job_unstop(struct process *px, int send_sigcont)
 {
 	struct process *pw;
 	int num = 0;
@@ -1596,7 +1615,7 @@ static void job_unstop(struct process *px)
 			pw->p_flag &= ~(P_STOPPED|P_SIGNALLED|P_NOTIFY);
 		}
 	}
-	if(num!=0)
+	if(num && send_sigcont)
 	{
 		if(px->p_fgrp != px->p_pgrp)
 			killpg(px->p_fgrp,SIGCONT);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,8 +22,6 @@
  *
  * hash table library
  */
-
-static const char id_hash[] = "\n@(#)$Id: hash (AT&T Research) 1996-08-11 $\0\n";
 
 #include "hashlib.h"
 #include "FEATURE/hack"

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1289,6 +1289,29 @@ u ^RUN\r\n$
 p :test-2:
 w _ksh_93u_m_cmdcompl\t
 r :test-2: _ksh_93u_m_cmdcomplete_test_ \r\n$
+!
+
+tst $LINENO <<"!"
+L terminate interactive shell using the kill built-in
+
+d 40
+p :test-1:
+w PS1=':child-!: ' "$SHELL"
+p :child-1:
+w kill -s HUP \$\$
+r ^:child-1: kill -s HUP \$\$\r\n$
+r ^Hangup\r\n$
+!
+
+((SHOPT_VSH)) && HISTFILE=$tmp/tmp_histfile tst $LINENO <<"!"
+L 'read -s' reads from history file on first go
+
+d 40
+p :test-1:
+w "$SHELL" -o vi -c 'read -s "foo?:prompt: "'
+p :prompt:
+c \Ek
+r ^:prompt: "\$SHELL" -o vi -c 'read -s "foo\?:prompt: "'$
 !
 
 # ======

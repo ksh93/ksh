@@ -9,12 +9,10 @@ note *
 setv MAMAKE_STRICT
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
-setv PACKAGEROOT ../../../../..
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
 setv CC cc
 setv mam_cc_FLAGS ${mam_cc_DLL}
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
-setv COTEMP $$
 setv IFFEFLAGS
 setv LDFLAGS
 make install
@@ -78,7 +76,6 @@ make install
 										make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
 											prev ${PACKAGE_ast_INCLUDE}/getopt.h
 											prev ${PACKAGE_ast_INCLUDE}/endian.h
-											prev ${PACKAGE_ast_INCLUDE}/endian.h
 										done ${PACKAGE_ast_INCLUDE}/ast_sys.h
 										prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -101,7 +98,7 @@ make install
 							bind -last
 							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdl} ${mam_libast} : run features/dll
 						done FEATURE/dll generated
-						exec - ${STDCMP} -s FEATURE/dll dlldefs.h || { ${STDRM} -f dlldefs.h; ${STDCP} FEATURE/dll dlldefs.h; }
+						exec - ${STDCP} -f FEATURE/dll dlldefs.h
 					done dlldefs.h generated
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done dlfcn.c
@@ -190,37 +187,26 @@ make install
 	done dll virtual
 	prev libdll.a
 	make ${INSTALLROOT}/lib
-		exec - if test ! -d ${INSTALLROOT}/lib
-		exec - then mkdir -p ${INSTALLROOT}/lib
-		exec - fi
+		exec - mkdir -p ${INSTALLROOT}/lib
 	done ${INSTALLROOT}/lib generated
 	make ${INSTALLROOT}/lib/libdll.a archive
-		prev ${INSTALLROOT}/lib
 		prev libdll.a
-		exec - ${STDCMP} 2>/dev/null -s libdll.a ${INSTALLROOT}/lib/libdll.a || { ${STDMV} ${INSTALLROOT}/lib/libdll.a ${INSTALLROOT}/lib/libdll.a.old 2>/dev/null || true; ${STDCP} libdll.a ${INSTALLROOT}/lib/libdll.a ;}
+		exec - ${STDCP} -f libdll.a ${INSTALLROOT}/lib/libdll.a
 		exec - (ranlib ${INSTALLROOT}/lib/libdll.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libdll.a generated
 	make ${INSTALLROOT}/lib/lib
-		exec - if test ! -d ${INSTALLROOT}/lib/lib
-		exec - then mkdir -p ${INSTALLROOT}/lib/lib
-		exec - fi
+		exec - mkdir -p ${INSTALLROOT}/lib/lib
 	done ${INSTALLROOT}/lib/lib generated
 	make ${INSTALLROOT}/lib/lib/dll
-		prev ${INSTALLROOT}/lib/lib
 		prev dll.req
-		exec - ${STDCMP} 2>/dev/null -s dll.req ${INSTALLROOT}/lib/lib/dll || { ${STDMV} ${INSTALLROOT}/lib/lib/dll ${INSTALLROOT}/lib/lib/dll.old 2>/dev/null || true; ${STDCP} dll.req ${INSTALLROOT}/lib/lib/dll ;}
+		exec - ${STDCP} -f dll.req ${INSTALLROOT}/lib/lib/dll
 	done ${INSTALLROOT}/lib/lib/dll generated
 	make ${PACKAGE_ast_INCLUDE}
-		exec - if test ! -d ${PACKAGE_ast_INCLUDE}
-		exec - then mkdir -p ${PACKAGE_ast_INCLUDE}
-		exec - fi
+		exec - mkdir -p ${PACKAGE_ast_INCLUDE}
 	done ${PACKAGE_ast_INCLUDE} generated
 	make ${PACKAGE_ast_INCLUDE}/dlldefs.h
-		prev ${PACKAGE_ast_INCLUDE}
 		prev dlldefs.h
-		exec - if ! ${STDCMP} -s dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
-		exec - then ${STDCP} dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
-		exec - fi
+		exec - ${STDCP} -f dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
 	done ${PACKAGE_ast_INCLUDE}/dlldefs.h generated
 done install virtual
 make test

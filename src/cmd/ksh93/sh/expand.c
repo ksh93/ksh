@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -244,10 +244,10 @@ int path_generate(struct argnod *todo, struct argnod **arghead, int musttrim)
 	struct argnod *ap;
 	struct argnod *top = 0;
 	struct argnod *apin;
-	char *pat, *rescan;
+	char *pat = NULL, *rescan;
 	char *format;
 	char comma, range=0;
-	int first, last, incr, count = 0;
+	int first = 0, last = 0, incr = 0, count = 0;
 	char tmp[32], end[1];
 	todo->argchn.ap = 0;
 again:
@@ -384,6 +384,8 @@ again:
 	}
 endloop1:
 	rescan = cp;
+	if(!pat)
+		abort();
 	cp = pat-1;
 	*cp = 0;
 	while(1)

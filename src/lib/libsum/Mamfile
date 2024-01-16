@@ -9,12 +9,10 @@ note *
 setv MAMAKE_STRICT
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
-setv PACKAGEROOT ../../../../..
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
 setv CC cc
 setv mam_cc_FLAGS ${mam_cc_PIC}
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
-setv COTEMP $$
 setv IFFEFLAGS
 setv LDFLAGS
 make install
@@ -102,7 +100,6 @@ make install
 									make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/getopt.h
 										prev ${PACKAGE_ast_INCLUDE}/endian.h
-										prev ${PACKAGE_ast_INCLUDE}/endian.h
 									done ${PACKAGE_ast_INCLUDE}/ast_sys.h
 									prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -131,37 +128,26 @@ make install
 	done sum virtual
 	prev libsum.a
 	make ${INSTALLROOT}/lib
-		exec - if test ! -d ${INSTALLROOT}/lib
-		exec - then mkdir -p ${INSTALLROOT}/lib
-		exec - fi
+		exec - mkdir -p ${INSTALLROOT}/lib
 	done ${INSTALLROOT}/lib generated
 	make ${INSTALLROOT}/lib/libsum.a archive
-		prev ${INSTALLROOT}/lib
 		prev libsum.a
-		exec - ${STDCMP} 2>/dev/null -s libsum.a ${INSTALLROOT}/lib/libsum.a || { ${STDMV} ${INSTALLROOT}/lib/libsum.a ${INSTALLROOT}/lib/libsum.a.old 2>/dev/null || true; ${STDCP} libsum.a ${INSTALLROOT}/lib/libsum.a ;}
+		exec - ${STDCP} -f libsum.a ${INSTALLROOT}/lib/libsum.a
 		exec - (ranlib ${INSTALLROOT}/lib/libsum.a) >/dev/null 2>&1 || true
 	done ${INSTALLROOT}/lib/libsum.a generated
 	make ${INSTALLROOT}/lib/lib
-		exec - if test ! -d ${INSTALLROOT}/lib/lib
-		exec - then mkdir -p ${INSTALLROOT}/lib/lib
-		exec - fi
+		exec - mkdir -p ${INSTALLROOT}/lib/lib
 	done ${INSTALLROOT}/lib/lib generated
 	make ${INSTALLROOT}/lib/lib/sum
-		prev ${INSTALLROOT}/lib/lib
 		prev sum.req
-		exec - ${STDCMP} 2>/dev/null -s sum.req ${INSTALLROOT}/lib/lib/sum || { ${STDMV} ${INSTALLROOT}/lib/lib/sum ${INSTALLROOT}/lib/lib/sum.old 2>/dev/null || true; ${STDCP} sum.req ${INSTALLROOT}/lib/lib/sum ;}
+		exec - ${STDCP} -f sum.req ${INSTALLROOT}/lib/lib/sum
 	done ${INSTALLROOT}/lib/lib/sum generated
 	make ${PACKAGE_ast_INCLUDE}
-		exec - if test ! -d ${PACKAGE_ast_INCLUDE}
-		exec - then mkdir -p ${PACKAGE_ast_INCLUDE}
-		exec - fi
+		exec - mkdir -p ${PACKAGE_ast_INCLUDE}
 	done ${PACKAGE_ast_INCLUDE} generated
 	make ${PACKAGE_ast_INCLUDE}/sum.h
-		prev ${PACKAGE_ast_INCLUDE}
 		prev sum.h
-		exec - if ! ${STDCMP} -s sum.h ${PACKAGE_ast_INCLUDE}/sum.h
-		exec - then ${STDCP} sum.h ${PACKAGE_ast_INCLUDE}/sum.h
-		exec - fi
+		exec - ${STDCP} -f sum.h ${PACKAGE_ast_INCLUDE}/sum.h
 	done ${PACKAGE_ast_INCLUDE}/sum.h generated
 done install virtual
 make test

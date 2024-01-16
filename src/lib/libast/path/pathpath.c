@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -47,7 +47,7 @@ pathpath(char* path, const char* p, const char* a, int mode)
 char*
 pathpath_20100601(const char* p, const char* a, int mode, char* path, size_t size)
 {
-	char*	s;
+	char*		s;
 	char*		x;
 	char		buf[PATH_MAX];
 
@@ -120,5 +120,11 @@ pathpath_20100601(const char* p, const char* a, int mode, char* path, size_t siz
 	x = !a && strchr(p, '/') ? "" : pathbin();
 	if (!(s = pathaccess(x, p, a, mode, path, size)) && !*x && (x = getenv("FPATH")))
 		s = pathaccess(x, p, a, mode, path, size);
+/* disable false positive warning */
+#if __clang__
+#pragma clang diagnostic ignored "-Wreturn-stack-address"
+#elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#pragma GCC diagnostic ignored "-Wreturn-local-addr"
+#endif
 	return (s && path == buf) ? strdup(s) : s;
 }

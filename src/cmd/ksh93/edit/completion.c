@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -36,7 +36,7 @@
 static char *fmtx(const char *string)
 {
 	const char	*cp = string;
-	int	 	n,c;
+	int	 	n = 0, c;
 	int		pos = 0;
 	unsigned char 	*state = (unsigned char*)sh_lexstates[2];
 	int		offset = stktell(sh.stk);

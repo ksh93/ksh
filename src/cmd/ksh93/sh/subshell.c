@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -79,7 +79,6 @@ static struct subshell
 	int		tmpfd;	/* saved tmp file descriptor */
 	int		pipefd;	/* read fd if pipe is created */
 	char		jobcontrol;
-	char		monitor;
 	unsigned char	fdstatus;
 	int		fdsaved; /* bit mask for saved file descriptors */
 	int		sig;	/* signal for $$ */
@@ -595,7 +594,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			/* disable job control */
 			sh.spid = 0;
 			sp->jobcontrol = job.jobcontrol;
-			sp->monitor = (sh_isstate(SH_MONITOR)!=0);
 			job.jobcontrol=0;
 			sh_offstate(SH_MONITOR);
 			sp->pipe = sp;
@@ -642,13 +640,14 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			/* Virtual subshells are not safe to suspend (^Z, SIGTSTP) in the interactive main shell. */
 			if(sh_isstate(SH_INTERACTIVE))
 			{
+				sh_offstate(SH_INTERACTIVE);
 				sh_offstate(SH_TTYWAIT);
 				if(comsub)
 					sigblock(SIGTSTP);
 				else
 					sh_subfork();
 			}
-			sh_offstate(SH_INTERACTIVE);
+			sh_offstate(SH_PROFILE);
 			sh_exec(t,flags);
 		}
 	}
@@ -681,7 +680,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sigrelease(SIGTSTP);
 		/* re-enable job control */
 		job.jobcontrol = sp->jobcontrol;
-		if(sp->monitor)
+		if(savst.states & sh_state(SH_MONITOR))
 			sh_onstate(SH_MONITOR);
 		if(sp->pipefd>=0)
 		{

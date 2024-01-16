@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,8 +23,6 @@
  *
  * mime/mailcap support library
  */
-
-static const char id[] = "\n@(#)$Id: mime library (AT&T Research) 2002-10-29 $\0\n";
 
 static const char lib[] = "libast:mime";
 
@@ -142,9 +140,9 @@ mimeset(Mime_t* mp, char* s, unsigned long flags)
 	Att_t*	att;
 	char*	t;
 	char*	v;
-	char*	k;
-	char*	x;
-	Att_t*	tta;
+	char*	k = NULL;
+	char*	x = NULL;
+	Att_t*	tta = NULL;
 	int	q;
 
 	for (; isspace(*s); s++);
@@ -225,9 +223,12 @@ mimeset(Mime_t* mp, char* s, unsigned long flags)
 						*t++ = 0;
 					if (!(att = newof(0, Att_t, 1, 0)))
 						return -1;
+					if (!x)
+						abort();
 					x = strcopy(att->name = x, k) + 1;
 					x = strcopy(att->value = x, v) + 1;
-					tta = tta->next = att;
+					tta->next = att;
+					tta = att;
 					if (!strcasecmp(k, "test"))
 						cap->test = att->value;
 				}

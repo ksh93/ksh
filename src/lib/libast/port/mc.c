@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -57,7 +57,7 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
 	char*		s;
 	char*		e;
 	char*		p;
-	const char*	v;
+	const char*	v = NULL;
 	int		i;
 	int		first;
 	int		next;
@@ -622,7 +622,7 @@ mcindex(const char* s, char** e, int* set, int* msg)
 	{
 		SFCVINIT();
 		cv = _Sfcv36;
-		for (n = m = 0; (c = cv[*s]) < 36; s++)
+		for (n = m = 0; (c = cv[*((unsigned char*)s)]) < 36; s++)
 		{
 			m++;
 			n ^= c;

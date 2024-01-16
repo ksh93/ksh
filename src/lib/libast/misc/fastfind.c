@@ -69,8 +69,6 @@
  * SUCH DAMAGE.
  */
 
-static const char id[] = "\n@(#)$Id: fastfind (AT&T Research) 2002-10-02 $\0\n";
-
 static const char lib[] = "libast:fastfind";
 
 #include "findlib.h"
@@ -139,7 +137,7 @@ typefix(char* buf, size_t n, const char* t)
 Find_t*
 findopen(const char* file, const char* pattern, const char* type, Finddisc_t* disc)
 {
-	Find_t*		fp;
+	Find_t*		fp = NULL;
 	char*		p;
 	char*		s;
 	char*		b;
@@ -677,7 +675,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 char*
 findread(Find_t* fp)
 {
-	char*		p;
+	char*		p = NULL;
 	char*		q;
 	char*		s;
 	char*		b;
@@ -686,7 +684,7 @@ findread(Find_t* fp)
 	int		n;
 	int		m;
 	int		ignorecase;
-	int		t;
+	int		t = 0;
 	unsigned char	w[4];
 	struct stat	st;
 
@@ -802,7 +800,7 @@ findread(Find_t* fp)
 		if (fp->dirs)
 			for (;;)
 			{
-				if (!*fp->dirs)
+				if (!*fp->dirs || !p)
 					return NULL;
 
 				/*

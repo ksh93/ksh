@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -314,7 +314,7 @@ debug_strxfrm(char* t, const char* s, size_t n)
 				{
 					for (q = s + 2; q < r; q++)
 						if (t < e)
-							*t++ = debug_order[*q];
+							*t++ = debug_order[*((unsigned char*)q)];
 					while (w++ < DX)
 						if (t < e)
 							*t++ = 1;
@@ -329,9 +329,9 @@ debug_strxfrm(char* t, const char* s, size_t n)
 			if (t)
 			{
 				if (t < e)
-					*t++ = debug_order[s[0]];
+					*t++ = debug_order[((unsigned char*)s)[0]];
 				if (t < e)
-					*t++ = debug_order[s[1]];
+					*t++ = debug_order[((unsigned char*)s)[1]];
 				if (t < e)
 					*t++ = 1;
 				if (t < e)
@@ -346,11 +346,11 @@ debug_strxfrm(char* t, const char* s, size_t n)
 			if (t)
 			{
 				if (t < e)
-					*t++ = debug_order[s[0]];
+					*t++ = debug_order[((unsigned char*)s)[0]];
 				if (t < e)
-					*t++ = debug_order[s[1]];
+					*t++ = debug_order[((unsigned char*)s)[1]];
 				if (t < e)
-					*t++ = debug_order[s[2]];
+					*t++ = debug_order[((unsigned char*)s)[2]];
 				if (t < e)
 					*t++ = 1;
 			}
@@ -361,7 +361,7 @@ debug_strxfrm(char* t, const char* s, size_t n)
 		if (t)
 		{
 			if (t < e)
-				*t++ = debug_order[s[0]];
+				*t++ = debug_order[((unsigned char*)s)[0]];
 			if (t < e)
 				*t++ = 1;
 			if (t < e)
@@ -2684,7 +2684,6 @@ _ast_setlocale(int category, const char* locale)
 		if (!initialized)
 		{
 			char*	u;
-			char	tmp[256];
 
 			/*
 			 * initialize from the environment

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -556,7 +556,7 @@ void hist_eof(History_t *hp)
 	char *cp,*first,*endbuff;
 	int incmd = 0;
 	off_t count = hp->histcnt;
-	int oldind,n,skip=0;
+	int oldind=0,n,skip=0;
 	off_t last = sfseek(hp->histfp,0,SEEK_END);
 	if(last < count)
 	{

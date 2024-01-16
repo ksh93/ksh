@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -89,13 +89,15 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 	       void*	buf,	/* new buffer */
 	       size_t	size)	/* buffer size, -1 for default size */
 {
-	int		sf_malloc, oflags, init, okmmap, local;
+	int		sf_malloc, oflags, init, local;
 	ssize_t		bufsize, blksz;
 	Sfdisc_t*	disc;
 	struct stat	st;
 	uchar*		obuf = NULL;
 	ssize_t		osize = 0;
-
+#ifdef MAP_TYPE
+	int		okmmap;
+#endif
 
 	if(!f)
 		return NULL;
@@ -161,11 +163,11 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 	bufsize = 0;
 	oflags = f->flags;
 
+#ifdef MAP_TYPE
 	/* see if memory mapping is possible (see sfwrite for SF_BOTH) */
 	okmmap = (buf || (f->flags&SF_STRING) || (f->flags&SF_RDWR) == SF_RDWR) ? 0 : 1;
 
 	/* save old buffer info */
-#ifdef MAP_TYPE
 	if(f->bits&SF_MMAP)
 	{	if(f->data)
 		{	SFMUNMAP(f,f->data,f->endb-f->data);
@@ -219,16 +221,20 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 			f->blksz = (size_t)st.st_blksize;
 #endif
 			bufsize = 64 * 1024;
+#ifdef MAP_TUPE
 			if(S_ISDIR(st.st_mode) || (Sfoff_t)st.st_size < (Sfoff_t)SF_GRAIN)
 				okmmap = 0;
+#endif
 			if(S_ISREG(st.st_mode) || S_ISDIR(st.st_mode))
 				f->here = SFSK(f,0,SEEK_CUR,f->disc);
 			else	f->here = -1;
 
+#ifdef MAP_TYPE
 #if O_TEXT /* no memory mapping with O_TEXT because read()/write() alter data stream */
 			if(okmmap && f->here >= 0 &&
 			   (fcntl((int)f->file,F_GETFL,0) & O_TEXT) )
 				okmmap = 0;
+#endif
 #endif
 		}
 

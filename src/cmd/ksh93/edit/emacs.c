@@ -648,9 +648,7 @@ update:
 			{
 				hline = hismin+1;
 				beep();
-#ifndef ESH_NFIRST
 				continue;
-#endif
 			}
 			goto common;
 

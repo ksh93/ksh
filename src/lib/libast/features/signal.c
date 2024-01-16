@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -17,7 +17,13 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
+#if __clang__
 #pragma clang diagnostic ignored "-Wparentheses"
+#pragma clang diagnostic ignored "-Wmissing-braces"
+#elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#pragma GCC diagnostic ignored "-Wparentheses"
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+#endif
 /*
  * Glenn Fowler
  * AT&T Research
@@ -308,6 +314,7 @@ main(void)
 				k = j;
 			mapindex[j] = i;
 		}
+	n = 1;
 #ifdef SIGRTMIN
 	i = SIGRTMIN;
 #ifdef SIGRTMAX
@@ -322,7 +329,6 @@ main(void)
 		if (j > k)
 			k = j;
 		mapindex[i] = RANGE_MIN | RANGE_RT;
-		n = 1;
 		while (++i < j)
 			mapindex[i] = RANGE_RT | n++;
 		mapindex[j] = RANGE_MAX | RANGE_RT | n;

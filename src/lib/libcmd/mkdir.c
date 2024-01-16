@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -70,7 +70,7 @@ b_mkdir(int argc, char** argv, Shbltin_t* context)
 	int		vflag = 0;
 	int		made;
 	char*		part;
-	mode_t		dmode;
+	mode_t		dmode = 0;
 	struct stat	st;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);

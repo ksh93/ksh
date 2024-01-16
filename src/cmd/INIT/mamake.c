@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1990-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,7 +15,11 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
+#if __clang__
 #pragma clang diagnostic ignored "-Wparentheses"
+#elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#pragma GCC diagnostic ignored "-Wparentheses"
+#endif
 
 /*
  * mamake -- MAM make
@@ -36,7 +40,7 @@ static const char usage[] =
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?Contributors to https://github.com/ksh93/ksh]"
 "[-copyright?(c) 1994-2012 AT&T Intellectual Property]"
-"[-copyright?(c) 2020-2023 Contributors to ksh 93u+m]"
+"[-copyright?(c) 2020-2024 Contributors to ksh 93u+m]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
 "[+NAME?mamake - make abstract machine make]"
 "[+DESCRIPTION?\bmamake\b reads \amake abstract machine\a target and"
@@ -589,7 +593,10 @@ search(Dict_t* dict, char* name, void* value)
 	else if (value)
 	{
 		if (!(root = newof(0, Dict_item_t, 1, strlen(name))))
+		{
 			report(3, "out of memory [dictionary]", name, 0);
+			abort();
+		}
 		strcpy(root->name, name);
 	}
 	if (root)
@@ -727,7 +734,8 @@ view(void)
 	}
 	if ((s = (char*)search(state.vars, "VPATH", NULL)) && *s)
 	{
-		zp = 0;
+		p = NULL;
+		zp = NULL;
 		for (;;)
 		{
 			for (t = s; *t && *t != ':'; t++);
@@ -770,6 +778,8 @@ view(void)
 				}
 			}
 			n = strlen(s);
+			if(!p)
+				abort();
 			if (!(vp = newof(0, View_t, 1, strlen(p) + n + 1)))
 				report(3, "out of memory [view]", s, 0);
 			vp->node = n + 1;

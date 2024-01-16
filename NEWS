@@ -2,6 +2,37 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-01-15:
+
+- Fixed a bug, introduced in ksh93q+ 2005-05-22, that stopped an append
+  assignment from working together with a declaration command. For example,
+  'typeset var+=value' or 'export var+=value' now again work as expected.
+
+2024-01-14:
+
+- Fixed a regression introduced on 2022-11-01 that caused ksh to enter
+  an infinite loop after using the up arrow in emacs mode with an empty
+  history file.
+
+- Fixed a bug in 'read -s': in a script, the first invocation of that
+  command, with the emacs or vi shell option on, did not allow the user to
+  navigate through the shell history file.
+
+2024-01-11:
+
+- Fixed ancient incorrect behaviour in the 'kill' built-in: it sent SIGCONT
+  to the given process along with every other non-SIGCONT signal issued,
+  causing a stopped process to be incorrectly resumed upon sending it any
+  signal and causing any SIGCONT trap handler to be incorrectly triggered.
+
+- Fixed: the 'kill' built-in was not able to terminate an interactive shell
+  by sending a signal such as SIGHUP to its own shell (e.g. kill -s HUP $$).
+
+2024-01-05:
+
+- Fixed a potential crash on pressing Ctrl+C on the command line while
+  history expansion (the -H or histexpand option) is active.
+
 2023-12-28:
 
 - Fixed intermittent incorrect behaviour (a race condition), introduced on

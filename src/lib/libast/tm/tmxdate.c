@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -157,7 +157,7 @@ tmxdate(const char* s, char** e, Time_t now)
 {
 	Tm_t*		tm;
 	long		n;
-	int		w;
+	int		w = 0;
 	unsigned long	set;
 	unsigned long	state;
 	unsigned long	flags;
@@ -176,7 +176,7 @@ tmxdate(const char* s, char** e, Time_t now)
 	int		f;
 	int		i;
 	int		j;
-	int		k;
+	int		k = 0;
 	int		l;
 	long		m;
 	unsigned long	p;
@@ -252,7 +252,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						break;
 				}
 			}
-			else if (!skip[*s])
+			else if (!skip[*((unsigned char*)s)])
 				break;
 			s++;
 		}
@@ -815,7 +815,7 @@ tmxdate(const char* s, char** e, Time_t now)
 				state |= ((f = n) ? NEXT : THIS)|ORDINAL;
 				set &= ~(EXACT|LAST|NEXT|THIS);
 				set |= state & (EXACT|LAST|NEXT|THIS);
-				for (s = t; skip[*s]; s++);
+				for (s = t; skip[*((unsigned char*)s)]; s++);
 				if (isdigit(*s))
 				{
 					if (n = strtol(s, &t, 10))
@@ -974,7 +974,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						}
 						continue;
 					}
-					for (s = t; skip[*s]; s++)
+					for (s = t; skip[*((unsigned char*)s)]; s++)
 						;
 					message((-1, "AHA#%d s=\"%s\"", __LINE__, s));
 					if (*s == ':' || *s == '.' && ((set|state) & (YEAR|MONTH|DAY|HOUR)) == (YEAR|MONTH|DAY))
@@ -1086,7 +1086,7 @@ tmxdate(const char* s, char** e, Time_t now)
 			/* +/- handled on top of loop */
 			if (*s == '-' || *s == '+')
 				break;
-			else if (skip[*s])
+			else if (skip[*((unsigned char*)s)])
 				s++;
 			else
 				break;
@@ -1262,7 +1262,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						message((-1, "AHA#%d n=%d", __LINE__, n));
 						/* look ahead for TM_PARTS, in k used in ordinal: */
 						u = t;
-						while (skip[*u])
+						while (skip[*((unsigned char*)u)])
 							u++;
 						k = tmlex(u, &u,
 							tm_info.format, TM_NFORM,
@@ -1311,7 +1311,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						{
 							/* look ahead for TM_PARTS, k used in ordinal: */
 							u = t;
-							while (skip[*u])
+							while (skip[*((unsigned char*)u)])
 								u++;
 							k = tmlex(u, &u,
 								tm_info.format, TM_NFORM,
@@ -1326,7 +1326,7 @@ tmxdate(const char* s, char** e, Time_t now)
 
 						for (;;)
 						{
-							while (skip[*s])
+							while (skip[*((unsigned char*)s)])
 								s++;
 							if ((k = tmlex(s, &t, tm_info.format + TM_LAST, TM_NOISE - TM_LAST, NULL, 0)) >= 0)
 							{
@@ -1536,7 +1536,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						tm->tm_mon = j - TM_MONTH;
 						if (n < 0)
 						{
-							while (skip[*s])
+							while (skip[*((unsigned char*)s)])
 								s++;
 							if (isdigit(*s))
 							{

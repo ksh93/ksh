@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -104,4 +104,18 @@ typeset -a arr2
 } 2> /dev/null
 [[ $(typeset -p arr2) == "$exp" ]] || err_exit 'append (b=c xxxxx) to indexed array not working'
 
+# ======
+unset foo
+exp='typeset -x foo=barbaz'
+got=$(foo=bar; export foo+=baz 2>&1 && typeset -p foo)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit 'declaration command does not support +=' \
+	"(expected status 0, $(printf %q "$exp");" \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+exp='typeset -x -a foo=([23]=barbaz)'
+got=$(foo[23]=bar; export foo[23]+=baz 2>&1 && typeset -p foo)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit 'declaration command does not support +=' \
+	"(expected status 0, $(printf %q "$exp");" \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

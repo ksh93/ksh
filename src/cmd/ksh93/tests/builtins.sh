@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1608,6 +1608,12 @@ do	case $bltin in
 		continue ;;
 	fc | hist )
 		((SHOPT_SCRIPTONLY)) && continue ;;
+	esac
+	got=$({ "$bltin" --\?-version; } 2>&1)  # the extra { } are needed for 'redirect'
+	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --\\?-version (got $(printf %q "$got"))"
+	case $bltin in
+	uname | */uname )
+		continue ;;
 	esac
 	got=$({ "$bltin" --version; } 2>&1)  # the extra { } are needed for 'redirect'
 	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --version (got $(printf %q "$got"))"

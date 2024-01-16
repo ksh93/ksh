@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1145,7 +1145,7 @@ static int varsub(Mac_t *mp)
 {
 	int		c;
 	int		type=0; /* M_xxx */
-	char		*v,*argp=0;
+	char		*v = NULL, *argp = NULL;
 	Namval_t	*np = NULL;
 	int 		dolg=0, mode=0;
 	Lex_t		*lp = (Lex_t*)sh.lex_context;
@@ -1893,7 +1893,7 @@ retry2:
 	{
 		int ofs_size = 0;
 		int match[2*(MATCH_MAX+1)],index;
-		int nmatch, nmatch_prev, vsize_last, tsize;
+		int nmatch, nmatch_prev, vsize_last = 0, tsize;
 		char *vlast = NULL, *oldv;
 		while(1)
 		{
@@ -2893,7 +2893,7 @@ static noreturn void mac_error(void)
  */ 
 static char *mac_getstring(char *pattern)
 {
-	char	*cp=pattern, *rep=0, *dp;
+	char	*cp = pattern, *rep = NULL, *dp = NULL;
 	int	c;
 	while(c = *cp++)
 	{

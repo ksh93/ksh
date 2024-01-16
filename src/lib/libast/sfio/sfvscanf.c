@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -133,7 +133,7 @@ static char* _sfsetclass(const char*	form,	/* format string			*/
 		ac->ok[c] = !ac->yes;
 
 	if(*form == ']' || *form == '-') /* special first char */
-	{	ac->ok[*form] = ac->yes;
+	{	ac->ok[*((unsigned char*)form)] = ac->yes;
 		form += 1;
 	}
 	ac->form = (char*)form;
@@ -211,8 +211,8 @@ static int _sfgetwc(Scan_t*	sc,	/* the scanning handle		*/
 		    Accept_t*	ac,	/* accept handle for %[		*/
 		    void*	mbs)	/* multibyte parsing state	*/
 {
-	int	n, v;
-	char	b[16]; /* assuming that SFMBMAX <= 16! */
+	int		n, v;
+	unsigned char	b[16];		/* assuming that SFMBMAX <= 16! */
 
 	/* shift left data so that there will be more room to back up on error.
 	   this won't help streams with small buffers - c'est la vie! */
@@ -233,7 +233,7 @@ static int _sfgetwc(Scan_t*	sc,	/* the scanning handle		*/
 			goto no_match;
 		else	b[n++] = v;
 
-		if(mbrtowc(wc, b, n, (mbstate_t*)mbs) == (size_t)(-1))
+		if(mbrtowc(wc, (char*)b, n, (mbstate_t*)mbs) == (size_t)(-1))
 			goto no_match;  /* malformed multi-byte char */
 		else
 		{	/* multi-byte char converted successfully */

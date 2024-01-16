@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #           Copyright (c) 2019-2020 Contributors to ksh2020            #
-#             Copyright (c) 2022 Contributors to ksh 93u+m             #
+#          Copyright (c) 2022-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #

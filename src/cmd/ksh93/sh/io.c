@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *          atheik <14833674+atheik@users.noreply.github.com>           *
 *            Johnothan King <johnothanking@protonmail.com>             *
+*               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *                                                                      *
 ***********************************************************************/
 
@@ -1122,11 +1123,11 @@ int	sh_redirect(struct ionod *iop, int flag)
 {
 	Sfoff_t off; 
 	char *fname;
-	int 	fd, iof;
+	int fd = -1, iof;
 	const char *message = e_open;
 	int o_mode;		/* mode flag for open */
 	static char io_op[7];	/* used for -x trace info */
-	int trunc=0, clexec=0, fn, traceon;
+	int trunc=0, clexec=0, fn, traceon=0;
 	int r, indx = sh.topfd, perm= -1;
 	char *tname=0, *after="", *trace = sh.st.trap[SH_DEBUGTRAP];
 	Namval_t *np=0;
@@ -1670,7 +1671,7 @@ static ssize_t tee_write(Sfio_t *iop,const void *buff,size_t n,Sfdisc_t *unused)
  */
 void sh_iosave(int origfd, int oldtop, char *name)
 {
-	int	savefd;
+	int savefd;
 	int flag = (oldtop&(IOSUBSHELL|IOPICKFD));
 	oldtop &= ~(IOSUBSHELL|IOPICKFD);
 	/* see if already saved, only save once */
@@ -1768,7 +1769,7 @@ void	sh_iounsave(void)
  */
 void	sh_iorestore(int last, int jmpval)
 {
-	int 	origfd, savefd, fd;
+	int origfd, savefd, fd;
 	int flag = (last&IOSUBSHELL);
 	last &= ~IOSUBSHELL;
 	for (fd = sh.topfd - 1; fd >= last; fd--)
@@ -2014,7 +2015,7 @@ static ssize_t slowread(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 			sh_timerdel(timeout);
 		timeout=0;
 #if SHOPT_HISTEXPAND
-		if(rsize && *(char*)buff != '\n' && sh.nextprompt==1 && sh_isoption(SH_HISTEXPAND))
+		if(rsize > 0 && *(char*)buff != '\n' && sh.nextprompt==1 && sh_isoption(SH_HISTEXPAND))
 		{
 			int r;
 			((char*)buff)[rsize] = '\0';

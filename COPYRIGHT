@@ -3,7 +3,7 @@ ksh 93u+m general copyright notice
 ########################################################################
 #                                                                      #
 #                   The KornShell 93u+m distribution                   #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                    <https://github.com/ksh93/ksh>                    #
 #             Derived from AT&T's ast package (see below)              #
 #       Licensed under the Eclipse Public License, Version 2.0         #
@@ -16,8 +16,8 @@ ksh 93u+m general copyright notice
 #                                                                      #
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #            Johnothan King <johnothanking@protonmail.com>             #
-#         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
+#         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #               Anuradha Weeraman <anuradha@debian.org>                #
 #                  Lev Kujawski <int21h@mailbox.org>                   #
 #                      Phi <phi.debian@gmail.com>                      #

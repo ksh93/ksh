@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -35,7 +35,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-copyright?Copyright (c) 2005-2012 AT&T Intellectual Property]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
-[+NAME?mktest - generate a regression test scripts]
+[+NAME?mktest - generate regression test scripts]
 [+DESCRIPTION?\bmktest\b generates regression test scripts from test
     template commands in the \aunit\a.\brt\b file. The generated test
     script writes temporary output to '$PREFIX$'\aunit\a.tmp and compares

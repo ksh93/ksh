@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -81,7 +81,7 @@ struct tm*
 _tm_localtime(const time_t* t)
 {
 	struct tm*	r;
-	char*		e;
+	char*		e = NULL;
 	char**		v = environ;
 
 	if (TZ[0])
@@ -198,7 +198,7 @@ tmlocal(time_t now)
 	Tm_zone_t*		zp;
 	int			n;
 	char*			s;
-	char*			e;
+	char*			e = NULL;
 	int			i;
 	int			m;
 	int			isdst;

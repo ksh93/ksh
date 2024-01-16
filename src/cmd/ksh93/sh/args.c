@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -119,10 +119,10 @@ int sh_argopts(int argc,char *argv[])
 #endif
 	Shopt_t		newflags;
 	int		defaultflag=0, setflag=0, action=0, trace=(int)sh_isoption(SH_XTRACE);
-	Namval_t *np = NULL;
-	const char *cp;
-	int verbose,f;
-	Optdisc_t disc;
+	Namval_t	*np = NULL;
+	const char	*cp;
+	int		verbose, f;
+	Optdisc_t	disc;
 	newflags=sh.options;
 	memset(&disc, 0, sizeof(disc));
 	disc.version = OPT_VERSION;

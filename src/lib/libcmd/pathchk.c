@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -73,6 +73,13 @@ static const char usage[] =
 
 #include	<cmd.h>
 #include	<ls.h>
+
+#ifndef _POSIX_NAME_MAX
+#define _POSIX_NAME_MAX 14
+#endif
+#ifndef _POSIX_PATH_MAX
+#define _POSIX_PATH_MAX 256
+#endif
 
 #define COMPONENTS	0x1
 #define PATH	0x2

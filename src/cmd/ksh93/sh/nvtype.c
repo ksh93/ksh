@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1410,7 +1410,6 @@ int	sh_outtype(Sfio_t *out)
 	Namval_t	node,*mp,*tp;
 	Dt_t		*dp;
 	char		*cp,*sp,nvtype[sizeof(NV_CLASS)];
-	Sfio_t		*iop=0;
 	int		n=0,indent = 0;
 	if(cp=sh.prefix)
 	{
@@ -1488,7 +1487,6 @@ int	sh_outtype(Sfio_t *out)
 						sfprintf(out,"h '%s'",mp->nvalue.rp->help);
 					sfprintf(out," %s\n",cp);
 				}
-				iop = 0;
 			}
 		}
 		if(indent)

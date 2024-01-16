@@ -34,6 +34,13 @@ ksh 93u+m made a few minor changes to `mamake` that make it easier to maintain M
 * The `prev` command may now be used without a prior `make`...`done` to declare a simple
   prerequisite, provided the `MAMAKE_STRICT` variable is set.
 
+In addition, the following two simple shell scripts are now provided to aid
+in maintaining and modernising Mamfiles:
+
+* `src/cmd/INIT/utils/Mamfile_indent`: Automatically indent or re-indent a Mamfile.
+* `src/cmd/INIT/utils/Mamfile_rm_unused_vars`: Remove unused `setv` variable
+  definitions from a Mamfile (except `MAMAKE_STRICT`).
+
 ## Commands ##
 
 MAM commands have the following basic form:

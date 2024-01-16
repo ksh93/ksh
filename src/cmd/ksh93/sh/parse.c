@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -979,7 +979,7 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 {
 	int n;
 	Shnode_t *t, **tp;
-	struct comnod *ac;
+	struct comnod *ac = NULL;
 	int array=0, index=0;
 	Namval_t *np;
 	lexp->assignlevel++;
@@ -1169,8 +1169,8 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
  */
 static Shnode_t	*item(Lex_t *lexp,int flag)
 {
-	Shnode_t	*t;
-	struct ionod	*io;
+	Shnode_t *t;
+	struct ionod *io;
 	int tok = (lexp->token&0xff);
 	int savwdval = lexp->lasttok;
 	int savline = lexp->lastline;
@@ -1454,6 +1454,8 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 					last = strchr(argp->argval,'=');
 					if(last && (last[-1]==']'|| (last[-1]=='+' && last[-2]==']')) && (cp=strchr(argp->argval,'[')) && (cp < last) && cp[-1]!='.')
 						last = cp;
+					else if(last && last[-1]=='+')
+						last--;
 					stkseek(sh.stk,ARGVAL);
 					sfwrite(sh.stk,argp->argval,last-argp->argval);
 					ap=(struct argnod*)stkfreeze(sh.stk,1);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -178,7 +178,6 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 	exitval = 0;
 	disc.version = OPT_VERSION;
 	disc.infof = infof;
-	opt_info.disc = &disc;
 	if(argc>0)
 	{
 		options = sh_optprint;
@@ -197,6 +196,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			goto skip;
 		}
 	}
+	opt_info.disc = &disc;
 	while((n = optget(argv,options))) switch(n)
 	{
 		case 'n':
@@ -215,6 +215,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			/* print to history file */
 			if(!sh_histinit())
 			{
+				opt_info.disc = NULL;
 				errormsg(SH_DICT,ERROR_system(1),e_history);
 				UNREACHABLE();
 			}
@@ -251,6 +252,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 				vname = nv_open(opt_info.arg, sh.var_tree, NV_VARNAME);
 				if(!vname)
 				{
+					opt_info.disc = NULL;
 					errormsg(SH_DICT, ERROR_exit(2), e_create, opt_info.arg);
 					UNREACHABLE();
 				}
@@ -284,9 +286,11 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 				errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
+			opt_info.disc = NULL;
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
 			UNREACHABLE();
 	}
+	opt_info.disc = NULL;
 	argv += opt_info.index;
 	if(error_info.errors || (argc<0 && !(format = *argv++)))
 	{
@@ -1099,7 +1103,6 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
  */
 static int reload(int argn, char fmt, void* v, Sffmt_t* fe)
 {
-	union types_t*	value = (union types_t*)v;
 	struct printf*	pp = (struct printf*)fe;
 	int		r;
 	int		n;

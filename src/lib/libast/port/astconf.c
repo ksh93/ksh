@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,8 +22,6 @@
  * string interface to confstr(),pathconf(),sysconf(),sysinfo()
  * extended to allow some features to be set per-process
  */
-
-static const char id[] = "\n@(#)$Id: getconf (AT&T Research) 2012-05-01 $\0\n";
 
 #include "univlib.h"
 
@@ -795,7 +793,7 @@ lookup(Lookup_t* look, const char* name, unsigned int flags)
 	Conf_t*		mid = (Conf_t*)conf;
 	Conf_t*		lo = mid;
 	Conf_t*		hi = mid + conf_elements;
-	int		v;
+	int		v = 0;
 	int		c;
 	char*		e;
 	const Prefix_t*	p;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,8 +26,6 @@
  *
  * the sum of the hacks {s5,v10,planix} is _____ than the parts
  */
-
-static const char id[] = "\n@(#)$Id: magic library (AT&T Research) 2011-03-09 $\0\n";
 
 static const char lib[] = "libast:magic";
 
@@ -935,7 +933,7 @@ ckmagic(Magic_t* mp, const char* file, char* buf, char* end, struct stat* st, un
 static int
 ckenglish(Magic_t* mp, int pun, int badpun)
 {
-	char*	s;
+	unsigned char* s;
 	int	vowl = 0;
 	int	freq = 0;
 	int	rare = 0;
@@ -946,11 +944,11 @@ ckenglish(Magic_t* mp, int pun, int badpun)
 		return 0;
 	if ((mp->count['>'] + mp->count['<'] + mp->count['/']) > mp->count['E'] + mp->count['e'])
 		return 0;
-	for (s = "aeiou"; *s; s++)
+	for (s = (unsigned char*)"aeiou"; *s; s++)
 		vowl += mp->count[toupper(*s)] + mp->count[*s];
-	for (s = "etaion"; *s; s++)
+	for (s = (unsigned char*)"etaion"; *s; s++)
 		freq += mp->count[toupper(*s)] + mp->count[*s];
-	for (s = "vjkqxz"; *s; s++)
+	for (s = (unsigned char*)"vjkqxz"; *s; s++)
 		rare += mp->count[toupper(*s)] + mp->count[*s];
 	return 5 * vowl >= mp->fbsz - mp->count[' '] && freq >= 10 * rare;
 }
@@ -974,9 +972,9 @@ cklang(Magic_t* mp, const char* file, char* buf, char* end, struct stat* st)
 	char*		t2;
 	char*		t3;
 	int		n;
-	int		badpun;
+	int		badpun = 0;
 	int		code;
-	int		pun;
+	int		pun = 0;
 	Cctype_t	flags;
 	Info_t*		ip;
 
@@ -1057,8 +1055,6 @@ cklang(Magic_t* mp, const char* file, char* buf, char* end, struct stat* st)
 			*b = c;
 			b = (unsigned char*)mp->fbuf;
 		}
-		badpun = 0;
-		pun = 0;
 		q = 0;
 		s = 0;
 		t = 0;
@@ -2323,7 +2319,6 @@ magicclose(Magic_t* mp)
 char*
 magictype(Magic_t* mp, Sfio_t* fp, const char* file, struct stat* st)
 {
-	off_t	off;
 	char*	s;
 
 	mp->flags = mp->disc->flags;
@@ -2332,6 +2327,7 @@ magictype(Magic_t* mp, Sfio_t* fp, const char* file, struct stat* st)
 		s = T("cannot stat");
 	else
 	{
+		off_t	off = 0;
 		if (mp->fp = fp)
 			off = sfseek(mp->fp, 0, SEEK_CUR);
 		s = type(mp, file, st, mp->tbuf, &mp->tbuf[sizeof(mp->tbuf)-1]);

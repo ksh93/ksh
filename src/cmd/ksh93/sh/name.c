@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -234,9 +234,9 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	struct Namref	nr;
 	int		maketype = flags&NV_TYPE;  /* make a 'typeset -T' type definition command */
 	struct sh_type	shtp;
-	Dt_t		*vartree, *save_vartree;
+	Dt_t		*vartree, *save_vartree = NULL;
 #if SHOPT_NAMESPACE
-	Namval_t	*save_namespace;
+	Namval_t	*save_namespace = NULL;
 #endif
 	if(flags&NV_GLOBAL)
 	{
@@ -2100,14 +2100,12 @@ static void rightjust(char *str, int size, int fill)
 
 static int ja_size(char *str,int size,int type)
 {
-	char *cp = str;
-	int c, n=size;
-	int outsize;
-	char *oldcp=cp;
-	int oldn;
-	wchar_t w;
+	char *cp = str, *oldcp = str;
+	int c = 0, n = size, oldn = size;
 	while(*cp)
 	{
+		int outsize;
+		wchar_t w;
 		oldn = n;
 		w = mbchar(cp);
 		if((outsize = mbwidth(w)) <0)
@@ -2187,7 +2185,6 @@ char **sh_envgen(void)
 {
 	char **er;
 	int namec;
-	char *cp;
 	struct adata data;
 	data.tp = 0;
 	data.mapname = 0;
@@ -3571,7 +3568,7 @@ char *nv_name(Namval_t *np)
 	Namval_t *table;
 	Namfun_t *fp;
 #if SHOPT_FIXEDARRAY
-	Namarr_t	*ap;
+	Namarr_t *ap = NULL;
 #endif /* SHOPT_FIXEDARRAY */
 	char *cp;
 	if(is_abuiltin(np) || is_afunction(np))

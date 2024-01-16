@@ -9,8 +9,6 @@ note *
 setv MAMAKE_STRICT
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
-setv PACKAGE_cmd ${INSTALLROOT}
-setv PACKAGEROOT ../../../../..
 setv CC cc
 setv mam_cc_FLAGS
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
@@ -75,7 +73,6 @@ make install
 						make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/getopt.h
 							prev ${PACKAGE_ast_INCLUDE}/endian.h
-							prev ${PACKAGE_ast_INCLUDE}/endian.h
 						done ${PACKAGE_ast_INCLUDE}/ast_sys.h
 						prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -101,7 +98,6 @@ make install
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done ${PACKAGE_ast_INCLUDE}/error.h
 				make ${PACKAGE_ast_INCLUDE}/cmd.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/dlldefs.h implicit dontcare
 					make ${PACKAGE_ast_INCLUDE}/cmdext.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/shcmd.h implicit
 					done ${PACKAGE_ast_INCLUDE}/cmdext.h
@@ -123,7 +119,9 @@ make install
 	done ${INSTALLROOT}/bin generated
 	make ${INSTALLROOT}/bin/pty
 		prev pty
-		exec - ${STDCMP} 2>/dev/null -s pty ${INSTALLROOT}/bin/pty || { ${STDMV} ${INSTALLROOT}/bin/pty ${INSTALLROOT}/bin/pty.old 2>/dev/null || true; ${STDCP} pty ${INSTALLROOT}/bin/pty ;}
+		note * macOS throws code signature error if 'cp' overwrites Mach-O binary; must remove first
+		exec - ${STDRM} -f ${INSTALLROOT}/bin/pty &&
+		exec - ${STDCP} pty ${INSTALLROOT}/bin/pty
 	done ${INSTALLROOT}/bin/pty generated
 done install virtual
 make test
