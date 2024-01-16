@@ -670,11 +670,10 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	if(flags&NV_GLOBAL)
 	{
 		sh.var_tree = save_vartree;
-	}
 #if SHOPT_NAMESPACE
-	if(flags&NV_GLOBAL)
 		sh.namespace = save_namespace;
 #endif
+	}
 }
 
 /*
@@ -2293,9 +2292,6 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,int mask, int fl
  */
 void sh_scope(struct argnod *envlist, int fun)
 {
-	/* TODO: This is a very limited approach for dynamic scoping.
-	 * 	 Implement a more flexible approach that allows for static scoping as well.
-	 */
 	Dt_t		*newscope, *newroot;
 	struct Ufunction	*rp;
 #if SHOPT_NAMESPACE

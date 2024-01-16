@@ -521,7 +521,7 @@ endargs:
 	}
 	if(troot==sh.var_tree && !sh.mktype && sh.infunction)
 	{
-		if(sh.infunction==1 && !(local || declare) && !(flag&NV_DYNAMIC))
+		if(sh.infunction==2 && !(local || declare) && !(flag&NV_DYNAMIC))
 			flag |= NV_GLOBAL;
 		else if((local || declare) && !(flag&NV_GLOBAL))
 			flag |= NV_DYNAMIC;
@@ -1065,11 +1065,10 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	if(flag&NV_GLOBAL)
 	{
 		sh.var_tree = save_vartree;
-	}
 #if SHOPT_NAMESPACE
-	if(flag&NV_GLOBAL)
 		sh.namespace = save_namespace;
 #endif
+	}
 	return r;
 }
 

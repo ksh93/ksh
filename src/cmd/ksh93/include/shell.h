@@ -316,7 +316,7 @@ struct Shell_s
 	char		funload;
 	char		used_pos;	/* used positional parameter */
 	char		universe;
-	char		infunction;	/* 0 outside of functions, 1 in ksh functions run from '.' and POSIX functions, 2 in regular ksh functions */
+	char		infunction;	/* 0 outside of functions, 1 in ksh functions, 2 in POSIX functions and ksh functions ran from '.' */
 	char		winch;		/* set upon window size change or 'set -b' notification */
 	short		arithrecursion;	/* current arithmetic recursion level */
 	char		indebug; 	/* set when in debug trap */

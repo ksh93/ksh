@@ -281,7 +281,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	else
 	{
 		infunction = sh.infunction;
-		sh.infunction = 1;
+		sh.infunction = 2;
 	}
 	*prevscope = sh.st;
 	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;

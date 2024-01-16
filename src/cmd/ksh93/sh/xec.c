@@ -1017,11 +1017,6 @@ int sh_exec(const Shnode_t *t, int flags)
 							sh.typeinit = np;
 							tp = nv_type(np);
 						}
-						/*
-						 * The declare and local builtins have a dynamic scope limited
-						 * to the function in which they are called. This should be
-						 * skipped when not in a function.
-						 */
 						if(np==SYSCOMPOUND || checkopt(com,'C'))
 							flgs |= NV_COMVAR;
 						if(checkopt(com,'S'))
@@ -1053,7 +1048,7 @@ int sh_exec(const Shnode_t *t, int flags)
 						}
 						if((np==SYSLOCAL || np==SYSDECLARE) && !(flgs&NV_GLOBAL))
 							flgs |= NV_DYNAMIC;
-						else if(sh.infunction==1 && !(flgs&NV_DYNAMIC))
+						else if(sh.infunction==2 && !(flgs&NV_DYNAMIC))
 							flgs |= NV_GLOBAL;
 						if(sh.fn_depth && !sh.prefix)
 							flgs |= NV_NOSCOPE;
@@ -3011,17 +3006,14 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	infunction = sh.infunction;
 	if(!posix_fun)
 	{
-		sh.infunction = 2;
+		sh.infunction = 1;
 		sh_offoption(SH_ERREXIT);
 	}
 	else
-		sh.infunction = 1;
+		sh.infunction = 2;
 	prevscope->save_tree = sh.var_tree;
 	n = dtvnext(prevscope->save_tree) != (sh.namespace?sh.var_base:0);
-	if(posix_fun)
-		sh_scope(envlist,2);
-	else
-		sh_scope(envlist,1);
+	sh_scope(envlist,sh.infunction);
 	if(n)
 	{
 		/*
