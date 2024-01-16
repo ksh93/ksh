@@ -2989,8 +2989,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh.st.prevst = prevscope;
 	sh.st.self = savst;
 	sh.topscope = (Shscope_t*)sh.st.self;
-	sh.st.opterror = sh.st.optchar = 0;
-	sh.st.optindex = 1;
 	if(!fun)
 	{
 		fp = (struct funenv*)arg;
@@ -3003,6 +3001,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	if(!posix_fun)
 	{
 		save_options = sh.options;
+		sh.st.opterror = sh.st.optchar = 0;
+		sh.st.optindex = 1;
 		if(sh.fn_depth==0)
 			sh.glob_options = sh.options;
 		else
