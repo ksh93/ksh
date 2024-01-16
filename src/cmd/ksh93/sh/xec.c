@@ -2984,11 +2984,11 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	Dt_t			*last_root = sh.last_root;
 	Shopt_t			save_options;
 	NOT_USED(argn);
-	sh.st.loopcnt = 0;
 	*prevscope = sh.st;
 	sh.st.prevst = prevscope;
 	sh.st.self = savst;
 	sh.topscope = (Shscope_t*)sh.st.self;
+	sh.st.loopcnt = 0;
 	if(!fun)
 	{
 		fp = (struct funenv*)arg;
