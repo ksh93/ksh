@@ -228,7 +228,6 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	char		*prefix = sh.prefix;
 	int		traceon = (sh_isoption(SH_XTRACE)!=0);
 	int		array = (flags&(NV_ARRAY|NV_IARRAY));
-	unsigned char	dynscope = 0;
 	Namarr_t	*ap;
 	Namval_t	node;
 	struct Namref	nr;
@@ -247,8 +246,6 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 		sh.namespace = NULL;
 #endif
 	}
-	if(flags&NV_DYNAMIC)
-		dynscope = 1;
 	if(maketype)
 	{
 		shtp.previous = sh.mktype;
@@ -289,7 +286,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 				int sub=0;
 				struct fornod *fp=(struct fornod*)arg->argchn.ap;
 				Shnode_t *tp=fp->fortre;
-				flag |= (flags&(NV_NOSCOPE|NV_STATIC|NV_FARRAY));
+				flag |= (flags&(NV_NOSCOPE|NV_STATIC|NV_FARRAY|NV_DYNAMIC));
 				if(arg->argflag&ARG_ARRAY)
 					array |= NV_IARRAY;
 				if(arg->argflag&ARG_QUOTED)
@@ -322,7 +319,6 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					}
 				}
 				np = nv_open(cp,sh.var_tree,flag|NV_ASSIGN);
-				np->dynscope = dynscope;
 				if((arg->argflag&ARG_APPEND) && (tp->tre.tretyp&COMMSK)==TCOM && tp->com.comset && !nv_isvtree(np) && (((ap=nv_arrayptr(np)) && !ap->fun && !nv_opensub(np))  || (!ap && nv_isarray(np) && tp->com.comarg && !((mp=nv_search(tp->com.comarg->argval,sh.fun_tree,0)) && nv_isattr(mp,BLT_DCL)))))
 				{
 					if(tp->com.comarg)
@@ -1343,6 +1339,7 @@ void nv_delete(Namval_t* np, Dt_t *root, int flags)
  * If <flags> & NV_NOFAIL then don't generate an error message on failure
  * If <flags> & NV_STATIC then unset before an assignment
  * If <flags> & NV_UNATTR then unset attributes before assignment
+ * If <flags> & NV_DYNAMIC then set a dynamic scope during assignment
  * SH_INIT is only set while initializing the environment
  */
 Namval_t *nv_open(const char *name, Dt_t *root, int flags)
@@ -1574,6 +1571,10 @@ skip:
 			sh.prefix = prefix;
 		}
 		nv_onattr(np, flags&NV_ATTRIBUTES);
+		if(flags&NV_DYNAMIC)
+			np->dynscope = 1;
+		else
+			np->dynscope = 0;
 	}
 	else if(c)
 	{
