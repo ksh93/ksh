@@ -2856,7 +2856,7 @@ static char *special(int c)
 	    case '?':
 		return ltos(sh.savexit);
 	    case 0:
-		if(sh_isstate(SH_PROFILE) || sh.infunction!=FUN_KSH || !sh.st.cmdname)
+		if(sh_isstate(SH_PROFILE) || sh.fn_depth==0 || !sh.st.cmdname)
 			return sh.shname;
 		else
 			return sh.st.cmdname;

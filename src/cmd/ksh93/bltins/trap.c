@@ -174,7 +174,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 		 * Set a flag for sh_exec() to disable exec-without-fork optimizations if any trap is set and non-empty.
 		 * (In ksh functions, there may be parent scope traps, so do not reset to 0 if in a ksh function.)
 		 */
-		if(sh.infunction!=FUN_KSH)
+		if(sh.fn_depth==0)
 			sh.st.trapdontexec = 0;
 		if(!sh.st.trapdontexec)
 		{
