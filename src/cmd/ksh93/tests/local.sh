@@ -558,6 +558,30 @@ got=$("$SHELL" "$tst")
 [[ $exp == "$got" ]] || err_exit "${prefix}Cannot separate static and global scopes in POSIX functions" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# Test 20: Ksh functions run by '.' should not have any form of scoping
+cat > "$tst" << EOF
+function nxt {
+	echo \$bar
+}
+function foo {
+	$command typeset bar=1
+	nxt
+	$command local foo=2
+	function infun {
+		echo \$foo
+	}
+	infun
+	$command declare -c baz=3
+	$command typeset -g bear=4
+}
+. foo
+print \$bar \$foo \$baz \$bear
+EOF
+exp=$'1\n2\n1 2 3 4'
+got=$("$SHELL" "$tst")
+[[ $exp == "$got" ]] || err_exit "${prefix}KornShell functions executed directly by '.' shouldn't have scoping" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 done  # End of non-indented loop
 
 # ======
