@@ -848,7 +848,7 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 static int check_exec_optimization(int type, int execflg, int execflg2, struct ionod *iop)
 {
 	if(type&(FAMP|FPOU)
-	|| !(execflg && sh.fn_depth==0 || execflg2)
+	|| !(execflg && sh.infunction != FUN_KSH || execflg2)
 	|| sh.st.trapdontexec
 	|| sh.subshell
 	|| ((struct checkpt*)sh.jmplist)->mode==SH_JMPEVAL
@@ -1052,7 +1052,7 @@ int sh_exec(const Shnode_t *t, int flags)
 							flgs |= NV_DYNAMIC;
 						else if(sh.infunction==FUN_POSIX && !(flgs&(NV_DYNAMIC|NV_STATSCOPE)))
 							flgs |= NV_GLOBAL;
-						if((sh.infunction==FUN_POSIX || sh.fn_depth) && !sh.prefix)
+						if(sh.infunction < FUN_KSHDOT && !sh.prefix)
 							flgs |= NV_NOSCOPE;
 					}
 					else if(np==SYSEXPORT)

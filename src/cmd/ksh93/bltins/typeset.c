@@ -546,7 +546,7 @@ endargs:
 		else if(!sh.typeinit)
 			flag |= NV_STATIC|NV_IDENT;
 	}
-	if(sh.fn_depth && !tdata.pflag)
+	if(sh.infunction < FUN_KSHDOT && !tdata.pflag)
 		flag |= NV_NOSCOPE;
 	if(tdata.help)
 		tdata.help = sh_strdup(tdata.help);
