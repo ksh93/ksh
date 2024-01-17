@@ -3177,7 +3177,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	 */
 	if(posix_fun)
 	{
-		if(sh.st.self != &savst)
+		if(sh.st.self != savst)
 			*sh.st.self = sh.st;
 		/* Only restore the top Shscope_t portion for POSIX functions */
 		memcpy(&sh.st, prevscope, sizeof(Shscope_t));
