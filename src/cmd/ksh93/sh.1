@@ -8705,14 +8705,6 @@ function uses.
 Unlike static local scoping, variables given a
 dynamic scope are made available to nested functions invoked
 by the function the local variable is located in.
-Do note however that,
-like with statically scoped local variables,
-unsetting the variable will only locally unset it in the function
-it's scoped to.
-Nested functions called after unset will not inherit
-the locally unset state of the variable,
-and will inherit the
-variable of the same name from the global scope if it exists.
 Dynamic local scoping is available regardless of whether the
 function is defined with POSIX or KornShell syntax.
 .TP

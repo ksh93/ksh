@@ -3037,10 +3037,10 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		 *
 		 * The old method ksh93v- uses for its bash mode creates a viewport between
 		 * sh.var_tree and sh.var_base with the help of a sh.st.var_local pointer.
-		 * This could fake dynamic scoping convincingly for the bash mode, but in
-		 * reality that only manages to create a global scope local to the top level
-		 * function (i.e., nested functions have no scoping.) This design flaw in
-		 * ksh93v- made its scoping code unsalvageable.
+		 * This could fake dynamic scoping convincingly for the bash mode, but the
+		 * ksh93v- code only manages to create a global scope local to the top level
+		 * function (i.e., nested functions have no scoping at all and their variables
+		 * leak into the calling function.)
 		 */
 		nv_scan(prevscope->save_tree, local_exports, NULL, 0, NV_EXPORT|NV_DYNAMIC|NV_NOSCOPE);
 	}

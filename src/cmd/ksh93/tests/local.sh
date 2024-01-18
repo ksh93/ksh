@@ -593,6 +593,20 @@ for command in "" "command"; do
 	got=$("$SHELL" "$tst")
 	[[ $exp == "$got" ]] || err_exit "${prefix}KornShell functions executed directly by '.' shouldn't have scoping" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# Test 21: typeset -p should print the -D flag when a variable has dynamic scoping applied to it
+	cat > "$tst" <<-EOF
+	function foo {
+		$command declare foo=foo
+		$command local -l -i bar=2
+		$command typeset -p foo bar
+	}
+	foo
+	EOF
+	exp=$'typeset -D foo=foo\ntypeset -D -l -i bar=2'
+	got=$("$SHELL" "$tst")
+	[[ $exp == "$got" ]] || err_exit "${prefix}'typeset -p' cannot add the -D flag to output for variables given a dynamic scope" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 done
 
 # ======
