@@ -21,14 +21,20 @@
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
 # ======
-# This test must be run first due to the next test.
+# These tests must run first for the subsequent tests to properly detect aberrant functionality
+# in the buggy ksh93v-/ksh2020 local builtin.
 command local 2> /dev/null && err_exit "'local' works outside of functions"
+local 2> /dev/null && err_exit "'local' works outside of functions"
 
 # local shouldn't suddenly work outside of functions after a function runs local.
 posix_dummy() { command local > /dev/null; }
+posix_dummy_two() { local > /dev/null; }
 function ksh_dummy { command local > /dev/null; }
+function ksh_dummy_two { local > /dev/null; }
 posix_dummy && command local 2> /dev/null && err_exit 'the local builtin works outside of functions after a POSIX function runs local'
+posix_dummy_two && local 2> /dev/null && err_exit 'the local builtin works outside of functions after a POSIX function runs local'
 ksh_dummy && command local 2> /dev/null && err_exit 'the local builtin works outside of functions after a KornShell function runs local'
+ksh_dummy_two && local 2> /dev/null && err_exit 'the local builtin works outside of functions after a KornShell function runs local'
 
 # ======
 for i in declare local; do
@@ -48,10 +54,18 @@ for i in declare local; do
 		unset .sh.fun
 		command $i foo=bar 2>&1
 	}
-	[[ $(ksh_function_nounset) ]] && err_exit "'$i' fails inside of KornShell functions"
-	[[ $(ksh_function_unset) ]] && err_exit "'$i' fails inside of KornShell functions when \${.sh.fun} is unset"
-	[[ $(posix_function_nounset) ]] && err_exit "'$i' fails inside of POSIX functions"
-	[[ $(posix_function_unset) ]] && err_exit "'$i' fails inside of POSIX functions when \${.sh.fun} is unset"
+	got=$(ksh_function_nounset)
+	[[ -n $got ]] && err_exit "'$i' fails inside of KornShell functions" \
+		"(got ${ printf %q "$got" })"
+	got=$(ksh_function_unset)
+	[[ -n $got ]] && err_exit "'$i' fails inside of KornShell functions when \${.sh.fun} is unset" \
+		"(got ${ printf %q "$got" })"
+	got=$(posix_function_nounset)
+	[[ -n $got ]] && err_exit "'$i' fails inside of POSIX functions" \
+		"(got ${ printf %q "$got" })"
+	got=$(posix_function_unset)
+	[[ -n $got ]] && err_exit "'$i' fails inside of POSIX functions when \${.sh.fun} is unset" \
+		"(got ${ printf %q "$got" })"
 
 	# The local and declare builtins should have a dynamic scope
 	# Tests for the scope of POSIX functions
