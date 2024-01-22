@@ -1834,7 +1834,7 @@ static void stat_init(void)
  */
 static Init_t *nv_init(void)
 {
-	double d=0;
+	Sfdouble_t d=0;
 	Init_t *ip = sh_newof(0,Init_t,1,0);
 	sh.nvfun.last = (char*)&sh;
 	sh.nvfun.nofree = 1;
