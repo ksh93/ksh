@@ -8,6 +8,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   expansions of name references to be incorrectly treated as invariant so they
   yielded the wrong values. Fix backported from from ksh 93v- 2013-02-13.
 
+- Fixed a buffer overflow that could occur when using tab completion
+  with multibyte filenames.
+
 2024-01-21:
 
 - [v1.1] New feature added: SRANDOM is a secure random number generator.
