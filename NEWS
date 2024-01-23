@@ -7,6 +7,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a rare crash or rare incorrect behaviour in .sh.tilde.{get,set}
   discipline functions for ~ expansion (see 2021-03-16 below).
 
+- Fixed a bug that caused listing the .sh.match variable with ${!.sh.match} to
+  show a spurious zero element.
+
 2024-01-22:
 
 - Fixed a bug in the loop invariants optimizer (SHOPT_OPTIMIZE) that caused

@@ -1015,7 +1015,10 @@ static char* get_match(Namval_t* np, Namfun_t *fp)
 static char *name_match(Namval_t *np, Namfun_t *fp)
 {
 	int sub = nv_aindex(SH_MATCHNOD);
-	sfprintf(sh.strbuf,".sh.match[%d]",sub);
+	if(sub==0)
+		sfprintf(sh.strbuf,".sh.match");
+	else
+		sfprintf(sh.strbuf,".sh.match[%d]",sub);
 	return sfstruse(sh.strbuf);
 }
 
