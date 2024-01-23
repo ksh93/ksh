@@ -312,6 +312,7 @@ struct Shell_s
 	int		savesig;
 	unsigned char	*sigflag;	/* pointer to signal states */
 	char		intrap;		/* set while executing a trap action */
+	uint32_t	srand_upper_bound;
 	char		forked;
 	char		binscript;
 	char		funload;

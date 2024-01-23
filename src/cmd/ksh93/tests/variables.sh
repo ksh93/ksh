@@ -1647,6 +1647,16 @@ while	read i
 do	((got = i>=bound)) && break
 done
 ((got)) || err_exit "SRANDOM upper bound inherited from environment"
+# SRANDOM upper bound leaks out of virtual subshells
+for i in 0 10000; do
+	(SRANDOM=$i)
+	for ((i=0; i<bound; i++))
+	do	if	let "got = SRANDOM, got >= bound"
+		then	err_exit "SRANDOM upper bound leads out of virtual subshells ($got >= $bound)"
+			break
+		fi
+	done
+done
 unset i got bound
 SRANDOM=0
 

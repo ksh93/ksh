@@ -725,7 +725,6 @@ void sh_reseed_rand(struct rand *rp)
 /*
  * The following three functions are for SRANDOM
  */
-static uint32_t srand_upper_bound;
 
 static void put_srand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
@@ -740,19 +739,19 @@ static void put_srand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 	if(sh_isstate(SH_INIT))
 		return;
 	if(flags&NV_INTEGER)
-		srand_upper_bound = *(Sfdouble_t*)val;
+		sh.srand_upper_bound = *(Sfdouble_t*)val;
 	else
-		srand_upper_bound = sh_arith(val);
+		sh.srand_upper_bound = sh_arith(val);
 }
 
 static Sfdouble_t nget_srand(Namval_t* np, Namfun_t *fp)
 {
-	return (Sfdouble_t)(srand_upper_bound ? arc4random_uniform(srand_upper_bound) : arc4random());
+	return (Sfdouble_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
 }
 
 static char* get_srand(Namval_t* np, Namfun_t *fp)
 {
-	intmax_t n = (intmax_t)(srand_upper_bound ? arc4random_uniform(srand_upper_bound) : arc4random());
+	intmax_t n = (intmax_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
 	return fmtbase(n, 10, 0);
 }
 
