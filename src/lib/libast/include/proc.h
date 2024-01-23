@@ -68,7 +68,6 @@
 #define PROC_op2(o,a,b)	(((o)<<(2*PROC_ARG_BIT))|(((b)&PROC_ARG_NULL)<<PROC_ARG_BIT)|((a)&PROC_ARG_NULL))
 
 #define PROC_FD_CLOSE(p,f)	PROC_op2(PROC_fd_dup|(f),p,PROC_ARG_NULL)
-#define PROC_FD_CTTY(f)		PROC_op1(PROC_fd_ctty,f)
 #define PROC_FD_DUP(p,c,f)	PROC_op2(PROC_fd_dup|(f),p,c)
 #define PROC_SIG_DFL(s)		PROC_op1(PROC_sig_dfl,s,0)
 #define PROC_SIG_IGN(s)		PROC_op1(PROC_sig_ign,s,0)
