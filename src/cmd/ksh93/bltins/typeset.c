@@ -530,12 +530,12 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(2),"the scoping flags -c, -D and -g cannot be combined");
 		UNREACHABLE();
 	}
-	if(troot==sh.var_tree && !sh.mktype && sh.infunction)
+	if(troot==sh.var_tree && !sh.mktype && sh.infunction && !(flag&(NV_SCOPES)))
 	{
-		if(sh.infunction==FUN_POSIX && !(local || declare) && !(flag&(NV_DYNAMIC|NV_STATSCOPE)))
-			flag |= NV_GLOBAL;
-		else if((local || declare) && !(flag&(NV_GLOBAL|NV_STATSCOPE)))
+		if(local || declare)
 			flag |= NV_DYNAMIC;
+		else if(sh.infunction==FUN_POSIX)
+			flag |= NV_GLOBAL;
 	}
 	if(isfloat)
 		flag |= NV_DOUBLE;

@@ -1048,10 +1048,13 @@ int sh_exec(const Shnode_t *t, int flags)
 							sh.prefix = NV_CLASS;
 							flgs |= NV_TYPE;
 						}
-						if((np==SYSLOCAL || np==SYSDECLARE) && !(flgs&(NV_GLOBAL|NV_STATSCOPE)))
-							flgs |= NV_DYNAMIC;
-						else if(sh.infunction==FUN_POSIX && !(flgs&(NV_DYNAMIC|NV_STATSCOPE)))
-							flgs |= NV_GLOBAL;
+						if(!(flgs&(NV_SCOPES)))
+						{
+							if(np==SYSLOCAL || np==SYSDECLARE)
+								flgs |= NV_DYNAMIC;
+							else if(sh.infunction==FUN_POSIX)
+								flgs |= NV_GLOBAL;
+						}
 						if(sh.infunction < FUN_KSHDOT && !sh.prefix)
 							flgs |= NV_NOSCOPE;
 					}
@@ -3166,12 +3169,6 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		prevscope->dolc = sh.st.dolc;
 		prevscope->dolv = sh.st.dolv;
 	}
-	if(!posix_fun)
-	{
-		trap = sh.st.trapcom[0];
-		sh.st.trapcom[0] = 0;
-		sh_sigreset(1);
-	}
 	/*
 	 * POSIX function cleanup
 	 */
@@ -3185,11 +3182,14 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 		if(jmpval && jmpval!=SH_JMPFUN)
 			siglongjmp(*sh.jmplist,jmpval);
-		return sh.exitval;
+		return r;
 	}
 	/*
 	 * KornShell function cleanup
 	 */
+	trap = sh.st.trapcom[0];
+	sh.st.trapcom[0] = 0;
+	sh_sigreset(1);
 	sh.st = *prevscope;
 	sh.topscope = (Shscope_t*)prevscope;
 	nv_getval(sh_scoped(IFSNOD));
