@@ -1652,7 +1652,7 @@ for i in 0 10000; do
 	(SRANDOM=$i)
 	for ((i=0; i<bound; i++))
 	do	if	let "got = SRANDOM, got >= bound"
-		then	err_exit "SRANDOM upper bound leads out of virtual subshells ($got >= $bound)"
+		then	err_exit "SRANDOM upper bound leaks out of virtual subshells ($got >= $bound)"
 			break
 		fi
 	done
