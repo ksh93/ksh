@@ -1654,7 +1654,7 @@ SRANDOM=0
 # Avoid printing a [0] element for .sh.match
 exp='.sh.match'
 got=${ $SHELL -c 'print ${!.sh.match}' }
-[[ $exp == "$got" ]] || err_exit "'print \${!.sh.match}' should not print a [0] subscript" \
+[[ $exp == "$got" ]] || err_exit "'print \${!.sh.match}' should not print a [0] element" \
 	"(expected ${ printf %q "$exp" }, got ${ printf %q "$got" })"
 
 # ======
