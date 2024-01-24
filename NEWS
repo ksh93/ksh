@@ -8,7 +8,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   discipline functions for ~ expansion (see 2021-03-16 below).
 
 - Fixed a bug that caused listing the .sh.match variable with ${!.sh.match} to
-  show a spurious zero element.
+  show spurious elements.
 
 2024-01-22:
 
