@@ -1012,18 +1012,7 @@ static char* get_match(Namval_t* np, Namfun_t *fp)
 	return mp->rval[i];
 }
 
-static char *name_match(Namval_t *np, Namfun_t *fp)
-{
-	int sub = nv_aindex(SH_MATCHNOD);
-	if(sub==0)
-		sfprintf(sh.strbuf,".sh.match");
-	else
-		sfprintf(sh.strbuf,".sh.match[%d]",sub);
-	return sfstruse(sh.strbuf);
-}
-
-static const Namdisc_t SH_MATCH_disc = { sizeof(struct match), 0, get_match,
-	0,0,0,0,name_match };
+static const Namdisc_t SH_MATCH_disc  = { sizeof(struct match), 0, get_match };
 
 static char* get_version(Namval_t* np, Namfun_t *fp)
 {
