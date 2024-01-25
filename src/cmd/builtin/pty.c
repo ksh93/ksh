@@ -353,7 +353,7 @@ runcmd(char** argv, int minion, int session)
 
 	if (session)
 	{
-		ops[0] = (long)PROC_op1((long)PROC_fd_ctty,(long)minion);
+		ops[0] = PROC_FD_CTTY(minion);
 		ops[1] = 0;
 	}
 	else
