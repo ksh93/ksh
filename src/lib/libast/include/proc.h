@@ -65,7 +65,7 @@
 #define PROC_fd_ctty	0xc
 
 #define PROC_op1(o,a)	(((long)(o)<<(2*PROC_ARG_BIT))|((long)(a)&((PROC_ARG_NULL<<PROC_ARG_BIT)|PROC_ARG_NULL)))
-#define PROC_op2(o,a,b)	(((long)(o)<<(2*PROC_ARG_BIT))|(((long)(b)&PROC_ARG_NULL)<<PROC_ARG_BIT)|((a)&PROC_ARG_NULL))
+#define PROC_op2(o,a,b)	(((long)(o)<<(2*PROC_ARG_BIT))|(((long)(b)&PROC_ARG_NULL)<<PROC_ARG_BIT)|((long)(a)&PROC_ARG_NULL))
 
 #define PROC_FD_CLOSE(p,f)	PROC_op2(PROC_fd_dup|(f),p,PROC_ARG_NULL)
 #define PROC_FD_CTTY(f)		PROC_op1(PROC_fd_ctty,f)
