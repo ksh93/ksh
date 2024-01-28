@@ -6,10 +6,13 @@ note * Mamfiles are processed by mamake (src/cmd/INIT/mamake.c); we added
 note * indentation to improve readability. The language is documented in
 note * src/cmd/INIT/README-mamake.md.
 note *
-make test
+make test virtual
+	make test_announce virtual
+		exec - : testing KornShell $KSH_VERSION :
+	done test_announce
 	make install
-		make all
+		make all virtual
 			exec - ${MAMAKE} -r '*/*' ${MAMAKEARGS}
-		done all virtual
+		done all
 	done install virtual
-done test virtual
+done test

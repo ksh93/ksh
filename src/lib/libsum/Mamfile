@@ -15,17 +15,17 @@ setv mam_cc_FLAGS ${mam_cc_PIC}
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv IFFEFLAGS
 setv LDFLAGS
-make install
-	make sum
+make install virtual
+	make sum virtual
 		make sum.req
 			prev ${INSTALLROOT}/bin/mkreq
 			exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} : ${LDFLAGS} : sum md ast
-		done sum.req generated
-		make libsum.a archive
+		done sum.req
+		make libsum.a
 			prev sum.req
 			make sumlib.o
 				make sumlib.c
-					make sum-sha2.c implicit
+					make sum-sha2.c implicit dontcare
 						make ${PACKAGE_ast_INCLUDE}/endian.h implicit
 							make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
 								make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
@@ -34,15 +34,15 @@ make install
 								done ${PACKAGE_ast_INCLUDE}/ast_common.h
 							done ${PACKAGE_ast_INCLUDE}/bytesex.h
 						done ${PACKAGE_ast_INCLUDE}/endian.h
-					done sum-sha2.c dontcare
+					done sum-sha2.c
 					prev sum-sha1.c implicit dontcare
 					prev sum-md5.c implicit dontcare
-					make sum-lmd.c implicit
+					make sum-lmd.c implicit dontcare
 						prev sha2.h implicit dontcare virtual
 						prev sha1.h implicit dontcare virtual
 						prev md5.h implicit dontcare virtual
 						prev md4.h implicit dontcare virtual
-					done sum-lmd.c dontcare
+					done sum-lmd.c
 					make sum-prng.c implicit
 						make ${PACKAGE_ast_INCLUDE}/fnv.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -54,7 +54,7 @@ make install
 						prev features/sum
 						bind -last
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} : run features/sum
-					done FEATURE/sum generated
+					done FEATURE/sum
 					prev ${PACKAGE_ast_INCLUDE}/hashpart.h implicit
 					make ${PACKAGE_ast_INCLUDE}/swap.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -121,34 +121,34 @@ make install
 					done sum-crc.c
 				done sumlib.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -c sumlib.c
-			done sumlib.o generated
+			done sumlib.o
 			exec - ${AR} rc libsum.a sumlib.o
 			exec - (ranlib libsum.a) >/dev/null 2>&1 || true
-		done libsum.a generated
-	done sum virtual
+		done libsum.a
+	done sum
 	prev libsum.a
 	make ${INSTALLROOT}/lib
 		exec - mkdir -p ${INSTALLROOT}/lib
-	done ${INSTALLROOT}/lib generated
-	make ${INSTALLROOT}/lib/libsum.a archive
+	done ${INSTALLROOT}/lib
+	make ${INSTALLROOT}/lib/libsum.a
 		prev libsum.a
 		exec - ${STDCP} -f libsum.a ${INSTALLROOT}/lib/libsum.a
 		exec - (ranlib ${INSTALLROOT}/lib/libsum.a) >/dev/null 2>&1 || true
-	done ${INSTALLROOT}/lib/libsum.a generated
+	done ${INSTALLROOT}/lib/libsum.a
 	make ${INSTALLROOT}/lib/lib
 		exec - mkdir -p ${INSTALLROOT}/lib/lib
-	done ${INSTALLROOT}/lib/lib generated
+	done ${INSTALLROOT}/lib/lib
 	make ${INSTALLROOT}/lib/lib/sum
 		prev sum.req
 		exec - ${STDCP} -f sum.req ${INSTALLROOT}/lib/lib/sum
-	done ${INSTALLROOT}/lib/lib/sum generated
+	done ${INSTALLROOT}/lib/lib/sum
 	make ${PACKAGE_ast_INCLUDE}
 		exec - mkdir -p ${PACKAGE_ast_INCLUDE}
-	done ${PACKAGE_ast_INCLUDE} generated
+	done ${PACKAGE_ast_INCLUDE}
 	make ${PACKAGE_ast_INCLUDE}/sum.h
 		prev sum.h
 		exec - ${STDCP} -f sum.h ${PACKAGE_ast_INCLUDE}/sum.h
-	done ${PACKAGE_ast_INCLUDE}/sum.h generated
-done install virtual
-make test
-done test dontcare virtual
+	done ${PACKAGE_ast_INCLUDE}/sum.h
+done install
+make test dontcare virtual
+done test

@@ -15,19 +15,19 @@ setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
 setv LDFLAGS
-make .INIT
+make .INIT dontcare virtual
 	prev ${PACKAGE_ast_INCLUDE}/cmdlist.h
 	exec - sed -e '/^CMDLIST(.*)$/!d' -e 's/CMDLIST(\(.*\))/\1/' -e '/^getconf$/d' -e '/^ln$/d' -e '/^mv$/d' -e '/^md5sum$/d' -e '/^sum$/d' ${PACKAGE_ast_INCLUDE}/cmdlist.h
 	bind -lcmd
-done .INIT dontcare virtual
-make install
+done .INIT
+make install virtual
 	make pty
 		make pty.o
 			make pty.c
 				make FEATURE/pty implicit
 					prev features/pty
 					exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} ${mam_libcmd} : run features/pty
-				done FEATURE/pty generated
+				done FEATURE/pty
 				prev ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
 				make ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
 					make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
@@ -110,19 +110,19 @@ make install
 				done ${PACKAGE_ast_INCLUDE}/cmd.h
 			done pty.c
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=\""builtin"\" -DCMD_STANDALONE=b_pty -c pty.c
-		done pty.o generated
+		done pty.o
 		bind -lutil dontcare
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} -lm ${mam_libcmd}
-	done pty generated
+	done pty
 	make ${INSTALLROOT}/bin
 		exec - mkdir -p ${INSTALLROOT}/bin
-	done ${INSTALLROOT}/bin generated
+	done ${INSTALLROOT}/bin
 	make ${INSTALLROOT}/bin/pty
 		prev pty
 		note * macOS throws code signature error if 'cp' overwrites Mach-O binary; must remove first
 		exec - ${STDRM} -f ${INSTALLROOT}/bin/pty &&
 		exec - ${STDCP} pty ${INSTALLROOT}/bin/pty
-	done ${INSTALLROOT}/bin/pty generated
-done install virtual
-make test
-done test dontcare virtual
+	done ${INSTALLROOT}/bin/pty
+done install
+make test dontcare virtual
+done test
