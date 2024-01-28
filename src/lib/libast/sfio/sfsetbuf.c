@@ -221,7 +221,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 			f->blksz = (size_t)st.st_blksize;
 #endif
 			bufsize = 64 * 1024;
-#ifdef MAP_TUPE
+#ifdef MAP_TYPE
 			if(S_ISDIR(st.st_mode) || (Sfoff_t)st.st_size < (Sfoff_t)SF_GRAIN)
 				okmmap = 0;
 #endif

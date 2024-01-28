@@ -265,8 +265,11 @@ exp=$PWD/rm
 command -p mkdir bin
 print 'print ok' > bin/tst
 command -p chmod +x bin/tst
-if	[[ $(PATH=$PWD/bin tst 2>/dev/null) != ok ]]
-then	err_exit '(PATH=$PWD/bin foo) does not find $PWD/bin/foo'
+exp=ok
+got=$(PATH=$PWD/bin tst 2>&1)
+if	[[ $exp != "$got" ]]
+then	err_exit '"PATH=$PWD/bin tst" does not run $PWD/bin/tst' \
+	"(expected $exp, got $(printf %q "$got"))"
 fi
 cd /
 if	whence ls > /dev/null

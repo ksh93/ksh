@@ -11,7 +11,7 @@ to be built using only a standard C compiler and utilities installation
 without any other dependencies or complications.
 
 MAM was designed by Glenn Fowler at AT&T.
-The [original documentation](http://web.archive.org/web/20041227143022/http://www2.research.att.com/~gsf/mam/mam.html)
+The [original documentation](https://web.archive.org/web/20041227143022/http://www2.research.att.com/~gsf/mam/mam.html)
 for MAM specified a more extensive language than was actually implemented in `mamake.c`,
 while the `ignore` attribute is not documented there.
 This file documents the MAM implementation that we are actually using.
@@ -163,7 +163,7 @@ The `exec` command assigns the `generated` attribute to the current rule, even i
 
 `bind` `-l`*libraryname* [ `dontcare` ]
 
-These commands are scanned for while sorting leaf directories for recurive
+These commands are scanned for while sorting leaf directories for recursive
 building, and executed as normal commands while building the current directory.
 
 #### …while scanning and sorting leaf directories ####

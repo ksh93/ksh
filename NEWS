@@ -2787,7 +2787,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   specifies and as all other POSIX shells do. To redirect standard output
   for reading and writing, you now need '1<>'.
   Ref.:	https://github.com/att/ast/issues/75
-	http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
+	https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
 
 2020-05-12:
 
