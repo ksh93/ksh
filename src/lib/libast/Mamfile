@@ -114,6 +114,13 @@ make install
 											done FEATURE/options generated
 											prev FEATURE/mmap
 											prev FEATURE/lib
+											make sig.h implicit
+												make FEATURE/sig
+													prev features/sig.sh
+													exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/sig.sh
+												done FEATURE/sig generated
+												exec - ${STDCP} -f FEATURE/sig sig.h
+											done sig.h generated
 										done features/map.c
 										exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I.  ${LDFLAGS}" run features/map.c
 									done FEATURE/map generated
@@ -1109,13 +1116,7 @@ make install
 			make signal.o
 				make misc/signal.c
 					prev ast_map.h
-					make sig.h implicit
-						make FEATURE/sig
-							prev features/sig.sh
-							exec - iffe ${IFFEFLAGS} -v -X ast -X std -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" run features/sig.sh
-						done FEATURE/sig generated
-						exec - ${STDCP} -f FEATURE/sig sig.h
-					done sig.h generated
+					prev sig.h
 					prev include/ast.h
 				done misc/signal.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Icomp -Iinclude -Istd -c misc/signal.c

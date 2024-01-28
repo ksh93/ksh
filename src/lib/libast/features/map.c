@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -31,6 +31,7 @@
 #include "FEATURE/vmalloc"
 #include "FEATURE/eaccess"
 #include "FEATURE/api"
+#include <sig.h>
 
 #if _opt_map_libc && !defined(_map_libc)
 #define _map_libc	1
@@ -134,6 +135,11 @@ main(void)
 	printf("#define glob		_ast_glob\n");
 	printf("#undef	globfree\n");
 	printf("#define globfree	_ast_globfree\n");
+#if _map_libc || (!_std_signal && (_lib_sigaction && defined(SA_NOCLDSTOP) || _lib_sigvec && defined(SV_INTERRUPT)))
+	/* use the libast signal() function (aka sigaction) when applicable */
+	printf("#undef	signal\n");
+	printf("#define signal      	_ast_signal\n");
+#endif
 #if _map_libc
 	printf("#undef	memdup\n");
 	printf("#define memdup		_ast_memdup\n");
@@ -293,8 +299,6 @@ main(void)
 	printf("#define setenviron      _ast_setenviron\n");
 	printf("#undef	sigcritical\n");
 	printf("#define sigcritical      _ast_sigcritical\n");
-	printf("#undef	signal\n");
-	printf("#define signal      	_ast_signal\n");
 	printf("#undef	sigunblock\n");
 	printf("#define sigunblock      _ast_sigunblock\n");
 	printf("#undef	stracmp\n");
