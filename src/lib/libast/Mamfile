@@ -11,7 +11,7 @@ setv INSTALLROOT ../../..
 setv PACKAGEROOT ../../../../..
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
 setv CC cc
-setv mam_cc_FLAGS ${mam_cc_DLL} -D_BLD_ast
+setv mam_cc_FLAGS ${mam_cc_DLL} -D_BLD_ast ${mam_cc_NOSTRICTALIASING}
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
