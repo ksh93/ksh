@@ -27,7 +27,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2024-01-19"
+#define RELEASE_DATE "2024-01-28"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -181,6 +181,7 @@ static const char usage[] =
 #define RULE_implicit	0x0040		/* implicit prerequisite	*/
 #define RULE_made	0x0080		/* already made			*/
 #define RULE_virtual	0x0100		/* not a file			*/
+#define RULE_notrace	0x0200		/* do not xtrace shell action	*/
 
 #define STREAM_KEEP	0x0001		/* don't fclose() on pop()	*/
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
@@ -616,7 +617,10 @@ search(Dict_t* dict, char* name, void* value)
 static int
 strict(void)
 {
-	return search(state.vars, "MAMAKE_STRICT", NULL) != NULL;
+	static int found = -1;
+	if(found < 0)
+		found = search(state.vars, "MAMAKE_STRICT", NULL) != NULL;
+	return found;
 }
 
 /*
@@ -1271,31 +1275,24 @@ run(Rule_t* r, char* s)
 	else
 		x = state.exec;
 	if (x)
+	{
+		/* stubs for backward compat */
+		if(!strict())
+			append(buf,
+				"alias silent=\n"
+				"ignore() { env \"$@\" || :; }\n"
+			);
+		/* find commands in the current working directory first */
 		append(buf,
-			/* stub for nmake's silent prefix (for backward compat) */
-			"silent()\n"
-			"(\n"
-				"while	test \"$#\" -gt 0\n"
-				"do	case $1 in\n"
-					"*=*)	export \"$1\"; shift;;\n"
-					"*)	break;;\n"
-					"esac\n"
-				"done\n"
-				"\"$@\"\n"
-			")\n"
-			/* stub for nmake's ignore prefix (for backward compat) */
-			"ignore()\n"
-			"{\n"
-				"silent \"$@\" || :\n"  /* always return status 0 */
-			"}\n"
-			/* find commands in the current working directory first */
 			"case $PATH in\n"
 			".:*)	;;\n"
 			"*)	PATH=.:$PATH;;\n"
 			"esac\n"
-			/* show trace for the shell action commands */
-			"set -x\n"
 		);
+		/* show trace for the shell action commands */
+		if (!(r->flags & RULE_notrace))
+			append(buf,"set -x\n");
+	}
 	if (state.view)
 	{
 		do
@@ -1528,6 +1525,10 @@ attributes(Rule_t* r, char* s)
 			if (n == 5 && !strncmp(t, "joint", n))
 				flag = -1;	/* ignore (not implemented) */
 			break;
+		case 'n':
+			if (n == 7 && !strncmp(t, "notrace", n))
+				flag = RULE_notrace;
+			break;
 		}
 		if(flag > 0)
 			r->flags |= flag;
@@ -1748,8 +1749,10 @@ make(Rule_t* r)
 			continue;
 		case KEY('d','o','n','e'):
 			q = rule(expand(buf, t));
-			if (q != r && t[0] != '$')
-				report(2, "improper done statement", t, 0);
+			if (q != r && (t[0] != '$' || strict()))
+				report(3, "improper done statement", t, 0);
+			if(*v && strict())
+				report(1, v, "done: attributes are deprecated here, please move them to 'make'", 0);
 			attributes(r, v);
 			if (cmd && state.active && (state.force || r->time < z || !r->time && !z))
 			{
@@ -1817,7 +1820,7 @@ make(Rule_t* r)
 				}
 			}
 			else if (*v)
-				report(3, v, "superfluous attributes", 0);
+				report(3, v, "prev: superfluous attributes", 0);
 			if (!q->making)
 			{
 				if (!(q->flags & RULE_ignore) && z < q->time)
