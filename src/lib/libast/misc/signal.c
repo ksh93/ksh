@@ -23,17 +23,8 @@
  * fun==SIG_DFL also unblocks signal
  */
 
-#if !__HAIKU__
-
-#undef	signal
-#define signal		______signal
-
-#endif
-
 #include <ast.h>
 #include <sig.h>
-
-#undef	signal
 
 #undef	_def_map_ast
 #include <ast_map.h>
@@ -61,7 +52,7 @@
 #endif
 
 Sig_handler_t
-_ast_signal(int sig, Sig_handler_t fun)
+signal(int sig, Sig_handler_t fun)
 {
 	struct sigaction	na;
 	struct sigaction	oa;
