@@ -1688,9 +1688,7 @@ const char sh_optksh[] =
 		"was found on \bPATH\b but was not executable.]"
 	"[+127?\b-c\b and \b-s\b were not specified and the command script "
 		"corresponding to \aarg\a could not be found.]"
-	"[+128?An unrecoverable internal error occurred (e.g., OOM, failure "
-		"to read from a script during execution, or any other such "
-		"unusual circumstance).]"
+	"[+128?An unrecoverable fatal error occurred.]"
 "}"
 
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"
