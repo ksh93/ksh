@@ -550,7 +550,6 @@ void job_init(int lflag)
 		/* This should have already been done by rlogin */
                 int fd;
                 char *ttynam;
-                setpgid(0,sh.pid);
 		if(job.mypgid<0 || !(ttynam=ttyname(JOBTTY)))
 			return;
 		while(close(JOBTTY)<0 && errno==EINTR)
