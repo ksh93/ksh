@@ -132,7 +132,7 @@ for command in "" "command"; do
 		function infun {
 			echo \$bar
 		}
-		# The current implementation does not make a seperate version of var for the static scope.
+		# The current implementation does not make a separate version of var for the static scope.
 		# Rather, it changes foo()'s $bar variable back to a static scope, which prevents it from being
 		# accessed by called functions as $bar is no longer in a dynamic scope. Consequently, both infun
 		# and nxt are expected to print only a newline.
