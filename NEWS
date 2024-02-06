@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-02-06:
+
+- Fixed a regression introduced on 2023-03-04 that caused ksh to lock up
+  after using the Arch Linux arch-chroot script.
+
 2024-02-03:
 
 - Fixed: the arithmetic representation of negative integers with a base other
