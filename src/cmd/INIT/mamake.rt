@@ -1,5 +1,17 @@
 NOTE regression tests for the mamake command
 
+# To regenerate mamake.tst from this file:
+#
+#	bin/package use
+#	cd $INSTALLROOT   # needed to stop mamake complaining about not being under VPATH
+#	mktest $PACKAGEROOT/src/cmd/INIT/mamake.rt > $PACKAGEROOT/src/cmd/INIT/mamake.tst
+#
+# WARNING: the regeneration assumes mamake's output is correct, so VERIFY THE RESULTS!
+# Always do 'git diff mamake.tst' to check that no unexpected changes have been made.
+
+# ======
+# the one original AT&T test -- uses legacy mode
+
 UNIT mamake
 
 TEST macros

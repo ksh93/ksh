@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-02-03:
+
+- Fixed: the arithmetic representation of negative integers with a base other
+  than 10 is no longer incorrectly treated as unsigned long. For example,
+	typeset -i16 n=-12; echo $n
+  now correctly outputs '-16#c' and no longer ouputs '16#fffffffffffffff4'.
+
 2024-01-27:
 
 - Fixed: tilde expansion discipline functions (see 2021-03-16) were not
@@ -2787,7 +2794,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   specifies and as all other POSIX shells do. To redirect standard output
   for reading and writing, you now need '1<>'.
   Ref.:	https://github.com/att/ast/issues/75
-	http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
+	https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
 
 2020-05-12:
 

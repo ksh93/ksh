@@ -1,6 +1,6 @@
 # Wrapper script to run the ksh93 regression tests directly.
 # By Martijn Dekker <martijn@inlv.org> 2020-05-14, 2023-03-17
-# Public domain. http://creativecommons.org/publicdomain/zero/1.0/
+# Public domain. https://creativecommons.org/publicdomain/zero/1.0/
 #
 # The manual: bin/shtests --man
 # Brief help: bin/shtests --help

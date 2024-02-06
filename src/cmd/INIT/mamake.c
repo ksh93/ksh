@@ -27,7 +27,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2024-01-28"
+#define RELEASE_DATE "2024-02-05"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -238,6 +238,7 @@ typedef struct Rule_s			/* rule item			*/
 	int		flags;		/* RULE_* flags			*/
 	int		making;		/* currently make()ing		*/
 	unsigned long	time;		/* modification time		*/
+	unsigned long	line;		/* starting line in Mamfile	*/
 } Rule_t;
 
 typedef struct Stream_s			/* input file stream stack	*/
@@ -257,12 +258,12 @@ typedef struct View_s			/* viewpath level		*/
 
 static struct				/* program state		*/
 {
-	Buf_t*		buf;		/* work buffer			*/
+	int		strict;		/* strict mode activated if set */
+
 	Buf_t*		old;		/* dropped buffers		*/
 	Buf_t*		opt;		/* option buffer		*/
 
 	Dict_t*		leaf;		/* recursion leaf dictionary	*/
-	Dict_t*		libs;		/* library dictionary		*/
 	Dict_t*		rules;		/* rule dictionary		*/
 	Dict_t*		vars;		/* variable dictionary		*/
 
@@ -285,14 +286,11 @@ static struct				/* program state		*/
 	int		indent;		/* debug indent			*/
 	int		keepgoing;	/* do siblings on error		*/
 	int		never;		/* never execute		*/
-	int		peek;		/* next line already in input	*/
 	int		probed;		/* probe already done		*/
 	int		verified;	/* don't bother with verify()	*/
 
 	Stream_t	streams[4];	/* input file stream stack	*/
 	Stream_t*	sp;		/* input stream stack pointer	*/
-
-	char		input[8*CHUNK];	/* input buffer			*/
 } state;
 
 static unsigned long	make(Rule_t*);
@@ -611,19 +609,6 @@ search(Dict_t* dict, char* name, void* value)
 }
 
 /*
- * return true if in strict mode
- */
-
-static int
-strict(void)
-{
-	static int found = -1;
-	if(found < 0)
-		found = search(state.vars, "MAMAKE_STRICT", NULL) != NULL;
-	return found;
-}
-
-/*
  * low level for walk()
  */
 
@@ -667,6 +652,7 @@ rule(char* name)
 		if (!(r = newof(0, Rule_t, 1, 0)))
 			report(3, "out of memory [rule]", name, 0);
 		r->name = (char*)search(state.rules, name, r);
+		r->line = state.sp ? state.sp->line : 0;
 	}
 	return r;
 }
@@ -770,7 +756,7 @@ view(void)
 				}
 			}
 			n = strlen(s);
-			if(!p)
+			if (!p)
 				abort();
 			if (!(vp = newof(0, View_t, 1, strlen(p) + n + 1)))
 				report(3, "out of memory [view]", s, 0);
@@ -1143,10 +1129,10 @@ push(char* file, Stdio_t* fp, int flags)
 		report(3, "input stream stack overflow", NULL, 0);
 	if (state.sp->fp = fp)
 	{
-		if(state.sp->file)
+		if (state.sp->file)
 			free(state.sp->file);
 		state.sp->file = strdup("pipeline");
-		if(!state.sp->file)
+		if (!state.sp->file)
 			report(3, "out of memory [push]", NULL, 0);
 	}
 	else if (flags & STREAM_PIPE)
@@ -1154,10 +1140,10 @@ push(char* file, Stdio_t* fp, int flags)
 	else if (!file || !strcmp(file, "-") || !strcmp(file, "/dev/stdin"))
 	{
 		flags |= STREAM_KEEP;
-		if(state.sp->file)
+		if (state.sp->file)
 			free(state.sp->file);
 		state.sp->file = strdup("/dev/stdin");
-		if(!state.sp->file)
+		if (!state.sp->file)
 			report(3, "out of memory [push]", NULL, 0);
 		state.sp->fp = stdin;
 	}
@@ -1168,7 +1154,7 @@ push(char* file, Stdio_t* fp, int flags)
 		{
 			if (!(state.sp->fp = fopen(path, "r")))
 				report(3, "cannot read", path, 0);
-			if(state.sp->file)
+			if (state.sp->file)
 				free(state.sp->file);
 			state.sp->file = duplicate(path);
 			drop(buf);
@@ -1194,18 +1180,17 @@ push(char* file, Stdio_t* fp, int flags)
 static char*
 input(void)
 {
-	char*	e;
+	static char	input[8*CHUNK];  /* input buffer */
+	char		*e;
 
 	if (!state.sp)
 		report(3, "no input file stream", NULL, 0);
-	if (state.peek)
-		state.peek = 0;
-	else if (!fgets(state.input, sizeof(state.input), state.sp->fp))
+	if (!fgets(input, sizeof(input), state.sp->fp))
 		return NULL;
-	else if (*state.input && *(e = state.input + strlen(state.input) - 1) == '\n')
+	if (*input && *(e = input + strlen(input) - 1) == '\n')
 		*e = 0;
 	state.sp->line++;
-	return state.input;
+	return input;
 }
 
 /*
@@ -1277,7 +1262,7 @@ run(Rule_t* r, char* s)
 	if (x)
 	{
 		/* stubs for backward compat */
-		if(!strict())
+		if (!state.strict)
 			append(buf,
 				"alias silent=\n"
 				"ignore() { env \"$@\" || :; }\n"
@@ -1504,8 +1489,9 @@ attributes(Rule_t* r, char* s)
 				flag = RULE_dontcare;
 			break;
 		case 'g':
+			/* 'exec' assigns this attribute; ignore explicit assignment in strict mode */
 			if (n == 9 && !strncmp(t, "generated", n))
-				flag = RULE_generated;
+				flag = state.strict ? -1 : RULE_generated;
 			break;
 		case 'i':
 			if (n == 6 && !strncmp(t, "ignore", n))
@@ -1530,40 +1516,47 @@ attributes(Rule_t* r, char* s)
 				flag = RULE_notrace;
 			break;
 		}
-		if(flag > 0)
+		if (flag > 0)
 			r->flags |= flag;
-		else if(flag == 0)
+		else if (flag == 0)
 		{
 			t[n] = '\0';
 			report(3, "unknown attribute", t, 0);
 		}
+		/* deprecate ignored attributes */
+		else if (state.strict)
+			report(1, "deprecated", t, 0);
 	}
 }
 
 /*
  * define ${mam_libX} for library reference lib
+ *
+ * lib is expected to be in the format "-lX"
  */
+
+#define LIB_VARPREFIX "mam_lib"
 
 static char*
 require(char* lib, int dontcare)
 {
-	int		c;
-	char*		s;
-	char*		r;
-	FILE*		f;
-	Buf_t*		buf;
-	Buf_t*		tmp;
-	struct stat	st;
-
-	int		tofree = 0;
 	static int	dynamic = -1;
+	char		*s, *r, varname[64];
 
 	if (dynamic < 0)
 		dynamic = (s = search(state.vars, "mam_cc_L", NULL)) ? atoi(s) : 0;
-	if (!(r = search(state.vars, lib, NULL)))
+
+	if (strlen(lib + 2) > sizeof(varname) - sizeof(LIB_VARPREFIX))
+		report(3, "-lname too long", lib, 0);
+	sprintf(varname, LIB_VARPREFIX "%s", lib + 2);
+
+	if (!(r = search(state.vars, varname, NULL)))
 	{
-		buf = buffer();
-		tmp = buffer();
+		Buf_t		*buf = buffer(), *tmp = buffer();
+		int		c, tofree = 0;
+		FILE		*f;
+		struct stat	st;
+
 		s = 0;
 		for (;;)
 		{
@@ -1604,7 +1597,7 @@ require(char* lib, int dontcare)
 			tofree = 1;
 			r = duplicate(r);
 		}
-		search(state.vars, lib, r);
+		search(state.vars, varname, r);
 		append(tmp, lib + 2);
 		append(tmp, ".req");
 		if (!(f = fopen(use(tmp), "r")))
@@ -1632,33 +1625,28 @@ require(char* lib, int dontcare)
 				}
 			}
 			fclose(f);
-			if(tofree)
+			if (tofree)
 				free(r);
 			r = use(buf);
 		}
 		else if (dontcare)
 		{
-			append(tmp, "set +v +x\n");
-			append(tmp, "cd \"${TMPDIR:-/tmp}\"\n");
-			append(tmp, "echo 'int main(void){return 0;}' > x.${!-$$}.c\n");
-			append(tmp, "${CC} ${CCFLAGS} -o x.${!-$$}.x x.${!-$$}.c ");
+			append(tmp, "echo 'int main(void){return 0;}' > libtest.$$.c\n"
+				"${CC} ${CCFLAGS} -o libtest.$$.x libtest.$$.c ");
 			append(tmp, r);
-			append(tmp, " >/dev/null 2>&1\n");
-			append(tmp, "c=$?\n");
-			append(tmp, "rm -f x.${!-$$}.[cox]\n");
-			append(tmp, "exit $c\n");
+			append(tmp, " >/dev/null 2>&1\n"
+				"c=$?\n"
+				"exec rm -rf libtest.$$.* &\n"  /* also remove artefacts like *.dSYM dir (macOS) */
+				"exit $c\n");
 			if (execute(expand(buf, use(tmp))))
 			{
-				if(tofree)
+				if (tofree)
 					free(r);
 				r = "";
 			}
 		}
 		r = duplicate(r);
-		search(state.vars, lib, r);
-		append(tmp, "mam_lib");
-		append(tmp, lib + 2);
-		search(state.vars, use(tmp), r);
+		search(state.vars, varname, r);
 		drop(tmp);
 		drop(buf);
 	}
@@ -1717,13 +1705,14 @@ make(Rule_t* r)
 		else
 			t = v = s;
 		/* enforce 4-letter lowercase command name */
-		if(u[0]<'a' || u[0]>'z' || u[1]<'a' || u[1]>'z' || u[2]<'a' || u[2]>'z' || u[3]<'a' || u[3]>'z' || u[4] && !isspace(u[4]))
+		if (u[0]<'a' || u[0]>'z' || u[1]<'a' || u[1]>'z' || u[2]<'a' || u[2]>'z' || u[3]<'a' || u[3]>'z' || u[4] && !isspace(u[4]))
 			report(3, "not a command name", u, 0);
 		switch (KEY(u[0], u[1], u[2], u[3]))
 		{
 		case KEY('b','i','n','d'):
-			if ((t[0] == '-' || t[0] == '+') && t[1] == 'l' && (s = require(t, !strcmp(v, "dontcare"))) && strncmp(r->name, "FEATURE/", 8) && strcmp(r->name, "configure.h"))
+			if (t[0] == '-' && t[1] == 'l' && (s = require(t, !strcmp(v, "dontcare"))) && strncmp(r->name, "FEATURE/", 8) && strcmp(r->name, "configure.h"))
 			{
+				/* bind to library file */
 				for (;;)
 				{
 					for (t = s; *s && !isspace(*s); s++);
@@ -1731,7 +1720,8 @@ make(Rule_t* r)
 						*s = 0;
 					else
 						s = 0;
-					if (*t)
+					/* only bother if t is a path to a *.a we built (i.e. not -l...) */
+					if (*t == '/')
 					{
 						q = rule(expand(buf, t));
 						attributes(q, v);
@@ -1748,22 +1738,48 @@ make(Rule_t* r)
 			}
 			continue;
 		case KEY('d','o','n','e'):
-			q = rule(expand(buf, t));
-			if (q != r && (t[0] != '$' || strict()))
-				report(3, "improper done statement", t, 0);
-			if(*v && strict())
-				report(1, v, "done: attributes are deprecated here, please move them to 'make'", 0);
-			attributes(r, v);
+			if (*t)
+			{	/* target is optional; use it for sanity check if present */
+				q = rule(expand(buf, t));
+				if (q != r && (t[0] != '$' || state.strict))
+					report(3, "mismatched done statement", t, 0);
+				if (*v)
+				{
+					if (state.strict)
+						report(1, v, "done: attributes deprecated; move to 'make'", 0);
+					attributes(r, v);
+				}
+			}
 			if (cmd && state.active && (state.force || r->time < z || !r->time && !z))
 			{
-				if (state.explain && !state.force)
+				char	*fname = state.sp->file, *rname = r->name, *rnamepre = "", *val;
+				int	len;
+				/* show a nice trace header */
+				/* ...mamfile path: make relative to ${PACKAGEROOT} */
+				if (*fname == '/'
+				&& (val = search(state.vars, "PACKAGEROOT", NULL)) && (len = strlen(val))
+				&& strncmp(fname, val, len) == 0 && fname[len] == '/' && fname[++len])
+					fname += len;
+				/* ...rule name: change install root path prefix back to '${INSTALLROOT}' for brevity */
+				if (*rname == '/'
+				&& (val = search(state.vars, "INSTALLROOT", NULL)) && (len = strlen(val))
+				&& strncmp(rname, val, len) == 0 && rname[len] == '/' && rname[len + 1])
+					rname += len, rnamepre = "${INSTALLROOT}";
+				fprintf(stderr, "\n# %s: %lu-%lu: make %s%s\n",
+					fname, r->line, state.sp->line, rnamepre, rname);
+				/* -e option */
+				if (state.explain)
 				{
+					fprintf(stderr, "# reason: ");
 					if (!r->time)
-						fprintf(stderr, "%s [not found]\n", r->name);
+						fprintf(stderr, "target %s\n",
+							(r->flags & RULE_virtual) ? "is virtual" : "not found");
 					else
-						fprintf(stderr, "%s [%lu] older than prerequisites [%lu]\n", r->name, r->time, z);
+						fprintf(stderr, "target [%lu] older than prerequisites [%lu]\n", r->time, z);
 				}
+				/* expand MAM variables in the shell action */
 				substitute(buf, use(cmd));
+				/* run the shell action */
 				x = run(r, use(buf));
 				if (z < x)
 					z = x;
@@ -1804,7 +1820,7 @@ make(Rule_t* r)
 		case KEY('p','r','e','v'):
 		{
 			char *name = expand(buf, t);
-			if (!strict())
+			if (!state.strict)
 				q = rule(name); /* for backward compat */
 			else if (!(q = (Rule_t*)search(state.rules, name, NULL)))
 			{	/*
@@ -1812,7 +1828,7 @@ make(Rule_t* r)
 				 * special-case this as a way to declare a simple source file prerequisite
 				 */
 				attributes(q = rule(name), v);
-				if(!(q->flags & RULE_virtual))
+				if (!(q->flags & RULE_virtual))
 				{
 					bindfile(q);
 					if (!(q->flags & (RULE_dontcare | RULE_exists)))
@@ -1834,6 +1850,8 @@ make(Rule_t* r)
 			continue;
 		}
 		case KEY('s','e','t','v'):
+			if (strcmp(t, "MAMAKE_STRICT") == 0)
+				state.strict = 1;
 			if (!search(state.vars, t, NULL))
 			{
 				if (*v == '"')
@@ -1853,11 +1871,14 @@ make(Rule_t* r)
 				probe();
 			}
 			continue;
-		case KEY('i','n','f','o'):
 		case KEY('n','o','t','e'):
-		case KEY('m','e','t','a'):
 			/* comment command */
 			continue;
+		case KEY('i','n','f','o'):
+		case KEY('m','e','t','a'):
+			if (!state.strict)
+				continue;
+			/* FALLTHROUGH */
 		default:
 			report(3, "unknown command", u, 0);
 		}
@@ -1930,6 +1951,9 @@ update(Rule_t* r)
 	substitute(buf, cmd);
 	append(buf, r->name);
 	substitute(buf, arg);
+	fprintf(stderr, "\n# ... making %s ...\n", r->name);
+	if (state.explain)
+		fprintf(stderr, "# reason: recursion\n");
 	run(r, use(buf));
 	drop(buf);
 	return 0;
@@ -1974,11 +1998,11 @@ scan(Dict_item_t* item, void* handle)
 		while (s = input())
 		{
 			for (; isspace(*s); s++);
-			/* examine only commands of the form bind [+-]lfoo */
+			/* examine only commands of the form bind -lfoo */
 			if (s[0] != 'b' || s[1] != 'i' || s[2] != 'n' || s[3] != 'd' || !isspace(s[4]))
 				continue;
 			for (s += 5; isspace(*s); s++);
-			if ((s[0] != '-' && s[0] != '+') || s[1] != 'l' || !s[2])
+			if (s[0] != '-' || s[1] != 'l' || !s[2])
 				continue;
 			/* construct potential leaf directory name */
 			append(buf, "lib");
@@ -2323,6 +2347,13 @@ main(int argc, char** argv)
 		}
 	}
 #endif
+
+	/*
+	 * option incompatibility
+	 */
+
+	if (state.force)
+		state.explain = 0;
 
 	/*
 	 * load the environment

@@ -83,7 +83,7 @@ typedef struct  _mac_
 #define isescchar(s)	((s)>S_QUOTE)
 #define isqescchar(s)	((s)>=S_QUOTE)
 #define isbracechar(c)	((c)==RBRACE || (_c_=sh_lexstates[ST_BRACE][c])==S_MOD1 ||_c_==S_MOD2)
-#define ltos(x)		fmtbase((intmax_t)(x),0,0)
+#define ltos(x)		fmtint(x,0)
 
 /* type of macro expansions */
 #define M_BRACE		1	/* ${var}	*/

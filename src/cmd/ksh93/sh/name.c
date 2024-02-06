@@ -2722,6 +2722,7 @@ char *nv_getval(Namval_t *np)
 	if(numeric)
 	{
 		Sflong_t  ll;
+		int base;
 		if(!up->cp)
 			return "0";
 		if(nv_isattr (np,NV_DOUBLE)==NV_DOUBLE)
@@ -2778,16 +2779,12 @@ char *nv_getval(Namval_t *np)
 		}
         	else
 			ll = *(up->lp);
-		if((numeric=nv_size(np))==10)
-		{
-			if(nv_isattr(np,NV_UNSIGN))
-			{
-				sfprintf(sh.strbuf,"%I*u",sizeof(ll),ll);
-				return sfstruse(sh.strbuf);
-			}
-			numeric = 0;
-		}
-		return fmtbase(ll,numeric, numeric&&numeric!=10);
+		base = nv_size(np);
+		if(base==10)
+			return fmtint(ll, nv_isattr(np,NV_UNSIGN));
+		/* render a possibly signed non-base-10 integer with its base# prefix */
+		sfprintf(sh.strbuf, nv_isattr(np,NV_UNSIGN) ? "%#..*I*u" : "%#..*I*d", base, sizeof ll, ll);
+		return sfstruse(sh.strbuf);
 	}
 done:
 	/*

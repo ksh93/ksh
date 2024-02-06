@@ -713,7 +713,7 @@ static Sfdouble_t nget_rand(Namval_t* np, Namfun_t *fp)
 static char* get_rand(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)nget_rand(np,fp);
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 void sh_reseed_rand(struct rand *rp)
@@ -752,7 +752,7 @@ static Sfdouble_t nget_srand(Namval_t* np, Namfun_t *fp)
 static char* get_srand(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 /*
@@ -791,7 +791,7 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 static char* get_lineno(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)nget_lineno(np,fp);
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 static char* get_lastarg(Namval_t* np, Namfun_t *fp)
@@ -827,22 +827,25 @@ static void match2d(struct match *mp)
 	int		i;
 	Namarr_t	*ap;
 	nv_disc(SH_MATCHNOD, &mp->hdr, NV_POP);
-	np = nv_namptr(mp->nodes, 0);
-	for(i=0; i < mp->nmatch; i++)
+	if(mp->nodes)
 	{
-		np->nvname = mp->names + 3 * i;
-		if(i > 9)
+		np = nv_namptr(mp->nodes, 0);
+		for(i=0; i < mp->nmatch; i++)
 		{
-			*np->nvname = '0' + i / 10;
-			np->nvname[1] = '0' + (i % 10);
+			np->nvname = mp->names + 3 * i;
+			if(i > 9)
+			{
+				*np->nvname = '0' + i / 10;
+				np->nvname[1] = '0' + (i % 10);
+			}
+			else
+				*np->nvname = '0' + i;
+			nv_putsub(np, NULL, 1);
+			nv_putsub(np, NULL, 0);
+			nv_putsub(SH_MATCHNOD, NULL, i);
+			nv_arraychild(SH_MATCHNOD, np, 0);
+			np = nv_namptr(np + 1, 0);
 		}
-		else
-			*np->nvname = '0' + i;
-		nv_putsub(np, NULL, 1);
-		nv_putsub(np, NULL, 0);
-		nv_putsub(SH_MATCHNOD, NULL, i);
-		nv_arraychild(SH_MATCHNOD, np, 0);
-		np = nv_namptr(np + 1, 0);
 	}
 	if(ap = nv_arrayptr(SH_MATCHNOD))
 		ap->nelem = mp->nmatch;
@@ -864,25 +867,28 @@ void sh_setmatch(const char *v, int vsize, int nmatch, int match[], int index)
 	sh.subshell = 0;
 	if(index<0)
 	{
-		np = nv_namptr(mp->nodes,0);
-		if(mp->index==0)
-			match2d(mp);
-		for(i=0; i < mp->nmatch; i++)
+		if(mp->nodes)
 		{
-			nv_disc(np,&mp->hdr,NV_LAST);
-			nv_putsub(np,NULL,mp->index);
-			for(x=mp->index; x >=0; x--)
+			np = nv_namptr(mp->nodes,0);
+			if(mp->index==0)
+				match2d(mp);
+			for(i=0; i < mp->nmatch; i++)
 			{
-				n = i + x*mp->nmatch;
-				if(mp->match[2*n+1]>mp->match[2*n])
-					nv_putsub(np,Empty,ARRAY_ADD|x);
+				nv_disc(np,&mp->hdr,NV_LAST);
+				nv_putsub(np,NULL,mp->index);
+				for(x=mp->index; x >=0; x--)
+				{
+					n = i + x*mp->nmatch;
+					if(mp->match[2*n+1]>mp->match[2*n])
+						nv_putsub(np,Empty,ARRAY_ADD|x);
+				}
+				if((ap=nv_arrayptr(np)) && array_elem(ap)==0)
+				{
+					nv_putsub(SH_MATCHNOD,NULL,i);
+					_nv_unset(SH_MATCHNOD,NV_RDONLY);
+				}
+				np = nv_namptr(np+1,0);
 			}
-			if((ap=nv_arrayptr(np)) && array_elem(ap)==0)
-			{
-				nv_putsub(SH_MATCHNOD,NULL,i);
-				_nv_unset(SH_MATCHNOD,NV_RDONLY);
-			}
-			np = nv_namptr(np+1,0);
 		}
 		sh.subshell = savesub;
 		return;
@@ -1797,7 +1803,8 @@ static Namfun_t	 stat_child_fun =
 static void stat_init(void)
 {
 	int		i,nstat = STAT_SUBSHELL+1;
-	struct Stats	*sp = sh_newof(0,struct Stats,1,nstat*NV_MINSZ);
+	size_t		extrasize = nstat*(sizeof(int)+NV_MINSZ);
+	struct Stats	*sp = sh_newof(0,struct Stats,1,extrasize);
 	Namval_t	*np;
 	sp->numnodes = nstat;
 	sp->nodes = (char*)(sp+1);
@@ -1811,7 +1818,7 @@ static void stat_init(void)
 		nv_setsize(np,10);
 		np->nvalue.ip = &sh.stats[i];
 	}
-	sp->hdr.dsize = sizeof(struct Stats) + nstat*(sizeof(int)+NV_MINSZ);
+	sp->hdr.dsize = sizeof(struct Stats) + extrasize;
 	sp->hdr.disc = &stat_disc;
 	nv_stack(SH_STATS,&sp->hdr);
 	sp->hdr.nofree = 1;

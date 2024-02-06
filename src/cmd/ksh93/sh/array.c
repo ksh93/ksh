@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -807,7 +807,7 @@ static struct index_array *array_grow(Namval_t *np, struct index_array *arp,int 
 	int newsize = arsize(arp,maxi+1);
 	if (maxi >= ARRAY_MAX)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),e_subscript, fmtbase((intmax_t)maxi,10,0));
+		errormsg(SH_DICT,ERROR_exit(1),e_subscript,fmtint(maxi,1));
 		UNREACHABLE();
 	}
 	i = (newsize-1)*sizeof(union Value)+newsize;

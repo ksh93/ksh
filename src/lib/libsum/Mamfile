@@ -20,7 +20,7 @@ make install virtual
 		make sum.req
 			prev ${INSTALLROOT}/bin/mkreq
 			exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} : ${LDFLAGS} : sum md ast
-		done sum.req
+		done
 		make libsum.a
 			prev sum.req
 			make sumlib.o
@@ -31,10 +31,10 @@ make install virtual
 								make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/endian.h
-								done ${PACKAGE_ast_INCLUDE}/ast_common.h
-							done ${PACKAGE_ast_INCLUDE}/bytesex.h
-						done ${PACKAGE_ast_INCLUDE}/endian.h
-					done sum-sha2.c
+								done
+							done
+						done
+					done
 					prev sum-sha1.c implicit dontcare
 					prev sum-md5.c implicit dontcare
 					make sum-lmd.c implicit dontcare
@@ -42,23 +42,23 @@ make install virtual
 						prev sha1.h implicit dontcare virtual
 						prev md5.h implicit dontcare virtual
 						prev md4.h implicit dontcare virtual
-					done sum-lmd.c
+					done
 					make sum-prng.c implicit
 						make ${PACKAGE_ast_INCLUDE}/fnv.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-						done ${PACKAGE_ast_INCLUDE}/fnv.h
-					done sum-prng.c
+						done
+					done
 					prev sum-bsd.c implicit
 					prev sum-ast4.c implicit
 					make FEATURE/sum implicit
 						prev features/sum
 						bind -last
 						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} : run features/sum
-					done FEATURE/sum
+					done
 					prev ${PACKAGE_ast_INCLUDE}/hashpart.h implicit
 					make ${PACKAGE_ast_INCLUDE}/swap.h implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-					done ${PACKAGE_ast_INCLUDE}/swap.h
+					done
 					prev ${PACKAGE_ast_INCLUDE}/endian.h
 					make sum.h implicit
 						make ${PACKAGE_ast_INCLUDE}/ast.h implicit
@@ -74,52 +74,52 @@ make install virtual
 													prev ${PACKAGE_ast_INCLUDE}/endian.h
 													make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
 														prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
-													done ${PACKAGE_ast_INCLUDE}/wchar.h
-												done ${PACKAGE_ast_INCLUDE}/ast_wctype.h
-											done ${PACKAGE_ast_INCLUDE}/wctype.h
+													done
+												done
+											done
 											make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
 												make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
 													prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
 													prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-												done ${PACKAGE_ast_INCLUDE}/ast_stdio.h
-											done ${PACKAGE_ast_INCLUDE}/stdio.h
+												done
+											done
 											prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-										done ${PACKAGE_ast_INCLUDE}/ast_wchar.h
+										done
 										prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-									done ${PACKAGE_ast_INCLUDE}/regex.h
+									done
 									make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-									done ${PACKAGE_ast_INCLUDE}/getopt.h
+									done
 									prev ${PACKAGE_ast_INCLUDE}/ast_map.h
 									prev ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
 									make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-									done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h
+									done
 									prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h
 									make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
 										prev ${PACKAGE_ast_INCLUDE}/getopt.h
 										prev ${PACKAGE_ast_INCLUDE}/endian.h
-									done ${PACKAGE_ast_INCLUDE}/ast_sys.h
+									done
 									prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
 									prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-								done ${PACKAGE_ast_INCLUDE}/ast_std.h
-							done ${PACKAGE_ast_INCLUDE}/vmalloc.h
+								done
+							done
 							make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/sfio_s.h
 								prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 								prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-							done ${PACKAGE_ast_INCLUDE}/sfio.h
+							done
 							prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-						done ${PACKAGE_ast_INCLUDE}/ast.h
-					done sum.h
+						done
+					done
 					make sum-att.c implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast.h
-					done sum-att.c
+					done
 					make sum-crc.c implicit
 						prev ${PACKAGE_ast_INCLUDE}/ast.h
-					done sum-crc.c
-				done sumlib.c
+					done
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -c sumlib.c
 			done sumlib.o
 			exec - ${AR} rc libsum.a sumlib.o
@@ -129,26 +129,26 @@ make install virtual
 	prev libsum.a
 	make ${INSTALLROOT}/lib
 		exec - mkdir -p ${INSTALLROOT}/lib
-	done ${INSTALLROOT}/lib
+	done
 	make ${INSTALLROOT}/lib/libsum.a
 		prev libsum.a
 		exec - ${STDCP} -f libsum.a ${INSTALLROOT}/lib/libsum.a
 		exec - (ranlib ${INSTALLROOT}/lib/libsum.a) >/dev/null 2>&1 || true
-	done ${INSTALLROOT}/lib/libsum.a
+	done
 	make ${INSTALLROOT}/lib/lib
 		exec - mkdir -p ${INSTALLROOT}/lib/lib
-	done ${INSTALLROOT}/lib/lib
+	done
 	make ${INSTALLROOT}/lib/lib/sum
 		prev sum.req
 		exec - ${STDCP} -f sum.req ${INSTALLROOT}/lib/lib/sum
-	done ${INSTALLROOT}/lib/lib/sum
+	done
 	make ${PACKAGE_ast_INCLUDE}
 		exec - mkdir -p ${PACKAGE_ast_INCLUDE}
-	done ${PACKAGE_ast_INCLUDE}
+	done
 	make ${PACKAGE_ast_INCLUDE}/sum.h
 		prev sum.h
 		exec - ${STDCP} -f sum.h ${PACKAGE_ast_INCLUDE}/sum.h
-	done ${PACKAGE_ast_INCLUDE}/sum.h
+	done
 done install
 make test dontcare virtual
 done test

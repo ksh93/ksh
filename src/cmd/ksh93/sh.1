@@ -3178,20 +3178,22 @@ Integer constants follow the ANSI C programming language
 integer constant conventions although only single byte
 character constants are recognized and character casts
 are not recognized.
-In addition constants can be of the form
-\*(OK\f2base\f3#\^\f1\*(CK\f2n\^\fP
+.PP
+In addition, integer constants can be of the form
+\f2base\f3#\^\f1\f2n\^\fP
+or (for negative numbers)
+\f3-\^\f2base\f3#\^\f1\f2n\^\fP,
 where
 .I base\^
 is a decimal number between two and sixty-four
-representing the arithmetic base
-and
+representing the arithmetic base, and
 .I n\^
-is a number in that base.
+is an unsigned integer in that base.
 The digits above 9 are represented
 by the lower case letters, the upper case letters,
 .BR @ ,
 and
-.B _
+.BR _ ,
 respectively.
 For bases less than or equal to 36, upper and lower case
 characters can be used interchangeably.

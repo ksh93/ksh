@@ -48,6 +48,7 @@ FEATURE/
 /src/lib/libdll/dlldefs.h
 
 # Miscellaneous artefacts
+*.stackdump
 *.dSYM/
 *.bak
 *.sav

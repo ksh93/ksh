@@ -589,6 +589,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 	return rval;
 }
 
+#if SHOPT_ESH || SHOPT_VSH
 /*
  * look for edit macro named _i
  * if found, puts the macro definition into lookahead buffer and returns 1
@@ -629,6 +630,7 @@ int ed_macro(Edit_t *ep, int i)
 	} 
 	return 0;
 }
+#endif /* SHOPT_ESH || SHOPT_VSH */
 
 /*
  * Enter the fc command on the current history line
@@ -652,7 +654,7 @@ int ed_fulledit(Edit_t *ep)
 		hist_flush(sh.hist_ptr);
 	}
 	cp = strcopy((char*)ep->e_inbuf,e_runvi);
-	cp = strcopy(cp, fmtbase((intmax_t)ep->e_hline,10,0));
+	cp = strcopy(cp, fmtint(ep->e_hline,1));
 #if SHOPT_VSH
 	ep->e_eol = ((unsigned char*)cp - (unsigned char*)ep->e_inbuf)-(sh_isoption(SH_VI)!=0);
 #else

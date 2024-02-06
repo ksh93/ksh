@@ -19,3 +19,63 @@ tst note{ does the system have a source of secure randomness }end run{
 	00000)	exit 1 ;;  # result: "no"
 	esac
 }end
+
+# test for bug in Cygwin < 3.5
+# https://cygwin.com/pipermail/cygwin/2024-January/255245.html
+# https://github.com/ksh93/ksh/issues/711
+tst note{ does arc4random(3) become predictable after forking }end output{
+	#include <stdint.h>
+	#include <fcntl.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include <unistd.h>
+	#include <sys/wait.h>
+	#define PATHSIZE 1024
+	int main(int argc, char **argv)
+	{
+		char		file[PATHSIZE], *t = file, *f = argv[0];
+		int		fd, result;
+		pid_t		child;
+		uint32_t	r[3], r2[3];
+		/* create data file */
+		while (*t = *f++ && t < &file[PATHSIZE-4])
+			t++;
+		*t++ = '.', *t++ = 'D', *t = 0;
+		if ((fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0666)) < 0)
+			return 128;
+		/* get arc4random() data from fork */
+		child = fork();
+		if (child == -1)
+			return close(fd), remove(file), 128;
+		else if (child == 0)
+		{
+			r[0] = arc4random(), r[1] = arc4random(), r[2] = arc4random();
+			write(fd, r, sizeof r);
+			return 0;
+		}
+		waitpid(child, NULL, 0);
+		close(fd);
+		/* get arc4random() data from main */
+		r[0] = arc4random(), r[1] = arc4random(), r[2] = arc4random();
+		/* compare */
+		if ((fd = open(file, O_RDWR)) < 0)
+			return remove(file), 128;
+		result = read(fd, r2, sizeof r);
+		close(fd);
+		remove(file);
+		if (result != sizeof r)
+			return 128;
+		result = !memcmp(r, r2, sizeof r);
+		if(result)
+		{
+			printf("/* native arc4random(3) broken on this system */\n");
+			printf("#undef _lib_arc4random\n");
+			printf("#undef _lib_arc4random_buf\n");
+			printf("#undef _lib_arc4random_uniform\n");
+			write(9," BUG FOUND: overriding native implementation ...",48);
+		}
+		else
+			write(9," good ...",9);
+		return !result;
+	}
+}end
