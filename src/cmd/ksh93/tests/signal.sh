@@ -371,9 +371,15 @@ e=$?
 [[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
 (( SECONDS > .35 )) && err_exit "took $SECONDS seconds, expected around .2"
 
-trap '' SIGBUS
-[[ $($SHELL -c 'trap date SIGBUS; trap -p SIGBUS') ]] && err_exit 'SIGBUS should not have a trap'
-trap -- - SIGBUS
+# The test for SIGBUS trap handling below is incompatible with ASan because ASan
+# implements its own SIGBUS handler independently of ksh.
+if ! [[ -v ASAN_OPTIONS || -v TSAN_OPTIONS || -v MSAN_OPTIONS || -v LSAN_OPTIONS ]]; then
+	trap '' SIGBUS
+	got=$("$SHELL" -c 'trap date SIGBUS; trap -p SIGBUS')
+	[[ "$got" ]] && err_exit 'SIGBUS should not have a trap' \
+		"(got $(printf %q "$got"))"
+	trap -- - SIGBUS
+fi
 
 {
     x=$(

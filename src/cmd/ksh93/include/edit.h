@@ -170,7 +170,9 @@ extern int	ed_read(void*, int, char*, int, int);
 extern int	ed_emacsread(void*, int, char*, int, int);
 extern Edpos_t	ed_curpos(Edit_t*, genchar*, int, int, Edpos_t);
 extern int	ed_setcursor(Edit_t*, genchar*, int, int, int);
+#if SHOPT_ESH || SHOPT_VSH
 extern int	ed_macro(Edit_t*,int);
+#endif
 extern int	ed_expand(Edit_t*, char[],int*,int*,int,int);
 extern int	ed_fulledit(Edit_t*);
 extern void	*ed_open(void);

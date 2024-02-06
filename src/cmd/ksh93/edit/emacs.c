@@ -1291,7 +1291,7 @@ static void xcommands(Emacs_t *ep,int count)
 			}
 			return;
 
-#	define itos(i)	fmtbase((intmax_t)(i),0,0)	/* want signed conversion */
+#	define itos(i)	fmtint(i,0)	/* want signed conversion */
 
 		case cntl('H'):		/* ^X^H show history info */
 			{

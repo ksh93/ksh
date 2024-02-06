@@ -127,6 +127,7 @@ extern const char	e_notimp[];
 extern const char	e_nosupport[];
 extern const char	e_limit[];
 extern const char	e_overlimit[];
+extern const char	e_internal[];
 
 extern const char	e_eneedsarg[];
 extern const char	e_oneoperand[];

@@ -1,9 +1,12 @@
-hdr	nc,exec_attr
+hdr	nc
 mem	exception.name,_exception.name math.h
-lib	setreuid,setregid,nice,fork,spawnveg,fchdir
-lib	pathnative,pathposix,fts_notify
+lib	setreuid,setregid,nice,fork,fchdir
+lib	pathnative,pathposix
 lib	memcntl sys/mman.h
-lib	getexecuser,free_execattr exec_attr.h -lsecdb
+
+# for main.c fixargs():
+lib,sys	pstat
+lib	setproctitle
 
 reference	unistd.h
 

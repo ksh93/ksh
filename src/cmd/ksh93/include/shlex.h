@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -79,6 +79,7 @@ typedef struct  _shlex_
 	int		digits;		/* numerical value with word token */
 	char		aliasok;	/* on when alias is legal */
 	char		assignok;	/* on when name=value is legal */
+	int		varnamelength;	/* length of variable name in assignment */
 	char		inexec;		/* on when processing exec */
 	char		intypeset;	/* 1 when processing typeset, 2 when processing enum */
 	char		comp_assign;	/* in compound assignment */

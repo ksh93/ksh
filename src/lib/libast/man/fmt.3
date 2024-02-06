@@ -44,7 +44,7 @@ fmt \- string formatting routines
 #include <ast.h>
 #include <ls.h>
 
-char*      fmtbase(long \fInumber\fP, int \fIbase\fP, int \fIprefix\fP);
+char*      fmtint(intmax_t \fInumber\fP, int \fIunsign\fP);
 char*      fmtdev(struct stat* \fIst\fP);
 char*      fmtelapsed(unsigned long \fIcount\fP, int \fIpersec\fP)
 char*      fmterror(int \fIerrno\fP);
@@ -73,19 +73,14 @@ routine that converts in the other direction.
 There is nothing spectacular about this collection other than that
 it provides a single place where the exact format is spelled out.
 .PP
-.L fmtbase
-formats a base
-.I base
-representation for
+.L fmtint
+is a performance-optimized function for formatting a base-10 integer
 .IR number .
 If
-.I "prefix != 0"
-then the base prefix is included in the formatted string.
-If
-.I "number == 0"
-or
-.I "base == 0"
-then the output is signed base 10.
+.I "unsign != 0"
+then the
+.IR number
+is treated as unsigned.
 .PP
 .L fmtdev
 returns the device handle name specified by the

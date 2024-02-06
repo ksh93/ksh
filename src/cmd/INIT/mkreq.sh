@@ -2,7 +2,7 @@
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
 #          Copyright (c) 1984-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -95,13 +95,10 @@ exec >$self.req
 echo " -l$self"
 for name
 do	if	test -f $INSTALLROOT/lib/lib/$name
-	then	y=$(cat $INSTALLROOT/lib/lib/$name)
-		case $y in
-		*-?*)	echo "" $y ;;
-		esac
+	then	grep '^ -l.' $INSTALLROOT/lib/lib/$name
 		continue
 	elif	test ! -f $INSTALLROOT/lib/lib$name.a
 	then	try_to_link $name -L$INSTALLROOT/lib || try_to_link $name || continue
 	fi
 	echo " -l$name"
-done
+done | sort -u

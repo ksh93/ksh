@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -227,6 +227,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 	    case ASSIGN:
 	    {
 		Namval_t *np;
+		unsigned short attr;
 		if (lvalue->sub && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
 		{
 			np = (Namval_t*)lvalue->sub; /* use saved subscript reference instead of last worked value */
@@ -253,8 +254,37 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		if(lvalue->eflag)
 			lvalue->ptr = nv_hasdisc(np,&ENUM_disc);
 		lvalue->eflag = 0;
-		r=nv_getnum(np);
 		lvalue->value = (char*)np;
+		/*
+		 * The result (r) of an assignment is its value (n), cast to the type of the variable
+		 * assigned to. We cannot simply reobtain the value with nv_getnum() to effectuate the
+		 * typecast, because that may trigger a getnum discipline function with side effects.
+		 * The order of checks below is essential due to how the bit masks work (see nval.h).
+		 */
+		attr = nv_isnum(np);
+		if(!attr || (attr & NV_LDOUBLE)==NV_LDOUBLE)	/* long float */
+			r = n;
+		else if((attr & NV_FLOAT)==NV_FLOAT)		/* short float */
+			r = (float)n;
+		else if((attr & NV_DOUBLE)==NV_DOUBLE)		/* normal float */
+			r = (double)n;
+		else if((attr & NV_UINT64)==NV_UINT64)		/* long unsigned integer */
+			r = (uintmax_t)n;
+		else if((attr & NV_UINT16)==NV_UINT16)		/* short unsigned integer */
+			r = (uint16_t)n;
+		else if((attr & NV_UINT32)==NV_UINT32)		/* normal unsigned integer */
+			r = (uint32_t)n;
+		else if((attr & NV_INT64)==NV_INT64)		/* long signed integer */
+			r = (intmax_t)n;
+		else if((attr & NV_INT16)==NV_INT16)		/* short signed integer */
+			r = (int16_t)n;
+		else if((attr & NV_INT32)==NV_INT32)		/* normal signed integer */
+			r = (int32_t)n;
+#if _AST_release
+		else	r = n;					/* should never happen */
+#else
+		else	abort();
+#endif
 		break;
 	    }
 	    case LOOKUP:

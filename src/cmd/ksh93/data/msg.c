@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -129,6 +129,7 @@ const char e_badrange[]		= "%d-%d: invalid range";
 const char e_eneedsarg[]	= "-e - requires single argument";
 const char e_limit[]		= "%s: could not get limit";
 const char e_overlimit[]	= "%s: limit exceeded";
+const char e_internal[]		= "internal error";
 const char e_badsyntax[]	= "incorrect syntax";
 const char e_badwrite[]		= "write to %d failed";
 const char e_staticfun[]	= "%s: defined as a static function in type %s and cannot be redefined";

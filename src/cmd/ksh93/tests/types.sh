@@ -828,4 +828,54 @@ let "e==0" || err_exit 'cannot use -T flag with typeset, local and/or declare re
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# loop invariants optimizer bug
+# reproducer by Daniel Douglas
+# https://github.com/ksh93/ksh/issues/704
+typeset -T Thing=(
+	integer x
+	typeset y
+)
+function f
+{
+	Thing -a t=(
+		[0]=(x=1; y=hi)
+		[1]=(x=2; y=yo)
+		[2]=(x=3; y=moo)
+		[5]=(x=6; y=boo)
+		[9]=(x=10; y=boom)
+	)
+	typeset -p t
+	g t
+}
+function g
+{
+	typeset -n ref=$1 d e
+	set -- "${!ref[@]}"
+	set -- "${@/*/ref[\0]}"
+	for e do
+		for d in e.x e.y
+		do	printf '%s %s %-14s %s\n' "${@e}" "${!d}" "${@d}" "${d}"
+		done
+	done
+	echo
+}
+exp='Thing -a t=([0]=(typeset -l -i x=1;y=hi) [1]=(typeset -l -i x=2;y=yo) [2]=(typeset -l -i x=3;y=moo) [5]=(typeset -l -i x=6;y=boo) [9]=(typeset -l -i x=10;y=boom))
+Thing t[0].x typeset -l -i  1
+Thing t[0].y                hi
+Thing t[1].x typeset -l -i  2
+Thing t[1].y                yo
+Thing t[2].x typeset -l -i  3
+Thing t[2].y                moo
+Thing t[5].x typeset -l -i  6
+Thing t[5].y                boo
+Thing t[9].x typeset -l -i  10
+Thing t[9].y                boom'
+got=$(f 2>&1)
+[[ $got == "$exp" ]] ||
+{
+	err_exit "issue 704: expected '-' lines, got '+' lines:"
+	diff -U1 <(print "$exp") <(print "$got") | sed $'1,3 d; s,^,\t,' >&2
+}
+
+# ======
 exit $((Errors<125?Errors:125))

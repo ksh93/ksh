@@ -140,6 +140,11 @@ struct Namval
 #define NV_TABLE	0x800	/* node is a dictionary table */
 #define NV_IMPORT	0x1000	/* value imported from environment */
 #define NV_MINIMAL	NV_IMPORT	/* node does not contain all fields */
+#if SHOPT_OPTIMIZE
+#define NV_NOOPTIMIZE	NV_TABLE	/* disable loop invariants optimizer */
+#else
+#define NV_NOOPTIMIZE	0
+#endif
 
 #define NV_INTEGER	0x2	/* integer attribute */
 /* The following attributes are valid only when NV_INTEGER is off */
@@ -200,11 +205,14 @@ struct Namval
 #define NV_UINT16P	(NV_LJUST|NV_UNSIGN|NV_SHORT|NV_INTEGER)
 #define NV_UINT16	(NV_UNSIGN|NV_SHORT|NV_INTEGER)
 #define NV_INT32	(NV_INTEGER)
-#define NV_UNT32	(NV_UNSIGN|NV_INTEGER)
+#define NV_UINT32	(NV_UNSIGN|NV_INTEGER)
 #define NV_INT64	(NV_LONG|NV_INTEGER)
 #define NV_UINT64	(NV_UNSIGN|NV_LONG|NV_INTEGER)
 #define NV_FLOAT	(NV_SHORT|NV_DOUBLE)
 #define NV_LDOUBLE	(NV_LONG|NV_DOUBLE)
+
+/* check/isolate all the bit flags used for numeric types */
+#define nv_isnum(np)	(nv_isattr(np,NV_INTEGER)?nv_isattr(np,NV_DOUBLE|NV_INTEGER|NV_LJUST|NV_LONG|NV_SHORT|NV_UNSIGN):0)
 
 /* name-value pair macros */
 #define nv_isattr(np,f)		((np)->nvflag & (f))

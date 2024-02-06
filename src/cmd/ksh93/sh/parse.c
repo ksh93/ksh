@@ -164,6 +164,15 @@ static void typeset_order(const char *str,int line)
 	}
 }
 
+static noreturn int b_dummy(int argc, char *argv[], Shbltin_t *context)
+{
+	NOT_USED(argc);
+	NOT_USED(argv[0]);
+	NOT_USED(context);
+	errormsg(SH_DICT,ERROR_PANIC,e_internal);
+	UNREACHABLE();
+}
+
 /*
  * This function handles linting for 'typeset' options via typeset_order().
  *
@@ -233,7 +242,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 			dcl_tree = dtopen(&_Nvdisc, Dtoset);
 			dtview(sh.bltin_tree, dcl_tree);
 		}
-		nv_onattr(sh_addbuiltin(cp, b_true, NULL), NV_BLTIN|BLT_DCL);
+		nv_onattr(sh_addbuiltin(cp, b_dummy, NULL), NV_BLTIN|BLT_DCL);
 	}
 }
 /*
@@ -1448,16 +1457,10 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			if(assignment)
 			{
 				struct argnod *ap=argp;
-				char *last, *cp;
 				if(assignment==1)
 				{
-					last = strchr(argp->argval,'=');
-					if(last && (last[-1]==']'|| (last[-1]=='+' && last[-2]==']')) && (cp=strchr(argp->argval,'[')) && (cp < last) && cp[-1]!='.')
-						last = cp;
-					else if(last && last[-1]=='+')
-						last--;
 					stkseek(sh.stk,ARGVAL);
-					sfwrite(sh.stk,argp->argval,last-argp->argval);
+					sfwrite(sh.stk,argp->argval,lexp->varnamelength);
 					ap=(struct argnod*)stkfreeze(sh.stk,1);
 					ap->argflag = ARG_RAW;
 					ap->argchn.ap = 0;

@@ -7,9 +7,52 @@ The announcement text for ksh 93u+m/1.1 is under development.
 
 ### MAIN CHANGES between ksh 93u+m/1.0.x and 93u+m/1.1.0 ###
 
+New command line editor features:
+
+- In the emacs and vi line editors, the PageUp and PageDown keys now perform
+  a reverse search and backwards reverse search based on the current line.
+  The arrow-up and arrow-down keys now act like PageUp and PageDown, unless
+  the new --arrowkeysearch option is turned off (see below).
+
+New shell language features:
+
+- The 'time' reserved word now outputs timings in a precision of 3 digits
+  after the decimal point if the TIMEFORAMT variable is not set. See also
+  TIMEFORMAT under 'New features in shell variables' below.
+
+New features in built-in commands:
+
+- When printing a function definition, 'typeset -f function_name' now
+  regenerates and reformats the code instead of dumping it from a fixed
+  offset in the original source file. The output is no longer corrupted
+  when the source file changes after the function was defined.
+
+- A new 'alarm' built-in command allows executing any commands at regular
+  intervals. TODO: https://github.com/ksh93/ksh/issues/422
+
 New features in shell options:
+
+- A new --arrowkeysearch option, on by default, causes the up and down arrow
+  keys to act like PgDp and PgDown -- see 'New command line editor features'
+  above. When turned off, the up arrow key now does not perform any search
+  (note that, in the old behaviour, the down arrow key never searched).
 
 - A new --globex shell option allows pathname expansion of extended patterns
   (those with a syntax involving parentheses) from fields resulting from
   field splitting (e.g., unquoted variables as command arguments). This
   remains disabled by default for compatibility with POSIX and ksh88.
+
+New features in shell variables:
+
+- Added SRANDOM, a secure random number generator. It uses the operating
+  system's arc4random(3) library function or, absent that, an integrated
+  OpenBSD-based implementation that uses the ChaCha20 cipher. An upper bound
+  can be set by assigning its value to SRANDOM; subsequent numbers will be
+  uniformly distributed between 0 and the value of the upper bound minus
+  one, in a way that avoids "modulo bias".
+
+- TIMEFORMAT supports a new %C format directive that yields the total number
+  of CPU seconds, i.e. the sum of the time spent in user and system mode.
+
+- TIMEFORMAT now supports a precision of up to six places after the decimal
+  point. The default precision for format directives remains 3.

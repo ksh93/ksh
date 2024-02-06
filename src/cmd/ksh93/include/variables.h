@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -111,5 +111,6 @@ extern void sh_save_rand_seed(struct rand *, int);
 #define SH_PPIDNOD	(sh.bltin_nodes+63)
 #define SH_TILDENOD	(sh.bltin_nodes+64)
 #define SHLVL		(sh.bltin_nodes+65)
+#define SRANDNOD	(sh.bltin_nodes+66)
 
 #endif /* SH_VALNOD */

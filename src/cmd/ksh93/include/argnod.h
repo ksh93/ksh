@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -117,7 +117,11 @@ struct argnod
 #define ARG_ARRAY	0x2	/* for typeset -a */
 /* The following can be passed as options to sh_macexpand() */
 #define ARG_ARITH	0x100	/* arithmetic expansion */
+#if SHOPT_OPTIMIZE
 #define ARG_OPTIMIZE	0x200	/* try to optimize */
+#else
+#define ARG_OPTIMIZE	0
+#endif /* SHOPT_OPTIMIZE */
 #define ARG_NOGLOB	0x400	/* no file name expansion */
 #define ARG_ARRAYOK	0x1000	/* $x[sub] ==> ${x[sub]} */
 

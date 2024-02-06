@@ -230,7 +230,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 	troot = sh.var_tree;
 	declare = argv[0][0] == 'd';
 	local = argv[0][0] == 'l';
-	if(ntp)					/* custom declaration command added using enum */
+	if(ntp)					/* type declaration command added using 'typeset -T' or 'enum' */
 	{
 		tdata.tp = ntp->tp;
 		opt_info.disc = (Optdisc_t*)ntp->optinfof;
@@ -254,7 +254,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 			new_argv[1] = "-n";
 		else
 		{
-			errormsg(SH_DICT, ERROR_exit(128), "internal error");
+			errormsg(SH_DICT, ERROR_PANIC, e_internal);
 			UNREACHABLE();
 		}
 		for (n = 1; n <= argc; n++)

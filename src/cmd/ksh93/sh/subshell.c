@@ -88,9 +88,10 @@ static struct subshell
 	int		cpipe;
 	char		subshare;
 	char		comsub;
-	unsigned int	rand_seed;  /* parent shell $RANDOM seed */
-	int		rand_last;  /* last random number from $RANDOM in parent shell */
-	int		rand_state; /* 0 means sp->rand_seed hasn't been set, 1 is the opposite */
+	unsigned int	rand_seed;          /* parent shell $RANDOM seed */
+	int		rand_last;          /* last random number from $RANDOM in parent shell */
+	int		rand_state;         /* 0 means sp->rand_seed hasn't been set, 1 is the opposite */
+	uint32_t	srand_upper_bound;  /* parent shell's upper bound for $SRANDOM */
 #if _lib_fchdir
 	int		pwdfd;	/* file descriptor for PWD */
 	char		pwdclose;
@@ -585,6 +586,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sh_sigreset(0);
 		if(save_debugtrap)
 			sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
+		/* save upper bound for $SRANDOM */
+		sp->srand_upper_bound = sh.srand_upper_bound;
 	}
 	jmpval = sigsetjmp(checkpoint.buff,0);
 	if(jmpval==0)
@@ -857,6 +860,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			srand(rp->rand_seed = sp->rand_seed);
 			rp->rand_last = sp->rand_last;
 		}
+		/* restore $SRANDOM upper bound */
+		sh.srand_upper_bound = sp->srand_upper_bound;
 		/* Real subshells have their exit status truncated to 8 bits by the kernel.
 		 * Since virtual subshells should be indistinguishable, do the same here. */
 		sh.exitval &= SH_EXITMASK;

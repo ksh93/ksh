@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -102,6 +102,7 @@ const struct shtable2 shtab_variables[] =
 	".sh.ppid",	NV_PID|NV_NOFREE,		NULL,
 	".sh.tilde",	0,				NULL,
 	"SHLVL",	NV_INTEGER|NV_NOFREE|NV_EXPORT,	NULL,
+	"SRANDOM",	NV_NOFREE|NV_INTEGER|NV_UNSIGN,	NULL,
 	"",	0,					NULL
 };
 

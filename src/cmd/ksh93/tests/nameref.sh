@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -755,6 +755,20 @@ got=$("$SHELL" -c 'nameref unsetref; unsetref[1]=bar' 2>&1)
 [[ e=$? -eq 1 && $got == *"$exp" ]] || err_exit "unsetref[1]=bar misbehaves" \
 	"(expected status 1 and match of *$(printf %q "$exp")," \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/704
+# test backported from ksh 93v- 2013-02-14
+unset one bar baz arr val vv
+one=1 bar=2 baz=3
+arr=(one bar baz)
+nameref vv
+val=$(
+	for vv in "${arr[@]}"
+	do	print -n -- "$vv"
+	done
+)
+[[ $val == 123 ]] || err_exit 'optimization bug with for loops with references'
 
 # ======
 exit $((Errors<125?Errors:125))

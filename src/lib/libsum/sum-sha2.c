@@ -166,8 +166,8 @@ typedef uint64_t sha2_word64;	/* Exactly 8 bytes */
  *
  *   NOTE:  The naming of R and S appears backwards here (R is a SHIFT and
  *   S is a ROTATION) because the SHA-256/384/512 description document
- *   (see http://csrc.nist.gov/cryptval/shs/sha256-384-512.pdf) uses this
- *   same "backwards" definition.
+ *   uses this same "backwards" definition:
+ *   https://web.archive.org/web/20050907174740/http://csrc.nist.gov/cryptval/shs/sha256-384-512.pdf
  */
 
 /* Shift-right (used in SHA-256, SHA-384, and SHA-512): */

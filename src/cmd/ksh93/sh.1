@@ -1940,11 +1940,19 @@ command.
 .TP
 .B
 .SM RANDOM
-Each time this variable is referenced, a random integer,
-uniformly distributed between 0 and 32767, is generated.
-The sequence of random numbers can be initialized by assigning
-a numeric value to
+Each time this variable is referenced, a pseudorandom integer is generated,
+uniformly distributed between 0 and 32767 (the 16-bit unsigned integer range)
+except that the same number is never repeated twice in a row.
+The sequence of pseudorandom numbers is reproducible
+and can be initialized to a fixed starting point by assigning
+a numeric seed value to
 .BR RANDOM .
+Each time a new shell or subshell environment is entered (see
+.I Subshells\^
+above), the sequence is automatically reset to a different point.
+If true randomness is required,
+.B SRANDOM
+should be used instead.
 .TP
 .B
 .SM REPLY
@@ -1972,6 +1980,25 @@ If
 .B SHLVL
 is not in the environment when the shell is invoked, it is set
 to 1.
+.TP
+.B
+.SM SRANDOM
+Each time this variable is referenced, a securely random integer
+between 0 and 4294967295 (the 32-bit unsigned integer range) is generated.
+By default, each random number is obtained
+from the native OS implementation of
+.IR arc4random (3)
+or, absent that, an integrated OpenBSD-based version
+that uses the ChaCha20 cipher.
+The sequence of random numbers is not reproducible.
+The generator is automatically initialized using various sources of entropy.
+An upper bound can be set by assigning its value to
+.BR SRANDOM ;
+subsequent numbers will then be obtained using
+.IR arc4random_uniform (3),
+which means that they will be uniformly distributed between 0 and the
+value of the upper bound minus one, in a way that avoids "modulo bias".
+Assigning a value of 0 restores default operation.
 .PD
 .RE
 .PP
@@ -3151,20 +3178,22 @@ Integer constants follow the ANSI C programming language
 integer constant conventions although only single byte
 character constants are recognized and character casts
 are not recognized.
-In addition constants can be of the form
-\*(OK\f2base\f3#\^\f1\*(CK\f2n\^\fP
+.PP
+In addition, integer constants can be of the form
+\f2base\f3#\^\f1\f2n\^\fP
+or (for negative numbers)
+\f3-\^\f2base\f3#\^\f1\f2n\^\fP,
 where
 .I base\^
 is a decimal number between two and sixty-four
-representing the arithmetic base
-and
+representing the arithmetic base, and
 .I n\^
-is a number in that base.
+is an unsigned integer in that base.
 The digits above 9 are represented
 by the lower case letters, the upper case letters,
 .BR @ ,
 and
-.B _
+.BR _ ,
 respectively.
 For bases less than or equal to 36, upper and lower case
 characters can be used interchangeably.
@@ -9078,6 +9107,7 @@ Unsetting
 .BR OPTIND ,
 .BR RANDOM ,
 .BR SECONDS ,
+.BR SRANDOM ,
 .BR TMOUT ,
 and
 .SM
@@ -9479,6 +9509,7 @@ The null device.
 .IR strftime (3),
 .IR wctrans (3),
 .IR rand (3),
+.IR arc4random (3),
 .IR a.out (5),
 .IR profile (5),
 .IR environ (7).

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -167,29 +167,34 @@ exp=': trap: is a special shell builtin'
 
 # ======
 # Various tests backported from ksh93v- for enum type arrays.
-enum bool=(false true)
-bool -A a=( [2]=true [4]=false )
-exp=true
+Bool_t -A a=( [2]=true [4]=false )
+exp=True
 got=${a[2]}
 [[ $got == $exp ]] || err_exit 'associative array assignment failure when using enums' \
 	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 exp=2
 got=${#a[@]}
-[[ $got == $exp ]] || err_exit 'bool -A a should only have two elements' \
+[[ $got == $exp ]] || err_exit 'Bool_t -A a should only have two elements' \
 	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 
-bool -a bia
+Bool_t -a bia
 (( bia[4]=false ))
 [[ ${bia[3]} ]] && err_exit 'empty index array element should not produce a value'
 (( bia[3] == 0 )) || err_exit 'empty index array element should be numerically 0'
-bool -A baa
+Bool_t -A baa
 (( baa[4]=false ))
 [[ ${baa[3]} ]] && err_exit 'empty associative array element should not produce a value'
 (( baa[3] == 0 )) || err_exit 'empty associative array element should be numerically 0'
 
+unset bar
+Bool_t -a bar
+bar[3]=true
+[[ $((5+bar[3])) != 6 ]] && err_exit '$((5+bar[3])) should be 6'
+
 # ======
 # https://github.com/ksh93/ksh/issues/638
 enum colors=(red green blue)
+unset bar
 typeset -a \[colors] bar
 bar[blue]=test
 exp="typeset -a '[colors]' bar=([blue]=test)"

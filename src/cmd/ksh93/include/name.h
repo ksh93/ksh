@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -185,6 +185,13 @@ extern void		nv_setlist(struct argnod*, int, Namval_t*);
 #if SHOPT_OPTIMIZE
     extern void		nv_optimize(Namval_t*);
     extern void		nv_optimize_clear(Namval_t*);
+#   define nv_setoptimize(v)	(sh.argaddr=(v))
+#   define nv_getoptimize()	(sh.argaddr)
+#else
+#   define nv_optimize(np)		/* no-op */
+#   define nv_optimize_clear(np)	/* no-op */
+#   define nv_setoptimize(argaddr)	/* no-op */
+#   define nv_getoptimize()		NULL
 #endif /* SHOPT_OPTIMIZE */
 extern void		nv_outname(Sfio_t*,char*, int);
 extern void 		nv_unref(Namval_t*);

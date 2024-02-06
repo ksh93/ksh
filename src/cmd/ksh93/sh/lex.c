@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -246,6 +246,8 @@ int sh_lex(Lex_t* lp)
 	int		n, c, mode=ST_BEGIN, wordflags=0;
 	int		inlevel=lp->lexd.level, assignment=0, ingrave=0;
 	int		epatchar=0;
+	char		*varnamefirst = NULL;
+	int		varnamelength = 0;
 	SETLEN(1);
 	if(lp->lexd.paren)
 	{
@@ -637,6 +639,7 @@ int sh_lex(Lex_t* lp)
 				}
 				/* FALLTHROUGH */
 			case S_RES:
+				varnamefirst = fcseek(0) - LEN;
 				if(!lp->lexd.dolparen)
 					lp->lexd.first = fcseek(0)-LEN;
 				else if(lp->lexd.docword)
@@ -836,6 +839,8 @@ int sh_lex(Lex_t* lp)
 				poplevel(lp);
 				break;
 			case S_DOT:
+				if(varnamelength && fcpeek(-LEN - 1)==']')
+					varnamelength = 0;
 				/* make sure next character is alpha */
 				if(fcgetc(n)>0)
 				{
@@ -1100,6 +1105,12 @@ int sh_lex(Lex_t* lp)
 					goto epat;
 				continue;
 			case S_EQ:
+				if(varnamefirst && !varnamelength)
+				{
+					varnamelength = fcseek(0) - LEN - varnamefirst;
+					if(varnamelength > 0 && fcpeek(-LEN - 1) == '+')
+						varnamelength--;  /* += */
+				}
 				assignment = lp->assignok;
 				/* FALLTHROUGH */
 			case S_COLON:
@@ -1114,6 +1125,8 @@ int sh_lex(Lex_t* lp)
 				}
 				break;
 			case S_BRACT:
+				if(varnamefirst && !varnamelength && fcpeek(-LEN - 1)!='.')
+					varnamelength = fcseek(0) - LEN - varnamefirst;
 				/* check for possible subscript */
 				if((n=endchar(lp))==RBRACT || n==RPAREN || 
 					(mode==ST_BRACE) ||
@@ -1309,6 +1322,7 @@ breakloop:
 	if(assignment)
 	{
 		lp->arg->argflag |= ARG_ASSIGN;
+		lp->varnamelength = varnamelength;
 		if(sh_isoption(SH_NOEXEC))
 		{
 			char *cp = strchr(state, '=');

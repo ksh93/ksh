@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -12,6 +12,7 @@
 #                                                                      #
 #                  David Korn <dgk@research.att.com>                   #
 #                  Martijn Dekker <martijn@inlv.org>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 
@@ -578,7 +579,7 @@ test_glob '<a\\b.txt>' a\\\\b.*
 test_glob '<a\\b.txt>' $unquoted_patvar
 
 # ======
-# 93u+m/1.0.5 regression - glob expansion with brace expansion and parameter exapansion
+# 93u+m/1.0.5 regression - glob expansion with brace expansion and parameter expansion
 v='./'
 mkdir -p bin/BAD sbin/WRONG
 ((SHOPT_BRACEPAT)) && test_glob '<./bin/*> <./sbin/*>' "./"{bin,sbin}"/*"

@@ -17,16 +17,23 @@
 # compiling older AST code (with Mamfiles containing proto commands) using the
 # current INIT system. This stub ignores all options, then invokes 'cat'.
 
+usage()
+{
+	echo 'Usage: proto [-dfhinprstvzP+S] [-C directory] [-e package] [-l file]'
+	echo '             [-o "name='\''value'\'' ..."] [-L file] file ...'
+	exit 2
+} >&2
+
 while	getopts ':dfhinprstvzPSC:e:l:o:L:' opt
 do	case $opt in
+	:)	usage
+		;;
 	\?)	case $OPTARG in
 		+)	;;
-		*)	echo "proto: $OPTARG: unknown option"
-			echo 'Usage: proto [-dfhinprstvzP+S] [-C directory] [-e package] [-l file]'
-			echo '             [-o "name='\''value'\'' ..."] [-L file] file ...'
-			exit 2
+		*)	echo "proto: $OPTARG: unknown option" >&2
+			usage
 			;;
-		esac >&2
+		esac
 		;;
 	esac
 done

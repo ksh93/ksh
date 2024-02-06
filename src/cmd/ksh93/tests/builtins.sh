@@ -1404,7 +1404,7 @@ exp='ok1ok2ok3ok4ok5ok6ok7ok8ok9ok10ok11ok12end'
 got=$(	readonly v=foo
 	exec 2>/dev/null
 	# All the "special builtins" below should fail, and not exit, so 'print end' is reached.
-	# Ref.: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html
+	# Ref.: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html
 	# Left out are 'command exec /dev/null/nonexistent', where no shell follows the standard,
 	# as well as 'command exit' and 'command return', because, well, obviously.
 	command : </dev/null/no		|| print -n ok1

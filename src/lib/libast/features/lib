@@ -3,7 +3,7 @@ ref	-D_def_map_ast=1
 cmd	universe
 
 hdr	dirent,direntry,filio,fmtmsg,fnmatch,jioctl,libgen,limits
-hdr	locale,ndir,nl_types,process,spawn,syslog,utime
+hdr	locale,ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs,sys/ioctl
 hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
@@ -23,22 +23,22 @@ dat	_tzname,tzname
 
 lib	BSDsetpgrp
 lib	_cleanup
-lib	atexit,bcopy,bzero,catclose,catgets,catopen,confstr,dirread,dup2
+lib	bcopy,bzero,catclose,catgets,catopen,confstr,dirread,dup2
 lib	execlp,execve,execvp,execvpe
 lib	fchmod,fcntl,fmtmsg,fnmatch,fork,fsync
 lib	getconf,getdents,getdirentries,getdtablesize,getdate
 lib	getgroups,gethostname,getlogin,getpagesize,getrlimit,getuniverse
 lib	getopt,getsubopt,getopt_long,getopt_long_only
-lib	glob,index,iswblank,iswctype,killpg,link,localeconv,madvise
+lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memchr,memcpy,memdup,memmove,memset
 lib	mkdir,mkfifo,mktemp,mktime
-lib	mount,onexit,opendir,pathconf
-lib	readlink,remove,rename,rewinddir,rindex,rmdir,setlocale
+lib	mount,opendir,pathconf
+lib	readlink,remove,rename,rewinddir,rmdir,setlocale
 lib	setpgid,setpgrp,setpgrp2,setreuid,setsid,setuid,sigaction
 lib	sigprocmask,sigsetmask,sigunblock,sigvec,socketpair
 lib	spawn,spawnve
-lib	strchr,strcoll,strdup,strerror,strcasecmp,strncasecmp,strrchr,strstr
-lib	strmode,strxfrm,strftime,swab,symlink,sysconf,sysinfo,syslog
+lib	strcoll,strdup,strerror,strcasecmp,strncasecmp,strlcat,strlcpy
+lib	strmode,strxfrm,strftime,swab,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
 

@@ -63,13 +63,12 @@ do	# for each lib name also add '-'
 done
 
 # Setup.
-set -o noglob
 trap 'set +o noglob; rm -rf "$req".exe*' 0
 
 ######### Main ##########
 #  Generate .req file.  #
 #########################
-r='-'
+r=' -'
 for i in $src
 do	if	$allcc -c $i >/dev/null 2>&1
 	then	rm $(basename $i .c).o &
@@ -90,4 +89,4 @@ do	if	$allcc -c $i >/dev/null 2>&1
 		done
 	fi
 done
-echo " $r" > $req.req
+echo "$r" > $req.req

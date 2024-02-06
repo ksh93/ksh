@@ -624,7 +624,7 @@ trap - USR1 ERR
 dot=$(cat <<-EOF
 		$(ls -d .)
 	EOF
-) ) & "$binsleep" .1
+) ) & sleep .1
 if      kill -0 $! 2> /dev/null
 then    err_exit  'command substitution containing here-doc with command substitution fails'
 fi

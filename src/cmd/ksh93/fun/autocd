@@ -35,7 +35,7 @@ _do_autocd()
 	then	eval "set -- $1"
 	fi
 	# if the result is one word and it's not a command, then autocd
-	if      (($#==1)) && ! command -v "$1" >/dev/null && [[ -d $1 ]]
+	if      (($#==1)) && ! whence -q "$1" && [[ -d $1 ]]
 	then    printf 'cd -- %q\n' "$1" >&2
 		CDPATH= cd -- "$1"
 		return 2  # status 2 == do not execute original command

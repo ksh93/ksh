@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -118,15 +118,10 @@ extern const char is_ufunction[];
 extern const char e_autoloadfrom[];
 
 #if SHOPT_ACCT
-#   include	"FEATURE/acct"
-#   ifdef	_sys_acct
 	extern void sh_accinit(void);
 	extern void sh_accbegin(const char*);
 	extern void sh_accend(void);
 	extern void sh_accsusp(void);
-#   else
-#	undef	SHOPT_ACCT
-#   endif	/* _sys_acct */
 #endif /* SHOPT_ACCT */
 
 #endif /*! PATH_OFFSET */

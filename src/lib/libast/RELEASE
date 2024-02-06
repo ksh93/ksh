@@ -766,7 +766,7 @@ ____
 	 vmalloc/vmbest.c: set /dev/zero mmap fd FD_CLOEXEC
 	 features/mmap: fix ancient read() vs. mmap() time arithmetic typo
 	 vmalloc/malloc.c: _AST_std_malloc==1 to force standard malloc
-03-06-09 comp/omitted.c: add _imp__FUNCTION sybols for __CYGWIN__ static link
+03-06-09 comp/omitted.c: add _imp__FUNCTION symbols for __CYGWIN__ static link
 	 vmalloc/vmbest.c: handle systems with sbrk() but no brk()
 03-06-04 port/astconf.c: drop non-standard diagnostics
 03-06-03 comp/conf.sh: rework symbol collision logic

@@ -8,8 +8,8 @@
 
 ref	-D_def_map_ast=1
 
-lib	atexit,getpagesize,mallopt,memalign,mstats
-lib	onexit,pvalloc,strdup,valloc,vmalloc
+lib	getpagesize,mallopt,memalign,mstats
+lib	pvalloc,strdup,valloc,vmalloc
 lib	_malloc,__malloc,__libc_malloc
 hdr	alloca,malloc,stat,stdlib,unistd,sys/shm
 mem	mstats.bytes_total malloc.h

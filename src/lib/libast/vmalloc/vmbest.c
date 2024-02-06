@@ -1172,7 +1172,7 @@ static void* mmapmem(void* caddr, size_t csize, size_t nsize, Mmdisc_t* mmdc)
 }
 #endif /* _mem_map_anon || _mem_mmap_zero */
 
-#if _std_malloc /* using native malloc as a last resource */
+#if _std_malloc /* using native malloc as a last resort */
 static void* mallocmem(void* caddr, size_t csize, size_t nsize)
 {
 	/**/ASSERT(csize > 0 || nsize > 0);
@@ -1180,7 +1180,8 @@ static void* mallocmem(void* caddr, size_t csize, size_t nsize)
 		return malloc(nsize);
 	else if(nsize == 0)
 	{	free(caddr);
-#if !__clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#if !__clang__ && __GNUC__ >= 12
+/* ...one hopes the AT&T guys knew what they were doing here... */
 #pragma GCC diagnostic ignored "-Wuse-after-free"
 #endif
 		return caddr;
