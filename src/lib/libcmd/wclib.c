@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -333,7 +333,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 		int		skip=0;
 		int		adjust=0;
 		int		state=0;
-		int		oldc;
+		int		oldc=0;
 		int		xspace;
 		int		wasspace = 1;
 		unsigned char*	start;

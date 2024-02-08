@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -172,7 +172,7 @@ int
 b_paste(int argc, char** argv, Shbltin_t* context)
 {
 	int		n, sflag=0;
-	Sfio_t		*fp, **streams;
+	Sfio_t		*fp, **streams = NULL;
 	char 		*cp, *delim;
 	char		*ep;
 	Delim_t		*mp;

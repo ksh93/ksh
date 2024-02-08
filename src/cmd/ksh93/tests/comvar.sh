@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -574,7 +574,7 @@ got=$(typeset -p x)
 x=(typeset -C -a y;float z=2)
 got=$(print -C x)
 expected='(typeset -C -a y;typeset -l -E z=2)'
-[[ $expected == "$got" ]] || err_exit "print -C x exects '$expected' got '$got'"
+[[ $expected == "$got" ]] || err_exit "print -C x expects '$expected' got '$got'"
 
 unset vx vy
 compound vx=(

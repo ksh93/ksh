@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -204,10 +204,10 @@ getids(Sfio_t* sp, const char* name, int flags)
 	char*		s;
 	int		lastchar;
 	int		ngroups = 0;
-	const char*	gname;
-	uid_t		user;
+	const char*	gname = NULL;
+	uid_t		user = 0;
 	uid_t		euid;
-	gid_t		group;
+	gid_t		group = 0;
 	gid_t		egid;
 
 	static gid_t*	groups;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1996-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -21,8 +21,6 @@
  *
  * man this is sum library
  */
-
-static const char id[] = "\n@(#)$Id: sumlib (AT&T Research) 2009-09-28 $\0\n";
 
 #define _SUM_PRIVATE_	\
 			struct Method_s*	method;	\

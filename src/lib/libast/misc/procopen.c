@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -393,7 +393,7 @@ Proc_t*
 procopen(const char* cmd, char** argv, char** envv, long* modv, int flags)
 {
 	Proc_t*		proc = 0;
-	int		procfd;
+	int		procfd = -1;
 	char**		p;
 	char**		v;
 	int		i;
@@ -431,9 +431,6 @@ procopen(const char* cmd, char** argv, char** envv, long* modv, int flags)
 		goto bad;
 	switch (flags & (PROC_READ|PROC_WRITE))
 	{
-	case 0:
-		procfd = -1;
-		break;
 	case PROC_READ:
 		procfd = 1;
 		break;

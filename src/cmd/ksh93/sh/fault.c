@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -128,7 +128,7 @@ void	sh_fault(int sig)
 			sigrelease(sig);
 			if(pp->mode != SH_JMPSUB)
 			{
-				if(pp->mode < SH_JMPSUB)
+				if(pp->mode < SH_JMPSUB && !sh_isstate(SH_INTERACTIVE))
 					pp->mode = sh.subshell?SH_JMPSUB:SH_JMPFUN;
 				else
 					pp->mode = SH_JMPEXIT;
@@ -666,6 +666,7 @@ noreturn void sh_done(int sig)
 	if(t=sh.st.trapcom[0])
 	{
 		sh.st.trapcom[0]=0; /* should free but not long */
+		sh.oldexit = savxit;
 		sh_trap(t,0);
 		savxit = sh.exitval;
 	}

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1172,7 +1172,7 @@ static void* mmapmem(void* caddr, size_t csize, size_t nsize, Mmdisc_t* mmdc)
 }
 #endif /* _mem_map_anon || _mem_mmap_zero */
 
-#if _std_malloc /* using native malloc as a last resource */
+#if _std_malloc /* using native malloc as a last resort */
 static void* mallocmem(void* caddr, size_t csize, size_t nsize)
 {
 	/**/ASSERT(csize > 0 || nsize > 0);
@@ -1180,6 +1180,10 @@ static void* mallocmem(void* caddr, size_t csize, size_t nsize)
 		return malloc(nsize);
 	else if(nsize == 0)
 	{	free(caddr);
+#if !__clang__ && __GNUC__ >= 12
+/* ...one hopes the AT&T guys knew what they were doing here... */
+#pragma GCC diagnostic ignored "-Wuse-after-free"
+#endif
 		return caddr;
 	}
 	else	return NULL;
@@ -1250,10 +1254,10 @@ static Vmdata_t	_Vmdata =
 	VM_MTBEST|VM_SHARE,		/* mode		*/
 	0,				/* incr		*/
 	0,				/* pool		*/
-	NULL,			/* seg		*/
-	NULL,			/* free		*/
-	NULL,			/* wild		*/
-	NULL			/* root		*/
+	NULL,				/* seg		*/
+	NULL,				/* free		*/
+	NULL,				/* wild		*/
+	NULL				/* root		*/
 					/* tiny[]	*/
 					/* cache[]	*/
 };
@@ -1268,12 +1272,12 @@ Vmalloc_t _Vmheap =
 	  bestalign,
 	  VM_MTBEST
 	},
-	NULL,			/* file		*/
+	NULL,				/* file		*/
 	0,				/* line		*/
 	0,				/* func		*/
 	(Vmdisc_t*)(&_Vmdcsystem),	/* disc		*/
 	&_Vmdata,			/* data		*/
-	NULL			/* next		*/
+	NULL				/* next		*/
 };
 
 Vmalloc_t*	Vmheap = &_Vmheap;

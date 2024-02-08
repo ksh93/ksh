@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1032,6 +1032,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			cont = rex->re.conj_right.cont;
 			break;
 		case REX_DONE:
+		{
+			Pos_t*	pos;
 			if (!env->stack)
 				return BEST;
 			n = s - env->beg;
@@ -1060,7 +1062,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			env->best[0].rm_eo = n;
 			memcpy(&env->best[1], &env->match[1], r * sizeof(regmatch_t));
 			n = env->pos->cur;
-			if (!vector(Pos_t, env->bestpos, n))
+			pos = vector(Pos_t, env->bestpos, n);
+			if (!pos)
 			{
 				env->error = REG_ESPACE;
 				return BAD;
@@ -1069,6 +1072,7 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			memcpy(env->bestpos->vec, env->pos->vec, n * sizeof(Pos_t));
 			DEBUG_TEST(0x0100,(sfprintf(sfstdout,"AHA#%04d 0x%04x %s (%z,%z)(%z,%z)(%z,%z)(%z,%z) (%z,%z)(%z,%z)\n", __LINE__, debug_flag, rexname(rex), env->best[0].rm_so, env->best[0].rm_eo, env->best[1].rm_so, env->best[1].rm_eo, env->best[2].rm_so, env->best[2].rm_eo, env->best[3].rm_so, env->best[3].rm_eo, env->match[0].rm_so, env->match[0].rm_eo, env->match[1].rm_so, env->match[1].rm_eo)),(0));
 			return GOOD;
+		}
 		case REX_DOT:
 			if (LEADING(env, rex, s))
 				return NONE;
@@ -1854,7 +1858,7 @@ list(Env_t* env, Rex_t* rex)
 int
 regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, regmatch_t* match, regflags_t flags)
 {
-	ssize_t		n;
+	ssize_t		n = 0;
 	int		i;
 	int		j;
 	int		k;

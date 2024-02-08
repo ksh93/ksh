@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -37,7 +37,6 @@
 #define PATH_CDPATH		0004
 #define PATH_BFPATH		0010
 #define PATH_SKIP		0020
-#define PATH_BUILTIN_LIB	0040
 #define PATH_STD_DIR		0100	/* directory is on  $(getconf PATH) */
 
 #define PATH_OFFSET	2		/* path offset for path_join */
@@ -119,15 +118,10 @@ extern const char is_ufunction[];
 extern const char e_autoloadfrom[];
 
 #if SHOPT_ACCT
-#   include	"FEATURE/acct"
-#   ifdef	_sys_acct
 	extern void sh_accinit(void);
 	extern void sh_accbegin(const char*);
 	extern void sh_accend(void);
 	extern void sh_accsusp(void);
-#   else
-#	undef	SHOPT_ACCT
-#   endif	/* _sys_acct */
 #endif /* SHOPT_ACCT */
 
 #endif /*! PATH_OFFSET */

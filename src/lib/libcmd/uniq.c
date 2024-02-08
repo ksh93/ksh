@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -82,8 +82,8 @@ typedef int (*Compare_f)(const char*, const char*, size_t);
 static int uniq(Sfio_t *fdin, Sfio_t *fdout, int fields, int chars, int width, int mode, int* all, Compare_f compare)
 {
 	int n, f, outsize=0, mb = mbwide();
-	char *cp, *ep, *mp, *bufp, *outp;
-	char *orecp, *sbufp=0, *outbuff;
+	char *cp=NULL, *ep, *mp, *bufp, *outp=NULL;
+	char *orecp=NULL, *sbufp=0, *outbuff;
 	int reclen,oreclen= -1,count=0,cwidth=0,sep,next;
 	if(mode&C_FLAG)
 		cwidth = CWIDTH+1;

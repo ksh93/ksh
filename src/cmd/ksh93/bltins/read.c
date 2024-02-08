@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -361,6 +361,14 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 		if(timeout)
 	                timeslot = sh_timeradd(timeout,0,timedout,iop);
 	}
+#if !SHOPT_SCRIPTONLY
+	if((flags&S_FLAG) && !sh.hist_ptr)
+	{
+		sh_histinit();
+		if(!sh.hist_ptr)
+			flags &= ~S_FLAG;
+	}
+#endif
 	if(flags&(N_FLAG|NN_FLAG))
 	{
 		char buf[256],*var=buf,*cur,*end,*up,*v;
@@ -516,14 +524,6 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long tim
 	}
 	if(timeslot)
 		sh_timerdel(timeslot);
-#if !SHOPT_SCRIPTONLY
-	if((flags&S_FLAG) && !sh.hist_ptr)
-	{
-		sh_histinit();
-		if(!sh.hist_ptr)
-			flags &= ~S_FLAG;
-	}
-#endif
 	if(cp)
 	{
 		cpmax = cp + c;

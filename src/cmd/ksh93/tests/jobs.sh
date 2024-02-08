@@ -1,8 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2021-2022 Contributors to ksh 93u+m           #
-#                    <https://github.com/ksh93/ksh>                    #
+#          Copyright (c) 2021-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -84,7 +83,16 @@ j1=${ jobs; }
 : ${ :; } ${ :; }
 j2=${ jobs; }
 kill %- %+
+wait 2>/dev/null
 [[ $j2 == "$j1" ]] || err_exit "jobs lost after shared-state command substitution ($(printf %q "$j2") != $(printf %q "$j1"))"
+
+# ======
+# Before 2024-01-05, ksh wrongly printed job numbers for background jobs invoked from subshells in profile scripts.
+if((!SHOPT_SCRIPTONLY));then
+print '(true &); :' >$tmp/profile
+got=$(ENV=$tmp/profile "$SHELL" -i </dev/null 2>&1)
+[[ -n $got ]] && err_exit "subshell bg job in profile script prints job number (got $(printf %q "$got"))"
+fi # !SHOPT_SCRIPTONLY
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,9 +40,6 @@
 #include	"history.h"
 #include	"timeout.h"
 #include	"FEATURE/time"
-#include	"FEATURE/pstat"
-#include	"FEATURE/setproctitle"
-#include	"FEATURE/execargs"
 #include	"FEATURE/externs"
 #ifdef	_hdr_nc
 #   include	<nc.h>
@@ -712,14 +709,8 @@ static void chkmail(char *files)
 	stkset(sh.stk,savstak,offset);
 }
 
-#undef EXECARGS
 #undef PSTAT
-#if defined(_hdr_execargs) && defined(pdp11)
-#   include	<execargs.h>
-#   define EXECARGS	1
-#endif
-
-#if defined(_lib_pstat) && defined(_sys_pstat)
+#if _lib_pstat && _sys_pstat
 #   include	<sys/pstat.h>
 #   define PSTAT	1
 #endif
@@ -738,11 +729,7 @@ static void chkmail(char *files)
  */
 static void fixargs(char **argv, int mode)
 {
-#   if EXECARGS
-	if(mode==0)
-		return;
-	*execargs=(char *)argv;
-#   elif PSTAT
+#   if PSTAT
 	char *cp;
 	int offset=0,size;
 	static int command_len;

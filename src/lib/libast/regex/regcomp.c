@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1031,7 +1031,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 	int		et;
 	Ckey_t		key;
 
-	cc = 0;
+	c = cc = 0;
 	for (;;)
 	{
 		k = key;
@@ -1203,7 +1203,7 @@ bra(Cenv_t* env)
 	 * inrange: 0=no, 1=possibly, 2=definitely
 	 */
 
-	inrange = 0;
+	inrange = last = 0;
 	for (;;)
 	{
 		if (!(c = *env->cursor) || c == env->terminator || c == env->delimiter && (env->flags & REG_ESCAPE))
@@ -1423,10 +1423,10 @@ bra(Cenv_t* env)
 		Cchr_t*			xc;
 		Celt_t*			ce;
 		Cchr_t			key;
-		int			rw;
-		int			rc;
+		int			rw = 0;
+		int			rc = 0;
 		wchar_t			wc;
-		unsigned char*		rp;
+		unsigned char*		rp = NULL;
 		unsigned char*		pp;
 		char			cb[2][COLL_KEY_MAX+1];
 
@@ -2514,6 +2514,7 @@ grp(Cenv_t* env, int parno)
 	}
 	p = env->pattern;
 	i = env->type;
+	e = NULL;
 	if (x)
 	{
 		if (typ >= 0)
@@ -2581,8 +2582,8 @@ seq(Cenv_t* env)
 	Token_t		tok;
 	int		c;
 	int		i;
-	int		n;
-	int		x;
+	int		n = 1;
+	int		x = 0;
 	int		parno;
 	int		type;
 	regflags_t	flags;

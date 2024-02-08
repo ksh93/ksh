@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -21,8 +21,16 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-integer hasposix=0
-(set -o posix) 2>/dev/null && ((hasposix++))	# not using [[ -o ?posix ]] as it's broken on 93v-
+enum bool=(false true)
+
+bool HAVE_signbit=false
+if	typeset -f .sh.math.signbit >/dev/null && (( signbit(-NaN) ))
+then	HAVE_signbit=true
+else	warning "-lm does not support signbit(-NaN)"
+fi
+
+bool HAVE_posix=false
+(set -o posix) 2>/dev/null && HAVE_posix=true	# not using [[ -o ?posix ]] as it's broken on 93v-
 
 trap '' FPE # NOTE: osf.alpha requires this (no ieee math)
 
@@ -351,7 +359,7 @@ unset x
 x=010
 (( x == 10 )) || err_exit 'leading zeros in x treated as octal arithmetic with ((x))'
 (( $x == 10 )) || err_exit 'leading zeros in x treated as octal arithmetic with (($x))'
-if	((hasposix))
+if	((HAVE_posix))
 then	set --posix
 	((x == 8)) || err_exit 'posix: leading zeros in x not treated as octal arithmetic with ((x))'
 	(($x == 8)) || err_exit 'posix: leading zeros in x not treated as octal arithmetic with (($x))'
@@ -454,8 +462,8 @@ then	set \
 		Inf		inf	\
 		-Inf		-inf	\
 		Nan		nan	\
-		-Nan		-nan	\
 		1.0/0.0		inf
+	((HAVE_signbit)) && set -- "$@" -Nan -nan
 	while	(( $# >= 2 ))
 	do	x=$(printf "%g\n" $(($1)))
 		[[ $x == $2 ]] || err_exit "printf '%g\\n' \$(($1)) failed -- expected $2, got $x"
@@ -746,7 +754,7 @@ print -- -020 | read x
 ((x == -20)) || err_exit 'numbers with leading -0 treated as octal outside ((...))'
 print -- -8#20 | read x
 ((x == -16)) || err_exit 'numbers with leading -8# should be treated as octal'
-if	((hasposix))
+if	((HAVE_posix))
 then	set --posix
 	(($r == 16)) || err_exit 'posix: leading 0 not treated as octal inside ((...))'
 	x=$(($r))
@@ -772,7 +780,7 @@ let "$x==10" || err_exit 'arithmetic with $x where $x is 010 should be decimal i
 x010=99
 ((x$x == 99 )) || err_exit 'arithmetic with x$x where x=010 should be $x010'
 (( 3+$x == 13 )) || err_exit '3+$x where x=010 should be 13 in ((...))'
-if	((hasposix))
+if	((HAVE_posix))
 then	set --posix
 	(( 3+$x == 11 )) || err_exit 'posix: 3+$x where x=010 should be 11 in ((...))'
 	set --noposix
@@ -904,7 +912,7 @@ unset got
 
 # ======
 # https://github.com/ksh93/ksh/issues/326
-((hasposix)) && for m in u d i o x X
+((HAVE_posix)) && for m in u d i o x X
 do
 	set --posix
 	case $m in
@@ -923,7 +931,7 @@ done
 # BUG_ARITHNAN: In ksh <= 93u+m 2021-11-15 and zsh 5.6 - 5.8, the case-insensitive
 # floating point constants Inf and NaN are recognised in arithmetic evaluation,
 # overriding any variables with the names Inf, NaN, INF, nan, etc.
-if	((hasposix))
+if	((HAVE_posix))
 then	set --posix
 	Inf=42 NaN=13
 	inf=421 nan=137
@@ -994,6 +1002,60 @@ got=$(set +x; eval 'got=$( ((y=1<<4)); echo $y )' 2>&1; echo $got) \
 function .sh.math.add x y { .sh.value=x+y; }
 got=$(PATH=/dev/null; typeset -i z; redirect 2>&1; z='add(2 , 3)'; echo $z)
 [[ e=$? -eq 0 && $got == '5' ]] || err_exit ".sh.math.* function parsing: got status $e and $(printf %q "$got")"
+
+# ======
+# arithmetic assignments should not trigger getn disciplines, but the return
+# value should still be cast to the type of the variable that is assigned to
+
+float x
+x.getn() { .sh.value=987.65; }
+let "got = x = 1234.56"
+[[ $got == 1234.56* ]] || err_exit "arithmetic assignment triggers getn discipline (got $got)"
+[[ $x == 987.65* ]] || err_exit "arithmetic comparison fails to trigger getn discipline (got $x)"
+unset x
+whence -q x.getn && err_exit "unset x fails to unset -f x.getn"
+
+(
+	ulimit -c 0  # fork
+	Errors=0
+	for sz in '' s l
+	do	typeset -${sz}i x=0
+		if	! let "(got = x = 123.95) == 123"
+		then	err_exit "arithmetic assignment does not return properly typecast value (-${sz}i, got $got)"
+		fi
+		typeset -${sz}F x=0
+		let "got = x = 123.95"
+		if	[[ $got != 123.95* ]]  # ignore OS-dependent rounding error
+		then	err_exit "arithmetic assignment does not return properly typecast value (-${sz}F, got $got)"
+		fi
+	done
+)
+if	let "(e = $?) > 128"
+then	err_exit "typeset crashed the shell (got status $e/SIG$(kill -l "$e"))"
+else	let "Errors += e"
+fi
+
+if	! let "(got = RANDOM = 123.95) == 123"
+then	err_exit "arithmetic assignment to RANDOM does not return typecast of assigned value (got $got)"
+fi
+
+let "_ = 123.95, got = _"
+if	[[ $got != '123.95' ]]
+then	err_exit "arithmetic assignment to _ fails (got $got)"
+fi
+
+got=$(let "LINENO = 123"; print $LINENO )
+if	[[ $got != '122' ]]   # TODO: should be 123
+then	err_exit "arithmetic assignment to LINENO fails (got $got)"
+fi
+
+# ======
+# non-base-10 numbers may be negative
+# https://github.com/ksh93/ksh/issues/696
+exp=-20#j12
+integer 20 got=$exp
+[[ $got == "$exp" ]] || err_exit "negative base-20 number (expected '$exp', got '$got')"
+unset got
 
 # ======
 exit $((Errors<125?Errors:125))

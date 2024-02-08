@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -233,9 +233,9 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 	struct Namref	nr;
 	int		maketype = flags&NV_TYPE;  /* make a 'typeset -T' type definition command */
 	struct sh_type	shtp;
-	Dt_t		*vartree, *save_vartree;
+	Dt_t		*vartree, *save_vartree = NULL;
 #if SHOPT_NAMESPACE
-	Namval_t	*save_namespace;
+	Namval_t	*save_namespace = NULL;
 #endif
 	if(flags&NV_GLOBAL)
 	{
@@ -908,8 +908,8 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 #if NVCACHE
 				nvcache.ok = 0;
 #endif
-				if(c=='.') /* don't optimize */
-					sh.argaddr = 0;
+				if(nv_isattr(np,NV_NOOPTIMIZE) || c=='.') /* don't optimize */
+					nv_setoptimize(NULL);
 				else if((flags&NV_NOREF) && (c!='[' && *cp!='.'))
 				{
 					if(c && !(flags&NV_NOADD))
@@ -1623,7 +1623,7 @@ void nv_putval(Namval_t *np, const char *string, int flags)
 		UNREACHABLE();
 	}
 	/* Create a local scope when inside of a virtual subshell */
-	sh.argaddr = 0;
+	nv_setoptimize(NULL);
 	if(sh.subshell && !nv_local && !(flags&NV_RDONLY))
 		sh_assignok(np,1);
 	/* Export the variable if 'set -o allexport' is enabled */
@@ -2089,14 +2089,12 @@ static void rightjust(char *str, int size, int fill)
 
 static int ja_size(char *str,int size,int type)
 {
-	char *cp = str;
-	int c, n=size;
-	int outsize;
-	char *oldcp=cp;
-	int oldn;
-	wchar_t w;
+	char *cp = str, *oldcp = str;
+	int c = 0, n = size, oldn = size;
 	while(*cp)
 	{
+		int outsize;
+		wchar_t w;
 		oldn = n;
 		w = mbchar(cp);
 		if((outsize = mbwidth(w)) <0)
@@ -2176,7 +2174,6 @@ char **sh_envgen(void)
 {
 	char **er;
 	int namec;
-	char *cp;
 	struct adata data;
 	data.tp = 0;
 	data.mapname = 0;
@@ -2612,37 +2609,37 @@ void nv_optimize(Namval_t *np)
 {
 	Namfun_t *fp;
 	struct optimize *op, *xp = 0;
-	if(sh.argaddr)
+	if(nv_getoptimize())
 	{
 		if(np==SH_LINENO)
 		{
-			sh.argaddr = 0;
+			nv_setoptimize(NULL);
 			return;
 		}
 		for(fp=np->nvfun; fp; fp = fp->next)
 		{
 			if(fp->disc && (fp->disc->getnum || fp->disc->getval))
 			{
-				sh.argaddr = 0;
+				nv_setoptimize(NULL);
 				return;
 			}
 			if(fp->disc == &OPTIMIZE_disc)
 				xp = (struct optimize*)fp;
 		}
-		if(xp && xp->ptr==sh.argaddr)
+		if(xp && xp->ptr==nv_getoptimize())
 			return;
 		if(xp && xp->next)
 		{
 			struct optimize *xpn;
 			for(xpn = xp->next; xpn; xpn = xpn->next)
-				if(xpn->ptr == sh.argaddr && xpn->np == np)
+				if(xpn->ptr == nv_getoptimize() && xpn->np == np)
 					return;
 		}
 		if(op = opt_free)
 			opt_free = op->next;
 		else
 			op=(struct optimize*)sh_calloc(1,sizeof(struct optimize));
-		op->ptr = sh.argaddr;
+		op->ptr = nv_getoptimize();
 		op->np = np;
 		if(xp)
 		{
@@ -2693,10 +2690,8 @@ char *nv_getval(Namval_t *np)
 {
 	union Value *up= &np->nvalue;
 	int numeric;
-#if SHOPT_OPTIMIZE
-	if(!nv_local && sh.argaddr)
+	if(!nv_local && nv_getoptimize())
 		nv_optimize(np);
-#endif /* SHOPT_OPTIMIZE */
 	if((!np->nvfun || !np->nvfun->disc) && !nv_isattr(np,NV_ARRAY|NV_INTEGER|NV_FUNCT|NV_REF))
 		goto done;
 	if(nv_isref(np))
@@ -2727,6 +2722,7 @@ char *nv_getval(Namval_t *np)
 	if(numeric)
 	{
 		Sflong_t  ll;
+		int base;
 		if(!up->cp)
 			return "0";
 		if(nv_isattr (np,NV_DOUBLE)==NV_DOUBLE)
@@ -2783,16 +2779,12 @@ char *nv_getval(Namval_t *np)
 		}
         	else
 			ll = *(up->lp);
-		if((numeric=nv_size(np))==10)
-		{
-			if(nv_isattr(np,NV_UNSIGN))
-			{
-				sfprintf(sh.strbuf,"%I*u",sizeof(ll),ll);
-				return sfstruse(sh.strbuf);
-			}
-			numeric = 0;
-		}
-		return fmtbase(ll,numeric, numeric&&numeric!=10);
+		base = nv_size(np);
+		if(base==10)
+			return fmtint(ll, nv_isattr(np,NV_UNSIGN));
+		/* render a possibly signed non-base-10 integer with its base# prefix */
+		sfprintf(sh.strbuf, nv_isattr(np,NV_UNSIGN) ? "%#..*I*u" : "%#..*I*d", base, sizeof ll, ll);
+		return sfstruse(sh.strbuf);
 	}
 done:
 	/*
@@ -2823,10 +2815,8 @@ Sfdouble_t nv_getnum(Namval_t *np)
 	union Value *up;
 	Sfdouble_t r=0;
 	char *str;
-#if SHOPT_OPTIMIZE
-	if(!nv_local && sh.argaddr)
+	if(!nv_local && nv_getoptimize())
 		nv_optimize(np);
-#endif /* SHOPT_OPTIMIZE */
 	if(nv_istable(np))
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_number,nv_name(np));
@@ -3536,9 +3526,7 @@ void nv_unref(Namval_t *np)
 	}
 	free(np->nvalue.nrp);
 	np->nvalue.cp = sh_strdup(nv_name(nq));
-#if SHOPT_OPTIMIZE
 	nv_optimize_clear(nq);
-#endif
 }
 
 char *nv_name(Namval_t *np)
@@ -3546,7 +3534,7 @@ char *nv_name(Namval_t *np)
 	Namval_t *table;
 	Namfun_t *fp;
 #if SHOPT_FIXEDARRAY
-	Namarr_t	*ap;
+	Namarr_t *ap = NULL;
 #endif /* SHOPT_FIXEDARRAY */
 	char *cp;
 	if(is_abuiltin(np) || is_afunction(np))

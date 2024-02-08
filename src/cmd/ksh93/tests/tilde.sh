@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -180,6 +180,19 @@ got=$(
 )
 exp=/usr/local/src/ksh93/ksh
 [[ $got == "$exp" ]] || err_exit "error in special builtin disables .sh.tilde discipline" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+
+.sh.tilde.set() { print -n BAD; }
+.sh.tilde.get() { .sh.value=' & WRONG'; }
+echo 'echo ~okay' >test.sh
+chmod +x test.sh
+./test.sh >test.out
+got=$(<test.out)
+unset .sh.tilde  # removes discipline functions
+exp=~okay
+[[ $got == "$exp" ]] || err_exit "child script inherits .sh.tilde discipline" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

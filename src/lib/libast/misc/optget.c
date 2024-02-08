@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -902,13 +902,15 @@ init(char* s, Optpass_t* p)
 
 	if (!state.localized)
 	{
+		unsigned char	*opts = (unsigned char*)OPT_FLAGS;
+		unsigned char	*o;
 		state.localized = 1;
 		if (!ast.locale.serial)
 			setlocale(LC_ALL, "");
 		state.xp = sfstropen();
-		if (!map[OPT_FLAGS[0]])
-			for (n = 0, t = OPT_FLAGS; *t; t++)
-				map[*t] = ++n;
+		if (!map[opts[0]])
+			for (n = 0, o = opts; *o; o++)
+				map[*o] = ++n;
 	}
 #if _BLD_DEBUG
 	error(-2, "optget debug");
@@ -1584,7 +1586,7 @@ args(Sfio_t* sp, char* p, int n, int flags, int style, Sfio_t* ip, int version, 
 	char*	t;
 	char*	o;
 	char*	a = 0;
-	char*	b;
+	char*	b = style == STYLE_nroff ? "\\ " : " ";
 	int	sep;
 
 	if (flags & OPT_functions)
@@ -1593,7 +1595,6 @@ args(Sfio_t* sp, char* p, int n, int flags, int style, Sfio_t* ip, int version, 
 	{
 		sep = ' ';
 		o = T(NULL, ID, "options");
-		b = style == STYLE_nroff ? "\\ " : " ";
 		for (;;)
 		{
 			t = (char*)memchr(p, '\n', n);
@@ -2354,10 +2355,10 @@ opthelp(const char* oopts, const char* what)
 	char*		s;
 	char*		d;
 	char*		v;
-	char*		cb;
-	char*		dt;
+	char*		cb = NULL;
+	char*		dt = NULL;
 	char*		ov;
-	char*		pp;
+	char*		pp = NULL;
 	char*		rb;
 	char*		re;
 	int		f;
@@ -2959,6 +2960,7 @@ opthelp(const char* oopts, const char* what)
 			rb = re = 0;
 			sl = 0;
 			vl = 0;
+			cl = 0;
 			if (*p == '[')
 			{
 				if ((c = *(p = next(p + 1, version))) == '(')
@@ -4285,7 +4287,7 @@ optget(char** argv, const char* oopts)
 	int		no;
 	int		nov;
 	int		num;
-	int		numchr;
+	int		numchr = 0;
 	int		prefix;
 	int		version;
 	Help_t*		hp;
@@ -4749,13 +4751,13 @@ optget(char** argv, const char* oopts)
 			else if (*s == '[')
 			{
 				s = next(s + 1, version);
+				k = *(f = s);
 				if (*s == '(')
 				{
 					s = nest(f = s);
 					if (!conformance(f, s - f))
 						goto disable;
 				}
-				k = *(f = s);
 				if (k == '+' || k == '-')
 					/* ignore */;
 				else if (k == '[' || version < 1)
@@ -5027,7 +5029,7 @@ optget(char** argv, const char* oopts)
 							else if (*(f + 1) == '=')
 								break;
 							else
-								cache->flags[map[*f]] = m;
+								cache->flags[map[*((unsigned char*)f)]] = m;
 							j = 0;
 							/*
 							 * parse and cache short option equivalents,
@@ -5146,7 +5148,7 @@ optget(char** argv, const char* oopts)
 						if (*(s + 2) == '?')
 							m |= OPT_cache_optional;
 					}
-					cache->flags[map[*s]] = m;
+					cache->flags[map[*((unsigned char*)s)]] = m;
 				}
 				s++;
 				continue;
@@ -5608,9 +5610,6 @@ optstr(const char* str, const char* opts)
 	char*		s = (char*)str;
 	Sfio_t*		mp;
 	int		c;
-	int		ql;
-	int		qr;
-	int		qc;
 	int		v;
 	char*		e;
 
@@ -5672,8 +5671,10 @@ optstr(const char* str, const char* opts)
 			}
 			if (c == ':' || c == '=')
 			{
+				int	ql = 0;
+				int	qr = 0;
+				int	qc = 0;
 				sfputc(mp, c);
-				ql = qr = 0;
 				while (c = *++s)
 				{
 					if (c == '\\')

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -79,7 +79,6 @@ static struct subshell
 	int		tmpfd;	/* saved tmp file descriptor */
 	int		pipefd;	/* read fd if pipe is created */
 	char		jobcontrol;
-	char		monitor;
 	unsigned char	fdstatus;
 	int		fdsaved; /* bit mask for saved file descriptors */
 	int		sig;	/* signal for $$ */
@@ -89,9 +88,10 @@ static struct subshell
 	int		cpipe;
 	char		subshare;
 	char		comsub;
-	unsigned int	rand_seed;  /* parent shell $RANDOM seed */
-	int		rand_last;  /* last random number from $RANDOM in parent shell */
-	int		rand_state; /* 0 means sp->rand_seed hasn't been set, 1 is the opposite */
+	unsigned int	rand_seed;          /* parent shell $RANDOM seed */
+	int		rand_last;          /* last random number from $RANDOM in parent shell */
+	int		rand_state;         /* 0 means sp->rand_seed hasn't been set, 1 is the opposite */
+	uint32_t	srand_upper_bound;  /* parent shell's upper bound for $SRANDOM */
 #if _lib_fchdir
 	int		pwdfd;	/* file descriptor for PWD */
 	char		pwdclose;
@@ -586,6 +586,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sh_sigreset(0);
 		if(save_debugtrap)
 			sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
+		/* save upper bound for $SRANDOM */
+		sp->srand_upper_bound = sh.srand_upper_bound;
 	}
 	jmpval = sigsetjmp(checkpoint.buff,0);
 	if(jmpval==0)
@@ -595,7 +597,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			/* disable job control */
 			sh.spid = 0;
 			sp->jobcontrol = job.jobcontrol;
-			sp->monitor = (sh_isstate(SH_MONITOR)!=0);
 			job.jobcontrol=0;
 			sh_offstate(SH_MONITOR);
 			sp->pipe = sp;
@@ -642,13 +643,14 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			/* Virtual subshells are not safe to suspend (^Z, SIGTSTP) in the interactive main shell. */
 			if(sh_isstate(SH_INTERACTIVE))
 			{
+				sh_offstate(SH_INTERACTIVE);
 				sh_offstate(SH_TTYWAIT);
 				if(comsub)
 					sigblock(SIGTSTP);
 				else
 					sh_subfork();
 			}
-			sh_offstate(SH_INTERACTIVE);
+			sh_offstate(SH_PROFILE);
 			sh_exec(t,flags);
 		}
 	}
@@ -657,6 +659,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		/* trap on EXIT not handled by child */
 		char *trap=sh.st.trapcom[0];
 		sh.st.trapcom[0] = 0;	/* prevent recursion */
+		sh.oldexit = sh.exitval;
 		sh_trap(trap,0);
 		free(trap);
 	}
@@ -680,7 +683,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sigrelease(SIGTSTP);
 		/* re-enable job control */
 		job.jobcontrol = sp->jobcontrol;
-		if(sp->monitor)
+		if(savst.states & sh_state(SH_MONITOR))
 			sh_onstate(SH_MONITOR);
 		if(sp->pipefd>=0)
 		{
@@ -857,6 +860,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			srand(rp->rand_seed = sp->rand_seed);
 			rp->rand_last = sp->rand_last;
 		}
+		/* restore $SRANDOM upper bound */
+		sh.srand_upper_bound = sp->srand_upper_bound;
 		/* Real subshells have their exit status truncated to 8 bits by the kernel.
 		 * Since virtual subshells should be indistinguishable, do the same here. */
 		sh.exitval &= SH_EXITMASK;

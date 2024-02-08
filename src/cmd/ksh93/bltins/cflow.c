@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -65,18 +65,22 @@ done:
 	argv += opt_info.index;
 	if(*argv)
 	{
-		long l = strtol(*argv, NULL, 10);
+		int r;
+		intmax_t l = strtoll(*argv, NULL, 10);
 		if(do_exit)
 			n = (int)(l & SH_EXITMASK);	/* exit: apply bitmask before conversion to avoid undefined int overflow */
-		else if((long)(n = (int)l) != l)	/* return: convert to int and check for overflow (should be safe enough) */
+		else if(r = (int)l, l != (intmax_t)r)	/* return: convert to int and check for overflow (should be safe enough) */
 		{
 			errormsg(SH_DICT,ERROR_warn(0),"%s: out of range",*argv);
 			n = 128;			/* overflow is undefined, so use a consistent status for this */
 		}
+		else
+			n = r;
 	}
 	else
 	{
-		n = sh.savexit;				/* no argument: pass down $? */
+		/* no argument: pass down $? (but in a trap action, pass down the pre-trap $?) */
+		n = sh.intrap ? sh.oldexit : sh.savexit;
 		if(do_exit)
 			n &= SH_EXITMASK;
 	}

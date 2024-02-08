@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -736,7 +736,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 			int n;
 #endif
 			/* Handle default path-bound builtins */
-			if(!sh_isstate(SH_XARG) && *stkptr(sh.stk,PATH_OFFSET)=='/' && nv_search(stkptr(sh.stk,PATH_OFFSET),sh.bltin_tree,0))
+			if(*stkptr(sh.stk,PATH_OFFSET)=='/' && nv_search(stkptr(sh.stk,PATH_OFFSET),sh.bltin_tree,0))
 				return oldpp;
 #if SHOPT_DYNAMIC
 			/* Load builtins from dynamic libraries */
@@ -1024,9 +1024,9 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 	char		**xp=0, *xval, *libenv = (libpath?libpath->lib:0); 
 	Namval_t*	np;
 	char		*s, *v;
-	int		r, n, pidsize;
+	int		r, n, pidsize=0;
 	pid_t		pid= -1;
-	if(!sh_isstate(SH_XARG) && nv_search(opath,sh.bltin_tree,0))
+	if(nv_search(opath,sh.bltin_tree,0))
 	{
 		/* Found a path-bound built-in. Since this was not caught earlier in sh_exec(), it must
 		   have been found on a temporarily assigned PATH, as with 'PATH=/opt/ast/bin:$PATH cat'.
@@ -1437,7 +1437,6 @@ static Pathcomp_t *path_addcomp(Pathcomp_t *first, Pathcomp_t *old,const char *n
 	if(strcmp(name,SH_CMDLIB_DIR)==0)
 	{
 		pp->dev = 1;
-		pp->flags |= PATH_BUILTIN_LIB;
 		pp->blib = pp->bbuf = sh_malloc(sizeof(LIBCMD));
 		strcpy(pp->blib,LIBCMD);
 		return first;
@@ -1537,7 +1536,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, const char *path,int type)
 	const char *cp;
 	Pathcomp_t *old=0;
 	int offset = stktell(sh.stk);
-	char *savptr;
+	char *savptr = NULL;
 	if(!path && type!=PATH_PATH)
 		return first;
 	if(type!=PATH_FPATH)
@@ -1577,7 +1576,11 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, const char *path,int type)
 		path_delete(old);
 	}
 	if(offset)
+	{
+		if(!savptr)
+			abort();
 		stkset(sh.stk,savptr,offset);
+	}
 	else
 		stkseek(sh.stk,0);
 	return first;
@@ -1654,7 +1657,7 @@ void path_newdir(Pathcomp_t *first)
 Pathcomp_t *path_unsetfpath(void)
 {
 	Pathcomp_t	*first = (Pathcomp_t*)sh.pathlist;
-	Pathcomp_t *pp=first, *old=0;
+	Pathcomp_t	*pp=first, *old=0;
 	if(sh.fpathdict)
 	{
 		struct Ufunction  *rp, *rpnext;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -458,7 +458,7 @@ static void p_arg(const struct argnod *arg,int endchar,int opts)
 static void p_redirect(const struct ionod *iop)
 {
 	char *cp;
-	int iof,iof2;
+	int iof, endc, endc2 = -1;
 	for(;iop;iop=iop->ionxt)
 	{
 		iof=iop->iofile;
@@ -505,34 +505,34 @@ static void p_redirect(const struct ionod *iop)
 		}
 		sfputr(outfile,cp,-1);
 		if(iop->ionxt)
-			iof = ' ';
+			endc = ' ';
 		else
 		{
-			if((iof=end_line)=='\n')
+			if((endc=end_line)=='\n')
 				begin_line = 1;
 		}
 		if((iof&IOLSEEK) && (iof&IOARITH))
-			iof2 = iof, iof = ' ';
-		if((iop->iofile & IOPROCSUB) && !(iop->iofile & IOLSEEK))
+			endc2 = endc, endc = ' ';
+		if((iof&IOPROCSUB) && !(iof&IOLSEEK))
 		{
 			/* process substitution as argument to redirection */
-			sfprintf(outfile," %c(", (iop->iofile & IOPUT) ? '>' : '<');
+			sfprintf(outfile," %c(", (iof&IOPUT) ? '>' : '<');
 			begin_line = 0;
 			p_tree((Shnode_t*)iop->ioname,PROC_SUBST);
-			sfputc(outfile,iof);
+			sfputc(outfile,endc);
 		}
 		else if(iop->iodelim)
 		{
-			if(!(iop->iofile&IODOC))
+			if(!(iof&IODOC))
 				sfwrite(outfile,"''",2);
-			sfputr(outfile,sh_fmtq(iop->iodelim),iof);
+			sfputr(outfile,sh_fmtq(iop->iodelim),endc);
 		}
-		else if(iop->iofile&IORAW)
-			sfputr(outfile,sh_fmtq(iop->ioname),iof);
+		else if(iof&IORAW)
+			sfputr(outfile,sh_fmtq(iop->ioname),endc);
 		else
 			sfputr(outfile,iop->ioname,iof);
 		if((iof&IOLSEEK) && (iof&IOARITH))
-			sfputr(outfile, "))", iof2);
+			sfputr(outfile, "))", endc2);
 	}
 	return;
 }

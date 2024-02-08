@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -34,6 +34,7 @@
 #include        <tmx.h>
 #include        <regex.h>
 #include	<math.h>
+#include	<ast_random.h>
 #include        "variables.h"
 #include        "path.h"
 #include        "fault.h"
@@ -202,6 +203,7 @@ typedef struct _init_
 	Namfun_t	OPTINDEX_init;
 	Namfun_t	SECONDS_init;
 	struct rand	RAND_init;
+	Namfun_t	SRAND_init;
 	Namfun_t	LINENO_init;
 	Namfun_t	L_ARG_init;
 	Namfun_t	SH_VERSION_init;
@@ -672,7 +674,7 @@ static Sfdouble_t nget_seconds(Namval_t* np, Namfun_t *fp)
 static void put_rand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	struct rand *rp = (struct rand*)fp;
-	long n;
+	Sfdouble_t n;
 	sh_save_rand_seed(rp, 0);
 	if(!val)
 	{
@@ -683,7 +685,7 @@ static void put_rand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		return;
 	}
 	if(flags&NV_INTEGER)
-		n = *(double*)val;
+		n = *(Sfdouble_t*)val;
 	else
 		n = sh_arith(val);
 	srand(rp->rand_seed = (unsigned int)n);
@@ -711,18 +713,46 @@ static Sfdouble_t nget_rand(Namval_t* np, Namfun_t *fp)
 static char* get_rand(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)nget_rand(np,fp);
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 void sh_reseed_rand(struct rand *rp)
 {
-	struct tms		tp;
-	unsigned int		time;
-	static unsigned int	seq;
-	timeofday(&tp);
-	time = (unsigned int)remainder(dtime(&tp) * 10000.0, (double)UINT_MAX);
-	srand(rp->rand_seed = (unsigned int)sh.current_pid ^ time ^ ++seq);
+	srand(rp->rand_seed = arc4random());
 	rp->rand_last = -1;
+}
+
+/*
+ * The following three functions are for SRANDOM
+ */
+
+static void put_srand(Namval_t* np,const char *val,int flags,Namfun_t *fp)
+{
+	if(!val)  /* unset */
+	{
+		fp = nv_stack(np, NULL);
+		if(fp && !fp->nofree)
+			free(fp);
+		_nv_unset(np,NV_RDONLY);
+		return;
+	}
+	if(sh_isstate(SH_INIT))
+		return;
+	if(flags&NV_INTEGER)
+		sh.srand_upper_bound = *(Sfdouble_t*)val;
+	else
+		sh.srand_upper_bound = sh_arith(val);
+}
+
+static Sfdouble_t nget_srand(Namval_t* np, Namfun_t *fp)
+{
+	return (Sfdouble_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
+}
+
+static char* get_srand(Namval_t* np, Namfun_t *fp)
+{
+	intmax_t n = (intmax_t)(sh.srand_upper_bound ? arc4random_uniform(sh.srand_upper_bound) : arc4random());
+	return fmtint(n,1);
 }
 
 /*
@@ -752,7 +782,7 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 		return;
 	}
 	if(flags&NV_INTEGER)
-		n = (Sfdouble_t)(*(double*)val);
+		n = *(Sfdouble_t*)val;
 	else
 		n = sh_arith(val);
 	sh.st.firstline += (int)(nget_lineno(np,fp) + 1 - n);
@@ -761,7 +791,7 @@ static void put_lineno(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 static char* get_lineno(Namval_t* np, Namfun_t *fp)
 {
 	intmax_t n = (intmax_t)nget_lineno(np,fp);
-	return fmtbase(n, 10, 0);
+	return fmtint(n,1);
 }
 
 static char* get_lastarg(Namval_t* np, Namfun_t *fp)
@@ -777,7 +807,7 @@ static void put_lastarg(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	if(flags&NV_INTEGER)
 	{
-		sfprintf(sh.strbuf,"%.*g",12,*((double*)val));
+		sfprintf(sh.strbuf,"%.*Lg",12,*((Sfdouble_t*)val));
 		val = sfstruse(sh.strbuf);
 	}
 	if(val)
@@ -797,22 +827,25 @@ static void match2d(struct match *mp)
 	int		i;
 	Namarr_t	*ap;
 	nv_disc(SH_MATCHNOD, &mp->hdr, NV_POP);
-	np = nv_namptr(mp->nodes, 0);
-	for(i=0; i < mp->nmatch; i++)
+	if(mp->nodes)
 	{
-		np->nvname = mp->names + 3 * i;
-		if(i > 9)
+		np = nv_namptr(mp->nodes, 0);
+		for(i=0; i < mp->nmatch; i++)
 		{
-			*np->nvname = '0' + i / 10;
-			np->nvname[1] = '0' + (i % 10);
+			np->nvname = mp->names + 3 * i;
+			if(i > 9)
+			{
+				*np->nvname = '0' + i / 10;
+				np->nvname[1] = '0' + (i % 10);
+			}
+			else
+				*np->nvname = '0' + i;
+			nv_putsub(np, NULL, 1);
+			nv_putsub(np, NULL, 0);
+			nv_putsub(SH_MATCHNOD, NULL, i);
+			nv_arraychild(SH_MATCHNOD, np, 0);
+			np = nv_namptr(np + 1, 0);
 		}
-		else
-			*np->nvname = '0' + i;
-		nv_putsub(np, NULL, 1);
-		nv_putsub(np, NULL, 0);
-		nv_putsub(SH_MATCHNOD, NULL, i);
-		nv_arraychild(SH_MATCHNOD, np, 0);
-		np = nv_namptr(np + 1, 0);
 	}
 	if(ap = nv_arrayptr(SH_MATCHNOD))
 		ap->nelem = mp->nmatch;
@@ -826,7 +859,7 @@ void sh_setmatch(const char *v, int vsize, int nmatch, int match[], int index)
 {
 	Init_t		*ip = sh.init_context;
 	struct match	*mp = &ip->SH_MATCH_init;
-	int	i,n,x, savesub=sh.subshell;
+	int		i,n,x, savesub=sh.subshell;
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
 	Namval_t	*np;
 	if(sh.intrace)
@@ -834,25 +867,28 @@ void sh_setmatch(const char *v, int vsize, int nmatch, int match[], int index)
 	sh.subshell = 0;
 	if(index<0)
 	{
-		np = nv_namptr(mp->nodes,0);
-		if(mp->index==0)
-			match2d(mp);
-		for(i=0; i < mp->nmatch; i++)
+		if(mp->nodes)
 		{
-			nv_disc(np,&mp->hdr,NV_LAST);
-			nv_putsub(np,NULL,mp->index);
-			for(x=mp->index; x >=0; x--)
+			np = nv_namptr(mp->nodes,0);
+			if(mp->index==0)
+				match2d(mp);
+			for(i=0; i < mp->nmatch; i++)
 			{
-				n = i + x*mp->nmatch;
-				if(mp->match[2*n+1]>mp->match[2*n])
-					nv_putsub(np,Empty,ARRAY_ADD|x);
+				nv_disc(np,&mp->hdr,NV_LAST);
+				nv_putsub(np,NULL,mp->index);
+				for(x=mp->index; x >=0; x--)
+				{
+					n = i + x*mp->nmatch;
+					if(mp->match[2*n+1]>mp->match[2*n])
+						nv_putsub(np,Empty,ARRAY_ADD|x);
+				}
+				if((ap=nv_arrayptr(np)) && array_elem(ap)==0)
+				{
+					nv_putsub(SH_MATCHNOD,NULL,i);
+					_nv_unset(SH_MATCHNOD,NV_RDONLY);
+				}
+				np = nv_namptr(np+1,0);
 			}
-			if((ap=nv_arrayptr(np)) && array_elem(ap)==0)
-			{
-				nv_putsub(SH_MATCHNOD,NULL,i);
-				_nv_unset(SH_MATCHNOD,NV_RDONLY);
-			}
-			np = nv_namptr(np+1,0);
 		}
 		sh.subshell = savesub;
 		return;
@@ -981,15 +1017,7 @@ static char* get_match(Namval_t* np, Namfun_t *fp)
 	return mp->rval[i];
 }
 
-static char *name_match(Namval_t *np, Namfun_t *fp)
-{
-	int sub = nv_aindex(SH_MATCHNOD);
-	sfprintf(sh.strbuf,".sh.match[%d]",sub);
-	return sfstruse(sh.strbuf);
-}
-
-static const Namdisc_t SH_MATCH_disc = { sizeof(struct match), 0, get_match,
-	0,0,0,0,name_match };
+static const Namdisc_t SH_MATCH_disc  = { sizeof(struct match), 0, get_match };
 
 static char* get_version(Namval_t* np, Namfun_t *fp)
 {
@@ -1000,7 +1028,7 @@ static Sfdouble_t nget_version(Namval_t* np, Namfun_t *fp)
 {
 	const char	*cp = e_version + strlen(e_version)-10;
 	int		c;
-	Sflong_t		t = 0;
+	Sflong_t	t = 0;
 	NOT_USED(fp);
 
 	while (c = *cp++)
@@ -1025,6 +1053,7 @@ static const Namdisc_t HISTFILE_disc	= {  sizeof(Namfun_t), put_history };
 static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex, 0, 0, clone_optindex };
 static const Namdisc_t SECONDS_disc	= {  sizeof(Namfun_t), put_seconds, get_seconds, nget_seconds };
 static const Namdisc_t RAND_disc	= {  sizeof(struct rand), put_rand, get_rand, nget_rand };
+static const Namdisc_t SRAND_disc	= {  sizeof(Namfun_t), put_srand, get_srand, nget_srand };
 static const Namdisc_t LINENO_disc	= {  sizeof(Namfun_t), put_lineno, get_lineno, nget_lineno };
 static const Namdisc_t L_ARG_disc	= {  sizeof(Namfun_t), put_lastarg, get_lastarg };
 
@@ -1514,7 +1543,6 @@ int sh_reinit(char *argv[])
 	Dt_t	*dp;
 	int	nofree;
 	char	*savfpath = NULL;
-	sh_onstate(SH_INIT);
 	sh.subshell = sh.realsubshell = sh.comsub = sh.curenv = sh.jobenv = sh.inuse_bits = sh.fn_depth = sh.dot_depth = 0;
 	sh.envlist = NULL;
 	sh.last_root = sh.var_tree;
@@ -1523,6 +1551,8 @@ int sh_reinit(char *argv[])
 		sfclose(sh.heredocs);
 		sh.heredocs = 0;
 	}
+	/* Unset tilde expansion disciplines */
+	_nv_unset(SH_TILDENOD,NV_RDONLY);
 	/* save FPATH and treat specially */
 	if(nv_isattr(FPATHNOD,NV_EXPORT))
 		savfpath = sh_strdup(nv_getval(FPATHNOD));
@@ -1561,9 +1591,6 @@ int sh_reinit(char *argv[])
 			nv_setattr(np,NV_EXPORT);			/* turn off everything except export */
 			if(cp)
 				np->nvalue.cp = cp;			/* replace by string value */
-			/* unset discipline */
-			if(np->nvfun && np->nvfun->disc)
-				np->nvfun->disc = NULL;
 		}
 		else
 		{
@@ -1593,7 +1620,8 @@ int sh_reinit(char *argv[])
 		dtclose(sh.fun_tree);
 		sh.fun_tree = dp;
 	}
-	dtclear(sh.fun_base = sh.fun_tree);
+	sh.fun_base = sh.fun_tree;
+	dtclear(sh.fun_base);
 	/* Re-init built-ins as per nv_init() */
 	free(sh.bltin_cmds);
 	sh.bltin_tree = sh_inittree((const struct shtable2*)shtab_builtins);
@@ -1680,7 +1708,6 @@ int sh_reinit(char *argv[])
 	/* call user init function, if any */
 	if(sh.userinit)
 		(*sh.userinit)(&sh, 1);
-	sh_offstate(SH_INIT);
 	return 1;
 }
 
@@ -1776,7 +1803,8 @@ static Namfun_t	 stat_child_fun =
 static void stat_init(void)
 {
 	int		i,nstat = STAT_SUBSHELL+1;
-	struct Stats	*sp = sh_newof(0,struct Stats,1,nstat*NV_MINSZ);
+	size_t		extrasize = nstat*(sizeof(int)+NV_MINSZ);
+	struct Stats	*sp = sh_newof(0,struct Stats,1,extrasize);
 	Namval_t	*np;
 	sp->numnodes = nstat;
 	sp->nodes = (char*)(sp+1);
@@ -1790,7 +1818,7 @@ static void stat_init(void)
 		nv_setsize(np,10);
 		np->nvalue.ip = &sh.stats[i];
 	}
-	sp->hdr.dsize = sizeof(struct Stats) + nstat*(sizeof(int)+NV_MINSZ);
+	sp->hdr.dsize = sizeof(struct Stats) + extrasize;
 	sp->hdr.disc = &stat_disc;
 	nv_stack(SH_STATS,&sp->hdr);
 	sp->hdr.nofree = 1;
@@ -1803,7 +1831,7 @@ static void stat_init(void)
  */
 static Init_t *nv_init(void)
 {
-	double d=0;
+	Sfdouble_t d=0;
 	Init_t *ip = sh_newof(0,Init_t,1,0);
 	sh.nvfun.last = (char*)&sh;
 	sh.nvfun.nofree = 1;
@@ -1836,6 +1864,8 @@ static Init_t *nv_init(void)
 	ip->SECONDS_init.nofree = 1;
 	ip->RAND_init.hdr.disc = &RAND_disc;
 	ip->RAND_init.hdr.nofree = 1;
+	ip->SRAND_init.disc = &SRAND_disc;
+	ip->SRAND_init.nofree = 1;
 	ip->SH_MATCH_init.hdr.disc = &SH_MATCH_disc;
 	ip->SH_MATCH_init.hdr.nofree = 1;
 	ip->SH_MATH_init.disc = &SH_MATH_disc;
@@ -1879,6 +1909,7 @@ static Init_t *nv_init(void)
 	nv_putval(SECONDS, (char*)&d, NV_DOUBLE);
 	nv_stack(RANDNOD, &ip->RAND_init.hdr);
 	nv_putval(RANDNOD, (char*)&d, NV_DOUBLE);
+	nv_stack(SRANDNOD, &ip->SRAND_init);
 	sh_invalidate_rand_seed();
 	nv_stack(LINENO, &ip->LINENO_init);
 	SH_MATCHNOD->nvfun =  &ip->SH_MATCH_init.hdr;

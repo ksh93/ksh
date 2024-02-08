@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #           Copyright (c) 2019-2020 Contributors to ksh2020            #
-#             Copyright (c) 2022 Contributors to ksh 93u+m             #
+#          Copyright (c) 2022-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -568,16 +568,16 @@ if builtin cat 2> /dev/null; then
 	if	[[ $'\n'${ builtin; }$'\n' == *$'\n/opt/ast/bin/cat\n'* ]]
 	then	exp='  version         cat (*) ????-??-??'
 		got=$(/opt/ast/bin/cat --version 2>&1)
-		[[ $got == $exp ]] || err_exit "path-bound builtin not executable by literal canonical path" \
+		[[ $got == $exp && $got != *$'\n'* ]] || err_exit "path-bound builtin not executable by literal canonical path" \
 			"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 		got=$(PATH=/opt/ast/bin:$PATH; "${ whence -p cat; }" --version 2>&1)
-		[[ $got == $exp ]] || err_exit "path-bound builtin not executable by canonical path resulting from expansion" \
+		[[ $got == $exp && $got != *$'\n'* ]] || err_exit "path-bound builtin not executable by canonical path resulting from expansion" \
 			"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 		got=$(PATH=/opt/ast/bin:$PATH; "$SHELL" -o restricted -c 'cat --version' 2>&1)
-		[[ $got == $exp ]] || err_exit "restricted shells do not recognize path-bound builtins" \
+		[[ $got == $exp && $got != *$'\n'* ]] || err_exit "restricted shells do not recognize path-bound builtins" \
 			"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-		got=$(set +x; PATH=/opt/ast/bin cat --version 2>&1)
-		[[ $got == $exp ]] || err_exit "path-bound builtin not found on PATH in preceding assignment" \
+		got=$(set +x; PATH=/dev/null; PATH=/opt/ast/bin cat --version 2>&1)
+		[[ $got == $exp && $got != *$'\n'* ]] || err_exit "path-bound builtin on PATH in preceding assignment" \
 			"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 	else	warning 'skipping path-bound builtin tests: builtin /opt/ast/bin/cat not found'
 	fi

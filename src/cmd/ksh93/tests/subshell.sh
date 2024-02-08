@@ -624,7 +624,7 @@ trap - USR1 ERR
 dot=$(cat <<-EOF
 		$(ls -d .)
 	EOF
-) ) & "$binsleep" .1
+) ) & sleep .1
 if      kill -0 $! 2> /dev/null
 then    err_exit  'command substitution containing here-doc with command substitution fails'
 fi
@@ -860,7 +860,7 @@ done
 EOF
 "$SHELL" -i "$tmp/backtick_crash.ksh" 2>/dev/null &	# run test as bg job
 test_pid=$!
-(sleep 10; kill -s KILL "$test_pid" 2>/dev/null) &	# another bg job to kill frozen test job
+(sleep 20; kill -s KILL "$test_pid" 2>/dev/null) &	# another bg job to kill frozen test job
 sleep_pid=$!
 { wait "$test_pid"; } 2>/dev/null			# get job's exit status, suppressing signal messages
 ((!(e = $?))) || err_exit "backtick comsub crash/freeze (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"

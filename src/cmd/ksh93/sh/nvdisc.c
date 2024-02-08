@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -571,9 +571,7 @@ char *nv_setdisc(Namval_t* np,const char *event,Namval_t *action,Namfun_t *fp)
 		else if(type==LOOKUPN)
 			dp->getnum = lookupn;
 		vp->disc[type] = action;
-#if SHOPT_OPTIMIZE
 		nv_optimize_clear(np);
-#endif
 	}
 	else
 	{
@@ -994,6 +992,9 @@ Namval_t *nv_search(const char *name, Dt_t *root, int mode)
 {
 	Namval_t *np;
 	Dt_t *dp = 0;
+	/* do not find builtins when using 'command -x' */
+	if(!(mode&NV_ADD) && sh_isstate(SH_XARG) && (root==sh.bltin_tree || root==sh.fun_tree))
+		return NULL;
 	if(mode&NV_NOSCOPE)
 		dp = dtview(root,0);
 	if(mode&NV_REF)

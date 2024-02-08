@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -934,6 +934,12 @@ ar=()
 got=$(typeset -p ar)
 exp='typeset -A -l -i ar=()'
 [[ $got == "$exp" ]] || err_exit 'ar=() for associative array should preserve attributes' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+got=$(typeset -A yarr; typeset -i yarr[lorem=ipsum]=456 yarr[foo=bar]=123 2>&1; typeset -p yarr)
+exp='typeset -A -i yarr=([foo=bar]=123 [lorem=ipsum]=456)'
+[[ $got == "$exp" ]] || err_exit "associative array index containing '=' misparsed in declaration command" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

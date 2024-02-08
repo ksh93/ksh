@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -29,9 +29,7 @@
 #include	"shopt.h"
 #include	"defs.h"
 
-#if !SHOPT_VSH
-NoN(vi)
-#else
+#if SHOPT_VSH
 
 #include	"io.h"
 #include	"history.h"
@@ -184,7 +182,6 @@ static void	getline(Vi_t*,int);
 static int	getrchar(Vi_t*);
 static int	mvcursor(Vi_t*,int);
 static void	pr_string(Vi_t*,const char*);
-static void	putstring(Vi_t*,int, int);
 static void	refresh(Vi_t*,int);
 static void	replace(Vi_t*,int, int);
 static void	restore_v(Vi_t*);
@@ -208,17 +205,14 @@ static int	textmod(Vi_t*,int,int);
 int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 {
 	Edit_t *ed = (Edit_t*)context;
-	int i;			/* general variable */
-	int term_char=0;	/* read() termination character */
+	int i;				/* general variable */
 	Vi_t *vp = ed->e_vi;
 	char prompt[PRSIZE+2];		/* prompt */
 	genchar Physical[2*MAXLINE];	/* physical image */
-	genchar Ubuf[MAXLINE];	/* used for U command */
-	genchar ubuf[MAXLINE];	/* used for u command */
+	genchar Ubuf[MAXLINE];		/* used for U command */
+	genchar ubuf[MAXLINE];		/* used for u command */
 	genchar Window[MAXLINE];	/* window image */
 	int Globals[9];			/* local global variables */
-	int esc_or_hang=0;		/* <ESC> or hangup */
-	char cntl_char=0;		/* TRUE if control character present */
 	if(!vp)
 	{
 		ed->e_vi = vp = sh_newof(0,Vi_t,1,0);
@@ -1660,20 +1654,6 @@ static void pr_string(Vi_t *vp, const char *sp)
 	return;
 }
 
-/*{	PUTSTRING( column, nchars )
- *
- *	Put nchars starting at column of physical into the workspace
- * to be printed.
- *
-}*/
-
-static void putstring(Vi_t *vp,int col, int nchars)
-{
-	while( nchars-- )
-		putchar(physical[col++]);
-	return;
-}
-
 /*{	VI_REDRAW( )
  *
  *	Print the prompt and force a total refresh.
@@ -2673,4 +2653,6 @@ static int getrchar(Vi_t *vp)
 	return c;
 }
 
-#endif /* !SHOPT_VSH */
+#else
+NoN(vi)
+#endif /* SHOPT_VSH */

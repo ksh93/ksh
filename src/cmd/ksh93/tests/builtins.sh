@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1227,9 +1227,9 @@ function test_usage
 # https://bugzilla.redhat.com/1176670
 if	(builtin alarm) 2>/dev/null
 then	got=$( { "$SHELL" -c '
+		typeset -sui i=0
 		builtin alarm
-		alarm -r alarm_handler +.005
-		i=0
+		alarm -r alarm_handler +.02
 		function alarm_handler.alarm
 		{
 			let "(++i) > 20" && exit
@@ -1404,7 +1404,7 @@ exp='ok1ok2ok3ok4ok5ok6ok7ok8ok9ok10ok11ok12end'
 got=$(	readonly v=foo
 	exec 2>/dev/null
 	# All the "special builtins" below should fail, and not exit, so 'print end' is reached.
-	# Ref.: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html
+	# Ref.: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html
 	# Left out are 'command exec /dev/null/nonexistent', where no shell follows the standard,
 	# as well as 'command exit' and 'command return', because, well, obviously.
 	command : </dev/null/no		|| print -n ok1
@@ -1608,6 +1608,12 @@ do	case $bltin in
 		continue ;;
 	fc | hist )
 		((SHOPT_SCRIPTONLY)) && continue ;;
+	esac
+	got=$({ "$bltin" --\?-version; } 2>&1)  # the extra { } are needed for 'redirect'
+	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --\\?-version (got $(printf %q "$got"))"
+	case $bltin in
+	uname | */uname )
+		continue ;;
 	esac
 	got=$({ "$bltin" --version; } 2>&1)  # the extra { } are needed for 'redirect'
 	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --version (got $(printf %q "$got"))"

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -45,8 +45,10 @@
 #include	"edit.h"
 #include	"shlex.h"
 
+#if SHOPT_ESH || SHOPT_VSH
 static char *cursor_up;  /* move cursor up one line */
 static char *erase_eos;  /* erase to end of screen */
+#endif /*  SHOPT_ESH || SHOPT_VSH */
 
 #if SHOPT_MULTIBYTE
 #   define is_cntrl(c)	((c<=STRIP) && iscntrl(c))
@@ -924,7 +926,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
  */
 int ed_getchar(Edit_t *ep,int mode)
 {
-	int n, c;
+	int n = 0, c;
 	char readin[LOOKAHEAD+1];
 	if(!ep->e_lookahead)
 	{

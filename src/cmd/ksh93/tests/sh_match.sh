@@ -3,7 +3,7 @@
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
 #                    Copyright (c) 2012 Roland Mainz                   #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1071,6 +1071,14 @@ fi
 # https://github.com/ksh93/ksh/pull/581
 [[ "[a] b [c] d" =~ ^\[[^]]+\] ]]
 [[ ${.sh.match} == '[a]' ]] || err_exit 'pattern ^\[[^]]+ broken'
+
+# Avoid printing excessive elements for .sh.match
+# https://github.com/ksh93/ksh/issues/308#issuecomment-1033259414
+# https://github.com/ksh93/ksh/pull/709
+exp='.sh.match .sh.match[1] .sh.match[2]'
+got=${ $SHELL -c 'print ${!.sh.match} ${!.sh.match[1]} ${!.sh.match[2]}' }
+[[ $exp == "$got" ]] || err_exit "'print \${!.sh.match}' should not print excessive elements" \
+	"(expected ${ printf %q "$exp" }, got ${ printf %q "$got" })"
 
 # ======
 exit $((Errors<125?Errors:125))

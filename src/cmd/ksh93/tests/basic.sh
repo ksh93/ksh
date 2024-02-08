@@ -457,9 +457,9 @@ s=SECONDS
 set -o pipefail
 for ((i=0; i < 30; i++))
 do	print hello
-	sleep .01
-done |  "$binsleep" .1
-(( (SECONDS-s) < .2 )) || err_exit 'early termination not causing broken pipe'
+	sleep .02
+done |  "$binsleep" .2
+(( (SECONDS-s) < .4 )) || err_exit 'early termination not causing broken pipe'
 
 got=$({ trap 'print trap' 0; print -n | "$bincat"; } & wait "$!")
 [[ $got == trap ]] || err_exit "trap on exit not correctly triggered (expected 'trap', got $(printf %q "$got"))"

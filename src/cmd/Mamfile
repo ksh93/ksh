@@ -6,10 +6,11 @@ note * Mamfiles are processed by mamake (src/cmd/INIT/mamake.c); we added
 note * indentation to improve readability. The language is documented in
 note * src/cmd/INIT/README-mamake.md.
 note *
-make test
-	make install
-		make all
+setv MAMAKE_STRICT
+make test virtual
+	make install virtual
+		make all virtual
 			exec - ${MAMAKE} -r '*' ${MAMAKEARGS}
-		done all virtual
-	done install virtual
-done test virtual
+		done
+	done
+done

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -295,7 +295,7 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 	char*		t;
 	int		p;
 	int		oerrno;
-	Catalog_t*	cp;
+	Catalog_t*	cp = NULL;
 	Message_t*	mp;
 
 	static uint32_t	serial;
@@ -348,7 +348,6 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 #if DEBUG_trace > 1
 sfprintf(sfstderr, "AHA#%d:%s cmd %s cat %s:%s ID %s msg `%s'\n", __LINE__, __FILE__, cmd, cat, error_info.catalog, ast.id, msg);
 #endif
-		cp = 0;
 		goto done;
 	}
 

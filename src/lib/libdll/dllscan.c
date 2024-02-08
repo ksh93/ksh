@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1997-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -103,7 +103,8 @@ dllinfo(void)
 				s++;
 			if (*s)
 			{
-				h = 0;
+				h = NULL;
+				vn = 0;
 				for (;;)
 				{
 					for (d = s; *s && *s != ':' && *s != ','; s++);
@@ -145,6 +146,8 @@ dllinfo(void)
 				}
 				if (v && vn < sizeof(info.envbuf))
 				{
+					if(vn <= 0)
+						abort();
 					memcpy(info.envbuf, v, vn);
 					info.env = info.envbuf;
 				}

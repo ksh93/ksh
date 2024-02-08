@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *          atheik <14833674+atheik@users.noreply.github.com>           *
 *            Johnothan King <johnothanking@protonmail.com>             *
+*               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *                                                                      *
 ***********************************************************************/
 
@@ -1122,11 +1123,11 @@ int	sh_redirect(struct ionod *iop, int flag)
 {
 	Sfoff_t off; 
 	char *fname;
-	int 	fd, iof;
+	int fd = -1, iof;
 	const char *message = e_open;
 	int o_mode;		/* mode flag for open */
 	static char io_op[7];	/* used for -x trace info */
-	int trunc=0, clexec=0, fn, traceon;
+	int trunc=0, clexec=0, fn, traceon=0;
 	int r, indx = sh.topfd, perm= -1;
 	char *tname=0, *after="", *trace = sh.st.trap[SH_DEBUGTRAP];
 	Namval_t *np=0;
@@ -1135,28 +1136,39 @@ int	sh_redirect(struct ionod *iop, int flag)
 		clexec = 1;
 	if(iop)
 		traceon = sh_trace(NULL,0);
-	for(;iop;iop=iop->ionxt)
+	/*
+	 * A command substitution will hang on exit, writing infinite '\0', if,
+	 * within it, standard output (FD 1) is redirected for a built-in command
+	 * that calls sh_subfork(), or redirected permanently using 'exec' or
+	 * 'redirect'. This forking workaround is necessary to avoid that bug.
+	 * For shared-state comsubs, forking is incorrect, so error out then.
+	 * TODO: actually fix the bug and remove this workaround.
+	 * (Note that sh.redir0 is set to 1 in xec.c immediately before processing
+	 * redirections for any built-in command, including 'exec' and 'redirect'.)
+	 */
+	if(sh.subshell && sh.comsub && sh.redir0==1)
 	{
-		iof=iop->iofile;
-		fn = (iof&IOUFD);
-		/*
-		 * A command substitution will hang on exit, writing infinite '\0', if,
-		 * within it, standard output (FD 1) is redirected for a built-in command
-		 * that calls sh_subfork(), or redirected permanently using 'exec' or
-		 * 'redirect'. This forking workaround is necessary to avoid that bug.
-		 * For shared-state comsubs, forking is incorrect, so error out then.
-		 * TODO: actually fix the bug and remove this workaround.
-		 */
-		if(fn==1 && sh.subshell && sh.comsub)
+		struct ionod *i;
+		for(i = iop; i; i = i->ionxt)
 		{
+			if((i->iofile & IOUFD) != 1)
+				continue;
 			if(!sh.subshare)
+			{
 				sh_subfork();
-			else if(flag==1 || flag==2)  /* block stdout perma-redirects: would hang */
+				break;
+			}
+			if(flag==1 || flag==2)
 			{
 				errormsg(SH_DICT,ERROR_exit(1),"cannot redirect stdout inside shared-state comsub");
 				UNREACHABLE();
 			}
 		}
+	}
+	for(; iop; iop = iop->ionxt)
+	{
+		iof = iop->iofile;
+		fn = (iof & IOUFD);
 		if(sh.redir0 && fn==0 && !(iof&IOMOV))
 			sh.redir0 = 2;
 		io_op[0] = '0'+(iof&IOUFD);
@@ -1659,7 +1671,7 @@ static ssize_t tee_write(Sfio_t *iop,const void *buff,size_t n,Sfdisc_t *unused)
  */
 void sh_iosave(int origfd, int oldtop, char *name)
 {
-	int	savefd;
+	int savefd;
 	int flag = (oldtop&(IOSUBSHELL|IOPICKFD));
 	oldtop &= ~(IOSUBSHELL|IOPICKFD);
 	/* see if already saved, only save once */
@@ -1757,7 +1769,7 @@ void	sh_iounsave(void)
  */
 void	sh_iorestore(int last, int jmpval)
 {
-	int 	origfd, savefd, fd;
+	int origfd, savefd, fd;
 	int flag = (last&IOSUBSHELL);
 	last &= ~IOSUBSHELL;
 	for (fd = sh.topfd - 1; fd >= last; fd--)
@@ -2003,7 +2015,7 @@ static ssize_t slowread(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 			sh_timerdel(timeout);
 		timeout=0;
 #if SHOPT_HISTEXPAND
-		if(rsize && *(char*)buff != '\n' && sh.nextprompt==1 && sh_isoption(SH_HISTEXPAND))
+		if(rsize > 0 && *(char*)buff != '\n' && sh.nextprompt==1 && sh_isoption(SH_HISTEXPAND))
 		{
 			int r;
 			((char*)buff)[rsize] = '\0';
@@ -2244,7 +2256,7 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 #ifdef DEBUG
 	if(flag==SF_READ || flag==SF_WRITE)
 	{
-		char *z = fmtbase((intmax_t)sh.current_pid,0,0);
+		char *z = fmtint(sh.current_pid,0);
 		write(ERRIO,z,strlen(z));
 		write(ERRIO,": ",2);
 		write(ERRIO,"attempt to ",11);

@@ -2,6 +2,117 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-02-08:
+
+- Fixed an init-time crash that may occur if standard error is on a terminal,
+  but the path to its tty device can't be found (e.g., in a chroot situation).
+
+2024-02-06:
+
+- Fixed a regression introduced on 2023-03-04 that caused ksh to lock up
+  after using the Arch Linux arch-chroot script.
+
+2024-02-03:
+
+- Fixed: the arithmetic representation of negative integers with a base other
+  than 10 is no longer incorrectly treated as unsigned long. For example,
+	typeset -i16 n=-12; echo $n
+  now correctly outputs '-16#c' and no longer ouputs '16#fffffffffffffff4'.
+
+2024-01-27:
+
+- Fixed: tilde expansion discipline functions (see 2021-03-16) were not
+  reinitialised when executing a ksh script without a #! path line.
+
+2024-01-23:
+
+- Fixed a rare crash or rare incorrect behaviour in .sh.tilde.{get,set}
+  discipline functions for ~ expansion (see 2021-03-16 below).
+
+- Fixed a bug that caused listing the .sh.match variable with ${!.sh.match} to
+  show spurious elements.
+
+2024-01-22:
+
+- Fixed a bug in the loop invariants optimizer (SHOPT_OPTIMIZE) that caused
+  expansions of name references to be incorrectly treated as invariant so they
+  yielded the wrong values. Fix backported from from ksh 93v- 2013-02-13.
+
+- Fixed a buffer overflow that could occur when using tab completion
+  with multibyte filenames.
+
+2024-01-21:
+
+- [v1.1] New feature added: SRANDOM is a secure random number generator.
+  It uses the native OS implementation of arc4random(3) or, absent that, an
+  integrated OpenBSD-based version that uses the ChaCha20 cipher. An upper
+  bound can be set by assigning its value to SRANDOM; subsequent numbers will
+  be uniformly distributed between 0 and the value of the upper bound minus
+  one, in a way that avoids "modulo bias". Assigning 0 restores default mode.
+
+- A bug was fixed that caused both the 'set' and 'get'/'getn' discipline
+  functions of a variable to be triggered when performing an assignment in
+  an arithmetic expression; only the 'set' discipline is now triggered when
+  assigning (as was always the documented behaviour). This applies to the
+  shell's internal disciplines as well. For example, $RANDOM is no longer
+  spuriously read from while seeding it via an arithmetic expression.
+
+- Fixed: assigning to LINENO, RANDOM, or _ via an arithmetic expression gave
+  undefined results on systems where sizeof(long double)!=sizeof(double).
+
+2024-01-16:
+
+- Fixed a parsing bug in array subscripts containing '=' in combination with
+  a declaration command (such as 'typeset' or 'export'). For instance,
+  'typeset -A arr; typeset -i arr[foo=bar]=123' now works correctly.
+
+2024-01-15:
+
+- Fixed a bug, introduced in ksh93q+ 2005-05-22, that stopped an append
+  assignment from working together with a declaration command. For example,
+  'typeset var+=value' or 'export var+=value' now again work as expected.
+
+2024-01-14:
+
+- Fixed a regression introduced on 2022-11-01 that caused ksh to enter
+  an infinite loop after using the up arrow in emacs mode with an empty
+  history file.
+
+- Fixed a bug in 'read -s': in a script, the first invocation of that
+  command, with the emacs or vi shell option on, did not allow the user to
+  navigate through the shell history file.
+
+2024-01-11:
+
+- Fixed ancient incorrect behaviour in the 'kill' built-in: it sent SIGCONT
+  to the given process along with every other non-SIGCONT signal issued,
+  causing a stopped process to be incorrectly resumed upon sending it any
+  signal and causing any SIGCONT trap handler to be incorrectly triggered.
+
+- Fixed: the 'kill' built-in was not able to terminate an interactive shell
+  by sending a signal such as SIGHUP to its own shell (e.g. kill -s HUP $$).
+
+2024-01-05:
+
+- Fixed a potential crash on pressing Ctrl+C on the command line while
+  history expansion (the -H or histexpand option) is active.
+
+2023-12-28:
+
+- Fixed intermittent incorrect behaviour (a race condition), introduced on
+  2023-09-15, that occurred on some systems when running an external command
+  with a redirection from a command substitution.
+
+- Fixed an init-time crash on failure to trim the shell command history file
+  due to a non-writable parent directory; ksh now prints a warning instead.
+
+2023-12-25:
+
+- Fixed a regression in the behavior of 'exit' in a trap action, introduced
+  on 2020-09-09. The default exit status, used when no argument is given to
+  'exit', is now once again the exit status of the last command executed
+  *before* the trap action, as expected.
+
 2023-09-16:
 
 - The 'kill' built-in command was meant to refuse to issue SIGSTOP to the
@@ -2693,7 +2804,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   specifies and as all other POSIX shells do. To redirect standard output
   for reading and writing, you now need '1<>'.
   Ref.:	https://github.com/att/ast/issues/75
-	http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
+	https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
 
 2020-05-12:
 

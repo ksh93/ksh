@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -293,14 +293,6 @@ extern int		remove(const char*);
 
 #if !defined(rename)
 extern int		rename(const char*, const char*);
-#endif
-
-#if !defined(strchr) && !defined(_lib_strchr) && defined(_lib_index)
-#define strchr(s,c)	index(s,c)
-#endif
-
-#if !defined(strrchr) && !defined(_lib_strrchr) && defined(_lib_rindex)
-#define strrchr(s,c)	rindex(s,c)
 #endif
 
 /* and now introducing prototypes botched by the standard(s) */

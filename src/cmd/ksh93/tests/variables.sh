@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -123,6 +123,12 @@ got=$(RANDOM=1; print $RANDOM; /dev/null/x 2>/dev/null; print $RANDOM)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 got=$(RANDOM=1; print $RANDOM; :& print $RANDOM)
 [[ $got == "$exp" ]] || err_exit "Background job influences reproducible $RANDOM sequence" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Seeding with an arithmetic expression should be identical to seeding using a shell assignment
+RANDOM=12345; exp="$RANDOM $RANDOM $RANDOM $RANDOM"
+let "RANDOM = 12345"; got="$RANDOM $RANDOM $RANDOM $RANDOM"
+[[ $got == "$exp" ]] || err_exit "Seeding RANDOM using arithmetic expression fails" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # SECONDS
@@ -1117,7 +1123,7 @@ $SHELL -c '
 	PS2=$PS1 PS3=$PS1 PS4=$PS1 OPTARG=$PS1 IFS=$PS1 FPATH=$PS1 FIGNORE=$PS1
 	for var
 	do	case $var in
-		RANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats | .sh.match)
+		RANDOM | SRANDOM | HISTCMD | _ | SECONDS | LINENO | JOBMAX | .sh.stats | .sh.match)
 			# these are expected to fail below as their values change; just test against crashing
 			typeset -u "$var"
 			typeset -l "$var"
@@ -1608,6 +1614,51 @@ got=$(set +x; { "$SHELL" -c '
 [[ e=$? -eq 0 && $got == "$exp" ]] || err_exit '$_ corruption' \
 	"(expected status 0, $(printf %q "$exp");" \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
+got=${ typeset -p SRANDOM; }
+exp='typeset -u -i SRANDOM='
+[[ $got == "$exp"* ]] || err_exit "SRANDOM is the wrong type" \
+	"(expected match of $(printf %q "$exp")*, got $(printf %q "$got"))"
+
+case ${SRANDOM+s},${SRANDOM-} in
+, )	err_exit "SRANDOM not set" ;;
+s, | s,*[!0123456789]* )
+	err_exit "SRANDOM has an invalid value"  ;;
+s,* )	case $SRANDOM,$SRANDOM,$SRANDOM,$SRANDOM in
+	"$SRANDOM,$SRANDOM,$SRANDOM,$SRANDOM" )
+		err_exit "SRANDOM not working" ;;
+	esac ;;
+esac
+
+typeset -ui i=0 got=0 bound=100
+SRANDOM=bound
+for ((i=0; i<bound; i++))
+do	if	let "got = SRANDOM, got >= bound"
+	then	err_exit "SRANDOM upper bound not working ($got >= $bound)"
+		break
+	fi
+done
+env "SRANDOM=$bound" "$SHELL" -c 'typeset -i i
+	for ((i=0; i<100; i++))
+	do	print $SRANDOM
+	done' |
+while	read i
+do	((got = i>=bound)) && break
+done
+((got)) || err_exit "SRANDOM upper bound inherited from environment"
+# SRANDOM upper bound leaks out of virtual subshells
+for i in 0 10000; do
+	(SRANDOM=$i)
+	for ((i=0; i<bound; i++))
+	do	if	let "got = SRANDOM, got >= bound"
+		then	err_exit "SRANDOM upper bound leaks out of virtual subshells ($got >= $bound)"
+			break
+		fi
+	done
+done
+unset i got bound
+SRANDOM=0
 
 # ======
 exit $((Errors<125?Errors:125))

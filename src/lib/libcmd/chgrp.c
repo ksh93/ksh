@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -217,8 +217,8 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	Dt_t*		map = 0;
 	int		logical = 1;
 	int		flags;
-	int		uid;
-	int		gid;
+	int		uid = -1;
+	int		gid = -1;
 	char*		op;
 	char*		usage;
 	char*		t;

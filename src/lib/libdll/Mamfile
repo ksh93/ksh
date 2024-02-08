@@ -9,219 +9,114 @@ note *
 setv MAMAKE_STRICT
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
-setv PACKAGEROOT ../../../../..
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
 setv CC cc
 setv mam_cc_FLAGS ${mam_cc_DLL}
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
-setv COTEMP $$
 setv IFFEFLAGS
 setv LDFLAGS
-make install
-	make dll
+make install virtual
+	make dll virtual
 		make dll.req
 			prev ${INSTALLROOT}/bin/mkreq
 			exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} : ${LDFLAGS} : dll dl dld ast
-		done dll.req generated
-		make libdll.a archive
+		done
+		make libdll.a
 			prev dll.req
 			make dlfcn.o
 				make dlfcn.c
-					prev dll.h implicit dontcare virtual
-					prev xcoff.h implicit dontcare virtual
-					prev dl.h implicit dontcare virtual
-					make ${PACKAGE_ast_INCLUDE}/error.h implicit
-						make ${PACKAGE_ast_INCLUDE}/option.h implicit
-							make ${PACKAGE_ast_INCLUDE}/ast.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ast_api.h implicit
-								make ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
-									make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-										make ${PACKAGE_ast_INCLUDE}/endian.h implicit
-											make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
-												prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-											done ${PACKAGE_ast_INCLUDE}/bytesex.h
-										done ${PACKAGE_ast_INCLUDE}/endian.h
-									done ${PACKAGE_ast_INCLUDE}/ast_common.h
-									make ${PACKAGE_ast_INCLUDE}/ast_std.h implicit
-										make ${PACKAGE_ast_INCLUDE}/regex.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/ast_api.h
-											make ${PACKAGE_ast_INCLUDE}/ast_wchar.h implicit
-												make ${PACKAGE_ast_INCLUDE}/wctype.h implicit
-													make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
-														prev ${PACKAGE_ast_INCLUDE}/endian.h
-														make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-															prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
-														done ${PACKAGE_ast_INCLUDE}/wchar.h
-													done ${PACKAGE_ast_INCLUDE}/ast_wctype.h
-												done ${PACKAGE_ast_INCLUDE}/wctype.h
-												make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
-													make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
-														prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-														prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-													done ${PACKAGE_ast_INCLUDE}/ast_stdio.h
-												done ${PACKAGE_ast_INCLUDE}/stdio.h
-												prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-											done ${PACKAGE_ast_INCLUDE}/ast_wchar.h
-											prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-										done ${PACKAGE_ast_INCLUDE}/regex.h
-										make ${PACKAGE_ast_INCLUDE}/getopt.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h implicit
-										done ${PACKAGE_ast_INCLUDE}/getopt.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_map.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_botch.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/ast_limits.h implicit
-										make ${PACKAGE_ast_INCLUDE}/ast_fcntl.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/ast_fs.h implicit
-										done ${PACKAGE_ast_INCLUDE}/ast_fcntl.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_getopt.h
-										make ${PACKAGE_ast_INCLUDE}/ast_sys.h implicit
-											prev ${PACKAGE_ast_INCLUDE}/getopt.h
-											prev ${PACKAGE_ast_INCLUDE}/endian.h
-											prev ${PACKAGE_ast_INCLUDE}/endian.h
-										done ${PACKAGE_ast_INCLUDE}/ast_sys.h
-										prev ${PACKAGE_ast_INCLUDE}/ast_lib.h implicit
-										prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-									done ${PACKAGE_ast_INCLUDE}/ast_std.h
-								done ${PACKAGE_ast_INCLUDE}/vmalloc.h
-								make ${PACKAGE_ast_INCLUDE}/sfio.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/sfio_s.h
-									prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-									prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-								done ${PACKAGE_ast_INCLUDE}/sfio.h
-								prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-							done ${PACKAGE_ast_INCLUDE}/ast.h
-						done ${PACKAGE_ast_INCLUDE}/option.h
-						prev ${PACKAGE_ast_INCLUDE}/ast.h
-					done ${PACKAGE_ast_INCLUDE}/error.h
 					make dlldefs.h implicit
 						make FEATURE/dll
 							prev features/dll
 							bind -ldl dontcare
 							bind -last
 							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdl} ${mam_libast} : run features/dll
-						done FEATURE/dll generated
-						exec - ${STDCMP} -s FEATURE/dll dlldefs.h || { ${STDRM} -f dlldefs.h; ${STDCP} FEATURE/dll dlldefs.h; }
-					done dlldefs.h generated
-					prev ${PACKAGE_ast_INCLUDE}/ast.h
+						done
+						exec - ${STDCP} -f FEATURE/dll dlldefs.h
+					done
 				done dlfcn.c
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dlfcn.c
-			done dlfcn.o generated
+			done dlfcn.o
 			make dllopen.o
 				make dllopen.c
 					make dlllib.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/error.h
 						prev dlldefs.h
-						prev ${PACKAGE_ast_INCLUDE}/ast.h
-					done dlllib.h
-				done dllopen.c
+					done
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllopen.c
-			done dllopen.o generated
+			done
 			make dllfind.o
 				make dllfind.c
-					prev ${PACKAGE_ast_INCLUDE}/error.h
 					prev dlldefs.h
-					prev ${PACKAGE_ast_INCLUDE}/ast.h
-				done dllfind.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllfind.c
-			done dllfind.o generated
+			done
 			make dllplug.o
 				make dllplug.c
 					prev dlllib.h
-				done dllplug.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllplug.c
-			done dllplug.o generated
+			done
 			make dll_lib.o
 				make dll_lib.c
 					prev dlllib.h
-				done dll_lib.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dll_lib.c
-			done dll_lib.o generated
+			done
 			make dllnext.o
 				make dllnext.c
-					prev rld_interface.h implicit dontcare virtual
 					prev dlldefs.h
-					prev ${PACKAGE_ast_INCLUDE}/ast.h
-				done dllnext.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllnext.c
-			done dllnext.o generated
+			done
 			make dlllook.o
 				make dlllook.c
 					prev dlldefs.h
-					prev ${PACKAGE_ast_INCLUDE}/error.h
-					prev ${PACKAGE_ast_INCLUDE}/ast.h
-				done dlllook.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dlllook.c
-			done dlllook.o generated
+			done
 			make dllscan.o
 				make dllscan.c
 					prev dlldefs.h
-					prev ${PACKAGE_ast_INCLUDE}/vmalloc.h
-					make ${PACKAGE_ast_INCLUDE}/fts.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast_mode.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast_fs.h
-						prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-					done ${PACKAGE_ast_INCLUDE}/fts.h
-					prev ${PACKAGE_ast_INCLUDE}/error.h
-					prev ${PACKAGE_ast_INCLUDE}/endian.h
-					make ${PACKAGE_ast_INCLUDE}/cdt.h implicit
-						prev ${PACKAGE_ast_INCLUDE}/ast_common.h
-						prev ${PACKAGE_ast_INCLUDE}/ast_std.h
-					done ${PACKAGE_ast_INCLUDE}/cdt.h
-					prev ${PACKAGE_ast_INCLUDE}/ast.h
-				done dllscan.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllscan.c
-			done dllscan.o generated
+			done
 			make dllcheck.o
 				make dllcheck.c
 					prev dlllib.h
-				done dllcheck.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllcheck.c
-			done dllcheck.o generated
+			done
 			make dllerror.o
 				make dllerror.c
 					prev dlllib.h
-				done dllerror.c
+				done
 				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllerror.c
-			done dllerror.o generated
+			done
 			exec - ${AR} rc libdll.a dlfcn.o dllopen.o dllfind.o dllplug.o dll_lib.o dllnext.o dlllook.o dllscan.o dllcheck.o dllerror.o
 			exec - (ranlib libdll.a) >/dev/null 2>&1 || true
-		done libdll.a generated
-	done dll virtual
+		done libdll.a
+	done dll
 	prev libdll.a
 	make ${INSTALLROOT}/lib
-		exec - if test ! -d ${INSTALLROOT}/lib
-		exec - then mkdir -p ${INSTALLROOT}/lib
-		exec - fi
-	done ${INSTALLROOT}/lib generated
-	make ${INSTALLROOT}/lib/libdll.a archive
-		prev ${INSTALLROOT}/lib
+		exec - mkdir -p ${INSTALLROOT}/lib
+	done
+	make ${INSTALLROOT}/lib/libdll.a
 		prev libdll.a
-		exec - ${STDCMP} 2>/dev/null -s libdll.a ${INSTALLROOT}/lib/libdll.a || { ${STDMV} ${INSTALLROOT}/lib/libdll.a ${INSTALLROOT}/lib/libdll.a.old 2>/dev/null || true; ${STDCP} libdll.a ${INSTALLROOT}/lib/libdll.a ;}
+		exec - ${STDCP} -f libdll.a ${INSTALLROOT}/lib/libdll.a
 		exec - (ranlib ${INSTALLROOT}/lib/libdll.a) >/dev/null 2>&1 || true
-	done ${INSTALLROOT}/lib/libdll.a generated
+	done
 	make ${INSTALLROOT}/lib/lib
-		exec - if test ! -d ${INSTALLROOT}/lib/lib
-		exec - then mkdir -p ${INSTALLROOT}/lib/lib
-		exec - fi
-	done ${INSTALLROOT}/lib/lib generated
+		exec - mkdir -p ${INSTALLROOT}/lib/lib
+	done
 	make ${INSTALLROOT}/lib/lib/dll
-		prev ${INSTALLROOT}/lib/lib
 		prev dll.req
-		exec - ${STDCMP} 2>/dev/null -s dll.req ${INSTALLROOT}/lib/lib/dll || { ${STDMV} ${INSTALLROOT}/lib/lib/dll ${INSTALLROOT}/lib/lib/dll.old 2>/dev/null || true; ${STDCP} dll.req ${INSTALLROOT}/lib/lib/dll ;}
-	done ${INSTALLROOT}/lib/lib/dll generated
-	make ${PACKAGE_ast_INCLUDE}
-		exec - if test ! -d ${PACKAGE_ast_INCLUDE}
-		exec - then mkdir -p ${PACKAGE_ast_INCLUDE}
-		exec - fi
-	done ${PACKAGE_ast_INCLUDE} generated
+		exec - ${STDCP} -f dll.req ${INSTALLROOT}/lib/lib/dll
+	done
 	make ${PACKAGE_ast_INCLUDE}/dlldefs.h
-		prev ${PACKAGE_ast_INCLUDE}
 		prev dlldefs.h
-		exec - if ! ${STDCMP} -s dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
-		exec - then ${STDCP} dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
-		exec - fi
-	done ${PACKAGE_ast_INCLUDE}/dlldefs.h generated
-done install virtual
-make test
-done test dontcare virtual
+		exec - ${STDCP} -f dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
+	done
+done install
+make test dontcare virtual
+done test

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -371,9 +371,15 @@ e=$?
 [[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
 (( SECONDS > .35 )) && err_exit "took $SECONDS seconds, expected around .2"
 
-trap '' SIGBUS
-[[ $($SHELL -c 'trap date SIGBUS; trap -p SIGBUS') ]] && err_exit 'SIGBUS should not have a trap'
-trap -- - SIGBUS
+# The test for SIGBUS trap handling below is incompatible with ASan because ASan
+# implements its own SIGBUS handler independently of ksh.
+if ! [[ -v ASAN_OPTIONS || -v TSAN_OPTIONS || -v MSAN_OPTIONS || -v LSAN_OPTIONS ]]; then
+	trap '' SIGBUS
+	got=$("$SHELL" -c 'trap date SIGBUS; trap -p SIGBUS')
+	[[ "$got" ]] && err_exit 'SIGBUS should not have a trap' \
+		"(got $(printf %q "$got"))"
+	trap -- - SIGBUS
+fi
 
 {
     x=$(
@@ -587,6 +593,18 @@ float s=SECONDS
 (trap - INT; exec sleep 2) & sleep .5; kill -sINT $!
 wait $!
 (( (SECONDS-s) < 1.8)) && err_exit "'trap - INT' causing trap to not be ignored"
+
+# ======
+# Ancient SIGCONT nonsense present as early as ksh88:
+# the 'kill' built-in sent SIGCONT along with every non-SIGCONT signal issued!
+for sig in TERM HUP INT USR1
+do	for cmd in kill $(whence -p kill)
+	do	got=$("$SHELL" -c "trap 'echo \"SIGCONT (!!)\"' CONT; trap 'echo SIG$sig' $sig; $cmd -s $sig \$\$")
+		[[ e=$? -eq 0 && $got == "SIG$sig" ]] || err_exit "CONT+$sig trap, SIG$sig issued using '$cmd':" \
+			"expected status 0, SIG$sig;" \
+			"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+	done
+done
 
 # ======
 exit $((Errors<125?Errors:125))

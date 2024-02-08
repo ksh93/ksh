@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -17,7 +17,11 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
+#if __clang__
 #pragma clang diagnostic ignored "-Wparentheses"
+#elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#pragma GCC diagnostic ignored "-Wparentheses"
+#endif
 /*
  * generate <lc.h> implementation tables from lc.tab
  * this must make it through vanilla cc with no -last
@@ -231,12 +235,12 @@ main(int argc, char** argv)
 	char**			ve;
 	Attribute_t*		ap;
 	Attribute_list_t*	al;
-	Attribute_list_t*	az;
+	Attribute_list_t*	az = NULL;
 	Charset_t*		cp;
 	Territory_t*		tp;
 	Language_t*		lp;
 	Language_list_t*	ll;
-	Language_list_t*	lz;
+	Language_list_t*	lz = NULL;
 	Map_t*			mp;
 	char*			b;
 	char*			f;

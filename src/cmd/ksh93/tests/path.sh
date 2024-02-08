@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -265,8 +265,11 @@ exp=$PWD/rm
 command -p mkdir bin
 print 'print ok' > bin/tst
 command -p chmod +x bin/tst
-if	[[ $(PATH=$PWD/bin tst 2>/dev/null) != ok ]]
-then	err_exit '(PATH=$PWD/bin foo) does not find $PWD/bin/foo'
+exp=ok
+got=$(PATH=$PWD/bin tst 2>&1)
+if	[[ $exp != "$got" ]]
+then	err_exit '"PATH=$PWD/bin tst" does not run $PWD/bin/tst' \
+	"(expected $exp, got $(printf %q "$got"))"
 fi
 cd /
 if	whence ls > /dev/null
@@ -534,7 +537,8 @@ trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; k
 	sleep 5
 	# if it's slow, display a counter
 	for	((i=35; i>0; i--))
-	do	printf '\t%s[%d]: command -x: %2ds...\r' "$Command" LINENO i
+	do	kill -s 0 "$$" 2>/dev/null || exit  # parent shell exited
+		printf '\t%s[%d]: command -x: %2ds...\r' "$Command" LINENO i
 		sleep 1
 	done
 	# if this subshell is not killed yet, give up and kill the test by triggering the TERM trap in parent

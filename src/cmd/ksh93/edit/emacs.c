@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -62,9 +62,7 @@ One line screen editor for any program
 #include	"shopt.h"
 #include	<ast.h>
 
-#if !SHOPT_ESH
-NoN(emacs)
-#else
+#if SHOPT_ESH
 
 #include	<releaseflags.h>
 #include	"defs.h"
@@ -650,9 +648,7 @@ update:
 			{
 				hline = hismin+1;
 				beep();
-#ifndef ESH_NFIRST
 				continue;
-#endif
 			}
 			goto common;
 
@@ -1295,7 +1291,7 @@ static void xcommands(Emacs_t *ep,int count)
 			}
 			return;
 
-#	define itos(i)	fmtbase((intmax_t)(i),0,0)	/* want signed conversion */
+#	define itos(i)	fmtint(i,0)	/* want signed conversion */
 
 		case cntl('H'):		/* ^X^H show history info */
 			{
@@ -1757,4 +1753,7 @@ static char blankline(Emacs_t *ep, genchar *out)
 	}
 	return 1;
 }
-#endif /* !SHOPT_ESH */
+
+#else
+NoN(emacs)
+#endif /* SHOPT_ESH */

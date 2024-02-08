@@ -13,711 +13,303 @@ setv CC cc
 setv mam_cc_FLAGS
 setv CCFLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
-setv COTEMP $$
 setv LDFLAGS
-make install
+note *
+note * initialization for the build system
+note *
+make install virtual
 	make iffe
 		prev iffe.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : iffe contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n iffe.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 225 in
-		exec - 0) ${STDCP} iffe.sh iffe
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < iffe.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} iffe.sh
-		exec - } > iffe
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - iffe.sh > iffe <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w iffe -a -x iffe || ${STDCHMOD} u+w,+x iffe
-	done iffe generated
+		exec - ${STDCP} iffe.sh iffe && ${STDCHMOD} u+w,+x iffe
+	done
 	make mktest
 		prev mktest.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : mktest contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n mktest.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) ${STDCP} mktest.sh mktest
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < mktest.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} mktest.sh
-		exec - } > mktest
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - mktest.sh > mktest <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w mktest -a -x mktest || ${STDCHMOD} u+w,+x mktest
-	done mktest generated
-	make package
-		prev package.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : package contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n package.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) ${STDCP} package.sh package
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < package.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} package.sh
-		exec - } > package
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - package.sh > package <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w package -a -x package || ${STDCHMOD} u+w,+x package
-	done package generated
+		exec - ${STDCP} mktest.sh mktest && ${STDCHMOD} u+w,+x mktest
+	done
 	make regress
 		prev regress.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : regress contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n regress.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) ${STDCP} regress.sh regress
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < regress.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} regress.sh
-		exec - } > regress
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - regress.sh > regress <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w regress -a -x regress || ${STDCHMOD} u+w,+x regress
-	done regress generated
+		exec - ${STDCP} regress.sh regress && ${STDCHMOD} u+w,+x regress
+	done
 	make crossexec
 		prev crossexec.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : crossexec contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n crossexec.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 184 in
-		exec - 0) ${STDCP} crossexec.sh crossexec
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < crossexec.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} crossexec.sh
-		exec - } > crossexec
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - crossexec.sh > crossexec <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w crossexec -a -x crossexec || ${STDCHMOD} u+w,+x crossexec
-	done crossexec generated
-	make mamake
-		make mamake.o
-			make mamake.c
-				prev shlib-compat.h implicit dontcare virtual
-				prev ast.h implicit dontcare virtual
-			done mamake.c
-			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -c mamake.c
-		done mamake.o generated
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -o mamake mamake.o
-	done mamake generated
+		exec - ${STDCP} crossexec.sh crossexec && ${STDCHMOD} u+w,+x crossexec
+	done
 	make mkreq
 		prev mkreq.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : mkreq contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n mkreq.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 0 in
-		exec - 0) ${STDCP} mkreq.sh mkreq
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < mkreq.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} - mkreq.sh <<'!'
-		exec -
-		exec - !
-		exec - } > mkreq
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - mkreq.sh > mkreq <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec -
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w mkreq -a -x mkreq || ${STDCHMOD} u+w,+x mkreq
-	done mkreq generated
+		exec - ${STDCP} mkreq.sh mkreq && ${STDCHMOD} u+w,+x mkreq
+	done
+	make mkreq-maplib
+		prev mkreq-maplib.sh
+		exec - ${STDCP} mkreq-maplib.sh mkreq-maplib && ${STDCHMOD} u+w,+x mkreq-maplib
+	done
 	make mprobe
 		prev mprobe.sh
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : mprobe contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n mprobe.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 0 in
-		exec - 0) ${STDCP} mprobe.sh mprobe
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < mprobe.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} - mprobe.sh <<'!'
-		exec -
-		exec - !
-		exec - } > mprobe
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - mprobe.sh > mprobe <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec -
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w mprobe -a -x mprobe || ${STDCHMOD} u+w,+x mprobe
-	done mprobe generated
+		exec - ${STDCP} mprobe.sh mprobe && ${STDCHMOD} u+w,+x mprobe
+	done
 	make probe
 		make probe.sh
 			prev C+probe
 			prev make.probe
 			exec - ${STDCAT} C+probe make.probe > probe.sh
-		done probe.sh generated
-		exec - case static,port:$OPTIND:$RANDOM in
-		exec - ?*:*:*|*::*|*:*:$RANDOM)
-		exec - ;;
-		exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-		exec - then if grep '### .*archaic.* ###' >/dev/null
-		exec - then : probe contains archaic constructs :
-		exec - else ENV= LC_ALL=C $SHELL -n probe.sh
-		exec - fi
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case '${mam_cc_SHELLMAGIC}' in
-		exec - "") case 0 in
-		exec - 0) ${STDCP} probe.sh probe
-		exec - ;;
-		exec - *) {
-		exec - i=`(read x; echo $x) < probe.sh`
-		exec - case $i in
-		exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-		exec - esac
-		exec - ${STDCAT} - probe.sh <<'!'
-		exec -
-		exec - !
-		exec - } > probe
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - *) ${STDCAT} - probe.sh > probe <<'!'
-		exec - ${mam_cc_SHELLMAGIC}
-		exec -
-		exec - !
-		exec - ;;
-		exec - esac
-		exec - test -w probe -a -x probe || ${STDCHMOD} u+w,+x probe
-	done probe generated
+		done
+		exec - ${STDCP} probe.sh probe && ${STDCHMOD} u+w,+x probe
+	done
 	make ${INSTALLROOT}/bin
-		exec - if test ! -d ${INSTALLROOT}/bin
-		exec - then mkdir -p ${INSTALLROOT}/bin
-		exec - fi
-	done ${INSTALLROOT}/bin generated
+		exec - mkdir -p ${INSTALLROOT}/bin
+	done
 	make ${INSTALLROOT}/bin/iffe
 		prev iffe
-		exec - ${STDCMP} 2>/dev/null -s iffe ${INSTALLROOT}/bin/iffe || { ${STDMV} ${INSTALLROOT}/bin/iffe ${INSTALLROOT}/bin/iffe.old 2>/dev/null || true; ${STDCP} iffe ${INSTALLROOT}/bin/iffe ;}
-	done ${INSTALLROOT}/bin/iffe generated
+		exec - ${STDCP} -f iffe ${INSTALLROOT}/bin/iffe
+	done
 	make ${INSTALLROOT}/bin/mkreq
 		prev mkreq
-		exec - ${STDCMP} 2>/dev/null -s mkreq ${INSTALLROOT}/bin/mkreq || { ${STDMV} ${INSTALLROOT}/bin/mkreq ${INSTALLROOT}/bin/mkreq.old 2>/dev/null || true; ${STDCP} mkreq ${INSTALLROOT}/bin/mkreq ;}
-	done ${INSTALLROOT}/bin/mkreq generated
+		exec - ${STDCP} -f mkreq ${INSTALLROOT}/bin/mkreq
+	done
 	make ${INSTALLROOT}/bin/mktest
 		prev mktest
-		exec - ${STDCMP} 2>/dev/null -s mktest ${INSTALLROOT}/bin/mktest || { ${STDMV} ${INSTALLROOT}/bin/mktest ${INSTALLROOT}/bin/mktest.old 2>/dev/null || true; ${STDCP} mktest ${INSTALLROOT}/bin/mktest ;}
-	done ${INSTALLROOT}/bin/mktest generated
-	make ${INSTALLROOT}/bin/package
-		prev package
-		exec - ${STDCMP} 2>/dev/null -s package ${INSTALLROOT}/bin/package || { ${STDMV} ${INSTALLROOT}/bin/package ${INSTALLROOT}/bin/package.old 2>/dev/null || true; ${STDCP} package ${INSTALLROOT}/bin/package ;}
-	done ${INSTALLROOT}/bin/package generated
+		exec - ${STDCP} -f mktest ${INSTALLROOT}/bin/mktest
+	done
 	make ${INSTALLROOT}/bin/regress
 		prev regress
-		exec - ${STDCMP} 2>/dev/null -s regress ${INSTALLROOT}/bin/regress || { ${STDMV} ${INSTALLROOT}/bin/regress ${INSTALLROOT}/bin/regress.old 2>/dev/null || true; ${STDCP} regress ${INSTALLROOT}/bin/regress ;}
-	done ${INSTALLROOT}/bin/regress generated
+		exec - ${STDCP} -f regress ${INSTALLROOT}/bin/regress
+	done
 	make ${PACKAGEROOT}/bin
-		exec - if test ! -d ${PACKAGEROOT}/bin
-		exec - then mkdir -p ${PACKAGEROOT}/bin
-		exec - fi
-	done ${PACKAGEROOT}/bin generated
-	make ${PACKAGEROOT}/bin/mamprobe
-		make mamprobe
-			prev mamprobe.sh
-			exec - case static,port:$OPTIND:$RANDOM in
-			exec - ?*:*:*|*::*|*:*:$RANDOM)
-			exec - ;;
-			exec - *) if ENV= LC_ALL=C x= $SHELL -nc '[[ a || b ]] && : ${list[level]}  !(pattern)' 2>/dev/null
-			exec - then if grep '### .*archaic.* ###' >/dev/null
-			exec - then : mamprobe contains archaic constructs :
-			exec - else ENV= LC_ALL=C $SHELL -n mamprobe.sh
-			exec - fi
-			exec - fi
-			exec - ;;
-			exec - esac
-			exec - case '${mam_cc_SHELLMAGIC}' in
-			exec - "") case 0 in
-			exec - 0) ${STDCP} mamprobe.sh mamprobe
-			exec - ;;
-			exec - *) {
-			exec - i=`(read x; echo $x) < mamprobe.sh`
-			exec - case $i in
-			exec - '#!'*|*'||'*|':'*|'":"'*|"':'"*) echo "$i" ;;
-			exec - esac
-			exec - ${STDCAT} - mamprobe.sh <<'!'
-			exec -
-			exec - !
-			exec - } > mamprobe
-			exec - ;;
-			exec - esac
-			exec - ;;
-			exec - *) ${STDCAT} - mamprobe.sh > mamprobe <<'!'
-			exec - ${mam_cc_SHELLMAGIC}
-			exec -
-			exec - !
-			exec - ;;
-			exec - esac
-			exec - test -w mamprobe -a -x mamprobe || ${STDCHMOD} u+w,+x mamprobe
-		done mamprobe generated
-		exec - ${STDCMP} 2>/dev/null -s mamprobe ${PACKAGEROOT}/bin/mamprobe || { ${STDMV} ${PACKAGEROOT}/bin/mamprobe ${PACKAGEROOT}/bin/mamprobe.old 2>/dev/null || true; ${STDCP} mamprobe ${PACKAGEROOT}/bin/mamprobe ;}
-	done ${PACKAGEROOT}/bin/mamprobe generated
-	make ${PACKAGEROOT}/bin/package
-		prev package
-		exec - ${STDCMP} 2>/dev/null -s package ${PACKAGEROOT}/bin/package || { ${STDMV} ${PACKAGEROOT}/bin/package ${PACKAGEROOT}/bin/package.old 2>/dev/null || true; ${STDCP} package ${PACKAGEROOT}/bin/package ;}
-	done ${PACKAGEROOT}/bin/package generated
+		exec - mkdir -p ${PACKAGEROOT}/bin
+	done
 	make ${INSTALLROOT}/bin/crossexec
 		prev crossexec
-		exec - ${STDCMP} 2>/dev/null -s crossexec ${INSTALLROOT}/bin/crossexec || { ${STDMV} ${INSTALLROOT}/bin/crossexec ${INSTALLROOT}/bin/crossexec.old 2>/dev/null || true; ${STDCP} crossexec ${INSTALLROOT}/bin/crossexec ;}
-	done ${INSTALLROOT}/bin/crossexec generated
-	make ${INSTALLROOT}/bin/mamake
-		prev mamake
-		exec - ${STDCMP} 2>/dev/null -s mamake ${INSTALLROOT}/bin/mamake || { ${STDMV} ${INSTALLROOT}/bin/mamake ${INSTALLROOT}/bin/mamake.old 2>/dev/null || true; ${STDCP} mamake ${INSTALLROOT}/bin/mamake ;}
-	done ${INSTALLROOT}/bin/mamake generated
-	make __proto_stub
+		exec - ${STDCP} -f crossexec ${INSTALLROOT}/bin/crossexec
+	done
+	make ${INSTALLROOT}/bin/proto
 		note *
 		note * proto(1) has been removed, but install a backward compatibility stub
 		note * that allows old Mamfiles containing proto commands to keep working.
 		note *
-		exec - src=${PACKAGEROOT}/src/cmd/INIT/proto.sh
-		exec - dst=${INSTALLROOT}/bin/proto
-		exec - ${STDCMP} 2>/dev/null -s $src $dst || { ${STDMV} $dst $dst.old 2>/dev/null || true; ${STDCP} $src $dst ;}
-		exec - test -w $dst && test -x $dst || ${STDCHMOD} u+w,+x $dst
-	done __proto_stub dontcare virtual
+		prev proto.sh
+		exec - ${STDCP} proto.sh ${INSTALLROOT}/bin/proto && ${STDCHMOD} u+w,+x ${INSTALLROOT}/bin/proto
+	done
+	note *
+	note * ksh93 function search on PATH
+	note * ksh93 builtin command library -lcmd
+	note * ksh93 ld library path search on PATH
+	note *
 	make ${INSTALLROOT}/bin/.paths
-		exec - if test ! -f ${INSTALLROOT}/bin/.paths -o -w ${INSTALLROOT}/bin/.paths
-		exec - then N='
-		exec - '
-		exec - H=${mam_cc_HOSTTYPE}
-		exec - P=""
-		exec - b= f= h= l= n= p= u= B= L=
-		exec - set : $P
-		exec - while :
-		exec - do while :
-		exec - do case $1 in
-		exec - '') break 2 ;;
-		exec - :) shift; break ;;
-		exec - esac
-		exec - shift
-		exec - done
-		exec - case $# in
-		exec - 0|1) break ;;
-		exec - esac
-		exec - case $L in
-		exec - ?*) L="$L|" ;;
-		exec - esac
-		exec - L="$L$2=*"
-		exec - B=$1
-		exec - done
-		exec - if test -f ${INSTALLROOT}/bin/.paths
-		exec - then while read x
-		exec - do case $x in
-		exec - *\$\(\"*) break
-		exec - ;;
-		exec - '#'?*) case $h in
-		exec - '') h=$x ;;
-		exec - esac
-		exec - ;;
-		exec - $L) l=$x
-		exec - ;;
-		exec - *BUILTIN_LIB=*) b=$x
-		exec - ;;
-		exec - *FPATH=*) f=$x
-		exec - ;;
-		exec - *PLUGIN_LIB=*) p=$x
-		exec - ;;
-		exec - *) case $u in
-		exec - ?*) u=$u$N ;;
-		exec - esac
-		exec - u=$u$x
-		exec - ;;
-		exec - esac
-		exec - done < ${INSTALLROOT}/bin/.paths
-		exec - fi
-		exec - ifs=$IFS
-		exec - m=
-		exec - case $p in
-		exec - ?*) b=
-		exec - ;;
-		exec - esac
-		exec - case $b in
-		exec - ?*) IFS='='
-		exec - set $b
-		exec - IFS=$ifs
-		exec - shift
-		exec - p="PLUGIN_LIB=$*"
-		exec - case $b in
-		exec - [Nn][Oo]*) p=no$p ;;
-		exec - esac
-		exec - m=1
-		exec - ;;
-		exec - esac
-		exec - case $f in
-		exec - '') f="FPATH=../fun"
-		exec - m=1
-		exec - ;;
-		exec - esac
-		exec - case $h in
-		exec - '') h='# use { no NO } prefix to permanently disable #' ;;
-		exec - esac
-		exec - case $l in
-		exec - '') set x x : $P
-		exec - l=
-		exec - while :
-		exec - do while :
-		exec - do case $# in
-		exec - 0) break ;;
-		exec - esac
-		exec - x=$1
-		exec - shift
-		exec - case $x in
-		exec - :) break ;;
-		exec - esac
-		exec - done
-		exec - case $# in
-		exec - 0|1) break
-		exec - ;;
-		exec - 2) l=$2
-		exec - ;;
-		exec - *) case "$H" in
-		exec - $3) l=$2; break ;;
-		exec - esac
-		exec - ;;
-		exec - esac
-		exec - done
-		exec - case $l in
-		exec - '') if test -x /lib/dld.sl
-		exec - then l=SHLIB_PATH
-		exec - elif test -x /usr/lib/dyld
-		exec - then l=DYLD_LIBRARY_PATH
-		exec - else case "$H" in
-		exec - ibm.*|mvs.*)
-		exec - l=LIBPATH
-		exec - ;;
-		exec - sgi.mips3)
-		exec - l=LD_LIBRARYN32_PATH
-		exec - ;;
-		exec - sgi.mips4)
-		exec - l=LD_LIBRARYN64_PATH
-		exec - ;;
-		exec - *) l=LD_LIBRARY_PATH
-		exec - ;;
-		exec - esac
-		exec - fi
-		exec - ;;
-		exec - esac
-		exec - case $l in
-		exec - ?*) case $B in
-		exec - '') B=lib ;;
-		exec - esac
-		exec - l="$l=../$B"
-		exec - m=1
-		exec - ;;
-		exec - esac
-		exec - ;;
-		exec - esac
-		exec - case $p in
-		exec - '') p="PLUGIN_LIB=cmd"
-		exec - case '' in
-		exec - '') p=no$p ;;
-		exec - esac
-		exec - m=1
-		exec - ;;
-		exec - esac
-		exec - case $m in
-		exec - 1) case $u in
-		exec - ?*) u=$N$u ;;
-		exec - esac
-		exec - echo "$h$N$p$N$f$N$l$u" > ${INSTALLROOT}/bin/.paths
-		exec - ;;
-		exec - esac
-		exec - fi
-	done ${INSTALLROOT}/bin/.paths generated
+		exec -	if	test ! -f ${INSTALLROOT}/bin/.paths -o -w ${INSTALLROOT}/bin/.paths
+		exec -	then	N='
+		exec -	'
+		exec -		H=${mam_cc_HOSTTYPE}
+		exec -		P=""	# TODO? reimplement nmake original: P="$(-mam:??$(.GETCONF LIBPATH:/:/ /G:/,/ : /G:Q)?)"
+		exec -		b= f= h= l= n= p= u= B= L=
+		exec -		set : $P
+		exec -		while	:
+		exec -		do	while	:
+		exec -			do	case $1 in
+		exec -				'')	break 2 ;;
+		exec -				:)	shift; break ;;
+		exec -				esac
+		exec -				shift
+		exec -			done
+		exec -			case $# in
+		exec -			0|1)	break ;;
+		exec -			esac
+		exec -			case $L in
+		exec -			?*)	L="$L|" ;;
+		exec -			esac
+		exec -			L="$L$2=*"
+		exec -			B=$1
+		exec -		done
+		exec -		if	test -f ${INSTALLROOT}/bin/.paths
+		exec -		then	while	read x
+		exec -			do	case $x in
+		exec -				*\$\(\"*) # to fix 2012-06-18 edit botch #
+		exec -					break ;;
+		exec -				'#'?*)	case $h in
+		exec -					'')	h=$x ;;
+		exec -					esac ;;
+		exec -				$L)	l=$x ;;
+		exec -				*BUILTIN_LIB=*)
+		exec -					b=$x ;;
+		exec -				*FPATH=*)
+		exec -					f=$x ;;
+		exec -				*PLUGIN_LIB=*)
+		exec -					p=$x ;;
+		exec -				*)	case $u in
+		exec -					?*	 u=$u$N ;;
+		exec -					esac
+		exec -					u=$u$x ;;
+		exec -				esac
+		exec -			done < ${INSTALLROOT}/bin/.paths
+		exec -		fi
+		exec -		ifs=$IFS
+		exec -		m=
+		exec -		case $p in
+		exec -		?*)	b= ;;
+		exec -		esac
+		exec -		case $b in
+		exec -		?*)	IFS='='
+		exec -			set $b
+		exec -			IFS=$ifs
+		exec -			shift
+		exec -			p="PLUGIN_LIB=$*"
+		exec -			case $b in
+		exec -			[Nn][Oo]*)
+		exec -				p=no$p ;;
+		exec -			esac
+		exec -			m=1 ;;
+		exec -		esac
+		exec -		case $f in
+		exec -		'')	f="FPATH=../fun"
+		exec -			m=1 ;;
+		exec -		esac
+		exec -		case $h in
+		exec -		'')	h='# use { no NO } prefix to permanently disable #' ;;
+		exec -		esac
+		exec -		case $l in
+		exec -		'')	set x x : $P
+		exec -			l=
+		exec -			while	:
+		exec -			do	while	:
+		exec -				do	case $# in
+		exec -					0)	break ;;
+		exec -					esac
+		exec -					x=$1
+		exec -					shift
+		exec -					case $x in
+		exec -					:)	break ;;
+		exec -					esac
+		exec -				done
+		exec -				case $# in
+		exec -				0|1)	break ;;
+		exec -				2)	l=$2 ;;
+		exec -				*)	case "$H" in
+		exec -					$3) l=$2; break ;;
+		exec -					esac ;;
+		exec -				esac
+		exec -			done
+		exec -			case $l in
+		exec -			'')	if	test -x /lib/dld.sl
+		exec -				then	l=SHLIB_PATH
+		exec -				elif	test -x /usr/lib/dyld
+		exec -				then	l=DYLD_LIBRARY_PATH
+		exec -				else	case "$H" in
+		exec -					ibm.*|mvs.*)
+		exec -						l=LIBPATH ;;
+		exec -					sgi.mips3)
+		exec -						l=LD_LIBRARYN32_PATH ;;
+		exec -					sgi.mips4)
+		exec -						l=LD_LIBRARYN64_PATH	;;
+		exec -					*)	l=LD_LIBRARY_PATH ;;
+		exec -					esac
+		exec -				fi ;;
+		exec -			esac
+		exec -			case $l in
+		exec -			?*)	case $B in
+		exec -				'')	B=lib ;;
+		exec -				esac
+		exec -				l="$l=../$B"
+		exec -				m=1 ;;
+		exec -			esac ;;
+		exec -		esac
+		exec -		case $p in
+		exec -		'')	p="PLUGIN_LIB=cmd"
+		exec -			case '' in
+		exec -			'') p=no$p ;;
+		exec -			esac
+		exec -			m=1 ;;
+		exec -		esac
+		exec -		case $m in
+		exec -		1)	case $u in
+		exec -			?*)	u=$N$u ;;
+		exec -			esac
+		exec -			echo "$h$N$p$N$f$N$l$u" > ${INSTALLROOT}/bin/.paths ;;
+		exec -		esac
+		exec -	fi
+	done
+	note *
+	note * probe initialization
+	note *
 	make ${INSTALLROOT}/lib/probe/C
-		exec - if test ! -d ${INSTALLROOT}/lib/probe/C
-		exec - then mkdir -p ${INSTALLROOT}/lib/probe/C
-		exec - fi
-	done ${INSTALLROOT}/lib/probe/C generated
+		exec - mkdir -p ${INSTALLROOT}/lib/probe/C
+	done
 	make ${INSTALLROOT}/lib/probe/C/probe
-		prev ${INSTALLROOT}/lib/probe/C
 		prev C+probe
-		exec - ${STDCMP} 2>/dev/null -s C+probe ${INSTALLROOT}/lib/probe/C/probe || { ${STDMV} ${INSTALLROOT}/lib/probe/C/probe ${INSTALLROOT}/lib/probe/C/probe.old 2>/dev/null || true; ${STDCP} C+probe ${INSTALLROOT}/lib/probe/C/probe ;}
-	done ${INSTALLROOT}/lib/probe/C/probe generated
+		exec - ${STDCP} -f C+probe ${INSTALLROOT}/lib/probe/C/probe
+	done
 	make ${INSTALLROOT}/lib/probe/C/make
-		exec - if test ! -d ${INSTALLROOT}/lib/probe/C/make
-		exec - then mkdir -p ${INSTALLROOT}/lib/probe/C/make
-		exec - fi
-	done ${INSTALLROOT}/lib/probe/C/make generated
+		exec - mkdir -p ${INSTALLROOT}/lib/probe/C/make
+	done
 	make ${INSTALLROOT}/lib/probe/C/pp
-		exec - if test ! -d ${INSTALLROOT}/lib/probe/C/pp
-		exec - then mkdir -p ${INSTALLROOT}/lib/probe/C/pp
-		exec - fi
-	done ${INSTALLROOT}/lib/probe/C/pp generated
+		exec - mkdir -p ${INSTALLROOT}/lib/probe/C/pp
+	done
 	make ${INSTALLROOT}/lib/probe/C/mam
-		exec - if test ! -d ${INSTALLROOT}/lib/probe/C/mam
-		exec - then mkdir -p ${INSTALLROOT}/lib/probe/C/mam
-		exec - fi
-	done ${INSTALLROOT}/lib/probe/C/mam generated
+		exec - mkdir -p ${INSTALLROOT}/lib/probe/C/mam
+	done
 	make ${INSTALLROOT}/lib/probe/C/mam/probe
-		prev ${INSTALLROOT}/lib/probe/C/mam
 		prev mprobe
-		exec - ${STDCMP} 2>/dev/null -s mprobe ${INSTALLROOT}/lib/probe/C/mam/probe || { ${STDMV} ${INSTALLROOT}/lib/probe/C/mam/probe ${INSTALLROOT}/lib/probe/C/mam/probe.old 2>/dev/null || true; ${STDCP} mprobe ${INSTALLROOT}/lib/probe/C/mam/probe ;}
-	done ${INSTALLROOT}/lib/probe/C/mam/probe generated
+		exec - ${STDCP} -f mprobe ${INSTALLROOT}/lib/probe/C/mam/probe
+	done
 	make ${INSTALLROOT}/lib/probe/C/mam/mprobe
 		prev mprobe
-		exec - ${STDCMP} 2>/dev/null -s mprobe ${INSTALLROOT}/lib/probe/C/mam/mprobe || { ${STDMV} ${INSTALLROOT}/lib/probe/C/mam/mprobe ${INSTALLROOT}/lib/probe/C/mam/mprobe.old 2>/dev/null || true; ${STDCP} mprobe ${INSTALLROOT}/lib/probe/C/mam/mprobe ;}
-	done ${INSTALLROOT}/lib/probe/C/mam/mprobe generated
+		exec - ${STDCP} -f mprobe ${INSTALLROOT}/lib/probe/C/mam/mprobe
+	done
 	make ${INSTALLROOT}/lib/probe/C/make/probe
 		prev probe
-		exec - ${STDCMP} 2>/dev/null -s probe ${INSTALLROOT}/lib/probe/C/make/probe || { ${STDMV} ${INSTALLROOT}/lib/probe/C/make/probe ${INSTALLROOT}/lib/probe/C/make/probe.old 2>/dev/null || true; ${STDCP} probe ${INSTALLROOT}/lib/probe/C/make/probe ;}
-	done ${INSTALLROOT}/lib/probe/C/make/probe generated
+		exec - ${STDCP} -f probe ${INSTALLROOT}/lib/probe/C/make/probe
+	done
 	make ${INSTALLROOT}/include/ast
-		exec - if test ! -d ${INSTALLROOT}/include/ast
-		exec - then mkdir -p ${INSTALLROOT}/include/ast
-		exec - fi
-	done ${INSTALLROOT}/include/ast generated
+		exec - mkdir -p ${INSTALLROOT}/include/ast
+	done
 	make ${INSTALLROOT}/lib/lib
-		exec - if test ! -d ${INSTALLROOT}/lib/lib
-		exec - then mkdir -p ${INSTALLROOT}/lib/lib
-		exec - fi
-	done ${INSTALLROOT}/lib/lib generated
+		exec - mkdir -p ${INSTALLROOT}/lib/lib
+	done
+	note *
+	note * check if -ldl is required
+	note *
+	note * NOTE: this works around the sgi botch:
+	note *	 (1) irix 5.* made -ldl optional but warned
+	note *	 (2) irix 6.* has no -ldl
+	note *	 (3) dynamic progs built on irix 5.* and using -ldl fail
+	note *           at runtime on irix 6.* because -ldl is not there
+	note *
 	make ${INSTALLROOT}/lib/lib/dl
-		prev ${INSTALLROOT}/lib/lib
 		make dl.req
 			prev dl.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in dl.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in dl -
-			exec - do case $p in
-			exec - -) if ${CC} -o dl.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o dl.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > dl.req
-			exec - ${STDRM} -f dl.exe dl
-		done dl.req generated
-		exec - ${STDCMP} 2>/dev/null -s dl.req ${INSTALLROOT}/lib/lib/dl || { ${STDMV} ${INSTALLROOT}/lib/lib/dl ${INSTALLROOT}/lib/lib/dl.old 2>/dev/null || true; ${STDCP} dl.req ${INSTALLROOT}/lib/lib/dl ;}
-	done ${INSTALLROOT}/lib/lib/dl generated
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : dl : dl.c : dl
+		done
+		exec - ${STDCP} -f dl.req ${INSTALLROOT}/lib/lib/dl
+	done
+	note *
+	note * requiring these is a botch
+	note *
 	make ${INSTALLROOT}/lib/lib/iconv
 		make iconv.req
 			prev iconv.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in iconv.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in iconv -
-			exec - do case $p in
-			exec - -) if ${CC} -o iconv.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o iconv.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > iconv.req
-			exec - ${STDRM} -f iconv.exe iconv
-		done iconv.req generated
-		exec - ${STDCMP} 2>/dev/null -s iconv.req ${INSTALLROOT}/lib/lib/iconv || { ${STDMV} ${INSTALLROOT}/lib/lib/iconv ${INSTALLROOT}/lib/lib/iconv.old 2>/dev/null || true; ${STDCP} iconv.req ${INSTALLROOT}/lib/lib/iconv ;}
-	done ${INSTALLROOT}/lib/lib/iconv generated
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : iconv : iconv.c : iconv
+		done
+		exec - ${STDCP} -f iconv.req ${INSTALLROOT}/lib/lib/iconv
+	done
 	make ${INSTALLROOT}/lib/lib/w
 		make w.req
 			prev w.c
 			prev w2.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in w.c w2.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in w -
-			exec - do case $p in
-			exec - -) if ${CC} -o w.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o w.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > w.req
-			exec - ${STDRM} -f w.exe w w2
-		done w.req generated
-		exec - ${STDCMP} 2>/dev/null -s w.req ${INSTALLROOT}/lib/lib/w || { ${STDMV} ${INSTALLROOT}/lib/lib/w ${INSTALLROOT}/lib/lib/w.old 2>/dev/null || true; ${STDCP} w.req ${INSTALLROOT}/lib/lib/w ;}
-	done ${INSTALLROOT}/lib/lib/w generated
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : w : w.c w2.c : w
+		done
+		exec - ${STDCP} -f w.req ${INSTALLROOT}/lib/lib/w
+	done
+	note *
+	note * miscellaneous -l* checks
+	note *
 	make ${INSTALLROOT}/lib/lib/intl
 		make intl.req
 			prev intl.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in intl.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in intl -
-			exec - do case $p in
-			exec - -) if ${CC} -o intl.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o intl.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > intl.req
-			exec - ${STDRM} -f intl.exe intl
-		done intl.req generated
-		exec - ${STDCMP} 2>/dev/null -s intl.req ${INSTALLROOT}/lib/lib/intl || { ${STDMV} ${INSTALLROOT}/lib/lib/intl ${INSTALLROOT}/lib/lib/intl.old 2>/dev/null || true; ${STDCP} intl.req ${INSTALLROOT}/lib/lib/intl ;}
-	done ${INSTALLROOT}/lib/lib/intl generated
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : intl : intl.c : intl
+		done
+		exec - ${STDCP} -f intl.req ${INSTALLROOT}/lib/lib/intl
+	done
 	make ${INSTALLROOT}/lib/lib/m
 		make m.req
 			prev m.c
@@ -726,140 +318,66 @@ make install
 			prev m4.c
 			prev m5.c
 			prev m6.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in m.c m2.c m3.c m4.c m5.c m6.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in m -
-			exec - do case $p in
-			exec - -) if ${CC} -o m.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o m.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > m.req
-			exec - ${STDRM} -f m.exe m m2 m3 m4 m5 m6
-		done m.req generated
-		exec - ${STDCMP} 2>/dev/null -s m.req ${INSTALLROOT}/lib/lib/m || { ${STDMV} ${INSTALLROOT}/lib/lib/m ${INSTALLROOT}/lib/lib/m.old 2>/dev/null || true; ${STDCP} m.req ${INSTALLROOT}/lib/lib/m ;}
-	done ${INSTALLROOT}/lib/lib/m generated
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : m : m.c m2.c m3.c m4.c m5.c m6.c : m
+		done
+		exec - ${STDCP} -f m.req ${INSTALLROOT}/lib/lib/m
+	done
 	make ${INSTALLROOT}/lib/lib/nsl
 		make nsl.req
 			prev nsl.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in nsl.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in nsl -
-			exec - do case $p in
-			exec - -) if ${CC} -o nsl.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o nsl.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > nsl.req
-			exec - ${STDRM} -f nsl.exe nsl
-		done nsl.req generated
-		exec - ${STDCMP} 2>/dev/null -s nsl.req ${INSTALLROOT}/lib/lib/nsl || { ${STDMV} ${INSTALLROOT}/lib/lib/nsl ${INSTALLROOT}/lib/lib/nsl.old 2>/dev/null || true; ${STDCP} nsl.req ${INSTALLROOT}/lib/lib/nsl ;}
-	done ${INSTALLROOT}/lib/lib/nsl generated
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : nsl : nsl.c : nsl
+		done
+		exec - ${STDCP} -f nsl.req ${INSTALLROOT}/lib/lib/nsl
+	done
+	note *
+	note * what was sco smoking
+	note * almost all of gethost* are in -lnsl except gethostbyname which
+	note * is in -lsocket which isn't needed to resolve socket() but seems
+	note * to do the -lnsl job
+	note *
 	make ${INSTALLROOT}/lib/lib/socket
 		make socket.req
 			prev socket.c
 			prev nsl.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in socket.c nsl.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in socket -
-			exec - do case $p in
-			exec - -) if ${CC} -o socket.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o socket.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > socket.req
-			exec - ${STDRM} -f socket.exe socket nsl
-		done socket.req generated
-		exec - ${STDCMP} 2>/dev/null -s socket.req ${INSTALLROOT}/lib/lib/socket || { ${STDMV} ${INSTALLROOT}/lib/lib/socket ${INSTALLROOT}/lib/lib/socket.old 2>/dev/null || true; ${STDCP} socket.req ${INSTALLROOT}/lib/lib/socket ;}
-	done ${INSTALLROOT}/lib/lib/socket generated
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : socket : socket.c nsl.c : socket
+		done
+		exec - ${STDCP} -f socket.req ${INSTALLROOT}/lib/lib/socket
+	done
+	note *
+	note * more substance abuse
+	note * gdbm's ndbm "compatibility" doesn't supply <ndbm.h>, instead supplies
+	note * <gdbm/ndbm.h> which provides K&R prototypes *and* it requires -lgdbm
+	note * some <ndbm.h> implementations use -lndbm, others -ldbm, still others -lc
+	note * this is why unix is starting to look like windows
+	note * this map allows makefiles to use -ldbm on all systems
+	note *
+	note * and this just in: sometimes its <gdbm-ndbm.h> and possibly -lgdbm_compat
+	note *
+	note * at least the -l* buck stops here
+	note *
 	make ${INSTALLROOT}/lib/lib/dbm
 		make dbm.req
 			prev db.c
 			prev gdbm.c
-			make gdbm1.c
-				prev gdbm-ndbm.h implicit dontcare virtual
-			done gdbm1.c
-			make gdbm2.c
-				prev ndbm.h implicit dontcare virtual
-			done gdbm2.c
-			exec - set +v +x
-			exec - r='-'
-			exec - for i in db.c gdbm.c gdbm1.c gdbm2.c
-			exec - do if ${CC} -c $i > /dev/null
-			exec - then g=
-			exec - for p in db - gdbm_compat - gdbm - ndbm - dbm -
-			exec - do case $p in
-			exec - -) if ${CC} -o dbm.exe $i $g > /dev/null 2>&1
-			exec - then ${CC} -o dbm.exe $i > /dev/null 2>&1 || {
-			exec - r="$g"
-			exec - break 2
-			exec - }
-			exec - fi
-			exec - g=
-			exec - ;;
-			exec - *) g="$g -l$p"
-			exec - ;;
-			exec - esac
-			exec - done
-			exec - fi
-			exec - done 2>/dev/null
-			exec - echo " $r" > dbm.req
-			exec - ${STDRM} -f dbm.exe db gdbm gdbm1 gdbm2
-		done dbm.req generated
-		exec - ${STDCMP} 2>/dev/null -s dbm.req ${INSTALLROOT}/lib/lib/dbm || { ${STDMV} ${INSTALLROOT}/lib/lib/dbm ${INSTALLROOT}/lib/lib/dbm.old 2>/dev/null || true; ${STDCP} dbm.req ${INSTALLROOT}/lib/lib/dbm ;}
-	done ${INSTALLROOT}/lib/lib/dbm generated
-done install virtual
-make test
-	make test.iffe
+			prev gdbm1.c
+			prev gdbm2.c
+			prev mkreq-maplib
+			exec - mkreq-maplib ${CC} : dbm : db.c gdbm.c gdbm1.c gdbm2.c : db gdbm_compat gdbm ndbm dbm
+		done
+		exec - ${STDCP} -f dbm.req ${INSTALLROOT}/lib/lib/dbm
+	done
+done install
+make test dontcare virtual
+	make test.iffe virtual
 		prev iffe.tst
-		exec - exec "$SHELL" "$INSTALLROOT/bin/regress" iffe.tst iffe
-	done test.iffe virtual
-	make test.mamake
-		make mamake.tst
-			prev mamake.rt
-			exec - if test mamake.rt -nt mamake.tst
-			exec - then "$SHELL" "$INSTALLROOT/bin/mktest" --style=regress mamake.rt > mamake.tst
-			exec - fi
-		done mamake.tst generated
-		exec - exec "$SHELL" "$INSTALLROOT/bin/regress" mamake.tst mamake
-	done test.mamake virtual
-done test dontcare virtual
+		exec - regress iffe.tst iffe
+	done
+	make test.mamake virtual
+		prev mamake.tst
+		exec - : testing non-libast mamake at $PWD/mamake :
+		exec - regress mamake.tst mamake
+	done
+done test

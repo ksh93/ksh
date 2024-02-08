@@ -228,9 +228,21 @@ unset exp got sig
 # ======
 # trap status tests
 
+exp=0
+(trap 'false; exit' EXIT; true; exit)
+let "(got=$?)==exp" || err_exit "pre-trap exit status not preserved (got $got, expected $exp)"
+
 exp=1
-(trap 'false; exit' EXIT; true)
-let "(got=$?)==exp" || err_exit "passing down exit status from EXIT trap failed (got $got, expected $exp)"
+(trap 'true; exit' EXIT; false; exit)
+let "(got=$?)==exp" || err_exit "pre-trap exit status not preserved (got $got, expected $exp)"
+
+exp=7
+(trap 'false; exit 7' EXIT; exit 9)
+let "(got=$?)==exp" || err_exit "explicit exit status in trap not honoured (got $got, expected $exp)"
+
+exp=9
+(trap 'false; exit' EXIT; exit 9)
+let "(got=$?)==exp" || err_exit "explicit exit status outside trap not honoured (got $got, expected $exp)"
 
 # ======
 exit $((Errors<125?Errors:125))

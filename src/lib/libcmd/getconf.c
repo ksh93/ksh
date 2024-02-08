@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -131,7 +131,7 @@ int
 b_getconf(int argc, char** argv, Shbltin_t* context)
 {
 	char*			name;
-	char*			path;
+	char*			path = NULL;
 	char*			value;
 	const char*		s;
 	char*			pattern;
@@ -208,9 +208,8 @@ b_getconf(int argc, char** argv, Shbltin_t* context)
 		break;
 	}
 	argv += opt_info.index;
-	if (!(name = *argv))
-		path = 0;
-	else if (streq(name, empty))
+	name = *argv;
+	if (name && streq(name, empty))
 	{
 		name = 0;
 		if (path = *++argv)

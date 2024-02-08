@@ -30,18 +30,7 @@
 
 #define HIST_RECURSE	5
 
-#if SHOPT_SCRIPTONLY
-
-int	b_hist(int argc,char *argv[], Shbltin_t *context)
-{
-	NOT_USED(argc);
-	NOT_USED(argv);
-	NOT_USED(context);
-	errormsg(SH_DICT,ERROR_exit(1),e_scriptonly);
-	UNREACHABLE();
-}
-
-#else
+#if !SHOPT_SCRIPTONLY
 
 static void hist_subst(const char*, int fd, char*);
 
@@ -336,4 +325,15 @@ static void hist_subst(const char *command,int fd,char *replace)
 	sh_eval(sfopen(NULL,sp,"s"),1);
 }
 
-#endif /* SHOPT_SCRIPTONLY */
+#else
+
+int	b_hist(int argc,char *argv[], Shbltin_t *context)
+{
+	NOT_USED(argc);
+	NOT_USED(argv);
+	NOT_USED(context);
+	errormsg(SH_DICT,ERROR_exit(1),e_scriptonly);
+	UNREACHABLE();
+}
+
+#endif /* !SHOPT_SCRIPTONLY */

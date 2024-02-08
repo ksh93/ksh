@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -302,6 +302,7 @@ struct Shell_s
 	char		*comdiv;	/* points to sh -c argument */
 	char		*prefix;	/* prefix for compound assignment */
 	sigjmp_buf	*jmplist;	/* longjmp return stack */
+	int		oldexit;	/* saves pre-trap exit status for 'exit' default in trap actions */
 	pid_t		bckpid;		/* background process id */
 	pid_t		cpid;
 	pid_t		spid; 		/* subshell process id */
@@ -310,7 +311,8 @@ struct Shell_s
 	int		topfd;
 	int		savesig;
 	unsigned char	*sigflag;	/* pointer to signal states */
-	char		intrap;
+	char		intrap;		/* set while executing a trap action */
+	uint32_t	srand_upper_bound;
 	char		forked;
 	char		binscript;
 	char		funload;
@@ -352,9 +354,7 @@ struct Shell_s
 	void		*arg_context;
 	void		*pathlist;
 	void		*cdpathlist;
-	char		**argaddr;
 	char		cond_expan;	/* set while processing ${var=val}, ${var:=val}, ${var?err}, ${var:?err} */
-	void		*optlist;
 	struct sh_scoped global;
 	struct checkpt	checkbase;
 	Shinit_f	userinit;
@@ -386,6 +386,10 @@ struct Shell_s
 	/* nv_putsub() hack for nv_create() to avoid double arithmetic evaluation */
 	char		nv_putsub_already_called_sh_arith;
 	int		nv_putsub_idx;	/* saves array index obtained by nv_putsub() using sh_arith() */
+#if SHOPT_OPTIMIZE
+	char		**argaddr;	/* pointer to arguments for the loop invariants optimizer */
+	void		*optlist;	/* linked list of invariant nodes */
+#endif
 #if SHOPT_FILESCAN
 	char		*cur_line;
 #endif /* SHOPT_FILESCAN */

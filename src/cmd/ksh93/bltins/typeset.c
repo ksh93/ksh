@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -225,7 +225,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 
 	memset(&tdata,0,sizeof(tdata));
 	troot = sh.var_tree;
-	if(ntp)					/* custom declaration command added using enum */
+	if(ntp)					/* type declaration command added using 'typeset -T' or 'enum' */
 	{
 		tdata.tp = ntp->tp;
 		opt_info.disc = (Optdisc_t*)ntp->optinfof;
@@ -249,7 +249,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 			new_argv[1] = "-n";
 		else
 		{
-			errormsg(SH_DICT, ERROR_exit(128), "internal error");
+			errormsg(SH_DICT, ERROR_PANIC, e_internal);
 			UNREACHABLE();
 		}
 		for (n = 1; n <= argc; n++)
@@ -647,8 +647,8 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	char *last = 0;
 	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
-	Dt_t *save_vartree;
-	Namval_t *save_namespace;
+	Dt_t *save_vartree = NULL;
+	Namval_t *save_namespace = NULL;
 	if(flag&NV_GLOBAL)
 	{
 		save_vartree = sh.var_tree;
@@ -1474,7 +1474,6 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 	}
 	if(isfun)
 	{
-		Sfio_t *iop=0;
 		char *fname=0;
 		if(nv_isattr(np,NV_NOFREE))
 			return 0;

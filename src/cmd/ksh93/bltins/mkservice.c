@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -25,9 +25,7 @@
 #include	"shopt.h"
 #include	"defs.h"
 
-#if !SHOPT_MKSERVICE
-NoN(mkservice)
-#else
+#if SHOPT_MKSERVICE
 
 static const char mkservice_usage[] =
 "[-?\n@(#)$Id: mkservice (AT&T Research) 2001-06-13 $\n]"
@@ -212,7 +210,7 @@ static void process_stream(Sfio_t* iop)
 				
 static int waitnotify(int fd, long timeout, int rw)
 {
-	Sfio_t *special=0, **pstream;
+	Sfio_t	*special=0, **pstream;
 	int	i;
 
 	if (fd >= 0)
@@ -281,7 +279,7 @@ void service_add(Service_t *sp)
 static int Accept(Service_t *sp, int accept_fd)
 {
 	Namval_t*	nq = sp->disc[ACCEPT];
-	int			fd;
+	int		fd;
 
 	fd = fcntl(accept_fd, F_DUPFD, 10);
 	if (fd >= 0)
@@ -309,7 +307,7 @@ static int Accept(Service_t *sp, int accept_fd)
 static int Action(Service_t *sp, int fd, int close)
 {
 	Namval_t*	nq;
-	int			r=0;
+	int		r=0;
 
 	if(close)
 		nq = sp->disc[CLOSE];
@@ -331,7 +329,7 @@ static int Action(Service_t *sp, int fd, int close)
 
 static int Error(Service_t *sp, int level, const char* arg, ...)
 {
-	va_list			ap;
+	va_list		ap;
 
 	va_start(ap, arg);
 	if(sp->node)
@@ -497,4 +495,6 @@ int	b_eloop(int argc, char** argv, Shbltin_t *context)
 	return errno != 0;
 }
 
+#else
+NoN(mkservice)
 #endif /* SHOPT_MKSERVICE */

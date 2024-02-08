@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -90,6 +90,7 @@ do
 	$cat |&
 	!
 	chmod +x $file
+	wait
 	sleep 1 |&
 	$file 2> /dev/null || err_exit "parent $cat coprocess prevents script coprocess"
 	exec 5<&p 6>&p
@@ -155,7 +156,7 @@ do
 		integer i
 		for ((i = 1; i <= N; i++))
 		do	print $i |&
-			sleep 0.001
+			sleep 0.01
 			r=$r$($cat <&p)
 			wait $!
 		done
@@ -165,7 +166,7 @@ do
 	
 	(
 		$cat |&
-		sleep 0.001
+		sleep 0.01
 		exec 6>&p
 		print -u6 ok
 		exec 6>&-

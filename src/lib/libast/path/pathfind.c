@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -49,7 +49,7 @@ static struct				/* directory list state		*/
 int
 pathinclude(const char* dir)
 {
-	Dir_t*	dp;
+	Dir_t*		dp;
 	struct stat	st;
 
 	if (dir && *dir && !streq(dir, ".") && directory(dir, &st))
@@ -82,8 +82,8 @@ pathfind(const char* name, const char* lib, const char* type, char* buf, size_t 
 {
 	Dir_t*		dp;
 	char*		s;
-	char			tmp[PATH_MAX];
-	struct stat		st;
+	char		tmp[PATH_MAX];
+	struct stat	st;
 
 	if (((s = strrchr(name, '/')) || (s = (char*)name)) && strchr(s, '.'))
 		type = 0;

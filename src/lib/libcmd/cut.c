@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -375,12 +375,12 @@ cutfields(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 	unsigned char *sp = cut->space;
 	unsigned char *cp;
 	unsigned char *wp;
-	int c, nfields;
+	int c, nfields=0;
 	const int *lp = cut->list;
 	unsigned char *copy;
-	int nodelim, empty, inword=0;
+	int nodelim=0, empty=0, inword=0;
 	unsigned char *ep;
-	unsigned char *bp, *first;
+	unsigned char *bp, *first=NULL;
 	int lastchar;
 	wchar_t w;
 	Sfio_t *fdtmp = 0;

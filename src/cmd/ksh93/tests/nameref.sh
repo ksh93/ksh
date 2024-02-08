@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -246,16 +246,18 @@ i=$($SHELL -c 'nameref foo=bar; bar[2]=(x=3 y=4); nameref x=foo[2].y;print -r --
 ) ==  *foo=hello* ]] || err_exit 'unable to display compound variable from name reference of local variable'
 #set -x
 for c in '=' '[' ']' '\' "'" '"' '<' '=' '('
-do	[[ $($SHELL 2> /dev/null <<- ++EOF++
+do	got=$($SHELL 2> /dev/null <<- ++EOF++
 	i=\\$c;typeset -A a; a[\$i]=foo;typeset -n x=a[\$i]; print "\$x"
 	++EOF++
-) != foo ]] && err_exit 'nameref x=a[$c] '"not working for c=$c"
+	)
+	[[ $got != foo ]] && err_exit 'nameref x=a[$c] '"not working for c=$c (expected 'foo', got $(printf %q "$got"))"
 done
 for c in '=' '[' ']' '\' "'" '"' '<' '=' '('
-do      [[ $($SHELL 2> /dev/null <<- ++EOF++
+do      got=$($SHELL 2> /dev/null <<- ++EOF++
 	i=\\$c;typeset -A a; a[\$i]=foo;b=a[\$i];typeset -n x=\$b; print "\$x"
 	++EOF++
-) != foo ]] && err_exit 'nameref x=$b with b=a[$c] '"not working for c=$c"
+	)
+	[[ $got != foo ]] && err_exit 'nameref x=$b with b=a[$c] '"not working for c=$c (expected 'foo', got $(printf %q "$got"))"
 done
 
 unset -n foo x
@@ -753,6 +755,20 @@ got=$("$SHELL" -c 'nameref unsetref; unsetref[1]=bar' 2>&1)
 [[ e=$? -eq 1 && $got == *"$exp" ]] || err_exit "unsetref[1]=bar misbehaves" \
 	"(expected status 1 and match of *$(printf %q "$exp")," \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/704
+# test backported from ksh 93v- 2013-02-14
+unset one bar baz arr val vv
+one=1 bar=2 baz=3
+arr=(one bar baz)
+nameref vv
+val=$(
+	for vv in "${arr[@]}"
+	do	print -n -- "$vv"
+	done
+)
+[[ $val == 123 ]] || err_exit 'optimization bug with for loops with references'
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -598,7 +598,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	globlist_t*	ap;
 	char*		pat;
 	globlist_t*	top;
-	Stk_t*		oldstak;
+	Stk_t*		oldstak = NULL;
 	char**		argv;
 	char**		av;
 	size_t		skip;

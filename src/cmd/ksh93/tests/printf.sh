@@ -1,8 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2022-2023 Contributors to ksh 93u+m           #
-#                    <https://github.com/ksh93/ksh>                    #
+#          Copyright (c) 2022-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -504,6 +503,15 @@ else
 fi
 
 unset format gd
+
+# ======
+# negative non-base-10 numbers were mangled as they were incorrectly treated as unsigned
+# https://github.com/ksh93/ksh/issues/696
+integer 20 n=20#j12
+printf -v got '%s %s %d %..20d %s' "$n" "$((n *= -1))" n n "$n"
+exp='20#j12 -7622 -7622 -j12 -20#j12'
+[[ $got == "$exp" ]] || err_exit "issue 696 reproducer (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset n
 
 # ======
 exit $((Errors<125?Errors:125))

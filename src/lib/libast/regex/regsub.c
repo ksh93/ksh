@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -33,7 +33,7 @@ subold(Sfio_t* dp, const char* op, const char* sp, size_t nmatch, regmatch_t* ma
 	int		c;
 	char*		s;
 	char*		e;
-	const char*	b;
+	const char*	b = NULL;
 	regflags_t	f;
 
 	f = flags &= (REG_SUB_LOWER|REG_SUB_UPPER);
@@ -195,6 +195,8 @@ subold(Sfio_t* dp, const char* op, const char* sp, size_t nmatch, regmatch_t* ma
 		{
 			if (c < 0 || *sp != ')')
 			{
+				if (!b)
+					abort();
 				for (; b < sp; b++)
 					sfputc(dp, *b);
 				continue;

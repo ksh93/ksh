@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -43,10 +43,10 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 	int		v, n, skip, dollar, decimal, thousand;
 	Sffmt_t		savft;
 	Fmtpos_t*	fp;	/* position array of arguments	*/
-	int		argp, argn, maxp, need[FP_INDEX];
+	int		argp, maxp, need[FP_INDEX];
 	int		nargs;	/* the argv[] index of the last seen sequential % format (% or *) */
 	int		xargs;	/* highest (max) argv[] index see in an indexed format (%x$ *x$)  */
-	int		nextarg;
+	int		nextarg = 0;
 	SFMBDCL(fmbs)
 
 	if(type < 0)
@@ -54,7 +54,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 	else if(!(fp = sffmtpos(f,form,args,ft,-1)) )
 		return NULL;
 
-	dollar = decimal = thousand = 0; argn = maxp = -1;
+	dollar = decimal = thousand = 0;
 	nargs = xargs = -1;
 	SFMBCLR(&fmbs);
 	while((n = *form) )

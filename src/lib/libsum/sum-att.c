@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1996-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -45,7 +45,7 @@
 #endif
 
 #define CBLOCK_SIZE (64)
-#if !defined(__clang__)
+#if !__clang__ && !__GNUC__
 #pragma unroll(16)
 #endif
 

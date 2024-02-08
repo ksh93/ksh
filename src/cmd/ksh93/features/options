@@ -15,3 +15,6 @@ tst	note{ can we probe file system case insensitivity }end output{
 		return !r;
 	}
 }end
+
+# for SHOPT_ACCT:
+sys	acct

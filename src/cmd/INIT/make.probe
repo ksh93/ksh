@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)make.probe (ksh 93u+m) 2023-03-09
+# @(#)make.probe (ksh 93u+m) 2024-01-09
 #
 # C probe for make
 #
@@ -163,7 +163,6 @@ runpath=
 shared=
 shared_name=
 shared_registry=
-shellmagic=
 soversion=
 stdc=
 strict=
@@ -995,7 +994,7 @@ case " $cc_dll " in
 esac
 
 case $hosttype in
-win32.*|cygwin.*|os2.*)
+cygwin.*|os2.*)
 	Lflag=1
 	;;
 *)	if	$cc -c doti.$src
@@ -1772,31 +1771,6 @@ int lib(int** def, int** ref, int** ext)
 	;;
 esac
 
-# shellmagic defined if installed shell scripts need magic
-
-echo ': got magic :
-echo ok' > ok
-chmod +x ok
-case `(eval ./ok | /bin/sh) 2>/dev/null` in
-ok)	;;
-*)	echo '#!/bin/env sh
-: got magic :
-echo ok' > ok
-	chmod +x ok
-	case `(eval ./ok | /bin/sh) 2>/dev/null` in
-	ok)	shellmagic='$("#")!/bin/env sh'
-		;;
-	*)	for i in /emx/bin/bash.exe /emx/bin/sh.exe
-		do	if	test -x $i
-			then	shellmagic='$("#")!'$i
-				break
-			fi
-		done
-		;;
-	esac
-	;;
-esac
-
 #
 # path cleanup
 #
@@ -1994,7 +1968,6 @@ CC_SHARED_LD=$dld
 CC_SHARED_NAME=$shared_name
 CC_SHARED_REGISTRY=$shared_registry
 CC_SHARED_REGISTRY_PATH=$probe_shared_registry_path
-CC_SHELLMAGIC=$shellmagic
 CC_SIZE=$size
 CC_STATIC=$static
 CC_STDINCLUDE=$stdinclude
@@ -2107,7 +2080,6 @@ echo CC.SHARED.LD = $CC_SHARED_LD
 echo CC.SHARED.NAME = $CC_SHARED_NAME
 echo CC.SHARED.REGISTRY = $CC_SHARED_REGISTRY
 echo CC.SHARED.REGISTRY.PATH = $CC_SHARED_REGISTRY_PATH
-echo CC.SHELLMAGIC = $CC_SHELLMAGIC
 echo CC.SIZE = $CC_SIZE
 echo CC.STATIC = $CC_STATIC
 echo CC.STDINCLUDE = $CC_STDINCLUDE

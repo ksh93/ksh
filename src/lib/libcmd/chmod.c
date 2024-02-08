@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -144,7 +144,7 @@ extern int	lchmod(const char*, mode_t);
 int
 b_chmod(int argc, char** argv, Shbltin_t* context)
 {
-	int		mode;
+	int		mode = 0;
 	int		force = 0;
 	int		flags;
 	char*		amode = 0;

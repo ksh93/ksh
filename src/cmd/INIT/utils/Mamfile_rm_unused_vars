@@ -7,7 +7,7 @@ let() { return $((!($1))); }
 # Usage: Mamfile_rm_unused_vars <Mamfile >Mamfile.new
 #
 # Should work on all current POSIX compliant shells.
-# By Martijn Dekker <martijn@inlv.org>, 2021. Public domain.
+# By Martijn Dekker <martijn@inlv.org>, 2021, 2024. Public domain.
 #
 # All variables are declared with 'setv' and they are used if an expansion
 # of the form ${varname} exists (the braces are mandatory in Mamfiles).
@@ -16,6 +16,9 @@ mamfile=$(let $# && cat "$1" || cat)
 vars=$(printf '%s\n' $mamfile | awk '$1 == "setv" { print $2; }')
 rm_unused_ere=
 IFS=$CCn; for varname in $vars; do IFS=
+	case $varname in
+	MAMAKE_STRICT)	continue ;;
+	esac
 	case $mamfile in
 	*"\${$varname}"* )
 		;;

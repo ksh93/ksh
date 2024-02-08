@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,16 +35,16 @@
 Hash_table_t*
 hashfree(Hash_table_t* tab)
 {
-	Hash_bucket_t**	sp;
-	Hash_bucket_t*		b;
-	Hash_bucket_t*		p;
+	Hash_bucket_t**			sp;
+	Hash_bucket_t*			b;
+	Hash_bucket_t*			p;
 	Hash_bucket_t**			sx;
 	Hash_root_t*			rp;
 	Hash_table_t*			tp;
 	Hash_free_f			freevalue;
 	Hash_free_f			freebucket;
 	Hash_region_f			region;
-	void*				handle;
+	void*				handle = NULL;
 
 	if (!tab) return NULL;
 	if (tab->table)
