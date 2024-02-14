@@ -607,6 +607,25 @@ for command in "" "command"; do
 	got=$("$SHELL" "$tst")
 	[[ $exp == "$got" ]] || err_exit "${prefix}'typeset -p' cannot add the -D flag to output for variables given a dynamic scope" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	: <<-'disabled'
+	cat > "$tst" <<-EOF
+	# Test 22: Set foo local to parent function from within a nested function (currently doesn't work).
+	parent() {
+		local foo=set_in_parent
+		nested
+		echo $foo
+	}
+	nested() {
+		foo=set_in_nested
+	}
+	parent
+	EOF
+	exp=set_in_nested
+	got=$("$SHELL" "$tst")
+	[[ $exp == "$got" ]] || err_exit "${prefix}cannot change variable local to parent function from within a nested function" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	disabled
 done
 
 # ======
