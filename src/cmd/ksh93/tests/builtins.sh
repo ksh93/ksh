@@ -1206,6 +1206,8 @@ function test_usage
 	do	case $bltin in
 		fc | hist )
 			((SHOPT_SCRIPTONLY)) && continue ;;
+		printf )
+			((SHOPT_PRINTF_LEGACY)) && continue ;;
 		echo | test | true | false | \[ | : | expr | */expr | getconf | */getconf | uname | */uname | catclose | catgets | catopen | Dt* | _Dt* | X* | login | newgrp )
 			continue ;;
 		/*/*)	expect="Usage: ${bltin##*/} "

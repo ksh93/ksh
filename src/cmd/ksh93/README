@@ -123,6 +123,11 @@ The options have the following defaults and meanings:
 
     OPTIMIZE     on  Optimize loop invariants for with for and while loops.
 
+    PRINTF_LEGACY    The printf built-in accepts a format operand that starts
+                     with '-' without the standard preceding '--' options
+                     terminator. This is for compatibility with local scripts.
+                     Enabled by default if the OS's printf(1) is POSIX-ignorant.
+
     P_SUID       0   If set, all real UIDs greater than or equal to this value
                      will require the -p option to run the shell setuid/setgid.
 

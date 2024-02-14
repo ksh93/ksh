@@ -17,7 +17,7 @@ setv IFFEFLAGS
 setv LDFLAGS
 make .INIT dontcare virtual
 	prev ${PACKAGE_ast_INCLUDE}/cmdlist.h
-	exec - sed -e '/^CMDLIST(.*)$/!d' -e 's/CMDLIST(\(.*\))/\1/' -e '/^getconf$/d' -e '/^ln$/d' -e '/^mv$/d' -e '/^md5sum$/d' -e '/^sum$/d' ${PACKAGE_ast_INCLUDE}/cmdlist.h
+	exec - sed -e '/^CMDLIST(.*)$/!d' -e 's/CMDLIST(\(.*\))/\1/' -e '/^getconf$/d' -e '/^ln$/d' -e '/^mv$/d' -e '/^md5sum$/d' -e '/^sum$/d' ${<}
 	bind -lcmd
 done .INIT
 make install virtual
@@ -26,7 +26,7 @@ make install virtual
 			make pty.c
 				make FEATURE/pty implicit
 					prev features/pty
-					exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} ${mam_libcmd} : run features/pty
+					exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} ${mam_libcmd} : run ${<}
 				done
 				prev ${PACKAGE_ast_INCLUDE}/ast_time.h implicit
 				make ${PACKAGE_ast_INCLUDE}/vmalloc.h implicit
@@ -109,19 +109,18 @@ make install virtual
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done
 			done pty.c
-			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=\""builtin"\" -DCMD_STANDALONE=b_pty -c pty.c
+			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=\""builtin"\" -DCMD_STANDALONE=b_pty -c ${<}
 		done pty.o
 		bind -lutil dontcare
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} ${mam_libcmd}
 	done pty
 	make ${INSTALLROOT}/bin
-		exec - mkdir -p ${INSTALLROOT}/bin
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/bin/pty
 		prev pty
 		note * macOS throws code signature error if 'cp' overwrites Mach-O binary; must remove first
-		exec - ${STDRM} -f ${INSTALLROOT}/bin/pty &&
-		exec - ${STDCP} pty ${INSTALLROOT}/bin/pty
+		exec - rm -f ${@} && cp ${<} ${@}
 	done
 done install
 make test dontcare virtual

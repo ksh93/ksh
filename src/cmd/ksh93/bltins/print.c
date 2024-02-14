@@ -197,6 +197,14 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 		}
 	}
 	opt_info.disc = &disc;
+#if SHOPT_PRINTF_LEGACY
+	/* POSIX-ignorant printf(1) compat, prong 1: prevent option parsing if first arg looks like format operand */
+	if(argc<0 && argv[1] && (strchr(argv[1],'%') || strchr(argv[1],'\\')))
+	{
+		opt_info.index = 1;
+		goto skipopts;
+	}
+#endif /* SHOPT_PRINTF_LEGACY */
 	while((n = optget(argv,options))) switch(n)
 	{
 		case 'n':
@@ -264,6 +272,14 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			vflag='C';
 			break;
 		case ':':
+#if SHOPT_PRINTF_LEGACY
+			/* POSIX-ignorant printf(1) compat, prong 2: treat erroneous first option as operand */
+			if(argc<0 && (opt_info.index==1 || opt_info.index==2 && argv[1][0]=='-' && argv[1][1]=='-'))
+			{
+				opt_info.index = 1;
+				goto skipopts;
+			}
+#endif /* SHOPT_PRINTF_LEGACY */
 			/* The following is for backward compatibility */
 			if(strcmp(opt_info.name,"-R")==0)
 			{
@@ -279,6 +295,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 						nflag++;
 						argv++;
 					}
+					opt_info.disc = NULL;
 					goto skip2;
 				}
 			}
@@ -290,6 +307,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
 			UNREACHABLE();
 	}
+skipopts:
 	opt_info.disc = NULL;
 	argv += opt_info.index;
 	if(error_info.errors || (argc<0 && !(format = *argv++)))

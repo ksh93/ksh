@@ -41,6 +41,7 @@ ksh 93u+m made a number of changes to `mamake` that make it easier to maintain M
   produces a deprecation warning; please append them to `make` instead.
 * Repeating the rule name in the `done` commnand is now optional so that
   a simple `done` also works to terminate the current rule.
+* The automatic variables `${@}`, `${<}`, `${^}` and `${?}` have been added.
 
 In addition, the following two simple shell scripts are now provided to aid
 in maintaining and modernising Mamfiles:
@@ -175,6 +176,25 @@ Beware: there is no reference loop detection.
 
 [`TODO`: figure out and document advanced expansion syntax supported by `substitute()` in `mamake.c`]
 
+#### Automatic variables ####
+
+The following variables are set and updated automatically.
+They are inspired by similar variables in `make` implementations,
+but since `mamake` is different, so are these variables.
+
+`${@}` is the name of the rule currently being made.
+
+`${<}` is the name of the prerequisite rule (`make`…`done` or `prev`)
+that was *last* processed within the current rule.
+
+`${^}` is a space-separated list of names of all the current rule's
+previously processed prerequisites.
+
+`${?}` is a space-separate list of the current rule's previously processed
+prerequisites that have been updated by a shell action (see `exec` below)
+during the current `mamake` run. Prequisites that were already up to date,
+or prerequisites that do not contain a shell action, are not included.
+
 ### Shell actions ###
 
 `exec` `-` *code*
@@ -189,6 +209,9 @@ Before adding each line of code to the script,
 MAM variable references (see **MAM variables** above)
 are expanded; their literal values are inserted into the *code* line
 (beware: no quoting is applied!).
+Because variables are expanded when the line is encountered, the value
+of the automatic variables for any `exec` line depends on the position
+of the line in the rule.
 
 After MAM variable expansion, viewpathing is applied: each word
 (separated by space, tab, newline, `;`, `(`, `)`, `` ` ``, `|`, `&` or `=`)
@@ -200,9 +223,9 @@ When `mamake` encounters the `done` command,
 the script is executed by the shell whose path is in the `SHELL` environment variable
 or, absent that, by `/bin/sh`.
 Before executing the script, a trace header in the following format is added to the log:
-```
-# path/to/Mamfile: startline-endline: rule
-```
+
+    # path/to/Mamfile: startline-endline: rule
+
 During script execution, shell action comands are traced using the
 shell's xtrace option, unless the rule has the `notrace` attribute.
 

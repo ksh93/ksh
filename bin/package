@@ -36,7 +36,7 @@ if	(eval "$min_posix") 2>/dev/null
 then	: good shell
 else	"$SHELL" -c "$min_posix" 2>/dev/null && exec "$SHELL" -- "$0" ${1+"$@"}
 	sh -c "$min_posix" 2>/dev/null && exec sh -- "$0" ${1+"$@"}
-	DEFPATH=`getconf PATH` 2>/dev/null || DEFPATH=/usr/xpg4/bin:/bin:/usr/bin:/sbin:/usr/sbin
+	DEFPATH=`getconf PATH 2>/dev/null` || DEFPATH=/usr/xpg4/bin:/bin:/usr/bin:/sbin:/usr/sbin
 	PATH=$DEFPATH:$PATH
 	export PATH
 	sh -c "$min_posix" 2>/dev/null && exec sh -- "$0" ${1+"$@"}
@@ -82,6 +82,42 @@ case $PWD in
 	exit 1 ;;
 esac || exit
 
+# Outputs sanitized system $PATH, eliminating duplicate and nonexistent dirs, '..', etc.
+sanitize_PATH() (
+	set -fu +e
+	IFS=':'
+	unset -v CDPATH
+	sPATH=''
+	for dir in $1; do
+		# Sanitize this path, resolving symlinks,
+		# with special-casing of ksh's virtual built-ins directory
+		case $dir in
+		/opt/ast/bin)
+			test ! -d "$dir" && sdir=$dir ;;
+		*/* | [!+-]* | [+-]*[!0123456789]*)
+			sdir=$(cd -- $dir 2>/dev/null && pwd -P && echo X) ;;
+		*)	sdir=$(cd ./$dir 2>/dev/null && pwd -P && echo X) ;;
+		esac || continue
+		sdir=${sdir%?X}
+		# Skip duplicates
+		case :$sPATH: in
+		*:"$sdir":*)
+			continue ;;
+		esac
+		# Found one, add it
+		sPATH=${sPATH:+$sPATH:}$sdir
+	done
+	printf '%s\n' "${sPATH#:}"
+)
+
+# Ensure a sane $PATH beginning with standard utilities.
+# Find preferred 'getconf' on NixOS and Solaris/illumos.
+DEFPATH=$(
+	PATH=/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+	getconf PATH 2>/dev/null
+) || DEFPATH=/bin:/usr/bin:/sbin:/usr/sbin
+PATH=$(sanitize_PATH "/opt/ast/bin:$DEFPATH:$PATH")
+
 # shell checks
 checksh()
 {
@@ -115,7 +151,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2024-01-22 $
+@(#)$Id: '$command$' (ksh 93u+m) 2024-02-12 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -543,7 +579,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2024-01-22
+  version         package (ksh 93u+m) 2024-02-12
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -3251,7 +3287,7 @@ results)set -- $target
 					case $filter in
 					errors)	$exeg grep -E '^pax:|\*\*\*' $j
 						;;
-					*)	$exec grep -E -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
+					*)	$exec grep -E -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|read|probe|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
 						$exec grep :
 						;;
 					esac

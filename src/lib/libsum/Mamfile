@@ -22,7 +22,6 @@ make install virtual
 			exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} : ${LDFLAGS} : sum md ast
 		done
 		make libsum.a
-			prev sum.req
 			make sumlib.o
 				make sumlib.c
 					make sum-sha2.c implicit dontcare
@@ -53,7 +52,7 @@ make install virtual
 					make FEATURE/sum implicit
 						prev features/sum
 						bind -last
-						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} : run features/sum
+						exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libast} : run ${<}
 					done
 					prev ${PACKAGE_ast_INCLUDE}/hashpart.h implicit
 					make ${PACKAGE_ast_INCLUDE}/swap.h implicit
@@ -120,34 +119,37 @@ make install virtual
 						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -c sumlib.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -c ${<}
 			done sumlib.o
-			exec - ${AR} rc libsum.a sumlib.o
-			exec - (ranlib libsum.a) >/dev/null 2>&1 || true
+			exec - if	test -f ${@}
+			exec - then	${AR} rc ${@} ${?}  # add changed *.o
+			exec - else	${AR} rc ${@} ${^}  # add all *.o
+			exec - fi || exit
+			exec - (ranlib ${@}) >/dev/null 2>&1 || true
 		done libsum.a
 	done sum
 	prev libsum.a
 	make ${INSTALLROOT}/lib
-		exec - mkdir -p ${INSTALLROOT}/lib
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/libsum.a
 		prev libsum.a
-		exec - ${STDCP} -f libsum.a ${INSTALLROOT}/lib/libsum.a
-		exec - (ranlib ${INSTALLROOT}/lib/libsum.a) >/dev/null 2>&1 || true
+		exec - cp -f ${<} ${@} || exit
+		exec - (ranlib ${@}) >/dev/null 2>&1 || true
 	done
 	make ${INSTALLROOT}/lib/lib
-		exec - mkdir -p ${INSTALLROOT}/lib/lib
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/lib/sum
 		prev sum.req
-		exec - ${STDCP} -f sum.req ${INSTALLROOT}/lib/lib/sum
+		exec - cp -f ${<} ${@}
 	done
 	make ${PACKAGE_ast_INCLUDE}
 		exec - mkdir -p ${PACKAGE_ast_INCLUDE}
 	done
 	make ${PACKAGE_ast_INCLUDE}/sum.h
 		prev sum.h
-		exec - ${STDCP} -f sum.h ${PACKAGE_ast_INCLUDE}/sum.h
+		exec - cp -f ${<} ${@}
 	done
 done install
 make test dontcare virtual

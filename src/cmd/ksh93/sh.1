@@ -4573,16 +4573,6 @@ file,
 it is assumed to be a file containing shell commands.
 A separate shell is spawned to read it.
 All non-exported variables are removed in this case.
-If the shell command
-file doesn't have read permission,
-or if the
-.I setuid
-and/or
-.I setgid
-bits are set on the file,
-then the shell executes an agent whose job it is to
-set up the permissions and execute the shell with the
-shell command file passed down as an open file.
 If the
 .B .paths
 contains a line of the form
@@ -7450,8 +7440,34 @@ command substitution and avoids the latter's stripping of final linefeed
 characters (\fB\\n\fR). The \f2vname\fP argument should be a valid variable
 name, optionally with one or more array subscripts in square brackets.
 Note that square brackets should be quoted to avoid pathname expansion.
+.PP
+On some systems, the external
+.BR printf (1)
+command
+allows the
+.I format\^
+operand to begin with a
+.B -\^
+without any preceding
+.B --\^
+option terminator argument
+for compatibility with ancient scripts,
+provided no options are given.
+On such systems,
+.if \nZ=0 .BR sh 's
+.if \nZ=1 .BR ksh 's
+.if \nZ=2 .BR ksh93 's
+built-in
+.B printf\^
+may have been built to be as compatible with
+this as possible while still allowing its options to be usable.
+However, the POSIX standard requires adding the preceding
+.B --\^
+to keep such a
+.I format\^
+operand from being misinterpreted as options.
+The obsolete syntax is not portable and should be avoided in new scripts.
 .RE
-
 .TP
 \f3pwd\fP \*(OK \f3\-LP\fP \*(CK
 Outputs the value of the current working

@@ -1387,13 +1387,22 @@ static int unall(int argc, char **argv, Dt_t *troot)
 		if(jmpval==0)
 		{
 #if SHOPT_NAMESPACE
-			if(sh.namespace && troot==sh.fun_tree && *name!='.')
+			if(sh.namespace && troot==sh.fun_tree && !sh.prefix && *name!='.')
 			{
+				char *nsname;
+				Namval_t *np2;
 				/* prefix the namespace name */
-				sfputr(sh.stk,nv_name(sh.namespace),'.');
-				sfputr(sh.stk,name,'\0');
-				name = stkfreeze(sh.stk,0);
+				sfputr(sh.strbuf,nv_name(sh.namespace),'.');
+				sfputr(sh.strbuf,name,'\0');
+				nsname = sfstruse(sh.strbuf);
+				np = nv_search(nsname,troot,NV_NOSCOPE);
+				if(troot!=sh.fun_base && !np && (np2=nv_search(nsname,troot,0)) && is_afunction(np2))
+				{	/* create dummy virtual subshell node without NV_FUNCTION attribute */
+					nv_open(nsname,troot,NV_NOSCOPE);
+					return r;
+				}
 			}
+			if(!np)
 #endif /* SHOPT_NAMESPACE */
 			np=nv_open(name,troot,NV_NOADD|nflag);
 		}
@@ -1456,8 +1465,8 @@ static int unall(int argc, char **argv, Dt_t *troot)
 		}
 		else if(troot==sh.alias_tree)
 			r = 1;
-		else if(troot==sh.fun_tree && troot!=sh.fun_base && (np=nv_search(name,sh.fun_tree,0)) && is_afunction(np))
-			nv_open(name,troot,NV_NOSCOPE);	/* create dummy virtual subshell node without NV_FUNCTION attribute */
+		else if(troot==sh.fun_tree && troot!=sh.fun_base && !np && (np=nv_search(name,troot,0)) && is_afunction(np))
+			nv_open(name,troot,NV_NOSCOPE); /* create dummy virtual subshell node without NV_FUNCTION attribute */
 	}
 	return r;
 }

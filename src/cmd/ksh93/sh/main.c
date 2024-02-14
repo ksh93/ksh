@@ -550,12 +550,6 @@ static void	exfile(Sfio_t *iop,int fno)
 					else if(job_close()<0)
 						continue;
 				}
-				else if(errno)
-				{
-					/* Ctrl+C with SIGINT ignored */
-					sfputc(sfstderr,'\n');
-					continue;
-				}
 			}
 			else if(errno && sferr)
 			{
@@ -569,6 +563,7 @@ static void	exfile(Sfio_t *iop,int fno)
 				sfclrerr(iop);
 				continue;
 			}
+			sh.exitval = sh.savexit;
 			goto done;
 		}
 		sh.exitval = sh.savexit;

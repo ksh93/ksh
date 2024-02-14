@@ -20,65 +20,65 @@ note *
 make install virtual
 	make iffe
 		prev iffe.sh
-		exec - ${STDCP} iffe.sh iffe && ${STDCHMOD} u+w,+x iffe
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make mktest
 		prev mktest.sh
-		exec - ${STDCP} mktest.sh mktest && ${STDCHMOD} u+w,+x mktest
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make regress
 		prev regress.sh
-		exec - ${STDCP} regress.sh regress && ${STDCHMOD} u+w,+x regress
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make crossexec
 		prev crossexec.sh
-		exec - ${STDCP} crossexec.sh crossexec && ${STDCHMOD} u+w,+x crossexec
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make mkreq
 		prev mkreq.sh
-		exec - ${STDCP} mkreq.sh mkreq && ${STDCHMOD} u+w,+x mkreq
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make mkreq-maplib
 		prev mkreq-maplib.sh
-		exec - ${STDCP} mkreq-maplib.sh mkreq-maplib && ${STDCHMOD} u+w,+x mkreq-maplib
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make mprobe
 		prev mprobe.sh
-		exec - ${STDCP} mprobe.sh mprobe && ${STDCHMOD} u+w,+x mprobe
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make probe
 		make probe.sh
 			prev C+probe
 			prev make.probe
-			exec - ${STDCAT} C+probe make.probe > probe.sh
+			exec - cat ${^} > ${@}
 		done
-		exec - ${STDCP} probe.sh probe && ${STDCHMOD} u+w,+x probe
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	make ${INSTALLROOT}/bin
-		exec - mkdir -p ${INSTALLROOT}/bin
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/bin/iffe
 		prev iffe
-		exec - ${STDCP} -f iffe ${INSTALLROOT}/bin/iffe
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/bin/mkreq
 		prev mkreq
-		exec - ${STDCP} -f mkreq ${INSTALLROOT}/bin/mkreq
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/bin/mktest
 		prev mktest
-		exec - ${STDCP} -f mktest ${INSTALLROOT}/bin/mktest
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/bin/regress
 		prev regress
-		exec - ${STDCP} -f regress ${INSTALLROOT}/bin/regress
+		exec - cp -f ${<} ${@}
 	done
 	make ${PACKAGEROOT}/bin
 		exec - mkdir -p ${PACKAGEROOT}/bin
 	done
 	make ${INSTALLROOT}/bin/crossexec
 		prev crossexec
-		exec - ${STDCP} -f crossexec ${INSTALLROOT}/bin/crossexec
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/bin/proto
 		note *
@@ -86,7 +86,7 @@ make install virtual
 		note * that allows old Mamfiles containing proto commands to keep working.
 		note *
 		prev proto.sh
-		exec - ${STDCP} proto.sh ${INSTALLROOT}/bin/proto && ${STDCHMOD} u+w,+x ${INSTALLROOT}/bin/proto
+		exec - cp ${<} ${@} && chmod u+w,+x ${@}
 	done
 	note *
 	note * ksh93 function search on PATH
@@ -134,7 +134,7 @@ make install virtual
 		exec -				*PLUGIN_LIB=*)
 		exec -					p=$x ;;
 		exec -				*)	case $u in
-		exec -					?*	 u=$u$N ;;
+		exec -					?*)	 u=$u$N ;;
 		exec -					esac
 		exec -					u=$u$x ;;
 		exec -				esac
@@ -229,38 +229,38 @@ make install virtual
 	note * probe initialization
 	note *
 	make ${INSTALLROOT}/lib/probe/C
-		exec - mkdir -p ${INSTALLROOT}/lib/probe/C
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/probe/C/probe
 		prev C+probe
-		exec - ${STDCP} -f C+probe ${INSTALLROOT}/lib/probe/C/probe
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/lib/probe/C/make
-		exec - mkdir -p ${INSTALLROOT}/lib/probe/C/make
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/probe/C/pp
-		exec - mkdir -p ${INSTALLROOT}/lib/probe/C/pp
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/probe/C/mam
-		exec - mkdir -p ${INSTALLROOT}/lib/probe/C/mam
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/probe/C/mam/probe
 		prev mprobe
-		exec - ${STDCP} -f mprobe ${INSTALLROOT}/lib/probe/C/mam/probe
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/lib/probe/C/mam/mprobe
 		prev mprobe
-		exec - ${STDCP} -f mprobe ${INSTALLROOT}/lib/probe/C/mam/mprobe
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/lib/probe/C/make/probe
 		prev probe
-		exec - ${STDCP} -f probe ${INSTALLROOT}/lib/probe/C/make/probe
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/include/ast
-		exec - mkdir -p ${INSTALLROOT}/include/ast
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/lib
-		exec - mkdir -p ${INSTALLROOT}/lib/lib
+		exec - mkdir -p ${@}
 	done
 	note *
 	note * check if -ldl is required
@@ -277,7 +277,7 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : dl : dl.c : dl
 		done
-		exec - ${STDCP} -f dl.req ${INSTALLROOT}/lib/lib/dl
+		exec - cp -f ${<} ${@}
 	done
 	note *
 	note * requiring these is a botch
@@ -288,7 +288,7 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : iconv : iconv.c : iconv
 		done
-		exec - ${STDCP} -f iconv.req ${INSTALLROOT}/lib/lib/iconv
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/lib/lib/w
 		make w.req
@@ -297,7 +297,7 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : w : w.c w2.c : w
 		done
-		exec - ${STDCP} -f w.req ${INSTALLROOT}/lib/lib/w
+		exec - cp -f ${<} ${@}
 	done
 	note *
 	note * miscellaneous -l* checks
@@ -308,7 +308,7 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : intl : intl.c : intl
 		done
-		exec - ${STDCP} -f intl.req ${INSTALLROOT}/lib/lib/intl
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/lib/lib/m
 		make m.req
@@ -321,7 +321,7 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : m : m.c m2.c m3.c m4.c m5.c m6.c : m
 		done
-		exec - ${STDCP} -f m.req ${INSTALLROOT}/lib/lib/m
+		exec - cp -f ${<} ${@}
 	done
 	make ${INSTALLROOT}/lib/lib/nsl
 		make nsl.req
@@ -329,7 +329,7 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : nsl : nsl.c : nsl
 		done
-		exec - ${STDCP} -f nsl.req ${INSTALLROOT}/lib/lib/nsl
+		exec - cp -f ${<} ${@}
 	done
 	note *
 	note * what was sco smoking
@@ -344,7 +344,7 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : socket : socket.c nsl.c : socket
 		done
-		exec - ${STDCP} -f socket.req ${INSTALLROOT}/lib/lib/socket
+		exec - cp -f ${<} ${@}
 	done
 	note *
 	note * more substance abuse
@@ -367,17 +367,17 @@ make install virtual
 			prev mkreq-maplib
 			exec - mkreq-maplib ${CC} : dbm : db.c gdbm.c gdbm1.c gdbm2.c : db gdbm_compat gdbm ndbm dbm
 		done
-		exec - ${STDCP} -f dbm.req ${INSTALLROOT}/lib/lib/dbm
+		exec - cp -f ${<} ${@}
 	done
 done install
 make test dontcare virtual
 	make test.iffe virtual
 		prev iffe.tst
-		exec - regress iffe.tst iffe
+		exec - regress ${<} iffe
 	done
 	make test.mamake virtual
 		prev mamake.tst
 		exec - : testing non-libast mamake at $PWD/mamake :
-		exec - regress mamake.tst mamake
+		exec - regress ${<} mamake
 	done
 done test

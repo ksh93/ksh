@@ -292,13 +292,14 @@ static void p_time(Sfio_t *out, const char *format, clock_t *tm)
 		else
 		{
 			/* scale fraction from micro to milli, centi, or deci second according to precision */
+			long sec = tvp->tv_sec;
 			int n, frac = tvp->tv_usec;
 			for(n = 3 + (3 - precision); n > 0; --n)
 				frac /= 10;
 			if(precision)
-				sfprintf(sh.stk, "%d%c%0*d", tvp->tv_sec, sh.radixpoint, precision, frac);
+				sfprintf(sh.stk, "%ld%c%0*d", sec, sh.radixpoint, precision, frac);
 			else
-				sfprintf(sh.stk, "%d", tvp->tv_sec);
+				sfprintf(sh.stk, "%ld", sec);
 		}
 #else
 		if(c=='R')

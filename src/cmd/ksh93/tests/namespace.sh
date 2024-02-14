@@ -210,6 +210,18 @@ do
 	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1b)" \
 		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
+	# bug introduced on 2023-06-02
+	got=$(
+		eval "$b() { echo BAD; }"
+		namespace ns
+		{
+			(unset -f "$b"; PATH=/dev/null; "$b" --version 2>&1)
+			exit	# avoid optimizing out the subshell
+		}
+	)
+	[[ e=$? -eq 2 && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (1c)" \
+		"(expected status 2 and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+
 	got=$(
 		namespace ns
 		{

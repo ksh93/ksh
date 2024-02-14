@@ -2,6 +2,39 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-02-11:
+
+- Added SHOPT_PRINTF_LEGACY compile-time option for compatibility with
+  POSIX-ignorant external printf(1) commands that process a format operand
+  starting with '-' without the standard preceding '--' options terminator.
+  This is for backward compatibility with local system scripts. The
+  behaviour of the system's external printf(1) determines whether this is
+  compiled in or out by default. Normal ksh printf options keep working.
+
+- Fixed a bug, introduced on 2023-06-02, that made it impossible within a
+  namespace to unset a function defined outside the namespace.
+
+- Fixed: ksh didn't pass the exit status of the last command it executed to
+  the parent process on entering EOF (Ctrl+D) on a terminal.
+
+2024-02-09:
+
+- Fixed multiple inaccurate or missing values in the /opt/ast/bin/getconf
+  path-bound built-in command.
+
+2024-02-08:
+
+- Fixed an init-time crash that may occur if standard error is on a terminal,
+  but the path to its tty device can't be found (e.g., in a chroot situation).
+
+- Fixed corrupted output of the 'time' keyword as formatted via TIMEFORMAT on
+  systems where sizeof(time_t) != sizeof(int). Bug introduced on 2020-07-13.
+
+2024-02-06:
+
+- Fixed a regression introduced on 2023-03-04 that caused ksh to lock up
+  after using the Arch Linux arch-chroot script.
+
 2024-02-03:
 
 - Fixed: the arithmetic representation of negative integers with a base other

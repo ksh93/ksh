@@ -22,7 +22,6 @@ make install virtual
 			exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} : ${LDFLAGS} : dll dl dld ast
 		done
 		make libdll.a
-			prev dll.req
 			make dlfcn.o
 				make dlfcn.c
 					prev dll.h implicit dontcare virtual
@@ -96,13 +95,13 @@ make install virtual
 							prev features/dll
 							bind -ldl dontcare
 							bind -last
-							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdl} ${mam_libast} : run features/dll
+							exec - iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L.} ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libdl} ${mam_libast} : run ${<}
 						done
-						exec - ${STDCP} -f FEATURE/dll dlldefs.h
+						exec - cp -f ${<} ${@}
 					done
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done dlfcn.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dlfcn.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done dlfcn.o
 			make dllopen.o
 				make dllopen.c
@@ -112,7 +111,7 @@ make install virtual
 						prev ${PACKAGE_ast_INCLUDE}/ast.h
 					done
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllopen.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dllfind.o
 				make dllfind.c
@@ -120,19 +119,19 @@ make install virtual
 					prev dlldefs.h
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllfind.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dllplug.o
 				make dllplug.c
 					prev dlllib.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllplug.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dll_lib.o
 				make dll_lib.c
 					prev dlllib.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dll_lib.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dllnext.o
 				make dllnext.c
@@ -140,7 +139,7 @@ make install virtual
 					prev dlldefs.h
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllnext.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dlllook.o
 				make dlllook.c
@@ -148,7 +147,7 @@ make install virtual
 					prev ${PACKAGE_ast_INCLUDE}/error.h
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dlllook.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dllscan.o
 				make dllscan.c
@@ -167,46 +166,49 @@ make install virtual
 					done
 					prev ${PACKAGE_ast_INCLUDE}/ast.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllscan.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${CCFLAGS.FORCE}?} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dllcheck.o
 				make dllcheck.c
 					prev dlllib.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllcheck.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
 			make dllerror.o
 				make dllerror.c
 					prev dlllib.h
 				done
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c dllerror.c
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -D_BLD_dll -c ${<}
 			done
-			exec - ${AR} rc libdll.a dlfcn.o dllopen.o dllfind.o dllplug.o dll_lib.o dllnext.o dlllook.o dllscan.o dllcheck.o dllerror.o
-			exec - (ranlib libdll.a) >/dev/null 2>&1 || true
+			exec - if	test -f ${@}
+			exec - then	${AR} rc ${@} ${?}  # add changed *.o
+			exec - else	${AR} rc ${@} ${^}  # add all *.o
+			exec - fi || exit
+			exec - (ranlib ${@}) >/dev/null 2>&1 || true
 		done libdll.a
 	done dll
 	prev libdll.a
 	make ${INSTALLROOT}/lib
-		exec - mkdir -p ${INSTALLROOT}/lib
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/libdll.a
 		prev libdll.a
-		exec - ${STDCP} -f libdll.a ${INSTALLROOT}/lib/libdll.a
-		exec - (ranlib ${INSTALLROOT}/lib/libdll.a) >/dev/null 2>&1 || true
+		exec - cp -f ${<} ${@} || exit
+		exec - (ranlib ${@}) >/dev/null 2>&1 || true
 	done
 	make ${INSTALLROOT}/lib/lib
-		exec - mkdir -p ${INSTALLROOT}/lib/lib
+		exec - mkdir -p ${@}
 	done
 	make ${INSTALLROOT}/lib/lib/dll
 		prev dll.req
-		exec - ${STDCP} -f dll.req ${INSTALLROOT}/lib/lib/dll
+		exec - cp -f ${<} ${@}
 	done
 	make ${PACKAGE_ast_INCLUDE}
 		exec - mkdir -p ${PACKAGE_ast_INCLUDE}
 	done
 	make ${PACKAGE_ast_INCLUDE}/dlldefs.h
 		prev dlldefs.h
-		exec - ${STDCP} -f dlldefs.h ${PACKAGE_ast_INCLUDE}/dlldefs.h
+		exec - cp -f ${<} ${@}
 	done
 done install
 make test dontcare virtual

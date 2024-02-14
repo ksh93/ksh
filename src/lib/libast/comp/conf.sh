@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1985-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -249,9 +249,6 @@ case $append$extra in
 					esac
 					;;
 				*)	values=$values$sp$1
-					case $1 in
-					$sym)	echo "$1" >> $tmp.v ;;
-					esac
 					;;
 				esac
 			done
@@ -799,8 +796,6 @@ do	eval name=\"'$'CONF_name_$key\"
 done > $tmp.q
 sort -u < $tmp.q > $tmp.t
 mv $tmp.t $tmp.q
-sort -u < $tmp.v > $tmp.t
-mv $tmp.t $tmp.v
 case $debug in
 -d4)	exit ;;
 esac
@@ -862,7 +857,6 @@ case $verbose in
 1)	echo "$command: check macros/enums as static initializers" >&2 ;;
 esac
 defined $tmp.q
-defined $tmp.v
 case $debug in
 -d5)	exit ;;
 esac
@@ -870,10 +864,6 @@ esac
 # mark the constant macros/enums
 
 exec < $tmp.q
-while	read line
-do	eval CONF_const_${line}=1
-done
-exec < $tmp.v
 while	read line
 do	eval CONF_const_${line}=1
 done
@@ -1061,13 +1051,8 @@ do	eval name=\"'$'CONF_name_$key\"
 	conf_limit=0
 	case $flags in
 	*[Ll]*)	d=
-		case ${conf_name} in
-		LONG_MAX|SSIZE_MAX)
-			x=
-			;;
-		*)	eval x='$'CONF_const_${conf_name}
-			;;
-		esac
+		# always probe, even if a CONF_const_${conf_name} variable exists
+		x=
 		case $x in
 		'')	for s in ${values}
 			do	case $s in

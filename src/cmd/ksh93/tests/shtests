@@ -8,7 +8,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2023-05-18 $
+@(#)$Id: shtests (ksh 93u+m) 2024-02-11 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -274,9 +274,12 @@ if	[[ -d /usr/ucb ]]
 then	PATH=$PATH:/usr/ucb
 fi
 PATH=$PATH:$d
-if	[[ $INSTALLROOT && -r $INSTALLROOT/bin/.paths ]]
-then	PATH=$INSTALLROOT/bin:$PATH
+if	[[ ! -v INSTALLROOT || $INSTALLROOT != /* ]]
+then	echo "$0: cannot continue: INSTALLROOT must be set" >&2
+	echo "$0: invoke me after 'bin/package use', or via 'bin/shtests' or 'bin/package test'" >&2
+	exit 1
 fi
+PATH=$INSTALLROOT/bin:$PATH
 if	[[ ${SHELL%/*} != $INSTALLROOT/bin ]]
 then	PATH=${SHELL%/*}:$PATH
 fi
@@ -308,12 +311,27 @@ fi
 export HOME=$tmp
 
 # make the SHOPT_* macros available to the tests as environment variables
+command unset "${!SHOPT_@}" 2>/dev/null
 SHOPT()
 {
 	[[ $1 == *=* ]] && eval "export SHOPT_${ printf %q "${1%%=*}"; }=${ printf %q "${1#*=}"; }"
 }
 . "${SHOPTFILE:-../SHOPT.sh}"
 unset -f SHOPT
+# override with probed values from shopt.h:
+# change '#define SHOPT_foo = bar' to 'export SHOPT_foo=bar' and evaluate
+if	[[ -f $INSTALLROOT/src/cmd/ksh93/shopt.h ]] &&
+	i=$(sed -n $'/^#[ \t]*define[ \t][ \t]*SHOPT_/ {
+				s/.*define[ \t][ \t]*//
+				s/[ \t][ \t]*/=/
+				s/^/export /
+				p
+			}' "$INSTALLROOT"/src/cmd/ksh93/shopt.h)
+then	eval "$i" || exit
+else	echo "$0: cannot grep shopt.h" >&2
+	exit 1
+fi
+
 [[ -n $SHOPT_MULTIBYTE ]] || SHOPT_MULTIBYTE=$( LC_ALL=C.UTF-8; x=$'\xc3\xa9'; print $(( ${#x}==1 )) )
 if	(( !SHOPT_MULTIBYTE && utf8 && !posix && !compile ))
 then	echo "-u/--utf8 is unavailable because multibyte support was not compiled in." >&2

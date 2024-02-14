@@ -7,7 +7,7 @@ typ	fd_set sys/socket.h sys/select.h
 typ	socklen_t unistd.h sys/socket.h = unsigned int
 tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 	#include <ast.h>
-	#include <signal.h>
+	#include <sig.h>
 	#include <sys/types.h>
 	#include <sys/socket.h>
 	#include <sys/wait.h>

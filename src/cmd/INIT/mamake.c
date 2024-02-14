@@ -27,7 +27,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2024-02-05"
+#define RELEASE_DATE "2024-02-10"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -182,6 +182,7 @@ static const char usage[] =
 #define RULE_made	0x0080		/* already made			*/
 #define RULE_virtual	0x0100		/* not a file			*/
 #define RULE_notrace	0x0200		/* do not xtrace shell action	*/
+#define RULE_updated	0x0400		/* rule was outdated and remade */
 
 #define STREAM_KEEP	0x0001		/* don't fclose() on pop()	*/
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
@@ -297,6 +298,12 @@ static unsigned long	make(Rule_t*);
 
 static char		mamfile[] = "Mamfile";
 static char		sh[] = "/bin/sh";
+static char		empty[] = "";
+
+static Dict_item_t*	auto_making;	/* ${@} - name of rule being made */
+static Dict_item_t*	auto_prev;	/* ${<} - name of last prerequisite */
+static Dict_item_t*	auto_allprev;	/* ${^} - space-separated names of all prerequisites */
+static Dict_item_t*	auto_updprev;	/* ${?} - space-separated names of updated prerequisites */
 
 extern char**		environ;
 
@@ -480,20 +487,33 @@ append(Buf_t* buf, char* str)
 }
 
 /*
+ * realloc for strings (with support for non-allocated empty string):
  * allocate space for s and return the copy
  */
 
 static char*
-duplicate(char* s)
+reduplicate(char* orig, char* s)
 {
 	char*	t;
 	int	n;
 
 	n = strlen(s);
-	if (!(t = newof(0, char, n, 1)))
+	if (n == 0)
+	{
+		if (orig && orig != empty)
+			free(orig);
+		return empty;
+	}
+	if (!(t = realloc(orig == empty ? NULL : orig, n + 1)))
 		report(3, "out of memory [duplicate]", s, 0);
 	strcpy(t, s);
 	return t;
+}
+
+static char*
+duplicate(char* s)
+{
+	return reduplicate(NULL, s);
 }
 
 /*
@@ -593,7 +613,7 @@ search(Dict_t* dict, char* name, void* value)
 		root->left = lroot;
 		root->right = rroot;
 		dict->root = root;
-		return value ? root->name : root->value;
+		return value ? root : root->value;
 	}
 	if (left)
 	{
@@ -651,7 +671,7 @@ rule(char* name)
 	{
 		if (!(r = newof(0, Rule_t, 1, 0)))
 			report(3, "out of memory [rule]", name, 0);
-		r->name = (char*)search(state.rules, name, r);
+		r->name = ((Dict_item_t*)search(state.rules, name, r))->name;
 		r->line = state.sp ? state.sp->line : 0;
 	}
 	return r;
@@ -836,7 +856,7 @@ substitute(Buf_t* buf, char* s)
 		{
 			b = s - 1;
 			i = 1;
-			for (n = *(t = ++s) == '-' ? 0 : '-'; (c = *s) && c != '?' && c != '+' && c != n && c != ':' && c != '=' && c != '[' && c != '}'; s++)
+			for (n = *(t = ++s) == '-' ? 0 : '-'; (c = *s) && (c != '?' || s == t) && c != '+' && c != n && c != ':' && c != '=' && c != '[' && c != '}'; s++)
 				if (!isalnum(c) && c != '_')
 					i = 0;
 			*s = 0;
@@ -1154,9 +1174,7 @@ push(char* file, Stdio_t* fp, int flags)
 		{
 			if (!(state.sp->fp = fopen(path, "r")))
 				report(3, "cannot read", path, 0);
-			if (state.sp->file)
-				free(state.sp->file);
-			state.sp->file = duplicate(path);
+			state.sp->file = reduplicate(state.sp->file, path);
 			drop(buf);
 		}
 		else
@@ -1754,6 +1772,7 @@ make(Rule_t* r)
 			{
 				char	*fname = state.sp->file, *rname = r->name, *rnamepre = "", *val;
 				int	len;
+
 				/* show a nice trace header */
 				/* ...mamfile path: make relative to ${PACKAGEROOT} */
 				if (*fname == '/'
@@ -1767,6 +1786,7 @@ make(Rule_t* r)
 					rname += len, rnamepre = "${INSTALLROOT}";
 				fprintf(stderr, "\n# %s: %lu-%lu: make %s%s\n",
 					fname, r->line, state.sp->line, rnamepre, rname);
+
 				/* -e option */
 				if (state.explain)
 				{
@@ -1777,12 +1797,12 @@ make(Rule_t* r)
 					else
 						fprintf(stderr, "target [%lu] older than prerequisites [%lu]\n", r->time, z);
 				}
-				/* expand MAM variables in the shell action */
-				substitute(buf, use(cmd));
+
 				/* run the shell action */
-				x = run(r, use(buf));
+				x = run(r, use(cmd));
 				if (z < x)
 					z = x;
+				r->flags |= RULE_updated;
 			}
 			r->flags |= RULE_made;
 			if (!(r->flags & (RULE_dontcare|RULE_error|RULE_exists|RULE_generated|RULE_implicit|RULE_virtual)))
@@ -1802,21 +1822,61 @@ make(Rule_t* r)
 					add(cmd, '\n');
 				else
 					cmd = buffer();
-				append(cmd, v);
+				/* expand MAM vars now for each line, and not for the entire script at 'done',
+				 * to avoid confusing behaviour of automatic variables such as ${<} */
+				append(cmd, expand(buf, v));
 			}
 			continue;
 		case KEY('m','a','k','e'):
-			q = rule(expand(buf, t));
+		{
+			char *rulename = expand(buf, t);
+			q = rule(rulename);
 			if (!q->making)
 			{
+				char *save_making = auto_making->value;
+				char *save_allprev = auto_allprev->value;
+				char *save_updprev = auto_updprev->value;
+
+				/* set ${@}; empty ${?}, ${^} and ${<} */
+				rulename = duplicate(rulename);
+				auto_making->value = rulename;
+				auto_updprev->value = empty;
+				auto_allprev->value = empty;
+				auto_prev->value = reduplicate(auto_prev->value, empty);
+
+				/* make the target */
 				attributes(q, v);
 				x = make(q);
 				if (!(q->flags & RULE_ignore) && z < x)
 					z = x;
 				if (q->flags & RULE_error)
 					r->flags |= RULE_error;
+
+				/* set ${<} */
+				auto_prev->value = reduplicate(auto_prev->value, rulename);
+				/* restore ${^}, append to it */
+				if (*save_allprev)
+					append(buf, save_allprev), add(buf, ' ');
+				append(buf, rulename);
+				if (save_allprev != empty)
+					free(save_allprev);
+				auto_allprev->value = reduplicate(auto_allprev->value, use(buf));
+				/* restore ${?}, append to it if rule was updated */
+				if (q->flags & RULE_updated)
+				{
+					if (save_updprev != empty)
+						append(buf, save_updprev), add(buf, ' ');
+					append(buf, rulename);
+					save_updprev = reduplicate(save_updprev, use(buf));
+				}
+				if (auto_updprev->value != empty)
+					free(auto_updprev->value);
+				auto_updprev->value = save_updprev;
+				/* restore ${@} */
+				auto_making->value = save_making;
 			}
 			continue;
+		}
 		case KEY('p','r','e','v'):
 		{
 			char *name = expand(buf, t);
@@ -1846,6 +1906,21 @@ make(Rule_t* r)
 				state.indent++;
 				report(-2, q->name, "prev", q->time);
 				state.indent--;
+			}
+			/* set ${<} */
+			auto_prev->value = name = reduplicate(auto_prev->value, name);
+			/* append to ${^} */
+			if (auto_allprev->value != empty)
+				append(buf, auto_allprev->value), add(buf, ' ');
+			append(buf, name);
+			auto_allprev->value = reduplicate(auto_allprev->value, use(buf));
+			/* append to ${?} if rule was updated */
+			if (q->flags & RULE_updated)
+			{
+				if (auto_updprev->value != empty)
+					append(buf, auto_updprev->value), add(buf, ' ');
+				append(buf, name);
+				auto_updprev->value = reduplicate(auto_updprev->value, use(buf));
 			}
 			continue;
 		}
@@ -2372,6 +2447,15 @@ main(int argc, char** argv)
 			}
 		}
 	}
+
+	/*
+	 * initialize the automatic variables
+	 */
+
+	auto_making = search(state.vars, "@", empty);
+	auto_prev = search(state.vars, "<", empty);
+	auto_allprev = search(state.vars, "^", empty);
+	auto_updprev = search(state.vars, "?", empty);
 
 	/*
 	 * grab the command line targets and variable definitions
