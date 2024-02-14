@@ -1971,7 +1971,7 @@ const char sh_opttypeset[] =
 "[T]:?[tname?\atname\a is the name of a type name given to each \aname\a.]"
 "[Z]#?[n?Zero fill. If \an\a is given it represents the field width.]"
 "[D?Modifies variables using a dynamic local scope in functions.]"
-"[c?Modifies variables using a static local scope in functions.]"
+"[P?Modifies variables using a static local scope in functions.]"
 "\n"
 "\n[name[=value]...]\n"
 " -f [-tu] [name...]\n"

@@ -1022,7 +1022,7 @@ int sh_exec(const Shnode_t *t, int flags)
 							flgs |= NV_GLOBAL;
 						if(checkopt(com,'D'))
 							flgs |= NV_DYNAMIC;
-						if(checkopt(com,'c'))
+						if(checkopt(com,'P'))
 							flgs |= NV_STATSCOPE;
 						if(np==SYSNAMEREF || checkopt(com,'n'))
 							flgs |= NV_NOREF;

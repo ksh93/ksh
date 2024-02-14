@@ -444,7 +444,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				flag |= NV_DYNAMIC;
 				scoping_flags++;
 				break;
-			case 'c':
+			case 'P':
 				flag &= ~(NV_SCOPES);
 				flag |= NV_STATSCOPE;
 				scoping_flags++;

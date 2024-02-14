@@ -101,9 +101,9 @@ for i in declare local; do
 			"(expected globalscope, got $(printf %q "$bar"))"
 done
 
-got=$(command declare -cDg invalid=cannotset 2>&1)
+got=$(command declare -PDg invalid=cannotset 2>&1)
 status=$?
-((status == 2)) || err_exit "attempting to combine -c, -D and -g doesn't fail correctly" \
+((status == 2)) || err_exit "attempting to combine -P, -D and -g doesn't fail correctly" \
 			"(returned exit status $status and output $(printf %q "$got"))"
 
 # The declare builtin should work outside of functions
@@ -480,17 +480,17 @@ for command in "" "command"; do
 	[[ $exp == "$got" ]] || err_exit "${prefix}Local variables from KornShell functions leak out into other functions" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-	# Test 16: 'typeset -c' should use static scoping in POSIX functions
+	# Test 16: 'typeset -P' should use static scoping in POSIX functions
 	tst=$tmp/tst.sh
 	cat > "$tst" <<-EOF
 	foo=global
 	bar() {
 		echo \$foo
-		$command typeset -c foo=static2
+		$command typeset -P foo=static2
 		echo \$foo
 	}
 	foo() {
-		$command typeset -c foo=static
+		$command typeset -P foo=static
 		echo \$foo
 		bar
 		echo \$foo
@@ -501,20 +501,20 @@ for command in "" "command"; do
 	EOF
 	exp=$'global\nstatic\nglobal\nstatic2\nstatic\nglobal'
 	got=$("$SHELL" "$tst")
-	[[ $exp == "$got" ]] || err_exit "${prefix}Cannot use static scoping in POSIX functions with 'local -c'" \
+	[[ $exp == "$got" ]] || err_exit "${prefix}Cannot use static scoping in POSIX functions with 'local -P'" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-	# Test 17: 'local -c' should use static scoping in KornShell functions
+	# Test 17: 'local -P' should use static scoping in KornShell functions
 	tst=$tmp/tst.sh
 	cat > "$tst" <<-EOF
 	foo=global
 	function bar {
 		echo \$foo
-		$command local -c foo=static2
+		$command local -P foo=static2
 		echo \$foo
 	}
 	function foo {
-		$command local -c foo=static
+		$command local -P foo=static
 		echo \$foo
 		bar
 		echo \$foo
@@ -525,7 +525,7 @@ for command in "" "command"; do
 	EOF
 	exp=$'global\nstatic\nglobal\nstatic2\nstatic\nglobal'
 	got=$("$SHELL" "$tst")
-	[[ $exp == "$got" ]] || err_exit "${prefix}Cannot use static scoping in KornShell functions with 'local -c'" \
+	[[ $exp == "$got" ]] || err_exit "${prefix}Cannot use static scoping in KornShell functions with 'local -P'" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 	# Test 18: Make static $bar dynamic in POSIX functions
@@ -534,7 +534,7 @@ for command in "" "command"; do
 		echo \$bar
 	}
 	foo() {
-		$command typeset -c bar=BAD
+		$command typeset -P bar=BAD
 		nxt
 		$command local bar=1
 		function infun {
@@ -557,7 +557,7 @@ for command in "" "command"; do
 		echo \$bar
 	}
 	foo() {
-		$command local -c bar=static
+		$command local -P bar=static
 		nxt
 		echo \$bar
 	}
@@ -583,7 +583,7 @@ for command in "" "command"; do
 			echo \$foo
 		}
 		infun
-		$command declare -c baz=3
+		$command declare -P baz=3
 		$command typeset -g bear=4
 	}
 	. foo
