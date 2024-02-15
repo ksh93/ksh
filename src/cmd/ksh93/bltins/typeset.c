@@ -491,7 +491,7 @@ endargs:
 	}
 	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_SCOPES)))
 	{
-		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -c, -D and -g");
+		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -P, -D and -g");
 		error_info.errors++;
 	}
 	if((flag&NV_TYPE) && (flag&~(NV_TYPE|NV_VARNAME|NV_ASSIGN)))
@@ -522,12 +522,12 @@ endargs:
 	}
 	if((flag&NV_SCOPES) && sh.mktype)
 	{
-		errormsg(SH_DICT,ERROR_exit(2),"type members cannot use the scoping flags -c, -D and -g");
+		errormsg(SH_DICT,ERROR_exit(2),"type members cannot use the scoping flags -P, -D and -g");
 		UNREACHABLE();
 	}
 	if(scoping_flags > 1)
 	{
-		errormsg(SH_DICT,ERROR_exit(2),"the scoping flags -c, -D and -g cannot be combined");
+		errormsg(SH_DICT,ERROR_exit(2),"the scoping flags -P, -D and -g cannot be combined");
 		UNREACHABLE();
 	}
 	if(troot==sh.var_tree && !sh.mktype && sh.infunction && !(flag&(NV_SCOPES)))

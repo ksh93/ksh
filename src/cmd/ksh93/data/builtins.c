@@ -1919,7 +1919,7 @@ const char sh_opttypeset[] =
 "[p?Causes the output to be in a format that can be used as input to the "
 	"shell to recreate the attributes for variables. If this flag "
 	"is used by \btypeset\b in a POSIX function without also passing "
-	"\b-D\b or \b-c\b, the local scope is ignored and \btypeset\b will "
+	"\b-D\b or \b-P\b, the local scope is ignored and \btypeset\b will "
 	"only use the global scope.]"
 "[r?Enables readonly. Once enabled it cannot be disabled. See "
 	"\breadonly\b(1).]"
