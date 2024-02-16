@@ -456,7 +456,7 @@ static void	exfile(Sfio_t *iop,int fno)
 		/*
 		 * Reset the lexer state and make sure the heredocs file is
 		 * closed and set to NULL. For now we only do this when we get
-		 * here in an interactive shell and we have a left-over heredoc.
+		 * here in an interactive shell and we have a leftover heredoc.
 		 */
 		if(sh_isstate(SH_INTERACTIVE) && jmpval==SH_JMPERREXIT && sh.heredocs)
 		{
