@@ -2,6 +2,10 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-02-16:
+
+- Fixed two integer overflows that could occur when using TMOUT.
+
 2024-02-11:
 
 - Added SHOPT_PRINTF_LEGACY compile-time option for compatibility with
