@@ -1993,7 +1993,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					save_prompt = sh.nextprompt;
 					sh.nextprompt = 3;
 					sh.timeout = 0;
-					sh.exitval=sh_readline(&null_pointer,0,1,0,1000*sh.st.tmout);
+					sh.exitval=sh_readline(&null_pointer,0,1,0,1000L*sh.st.tmout);
 					sh.nextprompt = save_prompt;
 					if(sh.exitval||sfeof(sfstdin)||sferror(sfstdin))
 					{
