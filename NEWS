@@ -4,8 +4,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2024-02-22:
 
-- Fixed a segmentation fault that occurred when starting ksh in single
-  user mode on NetBSD and DragonFlyBSD.
+- Fixed a crash that occurred when starting ksh with no TERM variable in the
+  environment (e.g., in single user mode on NetBSD and DragonFlyBSD).
 
 2024-02-17:
 
