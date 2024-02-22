@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-02-22:
+
+- Fixed a segmentation fault that occurred when starting ksh in single
+  user mode on NetBSD and DragonFlyBSD.
+
 2024-02-17:
 
 - Fixed a crash that could occur when using 'typeset -T' typed variables

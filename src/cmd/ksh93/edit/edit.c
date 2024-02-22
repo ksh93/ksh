@@ -611,7 +611,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 		static char *oldterm;
 		Namval_t *np = nv_search("TERM",sh.var_tree,0);
 		char *term = NULL;
-		if(nv_isattr(np,NV_EXPORT))
+		if(np && nv_isattr(np,NV_EXPORT))
 			term = nv_getval(np);
 		if(!term)
 			term = "";
