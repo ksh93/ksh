@@ -1343,10 +1343,12 @@ L crash when attempting to cancel a heredoc in an interactive shell
 
 d 40
 p :test-1:
-w cat << EOS
+w "$SHELL"
 p :test-2:
-w \cd
+w cat << EOS
 p :test-3:
+w \cD
+p :test-4:
 w print Exit status $?
 u ^Exit status 0\r\n$
 !
