@@ -50,13 +50,13 @@
 
 struct read_save
 {
-        char	**argv;
-	char	*prompt;
-        int	fd;
-        int	plen;
-	int	flags;
-	ssize_t	len;
-        long	timeout;
+        char		**argv;
+	char		*prompt;
+        int		fd;
+        int		plen;
+	int		flags;
+	ssize_t		len;
+        Sflong_t	timeout;
 };
 
 int	b_read(int argc,char *argv[], Shbltin_t *context)
@@ -66,7 +66,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 	const char *msg = e_file+4;
 	int r, flags=0, fd=0;
 	ssize_t	len=0;
-	long timeout = 1000*sh.st.tmout;
+	Sflong_t timeout = 1000*(Sflong_t)sh.st.tmout;
 	int save_prompt, fixargs=context->invariant;
 	struct read_save *rp;
 	static char default_prompt[3] = {ESC,ESC};
@@ -212,7 +212,7 @@ static void timedout(void *handle)
  *  <flags> is union of -A, -r, -s, and contains delimiter if not '\n'
  *  <timeout> is the number of milliseconds until timeout
  */
-int sh_readline(char **names, volatile int fd, int flags, ssize_t size, long timeout)
+int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t timeout)
 {
 	ssize_t			c;
 	unsigned char		*cp;

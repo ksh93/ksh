@@ -68,7 +68,11 @@ done:
 		int r;
 		intmax_t l = strtoll(*argv, NULL, 10);
 		if(do_exit)
+		{
 			n = (int)(l & SH_EXITMASK);	/* exit: apply bitmask before conversion to avoid undefined int overflow */
+			if (sh.intrap)
+				sh.intrap_exit_n = 1;
+		}
 		else if(r = (int)l, l != (intmax_t)r)	/* return: convert to int and check for overflow (should be safe enough) */
 		{
 			errormsg(SH_DICT,ERROR_warn(0),"%s: out of range",*argv);
@@ -79,8 +83,7 @@ done:
 	}
 	else
 	{
-		/* no argument: pass down $? (but in a trap action, pass down the pre-trap $?) */
-		n = sh.intrap ? sh.oldexit : sh.savexit;
+		n = sh.savexit;				/* no argument: pass down $? */
 		if(do_exit)
 			n &= SH_EXITMASK;
 	}

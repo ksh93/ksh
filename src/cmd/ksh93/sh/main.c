@@ -453,6 +453,20 @@ static void	exfile(Sfio_t *iop,int fno)
 			while(top=sfstack(iop,SF_POPSTACK))
 				sfclose(top);
 		}
+		/*
+		 * Reset the lexer state and make sure the heredocs file is
+		 * closed and set to NULL. For now we only do this when we get
+		 * here in an interactive shell and we have a leftover heredoc.
+		 */
+		if(sh_isstate(SH_INTERACTIVE) && jmpval==SH_JMPERREXIT && sh.heredocs)
+		{
+			Lex_t *lp;
+			sfclose(sh.heredocs);
+			sh.heredocs = NULL;
+			lp = (Lex_t*)sh.lex_context;
+			lp->heredoc = NULL;
+			sh_lexopen(lp,0);
+		}
 		/* make sure that we own the terminal */
 		tcsetpgrp(job.fd,sh.pid);
 	}

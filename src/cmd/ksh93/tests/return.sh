@@ -270,4 +270,14 @@ then	max=$(getconf INT_MAX) min=$(getconf INT_MIN) err=$tmp/stderr
 fi
 
 # ======
+# old AT&T bug reintroduced in v1.0.8 (commit aea99158)
+f() { true; return; }
+trap 'f; echo $? >out' USR1
+(exit 13)
+kill -s USR1 ${.sh.pid}
+trap - USR1
+unset -f f
+[[ $(<out) == 0 ]] || err_exit "default return status in traps is broken (expected 0, got $(<out))"
+
+# ======
 exit $((Errors<125?Errors:125))
