@@ -154,10 +154,17 @@ typedef union Shnode_u Shnode_t;
 #define SH_COMMANDLINE	0x100	/* bit flag for invocation-only options ('set -o' cannot change them) */
 
 /*
- * passed as flags to builtins in Nambltin_t struct when BLT_OPTIM is on
+ * Passed as flags to builtins in Nambltin_t struct when BLT_OPTIM is on
  */
 #define SH_BEGIN_OPTIM	0x1
 #define SH_END_OPTIM	0x2
+
+/*
+ * Used by sh.infunction
+ */
+#define FUN_KSH		1	/* 'function name {' */
+#define FUN_POSIX	2	/* 'name() {' */
+#define FUN_KSHDOT	3	/* Ksh function run by '.' command */
 
 /* The following type is used for error messages */
 
@@ -294,7 +301,6 @@ struct Shell_s
 	unsigned int	jobenv;		/* subshell number for jobs */
 	int		infd;		/* input file descriptor */
 	short		nextprompt;	/* next prompt is PS<nextprompt> */
-	Namval_t	*posix_fun;	/* points to last name() function */
 	char		*outbuff;	/* pointer to output buffer */
 	char		*errbuff;	/* pointer to stderr buffer */
 	char		*prompt;	/* pointer to prompt string */
@@ -318,6 +324,7 @@ struct Shell_s
 	char		funload;
 	char		used_pos;	/* used positional parameter */
 	char		universe;
+	char		infunction;
 	char		winch;		/* set upon window size change or 'set -b' notification */
 	short		arithrecursion;	/* current arithmetic recursion level */
 	char		indebug; 	/* set when in debug trap */

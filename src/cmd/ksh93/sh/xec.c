@@ -843,7 +843,7 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 static int check_exec_optimization(int type, int execflg, int execflg2, struct ionod *iop)
 {
 	if(type&(FAMP|FPOU)
-	|| !(execflg && sh.fn_depth==0 || execflg2)
+	|| !(execflg && sh.infunction != FUN_KSH || execflg2)
 	|| sh.st.trapdontexec
 	|| sh.subshell
 	|| ((struct checkpt*)sh.jmplist)->mode==SH_JMPEVAL
@@ -995,6 +995,12 @@ int sh_exec(const Shnode_t *t, int flags)
 						else if(checkopt(com,'a'))
 							flgs |= NV_IARRAY;
 					}
+					/* Prohibit usage of the local builtin outside of functions */
+					if(np==SYSLOCAL && !sh.infunction)
+					{
+						errormsg(SH_DICT,ERROR_exit(1),"%s: can only be used in a function",com0);
+						UNREACHABLE();
+					}
 					if(np && funptr(np)==b_typeset)
 					{
 						/* command calls b_typeset(); treat as a typeset variant */
@@ -1012,6 +1018,10 @@ int sh_exec(const Shnode_t *t, int flags)
 							flgs |= NV_MOVE;
 						if(checkopt(com,'g'))
 							flgs |= NV_GLOBAL;
+						if(checkopt(com,'D'))
+							flgs |= NV_DYNAMIC;
+						if(checkopt(com,'P'))
+							flgs |= NV_STATSCOPE;
 						if(np==SYSNAMEREF || checkopt(com,'n'))
 							flgs |= NV_NOREF;
 						else if(argn>=3 && checkopt(com,'T'))
@@ -1031,7 +1041,14 @@ int sh_exec(const Shnode_t *t, int flags)
 							sh.prefix = NV_CLASS;
 							flgs |= NV_TYPE;
 						}
-						if(sh.fn_depth && !sh.prefix)
+						if(!(flgs&(NV_SCOPES)))
+						{
+							if(np==SYSLOCAL || np==SYSDECLARE)
+								flgs |= NV_DYNAMIC;
+							else if(sh.infunction==FUN_POSIX)
+								flgs |= NV_GLOBAL;
+						}
+						if(sh.infunction < FUN_KSHDOT && !sh.prefix)
 							flgs |= NV_NOSCOPE;
 					}
 					else if(np==SYSEXPORT)
@@ -2953,92 +2970,129 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 {
 	char			*trap;
 	int			nsig;
-	struct dolnod		*argsav=0,*saveargfor;
-	struct sh_scoped	*savst = (struct sh_scoped*)stkalloc(sh.stk,sizeof(struct sh_scoped));
+	struct dolnod		*argsav = 0, *saveargfor;
 	struct sh_scoped	*prevscope = sh.st.self;
-	struct argnod		*envlist=0;
-	int			isig,jmpval;
+	struct sh_scoped	*savst = (struct sh_scoped*)stkalloc(sh.stk,sizeof(struct sh_scoped));
+	struct argnod		*envlist = 0;
+	int			isig, jmpval, save_loopcnt = sh.st.loopcnt;
 	volatile int		r = 0;
-	int			n;
-	char			save_invoc_local;
+	int			dtret;
+	char			save_invoc_local, save_infunction, posix_fun = 0;
 	char 			**savsig, *save_debugtrap = 0;
 	struct funenv		*fp = 0;
 	struct checkpt		*buffp = (struct checkpt*)stkalloc(sh.stk,sizeof(struct checkpt));
 	Namval_t		*nspace = sh.namespace;
 	Dt_t			*last_root = sh.last_root;
-	Shopt_t			options;
-	options = sh.options;
+	Shopt_t			save_options;
 	NOT_USED(argn);
-	if(sh.fn_depth==0)
-		sh.glob_options =  sh.options;
-	else
-		sh.options = sh.glob_options;
 	*prevscope = sh.st;
-	sh_offoption(SH_ERREXIT);
 	sh.st.prevst = prevscope;
 	sh.st.self = savst;
 	sh.topscope = (Shscope_t*)sh.st.self;
-	sh.st.opterror = sh.st.optchar = 0;
-	sh.st.optindex = 1;
 	sh.st.loopcnt = 0;
 	if(!fun)
 	{
 		fp = (struct funenv*)arg;
-		sh.st.real_fun = (fp->node)->nvalue.rp;
 		envlist = fp->env;
+		posix_fun = nv_isattr(fp->node,NV_FPOSIX);
+		if(!posix_fun)
+			sh.st.real_fun = (fp->node)->nvalue.rp;
 	}
-	prevscope->save_tree = sh.var_tree;
-	n = dtvnext(prevscope->save_tree)!= (sh.namespace?sh.var_base:0);
-	sh_scope(envlist,1);
-	if(n)
+	save_infunction = sh.infunction;
+	if(!posix_fun)
 	{
-		/* eliminate parent scope */
-		nv_scan(prevscope->save_tree, local_exports, NULL, NV_EXPORT, NV_EXPORT|NV_NOSCOPE);
+		save_options = sh.options;
+		sh.st.opterror = sh.st.optchar = 0;
+		sh.st.optindex = 1;
+		if(sh.fn_depth==0)
+			sh.glob_options = sh.options;
+		else
+			sh.options = sh.glob_options;
+		sh_offoption(SH_ERREXIT);
+		sh.infunction = FUN_KSH;
+	}
+	else
+	{
+		if(sh.dot_depth >= MAXDEPTH)
+		{
+			errormsg(SH_DICT,ERROR_exit(1),e_toodeep,argv[0]);
+			UNREACHABLE();
+		}
+		sh.infunction = FUN_POSIX;
+	}
+	/* Create a local scope for the function */
+	prevscope->save_tree = sh.var_tree;
+	dtret = dtvnext(prevscope->save_tree) != (sh.namespace?sh.var_base:0);
+	sh_scope(envlist,1);
+	if(dtret)
+	{
+		/*
+		 * Dynamic variables are implemented by being marked via np->dynscope, then
+		 * imported into nested functions via the nv_scan call below with scanflags
+		 * set to NV_DYNAMIC. The separate variable is necessary because np->nvflag
+		 * is an unsigned short and cannot hold the NV_DYNAMIC bitflag. It cannot
+		 * be changed to an unsigned int because the codebase makes too many assumptions
+		 * about its size (cf. https://github.com/att/ast/issues/1038).
+		 *
+		 * The old method ksh93v- uses for its bash mode creates a viewport between
+		 * sh.var_tree and sh.var_base with the help of a sh.st.var_local pointer.
+		 * This could fake dynamic scoping convincingly for the bash mode, but the
+		 * ksh93v- code only manages to create a global scope local to the top level
+		 * function (i.e., nested functions have no scoping at all and their variables
+		 * leak into the calling function.)
+		 */
+		nv_scan(prevscope->save_tree, local_exports, NULL, 0, NV_EXPORT|NV_DYNAMIC|NV_NOSCOPE);
 	}
 	sh.st.save_tree = sh.var_tree;
 	if(!fun)
 	{
-		if(sh_isoption(SH_FUNCTRACE) && is_option(&options,SH_XTRACE) || nv_isattr(fp->node,NV_TAGGED))
-			sh_onoption(SH_XTRACE);
-		else
-			sh_offoption(SH_XTRACE);
+		if(fp->node->nvalue.rp)
+			sh.st.filename = fp->node->nvalue.rp->fname;
+		nv_putval(SH_PATHNAMENOD, sh.st.filename, NV_NOFREE);
+		sh.last_root = nv_dict(DOTSHNOD);
 	}
-	sh.st.cmdname = argv[0];
-	/* save trap table */
-	if((nsig=sh.st.trapmax)>0 || sh.st.trapcom[0])
+	if(!posix_fun)
 	{
-		savsig = sh_malloc(nsig * sizeof(char*));
-		/*
-		 * the data is, usually, modified in code like:
-		 *	tmp = buf[i]; buf[i] = sh_strdup(tmp); free(tmp);
-		 * so sh.st.trapcom needs a "deep copy" to properly save/restore pointers.
-		 */
-		for (isig = 0; isig < nsig; ++isig)
+		if(!fun)
 		{
-			if(sh.st.trapcom[isig] == Empty)
-				savsig[isig] = Empty;
-			else if(sh.st.trapcom[isig])
-				savsig[isig] = sh_strdup(sh.st.trapcom[isig]);
+			if(sh_isoption(SH_FUNCTRACE) && is_option(&save_options,SH_XTRACE) || nv_isattr(fp->node,NV_TAGGED))
+				sh_onoption(SH_XTRACE);
 			else
-				savsig[isig] = NULL;
+				sh_offoption(SH_XTRACE);
 		}
+		sh.st.cmdname = argv[0];
+		/* save trap table */
+		if((nsig=sh.st.trapmax)>0 || sh.st.trapcom[0])
+		{
+			savsig = sh_malloc(nsig * sizeof(char*));
+			/*
+			 * the data is, usually, modified in code like:
+			 *	tmp = buf[i]; buf[i] = sh_strdup(tmp); free(tmp);
+			 * so sh.st.trapcom needs a "deep copy" to properly save/restore pointers.
+			 */
+			for (isig = 0; isig < nsig; ++isig)
+			{
+				if(sh.st.trapcom[isig] == Empty)
+					savsig[isig] = Empty;
+				else if(sh.st.trapcom[isig])
+					savsig[isig] = sh_strdup(sh.st.trapcom[isig]);
+				else
+					savsig[isig] = NULL;
+			}
+		}
+		if(!fun && sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
+			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
+		sh_sigreset(-1);
+		if(save_debugtrap)
+			sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
 	}
-	if(!fun && sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
-		save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
-	sh_sigreset(-1);
-	if(save_debugtrap)
-		sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
 	argsav = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(buffp,SH_JMPFUN);
 	errorpush(&buffp->err,0);
 	error_info.id = argv[0];
 	if(!fun)
 	{
-		if(fp->node->nvalue.rp)
-			sh.st.filename = fp->node->nvalue.rp->fname;
 		sh.st.funname = nv_name(fp->node);
-		sh.last_root = nv_dict(DOTSHNOD);
-		nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 		nv_putval(SH_FUNNAMENOD,sh.st.funname,NV_NOFREE);
 	}
 	save_invoc_local = sh.invoc_local;
@@ -3046,50 +3100,89 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	jmpval = sigsetjmp(buffp->buff,0);
 	if(jmpval == 0)
 	{
-		if(sh.fn_depth >= MAXDEPTH)
+		if(!posix_fun)
 		{
-			sh.toomany = 1;
-			siglongjmp(*sh.jmplist,SH_JMPERRFN);
+			if(sh.fn_depth >= MAXDEPTH)
+			{
+				sh.toomany = 1;
+				siglongjmp(*sh.jmplist,SH_JMPERRFN);
+			}
+			sh.fn_depth++;
 		}
-		sh.fn_depth++;
+		else
+			sh.dot_depth++;
 		update_sh_level();
 		if(fun)
-			r= (*fun)(arg);
+			r = (*fun)(arg);
 		else
 		{
-			char		**arg = sh.st.real_fun->argv;
-			Namval_t	*np, *nq, **nref;
-			if(nref=fp->nref)
+			if(posix_fun)
+				sh_exec((Shnode_t*)(nv_funtree(fp->node)),sh_isstate(SH_ERREXIT));
+			else
 			{
-				sh.last_root = 0;
-				for(r=0; arg[r]; r++)
+				char		**arg = sh.st.real_fun->argv;
+				Namval_t	*np, *nq, **nref;
+				if(nref=fp->nref)
 				{
-					np = nv_search(arg[r],sh.var_tree,NV_NOSCOPE|NV_ADD);
-					if(np && (nq=*nref++))
+					sh.last_root = 0;
+					for(r=0; arg[r]; r++)
 					{
-						np->nvalue.nrp = sh_newof(0,struct Namref,1,0);
-						np->nvalue.nrp->np = nq;
-						nv_onattr(np,NV_REF|NV_NOFREE);
+						np = nv_search(arg[r],sh.var_tree,NV_NOSCOPE|NV_ADD);
+						if(np && (nq=*nref++))
+						{
+							np->nvalue.nrp = sh_newof(0,struct Namref,1,0);
+							np->nvalue.nrp->np = nq;
+							nv_onattr(np,NV_REF|NV_NOFREE);
+						}
 					}
 				}
+				sh_exec((Shnode_t*)(nv_funtree((fp->node))),execflg|SH_ERREXIT);
 			}
-			sh_exec((Shnode_t*)(nv_funtree((fp->node))),execflg|SH_ERREXIT);
 			r = sh.exitval;
 		}
 	}
 	sh.invoc_local = save_invoc_local;
-	sh.fn_depth--;
+	if(!posix_fun)
+		sh.fn_depth--;
+	else
+		sh.dot_depth--;
 	update_sh_level();
+	sh.infunction = save_infunction;
 	if(sh.fn_depth==1 && jmpval==SH_JMPERRFN)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,argv[0]);
 		UNREACHABLE();
 	}
 	sh_popcontext(buffp);
+	/* Reinstate the previous scope */
 	sh_unscope();
 	sh.namespace = nspace;
 	sh.var_tree = (Dt_t*)prevscope->save_tree;
-	sh_argreset(argsav,saveargfor);
+	if((posix_fun && jmpval!=SH_JMPSCRIPT) || !posix_fun)
+		sh_argreset(argsav,saveargfor);
+	else
+	{
+		prevscope->dolc = sh.st.dolc;
+		prevscope->dolv = sh.st.dolv;
+	}
+	/*
+	 * POSIX function cleanup
+	 */
+	if(posix_fun)
+	{
+		if(sh.st.self != savst)
+			*sh.st.self = sh.st;
+		/* Only restore the top Shscope_t portion for POSIX functions */
+		memcpy(&sh.st, prevscope, sizeof(Shscope_t));
+		sh.topscope = (Shscope_t*)prevscope;
+		nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
+		if(jmpval && jmpval!=SH_JMPFUN)
+			siglongjmp(*sh.jmplist,jmpval);
+		return r;
+	}
+	/*
+	 * KornShell function cleanup
+	 */
 	trap = sh.st.trapcom[0];
 	sh.st.trapcom[0] = 0;
 	sh_sigreset(1);
@@ -3104,8 +3197,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		memcpy((char*)&sh.st.trapcom[0],savsig,nsig*sizeof(char*));
 		free(savsig);
 	}
-	sh.trapnote=0;
-	sh.options = options;
+	sh.trapnote = 0;
+	sh.options = save_options;
 	sh.last_root = last_root;
 	if(jmpval == SH_JMPSUB)
 		siglongjmp(*sh.jmplist,jmpval);
@@ -3131,6 +3224,7 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 	struct funenv	fun;
 	char		*fname = nv_getval(SH_FUNNAMENOD);
 	pid_t		pipepid = sh.pipepid;
+	int		loopcnt;
 #if !SHOPT_DEVFD
 	Dt_t		*save_fifo_tree = sh.fifo_tree;
 	sh.fifo_tree = NULL;
@@ -3140,38 +3234,25 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 	if((struct sh_scoped*)sh.topscope != sh.st.self)
 		sh_setscope(sh.topscope);
 	sh.st.lineno = error_info.line;
-	np->nvalue.rp->running  += 2;
+	np->nvalue.rp->running += 2;
 	if(nv_isattr(np,NV_FPOSIX))
 	{
-		char *save;
-		int loopcnt = sh.st.loopcnt;
-		sh.posix_fun = np;
-		save = argv[-1];
-		argv[-1] = 0;
-		sh.st.funname = nv_name(np);
-		sh.last_root = nv_dict(DOTSHNOD);
-		nv_putval(SH_FUNNAMENOD, nv_name(np),NV_NOFREE);
-		opt_info.index = opt_info.offset = 0;
-		error_info.errors = 0;
+		loopcnt = sh.st.loopcnt;
 		sh.st.loopcnt = 0;
-		b_dot_cmd(argn+1,argv-1,&sh.bltindata);
+	}
+	fun.env = envlist;
+	fun.node = np;
+	fun.nref = 0;
+	sh_funscope(argn,argv,0,&fun,execflg);
+	if(nv_isattr(np,NV_FPOSIX))
 		sh.st.loopcnt = loopcnt;
-		argv[-1] = save;
-	}
-	else
-	{
-		fun.env = envlist;
-		fun.node = np;
-		fun.nref = 0;
-		sh_funscope(argn,argv,0,&fun,execflg);
-	}
 	sh.last_root = nv_dict(DOTSHNOD);
 	nv_putval(SH_FUNNAMENOD,fname,NV_NOFREE);
 	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 	sh.pipepid = pipepid;
 	if(np->nvalue.rp)
 	{
-		np->nvalue.rp->running  -= 2;
+		np->nvalue.rp->running -= 2;
 		if(np->nvalue.rp->running==1)
 		{
 			np->nvalue.rp->running = 0;

@@ -404,6 +404,8 @@ void nv_attribute(Namval_t *np,Sfio_t *out,char *prefix,int noname)
 			else if((!np->nvalue.cp||np->nvalue.cp==Empty) && nv_isattr(np,~NV_NOFREE)==NV_MINIMAL && strcmp(np->nvname,"_"))
 				sfputr(out,prefix,' ');
 		}
+		if(np->dynscope)
+			sfprintf(out,"%s -D ",prefix);
 		return;
 	}
 
@@ -431,7 +433,11 @@ void nv_attribute(Namval_t *np,Sfio_t *out,char *prefix,int noname)
 			}
 		}
 		else if(prefix && *prefix)
+		{
 			sfputr(out,prefix,' ');
+			if(np->dynscope)
+				sfprintf(out,"-D ");
+		}
 		for(tp = shtab_attributes; *tp->sh_name;tp++)
 		{
 			val = tp->sh_number;

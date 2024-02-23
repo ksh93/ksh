@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -55,8 +55,6 @@
 #else
 #include	<times.h>
 #endif
-
-#define DOTMAX	MAXDEPTH	/* maximum level of . nesting */
 
 /*
  * Handler function for nv_scan() that unsets a variable's export attribute
@@ -215,16 +213,17 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 #endif
 int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 {
-	char *script;
-	Namval_t *np;
-	int jmpval;
-	struct sh_scoped savst, *prevscope = sh.st.self;
-	char *filename=0, *buffer=0, *tofree;
-	int	fd;
-	struct dolnod   *saveargfor;
-	volatile struct dolnod   *argsave=0;
-	struct checkpt buff;
-	Sfio_t *iop=0;
+	char			*script;
+	Namval_t		*np;
+	struct sh_scoped	savst, *prevscope = sh.st.self;
+	char			*filename=0, *buffer=0, *tofree;
+	int			fd, dtret, jmpval, save_invoc_local;
+	char			save_infunction = -1;
+	struct dolnod		*saveargfor;
+	volatile struct dolnod	*argsave=0;
+	struct checkpt		buff;
+	Sfio_t			*iop=0;
+	Namval_t		*nspace = sh.namespace;
 	NOT_USED(context);
 	while (n = optget(argv,sh_optdot)) switch (n)
 	{
@@ -242,52 +241,53 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NULL));
 		UNREACHABLE();
 	}
-	if(sh.dot_depth >= DOTMAX)
+	if(sh.dot_depth >= MAXDEPTH)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,script);
 		UNREACHABLE();
 	}
-	if(!(np=sh.posix_fun))
+	/* check for KornShell style function first */
+	np = nv_search(script,sh.fun_tree,0);
+	if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && sh.bltindata.bnode==SYSDOT))
 	{
-		/* check for KornShell style function first */
-		np = nv_search(script,sh.fun_tree,0);
-		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && sh.bltindata.bnode==SYSDOT))
+		if(!np->nvalue.ip)
 		{
-			if(!np->nvalue.ip)
+			path_search(script,NULL,0);
+			if(np->nvalue.ip)
 			{
-				path_search(script,NULL,0);
-				if(np->nvalue.ip)
-				{
-					if(nv_isattr(np,NV_FPOSIX))
-						np = 0;
-				}
-				else
-				{
-					errormsg(SH_DICT,ERROR_exit(1),e_found,script);
-					UNREACHABLE();
-				}
+				if(nv_isattr(np,NV_FPOSIX))
+					np = 0;
 			}
-		}
-		else
-			np = 0;
-		if(!np)
-		{
-			if((fd=path_open(script,path_get(script))) < 0)
+			else
 			{
-				errormsg(SH_DICT,ERROR_system(1),e_open,script);
+				errormsg(SH_DICT,ERROR_exit(1),e_found,script);
 				UNREACHABLE();
 			}
-			filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 		}
 	}
+	else
+		np = 0;
+	if(!np)
+	{
+		/* Open the dot script */
+		if((fd=path_open(script,path_get(script))) < 0)
+		{
+			errormsg(SH_DICT,ERROR_system(1),e_open,script);
+			UNREACHABLE();
+		}
+		filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
+	}
+	else
+	{
+		/* We are executing a KornShell function as a dot script */
+		save_infunction = sh.infunction;
+		sh.infunction = FUN_KSHDOT;
+	}
 	*prevscope = sh.st;
-	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
+	sh.st.lineno = np ? ((struct functnod*)nv_funtree(np))->functline : 1;
 	sh.st.save_tree = sh.var_tree;
 	if(filename)
-	{
 		sh.st.filename = filename;
-		sh.st.lineno = 1;
-	}
 	sh.st.prevst = prevscope;
 	sh.st.self = &savst;
 	sh.topscope = (Shscope_t*)sh.st.self;
@@ -295,8 +295,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	tofree = sh.st.filename;
 	if(np)
 		sh.st.filename = np->nvalue.rp->fname;
-	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
-	sh.posix_fun = 0;
+	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 	if(np || argv[1])
 		argsave = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(&buff,SH_JMPDOT);
@@ -308,9 +307,11 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		sh.dot_depth++;
 		update_sh_level();
 		if(np)
+			/* Execute the function as though it were a dot script */
 			sh_exec((Shnode_t*)(nv_funtree(np)),sh_isstate(SH_ERREXIT));
 		else
 		{
+			/* Run the dot script */
 			buffer = sh_malloc(IOBSIZE+1);
 			iop = sfnew(NULL,buffer,IOBSIZE,fd,SF_READ);
 			sh_offstate(SH_NOFORK);
@@ -331,12 +332,14 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		prevscope->dolc = sh.st.dolc;
 		prevscope->dolv = sh.st.dolv;
 	}
-	if (sh.st.self != &savst)
+	if(sh.st.self != &savst)
 		*sh.st.self = sh.st;
-	/* only restore the top Shscope_t portion for POSIX functions */
+	if(save_infunction != -1)
+		sh.infunction = save_infunction;
+	/* Only restore the top Shscope_t portion for functions */
 	memcpy(&sh.st, prevscope, sizeof(Shscope_t));
 	sh.topscope = (Shscope_t*)prevscope;
-	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
+	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 	if(jmpval && jmpval!=SH_JMPFUN)
 		siglongjmp(*sh.jmplist,jmpval);
 	return sh.exitval;

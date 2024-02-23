@@ -108,15 +108,16 @@ struct Namval
 #if _ast_sizeof_pointer == 8
 #   if _ast_intswap > 0
 	unsigned short	nvflag; 	/* attributes */
-	unsigned short	pad1;
+	unsigned short	dynscope;
 #   else
-	unsigned short	pad1;
+	unsigned short	dynscope;
 	unsigned short	nvflag; 	/* attributes */
 #   endif
 	uint32_t  	nvsize;		/* size or base */
 #else
 	unsigned short	nvflag; 	/* attributes */
 	unsigned short 	nvsize;		/* size or base */
+	unsigned int	dynscope;
 #endif
 #ifdef _NV_PRIVATE
 	_NV_PRIVATE
@@ -188,11 +189,14 @@ struct Namval
 #define NV_NODISC	NV_IDENT	/* ignore disciplines */
 #define NV_UNATTR	0x800000	/* unset attributes before assignment */
 #define NV_GLOBAL	0x20000000	/* create global variable, ignoring local scope */
+#define NV_DYNAMIC	0x40000000	/* create dynamically scoped variable */
+#define NV_STATSCOPE	0x80000000	/* force creation of statically scoped variable */
 
 #define NV_FUNCT	NV_IDENT	/* option for nv_create */
 #define NV_BLTINOPT	NV_ZFILL	/* mark builtins in libcmd */
 
 #define NV_PUBLIC	(~(NV_NOSCOPE|NV_ASSIGN|NV_IDENT|NV_VARNAME|NV_NOADD))
+#define NV_SCOPES	(NV_DYNAMIC|NV_GLOBAL|NV_STATSCOPE)
 
 /* numeric types */
 /* NV_INT16 and NV_UINT16 store values directly in the node; all the others use pointers */

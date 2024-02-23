@@ -4061,7 +4061,8 @@ Functions defined by the
 syntax and called by name execute in the same process as the caller and
 share all files
 and present working directory with the
-caller.
+caller. Functions which use this syntax are called 'KornShell
+functions'.
 Traps caught by the caller are reset to their default action
 inside the function.
 A trap condition that is not caught or ignored by the
@@ -4081,9 +4082,8 @@ and the function.
 However,
 the
 .B typeset
-special built-in command used within a function
-defines local variables whose scope includes
-the current function.
+special built-in command used within a KornShell function
+defines local variables within a static scope.
 They can be passed to functions that they call in the
 variable assignment list that precedes the call or as arguments
 passed as name references.
@@ -6597,6 +6597,11 @@ is specified, then resume at the
 .IR n -th
 enclosing loop.
 .TP
+\(dd \f3declare\fP \f2vname\fP\*(OK\f3=\fP\f2value\^\fP\*(CK .\|.\|.
+Declares each \f2vname\fP within a dynamic local scope in functions.
+The same as
+.BR typeset\ \-D .
+.TP
 \f3disown\fP \*(OK \f2job\^\fP.\|.\|. \*(CK
 Causes the shell not to send a HUP signal to
 each given
@@ -7107,6 +7112,29 @@ is non-zero, and 1 otherwise.
 Declares each \f2vname\fP to be a variable name reference.
 The same as
 .BR typeset\ \-n .
+.TP
+\(dd \f3local\fP \f2vname\fP\*(OK\f3=\fP\f2value\^\fP\*(CK .\|.\|.
+Declares each \f2vname\fP within a dynamic local scope in functions.
+The same as
+.BR typeset\ \-D
+and
+.BR declare ,
+with the exception that
+.B local
+cannot be used outside of functions.
+Additionally, unlike other
+implementations of
+.BR local ,
+the
+.B ksh93u+m
+version is not a special builtin.
+This design decision was required to avoid breaking old
+.B ksh93u+
+scripts that assume
+.B local
+is a valid function name, alongside other use cases incompatible
+with a special builtin version of
+.BR local .
 .TP
 \f3print\fP \*(OK \f3\-CRenprsv\^\fP \*(CK \*(OK \f3\-u\fP \f2unit \^\fP\*(CK \*(OK \f3\-f\fP \f2format\^\fP \*(CK \*(OK \f2arg\^\fP .\|.\|. \*(CK
 With no options or with option
@@ -8457,7 +8485,7 @@ for infinite loops.
 The same as
 .BR whence\ \-v .
 .TP
-\(dg\(dd \f3typeset\fP \*(OK \f3\(+-ACHSbflmnprstux\^\fP \*(CK \*(OK \f3\(+-EFLRXZi\*(OK\f2n\^\fP\*(CK \*(CK   \*(OK \f3\+-M  \*(OK \f2mapname\fP \*(CK \*(CK \*(OK \f3\-T  \*(OK \f2tname\fP=(\f2assign_list\fP) \*(CK \*(CK \*(OK \f3\-h \f2str\fP \*(CK \*(OK \f3\-a\fP \*(OK \f2\*(OKtype\*(CK\fP \*(CK \*(CK \*(OK \f2vname\^\fP\*(OK\f3=\fP\f2value\^\fP \*(CK \^ \*(CK .\|.\|.
+\(dg\(dd \f3typeset\fP \*(OK \f3\(+-ACDHPSbfglmnprstux\^\fP \*(CK \*(OK \f3\(+-EFLRXZi\*(OK\f2n\^\fP\*(CK \*(CK   \*(OK \f3\+-M  \*(OK \f2mapname\fP \*(CK \*(CK \*(OK \f3\-T  \*(OK \f2tname\fP=(\f2assign_list\fP) \*(CK \*(CK \*(OK \f3\-h \f2str\fP \*(CK \*(OK \f3\-a\fP \*(OK \f2\*(OKtype\*(CK\fP \*(CK \*(CK \*(OK \f2vname\^\fP\*(OK\f3=\fP\f2value\^\fP \*(CK \^ \*(CK .\|.\|.
 Sets attributes and values for shell variables and functions.
 When invoked inside a function defined with the
 .B function
@@ -8706,6 +8734,24 @@ syntax (see
 above) or in a name space (see
 .I Name Spaces\^
 above).
+.TP
+.B \-P
+Forces variables to be created or modified using static local
+scoping, even when
+.B typeset
+is executed in a function defined by the
+.IB name ()
+syntax.
+.TP
+.B \-D
+Variables created or modified with this flag are placed into a
+dynamic local scope, regardless of which type of syntax the
+function uses.
+Unlike static local scoping, variables given a
+dynamic scope are made available to nested functions invoked
+by the function the local variable is located in.
+Dynamic local scoping is available regardless of whether the
+function is defined with POSIX or KornShell syntax.
 .TP
 .B \-h
 Used within type definitions to add information when generating

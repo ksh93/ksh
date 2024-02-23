@@ -21,6 +21,8 @@
  * export [-p] [arg...]
  * readonly [-p] [arg...]
  * typeset [options] [arg...]
+ * declare [options] [arg...]
+ * local [options] [arg...]
  * autoload [options] [arg...]
  * compound [options] [arg...]
  * float [options] [arg...]
@@ -208,6 +210,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
     /* for the dictionary generator */
     int    b_autoload(int argc,char *argv[],Shbltin_t *context){}
     int    b_compound(int argc,char *argv[],Shbltin_t *context){}
+    int    b_declare(int argc,char *argv[],Shbltin_t *context){}
     int    b_float(int argc,char *argv[],Shbltin_t *context){}
     int    b_functions(int argc,char *argv[],Shbltin_t *context){}
     int    b_integer(int argc,char *argv[],Shbltin_t *context){}
@@ -221,17 +224,19 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
-	int		isfloat=0, isadjust=0, shortint=0, sflag=0;
+	int		isfloat=0, isadjust=0, shortint=0, sflag=0, local, declare, scoping_flags = 0;
 
 	memset(&tdata,0,sizeof(tdata));
 	troot = sh.var_tree;
+	declare = argv[0][0] == 'd';
+	local = argv[0][0] == 'l';
 	if(ntp)					/* type declaration command added using 'typeset -T' or 'enum' */
 	{
 		tdata.tp = ntp->tp;
 		opt_info.disc = (Optdisc_t*)ntp->optinfof;
 		optstring = ntp->optstring;
 	}
-	else if(argv[0][0] != 't')		/* not <t>ypeset */
+	else if(argv[0][0] != 't' && !declare && !local) /* not <t>ypeset, <d>eclare or <l>ocal */
 	{
 		char **new_argv = (char **)stkalloc(sh.stk, (argc + 2) * sizeof(char*));
 		error_info.id = new_argv[0] = SYSTYPESET->nvname;
@@ -430,7 +435,19 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				flag |= (NV_EXPORT|NV_IDENT);
 				break;
 			case 'g':
+				flag &= ~(NV_SCOPES);
 				flag |= NV_GLOBAL;
+				scoping_flags++;
+				break;
+			case 'D':
+				flag &= ~(NV_SCOPES);
+				flag |= NV_DYNAMIC;
+				scoping_flags++;
+				break;
+			case 'P':
+				flag &= ~(NV_SCOPES);
+				flag |= NV_STATSCOPE;
+				scoping_flags++;
 				break;
 			case ':':
 				errormsg(SH_DICT,2, "%s", opt_info.arg);
@@ -444,6 +461,12 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 endargs:
 	argv += opt_info.index;
 	opt_info.disc = 0;
+	/* 'local' builtin */
+	if(local && !sh.infunction)
+	{
+		errormsg(SH_DICT,ERROR_exit(1), "can only be used in a function");
+		UNREACHABLE();
+	}
 	/* handle argument of + and - specially */
 	if(*argv && argv[0][1]==0 && (*argv[0]=='+' || *argv[0]=='-'))
 		tdata.aflag = *argv[0];
@@ -466,9 +489,9 @@ endargs:
 		errormsg(SH_DICT,2,e_optincompat1,"-m");
 		error_info.errors++;
 	}
-	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_GLOBAL)))
+	if((flag&NV_REF) && (flag&~(NV_REF|NV_IDENT|NV_ASSIGN|NV_SCOPES)))
 	{
-		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -g");
+		errormsg(SH_DICT,2,e_optincompat2,"-n","other options except -P, -D and -g");
 		error_info.errors++;
 	}
 	if((flag&NV_TYPE) && (flag&~(NV_TYPE|NV_VARNAME|NV_ASSIGN)))
@@ -497,10 +520,22 @@ endargs:
 		errormsg(SH_DICT,ERROR_exit(2),"option argument cannot be greater than %d",SHRT_MAX);
 		UNREACHABLE();
 	}
-	if((flag&NV_GLOBAL) && sh.mktype)
+	if((flag&NV_SCOPES) && sh.mktype)
 	{
-		errormsg(SH_DICT,ERROR_exit(2),"-g: type members cannot be global");
+		errormsg(SH_DICT,ERROR_exit(2),"type members cannot use the scoping flags -P, -D and -g");
 		UNREACHABLE();
+	}
+	if(scoping_flags > 1)
+	{
+		errormsg(SH_DICT,ERROR_exit(2),"the scoping flags -P, -D and -g cannot be combined");
+		UNREACHABLE();
+	}
+	if(troot==sh.var_tree && !sh.mktype && sh.infunction && !(flag&(NV_SCOPES)))
+	{
+		if(local || declare)
+			flag |= NV_DYNAMIC;
+		else if(sh.infunction==FUN_POSIX)
+			flag |= NV_GLOBAL;
 	}
 	if(isfloat)
 		flag |= NV_DOUBLE;
@@ -511,7 +546,7 @@ endargs:
 		else if(!sh.typeinit)
 			flag |= NV_STATIC|NV_IDENT;
 	}
-	if(sh.fn_depth && !tdata.pflag)
+	if(sh.infunction < FUN_KSHDOT && !tdata.pflag)
 		flag |= NV_NOSCOPE;
 	if(tdata.help)
 		tdata.help = sh_strdup(tdata.help);
@@ -645,7 +680,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 {
 	char *name;
 	char *last = 0;
-	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
+	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE|NV_DYNAMIC));
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
 	Dt_t *save_vartree = NULL;
 	Namval_t *save_namespace = NULL;
