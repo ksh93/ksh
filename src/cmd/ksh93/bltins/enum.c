@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,7 +22,7 @@
 
 const char sh_optenum[] =
 "[-?\n@(#)$Id: " ENUM_ID " $\n]"
-"[--catalog?" ERROR_CATALOG "]"
+"[--catalog?" SH_DICT "]"
 "[+NAME?enum - create an enumeration type]"
 "[+DESCRIPTION?\benum\b is a declaration command that creates one or more "
 	"enumeration type declaration commands named \atypename\a. Variables "
@@ -56,7 +56,7 @@ const char sh_optenum[] =
 
 static const char enum_type[] =
 "[-?\n@(#)$Id: " ENUM_ID " $\n]"
-"[--catalog?" ERROR_CATALOG "]"
+"[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - create an instance of type \b\f?\f\b]"
 "[+DESCRIPTION?The \b\f?\f\b declaration command creates a variable for "
     "each \aname\a with enumeration type \b\f?\f\b, a type that has been "
@@ -217,7 +217,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 	    Namval_t	*np;
 	}			optdisc;
 
-	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
+	cmdinit(argc, argv, context, SH_DICT, ERROR_NOTIFY);
 	for (;;)
 	{
 		switch (optget(argv, sh_optenum))

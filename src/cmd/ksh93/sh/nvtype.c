@@ -1273,7 +1273,6 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 	char		*val=0;
 	Namarr_t	*ap=0;
 	int		nelem = 0;
-	unsigned int	subshell = sh.subshell;
 	Namval_t	*tq;
 	if(nv_type(np)==tp)
 		return 0;
@@ -1284,6 +1283,8 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		errormsg(SH_DICT,ERROR_exit(1),e_redef,nv_name(np));
 		UNREACHABLE();
 	}
+	if(sh.subshell && !sh.subshare)
+		sh_subfork();
 	if((ap=nv_arrayptr(np)) && ap->nelem>0)
 	{
 		nv_putsub(np,NULL,ARRAY_SCAN);
@@ -1299,11 +1300,6 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		flags &= ~NV_APPEND;
 		if(!ap)
 		{
-			if(subshell)
-			{
-				sh_assignok(np,1);
-				sh.subshell = 0;
-			}
 			nv_putsub(np,"0",ARRAY_FILL);
 			ap = nv_arrayptr(np);
 			nelem = 1;
@@ -1345,7 +1341,6 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 			nv_putsub(np,"0",0);
 			_nv_unset(np,NV_RDONLY|NV_TYPE);
 			ap->nelem--;
-			sh.subshell = subshell;
 		}
 	}
 	type_init(np);

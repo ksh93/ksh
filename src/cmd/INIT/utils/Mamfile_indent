@@ -1,3 +1,4 @@
+origIFS=$IFS
 IFS=''; set -fCu  # safe mode: no split/glob = no quoting headaches
 let() { return $((!($1))); }
 
@@ -5,7 +6,7 @@ let() { return $((!($1))); }
 # Usage: Mamfile_indent <Mamfile >Mamfile.new
 #
 # Should work on all current POSIX compliant shells.
-# By Martijn Dekker <martijn@inlv.org>, 2021. Public domain.
+# By Martijn Dekker <martijn@inlv.org>, 2021, 2024. Public domain.
 
 # Spacing per indentation level. Edit to change style.
 indent='	'  # one tab
@@ -13,9 +14,9 @@ indent='	'  # one tab
 # Remove existing indentation, add new indentation.
 indentlvl=0
 sed 's/^[[:space:]]*//' \
-| while read -r line
+| while IFS=$origIFS read -r line
 do	case $line in
-	'')	continue ;;
+	'')	printf '\n'; continue ;;
 	done*)	let "indentlvl -= 1" ;;
 	esac
 
@@ -27,6 +28,7 @@ do	case $line in
 	printf '%s\n' $spc$line
 
 	case $line in
-	make*)	let "indentlvl += 1" ;;
+	make* | loop*)
+		let "indentlvl += 1" ;;
 	esac
 done
