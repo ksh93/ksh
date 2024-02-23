@@ -302,7 +302,6 @@ struct Shell_s
 	char		*comdiv;	/* points to sh -c argument */
 	char		*prefix;	/* prefix for compound assignment */
 	sigjmp_buf	*jmplist;	/* longjmp return stack */
-	int		oldexit;	/* saves pre-trap exit status for 'exit' default in trap actions */
 	pid_t		bckpid;		/* background process id */
 	pid_t		cpid;
 	pid_t		spid; 		/* subshell process id */
@@ -312,6 +311,7 @@ struct Shell_s
 	int		savesig;
 	unsigned char	*sigflag;	/* pointer to signal states */
 	char		intrap;		/* set while executing a trap action */
+	char		intrap_exit_n;	/* set if 'exit n' within trap */
 	uint32_t	srand_upper_bound;
 	char		forked;
 	char		binscript;

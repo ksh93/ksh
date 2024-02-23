@@ -528,11 +528,7 @@ int sh_trap(const char *trap, int mode)
 		if(jmpval==SH_JMPSCRIPT)
 			indone=0;
 		else
-		{
-			if(jmpval==SH_JMPEXIT)
-				savxit = sh.exitval;
 			jmpval=SH_JMPTRAP;
-		}
 	}
 	sh_popcontext(&buff);
 	/* re-allow last-command exec optimisation unless the command we executed set a trap */
@@ -541,8 +537,10 @@ int sh_trap(const char *trap, int mode)
 	sh.intrap--;
 	sfsync(sh.outpool);
 	savxit_return = sh.exitval;
-	if(jmpval!=SH_JMPEXIT && jmpval!=SH_JMPFUN)
-		sh.exitval=savxit;
+	if(sh.intrap_exit_n)
+		sh.intrap_exit_n = 0;
+	else
+		sh.exitval = savxit;
 	stkset(sh.stk,savptr,staktop);
 	fcrestore(&savefc);
 	if(was_history)
@@ -666,7 +664,6 @@ noreturn void sh_done(int sig)
 	if(t=sh.st.trapcom[0])
 	{
 		sh.st.trapcom[0]=0; /* should free but not long */
-		sh.oldexit = savxit;
 		sh_trap(t,0);
 		savxit = sh.exitval;
 	}

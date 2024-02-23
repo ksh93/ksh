@@ -896,8 +896,6 @@ int sh_exec(const Shnode_t *t, int flags)
 		sh_offstate(SH_DEFPATH);
 		if(!(flags & sh_state(SH_ERREXIT)))
 			sh_offstate(SH_ERREXIT);
-		if(!sh.intrap)
-			sh.oldexit = sh.exitval;
 		sh.exitval=0;
 		sh.lastsig = 0;
 		sh.chldexitsig = 0;
