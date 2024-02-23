@@ -1362,6 +1362,7 @@ u ^Exit status is 0\r\n$
 ((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<"!"
 L crash when TERM is undefined
 # https://github.com/ksh93/ksh/issues/722
+
 d 40
 p :test-1:
 w unset TERM
