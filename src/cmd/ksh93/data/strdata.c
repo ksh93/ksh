@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -68,14 +68,28 @@ const unsigned char strval_precedence[35] =
  */
 const char strval_states[64] =
 {
+  /*	nul	soh	stx	etx	eot	enq	ack	bel	*/
 	A_EOF,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,
+
+  /*	bs	ht/tab	nl/lf	vt	ff	cr	so	si	*/
 	A_REG,	0,	0,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,
-	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,
+
+  /*	dle	dc1	dc2	dc3	dc4	nak	syn	etb	*/
 	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,
 
+  /*	can	em	sub	esc	fs	gs	rs	us	*/
+	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,	A_REG,
+
+  /*	space	!	"	#	$	%	&	'	*/
 	0,	A_NOT,	0,	A_REG,	A_REG,	A_MOD,	A_AND,	A_LIT,
+
+  /*	(	)	*	+	,	-	.	/	*/
 	A_LPAR,	A_RPAR,	A_TIMES,A_PLUS,	A_COMMA,A_MINUS,A_DOT,	A_DIV,
+
+  /*	0	1	2	3	4	5	6	7	*/
 	A_DIG,	A_DIG,	A_DIG,	A_DIG,	A_DIG,	A_DIG,	A_DIG,	A_DIG,
+
+  /*	8	9	:	;	<	=	>	?	*/
 	A_DIG,	A_DIG,	A_COLON,A_REG,	A_LT,	A_ASSIGN,A_GT,	A_QUEST
 
 };

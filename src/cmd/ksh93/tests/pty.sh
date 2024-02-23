@@ -1322,5 +1322,34 @@ c \Ek
 r ^:prompt: "\$SHELL" -o vi -c 'read -s "foo\?:prompt: "'$
 !
 
+((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<"!"
+L crash when TERM is undefined
+# https://github.com/ksh93/ksh/issues/722
+
+d 40
+p :test-1:
+w unset TERM
+p :test-2:
+w "$SHELL"
+p :test-3:
+w print Exit status $?
+r print
+r ^Exit status 0\r\n$
+!
+
+tst $LINENO <<"!"
+L crash when attempting to cancel a heredoc in an interactive shell
+# https://github.com/ksh93/ksh/pull/721
+
+d 40
+p :test-1:
+w cat << EOS
+p :test-2:
+w \cd
+p :test-3:
+w print Exit status $?
+u ^Exit status 0\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

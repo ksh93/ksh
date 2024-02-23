@@ -2,10 +2,18 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2024-02-16:
+2024-02-22:
+
+- Fixed a crash that occurred when starting ksh with no TERM variable in the
+  environment (e.g., in single user mode on NetBSD and DragonFlyBSD).
 
 - Fixed a crash on Solaris and illumos when cancelling a here-document
   with ^C or ^D in an interactive shell.
+
+2024-02-17:
+
+- Fixed a crash that could occur when using 'typeset -T' typed variables
+  in a virtual subshell.
 
 2024-02-11:
 
