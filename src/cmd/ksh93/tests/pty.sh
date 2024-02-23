@@ -1326,6 +1326,7 @@ tst $LINENO << "!"
 L crash when discipline functions exit with an error
 # https://github.com/ksh93/ksh/issues/346
 
+d 40
 w "$SHELL"
 w PS1.get() {; printf '$ '; trap --invalid-flag 2>/dev/null; }
 w PS2.get() {; printf '> '; trap --invalid-flag 2>/dev/null; }
@@ -1337,7 +1338,6 @@ w trap --invalid-flag 2>/dev/null
 w }
 w echo ~
 w echo ~ret
-s 50
 w echo ~
 w echo ~ret $?
 u ^Exit status is 0\r\n$
