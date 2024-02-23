@@ -1322,6 +1322,27 @@ c \Ek
 r ^:prompt: "\$SHELL" -o vi -c 'read -s "foo\?:prompt: "'$
 !
 
+tst $LINENO << "!"
+L crash when discipline functions exit with an error
+# https://github.com/ksh93/ksh/issues/346
+
+w "$SHELL"
+w PS1.get() {; printf '$ '; trap --invalid-flag 2>/dev/null; }
+w PS2.get() {; printf '> '; trap --invalid-flag 2>/dev/null; }
+w .sh.tilde.set() {
+w case ${.sh.value} in
+w '~ret') .sh.value='Exit status is' ;;
+w esac
+w trap --invalid-flag 2>/dev/null
+w }
+w echo ~
+w echo ~ret
+s 50
+w echo ~
+w echo ~ret $?
+u ^Exit status is 0\r\n$
+!
+
 ((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<"!"
 L crash when TERM is undefined
 # https://github.com/ksh93/ksh/issues/722
@@ -1333,8 +1354,7 @@ p :test-2:
 w "$SHELL"
 p :test-3:
 w print Exit status $?
-r print
-r ^Exit status 0\r\n$
+u ^Exit status 0\r\n$
 !
 
 # ======
