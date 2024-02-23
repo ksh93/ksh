@@ -7,6 +7,13 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a crash that occurred when starting ksh with no TERM variable in the
   environment (e.g., in single user mode on NetBSD and DragonFlyBSD).
 
+- Fixed a regression of 'return' within traps, reintroduced on 2023-12-25
+  after being fixed on 2020-09-09. The regression caused a 'return' or
+  'exit' with no arguments to assume the before-trap exit status instead of
+  that of the last-run command. This broke the shipped 'autocd' function.
+
+- Fixed some integer overflows that could occur when using TMOUT.
+
 - Fixed a crash on Solaris and illumos when cancelling a here-document
   with ^C or ^D in an interactive shell.
 

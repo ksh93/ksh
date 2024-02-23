@@ -896,8 +896,6 @@ int sh_exec(const Shnode_t *t, int flags)
 		sh_offstate(SH_DEFPATH);
 		if(!(flags & sh_state(SH_ERREXIT)))
 			sh_offstate(SH_ERREXIT);
-		if(!sh.intrap)
-			sh.oldexit = sh.exitval;
 		sh.exitval=0;
 		sh.lastsig = 0;
 		sh.chldexitsig = 0;
@@ -1993,7 +1991,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					save_prompt = sh.nextprompt;
 					sh.nextprompt = 3;
 					sh.timeout = 0;
-					sh.exitval=sh_readline(&null_pointer,0,1,0,1000*sh.st.tmout);
+					sh.exitval=sh_readline(&null_pointer,0,1,0,1000*(Sflong_t)sh.st.tmout);
 					sh.nextprompt = save_prompt;
 					if(sh.exitval||sfeof(sfstdin)||sferror(sfstdin))
 					{
