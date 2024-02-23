@@ -1229,7 +1229,7 @@ make install virtual
 	note *
 
 	prev libshell.a
-	loop DIR bin include/ast lib/lib man/man1 man/man3 fun
+	loop DIR bin include/ast lib/lib man/man1 man/man3 fun etc
 		make ${INSTALLROOT}/${DIR}
 			exec - mkdir -p ${@}
 		done
@@ -1271,6 +1271,10 @@ make install virtual
 			prev fun/${FUN}
 			exec - cp -f ${<} ${@} && chmod ugo+x ${@}
 		done
+	done
+	make ${INSTALLROOT}/etc/kshrc
+		prev kshrc.sh
+		exec - cp -f ${<} ${@}
 	done
 	make announce_build_done notrace virtual
 		prev ksh

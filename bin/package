@@ -151,7 +151,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2024-02-17 $
+@(#)$Id: '$command$' (ksh 93u+m) 2024-02-22 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -579,7 +579,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2024-02-17
+  version         package (ksh 93u+m) 2024-02-22
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -2138,13 +2138,7 @@ case $x in
 
 	# tame the environment
 
-	case $action in
-	use)	;;
-	*)	ENV=
-		ERROR_OPTIONS=
-		export ENV ERROR_OPTIONS
-		;;
-	esac
+	unset ERROR_OPTIONS ENV
 
 	# finalize the views
 
@@ -3320,6 +3314,7 @@ use)	# finalize the environment
 	if	test "$KEEP_SHELL" -lt 2 && executable "$INSTALLROOT/bin/ksh"
 	then	SHELL=$INSTALLROOT/bin/ksh
 	fi
+	export ENV=$INSTALLROOT/etc/kshrc
 	x=:..
 	for d in $(set +o noglob; cd $PACKAGEROOT; ls src/*/Mamfile 2>/dev/null | sed 's,/[^/]*$,,' | sort -u)
 	do	x=$x:$INSTALLROOT/$d
