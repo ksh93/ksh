@@ -78,6 +78,14 @@ The compiled binaries are stored in the `arch` directory, in a subdirectory
 that corresponds to your architecture. The command `bin/package host type`
 outputs the name of this subdirectory.
 
+Dynamically linked binaries, if supported for your system, are stored in
+`dyn/bin` and `dyn/lib` subdirectories of your architecture directory.
+To enter a shell environment that automatically adds these to `$PATH`
+and to your systems library search path (`LD_LIBRARY_PATH` or similar),
+so that you can test the build before installing, enter:
+```sh
+bin/package use
+```
 If you have trouble or want to tune the binaries, you may pass additional
 compiler and linker flags. It is usually best to export these as environment
 variables *before* running `bin/package` as they could change the name of

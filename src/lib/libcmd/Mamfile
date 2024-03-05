@@ -12,6 +12,8 @@ setv mam_cc_FLAGS ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?
 setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS
+note * on macOS we have version before extension (libcmd.6.0.dylib), on other systems, after (libcmd.so.6.0)
+setv DYLIB_SUFFIX ${mam_cc_SUFFIX_SHARED?.dylib?.${AST_DYLIB_VERSION}${mam_cc_SUFFIX_SHARED}?${mam_cc_SUFFIX_SHARED}.${AST_DYLIB_VERSION}?}
 
 make install virtual
 	note *
@@ -474,7 +476,20 @@ make install virtual
 		exec - else	${AR} rc ${@} ${^}  # add all *.o
 		exec - fi || exit
 		exec - ranlib ${@} >/dev/null 2>&1 || true
+
+		note * save for dylink
+		setv _libcmd_object_files_ ${^}
 	done libcmd.a
+
+	note *
+	note * Dynamically linked version, if supported
+	note *
+
+	make ${INSTALLROOT}/dyn/lib/libcmd${DYLIB_SUFFIX} dontcare
+		prev libcmd.a
+		prev cmd.req
+		exec - dylink -m cmd -s ${DYLIB_SUFFIX} $(sed 1d cmd.req) ${_libcmd_object_files_}
+	done
 
 	note *
 	note * pre-install

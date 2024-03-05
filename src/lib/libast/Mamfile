@@ -13,6 +13,8 @@ setv CCFLAGS
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
 setv LDFLAGS
+note * on macOS we have version before extension (libast.6.0.dylib), on other systems, after (libast.so.6.0)
+setv DYLIB_SUFFIX ${mam_cc_SUFFIX_SHARED?.dylib?.${AST_DYLIB_VERSION}${mam_cc_SUFFIX_SHARED}?${mam_cc_SUFFIX_SHARED}.${AST_DYLIB_VERSION}?}
 
 note *
 note * iffe and cc invocations are mostly the same but some add custom flags;
@@ -4942,7 +4944,20 @@ make install virtual
 		exec - else	${AR} rc ${@} ${^}  # add all *.o
 		exec - fi || exit
 		exec - ranlib ${@} >/dev/null 2>&1 || true
+
+		note * save for dylink
+		setv _libast_object_files_ ${^}
 	done libast.a
+
+	note *
+	note * Dynamically linked version, if supported
+	note *
+
+	make ${INSTALLROOT}/dyn/lib/libast${DYLIB_SUFFIX} dontcare
+		prev libast.a
+		prev ast.req
+		exec - dylink -m ast -s ${DYLIB_SUFFIX} $(sed 1d ast.req) ${_libast_object_files_}
+	done
 
 	note *
 	note * pre-install libast in $INSTALLROOT

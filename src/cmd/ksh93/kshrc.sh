@@ -224,4 +224,16 @@ then
 		print -r -- "- Get help: use '${.rc.fmt[bold]}man${.rc.fmt[reset]} ${.rc.fmt[underline]}commandname${.rc.fmt[reset]}' for everything, even built-in commands"
 		export _KSHRC_WELCOMED_=y
 	fi
+
+	# Workaround for "System Integrity Protection" on macOS which filters
+	# out DYLD_* env vars whenever anything in /bin or /usr/bin is run,
+	# which kills env "$SHELL" for a preinstalled dynamically linked $SHELL
+	case $HOSTTYPE,${DYLD_LIBRARY_PATH+s} in
+	darwin.*,s)
+		function env
+		{
+			command -p env "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH" "$@"
+		}
+		;;
+	esac
 fi

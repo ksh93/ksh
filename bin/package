@@ -151,7 +151,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2024-02-24 $
+@(#)$Id: '$command$' (ksh 93u+m) 2024-03-05 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -241,6 +241,9 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
             to install the \acommand\as directly,
             or a temporary directory like \a/tmp/pkgtree/usr\a
             to prepare for packaging with operating system-specific tools.
+            Each \acommand\a is first searched in \b$INSTALLROOT/dyn/bin\b
+            (dynamically linked version)
+            and then in \b$INSTALLROOT/bin\b.
             If no \acommand\a is specified,
             then \aksh\a and \ashcomp\a are assumed.]
         [+make\b [ \apackage\a ]] [ \aoption\a ... ]] [ \atarget\a ... ]]?Build
@@ -500,8 +503,10 @@ DESCRIPTION
           any necessary subdirectories are created. dest_dir can be a directory
           like /usr/local to install the commands directly, or a temporary
           directory like /tmp/pkgtree/usr to prepare for packaging with
-          operating system-specific tools. If no command is specified, then ksh
-          and shcomp are assumed.
+          operating system-specific tools. Each command is first searched in
+          $INSTALLROOT/dyn/bin (dynamically linked version) and then in
+          $INSTALLROOT/bin. If no command is specified, then ksh and shcomp
+          are assumed.
     make [ package ] [ option ... ] [ target ... ]
           Build and install. The default target is install, which makes and
           installs package. If the standard output is a terminal then the
@@ -579,7 +584,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2024-02-24
+  version         package (ksh 93u+m) 2024-03-05
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -1644,6 +1649,14 @@ trace()
 	"$@"
 )
 
+trace()
+(
+	PS4="${action}: executing: "
+	exec 2>&1  # trace to standard output
+	set -o xtrace
+	"$@"
+)
+
 # cc checks
 #
 #	CC: compiler base name name
@@ -1909,6 +1922,9 @@ case $x in
 	case $CROSS in
 	0) 	# dll hackery -- why is this so complicated?
 
+		# Increment major dynamic library version only if binary incompatibility is introduced
+		export AST_DYLIB_VERSION=${AST_DYLIB_VERSION:-6.0}
+
 		abi=
 		case $HOSTTYPE in
 		sgi.mips[0123456789]*)
@@ -1964,14 +1980,14 @@ case $x in
 			do	eval \$a
 				eval \"
 					case \\\$LD_LIBRARY\${v}_PATH: in
-					\\\$d/lib:*)
+					\\\$d/dyn/lib:*)
 						;;
 					*)	x=\\\$LD_LIBRARY\${v}_PATH
 						case \\\$x in
 						''|:*)	;;
 						*)	x=:\\\$x ;;
 						esac
-						LD_LIBRARY\${v}_PATH=\$d/lib\\\$x
+						LD_LIBRARY\${v}_PATH=\$d/dyn/lib\\\$x
 						export LD_LIBRARY\${v}_PATH
 						p=1
 						;;
@@ -2006,30 +2022,30 @@ case $x in
 			;;
 		esac
 		case $LIBPATH: in
-		$INSTALLROOT/bin:$INSTALLROOT/lib:*)
+		$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:*)
 			;;
 		*)	case $LIBPATH in
 			'')	LIBPATH=/usr/lib:/lib ;;
 			esac
-			LIBPATH=$INSTALLROOT/bin:$INSTALLROOT/lib:$LIBPATH
+			LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
 			$show LIBPATH=$LIBPATH
 			$show export LIBPATH
 			export LIBPATH
 			;;
 		esac
 		case $SHLIB_PATH: in
-		$INSTALLROOT/lib:*)
+		$INSTALLROOT/dyn/lib:*)
 			;;
-		*)	SHLIB_PATH=$INSTALLROOT/lib${SHLIB_PATH:+:$SHLIB_PATH}
+		*)	SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
 			$show SHLIB_PATH=$SHLIB_PATH
 			$show export SHLIB_PATH
 			export SHLIB_PATH
 			;;
 		esac
 		case $DYLD_LIBRARY_PATH: in
-		$INSTALLROOT/lib:*)
+		$INSTALLROOT/dyn/lib:*)
 			;;
-		*)	DYLD_LIBRARY_PATH=$INSTALLROOT/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
+		*)	DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
 			$show DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
 			$show export DYLD_LIBRARY_PATH
 			export DYLD_LIBRARY_PATH
@@ -2060,6 +2076,12 @@ case $x in
 			;;
 		*)	PATH=$INSTALLROOT/bin:$PATH
 			test -n "${MANPATH+s}" && MANPATH=$INSTALLROOT/man:$MANPATH
+			;;
+		esac
+		case $PATH: in
+		$INSTALLROOT/dyn/bin:*)
+			;;
+		*)	PATH=$INSTALLROOT/dyn/bin:$PATH
 			;;
 		esac
 		case $FPATH: in
@@ -2554,14 +2576,25 @@ do_install() # dir [ command ... ]
 	done
 	# set install directories
 	bindir=$dd/bin
-	man1dir=${dd:-/usr}/share/man/man1
 	fundir=${dd:-/usr}/share/fun
+	mandir=${dd:-/usr}/share/man
+	man1dir=$mandir/man1
+	man3dir=$mandir/man3
+	libdir=$dd/lib
+	includedir=$dd/include
 	# and off we go
 	trace mkdir -p "$bindir" "$man1dir" || exit
 	for f
-	do	# install executable
-		trace cp "bin/$f" "$bindir/" || exit
-		# install manual and autoloadable functions
+	do	# macOS throws code signature error if 'cp' overwrites Mach-O binary; must remove first
+		if	test -e "$bindir/$f"
+		then	rm -f "$bindir/$f" || exit
+		fi
+		# install executable
+		if	test -f "dyn/bin/$f"
+		then	trace cp "dyn/bin/$f" "$bindir/" || exit
+		else	trace cp "bin/$f" "$bindir/" || exit
+		fi
+		# install manual pages and autoloadable functions
 		case $f in
 		ksh)	trace cp "$PACKAGEROOT/src/cmd/ksh93/sh.1" "$man1dir/ksh.1" || exit
 			trace mkdir -p "$fundir" || exit
@@ -2580,6 +2613,34 @@ do_install() # dir [ command ... ]
 			;;
 		esac
 	done
+	if	test -d "dyn/lib"
+	then	trace mkdir -p "$libdir" "$man3dir" "$includedir"
+		# install libraries
+		# note: to copy symlinks with BSD cp, we need to specify -R as well as -P, contra POSIX
+		set +o noglob
+		for f in dyn/lib/*
+		do	set -o noglob
+			# macOS throws code signature error if 'cp' overwrites Mach-O binary; must remove first
+			if	test -e "$libdir/$f"
+			then	rm -f "$libdir/$f" || exit
+			fi
+			# to copy symlinks with BSD cp, we need to specify -R as well as -P, contra POSIX
+			trace cp -PR "$f" "$libdir"/
+		done
+		# install developer stuff
+		test -d "$includedir/ast" && trace rm -rf -- "$includedir/ast"
+		trace cp -R "include/ast" "$includedir"/ || exit
+		printf "install: writing into %s:" "$man3dir"
+		(
+			set +o noglob
+			for f in man/man3/*.3
+			do	printf " %sast" "${f##*/}"
+				# give .3 pages an ast suffix to avoid conflicts
+				sed '/^\.TH .* 3/ s/ 3/ 3ast/' "$f" > "$man3dir/${f##*/}ast"
+			done
+		)
+		printf '\n'
+	fi
 }
 
 error_status=0
@@ -3331,6 +3392,13 @@ use)	# finalize the environment
 	eval PACKAGE_USE=$package_use
 	export PACKAGE_USE
 	unset LC_ALL  # respect the user's locale again; avoids multibyte corruption
+
+	for s in "$INSTALLROOT/dyn/bin/ksh" "$INSTALLROOT/$OK/bin/ksh" "$INSTALLROOT/bin/ksh"
+	do	if	"$s" -c ':' 2>/dev/null
+		then	export SHELL=$s
+			break
+		fi
+	done
 
 	# run the command
 

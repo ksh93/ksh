@@ -384,7 +384,7 @@ wait $pid1
 (( $? == 1 )) || err_exit "wait not saving exit value"
 wait $pid2
 (( $? == 127 )) || err_exit "subshell job known to parent"
-env=
+env='LD_LIBRARY_PATH=$LD_LIBRARY_PATH LIBPATH=$LIBPATH SHLIB_PATH=$SHLIB_PATH DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH'
 if builtin getconf 2> /dev/null; then
 	v=$(getconf LIBPATH)
 	for v in ${v//,/ }

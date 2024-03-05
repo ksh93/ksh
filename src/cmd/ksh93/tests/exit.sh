@@ -42,7 +42,7 @@ if builtin getconf 2> /dev/null; then
 			eval [[ \$$v ]] && eval print -n \" \"\$v=\"\$$v\"
 		done
 	) \
-	exec -c -a -ksh ${ABSHELL} -c "exit 1" 1>/dev/null 2>&1
+	LD_LIBRARY_PATH=\$LD_LIBRARY_PATH LIBPATH=\$LIBPATH SHLIB_PATH=\$SHLIB_PATH DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH exec -c -a -ksh ${ABSHELL} -c "exit 1" 1>/dev/null 2>&1
 !
 	status=$(echo $?)
 	if	[[ -o noprivileged && $status != 0 ]]

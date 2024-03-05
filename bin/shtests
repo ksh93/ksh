@@ -1,5 +1,5 @@
 # Wrapper script to run the ksh93 regression tests directly.
-# By Martijn Dekker <martijn@inlv.org> 2020-05-14, 2023-03-17
+# By Martijn Dekker <martijn@inlv.org> 2020-05-14, 2023-03-17, 2024-03-05
 # Public domain. https://creativecommons.org/publicdomain/zero/1.0/
 #
 # The manual: bin/shtests --man
@@ -26,29 +26,30 @@ else	"$SHELL" -c "$min_posix" 2>/dev/null && exec "$SHELL" -- "$0" ${1+"$@"}
 	exit 128
 fi
 
-# The test suite uses $SHELL to indicate the shell to test. But we cannot
-# use a $SHELL environment value inherited by this script, as that is
-# already used for the user's default login shell on most systems. So
-# allow inheriting $KSH instead, or passing SHELL= or KSH= as arguments.
+# bin/package will have set $SHELL to our ksh.
+# Allow override by passing SHELL= or KSH= as arguments.
 for arg do
 	case $arg in
 	( SHELL=* | KSH=* )
-		KSH=${arg#*=} ;;
+		export KSH=${arg#*=} ;;
 	( * )	set -- "$@" "$1" ;;
 	esac
 	shift
 done
 
-# Find root dir of ksh source
-mydir=$(dirname "$0") \
-&& mydir=$(CDPATH='' cd -P -- "$mydir/.." && printf '%sX' "$PWD") \
-&& mydir=${mydir%X} \
-|| exit
-myarch=$("$mydir/bin/package" host type) || exit
+# Relaunch with necessary environment stuff from bin/package
+case ${HOSTTYPE+h}${INSTALLROOT+i}${PACKAGEROOT+p}${LD_LIBRARY_PATH+l} in
+hipl)	;;
+*)	mydir=$(dirname "$0") \
+	&& mydir=$(CDPATH='' cd -P -- "$mydir/.." && printf '%sX' "$PWD") \
+	&& mydir=${mydir%X} \
+	|| exit
+	exec "$mydir/bin/package" use "$mydir" "$0" "$@" ;;
+esac
 
 # Check if there is a ksh to test.
 case ${KSH+set} in
-( '' )	KSH=$mydir/arch/$myarch/bin/ksh ;;
+( '' )	KSH=$SHELL ;;
 esac
 if ! test -x "$KSH" || ! test -f "$KSH"; then
 	printf '%s: shell not found: %s\n' "${0##*/}" "$KSH" >&2
@@ -62,10 +63,8 @@ KSH=$(CDPATH='' cd -P -- "$(dirname "$KSH")" \
 && KSH=${KSH%X}
 
 # Run the test suite
-CDPATH='' cd -P -- "$mydir/src/cmd/ksh93/tests" || exit
+CDPATH='' cd -P -- "$PACKAGEROOT/src/cmd/ksh93/tests" || exit
 SHELL=$KSH
-INSTALLROOT=${INSTALLROOT:-$mydir/arch/$myarch}
-export SHELL INSTALLROOT
 unset -v KSH
 printf '#### Regression-testing %s ####\n' "$SHELL"
 exec "$SHELL" shtests "$@"

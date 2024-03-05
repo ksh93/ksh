@@ -8,12 +8,14 @@ setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
-setv mam_cc_FLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
+setv mam_cc_FLAGS ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCFLAGS
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
 setv LDFLAGS
 setv SH_DICT \"libshell\"
+note * on macOS we have version before extension (libshell.6.0.dylib), on other systems, after (libshell.so.6.0)
+setv DYLIB_SUFFIX ${mam_cc_SUFFIX_SHARED?.dylib?.${AST_DYLIB_VERSION}${mam_cc_SUFFIX_SHARED}?${mam_cc_SUFFIX_SHARED}.${AST_DYLIB_VERSION}?}
 
 make install virtual
 	note *
@@ -1201,6 +1203,8 @@ make install virtual
 		exec - fi || exit
 		exec - ranlib ${@} >/dev/null 2>&1 || true
 
+		note * save for dylink
+		setv _libshell_object_files_ ${^}
 	done libshell.a
 
 	note * Set the mam_libshell variable
@@ -1230,6 +1234,28 @@ make install virtual
 		done
 		exec - link_binary shcomp shcomp.o
 	done shcomp
+
+	note *
+	note * Dynamically linked version, if supported
+	note *
+
+	make ${INSTALLROOT}/dyn/lib/libshell${DYLIB_SUFFIX} dontcare
+		prev libshell.a
+		prev shell.req
+		exec - dylink -m shell -s ${DYLIB_SUFFIX} $(sed 1d shell.req) ${_libshell_object_files_}
+	done
+
+	make ${INSTALLROOT}/dyn/bin/ksh dontcare
+		prev ksh
+		prev shell.req
+		exec - dylink -e ksh $(cat shell.req) ${mam_libnsl} ${mam_libm} pmain.o
+	done
+
+	make ${INSTALLROOT}/dyn/bin/shcomp dontcare
+		prev shcomp
+		prev shell.req
+		exec - dylink -e shcomp $(cat shell.req) ${mam_libnsl} ${mam_libm} shcomp.o
+	done
 
 	note *
 	note * Pre-install

@@ -27,7 +27,7 @@ make install virtual
 		prev make.probe
 		exec - cat ${^} > ${@}
 	done
-	loop SCRIPT probe iffe mktest regress crossexec mkreq mkreq-maplib mprobe proto
+	loop SCRIPT probe iffe mktest regress crossexec mkreq mkreq-maplib mprobe proto dylink
 		make ${INSTALLROOT}/bin/${SCRIPT}
 			make ${SCRIPT}
 				prev ${@}.sh

@@ -8,7 +8,7 @@ setv MAMAKE_STRICT 3
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
-setv mam_cc_FLAGS ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
+setv mam_cc_FLAGS ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCFLAGS
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
@@ -137,6 +137,16 @@ make install virtual
 		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} \
 		exec -	${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} ${mam_libcmd}
 	done pty
+
+	note *
+	note * Dynamically linked version, if supported
+	note *
+
+	make ${INSTALLROOT}/dyn/bin/pty dontcare
+		prev pty
+		prev ${INSTALLROOT}/lib/lib/cmd
+		exec - dylink -e pty ${mam_libutil} $(cat ${INSTALLROOT}/lib/lib/cmd) pty.o
+	done
 
 	note *
 	note * Pre-install
