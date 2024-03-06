@@ -12,6 +12,7 @@ setv mam_cc_FLAGS ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?
 setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS
+setv CCLDFLAGS
 note * on macOS we have version before extension (libcmd.6.0.dylib), on other systems, after (libcmd.so.6.0)
 setv DYLIB_SUFFIX ${mam_cc_SUFFIX_SHARED?.dylib?.${AST_DYLIB_VERSION}${mam_cc_SUFFIX_SHARED}?${mam_cc_SUFFIX_SHARED}.${AST_DYLIB_VERSION}?}
 
