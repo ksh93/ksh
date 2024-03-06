@@ -728,8 +728,8 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 			sh.path_err = ENOENT;
 			return NULL;
 		}
-		isfun = (oldpp->flags&PATH_FPATH) && !sh_isstate(SH_EXEC);
-		if(!isfun && !sh_isstate(SH_EXEC))
+		isfun = (oldpp->flags&PATH_FPATH) && !sh_isstate(SH_EXEC) && !sh_isstate(SH_XARG);
+		if(!isfun && !sh_isstate(SH_EXEC) && !sh_isstate(SH_XARG))
 		{
 #if SHOPT_DYNAMIC
 			Shbltin_f addr;
