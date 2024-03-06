@@ -488,7 +488,7 @@ make install virtual
 	make ${INSTALLROOT}/dyn/lib/libcmd${DYLIB_SUFFIX} dontcare
 		prev libcmd.a
 		prev cmd.req
-		exec - export LDFLAGS="$LDFLAGS ${mam_cc_LD_NOASNEEDED}"
+		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED}'
 		exec - dylink -m cmd -s ${DYLIB_SUFFIX} $(sed 1d cmd.req) ${_libcmd_object_files_}
 	done
 

@@ -145,7 +145,7 @@ make install virtual
 	make ${INSTALLROOT}/dyn/bin/pty dontcare
 		prev pty
 		prev ${INSTALLROOT}/lib/lib/cmd
-		exec - export LDFLAGS="$LDFLAGS ${mam_cc_LD_NOASNEEDED}"
+		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED}'
 		exec - dylink -e pty ${mam_libutil} $(cat ${INSTALLROOT}/lib/lib/cmd) pty.o
 	done
 

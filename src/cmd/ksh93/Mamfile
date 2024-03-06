@@ -1242,21 +1242,21 @@ make install virtual
 	make ${INSTALLROOT}/dyn/lib/libshell${DYLIB_SUFFIX} dontcare
 		prev libshell.a
 		prev shell.req
-		exec - export LDFLAGS="$LDFLAGS ${mam_cc_LD_NOASNEEDED}"
+		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED}'
 		exec - dylink -m shell -s ${DYLIB_SUFFIX} $(sed 1d shell.req) ${_libshell_object_files_}
 	done
 
 	make ${INSTALLROOT}/dyn/bin/ksh dontcare
 		prev ksh
 		prev shell.req
-		exec - export LDFLAGS="$LDFLAGS ${mam_cc_LD_NOASNEEDED} ${mam_cc_EXPORT_DYNAMIC}"
+		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED} ${mam_cc_EXPORT_DYNAMIC}'
 		exec - dylink -e ksh $(cat shell.req) ${mam_libnsl} ${mam_libm} pmain.o
 	done
 
 	make ${INSTALLROOT}/dyn/bin/shcomp dontcare
 		prev shcomp
 		prev shell.req
-		exec - export LDFLAGS="$LDFLAGS ${mam_cc_LD_NOASNEEDED} ${mam_cc_EXPORT_DYNAMIC}"
+		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED} ${mam_cc_EXPORT_DYNAMIC}'
 		exec - dylink -e shcomp $(cat shell.req) ${mam_libnsl} ${mam_libm} shcomp.o
 	done
 
