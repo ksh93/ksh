@@ -197,6 +197,7 @@ make install virtual
 	make ${INSTALLROOT}/dyn/lib/libdll${DYLIB_SUFFIX} dontcare
 		prev libdll.a
 		prev dll.req
+		exec - export LDFLAGS="$LDFLAGS ${mam_cc_LD_NOASNEEDED}"
 		exec - dylink -m dll -s ${DYLIB_SUFFIX} $(sed 1d dll.req) ${_libdll_object_files_}
 	done
 

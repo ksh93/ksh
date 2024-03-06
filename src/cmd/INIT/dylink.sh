@@ -85,14 +85,6 @@ ms)	case $suffix in
 esac
 
 case $HOSTTYPE in
-linux.aarch* | linux.arm*)
-	case ${AST_CRASH_ME:+s} in
-	'')	note	"ksh with dynamic libraries is known to crash on $HOSTTYPE." \
-			"The cause is still a mystery to us. Please help us debug it at:" \
-			"https://github.com/ksh93/ksh/issues/TODO" \
-			"Skipping. Export AST_CRASH_ME to build dynamic libraries."
-		exit 0 ;;  # continue build
-	esac ;;
 cygwin.*)
 	note "Dynamic libraries are not supported on $HOSTTYPE."
 	exit 0 ;;  # continue build

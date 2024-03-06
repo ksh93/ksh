@@ -4956,6 +4956,7 @@ make install virtual
 	make ${INSTALLROOT}/dyn/lib/libast${DYLIB_SUFFIX} dontcare
 		prev libast.a
 		prev ast.req
+		exec - export LDFLAGS="$LDFLAGS ${mam_cc_LD_NOASNEEDED}"
 		exec - dylink -m ast -s ${DYLIB_SUFFIX} $(sed 1d ast.req) ${_libast_object_files_}
 	done
 

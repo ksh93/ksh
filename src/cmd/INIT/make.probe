@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)make.probe (ksh 93u+m) 2024-01-09
+# @(#)make.probe (ksh 93u+m) 2024-03-05
 #
 # C probe for make
 #
@@ -21,6 +21,7 @@ probe_export_dynamic="-rdynamic -export-dynamic -Wl,-export-dynamic -Wl,-E -bexp
 probe_gcc_optimize="-Os"
 probe_gcc_version="*[Gg][Cc][Cc]*"
 probe_include_local="'-ignore-source-dir -iquote' -iquote -I-"
+probe_ldasneeded="-Wl,-as-needed -Wl,-no-as-needed"
 probe_ldlazy='-zlazyload -znolazyload -Wl,-zlazyload -Wl,-znolazyload'
 probe_ldlib="LD_LIBRARY_PATH LIBPATH LPATH"
 probe_ldmap="'-Wl,-M' '-Qoption ld -M' '-Wl,-m' '-m'"
@@ -129,6 +130,7 @@ export_dynamic=
 gnu=
 implicitc=
 include_local=
+ldasneeded=
 lddynamic=
 ldlazy=
 ldnolazy=
@@ -555,6 +557,20 @@ then	eval set x x $probe_ldlazy
 		cmp -s e f || continue
 		ldrecord=$1
 		ldnorecord=$2
+		break
+	done
+	eval set x x $probe_ldasneeded
+	while	:
+	do	shift
+		shift
+		case $# in
+		0)	break ;;
+		esac
+		rm -f strip.$exe
+		$cc -o strip.$exe $1 strip.$obj $2 2>f && test -f strip.$exe || continue
+		cmp -s e f || continue
+		ldasneeded=$1
+		ldnoasneeded=$2
 		break
 	done
 fi
@@ -1941,6 +1957,8 @@ CC_DYNAMIC=$dynamic
 CC_EXPORT_DYNAMIC=$export_dynamic
 CC_INCLUDE_LOCAL=$include_local
 CC_LD=$ld
+CC_LD_ASNEEDED=$ldasneeded
+CC_LD_NOASNEEDED=$ldnoasneeded
 CC_LD_DYNAMIC=$lddynamic
 CC_LD_LAZY=$ldlazy
 CC_LD_NOLAZY=$ldnolazy
@@ -2045,6 +2063,8 @@ $CC_CC)	echo if LDSHARED
 *)	echo CC.LD = $CC_LD
 	;;
 esac
+echo CC.LD.ASNEEDED = $CC_LD_ASNEEDED
+echo CC.LD.NOASNEEDED = $CC_LD_NOASNEEDED
 echo CC.LD.DYNAMIC = $CC_LD_DYNAMIC
 echo CC.LD.LAZY = $CC_LD_LAZY
 echo CC.LD.NOLAZY = $CC_LD_NOLAZY

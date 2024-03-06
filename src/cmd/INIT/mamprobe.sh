@@ -37,7 +37,7 @@ opt=
 case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 0123)	USAGE=$'
 [-?
-@(#)$Id: mamprobe (ksh 93u+m) 2024-02-10 $
+@(#)$Id: mamprobe (ksh 93u+m) 2024-03-05 $
 ]
 [+NAME?mamprobe - generate MAM cc probe info]
 [+DESCRIPTION?\bmamprobe\b generates MAM (make abstract machine) \bcc\b(1)
