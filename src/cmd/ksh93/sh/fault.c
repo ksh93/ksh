@@ -694,7 +694,7 @@ noreturn void sh_done(int sig)
 		/* generate fault termination code */
 		if(RLIMIT_CORE!=RLIMIT_UNKNOWN)
 		{
-#ifdef _lib_getrlimit
+#if _lib_getrlimit
 			struct rlimit rlp;
 			getrlimit(RLIMIT_CORE,&rlp);
 			rlp.rlim_cur = 0;

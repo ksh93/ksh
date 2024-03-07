@@ -586,7 +586,7 @@ int	b_times(int argc, char *argv[], Shbltin_t *context)
 	return 0;
 }
 
-#ifdef _cmd_universe
+#if _cmd_universe
 /*
  * There are several universe styles that are masked by the getuniv(),
  * setuniv() calls.

@@ -431,7 +431,6 @@ make install virtual
 		prev tty.c
 		prev uname.c
 		prev uniq.c
-		prev vmstate.c
 		prev wc.c
 		prev revlib.c
 		prev wclib.c
@@ -453,6 +452,14 @@ make install virtual
 		exec -	${^} |
 		exec -	sort -u
 		exec - } > cmdext.h
+		prev vmstate.c
+		exec - {
+		exec - cat <<!
+		exec - #if _AST_vmalloc
+		exec - extern int	b_vmstate(int, char**, Shbltin_t*);
+		exec - #endif
+		exec - !
+		exec - } >> cmdext.h
 		prev ${PACKAGE_ast_INCLUDE}/shcmd.h
 	done
 
@@ -563,7 +570,6 @@ make install virtual
 			prev tty.c
 			prev uname.c
 			prev uniq.c
-			prev vmstate.c
 			prev wc.c
 			prev revlib.c
 			prev wclib.c
@@ -583,6 +589,14 @@ make install virtual
 			exec -	${^} |
 			exec - sort -u
 			exec - } > ${@}
+			prev vmstate.c
+			exec - {
+			exec - cat <<!
+			exec - #if _AST_vmalloc
+			exec - CMDLIST(vmstate)
+			exec - #endif
+			exec - !
+			exec - } >> ${@}
 		done cmdlist.h
 		exec - cp -f ${<} ${@}
 	done ${PACKAGE_ast_INCLUDE}/cmdlist.h

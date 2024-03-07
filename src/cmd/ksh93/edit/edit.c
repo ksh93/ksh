@@ -32,7 +32,7 @@
 #include	<ccode.h>
 #include	<fault.h>
 #include	"FEATURE/time"
-#ifdef _hdr_utime
+#if _hdr_utime
 #   include	<utime.h>
 #   include	<ls.h>
 #endif
@@ -104,28 +104,6 @@ static char *erase_eos;  /* erase to end of screen */
 #define RAWMODE		1
 #define ECHOMODE	3
 #define	SYSERR	-1
-
-#if SHOPT_OLDTERMIO
-#   undef tcgetattr
-#   undef tcsetattr
-#endif /* SHOPT_OLDTERMIO */
-
-#ifdef RT
-#   define VENIX 1
-#endif	/* RT */
-
-
-#ifdef _hdr_sgtty
-#   ifdef TIOCGETP
-	static int l_mask;
-	static struct tchars l_ttychars;
-	static struct ltchars l_chars;
-	static  char  l_changed;	/* set if mode bits changed */
-#	define L_CHARS	4
-#	define T_CHARS	2
-#	define L_MASK	1
-#   endif /* TIOCGETP */
-#endif /* _hdr_sgtty */
 
 static int keytrap(Edit_t *,char*, int, int, int);
 
@@ -220,18 +198,6 @@ void tty_cooked(int fd)
 		return;
 	if(fd < 0)
 		fd = ep->e_savefd;
-#ifdef L_MASK
-	/* restore flags */
-	if(l_changed&L_MASK)
-		ioctl(fd,TIOCLSET,&l_mask);
-	if(l_changed&T_CHARS)
-		/* restore alternate break character */
-		ioctl(fd,TIOCSETC,&l_ttychars);
-	if(l_changed&L_CHARS)
-		/* restore alternate break character */
-		ioctl(fd,TIOCSLTC,&l_chars);
-	l_changed = 0;
-#endif	/* L_MASK */
 	/*** don't do tty_set unless ttyparm has valid data ***/
 	if(tty_set(fd, TCSANOW, &ttyparm) == SYSERR)
 		return;
@@ -248,9 +214,6 @@ void tty_cooked(int fd)
 int tty_raw(int fd, int echomode)
 {
 	int echo = echomode;
-#ifdef L_MASK
-	struct ltchars lchars;
-#endif	/* L_MASK */
 	Edit_t *ep = (Edit_t*)(sh.ed_context);
 	if(ep->e_raw==RAWMODE)
 		return echo?-1:0;
@@ -258,95 +221,57 @@ int tty_raw(int fd, int echomode)
 		return echo?0:-1;
 	if(tty_get(fd,&ttyparm) == SYSERR)
 		return -1;
-#if  L_MASK || VENIX
-	if(ttyparm.sg_flags&LCASE)
-		return -1;
-	if(!(ttyparm.sg_flags&ECHO))
-	{
-		if(!echomode)
-			return -1;
-		echo = 0;
-	}
-	nttyparm = ttyparm;
-	if(!echo)
-		nttyparm.sg_flags &= ~(ECHO | TBDELAY);
-#   ifdef CBREAK
-	nttyparm.sg_flags |= CBREAK;
-#   else
-	nttyparm.sg_flags |= RAW;
-#   endif /* CBREAK */
-	ep->e_erase = ttyparm.sg_erase;
-	ep->e_kill = ttyparm.sg_kill;
-	ep->e_eof = cntl('D');
-	ep->e_werase = cntl('W');
-	ep->e_lnext = cntl('V');
-	if( tty_set(fd, TCSADRAIN, &nttyparm) == SYSERR )
-		return -1;
-	ep->e_ttyspeed = (ttyparm.sg_ospeed>=B1200?FAST:SLOW);
-#   ifdef TIOCGLTC
-	/* try to remove effect of ^V and ^Y and ^O */
-	if(ioctl(fd,TIOCGLTC,&l_chars) != SYSERR)
-	{
-		lchars = l_chars;
-		lchars.t_lnextc = -1;
-		lchars.t_flushc = -1;
-		lchars.t_dsuspc = -1;	/* no delayed stop process signal */
-		if(ioctl(fd,TIOCSLTC,&lchars) != SYSERR)
-			l_changed |= L_CHARS;
-	}
-#   endif	/* TIOCGLTC */
-#else
 	if (!(ttyparm.c_lflag & ECHO ))
 	{
 		if(!echomode)
 			return -1;
 		echo = 0;
 	}
-#   ifdef FLUSHO
+#ifdef FLUSHO
 	ttyparm.c_lflag &= ~FLUSHO;
-#   endif /* FLUSHO */
+#endif /* FLUSHO */
 	nttyparm = ttyparm;
-#  ifndef u370
+#ifndef u370
 	nttyparm.c_iflag &= ~(IGNPAR|PARMRK|INLCR|IGNCR|ICRNL);
 	nttyparm.c_iflag |= BRKINT;
-#   else
+#else
 	nttyparm.c_iflag &= 
 			~(IGNBRK|PARMRK|INLCR|IGNCR|ICRNL|INPCK);
 	nttyparm.c_iflag |= (BRKINT|IGNPAR);
-#   endif	/* u370 */
+#endif	/* u370 */
 	if(echo)
 		nttyparm.c_lflag &= ~(ICANON);
 	else
 		nttyparm.c_lflag &= ~(ICANON|ISIG|ECHO|ECHOK);
 	nttyparm.c_cc[VTIME] = 0;
 	nttyparm.c_cc[VMIN] = 1;
-#   ifdef VREPRINT
+#ifdef VREPRINT
 	nttyparm.c_cc[VREPRINT] = _POSIX_DISABLE;
-#   endif /* VREPRINT */
-#   ifdef VDISCARD
+#endif /* VREPRINT */
+#ifdef VDISCARD
 	nttyparm.c_cc[VDISCARD] = _POSIX_DISABLE;
-#   endif /* VDISCARD */
-#   ifdef VDSUSP
+#endif /* VDISCARD */
+#ifdef VDSUSP
 	nttyparm.c_cc[VDSUSP] = _POSIX_DISABLE;
-#   endif /* VDSUSP */
-#   ifdef VWERASE
+#endif /* VDSUSP */
+#ifdef VWERASE
 	if(ttyparm.c_cc[VWERASE] == _POSIX_DISABLE)
 		ep->e_werase = cntl('W');
 	else
 		ep->e_werase = nttyparm.c_cc[VWERASE];
 	nttyparm.c_cc[VWERASE] = _POSIX_DISABLE;
-#   else
+#else
 	    ep->e_werase = cntl('W');
-#   endif /* VWERASE */
-#   ifdef VLNEXT
+#endif /* VWERASE */
+#ifdef VLNEXT
 	if(ttyparm.c_cc[VLNEXT] == _POSIX_DISABLE )
 		ep->e_lnext = cntl('V');
 	else
 		ep->e_lnext = nttyparm.c_cc[VLNEXT];
 	nttyparm.c_cc[VLNEXT] = _POSIX_DISABLE;
-#   else
+#else
 	ep->e_lnext = cntl('V');
-#   endif /* VLNEXT */
+#endif /* VLNEXT */
 	ep->e_intr = ttyparm.c_cc[VINTR];
 	ep->e_eof = ttyparm.c_cc[VEOF];
 	ep->e_erase = ttyparm.c_cc[VERASE];
@@ -354,7 +279,6 @@ int tty_raw(int fd, int echomode)
 	if( tty_set(fd, TCSADRAIN, &nttyparm) == SYSERR )
 		return -1;
 	ep->e_ttyspeed = (cfgetospeed(&ttyparm)>=B1200?FAST:SLOW);
-#endif
 	ep->e_raw = (echomode?ECHOMODE:RAWMODE);
 	return 0;
 }
@@ -672,11 +596,12 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	}
 }
 
-static void ed_putstring(Edit_t *ep, const char *str)
+void ed_putstring(Edit_t *ep, const char *str)
 {
 	int c;
-	while(c = *str++)
-		ed_putchar(ep,c);
+	mbinit();
+	while (c = mbchar(str))
+		ed_putchar(ep, c < 0 ? '?' : c);
 }
 
 static void ed_nputchar(Edit_t *ep, int n, int c)
@@ -782,7 +707,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	}
 	if(rv < 0)
 	{
-#ifdef _hdr_utime
+#if _hdr_utime
 #		define fixtime()	if(isdevtty)utime(ep->e_tty,&utimes)
 		int	isdevtty=0;
 		struct stat statb;
@@ -1014,24 +939,24 @@ void ed_ungetchar(Edit_t *ep,int c)
 
 void	ed_putchar(Edit_t *ep,int c)
 {
-	char buf[8];
 	char *dp = ep->e_outptr;
-	int i,size=1;
+#if SHOPT_MULTIBYTE
+	char buf[8];
+	int size;
+#endif	/* SHOPT_MULTIBYTE */
 	if(!dp)
 		return;
-	buf[0] = c;
 #if SHOPT_MULTIBYTE
 	/* check for place holder */
 	if(c == MARKER)
 		return;
 	if((size = mbconv(buf, (wchar_t)c)) > 1)
 	{
-		for (i = 0; i < (size-1); i++)
+		int i;
+		for (i = 0; i < size; i++)
 			*dp++ = buf[i];
-		c = buf[i];
 	}
 	else
-		buf[0] = c;
 #endif	/* SHOPT_MULTIBYTE */
 	*dp++ = c;
 	*dp = '\0';
@@ -1305,7 +1230,7 @@ int	ed_external(const genchar *src, char *dest)
 		char buffer[MAXLINE*sizeof(genchar)] = "";
 		c = ed_external(src,buffer);
 
-#ifdef _lib_wcscpy
+#if _lib_wcscpy
 		wcscpy((wchar_t *)dest,(const wchar_t *)buffer);
 #else
 		strcopy(dest,buffer);
@@ -1368,81 +1293,6 @@ int	ed_genlen(const genchar *str)
 }
 #endif /* (SHOPT_ESH || SHOPT_VSH) && SHOPT_MULTIBYTE */
 
-#if SHOPT_OLDTERMIO
-
-#   include	<sys/termio.h>
-
-#ifndef ECHOCTL
-#   define ECHOCTL	0
-#endif /* !ECHOCTL */
-#define ott	ep->e_ott
-
-/*
- * For backward compatibility only
- * This version will use termios when possible, otherwise termio
- */
-
-int tcgetattr(int fd, struct termios *tt)
-{
-	Edit_t *ep = (Edit_t*)(sh.ed_context);
-	int r,i;
-	ep->e_tcgeta = 0;
-	ep->e_echoctl = (ECHOCTL!=0);
-	if((r=ioctl(fd,TCGETS,tt))>=0 ||  errno!=EINVAL)
-		return r;
-	if((r=ioctl(fd,TCGETA,&ott)) >= 0)
-	{
-		tt->c_lflag = ott.c_lflag;
-		tt->c_oflag = ott.c_oflag;
-		tt->c_iflag = ott.c_iflag;
-		tt->c_cflag = ott.c_cflag;
-		for(i=0; i<NCC; i++)
-			tt->c_cc[i] = ott.c_cc[i];
-		ep->e_tcgeta++;
-		ep->e_echoctl = 0;
-	}
-	return r;
-}
-
-int tcsetattr(int fd,int mode,struct termios *tt)
-{
-	Edit_t *ep = (Edit_t*)(sh.ed_context);
-	int r;
-	if(ep->e_tcgeta)
-	{
-		int i;
-		ott.c_lflag = tt->c_lflag;
-		ott.c_oflag = tt->c_oflag;
-		ott.c_iflag = tt->c_iflag;
-		ott.c_cflag = tt->c_cflag;
-		for(i=0; i<NCC; i++)
-			ott.c_cc[i] = tt->c_cc[i];
-		if(tt->c_lflag&ECHOCTL)
-		{
-			ott.c_lflag &= ~(ECHOCTL|IEXTEN);
-			ott.c_iflag &= ~(IGNCR|ICRNL);
-			ott.c_iflag |= INLCR;
-			ott.c_cc[VEOF]= ESC;  /* ESC -> eof char */
-			ott.c_cc[VEOL] = '\r'; /* CR -> eol char */
-			ott.c_cc[VEOL2] = tt->c_cc[VEOF]; /* EOF -> eol char */
-		}
-		switch(mode)
-		{
-			case TCSANOW:
-				mode = TCSETA;
-				break;
-			case TCSADRAIN:
-				mode = TCSETAW;
-				break;
-			case TCSAFLUSH:
-				mode = TCSETAF;
-		}
-		return ioctl(fd,mode,&ott);
-	}
-	return ioctl(fd,mode,tt);
-}
-#endif /* SHOPT_OLDTERMIO */
-
 /*
  * Execute keyboard trap on given buffer <inbuff> of given size <isize>
  * <mode> < 0 for vi insert mode
@@ -1497,6 +1347,10 @@ void	*ed_open(void)
 	return ed;
 }
 
+/*
+ * ioctl, tcgetattr and tcsetattr are mapped to these versions in terminal.h
+ */
+
 #undef ioctl
 int	sh_ioctl(int fd, int cmd, void* val, int sz)
 {
@@ -1523,22 +1377,20 @@ int	sh_ioctl(int fd, int cmd, void* val, int sz)
 	return r;
 }
 
-#ifdef _lib_tcgetattr
-#   undef tcgetattr
+#undef tcgetattr
 int sh_tcgetattr(int fd, struct termios *tty)
-    {
+{
 	int r,err = errno;
 	while((r=tcgetattr(fd,tty)) < 0 && errno==EINTR)
 		errno = err;
 	return r;
-    }
+}
 
-#   undef tcsetattr
+#undef tcsetattr
 int sh_tcsetattr(int fd, int cmd, struct termios *tty)
-    {
+{
 	int r,err = errno;
 	while((r=tcsetattr(fd,cmd,tty)) < 0 && errno==EINTR)
 		errno = err;
 	return r;
-    }
-#endif
+}

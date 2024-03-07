@@ -151,7 +151,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2024-03-06 $
+@(#)$Id: '$command$' (ksh 93u+m) 2024-03-08 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -584,7 +584,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2024-03-06
+  version         package (ksh 93u+m) 2024-03-08
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -2135,10 +2135,7 @@ case $x in
 
 	case $KEEP_SHELL in
 	0)	save_PATH=$PATH
-		if	PATH=$(getconf PATH 2>/dev/null)
-		then	PATH=$PATH:$path
-		else	PATH=/bin:/usr/bin:/sbin:/usr/sbin:$path
-		fi
+		PATH=$DEFPATH:$path
 		for i in ksh ksh93 mksh yash bash sh
 		do	if onpath "$i" && checksh "$_onpath_"
 			then	SHELL=$_onpath_
@@ -3051,18 +3048,9 @@ make|view)
 	case $EXECROOT in
 	$INSTALLROOT)
 		$make cd $INSTALLROOT/bin
-		if	executable /bin/cp
-		then	cp=/bin/cp
-		else	cp=cp
-		fi
-		if	executable /bin/mv
-		then	mv=/bin/mv
-		else	mv=mv
-		fi
-		if	executable /bin/rm
-		then	rm=/bin/rm
-		else	rm=rm
-		fi
+		cp=$(PATH=$DEFPATH; command -v cp) || cp=cp
+		mv=$(PATH=$DEFPATH; command -v mv) || mv=mv
+		rm=$(PATH=$DEFPATH; command -v rm) || rm=rm
 		for i in \
 			ksh tee cp ln mv rm \
 			*ast*.dll *cmd*.dll *dll*.dll *shell*.dll

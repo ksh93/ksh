@@ -1868,7 +1868,7 @@ void nv_putval(Namval_t *np, const char *string, int flags)
 		}
 		if(nv_isattr(np, NV_HOST|NV_INTEGER)==NV_HOST && sp)
 		{
-#ifdef _lib_pathnative
+#if _lib_pathnative
 			/*
 			 * return the host file name given the UNIX name
 			 */

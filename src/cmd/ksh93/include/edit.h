@@ -96,15 +96,10 @@ typedef struct edit
 	int	e_fd;		/* file descriptor */
 	int	e_ttyspeed;	/* line speed, also indicates tty parameters are valid */
 	int	e_tabcount;
-#ifdef _hdr_utime
+#if _hdr_utime
 	ino_t	e_tty_ino;
 	dev_t	e_tty_dev;
 	char	*e_tty;
-#endif
-#if SHOPT_OLDTERMIO
-	char	e_echoctl;
-	char	e_tcgeta;
-	struct termio e_ott;
 #endif
 	int	*e_globals;	/* global variables */
 	genchar	*e_window;	/* display window image */
@@ -158,6 +153,7 @@ typedef struct edit
 #define TCAP_ERASE_EOS	"cd"
 
 extern void	ed_putchar(Edit_t*, int);
+extern void	ed_putstring(Edit_t*, const char*);
 extern void	ed_ringbell(void);
 extern void	ed_setup(Edit_t*,int, int);
 extern void	ed_flush(Edit_t*);

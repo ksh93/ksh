@@ -257,7 +257,7 @@ tst	- output{
 		"pointer",	sizeof(void*),		COND * 4,
 		"float",	sizeof(float),		0,
 		"double",	sizeof(double),		0,
-	#ifdef _typ_long_double
+	#if _typ_long_double
 		"long_double",	sizeof(long double),	0,
 	#endif
 	};
@@ -308,7 +308,7 @@ tst	- -DN=1 - -DN=0 output{
 	{
 		"float",	sizeof(float),
 		"double",	sizeof(double),
-	#ifdef _typ_long_double
+	#if _typ_long_double
 		"long double",	sizeof(long double),
 	#endif
 	};
@@ -319,7 +319,7 @@ tst	- -DN=1 - -DN=0 output{
 		int	t;
 		int	m = 1;
 	
-	#ifdef _typ_long_double
+	#if _typ_long_double
 		long double	p;
 		char		buf[64];
 

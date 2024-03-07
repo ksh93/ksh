@@ -28,7 +28,6 @@ SHOPT MKSERVICE=0			# enable the mkservice and eloop builtins
 SHOPT MULTIBYTE=			# multibyte character handling
 SHOPT NAMESPACE=1			# allow namespaces
 SHOPT NOECHOE=0				# turn off 'echo -e' when SHOPT_ECHOPRINT is disabled
-SHOPT OLDTERMIO=			# support both TCGETA and TCGETS
 SHOPT OPTIMIZE=1			# optimize loop invariants
 SHOPT P_SUID=0				# real UIDs >= this value require -p for set[ug]id (to turn off, use empty, not 0)
 SHOPT PRINTF_LEGACY=			# allow noncompliant printf(1) syntax (format arg starting with '-' without prior '--')

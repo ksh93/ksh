@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-03-07:
+
+- Fixed a bug that caused some systems to corrupt the display of multibyte
+  characters in the command prompt.
+
 2024-03-05:
 
 - Fixed a regression, introduced on 2021-02-07, that made the common AST

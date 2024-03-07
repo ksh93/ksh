@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -205,13 +205,8 @@ spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, i
 				pgid = getpid();
 			if (setpgid(0, pgid) < 0 && errno == EPERM)
 				setpgid(pgid, 0);
-#if _lib_tcgetpgrp
 			if (m)
 				tcsetpgrp(2, pgid);
-#elif defined(TIOCSPGRP)
-			if (m)
-				ioctl(2, TIOCSPGRP, &pgid);
-#endif /* _lib_tcgetpgrp */
 		}
 		execve(path, argv, envv);
 		if (err[0] != -1)

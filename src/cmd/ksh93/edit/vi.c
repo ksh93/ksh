@@ -181,7 +181,6 @@ static int	getcount(Vi_t*,int);
 static void	getline(Vi_t*,int);
 static int	getrchar(Vi_t*);
 static int	mvcursor(Vi_t*,int);
-static void	pr_string(Vi_t*,const char*);
 static void	refresh(Vi_t*,int);
 static void	replace(Vi_t*,int, int);
 static void	restore_v(Vi_t*);
@@ -1640,20 +1639,6 @@ find_b:
 	return 1;
 }
 
-/*
- * print a string
- */
-
-static void pr_string(Vi_t *vp, const char *sp)
-{
-	/*** copy string sp ***/
-	char *ptr = editb.e_outptr;
-	while(*sp)
-		*ptr++ = *sp++;
-	editb.e_outptr = ptr;
-	return;
-}
-
 /*{	VI_REDRAW( )
  *
  *	Print the prompt and force a total refresh.
@@ -1666,7 +1651,7 @@ static void pr_string(Vi_t *vp, const char *sp)
 void vi_redraw(void *ep)
 {
 	Vi_t	*vp = (Vi_t*)ep;
-	pr_string(vp,Prompt);
+	ed_putstring(vp->ed,Prompt);
 	window[0] = '\0';
 	cur_phys = vp->first_wind;
 	vp->ofirst_wind = INVALID;
@@ -2610,7 +2595,7 @@ yankeol:
 #if SHOPT_MULTIBYTE
     static int _isalph(int v)
     {
-#ifdef _lib_iswalnum
+#if _lib_iswalnum
 	return iswalnum(v) || v=='_';
 #else
 	return (v&~STRIP) || isalnum(v) || v=='_';

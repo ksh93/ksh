@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -927,15 +927,6 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	sfputc(sp,'}');
 	return 1;
 }
-
-#ifndef _lib_tcgetpgrp
-#  ifdef TIOCGPGRP
-	   static int _i_;
-#	   define tcgetpgrp(a) (ioctl(a, TIOCGPGRP, &_i_)>=0?_i_:-1)	
-#  else
-#	   define tcgetpgrp(a) (-1)
-#  endif /* TIOCGPGRP */
-#endif /* _lib_tcgetpgrp */
 
 int
 b_stty(int argc, char** argv, Shbltin_t* context)

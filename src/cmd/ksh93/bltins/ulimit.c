@@ -68,7 +68,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	char *limit;
 	int mode=0, n;
 	unsigned long hit = 0;
-#ifdef _lib_getrlimit
+#if _lib_getrlimit
 	struct rlimit rlp;
 #endif /* _lib_getrlimit */
 	const Limit_t* tp;
@@ -160,7 +160,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			}
 			else
 			{
-#ifdef _lib_getrlimit
+#if _lib_getrlimit
 				if(getrlimit(n,&rlp) <0)
 				{
 					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
@@ -188,7 +188,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 		{
 			if(!nosupport)
 			{
-#ifdef  _lib_getrlimit
+#if _lib_getrlimit
 				if(getrlimit(n,&rlp)<0)
 				{
 					errormsg(SH_DICT,ERROR_system(0),e_limit,tp->description);
@@ -200,7 +200,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 				if(mode&SOFT)
 					i = rlp.rlim_cur;
 #else
-#   ifdef _lib_ulimit
+#   if _lib_ulimit
 				n--;
 #   endif /* _lib_ulimit */
 				i = -1;

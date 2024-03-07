@@ -2,10 +2,10 @@ lib	sigblock,sigrelse,sigsetmask,sigprocmask,sigvec
 typ	sigset_t	ast.h signal.h
 mem	sigvec.sv_mask	signal.h
 cat{
-	#ifndef _mem_sigvec_sv_mask
+	#if !_mem_sigvec_sv_mask
 	#   undef _lib_sigvec
 	#endif
-	#ifdef _lib_sigprocmask
+	#if _lib_sigprocmask
 	#    define sh_sigaction(s,action) do { sigset_t ss;\
 				sigemptyset(&ss); \
 				if(s) sigaddset(&ss,(s)); \
@@ -15,14 +15,14 @@ cat{
 	#    define sigblock(s)	 	sh_sigaction(s,SIG_BLOCK)
 	#    define sig_begin()		sh_sigaction(0,SIG_SETMASK)
 	#else
-	#   ifndef _lib_sigblock
+	#   if !_lib_sigblock
 	#	define sigblock(s)
 	#   endif
-	#   ifdef _lib_sigsetmask
+	#   if _lib_sigsetmask
 	#       define sigrelease(s)  sigsetmask(0)
 	#       define sig_begin()    sigsetmask(0)
 	#   else
-	#	ifdef _lib_sigrelse
+	#	if _lib_sigrelse
 	#	    define sigrelease	sigrelse
 	#	    define sig_begin()
 	#	else

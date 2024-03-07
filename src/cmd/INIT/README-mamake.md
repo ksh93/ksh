@@ -369,7 +369,7 @@ building, and executed as normal commands while building the current directory.
 
 #### …while scanning and sorting leaf directories ####
 
-If there is a leaf directory named `INIT`, it will always be built before
+Any leaf directories with names that start with `INIT` will always be built before
 all others. For all other leaf directories, the presence of any `bind`
 command of the form `bind -lfoo` anywhere in a leaf
 directory's Mamfile causes the leaf directory named `libfoo` (if it exists)
@@ -426,9 +426,10 @@ The *variable* is restored to its previous state after the loop completes.
 Note that `loop` causes repeated reading and processing of Mamfile lines,
 *not* necessarily repeated execution. For instance, a loop can be used to
 consolidate repetitive `make`…`done` rules. However, each rule is only made
-once and subsequent rules by the same name are skipped over. So it only
-makes sense to do this if the contained make target names are modified by
-the expansion of the iteration *variable*.
+once and subsequent rules by the same name are an error at strict level 3
+and up, or skipped over at strict \< 3. So it only makes sense to do this
+if the contained make target names are modified by the expansion of the
+iteration *variable*.
 
 `loop` requires a seekable input file (i.e.: not a pipe).
 

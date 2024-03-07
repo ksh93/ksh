@@ -155,6 +155,7 @@ make install virtual
 	make ${PACKAGE_ast_INCLUDE}/lc.h implicit
 		prev ${PACKAGE_ast_INCLUDE}/ast.h
 	done
+	prev ${PACKAGE_ast_INCLUDE}/ast_tty.h implicit
 
 	note *
 	note * Library dependencies
@@ -186,7 +187,7 @@ make install virtual
 		prev ${PACKAGE_ast_INCLUDE}/dlldefs.h
 	done
 
-	loop F options externs sigfeatures time dynamic ttys locale cmds poll rlimits
+	loop F options externs sigfeatures time dynamic locale cmds poll rlimits
 		make FEATURE/${F} implicit
 			prev features/${F}
 			exec - ${iffe_run} ${<}
@@ -377,7 +378,7 @@ make install virtual
 	done
 
 	make include/terminal.h implicit
-		prev FEATURE/ttys
+		prev ${PACKAGE_ast_INCLUDE}/ast_tty.h
 	done
 
 	make include/edit.h implicit

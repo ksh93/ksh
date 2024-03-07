@@ -64,7 +64,7 @@ static struct stat lastmail;
 static time_t	mailtime;
 static char	beenhere = 0;
 
-#ifdef _lib_sigvec
+#if _lib_sigvec
     void clearsigmask(int sig)
     {
 	struct sigvec vec;
@@ -116,7 +116,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	int		i;
 	int		rshflag;	/* set for restricted shell */
 	char		*command;
-#ifdef _lib_sigvec
+#if _lib_sigvec
 	/* This is to clear mask that may be left on by rlogin */
 	clearsigmask(SIGALRM);
 	clearsigmask(SIGHUP);

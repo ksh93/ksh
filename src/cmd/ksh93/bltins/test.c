@@ -613,7 +613,7 @@ int sh_access(const char *name, int mode)
 		goto skip;
 	if(sh.userid==sh.euserid && sh.groupid==sh.egroupid)
 		return access(name,mode);
-#ifdef _lib_setreuid
+#if _lib_setreuid
 	/* swap the real UID to effective, check access then restore */
 	/* first swap real and effective GID, if different */
 	if(sh.groupid==sh.euserid || setregid(sh.egroupid,sh.groupid)==0)
@@ -649,7 +649,7 @@ skip:
 			mode <<= 6;
 		else if(sh.egroupid == statb.st_gid)
 			mode <<= 3;
-#ifdef _lib_getgroups
+#if _lib_getgroups
 		/* on some systems you can be in several groups */
 		else
 		{
