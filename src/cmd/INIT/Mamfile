@@ -43,137 +43,14 @@ make install virtual
 	note * ksh93 ld library path search on PATH
 	note *
 
-	make ${INSTALLROOT}/bin/.paths
-		exec -	if	test ! -f ${INSTALLROOT}/bin/.paths -o -w ${INSTALLROOT}/bin/.paths
-		exec -	then	N='
-		exec -	'
-		exec -		H=${mam_cc_HOSTTYPE}
-		exec -		P=""	# TODO? reimplement nmake original: P="$(-mam:??$(.GETCONF LIBPATH:/:/ /G:/,/ : /G:Q)?)"
-		exec -		b= f= h= l= n= p= u= B= L=
-		exec -		set : $P
-		exec -		while	:
-		exec -		do	while	:
-		exec -			do	case $1 in
-		exec -				'')	break 2 ;;
-		exec -				:)	shift; break ;;
-		exec -				esac
-		exec -				shift
-		exec -			done
-		exec -			case $# in
-		exec -			0|1)	break ;;
-		exec -			esac
-		exec -			case $L in
-		exec -			?*)	L="$L|" ;;
-		exec -			esac
-		exec -			L="$L$2=*"
-		exec -			B=$1
-		exec -		done
-		exec -		if	test -f ${INSTALLROOT}/bin/.paths
-		exec -		then	while	read x
-		exec -			do	case $x in
-		exec -				*\$\(\"*) # to fix 2012-06-18 edit botch #
-		exec -					break ;;
-		exec -				'#'?*)	case $h in
-		exec -					'')	h=$x ;;
-		exec -					esac ;;
-		exec -				$L)	l=$x ;;
-		exec -				*BUILTIN_LIB=*)
-		exec -					b=$x ;;
-		exec -				*FPATH=*)
-		exec -					f=$x ;;
-		exec -				*PLUGIN_LIB=*)
-		exec -					p=$x ;;
-		exec -				*)	case $u in
-		exec -					?*)	 u=$u$N ;;
-		exec -					esac
-		exec -					u=$u$x ;;
-		exec -				esac
-		exec -			done < ${INSTALLROOT}/bin/.paths
-		exec -		fi
-		exec -		ifs=$IFS
-		exec -		m=
-		exec -		case $p in
-		exec -		?*)	b= ;;
-		exec -		esac
-		exec -		case $b in
-		exec -		?*)	IFS='='
-		exec -			set $b
-		exec -			IFS=$ifs
-		exec -			shift
-		exec -			p="PLUGIN_LIB=$*"
-		exec -			case $b in
-		exec -			[Nn][Oo]*)
-		exec -				p=no$p ;;
-		exec -			esac
-		exec -			m=1 ;;
-		exec -		esac
-		exec -		case $f in
-		exec -		'')	f="FPATH=../fun"
-		exec -			m=1 ;;
-		exec -		esac
-		exec -		case $h in
-		exec -		'')	h='# use { no NO } prefix to permanently disable #' ;;
-		exec -		esac
-		exec -		case $l in
-		exec -		'')	set x x : $P
-		exec -			l=
-		exec -			while	:
-		exec -			do	while	:
-		exec -				do	case $# in
-		exec -					0)	break ;;
-		exec -					esac
-		exec -					x=$1
-		exec -					shift
-		exec -					case $x in
-		exec -					:)	break ;;
-		exec -					esac
-		exec -				done
-		exec -				case $# in
-		exec -				0|1)	break ;;
-		exec -				2)	l=$2 ;;
-		exec -				*)	case "$H" in
-		exec -					$3) l=$2; break ;;
-		exec -					esac ;;
-		exec -				esac
-		exec -			done
-		exec -			case $l in
-		exec -			'')	if	test -x /lib/dld.sl
-		exec -				then	l=SHLIB_PATH
-		exec -				elif	test -x /usr/lib/dyld
-		exec -				then	l=DYLD_LIBRARY_PATH
-		exec -				else	case "$H" in
-		exec -					ibm.*|mvs.*)
-		exec -						l=LIBPATH ;;
-		exec -					sgi.mips3)
-		exec -						l=LD_LIBRARYN32_PATH ;;
-		exec -					sgi.mips4)
-		exec -						l=LD_LIBRARYN64_PATH	;;
-		exec -					*)	l=LD_LIBRARY_PATH ;;
-		exec -					esac
-		exec -				fi ;;
-		exec -			esac
-		exec -			case $l in
-		exec -			?*)	case $B in
-		exec -				'')	B=lib ;;
-		exec -				esac
-		exec -				l="$l=../$B"
-		exec -				m=1 ;;
-		exec -			esac ;;
-		exec -		esac
-		exec -		case $p in
-		exec -		'')	p="PLUGIN_LIB=cmd"
-		exec -			case '' in
-		exec -			'') p=no$p ;;
-		exec -			esac
-		exec -			m=1 ;;
-		exec -		esac
-		exec -		case $m in
-		exec -		1)	case $u in
-		exec -			?*)	u=$N$u ;;
-		exec -			esac
-		exec -			echo "$h$N$p$N$f$N$l$u" > ${INSTALLROOT}/bin/.paths ;;
-		exec -		esac
-		exec -	fi
+	make ${INSTALLROOT}/dyn/bin/.paths
+		exec - test -f ${INSTALLROOT}/bin/.paths && rm -f ${INSTALLROOT}/bin/.paths  # rm old
+		exec - mkdir -p ${INSTALLROOT}/dyn/bin
+		exec - cat >${@} <<\EOF
+		exec - # use { no NO } prefix to permanently disable #
+		exec - PLUGIN_LIB=cmd
+		exec - FPATH=../../fun
+		exec - EOF
 	done
 
 	note *
