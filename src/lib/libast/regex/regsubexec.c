@@ -197,9 +197,7 @@ regsubexec(const regex_t* p, const char* s, size_t nmatch, regmatch_t* match)
  */
 
 #undef	regsubexec
-#if _map_libc
 #define regsubexec	_ast_regsubexec
-#endif
 
 extern int
 regsubexec(const regex_t* p, const char* s, size_t nmatch, oldregmatch_t* oldmatch)

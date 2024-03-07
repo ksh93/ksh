@@ -234,6 +234,8 @@ main(void)
 	printf("#undef	realpath\n");
 	printf("#define realpath	_ast_realpath\n");
 	printf("extern char*		realpath(const char*, char*);\n");
+#endif
+	/* Override the native regex library in favor of libast's regex functions */
 	printf("#undef	regaddclass\n");
 	printf("#define regaddclass	_ast_regaddclass\n");
 	printf("#undef	regalloc\n");
@@ -286,6 +288,7 @@ main(void)
 	printf("#define regsubflags	_ast_regsubflags\n");
 	printf("#undef	regsubfree\n");
 	printf("#define regsubfree	_ast_regsubfree\n");
+#if _map_libc
 	printf("#undef	remove\n");
 	printf("#define remove		_ast_remove\n");
 	printf("extern int		remove(const char*);\n");
