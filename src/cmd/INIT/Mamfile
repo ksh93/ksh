@@ -38,22 +38,6 @@ make install virtual
 	done
 
 	note *
-	note * ksh93 function search on PATH
-	note * ksh93 builtin command library -lcmd
-	note * ksh93 ld library path search on PATH
-	note *
-
-	make ${INSTALLROOT}/dyn/bin/.paths
-		exec - test -f ${INSTALLROOT}/bin/.paths && rm -f ${INSTALLROOT}/bin/.paths  # rm old
-		exec - mkdir -p ${INSTALLROOT}/dyn/bin
-		exec - cat >${@} <<\EOF
-		exec - # use { no NO } prefix to permanently disable #
-		exec - PLUGIN_LIB=cmd
-		exec - FPATH=../../fun
-		exec - EOF
-	done
-
-	note *
 	note * probe initialization
 	note *
 
