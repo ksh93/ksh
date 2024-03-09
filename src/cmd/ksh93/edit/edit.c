@@ -301,7 +301,7 @@ int ed_window(void)
 	return cols;
 }
 
-/*	E_FLUSH()
+/*	ED_FLUSH()
  *
  *	Flush the output buffer.
  *
@@ -933,31 +933,20 @@ void ed_ungetchar(Edit_t *ep,int c)
 #endif /* SHOPT_ESH || SHOPT_VSH */
 
 #if SHOPT_ESH || SHOPT_VSH
+
 /*
- * put a character into the output buffer
+ * put a byte into the output buffer
  */
 
-void	ed_putchar(Edit_t *ep,int c)
+#if SHOPT_MULTIBYTE
+static void	ed_putbyte(Edit_t *ep,int c)
+#else
+void		ed_putchar(Edit_t *ep,int c)
+#endif /* SHOPT_MULTIBYTE */
 {
 	char *dp = ep->e_outptr;
-#if SHOPT_MULTIBYTE
-	char buf[8];
-	int size;
-#endif	/* SHOPT_MULTIBYTE */
 	if(!dp)
 		return;
-#if SHOPT_MULTIBYTE
-	/* check for place holder */
-	if(c == MARKER)
-		return;
-	if((size = mbconv(buf, (wchar_t)c)) > 1)
-	{
-		int i;
-		for (i = 0; i < size; i++)
-			*dp++ = buf[i];
-	}
-	else
-#endif	/* SHOPT_MULTIBYTE */
 	*dp++ = c;
 	*dp = '\0';
 	if(dp >= ep->e_outlast)
@@ -965,6 +954,25 @@ void	ed_putchar(Edit_t *ep,int c)
 	else
 		ep->e_outptr = dp;
 }
+
+#if SHOPT_MULTIBYTE
+/*
+ * put a character into the output buffer
+ */
+
+void	ed_putchar(Edit_t *ep,int c)
+{
+	char buf[8];
+	int size, i;
+	/* check for placeholder */
+	if(c == MARKER)
+		return;
+	size = mbconv(buf, (wchar_t)c);
+	for (i = 0; i < size; i++)
+		ed_putbyte(ep,buf[i]);
+}
+#endif /* SHOPT_MULTIBYTE */
+
 #endif /* SHOPT_ESH || SHOPT_VSH */
 
 #if SHOPT_ESH || SHOPT_VSH
