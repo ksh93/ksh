@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -89,7 +89,7 @@ static Sfoff_t skseek(Sfio_t* f, Sfoff_t addr, int type, Sfdisc_t* disc)
 {
 	Seek_t*		sk;
 	Sfio_t*		sf;
-	char		buf[SF_BUFSIZE];
+	char		buf[SFIO_BUFSIZE];
 	ssize_t		r, w;
 
 	sk = (Seek_t*)disc;
@@ -147,8 +147,8 @@ static int skexcept(Sfio_t* f, int type, void* data, Sfdisc_t* disc)
 
 	switch (type)
 	{
-	case SF_FINAL:
-	case SF_DPOP:
+	case SFIO_FINAL:
+	case SFIO_DPOP:
 		sfclose(sk->shadow);
 		free(disc);
 		break;
@@ -178,7 +178,7 @@ int sfdcseekable(Sfio_t* f)
 	sk->disc.writef = skwrite;
 	sk->disc.seekf = skseek;
 	sk->disc.exceptf = skexcept;
-	sk->shadow = sftmp(SF_BUFSIZE);
+	sk->shadow = sftmp(SFIO_BUFSIZE);
 	sk->discard = 0;
 	sk->extent = 0;
 	sk->eof = 0;

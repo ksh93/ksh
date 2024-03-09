@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -64,6 +64,8 @@
 static void     noexport(Namval_t* np, void *data)
 {
 	NOT_USED(data);
+	if(sh.subshell && !sh.subshare)
+		sh_assignok(np,0);
 	nv_offattr(np,NV_EXPORT);
 }
 
@@ -77,11 +79,9 @@ int    b_redirect(int argc,char *argv[],Shbltin_t *context){}
 int    b_exec(int argc,char *argv[], Shbltin_t *context)
 {
 	int	n;
-	struct checkpt *pp;
 	const char *pname;
 	int	clear = 0;
 	char	*arg0 = 0;
-	NOT_USED(argc);
 	NOT_USED(context);
 	sh.st.ioset = 0;
 	while (n = optget(argv, *argv[0]=='r' ? sh_optredirect : sh_optexec)) switch (n)
@@ -115,16 +115,13 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 
 	/* from here on, it's 'exec' with args, so we're replacing the shell */
 	if(sh_isoption(SH_RESTRICTED))
-	{
 		errormsg(SH_DICT,ERROR_exit(1),e_restricted,argv[0]);
-		UNREACHABLE();
-	}
 	else
 	{
 		struct argnod *arg=sh.envlist;
 		Namval_t* np;
 		char *cp;
-		if(sh.subshell && !sh.subshare)
+		if(arg0 && sh.subshell && !sh.subshare)
 			sh_subfork();
 		if(clear)
 			nv_scan(sh.var_tree,noexport,0,NV_EXPORT,NV_EXPORT);
@@ -148,14 +145,25 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		/* if the main shell is about to be replaced, decrease SHLVL to cancel out a subsequent increase */
 		if(!sh.realsubshell)
 			(*SHLVL->nvalue.ip)--;
-		/* force bad exec to terminate shell */
-		pp = (struct checkpt*)sh.jmplist;
-		pp->mode = SH_JMPEXIT;
+		sh_onstate(SH_EXEC);
+		if(sh.subshell && !sh.subshare)
+		{
+			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + argc*sizeof(char*));;
+			struct comnod *t = stkalloc(sh.stk,sizeof(struct comnod));
+			memset(t, 0, sizeof(struct comnod));
+			dp->dolnum = argc;
+			dp->dolbot = ARG_SPARE;
+			memcpy(dp->dolval+ARG_SPARE, argv, (argc+1)*sizeof(char*));
+			t->comarg = (struct argnod*)dp;
+			sh_exec((Shnode_t*)t,sh_isstate(SH_ERREXIT));
+			sh_offstate(SH_EXEC);
+			siglongjmp(*sh.jmplist,SH_JMPEXIT);
+		}
 		sh_sigreset(2);
 		sh_freeup();
 		path_exec(pname,argv,NULL);
 	}
-	return 1;
+	UNREACHABLE();
 }
 
 int    b_let(int argc,char *argv[],Shbltin_t *context)
@@ -312,7 +320,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		else
 		{
 			buffer = sh_malloc(IOBSIZE+1);
-			iop = sfnew(NULL,buffer,IOBSIZE,fd,SF_READ);
+			iop = sfnew(NULL,buffer,IOBSIZE,fd,SFIO_READ);
 			sh_offstate(SH_NOFORK);
 			sh_eval(iop,sh_isstate(SH_PROFILE)?SH_FUNEVAL:0);
 		}
@@ -578,7 +586,7 @@ int	b_times(int argc, char *argv[], Shbltin_t *context)
 	return 0;
 }
 
-#ifdef _cmd_universe
+#if _cmd_universe
 /*
  * There are several universe styles that are masked by the getuniv(),
  * setuniv() calls.

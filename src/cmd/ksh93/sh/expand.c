@@ -115,7 +115,7 @@ int path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 		 */
 		if((ap = (struct argnod*)gp->gl_list) && !ap->argnxt.ap && strcmp(ap->argval,trimmedpat)==0)
 		{
-			gp->gl_list = (globlist_t*)stkalloc(sh.stk,ARGVAL+strlen(pattern)+1);
+			gp->gl_list = stkalloc(sh.stk,ARGVAL+strlen(pattern)+1);
 			memcpy(gp->gl_list,ap,ARGVAL);  /* copy fields *before* argval/gl_path */
 			strcpy(gp->gl_list->gl_path,pattern);
 		}
@@ -149,9 +149,9 @@ static int scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
 			continue;
 		if(strmatch(cp=nv_name(np),pattern))
 		{
-			(void)stkseek(sh.stk,ARGVAL);
+			stkseek(sh.stk,ARGVAL);
 			sfputr(sh.stk,cp,-1);
-			ap = (struct argnod*)stkfreeze(sh.stk,1);
+			ap = stkfreeze(sh.stk,1);
 			ap->argbegin = NULL;
 			ap->argchn.ap = *arghead;
 			ap->argflag = ARG_RAW|ARG_MAKE;
@@ -431,13 +431,13 @@ endloop1:
 		brace = *cp;
 		*cp = 0;
 		sh_sigcheck();
-		ap = (struct argnod*)stkseek(sh.stk,ARGVAL);
+		ap = stkseek(sh.stk,ARGVAL);
 		ap->argflag = ARG_RAW;
 		ap->argchn.ap = todo;
 		sfputr(sh.stk,apin->argval,-1);
 		sfputr(sh.stk,pat,-1);
 		sfputr(sh.stk,rescan,-1);
-		todo = ap = (struct argnod*)stkfreeze(sh.stk,1);
+		todo = ap = stkfreeze(sh.stk,1);
 		if(brace == '}')
 			break;
 		if(!range)

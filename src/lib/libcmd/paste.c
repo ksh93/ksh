@@ -257,7 +257,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 		n = 1;
 	if(!sflag)
 	{
-		if (!(streams = (Sfio_t**)stkalloc(stkstd,n*sizeof(Sfio_t*))))
+		if (!(streams = stkalloc(stkstd,n*sizeof(Sfio_t*))))
 		{
 			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();

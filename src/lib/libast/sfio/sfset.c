@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -34,10 +34,10 @@ int sfset(Sfio_t* f, int flags, int set)
 	if(flags == 0 && set == 0)
 		return f->flags&SFIO_FLAGS;
 
-	if((oflags = (f->mode&SF_RDWR)) != (int)f->mode)
-	{	/* avoid sfsetbuf() isatty() call if user sets (SF_LINE|SF_WCWIDTH) */
-		if(set && (flags & (SF_LINE|SF_WCWIDTH)) && !(f->flags & (SF_LINE|SF_WCWIDTH)))
-		{	tflags = (SF_LINE|SF_WCWIDTH);
+	if((oflags = (f->mode&SFIO_RDWR)) != (int)f->mode)
+	{	/* avoid sfsetbuf() isatty() call if user sets (SFIO_LINE|SFIO_WCWIDTH) */
+		if(set && (flags & (SFIO_LINE|SFIO_WCWIDTH)) && !(f->flags & (SFIO_LINE|SFIO_WCWIDTH)))
+		{	tflags = (SFIO_LINE|SFIO_WCWIDTH);
 			f->flags |= tflags;
 		}
 		else	tflags = 0;
@@ -54,36 +54,36 @@ int sfset(Sfio_t* f, int flags, int set)
 
 	/* preserve at least one rd/wr flag */
 	oflags = f->flags;
-	if(!(f->bits&SF_BOTH) || (flags&SF_RDWR) == SF_RDWR )
-		flags &= ~SF_RDWR;
+	if(!(f->bits&SFIO_BOTH) || (flags&SFIO_RDWR) == SFIO_RDWR )
+		flags &= ~SFIO_RDWR;
 
 	/* set the flag */
 	if(set)
-		f->flags |=  (flags&SF_SETS);
-	else	f->flags &= ~(flags&SF_SETS);
+		f->flags |=  (flags&SFIO_SETS);
+	else	f->flags &= ~(flags&SFIO_SETS);
 
 	/* must have at least one of read/write */
-	if(!(f->flags&SF_RDWR))
-		f->flags |= (oflags&SF_RDWR);
+	if(!(f->flags&SFIO_RDWR))
+		f->flags |= (oflags&SFIO_RDWR);
 
 	if(f->extent < 0)
-		f->flags &= ~SF_APPENDWR;
+		f->flags &= ~SFIO_APPENDWR;
 
 	/* turn to appropriate mode as necessary */
-	if((flags &= SF_RDWR) )
+	if((flags &= SFIO_RDWR) )
 	{	if(!set)
-		{	if(flags == SF_READ)
-				flags = SF_WRITE;
-			else	flags = SF_READ;
+		{	if(flags == SFIO_READ)
+				flags = SFIO_WRITE;
+			else	flags = SFIO_READ;
 		}
-		if((flags == SF_WRITE && !(f->mode&SF_WRITE)) ||
-		   (flags == SF_READ && !(f->mode&(SF_READ|SF_SYNCED))) )
+		if((flags == SFIO_WRITE && !(f->mode&SFIO_WRITE)) ||
+		   (flags == SFIO_READ && !(f->mode&(SFIO_READ|SFIO_SYNCED))) )
 			(void)_sfmode(f,flags,1);
 	}
 
 	/* if not shared or unseekable, public means nothing */
-	if(!(f->flags&SF_SHARE) || f->extent < 0)
-		f->flags &= ~SF_PUBLIC;
+	if(!(f->flags&SFIO_SHARE) || f->extent < 0)
+		f->flags &= ~SFIO_PUBLIC;
 
 	SFOPEN(f,0);
 	return oflags&SFIO_FLAGS;

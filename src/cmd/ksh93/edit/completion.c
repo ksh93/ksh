@@ -277,8 +277,8 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			ep->e_nlist = 0;
 		}
 	}
-	comptr = (struct comnod*)stkalloc(sh.stk,sizeof(struct comnod));
-	ap = (struct argnod*)stkseek(sh.stk,ARGVAL);
+	comptr = stkalloc(sh.stk,sizeof(struct comnod));
+	ap = stkseek(sh.stk,ARGVAL);
 #if SHOPT_MULTIBYTE
 	{
 		int c = *cur;
@@ -368,7 +368,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		}
 		if(addstar)
 			sfputc(sh.stk,addstar);
-		ap = (struct argnod*)stkfreeze(sh.stk,1);
+		ap = stkfreeze(sh.stk,1);
 	}
 	if(mode!='*')
 		sh_onoption(SH_MARKDIRS);

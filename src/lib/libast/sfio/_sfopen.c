@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -37,20 +37,20 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 		return NULL;
 
 	/* changing the control flags */
-	if(f && !file && !((f->flags|sflags)&SF_STRING) )
-	{	if(f->mode&SF_INIT ) /* stream uninitialized, ok to set flags */
-		{	f->flags |= (sflags & (SFIO_FLAGS & ~SF_RDWR));
+	if(f && !file && !((f->flags|sflags)&SFIO_STRING) )
+	{	if(f->mode&SFIO_INIT ) /* stream uninitialized, ok to set flags */
+		{	f->flags |= (sflags & (SFIO_FLAGS & ~SFIO_RDWR));
 
-			if((sflags &= SF_RDWR) != 0) /* reset read/write modes */
-			{	f->flags = (f->flags & ~SF_RDWR) | sflags;
+			if((sflags &= SFIO_RDWR) != 0) /* reset read/write modes */
+			{	f->flags = (f->flags & ~SFIO_RDWR) | sflags;
 
-				if((f->flags&SF_RDWR) == SF_RDWR)
-					f->bits |= SF_BOTH;
-				else	f->bits &= ~SF_BOTH;
+				if((f->flags&SFIO_RDWR) == SFIO_RDWR)
+					f->bits |= SFIO_BOTH;
+				else	f->bits &= ~SFIO_BOTH;
 
-				if(f->flags&SF_READ)
-					f->mode = (f->mode&~SF_WRITE)|SF_READ;
-				else	f->mode = (f->mode&~SF_READ)|SF_WRITE;
+				if(f->flags&SFIO_READ)
+					f->mode = (f->mode&~SFIO_WRITE)|SFIO_READ;
+				else	f->mode = (f->mode&~SFIO_READ)|SFIO_WRITE;
 			}
 		}
 		else /* make sure there is no buffered data */
@@ -66,7 +66,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 				fcntl(f->file, F_SETFL, ctl);
 			}
 #if !O_cloexec
-			if (fflags & SF_FD_CLOEXEC)
+			if (fflags & SFIO_FD_CLOEXEC)
 				SETCLOEXEC(f->file);
 #endif
 		}
@@ -74,9 +74,9 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 		return f;
 	}
 
-	if(sflags&SF_STRING)
+	if(sflags&SFIO_STRING)
 	{	f = sfnew(f,(char*)file,
-		  	  file ? (size_t)strlen((char*)file) : (size_t)SF_UNBOUND,
+		  	  file ? (size_t)strlen((char*)file) : (size_t)SFIO_UNBOUND,
 		  	  -1,sflags);
 	}
 	else
@@ -84,7 +84,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 			return NULL;
 
 #if _has_oflags /* open the file */
-		while((fd = open((char*)file,oflags,SF_CREATMODE)) < 0 && errno == EINTR)
+		while((fd = open((char*)file,oflags,SFIO_CREATMODE)) < 0 && errno == EINTR)
 			errno = 0;
 #else
 		while((fd = open(file,oflags&O_ACCMODE)) < 0 && errno == EINTR)
@@ -96,14 +96,14 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 			}
 			if(oflags&O_TRUNC )	/* truncate file */
 			{	int	tf;
-				while((tf = creat(file,SF_CREATMODE)) < 0 &&
+				while((tf = creat(file,SFIO_CREATMODE)) < 0 &&
 				      errno == EINTR)
 					errno = 0;
 				CLOSE(tf);
 			}
 		}
 		else if(oflags&O_CREAT)
-		{	while((fd = creat(file,SF_CREATMODE)) < 0 && errno == EINTR)
+		{	while((fd = creat(file,SFIO_CREATMODE)) < 0 && errno == EINTR)
 				errno = 0;
 			if((oflags&O_ACCMODE) != O_WRONLY)
 			{	/* the file now exists, reopen it for read/write */
@@ -119,7 +119,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 
 		/* we may have to reset the file descriptor to its old value */
 		oldfd = f ? f->file : -1;
-		if((f = sfnew(f,NULL,(size_t)SF_UNBOUND,fd,sflags)) && oldfd >= 0)
+		if((f = sfnew(f,NULL,(size_t)SFIO_UNBOUND,fd,sflags)) && oldfd >= 0)
 			(void)sfsetfd(f,oldfd);
 	}
 
@@ -138,7 +138,7 @@ int _sftype(const char* mode, int* oflagsp, int* fflagsp)
 	while(1) switch(*mode++)
 	{
 	case 'a' :
-		sflags |= SF_WRITE | SF_APPENDWR;
+		sflags |= SFIO_WRITE | SFIO_APPENDWR;
 		oflags |= O_WRONLY | O_APPEND | O_CREAT;
 		continue;
 	case 'b' :
@@ -146,22 +146,22 @@ int _sftype(const char* mode, int* oflagsp, int* fflagsp)
 		continue;
 	case 'e' :
 		oflags |= O_cloexec;
-		fflags |= SF_FD_CLOEXEC;
+		fflags |= SFIO_FD_CLOEXEC;
 		continue;
 	case 'r' :
-		sflags |= SF_READ;
+		sflags |= SFIO_READ;
 		oflags |= O_RDONLY;
 		continue;
 	case 's' :
-		sflags |= SF_STRING;
+		sflags |= SFIO_STRING;
 		continue;
 	case 't' :
 		oflags |= O_TEXT;
 		continue;
 	case 'w' :
-		sflags |= SF_WRITE;
+		sflags |= SFIO_WRITE;
 		oflags |= O_WRONLY | O_CREAT;
-		if(!(sflags&SF_READ))
+		if(!(sflags&SFIO_READ))
 			oflags |= O_TRUNC;
 		continue;
 	case 'x' :
@@ -171,11 +171,11 @@ int _sftype(const char* mode, int* oflagsp, int* fflagsp)
 		/* stdio compatibility -- fd >= FOPEN_MAX (or other magic number) ok */
 		continue;
 	case 'W' :
-		sflags |= SF_WCWIDTH;
+		sflags |= SFIO_WCWIDTH;
 		continue;
 	case '+' :
 		if(sflags)
-			sflags |= SF_READ|SF_WRITE;
+			sflags |= SFIO_READ|SFIO_WRITE;
 		continue;
 	default :
 		if(!(oflags&O_CREAT) )
@@ -184,14 +184,14 @@ int _sftype(const char* mode, int* oflagsp, int* fflagsp)
 		if(!(oflags&(O_BINARY|O_TEXT)))
 			oflags |= O_BINARY;
 #endif
-		if((sflags&SF_RDWR) == SF_RDWR)
+		if((sflags&SFIO_RDWR) == SFIO_RDWR)
 			oflags = (oflags&~O_ACCMODE)|O_RDWR;
 		if(oflagsp)
 			*oflagsp = oflags;
 		if(fflagsp)
 			*fflagsp = fflags;
-		if((sflags&(SF_STRING|SF_RDWR)) == SF_STRING)
-			sflags |= SF_READ;
+		if((sflags&(SFIO_STRING|SFIO_RDWR)) == SFIO_STRING)
+			sflags |= SFIO_READ;
 		return sflags;
 	}
 }

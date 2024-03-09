@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -239,7 +239,7 @@ dofmt(Fmt_t* fp)
 	char	buf[8192];
 
 	cp = 0;
-	while (cp || (cp = sfgetr(fp->in, '\n', 0)) && !(splice = 0) && (lp = cp + sfvalue(fp->in) - 1) || (cp = sfgetr(fp->in, '\n', SF_LASTR)) && (splice = 1) && (lp = cp + sfvalue(fp->in)))
+	while (cp || (cp = sfgetr(fp->in, '\n', 0)) && !(splice = 0) && (lp = cp + sfvalue(fp->in) - 1) || (cp = sfgetr(fp->in, '\n', SFIO_LASTR)) && (splice = 1) && (lp = cp + sfvalue(fp->in)))
 	{
 		if (isoption(fp, 'o'))
 		{

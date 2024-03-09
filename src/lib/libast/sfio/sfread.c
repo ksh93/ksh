@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,30 +35,30 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 		return (ssize_t)(-1);
 
 	GETLOCAL(f,local);
-	justseek = f->bits&SF_JUSTSEEK; f->bits &= ~SF_JUSTSEEK;
+	justseek = f->bits&SFIO_JUSTSEEK; f->bits &= ~SFIO_JUSTSEEK;
 
 	if(!buf)
 		return (ssize_t)(n == 0 ? 0 : -1) ;
 
 	/* release peek lock */
-	if(f->mode&SF_PEEK)
-	{	if(!(f->mode&SF_READ) )
+	if(f->mode&SFIO_PEEK)
+	{	if(!(f->mode&SFIO_READ) )
 			return (ssize_t)(-1);
 
-		if(f->mode&SF_GETR)
+		if(f->mode&SFIO_GETR)
 		{	if(((uchar*)buf + f->val) != f->next &&
 			   (!f->rsrv || f->rsrv->data != (uchar*)buf) )
 				return (ssize_t)(-1);
-			f->mode &= ~SF_PEEK;
+			f->mode &= ~SFIO_PEEK;
 			return 0;
 		}
 		else
 		{	if((uchar*)buf != f->next)
 				return (ssize_t)(-1);
-			f->mode &= ~SF_PEEK;
-			if(f->mode&SF_PKRD)
+			f->mode &= ~SFIO_PEEK;
+			if(f->mode&SFIO_PKRD)
 			{	/* actually read the data now */
-				f->mode &= ~SF_PKRD;
+				f->mode &= ~SFIO_PKRD;
 				if(n > 0)
 					n = (r = read(f->file,f->data,n)) < 0 ? 0 : r;
 				f->endb = f->data+n;
@@ -71,9 +71,9 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 	}
 
 	s = begs = (uchar*)buf;
-	for(;; f->mode &= ~SF_LOCK)
+	for(;; f->mode &= ~SFIO_LOCK)
 	{	/* check stream mode */
-		if(SFMODE(f,local) != SF_READ && _sfmode(f,SF_READ,local) < 0)
+		if(SFMODE(f,local) != SFIO_READ && _sfmode(f,SFIO_READ,local) < 0)
 		{	n = s > begs ? s-begs : (size_t)(-1);
 			return (ssize_t)n;
 		}
@@ -93,12 +93,12 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 		if(n <= 0)	/* all done */
 			break;
 
-		if(!(f->flags&SF_STRING) && !(f->bits&SF_MMAP) )
+		if(!(f->flags&SFIO_STRING) && !(f->bits&SFIO_MMAP) )
 		{	f->next = f->endb = f->data;
 
 			/* exact IO is desirable for these cases */
 			if(SFDIRECT(f,n) ||
-			   ((f->flags&SF_SHARE) && f->extent < 0) )
+			   ((f->flags&SFIO_SHARE) && f->extent < 0) )
 				r = (ssize_t)n;
 			else if(justseek && n <= f->iosz && f->iosz <= f->size)
 				r = f->iosz;	/* limit buffering */
@@ -120,7 +120,7 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 		else
 		{ do_filbuf:
 			if(justseek)
-				f->bits |= SF_JUSTSEEK;
+				f->bits |= SFIO_JUSTSEEK;
 			if(SFFILBUF(f,-1) <= 0)
 				break;
 		}

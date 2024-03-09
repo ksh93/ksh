@@ -328,11 +328,8 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		/* restore everything but the nvlink field */
 		memcpy(&SH_VALNOD->nvname,  &node.nvname, sizeof(node)-sizeof(node.nvlink));
 	}
-	else if(sh_isstate(SH_INIT) || np==SH_FUNNAMENOD)
-	{
-		/* don't free functions during reinitialization */
+	else if(np==SH_FUNNAMENOD)
 		nv_putv(np,val,flags,handle);
-	}
 	else if(!nq || !isblocked(bp,type))
 	{
 		Dt_t *root = sh_subfuntree(1);
@@ -342,7 +339,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		block(bp,type);
 		nv_disc(np,handle,NV_POP);
 		if(!nv_isattr(np,NV_MINIMAL))
-			pp = (Namval_t*)np->nvenv;
+			pp = np->nvmeta;
 		nv_putv(np, val, flags, handle);
 		if(sh.subshell)
 			goto done;
@@ -912,11 +909,11 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 	{
 		if(nv_isattr(mp,NV_EXPORT|NV_MINIMAL) == (NV_EXPORT|NV_MINIMAL))
 		{
-			mp->nvenv = 0;
+			mp->nvmeta = NULL;
 			nv_offattr(mp,NV_MINIMAL);
 		}
-		if(!(flags&NV_COMVAR) && !nv_isattr(np,NV_MINIMAL) && np->nvenv && !(nv_isattr(mp,NV_MINIMAL)))
-			mp->nvenv = np->nvenv;
+		if(!(flags&NV_COMVAR) && !nv_isattr(np,NV_MINIMAL) && np->nvmeta && !(nv_isattr(mp,NV_MINIMAL)))
+			mp->nvmeta = np->nvmeta;
 		mp->nvflag &= NV_MINIMAL;
 	        mp->nvflag |= np->nvflag&~(NV_ARRAY|NV_MINIMAL|NV_NOFREE);
 		flag = mp->nvflag;
@@ -951,10 +948,10 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 		np->nvalue.cp = 0;
 		if(!nv_isattr(np,NV_MINIMAL) || nv_isattr(mp,NV_EXPORT))
 		{
-			mp->nvenv = np->nvenv;
+			mp->nvmeta = np->nvmeta;
 			if(nv_isattr(np,NV_MINIMAL))
 			{
-				np->nvenv = 0;
+				np->nvmeta = NULL;
 				np->nvflag = NV_EXPORT;
 			}
 			else
@@ -966,7 +963,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 		return 1;
 	}
 	else if((flags&NV_ARRAY) && !nv_isattr(np,NV_MINIMAL))
-		mp->nvenv = np->nvenv;
+		mp->nvmeta = np->nvmeta;
 	if(nv_isattr(np,NV_INTEGER) && !nv_isarray(np) && mp->nvalue.ip!=np->nvalue.ip && np->nvalue.cp!=Empty)
 	{
 		mp->nvalue.ip = (int*)num_clone(np,np->nvalue.ip);
@@ -1105,8 +1102,8 @@ Namval_t *nv_bfsearch(const char *name, Dt_t *root, Namval_t **var, char **last)
 		return np;
 	}
 #endif /* SHOPT_NAMESPACE */
-	while(nv_isarray(nq) && !nv_isattr(nq,NV_MINIMAL|NV_EXPORT) && nq->nvenv && nv_isarray((Namval_t*)nq->nvenv))
-		nq = (Namval_t*)nq->nvenv;
+	while(nv_isarray(nq) && !nv_isattr(nq,NV_MINIMAL|NV_EXPORT) && nq->nvmeta && nv_isarray((Namval_t*)nq->nvmeta))
+		nq = nq->nvmeta;
 	return (Namval_t*)nv_setdisc(nq,dname,nq,(Namfun_t*)nq);
 done:
 	stkseek(sh.stk,offset);
@@ -1144,7 +1141,7 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 		stkseek(sh.stk,offset);
 		if(extra == (void*)1)
 		{
-			if(nv_isattr(np,BLT_SPC))
+			if(nv_isattr(np,BLT_SPC) && !sh_isstate(SH_INIT))
 			{
 				/* builtin(1) cannot delete special builtins */
 				errormsg(SH_DICT,ERROR_exit(1),"cannot delete: %s%s",name,is_spcbuiltin);
@@ -1169,7 +1166,7 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 				return np;
 			if(!bltin)
 				bltin = funptr(np);
-			if(np->nvenv)
+			if(np->nvmeta)
 				dtdelete(sh.bltin_tree,np);
 			if(extra == (void*)1)
 				return NULL;
@@ -1186,8 +1183,8 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 			np->nvfun = (Namfun_t*)extra;
 		return np;
 	}
-	np->nvenv = 0;
-	np->nvfun = 0;
+	np->nvmeta = NULL;
+	np->nvfun = NULL;
 	if(bltin)
 	{
 		np->nvalue.bfp = bltin;
@@ -1315,7 +1312,7 @@ static char *get_table(Namval_t *np, Namfun_t *fp)
         if(out)
                 sfseek(out,0,SEEK_SET);
         else
-                out =  sfnew(NULL,NULL,-1,-1,SF_WRITE|SF_STRING);
+                out =  sfnew(NULL,NULL,-1,-1,SFIO_WRITE|SFIO_STRING);
 	for(np=(Namval_t*)dtfirst(root);np;np=(Namval_t*)dtnext(root,np))
 	{
                 if(!nv_isnull(np) || np->nvfun || nv_isattr(np,~NV_NOFREE))

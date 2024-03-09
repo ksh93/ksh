@@ -137,8 +137,7 @@ struct Namval
 #define NV_ARRAY	0x400	/* node is an array */
 #define NV_REF		0x4000	/* reference bit */
 #define NV_TABLE	0x800	/* node is a dictionary table */
-#define NV_IMPORT	0x1000	/* value imported from environment */
-#define NV_MINIMAL	NV_IMPORT	/* node does not contain all fields */
+#define NV_MINIMAL	0x1000	/* node does not contain all fields */
 #if SHOPT_OPTIMIZE
 #define NV_NOOPTIMIZE	NV_TABLE	/* disable loop invariants optimizer */
 #else

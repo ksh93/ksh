@@ -8,6 +8,9 @@ For more details, see the NEWS file and for complete details, see the git log.
 	from the environment. Any script that depends on this will need to
 	be changed to typeset the expected attributes itself.
 
+2.	Defining a function called '.sh.tilde' is an error. To customize tilde
+	expansion, use .sh.tilde.get instead (see the manual page for details).
+
 ____________________________________________________________________________
 
 		ksh 93u+m/1.0.9 vs. ksh 93u+

@@ -3,7 +3,7 @@ note * This build script is in an extended Make Abstract Machine (MAM)
 note * language. Documentation is at: src/cmd/INIT/README-mamake.md
 note *
 
-setv MAMAKE_STRICT 2
+setv MAMAKE_STRICT 3
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
@@ -27,7 +27,8 @@ make install virtual
 			prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
 			make ${PACKAGE_ast_INCLUDE}/endian.h implicit
 				make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
-					prev ${PACKAGE_ast_INCLUDE}/ast_common.h
+					note * TODO * circular dependency
+					note # prev ${PACKAGE_ast_INCLUDE}/ast_common.h
 				done
 			done
 		done
@@ -39,14 +40,16 @@ make install virtual
 						make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/endian.h
 							make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
+								note * TODO * circular dependency
+								note # prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
 							done
 						done
 					done
 					make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
 						make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/sfio_s.h
-							prev ${PACKAGE_ast_INCLUDE}/ast_std.h
+							note * TODO * circular dependency
+							note # prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 						done
 					done
 					prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -147,6 +150,10 @@ make install virtual
 	prev ${PACKAGE_ast_INCLUDE}/sig.h implicit
 	prev ${PACKAGE_ast_INCLUDE}/glob.h implicit
 	prev ${PACKAGE_ast_INCLUDE}/releaseflags.h implicit
+	make ${PACKAGE_ast_INCLUDE}/lc.h implicit
+		prev ${PACKAGE_ast_INCLUDE}/ast.h
+	done
+	prev ${PACKAGE_ast_INCLUDE}/ast_tty.h implicit
 
 	note *
 	note * Library dependencies
@@ -178,7 +185,7 @@ make install virtual
 		prev ${PACKAGE_ast_INCLUDE}/dlldefs.h
 	done
 
-	loop F options externs sigfeatures time dynamic ttys locale cmds poll rlimits
+	loop F options externs sigfeatures time dynamic locale cmds poll rlimits
 		make FEATURE/${F} implicit
 			prev features/${F}
 			exec - ${iffe_run} ${<}
@@ -324,7 +331,7 @@ make install virtual
 		prev ${PACKAGE_ast_INCLUDE}/option.h
 	done
 
-	make include/regress.h
+	make include/regress.h implicit
 	done
 
 	make include/argnod.h implicit
@@ -369,7 +376,7 @@ make install virtual
 	done
 
 	make include/terminal.h implicit
-		prev FEATURE/ttys
+		prev ${PACKAGE_ast_INCLUDE}/ast_tty.h
 	done
 
 	make include/edit.h implicit
@@ -425,7 +432,7 @@ make install virtual
 		prev ${PACKAGE_ast_INCLUDE}/releaseflags.h
 	done
 
-	make include/timeout.h
+	make include/timeout.h implicit
 	done
 
 	note *
@@ -938,6 +945,7 @@ make install virtual
 		prev include/shtable.h
 		prev ${PACKAGE_ast_INCLUDE}/ccode.h
 		prev include/defs.h
+		prev ${PACKAGE_ast_INCLUDE}/lc.h
 		prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
 		prev ${PACKAGE_ast_INCLUDE}/ast.h
 		prev shopt.h
@@ -1207,7 +1215,7 @@ make install virtual
 	shim - }
 
 	make ksh
-		prev libshell.a
+		bind -lshell
 		make pmain.o
 			prev sh/pmain.c
 			exec - ${compile} ${<}
@@ -1216,7 +1224,7 @@ make install virtual
 	done ksh
 
 	make shcomp
-		prev libshell.a
+		bind -lshell
 		make shcomp.o
 			prev sh/shcomp.c
 			exec - ${compile} ${<}
@@ -1228,7 +1236,6 @@ make install virtual
 	note * Pre-install
 	note *
 
-	prev libshell.a
 	loop DIR bin include/ast lib/lib man/man1 man/man3 fun etc
 		make ${INSTALLROOT}/${DIR}
 			exec - mkdir -p ${@}
@@ -1275,11 +1282,6 @@ make install virtual
 	make ${INSTALLROOT}/etc/kshrc
 		prev kshrc.sh
 		exec - cp -f ${<} ${@}
-	done
-	make announce_build_done notrace virtual
-		prev ksh
-		exec - ${<} -c 'print \# KornShell $KSH_VERSION '
-		exec - echo "# Type 'bin/package use' to try it out"
 	done
 done install
 

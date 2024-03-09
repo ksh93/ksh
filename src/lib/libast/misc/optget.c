@@ -206,8 +206,9 @@ static const List_t	help_head[] =
 		C("\b-?\b and \b--?\b* options are the same \
 for all \bAST\b commands. For any \aitem\a below, if \b--\b\aitem\a is not \
 supported by a given command then it is equivalent to \b--\?\?\b\aitem\a. The \
-\b--\?\?\b form should be used for portability. All output is written to the \
-standard error."),
+\b--\?\?\b form should be used for portability. \
+All output is written to the standard error. \
+Note that question marks should be quoted to avoid pathanme expansion."),
 };
 
 static const Help_t	styles[] =
@@ -255,8 +256,11 @@ static const List_t	help_tail[] =
 the \aoption\a output in the \aitem\a style. Otherwise print \
 \bversion=\b\an\a where \an\a>0 if \b--\?\?\b\aitem\a is supported, \b0\b \
 if not."),
+	':',	C("\?\?\?\?\?\?EMPHASIS"),
+		C("Equivalent to \b--\?\?\?ESC\b."),
 	':',	C("\?\?\?\?\?\?ESC"),
-		C("Emit escape codes even if output is not a terminal."),
+		C("Emit ANSI escape codes for emphasis even if standard error is not on a terminal. \
+Use \b--\?\?noESC\b to emit no escape codes even if standard error is on a terminal."),
 	':',	C("\?\?\?\?\?\?MAN[=\asection\a]]"),
 		C("List the \bman\b(1) section title for \asection\a [the \
 current command]]."),
@@ -2514,21 +2518,22 @@ opthelp(const char* oopts, const char* what)
 		sfputc(mp, '\f');
 		break;
 	default:
-		state.emphasis = 0;
-		if (x = getenv("ERROR_OPTIONS"))
+		if (!state.emphasis)
 		{
-			if (strmatch(x, "*noemphasi*"))
-				break;
-			if (strmatch(x, "*emphasi*"))
+			if (x = getenv("ERROR_OPTIONS"))
 			{
-				state.emphasis = 1;
-				break;
+				if (strmatch(x, "*noemphasi*"))
+					break;
+				if (strmatch(x, "*emphasi*"))
+				{
+					state.emphasis = 1;
+					break;
+				}
 			}
+			if (isatty(sffileno(sfstderr)) && (x = getenv("TERM"))
+			&& strmatch(x, "(ansi|cons|dtterm|linux|screen|sun|vt???|wsvt|xterm)*"))
+				state.emphasis = 1;
 		}
-		if (isatty(sffileno(sfstderr))
-		&& (x = getenv("TERM"))
-		&& strmatch(x, "(ansi|cons|dtterm|linux|screen|sun|vt???|wsvt|xterm)*"))
-			state.emphasis = 1;
 		break;
 	}
 	x = "";
@@ -4301,6 +4306,7 @@ optget(char** argv, const char* oopts)
 
 	if (!oopts)
 		return 0;
+	state.emphasis = 0;
 	state.pindex = opt_info.index;
 	state.poffset = opt_info.offset;
 	if (!opt_info.index)

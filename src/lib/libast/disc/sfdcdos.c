@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -327,7 +327,7 @@ retry:
 static int dos_except(Sfio_t *iop, int type, void *arg, Sfdisc_t *disc)
 {
 	Dosdisc_t *dp = (Dosdisc_t*)disc;
-	if(type==SF_DPOP || type==SF_FINAL)
+	if(type==SFIO_DPOP || type==SFIO_FINAL)
 	{
 		if(dp->bsize>0)
 			free(dp->buff);
@@ -343,7 +343,7 @@ int sfdcdos(Sfio_t *f)
 	Dosdisc_t *dos;
 
 	/* this is a readonly discipline */
-	if(sfset(f,0,0)&SF_WRITE)
+	if(sfset(f,0,0)&SFIO_WRITE)
 		return -1;
 
 	if(!(dos = (Dosdisc_t*)malloc(sizeof(Dosdisc_t))) )

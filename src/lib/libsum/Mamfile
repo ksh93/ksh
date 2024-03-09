@@ -3,7 +3,7 @@ note * This build script is in an extended Make Abstract Machine (MAM)
 note * language. Documentation is at: src/cmd/INIT/README-mamake.md
 note *
 
-setv MAMAKE_STRICT 2
+setv MAMAKE_STRICT 3
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
@@ -23,7 +23,6 @@ make install virtual
 		make ${PACKAGE_ast_INCLUDE}/bytesex.h implicit
 			make ${PACKAGE_ast_INCLUDE}/ast_common.h implicit
 				prev ${PACKAGE_ast_INCLUDE}/ast_map.h implicit
-				prev ${PACKAGE_ast_INCLUDE}/endian.h
 			done
 		done
 	done
@@ -45,14 +44,16 @@ make install virtual
 							make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/endian.h
 								make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-									prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
+									note * TODO * circular dependency
+									note # prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
 								done
 							done
 						done
 						make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
 							make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
 								prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ast_std.h
+								note * TODO * circular dependency
+								note # prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 							done
 						done
 						prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -143,7 +144,6 @@ make install virtual
 	note * pre-install
 	note *
 
-	prev libsum.a
 	loop DIR ${INSTALLROOT}/lib/lib ${PACKAGE_ast_INCLUDE}
 		make ${DIR}
 			exec - mkdir -p ${@}

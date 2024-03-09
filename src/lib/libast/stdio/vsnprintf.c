@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,8 +26,8 @@ vsnprintf(char* s, int n, const char* form, va_list args)
 	ssize_t	rv;
 
 	/* make a temp stream */
-	if(!(f = sfnew(NULL,NULL,(size_t)SF_UNBOUND,
-                        -1,SF_WRITE|SF_STRING)) )
+	if(!(f = sfnew(NULL,NULL,(size_t)SFIO_UNBOUND,
+                        -1,SFIO_WRITE|SFIO_STRING)) )
 		return -1;
 
 	if((rv = sfvprintf(f,form,args)) >= 0 )

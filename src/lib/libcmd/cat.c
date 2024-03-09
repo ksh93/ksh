@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -184,7 +184,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 								else
 								{
 									memcpy(tmp, pp, c);
-									if (!(nxt = (unsigned char*)(*reserve)(ip, SF_UNBOUND, 0)))
+									if (!(nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0)))
 									{
 										states[0] = sfvalue(ip) ? T_ERROR : T_EOF;
 										*(cp = end = tmp + sizeof(tmp) - 1) = 0;
@@ -268,7 +268,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 				goto flush;
 			}
 			c = last;
-			if (!(nxt = (unsigned char*)(*reserve)(ip, SF_UNBOUND, 0)))
+			if (!(nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0)))
 			{
 				*(cp = end = tmp + sizeof(tmp) - 1) = 0;
 				states[0] = (m = sfvalue(ip)) ? T_ERROR : T_EOF;
@@ -345,7 +345,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 				{
 					if (cp < end || last != '\n')
 						break;
-					if (!(nxt = (unsigned char*)(*reserve)(ip, SF_UNBOUND, 0)))
+					if (!(nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0)))
 					{
 						states[0] = sfvalue(ip) ? T_ERROR : T_EOF;
 						cp = end = tmp;
@@ -533,7 +533,7 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 			sfsetbuf(fp, fp, -1);
 		if (dovcat)
 			n = vcat(states, fp, sfstdout, reserve, flags);
-		else if (sfmove(fp, sfstdout, SF_UNBOUND, -1) >= 0 && sfeof(fp))
+		else if (sfmove(fp, sfstdout, SFIO_UNBOUND, -1) >= 0 && sfeof(fp))
 			n = 0;
 		else
 			n = -1;

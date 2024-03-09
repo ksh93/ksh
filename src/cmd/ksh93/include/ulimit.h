@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -39,7 +39,7 @@
 #   endif
 #   undef _lib_ulimit
 #else
-#   ifdef _sys_vlimit
+#   if _sys_vlimit
 #	include	<sys/vlimit.h>
 #	undef _lib_ulimit
 #	define RLIMIT_FSIZE	LIM_FSIZE
@@ -51,7 +51,7 @@
 #		define RLIMIT_RSS       LIM_MAXRSS
 #	endif /* LIM_MAXRSS */
 #   else
-#	ifdef _lib_ulimit
+#	if _lib_ulimit
 #	    define vlimit ulimit
 #	endif /* _lib_ulimit */
 #   endif /* _lib_vlimit */
@@ -74,7 +74,7 @@
 #else
 #   define _no_ulimit
 #endif
-#ifndef _typ_rlim_t
+#if !_typ_rlim_t
     typedef long rlim_t;
 #endif
 

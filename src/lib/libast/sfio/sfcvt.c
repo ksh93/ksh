@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -29,10 +29,10 @@
 static char		*lc_inf = "inf", *uc_inf = "INF";
 static char		*lc_nan = "nan", *uc_nan = "NAN";
 static char		*Zero = "0";
-#define SF_INF		((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_inf : lc_inf, size), buf)
-#define SF_NAN		((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_nan : lc_nan, size), buf)
-#define SF_ZERO		((_Sfi = 1), strlcpy(buf, Zero, size), buf)
-#define SF_INTPART	(SF_IDIGITS/2)
+#define SFIO_INF		((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_inf : lc_inf, size), buf)
+#define SFIO_NAN		((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_nan : lc_nan, size), buf)
+#define SFIO_ZERO		((_Sfi = 1), strlcpy(buf, Zero, size), buf)
+#define SFIO_INTPART	(SFIO_IDIGITS/2)
 
 #if !_lib_isnan
 #undef	isnan
@@ -136,7 +136,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 			if (f < 0)
 #endif
 				*sign = 1;
-			return SF_NAN;
+			return SFIO_NAN;
 		}
 #if _lib_isinf
 		if (n = isinf(f))
@@ -147,7 +147,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 			if (n < 0 || f < 0)
 #endif
 				*sign = 1;
-			return SF_INF;
+			return SFIO_INF;
 		}
 #endif
 
@@ -161,9 +161,9 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 
 		if(f < LDBL_MIN)
-			return SF_ZERO;
+			return SFIO_ZERO;
 		if(f > LDBL_MAX)
-			return SF_INF;
+			return SFIO_INF;
 
 		if(format & SFFMT_AFORMAT)
 		{	Sfdouble_t	g;
@@ -193,26 +193,26 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		n = 0;
 		if(f >= (Sfdouble_t)CVT_LDBL_MAXINT)
 		{	/* scale to a small enough number to fit an int */
-			v = SF_MAXEXP10-1;
+			v = SFIO_MAXEXP10-1;
 			do
 			{	if(f < _Sfpos10[v])
 					v -= 1;
 				else
 				{
 					f *= _Sfneg10[v];
-					if((n += (1<<v)) >= SF_IDIGITS)
-						return SF_INF;
+					if((n += (1<<v)) >= SFIO_IDIGITS)
+						return SFIO_INF;
 				}
 			} while(f >= (Sfdouble_t)CVT_LDBL_MAXINT);
 		}
 		else if(f > 0.0 && f < 0.1)
 		{	/* scale to avoid excessive multiply by 10 below */
-			v = SF_MAXEXP10-1;
+			v = SFIO_MAXEXP10-1;
 			do
 			{	if(f <= _Sfneg10[v])
 				{	f *= _Sfpos10[v];
-					if((n += (1<<v)) >= SF_IDIGITS)
-						return SF_INF;
+					if((n += (1<<v)) >= SFIO_IDIGITS)
+						return SFIO_INF;
 				}
 				else if (--v < 0)
 					break;
@@ -221,7 +221,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 		*decpt = (int)n;
 
-		b = sp = buf + SF_INTPART;
+		b = sp = buf + SFIO_INTPART;
 		if((v = (CVT_LDBL_INT)f) != 0)
 		{	/* translate the integer part */
 			f -= (Sfdouble_t)v;
@@ -229,10 +229,10 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 			sfucvt(v,sp,n,ep,CVT_LDBL_INT,unsigned CVT_LDBL_INT);
 
 			n = b-sp;
-			if((*decpt += (int)n) >= SF_IDIGITS)
-				return SF_INF;
+			if((*decpt += (int)n) >= SFIO_IDIGITS)
+				return SFIO_INF;
 			b = sp;
-			sp = buf + SF_INTPART;
+			sp = buf + SFIO_INTPART;
 		}
 		else	n = 0;
 
@@ -286,7 +286,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 			if (f < 0)
 #endif
 				*sign = 1;
-			return SF_NAN;
+			return SFIO_NAN;
 		}
 #if _lib_isinf
 		if (n = isinf(f))
@@ -297,7 +297,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 			if (n < 0 || f < 0)
 #endif
 				*sign = 1;
-			return SF_INF;
+			return SFIO_INF;
 		}
 #endif
 
@@ -311,9 +311,9 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 
 		if(f < DBL_MIN)
-			return SF_ZERO;
+			return SFIO_ZERO;
 		if(f > DBL_MAX)
-			return SF_INF;
+			return SFIO_INF;
 
 		if(format & SFFMT_AFORMAT)
 		{	double		g;
@@ -342,25 +342,25 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		n = 0;
 		if(f >= (double)CVT_DBL_MAXINT)
 		{	/* scale to a small enough number to fit an int */
-			v = SF_MAXEXP10-1;
+			v = SFIO_MAXEXP10-1;
 			do
 			{	if(f < _Sfpos10[v])
 					v -= 1;
 				else
 				{	f *= _Sfneg10[v];
-					if((n += (1<<v)) >= SF_IDIGITS)
-						return SF_INF;
+					if((n += (1<<v)) >= SFIO_IDIGITS)
+						return SFIO_INF;
 				}
 			} while(f >= (double)CVT_DBL_MAXINT);
 		}
 		else if(f > 0.0 && f < 0.1)
 		{	/* scale to avoid excessive multiply by 10 below */
-			v = SF_MAXEXP10-1;
+			v = SFIO_MAXEXP10-1;
 			do
 			{	if(f <= _Sfneg10[v])
 				{	f *= _Sfpos10[v];
-					if((n += (1<<v)) >= SF_IDIGITS)
-						return SF_INF;
+					if((n += (1<<v)) >= SFIO_IDIGITS)
+						return SFIO_INF;
 				}
 				else if(--v < 0)
 					break;
@@ -369,7 +369,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 		*decpt = (int)n;
 
-		b = sp = buf + SF_INTPART;
+		b = sp = buf + SFIO_INTPART;
 		if((v = (CVT_DBL_INT)f) != 0)
 		{	/* translate the integer part */
 			f -= (double)v;
@@ -377,10 +377,10 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 			sfucvt(v,sp,n,ep,CVT_DBL_INT,unsigned CVT_DBL_INT);
 
 			n = b-sp;
-			if((*decpt += (int)n) >= SF_IDIGITS)
-				return SF_INF;
+			if((*decpt += (int)n) >= SFIO_IDIGITS)
+				return SFIO_INF;
 			b = sp;
-			sp = buf + SF_INTPART;
+			sp = buf + SFIO_INTPART;
 		}
 		else	n = 0;
 

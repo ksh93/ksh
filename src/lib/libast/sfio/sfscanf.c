@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -42,9 +42,9 @@ int sfvsscanf(const char* s, const char* form, va_list args)
 
 	/* make a fake stream */
 	SFCLEAR(&f);
-	f.flags = SF_STRING|SF_READ;
-	f.bits = SF_PRIVATE;
-	f.mode = SF_READ;
+	f.flags = SFIO_STRING|SFIO_READ;
+	f.bits = SFIO_PRIVATE;
+	f.mode = SFIO_READ;
 	f.size = strlen((char*)s);
 	f.data = f.next = f.endw = (uchar*)s;
 	f.endb = f.endr = f.data+f.size;

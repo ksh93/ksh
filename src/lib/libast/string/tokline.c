@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -66,13 +66,13 @@ spliceline(Sfio_t* s, int op, void* val, Sfdisc_t* ad)
 	NoP(val);
 	switch (op)
 	{
-	case SF_CLOSING:
+	case SFIO_CLOSING:
 		sfclose(d->sp);
 		return 0;
-	case SF_DPOP:
+	case SFIO_DPOP:
 		free(d);
 		return 0;
-	case SF_READ:
+	case SFIO_READ:
 		do
 		{
 			if (!(buf = sfgetr(d->sp, '\n', 0)) && !(buf = sfgetr(d->sp, '\n', -1)))
@@ -125,7 +125,7 @@ spliceline(Sfio_t* s, int op, void* val, Sfdisc_t* ad)
 				}
 				if (n > 0)
 				{
-					if (!j && buf[n - 1] != '\n' && (s->_flags & SF_STRING))
+					if (!j && buf[n - 1] != '\n' && (s->_flags & SFIO_STRING))
 						buf[n++] = '\n';
 					if (q && buf[n - 1] == '\n')
 						buf[n - 1] = '\r';
@@ -144,8 +144,8 @@ spliceline(Sfio_t* s, int op, void* val, Sfdisc_t* ad)
  * open a stream to parse lines
  *
  *	flags: 0		arg: open Sfio_t* 
- *	flags: SF_READ		arg: file name
- *	flags: SF_STRING	arg: null-terminated char*
+ *	flags: SFIO_READ		arg: file name
+ *	flags: SFIO_STRING	arg: null-terminated char*
  *
  * if line!=0 then it points to a line count that starts at 0
  * and is incremented for each input line
@@ -169,9 +169,9 @@ tokline(const char* arg, int flags, int* line)
 		free(d);
 		return NULL;
 	}
-	if (!(flags & (SF_STRING|SF_READ)))
+	if (!(flags & (SFIO_STRING|SFIO_READ)))
 		f = (Sfio_t*)arg;
-	else if (!(f = sfopen(NULL, arg, (flags & SF_STRING) ? "s" : "r")))
+	else if (!(f = sfopen(NULL, arg, (flags & SFIO_STRING) ? "s" : "r")))
 	{
 		free(d);
 		sfclose(s);

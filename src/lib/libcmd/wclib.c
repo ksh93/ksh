@@ -56,7 +56,7 @@ Wc_t* wc_init(int mode)
 	int	w;
 	Wc_t*	wp;
 
-	if (!(wp = (Wc_t*)stkalloc(stkstd,sizeof(Wc_t))))
+	if (!(wp = stkalloc(stkstd,sizeof(Wc_t))))
 		return NULL;
 	if (!mbwide())
 		wp->mb = 0;
@@ -175,7 +175,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 	wchar_t		x;
 	unsigned char	side[32];
 
-	sfset(fd,SF_WRITE,1);
+	sfset(fd,SFIO_WRITE,1);
 	nlines = nwords = nchars = nbytes = 0;
 	wp->longest = 0;
 	if (wp->mb < 0 && (wp->mode & (WC_MBYTE|WC_WORDS)))
@@ -196,7 +196,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 					else
 						o = 0;
 					cp = side + o;
-					if (!(buff = (unsigned char*)sfreserve(fd, SF_UNBOUND, 0)) || (n = sfvalue(fd)) <= 0)
+					if (!(buff = (unsigned char*)sfreserve(fd, SFIO_UNBOUND, 0)) || (n = sfvalue(fd)) <= 0)
 					{
 						if ((nchars - longest) > wp->longest)
 							wp->longest = nchars - longest;
@@ -252,7 +252,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 	{
 		if (!(wp->mode & (WC_MBYTE|WC_WORDS|WC_LONGEST)))
 		{
-			while ((cp = (unsigned char*)sfreserve(fd, SF_UNBOUND, 0)) && (c = sfvalue(fd)) > 0)
+			while ((cp = (unsigned char*)sfreserve(fd, SFIO_UNBOUND, 0)) && (c = sfvalue(fd)) > 0)
 			{
 				nchars += c;
 				endbuff = cp + c;
@@ -271,7 +271,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 		}
 		else
 		{
-			while ((cp = buff = (unsigned char*)sfreserve(fd, SF_UNBOUND, 0)) && (c = sfvalue(fd)) > 0)
+			while ((cp = buff = (unsigned char*)sfreserve(fd, SFIO_UNBOUND, 0)) && (c = sfvalue(fd)) > 0)
 			{
 				nchars += c;
 				/* check to see whether first character terminates word */
@@ -342,7 +342,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 		lastchar = 0;
 		start = (endbuff = side) + 1;
 		xspace = iswspace(0xa0) || iswspace(0x85);
-		while ((cp = buff = (unsigned char*)sfreserve(fd, SF_UNBOUND, 0)) && (c = sfvalue(fd)) > 0)
+		while ((cp = buff = (unsigned char*)sfreserve(fd, SFIO_UNBOUND, 0)) && (c = sfvalue(fd)) > 0)
 		{
 			nbytes += c;
 			nchars += c;

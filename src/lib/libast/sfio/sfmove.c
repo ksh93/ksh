@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -67,19 +67,19 @@ Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 		}
 
 		/* get the streams into the right mode */
-		if(fr->mode != SF_READ && _sfmode(fr,SF_READ,0) < 0)
+		if(fr->mode != SFIO_READ && _sfmode(fr,SFIO_READ,0) < 0)
 			break;
 
 		SFLOCK(fr,0);
 
 		/* flush the write buffer as necessary to make room */
 		if(fw)
-		{	if(fw->mode != SF_WRITE && _sfmode(fw,SF_WRITE,0) < 0 )
+		{	if(fw->mode != SFIO_WRITE && _sfmode(fw,SFIO_WRITE,0) < 0 )
 				break;
 			SFLOCK(fw,0);
 			if(fw->next >= fw->endb ||
 			   (fw->next > fw->data && fr->extent < 0 &&
-			    (fw->extent < 0 || (fw->flags&SF_SHARE)) ) )
+			    (fw->extent < 0 || (fw->flags&SFIO_SHARE)) ) )
 				if(SFFLSBUF(fw,-1) < 0 )
 					break;
 		}
@@ -95,9 +95,9 @@ Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 		}
 
 		/* about to move all, set map to a large amount */
-		if(n < 0 && (fr->bits&SF_MMAP) && !(fr->bits&SF_MVSIZE) )
+		if(n < 0 && (fr->bits&SFIO_MMAP) && !(fr->bits&SFIO_MVSIZE) )
 		{	SFMVSET(fr);
-			fr->bits |= SF_SEQUENTIAL; /* sequentially access data */
+			fr->bits |= SFIO_SEQUENTIAL; /* sequentially access data */
 		}
 
 		/* try reading a block of data */
@@ -110,23 +110,23 @@ Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 		{	/* amount of data remained to be read */
 			if((w = n > MAX_SSIZE ? MAX_SSIZE : (ssize_t)n) < 0)
 			{	if(fr->extent < 0)
-					w = fr->data == fr->tiny ? SF_GRAIN : fr->size;
-				else if((fr->extent-fr->here) > SF_NMAP*SF_PAGE)
-					w = SF_NMAP*SF_PAGE;
+					w = fr->data == fr->tiny ? SFIO_GRAIN : fr->size;
+				else if((fr->extent-fr->here) > SFIO_NMAP*SFIO_PAGE)
+					w = SFIO_NMAP*SFIO_PAGE;
 				else	w = (ssize_t)(fr->extent-fr->here);
 			}
 
 			/* use a decent buffer for data transfer but make sure
 			   that if we overread, the left over can be retrieved
 			*/
-			if(!(fr->flags&SF_STRING) && !(fr->bits&SF_MMAP) &&
+			if(!(fr->flags&SFIO_STRING) && !(fr->bits&SFIO_MMAP) &&
 			   (n < 0 || fr->extent >= 0) )
-			{	ssize_t maxw = 4*(_Sfpage > 0 ? _Sfpage : SF_PAGE);
+			{	ssize_t maxw = 4*(_Sfpage > 0 ? _Sfpage : SFIO_PAGE);
 
 				/* direct transfer to a seekable write stream */
 				if(fw && fw->extent >= 0 && w <= (fw->endb-fw->next) )
 				{	w = fw->endb - (next = fw->next);
-					direct = SF_WRITE;
+					direct = SFIO_WRITE;
 				}
 				else if(w > fr->size && maxw > fr->size)
 				{	/* making our own buffer */
@@ -138,14 +138,14 @@ Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 					if(rbuf)
 					{	next = rbuf;
 						w = rsize;
-						direct = SF_STRING;
+						direct = SFIO_STRING;
 					}
 				}
 			}
 
 			if(!direct)
 			{	/* make sure we don't read too far ahead */
-				if(n > 0 && fr->extent < 0 && (fr->flags&SF_SHARE) )
+				if(n > 0 && fr->extent < 0 && (fr->flags&SFIO_SHARE) )
 				{	if((Sfoff_t)(r = fr->size) > n)
 						r = (ssize_t)n;
 				}
@@ -190,7 +190,7 @@ Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 		}
 
 		if(fw)
-		{	if(direct == SF_WRITE)
+		{	if(direct == SFIO_WRITE)
 				fw->next += r;
 			else if(r <= (fw->endb-fw->next) )
 			{	memmove(fw->next,next,r);
@@ -214,12 +214,12 @@ Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 			SFOPEN(fw,0);
 	}
 
-	if(n < 0 && (fr->bits&SF_MMAP) && (fr->bits&SF_MVSIZE))
+	if(n < 0 && (fr->bits&SFIO_MMAP) && (fr->bits&SFIO_MVSIZE))
 	{	/* back to normal access mode */
 		SFMVUNSET(fr);
-		if((fr->bits&SF_SEQUENTIAL) && (fr->data))
+		if((fr->bits&SFIO_SEQUENTIAL) && (fr->data))
 			SFMMSEQOFF(fr,fr->data,fr->endb-fr->data);
-		fr->bits &= ~SF_SEQUENTIAL;
+		fr->bits &= ~SFIO_SEQUENTIAL;
 	}
 
 	if(rbuf)

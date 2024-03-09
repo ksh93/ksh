@@ -23,6 +23,9 @@
 # to your regular 'man' command so you won't notice a difference. Result: you
 # can just use 'man somecommand' for everything.
 #
+# If you want to pass extra options to your operating system's "man" command,
+# put those in the .sh.manopts variable.
+#
 # This function only handles 'man' commands with a single argument. If more
 # or less than one argument is given, it passes control to the system's 'man'.
 #
@@ -85,8 +88,17 @@ namespace man
 
 	show_selfdoc()
 	{
-		typeset -x ERROR_OPTIONS=emphasis
-		export LINES COLUMNS
+		typeset -x COLUMNS=$COLUMNS  # export in local scope
+		if ((stdout_on_terminal)); then
+			# enable emphasis only for pagers that support ANSI escapes
+			typeset pager=${PAGER:-less}
+			case ${pager##*/} in
+			less | less[[:blank:]]* | most | most[[:blank:]]* )
+				typeset -x ERROR_OPTIONS=emphasis ;;
+			esac
+		else
+			COLUMNS=80
+		fi
 		case $1 in
 		test )	command test '--??man' -- ;;
 		[ )	command [ '--??man' -- ] ;;
@@ -101,9 +113,14 @@ namespace man
 
 	pager()
 	{
-		typeset IFS		# local default split...
-		set -o noglob		# ...and no pathname expansion...
-		${PAGER:-less -R}	# ...so we can safely split $PAGER
+		typeset pager=${MANPAGER:-${PAGER-}}
+		((!stdout_on_terminal)) && pager=cat
+		case $pager in
+		'')	pager='less -R' ;;
+		less | */less | less[[:blank:]]* | */less[[:blank:]]*)
+			pager+=' -R' ;;
+		esac
+		$pager
 	}
 
 	# Try if a system manual page in a section exists. Unfortunately, we
@@ -114,7 +131,7 @@ namespace man
 
 	try_os_man()
 	{
-		[[ $2 != */* && $(command man -s "$1" "$2" 2>/dev/null) == *$'\n'*$'\n'*$'\n'* ]]
+		[[ $2 != */* && $(command man ${.sh.manopts-} -s "$1" "$2" 2>/dev/null) == *$'\n'*$'\n'*$'\n'* ]]
 	}
 
 	# The main function puts it all together. When given a single argument,
@@ -128,17 +145,17 @@ namespace man
 	main()
 	{
 		if (($# != 1)); then
-			command man "$@"
+			command man ${.sh.manopts-} "$@"
 		elif builtin_has_selfdoc "$1"; then
 			show_selfdoc "$1" | pager
 		elif try_os_man 1 "$1"; then
-			command man -s 1 "$1"
+			command man ${.sh.manopts-} -s 1 "$1"
 		elif try_os_man 8 "$1"; then
-			command man -s 8 "$1"
+			command man ${.sh.manopts-} -s 8 "$1"
 		elif extcmd_has_selfdoc "$1"; then
 			show_selfdoc "$1" | pager
 		else
-			command man "$1"
+			command man ${.sh.manopts-} "$1"
 		fi
 	}
 }
@@ -159,6 +176,13 @@ namespace man
 
 function man
 {
+	typeset IFS	# local default split...
+	set -o noglob	# ...and no pathname expansion, for safe field splitting
+	# set stdout_on_terminal to 1 if standard output is on a terminal;
+	# this needs flagging now as show_selfdoc() will have stdout on a pipe
+	[[ -t 1 ]]
+	typeset -si stdout_on_terminal=$((! $?))
+	# and off we go
 	.man.main "$@"
 }
 

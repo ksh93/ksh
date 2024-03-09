@@ -85,7 +85,7 @@ const char e_defined[]		= "%s: function not defined";
 const char e_subscript[]	= "%s: subscript out of range";
 const char e_toodeep[]		= "%s: recursion too deep";
 const char e_access[]		= "permission denied";
-#ifdef _cmd_universe
+#if _cmd_universe
     const char e_nouniverse[]	= "universe not accessible";
 #endif /* _cmd_universe */
 const char e_direct[]		= "bad directory";

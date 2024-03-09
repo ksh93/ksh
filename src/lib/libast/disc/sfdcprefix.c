@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -81,7 +81,7 @@ static ssize_t pfxwrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 
 static int pfxexcept(Sfio_t* f, int type, void* data, Sfdisc_t* dp)
 {
-	if (type == SF_FINAL || type == SF_DPOP)
+	if (type == SFIO_FINAL || type == SFIO_DPOP)
 		free(dp);
 	return 0;
 }
@@ -100,7 +100,7 @@ int sfdcprefix(Sfio_t* f, const char* prefix)
 	 * this is a writeonly discipline
 	 */
 
-	if (!prefix || !(n = strlen(prefix)) || !(sfset(f, 0, 0) & SF_WRITE))
+	if (!prefix || !(n = strlen(prefix)) || !(sfset(f, 0, 0) & SFIO_WRITE))
 		return -1;
 	if (!(pfx = (Prefix_t*)malloc(sizeof(Prefix_t) + n)))
 		return -1;

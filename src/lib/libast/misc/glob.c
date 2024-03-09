@@ -73,6 +73,8 @@ typedef int (*GL_stat_f)(const char*, struct stat*);
 
 #include <glob.h>
 
+static Stk_t *globstk = stkstd;
+
 /*
  * default gl_diropen
  */
@@ -158,7 +160,7 @@ static char*
 gl_nextdir(glob_t* gp, char* dir)
 {
 	if (!(dir = gp->gl_nextpath))
-		dir = gp->gl_nextpath = stkcopy(stkstd,pathbin());
+		dir = gp->gl_nextpath = stkcopy(globstk,pathbin());
 	switch (*gp->gl_nextpath)
 	{
 	case 0:
@@ -237,46 +239,46 @@ addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char*
 	int		offset;
 	int		type;
 
-	stkseek(stkstd,MATCHPATH(gp));
+	stkseek(globstk,MATCHPATH(gp));
 	if (dir)
 	{
-		sfputr(stkstd,dir,-1);
-		sfputc(stkstd,gp->gl_delim);
+		sfputr(globstk,dir,-1);
+		sfputc(globstk,gp->gl_delim);
 	}
 	if (endslash)
 		*endslash = 0;
-	sfputr(stkstd,pat,-1);
+	sfputr(globstk,pat,-1);
 	if (rescan)
 	{
-		if ((*gp->gl_type)(gp, stkptr(stkstd,MATCHPATH(gp)), 0) != GLOB_DIR)
+		if ((*gp->gl_type)(gp, stkptr(globstk,MATCHPATH(gp)), 0) != GLOB_DIR)
 			return;
-		sfputc(stkstd,gp->gl_delim);
-		offset = stktell(stkstd);
+		sfputc(globstk,gp->gl_delim);
+		offset = stktell(globstk);
 		/* if null, reserve room for . */
 		if (*rescan)
-			sfputr(stkstd,rescan,-1);
+			sfputr(globstk,rescan,-1);
 		else
-			sfputc(stkstd,0);
-		sfputc(stkstd,0);
-		rescan = stkptr(stkstd,offset);
-		ap = (globlist_t*)stkfreeze(stkstd,0);
+			sfputc(globstk,0);
+		sfputc(globstk,0);
+		rescan = stkptr(globstk,offset);
+		ap = stkfreeze(globstk,0);
 		ap->gl_begin = (char*)rescan;
 		ap->gl_next = gp->gl_rescan;
 		gp->gl_rescan = ap;
 	}
 	else
 	{
-		if (!endslash && (gp->gl_flags & GLOB_MARK) && (type = (*gp->gl_type)(gp, stkptr(stkstd,MATCHPATH(gp)), 0)))
+		if (!endslash && (gp->gl_flags & GLOB_MARK) && (type = (*gp->gl_type)(gp, stkptr(globstk,MATCHPATH(gp)), 0)))
 		{
 			if ((gp->gl_flags & GLOB_COMPLETE) && type != GLOB_EXE)
 			{
-				stkseek(stkstd,0);
+				stkseek(globstk,0);
 				return;
 			}
 			else if (type == GLOB_DIR && (gp->gl_flags & GLOB_MARK))
-				sfputc(stkstd,gp->gl_delim);
+				sfputc(globstk,gp->gl_delim);
 		}
-		ap = (globlist_t*)stkfreeze(stkstd,1);
+		ap = stkfreeze(globstk,1);
 		ap->gl_next = gp->gl_match;
 		gp->gl_match = ap;
 		gp->gl_pathc++;
@@ -697,7 +699,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	}
 	skip = gp->gl_pathc;
 	if (gp->gl_stak)
-		oldstak = stkinstall(gp->gl_stak, 0);
+		oldstak = globstk, globstk = gp->gl_stak;
 	if (flags & GLOB_DOOFFS)
 		extra += gp->gl_offs;
 	if (gp->gl_suffix)
@@ -761,7 +763,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 			break;
 		}
 	}
-	top = ap = (globlist_t*)stkalloc(stkstd,(optlen ? 2 : 1) * strlen(pattern) + sizeof(globlist_t) + suflen + gp->gl_extra);
+	top = ap = stkalloc(globstk,(optlen ? 2 : 1) * strlen(pattern) + sizeof(globlist_t) + suflen + gp->gl_extra);
 	ap->gl_next = 0;
 	ap->gl_flags = 0;
 	ap->gl_begin = ap->gl_path + gp->gl_extra;
@@ -799,7 +801,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		gp->gl_list = gp->gl_match;
 	else
 	{
-		argv = (char**)stkalloc(stkstd,(gp->gl_pathc + extra) * sizeof(char*));
+		argv = stkalloc(globstk,(gp->gl_pathc + extra) * sizeof(char*));
 		if (gp->gl_flags & GLOB_APPEND)
 		{
 			skip += --extra;
@@ -832,7 +834,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	if (gp->gl_starstar > 1)
 		gp->gl_flags &= ~GLOB_STARSTAR;
 	if (gp->gl_stak)
-		stkinstall(oldstak, 0);
+		globstk = oldstak;
 	return gp->gl_error;
 }
 

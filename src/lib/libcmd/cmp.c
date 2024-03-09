@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -159,14 +159,14 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 		{
 			if (count > 0 && !(count -= n1))
 				return ret;
-			if (!(p1 = (unsigned char*)sfreserve(f1, SF_UNBOUND, 0)) || (c1 = sfvalue(f1)) <= 0)
+			if (!(p1 = (unsigned char*)sfreserve(f1, SFIO_UNBOUND, 0)) || (c1 = sfvalue(f1)) <= 0)
 			{
 				if (sferror(f1))
 				{
 					error(ERROR_exit(2), "read error on %s", file1);
 					UNREACHABLE();
 				}
-				if ((e2 - p2) > 0 || sfreserve(f2, SF_UNBOUND, 0) && sfvalue(f2) > 0)
+				if ((e2 - p2) > 0 || sfreserve(f2, SFIO_UNBOUND, 0) && sfvalue(f2) > 0)
 				{
 					ret = 1;
 					if (!(flags & CMP_SILENT))
@@ -189,7 +189,7 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 		}
 		if ((c2 = e2 - p2) <= 0)
 		{
-			if (!(p2 = (unsigned char*)sfreserve(f2, SF_UNBOUND, 0)) || (c2 = sfvalue(f2)) <= 0)
+			if (!(p2 = (unsigned char*)sfreserve(f2, SFIO_UNBOUND, 0)) || (c2 = sfvalue(f2)) <= 0)
 			{
 				if (sferror(f2))
 				{

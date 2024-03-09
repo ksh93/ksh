@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,6 +22,6 @@
 int
 setlinebuf(Sfio_t* f)
 {
-	sfset(f, SF_LINE, 1);
+	sfset(f, SFIO_LINE, 1);
 	return 0;
 }

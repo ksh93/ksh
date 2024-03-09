@@ -120,7 +120,7 @@ const struct shtable3 shtab_builtins[] =
 	"times",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(times),
 	"ulimit",	NV_BLTIN|BLT_ENV,		bltin(ulimit),
 	"umask",	NV_BLTIN|BLT_ENV,		bltin(umask),
-#ifdef _cmd_universe
+#if _cmd_universe
 	"universe",	NV_BLTIN|BLT_ENV,		bltin(universe),
 #endif /* _cmd_universe */
 	"wait",		NV_BLTIN|BLT_ENV|BLT_EXIT,	bltin(wait),
@@ -657,13 +657,14 @@ const char sh_opteval[] =
 ;
 
 const char sh_optexec[] =
-"[-1c?\n@(#)$Id: exec (ksh 93u+m) 2020-06-11 $\n]"
+"[-1c?\n@(#)$Id: exec (ksh 93u+m) 2024-03-04 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?exec - execute command, open/close and duplicate file descriptors]"
 "[+DESCRIPTION?\bexec\b is a special built-in command that can be used to "
 	"manipulate file descriptors or to replace the current shell "
 	"with a new command.]"
-"[+?If \acommand\a is specified, then the current shell process will be "
+"[+?If \acommand\a is specified, then \acommand\a is searched on PATH as "
+	"an external command and the current shell process will be "
 	"replaced by \acommand\a rather than running \acommand\a and waiting "
 	"for it to complete. Note that there is no need to use "
 	"\bexec\b to enhance performance since the shell implicitly "

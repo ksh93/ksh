@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2011 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -17,42 +17,35 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * Glenn Fowler
+ * David Korn
  * AT&T Research
  *
- * string vector load support
+ * Obsolete interface definitions for a stack-like storage library.
+ * These now simply map onto the current stk(3) functions as below.
  */
 
-#include <ast.h>
-#include <ls.h>
-#include <vecargs.h>
+#ifndef _STAK_H
+#define _STAK_H
 
-/*
- * load a string vector from lines in file
- */
+#include	<stk.h>
 
-char**
-vecfile(const char* file)
-{
-	int		n;
-	char*		buf;
-	char**		vec;
-	int		fd;
-	struct stat	st;
+#define Stak_t		Sfio_t
+#define	staksp		stkstd
+#define STAK_SMALL	STK_SMALL
 
-	vec = 0;
-	if ((fd = open(file, O_RDONLY|O_cloexec)) >= 0)
-	{
-		if (!fstat(fd, &st) && S_ISREG(st.st_mode) && (n = st.st_size) > 0 && (buf = newof(0, char, n + 1, 0)))
-		{
-			if (read(fd, buf, n) == n)
-			{
-				buf[n] = 0;
-				vec = vecload(buf);
-			}
-			if (!vec) free(buf);
-		}
-		close(fd);
-	}
-	return vec;
-}
+#define	stakptr(n)		stkptr(stkstd,n)
+#define	staktell()		stktell(stkstd)
+#define stakputc(c)		sfputc(stkstd,(c))
+#define stakwrite(b,n)		sfwrite(stkstd,(b),(n))
+#define stakputs(s)		(sfputr(stkstd,(s),0),--stkstd->_next)
+#define stakseek(n)		stkseek(stkstd,n)
+#define stakcreate(n)		stkopen(n)
+#define stakinstall(s,f)	stkinstall(s,f)
+#define stakdelete(s)		stkclose(s)
+#define staklink(s)		stklink(s)
+#define stakalloc(n)		stkalloc(stkstd,n)
+#define stakcopy(s)		stkcopy(stkstd,s)
+#define stakset(c,n)		stkset(stkstd,c,n)
+#define stakfreeze(n)		stkfreeze(stkstd,n)
+
+#endif

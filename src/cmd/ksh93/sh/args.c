@@ -337,7 +337,7 @@ int sh_argopts(int argc,char *argv[])
 			errormsg(SH_DICT,ERROR_system(3),e_create,ap->kiafile);
 			UNREACHABLE();
 		}
-		if(!(lp->kiatmp=sftmp(2*SF_BUFSIZE)))
+		if(!(lp->kiatmp=sftmp(2*SFIO_BUFSIZE)))
 		{
 			errormsg(SH_DICT,ERROR_system(3),e_tmpcreate);
 			UNREACHABLE();
@@ -681,7 +681,7 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 		 * TODO: find/fix root cause, eliminate argi
 		 */
 		argn = *nargs + 1;	/* allow room to prepend args */
-		comargn=(char**)stkalloc(sh.stk,(unsigned)(argn+1)*sizeof(char*));
+		comargn = stkalloc(sh.stk,(unsigned)(argn+1)*sizeof(char*));
 		comargm = comargn += argn;
 		*comargn = NULL;
 		if(!argp)
@@ -724,7 +724,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	int savestates = sh_getstate();
 	char savejobcontrol = job.jobcontrol;
 	unsigned int savesubshell = sh.subshell;
-	ap = (struct argnod*)stkseek(sh.stk,ARGVAL);
+	ap = stkseek(sh.stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
 	fd = argp->argflag&ARG_RAW;
@@ -752,7 +752,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	sfputr(sh.stk,sh.fifo,0);
 #endif /* SHOPT_DEVFD */
 	sfputr(sh.stk,fmtint(pv[fd],1),0);
-	ap = (struct argnod*)stkfreeze(sh.stk,0);
+	ap = stkfreeze(sh.stk,0);
 	sh.inpipe = sh.outpipe = 0;
 	/* turn off job control */
 	sh_offstate(SH_INTERACTIVE);

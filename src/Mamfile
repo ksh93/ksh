@@ -3,7 +3,7 @@ note * This build script is in an extended Make Abstract Machine (MAM)
 note * language. Documentation is at: src/cmd/INIT/README-mamake.md
 note *
 
-setv MAMAKE_STRICT 2
+setv MAMAKE_STRICT 3
 
 make test virtual
 	make test_announce virtual
@@ -12,6 +12,11 @@ make test virtual
 	make install virtual
 		make all virtual
 			exec - ${MAMAKE} -r '*/*' ${MAMAKEARGS}
+		done
+		make announce_build_done virtual notrace
+			prev cmd/ksh93/ksh
+			exec - ${<} -c 'print "# KornShell $KSH_VERSION"'
+			exec - echo "# Type 'bin/package use' to try it out"
 		done
 	done
 done

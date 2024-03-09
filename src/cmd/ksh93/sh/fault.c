@@ -497,7 +497,7 @@ int sh_trap(const char *trap, int mode)
 	char	was_no_trapdontexec = !sh.st.trapdontexec;
 	char	save_chldexitsig = sh.chldexitsig;
 	int	staktop = stktell(sh.stk);
-	char	*savptr = stkfreeze(sh.stk,0);
+	void	*savptr = stkfreeze(sh.stk,0);
 	struct	checkpt buff;
 	Fcin_t	savefc;
 	fcsave(&savefc);
@@ -571,6 +571,7 @@ void sh_exit(int xno)
 		sh.exitval |= (sig=sh.lastsig);
 	if(pp && pp->mode>1)
 		cursig = -1;
+	sh_offstate(SH_EXEC);
 	if((sh.trapnote&SH_SIGTSTP) && job.jobcontrol)
 	{
 		/* ^Z detected by the shell */
@@ -617,7 +618,7 @@ void sh_exit(int xno)
 	}
 	/* unlock output pool */
 	sh_offstate(SH_NOTRACK);
-	if(!(pool=sfpool(NULL,sh.outpool,SF_WRITE)))
+	if(!(pool=sfpool(NULL,sh.outpool,SFIO_WRITE)))
 		pool = sh.outpool; /* can't happen? */
 	sfclrlock(pool);
 	if(sh.lastsig==SIGPIPE)
@@ -693,7 +694,7 @@ noreturn void sh_done(int sig)
 		/* generate fault termination code */
 		if(RLIMIT_CORE!=RLIMIT_UNKNOWN)
 		{
-#ifdef _lib_getrlimit
+#if _lib_getrlimit
 			struct rlimit rlp;
 			getrlimit(RLIMIT_CORE,&rlp);
 			rlp.rlim_cur = 0;

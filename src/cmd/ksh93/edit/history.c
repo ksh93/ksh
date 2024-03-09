@@ -276,7 +276,7 @@ retry:
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
-	hp->histfp= sfnew(NULL,hp->histbuff,HIST_BSIZE,fd,SF_READ|SF_WRITE|SF_APPENDWR|SF_SHARE);
+	hp->histfp= sfnew(NULL,hp->histbuff,HIST_BSIZE,fd,SFIO_READ|SFIO_WRITE|SFIO_APPENDWR|SFIO_SHARE);
 	memset((char*)hp->histcmds,0,sizeof(off_t)*(hp->histmask+1));
 	hp->histind = 1;
 	hp->histcmds[1] = 2;
@@ -338,7 +338,7 @@ retry:
 #endif /* SHOPT_ACCTFILE */
 #if SHOPT_AUDIT
 	{
-		char buff[SF_BUFSIZE];
+		char buff[SFIO_BUFSIZE];
 		hp->auditfp = 0;
 		if(sh_isstate(SH_INTERACTIVE) && (hp->auditmask=sh_checkaudit(hp,SHOPT_AUDITFILE, buff, sizeof(buff))))
 		{
@@ -356,7 +356,7 @@ retry:
 				fcntl(fd,F_SETFD,FD_CLOEXEC);
 				const char* tty = ttyname(2);
 				hp->tty = sh_strdup(tty?tty:"notty");
-				hp->auditfp = sfnew(NULL,NULL,-1,fd,SF_WRITE);
+				hp->auditfp = sfnew(NULL,NULL,-1,fd,SFIO_WRITE);
 			}
 		}
 	}
@@ -462,7 +462,7 @@ static History_t* hist_trim(History_t *hp, int n)
 			if(newp <=oldp)
 				break;
 		}
-		if(!(buff=(char*)sfreserve(hist_old->histfp,SF_UNBOUND,0)))
+		if(!(buff=(char*)sfreserve(hist_old->histfp,SFIO_UNBOUND,0)))
 			break;
 		*(endbuff=(cp=buff)+sfvalue(hist_old->histfp)) = 0;
 		/* copy to null byte */
@@ -496,7 +496,7 @@ static int hist_nearend(History_t *hp, Sfio_t *iop, off_t size)
 		goto begin;
 	/* skip to marker command and return the number */
 	/* numbering commands occur after a null and begin with HIST_CMDNO */
-        while(cp=buff=(unsigned char*)sfreserve(iop,SF_UNBOUND,SF_LOCKR))
+        while(cp=buff=(unsigned char*)sfreserve(iop,SFIO_UNBOUND,SFIO_LOCKR))
         {
 		n = sfvalue(iop);
                 *(endbuff=cp+n) = 0;
@@ -570,7 +570,7 @@ void hist_eof(History_t *hp)
 	}
 again:
 	sfseek(hp->histfp,count,SEEK_SET);
-        while(cp=(char*)sfreserve(hp->histfp,SF_UNBOUND,0))
+        while(cp=(char*)sfreserve(hp->histfp,SFIO_UNBOUND,0))
 	{
 		n = sfvalue(hp->histfp);
 		*(endbuff = cp+n) = 0;
@@ -687,7 +687,7 @@ void hist_flush(History_t *hp)
 	char *buff;
 	if(hp)
 	{
-		if(buff=(char*)sfreserve(hp->histfp,0,SF_LOCKR))
+		if(buff=(char*)sfreserve(hp->histfp,0,SFIO_LOCKR))
 		{
 			hp->histflush = sfvalue(hp->histfp)+1;
 			sfwrite(hp->histfp,buff,0);
@@ -1104,7 +1104,7 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 	int newfd,oldfd;
 	History_t *hp = (History_t*)handle;
 	NOT_USED(data);
-	if(type==SF_WRITE)
+	if(type==SFIO_WRITE)
 	{
 		if(errno==ENOSPC || hp->histwfail++ >= 10)
 			return 0;

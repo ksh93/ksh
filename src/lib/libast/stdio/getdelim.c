@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,7 +32,7 @@ getdelim(char** sp, size_t* np, int delim, Sfio_t* f)
 	if(delim < 0 || delim > 255 || !sp || !np) /* bad parameters */
 		return -1;
 
-	if(!f || (f->mode != SF_READ && _sfmode(f,SF_READ,0) < 0))
+	if(!f || (f->mode != SFIO_READ && _sfmode(f,SFIO_READ,0) < 0))
 		return -1;
 
 	SFLOCK(f,0);
@@ -43,7 +43,7 @@ getdelim(char** sp, size_t* np, int delim, Sfio_t* f)
 	{	/* read new data */
 		if((p = f->endb - (ps = f->next)) <= 0 )
 		{	f->getr = delim;
-			f->mode |= SF_RC;
+			f->mode |= SFIO_RC;
 			if(SFRPEEK(f,ps,p) <= 0)
 			{	m = -1;
 				break;

@@ -45,7 +45,7 @@
 #endif
 
 /*
- * workaround botched headers that assume <stdio.h>
+ * work around botched headers that assume <stdio.h>
  */
 
 #ifndef FILE
@@ -97,13 +97,8 @@ struct _sfio_s;
 #define EXIT_NOTFOUND	127	/* command not found	*/
 #define EXIT_NOEXEC	126	/* other exec error	*/
 
-#define EXIT_CODE(x)	((x) & EXIT_QUIT)
-#define EXIT_CORE(x)	(EXIT_CODE(x) | 256 | 128)
+#define EXIT_CODE(x)	((x) & 255)
 #define EXIT_TERM(x)	(EXIT_CODE(x) | 256)
-
-#define EXIT_STATUS(x)	(((x) & 63) ? (x) : EXIT_CODE((x) >> 8))
-#define EXITED_CORE(x)	(((x) & (256 | 128)) == (256 | 128) || ((x) & (128 | 64)) == (128 | 64))
-#define EXITED_TERM(x)	((x) & (256 | 128))
 
 /*
  * astconflist() flags
@@ -258,8 +253,8 @@ typedef struct
 #define roundof(x,y)	(((x)+(y)-1)&~((y)-1))
 #define ssizeof(x)	((int)sizeof(x))
 
-#define streq(a,b)	(*(a)==*(b)&&!strcmp(a,b))
-#define strneq(a,b,n)	(*(a)==*(b)&&!strncmp(a,b,n))
+#define streq(a,b)	(!strcmp(a,b))
+#define strneq(a,b,n)	(!strncmp(a,b,n))
 #define strsignal(s)	fmtsignal(s)
 
 #define NiL		NULL			/* for backward compatibility */

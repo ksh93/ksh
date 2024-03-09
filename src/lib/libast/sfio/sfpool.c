@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,7 +22,7 @@
 /*	Management of pools of streams.
 **	If pf is not nil, f is pooled with pf and f becomes current;
 **	otherwise, f is isolated from its pool. flag can be one of
-**	0 or SF_SHARE.
+**	0 or SFIO_SHARE.
 **
 **	Written by Kiem-Phong Vo.
 */
@@ -37,7 +37,7 @@ static int delpool(Sfpool_t* p)
 
 	if(p->s_sf && p->sf != p->array)
 		free(p->sf);
-	p->mode = SF_AVAIL;
+	p->mode = SFIO_AVAIL;
 
 	return 0;
 }
@@ -48,7 +48,7 @@ static Sfpool_t* newpool(int mode)
 
 	/* look to see if there is a free pool */
 	for(last = &_Sfpool, p = last->next; p; last = p, p = p->next)
-	{	if(p->mode == SF_AVAIL )
+	{	if(p->mode == SFIO_AVAIL )
 		{	p->mode = 0;
 			break;
 		}
@@ -66,7 +66,7 @@ static Sfpool_t* newpool(int mode)
 	}
 
 
-	p->mode = mode&SF_SHARE;
+	p->mode = mode&SFIO_SHARE;
 	p->s_sf = sizeof(p->array)/sizeof(p->array[0]);
 	p->sf = p->array;
 
@@ -93,12 +93,12 @@ static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 	SFLOCK(head,0);
 	rv = -1;
 
-	if(!(p->mode&SF_SHARE) || (head->mode&SF_READ) || (f->mode&SF_READ) )
+	if(!(p->mode&SFIO_SHARE) || (head->mode&SFIO_READ) || (f->mode&SFIO_READ) )
 	{	if(SFSYNC(head) < 0)
 			goto done;
 	}
 	else	/* shared pool of write-streams, data can be moved among streams */
-	{	if(SFMODE(head,1) != SF_WRITE && _sfmode(head,SF_WRITE,1) < 0)
+	{	if(SFMODE(head,1) != SFIO_WRITE && _sfmode(head,SFIO_WRITE,1) < 0)
 			goto done;
 		/**/ASSERT(f->next == f->data);
 
@@ -124,8 +124,8 @@ static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 		f->next = f->data+v;
 	}
 
-	f->mode &= ~SF_POOL;
-	head->mode |= SF_POOL;
+	f->mode &= ~SFIO_POOL;
+	head->mode |= SFIO_POOL;
 	head->next = head->endr = head->endw = head->data; /* clear write buffer */
 
 	p->sf[n] = head;
@@ -133,7 +133,7 @@ static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 	rv = 0;
 
 done:
-	head->mode &= ~SF_LOCK; /* partially unlock because it's no longer head */
+	head->mode &= ~SFIO_LOCK; /* partially unlock because it's no longer head */
 
 	return rv;
 }
@@ -149,7 +149,7 @@ static int _sfpdelete(Sfpool_t*	p,	/* the pool		*/
 		p->sf[n] = p->sf[n+1];
 
 	f->pool = NULL;
-	f->mode &= ~SF_POOL;
+	f->mode &= ~SFIO_POOL;
 
 	if(p->n_sf == 0 || p == &_Sfpool)
 	{	if(p != &_Sfpool)
@@ -167,9 +167,9 @@ static int _sfpdelete(Sfpool_t*	p,	/* the pool		*/
 		p->sf[0] = f;
 	}
 
-	/* head stream has SF_POOL off */
+	/* head stream has SFIO_POOL off */
 	f = p->sf[0];
-	f->mode &= ~SF_POOL;
+	f->mode &= ~SFIO_POOL;
 	if(!SFFROZEN(f))
 		_SFOPEN(f);
 
@@ -221,13 +221,13 @@ Sfio_t* sfpool(Sfio_t* f, Sfio_t* pf, int mode)
 	}
 
 	if(f)	/* check for permissions */
-	{	if((f->mode&SF_RDWR) != f->mode && _sfmode(f,0,0) < 0)
+	{	if((f->mode&SFIO_RDWR) != f->mode && _sfmode(f,0,0) < 0)
 			return NULL;
 		if(f->disc == _Sfudisc)
 			(void)sfclose((*_Sfstack)(f,NULL));
 	}
 	if(pf)
-	{	if((pf->mode&SF_RDWR) != pf->mode && _sfmode(pf,0,0) < 0)
+	{	if((pf->mode&SFIO_RDWR) != pf->mode && _sfmode(pf,0,0) < 0)
 			return NULL;
 		if(pf->disc == _Sfudisc)
 			(void)sfclose((*_Sfstack)(pf,NULL));
@@ -265,10 +265,10 @@ Sfio_t* sfpool(Sfio_t* f, Sfio_t* pf, int mode)
 	if(pf->pool && pf->pool != &_Sfpool) /* always use current mode */
 		mode = pf->pool->mode;
 
-	if(mode&SF_SHARE) /* can only have write streams */
-	{	if(SFMODE(f,1) != SF_WRITE && _sfmode(f,SF_WRITE,1) < 0)
+	if(mode&SFIO_SHARE) /* can only have write streams */
+	{	if(SFMODE(f,1) != SFIO_WRITE && _sfmode(f,SFIO_WRITE,1) < 0)
 			goto done;
-		if(SFMODE(pf,1) != SF_WRITE && _sfmode(pf,SF_WRITE,1) < 0)
+		if(SFMODE(pf,1) != SFIO_WRITE && _sfmode(pf,SFIO_WRITE,1) < 0)
 			goto done;
 		if(f->next > f->data && SFSYNC(f) < 0) /* start f clean */
 			goto done;

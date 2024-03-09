@@ -91,7 +91,7 @@ static int uniq(Sfio_t *fdin, Sfio_t *fdout, int fields, int chars, int width, i
 	{
 		if(bufp = sfgetr(fdin,'\n',0))
 			n = sfvalue(fdin);
-		else if(bufp = sfgetr(fdin,'\n',SF_LASTR))
+		else if(bufp = sfgetr(fdin,'\n',SFIO_LASTR))
 		{
 			n = sfvalue(fdin);
 			bufp = memcpy(fmtbuf(n + 1), bufp, n);

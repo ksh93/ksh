@@ -182,7 +182,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 				if(ap && !ap->table)
 					ap->table = dtopen(&_Nvdisc,Dtoset);
 				if(ap && ap->table && (nq=nv_search(nv_getsub(np),ap->table,NV_ADD)))
-					nq->nvenv = (char*)np;
+					nq->nvmeta = np;
 				if(nq && nv_isnull(nq))
 					np = nv_arraychild(np,nq,0);
 			}

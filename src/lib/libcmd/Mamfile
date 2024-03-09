@@ -3,7 +3,7 @@ note * This build script is in an extended Make Abstract Machine (MAM)
 note * language. Documentation is at: src/cmd/INIT/README-mamake.md
 note *
 
-setv MAMAKE_STRICT 2
+setv MAMAKE_STRICT 3
 setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
@@ -37,14 +37,16 @@ make install virtual
 						make ${PACKAGE_ast_INCLUDE}/ast_wctype.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/endian.h
 							make ${PACKAGE_ast_INCLUDE}/wchar.h implicit
-								prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
+								note * TODO * circular depencency
+								note # prev ${PACKAGE_ast_INCLUDE}/ast_wchar.h
 							done
 						done
 					done
 					make ${PACKAGE_ast_INCLUDE}/stdio.h implicit
 						make ${PACKAGE_ast_INCLUDE}/ast_stdio.h implicit
 							prev ${PACKAGE_ast_INCLUDE}/sfio_s.h implicit
-							prev ${PACKAGE_ast_INCLUDE}/ast_std.h
+							note * TODO * circular dependency
+							note # prev ${PACKAGE_ast_INCLUDE}/ast_std.h
 						done
 					done
 					prev ${PACKAGE_ast_INCLUDE}/ast_common.h
@@ -426,7 +428,6 @@ make install virtual
 		prev tty.c
 		prev uname.c
 		prev uniq.c
-		prev vmstate.c
 		prev wc.c
 		prev revlib.c
 		prev wclib.c
@@ -448,6 +449,14 @@ make install virtual
 		exec -	${^} |
 		exec -	sort -u
 		exec - } > cmdext.h
+		prev vmstate.c
+		exec - {
+		exec - cat <<!
+		exec - #if _AST_vmalloc
+		exec - extern int	b_vmstate(int, char**, Shbltin_t*);
+		exec - #endif
+		exec - !
+		exec - } >> cmdext.h
 		prev ${PACKAGE_ast_INCLUDE}/shcmd.h
 	done
 
@@ -463,6 +472,7 @@ make install virtual
 			done
 		done
 		make sumlib.o
+			bind -lsum
 			exec - set -- ${mam_libsum}
 			exec - ${AR} x "$1" sumlib.o
 		done
@@ -543,7 +553,6 @@ make install virtual
 			prev tty.c
 			prev uname.c
 			prev uniq.c
-			prev vmstate.c
 			prev wc.c
 			prev revlib.c
 			prev wclib.c
@@ -563,6 +572,14 @@ make install virtual
 			exec -	${^} |
 			exec - sort -u
 			exec - } > ${@}
+			prev vmstate.c
+			exec - {
+			exec - cat <<!
+			exec - #if _AST_vmalloc
+			exec - CMDLIST(vmstate)
+			exec - #endif
+			exec - !
+			exec - } >> ${@}
 		done cmdlist.h
 		exec - cp -f ${<} ${@}
 	done ${PACKAGE_ast_INCLUDE}/cmdlist.h

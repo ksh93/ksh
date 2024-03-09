@@ -1,5 +1,5 @@
 .fp 5 CW
-.TH SFIO 3 "12 February 2022"
+.TH SFIO 3 "2 March 2024"
 .SH NAME
 \fBsfio\fR \- safe/fast string/file input/output
 .SH SYNOPSIS
@@ -51,18 +51,18 @@ SFIO_VERSION
 .Ss "BIT FLAGS"
 .nf
 .ft 5
-SF_STRING
-SF_READ
-SF_WRITE
-SF_APPENDWR (SF_APPEND)
-SF_LINE
-SF_SHARE
-SF_PUBLIC
-SF_MALLOC
-SF_STATIC
-SF_IOCHECK
-SF_WHOLE
-SF_IOINTR
+SFIO_STRING
+SFIO_READ
+SFIO_WRITE
+SFIO_APPENDWR
+SFIO_LINE
+SFIO_SHARE
+SFIO_PUBLIC
+SFIO_MALLOC
+SFIO_STATIC
+SFIO_IOCHECK
+SFIO_WHOLE
+SFIO_IOINTR
 .ft 1
 .fi
 .Ss "OPENING/CLOSING STREAMS"
@@ -166,22 +166,22 @@ ssize_t    sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc);
 ssize_t    sfwr(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc);
 Sfoff_t    sfsk(Sfio_t* f, Sfoff_t offset, int type, Sfdisc_t* disc);
 
-SF_NEW
-SF_READ
-SF_WRITE
-SF_SEEK
-SF_CLOSING (SF_CLOSE)
-SF_DPUSH
-SF_DPOP
-SF_DPOLL
-SF_DBUFFER
-SF_SYNC
-SF_PURGE
-SF_FINAL
-SF_READY
-SF_LOCKED
-SF_ATEXIT
-SF_EVENT
+SFIO_NEW
+SFIO_READ
+SFIO_WRITE
+SFIO_SEEK
+SFIO_CLOSING
+SFIO_DPUSH
+SFIO_DPOP
+SFIO_DPOLL
+SFIO_DBUFFER
+SFIO_SYNC
+SFIO_PURGE
+SFIO_FINAL
+SFIO_READY
+SFIO_LOCKED
+SFIO_ATEXIT
+SFIO_EVENT
 .ft 1
 .fi
 .Ss "STREAM CONTROL"
@@ -335,46 +335,46 @@ A number of bit flags control stream operations.
 They are set either at stream initialization or by calling \f3sfset()\fP.
 Following are the flags:
 .Tp
-\f3SF_STRING\fP:
+\f3SFIO_STRING\fP:
 The stream is memory-based.
 .Tp
-\f3SF_READ\fP, \f3SF_WRITE\fP, \f3SF_APPENDWR\fP (\f3SF_APPEND\fP):
-Flags \f3SF_READ\fP and \f3SF_WRITE\fP indicate readability and writability.
-Flag \f3SF_APPENDWR\fP asserts that the stream is a file opened in append mode
+\f3SFIO_READ\fP, \f3SFIO_WRITE\fP, \f3SFIO_APPENDWR\fP:
+Flags \f3SFIO_READ\fP and \f3SFIO_WRITE\fP indicate readability and writability.
+Flag \f3SFIO_APPENDWR\fP asserts that the stream is a file opened in append mode
 (see \f3open(2)\fP and \f3fcntl(2)\fP)
 so that data is always output at the end of file.
 On systems without direct support for append mode,
 Sfio uses \f3lseek(2)\fP or its discipline replacement
 to approximate this behavior.
 .Tp
-\f3SF_LINE\fP:
+\f3SFIO_LINE\fP:
 The stream is line-oriented.
-For a \f3SF_WRITE\fP stream,
+For a \f3SFIO_WRITE\fP stream,
 this means that buffered data is flushed
 whenever a new-line character, \f3\en\fP, is output.
-For a \f3SF_READ\fP stream, \f3SF_LINE\fP is only
+For a \f3SFIO_READ\fP stream, \f3SFIO_LINE\fP is only
 significant during calls to functions in the \f3sfscanf()\fP family.
-\f3SF_LINE\fP is set on initialization of
+\f3SFIO_LINE\fP is set on initialization of
 any stream representing a terminal device.
 .Tp
-\f3SF_SHARE\fP, \f3SF_PUBLIC\fP:
-Flag \f3SF_SHARE\fP means that the underlying file descriptor
+\f3SFIO_SHARE\fP, \f3SFIO_PUBLIC\fP:
+Flag \f3SFIO_SHARE\fP means that the underlying file descriptor
 is shared by independent entities (for example, multiple processes).
 
-For a seekable file stream, \f3SF_SHARE\fP means that
+For a seekable file stream, \f3SFIO_SHARE\fP means that
 the logical stream and the physical file positions will be made the same
 before a system call to perform physical I/O.
 There are different possibilities.
-If \f3SF_PUBLIC\fP is not set,
+If \f3SFIO_PUBLIC\fP is not set,
 the physical file position is made equal to the logical stream position.
-If \f3SF_PUBLIC\fP is set, there are two cases.
+If \f3SFIO_PUBLIC\fP is set, there are two cases.
 If the physical file position has changed from its last known position,
 the logical stream position is made equal to the new physical file position.
 Finally, if the physical file location remains the same as its last known position,
 the physical file position is made the same as the logical stream position.
 
 For an unseekable stream (e.g., pipes or terminal devices), if possible,
-\f3SF_SHARE\fP means that
+\f3SFIO_SHARE\fP means that
 the block and record I/O operations (\f3sfread()\fP, \f3sfwrite()\fP, \f3sfmove()\fP,
 \f3sfgetr()\fP, \f3sfputr()\fP, \f3sfreserve()\fP, \f3sfscanf()\fP
 and \f3sfvprintf()\fP) will ensure:
@@ -383,37 +383,37 @@ and \f3sfvprintf()\fP) will ensure:
 Note, however, that (2) is not always possible
 without proper OS facilities such as \f3recv(2)\fP or \f3streamio(4)\fP.
 
-A standard stream that is seekable will be initialized with \f3SF_SHARE|SF_PUBLIC\fP.
+A standard stream that is seekable will be initialized with \f3SFIO_SHARE|SFIO_PUBLIC\fP.
 .Tp
-\f3SF_MALLOC\fP:
+\f3SFIO_MALLOC\fP:
 The stream buffer was obtained via \f3malloc(3)\fP
 and can be reallocated or freed.
 .Tp
-\f3SF_STATIC\fP:
+\f3SFIO_STATIC\fP:
 The stream structure should not be freed when closed (\f3sfclose()\fP).
 This flag is used by an applications that allocate their own
 stream structures. Such applications must use the header file \f3sfio_t.h\fP
 instead of \f3sfio.h\fP.
 .Tp
-\f3SF_IOCHECK\fP:
+\f3SFIO_IOCHECK\fP:
 If the stream has a discipline exception handler,
 exceptions will be raised in \f3sfsync()\fP, \f3sfpurge()\fP
 or before a system call \f3read(2)\fP or \f3write(2)\fP (see \f3sfdisc()\fP).
 .Tp
-\f3SF_WHOLE\fP:
+\f3SFIO_WHOLE\fP:
 This flag guarantees that data written in any single \f3sfwrite()\fP or
 \f3sfputr()\fP call will always be output as a whole to the output device.
 This is useful in certain applications (e.g., networking) where a complex object
 must be output without being split in different system calls.
 Note that the respective stream still buffers data as much as the buffer can accommodate.
 .Tp
-\f3SF_IOINTR\fP:
+\f3SFIO_IOINTR\fP:
 This flag indicates that I/O system calls should not be resumed
 after being interrupted by signals. It is useful for
 aborting I/O operations on such interruptions. Note, however,
 that certain operating systems (e.g., BSD Unix systems) may automatically
 resume interrupted system calls outside the scope of the library. On such systems,
-\f3SF_IOINTR\fP will be ineffective.
+\f3SFIO_IOINTR\fP will be ineffective.
 .Ss "OPENING/CLOSING STREAMS"
 .Ss "  Sfio_t* sfnew(Sfio_t* f, void* buf, size_t size, int fd, int flags)"
 This function creates or renews a stream.
@@ -422,10 +422,10 @@ It returns the new stream on success and \f3NULL\fP on error.
 \f3f\fP:
 If \f3f\fP is \f3NULL\fP, a new stream is created.
 Otherwise, \f3f\fP is reused.
-In this case, if \f3flags\fP does not have \f3SF_EOF\fP,
+In this case, if \f3flags\fP does not have \f3SFIO_EOF\fP,
 \f3f\fP shall be closed via \f3sfclose()\fP before being reused.
 During a stream renewal, buffer, pool and discipline stack are preserved.
-Note that, except for \f3SF_STATIC\fP streams,
+Note that, except for \f3SFIO_STATIC\fP streams,
 renewing a stream already closed will result in undefined behavior.
 .Tp
 \f3buf\fP, \f3size\fP:
@@ -433,14 +433,14 @@ These determine a buffering scheme.
 See \f3sfsetbuf()\fP for more details.
 .Tp
 \f3fd\fP:
-If \f3SF_STRING\fP is specified in \f3flags\fP, this is ignored.
+If \f3SFIO_STRING\fP is specified in \f3flags\fP, this is ignored.
 Otherwise, \f3fd\fP is a file descriptor (e.g., from \f3open(2)\fP)
 to use for raw data I/O.
 Note that Sfio supports unseekable file descriptors
 opened for both read and write, e.g., sockets.
 .Tp
 \f3flags\fP:
-This is composed from \f3SF_EOF\fP and
+This is composed from \f3SFIO_EOF\fP and
 bit values defined in the \fBBIT FLAGS\fP section.
 .Ss "  Sfio_t* sfopen(Sfio_t* f, const char* string, const char* mode)"
 
@@ -452,7 +452,7 @@ In this case, \f3sfopen()\fP returns \f3f\fP on success and \f3NULL\fP on error.
 This somewhat unusual usage of \f3sfopen()\fP is good for
 resetting certain predefined modes in standard streams including
 \fItext/binary\fP and \fIappend\fP that are inherited from some parent process.
-Note also that \f3SF_READ\fP and \f3SF_WRITE\fP can only be reset if the stream
+Note also that \f3SFIO_READ\fP and \f3SFIO_WRITE\fP can only be reset if the stream
 is not yet initialized.
 
 \f3sfopen()\fP is normally used to create a new stream or renew a stream.
@@ -515,7 +515,7 @@ and the given command \f3cmd\fP. When the interpreter is \f3/bin/sh\fP or
 if there are no shell meta-characters in \f3cmd\fP.
 .Ss "  Sfio_t* sfstropen(void)"
 Shorthand that opens a new string buffer for reading and writing;
-same as \f3sfnew(NULL,NULL,-1,-1,SF_READ|SF_WRITE|SF_STRING)\fP.
+same as \f3sfnew(NULL,NULL,-1,-1,SFIO_READ|SFIO_WRITE|SFIO_STRING)\fP.
 See also
 .BR sfstruse() .
 .Ss "  Sfio_t* sftmp(size_t size)"
@@ -523,7 +523,7 @@ This function creates a stream for temporary data.
 It returns the new stream or \f3NULL\fP on error.
 
 A stream created by \f3sftmp()\fP can be completely or partially memory-resident.
-If \f3size\fP is \f3SF_UNBOUND\fP, the stream is a pure string stream.
+If \f3size\fP is \f3SFIO_UNBOUND\fP, the stream is a pure string stream.
 If \f3size\fP is zero, the stream is a pure file stream.
 Otherwise, the stream is first created as a string stream but when
 its buffer grows larger than \f3size\fP or on any attempt to change disciplines,
@@ -538,7 +538,7 @@ If \f3TMPPATH\fP is undefined,
 If neither of \f3TMPPATH\fP and \f3TMPDIR\fP are defined, \f3/tmp\fP is used.
 .Ss "  int sfclose(Sfio_t* f)"
 This function closes the stream \f3f\fP and frees its resources.
-\f3SF_STATIC\fP should be used if the stream space is to be preserved.
+\f3SFIO_STATIC\fP should be used if the stream space is to be preserved.
 If \f3f\fP is the base of a stream stack (see \f3sfstack()\fP),
 all streams on the stack are closed.
 If \f3f\fP is a \f3sfpopen\fP-stream,
@@ -546,15 +546,15 @@ If \f3f\fP is a \f3sfpopen\fP-stream,
 and returns its exit status.
 \f3sfclose()\fP returns \f3-1\fP for failure and \f30\fP for success.
 
-\f3SF_READ|SF_SHARE\fP and \f3SF_WRITE\fP streams
+\f3SFIO_READ|SFIO_SHARE\fP and \f3SFIO_WRITE\fP streams
 are synchronized before closing (see \f3sfsync()\fP).
 If \f3f\fP has disciplines,
 their exception handlers will be called twice.
 The first exception handler call has the \f3type\fP argument as one of
-\f3SF_CLOSING\fP or \f3SF_NEW\fP (see \f3sfdisc()\fP).
-The latter, \f3SF_NEW\fP is used when a stream is being closed via \f3sfnew()\fP
+\f3SFIO_CLOSING\fP or \f3SFIO_NEW\fP (see \f3sfdisc()\fP).
+The latter, \f3SFIO_NEW\fP is used when a stream is being closed via \f3sfnew()\fP
 so that it can be renewed.
-The second call uses \f3type\fP as \f3SF_FINAL\fP
+The second call uses \f3type\fP as \f3SFIO_FINAL\fP
 and is done after all closing operations have succeeded but before
 the stream itself is deallocated.
 In either case, if the exception handler returns a negative value,
@@ -625,16 +625,16 @@ See also \f3sfmaxr()\fP for limiting the amount of data read to construct a reco
 
 The \f3type\fP argument is composed of some subset of the below bit flags:
 .Tp
-\f3SF_STRING\fP:
+\f3SFIO_STRING\fP:
 A null byte will replace the record separator to make the record into a C string.
 Otherwise, the record separator is left alone.
 .Tp
-\f3SF_LOCKR\fP:
+\f3SFIO_LOCKR\fP:
 Upon successfully obtaining a record \f3r\fP,
 the stream will be locked from further access until it is released with
 a call \f3sfread(f,r,0)\fP.
 .Tp
-\f3SF_LASTR\fP:
+\f3SFIO_LASTR\fP:
 This should be used only after a failed \f3sfgetr()\fP to retrieve
 the last incomplete record. In this case, \f3rsc\fP is ignored.
 .Ss "  ssize_t sfputr(Sfio_t* f, const char* s, int rsc)"
@@ -662,16 +662,16 @@ This function reads up to \f3n\fP bytes from \f3f\fP into buffer \f3buf\fP.
 It returns the number of bytes actually read or \f3-1\fP on error.
 .Ss "  ssize_t sfwrite(Sfio_t* f, const void* buf, size_t n)"
 This function writes \f3n\fP bytes from \f3buf\fP to \f3f\fP.
-If \f3f\fP is \f3SF_STRING\fP, and the buffer is not large enough,
-an \f3SF_WRITE\fP exception shall be raised.
+If \f3f\fP is \f3SFIO_STRING\fP, and the buffer is not large enough,
+an \f3SFIO_WRITE\fP exception shall be raised.
 \f3sfwrite()\fP returns the number of bytes written or \f3-1\fP on failure.
 .Ss "  Sfoff_t sfseek(Sfio_t* f, Sfoff_t offset, int type)"
 This function sets a new I/O position for \f3f\fP.
 It returns the new position or \f3-1\fP on failure.
 
-If the stream is a \f3SF_STRING\fP stream and the new
+If the stream is a \f3SFIO_STRING\fP stream and the new
 address is beyond the current buffer extent,
-an \f3SF_SEEK\fP exception will be raised (see \f3sfdisc()\fP).
+an \f3SFIO_SEEK\fP exception will be raised (see \f3sfdisc()\fP).
 
 The new position is determined based on \f3offset\fP and
 \f3type\fP which is composed from the bit flags:
@@ -680,18 +680,18 @@ The new position is determined based on \f3offset\fP and
 \f3offset\fP is the desired position.
 .Tp
 \f31\fP or \f3SEEK_CUR\fP:
-\f3offset\fP is relative to the current position (see \f3SF_PUBLIC\fP below).
+\f3offset\fP is relative to the current position (see \f3SFIO_PUBLIC\fP below).
 .Tp
 \f32\fP or \f3SEEK_END\fP:
 \f3offset\fP is relative to the physical end of file.
 .Tp
-\f3SF_SHARE\fP:
-The stream is treated as if it has the control bit \f3SF_SHARE\fP on.
+\f3SFIO_SHARE\fP:
+The stream is treated as if it has the control bit \f3SFIO_SHARE\fP on.
 This implies that a system call seek will be done to ensure that the
 location seeking to is valid.
 .Tp
-\f3SF_PUBLIC\fP:
-The stream is treated as if it has the control bit \f3SF_PUBLIC\fP on.
+\f3SFIO_PUBLIC\fP:
+The stream is treated as if it has the control bit \f3SFIO_PUBLIC\fP on.
 If the physical file position has changed from its last known location,
 the current position is taken as the new physical position.
 Otherwise, the current position is the logical stream position.
@@ -699,19 +699,19 @@ Otherwise, the current position is the logical stream position.
 This function reserves a data block from the stream \f3f\fP.
 It returns the reserved data block on success and \f3NULL\fP on failure.
 
-If \f3f\fP is a \f3SF_READ\fP stream, the data block is a segment of input data.
-If \f3f\fP is a \f3SF_WRITE\fP stream, the data block is a buffer
+If \f3f\fP is a \f3SFIO_READ\fP stream, the data block is a segment of input data.
+If \f3f\fP is a \f3SFIO_WRITE\fP stream, the data block is a buffer
 suitable for writing output data.
-For consistency, if \f3f\fP is opened with \f3SF_READ|SF_WRITE\fP,
-it will normally be treated as if it is a \f3SF_READ\fP stream
+For consistency, if \f3f\fP is opened with \f3SFIO_READ|SFIO_WRITE\fP,
+it will normally be treated as if it is a \f3SFIO_READ\fP stream
 (see \f3sfset()\fP for forcing a particular mode) but the returned
 buffer can also be written into (more below).
-However, it is possible to bias to \f3SF_WRITE\fP when the \f3type\fP
-argument is non-negative by adding the \f3SF_WRITE\fP bit \f3type\fP.
+However, it is possible to bias to \f3SFIO_WRITE\fP when the \f3type\fP
+argument is non-negative by adding the \f3SFIO_WRITE\fP bit \f3type\fP.
 In any case, a reserved data block is guaranteed to be valid only until
 a future access to the stream \f3f\fP.
 
-When \f3f\fP is \f3SF_READ\fP, \f3SF_SHARE\fP and unseekable,
+When \f3f\fP is \f3SFIO_READ\fP, \f3SFIO_SHARE\fP and unseekable,
 \f3sfreserve()\fP will attempt to peek at input data without
 consuming it. This enables separate processes to share in reading
 input from unseekable file descriptors (e.g., pipes or devices).
@@ -723,12 +723,12 @@ After a \f3sfreserve()\fP call, whether or not it succeeds,
 \f3sfvalue(f)\fP gives the size of the available data block.
 Any partially reserved data block after a failed \f3sfreserve()\fP
 call can be obtained in another \f3sfreserve()\fP call with the argument
-\f3type\fP being \f3SF_LASTR\fP. The second argument \f3n\fP
+\f3type\fP being \f3SFIO_LASTR\fP. The second argument \f3n\fP
 to \f3sfreserve()\fP will be ignored in this case.
 
 A \f3sfreserve()\fP call is successful if it can obtain a data block
 of size at least the absolute value of \f3n\fP.
-For a \f3SF_READ\fP atream, the argument \f3n\fP is treated as follows:
+For a \f3SFIO_READ\fP atream, the argument \f3n\fP is treated as follows:
 .Tp
 \f3n < 0\fP:
 \f3sfreserve()\fP attempts to get \fIat least\fP \f3|n|\fP bytes
@@ -741,21 +741,21 @@ but does not consume it (as consistent with \f3n == 0\fP).
 If \f3type != 0\fP, no attempt will be made to read data into the buffer.
 For example, the call \f3sfreserve(f, 0, -1)\fP only returns the buffer status,
 i.e., size of existing buffered data and pointer to such data, if any.
-The call \f3sfreserve(f, 0, SF_LOCKR)\fP is similar but also locks the stream.
+The call \f3sfreserve(f, 0, SFIO_LOCKR)\fP is similar but also locks the stream.
 .Tp
 \f3n > 0\fP:
 \f3sfreserve()\fP will use attempt to get \fIat most\fP \f3n\fP bytes into
-the buffer. Further, if \f3type == 3SF_LOCKR\fP (see below), read attempts
+the buffer. Further, if \f3type == 3SFIO_LOCKR\fP (see below), read attempts
 end on a positive amount.
 
 For a successful reservation, the argument \f3type\fP dictates treatment
 as follows:
 .Tp
-\f3type == SF_LASTR\fP:
-After a \f3sfreserve()\fP call with \f3type != SF_LOCKR\fP fails,
+\f3type == SFIO_LASTR\fP:
+After a \f3sfreserve()\fP call with \f3type != SFIO_LOCKR\fP fails,
 there may be some left over data not accessible via conventional Sfio calls.
 Immediately after such a failed call,
-another call to \f3sfreserve\fP with \f3type == SF_LASTR\fP will return any left over
+another call to \f3sfreserve\fP with \f3type == SFIO_LASTR\fP will return any left over
 data and also advance the stream I/O position by the amount of returned data.
 .Tp
 \f3type < 0\fP:
@@ -766,20 +766,20 @@ For example, a successful \f3sfreserve(f, -1, -1)\fP call will return a
 buffer of data and simultaneously advance the stream I/O position by the amount
 indicated by \f3sfvalue(f)\fP.
 .Tp
-\f3type == SF_LOCKR\fP:
+\f3type == SFIO_LOCKR\fP:
 The stream I/O position remains unchanged.
 In addition, \f3f\fP will be locked from further access.
-As appropriate to the stream type (\f3SF_READ\fP, \f3SF_WRITE\fP or both),
+As appropriate to the stream type (\f3SFIO_READ\fP, \f3SFIO_WRITE\fP or both),
 \f3f\fP can be unlocked later
 with one of \f3sfread(f,rsrv,size)\fP or \f3sfwrite(f,rsrv,size)\fP
 where \f3rsrv\fP is the reserved data block and \f3size\fP is the amount of
-data to be consumed. For example, if \f3f\fP is a locked \f3SF_READ\fP stream,
+data to be consumed. For example, if \f3f\fP is a locked \f3SFIO_READ\fP stream,
 the call \f3sfread(f,rsrv,1)\fP will reopen the stream and simultaneously
 advance the stream I/O position by \f31\fP.
 Finally, a stream opened for both reading and writing
 can release the lock with either call (with associated operational semantics!)
 For example, the below code reads 10 bytes of data from a stream
-opened with both \f3SF_READ\fP and \f3SF_WRITE\fP, modifies the data in place,
+opened with both \f3SFIO_READ\fP and \f3SFIO_WRITE\fP, modifies the data in place,
 then rewrites the new data back to the stream:
 .nf
 .ft 5
@@ -823,12 +823,12 @@ original formatting pair and without any extension functions.
 The top environment of a stack, say \f3fe\fP, is automatically popped whenever
 its format string is completely processed.
 In this case, its event-handling function (if any) is called
-as \f3(*eventf)(f,SF_FINAL,NULL,fe)\fP.
+as \f3(*eventf)(f,SFIO_FINAL,NULL,fe)\fP.
 The top environment
 can also be popped by giving an argument \f3NULL\fP to \f3%!\fP
 or by returning a negative value in an extension function.
 In these cases, the event-handling function is called
-as \f3(*eventf)(f,SF_DPOP,form,fe)\fP where \f3form\fP is the remainder
+as \f3(*eventf)(f,SFIO_DPOP,form,fe)\fP where \f3form\fP is the remainder
 of the format string. A negative return value from the event handling function
 will prevent the environment from being popped.
 
@@ -1267,7 +1267,7 @@ the number of items successfully scanned or \f3-1\fP on error.
 .PP
 A white space character (blank, tab, or new-line) in \f3format\fP
 normally matches a maximal sequence of input white space characters.
-However, if the input stream is in \f3SF_LINE\fP mode (see \f3sfset()\fP),
+However, if the input stream is in \f3SFIO_LINE\fP mode (see \f3sfset()\fP),
 a new-line character only matches white spaces up to an input new-line character.
 This is useful to avoid blocking when scanning typed inputs.
 .PP
@@ -1418,7 +1418,7 @@ it can also be explicitly set via the call \f3sfsetbuf(f, (void*)f, size)\fP.
 In invocations of \f3sfsetbuf()\fP other than the above case,
 the \f3size\fP argument is treated as follows:
 .Tp
-\f3size == SF_UNBOUND\fP:
+\f3size == SFIO_UNBOUND\fP:
 Sfio will pick a suitable buffer size.
 If \f3buf\fP is \f3NULL\fP,
 Sfio will also pick a suitable buffering scheme (such as memory mapping).
@@ -1442,10 +1442,10 @@ In this case, no attempt will be made to synchronize the stream.
 This function synchronizes the logical and physical views of stream \f3f\fP.
 It returns a negative value for failure and \f30\fP for success.
 
-For a \f3SF_WRITE\fP stream, synchronization means to write out any buffered data.
-For a seekable \f3SF_READ\fP file stream,
+For a \f3SFIO_WRITE\fP stream, synchronization means to write out any buffered data.
+For a seekable \f3SFIO_READ\fP file stream,
 the physical file position is aligned with the logical stream position and,
-if \f3SF_SHARE\fP is on, buffered data is discarded.
+if \f3SFIO_SHARE\fP is on, buffered data is discarded.
 If \f3f\fP is \f3NULL\fP, all streams are synchronized.
 If \f3f\fP is the base of a stream stack (see \f3sfstack()\fP),
 all stacked streams are synchronized.
@@ -1453,7 +1453,7 @@ Note that a stacked stream can only be synchronized this way.
 If \f3f\fP is in a pool (see \f3sfpool()\fP) but not being the head,
 the pool head is synchronized.
 
-If \f3f\fP has flag \f3SF_IOCHECK\fP, the \f3SF_SYNC\fP event is raised
+If \f3f\fP has flag \f3SFIO_IOCHECK\fP, the \f3SFIO_SYNC\fP event is raised
 before and after synchronization. See \f3sfdisc()\fP for details.
 .Ss "  int sfpoll(Sfio_t** flist, int n, int timeout)"
 This function polls a set of streams to see if I/O operations
@@ -1463,9 +1463,9 @@ If a stream has a discipline, the exception function may be called
 before and after the stream is polled (see \f3sfdisc()\fP for details).
 After a successful \f3sfpoll()\fP call,
 for each ready stream \f3f\fP, \f3sfvalue(f)\fP returns
-a bit combination of \f3SF_READ\fP and \f3SF_WRITE\fP to tell which I/O
-mode is available. If \f3SF_READ\fP is available, an attempt to read
-a byte will not block. If \f3SF_WRITE\fP is available,
+a bit combination of \f3SFIO_READ\fP and \f3SFIO_WRITE\fP to tell which I/O
+mode is available. If \f3SFIO_READ\fP is available, an attempt to read
+a byte will not block. If \f3SFIO_WRITE\fP is available,
 an attempt to flush will not block.
 \f3sfpoll()\fP returns the number of ready streams or \f3-1\fP on failure.
 .Tp
@@ -1478,11 +1478,11 @@ of \f3flist\fP in the same relative order.
 This defines an elapse time in milliseconds
 to wait to see if any stream is ready for I/O.
 If \f3timeout\fP is negative, \f3sfpoll()\fP will block until some stream become ready.
-Note that \f3SF_STRING\fP and normal file streams never block
+Note that \f3SFIO_STRING\fP and normal file streams never block
 and are always ready for I/O.
 If a stream with discipline is being polled and
 its readiness is as yet undetermined (e.g., empty buffer,)
-the discipline exception function will be called with \f3SF_DPOLL\fP
+the discipline exception function will be called with \f3SFIO_DPOLL\fP
 before querying the operating system.
 .Ss "  Sfio_t* sfpool(Sfio_t* f, Sfio_t* poolf, int mode)"
 This function manipulates pools of streams.
@@ -1506,22 +1506,22 @@ In this case, \f3poolf\fP is returned.
 .Tp
 \f3mode\fP:
 If \f3poolf\fP is already in a pool, \f3mode\fP is ignored.
-Otherwise, \f3mode\fP should be \f30\fP or \f3SF_SHARE\fP.
-A \f3SF_SHARE\fP pool contains streams with \f3SF_WRITE\fP mode.
+Otherwise, \f3mode\fP should be \f30\fP or \f3SFIO_SHARE\fP.
+A \f3SFIO_SHARE\fP pool contains streams with \f3SFIO_WRITE\fP mode.
 In addition, on change to a new head stream,
 buffered write data of the current head
 is transferred to the new head.
 .Ss "  int sfpurge(Sfio_t* f)"
 This function discards all buffered data
-unless \f3f\fP is a \f3SF_STRING\fP stream.
-Note that if \f3f\fP is a \f3SF_READ\fP stream based on an unseekable device,
+unless \f3f\fP is a \f3SFIO_STRING\fP stream.
+Note that if \f3f\fP is a \f3SFIO_READ\fP stream based on an unseekable device,
 purged data will not be recoverable.
 If \f3f\fP is a \f3sfpopen\fP-stream opened for both read and write,
 data of both the read and write pipe ends will be purged
 (see \f3sfset()\fP to selectively turn off read or write mode
 if one set of data is to be preserved).
-After purging, if \f3f\fP has flag \f3SF_IOCHECK\fP,
-the event \f3SF_PURGE\fP is raised.
+After purging, if \f3f\fP has flag \f3SFIO_IOCHECK\fP,
+the event \f3SFIO_PURGE\fP is raised.
 \f3sfpurge()\fP returns \f3-1\fP for failure and \f30\fP for success.
 .Ss "DISCIPLINE, EVENT-HANDLING"
 .PP
@@ -1552,7 +1552,7 @@ to traverse the entire discipline stack of a stream \f3f\fP as follows:
 .ft 1
 .fi
 
-If \f3disc\fP is \f3SF_POPDISC\fP or \f3NULL\fP,
+If \f3disc\fP is \f3SFIO_POPDISC\fP or \f3NULL\fP,
 the top element of the stack, if any, is popped and its address is returned.
 Otherwise, \f3disc\fP is pushed onto the discipline stack.
 In this case, if successful, \f3sfdisc()\fP returns
@@ -1594,7 +1594,7 @@ The on-going operation shall terminate.
 \f3>0\fP:
 If the event was raised due to an I/O error,
 the error has been repaired and the on-going operation shall continue normally.
-For some events, e.g., \f3SF_DPOLL\fP, the return value may also have
+For some events, e.g., \f3SFIO_DPOLL\fP, the return value may also have
 additional meanings.
 .Tp
 \f3=0\fP:
@@ -1606,14 +1606,14 @@ stream.
 The argument \f3type\fP of \f3(*exceptf)()\fP
 identifies the particular exceptional event:
 .Tp
-\f3SF_LOCKED\fP:
+\f3SFIO_LOCKED\fP:
 The stream cannot be accessed because it was frozen by
 certain operations such as \f3sfreserve()\fP or \f3sfstack()\fP.
 .Tp
-\f3SF_READ\fP, \f3SF_WRITE\fP:
+\f3SFIO_READ\fP, \f3SFIO_WRITE\fP:
 These events are raised around reading and writing operations.
 
-If \f3SF_IOCHECK\fP is on, \f3SF_READ\fP and \f3SF_WRITE\fP
+If \f3SFIO_IOCHECK\fP is on, \f3SFIO_READ\fP and \f3SFIO_WRITE\fP
 are raised immediately before \f3read(2) and write(2)\fP calls.
 In this case, \f3*((ssize_t*)value)\fP is the amount of data to be processed.
 The return value of \f3(*exceptf)()\fP, if negative,
@@ -1623,35 +1623,35 @@ If it is positive, the stream is ready for I/O
 but the amount should be restricted to the amount specified by this value.
 If the return value is zero, the I/O operation is carried out normally.
 
-\f3SF_READ\fP and \f3SF_WRITE\fP are also raised on operation failures.
+\f3SFIO_READ\fP and \f3SFIO_WRITE\fP are also raised on operation failures.
 In such a case, \f3*((ssize_t*)value)\fP
 is the return value from the failed operation.
 .Tp
-\f3SF_SEEK\fP:
+\f3SFIO_SEEK\fP:
 This event is raised when a seek operation fails.
 .Tp
-\f3SF_NEW\fP, \f3SF_CLOSING\fP (\f3SF_CLOSE\fP), \f3SF_FINAL\fP:
+\f3SFIO_NEW\fP, \f3SFIO_CLOSING\fP, \f3SFIO_FINAL\fP:
 These events are raised during a stream closing.
-\f3SF_NEW\fP is raised for a stream about to be closed to be renewed (see \f3sfnew()\fP).
-\f3SF_CLOSING\fP is raised for a stream about to be closed.
-\f3SF_FINAL\fP is raised after a stream has been closed and before
+\f3SFIO_NEW\fP is raised for a stream about to be closed to be renewed (see \f3sfnew()\fP).
+\f3SFIO_CLOSING\fP is raised for a stream about to be closed.
+\f3SFIO_FINAL\fP is raised after a stream has been closed and before
 its space is to be destroyed (see \f3sfclose()\fP).
 For these events, a non-zero return value from \f3(*exceptf)()\fP causes
 \f3sfclose()\fP to return immediately with the same value.
 .Tp
-\f3SF_DPUSH\fP, \f3SF_DPOP\fP, \f3SF_DBUFFER\fP:
-Events \f3SF_DPUSH\fP and \f3SF_DPOP\fP are raised when a
+\f3SFIO_DPUSH\fP, \f3SFIO_DPOP\fP, \f3SFIO_DBUFFER\fP:
+Events \f3SFIO_DPUSH\fP and \f3SFIO_DPOP\fP are raised when a
 discipline is about to be pushed or popped.
 \f3(Sfdisc_t*)value\fP is the to-be top discipline, if any.
 
 A stream buffer is always synchronized before pushing or popping a discipline.
-If this synchronization fails, \f3SF_DBUFFER\fP will be raised with
+If this synchronization fails, \f3SFIO_DBUFFER\fP will be raised with
 \f3*((size_t*)value)\fP being the amount of data still in the buffer.
 If the return value of \f3exceptf\fP is non-negative,
 the push or pop operation will continue normally;
 otherwise, \f3sfdisc()\fP returns failure.
 .Tp
-\f3SF_DPOLL\fP:
+\f3SFIO_DPOLL\fP:
 This event is raised by
 \f3sfpoll()\fP to see if the stream is ready for I/O.
 \f3*((int*)value)\fP indicates a time-out interval to wait.
@@ -1659,32 +1659,32 @@ A negative return value from the exception function means blocking.
 A zero return value means that \f3sfpoll()\fP should
 query the underlying file descriptor.
 A positive return value means non-blocking. In addition,
-this value will be a bit combination of \f3SF_READ\fP and \f3SF_WRITE\fP
+this value will be a bit combination of \f3SFIO_READ\fP and \f3SFIO_WRITE\fP
 to indicate what I/O modes are ready.
 .Tp
-\f3SF_READY\fP:
+\f3SFIO_READY\fP:
 This event is raised by \f3sfpoll()\fP for each ready stream.
 The third argument to the event handler is an integer composed with
-the two bits \f3SF_READ\fP and \f3SF_WRITE\fP to indicate which
+the two bits \f3SFIO_READ\fP and \f3SFIO_WRITE\fP to indicate which
 I/O modes are ready.
 .Tp
-\f3SF_SYNC\fP, \f3SF_PURGE\fP:
-If \f3SF_IOCHECK\fP is set,
+\f3SFIO_SYNC\fP, \f3SFIO_PURGE\fP:
+If \f3SFIO_IOCHECK\fP is set,
 these events are raised respectively for a \f3sfsync()\fP or \f3sfpurge()\fP call.
 In each case, the respective event is raised once before the appropriate
 operation (synchronization or purging) with \f3((int)value)\fP being \f31\fP
 and once after with \f3((int)value)\fP being \f30\fP.
 Note that \f3sfsync()\fP is called for each
-\f3SF_WRITE\fP or \f3SF_SHARE|SF_READ\fP stream on closing.
+\f3SFIO_WRITE\fP or \f3SFIO_SHARE|SFIO_READ\fP stream on closing.
 .Tp
-\f3SF_ATEXIT\fP:
+\f3SFIO_ATEXIT\fP:
 This event is raised for each open stream before the process exits.
 .Ss "  int sfraise(Sfio_t* f, int type, void* data)"
 If \f3f\fP is non-\f3NULL\fP, \f3sfraise()\fP calls all exception handlers
 of \f3f\fP with the event \f3type\fP and associated \f3data\fP.
 If an exception handler returns a non-zero value,
 \f3sfraise()\fP immediate returns the same value.
-Application-defined events should start from the value \f3SF_EVENT\fP
+Application-defined events should start from the value \f3SFIO_EVENT\fP
 so as to avoid confusion with system-defined events,
 \f3sfraise()\fP returns \f30\fP on success and \f3-1\fP on failure.
 
@@ -1715,14 +1715,14 @@ This function sets control flags for the stream \f3f\fP.
 It returns the previous set of flags or \f30\fP on error.
 
 Settable flags are:
-\f3SF_READ\fP, \f3SF_WRITE\fP, \f3SF_IOCHECK\fP,
-\f3SF_LINE\fP, \f3SF_SHARE\fP, \f3SF_PUBLIC\fP, \f3SF_MALLOC\fP and
-\f3SF_STATIC\fP.
-Note that \f3SF_READ\fP and \f3SF_WRITE\fP can be turned on or off only
-if the stream was opened as \f3SF_READ|SF_WRITE\fP.
+\f3SFIO_READ\fP, \f3SFIO_WRITE\fP, \f3SFIO_IOCHECK\fP,
+\f3SFIO_LINE\fP, \f3SFIO_SHARE\fP, \f3SFIO_PUBLIC\fP, \f3SFIO_MALLOC\fP and
+\f3SFIO_STATIC\fP.
+Note that \f3SFIO_READ\fP and \f3SFIO_WRITE\fP can be turned on or off only
+if the stream was opened as \f3SFIO_READ|SFIO_WRITE\fP.
 Turning off one of them means that the stream is to be treated exclusively
 in the other mode. It is not possible to turn off both.
-If legal, an attempt to turn on either \f3SF_READ\fP or \f3SF_WRITE\fP
+If legal, an attempt to turn on either \f3SFIO_READ\fP or \f3SFIO_WRITE\fP
 will cause the stream to be in the given I/O mode.
 .Tp
 \f3set == 0:\fP
@@ -1739,7 +1739,7 @@ specified flags.
 .Ss "  int sfsetfd(Sfio_t* f, int fd)"
 This function changes the file descriptor of \f3f\fP.
 Before a change is realized,
-\f3(*notify)(f,SF_SETFD,newfd)\fP (see \f3sfnotify()\fP) is called.
+\f3(*notify)(f,SFIO_SETFD,newfd)\fP (see \f3sfnotify()\fP) is called.
 \f3sfsetfd()\fP returns \f3-1\fP on failure and the new file descriptor on success.
 .Tp
 \f3fd >= 0\fP:
@@ -1771,7 +1771,7 @@ This is the base stream of the stack.
 If it is \f3NULL\fP, \f3sfstack()\fP does nothing and returns \f3top\fP.
 .Tp
 \f3top\fP:
-If this is \f3SF_POPSTACK\fP or \f3NULL\fP,
+If this is \f3SFIO_POPSTACK\fP or \f3NULL\fP,
 the stack is popped and \f3sfstack()\fP returns the popped stream.
 Otherwise, \f3top\fP is pushed on top of the stack identified by \f3base\fP
 and \f3sfstack()\fP returns the \f3base\fP stream.
@@ -1779,7 +1779,7 @@ and \f3sfstack()\fP returns the \f3base\fP stream.
 Makes the string in a Sfio string buffer ready for use
 and makes the buffer ready for reuse. This is done by
 writing a terminating 0 byte to the given
-.B SF_STRING
+.B SFIO_STRING
 buffer, setting the I/O position to the start of the buffer
 so that subsequent write operations will overwrite it,
 and returning a pointer to the beginning of the string.
@@ -1796,7 +1796,7 @@ If \f3f\fP is not seekable or if its size is not determinable,
 \f3sfsize()\fP returns \f3-1\fP.
 .Ss "  Sfoff_t sftell(Sfio_t* f)"
 This function returns the current I/O position in stream \f3f\fP.
-Note that if \f3f\fP is \f3SF_APPEND\fP
+Note that if \f3f\fP is \f3SFIO_APPENDWR\fP
 and a writing operation was just performed,
 the current I/O position is at the physical end of file.
 If \f3f\fP is unseekable, \f3sftell\fP returns the number of bytes
@@ -1829,21 +1829,21 @@ This sets a function \f3(*notify)()\fP to be called
 as \f3(*notify)(f, type, data)\fP on various stream events.
 Arguments \f3type\fP and \f3data\fP indicate the reason for the call and accompanying data:
 .Tp
-\f3SF_NEW\fP:
+\f3SFIO_NEW\fP:
 \f3f\fP is being opened and \f3data\fP is the underlying file descriptor.
 .Tp
-\f3SF_CLOSING\fP (\f3SF_CLOSE\fP):
+\f3SFIO_CLOSING\fP:
 \f3f\fP is the stream being closed and \f3data\fP is the underlying file descriptor.
 .Tp
-\f3SF_SETFD\fP:
+\f3SFIO_SETFD\fP:
 The file descriptor of \f3f\fP is being changed to the one
 defined by \f3data\fP (see \f3sfsetfd()\fP).
 .Tp
-\f3SF_READ\fP:
+\f3SFIO_READ\fP:
 An attempt to change \f3f\fP to read mode failed.
 \f3data\fP is the file descriptor of the stream.
 .Tp
-\f3SF_WRITE\fP:
+\f3SFIO_WRITE\fP:
 An attempt to change \f3f\fP to write mode failed.
 \f3data\fP is the file descriptor of the stream.
 .Ss "  int sfwalk(Sfwalk_f walkf, void* data, int type)"
@@ -1853,8 +1853,8 @@ On such a call, if the return value is negative, \f3sfwalk()\fP will terminate.
 \f3sfwalk()\fP returns 0 if no stream was processed.
 Otherwise, it returns the return value from the last invocation of \f3walkf()\fP.
 
-As an example, the call \f3sfwalk(walkf, data, SF_READ)\fP will iterate over all streams
-opened for reading. Similarly, \f3sfwalk(walkf, data, SF_READ|SF_WRITE)\fP
+As an example, the call \f3sfwalk(walkf, data, SFIO_READ)\fP will iterate over all streams
+opened for reading. Similarly, \f3sfwalk(walkf, data, SFIO_READ|SFIO_WRITE)\fP
 iterates over all streams opened for both reading and writing.
 Lastly, \f3sfwalk(walkf, data, 0)\fP iterates over all streams.
 .Ss "MISCELLANEOUS FUNCTIONS"
@@ -1986,7 +1986,7 @@ The latter are typically declared of the type \f3Sfio_t*\fP.
 Certain older Stdio applications require these to be declared
 as addresses of structures so that static initializations of
 the sort ``\f3FILE*\ f\ =\ stdin;\fP'' would work.
-Such applications should use the compile time flag \f3SF_FILE_STRUCT\fP
+Such applications should use the compile time flag \f3SFIO_FILE_STRUCT\fP
 to achieve the desired effect.
 .PP
 Below are the supported Stdio functions:

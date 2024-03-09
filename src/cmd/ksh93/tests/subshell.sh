@@ -1196,4 +1196,16 @@ sleep_pid=$!
 kill "$sleep_pid" 2>/dev/null
 
 # ======
+unset x
+exp=$'1\nx= 2'
+got=$(
+	((.sh.version <= 20210430)) && ulimit -c 0  # fork to stop 'exec' from ending whole script (see commit 88a1f3d6)
+	echo 1
+	( x=${ sh() { echo BADFUN; }; foo=BADOUTPUT exec sh -c 'echo $foo'; echo BADEXEC; } )
+	echo x=$x 2
+)
+[[ $got == "$exp" ]] || err_exit "incorrect result from 'exec' in subshare in subshell" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

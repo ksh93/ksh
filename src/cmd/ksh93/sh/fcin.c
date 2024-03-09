@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -43,7 +43,7 @@ int	fcfopen(Sfio_t* f)
 	_Fcin.fcbuff = _Fcin.fcptr;
 	_Fcin._fcfile = f;
 	fcsave(&save);
-	if(!(buff=(char*)sfreserve(f,SF_UNBOUND,SF_LOCKR)))
+	if(!(buff=(char*)sfreserve(f,SFIO_UNBOUND,SFIO_LOCKR)))
 	{
 		fcrestore(&save);
 		_Fcin.fcchar = 0;
@@ -56,7 +56,7 @@ int	fcfopen(Sfio_t* f)
 	fcrestore(&save);
 	sfread(f,buff,0);
 	_Fcin.fcoff = sftell(f);;
-	buff = (char*)sfreserve(f,SF_UNBOUND,SF_LOCKR);
+	buff = (char*)sfreserve(f,SFIO_UNBOUND,SFIO_LOCKR);
 	_Fcin.fclast = (_Fcin.fcptr=_Fcin.fcbuff=(unsigned char*)buff)+n;
 	if(sffileno(f) >= 0)
 		*_Fcin.fclast = 0;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -232,22 +232,22 @@ static int moreexcept(Sfio_t* f, int type, void* data, Sfdisc_t* dp)
 {
 	More_t*	more = (More_t*)dp;
 
-	if (type == SF_FINAL || type == SF_DPOP)
+	if (type == SFIO_FINAL || type == SFIO_DPOP)
 	{
 		if (f = more->input)
 		{
 			more->input = 0;
-			sfdisc(f, SF_POPDISC);
+			sfdisc(f, SFIO_POPDISC);
 		}
 		else if (f = more->error)
 		{
 			more->error = 0;
-			sfdisc(f, SF_POPDISC);
+			sfdisc(f, SFIO_POPDISC);
 		}
 		else
 			free(dp);
 	}
-	else if (type == SF_SYNC)
+	else if (type == SFIO_SYNC)
 	{
 		more->match = 0;
 		more->row = 1;
@@ -272,7 +272,7 @@ int sfdcmore(Sfio_t* f, const char* prompt, int rows, int cols)
 	 * this is a writeonly discipline for interactive io
 	 */
 
-	if (!(sfset(f, 0, 0) & SF_WRITE) || !isatty(sffileno(sfstdin)) || !isatty(sffileno(sfstdout)))
+	if (!(sfset(f, 0, 0) & SFIO_WRITE) || !isatty(sffileno(sfstdin)) || !isatty(sffileno(sfstdout)))
 		return -1;
 	if (!prompt)
 		prompt = "\033[7m More\033[m";
@@ -307,13 +307,13 @@ int sfdcmore(Sfio_t* f, const char* prompt, int rows, int cols)
 	{
 		if (sfdisc(sfstdin, &more->disc) != &more->disc)
 		{
-			sfdisc(f, SF_POPDISC);
+			sfdisc(f, SFIO_POPDISC);
 			return -1;
 		}
 		more->input = sfstdin;
 		if (sfdisc(sfstderr, &more->disc) != &more->disc)
 		{
-			sfdisc(f, SF_POPDISC);
+			sfdisc(f, SFIO_POPDISC);
 			return -1;
 		}
 		more->error = sfstdin;

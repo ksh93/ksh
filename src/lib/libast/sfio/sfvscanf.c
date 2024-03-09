@@ -37,9 +37,9 @@ static void _sfbuf(Sfio_t* f, int* peek)
 {
 	if(f->next >= f->endb)
 	{	if(*peek) 	/* try peeking for a share stream if possible */
-		{	f->mode |= SF_RV;
+		{	f->mode |= SFIO_RV;
 			if(SFFILBUF(f,-1) > 0)
-			{	f->mode |= SF_PEEK;
+			{	f->mode |= SFIO_PEEK;
 				return;
 			}
 			*peek = 0;	/* can't peek, back to normal reads */
@@ -108,7 +108,7 @@ static int _scgetc(void* arg, int flag)
 
 /* structure to match characters in a character class */
 typedef struct _accept_s
-{	char	ok[SF_MAXCHAR+1];
+{	char	ok[SFIO_MAXCHAR+1];
 	int	yes;
 	char	*form, *endf;
 #if _has_multibyte
@@ -129,7 +129,7 @@ static char* _sfsetclass(const char*	form,	/* format string			*/
 	}
 	else	ac->yes = 1;
 
-	for(c = 0; c <= SF_MAXCHAR; ++c)
+	for(c = 0; c <= SFIO_MAXCHAR; ++c)
 		ac->ok[c] = !ac->yes;
 
 	if(*form == ']' || *form == '-') /* special first char */
@@ -304,7 +304,7 @@ int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 	int		peek;
 #define SFbuf(f)	(_sfbuf(f,&peek), (data = d = f->next), (endd = f->endb) )
 #define SFlen(f)	(d - data)
-#define SFinit(f)	((peek = f->extent < 0 && (f->flags&SF_SHARE)), SFbuf(f) )
+#define SFinit(f)	((peek = f->extent < 0 && (f->flags&SFIO_SHARE)), SFbuf(f) )
 #define SFend(f)	((n_input += SFlen(f)), \
 			 (peek ? SFREAD(f,data,SFlen(f)) : ((f->next = d),0)) )
 #define SFgetc(f,c)	((c) = (d < endd || (SFend(f), SFbuf(f), d < endd)) ? \
@@ -314,7 +314,7 @@ int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 
 	SFCVINIT();	/* initialize conversion tables */
 
-	if(!f || !form || (f->mode != SF_READ && _sfmode(f,SF_READ,0) < 0))
+	if(!f || !form || (f->mode != SFIO_READ && _sfmode(f,SFIO_READ,0) < 0))
 		return -1;
 	SFLOCK(f,0);
 
@@ -337,7 +337,7 @@ loop_fmt:
 	while((fmt = *form++))
 	{	if(fmt != '%')
 		{	if(isspace(fmt))
-			{	if(fmt != '\n' || !(f->flags&SF_LINE))
+			{	if(fmt != '\n' || !(f->flags&SFIO_LINE))
 					fmt = -1;
 				for(;;)
 				{	if(SFgetc(f,inp) < 0 || inp == fmt)
@@ -674,7 +674,7 @@ loop_fmt:
 				continue;
 			if(!argv.ft->form && ft ) /* change extension functions */
 			{	if(ft->eventf &&
-				   (*ft->eventf)(f,SF_DPOP,(void*)form,ft) < 0)
+				   (*ft->eventf)(f,SFIO_DPOP,(void*)form,ft) < 0)
 					continue;
 				fmstk->ft = ft = argv.ft;
 			}
@@ -846,7 +846,7 @@ loop_fmt:
 
 				if(fmt == 'i' && inp == '#' && !(flags&SFFMT_ALTER) )
 				{	base = (int)argv.lu;
-					if(base < 2 || base > SF_RADIX)
+					if(base < 2 || base > SFIO_RADIX)
 						goto pop_fmt;
 					argv.lu = 0;
 					sp = (char*)(base <= 36 ? _Sfcv36 : _Sfcv64);
@@ -858,7 +858,7 @@ loop_fmt:
 			else
 			{	/* other bases */
 				sp = (char*)(base <= 36 ? _Sfcv36 : _Sfcv64);
-				if(base < 2 || base > SF_RADIX || sp[inp] >= base)
+				if(base < 2 || base > SFIO_RADIX || sp[inp] >= base)
 				{	SFungetc(f,inp);
 					goto pop_fmt;
 				}
@@ -1018,8 +1018,8 @@ pop_fmt:
 	while((fm = fmstk) ) /* pop the format stack and continue */
 	{	if(fm->eventf)
 		{	if(!form || !form[0])
-				(*fm->eventf)(f,SF_FINAL,NULL,ft);
-			else if((*fm->eventf)(f,SF_DPOP,(void*)form,ft) < 0)
+				(*fm->eventf)(f,SFIO_FINAL,NULL,ft);
+			else if((*fm->eventf)(f,SFIO_DPOP,(void*)form,ft) < 0)
 				goto loop_fmt;
 		}
 
@@ -1043,7 +1043,7 @@ done:
 		free(fp);
 	while((fm = fmstk) )
 	{	if(fm->eventf)
-			(*fm->eventf)(f,SF_FINAL,NULL,fm->ft);
+			(*fm->eventf)(f,SFIO_FINAL,NULL,fm->ft);
 		fmstk = fm->next;
 		free(fm);
 	}

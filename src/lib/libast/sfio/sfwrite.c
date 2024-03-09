@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,17 +40,17 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 		return (ssize_t)(n == 0 ? 0 : -1) ;
 
 	/* release peek lock */
-	if(f->mode&SF_PEEK)
-	{	if(!(f->mode&SF_WRITE) && (f->flags&SF_RDWR) != SF_RDWR)
+	if(f->mode&SFIO_PEEK)
+	{	if(!(f->mode&SFIO_WRITE) && (f->flags&SFIO_RDWR) != SFIO_RDWR)
 			return (ssize_t)(-1);
 
 		if((uchar*)buf != f->next &&
 		   (!f->rsrv || f->rsrv->data != (uchar*)buf) )
 			return (ssize_t)(-1);
 
-		f->mode &= ~SF_PEEK;
+		f->mode &= ~SFIO_PEEK;
 
-		if(f->mode&SF_PKRD)
+		if(f->mode&SFIO_PKRD)
 		{	/* read past peeked data */
 			char		buf[16];
 			ssize_t	r;
@@ -65,19 +65,19 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 				else	w -= r;
 			}
 
-			f->mode &= ~SF_PKRD;
+			f->mode &= ~SFIO_PKRD;
 			f->endb = f->data + n;
 			f->here += n;
 		}
 
-		if((f->mode&SF_READ) && f->proc)
+		if((f->mode&SFIO_READ) && f->proc)
 			f->next += n;
 	}
 
 	s = begs = (uchar*)buf;
-	for(;; f->mode &= ~SF_LOCK)
+	for(;; f->mode &= ~SFIO_LOCK)
 	{	/* check stream mode */
-		if(SFMODE(f,local) != SF_WRITE && _sfmode(f,SF_WRITE,local) < 0 )
+		if(SFMODE(f,local) != SFIO_WRITE && _sfmode(f,SFIO_WRITE,local) < 0 )
 		{	w = s > begs ? s-begs : -1;
 			return w;
 		}
@@ -95,11 +95,11 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 		}
 
 		/* attempt to create space in buffer */
-		if(w == 0 || ((f->flags&SF_WHOLE) && w < (ssize_t)n) )
-		{	if(f->flags&SF_STRING) /* extend buffer */
+		if(w == 0 || ((f->flags&SFIO_WHOLE) && w < (ssize_t)n) )
+		{	if(f->flags&SFIO_STRING) /* extend buffer */
 			{	(void)SFWR(f, s, n-w, f->disc);
 				if((w = f->endb - f->next) < (ssize_t)n)
-				{	if(!(f->flags&SF_STRING)) /* maybe sftmp */
+				{	if(!(f->flags&SFIO_STRING)) /* maybe sftmp */
 					{	if(f->next > f->data)
 							goto fls_buf;
 					}
@@ -111,13 +111,13 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 			{ fls_buf:
 				(void)SFFLSBUF(f, -1);
 				if((w = f->endb - f->next) < (ssize_t)n &&
-				   (f->flags&SF_WHOLE) && f->next > f->data )
+				   (f->flags&SFIO_WHOLE) && f->next > f->data )
 						break;
 			}
 		}
 
-		if(!(f->flags&SF_STRING) && f->next == f->data &&
-		   (((f->flags&SF_WHOLE) && w <= n) || SFDIRECT(f,n)) )
+		if(!(f->flags&SFIO_STRING) && f->next == f->data &&
+		   (((f->flags&SFIO_WHOLE) && w <= n) || SFDIRECT(f,n)) )
 		{	/* bypass buffering */
 			if((w = SFWR(f,s,n,f->disc)) <= 0 )
 				break;
@@ -137,11 +137,11 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 	}
 
 	/* always flush buffer for share streams */
-	if(f->extent < 0 && (f->flags&SF_SHARE) && !(f->flags&SF_PUBLIC) )
+	if(f->extent < 0 && (f->flags&SFIO_SHARE) && !(f->flags&SFIO_PUBLIC) )
 		(void)SFFLSBUF(f,-1);
 
 	/* check to see if buffer should be flushed */
-	else if(n == 0 && (f->flags&SF_LINE) && !(f->flags&SF_STRING))
+	else if(n == 0 && (f->flags&SFIO_LINE) && !(f->flags&SFIO_STRING))
 	{	if((ssize_t)(n = f->next-f->data) > (w = s-begs))
 			n = w;
 		if(n > 0 && n < HIFORLINE)

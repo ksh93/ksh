@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -44,9 +44,9 @@ Sfextern_t _Sfextern =
 ssize_t	_Sfi = -1;		/* value for a few fast macro functions	*/
 ssize_t	_Sfmaxr = 0;		/* default (unlimited) max record size	*/
 
-Sfio_t	_Sfstdin  = SFNEW(NULL,-1,0,(SF_READ |SF_STATIC),NULL);
-Sfio_t	_Sfstdout = SFNEW(NULL,-1,1,(SF_WRITE|SF_STATIC),NULL);
-Sfio_t	_Sfstderr = SFNEW(NULL,-1,2,(SF_WRITE|SF_STATIC),NULL);
+Sfio_t	_Sfstdin  = SFNEW(NULL,-1,0,(SFIO_READ |SFIO_STATIC),NULL);
+Sfio_t	_Sfstdout = SFNEW(NULL,-1,1,(SFIO_WRITE|SFIO_STATIC),NULL);
+Sfio_t	_Sfstderr = SFNEW(NULL,-1,2,(SFIO_WRITE|SFIO_STATIC),NULL);
 
 #undef	sfstdin
 #undef	sfstdout

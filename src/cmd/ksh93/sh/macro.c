@@ -1484,7 +1484,7 @@ retry1:
 		if(np && (type==M_BRACE ? !nv_isnull(np) : (type==M_TREE || !c || !ap)))
 		{
 			/* Either the parameter is set, or it's a special type of expansion where 'unset' doesn't apply. */
-			char *savptr;
+			void *savptr;
 			c = *((unsigned char*)stkptr(stkp,offset-1));
 			savptr = stkfreeze(stkp,0);
 			if(type==M_VNAME || (type==M_SUBNAME && ap))
@@ -2156,7 +2156,8 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 	struct slnod            *saveslp = sh.st.staklist;
 	Mac_t			savemac = *mp;
 	int			savtop = stktell(stkp);
-	char			lastc=0, *savptr = stkfreeze(stkp,0);
+	char			lastc = '\0';
+	void			*savptr = stkfreeze(stkp,0);
 	int			was_history = sh_isstate(SH_HISTORY);
 	int			was_verbose = sh_isstate(SH_VERBOSE);
 	int			was_interactive = sh_isstate(SH_INTERACTIVE);
@@ -2218,7 +2219,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 		sh_offstate(SH_VERBOSE);
 		if(mp->sp)
 			sfsync(mp->sp);	/* flush before executing command */
-		sp = sfnew(NULL,str,c,-1,SF_STRING|SF_READ);
+		sp = sfnew(NULL,str,c,-1,SFIO_STRING|SFIO_READ);
 		c = sh.inlineno;
 		sh.inlineno = error_info.line+sh.st.firstline;
 		t = (Shnode_t*)sh_parse(sp,SH_EOF|SH_NL);
@@ -2255,7 +2256,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 			if(!(sp=sh.sftable[fd]))
 			{
 				char *cp = (char*)sh_malloc(IOBSIZE+1);
-				sp = sfnew(NULL,cp,IOBSIZE,fd,SF_READ|SF_MALLOC);
+				sp = sfnew(NULL,cp,IOBSIZE,fd,SFIO_READ|SFIO_MALLOC);
 			}
 		}
 		else
@@ -2283,7 +2284,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 	sfsetbuf(sp,sp,0);
 	bufsize = sfvalue(sp);
 	/* read command substitution output and put on stack or here-doc */
-	sfpool(sp, NULL, SF_WRITE);
+	sfpool(sp, NULL, SFIO_WRITE);
 	sh_offstate(SH_INTERACTIVE);
 	if((foff = sfseek(sp,0,SEEK_END)) > 0)
 	{
@@ -2292,7 +2293,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 		stkseek(stkp,soff+foff+64);
 		stkseek(stkp,soff);
 	}
-	while((str=(char*)sfreserve(sp,SF_UNBOUND,0)) && (c=bufsize=sfvalue(sp))>0)
+	while((str=(char*)sfreserve(sp,SFIO_UNBOUND,0)) && (c=bufsize=sfvalue(sp))>0)
 	{
 #if SHOPT_CRNL
 		/* eliminate <cr> */
@@ -2573,7 +2574,7 @@ static void endfield(Mac_t *mp,int split)
 	Stk_t		*stkp = sh.stk;
 	if(stktell(stkp) > ARGVAL || split)
 	{
-		argp = (struct argnod*)stkfreeze(stkp,1);
+		argp = stkfreeze(stkp,1);
 		argp->argnxt.cp = 0;
 		argp->argflag = 0;
 		mp->atmode = 0;

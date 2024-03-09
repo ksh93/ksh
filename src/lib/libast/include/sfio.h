@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -21,7 +21,7 @@
 #ifndef _SFIO_H
 #define _SFIO_H	1
 
-#define SFIO_VERSION	20230517L
+#define SFIO_VERSION	20240303L
 
 /*	Public header file for the sfio library
 **
@@ -119,69 +119,58 @@ struct _sffmt_s
 #endif
 
 /* bits for various types of files */
-#define	SF_READ		0000001	/* open for reading			*/
-#define SF_WRITE	0000002	/* open for writing			*/
-#define SF_STRING	0000004	/* a string stream			*/
-#define SF_APPENDWR	0000010	/* file is in append mode only		*/
-#define SF_MALLOC	0000020	/* buffer is malloc'd			*/
-#define SF_LINE		0000040	/* line buffering			*/
-#define SF_SHARE	0000100	/* stream with shared file descriptor 	*/
-#define SF_EOF		0000200	/* eof was detected			*/
-#define SF_ERROR	0000400	/* an error happened			*/
-#define SF_STATIC	0001000	/* a stream that cannot be freed	*/
-#define SF_IOCHECK	0002000	/* call exceptf before doing IO		*/
-#define SF_PUBLIC	0004000	/* SF_SHARE and follow physical seek	*/
-#define SF_WHOLE	0020000	/* preserve wholeness of sfwrite/sfputr */
-#define SF_IOINTR	0040000	/* return on interrupts			*/
-#define SF_WCWIDTH	0100000	/* wcwidth display stream		*/
+#define	SFIO_READ	0000001	/* open for reading			*/
+#define SFIO_WRITE	0000002	/* open for writing			*/
+#define SFIO_STRING	0000004	/* a string stream			*/
+#define SFIO_APPENDWR	0000010	/* file is in append mode only		*/
+#define SFIO_MALLOC	0000020	/* buffer is malloc'd			*/
+#define SFIO_LINE	0000040	/* line buffering			*/
+#define SFIO_SHARE	0000100	/* stream with shared file descriptor 	*/
+#define SFIO_EOF	0000200	/* eof was detected			*/
+#define SFIO_ERROR	0000400	/* an error happened			*/
+#define SFIO_STATIC	0001000	/* a stream that cannot be freed	*/
+#define SFIO_IOCHECK	0002000	/* call exceptf before doing IO		*/
+#define SFIO_PUBLIC	0004000	/* SFIO_SHARE and follow physical seek	*/
+#define SFIO_WHOLE	0020000	/* preserve wholeness of sfwrite/sfputr */
+#define SFIO_IOINTR	0040000	/* return on interrupts			*/
+#define SFIO_WCWIDTH	0100000	/* wcwidth display stream		*/
 
 #define SFIO_FLAGS	0177177	/* PUBLIC FLAGS PASSABLE TO SFNEW()	*/
-#ifdef _typ_struct_sf_hdtr
-#define _SF_HIDESFFLAGS 1
-#endif
-#define SF_SETS		0177163	/* flags passable to sfset()		*/
+#define SFIO_SETS	0177163	/* flags passable to sfset()		*/
 
-#ifndef _SF_NO_OBSOLETE
-#define SF_BUFCONST	0400000 /* unused flag - for compatibility only	*/
+#ifndef _SFIO_NO_OBSOLETE
+#define SFIO_BUFCONST	0400000 /* unused flag - for compatibility only	*/
 #endif
 
 /* for sfgetr/sfreserve to hold a record */
-#define SF_LOCKR	0000010	/* lock record, stop access to stream	*/
-#define SF_LASTR	0000020	/* get the last incomplete record	*/
+#define SFIO_LOCKR	0000010	/* lock record, stop access to stream	*/
+#define SFIO_LASTR	0000020	/* get the last incomplete record	*/
 
-/* exception events: SF_NEW(0), SF_READ(1), SF_WRITE(2) and the below 	*/
-#define SF_SEEK		3	/* seek error				*/
-#define SF_CLOSING	4	/* when stream is about to be closed	*/
-#define SF_DPUSH	5	/* when discipline is being pushed	*/
-#define SF_DPOP		6	/* when discipline is being popped	*/
-#define SF_DPOLL	7	/* see if stream is ready for I/O	*/
-#define SF_DBUFFER	8	/* buffer not empty during push or pop	*/
-#define SF_SYNC		9	/* announcing start/end synchronization */
-#define SF_PURGE	10	/* a sfpurge() call was issued		*/
-#define SF_FINAL	11	/* closing is done except stream free	*/
-#define SF_READY	12	/* a polled stream is ready		*/
-#define SF_LOCKED	13	/* stream is in a locked state		*/
-#define SF_ATEXIT	14	/* process is exiting			*/
-#define SF_EVENT	100	/* start of user-defined events		*/
+/* exception events: SFIO_NEW(0), SFIO_READ(1), SFIO_WRITE(2) and the below 	*/
+#define SFIO_SEEK	3	/* seek error				*/
+#define SFIO_CLOSING	4	/* when stream is about to be closed	*/
+#define SFIO_DPUSH	5	/* when discipline is being pushed	*/
+#define SFIO_DPOP	6	/* when discipline is being popped	*/
+#define SFIO_DPOLL	7	/* see if stream is ready for I/O	*/
+#define SFIO_DBUFFER	8	/* buffer not empty during push or pop	*/
+#define SFIO_SYNC	9	/* announcing start/end synchronization */
+#define SFIO_PURGE	10	/* a sfpurge() call was issued		*/
+#define SFIO_FINAL	11	/* closing is done except stream free	*/
+#define SFIO_READY	12	/* a polled stream is ready		*/
+#define SFIO_LOCKED	13	/* stream is in a locked state		*/
+#define SFIO_ATEXIT	14	/* process is exiting			*/
+#define SFIO_EVENT	100	/* start of user-defined events		*/
 
 /* for stack and disciplines */
-#define SF_POPSTACK	NULL	/* pop the stream stack		*/
-#define SF_POPDISC	NULL	/* pop the discipline stack	*/
+#define SFIO_POPSTACK	NULL	/* pop the stream stack		*/
+#define SFIO_POPDISC	NULL	/* pop the discipline stack	*/
 
 /* for the notify function and discipline exception */
-#define SF_NEW		0	/* new stream				*/
-#define SF_SETFD	(-1)	/* about to set the file descriptor 	*/
+#define SFIO_NEW	0	/* new stream				*/
+#define SFIO_SETFD	(-1)	/* about to set the file descriptor 	*/
 
-#define SF_BUFSIZE	8192	/* default buffer size			*/
-#define SF_UNBOUND	(-1)	/* unbounded buffer size		*/
-
-/* namespace incursion workarounds -- migrate to the new names */
-#if !_mac_SF_APPEND
-#define SF_APPEND	SF_APPENDWR	/* BSDI sys/stat.h		*/
-#endif
-#if !_mac_SF_CLOSE
-#define SF_CLOSE	SF_CLOSING	/* AIX sys/socket.h		*/
-#endif
+#define SFIO_BUFSIZE	8192	/* default buffer size			*/
+#define SFIO_UNBOUND	(-1)	/* unbounded buffer size		*/
 
 extern ssize_t		_Sfi;
 extern ssize_t		_Sfmaxr;
@@ -284,41 +273,41 @@ extern ssize_t		sfslen(void);
 extern ssize_t		sfmaxr(ssize_t, int);
 
 /* coding long integers in a portable and compact fashion */
-#define SF_SBITS	6
-#define SF_UBITS	7
-#define SF_BBITS	8
-#define SF_SIGN		(1 << SF_SBITS)
-#define SF_MORE		(1 << SF_UBITS)
-#define SF_BYTE		(1 << SF_BBITS)
-#define SF_U1		SF_MORE
-#define SF_U2		(SF_U1*SF_U1)
-#define SF_U3		(SF_U2*SF_U1)
-#define SF_U4		(SF_U3*SF_U1)
+#define SFIO_SBITS	6
+#define SFIO_UBITS	7
+#define SFIO_BBITS	8
+#define SFIO_SIGN	(1 << SFIO_SBITS)
+#define SFIO_MORE	(1 << SFIO_UBITS)
+#define SFIO_BYTE	(1 << SFIO_BBITS)
+#define SFIO_U1		SFIO_MORE
+#define SFIO_U2		(SFIO_U1*SFIO_U1)
+#define SFIO_U3		(SFIO_U2*SFIO_U1)
+#define SFIO_U4		(SFIO_U3*SFIO_U1)
 
-#define _SF_(f)		((Sfio_t*)(f))
+#define _SFIO_(f)		((Sfio_t*)(f))
 
-#define __sf_putd(f,v)		(_sfputd(_SF_(f),(Sfdouble_t)(v)))
-#define __sf_putl(f,v)		(_sfputl(_SF_(f),(Sflong_t)(v)))
-#define __sf_putu(f,v)		(_sfputu(_SF_(f),(Sfulong_t)(v)))
-#define __sf_putm(f,v,m)	(_sfputm(_SF_(f),(Sfulong_t)(v),(Sfulong_t)(m)))
+#define __sf_putd(f,v)		(_sfputd(_SFIO_(f),(Sfdouble_t)(v)))
+#define __sf_putl(f,v)		(_sfputl(_SFIO_(f),(Sflong_t)(v)))
+#define __sf_putu(f,v)		(_sfputu(_SFIO_(f),(Sfulong_t)(v)))
+#define __sf_putm(f,v,m)	(_sfputm(_SFIO_(f),(Sfulong_t)(v),(Sfulong_t)(m)))
 
-#define __sf_putc(f,c)	(_SF_(f)->_next >= _SF_(f)->_endw ? \
-			 _sfflsbuf(_SF_(f),(int)((unsigned char)(c))) : \
-			 (int)(*_SF_(f)->_next++ = (unsigned char)(c)) )
-#define __sf_getc(f)	(_SF_(f)->_next >= _SF_(f)->_endr ? _sffilbuf(_SF_(f),0) : \
-			 (int)(*_SF_(f)->_next++) )
+#define __sf_putc(f,c)	(_SFIO_(f)->_next >= _SFIO_(f)->_endw ? \
+			 _sfflsbuf(_SFIO_(f),(int)((unsigned char)(c))) : \
+			 (int)(*_SFIO_(f)->_next++ = (unsigned char)(c)) )
+#define __sf_getc(f)	(_SFIO_(f)->_next >= _SFIO_(f)->_endr ? _sffilbuf(_SFIO_(f),0) : \
+			 (int)(*_SFIO_(f)->_next++) )
 
 #define __sf_dlen(v)	(_sfdlen((Sfdouble_t)(v)) )
 #define __sf_llen(v)	(_sfllen((Sflong_t)(v)) )
-#define __sf_ulen(v)	((Sfulong_t)(v) < SF_U1 ? 1 : (Sfulong_t)(v) < SF_U2 ? 2 : \
-			 (Sfulong_t)(v) < SF_U3 ? 3 : (Sfulong_t)(v) < SF_U4 ? 4 : 5)
+#define __sf_ulen(v)	((Sfulong_t)(v) < SFIO_U1 ? 1 : (Sfulong_t)(v) < SFIO_U2 ? 2 : \
+			 (Sfulong_t)(v) < SFIO_U3 ? 3 : (Sfulong_t)(v) < SFIO_U4 ? 4 : 5)
 
-#define __sf_fileno(f)	(_SF_(f)->_file)
-#define __sf_eof(f)	(_SF_(f)->_flags&SF_EOF)
-#define __sf_error(f)	(_SF_(f)->_flags&SF_ERROR)
-#define __sf_clrerr(f)	(_SF_(f)->_flags &= ~(SF_ERROR|SF_EOF))
-#define __sf_stacked(f)	(_SF_(f)->_push != NULL)
-#define __sf_value(f)	(_SF_(f)->_val)
+#define __sf_fileno(f)	(_SFIO_(f)->_file)
+#define __sf_eof(f)	(_SFIO_(f)->_flags&SFIO_EOF)
+#define __sf_error(f)	(_SFIO_(f)->_flags&SFIO_ERROR)
+#define __sf_clrerr(f)	(_SFIO_(f)->_flags &= ~(SFIO_ERROR|SFIO_EOF))
+#define __sf_stacked(f)	(_SFIO_(f)->_push != NULL)
+#define __sf_value(f)	(_SFIO_(f)->_val)
 #define __sf_slen()	(_Sfi)
 #define __sf_maxr(n,s)	((s)?((_Sfi=_Sfmaxr),(_Sfmaxr=(n)),_Sfi):_Sfmaxr)
 
@@ -374,7 +363,7 @@ __INLINE__ ssize_t sfmaxr(ssize_t n, int s)	{ return __sf_maxr(n,s); }
 #ifndef _SFSTR_H /* GSF's string manipulation stuff */
 #define _SFSTR_H		1
 
-#define sfstropen()		sfnew(0, 0, -1, -1, SF_READ|SF_WRITE|SF_STRING)
+#define sfstropen()		sfnew(0, 0, -1, -1, SFIO_READ|SFIO_WRITE|SFIO_STRING)
 #define sfstrclose(f)		sfclose(f)
 
 #define sfstrseek(f,p,m) \
@@ -401,19 +390,14 @@ __INLINE__ ssize_t sfmaxr(ssize_t n, int s)	{ return __sf_maxr(n,s); }
 	)
 
 #define sfstrrsrv(f,n) \
-	(sfreserve((f),(n),SF_WRITE|SF_LOCKR), sfwrite((f),(f)->_next,0), \
+	(sfreserve((f),(n),SFIO_WRITE|SFIO_LOCKR), sfwrite((f),(f)->_next,0), \
 	 ((f)->_next+(n) <= (f)->_data+(f)->_size ? (char*)(f)->_next : (char*)0) \
 	)
 
 #define sfstrbuf(f,b,n,m) \
-	(sfsetbuf((f),(b),(n)), ((f)->_flags |= (m) ? SF_MALLOC : 0), \
+	(sfsetbuf((f),(b),(n)), ((f)->_flags |= (m) ? SFIO_MALLOC : 0), \
 	 ((f)->_data == (unsigned char*)(b) ? 0 : -1) \
 	)
 
 #endif /* _SFSTR_H */
-
-#ifdef _SF_HIDESFFLAGS
-#undef SFIO_FLAGS
-#define SFIO_FLAGS	0177177	/* PUBLIC FLAGS PASSABLE TO SFNEW()	*/
-#endif
 #endif /* _SFIO_H */

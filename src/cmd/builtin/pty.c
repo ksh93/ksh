@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -407,12 +407,12 @@ process(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 		}
 		for (i = t = 0; i < n; i++)
 		{
-			if (!(sfvalue(sps[i]) & SF_READ))
+			if (!(sfvalue(sps[i]) & SFIO_READ))
 				/*skip*/;
 			else if (sps[i] == mp)
 			{
 				t++;
-				if (!(s = (char*)sfreserve(mp, SF_UNBOUND, -1)))
+				if (!(s = (char*)sfreserve(mp, SFIO_UNBOUND, -1)))
 				{
 					sfclose(mp);
 					mp = 0;
@@ -587,7 +587,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		}
 		goto done;
 	}
-	if ((n = sfpoll(&mp, 1, timeout)) <= 0 || !((int)sfvalue(mp) & SF_READ))
+	if ((n = sfpoll(&mp, 1, timeout)) <= 0 || !((int)sfvalue(mp) & SFIO_READ))
 	{
 		if (n < 0)
 		{
@@ -623,7 +623,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		}
 		return NULL;
 	}
-	if (!(s = sfreserve(mp, SF_UNBOUND, -1)))
+	if (!(s = sfreserve(mp, SFIO_UNBOUND, -1)))
 	{
 		if (!prompt)
 		{
@@ -652,7 +652,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	error(-2, "b \"%s\"", fmtnesq(s, "\"", n));
 	if ((bp->max - bp->end) < n)
 	{
-		a = roundof(bp->max - bp->buf + n, SF_BUFSIZE);
+		a = roundof(bp->max - bp->buf + n, SFIO_BUFSIZE);
 		r = bp->buf;
 		if (!(bp->buf = vmnewof(bp->vm, bp->buf, char, a, 0)))
 			outofmemory();
@@ -790,11 +790,11 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 	if (!(vm = vmopen(Vmdcheap, Vmbest, 0)) ||
 	    !(cond = vmnewof(vm, 0, Cond_t, 1, 0)) ||
 	    !(master = vmnewof(vm, 0, Master_t, 1, 0)) ||
-	    !(master->buf = vmnewof(vm, 0, char, 2 * SF_BUFSIZE, 0)))
+	    !(master->buf = vmnewof(vm, 0, char, 2 * SFIO_BUFSIZE, 0)))
 		outofmemory();
 	master->vm = vm;
 	master->cur = master->end = master->buf;
-	master->max = master->buf + 2 * SF_BUFSIZE - 1;
+	master->max = master->buf + 2 * SFIO_BUFSIZE - 1;
 	master->restore = -1;
 	errno = 0;
 	id = error_info.id;
@@ -1077,7 +1077,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_system(1), "unable to create pty");
 		UNREACHABLE();
 	}
-	if (!(mp = sfnew(NULL, 0, SF_UNBOUND, master, SF_READ|SF_WRITE)))
+	if (!(mp = sfnew(NULL, 0, SFIO_UNBOUND, master, SFIO_READ|SFIO_WRITE)))
 	{
 		error(ERROR_system(1), "cannot open master stream");
 		UNREACHABLE();

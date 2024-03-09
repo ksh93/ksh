@@ -2,6 +2,42 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-03-07:
+
+- Fixed a bug that caused some systems to corrupt the display of multibyte
+  characters in the command prompt.
+
+2024-03-05:
+
+- Fixed a regression, introduced on 2021-02-07, that made the common AST
+  options '--???ESC' and '--???noESC' ineffective for enabling/disabling
+  ANSI escape codes for emphasis in the output of --man or --help.
+  (Type, e.g., print '--???' for more information about common options.)
+
+- Fixed a rare crash in the 'print' built-in due to the use of uninitialised
+  memory while parsing options. Bug introduced in ksh 93u+ 2012-05-31.
+
+- Fixed a 2021-04-14 regression: the 'exec' command (which runs a command
+  that replaces the shell process and therefore should only run external
+  commands) would run a path-bound built-in if /opt/ast/bin is in PATH.
+
+- Fixed a corner case bug: a ${ shared-state command substitution;} failed to
+  capture the standard output of a command that replces the shell via 'exec'.
+
+2024-02-29:
+
+- Improved the robustness of the routines handling the execution by ksh of a
+  script without an initial #! path. More memory is freed up after ksh forks.
+
+- Fixed a crash that could occur after 'typeset +x var' when var was imported
+  from the environment and then a discipline function was set for it.
+
+2024-02-23:
+
+- [v1.1] The commands ':', 'true', 'false', 'break' and 'continue' have been
+  optimised to run faster in loops in certain common cases. For example, the
+  'true' in 'while true; do some_stuff || break; done' now runs faster.
+
 2024-02-22:
 
 - Fixed a crash that occurred when starting ksh with no TERM variable in the

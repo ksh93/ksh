@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -47,7 +47,7 @@ typedef struct _dccache_s
 
 static int _dccaexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 {
-	if(disc && type == SF_FINAL)
+	if(disc && type == SFIO_FINAL)
 		free(disc);
 	return 0;
 }
@@ -100,13 +100,13 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 	if((Sfio_t*)disc == f) /* special case to get the top discipline */
 		return f->disc;
 
-	if((f->flags&SF_READ) && f->proc && (f->mode&SF_WRITE) )
+	if((f->flags&SFIO_READ) && f->proc && (f->mode&SFIO_WRITE) )
 	{	/* make sure in read mode to check for read-ahead data */
-		if(_sfmode(f,SF_READ,0) < 0)
+		if(_sfmode(f,SFIO_READ,0) < 0)
 			return NULL;
 	}
 	else
-	{	if((f->mode&SF_RDWR) != f->mode && _sfmode(f,0,0) < 0)
+	{	if((f->mode&SFIO_RDWR) != f->mode && _sfmode(f,0,0) < 0)
 			return NULL;
 	}
 
@@ -118,25 +118,25 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 		goto done;
 
 	/* synchronize before switching to a new discipline */
-	if(!(f->flags&SF_STRING))
+	if(!(f->flags&SFIO_STRING))
 	{	(void)SFSYNC(f); /* do a silent buffer synch */
-		if((f->mode&SF_READ) && (f->mode&SF_SYNCED) )
-		{	f->mode &= ~SF_SYNCED;
+		if((f->mode&SFIO_READ) && (f->mode&SFIO_SYNCED) )
+		{	f->mode &= ~SFIO_SYNCED;
 			f->endb = f->next = f->endr = f->endw = f->data;
 		}
 
 		/* if there is buffered data, ask app before proceeding */
-		if(((f->mode&SF_WRITE) && (n = f->next-f->data) > 0) ||
-		   ((f->mode&SF_READ) && (n = f->endb-f->next) > 0) )
+		if(((f->mode&SFIO_WRITE) && (n = f->next-f->data) > 0) ||
+		   ((f->mode&SFIO_READ) && (n = f->endb-f->next) > 0) )
 		{	int	rv = 0;
 			if(rv == 0 && f->disc && f->disc->exceptf) /* ask current discipline */
 			{	SFOPEN(f,0);
-				rv = (*f->disc->exceptf)(f, SF_DBUFFER, &n, f->disc);
+				rv = (*f->disc->exceptf)(f, SFIO_DBUFFER, &n, f->disc);
 				SFLOCK(f,0);
 			}
 			if(rv == 0 && disc && disc->exceptf) /* ask discipline being pushed */
 			{	SFOPEN(f,0);
-				rv = (*disc->exceptf)(f, SF_DBUFFER, &n, disc);
+				rv = (*disc->exceptf)(f, SFIO_DBUFFER, &n, disc);
 				SFLOCK(f,0);
 			}
 			if(rv < 0)
@@ -144,7 +144,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 		}
 
 		/* trick the new discipline into processing already buffered data */
-		if((f->mode&SF_READ) && n > 0 && disc && disc->readf )
+		if((f->mode&SFIO_READ) && n > 0 && disc && disc->readf )
 		{	if(!(dcca = (Dccache_t*)malloc(sizeof(Dccache_t)+n)) )
 				goto done;
 			memclear(dcca, sizeof(Dccache_t));
@@ -170,14 +170,14 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 	GETDISCF(owritef,writef);
 	GETDISCF(oseekf,seekf);
 
-	if(disc == SF_POPDISC)
+	if(disc == SFIO_POPDISC)
 	{	/* popping, warn the being popped discipline */
 		if(!(d = f->disc) )
 			goto done;
 		disc = d->disc;
 		if(d->exceptf)
 		{	SFOPEN(f,0);
-			if((*(d->exceptf))(f,SF_DPOP,disc,d) < 0 )
+			if((*(d->exceptf))(f,SFIO_DPOP,disc,d) < 0 )
 				goto done;
 			SFLOCK(f,0);
 		}
@@ -191,7 +191,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 			d = f->disc;
 			if(d && d->exceptf)
 			{	SFOPEN(f,0);
-				if( (*(d->exceptf))(f,SF_DPUSH,disc,d) < 0 )
+				if( (*(d->exceptf))(f,SFIO_DPUSH,disc,d) < 0 )
 					goto done;
 				SFLOCK(f,0);
 			}
@@ -212,7 +212,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 		rdisc = disc;
 	}
 
-	if(!(f->flags&SF_STRING) )
+	if(!(f->flags&SFIO_STRING) )
 	{	/* this stream may have to be reinitialized */
 		int	reinit = 0;
 #define DISCF(dst,iof)	(dst ? dst->iof : NULL)
@@ -230,15 +230,15 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 
 		if(reinit)
 		{	SETLOCAL(f);
-			f->bits &= ~SF_NULL;	/* turn off /dev/null handling */
-			if((f->bits&SF_MMAP) || (f->mode&SF_INIT))
-				sfsetbuf(f,NULL,(size_t)SF_UNBOUND);
+			f->bits &= ~SFIO_NULL;	/* turn off /dev/null handling */
+			if((f->bits&SFIO_MMAP) || (f->mode&SFIO_INIT))
+				sfsetbuf(f,NULL,(size_t)SFIO_UNBOUND);
 			else if(f->data == f->tiny)
 				sfsetbuf(f,NULL,0);
 			else
 			{	int	flags = f->flags;
 				sfsetbuf(f,f->data,f->size);
-				f->flags |= (flags&SF_MALLOC);
+				f->flags |= (flags&SFIO_MALLOC);
 			}
 		}
 	}

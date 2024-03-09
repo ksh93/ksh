@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -115,13 +115,7 @@
 #endif
 
 #if _socket_peek
-#if __FreeBSD__ && __BSD_VISIBLE
-#undef __BSD_VISIBLE	/* Hide conflicting SF_SYNC definition. [Added 2022-01-20. TODO: review periodically] */
 #include	<sys/socket.h>
-#define	__BSD_VISIBLE	1
-#else
-#include	<sys/socket.h>
-#endif
 #endif
 
 /* to test for executable access mode of a file */
@@ -130,51 +124,51 @@
 #endif
 
 /* Private flags in the "bits" field */
-#define SF_MMAP		00000001	/* in memory mapping mode		*/
-#define SF_BOTH		00000002	/* both read/write			*/
-#define SF_HOLE		00000004	/* a hole of zero's was created		*/
-#define SF_NULL		00000010	/* stream is /dev/null			*/
-#define SF_SEQUENTIAL	00000020	/* sequential access			*/
-#define SF_JUSTSEEK	00000040	/* just did a sfseek			*/
-#define SF_PRIVATE	00000100	/* private stream to Sfio		*/
-#define SF_ENDING	00000200	/* no re-io on interrupts at closing	*/
-#define SF_WIDE		00000400	/* in wide mode - stdio only		*/
-#define SF_PUTR		00001000	/* in sfputr()				*/
+#define SFIO_MMAP		00000001	/* in memory mapping mode		*/
+#define SFIO_BOTH		00000002	/* both read/write			*/
+#define SFIO_HOLE		00000004	/* a hole of zero's was created		*/
+#define SFIO_NULL		00000010	/* stream is /dev/null			*/
+#define SFIO_SEQUENTIAL	00000020	/* sequential access			*/
+#define SFIO_JUSTSEEK	00000040	/* just did a sfseek			*/
+#define SFIO_PRIVATE	00000100	/* private stream to Sfio		*/
+#define SFIO_ENDING	00000200	/* no re-io on interrupts at closing	*/
+#define SFIO_WIDE		00000400	/* in wide mode - stdio only		*/
+#define SFIO_PUTR		00001000	/* in sfputr()				*/
 
 /* "bits" flags that must be cleared in sfclrlock */
-#define SF_TMPBITS	00170000
-#define SF_DCDOWN	00010000	/* recurse down the discipline stack	*/
+#define SFIO_TMPBITS	00170000
+#define SFIO_DCDOWN	00010000	/* recurse down the discipline stack	*/
 
-#define SF_WCFORMAT	00020000	/* wchar_t formatting - stdio only	*/
+#define SFIO_WCFORMAT	00020000	/* wchar_t formatting - stdio only	*/
 #if _has_multibyte
-#define SFWCSET(f)	((f)->bits |= SF_WCFORMAT)
-#define SFWCGET(f,v)	(((v) = (f)->bits & SF_WCFORMAT), ((f)->bits &= ~SF_WCFORMAT) )
+#define SFWCSET(f)	((f)->bits |= SFIO_WCFORMAT)
+#define SFWCGET(f,v)	(((v) = (f)->bits & SFIO_WCFORMAT), ((f)->bits &= ~SFIO_WCFORMAT) )
 #else
 #define SFWCSET(f)
 #define SFWCGET(f,v)
 #endif
 
-#define SF_MVSIZE	00040000	/* f->size was reset in sfmove()	*/
-#define SFMVSET(f)	(((f)->size *= SF_NMAP), ((f)->bits |= SF_MVSIZE) )
-#define SFMVUNSET(f)	(!((f)->bits&SF_MVSIZE) ? 0 : \
-				(((f)->bits &= ~SF_MVSIZE), ((f)->size /= SF_NMAP)) )
+#define SFIO_MVSIZE	00040000	/* f->size was reset in sfmove()	*/
+#define SFMVSET(f)	(((f)->size *= SFIO_NMAP), ((f)->bits |= SFIO_MVSIZE) )
+#define SFMVUNSET(f)	(!((f)->bits&SFIO_MVSIZE) ? 0 : \
+				(((f)->bits &= ~SFIO_MVSIZE), ((f)->size /= SFIO_NMAP)) )
 
-#define SFCLRBITS(f)	(SFMVUNSET(f), ((f)->bits &= ~SF_TMPBITS) )
+#define SFCLRBITS(f)	(SFMVUNSET(f), ((f)->bits &= ~SFIO_TMPBITS) )
 
 
-/* bits for the mode field, SF_INIT defined in sfio_t.h */
-#define SF_RC		00000010	/* peeking for a record			*/
-#define SF_RV		00000020	/* reserve without read	or most write	*/
-#define SF_LOCK		00000040	/* stream is locked for io op		*/
-#define SF_PUSH		00000100	/* stream has been pushed		*/
-#define SF_POOL		00000200	/* stream is in a pool but not current	*/
-#define SF_PEEK		00000400	/* there is a pending peek		*/
-#define SF_PKRD		00001000	/* did a peek read			*/
-#define SF_GETR		00002000	/* did a getr on this stream		*/
-#define SF_SYNCED	00004000	/* stream was synced			*/
-#define SF_STDIO	00010000	/* given up the buffer to stdio		*/
-#define SF_AVAIL	00020000	/* was closed, available for reuse	*/
-#define SF_LOCAL	00100000	/* sentinel for a local call		*/
+/* bits for the mode field, SFIO_INIT defined in sfio_t.h */
+#define SFIO_RC		00000010	/* peeking for a record			*/
+#define SFIO_RV		00000020	/* reserve without read	or most write	*/
+#define SFIO_LOCK		00000040	/* stream is locked for io op		*/
+#define SFIO_PUSH		00000100	/* stream has been pushed		*/
+#define SFIO_POOL		00000200	/* stream is in a pool but not current	*/
+#define SFIO_PEEK		00000400	/* there is a pending peek		*/
+#define SFIO_PKRD		00001000	/* did a peek read			*/
+#define SFIO_GETR		00002000	/* did a getr on this stream		*/
+#define SFIO_SYNCED	00004000	/* stream was synced			*/
+#define SFIO_STDIO	00010000	/* given up the buffer to stdio		*/
+#define SFIO_AVAIL	00020000	/* was closed, available for reuse	*/
+#define SFIO_LOCAL	00100000	/* sentinel for a local call		*/
 
 #ifdef DEBUG
 #define ASSERT(p)	((p) ? 0 : (abort(),0) )
@@ -240,9 +234,9 @@
 #endif
 
 #ifdef S_IRUSR
-#define SF_CREATMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+#define SFIO_CREATMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
 #else
-#define SF_CREATMODE	0666
+#define SFIO_CREATMODE	0666
 #endif
 
 /* set close-on-exec */
@@ -259,7 +253,7 @@
 #	endif /*FIOCLEX*/
 #endif /*F_SETFD*/
 
-#define SF_FD_CLOEXEC			0x0001
+#define SFIO_FD_CLOEXEC			0x0001
 
 /* function to get the decimal point for local environment */
 #include "lclib.h"
@@ -420,28 +414,28 @@ typedef struct _sfextern_s
 } Sfextern_t;
 
 /* get the real value of a byte in a coded long or ulong */
-#define SFUVALUE(v)	(((ulong)(v))&(SF_MORE-1))
-#define SFSVALUE(v)	((( long)(v))&(SF_SIGN-1))
-#define SFBVALUE(v)	(((ulong)(v))&(SF_BYTE-1))
+#define SFUVALUE(v)	(((ulong)(v))&(SFIO_MORE-1))
+#define SFSVALUE(v)	((( long)(v))&(SFIO_SIGN-1))
+#define SFBVALUE(v)	(((ulong)(v))&(SFIO_BYTE-1))
 
 /* pick this many bits in each iteration of double encoding */
-#define SF_PRECIS	7
+#define SFIO_PRECIS	7
 
 /* grain size for buffer increment */
-#define SF_GRAIN	1024
-#define SF_PAGE		((ssize_t)(SF_GRAIN*sizeof(int)*2))
+#define SFIO_GRAIN	1024
+#define SFIO_PAGE		((ssize_t)(SFIO_GRAIN*sizeof(int)*2))
 
 /* when the buffer is empty, certain io requests may be better done directly
    on the given application buffers. The below condition determines when.
 */
 #define SFDIRECT(f,n)	(((ssize_t)(n) >= (f)->size) || \
-			 ((n) >= SF_GRAIN && (ssize_t)(n) >= (f)->size/16 ) )
+			 ((n) >= SFIO_GRAIN && (ssize_t)(n) >= (f)->size/16 ) )
 
 /* number of pages to memory map at a time */
 #if _ptr_bits >= 64
-#define SF_NMAP		1024
+#define SFIO_NMAP		1024
 #else
-#define SF_NMAP		32
+#define SFIO_NMAP		32
 #endif
 
 #ifndef MAP_VARIABLE
@@ -477,23 +471,23 @@ typedef struct _sfextern_s
 
 /* the bottomless bit bucket */
 #define DEVNULL		"/dev/null"
-#define SFSETNULL(f)	((f)->extent = (Sfoff_t)(-1), (f)->bits |= SF_NULL)
-#define SFISNULL(f)	((f)->extent < 0 && ((f)->bits&SF_NULL) )
+#define SFSETNULL(f)	((f)->extent = (Sfoff_t)(-1), (f)->bits |= SFIO_NULL)
+#define SFISNULL(f)	((f)->extent < 0 && ((f)->bits&SFIO_NULL) )
 
-#define SFKILL(f)	((f)->mode = (SF_AVAIL|SF_LOCK) )
-#define SFKILLED(f)	(((f)->mode&(SF_AVAIL|SF_LOCK)) == (SF_AVAIL|SF_LOCK) )
+#define SFKILL(f)	((f)->mode = (SFIO_AVAIL|SFIO_LOCK) )
+#define SFKILLED(f)	(((f)->mode&(SFIO_AVAIL|SFIO_LOCK)) == (SFIO_AVAIL|SFIO_LOCK) )
 
 /* exception types */
-#define SF_EDONE	0	/* stop this operation and return	*/
-#define SF_EDISC	1	/* discipline says it's ok		*/
-#define SF_ESTACK	2	/* stack was popped			*/
-#define SF_ECONT	3	/* can continue normally		*/
+#define SFIO_EDONE	0	/* stop this operation and return	*/
+#define SFIO_EDISC	1	/* discipline says it's ok		*/
+#define SFIO_ESTACK	2	/* stack was popped			*/
+#define SFIO_ECONT	3	/* can continue normally		*/
 
-#define SETLOCAL(f)	((f)->mode |= SF_LOCAL)
-#define GETLOCAL(f,v)	((v) = ((f)->mode&SF_LOCAL), (f)->mode &= ~SF_LOCAL, (v))
-#define SFWRALL(f)	((f)->mode |= SF_RV)
-#define SFISALL(f,v)	((((v) = (f)->mode&SF_RV) ? ((f)->mode &= ~SF_RV) : 0), \
-			 ((v) || ((f)->flags&(SF_SHARE|SF_APPENDWR|SF_WHOLE)) ) )
+#define SETLOCAL(f)	((f)->mode |= SFIO_LOCAL)
+#define GETLOCAL(f,v)	((v) = ((f)->mode&SFIO_LOCAL), (f)->mode &= ~SFIO_LOCAL, (v))
+#define SFWRALL(f)	((f)->mode |= SFIO_RV)
+#define SFISALL(f,v)	((((v) = (f)->mode&SFIO_RV) ? ((f)->mode &= ~SFIO_RV) : 0), \
+			 ((v) || ((f)->flags&(SFIO_SHARE|SFIO_APPENDWR|SFIO_WHOLE)) ) )
 #define SFSK(f,a,o,d)	(SETLOCAL(f),sfsk(f,(Sfoff_t)a,o,d))
 #define SFRD(f,b,n,d)	(SETLOCAL(f),sfrd(f,b,n,d))
 #define SFWR(f,b,n,d)	(SETLOCAL(f),sfwr(f,b,n,d))
@@ -509,20 +503,20 @@ typedef struct _sfextern_s
 #define SFRAISE(f,e,d)	(SETLOCAL(f),sfraise(f,e,d))
 
 /* lock/open a stream */
-#define SFMODE(f,l)	((f)->mode & ~(SF_RV|SF_RC|((l) ? SF_LOCK : 0)) )
-#define SFLOCK(f,l)	(void)((f)->mode |= SF_LOCK, (f)->endr = (f)->endw = (f)->data)
+#define SFMODE(f,l)	((f)->mode & ~(SFIO_RV|SFIO_RC|((l) ? SFIO_LOCK : 0)) )
+#define SFLOCK(f,l)	(void)((f)->mode |= SFIO_LOCK, (f)->endr = (f)->endw = (f)->data)
 #define _SFOPENRD(f)	((f)->endr = (f)->endb)
-#define _SFOPENWR(f)	((f)->endw = ((f)->flags&SF_LINE) ? (f)->data : (f)->endb)
-#define _SFOPEN(f)	((f)->mode == SF_READ  ? _SFOPENRD(f) : \
-			 (f)->mode == SF_WRITE ? _SFOPENWR(f) : \
+#define _SFOPENWR(f)	((f)->endw = ((f)->flags&SFIO_LINE) ? (f)->data : (f)->endb)
+#define _SFOPEN(f)	((f)->mode == SFIO_READ  ? _SFOPENRD(f) : \
+			 (f)->mode == SFIO_WRITE ? _SFOPENWR(f) : \
 			 ((f)->endw = (f)->endr = (f)->data) )
 #define SFOPEN(f,l)	(void)((l) ? 0 : \
-				((f)->mode &= ~(SF_LOCK|SF_RC|SF_RV), _SFOPEN(f), 0) )
+				((f)->mode &= ~(SFIO_LOCK|SFIO_RC|SFIO_RV), _SFOPEN(f), 0) )
 
 /* check to see if the stream can be accessed */
-#define SFFROZEN(f)	(((f)->mode&(SF_PUSH|SF_LOCK|SF_PEEK)) ? 1 : \
-			 !((f)->mode&SF_STDIO) ? 0 : \
-			 _Sfstdsync ? (*_Sfstdsync)(f) : (((f)->mode &= ~SF_STDIO),0) )
+#define SFFROZEN(f)	(((f)->mode&(SFIO_PUSH|SFIO_LOCK|SFIO_PEEK)) ? 1 : \
+			 !((f)->mode&SFIO_STDIO) ? 0 : \
+			 _Sfstdsync ? (*_Sfstdsync)(f) : (((f)->mode &= ~SFIO_STDIO),0) )
 
 
 /* set discipline code */
@@ -530,24 +524,24 @@ typedef struct _sfextern_s
 	{	Sfdisc_t* d; \
 		if(!(dc)) \
 			d = (dc) = (f)->disc; \
-		else 	d = (f->bits&SF_DCDOWN) ? ((dc) = (dc)->disc) : (dc); \
+		else 	d = (f->bits&SFIO_DCDOWN) ? ((dc) = (dc)->disc) : (dc); \
 		while(d && !(d->iof))	d = d->disc; \
 		if(d)	(dc) = d; \
 	}
 #define SFDCRD(f,buf,n,dc,rv) \
-	{	int		dcdown = f->bits&SF_DCDOWN; f->bits |= SF_DCDOWN; \
+	{	int		dcdown = f->bits&SFIO_DCDOWN; f->bits |= SFIO_DCDOWN; \
 		rv = (*dc->readf)(f,buf,n,dc); \
-		if(!dcdown)	f->bits &= ~SF_DCDOWN; \
+		if(!dcdown)	f->bits &= ~SFIO_DCDOWN; \
 	}
 #define SFDCWR(f,buf,n,dc,rv) \
-	{	int		dcdown = f->bits&SF_DCDOWN; f->bits |= SF_DCDOWN; \
+	{	int		dcdown = f->bits&SFIO_DCDOWN; f->bits |= SFIO_DCDOWN; \
 		rv = (*dc->writef)(f,buf,n,dc); \
-		if(!dcdown)	f->bits &= ~SF_DCDOWN; \
+		if(!dcdown)	f->bits &= ~SFIO_DCDOWN; \
 	}
 #define SFDCSK(f,addr,type,dc,rv) \
-	{	int		dcdown = f->bits&SF_DCDOWN; f->bits |= SF_DCDOWN; \
+	{	int		dcdown = f->bits&SFIO_DCDOWN; f->bits |= SFIO_DCDOWN; \
 		rv = (*dc->seekf)(f,addr,type,dc); \
-		if(!dcdown)	f->bits &= ~SF_DCDOWN; \
+		if(!dcdown)	f->bits &= ~SFIO_DCDOWN; \
 	}
 
 /* fast peek of a stream */
@@ -597,21 +591,21 @@ typedef struct _sfextern_s
 #define O_TEMPORARY	000
 #endif
 
-#define	SF_RADIX	64	/* maximum integer conversion base */
+#define	SFIO_RADIX	64	/* maximum integer conversion base */
 
-#define SF_MAXCHAR	((uchar)(~0))
+#define SFIO_MAXCHAR	((uchar)(~0))
 
 /* floating point to ASCII conversion */
-#define SF_MAXEXP10	6
-#define SF_MAXPOW10	(1 << SF_MAXEXP10)
+#define SFIO_MAXEXP10	6
+#define SFIO_MAXPOW10	(1 << SFIO_MAXEXP10)
 #if !_ast_fltmax_double
-#define SF_FDIGITS	1024		/* max allowed fractional digits */
-#define SF_IDIGITS	(8*1024)	/* max number of digits in int part */
+#define SFIO_FDIGITS	1024		/* max allowed fractional digits */
+#define SFIO_IDIGITS	(8*1024)	/* max number of digits in int part */
 #else
-#define SF_FDIGITS	256		/* max allowed fractional digits */
-#define SF_IDIGITS	1024		/* max number of digits in int part */
+#define SFIO_FDIGITS	256		/* max allowed fractional digits */
+#define SFIO_IDIGITS	1024		/* max number of digits in int part */
 #endif
-#define SF_MAXDIGITS	(((SF_FDIGITS+SF_IDIGITS)/sizeof(int) + 1)*sizeof(int))
+#define SFIO_MAXDIGITS	(((SFIO_FDIGITS+SFIO_IDIGITS)/sizeof(int) + 1)*sizeof(int))
 
 /* tables for numerical translation */
 #define _Sfpos10	(_Sftable.sf_pos10)
@@ -645,8 +639,8 @@ struct _sfieee_s
 	Sfdouble_t	ldblinf;	/* Sfdouble_t INF		*/
 };
 typedef struct _sftab_
-{	Sfdouble_t	sf_pos10[SF_MAXEXP10];	/* positive powers of 10	*/
-	Sfdouble_t	sf_neg10[SF_MAXEXP10];	/* negative powers of 10	*/
+{	Sfdouble_t	sf_pos10[SFIO_MAXEXP10];	/* positive powers of 10	*/
+	Sfdouble_t	sf_neg10[SFIO_MAXEXP10];	/* negative powers of 10	*/
 	uchar		sf_dec[200];		/* ASCII reps of values < 100	*/
 	char*		sf_digits;		/* digits for general bases	*/ 
 	int		(*sf_cvinitf)();	/* initialization function	*/
@@ -656,9 +650,9 @@ typedef struct _sftab_
 	float*		sf_flt_pow10;		/* float powers of 10		*/
 	double*		sf_dbl_pow10;		/* double powers of 10		*/
 	Sfdouble_t*	sf_ldbl_pow10;		/* Sfdouble_t powers of 10	*/
-	uchar		sf_cv36[SF_MAXCHAR+1];	/* conversion for base [2-36]	*/
-	uchar		sf_cv64[SF_MAXCHAR+1];	/* conversion for base [37-64]	*/
-	uchar		sf_type[SF_MAXCHAR+1];	/* conversion formats&types	*/
+	uchar		sf_cv36[SFIO_MAXCHAR+1];	/* conversion for base [2-36]	*/
+	uchar		sf_cv64[SFIO_MAXCHAR+1];	/* conversion for base [37-64]	*/
+	uchar		sf_type[SFIO_MAXCHAR+1];	/* conversion formats&types	*/
 	Sfieee_t	sf_ieee;		/* IEEE floating point constants*/
 } Sftab_t;
 
@@ -791,11 +785,6 @@ extern long double	frexpl(long double, int*);
 #if !_lib_ldexpl
 extern long double	ldexpl(long double, int);
 #endif
-#endif
-
-#ifdef _SF_HIDESFFLAGS
-#undef SFIO_FLAGS
-#define SFIO_FLAGS        0177177 /* PUBLIC FLAGS PASSABLE TO SFNEW()     */
 #endif
 
 #endif /*_SFHDR_H*/

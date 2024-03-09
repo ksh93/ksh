@@ -171,7 +171,6 @@ typedef enum
 
 static void draw(Emacs_t*,Draw_t);
 static int escape(Emacs_t*,genchar*, int);
-static void putstring(Emacs_t*,char*);
 static int dosearch(Emacs_t*,genchar*,int);
 static void search(Emacs_t*,genchar*,int);
 static void setcursor(Emacs_t*,int, int);
@@ -600,7 +599,7 @@ update:
 				if (ep->terminal == PAPER)
 				{
 					putchar(ep->ed,'\n');
-					putstring(ep,Prompt);
+					ed_putstring(ep->ed,Prompt);
 				}
 				c = ed_getchar(ep->ed,0);
 				if (c != usrkill)
@@ -614,7 +613,7 @@ update:
 				{
 					ep->terminal = PAPER;
 					putchar(ep->ed,'\n');
-					putstring(ep,Prompt);
+					ed_putstring(ep->ed,Prompt);
 				}
 			}
 			continue;
@@ -755,14 +754,6 @@ static void show_info(Emacs_t *ep,const char *str)
 	genncpy(out,string,sizeof(string)/sizeof(*string));
 	draw(ep,UPDATE);
 }
-
-static void putstring(Emacs_t* ep,char *sp)
-{
-	int c;
-	while (c= *sp++)
-		 putchar(ep->ed,c);
-}
-
 
 static int escape(Emacs_t* ep,genchar *out,int count)
 {
@@ -1532,10 +1523,10 @@ static void draw(Emacs_t *ep,Draw_t option)
 #define	BOTH   '*'
 #define	UPPER  '>'
 
-	genchar *sptr;		/* Pointer within screen */
+	genchar *sptr;			/* Pointer within screen */
 	genchar nscreen[2*MAXLINE];	/* New entire screen */
 	genchar *ncursor;		/* New cursor */
-	genchar *nptr;		/* Pointer to New screen */
+	genchar *nptr;			/* Pointer to New screen */
 	char  longline;			/* Line overflow */
 	genchar *logcursor;
 	genchar *nscend;		/* end of logical screen */
@@ -1559,7 +1550,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 			return;
 		}
 		*ep->cursor = '\0';
-		putstring(ep,Prompt);	/* start with prompt */
+		ed_putstring(ep->ed,Prompt);	/* start with prompt */
 	}
 	
 	/*********************

@@ -1314,9 +1314,9 @@ nativeconf(Proc_t** pp, const char* operand)
 	ops[1] = 0;
 	if (*pp = procopen(_pth_getconf, cmd, environ, ops, PROC_READ))
 	{
-		if (sp = sfnew(NULL, NULL, SF_UNBOUND, (*pp)->rfd, SF_READ))
+		if (sp = sfnew(NULL, NULL, SFIO_UNBOUND, (*pp)->rfd, SFIO_READ))
 		{
-			sfdisc(sp, SF_POPDISC);
+			sfdisc(sp, SFIO_POPDISC);
 			return sp;
 		}
 		procclose(*pp);

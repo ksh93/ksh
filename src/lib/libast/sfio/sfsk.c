@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -33,13 +33,13 @@ Sfoff_t sfsk(Sfio_t* f, Sfoff_t addr, int type, Sfdisc_t* disc)
 		return (Sfoff_t)(-1);
 
 	GETLOCAL(f,local);
-	if(!local && !(f->bits&SF_DCDOWN))
-	{	if((mode = f->mode&SF_RDWR) != (int)f->mode && _sfmode(f,mode,0) < 0)
+	if(!local && !(f->bits&SFIO_DCDOWN))
+	{	if((mode = f->mode&SFIO_RDWR) != (int)f->mode && _sfmode(f,mode,0) < 0)
 			return (Sfoff_t)(-1);
 		if(SFSYNC(f) < 0)
 			return (Sfoff_t)(-1);
 #ifdef MAP_TYPE
-		if(f->mode == SF_READ && (f->bits&SF_MMAP) && f->data)
+		if(f->mode == SFIO_READ && (f->bits&SFIO_MMAP) && f->data)
 		{	SFMUNMAP(f, f->data, f->endb-f->data);
 			f->data = NULL;
 		}
@@ -52,7 +52,7 @@ Sfoff_t sfsk(Sfio_t* f, Sfoff_t addr, int type, Sfdisc_t* disc)
 
 	for(;;)
 	{	dc = disc;
-		if(f->flags&SF_STRING)
+		if(f->flags&SFIO_STRING)
 		{	SFSTRSIZE(f);
 			if(type == SEEK_SET)
 				s = (ssize_t)addr;
@@ -75,11 +75,11 @@ Sfoff_t sfsk(Sfio_t* f, Sfoff_t addr, int type, Sfdisc_t* disc)
 
 		if(local)
 			SETLOCAL(f);
-		switch(_sfexcept(f,SF_SEEK,s,dc))
+		switch(_sfexcept(f,SFIO_SEEK,s,dc))
 		{
-		case SF_EDISC:
-		case SF_ECONT:
-			if(f->flags&SF_STRING)
+		case SFIO_EDISC:
+		case SFIO_ECONT:
+			if(f->flags&SFIO_STRING)
 				return (Sfoff_t)s;
 			goto do_continue;
 		default:

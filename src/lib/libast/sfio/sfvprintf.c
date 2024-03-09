@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -102,7 +102,7 @@ int sfvprintf(Sfio_t*		f,		/* file to print to	*/
 	int		xargs;		/* highest (max) argv[] index see in an indexed format (%x$ *x$)  */
 
 #define SLACK		1024
-	char		buf[SF_MAXDIGITS+SLACK], tmp[SF_MAXDIGITS+1], data[SF_GRAIN];
+	char		buf[SFIO_MAXDIGITS+SLACK], tmp[SFIO_MAXDIGITS+1], data[SFIO_GRAIN];
 	int		decimal = 0, thousand = 0;
 
 #if _has_multibyte
@@ -154,12 +154,12 @@ int sfvprintf(Sfio_t*		f,		/* file to print to	*/
 		return -1;
 
 	/* make sure stream is in write mode and buffer is not NULL */
-	if(f->mode != SF_WRITE && _sfmode(f,SF_WRITE,0) < 0)
+	if(f->mode != SFIO_WRITE && _sfmode(f,SFIO_WRITE,0) < 0)
 		return -1;
 
 	SFLOCK(f,0);
 
-	if(!f->data && !(f->flags&SF_STRING))
+	if(!f->data && !(f->flags&SFIO_STRING))
 	{	f->data = f->next = (uchar*)data;
 		f->endb = f->data+sizeof(data);
 	}
@@ -627,7 +627,7 @@ loop_fmt :
 				goto pop_fmt;
 			if(!argv.ft->form && ft ) /* change extension functions */
 			{	if(ft->eventf &&
-				   (*ft->eventf)(f,SF_DPOP,(void*)form,ft) < 0)
+				   (*ft->eventf)(f,SFIO_DPOP,(void*)form,ft) < 0)
 					continue;
 				fmstk->ft = ft = argv.ft;
 			}
@@ -965,7 +965,7 @@ loop_fmt :
 			{	flags &= ~SFFMT_ALTER;
 				scale = 1000;
 			}
-			if(base < 2 || base > SF_RADIX)
+			if(base < 2 || base > SFIO_RADIX)
 				base = 10;
 			if((base&(n_s = base-1)) == 0)
 			{	if(base < 8)
@@ -1157,13 +1157,13 @@ loop_fmt :
 			if(fmt == 'e' || fmt == 'E' && (v |= SFFMT_UPPER))
 			{	v |= SFFMT_EFORMAT;
 				n = (precis = precis < 0 ? FPRECIS : precis)+1;
-				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(n,SF_FDIGITS),
+				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(n,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 				goto e_format;
 			}
 			else if(fmt == 'f' || fmt == 'F' && (v |= SFFMT_UPPER))
 			{	precis = precis < 0 ? FPRECIS : precis;
-				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(precis,SF_FDIGITS),
+				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(precis,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 				goto f_format;
 			}
@@ -1175,7 +1175,7 @@ loop_fmt :
 					else	precis = 2*(sizeof(double) - 2);
 				}
 				n = precis + 1;
-				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(n,SF_FDIGITS),
+				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(n,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 
 				sp = endsp = buf+1;	/* reserve space for sign */
@@ -1192,7 +1192,7 @@ loop_fmt :
 				if(fmt == 'G')
 					v |= SFFMT_UPPER;
 				v |= SFFMT_EFORMAT;
-				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(precis,SF_FDIGITS),
+				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(precis,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 				if(dval == 0.)
 					decpt = 1;
@@ -1382,8 +1382,8 @@ pop_fmt:
 	while((fm = fmstk) ) /* pop the format stack and continue */
 	{	if(fm->eventf)
 		{	if(!form || !form[0])
-				(*fm->eventf)(f,SF_FINAL,NULL,ft);
-			else if((*fm->eventf)(f,SF_DPOP,(void*)form,ft) < 0)
+				(*fm->eventf)(f,SFIO_FINAL,NULL,ft);
+			else if((*fm->eventf)(f,SFIO_DPOP,(void*)form,ft) < 0)
 				goto loop_fmt;
 		}
 
@@ -1407,7 +1407,7 @@ done:
 		free(fp);
 	while((fm = fmstk) )
 	{	if(fm->eventf)
-			(*fm->eventf)(f,SF_FINAL,NULL,fm->ft);
+			(*fm->eventf)(f,SFIO_FINAL,NULL,fm->ft);
 		fmstk = fm->next;
 		free(fm);
 	}
@@ -1419,8 +1419,8 @@ done:
 		f->endw = f->endr = f->endb = f->data = NULL;
 	f->next = f->data;
 
-	if((((flags = f->flags)&SF_SHARE) && !(flags&SF_PUBLIC) ) ||
-	   (n > 0 && (sp == data || (flags&SF_LINE) ) ) )
+	if((((flags = f->flags)&SFIO_SHARE) && !(flags&SFIO_PUBLIC) ) ||
+	   (n > 0 && (sp == data || (flags&SFIO_LINE) ) ) )
 		(void)SFWRITE(f,sp,n);
 	else	f->next += n;
 

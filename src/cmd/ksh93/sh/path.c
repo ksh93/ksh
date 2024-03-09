@@ -574,7 +574,7 @@ static void funload(int fno, const char *name)
 	sh.funload = 1;
 	sh.inlineno = 1;
 	error_info.line = 0;
-	sh_eval(sfnew(NULL,buff,IOBSIZE,fno,SF_READ),SH_FUNEVAL);
+	sh_eval(sfnew(NULL,buff,IOBSIZE,fno,SFIO_READ),SH_FUNEVAL);
 	sh_close(fno);
 	sh.readscript = 0;
 #if SHOPT_NAMESPACE
@@ -728,8 +728,8 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 			sh.path_err = ENOENT;
 			return NULL;
 		}
-		isfun = (oldpp->flags&PATH_FPATH);
-		if(!isfun)
+		isfun = (oldpp->flags&PATH_FPATH) && !sh_isstate(SH_EXEC) && !sh_isstate(SH_XARG);
+		if(!isfun && !sh_isstate(SH_EXEC) && !sh_isstate(SH_XARG))
 		{
 #if SHOPT_DYNAMIC
 			Shbltin_f addr;
@@ -797,7 +797,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 				   (!(np = sh_addbuiltin(stkptr(sh.stk,PATH_OFFSET),NULL,NULL)) || funptr(np)!=addr) &&
 				   (np = sh_addbuiltin(stkptr(sh.stk,PATH_OFFSET),addr,NULL)))
 				{
-					np->nvenv = dll;
+					np->nvmeta = dll;
 					goto found;
 				}
 				if(*stkptr(sh.stk,PATH_OFFSET)=='/' && nv_search(stkptr(sh.stk,PATH_OFFSET),sh.bltin_tree,0))
@@ -982,6 +982,8 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 		}
 		else
 			opath = arg0;
+		if(sh.subshell)
+			sh_subtmpfile();
 		spawnpid = path_spawn(opath,argv,envp,libpath,0);
 		if(spawnpid==-1 && sh.path_err!=ENOENT)
 		{
@@ -1026,7 +1028,7 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 	char		*s, *v;
 	int		r, n, pidsize=0;
 	pid_t		pid= -1;
-	if(nv_search(opath,sh.bltin_tree,0))
+	if(!sh_isstate(SH_EXEC) && nv_search(opath,sh.bltin_tree,0))
 	{
 		/* Found a path-bound built-in. Since this was not caught earlier in sh_exec(), it must
 		   have been found on a temporarily assigned PATH, as with 'PATH=/opt/ast/bin:$PATH cat'.
@@ -1186,7 +1188,10 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 	    case EISDIR:
 		return -1;
 	    case ENOEXEC:
-		errno = ENOEXEC;
+		/*
+		 * A script without #! -- it starts here. Summary of events:
+		 * fork; exscript; longjmp back to sh_main; sh_reinit; exfile
+		 */
 		if(spawn)
 		{
 			if(sh.subshell)
@@ -1276,7 +1281,7 @@ static noreturn void exscript(char *path,char *argv[],char **envp)
 	}
 	sh.cpid = 0;
 	if(sp=fcfile())
-		while(sfstack(sp,SF_POPSTACK));
+		while(sfstack(sp,SFIO_POPSTACK));
 	job_clear();
 	if(sh.infd>0 && (sh.fdstatus[sh.infd]&IOCLEX))
 		sh_close(sh.infd);
@@ -1304,6 +1309,26 @@ static noreturn void exscript(char *path,char *argv[],char **envp)
 	sh_offstate(SH_FORKED);
 	if(sh.sigflag[SIGCHLD]==SH_SIGOFF)
 		sh.sigflag[SIGCHLD] = SH_SIGFAULT;
+	/*
+	 * Export -x vars to new environment now, before longjmp & removing any local scope.
+	 * Since sh_envgen() puts it all on the stack, create a stack to preserve 'environ'.
+	 */
+	{
+		static Stk_t	*envstk;
+		Stk_t		*savstk = sh.stk;
+		if (envstk)
+			stkset(envstk, NULL, 0);
+		else
+			envstk = stkopen(STK_SMALL);
+		sh.stk = envstk;
+		environ = sh_envgen();
+		sh.stk = savstk;
+		stkfreeze(envstk,0);
+	}
+	/*
+	 * Longjmp with SH_JMPSCRIPT triggers a chain of longjmps to restore state as appropriate,
+	 * ending up back in sh_main() which then calls sh_reinit() and executes the script.
+	 */
 	siglongjmp(*sh.jmplist,SH_JMPSCRIPT);
 	UNREACHABLE();  /* silence warning on Haiku */
 }
@@ -1434,7 +1459,7 @@ static Pathcomp_t *path_addcomp(Pathcomp_t *first, Pathcomp_t *old,const char *n
 	else
 		first = pp;
 	pp->flags = flag;
-	if(strcmp(name,SH_CMDLIB_DIR)==0)
+	if(!sh_isstate(SH_EXEC) && strcmp(name,SH_CMDLIB_DIR)==0)
 	{
 		pp->dev = 1;
 		pp->blib = pp->bbuf = sh_malloc(sizeof(LIBCMD));
@@ -1745,7 +1770,7 @@ static Namfun_t  talias_init = { &talias_disc, 1 };
 void path_settrackedalias(const char *name, Pathcomp_t *pp)
 {
 	Namval_t *np;
-	if(sh_isstate(SH_DEFPATH) || sh_isstate(SH_XARG))
+	if(sh_isstate(SH_DEFPATH) || sh_isstate(SH_XARG) || sh_isstate(SH_EXEC))
 		return;
 	if(!(np = nv_search(name,sh_subtracktree(1),NV_ADD|NV_NOSCOPE)))
 		return;
@@ -1781,6 +1806,7 @@ Namval_t *path_gettrackedalias(const char *name)
 	Namval_t *np;
 	if(!sh_isstate(SH_DEFPATH)
 	&& !sh_isstate(SH_XARG)
+	&& !sh_isstate(SH_EXEC)
 	&& (np=nv_search(name,sh.track_tree,0))
 	&& !nv_isattr(np,NV_NOALIAS)
 	&& np->nvalue.cp)

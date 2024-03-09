@@ -378,7 +378,7 @@ static Namval_t *array_find(Namval_t *np,Namarr_t *arp, int flag)
 			sfprintf(sh.strbuf,"%d",ap->cur);
 			cp = sfstruse(sh.strbuf);
 			mp = nv_search(cp, ap->header.table, NV_ADD);
-			mp->nvenv = (char*)np;
+			mp->nvmeta = np;
 			nv_arraychild(np,mp,0);
 		}
 		if(up->np && array_isbit(ap->bits,ap->cur,ARRAY_CHILD))
@@ -446,7 +446,7 @@ static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp
 			do
 			{
 				if(nq=nv_opensub(np))
-					nq->nvenv = (void*)mp;
+					nq->nvmeta = mp;
 			}
 			while(nv_nextsub(np));
 		}
@@ -790,7 +790,7 @@ static void array_copytree(Namval_t *np, Namval_t *mp)
 	nv_disc(np,(Namfun_t*)fp, NV_FIRST);
 	fp->nofree |= 1;
 	nv_onattr(np,NV_ARRAY);
-	mp->nvenv = (char*)np;
+	mp->nvmeta = np;
 }
 
 /*
@@ -1028,7 +1028,7 @@ Namval_t *nv_arraychild(Namval_t *np, Namval_t *nq, int c)
 	if((tp=nv_type(np)) || c)
 	{
 		ap->nelem |= ARRAY_NOCLONE;
-		nq->nvenv = (char*)np;
+		nq->nvmeta = np;
 		if(c=='t')
 			nv_clone(tp,nq, 0);
 		else
@@ -1036,7 +1036,7 @@ Namval_t *nv_arraychild(Namval_t *np, Namval_t *nq, int c)
 		nv_offattr(nq,NV_ARRAY);
 		ap->nelem &= ~ARRAY_NOCLONE;
 	}
-	nq->nvenv = (char*)np;
+	nq->nvmeta = np;
 	if((fp=nq->nvfun) && fp->disc && fp->disc->setdisc && (fp = nv_disc(nq,fp,NV_POP)))
 		free(fp);
 	if(!ap->fun)
@@ -1237,7 +1237,7 @@ Namval_t *nv_putsub(Namval_t *np,char *sp,long mode)
 					sfprintf(sh.strbuf,"%d",ap->cur);
 					cp = sfstruse(sh.strbuf);
 					mp = nv_search(cp, ap->header.table, NV_ADD);
-					mp->nvenv = (char*)np;
+					mp->nvmeta = np;
 					nv_arraychild(np,mp,0);
 					nv_setvtree(mp);
 				}
@@ -1720,7 +1720,7 @@ void *nv_associative(Namval_t *np,const char *sp,int mode)
 		return ap->cur;
 	    case NV_ACURRENT:
 		if(ap->cur)
-			ap->cur->nvenv = (char*)np;
+			ap->cur->nvmeta = np;
 		return ap->cur;
 	    case NV_ANAME:
 		if(ap->cur)
@@ -1749,7 +1749,7 @@ void *nv_associative(Namval_t *np,const char *sp,int mode)
 			if((mp || (mp=nv_search(sp,ap->header.table,mode))) && nv_isnull(mp) && (mode&NV_ADD))
 			{
 				nv_onattr(mp,type);
-				mp->nvenv = (char*)np;
+				mp->nvmeta = np;
 				if((mode&NV_ADD) && nv_type(np)) 
 					nv_arraychild(np,mp,0);
 				if(sh.subshell)

@@ -3,7 +3,7 @@ note * This build script is in an extended Make Abstract Machine (MAM)
 note * language. Documentation is at: src/cmd/INIT/README-mamake.md
 note *
 
-setv MAMAKE_STRICT 2
+setv MAMAKE_STRICT 3
 setv INSTALLROOT ../../..
 setv PACKAGEROOT ../../../../..
 setv CC cc
@@ -16,7 +16,7 @@ setv LDFLAGS
 
 note *
 note * iffe and cc invocations are mostly the same but some add custom flags;
-note * set shim functions for brevity and "single source of truth" while still allowing this
+note * set shim functions for brevity and "single source of truth" while allowing for variety in invocations
 note *
 
 shim - invoke_iffe()
@@ -219,6 +219,63 @@ make install virtual
 		exec - cp -f ${<} ${@}
 	done
 
+	make ast_fs.h implicit
+		make FEATURE/fs implicit
+			prev features/fs
+			exec - invoke_iffe ${<}
+		done
+		exec - cp -f ${<} ${@}
+	done
+
+	make ast_tty.h implicit
+		make FEATURE/tty implicit
+			prev features/tty
+			exec - invoke_iffe ${<}
+		done
+		exec - cp -f ${<} ${@}
+	done
+
+	make ast_fcntl.h implicit
+		prev ast_fs.h
+		make FEATURE/fcntl
+			prev ast_fs.h
+			make features/fcntl.c
+				prev FEATURE/tty
+				prev FEATURE/fs
+				prev FEATURE/lib
+				prev FEATURE/standards
+			done
+			exec - invoke_iffe ${<} -I. -Icomp -Iinclude -Istd
+		done
+		exec - cp -f ${<} ${@}
+	done
+
+	make ast_botch.h implicit
+		make FEATURE/botch
+			make features/botch.c
+				prev FEATURE/sys
+				prev FEATURE/lib
+			done
+			exec - invoke_iffe ${<} -I. -Icomp -Iinclude -Istd
+		done
+		exec - cp -f ${<} ${@}
+	done
+
+	make ast_wchar.h implicit
+		make FEATURE/wchar
+			prev std/wctype.h implicit
+			prev std/stdio.h implicit
+			prev ast_common.h
+			make features/wchar
+				prev ast_common.h
+			done
+			exec - invoke_iffe ${<}
+		done
+		exec - cp -f ${<} ${@}
+		prev std/stdio.h
+		prev ast_common.h
+	done
+
 	note *
 	note * Generate system library dependency information
 	note *
@@ -303,26 +360,39 @@ make install virtual
 		exec - cp -f ${<} ${@}
 	done ast_limits.h
 
+
 	note *
 	note * Declare implicit header dependencies
 	note *
 
 	make include/ast.h implicit
 		prev ast_api.h
-		prev include/vmalloc.h
-		prev include/sfio.h
-		prev include/ast_std.h implicit
-	done
-
-	make include/vmalloc.h implicit
-		prev ast_common.h
-		prev include/ast_std.h
-	done
-
-	make include/sfio.h implicit
-		prev include/sfio_s.h implicit
-		prev ast_common.h
-		prev include/ast_std.h
+		make include/ast_std.h
+			make include/regex.h implicit
+				prev ast_api.h
+				prev ast_wchar.h
+				prev ast_common.h
+			done
+			prev comp/getopt.h
+			prev ast_map.h
+			prev ast_botch.h
+			prev ast_limits.h
+			prev ast_fcntl.h
+			prev include/ast_getopt.h
+			prev ast_sys.h
+			prev ast_lib.h
+			prev ast_common.h
+			prev ast_standards.h
+		done include/ast_std.h
+		make include/sfio.h implicit
+			prev include/sfio_s.h implicit
+			prev ast_common.h
+			prev include/ast_std.h
+		done
+		make include/vmalloc.h implicit
+			prev ast_common.h
+			prev include/ast_std.h
+		done
 	done
 
 	prev dir/dirstd.h implicit
@@ -341,29 +411,6 @@ make install virtual
 		exec - cp -f ${<} ${@}
 	done
 
-	make ast_fs.h implicit
-		make FEATURE/fs implicit
-			prev features/fs
-			exec - invoke_iffe ${<}
-		done
-		exec - cp -f ${<} ${@}
-	done
-
-	make ast_wchar.h implicit
-		make FEATURE/wchar
-			prev std/wctype.h
-			prev std/stdio.h
-			prev ast_common.h
-			make features/wchar
-				prev ast_common.h
-			done
-			exec - invoke_iffe ${<}
-		done
-		exec - cp -f ${<} ${@}
-		prev std/stdio.h
-		prev ast_common.h
-	done
-
 	make ast_wctype.h implicit
 		make FEATURE/wctype
 			prev features/wctype
@@ -376,62 +423,12 @@ make install virtual
 		exec - cp -f ${<} ${@}
 	done
 
-	make ast_botch.h implicit
-		make FEATURE/botch
-			make features/botch.c
-				prev FEATURE/sys
-				prev FEATURE/lib
-			done
-			exec - invoke_iffe ${<} -I. -Icomp -Iinclude -Istd
-		done
-		exec - cp -f ${<} ${@}
-	done
-
-	make ast_tty.h implicit
-		make FEATURE/tty implicit
-			prev features/tty
-			exec - invoke_iffe ${<}
-		done
-		exec - cp -f ${<} ${@}
-	done
-
-	make ast_fcntl.h implicit
-		prev ast_fs.h
-		make FEATURE/fcntl
-			prev ast_fs.h
-			make features/fcntl.c
-				prev FEATURE/tty
-				prev FEATURE/fs
-				prev FEATURE/lib
-				prev FEATURE/standards
-			done
-			exec - invoke_iffe ${<} -I. -Icomp -Iinclude -Istd
-		done
-		exec - cp -f ${<} ${@}
-	done
-
 	make ast_stdio.h implicit
 		prev include/sfio_s.h
 		prev include/ast_std.h
 		make FEATURE/stdio
 			prev include/sfio_s.h
-			make include/ast_std.h
-				make include/regex.h implicit
-					prev ast_api.h
-					prev ast_wchar.h
-					prev ast_common.h
-				done
-				prev comp/getopt.h
-				prev ast_map.h
-				prev ast_botch.h
-				prev ast_limits.h
-				prev ast_fcntl.h
-				prev include/ast_getopt.h
-				prev ast_sys.h
-				prev ast_lib.h
-				prev ast_common.h
-				prev ast_standards.h
-			done include/ast_std.h
+			prev include/ast_std.h
 			prev features/stdio
 			exec - invoke_iffe ${<}
 		done FEATURE/stdio
@@ -516,8 +513,9 @@ make install virtual
 		prev include/ast.h
 		prev port/lc.tab
 		make lctab.c
-			prev port/lclang.h
-			prev port/lclib.h
+			make port/lclang.h implicit
+				prev include/ast_windows.h implicit
+			done
 			make lcgen
 				make port/lcgen.c
 					prev std/stdio.h
@@ -526,6 +524,18 @@ make install virtual
 			done
 			exec - lcgen lc.h lctab.c < port/lc.tab
 		done
+	done
+	note * The following block was moved out of lc.h to resolve a circular dependency on lc.h.
+	note * We have to break the dependency loop somewhere: lctab.c depends on lclib.h but we cannot declare that here.
+	make port/lclib.h implicit
+		prev lc.h
+		make include/error.h implicit
+			make include/option.h implicit
+				prev include/ast.h
+			done
+			prev include/ast.h
+		done
+		prev include/ast.h
 	done
 
 	make ast_ndbm.h implicit
@@ -623,12 +633,7 @@ make install virtual
 					prev dir/dirlib.h
 					prev ast_lib.h
 				done
-				make include/error.h implicit
-					make include/option.h implicit
-						prev include/ast.h
-					done
-					prev include/ast.h
-				done
+				prev include/error.h
 				prev FEATURE/syscall
 				prev include/ast.h
 			done
@@ -1048,13 +1053,9 @@ make install virtual
 			make path/pathexists.c
 				prev include/error.h
 				prev include/ls.h
-				make port/lclib.h implicit
-					prev lc.h
-					prev include/error.h
-					prev include/ast.h
-				done
+				prev port/lclib.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make pathfind.o
@@ -1197,7 +1198,7 @@ make install virtual
 					prev features/prog
 					exec - invoke_iffe ${<}
 				done
-				prev include/ast_windows.h implicit
+				prev include/ast_windows.h
 				prev include/ast.h
 			done
 			exec - compile ${<}
@@ -1400,7 +1401,7 @@ make install virtual
 				prev include/ccode.h
 				prev port/lclib.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include -DERROR_CATALOG=\""libast"\"
+			exec - compile ${<} -Iport -DERROR_CATALOG=\""libast"\"
 		done
 
 		make errorf.o
@@ -1421,14 +1422,14 @@ make install virtual
 			make misc/errorx.c
 				prev port/lclib.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make localeconv.o
 			make comp/localeconv.c
 				prev port/lclib.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make setlocale.o
@@ -1444,7 +1445,7 @@ make install virtual
 				prev port/lclib.h
 				prev ast_standards.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make translate.o
@@ -1457,7 +1458,7 @@ make install virtual
 				prev include/cdt.h
 				prev port/lclib.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make catopen.o
@@ -1492,7 +1493,7 @@ make install virtual
 				prev std/dirent.h
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make lc.o
@@ -1501,17 +1502,15 @@ make install virtual
 					prev features/locale
 					exec - invoke_iffe ${<}
 				done
-				make port/lclang.h implicit
-					prev include/ast_windows.h
-				done
+				prev port/lclang.h
 				prev port/lclib.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make lctab.o
 			prev lctab.c
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make mc.o
@@ -1522,7 +1521,6 @@ make install virtual
 				prev include/vmalloc.h
 				prev std/iconv.h
 				prev port/lclib.h
-				prev sfio/sfhdr.h
 				make sfio/sfhdr.h implicit
 					prev port/lclib.h
 					prev std/wchar.h
@@ -1543,7 +1541,7 @@ make install virtual
 					done
 				done
 			done
-			exec - compile ${<} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio
 		done
 
 		make base64.o
@@ -1760,7 +1758,7 @@ make install virtual
 				prev port/lclib.h
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make fmttmx.o
@@ -2044,7 +2042,7 @@ make install virtual
 				prev include/cdt.h
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make tmmake.o
@@ -2265,47 +2263,6 @@ make install virtual
 			exec - compile ${<} -Imisc
 		done
 
-		make vecargs.o
-			make vec/vecargs.c
-				prev include/vecargs.h implicit
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
-		make vecfile.o
-			make vec/vecfile.c
-				prev include/vecargs.h
-				prev include/ls.h
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
-		make vecfree.o
-			make vec/vecfree.c
-				prev include/vecargs.h
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
-		make vecload.o
-			make vec/vecload.c
-				prev include/vecargs.h
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
-		make vecstring.o
-			make vec/vecstring.c
-				prev include/vecargs.h
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
 		make univdata.o
 			make misc/univdata.c
 				prev misc/univlib.h
@@ -2477,7 +2434,7 @@ make install virtual
 				done
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make strtold.o
@@ -2488,7 +2445,7 @@ make install virtual
 				prev ast_lib.h
 				prev ast_common.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make strtol.o
@@ -2499,7 +2456,7 @@ make install virtual
 					prev include/ast.h
 				done
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strtoll.o
@@ -2508,14 +2465,14 @@ make install virtual
 				prev ast_map.h
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strtoul.o
 			make comp/strtoul.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strtoull.o
@@ -2524,21 +2481,21 @@ make install virtual
 				prev ast_map.h
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strton.o
 			make string/strton.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strtonll.o
 			make string/strtonll.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strntod.o
@@ -2546,7 +2503,7 @@ make install virtual
 				prev sfio/sfstrtof.h
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make strntold.o
@@ -2554,49 +2511,49 @@ make install virtual
 				prev sfio/sfstrtof.h
 				prev include/ast.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make strnton.o
 			make string/strnton.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strntonll.o
 			make string/strntonll.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strntol.o
 			make string/strntol.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strntoll.o
 			make string/strntoll.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strntoul.o
 			make string/strntoul.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strntoull.o
 			make string/strntoull.c
 				prev string/strtoi.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istring -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istring
 		done
 
 		make strcasecmp.o
@@ -2621,7 +2578,7 @@ make install virtual
 				done
 				prev port/lclib.h
 			done
-			exec - compile ${<} -Iport -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport
 		done
 
 		make mktemp.o
@@ -2968,56 +2925,56 @@ make install virtual
 					prev sfio/sfhdr.h
 				done
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcdos.o
 			make disc/sfdcdos.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcfilter.o
 			make disc/sfdcfilter.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcseekable.o
 			make disc/sfdcseekable.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcslow.o
 			make disc/sfdcslow.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcsubstr.o
 			make disc/sfdcsubstr.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdctee.o
 			make disc/sfdctee.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcunion.o
 			make disc/sfdcunion.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcmore.o
@@ -3025,14 +2982,14 @@ make install virtual
 				prev ast_tty.h
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make sfdcprefix.o
 			make disc/sfdcprefix.c
 				prev disc/sfdchdr.h
 			done
-			exec - compile ${<} -Idisc -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Idisc -Iport -Isfio
 		done
 
 		make wc.o
@@ -3261,7 +3218,7 @@ make install virtual
 				prev port/lclib.h
 				prev regex/reglib.h
 			done
-			exec - compile ${<} -Iport -Iregex -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Iregex
 		done
 
 		make regcache.o
@@ -3371,84 +3328,84 @@ make install virtual
 					done
 				done
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtdisc.o
 			make cdt/dtdisc.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dthash.o
 			make cdt/dthash.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtlist.o
 			make cdt/dtlist.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtmethod.o
 			make cdt/dtmethod.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtopen.o
 			make cdt/dtopen.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtstat.o
 			make cdt/dtstat.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtstrhash.o
 			make cdt/dtstrhash.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dttree.o
 			make cdt/dttree.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtuser.o
 			make cdt/dtuser.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtview.o
 			make cdt/dtview.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtwalk.o
 			make cdt/dtwalk.c
 				prev cdt/dthdr.h
 			done
-			exec - compile ${<} -Icdt -I${INSTALLROOT}/include/ast
+			exec - compile ${<} -Icdt
 		done
 
 		make dtnew.o
@@ -3469,49 +3426,49 @@ make install virtual
 			make sfio/sfclose.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfclrlock.o
 			make sfio/sfclrlock.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfdisc.o
 			make sfio/sfdisc.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfdlen.o
 			make sfio/sfdlen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfexcept.o
 			make sfio/sfexcept.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfgetl.o
 			make sfio/sfgetl.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfgetu.o
 			make sfio/sfgetu.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfcvt.o
@@ -3519,70 +3476,70 @@ make install virtual
 				prev sfio/sfhdr.h
 				prev FEATURE/standards
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfecvt.o
 			make sfio/sfecvt.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sffcvt.o
 			make sfio/sffcvt.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfextern.o
 			make sfio/sfextern.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sffilbuf.o
 			make sfio/sffilbuf.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfflsbuf.o
 			make sfio/sfflsbuf.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfprints.o
 			make sfio/sfprints.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfgetd.o
 			make sfio/sfgetd.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfgetr.o
 			make sfio/sfgetr.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfllen.o
 			make sfio/sfllen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfmode.o
@@ -3591,70 +3548,70 @@ make install virtual
 				prev sig.h
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfmove.o
 			make sfio/sfmove.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfnew.o
 			make sfio/sfnew.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfpkrd.o
 			make sfio/sfpkrd.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfnotify.o
 			make sfio/sfnotify.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfnputc.o
 			make sfio/sfnputc.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfopen.o
 			make sfio/sfopen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfpeek.o
 			make sfio/sfpeek.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfpoll.o
 			make sfio/sfpoll.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfpool.o
 			make sfio/sfpool.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfpopen.o
@@ -3662,140 +3619,140 @@ make install virtual
 				prev include/proc.h
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfprintf.o
 			make sfio/sfprintf.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} ${mam_cc_NOPROTECT} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} ${mam_cc_NOPROTECT} -Iport -Isfio
 		done
 
 		make sfputd.o
 			make sfio/sfputd.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfputl.o
 			make sfio/sfputl.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfputr.o
 			make sfio/sfputr.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfputu.o
 			make sfio/sfputu.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfrd.o
 			make sfio/sfrd.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio
 		done
 
 		make sfread.o
 			make sfio/sfread.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfreserve.o
 			make sfio/sfreserve.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfscanf.o
 			make sfio/sfscanf.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} ${mam_cc_NOPROTECT} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} ${mam_cc_NOPROTECT} -Iport -Isfio
 		done
 
 		make sfseek.o
 			make sfio/sfseek.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfset.o
 			make sfio/sfset.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio
 		done
 
 		make sfsetbuf.o
 			make sfio/sfsetbuf.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfsetfd.o
 			make sfio/sfsetfd.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfsize.o
 			make sfio/sfsize.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfsk.o
 			make sfio/sfsk.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfstack.o
 			make sfio/sfstack.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfstrtod.o
 			make sfio/sfstrtod.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfsync.o
 			make sfio/sfsync.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfswap.o
 			make sfio/sfswap.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sftable.o
@@ -3810,28 +3767,28 @@ make install virtual
 				prev FEATURE/float
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sftell.o
 			make sfio/sftell.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sftmp.o
 			make sfio/sftmp.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfungetc.o
 			make sfio/sfungetc.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfvprintf.o
@@ -3839,7 +3796,7 @@ make install virtual
 				prev include/ccode.h
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} ${mam_cc_NOPROTECT} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} ${mam_cc_NOPROTECT} ${DEBUG+-DDEBUG=${DEBUG}} -Iport -Isfio
 		done
 
 		make sfvscanf.o
@@ -3847,210 +3804,210 @@ make install virtual
 				prev sfio/sfstrtof.h
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} ${mam_cc_NOPROTECT} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} ${mam_cc_NOPROTECT} -Iport -Isfio
 		done
 
 		make sfwr.o
 			make sfio/sfwr.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfwrite.o
 			make sfio/sfwrite.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfpurge.o
 			make sfio/sfpurge.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfraise.o
 			make sfio/sfraise.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfwalk.o
 			make sfio/sfwalk.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfgetm.o
 			make sfio/sfgetm.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfputm.o
 			make sfio/sfputm.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make sfresize.o
 			make sfio/sfresize.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfclrerr.o
 			make sfio/_sfclrerr.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfeof.o
 			make sfio/_sfeof.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sferror.o
 			make sfio/_sferror.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sffileno.o
 			make sfio/_sffileno.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfopen.o
 			make sfio/_sfopen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfstacked.o
 			make sfio/_sfstacked.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfvalue.o
 			make sfio/_sfvalue.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfgetc.o
 			make sfio/_sfgetc.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfgetl.o
 			make sfio/_sfgetl.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfgetl2.o
 			make sfio/_sfgetl2.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfgetu.o
 			make sfio/_sfgetu.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfgetu2.o
 			make sfio/_sfgetu2.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfdlen.o
 			make sfio/_sfdlen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfllen.o
 			make sfio/_sfllen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfslen.o
 			make sfio/_sfslen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfulen.o
 			make sfio/_sfulen.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfputc.o
 			make sfio/_sfputc.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfputd.o
 			make sfio/_sfputd.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfputl.o
 			make sfio/_sfputl.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfputm.o
 			make sfio/_sfputm.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make _sfputu.o
 			make sfio/_sfputu.c
 				prev sfio/sfhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make clearerr.o
@@ -4061,427 +4018,420 @@ make install virtual
 					prev ast_standards.h
 				done
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fclose.o
 			make stdio/fclose.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fdopen.o
 			make stdio/fdopen.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fflush.o
 			make stdio/fflush.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fgetc.o
 			make stdio/fgetc.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fgetpos.o
 			make stdio/fgetpos.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fgets.o
 			make stdio/fgets.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fopen.o
 			make stdio/fopen.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fprintf.o
 			make stdio/fprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fpurge.o
 			make stdio/fpurge.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fputs.o
 			make stdio/fputs.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fread.o
 			make stdio/fread.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make freopen.o
 			make stdio/freopen.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fscanf.o
 			make stdio/fscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fseek.o
 			make stdio/fseek.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fseeko.o
 			make stdio/fseeko.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fsetpos.o
 			make stdio/fsetpos.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make ftell.o
 			make stdio/ftell.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make ftello.o
 			make stdio/ftello.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fwrite.o
 			make stdio/fwrite.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make getw.o
 			make stdio/getw.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make pclose.o
 			make stdio/pclose.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make popen.o
 			make stdio/popen.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make printf.o
 			make stdio/printf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
-		done
-
-		make putchar.o
-			make stdio/putchar.c
-				prev stdio/stdhdr.h
-			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make puts.o
 			make stdio/puts.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make putw.o
 			make stdio/putw.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make rewind.o
 			make stdio/rewind.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make scanf.o
 			make stdio/scanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make setbuf.o
 			make stdio/setbuf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make setbuffer.o
 			make stdio/setbuffer.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make setlinebuf.o
 			make stdio/setlinebuf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make setvbuf.o
 			make stdio/setvbuf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make snprintf.o
 			make stdio/snprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make sprintf.o
 			make stdio/sprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make sscanf.o
 			make stdio/sscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make asprintf.o
 			make stdio/asprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vasprintf.o
 			make stdio/vasprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make tmpfile.o
 			make stdio/tmpfile.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make ungetc.o
 			make stdio/ungetc.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vfprintf.o
 			make stdio/vfprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vfscanf.o
 			make stdio/vfscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vprintf.o
 			make stdio/vprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vscanf.o
 			make stdio/vscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vsnprintf.o
 			make stdio/vsnprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vsprintf.o
 			make stdio/vsprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vsscanf.o
 			make stdio/vsscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _doprnt.o
 			make stdio/_doprnt.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _doscan.o
 			make stdio/_doscan.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _filbuf.o
 			make stdio/_filbuf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _flsbuf.o
 			make stdio/_flsbuf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdopen.o
 			make stdio/_stdopen.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdprintf.o
 			make stdio/_stdprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdscanf.o
 			make stdio/_stdscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdsprnt.o
 			make stdio/_stdsprnt.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdvbuf.o
 			make stdio/_stdvbuf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdvsnprnt.o
 			make stdio/_stdvsnprnt.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdvsprnt.o
 			make stdio/_stdvsprnt.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make _stdvsscn.o
 			make stdio/_stdvsscn.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fgetwc.o
 			make stdio/fgetwc.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fwprintf.o
 			make stdio/fwprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make putwchar.o
@@ -4489,63 +4439,63 @@ make install virtual
 				prev ast_wchar.h
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vfwscanf.o
 			make stdio/vfwscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make wprintf.o
 			make stdio/wprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fgetws.o
 			make stdio/fgetws.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fwscanf.o
 			make stdio/fwscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make swprintf.o
 			make stdio/swprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vswprintf.o
 			make stdio/vswprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make wscanf.o
 			make stdio/wscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fputwc.o
 			make stdio/fputwc.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make getwc.o
@@ -4553,28 +4503,28 @@ make install virtual
 				prev ast_wchar.h
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make swscanf.o
 			make stdio/swscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vswscanf.o
 			make stdio/vswscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fputws.o
 			make stdio/fputws.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make getwchar.o
@@ -4582,28 +4532,28 @@ make install virtual
 				prev ast_wchar.h
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make ungetwc.o
 			make stdio/ungetwc.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vwprintf.o
 			make stdio/vwprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fwide.o
 			make stdio/fwide.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make putwc.o
@@ -4611,56 +4561,56 @@ make install virtual
 				prev ast_wchar.h
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vfwprintf.o
 			make stdio/vfwprintf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make vwscanf.o
 			make stdio/vwscanf.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make stdio_c99.o
 			make stdio/stdio_c99.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fcloseall.o
 			make stdio/fcloseall.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make fmemopen.o
 			make stdio/fmemopen.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make getdelim.o
 			make stdio/getdelim.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make getline.o
 			make stdio/getline.c
 				prev stdio/stdhdr.h
 			done
-			exec - compile ${<} -Iport -Isfio -Istdio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio -Istdio
 		done
 
 		make frexp.o
@@ -4712,7 +4662,7 @@ make install virtual
 				prev include/ast.h
 				prev include/sfio_t.h
 			done
-			exec - compile ${<} -Iport -Isfio -I${INSTALLROOT}/include
+			exec - compile ${<} -Iport -Isfio
 		done
 
 		make astquery.o
@@ -4998,8 +4948,6 @@ make install virtual
 	note * pre-install libast in $INSTALLROOT
 	note *
 
-	prev libast.a
-
 	note * ensure preinstallation directories exist
 	loop DIR include/ast lib/lib lib/file man/man3
 		make ${INSTALLROOT}/${DIR}
@@ -5019,7 +4967,7 @@ make install virtual
 	done
 
 	note * section 3 manual pages
-	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd hash iblocks int ip6 magic mem mime modecanon optget path proc re regex setenviron sfio sig spawnveg stk strcopy strdup strelapsed strerror stresc streval strgid strmatch stropt strperm strsignal strsort strtape strton struid swap tab tm tmx tok touch tv vecargs vmalloc
+	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd hash iblocks int ip6 magic mem mime modecanon optget path proc re regex setenviron sfio sig spawnveg stk strcopy strdup strelapsed strerror stresc streval strgid strmatch stropt strperm strsignal strsort strtape strton struid swap tab tm tmx tok touch tv vmalloc
 		make ${INSTALLROOT}/man/man3/${SECT3MAN}.3
 			prev man/${SECT3MAN}.3
 			exec - cp -f ${<} ${@}
@@ -5035,7 +4983,7 @@ make install virtual
 		done
 	done
 	note * ...main AST headers
-	loop HDR ast ast_dir ast_getopt ast_std ast_windows ccode cdt cmdarg debug dt error find ftwalk fts glob hash hashkey hashpart ip6 ls magic mc mime mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk swap tar times tm tok usage vdb vecargs vmalloc wait magicid fnv aso
+	loop HDR ast ast_dir ast_getopt ast_std ast_windows ccode cdt cmdarg debug dt error find ftwalk fts glob hash hashkey hashpart ip6 ls magic mc mime mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk stak swap tar times tm tok usage vdb vmalloc wait magicid fnv aso
 		make ${INSTALLROOT}/include/ast/${HDR}.h
 			prev include/${HDR}.h
 			exec - cp -f ${<} ${@}

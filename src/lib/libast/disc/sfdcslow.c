@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -33,12 +33,12 @@ static int slowexcept(Sfio_t* f, int type, void* v, Sfdisc_t* disc)
 
 	switch (type)
 	{
-	case SF_FINAL:
-	case SF_DPOP:
+	case SFIO_FINAL:
+	case SFIO_DPOP:
 		free(disc);
 		break;
-	case SF_READ:
-	case SF_WRITE:
+	case SFIO_READ:
+	case SFIO_WRITE:
 		if (errno == EINTR)
 			return -1;
 		break;
@@ -63,7 +63,7 @@ int sfdcslow(Sfio_t* f)
 	{	free(disc);
 		return -1;
 	}
-	sfset(f,SF_IOINTR,1);
+	sfset(f,SFIO_IOINTR,1);
 
 	return 0;
 }

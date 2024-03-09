@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -86,7 +86,7 @@ static ssize_t sfoutput(Sfio_t* f, char* buf, size_t n)
 			}
 			if((wr = write(f->file,wbuf,buf-wbuf)) > 0)
 			{	w += wr;
-				f->bits &= ~SF_HOLE;
+				f->bits &= ~SFIO_HOLE;
 			}
 			if(wr != (buf-wbuf))
 				break;
@@ -101,7 +101,7 @@ static ssize_t sfoutput(Sfio_t* f, char* buf, size_t n)
 			w += s;
 			n -= s;
 			wbuf = (buf += s);
-			f->bits |= SF_HOLE;
+			f->bits |= SFIO_HOLE;
 
 			if(n > 0)
 			{	/* next page must be dirty */
@@ -125,8 +125,8 @@ ssize_t sfwr(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 		return (ssize_t)(-1);
 
 	GETLOCAL(f,local);
-	if(!local && !(f->bits&SF_DCDOWN)) /* an external user's call */
-	{	if(f->mode != SF_WRITE && _sfmode(f,SF_WRITE,0) < 0 )
+	if(!local && !(f->bits&SFIO_DCDOWN)) /* an external user's call */
+	{	if(f->mode != SFIO_WRITE && _sfmode(f,SFIO_WRITE,0) < 0 )
 			return (ssize_t)(-1);
 		if(f->next > f->data && SFSYNC(f) < 0 )
 			return (ssize_t)(-1);
@@ -134,39 +134,39 @@ ssize_t sfwr(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 
 	for(;;)
 	{	/* stream locked by sfsetfd() */
-		if(!(f->flags&SF_STRING) && f->file < 0)
+		if(!(f->flags&SFIO_STRING) && f->file < 0)
 			return 0;
 
 		/* clear current error states */
-		f->flags &= ~(SF_EOF|SF_ERROR);
+		f->flags &= ~(SFIO_EOF|SFIO_ERROR);
 
 		dc = disc;
-		if(f->flags&SF_STRING)	/* just asking to extend buffer */
+		if(f->flags&SFIO_STRING)	/* just asking to extend buffer */
 			w = n + (f->next - f->data);
 		else
 		{	/* warn that a write is about to happen */
 			SFDISC(f,dc,writef);
-			if(dc && dc->exceptf && (f->flags&SF_IOCHECK) )
+			if(dc && dc->exceptf && (f->flags&SFIO_IOCHECK) )
 			{	int	rv;
 				if(local)
 					SETLOCAL(f);
-				if((rv = _sfexcept(f,SF_WRITE,n,dc)) > 0)
+				if((rv = _sfexcept(f,SFIO_WRITE,n,dc)) > 0)
 					n = rv;
 				else if(rv < 0)
-				{	f->flags |= SF_ERROR;
+				{	f->flags |= SFIO_ERROR;
 					return rv;
 				}
 			}
 
 			if(f->extent >= 0)
 			{	/* make sure we are at the right place to write */
-				if(f->flags&SF_APPENDWR)
-				{	if(f->here != f->extent || (f->flags&SF_SHARE))
+				if(f->flags&SFIO_APPENDWR)
+				{	if(f->here != f->extent || (f->flags&SFIO_SHARE))
 					{	f->here = SFSK(f,0,SEEK_END,dc);
 						f->extent = f->here;
 					}
 				}
-				else if((f->flags&SF_SHARE) && !(f->flags&SF_PUBLIC))
+				else if((f->flags&SFIO_SHARE) && !(f->flags&SFIO_PUBLIC))
 					f->here = SFSK(f,f->here,SEEK_SET,dc);
 			}
 
@@ -178,10 +178,10 @@ ssize_t sfwr(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 			}
 			else if(SFISNULL(f))
 				w = n;
-			else if(f->flags&SF_WHOLE)
+			else if(f->flags&SFIO_WHOLE)
 				goto do_write;
 			else if((ssize_t)n >= _Sfpage &&
-				!(f->flags&(SF_SHARE|SF_APPENDWR)) &&
+				!(f->flags&(SFIO_SHARE|SFIO_APPENDWR)) &&
 				f->here == f->extent && (f->here%_Sfpage) == 0)
 			{	if((w = sfoutput(f,(char*)buf,n)) <= 0)
 					goto do_write;
@@ -190,15 +190,15 @@ ssize_t sfwr(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 			{
 			do_write:
 				if((w = write(f->file,buf,n)) > 0)
-					f->bits &= ~SF_HOLE;
+					f->bits &= ~SFIO_HOLE;
 			}
 
 			if(errno == 0)
 				errno = oerrno;
 
 			if(w > 0)
-			{	if(!(f->bits&SF_DCDOWN) )
-				{	if((f->flags&(SF_APPENDWR|SF_PUBLIC)) && f->extent >= 0 )
+			{	if(!(f->bits&SFIO_DCDOWN) )
+				{	if((f->flags&(SFIO_APPENDWR|SFIO_PUBLIC)) && f->extent >= 0 )
 						f->here = SFSK(f,0,SEEK_CUR,dc);
 					else	f->here += w;
 					if(f->extent >= 0 && f->here > f->extent)
@@ -211,18 +211,18 @@ ssize_t sfwr(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 
 		if(local)
 			SETLOCAL(f);
-		switch(_sfexcept(f,SF_WRITE,w,dc))
+		switch(_sfexcept(f,SFIO_WRITE,w,dc))
 		{
-		case SF_ECONT :
+		case SFIO_ECONT :
 			goto do_continue;
-		case SF_EDONE :
+		case SFIO_EDONE :
 			w = local ? 0 : w;
 			return (ssize_t)w;
-		case SF_EDISC :
-			if(!local && !(f->flags&SF_STRING))
+		case SFIO_EDISC :
+			if(!local && !(f->flags&SFIO_STRING))
 				goto do_continue;
 			/* FALLTHROUGH */
-		case SF_ESTACK :
+		case SFIO_ESTACK :
 			return (ssize_t)(-1);
 		}
 

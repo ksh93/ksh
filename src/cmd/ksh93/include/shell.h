@@ -82,6 +82,7 @@ typedef union Shnode_u Shnode_t;
 #define SH_COMPLETE	19	/* set for command completion */
 #define SH_XARG		21	/* set while in xarg (command -x) mode */
 #define SH_NOTILDEXP	22	/* set to disable tilde expansion */
+#define SH_EXEC		23	/* set while in exec(1) */
 
 /*
  * Shell options (set -o). Used with sh_isoption(), sh_onoption(), sh_offoption().
@@ -346,7 +347,8 @@ struct Shell_s
 	int		xargmin;
 	int		xargmax;
 	int		xargexit;
-	int		nenv;
+	int		save_env_n;	/* number of saved pointers to environment variables with invalid names */
+	char		**save_env;	/* saved pointers to environment variables with invalid names */
 	mode_t		mask;
 	void		*init_context;
 	void		*mac_context;
@@ -383,6 +385,7 @@ struct Shell_s
 	char		*mathnodes;
 	char		*bltin_dir;
 	char		tilde_block;	/* set to block .sh.tilde.{get,set} discipline */
+	char		dont_optimize_builtins;
 	/* nv_putsub() hack for nv_create() to avoid double arithmetic evaluation */
 	char		nv_putsub_already_called_sh_arith;
 	int		nv_putsub_idx;	/* saves array index obtained by nv_putsub() using sh_arith() */
@@ -430,7 +433,7 @@ extern Libcomp_t *liblist;
 
 extern void		sh_subfork(void);
 extern Shell_t		*sh_init(int,char*[],Shinit_f);
-extern int		sh_reinit(char*[]);
+extern void		sh_reinit(void);
 extern int 		sh_eval(Sfio_t*,int);
 extern void 		sh_delay(double,int);
 extern void		*sh_parse(Sfio_t*,int);

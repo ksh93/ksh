@@ -64,7 +64,7 @@ static struct stat lastmail;
 static time_t	mailtime;
 static char	beenhere = 0;
 
-#ifdef _lib_sigvec
+#if _lib_sigvec
     void clearsigmask(int sig)
     {
 	struct sigvec vec;
@@ -116,7 +116,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	int		i;
 	int		rshflag;	/* set for restricted shell */
 	char		*command;
-#ifdef _lib_sigvec
+#if _lib_sigvec
 	/* This is to clear mask that may be left on by rlogin */
 	clearsigmask(SIGALRM);
 	clearsigmask(SIGHUP);
@@ -133,9 +133,8 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	if(sigsetjmp(*((sigjmp_buf*)sh.jmpbuffer),0))
 	{
 		/* begin script execution here */
-		sh_reinit(NULL);
+		sh_reinit();
 	}
-	sh.fn_depth = sh.dot_depth = 0;
 	command = error_info.id;
 	path_pwd();
 	iop = NULL;
@@ -230,7 +229,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		if(sh.comdiv)
 		{
 		shell_c:
-			iop = sfnew(NULL,sh.comdiv,strlen(sh.comdiv),0,SF_STRING|SF_READ);
+			iop = sfnew(NULL,sh.comdiv,strlen(sh.comdiv),0,SFIO_STRING|SFIO_READ);
 		}
 		else
 		{
@@ -450,7 +449,7 @@ static void	exfile(Sfio_t *iop,int fno)
 		{
 			while(fcget()>0);
 			fcclose();
-			while(top=sfstack(iop,SF_POPSTACK))
+			while(top=sfstack(iop,SFIO_POPSTACK))
 				sfclose(top);
 		}
 		/*
@@ -609,6 +608,7 @@ static void	exfile(Sfio_t *iop,int fno)
 			{
 					execflags |= sh_state(SH_NOFORK);
 			}
+			sh.dont_optimize_builtins = 0;
 			sh.st.breakcnt = 0;
 			sh_exec(t,execflags);
 			if(sh.forked)

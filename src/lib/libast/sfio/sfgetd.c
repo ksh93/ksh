@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,7 +32,7 @@ Sfdouble_t sfgetd(Sfio_t* f)
 	if(!f || (sign = sfgetc(f)) < 0 || (exp = (int)sfgetu(f)) < 0)
 		return -1.;
 
-	if(f->mode != SF_READ && _sfmode(f,SF_READ,0) < 0)
+	if(f->mode != SFIO_READ && _sfmode(f,SFIO_READ,0) < 0)
 		return -1.;
 
 	SFLOCK(f,0);
@@ -41,7 +41,7 @@ Sfdouble_t sfgetd(Sfio_t* f)
 	for(;;)
 	{	/* fast read for data */
 		if(SFRPEEK(f,s,p) <= 0)
-		{	f->flags |= SF_ERROR;
+		{	f->flags |= SFIO_ERROR;
 			v = -1.;
 			goto done;
 		}
@@ -49,8 +49,8 @@ Sfdouble_t sfgetd(Sfio_t* f)
 		for(ends = s+p; s < ends; )
 		{	c = *s++;
 			v += SFUVALUE(c);
-			v = ldexpl(v,-SF_PRECIS);
-			if(!(c&SF_MORE))
+			v = ldexpl(v,-SFIO_PRECIS);
+			if(!(c&SFIO_MORE))
 			{	f->next = s;
 				goto done;
 			}

@@ -23,14 +23,14 @@
 #if _hdr_linux_msdos_fs
 #include <linux/msdos_fs.h>
 #endif
-#if _hdr_sys_ioctl
+#if _sys_ioctl
 #include <sys/ioctl.h>
 #endif
 
-#if _hdr_sys_ioctl && _hdr_linux_fs && defined(FS_IOC_GETFLAGS) && defined(FS_CASEFOLD_FL)
+#if _sys_ioctl && _hdr_linux_fs && defined(FS_IOC_GETFLAGS) && defined(FS_CASEFOLD_FL)
 #define _linux_casefold	1
 #endif
-#if _hdr_sys_ioctl && _hdr_linux_msdos_fs && defined(FAT_IOCTL_GET_ATTRIBUTES)
+#if _sys_ioctl && _hdr_linux_msdos_fs && defined(FAT_IOCTL_GET_ATTRIBUTES)
 #define _linux_fatfs	1
 #endif
 
