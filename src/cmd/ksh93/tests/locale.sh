@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -452,6 +452,20 @@ then	unset LANG "${!LC_@}" i
 			"(expected status 0, '$exp';" \
 			"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 	fi
+fi
+
+# ======
+# double-width characters should count for two for default justification width
+# https://github.com/ksh93/ksh/issues/189
+if	((SHOPT_MULTIBYTE))
+then	unset s "${!LC_@}"
+	LANG=C.UTF-8
+	s='コーンシェル'
+	typeset -L s
+	got=$(typeset -p s; echo ${#s})
+	exp=$'typeset -L 12 s=コーンシェル\n6'  # each double-width character counts for two terminal positions
+	[[ $got == "$exp" ]] || err_exit "default terminal width for typeset -L incorrect" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 fi
 
 # ======

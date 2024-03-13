@@ -17,16 +17,6 @@
 # A nice default .kshrc for 'bin/package use'
 # Feel free to adapt and use as your own ~/.kshrc
 
-case ${KSH_VERSION-} in
-Version*)
-	;;
-*)	# not ksh93: unset ENV and relaunch with default setup
-	ENV=''; export ENV	# the ancient Bourne shell needs this
-	unset ENV
-	exec "$0" ${1+"$@"}
-	;;
-esac
-
 # Enable ** patterns
 set --globstar
 
@@ -204,6 +194,10 @@ function PS2.get
 # Stuff for when this is run from 'bin/package use'.
 if	[[ -v INSTALLROOT ]]
 then
+	# keeping ENV pointed here can cause breakage when other shells run,
+	# particularly as some shells load ENV even for scripts (contra POSIX)
+	unset ENV
+
 	# make shipped functions available
 	case $FPATH: in
 	"$INSTALLROOT"/fun:*)
@@ -212,18 +206,6 @@ then
 	esac
 	export FPATH
 	autoload autocd cd dirs man mcd popd pushd
-
-	# Print welcome message; do not repeat for child or exec'd shells
-	if	[[ ! -v _KSHRC_WELCOMED_ ]]
-	then	set -- ${.sh.version}
-		print -r "${.rc.fmt[bold]}Welcome to ksh ${.rc.fmt[red]}$3 ${.rc.fmt[blue]}$4${.rc.fmt[reset]} on ${.rc.fmt[bold]}${.rc.host} (${.rc.tty})${.rc.fmt[reset]}"
-		set --
-		print -r -- "- Have a look at ${.rc.fmt[bold]}~ast/etc/kshrc${.rc.fmt[reset]} to see all the cool stuff activated here"
-		print -r -- "- Type '${.rc.fmt[bold]}builtin${.rc.fmt[reset]}' for a list of built-in commands (with and without path)"
-		print -r -- "- Autoloadable functions have been activated. Check them out in ${.rc.fmt[bold]}~ast/fun${.rc.fmt[reset]}"
-		print -r -- "- Get help: use '${.rc.fmt[bold]}man${.rc.fmt[reset]} ${.rc.fmt[underline]}commandname${.rc.fmt[reset]}' for everything, even built-in commands"
-		export _KSHRC_WELCOMED_=y
-	fi
 
 	# Workaround for "System Integrity Protection" on macOS which filters
 	# out DYLD_* env vars whenever anything in /bin or /usr/bin is run,
@@ -236,4 +218,13 @@ then
 		}
 		;;
 	esac
+
+	# Print welcome message
+	set -- ${.sh.version}
+	print -r "${.rc.fmt[bold]}Welcome to ksh ${.rc.fmt[red]}$3 ${.rc.fmt[blue]}$4${.rc.fmt[reset]} on ${.rc.fmt[bold]}${.rc.host} (${.rc.tty})${.rc.fmt[reset]}"
+	set --
+	print -r -- "- Have a look at ${.rc.fmt[bold]}~ast/etc/kshrc${.rc.fmt[reset]} to see all the cool stuff activated here"
+	print -r -- "- Type '${.rc.fmt[bold]}builtin${.rc.fmt[reset]}' for a list of built-in commands (with and without path)"
+	print -r -- "- Autoloadable functions have been activated. Check them out in ${.rc.fmt[bold]}~ast/fun${.rc.fmt[reset]}"
+	print -r -- "- Get help: use '${.rc.fmt[bold]}man${.rc.fmt[reset]} ${.rc.fmt[underline]}commandname${.rc.fmt[reset]}' for everything, even built-in commands"
 fi

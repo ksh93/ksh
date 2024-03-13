@@ -212,6 +212,9 @@ loop_fmt :
 		case '%' :
 			SFputc(f,'%');
 			continue;
+		case 'Z' :
+			SFputc(f,0);
+			continue;
 
 		case LEFTP : /* get the type enclosed in balanced parens */
 			t_str = (char*)form;

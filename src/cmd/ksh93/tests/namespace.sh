@@ -246,4 +246,18 @@ do
 done
 
 # ======
+# https://github.com/ksh93/ksh/issues/727
+exp=foo
+got=$(unset _AST_FEATURES; "$SHELL" -c 'namespace foo { echo foo; }' 2>&1)
+[[ $got == "$exp" ]] || err_exit "'echo' botched in namespace" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+case $'\n'${ builtin;}$'\n' in
+*$'\n'/opt/ast/bin/getconf$'\n'*)
+	got=$(unset _AST_FEATURES; "$SHELL" -c 'namespace ucb { /opt/ast/bin/getconf UNIVERSE = ucb; echo foo; }' 2>&1)
+	[[ $got == "$exp" ]] || err_exit "'getconf' and/or 'echo' botched in namespace" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	;;
+esac
+
+# ======
 exit $((Errors<125?Errors:125))

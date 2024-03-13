@@ -2253,7 +2253,7 @@ set_numeric(Lc_category_t* cp)
 }
 
 /*
- * this table is indexed by AST_LC_[A-Z]*
+ * The order of this table must correspond to the numbers of the #defines in ast_std.h
  */
 
 Lc_category_t		lc_categories[] =
@@ -2269,7 +2269,6 @@ Lc_category_t		lc_categories[] =
 { "LC_ADDRESS",       LC_ADDRESS,       AST_LC_ADDRESS,       0               },
 { "LC_NAME",          LC_NAME,          AST_LC_NAME,          0               },
 { "LC_TELEPHONE",     LC_TELEPHONE,     AST_LC_TELEPHONE,     0               },
-{ "LC_XLITERATE",     LC_XLITERATE,     AST_LC_XLITERATE,     0               },
 { "LC_MEASUREMENT",   LC_MEASUREMENT,   AST_LC_MEASUREMENT,   0               },
 { "LC_PAPER",         LC_PAPER,         AST_LC_PAPER,         0               },
 };

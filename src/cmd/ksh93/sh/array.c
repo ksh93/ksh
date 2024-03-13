@@ -665,7 +665,7 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 			{
 				if(is_associative(ap))
 					(*ap->fun)(np, NULL, NV_AFREE);
-				else if(ap->table)
+				else if(ap->table && (!sh.subshell || sh.subshare))
 				{
 					dtclose(ap->table);
 					ap->table = 0;

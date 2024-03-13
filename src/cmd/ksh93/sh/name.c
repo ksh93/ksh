@@ -2945,7 +2945,20 @@ void nv_newattr (Namval_t *np, unsigned newatts, int size)
 					ap->nelem |= ARRAY_SCAN;
 			}
 			if(size==0 && !(newatts&NV_INTEGER) && (newatts&NV_HOST)!=NV_HOST && (newatts&(NV_LJUST|NV_RJUST|NV_ZFILL)))
+			{	/*
+				 * Calculate the default terminal width for -L, -R, -Z if no numeric option-argument was given.
+				 * Note: we count terminal positions, not characters (double-width adds 2, control char adds 0)
+				 */
+				char *cq = cp;
+				wchar_t c;
+				int w;
+				n = 0;
+				mbinit();
+				while(c = mbchar(cq))
+					if ((w = mbwidth(c)) > 0)
+						n += w;
 				size = n;
+			}
 		}
 		else if(!trans)
 			_nv_unset(np,NV_EXPORT);
@@ -2998,12 +3011,19 @@ static char *oldgetenv(const char *string)
  */
 char *sh_getenv(const char *name)
 {
-	Namval_t *np;
+	Namval_t *np, *savns;
+	char *cp, *savpr;
 	if(!sh.var_tree)
 		return oldgetenv(name);
-	else if((np = nv_search(name,sh.var_tree,0)) && nv_isattr(np,NV_EXPORT))
-		return nv_getval(np);
-	return NULL;
+	/* deactivate a possible namespace or compound assignment */
+	savns = sh.namespace, savpr = sh.prefix;
+	sh.namespace = NULL, sh.prefix = NULL;
+	if((np = nv_search(name,sh.var_tree,0)) && nv_isattr(np,NV_EXPORT))
+		cp = nv_getval(np);
+	else
+		cp = NULL;
+	sh.namespace = savns, sh.prefix = savpr;
+	return cp;
 }
 
 #ifndef _NEXT_SOURCE
@@ -3027,9 +3047,14 @@ int putenv(const char *name)
 	Namval_t *np;
 	if(name)
 	{
+		Namval_t *savns = sh.namespace;
+		char *savpr = sh.prefix;
+		/* deactivate a possible namespace or compound assignment */
+		sh.namespace = NULL, sh.prefix = NULL;
 		np = nv_open(name,sh.var_tree,NV_EXPORT|NV_IDENT|NV_NOARRAY|NV_ASSIGN);
 		if(!strchr(name,'='))
 			_nv_unset(np,0);
+		sh.namespace = savns, sh.prefix = savpr;
 	}
 	return 0;
 }
@@ -3042,11 +3067,12 @@ char* sh_setenviron(const char *name)
 	Namval_t *np;
 	if(name)
 	{
-		char *save_prefix = sh.prefix;
-		/* deactivate a possible compound assignment */
-		sh.prefix = NULL;
+		Namval_t *savns = sh.namespace;
+		char *savpr = sh.prefix;
+		/* deactivate a possible namespace or compound assignment */
+		sh.namespace = NULL, sh.prefix = NULL;
 		np = nv_open(name,sh.var_tree,NV_EXPORT|NV_IDENT|NV_NOARRAY|NV_ASSIGN);
-		sh.prefix = save_prefix;
+		sh.namespace = savns, sh.prefix = savpr;
 		if(strchr(name,'='))
 			return nv_getval(np);
 		_nv_unset(np,0);

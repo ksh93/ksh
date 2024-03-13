@@ -955,7 +955,7 @@ hostinfo() # attribute ...
 		0|1)	cpu=$(
 			cd "$TMPDIR"
 			tmp=hi$$
-			trap 'set +o noglob; exec rm -f $tmp.*' 0 1 2
+			trap 'set +o noglob; rm -f $tmp.*' 0 1 2
 			cat > $tmp.c <<!
 #include <stdio.h>
 #include <pthread.h>
@@ -1575,7 +1575,7 @@ int b(void) { return 0; }
 			'')	bits=$(	set -e
 					cd "$TMPDIR"
 					tmp=hi$$
-					trap 'set +o noglob; exec rm -rf "$tmp".*' 0 1 2
+					trap 'set +o noglob; rm -rf "$tmp".*' 0 1 2
 					echo 'int main(void) { return 0; }' > $tmp.a.c
 					checkcc
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1

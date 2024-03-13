@@ -8,7 +8,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2024-02-11 $
+@(#)$Id: shtests (ksh 93u+m) 2024-03-12 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -332,7 +332,7 @@ else	echo "$0: cannot grep shopt.h" >&2
 	exit 1
 fi
 
-[[ -n $SHOPT_MULTIBYTE ]] || SHOPT_MULTIBYTE=$( LC_ALL=C.UTF-8; x=$'\xc3\xa9'; print $(( ${#x}==1 )) )
+SHOPT_MULTIBYTE=$( LC_ALL=C.UTF-8; x=$'\xc3\xa9'; print $(( ${#x}==1 )) )
 if	(( !SHOPT_MULTIBYTE && utf8 && !posix && !compile ))
 then	echo "-u/--utf8 is unavailable because multibyte support was not compiled in." >&2
 	exit 1
@@ -366,7 +366,7 @@ do	[[ $i == *.sh ]] || i+='.sh'
 	t=$(	case $i in
 		glob.sh)	grep -c '^[[:blank:]]*test_[a-z]\{3,\}' $i ;;
 		leaks.sh)	grep -c ^TEST $i ;;
-		printf.sh)	grep -c '^[[:blank:]]*T ' $i ;;
+		printf.sh)	grep -c -E '([[:blank:]]err_exit|^[[:blank:]]*T)[[:blank:]]' $i ;;
 		pty.sh)		grep -c 'tst ' $i ;;
 		*)		grep -c err_exit $i ;;
 		esac	)

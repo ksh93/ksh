@@ -2,6 +2,25 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-03-12:
+
+- Fixed a regression in the 'printf' built-in, introduced on 2023-05-17,
+  where each instance of '\0' or '%Z' in the format operand caused a string
+  argument to be incorrectly skipped.
+
+2024-03-10:
+
+- Fixed a longstanding bug where the default terminal width for typeset -L, -R,
+  or -Z, if not given, was miscalculated for multibyte or control characters.
+
+- Fixed a crash on redefining an array inherited from the parent environment
+  in a subshell.
+
+- Fixed corner case breakage of univese handling in the 'echo' command: it
+  broke when used in a namespace block before being used anywhere else, and
+  only if _AST_FEATURES was not exported first. The bug caused _AST_FEATURES to
+  be incorrectly placed in that namespace. Bug introduced on 2023-06-02.
+
 2024-03-07:
 
 - Fixed a bug that caused some systems to corrupt the display of multibyte

@@ -61,10 +61,10 @@ namespace man
 
 	builtin_has_selfdoc()
 	{
-		[[ $(unset -f -- "$1" 2>/dev/null; whence -t -- "$1") == builtin ]] \
+		[[ $(unset -f -- "$1"; whence -t -- "$1") == builtin ]] \
 			&& [[ ! $1 =~ ^(:|true|false|echo)$ \
 			&& $'\n'$(builtin)$'\n' == *$'\n'"$(unset -f -- "$1"; whence -- "$1")"$'\n'* ]]
-	}
+	} 2>/dev/null
 
 	# Check if a binary or script has --man self-documentation by grepping
 	# for an AST optget(3) usage string.
