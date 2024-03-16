@@ -256,12 +256,12 @@ static void r_comarg(struct comnod *com)
 	com->comstate = 0;
 	if(com->comtyp&COMSCAN)
 	{
-		com->comarg = r_arg();
-		if(com->comarg->argflag==ARG_RAW)
-			cmdname = com->comarg->argval;
+		com->comarg.ap = r_arg();
+		if(com->comarg.ap->argflag==ARG_RAW)
+			cmdname = com->comarg.ap->argval;
 	}
-	else if(com->comarg = (struct argnod*)r_comlist())
-		cmdname = ((struct dolnod*)(com->comarg))->dolval[ARG_SPARE];
+	else if(com->comarg.dp = r_comlist())
+		cmdname = com->comarg.dp->dolval[ARG_SPARE];
 	com->comline = sfgetu(infile);
 	com->comnamq = 0;
 	if(cmdname)

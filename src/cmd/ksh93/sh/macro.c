@@ -1102,7 +1102,7 @@ int sh_macfun(const char *name, int offset)
 		} d;
 		memset(&t,0,sizeof(t));
 		memset(&d,0,sizeof(d));
-		t.node.com.comarg = &d.arg;
+		t.node.com.comarg.ap = &d.arg;
 		t.node.com.comline = sh.inlineno;
 		d.dol.dolnum = 1;
 		d.dol.dolval[0] = sh_strdup(name);
@@ -2230,7 +2230,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 	{
 		fcsave(&save);
 		sfclose(sp);
-		if(t->tre.tretyp==0 && !t->com.comarg && !t->com.comset)
+		if(t->tre.tretyp==0 && !t->com.comarg.dp && !t->com.comset)
 		{
 			/* special case $(<file) and $(<#file) */
 			int fd;

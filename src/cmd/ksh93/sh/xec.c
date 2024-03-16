@@ -349,8 +349,8 @@ static int p_comarg(struct comnod *com)
 {
 	Namval_t *np=com->comnamp;
 	int n = p_arg(com->comset,ARG_ASSIGN);
-	if(com->comarg && (com->comtyp&COMSCAN))
-		n+= p_arg(com->comarg,0);
+	if((com->comtyp&COMSCAN) && com->comarg.ap)
+		n += p_arg(com->comarg.ap,0);
 	if(com->comstate && np)
 	{
 		/* call builtin to cleanup state */
@@ -367,7 +367,7 @@ static int p_comarg(struct comnod *com)
 		bp->data = save_data;
 	}
 	com->comstate = 0;
-	if(com->comarg && !np)
+	if(com->comarg.ap && !np)
 		n++;
 	return n;
 }
@@ -894,7 +894,7 @@ int sh_exec(const Shnode_t *t, int flags)
 		Shbltin_f	fp;
 		if((np = (Namval_t*)t->com.comnamp) && (fp = funptr(np))
 		&& (fp==b_true || (fp==b_false && !sh_isoption(SH_ERREXIT) && !sh.st.trap[SH_ERRTRAP])
-		   || fp==b_break && t->com.comarg->argchn.len==1)	/* for break/continue: 1 arg (command name) */
+		   || fp==b_break && t->com.comarg.dp->dolnum==1)	/* for break/continue: 1 arg (command name) */
 		&& !t->com.comset					/* no variable assignments list */
 		&& !t->com.comio					/* no I/O redirections */
 		&& !sh_isoption(SH_XTRACE)
@@ -950,7 +950,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			echeck = 1;
 			if(t->tre.tretyp&COMSCAN)
 			{
-				argp = t->com.comarg;
+				argp = t->com.comarg.ap;
 				if(argp && *com && !(argp->argflag&ARG_RAW))
 					sh_sigcheck();
 			}
@@ -2144,7 +2144,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			/* Recognize filescan loop for a lone input redirection following 'while' */
 			if(type==TWH					/* 'while' (not 'until') */
 			&& tt->tre.tretyp==TCOM 			/* one simple command follows 'while'... */
-			&& !tt->com.comarg				/* ...with no command name or arguments... */
+			&& !tt->com.comarg.dp				/* ...with no command name or arguments... */
 			&& !tt->com.comset				/* ...and no variable assignments list... */
 			&& tt->com.comio				/* ...and one I/O redirection... */
 			&& !tt->com.comio->ionxt			/* ...but not more than one... */
@@ -2543,8 +2543,8 @@ int sh_exec(const Shnode_t *t, int flags)
 				np->nvalue.rp->lineno = t->funct.functline;
 				np->nvalue.rp->nspace = sh.namespace;
 				np->nvalue.rp->fname = 0;
-				np->nvalue.rp->argv = ac?((struct dolnod*)ac->comarg)->dolval+1:0;
-				np->nvalue.rp->argc = ac?((struct dolnod*)ac->comarg)->dolnum:0;
+				np->nvalue.rp->argv = ac ? ac->comarg.dp->dolval + 1 : NULL;
+				np->nvalue.rp->argc = ac ? ac->comarg.dp->dolnum : 0;
 				np->nvalue.rp->fdict = sh.fun_tree;
 				fp = (struct functnod*)(slp+1);
 				if(fp->functtyp==(TFUN|FAMP))
@@ -2723,7 +2723,7 @@ int sh_run(int argn, char *argv[])
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;
 	memcpy(dp->dolval+ARG_SPARE, argv, (argn+1)*sizeof(char*));
-	t->comarg = (struct argnod*)dp;
+	t->comarg.dp = dp;
 	if(!strchr(argv[0],'/'))
 		t->comnamp = nv_bfsearch(argv[0],sh.fun_tree,(Namval_t**)&t->comnamq,NULL);
 	argn=sh_exec((Shnode_t*)t,sh_isstate(SH_ERREXIT));

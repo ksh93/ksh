@@ -218,12 +218,12 @@ static int p_comarg(const struct comnod *com)
 {
 	p_redirect(com->comio);
 	p_arg(com->comset);
-	if(!com->comarg)
+	if(!com->comarg.ap)
 		sfputl(outfile,-1);
 	else if(com->comtyp&COMSCAN)
-		p_arg(com->comarg);
+		p_arg(com->comarg.ap);
 	else
-		p_comlist((struct dolnod*)com->comarg);
+		p_comlist(com->comarg.dp);
 	return sfputu(outfile,com->comline);
 }
 

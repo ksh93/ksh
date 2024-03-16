@@ -542,18 +542,18 @@ static void p_comarg(const struct comnod *com)
 	int flag = end_line;
 	if(com->comtyp&FAMP)
 		sfwrite(outfile,"& ",2);
-	if(com->comarg || com->comio)
+	if(com->comarg.ap || com->comio)
 		flag = ' ';
 	if(com->comset)
 		p_arg(com->comset,flag,POST);
-	if(com->comarg)
+	if(com->comarg.ap)
 	{
 		if(!com->comio)
 			flag = end_line;
 		if(com->comtyp&COMSCAN)
-			p_arg(com->comarg,flag,POST);
+			p_arg(com->comarg.ap,flag,POST);
 		else
-			p_comlist((struct dolnod*)com->comarg,flag);
+			p_comlist(com->comarg.dp,flag);
 	}
 	if(com->comio)
 		p_redirect(com->comio);

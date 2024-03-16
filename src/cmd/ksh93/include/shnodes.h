@@ -46,7 +46,6 @@
 #define TTEST		(010<<COMBITS)
 #define TPAREN		(TBINARY|TUNARY)
 #define TSHIFT		(COMBITS+4)
-#define TNSPACE		(TFUN|COMSCAN)
 
 #define TCOM	0
 #define TPAR	1
@@ -66,6 +65,9 @@
 #define	TTIME	13
 #define TSETIO	14
 #define TFUN	15
+#if SHOPT_NAMESPACE
+#define TNSPACE	(TFUN|COMSCAN)
+#endif
 
 /* this node is a proforma for those that follow */
 

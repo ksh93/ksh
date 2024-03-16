@@ -639,21 +639,21 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 		const struct comnod *ac = comptr;
 		int n;
 		/* see if the arguments have already been expanded */
-		if(!ac->comarg)
+		if(!ac->comarg.ap)
 		{
 			*nargs = 0;
 			return &null;
 		}
 		else if(!(ac->comtyp&COMSCAN))
 		{
-			struct dolnod *ap = (struct dolnod*)ac->comarg;
+			struct dolnod *ap = ac->comarg.dp;
 			*nargs = ap->dolnum;
 			return ap->dolval+ap->dolbot;
 		}
 		*nargs = 0;
 		if(ac)
 		{
-			argp = ac->comarg;
+			argp = ac->comarg.ap;
 			while(argp)
 			{
 				n = arg_expand(argp,&arghead,flag);

@@ -301,7 +301,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					UNREACHABLE();
 				}
 				error_info.line = fp->fortyp-sh.st.firstline;
-				if(!array && tp->tre.tretyp!=TLST && tp->com.comset && !tp->com.comarg && tp->com.comset->argval[0]==0 && tp->com.comset->argval[1]=='[')
+				if(!array && tp->tre.tretyp!=TLST && tp->com.comset && !tp->com.comarg.ap && tp->com.comset->argval[0]==0 && tp->com.comset->argval[1]=='[')
 					array |= (tp->com.comset->argflag&ARG_MESSAGE)?NV_IARRAY:NV_ARRAY;
 				if(prefix && tp->com.comset && *cp=='[')
 				{
@@ -319,16 +319,32 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					}
 				}
 				np = nv_open(cp,sh.var_tree,flag|NV_ASSIGN);
-				if((arg->argflag&ARG_APPEND) && (tp->tre.tretyp&COMMSK)==TCOM && tp->com.comset && !nv_isvtree(np) && (((ap=nv_arrayptr(np)) && !ap->fun && !nv_opensub(np))  || (!ap && nv_isarray(np) && tp->com.comarg && !((mp=nv_search(tp->com.comarg->argval,sh.fun_tree,0)) && nv_isattr(mp,BLT_DCL)))))
+				if ( (arg->argflag & ARG_APPEND) &&
+				     (tp->tre.tretyp & COMMSK)==TCOM &&
+				     tp->com.comset &&
+				     !nv_isvtree(np) &&
+				     ( ( (ap = nv_arrayptr(np)) &&
+				         !ap->fun &&
+				         !nv_opensub(np)
+				       ) ||
+				       ( !ap &&
+					 nv_isarray(np) &&
+					 tp->com.comarg.ap &&
+					 ! ( (mp = nv_search(tp->com.comarg.ap->argval,sh.fun_tree,0)) &&
+				             nv_isattr(mp,BLT_DCL)
+				           )
+				       )
+				     )
+				   )
 				{
-					if(tp->com.comarg)
+					if(tp->com.comarg.ap)
 					{
 						struct argnod *ap = tp->com.comset;
 						while(ap->argnxt.ap)
 							ap = ap->argnxt.ap;
-						ap->argnxt.ap = tp->com.comarg;
+						ap->argnxt.ap = tp->com.comarg.ap;
 					}
-					tp->com.comarg = tp->com.comset;
+					tp->com.comarg.ap = tp->com.comset;
 					tp->com.comset = 0;
 					tp->com.comtyp = COMSCAN;
 				}
@@ -373,10 +389,10 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 						nv_onattr(np,NV_ARRAY);
 					}
 				}
-				if(array && tp->tre.tretyp!=TLST && !tp->com.comset && !tp->com.comarg)
+				if(array && tp->tre.tretyp!=TLST && !tp->com.comset && !tp->com.comarg.ap)
 					goto check_type;
 				/* check for array assignment */
-				if(tp->tre.tretyp!=TLST && tp->com.comarg && !tp->com.comset && ((array&NV_IARRAY) || !((mp=tp->com.comnamp) && nv_isattr(mp,BLT_DCL))))
+				if(tp->tre.tretyp!=TLST && tp->com.comarg.ap && !tp->com.comset && ((array&NV_IARRAY) || !((mp=tp->com.comnamp) && nv_isattr(mp,BLT_DCL))))
 				{
 					int argc;
 					Dt_t	*last_root = sh.last_root;
@@ -424,7 +440,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 				}
 				if((tp->tre.tretyp&COMMSK)==TFUN)
 					goto skip;
-				if(tp->tre.tretyp==0 && !tp->com.comset && !tp->com.comarg)
+				if(tp->tre.tretyp==0 && !tp->com.comset && !tp->com.comarg.dp)
 				{
 					if(!(arg->argflag&ARG_APPEND))
 					{
@@ -557,15 +573,15 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 					np = mp;
 				while(tp->tre.tretyp==TLST)
 				{
-					if(!tp->lst.lstlef || !tp->lst.lstlef->tre.tretyp==TCOM || tp->lst.lstlef->com.comarg || tp->lst.lstlef->com.comset && tp->lst.lstlef->com.comset->argval[0]!='[')
+					if(!tp->lst.lstlef || !tp->lst.lstlef->tre.tretyp==TCOM || tp->lst.lstlef->com.comarg.ap || tp->lst.lstlef->com.comset && tp->lst.lstlef->com.comset->argval[0]!='[')
 						break;
 					tp = tp->lst.lstrit;
 
 				}
-				if(!nv_isarray(np) && !typ && (tp->com.comarg || !tp->com.comset || tp->com.comset->argval[0]!='['))
+				if(!nv_isarray(np) && !typ && (tp->com.comarg.ap || !tp->com.comset || tp->com.comset->argval[0]!='['))
 				{
 					nv_setvtree(np);
-					if(tp->com.comarg || tp->com.comset)
+					if(tp->com.comarg.ap || tp->com.comset)
 						np->nvfun->dsize = 0;
 				}
 				goto check_type;

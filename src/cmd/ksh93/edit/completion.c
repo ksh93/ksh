@@ -311,7 +311,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		goto done;
 	}
 	comptr->comtyp = COMSCAN;
-	comptr->comarg = ap;
+	comptr->comarg.ap = ap;
 	ap->argflag = (ARG_MAC|ARG_EXP);
 	ap->argnxt.ap = 0;
 	ap->argchn.cp = 0;

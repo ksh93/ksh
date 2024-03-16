@@ -186,7 +186,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 	char	*cp=0;		/* name of built-in to pre-add */
 	if(tp->comtyp&COMSCAN)
 	{
-		struct argnod *ap = tp->comarg;
+		struct argnod *ap = tp->comarg.ap;
 		while(ap = ap->argnxt.ap)
 		{
 			if(!(ap->argflag&ARG_RAW) || strncmp(ap->argval,"--",2))
@@ -206,7 +206,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 	}
 	else
 	{
-		struct dolnod *dp = (struct dolnod*)tp->comarg;
+		struct dolnod *dp = tp->comarg.dp;
 		char **argv = dp->dolval + ARG_SPARE;
 		if(intypeset==2)
 		{
@@ -847,7 +847,7 @@ static Shnode_t *funct(Lex_t *lexp)
 				errormsg(SH_DICT,ERROR_exit(3),e_lexsyntax4,sh.inlineno);
 				UNREACHABLE();
 			}
-			argv0 = argv = ((struct dolnod*)ac->comarg)->dolval+ARG_SPARE;
+			argv0 = argv = ac->comarg.dp->dolval + ARG_SPARE;
 			while(cp= *argv++)
 			{
 				size += strlen(cp)+1;
@@ -866,7 +866,7 @@ static Shnode_t *funct(Lex_t *lexp)
 				Namval_t *np= nv_open(t->funct.functnam,sh.fun_tree,NV_ADD|NV_VARNAME);
 				np->nvalue.rp = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
 				memset(np->nvalue.rp,0,sizeof(struct Ufunction));
-				np->nvalue.rp->argc = ((struct dolnod*)ac->comarg)->dolnum;
+				np->nvalue.rp->argc = ac->comarg.dp->dolnum;
 			}
 		}
 		while(lexp->token==NL)
@@ -900,10 +900,10 @@ static Shnode_t *funct(Lex_t *lexp)
 		if(size)
 		{
 			struct dolnod *dp = stkalloc(sh.stk,size);
-			char *cp, *sp, **argv, **old = ((struct dolnod*)t->funct.functargs->comarg)->dolval+1;
+			char *cp, *sp, **argv, **old = t->funct.functargs->comarg.dp->dolval + 1;
 			argv = ((char**)(dp->dolval))+1;
-			dp->dolnum = ((struct dolnod*)t->funct.functargs->comarg)->dolnum;
-			t->funct.functargs->comarg = (struct argnod*)dp;
+			dp->dolnum = t->funct.functargs->comarg.dp->dolnum;
+			t->funct.functargs->comarg.dp = dp;
 			for(cp=(char*)&argv[nargs]; sp= *old++; cp++)
 			{
 				*argv++ = cp;
@@ -1038,9 +1038,9 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 			ar = stkseek(sh.stk,ARGVAL);
 			ar->argflag= ARG_ASSIGN;
 			sfprintf(sh.stk,"[%d]=",index++);
-			if(aq=ac->comarg)
+			if(aq = ac->comarg.ap)
 			{
-				ac->comarg = aq->argnxt.ap;
+				ac->comarg.ap = aq->argnxt.ap;
 				sfprintf(sh.stk,"%s",aq->argval);
 				ar->argflag |= aq->argflag;
 			}
@@ -1286,14 +1286,7 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 				/* some Linux scripts assume this */
 				if(sh_isoption(SH_NOEXEC))
 					errormsg(SH_DICT,ERROR_warn(0),e_lexemptyfor,sh.inlineno-(lexp->token=='\n'));
-				t->for_.forlst = getnode(comnod);
-				(t->for_.forlst)->comarg = 0;
-				(t->for_.forlst)->comset = 0;
-				(t->for_.forlst)->comnamp = 0;
-				(t->for_.forlst)->comnamq = 0;
-				(t->for_.forlst)->comstate = 0;
-				(t->for_.forlst)->comio = 0;
-				(t->for_.forlst)->comtyp = 0;
+				t->for_.forlst = memset(getnode(comnod),0,sizeof(struct comnod));
 			}
 			else
 				t->for_.forlst=(struct comnod*)simple(lexp,SH_NOIO,NULL);
@@ -1370,7 +1363,7 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 	    /* simple command */
 	    case 0:
 		t = (Shnode_t*)simple(lexp,flag,io);
-		if(t->com.comarg && lexp->intypeset)
+		if(t->com.comarg.ap && lexp->intypeset)
 			check_typedef(&t->com, lexp->intypeset);
 		lexp->intypeset = 0;
 		lexp->inexec = 0;
@@ -1426,15 +1419,11 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		flag |= SH_ARRAY;
 		associative = 1;
 	}
-	t = getnode(comnod);
+	t = memset(getnode(comnod),0,sizeof(struct comnod));
 	t->comio=io; /* initial io chain */
 	/* set command line number for error messages */
 	t->comline = sh_getlineno(lexp);
-	argtail = &(t->comarg);
-	t->comset = 0;
-	t->comnamp = 0;
-	t->comnamq = 0;
-	t->comstate = 0;
+	argtail = &(t->comarg.ap);
 	settail = &(t->comset);
 	if(lexp->assignlevel && (flag&SH_ARRAY) && check_array(lexp))
 		type |= NV_ARRAY;
@@ -1536,7 +1525,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 				else if((Namval_t*)t->comnamp >= SYSTYPESET && (Namval_t*)t->comnamp <= SYSTYPESET_END)
 				{
 					struct argnod  *ap;
-					for(ap=t->comarg->argnxt.ap;ap;ap=ap->argnxt.ap)
+					for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
 					{
 						if(*ap->argval!='-')
 							break;
@@ -1603,7 +1592,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		Namval_t *np=(Namval_t*)t->comnamp;
 		unsigned long r=0;
 		int line = t->comline;
-		argp = t->comarg;
+		argp = t->comarg.ap;
 		if(np)
 			r = kiaentity(lexp,nv_name(np),-1,'p',-1,0,lexp->unknown,'b',0,"");
 		else if(argp)
@@ -1611,7 +1600,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		if(r>0)
 			sfprintf(lexp->kiatmp,"p;%..64d;p;%..64d;%d;%d;c;\n",lexp->current,r,line,line);
 		if(t->comset && argno==0)
-			writedefs(lexp,t->comset,line,'v',t->comarg);
+			writedefs(lexp,t->comset,line,'v',t->comarg.ap);
 		else if(np && nv_isattr(np,BLT_DCL))
 			writedefs(lexp,argp,line,0,NULL);
 		else if(argp && strcmp(argp->argval,"read")==0)
@@ -1624,14 +1613,14 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 	}
 #endif /* SHOPT_KIA */
 	/* noexec: warn about set - and set -k */
-	if(sh_isoption(SH_NOEXEC) && t->comnamp && (argp = t->comarg->argnxt.ap)
+	if(sh_isoption(SH_NOEXEC) && t->comnamp && (argp = t->comarg.ap->argnxt.ap)
 	&& (Namval_t*)t->comnamp==SYSSET && ((tok = *argp->argval)=='-' || tok=='+')
 	&& (argp->argval[1]==0 || strchr(argp->argval,'k')))
 		errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,sh.inlineno-(lexp->token=='\n'),argp->argval);
 	/* expand argument list if possible */
 	if(argno>0 && !(flag&(SH_ARRAY|NV_APPEND)))
-		t->comarg = qscan(t,argno);
-	else if(t->comarg)
+		t->comarg.ap = qscan(t,argno);
+	else if(t->comarg.ap)
 		t->comtyp |= COMSCAN;
 	lexp->aliasok = 0;
 	return (Shnode_t*)t;
@@ -1824,12 +1813,12 @@ static struct argnod *qscan(struct comnod *ac,int argn)
 	{
 		if((Namval_t*)ac->comnamp==SYSTEST)
 			special = 2;	/* convert "test -t" to "test -t 1" */
-		else if(*(ac->comarg->argval)=='[' && ac->comarg->argval[1]==0)
+		else if(*(ac->comarg.ap->argval)=='[' && ac->comarg.ap->argval[1]==0)
 			special = 3;	/* convert "[ -t ]" to "[ -t 1 ]" */
 	}
 	if(special)
 	{
-		ap = ac->comarg->argnxt.ap;
+		ap = ac->comarg.ap->argnxt.ap;
 		if(argn==(special+1) && ap->argval[1]==0 && *ap->argval=='!')
 			ap = ap->argnxt.ap;
 		else if(argn!=special)
@@ -1856,7 +1845,7 @@ static struct argnod *qscan(struct comnod *ac,int argn)
 	cp = dp->dolval+ARG_SPARE;
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;
-	ap = ac->comarg;
+	ap = ac->comarg.ap;
 	while(ap)
 	{
 		*cp++ = ap->argval;

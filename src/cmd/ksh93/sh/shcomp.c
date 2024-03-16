@@ -198,15 +198,11 @@ int main(int argc, char *argv[])
 			{
 				if(t->com.comtyp&COMSCAN)
 				{
-					if(t->com.comarg->argnxt.ap)
+					if(t->com.comarg.ap->argnxt.ap)
 						break;
 				}
-				else
-				{
-					struct dolnod *ap = (struct dolnod*)t->com.comarg;
-					if(ap->dolnum>1)
-						break;
-				}
+				else if(t->com.comarg.dp->dolnum > 1)
+					break;
 			}
 		}
 	}

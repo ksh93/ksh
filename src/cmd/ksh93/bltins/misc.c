@@ -154,7 +154,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 			dp->dolnum = argc;
 			dp->dolbot = ARG_SPARE;
 			memcpy(dp->dolval+ARG_SPARE, argv, (argc+1)*sizeof(char*));
-			t->comarg = (struct argnod*)dp;
+			t->comarg.dp = dp;
 			sh_exec((Shnode_t*)t,sh_isstate(SH_ERREXIT));
 			sh_offstate(SH_EXEC);
 			siglongjmp(*sh.jmplist,SH_JMPEXIT);
