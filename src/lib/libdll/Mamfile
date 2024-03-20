@@ -8,7 +8,7 @@ setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
-setv mam_cc_FLAGS ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
+setv mam_cc_FLAGS ${mam_cc_TARGET} ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS

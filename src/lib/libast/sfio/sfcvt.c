@@ -34,7 +34,7 @@ static char		*Zero = "0";
 #define SFIO_ZERO		((_Sfi = 1), strlcpy(buf, Zero, size), buf)
 #define SFIO_INTPART	(SFIO_IDIGITS/2)
 
-#if !_lib_isnan
+#if !_lib_isnan || __ANDROID_API__
 #undef	isnan
 #undef	isnanl
 #if _lib_fpclassify

@@ -133,10 +133,10 @@ eval $bar
 if	[[ $foo != 'foo bar' ]]
 then	err_exit 'eval foo=\$bar, with bar="foo\ bar" not working'
 fi
-cd /tmp
-cd ../../tmp || err_exit "cd ../../tmp failed"
-if	[[ $PWD != /tmp ]]
-then	err_exit 'cd ../../tmp is not /tmp'
+cd /dev
+cd ../../dev || err_exit "cd ../../dev failed"
+if	[[ $PWD != /dev ]]
+then	err_exit 'cd ../../dev is not /dev'
 fi
 ( sleep .2; cat <<!
 foobar
@@ -990,6 +990,7 @@ do
 	|| err_exit "last command in forked comsub exec-optimized in spite of $sig trap ($pid1 == $pid2)"
 
 	cat >script <<-EOF
+	trap + $sig  # unignore
 	trap ":" $sig
 	echo \$\$
 	sh -c 'echo \$\$'

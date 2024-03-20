@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-03-20:
+
+- Android with Termux is now a supported environment for ksh 93u+m. Testing
+  was done on Android 14.0 with Termux 0.118.0. Please report any breakage.
+  Build dependencies (Termux packages): clang, binutils, getconf. Runtime
+  depenencies: ncurses-utils (for --multiline), getconf (fallback for the
+  /opt/ast/bin/getconf builtin).
+
 2024-03-12:
 
 - Fixed a regression in the 'printf' built-in, introduced on 2023-05-17,

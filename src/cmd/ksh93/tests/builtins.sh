@@ -1312,10 +1312,10 @@ got=$(OLDPWD=$tmp/oldpwd cd -)
 
 function fn
 {
-	typeset OLDPWD=/tmp
+	typeset OLDPWD=/dev
 	cd -
 }
-exp='/tmp'
+exp='/dev'
 got=$(OLDPWD=/bin fn)
 [[ $got == "$exp" ]] ||
 	err_exit "cd - doesn't recognize overridden OLDPWD variable if it is overridden in function scope" \
@@ -1324,10 +1324,10 @@ got=$(OLDPWD=/bin fn)
 function fn
 {
 	typeset PWD=bug
-	cd /tmp
+	cd /dev
 	echo "$PWD"
 }
-exp='/tmp'
+exp='/dev'
 got=$(fn)
 [[ $got == "$exp" ]] ||
 	err_exit "PWD isn't set after cd if already set in function scope" \
@@ -1336,7 +1336,7 @@ got=$(fn)
 # $PWD should be set correctly after cd
 exp="$PWD
 $PWD"
-got=$(echo $PWD; PWD=/tmp cd /dev; echo $PWD)
+got=$(echo $PWD; PWD=/bin cd /dev; echo $PWD)
 [[ $got == "$exp" ]] ||
 	err_exit "PWD is incorrect after cd" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -1633,12 +1633,12 @@ HOME=/dev cd
 
 function fn
 {
-	typeset HOME=/tmp
+	typeset HOME=/dev
 	cd
 }
 fn
 unset -f fn
-[[ $PWD == /tmp ]] || err_exit "'cd' does not chdir to \$HOME (local assignment)"
+[[ $PWD == /dev ]] || err_exit "'cd' does not chdir to \$HOME (local assignment)"
 
 # ======
 # Double evaluation of arithmetic expression passed to float conversion operators in printf

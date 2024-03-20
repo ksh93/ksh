@@ -8,7 +8,7 @@ setv INSTALLROOT ../../..
 setv PACKAGEROOT ../../../../..
 setv CC cc
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
-setv mam_cc_FLAGS ${mam_cc_DLL} -D_BLD_ast ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
+setv mam_cc_FLAGS ${mam_cc_TARGET} ${mam_cc_DLL} -D_BLD_ast ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?}
 setv CCFLAGS
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
@@ -231,6 +231,7 @@ make install virtual
 
 	make ast_tty.h implicit
 		make FEATURE/tty implicit
+			prev ast_lib.h
 			prev features/tty
 			exec - invoke_iffe ${<}
 		done
@@ -4785,6 +4786,7 @@ make install virtual
 					prev include/aso.h
 					prev FEATURE/vmalloc
 					prev ast_common.h
+					prev sig.h
 					prev include/ast.h
 				done
 			done

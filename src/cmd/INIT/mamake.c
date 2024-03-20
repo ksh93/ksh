@@ -27,7 +27,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2024-03-08"
+#define RELEASE_DATE "2024-03-20"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -154,9 +154,11 @@ static const char usage[] =
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <time.h>
 
 #if !_PACKAGE_ast
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #endif
@@ -1287,34 +1289,29 @@ static char *input(void)
 
 static int execute(char *s)
 {
-	int	c;
-	Buf_t	*buf;
+	int	stat;
+	pid_t	pid;
 
 	if (!state.shell && (!(state.shell = getval(state.vars, "SHELL")) || !strcmp(state.shell, sh)))
 		state.shell = sh;
-	buf = buffer();
-	append(buf, state.shell);
-	append(buf, " -c '");
-	while (c = *s++)
-	{
-		if (c == '\'')
-		{
-			add(buf, c);
-			for (s--; *s == c; s++)
-			{
-				add(buf, '\\');
-				add(buf, c);
-			} 
-		}
-		add(buf, c);
+	pid = fork();
+	if (pid < 0)
+		report(3, strerror(errno), "fork() failed", 0);
+	if (pid == 0)
+	{	/* child */
+		report(-5, s, "exec", 0);
+		execl(state.shell, "sh", "-c", s, (char*)0);
+		if (errno == ENOENT)
+			exit(127);
+		exit(126);
 	}
-	add(buf, '\'');
-	s = use(buf);
-	report(-5, s, "exec", 0);
-	if ((c = system(s)) > 255)
-		c >>= 8;
-	drop(buf);
-	return c;
+	/* parent */
+	waitpid(pid, &stat, 0);
+	if (WIFEXITED(stat))
+		return WEXITSTATUS(stat);
+	if (WIFSIGNALED(stat))
+		return WTERMSIG(stat) + 128;
+	return 128;
 }
 
 /*

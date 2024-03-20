@@ -39,6 +39,10 @@ static const char usage[] =
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#if __ANDROID_API__
+/* Android declares ntohs(3) here, not in arpa/inet.h as POSIX mandates */
+#include <sys/endian.h>
+#endif /* __ANDROID_API__ */
 #else
 #undef	S_IFSOCK
 #endif

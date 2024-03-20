@@ -22,13 +22,7 @@
 
 command=mamprobe
 
-bins=`
-	(
-		userPATH=$PATH
-		PATH=/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
-		getconf PATH 2>/dev/null && echo "$userPATH" || echo /bin:/usr/bin:/sbin:/usr/sbin:"$userPATH"
-	) | sed 's/:/ /g'
-` || exit
+bins=$(echo "$DEFPATH:$PATH" | sed 's/:/ /g') || exit
 
 # check the options
 

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -395,12 +395,12 @@ DONE
 # Test for a memory leak after 'cd' (in relation to $PWD and $OLDPWD)
 TEST	title='PWD and/or OLDPWD changed by cd'
 DO
-	cd /tmp
+	cd /tmp 2>/dev/null || cd /
 	cd - > /dev/null
 	PWD=/foo
 	OLDPWD=/bar
 	cd /bin
-	cd /usr
+	cd /usr 2>/dev/null || cd /
 	cd /dev
 	cd /dev
 	cd - > /dev/null

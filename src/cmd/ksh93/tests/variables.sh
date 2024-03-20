@@ -314,7 +314,7 @@ done
 kill -s 0 $! || err_exit '$! does not point to latest asynchronous process'
 kill $!
 unset x
-cd /tmp || exit
+cd /dev || exit
 CDPATH=/
 x=$(cd ${tmp#/})
 if	[[ $x != $tmp ]]

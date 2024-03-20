@@ -82,42 +82,6 @@ case $PWD in
 	exit 1 ;;
 esac || exit
 
-# Outputs sanitized system $PATH, eliminating duplicate and nonexistent dirs, '..', etc.
-sanitize_PATH() (
-	set -fu +e
-	IFS=':'
-	unset -v CDPATH
-	sPATH=''
-	for dir in $1; do
-		# Sanitize this path, resolving symlinks,
-		# with special-casing of ksh's virtual built-ins directory
-		case $dir in
-		/opt/ast/bin)
-			test ! -d "$dir" && sdir=$dir ;;
-		*/* | [!+-]* | [+-]*[!0123456789]*)
-			sdir=$(cd -- $dir 2>/dev/null && pwd -P && echo X) ;;
-		*)	sdir=$(cd ./$dir 2>/dev/null && pwd -P && echo X) ;;
-		esac || continue
-		sdir=${sdir%?X}
-		# Skip duplicates
-		case :$sPATH: in
-		*:"$sdir":*)
-			continue ;;
-		esac
-		# Found one, add it
-		sPATH=${sPATH:+$sPATH:}$sdir
-	done
-	printf '%s\n' "${sPATH#:}"
-)
-
-# Ensure a sane $PATH beginning with standard utilities.
-# Find preferred 'getconf' on NixOS and Solaris/illumos.
-DEFPATH=$(
-	PATH=/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
-	getconf PATH 2>/dev/null
-) || DEFPATH=/bin:/usr/bin:/sbin:/usr/sbin
-PATH=$(sanitize_PATH "/opt/ast/bin:$DEFPATH:$PATH")
-
 # shell checks
 checksh()
 {
@@ -137,7 +101,7 @@ lib="" # need /usr/local/lib /usr/local/shlib
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
 makefiles="Mamfile"  # ksh 93u+m no longer uses these: Nmakefile nmakefile Makefile makefile
-env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH FPATH MANPATH"
+env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH DEFPATH FPATH MANPATH"
 
 package_use='=$HOSTTYPE=$PACKAGEROOT=$INSTALLROOT=$EXECROOT=$CC='
 
@@ -151,7 +115,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2024-03-08 $
+@(#)$Id: '$command$' (ksh 93u+m) 2024-03-21 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -584,7 +548,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2024-03-08
+  version         package (ksh 93u+m) 2024-03-21
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -1074,6 +1038,9 @@ int main(void)
 		*-linux-gnu* | *-linux-musl*)
 			# fix missing machine field, e.g. aarch64-linux-gnu => aarch64-unknown-linux-gnu
 			canon=${canon%%-*}-unknown-${canon#*-} ;;
+		*-linux-android*)
+			# Android/Termux is very much its own thing, so identify it as 'android', not 'linux'
+			canon=${canon%-linux-*}-android ;;
 		esac
 		case -${canon}- in
 		--|*-powerpc-*)
@@ -1686,6 +1653,115 @@ checkcc()
 		;;
 	esac
 }
+
+# output sanitized system $PATH, eliminating duplicate and nonexistent dirs, '..', etc.
+
+sanitize_PATH()
+(
+	set -fu +e
+	IFS=':'
+	unset -v CDPATH
+	sPATH=''
+	for dir in $1; do
+		# Sanitize this path, resolving symlinks,
+		# with special-casing of ksh's virtual built-ins directory
+		case $dir in
+		/opt/ast/bin)
+			test ! -d "$dir" && sdir=$dir ;;
+		*/* | [!+-]* | [+-]*[!0123456789]*)
+			sdir=$(cd -- $dir 2>/dev/null && pwd -P && echo X) ;;
+		*)	sdir=$(cd ./$dir 2>/dev/null && pwd -P && echo X) ;;
+		esac || continue
+		sdir=${sdir%?X}
+		# Skip duplicates
+		case :$sPATH: in
+		*:"$sdir":*)
+			continue ;;
+		esac
+		# Found one, add it
+		sPATH=${sPATH:+$sPATH:}$sdir
+	done
+	printf '%s\n' "${sPATH#:}"
+)
+
+# Ensure a sane $PATH beginning with standard utilities.
+# POSIXly, a simple 'getconf PATH' should do it, but reality is otherwise.
+# Find preferred getconf(1) on NixOS and Solaris/illumos.
+# Compile fallback programs on systems without getconf(1).
+
+DEFPATH=$(
+	# support Android/Termux, NixOS, Solaris/illumos, generic /bin:/usr/bin
+	PATH=/data/data/com.termux/files/usr/bin:/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+	getconf PATH 2>/dev/null || {
+		# no getconf(1) -- try confstr(3)
+		checkcc
+		t=${TMPDIR:-/tmp}/path_test.$$
+		trap 'set +f; rm -rf "$t."*' 0
+		cat > $t.c <<-EOF
+			#include <stdio.h>
+			#include <unistd.h>
+			int main(void)
+			{
+				char buf[8192];
+				size_t len = confstr(_CS_PATH, &buf, sizeof(buf));
+				if (len > 0 && len < sizeof(buf))
+				{
+					printf("%s\n", buf);
+					return 0;
+				}
+				return 1;
+			}
+		EOF
+		$CC $CCFLAGS $LDFLAGS -o "$t.exe" "$t.c" 2>/dev/null && "$t.exe"
+	} || {
+		# no confstr(3) either -- try non-standard _PATH_DEFPATH
+		cat > $t.c <<-EOF
+			#include <stdio.h>
+			#include <paths.h>
+			int main(void)
+			{
+				printf("%s\n", _PATH_DEFPATH);
+				return 0;
+			}
+		EOF
+		$CC $CCFLAGS $LDFLAGS -o "$t.exe" "$t.c" 2>/dev/null && "$t.exe"
+	}
+) || DEFPATH=/bin:/usr/bin:/sbin:/usr/sbin
+# Fix for NixOS. Not all POSIX standard utilities come with the default system,
+# e.g. 'bc', 'file', 'vi'. The command that NixOS recommends to get missing
+# utilities, e.g. 'nix-env -iA nixos.bc', installs them in a default profile
+# directory that is not in $(getconf PATH). So add this path to the standard path.
+# See: https://github.com/NixOS/nixpkgs/issues/65512
+if	test -e /etc/NIXOS &&
+	nix_profile_dir=/nix/var/nix/profiles/default/bin &&
+	test -d "$nix_profile_dir"
+then	case ":$DEFPATH:" in
+	*:"$nix_profile_dir":* )
+		# nothing to do
+		;;
+	* )	# insert the default profile directory as the second entry
+		DEFPATH=$(
+			set -f
+			IFS=:
+			set -- $DEFPATH
+			one=$1
+			shift
+			echo "$one:$nix_profile_dir${1+:}$*"
+		) ;;
+	esac
+fi
+# Fix for AIX. At least as of version 7.1, the system default 'find', 'diff -u' and 'patch' utilities
+# are broken and/or non-compliant in ways that make them incompatible with POSIX 2018. However, GNU
+# utilities are commonly installed in /opt/freeware/bin, and under standard names (no g- prefix).
+if	test -d /opt/freeware/bin
+then	case $(uname) in
+	AIX )	DEFPATH="/opt/freeware/bin:$DEFPATH" ;;
+	esac
+fi
+
+export DEFPATH  # for iffe, etc.
+
+PATH=$(sanitize_PATH "/opt/ast/bin:$DEFPATH:$PATH")
 
 # some actions have their own PACKAGEROOT or kick out early
 

@@ -8,7 +8,7 @@ setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
-setv mam_cc_FLAGS ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\" -D_BLD_cmd
+setv mam_cc_FLAGS ${mam_cc_TARGET} ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\" -D_BLD_cmd
 setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS

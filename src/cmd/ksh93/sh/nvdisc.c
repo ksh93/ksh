@@ -1294,6 +1294,8 @@ static void put_table(Namval_t* np, const char* val, int flags, Namfun_t* fp)
 		dtdelete(root,mp);
 		free(mp);
 	}
+	if(sh.last_root==root)
+		sh.last_root = NULL;
 	dtclose(root);
 	if(!(fp->nofree&1))
 		free(fp);

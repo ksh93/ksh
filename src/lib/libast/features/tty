@@ -10,7 +10,6 @@ lib	tcgetpgrp unistd.h fail{
 	echo "$0: POSIX tcgetpgrp(3) is required" >&2
 	exit 1
 }end
-sys	ioctl
 mac	_POSIX_VDISABLE termios.h
 mem	termios.c_line termios.h
 
@@ -20,6 +19,7 @@ cat{
 #   undef _POSIX_VDISABLE
 #endif
 #include <termios.h>
+#include <ast_lib.h>
 
 #undef tcgetattr
 #undef tcsetattr

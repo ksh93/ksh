@@ -331,14 +331,7 @@ CONF_getconf=
 CONF_getconf_a=
 IFS=':'; set -f
 for d in \
-	/run/current-system/sw/bin \
-	/usr/xpg7/bin \
-	/usr/xpg6/bin \
-	/usr/xpg4/bin \
-	/usr/bin \
-	/bin \
-	/usr/sbin \
-	/sbin \
+	$DEFPATH \
 	$PATH
 do	case $d in
 	/*)	;;

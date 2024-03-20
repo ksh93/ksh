@@ -466,8 +466,8 @@ u yes-yes
 disabled
 
 # Test file name completion in vi mode
-if((SHOPT_VSH)); then
-mkdir "/tmp/fakehome_$$" && tst $LINENO <<!
+if((SHOPT_VSH)) && mkdir "/tmp/fakehome_$$" 2>/dev/null; then
+tst $LINENO <<!
 L vi mode file name completion
 
 # Completing a file name in vi mode that contains '~' and has a
