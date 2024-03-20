@@ -33,7 +33,7 @@
 
 ((!SHOPT_SCRIPTONLY)) || { warning "interactive shell was compiled out -- tests skipped"; exit 0; }
 whence -q pty || { warning "pty command not found -- tests skipped"; exit 0; }
-case $(uname -s) in
+case $(uname -s; [[ $HOSTTYPE == android.* ]] && echo _no_) in
 Darwin | DragonFly | FreeBSD | Linux | MidnightBSD )
 	;;
 * )	warning "pty not confirmed to work correctly on this system -- tests skipped"

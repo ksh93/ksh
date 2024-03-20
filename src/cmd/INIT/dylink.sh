@@ -85,7 +85,7 @@ ms)	case $suffix in
 esac
 
 case $HOSTTYPE in
-darwin.* | freebsd* | linux.* | openbsd.* | sol* )
+android.* | darwin.* | freebsd* | linux.* | openbsd.* | sol* )
 	# supported
 	;;
 cygwin.*)
