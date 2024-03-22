@@ -56,6 +56,22 @@ if	hdr - wctype wchar.h
 	endif
 endif
 
+tst	iswpunct_broken note{ is iswpunct(3) broken }end execute{
+	/* on Android 14.0, it is: it does not recognise some of the ASCII characters. ispunct(3) is fine */
+	#include <ctype.h>
+	#include <wctype.h>
+	int main(void)
+	{
+		char c[] = { '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';',
+				'<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', '\0' };
+		int i;
+		for (i = 0; c[i]; i++)
+			if (ispunct(c[i]) && !iswpunct(c[i]))
+				return 0;
+		return 1;
+	}
+}end
+
 run{
 cat <<!
 	#ifndef WEOF

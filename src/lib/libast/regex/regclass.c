@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -71,7 +71,14 @@ static int Notdigit(int c) { return !iswdigit(c); }
 static int  Isgraph(int c) { return  iswgraph(c); }
 static int  Islower(int c) { return  iswlower(c); }
 static int  Isprint(int c) { return  iswprint(c); }
-static int  Ispunct(int c) { return  iswpunct(c); }
+static int  Ispunct(int c)
+{
+#if _iswpunct_broken && CC_NATIVE == CC_ASCII
+	if (c < 128)
+		return ispunct(c);
+#endif
+	return iswpunct(c);
+}
 static int  Isspace(int c) { return  iswspace(c); }
 static int Notspace(int c) { return !iswspace(c); }
 static int  Isupper(int c) { return  iswupper(c); }
