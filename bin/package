@@ -1727,6 +1727,15 @@ DEFPATH=$(
 		$CC $CCFLAGS $LDFLAGS -o "$t.exe" "$t.c" 2>/dev/null && "$t.exe"
 	}
 ) || DEFPATH=/bin:/usr/bin:/sbin:/usr/sbin
+# Fix for Android/Termux. The /bin directory exists with standard
+# utilities (sh, Toybox utils) but it is not included in _PATH_DEFPATH.
+# It should come first because /bin is read-only.
+if	test -d /data/data/com.termux && test "$(/bin/uname -o 2>/dev/null)" = Android
+then	case ":$DEFPATH:" in
+	*:/bin:* ) ;;
+	* )	DEFPATH=/bin:$DEFPATH ;;
+	esac
+fi
 # Fix for NixOS. Not all POSIX standard utilities come with the default system,
 # e.g. 'bc', 'file', 'vi'. The command that NixOS recommends to get missing
 # utilities, e.g. 'nix-env -iA nixos.bc', installs them in a default profile

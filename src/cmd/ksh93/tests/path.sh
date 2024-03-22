@@ -318,6 +318,7 @@ if builtin getconf 2> /dev/null; then
 fi
 
 PATH=$path
+builtin -d /bin/getconf
 
 scr=$tmp/script
 exp=126
@@ -1021,6 +1022,20 @@ got=${ whence -t whence_t_test 2>&1; }
 [[ $got == "$exp" ]] || err_exit "incorrect 'whence -t' output for undefined function (expected '$exp', got '$got')"
 got=${ type -t whence_t_test 2>&1; }
 [[ $got == "$exp" ]] || err_exit "incorrect 'type -t' output for undefined function (expected '$exp', got '$got')"
+
+# ======
+(
+	builtin getconf 2>/dev/null || exit 1
+	p=$(getconf GETCONF)
+	[[ $p == /*/getconf ]] || exit 2
+	builtin -d getconf
+	builtin "$p"
+	PATH=${p%/getconf}
+	getconf some_nonexistent_config_variable  # be sure to trigger fallback to external command
+	exit 0
+) >/dev/null 2>&1
+(((e = $?) > 1)) && err_exit 'getconf builtin fails when on same path as external getconf' \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
 exit $((Errors<125?Errors:125))

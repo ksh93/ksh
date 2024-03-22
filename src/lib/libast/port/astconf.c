@@ -790,9 +790,9 @@ feature(Feature_t* fp, const char* name, const char* path, const char* value, un
 static int
 lookup(Lookup_t* look, const char* name, unsigned int flags)
 {
-	Conf_t*		mid = (Conf_t*)conf;
-	Conf_t*		lo = mid;
-	Conf_t*		hi = mid + conf_elements;
+	Conf_t*		lo = (Conf_t*)conf;
+	Conf_t*		mid = lo;
+	Conf_t*		hi = lo + conf_elements - 1;
 	int		v = 0;
 	int		c;
 	char*		e;
