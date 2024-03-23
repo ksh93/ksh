@@ -176,6 +176,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 	Namval_t *vname=0;
 	Optdisc_t disc;
 	exitval = 0;
+	memset(&disc, 0, sizeof(disc));
 	disc.version = OPT_VERSION;
 	disc.infof = infof;
 	if(argc>0)
@@ -197,6 +198,14 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 		}
 	}
 	opt_info.disc = &disc;
+#if SHOPT_PRINTF_LEGACY
+	/* POSIX-ignorant printf(1) compat, prong 1: prevent option parsing if first arg looks like format operand */
+	if(argc<0 && argv[1] && (strchr(argv[1],'%') || strchr(argv[1],'\\')))
+	{
+		opt_info.index = 1;
+		goto skipopts;
+	}
+#endif /* SHOPT_PRINTF_LEGACY */
 	while((n = optget(argv,options))) switch(n)
 	{
 		case 'n':
@@ -264,6 +273,14 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			vflag='C';
 			break;
 		case ':':
+#if SHOPT_PRINTF_LEGACY
+			/* POSIX-ignorant printf(1) compat, prong 2: treat erroneous first option as operand */
+			if(argc<0 && (opt_info.index==1 || opt_info.index==2 && argv[1][0]=='-' && argv[1][1]=='-'))
+			{
+				opt_info.index = 1;
+				goto skipopts;
+			}
+#endif /* SHOPT_PRINTF_LEGACY */
 			/* The following is for backward compatibility */
 			if(strcmp(opt_info.name,"-R")==0)
 			{
@@ -279,6 +296,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 						nflag++;
 						argv++;
 					}
+					opt_info.disc = NULL;
 					goto skip2;
 				}
 			}
@@ -290,6 +308,9 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
 			UNREACHABLE();
 	}
+#if SHOPT_PRINTF_LEGACY
+skipopts:
+#endif /* SHOPT_PRINTF_LEGACY */
 	opt_info.disc = NULL;
 	argv += opt_info.index;
 	if(error_info.errors || (argc<0 && !(format = *argv++)))
@@ -335,13 +356,13 @@ skip2:
 	if(!(outfile=sh.sftable[fd]))
 	{
 		sh_onstate(SH_NOTRACK);
-		n = SF_WRITE|((n&IOREAD)?SF_READ:0);
+		n = SFIO_WRITE|((n&IOREAD)?SFIO_READ:0);
 		sh.sftable[fd] = outfile = sfnew(NULL,sh.outbuff,IOBSIZE,fd,n);
 		sh_offstate(SH_NOTRACK);
-		sfpool(outfile,sh.outpool,SF_WRITE);
+		sfpool(outfile,sh.outpool,SFIO_WRITE);
 	}
 	/* turn off share to guarantee atomic writes for printf */
-	n = sfset(outfile,SF_SHARE|SF_PUBLIC,0);
+	n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
 printf_v:
 	if(format)
 	{
@@ -354,7 +375,7 @@ printf_v:
 		pdata.hdr.reloadf = reload;
 		pdata.nextarg = argv;
 		sh_offstate(SH_STOPOK);
-		pool=sfpool(sfstderr,NULL,SF_WRITE);
+		pool=sfpool(sfstderr,NULL,SFIO_WRITE);
 		do
 		{
 			pdata.argv0 = pdata.nextarg;
@@ -366,7 +387,7 @@ printf_v:
 		if(pdata.nextarg == nullarg && pdata.argsize>0)
 			if(sfwrite(outfile,stkptr(sh.stk,stktell(sh.stk)),pdata.argsize) < 0)
 				exitval = 1;
-		sfpool(sfstderr,pool,SF_WRITE);
+		sfpool(sfstderr,pool,SFIO_WRITE);
 		if (pdata.err)
 			exitval = 1;
 	}
@@ -404,8 +425,8 @@ printf_v:
 #endif /* !SHOPT_SCRIPTONLY */
 	else
 	{
-		if(n&SF_SHARE)
-			sfset(outfile,SF_SHARE|SF_PUBLIC,1);
+		if(n&SFIO_SHARE)
+			sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,1);
 		if (sfsync(outfile) < 0)
 			exitval = 1;
 	}

@@ -78,7 +78,10 @@
 [[ $'\cg' =~ [[:cntrl:]] ]] || err_exit 'pattern [[:cntrl:]] broken'
 [[ \$ =~ [[:graph:]] ]] || err_exit 'pattern [[:graph:]] broken'
 [[ ' ' =~ [[:graph:]] ]] && err_exit 'pattern [[:graph:]] broken'
-[[ \$ =~ [[:punct:]] ]] || err_exit 'pattern [[:punct:]] broken'
+for c in '!' '"' '#' '$' '%' '&' \' '(' ')' '*' '+' ',' '-' '.' '/' ':' ';' \
+		'<' '=' '>' '?' '@' '[' '\\' ']' '^' '_' '`' '{' '|' '}' '~'
+do	[[ $c =~ [[:punct:]] ]] || err_exit "pattern [[:punct:]] broken for $c"
+done
 [[ / =~ [[:punct:]] ]] || err_exit 'pattern [[:punct:]] broken'
 [[ ' ' =~ [[:punct:]] ]] && err_exit 'pattern [[:punct:]] broken'
 [[ x =~ [[:punct:]] ]] && err_exit 'pattern [[:punct:]] broken'

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -33,7 +33,14 @@ esac
 set -o noglob
 
 command=iffe
-version=2023-04-06
+version=2024-03-20
+
+# DEFPATH should be inherited from package(1)
+case $DEFPATH in
+/*)	;;
+*)	echo "$command: DEFPATH not set" >&2
+	exit 1 ;;
+esac
 
 compile() # $cc ...
 {
@@ -106,44 +113,7 @@ pkg() # package
 {
 	case $1 in
 	'')	# Determine default system path, store in $pth.
-		pth=$(
-			PATH=/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
-			exec getconf PATH 2>/dev/null
-		)
-		case $pth in
-		'' | [!/]* | *:[!/]* | *: )
-			pth="/bin /usr/bin /sbin /usr/sbin" ;;
-		*:*)	pth=$(echo "$pth" | sed 's/:/ /g') ;;
-		esac
-		# Fix for NixOS. Not all POSIX standard utilities come with the default system,
-		# e.g. 'bc', 'file', 'vi'. The command that NixOS recommends to get missing
-		# utilities, e.g. 'nix-env -iA nixos.bc', installs them in a default profile
-		# directory that is not in $(getconf PATH). So add this path to the standard path.
-		# See: https://github.com/NixOS/nixpkgs/issues/65512
-		if	test -e /etc/NIXOS &&
-			nix_profile_dir=/nix/var/nix/profiles/default/bin &&
-			test -d "$nix_profile_dir"
-		then	case " $pth " in
-			*" $nix_profile_dir "* )
-				# nothing to do
-				;;
-			* )	# insert the default profile directory as the second entry
-				pth=$(
-					set $pth
-					one=$1
-					shift
-					echo "$one $nix_profile_dir${1+ }$@"
-				) ;;
-			esac
-		fi
-		# Fix for AIX. At least as of version 7.1, the system default 'find', 'diff -u' and 'patch' utilities
-		# are broken and/or non-compliant in ways that make them incompatible with POSIX 2018. However, GNU
-		# utilities are commonly installed in /opt/freeware/bin, and under standard names (no g- prefix).
-		if	test -d /opt/freeware/bin
-		then	case $(uname) in
-			AIX )	pth="/opt/freeware/bin $pth" ;;
-			esac
-		fi
+		pth=$(echo "$DEFPATH" | sed 's/:/ /g')
 		return
 		;;
 	'<')	shift
@@ -653,7 +623,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 [-author?Phong Vo <kpv@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
 [-copyright?(c) 1994-2012 AT&T Intellectual Property]
-[-copyright?(c) 2020-2023 Contributors to ksh 93u+m]
+[-copyright?(c) 2020-2024 Contributors to ksh 93u+m]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
 [+NAME?iffe - C compilation environment feature probe]
 [+DESCRIPTION?\biffe\b is a command interpreter that probes the C
@@ -804,13 +774,8 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 			\b'"$dir"$'/\b\abase\a.]
 	}
 [+?Generated \biffe\b headers are often referenced in C source as:
-	\b#include "'"$dir"$'/\b\afile\a". The \bnmake\b(1) base rules contain
-	metarules for generating \b'"$dir"$'/\b\afile\a from
-	\bfeatures/\b\afile\a[\asuffix\a]], where \asuffix\a may be omitted,
-	\b.c\b, or \b.sh\b (see the \brun\b test below). Because
-	\b#include\b prerequisites are automatically detected, \bnmake\b(1)
-	ensures that all prerequisite \biffe\b headers are generated before
-	compilation. Note that the directories are deliberately named
+	\b#include "'"$dir"$'/\b\afile\a".
+	Note that the directories are deliberately named
 	\b'"$dir"$'\b and \bfeatures\b to keep case-ignorant file systems
 	happy.]
 [+?The feature tests are:]{
@@ -995,7 +960,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 		\bendif\b } with unnamed \b{\b ... \b}\b blocks.]
 }
 [+SEE ALSO?\bautoconf\b(1), \bconfig\b(1), \bgetconf\b(1), \bcrossexec\b(1),
-	\bnmake\b(1), \bpackage\b(1), \bsh\b(1)]
+	\bpackage\b(1), \bsh\b(1)]
 '
 	while	getopts -a "$command" "$USAGE" OPT
 	do	case $OPT in

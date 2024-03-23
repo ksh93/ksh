@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -624,7 +624,7 @@ trap - USR1 ERR
 dot=$(cat <<-EOF
 		$(ls -d .)
 	EOF
-) ) & "$binsleep" .1
+) ) & sleep .1
 if      kill -0 $! 2> /dev/null
 then    err_exit  'command substitution containing here-doc with command substitution fails'
 fi
@@ -1194,6 +1194,18 @@ sleep_pid=$!
 ((!(e = $?))) || err_exit "comsub hangs on redirecting stdout & more" \
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 kill "$sleep_pid" 2>/dev/null
+
+# ======
+unset x
+exp=$'1\nx= 2'
+got=$(
+	((.sh.version <= 20210430)) && ulimit -c 0  # fork to stop 'exec' from ending whole script (see commit 88a1f3d6)
+	echo 1
+	( x=${ sh() { echo BADFUN; }; foo=BADOUTPUT exec sh -c 'echo $foo'; echo BADEXEC; } )
+	echo x=$x 2
+)
+[[ $got == "$exp" ]] || err_exit "incorrect result from 'exec' in subshare in subshell" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

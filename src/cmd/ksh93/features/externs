@@ -83,7 +83,7 @@ tst	note{ determining default number of extra bytes per argument for arguments l
 				int bytec;
 
 				error_info.id="_arg_extrabytes test (child)";
-				argv = (char **)stkalloc(stkstd, (argmax / 2 + 1) * sizeof(char*));
+				argv = stkalloc(stkstd, (argmax / 2 + 1) * sizeof(char*));
 				argc = bytec = 0;
 				while(bytec < argmax)
 				{

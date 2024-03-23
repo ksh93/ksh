@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -62,10 +62,10 @@ static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 
 	NOT_USED(val);
 
-	if(type == SF_DPOP)	/* don't allow this to pop */
+	if(type == SFIO_DPOP)	/* don't allow this to pop */
 		return -1;
 
-	if(type == SF_CLOSING)
+	if(type == SFIO_CLOSING)
 	{
 		for(last = NULL, ff = File; ff; last = ff, ff = ff->next)
 			if(ff->f == f)
@@ -76,7 +76,7 @@ static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 			else	last->next = ff->next;
 
 			if(_Sfnotify)
-				(*_Sfnotify)(f,SF_CLOSING,f->file);
+				(*_Sfnotify)(f,SFIO_CLOSING,f->file);
 			CLOSE(f->file);
 			f->file = -1;
 			while(remove(ff->name) < 0 && errno == EINTR)
@@ -94,7 +94,7 @@ static void _rmfiles(void)
 
 	for(ff = File; ff; ff = next)
 	{	next = ff->next;
-		_tmprmfile(ff->f, SF_CLOSING, NULL, ff->f->disc);
+		_tmprmfile(ff->f, SFIO_CLOSING, NULL, ff->f->disc);
 	}
 }
 
@@ -165,14 +165,14 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	NOT_USED(val);
 
 	/* the discipline needs to change only under the following exceptions */
-	if(type != SF_WRITE && type != SF_SEEK &&
-	   type != SF_DPUSH && type != SF_DPOP && type != SF_DBUFFER)
+	if(type != SFIO_WRITE && type != SFIO_SEEK &&
+	   type != SFIO_DPUSH && type != SFIO_DPOP && type != SFIO_DBUFFER)
 		return 0;
 
 	/* try to create the temp file */
 	SFCLEAR(&newf);
-	newf.flags = SF_STATIC;
-	newf.mode = SF_AVAIL;
+	newf.flags = SFIO_STATIC;
+	newf.mode = SFIO_AVAIL;
 
 	if((fd = _tmpfd(f)) < 0 )
 		return -1;
@@ -180,15 +180,15 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	/* make sure that the notify function won't be called here since
 	   we are only interested in creating the file, not the stream */
 	_Sfnotify = 0;
-	sf = sfnew(&newf,NULL,(size_t)SF_UNBOUND,fd,SF_READ|SF_WRITE);
+	sf = sfnew(&newf,NULL,(size_t)SFIO_UNBOUND,fd,SFIO_READ|SFIO_WRITE);
 	_Sfnotify = notify;
 	if(!sf)
 		return -1;
 
 	/* make sure that new stream has the same mode */
-	if((m = f->flags&(SF_READ|SF_WRITE)) != (SF_READ|SF_WRITE))
-		sfset(sf, ((~m)&(SF_READ|SF_WRITE)), 0);
-	sfset(sf, (f->mode&(SF_READ|SF_WRITE)), 1);
+	if((m = f->flags&(SFIO_READ|SFIO_WRITE)) != (SFIO_READ|SFIO_WRITE))
+		sfset(sf, ((~m)&(SFIO_READ|SFIO_WRITE)), 0);
+	sfset(sf, (f->mode&(SFIO_READ|SFIO_WRITE)), 1);
 
 	/* now remake the old stream into the new image */
 	memcpy(&savf, f, sizeof(Sfio_t));
@@ -199,25 +199,25 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	f->proc = savf.proc;
 	f->stdio = savf.stdio;
 
-	/* remove the SF_STATIC bit if it was only set above in making newf */
-	if(!(savf.flags&SF_STATIC) )
-		f->flags &= ~SF_STATIC;
+	/* remove the SFIO_STATIC bit if it was only set above in making newf */
+	if(!(savf.flags&SFIO_STATIC) )
+		f->flags &= ~SFIO_STATIC;
 
 	if(savf.data)
 	{	SFSTRSIZE(&savf);
-		if(!(savf.flags&SF_MALLOC) )
+		if(!(savf.flags&SFIO_MALLOC) )
 			(void)sfsetbuf(f,savf.data,savf.size);
 		if(savf.extent > 0)
 			(void)sfwrite(f,savf.data,(size_t)savf.extent);
 		(void)sfseek(f,(Sfoff_t)(savf.next - savf.data),SEEK_SET);
-		if((savf.flags&SF_MALLOC) )
+		if((savf.flags&SFIO_MALLOC) )
 			free(savf.data);
 	}
 
 	/* announce change of status */
 	f->disc = NULL;
 	if(_Sfnotify)
-		(*_Sfnotify)(f, SF_SETFD, (void*)((long)f->file));
+		(*_Sfnotify)(f, SFIO_SETFD, (void*)((long)f->file));
 
 	/* erase all traces of newf */
 	newf.data = newf.endb = newf.endr = newf.endw = NULL;
@@ -245,17 +245,17 @@ Sfio_t* sftmp(size_t s)
 
 	/* start with a memory resident stream */
 	_Sfnotify = 0; /* local computation so no notification */
-	f = sfnew(NULL,NULL,s,-1,SF_STRING|SF_READ|SF_WRITE);
+	f = sfnew(NULL,NULL,s,-1,SFIO_STRING|SFIO_READ|SFIO_WRITE);
 	_Sfnotify = notify;
 	if(!f)
 		return NULL;
 
-	if(s != (size_t)SF_UNBOUND)	/* set up a discipline for out-of-bound, etc. */
+	if(s != (size_t)SFIO_UNBOUND)	/* set up a discipline for out-of-bound, etc. */
 		f->disc = &Tmpdisc;
 
 	if(s == 0) /* make the file now */
 	{	_Sfnotify = 0; /* local computation so no notification */
-		rv =  _tmpexcept(f,SF_DPOP,NULL,f->disc);
+		rv =  _tmpexcept(f,SFIO_DPOP,NULL,f->disc);
 		_Sfnotify = notify;
 		if(rv < 0)
 		{	sfclose(f);
@@ -264,7 +264,7 @@ Sfio_t* sftmp(size_t s)
 	}
 
 	if(_Sfnotify)
-		(*_Sfnotify)(f, SF_NEW, (void*)((long)f->file));
+		(*_Sfnotify)(f, SFIO_NEW, (void*)((long)f->file));
 
 	return f;
 }

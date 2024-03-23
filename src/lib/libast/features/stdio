@@ -29,7 +29,7 @@ cat{
 
 	#if defined(_AST_H) || defined(_SFIO_H)
 
-	#define BUFSIZ		SF_BUFSIZE
+	#define BUFSIZ		SFIO_BUFSIZE
 
 	#else
 
@@ -53,8 +53,8 @@ cat{
 
 	#define _sf_(f)		((struct _sfio_s*)(f))
 
-	#define _SF_EOF		0000200
-	#define _SF_ERROR	0000400
+	#define _SFIO_EOF		0000200
+	#define _SFIO_ERROR	0000400
 
 	#endif
 
@@ -343,8 +343,8 @@ cat{
 	extern FILE	_Sfstdout;
 	extern FILE	_Sfstderr;
 
-	#define feof(f)		(_sf_(f)->_flags&_SF_EOF)
-	#define ferror(f)	(_sf_(f)->_flags&_SF_ERROR)
+	#define feof(f)		(_sf_(f)->_flags&_SFIO_EOF)
+	#define ferror(f)	(_sf_(f)->_flags&_SFIO_ERROR)
 	#define fileno(f)	(_sf_(f)->_file)
 	#define fputc(c,f)	(_sf_(f)->_next>=_sf_(f)->_endw?_sfflsbuf(_sf_(f),(int)((unsigned char)(c))):(int)(*_sf_(f)->_next++=(unsigned char)(c)))
 	#define getc(f)		(_sf_(f)->_next>=_sf_(f)->_endr?_sffilbuf(_sf_(f),0):(int)(*_sf_(f)->_next++))

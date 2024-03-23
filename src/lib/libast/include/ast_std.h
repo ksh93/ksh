@@ -152,6 +152,9 @@ extern char*		strerror(int);
 
 /*
  * maintain this order when adding categories
+ * AST_LC_COUNT is the number of categories
+ * The numbering must be consecutive and correspond to the order of lc_categories[] in comp/setlocale.c
+ * The initializers in port/lc.c must also be kept in sync with this
  */
 
 #define AST_LC_ALL		0
@@ -165,10 +168,9 @@ extern char*		strerror(int);
 #define AST_LC_ADDRESS		8
 #define AST_LC_NAME		9
 #define AST_LC_TELEPHONE	10
-#define AST_LC_XLITERATE	11
-#define AST_LC_MEASUREMENT	12
-#define AST_LC_PAPER		13
-#define AST_LC_COUNT		14
+#define AST_LC_MEASUREMENT	11
+#define AST_LC_PAPER		12
+#define AST_LC_COUNT		13	/* number of preceding AST_LC_* defines */
 #define AST_LC_LANG		255
 
 #define AST_LC_internal		1
@@ -211,9 +213,6 @@ extern char*		strerror(int);
 #endif
 #ifndef LC_TELEPHONE
 #define LC_TELEPHONE		(-AST_LC_TELEPHONE)
-#endif
-#ifndef LC_XLITERATE
-#define LC_XLITERATE		(-AST_LC_XLITERATE)
 #endif
 #ifndef LC_MEASUREMENT
 #define LC_MEASUREMENT		(-AST_LC_MEASUREMENT)

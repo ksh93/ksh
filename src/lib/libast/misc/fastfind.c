@@ -299,7 +299,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			}
 			if (s)
 				*s = '/';
-			if (!(fp->fp = sfnew(NULL, NULL, (size_t)SF_UNBOUND, fd, SF_WRITE)))
+			if (!(fp->fp = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, fd, SFIO_WRITE)))
 			{
 				if (fp->disc->errorf)
 					(*fp->disc->errorf)(fp, fp->disc, ERROR_SYSTEM|2, "%s: cannot open tmp file", fp->encode.temp);
@@ -1219,7 +1219,7 @@ findsync(Find_t* fp)
 		 * append the front compressed strings
 		 */
 
-		if (sfmove(fp->fp, sp, SF_UNBOUND, -1) < 0 || !sfeof(fp->fp))
+		if (sfmove(fp->fp, sp, SFIO_UNBOUND, -1) < 0 || !sfeof(fp->fp))
 		{
 			sfclose(sp);
 			if (fp->disc->errorf)

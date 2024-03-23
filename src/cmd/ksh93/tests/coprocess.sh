@@ -156,7 +156,7 @@ do
 		integer i
 		for ((i = 1; i <= N; i++))
 		do	print $i |&
-			sleep 0.01
+			sleep 0.02
 			r=$r$($cat <&p)
 			wait $!
 		done

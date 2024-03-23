@@ -314,7 +314,7 @@ done
 kill -s 0 $! || err_exit '$! does not point to latest asynchronous process'
 kill $!
 unset x
-cd /tmp || exit
+cd /dev || exit
 CDPATH=/
 x=$(cd ${tmp#/})
 if	[[ $x != $tmp ]]
@@ -905,6 +905,10 @@ $SHELL -c "$cmd" 2>/dev/null || err_exit "'$cmd' exit status $?, expected 0"
 SHLVL=1
 level=$($SHELL -c $'$SHELL -c \'print -r "$SHLVL"\'')
 [[ $level  == 3 ]]  || err_exit "SHLVL should be 3 not $level"
+echo 'print -r "$SHLVL"' >script
+chmod +x script
+level=$($SHELL -c '$SHELL ./script')
+[[ $level == 3 ]] || err_exit "SHLVL should be 3 not $level"
 
 [[ $($SHELL -c '{ x=1; : ${x.};print ok;}' 2> /dev/null) == ok ]] || err_exit '${x.} where x is a simple variable causes shell to abort'
 

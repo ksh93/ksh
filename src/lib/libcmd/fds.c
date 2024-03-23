@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -39,6 +39,10 @@ static const char usage[] =
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#if __ANDROID_API__
+/* Android declares ntohs(3) here, not in arpa/inet.h as POSIX mandates */
+#include <sys/endian.h>
+#endif /* __ANDROID_API__ */
 #else
 #undef	S_IFSOCK
 #endif
@@ -217,7 +221,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 	}
 	if (unit == 1)
 		sp = sfstdout;
-	else if (fstat(unit, &st) || !(sp = sfnew(NULL, NULL, SF_UNBOUND, unit, SF_WRITE)))
+	else if (fstat(unit, &st) || !(sp = sfnew(NULL, NULL, SFIO_UNBOUND, unit, SFIO_WRITE)))
 	{
 		error(ERROR_SYSTEM|3, "%d: cannot write to file descriptor");
 		UNREACHABLE();

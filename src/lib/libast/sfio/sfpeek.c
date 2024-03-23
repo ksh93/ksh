@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,10 +32,10 @@ extern ssize_t sfpeek(Sfio_t*	f,	/* file to peek */
 
 	/* query for the extent of the remainder of the buffer */
 	if((sz = size) == 0 || !bp)
-	{	if(f->mode&SF_INIT)
+	{	if(f->mode&SFIO_INIT)
 			(void)_sfmode(f,0,0);
 
-		if((f->flags&SF_RDWRSTR) == SF_RDWRSTR)
+		if((f->flags&SFIO_RDWRSTR) == SFIO_RDWRSTR)
 		{	SFSTRSIZE(f);
 			n = (f->data+f->here) - f->next;
 		}
@@ -50,8 +50,8 @@ extern ssize_t sfpeek(Sfio_t*	f,	/* file to peek */
 		/* else fall down and fill buffer */
 	}
 
-	if(!(mode = f->flags&SF_READ) )
-		mode = SF_WRITE;
+	if(!(mode = f->flags&SFIO_READ) )
+		mode = SFIO_WRITE;
 	if((int)f->mode != mode && _sfmode(f,mode,0) < 0)
 		return -1;
 
@@ -63,7 +63,7 @@ extern ssize_t sfpeek(Sfio_t*	f,	/* file to peek */
 	if((n = sfvalue(f)) > 0)
 	{	*bp = f->next;
 		if(sz < 0)
-		{	f->mode |= SF_PEEK;
+		{	f->mode |= SFIO_PEEK;
 			f->endr = f->endw = f->data;
 		}
 		else

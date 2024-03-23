@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -142,7 +142,7 @@ uname(struct utsname* ut)
 			sys = 0;
 	}
 #endif
-#ifdef _lib_gethostname
+#if _lib_gethostname
 	if (gethostname(ut->nodename, sizeof(ut->nodename) - 1))
 		return -1;
 #else
@@ -297,7 +297,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case ':':
 			{
-				char **new_argv = (char **)stkalloc(stkstd, (argc + 3) * sizeof(char*));
+				char **new_argv = stkalloc(stkstd, (argc + 3) * sizeof(char*));
 				new_argv[0] = "command";
 				new_argv[1] = "-px";
 				for (n = 0; n <= argc; n++)

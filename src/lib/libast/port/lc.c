@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -60,7 +60,6 @@ static Lc_t		default_lc =
 		{ &default_lc, 0, 0 },
 		{ &default_lc, 0, 0 },
 		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
 		{ &default_lc, 0, 0 }
 	}
 };
@@ -90,7 +89,6 @@ static Lc_t		debug_lc =
 		{ &debug_lc, 0, 0 },
 		{ &debug_lc, 0, 0 },
 		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
 		{ &debug_lc, 0, 0 }
 	},
 	&default_lc
@@ -100,7 +98,6 @@ static Lc_t*		lcs = &debug_lc;
 
 Lc_t*			locales[] =
 {
-	&default_lc,
 	&default_lc,
 	&default_lc,
 	&default_lc,
@@ -139,7 +136,6 @@ lcindex(int category, int min)
 	case LC_PAPER:		return AST_LC_PAPER;
 	case LC_TELEPHONE:	return AST_LC_TELEPHONE;
 	case LC_TIME:		return AST_LC_TIME;
-	case LC_XLITERATE:	return AST_LC_XLITERATE;
 	}
 	return -1;
 }

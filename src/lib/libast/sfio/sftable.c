@@ -482,9 +482,9 @@ static const unsigned char	ldbl_inf[] = { _ast_ldbl_inf_init };
 static int sfcvinit(void)
 {	int		d, l;
 
-	for(d = 0; d <= SF_MAXCHAR; ++d)
-	{	_Sfcv36[d] = SF_RADIX;
-		_Sfcv64[d] = SF_RADIX;
+	for(d = 0; d <= SFIO_MAXCHAR; ++d)
+	{	_Sfcv36[d] = SFIO_RADIX;
+		_Sfcv64[d] = SFIO_RADIX;
 	}
 
 	/* [0-9] */
@@ -506,7 +506,7 @@ static int sfcvinit(void)
 	}
 
 	/* remaining digits */
-	for(; d < SF_RADIX; ++d)
+	for(; d < SFIO_RADIX; ++d)
 	{	_Sfcv36[(uchar)_Sfdigits[d]] = d;
 		_Sfcv64[(uchar)_Sfdigits[d]] = d;
 	}

@@ -850,4 +850,12 @@ do	read -r -N6 var
 done <<< 'twotowthreetfourro'
 
 # ======
+# control characters should not be counted for default justification` width
+# https://github.com/ksh93/ksh/issues/189
+exp='typeset -L 5 s=$'\''1\n2\a3\t4\x[0b]5'\'
+got=$(s=$'1\n2\a3\t4\v5'; typeset -L s; typeset -p s)
+[[ $got == "$exp" ]] || err_exit "default terminal width for typeset -L incorrect" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

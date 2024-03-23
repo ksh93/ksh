@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,14 +40,14 @@ int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
 	GETLOCAL(f,local);
 
 	/* any peek data must be preserved across stacked streams */
-	rcrv = f->mode&(SF_RC|SF_RV|SF_LOCK);
+	rcrv = f->mode&(SFIO_RC|SFIO_RV|SFIO_LOCK);
 	rc = f->getr;
 
-	justseek = f->bits&SF_JUSTSEEK; f->bits &= ~SF_JUSTSEEK;
+	justseek = f->bits&SFIO_JUSTSEEK; f->bits &= ~SFIO_JUSTSEEK;
 
-	for(first = 1;; first = 0, (f->mode &= ~SF_LOCK) )
+	for(first = 1;; first = 0, (f->mode &= ~SFIO_LOCK) )
 	{	/* check mode */
-		if(SFMODE(f,local) != SF_READ && _sfmode(f,SF_READ,local) < 0)
+		if(SFMODE(f,local) != SFIO_READ && _sfmode(f,SFIO_READ,local) < 0)
 			return -1;
 		SFLOCK(f,local);
 
@@ -56,11 +56,11 @@ int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
 		{	/* on first iteration, n is amount beyond current buffer;
 			   afterward, n is the exact amount requested */
 			if((first && n <= 0) || (!first && n <= r) ||
-			   (f->flags&SF_STRING))
+			   (f->flags&SFIO_STRING))
 				break;
 
 			/* try shifting left to make room for new data */
-			if(!(f->bits&SF_MMAP) && f->next > f->data &&
+			if(!(f->bits&SFIO_MMAP) && f->next > f->data &&
 			   n > (f->size - (f->endb-f->data)) )
 			{	ssize_t	s = r;
 
@@ -76,15 +76,15 @@ int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
 				f->endb = f->data + s;
 			}
 		}
-		else if(!(f->flags&SF_STRING) && !(f->bits&SF_MMAP) )
+		else if(!(f->flags&SFIO_STRING) && !(f->bits&SFIO_MMAP) )
 			f->next = f->endb = f->endr = f->data;
 
-		if(f->bits&SF_MMAP)
+		if(f->bits&SFIO_MMAP)
 			r = n > 0 ? n : f->size;
-		else if(!(f->flags&SF_STRING) )
+		else if(!(f->flags&SFIO_STRING) )
 		{	r = f->size - (f->endb - f->data); /* available buffer */
 			if(n > 0)
-			{	if(r > n && f->extent < 0 && (f->flags&SF_SHARE) )
+			{	if(r > n && f->extent < 0 && (f->flags&SFIO_SHARE) )
 					r = n;	/* read only as much as requested */
 				else if(justseek && n <= f->iosz && f->iosz <= f->size)
 					r = f->iosz;	/* limit buffer filling */

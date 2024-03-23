@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -57,7 +57,7 @@ static ssize_t streamio(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc, int type
 	if(sfsk(f,here,SEEK_SET,disc) != here)
 		io = 0;
 	else
-	{	if(type == SF_WRITE) 
+	{	if(type == SFIO_WRITE) 
 			io = sfwr(f,buf,n,disc);
 		else	io = sfrd(f,buf,n,disc);
 		if(io > 0)
@@ -72,12 +72,12 @@ static ssize_t streamio(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc, int type
 
 static ssize_t streamwrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 {
-	return streamio(f,(void*)buf,n,disc,SF_WRITE);
+	return streamio(f,(void*)buf,n,disc,SFIO_WRITE);
 }
 
 static ssize_t streamread(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 {
-	return streamio(f,buf,n,disc,SF_READ);
+	return streamio(f,buf,n,disc,SFIO_READ);
 }
 
 static Sfoff_t streamseek(Sfio_t* f, Sfoff_t pos, int type, Sfdisc_t* disc)
@@ -119,7 +119,7 @@ static Sfoff_t streamseek(Sfio_t* f, Sfoff_t pos, int type, Sfdisc_t* disc)
 
 static int streamexcept(Sfio_t* f, int type, void* data, Sfdisc_t* disc)
 {
-	if(type == SF_FINAL || type == SF_DPOP)
+	if(type == SFIO_FINAL || type == SFIO_DPOP)
 		free(disc);
 	return 0;
 }
@@ -139,7 +139,7 @@ Sfio_t* sfdcsubstream(Sfio_t*	f,	/* stream */
 	else	sfseek(parent,here,SEEK_SET);
 	sfpurge(parent);
 
-	if (!(sp = f) && !(sp = sfnew(NULL, NULL, (size_t)SF_UNBOUND, dup(sffileno(parent)), parent->flags)))
+	if (!(sp = f) && !(sp = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, dup(sffileno(parent)), parent->flags)))
 		return NULL;
 
 	if(!(su = (Subfile_t*)malloc(sizeof(Subfile_t))))

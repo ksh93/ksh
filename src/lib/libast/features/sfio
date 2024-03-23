@@ -4,8 +4,6 @@ sys	filio,ioctl
 lib	qfrexp,qldexp
 key	signed
 
-typ	struct.sf_hdtr sys/socket.h
-
 tst	- note{ number of bits in pointer }end output{
 	#include <stdio.h>
 	int

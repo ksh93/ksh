@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -17,6 +17,11 @@
 ########################################################################
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
+
+# Some systems (at least Android) don't allow inheriting stdout in closed state.
+# Disable the tests that rely on this on these systems.
+sh -c 'exec 3>&1' 1>&- 2>/dev/null
+typeset -si can_close_stdout=$?
 
 unset HISTFILE
 
@@ -276,7 +281,9 @@ fi # !SHOPT_SCRIPTONL~Y
 
 $SHELL -c "{ > $tmp/1 ; date;} >&- 2> /dev/null" > $tmp/2
 [[ -s $tmp/1 || -s $tmp/2 ]] && err_exit 'commands with standard output closed produce output'
-$SHELL -c "$SHELL -c ': 3>&1' 1>&- 2>/dev/null" && err_exit 'closed standard output not passed to subshell'
+if ((can_close_stdout)); then
+$SHELL -c "$SHELL -c ': 3>&1' 1>&- 2>/dev/null" && err_exit 'closed standard output not passed to child shell'
+fi # can_close_stdout
 [[ $(cat  <<- \EOF | $SHELL
 	do_it_all()
 	{
@@ -906,6 +913,7 @@ got=$(< dir1/dir2/x)
 # ======
 # ksh misbehaved when stdout is closed
 # https://github.com/ksh93/ksh/issues/314
+if ((can_close_stdout)); then
 "$SHELL" -c 'pwd; echo "$?" >&2; echo test; echo "$?" > file' >&- 2>stderr
 exp='1'
 [[ $(<file) == "$exp" ]] || err_exit "ksh misbehaves when stdout is closed (1)" \
@@ -923,6 +931,7 @@ then	for cmd in echo print printf
 		"$SHELL" -c "$cmd hi" >/dev/full && err_exit "'$cmd' does not detect disk full (inherited FD)"
 	done
 fi
+fi # can_close_stdout
 
 # ======
 # Command substitution hangs, writing infinite zero bytes, when redirecting standard output on a built-in that forks

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,6 +23,7 @@
 #include	"shopt.h"
 #include	<ast.h>
 #include	<ast_wchar.h>
+#include	<lc.h>
 #include	"defs.h"
 #include	<ccode.h>
 #include	"shtable.h"
@@ -306,10 +307,10 @@ static char	*sh_fmtcsv(const char *string)
  */
 static int	sh_isprint(int c)
 {
-	if(!mbwide())					/* not in multibyte locale? */
+	if(!mbwide() || ('a'==97 && c<=127))		/* not in multibyte locale, or multibyte but c is ASCII? */
 		return isprint(c);			/* use plain isprint(3) */
-	else if(c == ' ')				/* optimisation: check ASCII space first */
-		return 1;				/* return true like isprint(3) */
+	else if(!(lcinfo(LC_CTYPE)->lc->flags&LC_utf8))	/* not in UTF-8 locale? */
+		return iswgraph(c);			/* the test below would not be valid */
 	else if(iswgraph(0x5E38) && !iswgraph(0xFEFF))	/* can we use iswgraph(3)? */
 		return iswgraph(c);			/* use iswgraph(3) */
 	else						/* fallback: */
@@ -412,7 +413,7 @@ char	*sh_fmtq(const char *string)
 				if(mbwide())
 				{
 					/* We're in a multibyte locale */
-					if(c<0 || c<128 && !isprint(c))
+					if(c<0 || ('a'!=97 || c<128) && !isprint(c))
 					{
 						/* Invalid multibyte char, or unprintable ASCII char: quote as hex byte */
 						c = *((unsigned char *)op);

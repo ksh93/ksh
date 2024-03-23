@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -47,9 +47,9 @@ Sfio_t*	sfpopen(Sfio_t*		f,
 	else	pflags = 0;
 
 	flags = 0;
-	if (sflags & SF_READ)
+	if (sflags & SFIO_READ)
 		flags |= PROC_READ;
-	if (sflags & SF_WRITE)
+	if (sflags & SFIO_WRITE)
 		flags |= PROC_WRITE;
 	av[0] = "sh";
 	av[1] = "-c";
@@ -57,9 +57,9 @@ Sfio_t*	sfpopen(Sfio_t*		f,
 	av[3] = 0;
 	if (!(proc = procopen(0, av, 0, 0, flags)))
 		return NULL;
-	if (!(f = sfnew(f, NULL, (size_t)SF_UNBOUND,
-	       		(sflags&SF_READ) ? proc->rfd : proc->wfd, sflags|((sflags&SF_RDWR)?0:SF_READ))) ||
-	    _sfpopen(f, (sflags&SF_READ) ? proc->wfd : -1, proc->pid, pflags) < 0)
+	if (!(f = sfnew(f, NULL, (size_t)SFIO_UNBOUND,
+	       		(sflags&SFIO_READ) ? proc->rfd : proc->wfd, sflags|((sflags&SFIO_RDWR)?0:SFIO_READ))) ||
+	    _sfpopen(f, (sflags&SFIO_READ) ? proc->wfd : -1, proc->pid, pflags) < 0)
 	{
 		if (f) sfclose(f);
 		procclose(proc);

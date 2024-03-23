@@ -4,7 +4,7 @@ cmd	universe
 
 hdr	dirent,direntry,filio,fmtmsg,fnmatch,jioctl,libgen,limits
 hdr	locale,ndir,nl_types,process,spawn,utime
-hdr	linux/fs,linux/msdos_fs,sys/ioctl
+hdr	linux/fs,linux/msdos_fs
 hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 	#include <wchar.h>
@@ -37,7 +37,7 @@ lib	readlink,remove,rename,rewinddir,rmdir,setlocale
 lib	setpgid,setpgrp,setpgrp2,setreuid,setsid,setuid,sigaction
 lib	sigprocmask,sigsetmask,sigunblock,sigvec,socketpair
 lib	spawn,spawnve
-lib	strcoll,strdup,strerror,strcasecmp,strncasecmp
+lib	strcoll,strdup,strerror,strcasecmp,strncasecmp,strlcat,strlcpy
 lib	strmode,strxfrm,strftime,swab,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
@@ -52,7 +52,7 @@ mem	DIR.dd_fd sys/types.h - dirent.h - sys/dir.h
 mem	inheritance.pgroup spawn.h
 mem	tm.tm_zone time.h
 
-sys	dir,filio,jioctl,localedef,ptem,resource
+sys	dir,filio,ioctl,jioctl,localedef,ptem,resource
 sys	socket,stream,systeminfo,universe
 
 tst	tst_errno note{ errno can be assigned }end link{

@@ -589,14 +589,14 @@ visit(State_t* state, FTSENT* ent)
 			}
 			else if (ent->fts_statp->st_size > 0)
 			{
-				if (!(ip = sfnew(NULL, NULL, SF_UNBOUND, rfd, SF_READ)))
+				if (!(ip = sfnew(NULL, NULL, SFIO_UNBOUND, rfd, SFIO_READ)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s read stream error", ent->fts_path, state->path);
 					close(rfd);
 					close(wfd);
 					return 0;
 				}
-				if (!(op = sfnew(NULL, NULL, SF_UNBOUND, wfd, SF_WRITE)))
+				if (!(op = sfnew(NULL, NULL, SFIO_UNBOUND, wfd, SFIO_WRITE)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s write stream error", ent->fts_path, state->path);
 					close(wfd);
@@ -604,7 +604,7 @@ visit(State_t* state, FTSENT* ent)
 					return 0;
 				}
 				n = 0;
-				if (sfmove(ip, op, (Sfoff_t)SF_UNBOUND, -1) < 0)
+				if (sfmove(ip, op, (Sfoff_t)SFIO_UNBOUND, -1) < 0)
 					n |= 3;
 				if (!sfeof(ip))
 					n |= 1;
@@ -872,7 +872,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		argc--;
 		argv++;
 	}
-	if (!(v = (char**)stkalloc(stkstd, (argc + 2) * sizeof(char*))))
+	if (!(v = stkalloc(stkstd, (argc + 2) * sizeof(char*))))
 	{
 		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();

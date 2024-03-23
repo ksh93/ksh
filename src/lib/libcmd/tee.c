@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -97,7 +97,7 @@ tee_cleanup(Tee_t* tp)
 	{
 		sfdisc(sfstdout, NULL);
 		if (tp->line >= 0)
-			sfset(sfstdout, SF_LINE, tp->line);
+			sfset(sfstdout, SFIO_LINE, tp->line);
 		for (hp = tp->fd; (n = *hp) >= 0; hp++)
 			close(n);
 	}
@@ -135,11 +135,11 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 			signal(SIGINT, SIG_IGN);
 			continue;
 		case 'l':
-			line = sfset(sfstdout, 0, 0) & SF_LINE;
+			line = sfset(sfstdout, 0, 0) & SFIO_LINE;
 			if ((line == 0) == (opt_info.num == 0))
 				line = -1;
 			else
-				sfset(sfstdout, SF_LINE, !!opt_info.num);
+				sfset(sfstdout, SFIO_LINE, !!opt_info.num);
 			continue;
 		case ':':
 			error(2, "%s", opt_info.arg);
@@ -167,7 +167,7 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 #endif
 	if (argc > 0)
 	{
-		if (tp = (Tee_t*)stkalloc(stkstd, sizeof(Tee_t) + argc * sizeof(int)))
+		if (tp = stkalloc(stkstd, sizeof(Tee_t) + argc * sizeof(int)))
 		{
 			memset(&tp->disc, 0, sizeof(tp->disc));
 			tp->disc.writef = tee_write;
@@ -198,7 +198,7 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 			UNREACHABLE();
 		}
 	}
-	if ((sfmove(sfstdin, sfstdout, SF_UNBOUND, -1) < 0 || !sfeof(sfstdin)) && !ERROR_PIPE(errno) && errno != EINTR)
+	if ((sfmove(sfstdin, sfstdout, SFIO_UNBOUND, -1) < 0 || !sfeof(sfstdin)) && !ERROR_PIPE(errno) && errno != EINTR)
 		error(ERROR_system(0), "read error");
 	if (sfsync(sfstdout))
 		error(ERROR_system(0), "write error");

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -53,17 +53,17 @@ int sfsetfd(Sfio_t* f, int newfd)
 	if(!f)
 		return -1;
 
-	if(f->flags&SF_STRING)
+	if(f->flags&SFIO_STRING)
 		return -1;
 
-	if((f->mode&SF_INIT) && f->file < 0)
+	if((f->mode&SFIO_INIT) && f->file < 0)
 	{	/* restoring file descriptor after a previous freeze */
 		if(newfd < 0)
 			return -1;
 	}
 	else
 	{	/* change file descriptor */
-		if((f->mode&SF_RDWR) != f->mode && _sfmode(f,0,0) < 0)
+		if((f->mode&SFIO_RDWR) != f->mode && _sfmode(f,0,0) < 0)
 			return -1;
 		SFLOCK(f,0);
 
@@ -78,23 +78,23 @@ int sfsetfd(Sfio_t* f, int newfd)
 			}
 			else
 			{	/* sync stream if necessary */
-				if(((f->mode&SF_WRITE) && f->next > f->data) ||
-				   (f->mode&SF_READ) || f->disc == _Sfudisc)
+				if(((f->mode&SFIO_WRITE) && f->next > f->data) ||
+				   (f->mode&SFIO_READ) || f->disc == _Sfudisc)
 				{	if(SFSYNC(f) < 0)
 					{	SFOPEN(f,0);
 						return -1;
 					}
 				}
 
-				if(((f->mode&SF_WRITE) && f->next > f->data) ||
-				   ((f->mode&SF_READ) && f->extent < 0 &&
+				if(((f->mode&SFIO_WRITE) && f->next > f->data) ||
+				   ((f->mode&SFIO_READ) && f->extent < 0 &&
 				    f->next < f->endb) )
 				{	SFOPEN(f,0);
 					return -1;
 				}
 
 #ifdef MAP_TYPE
-				if((f->bits&SF_MMAP) && f->data)
+				if((f->bits&SFIO_MMAP) && f->data)
 				{	SFMUNMAP(f,f->data,f->endb-f->data);
 					f->data = NULL;
 				}
@@ -103,8 +103,8 @@ int sfsetfd(Sfio_t* f, int newfd)
 				/* make stream appears uninitialized */
 				f->endb = f->endr = f->endw = f->data;
 				f->extent = f->here = 0;
-				f->mode = (f->mode&SF_RDWR)|SF_INIT;
-				f->bits &= ~SF_NULL;	/* off /dev/null handling */
+				f->mode = (f->mode&SFIO_RDWR)|SFIO_INIT;
+				f->bits &= ~SFIO_NULL;	/* off /dev/null handling */
 			}
 		}
 
@@ -113,7 +113,7 @@ int sfsetfd(Sfio_t* f, int newfd)
 
 	/* notify changes */
 	if(_Sfnotify)
-		(*_Sfnotify)(f, SF_SETFD, (void*)((long)newfd));
+		(*_Sfnotify)(f, SFIO_SETFD, (void*)((long)newfd));
 
 	f->file = newfd;
 

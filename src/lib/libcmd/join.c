@@ -970,8 +970,8 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	}
 	if (jp->buffered)
 	{
-		sfsetbuf(jp->file[0].iop, jp->file[0].iop, SF_UNBOUND);
-		sfsetbuf(jp->file[1].iop, jp->file[1].iop, SF_UNBOUND);
+		sfsetbuf(jp->file[0].iop, jp->file[0].iop, SFIO_UNBOUND);
+		sfsetbuf(jp->file[1].iop, jp->file[1].iop, SFIO_UNBOUND);
 	}
 	jp->outfile = sfstdout;
 	if (!jp->outlist)

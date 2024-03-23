@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)make.probe (ksh 93u+m) 2024-01-09
+# @(#)make.probe (ksh 93u+m) 2024-03-20
 #
 # C probe for make
 #
@@ -1919,6 +1919,27 @@ case $keepstdlib in
 esac
 
 #
+# determine the need for any API version targets to add to the compiler flags
+#
+
+CC_TARGET=
+case $hosttype in
+android.*)
+	# get current default API level
+	cat >_android_test.c <<-EOF
+	#include <stdio.h>
+	int main(void) { printf("%d\n", __ANDROID_API__); return 0; }
+	EOF
+	$cc -o _android_test _android_test.c
+	got=$(./_android_test)
+	(set +f; exec rm -rf _android_test*) &
+	# check for minimum required; we need API 26 for catopen(3) et al
+	if	test -n "$got" && test "$got" -lt 26
+	then	CC_TARGET="--target=$(uname -m)-linux-android26"
+	fi ;;
+esac
+
+#
 # set up for local override
 #
 
@@ -2117,6 +2138,7 @@ echo CC.SUFFIX.OBJECT = $CC_SUFFIX_OBJECT
 echo CC.SUFFIX.SHARED = $CC_SUFFIX_SHARED
 echo CC.SUFFIX.SOURCE = $CC_SUFFIX_SOURCE
 echo CC.SUFFIX.STATIC = $CC_SUFFIX_STATIC
+echo CC.TARGET = $CC_TARGET
 echo CC.VERSION = $CC_VERSION
 case $CC_VERSION_STRING in
 *\"*)	i=`echo " $CC_VERSION_STRING" | sed -e 's,",\\\\",g' -e 's,^ ,,' -e 's,.*,"&",'` ;;

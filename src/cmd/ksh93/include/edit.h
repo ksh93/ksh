@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -96,15 +96,10 @@ typedef struct edit
 	int	e_fd;		/* file descriptor */
 	int	e_ttyspeed;	/* line speed, also indicates tty parameters are valid */
 	int	e_tabcount;
-#ifdef _hdr_utime
+#if _hdr_utime
 	ino_t	e_tty_ino;
 	dev_t	e_tty_dev;
 	char	*e_tty;
-#endif
-#if SHOPT_OLDTERMIO
-	char	e_echoctl;
-	char	e_tcgeta;
-	struct termio e_ott;
 #endif
 	int	*e_globals;	/* global variables */
 	genchar	*e_window;	/* display window image */
@@ -158,6 +153,7 @@ typedef struct edit
 #define TCAP_ERASE_EOS	"cd"
 
 extern void	ed_putchar(Edit_t*, int);
+extern void	ed_putstring(Edit_t*, const char*);
 extern void	ed_ringbell(void);
 extern void	ed_setup(Edit_t*,int, int);
 extern void	ed_flush(Edit_t*);
@@ -170,7 +166,9 @@ extern int	ed_read(void*, int, char*, int, int);
 extern int	ed_emacsread(void*, int, char*, int, int);
 extern Edpos_t	ed_curpos(Edit_t*, genchar*, int, int, Edpos_t);
 extern int	ed_setcursor(Edit_t*, genchar*, int, int, int);
+#if SHOPT_ESH || SHOPT_VSH
 extern int	ed_macro(Edit_t*,int);
+#endif
 extern int	ed_expand(Edit_t*, char[],int*,int*,int,int);
 extern int	ed_fulledit(Edit_t*);
 extern void	*ed_open(void);

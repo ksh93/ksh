@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,7 +40,7 @@ static void		r_comarg(struct comnod*);
 
 static Sfio_t *infile;
 
-#define getnode(type)   ((Shnode_t*)stkalloc(sh.stk,sizeof(struct type)))
+#define getnode(type)   stkalloc(sh.stk,sizeof(struct type))
 
 Shnode_t *sh_trestore(Sfio_t *in)
 {
@@ -134,9 +134,9 @@ static Shnode_t *r_tree(void)
 			t = getnode(functnod);
 			t->funct.functline = sfgetu(infile);
 			t->funct.functnam = r_string();
-			savstak = stkopen(STK_SMALL);
-			savstak = stkinstall(savstak, 0);
-			slp = (struct slnod*)stkalloc(sh.stk,sizeof(struct slnod)+sizeof(struct functnod));
+			savstak = sh.stk;
+			sh.stk = stkopen(STK_SMALL);
+			slp = stkalloc(sh.stk,sizeof(struct slnod)+sizeof(struct functnod));
 			slp->slchild = 0;
 			slp->slnext = sh.st.staklist;
 			sh.st.staklist = 0;
@@ -148,7 +148,8 @@ static Shnode_t *r_tree(void)
 			t->funct.functtre = r_tree();
 			t->funct.functstak = slp;
 			t->funct.functargs = (struct comnod*)r_tree();
-			slp->slptr = stkinstall(savstak,0);
+			slp->slptr = sh.stk;
+			sh.stk = savstak;
 			slp->slchild = sh.st.staklist;
 			break;
 		}
@@ -176,7 +177,7 @@ static struct argnod *r_arg(void)
 	Stk_t		*stkp=sh.stk;
 	while((l=sfgetu(infile))>0)
 	{
-		ap = (struct argnod*)stkseek(stkp,(unsigned)l+ARGVAL);
+		ap = stkseek(stkp,(unsigned)l+ARGVAL);
 		if(!aptop)
 			aptop = ap;
 		else
@@ -189,7 +190,7 @@ static struct argnod *r_arg(void)
 		ap->argval[l] = 0;
 		ap->argchn.cp = 0;
 		ap->argflag = sfgetc(infile);
-		ap = (struct argnod*)stkfreeze(stkp,0);
+		ap = stkfreeze(stkp,0);
 		if(*ap->argval==0 && (ap->argflag&ARG_EXP))
 			ap->argchn.ap = (struct argnod*)r_tree();
 		else if(*ap->argval==0 && (ap->argflag&~(ARG_APPEND|ARG_MESSAGE|ARG_QUOTED|ARG_ARRAY))==0)
@@ -255,12 +256,12 @@ static void r_comarg(struct comnod *com)
 	com->comstate = 0;
 	if(com->comtyp&COMSCAN)
 	{
-		com->comarg = r_arg();
-		if(com->comarg->argflag==ARG_RAW)
-			cmdname = com->comarg->argval;
+		com->comarg.ap = r_arg();
+		if(com->comarg.ap->argflag==ARG_RAW)
+			cmdname = com->comarg.ap->argval;
 	}
-	else if(com->comarg = (struct argnod*)r_comlist())
-		cmdname = ((struct dolnod*)(com->comarg))->dolval[ARG_SPARE];
+	else if(com->comarg.dp = r_comlist())
+		cmdname = com->comarg.dp->dolval[ARG_SPARE];
 	com->comline = sfgetu(infile);
 	com->comnamq = 0;
 	if(cmdname)
@@ -285,7 +286,7 @@ static struct dolnod *r_comlist(void)
 	char **argv;
 	if((l=sfgetl(infile))>0)
 	{
-		dol = (struct dolnod*)stkalloc(sh.stk,sizeof(struct dolnod) + sizeof(char*)*(l+ARG_SPARE));
+		dol = stkalloc(sh.stk,sizeof(struct dolnod) + sizeof(char*)*(l+ARG_SPARE));
 		dol->dolnum = l;
 		dol->dolbot = ARG_SPARE;
 		argv = dol->dolval+ARG_SPARE;
@@ -300,7 +301,7 @@ static struct regnod *r_switch(void)
 	struct regnod *reg=0,*regold,*regtop=0;
 	while((l=sfgetl(infile))>=0)
 	{
-		reg = (struct regnod*)getnode(regnod);
+		reg = getnode(regnod);
 		if(!regtop)
 			regtop = reg;
 		else

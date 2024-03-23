@@ -31,17 +31,17 @@ Directory layout:
 
 	The directory tests contains a number of regression tests.
 	In most cases, when a bug gets fixed, a test is added to
-	one of these files.  The regression tests can be run by
-	going to this directory and running
-		SHELL=shell_path shell_path shtests
-	where shell_path is an absolute pathname for the shell to
-	be tested.
+	one of these files.  The ksh regression tests can be run by
+	invoking the shtests script in the top-level bin directory;
+	see 'bin/shtests --man' for documentation about the options.
+	They are also run with default options via 'bin/package tests'
+	as part of a complete test suite run that also includes tests
+	for the build system itself.
 
-	The top level directory contains the nmake Makefile, the
-        RELEASE file, the ksh93 man file (sh.1) and nval.3 and shell.3
-        documentation files. The RELEASE file contains the list of bug
-	fixes and new features since the original ksh93 release.  The file
-	COMPATIBILITY is a list of all known incompatibilities with ksh88.
+	The top level directory contains the mamake Mamfile, the ksh93
+	manual page (sh.1) and the nval.3 and shell.3 documentation files.
+	The file COMPATIBILITY is a list of all known incompatibilities
+	with previous AT&T releases.
 
 Include directory:
 	1.	argnod.h contains the type definitions for command

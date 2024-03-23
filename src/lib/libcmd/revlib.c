@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,7 +22,7 @@
 #include	<cmd.h>
 #include	<rev.h>
 
-#define BUFSIZE			SF_BUFSIZE
+#define BUFSIZE			SFIO_BUFSIZE
 #define rounddown(n,size)	(((n)-1)&~((size)-1))
 
 /*
@@ -37,12 +37,12 @@ int rev_line(Sfio_t *in, Sfio_t *out, off_t start)
 	off_t offset;
 	if(sfseek(in,0,SEEK_CUR) < 0)
 	{
-		Sfio_t *tmp = sftmp(4*SF_BUFSIZE);
+		Sfio_t *tmp = sftmp(4*SFIO_BUFSIZE);
 		if(!tmp)
 			return -1;
 		if(start>0 && sfmove(in, NULL, start, -1) != start)
 			return -1;
-		if(sfmove(in, tmp, SF_UNBOUND, -1) < 0 || !sfeof(in) || sferror(tmp))
+		if(sfmove(in, tmp, SFIO_UNBOUND, -1) < 0 || !sfeof(in) || sferror(tmp))
 			return -1;
 		in = tmp;
 		start=0;

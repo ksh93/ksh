@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -28,10 +28,10 @@ Sfoff_t sfsize(Sfio_t* f)
 	int		mode;
 	Sfoff_t		s;
 
-	if(!f || ((mode = f->mode&SF_RDWR) != (int)f->mode && _sfmode(f,mode,0) < 0))
+	if(!f || ((mode = f->mode&SFIO_RDWR) != (int)f->mode && _sfmode(f,mode,0) < 0))
 		return (Sfoff_t)(-1);
 
-	if(f->flags&SF_STRING)
+	if(f->flags&SFIO_STRING)
 	{	SFSTRSIZE(f);
 		return f->extent;
 	}
@@ -41,7 +41,7 @@ Sfoff_t sfsize(Sfio_t* f)
 	s = f->here;
 
 	if(f->extent >= 0)
-	{	if(f->flags&(SF_SHARE|SF_APPENDWR))
+	{	if(f->flags&(SFIO_SHARE|SFIO_APPENDWR))
 		{	for(disc = f->disc; disc; disc = disc->disc)
 				if(disc->seekf)
 					break;
@@ -63,14 +63,14 @@ Sfoff_t sfsize(Sfio_t* f)
 #endif
 		}
 
-		if((f->flags&(SF_SHARE|SF_PUBLIC)) == (SF_SHARE|SF_PUBLIC))
+		if((f->flags&(SFIO_SHARE|SFIO_PUBLIC)) == (SFIO_SHARE|SFIO_PUBLIC))
 			f->here = SFSK(f,0,SEEK_CUR,f->disc);
 	}
 
-	if(f->here != s && (f->mode&SF_READ) )
+	if(f->here != s && (f->mode&SFIO_READ) )
 	{	/* buffered data is known to be invalid */
 #ifdef MAP_TYPE
-		if((f->bits&SF_MMAP) && f->data)
+		if((f->bits&SFIO_MMAP) && f->data)
 		{	SFMUNMAP(f,f->data,f->endb-f->data);
 			f->data = NULL;
 		}
@@ -84,9 +84,9 @@ Sfoff_t sfsize(Sfio_t* f)
 		f->extent = f->here;
 
 	if((s = f->extent) >= 0)
-	{	if(f->flags&SF_APPENDWR)
+	{	if(f->flags&SFIO_APPENDWR)
 			s += (f->next - f->data);
-		else if(f->mode&SF_WRITE)
+		else if(f->mode&SFIO_WRITE)
 		{	s = f->here + (f->next - f->data);
 			if(s < f->extent)
 				s = f->extent;

@@ -673,7 +673,7 @@ exp=': trap: is a special shell builtin'
 
 # ======
 # Bugs involving scripts without a #! path
-# Hashbangless scripts are executed in a reinitialised fork of ksh, which is very bug-prone.
+# Hashbangless scripts are executed in a reinitialised fork of ksh.
 # https://github.com/ksh93/ksh/issues/350
 # Some of these fixed bugs don't involve types at all, but the tests need to go somewhere.
 # Plus, invoking these from an environment with a bunch of types defined is an additional test.

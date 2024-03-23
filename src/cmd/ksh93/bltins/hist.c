@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -213,7 +213,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_system(1),e_create,fname);
 			UNREACHABLE();
 		}
-		outfile= sfnew(NULL,sh.outbuff,IOBSIZE,fdo,SF_WRITE);
+		outfile= sfnew(NULL,sh.outbuff,IOBSIZE,fdo,SFIO_WRITE);
 		arg = "\n";
 		nflag++;
 	}
@@ -279,7 +279,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_exit(1),e_toodeep,"history");
 			UNREACHABLE();
 		}
-		iop = sfnew(NULL,buff,IOBSIZE,fdo,SF_READ);
+		iop = sfnew(NULL,buff,IOBSIZE,fdo,SFIO_READ);
 		sh_eval(iop,1); /* this will close fdo */
 		hist_depth--;
 	}

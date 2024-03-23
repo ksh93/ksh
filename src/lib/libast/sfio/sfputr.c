@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -30,7 +30,7 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 	uchar		*ps;
 	char		*ss;
 
-	if(!f || (f->mode != SF_WRITE && _sfmode(f,SF_WRITE,0) < 0))
+	if(!f || (f->mode != SFIO_WRITE && _sfmode(f,SFIO_WRITE,0) < 0))
 		return -1;
 
 	SFLOCK(f,0);
@@ -38,20 +38,20 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 	f->val = sn = -1; ss = (char*)s; 
 	for(w = 0; (*s || rc >= 0); )
 	{	/* need to communicate string size to exception handler */
-		if((f->flags&SF_STRING) && f->next >= f->endb )
+		if((f->flags&SFIO_STRING) && f->next >= f->endb )
 		{	sn = sn < 0 ? strlen(s) : (sn - (s-ss));
 			ss = (char*)s; /* save current checkpoint */
 			f->val = sn + (rc >= 0 ? 1 : 0); /* space requirement */
-			f->bits |= SF_PUTR; /* tell sfflsbuf to use f->val */
+			f->bits |= SFIO_PUTR; /* tell sfflsbuf to use f->val */
 		}
 
 		SFWPEEK(f,ps,p);
-		f->bits &= ~SF_PUTR; /* remove any trace of this */
+		f->bits &= ~SFIO_PUTR; /* remove any trace of this */
 
 		if(p < 0 ) /* something not right about buffering */
 			break;
 
-		if(p == 0 || (f->flags&SF_WHOLE) )
+		if(p == 0 || (f->flags&SFIO_WHOLE) )
 		{	n = sn < 0 ? strlen(s) : sn - (s-ss);
 			if(p >= (n + (rc < 0 ? 0 : 1)) )
 			{	/* buffer can hold everything */
@@ -108,11 +108,11 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 	}
 
 	/* sync unseekable shared streams */
-	if(f->extent < 0 && (f->flags&SF_SHARE) )
+	if(f->extent < 0 && (f->flags&SFIO_SHARE) )
 		(void)SFFLSBUF(f,-1);
 
 	/* check for line buffering */
-	else if((f->flags&SF_LINE) && !(f->flags&SF_STRING) && (n = f->next-f->data) > 0)
+	else if((f->flags&SFIO_LINE) && !(f->flags&SFIO_STRING) && (n = f->next-f->data) > 0)
 	{	if(n > w)
 			n = w;
 		f->next -= n;

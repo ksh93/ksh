@@ -148,7 +148,7 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#define	NULL	0
 		#endif /* __SUNPRO_C */
 	}
-elif tst note{ GNU (glibc) or Cygwin }end compile{
+elif tst note{ GNU (glibc), Cygwin, or Android }end compile{
 		/*
 		 * On GNU (GNU's Not UNIX) and Cygwin, _GNU_SOURCE is the "everything and the kitchen sink" macro
 		 * (see feature_test_macros(7)), but on GNU we also need to define _FILE_OFFSET_BITS to get large
@@ -163,8 +163,8 @@ elif tst note{ GNU (glibc) or Cygwin }end compile{
 		#include <features.h>
 		#include <sys/types.h>
 		#include <wchar.h>
-		#if !__GLIBC__ && !__CYGWIN__
-		#error not GNU or Cygwin
+		#if !__GLIBC__ && !__CYGWIN__ && !__ANDROID_API__
+		#error not GNU, Cygwin, or Android
 		#endif
 		int _do_these_compile_ = _POSIX_PATH_MAX & _SC_PAGESIZE;
 		#if _typ_u_long

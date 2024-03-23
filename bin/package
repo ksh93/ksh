@@ -36,7 +36,7 @@ if	(eval "$min_posix") 2>/dev/null
 then	: good shell
 else	"$SHELL" -c "$min_posix" 2>/dev/null && exec "$SHELL" -- "$0" ${1+"$@"}
 	sh -c "$min_posix" 2>/dev/null && exec sh -- "$0" ${1+"$@"}
-	DEFPATH=`getconf PATH` 2>/dev/null || DEFPATH=/usr/xpg4/bin:/bin:/usr/bin:/sbin:/usr/sbin
+	DEFPATH=`getconf PATH 2>/dev/null` || DEFPATH=/usr/xpg4/bin:/bin:/usr/bin:/sbin:/usr/sbin
 	PATH=$DEFPATH:$PATH
 	export PATH
 	sh -c "$min_posix" 2>/dev/null && exec sh -- "$0" ${1+"$@"}
@@ -101,7 +101,7 @@ lib="" # need /usr/local/lib /usr/local/shlib
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
 makefiles="Mamfile"  # ksh 93u+m no longer uses these: Nmakefile nmakefile Makefile makefile
-env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH FPATH MANPATH"
+env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH DEFPATH FPATH MANPATH"
 
 package_use='=$HOSTTYPE=$PACKAGEROOT=$INSTALLROOT=$EXECROOT=$CC='
 
@@ -115,7 +115,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2024-01-22 $
+@(#)$Id: '$command$' (ksh 93u+m) 2024-03-20 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -324,7 +324,7 @@ ifs=${IFS-'
 	 '}
 lo=
 make=
-makeflags='-K'
+makeflags=''
 nl="
 "
 noexec=
@@ -543,7 +543,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2024-01-22
+  version         package (ksh 93u+m) 2024-03-20
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -656,7 +656,7 @@ do	case $i in
 	VPATH=*)eval USER_$n='$'v
 		;;
 	'debug=1')
-		makeflags="$makeflags --debug-symbols"
+		makeflags="$makeflags --debug-symbols -e"
 		;;
 	'strip=1')
 		makeflags="$makeflags --strip-symbols"
@@ -914,7 +914,7 @@ hostinfo() # attribute ...
 		0|1)	cpu=$(
 			cd "$TMPDIR"
 			tmp=hi$$
-			trap 'set +o noglob; exec rm -f $tmp.*' 0 1 2
+			trap 'set +o noglob; rm -f $tmp.*' 0 1 2
 			cat > $tmp.c <<!
 #include <stdio.h>
 #include <pthread.h>
@@ -1033,6 +1033,9 @@ int main(void)
 		*-linux-gnu* | *-linux-musl*)
 			# fix missing machine field, e.g. aarch64-linux-gnu => aarch64-unknown-linux-gnu
 			canon=${canon%%-*}-unknown-${canon#*-} ;;
+		*-linux-android*)
+			# Android/Termux is very much its own thing, so identify it as 'android', not 'linux'
+			canon=${canon%-linux-*}-android ;;
 		esac
 		case -${canon}- in
 		--|*-powerpc-*)
@@ -1534,7 +1537,7 @@ int b(void) { return 0; }
 			'')	bits=$(	set -e
 					cd "$TMPDIR"
 					tmp=hi$$
-					trap 'set +o noglob; exec rm -rf "$tmp".*' 0 1 2
+					trap 'set +o noglob; rm -rf "$tmp".*' 0 1 2
 					echo 'int main(void) { return 0; }' > $tmp.a.c
 					checkcc
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
@@ -1637,6 +1640,124 @@ checkcc()
 		;;
 	esac
 }
+
+# output sanitized system $PATH, eliminating duplicate and nonexistent dirs, '..', etc.
+
+sanitize_PATH()
+(
+	set -fu +e
+	IFS=':'
+	unset -v CDPATH
+	sPATH=''
+	for dir in $1; do
+		# Sanitize this path, resolving symlinks,
+		# with special-casing of ksh's virtual built-ins directory
+		case $dir in
+		/opt/ast/bin)
+			test ! -d "$dir" && sdir=$dir ;;
+		*/* | [!+-]* | [+-]*[!0123456789]*)
+			sdir=$(cd -- $dir 2>/dev/null && pwd -P && echo X) ;;
+		*)	sdir=$(cd ./$dir 2>/dev/null && pwd -P && echo X) ;;
+		esac || continue
+		sdir=${sdir%?X}
+		# Skip duplicates
+		case :$sPATH: in
+		*:"$sdir":*)
+			continue ;;
+		esac
+		# Found one, add it
+		sPATH=${sPATH:+$sPATH:}$sdir
+	done
+	printf '%s\n' "${sPATH#:}"
+)
+
+# Ensure a sane $PATH beginning with standard utilities.
+# POSIXly, a simple 'getconf PATH' should do it, but reality is otherwise.
+# Find preferred getconf(1) on NixOS and Solaris/illumos.
+# Compile fallback programs on systems without getconf(1).
+
+DEFPATH=$(
+	# support Android/Termux, NixOS, Solaris/illumos, generic /bin:/usr/bin
+	PATH=/data/data/com.termux/files/usr/bin:/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+	getconf PATH 2>/dev/null || {
+		# no getconf(1) -- try confstr(3)
+		checkcc
+		t=${TMPDIR:-/tmp}/path_test.$$
+		trap 'set +f; rm -rf "$t."*' 0
+		cat > $t.c <<-EOF
+			#include <stdio.h>
+			#include <unistd.h>
+			int main(void)
+			{
+				char buf[8192];
+				size_t len = confstr(_CS_PATH, &buf, sizeof(buf));
+				if (len > 0 && len < sizeof(buf))
+				{
+					printf("%s\n", buf);
+					return 0;
+				}
+				return 1;
+			}
+		EOF
+		$CC $CCFLAGS $LDFLAGS -o "$t.exe" "$t.c" 2>/dev/null && "$t.exe"
+	} || {
+		# no confstr(3) either -- try non-standard _PATH_DEFPATH
+		cat > $t.c <<-EOF
+			#include <stdio.h>
+			#include <paths.h>
+			int main(void)
+			{
+				printf("%s\n", _PATH_DEFPATH);
+				return 0;
+			}
+		EOF
+		$CC $CCFLAGS $LDFLAGS -o "$t.exe" "$t.c" 2>/dev/null && "$t.exe"
+	}
+) || DEFPATH=/bin:/usr/bin:/sbin:/usr/sbin
+# Fix for Android/Termux. The /bin directory exists with standard
+# utilities (sh, Toybox utils) but it is not included in _PATH_DEFPATH.
+# It should come first because /bin is read-only.
+if	test -d /data/data/com.termux && test "$(/bin/uname -o 2>/dev/null)" = Android
+then	case ":$DEFPATH:" in
+	*:/bin:* ) ;;
+	* )	DEFPATH=/bin:$DEFPATH ;;
+	esac
+fi
+# Fix for NixOS. Not all POSIX standard utilities come with the default system,
+# e.g. 'bc', 'file', 'vi'. The command that NixOS recommends to get missing
+# utilities, e.g. 'nix-env -iA nixos.bc', installs them in a default profile
+# directory that is not in $(getconf PATH). So add this path to the standard path.
+# See: https://github.com/NixOS/nixpkgs/issues/65512
+if	test -e /etc/NIXOS &&
+	nix_profile_dir=/nix/var/nix/profiles/default/bin &&
+	test -d "$nix_profile_dir"
+then	case ":$DEFPATH:" in
+	*:"$nix_profile_dir":* )
+		# nothing to do
+		;;
+	* )	# insert the default profile directory as the second entry
+		DEFPATH=$(
+			set -f
+			IFS=:
+			set -- $DEFPATH
+			one=$1
+			shift
+			echo "$one:$nix_profile_dir${1+:}$*"
+		) ;;
+	esac
+fi
+# Fix for AIX. At least as of version 7.1, the system default 'find', 'diff -u' and 'patch' utilities
+# are broken and/or non-compliant in ways that make them incompatible with POSIX 2018. However, GNU
+# utilities are commonly installed in /opt/freeware/bin, and under standard names (no g- prefix).
+if	test -d /opt/freeware/bin
+then	case $(uname) in
+	AIX )	DEFPATH="/opt/freeware/bin:$DEFPATH" ;;
+	esac
+fi
+
+export DEFPATH  # for iffe, etc.
+
+PATH=$(sanitize_PATH "/opt/ast/bin:$DEFPATH:$PATH")
 
 # some actions have their own PACKAGEROOT or kick out early
 
@@ -2077,10 +2198,7 @@ case $x in
 
 	case $KEEP_SHELL in
 	0)	save_PATH=$PATH
-		if	PATH=$(getconf PATH 2>/dev/null)
-		then	PATH=$PATH:$path
-		else	PATH=/bin:/usr/bin:/sbin:/usr/sbin:$path
-		fi
+		PATH=$DEFPATH:$path
 		for i in ksh ksh93 mksh yash bash sh
 		do	if onpath "$i" && checksh "$_onpath_"
 			then	SHELL=$_onpath_
@@ -2102,13 +2220,7 @@ case $x in
 
 	# tame the environment
 
-	case $action in
-	use)	;;
-	*)	ENV=
-		ERROR_OPTIONS=
-		export ENV ERROR_OPTIONS
-		;;
-	esac
+	unset ERROR_OPTIONS ENV _KSHRC_WELCOMED_
 
 	# finalize the views
 
@@ -3036,18 +3148,9 @@ make|view)
 	case $EXECROOT in
 	$INSTALLROOT)
 		$make cd $INSTALLROOT/bin
-		if	executable /bin/cp
-		then	cp=/bin/cp
-		else	cp=cp
-		fi
-		if	executable /bin/mv
-		then	mv=/bin/mv
-		else	mv=mv
-		fi
-		if	executable /bin/rm
-		then	rm=/bin/rm
-		else	rm=rm
-		fi
+		cp=$(PATH=$DEFPATH; command -v cp) || cp=cp
+		mv=$(PATH=$DEFPATH; command -v mv) || mv=mv
+		rm=$(PATH=$DEFPATH; command -v rm) || rm=rm
 		for i in \
 			ksh tee cp ln mv rm \
 			*ast*.dll *cmd*.dll *dll*.dll *shell*.dll
@@ -3251,7 +3354,7 @@ results)set -- $target
 					case $filter in
 					errors)	$exeg grep -E '^pax:|\*\*\*' $j
 						;;
-					*)	$exec grep -E -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
+					*)	$exec grep -E -iv '^($||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|read|probe|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
 						$exec grep :
 						;;
 					esac
@@ -3284,6 +3387,7 @@ use)	# finalize the environment
 	if	test "$KEEP_SHELL" -lt 2 && executable "$INSTALLROOT/bin/ksh"
 	then	SHELL=$INSTALLROOT/bin/ksh
 	fi
+	export ENV=$INSTALLROOT/etc/kshrc
 	x=:..
 	for d in $(set +o noglob; cd $PACKAGEROOT; ls src/*/Mamfile 2>/dev/null | sed 's,/[^/]*$,,' | sort -u)
 	do	x=$x:$INSTALLROOT/$d

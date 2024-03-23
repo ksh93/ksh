@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,8 +23,8 @@ int
 setvbuf(Sfio_t* f, char* buf, int type, size_t size)
 {
 	if (type == _IOLBF)
-		sfset(f, SF_LINE, 1);
-	else if (f->flags & SF_STRING)
+		sfset(f, SFIO_LINE, 1);
+	else if (f->flags & SFIO_STRING)
 		return -1;
 	else if (type == _IONBF)
 	{	
@@ -34,7 +34,7 @@ setvbuf(Sfio_t* f, char* buf, int type, size_t size)
 	else if (type == _IOFBF)
 	{	
 		if (size == 0)
-			size = SF_BUFSIZE;
+			size = SFIO_BUFSIZE;
 		sfsync(f);
 		sfsetbuf(f, buf, size);
 	}

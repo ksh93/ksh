@@ -151,8 +151,8 @@ typedef unsigned long Cctype_t;
 	Entry_t*	magiclast;		/* last entry in magic	*/ \
 	char*		mime;			/* MIME type		*/ \
 	unsigned char*	x2n;			/* CC_ALIEN=>CC_NATIVE	*/ \
-	char		fbuf[SF_BUFSIZE + 1];	/* file data		*/ \
-	char		xbuf[SF_BUFSIZE + 1];	/* indirect file data	*/ \
+	char		fbuf[SFIO_BUFSIZE + 1];	/* file data		*/ \
+	char		xbuf[SFIO_BUFSIZE + 1];	/* indirect file data	*/ \
 	char		nbuf[256];		/* !CC_NATIVE data	*/ \
 	char		mbuf[64];		/* mime string		*/ \
 	char		sbuf[64];		/* type suffix string	*/ \
@@ -291,7 +291,7 @@ getdata(Magic_t* mp, long off, int siz)
 	{
 		if (off + siz > mp->fbmx)
 			return NULL;
-		n = (off / (SF_BUFSIZE / 2)) * (SF_BUFSIZE / 2);
+		n = (off / (SFIO_BUFSIZE / 2)) * (SFIO_BUFSIZE / 2);
 		if (sfseek(mp->fp, n, SEEK_SET) != n)
 			return NULL;
 		if ((mp->xbsz = sfread(mp->fp, mp->xbuf, sizeof(mp->xbuf) - 1)) < 0)
@@ -1241,11 +1241,11 @@ cklang(Magic_t* mp, const char* file, char* buf, char* end, struct stat* st)
 			mp->mime = "application/x-tex";
 			goto qualify;
 		}
-		if (mp->fbsz < SF_BUFSIZE &&
+		if (mp->fbsz < SFIO_BUFSIZE &&
 		    (mp->multi['('] == mp->multi[')'] &&
 		     mp->multi['{'] == mp->multi['}'] &&
 		     mp->multi['['] == mp->multi[']']) ||
-		    mp->fbsz >= SF_BUFSIZE &&
+		    mp->fbsz >= SFIO_BUFSIZE &&
 		    (mp->multi['('] >= mp->multi[')'] &&
 		     mp->multi['{'] >= mp->multi['}'] &&
 		     mp->multi['['] >= mp->multi[']']))
@@ -1295,8 +1295,8 @@ cklang(Magic_t* mp, const char* file, char* buf, char* end, struct stat* st)
 			}
 		}
 		if (mp->identifier[ID_MAM1] >= 2 && mp->identifier[ID_MAM3] >= 2 &&
-		    (mp->fbsz < SF_BUFSIZE && mp->identifier[ID_MAM1] == mp->identifier[ID_MAM2] ||
-		     mp->fbsz >= SF_BUFSIZE && mp->identifier[ID_MAM1] >= mp->identifier[ID_MAM2]))
+		    (mp->fbsz < SFIO_BUFSIZE && mp->identifier[ID_MAM1] == mp->identifier[ID_MAM2] ||
+		     mp->fbsz >= SFIO_BUFSIZE && mp->identifier[ID_MAM1] >= mp->identifier[ID_MAM2]))
 		{
 		id_mam:
 			s = T("mam program");

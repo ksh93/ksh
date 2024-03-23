@@ -108,7 +108,7 @@ static unsigned int subenv;
  */
 void	sh_subtmpfile(void)
 {
-	if(sfset(sfstdout,0,0)&SF_STRING)
+	if(sfset(sfstdout,0,0)&SFIO_STRING)
 	{
 		int fd;
 		struct checkpt	*pp = (struct checkpt*)sh.jmplist;
@@ -126,7 +126,7 @@ void	sh_subtmpfile(void)
 			UNREACHABLE();
 		}
 		/* popping a discipline forces a /tmp file create */
-		sfdisc(sfstdout,SF_POPDISC);
+		sfdisc(sfstdout,SFIO_POPDISC);
 		if((fd=sffileno(sfstdout))<0)
 		{
 			errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"could not create temp file");
@@ -143,8 +143,8 @@ void	sh_subtmpfile(void)
 			sh.fdstatus[fd] = IOCLOSE;
 		}
 		sh_iostream(1);
-		sfset(sfstdout,SF_SHARE|SF_PUBLIC,1);
-		sfpool(sfstdout,sh.outpool,SF_WRITE);
+		sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
+		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
 		if(pp && pp->olist  && pp->olist->strm == sfstdout)
 			pp->olist->strm = 0;
 	}
@@ -349,7 +349,7 @@ static void nv_restore(struct subshell *sp)
 		}
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
-			mp->nvenv = np->nvenv;
+			mp->nvmeta = np->nvmeta;
 		mp->nvfun = np->nvfun;
 		if(np->nvfun && nofree)
 			np->nvfun->nofree = nofree;
@@ -613,7 +613,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				UNREACHABLE();
 			}
 			sfswap(iop,sfstdout);
-			sfset(sfstdout,SF_READ,0);
+			sfset(sfstdout,SFIO_READ,0);
 			sh.fdstatus[1] = IOWRITE;
 			flags |= sh_state(SH_NOFORK);
 		}
@@ -659,7 +659,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		/* trap on EXIT not handled by child */
 		char *trap=sh.st.trapcom[0];
 		sh.st.trapcom[0] = 0;	/* prevent recursion */
-		sh.oldexit = sh.exitval;
 		sh_trap(trap,0);
 		free(trap);
 	}
@@ -727,7 +726,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				sh.fdstatus[fd] = (sh.fdstatus[1]|IOCLEX);
 				sh.fdstatus[1] = IOCLOSE;
 			}
-			sfset(iop,SF_READ,1);
+			sfset(iop,SFIO_READ,1);
 		}
 		if(sp->saveout)
 			sfswap(sp->saveout,sfstdout);

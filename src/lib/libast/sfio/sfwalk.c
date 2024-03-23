@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,12 +32,12 @@ int sfwalk(Sfwalk_f	walkf,	/* return <0: stop, >=0: continue	*/
 	int		n, rv;
 
 	/* truly initializing std-streams before walking */
-	if(sfstdin->mode & SF_INIT)
-		_sfmode(sfstdin, (sfstdin->mode & SF_RDWR), 0);
-	if(sfstdout->mode & SF_INIT)
-		_sfmode(sfstdout, (sfstdout->mode & SF_RDWR), 0);
-	if(sfstderr->mode & SF_INIT)
-		_sfmode(sfstderr, (sfstderr->mode & SF_RDWR), 0);
+	if(sfstdin->mode & SFIO_INIT)
+		_sfmode(sfstdin, (sfstdin->mode & SFIO_RDWR), 0);
+	if(sfstdout->mode & SFIO_INIT)
+		_sfmode(sfstdout, (sfstdout->mode & SFIO_RDWR), 0);
+	if(sfstderr->mode & SFIO_INIT)
+		_sfmode(sfstderr, (sfstderr->mode & SFIO_RDWR), 0);
 
 	for(rv = 0, p = &_Sfpool; p; p = p->next)
 	{	for(n = 0; n < p->n_sf; )

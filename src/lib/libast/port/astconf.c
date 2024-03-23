@@ -790,9 +790,9 @@ feature(Feature_t* fp, const char* name, const char* path, const char* value, un
 static int
 lookup(Lookup_t* look, const char* name, unsigned int flags)
 {
-	Conf_t*		mid = (Conf_t*)conf;
-	Conf_t*		lo = mid;
-	Conf_t*		hi = mid + conf_elements;
+	Conf_t*		lo = (Conf_t*)conf;
+	Conf_t*		mid = lo;
+	Conf_t*		hi = lo + conf_elements - 1;
 	int		v = 0;
 	int		c;
 	char*		e;
@@ -1314,9 +1314,9 @@ nativeconf(Proc_t** pp, const char* operand)
 	ops[1] = 0;
 	if (*pp = procopen(_pth_getconf, cmd, environ, ops, PROC_READ))
 	{
-		if (sp = sfnew(NULL, NULL, SF_UNBOUND, (*pp)->rfd, SF_READ))
+		if (sp = sfnew(NULL, NULL, SFIO_UNBOUND, (*pp)->rfd, SFIO_READ))
 		{
-			sfdisc(sp, SF_POPDISC);
+			sfdisc(sp, SFIO_POPDISC);
 			return sp;
 		}
 		procclose(*pp);

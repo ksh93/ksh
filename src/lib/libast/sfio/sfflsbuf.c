@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -19,7 +19,7 @@
 #include	"sfhdr.h"
 
 /*	Write a buffer out to a file descriptor or
-**	extending a buffer for a SF_STRING stream.
+**	extending a buffer for a SFIO_STRING stream.
 **
 **	Written by Kiem-Phong Vo
 */
@@ -38,23 +38,23 @@ int _sfflsbuf(Sfio_t*	f,	/* write out the buffered content of this stream */
 
 	GETLOCAL(f,local);
 
-	for(written = 0;; f->mode &= ~SF_LOCK)
+	for(written = 0;; f->mode &= ~SFIO_LOCK)
 	{	/* check stream mode */
-		if(SFMODE(f,local) != SF_WRITE && _sfmode(f,SF_WRITE,local) < 0)
+		if(SFMODE(f,local) != SFIO_WRITE && _sfmode(f,SFIO_WRITE,local) < 0)
 			return -1;
 		SFLOCK(f,local);
 
 		/* current data extent */
 		n = f->next - (data = f->data);
 
-		if(n == (f->endb-data) && (f->flags&SF_STRING))
+		if(n == (f->endb-data) && (f->flags&SFIO_STRING))
 		{	/* call sfwr() to extend string buffer and process events */
-			w = ((f->bits&SF_PUTR) && f->val > 0) ? f->val : 1;
+			w = ((f->bits&SFIO_PUTR) && f->val > 0) ? f->val : 1;
 			(void)SFWR(f, data, w, f->disc);
 
-			/* !(f->flags&SF_STRING) is required because exception
+			/* !(f->flags&SFIO_STRING) is required because exception
 			   handlers may turn a string stream to a file stream */
-			if(f->next < f->endb || !(f->flags&SF_STRING) )
+			if(f->next < f->endb || !(f->flags&SFIO_STRING) )
 				n = f->next - (data = f->data);
 			else
 			{	SFOPEN(f,local);
@@ -67,7 +67,7 @@ int _sfflsbuf(Sfio_t*	f,	/* write out the buffered content of this stream */
 			if(n < (f->endb - (data = f->data)))
 			{	*f->next++ = c;
 				if(c == '\n' &&
-				   (f->flags&SF_LINE) && !(f->flags&SF_STRING))
+				   (f->flags&SFIO_LINE) && !(f->flags&SFIO_STRING))
 				{	c = -1;
 					n += 1;
 				}
@@ -82,7 +82,7 @@ int _sfflsbuf(Sfio_t*	f,	/* write out the buffered content of this stream */
 			}
 		}
 
-		if(n == 0 || (f->flags&SF_STRING))
+		if(n == 0 || (f->flags&SFIO_STRING))
 			break;
 
 		isall = SFISALL(f,isall);
@@ -102,7 +102,7 @@ int _sfflsbuf(Sfio_t*	f,	/* write out the buffered content of this stream */
 				return -1;
 			}
 		}
-		else /* w < 0 means SF_EDISC or SF_ESTACK in sfwr() */
+		else /* w < 0 means SFIO_EDISC or SFIO_ESTACK in sfwr() */
 		{	if(c < 0) /* back to the calling write operation */
 				break;
 			else	continue; /* try again to write out c */

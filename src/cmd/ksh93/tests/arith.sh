@@ -1050,4 +1050,12 @@ then	err_exit "arithmetic assignment to LINENO fails (got $got)"
 fi
 
 # ======
+# non-base-10 numbers may be negative
+# https://github.com/ksh93/ksh/issues/696
+exp=-20#j12
+integer 20 got=$exp
+[[ $got == "$exp" ]] || err_exit "negative base-20 number (expected '$exp', got '$got')"
+unset got
+
+# ======
 exit $((Errors<125?Errors:125))

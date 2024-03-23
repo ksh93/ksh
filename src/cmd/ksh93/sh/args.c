@@ -337,7 +337,7 @@ int sh_argopts(int argc,char *argv[])
 			errormsg(SH_DICT,ERROR_system(3),e_create,ap->kiafile);
 			UNREACHABLE();
 		}
-		if(!(lp->kiatmp=sftmp(2*SF_BUFSIZE)))
+		if(!(lp->kiatmp=sftmp(2*SFIO_BUFSIZE)))
 		{
 			errormsg(SH_DICT,ERROR_system(3),e_tmpcreate);
 			UNREACHABLE();
@@ -639,21 +639,21 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 		const struct comnod *ac = comptr;
 		int n;
 		/* see if the arguments have already been expanded */
-		if(!ac->comarg)
+		if(!ac->comarg.ap)
 		{
 			*nargs = 0;
 			return &null;
 		}
 		else if(!(ac->comtyp&COMSCAN))
 		{
-			struct dolnod *ap = (struct dolnod*)ac->comarg;
+			struct dolnod *ap = ac->comarg.dp;
 			*nargs = ap->dolnum;
 			return ap->dolval+ap->dolbot;
 		}
 		*nargs = 0;
 		if(ac)
 		{
-			argp = ac->comarg;
+			argp = ac->comarg.ap;
 			while(argp)
 			{
 				n = arg_expand(argp,&arghead,flag);
@@ -681,7 +681,7 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 		 * TODO: find/fix root cause, eliminate argi
 		 */
 		argn = *nargs + 1;	/* allow room to prepend args */
-		comargn=(char**)stkalloc(sh.stk,(unsigned)(argn+1)*sizeof(char*));
+		comargn = stkalloc(sh.stk,(unsigned)(argn+1)*sizeof(char*));
 		comargm = comargn += argn;
 		*comargn = NULL;
 		if(!argp)
@@ -724,7 +724,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	int savestates = sh_getstate();
 	char savejobcontrol = job.jobcontrol;
 	unsigned int savesubshell = sh.subshell;
-	ap = (struct argnod*)stkseek(sh.stk,ARGVAL);
+	ap = stkseek(sh.stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
 	fd = argp->argflag&ARG_RAW;
@@ -751,8 +751,8 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
 	sfputr(sh.stk,sh.fifo,0);
 #endif /* SHOPT_DEVFD */
-	sfputr(sh.stk,fmtbase((intmax_t)pv[fd],10,0),0);
-	ap = (struct argnod*)stkfreeze(sh.stk,0);
+	sfputr(sh.stk,fmtint(pv[fd],1),0);
+	ap = stkfreeze(sh.stk,0);
 	sh.inpipe = sh.outpipe = 0;
 	/* turn off job control */
 	sh_offstate(SH_INTERACTIVE);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -58,15 +58,15 @@ int sfraise(Sfio_t*	f,	/* stream		*/
 	GETLOCAL(f,local);
 	if(!SFKILLED(f) &&
 	   !(local &&
-	     (type == SF_NEW || type == SF_CLOSING ||
-	      type == SF_FINAL || type == SF_ATEXIT)) &&
-	   SFMODE(f,local) != (f->mode&SF_RDWR) && _sfmode(f,0,local) < 0)
+	     (type == SFIO_NEW || type == SFIO_CLOSING ||
+	      type == SFIO_FINAL || type == SFIO_ATEXIT)) &&
+	   SFMODE(f,local) != (f->mode&SFIO_RDWR) && _sfmode(f,0,local) < 0)
 		return -1;
 	SFLOCK(f,local);
 
 	for(disc = f->disc; disc; )
 	{	next = disc->disc;
-		if(type == SF_FINAL)
+		if(type == SFIO_FINAL)
 			f->disc = next;
 
 		if(disc->exceptf)

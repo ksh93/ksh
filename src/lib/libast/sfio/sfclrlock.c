@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -29,24 +29,24 @@ int sfclrlock(Sfio_t* f)
 	int	rv;
 
 	/* already closed */
-	if(f && (f->mode&SF_AVAIL) || !f)
+	if(f && (f->mode&SFIO_AVAIL) || !f)
 		return 0;
 
 	/* clear error bits */
-	f->flags &= ~(SF_ERROR|SF_EOF);
+	f->flags &= ~(SFIO_ERROR|SFIO_EOF);
 
 	/* clear peek locks */
-	if(f->mode&SF_PKRD)
+	if(f->mode&SFIO_PKRD)
 	{	f->here -= f->endb-f->next;
 		f->endb = f->next;
 	}
 
 	SFCLRBITS(f);
 
-	/* throw away all lock bits except for stacking state SF_PUSH */
-	f->mode &= (SF_RDWR|SF_INIT|SF_POOL|SF_PUSH|SF_SYNCED|SF_STDIO);
+	/* throw away all lock bits except for stacking state SFIO_PUSH */
+	f->mode &= (SFIO_RDWR|SFIO_INIT|SFIO_POOL|SFIO_PUSH|SFIO_SYNCED|SFIO_STDIO);
 
-	rv = (f->mode&SF_PUSH) ? 0 : (f->flags&SFIO_FLAGS);
+	rv = (f->mode&SFIO_PUSH) ? 0 : (f->flags&SFIO_FLAGS);
 
 	return rv;
 }

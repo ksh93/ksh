@@ -38,7 +38,11 @@ struct comnod
 {
 	int		comtyp;
 	struct ionod	*comio;
-	struct argnod	*comarg;
+	union
+	{
+		struct argnod	*ap;	/* use if (comtyp&COMSCAN) */
+		struct dolnod	*dp;	/* use if (!(comtyp&COMSCAN)) */
+	}		comarg;
 	struct argnod	*comset;
 	void		*comnamp;
 	void		*comnamq;
@@ -91,7 +95,6 @@ struct argnod
 	{
 		struct argnod	*ap;
 		char		*cp;
-		int		len;
 	}		argchn;
 	unsigned char	argflag;
 	char		argval[4];

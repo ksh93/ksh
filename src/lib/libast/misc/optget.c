@@ -206,8 +206,9 @@ static const List_t	help_head[] =
 		C("\b-?\b and \b--?\b* options are the same \
 for all \bAST\b commands. For any \aitem\a below, if \b--\b\aitem\a is not \
 supported by a given command then it is equivalent to \b--\?\?\b\aitem\a. The \
-\b--\?\?\b form should be used for portability. All output is written to the \
-standard error."),
+\b--\?\?\b form should be used for portability. \
+All output is written to the standard error. \
+Note that question marks should be quoted to avoid pathanme expansion."),
 };
 
 static const Help_t	styles[] =
@@ -255,8 +256,11 @@ static const List_t	help_tail[] =
 the \aoption\a output in the \aitem\a style. Otherwise print \
 \bversion=\b\an\a where \an\a>0 if \b--\?\?\b\aitem\a is supported, \b0\b \
 if not."),
+	':',	C("\?\?\?\?\?\?EMPHASIS"),
+		C("Equivalent to \b--\?\?\?ESC\b."),
 	':',	C("\?\?\?\?\?\?ESC"),
-		C("Emit escape codes even if output is not a terminal."),
+		C("Emit ANSI escape codes for emphasis even if standard error is not on a terminal. \
+Use \b--\?\?noESC\b to emit no escape codes even if standard error is on a terminal."),
 	':',	C("\?\?\?\?\?\?MAN[=\asection\a]]"),
 		C("List the \bman\b(1) section title for \asection\a [the \
 current command]]."),
@@ -2416,7 +2420,7 @@ opthelp(const char* oopts, const char* what)
 	Sfio_t*		sp_misc = 0;
 
 	if (!(mp = state.mp) && !(mp = state.mp = sfstropen()))
-		goto nospace;
+		goto outofmemory;
 	if (!what)
 		style = state.style;
 	else if (!*what)
@@ -2436,7 +2440,7 @@ opthelp(const char* oopts, const char* what)
 		if ((style = state.force) < STYLE_man)
 			style = STYLE_man;
 		if (!(sp_help = sfstropen()))
-			goto nospace;
+			goto outofmemory;
 		for (i = 0; i < elementsof(help_head); i++)
 			list(sp_help, &help_head[i]);
 		for (i = 0; i < elementsof(styles); i++)
@@ -2444,7 +2448,7 @@ opthelp(const char* oopts, const char* what)
 		for (i = 0; i < elementsof(help_tail); i++)
 			list(sp_help, &help_tail[i]);
 		if (!(opts = sfstruse(sp_help)))
-			goto nospace;
+			goto outofmemory;
 	}
 
 	/*
@@ -2470,7 +2474,7 @@ opthelp(const char* oopts, const char* what)
 		{
 			o = &one;
 			if (init((char*)opts, o))
-				goto nospace;
+				goto outofmemory;
 		}
 		e = o + 1;
 	}
@@ -2493,9 +2497,9 @@ opthelp(const char* oopts, const char* what)
 	if (style <= STYLE_usage)
 	{
 		if (!(sp_text = sfstropen()) || !(sp_info = sfstropen()))
-			goto nospace;
+			goto outofmemory;
 		if (style >= STYLE_match && style < STYLE_keys && !(sp_body = sfstropen()))
-			goto nospace;
+			goto outofmemory;
 	}
 	switch (style)
 	{
@@ -2514,21 +2518,22 @@ opthelp(const char* oopts, const char* what)
 		sfputc(mp, '\f');
 		break;
 	default:
-		state.emphasis = 0;
-		if (x = getenv("ERROR_OPTIONS"))
+		if (!state.emphasis)
 		{
-			if (strmatch(x, "*noemphasi*"))
-				break;
-			if (strmatch(x, "*emphasi*"))
+			if (x = getenv("ERROR_OPTIONS"))
 			{
-				state.emphasis = 1;
-				break;
+				if (strmatch(x, "*noemphasi*"))
+					break;
+				if (strmatch(x, "*emphasi*"))
+				{
+					state.emphasis = 1;
+					break;
+				}
 			}
+			if (isatty(sffileno(sfstderr)) && (x = getenv("TERM"))
+			&& strmatch(x, "(ansi|cons|dtterm|linux|screen|sun|vt???|wsvt|xterm)*"))
+				state.emphasis = 1;
 		}
-		if (isatty(sffileno(sfstderr))
-		&& (x = getenv("TERM"))
-		&& strmatch(x, "(ansi|cons|dtterm|linux|screen|sun|vt???|wsvt|xterm)*"))
-			state.emphasis = 1;
 		break;
 	}
 	x = "";
@@ -2899,7 +2904,7 @@ opthelp(const char* oopts, const char* what)
 		{
 			p++;
 			if (!(sp = sp_plus) && !(sp = sp_plus = sfstropen()))
-				goto nospace;
+				goto outofmemory;
 		}
 		else if (style >= STYLE_match)
 			sp = sp_body;
@@ -2978,7 +2983,7 @@ opthelp(const char* oopts, const char* what)
 						if (*(p + 1) != '-')
 						{
 							if (!sp_misc && !(sp_misc = sfstropen()))
-								goto nospace;
+								goto outofmemory;
 							else
 								p = textout(sp_misc, p, cb, cl, style, 1, 3, sp_info, version, id, catalog, &hflags);
 							continue;
@@ -3020,7 +3025,7 @@ opthelp(const char* oopts, const char* what)
 							sp_head = sp_body;
 							hflags = dflags = bflags;
 							if (!(sp_body = sfstropen()))
-								goto nospace;
+								goto outofmemory;
 						}
 						continue;
 					}
@@ -3281,7 +3286,7 @@ opthelp(const char* oopts, const char* what)
 						if (sp_body)
 							sfputc(sp_body, ' ');
 						else if (!(sp_body = sfstropen()))
-							goto nospace;
+							goto outofmemory;
 						if (mutex)
 						{
 							if (mutex & 1)
@@ -3431,7 +3436,7 @@ opthelp(const char* oopts, const char* what)
 							else
 								sfprintf(sp_info, " %s %s\bno%-.*s\b %s.", T(NULL, ID, "On by default; use"), "--"+2-prefix, u - w, w, T(NULL, ID, "to turn off"));
 							if (!(t = sfstruse(sp_info)))
-								goto nospace;
+								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 0, 0, sp_info, version, NULL, NULL, &bflags);
 						}
 						if (*p == GO)
@@ -3458,7 +3463,7 @@ opthelp(const char* oopts, const char* what)
 							else
 								sfprintf(sp_info, "%s%s", y, T(NULL, ID, "The option value may be omitted."));
 							if (!(t = sfstruse(sp_info)))
-								goto nospace;
+								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 4, 0, sp_info, version, NULL, NULL, &bflags);
 							y = " ";
 						}
@@ -3475,7 +3480,7 @@ opthelp(const char* oopts, const char* what)
 							sfputc(sp_info, '\b');
 							sfputc(sp_info, '.');
 							if (!(t = sfstruse(sp_info)))
-								goto nospace;
+								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 4, 0, sp_info, version, NULL, NULL, &bflags);
 						}
 					}
@@ -3497,7 +3502,7 @@ opthelp(const char* oopts, const char* what)
 		if (sp_misc)
 		{
 			if (!(p = sfstruse(sp_misc)))
-				goto nospace;
+				goto outofmemory;
 			for (t = p; *t == '\t' || *t == '\n'; t++);
 			if (*t)
 			{
@@ -3518,7 +3523,7 @@ opthelp(const char* oopts, const char* what)
 		if (style == STYLE_keys && sfstrtell(mp) > 1)
 			sfstrseek(mp, -1, SEEK_CUR);
 		if (!(p = sfstruse(mp)))
-			goto nospace;
+			goto outofmemory;
 		return opt_info.msg = p;
 	}
 	sp = sp_text;
@@ -3637,10 +3642,10 @@ opthelp(const char* oopts, const char* what)
 			if (hp = (Help_t*)search(styles, elementsof(styles), sizeof(styles[0]), (char*)what))
 			{
 				if (!sp_help && !(sp_help = sfstropen()))
-					goto nospace;
+					goto outofmemory;
 				sfprintf(sp_help, "[-][:%s?%s]", hp->match, hp->text);
 				if (!(opts = sfstruse(sp_help)))
-					goto nospace;
+					goto outofmemory;
 				goto again;
 			}
 			s = (char*)unknown;
@@ -3656,7 +3661,7 @@ opthelp(const char* oopts, const char* what)
 			if (sfstrtell(sp))
 				sfputc(sp, ' ');
 			if (!(t = sfstruse(sp_plus)))
-				goto nospace;
+				goto outofmemory;
 			sfputr(sp, t, ']');
 		}
 		sfclose(sp_plus);
@@ -3666,7 +3671,7 @@ opthelp(const char* oopts, const char* what)
 		if (sp_head)
 		{
 			if (!(t = sfstruse(sp_head)))
-				goto nospace;
+				goto outofmemory;
 			for (; *t == '\n'; t++);
 			sfputr(sp, t, '\n');
 			sfclose(sp_head);
@@ -3707,7 +3712,7 @@ opthelp(const char* oopts, const char* what)
 			if (style < STYLE_match && sfstrtell(sp))
 				sfputc(sp, ' ');
 			if (!(t = sfstruse(sp_body)))
-				goto nospace;
+				goto outofmemory;
 			if (style == STYLE_html && !(dflags & HELP_head) && (bflags & HELP_head))
 				sfputr(sp, "\n</DIV>", '\n');
 			sfputr(sp, t, -1);
@@ -3728,7 +3733,7 @@ opthelp(const char* oopts, const char* what)
 		sp_misc = 0;
 	}
 	if (!(p = sfstruse(sp)))
-		goto nospace;
+		goto outofmemory;
 	astwinsize(1, NULL, &state.width);
 	if (state.width < 20)
 		state.width = OPT_WIDTH;
@@ -4074,12 +4079,12 @@ opthelp(const char* oopts, const char* what)
 	else
 		sfputr(mp, p, 0);
 	if (!(p = sfstruse(mp)))
-		goto nospace;
+		goto outofmemory;
 	if (sp)
 		sfclose(sp);
 	return opt_info.msg = p;
- nospace:
-	s = T(NULL, ID, "[* out of space *]");
+ outofmemory:
+	s = T(NULL, ID, "[* out of memory *]");
  nope:
 	if (psp)
 		pop(psp);
@@ -4152,7 +4157,7 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 	if (opt_info.num != LONG_MIN)
 		opt_info.num = (long)(opt_info.number = 0);
 	if (!p || !(mp = state.mp) && !(mp = state.mp = sfstropen()))
-		goto nospace;
+		goto outofmemory;
 	s = *p == '-' ? p : opt_info.name;
 	if (*p == '!')
 	{
@@ -4185,7 +4190,7 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 			else if (p = sfstruse(tp))
 				sfputr(mp, T(id, catalog, p), ' ');
 			else
-				goto nospace;
+				goto outofmemory;
 		}
 		p = opt_info.name[2] ? C("value expected") : C("argument expected");
 	}
@@ -4213,8 +4218,8 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 		sfputr(mp, " -- out of range", -1);
 	if (opt_info.arg = sfstruse(mp))
 		return ':';
- nospace:
-	opt_info.arg = T(NULL, ID, "[* out of space *]");
+ outofmemory:
+	opt_info.arg = T(NULL, ID, "[* out of memory *]");
 	return ':';
 }
 
@@ -4301,6 +4306,7 @@ optget(char** argv, const char* oopts)
 
 	if (!oopts)
 		return 0;
+	state.emphasis = 0;
 	state.pindex = opt_info.index;
 	state.poffset = opt_info.offset;
 	if (!opt_info.index)
@@ -4797,7 +4803,7 @@ optget(char** argv, const char* oopts)
 							{
 								sfprintf(xp, ":%s|%s?", g, e);
 								if (!(s = sfstruse(xp)))
-									goto nospace;
+									goto outofmemory;
 							}
 						}
 						else
@@ -5386,7 +5392,7 @@ optget(char** argv, const char* oopts)
 								{
 									sfprintf(xp, ":%s|%s?", b, e);
 									if (!(s = sfstruse(xp)))
-										goto nospace;
+										goto outofmemory;
 								}
 							}
 							else
@@ -5578,7 +5584,7 @@ optget(char** argv, const char* oopts)
 	}
 	pop(psp);
 	return '?';
- nospace:
+ outofmemory:
 	pop(psp);
 	return opterror(NULL, 0, 0, NULL, NULL);
 }
@@ -5659,7 +5665,7 @@ optstr(const char* str, const char* opts)
 				opt_info.index = 1;
 				opt_info.offset = ++s - (char*)str;
 				if (!(s = sfstruse(mp)))
-					goto nospace;
+					goto outofmemory;
 				s += 2;
 				e = opt_info.name;
 				while (e < &opt_info.name[sizeof(opt_info.name)-1] && (*e++ = *s++));
@@ -5725,7 +5731,7 @@ optstr(const char* str, const char* opts)
 		opt_info.argv = state.strv;
 		state.strv[0] = T(NULL, ID, "option");
 		if (!(state.strv[1] = sfstruse(mp)))
-			goto nospace;
+			goto outofmemory;
 		state.strv[2] = 0;
 		opt_info.offset = s - (char*)str;
 	}
@@ -5759,6 +5765,6 @@ optstr(const char* str, const char* opts)
 	else
 		c = '-';
 	return c;
- nospace:
+ outofmemory:
 	return opterror(NULL, 0, 0, NULL, NULL);
 }

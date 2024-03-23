@@ -466,8 +466,8 @@ u yes-yes
 disabled
 
 # Test file name completion in vi mode
-if((SHOPT_VSH)); then
-mkdir "/tmp/fakehome_$$" && tst $LINENO <<!
+if((SHOPT_VSH)) && mkdir "/tmp/fakehome_$$" 2>/dev/null; then
+tst $LINENO <<!
 L vi mode file name completion
 
 # Completing a file name in vi mode that contains '~' and has a
@@ -954,9 +954,14 @@ w : ..\t
 r : \.\./\r\n$
 !
 
-tst $LINENO <<"!"
+((SHOPT_VSH)) && tst $LINENO <<"!"
 L Ctrl+C with SIGINT ignored
 # https://github.com/ksh93/ksh/issues/343
+# Fix improved on 2024-02-12.
+# Note: without emacs, the Ctrl+C should be echoed as ^C.
+#
+# TODO: a bug in the regex engine seems to make it impossible to match a
+# literal '^' in any way, so we substitute a '.' metacharacter for now.
 
 d 40
 
@@ -966,20 +971,16 @@ w PS1=':child-!: ' "$SHELL"
 p :child-1:
 w trap '' INT
 p :child-2:
-c \\\cC
-r :child-2:
-w echo "OK $PS1"
-u ^OK :child-!: \r\n$
+w : lorem\cCipsum
+r ^:child-2: : lorem.Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent
 p :test-2:
 w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
 p :child-1:
-c \\\cC
-r :child-1:
-w echo "OK $PS1"
-u ^OK :child-!: \r\n$
+w : lorem\cCipsum
+r ^:child-1: : lorem.Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent, trapped in child
@@ -988,10 +989,8 @@ w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
 p :child-1:
 w trap 'echo test' INT
 p :child-2:
-c \\\cC
-r :child-2:
-w echo "OK $PS1"
-u ^OK :child-!: \r\n$
+w : lorem\cCipsum
+r ^:child-2: : lorem.Cipsum\r\n$
 w exit
 !
 
@@ -1080,20 +1079,29 @@ u @ !non_existent\r\n$
 
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L reverse search isn't canceled after an interrupt in vi mode
+# note: must unignore SIGINT with undocumented 'trap + INT'
 
 d 15
 p :test-1:
-w echo WRONG
+w trap + INT; echo WRONG
+r echo WRONG
+r WRONG
 p :test-2:
 w print CORREC
+r print CORREC
+r CORREC
 p :test-3:
 w echo foo
+r echo foo
+r foo
 p :test-4:
 w sleep 0
+r sleep 0
 p :test-5:
 c e\E[A\E[A\cC\E[A\E[A\E[A
 w $aT
-u CORRECT
+r :test-5:
+r :test-5: print CORRECT
 !
 
 ((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"
@@ -1312,6 +1320,57 @@ w "$SHELL" -o vi -c 'read -s "foo?:prompt: "'
 p :prompt:
 c \Ek
 r ^:prompt: "\$SHELL" -o vi -c 'read -s "foo\?:prompt: "'$
+!
+
+tst $LINENO <<"!"
+L crash when attempting to cancel a heredoc in an interactive shell
+# https://github.com/ksh93/ksh/pull/721
+
+d 40
+p :test-1:
+w "$SHELL"
+p :test-2:
+w cat << EOS
+p :test-3:
+w \cD
+p :test-4:
+w print Exit status $?
+u ^Exit status 0\r\n$
+!
+
+tst $LINENO << "!"
+L crash when discipline functions exit with an error
+# https://github.com/ksh93/ksh/issues/346
+
+d 40
+w "$SHELL"
+w PS1.get() {; printf '$ '; trap --invalid-flag 2>/dev/null; }
+w PS2.get() {; printf '> '; trap --invalid-flag 2>/dev/null; }
+w .sh.tilde.set() {
+w case ${.sh.value} in
+w '~ret') .sh.value='Exit status is' ;;
+w esac
+w trap --invalid-flag 2>/dev/null
+w }
+w echo ~
+w echo ~ret
+w echo ~
+w echo ~ret $?
+u ^Exit status is 0\r\n$
+!
+
+((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<"!"
+L crash when TERM is undefined
+# https://github.com/ksh93/ksh/issues/722
+
+d 40
+p :test-1:
+w unset TERM
+p :test-2:
+w "$SHELL"
+p :test-3:
+w print Exit status $?
+u ^Exit status 0\r\n$
 !
 
 # ======

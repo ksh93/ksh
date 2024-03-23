@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -131,7 +131,7 @@ b_head(int argc, char** argv, Shbltin_t* context)
 		{
 			cp = "/dev/stdin";
 			fp = sfstdin;
-			sfset(fp, SF_SHARE, 1);
+			sfset(fp, SFIO_SHARE, 1);
 		}
 		else if (!(fp = sfopen(NULL, cp, "r")))
 		{
@@ -149,7 +149,7 @@ b_head(int argc, char** argv, Shbltin_t* context)
 				goto next;
 		}
 		if ((moved = sfmove(fp, sfstdout, keep, delim)) < 0 && !ERROR_PIPE(errno) && errno != EINTR ||
-			delim >= 0 && moved < keep && sfmove(fp, sfstdout, SF_UNBOUND, -1) < 0 && !ERROR_PIPE(errno) && errno != EINTR)
+			delim >= 0 && moved < keep && sfmove(fp, sfstdout, SFIO_UNBOUND, -1) < 0 && !ERROR_PIPE(errno) && errno != EINTR)
 			error(ERROR_system(0), "%s: read error", cp);
 	next:
 		if (fp != sfstdin)

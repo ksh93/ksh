@@ -94,7 +94,8 @@ static void refvar(Lex_t *lp, int type)
 	else
 	{
 		int n,offset = stktell(sh.stk);
-		char *savptr,*begin; 
+		void *savptr;
+		char *begin;
 		off = offset + (fcseek(0)-(type+1)) - fcfirst();
 		if(lp->lexd.kiaoff < offset)
 		{
@@ -150,7 +151,7 @@ static void lex_advance(Sfio_t *iop, const char *buff, int size, void *context)
 		size -= (lp->lexd.first-(char*)buff);
 		buff = lp->lexd.first;
 		if(!lp->lexd.noarg)
-			lp->arg = (struct argnod*)stkseek(sh.stk,ARGVAL);
+			lp->arg = stkseek(sh.stk,ARGVAL);
 #if SHOPT_KIA
 		lp->lexd.kiaoff += ARGVAL;
 #endif /* SHOPT_KIA */
@@ -1252,7 +1253,7 @@ breakloop:
 		state = fcfirst();
 	n = fcseek(0)-(char*)state;
 	if(!lp->arg)
-		lp->arg = (struct argnod*)stkseek(sh.stk,ARGVAL);
+		lp->arg = stkseek(sh.stk,ARGVAL);
 	if(n>0)
 		sfwrite(sh.stk,state,n);
 	sfputc(sh.stk,0);
@@ -1286,7 +1287,7 @@ breakloop:
 		{
 			/* Redirection of the form {varname}>file, etc. */
 			stkseek(sh.stk,stktell(sh.stk)-1);
-			lp->arg = (struct argnod*)stkfreeze(sh.stk,1);
+			lp->arg = stkfreeze(sh.stk,1);
 			return lp->token=IOVNAME;
 		}
 		c = wordflags;
@@ -1310,7 +1311,7 @@ breakloop:
 	}
 	if(c==0 || (c&(ARG_MAC|ARG_EXP|ARG_MESSAGE)))
 	{
-		lp->arg = (struct argnod*)stkfreeze(sh.stk,1);
+		lp->arg = stkfreeze(sh.stk,1);
 		lp->arg->argflag = (c?c:ARG_RAW);
 	}
 	else if(mode==ST_NONE)
@@ -2112,7 +2113,7 @@ noreturn void sh_syntax(Lex_t *lp)
 		Sfio_t *top;
 		while(fcget()>0);
 		fcclose();
-		while(top=sfstack(sp,SF_POPSTACK))
+		while(top=sfstack(sp,SFIO_POPSTACK))
 			sfclose(top);
 	}
 	else
@@ -2202,7 +2203,7 @@ static struct argnod *endword(int mode)
 			stkseek(sh.stk,dp - (unsigned char*)stkptr(sh.stk,0));
 			if(mode<=0)
 			{
-				argp = (struct argnod*)stkfreeze(sh.stk,0);
+				argp = stkfreeze(sh.stk,0);
 				argp->argflag = ARG_RAW|ARG_QUOTED;
 			}
 			return argp;
@@ -2411,19 +2412,19 @@ static int alias_exceptf(Sfio_t *iop,int type,void *data, Sfdisc_t *handle)
 	Namval_t *np;
 	Lex_t	*lp;
 	NOT_USED(data);
-	if(type==0 || type==SF_ATEXIT || !ap)
+	if(type==0 || type==SFIO_ATEXIT || !ap)
 		return 0;
 	lp = ap->lp;
 	np = ap->np;
-	if(type!=SF_READ)
+	if(type!=SFIO_READ)
 	{
-		if(type==SF_CLOSING)
+		if(type==SFIO_CLOSING)
 		{
-			Sfdisc_t *dp = sfdisc(iop,SF_POPDISC);
+			Sfdisc_t *dp = sfdisc(iop,SFIO_POPDISC);
 			if(dp!=handle)
 				sfdisc(iop,dp);
 		}
-		else if(type==SF_DPOP || type==SF_FINAL)
+		else if(type==SFIO_DPOP || type==SFIO_FINAL)
 			free(ap);
 		goto done;
 	}

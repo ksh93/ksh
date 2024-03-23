@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,10 +35,10 @@ int _sfexcept(Sfio_t*	f,	/* stream where the exception happened */
 		return -1;
 
 	GETLOCAL(f,local);
-	lock = f->mode&SF_LOCK;
+	lock = f->mode&SFIO_LOCK;
 
 	if(local && io <= 0)
-		f->flags |= io < 0 ? SF_ERROR : SF_EOF;
+		f->flags |= io < 0 ? SFIO_ERROR : SFIO_EOF;
 
 	if(disc && disc->exceptf)
 	{	/* let the stream be generally accessible for this duration */
@@ -53,28 +53,28 @@ int _sfexcept(Sfio_t*	f,	/* stream where the exception happened */
 		if(local && lock)
 			SFLOCK(f,0);
 
-		if(io > 0 && !(f->flags&SF_STRING) )
+		if(io > 0 && !(f->flags&SFIO_STRING) )
 			return ev;
 		if(ev < 0)
-			return SF_EDONE;
+			return SFIO_EDONE;
 		if(ev > 0)
-			return SF_EDISC;
+			return SFIO_EDISC;
 	}
 
-	if(f->flags&SF_STRING)
-	{	if(type == SF_READ)
+	if(f->flags&SFIO_STRING)
+	{	if(type == SFIO_READ)
 			goto chk_stack;
-		else if(type != SF_WRITE && type != SF_SEEK)
-			return SF_EDONE;
+		else if(type != SFIO_WRITE && type != SFIO_SEEK)
+			return SFIO_EDONE;
 		if(local && io >= 0)
-		{	if(f->size >= 0 && !(f->flags&SF_MALLOC))
+		{	if(f->size >= 0 && !(f->flags&SFIO_MALLOC))
 				goto chk_stack;
 			/* extend buffer */
 			if((size = f->size) < 0)
 				size = 0;
 			if((io -= size) <= 0)
-				io = SF_GRAIN;
-			size = ((size+io+SF_GRAIN-1)/SF_GRAIN)*SF_GRAIN;
+				io = SFIO_GRAIN;
+			size = ((size+io+SFIO_GRAIN-1)/SFIO_GRAIN)*SFIO_GRAIN;
 			if(f->size > 0)
 				data = (uchar*)realloc((char*)f->data,size);
 			else	data = (uchar*)malloc(size);
@@ -85,24 +85,24 @@ int _sfexcept(Sfio_t*	f,	/* stream where the exception happened */
 			f->endr = f->endw = f->data = data;
 			f->size = size;
 		}
-		return SF_EDISC;
+		return SFIO_EDISC;
 	}
 
 	if(errno == EINTR)
-	{	if(_Sfexiting || (f->bits&SF_ENDING) ||	/* stop being a hero	*/
-		   (f->flags&SF_IOINTR) ) /* application requests to return	*/
-			return SF_EDONE;
+	{	if(_Sfexiting || (f->bits&SFIO_ENDING) ||	/* stop being a hero	*/
+		   (f->flags&SFIO_IOINTR) ) /* application requests to return	*/
+			return SFIO_EDONE;
 
 		/* a normal interrupt, we can continue */
 		errno = 0;
-		f->flags &= ~(SF_EOF|SF_ERROR);
-		return SF_ECONT;
+		f->flags &= ~(SFIO_EOF|SFIO_ERROR);
+		return SFIO_ECONT;
 	}
 
 chk_stack:
 	if(local && f->push &&
-	   ((type == SF_READ  && f->next >= f->endb) ||
-	    (type == SF_WRITE && f->next <= f->data)))
+	   ((type == SFIO_READ  && f->next >= f->endb) ||
+	    (type == SFIO_WRITE && f->next <= f->data)))
 	{	/* pop the stack */
 		Sfio_t	*pf;
 
@@ -117,9 +117,9 @@ chk_stack:
 		if(lock)
 			SFLOCK(f,0);
 
-		ev = ev < 0 ? SF_EDONE : SF_ESTACK;
+		ev = ev < 0 ? SFIO_EDONE : SFIO_ESTACK;
 	}
-	else	ev = SF_EDONE;
+	else	ev = SFIO_EDONE;
 
 	return ev;
 }

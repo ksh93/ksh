@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -133,10 +133,10 @@ eval $bar
 if	[[ $foo != 'foo bar' ]]
 then	err_exit 'eval foo=\$bar, with bar="foo\ bar" not working'
 fi
-cd /tmp
-cd ../../tmp || err_exit "cd ../../tmp failed"
-if	[[ $PWD != /tmp ]]
-then	err_exit 'cd ../../tmp is not /tmp'
+cd /dev
+cd ../../dev || err_exit "cd ../../dev failed"
+if	[[ $PWD != /dev ]]
+then	err_exit 'cd ../../dev is not /dev'
 fi
 ( sleep .2; cat <<!
 foobar
@@ -990,6 +990,7 @@ do
 	|| err_exit "last command in forked comsub exec-optimized in spite of $sig trap ($pid1 == $pid2)"
 
 	cat >script <<-EOF
+	trap + $sig  # unignore
 	trap ":" $sig
 	echo \$\$
 	sh -c 'echo \$\$'
@@ -1003,7 +1004,6 @@ done
 # ======
 # Nested compound assignment misparsed in $(...) or ${ ...; } command substitution
 # https://github.com/ksh93/ksh/issues/269
-# TODO: one of the tests below crashes when actually executed; test lexing only by using noexec.
 for testcode in \
 	': $( typeset -a arr=((a b c) 1) )' \
 	': ${ typeset -a arr=((a b c) 1); }' \
@@ -1018,14 +1018,11 @@ for testcode in \
 	'typeset -Ca arr=((a=ah b=beh c=si))' \
 	': $( typeset -Ca arr=((a=ah b=beh c=si)) )' \
 	'r=${ typeset -Ca arr=((a=ah b=beh c=si)); }' \
-	'set --noexec; : $( typeset -a arr=((a $(( $( typeset -a barr=((a $(( 1 << 2 )) c) 1); echo 1 ) << $( typeset -a bazz=((a $(( 1 << 2 )) c) 1); echo 2 ) )) c) 1) )' \
+	': $( typeset -a arr=((a $(( $( typeset -a barr=((a $(( 1 << 2 )) c) 1); echo 1 ) << $( typeset -a bazz=((a $(( 1 << 2 )) c) 1); echo 2 ) )) c) 1) )' \
 	'r=$(typeset -C arr=( (a=ah b=beh c=si) 1 (e f g)));'
 do
-	# fork comsub with 'ulimit' on old ksh to avoid a fixed lexer bug crashing the entire test script
-	got=$(let ".sh.version >= 20211209" || ulimit -c 0
-		eval "set +x; $testcode" 2>&1) \
-	|| err_exit "comsub/arithexp lexing test $(printf %q "$testcode"):" \
-		"got status $? and $(printf %q "$got")"
+	got=$(export testcode; "$SHELL" -c 'v=$(eval "$testcode" 2>&1); e=$?; print -r -- "$v"; exit $e' 2>&1) \
+	|| { e=$?; err_exit "comsub/arithexp lexing test $(printf %q "$testcode"): got status $e and $(printf %q "$got")"; }
 done
 unset testcode
 

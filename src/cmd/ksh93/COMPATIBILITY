@@ -8,6 +8,9 @@ For more details, see the NEWS file and for complete details, see the git log.
 	from the environment. Any script that depends on this will need to
 	be changed to typeset the expected attributes itself.
 
+2.	Defining a function called '.sh.tilde' is an error. To customize tilde
+	expansion, use .sh.tilde.get instead (see the manual page for details).
+
 ____________________________________________________________________________
 
 		ksh 93u+m/1.0.9 vs. ksh 93u+
@@ -210,6 +213,12 @@ For more details, see the NEWS file and for complete details, see the git log.
 36.	An assignment within an arithmetic expression no longer triggers both
 	of the variable's 'set' and 'get' discipline functions (if set). Only
 	the 'set' discipline is now triggered, as it was always documented.
+	(Post-1.0 fix introduced in ksh 93u+m/1.0.9)
+
+37.	Non-base-10 signed negative integer values are now output as negative
+	numbers and no longer incorrectly treated as unsigned long integers
+	regardless of their type length. For example, 'typeset -i16 n=-12;
+	echo $n' now correctly prints -16#c instead of 16#fffffffffffffff4.
 	(Post-1.0 fix introduced in ksh 93u+m/1.0.9)
 
 ____________________________________________________________________________

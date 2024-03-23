@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -987,7 +987,7 @@ _ast_iconv(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 		{
 			if (cc->to.fun)
 			{
-				if (!cc->buf && !(cc->buf = oldof(0, char, cc->size = SF_BUFSIZE, 0)))
+				if (!cc->buf && !(cc->buf = oldof(0, char, cc->size = SFIO_BUFSIZE, 0)))
 				{
 					errno = ENOMEM;
 					return -1;
@@ -1021,7 +1021,7 @@ _ast_iconv(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 		{
 			if (!(m = cc->from.map))
 				return (*cc->to.fun)(cc->cvt, fb, fn, tb, tn);
-			if (!cc->buf && !(cc->buf = oldof(0, char, cc->size = SF_BUFSIZE, 0)))
+			if (!cc->buf && !(cc->buf = oldof(0, char, cc->size = SFIO_BUFSIZE, 0)))
 			{
 				errno = ENOMEM;
 				return -1;
@@ -1094,7 +1094,7 @@ _ast_iconv_write(_ast_iconv_t cd, Sfio_t* op, char** fb, size_t* fn, Iconv_disc_
 	ok = 1;
 	while (ok && *fn > 0)
 	{
-		if (!(tb = (char*)sfreserve(op, -(tn + 1), SF_WRITE|SF_LOCKR)) || !(tn = sfvalue(op)))
+		if (!(tb = (char*)sfreserve(op, -(tn + 1), SFIO_WRITE|SFIO_LOCKR)) || !(tn = sfvalue(op)))
 		{
 			if (!r)
 				r = -1;
@@ -1197,14 +1197,14 @@ _ast_iconv_move(_ast_iconv_t cd, Sfio_t* ip, Sfio_t* op, size_t n, Iconv_disc_t*
 	fn = n;
 	do
 	{
-		if (n != SF_UNBOUND)
+		if (n != SFIO_UNBOUND)
 			n = -((ssize_t)(n & (((size_t)(~0))>>1)));
-		if ((!(fb = (char*)sfreserve(ip, n, locked = SF_LOCKR)) || !(fo = sfvalue(ip))) &&
+		if ((!(fb = (char*)sfreserve(ip, n, locked = SFIO_LOCKR)) || !(fo = sfvalue(ip))) &&
 		    (!(fb = (char*)sfreserve(ip, n, locked = 0)) || !(fo = sfvalue(ip))))
 			break;
 		fs = fb;
 		fn = fo;
-		if (!(tb = (char*)sfreserve(op, SF_UNBOUND, SF_WRITE|SF_LOCKR)))
+		if (!(tb = (char*)sfreserve(op, SFIO_UNBOUND, SFIO_WRITE|SFIO_LOCKR)))
 		{
 			if (!r)
 				r = -1;
@@ -1257,7 +1257,7 @@ _ast_iconv_move(_ast_iconv_t cd, Sfio_t* ip, Sfio_t* op, size_t n, Iconv_disc_t*
 		else
 			for (i = fn; --i >= (fs - fb);)
 				sfungetc(ip, fb[i]);
-		if (n != SF_UNBOUND)
+		if (n != SFIO_UNBOUND)
 		{
 			if (n <= (fs - fb))
 				break;

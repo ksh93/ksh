@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -21,10 +21,11 @@ command=regress
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: regress (AT&T Research) 2012-02-02 $
+@(#)$Id: regress (ksh 93u+m) 2024-02-13 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
-[-copyright?Copyright (c) 1995-2012 AT&T Intellectual Property]
+[-copyright?(c) 1995-2012 AT&T Intellectual Property]
+[-copyright?(c) 2020-2024 Contributors to ksh 93u+m]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
 [+NAME?regress - run regression tests]
 [+DESCRIPTION?\bregress\b runs the tests in \aunit\a, or
@@ -66,9 +67,10 @@ unit [ command [ arg ... ] ]
         [+BODY \b{ ... }?Defines the test body; used for complex tests.]
         [+CD \b\adirectory\a?Create and change to working directory for
             one test.]
-        [+CLEANUP \b\astatus\a?Called at exit time to remove the
+        [+CLEANUP?Called at exit time to remove the
             temporary directory \aunit\a\b.tmp\b, list the tests totals via
-            \bTALLY\b, and exit with status \astatus\a.]
+            \bTALLY\b, and exit with the number of test failures or 125,
+            whichever is lower, as the exit status.]
         [+COMMAND \b\aarg\a ...?Runs the current command under test with
             \aarg\a ... appended to the default args.]
         [+CONTINUE?The background job must be running.]
@@ -311,7 +313,6 @@ function TALLY # extra message text
 		print -u2 "$msg"
 		GROUP=INIT
 		TESTS=0
-		ERRORS=0
 		;;
 	esac
 }
@@ -361,7 +362,7 @@ function CLEANUP # status
 	fi
 	TALLY $note
 	[[ $TEST_keep ]] || UNWIND
-	exit $1
+	exit $((ERRORS < 125 ? ERRORS : 125))
 }
 
 function RUN # [ op ]
@@ -1088,11 +1089,11 @@ function RESULTS # pipe*
 			fi
 			continue
 		fi
-		diff $IGNORESPACE $i $j >$i.diff 2>&1
+		diff -u $IGNORESPACE $i $j >$i.diff 2>&1
 		if	[[ -s $i.diff ]]
 		then	failed=$failed${failed:+,}${i#$TWD/}
 			if	[[ $TEST_verbose ]]
-			then	print -u2 "	===" diff $IGNORESPACE ${i#$TWD/} "<actual >expected ==="
+			then	print -u2 "	===" diff $IGNORESPACE ${i#$TWD/} "('-': actual; '+': expected) ==="
 				cat $i.diff >&2
 			fi
 		fi
@@ -1419,7 +1420,7 @@ if	[[ ${ARGV[0]} && ${ARGV[0]} != [-+]* ]]
 then	UNIT "${ARGV[@]}"
 	UNIT_READONLY=1
 fi
-trap 'code=$?; CLEANUP $code' EXIT
+trap 'CLEANUP' EXIT
 if	[[ ! $TEST_select ]]
 then	TEST_select="[0123456789]*"
 fi

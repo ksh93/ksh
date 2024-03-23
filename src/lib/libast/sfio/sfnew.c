@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,18 +35,18 @@ Sfio_t* sfnew(Sfio_t*	oldf,	/* old stream to be reused */
 	int		sflags;
 
 
-	if(!(flags&SF_RDWR))
+	if(!(flags&SFIO_RDWR))
 		return NULL;
 
 	sflags = 0;
 	if((f = oldf) )
-	{	if(flags&SF_EOF)
+	{	if(flags&SFIO_EOF)
 		{	SFCLEAR(f);
 			oldf = NULL;
 		}
-		else if(f->mode&SF_AVAIL)
-		{	/* only allow SF_STATIC to be already closed */
-			if(!(f->flags&SF_STATIC) )
+		else if(f->mode&SFIO_AVAIL)
+		{	/* only allow SFIO_STATIC to be already closed */
+			if(!(f->flags&SFIO_STATIC) )
 				return NULL;
 			sflags = f->flags;
 			oldf = NULL;
@@ -55,26 +55,26 @@ Sfio_t* sfnew(Sfio_t*	oldf,	/* old stream to be reused */
 		{	/* reopening an open stream, close it first */
 			sflags = f->flags;
 
-			if(((f->mode&SF_RDWR) != f->mode && _sfmode(f,0,0) < 0) ||
+			if(((f->mode&SFIO_RDWR) != f->mode && _sfmode(f,0,0) < 0) ||
 			   SFCLOSE(f) < 0 )
 				return NULL;
 
-			if(f->data && ((flags&SF_STRING) || size != (size_t)SF_UNBOUND) )
-			{	if(sflags&SF_MALLOC)
+			if(f->data && ((flags&SFIO_STRING) || size != (size_t)SFIO_UNBOUND) )
+			{	if(sflags&SFIO_MALLOC)
 					free(f->data);
 				f->data = NULL;
 			}
 			if(!f->data)
-				sflags &= ~SF_MALLOC;
+				sflags &= ~SFIO_MALLOC;
 		}
 	}
 
 	if(!f)
 	{	/* reuse a standard stream structure if possible */
-		if(!(flags&SF_STRING) && file >= 0 && file <= 2)
+		if(!(flags&SFIO_STRING) && file >= 0 && file <= 2)
 		{	f = file == 0 ? sfstdin : file == 1 ? sfstdout : sfstderr;
 			if(f)
-			{	if(f->mode&SF_AVAIL)
+			{	if(f->mode&SFIO_AVAIL)
 				{	sflags = f->flags;
 					SFCLEAR(f);
 				}
@@ -90,25 +90,25 @@ Sfio_t* sfnew(Sfio_t*	oldf,	/* old stream to be reused */
 	}
 
 	/* stream type */
-	f->mode = (flags&SF_READ) ? SF_READ : SF_WRITE;
-	f->flags = (flags&SFIO_FLAGS) | (sflags&(SF_MALLOC|SF_STATIC));
-	f->bits = (flags&SF_RDWR) == SF_RDWR ? SF_BOTH : 0;
+	f->mode = (flags&SFIO_READ) ? SFIO_READ : SFIO_WRITE;
+	f->flags = (flags&SFIO_FLAGS) | (sflags&(SFIO_MALLOC|SFIO_STATIC));
+	f->bits = (flags&SFIO_RDWR) == SFIO_RDWR ? SFIO_BOTH : 0;
 	f->file = file;
 	f->here = f->extent = 0;
 	f->getr = f->tiny[0] = 0;
 
-	f->mode |= SF_INIT;
-	if(size != (size_t)SF_UNBOUND)
+	f->mode |= SFIO_INIT;
+	if(size != (size_t)SFIO_UNBOUND)
 	{	f->size = size;
 		f->data = size <= 0 ? NULL : (uchar*)buf;
 	}
 	f->endb = f->endr = f->endw = f->next = f->data;
 
 	if(_Sfnotify)
-		(*_Sfnotify)(f, SF_NEW, (void*)((long)f->file));
+		(*_Sfnotify)(f, SFIO_NEW, (void*)((long)f->file));
 
-	if(f->flags&SF_STRING)
-		(void)_sfmode(f,f->mode&SF_RDWR,0);
+	if(f->flags&SFIO_STRING)
+		(void)_sfmode(f,f->mode&SFIO_RDWR,0);
 
 	return f;
 }

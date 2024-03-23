@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,17 +23,8 @@
  * fun==SIG_DFL also unblocks signal
  */
 
-#if !__HAIKU__
-
-#undef	signal
-#define signal		______signal
-
-#endif
-
 #include <ast.h>
 #include <sig.h>
-
-#undef	signal
 
 #undef	_def_map_ast
 #include <ast_map.h>
@@ -60,7 +51,7 @@
 #define	sa_mask		sv_mask
 #endif
 
-extern Sig_handler_t
+Sig_handler_t
 signal(int sig, Sig_handler_t fun)
 {
 	struct sigaction	na;

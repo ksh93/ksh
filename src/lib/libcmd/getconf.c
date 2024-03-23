@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: getconf (ksh 93u+m) 2021-04-20 $\n]"
+"[-?\n@(#)$Id: getconf (ksh 93u+m) 2024-02-09 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?getconf - get configuration values]"
 "[+DESCRIPTION?\bgetconf\b displays the system configuration value for"
@@ -139,6 +139,7 @@ b_getconf(int argc, char** argv, Shbltin_t* context)
 	int			flags;
 	int			n;
 	char**			oargv;
+	char**			new_argv;
 	static const char	empty[] = "-";
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
@@ -274,8 +275,12 @@ b_getconf(int argc, char** argv, Shbltin_t* context)
 	/*
 	 * Run the external getconf command
 	 */
-	oargv[0] = native;
-	if ((n = sh_run(context, argc, oargv)) >= EXIT_NOEXEC)
+	new_argv = stkalloc(stkstd, (argc + 3) * sizeof(char*));
+	new_argv[0] = "command";
+	new_argv[1] = "-x";
+	new_argv[2] = native;
+	memcpy(new_argv + 3, oargv + 1, argc * sizeof(char*));
+	if ((n = sh_run(context, argc + 2, new_argv)) >= EXIT_NOEXEC)
 		error(ERROR_SYSTEM|2, "%s: exec error [%d]", native, n);
 	return n;
 }

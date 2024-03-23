@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,6 +26,6 @@ int _sfllen(Sflong_t v)
 {
 	if(v < 0)
 		v = -(v+1);
-	v = (Sfulong_t)v >> SF_SBITS;
+	v = (Sfulong_t)v >> SFIO_SBITS;
 	return 1 + (v > 0 ? sfulen(v) : 0);
 }

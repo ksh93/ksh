@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -176,11 +176,11 @@ tailpos(Sfio_t* fp, Sfoff_t number, int delim)
 	incomplete = 1;
 	for (;;)
 	{
-		if ((offset = last - SF_BUFSIZE) < first)
+		if ((offset = last - SFIO_BUFSIZE) < first)
 			offset = first;
 		sfseek(fp, offset, SEEK_SET);
 		n = last - offset;
-		if (!(s = sfreserve(fp, n, SF_LOCKR)))
+		if (!(s = sfreserve(fp, n, SFIO_LOCKR)))
 			return -1;
 		t = s + n;
 		if (incomplete)
@@ -216,7 +216,7 @@ pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
 	Sfio_t*		out;
 	Sfoff_t		n;
 	Sfoff_t		nleft = number;
-	size_t		a = 2 * SF_BUFSIZE;
+	size_t		a = 2 * SFIO_BUFSIZE;
 	int		fno = 0;
 	Sfoff_t		offset[2];
 	Sfio_t*		tmp[2];
@@ -292,12 +292,12 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
 		error(ERROR_system(0), "%s: cannot open", tp->name);
 		return -1;
 	}
-	sfset(tp->sp, SF_SHARE, 0);
+	sfset(tp->sp, SFIO_SHARE, 0);
 	if (offset)
 	{
 		if (number < 0 || !number && (flags & POSITIVE))
 		{
-			sfset(tp->sp, SF_SHARE, !(flags & FOLLOW));
+			sfset(tp->sp, SFIO_SHARE, !(flags & FOLLOW));
 			if (number < -1)
 			{
 				sfmove(tp->sp, NULL, -number - 1, delim);
@@ -326,7 +326,7 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
 				sfprintf(sfstdout, *format, tp->name);
 				*format = header_fmt;
 			}
-			op = (flags & REVERSE) ? sftmp(4*SF_BUFSIZE) : sfstdout;
+			op = (flags & REVERSE) ? sftmp(4*SFIO_BUFSIZE) : sfstdout;
 			pipetail(tp->sp ? tp->sp : sfstdin, op, number, delim);
 			if (flags & REVERSE)
 			{
@@ -629,7 +629,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 	}
 	if (flags & FOLLOW)
 	{
-		if (!(fp = (Tail_t*)stkalloc(stkstd, argc * sizeof(Tail_t))))
+		if (!(fp = stkalloc(stkstd, argc * sizeof(Tail_t))))
 		{
 			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
@@ -677,9 +677,9 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 					n = 1;
 					if (timeout)
 						fp->expire = NOW + timeout;
-					z = fp->fifo ? SF_UNBOUND : st.st_size - fp->cur;
+					z = fp->fifo ? SFIO_UNBOUND : st.st_size - fp->cur;
 					i = 0;
-					if ((s = sfreserve(fp->sp, z, SF_LOCKR)) || (z = sfvalue(fp->sp)) && (s = sfreserve(fp->sp, z, SF_LOCKR)) && (i = 1))
+					if ((s = sfreserve(fp->sp, z, SFIO_LOCKR)) || (z = sfvalue(fp->sp)) && (s = sfreserve(fp->sp, z, SFIO_LOCKR)) && (i = 1))
 					{
 						z = sfvalue(fp->sp);
 						for (r = s + z; r > s && *(r - 1) != '\n'; r--);
@@ -773,17 +773,17 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 			}
 			if (number < 0 || !number && (flags & POSITIVE))
 			{
-				sfset(ip, SF_SHARE, 1);
+				sfset(ip, SFIO_SHARE, 1);
 				if (number < -1 && (moved = sfmove(ip, NULL, -(number + 1), delim)) >= 0 && delim >= 0 && moved < -(number + 1))
-					(void)sfgetr(ip, delim, SF_LASTR);
+					(void)sfgetr(ip, delim, SFIO_LASTR);
 				if (flags & REVERSE)
 					rev_line(ip, sfstdout, sfseek(ip, 0, SEEK_CUR));
 				else
-					sfmove(ip, sfstdout, SF_UNBOUND, -1);
+					sfmove(ip, sfstdout, SFIO_UNBOUND, -1);
 			}
 			else
 			{
-				sfset(ip, SF_SHARE, 0);
+				sfset(ip, SFIO_SHARE, 0);
 				if ((offset = tailpos(ip, number, delim)) >= 0)
 				{
 					if (flags & REVERSE)
@@ -791,12 +791,12 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 					else
 					{
 						sfseek(ip, offset, SEEK_SET);
-						sfmove(ip, sfstdout, SF_UNBOUND, -1);
+						sfmove(ip, sfstdout, SFIO_UNBOUND, -1);
 					}
 				}
 				else
 				{
-					op = (flags & REVERSE) ? sftmp(4*SF_BUFSIZE) : sfstdout;
+					op = (flags & REVERSE) ? sftmp(4*SFIO_BUFSIZE) : sfstdout;
 					pipetail(ip, op, number, delim);
 					if (flags & REVERSE)
 					{

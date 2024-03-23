@@ -1,40 +1,99 @@
 NOTE regression tests for the mamake command
 
+# To regenerate mamake.tst from this file:
+#
+#	bin/package use
+#	cd src/cmd/INIT
+#	VPATH=.:. mktest mamake.rt > mamake.tst
+#
+# WARNING: the regeneration assumes mamake's output is correct, so VERIFY THE RESULTS!
+# Always do 'git diff mamake.tst' to check that no unexpected changes have been made.
+#
+# WARNING 2: do not use 'Mamfile' as the data file for the tests, or the
+# regeneration will overwrite and then delete the local Mamfile. Mamake
+# supports an -f option to use an alternative file name.
+
 UNIT mamake
 
-TEST macros
+# ======
+# the one original AT&T test -- changed to test both legacy and strict mode
 
-DATA Mamfile <<'!'
-info mam static 00000 1994-07-17 make (AT&T Research) 5.3 2009-05-05
+for strict in '' 'setv MAMAKE_STRICT 1' 'setv MAMAKE_STRICT 2'
+do
+
+TEST expansions ${strict:+at strict level ${strict##* }}
+
+DATA ._tmp_Mamfile_ <<EOF
+${strict:-info mam static 00000 1994-07-17 make (AT&T Research) 5.3 2009-05-05}
 setv DEFINED defined
 setv EMPTY
-make all
+make all virtual
 
-exec - echo DEFINED ${DEFINED}
-exec - echo DEFINED:VALUE ${DEFINED:VALUE}
-exec - echo DEFINED:-VALUE ${DEFINED:-VALUE}
-exec - echo DEFINED=VALUE ${DEFINED=VALUE}
-exec - echo DEFINED[VALUE] ${DEFINED[VALUE]}
-exec - echo DEFINED.COMPONENT ${DEFINED.COMPONENT}
-exec - echo DEFINED.COMPONENT[VALUE] ${DEFINED.COMPONENT[VALUE]}
+exec - echo DEFINED \${DEFINED}
+exec - echo DEFINED:VALUE \${DEFINED:VALUE}
+exec - echo DEFINED:-VALUE \${DEFINED:-VALUE}
+exec - echo DEFINED=VALUE \${DEFINED=VALUE}
+exec - echo DEFINED[VALUE] \${DEFINED[VALUE]}
+exec - echo DEFINED.COMPONENT \${DEFINED.COMPONENT}
+exec - echo DEFINED.COMPONENT[VALUE] \${DEFINED.COMPONENT[VALUE]}
 
-exec - echo EMPTY ${EMPTY}
-exec - echo EMPTY:VALUE ${EMPTY:VALUE}
-exec - echo EMPTY:-VALUE ${EMPTY:-VALUE}
-exec - echo EMPTY=VALUE ${EMPTY=VALUE}
-exec - echo EMPTY[VALUE] ${EMPTY[VALUE]}
-exec - echo EMPTY.COMPONENT ${EMPTY.COMPONENT}
-exec - echo EMPTY.COMPONENT[VALUE] ${EMPTY.COMPONENT[VALUE]}
+exec - echo EMPTY \${EMPTY}
+exec - echo EMPTY:VALUE \${EMPTY:VALUE}
+exec - echo EMPTY:-VALUE \${EMPTY:-VALUE}
+exec - echo EMPTY=VALUE \${EMPTY=VALUE}
+exec - echo EMPTY[VALUE] \${EMPTY[VALUE]}
+exec - echo EMPTY.COMPONENT \${EMPTY.COMPONENT}
+exec - echo EMPTY.COMPONENT[VALUE] \${EMPTY.COMPONENT[VALUE]}
 
-exec - echo __NoT_DeFiNeD__ ${__NoT_DeFiNeD__}
-exec - echo __NoT_DeFiNeD__:VALUE ${__NoT_DeFiNeD__:VALUE}
-exec - echo __NoT_DeFiNeD__:-VALUE ${__NoT_DeFiNeD__:-VALUE}
-exec - echo __NoT_DeFiNeD__=VALUE ${__NoT_DeFiNeD__=VALUE}
-exec - echo __NoT_DeFiNeD__[VALUE] ${__NoT_DeFiNeD__[VALUE]}
-exec - echo __NoT_DeFiNeD__.COMPONENT ${__NoT_DeFiNeD__.COMPONENT}
-exec - echo __NoT_DeFiNeD__.COMPONENT[VALUE] ${__NoT_DeFiNeD__.COMPONENT[VALUE]}
+exec - echo __NoT_DeFiNeD__ \${__NoT_DeFiNeD__}
+exec - echo __NoT_DeFiNeD__:VALUE \${__NoT_DeFiNeD__:VALUE}
+exec - echo __NoT_DeFiNeD__:-VALUE \${__NoT_DeFiNeD__:-VALUE}
+exec - echo __NoT_DeFiNeD__=VALUE \${__NoT_DeFiNeD__=VALUE}
+exec - echo __NoT_DeFiNeD__[VALUE] \${__NoT_DeFiNeD__[VALUE]}
+exec - echo __NoT_DeFiNeD__.COMPONENT \${__NoT_DeFiNeD__.COMPONENT}
+exec - echo __NoT_DeFiNeD__.COMPONENT[VALUE] \${__NoT_DeFiNeD__.COMPONENT[VALUE]}
 
-done all generated virtual
-!
+done all
+EOF
 
-EXEC -n
+EXEC -n -f ._tmp_Mamfile_
+
+done  # for strict
+
+# ======
+# simple loop construct; automatic variables; notrace attribute
+
+TEST nested loop with notrace
+DATA ._tmp_Mamfile_ <<\EOF
+setv MAMAKE_STRICT
+make looptest virtual
+	loop v1 one two three
+		loop v2 four five six
+			make ${v1}_${v2} virtual notrace
+				exec - echo '${v1}: ${v2}'
+			done
+		done
+	done
+	exec - : the current target is ${@}
+	exec - : the last target was ${<}
+	exec - : the targets were ${^}
+	exec - : the updated targets were ${?}
+done
+EOF
+EXEC -f ._tmp_Mamfile_
+
+TEST shim, \'exec\' in loop
+DATA ._tmp_Mamfile_ <<\EOF
+setv MAMAKE_STRICT 2
+setv _iter_ vertier
+shim - echo KIJK EENS HIER >&2
+make shimtest virtual notrace
+	make looptest virtual notrace
+		loop _iter_ een twee drie vier
+			exec - echo ${_iter_} hoedje${_iter_?een??s} van papier >&2
+		done
+	done
+	exec - echo "nu is 't gedaan met 't ${_iter_}" >&2
+done
+EOF
+EXEC -f ._tmp_Mamfile_

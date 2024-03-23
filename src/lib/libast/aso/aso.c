@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,6 +16,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                     Cy Schubert <cy@FreeBSD.org>                     *
+*       hyousatsu <118750527+hyousatsu@users.noreply.github.com>       *
 *                                                                      *
 ***********************************************************************/
 
@@ -827,9 +828,9 @@ asocasptr(void volatile* p, void* o, void* n)
 {
 	ssize_t		k;
 
-#if defined(_aso_cas64)
+#if defined(_aso_casptr)
 	if (!state.lockf)
-		return _aso_cas64((void**)p, o, n);
+		return _aso_casptr((void**)p, o, n);
 #endif
 	k = lock(state.data, 0, p);
 	if (*(void* volatile*)p == o)

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -222,7 +222,7 @@ S2I_function(const char* a, char** e, int base)
 #if S2I_multiplier
 	base = basep ? *((unsigned char*)basep) : 0;
 #else
-	if (base > 36 && base <= SF_RADIX)
+	if (base > 36 && base <= SFIO_RADIX)
 	{
 		static int	conformance = -1;
 
@@ -232,7 +232,7 @@ S2I_function(const char* a, char** e, int base)
 			base = 1;
 	}
 #endif
-	if (base && (base < 2 || base > SF_RADIX))
+	if (base && (base < 2 || base > SFIO_RADIX))
 	{
 		errno = EINVAL;
 		return 0;
@@ -280,7 +280,7 @@ S2I_function(const char* a, char** e, int base)
 		}
 		if (!base)
 			base = 10;
-		else if (base < 2 || base > SF_RADIX)
+		else if (base < 2 || base > SFIO_RADIX)
 		{
 			errno = EINVAL;
 			return 0;

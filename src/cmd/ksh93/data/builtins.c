@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -120,7 +120,7 @@ const struct shtable3 shtab_builtins[] =
 	"times",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(times),
 	"ulimit",	NV_BLTIN|BLT_ENV,		bltin(ulimit),
 	"umask",	NV_BLTIN|BLT_ENV,		bltin(umask),
-#ifdef _cmd_universe
+#if _cmd_universe
 	"universe",	NV_BLTIN|BLT_ENV,		bltin(universe),
 #endif /* _cmd_universe */
 	"wait",		NV_BLTIN|BLT_ENV|BLT_EXIT,	bltin(wait),
@@ -657,13 +657,14 @@ const char sh_opteval[] =
 ;
 
 const char sh_optexec[] =
-"[-1c?\n@(#)$Id: exec (ksh 93u+m) 2020-06-11 $\n]"
+"[-1c?\n@(#)$Id: exec (ksh 93u+m) 2024-03-04 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?exec - execute command, open/close and duplicate file descriptors]"
 "[+DESCRIPTION?\bexec\b is a special built-in command that can be used to "
 	"manipulate file descriptors or to replace the current shell "
 	"with a new command.]"
-"[+?If \acommand\a is specified, then the current shell process will be "
+"[+?If \acommand\a is specified, then \acommand\a is searched on PATH as "
+	"an external command and the current shell process will be "
 	"replaced by \acommand\a rather than running \acommand\a and waiting "
 	"for it to complete. Note that there is no need to use "
 	"\bexec\b to enhance performance since the shell implicitly "
@@ -1255,28 +1256,25 @@ const char sh_optprint[] =
 ;
 
 const char sh_optprintf[] =
-"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2023-03-23 $\n]"
+"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2024-02-11 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?printf - write formatted output]"
 "[+DESCRIPTION?\bprintf\b writes each \astring\a operand to "
 	"standard output using \aformat\a to control the output format.]"  
-"[+?The \aformat\a operands supports the full range of ANSI C formatting "
+#if SHOPT_PRINTF_LEGACY
+"[+?For backward compatibility with this system's external \bprintf\b(1) "
+	"command, this built-in version allows the \aformat\a operand to "
+	"start with a \b-\b without a prior \b--\b options terminator "
+	"argument, provided no \aoptions\a are given. "
+	"This is not portable and should be avoided in new scripts.]"
+#else
+"[+?Note that the \aformat\a operand cannot start with a \b-\b unless it is "
+	"preceded by a \b--\b options terminator argument.]"
+#endif
+"[+?The \aformat\a operand supports the full range of ANSI C formatting "
 	"specifiers plus the following additional specifiers:]{"
 	"[+%b?Each character in the \astring\a operand is processed "
-		"specially as follows:]{"
-			"[+\\a?Alert character.]"
-			"[+\\b?Backspace character.]"
-			"[+\\c?Terminate output without appending newline. "
-			    "The remaining \astring\a operands are ignored.]"
-			"[+\\f?Formfeed character.]"
-			"[+\\n?Newline character.]"
-			"[+\\t?Tab character.]"
-			"[+\\v?Vertical tab character.]"
-			"[+\\\\?Backslash character.]"
-			"[+\\E?Escape character (ASCII octal 033).]"
-			"[+\\0\ax\a?The 8-bit character whose ASCII code is "
-				"the 1-, 2-, or 3-digit octal number \ax\a.]"
-		"}"
+		"for \b\\\b codes as in \bprint\b(1).]"
 	"[+%q?Output \astring\a quoted in a manner that it can be read in "
 		"by the shell to get back the same string. However, empty "
 		"strings resulting from missing \astring\a operands will "
@@ -1418,8 +1416,8 @@ const char sh_optprintf[] =
 	"specifiers will be treated as if empty strings were supplied, "
 	"numeric conversions will be treated as if 0 were supplied, and "
 	"time conversions will be treated as if \bnow\b were supplied.]"
-"[+?\bprintf\b is equivalent to \bprint -f\b which allows additional "
-	"options to be specified.]"
+"[+?Except for the \b-v\b option, \bprintf\b is equivalent to \bprint -f\b "
+	"which allows additional options to be specified.]"
 "[v]:[name?Put the output in the variable \aname\a instead of writing to "
 	"standard output. \aname\a may include an array subscript (note that "
 	"the square brackets should be quoted to avoid pathname expansion).]"
@@ -1682,12 +1680,14 @@ const char sh_optksh[] =
         "the following:]{"
         "[+0?The script or command line to be executed consists entirely "
 		"of zero or more blank lines or comments.]"
-        "[+>1-125?A noninteractive shell detected a syntax error, a variable "
+        "[+1-125?A noninteractive shell detected a syntax error, a variable "
 		"assignment error, or an error in a special built-in.]"
 	"[+126?\b-c\b and \b-s\b were not specified and the command script "
 		"was found on \bPATH\b but was not executable.]"
 	"[+127?\b-c\b and \b-s\b were not specified and the command script "
 		"corresponding to \aarg\a could not be found.]"
+	"[+128?An unrecoverable system or internal error occurred.]"
+	"[+>128?The shell was terminated by a signal.]"
 "}"
 
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"

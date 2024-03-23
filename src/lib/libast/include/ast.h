@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -45,7 +45,7 @@
 #endif
 
 /*
- * workaround botched headers that assume <stdio.h>
+ * work around botched headers that assume <stdio.h>
  */
 
 #ifndef FILE
@@ -97,13 +97,8 @@ struct _sfio_s;
 #define EXIT_NOTFOUND	127	/* command not found	*/
 #define EXIT_NOEXEC	126	/* other exec error	*/
 
-#define EXIT_CODE(x)	((x) & EXIT_QUIT)
-#define EXIT_CORE(x)	(EXIT_CODE(x) | 256 | 128)
+#define EXIT_CODE(x)	((x) & 255)
 #define EXIT_TERM(x)	(EXIT_CODE(x) | 256)
-
-#define EXIT_STATUS(x)	(((x) & 63) ? (x) : EXIT_CODE((x) >> 8))
-#define EXITED_CORE(x)	(((x) & (256 | 128)) == (256 | 128) || ((x) & (128 | 64)) == (128 | 64))
-#define EXITED_TERM(x)	((x) & (256 | 128))
 
 /*
  * astconflist() flags
@@ -213,7 +208,7 @@ typedef struct
 #define mbcoll()	( ast.mb_xfrm != 0 )
 #define mbwide()	( mbmax() > 1 )
 
-#define mb2wc(w,p,n)	( (*ast.mb_towc)(&w, (char*)p, n) )
+#define mb2wc(w,p,n)	( (*ast.mb_towc)(&w, (char*)(p), n) )
 #define	mbchar(p)	mbnchar(p, mbmax())
 #define mbnchar(p,n)	( mbwide() ? ( (ast.tmp_int = (*ast.mb_towc)(&ast.tmp_wchar, (char*)(p), n)) > 0 ? \
 				( (p+=ast.tmp_int),ast.tmp_wchar) : (p+=ast.mb_sync+1,ast.tmp_int) ) : (*(unsigned char*)(p++)) )
@@ -258,8 +253,8 @@ typedef struct
 #define roundof(x,y)	(((x)+(y)-1)&~((y)-1))
 #define ssizeof(x)	((int)sizeof(x))
 
-#define streq(a,b)	(*(a)==*(b)&&!strcmp(a,b))
-#define strneq(a,b,n)	(*(a)==*(b)&&!strncmp(a,b,n))
+#define streq(a,b)	(!strcmp(a,b))
+#define strneq(a,b,n)	(!strncmp(a,b,n))
 #define strsignal(s)	fmtsignal(s)
 
 #define NiL		NULL			/* for backward compatibility */
@@ -323,7 +318,6 @@ extern int		chrexp(const char*, char**, int*, int);
 extern int		chrtoi(const char*);
 extern char*		conformance(const char*, size_t);
 extern int		eaccess(const char*, int);
-extern char*		fmtbase(intmax_t, int, int);
 extern char*		fmtbuf(size_t);
 extern char*		fmtclock(Sfulong_t);
 extern char*		fmtelapsed(unsigned long, int);

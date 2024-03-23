@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -33,15 +33,15 @@ int _sfputm(Sfio_t*	f,	/* write a portable ulong to this stream */
 	ssize_t	n, p;
 	uchar		c[N_ARRAY];
 
-	if(!f || v > m || (f->mode != SF_WRITE && _sfmode(f,SF_WRITE,0) < 0))
+	if(!f || v > m || (f->mode != SFIO_WRITE && _sfmode(f,SFIO_WRITE,0) < 0))
 		return -1;
 	SFLOCK(f,0);
 
-	/* code v as integers in base SF_UBASE */
+	/* code v as integers in base SFIO_UBASE */
 	s = ps = &(c[N_ARRAY-1]);
 	*s = (uchar)SFBVALUE(v);
-	while((m >>= SF_BBITS) > 0 )
-	{	v >>= SF_BBITS;
+	while((m >>= SFIO_BBITS) > 0 )
+	{	v >>= SFIO_BBITS;
 		*--s = (uchar)SFBVALUE(v);
 	}
 	n = (ps-s)+1;

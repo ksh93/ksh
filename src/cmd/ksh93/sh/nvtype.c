@@ -527,7 +527,7 @@ static void put_type(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 		Namfun_t  *pp;
 		if((pp=nv_hasdisc(nq,fp->disc)) && pp->type==fp->type)
 		{
-			if(!nq->nvenv)
+			if(!nq->nvmeta)
 				flag |= NV_EXPORT;
 			_nv_unset(np, flag);
 			nv_clone(nq,np,NV_IARRAY);
@@ -582,7 +582,7 @@ static Namfun_t *clone_inttype(Namval_t* np, Namval_t *mp, int flags, Namfun_t *
 	else
 		mp->nvalue.cp = (char*)(fp+1);
 	if(!nv_isattr(mp,NV_MINIMAL))
-		mp->nvenv = 0;
+		mp->nvmeta = NULL;
 	nv_offattr(mp,NV_RDONLY);
 	return pp;
 }
@@ -616,8 +616,8 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		tp = fp->type;
 		nv_offattr(np,NV_RDONLY);
 		fp->type = 0;
-		if(np->nvenv)
-			sfprintf(out,"[+?\b%s\b is a %s.]\n", tp->nvname, np->nvenv);
+		if(np->nvmeta)
+			sfprintf(out,"[+?\b%s\b is a %s.]\n", tp->nvname, (char*)np->nvmeta);
 		cp = (char*)out->_next;
 		sfprintf(out,"[+?\b%s\b is a %n ", tp->nvname, &i);
 		nv_attribute(np,out,NULL, 1);
@@ -642,7 +642,7 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		return 0;
 	}
 	help = &dp->names[dp->ndisc];
-	sp = sfnew(NULL,buffer,sizeof(buffer),-1,SF_STRING|SF_WRITE);
+	sp = sfnew(NULL,buffer,sizeof(buffer),-1,SFIO_STRING|SFIO_WRITE);
 	sfprintf(out,"[+?\b%s\b defines the following fields:]{\n",np->nvname);
 	for(i=0; i < dp->numnodes; i++)
 	{
@@ -844,8 +844,8 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 		}
 		if(nv_isattr(np,NV_REF))
 			iref++;
-		if(np->nvenv)
-			size += strlen((char*)np->nvenv)+1;
+		if(np->nvmeta)
+			size += strlen(np->nvmeta) + 1;
 		if(strcmp(&np->nvname[m],NV_DATA)==0 && !nv_type(np))
 			continue;
 		if(qp)
@@ -971,7 +971,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			char *val=nv_getval(np);
 			nq = nv_namptr(pp->nodes,0);
 			nq->nvfun = 0;
-			nv_putval(nq,(val?val:0),nv_isattr(np,~(NV_IMPORT|NV_EXPORT|NV_ARRAY)));
+			nv_putval(nq,(val?val:0),nv_isattr(np,~(NV_MINIMAL|NV_EXPORT|NV_ARRAY)));
 			nq->nvflag = np->nvflag|NV_NOFREE|NV_MINIMAL;
 			goto skip;
 		}
@@ -1015,17 +1015,17 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			goto skip;
 		}
 		nq = nv_namptr(pp->nodes,k);
-		if(np->nvenv)
+		if(np->nvmeta)
 		{
 			/* need to save the string pointer */
 			nv_offattr(np,NV_EXPORT);
 			help[k] = cp;
-			cp = strcopy(cp,np->nvenv);
+			cp = strcopy(cp,np->nvmeta);
 			j = *help[k];
 			if(islower(j))
 				*help[k] = toupper(j);
 			*cp++ = 0;
-			np->nvenv = 0;
+			np->nvmeta = NULL;
 		}
 		nq->nvname = cp;
 		if(name && strncmp(name,&np->nvname[m],n)==0 && np->nvname[m+n]=='.')
@@ -1035,7 +1035,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 		n = cp-name;
 		*cp++ = 0;
 		nq->nvsize = np->nvsize;
-		nq->nvflag = (np->nvflag&~(NV_IMPORT|NV_EXPORT))|NV_NOFREE|NV_MINIMAL;
+		nq->nvflag = (np->nvflag&~NV_EXPORT)|NV_NOFREE|NV_MINIMAL;
 		if(dp = (Namtype_t*)nv_hasdisc(np, &type_disc))
 		{
 			int r,kfirst=k;
@@ -1196,7 +1196,7 @@ Namval_t *nv_mkinttype(char *name, size_t size, int sign, const char *help, Namd
 	fp->disc = dp;
 	mp->nvalue.cp = (char*)(fp+1) + sizeof(Namdisc_t);
 	nv_setsize(mp,10);
-	mp->nvenv = (char*)help;
+	mp->nvmeta = (void*)help;
 	nv_onattr(mp,NV_NOFREE|NV_RDONLY|NV_INTEGER|NV_EXPORT);
 	if(size==16)
 		nv_onattr(mp,NV_INT16P);
@@ -1273,7 +1273,6 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 	char		*val=0;
 	Namarr_t	*ap=0;
 	int		nelem = 0;
-	unsigned int	subshell = sh.subshell;
 	Namval_t	*tq;
 	if(nv_type(np)==tp)
 		return 0;
@@ -1284,6 +1283,8 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		errormsg(SH_DICT,ERROR_exit(1),e_redef,nv_name(np));
 		UNREACHABLE();
 	}
+	if(sh.subshell && !sh.subshare)
+		sh_subfork();
 	if((ap=nv_arrayptr(np)) && ap->nelem>0)
 	{
 		nv_putsub(np,NULL,ARRAY_SCAN);
@@ -1299,11 +1300,6 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		flags &= ~NV_APPEND;
 		if(!ap)
 		{
-			if(subshell)
-			{
-				sh_assignok(np,1);
-				sh.subshell = 0;
-			}
 			nv_putsub(np,"0",ARRAY_FILL);
 			ap = nv_arrayptr(np);
 			nelem = 1;
@@ -1345,7 +1341,6 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 			nv_putsub(np,"0",0);
 			_nv_unset(np,NV_RDONLY|NV_TYPE);
 			ap->nelem--;
-			sh.subshell = subshell;
 		}
 	}
 	type_init(np);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -56,14 +56,14 @@
 #include	"sfio.h"
 
 /* mode bit to indicate that the structure hasn't been initialized */
-#define SF_INIT		0000004
-#define SF_DCDOWN	00010000
+#define SFIO_INIT		0000004
+#define SFIO_DCDOWN	00010000
 
 /* shorthand for common stream types */
-#define SF_RDWR		(SF_READ|SF_WRITE)
-#define SF_RDSTR	(SF_READ|SF_STRING)
-#define SF_WRSTR	(SF_WRITE|SF_STRING)
-#define SF_RDWRSTR	(SF_RDWR|SF_STRING)
+#define SFIO_RDWR		(SFIO_READ|SFIO_WRITE)
+#define SFIO_RDSTR	(SFIO_READ|SFIO_STRING)
+#define SFIO_WRSTR	(SFIO_WRITE|SFIO_STRING)
+#define SFIO_RDWRSTR	(SFIO_RDWR|SFIO_STRING)
 
 /* for static initialization of an Sfio_t structure */
 #define SFNEW(data,size,file,type,disc)	\
@@ -82,7 +82,7 @@
 	  0,						/* ngetr	*/ \
 	  {0},						/* tiny		*/ \
 	  0,						/* bits		*/ \
-	  (unsigned int)(((type)&(SF_RDWR))|SF_INIT),	/* mode		*/ \
+	  (unsigned int)(((type)&(SFIO_RDWR))|SFIO_INIT),	/* mode		*/ \
 	  (struct _sfdisc_s*)(disc),			/* disc		*/ \
 	  NULL,						/* pool		*/ \
 	  NULL,						/* rsrv		*/ \
@@ -122,9 +122,9 @@
 	)
 
 /* expose next stream inside discipline function; state saved in int f */
-#define SFDCNEXT(sp,f)	(((f)=(sp)->bits&SF_DCDOWN),(sp)->bits|=SF_DCDOWN)
+#define SFDCNEXT(sp,f)	(((f)=(sp)->bits&SFIO_DCDOWN),(sp)->bits|=SFIO_DCDOWN)
 
 /* restore SFDCNEXT() state from int f */
-#define SFDCPREV(sp,f)	((f)?(0):((sp)->bits&=~SF_DCDOWN))
+#define SFDCPREV(sp,f)	((f)?(0):((sp)->bits&=~SFIO_DCDOWN))
 
 #endif /* _SFIO_T_H */

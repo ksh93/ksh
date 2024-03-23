@@ -38,7 +38,7 @@
 #include	"history.h"
 #include	"version.h"
 
-#define HERE_MEM	SF_BUFSIZE	/* size of here-docs kept in memory */
+#define HERE_MEM	SFIO_BUFSIZE	/* size of here-docs kept in memory */
 
 /* These routines are local to this module */
 
@@ -68,7 +68,7 @@ static unsigned	dcl_recursion;
 
 static int		opt_get;
 
-#define getnode(type)	((Shnode_t*)stkalloc(sh.stk,sizeof(struct type)))
+#define getnode(type)	stkalloc(sh.stk,sizeof(struct type))
 
 #if SHOPT_KIA
 /*
@@ -164,7 +164,7 @@ static void typeset_order(const char *str,int line)
 	}
 }
 
-static int b_dummy(int argc, char *argv[], Shbltin_t *context)
+static noreturn int b_dummy(int argc, char *argv[], Shbltin_t *context)
 {
 	NOT_USED(argc);
 	NOT_USED(argv[0]);
@@ -186,7 +186,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 	char	*cp=0;		/* name of built-in to pre-add */
 	if(tp->comtyp&COMSCAN)
 	{
-		struct argnod *ap = tp->comarg;
+		struct argnod *ap = tp->comarg.ap;
 		while(ap = ap->argnxt.ap)
 		{
 			if(!(ap->argflag&ARG_RAW) || strncmp(ap->argval,"--",2))
@@ -206,7 +206,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 	}
 	else
 	{
-		struct dolnod *dp = (struct dolnod*)tp->comarg;
+		struct dolnod *dp = tp->comarg.dp;
 		char **argv = dp->dolval + ARG_SPARE;
 		if(intypeset==2)
 		{
@@ -442,7 +442,7 @@ void	*sh_parse(Sfio_t *iop, int flag)
 	fcrestore(&sav_input);
 	lexp->arg = sav_arg;
 	/* unstack any completed alias expansions */
-	if((sfset(iop,0,0)&SF_STRING) && !sfreserve(iop,0,-1))
+	if((sfset(iop,0,0)&SFIO_STRING) && !sfreserve(iop,0,-1))
 	{
 		Sfio_t *sp = sfstack(iop,NULL);
 		if(sp)
@@ -677,7 +677,7 @@ static struct regnod*	syncase(Lex_t *lexp,int esym)
 	struct regnod	*r;
 	if(tok==esym)
 		return NULL;
-	r = (struct regnod*)stkalloc(sh.stk,sizeof(struct regnod));
+	r = stkalloc(sh.stk,sizeof(struct regnod));
 	r->regptr=0;
 	r->regflag=0;
 	if(tok==LPAREN)
@@ -736,7 +736,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 	for(n=0; ; n++)
 	{
 		int c;
-		argp = (struct argnod*)stkseek(sh.stk,ARGVAL);
+		argp = stkseek(sh.stk,ARGVAL);
 		argp->argnxt.ap = 0;
 		argp->argchn.cp = 0;
 		argp->argflag = argflag;
@@ -757,7 +757,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 		/* check for empty condition and treat as while((1)) */
 		if(offset==ARGVAL)
 			sfputc(sh.stk,'1');
-		argp = (struct argnod*)stkfreeze(sh.stk,1);
+		argp = stkfreeze(sh.stk,1);
 		t = getanode(lexp,argp);
 		if(n==0)
 			tf = makelist(lexp,TLST,t,tw);
@@ -767,7 +767,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 	while((offset=fcpeek(0)) && isspace(offset))
 		fcseek(1);
 	sfputr(sh.stk,fcseek(0),-1);
-	argp = (struct argnod*)stkfreeze(sh.stk,1);
+	argp = stkfreeze(sh.stk,1);
 	fcrestore(&sav_input);
 	if(n<2)
 	{
@@ -847,7 +847,7 @@ static Shnode_t *funct(Lex_t *lexp)
 				errormsg(SH_DICT,ERROR_exit(3),e_lexsyntax4,sh.inlineno);
 				UNREACHABLE();
 			}
-			argv0 = argv = ((struct dolnod*)ac->comarg)->dolval+ARG_SPARE;
+			argv0 = argv = ac->comarg.dp->dolval + ARG_SPARE;
 			while(cp= *argv++)
 			{
 				size += strlen(cp)+1;
@@ -866,7 +866,7 @@ static Shnode_t *funct(Lex_t *lexp)
 				Namval_t *np= nv_open(t->funct.functnam,sh.fun_tree,NV_ADD|NV_VARNAME);
 				np->nvalue.rp = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
 				memset(np->nvalue.rp,0,sizeof(struct Ufunction));
-				np->nvalue.rp->argc = ((struct dolnod*)ac->comarg)->dolnum;
+				np->nvalue.rp->argc = ac->comarg.dp->dolnum;
 			}
 		}
 		while(lexp->token==NL)
@@ -878,10 +878,10 @@ static Shnode_t *funct(Lex_t *lexp)
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
-		/* create a new stack frame to compile the command */
-		savstak = stkopen(STK_SMALL);
-		savstak = stkinstall(savstak, 0);
-		slp = (struct slnod*)stkalloc(sh.stk,sizeof(struct slnod)+sizeof(struct functnod));
+		/* create a new stack to compile the command */
+		savstak = sh.stk;
+		sh.stk = stkopen(STK_SMALL);
+		slp = stkalloc(sh.stk,sizeof(struct slnod)+sizeof(struct functnod));
 		slp->slchild = 0;
 		slp->slnext = sh.st.staklist;
 		sh.st.staklist = 0;
@@ -899,11 +899,11 @@ static Shnode_t *funct(Lex_t *lexp)
 			fp->functnam = stkcopy(sh.stk,sh.st.filename);
 		if(size)
 		{
-			struct dolnod *dp = (struct dolnod*)stkalloc(sh.stk,size);
-			char *cp, *sp, **argv, **old = ((struct dolnod*)t->funct.functargs->comarg)->dolval+1;
+			struct dolnod *dp = stkalloc(sh.stk,size);
+			char *cp, *sp, **argv, **old = t->funct.functargs->comarg.dp->dolval + 1;
 			argv = ((char**)(dp->dolval))+1;
-			dp->dolnum = ((struct dolnod*)t->funct.functargs->comarg)->dolnum;
-			t->funct.functargs->comarg = (struct argnod*)dp;
+			dp->dolnum = t->funct.functargs->comarg.dp->dolnum;
+			t->funct.functargs->comarg.dp = dp;
 			for(cp=(char*)&argv[nargs]; sp= *old++; cp++)
 			{
 				*argv++ = cp;
@@ -915,7 +915,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		{
 			/* functname() simple_command: copy current word token to current stack frame */
 			size_t sz = ARGVAL + strlen(lexp->arg->argval) + 1;  /* include terminating 0 */
-			struct argnod *ap = (struct argnod*)stkalloc(sh.stk,sz);
+			struct argnod *ap = stkalloc(sh.stk,sz);
 			memcpy(ap,lexp->arg,sz);
 			lexp->arg = ap;
 		}
@@ -928,7 +928,8 @@ static Shnode_t *funct(Lex_t *lexp)
 	/* restore the old stack */
 	if(slp)
 	{
-		slp->slptr = stkinstall(savstak,0);
+		slp->slptr = sh.stk;
+		sh.stk = savstak;
 		slp->slchild = sh.st.staklist;
 	}
 #if SHOPT_KIA
@@ -1027,23 +1028,23 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 	if((n=skipnl(lexp,0))==RPAREN || n==LPAREN)
 	{
 		struct argnod *ar,*aq,**settail;
-		ac = (struct comnod*)getnode(comnod);
+		ac = getnode(comnod);
 		memset(ac,0,sizeof(*ac));
 	comarray:
 		settail= &ac->comset;
 		ac->comline = sh_getlineno(lexp);
 		while(n==LPAREN)
 		{
-			ar = (struct argnod*)stkseek(sh.stk,ARGVAL);
+			ar = stkseek(sh.stk,ARGVAL);
 			ar->argflag= ARG_ASSIGN;
 			sfprintf(sh.stk,"[%d]=",index++);
-			if(aq=ac->comarg)
+			if(aq = ac->comarg.ap)
 			{
-				ac->comarg = aq->argnxt.ap;
+				ac->comarg.ap = aq->argnxt.ap;
 				sfprintf(sh.stk,"%s",aq->argval);
 				ar->argflag |= aq->argflag;
 			}
-			ar = (struct argnod*)stkfreeze(sh.stk,1);
+			ar = stkfreeze(sh.stk,1);
 			ar->argnxt.ap = 0;
 			if(!aq)
 				ar = assign(lexp,ar,0);
@@ -1054,11 +1055,11 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 				continue;
 			while((n = skipnl(lexp,0))==0)
 			{
-				ar = (struct argnod*)stkseek(sh.stk,ARGVAL);
+				ar = stkseek(sh.stk,ARGVAL);
 				ar->argflag= ARG_ASSIGN;
 				sfprintf(sh.stk,"[%d]=",index++);
 				sfputr(sh.stk,lexp->arg->argval,-1);
-				ar = (struct argnod*)stkfreeze(sh.stk,1);
+				ar = stkfreeze(sh.stk,1);
 				ar->argnxt.ap = 0;
 				ar->argflag = lexp->arg->argflag;
 				*settail = ar;
@@ -1285,14 +1286,7 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 				/* some Linux scripts assume this */
 				if(sh_isoption(SH_NOEXEC))
 					errormsg(SH_DICT,ERROR_warn(0),e_lexemptyfor,sh.inlineno-(lexp->token=='\n'));
-				t->for_.forlst = (struct comnod*)getnode(comnod);
-				(t->for_.forlst)->comarg = 0;
-				(t->for_.forlst)->comset = 0;
-				(t->for_.forlst)->comnamp = 0;
-				(t->for_.forlst)->comnamq = 0;
-				(t->for_.forlst)->comstate = 0;
-				(t->for_.forlst)->comio = 0;
-				(t->for_.forlst)->comtyp = 0;
+				t->for_.forlst = memset(getnode(comnod),0,sizeof(struct comnod));
 			}
 			else
 				t->for_.forlst=(struct comnod*)simple(lexp,SH_NOIO,NULL);
@@ -1369,7 +1363,7 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 	    /* simple command */
 	    case 0:
 		t = (Shnode_t*)simple(lexp,flag,io);
-		if(t->com.comarg && lexp->intypeset)
+		if(t->com.comarg.ap && lexp->intypeset)
 			check_typedef(&t->com, lexp->intypeset);
 		lexp->intypeset = 0;
 		lexp->inexec = 0;
@@ -1395,7 +1389,7 @@ static struct argnod *process_sub(Lex_t *lexp,int tok)
 	Shnode_t *t;
 	int mode = (tok==OPROCSYM);
 	t = sh_cmd(lexp,RPAREN,SH_NL);
-	argp = (struct argnod*)stkalloc(sh.stk,sizeof(struct argnod));
+	argp = stkalloc(sh.stk,sizeof(struct argnod));
 	*argp->argval = 0;
 	argp->argchn.ap = (struct argnod*)makeparent(lexp,mode?TFORK|FPIN|FAMP|FPCL:TFORK|FPOU,t);
 	argp->argflag =  (ARG_EXP|mode);
@@ -1425,15 +1419,11 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		flag |= SH_ARRAY;
 		associative = 1;
 	}
-	t = (struct comnod*)getnode(comnod);
+	t = memset(getnode(comnod),0,sizeof(struct comnod));
 	t->comio=io; /* initial io chain */
 	/* set command line number for error messages */
 	t->comline = sh_getlineno(lexp);
-	argtail = &(t->comarg);
-	t->comset = 0;
-	t->comnamp = 0;
-	t->comnamq = 0;
-	t->comstate = 0;
+	argtail = &(t->comarg.ap);
 	settail = &(t->comset);
 	if(lexp->assignlevel && (flag&SH_ARRAY) && check_array(lexp))
 		type |= NV_ARRAY;
@@ -1461,7 +1451,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 				{
 					stkseek(sh.stk,ARGVAL);
 					sfwrite(sh.stk,argp->argval,lexp->varnamelength);
-					ap=(struct argnod*)stkfreeze(sh.stk,1);
+					ap = stkfreeze(sh.stk,1);
 					ap->argflag = ARG_RAW;
 					ap->argchn.ap = 0;
 				}
@@ -1535,7 +1525,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 				else if((Namval_t*)t->comnamp >= SYSTYPESET && (Namval_t*)t->comnamp <= SYSTYPESET_END)
 				{
 					struct argnod  *ap;
-					for(ap=t->comarg->argnxt.ap;ap;ap=ap->argnxt.ap)
+					for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
 					{
 						if(*ap->argval!='-')
 							break;
@@ -1602,7 +1592,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		Namval_t *np=(Namval_t*)t->comnamp;
 		unsigned long r=0;
 		int line = t->comline;
-		argp = t->comarg;
+		argp = t->comarg.ap;
 		if(np)
 			r = kiaentity(lexp,nv_name(np),-1,'p',-1,0,lexp->unknown,'b',0,"");
 		else if(argp)
@@ -1610,7 +1600,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		if(r>0)
 			sfprintf(lexp->kiatmp,"p;%..64d;p;%..64d;%d;%d;c;\n",lexp->current,r,line,line);
 		if(t->comset && argno==0)
-			writedefs(lexp,t->comset,line,'v',t->comarg);
+			writedefs(lexp,t->comset,line,'v',t->comarg.ap);
 		else if(np && nv_isattr(np,BLT_DCL))
 			writedefs(lexp,argp,line,0,NULL);
 		else if(argp && strcmp(argp->argval,"read")==0)
@@ -1623,14 +1613,14 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 	}
 #endif /* SHOPT_KIA */
 	/* noexec: warn about set - and set -k */
-	if(sh_isoption(SH_NOEXEC) && t->comnamp && (argp = t->comarg->argnxt.ap)
+	if(sh_isoption(SH_NOEXEC) && t->comnamp && (argp = t->comarg.ap->argnxt.ap)
 	&& (Namval_t*)t->comnamp==SYSSET && ((tok = *argp->argval)=='-' || tok=='+')
 	&& (argp->argval[1]==0 || strchr(argp->argval,'k')))
 		errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,sh.inlineno-(lexp->token=='\n'),argp->argval);
 	/* expand argument list if possible */
 	if(argno>0 && !(flag&(SH_ARRAY|NV_APPEND)))
-		t->comarg = qscan(t,argno);
-	else if(t->comarg)
+		t->comarg.ap = qscan(t,argno);
+	else if(t->comarg.ap)
 		t->comtyp |= COMSCAN;
 	lexp->aliasok = 0;
 	return (Shnode_t*)t;
@@ -1713,13 +1703,13 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 		return lastio;
 	}
 	lexp->digits=0;
-	iop=(struct ionod*) stkalloc(sh.stk,sizeof(struct ionod));
+	iop = stkalloc(sh.stk,sizeof(struct ionod));
 	iop->iodelim = 0;
 	if(token=sh_lex(lexp))
 	{
 		if(token==RPAREN && (iof&IOLSEEK) && lexp->comsub) 
 		{
-			lexp->arg = (struct argnod*)stkalloc(sh.stk,sizeof(struct argnod)+3);
+			lexp->arg = stkalloc(sh.stk,sizeof(struct argnod)+3);
 			strcpy(lexp->arg->argval,"CUR");
 			lexp->arg->argflag = ARG_RAW;
 			iof |= IOARITH;
@@ -1790,7 +1780,7 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 		if(errout)
 		{
 			/* redirect standard output to standard error */
-			ioq = (struct ionod*)stkalloc(sh.stk,sizeof(struct ionod));
+			ioq = stkalloc(sh.stk,sizeof(struct ionod));
 			memset(ioq,0,sizeof(*ioq));
 			ioq->ioname = "1";
 			ioq->iolst = 0;
@@ -1823,12 +1813,12 @@ static struct argnod *qscan(struct comnod *ac,int argn)
 	{
 		if((Namval_t*)ac->comnamp==SYSTEST)
 			special = 2;	/* convert "test -t" to "test -t 1" */
-		else if(*(ac->comarg->argval)=='[' && ac->comarg->argval[1]==0)
+		else if(*(ac->comarg.ap->argval)=='[' && ac->comarg.ap->argval[1]==0)
 			special = 3;	/* convert "[ -t ]" to "[ -t 1 ]" */
 	}
 	if(special)
 	{
-		ap = ac->comarg->argnxt.ap;
+		ap = ac->comarg.ap->argnxt.ap;
 		if(argn==(special+1) && ap->argval[1]==0 && *ap->argval=='!')
 			ap = ap->argnxt.ap;
 		else if(argn!=special)
@@ -1851,11 +1841,11 @@ static struct argnod *qscan(struct comnod *ac,int argn)
 			errormsg(SH_DICT,ERROR_warn(0),message,ac->comline);
 	}
 	/* leave space for an extra argument at the front */
-	dp = (struct dolnod*)stkalloc(sh.stk,(unsigned)sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + argn*sizeof(char*));
+	dp = stkalloc(sh.stk,(unsigned)sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + argn*sizeof(char*));
 	cp = dp->dolval+ARG_SPARE;
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;
-	ap = ac->comarg;
+	ap = ac->comarg.ap;
 	while(ap)
 	{
 		*cp++ = ap->argval;
@@ -2079,9 +2069,8 @@ int kiaclose(Lex_t *lexp)
 		nv_scan(lexp->entity_tree,kia_add,lexp,NV_TAGGED,0);
 		off1 = sfseek(lexp->kiafile,0,SEEK_END);
 		sfseek(lexp->kiatmp,0,SEEK_SET);
-		sfmove(lexp->kiatmp,lexp->kiafile,SF_UNBOUND,-1);
+		sfmove(lexp->kiatmp,lexp->kiafile,SFIO_UNBOUND,-1);
 		off2 = sfseek(lexp->kiafile,0,SEEK_END);
-#ifdef SF_BUFCONST
 		if(off2==off1)
 			n= sfprintf(lexp->kiafile,"DIRECTORY\nENTITY;%lld;%d\nDIRECTORY;",(Sflong_t)lexp->kiabegin,(size_t)(off1-lexp->kiabegin));
 		else
@@ -2089,13 +2078,6 @@ int kiaclose(Lex_t *lexp)
 		if(off2 >= INT_MAX)
 			off2 = -(n+12);
 		sfprintf(lexp->kiafile,"%010.10lld;%010d\n",(Sflong_t)off2+10, n+12);
-#else
-		if(off2==off1)
-			n= sfprintf(lexp->kiafile,"DIRECTORY\nENTITY;%d;%d\nDIRECTORY;",lexp->kiabegin,off1-lexp->kiabegin);
-		else
-			n= sfprintf(lexp->kiafile,"DIRECTORY\nENTITY;%d;%d\nRELATIONSHIP;%d;%d\nDIRECTORY;",lexp->kiabegin,off1-lexp->kiabegin,off1,off2-off1);
-		sfprintf(lexp->kiafile,"%010d;%010d\n",off2+10, n+12);
-#endif
 	}
 	return sfclose(lexp->kiafile);
 }

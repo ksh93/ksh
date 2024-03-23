@@ -2,6 +2,134 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-03-22:
+
+- Fixed a crash in the getconf built-in that could occur after the 'builtin'
+  command was used to bind it to the same path as the external getconf command.
+
+2024-03-20:
+
+- Android with Termux is now a supported environment for ksh 93u+m. Testing
+  was done on Android 14.0 with Termux 0.118.0. Please report any breakage.
+  Build dependencies (Termux packages): clang, binutils, getconf. Runtime
+  depenencies: ncurses-utils (for --multiline), getconf (fallback for the
+  /opt/ast/bin/getconf builtin).
+
+2024-03-12:
+
+- Fixed a regression in the 'printf' built-in, introduced on 2023-05-17,
+  where each instance of '\0' or '%Z' in the format operand caused a string
+  argument to be incorrectly skipped.
+
+2024-03-10:
+
+- Fixed a longstanding bug where the default terminal width for typeset -L, -R,
+  or -Z, if not given, was miscalculated for multibyte or control characters.
+
+- Fixed a crash on redefining an array inherited from the parent environment
+  in a subshell.
+
+- Fixed corner case breakage of univese handling in the 'echo' command: it
+  broke when used in a namespace block before being used anywhere else, and
+  only if _AST_FEATURES was not exported first. The bug caused _AST_FEATURES to
+  be incorrectly placed in that namespace. Bug introduced on 2023-06-02.
+
+2024-03-07:
+
+- Fixed a bug that caused some systems to corrupt the display of multibyte
+  characters in the command prompt.
+
+2024-03-05:
+
+- Fixed a regression, introduced on 2021-02-07, that made the common AST
+  options '--???ESC' and '--???noESC' ineffective for enabling/disabling
+  ANSI escape codes for emphasis in the output of --man or --help.
+  (Type, e.g., print '--???' for more information about common options.)
+
+- Fixed a rare crash in the 'print' built-in due to the use of uninitialised
+  memory while parsing options. Bug introduced in ksh 93u+ 2012-05-31.
+
+- Fixed a 2021-04-14 regression: the 'exec' command (which runs a command
+  that replaces the shell process and therefore should only run external
+  commands) would run a path-bound built-in if /opt/ast/bin is in PATH.
+
+- Fixed a corner case bug: a ${ shared-state command substitution;} failed to
+  capture the standard output of a command that replces the shell via 'exec'.
+
+2024-02-29:
+
+- Improved the robustness of the routines handling the execution by ksh of a
+  script without an initial #! path. More memory is freed up after ksh forks.
+
+- Fixed a crash that could occur after 'typeset +x var' when var was imported
+  from the environment and then a discipline function was set for it.
+
+2024-02-23:
+
+- [v1.1] The commands ':', 'true', 'false', 'break' and 'continue' have been
+  optimised to run faster in loops in certain common cases. For example, the
+  'true' in 'while true; do some_stuff || break; done' now runs faster.
+
+2024-02-22:
+
+- Fixed a crash that occurred when starting ksh with no TERM variable in the
+  environment (e.g., in single user mode on NetBSD and DragonFlyBSD).
+
+- Fixed a regression of 'return' within traps, reintroduced on 2023-12-25
+  after being fixed on 2020-09-09. The regression caused a 'return' or
+  'exit' with no arguments to assume the before-trap exit status instead of
+  that of the last-run command. This broke the shipped 'autocd' function.
+
+- Fixed some integer overflows that could occur when using TMOUT.
+
+- Fixed a crash on Solaris and illumos when cancelling a here-document
+  with ^C or ^D in an interactive shell.
+
+2024-02-17:
+
+- Fixed a crash that could occur when using 'typeset -T' typed variables
+  in a virtual subshell.
+
+2024-02-11:
+
+- Added SHOPT_PRINTF_LEGACY compile-time option for compatibility with
+  POSIX-ignorant external printf(1) commands that process a format operand
+  starting with '-' without the standard preceding '--' options terminator.
+  This is for backward compatibility with local system scripts. The
+  behaviour of the system's external printf(1) determines whether this is
+  compiled in or out by default. Normal ksh printf options keep working.
+
+- Fixed a bug, introduced on 2023-06-02, that made it impossible within a
+  namespace to unset a function defined outside the namespace.
+
+- Fixed: ksh didn't pass the exit status of the last command it executed to
+  the parent process on entering EOF (Ctrl+D) on a terminal.
+
+2024-02-09:
+
+- Fixed multiple inaccurate or missing values in the /opt/ast/bin/getconf
+  path-bound built-in command.
+
+2024-02-08:
+
+- Fixed an init-time crash that may occur if standard error is on a terminal,
+  but the path to its tty device can't be found (e.g., in a chroot situation).
+
+- Fixed corrupted output of the 'time' keyword as formatted via TIMEFORMAT on
+  systems where sizeof(time_t) != sizeof(int). Bug introduced on 2020-07-13.
+
+2024-02-06:
+
+- Fixed a regression introduced on 2023-03-04 that caused ksh to lock up
+  after using the Arch Linux arch-chroot script.
+
+2024-02-03:
+
+- Fixed: the arithmetic representation of negative integers with a base other
+  than 10 is no longer incorrectly treated as unsigned long. For example,
+	typeset -i16 n=-12; echo $n
+  now correctly outputs '-16#c' and no longer ouputs '16#fffffffffffffff4'.
+
 2024-01-27:
 
 - Fixed: tilde expansion discipline functions (see 2021-03-16) were not
@@ -2787,7 +2915,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   specifies and as all other POSIX shells do. To redirect standard output
   for reading and writing, you now need '1<>'.
   Ref.:	https://github.com/att/ast/issues/75
-	http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
+	https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_07_07
 
 2020-05-12:
 

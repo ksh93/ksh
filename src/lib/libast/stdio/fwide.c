@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -30,21 +30,21 @@ fwide(Sfio_t* f, int mode)
 {
 	if (mode > 0)
 	{
-		f->bits &= ~SF_MB;
-		f->bits |= SF_WC;
+		f->bits &= ~SFIO_MB;
+		f->bits |= SFIO_WC;
 	}
 	else if (mode < 0)
 	{
-		f->bits &= ~SF_WC;
-		f->bits |= SF_MB;
+		f->bits &= ~SFIO_WC;
+		f->bits |= SFIO_MB;
 	}
-	if (f->bits & SF_MB)
+	if (f->bits & SFIO_MB)
 		return -1;
-	if (f->bits & SF_WC)
+	if (f->bits & SFIO_WC)
 		return 1;
-	if ((f->flags & SF_SYNCED) || f->next > f->data)
+	if ((f->flags & SFIO_SYNCED) || f->next > f->data)
 	{
-		f->bits |= SF_MB;
+		f->bits |= SFIO_MB;
 		return -1;
 	}
 	return 0;

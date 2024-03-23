@@ -367,7 +367,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			getids(s, &t, &key, options);
 			if (!(m = (Map_t*)dtmatch(map, &key)))
 			{
-				if (!(m = (Map_t*)stkalloc(stkstd, sizeof(Map_t))))
+				if (!(m = stkalloc(stkstd, sizeof(Map_t))))
 				{
 					error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [id dictionary]");
 					UNREACHABLE();

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,7 +26,7 @@ _stdgets(Sfio_t* f, char* us, int n, int isgets)
 	unsigned char*	is;
 	unsigned char*	ps;
 
-	if(n <= 0 || !us || (f->mode != SF_READ && _sfmode(f,SF_READ,0) < 0))
+	if(n <= 0 || !us || (f->mode != SFIO_READ && _sfmode(f,SFIO_READ,0) < 0))
 		return NULL;
 
 	SFLOCK(f,0);
@@ -38,7 +38,7 @@ _stdgets(Sfio_t* f, char* us, int n, int isgets)
 	{	/* peek the read buffer for data */
 		if((p = f->endb - (ps = f->next)) <= 0 )
 		{	f->getr = '\n';
-			f->mode |= SF_RC;
+			f->mode |= SFIO_RC;
 			if(SFRPEEK(f,ps,p) <= 0)
 				break;
 		}
@@ -52,7 +52,7 @@ _stdgets(Sfio_t* f, char* us, int n, int isgets)
 		is += p;
 		ps  = f->next+p;
 #else
-		if(!(f->flags&(SF_BOTH|SF_MALLOC)))
+		if(!(f->flags&(SFIO_BOTH|SFIO_MALLOC)))
 		{	while(p-- && (*is++ = *ps++) != '\n')
 				;
 			p = ps-f->next;

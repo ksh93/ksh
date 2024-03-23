@@ -4,24 +4,30 @@
 \fBstk\fR \- data stack storage library
 .SH SYNOPSIS
 .ta .75i 1.5i 2.25i 3i 3.75i 4.5i 5.25i 6i
+.de Ss
+.fl
+.ne 3
+.SS "\\$1"
+..
 .PP
 .nf
 \f3
 #include <stk.h>
 
 Stk_t *stkopen(int \fIflags\fP);
+void stkoverflow(Stk_t *\fIstack\fP, void *(\fIoverflow\fP)(size_t));
 Stk_t *stkinstall(Stk_t *\fIstack\fP, char *(\fIoverflow\fP)(size_t));
 int stkclose(Stk_t *\fIstack\fP);
 unsigned int stklink(Stk_t *\fIstack\fP)
 
-char *stkalloc(Stk_t *\fIstack\fP, unsigned \fIsize\fP);
+void *stkalloc(Stk_t *\fIstack\fP, unsigned \fIsize\fP);
 char *stkcopy(Stk_t *\fIstack\fP, const char *\fIstring\fP);
-char *stkset(Stk_t *\fIstack\fP, char *\fIaddress\fP, unsigned \fIoffset\fP);
+void *stkset(Stk_t *\fIstack\fP, void *\fIaddress\fP, unsigned \fIoffset\fP);
 
-char *stkseek(Stk_t *\fIstack\fP, unsigned \fIoffset\fP);
+void *stkseek(Stk_t *\fIstack\fP, unsigned \fIoffset\fP);
 int stktell(Stk_t *\fIstack\fP);
 char *stkptr(Stk_t *\fIstack\fP, unsigned \fIoffset\fP);
-char *stkfreeze(Stk_t *\fIstack\fP, unsigned \fIextra\fP);
+void *stkfreeze(Stk_t *\fIstack\fP, unsigned \fIextra\fP);
 int stkon(Stk *\fIstack\fP, char* \fIaddr\fP)
 \fR
 .fi
@@ -33,16 +39,15 @@ A stack abstraction consists of an ordered list of contiguous
 memory regions, called stack frames, that can hold objects of
 arbitrary size.
 A stack is represented by the type \f3Stk_t\fP
-defined in header \f3<stk.h>\fP.
+defined in the header \f3<stk.h>\fP.
 The type \f3Stk_t\fP is compatible with the type \f3Sfio_t\fP
 defined by the \f3sfio\fP(3) library.
+There is a preset initial stack which can be referenced
+by the constant \f3stkstd\fP (stack standard).
 .PP
-At any instant there is one active stack which can be referenced
-by the constant \f3stkstd\fP.
-Variable size objects can be
-added to the active stack
+Objects of variable size can be
+added to a stack,
 and programs can reference these objects directly with pointers.
-.PP
 In addition, the last object on the stack
 (referred to here as the current object)
 can be built incrementally.
@@ -53,50 +58,72 @@ its location might
 change so that it is necessary to reference the object with
 relative offsets ranging from zero to the current offset of the object.
 .PP
-There is a preset initial active stack.
-To use an additional stack, it is necessary to create it and to
-install it as the active stack.
+The \f3sfio\fP(3) output functions can be used to build
+the current object incrementally.
+An object that is built incrementally on the stack will
+always occupy contiguous memory within a stack frame,
+but until \f3stkfreeze\fP() is called,
+the location in memory for the object can change.
+There is a current offset associated with the current object that
+determines where subsequent operations apply.
+Initially, this offset is zero, and the offset changes as a result
+of the operations you specify.
+.Ss "Descriptions of the functions"
 .PP
-A stack is created with the \f3stkopen\fP() function.
+The \f3stkopen\fP() function creates a new stack.
 The \fIflags\fP argument is an options bitmask.
 If the \f3STK_SMALL\fP bit is set, the stack allocates memory in
-small blocks, optimizing for memory usage at the expense of performance.
+small blocks, optimizing memory usage at the expense of performance.
 If the \f3STK_NULL\fP bit is set, a stack overflow will cause stack
 operations to return a null pointer instead of throwing an exception.
+If the \f3STK_NULL\fP bit is not set and the \f3stkstd\fP stack has
+a custom overflow function set (see \f3stkoverflow\fP() below),
+then the new stack inherits the pointer to that overflow function.
 If successful,
 \f3stkopen\fP() returns a pointer to a stack whose reference
 count is 1.
 Otherwise, \f3stkopen\fP() returns a null pointer.
 .PP
-The \f3stklink\fP() function increases the reference count for the
-given \fIstack\fP and returns the increased count.
-.PP
-The \f3stkinstall\fP() function
-makes the specified \fIstack\fP the active stack and returns a pointer
-to the previous active stack.
-If the \fIoverflow\fP argument is not null and the stack was not opened with
-the \f3STK_NULL\fP option, \fIoverflow\fP specifies a function that will
+The \f3stkoverflow\fP() function specifies a function that will
 be called whenever \f3malloc\fP(3) fails while trying to grow the
 stack.
 The \fIoverflow\fP function will be called with the size that was passed
 to \f3malloc\fP(3).
 The \fIoverflow\fP function can call \f3exit\fP(3), call \f3longjmp\fP(3)
 or return.
-If the \f3overflow\fP function returns,
+If the \f2overflow\fP function returns,
 it must return a pointer to a memory region of the given size.
-The default action is to write an error to standard error and to
+If \f2overflow\fP is \f3NULL\fP, then the stack overflow action
+is reset to the default.
+If the stack was opened with the \f3STK_NULL\fP option,
+the default is to return a null pointer,
+otherwise the default is to write an error to standard error and to
 call \f3exit\fP(2) with a non-zero exit value.
+.PP
+The \f3stkinstall\fP() function
+is deprecated and provided for backward compatibility.
+\f3stkinstall\fP() makes \f3stkstd\fP refer to the specified \fIstack\fP pointer
+and returns a pointer to the previous \f3stkstd\fP stack.
+If the \fIoverflow\fP argument is not null and the stack was not opened with
+the \f3STK_NULL\fP option, then \fIoverflow\fP sets the overflow action
+(see \f3overflow\fP() above).
 When \fIstack\fP is a null pointer,
-the active stack is not changed
-but the \fIoverflow\fP function for the active stack can be changed
-and a pointer to the active stack is returned.
+the \f3stkstd\fP stack is not changed
+but the \fIoverflow\fP function for the \f3stkstd\fP stack can be changed
+and a pointer to the \f3stkstd\fP stack is returned.
+(Current usage is simply
+passing the pointer to the desired stack to the \f3stk\fP functions,
+and using \f3stkoverflow\fP() to set the stack overflow function).
 .PP
 The \f3stkclose\fP() function decrements the reference count and
 frees the memory associated with
 the specified stack
 when the reference count is zero.
 The effect of subsequent references to objects
-on the stack are undefined.
+on the stack is undefined.
+.PP
+The \f3stklink\fP() function increases the reference count for the
+given \fIstack\fP and returns the increased count.
 .PP
 The
 \f3stkalloc\fP() function returns an aligned pointer to space on the
@@ -122,17 +149,6 @@ If \fIaddress\fP is null, the stack is reset to the beginning.
 If it is non-null, but is not the address of an object on the
 stack, the program aborts and dumps core.
 .PP
-The \f3sfio\fP(3) output functions can be used to build
-current object incrementally.
-An object that is built incrementally on the stack will
-always occupy contiguous memory within a stack frame but
-until \f3stkfreeze\fP() is called,
-the location in memory for the object can change.
-There is a current offset associated with the current object that
-determines where subsequent operations apply.
-Initially, this offset is zero, and the offset changes as a result
-of the operations you specify.
-.PP
 The \f3stkseek\fP() function is used set the offset for the
 current object.
 The \fIoffset\fP argument to \f3stkseek\fP() specifies the new
@@ -149,6 +165,9 @@ for the current object into a memory address on the stack.
 This address is only valid until another stack operation is given.
 The result is not defined if \fIoffset\fP exceeds the size of the current
 object.
+This function returns a \f3char\fP pointer instead of \f3void\fP pointer
+to make it easy to dereference the return value directly and read
+an individual byte on the stack.
 .PP
 The \f3stkfreeze\fP()
 function terminates the current object on the
@@ -167,10 +186,17 @@ interface was derived from similar routines in the KornShell code
 that is used for building parse trees and carrying out expansions.
 It provides an efficient mechanism for grouping dynamically allocated
 objects so that they can be freed all at once rather than individually.
+.PP
+In 2024, as part of changes made by
+Martijn Dekker <martijn@inlv.org> for ksh 93u+m,
+the return types of \f3stkalloc\fP(), \f3stkset\fP(), \f3stkseek\fP() and
+\f3stkfreeze\fP() were changed from \f3char*\fP to \f3void*\fP,
+the \f3stkoverflow\fP() function was added,
+and the \f3stkinstall\fP() function was deprecated.
 .SH AUTHOR
- David Korn
+David Korn
 .SH SEE ALSO
-\f3exit(2)\fP
-\f3longjmp(3)\fP
-\f3malloc(3)\fP
-\f3sfio(3)\fP
+\f3exit\fP(2),
+\f3longjmp\fP(3),
+\f3malloc\fP(3),
+\f3sfio\fP(3)

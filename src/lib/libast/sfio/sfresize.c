@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,16 +26,16 @@ int sfresize(Sfio_t* f, Sfoff_t size)
 {
 
 	if(size < 0 || f->extent < 0 ||
-	   !f || (f->mode != SF_WRITE && _sfmode(f,SF_WRITE,0) < 0))
+	   !f || (f->mode != SFIO_WRITE && _sfmode(f,SFIO_WRITE,0) < 0))
 		return -1;
 
 	SFLOCK(f,0);
 
-	if(f->flags&SF_STRING)
+	if(f->flags&SFIO_STRING)
 	{	SFSTRSIZE(f);
 
 		if(f->extent >= size)
-		{	if((f->flags&SF_MALLOC) && (f->next - f->data) <= size)
+		{	if((f->flags&SFIO_MALLOC) && (f->next - f->data) <= size)
 			{	size_t	s = (((size_t)size + 1023)/1024)*1024;
 				void*	d;
 				if(s < f->size && (d = realloc(f->data, s)) )

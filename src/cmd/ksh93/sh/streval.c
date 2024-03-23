@@ -172,7 +172,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	if(ep->staksize < SMALL_STACK)
 		sp = small_stack;
 	else
-		sp = (Sfdouble_t*)stkalloc(sh.stk,ep->staksize*(sizeof(Sfdouble_t)+1));
+		sp = stkalloc(sh.stk,ep->staksize*(sizeof(Sfdouble_t)+1));
 	tp = (char*)(sp+ep->staksize);
 	tp--,sp--;
 	while(c = *cp++)
@@ -915,7 +915,7 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 	}
 	sfputc(sh.stk,0);
 	offset = stktell(sh.stk);
-	ep = (Arith_t*)stkfreeze(sh.stk,0);
+	ep = stkfreeze(sh.stk,0);
 	ep->expr = string;
 	ep->elen = strlen(string);
 	ep->code = (unsigned char*)(ep+1);

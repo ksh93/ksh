@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -27,13 +27,13 @@
 static void newpos(Sfio_t* f, Sfoff_t p)
 {
 #ifdef MAP_TYPE
-	if((f->bits&SF_MMAP) && f->data)
+	if((f->bits&SFIO_MMAP) && f->data)
 	{	SFMUNMAP(f, f->data, f->endb-f->data);
 		f->data = NULL;
 	}
 #endif
 	f->next = f->endr = f->endw = f->data;
-	f->endb = (f->mode&SF_WRITE) ? f->data+f->size : f->data;
+	f->endb = (f->mode&SFIO_WRITE) ? f->data+f->size : f->data;
 	if((f->here = p) < 0)
 	{	f->extent = -1;
 		f->here = 0;
@@ -52,29 +52,29 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 
 	GETLOCAL(f,local);
 
-	hardseek = (type|f->flags)&(SF_SHARE|SF_PUBLIC);
+	hardseek = (type|f->flags)&(SFIO_SHARE|SFIO_PUBLIC);
 
-	if(hardseek && f->mode == (SF_READ|SF_SYNCED) )
+	if(hardseek && f->mode == (SFIO_READ|SFIO_SYNCED) )
 	{	newpos(f,f->here);
-		f->mode = SF_READ;
+		f->mode = SFIO_READ;
 	}
 
 	/* set and initialize the stream to a definite mode */
-	if((int)SFMODE(f,local) != (mode = f->mode&SF_RDWR))
+	if((int)SFMODE(f,local) != (mode = f->mode&SFIO_RDWR))
 	{	int	flags = f->flags;
 
-		if(hardseek&SF_PUBLIC) /* seek ptr must follow file descriptor */
-			f->flags |= SF_SHARE|SF_PUBLIC;
+		if(hardseek&SFIO_PUBLIC) /* seek ptr must follow file descriptor */
+			f->flags |= SFIO_SHARE|SFIO_PUBLIC;
 		mode = _sfmode(f,mode,local);
-		if(hardseek&SF_PUBLIC)
+		if(hardseek&SFIO_PUBLIC)
 			f->flags = flags;
 
 		if(mode < 0)
 			return (Sfoff_t)(-1);
 	}
 
-	mustsync = (type&SF_SHARE) && !(type&SF_PUBLIC) &&
-		   (f->mode&SF_READ) && !(f->flags&SF_STRING);
+	mustsync = (type&SFIO_SHARE) && !(type&SFIO_PUBLIC) &&
+		   (f->mode&SFIO_READ) && !(f->flags&SFIO_STRING);
 
 	/* X/Open-compliant */
 	if((type &= (SEEK_SET|SEEK_CUR|SEEK_END)) != SEEK_SET &&
@@ -96,9 +96,9 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	SFLOCK(f,local);
 
 	/* clear error and eof bits */
-	f->flags &= ~(SF_EOF|SF_ERROR);
+	f->flags &= ~(SFIO_EOF|SFIO_ERROR);
 
-	while(f->flags&SF_STRING)
+	while(f->flags&SFIO_STRING)
 	{	SFSTRSIZE(f);
 
 		if(type == SEEK_CUR)
@@ -121,15 +121,15 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 		{	p = -1;
 			goto done;
 		}
-		else if(!(f->flags&SF_STRING))
+		else if(!(f->flags&SFIO_STRING))
 		{	p = r;
 			goto done;
 		}
 	}
 
-	if(f->mode&SF_WRITE)
+	if(f->mode&SFIO_WRITE)
 	{	/* see if we can avoid flushing buffer */
-		if(!hardseek && type < SEEK_END && !(f->flags&SF_APPENDWR) )
+		if(!hardseek && type < SEEK_END && !(f->flags&SFIO_APPENDWR) )
 		{	s = f->here + (f->next - f->data);
 			r = p + (type == SEEK_SET ? 0 : s);
 			if(r == s)
@@ -144,8 +144,8 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 		}
 	}
 
-	if(type == SEEK_END || (f->mode&SF_WRITE) )
-	{	if((hardseek&SF_PUBLIC) || type == SEEK_END)
+	if(type == SEEK_END || (f->mode&SFIO_WRITE) )
+	{	if((hardseek&SFIO_PUBLIC) || type == SEEK_END)
 			p = SFSK(f, p, type, f->disc);
 		else
 		{	r = p + (type == SEEK_CUR ? f->here : 0);
@@ -163,7 +163,7 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	if(r <= f->here && r >= (f->here - (f->endb-f->data)) )
 	{	if((hardseek || (type == SEEK_CUR && p == 0)) )
 		{	if((s = SFSK(f, 0, SEEK_CUR, f->disc)) == f->here ||
-			   (s >= 0 && !(hardseek&SF_PUBLIC) &&
+			   (s >= 0 && !(hardseek&SFIO_PUBLIC) &&
 			    (s = SFSK(f, f->here, SEEK_SET, f->disc)) == f->here) )
 				goto near_done;
 			else if(s < 0)
@@ -188,11 +188,11 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 		goto done;
 
 #ifdef MAP_TYPE
-	if(f->bits&SF_MMAP)
+	if(f->bits&SFIO_MMAP)
 	{	/* if mmap is not great, stop mmapping if moving around too much */
 #if _mmap_worthy < 2
 		if((f->next - f->data) < ((f->endb - f->data)/4) )
-		{	SFSETBUF(f,f->tiny,(size_t)SF_UNBOUND);
+		{	SFSETBUF(f,f->tiny,(size_t)SFIO_UNBOUND);
 			hardseek = 1; /* this forces a hard seek below */
 		}
 		else
@@ -229,7 +229,7 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 
 		/* seeking around and wasting data, be conservative */
 		if(f->iosz > 0 && (p > f->lpos || p < f->lpos-f->size) )
-			f->bits |= SF_JUSTSEEK;
+			f->bits |= SFIO_JUSTSEEK;
 	}
 
 	if((hardseek || r != f->here) && (f->here = SFSK(f,r,SEEK_SET,f->disc)) != r)

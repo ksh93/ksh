@@ -37,7 +37,16 @@
 #endif
 
 #include <ast_lib.h>
+
+#if __ANDROID_API__
+#define _STDLIB_H	1
+#endif
+
 #include <ast_sys.h>
+
+#if __ANDROID_API__
+#undef _STDLIB_H
+#endif
 
 #if _ast_fltmax_double
 #undef	strtold
