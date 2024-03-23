@@ -117,8 +117,8 @@ make install virtual
 				prev sum-ast4.c implicit
 				make FEATURE/sum implicit
 					prev features/sum
-					exec - iffe ${IFFEFLAGS} -v -c '${CC} ${mam_cc_FLAGS} ${CCFLAGS} \
-					exec -  ${mam_cc_NOSTRICTALIASING} ${LDFLAGS}' \
+					exec - iffe ${IFFEFLAGS} -v -c \
+					exec -  '${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} ${LDFLAGS}' \
 					exec -	ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} \
 					exec -	-I${INSTALLROOT}/include ${mam_libast} : run ${<}
 				done
