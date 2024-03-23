@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)make.probe (ksh 93u+m) 2024-03-21
+# @(#)make.probe (ksh 93u+m) 2024-03-23
 #
 # C probe for make
 #
@@ -38,6 +38,7 @@ probe_nmflags="'' -p -B"
 probe_optimize="-Os -O"
 probe_pic="-Kpic -KPIC -fpic -fPIC -pic -PIC +z +Z"
 probe_no_protect="'-fno-stack-protector -fno-stack-protector-all' -GS-"
+probe_no_strict_aliasing="-fno-strict-aliasing"
 probe_readonly="-R -Krodata -xMerge -Wa,-r"
 probe_shared="'' -G -b -c -shared -Wl,dll"
 probe_shared_name="-Wl,-soname= -h"
@@ -151,6 +152,7 @@ makeoptions=
 nmedit=
 nmflags=
 no_protect=
+no_strict_aliasing=
 optimize=
 prefix_archive=lib
 prefix_dynamic=
@@ -1471,6 +1473,19 @@ then	e=`wc -c < e`
 		esac
 	done
 
+	eval set x $probe_no_strict_aliasing
+	while	:
+	do	shift
+		case $# in
+		0)	break ;;
+		esac
+		rm -f warn.$obj
+		$cc $1 -c warn.$src 2>e && test -f warn.$obj || continue
+		case $(wc -c < e) in
+		$e)	no_strict_aliasing=$1; break ;;
+		esac
+	done
+
 	case $version_string in
 	$probe_gcc_version)	probe_optimize="$probe_gcc_optimize $probe_optimize" ;;
 	esac
@@ -1997,6 +2012,7 @@ CC_NM=$nm
 CC_NMEDIT=$nmedit
 CC_NMFLAGS=$nmflags
 CC_NOPROTECT=$no_protect
+CC_NOSTRICTALIASING=$no_strict_aliasing
 CC_OPTIMIZE=$optimize
 CC_READONLY=$readonly
 CC_REPOSITORY=$repository
@@ -2106,6 +2122,7 @@ esac
 echo CC.NMEDIT ="$CC_NMEDIT"
 echo CC.NMFLAGS = $CC_NMFLAGS
 echo CC.NOPROTECT = $CC_NOPROTECT
+echo CC.NOSTRICTALIASING = $CC_NOSTRICTALIASING
 echo CC.OPTIMIZE = $CC_OPTIMIZE
 echo CC.PICBIG = $CC_PICBIG
 echo CC.PICSMALL = $CC_PICSMALL

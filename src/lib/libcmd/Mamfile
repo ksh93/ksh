@@ -8,7 +8,7 @@ setv INSTALLROOT ../../..
 setv PACKAGE_ast_INCLUDE ${INSTALLROOT}/include/ast
 setv CC cc
 setv AR ${mam_cc_AR} ${mam_cc_AR_ARFLAGS}
-setv mam_cc_FLAGS ${mam_cc_TARGET} ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\" -D_BLD_cmd
+setv mam_cc_FLAGS ${mam_cc_TARGET} ${mam_cc_DLL} ${-debug-symbols?1?${mam_cc_DEBUG} -D_BLD_DEBUG?${mam_cc_OPTIMIZE}?} ${mam_cc_NOSTRICTALIASING} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\" -D_BLD_cmd
 setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS
@@ -150,14 +150,14 @@ make install virtual
 	bind -lsum
 	make cmd.req
 		prev ${INSTALLROOT}/bin/mkreq
-		exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} : ${LDFLAGS} : cmd fsg md util ast
+		exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} : ${LDFLAGS} : cmd fsg md util ast
 	done
 
 	note *
 	note * Header dependencies and feature tests
 	note *
 
-	setv run_iffe iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run
+	setv run_iffe iffe ${IFFEFLAGS} -v -c "${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} ${LDFLAGS}" ref ${mam_cc_L+-L${INSTALLROOT}/lib} -I${PACKAGE_ast_INCLUDE} -I${INSTALLROOT}/include ${mam_libutil} ${mam_libast} : run
 
 	make deps virtual
 		make cmdinit.c
@@ -471,7 +471,7 @@ make install virtual
 		loop OBJ cmdinit basename cat chgrp chmod chown cksum cmp comm cp cut dirname date expr fds fmt fold getconf head id join ln logname md5sum mkdir mkfifo mktemp mv paste pathchk pids rev rm rmdir stty sum sync tail tee tty uname uniq vmstate wc revlib wclib lib
 			make ${OBJ}.o
 				prev ${OBJ}.c
-				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\" -D_BLD_cmd -c ${<}
+				exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} -I. -I${PACKAGE_ast_INCLUDE} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\" -D_BLD_cmd -c ${<}
 			done
 		done
 		make sumlib.o

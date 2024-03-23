@@ -1338,5 +1338,40 @@ w print Exit status $?
 u ^Exit status 0\r\n$
 !
 
+tst $LINENO << "!"
+L crash when discipline functions exit with an error
+# https://github.com/ksh93/ksh/issues/346
+
+d 40
+w "$SHELL"
+w PS1.get() {; printf '$ '; trap --invalid-flag 2>/dev/null; }
+w PS2.get() {; printf '> '; trap --invalid-flag 2>/dev/null; }
+w .sh.tilde.set() {
+w case ${.sh.value} in
+w '~ret') .sh.value='Exit status is' ;;
+w esac
+w trap --invalid-flag 2>/dev/null
+w }
+w echo ~
+w echo ~ret
+w echo ~
+w echo ~ret $?
+u ^Exit status is 0\r\n$
+!
+
+((multiline && (SHOPT_VSH || SHOPT_ESH))) && TERM=vt100 tst $LINENO <<"!"
+L crash when TERM is undefined
+# https://github.com/ksh93/ksh/issues/722
+
+d 40
+p :test-1:
+w unset TERM
+p :test-2:
+w "$SHELL"
+p :test-3:
+w print Exit status $?
+u ^Exit status 0\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

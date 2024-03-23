@@ -134,7 +134,7 @@ make install virtual
 			exec - ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -I${PACKAGE_ast_INCLUDE} \
 			exec -	-DERROR_CATALOG=\""builtin"\" -DCMD_STANDALONE=b_pty -c ${<}
 		done pty.o
-		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} ${mam_cc_L+-L.} \
+		exec - ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} ${LDFLAGS} ${mam_cc_L+-L.} \
 		exec -	${mam_cc_L+-L${INSTALLROOT}/lib} -o pty pty.o ${mam_libutil} ${mam_libast} ${mam_libcmd}
 	done pty
 

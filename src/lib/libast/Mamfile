@@ -25,7 +25,7 @@ shim - invoke_iffe()
 shim - {
 shim -     s=$1
 shim -     shift
-shim -     set -- ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} "$@"
+shim -     set -- ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} ${LDFLAGS} "$@"
 shim -     iffe ${IFFEFLAGS} -v -X ast -X std -c "$*" run "$s"
 shim - }
 shim -
@@ -33,7 +33,7 @@ shim - compile()
 shim - {
 shim -     s=$1
 shim -     shift
-shim -     ${CC} ${mam_cc_FLAGS} ${CCFLAGS} -I. -Icomp "$@" -Iinclude -Istd -c "$s"
+shim -     ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} -I. -Icomp "$@" -Iinclude -Istd -c "$s"
 shim - }
 
 make install virtual
@@ -289,7 +289,7 @@ make install virtual
 		note *
 		prev ${INSTALLROOT}/bin/mkreq
 		exec - set -o errexit
-		exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} : ${LDFLAGS} : ast iconv w
+		exec - mkreq ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} : ${LDFLAGS} : ast iconv w
 		note *
 		note * some systems move -lc routines to -lm; see astmath.c for details
 		note *
@@ -297,7 +297,7 @@ make install virtual
 			make port/astmath.c
 				prev std/endian.h
 			done
-			setv _math_test ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${LDFLAGS} -DN=$N -DIS -o astmath.exe ${<}
+			setv _math_test ${CC} ${CCLDFLAGS} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} ${LDFLAGS} -DN=$N -DIS -o astmath.exe ${<}
 			exec - X=1
 			exec - for N in 1 2 3 4 5 6 7 8
 			exec - do	if	${_math_test} 2>/dev/null
@@ -355,7 +355,7 @@ make install virtual
 						exec - EOF
 					done
 					prev comp/conf.tab
-					exec - conf -v ${<} ${CC} ${mam_cc_FLAGS} ${CCFLAGS}
+					exec - conf -v ${<} ${CC} ${mam_cc_FLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING}
 				done
 			done features/limits.c
 			exec - invoke_iffe ${<} -I. -Icomp -Iinclude -Istd
@@ -523,7 +523,7 @@ make install virtual
 				make port/lcgen.c
 					prev std/stdio.h
 				done
-				exec - ${CC} ${CCLDFLAGS} ${CCFLAGS} ${LDFLAGS} -o lcgen port/lcgen.c
+				exec - ${CC} ${CCLDFLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} ${LDFLAGS} -o lcgen port/lcgen.c
 			done
 			exec - lcgen lc.h lctab.c < port/lc.tab
 		done
@@ -5059,7 +5059,7 @@ make install virtual
 			exec - compile ${<} -D_PACKAGE_ast
 		done
 		bind -last
-		exec - ${CC} ${CCLDFLAGS} ${CCFLAGS} ${LDFLAGS} -o ${@} ${<} ${mam_libast} || exit
+		exec - ${CC} ${CCLDFLAGS} ${CCFLAGS} ${mam_cc_NOSTRICTALIASING} ${LDFLAGS} -o ${@} ${<} ${mam_libast} || exit
 		note *
 		note * We purposely do not have a make target of ${INSTALLROOT}/bin/mamake here;
 		note * this helps to ensure that the package.sh-built version gets overwritten.
