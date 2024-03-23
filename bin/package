@@ -3128,6 +3128,10 @@ make|view)
 		;;
 	esac
 
+	# transition - TODO: remove when dust settles
+
+	rm -f "$INSTALLROOT/bin/.paths" &
+
 	# run from separate copies since ksh may be rebuilt
 
 	case $EXECROOT in
