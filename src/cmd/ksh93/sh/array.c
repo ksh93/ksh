@@ -783,7 +783,7 @@ static void array_copytree(Namval_t *np, Namval_t *mp)
 	nv_offattr(np,NV_ARRAY);
 	nv_clone(np,mp,0);
 	if(np->nvalue.cp && !nv_isattr(np,NV_NOFREE))
-		free((void*)np->nvalue.cp);
+		free(np->nvalue.cp);
 	np->nvalue.cp = 0;
 	np->nvalue.up = &mp->nvalue;
 	fp->nofree  &= ~1;

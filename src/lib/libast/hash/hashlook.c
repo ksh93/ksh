@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -191,7 +191,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 						if (name)
 						{
 							if (tab->root->local->region) (*tab->root->local->region)(tab->root->local->handle, (char*)name, 0, 0);
-							else free((char*)name);
+							else free(name);
 						}
 					}
 				}
@@ -233,7 +233,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 				{
 					b->hash &= ~HASH_FREENAME;
 					if (tab->root->local->region) (*tab->root->local->region)(tab->root->local->handle, (char*)name, 0, 0);
-					else free((char*)name);
+					else free(name);
 				}
 				tab->buckets--;
 				tab->table[n] = b->next;

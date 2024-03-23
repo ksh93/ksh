@@ -212,7 +212,7 @@ char *path_pwd(void)
 	{
 		if(*sh.pwd=='/')
 			return (char*)sh.pwd;
-		free((void*)sh.pwd);
+		free(sh.pwd);
 	}
 	/* First see if PWD variable is correct */
 	pwdnod = sh_scoped(PWDNOD);

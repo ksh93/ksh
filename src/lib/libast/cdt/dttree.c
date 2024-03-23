@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -637,10 +637,6 @@ static Dtmethod_t	_Dtoset =  { dttree, DT_OSET, treeevent, "Dtoset" };
 static Dtmethod_t	_Dtobag =  { dttree, DT_OBAG, treeevent, "Dtobag" };
 Dtmethod_t		*Dtoset	= &_Dtoset;
 Dtmethod_t		*Dtobag = &_Dtobag;
-
-/* backward compatibility */
-#undef	Dttree
-Dtmethod_t		*Dttree = &_Dtoset;
 
 #ifdef NoF
 NoF(dttree)

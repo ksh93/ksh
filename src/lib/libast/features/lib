@@ -23,7 +23,7 @@ dat	_tzname,tzname
 
 lib	BSDsetpgrp
 lib	_cleanup
-lib	bcopy,bzero,catclose,catgets,catopen,confstr,dirread,dup2
+lib	bcopy,bzero,confstr,dirread,dup2
 lib	execlp,execve,execvp,execvpe
 lib	fchmod,fcntl,fmtmsg,fnmatch,fork,fsync
 lib	getconf,getdents,getdirentries,getdtablesize,getdate

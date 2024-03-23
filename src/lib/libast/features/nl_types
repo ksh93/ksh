@@ -57,4 +57,7 @@ tst	output{
 		printf("\n");
 		return 0;
 	}
+}end fail{
+	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
+	exit 1
 }end

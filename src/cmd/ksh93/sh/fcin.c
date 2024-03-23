@@ -55,7 +55,7 @@ int	fcfopen(Sfio_t* f)
 	n = sfvalue(f);
 	fcrestore(&save);
 	sfread(f,buff,0);
-	_Fcin.fcoff = sftell(f);;
+	_Fcin.fcoff = sftell(f);
 	buff = (char*)sfreserve(f,SFIO_UNBOUND,SFIO_LOCKR);
 	_Fcin.fclast = (_Fcin.fcptr=_Fcin.fcbuff=(unsigned char*)buff)+n;
 	if(sffileno(f) >= 0)

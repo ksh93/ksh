@@ -804,7 +804,7 @@ static void fixargs(char **argv, int mode)
 			/* Move the environment to make space for a larger command line buffer */
 			for(i=0; environ[i]; i++)
 			{
-				buffsize += strlen(environ[i]) + 1;;
+				buffsize += strlen(environ[i]) + 1;
 				environ[i] = sh_strdup(environ[i]);
 			}
 		}

@@ -74,7 +74,7 @@ struct dolnod
 	int		dolmax;		/* size of dolval array */
 	int		dolnum;		/* number of elements */
 	int		dolbot;		/* current first element */
-	struct dolnod	*dolnxt;	/* used when list are chained */
+	struct dolnod	*dolnxt;	/* used when lists are chained */
 	char		*dolval[1];	/* array of value pointers */
 };
 

@@ -1,11 +1,10 @@
+### User-defined variable types in ksh93 ###
 
-The ability for users to define types has been added to ksh93t.
-Here is a quick summary of how types are defined and used in ksh93t.
-This is still a work in progress so some changes and additions
-are likely.
+The ability for users to define types is available as of ksh version 93t.
+Here is an overview of how types are defined and used in ksh93.
 
-A type can be defined either by a shared library or by using the new
-typeset -T option to the shell.  The method for defining types via
+A type can be defined either by a shared library or by using the -T option
+option to the shell's typeset command.  The method for defining types via
 a shared library is not described here.  However, the source file
 bltins/enum.c is an example of a builtin that creates enumeration types.
 

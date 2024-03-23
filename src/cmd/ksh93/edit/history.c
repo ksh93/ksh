@@ -378,7 +378,7 @@ void hist_close(History_t *hp)
 		sfclose(hp->auditfp);
 	}
 #endif /* SHOPT_AUDIT */
-	free((char*)hp);
+	free(hp);
 	hist_ptr = 0;
 	sh.hist_ptr = 0;
 #if SHOPT_ACCTFILE
@@ -480,7 +480,7 @@ static History_t* hist_trim(History_t *hp, int n)
 	}
 	hist_cancel(hist_new);
 	sfclose(hist_old->histfp);
-	free((char*)hist_old);
+	free(hist_old);
 	return hist_ptr = hist_new;
 }
 

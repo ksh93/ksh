@@ -255,7 +255,7 @@ static int _sfpmode(Sfio_t* f, int type)
 		p->ndata = f->endb-f->next;
 		if(p->ndata > p->size)
 		{	if(p->rdata)
-				free((char*)p->rdata);
+				free(p->rdata);
 			if((p->rdata = (uchar*)malloc(p->ndata)) )
 				p->size = p->ndata;
 			else

@@ -364,7 +364,7 @@ static void nv_restore(struct subshell *sp)
 		else
 			mp->nvalue = np->nvalue;
 		if(nofree && np->nvfun && !np->nvfun->nofree)
-			free((char*)np->nvfun);
+			free(np->nvfun);
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
@@ -836,7 +836,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		else if(sp->pwd && strcmp(sp->pwd,sh.pwd))
 			path_newdir(sh.pathlist);
 		if(sh.pwd)
-			free((void*)sh.pwd);
+			free(sh.pwd);
 		sh.pwd = sp->pwd;
 #if _lib_fchdir
 		if(sp->pwdclose)
@@ -918,7 +918,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			case 2:
 				/* reinit PWD as it will be wrong */
 				if(sh.pwd)
-					free((void*)sh.pwd);
+					free(sh.pwd);
 				sh.pwd = NULL;
 				path_pwd();
 				errno = saveerrno;

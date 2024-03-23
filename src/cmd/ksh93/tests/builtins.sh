@@ -1693,7 +1693,7 @@ exp='\\ \\\\'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
-case $(PATH=/opt/ast/bin:$PATH; exec cat '--???SECTION' 2>&1) in
+case $(PATH=/opt/ast/bin:$PATH; exec cat '--???SECTION' </dev/null 2>&1) in
 1)	err_exit "'exec' runs non-external command" ;;
 esac
 
