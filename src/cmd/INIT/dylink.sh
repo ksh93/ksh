@@ -20,7 +20,7 @@ case ${ZSH_VERSION+z} in
 z)	emulate ksh ;;
 *)	(command set -o posix) 2>/dev/null && set -o posix ;;
 esac
-set -o noglob	# avoid interference from pathname expansion
+set -o noglob	# avoid pathname expansion interfering with field splitting
 
 note()
 {
@@ -47,23 +47,22 @@ do_link()
 }
 
 # Basic sanity check.
-case ${AST_DYLIB_VERSION:+A}${HOSTTYPE:+H}${AST_NO_DYLIB+n} in
-AH)
-	;;
-*)
-	echo "$0: building dynamic libraries was not enabled; skipping" >&2
+case ${HOSTTYPE:+H}${AST_NO_DYLIB+n} in
+H)	;;
+*)	echo "$0: building dynamic libraries was not enabled; skipping" >&2
 	exit 0  # continue build
 	;;
 esac
 
 # Parse options.
-exec_file= module_name= l_flags= suffix=
-while getopts 'e:m:l:s:' opt
+exec_file= module_name= l_flags= version= suffix=
+while getopts 'e:m:l:v:s:' opt
 do	case $opt in
 	e)	exec_file=$OPTARG ;;
 	m)	module_name=$OPTARG ;;
 	l)	l_flags="$l_flags -l$OPTARG" ;;
-	s)	suffix=$OPTARG ;;   # this should be like .6.0.dylib or .so.6.0
+	v)	version=$OPTARG ;;  # this should be like 6.0
+	s)	suffix=$OPTARG ;;   # this should be like .dylib or .so
 	'?')	exit 2 ;;
 	*)	err_out "Internal error (getopts)" ;;
 	esac
@@ -75,30 +74,30 @@ case ${exec_file:+e}${module_name:+m} in
 e | m)	;;
 *)	err_out "Either -e or -m should be specified" ;;
 esac
-case ${module_name:+m}${suffix:+s} in
-'')	;;
-ms)	case $suffix in
-	*$AST_DYLIB_VERSION*) ;;
-	*)	err_out "suffix does not contain \$AST_DYLIB_VERSION ($AST_DYLIB_VERSION)" ;;
-	esac ;;
-*)	err_out "-m requires -s and vice versa" ;;
+case ${module_name:+m}${suffix:+s}${version:+v} in
+'' | msv )
+	;;
+*)	err_out "-m requires +v/-s and vice versa" ;;
 esac
 
+# Check for supported system.
 case $HOSTTYPE in
 android.* | darwin.* | freebsd* | linux.* | netbsd.* | openbsd.* | sol* )
 	# supported
 	;;
 cygwin.*)
 	note "Dynamic libraries are not supported on Cygwin."
-	exit 0 ;;  # continue build
-*)
-	note "The system $HOSTTYPE is currently untested for dynamic libraries" \
+	exit 0  # continue build
+	;;
+*)	note "The system $HOSTTYPE is currently untested for dynamic libraries" \
 		"so dynamic libraries are disabled by default. To test them," \
 		"export AST_DYLIB_TEST to try to build a dynamically linked ksh."
 	case ${AST_DYLIB_TEST:+y} in
 	y)	;;
-	* )	exit 0 ;; # continue build
-	esac ;;
+	*)	exit 0  # continue build
+		;;
+	esac
+	;;
 esac
 
 # Set destination directory.
@@ -108,18 +107,26 @@ mkdir -p "$dest_dir/bin" "$dest_dir/lib" || err_out "could not mkdir"
 # Do the dynamic linking.
 case ${exec_file} in
 '')	# ... figure out library file name(s) and internal name for linking purposes
-	lib_file=lib$module_name$suffix
-	lib_linkname=$(echo "$lib_file" | sed "s/\.$AST_DYLIB_VERSION/.${AST_DYLIB_VERSION%%.*}/")
-	sym_links="$lib_linkname $(echo "$lib_file" | sed "s/\.$AST_DYLIB_VERSION//")"
+	#     on macOS we have version before extension (libast.6.0.dylib), on other systems, after (libast.so.6.0)
+	case $suffix in
+	.dylib)	lib_file=lib$module_name.$version$suffix
+		lib_linkname=lib$module_name.${version%%.*}$suffix
+		;;
+	*)	lib_file=lib$module_name$suffix.$version
+		lib_linkname=lib$module_name$suffix.${version%%.*}
+		;;
+	esac
+	sym_links="$lib_linkname lib$module_name$suffix"
+	# ... remove possible old versions
+	(set +o noglob; exec rm -f "$dest_dir/lib/lib$module_name".*)
 	# ... execute linker command
 	case $HOSTTYPE in
-	darwin*)
+	darwin.*)
 		do_link "lib/$lib_file" -dynamiclib \
 			-Wl,-dylib_install_name -Wl,"$lib_linkname" \
 			"$@" -L"$dest_dir/lib" $l_flags
 		;;
-	*)
-		do_link "lib/$lib_file" -shared -Wl,-soname -Wl,"$lib_linkname" \
+	*)	do_link "lib/$lib_file" -shared -Wl,-soname -Wl,"$lib_linkname" \
 			"$@" -L"$dest_dir/lib" $l_flags
 		;;
 	esac

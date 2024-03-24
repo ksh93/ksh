@@ -13,8 +13,7 @@ setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS
 setv CCLDFLAGS
-note * on macOS we have version before extension (libcmd.6.0.dylib), on other systems, after (libcmd.so.6.0)
-setv DYLIB_SUFFIX ${mam_cc_SUFFIX_SHARED?.dylib?.${AST_DYLIB_VERSION}${mam_cc_SUFFIX_SHARED}?${mam_cc_SUFFIX_SHARED}.${AST_DYLIB_VERSION}?}
+setv DYLIB_VERSION 2.0
 
 make install virtual
 	note *
@@ -493,11 +492,11 @@ make install virtual
 	note * Dynamically linked version, if supported
 	note *
 
-	make ${INSTALLROOT}/dyn/lib/libcmd${DYLIB_SUFFIX} dontcare
+	make ${INSTALLROOT}/dyn/lib/libcmd${mam_cc_SUFFIX_SHARED} dontcare
 		prev libcmd.a
 		prev cmd.req
 		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED}'
-		exec - dylink -m cmd -s ${DYLIB_SUFFIX} $(sed 1d cmd.req) ${_libcmd_object_files_}
+		exec - dylink -m cmd -v ${DYLIB_VERSION} -s ${mam_cc_SUFFIX_SHARED} $(sed 1d cmd.req) ${_libcmd_object_files_}
 	done
 
 	note *
