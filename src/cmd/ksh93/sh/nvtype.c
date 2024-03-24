@@ -1133,7 +1133,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				else if(nv_isattr(np,NV_LJUST|NV_RJUST))
 					memset((char*)nq->nvalue.cp,' ',dsize);
 				if(!j)
-					free(np->nvalue.cp);
+					free((void*)np->nvalue.cp);
 			}
 			if(!nq->nvalue.cp && nq->nvfun== &pp->childfun.fun)
 			{
@@ -1327,7 +1327,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		np->nvalue.up = 0;
 		nv_clone(tp,np,flags|NV_NOFREE);
 		if(np->nvalue.cp && np->nvalue.cp!=Empty && !nv_isattr(np,NV_NOFREE))
-			free(np->nvalue.cp);
+			free((void*)np->nvalue.cp);
 		np->nvalue.up = 0;
 		nofree = ap->hdr.nofree;
 		ap->hdr.nofree = 0;

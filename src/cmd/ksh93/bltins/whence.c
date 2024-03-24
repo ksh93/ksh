@@ -322,7 +322,7 @@ static int whence(char **argv, int flags)
 					sfputr(sfstdout,is_pathbound_builtin ? "builtin" : "file",'\n');
 				else
 					sfputr(sfstdout,sh_fmtq(cp),'\n');
-				free(cp);
+				free((void*)cp);
 			}
 			else if(aflag<=1) 
 			{

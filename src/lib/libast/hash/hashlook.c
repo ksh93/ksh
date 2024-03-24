@@ -191,7 +191,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 						if (name)
 						{
 							if (tab->root->local->region) (*tab->root->local->region)(tab->root->local->handle, (char*)name, 0, 0);
-							else free(name);
+							else free((void*)name);
 						}
 					}
 				}
@@ -233,7 +233,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 				{
 					b->hash &= ~HASH_FREENAME;
 					if (tab->root->local->region) (*tab->root->local->region)(tab->root->local->handle, (char*)name, 0, 0);
-					else free(name);
+					else free((void*)name);
 				}
 				tab->buckets--;
 				tab->table[n] = b->next;

@@ -1666,7 +1666,7 @@ void nv_putval(Namval_t *np, const char *string, int flags)
 	if(flags&(NV_NOREF|NV_NOFREE))
 	{
 		if(np->nvalue.cp && np->nvalue.cp!=sp && !nv_isattr(np,NV_NOFREE)) 
-			free(np->nvalue.cp);
+			free((void*)np->nvalue.cp);
 		np->nvalue.cp = (char*)sp;
 		nv_setattr(np,(flags&~NV_RDONLY)|NV_NOFREE);
 		return;
@@ -1939,7 +1939,7 @@ void nv_putval(Namval_t *np, const char *string, int flags)
 				{
 					if(tofree)
 					{
-						free(tofree);
+						free((void*)tofree);
 						nv_offattr(np,NV_NOFREE);
 					}
 					up->cp = sp;
@@ -2042,7 +2042,7 @@ void nv_putval(Namval_t *np, const char *string, int flags)
 		if(flags&NV_APPEND)
 			stkseek(sh.stk,offset);
 		if(tofree && tofree!=Empty && tofree!=AltEmpty)
-			free(tofree);
+			free((void*)tofree);
 	}
 	if(!was_local && ((flags&NV_EXPORT) || nv_isattr(np,NV_EXPORT)))
 		env_change();
@@ -2484,7 +2484,7 @@ void	_nv_unset(Namval_t *np,int flags)
 	if(up && up->cp)
 	{
 		if(up->cp!=Empty && up->cp!=AltEmpty && !nv_isattr(np, NV_NOFREE))
-			free(up->cp);
+			free((void*)up->cp);
 		up->cp = 0;
 	}
 done:

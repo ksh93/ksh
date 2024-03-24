@@ -221,7 +221,7 @@ success:
 	if(*dp && (*dp!='.'||dp[1]) && strchr(dir,'/'))
 		sfputr(sfstdout,dir,'\n');
 	nv_putval(opwdnod,oldpwd,NV_RDONLY);
-	free(sh.pwd);
+	free((void*)sh.pwd);
 	if(*dir == '/')
 	{
 		size_t len = strlen(dir);
