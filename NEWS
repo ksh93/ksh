@@ -2,6 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-03-24:
+
+- We now support building a dynamically linked ksh 93u+m with libast,
+  libdll, libcmd, and libshell available as dynamic libraries for other
+  applications to use. The dynamically linked version is built in a 'dyn'
+  subdirectory; there are no changes to the statically linked version. See
+  README.md for more information. Dynamic linking is tested and supported
+  on Linux, Android, macOS, FreeBSD, NetBSD, OpenBSD, illumos and Solaris.
+  Please test this on other platforms and send us your reports and patches.
+
 2024-03-22:
 
 - Fixed a crash in the getconf built-in that could occur after the 'builtin'
