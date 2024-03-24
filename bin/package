@@ -2007,9 +2007,6 @@ case $x in
 	case $CROSS in
 	0) 	# dll hackery -- why is this so complicated?
 
-		# Increment major dynamic library version only if binary incompatibility is introduced
-		export AST_DYLIB_VERSION=${AST_DYLIB_VERSION:-6.0}
-
 		abi=
 		case $HOSTTYPE in
 		sgi.mips[0123456789]*)
