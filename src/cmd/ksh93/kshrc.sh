@@ -214,7 +214,17 @@ then
 	darwin.*,s)
 		function env
 		{
-			command -p env "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH" "$@"
+			typeset -a opts
+			typeset -si i=0
+			while	[[ $1 == -* && $1 != -- ]]
+			do	opts[i++]=$1
+				case $1 in
+				-u | -S | -P)
+					(($# > 1)) && opts[i++]=$2 && shift ;;
+				esac
+				shift
+			done
+			command -p env "${opts[@]}" "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH" "$@"
 		}
 		;;
 	esac
