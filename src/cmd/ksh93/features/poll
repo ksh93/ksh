@@ -123,12 +123,6 @@ tst	socketpair_shutdown_mode note{ fchmod() after socketpair() shutdown() }end e
 	}
 }end
 cat{
-	#if _lib_poll
-	#   define poll _SYS_poll
-	#else
-	#   undef _hdr_poll
-	#   undef _sys_poll
-	#endif /* _lib_poll */
 	#if _hdr_poll
 	#    include    <poll.h>
 	#else
@@ -136,10 +130,6 @@ cat{
 	#	include    <sys/poll.h>
 	#   endif /* _sys_poll */
 	#endif /* _hdr_poll */
-	#if _lib_poll
-	#   undef poll
-	    extern int poll(struct pollfd*,unsigned long,int);
-	#endif /* _lib_poll */
 	#if _lib_select
 	#   ifndef FD_ZERO
 	#	define FD_ZERO(x)	(*(x)=0)

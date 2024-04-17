@@ -231,9 +231,6 @@ main(void)
 	printf("#define re_comp		_ast_re_comp\n");
 	printf("#undef	re_exec\n");
 	printf("#define re_exec		_ast_re_exec\n");
-	printf("#undef	realpath\n");
-	printf("#define realpath	_ast_realpath\n");
-	printf("extern char*		realpath(const char*, char*);\n");
 #endif
 	/* Override the native regex library in favor of libast's regex functions */
 	printf("#undef	regaddclass\n");

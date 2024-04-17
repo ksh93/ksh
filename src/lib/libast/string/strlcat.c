@@ -20,11 +20,7 @@
  * strlcat implementation
  */
 
-#define strlcat		______strlcat
-
 #include <ast.h>
-
-#undef	strlcat
 
 #undef	_def_map_ast
 #include <ast_map.h>

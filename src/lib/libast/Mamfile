@@ -2746,24 +2746,6 @@ make install virtual
 			exec - compile ${<}
 		done
 
-		make readlink.o
-			make comp/readlink.c
-				prev include/error.h
-				prev comp/fakelink.h implicit
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
-		make symlink.o
-			make comp/symlink.c
-				prev include/error.h
-				prev comp/fakelink.h
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
 		make getpgrp.o
 			make comp/getpgrp.c
 				prev include/ast_std.h
@@ -3098,14 +3080,6 @@ make install virtual
 				prev ast_api.h
 				prev ast_map.h
 				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile ${<}
-		done
-
-		make realpath.o
-			make comp/realpath.c
-				prev ast_map.h
 				prev include/ast.h
 			done
 			exec - compile ${<}

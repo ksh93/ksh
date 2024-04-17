@@ -66,11 +66,6 @@ static const char usage[] =
 "	\bsysconf\b(3), \bsysinfo\b(2)]"
 ;
 
-#define getdomainname	______getdomainname
-#define gethostid	______gethostid
-#define gethostname	______gethostname
-#define sethostname	______sethostname
-
 #include <cmd.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -82,24 +77,6 @@ static const char usage[] =
 
 #if _lib_uname && _sys_utsname
 # include <sys/utsname.h>
-#endif
-
-#undef	getdomainname
-#undef	gethostid
-#undef	gethostname
-#undef	sethostname
-
-#if _lib_getdomainname
-extern int	getdomainname(char*, size_t);
-#endif
-#if _lib_gethostid
-extern long	gethostid(void);
-#endif
-#if _lib_gethostname
-extern int	gethostname(char*, size_t);
-#endif
-#if _lib_sethostname
-extern int	sethostname(const char*, size_t);
 #endif
 
 #ifndef HOSTTYPE

@@ -20,11 +20,7 @@
  * strlcpy implementation
  */
 
-#define strlcpy		______strlcpy
-
 #include <ast.h>
-
-#undef	strlcpy
 
 #undef	_def_map_ast
 #include <ast_map.h>
