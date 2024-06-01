@@ -234,7 +234,7 @@ int sh_mainex(int ac, char *av[], Shinit_f userinit,char *code,long codelen)
                 else if(code && codelen) {  /* read kshcode from memory */
                        sh.comdiv=code;
                        if (codelen == 1) codelen=strlen(code);
-		       iop = sfnew(NULL,sh.comdiv,codelen,0,SF_STRING|SF_READ);
+		       iop = sfnew(NULL,sh.comdiv,codelen,0,SFIO_STRING|SFIO_READ);
                        code=NULL;
                 }
 		else
