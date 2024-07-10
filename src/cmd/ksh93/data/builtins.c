@@ -321,8 +321,7 @@ const char sh_set[] =
  * --posix is an AST optget(3) default option, so for ksh to use it, it must be listed
  * explicitly (and handled by sh_argopts() in sh/args.c) to stop optget(3) overriding it.
  */
-"[05:posix?Enable the \bposix\b option. When given at invocation time, "
-	"disables importing variable type attributes from the environment.]"
+"[05:posix?Enable the \bposix\b option.]"
 "[p?Privileged mode. Disabling \b-p\b sets the effective user ID to the "
 	"real user ID, and the effective group ID to the real group ID. "
 	"Enabling \b-p\b restores the effective user and group IDs to their "
