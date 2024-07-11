@@ -51,7 +51,7 @@ struct process
 	pid_t		p_pid;		/* process ID */
 	pid_t		p_pgrp;		/* process group */
 	pid_t		p_fgrp;		/* process group when stopped */
-	short		p_job;		/* job number of process */
+	int		p_job;		/* job number of process */
 	unsigned short	p_exit;		/* exit value or signal number */
 	unsigned short	p_exitmin;	/* minimum exit value for xargs */
 	unsigned short	p_flag;		/* flags - see below */
