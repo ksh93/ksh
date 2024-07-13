@@ -2458,9 +2458,7 @@ int main(int argc, char **argv)
 		case 'K':
 			continue;
 		case 'V':
-			(void)write(1, id + 10, strlen(id) - 12);
-			putchar('\n');
-			exit(0);
+			return !(write(1, id + 10, strlen(id) - 12) > 0 && putchar('\n') == '\n');
 		case 'f':
 			append(state.opt, " -f ");
 			append(state.opt, opt_info.arg);
@@ -2575,9 +2573,7 @@ int main(int argc, char **argv)
 				setval(state.vars, "-strip-symbols", "1");
 				continue;
 			case 'V':
-				(void)write(1, id + 10, strlen(id) - 12);
-				putchar('\n');
-				exit(0);
+				return !(write(1, id + 10, strlen(id) - 12) > 0 && putchar('\n') == '\n');
 			case 'f':
 			case 'r':
 			case 'C':

@@ -81,7 +81,7 @@ outputs the name of this subdirectory.
 Dynamically linked binaries, if supported for your system, are stored in
 `dyn/bin` and `dyn/lib` subdirectories of your architecture directory.
 If built, they are built in addition to the statically linked versions.
-Export `AST_NO_DYLIB` to deactivate building dyanmically linked versions.
+Export `AST_NO_DYLIB` to deactivate building dynamically linked versions.
 
 If you have trouble or want to tune the binaries, you may pass additional
 compiler and linker flags. It is usually best to export these as environment

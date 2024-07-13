@@ -703,6 +703,7 @@ if [[ -o ?posix ]]
 then	(set -o posix; let x=010; [[ $x == 8 ]]) || err_exit 'let not treating 010 as octal with posix on'
 fi
 
+unset A
 float z=0
 integer aa=2 a=1
 typeset -A A
