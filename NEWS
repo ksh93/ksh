@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-07-13:
+
+- The shell is now capable of handling more than 32767 simultaneous
+  background jobs, subject to system limitations.
+
 2024-07-02:
 
 - Support for UNC paths (//server/dir) is now enabled by default on Cygwin.
