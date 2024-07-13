@@ -119,7 +119,7 @@ The options have the following defaults and meanings:
     NOECHOE      off Disable the '-e' option to the 'echo' command,
                      unless SHOPT_ECHOPRINT is enabled.
 
-    OPTIMIZE     on  Optimize loop invariants for with for and while loops.
+    OPTIMIZE     on  Optimize loop invariants in 'for' and 'while' loops.
 
     PRINTF_LEGACY    The printf built-in accepts a format operand that starts
                      with '-' without the standard preceding '--' options

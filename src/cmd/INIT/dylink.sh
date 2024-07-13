@@ -57,13 +57,14 @@ HIn)	note "Building dynamic libraries was disabled; skipping"
 esac
 
 # Parse options.
-exec_file= module_name= l_flags= version= suffix=
-while getopts 'e:m:l:v:s:' opt
+exec_file= module_name= l_flags= version= prefix= suffix=
+while getopts 'e:m:l:v:p:s:' opt
 do	case $opt in
 	e)	exec_file=$OPTARG ;;
 	m)	module_name=$OPTARG ;;
 	l)	l_flags="$l_flags -l$OPTARG" ;;
 	v)	version=$OPTARG ;;  # this should be like 6.0
+	p)	prefix=$OPTARG ;;   # this should be 'lib' or empty
 	s)	suffix=$OPTARG ;;   # this should be like .dylib or .so
 	'?')	exit 2 ;;
 	*)	err_out "Internal error (getopts)" ;;
@@ -76,10 +77,10 @@ case ${exec_file:+e}${module_name:+m} in
 e | m)	;;
 *)	err_out "Either -e or -m should be specified" ;;
 esac
-case ${module_name:+m}${suffix:+s}${version:+v} in
-'' | msv )
+case ${module_name:+m}${prefix:+p}${suffix:+s}${version:+v} in
+'' | mpsv )
 	;;
-*)	err_out "-m requires +v/-s and vice versa" ;;
+*)	err_out "-m requires -v/-p/-s and vice versa" ;;
 esac
 
 # Check for supported system.
@@ -111,14 +112,14 @@ case ${exec_file} in
 '')	# ... figure out library file name(s) and internal name for linking purposes
 	#     on macOS we have version before extension (libast.6.0.dylib), on other systems, after (libast.so.6.0)
 	case $suffix in
-	.dylib)	lib_file=lib$module_name.$version$suffix
-		lib_linkname=lib$module_name.${version%%.*}$suffix
+	.dylib)	lib_file=$prefix$module_name.$version$suffix
+		lib_linkname=$prefix$module_name.${version%%.*}$suffix
 		;;
-	*)	lib_file=lib$module_name$suffix.$version
-		lib_linkname=lib$module_name$suffix.${version%%.*}
+	*)	lib_file=$prefix$module_name$suffix.$version
+		lib_linkname=$prefix$module_name$suffix.${version%%.*}
 		;;
 	esac
-	sym_links="$lib_linkname lib$module_name$suffix"
+	sym_links="$lib_linkname $prefix$module_name$suffix"
 	# ... remove possible old versions
 	(set +o noglob; exec rm -f "$dest_dir/lib/lib$module_name".*)
 	# ... execute linker command

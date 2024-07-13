@@ -13,6 +13,8 @@ setv CCFLAGS
 setv CCLDFLAGS ${-strip-symbols?1?${mam_cc_LD_STRIP}??}
 setv IFFEFLAGS
 setv LDFLAGS
+setv DYLIB_PRE ${mam_cc_PREFIX_DYNAMIC-${mam_cc_PREFIX_SHARED}}
+setv DYLIB_SUF ${mam_cc_SUFFIX_DYNAMIC-${mam_cc_SUFFIX_SHARED}}
 setv DYLIB_VERSION 6.0
 
 note *
@@ -4628,7 +4630,7 @@ make install virtual
 				prev include/ast.h
 				prev misc/univlib.h
 			done
-			exec - compile ${<} -Imisc -DCONF_LIBSUFFIX=\""${mam_cc_SUFFIX_DYNAMIC-${mam_cc_SUFFIX_SHARED}}"\" -DCONF_LIBPREFIX=\""${mam_cc_PREFIX_DYNAMIC-${mam_cc_PREFIX_SHARED}}"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\"
+			exec - compile ${<} -Imisc -DCONF_LIBSUFFIX=\""${DYLIB_SUF}"\" -DCONF_LIBPREFIX=\""${DYLIB_PRE}"\" -DHOSTTYPE=\""${mam_cc_HOSTTYPE}"\"
 		done
 
 		make astdynamic.o
@@ -4928,11 +4930,11 @@ make install virtual
 	note * Dynamically linked version, if supported
 	note *
 
-	make ${INSTALLROOT}/dyn/lib/libast${mam_cc_SUFFIX_SHARED} dontcare
+	make ${INSTALLROOT}/dyn/lib/${DYLIB_PRE}ast${DYLIB_SUF} dontcare
 		prev libast.a
 		prev ast.req
 		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED}'
-		exec - dylink -m ast -v ${DYLIB_VERSION} -s ${mam_cc_SUFFIX_SHARED} $(sed 1d ast.req) ${_libast_object_files_}
+		exec - dylink -m ast -v ${DYLIB_VERSION} -p '${DYLIB_PRE}' -s '${DYLIB_SUF}' $(sed 1d ast.req) ${_libast_object_files_}
 	done
 
 	note *

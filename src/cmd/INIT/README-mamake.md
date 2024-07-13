@@ -106,8 +106,10 @@ avoiding any potential conflicts with the shell expansion syntax.
 ### Special expansion syntax ###
 
 In `${`*variable*`?`*str*`?`*x*`?`*y*`?}`,
-if the string value of the *variable* is identical to *str* or if *c* is `*`,
+if the string value of the *variable* is identical to *str*,
 then the value *x* is substituted, otherwise *y*.
+A *str* of `*` is treated specially: if the *variable* is defined (even
+as the empty string), then the value *x* is substituted, otherwise *y*.
 The *x* and *y* values may result from nested variable references.
 The last `?` is optional.
 

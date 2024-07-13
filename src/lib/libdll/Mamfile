@@ -13,6 +13,8 @@ setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS
 setv CCLDFLAGS
+setv DYLIB_PRE ${mam_cc_PREFIX_DYNAMIC-${mam_cc_PREFIX_SHARED}}
+setv DYLIB_SUF ${mam_cc_SUFFIX_DYNAMIC-${mam_cc_SUFFIX_SHARED}}
 setv DYLIB_VERSION 2.0
 
 make install virtual
@@ -195,11 +197,11 @@ make install virtual
 	note * Dynamically linked version, if supported
 	note *
 
-	make ${INSTALLROOT}/dyn/lib/libdll${mam_cc_SUFFIX_SHARED} dontcare
+	make ${INSTALLROOT}/dyn/lib/${DYLIB_PRE}dll${DYLIB_SUF} dontcare
 		prev libdll.a
 		prev dll.req
 		exec - export LDFLAGS='${LDFLAGS} ${CCLDFLAGS} ${mam_cc_LD_NOASNEEDED}'
-		exec - dylink -m dll -v ${DYLIB_VERSION} -s ${mam_cc_SUFFIX_SHARED} $(sed 1d dll.req) ${_libdll_object_files_}
+		exec - dylink -m dll -v ${DYLIB_VERSION} -p '${DYLIB_PRE}' -s '${DYLIB_SUF}' $(sed 1d dll.req) ${_libdll_object_files_}
 	done
 
 	note *

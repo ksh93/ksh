@@ -27,7 +27,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2024-07-05"
+#define RELEASE_DATE "2024-07-10"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -161,6 +161,13 @@ static const char usage[] =
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#endif
+
+/* backward compat for file offsets */
+#if _POSIX_VERSION < 200112L
+#define off_t		long
+#define fseeko		fseek
+#define ftello		ftell
 #endif
 
 #define delimiter(c)	(isspace(c)||(c)==';'||(c)=='('||(c)==')'||(c)=='`'||(c)=='|'||(c)=='&'||(c)=='=')
@@ -1967,7 +1974,7 @@ static unsigned long make(Rule_t *r, int inloop, unsigned long modtime, Buf_t **
 
 		case KEY('l','o','o','p'):
 		{
-			long		saveoff;
+			off_t		saveoff;
 			char		*vname, *words, *w, *nextw, *cp, *save_value;
 			Dict_item_t	*vnode;
 			unsigned long	saveline = state.sp->line;
@@ -1975,7 +1982,7 @@ static unsigned long make(Rule_t *r, int inloop, unsigned long modtime, Buf_t **
 			if (!*v)
 				report(3, "syntax error", u, 0);
 			/* remember current offset for repeated reading */
-			if ((saveoff = ftell(state.sp->fp)) < 0)
+			if ((saveoff = ftello(state.sp->fp)) < 0)
 				report(3, "unseekable input", u, 0);
 			/* iterate through one or more whitespace-separated words */
 			vname = duplicate(expand(buf, t));
@@ -2000,7 +2007,7 @@ static unsigned long make(Rule_t *r, int inloop, unsigned long modtime, Buf_t **
 				/* reposition input to the start of this loop block */
 				if (w != words)
 				{
-					if (fseek(state.sp->fp, saveoff, SEEK_SET) < 0)
+					if (fseeko(state.sp->fp, saveoff, SEEK_SET) < 0)
 						report(3, "fseek failed", u, 0);
 					state.sp->line = saveline;
 				}
@@ -2191,6 +2198,8 @@ static int update(Rule_t *r)
 {
 	List_t	*x;
 	Buf_t	*buf;
+	char	*args = getval(state.vars, "MAMAKEARGS");
+	int	testing = !strcmp(args, "test");
 
 	/* topological sort */
 	r->flags |= RULE_made;
@@ -2214,18 +2223,18 @@ static int update(Rule_t *r)
 		q = getval(state.vars, "INSTALLROOT");
 		if (q && strncmp(p, q, n = strlen(q)) == 0)
 			p += n + 1;
-		fprintf(stderr, "\n# ... making %s ...\n", p);
+		fprintf(stderr, "\n# ... %sing %s ...\n", testing ? "test" : "mak", p);
 		if (state.explain)
 			fprintf(stderr, "# reason: recursion\n");
 	}
 
 	/* do */
-	append(buf, "${MAMAKE_DEBUG_PREFIX-} ");
+	append(buf, "$MAMAKE_DEBUG_PREFIX ");
 	append(buf, getval(state.vars, "MAMAKE"));
 	append(buf, " -C ");
 	append(buf, r->name);
 	add(buf, ' ');
-	append(buf, getval(state.vars, "MAMAKEARGS"));
+	append(buf, args);
 	run(r, use(buf));
 	drop(buf);
 	return 0;
@@ -2449,9 +2458,7 @@ int main(int argc, char **argv)
 		case 'K':
 			continue;
 		case 'V':
-			(void)write(1, id + 10, strlen(id) - 12);
-			putchar('\n');
-			exit(0);
+			return !(write(1, id + 10, strlen(id) - 12) > 0 && putchar('\n') == '\n');
 		case 'f':
 			append(state.opt, " -f ");
 			append(state.opt, opt_info.arg);
@@ -2566,9 +2573,7 @@ int main(int argc, char **argv)
 				setval(state.vars, "-strip-symbols", "1");
 				continue;
 			case 'V':
-				(void)write(1, id + 10, strlen(id) - 12);
-				putchar('\n');
-				exit(0);
+				return !(write(1, id + 10, strlen(id) - 12) > 0 && putchar('\n') == '\n');
 			case 'f':
 			case 'r':
 			case 'C':
