@@ -182,7 +182,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	sh.st.optindex = opt_info.index;
 	sh.st.optchar = (short)opt_info.offset;
 	nv_putval(np, options, 0);
-	np = nv_open(nv_name(OPTARGNOD),sh.var_tree,0);
+	np = sh_scoped(OPTARGNOD);
 	if(opt_info.num == LONG_MIN)
 		nv_putval(np, opt_info.arg, NV_RDONLY);
 	else if (opt_info.arg && opt_info.num > 0 && isalpha((char)opt_info.num) && !isdigit(opt_info.arg[0]) && opt_info.arg[0] != '-' && opt_info.arg[0] != '+')

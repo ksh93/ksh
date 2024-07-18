@@ -296,10 +296,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 	else
 	{
 		name = 0;
-		if(dtvnext(sh.var_tree) || sh.namespace)
-			np = nv_open(nv_name(REPLYNOD),sh.var_tree,0);
-		else
-			np = REPLYNOD;
+		np = sh_scoped(REPLYNOD);
 	}
 	keytrap =  ep?ep->e_keytrap:0;
 	if(size || (flags>>D_FLAG))	/* delimiter not new-line or fixed size read */
