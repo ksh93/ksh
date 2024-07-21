@@ -1294,6 +1294,13 @@ static int execute(char *s)
 	if (pid == 0)
 	{	/* child */
 		report(-5, s, "exec", 0);
+		/*
+		 * $SHELL or /bin/sh may be an old version of ksh that cannot use
+		 * a freshly built copy of libast due to ABI changes. To ensure
+		 * the build doesn't prematurely fail with an undefined symbol error
+		 * LD_LIBRARY_PATH is unset before the shell is invoked.
+		 */
+		unsetenv("LD_LIBRARY_PATH");
 		execl(state.shell, "sh", "-c", s, (char*)0);
 		if (errno == ENOENT)
 			exit(127);
