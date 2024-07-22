@@ -2056,100 +2056,112 @@ case $x in
 		case $abi in
 		'')	abi="'d=$INSTALLROOT v='" ;;
 		esac
+
+		# allow loading dynamic libraries from $INSTALLROOT/dyn/lib
+		# by setting library path variables for various systems;
+		# instead of bothering to detect the system, just set them all
+
 		p=0
-		eval "
-			for a in $abi
-			do	eval \$a
-				eval \"
-					case \\\$LD_LIBRARY\${v}_PATH: in
-					\\\$d/dyn/lib:*)
-						;;
-					*)	x=\\\$LD_LIBRARY\${v}_PATH
-						case \\\$x in
-						''|:*)	;;
-						*)	x=:\\\$x ;;
+		case $action in
+		make)	# ... but not while building; otherwise, if $SHELL is a dynamically
+			# linked ksh binary, it may link against our preinstalled libraries
+			;;
+		*)	eval "
+				for a in $abi
+				do	eval \$a
+					eval \"
+						case \\\$LD_LIBRARY\${v}_PATH: in
+						\\\$d/dyn/lib:*)
+							;;
+						*)	x=\\\$LD_LIBRARY\${v}_PATH
+							case \\\$x in
+							''|:*)	;;
+							*)	x=:\\\$x ;;
+							esac
+							LD_LIBRARY\${v}_PATH=\$d/dyn/lib\\\$x
+							export LD_LIBRARY\${v}_PATH
+							p=1
+							;;
 						esac
-						LD_LIBRARY\${v}_PATH=\$d/dyn/lib\\\$x
-						export LD_LIBRARY\${v}_PATH
-						p=1
+					\"
+				done
+			"
+
+			case $LD_LIBRARY_PATH in
+			'')	;;
+			*)	for d in $lib
+				do	case $HOSTTYPE in
+					*64)	if	test -d ${d}64
+						then	d=${d}64
+						fi
 						;;
 					esac
-				\"
-			done
-		"
-		case $LD_LIBRARY_PATH in
-		'')	;;
-		*)	for d in $lib
-			do	case $HOSTTYPE in
-				*64)	if	test -d ${d}64
-					then	d=${d}64
-					fi
-					;;
-				esac
-				case :$LD_LIBRARY_PATH: in
-				*:$d:*)	;;
-				*)	if	test -d $d
-					then	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$d
-						p=1
-					fi
-					;;
-				esac
-			done
-			;;
-		esac
-		case $p in
-		1)	$show LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-			$show export LD_LIBRARY_PATH
-			export LD_LIBRARY_PATH
-			;;
-		esac
-		case $LIBPATH: in
-		$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:*)
-			;;
-		*)	case $LIBPATH in
-			'')	LIBPATH=/usr/lib:/lib ;;
+					case :$LD_LIBRARY_PATH: in
+					*:$d:*)	;;
+					*)	if	test -d $d
+						then	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$d
+							p=1
+						fi
+						;;
+					esac
+				done
+				;;
 			esac
-			LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
-			$show LIBPATH=$LIBPATH
-			$show export LIBPATH
-			export LIBPATH
-			;;
-		esac
-		case $SHLIB_PATH: in
-		$INSTALLROOT/dyn/lib:*)
-			;;
-		*)	SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
-			$show SHLIB_PATH=$SHLIB_PATH
-			$show export SHLIB_PATH
-			export SHLIB_PATH
-			;;
-		esac
-		case $DYLD_LIBRARY_PATH: in
-		$INSTALLROOT/dyn/lib:*)
-			;;
-		*)	DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
-			$show DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
-			$show export DYLD_LIBRARY_PATH
-			export DYLD_LIBRARY_PATH
-			;;
-		esac
-		case $_RLD_ROOT in
-		$INSTALLROOT/arch*)	;;
-		':')	_RLD_ROOT=$INSTALLROOT/arch:/ ;;
-		/|*:/)	_RLD_ROOT=$INSTALLROOT/arch:$_RLD_ROOT ;;
-		*)	_RLD_ROOT=$INSTALLROOT/arch:$_RLD_ROOT:/ ;;
-		esac
-		$show _RLD_ROOT=$_RLD_ROOT
-		$show export _RLD_ROOT
-		export _RLD_ROOT
-		# Haiku
-		case $LIBRARY_PATH: in
-		$INSTALLROOT/dyn/lib:*)
-			;;
-		*)	LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
-			$show LIBRARY_PATH=$LIBRARY_PATH
-			$show export LIBRARY_PATH
-			export LIBRARY_PATH
+			case $p in
+			1)	$show LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+				$show export LD_LIBRARY_PATH
+				export LD_LIBRARY_PATH
+				;;
+			esac
+			case $LIBPATH: in
+			$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:*)
+				;;
+			*)	case $LIBPATH in
+				'')	LIBPATH=/usr/lib:/lib ;;
+				esac
+				LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
+				$show LIBPATH=$LIBPATH
+				$show export LIBPATH
+				export LIBPATH
+				;;
+			esac
+			case $SHLIB_PATH: in
+			$INSTALLROOT/dyn/lib:*)
+				;;
+			*)	SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
+				$show SHLIB_PATH=$SHLIB_PATH
+				$show export SHLIB_PATH
+				export SHLIB_PATH
+				;;
+			esac
+			case $DYLD_LIBRARY_PATH: in
+			$INSTALLROOT/dyn/lib:*)
+				;;
+			*)	DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
+				$show DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
+				$show export DYLD_LIBRARY_PATH
+				export DYLD_LIBRARY_PATH
+				;;
+			esac
+			case $_RLD_ROOT in
+			$INSTALLROOT/arch*)	;;
+			':')	_RLD_ROOT=$INSTALLROOT/arch:/ ;;
+			/|*:/)	_RLD_ROOT=$INSTALLROOT/arch:$_RLD_ROOT ;;
+			*)	_RLD_ROOT=$INSTALLROOT/arch:$_RLD_ROOT:/ ;;
+			esac
+			$show _RLD_ROOT=$_RLD_ROOT
+			$show export _RLD_ROOT
+			export _RLD_ROOT
+			# Haiku
+			case $LIBRARY_PATH: in
+			$INSTALLROOT/dyn/lib:*)
+				;;
+			*)	LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
+				$show LIBRARY_PATH=$LIBRARY_PATH
+				$show export LIBRARY_PATH
+				export LIBRARY_PATH
+				;;
+			esac
 			;;
 		esac
 
