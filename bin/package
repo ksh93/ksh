@@ -1545,7 +1545,7 @@ int b(void) { return 0; }
 					echo 'int main(void) { return 0; }' > $tmp.a.c
 					checkcc
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
-					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  )
+					{ file $tmp.a.exe || file --no-sandbox $tmp.a.exe; } 2>/dev/null | sed "s/$tmp\.a\.exe//g")
 				case $bits in
 				*\ 64-bit* | *\ 64\ bit* | *\ 64bit*)
 					bits=64 ;;
