@@ -1442,7 +1442,7 @@ got="$($SHELL -i "$hist_leak" 2>&1)"
 
 # File descriptor leak after hist builtin substitution error
 hist_error_leak=$tmp/hist_error_leak.sh
-print 'ulimit -n 15' > "$hist_error_leak"
+print 'ulimit -n 30' > "$hist_error_leak"
 for ((i=0; i!=11; i++)) do
 	print 'hist -s no=yes 2> /dev/null' >> "$hist_error_leak"
 done

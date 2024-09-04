@@ -32,7 +32,8 @@
 
 #if !SHOPT_SCRIPTONLY
 
-static void hist_subst(const char*, int fd, char*);
+static void hist_subst(const char*, int fd, char*, char*);
+static int hist_compare(int fdo, int initial_fdo);
 
 #if 0
     /* for the benefit of the dictionary generator */
@@ -42,10 +43,11 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 {
 	History_t *hp;
 	char *arg;
-	int flag,fdo;
-	Sfio_t *outfile;
-	char *fname;
+	int flag,fdo,initial_fdo;
+	Sfio_t *outfile,*initial_file;
+	char *fname,*initial_fname;
 	int range[2], incr, index2, indx= -1;
+	char ran_editor = 0;	/* editor-called flag */
 	char *edit = 0;		/* name of editor */
 	char *replace = 0;	/* replace old=new */
 	int lflag = 0, nflag = 0, rflag = 0;
@@ -213,26 +215,50 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_system(1),e_create,fname);
 			UNREACHABLE();
 		}
+		if(!(initial_fname=pathtmp(NULL,0,0,NULL)))
+		{
+			errormsg(SH_DICT,ERROR_exit(1),e_create,"");
+			UNREACHABLE();
+		}
+		if((initial_fdo=open(initial_fname,O_CREAT|O_RDWR,S_IRUSR|S_IWUSR)) < 0)
+		{
+			errormsg(SH_DICT,ERROR_system(1),e_create,initial_fname);
+			UNREACHABLE();
+		}
 		outfile= sfnew(NULL,sh.outbuff,IOBSIZE,fdo,SFIO_WRITE);
+		initial_file= sfnew(NULL,sh.outbuff,IOBSIZE,initial_fdo,SFIO_WRITE);
 		arg = "\n";
 		nflag++;
 	}
 	while(1)
 	{
 		if(nflag==0)
+		{
 			sfprintf(outfile,"%d\t",range[flag]);
+			if(lflag==0)
+				sfprintf(initial_file,"%d\t",range[flag]);
+		}
 		else if(lflag)
 			sfputc(outfile,'\t');
 		hist_list(sh.hist_ptr,outfile,hist_tell(sh.hist_ptr,range[flag]),0,arg);
 		if(lflag)
 			sh_sigcheck();
+		else
+			hist_list(sh.hist_ptr,initial_file,hist_tell(sh.hist_ptr,range[flag]),0,arg);
 		if(range[flag] == range[1-flag])
 			break;
 		range[flag] += incr;
 	}
-	if(lflag)
+	if(lflag==0)
+	{
+		initial_fdo = sh_chkopen(initial_fname);
+		unlink(initial_fname);
+		free(initial_fname);
+	}
+	else
 		return 0;
 	sfclose(outfile);
+	sfclose(initial_file);
 	hist_eof(hp);
 	arg = edit;
 	if(!arg && !(arg=nv_getval(sh_scoped(HISTEDIT))) && !(arg=nv_getval(sh_scoped(FCEDNOD))))
@@ -251,10 +277,9 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 		com[1] =  fname;
 		com[2] = 0;
 		error_info.errors = sh_eval(sh_sfeval(com),0);
+		ran_editor = 1;
 	}
 	fdo = sh_chkopen(fname);
-	unlink(fname);
-	free(fname);
 	/* don't history fc itself unless forked */
 	error_info.flags |= ERROR_SILENT;
 	if(!sh_isstate(SH_FORKED))
@@ -263,8 +288,9 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 	sh_onstate(SH_VERBOSE);	/* echo lines as read */
 	if(replace)
 	{
-		hist_subst(error_info.id,fdo,replace);
+		hist_subst(error_info.id,fdo,replace,fname);
 		sh_close(fdo);
+		sh_close(initial_fdo);
 	}
 	else if(error_info.errors == 0)
 	{
@@ -277,19 +303,38 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			sh_close(fdo);
 			hist_depth = 0;
 			errormsg(SH_DICT,ERROR_exit(1),e_toodeep,"history");
+			unlink(fname);
+			free(fname);
 			UNREACHABLE();
 		}
-		iop = sfnew(NULL,buff,IOBSIZE,fdo,SFIO_READ);
-		sh_eval(iop,1); /* this will close fdo */
-		hist_depth--;
+		if(!ran_editor)
+		{
+			iop = sfnew(NULL,buff,IOBSIZE,fdo,SFIO_READ);
+			sh_eval(iop,1); /* this will close fdo */
+			hist_depth--;
+		}
+		/* run the command post-editor only if it has been changed */
+		else if(hist_compare(fdo,initial_fdo))
+		{
+			fdo = sh_chkopen(fname);
+			iop = sfnew(NULL,buff,IOBSIZE,fdo,SFIO_READ);
+			sh_eval(iop,1);
+			hist_depth--;
+		}
+		else
+			sh_close(fdo);
+		sh_close(initial_fdo);
 	}
 	else
 	{
 		sh_close(fdo);
+		sh_close(initial_fdo);
 		if(!sh_isoption(SH_VERBOSE))
 			sh_offstate(SH_VERBOSE);
 		sh_offstate(SH_HISTORY);
 	}
+	unlink(fname);
+	free(fname);
 	return sh.exitval;
 }
 
@@ -298,7 +343,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
  * given a file containing a command and a string of the form old=new,
  * execute the command with the string old replaced by new
  */
-static void hist_subst(const char *command,int fd,char *replace)
+static void hist_subst(const char *command,int fd,char *replace,char *fname)
 {
 	char *newp=replace;
 	char *sp;
@@ -318,11 +363,44 @@ static void hist_subst(const char *command,int fd,char *replace)
 	if((sp=sh_substitute(string,replace,newp))==0)
 	{
 		sh_close(fd);
+		unlink(fname);
+		free(fname);
 		errormsg(SH_DICT,ERROR_exit(1),e_subst,command);
 		UNREACHABLE();
 	}
 	*(newp-1) =  '=';
 	sh_eval(sfopen(NULL,sp,"s"),1);
+}
+
+/*
+ * check that a change has occurred after viewing the temporary file
+ * with the full editor
+ */
+static int hist_compare(int fdo, int initial_fdo)
+{
+	off_t size,initial_size;
+	char *string,*initial_string;
+	int c,d;
+	if((size = lseek(fdo,0,SEEK_END)) < 0 || (initial_size = lseek(initial_fdo,0,SEEK_END)) < 0)
+		return 1;
+	lseek(fdo,0,SEEK_SET);
+	lseek(initial_fdo,0,SEEK_SET);
+	c = (int)size;
+	d = (int)initial_size;
+	if(c != d)
+		return 1;
+	string = stkalloc(sh.stk,c+1);
+	initial_string = stkalloc(sh.stk,d+1);
+	if(read(fdo,string,c)!=c || read(initial_fdo,initial_string,d)!=d)
+		return 1;
+	string[c] = 0;
+	initial_string[c] = 0;
+	for(int x=0; x<=c; x++)
+	{
+		if(string[x] != initial_string[x])
+			return 1;
+	}
+	return 0;
 }
 
 #else
