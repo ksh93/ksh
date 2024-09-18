@@ -175,7 +175,7 @@ extern char		*sh_getcwd(void);
 
 #if SHOPT_SCRIPTONLY
 #define is_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] & (1L << ((x) % WBITS))) )
-#define on_option(s,x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? errormsg(SH_DICT,ERROR_exit(1),e_scriptonly) : ((s)->v[((x)&WMASK)/WBITS] |= (1L << ((x) % WBITS))) )
+#define on_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] |= (1L << ((x) % WBITS))) )
 #define off_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] &= ~(1L << ((x) % WBITS))) )
 #else
 #define is_option(s,x)	((s)->v[((x)&WMASK)/WBITS] & (1L << ((x) % WBITS)))

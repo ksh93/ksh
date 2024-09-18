@@ -95,7 +95,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 #define REMOTE(m)	!(m)
 #endif
 
-int sh_main(int ac, char *av[], Shinit_f userinit)
+int sh_mainex(int ac, char *av[], Shinit_f userinit,char *code,long codelen)
 {
 	char		*name;
 	int		fdin;
@@ -213,6 +213,12 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		shell_c:
 			iop = sfnew(NULL,sh.comdiv,strlen(sh.comdiv),0,SFIO_STRING|SFIO_READ);
 		}
+                else if(code && codelen) {  /* read kshcode from memory */
+                       sh.comdiv=code;
+                       if (codelen == 1) codelen=strlen(code);
+		       iop = sfnew(NULL,sh.comdiv,codelen,0,SFIO_STRING|SFIO_READ);
+                       code=NULL;
+                }
 		else
 		{
 			name = error_info.id;
@@ -347,6 +353,26 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	/* Start main execution loop. */
 	exfile(iop,fdin);
 	sh_done(0);
+}
+
+int sh_main(int ac, char *av[], Shinit_f userinit)
+{
+        return sh_mainex(ac, av, userinit, NULL , 0);
+}
+
+int sh_maincode(int ac, char *av[], char *code)
+{
+        if (code) {
+                long len;
+                char *ptr;
+                len=strlen(code);
+                ptr=(char *)sh_malloc(len+8);
+                if (ptr) {
+                        strcpy(ptr,code);
+                        return sh_mainex(ac, av, NULL,ptr,len);
+                }
+        }
+        return 0;
 }
 
 /*
