@@ -1001,8 +1001,20 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 			pp = path_nextcomp(pp,arg0,0);
 	}
 	while(pp);
-	/* force an exit */
-	((struct checkpt*)sh.jmplist)->mode = SH_JMPEXIT;
+	if(sh_isstate(SH_EXEC) && sh_isstate(SH_INTERACTIVE))
+	{
+		/*
+		 * An error just occurred and the shell cannot exit because it's
+		 * interactive. Reincrement SHLVL and turn off the SH_EXEC state.
+		 */
+		sh.shlvl++;
+		sh_offstate(SH_EXEC);
+	}
+	else
+	{
+		/* Force an exit */
+		((struct checkpt*)sh.jmplist)->mode = SH_JMPEXIT;
+	}
 	errno = not_executable ? not_executable : sh.path_err;
 	switch(errno)
 	{

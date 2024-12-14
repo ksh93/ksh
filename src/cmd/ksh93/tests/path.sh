@@ -1038,4 +1038,16 @@ got=${ type -t whence_t_test 2>&1; }
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
+# POSIX.1-2024: If the exec command fails ... an interactive shell may exit from a
+#               subshell environment but shall not exit if the current shell environment
+#               is not a subshell environment.
+# https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html#tag_19_21
+if((!SHOPT_SCRIPTONLY));then
+exp=0
+output=$($SHELL -ic $'PATH=/dev/null exec notacommand\nexit 0' 2>&1)
+got=$?
+((got==exp)) || err_exit "interactive shells exit after exec(1) fails to run a command (expected status '$exp', got status '$got' with output $(printf %q "$output"))"
+fi # !SHOPT_SCRIPTONLY
+
+# ======
 exit $((Errors<125?Errors:125))
