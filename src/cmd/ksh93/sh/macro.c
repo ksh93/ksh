@@ -2190,7 +2190,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 			if((Sflong_t)num!=num)
 				sfprintf(sh.strbuf,"%.*Lg",LDBL_DIG,num);
 			else if(num)
-				sfprintf(sh.strbuf,"%lld",(Sflong_t)num);
+				sfprintf(sh.strbuf,"%jd",(Sflong_t)num);
 			else
 				sfprintf(sh.strbuf,"%Lg",num);
 			str = sfstruse(sh.strbuf);

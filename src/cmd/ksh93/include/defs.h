@@ -169,17 +169,17 @@ extern char		*sh_getcwd(void);
 #endif
 #define sh_translate(s)	_sh_translate(ERROR_dictionary(s))
 
-#define WBITS		(sizeof(long)*8)
+#define WBITS		(sizeof(uint64_t)*8)
 #define WMASK		(0xff)
 
 #if SHOPT_SCRIPTONLY
-#define is_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] & (1L << ((x) % WBITS))) )
-#define on_option(s,x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? errormsg(SH_DICT,ERROR_exit(1),e_scriptonly) : ((s)->v[((x)&WMASK)/WBITS] |= (1L << ((x) % WBITS))) )
-#define off_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] &= ~(1L << ((x) % WBITS))) )
+#define is_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] & ((uint64_t)1 << ((x) % WBITS))) )
+#define on_option(s,x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? errormsg(SH_DICT,ERROR_exit(1),e_scriptonly) : ((s)->v[((x)&WMASK)/WBITS] |= ((uint64_t)1 << ((x) % WBITS))) )
+#define off_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] &= ~((uint64_t)1 << ((x) % WBITS))) )
 #else
-#define is_option(s,x)	((s)->v[((x)&WMASK)/WBITS] & (1L << ((x) % WBITS)))
-#define on_option(s,x)	((s)->v[((x)&WMASK)/WBITS] |= (1L << ((x) % WBITS)))
-#define off_option(s,x)	((s)->v[((x)&WMASK)/WBITS] &= ~(1L << ((x) % WBITS)))
+#define is_option(s,x)	((s)->v[((x)&WMASK)/WBITS] & ((uint64_t)1 << ((x) % WBITS)))
+#define on_option(s,x)	((s)->v[((x)&WMASK)/WBITS] |= ((uint64_t)1 << ((x) % WBITS)))
+#define off_option(s,x)	((s)->v[((x)&WMASK)/WBITS] &= ~((uint64_t)1 << ((x) % WBITS)))
 #endif /* SHOPT_SCRIPTONLY */
 #define sh_isoption(x)	is_option(&sh.options,x)
 #define sh_onoption(x)	on_option(&sh.options,x)

@@ -43,7 +43,7 @@ proc \- process control routines (deprecated)
 .EX
 #include <proc.h>
 
-Proc_t* procopen(const char* \fIcommand\fP, char** \fIargv\fP, char** \fIenvv\fP, long* \fIopv\fP, long \fIflags\fP);
+Proc_t* procopen(const char* \fIcommand\fP, char** \fIargv\fP, char** \fIenvv\fP, int64_t* \fIopv\fP, int \fIflags\fP);
 int procfree(Proc_t* \fIproc\fP);
 int procclose(Proc_t* \fIproc\fP);
 int procrun(const char* \fIcommand\fP, char** \fIargv\fP);

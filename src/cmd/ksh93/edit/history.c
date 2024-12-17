@@ -324,7 +324,7 @@ retry:
 	if(hist_clean(fd) && hist_start>1 && hsize > HIST_MAX)
 	{
 #ifdef DEBUG
-		sfprintf(sfstderr,"%lld: hist_trim hsize=%d\n",(Sflong_t)sh.current_pid,hsize);
+		sfprintf(sfstderr,"%jd: hist_trim hsize=%d\n",(Sflong_t)sh.current_pid,hsize);
 		sfsync(sfstderr);
 #endif /* DEBUG */
 		hp = hist_trim(hp,(int)hp->histind-maxlines);
@@ -747,9 +747,9 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	if(hp->auditfp)
 	{
 		time_t	t=time(NULL);
-		sfprintf(hp->auditfp, "%u;%lu;%s;%*s%c",
+		sfprintf(hp->auditfp, "%u;%ju;%s;%*s%c",
 			 sh_isoption(SH_PRIVILEGED) ? sh.euserid : sh.userid,
-			 (unsigned long)t, hp->tty, size, buff, 0);
+			 (Sfulong_t)t, hp->tty, size, buff, 0);
 		sfsync(hp->auditfp);
 	}
 #endif	/* SHOPT_AUDIT */

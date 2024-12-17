@@ -171,12 +171,12 @@ extern char*		strerror(int);
 #define AST_LC_LANG		255
 
 #define AST_LC_internal		1
-#define AST_LC_test		(1L<<26)
-#define AST_LC_setenv		(1L<<27)
-#define AST_LC_find		(1L<<28)
-#define AST_LC_debug		(1L<<29)
-#define AST_LC_setlocale	(1L<<30)
-#define AST_LC_translate	(1L<<31)
+#define AST_LC_test		(1 << 25)
+#define AST_LC_setenv		(1 << 26)
+#define AST_LC_find		(1 << 27)
+#define AST_LC_debug		(1 << 28)
+#define AST_LC_setlocale	(1 << 29)
+#define AST_LC_translate	(1 << 30)
 
 #ifndef LC_ALL
 #define LC_ALL			(-AST_LC_ALL)

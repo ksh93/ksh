@@ -189,13 +189,9 @@ static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 	if(val)
 	{
 		double now;
-#ifdef timeofday
 		struct timeval tmp;
 		timeofday(&tmp);
 		now = tmp.tv_sec + 1.e-6*tmp.tv_usec;
-#else
-		now = (double)time(NULL);
-#endif /* timeofday */
 		nv_putv(np,val,flag,fp);
 		d = nv_getnum(np);
 		if(*val=='+')

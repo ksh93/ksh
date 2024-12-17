@@ -517,7 +517,7 @@ static void	exfile(Sfio_t *iop,int fno)
 			{
 				buff.mode = SH_JMPERREXIT;
 #ifdef DEBUG
-				errormsg(SH_DICT,ERROR_warn(0),"%lld: mode changed to SH_JMPERREXIT",(Sflong_t)sh.current_pid);
+				errormsg(SH_DICT,ERROR_warn(0),"%jd: mode changed to SH_JMPERREXIT",(Sflong_t)sh.current_pid);
 #endif
 			}
 		}

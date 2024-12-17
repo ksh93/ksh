@@ -32,9 +32,9 @@ Shell_t	*sh_getinterp(void);
 
 Namval_t	*sh_addbuiltin(const char *\fIname\fP, Sh_bltin_f \fIfn\fP, void *\fIarg\fP);
 
-unsigned int	sh_isoption(int \fIoption\fP);
-unsigned int	sh_onoption(int \fIoption\fP);
-unsigned int	sh_offoption(int \fIoption\fP);
+uint64_t	sh_isoption(int \fIoption\fP);
+uint64_t	sh_onoption(int \fIoption\fP);
+uint64_t	sh_offoption(int \fIoption\fP);
 
 void		*sh_parse(Sfio_t *\fIsp\fP, int \fIflags\fP);
 int 		sh_trap(const char *\fIstring\fP, int \fImode\fP);

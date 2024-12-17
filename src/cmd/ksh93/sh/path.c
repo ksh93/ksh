@@ -1049,7 +1049,7 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 #if _lib_readlink
 	/* save original pathname */
 	stkseek(sh.stk,PATH_OFFSET);
-	pidsize = sfprintf(sh.stk, "*%lld*", (Sflong_t)(spawn ? sh.current_pid : sh.current_ppid));
+	pidsize = sfprintf(sh.stk, "*%jd*", (Sflong_t)(spawn ? sh.current_pid : sh.current_ppid));
 	sfputr(sh.stk,opath,-1);
 	opath = stkfreeze(sh.stk,1)+PATH_OFFSET+pidsize;
 	np = path_gettrackedalias(argv[0]);

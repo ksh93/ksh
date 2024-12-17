@@ -64,8 +64,8 @@
 
 #define PROC_fd_ctty	0xc
 
-#define PROC_op1(o,a)	(((long)(o)<<(2*PROC_ARG_BIT))|((long)(a)&((PROC_ARG_NULL<<PROC_ARG_BIT)|PROC_ARG_NULL)))
-#define PROC_op2(o,a,b)	(((long)(o)<<(2*PROC_ARG_BIT))|(((long)(b)&PROC_ARG_NULL)<<PROC_ARG_BIT)|((long)(a)&PROC_ARG_NULL))
+#define PROC_op1(o,a)	(((int64_t)(o)<<(2*PROC_ARG_BIT))|((int64_t)(a)&((PROC_ARG_NULL<<PROC_ARG_BIT)|PROC_ARG_NULL)))
+#define PROC_op2(o,a,b)	(((int64_t)(o)<<(2*PROC_ARG_BIT))|(((int64_t)(b)&PROC_ARG_NULL)<<PROC_ARG_BIT)|((int64_t)(a)&PROC_ARG_NULL))
 
 #define PROC_FD_CLOSE(p,f)	PROC_op2(PROC_fd_dup|(f),p,PROC_ARG_NULL)
 #define PROC_FD_CTTY(f)		PROC_op1(PROC_fd_ctty,f)
@@ -75,8 +75,8 @@
 #define PROC_SYS_PGRP(g)	PROC_op1(PROC_sys_pgrp,g)
 #define PROC_SYS_UMASK(m)	PROC_op1(PROC_sys_umask,m,0)
 
-#define PROC_OP(x)	(((x)>>(2*PROC_ARG_BIT))&((1<<PROC_OP_BIT)-1))
-#define PROC_ARG(x,n)	((n)?(((x)>>(((n)-1)*PROC_ARG_BIT))&PROC_ARG_NULL):(((x)&~((1<<(2*PROC_ARG_BIT))-1))==~((1<<(2*PROC_ARG_BIT))-1))?(-1):((x)&~((1<<(2*PROC_ARG_BIT))-1)))
+#define PROC_OP(x)	(((int64_t)(x)>>(2*PROC_ARG_BIT))&((1<<PROC_OP_BIT)-1))
+#define PROC_ARG(x,n)	((n)?(((int64_t)(x)>>(((n)-1)*PROC_ARG_BIT))&PROC_ARG_NULL):(((int64_t)(x)&~((1<<(2*PROC_ARG_BIT))-1))==~((1<<(2*PROC_ARG_BIT))-1))?(-1):((int64_t)(x)&~((1<<(2*PROC_ARG_BIT))-1)))
 
 typedef struct
 {
@@ -93,7 +93,7 @@ _PROC_PRIVATE_
 
 extern int	procclose(Proc_t*);
 extern int	procfree(Proc_t*);
-extern Proc_t*	procopen(const char*, char**, char**, long*, int);
+extern Proc_t*	procopen(const char*, char**, char**, int64_t*, int);
 extern int	procrun(const char*, char**, int);
 
 #endif

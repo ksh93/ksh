@@ -1089,7 +1089,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 		ep = sp;
 		stkseek(sh.stk,0);
 	}
-	sfprintf(sh.stk, ".<#%lld_%d{;.tmp", (Sflong_t)sh.current_pid, fno);
+	sfprintf(sh.stk, ".<#%jd_%d{;.tmp", (Sflong_t)sh.current_pid, fno);
 	tname = stkfreeze(sh.stk,1);
 	switch(mode)
 	{

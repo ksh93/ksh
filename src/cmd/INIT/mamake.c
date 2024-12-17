@@ -409,7 +409,7 @@ static void report(int level, char *text, char *item, Rule_t *r)
 		fprintf(stderr, "%s", text);
 		if (r && r->time && state.debug <= -2)
 #if __STDC_VERSION__ >= 199901L
-			fprintf(stderr, " %lld", (long long)r->time);
+			fprintf(stderr, " %llu", (unsigned long long)r->time);
 #else
 			fprintf(stderr, " %lu", (unsigned long)r->time);
 #endif

@@ -17,7 +17,7 @@ if ! mem timeval.tv_sec sys/time.h {
 	struct timeval
 	{
 		time_t	tv_sec;
-		time_t	tv_usec;
+		suseconds_t	tv_usec;
 	};
 }
 endif

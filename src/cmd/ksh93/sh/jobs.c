@@ -261,7 +261,7 @@ int job_reap(int sig)
 	Waitevent_f waitevent = sh.waitevent;
 	static int wcontinued = WCONTINUED;
 #ifdef DEBUG
-	if(sfprintf(sfstderr,"ksh: job line %4d: reap PID=%lld critical=%d signal=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,sig) <=0)
+	if(sfprintf(sfstderr,"ksh: job line %4d: reap PID=%jd critical=%d signal=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,sig) <=0)
 		write(2,"waitsafe\n",9);
 	sfsync(sfstderr);
 #endif /* DEBUG */
@@ -314,7 +314,7 @@ int job_reap(int sig)
 		if(!(pw=job_bypid(pid)))
 		{
 #ifdef DEBUG
-			sfprintf(sfstderr,"ksh: job line %4d: reap PID=%lld critical=%d unknown job PID=%d pw=%x\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pid,pw);
+			sfprintf(sfstderr,"ksh: job line %4d: reap PID=%jd critical=%d unknown job PID=%jd pw=%x\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,(Sflong_t)pid,pw);
 #endif /* DEBUG */
 			if (WIFCONTINUED(wstat) && wcontinued)
 				continue;
@@ -420,7 +420,7 @@ int job_reap(int sig)
 				jp->exitval |= SH_EXITSIG;
 		}
 #ifdef DEBUG
-		sfprintf(sfstderr,"ksh: job line %4d: reap PID=%lld critical=%d job %d with PID %d flags=%o complete with status=%x exit=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_job,pid,pw->p_flag,wstat,pw->p_exit);
+		sfprintf(sfstderr,"ksh: job line %4d: reap PID=%jd critical=%d job %d with PID %jd flags=%o complete with status=%x exit=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_job,(Sflong_t)pid,pw->p_flag,wstat,pw->p_exit);
 		sfsync(sfstderr);
 #endif /* DEBUG */
 		/* only top-level process in job should have notify set */
@@ -787,7 +787,7 @@ int job_list(struct process *pw,int flag)
 		return 0;
 	if((flag&JOB_PFLAG))
 	{
-		sfprintf(outfile,"%d\n",px->p_pgrp?px->p_pgrp:px->p_pid);
+		sfprintf(outfile,"%jd\n",(Sflong_t)(px->p_pgrp?px->p_pgrp:px->p_pid));
 		return 0;
 	}
 	if((px->p_flag&P_DONE) && job.waitall && !(flag&JOB_LFLAG))
@@ -807,7 +807,7 @@ int job_list(struct process *pw,int flag)
 	{
 		n = 0;
 		if(flag&JOB_LFLAG)
-			sfprintf(outfile,"%d\t",px->p_pid);
+			sfprintf(outfile,"%jd\t",(Sflong_t)px->p_pid);
 		if(px->p_flag&P_SIGNALLED)
 			msg = job_sigmsg((int)(px->p_exit));
 		else if(px->p_flag&P_NOTIFY)
@@ -822,7 +822,7 @@ int job_list(struct process *pw,int flag)
 		msize = strlen(msg);
 		if(n)
 		{
-			sfprintf(outfile,"(%d)",(int)n);
+			sfprintf(outfile,"(%d)",n);
 			msize += (3+(n>10)+(n>100));
 		}
 		if(px->p_flag&P_COREDUMP)
@@ -1158,8 +1158,8 @@ int job_post(pid_t pid, pid_t join)
 		pw->p_fgrp = 0;
 	pw->p_pgrp = pw->p_fgrp;
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: post PID=%lld critical=%d job=%d PID=%d PGID=%d savesig=%d join=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_job,
-		pw->p_pid,pw->p_pgrp,job.savesig,join);
+	sfprintf(sfstderr,"ksh: job line %4d: post PID=%jd critical=%d job=%d PID=%jd PGID=%jd savesig=%d join=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_job,
+		(Sflong_t)pw->p_pid,(Sflong_t)pw->p_pgrp,job.savesig,join);
 	sfsync(sfstderr);
 #endif /* DEBUG */
 	if(hp && !sh_isstate(SH_PROFILE) && !sh.realsubshell)
@@ -1242,7 +1242,7 @@ static void job_prmsg(struct process *pw)
 		if(sh_isstate(SH_INTERACTIVE))
 			sfprintf(sfstderr,"%s%s\n",msg,dump);
 		else
-			errormsg(SH_DICT,2,"%d: %s%s",pw->p_pid,msg,dump);
+			errormsg(SH_DICT,2,"%jd: %s%s",(Sflong_t)pw->p_pid,msg,dump);
 	}
 }
 
@@ -1304,9 +1304,9 @@ int	job_wait(pid_t pid)
 	}
 	pwfg = pw;
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: wait PID=%lld critical=%d job=%d PID=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,jobid,pid);
+	sfprintf(sfstderr,"ksh: job line %4d: wait PID=%jd critical=%d job=%d PID=%jd\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,jobid,(Sflong_t)pid);
 	if(pw)
-		sfprintf(sfstderr,"ksh: job line %4d: wait PID=%lld critical=%d flags=%o\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_flag);
+		sfprintf(sfstderr,"ksh: job line %4d: wait PID=%jd critical=%d flags=%o\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pw->p_flag);
 #endif /* DEBUG */
 	errno = 0;
 	if(sh.coutpipe>=0 && lastpid && sh.cpid==lastpid)
@@ -1547,7 +1547,7 @@ static struct process *job_unpost(struct process *pwtop,int notify)
 	struct process *pw;
 	/* make sure all processes are done */
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: drop PID=%lld critical=%d PID=%d env=%u\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pwtop->p_pid,pwtop->p_env);
+	sfprintf(sfstderr,"ksh: job line %4d: drop PID=%jd critical=%d PID=%jd env=%u\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,(Sflong_t)pwtop->p_pid,pwtop->p_env);
 	sfsync(sfstderr);
 #endif /* DEBUG */
 	pwtop = pw = job_byjid(pwtop->p_job);
@@ -1593,7 +1593,7 @@ static struct process *job_unpost(struct process *pwtop,int notify)
 	}
 	pwtop->p_pid = 0;
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: free PID=%lld critical=%d job=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pwtop->p_job);
+	sfprintf(sfstderr,"ksh: job line %4d: free PID=%jd critical=%d job=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,pwtop->p_job);
 	sfsync(sfstderr);
 #endif /* DEBUG */
 	job_free(pwtop->p_job);
@@ -1783,7 +1783,7 @@ void job_subrestore(void* ptr)
 void job_fork(pid_t parent)
 {
 #ifdef DEBUG
-	sfprintf(sfstderr,"ksh: job line %4d: fork PID=%lld critical=%d parent=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,parent);
+	sfprintf(sfstderr,"ksh: job line %4d: fork PID=%jd critical=%d parent=%d\n",__LINE__,(Sflong_t)sh.current_pid,job.in_critical,parent);
 #endif /* DEBUG */
 	switch (parent)
 	{

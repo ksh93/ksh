@@ -44,7 +44,7 @@
 /* options */
 typedef struct
 {
-	unsigned long v[4];
+	uint64_t v[4];
 }
 Shopt_t;
 
@@ -476,9 +476,9 @@ extern void		*sh_waitnotify(Shwait_f);
 extern Shscope_t	*sh_getscope(int,int);
 extern Shscope_t	*sh_setscope(Shscope_t*);
 extern void		sh_sigcheck(void);
-extern unsigned long	sh_isoption(int);
-extern unsigned long	sh_onoption(int);
-extern unsigned long	sh_offoption(int);
+extern uint64_t		sh_isoption(int);
+extern uint64_t		sh_onoption(int);
+extern uint64_t		sh_offoption(int);
 extern int		sh_exec(const Shnode_t*,int);
 
 /*

@@ -348,7 +348,7 @@ mkpty(int* master, int* minion)
 static Proc_t*
 runcmd(char** argv, int minion, int session)
 {
-	long	ops[4];
+	int64_t	ops[4];
 
 	if (session)
 	{

@@ -2082,12 +2082,12 @@ int kiaclose(Lex_t *lexp)
 		sfmove(kia.tmp,kia.file,SFIO_UNBOUND,-1);
 		off2 = sfseek(kia.file,0,SEEK_END);
 		if(off2==off1)
-			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%lld;%d\nDIRECTORY;",(Sflong_t)kia.begin,(size_t)(off1-kia.begin));
+			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%jd;%zu\nDIRECTORY;",(Sflong_t)kia.begin,(size_t)(off1-kia.begin));
 		else
-			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%lld;%d\nRELATIONSHIP;%lld;%d\nDIRECTORY;",(Sflong_t)kia.begin,(size_t)(off1-kia.begin),(Sflong_t)off1,(size_t)(off2-off1));
+			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%jd;%zu\nRELATIONSHIP;%jd;%zu\nDIRECTORY;",(Sflong_t)kia.begin,(size_t)(off1-kia.begin),(Sflong_t)off1,(size_t)(off2-off1));
 		if(off2 >= INT_MAX)
 			off2 = -(n+12);
-		sfprintf(kia.file,"%010.10lld;%010d\n",(Sflong_t)off2+10, n+12);
+		sfprintf(kia.file,"%010.10jd;%010d\n",(Sflong_t)off2+10, n+12);
 	}
 	return sfclose(kia.file);
 }
