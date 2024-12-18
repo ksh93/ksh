@@ -2,7 +2,7 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2024-12-14:
+2024-12-18:
 
 - Persuant to POSIX.1-2024, exec(1) will no longer cause the shell to exit
   when it fails to replace an interactive shell with the given command.
