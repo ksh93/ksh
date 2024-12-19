@@ -1507,11 +1507,7 @@ skip:
 	{
 		cp++;
 		if(sh_isstate(SH_INIT))
-		{
 			nv_putval(np, cp, NV_RDONLY);
-			if(np==PWDNOD)
-				nv_onattr(np,NV_TAGGED);
-		}
 		else
 		{
 			char *sub=0, *prefix= sh.prefix;

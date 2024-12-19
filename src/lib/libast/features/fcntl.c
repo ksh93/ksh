@@ -293,6 +293,20 @@ main(void)
 #else
 	printf("#define O_cloexec		0\n");
 #endif
+#ifndef O_SEARCH
+#ifdef O_PATH
+	printf("#define O_SEARCH		O_PATH\n");
+#else
+	printf("#define O_SEARCH		0\n");
+#endif
+#endif
+#ifndef O_DIRECTORY
+#ifdef O_OPENDIR
+	printf("#define O_DIRECTORY		O_OPENDIR\n");
+#else
+	printf("#define O_DIRECTORY		0\n");
+#endif
+#endif
 #ifndef	O_TEMPORARY
 	printf("#define O_TEMPORARY		0\n");
 #endif

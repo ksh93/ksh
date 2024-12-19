@@ -46,6 +46,23 @@ static void rehash(Namval_t *np,void *data)
 		nv_rehash(np,data);
 }
 
+/*
+ * Obtain a file handle to the directory "path" relative to directory "dir"
+ */
+int sh_diropenat(int dir, const char *path)
+{
+	int fd,shfd;
+	if((fd = openat(dir, path, O_DIRECTORY|O_NONBLOCK|O_cloexec)) < 0)
+#if O_SEARCH
+		if(errno != EACCES || (fd = openat(dir, path, O_SEARCH|O_DIRECTORY|O_NONBLOCK|O_cloexec)) < 0)
+#endif
+			return fd;
+	/* Move fd to a number > 10 and register the fd number with the shell */
+	shfd = sh_fcntl(fd, F_dupfd_cloexec, 10);
+	close(fd);
+	return(shfd);
+}
+
 int	b_cd(int argc, char *argv[],Shbltin_t *context)
 {
 	char *dir;
@@ -53,7 +70,8 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	const char *dp;
 	int saverrno=0;
 	int rval,pflag=0,eflag=0,ret=1;
-	char *oldpwd;
+	int newdirfd;
+	char *oldpwd, *cp;
 	Namval_t *opwdnod, *pwdnod;
 	NOT_USED(context);
 	while((rval = optget(argv,sh_optcd))) switch(rval)
@@ -118,13 +136,8 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	 * If sh_subshell() in subshell.c cannot use fchdir(2) to restore the PWD using a saved file descriptor,
 	 * we must fork any virtual subshell now to avoid the possibility of ending up in the wrong PWD on exit.
 	 */
-	if(sh.subshell && !sh.subshare)
-	{
-#if _lib_fchdir
-		if(!test_inode(sh.pwd,e_dot))
-#endif
-			sh_subfork();
-	}
+	if(sh.subshell && !sh.subshare && (!sh_validate_subpwdfd() || !test_inode(sh.pwd,e_dot)))
+		sh_subfork();
 	/*
 	 * Do $CDPATH processing, except if the path is absolute or the first component is '.' or '..'
 	 */
@@ -181,21 +194,49 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		}
 		if(!pflag)
 		{
-			char *cp;
 			stkseek(sh.stk,PATH_MAX+PATH_OFFSET);
 			if(*(cp=stkptr(sh.stk,PATH_OFFSET))=='/')
 				if(!pathcanon(cp,PATH_DOTDOT))
 					continue;
 		}
-		if((rval=chdir(path_relative(stkptr(sh.stk,PATH_OFFSET)))) >= 0)
-			goto success;
-		if(errno!=ENOENT && saverrno==0)
+		cp = path_relative(stkptr(sh.stk,PATH_OFFSET));
+		rval = newdirfd = sh_diropenat((sh.pwdfd>0)?sh.pwdfd:AT_FDCWD,cp);
+		if(newdirfd>0)
+		{
+			/* chdir for directories on HSM/tapeworms may take minutes */
+			if((rval=fchdir(newdirfd)) >= 0)
+			{
+				sh_pwdupdate(newdirfd);
+				goto success;
+			}
+			sh_close(newdirfd);
+		}
+#if !O_SEARCH
+		else if((rval=chdir(cp)) >= 0)
+			sh_pwdupdate(sh_diropenat(AT_FDCWD,cp));
+#endif
+		if(saverrno==0)
 			saverrno=errno;
 	}
 	while(cdpath);
 	if(rval<0 && *dir=='/' && *(path_relative(stkptr(sh.stk,PATH_OFFSET)))!='/')
-		rval = chdir(dir);
-	/* use absolute chdir() if relative chdir() fails */
+	{
+		rval = newdirfd = sh_diropenat((sh.pwdfd>0)?sh.pwdfd:AT_FDCWD,dir);
+		if(newdirfd>0)
+		{
+			/* chdir for directories on HSM/tapeworms may take minutes */
+			if((rval=fchdir(newdirfd)) >= 0)
+			{
+				sh_pwdupdate(newdirfd);
+				goto success;
+			}
+			sh_close(newdirfd);
+		}
+#if !O_SEARCH
+		else if((rval=chdir(dir)) >= 0)
+			sh_pwdupdate(sh_diropenat(AT_FDCWD,dir));
+#endif
+	}
 	if(rval<0)
 	{
 		if(saverrno)
@@ -221,7 +262,7 @@ success:
 	if(*dp && (*dp!='.'||dp[1]) && strchr(dir,'/'))
 		sfputr(sfstdout,dir,'\n');
 	nv_putval(opwdnod,oldpwd,NV_RDONLY);
-	free((void*)sh.pwd);
+	free(sh.pwd);
 	if(*dir == '/')
 	{
 		size_t len = strlen(dir);

@@ -213,8 +213,8 @@ char *path_pwd(void)
 	if(sh.pwd)
 	{
 		if(*sh.pwd=='/')
-			return (char*)sh.pwd;
-		free((void*)sh.pwd);
+			return sh.pwd;
+		free(sh.pwd);
 	}
 	/* First see if PWD variable is correct */
 	pwdnod = sh_scoped(PWDNOD);
@@ -249,7 +249,9 @@ char *path_pwd(void)
 	if(!tofree)
 		cp = sh_strdup(cp);
 	sh.pwd = cp;
-	return (char*)sh.pwd;
+	/* Set sh.pwdfd */
+	sh_pwdupdate(sh_diropenat(AT_FDCWD,cp));
+	return sh.pwd;
 }
 
 /*
