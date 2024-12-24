@@ -9,7 +9,7 @@ tst	lib_mmap note{ standard mmap interface that works }end execute{
 	#include <sys/mman.h>
 	#include <sys/stat.h>
 	#include <sys/times.h>
-	
+
 	#define MAPSIZE (64*1024)
 	#define BUFSIZE	(8*1024)
 	#define WRITE   (64)
@@ -164,14 +164,14 @@ tst	note{ mmap is fast enough to be worth using }end output{
 	#include <sys/mman.h>
 	#include <sys/stat.h>
 	#include <sys/times.h>
-	
+
 	#define MAPSIZE (64*1024)
 	#define BUFSIZE	(MAPSIZE/8)
 	#define WRITE   (64)
 	#define RUN	(64)
-	
+
 	#define Failed(file)	(remove(file),1)
-	
+
 	int
 	main(int argc, char** argv)
 	{
@@ -181,7 +181,7 @@ tst	note{ mmap is fast enough to be worth using }end output{
 		char		file[1024], buf[MAPSIZE];
 		struct tms	stm, etm;
 		clock_t		rdtm, mmtm;
-	
+
 		/* create data file */
 		f = argv[0]; t = file;
 		while (*t = *f++)
@@ -189,14 +189,14 @@ tst	note{ mmap is fast enough to be worth using }end output{
 		*t++ = '.'; *t++ = 'D'; *t = 0;
 		if ((fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0666)) < 0)
 			return 1;
-	
+
 		for (i = 0; i < sizeof(buf); ++i)
 			buf[i] = '0' + (i%10);
 		for (i = 0; i < WRITE; ++i)
 			if (write(fd,buf,sizeof(buf)) != sizeof(buf))
 				return Failed(file);
 		close(fd);
-	
+
 		/* read time */
 		times(&stm);
 		for(run = 0; run < RUN; ++run)
@@ -211,7 +211,7 @@ tst	note{ mmap is fast enough to be worth using }end output{
 		}
 		times(&etm);
 		rdtm = (etm.tms_utime-stm.tms_utime) + (etm.tms_stime-stm.tms_stime);
-	
+
 		/* mmap time */
 		times(&stm);
 		for(run = 0; run < RUN; ++run)
@@ -225,7 +225,7 @@ tst	note{ mmap is fast enough to be worth using }end output{
 						   MAP_PRIVATE, fd, i*MAPSIZE );
 				if(mm == (caddr_t)(-1) || mm == NULL)
 					return Failed(file);
-	
+
 				/* the memcpy is < BUFSIZE to simulate the
 				   fact that functions like sfreserve/sfgetr do
 				   not do buffer copying.
@@ -240,12 +240,12 @@ tst	note{ mmap is fast enough to be worth using }end output{
 		mmtm = (etm.tms_utime-stm.tms_utime) + (etm.tms_stime-stm.tms_stime);
 
 		remove(file);
-	
+
 		if(4*mmtm <= 3*rdtm)
 			printf("#define _mmap_worthy	2	/* mmap is great */\n");
 		else if(4*mmtm <= 5*rdtm)
 			printf("#define _mmap_worthy	1	/* mmap is good */\n");
-	
+
 		else
 			return 1;
 		return 0;

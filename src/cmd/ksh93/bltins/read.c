@@ -36,27 +36,27 @@
 #include	"terminal.h"
 #include	"edit.h"
 
-#define	R_FLAG	1	/* raw mode */
+#define R_FLAG	1	/* raw mode */
 #if !SHOPT_SCRIPTONLY
-#define	S_FLAG	2	/* save in history file */
+#define S_FLAG	2	/* save in history file */
 #endif
-#define	A_FLAG	4	/* read into array */
+#define A_FLAG	4	/* read into array */
 #define N_FLAG	8	/* fixed size read at most */
 #define NN_FLAG	0x10	/* fixed size read exact */
 #define V_FLAG	0x20	/* use default value */
-#define	C_FLAG	0x40	/* read into compound variable */
+#define C_FLAG	0x40	/* read into compound variable */
 #define D_FLAG	8	/* must be number of bits for all flags */
-#define	SS_FLAG	0x80	/* read .csv format file */
+#define SS_FLAG	0x80	/* read .csv format file */
 
 struct read_save
 {
-        char		**argv;
+	char		**argv;
 	char		*prompt;
-        int		fd;
-        int		plen;
+	int		fd;
+	int		plen;
 	int		flags;
 	ssize_t		len;
-        Sflong_t	timeout;
+	Sflong_t	timeout;
 };
 
 int	b_read(int argc,char *argv[], Shbltin_t *context)
@@ -487,8 +487,8 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 #else
 			int optimize = 1;
 #endif
-			if(optimize && c==size && np->nvalue.cp && !nv_isarray(np))
-				memcpy((char*)np->nvalue.cp,var,c);
+			if(optimize && c==size && np->nvalue && !nv_isarray(np))
+				memcpy(np->nvalue,var,c);
 			else
 			{
 				Namval_t *mp;

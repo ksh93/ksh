@@ -29,7 +29,6 @@
 #include	"shopt.h"
 #include	<ast.h>
 #include	<errno.h>
-#include	<ccode.h>
 #include	<fault.h>
 #include	"FEATURE/time"
 #if _hdr_utime
@@ -60,50 +59,13 @@ static char *erase_eos;  /* erase to end of screen */
 #   define genlen(str)	strlen(str)
 #endif
 
-#if	(CC_NATIVE == CC_ASCII)
-#   define printchar(c)	((c) ^ ('A'-cntl('A')))
-#else
-    static int printchar(int c)
-    {
-	switch(c)
-	{
-	    case cntl('A'): return 'A';
-	    case cntl('B'): return 'B';
-	    case cntl('C'): return 'C';
-	    case cntl('D'): return 'D';
-	    case cntl('E'): return 'E';
-	    case cntl('F'): return 'F';
-	    case cntl('G'): return 'G';
-	    case cntl('H'): return 'H';
-	    case cntl('I'): return 'I';
-	    case cntl('J'): return 'J';
-	    case cntl('K'): return 'K';
-	    case cntl('L'): return 'L';
-	    case cntl('M'): return 'M';
-	    case cntl('N'): return 'N';
-	    case cntl('O'): return 'O';
-	    case cntl('P'): return 'P';
-	    case cntl('Q'): return 'Q';
-	    case cntl('R'): return 'R';
-	    case cntl('S'): return 'S';
-	    case cntl('T'): return 'T';
-	    case cntl('U'): return 'U';
-	    case cntl('V'): return 'V';
-	    case cntl('W'): return 'W';
-	    case cntl('X'): return 'X';
-	    case cntl('Y'): return 'Y';
-	    case cntl('Z'): return 'Z';
-	    case cntl(']'): return ']';
-	    case cntl('['): return '[';
-	}
-	return '?';
-    }
-#endif
+#define printchar(c)	((c) ^ ('A'-cntl('A')))	/* assumes ASCII */
+
 #define MINWINDOW	15	/* minimum width window */
 #define DFLTWINDOW	80	/* default window width */
 #define RAWMODE		1
 #define ECHOMODE	3
-#define	SYSERR	-1
+#define SYSERR	-1
 
 static int keytrap(Edit_t *,char*, int, int, int);
 
@@ -235,7 +197,7 @@ int tty_raw(int fd, int echomode)
 	nttyparm.c_iflag &= ~(IGNPAR|PARMRK|INLCR|IGNCR|ICRNL);
 	nttyparm.c_iflag |= BRKINT;
 #else
-	nttyparm.c_iflag &= 
+	nttyparm.c_iflag &=
 			~(IGNBRK|PARMRK|INLCR|IGNCR|ICRNL|INPCK);
 	nttyparm.c_iflag |= (BRKINT|IGNPAR);
 #endif	/* u370 */
@@ -755,7 +717,7 @@ done:
  *    onto the stack so that it can be checked for KEYTRAP
  * putstack() returns 1 except when in the middle of a multi-byte char
  */
-static int putstack(Edit_t *ep,char string[], int nbyte, int type) 
+static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 {
 	int c;
 #if SHOPT_MULTIBYTE
@@ -872,7 +834,7 @@ int ed_getchar(Edit_t *ep,int mode)
 			if(mode<=0 && sh.st.trap[SH_KEYTRAP]
 			/* workaround for <https://github.com/ksh93/ksh/issues/307>:
 			 * do not trigger KEYBD for non-ASCII in multibyte locale */
-			&& (CC_NATIVE!=CC_ASCII || !mbwide() || c > -128))
+			&& (!mbwide() || c > -128))
 			{
 				ep->e_keytrap = 1;
 				n=1;
@@ -990,7 +952,7 @@ Edpos_t ed_curpos(Edit_t *ep,genchar *phys, int off, int cur, Edpos_t curpos)
 #endif /* SHOPT_MULTIBYTE */
 	if(cur && off>=cur)
 	{
-		sp += cur; 
+		sp += cur;
 		off -= cur;
 		pos = curpos;
 		col = pos.col;

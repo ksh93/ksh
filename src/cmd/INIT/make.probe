@@ -1774,7 +1774,7 @@ esac
 # path cleanup
 #
 
-for i in ar ccnative dld ld nm size stdinclude stdlib strip 
+for i in ar ccnative dld ld nm size stdinclude stdlib strip
 do	eval o='$'$i
 	v=$o
 	case $v in

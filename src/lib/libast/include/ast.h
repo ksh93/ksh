@@ -49,9 +49,6 @@
  */
 
 #ifndef FILE
-#ifndef _SFIO_H
-struct _sfio_s;
-#endif
 #define FILE		struct _sfio_s
 #ifndef	__FILE_typedef
 #define __FILE_typedef	1
@@ -145,7 +142,7 @@ struct _sfio_s;
 #define PATH_READ	004
 #define PATH_WRITE	002
 #define PATH_EXECUTE	001
-#define	PATH_REGULAR	010
+#define PATH_REGULAR	010
 #define PATH_ABSOLUTE	020
 
 /*
@@ -219,7 +216,7 @@ typedef struct
 #define mbwide()	( mbmax() > 1 )
 
 #define mb2wc(w,p,n)	( (*ast.mb_towc)(&w, (char*)(p), n) )
-#define	mbchar(p)	mbnchar(p, mbmax())
+#define mbchar(p)	mbnchar(p, mbmax())
 #define mbnchar(p,n)	( mbwide() ? ( (ast.tmp_int = (*ast.mb_towc)(&ast.tmp_wchar, (char*)(p), n)) > 0 ? \
 				( (p+=ast.tmp_int),ast.tmp_wchar) : (p+=ast.mb_sync+1,ast.tmp_int) ) : (*(unsigned char*)(p++)) )
 #define mbinit()	( ast.mb_sync = 0 )
@@ -430,7 +427,7 @@ extern int		wc2utf8(char*, uint32_t);
  */
 
 #if !defined(environ) && defined(__DYNAMIC__)
-#define	environ		__DYNAMIC__(environ)
+#define environ		__DYNAMIC__(environ)
 #else
 extern char**		environ;
 #endif

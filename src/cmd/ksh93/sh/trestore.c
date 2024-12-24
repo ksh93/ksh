@@ -28,7 +28,6 @@
 #include	"shnodes.h"
 #include	"path.h"
 #include	"io.h"
-#include	<ccode.h>
 
 static struct dolnod	*r_comlist(void);
 static struct argnod	*r_arg(void);
@@ -52,7 +51,7 @@ Shnode_t *sh_trestore(Sfio_t *in)
  */
 static Shnode_t *r_tree(void)
 {
-	long l = sfgetl(infile); 
+	long l = sfgetl(infile);
 	int type;
 	Shnode_t *t=0;
 	if(l<0)
@@ -183,10 +182,7 @@ static struct argnod *r_arg(void)
 		else
 			apold->argnxt.ap = ap;
 		if(--l > 0)
-		{
 			sfread(infile,ap->argval,(size_t)l);
-			ccmaps(ap->argval, l, CC_ASCII, CC_NATIVE);
-		}
 		ap->argval[l] = 0;
 		ap->argchn.cp = 0;
 		ap->argflag = sfgetc(infile);
@@ -324,12 +320,8 @@ static char *r_string(void)
 	if(l == 0)
 		return NULL;
 	ptr = stkalloc(sh.stk,(unsigned)l);
-	if(--l > 0)
-	{
-		if(sfread(in,ptr,(size_t)l)!=(size_t)l)
-			return NULL;
-		ccmaps(ptr, l, CC_ASCII, CC_NATIVE);
-	}
+	if(--l > 0 && sfread(in,ptr,(size_t)l) != (size_t)l)
+		return NULL;
 	ptr[l] = 0;
 	return ptr;
 }

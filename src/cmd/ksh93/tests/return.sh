@@ -280,4 +280,14 @@ unset -f f
 [[ $(<out) == 0 ]] || err_exit "default return status in traps is broken (expected 0, got $(<out))"
 
 # ======
+print 'print "BUG TRIGGERED"' >eval
+chmod +x eval
+PATH=$PWD:$PATH
+foo() { return -1; }
+got=$(eval foo)
+[[ -z $got ]] || err_exit "negative return status from 'eval' triggers external 'eval' command (got $(printf %q "$got"))"
+PATH=${PATH%"$PWD:"}
+unset -f foo
+
+# ======
 exit $((Errors<125?Errors:125))

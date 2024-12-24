@@ -98,8 +98,6 @@ static struct subshell
 #endif /* _lib_fchdir */
 } *subshell_data;
 
-static char subshell_noscope;	/* for temporarily disabling all virtual subshell scope creation */
-
 static unsigned int subenv;
 
 
@@ -264,10 +262,10 @@ void sh_assignok(Namval_t *np,int add)
 	Namarr_t		*ap;
 	unsigned int		save;
 	/*
-	 * Don't create a scope if told not to (see nv_restore()) or if this is a subshare.
+	 * Don't create a scope during virtual subshell cleanup (see nv_restore()) or if this is a subshare.
 	 * Also, ${.sh.level} (SH_LEVELNOD) is handled specially and is not scoped in virtual subshells.
 	 */
-	if(subshell_noscope || sh.subshare || np==SH_LEVELNOD)
+	if(sh.nv_restore || sh.subshare || np==SH_LEVELNOD)
 		return;
 	if((ap=nv_arrayptr(np)) && (mp=nv_opensub(np)))
 	{
@@ -307,13 +305,13 @@ void sh_assignok(Namval_t *np,int add)
 	}
 	lp->dict = dp;
 	mp = (Namval_t*)&lp->dict;
-	lp->next = subshell_data->svar; 
+	lp->next = subshell_data->svar;
 	subshell_data->svar = lp;
 	save = sh.subshell;
 	sh.subshell = 0;
 	mp->nvname = np->nvname;
 	/* Copy value pointers for variables whose values are pointers into the static scope, sh.st */
-	if(!nv_isnonptr(np) && np->nvalue.cp >= (char*)&sh.st && np->nvalue.cp < (char*)&sh.st + sizeof(struct sh_scoped))
+	if((char*)np->nvalue >= (char*)&sh.st && (char*)np->nvalue < (char*)&sh.st + sizeof(struct sh_scoped))
 		mp->nvalue = np->nvalue;
 	if(nv_isattr(np,NV_NOFREE))
 		nv_onattr(mp,NV_IDENT);
@@ -330,7 +328,7 @@ static void nv_restore(struct subshell *sp)
 	Namval_t	*mp, *np;
 	Namval_t	*mpnext;
 	int		flags,nofree;
-	subshell_noscope = 1;
+	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
 	{
 		np = (Namval_t*)&lp->dict;
@@ -388,7 +386,7 @@ static void nv_restore(struct subshell *sp)
 		free(lp);
 		sp->svar = lq;
 	}
-	subshell_noscope = 0;
+	sh.nv_restore = 0;
 }
 
 /*
@@ -500,7 +498,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	subshell_data = sp;
 	sp->options = sh.options;
 	sp->jobs = job_subsave();
-	/* make sure initialization has occurred */ 
+	/* make sure initialization has occurred */
 	if(!sh.pathlist)
 	{
 		sh.pathinit = 1;
@@ -527,7 +525,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		char *save_debugtrap = 0;
 #if _lib_fchdir
 		sp->pwdfd = -1;
-		for(xp=sp->prev; xp; xp=xp->prev) 
+		for(xp=sp->prev; xp; xp=xp->prev)
 		{
 			if(xp->pwdfd>0 && xp->pwd && strcmp(xp->pwd,sh.pwd)==0)
 			{
@@ -788,18 +786,19 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			/* Free all elements of the subshell function table. */
 			for(np = (Namval_t*)dtfirst(sp->sfun); np; np = next_np)
 			{
+				struct Ufunction *rp = np->nvalue;
 				next_np = (Namval_t*)dtnext(sp->sfun,np);
-				if(!np->nvalue.rp)
+				if(!rp)
 				{
 					/* Dummy node created by unall() to mask parent shell function. */
 					nv_delete(np,sp->sfun,0);
 					continue;
 				}
 				nv_onattr(np,NV_FUNCTION);  /* in case invalidated by unall() */
-				if(np->nvalue.rp->fname && sh.fpathdict && nv_search(np->nvalue.rp->fname,sh.fpathdict,0))
+				if(rp->fname && sh.fpathdict && nv_search(rp->fname,sh.fpathdict,0))
 				{
 					/* Autoloaded function. It must not be freed. */
-					np->nvalue.rp->fdict = 0;
+					rp->fdict = NULL;
 					nv_delete(np,sp->sfun,NV_FUNCTION|NV_NOFREE);
 				}
 				else

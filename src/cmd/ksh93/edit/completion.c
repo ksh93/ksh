@@ -404,7 +404,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			}
 		}
 		sh_offstate(SH_COMPLETE);
-                /* allow a search to be aborted */
+		/* allow a search to be aborted */
 		if(sh.trapnote&SH_SIGSET)
 		{
 			rval = -1;
@@ -601,9 +601,9 @@ int ed_macro(Edit_t *ep, int i)
 	genchar buff[LOOKAHEAD+1];
 	if(i != '@')
 		ep->e_macro[1] = i;
-	/* undocumented feature, macros of the form <ESC>[c evoke alias __c */
+	/* macros of the form <ESC>[c evoke alias __c */
 	if(i=='_')
-		ep->e_macro[2] = ed_getchar(ep,1);
+		ep->e_macro[2] = i = ed_getchar(ep,1);
 	else
 		ep->e_macro[2] = 0;
 	if (isalnum(i)&&(np=nv_search(ep->e_macro,sh.alias_tree,0))&&(out=nv_getval(np)))
@@ -627,7 +627,7 @@ int ed_macro(Edit_t *ep, int i)
 		while(i-- > 0)
 			ed_ungetchar(ep,buff[i]);
 		return 1;
-	} 
+	}
 	return 0;
 }
 #endif /* SHOPT_ESH || SHOPT_VSH */

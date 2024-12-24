@@ -36,7 +36,7 @@
 
 #if _win32_botch
 
-#define	OMITTED	1
+#define OMITTED	1
 
 #include <ls.h>
 #include <utime.h>

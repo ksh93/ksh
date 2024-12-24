@@ -75,7 +75,7 @@ base from two to sixty-four.  You can also do double
 precision floating point arithmetic.
 Almost the complete set of C language operators are available
 with the same syntax and precedence.
-Arithmetic expressions can be used to as an argument expansion 
+Arithmetic expressions can be used to as an argument expansion
 or as a separate command.
 In addition there is an arithmetic for command that works
 like the for statement in C.

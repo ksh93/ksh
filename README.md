@@ -2,8 +2,11 @@
 
 # KornShell 93u+m
 
-This repository is used to develop bugfixes
-to the last stable release (93u+ 2012-08-01) of
+Welcome to the repository where the KornShell is under active development.
+This is where we develop bugfixes and new features for the shell, and where
+users can download the latest releases or the current development version in
+source code form.
+The project started off from last stable release (93u+ 2012-08-01) of
 [ksh93](http://www.kornshell.com/),
 formerly developed by AT&T Software Technology (AST).
 The sources in this repository were forked from the
@@ -15,11 +18,26 @@ and click on commit messages for full details.
 For all fixes, see [the commit log](https://github.com/ksh93/ksh/commits/).
 To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/issues).
 
+## Table of contents ##
+
+* [Policy](#user-content-policy)
+* [Why?](#user-content-why)
+* [Installing from source](#user-content-installing-from-source)
+    * [Supported systems](#user-content-supported-systems)
+    * [Prepare](#user-content-prepare)
+    * [Build](#user-content-build)
+    * [Test](#user-content-test)
+    * [Install](#user-content-install)
+* [What is ksh93?](#user-content-what-is-ksh93)
+
 ## Policy
 
-1. Fixing bugs is main focus of the 1.0 series.
-   Major feature development is for future versions (1.1 and up).
+1. Feature development for future releases happens on the dev branch.
+   The numbered release branch(es) are feature-frozen and get bugfixes
+   and maintenance only, usually cherry-picked from the dev branch.
 2. No major rewrites. No refactoring code that is not fully understood.
+   Even gradual and careful development may culminate in profound changes.
+   Bit rot is prevented by cleaning up unused and obsolete code.
 3. Maintain documented behaviour. Changes required for compliance with the
    [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html)
    are implemented for the `posix` mode only to avoid breaking legacy scripts.
@@ -28,6 +46,9 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
    send pull requests. Every interested party is invited to contribute.
 6. To help increase everyone's understanding of this code base, fixes and
    significant changes should be fully documented in commit messages.
+   Each commit should be a complete, self-contained and self-documenting
+   change, including updates to documentation and regression tests where
+   applicable. Pull requests are therefore squashed into a single commit.
 7. Code style varies somewhat in this historic code base.
    Your changes should match the style of the code surrounding them.
    Indent with tabs, assuming an 8-space tab width.
@@ -62,7 +83,58 @@ of ksh93 ever released.
 As of late 2021, distributions such as Debian and Slackware have begun
 to package it as their default version of ksh93.
 
-## Build
+## Installing from source
+
+You can download a [release](releases) tarball,
+or clone the current code from your preferred branch.
+New features for the future release series are developed on the `dev` branch.
+Stable releases are currently based on the `1.0` branch.
+
+### Supported systems
+
+KornShell 93u+m is currently known to build and run on:
+* Android/Termux
+* Cygwin
+* DragonFly BSD
+* FreeBSD
+* Haiku
+* illumos distributions (e.g., OmniOS)
+* Linux: all distributions with glibc or musl libc
+* macOS
+* NetBSD
+* OpenBSD
+* QNX Neutrino (6.5.0)
+* Solaris
+
+Systems that may work, but that we have not been able to test lately, include:
+* AIX
+* HP-UX
+* UnixWare
+
+KornShell 93u+m supports systems that use the ASCII character set as the
+lowest common denominator. This includes Linux on IBM zSeries, but not z/OS.
+Support for the EBCDIC character set has been removed, as we do not have
+access to a mainframe with z/OS to test and maintain it.
+
+### Prepare
+
+The build system requires only a basic POSIX-compatible shell, utilities and
+compiler environment. The `cc`, `ar` and `getconf` commands are needed at
+build time. The `tput` and `getconf` commands are used at runtime if
+available (for multiline editing and to complete the `getconf` built-in,
+respectively). Not all systems come with all of these preinstalled. Here are
+system-specific instructions for making them available:
+
+* **Android/[Termux](https://termux.dev/):**
+  install dependencies using `pkg install`.
+    * Build dependencies: `clang`, `binutils`, `getconf`
+    * Runtime dependencies (optional): `ncurses-utils`, `getconf`
+* **macOS:**
+  install the Xcode Command Line Tools:    
+  `xcode-select --install`
+* (to be completed)
+
+### Build
 
 To build ksh with a custom configuration of features, edit
 [`src/cmd/ksh93/SHOPT.sh`](https://github.com/ksh93/ksh/blob/dev/src/cmd/ksh93/SHOPT.sh).
@@ -70,7 +142,7 @@ To build ksh with a custom configuration of features, edit
 On systems such as NetBSD and OpenBSD, where `/bin/ksh` is not ksh93 and the
 preinstalled `/etc/ksh.kshrc` profile script is incompatible with ksh93, you'll
 want to disable `SHOPT_SYSRC` to avoid loading it on startup -- unless you can
-edit it to make it compatible with ksh93. This geneerally involves differences
+edit it to make it compatible with ksh93. This generally involves differences
 in the declaration and usage of local variables in functions.
 
 Then `cd` to the top directory and run:
@@ -80,6 +152,7 @@ bin/package make
 ```
 
 To suppress compiler output, use `quiet make` instead of `make`.
+
 In some non-POSIX shells you might need to prepend `sh` to all calls to `bin/package`.
 
 Parallel building is supported by appending `-j` followed by the

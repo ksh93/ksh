@@ -37,7 +37,7 @@ static const char usage[] =
 "[+?If lines in either file are not ordered according to the collating "
 	"sequence of the current locale, the results are not specified.]"
 "[+?If either \afile1\a or \afile2\a is \b-\b, \bcomm\b "
-        "uses standard input starting at the current location.]"
+	"uses standard input starting at the current location.]"
 
 "[1?Suppress the output column of lines unique to \afile1\a.]"
 "[2?Suppress the output column of lines unique to \afile2\a.]"

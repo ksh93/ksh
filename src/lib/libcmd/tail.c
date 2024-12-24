@@ -250,14 +250,14 @@ pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
 	if (offset[fno])
 	{
 		sfseek(tmp[1], 0, SEEK_SET);
-		if ((n = number - nleft) > 0) 
-			sfmove(tmp[!fno], NULL, n, delim); 
+		if ((n = number - nleft) > 0)
+			sfmove(tmp[!fno], NULL, n, delim);
 		if ((n = offset[!fno] - sftell(tmp[!fno])) > 0)
-			sfmove(tmp[!fno], outfile, n, -1); 
+			sfmove(tmp[!fno], outfile, n, -1);
 	}
 	else
 		fno = !fno;
-	sfmove(tmp[fno], outfile, offset[fno], -1); 
+	sfmove(tmp[fno], outfile, offset[fno], -1);
 	sfclose(tmp[0]);
 	sfclose(tmp[1]);
 }

@@ -51,7 +51,7 @@ static char*	Version = "\n@(#)$Id: sfio (AT&T Labs - Research) 2009-09-15 $\0\n"
 #include		<sig.h>
 #include		<wait.h>
 #define Sfsignal_f	Sig_handler_t
-static int		_Sfsigp = 0; /* # of streams needing SIGPIPE protection */ 
+static int		_Sfsigp = 0; /* # of streams needing SIGPIPE protection */
 
 /* done at exiting time */
 static void _sfcleanup(void)
@@ -369,7 +369,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 	/* buffer initialization */
 	wanted &= SFIO_RDWR;
 	if(f->mode&SFIO_INIT)
-	{	
+	{
 		if(!f->pool && _sfsetpool(f) < 0)
 		{	rv = -1;
 			goto done;

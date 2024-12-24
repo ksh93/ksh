@@ -37,19 +37,19 @@
 #define NOCAT			((nl_catd)-1)
 #define GAP			100
 
-typedef	struct 
-{	
+typedef	struct
+{
 	Dtlink_t	link;		/* dictionary link		*/
 	Dt_t*		messages;	/* message dictionary handle	*/
 	nl_catd		cat;		/* message catalog handle	*/
 	int		debug;		/* special debug locale		*/
-	const char*	locale;		/* message catalog locale	*/	
-	const char*	nlspath;	/* message catalog NLSPATH	*/	
+	const char*	locale;		/* message catalog locale	*/
+	const char*	nlspath;	/* message catalog NLSPATH	*/
 	char		name[1];	/* catalog name			*/
 } Catalog_t;
 
 typedef struct
-{	
+{
 	Dtlink_t	link;		/* dictionary link		*/
 	Catalog_t*	cat;		/* current catalog pointer	*/
 	int		set;		/* set number			*/
@@ -274,19 +274,19 @@ match(const char* cat, const char* msg)
  * the translated message text is returned on success
  * otherwise the original msg is returned
  *
- * The first time translate() is called (for a non-C locale) 
+ * The first time translate() is called (for a non-C locale)
  * it creates the state.catalogs dictionary. A dictionary entry
  * (Catalog_t) is made each time translate() is called with a new
- * cmd:cat argument. 
- * 
- * The X/Open interface catgets() is used to obtain a translated 
+ * cmd:cat argument.
+ *
+ * The X/Open interface catgets() is used to obtain a translated
  * message. Its arguments include the message catalog name
- * and the set/sequence numbers within the catalog. An additional 
- * dictionary, with entries of type Message_t, is needed for 
- * mapping untranslated message strings to the set/sequence numbers 
+ * and the set/sequence numbers within the catalog. An additional
+ * dictionary, with entries of type Message_t, is needed for
+ * mapping untranslated message strings to the set/sequence numbers
  * needed by catgets().  A separate Message_t dictionary is maintained
  * for each Catalog_t.
- */   
+ */
 
 char*
 translate(const char* loc, const char* cmd, const char* cat, const char* msg)

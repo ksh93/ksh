@@ -46,7 +46,7 @@ note()
 	printf "$0: %s\\n" "$@" >&2
 }
 
-err_out()
+error_out()
 {
 	note "$@"
 	exit 3

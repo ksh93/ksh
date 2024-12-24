@@ -80,6 +80,8 @@ esac
 case ${module_name:+m}${prefix+p}${suffix+s}${version:+v} in
 '' | mpsv )
 	;;
+msv)	note "warning: -p not given; assuming -p lib for backward compat"
+	prefix=lib ;;
 *)	err_out "-m requires -v/-p/-s and vice versa" ;;
 esac
 
@@ -121,7 +123,7 @@ case ${exec_file} in
 	esac
 	sym_links="$lib_linkname $prefix$module_name$suffix"
 	# ... remove possible old versions
-	(set +o noglob; exec rm -f "$dest_dir/lib/lib$module_name".*)
+	(set +o noglob; exec rm -f "$dest_dir/lib/$prefix$module_name".*)
 	# ... execute linker command
 	case $HOSTTYPE in
 	darwin.*)

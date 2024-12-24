@@ -146,8 +146,8 @@ char *sh_mactry(char *string)
 
 /*
  * Perform parameter expansion, command substitution, and arithmetic
- * expansion on <str>. 
- * If <mode> greater than 1 file expansion is performed if the result 
+ * expansion on <str>.
+ * If <mode> greater than 1 file expansion is performed if the result
  * yields a single pathname.
  * If <mode> negative, then expansion rules for assignment are applied.
  */
@@ -248,7 +248,7 @@ int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
 		endfield(mp,mp->quoted|mp->atmode);
 		flags = mp->fields;
 		if(flags==1 && nv_getoptimize())
-			argp->argchn.ap = *arghead; 
+			argp->argchn.ap = *arghead;
 	}
 	nv_setoptimize(saveoptimize);
 	*mp = savemac;
@@ -328,7 +328,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 			cp = fcseek(-1);
 			continue;
 		    case S_ESC:
-			fcgetc(c);
+			c = fcgetc();
 			cp=fcseek(-1);
 			if(c>0)
 				cp++;
@@ -365,7 +365,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 				}
 				else if(n==S_ALP)
 				{
-					while(fcgetc(c),isaname(c))
+					while(c = fcgetc(), isaname(c))
 						sfputc(stkp,c);
 					fcseek(-1);
 				}
@@ -423,7 +423,7 @@ char *sh_macpat(struct argnod *arg, int flags)
 }
 
 /*
- * Process the characters up to <endch> or end of input string 
+ * Process the characters up to <endch> or end of input string
  */
 static void copyto(Mac_t *mp,int endch, int newquote)
 {
@@ -547,7 +547,7 @@ static void copyto(Mac_t *mp,int endch, int newquote)
 						break;
 				}
 				/* followed by file expansion */
-				if(!mp->lit && (n==S_ESC || (!mp->quote && 
+				if(!mp->lit && (n==S_ESC || (!mp->quote &&
 					(n==S_PAT||n==S_ENDCH||n==S_SLASH||n==S_BRACT||*cp=='-'))))
 				{
 					cp += (n!=S_EOF);
@@ -953,7 +953,7 @@ static void mac_substitute(Mac_t *mp, char *cp,char *str,int subexp[],int subsiz
 }
 
 #if  SHOPT_FILESCAN
-#define	MAX_OFFSETS	 (sizeof(sh.offsets)/sizeof(sh.offsets[0]))
+#define MAX_OFFSETS	 (sizeof(sh.offsets)/sizeof(sh.offsets[0]))
 #define MAX_ARGN	(32*1024)
 
 /*
@@ -1031,7 +1031,7 @@ static char *prefix(char *id)
 			int n;
 			char *sp;
 			nv_setoptimize(NULL);
-			while(nv_isref(np) && np->nvalue.cp)
+			while(nv_isref(np) && np->nvalue)
 			{
 				sub = nv_refsub(np);
 				np = nv_refnode(np);
@@ -2107,7 +2107,7 @@ retry2:
 			mac_error();
 		}
 	}
-	else if(var && sh_isoption(SH_NOUNSET) && type<=M_TREE && (!np  || nv_isnull(np) || (nv_isarray(np) && !np->nvalue.cp)))
+	else if(var && sh_isoption(SH_NOUNSET) && type<=M_TREE && (!np  || nv_isnull(np) || (nv_isarray(np) && !np->nvalue)))
 	{
 		if(np)
 		{
@@ -2202,11 +2202,11 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 	}
 	else
 	{
-		while(fcgetc(c)!='`' && c)
+		while((c = fcgetc()) && c != '`')
 		{
 			if(c==ESCAPE)
 			{
-				fcgetc(c);
+				c = fcgetc();
 				if(!(isescchar(sh_lexstates[ST_QUOTE][c]) ||
 				  (c=='"' && mp->quote)))
 					sfputc(stkp,ESCAPE);
@@ -2240,7 +2240,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 			struct checkpt buff;
 			struct ionod *ip=0;
 			sh_pushcontext(&buff,SH_JMPIO);
-			if((ip=t->tre.treio) && 
+			if((ip=t->tre.treio) &&
 				((ip->iofile&IOLSEEK) || !(ip->iofile&IOUFD)) &&
 				(r=sigsetjmp(buff.buff,0))==0)
 				fd = sh_redirect(ip,3);
@@ -2290,7 +2290,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, int type)
 	sh_offstate(SH_INTERACTIVE);
 	if((foff = sfseek(sp,0,SEEK_END)) > 0)
 	{
-		size_t soff = stktell(stkp); 
+		size_t soff = stktell(stkp);
 		sfseek(sp,0,SEEK_SET);
 		stkseek(stkp,soff+foff+64);
 		stkseek(stkp,soff);
@@ -2708,7 +2708,7 @@ static int	charlen(const char *string,int len)
 static void tilde_expand2(int offset)
 {
 	char		*cp = NULL;			/* character pointer for tilde expansion result */
-	char		*stakp = stkptr(sh.stk,0);	/* current stack object (&stakp[offset] is tilde string) */
+	char		*tp = stkptr(sh.stk,offset);	/* pointer to tilde string */
 	int		curoff = stktell(sh.stk);	/* current offset of current stack object */
 	sfputc(sh.stk,0);				/* terminate current stack object to avoid data corruption */
 	/*
@@ -2717,7 +2717,7 @@ static void tilde_expand2(int offset)
 	if(!sh.tilde_block && SH_TILDENOD->nvfun && SH_TILDENOD->nvfun->disc)
 	{
 		sh.tilde_block = 1;
-		nv_putval(SH_TILDENOD, &stakp[offset], 0);
+		nv_putval(SH_TILDENOD, tp, 0);
 		cp = nv_getval(SH_TILDENOD);
 		sh.tilde_block = 0;
 		if(cp[0]=='\0' || cp[0]=='~')
@@ -2728,7 +2728,7 @@ static void tilde_expand2(int offset)
 	 * Write the result to the stack, if any.
 	 */
 	if(!cp)
-		cp = sh_tilde(&stakp[offset]);
+		cp = sh_tilde(tp);
 	if(cp)
 	{
 		stkseek(sh.stk,offset);
@@ -2776,7 +2776,7 @@ static char *sh_tilde(const char *string)
 		return cp;
 	}
 #if _WINIX
-	if(fcgetc(c)=='/')
+	if((c = fcgetc())=='/')
 	{
 		char	*str;
 		int	n=0,offset=stktell(sh.stk);
@@ -2786,7 +2786,7 @@ static char *sh_tilde(const char *string)
 			sfputc(sh.stk,c);
 			n++;
 		}
-		while (fcgetc(c) && c!='/');
+		while ((c = fcgetc()) && c!='/');
 		sfputc(sh.stk,0);
 		if(c)
 			fcseek(-1);
@@ -2887,7 +2887,7 @@ static noreturn void mac_error(void)
  * Given pattern/string, replace / with 0 and return pointer to string
  * \ characters are stripped from string.  The \ are stripped in the
  * replacement string unless followed by a digit or \.
- */ 
+ */
 static char *mac_getstring(char *pattern)
 {
 	char	*cp = pattern, *rep = NULL, *dp = NULL;

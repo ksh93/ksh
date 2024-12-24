@@ -480,7 +480,7 @@ loop_fmt :
 					size = sizeof(char);
 				else if(flags&SFFMT_TFLAG)
 					size = sizeof(ptrdiff_t);
-				else if(flags&SFFMT_ZFLAG) 
+				else if(flags&SFFMT_ZFLAG)
 					size = sizeof(size_t);
 				else if(flags&(SFFMT_LLONG|SFFMT_JFLAG) )
 					size = sizeof(Sflong_t);
@@ -758,13 +758,13 @@ loop_fmt :
 					}
 				}
 				if(n < 0 && (flags & SFFMT_CHOP) && width > 0 && precis < 0)
-				{	
+				{
 #if _has_multibyte
 					if(flags & SFFMT_LONG)
 					{	SFMBCLR(&mbs);
 						wsp = (wchar_t*)sp;
 						while(n < 0)
-						{	
+						{
 							int	wd;
 							if ((wd = mbwidth(*wsp)) > 0)
 								n += wd;
@@ -1246,7 +1246,7 @@ loop_fmt :
 			{	if((n = decpt - 1) < 0)
 					n = -n;
 				while(n > 9)
-				{	v = n; n /= 10;	
+				{	v = n; n /= 10;
 					*--ep = (char)('0' + (v - n*10));
 				}
 			}

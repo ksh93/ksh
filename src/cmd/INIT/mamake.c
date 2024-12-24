@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2024-11-23"
+#define RELEASE_DATE "2024-12-03"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -582,7 +582,7 @@ static Dict_item_t *search(Dict_t *dict, char *name, int create)
 		if (!(cmp = strcmp(name, root->name)))
 			break;
 		else if (cmp < 0)
-		{	
+		{
 			if (root->left && (cmp = strcmp(name, root->left->name)) <= 0)
 			{
 				/* rotate(left, right) */
@@ -602,7 +602,7 @@ static Dict_item_t *search(Dict_t *dict, char *name, int create)
 			right->left = NULL;
 		}
 		else
-		{	
+		{
 			if (root->right && (cmp = strcmp(name, root->right->name)) >= 0)
 			{
 				/* rotate(right, left) */
@@ -1663,7 +1663,7 @@ static void run(Rule_t *r, char *s)
 		if (x && state.shim)
 		{
 			/* Also subject the user-set shim to viewpathing
-			 * (plus other code preprended above, but it should not contain anything viewpathable) */
+			 * (plus other code prepended above, but it should not contain anything viewpathable) */
 			char	*pre = use(buf);
 			size_t	n = strlen(pre);
 			if (!(tofree = malloc(n + strlen(s) + 1)))
@@ -1759,6 +1759,25 @@ static void run(Rule_t *r, char *s)
 }
 
 /*
+ * include file in rule r
+ */
+
+static int include(Rule_t *r, Makestate_t *stp, char *file, int pushflags)
+{
+	int	rv;
+	if (rv = push(file, NULL, pushflags))
+	{
+		report(-1, file, "include", NULL);
+		state.indent++;
+		make(r, stp);
+		state.indent--;
+		report(-1, file, "end of", NULL);
+		pop();
+	}
+	return rv;
+}
+
+/*
  * generate (if necessary) and read the MAM probe information
  * done on the first `setv CC ...'
  */
@@ -1803,7 +1822,7 @@ static void probe(Rule_t *r, Makestate_t *stp)
 	s = use(buf);
 	/* generate probe info if it is nonexistent or older than mamprobe */
 	output_time = stat(s, &st) ? 0 : st.st_mtime;
-	if (output_time < cmd_time || !push(s, NULL, 0))
+	if (output_time < cmd_time || !include(r, stp, s, 0))
 	{
 		Buf_t	*tmp = buffer();
 		append(tmp, cmd);
@@ -1814,13 +1833,10 @@ static void probe(Rule_t *r, Makestate_t *stp)
 		if (execute(NULL, use(tmp)))
 			error_out("cannot generate probe info", s);
 		drop(tmp);
-		if (!push(s, NULL, 0))
-			error_out("cannot read probe info", s);
+		include(r, stp, s, STREAM_MUST);
 	}
 	free(cmd);
 	drop(buf);
-	make(r, stp);
-	pop();
 }
 
 /*
@@ -2142,6 +2158,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			}
 			if (s = require(t, !strcmp(v, "dontcare")))
 			{
+				char *s1, *s2, *s3;
 				char *libname = t + 2;
 				/*
 				 * bind to the *.a files that require() just derived from $INSTALLROOT/lib/lib/NAME
@@ -2191,25 +2208,22 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 					continue;
 				}
 				/* otherwise, include the rules file if it exists */
+				/* save automatic variables */
+				s1 = auto_prev->value, s2 = auto_allprev->value, s3 = auto_updprev->value;
+				auto_prev->value = auto_allprev->value = auto_updprev->value = empty;
+				/* read the file */
 				append(buf, state.installroot);
 				append(buf, "/lib/mam/");
 				append(buf, libname);
-				s = use(buf);
-				if (push(s, NULL, 0))
-				{
-					char *s1 = auto_prev->value, *s2 = auto_allprev->value, *s3 = auto_updprev->value;
-					auto_prev->value = auto_allprev->value = auto_updprev->value = empty;
-					report(-1, s, "bind: include", NULL);
-					make(r, &st);
-					if (auto_prev->value != empty)
-						free(auto_prev->value);
-					if (auto_allprev->value != empty)
-						free(auto_allprev->value);
-					if (auto_updprev->value != empty)
-						free(auto_updprev->value);
-					auto_prev->value = s1, auto_allprev->value = s2, auto_updprev->value = s3;
-					pop();
-				}
+				include(r, &st, use(buf), 0);
+				/* restore automatic variables */
+				if (auto_prev->value != empty)
+					free(auto_prev->value);
+				if (auto_allprev->value != empty)
+					free(auto_allprev->value);
+				if (auto_updprev->value != empty)
+					free(auto_updprev->value);
+				auto_prev->value = s1, auto_allprev->value = s2, auto_updprev->value = s3;
 			}
 			continue;
 
@@ -2219,7 +2233,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			{
 				/* loop block done */
 				if (*t)
-					error_out("superflous arguments", u);
+					error_out("syntax error", u);
 				break;
 			}
 			/* make block done */
@@ -2292,6 +2306,21 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				if (*state.shim == '\n' && !state.shim[1])
 					state.shim = NULL;
 			}
+			continue;
+
+		case KEY('i','n','c','l'):
+			if (!*t || *v)
+				error_out("syntax error", u);
+			if (!strchr(t,'/'))
+			{
+				if (include(r, &st, t, 0))
+					continue;
+				append(buf, state.packageroot);
+				append(buf, "/src/cmd/INIT/include/");
+				append(buf, t);
+				t = use(buf);
+			}
+			include(r, &st, t, STREAM_MUST);
 			continue;
 
 		case KEY('l','o','o','p'):
@@ -3068,7 +3097,7 @@ int main(int argc, char **argv)
 	 */
 
 	if (SA_RESTART && state.maxjobs > 1)
-	{	
+	{
 		struct sigaction act;
 		sigemptyset(&empty_sigmask);
 		act.sa_handler = sigchld_dummy;

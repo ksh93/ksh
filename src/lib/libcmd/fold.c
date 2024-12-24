@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -47,8 +47,8 @@ static const char usage[] =
 		"column position \an\a, where \an\a modulo 8 equals 1.]"
 	"}"
 "[+?If no \afile\a is given, or if the \afile\a is \b-\b, \bfold\b "
-        "reads from standard input.   The start of the file is defined "
-        "as the current offset.]"
+	"reads from standard input.   The start of the file is defined "
+	"as the current offset.]"
 
 "[b:bytes?Count bytes rather than columns so that each carriage-return, "
 	"backspace, and tab counts as 1.]"
@@ -98,7 +98,7 @@ static void fold(Sfio_t *in, Sfio_t *out, int width, const char *cont, size_t co
 			x = cp[--n];
 			cp[n] = '\n';
 		}
-		/* special case -b since no column adjustment is needed */ 
+		/* special case -b since no column adjustment is needed */
 		if(cols['\b']==0 && (n=sfvalue(in))<=width)
 		{
 			sfwrite(out,cp,n);
@@ -133,7 +133,7 @@ static void fold(Sfio_t *in, Sfio_t *out, int width, const char *cont, size_t co
 				col = 0;
 				continue;
 			    case T_BS:
-				if((cp+(--col)-first)>0) 
+				if((cp+(--col)-first)>0)
 					col--;
 				continue;
 			    case T_TAB:

@@ -61,9 +61,9 @@ static const char usage[] =
 "\n[infile [outfile]]\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?Successful completion.]"
-        "[+>0?An error occurred.]"
-"}"   
+	"[+0?Successful completion.]"
+	"[+>0?An error occurred.]"
+"}"
 "[+SEE ALSO?\bksh\b(1)]"
 ;
 
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 #endif
 	sh.inlineno = 1;
 #if SHOPT_BRACEPAT
-        sh_onoption(SH_BRACEEXPAND);
+	sh_onoption(SH_BRACEEXPAND);
 #endif
 	error_info.id = script_id;
 	while(1)

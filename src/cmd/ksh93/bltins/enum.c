@@ -18,7 +18,7 @@
 #include	"shopt.h"
 #include	"defs.h"
 
-#define ENUM_ID "enum (ksh 93u+m) 2022-03-05"
+#define ENUM_ID "enum (ksh 93u+m) 2024-11-28"
 
 const char sh_optenum[] =
 "[-?\n@(#)$Id: " ENUM_ID " $\n]"
@@ -30,7 +30,7 @@ const char sh_optenum[] =
 	"For example, \benum bool=(false true)\b creates a Boolean variable "
 	"type of which variables may be declared like \bbool x=true y=false\b.]"
 "[+?If the list of \avalue\as is omitted, then \atypename\a must name an "
-    "indexed array variable with at least two elements.]" 
+    "indexed array variable with at least two elements.]"
 "[+?For more information, create a type, then use \atypename\a \b--man\b.]"
 "[+USE IN ARITHMETIC EXPRESSIONS?When an enumeration variable is used in an "
 	"arithmetic expression, its value is the index into the array that "
@@ -48,8 +48,8 @@ const char sh_optenum[] =
 "\n"
 "[+EXIT STATUS]"
     "{"
-        "[+0?Successful completion.]"
-        "[+>0?An error occurred.]"
+	"[+0?Successful completion.]"
+	"[+>0?An error occurred.]"
     "}"
 "[+SEE ALSO?\bksh\b(1), \btypeset\b(1).]"
 ;
@@ -69,30 +69,30 @@ static const char enum_type[] =
 	"It is an error for an arithmetic expression to assign a value "
 	"outside of that range. Decimal fractions are ignored.]"
 "[+?If no \aname\as are specified then the names and values of all "
-        "variables of this type are written to standard output.]"
+	"variables of this type are written to standard output.]"
 "[+?\b\f?\f\b is built in to the shell as a declaration command so that "
-        "field splitting and pathname expansion are not performed on "
-        "the arguments. Tilde expansion occurs on \avalue\a.]"
+	"field splitting and pathname expansion are not performed on "
+	"the arguments. Tilde expansion occurs on \avalue\a.]"
 "[r?Enables readonly. Once enabled, the value cannot be changed or unset.]"
 "[a?Indexed array. Each \aname\a is converted to an indexed "
-        "array of type \b\f?\f\b. If a variable already exists, the current "
-        "value will become index \b0\b.]"
+	"array of type \b\f?\f\b. If a variable already exists, the current "
+	"value will become index \b0\b.]"
 "[A?Associative array. Each \aname\a is converted to an associative "
-        "array of type \b\f?\f\b. If a variable already exists, the current "
-        "value will become subscript \b0\b.]"
+	"array of type \b\f?\f\b. If a variable already exists, the current "
+	"value will become subscript \b0\b.]"
 "[h]:[string?Used within a type definition to provide a help string  "
-        "for variable \aname\a. Otherwise, it is ignored.]"
+	"for variable \aname\a. Otherwise, it is ignored.]"
 "[S?Used with a type definition to indicate that the variable is shared by "
-        "each instance of the type. When used inside a function defined "
-        "with the \bfunction\b reserved word, the specified variables "
-        "will have function static scope. Otherwise, the variable is "
-        "unset prior to processing the assignment list.]"
+	"each instance of the type. When used inside a function defined "
+	"with the \bfunction\b reserved word, the specified variables "
+	"will have function static scope. Otherwise, the variable is "
+	"unset prior to processing the assignment list.]"
 "\n"
 "\n[name[=value]...]\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?Successful completion.]"
-        "[+>0?An error occurred.]"
+	"[+0?Successful completion.]"
+	"[+>0?An error occurred.]"
 "}"
 
 "[+SEE ALSO?\benum\b(1), \btypeset\b(1)]"
@@ -293,7 +293,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 		memset(&optdisc,0,sizeof(optdisc));
 		optdisc.opt.infof = enuminfo;
 		optdisc.np = tp;
-		nv_addtype(tp, enum_type, &optdisc.opt, sizeof(optdisc)); 
+		nv_addtype(tp, enum_type, &optdisc.opt, sizeof(optdisc));
 	}
 	return error_info.errors != 0;
 }

@@ -62,7 +62,7 @@
 #define ZONE		(1L<<20)
 
 #define FFMT		"%s%s%s%s%s%s%s|"
-#define	FLAGS(f)	(f&EXACT)?"|EXACT":"",(f&LAST)?"|LAST":"",(f&THIS)?"|THIS":"",(f&NEXT)?"|NEXT":"",(f&ORDINAL)?"|ORDINAL":"",(f&FINAL)?"|FINAL":"",(f&WORK)?"|WORK":""
+#define FLAGS(f)	(f&EXACT)?"|EXACT":"",(f&LAST)?"|LAST":"",(f&THIS)?"|THIS":"",(f&NEXT)?"|NEXT":"",(f&ORDINAL)?"|ORDINAL":"",(f&FINAL)?"|FINAL":"",(f&WORK)?"|WORK":""
 /*
  * parse cron range into set
  * return: -1:error 0:* 1:some
@@ -1225,7 +1225,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						continue;
 					case TM_NEXT:
 						/*
-						 * disambiguate english "last ... in" 
+						 * disambiguate english "last ... in"
 						 */
 
 						if (!((state|set) & LAST))

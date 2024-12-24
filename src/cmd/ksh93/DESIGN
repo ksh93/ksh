@@ -115,7 +115,7 @@ sh directory:
 	8.	fcin.c contains code for reading and writing a character
 		at a time from a file or string.
 	9.	init.c contains initialization code and callbacks
-		for get and set functions for built-in variables.	
+		for get and set functions for built-in variables.
 	10.	io.o contains code for redirections and managing file
 		descriptors and file streams.
 	11.	jobs.c contains the code for job management.

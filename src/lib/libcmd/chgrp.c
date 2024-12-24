@@ -235,7 +235,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	before = ~0;
 	if (!(sp = sfstropen()))
 	{
-		error(ERROR_SYSTEM|3, "out of space");
+		error(ERROR_SYSTEM|3, "out of memory");
 		UNREACHABLE();
 	}
 	sfputr(sp, usage_1, -1);
@@ -254,7 +254,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	sfputr(sp, usage_3, -1);
 	if (!(usage = sfstruse(sp)))
 	{
-		error(ERROR_SYSTEM|3, "out of space");
+		error(ERROR_SYSTEM|3, "out of memory");
 		UNREACHABLE();
 	}
 	for (;;)

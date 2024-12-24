@@ -140,28 +140,25 @@ The function \fIfn\fP will be called with argument \f3-1\fP before
 the shell exits.
 .PD
 .PP
-The \f3Shell_t\fP structure contains the following fields:
+The \f3Shell_t\fP structure contains the following public members:
 .nf
 .ft 5
-	Shopt_t         \fIoptions\fP;        \fR/* set -o options */\fP
-	Dt_t            *\fIvar_tree\fP;      \fR/* shell variable dictionary */\fP
-	Dt_t            *\fIfun_tree\fP;      \fR/* shell function dictionary */\fP
-	Dt_t            *\fIalias_tree\fP;    \fR/* shell alias dictionary */\fP
-	Dt_t            *\fIbltin_tree\fP;    \fR/* shell built-in command dictionary */\fP
-	Dt_t            *\fItrack_tree\fP;    \fR/* shell hash table (tracked alias dictionary) */\fP
-	Shscope_t       *\fItopscope\fP;      \fR/* pointer to top-level scope */\fP
-	int             \fIinlineno\fP;       \fR/* line number of current input file */\fP
-	int             \fIexitval\fP;        \fR/* exit status of the command currently being run */\fP
-	int             \fIsavexit\fP;        \fR/* $? == exit status of the last command executed */\fP
+    Shopt_t   \fIoptions\fP;     \fR/* set -o options */\fP
+    Dt_t      *\fIvar_tree\fP;   \fR/* shell variable dictionary */\fP
+    Dt_t      *\fIfun_tree\fP;   \fR/* shell function dictionary */\fP
+    Dt_t      *\fIalias_tree\fP; \fR/* shell alias dictionary */\fP
+    Dt_t      *\fIbltin_tree\fP; \fR/* shell built-in command dictionary */\fP
+    Dt_t      *\fItrack_tree\fP; \fR/* shell hash table (tracked aliases) */\fP
+    Shscope_t *\fItopscope\fP;   \fR/* pointer to top-level scope */\fP
+    int       \fIinlineno\fP;    \fR/* line number of current input file */\fP
+    int       \fIexitval\fP;     \fR/* exit status of the current command */\fP
+    int       \fIsavexit\fP;     \fR/* exit status of the last command */\fP
 .ft R
 .fi
 As of ksh 93u+m, it is once again officially supported to access this
 structure directly as \f3sh\fP. In addition, a pointer to
 this structure is returned by \f3sh_init()\fP but can also be retrieved
 by a call to \f3sh_getinterp()\fP.
-There are other fields not documented here, but they should be considered
-unstable and subject to change between releases; programs using libshell
-should not rely on them.
 .PP
 All built-in commands to the shell are invoked with
 three arguments.  The first two arguments give the
@@ -315,11 +312,15 @@ provides an interface to some of the information that
 is available on each scope.  The structure contains
 the following public members:
 .nf
-      \f3Sh_scope_t      *par_scope;\fP
-      \f3int             argc;\fP
-      \f3char            **argv;\fP
-      \f3char            *cmdname;\fP
-      \f3Dt_t            *var_tree;\fP
+    Shscope_t *\fIpar_scope;\fP \fR/* pointer to parent scope */\fP
+    int       \fIargc;\fP       \fR/* number of arguments */\fP
+    char      **\fIargv;\fP     \fR/* array of arguments */\fP
+    char      *\fIcmdname;\fP   \fR/* command name */\fP
+    char      *\fIfilename;\fP  \fR/* file name */\fP
+    char      *\fIfunname;\fP   \fR/* function name */\fP
+    int       \fIlineno;\fP     \fR/* current script line number */\fP
+    Dt_t      *\fIvar_tree;\fP  \fR/* function's variables dictionary */\fP
+    Shscope_t *\fIself;\fP      \fR/* pointer to copy of this scope */\fP
 .fi
 .PP
 The \f3sh_getscope()\fP function can be used to get the

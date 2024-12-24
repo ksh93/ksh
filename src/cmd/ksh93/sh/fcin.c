@@ -161,5 +161,5 @@ int _fcmbget(short *len)
 		c = mbchar(_Fcin.fcptr);
 	}
 	return c;
-} 
+}
 #endif /* SHOPT_MULTIBYTE */

@@ -310,7 +310,7 @@ status=$($SHELL -c $'trap \'print $?\' ERR;/dev/null 2> /dev/null')
 
 # universe via PATH
 
-if builtin getconf 2> /dev/null; then
+if ((!SHOPT_ECHOPRINT)) && builtin getconf 2> /dev/null; then
 	getconf UNIVERSE - att # override sticky default 'UNIVERSE = foo'
 
 	[[ $(PATH=/usr/ucb/bin:/usr/bin echo -n ucb) == 'ucb' ]] || err_exit "ucb universe echo ignores -n option"
@@ -621,20 +621,20 @@ expect="printf is a function
 printf is a shell builtin
 $(all_paths printf | sed 's/^/printf is /')"
 [[ $actual == "$expect" ]] || err_exit "'whence -a': incorrect output for function+builtin" \
-        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 actual=$(autoload printf; whence -a printf)
 expect="printf is an undefined function
 printf is a shell builtin
 $(all_paths printf | sed 's/^/printf is /')"
 [[ $actual == "$expect" ]] || err_exit "'whence -a': incorrect output for autoload+builtin" \
-        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # 'whence -v' canonicalized paths improperly: https://github.com/ksh93/ksh/issues/84
 cmdpath=${ whence -p printf; }
 actual=$(cd /; whence -v "${cmdpath#/}")
 expect="${cmdpath#/} is $cmdpath"
 [[ $actual == "$expect" ]] || err_exit "'whence -v': incorrect canonicalization of initial /" \
-        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 dotdot=
 num=$(set -f; IFS=/; set -- $PWD; echo $#)
 for ((i=1; i<num; i++))
@@ -643,7 +643,7 @@ done
 actual=$(cd /; whence -v "$dotdot${cmdpath#/}")
 expect="$dotdot${cmdpath#/} is $cmdpath"
 [[ $actual == "$expect" ]] || err_exit "'whence -v': incorrect canonicalization of pathname containing '..'" \
-        "(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # even absolute paths should be canonicalized
 if	[[ -x /usr/bin/env && -d /usr/lib ]]	# even NixOS has this...
@@ -986,7 +986,7 @@ cd "$tmp"
 got=$(unset PWD; "$SHELL" -c 'echo "$PWD"; pwd; cd emptydir' 2>&1)
 exp=$PWD$'\n'$PWD
 [[ $got == "$exp" ]] || err_exit "child shell failed to obtain PWD" \
-        "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # Test backported from ksh93v- 2013-06-28 for deleting
@@ -1036,6 +1036,18 @@ got=${ type -t whence_t_test 2>&1; }
 ) >/dev/null 2>&1
 (((e = $?) > 1)) && err_exit 'getconf builtin fails when on same path as external getconf' \
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+
+# ======
+# POSIX.1-2024: If the exec command fails ... an interactive shell may exit from a
+#               subshell environment but shall not exit if the current shell environment
+#               is not a subshell environment.
+# https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html#tag_19_21
+if((!SHOPT_SCRIPTONLY));then
+exp=0
+output=$($SHELL -ic $'PATH=/dev/null exec notacommand\nexit 0' 2>&1)
+got=$?
+((got==exp)) || err_exit "interactive shells exit after exec(1) fails to run a command (expected status '$exp', got status '$got' with output $(printf %q "$output"))"
+fi # !SHOPT_SCRIPTONLY
 
 # ======
 exit $((Errors<125?Errors:125))

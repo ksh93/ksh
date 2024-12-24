@@ -28,7 +28,7 @@ cc=$bin/xlc
 
 ccflags="-brtl -qhalt=e -qsuppress=1506-224:1506-507"
 case " $@ " in
-*" -G "*)      
+*" -G "*)
 	ccflags="$ccflags -berok"
 	;;
 esac

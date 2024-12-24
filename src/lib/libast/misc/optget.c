@@ -4124,7 +4124,7 @@ optusage(const char* opts)
  * 0x.* or <base>#* for alternate bases
  */
 
-static intmax_t     
+static intmax_t
 optnumber(const char* s, char** t, int* e)
 {
 	intmax_t	n;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -99,7 +99,7 @@ aso_init_semaphore(void* data, const char* details)
 		}
 	key = (!path || !*path || streq(path, "private")) ? IPC_PRIVATE : (strsum(path, 0) & 0x7fff);
 	for (;;)
-	{	
+	{
 		if ((id = semget(key, size, IPC_CREAT|IPC_EXCL|perm)) >= 0)
 		{
 			/*
@@ -111,7 +111,7 @@ aso_init_semaphore(void* data, const char* details)
 			sem.sem_flg = 0;
 			for (sem.sem_num = 0; sem.sem_num < size; sem.sem_num++)
 				if (semop(id, &sem, 1) < 0)
-				{	
+				{
 					(void)semctl(id, 0, IPC_RMID);
 					return NULL;
 				}
@@ -122,7 +122,7 @@ aso_init_semaphore(void* data, const char* details)
 		else if (errno != EEXIST)
 			return NULL;
 		else if ((id = semget(key, size, perm)) >= 0)
-		{	
+		{
 			struct semid_ds	ds;
 			Semun_t		arg;
 			unsigned int	k;
@@ -133,7 +133,7 @@ aso_init_semaphore(void* data, const char* details)
 
 			arg.ds = &ds;
 			for (k = 0; k < SPIN; ASOLOOP(k))
-			{	
+			{
 				if (semctl(id, size-1, IPC_STAT, arg) < 0)
 					return NULL;
 				if (ds.sem_otime)

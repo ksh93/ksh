@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -46,10 +46,10 @@ typedef struct _fcin
 #   define fcmbget(x)	(fcget())
 #endif
 #define fcfile()	(_Fcin._fcfile)
-#define fcgetc(c)	(((c=fcget()) || (c=fcfill())), c)
-#define	fcget()		((int)(*_Fcin.fcptr++))
-#define	fcpeek(n)	((int)_Fcin.fcptr[n])
-#define	fcseek(n)	((char*)(_Fcin.fcptr+=(n)))
+#define fcgetc()	(*_Fcin.fcptr++ ? (int)_Fcin.fcptr[-1] : fcfill())
+#define fcget()		((int)(*_Fcin.fcptr++))
+#define fcpeek(n)	((int)_Fcin.fcptr[n])
+#define fcseek(n)	((char*)(_Fcin.fcptr+=(n)))
 #define fcfirst()	((char*)_Fcin.fcbuff)
 #define fclast()	((char*)_Fcin.fclast)
 #define fcleft()	(_Fcin.fclast-_Fcin.fcptr)

@@ -278,8 +278,9 @@ then	s=${SHELL:##*sh}
 fi
 
 # when testing a shell outside of INSTALLROOT, make sure libraries in INSTALLROOT are not loaded
+# The variables unset below should be the same ones that are set for 'test' or 'use' in bin/package
 if	! [[ ${SHELL%/*} -ef $INSTALLROOT/bin || ${SHELL%/*} -ef $INSTALLROOT/dyn/bin ]]
-then	unset -v LD_LIBRARY_PATH LIBPATH SHLIB_PATH DYLD_LIBRARY_PATH _RLD_ROOT
+then	unset -v LD_LIBRARY_PATH LIBPATH SHLIB_PATH DYLD_LIBRARY_PATH LIBRARY_PATH C_INCLUDE_PATH
 fi
 
 tmp=$(

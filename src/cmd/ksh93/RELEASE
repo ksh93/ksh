@@ -786,7 +786,7 @@ ____
 	  are treated as a shell pattern and cause matching lines from the
 	  history file to be displayed as a numbered list as you type.
 	  You can scroll up and down this list or you can use <ESC>nTAB
-	  to make this the current line (n defaults to 1 of omitted) or
+	  to make this the current line (n defaults to 1 if omitted) or
 	  <ESC>n<cr> to execute.
 10-05-20  A bug which caused an exception when multiple levels of composite
 	  functions in arithmetic expressions has been fixed.

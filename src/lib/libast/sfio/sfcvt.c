@@ -129,7 +129,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 	{	Sfdouble_t	f = *(Sfdouble_t*)vp;
 
 		if(isnanl(f))
-		{	
+		{
 #if _lib_signbit
 			if (signbit(f))
 #else
@@ -140,7 +140,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 #if _lib_isinf
 		if (n = isinf(f))
-		{	
+		{
 #if _lib_signbit
 			if (signbit(f))
 #else
@@ -245,7 +245,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 
 		if((ep = (sp+n)) > (endsp = buf+(size-2)))
-			ep = endsp; 
+			ep = endsp;
 		if(sp > ep)
 			sp = ep;
 		else
@@ -279,7 +279,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 	{	double	f = *(double*)vp;
 
 		if(isnan(f))
-		{	
+		{
 #if _lib_signbit
 			if (signbit(f))
 #else
@@ -290,7 +290,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 #if _lib_isinf
 		if (n = isinf(f))
-		{	
+		{
 #if _lib_signbit
 			if (signbit(f))
 #else
@@ -393,7 +393,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		}
 
 		if((ep = (sp+n)) > (endsp = buf+(size-2)))
-			ep = endsp; 
+			ep = endsp;
 		if(sp > ep)
 			sp = ep;
 		else

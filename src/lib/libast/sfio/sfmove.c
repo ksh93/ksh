@@ -30,7 +30,7 @@
 
 Sfoff_t sfmove(Sfio_t*	fr,	/* moving data from this stream */
 	       Sfio_t*	fw,	/* moving data to this stream */
-               Sfoff_t	n,	/* number of bytes/records to move. <0 for unbounded move */
+	       Sfoff_t	n,	/* number of bytes/records to move. <0 for unbounded move */
 	       int	rc)	/* record separator */
 {
 	uchar		*cp, *next;

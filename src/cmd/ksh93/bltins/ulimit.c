@@ -57,7 +57,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 			sfprintf(sp, " in %ss", e_units[tp->type]);
 		sfprintf(sp, ".]");
 	}
-        return 1;
+	return 1;
 }
 
 #define HARD	2
@@ -76,11 +76,11 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	int label, unit, nosupport, ret=0;
 	rlim_t i=0;
 	char tmp[41];
-        Optdisc_t disc;
-        NOT_USED(context);
-        memset(&disc, 0, sizeof(disc));
-        disc.version = OPT_VERSION;
-        disc.infof = infof;
+	Optdisc_t disc;
+	NOT_USED(context);
+	memset(&disc, 0, sizeof(disc));
+	disc.version = OPT_VERSION;
+	disc.infof = infof;
 	opt_info.disc = &disc;
 	while((n = optget(argv,sh_optulimit))) switch(n)
 	{

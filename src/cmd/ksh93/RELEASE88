@@ -135,7 +135,7 @@ of ksh.
 	then ${foo.bar} is equivalent to ${.top.bar}.  When used as the
 	index of a for or select loop, each assignment causes a
 	new name reference to occur.
-	
+
     l.	The KEYBD trap has been added which is triggered when a key
 	or escape sequence is typed while reading from the keyboard
 	in an edit mode.  This, combined with some new variables
@@ -220,7 +220,7 @@ of ksh.
 	2.  Functions declared as function name, preserve the old ksh
 	    semantics can be also used as the first argument to the dot (.)
 	    command to have them executed in a dot script environment.
-	
+
     c.	The command search rules have changed as follows:
 	1.  Special built-ins (those with a dagger in front of them) are
 	    executed first.
@@ -315,7 +315,7 @@ of ksh.
 	    timeout after n seconds when reading from a slow device.
 	3.  A -d char option has been added which causes the read
 	    to terminate at char rather than at new-line.
-	
+
     n.	The trap command has been changed as follows:
 	1.  Trap names can be either upper case or lower case.
 	2.  Trap -p only causes the specified trap values to be displayed.
@@ -409,7 +409,7 @@ of ksh.
     e.	There are far fewer global names.  This should make it
 	must easier to add built-in commands without worrying
 	about conflicts.
-		
+
     f.	The code uses the sfio library which makes it possible
 	to mix with stdio.
 

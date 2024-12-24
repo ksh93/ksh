@@ -112,7 +112,7 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 			if(r == (ssize_t)n && (r = SFRD(f,s,r,f->disc)) >= 0)
 			{	s += r;
 				n -= r;
-				if(r == 0 || n == 0) /* eof or eob */ 
+				if(r == 0 || n == 0) /* eof or eob */
 					break;
 			}
 			else	goto do_filbuf;

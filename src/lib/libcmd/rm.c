@@ -263,7 +263,7 @@ rm(State_t* state, FTSENT* ent)
 		{
 			if ((v = astquery(-1, "override protection %s for %s? ",
 #ifdef ETXTBSY
-				errno == ETXTBSY ? "``running program''" : 
+				errno == ETXTBSY ? "``running program''" :
 #endif
 				ent->fts_statp->st_uid != state->uid ? "``not owner''" :
 				fmtmode(ent->fts_statp->st_mode & S_IPERM, 0) + 1, ent->fts_path)) < 0 ||

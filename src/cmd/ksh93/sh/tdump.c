@@ -28,7 +28,6 @@
 #include	"shnodes.h"
 #include	"path.h"
 #include	"io.h"
-#include	<ccode.h>
 
 static int p_comlist(const struct dolnod*);
 static int p_arg(const struct argnod*);
@@ -44,19 +43,6 @@ int sh_tdump(Sfio_t *out, const Shnode_t *t)
 {
 	outfile = out;
 	return p_tree(t);
-}
-
-/*
- *  convert to ASCII to write and back again if needed
- */
-static int outstring(Sfio_t *out, const char *string, int n)
-{
-	int r;
-	char *cp = (char*)string;
-	ccmaps(cp, n, CC_NATIVE, CC_ASCII);
-	r = sfwrite(out,cp,n);
-	ccmaps(cp, n, CC_ASCII, CC_NATIVE);
-	return r;
 }
 
 /*
@@ -169,10 +155,10 @@ static int p_arg(const struct argnod *arg)
 		if(fp)
 		{
 			sfputc(outfile,0);
-			outstring(outfile,fp->fornam,n-1);
+			sfwrite(outfile,fp->fornam,n-1);
 		}
 		else
-			outstring(outfile,arg->argval,n);
+			sfwrite(outfile,arg->argval,n);
 		sfputc(outfile,arg->argflag);
 		if(fp)
 		{
@@ -259,5 +245,5 @@ static int p_string(const char *string)
 	size_t n=strlen(string);
 	if(sfputu(outfile,n+1)<0)
 		return -1;
-	return outstring(outfile,string,n);
+	return sfwrite(outfile,string,n);
 }

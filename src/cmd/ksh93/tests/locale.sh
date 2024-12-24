@@ -315,7 +315,7 @@ unset LC_ALL LC_MESSAGES
 export LANG=debug
 function message
 {
-        print -r $"An error occurred."
+	print -r $"An error occurred."
 }
 exp=$'(libshell,3,46)\nAn error occurred.\n(libshell,3,46)'
 alt=$'(debug,message,libshell,An error occurred.)\nAn error occurred.\n(debug,message,libshell,An error occurred.)'
@@ -347,7 +347,7 @@ x=$"hello"
 	print 'cat << \\EOF'
 	for ((i=1; i < 164; i++))
 	do	print 123456789+123456789+123456789+123456789+123456789
-	done 
+	done
 	print $'next character is multibyte<2b|>c<3d|\>foo'
 	for ((i=1; i < 10; i++))
 	do	print 123456789+123456789+123456789+123456789+123456789

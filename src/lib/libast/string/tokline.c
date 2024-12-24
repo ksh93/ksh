@@ -143,7 +143,7 @@ spliceline(Sfio_t* s, int op, void* val, Sfdisc_t* ad)
 /*
  * open a stream to parse lines
  *
- *	flags: 0		arg: open Sfio_t* 
+ *	flags: 0		arg: open Sfio_t*
  *	flags: SFIO_READ		arg: file name
  *	flags: SFIO_STRING	arg: null-terminated char*
  *

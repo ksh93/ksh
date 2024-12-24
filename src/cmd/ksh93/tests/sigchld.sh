@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -132,8 +132,8 @@ trap '' CHLD
 integer d
 for ((d=0; d < 2000; d++))
 do      if      print foo | grep bar
-        then    break 
-        fi
+	then    break
+	fi
 done
 (( d==2000 )) ||  err_exit "trap '' CHLD causes side effects d=$d"
 trap - CHLD

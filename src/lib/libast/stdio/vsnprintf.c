@@ -27,7 +27,7 @@ vsnprintf(char* s, int n, const char* form, va_list args)
 
 	/* make a temp stream */
 	if(!(f = sfnew(NULL,NULL,(size_t)SFIO_UNBOUND,
-                        -1,SFIO_WRITE|SFIO_STRING)) )
+			-1,SFIO_WRITE|SFIO_STRING)) )
 		return -1;
 
 	if((rv = sfvprintf(f,form,args)) >= 0 )

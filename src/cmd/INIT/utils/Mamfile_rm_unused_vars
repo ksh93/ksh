@@ -20,7 +20,7 @@ IFS=$CCn; for varname in $vars; do IFS=
 	MAMAKE_STRICT)	continue ;;
 	esac
 	case $mamfile in
-	*"\${$varname"[}[:=?+-]* | *"%{$varname"[}\|?+-]* )
+	*"\${$varname"[}\[:=?+-]* | *"%{$varname"[}\|?+-]* )
 		;;
 	* )	# add with '|' separator for Extended Regular Expression
 		rm_unused_ere="${rm_unused_ere:+$rm_unused_ere|}setv[[:blank:]]+$varname([[:blank:]]|$)" ;;

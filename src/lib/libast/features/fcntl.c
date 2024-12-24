@@ -43,7 +43,7 @@
 
 #include "FEATURE/fs"
 
-#undef	getdtablesize   
+#undef	getdtablesize
 #undef	getpagesize
 #undef	ioctl
 

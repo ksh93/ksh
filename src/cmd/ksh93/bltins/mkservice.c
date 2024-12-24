@@ -51,7 +51,7 @@ static const char mkservice_usage[] =
 		"to be read from one of the active connections.  It is "
 		"called with the file descriptor number that has data "
 		"to be read.  If the function returns a non-zero "
-		"value, this connection will be closed.]" 
+		"value, this connection will be closed.]"
 	"[+close?This function is invoked when the connection is closed.]"
 	"}"
 "[+?If \avarname\a is unset, then all active connection, and the service "
@@ -61,8 +61,8 @@ static const char mkservice_usage[] =
 "\nvarname service_path\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?Success.]"
-        "[+>0?An error occurred.]"
+	"[+0?Success.]"
+	"[+>0?An error occurred.]"
 "}"
 "[+SEE ALSO?\beloop\b(1)]"
 ;
@@ -81,8 +81,8 @@ static const char eloop_usage[] =
 "\n"
 "[+EXIT STATUS?If no timeout is specified, \beloop\b will not return "
 	"unless interrupted.  Otherwise]{"
-        "[+0?The specified timeout interval occurred.]"
-        "[+>0?An error occurred.]"
+	"[+0?The specified timeout interval occurred.]"
+	"[+>0?An error occurred.]"
 "}"
 "[+SEE ALSO?\bmkservice\b(1)]"
 ;
@@ -207,7 +207,7 @@ static void process_stream(Sfio_t* iop)
 			close(fd);
 	}
 }
-				
+
 static int waitnotify(int fd, long timeout, int rw)
 {
 	Sfio_t	*special=0, **pstream;
@@ -335,8 +335,8 @@ static int Error(Service_t *sp, int level, const char* arg, ...)
 	if(sp->node)
 		nv_unset(sp->node);
 	free(sp);
-        errorv(NULL, ERROR_exit(1), ap);
-        va_end(ap);
+	errorv(NULL, ERROR_exit(1), ap);
+	va_end(ap);
 	return 0;
 }
 
@@ -451,7 +451,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 		sp->fd = fd;
 	np = nv_open(var,sh.var_tree,NV_ARRAY|NV_VARNAME);
 	sp->node = np;
-	nv_putval(np, path, 0); 
+	nv_putval(np, path, 0);
 	nv_stack(np, (Namfun_t*)sp);
 	service_add(sp);
 	return 0;

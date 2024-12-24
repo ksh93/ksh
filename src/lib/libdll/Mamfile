@@ -6,7 +6,6 @@ note *
 setv MAMAKE_STRICT 5
 setv INSTALLROOT ../../..
 setv CC cc
-setv AR %{mam_cc_AR} %{mam_cc_AR_ARFLAGS}
 setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?}
 setv CCFLAGS
 setv IFFEFLAGS
@@ -14,7 +13,7 @@ setv LDFLAGS
 setv CCLDFLAGS
 setv DYLIB_PRE %{mam_cc_SUFFIX_DYNAMIC?*?%{mam_cc_PREFIX_DYNAMIC}?%{mam_cc_PREFIX_SHARED}?}
 setv DYLIB_SUF %{mam_cc_SUFFIX_DYNAMIC-%{mam_cc_SUFFIX_SHARED}}
-setv DYLIB_VERSION 2.0
+setv DYLIB_VERSION 4.0
 
 make install virtual
 	note *
@@ -102,11 +101,9 @@ make install virtual
 				exec - %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} -I. -I%{INCLUDE_AST} -D_BLD_dll -c %{<}
 			done
 		done
-		exec - if	test -f %{@}
-		exec - then	%{AR} rc %{@} %{?}  # add changed *.o
-		exec - else	%{AR} rc %{@} %{^}  # add all *.o
-		exec - fi || exit
-		exec - ranlib %{@} >/dev/null 2>&1 || true
+
+		note * include shell action for linking the library
+		incl link_ar.mam
 
 		note * save for dylink
 		setv _libdll_object_files_ %{^}
@@ -134,8 +131,7 @@ make install virtual
 	done
 	make %{INSTALLROOT}/lib/libdll.a
 		prev libdll.a
-		exec - cp -f %{<} %{@} || exit
-		exec - ranlib %{@} >/dev/null 2>&1 || true
+		exec - cp -f %{<} %{@}
 	done
 	make %{INSTALLROOT}/lib/lib/dll
 		prev dll.req

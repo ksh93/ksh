@@ -3926,10 +3926,11 @@ for reading and store
 the file descriptor number in variable
 .BR n .
 .PP
-A special shorthand redirection operator \fB&>\fR\fIword\fR is available; it
-is equivalent to \fB>\fR\fIword\fR\fB 2>&1\fR. It cannot be preceded by any
-digit or variable name. This shorthand is disabled if the \fBposix\fR shell
-option is active.
+Special shorthand redirection operators \fB&>\fR\fIword\fR and
+\fB&>>\fR\fIword\fR are available; they are equivalent to
+\fB>\fR\fIword\fR\fB 2>&1\fR and \fB>\fR\fIword\fR\fB 2>&1\fR, respectively.
+They cannot be preceded by any digit or variable name. These shorthands are
+disabled if the \fBposix\fR shell option is active.
 .PP
 The order in which redirections are specified is significant.
 The shell evaluates each redirection in terms of the
@@ -3999,8 +4000,10 @@ or
 commands.
 .PP
 The environment for any
-.I simple-command\^
-or function
+.IR simple-command\^ ,
+except calls of functions declared with the
+.IB name (\^)
+syntax,
 may be augmented by prefixing it with one or more variable assignments.
 A variable assignment argument is a word of the form
 .IR identifier=value .
@@ -5350,11 +5353,16 @@ Kill the entire current line.
 Restore last item removed from line. (Yank item back to the line.)
 .TP 10
 .BI ^X^E
-Return the command
-.BI "hist \-e ${\s-1VISUAL\s+1:\-${\s-1EDITOR\s+1:\-vi}}"
-in the input buffer to call a full editor \(em
-.BI vi
-by default \(em on the current command line.
+Edit the current command line in a full editor (as set in the
+.SM
+.B VISUAL
+or
+.SM
+.B EDITOR
+variable, or
+.IR vi (1),
+in that order of preference).
+The command line is executed if the file is saved before exiting the editor.
 .TP 10
 .BI ^L
 Line feed and print current line.
@@ -6110,14 +6118,21 @@ Undo the last text modifying command.
 Undo all the text modifying commands performed on the line.
 .TP 10
 [\f2count\fP]\f3v\fP
-Returns the command
-.BI "hist \-e ${\s-1VISUAL\s+1:\-${\s-1EDITOR\s+1:\-vi}}" " count"
-in the input buffer to call a full editor \(em
-.BI vi
-by default \(em on a history entry.
+Edit command line number
+.I count\^
+in a full editor (as set in the
+.SM
+.B VISUAL
+or
+.SM
+.B EDITOR
+variable, or
+.IR vi (1),
+in that order of preference).
 If
 .I count\^
 is omitted, then the current line is used.
+The command line is executed if the file is saved before exiting the editor.
 .TP 10
 .BI ^L
 Line feed and print current line.
@@ -6780,7 +6795,7 @@ Does nothing, and exits 1. Used with
 for infinite loops.
 .TP
 .PD 0
-\f3fc\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-nlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK
+\f3fc\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-Enlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK
 .TP
 \f3fc \-s \fP \*(OK \f2old\fP\f3\=\fP\f2new\^\fP \*(CK \*(OK \f2command\^\fP \*(CK
 .PD
@@ -6949,7 +6964,7 @@ option empties the hash table. This can also be achieved by resetting
 .BR PATH.
 .TP
 .PD 0
-\f3hist\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-nlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK
+\f3hist\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-Enlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK
 .TP
 \f3hist \-s\fP \*(OK \f2old\fP\f3\=\fP\f2new\^\fP \*(CK \*(OK \f2command\^\fP \*(CK
 .PD
@@ -6994,8 +7009,11 @@ is not set, then
 (default
 .BR /bin/ed\^ )
 is used as the editor.
-When editing is complete, the edited command(s)
-is executed if the changes have been saved.
+When the editor exits, the contents of the file become
+the new command line and it is either executed
+regardless of any change, or if the
+.B \-E
+option is given, it is executed if the file has been saved.
 If
 .I last\^
 is not specified,
@@ -8063,7 +8081,7 @@ and
 to open file descriptors > 2 without the close-on-exec flag,
 so that they are left open when invoking another program;
 .IP \[bu]
-disables the \fB&>\fR redirection shorthand;
+disables the \fB&>\fR and \fB&>>\fR redirection shorthands;
 .IP \[bu]
 disables fast filescan loops of type
 \f3while\fP \f2inputredirection\^\fP \f3;do\fP \f2list\^\fP \f3;done\fP;
@@ -9387,14 +9405,14 @@ or
 .IP \[bu]
 specifying path or
 command names containing
-.BR / 
+.BR /
 .IP \[bu]
 redirecting output
 .RB ( > ,
 .BR >| ,
 .BR <> ,
 and
-.BR >> ) 
+.BR >> )
 .IP \[bu]
 adding or deleting built-in commands
 .IP \[bu]

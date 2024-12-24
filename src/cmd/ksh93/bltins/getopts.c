@@ -48,7 +48,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 		sfputr(sp,sh_mactry(stkfreeze(stkp,1)),-1);
 		stkset(stkp,savptr,savtop);
 	}
-        return 1;
+	return 1;
 }
 
 int	b_getopts(int argc,char *argv[],Shbltin_t *context)
@@ -61,7 +61,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	volatile int extended, r= -1;
 	struct checkpt buff, *pp;
 	Optdisc_t disc;
-        memset(&disc, 0, sizeof(disc));
+	memset(&disc, 0, sizeof(disc));
 	disc.version = OPT_VERSION;
 	disc.infof = infof;
 	value[1] = 0;
@@ -196,6 +196,6 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	else
 		nv_putval(np, opt_info.arg, NV_RDONLY);
 	sh_popcontext(&buff);
-        opt_info.disc = 0;
+	opt_info.disc = 0;
 	return r;
 }

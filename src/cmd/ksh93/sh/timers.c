@@ -177,8 +177,8 @@ static void oldalrm(void *handle)
 	free(handle);
 	(*fn)(SIGALRM);
 }
-	
-void *sh_timeradd(unsigned long msec,int flags,void (*action)(void*),void *handle) 
+
+void *sh_timeradd(unsigned long msec,int flags,void (*action)(void*),void *handle)
 {
 	Timer_t *tp;
 	double t;

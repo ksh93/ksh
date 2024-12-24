@@ -309,7 +309,7 @@ tst	socket_peek note{ recv(MSG_PEEK) works on socketpair() }end execute{
 	#include <sys/socket.h>
 	int
 	main(void)
-	{	
+	{
 		int		i;
 		int		fds[2];
 		char		buf[128];

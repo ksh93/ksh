@@ -16,15 +16,18 @@ typ	mbstate_t stdlib.h stdio.h wchar.h
 nxt	wchar
 
 run{
-cat <<!
+	# on some systems, stdio.h is needed to define certain symbols used by native wchar.h (e.g., __FILE on Linux)
+	cat <<!
 	#ifndef _SFSTDIO_H
 	#include <ast_common.h>
 	#include <stdio.h>
 	#endif
-
-	#if _hdr_wchar && defined(_nxt_wchar)
-	#include ${_nxt_wchar-_nxt_wchar}	/* the native wchar.h */
-	#endif
+	!
+	case ${_hdr_wchar},${_nxt_wchar} in
+	1,\<*)
+		echo "#include ${_nxt_wchar}	/* the native wchar.h */"
+		;;
+	esac
 !
 }end
 
@@ -51,7 +54,7 @@ endif
 
 if	hdr - wctype wchar.h
 	if	! npt - iswalpha wchar.h {
-			#include <wctype.h> /* <wchar.h> includes <wctype.h> */
+			#include <wctype.h>	/* <wchar.h> includes <wctype.h> */
 		}
 	endif
 endif
@@ -73,7 +76,7 @@ tst	iswpunct_broken note{ is iswpunct(3) broken }end execute{
 }end
 
 run{
-cat <<!
+	cat <<!
 	#ifndef WEOF
 	#define WEOF		(-1)
 	#endif
@@ -159,16 +162,17 @@ cat <<!
 	extern int		wprintf(const wchar_t*, ...);
 	extern int		wscanf(const wchar_t*, ...);
 
-	#undef	extern
+	!
 
-	#else
+	case ${_hdr_wchar},${_nxt_wchar} in
+	1,\<*)
+		echo '#else'
+		echo
+		echo '/* on some systems, <wchar.h> can be included multiple times with multiple effects */'
+		echo "#include ${_nxt_wchar}	/* the native wchar.h */"
+		echo
+		;;
+	esac
 
-	/* on some systems <wchar.h> is included multiple times with multiple effects */
-
-	#if _hdr_wchar && defined(_nxt_wchar)
-	#include ${_nxt_wchar-_nxt_wchar}	/* the native wchar.h */
-	#endif
-
-	#endif
-!
+	echo '#endif /* !_AST_WCHAR_H */'
 }end

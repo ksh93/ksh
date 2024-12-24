@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -171,9 +171,9 @@ static const char usage[] =
 "[T:rfc-3339?List date and time in RFC 3339 format according to "
     "\atype\a:]:[type]"
     "{"
-        "[d:date?(%Y-%m-%d)]"
-        "[s:seconds?(%Y-%m-%d %H:%M:%S%_z)]"
-        "[n:ns|nanoseconds?(%Y-%m-%d %H:%M:%S.%N%_z)]"
+	"[d:date?(%Y-%m-%d)]"
+	"[s:seconds?(%Y-%m-%d %H:%M:%S%_z)]"
+	"[n:ns|nanoseconds?(%Y-%m-%d %H:%M:%S.%N%_z)]"
     "}"
 "[s:show?Show the date without setting the system time.]"
 "[u:utc|gmt|zulu|universal?Output dates in \acoordinated universal time\a (UTC).]"

@@ -27,12 +27,12 @@ setvbuf(Sfio_t* f, char* buf, int type, size_t size)
 	else if (f->flags & SFIO_STRING)
 		return -1;
 	else if (type == _IONBF)
-	{	
+	{
 		sfsync(f);
 		sfsetbuf(f, NULL, 0);
 	}
 	else if (type == _IOFBF)
-	{	
+	{
 		if (size == 0)
 			size = SFIO_BUFSIZE;
 		sfsync(f);

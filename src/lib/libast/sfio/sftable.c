@@ -27,7 +27,7 @@
 */
 
 static char* sffmtint(const char* str, int* v)
-{	
+{
 	for(*v = 0; isdigit(*str); ++str)
 		*v = *v * 10 + (*str - '0');
 	*v -= 1;
@@ -263,7 +263,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 					size = sizeof(char);
 				else if(flags&SFFMT_TFLAG)
 					size = sizeof(ptrdiff_t);
-				else if(flags&SFFMT_ZFLAG) 
+				else if(flags&SFFMT_ZFLAG)
 					size = sizeof(size_t);
 				else if(flags&(SFFMT_LLONG|SFFMT_JFLAG) )
 					size = sizeof(Sflong_t);

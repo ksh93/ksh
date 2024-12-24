@@ -33,7 +33,7 @@
  */
 
 typedef struct
-{	
+{
 	Sfdisc_t	disc;		/* sfio discipline		*/
 	Sfio_t*		input;		/* tied with this input stream	*/
 	Sfio_t*		error;		/* tied with this error stream	*/
@@ -299,7 +299,7 @@ int sfdcmore(Sfio_t* f, const char* prompt, int rows, int cols)
 	more->col = 1;
 
 	if (sfdisc(f, &more->disc) != &more->disc)
-	{	
+	{
 		free(more);
 		return -1;
 	}

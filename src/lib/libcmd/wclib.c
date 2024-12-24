@@ -41,10 +41,10 @@
 
 #endif
 
-#define	WC_SP		0x08
-#define	WC_NL		0x10
-#define	WC_MB		0x20
-#define	WC_ERR		0x40
+#define WC_SP		0x08
+#define WC_NL		0x10
+#define WC_MB		0x20
+#define WC_ERR		0x40
 
 #define eol(c)		((c)&WC_NL)
 #define mbc(c)		((c)&WC_MB)
@@ -456,7 +456,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 						state = 0;
 						if(eline!=nlines && !(wp->mode & WC_QUIET))
 							eline = invalid(file, nlines);
-						while(mbc(c) && ((c|WC_ERR) || (c&7)==0)) 
+						while(mbc(c) && ((c|WC_ERR) || (c&7)==0))
 							c=type[*cp++];
 						if(eol(c) && (cp > endbuff))
 							goto eob;

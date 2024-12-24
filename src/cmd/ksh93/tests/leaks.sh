@@ -424,4 +424,12 @@ DO
 DONE
 
 # ======
+TEST	title='assigning and comparing enum rvalue in arithmetic'
+	enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
+	Test1_t foo
+DO
+	(((foo = amet) && foo == amet && foo != fermentum))
+DONE
+
+# ======
 exit $((Errors<125?Errors:125))

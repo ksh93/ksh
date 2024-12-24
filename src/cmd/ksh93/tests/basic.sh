@@ -176,7 +176,7 @@ rm -f foobar
 > foobar
 for i in 1 2
 do      print foobar*
-        rm -f foobar
+	rm -f foobar
 done > out
 if      [[ "$(<out)"  != "foobar"$'\n'"foobar*" ]]
 then    print -u2 "optimizer bug with file expansion"
@@ -548,7 +548,7 @@ got=$(
 
 bintrue=$(whence -p true)
 set -o pipefail
-float start=$SECONDS end 
+float start=$SECONDS end
 for ((i=0; i < 2; i++))
 do	print foo
 	sleep .15

@@ -42,8 +42,8 @@ static const char usage[] =
 	"output is that of the input.]"
 "[+?One and only one of \b-b\b, \b-c\b, or \b-f\b must be specified.]"
 "[+?If no \afile\a is given, or if the \afile\a is \b-\b, \bcut\b "
-        "cuts from standard input.   The start of the file is defined "
-        "as the current offset.]"
+	"cuts from standard input.   The start of the file is defined "
+	"as the current offset.]"
 "[b:bytes]:[list?\bcut\b based on a list of byte counts.]"
 "[c:characters]:[list?\bcut\b based on a list of character counts.]"
 "[d:delimiter]:[delim?The field character for the \b-f\b option is set "
@@ -328,7 +328,7 @@ cutcols(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 						z = 1;
 					s += z;
 					w -= z;
-					
+
 				}
 				c = s - bp;
 				ncol = !w && (ncol || !skip);
@@ -519,7 +519,7 @@ cutfields(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 					if (!sp[lastchar])
 						break;
 				}
-				nodelim = 0;	
+				nodelim = 0;
 				if (--nfields > 0)
 					continue;
 				nfields = *++lp;

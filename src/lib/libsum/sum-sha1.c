@@ -224,7 +224,7 @@ sha1_block(Sum_t* p, const void* s, size_t len)
 		} else {
 			i = 0;
 		}
-	
+
 		(void)memcpy(&sha->buffer[j], &data[i], len - i);
 	}
 	return 0;

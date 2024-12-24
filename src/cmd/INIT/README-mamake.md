@@ -43,6 +43,8 @@ the language to facilitate human maintenance of the `Mamfile`s.
         * [...while scanning and sorting leaf directories](#user-content-while-scanning-and-sorting-leaf-directories)
         * [...while building the current directory](#user-content-while-building-the-current-directory)
     * [Repeatedly iterating through a block](#user-content-repeatedly-iterating-through-a-block)
+    * [Including a MAM file](#user-content-including-a-mam-file)
+        * [Provided include files](#user-content-provided-include-files)
 * [Parallel processing](#user-content-parallel-processing)
 * [Debugging mamake](#user-content-debugging-mamake)
 * [Appendix: Main changes from the AT&T version](#user-content-appendix-main-changes-from-the-att-version)
@@ -134,7 +136,7 @@ written as a separate line to its standard input. The value of the expansion
 is the output of *s* with each newline changed back into a space, except
 that a terminating newline (if any) is discarded.
 This mechanism allows easy editing of variable values containing multiple
-pathnames using line-oriented utilities thet read from standard input,
+pathnames using line-oriented utilities that read from standard input,
 such as `sed`(1) or `grep`(1).
 For example, if the automatic variable `%{^}` (see below) contains `foo.c
 bar.c baz.c`, then `%{^|sed 's/\.c$//'}` yields `foo bar baz`.
@@ -167,7 +169,7 @@ previously processed or referenced prerequisites.
 
 `%{?}` is a space-separate list of the current rule's previously processed
 prerequisites that have been updated by a shell action (see `exec` below)
-during the current `mamake` run. Prequisites that were already up to date,
+during the current `mamake` run. Prerequisites that were already up to date,
 or prerequisites that do not contain a shell action, are not included.
 
 ## Commands ##
@@ -338,7 +340,7 @@ of the line in the rule.
 After MAM variable expansion, *viewpathing* is applied.
 The first colon-separated element of `%{VPATH}` is considered
 the object code directory and the second the source code directory;
-viewpathing provides the first with a vew to the second.
+viewpathing provides the first with a view to the second.
 Viewpathing applies two transformations.
 
 The first is *prerequisite replacement*.
@@ -373,7 +375,7 @@ in the following format is written to standard error:
 
     # path/to/Mamfile: startline-endline: rule
 
-During script execution, shell action comands are traced using the
+During script execution, shell action commands are traced using the
 shell's xtrace option, unless the rule has the `notrace` attribute.
 
 #### Strict level 2+ change ####
@@ -496,6 +498,26 @@ if the contained make target names are modified by the expansion of the
 iteration *variable*.
 
 `loop` requires that the Mamfile be seekable (i.e.: not a pipe).
+
+### Including a MAM file ###
+
+`incl` *filename*
+
+The `incl` command reads a file with MAM commands from *filename* as if
+those commands had appeared in place of the `incl` command.
+If *filename* does not contain a `/`, mamake will look for the file in the
+current directory first, then in `%{PACKAGEROOT}/src/cmd/INIT/include`.
+
+#### Provided include files ####
+
+The following are provided in `%{PACKAGEROOT}/src/cmd/INIT/include`:
+
+* `link_ar.mam`: A shell action (see `exec` above) for linking a static
+  library archive (`lib`*name*`.a`) based on the contents of the automatic
+  variables, for including at the end of a `make lib`*name*`.a`...`done`
+  rule. All the child rules are expected to be `*.o` object files. The
+  action also deletes object files that no longer have a matching source
+  from the archive.
 
 ## Parallel processing ##
 

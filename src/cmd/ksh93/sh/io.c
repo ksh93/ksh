@@ -116,13 +116,13 @@ static int	(*fdnotify)(int,int);
 
 struct addrinfo
 {
-        int			ai_flags;
-        int			ai_family;
-        int			ai_socktype;
-        int			ai_protocol;
-        socklen_t		ai_addrlen;
-        struct sockaddr*	ai_addr;
-        struct addrinfo*	ai_next;
+	int			ai_flags;
+	int			ai_family;
+	int			ai_socktype;
+	int			ai_protocol;
+	socklen_t		ai_addrlen;
+	struct sockaddr*	ai_addr;
+	struct addrinfo*	ai_next;
 };
 
 static int
@@ -135,7 +135,7 @@ getaddrinfo(const char* node, const char* service, const struct addrinfo* hint, 
 	struct sockaddr_in*	ip;
 	char*			prot;
 	long			n;
-	
+
 	if (!(hp = gethostbyname(node)) || hp->h_addrtype!=AF_INET || hp->h_length>sizeof(struct in_addr))
 	{
 		errno = EADDRNOTAVAIL;
@@ -155,7 +155,7 @@ getaddrinfo(const char* node, const char* service, const struct addrinfo* hint, 
 			case SOCK_STREAM:
 				switch (hint->ai_protocol)
 				{
-				case 0: 	  
+				case 0:
 					protocol = "tcp";
 					break;
 #ifdef IPPROTO_SCTP
@@ -367,12 +367,12 @@ static Sfdouble_t nget_cur_eof(Namval_t* np, Namfun_t *fp)
 		return (Sfdouble_t)-1;
 	end =lseek(ep->fd, 0, SEEK_END);
 	lseek(ep->fd, 0, SEEK_CUR);
-        return (Sfdouble_t)end;
+	return (Sfdouble_t)end;
 }
 
 static const Namdisc_t EOF_disc	= { sizeof(struct Eof), 0, 0, nget_cur_eof};
 
-#define	MATCH_BUFF	(64*1024)
+#define MATCH_BUFF	(64*1024)
 struct Match
 {
 	Sfoff_t	offset;
@@ -670,7 +670,7 @@ int sh_iorenumber(int f1,int f2)
 			sfswap(spnew,sp);
 			sfset(sp,SFIO_SHARE|SFIO_PUBLIC,1);
 		}
-		else 
+		else
 		{
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
 			if((f2 = sh_fcntl(f1,F_DUPFD, f2)) < 0)
@@ -698,7 +698,7 @@ int sh_iorenumber(int f1,int f2)
 }
 
 /*
- * close a file descriptor and update stream table and attributes 
+ * close a file descriptor and update stream table and attributes
  */
 int sh_close(int fd)
 {
@@ -846,14 +846,6 @@ int sh_open(const char *path, int flags, ...)
 	}
 	else
 	{
-#if SHOPT_REGRESS
-		char	buf[PATH_MAX];
-		if(strncmp(path,"/etc/",5)==0)
-		{
-			sfsprintf(buf, sizeof(buf), "%s%s", sh_regress_etc(path, __LINE__, __FILE__), path+4);
-			path = buf;
-		}
-#endif
 		while((fd = open(path, flags, mode)) < 0)
 			if(errno!=EINTR || sh.trapnote)
 				return -1;
@@ -1121,7 +1113,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
  */
 int	sh_redirect(struct ionod *iop, int flag)
 {
-	Sfoff_t off; 
+	Sfoff_t off;
 	char *fname;
 	int fd = -1, iof;
 	const char *message = e_open;
@@ -1560,7 +1552,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				sh.fdstatus[fd] |= IOCLEX;
 			}
 		}
-		else 
+		else
 			goto fail;
 	}
 	return indx;
@@ -2324,7 +2316,7 @@ struct eval
 };
 
 /*
- * Create a stream consisting of a space separated argv[] list 
+ * Create a stream consisting of a space separated argv[] list
  */
 Sfio_t *sh_sfeval(char *argv[])
 {
@@ -2454,7 +2446,7 @@ static int subexcept(Sfio_t* sp,int mode, void *data, Sfdisc_t* handle)
 
 #define NROW    15      /* number of rows before going to multi-columns */
 #define LBLSIZ	3	/* size of label field and interfield spacing */
-/* 
+/*
  * print a list of arguments in columns
  */
 void	sh_menu(Sfio_t *outfile,int argn,char *argv[])
@@ -2514,7 +2506,7 @@ skip:
 /*
  * shell version of read() for user added builtins
  */
-ssize_t sh_read(int fd, void* buff, size_t n) 
+ssize_t sh_read(int fd, void* buff, size_t n)
 {
 	Sfio_t *sp;
 	if(sp=sh.sftable[fd])
@@ -2527,7 +2519,7 @@ ssize_t sh_read(int fd, void* buff, size_t n)
 /*
  * shell version of write() for user added builtins
  */
-ssize_t sh_write(int fd, const void* buff, size_t n) 
+ssize_t sh_write(int fd, const void* buff, size_t n)
 {
 	Sfio_t *sp;
 	if(sp=sh.sftable[fd])
@@ -2605,7 +2597,7 @@ mode_t	sh_umask(mode_t m)
 /*
  * give file descriptor <fd> and <mode>, return an iostream pointer
  * <mode> must be SFIO_READ or SFIO_WRITE
- * <fd> must be a non-negative number ofr SH_IOCOPROCESS or SH_IOHISTFILE. 
+ * <fd> must be a non-negative number ofr SH_IOCOPROCESS or SH_IOHISTFILE.
  * returns NULL on failure and may set errno.
  */
 Sfio_t *sh_iogetiop(int fd, int mode)
@@ -2655,9 +2647,9 @@ typedef int (*Notify_f)(int,int);
 Notify_f    sh_fdnotify(Notify_f notify)
 {
 	Notify_f old;
-        old = fdnotify;
-        fdnotify = notify;
-        return old;
+	old = fdnotify;
+	fdnotify = notify;
+	return old;
 }
 
 Sfio_t	*sh_fd2sfio(int fd)

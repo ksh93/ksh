@@ -156,7 +156,7 @@ exec 3>&- 4>&-
 	        read -r line; print -r -- "$line"
 	) & wait
 	while	read -r line
-        do	print -r -- "$line"
+	do	print -r -- "$line"
 	done
  } << !
 line 1
@@ -482,7 +482,7 @@ print hello there world > $tmp/foobar
 sed  -e 's/there //' $tmp/foobar  >; $tmp/foobar
 [[ $(<$tmp/foobar) == 'hello world' ]] || err_exit '>; redirection not working on simple command'
 print hello there world > $tmp/foobar
-{ sed  -e 's/there //' $tmp/foobar;print done;} >; $tmp/foobar 
+{ sed  -e 's/there //' $tmp/foobar;print done;} >; $tmp/foobar
 [[ $(<$tmp/foobar) == $'hello world\ndone' ]] || err_exit '>; redirection not working for compound command'
 print hello there world > $tmp/foobar
 $SHELL -c "sed  -e 's/there //' $tmp/foobar  >; $tmp/foobar"

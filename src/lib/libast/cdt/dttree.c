@@ -55,7 +55,7 @@ int dttreeprint(Dt_t* dt, Dtlink_t* here, int lev, char* (*objprintf)(void*) )
 
 	*endb++ = '<';
 	if(here->_left)
-		obj = (*objprintf)(_DTOBJ(disc,here->_left)); 
+		obj = (*objprintf)(_DTOBJ(disc,here->_left));
 	else	obj = "NIL";
 	k = strlen(obj); memcpy(endb, obj, k); endb += k;
 	*endb++ = '>';
@@ -63,7 +63,7 @@ int dttreeprint(Dt_t* dt, Dtlink_t* here, int lev, char* (*objprintf)(void*) )
 
 	*endb++ = '<';
 	if(here->_rght)
-		obj = (*objprintf)(_DTOBJ(disc,here->_rght)); 
+		obj = (*objprintf)(_DTOBJ(disc,here->_rght));
 	else	obj = "NIL";
 	k = strlen(obj); memcpy(endb, obj, k); endb += k;
 	*endb++ = '>';
@@ -315,7 +315,7 @@ static Dtlink_t* troot(Dt_t* dt, Dtlink_t* list, Dtlink_t* link, void* obj, int 
 		o = _DTOBJ(disc,t); k = _DTKEY(disc,o);
 		if(_DTCMP(dt, key, k, disc) != 0 )
 		{	link->_left = t; /* no more of this group in subtree */
-			break; 
+			break;
 		}
 		else if((type & (DT_REMOVE|DT_NEXT|DT_PREV)) && o == obj)
 		{	link->_left = t->_rght; /* found the exact object */
@@ -338,7 +338,7 @@ static Dtlink_t* troot(Dt_t* dt, Dtlink_t* list, Dtlink_t* link, void* obj, int 
 	}
 
 	if(list) /* add the rest of the equal-list to the proper subtree */
-	{	if(type&DT_NEXT) 
+	{	if(type&DT_NEXT)
 		{	last->_left = link->_rght;
 			link->_rght = list;
 		}
@@ -478,7 +478,7 @@ static void* dttree(Dt_t* dt, void* obj, int type)
 			root->_rght = NULL;
 			link._rght = root;
 		dt_next:
-			if((root = link._left) )	
+			if((root = link._left) )
 			{	while((t = root->_left) )
 					RROTATE(root,t);
 				link._left = root->_rght;
@@ -512,7 +512,7 @@ static void* dttree(Dt_t* dt, void* obj, int type)
 			else
 			{	root->_left = link._rght;
 				root->_rght = link._left;
-				tree->root = root; 
+				tree->root = root;
 				DTRETURN(obj, NULL);
 			}
 		}
@@ -552,7 +552,7 @@ static void* dttree(Dt_t* dt, void* obj, int type)
 	}
 	else /* no matching object, tree has been split to LEFT&RIGHT subtrees */
 	{	if(type&(DT_SEARCH|DT_MATCH))
-		{ no_root: 
+		{ no_root:
 			if(!(l = link._rght) ) /* no LEFT subtree */
 				tree->root = link._left; /* tree is RIGHT tree */
 			else
@@ -622,8 +622,8 @@ static int treeevent(Dt_t* dt, int event, void* arg)
 		if(tree->root)
 			(void)tclear(dt);
 		(void)(*dt->memoryf)(dt, tree, 0, dt->disc);
-                dt->data = NULL;
-                return 0;
+		dt->data = NULL;
+		return 0;
 	}
 	else if(event == DT_OPTIMIZE) /* balance the search tree */
 	{	toptimize(dt);

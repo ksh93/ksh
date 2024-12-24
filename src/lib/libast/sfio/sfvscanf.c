@@ -494,7 +494,7 @@ loop_fmt:
 				goto dot_set;
 			}
 			else	goto loop_flags;
-			
+
 		case '0' : case '1' : case '2' : case '3' : case '4' :
 		case '5' : case '6' : case '7' : case '8' : case '9' :
 		dot_size :
@@ -592,7 +592,7 @@ loop_fmt:
 					size = sizeof(char);
 				else if(flags&SFFMT_TFLAG)
 					size = sizeof(ptrdiff_t);
-				else if(flags&SFFMT_ZFLAG) 
+				else if(flags&SFFMT_ZFLAG)
 					size = sizeof(size_t);
 				else if(flags&(SFFMT_LLONG|SFFMT_JFLAG) )
 					size = sizeof(Sflong_t);
@@ -928,7 +928,7 @@ loop_fmt:
 			goto do_string;
 		}
 		else if(fmt == 's' || fmt == 'c' || fmt == '[' )
-		{ do_string:	
+		{ do_string:
 			if(value)
 			{	if(size < 0)
 					size = MAXWIDTH;

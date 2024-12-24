@@ -130,17 +130,32 @@ got=$(set --noposix; redirect 3>&1; "$SHELL" -c 'echo ok >&3' 2>/dev/null)
 [[ $got == "$exp" ]] || err_exit "file descriptor 3 left open in --noposix mode" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# disables the &> redirection shorthand;
+# disables the &> and &>> redirection shorthands;
 exp=''
 (set --posix; eval 'echo output &>out') >/dev/null
 got=$(<out)
 [[ $got == "$exp" ]] || err_exit "&> redirection shorthand not disabled in --posix mode" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+(set --posix; eval 'echo output &>>out') >/dev/null
+got=$(<out)
+[[ $got == "$exp" ]] || err_exit "&>> redirection shorthand not disabled in --posix mode" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 (set --noposix; eval 'echo output &>out') >/dev/null
 exp='output'
 got=$(<out)
 [[ $got == "$exp" ]] || err_exit "&> redirection shorthand disabled in --noposix mode" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+case ${.sh.version} in
+*93u+m/1.0.*)
+	;;
+*)	# &>> available as of 93u+m/1.1
+	(set --noposix; eval 'echo MOAR &>>out') >/dev/null
+	exp+=$'\nMOAR'
+	got=$(<out)
+	[[ $got == "$exp" ]] || err_exit "&>> redirection shorthand disabled in --noposix mode" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	;;
+esac
 
 # disables fast filescan loops of type 'while inputredirection; do list; done';
 printf '%s\n' "un duo tres" >out

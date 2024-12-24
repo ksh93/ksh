@@ -47,7 +47,7 @@
 #   define NTICKS	5		/* number of ticks for typeahead */
 #endif /* FIORDCHK */
 
-#define	MAXCHAR	MAXLINE-2		/* max char per line */
+#define MAXCHAR	MAXLINE-2		/* max char per line */
 
 #if SHOPT_MULTIBYTE
 #   include	"lexstates.h"
@@ -77,11 +77,7 @@
 #   define is_print(c)	isprint(c)
 #endif	/* SHOPT_MULTIBYTE */
 
-#if ( 'a' == 97) /* ASCII? */
-#   define fold(c)	((c)&~040)	/* lower and uppercase equivalent */
-#else
-#   define fold(c)	((c)|0100)	/* lower and uppercase equivalent */
-#endif
+#define fold(c)	((c)&~040)	/* lower- and uppercase equivalent (ASCII) */
 
 #ifndef iswascii
 #define iswascii(c)	(!((c)&(~0177)))
@@ -134,7 +130,7 @@ typedef struct _vi_
 #define cur_phys	editb.e_pcur	/* current phys column cursor is at */
 #define curhline	editb.e_hline		/* current history line */
 #define first_virt	editb.e_fcol		/* first allowable column */
-#define	globals		editb.e_globals		/* local global variables */
+#define globals		editb.e_globals		/* local global variables */
 #define histmin		editb.e_hismin
 #define histmax		editb.e_hismax
 #define last_phys	editb.e_peol		/* last column in physical */
@@ -151,30 +147,30 @@ typedef struct _vi_
 #define usrlnext	editb.e_lnext		/* user defined next literal */
 #define usrkill		editb.e_kill		/* user defined kill char */
 #define virtual		editb.e_inbuf	/* pointer to virtual image buffer */
-#define	window		editb.e_window		/* window buffer */
-#define	w_size		editb.e_wsize		/* window size */
-#define	inmacro		editb.e_inmacro		/* true when in macro */
+#define window		editb.e_window		/* window buffer */
+#define w_size		editb.e_wsize		/* window size */
+#define inmacro		editb.e_inmacro		/* true when in macro */
 #define yankbuf		editb.e_killbuf		/* yank/delete buffer */
 
 
-#define	ABORT	-2			/* user abort */
-#define	APPEND	-10			/* append chars */
-#define	BAD	-1			/* failure flag */
-#define	BIGVI	-15			/* user wants real vi */
-#define	CONTROL	-20			/* control mode */
-#define	ENTER	-25			/* enter flag */
-#define	GOOD	0			/* success flag */
-#define	INPUT	-30			/* input mode */
-#define	INSERT	-35			/* insert mode */
-#define	REPLACE	-40			/* replace chars */
-#define	SEARCH	-45			/* search flag */
-#define	TRANSLATE	-50		/* translate virt to phys only */
+#define ABORT	-2			/* user abort */
+#define APPEND	-10			/* append chars */
+#define BAD	-1			/* failure flag */
+#define BIGVI	-15			/* user wants real vi */
+#define CONTROL	-20			/* control mode */
+#define ENTER	-25			/* enter flag */
+#define GOOD	0			/* success flag */
+#define INPUT	-30			/* input mode */
+#define INSERT	-35			/* insert mode */
+#define REPLACE	-40			/* replace chars */
+#define SEARCH	-45			/* search flag */
+#define TRANSLATE	-50		/* translate virt to phys only */
 
-#define	INVALID	(-1)			/* invalid column */
+#define INVALID	(-1)			/* invalid column */
 
 static const char paren_chars[] = "([{)]}";   /* for % command */
 
-static char	blankline(Vi_t*);
+static int	blankline(Vi_t*, int);
 static void	cursor(Vi_t*, int);
 static void	del_line(Vi_t*,int);
 static int	getcount(Vi_t*,int);
@@ -219,7 +215,7 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 		vp->direction = -1;
 		vp->ed = ed;
 	}
-	
+
 	/*** setup prompt ***/
 
 	Prompt = prompt;
@@ -634,9 +630,9 @@ static int cntlmode(Vi_t *vp)
 			virtual[last_virt+1] = '\0';
 			gencpy(vp->U_space, virtual);
 			/* skip blank lines when going up/down in history */
-			if((c=='k' || c=='-') && curhline != histmin && blankline(vp))
+			if((c=='k' || c=='-') && curhline != histmin && blankline(vp,0))
 				ed_ungetchar(vp->ed,'k');
-			else if((c=='j' || c=='+') && curhline != histmax && blankline(vp))
+			else if((c=='j' || c=='+') && curhline != histmax && blankline(vp,0))
 				ed_ungetchar(vp->ed,'j');
 			break;
 
@@ -660,7 +656,7 @@ static int cntlmode(Vi_t *vp)
 		case 'v':
 			if(vp->repeat_set==0)
 			{
-				if(blankline(vp) || cur_virt == INVALID)
+				if(blankline(vp,1) || cur_virt == INVALID)
 				{
 					cur_virt = 0;
 					last_virt = cur_virt;
@@ -946,7 +942,7 @@ static void endword(Vi_t *vp, int nwords, int cmd)
 		if( tcur_virt <= last_virt && !isblank(tcur_virt) )
 			++tcur_virt;
 		while( tcur_virt <= last_virt && isblank(tcur_virt) )
-			++tcur_virt;	
+			++tcur_virt;
 		if( cmd == 'E' )
 		{
 			while( tcur_virt <= last_virt && !isblank(tcur_virt) )
@@ -1190,7 +1186,7 @@ static void getline(Vi_t* vp,int mode)
 			break;
 
 		case UWERASE:		/** delete back word **/
-			if( cur_virt > first_virt && 
+			if( cur_virt > first_virt &&
 				!isblank(cur_virt) &&
 				!ispunct(virtual[cur_virt]) &&
 				isblank(cur_virt-1) )
@@ -1248,7 +1244,7 @@ static void getline(Vi_t* vp,int mode)
 		{
 			if(!sh_isoption(SH_VI) || !sh.nextprompt)
 				goto fallback;
-			if(blankline(vp))
+			if(blankline(vp,1))
 			{
 				ed_ringbell();
 				break;
@@ -1590,7 +1586,7 @@ find_b:
 			tcur_virt -= incr;
 		break;
 
-        case '%':
+	case '%':
 	{
 		int nextmotion;
 		int nextc;
@@ -2231,7 +2227,7 @@ static int textmod(Vi_t *vp,int c, int mode)
 	int savecur;
 	int ch;
 
-	if(mode && (fold(vp->lastmotion)=='F' || fold(vp->lastmotion)=='T')) 
+	if(mode && (fold(vp->lastmotion)=='F' || fold(vp->lastmotion)=='T'))
 		vp->lastmotion = ';';
 
 	if( fold(c) == 'P' )
@@ -2247,7 +2243,7 @@ addin:
 	{
 			/***** Input commands *****/
 
-        case '\t':
+	case '\t':
 		if(vp->ed->e_tabcount!=1)
 			return BAD;
 		c = '=';
@@ -2256,7 +2252,7 @@ addin:
 	case '\\':		/** do file name completion in place **/
 	case '=':		/** list file name expansions **/
 	{
-		if(cur_virt == INVALID || blankline(vp))
+		if(cur_virt == INVALID || blankline(vp,1))
 			return BAD;
 		/* FALLTHROUGH */
 		save_v(vp);
@@ -2612,10 +2608,10 @@ yankeol:
 /*
  * determine if the command line is blank (empty or all whitespace)
  */
-static char blankline(Vi_t *vp)
+static int blankline(Vi_t *vp, int uptocursor)
 {
 	int x;
-	for(x=0; x <= cur_virt; x++)
+	for(x=0; x <= (uptocursor ? cur_virt : last_virt); x++)
 	{
 #if SHOPT_MULTIBYTE
 		if(!iswspace((wchar_t)virtual[x]))

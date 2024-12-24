@@ -131,7 +131,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2024-08-16 $
+@(#)$Id: '$command$' (ksh 93u+m) 2024-12-16 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -564,7 +564,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2024-08-16
+  version         package (ksh 93u+m) 2024-12-16
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -1794,6 +1794,43 @@ export DEFPATH  # for iffe, etc.
 
 PATH=$(sanitize_PATH "/opt/ast/bin:$DEFPATH:$PATH")
 
+# remove $INSTALLROOT/... from these; may be harmful while building
+# (these comes pre-set when running package from a 'package use' environment)
+case $LD_LIBRARY_PATH in
+"$INSTALLROOT"/dyn/lib)
+	unset LD_LIBRARY_PATH ;;
+"$INSTALLROOT"/dyn/lib:*)
+	LD_LIBRARY_PATH=${LD_LIBRARY_PATH#*:} ;;
+esac
+case $LIBPATH in
+"$INSTALLROOT"/dyn/bin:"$INSTALLROOT"/dyn/lib:*)
+	LIBPATH=${LIBPATH#*:*:} ;;
+esac
+case $SHLIB_PATH in
+"$INSTALLROOT"/dyn/lib)
+	unset SHLIB_PATH ;;
+"$INSTALLROOT"/dyn/lib:*)
+	SHLIB_PATH=${SHLIB_PATH#*:} ;;
+esac
+case $DYLD_LIBRARY_PATH in
+"$INSTALLROOT"/dyn/lib)
+	unset DYLD_LIBRARY_PATH ;;
+"$INSTALLROOT"/dyn/lib:*)
+	DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH#*:} ;;
+esac
+case $LIBRARY_PATH in
+"$INSTALLROOT"/dyn/lib)
+	unset LIBRARY_PATH ;;
+"$INSTALLROOT"/dyn/lib:*)
+	LIBRARY_PATH=${LIBRARY_PATH#*:} ;;
+esac
+case $C_INCLUDE_PATH in
+"$INSTALLROOT"/include/ast)
+	unset C_INCLUDE_PATH ;;
+"$INSTALLROOT"/include/ast:*)
+	C_INCLUDE_PATH=${C_INCLUDE_PATH#*:} ;;
+esac
+
 # some actions have their own PACKAGEROOT or kick out early
 
 case $action in
@@ -2032,64 +2069,32 @@ case $x in
 			# Allow loading dynamic libraries from $INSTALLROOT/dyn/lib by setting library
 			# path variables for various systems; instead of bothering to detect the system,
 			# just set them all. (Note: not needed and potentially harmful while building.)
-			case $LD_LIBRARY_PATH: in
-			$INSTALLROOT/dyn/lib:*)
-				;;
-			*)	LD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-				$show LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-				$show export LD_LIBRARY_PATH
-				export LD_LIBRARY_PATH
-				;;
+			export LD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+			$show export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
+			case $LIBPATH in
+			'')	LIBPATH=/usr/lib:/lib ;;
 			esac
-			case $LIBPATH: in
-			$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:*)
-				;;
-			*)	case $LIBPATH in
-				'')	LIBPATH=/usr/lib:/lib ;;
-				esac
-				LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
-				$show LIBPATH=$LIBPATH
-				$show export LIBPATH
-				export LIBPATH
-				;;
-			esac
-			case $SHLIB_PATH: in
-			$INSTALLROOT/dyn/lib:*)
-				;;
-			*)	SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
-				$show SHLIB_PATH=$SHLIB_PATH
-				$show export SHLIB_PATH
-				export SHLIB_PATH
-				;;
-			esac
-			case $DYLD_LIBRARY_PATH: in
-			$INSTALLROOT/dyn/lib:*)
-				;;
-			*)	DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
-				$show DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
-				$show export DYLD_LIBRARY_PATH
-				export DYLD_LIBRARY_PATH
-				;;
-			esac
-			case $_RLD_ROOT in
-			$INSTALLROOT/arch*)	;;
-			':')	_RLD_ROOT=$INSTALLROOT/arch:/ ;;
-			/|*:/)	_RLD_ROOT=$INSTALLROOT/arch:$_RLD_ROOT ;;
-			*)	_RLD_ROOT=$INSTALLROOT/arch:$_RLD_ROOT:/ ;;
-			esac
-			$show _RLD_ROOT=$_RLD_ROOT
-			$show export _RLD_ROOT
-			export _RLD_ROOT
-			# Haiku
-			case $LIBRARY_PATH: in
-			$INSTALLROOT/dyn/lib:*)
-				;;
-			*)	LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
-				$show LIBRARY_PATH=$LIBRARY_PATH
-				$show export LIBRARY_PATH
-				export LIBRARY_PATH
-				;;
-			esac
+			export LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
+			$show export LIBPATH=$LIBPATH
+
+			export SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
+			$show export SHLIB_PATH=$SHLIB_PATH
+
+			export DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
+			$show export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
+
+			# dynamic library search path for gcc and clang; also used for runtime linking on Haiku
+			export LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
+			$show export LIBRARY_PATH=$LIBRARY_PATH
+			;;
+		esac
+		case $action in
+		use)
+			# Include header search path for gcc and clang. Allows skipping '-I ~ast/include/ast'
+			# when compiling a test program from the command line in a 'package use' environment.
+			export C_INCLUDE_PATH=$INSTALLROOT/include/ast${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}
+			$show export C_INCLUDE_PATH=$C_INCLUDE_PATH
 			;;
 		esac
 

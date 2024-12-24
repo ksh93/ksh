@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -73,7 +73,7 @@ struct _dtuser_s /* for application to access and use */
 };
 
 struct _dtlink_s
-{	
+{
 #if CDT_VERSION < 20111111L
 	Dtlink_t*	right;	/* right child		*/
 	union
@@ -99,7 +99,7 @@ struct _dthold_s
 };
 
 /* method to manipulate dictionary structure */
-struct _dtmethod_s 
+struct _dtmethod_s
 {	Dtsearch_f	searchf; /* search function	*/
 	unsigned int	type;	 /* type of operation	*/
 	int		(*eventf)(Dt_t*, int, void*);
@@ -147,7 +147,7 @@ struct _dt_s
 };
 
 /* structure to get status of a dictionary */
-#define DT_MAXRECURSE	1024	/* limit to avoid stack overflow	*/ 
+#define DT_MAXRECURSE	1024	/* limit to avoid stack overflow	*/
 #define DT_MAXSIZE	256	/* limit for size of below arrays	*/
 struct _dtstat_s
 {	unsigned int	meth;	/* method type				*/
@@ -270,7 +270,7 @@ extern void*		dllmeth(const char*, const char*, unsigned long);
 #define _DTOBJ(dc,l)	((dc)->link >= 0 ? _DTO(dc,l) : ((Dthold_t*)(l))->obj )
 
 #define _DTK(dc,o)	((char*)(o) + (dc)->key) /* get key from object */
-#define _DTKEY(dc,o)	(void*)((dc)->size >= 0 ? _DTK(dc,o) : *((char**)_DTK(dc,o)) ) 
+#define _DTKEY(dc,o)	(void*)((dc)->size >= 0 ? _DTK(dc,o) : *((char**)_DTK(dc,o)) )
 
 #define _DTCMP(dt,k1,k2,dc) \
 			((dc)->comparf  ? (*(dc)->comparf)((dt), (k1), (k2), (dc)) : \

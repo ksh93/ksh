@@ -1,19 +1,19 @@
 .	 \" use troff -mm
 .nr C 3
-.nr N 2 
+.nr N 2
 .SA 1  \"  right justified
 .ND "December 21, 1993"
-.TL "311466-6713" "61175"  \" charging case filing case 
+.TL "311466-6713" "61175"  \" charging case filing case
 Introduction to \f5ksh-93\fP
 .AU "David G. Korn" DGK MH 11267 7975 3C-526B "(research!dgk)"
 .TM  11267-931221-26  \"  technical memo + TM numbers
 .MT 1  \"  memo type
 .OK Shell "Command interpreter" Language UNIX  \" keyword
-.AS 2   \" abstract start for TM 
+.AS 2   \" abstract start for TM
 \f5ksh-93\fP is a
 major rewrite of \f5ksh\fP,
 a program that serves as a command language
-(shell) for the UNIX* 
+(shell) for the UNIX*
 .FS  *
 UNIX is a registered trademark of Novell.
 .FE
@@ -80,7 +80,7 @@ a sample script written in \f5ksh-93\fP.
 The term "shell" is used to describe a program that provides
 a command language
 interface.
-Because the UNIX*\ 
+Because the UNIX*\
 .FS *
 UNIX is a registered trademark of USL
 .FE
@@ -119,7 +119,7 @@ The Bourne shell is available on almost all versions of the UNIX
 system.
 The C Shell is available with all Berkeley Software Distribution (BSD) UNIX systems and on many other systems.
 The KornShell
-is available on System V Release 4 systems. 
+is available on System V Release 4 systems.
 In addition, it is available on many other systems.
 The source for the KornShell language is available from the AT&T Toolchest,
 an electronic software distribution system.
@@ -127,22 +127,22 @@ It runs on all known versions of the UNIX system and
 on many UNIX system look-alikes.
 .P
 There have been several articles comparing the UNIX system shells.
-Jason Levitt\*(Rf 
+Jason Levitt\*(Rf
 .RS
 Jason Levitt,
 .IR "The Korn Shell: An Emerging Standard" ,
-UNIX/World, pp. 74-81, September 1986. 
+UNIX/World, pp. 74-81, September 1986.
 .RF
 highlights some of the new features
 introduced by the KornShell language.
-Rich Bilancia\*(Rf 
+Rich Bilancia\*(Rf
 .RS
 Rich Bilancia,
 .IR "Proficiency and Power are Yours With the Korn Shell" ,
-UNIX/World, pp. 103-107, September 1987. 
+UNIX/World, pp. 103-107, September 1987.
 .RF
 explains some of the advantages of using the KornShell language.
-John Sebes\*(Rf 
+John Sebes\*(Rf
 .RS
 John Sebes,
 .I "Comparing UNIX Shells,"
@@ -207,7 +207,7 @@ It is referred to as \f5ksh\fP in the rest of this memo.
 The memo describes the KornShell language based on the
 features of the 12/28/93 release of \f5ksh\fP.
 This memo is not a tutorial, only an introduction.
-The second edition of reference [9] gives 
+The second edition of reference [9] gives
 a more complete treatment of the KornShell language.
 .P
 A concerted effort has been made to achieve both System V Bourne shell
@@ -242,9 +242,9 @@ Most commands print an error message which
 shows which options are permitted
 when given incorrect arguments.
 In addition, the option sequence \f5-?\fP causes most commands
-to print a usage message which lists the valid options. 
+to print a usage message which lists the valid options.
 .P
-Ordinarily, \f5ksh\fP executes a command by 
+Ordinarily, \f5ksh\fP executes a command by
 using the command name to locate a program to run
 and by running the program as a separate process.
 Some commands, referred to as
@@ -262,7 +262,7 @@ all commands that are built in follow command line conventions.
 as command line arguments at invocation and as option arguments to the
 \f5set\fP command.
 Most other options can be set with a single letter option or as a name
-that follows the \f5-o\fP option. 
+that follows the \f5-o\fP option.
 Use
 \f5set\ -o\fP
 to display the current option settings.
@@ -305,7 +305,7 @@ character, normally
 from exiting the shell and possibly logging you out.
 You must type \f5exit\fP
 to log out.
-Most of the options are described in this memo as appropriate. 
+Most of the options are described in this memo as appropriate.
 .H 2 "Command Aliases"
 .P
 Command aliases provide a mechanism of associating a command name and
@@ -319,7 +319,7 @@ command definition is:
 As with most other shell assignments, no space is allowed before or after
 the \f5=\fP.
 The characters of an alias name cannot be characters that are
-special to the shell. 
+special to the shell.
 The replacement string,
 .I value,
 can contain any valid shell script,
@@ -472,7 +472,7 @@ the edited text automatically becomes
 the input for \f5ksh\fP.
 As this text is read by \f5ksh\fP, it is echoed onto the terminal.
 .P
-The 
+The
 .B \-s
 option causes the editing to be bypassed
 and just re-executes the command.
@@ -667,7 +667,7 @@ A trap named
 \fB\s-1KEYBD\s+1\fP
 is evaluated each time
 \f5ksh\fP processes characters entered
-from the keyboard,  
+from the keyboard,
 other than those typed
 while entering a search string or an argument to an
 edit directive such as
@@ -707,7 +707,7 @@ must be entered within half a second after the
 .BR ESC .
 The value of \fB.sh.edchar\fP
 at the end of the trap will be used as
-the input sequence. 
+the input sequence.
 .P
 Using the associative array facility of \f5ksh\fP described later,
 and the function facility of \f5ksh\fP, it is easy to write
@@ -719,7 +719,7 @@ a single trap so that keys can be bound dynamically.  For example,
 \f5typeset -A Keytable
 trap 'eval "${Keytable[${.sh.edchar}]}"' KEYBD
 function keybind # key action
-{ 
+{
         typeset key=$(print -f "%q" "$2")
         case $# in
         2)      Keytable[$1]='.sh.edchar=${.sh.edmode}'"$key"
@@ -736,7 +736,7 @@ function keybind # key action
 .sp
 .H 2 "Job Control"
 .P
-The job control mechanism 
+The job control mechanism
 is almost identical to the version introduced in \f5csh\fP
 of the Berkeley UNIX operating system,
 version 4.1 and later.
@@ -828,11 +828,11 @@ with the prefix
 removed.
 The
 .B \-l
-option of \f5kill\fP 
+option of \f5kill\fP
 provides a means to map individual signal names to and from
 signal number.
 In addition, if no signal name or number is given,
-\f5kill\ -l\fP 
+\f5kill\ -l\fP
 generates a list of valid signal names.
 .H 2 "Changing Directories"
 By default,
@@ -842,7 +842,7 @@ which makes symbolic links transparent.
 For systems that have symbolic links,
 this means that if \f5/bin\fP is a symbolic link to \f5/usr/bin\fP
 and you change directory to \f5/bin\fP, \f5pwd\fP will indicate
-that you are in \f5/bin\fP, not \f5/usr/bin\fP. 
+that you are in \f5/bin\fP, not \f5/usr/bin\fP.
 \f5pwd\ -P\fP
 generates the physical pathname of the present working
 directory by resolving all the symbolic links.
@@ -946,7 +946,7 @@ expansions from occurring when assigning the value to
 .B \s-1PS1\s+1.
 For example,
 \f3\s-1PS1\s+1="$\s-1PWD\s+1"\fP
-causes 
+causes
 .B \s-1PS1\s+1
 to be set to the value of
 .B \s-1PWD\s+1
@@ -970,7 +970,7 @@ so that their values can be used with
 The
 .B \s-1PWD\s+1
 variable stores the pathname of the current working directory.
-The value of 
+The value of
 .B \s-1SECONDS\s+1
 variable
 is the value of the most
@@ -1100,7 +1100,7 @@ a single quoted string
 causes all the characters until the matching single quote
 to be interpreted as an ANSI C language string.
 Thus, \f5'\en'\fP represents characters \f5\e\fP and
-\f5n\fP, whereas, \f5$'\en'\fP 
+\f5n\fP, whereas, \f5$'\en'\fP
 represents the new-line character.
 Double quoted strings remove the special meaning of all characters
 except
@@ -1323,13 +1323,13 @@ and then truncated to an integer.
 The
 .B \-E
 attribute causes the value to be represented in scientific
-notation whenever its value is expanded.  The number following the 
+notation whenever its value is expanded.  The number following the
 .B \-E
 determines the number of significant figures, and defaults to 6.
 The
 .B \-F
 attribute causes the value to be represented with a fixed number
-of places after the decimal point. 
+of places after the decimal point.
 Assignments to variables with the
 .B \-E
 or
@@ -1385,7 +1385,7 @@ and
 can be used to generate all elements of an array,
 as they are used for expansion of positional parameters.
 The list of currently defined subscripts for a given
-variable can be generated with 
+variable can be generated with
 .BI ${! name [@]} ,
 or
 .BI ${! name [*]} .
@@ -1405,7 +1405,7 @@ to \f5foo\fP to behave as the variable whose name is \f5$foo\fP
 was referenced, which in this case is the variable \f5bar\fP.
 Unsetting this attribute breaks the association.
 Reference variables are usually used inside functions whose
-arguments are the names of shell variables. 
+arguments are the names of shell variables.
 The names for reference variables cannot contain a \fB\s+2.\s-2\fP.
 Whenever a shell variable is referenced, the portion of the
 variable up to the first \fB\s+2.\s-2\fP
@@ -1528,7 +1528,7 @@ In addition, the value of \f5"$foo"\fP is
 .sp
 .H 2 "Substring Generation"
 The expansion of a variable or parameter can be modified so that
-only a portion of the value results. 
+only a portion of the value results.
 It is often necessary to extract a portion of a shell variable or
 a portion of an array.
 There are several parameter expansion operators that can do this.
@@ -1633,7 +1633,7 @@ except when \fIname\fP is a reference variable.  In this case
 it will yield the name of the variable it refers to.
 When applied to an array variable,
 \fB${!\fP\fIname\fP\fB[@]}\fP and
-\fB${!\fP\fIname\fP\fB[*]}\fP 
+\fB${!\fP\fIname\fP\fB[*]}\fP
 generate the names of all subscripts.
 \fB${#\fP\fIname\fP\fB}\fP
 will be the length in bytes of
@@ -1733,7 +1733,7 @@ This makes the command easy to use with the \f5if\fP and \f5while\fP
 compound commands.
 .P
 The \f5for\fP compound command
-has been extended for use in arithmetic contexts. 
+has been extended for use in arithmetic contexts.
 The syntax,
 .ce
 \f5for\fP \fB((\fP \fIexpr1\fP\fB;\fP \fIexpr2\fP \fB;\fP \fIexpr3 \fP\fB))\fP
@@ -1793,8 +1793,8 @@ The option
 .B \-u
 or
 .BR nounset ,
-will cause an error to occur when any variable 
-that is not set is expanded. 
+will cause an error to occur when any variable
+that is not set is expanded.
 .LI
 The characters that result from parameter expansion and
 command substitution above are checked with the characters
@@ -1825,7 +1825,7 @@ The characters
 .BR * ,
 and
 .B [
-are processed specially 
+are processed specially
 by the shell when not quoted.
 These characters are used to form patterns that
 match strings.
@@ -1924,10 +1924,10 @@ displays all file names in the current directory that do not end in
 When patterns are used to generate pathnames when expanding
 commands several other rules apply.
 A separate match is made
-for each file name component of the pathname. 
+for each file name component of the pathname.
 Read permission is required for
 any portion of the pathname that contains any special
-pattern character. 
+pattern character.
 Search permission is required for every component except
 possibly the last.
 .P
@@ -1949,7 +1949,7 @@ If the
 .B markdirs
 option is set,
 each matching pathname that is the name
-of a directory has a trailing 
+of a directory has a trailing
 .B /
 appended to the name.
 .P
@@ -1993,7 +1993,7 @@ The reserved words
 .B [[
 and
 .B ]]
-delimit the range of the command. 
+delimit the range of the command.
 Because they are reserved words, not operator characters,
 they require spaces to separate them
 from arguments.
@@ -2030,7 +2030,7 @@ and
 .B !=
 takes a pattern and tests whether the left hand operand
 matches this pattern.  Quoting the pattern results
-is a string comparison rather than the pattern match. 
+is a string comparison rather than the pattern match.
 The operators
 .B <
 and
@@ -2070,7 +2070,7 @@ returns true when its operand is the name of an option that is
 currently on.
 .P
 The following script illustrates some of the uses of
-.BR [[ ... ]] . 
+.BR [[ ... ]] .
 The reference manual contains the complete list of operators.
 .sp
 .nf
@@ -2099,7 +2099,7 @@ you use the I/O redirection operator,
 to control where input comes from,
 and the I/O redirection operator,
 .BR > ,
-to control where output goes to. 
+to control where output goes to.
 Each of these operators can be preceded with a single digit that
 specifies a file unit number to associate with the file stream.
 Ordinarily you specify these I/O redirection operators with a specific
@@ -2260,7 +2260,7 @@ This makes it hard to output strings without interpretation.
 Most BSD derived systems do not interpret
 .B \e
 control sequences.
-Unfortunately, the BSD versions of \f5echo\fP accepts a 
+Unfortunately, the BSD versions of \f5echo\fP accepts a
 .B \-n
 option to prevent a trailing new-line, but has no way to
 cause the string
@@ -2317,7 +2317,7 @@ be placed on the output as required
 so that it can be used as shell input.
 Special characters in the output of most \f5ksh\fP built-in commands
 and in the output from an execution trace
-are quoted in an equivalent fashion. 
+are quoted in an equivalent fashion.
 The
 .B %P
 format causes an extended regular expression string to
@@ -2764,13 +2764,13 @@ In all other ways, \f5command\fP behaves like a built-in
 that is not associated with a pathname.
 As a result, if the first argument of \f5command\fP is
 a special built-in, the special properties of this built-in
-do not apply.  
+do not apply.
 For example, whereas, \f5exec\ 3<\ foo\fP will cause a script containing
 it to abort if the open fails, \f5command\ exec\ 3<\ foo\fP
 results in a non-zero exit status but does not abort the script.
 .P
 You can get a complete list of the special built-in commands
-with \f5builtin\ -s\fP. 
+with \f5builtin\ -s\fP.
 In addition \f5builtin\fP without arguments gives a list of
 the current built-ins and the pathname that they are associated with.
 A built-in can be bound to another pathname by giving
@@ -2829,7 +2829,7 @@ is named
 \fB\s-1EXIT\s+1\fP.
 .H 2 "Additional Variables"
 In addition to the variables discussed earlier, \f5ksh\fP
-has other variables that it handles specially. 
+has other variables that it handles specially.
 The variable \fB\s-1RANDOM\s+1\fP
 produces a random number in the range 0 to 32767 each time it is referenced.
 Assignment to this variable sets the seed for the
@@ -2889,7 +2889,7 @@ instead of the
 The
 \fB\s-1LINENO\s+1\fP
 variable is set to the current line number relative to the
-beginning of the current script or function. 
+beginning of the current script or function.
 It is most useful as part of the
 \fB\s-1PS4\s+1\fP
 prompt.
@@ -2951,7 +2951,7 @@ These security holes occur primarily because a user can manipulate the
 to subvert the intent of a
 .I setuid
 shell procedure.
-Sometimes, shell procedures are initiated from 
+Sometimes, shell procedures are initiated from
 binary programs, without the author's
 awareness, by library routines which invoke shells to carry out
 their tasks.
@@ -3132,7 +3132,7 @@ There is also a compile time switch to enable handling multi-byte
 and multi-width characters sets.
 .P
 On systems with dynamic libraries, it is possible to add built-in
-commands at run time  with the built-in command \f5builtin\fP 
+commands at run time  with the built-in command \f5builtin\fP
 described earlier.
 It is also possible to embed \f5ksh\fP in applications in
 a manner analogous to \f5tcl\fP.
@@ -3233,7 +3233,7 @@ and ISO shell standard.
 The 1993 version offers many advantages for programming applications,
 and it has been rewritten so that it can be used in embedded applications.
 It also offers improved performance.
-.SG dgk \"  signature typist initials 
+.SG dgk \"  signature typist initials
 \" .CS 14 24 38 0 0 16  \" cover sheet for TM
 .bp
 .ce

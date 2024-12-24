@@ -43,7 +43,7 @@ Sfio_t* sfswap(Sfio_t* f1, Sfio_t* f2)
 	f1mode = f1->mode;
 	SFLOCK(f1,0);
 	f1->mode |= SFIO_PUSH;		/* make sure there is no recursion on f1 */
-	
+
 	if(f2)
 	{	f2mode = f2->mode;
 		SFLOCK(f2,0);

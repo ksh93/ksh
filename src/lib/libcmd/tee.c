@@ -43,8 +43,8 @@ static const char usage[] =
 "\n[file ...]\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?All files copies successfully.]"
-        "[+>0?An error occurred.]"
+	"[+0?All files copies successfully.]"
+	"[+>0?An error occurred.]"
 "}"
 "[+SEE ALSO?\bcat\b(1), \bsignal\b(2)]"
 ;

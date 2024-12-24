@@ -465,11 +465,11 @@ fi
 
 float t1=$SECONDS
 
-$SHELL -c '( "$1" 5 </dev/null >/dev/null 2>&1 & );exit 0' x "$binsleep" | cat 
+$SHELL -c '( "$1" 5 </dev/null >/dev/null 2>&1 & );exit 0' x "$binsleep" | cat
 (( (SECONDS-t1) > 4 )) && err_exit '/bin/sleep& in subshell hanging'
 ((t1=SECONDS))
 
-$SHELL -c '( sleep 5 </dev/null >/dev/null 2>&1 & );exit 0' | cat 
+$SHELL -c '( sleep 5 </dev/null >/dev/null 2>&1 & );exit 0' | cat
 (( (SECONDS-t1) > 4 )) && err_exit 'sleep& in subshell hanging'
 
 exp=HOME=$HOME
@@ -511,14 +511,14 @@ for ((i=1; i < 1000; i++))
 do	typeset foo$i=$i
 done
 {
-    : $( (ac_space=' '; set | grep ac_space) 2>&1) 
+    : $( (ac_space=' '; set | grep ac_space) 2>&1)
 } < /dev/null | cat > /dev/null &
 sleep  1.5
 if	kill -KILL $! 2> /dev/null
 then	err_exit 'process timed out with hung comsub'
 fi
 wait $! 2> /dev/null
-(( $? > 128 )) && err_exit 'incorrect exit status with comsub' 
+(( $? > 128 )) && err_exit 'incorrect exit status with comsub'
 
 $SHELL 2> /dev/null -c '[[ ${ print foo },${ print bar } == foo,bar ]]' || err_exit  '${ print foo },${ print bar } not working'
 $SHELL 2> /dev/null -c '[[ ${ print foo; },${ print bar } == foo,bar ]]' || err_exit  '${ print foo; },${ print bar } not working'
@@ -604,12 +604,12 @@ $SHELL 2> /dev/null "$tmpfile" || err_exit 'IFS in subshell causes core dump'
 unset i
 if      [[ -d /dev/fd ]]
 then    integer i
-        for ((i=11; i < 29; i++))
-        do      if      ! [[ -r /dev/fd/$i  || -w /dev/fd/$i ]]
-                then    a=$($SHELL -c "[[ -r /dev/fd/$i || -w /dev/fd/$i ]]")
-                        (( $? )) || err_exit "file descriptor $i not close on exec"
-                fi
-        done
+	for ((i=11; i < 29; i++))
+	do      if      ! [[ -r /dev/fd/$i  || -w /dev/fd/$i ]]
+		then    a=$($SHELL -c "[[ -r /dev/fd/$i || -w /dev/fd/$i ]]")
+			(( $? )) || err_exit "file descriptor $i not close on exec"
+		fi
+	done
 fi
 
 trap USR1 USR1
@@ -1075,11 +1075,11 @@ sleep 2 & spid=$!
 for ((i=1; i<2048; i++))
 do	print $i
 done | (		# trigger 1: read from pipe
-        foo=`: &`	# trigger 2: bg job in backtick comsub
-        while read -r line
-        do	:
-        done
-        kill $spid
+	foo=`: &`	# trigger 2: bg job in backtick comsub
+	while read -r line
+	do	:
+	done
+	kill $spid
 ) &
 tpid=$!
 wait $spid 2>/dev/null
@@ -1121,7 +1121,7 @@ e2=$( (ulimit -t unlimited 2>/dev/null; f() { return 267; }; f); echo $? )
 # effects of .sh.value on shared-state command substitutions.
 function foo
 {
-       .sh.value=bam
+	.sh.value=bam
 }
 got=${ foo; }
 [[ $got ]] && err_exit "setting .sh.value in a function affects shared-state command substitution output when it shouldn't print anything" \

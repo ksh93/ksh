@@ -25,7 +25,7 @@
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 03/18/1998.
 */
 
-#define	UNSEEKABLE	1
+#define UNSEEKABLE	1
 
 typedef struct _file_s
 {	Sfio_t*	f;	/* the stream		*/

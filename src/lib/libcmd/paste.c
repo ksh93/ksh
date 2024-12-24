@@ -148,7 +148,7 @@ static int spaste(Sfio_t *in,Sfio_t* out,const char *delim,int dsiz,int dlen,Del
 	int d=0;
 	if((cp = sfgetr(in,'\n',0)) && sfwrite(out,cp,sfvalue(in)-1) < 0)
 		return -1;
-	while(cp=sfgetr(in, '\n',0)) 
+	while(cp=sfgetr(in, '\n',0))
 	{
 		if(dlen)
 		{

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -29,10 +29,10 @@ static const char usage[] =
     "will have mode \brwx------\b, subject to \bumask\b(1). Generated paths "
     "have these attributes:]"
     "{"
-        "[+*?Lower case to avoid clashes on case ignorant filesystems.]"
-        "[+*?Pseudo-random part to deter denial of service attacks.]"
-        "[+*?Default pseudo-random part (no specific \bX...\b template) "
-            "formatted to accommodate 8.3 filesystems.]"
+	"[+*?Lower case to avoid clashes on case ignorant filesystems.]"
+	"[+*?Pseudo-random part to deter denial of service attacks.]"
+	"[+*?Default pseudo-random part (no specific \bX...\b template) "
+	    "formatted to accommodate 8.3 filesystems.]"
     "}"
 "[+?A consecutive trailing sequence of \bX\b's in \aprefix\a is replaced "
     "by the pseudo-random part. If there are no \bX\b's then the "

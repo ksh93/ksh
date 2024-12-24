@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -25,7 +25,7 @@
  * This command requires getrlimit(), vlimit(), or ulimit()
  */
 
-#ifndef _no_ulimit 
+#ifndef _no_ulimit
 
 const char	e_unlimited[] = "unlimited";
 const char*	e_units[] = { 0, "block", "byte", "Kibyte", "second", "microsecond" };

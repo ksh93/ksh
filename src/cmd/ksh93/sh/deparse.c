@@ -149,7 +149,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 				begin_line = 1;
 			}
 			break;
-	
+
 		case TIF:
 			p_keyword("if",BEGIN);
 			p_tree(t->if_.iftre,0);
@@ -253,7 +253,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 			level--;
 			break;
 		}
-	
+
 		case TPAR:
 		{
 			char indented_block = (begin_line || !level);
@@ -295,7 +295,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 			p_tree(t,0);
 			p_keyword("done",END);
 			break;
-	
+
 		case TSW:
 			p_keyword("case",BEGIN|NOTAB);
 			p_arg(t->sw.swarg,' ',0);
@@ -334,7 +334,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 			}
 			begin_line = 1;
 			p_keyword("{",BEGIN);
-			p_tree(t->funct.functtre,0); 
+			p_tree(t->funct.functtre,0);
 			p_keyword("}",END);
 			break;
 
@@ -345,7 +345,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 			if((t->tre.tretyp&TPAREN)==TPAREN)
 			{
 				p_keyword("(",BEGIN|NOTAB);
-				p_tree(t->lst.lstlef,NO_BRACKET|NO_NEWLINE); 
+				p_tree(t->lst.lstlef,NO_BRACKET|NO_NEWLINE);
 				p_keyword(")",END);
 			}
 			else

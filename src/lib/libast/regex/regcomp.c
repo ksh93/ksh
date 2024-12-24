@@ -60,7 +60,7 @@ typedef struct Cchr_s
 /*
  * determine whether greedy matching will work, i.e. produce
  * the best match first.  such expressions are "easy", and
- * need no backtracking once a complete match is found.  
+ * need no backtracking once a complete match is found.
  * if an expression has backreferences or alts it's hard
  * else if it has only one closure it's easy
  * else if all closures are simple (i.e. one-character) it's easy
@@ -328,7 +328,7 @@ cat(Cenv_t* env, Rex_t* e, Rex_t* f)
 		{
 			if (e->hi > RE_DUP_MAX || f->hi > RE_DUP_MAX)
 			{
-				n = RE_DUP_INF;	
+				n = RE_DUP_INF;
 				goto combine;
 			}
 			else if (n <= RE_DUP_MAX)
@@ -2597,7 +2597,7 @@ seq(Cenv_t* env)
 	{
 		s = buf;
 		while ((c = token(env)) < T_META && s < &buf[sizeof(buf) - env->token.len])
-		{	
+		{
 			x = c;
 			p = env->cursor;
 			if (c >= 0)
@@ -2729,13 +2729,13 @@ seq(Cenv_t* env)
 					drop(env->disc, e);
 					env->error = (*env->cursor == 0 || *env->cursor == env->delimiter || *env->cursor == env->terminator) ? REG_EPAREN : REG_ENULL;
 					return NULL;
-				} 
+				}
 				if (token(env) != T_CLOSE)
 				{
 					drop(env->disc, e);
 					env->error = REG_EPAREN;
 					return NULL;
-				} 
+				}
 				env->parnest--;
 				eat(env);
 				if (!(f = node(env, REX_GROUP, 0, 0, 0)))
@@ -3002,7 +3002,7 @@ bmtrie(Cenv_t* env, Rex_t* a, unsigned char* v, Trie_node_t* x, int n, int m, Bm
  * 2. max length fixed string found -- use BM algorithm
  * 3. it begins with an unanchored string - use KMP algorithm
  * 0 returned on success
- */		
+ */
 
 static int
 special(Cenv_t* env, regex_t* p)
@@ -3222,7 +3222,7 @@ special(Cenv_t* env, regex_t* p)
 	}
 	p->env->once = 1;
 	return 0;
-}		
+}
 
 int
 regcomp(regex_t* p, const char* pattern, regflags_t flags)

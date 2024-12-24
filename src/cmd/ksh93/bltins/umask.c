@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -25,12 +25,12 @@
  */
 
 #include	"shopt.h"
-#include	<ast.h>	
-#include	<sfio.h>	
-#include	<error.h>	
-#include	<ctype.h>	
-#include	<ls.h>	
-#include	<shell.h>	
+#include	<ast.h>
+#include	<sfio.h>
+#include	<error.h>
+#include	<ctype.h>
+#include	<ls.h>
+#include	<shell.h>
 #include	"builtins.h"
 #ifndef SH_DICT
 #   define SH_DICT	"libshell"
@@ -61,13 +61,13 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 	argv += opt_info.index;
 	if(mask = *argv)
 	{
-		int c;	
+		int c;
 		if(isdigit(*mask))
 		{
 			while(c = *mask++)
 			{
-				if (c>='0' && c<='7')	
-					flag = (flag<<3) + (c-'0');	
+				if (c>='0' && c<='7')
+					flag = (flag<<3) + (c-'0');
 				else
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_number,*argv);
@@ -88,8 +88,8 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 			}
 			flag = (~c&0777);
 		}
-		umask(flag);	
-	}	
+		umask(flag);
+	}
 	else
 	{
 		umask(flag=umask(0));

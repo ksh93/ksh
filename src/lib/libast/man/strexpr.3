@@ -24,7 +24,7 @@
 .de EX		\" start example
 .ta 1i 2i 3i 4i 5i 6i
 .PP
-.RS 
+.RS
 .PD 0
 .ft 5
 .nf
@@ -36,13 +36,13 @@
 .RE
 .PP
 ..
-.TH STREVAL 3
+.TH STREXPR 3
 .SH NAME
-streval \- long integer arithmetic expression evaluator
+strexpr \- long integer arithmetic expression evaluator
 .SH SYNOPSIS
-.L "long streval(const char* s, char** e, long (*conv)(const char* cs, char** ce))"
+.L "long strexpr(const char* s, char** e, long (*conv)(const char* cs, char** ce, void *handle), void *handle)"
 .SH DESCRIPTION
-.I streval
+.I strexpr
 evaluates the long integer arithmetic expression in the null-terminated string
 .I s
 and returns the result.
@@ -54,14 +54,21 @@ is set to point to the first unknown character in the expression.
 .PP
 If
 .I conv
-is not 0 then it is called when an unknown token is encountered in
+is not 0, then it is called when an unknown token is encountered in
 .IR s .
 .I cs
 points to the beginning of the unknown token.
 The return value is the long integer value of the unknown token and
 .I ce
 must be set to point to the first character after the unknown token.
-If an expression syntax error is encountered the
+The
+.I handle
+pointer argument to
+.I strexpr
+is passed to
+.I conv
+when called; its purpose is user-defined.
+If an expression syntax error is encountered, then
 .I conv
 is called with
 .I cs
@@ -72,12 +79,10 @@ pointing to the error message text.
 In addition to the normal C expressions and integer constant styles,
 numbers in any base
 .I b
-<= 2 <=36
+<= 2 <= 64
 may be represented as
-.IR b # nnnn ,
-where the extra digits in
-.I nnnn
-are taken from
-.BR [A-Z] .
+.IR b # nnnn .
+For bases greater than 10, the notation is as described in
+.IR strton (3).
 .SH "SEE ALSO"
-strtol(3)
+.IR strton (3)

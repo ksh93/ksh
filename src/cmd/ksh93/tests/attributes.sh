@@ -154,10 +154,10 @@ typeset -Z  LAST=00
 unset -f foo
 function foo
 {
-        if [[ $1 ]]
-        then    LAST=$1
-        else    ((LAST++))
-        fi
+	if [[ $1 ]]
+	then    LAST=$1
+	else    ((LAST++))
+	fi
 }
 foo 1
 if	(( ${#LAST} != 2 ))
@@ -184,16 +184,16 @@ fi
 if	[[ $(typeset | grep PS2) == PS2 ]]
 then	err_exit 'typeset without arguments outputs names without attributes'
 fi
+
+# ======
+# typeet -b tests (ASCII assumed)
+
 unset a z q x
 w1=hello
 w2=world
 t1="$w1 $w2"
-if	(( 'a' == 97 ))
-then	b1=aGVsbG8gd29ybGQ=
-	b2=aGVsbG8gd29ybGRoZWxsbyB3b3JsZA==
-else	b1=iIWTk5ZAppaZk4Q=
-	b2=iIWTk5ZAppaZk4SIhZOTlkCmlpmThA==
-fi
+b1=aGVsbG8gd29ybGQ=
+b2=aGVsbG8gd29ybGRoZWxsbyB3b3JsZA==
 z=$b1
 typeset -b x=$b1
 [[ $x == "$z" ]] || err_exit "binary variable not expanding correctly ($(printf %q "$x") != $(printf %q "$z"))"
@@ -215,6 +215,9 @@ typeset -b -Z20 z=$b1
 } << !
 hello worldhello worldhello world
 !
+
+# ======
+
 [[ $v1 == "$b1" ]] || err_exit "v1=$v1 should be $b1"
 [[ $v2 == "$x" ]] || err_exit "v1=$v2 should be $x"
 if	env '!=1' >/dev/null 2>&1
@@ -390,9 +393,9 @@ typeset -H v=/dev/null
 [[ $v == *[Nn]ul* ]] || err_exit "typeset -H for /dev/null not working (got $(printf %q "$v"))"
 
 unset x
-(typeset +C x) 2> /dev/null && err_exit 'typeset +C should be an error' 
-(typeset +A x) 2> /dev/null && err_exit 'typeset +A should be an error' 
-(typeset +a x) 2> /dev/null && err_exit 'typeset +a should be an error' 
+(typeset +C x) 2> /dev/null && err_exit 'typeset +C should be an error'
+(typeset +A x) 2> /dev/null && err_exit 'typeset +A should be an error'
+(typeset +a x) 2> /dev/null && err_exit 'typeset +a should be an error'
 
 unset x
 {
@@ -426,7 +429,7 @@ fi
 { $SHELL  <<-  \EOF
 	compound -a a1
 	for ((i=1 ; i < 100 ; i++ ))
-        do	[[ "$( typeset + a1[$i] )" == '' ]] && a1[$i].text='hello'
+	do	[[ "$( typeset + a1[$i] )" == '' ]] && a1[$i].text='hello'
 	done
 	[[ ${a1[70].text} == hello ]]
 EOF

@@ -43,7 +43,7 @@ static ssize_t filterread(Sfio_t*	f,	/* stream reading from */
 
 	fi = (Filter_t*)disc;
 	for(;;)
-	{	
+	{
 		/* get some raw data to stuff down the pipe */
 		if(fi->next && fi->next >= fi->endb )
 		{	if((r = sfrd(f,fi->raw,sizeof(fi->raw),disc)) > 0)

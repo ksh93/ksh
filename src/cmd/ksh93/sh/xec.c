@@ -506,15 +506,14 @@ static void out_string(Sfio_t *iop, const char *cp, int c, int quoted)
 static void put_level(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
 	Shscope_t	*sp;
-	int16_t		level, oldlevel = np->nvalue.s;
-	if(val)
-		nv_putv(np,val,flags,fp);
-	else
+	int16_t		level, oldlevel = sh.level;
+	if(!val)
 		return;
-	level = np->nvalue.s;
+	nv_putv(np,val,flags,fp);
+	level = sh.level;
 	if(level < 0 || level > sh.fn_depth + sh.dot_depth)
 	{
-		np->nvalue.s = oldlevel;
+		sh.level = oldlevel;
 		errormsg(SH_DICT,ERROR_exit(1),"%d: level out of range",level);
 		UNREACHABLE();
 	}
@@ -574,7 +573,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		sfputc(sh.stk,')');
 	else
 		*stkptr(sh.stk,stktell(sh.stk)-1) = 0;
-	np->nvalue.cp = stkfreeze(sh.stk,1);
+	np->nvalue = stkfreeze(sh.stk,1);
 	sh.st.lineno = error_info.line;
 	*savst = sh.st;
 	sh.st.trap[SH_DEBUGTRAP] = 0;
@@ -585,7 +584,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	/* run the trap */
 	n = sh_trap(trap,0);
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
-	np->nvalue.cp = 0;
+	np->nvalue = NULL;
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
@@ -740,7 +739,7 @@ static long set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
 	}
 	nv_putval(SH_NAMENOD, cp, NV_NOFREE);
 	memcpy(node,L_ARGNOD,sizeof(*node));
-	L_ARGNOD->nvalue.nrp = nr;
+	L_ARGNOD->nvalue = nr;
 	L_ARGNOD->nvflag = NV_REF|NV_NOFREE;
 	L_ARGNOD->nvfun = NULL;
 	L_ARGNOD->nvmeta = NULL;
@@ -754,7 +753,7 @@ static long set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
 
 static void unset_instance(Namval_t *nq, Namval_t *node, struct Namref *nr,long mode)
 {
-	L_ARGNOD->nvalue.nrp = node->nvalue.nrp;
+	L_ARGNOD->nvalue = node->nvalue;
 	L_ARGNOD->nvflag = node->nvflag;
 	L_ARGNOD->nvfun = node->nvfun;
 	if(nr->sub)
@@ -800,7 +799,7 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 	}
 	if(!nsp && !onsp)
 		return 0;
-	if(onsp == nsp) 
+	if(onsp == nsp)
 		return nsp;
 	if(onsp)
 	{
@@ -989,8 +988,8 @@ int sh_exec(const Shnode_t *t, int flags)
 			{
 				if(!command)
 				{
-					Namval_t *mp;
 #if SHOPT_NAMESPACE
+					Namval_t *mp;
 					if(sh.namespace && (mp=sh_fsearch(np->nvname,0)))
 						np = mp;
 					else
@@ -1102,7 +1101,6 @@ int sh_exec(const Shnode_t *t, int flags)
 			sh.last_table = 0;
 			if(io || argn)
 			{
-				Shbltin_t *bp=0;
 				static char *argv[2];
 				int tflags = 1;
 				if(np && nv_isattr(np,BLT_DCL))
@@ -1172,7 +1170,7 @@ int sh_exec(const Shnode_t *t, int flags)
 						if(!sh.namespace || !(np=sh_fsearch(com0,0)))
 #endif /* SHOPT_NAMESPACE */
 							np=nv_search(com0,sh.fun_tree,0);
-						if(!np || !np->nvalue.ip)
+						if(!np || !np->nvalue)
 						{
 							Namval_t *mp=nv_search(com0,sh.bltin_tree,0);
 							if(mp)
@@ -1196,13 +1194,13 @@ int sh_exec(const Shnode_t *t, int flags)
 					volatile void	*save_data;
 					int		save_prompt;
 					struct checkpt	*buffp;
+					Shbltin_t	*bp = &sh.bltindata;
 					/* Fallback optimization for ':'/'true' and 'false' */
 					if(!io && !argp && (funptr(np)==b_true || funptr(np)==b_false && ++sh.exitval))
 						goto setexit;
 					scope = 0, share = 0;
 					was_mktype = sh.mktype!=NULL;
 					was_nofork = execflg && sh_isstate(SH_NOFORK);
-					bp = &sh.bltindata;
 					save_ptr = bp->ptr;
 					save_data = bp->data;
 					if(execflg)
@@ -1218,19 +1216,31 @@ int sh_exec(const Shnode_t *t, int flags)
 						if(io)
 						{
 							struct openlist *item;
+							/* Below, 'type' is the type flag for sh_redirect; see there for info */
 							if(np == SYSEXEC)		/* 'exec' */
-								type = 1 + !com[1];
-							else if(np == SYSREDIR)		/* 'redirect' */
-								if(!com[1])
-									type = 2;
+							{
+								/* Interactive shells no longer force an exit on failure to exec,
+								 * so if there is a program to 'exec', save the file descriptor
+								 * state (type==0) on interactive shells in case path_exec fails */
+								if(com[1])
+									type = sh_isstate(SH_INTERACTIVE) ? 0 : 1;
 								else
+									type = 2;	/* no operand: mark FD > 2 close-on-exec */
+							}
+							else if(np == SYSREDIR)		/* 'redirect' */
+							{
+								if(com[1])		/* do not allow operands */
 								{
 									errormsg(SH_DICT, ERROR_exit(2), "%s: %s: %s",
 										 SYSREDIR->nvname, e_badsyntax, com[1]);
 									UNREACHABLE();
 								}
+								type = 2;
+							}
+							else if(execflg)
+								type = 1;		/* don't bother to save redirection state */
 							else
-								type = (execflg && !sh.subshell && !sh.st.trapcom[0]);
+								type = 0;		/* normal non-persistent redirection */
 							sh.redir0 = 1;
 							sh_redirect(io,type);
 							for(item=buffp->olist;item;item=item->next)
@@ -1301,12 +1311,9 @@ int sh_exec(const Shnode_t *t, int flags)
 						fifo_cleanup();
 #endif
 					}
-					if(bp)
-					{
-						bp->bnode = 0;
-						if( bp->ptr!= nv_context(np))
-							np->nvfun = (Namfun_t*)bp->ptr;
-					}
+					bp->bnode = 0;
+					if(bp->ptr != nv_context(np))
+						np->nvfun = bp->ptr;
 					if(execflg && !was_nofork)
 						sh_offstate(SH_NOFORK);
 					if(!(nv_isattr(np,BLT_ENV)))
@@ -1335,14 +1342,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					sh.redir0 = 0;
 					if(jmpval)
 						siglongjmp(*sh.jmplist,jmpval);
-					if(sh.exitval >=0)
-						goto setexit;
-					/*
-					 * If a built-in sets sh.exitval < 0 (must be allowed by BLT_EXIT attribute),
-					 * then fall through to TFORK which runs the external command by that name
-					 */
-					np = 0;
-					type=0;
+					goto setexit;
 				}
 				/* check for functions */
 				if(!command && np && nv_isattr(np,NV_FUNCTION))
@@ -1357,7 +1357,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					struct Namref	*nrp;
 					long		mode = 0;
 					struct slnod *slp;
-					if(!np->nvalue.ip)
+					if(!np->nvalue)
 					{
 						indx = path_search(com0,NULL,0);
 						if(indx==1)
@@ -1369,7 +1369,7 @@ int sh_exec(const Shnode_t *t, int flags)
 #endif /* SHOPT_NAMESPACE */
 							np = nv_search(com0,sh.fun_tree,NV_NOSCOPE);
 						}
-						if(!np->nvalue.ip)
+						if(!np->nvalue)
 						{
 							if(indx==1)
 							{
@@ -1417,7 +1417,7 @@ int sh_exec(const Shnode_t *t, int flags)
 #if SHOPT_NAMESPACE
 						if(*np->nvname=='.')
 						{
-							char *cp = strchr(np->nvname+1,'.');	
+							char *cp = strchr(np->nvname+1,'.');
 							if(cp)
 							{
 								*cp = 0;
@@ -2427,7 +2427,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				{
 					root = dtopen(&_Nvdisc,Dtoset);
 					nv_mount(np, NULL, root);
-					np->nvalue.cp = Empty;
+					np->nvalue = Empty;
 					dtview(root,sh.var_base);
 				}
 				oldnspace = enter_namespace(np);
@@ -2492,9 +2492,9 @@ int sh_exec(const Shnode_t *t, int flags)
 					UNREACHABLE();
 				}
 			}
-			if(np->nvalue.rp)
+			if(np->nvalue)
 			{
-				struct Ufunction *rp = np->nvalue.rp;
+				struct Ufunction *rp = np->nvalue;
 				slp = np->nvmeta;
 				sh_funstaks(slp->slchild,-1);
 				if(slp->slptr)
@@ -2519,20 +2519,21 @@ int sh_exec(const Shnode_t *t, int flags)
 				if(sh.funload)
 				{
 					if(!sh.fpathdict)
-						free(np->nvalue.rp);
-					np->nvalue.rp = 0;
+						free(np->nvalue);
+					np->nvalue = NULL;
 				}
 			}
-			if(!np->nvalue.rp)
+			if(!np->nvalue)
 			{
-				np->nvalue.rp = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
-				memset(np->nvalue.rp,0,sizeof(struct Ufunction));
+				np->nvalue = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
+				memset(np->nvalue,0,sizeof(struct Ufunction));
 			}
 			if(t->funct.functstak)
 			{
+				struct Ufunction *rp = np->nvalue;
 				static Dtdisc_t		_Rpdisc =
 				{
-				        offsetof(struct Ufunction,fname), -1, sizeof(struct Ufunction) 
+				        offsetof(struct Ufunction,fname), -1, sizeof(struct Ufunction)
 				};
 				struct functnod *fp;
 				struct comnod *ac = t->funct.functargs;
@@ -2542,19 +2543,18 @@ int sh_exec(const Shnode_t *t, int flags)
 					stklink(slp->slptr);
 				np->nvmeta = slp;
 				nv_funtree(np) = (int*)(t->funct.functtre);
-				np->nvalue.rp->lineno = t->funct.functline;
-				np->nvalue.rp->nspace = sh.namespace;
-				np->nvalue.rp->fname = 0;
-				np->nvalue.rp->argv = ac ? ac->comarg.dp->dolval + 1 : NULL;
-				np->nvalue.rp->argc = ac ? ac->comarg.dp->dolnum : 0;
-				np->nvalue.rp->fdict = sh.fun_tree;
+				rp->lineno = t->funct.functline;
+				rp->nspace = sh.namespace;
+				rp->fname = 0;
+				rp->argv = ac ? ac->comarg.dp->dolval + 1 : NULL;
+				rp->argc = ac ? ac->comarg.dp->dolnum : 0;
+				rp->fdict = sh.fun_tree;
 				fp = (struct functnod*)(slp+1);
 				if(fp->functtyp==(TFUN|FAMP))
-					np->nvalue.rp->fname = fp->functnam;
+					rp->fname = fp->functnam;
 				nv_offattr(np,NV_FPOSIX);
 				if(sh.funload)
 				{
-					struct Ufunction *rp = np->nvalue.rp;
 					rp->np = np;
 					if(!sh.fpathdict)
 						sh.fpathdict = dtopen(&_Rpdisc,Dtobag);
@@ -2656,7 +2656,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				if(traceon)
 					sfwrite(sfstderr,e_tstend,4);
 			}
-			sh.exitval = ((!n)^negate); 
+			sh.exitval = ((!n)^negate);
 			if(!skipexitset)
 				exitset();
 			break;
@@ -2768,7 +2768,7 @@ int sh_trace(char *argv[], int nl)
 			char *argv0 = *argv;
 			nl = (nl?'\n':-1);
 			/* don't quote [ and [[ */
-			if(*(cp=argv[0])=='[' && (!cp[1] || !cp[2]&&cp[1]=='['))  
+			if(*(cp=argv[0])=='[' && (!cp[1] || !cp[2]&&cp[1]=='['))
 			{
 				sfputr(sfstderr,cp,*++argv?' ':nl);
 				bracket = 1;
@@ -2974,29 +2974,29 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
 	int		i;
 	np = (Namval_t*)fp;
 	funenv.node = np;
-	funenv.nref = nref; 
+	funenv.nref = nref;
 	funenv.env = NULL;
 	memcpy(&node,SH_VALNOD,sizeof(node));
 	SH_VALNOD->nvfun = NULL;
 	SH_VALNOD->nvmeta = NULL;
 	SH_VALNOD->nvflag = NV_LDOUBLE|NV_NOFREE;
-	SH_VALNOD->nvalue.ldp = NULL;
-	for(i=0; i < nargs; i++)	
+	SH_VALNOD->nvalue = NULL;
+	for(i=0; i < nargs; i++)
 	{
 		*nr++ = mp = nv_namptr(sh.mathnodes,i);
-		mp->nvalue.ldp = arg++;
+		mp->nvalue = arg++;
 	}
 	*nr = 0;
-	SH_VALNOD->nvalue.ldp = &d;
+	SH_VALNOD->nvalue = &d;
 	argv[0] = np->nvname;
 	argv[1] = NULL;
 	sh_funscope(1,argv,0,&funenv,0);
 	while(mp= *nr++)
-		mp->nvalue.ldp = NULL;
+		mp->nvalue = NULL;
 	SH_VALNOD->nvfun = node.nvfun;
 	SH_VALNOD->nvflag = node.nvflag;
 	SH_VALNOD->nvmeta = node.nvmeta;
-	SH_VALNOD->nvalue.ldp = node.nvalue.ldp;
+	SH_VALNOD->nvalue = node.nvalue;
 	return d;
 }
 
@@ -3040,7 +3040,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	if(!fun)
 	{
 		fp = (struct funenv*)arg;
-		sh.st.real_fun = (fp->node)->nvalue.rp;
+		sh.st.real_fun = fp->node->nvalue;
 		envlist = fp->env;
 	}
 	prevscope->save_tree = sh.var_tree;
@@ -3090,8 +3090,9 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	error_info.id = argv[0];
 	if(!fun)
 	{
-		if(fp->node->nvalue.rp)
-			sh.st.filename = fp->node->nvalue.rp->fname;
+		struct Ufunction *rp = fp->node->nvalue;
+		if(rp)
+			sh.st.filename = rp->fname;
 		sh.st.funname = nv_name(fp->node);
 		sh.last_root = nv_dict(DOTSHNOD);
 		nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
@@ -3123,8 +3124,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 					np = nv_search(arg[r],sh.var_tree,NV_NOSCOPE|NV_ADD);
 					if(np && (nq=*nref++))
 					{
-						np->nvalue.nrp = sh_newof(0,struct Namref,1,0);
-						np->nvalue.nrp->np = nq;
+						np->nvalue = sh_newof(0,struct Namref,1,0);
+						((struct Namref*)np->nvalue)->np = nq;
 						nv_onattr(np,NV_REF|NV_NOFREE);
 					}
 				}
@@ -3184,6 +3185,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 
 static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,int execflg)
 {
+	struct Ufunction *rp = np->nvalue;
 	struct funenv	fun;
 	char		*fname = nv_getval(SH_FUNNAMENOD);
 	pid_t		pipepid = sh.pipepid;
@@ -3196,7 +3198,7 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 	if((struct sh_scoped*)sh.topscope != sh.st.self)
 		sh_setscope(sh.topscope);
 	sh.st.lineno = error_info.line;
-	np->nvalue.rp->running  += 2;
+	rp->running += 2;
 	if(nv_isattr(np,NV_FPOSIX))
 	{
 		char *save;
@@ -3225,12 +3227,12 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 	nv_putval(SH_FUNNAMENOD,fname,NV_NOFREE);
 	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 	sh.pipepid = pipepid;
-	if(np->nvalue.rp)
+	if(rp = np->nvalue)
 	{
-		np->nvalue.rp->running  -= 2;
-		if(np->nvalue.rp->running==1)
+		rp->running -= 2;
+		if(rp->running==1)
 		{
-			np->nvalue.rp->running = 0;
+			rp->running = 0;
 			_nv_unset(np, NV_RDONLY);
 		}
 	}
@@ -3307,7 +3309,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 }
 
 /*
- * set up pipe for cooperating process 
+ * set up pipe for cooperating process
  */
 static void coproc_init(int pipes[])
 {
@@ -3323,7 +3325,7 @@ static void coproc_init(int pipes[])
 		/* first co-process */
 		sh_pclose(sh.cpipe);
 		sh_pipe(sh.cpipe);
-		if((outfd=sh.cpipe[1]) < 10) 
+		if((outfd=sh.cpipe[1]) < 10)
 		{
 		        int fd=sh_fcntl(sh.cpipe[1],F_DUPFD,10);
 			if(fd>=10)
@@ -3396,7 +3398,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 			sh.invoc_local++;
 			sh_scope(t->com.comset,0);
 		}
-		if(!strchr(path=argv[0],'/')) 
+		if(!strchr(path=argv[0],'/'))
 		{
 			Namval_t *np;
 			if(np = path_gettrackedalias(path))
@@ -3477,7 +3479,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 			argv[0] = argv[-1];
 		}
 	fail:
-		if(jobfork && spawnpid<0) 
+		if(jobfork && spawnpid<0)
 			job_fork(-2);
 		if(spawnpid == -1)
 		{

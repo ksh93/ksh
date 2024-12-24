@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -254,7 +254,7 @@ search(FTSENT* e, FTSENT* root, int(*comparf)(FTSENT* const*, FTSENT* const*), i
 		if (!(cmp = (*comparf)(&e, &root)) && !insert)
 			break;
 		if (cmp < 0)
-		{	
+		{
 			/*
 			 * this is the left zig-zig case
 			 */
@@ -279,7 +279,7 @@ search(FTSENT* e, FTSENT* root, int(*comparf)(FTSENT* const*, FTSENT* const*), i
 			right->left = 0;
 		}
 		else
-		{	
+		{
 			/*
 			 * this is the right zig-zig case
 			 */
@@ -1099,7 +1099,7 @@ fts_read(FTS* fts)
 			if (fts->root)
 				getlist(&fts->top, &fts->bot, fts->root);
 			if (fts->children)
-			{	
+			{
 				/*
 				 * try moving back to parent dir
 				 */
@@ -1481,7 +1481,7 @@ int
 fts_flags(void)
 {
 	char*	s;
-	
+
 	s = astconf("PATH_RESOLVE", NULL, NULL);
 	if (streq(s, "logical"))
 		return FTS_LOGICAL;

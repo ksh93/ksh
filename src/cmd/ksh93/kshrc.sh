@@ -37,7 +37,7 @@ typeset .rc
 .rc.tty=${.rc.tty#/dev/}
 
 if	[[ -v INSTALLROOT ]]
-then	# do not intefere with the regular ksh history
+then	# do not interfere with the regular ksh history
 	[[ -d $INSTALLROOT/var ]] || mkdir -p "$INSTALLROOT/var"
 	HISTFILE=$INSTALLROOT/var/sh_history_${.rc.tty//\//_}
 fi

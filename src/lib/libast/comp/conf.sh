@@ -1088,7 +1088,7 @@ do	eval name=\"'$'CONF_name_$key\"
 						x=`./$tmp.sh 2>/dev/null`
 						;;
 					'')	case $conf_name in
-						SIZE_*|U*|*_MAX)	
+						SIZE_*|U*|*_MAX)
 							f="%${LL_format}u"
 							t="unsigned _ast_intmax_t"
 							;;
@@ -1348,7 +1348,7 @@ ${script}
 				;;
 			esac
 			;;
-		-*[2468])	
+		-*[2468])
 			case $shell in
 			ksh)	p=${conf_limit%?}
 				s=${conf_limit#$p}
@@ -1383,7 +1383,7 @@ ${script}
 				;;
 			esac
 			;;
-		-*[2468])	
+		-*[2468])
 			case $shell in
 			ksh)	p=${conf_minmax%?}
 				s=${conf_minmax#$p}
@@ -1459,7 +1459,7 @@ ${generated}
 #define prefix_elements	_ast_conf_nprefix
 
 #define CONF_nop	0
-#define	CONF_confstr	1
+#define CONF_confstr	1
 #define CONF_pathconf	2
 #define CONF_sysconf	3
 #define CONF_sysinfo	4

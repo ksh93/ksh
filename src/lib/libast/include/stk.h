@@ -33,15 +33,15 @@
 
 #define stkstd		(&_Stk_data)
 
-#define	Stk_t		Sfio_t
+#define Stk_t		Sfio_t
 
 /* option bits for stkopen() */
 #define STK_SMALL	1		/* allocate small stack frames	*/
 #define STK_NULL	2		/* return NULL on overflow	*/
 
-#define	stkptr(sp,n)	((char*)((sp)->_data)+(n))
+#define stkptr(sp,n)	((char*)((sp)->_data)+(n))
 #define stktop(sp)	((char*)(sp)->_next)
-#define	stktell(sp)	((sp)->_next-(sp)->_data)
+#define stktell(sp)	((sp)->_next-(sp)->_data)
 #define stkseek(sp,n)	((n)==0?(void*)((sp)->_next=(sp)->_data):_stkseek(sp,n))
 
 extern Sfio_t		_Stk_data;

@@ -11,7 +11,7 @@ note * initialization for the build system
 note *
 
 make install virtual
-	loop DIR bin include/ast lib/lib lib/probe/C/make lib/probe/C/pp lib/probe/C/mam
+	loop DIR bin include/ast lib/lib lib/probe/C/make lib/probe/C/mam
 		make %{INSTALLROOT}/%{DIR}
 			exec - mkdir -p %{@}
 		done
@@ -180,10 +180,10 @@ make test dontcare virtual
 	make test.mamake virtual
 		makp mamake.tst
 		exec - : testing non-libast mamake at $PWD/mamake :
-		exec - regress mamake.tst mamake
+		exec - regress --verbose %{<} mamake
 	done
 	make test.iffe virtual
 		makp iffe.tst
-		exec - regress iffe.tst iffe
+		exec - regress --verbose %{<} iffe
 	done
 done test

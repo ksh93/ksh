@@ -59,8 +59,8 @@ static const char usage[] =
     "\n\n"
 "[+EXIT STATUS?]"
     "{"
-        "[+0?All files copied successfully.]"
-        "[+>0?One or more files did not copy.]"
+	"[+0?All files copied successfully.]"
+	"[+>0?One or more files did not copy.]"
     "}"
 "[+SEE ALSO?\bcat\b(1), \btail\b(1)]"
 ;

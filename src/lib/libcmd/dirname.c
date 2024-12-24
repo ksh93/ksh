@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -44,7 +44,7 @@ static const char usage[] =
 	"the output will be as if the original string had consisted solely "
 	"as \b/\b characters as described above.  Otherwise, all "
 	"trailing slashes are removed and the output will be this string "
-	"unless this string is empty.  If empty the output will be \b.\b.]" 
+	"unless this string is empty.  If empty the output will be \b.\b.]"
 "[f:file?Print the \b$PATH\b relative regular file path for \astring\a.]"
 "[r:relative?Print the \b$PATH\b relative readable file path for \astring\a.]"
 "[x:executable?Print the \b$PATH\b relative executable file path for \astring\a.]"
@@ -54,8 +54,8 @@ static const char usage[] =
 "\nstring\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?Successful completion.]"
-        "[+>0?An error occurred.]"
+	"[+0?Successful completion.]"
+	"[+>0?An error occurred.]"
 "}"
 "[+SEE ALSO?\bbasename\b(1), \bgetconf\b(1), \bdirname\b(3), \bpathname\b(3)]"
 ;

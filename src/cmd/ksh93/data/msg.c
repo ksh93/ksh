@@ -39,7 +39,7 @@
 
 /* error messages */
 const char e_timewarn[]		= "\r\n\ashell will timeout in 60 seconds due to inactivity";
-const char e_runvi[]		= "\\hist -e \"${VISUAL:-${EDITOR:-vi}}\" ";
+const char e_runvi[]		= "\\command fc -Ee\"${VISUAL:-${EDITOR:-vi}}\" ";
 const char e_timeout[]		= "timed out waiting for input";
 const char e_mailmsg[]		= "you have mail in $_";
 const char e_query[]		= "no query process";

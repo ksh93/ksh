@@ -33,7 +33,7 @@ _stdgets(Sfio_t* f, char* us, int n, int isgets)
 
 	n -= 1;
 	is = (uchar*)us;
-	
+
 	while(n)
 	{	/* peek the read buffer for data */
 		if((p = f->endb - (ps = f->next)) <= 0 )

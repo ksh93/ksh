@@ -44,8 +44,8 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     '$PREFIX$'\aunit\a.out.]
 [s:style?The script style:]:[style:='$STYLE$']
     {
-        [+regress?\bregress\b(1) command input.]
-        [+shell?Standalone test shell script.]
+	[+regress?\bregress\b(1) command input.]
+	[+shell?Standalone test shell script.]
     }
 [w:width?Set the output format width to approximately
     \awidth\a.]:[width:='$WIDTH$']
@@ -55,50 +55,50 @@ unit.rt [ unit [ arg ... ] ]
 [+INPUT FILES?The regression test command file \aunit\a\b.rt\b is a
     \bksh\b(1) script that makes calls to the following functions:]
     {
-        [+DATA \afile\a [ - | [ options ]] data]]?Create input data
-            \afile\a that is empty (-) or contains \adata\a subject to
-            \bprint\b(1) \aoptions\a or that is a copy of the DATA command
-            standard input. Set \afile\a to \b-\b to name the standard
-            input.]
-        [+DIAGNOSTICS?Diagnostic messages of unspecified format are
+	[+DATA \afile\a [ - | [ options ]] data]]?Create input data
+	    \afile\a that is empty (-) or contains \adata\a subject to
+	    \bprint\b(1) \aoptions\a or that is a copy of the DATA command
+	    standard input. Set \afile\a to \b-\b to name the standard
+	    input.]
+	[+DIAGNOSTICS?Diagnostic messages of unspecified format are
 	    expected.]
-        [+DO \acommand\a [ \aarg\a ... ]]?Execute \acommand\a if the
+	[+DO \acommand\a [ \aarg\a ... ]]?Execute \acommand\a if the
 	    current test is active.]
-        [+EXEC [ \aarg\a ... ]]?Run the command under test with
-            optional arguments. If the standard input is not specified then
-            the standard input of the previous EXEC is used. The standard
-            input of the first EXEC in a TEST group is an empty regular
-            file.]
-        [+EXPORT \aname\a=\avalue\a ...?Export list for subsequent
-            commands in the TEST group or for all TEST groups if before
+	[+EXEC [ \aarg\a ... ]]?Run the command under test with
+	    optional arguments. If the standard input is not specified then
+	    the standard input of the previous EXEC is used. The standard
+	    input of the first EXEC in a TEST group is an empty regular
+	    file.]
+	[+EXPORT \aname\a=\avalue\a ...?Export list for subsequent
+	    commands in the TEST group or for all TEST groups if before
 	    the first TEST group.]
-        [+IGNORESPACE [ 0 | 1 ]
-            ?Ignore space differences when comparing expected output.]
-        [+KEEP \apattern\a ...?File match patterns of files to retain
-            between TEST groups.]
-        [+NOTE \acomment\a?\acomment\a is added to the current test
-            script.]
-        [+PROG \acommand\a [ \aarg\a ... ]]?Run \acommand\a with
-            optional arguments.]
-        [+TEST [ \anumber\a ]] [ \adescription\a ... ]]?Define a new
-            test group with optional \anumber\a and \adescription\a.]
-        [+TWD [ \adir\a ... ]]?Set the temporary test dir to \adir\a.
-            The default is \aunit\a\b.tmp\b, where \aunit\a is the test
-            input file sans directory and suffix. If \adir\a matches \b/*\b
-            then it is the directory name; if \adir\a is non-null then the
-            prefix \b${TMPDIR:-/tmp}\b is added; otherwise if \adir\a is
-            omitted then
-            \b${TMPDIR:-/tmp}/tst-\b\aunit\a-$$-$RANDOM.\b\aunit\a is
-            used.]
-        [+UMASK [ \amask\a ]]?Run subsequent tests with \bumask\b(1)
-            \amask\a. If \amask\a is omitted then the original \bumask\b is
-            used.]
-        [+UNIT \acommand\a [ \aarg\a ... ]]?Define the command and
-            optional default arguments to be tested. \bUNIT\b explicitly
-            overrides the default command name derived from the test script
-            file name.]
-        [+WIDTH \awidth\a?Set the output format width to approximately
-            \awidth\a.]
+	[+IGNORESPACE [ 0 | 1 ]
+	    ?Ignore space differences when comparing expected output.]
+	[+KEEP \apattern\a ...?File match patterns of files to retain
+	    between TEST groups.]
+	[+NOTE \acomment\a?\acomment\a is added to the current test
+	    script.]
+	[+PROG \acommand\a [ \aarg\a ... ]]?Run \acommand\a with
+	    optional arguments.]
+	[+TEST [ \anumber\a ]] [ \adescription\a ... ]]?Define a new
+	    test group with optional \anumber\a and \adescription\a.]
+	[+TWD [ \adir\a ... ]]?Set the temporary test dir to \adir\a.
+	    The default is \aunit\a\b.tmp\b, where \aunit\a is the test
+	    input file sans directory and suffix. If \adir\a matches \b/*\b
+	    then it is the directory name; if \adir\a is non-null then the
+	    prefix \b${TMPDIR:-/tmp}\b is added; otherwise if \adir\a is
+	    omitted then
+	    \b${TMPDIR:-/tmp}/tst-\b\aunit\a-$$-$RANDOM.\b\aunit\a is
+	    used.]
+	[+UMASK [ \amask\a ]]?Run subsequent tests with \bumask\b(1)
+	    \amask\a. If \amask\a is omitted then the original \bumask\b is
+	    used.]
+	[+UNIT \acommand\a [ \aarg\a ... ]]?Define the command and
+	    optional default arguments to be tested. \bUNIT\b explicitly
+	    overrides the default command name derived from the test script
+	    file name.]
+	[+WIDTH \awidth\a?Set the output format width to approximately
+	    \awidth\a.]
     }
 [+SEE ALSO?\bregress\b(1), \bksh\b(1)]
 '

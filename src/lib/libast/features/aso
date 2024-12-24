@@ -383,7 +383,7 @@ elif	aso note{ i386|i386-64 asm compare and swap }end link{
 		cas32(uint32_t volatile* p, uint32_t o, uint32_t n)
 		{
 			uint32_t	r;
-		
+
 			__asm__ __volatile__ (
 				"lock ; cmpxchg %3,%4"
 				: "=a"(r), "=m"(*p)
@@ -399,7 +399,7 @@ elif	aso note{ i386|i386-64 asm compare and swap }end link{
 		cas64(uint64_t volatile* p, uint64_t o, uint64_t n)
 		{
 			uint64_t	r;
-		
+
 			__asm__ __volatile__ (
 				"lock ; cmpxchg %3,%4"
 				: "=a"(r), "=m"(*p)
@@ -426,7 +426,7 @@ elif	aso note{ i386|i386-64 asm compare and swap }end link{
 		cas32(uint32_t volatile* p, uint32_t o, uint32_t n)
 		{
 			uint32_t	r;
-		
+
 			__asm__ __volatile__ (
 				"lock ; cmpxchg %3,%4"
 				: "=a"(r), "=m"(*p)
@@ -442,7 +442,7 @@ elif	aso note{ i386|i386-64 asm compare and swap }end link{
 		cas64(uint64_t volatile* p, uint64_t o, uint64_t n)
 		{
 			uint64_t	r;
-		
+
 			__asm__ __volatile__ (
 				"lock ; cmpxchg %3,%4"
 				: "=a"(r), "=m"(*p)
@@ -451,7 +451,7 @@ elif	aso note{ i386|i386-64 asm compare and swap }end link{
 				);
 			return r;
 		}
-		
+
 		#endif
 
 		#define _aso_cas32(p,o,n)	cas32(p,o,n)
@@ -539,7 +539,7 @@ elif	aso note{ ppc asm compare and swap }end link{
 		cas32(uint32_t volatile* p, uint32_t o, uint32_t n)
 		{
 			int	r;
-		
+
 			__asm__ __volatile__ (
 				"0:	lwarx %0,0,%1 ;"
 				"	xor. %0,%3,%0;"
@@ -559,7 +559,7 @@ elif	aso note{ ppc asm compare and swap }end link{
 		cas64(uint64_t volatile* p, uint64_t o, uint64_t n)
 		{
 			long	r;
-		
+
 			__asm__ __volatile__ (
 				"0:	ldarx %0,0,%1 ;"
 				"	xor. %0,%3,%0;"
@@ -586,7 +586,7 @@ elif	aso note{ ppc asm compare and swap }end link{
 		cas32(uint32_t volatile* p, uint32_t o, uint32_t n)
 		{
 			int	r;
-		
+
 			__asm__ __volatile__ (
 				"0:	lwarx %0,0,%1 ;"
 				"	xor. %0,%3,%0;"
@@ -606,7 +606,7 @@ elif	aso note{ ppc asm compare and swap }end link{
 		cas64(uint64_t volatile* p, uint64_t o, uint64_t n)
 		{
 			long	r;
-		
+
 			__asm__ __volatile__ (
 				"0:	ldarx %0,0,%1 ;"
 				"	xor. %0,%3,%0;"

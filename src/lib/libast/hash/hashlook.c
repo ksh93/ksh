@@ -137,14 +137,14 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 			/*
 			 * found the bucket
 			 */
-		
+
 		found:
 			if (prev && !tab->frozen)
 			{
 				/*
 				 * migrate popular buckets to the front
 				 */
-		
+
 				prev->next = b->next;
 				b->next = tab->table[n];
 				tab->table[n] = b;

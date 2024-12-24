@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -42,8 +42,8 @@ static const char usage[] =
 "\ndirectory ...\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?All directories deleted successfully.]"
-        "[+>0?One or more directories could not be deleted.]"
+	"[+0?All directories deleted successfully.]"
+	"[+>0?One or more directories could not be deleted.]"
 "}"
 "[+SEE ALSO?\bmkdir\b(1), \brm\b(1), \brmdir\b(2), \bunlink\b(2)]"
 ;

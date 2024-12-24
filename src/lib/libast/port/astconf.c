@@ -77,7 +77,7 @@
 
 #if MAXVAL <= UNIV_SIZE
 #undef	MAXVAL
-#define	MAXVAL		(UNIV_SIZE+1)
+#define MAXVAL		(UNIV_SIZE+1)
 #endif
 
 #ifndef _UNIV_DEFAULT
@@ -1280,7 +1280,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 		if (call = sfstruse(sp))
 			call = buffer(call);
 		else
-			call = "[ out of space ]";
+			call = "[ out of memory ]";
 		sfclose(sp);
 		return call;
 	}

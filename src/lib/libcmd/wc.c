@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,7 +40,7 @@ static const char usage[] =
 	"so that only certain counts are written.  The options \b-c\b "
 	"and \b-m\b are mutually exclusive.]"
 "[+?If no \afile\a is given, or if the \afile\a is \b-\b, \bwc\b "
-        "reads from standard input and no filename is written to standard "
+	"reads from standard input and no filename is written to standard "
 	"output.  The start of the file is defined as the current offset.]"
 "[l:lines?List the line counts.]"
 "[w:words?List the word counts.]"
@@ -55,8 +55,8 @@ static const char usage[] =
 "\n[file ...]\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?All files processed successfully.]"
-        "[+>0?One or more files failed to open or could not be read.]"
+	"[+0?All files processed successfully.]"
+	"[+>0?One or more files failed to open or could not be read.]"
 "}"
 "[+SEE ALSO?\bcat\b(1), \bisspace\b(3)]"
 ;

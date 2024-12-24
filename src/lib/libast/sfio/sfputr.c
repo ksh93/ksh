@@ -35,7 +35,7 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 
 	SFLOCK(f,0);
 
-	f->val = sn = -1; ss = (char*)s; 
+	f->val = sn = -1; ss = (char*)s;
 	for(w = 0; (*s || rc >= 0); )
 	{	/* need to communicate string size to exception handler */
 		if((f->flags&SFIO_STRING) && f->next >= f->endb )

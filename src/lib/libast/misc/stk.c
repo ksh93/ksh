@@ -19,7 +19,7 @@
 ***********************************************************************/
 /*
  *   Routines to implement a stack-like storage library
- *   
+ *
  *   A stack consists of a link list of variable size frames
  *   The beginning of each frame is initialized with a frame structure
  *   that contains a pointer to the previous frame and a pointer to the
@@ -86,7 +86,7 @@ static char		*stkgrow(Sfio_t*, size_t);
 				 ((struct stk*)(((char*)(stream))+STK_HDRSIZE)))
 #define stk2stream(sp)		((Sfio_t*)(((char*)(sp))-STK_HDRSIZE))
 #define stkleft(stream)		((stream)->_endb-(stream)->_data)
-	
+
 static const char Omsg[] = "out of memory while growing stack\n";
 
 /*
@@ -120,7 +120,7 @@ static int stkexcept(Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
 	{
 	    case SFIO_CLOSING:
 		{
-			struct stk *sp = stream2stk(stream); 
+			struct stk *sp = stream2stk(stream);
 			char *cp = sp->stkbase;
 			struct frame *fp;
 			if(--sp->stkref == 0)
@@ -281,7 +281,7 @@ unsigned int stklink(Sfio_t* stream)
  */
 int stkclose(Sfio_t* stream)
 {
-	struct stk *sp = stream2stk(stream); 
+	struct stk *sp = stream2stk(stream);
 	if(sp->stkref>1)
 	{
 		sp->stkref--;
@@ -295,7 +295,7 @@ int stkclose(Sfio_t* stream)
  */
 int stkon(Sfio_t * stream, char* loc)
 {
-	struct stk *sp = stream2stk(stream); 
+	struct stk *sp = stream2stk(stream);
 	struct frame *fp;
 	for(fp=(struct frame*)sp->stkbase; fp; fp=(struct frame*)fp->prev)
 		if(loc>=((char*)(fp+1)) && loc< fp->end)
@@ -310,7 +310,7 @@ int stkon(Sfio_t * stream, char* loc)
  */
 void *stkset(Sfio_t *stream, void *address, size_t offset)
 {
-	struct stk *sp = stream2stk(stream); 
+	struct stk *sp = stream2stk(stream);
 	char *cp, *loc = (char*)address;
 	struct frame *fp;
 	int frames = 0;

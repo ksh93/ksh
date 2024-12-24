@@ -1,0 +1,45 @@
+note *	Shell action for linking an archive (static library) from previously
+note *	compiled object files, based on the current MAM automatic variables.
+note *
+note *	- %{@} - name of archive (like libfoo.a)
+note *	- %{^} - all the *.o files
+note *	- %{?} - the *.o files that changed in this run
+
+note *	Use path and flags detected by make.probe (e.g. AIX needs '-X any')
+
+setv AR %{mam_cc_AR} %{mam_cc_AR_ARFLAGS}
+
+note *	This code avoids rebuilding the archive from scratch on each run,
+note *	updating only the object files that have changed.
+
+exec -	if	test -f %{@}
+exec -	then	%{AR} -r -c %{@} %{?}  # add changed *.o
+exec -	else	%{AR} -r -c %{@} %{^}  # add all *.o
+exec -	fi || exit
+
+note *	Sometimes, obsolete object files can interfere due to intercepts, so
+note *	delete any old object files that we no longer build from the archive
+
+exec -	set +x	# avoid noisy log
+exec -	to_delete=
+exec -	for o in $(%{AR} -t %{@})
+exec -	do	case $o in
+exec -		*.o)	case ' %{^} ' in
+exec -			*" $o "*)
+exec -				;;
+exec -			*)	to_delete="$to_delete $o"
+exec -				;;
+exec -			esac
+exec -			;;
+exec -		esac
+exec -	done
+exec -	set -x
+exec -	case ${to_delete:+y} in
+exec -	y)	%{AR} -d %{@} $to_delete
+exec -		;;
+exec -	esac
+
+note *	Some old systems do not automatically update the symbol table upon ad
+note *	adding or deleting object files (contra POSIX), so update it manually
+
+exec -	%{AR} -s %{@}

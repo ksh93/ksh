@@ -89,11 +89,11 @@ header(void)
 #endif
 
 #if !_lib_strcoll
-#define	strcoll		0
+#define strcoll		0
 #endif
 
 #if !_lib_strxfrm
-#define	strxfrm		0
+#define strxfrm		0
 #endif
 
 /*
@@ -397,7 +397,7 @@ debug_strcoll(const char* a, const char* b)
 #define debug_mbtowc	0
 #define debug_wctomb	0
 #define debug_mblen	0
-#define	debug_wcwidth	0
+#define debug_wcwidth	0
 #define debug_alpha	0
 #define debug_strxfrm	0
 #define debug_strcoll	0
@@ -464,7 +464,7 @@ sjis_mbtowc(wchar_t* p, const char* s, size_t n)
 #if !AST_NOMULTIBYTE
 
 static int
-utf8_wctomb(char* u, wchar_t w) 
+utf8_wctomb(char* u, wchar_t w)
 {
 	return u ? wc2utf8(u, w) : 0;
 }

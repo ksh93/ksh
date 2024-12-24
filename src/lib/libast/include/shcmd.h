@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -69,7 +69,7 @@ struct Shbltin_s
 #if defined(shell_h_defined) || defined(defs_h_defined)
 #   undef Shell_t
 #   undef Namval_t
-#else 
+#else
 #   define sh_context(c)	((Shbltin_t*)(c))
 #   define sh_run(c, ac, av)	((c)?(*sh_context(c)->shrun)(ac,av):-1)
 #   define sh_system(c,str)	((c)?(*sh_context(c)->shtrap)(str,0):system(str))

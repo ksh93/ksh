@@ -72,7 +72,7 @@ do	case $1 in
 	shift
 done
 case $link:$static in
-1:0)	static=n ;;   
+1:0)	static=n ;;
 esac
 case $static in
 n)	specs=/tmp/cc$$.specs

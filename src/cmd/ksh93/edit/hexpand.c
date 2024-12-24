@@ -48,7 +48,7 @@ struct subst
 };
 
 
-/* 
+/*
  * parse an /old/new/ string, delimiter expected as first char.
  * if "old" not specified, keep sb->str[0]
  * if "new" not specified, set sb->str[1] to empty string
@@ -194,7 +194,7 @@ int hist_expand(const char *ln, char **xp)
 	while(cp && *cp)
 	{
 		/* read until event/quick substitution/comment designator */
-		if((*cp != hc[0] && *cp != hc[1] && *cp != hc[2]) 
+		if((*cp != hc[0] && *cp != hc[1] && *cp != hc[2])
 		   || (*cp == hc[1] && cp != ln))
 		{
 			if(*cp == '\\' || (cp > ln && cp[-1]=='$' && *cp == '{')) /* skip escaped designators */
@@ -452,7 +452,7 @@ getsel:
 		/* open temp buffer, let sfio do the (re)allocation */
 		tmp = sfopen(NULL, NULL, "swr");
 
-		/* push selected words into buffer, squash 
+		/* push selected words into buffer, squash
 		   whitespace into single blank or a newline */
 		n = i = q = 0;
 
@@ -617,8 +617,8 @@ getsel:
 				{
 					c = *cp;
 					*cp = '\0';
-					errormsg(SH_DICT, ERROR_ERROR, 
-						 "%s%s: no previous substitution", 
+					errormsg(SH_DICT, ERROR_ERROR,
+						 "%s%s: no previous substitution",
 						(flag & HIST_QUICKSUBST) ? ":s" : "",
 						evp);
 					*cp = c;
@@ -689,7 +689,7 @@ getsel:
 				{
 					flag = flag & ~HIST_NEWLINE;
 
-					/* squash white space to either a 
+					/* squash white space to either a
 					   blank or a newline */
 					do
 						flag |= (c == '\n' ? HIST_NEWLINE : 0);

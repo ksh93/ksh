@@ -90,7 +90,7 @@ hashalloc(Hash_table_t* ref, ...)
 	tab->size = HASHMINSIZE;
 	for (;;)
 	{
-		switch (n) 
+		switch (n)
 		{
 		case HASH_alloc:
 			if (ref) goto out;

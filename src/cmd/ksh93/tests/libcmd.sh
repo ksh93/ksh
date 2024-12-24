@@ -465,8 +465,8 @@ if builtin cat 2> /dev/null; then
 	cat > "$tmp/sample_file" <<-EOF
 	foo
 	bar
-	
-	
+
+
 	baz
 	EOF
 	print \\033x > "$tmp/file_with_control_character"

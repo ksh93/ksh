@@ -2,6 +2,61 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2024-12-24:
+
+- [v1.1] The fc/hist command has a new -E option. If this option is given,
+  the command line that was loaded into the editor will only be executed if
+  the temp file is saved before exiting the editor.
+
+- [v1.1] The ^X^E (emacs mode) and v (vi mode) commands will now only
+  execute the command line that was loaded into the full-screen editor if
+  the temp file is saved before exiting the editor.
+
+2024-12-22:
+
+- In the emacs/gmacs line editor, the ESC [ <letter> macro feature, which is
+  documented to input the value of the alias __<letter>, now actually works.
+  A decades-old bug in internal variable handling rendered it inoperative.
+
+2024-12-21:
+
+- Fixed a bug in the emacs/gmacs line editor where a command repeat count
+  (e.g., ESC 3) sticks and is re-used for the next command after an ESC
+  command. For example, ESC 3 ESC _ recalls the third word from the last
+  command in the history. The bug is that the next command, such as ^B to
+  move back, is then repeated three times. Bug introduced on 2020-09-17.
+
+2024-12-18:
+
+- Persuant to POSIX.1-2024, exec(1) will no longer cause the shell to exit
+  when it fails to replace an interactive shell with the given command.
+
+2024-12-08:
+
+- [v1.1] Fixed a bug in the test and [ built-in commands where superfluous
+  operands following simple unary or binary expressions were ignored instead
+  of throwing an error message.
+
+2024-12-05:
+
+- [v1.1] The appending redirection operator &>>FILE is now available
+  (inspired by bash 4.0 and later). It is a shorthand for: >>FILE 2>&1
+
+- Fixed an issue in the vi line editors where lines beginning with whitespace
+  could not be recalled from the history (e.g. with arrow up). Bug introduced
+  on 2022-10-31.
+
+- Fixed an issue that caused .unset discipline functions (if set) to be
+  incorrectly called during cleanup upon terminating a virtual subshell or
+  before running a #!-less script.
+
+2024-11-26:
+
+- The -v/--verbose option of the cp, mv and ln built-in commands (which are
+  bound to the /opt/ast/bin virtual path by default) was non-functional. The
+  option now reports each successful operation in the manner of the *BSD and
+  macOS versions of these commands.
+
 2024-11-17:
 
 - Fixed undefined behaviour when passing the floating point values Inf or

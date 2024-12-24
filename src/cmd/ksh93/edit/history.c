@@ -57,9 +57,9 @@
 #if SHOPT_AUDIT
 #   define _HIST_AUDIT	Sfio_t	*auditfp; \
 			char	*tty; \
-			int	auditmask; 
+			int	auditmask;
 #else
-#   define _HIST_AUDIT 
+#   define _HIST_AUDIT
 #endif
 
 #define _HIST_PRIVATE \
@@ -106,7 +106,7 @@ static History_t *hist_ptr;
     static int	acctfd;
     static char *logname;
 #   include <pwd.h>
-    
+
     static int  acctinit(History_t *hp)
     {
 	char *cp, *acctfile;
@@ -330,7 +330,7 @@ retry:
 		hp = hist_trim(hp,(int)hp->histind-maxlines);
 	}
 	sfdisc(hp->histfp,&hp->histdisc);
-	(HISTCUR)->nvalue.lp = (&hp->histind);
+	HISTCUR->nvalue = &hp->histind;
 	sh_timeradd(1000L*(HIST_RECENT-30), 1, hist_touch, hp->histname);
 #if SHOPT_ACCTFILE
 	if(sh_isstate(SH_INTERACTIVE))
@@ -486,44 +486,44 @@ static History_t* hist_trim(History_t *hp, int n)
 }
 
 /*
- * position history file at size and find next command number 
+ * position history file at size and find next command number
  */
 static int hist_nearend(History_t *hp, Sfio_t *iop, off_t size)
 {
-        unsigned char *cp, *endbuff;
-        int n, incmd=1;
-        unsigned char *buff, marker[4];
+	unsigned char *cp, *endbuff;
+	int n, incmd=1;
+	unsigned char *buff, marker[4];
 	if(size <= 2L || sfseek(iop,size,SEEK_SET)<0)
 		goto begin;
 	/* skip to marker command and return the number */
 	/* numbering commands occur after a null and begin with HIST_CMDNO */
-        while(cp=buff=(unsigned char*)sfreserve(iop,SFIO_UNBOUND,SFIO_LOCKR))
-        {
+	while(cp=buff=(unsigned char*)sfreserve(iop,SFIO_UNBOUND,SFIO_LOCKR))
+	{
 		n = sfvalue(iop);
-                *(endbuff=cp+n) = 0;
-                while(1)
-                {
+		*(endbuff=cp+n) = 0;
+		while(1)
+		{
 			/* check for marker */
-                        if(!incmd && *cp++==HIST_CMDNO && *cp==0)
-                        {
-                                n = cp+1 - buff;
-                                incmd = -1;
-                                break;
-                        }
-                        incmd = 0;
-                        while(*cp++);
-                        if(cp>endbuff)
-                        {
-                                incmd = 1;
-                                break;
-                        }
-                        if(*cp==0 && ++cp>endbuff)
-                                break;
-                }
-                size += n;
+			if(!incmd && *cp++==HIST_CMDNO && *cp==0)
+			{
+				n = cp+1 - buff;
+				incmd = -1;
+				break;
+			}
+			incmd = 0;
+			while(*cp++);
+			if(cp>endbuff)
+			{
+				incmd = 1;
+				break;
+			}
+			if(*cp==0 && ++cp>endbuff)
+				break;
+		}
+		size += n;
 		sfread(iop,(char*)buff,n);
 		if(incmd < 0)
-                {
+		{
 			if((n=sfread(iop,(char*)marker,4))==4)
 			{
 				n = (marker[0]<<16)|(marker[1]<<8)|marker[2];
@@ -571,7 +571,7 @@ void hist_eof(History_t *hp)
 	}
 again:
 	sfseek(hp->histfp,count,SEEK_SET);
-        while(cp=(char*)sfreserve(hp->histfp,SFIO_UNBOUND,0))
+	while(cp=(char*)sfreserve(hp->histfp,SFIO_UNBOUND,0))
 	{
 		n = sfvalue(hp->histfp);
 		*(endbuff = cp+n) = 0;
@@ -976,7 +976,7 @@ int hist_copy(char *s1,int size,int command,int line)
 		{
 			if(count++ ==line)
 				break;
-			else if(line >= 0)	
+			else if(line >= 0)
 				continue;
 		}
 		if(s1 && (line<0 || line==count))

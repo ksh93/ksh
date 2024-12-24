@@ -35,28 +35,28 @@ static const char usage[] =
     "based on the underlying file system. A diagnostic is written to "
     "standard error for each pathname that:]"
     "{"
-        "[+-?Is longer than \b$(getconf PATH_MAX)\b bytes.]"
-        "[+-?Contains any component longer than \b$(getconf NAME_MAX)\b "
-            "bytes.]"
-        "[+-?Contains any directory component in a directory that is not "
-            "searchable.]"
-        "[+-?Contains any character in any component that is not valid "
-            "in its containing directory.]"
-        "[+-?Is empty.]"
+	"[+-?Is longer than \b$(getconf PATH_MAX)\b bytes.]"
+	"[+-?Contains any component longer than \b$(getconf NAME_MAX)\b "
+	    "bytes.]"
+	"[+-?Contains any directory component in a directory that is not "
+	    "searchable.]"
+	"[+-?Contains any character in any component that is not valid "
+	    "in its containing directory.]"
+	"[+-?Is empty.]"
     "}"
 "[p:components?Instead of performing length checks on the underlying "
     "file system, write a diagnostic for each pathname operand that:]"
     "{"
-        "[+-?Is longer than \b$(getconf _POSIX_PATH_MAX)\b bytes.]"
-        "[+-?Contains any component longer than \b$(getconf "
-            "_POSIX_NAME_MAX)\b bytes.]"
-        "[+-?Contains any character in any component that is not in the "
-            "portable filename character set.]"
+	"[+-?Is longer than \b$(getconf _POSIX_PATH_MAX)\b bytes.]"
+	"[+-?Contains any component longer than \b$(getconf "
+	    "_POSIX_NAME_MAX)\b bytes.]"
+	"[+-?Contains any character in any component that is not in the "
+	    "portable filename character set.]"
     "}"
 "[P:path?Write a diagnostic for each pathname operand that:]"
     "{"
-        "[+-?Contains any component with \b-\b as the first character.]"
-        "[+-?Is empty.]"
+	"[+-?Contains any component with \b-\b as the first character.]"
+	"[+-?Is empty.]"
     "}"
 "[a:all|portability?Equivalent to \b--components\b \b--path\b.]"
 "\n"
@@ -64,8 +64,8 @@ static const char usage[] =
 "\n"
 "[+EXIT STATUS?]"
     "{"
-        "[+0?All \apathname\a operands passed all of the checks.]"
-        "[+>0?An error occurred.]"
+	"[+0?All \apathname\a operands passed all of the checks.]"
+	"[+>0?An error occurred.]"
     "}"
 "[+SEE ALSO?\bgetconf\b(1), \bcreat\b(2), \bpathchk\b(2)]"
 ;
@@ -88,7 +88,7 @@ static const char usage[] =
 
 /*
  * call pathconf and handle unlimited sizes
- */ 
+ */
 static long mypathconf(const char *path, int op)
 {
 	long			r;

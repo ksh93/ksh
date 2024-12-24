@@ -75,14 +75,10 @@ static int sh_source(Sfio_t *iop, const char *file)
 	int	fd;
 
 	if (!file || !*file || (fd = path_open(file, NULL)) < 0)
-	{
-		REGRESS(source, "sh_source", ("%s:ENOENT", file));
 		return 0;
-	}
 	oid = error_info.id;
 	nid = error_info.id = sh_strdup(file);
 	sh.st.filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
-	REGRESS(source, "sh_source", ("%s", file));
 	exfile(iop, fd);
 	error_info.id = oid;
 	free(nid);
@@ -146,7 +142,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 				Namval_t *np = sh_calloc(1,sizeof(Namval_t));
 				np->nvname = (char*)tp->sh_name;	/* alias name */
 				np->nvflag = tp->sh_number;		/* attributes (must include NV_NOFREE) */
-				np->nvalue.cp = (char*)tp->sh_value;	/* non-freeable value */
+				np->nvalue = (void*)tp->sh_value;	/* non-freeable value */
 				dtinstall(sh.alias_tree,np);
 			}
 		}
@@ -351,7 +347,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 
 /*
  * iop is not null when the input is a string
- * fdin is the input file descriptor 
+ * fdin is the input file descriptor
  */
 static void	exfile(Sfio_t *iop,int fno)
 {
@@ -655,7 +651,7 @@ static void chkmail(char *files)
 				&& statb.st_atime <= statb.st_mtime)
 			{
 				/* check for directory */
-				if(!arglist && S_ISDIR(statb.st_mode)) 
+				if(!arglist && S_ISDIR(statb.st_mode))
 				{
 					/* generate list of directory entries */
 					path_complete(cp,"/*",&arglist);

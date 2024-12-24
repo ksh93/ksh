@@ -355,11 +355,11 @@ foo=one
 [[ ! ${foo[@]:1} ]] || err_exit '${foo[@]:1} not null'
 function EMPTY
 {
-        typeset i
-        typeset -n ARRAY=$1
-        for i in ${!ARRAY[@]}
-        do      unset ARRAY[$i]
-        done
+	typeset i
+	typeset -n ARRAY=$1
+	for i in ${!ARRAY[@]}
+	do      unset ARRAY[$i]
+	done
 }
 unset foo
 typeset -A foo
@@ -565,7 +565,7 @@ arr2[1]=def
 
 unset foo
 typeset foo[7]
-[[ ${#foo[@]} == 0 ]] || err_exit 'typeset foo[7] should not have one element' 
+[[ ${#foo[@]} == 0 ]] || err_exit 'typeset foo[7] should not have one element'
 
 a=123 $SHELL  2> /dev/null -c 'integer a[5]=3 a[2]=4; unset a;x=0; ((a[++x]++));:' || err_exit 'unsetting array variable leaves side effect'
 
@@ -607,16 +607,16 @@ x=$(
 	"(expected $(printf %q "$exp"), got $(printf %q "$x"))"
 
 # test for cloning a very large indexed array - can core dump
-(	
+(
     trap 'x=$?;exit $(( $x!=0 ))' EXIT
     $SHELL <<- \EOF
 	(
 		print '('
 		integer i
 		for ((i=0 ; i < 16384 ; i++ )) ; do
-                	printf '\tinteger var%i=%i\n' i i
-        	done
-        	printf 'typeset -a ar=(\n'
+			printf '\tinteger var%i=%i\n' i i
+		done
+		printf 'typeset -a ar=(\n'
 		for ((i=0 ; i < 16384 ; i++ )) ; do
 			printf '\t[%d]=%d\n' i i
 		done
@@ -625,7 +625,11 @@ x=$(
 	) | read -C hugecpv
 	compound hugecpv2=hugecpv
 	v=$(typeset -p hugecpv)
-	[[ ${v/hugecpv/hugecpv2} == "$(typeset -p hugecpv2)" ]]
+	# FIXME: the == operator in [[ ... ]] may crash in the regex code for large values due to
+	# excessive recursion; replace with a test(1) invocation (it doesn't call the regex code).
+	# More info: https://github.com/ksh93/ksh/issues/207#issuecomment-2508747419
+	#[[ ${v/hugecpv/hugecpv2} == "$(typeset -p hugecpv2)" ]]
+	test "${v/hugecpv/hugecpv2}" = "$(typeset -p hugecpv2)"
 EOF
 ) 2> /dev/null || err_exit 'copying a large array fails'
 

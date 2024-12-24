@@ -50,14 +50,14 @@ then	err_exit ".foo.bar.child=${.foo.bar.child} != child"
 fi
 function func1
 {
-        nameref color=$1
-        func2 color
+	nameref color=$1
+	func2 color
 }
 
 function func2
 {
-        nameref color=$1
-        set -s -- ${!color[@]}
+	nameref color=$1
+	set -s -- ${!color[@]}
 	print -r -- "$@"
 }
 
@@ -175,7 +175,7 @@ do	typeset -n x=$i
 done) != ok ]] && err_exit 'invalid for loop optimization of name references'
 function setval # name value
 {
-        nameref arg=$1
+	nameref arg=$1
 	nameref var=arg.bar
 	var=$2
 }
@@ -184,8 +184,8 @@ setval foo 5
 (( foo.bar == 5)) || err_exit 'nested nameref not working'
 function selfref
 {
-        typeset -n ps=$1
-        print -r -- "${ps}"
+	typeset -n ps=$1
+	print -r -- "${ps}"
 }
 ps=(a=1 b=2)
 [[ $(selfref ps) == *a=1* ]] ||  err_exit 'local nameref cannot reference global variable of the same name'
@@ -213,8 +213,8 @@ unset fun i
 foo=(x=hi)
 function fun
 {
-        nameref i=$1
-        print -r -- "${i.x}"
+	nameref i=$1
+	print -r -- "${i.x}"
 }
 i=foo
 [[ $(fun $i) == hi ]] || err_exit 'nameref for compound variable with in function name of caller fails'
@@ -327,16 +327,16 @@ ref=x
 [[ $ref == 3 ]] || err_exit "\$ref is $ref, it should be 3"
 function foobar
 {
-        typeset fvar=()
-        typeset -n ref=fvar.foo
-        ref=ok
-        print -r $ref
+	typeset fvar=()
+	typeset -n ref=fvar.foo
+	ref=ok
+	print -r $ref
 }
 [[ $(foobar) ==  ok ]] 2> /dev/null  || err_exit 'nameref in function not creating variable in proper scope'
 function foobar
 {
-        nameref doc=docs
-        nameref bar=doc.num
+	nameref doc=docs
+	nameref bar=doc.num
 	[[ $bar == 2 ]] || err_exit 'nameref scoping error'
 }
 
@@ -346,7 +346,7 @@ foobar
 typeset +n x y
 unset x y
 typeset -A x
-x[a]=(b=c)  
+x[a]=(b=c)
 typeset -n y=x[a]
 [[ ${!y.@} == 'x[a].b' ]] || err_exit 'reference to array element not expanded with ${!y.@}'
 
@@ -387,7 +387,7 @@ typeset -T container_t=(
 function fun1
 {
 	container_t -S container
-	fun2 container 
+	fun2 container
 	[[ $container == *foo=bar* ]] || err_exit 'name references to static type variables in parent scope not working'
 }
 fun1
@@ -406,7 +406,7 @@ compound container
 fun3
 [[ $container == *foo=bar* ]] || err_exit 'name reference to a name reference variable in a function not working'
 
-typeset -A x=( [a]=1 ) 
+typeset -A x=( [a]=1 )
 nameref c=x[h]
 [[ -v x[h] ]] && err_exit 'creating reference to non-existent associative array element causes element to get added'
 
@@ -438,12 +438,12 @@ nameref z=ar[0]
 
 unset c x
 typeset +n c x
-compound c=( typeset -a x )  
+compound c=( typeset -a x )
 nameref x=c.x
 x[4]=1
 [[ ${ typeset -p c.x ;} == *-C* ]] && err_exit 'c.x should not have -C attributes'
 
-{ $SHELL 2> /dev/null  <<- \EOF 
+{ $SHELL 2> /dev/null  <<- \EOF
 	typeset -T xxx_t=(
 		float x=1 y=2
 		typeset name=abc
@@ -466,12 +466,12 @@ fi
 typeset +n nr
 unset c nr
 compound c
-compound -A c.a 
+compound -A c.a
 nameref nr=c.a[hello]
 [[ ${!nr} == "c.a[hello]" ]] || err_exit 'name reference nr to unset associative array instance does not expand ${!nr} correctly.'
 
 typeset +n nr
-compound -a c.b 
+compound -a c.b
 nameref nr=c.b[2]
 [[ ${!nr} == "c.b[2]" ]] || err_exit 'name reference nr to unset indexed array instance does not expand ${!nr} correctly.'
 
@@ -517,7 +517,7 @@ function add_file_to_tree
 	node.elements[/]=(filepath=foobar)
 }
 function main
-{	
+{
 	compound filetree
 	add_file_to_tree filetree
 }

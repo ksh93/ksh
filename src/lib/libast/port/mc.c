@@ -35,7 +35,7 @@
 	size_t		nmsgs; \
 	iconv_t		cvt; \
 	Sfio_t*		tmp;
-	
+
 #include <error.h>
 #include <mc.h>
 #include <nl_types.h>
@@ -513,7 +513,7 @@ mcdump(Mc_t* mc, Sfio_t* op)
 	/*
 	 * write the magic
 	 */
-	
+
 	if (sfwrite(op, MC_MAGIC, MC_MAGIC_SIZE) != MC_MAGIC_SIZE)
 		return -1;
 

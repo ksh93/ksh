@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -33,11 +33,11 @@ static const char usage[] =
     "%[-+]][\awidth\a[.\aprecis\a[.\abase\a]]]]]](\aid\a)\achar\a. The "
     "supported \aid\as are:]:[format:=" FORMAT "]"
     "{"
-        "[+pid?The process ID.]"
-        "[+pgid?The process group ID.]"
-        "[+ppid?The parent process ID.]"
-        "[+tid|tty?The controlling terminal ID.]"
-        "[+sid?The session ID.]"
+	"[+pid?The process ID.]"
+	"[+pgid?The process group ID.]"
+	"[+ppid?The parent process ID.]"
+	"[+tid|tty?The controlling terminal ID.]"
+	"[+sid?The session ID.]"
     "}"
 "[+SEE ALSO?\bgetpid\b(2), \bgetppid\b(2), \bgetpgrp\b(2), "
     "\btcgetpgrp\b(3), \bgetsid\b(2)]"

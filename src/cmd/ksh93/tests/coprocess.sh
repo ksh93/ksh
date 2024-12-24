@@ -51,13 +51,13 @@ do
 	[[ $line == 'hello again' ]] || err_exit "$cat coprocess after moving fds fails"
 	exec 5<&- 6<&-
 	wait $!
-	
+
 	ping three |&
 	exec 3>&p
 	ping four |&
 	exec 4>&p
 	ping pipe |&
-	
+
 	integer count
 	for i in three four pipe four pipe four three pipe pipe three pipe
 	do	case $i in
@@ -68,7 +68,7 @@ do
 		(( count++ ))
 		print $to $i $count
 	done
-	
+
 	while	((count > 0))
 	do	(( count-- ))
 		read -p
@@ -84,7 +84,7 @@ do
 		esac
 	done
 	kill $(jobs -p) 2>/dev/null
-	
+
 	file=$tmp/regress
 	$cat > $file  <<-!
 	$cat |&
@@ -96,7 +96,7 @@ do
 	exec 5<&p 6>&p
 	exec 5<&- 6>&-
 	kill $(jobs -p) 2>/dev/null
-	
+
 	${SHELL-ksh} |&
 	cop=$!
 	exp=Done
@@ -116,7 +116,7 @@ do
 	else	err_exit "$cat coprocess hung after 'exec 5<&p 6>&p; exec 5<&- 6>&-'"
 	fi
 	wait
-	
+
 	{
 	echo line1 | grep 'line2'
 	echo line2 | grep 'line1'
@@ -129,13 +129,13 @@ do
 	then	err_exit "$cat coprocess read -p hanging (SECONDS=$SECONDS count=$count)"
 	fi
 	wait $!
-	
+
 	( sleep 3 |& sleep .1 && kill $!; sleep .5; sleep 3 |& sleep .1 && kill $! ) ||
 		err_exit "$cat coprocess cleanup not working correctly"
 	{ : |& } 2>/dev/null ||
 		err_exit "subshell $cat coprocess lingers in parent"
 	wait $!
-	
+
 	unset N r e
 	integer N=5
 	e=12345
@@ -150,7 +150,7 @@ do
 		print
 	) 2>/dev/null | read -t 1 r
 	[[ $r == $e ]] || err_exit "$cat coprocess timing bug -- expected $e, got '$r'"
-	
+
 	r=
 	(
 		integer i
@@ -163,7 +163,7 @@ do
 		print $r
 	) 2>/dev/null | read -t 1 r
 	[[ $r == $e ]] || err_exit "$cat coprocess command substitution bug -- expected $e, got '$r'"
-	
+
 	(
 		$cat |&
 		sleep 0.01
@@ -198,7 +198,7 @@ do
 			break
 		fi
 	done
-	
+
 	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 1 hung"' TERM
 	{ sleep 5; kill $$; } &
 	sleep_pid=$!
@@ -212,14 +212,14 @@ do
 	wait $pid
 	trap - TERM
 	[[ $sleep_pid ]] && kill $sleep_pid
-	
+
 	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 2 hung"' TERM
 	{ sleep 5; kill $$; } &
 	sleep_pid=$!
 	$cat |&
 	pid=$!
-	print foo1 >&p 2> /dev/null || err_exit "first write to $cat coprocess failed" 
-	print foo2 >&p 2> /dev/null || err_exit "second write to $cat coprocess failed" 
+	print foo1 >&p 2> /dev/null || err_exit "first write to $cat coprocess failed"
+	print foo2 >&p 2> /dev/null || err_exit "second write to $cat coprocess failed"
 	# avoid race between '$cat |&' initialising and 'kill $pid': read from the coprocess
 	# before 'kill' so that $cat is known to be fully initialised and ready to catch SIGTERM
 	read <&p && [[ $REPLY == foo1 ]] || err_exit "first read from $cat coprocess failed"
@@ -228,7 +228,7 @@ do
 	wait $pid 2> /dev/null
 	trap - TERM
 	[[ $sleep_pid ]] && kill $sleep_pid
-	
+
 	trap 'sleep_pid=; kill $pid; err_exit "$cat coprocess 3 hung"' TERM
 	{ sleep 5; kill $$; } &
 	sleep_pid=$!
@@ -333,8 +333,8 @@ wait
 
 function cop
 {
-        read
-        print ok
+	read
+	print ok
 }
 exp=ok
 cop |&

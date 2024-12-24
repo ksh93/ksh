@@ -34,7 +34,7 @@
 #include	"io.h"
 #include	"path.h"
 
-#define	argbegin	argnxt.cp
+#define argbegin	argnxt.cp
 static	const char	*sufstr;
 static	int		suflen;
 static	int		scantree(Dt_t*,const char*, struct argnod**);

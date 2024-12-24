@@ -16,43 +16,14 @@
 *         hyenias <58673227+hyenias@users.noreply.github.com>          *
 *                                                                      *
 ***********************************************************************/
-#ifndef _NV_PRIVATE
+#ifndef name_h_defined
+#define name_h_defined
 /*
  * This is the implementation header file for name-value pairs
  */
 
-#define _NV_PRIVATE	\
-	Namfun_t	*nvfun;		/* pointer to trap functions */ \
-	union Value	nvalue; 	/* value field */ \
-	void		*nvmeta;	/* pointer to any of various kinds of type-dependent data */
-
 #include	<ast.h>
 #include	<cdt.h>
-
-/* Nodes can have all kinds of values */
-union Value
-{
-	const char		*cp;
-	int			*ip;
-	char			c;
-	int			i;
-	unsigned int		u;
-	int32_t			*lp;
-	pid_t			*pidp;
-	Sflong_t		*llp;	/* for long long arithmetic */
-	int16_t			s;
-	int16_t			*sp;
-	double			*dp;	/* for floating point arithmetic */
-	Sfdouble_t		*ldp;	/* for long floating point arithmetic */
-	struct Namarray		*array;	/* for array node */
-	struct Namval		*np;	/* for Namval_t node */
-	union Value		*up;	/* for indirect node */
-	struct Ufunction 	*rp;	/* shell user defined functions */
-	struct Namfun		*funp;	/* discipline pointer */
-	struct Namref		*nrp;	/* name reference */
-	void			*bfp;	/* pointer to built-in command's entry function (typecast to Shbltin_f) */
-};
-
 #include	"nval.h"
 
 /* used for arrays */
@@ -60,7 +31,7 @@ union Value
 #define ARRAY_MAX 	(1L<<ARRAY_BITS) /* maximum number of elements in an array */
 #define ARRAY_MASK	(ARRAY_MAX-1)	/* For index values */
 
-#define ARRAY_INCR	32	/* number of elements to grow when array 
+#define ARRAY_INCR	32	/* number of elements to grow when array
 				   bound exceeded.  Must be a power of 2 */
 #define ARRAY_FILL	(8L<<ARRAY_BITS)	/* used with nv_putsub() */
 #define ARRAY_NOCLONE	(16L<<ARRAY_BITS)	/* do not clone array disc */
@@ -141,7 +112,7 @@ struct Ufunction
 #define nv_isref(n)	(nv_isattr((n),NV_REF|NV_TAGGED|NV_FUNCT)==NV_REF)
 #define is_abuiltin(n)	(nv_isattr(n,NV_BLTIN|NV_INTEGER)==NV_BLTIN)
 #define is_afunction(n)	(nv_isattr(n,NV_FUNCTION|NV_REF)==NV_FUNCTION)
-#define	nv_funtree(n)	((n)->nvalue.rp->ptree)
+#define nv_funtree(n)	(((struct Ufunction*)(n)->nvalue)->ptree)
 
 /* NAMNOD MACROS */
 /* ... for attributes */
@@ -149,13 +120,13 @@ struct Ufunction
 #define nv_setattr(n,f)	((n)->nvflag = (f))
 #define nv_context(n)	((void*)(n)->nvfun)		/* for builtins */
 /* The following are for name references */
-#define nv_refnode(n)	((n)->nvalue.nrp->np)
-#define nv_reftree(n)	((n)->nvalue.nrp->root)
-#define nv_reftable(n)	((n)->nvalue.nrp->table)
-#define nv_refsub(n)	((n)->nvalue.nrp->sub)
+#define nv_refnode(n)	(((struct Namref*)(n)->nvalue)->np)
+#define nv_reftree(n)	(((struct Namref*)(n)->nvalue)->root)
+#define nv_reftable(n)	(((struct Namref*)(n)->nvalue)->table)
+#define nv_refsub(n)	(((struct Namref*)(n)->nvalue)->sub)
 #if SHOPT_FIXEDARRAY
-#   define nv_refindex(n)	((n)->nvalue.nrp->curi)
-#   define nv_refdimen(n)	((n)->nvalue.nrp->dim)
+#   define nv_refindex(n)	(((struct Namref*)(n)->nvalue)->curi)
+#   define nv_refdimen(n)	(((struct Namref*)(n)->nvalue)->dim)
 #endif /* SHOPT_FIXEDARRAY */
 
 /* ... etc */
@@ -164,9 +135,7 @@ struct Ufunction
 #undef nv_size
 #define nv_size(np)	((np)->nvsize)
 #define _nv_hasget(np)  ((np)->nvfun && (np)->nvfun->disc && nv_hasget(np))
-/* for nv_isnull we must exclude non-pointer value attributes (NV_INT16, NV_UINT16) before accessing cp in union Value */
-#define nv_isnonptr(np)	(nv_isattr(np,NV_INT16P)==NV_INT16)
-#define nv_isnull(np)	(!nv_isnonptr(np) && !(np)->nvalue.cp && !_nv_hasget(np))
+#define nv_isnull(np)	(!(np)->nvalue && !_nv_hasget(np))
 
 /* ...	for arrays */
 
@@ -202,7 +171,7 @@ void			clone_all_disc(Namval_t*, Namval_t*, int);
 extern Namfun_t		*nv_clone_disc(Namfun_t*, int);
 extern void		*nv_diropen(Namval_t*, const char*);
 extern char		*nv_dirnext(void*);
-extern void		nv_dirclose(void*); 
+extern void		nv_dirclose(void*);
 extern char		*nv_getvtree(Namval_t*, Namfun_t*);
 extern void		nv_attribute(Namval_t*, Sfio_t*, char*, int);
 extern Namval_t		*nv_bfsearch(const char*, Dt_t*, Namval_t**, char**);
@@ -270,4 +239,4 @@ extern const char	e_typecompat[];
 extern const char	e_globalref[];
 extern const char	e_tolower[];
 extern const char	e_toupper[];
-#endif /* _NV_PRIVATE */
+#endif /* name_h_defined */

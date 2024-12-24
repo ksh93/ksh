@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -94,7 +94,7 @@ static void* dtvsearch(Dt_t* dt, void* obj, int type)
 	for(d = dt->walk, obj = (*d->meth->searchf)(d, obj, type);; )
 	{	while(obj) /* keep moving until finding an uncovered object */
 		{	for(p = dt; ; p = p->view)
-			{	if(p == d) /* adjacent object is uncovered */	
+			{	if(p == d) /* adjacent object is uncovered */
 					return obj;
 				if((*(p->meth->searchf))(p, obj, DT_SEARCH) )
 					break;

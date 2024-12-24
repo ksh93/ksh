@@ -27,7 +27,7 @@ cc=gcc
 ccflags=
 
 case " $@ " in
-*" -shared "*)      
+*" -shared "*)
 	ccflags="$ccflags -shared -Wl,-G -Wl,-berok"
 	;;
 *)	ccflags="-Wl,-brtl"

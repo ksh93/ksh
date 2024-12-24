@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -164,7 +164,7 @@ void	sh_timetraps(void)
  */
 static char *setdisc(Namval_t *np, const char *event, Namval_t* action, Namfun_t *fp)
 {
-        struct tevent *tp = (struct tevent*)fp;
+	struct tevent *tp = (struct tevent*)fp;
 	if(!event)
 		return action ? Empty : (char*)ALARM;
 	if(strcmp(event,ALARM)!=0)

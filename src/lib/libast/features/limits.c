@@ -73,7 +73,7 @@
 #include "FEATURE/param"
 
 #undef	getpagesize
-#undef	getdtablesize   
+#undef	getdtablesize
 
 int main(void)
 {

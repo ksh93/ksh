@@ -296,7 +296,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				if(shortint)
 				{
 					shortint = 0;
-					flag &= ~NV_INT16P;
+					flag &= ~NV_INT16;
 				}
 				if(n=='E')
 				{
@@ -375,7 +375,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				if(shortint)
 				{
 					flag &= ~NV_LONG;
-					flag |= NV_INT16P;
+					flag |= NV_INT16;
 				}
 				else
 					flag |= NV_INTEGER;
@@ -384,8 +384,8 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				if(shortint)
 				{
 					shortint = 0;
-					/* Turn off the NV_INT16P bits except the NV_INTEGER bit */
-					flag &= ~(NV_INT16P & ~NV_INTEGER);
+					/* Turn off the NV_INT16 bits except the NV_INTEGER bit */
+					flag &= ~(NV_INT16 & ~NV_INTEGER);
 				}
 				tdata.wctname = e_tolower;
 				flag |= NV_UTOL;
@@ -411,7 +411,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 					if(flag&NV_INTEGER)
 					{
 						flag &= ~NV_LONG;
-						flag |= NV_INT16P;
+						flag |= NV_INT16;
 					}
 				}
 				break;
@@ -518,7 +518,10 @@ endargs:
 	if(flag&NV_TYPE)
 	{
 		Stk_t *stkp = sh.stk;
-		int off=0,offset = stktell(stkp);
+#if SHOPT_NAMESPACE
+		int off = 0;
+#endif /* SHOPT_NAMESPACE */
+		int offset = stktell(stkp);
 		if(!tdata.prefix)
 			return sh_outtype(sfstdout);
 		sfputr(stkp,NV_CLASS,-1);
@@ -648,7 +651,9 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
 	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
 	Dt_t *save_vartree = NULL;
+#if SHOPT_NAMESPACE
 	Namval_t *save_namespace = NULL;
+#endif
 	if(flag&NV_GLOBAL)
 	{
 		save_vartree = sh.var_tree;
@@ -708,7 +713,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 #endif /* SHOPT_NAMESPACE */
 					np = nv_open(name,sh_subfuntree(1),NV_NOARRAY|NV_IDENT|NV_NOSCOPE);
 				}
-				else 
+				else
 				{
 					if(sh.prefix)
 					{
@@ -757,8 +762,8 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 						np = nv_search(stkptr(sh.stk,offset),troot,0);
 						stkseek(sh.stk,offset);
 					}
-					if(np && np->nvalue.cp) 
-						np->nvalue.rp->help = tp->help;
+					if(np && np->nvalue)
+						((struct Ufunction*)np->nvalue)->help = tp->help;
 				}
 				continue;
 			}
@@ -805,7 +810,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 				_nv_unset(np,0);
 				ap->nelem--;
 			}
-			else if(iarray && ap && ap->fun) 
+			else if(iarray && ap && ap->fun)
 			{
 				errormsg(SH_DICT,ERROR_exit(1),"cannot change associative array %s to indexed array",nv_name(np));
 				UNREACHABLE();
@@ -1420,7 +1425,7 @@ static int unall(int argc, char **argv, Dt_t *troot)
 			{
 				if(troot!=sh.fun_base)
 					np->nvflag = 0;	/* invalidate */
-				else if(!(np->nvalue.rp && np->nvalue.rp->running))
+				else if(!(np->nvalue && ((struct Ufunction*)np->nvalue)->running))
 					nv_delete(np,troot,0);
 			}
 			/* The alias has been unset by call to _nv_unset, remove it from the tree */
@@ -1488,9 +1493,10 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 	if(isfun)
 	{
 		char *fname=0;
+		struct Ufunction *rp = np->nvalue;
 		if(nv_isattr(np,NV_NOFREE))
 			return 0;
-		if(!flag && !np->nvalue.ip)
+		if(!flag && !rp)
 			sfputr(file,"typeset -fu",' ');
 		else if(!flag && !nv_isattr(np,NV_FPOSIX))
 			sfputr(file,"function",' ');
@@ -1500,28 +1506,28 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 		sfputr(file,cp,-1);
 		if(nv_isattr(np,NV_FPOSIX))
 			sfwrite(file,"()",2);
-		else if(np->nvalue.rp)
+		else if(rp)
 		{
 			int i;
 			/* output function reference list (for .sh.math.* functions) */
-			for(i = 0; i < np->nvalue.rp->argc; i++)
-				sfprintf(file," %s",np->nvalue.rp->argv[i]);
+			for(i = 0; i < rp->argc; i++)
+				sfprintf(file," %s",rp->argv[i]);
 		}
-		if(np->nvalue.rp && nv_funtree(np))
-			fname = np->nvalue.rp->fname;
+		if(rp && rp->ptree)
+			fname = rp->fname;
 		else
 			flag = '\n';
 		if(flag)
 		{
-			if(tp->pflag && np->nvalue.rp && nv_funtree(np))
-				sfprintf(file," #line %d %s\n", np->nvalue.rp->lineno, fname ? sh_fmtq(fname) : Empty);
+			if(tp->pflag && rp && rp->ptree)
+				sfprintf(file," #line %d %s\n", rp->lineno, fname ? sh_fmtq(fname) : Empty);
 			else
 				sfputc(file, '\n');
 		}
 		else
 		{
 			sfputc(file, '\n');
-			sh_deparse(file, (Shnode_t*)(nv_funtree(np)), 2 | nv_isattr(np,NV_FPOSIX), 0);
+			sh_deparse(file, (Shnode_t*)(rp->ptree), 2 | nv_isattr(np,NV_FPOSIX), 0);
 		}
 		return nv_size(np) + 1;
 	}

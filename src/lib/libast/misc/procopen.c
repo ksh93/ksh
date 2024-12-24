@@ -34,7 +34,7 @@
 #include <ast_tty.h>
 
 /*
- * not quite ready for _use_spawnveg 
+ * not quite ready for _use_spawnveg
  */
 
 #undef	_use_spawnveg

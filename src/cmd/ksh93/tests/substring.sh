@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -169,8 +169,8 @@ xx='a:b'
 str='(){}[]*?|&^%$#@l'
 for ((i=0 ; i < ${#str}; i++))
 do      [[ $(eval print -r -- \"\${xx//:/\\${str:i:1}}\") == "a${str:i:1}b" ]] || err_exit "substitution of \\${str:i:1}} failed"
-        [[ $(eval print -rn -- \"\${xx//:/\'${str:i:1}\'}\") == "a${str:i:1}b" ]] || err_exit "substitution of '${str:i:1}' failed"
-        [[ $(eval print -r -- \"\${xx//:/\"${str:i:1}\"}\") == "a${str:i:1}b" ]] || err_exit "substitution of \"${str:i:1}\" failed"
+	[[ $(eval print -rn -- \"\${xx//:/\'${str:i:1}\'}\") == "a${str:i:1}b" ]] || err_exit "substitution of '${str:i:1}' failed"
+	[[ $(eval print -r -- \"\${xx//:/\"${str:i:1}\"}\") == "a${str:i:1}b" ]] || err_exit "substitution of \"${str:i:1}\" failed"
 done
 [[ ${xx//:/\\n} == 'a\nb' ]]  || err_exit "substitution of \\\\n failed"
 [[ ${xx//:/'\n'} == 'a\nb' ]] || err_exit "substitution of '\\n' failed"
@@ -640,7 +640,7 @@ Errors=$?
 unset v
 typeset -a arr=( 0 1 2 3 4 )
 for v in "${arr[@]:5}"
-do	err_exit "\${arr[@]:5} should not generate $v" 
+do	err_exit "\${arr[@]:5} should not generate $v"
 	break
 done
 for v in "${arr[@]:1:0}"
@@ -654,7 +654,7 @@ done
 
 set 1 2 3 4
 for v in "${@:5}"
-do	err_exit "\${@:5} should not generate $v" 
+do	err_exit "\${@:5} should not generate $v"
 	break
 done
 for v in "${@:1:0}"

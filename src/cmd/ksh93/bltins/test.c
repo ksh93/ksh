@@ -57,7 +57,7 @@
 #   define isasock(f,p) (0)
 #endif
 
-#define	permission(a,f)		(sh_access(a,f)==0)
+#define permission(a,f)		(sh_access(a,f)==0)
 static int	test_time(const char*, const char*);
 static int	test_stat(const char*, struct stat*);
 static int	test_mode(const char*);
@@ -69,9 +69,9 @@ static int	test_mode(const char*);
 
 struct test
 {
-        int     ap;
-        int     ac;
-        char    **av;
+	int     ap;
+	int     ac;
+	char    **av;
 };
 
 static char *nxtarg(struct test*,int);
@@ -82,7 +82,7 @@ static int test_strmatch(const char *str, const char *pat)
 {
 	int match[2*(MATCH_MAX+1)],n;
 	int c, m=0;
-	const char *cp=pat; 
+	const char *cp=pat;
 	while(c = *cp++)
 	{
 		if(c=='(')
@@ -104,6 +104,29 @@ static int test_strmatch(const char *str, const char *pat)
 	return n;
 }
 
+static void check_toomanyops(char *argv[])
+{
+	unsigned n;
+	if(c_eq(argv[0],'(') || !argv[1] || !argv[2] || !argv[3])
+		return;
+	/* superfluous args after simple binary expression */
+	if((n = sh_lookup(argv[2],shtab_testops)) && !(n & TEST_ANDOR))
+	{
+		if(argv[4] && !(sh_lookup(argv[4],shtab_testops) & TEST_ANDOR))
+		{
+			errormsg(SH_DICT,ERROR_exit(2),e_toomanyops);
+			UNREACHABLE();
+		}
+		return;
+	}
+	/* superfluous args after simple unary expression */
+	if(argv[1][0]=='-' && isalpha(argv[1][1]) && !argv[1][2] && !(n & TEST_ANDOR) && !(sh_lookup(argv[3],shtab_testops) & TEST_ANDOR))
+	{
+		errormsg(SH_DICT,ERROR_exit(2),e_toomanyops);
+		UNREACHABLE();
+	}
+}
+
 int b_test(int argc, char *argv[],Shbltin_t *context)
 {
 	struct test tdata;
@@ -121,6 +144,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_exit(2),e_missing,"']'");
 			UNREACHABLE();
 		}
+		argv[argc] = NULL;
 	}
 	if(argc <= 1)
 	{
@@ -140,6 +164,8 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		}
 	}
 	not = c_eq(cp,'!');
+	/* kludge to fix https://github.com/ksh93/ksh/issues/739 */
+	check_toomanyops(argv + not);
 	/* POSIX portion for test */
 	switch(argc)
 	{
@@ -463,7 +489,7 @@ int test_unop(int op,const char *arg)
 			return isref;
 		if(isref)
 		{
-			if(np->nvalue.cp)
+			if(np->nvalue)
 				np = nv_refnode(np);
 			else
 				return 0;
@@ -654,7 +680,7 @@ skip:
 		else
 		{
 			static int maxgroups;
-			gid_t *groups; 
+			gid_t *groups;
 			int n;
 			if(maxgroups==0)
 			{
@@ -684,7 +710,7 @@ skip:
 }
 
 /*
- * Return the mode bits of file <file> 
+ * Return the mode bits of file <file>
  * If <file> is null, then the previous stat buffer is used.
  * The mode bits are zero if the file doesn't exist.
  */

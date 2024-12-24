@@ -186,7 +186,7 @@ static int whence(char **argv, int flags)
 		/* non-tracked aliases */
 		if((np=nv_search(name,sh.alias_tree,0))
 			&& !nv_isnull(np) && !nv_isattr(np,NV_TAGGED)
-			&& (cp=nv_getval(np))) 
+			&& (cp=nv_getval(np)))
 		{
 			if(flags&V_FLAG)
 			{
@@ -324,7 +324,7 @@ static int whence(char **argv, int flags)
 					sfputr(sfstdout,sh_fmtq(cp),'\n');
 				free((void*)cp);
 			}
-			else if(aflag<=1) 
+			else if(aflag<=1)
 			{
 				ret = 1;
 				if(flags&V_FLAG)

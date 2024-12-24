@@ -57,7 +57,7 @@ static ssize_t streamio(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc, int type
 	if(sfsk(f,here,SEEK_SET,disc) != here)
 		io = 0;
 	else
-	{	if(type == SFIO_WRITE) 
+	{	if(type == SFIO_WRITE)
 			io = sfwr(f,buf,n,disc);
 		else	io = sfrd(f,buf,n,disc);
 		if(io > 0)

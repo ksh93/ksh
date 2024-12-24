@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -247,11 +247,11 @@ extern int		_reg_iswblank(wint_t);
 #endif
 
 #ifndef	iswblank
-#define	iswblank(x)	((x)==' '||(x)=='\t')
+#define iswblank(x)	((x)==' '||(x)=='\t')
 #endif
 
 #ifndef iswgraph
-#define	iswgraph(x)	(iswprint(x)&&!iswblank(x))
+#define iswgraph(x)	(iswprint(x)&&!iswblank(x))
 #endif
 
 #define isword(x)	(isalnum(x)||(x)=='_')

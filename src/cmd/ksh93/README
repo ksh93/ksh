@@ -128,9 +128,6 @@ The options have the following defaults and meanings:
     P_SUID       0   If set, all real UIDs greater than or equal to this value
                      will require the -p option to run the shell setuid/setgid.
 
-    REGRESS      off Enable the __regress__ built-in command and instrumented
-                     intercepts for testing.
-
     REMOTE       off Set --rc (read profile scripts) even if ksh was invoked
                      with standard input on a socket, i.e. as a remote shell.
 

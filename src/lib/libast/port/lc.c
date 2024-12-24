@@ -44,7 +44,7 @@ static Lc_t		default_lc =
 	&lc_languages[0],
 	&lc_territories[0],
 	&lc_charsets[0],
-	0, 
+	0,
 	LC_default|LC_checked|LC_local,
 	0,
 	{
@@ -73,7 +73,7 @@ static Lc_t		debug_lc =
 	&lc_languages[1],
 	&lc_territories[1],
 	&lc_charsets[0],
-	0, 
+	0,
 	LC_debug|LC_checked|LC_local,
 	0,
 	{
@@ -780,7 +780,7 @@ lcmake(const char* name)
 		strcpy((char*)lc->code, s);
 	lc->language = lp ? lp : &lc_languages[0];
 	lc->territory = tp ? tp : &lc_territories[0];
-	lc->charset = cp ? cp : &lc_charsets[0];  
+	lc->charset = cp ? cp : &lc_charsets[0];
 	if (streq(lc->charset->code, "utf8"))
 		lc->flags |= LC_utf8;
 	lc->attributes = al;

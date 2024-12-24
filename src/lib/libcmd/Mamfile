@@ -6,7 +6,6 @@ note *
 setv MAMAKE_STRICT 5
 setv INSTALLROOT ../../..
 setv CC cc
-setv AR %{mam_cc_AR} %{mam_cc_AR_ARFLAGS}
 setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?} %{mam_cc_NOSTRICTALIASING} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""%{mam_cc_HOSTTYPE}"\" -D_BLD_cmd
 setv CCFLAGS
 setv IFFEFLAGS
@@ -14,7 +13,7 @@ setv LDFLAGS
 setv CCLDFLAGS
 setv DYLIB_PRE %{mam_cc_SUFFIX_DYNAMIC?*?%{mam_cc_PREFIX_DYNAMIC}?%{mam_cc_PREFIX_SHARED}?}
 setv DYLIB_SUF %{mam_cc_SUFFIX_DYNAMIC-%{mam_cc_SUFFIX_SHARED}}
-setv DYLIB_VERSION 2.0
+setv DYLIB_VERSION 4.0
 
 make install virtual
 	note *
@@ -82,7 +81,6 @@ make install virtual
 			prev cmd.h
 		done
 		make cmp.c
-			prev %{INCLUDE_AST}/ccode.h
 			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
 		done
@@ -202,7 +200,6 @@ make install virtual
 		done
 		make stty.c
 			prev %{INCLUDE_AST}/ast_tty.h
-			prev %{INCLUDE_AST}/ccode.h
 			prev cmd.h
 		done
 		make sum.c
@@ -298,15 +295,14 @@ make install virtual
 			done
 		done
 		make sumlib.o
+			note * extract sumlib.o from libsum.a
 			bind -lsum
 			exec - set -- %{mam_libsum}
-			exec - %{AR} x "$1" sumlib.o
+			exec - %{mam_cc_AR} %{mam_cc_AR_ARFLAGS} -x "$1" sumlib.o
 		done
-		exec - if	test -f %{@}
-		exec - then	%{AR} rc %{@} %{?}  # add changed *.o
-		exec - else	%{AR} rc %{@} %{^}  # add all *.o
-		exec - fi || exit
-		exec - ranlib %{@} >/dev/null 2>&1 || true
+
+		note * include shell action for linking the library
+		incl link_ar.mam
 
 		note * save for dylink
 		setv _libcmd_object_files_ %{^}
@@ -334,8 +330,7 @@ make install virtual
 	done
 	make %{INSTALLROOT}/lib/libcmd.a
 		prev libcmd.a
-		exec - cp -f %{<} %{@} || exit
-		exec - ranlib %{@} >/dev/null 2>&1 || true
+		exec - cp -f %{<} %{@}
 	done
 	make %{INSTALLROOT}/lib/lib/cmd
 		prev cmd.req

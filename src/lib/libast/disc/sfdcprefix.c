@@ -28,7 +28,7 @@
  */
 
 typedef struct
-{	
+{
 	Sfdisc_t	disc;		/* sfio discipline		*/
 	size_t		length;		/* prefix length		*/
 	size_t		empty;		/* empty line prefix length	*/
@@ -118,7 +118,7 @@ int sfdcprefix(Sfio_t* f, const char* prefix)
 	pfx->empty = n;
 
 	if (sfdisc(f, &pfx->disc) != &pfx->disc)
-	{	
+	{
 		free(pfx);
 		return -1;
 	}

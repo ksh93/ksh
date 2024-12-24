@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,15 +35,15 @@ static const char usage[] =
 	"reversing the order of characters on every line of the file "
 	"or reversing the order of lines of the file if \b-l\b is specified.]"
 "[+?If no \afile\a is given, or if the \afile\a is \b-\b, \brev\b "
-        "copies from standard input starting at the current offset.]"
+	"copies from standard input starting at the current offset.]"
 "[l:line?Reverse the lines of the file.]"
 
 "\n"
 "\n[file ...]\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?All files copied successfully.]"
-        "[+>0?One or more files did not copy.]"
+	"[+0?All files copied successfully.]"
+	"[+>0?One or more files did not copy.]"
 "}"
 "[+SEE ALSO?\bcat\b(1), \btail\b(1)]"
 ;

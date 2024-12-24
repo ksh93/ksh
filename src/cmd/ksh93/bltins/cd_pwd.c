@@ -41,7 +41,7 @@
  */
 static void rehash(Namval_t *np,void *data)
 {
-	Pathcomp_t *pp = (Pathcomp_t*)np->nvalue.cp;
+	Pathcomp_t *pp = np->nvalue;
 	if(pp && *pp->name!='/')
 		nv_rehash(np,data);
 }
@@ -135,7 +135,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	&& !(dir[0]=='.' && (dir[1]=='/' || dir[1]==0))
 	&& !(dir[0]=='.' && dir[1]=='.' && (dir[2]=='/' || dir[2]==0)))
 	{
-		if((dp=sh_scoped(CDPNOD)->nvalue.cp) && !(cdpath = (Pathcomp_t*)sh.cdpathlist))
+		if((dp=sh_scoped(CDPNOD)->nvalue) && !(cdpath = (Pathcomp_t*)sh.cdpathlist))
 		{
 			if(cdpath=path_addpath(NULL,dp,PATH_CDPATH))
 				sh.cdpathlist = cdpath;

@@ -34,7 +34,7 @@
 **	Written by David Korn and Kiem-Phong Vo.
 */
 
-#if _tmp_rmfail	
+#if _tmp_rmfail
 
 /* File not removable while there is an open file descriptor.
 ** To ensure that temp files are properly removed, we need:
@@ -234,9 +234,9 @@ Sfio_t* sftmp(size_t s)
 	Sfio_t		*f;
 	int		rv;
 	Sfnotify_f	notify = _Sfnotify;
-	static Sfdisc_t	Tmpdisc = 
+	static Sfdisc_t	Tmpdisc =
 			{ NULL, NULL, NULL, _tmpexcept,
-#if _tmp_rmfail	
+#if _tmp_rmfail
 			  &Rmdisc
 #else
 			NULL

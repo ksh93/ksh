@@ -1373,5 +1373,32 @@ w print Exit status $?
 u ^Exit status 0\r\n$
 !
 
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L 'k' skips over history entries starting with whitespace
+# https://github.com/ksh93/ksh/issues/799
+
+d 40
+p :test-1:
+w   true
+p :test-2:
+c \Ek
+r :test-2:   true
+!
+
+((SHOPT_ESH)) && VISUAL=emacs tst $LINENO <<"!"
+L emacs: repeat count sticks after ESC commands
+# a bug introduced on 2020-09-17 and fixed on 2024-12-21
+
+d 15
+# The 'P' command sets an automatic 'p' before every 'w', delaying writing until a match is read.
+P :test-.:
+w false bad rigt wrong
+# Insert 'print '; recall 3rd word 'rigt' (ESC 3 ESC _); cursor back one position (^B); insert 'h'.
+# (With the bug, the repeat count of 3 sticks and ^B goes back 3 positions, resulting in 'rhigt'.)
+w print \E3\E_\cBh
+I print
+r right
+!
+
 # ======
 exit $((Errors<125?Errors:125))

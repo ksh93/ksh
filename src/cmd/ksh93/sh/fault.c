@@ -288,7 +288,7 @@ void	sh_sigtrap(int sig)
 	else if(!((flag=sh.sigflag[sig])&(SH_SIGFAULT|SH_SIGOFF)))
 	{
 		/* don't set signal if already set or off by parent */
-		if((fun=signal(sig,sh_fault))==SIG_IGN) 
+		if((fun=signal(sig,sh_fault))==SIG_IGN)
 		{
 			signal(sig,SIG_IGN);
 			flag |= SH_SIGOFF;
@@ -322,7 +322,7 @@ void	sh_sigdone(void)
 /*
  * Restore to default signals
  * Free the trap strings if mode is non-zero
- * If mode>1 then ignored traps cause signal to be ignored 
+ * If mode>1 then ignored traps cause signal to be ignored
  * If mode==-1 we're entering a new function scope in sh_funscope()
  */
 void	sh_sigreset(int mode)
@@ -609,7 +609,7 @@ void sh_exit(int xno)
 	sh.tilde_block = 0;
 	if(job.in_critical)
 		job_unlock();
-	if(pp->mode == SH_JMPSCRIPT && !pp->prev) 
+	if(pp->mode == SH_JMPSCRIPT && !pp->prev)
 		sh_done(sig);
 	if(pp->mode)
 		siglongjmp(pp->buff,pp->mode);

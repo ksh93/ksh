@@ -35,9 +35,7 @@
 #define LOOKAHEAD	80
 
 #if SHOPT_MULTIBYTE
-#   ifndef ESS_MAXCHAR
-#	include	"national.h"
-#   endif /* ESS_MAXCHAR */
+#   include	"national.h"
     typedef wchar_t genchar;
 #   define CHARSIZE	(sizeof(wchar_t)<=2?3:sizeof(wchar_t))
 #else
@@ -120,7 +118,7 @@ typedef struct edit
 #if SHOPT_ESH || SHOPT_VSH
 	int	e_multiline;	/* allow multiple lines for editing */
 #endif
-	int	e_winsz;	/* columns in window */ 
+	int	e_winsz;	/* columns in window */
 	Edpos_t	e_curpos;	/* cursor line and column */
 	Namval_t *e_default;	/* variable containing default value */
 } Edit_t;
@@ -130,12 +128,12 @@ typedef struct edit
 #define FAST	2
 #define SLOW	1
 #define ESC	cntl('[')
-#define	UEOF	-2			/* user eof char synonym */
-#define	UINTR	-3			/* user intr char synonym */
-#define	UERASE	-4			/* user erase char synonym */
-#define	UKILL	-5			/* user kill char synonym */
-#define	UWERASE	-6			/* user word erase char synonym */
-#define	ULNEXT	-7			/* user next literal char synonym */
+#define UEOF	-2			/* user eof char synonym */
+#define UINTR	-3			/* user intr char synonym */
+#define UERASE	-4			/* user erase char synonym */
+#define UKILL	-5			/* user kill char synonym */
+#define UWERASE	-6			/* user word erase char synonym */
+#define ULNEXT	-7			/* user next literal char synonym */
 
 #if ( 'a' == 97) /* ASCII? */
 #   define	cntl(x)		(x&037)
@@ -186,26 +184,26 @@ extern const char	e_runvi[];
 
 /* flags */
 
-#define	HIST_EVENT	0x1	/* event designator seen */
+#define HIST_EVENT	0x1	/* event designator seen */
 #define HIST_QUESTION	0x2	/* question mark event designator */
-#define	HIST_HASH	0x4	/* hash event designator */
+#define HIST_HASH	0x4	/* hash event designator */
 #define HIST_WORDDSGN	0x8	/* word designator seen */
 #define HIST_QUICKSUBST	0x10	/* quick substitution designator seen */
 #define HIST_SUBSTITUTE	0x20	/* for substitution loop */
-#define	HIST_NEWLINE	0x40	/* newline in squashed white space */
+#define HIST_NEWLINE	0x40	/* newline in squashed white space */
 
 /* modifier flags */
 
-#define	HIST_PRINT		0x100	/* print new command */
-#define	HIST_QUOTE		0x200	/* quote resulting history line */
-#define	HIST_QUOTE_BR		0x400	/* quote every word on space break */
-#define	HIST_GLOBALSUBST	0x800	/* apply substitution globally */
+#define HIST_PRINT		0x100	/* print new command */
+#define HIST_QUOTE		0x200	/* quote resulting history line */
+#define HIST_QUOTE_BR		0x400	/* quote every word on space break */
+#define HIST_GLOBALSUBST	0x800	/* apply substitution globally */
 
-#define	HIST_ERROR		0x1000	/* an error occurred */
+#define HIST_ERROR		0x1000	/* an error occurred */
 
 /* flags to be returned */
 
-#define	HIST_FLAG_RETURN_MASK	(HIST_EVENT|HIST_PRINT|HIST_ERROR)
+#define HIST_FLAG_RETURN_MASK	(HIST_EVENT|HIST_PRINT|HIST_ERROR)
 
 extern void hist_setchars(char *);
 extern int hist_expand(const char *, char **);

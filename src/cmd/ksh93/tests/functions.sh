@@ -209,13 +209,13 @@ fi
 unset -f foo bar
 function bar
 {
-        print "$y"
+	print "$y"
 }
 
 function foo
 {
-        typeset x=3
-        y=$x bar
+	typeset x=3
+	y=$x bar
 }
 x=1
 if	[[ $(foo) != 3 ]]
@@ -266,7 +266,7 @@ fi
 unset -f x
 function x
 {
-        print "$@"
+	print "$@"
 }
 typeset -ft x
 if      [[ $(x x=y 2>/dev/null) != x=y ]]
@@ -365,11 +365,11 @@ then	err_exit 'attributes on unset variables not saved/restored'
 fi
 function xpd {
 	typeset i j=$1
-                for i
-                        do print i=$i j=$j
-                        [[ $i == a ]] && xpd b
-                        done
-                }
+		for i
+			do print i=$i j=$j
+			[[ $i == a ]] && xpd b
+			done
+		}
 if	[[ $(xpd a c) != $'i=a j=a\ni=b j=b\ni=c j=a' ]]
 then	err_exit 'for loop function optimization error'
 fi
@@ -406,7 +406,7 @@ cd $dir || { err_exit "cd $dir failed"; exit 1; }
 	} > /dev/null
 	typeset -ft a b
 	PS4=X
-	b 
+	b
 ) > file 2>&1
 [[ $(<file) == *'Xprint 2'* ]] ||  err_exit 'function trace disabled by function call'
 rm -f file
@@ -458,9 +458,9 @@ eval "$x"  || err_exit 'typeset -f generates syntax error'
 unset -f a b c
 a()
 {
-        b
-        b
-        print ${.sh.fun}
+	b
+	b
+	print ${.sh.fun}
 }
 b() { : ;}
 [[ $(a) == a ]] || err_exit '.sh.fun not set correctly in a function'
@@ -867,12 +867,12 @@ main
 optind=$OPTIND
 sub()
 {
-        (
-                OPTIND=1
-                while getopts :abc OPTION "$@"
-                do      print OPTIND=$OPTIND
-                done
-        )
+	(
+		OPTIND=1
+		while getopts :abc OPTION "$@"
+		do      print OPTIND=$OPTIND
+		done
+	)
 }
 [[ $(sub -a) == OPTIND=2 ]] || err_exit 'OPTIND should be 2'
 [[ $(sub -a) == OPTIND=2 ]] || err_exit 'OPTIND should be 2 again'
@@ -1123,17 +1123,17 @@ foo sub
 
 function A
 {
-        trap "> /dev/null;print TRAP A" EXIT
+	trap "> /dev/null;print TRAP A" EXIT
 	# (( stderr )) && print >&2
 }
 
 function B
 {
-        trap "> /dev/null;print TRAP B" EXIT
-        A
+	trap "> /dev/null;print TRAP B" EXIT
+	A
 }
-            
-x=$(B)      
+	
+x=$(B)
 [[ $x == $'TRAP A\nTRAP B' ]] || err_exit "trap from functions in subshells fails got" $x
 
 function foo
@@ -1209,7 +1209,7 @@ function foo
 		esac
 	done
 	shift $((OPTIND - 1))
-	(( OPTIND == 4 )) || err_exit "OPTIND is $OPTIND at end of function foo; it should be 4"  
+	(( OPTIND == 4 )) || err_exit "OPTIND is $OPTIND at end of function foo; it should be 4"
 	[[ $1 == foo2 ]] || err_exit "\$1 is $1, not foo after getopts in function"
 }
 OPTIND=6 OPTARG=xxx

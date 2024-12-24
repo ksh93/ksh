@@ -24,7 +24,7 @@
 */
 
 Sfoff_t sftell(Sfio_t* f)
-{	
+{
 	int	mode;
 	Sfoff_t	p;
 

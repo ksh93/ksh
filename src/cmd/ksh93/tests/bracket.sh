@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2023 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -16,6 +16,8 @@
 #                  Lev Kujawski <int21h@mailbox.org>                   #
 #                                                                      #
 ########################################################################
+
+# Tests for the 'test' / '[' command and the [[ ... ]] construct
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
@@ -589,6 +591,36 @@ p=\\
 [[ \\ == ["^"X] ]] && err_exit "\\ mismatches \"^\""
 [[ \\ == [$'!'X] ]] && err_exit "\\ mismatches \$'!'"
 [[ \\ == [$'^'X] ]] && err_exit "\\ mismatches \$'^'"
+
+# ======
+# no error was detected in 'test a = a b'
+# https://github.com/ksh93/ksh/issues/739
+# https://bugs.debian.org/1068340
+# https://www.mail-archive.com/austin-group-l@opengroup.org/msg12484.html
+# Fix applied for POSIX mode in 93u+m/1.0.*, unconditionally in 93u+m/1.1.*
+unset p
+[[ ${.sh.version} == *93u+m/1.0.* ]] && p="posix mode: " && set --posix
+test a = a b 2>/dev/null
+(((e=$?)==2)) || err_exit "${p}test a = a b is not an error (got status $e)"
+[ a = a b ] 2>/dev/null
+(((e=$?)==2)) || err_exit "${p}[ a = a b ] is not an error (got status $e)"
+test -e /dev/null foo bar baz 2>/dev/null
+(((e=$?)==2)) || err_exit "${p}test -e /dev/null foo bar baz is not an error (got status $e)"
+[ -e /dev/null foo bar baz ] 2>/dev/null
+(((e=$?)==2)) || err_exit "${p}[ -e /dev/null foo bar baz ] is not an error (got status $e)"
+test t -a b = b 2>/dev/null
+(((e=$?)==0)) || err_exit "${p}test t -a b = b fails (got status $e)"
+[ t -a b = b ] 2>/dev/null
+(((e=$?)==0)) || err_exit "${p}[ t -a b = b ] fails (got status $e)"
+test -n -a -z 2>/dev/null
+(((e=$?)==0)) || err_exit "${p}test -n -a -z fails (got status $e)"
+[ -n -a -z ] 2>/dev/null
+(((e=$?)==0)) || err_exit "${p}[ -n -a -z ] fails (got status $e)"
+test b = b c -a "" 2>/dev/null
+(((e=$?)==2)) || err_exit "${p}test b = b c -a \"\" is not an error (got status $e)"
+[ b = b c -a "" ] 2>/dev/null
+(((e=$?)==2)) || err_exit "${p}[ b = b c -a \"\" ] is not an error (got status $e)"
+[[ -v p ]] && set --noposix && unset p
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -17,7 +17,15 @@ New command line editor features:
 - In the emacs line editor, pressing ^U (kill) twice no longer causes further
   ^U presses to start a new line (this was a feature for paper terminals).
 
+- The ^X^E (emacs mode) and v (vi mode) commands will now only execute the
+  command line that was loaded into the editor if the temporary file is
+  saved before exiting the editor. This removes the need to empty the file
+  and save just to cancel execution.
+
 New shell language features:
+
+- The appending redirection operator &>>FILE is now available. It is a
+  shorthand for: >>FILE 2>&1
 
 - The 'time' reserved word now outputs timings in a precision of 3 digits
   after the decimal point if the TIMEFORAMT variable is not set. See also
@@ -40,6 +48,18 @@ New features in built-in commands:
 - The 'hash' and 'alias -t' commands now issue an error message for each
   command given that was not found on PATH, and return a non-zero exit
   status if any of the commands given were not found.
+
+- The 'fc'/'hist' command has a new -E option. If given and a full-screen
+  editor is launched, the command line that was loaded into the editor will
+  only be executed if the temporary file is saved before exiting the editor.
+  This removes the need to empty the file and save just to cancel execution.
+  People who want the new behaviour as a default for the fc/hist command
+  where available (i.e., for ksh 93u+m/1.1 and later) can add the following
+  to their ~/.kshrc or other profile script:
+	case ${KSH_VERSION-} in
+	*93u+m/1.0.*)	;;
+	*93u+m/*)	alias fc='fc -E' hist='fc -E' ;;
+	esac
 
 New features in shell options:
 

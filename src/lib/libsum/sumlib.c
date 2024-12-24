@@ -63,7 +63,7 @@ typedef struct Map_s
 #define _INTEGRAL_PRIVATE_ \
 	uint32_t	sum; \
 	uint32_t	total_sum;
-	
+
 typedef struct Integral_s
 {
 	_SUM_PUBLIC_

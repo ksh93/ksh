@@ -166,11 +166,11 @@ tst	note{ determining size of PID variables }end output{
 		 * If there is ever a system where this test returns 1, then both this
 		 * test and nv_getval() must learn a new integer size attribute.
 		 */
-		if(s==sizeof(int16_t))		/* union Value: sp */
+		if(s==sizeof(int16_t))
 			a="NV_INTEGER|NV_SHORT";
-		else if(s==sizeof(int32_t))	/* union Value: lp */
+		else if(s==sizeof(int32_t))
 			a="NV_INTEGER";
-		else if(s==sizeof(Sflong_t))	/* union Value: llp */
+		else if(s==sizeof(Sflong_t))
 			a="NV_INTEGER|NV_LONG";
 		else
 			return 1;
@@ -188,7 +188,7 @@ tst	note{ determining size of PID variables }end output{
 	exit 1
 }end
 
-# execve(3) breakage on Android/Termux (as of API 36)
+# execve(3) breakage on Android/Termux (early versions of API 35)
 tst	execve_ignores_argv0 note{ does execve(3) ignore the specified argv[0] }end output{
 	#include <string.h>
 	#include <unistd.h>
@@ -201,7 +201,7 @@ tst	execve_ignores_argv0 note{ does execve(3) ignore the specified argv[0] }end 
 		sprintf(b,"_KSH_EXECVE_TEST_%d=y",(int)getpid());
 		newenv[0] = b;
 		newenv[1] = NULL;
-		/* check if we've alreay been re-exec'ed */
+		/* check if we've already been re-exec'ed */
 		for (i = 0; environ[i]; i++)
 			if (strcmp(environ[i],newenv[0])==0)
 				return !(strcmp(argv[0],"TEST_OK")!=0);

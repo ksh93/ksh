@@ -29,6 +29,7 @@
 #include	"streval.h"
 #include	"variables.h"
 #include	"builtins.h"
+#include	<ast_release.h>
 
 #ifndef LLONG_MAX
 #define LLONG_MAX	LONG_MAX
@@ -80,7 +81,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 		&& sh_macfun(cp, offset = stktell(sh.stk)))
 		{
 			Fun = sh_arith(sub=stkptr(sh.stk,offset));
-			FunNode.nvalue.ldp = &Fun;
+			FunNode.nvalue = &Fun;
 			nv_onattr(&FunNode,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 			cp[flag] = c;
 			return &FunNode;
@@ -149,7 +150,10 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 					while(c=mbchar(cp),isaname(c));
 				}
 				if(c=='[')
+				{
+					cp--;
 					continue;
+				}
 			}
 			flag = *cp;
 			*cp = 0;
@@ -257,9 +261,9 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			}
 		}
 		nv_putval(np, (char*)&n, NV_LDOUBLE);
-		if(lvalue->eflag)
-			lvalue->ptr = nv_hasdisc(np,&ENUM_disc);
-		lvalue->eflag = 0;
+		if(lvalue->isenum)
+			lvalue->enum_p = nv_hasdisc(np,&ENUM_disc);
+		lvalue->isenum = 0;
 		lvalue->value = (char*)np;
 		/*
 		 * The result (r) of an assignment is its value (n), cast to the type of the variable
@@ -336,9 +340,10 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				stkseek(sh.stk,off);
 				if(np=nv_search(stkptr(sh.stk,off),sh.fun_tree,0))
 				{
-						lvalue->nargs = -np->nvalue.rp->argc;
-						lvalue->fun = (Math_f)np;
-						break;
+					struct Ufunction *rp = np->nvalue;
+					lvalue->nargs = -rp->argc;
+					lvalue->fun = (Math_f)np;
+					break;
 				}
 				if(fsize<=(sizeof(tp->fname)-2))
 					lvalue->fun = (Math_f)sh_mathstdfun(*ptr,fsize,&lvalue->nargs);
@@ -390,17 +395,23 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				cp = (char*)*ptr;
 				if(!sh_isoption(SH_POSIX) && (cp[0] == 'i' || cp[0] == 'I') && (cp[1] == 'n' || cp[1] == 'N') && (cp[2] == 'f' || cp[2] == 'F') && cp[3] == 0)
 				{
-					Inf = strtold("Inf", NULL);
-					Infnod.nvalue.ldp = &Inf;
+					if (!Infnod.nvalue)
+					{
+						Inf = strtold("Inf", NULL);
+						Infnod.nvalue = &Inf;
+						nv_onattr(&Infnod,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
+					}
 					np = &Infnod;
-					nv_onattr(np,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 				}
 				else if(!sh_isoption(SH_POSIX) && (cp[0] == 'n' || cp[0] == 'N') && (cp[1] == 'a' || cp[1] == 'A') && (cp[2] == 'n' || cp[2] == 'N') && cp[3] == 0)
 				{
-					NaN = strtold("NaN", NULL);
-					NaNnod.nvalue.ldp = &NaN;
+					if (!NaNnod.nvalue)
+					{
+						NaN = strtold("NaN", NULL);
+						NaNnod.nvalue = &NaN;
+						nv_onattr(&NaNnod,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
+					}
 					np = &NaNnod;
-					nv_onattr(np,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 				}
 				else if(!(np = nv_open(*ptr,root,NV_NOREF|NV_VARNAME|dot)))
 				{
@@ -441,7 +452,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		else
 		{
 			char	lastbase=0, *val = xp, oerrno = errno;
-			lvalue->eflag = 0;
+			lvalue->isenum = 0;
 			errno = 0;
 			r = strtonll(val,&str, &lastbase,-1);
 			if(lastbase==8 && *val=='0' && !sh_isoption(sh.bltinfun==b_let ? SH_LETOCTAL : SH_POSIX))
@@ -510,20 +521,24 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			return 0;
 		}
 		lvalue->ovalue = (char*)np;
-		if(lvalue->eflag)
-			lvalue->ptr = nv_hasdisc(np,&ENUM_disc);
-		else if((Namfun_t*)lvalue->ptr && !nv_hasdisc(np,&ENUM_disc) && !nv_isattr(np,NV_INTEGER))
+		if(lvalue->isenum)
 		{
+			lvalue->enum_p = nv_hasdisc(np,&ENUM_disc);
+			lvalue->isenum = 0;
+		}
+		else if(lvalue->enum_p && !nv_hasdisc(np,&ENUM_disc) && !nv_isattr(np,NV_INTEGER))
+		{
+			/* convert the enum rvalue of the lvalue's enum type to its number */
 			Namval_t *mp,node;
-			mp = ((Namfun_t*)lvalue->ptr)->type;
+			mp = ((Namfun_t*)lvalue->enum_p)->type;
 			memset(&node,0,sizeof(node));
 			nv_clone(mp,&node,0);
 			nv_offattr(&node,NV_RDONLY|NV_NOFREE);
 			nv_putval(&node,np->nvname,0);
-			if(nv_isattr(&node,NV_NOFREE))
-				return r=nv_getnum(&node);
+			r = nv_getnum(&node);
+			_nv_unset(&node,0);
+			return r;
 		}
-		lvalue->eflag = 0;
 		if(((lvalue->emode&2) || lvalue->level>1 || sh_isoption(SH_NOUNSET)) && nv_isnull(np) && !nv_isattr(np,NV_INTEGER))
 		{
 			*ptr = nv_name(np);

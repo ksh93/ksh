@@ -119,7 +119,7 @@ struct _sffmt_s
 #endif
 
 /* bits for various types of files */
-#define	SFIO_READ	0000001	/* open for reading			*/
+#define SFIO_READ	0000001	/* open for reading			*/
 #define SFIO_WRITE	0000002	/* open for writing			*/
 #define SFIO_STRING	0000004	/* a string stream			*/
 #define SFIO_APPENDWR	0000010	/* file is in append mode only		*/

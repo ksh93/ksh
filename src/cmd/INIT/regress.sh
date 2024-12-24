@@ -64,143 +64,143 @@ unit [ command [ arg ... ] ]
     script that is executed in an environment with the following functions
     defined:]
     {
-        [+BODY \b{ ... }?Defines the test body; used for complex tests.]
-        [+CD \b\adirectory\a?Create and change to working directory for
-            one test.]
-        [+CLEANUP?Called at exit time to remove the
-            temporary directory \aunit\a\b.tmp\b, list the tests totals via
-            \bTALLY\b, and exit with the number of test failures or 125,
-            whichever is lower, as the exit status.]
-        [+COMMAND \b\aarg\a ...?Runs the current command under test with
-            \aarg\a ... appended to the default args.]
-        [+CONTINUE?The background job must be running.]
-        [+COPY \b\afrom to\a?Copy file \afrom\a to \ato\a. \afrom\a may
-            be a regular file or \bINPUT\b, \bOUTPUT\b or \bERROR\b. Post
-            test comparisons are still done for \afrom\a.]
-        [+DIAGNOSTICS \b[ \b1\b | \b0\b | \apattern\a ]]?No argument or an
+	[+BODY \b{ ... }?Defines the test body; used for complex tests.]
+	[+CD \b\adirectory\a?Create and change to working directory for
+	    one test.]
+	[+CLEANUP?Called at exit time to remove the
+	    temporary directory \aunit\a\b.tmp\b, list the tests totals via
+	    \bTALLY\b, and exit with the number of test failures or 125,
+	    whichever is lower, as the exit status.]
+	[+COMMAND \b\aarg\a ...?Runs the current command under test with
+	    \aarg\a ... appended to the default args.]
+	[+CONTINUE?The background job must be running.]
+	[+COPY \b\afrom to\a?Copy file \afrom\a to \ato\a. \afrom\a may
+	    be a regular file or \bINPUT\b, \bOUTPUT\b or \bERROR\b. Post
+	    test comparisons are still done for \afrom\a.]
+	[+DIAGNOSTICS \b[ \b1\b | \b0\b | \apattern\a ]]?No argument or an
 	    argument of \b1\b declares that diagnostics are to expected for
 	    the remainder of the current \bTEST\b; \b0\b reverts to the default
-            state that diagnostics are not expected; otherwise the argument
+	    state that diagnostics are not expected; otherwise the argument
 	    is a \bksh\b(1) pattern that must match the non-empty contents
 	    of the standard error.]
-        [+DO \b\astatement\a?Defines additional statements to be executed
-            for the current test. \astatement\a may be a { ... } group.]
-        [+EMPTY \bINPUT|OUTPUT|ERROR|SAME?The corresponding file is
-            expected to be empty.]
-        [+ERROR \b[ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?The
+	[+DO \b\astatement\a?Defines additional statements to be executed
+	    for the current test. \astatement\a may be a { ... } group.]
+	[+EMPTY \bINPUT|OUTPUT|ERROR|SAME?The corresponding file is
+	    expected to be empty.]
+	[+ERROR \b[ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?The
 	    standard error is expected to match either the contents
 	    of \afile\a or the line \adata\a. \bERROR -n\b does not
 	    append a newline to \adata\a. \afilter\a is a shell command
 	    or pipeline that reads standard input and writes standard
 	    output that is applied to ERROR before comparison with the
 	    expected contents.]
-        [+EXEC \b[ \aarg\a ... ]]?Runs the command under test with
-            optional arguments. \bINPUT\b, \bOUTPUT\b, \bERROR\b, \bEXIT\b
-            and \bSAME\b calls following this \bEXEC\b up until the next
-            \bEXEC\b or the end of the script provide details for the
-            expected results. If no arguments are specified then the
-            arguments from the previous \bEXEC\b in the current \bTEST\b
-            group are used, or no arguments if this is the first \bEXEC\b
-            in the group.]
-        [+EXIT \b\astatus\a?The command exit status is expected to match
-            the pattern \astatus\a.]
-        [+EXITED?The background job must have exited.]
-        [+EXPORT \b[-]] \aname\a=\avalue\a ...?Export environment
-            variables for one test.]
-        [+FATAL \b\amessage\a ...?\amessage\a is printed on the standard
-            error and \bregress\b exits with status \b1\b.]
-        [+FIFO \bINPUT|OUTPUT|ERROR\b [ \b-n\b ]] \afile\a | - \adata\a ...?The
+	[+EXEC \b[ \aarg\a ... ]]?Runs the command under test with
+	    optional arguments. \bINPUT\b, \bOUTPUT\b, \bERROR\b, \bEXIT\b
+	    and \bSAME\b calls following this \bEXEC\b up until the next
+	    \bEXEC\b or the end of the script provide details for the
+	    expected results. If no arguments are specified then the
+	    arguments from the previous \bEXEC\b in the current \bTEST\b
+	    group are used, or no arguments if this is the first \bEXEC\b
+	    in the group.]
+	[+EXIT \b\astatus\a?The command exit status is expected to match
+	    the pattern \astatus\a.]
+	[+EXITED?The background job must have exited.]
+	[+EXPORT \b[-]] \aname\a=\avalue\a ...?Export environment
+	    variables for one test.]
+	[+FATAL \b\amessage\a ...?\amessage\a is printed on the standard
+	    error and \bregress\b exits with status \b1\b.]
+	[+FIFO \bINPUT|OUTPUT|ERROR\b [ \b-n\b ]] \afile\a | - \adata\a ...?The
 	    \bIO\B file is a fifo.]
-        [+IF \b\acommand\a [\anote\a]]?If the \bsh\b(1) \acommand\a exits
-            0 then tests until the next \bELIF\b, \bELSE\b or \bFI\b are
-            enabled. Otherwise those tests are skipped. \bIF\b ... \bFI\b
-            may be nested, but must not cross \bTEST\b boundaries. \anote\a
-            is listed on the standard error if the corresponding test block
-            is enabled; \bIF\b, \bELIF\b, \bELSE\b may nave a \anote\a
-            operand.]
-        [+IGNORE \b\afile\a ...?\afile\a is ignored for subsequent result
-            comparisons. \afile\a may be \bOUTPUT\b or \bERROR\b.]
-        [+IGNORESPACE?Ignore space differences when comparing expected
-            output.]
-        [+INCLUDE \b\afile\a ...?One or more \afile\a operands are read
-            via the \bksh\b(1) \b.\b(1) command. \bVIEW\b is used to locate
-            the files.]
-        [+INFO \b\adescription\a?\adescription\a is printed on the
-            standard error.]
-        [+INITIALIZE?Called by \bregress\b to initialize each
-            \bTEST\b group.]
-        [+INPUT \b[ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?The
+	[+IF \b\acommand\a [\anote\a]]?If the \bsh\b(1) \acommand\a exits
+	    0 then tests until the next \bELIF\b, \bELSE\b or \bFI\b are
+	    enabled. Otherwise those tests are skipped. \bIF\b ... \bFI\b
+	    may be nested, but must not cross \bTEST\b boundaries. \anote\a
+	    is listed on the standard error if the corresponding test block
+	    is enabled; \bIF\b, \bELIF\b, \bELSE\b may nave a \anote\a
+	    operand.]
+	[+IGNORE \b\afile\a ...?\afile\a is ignored for subsequent result
+	    comparisons. \afile\a may be \bOUTPUT\b or \bERROR\b.]
+	[+IGNORESPACE?Ignore space differences when comparing expected
+	    output.]
+	[+INCLUDE \b\afile\a ...?One or more \afile\a operands are read
+	    via the \bksh\b(1) \b.\b(1) command. \bVIEW\b is used to locate
+	    the files.]
+	[+INFO \b\adescription\a?\adescription\a is printed on the
+	    standard error.]
+	[+INITIALIZE?Called by \bregress\b to initialize each
+	    \bTEST\b group.]
+	[+INPUT \b[ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?The
 	    standard input is set to either the contents of \afile\a
 	    or the line \adata\a. \bINPUT -n\b does not append a newline
 	    to \adata\a. \afilter\a is a shell command or pipeline that
 	    reads standard input and writes standard output that is
 	    applied to OUTPUT before comparison with the expected contents.]
-        [+INTRO?Called by \bregress\b to introduce all \bTEST\b
-            groups.]
-        [+IO \b[ \bFIFO\b | \bPIPE\b ]] \bINPUT|OUTPUT|ERROR\b [ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?Internal
-            support for the \bINPUT\b, \bOUTPUT\b and \bERROR\b functions.]
-        [+JOB \b\aop\a [ ... ]]?Like \bEXEC\b except the command is run
-            as a background job for the duration of the group or until it
-            is killed via \bKILL\b.]
-        [+KEEP \b\apattern\a ...?The temporary directory is cleared for
-            each test. Files matching \apattern\a are retained between
-            tests.]
-        [+KILL \b[ \asignal\a ]]?Kill the background job with \asignal\a
-        [ \bSIGKILL\b ]].]
-        [+MOVE \b\afrom to\a?Rename file \afrom\a to \ato\a. \afrom\a may
-            be a regular file or \bINPUT\b, \bOUTPUT\b or \bERROR\b. Post
-            test comparisons are ignored for \afrom\a.]
-        [+NOTE \b\acomment\a?\acomment\a is added to the current test
-            trace output.]
-        [+OUTPUT \b[ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?The
+	[+INTRO?Called by \bregress\b to introduce all \bTEST\b
+	    groups.]
+	[+IO \b[ \bFIFO\b | \bPIPE\b ]] \bINPUT|OUTPUT|ERROR\b [ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?Internal
+	    support for the \bINPUT\b, \bOUTPUT\b and \bERROR\b functions.]
+	[+JOB \b\aop\a [ ... ]]?Like \bEXEC\b except the command is run
+	    as a background job for the duration of the group or until it
+	    is killed via \bKILL\b.]
+	[+KEEP \b\apattern\a ...?The temporary directory is cleared for
+	    each test. Files matching \apattern\a are retained between
+	    tests.]
+	[+KILL \b[ \asignal\a ]]?Kill the background job with \asignal\a
+	[ \bSIGKILL\b ]].]
+	[+MOVE \b\afrom to\a?Rename file \afrom\a to \ato\a. \afrom\a may
+	    be a regular file or \bINPUT\b, \bOUTPUT\b or \bERROR\b. Post
+	    test comparisons are ignored for \afrom\a.]
+	[+NOTE \b\acomment\a?\acomment\a is added to the current test
+	    trace output.]
+	[+OUTPUT \b[ \b-e\b \afilter\a ]] [ \b-n\b ]] \afile\a | - \adata\a ...?The
 	    standard output is expected to match either the contents
 	    of \afile\a or the line \adata\a. \bOUTPUT -n\b does not
 	    append a newline to \adata\a. \afilter\a is a shell command
 	    or pipeline that reads standard input and writes standard
 	    output that is applied to ERROR before comparison with the
 	    expected contents.]
-        [+PIPE \bINPUT|OUTPUT|ERROR\b [ \b-n\b ]] \afile\a | - \adata\a ...?The
+	[+PIPE \bINPUT|OUTPUT|ERROR\b [ \b-n\b ]] \afile\a | - \adata\a ...?The
 	    \bIO\B file is a pipe.]
-        [+PROG \b\acommand\a [ \aarg\a ... ]]?\acommand\a is run with
-            optional arguments.]
-        [+REMOVE \b\afile\a ...?\afile\a ... are removed after the
-            current test is done.]
-        [+RUN?Called by \bregress\b to run the current test.]
-        [+SAME \b\anew old\a?\anew\a is expected to be the same as
-            \aold\a after the current test completes.]
-        [+SET \b[\bno\b]]\aname\a[=\avalue\a]]?Set the command line
-            option --\aname\a. The setting is in effect for all tests until
-            the next explicit \bSET\b.]
-        [+TALLY?Called by \bregress\b display the \bTEST\b results.]
-        [+TEST \b\anumber\a [ \adescription\a ... ]]?Define a new test
-            group labelled \anumber\a with optional \adescription\a.]
-        [+TITLE \b[+]] \atext\a?Set the \bTEST\b output title to
-            \atext\a. If \b+\b is specified then \atext\a is appended to
-            the default title. The default title is the test file base
-            name, and, if different from the test file base name, the test
-            unit base name.]
-        [+TWD \b[ \adir\a ... ]]?Set the temporary test dir to \adir\a.
-            The default is \aunit\a\b.tmp\b, where \aunit\a is the test
-            input file sans directory and suffix. If \adir\a matches \b/*\b
-            then it is the directory name; if \adir\a is non-null then the
-            prefix \b${TMPDIR:-/tmp}\b is added; otherwise if \adir\a is
-            omitted then
-            \b${TMPDIR:-/tmp}/tst-\b\aunit\a-$$-$RANDOM.\b\aunit\a is
-            used.]
-        [+UMASK \b[ \amask\a ]]?Run subsequent tests with \bumask\b(1)
-            \amask\a. If \amask\a is omitted then the original \bumask\b is
-            used.]
-        [+UNIT \b\acommand\a [ \aarg\a ... ]]?Define the command and
-            optional default arguments to be tested. \bUNIT\b explicitly
-            overrides the default command name derived from the test script
-            file name. A \acommand\a operand with optional arguments
-            overrides the \bUNIT\b \acommand\a and arguments, with the
-            exception that if the \bUNIT\b \acommand\a is \b-\b or \b+\b
-            the \bUNIT\b arguments are appended to the operand or default
-            unit command and arguments.]
-        [+VIEW \b\avar\a [ \afile\a ]]?\avar\a is set to the full
-            pathname of \avar\a [ \afile\a ]] in the current \b$VPATH\b
-            view if defined.]
+	[+PROG \b\acommand\a [ \aarg\a ... ]]?\acommand\a is run with
+	    optional arguments.]
+	[+REMOVE \b\afile\a ...?\afile\a ... are removed after the
+	    current test is done.]
+	[+RUN?Called by \bregress\b to run the current test.]
+	[+SAME \b\anew old\a?\anew\a is expected to be the same as
+	    \aold\a after the current test completes.]
+	[+SET \b[\bno\b]]\aname\a[=\avalue\a]]?Set the command line
+	    option --\aname\a. The setting is in effect for all tests until
+	    the next explicit \bSET\b.]
+	[+TALLY?Called by \bregress\b display the \bTEST\b results.]
+	[+TEST \b\anumber\a [ \adescription\a ... ]]?Define a new test
+	    group labelled \anumber\a with optional \adescription\a.]
+	[+TITLE \b[+]] \atext\a?Set the \bTEST\b output title to
+	    \atext\a. If \b+\b is specified then \atext\a is appended to
+	    the default title. The default title is the test file base
+	    name, and, if different from the test file base name, the test
+	    unit base name.]
+	[+TWD \b[ \adir\a ... ]]?Set the temporary test dir to \adir\a.
+	    The default is \aunit\a\b.tmp\b, where \aunit\a is the test
+	    input file sans directory and suffix. If \adir\a matches \b/*\b
+	    then it is the directory name; if \adir\a is non-null then the
+	    prefix \b${TMPDIR:-/tmp}\b is added; otherwise if \adir\a is
+	    omitted then
+	    \b${TMPDIR:-/tmp}/tst-\b\aunit\a-$$-$RANDOM.\b\aunit\a is
+	    used.]
+	[+UMASK \b[ \amask\a ]]?Run subsequent tests with \bumask\b(1)
+	    \amask\a. If \amask\a is omitted then the original \bumask\b is
+	    used.]
+	[+UNIT \b\acommand\a [ \aarg\a ... ]]?Define the command and
+	    optional default arguments to be tested. \bUNIT\b explicitly
+	    overrides the default command name derived from the test script
+	    file name. A \acommand\a operand with optional arguments
+	    overrides the \bUNIT\b \acommand\a and arguments, with the
+	    exception that if the \bUNIT\b \acommand\a is \b-\b or \b+\b
+	    the \bUNIT\b arguments are appended to the operand or default
+	    unit command and arguments.]
+	[+VIEW \b\avar\a [ \afile\a ]]?\avar\a is set to the full
+	    pathname of \avar\a [ \afile\a ]] in the current \b$VPATH\b
+	    view if defined.]
     }
 [+SEE ALSO?\bnmake\b(1), \bksh\b(1)]
 '

@@ -46,9 +46,9 @@ static const char usage[] =
 "\ndirectory ...\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?All directories created successfully, or the \b-p\b option "
+	"[+0?All directories created successfully, or the \b-p\b option "
 	"was specified and all the specified directories now exist.]"
-        "[+>0?An error occurred.]"
+	"[+>0?An error occurred.]"
 "}"
 "[+SEE ALSO?\bchmod\b(1), \brmdir\b(1), \bumask\b(1)]"
 ;

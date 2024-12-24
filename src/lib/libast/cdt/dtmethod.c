@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -49,7 +49,7 @@ Dtmethod_t* dtmethod(Dt_t* dt, Dtmethod_t* meth)
 		newdt = NULL;
 	else	newdt = dt->data;
 
-	/* see what need to be done to data of the old method */ 
+	/* see what need to be done to data of the old method */
 	if(dt->searchf == meth->searchf)
 		dt->searchf = oldmt->searchf;
 	dt->meth = oldmt;
@@ -65,7 +65,7 @@ Dtmethod_t* dtmethod(Dt_t* dt, Dtmethod_t* meth)
 		return oldmt;
 	}
 	else /* switch failed, restore dictionary to previous states */
-	{	dtrestore(dt, list); 
+	{	dtrestore(dt, list);
 		return NULL;
 	}
 }

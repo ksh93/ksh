@@ -571,7 +571,7 @@ typedef struct _sfextern_s
 #define O_EXCL		040
 
 #ifndef O_RDONLY
-#define	O_RDONLY	000
+#define O_RDONLY	000
 #endif
 #ifndef O_WRONLY
 #define O_WRONLY	001
@@ -591,7 +591,7 @@ typedef struct _sfextern_s
 #define O_TEMPORARY	000
 #endif
 
-#define	SFIO_RADIX	64	/* maximum integer conversion base */
+#define SFIO_RADIX	64	/* maximum integer conversion base */
 
 #define SFIO_MAXCHAR	((uchar)(~0))
 
@@ -642,7 +642,7 @@ typedef struct _sftab_
 {	Sfdouble_t	sf_pos10[SFIO_MAXEXP10];	/* positive powers of 10	*/
 	Sfdouble_t	sf_neg10[SFIO_MAXEXP10];	/* negative powers of 10	*/
 	uchar		sf_dec[200];		/* ASCII reps of values < 100	*/
-	char*		sf_digits;		/* digits for general bases	*/ 
+	char*		sf_digits;		/* digits for general bases	*/
 	int		(*sf_cvinitf)();	/* initialization function	*/
 	int		sf_cvinit;		/* initialization state		*/
 	Fmtpos_t*	(*sf_fmtposf)(Sfio_t*,const char*,va_list,Sffmt_t*,int);

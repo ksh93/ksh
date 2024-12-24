@@ -65,9 +65,9 @@ static const char usage[] =
 "\n"
 "[+EXIT STATUS?]"
     "{"
-        "[+0?The files or portions compared are identical.]"
-        "[+1?The files are different.]"
-        "[+>1?An error occurred.]"
+	"[+0?The files or portions compared are identical.]"
+	"[+1?The files are different.]"
+	"[+>1?An error occurred.]"
     "}"
 "[+SEE ALSO?\bcomm\b(1), \bdiff\b(1), \bcat\b(1)]"
 ;
@@ -75,7 +75,6 @@ static const char usage[] =
 #include <cmd.h>
 #include <ls.h>
 #include <ctype.h>
-#include <ccode.h>
 
 #define CMP_VERBOSE	0x01
 #define CMP_SILENT	0x02
@@ -85,7 +84,6 @@ static const char usage[] =
 static void
 pretty(Sfio_t *out, int o, int delim, int flags)
 {
-	int	c;
 	int	m;
 	char*	s;
 	char	buf[10];
@@ -100,16 +98,15 @@ pretty(Sfio_t *out, int o, int delim, int flags)
 		*s++ = '0' + ((o >> 3) & 07);
 		*s++ = '0' + (o & 07);
 	}
+	/* ASCII assumed below */
 	if (flags & CMP_CHARS)
 	{
 		*s++ = ' ';
-		c = ccmapc(o, CC_NATIVE, CC_ASCII);
-		if (c & 0x80)
+		if (o & 0x80)
 		{
 			m = 1;
 			*s++ = 'M';
-			c &= 0x7f;
-			o = ccmapc(c, CC_ASCII, CC_NATIVE);
+			o &= 0x7f;
 		}
 		else
 			m = 0;
@@ -118,8 +115,7 @@ pretty(Sfio_t *out, int o, int delim, int flags)
 			if (!m)
 				*s++ = ' ';
 			*s++ = '^';
-			c ^= 0x40;
-			o = ccmapc(c, CC_ASCII, CC_NATIVE);
+			o ^= 0x40;
 		}
 		else if (m)
 			*s++ = '-';

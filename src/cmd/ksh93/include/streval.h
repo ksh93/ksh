@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -70,7 +70,7 @@ struct lval
 	char		*ovalue;
 	Sfdouble_t	(*fun)(Sfdouble_t,...);
 	const char	*expr;
-	const  void	*ptr;
+	const void	*enum_p;	/* pointer to the lvalue's enum type */
 	int		nosub;
 	char		*sub;
 	short		flag;
@@ -78,7 +78,7 @@ struct lval
 	short		emode;
 	short		level;
 	short		elen;
-	char		eflag;
+	char		isenum;		/* set if the lvalue is of an enum type */
 	char		isfloat;
 };
 

@@ -26,7 +26,7 @@
  * the bigram encoding steals the eighth bit (that's why it's FF_old)
  * maybe one day we'll limit it to readonly:
  *
- * 0-2*FF_OFF	 likeliest differential counts + offset to make nonnegative 
+ * 0-2*FF_OFF	 likeliest differential counts + offset to make nonnegative
  * FF_ESC	 4 byte big-endian out-of-range count+FF_OFF follows
  * FF_MIN-FF_MAX ASCII residue
  * >=FF_MAX	 bigram codes
@@ -141,7 +141,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 	char*		p;
 	char*		s;
 	char*		b;
-	int		i; 
+	int		i;
 	int		j;
 	char*		path;
 	int		brace = 0;
@@ -399,7 +399,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			setgid(getgid());
 		fp->stamp = st.st_mtime;
 		b = (s = fp->decode.temp) + 1;
-		for (i = 0; i < elementsof(fp->decode.bigram1); i++) 
+		for (i = 0; i < elementsof(fp->decode.bigram1); i++)
 		{
 			if ((j = sfgetc(fp->fp)) == EOF)
 				goto invalid;
@@ -857,7 +857,7 @@ findread(Find_t* fp)
 					s--;
 				if (*fp->decode.pattern == '/' && b > fp->decode.path)
 					b--;
-				for (; s >= b; s--) 
+				for (; s >= b; s--)
 					if (*s == *fp->decode.end || ignorecase && tolower(*s) == *fp->decode.end)
 					{
 						if (ignorecase)
@@ -1110,7 +1110,7 @@ findsync(Find_t* fp)
 					fp->encode.code[n][m] = 0;
 
 		/*
-		 * commit the real file 
+		 * commit the real file
 		 */
 
 		if (sfseek(fp->fp, 0, SEEK_SET))

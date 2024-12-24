@@ -50,8 +50,8 @@ static const char usage[] =
 "\n[user]\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?Successful completion.]"
-        "[+>0?An error occurred.]"
+	"[+0?Successful completion.]"
+	"[+>0?An error occurred.]"
 "}"
 "[+SEE ALSO?\blogname\b(1), \bwho\b(1), \bgetgroups\b(2)]"
 ;
@@ -265,14 +265,14 @@ getids(Sfio_t* sp, const char* name, int flags)
 		{
 			setfsgent();
 			do
-                        {
-                                if (!(fs = getfsgnam(name)))
+			{
+				if (!(fs = getfsgnam(name)))
 				{
-                                        error(ERROR_exit(1), "%u: fss name not found", name);
+					error(ERROR_exit(1), "%u: fss name not found", name);
 					UNREACHABLE();
 				}
-                        } while (isfsg(fs));
-                        fs_id = fs->fs_id;
+			} while (isfsg(fs));
+			fs_id = fs->fs_id;
 		}
 #endif
 	}

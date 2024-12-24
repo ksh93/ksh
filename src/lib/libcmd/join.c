@@ -46,7 +46,7 @@ static const char usage[] =
 	"sequence of \bsort -b\b on the fields on which they are to be "
 	"joined otherwise the results are unspecified.]"
 "[+?If either \afile1\a or \afile2\a is \b-\b, \bjoin\b "
-        "uses standard input starting at the current location.]"
+	"uses standard input starting at the current location.]"
 
 "[e:empty]:[string?Replace empty output fields in the list selected with"
 "	\b-o\b with \astring\a.]"
@@ -322,7 +322,7 @@ getrec(Join_t* jp, int index, int discard)
 	else
 		do /* separate into fields */
 		{
-			if (field >= fieldmax)	
+			if (field >= fieldmax)
 			{
 				n = 2 * fp->maxfields;
 				fp->fields = newof(fp->fields, Field_t, n + 1, 0);

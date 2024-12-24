@@ -6,7 +6,6 @@ note *
 setv MAMAKE_STRICT 5
 setv INSTALLROOT ../../..
 setv CC cc
-setv AR %{mam_cc_AR} %{mam_cc_AR_ARFLAGS}
 setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{mam_cc_PIC} %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?}
 setv CCFLAGS
 setv IFFEFLAGS
@@ -32,6 +31,7 @@ make install virtual
 			make sumlib.c
 				make sum-sha2.c
 					prev %{INCLUDE_AST}/endian.h
+					prev %{INCLUDE_AST}/assert.h
 				done
 				makp sum-sha1.c
 				makp sum-md5.c
@@ -62,8 +62,9 @@ make install virtual
 			done
 			exec - %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} -I. -I%{INCLUDE_AST} -c %{<}
 		done sumlib.o
-		exec - %{AR} rc %{@} %{<} || exit
-		exec - ranlib %{@} >/dev/null 2>&1 || true
+
+		note * include shell action for linking the library
+		incl link_ar.mam
 	done libsum.a
 
 	note *
@@ -77,8 +78,7 @@ make install virtual
 	done
 	make %{INSTALLROOT}/lib/libsum.a
 		prev libsum.a
-		exec - cp -f %{<} %{@} || exit
-		exec - ranlib %{@} >/dev/null 2>&1 || true
+		exec - cp -f %{<} %{@}
 	done
 	make %{INSTALLROOT}/lib/lib/sum
 		prev sum.req

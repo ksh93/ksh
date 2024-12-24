@@ -428,7 +428,7 @@ umeinit(void)
 
 	if (!ume_d[ume_D[0]])
 	{
-		s = ume_D; 
+		s = ume_D;
 		while (c = *s++)
 			ume_d[c] = 1;
 		memset(ume_m, NOE, sizeof(ume_m));

@@ -106,14 +106,14 @@ is deprecated and provided for backward compatibility.
 and returns a pointer to the previous \f3stkstd\fP stack.
 If the \fIoverflow\fP argument is not null and the stack was not opened with
 the \f3STK_NULL\fP option, then \fIoverflow\fP sets the overflow action
-(see \f3overflow\fP() above).
+(see \f3stkoverflow\fP() above).
 When \fIstack\fP is a null pointer,
 the \f3stkstd\fP stack is not changed
 but the \fIoverflow\fP function for the \f3stkstd\fP stack can be changed
 and a pointer to the \f3stkstd\fP stack is returned.
-(Current usage is simply
-passing the pointer to the desired stack to the \f3stk\fP functions,
-and using \f3stkoverflow\fP() to set the stack overflow function).
+(To replace deprecated \f3stkinstall\fP() usage, simply
+pass the pointer to the desired stack to the \f3stk\fP functions,
+and use \f3stkoverflow\fP() to set the stack overflow function).
 .PP
 The \f3stkclose\fP() function decrements the reference count and
 frees the memory associated with

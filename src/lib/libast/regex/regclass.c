@@ -179,7 +179,7 @@ static int Is_wc_16(int c) { return iswctype(c, ctype[CTYPES+15].wtype); }
  * return pointer to ctype function for :class:] in s
  * s points to the first char after the initial [
  * dynamic wctype classes are locale-specific
- * dynamic entry locale is punned in Ctype_t.next 
+ * dynamic entry locale is punned in Ctype_t.next
  * the search does a lazy (one entry at a time) flush on locale mismatch
  * if e!=0 it points to next char in s
  * 0 returned on error

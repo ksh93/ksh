@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2022 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -17,7 +17,7 @@
 ########################################################################
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
-	
+
 tmp1=$tmp/tmp1.csv
 tmp2=$tmp/tmp2.csv
 cat > $tmp1 <<- \EOF

@@ -62,7 +62,7 @@
 #   define WIFCONTINUED(wstat)	(0)
 #endif
 
-#define	NJOB_SAVELIST	4
+#define NJOB_SAVELIST	4
 
 /*
  * temporary hack to get W* macros to work
@@ -505,11 +505,11 @@ void job_init(int lflag)
 	job.mypgid = getpgrp();
 	/* some systems have job control, but not initialized */
 	if(job.mypgid<=0)
-        {
+	{
 		/* Get a controlling terminal and set process group */
 		/* This should have already been done by rlogin */
-                int fd;
-                char *ttynam;
+		int fd;
+		char *ttynam;
 		if(job.mypgid<0 || !(ttynam=ttyname(JOBTTY)))
 			return;
 		while(close(JOBTTY)<0 && errno==EINTR)
@@ -519,8 +519,8 @@ void job_init(int lflag)
 		if(fd!=JOBTTY)
 			sh_iorenumber(fd,JOBTTY);
 		tcsetpgrp(JOBTTY,sh.pid);
-                job.mypgid = sh.pid;
-        }
+		job.mypgid = sh.pid;
+	}
 	possible = (setpgid(0,job.mypgid) >= 0) || errno==EPERM;
 	if(possible)
 	{
@@ -950,7 +950,7 @@ int job_kill(struct process *pw,int sig)
 				sh_delay(.05,0);
 			}
 		}
-		while(pw && pw->p_pgrp==0 && (r=kill(pw->p_pid,sig))>=0) 
+		while(pw && pw->p_pgrp==0 && (r=kill(pw->p_pid,sig))>=0)
 		{
 			if(also_send_sigcont(pw,sig))
 			{
@@ -1140,7 +1140,7 @@ int job_post(pid_t pid, pid_t join)
 		pw->p_nxtjob = job.pwlist;
 		pw->p_nxtproc = 0;
 	}
-	pw->p_exitval = job.exitval; 
+	pw->p_exitval = job.exitval;
 	job.pwlist = pw;
 	pw->p_env = sh.curenv;
 	pw->p_pid = pid;
@@ -1554,7 +1554,7 @@ static struct process *job_unpost(struct process *pwtop,int notify)
 	if(!pw)
 		return NULL;
 #if SHOPT_BGX
-	if(pw->p_flag&P_BG) 
+	if(pw->p_flag&P_BG)
 		return pw;
 #endif /* SHOPT_BGX */
 	for(; pw && (pw->p_flag&P_DONE)&&(notify||!(pw->p_flag&P_NOTIFY)||pw->p_env); pw=pw->p_nxtproc);
@@ -1572,7 +1572,7 @@ static struct process *job_unpost(struct process *pwtop,int notify)
 			*pw->p_exitval = pw->p_exit;
 			if(pw->p_flag&P_SIGNALLED)
 				*pw->p_exitval |= SH_EXITSIG;
-		}	
+		}
 		/* save the exit status for background jobs */
 		if((pw->p_flag&P_EXITSAVE) ||  pw->p_pid==sh.spid)
 		{

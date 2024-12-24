@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -21,7 +21,7 @@
 #include <ast.h>
 #include <ip6.h>
 
-/* 
+/*
  * copy p to s, then convert 0<=n<=999 to text
  * next char in s returned
  * caller ensures that s can take strlen(p)+3 bytes

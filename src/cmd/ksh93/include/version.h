@@ -11,14 +11,20 @@
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
 *                  David Korn <dgk@research.att.com>                   *
+*                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
 
-#include <releaseflags.h>
+#include <ast_release.h>
+#include "git.h"
 
+#define SH_RELEASE_DATE	"2024-12-24"	/* must be in this format for $((.sh.version)) */
+/*
+ * This comment keeps SH_RELEASE_DATE a few lines away from SH_RELEASE_SVER to avoid
+ * merge conflicts when cherry-picking dev branch commits onto a release branch.
+ */
 #define SH_RELEASE_FORK	"93u+m"		/* only change if you develop a new ksh93 fork */
 #define SH_RELEASE_SVER	"1.1.0-alpha"	/* semantic version number: https://semver.org */
-#define SH_RELEASE_DATE	"2024-11-17"	/* must be in this format for $((.sh.version)) */
 #define SH_RELEASE_CPYR	"(c) 2020-2024 Contributors to ksh " SH_RELEASE_FORK
 
 /* Scripts sometimes field-split ${.sh.version}, so don't change amount of whitespace. */
@@ -26,8 +32,8 @@
 #if _AST_release
 #  define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER " " SH_RELEASE_DATE
 #else
-#  ifdef _AST_git_commit
-#    define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER "+" _AST_git_commit " " SH_RELEASE_DATE
+#  ifdef git_commit
+#    define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER "+" git_commit " " SH_RELEASE_DATE
 #  else
 #    define SH_RELEASE	SH_RELEASE_FORK "/" SH_RELEASE_SVER "+dev " SH_RELEASE_DATE
 #  endif

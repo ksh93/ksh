@@ -27,7 +27,7 @@
 #include	"builtins.h"
 
 static const char sh_opttype[] =
-"[-1c?\n@(#)$Id: type (ksh 93u+m) 2021-12-17 $\n]"
+"[-1c?\n@(#)$Id: type (ksh 93u+m) 2024-08-28 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - set the type of variables to \b\f?\f\b]"
 "[+DESCRIPTION?\b\f?\f\b sets the type on each of the variables specified "
@@ -35,7 +35,7 @@ static const char sh_opttype[] =
 	"the variable \aname\a is set to \avalue\a before the variable "
 	"is converted to \b\f?\f\b.]"
 "[+?If no \aname\as are specified then the names and values of all "
-	"variables of this type are written to standard output.]" 
+	"variables of this type are written to standard output.]"
 "[+?\b\f?\f\b is built in to the shell as a declaration command so that "
 	"field splitting and pathname expansion are not performed on "
 	"the arguments. Tilde expansion occurs on \avalue\a.]"
@@ -46,7 +46,7 @@ static const char sh_opttype[] =
 	"specified, each subscript is interpreted as a value of enumeration "
 	"type \atype\a.]"
 "[A?Associative array. Each \aname\a is converted to an associative "
-        "array of type \b\f?\f\b. If a variable already exists, the current "
+	"array of type \b\f?\f\b. If a variable already exists, the current "
 	"value will become subscript \b0\b.]"
 "[h]:[string?Used within a type definition to provide a help string  "
 	"for variable \aname\a. Otherwise, it is ignored.]"
@@ -60,8 +60,8 @@ static const char sh_opttype[] =
 "\n[name[=value]...]\n"
 "\n"
 "[+EXIT STATUS?]{"
-        "[+0?Successful completion.]"
-        "[+>0?An error occurred.]"
+	"[+0?Successful completion.]"
+	"[+>0?An error occurred.]"
 "}"
 
 "[+SEE ALSO?\fother\f \breadonly\b(1), \btypeset\b(1)]"
@@ -223,15 +223,15 @@ static void put_chtype(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 		size_t		dsize=0,offset = (char*)np-(char*)pp->ptype;
 		Namval_t	*mp = (Namval_t*)((char*)pp->ttype+offset);
 		dsize = nv_datasize(mp,&dsize);
-		if(mp->nvalue.cp >=  pp->ttype->data && mp->nvalue.cp < (char*)pp+pp->ttype->fun.dsize)
+		if((char*)mp->nvalue >= pp->ttype->data && (char*)mp->nvalue < (char*)pp+pp->ttype->fun.dsize)
 		{
-			np->nvalue.cp = pp->ptype->data + (mp->nvalue.cp-pp->ptype->data);
-			if(np->nvalue.cp!=mp->nvalue.cp)
-				memcpy((char*)np->nvalue.cp,mp->nvalue.cp,dsize);
+			np->nvalue = pp->ptype->data + ((char*)mp->nvalue - pp->ptype->data);
+			if(np->nvalue != mp->nvalue)
+				memcpy(np->nvalue,mp->nvalue,dsize);
 		}
-		else if(!nv_isarray(mp) && mp->nvalue.cp)
+		else if(!nv_isarray(mp) && mp->nvalue)
 		{
-			np->nvalue.cp = mp->nvalue.cp;
+			np->nvalue = mp->nvalue;
 			nv_onattr(np,NV_NOFREE);
 		}
 		np->nvsize = mp->nvsize;
@@ -285,25 +285,26 @@ static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp,int f
 		nv_disc(nq, fp, NV_POP);
 	if(nv_isattr(nq,NV_REF))
 	{
-		nq->nvalue.nrp = nrp++;
+		struct Namref *nrp2;
+		nq->nvalue = nrp2 = nrp++;
 		nv_setsize(nq,0);
 		if(strchr(nq->nvname,'.'))
-			nq->nvalue.nrp->np = findref(dp->nodes,i);
+			nrp2->np = findref(dp->nodes,i);
 		else
-			nq->nvalue.nrp->np = nv_namptr(pp->childfun.ttype->nodes,i);
-		nq->nvalue.nrp->root = sh.last_root;
-		nq->nvalue.nrp->table = pp->np;
+			nrp2->np = nv_namptr(pp->childfun.ttype->nodes,i);
+		nrp2->root = sh.last_root;
+		nrp2->table = pp->np;
 		nq ->nvflag = NV_REF|NV_NOFREE|NV_MINIMAL;
 		return 1;
 	}
-	if(nq->nvalue.cp || nq->nvfun)
+	if(nq->nvalue || nq->nvfun)
 	{
-		const char *data = nq->nvalue.cp;
+		const char *data = nq->nvalue;
 		if(nq->nvfun)
 		{
 			Namval_t *np = nv_namptr(pp->nodes,i);
 			if(nv_isarray(nq))
-				nq->nvalue.cp = 0;
+				nq->nvalue = NULL;
 			nq->nvfun = 0;
 			if(nv_isarray(nq) && ((flag&NV_IARRAY) || nv_type(np)))
 				clone_all_disc(np,nq,flag&~NV_TYPE);
@@ -313,26 +314,26 @@ static int fixnode(Namtype_t *dp, Namtype_t *pp, int i, struct Namref *nrp,int f
 				nv_disc(np, fp, NV_LAST);
 		}
 		if(data >=  pp->data && data < (char*)pp +pp->fun.dsize)
-			nq->nvalue.cp = dp->data + (data-pp->data);
+			nq->nvalue = dp->data + (data-pp->data);
 		else if(!nq->nvfun && pp->childfun.ttype!=pp->childfun.ptype)
 		{
 			Namval_t *nr = nv_namptr( pp->childfun.ttype->nodes,i);
-			if(nr->nvalue.cp!=nq->nvalue.cp)
+			if(nr->nvalue != nq->nvalue)
 			{
 				if(i=nv_size(nq))
 				{
-					const char *cp = nq->nvalue.cp;
-					nq->nvalue.cp = (char*)sh_malloc(i);
-					memcpy((char*)nq->nvalue.cp,cp,i);
+					void *vp = nq->nvalue;
+					nq->nvalue = sh_malloc(i);
+					memcpy(nq->nvalue,vp,i);
 				}
 				else
-					nq->nvalue.cp = sh_strdup(nq->nvalue.cp);
+					nq->nvalue = sh_strdup(nq->nvalue);
 				nv_offattr(nq,NV_NOFREE);
 			}
 		}
-		else if(nq->nvalue.cp==AltEmpty)
-			nq->nvalue.cp = Empty;
-		else if(nq->nvalue.cp==Empty)
+		else if(nq->nvalue==AltEmpty)
+			nq->nvalue = Empty;
+		else if(nq->nvalue==Empty)
 			nv_offattr(nq,NV_NOFREE);
 	}
 	if(fp)
@@ -360,7 +361,7 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 	}
 	if(flags&NV_TYPE)
 		return nv_clone_disc(fp,flags);
-	if(size==0 && (!fp->disc || (size=fp->disc->dsize)==0)) 
+	if(size==0 && (!fp->disc || (size=fp->disc->dsize)==0))
 		size = sizeof(Namfun_t);
 	dp = (Namtype_t*)sh_malloc(size+pp->nref*sizeof(struct Namref));
 	if(pp->nref)
@@ -381,11 +382,11 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 		if(fixnode(dp,pp,i,nrp,NV_TYPE|(flags&NV_IARRAY)))
 		{
 			nrp++;
-			nq = nq->nvalue.nrp->np;
+			nq = ((struct Namref*)nq->nvalue)->np;
 		}
 		if(flags==(NV_NOFREE|NV_ARRAY))
 			continue;
-		if(nq->nvalue.cp || !nv_isvtree(nq) || nv_isattr(nq,NV_RDONLY))
+		if(nq->nvalue || !nv_isvtree(nq) || nv_isattr(nq,NV_RDONLY))
 		{
 			/* see if default value has been overwritten */
 			if(!mp->nvname)
@@ -405,7 +406,7 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 			stkseek(sh.stk,offset);
 			if(nr)
 			{
-				if(nv_isattr(nq,NV_RDONLY) && (nq->nvalue.cp || nv_isattr(nq,NV_INTEGER)))
+				if(nv_isattr(nq,NV_RDONLY) && (nq->nvalue || nv_isattr(nq,NV_INTEGER)))
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_readonly, nq->nvname);
 					UNREACHABLE();
@@ -413,7 +414,7 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 				if(nv_isref(nq))
 					nq = nv_refnode(nq);
 				if((size = nv_datasize(nr,NULL)) && size==nv_datasize(nq,NULL))
-					memcpy((char*)nq->nvalue.cp,nr->nvalue.cp,size);
+					memcpy(nq->nvalue,nr->nvalue,size);
 				else if(ap=nv_arrayptr(nr))
 				{
 					nv_putsub(nr,NULL,ARRAY_SCAN|ARRAY_NOSCOPE);
@@ -450,7 +451,7 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 				if(!nv_isattr(nr,NV_MINIMAL))
 					nv_delete(nr,sh.last_root,0);
 			}
-			else if(nv_isattr(nq,NV_RDONLY) && !nq->nvalue.cp && !nv_isattr(nq,NV_INTEGER))
+			else if(nv_isattr(nq,NV_RDONLY) && !nq->nvalue && !nv_isattr(nq,NV_INTEGER))
 			{
 				errormsg(SH_DICT,ERROR_exit(1),e_required,nq->nvname,nv_name(mp));
 				UNREACHABLE();
@@ -458,7 +459,7 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 		}
 	}
 	if(nv_isattr(mp,NV_BINARY))
-		mp->nvalue.cp = dp->data;
+		mp->nvalue = dp->data;
 	if(pp->strsize<0)
 		dp->strsize = -pp->strsize;
 	return &dp->fun;
@@ -495,7 +496,7 @@ static Namval_t *create_type(Namval_t *np,const char *name,int flag,Namfun_t *fp
 		if((n==0||strncmp(name,nq->nvname,n)==0) && nq->nvname[n]==0)
 		{
 			while(nv_isref(nq))
-				nq = nq->nvalue.nrp->np;
+				nq = ((struct Namref*)nq->nvalue)->np;
 			goto found;
 		}
 	}
@@ -522,7 +523,7 @@ found:
 static void put_type(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 {
 	Namval_t	*nq;
-	if(val && (nq=nv_open(val,sh.var_tree,NV_VARNAME|NV_ARRAY|NV_NOADD|NV_NOFAIL))) 
+	if(val && (nq=nv_open(val,sh.var_tree,NV_VARNAME|NV_ARRAY|NV_NOADD|NV_NOFAIL)))
 	{
 		Namfun_t  *pp;
 		if((pp=nv_hasdisc(nq,fp->disc)) && pp->type==fp->type)
@@ -577,10 +578,10 @@ static Namfun_t *clone_inttype(Namval_t* np, Namval_t *mp, int flags, Namfun_t *
 	Namfun_t	*pp = (Namfun_t*)sh_malloc(fp->dsize);
 	memcpy(pp, fp, fp->dsize);
 	fp->nofree &= ~1;
-	if(nv_isattr(mp,NV_NOFREE) && mp->nvalue.cp)
-		memcpy((void*)mp->nvalue.cp,np->nvalue.cp, fp->dsize-sizeof(*fp));
+	if(nv_isattr(mp,NV_NOFREE) && mp->nvalue)
+		memcpy(mp->nvalue, np->nvalue, fp->dsize - sizeof(*fp));
 	else
-		mp->nvalue.cp = (char*)(fp+1);
+		mp->nvalue = (char*)(fp+1);
 	if(!nv_isattr(mp,NV_MINIMAL))
 		mp->nvmeta = NULL;
 	nv_offattr(mp,NV_RDONLY);
@@ -637,7 +638,7 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 			{
 				if(nv_isattr(bp->bltins[i],NV_OPTGET))
 					sfprintf(out,"\b%s.%s\b(3), ",np->nvname,bp->bnames[i]);
-                        }
+			}
 		}
 		return 0;
 	}
@@ -685,8 +686,8 @@ static int typeinfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		{
 			sfputr(sh.stk,dp->names[i],0);
 			cp = 0;
-			if((nq = nv_search(stkptr(sh.stk,offset),sh.fun_tree,0)) && nq->nvalue.cp)
-				cp = nq->nvalue.rp->help;
+			if((nq = nv_search(stkptr(sh.stk,offset),sh.fun_tree,0)) && nq->nvalue)
+				cp = ((struct Ufunction*)nq->nvalue)->help;
 			if(nq && nv_isattr(nq,NV_STATICF))
 				sfprintf(out,"\t[+%s?:static:%s]\n",dp->names[i],cp?cp:Empty);
 			else
@@ -718,7 +719,7 @@ static int std_disc(Namval_t *mp, Namtype_t *pp)
 			pp->cp = mp;
 		return 0;
 	}
-	for(argv=nv_discnames; sp=*argv; argv++) 
+	for(argv=nv_discnames; sp=*argv; argv++)
 	{
 		if(strcmp(cp,sp)==0)
 		{
@@ -771,7 +772,7 @@ void nv_addtype(Namval_t *np, const char *optstr, Optdisc_t *op, size_t optsz)
 	if(name=strrchr(np->nvname,'.'))
 		name++;
 	else
-		name = np->nvname; 
+		name = np->nvname;
 #if SHOPT_NAMESPACE
 	if(bp=(Namval_t*)sh.namespace)
 	{
@@ -784,7 +785,7 @@ void nv_addtype(Namval_t *np, const char *optstr, Optdisc_t *op, size_t optsz)
 		name = sfstruse(sh.strbuf2);
 	}
 #endif /* SHOPT_NAMESPACE */
-	if((bp=nv_search(name,sh.fun_tree,NV_NOSCOPE)) && !bp->nvalue.ip)
+	if((bp=nv_search(name,sh.fun_tree,NV_NOSCOPE)) && !bp->nvalue)
 		nv_delete(bp,sh.fun_tree,0);
 	bp = sh_addbuiltin(name, funptr(SYSTYPESET), cp);
 	nv_onattr(bp,nv_isattr(SYSTYPESET,NV_PUBLIC));
@@ -989,15 +990,15 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				if(fixnode(pp,dp,k,nrp,0))
 				{
 					nrp++;
-					nq = nq->nvalue.nrp->np;
+					nq = ((struct Namref*)nq->nvalue)->np;
 				}
 				if(!nv_isattr(nr,NV_REF) && !nv_hasdisc(nr,&type_disc))
 				{
 					if(nr->nvsize)
-						memcpy((char*)nq->nvalue.cp,nr->nvalue.cp,size=nv_datasize(nr,NULL));
+						memcpy(nq->nvalue, nr->nvalue, size = nv_datasize(nr,NULL));
 					else
 					{
-						nq->nvalue.cp = nr->nvalue.cp;
+						nq->nvalue = nr->nvalue;
 						nv_onattr(nq,NV_NOFREE);
 					}
 				}
@@ -1062,17 +1063,17 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				nq->nvname = cp;
 				dsize = nv_datasize(nr,&offset);
 				nq->nvflag = nr->nvflag;
-				if(nr->nvalue.cp)
+				if(nr->nvalue)
 				{
 					Namchld_t *xp = (Namchld_t*)nv_hasdisc(nr,&chtype_disc);
-					if(xp && nr->nvalue.cp >= xp->ptype->data && nr->nvalue.cp < xp->ptype->data+xp->ptype->fun.dsize)
+					if(xp && (char*)nr->nvalue >= xp->ptype->data && (char*)nr->nvalue < xp->ptype->data + xp->ptype->fun.dsize)
 					{
-						nq->nvalue.cp = pp->data+offset;
-						memcpy((char*)nq->nvalue.cp,nr->nvalue.cp,dsize);
+						nq->nvalue = pp->data + offset;
+						memcpy(nq->nvalue, nr->nvalue, dsize);
 						nv_onattr(nq,NV_NOFREE);
 					}
 					else
-						nq->nvalue.cp = sh_strdup(nr->nvalue.cp);
+						nq->nvalue = sh_strdup(nr->nvalue);
 					nv_disc(nq, &pp->childfun.fun, NV_LAST);
 				}
 				nq->nvsize = nr->nvsize;
@@ -1096,8 +1097,8 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 					nq = nv_namptr(pp->nodes,++j);
 					if(strcmp(nq->nvname,cname)==0)
 					{
-						if(nq->nvalue.cp>=pp->data && nq->nvalue.cp< (char*)pp->names)
-							memcpy((char*)nq->nvalue.cp,np->nvalue.cp,nv_datasize(np,0));
+						if((char*)nq->nvalue >= pp->data && (char*)nq->nvalue < (char*)pp->names)
+							memcpy(nq->nvalue, np->nvalue, nv_datasize(np,0));
 						break;
 					}
 				}
@@ -1117,32 +1118,26 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 				for(fp=nq->nvfun; fp; fp = fp->next)
 					fp->nofree |= 1;
 			}
-			nq->nvalue.cp = np->nvalue.cp;
-			if(dsize  && (np->nvalue.cp || !nv_isarray(np)))
+			nq->nvalue = np->nvalue;
+			if(dsize  && (np->nvalue || !nv_isarray(np)))
 			{
-				nq->nvalue.cp = pp->data+offset;
-				sp = (char*)np->nvalue.cp;
-				if(nv_isattr(np,NV_INT16P) ==NV_INT16)
-				{
-					sp= (char*)&np->nvalue;
-					nv_onattr(nq,NV_INT16P);
-					j = 1;
-				}
+				nq->nvalue = pp->data + offset;
+				sp = np->nvalue;
 				if(sp)
-					memcpy((char*)nq->nvalue.cp,sp,dsize);
+					memcpy(nq->nvalue, sp, dsize);
 				else if(nv_isattr(np,NV_LJUST|NV_RJUST))
-					memset((char*)nq->nvalue.cp,' ',dsize);
+					memset(nq->nvalue, ' ', dsize);
 				if(!j)
-					free((void*)np->nvalue.cp);
+					free(np->nvalue);
 			}
-			if(!nq->nvalue.cp && nq->nvfun== &pp->childfun.fun)
+			if(!nq->nvalue && nq->nvfun == &pp->childfun.fun)
 			{
 				if(nv_isattr(np,NV_ARRAY|NV_NOFREE)==(NV_ARRAY|NV_NOFREE))
-					nq->nvalue.cp = AltEmpty;
+					nq->nvalue = AltEmpty;
 				else
-					nq->nvalue.cp = Empty;
+					nq->nvalue = Empty;
 			}
-			np->nvalue.cp = 0;
+			np->nvalue = NULL;
 			offset += (dsize?dsize:4);
 		}
 		k++;
@@ -1156,11 +1151,11 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 	if(k>1)
 	{
 		nv_setsize(mp,offset);
-		mp->nvalue.cp = pp->data;
+		mp->nvalue = pp->data;
 		nv_onattr(mp,NV_NOFREE|NV_BINARY|NV_RAW);
 	}
-	else if(!mp->nvalue.cp)
-		mp->nvalue.cp = Empty;
+	else if(!mp->nvalue)
+		mp->nvalue = Empty;
 	nv_onattr(mp,NV_TAGGED);
 	nv_disc(mp, &pp->fun, NV_LAST);
 	if(nd>0)
@@ -1182,7 +1177,7 @@ Namval_t *nv_mkinttype(char *name, size_t size, int sign, const char *help, Namd
 	int		offset=stktell(sh.stk);
 	sfputr(sh.stk,NV_CLASS,'.');
 	sfputr(sh.stk,name,0);
-        mp = nv_open(stkptr(sh.stk,offset), sh.var_tree, NV_VARNAME);
+	mp = nv_open(stkptr(sh.stk,offset), sh.var_tree, NV_VARNAME);
 	stkseek(sh.stk,offset);
 	offset = size + sizeof(Namdisc_t);
 	fp = sh_newof(NULL, Namfun_t, 1, offset);
@@ -1194,12 +1189,12 @@ Namval_t *nv_mkinttype(char *name, size_t size, int sign, const char *help, Namd
 		*dp = *ep;
 	dp->clonef =  clone_inttype;
 	fp->disc = dp;
-	mp->nvalue.cp = (char*)(fp+1) + sizeof(Namdisc_t);
+	mp->nvalue = (char*)(fp+1) + sizeof(Namdisc_t);
 	nv_setsize(mp,10);
 	mp->nvmeta = (void*)help;
 	nv_onattr(mp,NV_NOFREE|NV_RDONLY|NV_INTEGER|NV_EXPORT);
 	if(size==16)
-		nv_onattr(mp,NV_INT16P);
+		nv_onattr(mp,NV_INT16);
 	else if(size==64)
 		nv_onattr(mp,NV_INT64);
 	if(!sign)
@@ -1324,11 +1319,11 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 	{
 		int nofree;
 		nv_disc(np,&ap->hdr,NV_POP);
-		np->nvalue.up = 0;
+		np->nvalue = NULL;
 		nv_clone(tp,np,flags|NV_NOFREE);
-		if(np->nvalue.cp && np->nvalue.cp!=Empty && !nv_isattr(np,NV_NOFREE))
-			free((void*)np->nvalue.cp);
-		np->nvalue.up = 0;
+		if(np->nvalue && np->nvalue != Empty && !nv_isattr(np,NV_NOFREE))
+			free(np->nvalue);
+		np->nvalue = NULL;
 		nofree = ap->hdr.nofree;
 		ap->hdr.nofree = 0;
 		ap->hdr.type = tp;
@@ -1396,8 +1391,8 @@ int	sh_outtype(Sfio_t *out)
 	if(!(mp = nv_open(nvtype, sh.var_base,NV_NOADD|NV_VARNAME)))
 		return 0;
 	memcpy(&node,L_ARGNOD,sizeof(node));
-	L_ARGNOD->nvfun = 0;
-	L_ARGNOD->nvalue.cp = 0;
+	L_ARGNOD->nvfun = NULL;
+	L_ARGNOD->nvalue = NULL;
 	dp  = 	nv_dict(mp);
 	if(indent==0)
 	for(tp = (Namval_t*)dtfirst(dp); tp; tp = (Namval_t*)dtnext(dp,tp))
@@ -1441,12 +1436,13 @@ int	sh_outtype(Sfio_t *out)
 				sfprintf(out,"\t%s()",cp);
 			else
 				sfprintf(out,"\tfunction %s",cp);
-			if(mp->nvalue.rp && nv_funtree(mp))
+			if(mp->nvalue && nv_funtree(mp))
 			{
 				sfputc(out, '\n');
 				sh_deparse(out, (Shnode_t*)(nv_funtree(mp)), 2 | nv_isattr(mp,NV_FPOSIX), 1);
 				if(nv_isattr(mp,NV_STATICF|NV_TAGGED))
 				{
+					struct Ufunction *rp = mp->nvalue;
 					if(indent)
 						sfnputc(out,'\t',indent);
 					sfwrite(out,"\ttypeset -f",11);
@@ -1454,8 +1450,8 @@ int	sh_outtype(Sfio_t *out)
 						sfputc(out,'S');
 					if(nv_isattr(mp,NV_TAGGED))
 						sfputc(out,'t');
-					if(mp->nvalue.rp->help)
-						sfprintf(out,"h '%s'",mp->nvalue.rp->help);
+					if(rp->help)
+						sfprintf(out,"h '%s'",rp->help);
 					sfprintf(out," %s\n",cp);
 				}
 			}

@@ -305,7 +305,7 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 			pr(state, rp, sp, file, -1, NULL, NULL);
 			if (!(t = sfstruse(rp)))
 			{
-				error(ERROR_SYSTEM|3, "out of space");
+				error(ERROR_SYSTEM|3, "out of memory");
 				UNREACHABLE();
 			}
 			if (!streq(s, t))
@@ -474,7 +474,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case 'c':
 			if (!(state.check = sfstropen()))
-				error(3, "out of space [check]");
+				error(3, "out of memory");
 			continue;
 		case 'h':
 			state.header = 1;

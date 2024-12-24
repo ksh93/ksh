@@ -56,7 +56,7 @@
 #define Empty			((char*)(e_sptbnl+3))
 #define AltEmpty		((char*)(e_dot+1))	/* alternative pointer to empty string */
 
-#define	env_change()		(++ast.env_serial)
+#define env_change()		(++ast.env_serial)
 
 extern char*	sh_getenv(const char*);
 extern char*	sh_setenviron(const char*);
@@ -69,9 +69,8 @@ extern char*	sh_setenviron(const char*);
 #include	<shell.h>
 
 #include	"shtable.h"
-#include	"regress.h"
 
-#define	NIL(type)	NULL		/* for backward compatibility */
+#define NIL(type)	NULL		/* for backward compatibility */
 
 #define exitset()	(sh.savexit=sh.exitval)
 
@@ -189,16 +188,16 @@ extern char		*sh_getcwd(void);
 
 #define sh_state(x)	( 1<<(x))
 #if SHOPT_SCRIPTONLY
-#define	sh_isstate(x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : (sh.st.states&sh_state(x)) )
-#define	sh_onstate(x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : (sh.st.states |= sh_state(x)) )
-#define	sh_offstate(x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : (sh.st.states &= ~sh_state(x)) )
+#define sh_isstate(x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : (sh.st.states&sh_state(x)) )
+#define sh_onstate(x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : (sh.st.states |= sh_state(x)) )
+#define sh_offstate(x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : (sh.st.states &= ~sh_state(x)) )
 #else
-#define	sh_isstate(x)	(sh.st.states&sh_state(x))
-#define	sh_onstate(x)	(sh.st.states |= sh_state(x))
-#define	sh_offstate(x)	(sh.st.states &= ~sh_state(x))
+#define sh_isstate(x)	(sh.st.states&sh_state(x))
+#define sh_onstate(x)	(sh.st.states |= sh_state(x))
+#define sh_offstate(x)	(sh.st.states &= ~sh_state(x))
 #endif /* SHOPT_SCRIPTONLY */
-#define	sh_getstate()	(sh.st.states)
-#define	sh_setstate(x)	(sh.st.states = (x))
+#define sh_getstate()	(sh.st.states)
+#define sh_setstate(x)	(sh.st.states = (x))
 
 #define sh_sigcheck()	do { if(sh.trapnote & SH_SIGSET) sh_exit(SH_EXITSIG); } while(0)
 

@@ -27,11 +27,11 @@ fi
 
 function abspath
 {
-        base=$(basename $SHELL)
-        cd ${SHELL%/$base}
-        newdir=$(pwd)
-        cd ~-
-        print $newdir/$base
+	base=$(basename $SHELL)
+	cd ${SHELL%/$base}
+	newdir=$(pwd)
+	cd ~-
+	print $newdir/$base
 }
 # test for proper exit of shell
 if ((!execve_ignores_argv0)) && builtin getconf 2>/dev/null; then

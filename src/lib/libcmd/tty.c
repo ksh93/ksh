@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -36,10 +36,10 @@ static const char usage[] =
 	"\"\bnot on an active synchronous line\b\" is written.]"
 "[s:silent|quiet?Disable the terminal name line. Use \b[[ -t 0 ]]]]\b instead.]"
 "[+EXIT STATUS?]{"
-        "[+0?Standard input is a tty.]"
-        "[+1?Standard input is not a tty.]"
-        "[+2?Invalid arguments.]"
-        "[+3?A an error occurred.]"
+	"[+0?Standard input is a tty.]"
+	"[+1?Standard input is not a tty.]"
+	"[+2?Invalid arguments.]"
+	"[+3?A an error occurred.]"
 "}"
 ;
 

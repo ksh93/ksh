@@ -30,11 +30,11 @@
 #include	<stk.h>
 
 #define Stak_t		Sfio_t
-#define	staksp		stkstd
+#define staksp		stkstd
 #define STAK_SMALL	STK_SMALL
 
-#define	stakptr(n)		stkptr(stkstd,n)
-#define	staktell()		stktell(stkstd)
+#define stakptr(n)		stkptr(stkstd,n)
+#define staktell()		stktell(stkstd)
 #define stakputc(c)		sfputc(stkstd,(c))
 #define stakwrite(b,n)		sfwrite(stkstd,(b),(n))
 #define stakputs(s)		(sfputr(stkstd,(s),0),--stkstd->_next)

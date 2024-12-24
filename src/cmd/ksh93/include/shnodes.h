@@ -62,7 +62,7 @@
 #define TFOR	11
 #define TSELECT	(TFOR|COMSCAN)
 #define TARITH	12
-#define	TTIME	13
+#define TTIME	13
 #define TSETIO	14
 #define TFUN	15
 #if SHOPT_NAMESPACE
@@ -146,7 +146,7 @@ struct lstnod
 struct tstnod
 {
 	struct lstnod	tstlst;
-	int		tstline;	
+	int		tstline;
 };
 
 struct functnod
