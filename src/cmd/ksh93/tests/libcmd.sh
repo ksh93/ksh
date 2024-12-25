@@ -840,6 +840,12 @@ if builtin dirname 2> /dev/null; then
 	#  Print the $PATH relative executable file path for string.
 	got=$(dirname -x cat)
 	[[ $got == "$exp" ]] || err_exit "dirname -x failed (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# PATH_LEADING_SLASHES handling; multiple operands
+	exp=$'/\n//\n//\n//\n//\n//server\n//server'
+	got=$(export _AST_FEATURES='PATH_LEADING_SLASHES - 1'
+	      "$SHELL" -c 'builtin dirname && dirname / // // //server ///server //server/name ///server//name' 2>&1)
+	[[ $got == "$exp" ]] || err_exit "PATH_LEADING_SLASHES handling (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======
