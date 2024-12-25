@@ -198,29 +198,23 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 	return np;
 }
 
-/* lookup a function in the standard math function table */
-static Math_f sh_mathstdfun(const char *fname, size_t fsize, short *nargs)
+/* look up a function in the standard math function table */
+static Math_f sh_mathstdfun(const char *fname, size_t fsize, short * nargs)
 {
 	const struct mathtab *tp;
-	char firstc = fname[0];
+	char c = fname[0];
 	/* first byte of tp->fname is num. args and return type, unless empty */
-	for(tp=shtab_math; tp->fname[0]=='\0'; tp++)
+	for(tp=shtab_math; *tp->fname; tp++)
 	{
-		/* shtab_math is in alphabetic order - if first character is greater, we're done */
-		if(tp->fname[1] > firstc)
-			break;
-		if(tp->fname[1]==firstc && strncmp(&tp->fname[1],fname,fsize)==0 && tp->fname[fsize+1]=='\0')
+		if(tp->fname[1]==c && strncmp(&tp->fname[1],fname,fsize)==0 && tp->fname[fsize+1]==0)
 		{
 			if(nargs)
-			{
-				*nargs = tp->fname[0];
-			}
+				*nargs = *tp->fname;
 			return tp->fnptr;
 		}
 	}
 	return NULL;
 }
-
 
 int	sh_mathstd(const char *name)
 {
