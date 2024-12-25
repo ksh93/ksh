@@ -60,7 +60,7 @@ int sh_diropenat(int dir, const char *path)
 	/* Move fd to a number > 10 and register the fd number with the shell */
 	shfd = sh_fcntl(fd, F_dupfd_cloexec, 10);
 	close(fd);
-	return(shfd);
+	return shfd;
 }
 
 int	b_cd(int argc, char *argv[],Shbltin_t *context)
