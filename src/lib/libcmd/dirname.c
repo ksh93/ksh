@@ -26,7 +26,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: dirname (AT&T Research) 2009-01-31 $\n]"
+"[-?\n@(#)$Id: dirname (ksh 93u+m) 2024-12-25 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?dirname - return directory portion of file name]"
 "[+DESCRIPTION?\bdirname\b treats \astring\a as a file name and returns "
@@ -35,7 +35,7 @@ static const char usage[] =
 "[+?If \astring\a consists solely of \b/\b characters the output will "
 	"be a single \b/\b unless \bPATH_LEADING_SLASHES\b returned by "
 	"\bgetconf\b(1) is \b1\b and \astring\a consists of multiple "
-	"\b/\b characters in which case \b//\b will be output. "
+	"\b/\b characters in which case \b//\b will be output.  "
 	"Otherwise, trailing \b/\b characters are removed, and if "
 	"there are no remaining \b/\b characters in \astring\a, "
 	"the string \b.\b will be written to standard output.  "
@@ -75,9 +75,7 @@ static void l_dirname(Sfio_t *outfile, const char *pathname, char termch)
 	{
 		/* all '/' or "" */
 		if(*pathname!='/')
-		{
 			last = pathname = ".";
-		}
 	}
 	else
 	{
@@ -85,18 +83,17 @@ static void l_dirname(Sfio_t *outfile, const char *pathname, char termch)
 		for(;*last=='/' && last > pathname; last--);
 	}
 	/* preserve leading '//' */
-	if(pathname[0]=='/' && pathname[1]=='/')
+	if(last==pathname && pathname[0]=='/')
+		while(last[1]=='/')
+			last++;
+	if(last!=pathname && pathname[0]=='/' && pathname[1]=='/')
 	{
 		/* skip any '/' until last two */
 		while(pathname[2]=='/' && pathname<last)
-		{
 			pathname++;
-		}
 		/* skip first '/' if PATH_LEADING_SLASHES not set */
-		if(pathname[0]=='/' && pathname[1]=='/' && *astconf("PATH_LEADING_SLASHES",NULL,NULL)!='1')
-		{
+		if(last!=pathname && pathname[0]=='/' && pathname[1]=='/' && *astconf("PATH_LEADING_SLASHES",NULL,NULL)!='1')
 			pathname++;
-		}
 	}
 	sfwrite(outfile,pathname,last+1-pathname);
 	sfputc(outfile,termch);
@@ -140,20 +137,14 @@ b_dirname(int argc, char** argv, Shbltin_t* context)
 	argc -= opt_info.index;
 	if(error_info.errors || argc != 1)
 	{
-		error(ERROR_usage(2), "%s", optusage(NULL));
+		error(ERROR_usage(2),"%s", optusage(NULL));
 		UNREACHABLE();
 	}
 	if(!mode)
-	{
 		l_dirname(sfstdout,argv[0],termch);
-	}
 	else if(pathpath(argv[0], "", mode, buf, sizeof(buf)))
-	{
 		sfputr(sfstdout, buf, termch);
-	}
 	else
-	{
 		error(1|ERROR_WARNING, "%s: relative path not found", argv[0]);
-	}
 	return 0;
 }
