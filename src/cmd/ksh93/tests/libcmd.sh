@@ -630,6 +630,14 @@ if builtin basename 2> /dev/null; then
 	got=$(basename "$tmp/.bar")
 	exp=".bar"
 	[[ $got == "$exp" ]] || err_exit "basename failed (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# PATH_LEADING_SLASHES handling
+	case $(builtin getconf 2>/dev/null && getconf PATH_LEADING_SLASHES 2>/dev/null) in
+	1)	exp=$'/\n//\n//\n//' ;;
+	*)	exp=$'/\n/\n/\n/' ;;
+	esac
+	got=$(basename -a / // /// ////)
+	[[ $got == "$exp" ]] || err_exit "PATH_LEADING_SLASHES handling (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======
