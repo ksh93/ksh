@@ -29,7 +29,7 @@ static const char usage[] =
 "[-?\n@(#)$Id: dirname (ksh 93u+m) 2024-12-25 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?dirname - return directory portion of file name]"
-"[+DESCRIPTION?\bdirname\b treats \astring\a as a file name and returns "
+"[+DESCRIPTION?\bdirname\b treats each \astring\a as a file name and outputs "
 	"the name of the directory containing the file name by deleting "
 	"the last component from \astring\a.]"
 "[+?If \astring\a consists solely of \b/\b characters the output will "
@@ -51,7 +51,7 @@ static const char usage[] =
 "[z:zero?Each line of output is terminated with a NUL character instead "
     "of a newline.]"
 "\n"
-"\nstring\n"
+"\nstring ...\n"
 "\n"
 "[+EXIT STATUS?]{"
 	"[+0?Successful completion.]"
@@ -135,16 +135,19 @@ b_dirname(int argc, char** argv, Shbltin_t* context)
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
-	if(error_info.errors || argc != 1)
+	if(error_info.errors || argc < 1)
 	{
 		error(ERROR_usage(2),"%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if(!mode)
-		l_dirname(sfstdout,argv[0],termch);
-	else if(pathpath(argv[0], "", mode, buf, sizeof(buf)))
-		sfputr(sfstdout, buf, termch);
-	else
-		error(1|ERROR_WARNING, "%s: relative path not found", argv[0]);
+	for(; argv[0]; argv++)
+	{
+		if(!mode)
+			l_dirname(sfstdout,argv[0],termch);
+		else if(pathpath(argv[0], "", mode, buf, sizeof(buf)))
+			sfputr(sfstdout, buf, termch);
+		else
+			error(1|ERROR_WARNING, "%s: relative path not found", argv[0]);
+	}
 	return 0;
 }
