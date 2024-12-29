@@ -7,6 +7,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - [v1.1] The emacs ^Y command now accepts a numeric parameter. For example,
   ESC 10 ^Y will now "yank" (paste) the latest deleted text 10 times.
 
+- Fixed a crash that could occur if a discipline function was first
+  assigned to a variable in a virtual subshell before the variable was
+  scoped to that subshell, then upon subshell completion another discipline
+  function of the same type was assigned to that selfsame variable in the
+  parent shell.
+
 2024-12-25:
 
 - The dirname path-bound built-in now accepts multiple operands.
