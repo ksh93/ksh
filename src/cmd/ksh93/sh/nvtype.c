@@ -481,8 +481,8 @@ static Namval_t *create_type(Namval_t *np,const char *name,int flag,Namfun_t *fp
 	n = (cp-1) -name;
 	if(dp->numnodes && dp->strsize<0)
 	{
-		char *base =  (char*)np-sizeof(Dtlink_t);
-		int m=strlen(np->nvname);
+		char *base =  (char*)np-(NV_MINSZ-sizeof(Dtlink_t));
+		size_t m=strlen(np->nvname);
 		while((nq=nv_namptr(base,++i)) && strncmp(nq->nvname,np->nvname,m)==0)
 		{
 			if(nq->nvname[m]=='.' && strncmp(name,&nq->nvname[m+1],n)==0 && nq->nvname[m+n+1]==0)
