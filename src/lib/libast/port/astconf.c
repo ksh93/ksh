@@ -306,6 +306,7 @@ synthesize(Feature_t* fp, const char* path, const char* value)
 	char*		d;
 	char*		v;
 	char*		p;
+	int		docpy;
 	int		n;
 
 #if DEBUG_astconf
@@ -458,14 +459,26 @@ synthesize(Feature_t* fp, const char* path, const char* value)
 		fp->value = 0;
 	if (n == 1 && (*value == '0' || *value == '-'))
 		n = 0;
-	if (!(fp->value = newof(fp->value, char, n, 1)))
-		fp->value = null;
+	docpy = fp->value != value;
+	if (!fp->value && !(fp->value = calloc(1, n + 1)))
+	{
+		error(ERROR_SYSTEM|ERROR_PANIC,"out of memory");
+		UNREACHABLE();
+	}
 	else
 	{
-		fp->flags |= CONF_ALLOC;
-		memcpy(fp->value, value, n);
-		fp->value[n] = 0;
+		char *tofree = fp->value;
+		if (!(fp->value = realloc(fp->value, n + 1)))
+		{
+			free(tofree);
+			error(ERROR_SYSTEM|ERROR_PANIC,"out of memory");
+			UNREACHABLE();
+		}
 	}
+	fp->flags |= CONF_ALLOC;
+	if(docpy)
+		memcpy(fp->value, value, n);
+	fp->value[n] = 0;
 	return fp->value;
 }
 
