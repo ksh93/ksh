@@ -1,7 +1,7 @@
 lib	getrusage,nanosleep,usleep,_strftime
 typ	clock_t = uint32_t
-typ	time_t = uint64_t
-typ	suseconds_t = uint64_t
+typ	time_t = int64_t
+typ	suseconds_t = int32_t
 
 if sys resource {
 	#include <sys/resource.h>
