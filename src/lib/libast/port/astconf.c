@@ -1302,7 +1302,7 @@ nativeconf(Proc_t** pp, const char* operand)
 {
 	Sfio_t*		sp;
 	char*		cmd[3];
-	long		ops[2];
+	int64_t		ops[2];
 
 #if DEBUG_astconf
 	error(-6, "astconf defer %s %s", _pth_getconf, operand);

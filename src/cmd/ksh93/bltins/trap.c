@@ -327,7 +327,7 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 	}
 	if(kill(sh.pid, SIGSTOP) != 0)
 	{
-		errormsg(SH_DICT, ERROR_exit(1), "could not signal main shell at PID %d", sh.pid);
+		errormsg(SH_DICT, ERROR_exit(1), "could not signal main shell at PID %jd", (Sflong_t)sh.pid);
 		UNREACHABLE();
 	}
 	return 0;

@@ -34,7 +34,7 @@ systrace(const char* id)
 	char*		s;
 	char		buf[PATH_MAX];
 	char*		av[7];
-	long		ov[2];
+	int64_t		ov[2];
 
 	static char*	trace[] = { "trace", "truss", "strace", "traces" };
 

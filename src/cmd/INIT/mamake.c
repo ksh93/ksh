@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1990-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2024-12-03"
+#define RELEASE_DATE "2025-01-02"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -43,7 +43,7 @@ static const char usage[] =
 "[-author?Martijn Dekker <martijn@inlv.org>]"
 "[-author?Contributors to https://github.com/ksh93/ksh]"
 "[-copyright?(c) 1994-2013 AT&T Intellectual Property]"
-"[-copyright?(c) 2020-2024 Contributors to ksh 93u+m]"
+"[-copyright?(c) 2020-2025 Contributors to ksh 93u+m]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
 "[+NAME?mamake - make abstract machine make]"
 "[+DESCRIPTION?\bmamake\b reads \amake abstract machine\a target and"
@@ -112,10 +112,10 @@ static const char usage[] =
  * must be enabled to prevent the build from failing at the very start.
  */
 
-#define _POSIX_C_SOURCE 21000101L	/* generic */
-#define _XOPEN_SOURCE	9900		/* generic */
 #define _DARWIN_C_SOURCE 1		/* macOS */
 #define _GNU_SOURCE 1			/* GNU/Linux, Cygwin */
+#define _FILE_OFFSET_BITS 64		/* 32-bit Linux 5.6+ (glibc 2.32+) */
+#define _TIME_BITS 64			/* 32-bit Linux 5.6+ (glibc 2.32+) */
 #define _QNX_SOURCE 1			/* QNX */
 #define __EXTENSIONS__	1		/* Solaris/illumos */
 
@@ -409,7 +409,7 @@ static void report(int level, char *text, char *item, Rule_t *r)
 		fprintf(stderr, "%s", text);
 		if (r && r->time && state.debug <= -2)
 #if __STDC_VERSION__ >= 199901L
-			fprintf(stderr, " %lld", (long long)r->time);
+			fprintf(stderr, " %llu", (unsigned long long)r->time);
 #else
 			fprintf(stderr, " %lu", (unsigned long)r->time);
 #endif

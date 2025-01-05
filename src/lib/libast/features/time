@@ -1,6 +1,7 @@
 lib	getrusage,nanosleep,usleep,_strftime
 typ	clock_t = uint32_t
-typ	time_t = uint32_t
+typ	time_t = int64_t
+typ	suseconds_t = int32_t
 
 if sys resource {
 	#include <sys/resource.h>
@@ -38,7 +39,7 @@ if ! mem timeval.tv_sec sys/time.h {
 	struct timeval
 	{
 		time_t	tv_sec;
-		time_t	tv_usec;
+		suseconds_t	tv_usec;
 	};
 }
 endif

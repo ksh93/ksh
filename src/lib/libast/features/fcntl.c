@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -292,6 +292,20 @@ main(void)
 	printf("#define O_cloexec		O_CLOEXEC\n");
 #else
 	printf("#define O_cloexec		0\n");
+#endif
+#ifndef O_SEARCH
+#ifdef O_PATH
+	printf("#define O_SEARCH		O_PATH\n");
+#else
+	printf("#define O_SEARCH		0\n");
+#endif
+#endif
+#ifndef O_DIRECTORY
+#ifdef O_OPENDIR
+	printf("#define O_DIRECTORY		O_OPENDIR\n");
+#else
+	printf("#define O_DIRECTORY		0\n");
+#endif
 #endif
 #ifndef	O_TEMPORARY
 	printf("#define O_TEMPORARY		0\n");

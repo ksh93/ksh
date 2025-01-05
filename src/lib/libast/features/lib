@@ -31,7 +31,7 @@ lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
 lib	mkdir,mkfifo,mktemp,mktime
-lib	mount,opendir,pathconf
+lib	mount,opendir,openat,pathconf
 lib	readlink,remove,rename,rewinddir,rmdir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair

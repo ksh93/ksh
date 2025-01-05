@@ -10,7 +10,9 @@
 *      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      *
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
+*            Michael T. Veach <michael.t.veach@att.att.com>            *
 *                  David Korn <dgk@research.att.com>                   *
+*          Matthijs N. Melchior <matthijs.n.melchior@att.com>          *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
@@ -33,9 +35,6 @@ One line screen editor for any program
  *			HV BZ335 x2962
  *			hvlpb!mmelchio
  *
- *  These are now on by default
- *
- *  ESH_NFIRST
  *	-  A ^N as first history related command after the prompt will move
  *	   to the next command relative to the last known history position.
  *	   It will not start at the position where the last command was entered
@@ -43,20 +42,15 @@ One line screen editor for any program
  *	   set both the current and last position.  Executing a command will
  *	   only set the current position.
  *
- *  ESH_KAPPEND
  *	-  Successive kill and delete commands will accumulate their data
  *	   in the kill buffer, by appending or prepending as appropriate.
  *	   This mode will be reset by any command not adding something to the
  *	   kill buffer.
  *
- *  ESH_BETTER
  *	-  Some enhancements:
  *		- argument for a macro is passed to its replacement
  *		- ^X^H command to find out about history position (debugging)
  *		- ^X^D command to show any debugging info
- *
- *  I do not pretend these for changes are completely independent,
- *  but you can use them to separate features.
  */
 
 #include	"shopt.h"
@@ -73,10 +67,6 @@ One line screen editor for any program
 #include	<wctype.h>
 #endif /* SHOPT_MULTIBYTE */
 #include	<ast_release.h>
-
-#define ESH_NFIRST
-#define ESH_KAPPEND
-#define ESH_BETTER
 
 #undef putchar
 #define putchar(ed,c)	ed_putchar(ed,c)
@@ -219,7 +209,6 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		kstack[0] = '\0';
 	}
 	drawbuff = out;
-#ifdef ESH_NFIRST
 	if (location.hist_command == -5)		/* to be initialized */
 	{
 		kstack[0] = '\0';		/* also clear kstack... */
@@ -232,7 +221,6 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		location.hist_line = 0;
 	}
 	ep->in_mult = hloff;			/* save pos in last command */
-#endif /* ESH_NFIRST */
 	i = sigsetjmp(env,0);
 	if (i !=0)
 	{
@@ -258,23 +246,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	adjust = -1;
 	backslash = 0;
 	if (ep->CntrlO)
-	{
-#ifdef ESH_NFIRST
 		ed_ungetchar(ep->ed,cntl('N'));
-#else
-		location = hist_locate(sh.hist_ptr,location.hist_command,location.hist_line,1);
-		if (location.hist_command < histlines)
-		{
-			hline = location.hist_command;
-			hloff = location.hist_line;
-			hist_copy((char*)kstack,MAXLINE, hline,hloff);
-#   if SHOPT_MULTIBYTE
-			ed_internal((char*)kstack,kstack);
-#   endif /* SHOPT_MULTIBYTE */
-			ed_ungetchar(ep->ed,cntl('Y'));
-		}
-#endif /* ESH_NFIRST */
-	}
 	ep->CntrlO = 0;
 	while ((c = ed_getchar(ep->ed,backslash)) != (-1))
 	{
@@ -309,10 +281,8 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		{
 			c = EOFCHAR;
 		}
-#ifdef ESH_KAPPEND
 		if (--killing <= 0)	/* reset killing flag */
 			killing = 0;
-#endif
 		oadjust = count = adjust;
 		if(count<0)
 			count = 1;
@@ -412,7 +382,6 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		case ERASECHAR :
 			if (count > i)
 				count = i;
-#ifdef ESH_KAPPEND
 			kptr = &kstack[count];	/* move old contents here */
 			if (killing)		/* prepend to killbuf */
 			{
@@ -426,22 +395,11 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			i -= count;
 			eol -= count;
 			genncpy(kstack,out+i,cur-i);
-#else
-			while ((count--)&&(i>0))
-			{
-				i--;
-				eol--;
-			}
-			genncpy(kstack,out+i,cur-i);
-			kstack[cur-i] = 0;
-#endif /* ESH_KAPPEND */
 			gencpy(out+i,out+cur);
 			ep->mark = i;
 			goto update;
 		case cntl('W') :
-#ifdef ESH_KAPPEND
 			++killing;		/* keep killing flag */
-#endif
 			if (ep->mark > eol )
 				ep->mark = eol;
 			if (ep->mark == i)
@@ -457,15 +415,11 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			continue;
 		case cntl('D') :
 			ep->mark = i;
-#ifdef ESH_KAPPEND
 			if (killing)
 				kptr = &kstack[genlen(kstack)];	/* append here */
 			else
 				kptr = kstack;
 			killing = 2;			/* we are now killing */
-#else
-			kptr = kstack;
-#endif /* ESH_KAPPEND */
 			while ((count--)&&(eol>0)&&(i<eol))
 			{
 				*kptr++ = out[i];
@@ -569,9 +523,7 @@ update:
 		case cntl('K') :
 			if(oadjust >= 0)
 			{
-#ifdef ESH_KAPPEND
 				killing = 2;		/* set killing signal */
-#endif
 				ep->mark = count;
 				ed_ungetchar(ep->ed,cntl('W'));
 				continue;
@@ -579,15 +531,11 @@ update:
 			i = cur;
 			eol = i;
 			ep->mark = i;
-#ifdef ESH_KAPPEND
 			if (killing)			/* append to kill buffer */
 				gencpy(&kstack[genlen(kstack)], &out[i]);
 			else
 				gencpy(kstack,&out[i]);
 			killing = 2;			/* set killing signal */
-#else
-			gencpy(kstack,&out[i]);
-#endif /* ESH_KAPPEND */
 			out[i] = 0;
 			draw(ep,UPDATE);
 			continue;
@@ -615,11 +563,7 @@ update:
 				hline -= count - hloff;
 				hloff = 0;
 			}
-#ifdef ESH_NFIRST
 			if (hline <= hismin)
-#else
-			if (hline < hismin)
-#endif /* ESH_NFIRST */
 			{
 				hline = hismin+1;
 				beep();
@@ -634,28 +578,20 @@ update:
 			c = '\n';
 			goto process;
 		case cntl('N') :
-#ifdef ESH_NFIRST
 			hline = location.hist_command;	/* start at saved position */
 			hloff = location.hist_line;
-#endif /* ESH_NFIRST */
 			location = hist_locate(sh.hist_ptr,hline,hloff,count);
 			if (location.hist_command > histlines)
 			{
 				beep();
-#ifdef ESH_NFIRST
 				location.hist_command = histlines;
 				location.hist_line = ep->in_mult;
-#else
-				continue;
-#endif /* ESH_NFIRST */
 			}
 			hline = location.hist_command;
 			hloff = location.hist_line;
 		common:
-#ifdef ESH_NFIRST
 			location.hist_command = hline;	/* save current position */
 			location.hist_line = hloff;
-#endif
 			cur = 0;
 			draw(ep,UPDATE);
 			hist_copy((char*)out,MAXLINE, hline,hloff);
@@ -746,9 +682,7 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 	if (digit)
 	{
 		ed_ungetchar(ep->ed,i) ;
-#ifdef ESH_KAPPEND
 		++killing;		/* don't modify killing signal */
-#endif
 		return value;
 	}
 	value = count;
@@ -763,18 +697,14 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 			ep->mark = cur;
 			return -1;
 
-#ifdef ESH_KAPPEND
 		case '+':		/* M-+ = append next kill */
 			killing = 2;
 			return -1;	/* no argument for next command */
-#endif
 
 		case 'p':	/* M-p == ^W^Y (copy stack == kill & yank) */
 			ed_ungetchar(ep->ed,cntl('Y'));
 			ed_ungetchar(ep->ed,cntl('W'));
-#ifdef ESH_KAPPEND
 			killing = 0;	/* start fresh */
-#endif
 			return -1;
 
 		case 'l':	/* M-l == lowercase */
@@ -824,9 +754,7 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 				if (i-cur)
 				{
 					ed_ungetchar(ep->ed,cntl('D'));
-#ifdef ESH_KAPPEND
 					++killing;	/* keep killing signal */
-#endif
 					return i-cur;
 				}
 				beep();
@@ -854,16 +782,13 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 			else
 			{
 				ed_ungetchar(ep->ed,usrerase);
-#ifdef ESH_KAPPEND
 				++killing;
-#endif
 				return cur-i;
 			}
 		}
 
 		case '>':
 			ed_ungetchar(ep->ed,cntl('N'));
-#ifdef ESH_NFIRST
 			if (ep->in_mult)
 			{
 				location.hist_command = histlines;
@@ -874,22 +799,13 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 				location.hist_command = histlines - 1;
 				location.hist_line = 0;
 			}
-#else
-			hline = histlines-1;
-			hloff = 0;
-#endif /* ESH_NFIRST */
 			return 0;
 
 		case '<':
 			ed_ungetchar(ep->ed,cntl('P'));
 			hloff = 0;
-#ifdef ESH_NFIRST
 			hline = hismin + 1;
 			return 0;
-#else
-			return hline-hismin;
-#endif /* ESH_NFIRST */
-
 
 		case '#':
 			ed_ungetchar(ep->ed,'\n');
@@ -1183,11 +1099,7 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 		default:
 			/* look for user defined macro definitions */
 			if(ed_macro(ep->ed,i))
-#   ifdef ESH_BETTER
 				return count;	/* pass argument to macro */
-#   else
-				return -1;
-#   endif /* ESH_BETTER */
 			beep();
 			/* FALLTHROUGH */
 	}
@@ -1214,7 +1126,6 @@ static void xcommands(Emacs_t *ep,int count)
 			draw(ep,UPDATE);
 			return;
 
-#ifdef ESH_BETTER
 		case cntl('E'):	/* invoke emacs on current command */
 			if(eol>=0 && sh.hist_ptr)
 			{
@@ -1258,58 +1169,56 @@ static void xcommands(Emacs_t *ep,int count)
 			}
 			return;
 
-#	define itos(i)	fmtint(i,0)	/* want signed conversion */
-
 		case cntl('H'):		/* ^X^H show history info */
 			{
 				char hbuf[MAXLINE];
 
 				strcpy(hbuf, "Current command ");
-				strcat(hbuf, itos(hline));
+				strcat(hbuf, fmtint(hline,0));
 				if (hloff)
 				{
 					strcat(hbuf, " (line ");
-					strcat(hbuf, itos(hloff+1));
+					strcat(hbuf, fmtint(hloff+1,0));
 					strcat(hbuf, ")");
 				}
 				if ((hline != location.hist_command) ||
 				    (hloff != location.hist_line))
 				{
 					strcat(hbuf, "; Previous command ");
-					strcat(hbuf, itos(location.hist_command));
+					strcat(hbuf, fmtint(location.hist_command,0));
 					if (location.hist_line)
 					{
 						strcat(hbuf, " (line ");
-						strcat(hbuf, itos(location.hist_line+1));
+						strcat(hbuf, fmtint(location.hist_line+1,0));
 						strcat(hbuf, ")");
 					}
 				}
 				show_info(ep,hbuf);
 				return;
 			}
-#	if !_AST_release		/* debugging, modify as required */
+
+#if !_AST_release			/* debugging, modify as required */
 		case cntl('D'):		/* ^X^D show debugging info */
 			{
 				char debugbuf[MAXLINE];
 
 				strcpy(debugbuf, "count=");
-				strcat(debugbuf, itos(count));
+				strcat(debugbuf, fmtint(count,0));
 				strcat(debugbuf, " eol=");
-				strcat(debugbuf, itos(eol));
+				strcat(debugbuf, fmtint(eol,0));
 				strcat(debugbuf, " cur=");
-				strcat(debugbuf, itos(cur));
+				strcat(debugbuf, fmtint(cur,0));
 				strcat(debugbuf, " crallowed=");
-				strcat(debugbuf, itos(crallowed));
+				strcat(debugbuf, fmtint(crallowed,0));
 				strcat(debugbuf, " plen=");
-				strcat(debugbuf, itos(plen));
+				strcat(debugbuf, fmtint(plen,0));
 				strcat(debugbuf, " w_size=");
-				strcat(debugbuf, itos(w_size));
+				strcat(debugbuf, fmtint(w_size,0));
 
 				show_info(ep,debugbuf);
 				return;
 			}
-#	endif /* debugging code */
-#endif /* ESH_BETTER */
+#endif /* debugging code */
 
 		default:
 			beep();
@@ -1363,9 +1272,6 @@ static int dosearch(Emacs_t *ep, genchar *out, int direction)
 
 static void search(Emacs_t* ep,genchar *out,int direction)
 {
-#ifndef ESH_NFIRST
-	Histloc_t location;
-#endif
 	int i,sl;
 	genchar str_buff[LBUF];
 	genchar *string = drawbuff;
@@ -1459,11 +1365,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	if(i>0)
 	{
 		hline = i;
-#ifdef ESH_NFIRST
 		hloff = location.hist_line = 0;	/* display first line of multi line command */
-#else
-		hloff = location.hist_line;
-#endif /* ESH_NFIRST */
 		hist_copy((char*)out,MAXLINE, hline,hloff);
 #if SHOPT_MULTIBYTE
 		ed_internal((char*)out,out);
@@ -1473,13 +1375,8 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	if (i < 0)
 	{
 		beep();
-#ifdef ESH_NFIRST
 		location.hist_command = hline;
 		location.hist_line = hloff;
-#else
-		hloff = 0;
-		hline = histlines;
-#endif /* ESH_NFIRST */
 	}
 restore:
 	genncpy(string,str_buff,sizeof(str_buff)/sizeof(*str_buff));

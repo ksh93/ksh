@@ -390,7 +390,7 @@ restore(Proc_t* proc)
  */
 
 Proc_t*
-procopen(const char* cmd, char** argv, char** envv, long* modv, int flags)
+procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 {
 	Proc_t*		proc = 0;
 	int		procfd = -1;
@@ -399,7 +399,7 @@ procopen(const char* cmd, char** argv, char** envv, long* modv, int flags)
 	int		i;
 	int		forked = 0;
 	int		signalled = 0;
-	long		n;
+	int64_t		n;
 	char		path[PATH_MAX];
 	char		env[PATH_MAX + 2];
 	int		pio[2];

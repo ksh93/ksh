@@ -57,7 +57,7 @@ key(void* handle, Sffmt_t* fp, const char* arg, char** ps, Sflong_t* pn)
 {
 	char*	s;
 	int	fd;
-	long	tid;
+	pid_t	tid;
 
 	if (!(s = fp->t_str) || streq(s, "pid"))
 		*pn = getpid();

@@ -1,6 +1,6 @@
 hdr	nc
 mem	exception.name,_exception.name math.h
-lib	setreuid,setregid,nice,fork,fchdir
+lib	setreuid,setregid,nice,fork
 lib	pathnative,pathposix
 lib	memcntl sys/mman.h
 

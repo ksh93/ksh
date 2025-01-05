@@ -10,6 +10,7 @@
 *      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      *
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
+*                      P.D. Sullivan <cbosgd!pds>                      *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *
@@ -1688,13 +1689,12 @@ static void refresh(Vi_t* vp, int mode)
 {
 	int p;
 	int v;
+	int w;
 	int first_w = vp->first_wind;
 	int p_differ;
 	int new_lw;
 	int ncur_phys;
 	int opflag;			/* search optimize flag */
-
-#	define	w	v
 
 	/*** find out if it's necessary to start translating at beginning ***/
 
@@ -1844,7 +1844,6 @@ static void refresh(Vi_t* vp, int mode)
 	cursor(vp,ncur_phys);
 	ed_flush(vp->ed);
 	return;
-#	undef	w
 }
 
 /*{	REPLACE( char, increment )

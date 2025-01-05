@@ -5350,7 +5350,9 @@ command, usually
 Kill the entire current line.
 .TP 10
 .BI ^Y
-Restore last item removed from line. (Yank item back to the line.)
+Yank (undelete, paste): restore the text deleted by the last sequence
+of one or more kill or delete commands.
+Deleted text may be restored multiple times by repeating the command.
 .TP 10
 .BI ^X^E
 Edit the current command line in a full editor (as set in the
@@ -5363,6 +5365,10 @@ variable, or
 .IR vi (1),
 in that order of preference).
 The command line is executed if the file is saved before exiting the editor.
+.TP 10
+.BI ^X^H
+Show the current history position and, if available, the saved history
+position from the previous command line (which ^N will start from).
 .TP 10
 .BI ^L
 Line feed and print current line.
@@ -5393,7 +5399,7 @@ if the current line is empty.
 Fetch previous command.
 Each time
 .B ^P
-is entered
+is entered,
 the previous command back in time is accessed.
 Moves back one line when not on the first line of a multi-line command.
 .TP 10
@@ -5427,8 +5433,13 @@ Fetch the most recent (youngest) history line.
 Fetch next command line.
 Each time
 .B ^N
-is entered
+is entered,
 the next command line forward in time is accessed.
+If
+.B ^N
+is entered as the first history-related command after
+the prompt, it will access the next command relative to
+the previous command line's last known history position.
 .TP 10
 .BI M-[6~
 (Page down)
@@ -5477,8 +5488,10 @@ the next line relative to current line from the
 history file.
 .TP 10
 .BI M- digits
-(Escape) Define numeric parameter, the digits
+(Escape) Define a numeric parameter. The digits
 are taken as a parameter to the next command.
+Except where otherwise specified,
+the parameter indicates the amount of times the command will be repeated.
 The commands that accept a parameter are
 .BR ^F ,
 .BR ^B ,
@@ -5513,6 +5526,7 @@ value will be inserted on the input queue.
 The
 .I letter
 must not be one of the above meta-functions.
+Any numeric parameter is passed on to the command substituted.
 .TP 10
 .BI M-[ letter
 Soft-key \- Your alias list is searched for an
@@ -5520,7 +5534,8 @@ alias by the name
 .BI _\&_ letter
 and if an alias of this name is defined, its
 value will be inserted on the input queue.
-This can be used to program function keys on many terminals.
+This can be used to program function keys on some terminals.
+Any numeric parameter is passed on to the command substituted.
 .TP 10
 .B M-.
 The last word of the previous command is inserted
@@ -9581,10 +9596,6 @@ Traps are not processed while a job is waiting for a foreground process.
 Thus, a trap on
 .B CHLD
 won't be executed until the foreground job terminates.
-.PP
-In locales that use a multibyte character set such as UTF-8, the
-.B KEYBD
-trap is only triggered for ASCII characters (1-127).
 .PP
 It is a good idea to leave a space after the comma operator in
 arithmetic expressions to prevent the comma from being interpreted

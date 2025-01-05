@@ -26,8 +26,8 @@
 
 typedef struct _timer
 {
-	double		wakeup;
-	double		incr;
+	Sfdouble_t	wakeup;
+	Sfdouble_t	incr;
 	struct _timer	*next;
 	void 		(*action)(void*);
 	void		*handle;
@@ -41,29 +41,24 @@ typedef struct _timer
 static Timer_t *tptop, *tpmin, *tpfree;
 static char time_state;
 
-static double getnow(void)
+static Sfdouble_t getnow(void)
 {
-	double now;
-#ifdef timeofday
+	Sfdouble_t now;
 	struct timeval tp;
 	timeofday(&tp);
 	now = tp.tv_sec + 1.e-6*tp.tv_usec;
-
-#else
-	now = (double)time(NULL);
-#endif /* timeofday */
 	return now+.001;
 }
 
 /*
  * set an alarm for <t> seconds
  */
-static double setalarm(double t)
+static Sfdouble_t setalarm(Sfdouble_t t)
 {
 #if defined(_lib_setitimer) && defined(ITIMER_REAL)
 	struct itimerval tnew, told;
 	tnew.it_value.tv_sec = t;
-	tnew.it_value.tv_usec = 1.e6*(t- (double)tnew.it_value.tv_sec);
+	tnew.it_value.tv_usec = 1.e6*(t- (Sfdouble_t)tnew.it_value.tv_sec);
 	if(t && tnew.it_value.tv_sec==0 && tnew.it_value.tv_usec<1000)
 		tnew.it_value.tv_usec = 1000;
 	tnew.it_interval.tv_sec = 0;
@@ -78,7 +73,7 @@ static double setalarm(double t)
 	unsigned seconds = (unsigned)t;
 	if(t && seconds<1)
 		seconds=1;
-	t = (double)alarm(seconds);
+	t = (Sfdouble_t)alarm(seconds);
 #endif
 	return t;
 }
@@ -87,8 +82,8 @@ static double setalarm(double t)
 static void sigalrm(int sig)
 {
 	Timer_t *tp, *tplast, *tpold, *tpnext;
-	double now;
-	static double left;
+	Sfdouble_t now;
+	static Sfdouble_t left;
 	NOT_USED(sig);
 	left = 0;
 	if(time_state&SIGALRM_CALL)
@@ -178,12 +173,12 @@ static void oldalrm(void *handle)
 	(*fn)(SIGALRM);
 }
 
-void *sh_timeradd(unsigned long msec,int flags,void (*action)(void*),void *handle)
+void *sh_timeradd(Sfulong_t msec,int flags,void (*action)(void*),void *handle)
 {
 	Timer_t *tp;
-	double t;
+	Sfdouble_t t;
 	Handler_t fn;
-	t = ((double)msec)/1000.;
+	t = ((Sfdouble_t)msec)/1000.;
 	if(t<=0 || !action)
 		return NULL;
 	if(tp=tpfree)
@@ -205,7 +200,7 @@ void *sh_timeradd(unsigned long msec,int flags,void (*action)(void*),void *handl
 		{
 			Handler_t *hp = (Handler_t*)sh_malloc(sizeof(Handler_t));
 			*hp = fn;
-			sh_timeradd((long)(1000*t), 0, oldalrm, hp);
+			sh_timeradd((Sflong_t)(1000*t), 0, oldalrm, hp);
 		}
 		tp = tptop;
 	}
@@ -237,7 +232,7 @@ void	sh_timerdel(void *handle)
 		if(tpmin)
 		{
 			tpmin = 0;
-			setalarm((double)0);
+			setalarm((Sfdouble_t)0);
 		}
 		signal(SIGALRM,(sh.sigflag[SIGALRM]&SH_SIGFAULT)?sh_fault:SIG_DFL);
 	}

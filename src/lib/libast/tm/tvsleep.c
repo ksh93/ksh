@@ -116,7 +116,7 @@ tvsleep(const Tv_t* tv, Tv_t* rv)
 
 #else
 
-	uint32_t	s = tv->tv_sec;
+	time_t		s = tv->tv_sec;
 	uint32_t	n = tv->tv_nsec;
 	unsigned int	t;
 

@@ -15,7 +15,7 @@ cat{
 
 	typedef struct Tv_s
 	{
-		uint32_t	tv_sec;
+		time_t		tv_sec;
 		uint32_t	tv_nsec;
 	} Tv_t;
 }end

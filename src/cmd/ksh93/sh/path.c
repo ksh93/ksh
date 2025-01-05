@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -213,8 +213,8 @@ char *path_pwd(void)
 	if(sh.pwd)
 	{
 		if(*sh.pwd=='/')
-			return (char*)sh.pwd;
-		free((void*)sh.pwd);
+			return sh.pwd;
+		free(sh.pwd);
 	}
 	/* First see if PWD variable is correct */
 	pwdnod = sh_scoped(PWDNOD);
@@ -249,7 +249,11 @@ char *path_pwd(void)
 	if(!tofree)
 		cp = sh_strdup(cp);
 	sh.pwd = cp;
-	return (char*)sh.pwd;
+#if _lib_openat
+	/* Set sh.pwdfd */
+	sh_pwdupdate(sh_diropenat(AT_FDCWD,cp));
+#endif /* _lib_openat */
+	return sh.pwd;
 }
 
 /*
@@ -1061,7 +1065,7 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 #if _lib_readlink
 	/* save original pathname */
 	stkseek(sh.stk,PATH_OFFSET);
-	pidsize = sfprintf(sh.stk, "*%lld*", (Sflong_t)(spawn ? sh.current_pid : sh.current_ppid));
+	pidsize = sfprintf(sh.stk, "*%jd*", (Sflong_t)(spawn ? sh.current_pid : sh.current_ppid));
 	sfputr(sh.stk,opath,-1);
 	opath = stkfreeze(sh.stk,1)+PATH_OFFSET+pidsize;
 	np = path_gettrackedalias(argv[0]);

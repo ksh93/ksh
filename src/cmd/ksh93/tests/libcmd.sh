@@ -14,6 +14,7 @@
 #                 Kurtis Rader <krader@skepticism.us>                  #
 #            Johnothan King <johnothanking@protonmail.com>             #
 #                  Martijn Dekker <martijn@inlv.org>                   #
+#             dnewhall <dnewhall@users.noreply.github.com>             #
 #                                                                      #
 ########################################################################
 

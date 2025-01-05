@@ -42,4 +42,4 @@ exec -	esac
 note *	Some old systems do not automatically update the symbol table upon ad
 note *	adding or deleting object files (contra POSIX), so update it manually
 
-exec -	%{AR} -s %{@}
+exec -	%{AR} -s %{@} 2>/dev/null || ranlib %{@} 2>/dev/null || true

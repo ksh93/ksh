@@ -1089,7 +1089,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 		ep = sp;
 		stkseek(sh.stk,0);
 	}
-	sfprintf(sh.stk, ".<#%lld_%d{;.tmp", (Sflong_t)sh.current_pid, fno);
+	sfprintf(sh.stk, ".<#%jd_%d{;.tmp", (Sflong_t)sh.current_pid, fno);
 	tname = stkfreeze(sh.stk,1);
 	switch(mode)
 	{
@@ -2167,15 +2167,13 @@ static int	io_prompt(Sfio_t *iop,int flag)
 					c = *++cp;
 					/* print out line number if not !! */
 					if(c!= HIST_CHAR)
-					{
 						sfprintf(sfstderr,"%d", sh.hist_ptr?(int)sh.hist_ptr->histind:++cmdno);
-					}
 					if(c==0)
-						goto done;
+						break;
 				}
 				sfputc(sfstderr,c);
 			}
-			goto done;
+			break;
 		}
 		case 2:
 		{
@@ -2183,19 +2181,17 @@ static int	io_prompt(Sfio_t *iop,int flag)
 			 * in case we're executing a PS2.get discipline function at parse time. */
 			int	savestacktop = stktell(sh.stk);
 			void	*savestackptr = stkfreeze(sh.stk,0);
-			cp = nv_getval(sh_scoped(PS2NOD));
+			if (cp = nv_getval(sh_scoped(PS2NOD)))
+				sfputr(sfstderr,cp,-1);
+			/* Restore the stack. (If nv_getval ran a PS2.get discipline, this may free the space cp points to.) */
 			stkset(sh.stk, savestackptr, savestacktop);
 			break;
 		}
 		case 3:
-			cp = nv_getval(sh_scoped(PS3NOD));
+			if (cp = nv_getval(sh_scoped(PS3NOD)))
+				sfputr(sfstderr,cp,-1);
 			break;
-		default:
-			goto done;
 	}
-	if(cp)
-		sfputr(sfstderr,cp,-1);
-done:
 	if(*sh.prompt && (endprompt=(char*)sfreserve(sfstderr,0,0)))
 		*endprompt = 0;
 	sfset(sfstderr,sfflags&SFIO_READ|SFIO_SHARE|SFIO_PUBLIC,1);

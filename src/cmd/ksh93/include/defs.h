@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -148,6 +148,11 @@ extern int		sh_trace(char*[],int);
 extern void		sh_trim(char*);
 extern int		sh_type(const char*);
 extern void             sh_unscope(void);
+#if _lib_openat
+    extern int		sh_diropenat(int,const char *);
+    extern void		sh_pwdupdate(int);
+    extern int		sh_validate_subpwdfd(void);
+#endif /* _lib_openat */
 #if SHOPT_NAMESPACE
     extern Namval_t	*sh_fsearch(const char *,int);
 #endif /* SHOPT_NAMESPACE */
@@ -169,17 +174,17 @@ extern char		*sh_getcwd(void);
 #endif
 #define sh_translate(s)	_sh_translate(ERROR_dictionary(s))
 
-#define WBITS		(sizeof(long)*8)
+#define WBITS		(sizeof(uint64_t)*8)
 #define WMASK		(0xff)
 
 #if SHOPT_SCRIPTONLY
-#define is_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] & (1L << ((x) % WBITS))) )
-#define on_option(s,x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? errormsg(SH_DICT,ERROR_exit(1),e_scriptonly) : ((s)->v[((x)&WMASK)/WBITS] |= (1L << ((x) % WBITS))) )
-#define off_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] &= ~(1L << ((x) % WBITS))) )
+#define is_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] & ((uint64_t)1 << ((x) % WBITS))) )
+#define on_option(s,x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? errormsg(SH_DICT,ERROR_exit(1),e_scriptonly) : ((s)->v[((x)&WMASK)/WBITS] |= ((uint64_t)1 << ((x) % WBITS))) )
+#define off_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] &= ~((uint64_t)1 << ((x) % WBITS))) )
 #else
-#define is_option(s,x)	((s)->v[((x)&WMASK)/WBITS] & (1L << ((x) % WBITS)))
-#define on_option(s,x)	((s)->v[((x)&WMASK)/WBITS] |= (1L << ((x) % WBITS)))
-#define off_option(s,x)	((s)->v[((x)&WMASK)/WBITS] &= ~(1L << ((x) % WBITS)))
+#define is_option(s,x)	((s)->v[((x)&WMASK)/WBITS] & ((uint64_t)1 << ((x) % WBITS)))
+#define on_option(s,x)	((s)->v[((x)&WMASK)/WBITS] |= ((uint64_t)1 << ((x) % WBITS)))
+#define off_option(s,x)	((s)->v[((x)&WMASK)/WBITS] &= ~((uint64_t)1 << ((x) % WBITS)))
 #endif /* SHOPT_SCRIPTONLY */
 #define sh_isoption(x)	is_option(&sh.options,x)
 #define sh_onoption(x)	on_option(&sh.options,x)

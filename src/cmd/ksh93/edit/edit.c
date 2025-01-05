@@ -831,14 +831,11 @@ int ed_getchar(Edit_t *ep,int mode)
 		{
 			if(mode<=0 && -c == ep->e_intr)
 				killpg(getpgrp(),SIGINT);
-			if(mode<=0 && sh.st.trap[SH_KEYTRAP]
-			/* workaround for <https://github.com/ksh93/ksh/issues/307>:
-			 * do not trigger KEYBD for non-ASCII in multibyte locale */
-			&& (!mbwide() || c > -128))
+			if(mode<=0 && sh.st.trap[SH_KEYTRAP])
 			{
 				ep->e_keytrap = 1;
-				n=1;
-				if((readin[0]= -c) == ESC)
+				n = mbconv(readin, -c);
+				if(n==1 && readin[0]==ESC)
 				{
 					while(1)
 					{

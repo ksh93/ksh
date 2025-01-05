@@ -520,13 +520,13 @@ int    b_jobs(int n,char *argv[],Shbltin_t *context)
  */
 static void	print_times(struct timeval utime, struct timeval stime)
 {
-	int ut_min = utime.tv_sec / 60;
-	int ut_sec = utime.tv_sec % 60;
-	int ut_ms = utime.tv_usec / 1000;
-	int st_min = stime.tv_sec / 60;
-	int st_sec = stime.tv_sec % 60;
-	int st_ms = stime.tv_usec / 1000;
-	sfprintf(sfstdout, sh_isoption(SH_POSIX) ? "%dm%d%c%03ds %dm%d%c%03ds\n" : "%dm%02d%c%03ds %dm%02d%c%03ds\n",
+	Sfulong_t ut_min = utime.tv_sec / 60;
+	Sfulong_t ut_sec = utime.tv_sec % 60;
+	Sfulong_t ut_ms = utime.tv_usec / 1000;
+	Sfulong_t st_min = stime.tv_sec / 60;
+	Sfulong_t st_sec = stime.tv_sec % 60;
+	Sfulong_t st_ms = stime.tv_usec / 1000;
+	sfprintf(sfstdout, sh_isoption(SH_POSIX) ? "%jum%ju%c%03jus %jum%ju%c%03jus\n" : "%jum%02ju%c%03jus %jum%02ju%c%03jus\n",
 		ut_min, ut_sec, sh.radixpoint, ut_ms, st_min, st_sec, sh.radixpoint, st_ms);
 }
 #if _lib_getrusage
@@ -545,23 +545,23 @@ static void	print_cpu_times(void)
 static void	print_cpu_times(void)
 {
 	struct timeval utime, stime;
-	double dtime;
+	Sfdouble_t dtime;
 	int clk_tck = sh.lim.clk_tck;
 	struct tms cpu_times;
 	times(&cpu_times);
 	/* Print the time (user & system) consumed by the shell. */
-	dtime = (double)cpu_times.tms_utime / clk_tck;
+	dtime = (Sfdouble_t)cpu_times.tms_utime / clk_tck;
 	utime.tv_sec = dtime / 60;
 	utime.tv_usec = 1000000 * (dtime - utime.tv_sec);
-	dtime = (double)cpu_times.tms_stime / clk_tck;
+	dtime = (Sfdouble_t)cpu_times.tms_stime / clk_tck;
 	stime.tv_sec = dtime / 60;
 	stime.tv_usec = 1000000 * (dtime - utime.tv_sec);
 	print_times(utime, stime);
 	/* Print the time (user & system) consumed by the child processes of the shell. */
-	dtime = (double)cpu_times.tms_cutime / clk_tck;
+	dtime = (Sfdouble_t)cpu_times.tms_cutime / clk_tck;
 	utime.tv_sec = dtime / 60;
 	utime.tv_usec = 1000000 * (dtime - utime.tv_sec);
-	dtime = (double)cpu_times.tms_cstime / clk_tck;
+	dtime = (Sfdouble_t)cpu_times.tms_cstime / clk_tck;
 	stime.tv_sec = dtime / 60;
 	stime.tv_usec = 1000000 * (dtime - utime.tv_sec);
 	print_times(utime, stime);

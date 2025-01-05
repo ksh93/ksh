@@ -1,3 +1,23 @@
+########################################################################
+#                                                                      #
+#               This software is part of the ast package               #
+#          Copyright (c) 1995-2012 AT&T Intellectual Property          #
+#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#                      and is licensed under the                       #
+#                 Eclipse Public License, Version 2.0                  #
+#                                                                      #
+#                A copy of the License is available at                 #
+#      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      #
+#         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
+#                                                                      #
+#                  David Korn <dgk@research.att.com>                   #
+#                 Glenn Fowler <gsf@research.att.com>                  #
+#                  Martijn Dekker <martijn@inlv.org>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
+#                      Phi <phi.debian@gmail.com>                      #
+#                                                                      #
+########################################################################
+
 : ksh regression test harness :
 
 command=shtests
@@ -49,7 +69,7 @@ USAGE=$'
 
 [ test.sh ... ] [ name=value ... ]
 
-[+SEE ALSO?\bksh\b(1), \bregress\b(1), \brt\b(1)]
+[+SEE ALSO?\bksh\b(1), \bregress\b(1)]
 '
 
 function usage

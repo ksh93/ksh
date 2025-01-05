@@ -2,6 +2,18 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-01-03:
+
+- The performance of virtual subshells has been significantly improved by
+  avoiding unnecessary syscalls to save and restore the working directory.
+  Thanks to Johnothan King for backporting and improving the AT&T 93v- code.
+
+2024-12-30:
+
+- The KEYBD trap should now be fully functional for multibyte characters
+  (for example, non-Latin characters in UTF-8 locales). This fixes a bug
+  inherited from AT&T and worked around on 2022-02-12.
+
 2024-12-29:
 
 - [v1.1] The emacs ^Y command now accepts a numeric parameter. For example,

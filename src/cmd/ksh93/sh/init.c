@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -223,7 +223,7 @@ static int		rand_shift;
  */
 static noreturn void *nomemory(size_t s)
 {
-	errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "out of memory (needed %llu bytes)", (uintmax_t)s);
+	errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "out of memory (needed %zu bytes)", s);
 	UNREACHABLE();
 }
 
@@ -570,13 +570,8 @@ static char* get_ifs(Namval_t* np, Namfun_t *fp)
 /*
  * these functions are used to get and set the SECONDS variable
  */
-#ifdef timeofday
-#   define dtime(tp) ((double)((tp)->tv_sec)+1e-6*((double)((tp)->tv_usec)))
-#   define tms	timeval
-#else
-#   define dtime(tp)	(((double)times(tp))/sh.lim.clk_tck)
-#   define timeofday(a)
-#endif
+#define dtime(tp) ((double)((tp)->tv_sec)+1e-6*((double)((tp)->tv_usec)))
+#define tms	timeval
 
 static void put_seconds(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 {
@@ -1924,11 +1919,7 @@ static void env_init(void)
 	}
 	if(save_env_n)
 		sh.save_env_n = save_env_n;
-	if(nv_isnull(PWDNOD) || nv_isattr(PWDNOD,NV_TAGGED))
-	{
-		nv_offattr(PWDNOD,NV_TAGGED);
-		path_pwd();
-	}
+	path_pwd();
 	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
 		sh_onoption(SH_RESTRICTED); /* restricted shell */
 	/*
@@ -1952,17 +1943,17 @@ static void env_init(void)
  */
 #define BYPASS_MACRO
 
-unsigned long sh_isoption BYPASS_MACRO (int opt)
+uint64_t sh_isoption BYPASS_MACRO (int opt)
 {
 	return sh_isoption(opt);
 }
 
-unsigned long sh_onoption BYPASS_MACRO (int opt)
+uint64_t sh_onoption BYPASS_MACRO (int opt)
 {
 	return sh_onoption(opt);
 }
 
-unsigned long sh_offoption BYPASS_MACRO (int opt)
+uint64_t sh_offoption BYPASS_MACRO (int opt)
 {
 	return sh_offoption(opt);
 }

@@ -594,7 +594,9 @@ loop_fmt:
 					size = sizeof(ptrdiff_t);
 				else if(flags&SFFMT_ZFLAG)
 					size = sizeof(size_t);
-				else if(flags&(SFFMT_LLONG|SFFMT_JFLAG) )
+				else if(flags&SFFMT_LLONG)
+					size = sizeof(long long);
+				else if(flags&SFFMT_JFLAG)
 					size = sizeof(Sflong_t);
 				else if(flags&SFFMT_IFLAG)
 				{	if(size <= 0 ||

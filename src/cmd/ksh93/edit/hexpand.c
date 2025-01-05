@@ -10,6 +10,7 @@
 *      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      *
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
+*              Karsten Fleischer <K.Fleischer@omnium.de>               *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *

@@ -14,14 +14,14 @@ setv IFFEFLAGS
 setv LDFLAGS
 
 make install virtual
-	bind -lcmd
-	bind -lutil dontcare
 
 	note *
 	note * Build pty
 	note *
 
 	make pty
+		bind -lcmd
+		bind -lutil dontcare
 		make pty.o
 			make pty.c
 				make FEATURE/pty

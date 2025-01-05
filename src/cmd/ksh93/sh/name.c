@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1507,11 +1507,7 @@ skip:
 	{
 		cp++;
 		if(sh_isstate(SH_INIT))
-		{
 			nv_putval(np, cp, NV_RDONLY);
-			if(np==PWDNOD)
-				nv_onattr(np,NV_TAGGED);
-		}
 		else
 		{
 			char *sub=0, *prefix= sh.prefix;

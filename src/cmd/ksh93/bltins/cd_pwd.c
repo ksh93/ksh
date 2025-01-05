@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -46,6 +46,25 @@ static void rehash(Namval_t *np,void *data)
 		nv_rehash(np,data);
 }
 
+#if _lib_openat
+/*
+ * Obtain a file handle to the directory "path" relative to directory "dir"
+ */
+int sh_diropenat(int dir, const char *path)
+{
+	int fd,shfd;
+	if((fd = openat(dir, path, O_DIRECTORY|O_NONBLOCK|O_cloexec)) < 0)
+#if O_SEARCH
+		if(errno != EACCES || (fd = openat(dir, path, O_SEARCH|O_DIRECTORY|O_NONBLOCK|O_cloexec)) < 0)
+#endif
+			return fd;
+	/* Move fd to a number > 10 and register the fd number with the shell */
+	shfd = sh_fcntl(fd, F_dupfd_cloexec, 10);
+	close(fd);
+	return shfd;
+}
+#endif /* _lib_openat */
+
 int	b_cd(int argc, char *argv[],Shbltin_t *context)
 {
 	char *dir;
@@ -53,8 +72,11 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	const char *dp;
 	int saverrno=0;
 	int rval,pflag=0,eflag=0,ret=1;
-	char *oldpwd;
+	char *oldpwd, *cp;
 	Namval_t *opwdnod, *pwdnod;
+#if _lib_openat
+	int newdirfd;
+#endif /* _lib_openat */
 	NOT_USED(context);
 	while((rval = optget(argv,sh_optcd))) switch(rval)
 	{
@@ -118,13 +140,13 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	 * If sh_subshell() in subshell.c cannot use fchdir(2) to restore the PWD using a saved file descriptor,
 	 * we must fork any virtual subshell now to avoid the possibility of ending up in the wrong PWD on exit.
 	 */
-	if(sh.subshell && !sh.subshare)
-	{
-#if _lib_fchdir
-		if(!test_inode(sh.pwd,e_dot))
-#endif
-			sh_subfork();
-	}
+#if _lib_openat
+	if(sh.subshell && !sh.subshare && (!sh_validate_subpwdfd() || !test_inode(sh.pwd,e_dot)))
+		sh_subfork();
+#else
+	if(sh.subshell && !sh.subshare && !test_inode(sh.pwd,e_dot))
+		sh_subfork();
+#endif /* _lib_openat */
 	/*
 	 * Do $CDPATH processing, except if the path is absolute or the first component is '.' or '..'
 	 */
@@ -144,7 +166,6 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	if(*dir!='/')
 	{
 		/* check for leading .. */
-		char *cp;
 		sfprintf(sh.strbuf,"%s",dir);
 		cp = sfstruse(sh.strbuf);
 		pathcanon(cp, 0);
@@ -181,21 +202,60 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		}
 		if(!pflag)
 		{
-			char *cp;
 			stkseek(sh.stk,PATH_MAX+PATH_OFFSET);
 			if(*(cp=stkptr(sh.stk,PATH_OFFSET))=='/')
 				if(!pathcanon(cp,PATH_DOTDOT))
 					continue;
 		}
+#if _lib_openat
+		cp = path_relative(stkptr(sh.stk,PATH_OFFSET));
+		rval = newdirfd = sh_diropenat((sh.pwdfd>0)?sh.pwdfd:AT_FDCWD,cp);
+		if(newdirfd>0)
+		{
+			/* chdir for directories on HSM/tapeworms may take minutes */
+			if((rval=fchdir(newdirfd)) >= 0)
+			{
+				sh_pwdupdate(newdirfd);
+				goto success;
+			}
+			sh_close(newdirfd);
+		}
+#if !O_SEARCH
+		else if((rval=chdir(cp)) >= 0)
+			sh_pwdupdate(sh_diropenat(AT_FDCWD,cp));
+#endif
+		if(saverrno==0)
+			saverrno=errno;
+#else
 		if((rval=chdir(path_relative(stkptr(sh.stk,PATH_OFFSET)))) >= 0)
 			goto success;
 		if(errno!=ENOENT && saverrno==0)
 			saverrno=errno;
+#endif /* _lib_openat */
 	}
 	while(cdpath);
 	if(rval<0 && *dir=='/' && *(path_relative(stkptr(sh.stk,PATH_OFFSET)))!='/')
+	{
+#if _lib_openat
+		rval = newdirfd = sh_diropenat((sh.pwdfd>0)?sh.pwdfd:AT_FDCWD,dir);
+		if(newdirfd>0)
+		{
+			/* chdir for directories on HSM/tapeworms may take minutes */
+			if((rval=fchdir(newdirfd)) >= 0)
+			{
+				sh_pwdupdate(newdirfd);
+				goto success;
+			}
+			sh_close(newdirfd);
+		}
+#if !O_SEARCH
+		else if((rval=chdir(dir)) >= 0)
+			sh_pwdupdate(sh_diropenat(AT_FDCWD,dir));
+#endif
+#else
 		rval = chdir(dir);
-	/* use absolute chdir() if relative chdir() fails */
+#endif /* _lib_openat */
+	}
 	if(rval<0)
 	{
 		if(saverrno)
@@ -221,7 +281,7 @@ success:
 	if(*dp && (*dp!='.'||dp[1]) && strchr(dir,'/'))
 		sfputr(sfstdout,dir,'\n');
 	nv_putval(opwdnod,oldpwd,NV_RDONLY);
-	free((void*)sh.pwd);
+	free(sh.pwd);
 	if(*dir == '/')
 	{
 		size_t len = strlen(dir);
