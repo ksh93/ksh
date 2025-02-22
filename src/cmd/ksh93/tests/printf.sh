@@ -33,6 +33,17 @@ function do_test
 	[[ $got == "$3" ]] || \err_exit "$1" "printf '$2': expected $(printf %q "$3"), got $(printf %q "$got")"
 }
 
+alias T2='do_test2 "$LINENO"'
+
+# ======
+# Tests for mixing and matching % and %x$
+# https://github.com/ksh93/ksh/issues/324
+
+function do_test2
+{	printf -v got "$2" a b c d e f g h i j
+	[[ $got == "$3" ]] || \err_exit "$1" "printf '$2': expected $(printf %q "$3"), got $(printf %q "$got")"
+}
+
 # This part was generated once, and can now be augmented with more test
 
 x='1 2
@@ -195,6 +206,16 @@ x='1 5
 '
 f='%s %5$s\n'
 T "$f" "$x"
+
+x='a e
+f j
+'
+f='%s %5$s\n'
+T2 "$f" "$x"
+
+x=$'a \n'
+f='%s %99$s\n'
+T2 "$f" "$x"
 
 unset x f
 

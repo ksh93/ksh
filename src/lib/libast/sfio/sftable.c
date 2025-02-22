@@ -343,7 +343,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 	}
 	for(n = 0; n <= maxp; ++n)
 	{	if(fp[n].ft.fmt == 0) /* gap: pretend it's a 'd' pattern */
-		{	fp[n].ft.fmt = 'd';
+		{	fp[n].ft.fmt = 'c';
 			fp[n].ft.width = 0;
 			fp[n].ft.precis = 0;
 			fp[n].ft.base = 0;
