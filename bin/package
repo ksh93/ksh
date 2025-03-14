@@ -1790,6 +1790,11 @@ then	case $(uname) in
 	esac
 fi
 
+# Fix for msys2 because /bin is the same thing as /usr/bin.
+if test /bin -ef /usr/bin; then
+	DEFPATH="/usr/bin:$DEFPATH"
+fi
+
 export DEFPATH  # for iffe, etc.
 
 PATH=$(sanitize_PATH "/opt/ast/bin:$DEFPATH:$PATH")
@@ -2468,6 +2473,11 @@ checkaout()	# cmd ...
 				# a symlink to it. The symlink can be removed/renamed instead of the _bootstrap binary.
 				$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/${i}_bootstrap" "$INITROOT/$i.c" || return
 				$exec ln -sf "${i}_bootstrap" "$INSTALLROOT/bin/$i" || return
+				;;
+			msys.*)
+				# If one is to use the msys2 environment to build ksh93, this must be done instead of how cygwin does it.
+				$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/${i}_bootstrap" "$INITROOT/$i.c" || return
+				MSYS="$MSYS winsymlinks:sys" $exec ln -sf "${i}_bootstrap" "$INSTALLROOT/bin/$i" || return
 				;;
 			*)	$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/$i" "$INITROOT/$i.c" || return
 				;;
