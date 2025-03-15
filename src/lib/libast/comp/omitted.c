@@ -392,13 +392,13 @@ getuid(void)
 
 	if (!convertinit++ && (d = getenv(convertvars[0])))
 		for (e = environ; s = *e; e++)
-			if ((n = convert(d, s)) && (m = cygwin_win32_to_posix_path_list_buf_size(s + n)) > 0)
+			if ((n = convert(d, s)) && (m = conv_path_list_buf_size(s + n), true) > 0)
 			{
 				if (!(t = malloc(n + m + 1)))
 					break;
 				*e = t;
 				memcpy(t, s, n);
-				cygwin_win32_to_posix_path_list(s + n, t + n);
+				conv_last_list_buf_size(s + n, t + n, false);
 			}
 	return sysgetuid();
 }
@@ -557,13 +557,13 @@ runve(int mode, const char* path, char* const* argv, char* const* envv)
 #if CONVERT
 		if (!ux && (d = getenv(convertvars[0])))
 			for (p = (char**)envv; s = *p; p++)
-				if ((n = convert(d, s)) && (m = cygwin_posix_to_win32_path_list_buf_size(s + n)) > 0)
+				if ((n = convert(d, s)) && (m = conv_path_list_buf_size(s + n, true)) > 0)
 				{
 					if (!(t = malloc(n + m + 1)))
 						break;
 					*p = t;
 					memcpy(t, s, n);
-					cygwin_posix_to_win32_path_list(s + n, t + n);
+					conv_path_list_buf_size(s + n, t + n, false);
 				}
 #endif
 	}
@@ -860,7 +860,7 @@ unlink(const char* path)
 
 	static int	count = 0;
 
-#if __CYGWIN__ && !__MSYS__
+#if __CYGWIN__
 
 	DWORD		fattr = FILE_ATTRIBUTE_NORMAL|FILE_FLAG_DELETE_ON_CLOSE;
 	DWORD		share = FILE_SHARE_DELETE;
@@ -871,7 +871,8 @@ unlink(const char* path)
 	oerrno = errno;
 	if (lstat(path, &st) || !S_ISREG(st.st_mode))
 		goto try_unlink;
-	cygwin_conv_to_full_win32_path(path, nat);
+	
+	cygwin_conv_path(CCP_POSIX_TO_WIN_W | CCP_ABSOLUTE, path, nat, 0);
 	if (!strncasecmp(nat + 1, ":\\temp\\", 7))
 		goto try_unlink;
 	drive = nat[0];
@@ -987,7 +988,7 @@ unlink(const char* path)
 
 #if _win32_botch_utime
 
-#if __CYGWIN__ && !__MSYS__
+#if __CYGWIN__
 
 /*
  * Cygwin refuses to set st_ctime for some operations
@@ -1007,7 +1008,7 @@ ctime_now(const char* path)
 
 	if (sysstat(path, &fs) || (fs.st_mode & S_IWUSR) || syschmod(path, (fs.st_mode | S_IWUSR) & S_IPERM))
 		fs.st_mode = 0;
-	cygwin_conv_to_win32_path(path, tmp);
+	cygwin_conv_path(CCP_POSIX_TO_WIN_W | CCP_ABSOLUTE, path, tmp, 0);
 	hp = CreateFile(tmp, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hp && hp != INVALID_HANDLE_VALUE)
 	{
