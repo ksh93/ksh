@@ -30,7 +30,7 @@
 
 #include <ast.h>
 
-#if __CYGWIN__ || __MSYS__
+#if __CYGWIN__ && !__MSYS__
 
 extern void	cygwin_conv_to_posix_path(const char*, char*);
 

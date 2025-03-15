@@ -860,7 +860,7 @@ unlink(const char* path)
 
 	static int	count = 0;
 
-#if __CYGWIN__
+#if __CYGWIN__ && !__MSYS__
 
 	DWORD		fattr = FILE_ATTRIBUTE_NORMAL|FILE_FLAG_DELETE_ON_CLOSE;
 	DWORD		share = FILE_SHARE_DELETE;
@@ -987,7 +987,7 @@ unlink(const char* path)
 
 #if _win32_botch_utime
 
-#if __CYGWIN__
+#if __CYGWIN__ && !__MSYS__
 
 /*
  * Cygwin refuses to set st_ctime for some operations
