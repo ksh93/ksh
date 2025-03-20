@@ -28,7 +28,7 @@
 # setting TMOUT in a virtual subshell removes its special meaning
 # https://github.com/ksh93/ksh/issues/782
 (
-	typeset -i s=SECONDS
+	typeset -F s=SECONDS
 	"$SHELL" -c 'TMOUT=2; (TMOUT=3); TMOUT=1; read v' </dev/tty
 	((SECONDS < s + 2))
 ) &
