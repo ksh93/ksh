@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -342,8 +342,8 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 		memcpy(&savft, ft, sizeof(*ft));
 	}
 	for(n = 0; n <= maxp; ++n)
-	{	if(fp[n].ft.fmt == 0) /* gap: pretend it's a 'd' pattern */
-		{	fp[n].ft.fmt = 'd';
+	{	if(fp[n].ft.fmt == 0) /* gap: pretend it's a 'c' pattern */
+		{	fp[n].ft.fmt = 'c';
 			fp[n].ft.width = 0;
 			fp[n].ft.precis = 0;
 			fp[n].ft.base = 0;

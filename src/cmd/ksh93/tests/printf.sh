@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2022-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2022-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -558,6 +558,29 @@ got=$(printf '%s%c%c' 1 $'\0' $'\n' 2 $'\0' $'\n' 3 $'\0' $'\n' 4 $'\0' $'\n' | 
 	TZ=Europe/Amsterdam printf -v two '%(%H)T'
 	[[ $one != "$two" ]]
 ) || err_exit "printf %T: TZ=UTC sticks after changing TZ"
+
+# ======
+# If there was a gap in index conversion specifiers (for example, %5$s given
+# without %4$s, %3%s or %2%s), then ksh incorrectly executed the string
+# arguments corresponding to the gap as arithmetic expressions.
+# https://github.com/ksh93/ksh/issues/824
+
+function do_test
+{	typeset lnno=$1 exp=$2 fmt=$3
+	typeset -si e
+	shift 3
+	set -u
+	printf -v got "$fmt" "$@" 2>|stderr
+	e=$?
+	set +u
+	[[ $got == "$exp" ]] || \err_exit "$lnno" "printf '$fmt': expected $(printf %q "$exp"), got $(printf %q "$got")"
+	[[ -s stderr ]] && \err_exit "$lnno" "printf '$fmt' wrote to standard error: $(printf %q "$(<stderr)")"
+	((e)) && \err_exit "$lnno" "printf '$fmt' had nonzero exit status: $e"
+}
+
+T $'a e\nf j\n'			'%s %5$s\n'		a b c d e f g h i j
+T $'a \n'			'%s %99$s\n'		a b c d e f g h i j
+T $'first fifth\nsixth \n'	'%s %5$s\n'		first 2+ @ 2/0 fifth sixth
 
 # ======
 exit $((Errors<125?Errors:125))
