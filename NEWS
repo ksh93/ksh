@@ -2,6 +2,14 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-03-21:
+
+- Fixed a corner case bug in the "$*" expansion: spurious backslashes were
+  inserted for empty parameters if IFS has the empty value (meaning, no
+  output field separator). For example:
+	(set -- a '' b '' c; IFS=''; echo "$*")
+  wrote a\b\c but now again writes abc. Bug introduced on 2022-07-28.
+
 2025-03-20:
 
 - Fixed a corner case bug in ksh's printf built-in: if there was a gap in

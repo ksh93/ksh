@@ -2050,7 +2050,7 @@ retry2:
 				 * We're joining fields into one; write the output field separator, which may be multi-byte.
 				 * For "$@" it's a space, for "$*" it's the 1st char of IFS (space if unset, none if empty).
 				 */
-				if(mp->pattern && mp->quote)		/* avoid BUG_IFSGLOBS */
+				if(mp->pattern && mp->quote && mp->ifs)	/* avoid BUG_IFSGLOBS */
 					sfputc(sfio_ptr, '\\');
 				if(mode == '@' || !mp->ifsp)		/* if expanding $@ or if IFS is unset... */
 					sfputc(sfio_ptr, ' ');

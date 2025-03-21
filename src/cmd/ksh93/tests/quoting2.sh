@@ -362,6 +362,12 @@ esac
 [[ opt2 == @("${arr[*]}") ]] && err_exit 'BUG_IFSGLOBS reproducer 7'
 unset arr
 
+# https://github.com/ksh93/ksh/issues/832
+got=$(set --glob -- a '' b '' c; IFS=''; echo "$*")  # "$*" must be in a context that may allow patterns
+exp=abc
+[[ $got == "$exp" ]] || err_exit 'BUG_IFSGLOBS regression, bug 832' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 IFS=$' \t\n'
 
 # ======
