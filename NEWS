@@ -2,6 +2,11 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-03-24:
+
+- Fixed a crash that occurred in specific circumstances when processing a
+  here-documnet within a command subtitution within another here-document.
+
 2025-03-21:
 
 - Fixed a corner case bug in the "$*" expansion: spurious backslashes were

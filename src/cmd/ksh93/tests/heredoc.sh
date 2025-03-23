@@ -555,4 +555,30 @@ _EOF"; } 2>&1 )
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
+# potential crash when here-documents and command substitutions are nested
+# https://github.com/ksh93/ksh/issues/823
+got=$(set +x; { "$SHELL" -c 'TEST_LINE1="Test line 1"
+TEST_LINE2="Test line 2"
+function1 () {
+cat << EOF
+	${TEST_LINE1}
+EOF
+}
+function2 () {
+cat << EOF
+	${TEST_LINE2}
+EOF
+}
+function3 () {
+cat << EOF
+	$(function1)
+EOF
+	function2
+}
+function3'; } 2>&1)
+exp=$'\t\tTest line 1\n\tTest line 2'
+[[ $got == "$exp" ]] || err_exit "processing a here-document from a command substitution in a here-document" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

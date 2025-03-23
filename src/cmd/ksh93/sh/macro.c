@@ -381,7 +381,12 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 				break;
 			    }
 			    case S_PAR:
+				/* Execute a command substitution or arithmetic expression from a here-document */
 				comsubst(mp,NULL,1);
+				/* Because comsubs and here-documents both do lexical analysis at runtime, lp->lexd.first
+				 * may become invalid if these are nested, which may crash lex_advance(), triggered by
+				 * fcfill() below. To avoid that, reset it (lex.c handles this correctly). */
+				lp->lexd.first = NULL;
 				break;
 			    case S_EOF:
 				if((c=fcfill()) > 0)
