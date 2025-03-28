@@ -953,62 +953,62 @@ done
 # ======
 # 'cd ../.foo' should not exclude the '.' in '.foo'
 # https://bugzilla.redhat.com/889748
-expect=$tmp/.ssh
-actual=$( HOME=$tmp
+exp=$tmp/.ssh
+got=$( HOME=$tmp
 	mkdir ~/.ssh 2>&1 &&
 	cd ~/.ssh 2>&1 &&
 	cd ../.ssh 2>&1 &&
 	print -r -- "$PWD" )
-[[ $actual == "$expect" ]] || err_exit 'changing to a hidden directory using a path that contains the parent directory (..) fails' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-expect=$tmp/.java
-actual=$( mkdir "$tmp/java" "$tmp/.java" 2>&1 &&
+[[ $got == "$exp" ]] || err_exit 'changing to a hidden directory using a path that contains the parent directory (..) fails' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+exp=$tmp/.java
+got=$( mkdir "$tmp/java" "$tmp/.java" 2>&1 &&
 	cd "$tmp/.java" 2>&1 &&
 	cd ../.java 2>&1 &&
 	pwd )
-[[ $actual == "$expect" ]] || err_exit 'the dot (.) part of the directory name is being stripped' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+[[ $got == "$exp" ]] || err_exit 'the dot (.) part of the directory name is being stripped' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # check that we cannot cd into a regular file and get misbehaviour
 : > "$tmp/regular_file"
-expect=": cd: $tmp/regular_file: [Not a directory]"
-actual=$(LC_ALL=C cd "$tmp/regular_file" 2>&1)
+exp=": cd: $tmp/regular_file: \\[?Not a directory]?$"
+got=$(LC_ALL=C cd "$tmp/regular_file" 2>&1)
 e=$?
-[[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a regular file' \
-	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
+[[ e -eq 1 && $got =~ $exp ]] || err_exit 'can cd into a regular file' \
+	"(expected status 1 and match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 # https://bugzilla.redhat.com/1102627
 if	[[ $(id -u) == '0' ]]
 then	warning "running as root: skipping tests involving directory search (x) permission"
 else
 mkdir -m 600 "$tmp/no_x_dir"
-expect=": cd: $tmp/no_x_dir: [Permission denied]"
-actual=$(LC_ALL=C cd "$tmp/no_x_dir" 2>&1)
+exp=": cd: $tmp/no_x_dir: \\[?Permission denied]?$"
+got=$(LC_ALL=C cd "$tmp/no_x_dir" 2>&1)
 e=$?
-[[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (absolute path arg)' \
-	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
-expect=": cd: no_x_dir: [Permission denied]"
-actual=$(cd "$tmp" 2>&1 && LC_ALL=C cd "no_x_dir" 2>&1)
+[[ e -eq 1 && $got =~ $exp ]] || err_exit 'can cd into a directory without x permission bit (absolute path arg)' \
+	"(expected status 1 and match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+exp=": cd: no_x_dir: \\[?Permission denied]?$"
+got=$(cd "$tmp" 2>&1 && LC_ALL=C cd "no_x_dir" 2>&1)
 e=$?
-[[ e -eq 1 && $actual == *"$expect" ]] || err_exit 'can cd into a directory without x permission bit (relative path arg)' \
-	"(expected status 1 and msg ending in $(printf %q "$expect"), got status $e and msg $(printf %q "$actual"))"
+[[ e -eq 1 && $got =~ $exp ]] || err_exit 'can cd into a directory without x permission bit (relative path arg)' \
+	"(expected status 1 and match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 rmdir "$tmp/no_x_dir"	# on HP-UX, 'rm -rf $tmp' won't work unless we rmdir this or fix the perms
 fi
 
 # https://bugzilla.redhat.com/1133582
-expect=$HOME
-actual=$({ a=`cd; pwd`; } >&-; print -r -- "$a")
-[[ $actual == "$expect" ]] || err_exit "'cd' broke old-form command substitution with outer stdout closed" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-actual=$({ a=$(cd; pwd); } >&-; print -r -- "$a")
-[[ $actual == "$expect" ]] || err_exit "'cd' broke new-form command substitution with outer stdout closed" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+exp=$HOME
+got=$({ a=`cd; pwd`; } >&-; print -r -- "$a")
+[[ $got == "$exp" ]] || err_exit "'cd' broke old-form command substitution with outer stdout closed" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$({ a=$(cd; pwd); } >&-; print -r -- "$a")
+[[ $got == "$exp" ]] || err_exit "'cd' broke new-form command substitution with outer stdout closed" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # CDPATH was not ignored by 'cd ./dir': https://github.com/ksh93/ksh/issues/151
-expect=': cd: ./dev: [No such file or directory]'
-actual=$( (CDPATH=/ LC_ALL=C cd -P ./dev && pwd) 2>&1 )
-let "(e=$?)==1" && [[ $actual == *"$expect" ]] || err_exit "CDPATH not ignored by cd ./dir" \
-	"(expected *$(printf %q "$expect") with status 1, got $(printf %q "$actual") with status $e)"
+exp=': cd: ./dev: \[?No such file or directory]?$'
+got=$( (CDPATH=/ LC_ALL=C cd -P ./dev && pwd) 2>&1 )
+let "(e=$?)==1" && [[ $got =~ $exp ]] || err_exit "CDPATH not ignored by cd ./dir" \
+	"(expected status 1 and match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 # ======
 # 'readonly' should set the correct scope when creating variables in functions
