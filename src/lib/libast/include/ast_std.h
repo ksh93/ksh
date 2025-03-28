@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -137,13 +137,9 @@ extern char*		getenv(const char*);
 #undef	setlocale
 #define setlocale	_ast_setlocale
 
-#undef	strerror
-#define strerror	_ast_strerror
-
 extern struct lconv*	localeconv(void);
 extern char*		setenviron(const char*);
 extern char*		setlocale(int, const char*);
-extern char*		strerror(int);
 
 #define AST_MESSAGE_SET		3	/* see <mc.h> mcindex()		*/
 

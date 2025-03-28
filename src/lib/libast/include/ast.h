@@ -327,7 +327,6 @@ extern int		eaccess(const char*, int);
 extern char*		fmtbuf(size_t);
 extern char*		fmtclock(Sfulong_t);
 extern char*		fmtelapsed(unsigned long, int);
-extern char*		fmterror(int);
 extern char*		fmtesc(const char*);
 extern char*		fmtesq(const char*, const char*);
 extern char*		fmtident(const char*);
@@ -418,6 +417,11 @@ extern int		struid(const char*);
 extern int		struniq(char**, int);
 extern int		strvcmp(const char*, const char*);
 extern int		wc2utf8(char*, uint32_t);
+
+/*
+ * backward compat
+ */
+#define fmterror(e)	strerror(e)
 
 /*
  * C library global data symbols not prototyped by <unistd.h>

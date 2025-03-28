@@ -47,7 +47,6 @@ fmt \- string formatting routines
 char*      fmtint(intmax_t \fInumber\fP, int \fIunsign\fP);
 char*      fmtdev(struct stat* \fIst\fP);
 char*      fmtelapsed(unsigned long \fIcount\fP, int \fIpersec\fP)
-char*      fmterror(int \fIerrno\fP);
 char*      fmtesc(const char* \fIstring\fP);
 char*      fmtfs(struct stat* \fIst\fP);
 char*      fmtgid(int \fIgid\fP);
@@ -121,10 +120,6 @@ years
 .B S
 scores
 .RE
-.PP
-.L fmterror
-returns the system error message text for the error number
-.IR errno .
 .PP
 .L fmtesc
 formats non-ASCII characters in

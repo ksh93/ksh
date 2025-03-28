@@ -37,7 +37,7 @@ lib	readlink,remove,rename,rewinddir,rmdir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
 lib	spawn,spawnve
-lib	strcoll,strdup,strerror,strcasecmp,strncasecmp,strlcat,strlcpy
+lib	strcoll,strdup,strcasecmp,strncasecmp,strlcat,strlcpy
 lib	strmode,strxfrm,strftime,swab,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
@@ -54,20 +54,6 @@ mem	tm.tm_zone time.h
 
 sys	dir,filio,ioctl,jioctl,localedef,ptem,resource
 sys	socket,stream,systeminfo,universe
-
-tst	tst_errno note{ errno can be assigned }end link{
-	#define error		______error
-	#define strerror	______strerror
-	#include <errno.h>
-	#undef	error
-	#undef	strerror
-	#ifndef errno
-	extern int errno;
-	#endif
-	void error(void) { }
-	void strerror(void) { }
-	int main(void) { errno = 0; error(); strerror(); return 0; }
-}end
 
 tst	lib_poll note{ poll() args comply with the POSIX standard }end execute{
 	#include <poll.h>

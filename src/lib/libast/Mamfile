@@ -317,11 +317,6 @@ make install virtual
 		exec - esac
 	done ast.req
 
-	make FEATURE/errno
-		makp features/errno
-		exec - invoke_iffe %{<}
-	done
-
 	make FEATURE/libpath
 		makp features/libpath.sh
 		exec - invoke_iffe %{<}
@@ -1583,13 +1578,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make fmterror.o
-			make string/fmterror.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make fmtesc.o
 			make string/fmtesc.c
 				prev std/wctype.h
@@ -2474,14 +2462,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make strerror.o
-			make string/strerror.c
-				prev FEATURE/errno
-				prev port/lclib.h
-			done
-			exec - compile %{<} -Iport
-		done
-
 		make mktemp.o
 			make comp/mktemp.c
 				prev ast_map.h
@@ -2608,13 +2588,6 @@ make install virtual
 				prev dir/dirlib.h
 			done
 			exec - compile %{<} -Idir
-		done
-
-		make errno.o
-			make comp/errno.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
 		done
 
 		make assert.o
@@ -4419,7 +4392,7 @@ make install virtual
 	done
 
 	note * section 3 manual pages
-	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd hash iblocks int ip6 mem modecanon optget path proc re regex setenviron sfio sig spawnveg stk strcopy strdup strelapsed strerror stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tab tm tmx tok touch tv
+	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd hash iblocks int ip6 mem modecanon optget path proc re regex setenviron sfio sig spawnveg stk strcopy strdup strelapsed stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tab tm tmx tok touch tv
 		make %{INSTALLROOT}/man/man3/%{SECT3MAN}.3
 			makp man/%{SECT3MAN}.3
 			exec - cp -f %{<} %{@}
