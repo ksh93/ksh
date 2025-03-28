@@ -172,6 +172,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	Edit_t *ed = (Edit_t*)context;
 	int c;
 	int i;
+	int r = -1;  /* return code */
 	genchar *out;
 	int count;
 	Emacs_t *ep = ed->e_emacs;
@@ -181,6 +182,10 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	genchar *kptr;
 	char prompt[PRSIZE];
 	genchar Screen[MAXLINE];
+	/* Set raw mode */
+	if(tty_raw(ERRIO,0) < 0)
+		return reedit ? reedit : ed_read(context, fd, buff, scend, 0);
+	/* Initialize some things */
 	memset(Screen,0,sizeof(Screen));
 	if(!ep)
 	{
@@ -193,10 +198,6 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	ep->screen = Screen;
 	ep->lastdraw = FINAL;
 	ep->ehist = 0;
-	if(tty_raw(ERRIO,0) < 0)
-	{
-		 return reedit ? reedit : ed_read(context,fd,buff,scend,0);
-	}
 	raw = 1;
 	/* This mess in case the read system call fails */
 	ed_setup(ep->ed,fd,reedit);
@@ -225,6 +226,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		location.hist_line = 0;
 	}
 	ep->in_mult = hloff;			/* save pos in last command */
+	/* Handle user interrupt, user quit, or EOF */
 	i = sigsetjmp(env,0);
 	if (i !=0)
 	{
@@ -236,10 +238,8 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		}
 		tty_cooked(ERRIO);
 		if (i == UEOF)
-		{
-			return 0; /* EOF */
-		}
-		return -1; /* some other error */
+			r = 0;	/* EOF */
+		goto done;
 	}
 	out[reedit] = 0;
 	if(scend+plen > (MAXLINE-2))
@@ -316,7 +316,8 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 		case EOFCHAR:
 			ed_flush(ep->ed);
 			tty_cooked(ERRIO);
-			return 0;
+			r = 0;
+			goto done;
 #ifdef u370
 		case cntl('S') :
 		case cntl('Q') :
@@ -693,8 +694,12 @@ process:
 #endif /* SHOPT_MULTIBYTE */
 	i = (int)strlen(buff);
 	if (i)
-		return i;
-	return -1;
+		r = i;
+done:
+	/* avoid leaving invalid pointers to destroyed automatic variables */
+	Prompt = NULL;
+	drawbuff = ep->screen = ep->cursor = NULL;
+	return r;
 }
 
 static void show_info(Emacs_t *ep,const char *str)

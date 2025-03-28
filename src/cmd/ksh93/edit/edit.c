@@ -581,6 +581,16 @@ static void ed_nputchar(Edit_t *ep, int n, int c)
 #endif /* SHOPT_ESH || SHOPT_VSH */
 
 /*
+ * Show any buffered 'set -b' job notification(s)
+ */
+static void flush_notifybuf(void)
+{
+	char *cp;
+	if(sh.notifybuf && (cp = sfstruse(sh.notifybuf)) && *cp)
+		sfputr(sfstderr, cp, -1);
+}
+
+/*
  * Do read, restart on interrupt unless SH_SIGSET or SH_SIGTRAP is set
  * Use select(2) (via sfpkrd()) to wait for input if possible
  *
@@ -620,7 +630,12 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 		if(sh.winch && sh_editor_active() && sh_isstate(SH_INTERACTIVE))
 		{
 			int	n, newsize;
-			char	*cp;
+			if(!ep->e_prompt)
+			{
+				/* ed_emacsread or ed_viread was unable to put the tty in raw mode */
+				flush_notifybuf();
+				goto skipwinch;
+			}
 			sh_winsize(NULL,&newsize);
 			ed_putchar(ep,'\r');
 			/*
@@ -642,9 +657,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 				ed_putchar(ep,'\r');
 			}
 			ed_flush(ep);
-			/* show any buffered 'set -b' job notification(s) */
-			if(sh.notifybuf && (cp = sfstruse(sh.notifybuf)) && *cp)
-				sfputr(sfstderr, cp, -1);
+			flush_notifybuf();
 			/* update window size */
 			ep->e_winsz = newsize-1;
 			if(ep->e_winsz < MINWINDOW)
@@ -668,6 +681,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			emacs_redraw(ep->e_emacs);
 #endif /* SHOPT_ESH && SHOPT_VSH */
 		}
+	skipwinch:
 #endif /* SHOPT_ESH || SHOPT_VSH */
 		sh.winch = 0;
 		/* an interrupt that should be ignored */

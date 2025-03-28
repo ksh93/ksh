@@ -201,6 +201,7 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 {
 	Edit_t *ed = (Edit_t*)context;
 	int i;				/* general variable */
+	int r = -1;			/* return value */
 	Vi_t *vp = ed->e_vi;
 	char prompt[PRSIZE+2];		/* prompt */
 	genchar Physical[2*MAXLINE];	/* physical image */
@@ -208,6 +209,12 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 	genchar ubuf[MAXLINE];		/* used for u command */
 	genchar Window[MAXLINE];	/* window image */
 	int Globals[9];			/* local global variables */
+
+	/*** Set raw mode ***/
+
+	if( tty_raw(ERRIO,0) < 0 )
+		return reedit ? reedit : ed_read(context, fd, shbuf, nchar, 0);
+
 	if(!vp)
 	{
 		ed->e_vi = vp = sh_newof(0,Vi_t,1,0);
@@ -222,16 +229,9 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 	ed_setup(vp->ed,fd, reedit);
 	shbuf[reedit] = 0;
 
-	{
-		/*** Set raw mode ***/
-
-		if(tty_raw(ERRIO,0) < 0 )
-			return reedit ? reedit : ed_read(context, fd, shbuf, nchar,0);
-		i = last_virt-1;
-	}
-
 	/*** Initialize some things ***/
 
+	i = last_virt - 1;
 	virtual = (genchar*)shbuf;
 #if SHOPT_MULTIBYTE
 	virtual = (genchar*)roundof((uintptr_t)virtual,sizeof(genchar));
@@ -297,18 +297,9 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 		}
 		virtual[0] = '\0';
 		tty_cooked(ERRIO);
-
-		switch(i)
-		{
-		case UEOF:
-			/*** EOF ***/
-			return 0;
-
-		case UINTR:
-			/** interrupt **/
-			return -1;
-		}
-		return -1;
+		if (i == UEOF)
+			r = 0;	/* EOF */
+		goto done;
 	}
 
 	/*** Get a line from the terminal ***/
@@ -353,10 +344,13 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 		if(vp->ed->nhlist)
 			ed_histlist(vp->ed,0);
 #endif /* SHOPT_EDPREDICT */
-		return last_virt;
+		r = last_virt;
 	}
-	else
-		return -1;
+done:
+	/* avoid leaving invalid pointers to destroyed automatic variables */
+	Prompt = NULL;
+	virtual = physical = window = vp->U_space = vp->u_space = NULL;
+	return r;
 }
 
 
