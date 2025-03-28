@@ -83,6 +83,7 @@ extern void 		hist_list(History_t*,Sfio_t*, off_t, int, char*);
 extern int		hist_match(History_t*,off_t, char*, int*);
 extern off_t		hist_tell(History_t*,int);
 extern off_t		hist_seek(History_t*,int);
+extern int		hist_iswordbndry(char);
 extern char 		*hist_word(char*, int, int);
 #if !_BLD_ksh || SHOPT_ESH
     extern Histloc_t	hist_locate(History_t*,int, int, int);

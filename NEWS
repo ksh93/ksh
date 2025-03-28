@@ -7,6 +7,13 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed crash upon resizing the terminal window after 'stty -echo', including
   when invoking ksh as a child shell in an editor such as emacs (M-x shell).
 
+- The ESC . and ESC _ commands in emacs/gmacs and the _ command in vi, which
+  insert the last word of the last command, now:
+  - recognise not only spaces but also the following shell grammar
+    characters as word boundaries: |&;()`<>
+  - correctly recognise a word that is quoted with the $'...' syntax,
+    even when it includes a backslash-escaped single quote.
+
 2025-03-24:
 
 - Fixed a crash that occurred in specific circumstances when processing a

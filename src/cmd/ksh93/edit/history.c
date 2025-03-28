@@ -999,12 +999,22 @@ int hist_copy(char *s1,int size,int command,int line)
 }
 
 /*
+ * return true if c is a word boundary character, i.e. the
+ * character following c is considered to start a new word
+ */
+
+int hist_iswordbndry(char c)
+{
+	return isspace(c) || strchr("|&;()`<>",c);
+}
+
+/*
  * return word number <word> from command number <command>
  */
 char *hist_word(char *string,int size,int word)
 {
 	int c;
-	int is_space;
+	int is_boundary;
 	int quoted;
 	char *s1 = string;
 	unsigned char *cp = (unsigned char*)s1;
@@ -1015,15 +1025,15 @@ char *hist_word(char *string,int size,int word)
 	hist_copy(string,size,(int)hp->histind-1,-1);
 	for(quoted=0;c = *cp;cp++)
 	{
-		is_space = isspace(c) && !quoted;
-		if(is_space && flag)
+		is_boundary = !quoted && hist_iswordbndry(c);
+		if(is_boundary && flag)
 		{
 			*cp = 0;
 			if(--word==0)
 				break;
 			flag = 0;
 		}
-		else if(is_space==0 && flag==0)
+		else if(is_boundary==0 && flag==0)
 		{
 			s1 = (char*)cp;
 			flag++;
@@ -1036,6 +1046,11 @@ char *hist_word(char *string,int size,int word)
 		else if (c=='\"' && !quoted)
 		{
 			for(cp++;*cp && (*cp != c || quoted);cp++)
+				quoted = *cp=='\\' ? !quoted : 0;
+		}
+		else if (c=='$' && cp[1]=='\'' && !quoted)
+		{
+			for(cp+=2; *cp && (*cp != '\'' || quoted); cp++)
 				quoted = *cp=='\\' ? !quoted : 0;
 		}
 		quoted = *cp=='\\' ? !quoted : 0;

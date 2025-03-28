@@ -127,16 +127,6 @@ static char *parse_subst(const char *s, struct subst *sb)
 }
 
 /*
- * return true if c is a word boundary character, i.e. the
- * character following c is considered to start a new word
- */
-
-static int is_wordboundary(char c)
-{
-	return isspace(c) || strchr("|&;()`<>",c);
-}
-
-/*
  * assign history expansion characters to an array of 3
  */
 
@@ -212,7 +202,7 @@ int hist_expand(const char *ln, char **xp)
 
 		if(hc[2] && *cp == hc[2])
 		{
-			if(cp == ln || is_wordboundary(cp[-1]))
+			if(cp == ln || hist_iswordbndry(cp[-1]))
 			{
 				/* word begins with history comment character; skip rest of line */
 				sfputr(sh.stk,cp,0);
