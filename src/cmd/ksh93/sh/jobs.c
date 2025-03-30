@@ -1418,9 +1418,9 @@ int	job_wait(pid_t pid)
 			kill(sh.current_pid,SIGTSTP);
 		}
 	}
-	else if(job.jobcontrol)
+	else
 	{
-		if(pw->p_pid == tcgetpgrp(JOBTTY))
+		if(job.jobcontrol && pw->p_pid == tcgetpgrp(JOBTTY))
 		{
 			if(pw->p_pgrp==0)
 				pw->p_pgrp = pw->p_pid;

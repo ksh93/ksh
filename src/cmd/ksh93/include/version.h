@@ -18,7 +18,7 @@
 #include <ast_release.h>
 #include "git.h"
 
-#define SH_RELEASE_DATE	"2025-03-28"	/* must be in this format for $((.sh.version)) */
+#define SH_RELEASE_DATE	"2025-03-30"	/* must be in this format for $((.sh.version)) */
 /*
  * This comment keeps SH_RELEASE_DATE a few lines away from SH_RELEASE_SVER to avoid
  * merge conflicts when cherry-picking dev branch commits onto a release branch.
