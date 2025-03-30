@@ -7,6 +7,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: 'stty -echo' failed to turn off echoing of terminal input in
   scripts for subsequent 'read' commands. Bug introduced on 2021-02-11.
 
+- Fixed an issue where any DEBUG trap defined in .kshrc (or other $ENV script)
+  was unexpectedly executed for internal 'tput' commands that ksh invokes at
+  init (to obtain terminal escape sequences for multiline editing).
+
 2025-03-28:
 
 - Fixed crash upon resizing the terminal window after 'stty -echo', including

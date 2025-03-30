@@ -296,11 +296,13 @@ void ed_ringbell(void)
 static void get_tput(char *tp, char **cpp)
 {
 	Shopt_t	o = sh.options;
+	char	*d = sh.st.trap[SH_DEBUGTRAP];
 	char	*cp;
 	sigblock(SIGINT);
 	sh_offoption(SH_RESTRICTED);
 	sh_offoption(SH_VERBOSE);
 	sh_offoption(SH_XTRACE);
+	sh.st.trap[SH_DEBUGTRAP] = NULL;
 	sfprintf(sh.strbuf,".sh.value=${ \\command -p tput %s 2>/dev/null;}",tp);
 	sh_trap(sfstruse(sh.strbuf),0);
 	if((cp = nv_getval(SH_VALNOD)) && (!*cpp || strcmp(cp,*cpp)!=0))
@@ -316,6 +318,7 @@ static void get_tput(char *tp, char **cpp)
 		*cpp = NULL;
 	}
 	nv_unset(SH_VALNOD);
+	sh.st.trap[SH_DEBUGTRAP] = d;
 	sh.options = o;
 	sigrelease(SIGINT);
 }
