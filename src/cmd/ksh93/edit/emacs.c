@@ -130,7 +130,6 @@ typedef struct _emacs_
 #define lstring		editb.e_search
 #define lookahead	editb.e_lookahead
 #define env		editb.e_env
-#define raw		editb.e_raw
 #define histlines	editb.e_hismax
 #define w_size		editb.e_wsize
 #define drawbuff	editb.e_inbuf
@@ -198,8 +197,6 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 	ep->screen = Screen;
 	ep->lastdraw = FINAL;
 	ep->ehist = 0;
-	raw = 1;
-	/* This mess in case the read system call fails */
 	ed_setup(ep->ed,fd,reedit);
 #if !SHOPT_MULTIBYTE
 	out = (genchar*)buff;
@@ -270,21 +267,13 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			}
 		}
 		if (c == usrkill)
-		{
 			c = KILLCHAR ;
-		}
 		else if (c == usrerase)
-		{
 			c = ERASECHAR ;
-		}
 		else if (c == usrlnext)
-		{
 			c = LNEXTCHAR ;
-		}
 		else if ((c == usreof)&&(eol == 0))
-		{
 			c = EOFCHAR;
-		}
 		if (--killing <= 0)	/* reset killing flag */
 			killing = 0;
 		oadjust = count = adjust;
@@ -318,11 +307,6 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			tty_cooked(ERRIO);
 			r = 0;
 			goto done;
-#ifdef u370
-		case cntl('S') :
-		case cntl('Q') :
-			continue;
-#endif	/* u370 */
 		case '\t':
 			if(cur>0  && sh.nextprompt)
 			{

@@ -2998,7 +2998,11 @@ make|view)
 
 	# transition - we no longer install these there and old versions get in the way
 
-	rm -f "$INSTALLROOT/bin/.paths" "$INSTALLROOT/bin/package" &
+	for f in bin/.paths bin/package src/cmd/INIT/mamake
+	do	if	test -f "$INSTALLROOT/$f"
+		then	rm -f "$INSTALLROOT/$f"
+		fi
+	done
 
 	# run from separate copies since ksh may be rebuilt
 

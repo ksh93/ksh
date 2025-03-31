@@ -616,6 +616,7 @@ make install virtual
 	done
 	note * The following block was moved out of lc.h to resolve a circular dependency on lc.h.
 	note * We have to break the dependency loop somewhere: lctab.c depends on lclib.h but we cannot declare that here.
+	note * So we declare it further below in the lctab.o rule instead.
 	make port/lclib.h
 		prev lc.h
 		make include/error.h
@@ -1480,6 +1481,9 @@ make install virtual
 		done
 
 		make lctab.o
+			note * The lclib.h dependency cannot be declared in the lctab.c rule due
+			note * to a circular dependency on lc.h, so we declare it here instead.
+			prev port/lclib.h
 			prev lctab.c
 			exec - compile %{<} -Iport
 		done

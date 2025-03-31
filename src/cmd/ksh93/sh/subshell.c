@@ -857,7 +857,12 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		}
 #else
 		/* restore the present working directory */
+#if __QNX__
+		/* workaround: on QNX 6.5.0, fchdir back to /dev fails with ENOSYS */
+		if(sp->pwdfd > 0 && fchdir(sp->pwdfd) < 0 && !(errno==ENOSYS && chdir(sp->pwd)==0))
+#else
 		if(sp->pwdfd > 0 && fchdir(sp->pwdfd) < 0)
+#endif /* __QNX__ */
 		{
 			saveerrno = errno;
 			fatalerror = 2;

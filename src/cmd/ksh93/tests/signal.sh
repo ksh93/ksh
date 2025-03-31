@@ -208,7 +208,6 @@
 	exp[z-d]="3-intr 2-intr 1-0000"
 	exp[zt-]="3-intr 2-intr 1-intr 1-0000"
 	exp[ztd]="3-intr 2-intr 1-intr 1-0000"
-	wait "$parallel_1"
 	while	read ops out
 	do	[[ $out == "${exp[$ops]}" ]] || print "\\err_exit $LINENO 'interrupt $ops test failed --" \
 			"expected '\''${exp[$ops]}'\'', got '\''$out'\'"

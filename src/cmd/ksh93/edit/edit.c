@@ -193,14 +193,8 @@ int tty_raw(int fd, int echomode)
 	ttyparm.c_lflag &= ~FLUSHO;
 #endif /* FLUSHO */
 	nttyparm = ttyparm;
-#ifndef u370
 	nttyparm.c_iflag &= ~(IGNPAR|PARMRK|INLCR|IGNCR|ICRNL);
 	nttyparm.c_iflag |= BRKINT;
-#else
-	nttyparm.c_iflag &=
-			~(IGNBRK|PARMRK|INLCR|IGNCR|ICRNL|INPCK);
-	nttyparm.c_iflag |= (BRKINT|IGNPAR);
-#endif	/* u370 */
 	if(echo)
 		nttyparm.c_lflag &= ~(ICANON);
 	else

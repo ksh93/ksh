@@ -82,7 +82,7 @@ int        sfstrclose(Sfio_t* f);
 .ft 5
 int        sfgetc(Sfio_t* f);
 int        sfputc(Sfio_t* f, int c);
-int        sfnputc(Sfio_t* f, int c, int n);
+ssize_t    sfnputc(Sfio_t* f, int c, size_t n);
 int        sfungetc(Sfio_t* f, int c);
 
 Sfulong_t  sfgetm(Sfio_t* f, Sfulong_t max);
@@ -117,8 +117,8 @@ char*      sfprints(const char* format, ...);
 char*      sfvprints(const char* format, va_list args);
 ssize_t    sfaprints(char** sp, const char* format, ...);
 ssize_t    sfvaprints(char** sp, const char* format, va_list args);
-int        sfsprintf(char* s, int n, const char* format, ...);
-int        sfvsprintf(char* s, int n, const char* format, va_list args);
+ssize_t    sfsprintf(char* s, size_t n, const char* format, ...);
+ssize_t    sfvsprintf(char* s, size_t n, const char* format, va_list args);
 int        sfvprintf(Sfio_t* f, const char* format, va_list args);
 
 Sffmt_t;
@@ -1046,8 +1046,8 @@ which is defined in the macro value \f3SFIO_VERSION\fP.
 .Ss "  char* sfvprints(const char* format, va_list args);"
 .Ss "  ssize_t sfaprints(char** sp, const char* format, ...);"
 .Ss "  ssize_t sfvaprints(char** sp, const char* format, va_list args);"
-.Ss "  int sfsprintf(char* s, int n, const char* format, ...)"
-.Ss "  int sfvsprintf(char* s, int n, const char* format, va_list args);"
+.Ss "  ssize_t sfsprintf(char* s, size_t n, const char* format, ...)"
+.Ss "  ssize_t sfvsprintf(char* s, size_t n, const char* format, va_list args);"
 .Ss "  int sfvprintf(Sfio_t* f, const char* format, va_list args);"
 These functions format output data.
 \f3sfprintf()\fP and \f3sfvprintf()\fP write to output stream \f3f\fP.
