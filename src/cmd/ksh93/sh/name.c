@@ -1593,17 +1593,16 @@ static char *savep;
 static char savechars[8+1];
 
 /*
- * put value <string> into name-value node <np>.
+ * Put value <sp> into name-value node <np>.
  * If <np> is an array, then the element given by the
  *   current index is assigned to.
- * If <flags> contains NV_RDONLY, readonly attribute is ignored
- * If <flags> contains NV_INTEGER, string is a pointer to a number
- * If <flags> contains NV_NOFREE, previous value is freed, and <string>
- * becomes value of node and <flags> becomes attributes
+ * If <flags> contains NV_RDONLY, readonly attribute is ignored.
+ * If <flags> contains NV_INTEGER, sp is a pointer to a number.
+ * If <flags> contains NV_NOFREE, previous value is freed, and <sp>
+ * becomes value of node and <flags> becomes attributes.
  */
-void nv_putval(Namval_t *np, const char *string, int flags)
+void nv_putval(Namval_t *np, const char *sp, int flags)
 {
-	const char	*sp=string;
 	void		**vpp;	/* pointer to value pointer */
 	unsigned int	size = 0;
 	int		was_local = nv_local;
@@ -1659,14 +1658,15 @@ void nv_putval(Namval_t *np, const char *string, int flags)
 		nv_setattr(np,(flags&~NV_RDONLY)|NV_NOFREE);
 		return;
 	}
-	vpp = &np->nvalue;
 #if SHOPT_FIXEDARRAY
 	if(np->nvalue && nv_isarray(np) && (ap=nv_arrayptr(np)) && !ap->fixed)
 #else
 	if(np->nvalue && nv_isarray(np) && nv_arrayptr(np))
 #endif /* SHOPT_FIXEDARRAY */
 		vpp = np->nvalue;
-	if(vpp && *vpp==Empty)
+	else
+		vpp = &np->nvalue;
+	if(*vpp==Empty)
 		*vpp = NULL;
 	if(nv_isattr(np,NV_INTEGER))
 	{
@@ -2663,7 +2663,7 @@ void sh_optclear(void *old)
  */
 char *nv_getval(Namval_t *np)
 {
-	void **vpp = &np->nvalue;	/* pointer to value pointer */
+	void *vp = np->nvalue;	/* value pointer */
 	size_t n;
 	if(!nv_local && nv_getoptimize())
 		nv_optimize(np);
@@ -2672,7 +2672,7 @@ char *nv_getval(Namval_t *np)
 	if(nv_isref(np))
 	{
 		char *sub;
-		if(!np->nvalue)
+		if(!vp)
 			return NULL;
 		sh.last_table = nv_reftable(np);
 		sub=nv_refsub(np);
@@ -2697,14 +2697,14 @@ char *nv_getval(Namval_t *np)
 	{
 		Sflong_t  ll;
 		int base;
-		if(!*vpp)
+		if(!vp)
 			return "0";
 		if(nv_isattr(np,NV_DOUBLE)==NV_DOUBLE)
 		{
 			char *format;
 			if(nv_isattr(np,NV_LONG) && sizeof(double)<sizeof(Sfdouble_t))
 			{
-				Sfdouble_t ld = *(Sfdouble_t*)*vpp;
+				Sfdouble_t ld = *(Sfdouble_t*)vp;
 				if(nv_isattr(np,NV_EXPNOTE))
 					format = "%.*Lg";
 				else if(nv_isattr(np,NV_HEXFLOAT))
@@ -2715,7 +2715,7 @@ char *nv_getval(Namval_t *np)
 			}
 			else
 			{
-				double d = *(double*)*vpp;
+				double d = *(double*)vp;
 				if(nv_isattr(np,NV_EXPNOTE))
 					format = "%.*g";
 				else if(nv_isattr(np,NV_HEXFLOAT))
@@ -2729,18 +2729,18 @@ char *nv_getval(Namval_t *np)
 		else if(nv_isattr(np,NV_UNSIGN))
 		{
 	        	if(nv_isattr(np,NV_LONG))
-				ll = *(Sfulong_t*)*vpp;
+				ll = *(Sfulong_t*)vp;
 			else if(nv_isattr(np,NV_SHORT))
-				ll = *(uint16_t*)*vpp;
+				ll = *(uint16_t*)vp;
 			else
-				ll = *(uint32_t*)*vpp;
+				ll = *(uint32_t*)vp;
 		}
 		else if(nv_isattr(np,NV_LONG))
-			ll = *(Sflong_t*)*vpp;
+			ll = *(Sflong_t*)vp;
 		else if(nv_isattr(np,NV_SHORT))
-			ll = *(int16_t*)*vpp;
+			ll = *(int16_t*)vp;
 		else
-			ll = *(uint32_t*)*vpp;
+			ll = *(uint32_t*)vp;
 		base = nv_size(np);
 		if(base==10)
 			return fmtint(ll, nv_isattr(np,NV_UNSIGN));
@@ -2753,23 +2753,23 @@ done:
 	 * if NV_RAW flag is on, return pointer to binary data
 	 * otherwise, base64 encode the data and return this string
 	 */
-	if(*vpp && nv_isattr(np,NV_BINARY) && !nv_isattr(np,NV_RAW))
+	if(vp && nv_isattr(np,NV_BINARY) && !nv_isattr(np,NV_RAW))
 	{
 		char *cp;
 		char *ep;
 		int size= nv_size(np), insize=(4*size)/3+size/45+8;
-		base64encode(*vpp, size, NULL, cp=getbuf(insize), insize, (void**)&ep);
+		base64encode(vp, size, NULL, cp=getbuf(insize), insize, (void**)&ep);
 		*ep = 0;
 		return cp;
 	}
-	if(!nv_isattr(np,NV_LJUST|NV_RJUST) && (n = nv_size(np)) && *vpp && ((char*)*vpp)[n])
+	if(!nv_isattr(np,NV_LJUST|NV_RJUST) && (n = nv_size(np)) && vp && ((char*)vp)[n])
 	{
 		char *cp = getbuf(n + 1);
-		memcpy(cp,*vpp,n);
+		memcpy(cp,vp,n);
 		cp[n]=0;
 		return cp;
 	}
-	return *vpp;
+	return vp;
 }
 
 Sfdouble_t nv_getnum(Namval_t *np)
