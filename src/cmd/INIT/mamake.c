@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2025-01-05"
+#define RELEASE_DATE "2025-04-02"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -238,6 +238,7 @@ typedef struct Rule_s			/* rule item			*/
 	int		flags;		/* RULE_* flags			*/
 	int		making;		/* currently make()ing		*/
 	time_t		time;		/* modification time		*/
+	time_t		parenttime;	/* parent's modification time	*/
 	unsigned int	line;		/* starting line in Mamfile	*/
 	unsigned int	endline;	/* ending line in Mamfile	*/
 	pid_t		pid;		/* PID of parallel bg job	*/
@@ -2280,6 +2281,13 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 					propagate(r, NULL, &st.modtime);
 				r->flags |= RULE_updated;
 			}
+			else if (st.modtime > r->parenttime && r->flags & RULE_generated)
+			{
+				/* if we didn't generate the target in this run, but it's newer than the parent
+				 * target, then the generation of the parent target was probably interrupted
+				 * and then resumed in this run, so include this target in %{?} for consistency */
+				r->flags |= RULE_updated;
+			}
 			r->flags |= RULE_made;
 			if (!(r->flags & (RULE_dontcare|RULE_error|RULE_exists|RULE_generated|RULE_virtual)))
 				error_making(r, 0);
@@ -2390,6 +2398,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			{
 				/* make the target */
 				attributes(q, v);
+				q->parenttime = r->time;
 				make(q, NULL);
 				if (q->pid)
 				{
