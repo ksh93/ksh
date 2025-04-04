@@ -735,7 +735,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 {
 	int c;
 #if SHOPT_MULTIBYTE
-	char *endp, *p=string;
+	char *endp, *p=string, *prevp;
 	int size, offset = ep->e_lookahead + nbyte;
 	*(endp = &p[nbyte]) = 0;
 	endp = &p[nbyte];
@@ -759,6 +759,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 		}
 		else
 		{
+			prevp = p;
 		again:
 			if((c=mbchar(p)) >=0)
 			{
@@ -766,19 +767,24 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 				if(type)
 					c = -c;
 			}
-#ifdef EILSEQ
-			else if(errno == EILSEQ)
-				errno = 0;
-#endif
 			else if((endp-p) < mbmax())
 			{
+#ifdef EILSEQ
+				if(errno == EILSEQ)
+					errno = 0;
+#endif
 				if ((c=ed_read(ep,ep->e_fd,endp, 1,0)) == 1)
 				{
+					p = prevp;
 					*++endp = 0;
 					goto again;
 				}
 				return c;
 			}
+#ifdef EILSEQ
+			else if(errno == EILSEQ)
+				errno = 0;
+#endif
 			else
 			{
 				ed_ringbell();
@@ -828,7 +834,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 int ed_getchar(Edit_t *ep,int mode)
 {
 	int n = 0, c;
-	char readin[LOOKAHEAD+1];
+	char readin[LOOKAHEAD+6];
 	if(!ep->e_lookahead)
 	{
 		ed_flush(ep);
