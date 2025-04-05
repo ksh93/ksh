@@ -769,10 +769,8 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 			}
 			else if((endp-p) < mbmax())
 			{
-#ifdef EILSEQ
 				if(errno == EILSEQ)
 					errno = 0;
-#endif
 				if ((c=ed_read(ep,ep->e_fd,endp, 1,0)) == 1)
 				{
 					p = prevp;
@@ -781,10 +779,8 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 				}
 				return c;
 			}
-#ifdef EILSEQ
 			else if(errno == EILSEQ)
 				errno = 0;
-#endif
 			else
 			{
 				ed_ringbell();
@@ -834,7 +830,10 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 int ed_getchar(Edit_t *ep,int mode)
 {
 	int n = 0, c;
-	char readin[LOOKAHEAD+6];
+	static char *readin;
+	static int old_mbmax;
+	if(old_mbmax < mbmax())
+		readin = sh_realloc(readin, LOOKAHEAD + (old_mbmax = mbmax()));
 	if(!ep->e_lookahead)
 	{
 		ed_flush(ep);
