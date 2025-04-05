@@ -54,6 +54,13 @@ fi
 if	[[ ${string1%%*zzz*} != "$string1" ]]
 then	err_exit "string1%%*zzz*"
 fi
+string2=aaaa
+if	[[ ${string2%%aaa} != "a" ]]
+then	err_exit "string2%%aaa"
+fi
+if	[[ ${string2%aaa} != "a" ]]
+then	err_exit "string2%aaa"
+fi
 if	[[ ${string1#*zzz*} != "$string1" ]]
 then	err_exit "string1#*zzz*"
 fi

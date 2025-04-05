@@ -1905,6 +1905,38 @@ retry2:
 			if(c=='/' || c=='#' || c== '%')
 			{
 				flag = (type || c=='/')?(STR_GROUP|STR_MAXIMAL):STR_GROUP;
+				/* phi: bug-833 *******************************/
+				/* type='%' && c='%' means we got %%
+				 * The following code with variation around
+				 * sunstring() and strngrpmatch() is broken
+				 * since its inception.
+				 * When the pattern that follow %% is a
+				 * non-pattern, i.e a pure string then
+				 * %% is the same as %.
+				 * To avoid upseting this code, I implement this
+				 * ugly kludge here that reset the STR_MAXIMAL
+				 * bit in the case of non-pattern %%
+				 */
+				if(type=='%' && c=='%')
+				{
+					char *p=pattern;
+					while(*p)
+					{
+						if( *p=='*' ||
+						    *p=='?' ||
+						    *p=='[' ||
+						    *p=='(')
+						{ break;
+						}
+						p++;
+					}
+					if(!*p)
+						flag=~STR_MAXIMAL;
+				  if(!*p)
+					flag=~STR_MAXIMAL;
+				}
+				/* phi: bug-833 ******************************/
+
 				if(c!='/')
 					flag |= STR_LEFT;
 				index = nmatch = 0;
