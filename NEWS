@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-04-05:
+
+- Fixed a bug where pasting over 80 bytes of multibyte characters into the
+  command line over ssh resulted in corrupted input. This problem was caused
+  by multibyte characters being split when the typeahead buffer is full.
+
 2025-03-30:
 
 - Fixed: 'stty -echo' failed to turn off echoing of terminal input in

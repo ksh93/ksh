@@ -15,6 +15,7 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *               Anuradha Weeraman <anuradha@debian.org>                *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
+*            SHIMIZU Akifumi <shimizu.akifumi@fujitsu.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
