@@ -3021,7 +3021,14 @@ special(Cenv_t* env, regex_t* p)
 	DEBUG_INIT();
 	if (e = p->env->rex)
 	{
-		if ((x = env->stats.x) && x->re.string.size < 3)
+	 	 /* phi: bug-833
+		  * orig: if ((x = env->stats.x) && x->re.string.size < 3
+		  * I don't see any reasons to limit this to string <3
+		  * I remove it here.
+		  * For the net one t->re.trie.min I can't figure out a test
+		  * case, leave it this way...
+		  */
+		if ((x = env->stats.x) /* && x->re.string.size < 3 */)
 			x = 0;
 		if ((t = env->stats.y) && t->re.trie.min < 3)
 			t = 0;

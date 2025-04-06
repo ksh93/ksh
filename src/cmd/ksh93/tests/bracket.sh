@@ -623,4 +623,13 @@ test b = b c -a "" 2>/dev/null
 [[ -v p ]] && set --noposix && unset p
 
 # ======
+# Test added for bug-833
+[[ abc == ~(E)\babc\b ]] || err_exit '\b not preserved for ere when not in ()'
+[[ aaaaa =~ a$      ]] || err_exit 'aaaaa =~ a$ not working' 
+[[ aaaaa =~ aa$     ]] || err_exit 'aaaaa =~ aa$ not working'
+[[ aaaaa =~ aaa$    ]] || err_exit 'aaaaa =~ aaa$ not working'
+[[ aaaaa =~ aaaa$   ]] || err_exit 'aaaaa =~ aaaa$ not working'
+[[ aaaaa =~ aaaaa$  ]] || err_exit 'aaaaa =~ aaaaa$ not working'
+[[ aaaaa =~ aaaaaa$ ]] && err_exit 'aaaaa =~ aaaaaa$ not working' 
+# ======
 exit $((Errors<125?Errors:125))

@@ -766,4 +766,26 @@ got=$(x=abcdefg; set +x; eval 'echo ${x:(10-9)+1:((1&&1)|2)}' 2>&1)
 	"(expected status 0 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 # ======
+# Test added for bug-833
+string2=aaaaa
+if	[[ ${string2%%a} != "aaaa" ]]
+then	err_exit "string2%%a"
+fi
+if	[[ ${string2%%aa} != "aaa" ]]
+then	err_exit "string2%%a"
+fi
+if	[[ ${string2%%aaa} != "aa" ]]
+then	err_exit "string2%%a"
+fi
+if	[[ ${string2%%aaaa} != "a" ]]
+then	err_exit "string2%%a"
+fi
+if	[[ ${string2%%aaaaa} != "" ]]
+then	err_exit "string2%%a"
+fi
+if	[[ ${string2%%aaaaaa} != "aaaaa" ]]
+then	err_exit "string2%%a"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
