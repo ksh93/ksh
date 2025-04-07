@@ -831,10 +831,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 int ed_getchar(Edit_t *ep,int mode)
 {
 	int n = 0, c;
-	static char *readin;
-	static int old_mbmax;
-	if(old_mbmax < mbmax())
-		readin = sh_realloc(readin, LOOKAHEAD + (old_mbmax = mbmax()));
+	char *readin = fmtbuf(LOOKAHEAD + mbmax());
 	if(!ep->e_lookahead)
 	{
 		ed_flush(ep);
