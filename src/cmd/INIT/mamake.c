@@ -1319,8 +1319,7 @@ static int pop(void)
 {
 	int	r;
 
-	if (!state.sp)
-		error_out("input stack underflow", NULL);
+	assert(state.sp);
 	if (!state.sp->fp || (state.sp->flags & STREAM_KEEP))
 		r = 0;
 	else if (state.sp->flags & STREAM_PIPE)
@@ -1391,8 +1390,7 @@ static char *input(void)
 	static char	input[CHUNK];  /* input buffer */
 	char		*e;
 
-	if (!state.sp)
-		error_out("no input file stream", NULL);
+	assert(state.sp);
 	if (!fgets(input, sizeof input, state.sp->fp) || !*input)
 	{
 		if (ferror(state.sp->fp))
