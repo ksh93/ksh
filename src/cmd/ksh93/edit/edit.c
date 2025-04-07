@@ -736,7 +736,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 {
 	int c;
 #if SHOPT_MULTIBYTE
-	char *endp, *p=string, *prevp;
+	char *endp, *p=string;
 	int size, offset = ep->e_lookahead + nbyte;
 	*(endp = &p[nbyte]) = 0;
 	endp = &p[nbyte];
@@ -760,7 +760,7 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 		}
 		else
 		{
-			prevp = p;
+			char *prevp = p;
 		again:
 			if((c=mbchar(p)) >=0)
 			{
