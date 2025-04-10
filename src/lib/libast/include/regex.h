@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -177,7 +177,6 @@ typedef struct regstat_s
 	regflags_t	re_flags;	/* REG_*			*/
 	ssize_t		re_min;		/* min anchored match length	*/
 	ssize_t		re_max;		/* max anchored match length	*/
-	ssize_t		re_record;	/* regrexec() match length	*/
 	regflags_t	re_info;	/* REG_* info			*/
 } regstat_t;
 
@@ -208,7 +207,6 @@ extern void	regfree(regex_t*);
 #define _REG_fatal	1	/* have regfatal(), regfatalpat()	*/
 #define _REG_ncomp	1	/* have regncomp()			*/
 #define _REG_nexec	1	/* have regnexec()			*/
-#define _REG_rexec	1	/* have regrexec(), regrecord()		*/
 #define _REG_stat	1	/* have regstat()			*/
 #define _REG_subcomp	1	/* have regsubcomp(), regsubexec()	*/
 
@@ -222,8 +220,6 @@ extern int	regncomp(regex_t*, const char*, size_t, regflags_t);
 extern int	regnexec(const regex_t*, const char*, size_t, size_t, regmatch_t*, regflags_t);
 extern void	regfatal(regex_t*, int, int);
 extern void	regfatalpat(regex_t*, int, int, const char*);
-extern int	regrecord(const regex_t*);
-extern int	regrexec(const regex_t*, const char*, size_t, size_t, regmatch_t*, regflags_t, int, void*, regrecord_t);
 extern regstat_t* regstat(const regex_t*);
 
 extern regex_t*	regcache(const char*, regflags_t, int*);
@@ -242,3 +238,7 @@ struct _sfio_s;
 extern void	regalloc(void*, regresize_t, regflags_t);
 
 #endif
+
+/* backward compat for removed functions */
+#define regrecord(re)			(re,0)
+#define regrexec(re,b,sz,n,m,f,s,h,r)	(re,b,sz,n,m,f,s,h,r,REG_BADPAT)

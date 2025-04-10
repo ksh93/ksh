@@ -137,7 +137,7 @@ node(Cenv_t* env, int type, int lo, int hi, size_t extra)
 {
 	Rex_t*	e;
 
-	DEBUG_TEST(0x0800,(sfprintf(sfstdout, "%s:%d node(%d,%d,%d,%u)\n", file, line, type, lo, hi, sizeof(Rex_t) + extra)),(0));
+	DEBUG_TEST(0x0800,(sfprintf(sfstdout, "node(%d,%d,%d,%u)\n", type, lo, hi, sizeof(Rex_t) + extra)),(0));
 	if (e = (Rex_t*)alloc(env->disc, 0, sizeof(Rex_t) + extra))
 	{
 		memset(e, 0, sizeof(Rex_t) + extra);
@@ -2935,295 +2935,6 @@ alt(Cenv_t* env, int number, int cond)
 	return NULL;
 }
 
-/*
- * add v to REX_BM tables
- */
-
-static void
-bmstr(Rex_t* a, unsigned char* v, int n, Bm_mask_t b)
-{
-	int	c;
-	int	m;
-	size_t	z;
-
-	for (m = 0; m < n; m++)
-	{
-		if (!(z = n - m - 1))
-			z = HIT;
-		c = v[m];
-		a->re.bm.mask[m][c] |= b;
-		if (z == HIT || !a->re.bm.skip[c] || a->re.bm.skip[c] > z && a->re.bm.skip[c] < HIT)
-			a->re.bm.skip[c] = z;
-		if (a->flags & REG_ICASE)
-		{
-			if (isupper(c))
-				c = tolower(c);
-			else if (islower(c))
-				c = toupper(c);
-			else
-				continue;
-			a->re.bm.mask[m][c] |= b;
-			if (z == HIT || !a->re.bm.skip[c] || a->re.bm.skip[c] > z && a->re.bm.skip[c] < HIT)
-				a->re.bm.skip[c] = z;
-		}
-	}
-}
-
-/*
- * set up BM table from trie
- */
-
-static int
-bmtrie(Rex_t* a, unsigned char* v, Trie_node_t* x, int n, int m, Bm_mask_t b)
-{
-	do
-	{
-		v[m] = x->c;
-		if (m >= (n - 1))
-		{
-			bmstr(a, v, n, b);
-			if (!(b <<= 1))
-			{
-				b = 1;
-				a->re.bm.complete = 0;
-			}
-			else if (x->son)
-				a->re.bm.complete = 0;
-		}
-		else if (x->son)
-			b = bmtrie(a, v, x->son, n, m + 1, b);
-	} while (x = x->sib);
-	return b;
-}
-
-/*
- * rewrite the expression tree for some special cases
- * 1. it is a null expression - illegal
- * 2. max length fixed string found -- use BM algorithm
- * 3. it begins with an unanchored string - use KMP algorithm
- * 0 returned on success
- */
-
-static int
-special(Cenv_t* env, regex_t* p)
-{
-	Rex_t*		a;
-	Rex_t*		e;
-	Rex_t*		t;
-	Rex_t*		x;
-	Rex_t*		y;
-	unsigned char*	s;
-	int*		f;
-	int		n;
-	int		m;
-	int		k;
-
-	DEBUG_INIT();
-	if (e = p->env->rex)
-	{
-		if ((x = env->stats.x) && x->re.string.size < 3)
-			x = 0;
-		if ((t = env->stats.y) && t->re.trie.min < 3)
-			t = 0;
-		if (x && t)
-		{
-			if (x->re.string.size >= t->re.trie.min)
-				t = 0;
-			else
-				x = 0;
-		}
-		if (x || t)
-		{
-			Bm_mask_t**	mask;
-			Bm_mask_t*	h;
-			unsigned char*	v;
-			size_t*		q;
-			size_t		l;
-			int		i;
-			int		j;
-
-			if (x)
-			{
-				y = x;
-				n = m = x->re.string.size;
-				l = env->stats.l;
-			}
-			else
-			{
-				y = t;
-				n = t->re.trie.min;
-				m = t->re.trie.max;
-				l = env->stats.k;
-			}
-			if (!(q = (size_t*)alloc(env->disc, 0, (n + 1) * sizeof(size_t))))
-				return 1;
-			if (!(a = node(env, REX_BM, 0, 0, n * (sizeof(Bm_mask_t*) + (UCHAR_MAX + 1) * sizeof(Bm_mask_t)) + (UCHAR_MAX + n + 2) * sizeof(size_t))))
-			{
-				alloc(env->disc, q, 0);
-				return 1;
-			}
-			a->flags = y->flags;
-			a->map = y->map;
-			a->re.bm.size = n;
-			a->re.bm.back = (y == e || y == e->re.group.expr.rex) ? (m - n) : -1;
-			a->re.bm.left = l - 1;
-			a->re.bm.right = env->stats.m - l - n;
-			a->re.bm.complete = (env->stats.e || y != e && (e->type != REX_GROUP || y != e->re.group.expr.rex) || e->next || ((a->re.bm.left + a->re.bm.right) >= 0)) ? 0 : n;
-			h = (Bm_mask_t*)&a->re.bm.mask[n];
-			a->re.bm.skip = (size_t*)(h + n * (UCHAR_MAX + 1));
-			a->re.bm.fail = &a->re.bm.skip[UCHAR_MAX + 1];
-			for (m = 0; m <= UCHAR_MAX; m++)
-				a->re.bm.skip[m] = n;
-			a->re.bm.skip[0] = a->re.bm.skip[env->mappednewline] = (y->next && y->next->type == REX_END) ? HIT : (n + a->re.bm.left);
-			for (i = 1; i <= n; i++)
-				a->re.bm.fail[i] = 2 * n - i;
-			mask = a->re.bm.mask;
-			for (m = 0; m < n; m++)
-			{
-				mask[m] = h;
-				h += UCHAR_MAX + 1;
-			}
-			if (x)
-				bmstr(a, x->re.string.base, n, 1);
-			else
-			{
-				v = (unsigned char*)q;
-				memset(v, 0, n);
-				m = 1;
-				for (i = 0; i <= UCHAR_MAX; i++)
-					if (t->re.trie.root[i])
-						m = bmtrie(a, v, t->re.trie.root[i], n, 0, m);
-			}
-			mask--;
-			memset(q, 0, n * sizeof(*q));
-			for (k = (j = n) + 1; j > 0; j--, k--)
-			{
-				DEBUG_TEST(0x0010,(sfprintf(sfstderr, "BM#0: k=%d j=%d\n", k, j)),(0));
-				for (q[j] = k; k <= n; k = q[k])
-				{
-					for (m = 0; m <= UCHAR_MAX; m++)
-						if (mask[k][m] == mask[j][m])
-						{
-							DEBUG_TEST(0x0010,sfprintf(sfstderr, "CUT1: mask[%d][%c]=mask[%d][%c]\n", k, m, j, m), (0));
-							goto cut;
-						}
-					DEBUG_TEST(0x0010,sfprintf(sfstderr, "BM#2: fail[%d]=%d => %d\n", k, a->re.bm.fail[k], (a->re.bm.fail[k] > n - j) ? (n - j) : a->re.bm.fail[k]), (0));
-					if (a->re.bm.fail[k] > n - j)
-						a->re.bm.fail[k] = n - j;
-				}
-			cut:	;
-			}
-			for (i = 1; i <= n; i++)
-				if (a->re.bm.fail[i] > n + k - i)
-				{
-					DEBUG_TEST(0x0010,sfprintf(sfstderr, "BM#4: fail[%d]=%d => %d\n", i, a->re.bm.fail[i], n + k - i), (0));
-					a->re.bm.fail[i] = n + k - i;
-				}
-#if _AST_REGEX_DEBUG
-			if (DEBUG_TEST(0x0020,(1),(0)))
-			{
-				sfprintf(sfstderr, "STAT: complete=%d n=%d k=%d l=%d r=%d y=%d:%d e=%d:%d\n", a->re.bm.complete, n, k, a->re.bm.left, a->re.bm.right, y->type, y->next ? y->next->type : 0, e->type, e->next ? e->next->type : 0);
-				for (m = 0; m < n; m++)
-					for (i = 1; i <= UCHAR_MAX; i++)
-						if (a->re.bm.mask[m][i])
-							sfprintf(sfstderr, "MASK: [%d]['%c'] = %032..2u\n", m, i, a->re.bm.mask[m][i]);
-				for (i = ' '; i <= UCHAR_MAX; i++)
-					if (a->re.bm.skip[i] >= HIT)
-						sfprintf(sfstderr, "SKIP: ['%c'] =   *\n", i);
-					else if (a->re.bm.skip[i] > 0 && a->re.bm.skip[i] < n)
-						sfprintf(sfstderr, "SKIP: ['%c'] = %3d\n", i, a->re.bm.skip[i]);
-				for (j = 31; j >= 0; j--)
-				{
-					sfprintf(sfstderr, "      ");
-				next:
-					for (m = 0; m < n; m++)
-					{
-						for (i = 0040; i < 0177; i++)
-							if (a->re.bm.mask[m][i] & (1 << j))
-							{
-								sfprintf(sfstderr, "  %c", i);
-								break;
-							}
-						if (i >= 0177)
-						{
-							if (j > 0)
-							{
-								j--;
-								goto next;
-							}
-							sfprintf(sfstderr, "  ?");
-						}
-					}
-					sfprintf(sfstderr, "\n");
-				}
-				sfprintf(sfstderr, "FAIL: ");
-				for (m = 1; m <= n; m++)
-					sfprintf(sfstderr, "%3d", a->re.bm.fail[m]);
-				sfprintf(sfstderr, "\n");
-			}
-#endif
-			alloc(env->disc, q, 0);
-			a->next = e;
-			p->env->rex = a;
-			return 0;
-		}
-		switch (e->type)
-		{
-		case REX_BEG:
-			if (env->flags & REG_NEWLINE)
-				return 0;
-			break;
-		case REX_GROUP:
-			if (env->stats.b)
-				return 0;
-			e = e->re.group.expr.rex;
-			if (e->type != REX_DOT)
-				return 0;
-			/* FALLTHROUGH */
-		case REX_DOT:
-			if (e->lo == 0 && e->hi == RE_DUP_INF)
-				break;
-			return 0;
-		case REX_NULL:
-			if (env->flags & (REG_NULL|REG_REGEXP))
-				break;
-			env->error = REG_ENULL;
-			return 1;
-		case REX_STRING:
-			if ((env->flags & (REG_LEFT|REG_LITERAL|REG_RIGHT)) || e->map)
-				return 0;
-			s = e->re.string.base;
-			n = e->re.string.size;
-			if (!(a = node(env, REX_KMP, 0, 0, n * (sizeof(int*) + 1))))
-				return 1;
-			a->flags = e->flags;
-			a->map = e->map;
-			f = a->re.string.fail;
-			memcpy((char*)(a->re.string.base = (unsigned char*)&f[n]), (char*)s, n);
-			s = a->re.string.base;
-			a->re.string.size = n;
-			f[0] = m = -1;
-			for (k = 1; k < n; k++)
-			{
-				while (m >= 0 && s[m+1] != s[k])
-					m = f[m];
-				if (s[m+1] == s[k])
-					m++;
-				f[k] = m;
-			}
-			a->next = e->next;
-			p->env->rex = a;
-			e->next = 0;
-			drop(env->disc, e);
-			break;
-		default:
-			return 0;
-		}
-	}
-	p->env->once = 1;
-	return 0;
-}
-
 int
 regcomp(regex_t* p, const char* pattern, regflags_t flags)
 {
@@ -3382,8 +3093,6 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 		if (!(p->env->stats.re_max = env.stats.n))
 			p->env->stats.re_max = -1;
 	}
-	if (special(&env, p))
-		goto bad;
 	serialize(&env, p->env->rex, 1);
 	p->re_nsub = env.stats.p;
 	if (env.type == KRE)
@@ -3445,7 +3154,7 @@ regncomp(regex_t* p, const char* pattern, size_t size, regflags_t flags)
  * replacing first with the combination and freeing second.
  * return 0 on success.
  * the only combinations handled are building a Trie
- * from String|Kmp|Trie and String|Kmp
+ * from String|Trie and String
  */
 
 int
@@ -3463,20 +3172,6 @@ regcomb(regex_t* p, regex_t* q)
 		return REG_ESUBREG;
 	memset(&env, 0, sizeof(env));
 	env.disc = p->env->disc;
-	if (e->type == REX_BM)
-	{
-		p->env->rex = e->next;
-		e->next = 0;
-		drop(env.disc, e);
-		e = p->env->rex;
-	}
-	if (f->type == REX_BM)
-	{
-		q->env->rex = f->next;
-		f->next = 0;
-		drop(env.disc, f);
-		f = q->env->rex;
-	}
 	if (e->type == REX_BEG && f->type == REX_BEG)
 	{
 		p->env->flags |= REG_LEFT;
@@ -3536,11 +3231,6 @@ regcomb(regex_t* p, regex_t* q)
 	{
 		regfree(p);
 		return fatal(p->env->disc, env.error ? env.error : REG_ECOUNT, NULL);
-	}
-	if (special(&env, p))
-	{
-		regfree(p);
-		return fatal(p->env->disc, env.error ? env.error : REG_ESPACE, NULL);
 	}
 	p->env->min = g->re.trie.min;
 	return 0;

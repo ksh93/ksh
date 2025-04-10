@@ -956,15 +956,7 @@ int	sh_pipe(int pv[])
    }
 #endif
 
-static int pat_seek(void *handle, const char *str, size_t sz)
-{
-	char **bp = (char**)handle;
-	NOT_USED(sz);
-	*bp = (char*)str;
-	return -1;
-}
-
-static int pat_line(const regex_t* rp, const char *buff, size_t n)
+static size_t pat_line(const regex_t* rp, const char *buff, size_t n)
 {
 	const char *cp=buff, *sp;
 	while(n>0)
@@ -978,8 +970,8 @@ static int pat_line(const regex_t* rp, const char *buff, size_t n)
 
 static int io_patseek(regex_t *rp, Sfio_t* sp, int flags)
 {
-	char	*cp, *match;
-	int	r, fd=sffileno(sp), close_exec = sh.fdstatus[fd]&IOCLEX;
+	char	*cp;
+	int	fd = sffileno(sp), close_exec = sh.fdstatus[fd]&IOCLEX;
 	int	was_share,s=(PIPE_BUF>SFIO_BUFSIZE?SFIO_BUFSIZE:PIPE_BUF);
 	size_t	n,m;
 	sh.fdstatus[sffileno(sp)] |= IOCLEX;
@@ -992,18 +984,11 @@ static int io_patseek(regex_t *rp, Sfio_t* sp, int flags)
 			n--;
 		if(n)
 			m = n;
-		r = regrexec(rp,cp,m,0,NULL, 0, '\n', &match, pat_seek);
-		if(r<0)
-			m = match-cp;
-		else if(r==2)
-		{
-			if((m = pat_line(rp,cp,m)) < n)
-				r = -1;
-		}
+		m = pat_line(rp,cp,m);
 		if(m && (flags&IOCOPY))
 			sfwrite(sfstdout,cp,m);
 		sfread(sp,cp,m);
-		if(r<0)
+		if(m<n)
 			break;
 	}
 	if(!close_exec)

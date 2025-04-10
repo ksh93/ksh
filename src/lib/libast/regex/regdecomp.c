@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -295,7 +295,6 @@ decomp(Rex_t* e, Rex_t* parent, Sfio_t* sp, int type, int delimiter, regflags_t 
 				sfputc(sp, c);
 			break;
 		case REX_STRING:
-		case REX_KMP:
 			t = (s = e->re.string.base) + e->re.string.size;
 			while (s < t)
 			{
@@ -374,8 +373,6 @@ decomp(Rex_t* e, Rex_t* parent, Sfio_t* sp, int type, int delimiter, regflags_t 
 			if (decomp(e->re.group.expr.rex, e, sp, type, delimiter, flags))
 				return 1;
 			meta(sp, ')', type, 1, delimiter);
-			break;
-		case REX_BM:
 			break;
 		default:
 			sfprintf(sp, "<ERROR:REX_%d>", e->type);

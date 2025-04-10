@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,7 +22,7 @@
  * POSIX regex error message handler
  */
 
-static const char id[] = "\n@(#)$Id: regex (AT&T Research) 2012-09-27 $\0\n";
+static const char id[] = "\n@(#)$Id: regex (ksh 93u+m) 2025-04-10 $\0\n";
 
 #include "reglib.h"
 

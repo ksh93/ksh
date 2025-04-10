@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,8 +22,6 @@
  * POSIX regex implementation
  *
  * based on Doug McIlroy's C++ implementation
- * Knuth-Morris-Pratt adapted from Corman-Leiserson-Rivest
- * Boyer-Moore from conversations with David Korn, Phong Vo, Andrew Hume
  */
 
 #ifndef _REGLIB_H
@@ -82,45 +80,43 @@ typedef struct regsubop_s
 #define REX_BACK		3	/* \1, \2, etc			*/
 #define REX_BEG			4	/* initial ^			*/
 #define REX_BEG_STR		5	/* initial ^ w/ no newline	*/
-#define REX_BM			6	/* Boyer-Moore			*/
-#define REX_CAT			7	/* catenation catcher		*/
-#define REX_CLASS		8	/* [...]			*/
-#define REX_COLL_CLASS		9	/* collation order [...]	*/
-#define REX_CONJ		10	/* a&b				*/
-#define REX_CONJ_LEFT		11	/* REX_CONJ left catcher	*/
-#define REX_CONJ_RIGHT		12	/* REX_CONJ right catcher	*/
-#define REX_DONE		13	/* completed match (internal)	*/
-#define REX_DOT			14	/* .				*/
-#define REX_END			15	/* final $			*/
-#define REX_END_STR		16	/* final $ before tail newline	*/
-#define REX_EXEC		17	/* call re.re_exec()		*/
-#define REX_FIN_STR		18	/* final $ w/ no newline	*/
-#define REX_GROUP		19	/* \(...\)			*/
-#define REX_GROUP_CATCH		20	/* REX_GROUP catcher		*/
-#define REX_GROUP_AHEAD		21	/* 0-width lookahead		*/
-#define REX_GROUP_AHEAD_CATCH	22	/* REX_GROUP_AHEAD catcher	*/
-#define REX_GROUP_AHEAD_NOT	23	/* inverted 0-width lookahead	*/
-#define REX_GROUP_BEHIND	24	/* 0-width lookbehind		*/
-#define REX_GROUP_BEHIND_CATCH	25	/* REX_GROUP_BEHIND catcher	*/
-#define REX_GROUP_BEHIND_NOT	26	/* inverted 0-width lookbehind	*/
-#define REX_GROUP_BEHIND_NOT_CATCH 27	/* REX_GROUP_BEHIND_NOT catcher	*/
-#define REX_GROUP_COND		28	/* conditional group		*/
-#define REX_GROUP_COND_CATCH	29	/* conditional group catcher	*/
-#define REX_GROUP_CUT		30	/* don't backtrack over this	*/
-#define REX_GROUP_CUT_CATCH	31	/* REX_GROUP_CUT catcher	*/
-#define REX_KMP			32	/* Knuth-Morris-Pratt		*/
-#define REX_NEG			33	/* negation			*/
-#define REX_NEG_CATCH		34	/* REX_NEG catcher		*/
-#define REX_NEST		35	/* nested match			*/
-#define REX_ONECHAR		36	/* a single-character literal	*/
-#define REX_REP			37	/* Kleene closure		*/
-#define REX_REP_CATCH		38	/* REX_REP catcher		*/
-#define REX_STRING		39	/* some chars			*/
-#define REX_TRIE		40	/* alternation of strings	*/
-#define REX_WBEG		41	/* \<				*/
-#define REX_WEND		42	/* \>				*/
-#define REX_WORD		43	/* word boundary		*/
-#define REX_WORD_NOT		44	/* not word boundary		*/
+#define REX_CAT			6	/* catenation catcher		*/
+#define REX_CLASS		7	/* [...]			*/
+#define REX_COLL_CLASS		8	/* collation order [...]	*/
+#define REX_CONJ		9	/* a&b				*/
+#define REX_CONJ_LEFT		10	/* REX_CONJ left catcher	*/
+#define REX_CONJ_RIGHT		11	/* REX_CONJ right catcher	*/
+#define REX_DONE		12	/* completed match (internal)	*/
+#define REX_DOT			13	/* .				*/
+#define REX_END			14	/* final $			*/
+#define REX_END_STR		15	/* final $ before tail newline	*/
+#define REX_EXEC		16	/* call re.re_exec()		*/
+#define REX_FIN_STR		17	/* final $ w/ no newline	*/
+#define REX_GROUP		18	/* \(...\)			*/
+#define REX_GROUP_CATCH		19	/* REX_GROUP catcher		*/
+#define REX_GROUP_AHEAD		20	/* 0-width lookahead		*/
+#define REX_GROUP_AHEAD_CATCH	21	/* REX_GROUP_AHEAD catcher	*/
+#define REX_GROUP_AHEAD_NOT	22	/* inverted 0-width lookahead	*/
+#define REX_GROUP_BEHIND	23	/* 0-width lookbehind		*/
+#define REX_GROUP_BEHIND_CATCH	24	/* REX_GROUP_BEHIND catcher	*/
+#define REX_GROUP_BEHIND_NOT	25	/* inverted 0-width lookbehind	*/
+#define REX_GROUP_BEHIND_NOT_CATCH 26	/* REX_GROUP_BEHIND_NOT catcher	*/
+#define REX_GROUP_COND		27	/* conditional group		*/
+#define REX_GROUP_COND_CATCH	28	/* conditional group catcher	*/
+#define REX_GROUP_CUT		29	/* don't backtrack over this	*/
+#define REX_GROUP_CUT_CATCH	30	/* REX_GROUP_CUT catcher	*/
+#define REX_NEG			31	/* negation			*/
+#define REX_NEG_CATCH		32	/* REX_NEG catcher		*/
+#define REX_NEST		33	/* nested match			*/
+#define REX_ONECHAR		34	/* a single-character literal	*/
+#define REX_REP			35	/* Kleene closure		*/
+#define REX_REP_CATCH		36	/* REX_REP catcher		*/
+#define REX_STRING		37	/* some chars			*/
+#define REX_TRIE		38	/* alternation of strings	*/
+#define REX_WBEG		39	/* \<				*/
+#define REX_WEND		40	/* \>				*/
+#define REX_WORD		41	/* word boundary		*/
+#define REX_WORD_NOT		42	/* not word boundary		*/
 
 #define T_META		((int)UCHAR_MAX+1)
 #define T_STAR		(T_META+0)
@@ -331,20 +327,6 @@ typedef struct Conj_right_s
 	struct Rex_s*	cont;		/* ambient continuation		*/
 } Conj_right_t;
 
-typedef unsigned int Bm_mask_t;
-
-typedef struct Bm_s
-{
-	Bm_mask_t**	mask;
-	size_t*		skip;
-	size_t*		fail;
-	size_t		size;
-	ssize_t		back;
-	ssize_t		left;
-	ssize_t		right;
-	size_t		complete;
-} Bm_t;
-
 typedef struct String_s
 {
 	int*		fail;
@@ -502,7 +484,6 @@ typedef struct Rex_s
 	union
 	{
 	Alt_catch_t	alt_catch;		/* alt catcher		*/
-	Bm_t		bm;			/* bm			*/
 	Behind_catch_t	behind_catch;		/* behind catcher	*/
 	Set_t*		charclass;		/* char class		*/
 	Collate_t	collate;		/* collation class	*/
@@ -517,7 +498,7 @@ typedef struct Rex_s
 	Nest_t		nest;			/* nested match		*/
 	unsigned char	onechar;		/* single char		*/
 	Rep_catch_t	rep_catch;		/* rep catcher		*/
-	String_t	string;			/* string/kmp		*/
+	String_t	string;			/* string		*/
 	Trie_t		trie;			/* trie			*/
 	}		re;
 } Rex_t;

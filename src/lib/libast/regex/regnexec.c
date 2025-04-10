@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -42,7 +42,6 @@ static const char*	rexnames[] =
 	"REX_BACK",
 	"REX_BEG",
 	"REX_BEG_STR",
-	"REX_BM",
 	"REX_CAT",
 	"REX_CLASS",
 	"REX_COLL_CLASS",
@@ -68,7 +67,6 @@ static const char*	rexnames[] =
 	"REX_GROUP_COND_CATCH",
 	"REX_GROUP_CUT",
 	"REX_GROUP_CUT_CATCH",
-	"REX_KMP",
 	"REX_NEG",
 	"REX_NEG_CATCH",
 	"REX_NEST",
@@ -800,7 +798,6 @@ parse(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s)
 	int		r;
 	ssize_t		i;
 	ssize_t		n;
-	int*		f;
 	unsigned char*	p;
 	unsigned char*	t;
 	unsigned char*	b;
@@ -1346,75 +1343,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				break;
 			}
 			return r;
-		case REX_KMP:
-			f = rex->re.string.fail;
-			b = rex->re.string.base;
-			n = rex->re.string.size;
-			t = s;
-			e = env->end;
-			if (p = rex->map)
-			{
-				while (t + n <= e)
-				{
-					for (i = -1; t < e; t++)
-					{
-						while (i >= 0 && b[i+1] != p[*t])
-							i = f[i];
-						if (b[i+1] == p[*t])
-							i++;
-						if (i + 1 == n)
-						{
-							t++;
-							if (env->stack)
-								env->best[0].rm_so = t - s - n;
-							switch (follow(env, rex, cont, t))
-							{
-							case BAD:
-								return BAD;
-							case CUT:
-								return CUT;
-							case BEST:
-							case GOOD:
-								return BEST;
-							}
-							t -= n - 1;
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				while (t + n <= e)
-				{
-					for (i = -1; t < e; t++)
-					{
-						while (i >= 0 && b[i+1] != *t)
-							i = f[i];
-						if (b[i+1] == *t)
-							i++;
-						if (i + 1 == n)
-						{
-							t++;
-							if (env->stack)
-								env->best[0].rm_so = t - s - n;
-							switch (follow(env, rex, cont, t))
-							{
-							case BAD:
-								return BAD;
-							case CUT:
-								return CUT;
-							case BEST:
-							case GOOD:
-								return BEST;
-							}
-							t -= n - 1;
-							break;
-						}
-					}
-				}
-			}
-			return NONE;
 		case REX_NEG:
 			if (LEADING(env, rex, s))
 				return NONE;
@@ -1865,7 +1793,6 @@ regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, re
 	int		m;
 	int		advance;
 	Env_t*		env;
-	Rex_t*		e;
 
 	DEBUG_INIT();
 	DEBUG_TEST(0x0001,(sfprintf(sfstdout, "AHA#%04d 0x%04x regnexec %d 0x%08x `%-.*s'\n", __LINE__, debug_flag, nmatch, flags, len, s)),(0));
@@ -1906,82 +1833,9 @@ regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, re
 	}
 	DEBUG_TEST(0x1000,(list(env,env->rex)),(0));
 	k = REG_NOMATCH;
-	if ((e = env->rex)->type == REX_BM)
-	{
-		DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d REX_BM\n", __LINE__)),(0));
-		if (len < e->re.bm.right)
-		{
-			DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d REG_NOMATCH %d %d\n", __LINE__, len, e->re.bm.right)),(0));
-			goto done;
-		}
-		else if (!(flags & REG_LEFT))
-		{
-			unsigned char*	buf = (unsigned char*)s;
-			size_t		index = e->re.bm.left + e->re.bm.size;
-			size_t		mid = len - e->re.bm.right;
-			size_t*	skip = e->re.bm.skip;
-			size_t*	fail = e->re.bm.fail;
-			Bm_mask_t**	mask = e->re.bm.mask;
-			Bm_mask_t		m;
-			size_t			x;
-
-			DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d REX_BM len=%d right=%d left=%d size=%d %d %d\n", __LINE__, len, e->re.bm.right, e->re.bm.left, e->re.bm.size, index, mid)),(0));
-			for (;;)
-			{
-				while (index < mid)
-					index += skip[buf[index]];
-				if (index < HIT)
-				{
-					DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d REG_NOMATCH %d %d\n", __LINE__, index, HIT)),(0));
-					goto done;
-				}
-				index -= HIT;
-				m = mask[n = e->re.bm.size - 1][buf[index]];
-				do
-				{
-					if (!n--)
-					{
-						if (e->re.bm.back < 0)
-							goto possible;
-						if (advance)
-						{
-							i = index - e->re.bm.back;
-							s += i;
-							if (env->stack)
-								env->best[0].rm_so += i;
-							goto possible;
-						}
-						x = index;
-						if (index < e->re.bm.back)
-							index = 0;
-						else
-							index -= e->re.bm.back;
-						while (index <= x)
-						{
-							if ((i = parse(env, e->next, &env->done, buf + index)) != NONE)
-							{
-								if (env->stack)
-									env->best[0].rm_so = index;
-								n = env->nsub;
-								goto hit;
-							}
-							index++;
-						}
-						index += e->re.bm.size;
-						break;
-					}
-				} while (m &= mask[n][buf[--index]]);
-				if ((index += fail[n + 1]) >= len)
-					goto done;
-			}
-		}
- possible:
-		n = env->nsub;
-		e = e->next;
-	}
 	j = env->once || (flags & REG_LEFT);
 	DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d parse once=%d\n", __LINE__, j)),(0));
-	while ((i = parse(env, e, &env->done, (unsigned char*)s)) == NONE || advance && !env->best[0].rm_eo && !(advance = 0))
+	while ((i = parse(env, env->rex, &env->done, (unsigned char*)s)) == NONE || advance && !env->best[0].rm_eo && !(advance = 0))
 	{
 		if (j)
 			goto done;
@@ -1994,7 +1848,6 @@ regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, re
 	}
 	if ((flags & REG_LEFT) && env->stack && env->best[0].rm_so)
 		goto done;
- hit:
 	if (k = env->error)
 		goto done;
 	if (i == CUT)

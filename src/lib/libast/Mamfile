@@ -2999,20 +2999,6 @@ make install virtual
 			exec - compile %{<} -Iregex
 		done
 
-		make regrecord.o
-			make regex/regrecord.c
-				prev regex/reglib.h
-			done
-			exec - compile %{<} -Iregex
-		done
-
-		make regrexec.o
-			make regex/regrexec.c
-				prev regex/reglib.h
-			done
-			exec - compile %{<} -Iregex
-		done
-
 		make regstat.o
 			make regex/regstat.c
 				prev regex/reglib.h

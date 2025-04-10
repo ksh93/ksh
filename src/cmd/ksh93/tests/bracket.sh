@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -14,6 +14,7 @@
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #            Johnothan King <johnothanking@protonmail.com>             #
 #                  Lev Kujawski <int21h@mailbox.org>                   #
+#                      Phi <phi.debian@gmail.com>                      #
 #                                                                      #
 ########################################################################
 
@@ -621,6 +622,15 @@ test b = b c -a "" 2>/dev/null
 [ b = b c -a "" ] 2>/dev/null
 (((e=$?)==2)) || err_exit "${p}[ b = b c -a \"\" ] is not an error (got status $e)"
 [[ -v p ]] && set --noposix && unset p
+
+# ======
+# https://github.com/ksh93/ksh/issues/833
+[[ aaaaa =~ a$      ]] || err_exit 'aaaaa =~ a$ not working' 
+[[ aaaaa =~ aa$     ]] || err_exit 'aaaaa =~ aa$ not working'
+[[ aaaaa =~ aaa$    ]] || err_exit 'aaaaa =~ aaa$ not working'
+[[ aaaaa =~ aaaa$   ]] || err_exit 'aaaaa =~ aaaa$ not working'
+[[ aaaaa =~ aaaaa$  ]] || err_exit 'aaaaa =~ aaaaa$ not working'
+[[ aaaaa =~ aaaaaa$ ]] && err_exit 'aaaaa =~ aaaaaa$ not working' 
 
 # ======
 exit $((Errors<125?Errors:125))

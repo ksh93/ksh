@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -90,10 +90,6 @@ main(void)
 	printf("#define regncomp	_ast_regncomp\n");
 	printf("#undef	regnexec\n");
 	printf("#define regnexec	_ast_regnexec\n");
-	printf("#undef	regrecord\n");
-	printf("#define regrecord       _ast_regrecord\n");
-	printf("#undef	regrexec\n");
-	printf("#define regrexec	_ast_regrexec\n");
 	printf("#undef	regstat\n");
 	printf("#define regstat		_ast_regstat\n");
 	printf("#undef	regsub\n");

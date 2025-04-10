@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -31,19 +31,11 @@ regstat(const regex_t* p)
 	p->env->stats.re_flags = p->env->flags;
 	p->env->stats.re_info = 0;
 	e = p->env->rex;
-	if (e && e->type == REX_BM)
-	{
-		p->env->stats.re_record = p->env->rex->re.bm.size;
-		e = e->next;
-	}
-	else
-		p->env->stats.re_record = 0;
 	if (e && e->type == REX_BEG)
 		e = e->next;
 	if (e && e->type == REX_STRING)
 		e = e->next;
 	if (!e || e->type == REX_END && !e->next)
 		p->env->stats.re_info |= REG_LITERAL;
-	p->env->stats.re_record = (p && p->env && p->env->rex->type == REX_BM) ? p->env->rex->re.bm.size : -1;
 	return &p->env->stats;
 }

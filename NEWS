@@ -2,6 +2,15 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-04-10:
+
+- Fixed a bug (present in all AT&T and 93u+m releases) affecting parsing of
+  glob patterns and regular expressions, which caused the following to fail:
+    str=aaaa && echo "${str%%aaa}"  # now correctly outputs 'a'
+    [[ aaaa =~ aaa$ ]]; echo $?	    # now correctly outputs 0 (true/success)
+  and similar, more complicated corner cases involving strings of identical
+  characters with a length difference of one.
+
 2025-04-07:
 
 - Fixed a bug where pasting over 80 bytes of multibyte characters into the
