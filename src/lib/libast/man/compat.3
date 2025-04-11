@@ -43,23 +43,11 @@ compatibility \- AST library compatibility routines
 .EX
 #include <ast.h>
 
-int	killpg(int, int);
-int	link(const char*, const char*);
-char*	memset(char*, char, int);
-int	mkdir(const char*, mode_t);
-int	mkfifo(const char*, mode_t);
-int	mknod(const char*, mode_t);
 char*	mktemp(char*);
-int	mount(const char*, const char*, int);
-int	remove(const char*);
-int	rename(const char*, const char*);
-int	rmdir(const char*);
 int	sigunblock(int);
 double	strtod(const char*, char**);
 long	strtol(const char*, char**, int);
-int	system(const char*);
 char*	tmpnam(char*);
-int	unlink(const char*);
 .EE
 .SH DESCRIPTION
 These routines are described in the ANSI C, POSIX, BSD and System V manual

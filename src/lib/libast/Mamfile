@@ -2246,75 +2246,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make mkdir.o
-			make comp/mkdir.c
-				prev include/error.h
-				prev include/wait.h
-				prev include/ls.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make mkfifo.o
-			make comp/mkfifo.c
-				prev include/error.h
-				prev include/ls.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make mknod.o
-			make comp/mknod.c
-				prev include/error.h
-				prev include/ls.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make rmdir.o
-			make comp/rmdir.c
-				prev include/error.h
-				prev include/ls.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make remove.o
-			make comp/remove.c
-				prev ast_map.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make rename.o
-			make comp/rename.c
-				prev include/proc.h
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make link.o
-			make comp/link.c
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make unlink.o
-			make comp/unlink.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make strdup.o
 			make string/strdup.c
 				prev include/ast.h
@@ -2452,20 +2383,6 @@ make install virtual
 			exec - compile %{<} -Iport -Isfio -Istring
 		done
 
-		make strcasecmp.o
-			make comp/strcasecmp.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make strncasecmp.o
-			make comp/strncasecmp.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make mktemp.o
 			make comp/mktemp.c
 				prev ast_map.h
@@ -2503,14 +2420,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make killpg.o
-			make comp/killpg.c
-				prev sig.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make putenv.o
 			make comp/putenv.c
 				prev ast_map.h
@@ -2530,15 +2439,6 @@ make install virtual
 		make unsetenv.o
 			make comp/unsetenv.c
 				prev ast_map.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make statvfs.o
-			make comp/statvfs.c
-				prev include/error.h
-				prev include/ls.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -2596,23 +2496,6 @@ make install virtual
 
 		make assert.o
 			make comp/assert.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make mount.o
-			make comp/mount.c
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make system.o
-			make comp/system.c
-				prev ast_map.h
-				prev include/proc.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -2827,14 +2710,6 @@ make install virtual
 			make comp/strptime.c
 				prev ast_map.h
 				prev tmx.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make swab.o
-			make comp/swab.c
-				prev include/swap.h
 				prev include/ast.h
 			done
 			exec - compile %{<}

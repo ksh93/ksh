@@ -199,9 +199,6 @@ NAME_MAX			POSIX	PC 1 LMU	14	cc{
 	#ifdef MAXNAMLEN
 		printf("%d", MAXNAMLEN);
 	#else
-	#if !defined(remove) && (!_lib_remove || _lib_unlink)
-	#define remove		unlink
-	#endif
 		int	i;
 		int	n;
 		int	v;

@@ -1,5 +1,5 @@
-lib	mknod,sync sys/types.h sys/stat.h
-mac	fstat,lstat,stat,mknod sys/types.h sys/stat.h
+lib	sync sys/types.h sys/stat.h
+mac	fstat,lstat,stat sys/types.h sys/stat.h
 
 header	sys/stat.h
 header	sys/mkdev.h
@@ -7,9 +7,6 @@ header	sys/mkdev.h
 extern	chmod		int	(const char*, mode_t)
 extern	fstat		int	(int, struct stat*)
 extern	lstat		int	(const char*, struct stat*)
-extern	mkdir		int	(const char*, mode_t)
-extern	mkfifo		int	(const char*, mode_t)
-extern	mknod		int	(const char*, mode_t, dev_t)
 extern	stat		int	(const char*, struct stat*)
 
 define	FS_default	"ufs"
@@ -72,7 +69,7 @@ macro{
 
 hdr	mntent,mnttab stdio.h
 sys	mntent,mnttab stdio.h
-sys	fs_types,mount,statfs,statvfs,vfs,vmount sys/param.h sys/ucred.h
+sys	fs_types,mount,statfs,vfs,vmount sys/param.h sys/ucred.h
 
 mem	mnttab.mt_dev,mnttab.mt_filsys,mnttab.mt_fstyp sys/types.h mnttab.h
 mem	mntent.mnt_opts,w_mntent.mnt_opts,mnttab.mnt_opts sys/types.h stdio.h mntent.h sys/mntent.h
@@ -87,7 +84,7 @@ ary	f_reserved7 sys/types.h sys/statvfs.h note{ statvfs.f_reserved7 can double f
 
 lib	getmntent,getmntinfo,mntctl,mntopen,mntread,mntclose,setmntent
 lib	w_getmntent
-lib	statfs,statvfs
+lib	statfs
 
 lib	statfs4 sys/types.h - sys/statfs.h - sys/vfs.h - sys/mount.h compile{
 	#include <sys/types.h>
@@ -120,9 +117,7 @@ lib	getmntinfo_statvfs note{ getmntinfo uses statvfs }end compile{
 
 if lib getfsstat_getvfsstat note{ getvfsstat (NetBSD) compiles }end compile{
 		#include <sys/types.h>
-		#if _sys_statvfs
 		#include <sys/statvfs.h>
-		#endif
 		int
 		gfs(struct statvfs* fs)
 		{
@@ -173,35 +168,11 @@ elif lib getfsstat_statfs note{ getfsstat uses statfs }end compile{
 endif
 
 cat{
-	#if _sys_statvfs
 	#include <sys/statvfs.h>
 	#if !_mem_statvfs_f_basetype
 	#if _ary_f_reserved7
 	#define f_basetype	f_reserved7
 	#endif
-	#endif
-	#else
-	#define _mem_f_basetype_statvfs	1
-	#define _mem_f_frsize_statvfs	1
-	struct statvfs
-	{
-	unsigned long	f_bsize;	/* fundamental file system block size */
-	unsigned long	f_frsize;	/* fragment size */
-	unsigned long	f_blocks;	/* total # of blocks of f_frsize on fs */
-	unsigned long	f_bfree;	/* total # of free blocks of f_frsize */
-	unsigned long	f_bavail;	/* # of free blocks avail to non-superuser */
-	unsigned long	f_files;	/* total # of file nodes (inodes) */
-	unsigned long	f_ffree;	/* total # of free file nodes */
-	unsigned long	f_favail;	/* # of free nodes avail to non-superuser */
-	unsigned long	f_fsid;		/* file system ID (dev for now) */
-	char		f_basetype[16]; /* target fs type name, null-terminated */
-	unsigned long	f_flag;		/* bit-mask of flags */
-	unsigned long	f_namemax;	/* maximum file name length */
-	char		f_fstr[32];	/* filesystem-specific string */
-	unsigned long	f_filler[16];	/* reserved for future expansion */
-	};
-	extern int	fstatvfs(int, struct statvfs*);
-	extern int	statvfs(const char*, struct statvfs*);
 	#endif
 }end
 

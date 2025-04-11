@@ -1062,7 +1062,6 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 	}
 	/* leave room for inserting _= pathname in environment */
 	envp--;
-#if _lib_readlink
 	/* save original pathname */
 	stkseek(sh.stk,PATH_OFFSET);
 	pidsize = sfprintf(sh.stk, "*%jd*", (Sflong_t)(spawn ? sh.current_pid : sh.current_ppid));
@@ -1109,7 +1108,7 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 		}
 		stkseek(sh.stk,0);
 	}
-#endif
+	/* end of: ^^^ save original pathname */
 	if(libenv && (v = strchr(libenv,'=')))
 	{
 		n = v - libenv;

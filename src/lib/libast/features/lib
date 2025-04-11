@@ -30,15 +30,15 @@ lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
-lib	mkdir,mkfifo,mktemp,mktime
-lib	mount,opendir,openat,pathconf
+lib	mktemp,mktime
+lib	opendir,openat,pathconf
 lib	rand_r
-lib	readlink,remove,rename,rewinddir,rmdir,setlocale
+lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
 lib	spawn,spawnve
-lib	strcoll,strdup,strcasecmp,strncasecmp,strlcat,strlcpy
-lib	strmode,strxfrm,strftime,swab,symlink,sysconf,sysinfo
+lib	strcoll,strlcat,strlcpy
+lib	strmode,strxfrm,strftime,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
 
@@ -355,12 +355,6 @@ std	cleanup note{ stuck with standard _cleanup }end noexecute{
 	extern void _cleanup(void);
 	void _cleanup(void) { _exit(0); }
 	int main(void) { printf("cleanup\n"); exit(1); }
-}end
-
-std	remove note{ stuck with standard remove() }end nostatic{
-	extern int unlink(const char*);
-	int remove(const char* path) { return 0; }
-	int main(void) { return unlink("foo"); }
 }end
 
 std	strcoll note{ standard strcoll works }end execute{
