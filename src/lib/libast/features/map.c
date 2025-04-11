@@ -36,12 +36,6 @@ main(void)
 	printf(" * unmapped in native headers included by <ast_std.h>\n");
 	printf(" */\n");
 	printf("\n");
-#if defined(__linux__)
-	printf("#undef	basename\n");
-	printf("#define basename	_ast_basename\n");
-	printf("#undef	dirname\n");
-	printf("#define dirname		_ast_dirname\n");
-#endif
 	/* use the libast glob functions rather than the native versions */
 	printf("#undef	glob\n");
 	printf("#define glob		_ast_glob\n");
@@ -66,14 +60,8 @@ main(void)
 	printf("#define regcmp		_ast_regcmp\n");
 	printf("#undef	regcollate\n");
 	printf("#define regcollate      _ast_regcollate\n");
-	printf("#undef	regcomb\n");
-	printf("#define regcomb		_ast_regcomb\n");
 	printf("#undef	regcomp\n");
 	printf("#define regcomp		_ast_regcomp\n");
-	printf("#undef	regdecomp\n");
-	printf("#define regdecomp	_ast_regdecomp\n");
-	printf("#undef	regdup\n");
-	printf("#define regdup		_ast_regdup\n");
 	printf("#undef	regerror\n");
 	printf("#define regerror	_ast_regerror\n");
 	printf("#undef	regex\n");
@@ -86,14 +74,10 @@ main(void)
 	printf("#define regfatalpat     _ast_regfatalpat\n");
 	printf("#undef	regfree\n");
 	printf("#define regfree		_ast_regfree\n");
-	printf("#undef	regncomp\n");
-	printf("#define regncomp	_ast_regncomp\n");
 	printf("#undef	regnexec\n");
 	printf("#define regnexec	_ast_regnexec\n");
 	printf("#undef	regstat\n");
 	printf("#define regstat		_ast_regstat\n");
-	printf("#undef	regsub\n");
-	printf("#define regsub		_ast_regsub\n");
 	printf("#undef	regsubcomp\n");
 	printf("#define regsubcomp	_ast_regsubcomp\n");
 	printf("#undef	regsubexec\n");

@@ -152,14 +152,12 @@ elif tst note{ GNU (glibc), Cygwin, or Android }end compile{
 		/*
 		 * On GNU (GNU's Not UNIX) and Cygwin, _GNU_SOURCE is the "everything and the kitchen sink" macro
 		 * (see feature_test_macros(7)), but on GNU we also need to define _FILE_OFFSET_BITS to get large
-		 * file support. We also need to define 'basename' to stop string.h from declaring a GNU-specific
-		 * version of basename(3) which on Cygwin has a declaration that conflicts with AST basename(3).
+		 * file support.
 		 * Additionally, 64-bit time_t is required to avoid integer overflows in e.g. the 'time' keyword.
 		 */
 		#define _GNU_SOURCE	1
 		#define _FILE_OFFSET_BITS 64
 		#define _TIME_BITS 64
-		#define basename	basename
 		#include <limits.h>
 		#include <unistd.h>
 		#include <features.h>
@@ -188,7 +186,6 @@ elif tst note{ GNU (glibc), Cygwin, or Android }end compile{
 		#ifndef _TIME_BITS
 		#define _TIME_BITS 64
 		#endif
-		#define basename	basename	/* avoid string.h defining this in conflict with AST basename(3) */
 	}
 elif tst note{ QNX }end compile{
 		/*

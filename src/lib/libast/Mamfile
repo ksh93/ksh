@@ -2744,13 +2744,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make dirname.o
-			make comp/dirname.c
-				prev include/ast_std.h
-			done
-			exec - compile %{<}
-		done
-
 		make fmtmsglib.o
 			make comp/fmtmsglib.c
 				makp comp/fmtmsg.h
@@ -2816,26 +2809,6 @@ make install virtual
 				prev ast_api.h
 				prev ast_map.h
 				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make regcmp.o
-			make comp/regcmp.c
-				prev align.h
-				prev include/regex.h
-				makp comp/libgen.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make regexp.o
-			make comp/regexp.c
-				prev align.h
-				prev include/regex.h
-				makp comp/regexp.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -2939,13 +2912,6 @@ make install virtual
 				prev include/ast.h
 			done
 			exec - compile %{<}
-		done
-
-		make regdecomp.o
-			make regex/regdecomp.c
-				prev regex/reglib.h
-			done
-			exec - compile %{<} -Iregex
 		done
 
 		make regerror.o
@@ -4399,7 +4365,7 @@ make install virtual
 			done
 		done
 		note * ...comp(atibility)
-		loop HDR ftw re_comp regexp wordexp fnmatch
+		loop HDR ftw re_comp wordexp fnmatch
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev comp/%{HDR}.h
 				exec - cp -f %{<} %{@}
@@ -4426,7 +4392,6 @@ make install virtual
 
 	make %{INSTALLROOT}/lib/package/gen/.asthdr_tstamp
 		prev comp/fmtmsg.h
-		prev comp/libgen.h
 		note * install our own versions of these if iffe hasn't detected these in the system
 		exec - CCt='	'  # one tab
 		exec - for src in %{^}

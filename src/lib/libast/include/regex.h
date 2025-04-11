@@ -88,7 +88,7 @@
 
 #define REG_NOFREE	0x00000001	/* don't free			*/
 
-/* regsub flags */
+/* regsubcomp/regsubexec flags */
 
 #define REG_SUB_ALL	0x00000001	/* substitute all occurrences	*/
 #define REG_SUB_LOWER	0x00000002	/* substitute to lower case	*/
@@ -201,11 +201,7 @@ extern void	regfree(regex_t*);
 #define _REG_cache	1	/* have regcache()			*/
 #define _REG_class	1	/* have regclass()			*/
 #define _REG_collate	1	/* have regcollate(), regclass()	*/
-#define _REG_comb	1	/* have regcomb()			*/
-#define _REG_decomp	1	/* have regdecomp()			*/
-#define _REG_dup	1	/* have regdup()			*/
 #define _REG_fatal	1	/* have regfatal(), regfatalpat()	*/
-#define _REG_ncomp	1	/* have regncomp()			*/
 #define _REG_nexec	1	/* have regnexec()			*/
 #define _REG_stat	1	/* have regstat()			*/
 #define _REG_subcomp	1	/* have regsubcomp(), regsubexec()	*/
@@ -213,10 +209,6 @@ extern void	regfree(regex_t*);
 extern regclass_t regclass(const char*, char**);
 extern int	regaddclass(const char*, regclass_t);
 extern int	regcollate(const char*, char**, char*, size_t, wchar_t*);
-extern int	regcomb(regex_t*, regex_t*);
-extern size_t	regdecomp(regex_t*, regflags_t, char*, size_t);
-extern int	regdup(regex_t*, regex_t*);
-extern int	regncomp(regex_t*, const char*, size_t, regflags_t);
 extern int	regnexec(const regex_t*, const char*, size_t, size_t, regmatch_t*, regflags_t);
 extern void	regfatal(regex_t*, int, int);
 extern void	regfatalpat(regex_t*, int, int, const char*);

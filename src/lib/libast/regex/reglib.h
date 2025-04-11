@@ -522,7 +522,6 @@ typedef struct reglib_s			/* library private regex_t info	*/
 	int		error;		/* last error			*/
 	int		explicit;	/* explicit match on this char	*/
 	int		leading;	/* leading match on this char	*/
-	int		refs;		/* regcomp()+regdup() references*/
 	Rex_t		done;		/* the last continuation	*/
 	regstat_t	stats;		/* for regstat()		*/
 	unsigned char	fold[UCHAR_MAX+1]; /* REG_ICASE map		*/

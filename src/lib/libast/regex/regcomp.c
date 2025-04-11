@@ -1847,9 +1847,6 @@ rep(Cenv_t* env, Rex_t* e, int number, int last)
 		if (minimal >= 0)
 			mark(e, minimal);
 		return e;
-#if HUH_2002_08_07
-	case REX_BEG:
-#endif
 	case REX_BEG_STR:
 	case REX_END_STR:
 	case REX_FIN_STR:
@@ -1965,7 +1962,6 @@ insert(Cenv_t* env, Rex_t* f, Rex_t* g)
 /*
  * trie() tries to combine nontrivial e and f into a REX_TRIE
  * unless 0 is returned, e and f are deleted as far as possible
- * also called by regcomb
  */
 
 static Rex_t*
@@ -3114,7 +3110,6 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 	p->env->flags = env.flags & REG_COMP;
 	p->env->min = env.stats.m;
 	p->env->nsub = env.stats.p + env.stats.u;
-	p->env->refs = 1;
 	return 0;
  bad:
 	regfree(p);
@@ -3127,127 +3122,4 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 		goto again;
 	}
 	return fatal(disc, env.error, pattern);
-}
-
-/*
- * regcomp() on sized pattern
- * the lazy way around adding and checking env.end
- */
-
-int
-regncomp(regex_t* p, const char* pattern, size_t size, regflags_t flags)
-{
-	char*	s;
-	int	r;
-
-	if (!(s = malloc(size + 1)))
-		return fatal((flags & REG_DISCIPLINE) ? p->re_disc : &state.disc, REG_ESPACE, pattern);
-	memcpy(s, pattern, size);
-	s[size] = 0;
-	r = regcomp(p, s, flags);
-	free(s);
-	return r;
-}
-
-/*
- * combine two compiled regular expressions if possible,
- * replacing first with the combination and freeing second.
- * return 0 on success.
- * the only combinations handled are building a Trie
- * from String|Trie and String
- */
-
-int
-regcomb(regex_t* p, regex_t* q)
-{
-	Rex_t*	e = p->env->rex;
-	Rex_t*	f = q->env->rex;
-	Rex_t*	g;
-	Rex_t*	h;
-	Cenv_t	env;
-
-	if (!e || !f)
-		return fatal(p->env->disc, REG_BADPAT, NULL);
-	if (p->env->separate || q->env->separate)
-		return REG_ESUBREG;
-	memset(&env, 0, sizeof(env));
-	env.disc = p->env->disc;
-	if (e->type == REX_BEG && f->type == REX_BEG)
-	{
-		p->env->flags |= REG_LEFT;
-		p->env->rex = e->next;
-		e->next = 0;
-		drop(env.disc, e);
-		e = p->env->rex;
-		q->env->rex = f->next;
-		f->next = 0;
-		drop(env.disc, f);
-		f = q->env->rex;
-	}
-	for (g = e; g->next; g = g->next);
-	for (h = f; h->next; h = h->next);
-	if (g->next && g->next->type == REX_END && h->next && h->next->type == REX_END)
-	{
-		p->env->flags |= REG_RIGHT;
-		drop(env.disc, g->next);
-		g->next = 0;
-		drop(env.disc, h->next);
-		h->next = 0;
-	}
-	if (!(g = trie(&env, f, e)))
-		return fatal(p->env->disc, REG_BADPAT, NULL);
-	p->env->rex = g;
-	if (!q->env->once)
-		p->env->once = 0;
-	q->env->rex = 0;
-	if (p->env->flags & REG_LEFT)
-	{
-		if (!(e = node(&env, REX_BEG, 0, 0, 0)))
-		{
-			regfree(p);
-			return fatal(p->env->disc, REG_ESPACE, NULL);
-		}
-		e->next = p->env->rex;
-		p->env->rex = e;
-		p->env->once = 1;
-	}
-	if (p->env->flags & REG_RIGHT)
-	{
-		for (f = p->env->rex; f->next; f = f->next);
-		if (f->type != REX_END)
-		{
-			if (!(e = node(&env, REX_END, 0, 0, 0)))
-			{
-				regfree(p);
-				return fatal(p->env->disc, REG_ESPACE, NULL);
-			}
-			f->next = e;
-		}
-	}
-	env.explicit = p->env->explicit;
-	env.flags = p->env->flags;
-	env.disc = p->env->disc;
-	if (stats(&env, p->env->rex))
-	{
-		regfree(p);
-		return fatal(p->env->disc, env.error ? env.error : REG_ECOUNT, NULL);
-	}
-	p->env->min = g->re.trie.min;
-	return 0;
-}
-
-/*
- * copy a reference of p into q
- * p and q may then have separate regsubcomp() instantiations
- */
-
-int
-regdup(regex_t* p, regex_t* q)
-{
-	if (!p || !q)
-		return REG_BADPAT;
-	*q = *p;
-	p->env->refs++;
-	q->re_sub = 0;
-	return 0;
 }
