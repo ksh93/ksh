@@ -38,29 +38,15 @@
 ..
 .TH MEM 3
 .SH NAME
-mem \- fixed string routines
+mem \- memory buffer routines
 .SH SYNOPSIS
 .EX
 #include <ast.h>
 
-void    mematoe(void* \fIout\fP, const void* \fIin\fP, size_t \fIn\fP);
 void*   memdup(const void* \fIbuf\fP, size_t \fIn\fP)
-void    memetoa(void* \fIout\fP, const void* \fIin\fP, size_t \fIn\fP);
 void*   memzero(void* \fIbuf\fP, size_t \fIn\fP);
 .EE
 .SH DESCRIPTION
-.L mematoe
-converts
-.I n
-ASCII characters in
-.I in
-to EBCDIC characters in
-.IR out .
-.I in
-and
-.I out
-may be the same.
-.PP
 .L memdup
 copies the
 .I n
@@ -73,18 +59,6 @@ and returns a pointer to the new copy.
 .IR malloc (3)
 fails.
 .PP
-.L memetoa
-converts
-.I n
-EBCDIC characters in
-.I in
-to ASCII characters in
-.IR out .
-.I in
-and
-.I out
-may be the same.
-.PP
 .L memzero
 sets the first
 .I n
@@ -93,6 +67,6 @@ bytes in
 to
 .IR 0 .
 .SH "SEE ALSO"
-Proposed Bell Laboratories ASCII/EBCDIC standard, April 16, 1979.
 .br
-str(3), malloc(3)
+.IR str (3),
+.IR malloc (3)

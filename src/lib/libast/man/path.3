@@ -21,6 +21,9 @@
 .de RL
 .aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
 ..
+.de LI
+.aF 5 2 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
+..
 .de EX		\" start example
 .ta 1i 2i 3i 4i 5i 6i
 .PP
@@ -222,11 +225,13 @@ of size
 .IR siz .
 The link text length is returned on success, \-1 on error.
 Weird
-.I universe (1)
+.IR universe (1)
 interactions with dynamic symbolic links are handled
 by converting non-standard dynamic link text to
 .LI .../$( UNIVERSE )/...
+The
 .L pathsetsymlink
+function
 converts in the other direction.
 .PP
 .L pathicase
@@ -317,9 +322,9 @@ A valid string is always returned.
 .PP
 .L pathstat
 first tries
-.LI stat( path,st )
+.LI stat( path , st )
 and if that fails it tries
-.LI lstat( path,st ).
+.LI lstat( path , st ) .
 The
 .L stat
 or

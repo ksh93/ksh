@@ -21,6 +21,9 @@
 .de RL
 .aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
 ..
+.de LI
+.aF 5 2 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
+..
 .de EX		\" start example
 .ta 1i 2i 3i 4i 5i 6i
 .PP
@@ -98,6 +101,7 @@ The traditional bit access macro (\f3S_\fP prefix changes to \f3X_\fP) are:
 .L X_IRWXG
 and
 .L X_IRWXO .
+.PP
 .LI X_ITYPE( mode )
 returns the type bits for
 .IR mode .

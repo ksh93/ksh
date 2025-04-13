@@ -42,7 +42,7 @@ strmatch \- match shell file patterns
 .SH SYNOPSIS
 .L "int strmatch(const char* s, const char* p)"
 .br
-.L "char* submatch(const char* s, const char* p, int flags)"
+.L "char* strsubmatch(const char* s, const char* p, int flags)"
 .SH DESCRIPTION
 .I strmatch
 compares the string
@@ -50,7 +50,7 @@ compares the string
 with the shell pattern
 .I p
 and returns 1 for match and 0 otherwise.
-.I submatch
+.I strsubmatch
 does a leading substring match of the shell pattern
 .I p
 with the string

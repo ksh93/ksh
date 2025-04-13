@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -156,14 +156,7 @@ typedef struct edit
 #define UWERASE	-6			/* user word erase char synonym */
 #define ULNEXT	-7			/* user next literal char synonym */
 
-#if ( 'a' == 97) /* ASCII? */
-#   define	cntl(x)		(x&037)
-#else
-#   define cntl(c) (c=='D'?55:(c=='E'?45:(c=='F'?46:(c=='G'?'\a':(c=='H'?'\b': \
-		(c=='I'?'\t':(c=='J'?'\n':(c=='T'?60:(c=='U'?61:(c=='V'?50: \
-		(c=='W'?38:(c=='Z'?63:(c=='['?39:(c==']'?29: \
-		(c<'J'?c+1-'A':(c+10-'J'))))))))))))))))
-#endif
+#define cntl(x)	(x&037)			/* assumes ASCII */
 
 /* required terminfo and termcap control sequences for multiline */
 #define TINF_CURSOR_UP	"cuu1"

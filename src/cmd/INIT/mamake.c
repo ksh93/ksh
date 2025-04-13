@@ -186,16 +186,6 @@ static const char usage[] =
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
 #define STREAM_PIPE	0x0004		/* pclose() on pop()		*/
 
-#ifndef S_IXUSR
-#define S_IXUSR		0100		/* owner execute permission	*/
-#endif
-#ifndef S_IXGRP
-#define S_IXGRP		0010		/* group execute permission	*/
-#endif
-#ifndef S_IXOTH
-#define S_IXOTH		0001		/* other execute permission	*/
-#endif
-
 struct Rule_s;
 
 typedef struct Buf_s			/* buffer stream		*/
@@ -931,7 +921,7 @@ static void substitute(Buf_t *buf, char *s)
 			if (c == '[')
 			{
 				append(buf, b);
-				*s = c;
+				*vnterm = c;
 				continue;
 			}
 
@@ -951,7 +941,7 @@ static void substitute(Buf_t *buf, char *s)
 			if ((c == ':' || c == '=') && (state.strict >= 2 || !v || c == ':' && !*v))
 			{
 				append(buf, b);
-				*s = c;
+				*vnterm = c;
 				continue;
 			}
 

@@ -43,8 +43,11 @@ swap \- integral representation conversion routines
 .L "#include <swap.h>"
 .sp
 .L "int swapop(const void* internal, const void* external, int width);
+.br
 .L "int_max swapget(int op, const void* from, int width);"
+.br
 .L "void* swapput(int op, void* to, int width, int_max value);"
+.br
 .L "void* swapmem(int op, const void* from, void* to, size_t n);"
 .SH DESCRIPTION
 These routines convert integral constants between internal and
@@ -94,12 +97,10 @@ Swap bytes
 with bytes
 .LR 4-7 ,
 and so on.
-The largest native integral type is defined by the macro
-.L int_max
-in the header
-.L <int.h>
-described in
-.IR int (3).
+The largest native integral type is defined by the type
+.L intmax_t
+from the header
+.LR <ast.h> .
 .PP
 .L swapget
 returns the
@@ -134,5 +135,3 @@ according to
 and
 .L from
 may be the same.
-.SH "SEE ALSO"
-int(3)

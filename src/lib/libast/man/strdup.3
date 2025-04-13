@@ -48,8 +48,20 @@ copies the null-terminated string
 to a new location provided by
 .IR malloc (3)
 and returns a pointer to the new copy.
-0 is returned if
+.B NULL
+is returned if
 .IR malloc (3)
 failed.
+.PP
+If
+.I s
+is
+.BR NULL ,
+then this AST implementation of
+.I strdup
+returns
+.BR NULL .
+This differs from other implementations
+in which the behavior is undefined in that case.
 .SH "SEE ALSO"
 malloc(3), memdup(3)

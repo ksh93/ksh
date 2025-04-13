@@ -47,13 +47,13 @@ Error_info_t error_info;
 
 void         error(int \fIlevel\fP, ...);
 void         errorv(const char* \fIlibrary\fP, int \fIlevel\fP, va_alist \fIargs\fP);
-void         liberror(const char* \fIlibrary\fP, int \fIlevel\fP, ...);
+int          errormsg(const char* \fIdictionary\fP, int \fIlevel\fP, ...);
 
 #include <debug.h>
 
 debug(\fIstatement\fP)
 message((int \fIlevel\fP, ...))
-libmessage((const char* \fIlibrary\fP, int \fIlevel\fP, ...))
+messagef((void* \fIhandle\fP, void* \fIdiscipline\fP, int \fIlevel\fP, ...))
 .EE
 .SH DESCRIPTION
 .L error
@@ -266,17 +266,17 @@ are not defined.
 Otherwise
 .L debug
 expands its arg and
-.L libmessage
+.L messagef
 and
 .L message
 call
-.L liberror
+.L errorf
 and
 .L error
 respectively if
 .IR "error_info.trace<0" .
 Notice that
-.L libmessage
+.L messagef
 and
 .L message
 are macro hacks that require double parentheses ((...)) around the

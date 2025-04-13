@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -307,7 +307,7 @@ static char	*sh_fmtcsv(const char *string)
  */
 static int	sh_isprint(int c)
 {
-	if(!mbwide() || ('a'==97 && c<=127))		/* not in multibyte locale, or multibyte but c is ASCII? */
+	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
 		return isprint(c);			/* use plain isprint(3) */
 	else if(!(lcinfo(LC_CTYPE)->lc->flags&LC_utf8))	/* not in UTF-8 locale? */
 		return iswgraph(c);			/* the test below would not be valid */
@@ -385,7 +385,7 @@ char	*sh_fmtq(const char *string)
 			state=1;
 			switch(c)
 			{
-			    case ('a'==97?'\033':39):
+			    case '\033':	/* ASCII ESC */
 				c = 'E';
 				break;
 			    case '\n':
@@ -412,7 +412,7 @@ char	*sh_fmtq(const char *string)
 				if(mbwide())
 				{
 					/* We're in a multibyte locale */
-					if(c<0 || ('a'!=97 || c<128) && !isprint(c))
+					if(c<0 || c<128 && !isprint(c))
 					{
 						/* Invalid multibyte char, or unprintable ASCII char: quote as hex byte */
 						c = *((unsigned char *)op);
@@ -521,7 +521,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 			{
 				switch (c)
 				{
-		    		case ('a'==97?'\033':39):
+		    		case '\033':		/* ASCII ESC */
 					c = 'E';
 					break;
 		    		case '\n':
