@@ -31,8 +31,9 @@
 #include <ast.h>
 
 #if __CYGWIN__
+#include <sys/cygwin.h>
 
-extern void	cygwin_conv_to_posix_path(const char*, char*);
+ssize_t cygwin_conv_path(cygwin_conv_path_t what, const void * from, void * to, size_t size);
 
 size_t
 pathposix(const char* path, char* buf, size_t siz)
@@ -43,14 +44,15 @@ pathposix(const char* path, char* buf, size_t siz)
 	{
 		char	tmp[PATH_MAX];
 
-		cygwin_conv_to_posix_path(path, tmp);
+		cygwin_conv_path(CCP_WIN_W_TO_POSIX | CCP_ABSOLUTE, path, tmp, 0);
 		if ((n = strlen(tmp)) < siz && buf)
 			memcpy(buf, tmp, n + 1);
 		return n;
 	}
-	cygwin_conv_to_posix_path(path, buf);
+	cygwin_conv_path(CCP_WIN_W_TO_POSIX | CCP_ABSOLUTE, path, buf, 0);
 	return strlen(buf);
 }
+
 
 #elif __INTERIX
 
