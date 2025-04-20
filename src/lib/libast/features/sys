@@ -12,84 +12,11 @@ header	limits.h
 header	fcntl.h
 header	locale.h
 
-typ dev_t,nlink_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef short $v;"
-	echo "#endif"
-}end
-typ gid_t,mode_t,uid_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef unsigned short $v;"
-	echo "#endif"
-}end
-typ wchar_t stdio.h wchar.h fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef unsigned short $v;"
-	echo "#endif"
-}end
-typ pid_t,ssize_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef int $v;"
-	echo "#endif"
-}end
-typ wint_t stdio.h wchar.h fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef int $v;"
-	echo "#endif"
-}end
 typ socklen_t sys/socket.h fail{
 	echo "#ifndef $m"
 	echo "#define $m	1"
 	echo "typedef int $v;"
 	echo "#endif"
-}end
-typ size_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef unsigned int $v;"
-	echo "#endif"
-}end
-typ clock_t,ino_t,off_t,ptrdiff_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef long $v;"
-	echo "#endif"
-}end
-typ time_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef unsigned long $v;"
-	echo "#endif"
-}end
-typ div_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef struct { int quot; int rem; } $v;"
-	echo "#endif"
-}end
-typ ldiv_t fail{
-	echo "#ifndef $m"
-	echo "#define $m	1"
-	echo "typedef struct { long quot; long rem; } $v;"
-	echo "#endif"
-}end
-tst	typ_signed_size_t output{
-	#include <sys/types.h>
-	int
-	main(void)
-	{
-		unsigned long u = ~0;
-		size_t s = ~0;
-		if (s >= 0)
-			return 1;
-		printf("#if !defined(_typ_signed_size_t)\n/* ensure unsigned size_t */\ntypedef unsigned %s _ast_size_t;\n#undef\tsize_t\n#define size_t\t_ast_size_t\n#endif\n", u == (unsigned long)s ? "long" : "int");
-		return 0;
-	}
 }end
 
 define	offsetof	(type,member)	__builtin_offsetof(type,member)
@@ -113,105 +40,12 @@ define	X_OK		1
 define	W_OK		2
 define	R_OK		4
 
-extern	_exit		void		(int)
-extern	abort		void		(void)
-extern	abs		int		(int)
-extern	access		int		(const char*, int)
-extern	alarm		unsigned	(unsigned)
-extern	atof		double		(const char*)
-extern	atoi		int		(const char*)
-extern	atol		long		(const char*)
-extern	bsearch		void*		(const void*, const void*, size_t, size_t, int(*)(const void*, const void*))
-extern	calloc		void*		(size_t, size_t)
-extern	cfree		void		(void*)
-extern	chdir		int		(const char*)
-extern	chown		int		(const char*, uid_t, gid_t)
-extern	close		int		(int)
-extern	confstr		size_t		(int, char*, size_t)
-extern	div		div_t		(int, int)
-extern	dup		int		(int)
-extern	dup2		int		(int, int)
 extern	eaccess		int		(const char*, int)
-extern	execl		int		(const char*, const char*, ...)
-extern	execle		int		(const char*, const char*, ...)
-extern	execlp		int		(const char*, const char*, ...)
-extern	execv		int		(const char*, char* const[])
-extern	execve		int		(const char*, char* const[], char* const[])
-extern	execve		int		(const char*, char* const[], char* const[])
-extern	execvp		int		(const char*, char* const[])
-extern	execvpe		int		(const char*, char* const[], char* const[])
-extern	exit		void		(int)
-extern	fork		pid_t		(void)
-extern	fpathconf	long		(int, int)
-extern	free		void		(void*)
 extern	fsync		int		(int)
 extern	ftruncate	int		(int, off_t)
-extern	getcwd		char*		(char*, size_t)
-extern	getegid		gid_t		(void)
-extern	getenv		char*		(const char*)
-extern	geteuid		uid_t		(void)
-extern	getgid		gid_t		(void)
-extern	getpid		pid_t		(void)
-extern	getppid		pid_t		(void)
-extern	gettxt		char*		(const char*, const char*)
-extern	getuid		uid_t		(void)
-extern	isatty		int		(int)
-extern	labs		long		(long)
-extern	ldiv		ldiv_t		(long, long)
-extern	link		int		(const char*, const char*)
-extern	lseek		off_t		(int, off_t, int)
-extern	malloc		void*		(size_t)
-extern	mblen		int		(const char*, size_t)
-extern	mbstowcs	size_t		(wchar_t*, const char*, size_t)
-extern	mbtowc		int		(wchar_t*, const char*, size_t)
 extern	memalign	void*		(size_t, size_t)
-extern	memccpy		void*		(void*, const void*, int, size_t)
-extern	memchr		void*		(const void*, int, size_t)
-extern	memcmp		int		(const void*, const void*, size_t)
-extern	memcpy		void*		(void*, const void*, size_t)
-extern	memmove		void*		(void*, const void*, size_t)
-extern	memset		void*		(void*, int, size_t)
-extern	pathconf	long		(const char*, int)
-extern	pause		int		(void)
-extern	pipe		int		(int[])
-extern	pvalloc		void*		(size_t)
-extern	qsort		void		(void*, size_t, size_t, int(*)(const void*, const void*))
-extern	rand_r		int		(unsigned int*)
-extern	read		ssize_t		(int, void*, size_t)
-extern	realloc		void*		(void*, size_t)
-extern	realpath	char*		(const char*, char*)
-extern	resolvepath	char*		(const char*, char*, size_t)
-extern	rmdir		int		(const char*)
-extern	setgid		int		(gid_t)
-extern	setpgid		int		(pid_t, pid_t)
-extern	setsid		pid_t		(void)
-extern	setuid		int		(uid_t)
-extern	sleep		unsigned		(unsigned int)
-extern	strcasecmp	int		(const char*, const char*)
-extern	strcoll		int		(const char*, const char*)
-extern	strcspn		size_t		(const char*, const char*)
-extern	strdup		char*		(const char*)
 extern	strlcat		size_t		(char*, const char*, size_t)
 extern	strlcpy		size_t		(char*, const char*, size_t)
-extern	strlen		size_t		(const char*)
-extern	strncasecmp	int		(const char*, const char*, size_t)
-extern	strpbrk		char*		(const char*, const char*)
-extern	strspn		size_t		(const char*, const char*)
-extern	strtok		char*		(char*, const char*)
-extern	strxfrm		size_t		(char*, const char*, size_t)
-extern	swab		void		(const void*, void*, ssize_t)
-extern	sysconf		long		(int)
-extern	system		int		(const char*)
-extern	tcgetpgrp	pid_t		(int)
-extern	tcsetpgrp	int		(int, pid_t)
-extern	truncate	int		(const char*, off_t)
-extern	ttyname		char*		(int)
-extern	unlink		int		(const char*)
-extern	valloc		void*		(size_t)
-extern	wcstombs	size_t		(char*, const wchar_t*, size_t)
-extern	wctomb		int		(char*, wchar_t)
-extern	write		ssize_t		(int, const void*, size_t)
 
-print	extern pid_t	spawnveg(const char*, char* const[], char* const[], pid_t, int);
 print	#undef	extern
 print	#include <stdarg.h>

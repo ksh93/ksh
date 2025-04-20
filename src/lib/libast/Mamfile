@@ -2687,16 +2687,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make resolvepath.o
-			make comp/resolvepath.c
-				prev ast_api.h
-				prev ast_map.h
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make strftime.o
 			make comp/strftime.c
 				prev ast_map.h

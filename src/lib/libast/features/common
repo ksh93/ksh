@@ -1,7 +1,6 @@
 iff	AST_COMMON
 hdr	pthread,stdarg,stddef,stdint,inttypes,types,unistd
 sys	types
-typ	long.double,size_t,ssize_t
 typ	__va_list stdio.h
 
 std	noreturn note{ noreturn ok }end compile{
@@ -250,9 +249,7 @@ tst	- output{
 		"pointer",	sizeof(void*),		COND * 4,
 		"float",	sizeof(float),		0,
 		"double",	sizeof(double),		0,
-	#if _typ_long_double
 		"long_double",	sizeof(long double),	0,
-	#endif
 	};
 
 	int
@@ -281,15 +278,11 @@ tst	- output{
 	exit 1
 }end
 
-tst	- -DN=1 - -DN=0 output{
+tst note{ generating _ast_flt\*_t types }end output{
 	#define _BYTESEX_H
 
 	#include <string.h>
 	#include <sys/types.h>
-
-	#if !N
-	#undef	_typ_long_double
-	#endif
 
 	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
 
@@ -301,9 +294,7 @@ tst	- -DN=1 - -DN=0 output{
 	{
 		"float",	sizeof(float),
 		"double",	sizeof(double),
-	#if _typ_long_double
 		"long double",	sizeof(long double),
-	#endif
 	};
 
 	int
@@ -311,21 +302,21 @@ tst	- -DN=1 - -DN=0 output{
 	{
 		int	t;
 		int	m = 1;
-
-	#if _typ_long_double
-		long double	p;
-		char		buf[64];
-
-		if (flt_type[elementsof(flt_type)-1].size <= sizeof(double))
-			return 1;
-		p = 1.12345E-55;
-		sprintf(buf, "%1.5LE", p);
-		if (strcmp(buf, "1.12345E-55"))
-			return 1;
-	#endif
-		for (t = 0; t < elementsof(flt_type); t++)
+		int	e = elementsof(flt_type);
+		if (flt_type[e - 1].size <= sizeof(double))
+			e--; /* exclude "long double" */
+		else
 		{
-			while (t < (elementsof(flt_type) - 1) && flt_type[t].size == flt_type[t + 1].size)
+			long double	p;
+			char		buf[64];
+			p = 1.12345E-55;
+			sprintf(buf, "%1.5LE", p);
+			if (strcmp(buf, "1.12345E-55"))
+				e--; /* exclude "long double" */
+		}
+		for (t = 0; t < e; t++)
+		{
+			while (t < (e - 1) && flt_type[t].size == flt_type[t + 1].size)
 				t++;
 			m = flt_type[t].size;
 			printf("#define _ast_flt%d_t		%s\n", flt_type[t].size, flt_type[t].name);
@@ -335,6 +326,9 @@ tst	- -DN=1 - -DN=0 output{
 			printf("#define _ast_fltmax_double		1\n");
 		return 0;
 	}
+}end fail{
+	echo "$0: Could not generate _ast_flt*_t types. Export IFFEFLAGS=-d1 to debug." >&2
+	exit 1
 }end
 
 typ int8_t stdint.h inttypes.h no{
@@ -525,14 +519,6 @@ cat{
 	#		include	<inttypes.h>
 	#		endif
 	#	endif
-	#endif
-	#if !_typ_size_t
-	#	define _typ_size_t	1
-		typedef int size_t;
-	#endif
-	#if !_typ_ssize_t
-	#	define _typ_ssize_t	1
-		typedef int ssize_t;
 	#endif
 	#ifndef _AST_STD_H
 	#	define _def_map_ast	1
