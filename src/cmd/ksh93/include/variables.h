@@ -19,7 +19,6 @@
 #ifndef SH_VALNOD
 
 #include        <option.h>
-#include        "FEATURE/dynamic"
 #include	<nval.h>
 
 /* used for RANDNOD ($RANDOM) */

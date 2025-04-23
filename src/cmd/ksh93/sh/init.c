@@ -43,7 +43,6 @@
 #include	"shlex.h"
 #include	"builtins.h"
 #include	"FEATURE/time"
-#include	"FEATURE/dynamic"
 #include	"FEATURE/externs"
 #include	"lexstates.h"
 #include	"version.h"

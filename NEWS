@@ -2,6 +2,16 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-04-23:
+
+- The SHOPT_DYNAMIC compile-time option (the ability to load builtins from
+  dynamically linked libaries such as libcmd) is now automatically disabled
+  for the version of ksh that is linked against the static libast/libcmd/
+  libshell libraries, as it cannot work correctly on those. On the version of
+  ksh linked against the dynamic version of these libraries (on supported
+  systems) it is automatically enabled. Since it is now handled automatically,
+  SHOPT_DYNAMIC has been removed from SHOPT.sh as a configurable option.
+
 2025-04-10:
 
 - Fixed a bug (present in all AT&T and 93u+m releases) affecting parsing of

@@ -33,7 +33,9 @@
 #include	"jobs.h"
 #include	"history.h"
 #include	"test.h"
-#include	"FEATURE/dynamic"
+#if SHOPT_DYNAMIC
+#include	<dlldefs.h>
+#endif
 
 #define RW_ALL	(S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR|S_IWGRP|S_IWOTH)
 #define LIBCMD	"cmd"

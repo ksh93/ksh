@@ -16,7 +16,6 @@ SHOPT CMDLIB_HDR=  # '<cmdlist.h>'	# custom -lcmd list for path-bound builtins
 SHOPT CMDLIB_DIR=  # '"/opt/ast/bin"'	# virtual directory prefix for path-bound builtins
 SHOPT CRNL=				# accept MS Windows newlines (<cr><nl>) for <nl>
 SHOPT DEVFD=				# use /dev/fd instead of FIFOs for process substitutions
-SHOPT DYNAMIC=1				# dynamic loading for builtins
 SHOPT ECHOPRINT=			# make echo equivalent to print
 SHOPT EDPREDICT=0			# History pattern search menu (type #<pattern>, then ESC <number> TAB). Deprecated.
 SHOPT ESH=1				# emacs/gmacs edit mode

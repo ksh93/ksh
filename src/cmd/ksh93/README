@@ -62,9 +62,6 @@ The options have the following defaults and meanings:
     DEVFD            Use the more secure /dev/fd mechanism instead of FIFOs for
                      process substitutions. On by default on OSs with /dev/fd.
 
-    DYNAMIC      off Dynamic loading of builtins. Requires dlopen() interface
-                     and dynamic libshell, libdll and libast libraries.
-
     ECHOPRINT    off Make echo equivalent to print.
 
     EDPREDICT    off Enables history pattern search menu. As you begin a line

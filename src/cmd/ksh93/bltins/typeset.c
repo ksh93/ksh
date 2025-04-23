@@ -47,7 +47,9 @@
 #include	"history.h"
 #include	"builtins.h"
 #include	"variables.h"
-#include	"FEATURE/dynamic"
+#if SHOPT_DYNAMIC
+#include	<dlldefs.h>
+#endif
 
 /*
  * The first two fields must correspond with those in 'struct adata' in name.c and nvdisc.c

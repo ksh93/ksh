@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2021-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2021-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -57,9 +57,10 @@ HIn)	note "Building dynamic libraries was disabled; skipping"
 esac
 
 # Parse options.
-unset exec_file module_name l_flags version prefix suffix
-while getopts 'e:m:l:v:p:s:' opt
+unset opt_query exec_file module_name l_flags version prefix suffix
+while getopts 'Qe:m:l:v:p:s:' opt
 do	case $opt in
+	Q)	opt_query=y ;;      # query support for dynamic libraries on this system
 	e)	exec_file=$OPTARG ;;
 	m)	module_name=$OPTARG ;;
 	l)	l_flags="$l_flags -l$OPTARG" ;;
@@ -73,8 +74,11 @@ done
 shift $((OPTIND - 1))
 
 # Validate options.
-case ${exec_file:+e}${module_name:+m} in
-e | m)	;;
+case ${opt_query+Q}${exec_file:+e}${module_name:+m}${l_flags+l}${version+v}${prefix+p}${suffix+s} in
+Q?*)	err_out "-Q cannot be used with other options" ;;
+Q)	test "$#" -gt 0 && err_out "-Q cannot be used with arguments" ;;
+e | e[!m]* | m*)
+	;;
 *)	err_out "Either -e or -m should be specified" ;;
 esac
 case ${module_name:+m}${prefix+p}${suffix+s}${version:+v} in
@@ -89,17 +93,21 @@ esac
 case $HOSTTYPE in
 android.* | darwin.* | dragonflybsd.* | freebsd* | haiku.* | linux.* | netbsd.* | openbsd.* | qnx.* | sol??.* )
 	# supported
+	test -n "$opt_query" && exit 0
 	;;
 cygwin.*)
+	test -n "$opt_query" && exit 1
 	note "Dynamic libraries are not supported on Cygwin."
 	exit 0  # continue build
 	;;
-*)	note "The system $HOSTTYPE is currently untested for dynamic libraries" \
-		"so dynamic libraries are disabled by default. To test them," \
-		"export AST_DYLIB_TEST to try to build a dynamically linked ksh."
-	case ${AST_DYLIB_TEST:+y} in
-	y)	;;
-	*)	exit 0  # continue build
+*)	case ${AST_DYLIB_TEST:+y} in
+	y)	test -n "$opt_query" && exit 0
+		;;
+	*)	test -n "$opt_query" && exit 1
+		note "The system $HOSTTYPE is currently untested for dynamic libraries" \
+			"so dynamic libraries are disabled by default. To test them," \
+			"export AST_DYLIB_TEST to try to build a dynamically linked ksh."
+		exit 0  # continue build
 		;;
 	esac
 	;;

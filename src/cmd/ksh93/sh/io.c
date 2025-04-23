@@ -42,7 +42,6 @@
 #include	"edit.h"
 #include	"timeout.h"
 #include	"FEATURE/externs"
-#include	"FEATURE/dynamic"
 #include	"FEATURE/poll"
 
 #ifdef	FNDELAY
