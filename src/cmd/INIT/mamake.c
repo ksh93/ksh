@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2025-04-02"
+#define RELEASE_DATE "2025-04-24"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -1043,8 +1043,10 @@ static void substitute(Buf_t *buf, char *s)
 					Buf_t		*scr;
 					if (!argv)
 					{	/* write value to temp file, converting whitespace to newlines */
+						if (!(f = fopen(in, "w")))
+							error_out(strerror(errno), "could not open pipe command input for writing");
 						errno = 0;
-						if (f = fopen(in, "w")) do
+						do
 						{
 							while (isspace(*v))
 								v++;
@@ -1070,12 +1072,13 @@ static void substitute(Buf_t *buf, char *s)
 					*s = n;
 					drop(scr);
 					/* read output back, converting each newline but the last to a space */
-					if ((f = fopen(out, "r")))
-						while ((c = getc(f)) != EOF)
-							add(buf, (final_newline = (c == '\n')) ? ' ' : c);
+					if (!(f = fopen(out, "r")))
+						error_out(strerror(errno), "could not open pipe command output for reading");
+					while ((c = getc(f)) != EOF)
+						add(buf, (final_newline = (c == '\n')) ? ' ' : c);
 					if (final_newline)
 						unadd(buf);
-					if (!f || ferror(f) || fclose(f) == EOF)
+					if (ferror(f) || fclose(f) == EOF)
 						error_out(strerror(errno), "could not read pipe command output");
 					unlink(out);
 					if (!argv)
