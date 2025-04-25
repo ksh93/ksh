@@ -145,6 +145,19 @@ char *sh_mactry(char *string)
 }
 
 /*
+ * Read $IFS and initialize:
+ * - ifsp: pointer to value of IFS (NULL if IFS is unset)
+ * - ifs: first byte of value of IFS (0 if empty, space if IFS is unset)
+ */
+static void setup_ifs(Mac_t *mp)
+{
+	if(mp->ifsp = nv_getval(sh_scoped(IFSNOD)))
+		mp->ifs = *mp->ifsp;
+	else
+		mp->ifs = ' ';
+}
+
+/*
  * Perform parameter expansion, command substitution, and arithmetic
  * expansion on <str>.
  * If <mode> greater than 1 file expansion is performed if the result
@@ -166,10 +179,7 @@ char *sh_mactrim(char *str, int mode)
 		mp->assign = -mode;
 	mp->quoted = mp->lit = mp->split = mp->quote = 0;
 	mp->sp = 0;
-	if(mp->ifsp=nv_getval(sh_scoped(IFSNOD)))
-		mp->ifs = *mp->ifsp;
-	else
-		mp->ifs = ' ';
+	setup_ifs(mp);
 	stkseek(stkp,0);
 	fcsopen(str);
 	copyto(mp,0,mp->arith);
@@ -203,10 +213,7 @@ int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
 	Mac_t	savemac = *mp;
 	Stk_t	*stkp = sh.stk;
 	mp->sp = 0;
-	if(mp->ifsp=nv_getval(sh_scoped(IFSNOD)))
-		mp->ifs = *mp->ifsp;
-	else
-		mp->ifs = ' ';
+	setup_ifs(mp);
 	if((flag&ARG_OPTIMIZE) && !sh.indebug && !(flags&ARG_MESSAGE))
 		nv_setoptimize((char**)&argp->argchn.ap);
 	else
@@ -274,8 +281,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 	mp->sp = outfile;
 	mp->split = mp->assign = mp->pattern = mp->patfound = mp->lit = mp->arith = 0;
 	mp->quote = 1;
-	mp->ifsp = nv_getval(sh_scoped(IFSNOD));
-	mp->ifs = ' ';
+	setup_ifs(mp);
 	fcsave(&save);
 	if(infile)
 		fcfopen(infile);

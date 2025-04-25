@@ -581,4 +581,25 @@ exp=$'\t\tTest line 1\n\tTest line 2'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# $@ and $* in here-document
+# Note: POSIX sys that $@ has unspecified behaviour in this context because
+# field generation is not posible, but ksh's traditional behaviour is to pull
+# a space out of a hat and use it as the output field separator. Only $* makes
+# sense in a here-document. In any scalar context (in which field splittig is
+# not possible), POSIX specifies that $* uses the first character of $IFS as
+# the output field separator.
+got=$(
+	IFS=/
+	set ONE TWO THREE
+	cat <<-EOF
+		start$@end
+		start$*end
+	EOF
+)
+exp=$'startONE TWO THREEend\nstartONE/TWO/THREEend'
+[[ $got == "$exp" ]] || err_exit '$@ and $* in here-document' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+
+# ======
 exit $((Errors<125?Errors:125))
