@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1672,7 +1672,7 @@ const char sh_optksh[] =
 	"the following:]{"
 	"[+0?The script or command line to be executed consists entirely "
 		"of zero or more blank lines or comments.]"
-	"[+1-125?A noninteractive shell detected a syntax error, a variable "
+	"[+1-125?A non-interactive shell detected a syntax error, a variable "
 		"assignment error, or an error in a special built-in.]"
 	"[+126?\b-c\b and \b-s\b were not specified and the command script "
 		"was found on \bPATH\b but was not executable.]"
@@ -1813,8 +1813,8 @@ const char sh_opttrap[] =
 	"[+KEYBD?Executed when a key is entered from a terminal device.]"
 "}"
 "[+?Signal names are case insensitive and the \bsig\b prefix is optional. "
-	"Signals that were ignored on entry to a noninteractive shell cannot "
-	"trapped or reset although doing so will not report an error. The "
+	"Signals that were ignored on entry to a non-interactive shell cannot "
+	"be trapped or reset, although doing so will not report an error. The "
 	"use of signal numbers other than \b1\b, \b2\b, \b3\b, \b6\b, "
 	"\b9\b, \b14\b, and \b15\b is not portable.]"
 "[+?Although \btrap\b is a special built-in, specifying a condition that "
