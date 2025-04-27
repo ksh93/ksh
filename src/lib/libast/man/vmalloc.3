@@ -1,0 +1,246 @@
+.fp 5 CW
+.TH VMALLOC 3 "4 April 2025"
+.SH NAME
+Vmalloc \- Simplified virtual regions for memory allocation
+.SH SYNOPSIS
+.de Tp
+.fl
+.ne 2
+.TP
+..
+.de Ss
+.fl
+.ne 2
+.SS "\\$1"
+..
+.de Cs
+.nf
+.ft 5
+..
+.de Ce
+.ft 1
+.fi
+..
+.ta 0.67i 1.34i 2.01i 2.68i 3.35i 4.02i 4.69i 5.36i 6.03i 6.70i
+.Cs
+#include <vmalloc.h>
+.Ce
+.Ss "REGION CONTROL"
+.Cs
+Vmalloc_t *vmopen(void);
+void      vmclear(Vmalloc_t* vm);
+void      vmclose(Vmalloc_t* vm);
+.Ce
+.Ss "ALLOCATION"
+.Cs
+void      *vmalloc(Vmalloc_t* vm, size_t size);
+void      *vmresize(Vmalloc_t* vm, void* addr, size_t size);
+char      *vmstrdup(Vmalloc_t *vm, const char *s);
+void      vmfree(Vmalloc_t* vm, void* addr);
+.Ce
+.Ss "MACROS"
+.Cs
+void      *vmnewof(Vmalloc_t* vm, void* addr, type, size_t n, size_t x);
+void      *vmoldof(Vmalloc_t* vm, void* addr, type, size_t n, size_t x);
+.Ce
+.SH DESCRIPTION
+Vmalloc is a small wrapper interface over the local operating system's
+standard memory allocation facilities
+.RB ( malloc (3)
+and friends)
+that confers two advantages:
+.IP 1.
+Virtual regions.
+Each memory allocation is associated with a region.
+An unlimited number of regions may be opened.
+When a region is closed,
+all memory associated with it is automatically freed.
+This allows compartmentalizing memory management
+and can simplify the avoidance of memory leaks.
+.IP 2.
+Automatic initialization.
+A region may be opened with an option that
+causes all allocated memory
+(including memory added when resizing a block)
+to be automatically initialized to zero.
+This is a safeguard against the use of uninitialized memory.
+.PP
+While Vmalloc and the standard interface may be mixed,
+each block must always be freed or resized
+using the interface and/or region it was allocated with.
+.PP
+Size 0 allocations are not supported
+and result in undefined behavior.
+.PP
+.Ss "REGION CONTROL"
+.PP
+.Ss "  Vmalloc_t *vmopen(void);"
+Open a region.
+This function returns a pointer to an initialized structure declared as:
+.PP
+.Cs
+typedef struct
+{
+        void      *alloc;
+        uint32_t  options;
+        void      (*outofmem)(size_t);
+} Vmalloc_t;
+.Ce
+.PP
+The
+.I alloc
+field is for internal bookkeeping and should not be used directly.
+.PP
+The
+.I options
+field is an options bitmask.
+If the bit flag
+.B VM_INIT
+is set, then all memory allocated in the region,
+including memory added when resizing,
+will be automatically initialized to zero.
+All other bits are reserved for future use and should be zero.
+.PP
+The
+.I outofmem
+field can be set to point to a function that
+will be called when a memory block fails to be allocated or resized.
+The size of the requested block is passed in the argument,
+or if internal bookkeeping fails, 0 is passed.
+The function may
+.BR abort (3)
+or
+.BR longjmp (3).
+If it returns, default failure behavior is resumed.
+.PP
+.B vmopen
+returns a pointer to the new region, or
+.B NULL
+on failure.
+.PP
+.Ss "  void vmclear(Vmalloc_t *vm);"
+Clear a region.
+This function frees all allocations associated with the region
+.IR vm .
+.PP
+.Ss "  void vmclose(Vmalloc_t *vm);"
+Close a region.
+This function performs a
+.B vmclear
+on the region
+.I vm
+and then frees the region itself.
+.PP
+.Ss "ALLOCATION"
+.PP
+.Ss "  void *vmalloc(Vmalloc_t *vm, size_t size);"
+Allocate a block of the requested
+.I size
+in the region
+.IR vm .
+If the region has the
+.B VM_INIT
+option bit set, the block is allocated with
+.BR calloc (3),
+otherwise with
+.BR malloc (3).
+.B vmalloc
+returns the allocated block on success or
+.B NULL
+on failure.
+.PP
+.Ss "  void *vmresize(Vmalloc_t *vm, void *addr, size_t size);"
+Resize (grow or shrink) a block allocated in the region
+.IR vm .
+This function uses
+.BR realloc (3)
+to change the size of the block pointed to by
+.I addr
+to the new
+.IR size .
+If
+.I addr
+is
+.BR NULL ,
+a new block is allocated.
+The block may be moved to a different location in memory.
+The new block is initialized with as much of the old contents as will fit.
+If the new size is larger than the old,
+then the added memory is either left uninitialized or,
+if region has the
+.B VM_INIT
+option bit set, it is initialized to zero.
+.B vmresize
+returns a pointer to the new block,
+or
+.B NULL
+on failure.
+.PP
+.Ss "  char *vmstrdup(Vmalloc_t *vm, const char *s);"
+String duplication.
+This function allocates as much memory in the region
+.I vm
+as is necessary to contain the zero-terminated string
+.I s
+and copies the string into it.
+.B vmstrdup
+returns a pointer to the duplicated string,
+or
+.B NULL
+on failure.
+.PP
+.Ss "  void vmfree(Vmalloc_t *vm, void *addr);"
+Free the block pointed to by
+.I addr
+from the region
+.IR vm .
+.PP
+.Ss "MACROS"
+.PP
+.Ss "  void *vmnewof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
+.Ss "  void *vmoldof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
+These macro functions are provided for backward compatibility.
+.B vmnewof
+uses
+.B vmresize
+to resize block
+.I addr
+to the new size
+.IR "n * sizeof(type) + x" ,
+or, if
+.I addr
+is
+.BR NULL ,
+to allocate a new block of that size.
+Any additional space beyond old content is always initialized to zero
+(i.e., regardless of whether the region has the
+.B VM_INIT
+option bit set).
+If the block is moved, as much old content is copied as will fit.
+.B vmoldof
+is the same as
+.B vmnewof
+except that it never initializes added memory.
+Both functions return the new or resized block, or
+.B NULL
+on failure.
+.SH HISTORY
+AT&T was providing its own feature-packed Vmalloc memory allocator
+in libast since the 1990s and maintained it until the early 2010s.
+However, modern operating systems' native memory allocators
+were outperforming it by then in terms of reliability, speed
+and memory efficiency, and there was no one left to maintain or improve it.
+Consequently, the KornShell 93u+m distribution deprecated Vmalloc soon after
+forking ksh and libast in 2020 and removed it entirely in 2024.
+.PP
+In April 2025, this modified and simplified subset
+of the original Vmalloc interface was added instead,
+rewritten from scratch to restore the benefits
+of regions and automatic initialization
+while continuing to rely on the native OS memory allocator.
+Though this interface is not fully compatible with the original,
+it is similar enough that porting most programs should be easy.
+.SH AUTHOR
+Martijn Dekker <martijn@inlv.org> \- current rewrite
+.br
+Kiem-Phong Vo <kpv@research.att.com> \- original

@@ -422,6 +422,7 @@ make install virtual
 
 	makp include/tar.h
 	makp include/vdb.h
+	makp include/vmalloc.h
 
 	make std/assert.h
 		prev ast_common.h
@@ -716,6 +717,7 @@ make install virtual
 			make misc/fastfind.c
 				make misc/findlib.h
 					makp include/find.h
+					prev include/vmalloc.h
 					prev include/regex.h
 					prev include/ls.h
 					prev include/error.h
@@ -1493,6 +1495,7 @@ make install virtual
 				prev std/nl_types.h
 				prev include/mc.h
 				prev include/error.h
+				prev include/vmalloc.h
 				prev std/iconv.h
 				prev port/lclib.h
 				make sfio/sfhdr.h
@@ -4173,6 +4176,17 @@ make install virtual
 			exec - compile %{<} -Iaso
 		done
 
+		make vmalloc.o
+			make misc/vmalloc.c
+				prev include/ast.h
+				prev ast_release.h
+				prev include/cdt.h
+				prev include/vmalloc.h
+				prev std/assert.h
+			done
+			exec - compile %{<}
+		done
+
 		note * include shell action for linking the library
 		incl link_ar.mam
 
@@ -4223,7 +4237,7 @@ make install virtual
 	note * #include headers
 	make %{INSTALLROOT}/lib/mam/ast
 		note * ...main AST headers
-		loop HDR ast ast_dir ast_std ast_windows ccode cdt cmdarg debug error find ftwalk fts glob hash hashkey hashpart ip6 ls mc mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk stak swap tar times tm tok vdb wait fnv aso
+		loop HDR ast ast_dir ast_std ast_windows ccode cdt cmdarg debug error find ftwalk fts glob hash hashkey hashpart ip6 ls mc mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk stak swap tar times tm tok vdb wait fnv aso vmalloc
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev include/%{HDR}.h
 				exec - cp -f %{<} %{@}

@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2024-07-27\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2025-04-04\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
@@ -109,6 +109,7 @@ static const char usage[] =
 #include <proc.h>
 #include <ctype.h>
 #include <regex.h>
+#include <vmalloc.h>
 #include <ast_time.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
@@ -121,9 +122,12 @@ static const char usage[] =
 #define CMIN		1
 #endif
 
-static noreturn void outofmemory(void)
+static noreturn void outofmemory(size_t size)
 {
-	error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+	if (size)
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory (failed to allocate %zu bytes)", size);
+	else
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 	UNREACHABLE();
 }
 
@@ -498,6 +502,7 @@ match(char* pattern, char* text, int must)
 
 typedef struct Master_s
 {
+	Vmalloc_t*	vm;		/* allocation region			*/
 	char*		ignore;		/* ignore master lines matching this re	*/
 	char*		peek;		/* peek buffer pointer			*/
 	char*		cur;		/* current line				*/
@@ -653,15 +658,11 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	error(-2, "b \"%s\"", fmtnesq(s, "\"", n));
 	if ((bp->max - bp->end) < n)
 	{
-		size_t	old_buf_size, new_buf_size;
+		size_t	new_buf_size;
 		r = bp->buf;
-		old_buf_size = bp->max - bp->buf + 1;
-		new_buf_size = roundof(old_buf_size + n, SFIO_BUFSIZE);
-		bp->bufunderflow = realloc(bp->bufunderflow, new_buf_size + BUFUNDERFLOW);
-		if (!bp->bufunderflow)
-			outofmemory();
+		new_buf_size = roundof(bp->max - bp->buf + 1 + n, SFIO_BUFSIZE);
+		bp->bufunderflow = vmresize(bp->vm, bp->bufunderflow, new_buf_size + BUFUNDERFLOW);
 		bp->buf = bp->bufunderflow + BUFUNDERFLOW;
-		memset(bp->buf + old_buf_size, 0, new_buf_size - old_buf_size);
 		bp->max = bp->buf + new_buf_size - 1;
 		if (bp->buf != r)
 		{
@@ -789,15 +790,20 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 	char*		m;
 	char*		e;
 	char*		id;
+	Vmalloc_t*	vm;
 	Cond_t*		cond;
 	Master_t*	master;
 
 	int		status = 0;
 
-	if (!(cond = calloc(1, sizeof(*cond))) ||
-	    !(master = calloc(1, sizeof(*master))) ||
-	    !(master->bufunderflow = calloc(2 * SFIO_BUFSIZE + BUFUNDERFLOW, sizeof(char))))
-		outofmemory();
+	if (!(vm = vmopen()))
+		outofmemory(0);
+	vm->options = VM_INIT;
+	vm->outofmemory = outofmemory;
+	cond = vmnewof(vm, 0, Cond_t, 1, 0);
+	master = vmnewof(vm, 0, Master_t, 1, 0);
+	master->vm = vm;
+	master->bufunderflow = vmnewof(vm, 0, char, 2 * SFIO_BUFSIZE, BUFUNDERFLOW);
 	master->buf = master->bufunderflow + BUFUNDERFLOW;
 	master->cur = master->end = master->buf;
 	master->max = master->buf + 2 * SFIO_BUFSIZE - 1;
@@ -847,8 +853,8 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 				error(2, "%s: invalid delay -- milliseconds expected", s);
 			break;
 		case 'i':
-			if (!cond->next && !(cond->next = calloc(1, sizeof(Cond_t))))
-				outofmemory();
+			if (!cond->next)
+				cond->next = vmnewof(vm, 0, Cond_t, 1, 0);
 			cond = cond->next;
 			cond->flags = IF;
 			if ((cond->prev->flags & SKIP) && !(cond->text = 0) || !(cond->text = masterline(mp, lp, 0, 0, timeout, master)))
@@ -952,29 +958,29 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 		case 'I':
 			if (master->ignore)
 			{
-				free(master->ignore);
+				vmfree(vm, master->ignore);
 				master->ignore = 0;
 			}
-			if (*s && !(master->ignore = strdup(s)))
-				outofmemory();
+			if (*s)
+				master->ignore = vmstrdup(vm, s);
 			break;
 		case 'L':
 			if (error_info.id)
 			{
-				free(error_info.id);
+				vmfree(vm, error_info.id);
 				error_info.id = 0;
 			}
-			if (*s && !(error_info.id = strdup(s)))
-				outofmemory();
+			if (*s)
+				error_info.id = vmstrdup(vm, s);
 			break;
 		case 'P':
 			if (master->prompt)
 			{
-				free(master->prompt);
+				vmfree(vm, master->prompt);
 				master->prompt = 0;
 			}
-			if (*s && !(master->prompt = strdup(s)))
-				outofmemory();
+			if (*s)
+				master->prompt = vmstrdup(vm, s);
 			break;
 		default:
 			if (cond->flags & SKIP)
@@ -990,6 +996,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 		sfclose(mp);
 	error_info.id = id;
 	error_info.line = line;
+	vmclose(vm);
 	return status ? status : error_info.errors != 0;
 }
 
@@ -1012,7 +1019,6 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	Proc_t*		proc;
 	Sfio_t*		mp;
 	Sfio_t*		lp;
-	Argv_t*		ap;
 	char		buf[64];
 
 	int		delay = 0;
@@ -1079,12 +1085,13 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	}
 	if (stty)
 	{
+		Argv_t* ap;
 		n = 2;
 		for (s = stty; *s; s++)
 			if (isspace(*s))
 				n++;
 		if (!(ap = newof(0, Argv_t, 1, (n + 2) * sizeof(char*) + (s - stty + 1))))
-			outofmemory();
+			outofmemory(0);
 		ap->argc = n + 1;
 		ap->argv = (char**)(ap + 1);
 		ap->args = (char*)(ap->argv + n + 2);
@@ -1100,6 +1107,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 			}
 		ap->argv[n + 1] = 0;
 		b_stty(ap->argc, ap->argv, 0);
+		free(ap);
 	}
 	if (!log)
 		lp = 0;

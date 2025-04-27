@@ -34,8 +34,10 @@
 	size_t		nstrs; \
 	size_t		nmsgs; \
 	iconv_t		cvt; \
-	Sfio_t*		tmp;
+	Sfio_t*		tmp; \
+	Vmalloc_t*	vm;
 
+#include <vmalloc.h>
 #include <error.h>
 #include <mc.h>
 #include <nl_types.h>
@@ -208,6 +210,7 @@ mcopen(Sfio_t* ip)
 	Mc_t*		mc;
 	char**		mp;
 	char*		sp;
+	Vmalloc_t*	vm;
 	char*		rp;
 	int		i;
 	int		j;
@@ -235,11 +238,12 @@ mcopen(Sfio_t* ip)
 	 * allocate the region
 	 */
 
-	if (!(mc = calloc(1, sizeof(Mc_t))))
+	if (!(vm = vmopen()) || !(mc = vmnewof(vm, 0, Mc_t, 1, 0)))
 	{
 		errno = oerrno;
 		return NULL;
 	}
+	mc->vm = vm;
 	mc->cvt = (iconv_t)(-1);
 	if (ip)
 	{
@@ -247,7 +251,7 @@ mcopen(Sfio_t* ip)
 		 * read the translation record
 		 */
 
-		if (!(sp = sfgetr(ip, 0, 0)) || !(mc->translation = strdup(sp)))
+		if (!(sp = sfgetr(ip, 0, 0)) || !(mc->translation = vmstrdup(vm, sp)))
 			goto bad;
 
 		/*
@@ -270,20 +274,20 @@ mcopen(Sfio_t* ip)
 		if (sfeof(ip))
 			goto bad;
 	}
-	else if (!(mc->translation = calloc(1, sizeof(char))))
+	else if (!(mc->translation = vmnewof(vm, 0, char, 1, 0)))
 		goto bad;
 
 	/*
 	 * allocate the remaining space
 	 */
 
-	if (!(mc->set = calloc(mc->num + 1, sizeof(Mcset_t))))
+	if (!(mc->set = vmnewof(vm, 0, Mcset_t, mc->num + 1, 0)))
 		goto bad;
 	if (!ip)
 		return mc;
-	if (!(mp = calloc(mc->nmsgs + mc->num + 1, sizeof(char*))))
+	if (!(mp = vmnewof(vm, 0, char*, mc->nmsgs + mc->num + 1, 0)))
 		goto bad;
-	if (!(rp = sp = malloc(mc->nstrs + 1)))
+	if (!(rp = sp = vmalloc(vm, mc->nstrs + 1)))
 		goto bad;
 
 	/*
@@ -324,6 +328,7 @@ mcopen(Sfio_t* ip)
 	errno = oerrno;
 	return mc;
  bad:
+	vmclose(vm);
 	errno = oerrno;
 	return NULL;
 }
@@ -423,7 +428,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 		if (set > mc->gen)
 		{
 			i = MC_SET_MAX;
-			if (!(sp = calloc(i + 1, sizeof(Mcset_t))))
+			if (!(sp = vmnewof(mc->vm, 0, Mcset_t, i + 1, 0)))
 				return -1;
 			mc->gen = i;
 			for (i = 1; i <= mc->num; i++)
@@ -449,7 +454,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 					i = 2 * num;
 				if (i > MC_NUM_MAX)
 					i = MC_NUM_MAX;
-				if (!(mp = calloc(i + 1, sizeof(char*))))
+				if (!(mp = vmnewof(mc->vm, 0, char*, i + 1, 0)))
 					return -1;
 				mc->gen = i;
 				sp->msg = mp;
@@ -461,7 +466,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 				i = 2 * mc->gen;
 				if (i > MC_NUM_MAX)
 					i = MC_NUM_MAX;
-				if (!(mp = realloc(sp->msg, sizeof(char*) * (i + 1))))
+				if (!(mp = vmnewof(mc->vm, sp->msg, char*, i + 1, 0)))
 					return -1;
 				sp->gen = i;
 				sp->msg = mp;
@@ -490,7 +495,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 	 * allocate, add and adjust the string table size
 	 */
 
-	if (!(s = strdup(msg)))
+	if (!(s = vmstrdup(mc->vm, msg)))
 		return -1;
 	sp->msg[num] = s;
 	mc->nstrs += strlen(s) + 1;
@@ -663,5 +668,6 @@ mcclose(Mc_t* mc)
 		sfclose(mc->tmp);
 	if (mc->cvt != (iconv_t)(-1))
 		iconv_close(mc->cvt);
+	vmclose(mc->vm);
 	return 0;
 }

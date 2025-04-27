@@ -30,6 +30,7 @@ make install virtual
 					exec -	-I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libast} %{mam_libcmd} : run %{<}
 				done
 				prev %{INCLUDE_AST}/ast_time.h
+				prev %{INCLUDE_AST}/vmalloc.h
 				prev %{INCLUDE_AST}/regex.h
 				prev %{INCLUDE_AST}/proc.h
 				prev %{INCLUDE_AST}/error.h

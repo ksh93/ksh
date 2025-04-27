@@ -29,6 +29,7 @@
 	Dllent_t	entry; \
 	Uniq_t*		uniq; \
 	int		flags; \
+	Vmalloc_t*	vm; \
 	Dt_t*		dict; \
 	Dtdisc_t	disc; \
 	FTS*		fts; \
@@ -56,6 +57,7 @@
 #include <ctype.h>
 #include <error.h>
 #include <fts.h>
+#include <vmalloc.h>
 
 typedef struct Uniq_s
 {
@@ -213,11 +215,14 @@ dllsopen(const char* lib, const char* name, const char* version)
 	char*		t;
 	Dllscan_t*	scan;
 	Dllinfo_t*	info;
+	Vmalloc_t*	vm;
 	int		i;
 	int		j;
 	int		k;
 	char		buf[32];
 
+	if (!(vm = vmopen()))
+		return NULL;
 	if (lib && *lib && (*lib != '-' || *(lib + 1)))
 	{
 		/*
@@ -235,8 +240,12 @@ dllsopen(const char* lib, const char* name, const char* version)
 	}
 	if (version && (!*version || *version == '-' && !*(version + 1)))
 		version = 0;
-	if (!(scan = calloc(1, sizeof(Dllscan_t) + i)) || !(scan->tmp = sfstropen()))
+	if (!(scan = vmnewof(vm, 0, Dllscan_t, 1, i)) || !(scan->tmp = sfstropen()))
+	{
+		vmclose(vm);
 		return NULL;
+	}
+	scan->vm = vm;
 	info = dllinfo();
 	scan->flags = info->flags;
 	if (lib)
@@ -254,7 +263,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 	}
 	else if (t = strrchr(name, '/'))
 	{
-		if (!(scan->pb = calloc(1, t - (char*)name + 2)))
+		if (!(scan->pb = vmnewof(vm, 0, char, t - (char*)name, 2)))
 			goto bad;
 		memcpy(scan->pb, name, t - (char*)name);
 		name = (const char*)(t + 1);
@@ -269,7 +278,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 			if (i > k && streq(name + i - k, info->suffix))
 			{
 				i -= j + k;
-				if (!(t = calloc(1, i + 1)))
+				if (!(t = vmnewof(vm, 0, char, i, 1)))
 					goto bad;
 				memcpy(t, name + j, i);
 				t[i] = 0;
@@ -283,7 +292,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 					if (*t != '-')
 						scan->flags |= DLL_MATCH_VERSION;
 					version = t + 1;
-					if (!(s = calloc(1, t - (char*)name + 1)))
+					if (!(s = vmnewof(vm, 0, char, t - (char*)name, 1)))
 						goto bad;
 					memcpy(s, name, t - (char*)name);
 					name = (const char*)s;
@@ -357,6 +366,8 @@ dllsclose(Dllscan_t* scan)
 		dtclose(scan->dict);
 	if (scan->tmp)
 		sfclose(scan->tmp);
+	if (scan->vm)
+		vmclose(scan->vm);
 	return 0;
 }
 
@@ -497,14 +508,14 @@ dllsread(Dllscan_t* scan)
 		}
 		if (dtmatch(scan->dict, b))
 			goto again;
-		if (!(u = calloc(1, sizeof(Uniq_t) + strlen(b))))
+		if (!(u = vmnewof(scan->vm, 0, Uniq_t, 1, strlen(b))))
 			return NULL;
 		strcpy(u->name, b);
 		dtinsert(scan->dict, u);
 	}
 	else if (!(scan->flags & DLL_MATCH_NAME))
 		scan->flags |= DLL_MATCH_DONE;
-	else if (!(scan->uniq = calloc(1, sizeof(Uniq_t) + strlen(b))))
+	else if (!(scan->uniq = vmnewof(scan->vm, 0, Uniq_t, 1, strlen(b))))
 		return NULL;
 	else
 		strcpy(scan->uniq->name, b);
