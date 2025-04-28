@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2025-04-04\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2025-04-28\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
@@ -127,7 +127,7 @@ static noreturn void outofmemory(size_t size)
 	if (size)
 		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory (failed to allocate %zu bytes)", size);
 	else
-		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory or vmalloc internal error");
 	UNREACHABLE();
 }
 
@@ -798,7 +798,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 
 	if (!(vm = vmopen()))
 		outofmemory(0);
-	vm->options = VM_INIT;
+	vm->options = VM_INIT | VM_FREEONFAIL;
 	vm->outofmemory = outofmemory;
 	cond = vmnewof(vm, 0, Cond_t, 1, 0);
 	master = vmnewof(vm, 0, Master_t, 1, 0);
@@ -1090,8 +1090,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		for (s = stty; *s; s++)
 			if (isspace(*s))
 				n++;
-		if (!(ap = newof(0, Argv_t, 1, (n + 2) * sizeof(char*) + (s - stty + 1))))
-			outofmemory(0);
+		ap = newof(0, Argv_t, 1, (n + 2) * sizeof(char*) + (s - stty + 1));
 		ap->argc = n + 1;
 		ap->argv = (char**)(ap + 1);
 		ap->args = (char*)(ap->argv + n + 2);

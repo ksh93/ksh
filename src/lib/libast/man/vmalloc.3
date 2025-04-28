@@ -99,6 +99,12 @@ If the bit flag
 is set, then all memory allocated in the region,
 including memory added when resizing,
 will be automatically initialized to zero.
+If the bit flag
+.B VM_FREEONFAIL
+is set, then
+.B vmresize
+will free an existing block that it failed to resize before returning
+.BR NULL .
 All other bits are reserved for future use and should be zero.
 .PP
 The
@@ -167,9 +173,12 @@ The block may be moved to a different location in memory.
 The new block is initialized with as much of the old contents as will fit.
 If the new size is larger than the old,
 then the added memory is either left uninitialized or,
-if region has the
+if the region has the
 .B VM_INIT
 option bit set, it is initialized to zero.
+If resizing fails and the region has the
+.B VM_FREEONFAIL
+option bit set, the original block is freed.
 .B vmresize
 returns a pointer to the new block,
 or

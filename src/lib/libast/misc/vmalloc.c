@@ -15,7 +15,7 @@
 
 /*
  * New Vmalloc: a small interface around the standard memory allocator
- * that implement allocation regions and automatic initialiaation.
+ * that implement allocation regions and automatic initialization.
  */
 
 #include <ast.h>
@@ -115,7 +115,7 @@ void *vmalloc(Vmalloc_t *vm, size_t size)
 	if (!(mp->ap = vm->options & VM_INIT ? calloc(1, size) : malloc(size)))
 		return fail(vm, size, mp, NULL);
 	if (!dtinsert(vm->alloc, mp))
-		return fail(vm, 0, mp, NULL);
+		return fail(vm, 0, mp->ap, mp);
 	return mp->ap;
 }
 
@@ -126,6 +126,7 @@ void *vmalloc(Vmalloc_t *vm, size_t size)
 void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 {
 	Vmmeta_t	*mp;
+	void		*tmp;
 
 	if (!ap)
 		return vmalloc(vm, size);
@@ -133,13 +134,23 @@ void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 	assert(size > 0);
 	if (!(mp = dtmatch(vm->alloc, ap)))
 		notallocated(vm, ap, "vmresize");
-	if (!(ap = realloc(ap, size)))
+	if (!(tmp = realloc(ap, size)))
+	{
+		if (vm->options & VM_FREEONFAIL)
+		{
+			tmp = dtdetach(vm->alloc, mp);
+			assert(tmp == mp);
+			return fail(vm, size, ap, mp);
+		}
 		return fail(vm, size, NULL, NULL);
+	}
+	ap = tmp;
 	/* Initialize added memory */
 	if ((vm->options & VM_INIT) && (size > mp->size))
 		memset((char*)ap + mp->size, 0, size - mp->size);
-	if (!dtremove(vm->alloc, mp))
-		notallocated(vm, ap, "vmresize");
+	/* Update and re-sort the housekeeping node */
+	tmp = dtdetach(vm->alloc, mp);
+	assert(tmp == mp);
 	mp->ap = ap;
 	mp->size = size;
 	if (!dtinsert(vm->alloc, mp))
@@ -153,8 +164,7 @@ void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
  */
 void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
 {
-	int		save_opt;
-	void		*r;
+	uint32_t	save_opt;
 
 	assert(vm != NULL);
 	save_opt = vm->options;
@@ -162,9 +172,9 @@ void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
 		vm->options |= VM_INIT;
 	else
 		vm->options &= ~VM_INIT;
-	r = vmresize(vm, ap, size);
+	ap = vmresize(vm, ap, size);
 	vm->options = save_opt;
-	return r;
+	return ap;
 	
 }
 
@@ -182,7 +192,7 @@ char *vmstrdup(Vmalloc_t *vm, const char *s)
 	if (!(mp->ap = malloc(mp->size = strlen(s) + 1)))
 		return fail(vm, mp->size, mp, NULL);
 	if (!dtinsert(vm->alloc, mp))
-		return fail(vm, 0, mp, NULL);
+		return fail(vm, 0, mp->ap, mp);
 	return memcpy(mp->ap, s, mp->size);
 }
 
@@ -199,8 +209,8 @@ void vmfree(Vmalloc_t *vm, void *ap)
 		notallocated(vm, ap, "vmfree");
 	assert(mp->size > 0);
 	free(ap);
-	if (!dtremove(vm->alloc, mp))
-		notallocated(vm, ap, "vmfree");
+	ap = dtdetach(vm->alloc, mp);
+	assert(ap == mp);
 	free(mp);
 }
 
@@ -218,6 +228,7 @@ void vmclear(Vmalloc_t *vm)
 	{
 		mpnext = dtnext(vm->alloc, mp);
 		free(mp->ap);
+		assert(mp->size > 0);
 		free(mp);
 	}
 	dtclear(vm->alloc);
