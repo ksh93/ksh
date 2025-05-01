@@ -63,7 +63,6 @@ static char *erase_eos;  /* erase to end of screen */
 #define printchar(c)	((c) ^ ('A'-cntl('A')))	/* assumes ASCII */
 
 #define MINWINDOW	15	/* minimum width window */
-#define DFLTWINDOW	80	/* default window width */
 #define RAWMODE		1
 #define ECHOMODE	3
 #define SYSERR	-1
@@ -247,11 +246,8 @@ int tty_raw(int fd, int echomode)
  */
 int ed_window(void)
 {
-	int	cols;
-	sh_winsize(NULL,&cols);
-	if(--cols < 0)
-		cols = DFLTWINDOW - 1;
-	else if(cols < MINWINDOW)
+	int	cols = sh.columns - 1;
+	if(cols < MINWINDOW)
 		cols = MINWINDOW;
 	else if(cols > MAXWINDOW)
 		cols = MAXWINDOW;
@@ -627,14 +623,13 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 		 */
 		if(sh.winch && sh_editor_active() && sh_isstate(SH_INTERACTIVE))
 		{
-			int	n, newsize;
+			int	n;
 			if(!ep->e_prompt)
 			{
 				/* ed_emacsread or ed_viread was unable to put the tty in raw mode */
 				flush_notifybuf();
 				goto skipwinch;
 			}
-			sh_winsize(NULL,&newsize);
 			ed_putchar(ep,'\r');
 			/*
 			 * Try to move cursor to start of first line and pray it works... it's very
@@ -651,13 +646,13 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 			}
 			else
 			{
-				ed_nputchar(ep,newsize-1,' ');
+				ed_nputchar(ep, sh.columns - 1, ' ');
 				ed_putchar(ep,'\r');
 			}
 			ed_flush(ep);
 			flush_notifybuf();
 			/* update window size */
-			ep->e_winsz = newsize-1;
+			ep->e_winsz = sh.columns - 1;
 			if(ep->e_winsz < MINWINDOW)
 				ep->e_winsz = MINWINDOW;
 			if(!ep->e_multiline)

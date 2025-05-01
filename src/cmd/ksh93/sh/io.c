@@ -2440,8 +2440,7 @@ void	sh_menu(Sfio_t *outfile,int argn,char *argv[])
 	char **arg;
 	int nrow, ncol=1, ndigits=1;
 	int fldsize, wsize = ed_window();
-	sh_winsize(&nrow,NULL);
-	nrow = nrow ? (2 * (nrow / 3) + 1) : NROW;
+	nrow = sh.lines ? (2 * (sh.lines / 3) + 1) : NROW;
 	for(i=argn;i >= 10;i /= 10)
 		ndigits++;
 	if(argn < nrow)

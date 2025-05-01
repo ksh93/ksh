@@ -125,7 +125,7 @@ do { \
 
 extern noreturn void 	sh_done(int);
 extern void 	sh_fault(int);
-extern void	sh_winsize(int*,int*);
+extern void	sh_winsize(void);
 extern void 	sh_sigclear(int);
 extern void 	sh_sigdone(void);
 extern void	sh_siginit(void);

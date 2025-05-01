@@ -315,6 +315,7 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		fdin = sh.infd;
 		fixargs(sh.st.dolv,1);
 	}
+	sh_winsize();
 	if(sh_isoption(SH_INTERACTIVE))
 	{
 		sh_onstate(SH_INTERACTIVE);
@@ -327,7 +328,6 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 	else
 	{
 		/* keep $COLUMNS and $LINES up to date even for scripts that don't trap SIGWINCH */
-		sh_winsize(NULL,NULL);
 #ifdef SIGWINCH
 		signal(SIGWINCH,sh_fault);
 #endif /* SIGWINCH */

@@ -321,6 +321,8 @@ struct Shell_s
 	char		used_pos;	/* used positional parameter */
 	char		universe;
 	char		winch;		/* set upon window size change or 'set -b' notification */
+	unsigned short	lines;		/* current vertical terminal size */
+	unsigned short	columns;	/* current horizontal terminal size */
 	short		arithrecursion;	/* current arithmetic recursion level */
 	char		indebug; 	/* set when in debug trap */
 	unsigned char	ignsig;		/* ignored signal in subshell */

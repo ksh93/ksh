@@ -56,7 +56,7 @@ void	sh_fault(int sig)
 	sig &= ~SH_TRAP;
 #ifdef SIGWINCH
 	if(sig==SIGWINCH)
-		sh_winsize(NULL,NULL);
+		sh_winsize();
 #endif  /* SIGWINCH */
 	trap = sh.st.trapcom[sig];
 	if(sh.savesig)
@@ -195,32 +195,28 @@ done:
 
 /*
  * Get window size and update LINES and COLUMNS.
- * Returns the sizes in the pointed-to ints if non-null.
  * If the number of columns changed, flags a window size change in sh.winch.
  */
-void	sh_winsize(int *linesp, int *columnsp)
+void	sh_winsize(void)
 {
-	static int	oldlines, oldcolumns;
-	int		lines = oldlines, columns = oldcolumns;
+	int		lines, columns;
 	int32_t		i;
 	astwinsize(2,&lines,&columns);
-	if(linesp)
-		*linesp = lines;
-	if(columnsp)
-		*columnsp = columns;
+	if (lines <= 0 || lines > USHRT_MAX || columns <= 0 || columns > USHRT_MAX)
+		lines = 24, columns = 80;
 	/*
 	 * Update LINES and COLUMNS only when the values changed; this makes
 	 * LINES.set and COLUMNS.set shell discipline functions more useful.
 	 */
-	if((lines != oldlines || nv_isnull(LINES)) && (i = (int32_t)lines))
+	if ((lines != sh.lines || nv_isnull(LINES)) && (i = lines))
 	{
 		nv_putval(LINES, (char*)&i, NV_INT32|NV_RDONLY);
-		oldlines = lines;
+		sh.lines = lines;
 	}
-	if((columns != oldcolumns || nv_isnull(COLUMNS)) && (i = (int32_t)columns))
+	if ((columns != sh.columns || nv_isnull(COLUMNS)) && (i = columns))
 	{
 		nv_putval(COLUMNS, (char*)&i, NV_INT32|NV_RDONLY);
-		oldcolumns = columns;
+		sh.columns = columns;
 		sh.winch = 1;
 	}
 }

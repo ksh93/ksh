@@ -49,6 +49,7 @@ unsigned long  astconf_ulong(\fIarg\fP);
 Ast_confdisc_t astconfdisc(Ast_confdisc_t new_notify);
 void           astconflist(Sfio_t* stream, const char* path, int flags);
 int            astquery(int \fIfd\fP, const char* \fIformat\fP , ...);
+void           astwinsize(int \fIfd\fP, int* \fIrows\fP, int* \fIcols\fP);
 .EE
 .SH DESCRIPTION
 .L astconf
@@ -248,8 +249,8 @@ The responses will eventually be locale specific.
 .L astwinsize
 returns the number of rows in
 .I *rows
-and the number of columns
-.I *col
+and the number of columns in
+.I *cols
 for the terminal file descriptor
 .IR fd .
 If the number of rows or columns cannot be determined or if
