@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2024-12-23
+version=2025-05-01
 
 # DEFPATH should be inherited from package(1)
 case $DEFPATH in
@@ -1139,49 +1139,6 @@ case " $* " in
 *)	eval "exec 2>&$nullout"
 	;;
 esac
-
-# If the arguments contain a *.iffe script argument or a command of the form
-#	run <script-file> [ <input-file> ]
-# then check if there are up-to-date results; the output file must be newer
-# than the script file and, if the input file is given, newer than it as well.
-#
-# We check for this early by doing a dedicated scan for a 'run' command in
-# the positional parameters, otherwise iffe will still run preliminary tests
-# before determining and opening the output file. The ( subshell ) allows
-# us to scan the PPs destructively, which makes life easier.
-
-(	case $1 in
-	-)	# write to stdout: no check
-		exit 1
-		;;
-	*.iffe | *.iff)
-		set run "$@"
-		;;
-	*)	# discard PPs until we find a 'run' command
-		while	test "$#" -gt 0 && test "$1" != "run"
-		do	while	test "$#" -gt 0 && test "$1" != ":"
-			do	shift
-			done
-			shift
-		done
-		;;
-	esac
-	test "$#" -ge 2 || exit 1
-	# convert script path to output path
-	o=${2##*[\\/]}	# rm base dir
-	o=$dir/${o%.*}	# prefix dest dir, rm extension
-	# check if the results are newer than the test script
-	test -f "$o" && test -f "$2" && test "$o" -nt "$2" &&
-	{	test "$#" -lt 3 || test "$3" = ":" ||
-		{	test -f "$3" && test "$o" -nt "$3"
-		}
-	} || exit 1
-	# still bump the timestamp for correct dependency resolution in mamake
-	case $verbose in
-	1)	echo "$command: test results in $o are up to date; bumping timestamp" >&$stderr ;;
-	esac
-	touch "$o" || kill "$$"
-) && exit 0
 
 # tmp files cleaned up on exit
 # status: 0:success 1:failure 2:interrupt
