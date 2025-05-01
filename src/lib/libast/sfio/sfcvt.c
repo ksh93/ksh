@@ -18,7 +18,6 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"FEATURE/standards"
 #include	"sfhdr.h"
 
 /*	Convert a floating point value to ASCII.
@@ -29,35 +28,10 @@
 static char		*lc_inf = "inf", *uc_inf = "INF";
 static char		*lc_nan = "nan", *uc_nan = "NAN";
 static char		*Zero = "0";
-#define SFIO_INF		((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_inf : lc_inf, size), buf)
-#define SFIO_NAN		((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_nan : lc_nan, size), buf)
-#define SFIO_ZERO		((_Sfi = 1), strlcpy(buf, Zero, size), buf)
+#define SFIO_INF	((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_inf : lc_inf, size), buf)
+#define SFIO_NAN	((_Sfi = 3), strlcpy(buf, (format & SFFMT_UPPER) ? uc_nan : lc_nan, size), buf)
+#define SFIO_ZERO	((_Sfi = 1), strlcpy(buf, Zero, size), buf)
 #define SFIO_INTPART	(SFIO_IDIGITS/2)
-
-#if !_lib_isnan || __ANDROID_API__
-#undef	isnan
-#undef	isnanl
-#if _lib_fpclassify
-#define isnan(n)	(fpclassify(n)==FP_NAN)
-#define isnanl(n)	(fpclassify(n)==FP_NAN)
-#else
-#error "Neither isnan nor fpclassify available"
-#endif
-#else
-#if !_lib_isnanl
-#undef	isnanl
-#define isnanl(n)	isnan(n)
-#elif defined(__HAIKU__) && __STDC_VERSION__ >= 199901L
-/*
- * On Haiku, no definition of isnanl() is provided by the math.h
- * header file (at /boot/system/develop/headers/posix/math.h).
- * As a result, using it causes an implicit function error that
- * kills the build with C99. The fpclassify function works just
- * fine, so that's used instead.
- */
-#define isnanl(n)	(fpclassify(n)==FP_NAN)
-#endif
-#endif
 
 #if defined(__ia64__) && defined(signbit)
 # if defined __GNUC__ && __GNUC__ >= 4
@@ -136,7 +110,6 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 				*sign = 1;
 			return SFIO_NAN;
 		}
-#if _lib_isinf
 		if (n = isinf(f))
 		{
 #if _lib_signbit
@@ -147,7 +120,6 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 				*sign = 1;
 			return SFIO_INF;
 		}
-#endif
 
 #if _lib_signbit
 		if (signbit(f))
@@ -286,7 +258,6 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 				*sign = 1;
 			return SFIO_NAN;
 		}
-#if _lib_isinf
 		if (n = isinf(f))
 		{
 #if _lib_signbit
@@ -297,7 +268,6 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 				*sign = 1;
 			return SFIO_INF;
 		}
-#endif
 
 #if _lib_signbit
 		if (signbit(f))

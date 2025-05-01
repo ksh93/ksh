@@ -2991,7 +2991,6 @@ make install virtual
 		make sfcvt.o
 			make sfio/sfcvt.c
 				prev sfio/sfhdr.h
-				prev FEATURE/standards
 			done
 			exec - compile %{<} -Iport -Isfio
 		done

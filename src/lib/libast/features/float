@@ -927,6 +927,27 @@ tst	- note{ missing floating point limits }end output{
 		printf("#define NAN		(0.0F / 0.0F)\n");
 	#endif
 
+	/* make sure we have isnan(l) and isinf(l) */
+	#if (!_lib_isnan || !_lib_isinf) || __ANDROID_API__ || __HAIKU__
+	#if _lib_fpclassify
+		printf("#undef	isnan\n");
+		printf("#undef	isnanl\n");
+		printf("#define isnan(n)	(fpclassify(n)==FP_NAN)\n");
+		printf("#define isnanl(n)	(fpclassify(n)==FP_NAN)\n");
+		printf("#undef	isinf\n");
+		printf("#undef	isinfl\n");
+		printf("#define isinf(n)	(fpclassify(n)==FP_INFINITE)\n");
+		printf("#define isinfl(n)	(fpclassify(n)==FP_INFINITE)\n");
+	#else
+	#error "Neither isnan/isinf nor fpclassify available"
+	#endif
+	#elif !_lib_isnanl || !_lib_isinfl
+		printf("#undef	isnanl\n");
+		printf("#define isnanl(n)	isnan(n)\n");
+		printf("#undef	isinfl\n");
+		printf("#define isinfl(n)	isinf(n)\n");
+	#endif
+
 		return 0;
 	}
 }end fail{
