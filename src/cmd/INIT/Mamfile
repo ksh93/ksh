@@ -122,7 +122,6 @@ make install virtual
 			makp m2.c
 			makp m3.c
 			makp m4.c
-			makp m5.c
 			makp m6.c
 			exec - mkreq-maplib %{CC} : m : %{^} : m
 			prev mkreq-maplib

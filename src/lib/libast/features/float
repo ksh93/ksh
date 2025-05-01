@@ -1,7 +1,7 @@
 set	nooptimize
 set	stdio FEATURE/standards
 hdr	float,limits,math,values
-lib,npt	frexp,ldexp,finite,finitel,isinfl,isnanl,copysign,copysignl,powf,pow,powl FEATURE/standards math.h -lm
+lib,npt	frexp,ldexp,finite,finitel,copysign,copysignl,powf,pow,powl FEATURE/standards math.h -lm
 #
 # The "does foo(3) compile and link" tests below are compiled and linked, but
 # never actually run. They are only used to check if linking succeeds.
@@ -927,25 +927,16 @@ tst	- note{ missing floating point limits }end output{
 		printf("#define NAN		(0.0F / 0.0F)\n");
 	#endif
 
-	/* make sure we have isnan(l) and isinf(l) */
-	#if (!_lib_isnan || !_lib_isinf) || __ANDROID_API__ || __HAIKU__
+	/* make sure we have isnan and isinf */
+	#if (!_lib_isnan || !_lib_isinf)
 	#if _lib_fpclassify
 		printf("#undef	isnan\n");
-		printf("#undef	isnanl\n");
 		printf("#define isnan(n)	(fpclassify(n)==FP_NAN)\n");
-		printf("#define isnanl(n)	(fpclassify(n)==FP_NAN)\n");
 		printf("#undef	isinf\n");
-		printf("#undef	isinfl\n");
 		printf("#define isinf(n)	(fpclassify(n)==FP_INFINITE)\n");
-		printf("#define isinfl(n)	(fpclassify(n)==FP_INFINITE)\n");
 	#else
 	#error "Neither isnan/isinf nor fpclassify available"
 	#endif
-	#elif !_lib_isnanl || !_lib_isinfl
-		printf("#undef	isnanl\n");
-		printf("#define isnanl(n)	isnan(n)\n");
-		printf("#undef	isinfl\n");
-		printf("#define isinfl(n)	isinf(n)\n");
 	#endif
 
 		return 0;

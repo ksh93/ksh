@@ -100,7 +100,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 	if(format&SFFMT_LDOUBLE)
 	{	Sfdouble_t	f = *(Sfdouble_t*)vp;
 
-		if(isnanl(f))
+		if (isnan(f))
 		{
 #if _lib_signbit
 			if (signbit(f))
