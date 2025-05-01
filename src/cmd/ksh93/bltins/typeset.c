@@ -807,7 +807,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 			else if((ap=nv_arrayptr(np)) && nv_aindex(np)>0 && ap->nelem==1 && nv_getval(np)==Empty)
 			{
 				ap->nelem++;
-				_nv_unset(np,0);
+				nv_unset(np,0);
 				ap->nelem--;
 			}
 			else if(iarray && ap && ap->fun)
@@ -816,7 +816,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 				UNREACHABLE();
 			}
 			else if( (iarray||(flag&NV_ARRAY)) && nv_isvtree(np) && !nv_type(np))
-				_nv_unset(np,NV_EXPORT);
+				nv_unset(np,NV_EXPORT);
 			if(tp->pflag)
 			{
 				if(!nv_istable(np))
@@ -870,7 +870,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 							ap->nelem |= ARRAY_TREE;
 						else
 						{
-							_nv_unset(np,NV_RDONLY);
+							nv_unset(np,NV_RDONLY);
 							nv_onattr(np,NV_NOFREE);
 						}
 					}
@@ -1420,7 +1420,7 @@ static int unall(int argc, char **argv, Dt_t *troot)
 				}
 			}
 			if(!nv_isnull(np) || nv_size(np) || nv_isattr(np,~(NV_MINIMAL|NV_NOFREE)))
-				_nv_unset(np,0);
+				nv_unset(np,0);
 			if(troot==sh.var_tree && sh.st.real_fun && (dp=sh.var_tree->walk) && dp==sh.st.real_fun->sdict)
 				nv_delete(np,dp,NV_NOFREE);
 			else if(isfun)
@@ -1430,12 +1430,12 @@ static int unall(int argc, char **argv, Dt_t *troot)
 				else if(!(np->nvalue && ((struct Ufunction*)np->nvalue)->running))
 					nv_delete(np,troot,0);
 			}
-			/* The alias has been unset by call to _nv_unset, remove it from the tree */
+			/* The alias has been unset by call to nv_unset, remove it from the tree */
 			else if(troot==sh.alias_tree)
 			{
 				if(sh.subshell && !sh.subshare)
 					sh_subfork();	/* avoid affecting the parent shell's alias table */
-				_nv_unset(np,nv_isattr(np,NV_NOFREE));
+				nv_unset(np,nv_isattr(np,NV_NOFREE));
 				nv_delete(np,troot,0);
 			}
 		}

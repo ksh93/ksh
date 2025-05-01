@@ -1826,7 +1826,7 @@ void path_settrackedalias(const char *name, Pathcomp_t *pp)
 			nv_setsize(np,0);
 	}
 	else
-		_nv_unset(np,0);
+		nv_unset(np,0);
 }
 
 /*

@@ -843,7 +843,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		{
 			Namval_t *np;
 			np = nv_open(argp,sh.var_tree,NV_VARNAME|NV_NOARRAY);
-			_nv_unset(np,0);
+			nv_unset(np,0);
 			nv_onattr(np,NV_INTEGER);
 			if (np->nvalue = new_of(int32_t,0))
 				*((int32_t*)np->nvalue) = 0;

@@ -150,7 +150,7 @@ void nv_putv(Namval_t *np, const char *value, int flags, Namfun_t *nfp)
 		if(value)
 			nv_putval(np, value, flags);
 		else
-			_nv_unset(np, flags&(NV_RDONLY|NV_EXPORT));
+			nv_unset(np, flags&(NV_RDONLY|NV_EXPORT));
 	}
 }
 
@@ -255,7 +255,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 	if(val && (tp=nv_type(np)) && (nr=nv_open(val,sh.var_tree,NV_VARNAME|NV_ARRAY|NV_NOADD|NV_NOFAIL)) && tp==nv_type(nr))
 	{
 		char *sub = nv_getsub(np);
-		_nv_unset(np,0);
+		nv_unset(np,0);
 		if(sub)
 		{
 			nv_putsub(np, sub, ARRAY_ADD);
@@ -276,7 +276,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		if(!nv_isnull(SH_VALNOD))
 		{
 			nv_onattr(SH_VALNOD,NV_NOFREE);
-			_nv_unset(SH_VALNOD,0);
+			nv_unset(SH_VALNOD,0);
 		}
 		if(flags&NV_INTEGER)
 			nv_onattr(SH_VALNOD,(flags&(NV_LONG|NV_DOUBLE|NV_EXPNOTE|NV_HEXFLOAT|NV_SHORT)));
@@ -330,7 +330,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 			cp = nv_getval(SH_VALNOD);
 		if(cp)
 			nv_putv(np,cp,flags|NV_RDONLY,handle);
-		_nv_unset(SH_VALNOD,0);
+		nv_unset(SH_VALNOD,0);
 		/* restore everything but the nvlink field */
 		memcpy(&SH_VALNOD->nvname,  &node.nvname, sizeof(node)-sizeof(node.nvlink));
 	}
@@ -357,7 +357,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 		{
 			if((nq=vp->disc[n]) && !nv_isattr(nq,NV_NOFREE))
 			{
-				_nv_unset(nq,0);
+				nv_unset(nq,0);
 				dtdelete(root,nq);
 			}
 		}
@@ -371,7 +371,7 @@ done:
 	if(nq && nq->nvalue && ((struct Ufunction*)nq->nvalue)->running==1)
 	{
 		((struct Ufunction*)nq->nvalue)->running=0;
-		_nv_unset(nq,0);
+		nv_unset(nq,0);
 	}
 	if(jmpval >= SH_JMPFUN)
 		siglongjmp(*sh.jmplist,jmpval);
@@ -402,7 +402,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		if(!nv_isnull(SH_VALNOD))
 		{
 			nv_onattr(SH_VALNOD,NV_NOFREE);
-			_nv_unset(SH_VALNOD,0);
+			nv_unset(SH_VALNOD,0);
 		}
 		if(type==LOOKUPN)
 		{
@@ -429,7 +429,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		}
 		else if(cp = nv_getval(SH_VALNOD))
 			cp = stkcopy(sh.stk,cp);
-		_nv_unset(SH_VALNOD,NV_RDONLY);
+		nv_unset(SH_VALNOD,NV_RDONLY);
 		if(!nv_isnull(&node))
 		{
 			/* restore everything but the nvlink field */
@@ -445,7 +445,7 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 	if(nq && nq->nvalue && ((struct Ufunction*)nq->nvalue)->running==1)
 	{
 		((struct Ufunction*)nq->nvalue)->running=0;
-		_nv_unset(nq,0);
+		nv_unset(nq,0);
 	}
 	if(jmpval >= SH_JMPFUN)
 		siglongjmp(*sh.jmplist,jmpval);
@@ -1292,7 +1292,7 @@ static void put_table(Namval_t* np, const char* val, int flags, Namfun_t* fp)
 	dtview(root,0);
 	for(mp=(Namval_t*)dtfirst(root);mp;mp=nq)
 	{
-		_nv_unset(mp,flags);
+		nv_unset(mp,flags);
 		nq = (Namval_t*)dtnext(root,mp);
 		dtdelete(root,mp);
 		free(mp);
@@ -1393,7 +1393,7 @@ Namval_t *nv_mount(Namval_t *np, const char *name, Dt_t *dict)
 		mp = np;
 	nv_offattr(mp,NV_TABLE);
 	if(!nv_isnull(mp))
-		_nv_unset(mp,NV_RDONLY);
+		nv_unset(mp,NV_RDONLY);
 	tp->dict = dict;
 	tp->parent = pp;
 	tp->fun.disc = &table_disc;

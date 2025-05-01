@@ -420,7 +420,7 @@ int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, int flags)
 	{
 		char	*saved_value = NULL;
 		if(!nq->nvfun && nq->nvalue && *((char*)nq->nvalue)==0)
-			_nv_unset(nq,NV_RDONLY);
+			nv_unset(nq,NV_RDONLY);
 		nv_arraychild(np,nq,0);
 		if(!nv_isattr(tp,NV_BINARY))
 			saved_value = nv_getval(np);
@@ -609,7 +609,7 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 			if(!is_associative(ap) && string && !(flags&NV_APPEND) && !nv_type(np) && nv_isvtree(mp) && !(ap->nelem&ARRAY_TREE))
 			{
 				if(!nv_isattr(np,NV_NOFREE))
-					_nv_unset(mp,flags&NV_RDONLY);
+					nv_unset(mp,flags&NV_RDONLY);
 				array_clrbit(aq->bits,aq->cur,ARRAY_CHILD);
 				aq->val[aq->cur] = NULL;
 				if(!nv_isattr(mp,NV_NOFREE))
@@ -746,7 +746,7 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 #endif /* SHOPT_FIXEDARRAY */
 		if(!is_associative(ap) && aq->xp)
 		{
-			_nv_unset(nv_namptr(aq->xp,0),NV_RDONLY);
+			nv_unset(nv_namptr(aq->xp,0),NV_RDONLY);
 			free(aq->xp);
 		}
 		if((nfp = nv_disc(np,(Namfun_t*)ap,NV_POP)) && !(nfp->nofree&1))
@@ -757,7 +757,7 @@ static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *
 		if(!nv_isnull(np))
 		{
 			nv_onattr(np,NV_NOFREE);
-			_nv_unset(np,flags);
+			nv_unset(np,flags);
 		}
 		else
 			nv_offattr(np,NV_NOFREE);
@@ -1668,7 +1668,7 @@ void *nv_associative(Namval_t *np,const char *sp,int mode)
 		{
 			if(!ap->header.scope || (Dt_t*)ap->header.scope==ap->header.table || !nv_search(ap->cur->nvname,(Dt_t*)ap->header.scope,0))
 				ap->header.nelem--;
-			_nv_unset(ap->cur,NV_RDONLY);
+			nv_unset(ap->cur,NV_RDONLY);
 			nv_delete(ap->cur,ap->header.table,0);
 			ap->cur = 0;
 		}

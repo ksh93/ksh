@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -270,7 +270,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 			array_index = 1;
 			if((ap=nv_arrayptr(np)) && !ap->fun)
 				ap->nelem++;
-			nv_unset(np);
+			nv_unset(np,0);
 			if((ap=nv_arrayptr(np)) && !ap->fun)
 				ap->nelem--;
 			nv_putsub(np,NULL,0L);
@@ -279,7 +279,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		{
 			void *sp = np->nvmeta;
 			delim = -1;
-			nv_unset(np);
+			nv_unset(np,0);
 			if(!nv_isattr(np,NV_MINIMAL))
 				np->nvmeta = sp;
 			nv_setvtree(np);

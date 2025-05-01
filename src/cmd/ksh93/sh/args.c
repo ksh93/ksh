@@ -145,7 +145,7 @@ int sh_argopts(int argc,char *argv[])
 	 	    case 'A':
 			np = nv_open(opt_info.arg,sh.var_tree,NV_ARRAY|NV_VARNAME);
 			if(f)
-				nv_unset(np);
+				nv_unset(np,0);
 			continue;
 		    case 'o':	/* set options */
 		    byname:

@@ -667,7 +667,7 @@ static void put_rand(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 		fp = nv_stack(np, NULL);
 		if(fp && !fp->nofree)
 			free(fp);
-		_nv_unset(np,NV_RDONLY);
+		nv_unset(np,NV_RDONLY);
 		return;
 	}
 	if(flags&NV_INTEGER)
@@ -745,7 +745,7 @@ static void put_lineno(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 		fp = nv_stack(np, NULL);
 		if(fp && !fp->nofree)
 			free(fp);
-		_nv_unset(np,NV_RDONLY);
+		nv_unset(np,NV_RDONLY);
 		return;
 	}
 	if(flags&NV_INTEGER)
@@ -854,7 +854,7 @@ void sh_setmatch(const char *v, int vsize, int nmatch, int match[], int index)
 				if((ap=nv_arrayptr(np)) && array_elem(ap)==0)
 				{
 					nv_putsub(SH_MATCHNOD,NULL,i);
-					_nv_unset(SH_MATCHNOD,NV_RDONLY);
+					nv_unset(SH_MATCHNOD,NV_RDONLY);
 				}
 				np = nv_namptr(np+1,0);
 			}
@@ -1498,7 +1498,7 @@ void sh_reinit(void)
 		dp=nv_dict(sh.namespace);
 		if(dp==sh.var_tree)
 			sh.var_tree = dtview(dp,0);
-		_nv_unset(sh.namespace,NV_RDONLY);
+		nv_unset(sh.namespace,NV_RDONLY);
 		sh.namespace = NULL;
 	}
 #endif /* SHOPT_NAMESPACE */
@@ -1508,7 +1508,7 @@ void sh_reinit(void)
 		if((dp = sh.alias_tree)->walk)
 			dp = dp->walk;	/* the dictionary in which the item was found */
 		npnext = (Namval_t*)dtnext(sh.alias_tree,np);
-		_nv_unset(np,NV_RDONLY);
+		nv_unset(np,NV_RDONLY);
 		nv_delete(np,dp,0);
 	}
 	/* Delete hash table entries */
@@ -1517,7 +1517,7 @@ void sh_reinit(void)
 		if((dp = sh.track_tree)->walk)
 			dp = dp->walk;	/* the dictionary in which the item was found */
 		npnext = (Namval_t*)dtnext(sh.track_tree,np);
-		_nv_unset(np,NV_RDONLY);
+		nv_unset(np,NV_RDONLY);
 		nv_delete(np,dp,0);
 	}
 	/* Delete types */
@@ -1540,7 +1540,7 @@ void sh_reinit(void)
 		if(nv_isarray(np))
 			nv_putsub(np,NULL,ARRAY_UNDEF);
 		nofree = nv_isattr(np,NV_NOFREE);	/* note: returns bitmask, not boolean */
-		_nv_unset(np,NV_RDONLY);		/* also clears NV_NOFREE attr, if any */
+		nv_unset(np,NV_RDONLY);		/* also clears NV_NOFREE attr, if any */
 		nv_setattr(np,nofree);
 	}
 	/* Delete functions and built-ins. Note: fun_tree has a viewpath to bltin_tree */
@@ -1556,7 +1556,7 @@ void sh_reinit(void)
 		}
 		else if(is_afunction(np))
 		{
-			_nv_unset(np,NV_RDONLY);
+			nv_unset(np,NV_RDONLY);
 			nv_delete(np,dp,NV_FUNCTION);
 		}
 	}

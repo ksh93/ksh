@@ -333,7 +333,7 @@ static void nv_restore(struct subshell *sp)
 		if(nv_isarray(mp))
 			 nv_putsub(mp,NULL,ARRAY_SCAN);
 		nofree = mp->nvfun?mp->nvfun->nofree:0;
-		_nv_unset(mp,NV_RDONLY|NV_CLONE);
+		nv_unset(mp,NV_RDONLY|NV_CLONE);
 		if(nv_isarray(np))
 		{
 			nv_clone(np,mp,NV_MOVE);
@@ -812,7 +812,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				}
 				else
 				{
-					_nv_unset(np,NV_RDONLY);
+					nv_unset(np,NV_RDONLY);
 					nv_delete(np,sp->sfun,NV_FUNCTION);
 				}
 			}

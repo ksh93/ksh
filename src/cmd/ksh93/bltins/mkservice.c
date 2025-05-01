@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -175,7 +175,7 @@ static int fdnotify(int fd1, int fd2)
 	{
 		fdclose(sp,fd1);
 		if(--sp->refcount==0)
-			nv_unset(sp->node);
+			nv_unset(sp->node,0);
 	}
 	return 0;
 }
@@ -333,7 +333,7 @@ static int Error(Service_t *sp, int level, const char* arg, ...)
 
 	va_start(ap, arg);
 	if(sp->node)
-		nv_unset(sp->node);
+		nv_unset(sp->node,0);
 	free(sp);
 	errorv(NULL, ERROR_exit(1), ap);
 	va_end(ap);

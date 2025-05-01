@@ -308,7 +308,7 @@ static void get_tput(char *tp, char **cpp)
 			free(*cpp);
 		*cpp = NULL;
 	}
-	nv_unset(SH_VALNOD);
+	nv_unset(SH_VALNOD,0);
 	sh.st.trap[SH_DEBUGTRAP] = d;
 	sh.options = o;
 	sigrelease(SIGINT);
@@ -1311,7 +1311,7 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 	*lexp = savelex;
 	sh.savexit = savexit;
 	if((cp = nv_getval(ED_CHRNOD)) == inbuff)
-		nv_unset(ED_CHRNOD);
+		nv_unset(ED_CHRNOD,0);
 	else if(bufsize>0)
 	{
 		strncopy(inbuff,cp,bufsize);
@@ -1320,7 +1320,7 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 	}
 	else
 		insize = 0;
-	nv_unset(ED_TXTNOD);
+	nv_unset(ED_TXTNOD,0);
 	return insize;
 }
 

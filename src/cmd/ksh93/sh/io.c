@@ -1518,7 +1518,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 						sh_close(fd);
 						fd = fn;
 					}
-					_nv_unset(np,0);
+					nv_unset(np,0);
 					nv_onattr(np,NV_INT32);
 					v = fn;
 					nv_putval(np,(char*)&v, NV_INT32);

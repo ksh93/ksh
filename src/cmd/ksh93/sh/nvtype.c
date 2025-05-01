@@ -449,7 +449,7 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 					nv_addnode(nr,1);
 				if(pp->strsize<0)
 					continue;
-				_nv_unset(nr,0);
+				nv_unset(nr,0);
 				if(!nv_isattr(nr,NV_MINIMAL))
 					nv_delete(nr,sh.last_root,0);
 			}
@@ -533,7 +533,7 @@ static void put_type(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 		{
 			if(!nq->nvmeta)
 				flag |= NV_EXPORT;
-			_nv_unset(np, flag);
+			nv_unset(np, flag);
 			nv_clone(nq,np,NV_IARRAY);
 			return;
 		}
@@ -553,7 +553,7 @@ static void put_type(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 			if(ap=nv_arrayptr(nq))
 				ap->nelem |= ARRAY_UNDEF;
 			if(!nv_hasdisc(nq,&type_disc))
-				_nv_unset(nq,flag|NV_TYPE|nv_isattr(nq,NV_RDONLY));
+				nv_unset(nq,flag|NV_TYPE|nv_isattr(nq,NV_RDONLY));
 		}
 		nv_disc(np,fp,NV_POP);
 		if(!(fp->nofree&1))
@@ -829,7 +829,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 	if(numnodes < 2)
 	{
 		cp = nodes[0]->nvname;
-		_nv_unset(nodes[0],NV_RDONLY);
+		nv_unset(nodes[0],NV_RDONLY);
 		errormsg(SH_DICT,ERROR_exit(1),e_badtypedef,cp);
 		UNREACHABLE();
 	}
@@ -1094,7 +1094,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			while((i+1) < numnodes && (cname=&nodes[i+1]->nvname[m]) && strncmp(cname,&np->nvname[m],n)==0 && cname[n]=='.')
 			{
 				int j=kfirst;
-				nv_unset(np);
+				nv_unset(np,0);
 				nv_delete(np,root,0);
 				np = nodes[++i];
 				while(j < k)
@@ -1148,7 +1148,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 		k++;
 	skip:
 		if(!nv_isnull(np))
-			_nv_unset(np,0);
+			nv_unset(np,0);
 		nv_delete(np,root,0);
 	}
 	pp->ndisc = nd;
@@ -1315,7 +1315,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		{
 			val = sh_strdup(nv_getval(np));
 			if(!(flags&NV_APPEND))
-				_nv_unset(np, NV_RDONLY);
+				nv_unset(np, NV_RDONLY);
 		}
 		if(!nv_clone(tp,np,flags|NV_NOFREE))
 			return 0;
@@ -1339,7 +1339,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, int flags)
 		{
 			ap->nelem++;
 			nv_putsub(np,"0",0);
-			_nv_unset(np,NV_RDONLY|NV_TYPE);
+			nv_unset(np,NV_RDONLY|NV_TYPE);
 			ap->nelem--;
 		}
 	}
@@ -1426,7 +1426,7 @@ int	sh_outtype(Sfio_t *out)
 			write_indent(out,cp,strlen(cp)-1,indent);
 		else
 			sfprintf(out,"%.*s",strlen(cp)-1,cp);
-		_nv_unset(L_ARGNOD,NV_RDONLY);
+		nv_unset(L_ARGNOD,NV_RDONLY);
 		for(sp=0; sp=nv_setdisc(tp,NULL,(Namval_t*)sp,(Namfun_t*)tp);)
 		{
 			struct Ufunction *rp;

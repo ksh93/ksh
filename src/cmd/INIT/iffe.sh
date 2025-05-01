@@ -597,7 +597,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 [-author?Phong Vo <kpv@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
 [-copyright?(c) 1994-2012 AT&T Intellectual Property]
-[-copyright?(c) 2020-2024 Contributors to ksh 93u+m]
+[-copyright?(c) 2020-2025 Contributors to ksh 93u+m]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
 [+NAME?iffe - C compilation environment feature probe]
 [+DESCRIPTION?\biffe\b is a command interpreter that probes the C

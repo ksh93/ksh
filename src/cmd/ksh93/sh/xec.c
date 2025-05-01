@@ -683,8 +683,8 @@ static void unset_instance(Namval_t *node, struct Namref *nr, long mode)
 		nv_putsub(nr->np, nr->sub, mode);
 		free(nr->sub);
 	}
-	_nv_unset(SH_NAMENOD,0);
-	_nv_unset(SH_SUBSCRNOD,0);
+	nv_unset(SH_NAMENOD,0);
+	nv_unset(SH_SUBSCRNOD,0);
 }
 
 #if SHOPT_FILESCAN
@@ -2351,7 +2351,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					sh.last_root = rp->sdict;
 					for(mp=(Namval_t*)dtfirst(rp->sdict);mp;mp=nq)
 					{
-						_nv_unset(mp,NV_RDONLY);
+						nv_unset(mp,NV_RDONLY);
 						nq = dtnext(rp->sdict,mp);
 						nv_delete(mp,rp->sdict,0);
 					}
@@ -2407,7 +2407,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 			}
 			else
-				_nv_unset(np,0);
+				nv_unset(np,0);
 			if(type&FPOSIX)
 				nv_onattr(np,NV_FUNCTION|NV_FPOSIX);
 			else
@@ -3079,7 +3079,7 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 		if(rp->running==1)
 		{
 			rp->running = 0;
-			_nv_unset(np, NV_RDONLY);
+			nv_unset(np, NV_RDONLY);
 		}
 	}
 #if !SHOPT_DEVFD

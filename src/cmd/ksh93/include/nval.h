@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -281,15 +281,13 @@ extern void 		nv_setvec(Namval_t*,int,int,char*[]);
 extern void		nv_setvtree(Namval_t*);
 extern int 		nv_setsize(Namval_t*,int);
 extern Namfun_t		*nv_disc(Namval_t*,Namfun_t*,int);
-extern void 		nv_unset(Namval_t*);	 /* obsolete */
-extern void 		_nv_unset(Namval_t*,int);
+extern void 		nv_unset(Namval_t*,int);
 extern Namval_t		*nv_search(const char *, Dt_t*, int);
 extern char		*nv_name(Namval_t*);
 extern Namval_t		*nv_type(Namval_t*);
 extern void		nv_addtype(Namval_t*,const char*, Optdisc_t*, size_t);
 extern const Namdisc_t	*nv_discfun(int);
 
-#define nv_unset(np)		_nv_unset(np,0)
 #define nv_size(np)		nv_setsize((np),-1)
 #define nv_stack(np,nf)		nv_disc(np,nf,0)
 

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -147,7 +147,6 @@ struct Ufunction
 extern int		array_maxindex(Namval_t*);
 extern char 		*nv_endsubscript(Namval_t*, char*, int);
 extern Namfun_t 	*nv_cover(Namval_t*);
-extern Namarr_t 	*nv_arrayptr(Namval_t*);
 extern int		nv_arrayisset(Namval_t*, Namarr_t*);
 extern int		nv_arraysettype(Namval_t*, Namval_t*,const char*,int);
 extern int		nv_aimax(Namval_t*);
@@ -166,10 +165,8 @@ extern void		nv_setlist(struct argnod*, int, Namval_t*);
 #endif /* SHOPT_OPTIMIZE */
 extern void		nv_outname(Sfio_t*,char*, int);
 extern void 		nv_unref(Namval_t*);
-extern void		_nv_unset(Namval_t*,int);
 extern int		nv_hasget(Namval_t*);
-extern int		nv_clone(Namval_t*, Namval_t*, int);
-void			clone_all_disc(Namval_t*, Namval_t*, int);
+extern void		clone_all_disc(Namval_t*, Namval_t*, int);
 extern Namfun_t		*nv_clone_disc(Namfun_t*, int);
 extern void		*nv_diropen(Namval_t*, const char*);
 extern char		*nv_dirnext(void*);
@@ -186,7 +183,6 @@ extern int		nv_compare(Dt_t*, void*, void*, Dtdisc_t*);
 extern void		nv_outnode(Namval_t*,Sfio_t*, int, int);
 extern int		nv_subsaved(Namval_t*, int);
 extern void		nv_typename(Namval_t*, Sfio_t*);
-extern void		nv_newtype(Namval_t*);
 extern int		nv_istable(Namval_t*);
 extern size_t		nv_datasize(Namval_t*, size_t*);
 extern Namfun_t		*nv_mapchar(Namval_t*, const char*);
