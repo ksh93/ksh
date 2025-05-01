@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -43,7 +43,6 @@
  */
 
 #include "sfhdr.h"
-#include "FEATURE/float"
 
 /*
  * the default is _sfdscan for standalone sfio compatibility
@@ -68,8 +67,6 @@
 #define S2F_number	float
 #define S2F_ldexp	ldexp
 #define S2F_pow10	_Sffpow10
-#define S2F_inf		_Sffinf
-#define S2F_nan		_Sffnan
 #define S2F_min		(FLT_MIN)
 #define S2F_max		(FLT_MAX)
 #define S2F_exp_10_min	(FLT_MIN_10_EXP)
@@ -81,8 +78,6 @@
 #define S2F_number	double
 #define S2F_ldexp	ldexp
 #define S2F_pow10	_Sfdpow10
-#define S2F_inf		_Sfdinf
-#define S2F_nan		_Sfdnan
 #define S2F_min		(DBL_MIN)
 #define S2F_max		(DBL_MAX)
 #define S2F_exp_10_min	(DBL_MIN_10_EXP)
@@ -94,8 +89,6 @@
 #define S2F_number	long double
 #define S2F_ldexp	ldexpl
 #define S2F_pow10	_Sflpow10
-#define S2F_inf		_Sflinf
-#define S2F_nan		_Sflnan
 #define S2F_min		(LDBL_MIN)
 #define S2F_max		(LDBL_MAX)
 #define S2F_exp_10_min	(LDBL_MIN_10_EXP)
@@ -297,7 +290,7 @@ S2F_function(const char* str, char** end)
 			else if (m > S2F_exp_2_max)
 			{
 				ERR(ERANGE);
-				return negative ? -S2F_inf : S2F_inf;
+				return negative ? -INFINITY : INFINITY;
 			}
 			v = S2F_ldexp(v, m);
 			goto check;
@@ -339,7 +332,7 @@ S2F_function(const char* str, char** end)
 		}
 		REV(s, t, b);
 		PUT(s);
-		return negative ? -S2F_inf : S2F_inf;
+		return negative ? -INFINITY : INFINITY;
 	}
 	else if (c == 'n' || c == 'N')
 	{
@@ -352,7 +345,7 @@ S2F_function(const char* str, char** end)
 		}
 		do c = GET(s); while (c && !isspace(c));
 		PUT(s);
-		return negative ? -S2F_nan : S2F_nan;
+		return negative ? -NAN : NAN;
 	}
 	else if (c < '1' || c > '9')
 	{
@@ -489,7 +482,7 @@ S2F_function(const char* str, char** end)
 		if (c > S2F_exp_10_max)
 		{
 			ERR(ERANGE);
-			return negative ? -S2F_inf : S2F_inf;
+			return negative ? -INFINITY : INFINITY;
 		}
 		if (c > 0)
 		{
@@ -497,7 +490,7 @@ S2F_function(const char* str, char** end)
 			if ((S2F_max / p) < S2F_pow10[c])
 			{
 				ERR(ERANGE);
-				return negative ? -S2F_inf : S2F_inf;
+				return negative ? -INFINITY : INFINITY;
 			}
 #endif
 			p *= S2F_pow10[c];
@@ -515,7 +508,7 @@ S2F_function(const char* str, char** end)
 		if ((S2F_min * p) > S2F_pow10[c])
 		{
 			ERR(ERANGE);
-			return negative ? -S2F_inf : S2F_inf;
+			return negative ? -INFINITY : INFINITY;
 		}
 #endif
 		v /= S2F_pow10[m];
@@ -534,7 +527,7 @@ S2F_function(const char* str, char** end)
 	else if (v > S2F_max)
 	{
 		ERR(ERANGE);
-		v = S2F_inf;
+		v = INFINITY;
 	}
 
 	/*

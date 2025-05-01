@@ -2259,7 +2259,6 @@ make install virtual
 		make strtod.o
 			make comp/strtod.c
 				make sfio/sfstrtof.h
-					prev FEATURE/float
 					prev sfio/sfhdr.h
 				done
 				prev include/ast.h

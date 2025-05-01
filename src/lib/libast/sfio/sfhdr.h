@@ -620,24 +620,10 @@ typedef struct _sfextern_s
 #define _Sfcv64		(_Sftable.sf_cv64)
 #define _Sftype		(_Sftable.sf_type)
 #define _Sfieee		(&_Sftable.sf_ieee)
-#define _Sffinf		(_Sftable.sf_ieee.fltinf)
-#define _Sfdinf		(_Sftable.sf_ieee.dblinf)
-#define _Sflinf		(_Sftable.sf_ieee.ldblinf)
-#define _Sffnan		(_Sftable.sf_ieee.fltnan)
-#define _Sfdnan		(_Sftable.sf_ieee.dblnan)
-#define _Sflnan		(_Sftable.sf_ieee.ldblnan)
 #define _Sffpow10	(_Sftable.sf_flt_pow10)
 #define _Sfdpow10	(_Sftable.sf_dbl_pow10)
 #define _Sflpow10	(_Sftable.sf_ldbl_pow10)
-typedef struct _sfieee_s	Sfieee_t;
-struct _sfieee_s
-{	float		fltnan;		/* float NAN			*/
-	float		fltinf;		/* float INF			*/
-	double		dblnan;		/* double NAN			*/
-	double		dblinf;		/* double INF			*/
-	Sfdouble_t	ldblnan;	/* Sfdouble_t NAN		*/
-	Sfdouble_t	ldblinf;	/* Sfdouble_t INF		*/
-};
+
 typedef struct _sftab_
 {	Sfdouble_t	sf_pos10[SFIO_MAXEXP10];	/* positive powers of 10	*/
 	Sfdouble_t	sf_neg10[SFIO_MAXEXP10];	/* negative powers of 10	*/
@@ -653,7 +639,6 @@ typedef struct _sftab_
 	uchar		sf_cv36[SFIO_MAXCHAR+1];	/* conversion for base [2-36]	*/
 	uchar		sf_cv64[SFIO_MAXCHAR+1];	/* conversion for base [37-64]	*/
 	uchar		sf_type[SFIO_MAXCHAR+1];	/* conversion formats&types	*/
-	Sfieee_t	sf_ieee;		/* IEEE floating point constants*/
 } Sftab_t;
 
 /* thread-safe macro/function to initialize _Sfcv* conversion tables */

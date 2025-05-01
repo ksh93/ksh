@@ -471,15 +471,6 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 	return fp;
 }
 
-static const unsigned char	flt_nan[] = { _ast_flt_nan_init };
-static const unsigned char	flt_inf[] = { _ast_flt_inf_init };
-static const unsigned char	dbl_nan[] = { _ast_dbl_nan_init };
-static const unsigned char	dbl_inf[] = { _ast_dbl_inf_init };
-#ifdef _ast_ldbl_nan_init
-static const unsigned char	ldbl_nan[] = { _ast_ldbl_nan_init };
-static const unsigned char	ldbl_inf[] = { _ast_ldbl_inf_init };
-#endif
-
 /* function to initialize conversion tables */
 static int sfcvinit(void)
 {	int		d, l;
@@ -523,20 +514,6 @@ static int sfcvinit(void)
 #if _has_multibyte
 	_Sftype['S'] = SFFMT_POINTER;
 	_Sftype['C'] = SFFMT_CHAR;
-#endif
-
-	/* IEEE floating point computed constants */
-
-	memcpy((char*)&_Sffnan, (char*)flt_nan, sizeof(_Sffnan));
-	memcpy((char*)&_Sffinf, (char*)flt_inf, sizeof(_Sffinf));
-	memcpy((char*)&_Sfdnan, (char*)dbl_nan, sizeof(_Sfdnan));
-	memcpy((char*)&_Sfdinf, (char*)dbl_inf, sizeof(_Sfdinf));
-#ifdef _ast_ldbl_nan_init
-	memcpy((char*)&_Sflnan, (char*)ldbl_nan, sizeof(_Sflnan));
-	memcpy((char*)&_Sflinf, (char*)ldbl_inf, sizeof(_Sflinf));
-#else
-	memcpy((char*)&_Sflnan, (char*)dbl_nan, sizeof(_Sfdnan));
-	memcpy((char*)&_Sflinf, (char*)dbl_inf, sizeof(_Sfdinf));
 #endif
 
 	return 1;
