@@ -316,6 +316,10 @@ int sh_main(int ac, char *av[], Shinit_f userinit)
 		fixargs(sh.st.dolv,1);
 	}
 	sh_winsize();
+	if(!sh.columns)
+		sh.columns = 80;
+	if(!sh.lines)
+		sh.lines = 24;
 	if(sh_isoption(SH_INTERACTIVE))
 	{
 		sh_onstate(SH_INTERACTIVE);

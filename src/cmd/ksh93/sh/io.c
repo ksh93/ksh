@@ -2429,7 +2429,6 @@ static int subexcept(Sfio_t* sp,int mode, void *data, Sfdisc_t* handle)
 	return -1;
 }
 
-#define NROW    15      /* number of rows before going to multi-columns */
 #define LBLSIZ	3	/* size of label field and interfield spacing */
 /*
  * print a list of arguments in columns
@@ -2440,7 +2439,7 @@ void	sh_menu(Sfio_t *outfile,int argn,char *argv[])
 	char **arg;
 	int nrow, ncol=1, ndigits=1;
 	int fldsize, wsize = ed_window();
-	nrow = sh.lines ? (2 * (sh.lines / 3) + 1) : NROW;
+	nrow = 2 * (sh.lines / 3) + 1;	/* number of rows before going to multi-columns */
 	for(i=argn;i >= 10;i /= 10)
 		ndigits++;
 	if(argn < nrow)

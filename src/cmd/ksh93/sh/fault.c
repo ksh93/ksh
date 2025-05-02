@@ -202,18 +202,20 @@ void	sh_winsize(void)
 	int		lines, columns;
 	int32_t		i;
 	astwinsize(2,&lines,&columns);
-	if (lines <= 0 || lines > USHRT_MAX || columns <= 0 || columns > USHRT_MAX)
-		lines = 24, columns = 80;
+	if (lines < 0 || lines > USHRT_MAX)
+		lines = 0;
+	if (columns < 0 || columns > USHRT_MAX)
+		columns = 0;
 	/*
 	 * Update LINES and COLUMNS only when the values changed; this makes
 	 * LINES.set and COLUMNS.set shell discipline functions more useful.
 	 */
-	if ((lines != sh.lines || nv_isnull(LINES)) && (i = lines))
+	if (lines && (lines != sh.lines || nv_isnull(LINES)) && (i = lines))
 	{
 		nv_putval(LINES, (char*)&i, NV_INT32|NV_RDONLY);
 		sh.lines = lines;
 	}
-	if ((columns != sh.columns || nv_isnull(COLUMNS)) && (i = columns))
+	if (columns && (columns != sh.columns || nv_isnull(COLUMNS)) && (i = columns))
 	{
 		nv_putval(COLUMNS, (char*)&i, NV_INT32|NV_RDONLY);
 		sh.columns = columns;
