@@ -987,6 +987,7 @@ make install virtual
 		done
 
 		make data/builtins.c
+			prev %{INCLUDE_AST}/cmdlist.h
 			prev FEATURE/poll
 			prev FEATURE/cmds
 			prev include/jobs.h

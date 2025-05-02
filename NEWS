@@ -2,6 +2,12 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-05-02:
+
+- When ksh is linked against the dynamic libshell/cmd/ast libraries (when
+  building ksh on supported systems), all of the built-in commands from libcmd
+  are now made available by default, bound to the virtual path /opt/ast/bin.
+
 2025-04-24:
 
 - Fixed a bug in the expansion of $* within a here-document: the positional

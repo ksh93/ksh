@@ -127,42 +127,13 @@ const struct shtable3 shtab_builtins[] =
 	"whence",	NV_BLTIN|BLT_ENV,		bltin(whence),
 #ifdef SHOPT_CMDLIB_HDR
 #include SHOPT_CMDLIB_HDR
+#elif SHOPT_ALL_LIBCMD || SHOPT_DYNAMIC
+	/* always make all path-bound built-ins available when linking dynamically --
+	 * there's no reason not to, as they're in the libcmd shared library anyway */
+#include <cmdlist.h>
 #else
-#if SHOPT_ALL_LIBCMD
-	CMDLIST(chgrp)
-	CMDLIST(chmod)
-	CMDLIST(chown)
-	CMDLIST(cksum)
-	CMDLIST(cmp)
-	CMDLIST(comm)
-	CMDLIST(date)
-	CMDLIST(expr)
-	CMDLIST(fds)
-	CMDLIST(fmt)
-	CMDLIST(fold)
-	CMDLIST(head)
-	CMDLIST(id)
-	CMDLIST(join)
-	CMDLIST(logname)
-	CMDLIST(md5sum)
-	CMDLIST(mkdir)
-	CMDLIST(mkfifo)
-	CMDLIST(paste)
-	CMDLIST(pathchk)
-	CMDLIST(pids)
-	CMDLIST(rev)
-	CMDLIST(rm)
-	CMDLIST(rmdir)
-	CMDLIST(stty)
-	CMDLIST(sum)
-	CMDLIST(sync)
-	CMDLIST(tail)
-	CMDLIST(tee)
-	CMDLIST(tty)
-	CMDLIST(uname)
-	CMDLIST(uniq)
-	CMDLIST(wc)
-#endif
+	/* for static linking without SHOPT_ALL_LIBCMD, avoid excessive bloat --
+	 * include a selection of path-bound built-ins in the large ksh binary */
 	CMDLIST(basename)
 	CMDLIST(cat)
 	CMDLIST(cp)

@@ -27,8 +27,11 @@ The options have the following defaults and meanings:
     ACCTFILE     off Enable per user accounting info.
                      See README-AUDIT.md.
 
-    ALL_LIBCMD   off Enables all of the available /opt/ast/bin builtin commands
-                     in src/lib/libcmd.
+    ALL_LIBCMD   off Includes all the available /opt/ast/bin path-bound
+                     built-in commands from libcmd in the statically linked ksh
+                     binary, instead of a selection of them. (See builtins.c
+                     for that selection.) All of them are always available in
+                     the dynamically linked ksh binary (on supported systems).
 
     AUDIT        on  For auditing specific users.
                      Noted by "A" in the version string when enabled.
