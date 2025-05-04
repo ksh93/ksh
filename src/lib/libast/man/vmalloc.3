@@ -156,19 +156,30 @@ returns the allocated block on success or
 on failure.
 .PP
 .Ss "  void *vmresize(Vmalloc_t *vm, void *addr, size_t size);"
-Resize (grow or shrink) a block allocated in the region
+Create, resize (grow or shrink), or free a block allocated in the region
 .IR vm .
-This function uses
+If
+.I size
+is 0,
+.I addr
+is freed using
+.B vmfree
+and
+.B vmresize
+returns
+.BR NULL ,
+or if
+.I addr
+is
+.BR NULL ,
+a new block is allocated using
+.BR vmalloc .
+Otherwise, this function uses
 .BR realloc (3)
 to change the size of the block pointed to by
 .I addr
 to the new
 .IR size .
-If
-.I addr
-is
-.BR NULL ,
-a new block is allocated.
 The block may be moved to a different location in memory.
 The new block is initialized with as much of the old contents as will fit.
 If the new size is larger than the old,
@@ -184,6 +195,11 @@ returns a pointer to the new block,
 or
 .B NULL
 on failure.
+.PP
+The
+.B vmresize
+function is suitable for use as a memory discipline function, for example, as
+.BR re_resizef " (with " re_resizehandle " set to the region) in the AST " regex "(3) library."
 .PP
 .Ss "  char *vmstrdup(Vmalloc_t *vm, const char *s);"
 String duplication.

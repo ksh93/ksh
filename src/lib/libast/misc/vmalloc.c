@@ -121,7 +121,8 @@ void *vmalloc(Vmalloc_t *vm, size_t size)
 
 /*
  * Resize a block in a region.
- * If the pointer is NULL, acts like vmalloc.
+ * If ap is NULL, allocates a new block.
+ * If size is 0, ap is freed.
  */
 void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 {
@@ -130,8 +131,12 @@ void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 
 	if (!ap)
 		return vmalloc(vm, size);
+	if (!size)
+	{
+		vmfree(vm, ap);
+		return NULL;
+	}
 	assert(vm != NULL);
-	assert(size > 0);
 	if (!(mp = dtmatch(vm->alloc, ap)))
 		notallocated(vm, ap, "vmresize");
 	if (!(tmp = realloc(ap, size)))
