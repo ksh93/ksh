@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -146,7 +146,7 @@ struct _sffmt_s
 #define SFIO_LOCKR	0000010	/* lock record, stop access to stream	*/
 #define SFIO_LASTR	0000020	/* get the last incomplete record	*/
 
-/* exception events: SFIO_NEW(0), SFIO_READ(1), SFIO_WRITE(2) and the below 	*/
+/* exception events: SFIO_NEW(0), SFIO_READ(1), SFIO_WRITE(2) and the below */
 #define SFIO_SEEK	3	/* seek error				*/
 #define SFIO_CLOSING	4	/* when stream is about to be closed	*/
 #define SFIO_DPUSH	5	/* when discipline is being pushed	*/
@@ -162,8 +162,8 @@ struct _sffmt_s
 #define SFIO_EVENT	100	/* start of user-defined events		*/
 
 /* for stack and disciplines */
-#define SFIO_POPSTACK	NULL	/* pop the stream stack		*/
-#define SFIO_POPDISC	NULL	/* pop the discipline stack	*/
+#define SFIO_POPSTACK	NULL	/* pop the stream stack			*/
+#define SFIO_POPDISC	NULL	/* pop the discipline stack		*/
 
 /* for the notify function and discipline exception */
 #define SFIO_NEW	0	/* new stream				*/

@@ -1540,7 +1540,7 @@ void sh_reinit(void)
 		if(nv_isarray(np))
 			nv_putsub(np,NULL,ARRAY_UNDEF);
 		nofree = nv_isattr(np,NV_NOFREE);	/* note: returns bitmask, not boolean */
-		nv_unset(np,NV_RDONLY);		/* also clears NV_NOFREE attr, if any */
+		nv_unset(np,NV_RDONLY);			/* also clears NV_NOFREE attr, if any */
 		nv_setattr(np,nofree);
 	}
 	/* Delete functions and built-ins. Note: fun_tree has a viewpath to bltin_tree */

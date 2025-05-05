@@ -279,7 +279,7 @@ make install virtual
 			exec -	-e 's/.*/extern int	b_&(int, char**, Shbltin_t*);/' \
 			exec -	%{_c_source_files_} |
 			exec -	sort -u
-			exec - } > %{@}
+			exec - } > %{@} || exit
 			exec - if	cmp -s %{@} cmdext.h
 			exec - then	: nothing changed -- keeping old cmdext.h to avoid unnecessary rebuilding
 			exec - else	cp -f %{@} cmdext.h
@@ -301,7 +301,7 @@ make install virtual
 			exec -	-e 's/.*/CMDLIST(&)/' \
 			exec -	%{_c_source_files_} |
 			exec -	sort -u
-			exec - } > %{@}
+			exec - } > %{@} || exit
 			exec - if	cmp -s %{@} cmdlist.h
 			exec - then	: nothing changed -- keeping old cmdlist.h to avoid unnecessary rebuilding
 			exec - else	cp -f %{@} cmdlist.h

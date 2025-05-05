@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1055,7 +1055,7 @@ then	err_exit "arithmetic assignment to _ fails (got $got)"
 fi
 
 got=$(let "LINENO = 123"; print $LINENO )
-if	[[ $got != '122' ]]   # TODO: should be 123
+if	[[ $got != '122' ]]
 then	err_exit "arithmetic assignment to LINENO fails (got $got)"
 fi
 

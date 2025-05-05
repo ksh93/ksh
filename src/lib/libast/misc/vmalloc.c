@@ -15,7 +15,7 @@
 
 /*
  * New Vmalloc: a small interface around the standard memory allocator
- * that implement allocation regions and automatic initialization.
+ * that implements allocation regions and automatic initialization.
  */
 
 #include <ast.h>

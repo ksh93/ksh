@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -56,11 +56,11 @@
 #include	"sfio.h"
 
 /* mode bit to indicate that the structure hasn't been initialized */
-#define SFIO_INIT		0000004
+#define SFIO_INIT	0000004
 #define SFIO_DCDOWN	00010000
 
 /* shorthand for common stream types */
-#define SFIO_RDWR		(SFIO_READ|SFIO_WRITE)
+#define SFIO_RDWR	(SFIO_READ|SFIO_WRITE)
 #define SFIO_RDSTR	(SFIO_READ|SFIO_STRING)
 #define SFIO_WRSTR	(SFIO_WRITE|SFIO_STRING)
 #define SFIO_RDWRSTR	(SFIO_RDWR|SFIO_STRING)
@@ -82,7 +82,7 @@
 	  0,						/* ngetr	*/ \
 	  {0},						/* tiny		*/ \
 	  0,						/* bits		*/ \
-	  (unsigned int)(((type)&(SFIO_RDWR))|SFIO_INIT),	/* mode		*/ \
+	  (unsigned int)(((type)&(SFIO_RDWR))|SFIO_INIT), /* mode	*/ \
 	  (struct _sfdisc_s*)(disc),			/* disc		*/ \
 	  NULL,						/* pool		*/ \
 	  NULL,						/* rsrv		*/ \

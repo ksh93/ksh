@@ -26,6 +26,7 @@
  *  Rewritten April, 1988
  *  Revised January, 1992
  *  Mended February, 2021
+ *  Corrected March, 2025
  *
  *  Aspects of job control are (de)activated using a global flag variable,
  *  a state bit, and a shell option bit. It is important to understand the
@@ -491,7 +492,6 @@ static void job_waitsafe(int sig)
 
 /*
  * initialize job control if possible
- * if lflag is set the switching driver message will not print
  */
 void job_init(void)
 {

@@ -124,16 +124,16 @@
 #endif
 
 /* Private flags in the "bits" field */
-#define SFIO_MMAP		00000001	/* in memory mapping mode		*/
-#define SFIO_BOTH		00000002	/* both read/write			*/
-#define SFIO_HOLE		00000004	/* a hole of zero's was created		*/
-#define SFIO_NULL		00000010	/* stream is /dev/null			*/
+#define SFIO_MMAP	00000001	/* in memory mapping mode		*/
+#define SFIO_BOTH	00000002	/* both read/write			*/
+#define SFIO_HOLE	00000004	/* a hole of zero's was created		*/
+#define SFIO_NULL	00000010	/* stream is /dev/null			*/
 #define SFIO_SEQUENTIAL	00000020	/* sequential access			*/
 #define SFIO_JUSTSEEK	00000040	/* just did a sfseek			*/
 #define SFIO_PRIVATE	00000100	/* private stream to Sfio		*/
 #define SFIO_ENDING	00000200	/* no re-io on interrupts at closing	*/
-#define SFIO_WIDE		00000400	/* in wide mode - stdio only		*/
-#define SFIO_PUTR		00001000	/* in sfputr()				*/
+#define SFIO_WIDE	00000400	/* in wide mode - stdio only		*/
+#define SFIO_PUTR	00001000	/* in sfputr()				*/
 
 /* "bits" flags that must be cleared in sfclrlock */
 #define SFIO_TMPBITS	00170000
@@ -159,12 +159,12 @@
 /* bits for the mode field, SFIO_INIT defined in sfio_t.h */
 #define SFIO_RC		00000010	/* peeking for a record			*/
 #define SFIO_RV		00000020	/* reserve without read	or most write	*/
-#define SFIO_LOCK		00000040	/* stream is locked for io op		*/
-#define SFIO_PUSH		00000100	/* stream has been pushed		*/
-#define SFIO_POOL		00000200	/* stream is in a pool but not current	*/
-#define SFIO_PEEK		00000400	/* there is a pending peek		*/
-#define SFIO_PKRD		00001000	/* did a peek read			*/
-#define SFIO_GETR		00002000	/* did a getr on this stream		*/
+#define SFIO_LOCK	00000040	/* stream is locked for io op		*/
+#define SFIO_PUSH	00000100	/* stream has been pushed		*/
+#define SFIO_POOL	00000200	/* stream is in a pool but not current	*/
+#define SFIO_PEEK	00000400	/* there is a pending peek		*/
+#define SFIO_PKRD	00001000	/* did a peek read			*/
+#define SFIO_GETR	00002000	/* did a getr on this stream		*/
 #define SFIO_SYNCED	00004000	/* stream was synced			*/
 #define SFIO_STDIO	00010000	/* given up the buffer to stdio		*/
 #define SFIO_AVAIL	00020000	/* was closed, available for reuse	*/
@@ -433,9 +433,9 @@ typedef struct _sfextern_s
 
 /* number of pages to memory map at a time */
 #if _ptr_bits >= 64
-#define SFIO_NMAP		1024
+#define SFIO_NMAP	1024
 #else
-#define SFIO_NMAP		32
+#define SFIO_NMAP	32
 #endif
 
 #ifndef MAP_VARIABLE

@@ -1892,6 +1892,9 @@ A name reference to
 .SM LINENO
 The current line number within the script or
 function being executed.
+Line numbers can be changed by assigning to LINENO.
+Any assigned value is decreased by one so that the assigned line number
+refers to the line following the assignment.
 .TP
 .B
 .SM LINES
