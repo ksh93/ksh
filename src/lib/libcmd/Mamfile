@@ -258,27 +258,63 @@ make install virtual
 		setv _c_source_files_ %{^}
 	done c_sources
 
-	make cmdext.h
-		prev c_sources
-		prev %{INCLUDE_AST}/shcmd.h
-		exec - {
-		exec - cat <<!
-		exec - /*
-		exec -  * -lcmd extern function prototypes
-		exec -  */
-		exec -
-		exec - #include <shcmd.h>
-		exec -
-		exec - !
-		exec - sed \
-		exec -	-e '/^b_[a-z_][a-z_0-9]*(/!d' \
-		exec -	-e 's/^b_//' \
-		exec -	-e 's/(.*//' \
-		exec -	-e 's/.*/extern int	b_&(int, char**, Shbltin_t*);/' \
-		exec -	%{_c_source_files_} |
-		exec -	sort -u
-		exec - } > %{@}
-	done
+	make generated_headers virtual 
+		note * These .new shell actions avoid bumping the timestamps of the generated *.h files
+		note * if nothing changed. This avoids recompiling all of libcmd and ksh93 if something
+		note * unrelated changes in one of libcmd's source files. It's safe in this particular
+		note * case, because neither of these headers include any other headers.
+		make cmdext.h.new
+			prev c_sources
+			exec - {
+			exec - cat <<!
+			exec - /*
+			exec -  * -lcmd extern function prototypes
+			exec -  */
+			exec -
+			exec - !
+			exec - sed \
+			exec -	-e '/^b_[a-z_][a-z_0-9]*(/!d' \
+			exec -	-e 's/^b_//' \
+			exec -	-e 's/(.*//' \
+			exec -	-e 's/.*/extern int	b_&(int, char**, Shbltin_t*);/' \
+			exec -	%{_c_source_files_} |
+			exec -	sort -u
+			exec - } > %{@}
+			exec - if	cmp -s %{@} cmdext.h
+			exec - then	: nothing changed -- keeping old cmdext.h to avoid unnecessary rebuilding
+			exec - else	cp -f %{@} cmdext.h
+			exec - fi
+		done cmdext.h.new
+		make cmdlist.h.new
+			prev c_sources
+			exec - {
+			exec - cat <<!
+			exec - /*
+			exec -  * -lcmd function list -- define your own CMDLIST()
+			exec -  */
+			exec -
+			exec - !
+			exec - sed \
+			exec -	-e '/^b_[a-z_][a-z_0-9]*(/!d' \
+			exec -	-e 's/^b_//' \
+			exec -	-e 's/(.*//' \
+			exec -	-e 's/.*/CMDLIST(&)/' \
+			exec -	%{_c_source_files_} |
+			exec -	sort -u
+			exec - } > %{@}
+			exec - if	cmp -s %{@} cmdlist.h
+			exec - then	: nothing changed -- keeping old cmdlist.h to avoid unnecessary rebuilding
+			exec - else	cp -f %{@} cmdlist.h
+			exec - fi
+		done cmdlist.h.new
+	done generated_headers
+	note * The encapsulating generated_headers rule is needed for parallel building. It causes mamake
+	note * to wait at 'done generated_headers' until the .new actions have finished generating the
+	note * prerequisites before the corresponding makp commands are reached below.
+	note * Those makp commands declare the prereqs *without* depending on the rules that generate them,
+	note * which is what avoids the unnecessary rebuilds.
+	makp cmdext.h
+	makp cmdlist.h
 
 	note *
 	note * Build the library
@@ -338,35 +374,12 @@ make install virtual
 	done
 	note * public headers
 	make %{INSTALLROOT}/lib/mam/cmd
-		make %{INCLUDE_AST}/cmd.h
-			prev cmd.h
-			exec - cp -f %{<} %{@}
+		loop HDR cmd cmdext cmdlist
+			make %{INCLUDE_AST}/%{HDR}.h
+				prev %{HDR}.h
+				exec - cp -f %{<} %{@}
+			done
 		done
-		make %{INCLUDE_AST}/cmdext.h
-			prev cmdext.h
-			exec - cp -f %{<} %{@}
-		done
-		make %{INCLUDE_AST}/cmdlist.h
-			make cmdlist.h
-				prev c_sources
-				exec - {
-				exec - cat <<!
-				exec - /*
-				exec -  * -lcmd function list -- define your own CMDLIST()
-				exec -  */
-				exec -
-				exec - !
-				exec - sed \
-				exec -	-e '/^b_[a-z_][a-z_0-9]*(/!d' \
-				exec -	-e 's/^b_//' \
-				exec -	-e 's/(.*//' \
-				exec -	-e 's/.*/CMDLIST(&)/' \
-				exec -	%{_c_source_files_} |
-				exec -	sort -u
-				exec - } > %{@}
-			done cmdlist.h
-			exec - cp -f %{<} %{@}
-		done %{INCLUDE_AST}/cmdlist.h
 		note * generate header dependency rules
 		exec - mkdeps -lcmd -last -ldll %{^} > %{@}
 		makp %{INSTALLROOT}/bin/mkdeps
