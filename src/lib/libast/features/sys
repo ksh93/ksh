@@ -19,6 +19,20 @@ typ socklen_t sys/socket.h fail{
 	echo "#endif"
 }end
 
+typ max_align_t stddef.h no{
+	/*
+	 * A type whose alignment requirement is at least as large as that of every scalar
+	 * type. Pointers returned by allocation functions must be aligned at least as strictly
+	 * as max_align_t. Aligning to the largest of these dummy union members should work.
+	 */
+	typedef union
+	{
+		void		*p;	/* any pointer */
+		intmax_t	i;	/* max-size int type */
+		_ast_fltmax_t	f;	/* max-size float type */
+	} max_align_t;
+}end
+
 define	offsetof	(type,member)	__builtin_offsetof(type,member)
 define	EXIT_FAILURE	1
 define	EXIT_SUCCESS	0

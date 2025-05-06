@@ -68,9 +68,7 @@ This is a safeguard against the use of uninitialized memory.
 While Vmalloc and the standard interface may be mixed,
 each block must always be freed or resized
 using the interface and/or region it was allocated with.
-.PP
-Size 0 allocations are not supported
-and result in undefined behavior.
+Otherwise, undefined behavior will result.
 .PP
 .Ss "REGION CONTROL"
 .PP
@@ -81,15 +79,11 @@ This function returns a pointer to an initialized structure declared as:
 .Cs
 typedef struct
 {
-        void      *alloc;
         uint32_t  options;
-        void      (*outofmem)(size_t);
+        void      (*outofmemory)(size_t);
+        /* other field(s) for internal use only */
 } Vmalloc_t;
 .Ce
-.PP
-The
-.I alloc
-field is for internal bookkeeping and should not be used directly.
 .PP
 The
 .I options
@@ -108,11 +102,10 @@ will free an existing block that it failed to resize before returning
 All other bits are reserved for future use and should be zero.
 .PP
 The
-.I outofmem
+.I outofmemory
 field can be set to point to a function that
 will be called when a memory block fails to be allocated or resized.
-The size of the requested block is passed in the argument,
-or if internal bookkeeping fails, 0 is passed.
+The size of the requested block is passed in the argument.
 The function may
 .BR abort (3)
 or
@@ -258,7 +251,7 @@ and memory efficiency, and there was no one left to maintain or improve it.
 Consequently, the KornShell 93u+m distribution deprecated Vmalloc soon after
 forking ksh and libast in 2020 and removed it entirely in 2024.
 .PP
-In April 2025, this modified and simplified subset
+In April/May 2025, this modified and simplified subset
 of the original Vmalloc interface was added instead,
 rewritten from scratch to restore the benefits
 of regions and automatic initialization

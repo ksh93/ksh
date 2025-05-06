@@ -421,8 +421,12 @@ make install virtual
 	done
 
 	makp include/tar.h
+
 	makp include/vdb.h
-	makp include/vmalloc.h
+
+	make include/vmalloc.h
+		prev include/ast_std.h
+	done
 
 	make std/assert.h
 		prev ast_common.h
@@ -4176,11 +4180,7 @@ make install virtual
 
 		make vmalloc.o
 			make misc/vmalloc.c
-				prev include/ast.h
-				prev ast_release.h
-				prev include/cdt.h
 				prev include/vmalloc.h
-				prev std/assert.h
 			done
 			exec - compile %{<}
 		done

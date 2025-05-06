@@ -18,69 +18,33 @@
  * that implements allocation regions and automatic initialization.
  */
 
-#include <ast.h>
-#include <ast_release.h>
-#include <cdt.h>
 #include <vmalloc.h>
 
-#if _AST_release
-#define NDEBUG
-#endif
-#include <assert.h>
-
 /*
- * Cdt discipline for Vmalloc regions: keep a sorted list of allocated pointers and their sizes.
+ * Keep allocations in a doubly linked list.
  */
-
-typedef struct _Vmmeta_s_
+typedef struct Vmblock
 {
-	Dtlink_t	links;		/* space for Cdt links			*/
-	void		*ap;		/* pointer to allocated memory block	*/
 	size_t		size;		/* the size of the allocated block	*/
-} Vmmeta_t;
+	struct Vmblock	*prev;		/* previous block in list		*/
+	struct Vmblock	*next;		/* next block in list			*/
+#if __STDC_VERSION__ >= 199901L
+	max_align_t	vblock[];	/* the virtual allocated block, aligned	*/
+#else
+	max_align_t	vblock[1];	/* ...C90 fallback with struct hack	*/
+#endif
+} Vmblock_t;
 
-static int compare_addresses(Dt_t* dict, void *sp, void *dp, Dtdisc_t *disc)
-{
-	uintptr_t	s = (uintptr_t)sp;
-	uintptr_t	d = (uintptr_t)dp;
-	NOT_USED(dict);
-	NOT_USED(disc);
-	return s < d ? -1 : s > d;
-}
-
-static Dtdisc_t vmdisc =
-{
-	offsetof(Vmmeta_t, ap),		/* key: where the key resides		*/
-	-1, 				/* size: key size/type (<0 for pointer)	*/
-	offsetof(Vmmeta_t, links),	/* link: offset to Dtlink_t field	*/
-	0,				/* makef: object constructor		*/
-	0,				/* freef: object destructor		*/
-	compare_addresses,		/* comparf: to compare two objects	*/
-	0,				/* hashf: to compute hash value 	*/
-	0,				/* memoryf: to allocate/free memory	*/
-	0				/* eventf: to process events		*/
-};
+#define VBLOCKOFFSET	offsetof(Vmblock_t, vblock)
 
 /*
- * Helper functions for failure handling.
+ * Helper function for failure handling.
  */
-
-static void *fail(Vmalloc_t *vm, size_t size, void *tofree1, void *tofree2)
+static void *fail(Vmalloc_t *vm, size_t size)
 {
-	if (tofree1)
-		free(tofree1);
-	if (tofree2)
-		free(tofree2);
 	if (vm->outofmemory)
 		(*vm->outofmemory)(size); /* may abort or longjmp */
 	return NULL;
-}
-
-static void noreturn notallocated(Vmalloc_t *vm, void *ap, char *fn)
-{
-	sfprintf(sfstderr,"\n*** %s: pointer %p not allocated in region %p\n", fn, ap, vm);
-	sfsync(NULL);
-	abort();
 }
 
 /*
@@ -88,16 +52,7 @@ static void noreturn notallocated(Vmalloc_t *vm, void *ap, char *fn)
  */
 Vmalloc_t *vmopen(void)
 {
-	Vmalloc_t	*vm;
-
-	if (!(vm = calloc(1, sizeof(Vmalloc_t))))
-		return NULL;
-	if (!(vm->alloc = dtopen(&vmdisc, Dtoset)))
-	{
-		free(vm);
-		return NULL;
-	}
-	return vm;
+	return calloc(1, sizeof(Vmalloc_t));
 }
 
 /*
@@ -105,18 +60,17 @@ Vmalloc_t *vmopen(void)
  */
 void *vmalloc(Vmalloc_t *vm, size_t size)
 {
-	Vmmeta_t	*mp;
+	Vmblock_t	*bp;
 
-	assert(vm != NULL);
-	assert(size > 0);
-	if (!(mp = calloc(1, sizeof(Vmmeta_t))))
-		return fail(vm, 0, NULL, NULL);
-	mp->size = size;
-	if (!(mp->ap = vm->options & VM_INIT ? calloc(1, size) : malloc(size)))
-		return fail(vm, size, mp, NULL);
-	if (!dtinsert(vm->alloc, mp))
-		return fail(vm, 0, mp->ap, mp);
-	return mp->ap;
+	if (!(bp = (vm->options & VM_INIT) ? calloc(1, size + VBLOCKOFFSET) : malloc(size + VBLOCKOFFSET)))
+		return fail(vm, size);
+	bp->size = size;
+	/* insert at front of list */
+	bp->prev = NULL;
+	if (bp->next = vm->_list_)
+		bp->next->prev = bp;
+	vm->_list_ = bp;
+	return (char*)bp + VBLOCKOFFSET;
 }
 
 /*
@@ -126,8 +80,7 @@ void *vmalloc(Vmalloc_t *vm, size_t size)
  */
 void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 {
-	Vmmeta_t	*mp;
-	void		*tmp;
+	Vmblock_t	*bp, *tmp;
 
 	if (!ap)
 		return vmalloc(vm, size);
@@ -136,30 +89,27 @@ void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 		vmfree(vm, ap);
 		return NULL;
 	}
-	assert(vm != NULL);
-	if (!(mp = dtmatch(vm->alloc, ap)))
-		notallocated(vm, ap, "vmresize");
-	if (!(tmp = realloc(ap, size)))
+	bp = (Vmblock_t*)((char*)ap - VBLOCKOFFSET);
+	/* Resize block */
+	if (!(tmp = realloc(bp, size + VBLOCKOFFSET)))
 	{
 		if (vm->options & VM_FREEONFAIL)
-		{
-			tmp = dtdetach(vm->alloc, mp);
-			assert(tmp == mp);
-			return fail(vm, size, ap, mp);
-		}
-		return fail(vm, size, NULL, NULL);
+			free(bp);
+		return fail(vm, size);
 	}
-	ap = tmp;
+	if (tmp != bp)
+	{
+		bp = tmp;
+		ap = (char*)bp + VBLOCKOFFSET;
+		if (bp->prev)
+			bp->prev->next = bp;
+		if (bp->next)
+			bp->next->prev = bp;
+	}
 	/* Initialize added memory */
-	if ((vm->options & VM_INIT) && (size > mp->size))
-		memset((char*)ap + mp->size, 0, size - mp->size);
-	/* Update and re-sort the housekeeping node */
-	tmp = dtdetach(vm->alloc, mp);
-	assert(tmp == mp);
-	mp->ap = ap;
-	mp->size = size;
-	if (!dtinsert(vm->alloc, mp))
-		return fail(vm, 0, ap, mp);
+	if ((vm->options & VM_INIT) && (size > bp->size))
+		memset((char*)ap + bp->size, 0, size - bp->size);
+	bp->size = size;
 	return ap;
 }
 
@@ -171,7 +121,6 @@ void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
 {
 	uint32_t	save_opt;
 
-	assert(vm != NULL);
 	save_opt = vm->options;
 	if (init)
 		vm->options |= VM_INIT;
@@ -188,17 +137,18 @@ void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
  */
 char *vmstrdup(Vmalloc_t *vm, const char *s)
 {
-	Vmmeta_t	*mp;
+	Vmblock_t	*bp;
+	size_t		size;
 
-	assert(vm != NULL);
-	assert(s != NULL);
-	if (!(mp = calloc(1, sizeof(Vmmeta_t))))
-		return fail(vm, 0, NULL, NULL);
-	if (!(mp->ap = malloc(mp->size = strlen(s) + 1)))
-		return fail(vm, mp->size, mp, NULL);
-	if (!dtinsert(vm->alloc, mp))
-		return fail(vm, 0, mp->ap, mp);
-	return memcpy(mp->ap, s, mp->size);
+	if (!(bp = malloc((size = strlen(s) + 1) + VBLOCKOFFSET)))
+		return fail(vm, size);
+	bp->size = size;
+	/* insert at front of list */
+	bp->prev = NULL;
+	if (bp->next = vm->_list_)
+		bp->next->prev = bp;
+	vm->_list_ = bp;
+	return memcpy((char*)bp + VBLOCKOFFSET, s, size);
 }
 
 /*
@@ -206,17 +156,16 @@ char *vmstrdup(Vmalloc_t *vm, const char *s)
  */
 void vmfree(Vmalloc_t *vm, void *ap)
 {
-	Vmmeta_t	*mp;
+	Vmblock_t	*bp;
 
-	assert(vm != NULL);
-	assert(ap != NULL);
-	if (!(mp = dtmatch(vm->alloc, ap)))
-		notallocated(vm, ap, "vmfree");
-	assert(mp->size > 0);
-	free(ap);
-	ap = dtdetach(vm->alloc, mp);
-	assert(ap == mp);
-	free(mp);
+	bp = (Vmblock_t*)((char*)ap - VBLOCKOFFSET);
+	if (!bp->prev)
+		vm->_list_ = bp->next;
+	else
+		bp->prev->next = bp->next;
+	if (bp->next)
+		bp->next->prev = bp->prev;
+	free(bp);
 }
 
 /*
@@ -224,19 +173,15 @@ void vmfree(Vmalloc_t *vm, void *ap)
  */
 void vmclear(Vmalloc_t *vm)
 {
-	Vmmeta_t	*mp;
-	Vmmeta_t	*mpnext;
+	Vmblock_t	*bp, *bpnext;
 
-	assert(vm != NULL);
-	assert(vm->alloc != NULL);
-	for (mp = dtfirst(vm->alloc); mp; mp = mpnext)
+	bpnext = vm->_list_;
+	while (bp = bpnext)
 	{
-		mpnext = dtnext(vm->alloc, mp);
-		free(mp->ap);
-		assert(mp->size > 0);
-		free(mp);
+		bpnext = bp->next;
+		free(bp);
 	}
-	dtclear(vm->alloc);
+	vm->_list_ = NULL;
 }
 
 /*
@@ -245,6 +190,5 @@ void vmclear(Vmalloc_t *vm)
 void vmclose(Vmalloc_t *vm)
 {
 	vmclear(vm);
-	dtclose(vm->alloc);
 	free(vm);
 }
