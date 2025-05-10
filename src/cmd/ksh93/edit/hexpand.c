@@ -718,7 +718,12 @@ done:
 
 	/* error? */
 	if(stktell(sh.stk) && !(flag & HIST_ERROR))
-		*xp = sh_strdup(stkfreeze(sh.stk,1));
+	{
+		sfputr(sh.strbuf, stkfreeze(sh.stk,1), -1);
+		*xp = sfstruse(sh.strbuf);
+	}
+	else
+		*xp = 0;
 
 	/* restore shell stack */
 	if(off)

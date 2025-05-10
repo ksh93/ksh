@@ -1954,9 +1954,6 @@ static ssize_t slowread(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 {
 	int	(*readf)(void*, int, char*, int, int);
 	int	reedit=0, rsize, n, fno;
-#if SHOPT_HISTEXPAND
-	char    *xp=0;
-#endif /* SHOPT_HISTEXPAND */
 	NOT_USED(handle);
 #if SHOPT_ESH
 	if(sh_isoption(SH_EMACS) || sh_isoption(SH_GMACS))
@@ -1996,13 +1993,9 @@ static ssize_t slowread(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 #if SHOPT_HISTEXPAND
 		if(rsize > 0 && *(char*)buff != '\n' && sh.nextprompt==1 && sh_isoption(SH_HISTEXPAND))
 		{
+			char *xp;
 			int r;
 			((char*)buff)[rsize] = '\0';
-			if(xp)
-			{
-				free(xp);
-				xp = 0;
-			}
 			r = hist_expand(buff, &xp);
 			if(r == HIST_PRINT && xp)
 			{

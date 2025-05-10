@@ -6917,6 +6917,8 @@ option empties the hash table. This can also be achieved by resetting
 \f3hist\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-nlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK
 .TP
 \f3hist \-s\fP \*(OK \f2old\fP\f3\=\fP\f2new\^\fP \*(CK \*(OK \f2command\^\fP \*(CK
+.TP
+\f3hist \-p\fP \*(OK \f2operand\^\fP ... \*(CK
 .PD
 In the first form,
 a range of commands from
@@ -6994,6 +6996,15 @@ causes
 to start
 .I num
 commands back.
+The option
+.B \-p
+writes the result of history expansion
+(see \f2History Expansion\fP below)
+for each operand to standard output,
+ignoring all other options.
+It does this regardless of whether history expansion is active.
+Each operand should be quoted in single quotes
+to prevent actual history expansion (if active).
 .TP
 \(dd \f3integer\fP \f2vname\fP\*(OK\f3=\fP\f2value\^\fP\*(CK .\|.\|.
 Declares each \f2vname\fP to be a long integer number.
