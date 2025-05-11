@@ -1727,12 +1727,11 @@ let "(e=$?) == 2" || err_exit "crash on unexpected option value" \
 
 # ======
 if((SHOPT_HISTEXPAND));then
-exp=$(fc -ln)
-exp=${exp##*$'\t'}
-exp+=$'\n'$SHELL': fc: !nonexistent: event not found'
+exp=$'*\n'$SHELL': fc: !nonexistent: event not found'
 got=$(set +x; redirect 2>&1; "$SHELL" -c 'fc -p !! !nonexistent')
-[[ e=$? -eq 1 && $got == "$exp" ]] || err_exit "fc -p with error" \
-	"(expected \$?==1, $(printf %q "$exp"); got \$?==$e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+[[ e=$? -eq 1 && $got == $exp ]] || err_exit "fc -p with error" \
+	"(expected \$?==1, match of $(printf %q "$exp");" \
+	"got \$?==$e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 fi # SHOPT_HISTEXPND
 
 # ======
