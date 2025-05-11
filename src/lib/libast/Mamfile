@@ -875,7 +875,6 @@ make install virtual
 
 		make chresc.o
 			make string/chresc.c
-				prev include/regex.h
 				prev include/ccode.h
 				prev include/ast.h
 			done

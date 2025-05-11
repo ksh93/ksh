@@ -1,4 +1,4 @@
-		ksh 93u+m/1.0.9 vs. ksh 93u+
+		ksh 93u+m/1.0.11 vs. ksh 93u+
 
 The following is a list of changes between ksh 93u+ 2012-08-01 and the new
 ksh 93u+m reboot that could cause incompatibilities in rare corner cases.
@@ -205,6 +205,12 @@ For more details, see the NEWS file and for complete details, see the git log.
 	regardless of their type length. For example, 'typeset -i16 n=-12;
 	echo $n' now correctly prints -16#c instead of 16#fffffffffffffff4.
 	(Post-1.0 fix introduced in ksh 93u+m/1.0.9)
+
+38.	Unicode code points in $'...' strings and printf(1) formatters are
+	now converted to the current locale also when in a single-byte
+	locale. For example, if the locale on macOS is en_GB.ISO8859-1, echo
+	$'\u00E9' now outputs an e with an accent aigu encoded in ISO8859-1.
+	(Post-1.0 fix introduced in ksh 93u+m/1.0.11)
 
 ____________________________________________________________________________
 

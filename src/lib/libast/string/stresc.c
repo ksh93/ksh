@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,7 +22,6 @@
  *
  * convert \X character constants in s in place
  * the length of the converted s is returned (may have embedded \0's)
- * wide chars absent locale guidance default to UTF-8
  * strexp() FMT_EXP_* flags passed to chrexp() for selective conversion
  */
 
@@ -32,7 +31,7 @@ int
 strexp(char* s, int flags)
 {
 	char*		t;
-	unsigned int	c;
+	int		c;
 	char*		b;
 	char*		e;
 	int		w;
@@ -44,9 +43,11 @@ strexp(char* s, int flags)
 		{
 			c = chrexp(s - 1, &e, &w, flags);
 			s = e;
+			if (c < 0)
+				continue;
 			if (w)
 			{
-				t += mbwide() ? mbconv(t, c) : wc2utf8(t, c);
+				t += mbconv(t, c);
 				continue;
 			}
 		}

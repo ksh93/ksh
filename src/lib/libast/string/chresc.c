@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -28,9 +28,9 @@
 
 #include <ast.h>
 #include <ctype.h>
-
 #include <ccode.h>
-#include <regex.h>
+
+#define utf32invalid(u)	((u)>0x10FFFF || (u)>=0xD800 && (u)<=0xDFFF || (u)>=0xFFFE && (u)<=0xFFFF)
 
 int
 chrexp(const char* s, char** p, int* m, int flags)
@@ -47,6 +47,7 @@ chrexp(const char* s, char** p, int* m, int flags)
 	for (;;)
 	{
 		b = s;
+		mbinit();
 		switch (c = mbchar(s))
 		{
 		case 0:
@@ -193,6 +194,11 @@ chrexp(const char* s, char** p, int* m, int flags)
 						break;
 					}
 					break;
+				}
+				if (utf32invalid(c))
+				{
+					s = b;
+					goto noexpand;
 				}
 				if (n <= 2 && !(flags & FMT_EXP_CHAR) || n > 2 && (w = 1) && !(flags & FMT_EXP_WIDE))
 				{

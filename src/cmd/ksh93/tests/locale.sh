@@ -251,12 +251,14 @@ fi
 
 if((SHOPT_MULTIBYTE)); then
 exp=OK
-got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'\u[5929]=OK; print ${\u[5929]}' 2>&1)
+export LC_CTYPE=C.UTF-8
+got=$("$SHELL" -c $'\u[5929]=OK; print ${\u[5929]}' 2>&1)
 [[ $got == "$exp" ]] || err_exit "multibyte variable definition/expansion failed -- expected '$exp', got '$got'"
-got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'function \u[5929]\n{\nprint OK;\n}; \u[5929]' 2>&1)
+got=$("$SHELL" -c $'function \u[5929]\n{\nprint OK;\n}; \u[5929]' 2>&1)
 [[ $got == "$exp" ]] || err_exit "multibyte ksh function definition/execution failed -- expected '$exp', got '$got'"
-got=$(set +x; LC_ALL=C.UTF-8 $SHELL -c $'\u[5929]()\n{\nprint OK;\n}; \u[5929]' 2>&1)
+got=$("$SHELL" -c $'\u[5929]()\n{\nprint OK;\n}; \u[5929]' 2>&1)
 [[ $got == "$exp" ]] || err_exit "multibyte POSIX function definition/execution failed -- expected '$exp', got '$got'"
+unset LC_CTYPE
 fi # SHOPT_MULTIBYTE
 
 # this locale is supported by AST on all platforms

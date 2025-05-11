@@ -475,9 +475,7 @@ static char strformat(char *s)
 	int		c;
 	char*		b;
 	char*		p;
-#if SHOPT_MULTIBYTE && defined(FMT_EXP_WIDE)
 	int		w;
-#endif
 	b = t = s;
 	for (;;)
 	{
@@ -486,27 +484,15 @@ static char strformat(char *s)
 		    case '\\':
 			if(*s==0)
 				break;
-#if SHOPT_MULTIBYTE && defined(FMT_EXP_WIDE)
 			c = chrexp(s - 1, &p, &w, FMT_EXP_CHAR|FMT_EXP_LINE|FMT_EXP_WIDE);
-#else
-			c = chresc(s - 1, &p);
-#endif
 			s = p;
-#if SHOPT_MULTIBYTE
-#if defined(FMT_EXP_WIDE)
-			if(w)
-			{
-				t += mbwide() ? mbconv(t, c) : wc2utf8(t, c);
+			if(c<0) /* conversion failed => empty string */
 				continue;
-			}
-#else
-			if(c>UCHAR_MAX && mbwide())
+			if(w)
 			{
 				t += mbconv(t, c);
 				continue;
 			}
-#endif /* FMT_EXP_WIDE */
-#endif /* SHOPT_MULTIBYTE */
 			if(c=='%')
 				*t++ = '%';
 			else if(c==0)
