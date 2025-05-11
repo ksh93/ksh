@@ -873,14 +873,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make ccnative.o
-			make string/ccnative.c
-				prev include/ccode.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make chresc.o
 			make string/chresc.c
 				prev include/regex.h
