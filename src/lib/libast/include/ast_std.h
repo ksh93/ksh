@@ -259,8 +259,6 @@ typedef struct
 
 	int		(*mb_alpha)(wchar_t);
 
-	char		pad[936 - sizeof(void*)];
-
 } _Ast_info_t;
 
 extern _Ast_info_t	_ast_info;

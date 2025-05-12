@@ -445,20 +445,23 @@ set_collate(Lc_category_t* cp)
 
 #if _hdr_wchar && _typ_mbstate_t && _lib_mbrtowc && !AST_NOMULTIBYTE
 
-#define mb_state_zero	((mbstate_t*)&ast.pad[sizeof(ast.pad)-2*sizeof(mbstate_t)])
-#define mb_state	((mbstate_t*)&ast.pad[sizeof(ast.pad)-sizeof(mbstate_t)])
+#define sjis_workaround	1
+static mbstate_t	sjis_state_zero;
+static mbstate_t	sjis_state;
 
 static int
 sjis_mbtowc(wchar_t* p, const char* s, size_t n)
 {
-	if (n && p && s && (*s == '\\' || *s == '~') && !memcmp(mb_state, mb_state_zero, sizeof(mbstate_t)))
+	if (n && p && s && (*s == '\\' || *s == '~') && !memcmp(&sjis_state, &sjis_state_zero, sizeof(mbstate_t)))
 	{
 		*p = *s;
 		return 1;
 	}
-	return mbrtowc(p, s, n, mb_state);
+	return mbrtowc(p, s, n, &sjis_state);
 }
 
+#else
+#define sjis_workaround	0
 #endif
 
 #if !AST_NOMULTIBYTE
@@ -2194,7 +2197,7 @@ set_ctype(Lc_category_t* cp)
 		if (!(ast.mb_width = wcwidth))
 			ast.mb_width = default_wcwidth;
 		ast.mb_conv = wide_wctomb;
-#ifdef mb_state
+#if sjis_workaround
 		{
 			/*
 			 * check for SJIS that translates unshifted 7 bit ASCII!
@@ -2208,7 +2211,7 @@ set_ctype(Lc_category_t* cp)
 			*(s = buf) = '\\';
 			if (mbchar(s) != buf[0])
 			{
-				memcpy(mb_state, mb_state_zero, sizeof(mbstate_t));
+				memcpy(&sjis_state, &sjis_state_zero, sizeof(mbstate_t));
 				ast.mb_towc = sjis_mbtowc;
 			}
 		}
@@ -2433,7 +2436,7 @@ single(int category, Lc_t* lc, unsigned int flags)
 				, ast.mb_cur_max
 				, ast.mb_len == debug_mblen ? " debug_mblen" : ast.mb_len == utf8_mblen ? " utf8_mblen" : ast.mb_len == mblen ? " mblen" : ""
 				, ast.mb_towc == debug_mbtowc ? " debug_mbtowc" : ast.mb_towc == utf8_mbtowc ? " utf8_mbtowc" : ast.mb_towc == mbtowc ? " mbtowc"
-#ifdef mb_state
+#if sjis_workaround
 					: ast.mb_towc == sjis_mbtowc ? " sjis_mbtowc"
 #endif
 					: ""
