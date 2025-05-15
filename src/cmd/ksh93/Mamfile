@@ -776,7 +776,6 @@ make install virtual
 			prev include/lexstates.h
 			prev include/shtable.h
 			prev include/defs.h
-			prev %{INCLUDE_AST}/lc.h
 			prev %{INCLUDE_AST}/ast_wchar.h
 			prev %{INCLUDE_AST}/ast.h
 			prev shopt.h

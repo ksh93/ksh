@@ -31,6 +31,7 @@
 
 #include <ast_wchar.h>
 #include <ctype.h>
+#include <ast_iconv.h>
 #include <mc.h>
 #include <namval.h>
 #include <error.h>
@@ -469,7 +470,7 @@ sjis_mbtowc(wchar_t* p, const char* s, size_t n)
 static int
 utf8_wctomb(char* u, wchar_t w)
 {
-	return u ? wc2utf8(u, w) : 0;
+	return (int)utf32toutf8(u, w);
 }
 
 static const uint32_t		utf8mask[] =
@@ -2161,6 +2162,13 @@ set_ctype(Lc_category_t* cp)
 {
 	ast.mb_sync = 0;
 	ast.mb_alpha = (Isw_f)iswalpha;
+	/* uc2wc is the iconv(3) descriptor for chresc.c -- reset it if open */
+	if (ast.locale.uc2wc != (void*)(-1))
+	{
+		if (ast.locale.uc2wc)
+			iconv_close((iconv_t)ast.locale.uc2wc);
+		ast.locale.uc2wc = (void*)(-1);
+	}
 #if AHA
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
 		sfprintf(sfstderr, "locale setf %17s %16s\n", cp->name, locales[cp->internal]->name);
@@ -2217,6 +2225,17 @@ set_ctype(Lc_category_t* cp)
 		}
 #endif
 	}
+	/* provide an efficient way to check if we're in a UTF-8 locale */
+	if (locales[cp->internal]->flags & LC_utf8)
+		ast.locale.set |= AST_LC_utf8;
+	else
+		ast.locale.set &= ~AST_LC_utf8;
+	/* provide an efficient way to check if single-byte code points are 7-bit (locale is US-ASCII or multibyte) */
+	/* (note: getcodeset() must be called *after* setting the AST_LC_utf8 bit flag correctly) */
+	if (ast.mb_cur_max == 1 && strcmp(getcodeset(), "US-ASCII") != 0)
+		ast.locale.set &= ~AST_LC_7bit;
+	else
+		ast.locale.set |= AST_LC_7bit;
 	return 0;
 }
 

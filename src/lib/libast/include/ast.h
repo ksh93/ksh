@@ -36,9 +36,7 @@
 #include <sfio.h>
 #endif
 
-#ifndef	ast
 #define ast		_ast_info
-#endif
 
 #ifndef PATH_MAX
 #define PATH_MAX	1024
@@ -248,6 +246,8 @@ typedef struct
 
 #endif /* !AST_NOMULTIBYTE */
 
+#define UTF8_LEN_MAX	6	/* UTF-8 only uses 5 */
+
 /*
  * common macros
  */
@@ -323,6 +323,7 @@ extern int		chresc(const char*, char**);
 extern int		chrexp(const char*, char**, int*, int);
 extern int		chrtoi(const char*);
 extern char*		conformance(const char*, size_t);
+extern char*		getcodeset(void);
 extern char*		fmtbuf(size_t);
 extern char*		fmtclock(Sfulong_t);
 extern char*		fmtelapsed(unsigned long, int);
@@ -416,7 +417,8 @@ extern intmax_t		strtonll(const char*, char**, char*, int);
 extern int		struid(const char*);
 extern int		struniq(char**, int);
 extern int		strvcmp(const char*, const char*);
-extern int		wc2utf8(char*, uint32_t);
+extern size_t		utf32toutf8(char*, uint32_t);
+extern ssize_t		utf32stowcs(wchar_t*, uint32_t*, size_t);
 
 /*
  * backward compat

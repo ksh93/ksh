@@ -246,7 +246,6 @@ make install virtual
 			prev cmd.h
 		done
 		make wclib.c
-			prev %{INCLUDE_AST}/lc.h
 			prev %{INCLUDE_AST}/wctype.h
 			prev %{INCLUDE_AST}/wchar.h
 			prev wc.h

@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -21,8 +21,8 @@
  * Glenn Fowler
  * AT&T Research
  *
- * convert wide character to UTF-8 in s
- * s must have room for at least 6 bytes
+ * convert utf32 to utf8 in s
+ * s must have room for at least UTF8_LEN_MAX bytes
  * return value is the number of chars placed in s
  * thanks Tom Duff
  */
@@ -46,13 +46,17 @@ static const Utf8_t	ops[] =
 	{ 0x80000000, 0xfc, 30 }
 };
 
-int
-wc2utf8(char* s, uint32_t w)
+size_t
+utf32toutf8(char* s, uint32_t w)
 {
 	int	i;
 	char*	b;
+	char	tmp[UTF8_LEN_MAX];
 
+	if (!s)
+		s = tmp;
 	for (i = 0; i < elementsof(ops); i++)
+	{
 		if (w < ops[i].range)
 		{
 			b = s;
@@ -71,5 +75,6 @@ wc2utf8(char* s, uint32_t w)
 			}
 			return s - b;
 		}
+	}
 	return 0;
 }

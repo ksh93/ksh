@@ -31,7 +31,6 @@
 
 #include <wchar.h>
 #include <wctype.h>
-#include <lc.h>
 
 #else
 
@@ -61,7 +60,7 @@ Wc_t* wc_init(int mode)
 	if (!mbwide())
 		wp->mb = 0;
 #if _hdr_wchar && _hdr_wctype && _lib_iswctype
-	else if (!(mode & WC_NOUTF8) && (lcinfo(LC_CTYPE)->lc->flags & LC_utf8))
+	else if (!(mode & WC_NOUTF8) && (ast.locale.set & AST_LC_utf8))
 		wp->mb = 1;
 #endif
 	else

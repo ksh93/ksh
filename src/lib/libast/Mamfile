@@ -873,12 +873,24 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make chresc.o
-			make string/chresc.c
-				prev include/ccode.h
-				prev include/ast.h
+		make getcodeset.o
+			make port/getcodeset.c
+				prev port/lclib.h
+				prev ast_nl_types.h
 			done
 			exec - compile %{<}
+		done
+
+		make chresc.o
+			make string/chresc.c
+				prev include/ast.h
+				prev ast_wchar.h
+				prev include/error.h
+				make std/iconv.h
+					prev ast_iconv.h
+				done
+			done
+			exec - compile %{<} -Iport
 		done
 
 		make chrtoi.o
@@ -1416,16 +1428,17 @@ make install virtual
 
 		make setlocale.o
 			make comp/setlocale.c
-				prev include/ast_windows.h
-				prev std/wctype.h
-				prev include/error.h
-				prev include/namval.h
+				prev ast_standards.h
+				prev port/lclib.h
+				prev ast_wchar.h
+				prev ast_iconv.h
 				make include/mc.h
 					prev include/ast.h
 				done
-				prev ast_wchar.h
-				prev port/lclib.h
-				prev ast_standards.h
+				prev include/namval.h
+				prev include/error.h
+				prev std/wctype.h
+				prev include/ast_windows.h
 			done
 			exec - compile %{<} -Iport
 		done
@@ -1445,9 +1458,7 @@ make install virtual
 
 		make catopen.o
 			make comp/catopen.c
-				make std/iconv.h
-					prev ast_iconv.h
-				done
+				prev std/iconv.h
 				prev std/nl_types.h
 				prev include/mc.h
 				prev include/ast.h
@@ -2617,8 +2628,8 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make wc2utf8.o
-			make string/wc2utf8.c
+		make utf32toutf8.o
+			make string/utf32toutf8.c
 				prev include/ast.h
 			done
 			exec - compile %{<}

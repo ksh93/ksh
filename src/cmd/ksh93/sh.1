@@ -3053,18 +3053,34 @@ Causes the remainder of the string to be ignored.
 .B \eE
 Equivalent to the escape character
 (ASCII
-.BR 033 ),
+.BR 033 ).
 .TP
 .B \ee
-Equivalent to the escape character
-(ASCII
-.BR 033 ),
+Same as \eE. Deprecated.
 .TP
-.BI \ec x
+.BI \eC x
 Expands to the character control-\f2x\fP.
 .TP
-.BI \eC[. name .]
-Expands to the collating element \f2name\fP.
+.BI \ec x
+Same as \eC. Deprecated.
+.TP
+.BI \ex hh
+Expands to the character indicated by hexadecimal digits \f2h\fP.
+An unlimited number of digits are processed.
+The string of digits \f2h\fP may be enclosed in \f3[\fPsquare brackets\f3]\fP;
+this can resolve ambiguities with subsequent text.
+(Forward compatibility note:
+In ksh 93u+m/1.1, \ex will change to process up to two digits,
+unless square brackets are used.)
+.TP
+.BI \eu hhhh
+Like \ex, but expands to the character represented by the Unicode code point
+indicated by up to four hexadecimal digits \f2h\fP.
+The character is converted to the current locale if necessary.
+If that conversion fails, the escape sequence is left unexpanded.
+.TP
+.BI \eU hhhhhhhh
+Like \eu, but processes up to eight hexadecimal digits.
 .RE
 .PD
 .PP

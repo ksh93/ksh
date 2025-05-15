@@ -23,7 +23,6 @@
 #include	"shopt.h"
 #include	<ast.h>
 #include	<ast_wchar.h>
-#include	<lc.h>
 #include	"defs.h"
 #include	"shtable.h"
 #include	"lexstates.h"
@@ -309,7 +308,7 @@ static int	sh_isprint(int c)
 {
 	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
 		return isprint(c);			/* use plain isprint(3) */
-	else if(!(lcinfo(LC_CTYPE)->lc->flags&LC_utf8))	/* not in UTF-8 locale? */
+	else if(!(ast.locale.set & AST_LC_utf8))	/* not in UTF-8 locale? */
 		return iswgraph(c);			/* the test below would not be valid */
 	else if(iswgraph(0x5E38) && !iswgraph(0xFEFF))	/* can we use iswgraph(3)? */
 		return iswgraph(c);			/* use iswgraph(3) */

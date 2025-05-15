@@ -16,6 +16,58 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
+
+#include <ast.h>
+#include <ctype.h>
+#include <ast_wchar.h>
+#include <error.h>
+#include <iconv.h>
+
+/*
+ * Convert Unicode code point to current locale's code point
+ * (note: does *not* handle multibyte encoding such as UTF-8)
+ */
+
+static int
+utf32towc(uint32_t utf32)
+{
+	char		*inbuf, *outbuf;
+	size_t		inbytesleft, outbytesleft;
+	char		tmp_in[UTF8_LEN_MAX+1], tmp_out[16];
+	wchar_t		wchar;
+
+	/* in ASCII range: no conversion needed (we only support supersets of ASCII) */
+	if (utf32 <= 0x7F)
+		return utf32;
+	/* in ASCII-only locales, only ASCII (0 - 0x7F) is valid */
+	if (!mbwide() && utf32 > 0x7F && (ast.locale.set & AST_LC_7bit))
+		return -1;
+	/* check for valid Unicode code point */
+	if (utf32 > 0x10FFFF || utf32 >= 0xD800 && utf32 <= 0xDFFF || utf32 >= 0xFFFE && utf32 <= 0xFFFF)
+		return -1;
+	/* in UTF-8 locale: no conversion needed */
+	if (ast.locale.set & AST_LC_utf8)
+		return utf32;
+	/* open an iconv descriptor for converting from UTF-8 to the current locale --
+	 * remember it across invocations; setlocale will close/reset it upon changing locale */
+	if (ast.locale.uc2wc == (void*)(-1) && (ast.locale.uc2wc = iconv_open(getcodeset(), "UTF-8")) == (void*)(-1))
+		ast.locale.uc2wc = 0;
+	if (ast.locale.uc2wc == 0)
+		return -1;
+	inbytesleft = utf32toutf8(tmp_in, utf32);
+	tmp_in[inbytesleft] = 0;
+	inbuf = tmp_in;
+	outbuf = tmp_out;
+	outbytesleft = sizeof(tmp_out);
+	if (iconv(ast.locale.uc2wc, &inbuf, &inbytesleft, &outbuf, &outbytesleft) < 0 || inbytesleft)
+		return -1;
+	if (!mbwide())
+		return *(unsigned char*)tmp_out;
+	if (mb2wc(wchar, tmp_out, outbuf - tmp_out) <= 0)
+		return -1;
+	return wchar;
+}
+
 /*
  * Glenn Fowler
  * AT&T Research
@@ -25,12 +77,6 @@
  * *p is updated to point to the next character in s
  * *m is 1 if return value is wide
  */
-
-#include <ast.h>
-#include <ctype.h>
-#include <ccode.h>
-
-#define utf32invalid(u)	((u)>0x10FFFF || (u)>=0xD800 && (u)<=0xDFFF || (u)>=0xFFFE && (u)<=0xFFFF)
 
 int
 chrexp(const char* s, char** p, int* m, int flags)
@@ -42,12 +88,14 @@ chrexp(const char* s, char** p, int* m, int flags)
 	char*		r;
 	int		n;
 	int		w;
+	char		convert;
 
 	w = 0;
+	mbinit();
 	for (;;)
 	{
+		convert = 0;
 		b = s;
-		mbinit();
 		switch (c = mbchar(s))
 		{
 		case 0:
@@ -98,9 +146,7 @@ chrexp(const char* s, char** p, int* m, int flags)
 					}
 					if (islower(c))
 						c = toupper(c);
-					c = ccmapc(c, CC_NATIVE, CC_ASCII);
-					c ^= 0x40;
-					c = ccmapc(c, CC_ASCII, CC_NATIVE);
+					c ^= 0x40; /* assumes ASCII */
 				}
 				break;
 			case 'e': /*DEPRECATED*/
@@ -149,6 +195,8 @@ chrexp(const char* s, char** p, int* m, int flags)
 				break;
 			case 'u':
 			case 'U':
+				convert = 1;
+				/* FALLTHROUGH */
 			case 'x':
 				if (q = c == 'u' ? (s + 4) : c == 'U' ? (s + 8) : NULL)
 				{
@@ -195,7 +243,7 @@ chrexp(const char* s, char** p, int* m, int flags)
 					}
 					break;
 				}
-				if (utf32invalid(c))
+				if (convert && (c = utf32towc(c)) <= 0)
 				{
 					s = b;
 					goto noexpand;

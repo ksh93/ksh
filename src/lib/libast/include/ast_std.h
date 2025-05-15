@@ -167,12 +167,14 @@ extern char*		setlocale(int, const char*);
 #define AST_LC_LANG		255
 
 #define AST_LC_internal		1
-#define AST_LC_test		(1 << 25)
-#define AST_LC_setenv		(1 << 26)
-#define AST_LC_find		(1 << 27)
-#define AST_LC_debug		(1 << 28)
-#define AST_LC_setlocale	(1 << 29)
-#define AST_LC_translate	(1 << 30)
+#define AST_LC_7bit		(1L << 24)
+#define AST_LC_utf8		(1L << 25)
+#define AST_LC_test		(1L << 26)
+#define AST_LC_setenv		(1L << 27)
+#define AST_LC_find		(1L << 28)
+#define AST_LC_debug		(1L << 29)
+#define AST_LC_setlocale	(1L << 30)
+#define AST_LC_translate	(1L << 31)
 
 #ifndef LC_ALL
 #define LC_ALL			(-AST_LC_ALL)
@@ -233,20 +235,17 @@ typedef struct
 	{
 	uint32_t	serial;
 	uint32_t	set;
+	void		*uc2wc;		/* iconv descriptor for converting unicode to locale's wide char */
+	char		sevenbit;	/* set if in a 7-bit locale (ASCII only) */
 	}		locale;
 
-	long		tmp_long;
-	size_t		tmp_size;
-	short		tmp_short;
-	char		tmp_char;
 	wchar_t		tmp_wchar;
+	int		tmp_int;
 
 	int		(*collate)(const char*, const char*);
 
-	int		tmp_int;
-	void*		tmp_pointer;
-
 	int		mb_cur_max;
+	uint32_t	mb_sync;
 	int		(*mb_len)(const char*, size_t);
 	int		(*mb_towc)(wchar_t*, const char*, size_t);
 	size_t		(*mb_xfrm)(char*, const char*, size_t);
@@ -254,7 +253,6 @@ typedef struct
 	int		(*mb_conv)(char*, wchar_t);
 
 	uint32_t	env_serial;
-	uint32_t	mb_sync;
 	uint32_t	version;
 
 	int		(*mb_alpha)(wchar_t);

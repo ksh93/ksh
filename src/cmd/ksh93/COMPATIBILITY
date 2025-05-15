@@ -207,9 +207,9 @@ For more details, see the NEWS file and for complete details, see the git log.
 	(Post-1.0 fix introduced in ksh 93u+m/1.0.9)
 
 38.	Unicode code points in $'...' strings and printf(1) formatters are
-	now converted to the current locale also when in a single-byte
-	locale. For example, if the locale on macOS is en_GB.ISO8859-1, echo
-	$'\u00E9' now outputs an e with an accent aigu encoded in ISO8859-1.
+	now correctly converted to the current locale. For example, if the
+	locale on Linux/BSD/macOS is el_GR.ISO8859-7, echo $'\u03B1' now
+	outputs a Greek lower-case alpha encoded in ISO8859-7 ($'\xE1').
 	(Post-1.0 fix introduced in ksh 93u+m/1.0.11)
 
 ____________________________________________________________________________
