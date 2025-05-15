@@ -8,6 +8,10 @@ jobs:
     name: Linux
     runs-on: ubuntu-latest
     steps:
+    - name: Install locales
+      run: |
+        sudo add-apt-repository universe
+        sudo apt install locales-all
     - name: Checkout sources
       uses: actions/checkout@main
     - name: Build
