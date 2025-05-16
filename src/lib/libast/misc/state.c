@@ -25,13 +25,15 @@
 _Ast_info_t	_ast_info =
 {
 	"libast",	/* ID */
-	{ 0 },
-	0,0,0,0,0,
-	strcmp,		/* collate */
+	{ 0, 0, 0, 0 },
 	0,0,
+	strcmp,		/* collate */
 	1,		/* mb_cur_max */
-	0,0,0,0,0,0,0,
-	AST_VERSION	/* version */
+	0,
+	0,0,0,0,0,
+	0,
+	AST_VERSION,	/* version */
+	0,
 };
 
 extern _Ast_info_t	_ast_info;
