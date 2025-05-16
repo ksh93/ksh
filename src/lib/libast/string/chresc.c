@@ -169,15 +169,6 @@ chrexp(const char* s, char** p, int* m, int flags)
 					goto noexpand;
 				c = '\f';
 				break;
-			case 'M':
-				if (!(flags & FMT_EXP_CHAR))
-					goto noexpand;
-				if (*s == '-')
-				{
-					s++;
-					c = CC_esc;
-				}
-				break;
 			case 'n':
 				if (flags & FMT_EXP_NONL)
 					continue;
