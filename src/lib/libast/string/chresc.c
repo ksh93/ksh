@@ -23,6 +23,12 @@
 #include <error.h>
 #include <iconv.h>
 
+#if AST_NOMULTIBYTE
+
+#define utf32towc(c)	(c,-1)
+
+#else
+
 /*
  * Convert Unicode code point to current locale's code point
  * (note: does *not* handle multibyte encoding such as UTF-8)
@@ -68,6 +74,8 @@ utf32towc(uint32_t utf32)
 	return wchar;
 }
 
+#endif /* AST_NOMULTIBYTE */
+
 /*
  * Glenn Fowler
  * AT&T Research
@@ -81,14 +89,13 @@ utf32towc(uint32_t utf32)
 int
 chrexp(const char* s, char** p, int* m, int flags)
 {
-	const char*	q;
-	int		c;
-	const char*	e;
-	const char*	b;
-	char*		r;
-	int		n;
-	int		w;
-	char		convert;
+	const char*	q;		/* end of loop through s */
+	int		c;		/* current character */
+	const char*	e;		/* flag for expanding hex values */
+	const char*	b;		/* beginning of s */
+	int		n;		/* number of hex digits */
+	int		w;		/* set if expanding a wide character (> 2 digits, including leading zeros) */
+	char		convert;	/* set if Unicode code point needs to be converted to the current locale */
 
 	w = 0;
 	mbinit();
@@ -141,6 +148,8 @@ chrexp(const char* s, char** p, int* m, int flags)
 					s++;
 					if (c == '\\')
 					{
+						char*		r;
+
 						c = chrexp(s - 1, &r, 0, flags);
 						s = (const char*)r;
 					}
@@ -243,15 +252,14 @@ chrexp(const char* s, char** p, int* m, int flags)
 					}
 					break;
 				}
-				if (convert && (c = utf32towc(c)) <= 0)
+				if (n > 2 && (flags & FMT_EXP_WIDE))
+					w = 1;
+				if (n <= 2 && !(flags & FMT_EXP_CHAR) ||
+					n > 2 && !(flags & FMT_EXP_WIDE) ||
+					convert && (c = utf32towc(c)) <= 0)
 				{
 					s = b;
 					goto noexpand;
-				}
-				if (n <= 2 && !(flags & FMT_EXP_CHAR) || n > 2 && (w = 1) && !(flags & FMT_EXP_WIDE))
-				{
-					c = '\\';
-					s = b;
 				}
 				break;
 			case 0:

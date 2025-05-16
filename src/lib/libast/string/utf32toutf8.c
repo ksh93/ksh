@@ -29,6 +29,8 @@
 
 #include <ast.h>
 
+#if !AST_NOMULTIBYTE
+
 typedef struct Utf8_s
 {
 	uint32_t	range;
@@ -78,3 +80,9 @@ utf32toutf8(char* s, uint32_t w)
 	}
 	return 0;
 }
+
+#else
+
+NoN(utf32toutf8)
+
+#endif /* !AST_NOMULTIBYTE */

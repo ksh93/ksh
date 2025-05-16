@@ -189,7 +189,11 @@ typedef struct
 
 #define FMT_EXP_CHAR	0x020		/* expand single byte chars	*/
 #define FMT_EXP_LINE	0x040		/* expand \n and \r		*/
+#if !AST_NOMULTIBYTE
 #define FMT_EXP_WIDE	0x080		/* expand \u \U \x wide chars	*/
+#else
+#define FMT_EXP_WIDE	0
+#endif /* !AST_NOMULTIBYTE */
 #define FMT_EXP_NOCR	0x100		/* skip \r			*/
 #define FMT_EXP_NONL	0x200		/* skip \n			*/
 
@@ -417,8 +421,9 @@ extern intmax_t		strtonll(const char*, char**, char*, int);
 extern int		struid(const char*);
 extern int		struniq(char**, int);
 extern int		strvcmp(const char*, const char*);
+#if !AST_NOMULTIBYTE
 extern size_t		utf32toutf8(char*, uint32_t);
-extern ssize_t		utf32stowcs(wchar_t*, uint32_t*, size_t);
+#endif /* !AST_NOMULTIBYTE */
 
 /*
  * backward compat

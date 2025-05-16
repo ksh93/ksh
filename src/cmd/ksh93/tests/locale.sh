@@ -401,11 +401,15 @@ then	LC_ALL=en_US.UTF-8
 	fi
 fi
 
-typeset -r utf8_euro_char1=$'\u[20ac]'
-typeset -r utf8_euro_char2=$'\342\202\254'
-(( (${#utf8_euro_char1} == 1) && (${#utf8_euro_char2} == 1) )) \
-        || export LC_ALL='en_US.UTF-8'
-[[ "$(printf '\u[20ac]')" == $'\342\202\254' ]]  || err_exit 'locales not handled correctly in command substitution'
+# this test backported from 93v- and fixed
+if	((SHOPT_MULTIBYTE))
+then	LC_ALL=C.UTF-8
+	got=$(printf '\u[20ac]')
+	exp=$'\342\202\254'
+	[[ $got == "$exp" ]] || err_exit 'locales not handled correctly in command substitution' \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"		
+	unset LC_ALL
+fi
 
 # ======
 # The locale should be restored along with locale variables when leaving a virtual subshell.
