@@ -641,7 +641,7 @@ ____
 04-07-27 features/common,features/limits.c: ULL suffix for unsigned _ast_int8_t
 04-07-22 include/ast.h,comp/eaccess.c: add eaccess() for effective access()
 04-07-19 comp/open.c,sfio/_sfopen.c: { O_RDONLY O_WRONLY O_RDWR } are values
-04-06-28 misc/error.c: check level after error_info.auxilliary
+04-06-28 misc/error.c: check level after error_info.auxiliary
 04-06-24 string/strmatch.c: strgrpmatch() match[] now variable size array
 04-06-17 features/common: change _DLL null define to (the standard AST) 1
 04-06-11 misc/optget.c: allow optional [-|+|--|++] optstr() option prefix
@@ -1703,7 +1703,7 @@ ____
 	 snarf vmalloc from kpv
 95-08-11 fix malloc bug in magic
 	 update Linux and BSD 386 magic entries
-	 error_info.auxilliary returns new level, |=ERROR_OUTPUT if msg done
+	 error_info.auxiliary returns new level, |=ERROR_OUTPUT if msg done
 	 drop fnmatch from strmatch for SPARC (Solaris) until it collates
 95-07-17 fix port/astconf universe initialization
 	 fix misc/optget opt_info.nopt initialization

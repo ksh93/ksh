@@ -2786,12 +2786,11 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	sh_timerdel(NULL);
 	if(sh_isstate(SH_MONITOR))
 	{
-		parent = sh.current_pid;
 		if(postid==0)
-			job.curpgid = parent;
-		while(setpgid(0,job.curpgid)<0 && job.curpgid!=parent)
-			job.curpgid = parent;
-		if(job.jobcontrol && job.curpgid==parent && !(flags&FAMP))
+			job.curpgid = sh.current_pid;
+		while(setpgid(0,job.curpgid)<0 && job.curpgid!=sh.current_pid)
+			job.curpgid = sh.current_pid;
+		if(job.jobcontrol && job.curpgid==sh.current_pid && !(flags&FAMP))
 			tcsetpgrp(job.fd,job.curpgid);
 	}
 	if(job.jobcontrol)

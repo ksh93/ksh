@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -450,13 +450,16 @@ print $'#!'$SHELL$'\nkill -KILL $$' > command-kill
 print $'kill -KILL $$' > script-kill
 chmod +x command-kill script-kill
 export PATH=.:$PATH
+exp='Killed'
+exp2=$exp
+expmsg="'$exp'"
+unset exp2
 if [[ $(uname) == Haiku ]]; then
-	# On Haiku signal numbers 9 and 21 (SIGKILL and SIGKILLTHR)
-	# both result in a 'Kill Thread' message, regardless of which
-	# shell or kill utility used.
-	exp='Kill Thread'
-else
-	exp='Killed'
+	# On older versions of Haiku signal numbers 9 and 21
+	# (SIGKILL and SIGKILLTHR) may both issue a 'Kill Thread'
+	# message.
+	exp2='Kill Thread'
+	expmsg+=" or '$exp2'"
 fi
 for ((S=0; S<${#SUB[@]}; S++))
 do	for ((P=0; P<${#PAR[@]}; P++))
@@ -466,7 +469,9 @@ do	for ((P=0; P<${#PAR[@]}; P++))
 				eval got="$cmd"
 				got=${got##*': '}
 				got=${got%%'('*}
-				[[ $got == "$exp" ]] || err_exit "$cmd failed -- got '$got', expected '$exp'"
+				if [[ $got != "$exp" ]] && [[ $got != "$exp2" ]]
+				then	err_exit "$cmd failed -- got '$got', expected $expmsg"
+				fi
 			done
 		done
 	done

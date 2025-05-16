@@ -508,7 +508,7 @@ static int
 utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 {
 	unsigned char*	sp = (unsigned char*)str;
-	int		m;
+	size_t		m;
 	int		i;
 	int		c;
 	wchar_t		w = 0;

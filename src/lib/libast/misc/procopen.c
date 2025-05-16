@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -575,7 +575,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			modify(proc, forked, PROC_sys_pgrp, -1, 0);
 		if (forked || (flags & PROC_OVERLAY))
 		{
-			if ((flags & PROC_PRIVELEGED) && !geteuid())
+			if ((flags & PROC_PRIVILEGED) && !geteuid())
 			{
 				setuid(geteuid());
 				setgid(getegid());

@@ -1597,7 +1597,7 @@ char	*nv_getsub(Namval_t* np)
 	{	/* enum subscript */
 		np = nv_namptr(ap->xp,0);
 		if(!np->nvalue)
-			np->nvalue = malloc(sizeof(uint16_t));
+			np->nvalue = sh_malloc(sizeof(uint16_t));
 		*((uint16_t*)np->nvalue) = ap->cur;
 		return nv_getval(np);
 	}

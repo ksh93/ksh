@@ -1,4 +1,4 @@
-This documents significant changes in the dev branch of ksh 93u+m.
+﻿This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
@@ -64,7 +64,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   Unlike in bash, the pattern may match any number of characters.
 
 - The SHOPT_DYNAMIC compile-time option (the ability to load builtins from
-  dynamically linked libaries such as libcmd) is now automatically disabled
+  dynamically linked libraries such as libcmd) is now automatically disabled
   for the version of ksh that is linked against the static libast/libcmd/
   libshell libraries, as it cannot work correctly on those. On the version of
   ksh linked against the dynamic version of these libraries (on supported
@@ -112,7 +112,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 2025-03-24:
 
 - Fixed a crash that occurred in specific circumstances when processing a
-  here-documnet within a command subtitution within another here-document.
+  here-document within a command substitution within another here-document.
 
 2025-03-21:
 
@@ -206,14 +206,14 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 2024-12-21:
 
 - Fixed a bug in the emacs/gmacs line editor where a command repeat count
-  (e.g., ESC 3) sticks and is re-used for the next command after an ESC
+  (e.g., ESC 3) sticks and is reused for the next command after an ESC
   command. For example, ESC 3 ESC _ recalls the third word from the last
   command in the history. The bug is that the next command, such as ^B to
   move back, is then repeated three times. Bug introduced on 2020-09-17.
 
 2024-12-18:
 
-- Persuant to POSIX.1-2024, exec(1) will no longer cause the shell to exit
+- Pursuant to POSIX.1-2024, exec(1) will no longer cause the shell to exit
   when it fails to replace an interactive shell with the given command.
 
 2024-12-08:
@@ -387,7 +387,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 2024-07-16:
 
 - The history expansion character ('!' by default) is now not processed when
-  immediately following '${'. This makes it psosible to use expansion syntax
+  immediately following '${'. This makes it possible to use expansion syntax
   like ${!varname} and ${!prefix@} on the interactive command line with the
   histexpand option on; these no longer trigger an "event not found" error.
 
@@ -440,7 +440,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   specifications. For example,
 	printf '%(%F)T\n' '4th tuesday in march 2016'
   wrongly printed '2016-04-09' and now again correctly prints '2016-03-22'.
-  This regression was introduded with the printf fixes on 2023-05-18.
+  This regression was introduced with the printf fixes on 2023-05-18.
 
 2024-03-24:
 
@@ -462,7 +462,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Android with Termux is now a supported environment for ksh 93u+m. Testing
   was done on Android 14.0 with Termux 0.118.0. Please report any breakage.
   Build dependencies (Termux packages): clang, binutils, getconf. Runtime
-  depenencies: ncurses-utils (for --multiline), getconf (fallback for the
+  dependencies: ncurses-utils (for --multiline), getconf (fallback for the
   /opt/ast/bin/getconf builtin).
 
 2024-03-12:
@@ -504,7 +504,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   commands) would run a path-bound built-in if /opt/ast/bin is in PATH.
 
 - Fixed a corner case bug: a ${ shared-state command substitution;} failed to
-  capture the standard output of a command that replces the shell via 'exec'.
+  capture the standard output of a command that replaces the shell via 'exec'.
 
 2024-02-29:
 
@@ -578,7 +578,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: the arithmetic representation of negative integers with a base other
   than 10 is no longer incorrectly treated as unsigned long. For example,
 	typeset -i16 n=-12; echo $n
-  now correctly outputs '-16#c' and no longer ouputs '16#fffffffffffffff4'.
+  now correctly outputs '-16#c' and no longer outputs '16#fffffffffffffff4'.
 
 2024-01-27:
 

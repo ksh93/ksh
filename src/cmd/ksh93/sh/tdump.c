@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -126,14 +126,11 @@ static int p_tree(const Shnode_t *t)
 				return -1;
 			if((t->tre.tretyp&TPAREN)==TPAREN)
 				return p_tree(t->lst.lstlef);
-			else
-			{
-				if(p_arg(&(t->lst.lstlef->arg))<0)
-					return -1;
-				if((t->tre.tretyp&TBINARY))
-					return p_arg(&(t->lst.lstrit->arg));
-				return 0;
-			}
+			if(p_arg(&(t->lst.lstlef->arg))<0)
+				return -1;
+			if((t->tre.tretyp&TBINARY))
+				return p_arg(&(t->lst.lstrit->arg));
+			return 0;
 	}
 	return -1;
 }

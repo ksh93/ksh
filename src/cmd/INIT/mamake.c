@@ -1112,7 +1112,7 @@ static void substitute(Buf_t *buf, char *s)
 				{	/*
 					 * Perform the expansion: append the value of the variable to the buffer.
 					 */
-					if (found_AR && strncmp(t, "mam_lib", 7) == 0 && state.strict < 2)
+					if (state.strict < 2 && found_AR && strncmp(t, "mam_lib", 7) == 0)
 					{	/*
 						 * Absurd AT&T hack from 2007. The relevant src/cmd/INIT/RELEASE entry:
 						 *	07-02-26 mamake.c: expand first of ${mam_lib*} for ${AR}

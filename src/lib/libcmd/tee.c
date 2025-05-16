@@ -158,14 +158,6 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
-#if _ANCIENT_BSD_COMPATIBILITY
-	if (*argv && streq(*argv, "-"))
-	{
-		signal(SIGINT, SIG_IGN);
-		argv++;
-		argc--;
-	}
-#endif
 	if (argc > 0)
 	{
 		if (tp = stkalloc(stkstd, sizeof(Tee_t) + argc * sizeof(int)))

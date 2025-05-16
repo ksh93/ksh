@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,7 +40,7 @@
 #define PROC_ORPHAN	(1<<18)	/* create orphaned process		*/
 #define PROC_OVERLAY	(1<<7)	/* overlay current process if possible	*/
 #define PROC_PARANOID	(1<<8)	/* restrict everything			*/
-#define PROC_PRIVELEGED	(1<<9)	/* setuid(0), setgid(getegid())		*/
+#define PROC_PRIVILEGED	(1<<9)	/* setuid(0), setgid(getegid())		*/
 #define PROC_READ	(1<<10)	/* proc pipe fd 1 returned		*/
 #define PROC_SESSION	(1<<11)	/* session leader			*/
 #define PROC_UID	(1<<12)	/* setuid(getuid())			*/

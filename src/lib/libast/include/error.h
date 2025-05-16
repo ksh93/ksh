@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -136,7 +136,7 @@ struct Error_info_s			/* error state			*/
 
 	char*	version;		/* ERROR_SOURCE command version	*/
 
-	int	(*auxilliary)(Sfio_t*, int, int); /* aux info to append	*/
+	int	(*auxiliary)(Sfio_t*, int, int); /* aux info to append	*/
 
 	ERROR_CONTEXT			/* top of context stack		*/
 

@@ -447,9 +447,6 @@ secname(char* section)
 		case 'C':
 			s = "COMPATIBILITY ";
 			break;
-		case 'U':
-			s = "UWIN ";
-			break;
 		case 'X':
 			s = "MISCELLANEOUS ";
 			break;

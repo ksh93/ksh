@@ -102,7 +102,7 @@ typedef struct Cut_s
 #define C_BYTES		1
 #define C_CHARS		2
 #define C_FIELDS	4
-#define C_SUPRESS	8
+#define C_SUPPRESS	8
 #define C_NOSPLIT	16
 #define C_NONEWLINE	32
 
@@ -154,7 +154,7 @@ cutinit(int mode, char* str, Delim_t* wdelim, Delim_t* ldelim, size_t reclen)
 	cut->space[cut->eob] = SP_LINE;
 	cut->cflag = (mode&C_CHARS) && cut->mb;
 	cut->nosplit = (mode&(C_BYTES|C_NOSPLIT)) == (C_BYTES|C_NOSPLIT) && cut->mb;
-	cut->sflag = (mode&C_SUPRESS) != 0;
+	cut->sflag = (mode&C_SUPPRESS) != 0;
 	cut->nlflag = (mode&C_NONEWLINE) != 0;
 	cut->reclen = reclen;
 	lp = cut->list;
@@ -660,7 +660,7 @@ b_cut(int argc, char** argv, Shbltin_t* context)
 				reclen = opt_info.num;
 			continue;
 		case 's':
-			mode |= C_SUPRESS;
+			mode |= C_SUPPRESS;
 			continue;
 		case ':':
 			error(2, "%s", opt_info.arg);
@@ -686,7 +686,7 @@ b_cut(int argc, char** argv, Shbltin_t* context)
 	}
 	if(!*cp)
 		error(3, "non-empty b, c or f option must be specified");
-	if((mode & (C_FIELDS|C_SUPRESS)) == C_SUPRESS)
+	if((mode & (C_FIELDS|C_SUPPRESS)) == C_SUPPRESS)
 		error(3, "s option requires f option");
 	cut = cutinit(mode, cp, &wdelim, &ldelim, reclen);
 	if(cp = *argv)

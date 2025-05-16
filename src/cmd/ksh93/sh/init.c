@@ -624,7 +624,7 @@ static Sfdouble_t nget_seconds(Namval_t *np, Namfun_t *fp)
 }
 
 /*
- * Seeds the rand stucture using the same algorithm as srand48()
+ * Seeds the rand structure using the same algorithm as srand48()
  */
 static void seed_rand_uint(struct rand *rp, unsigned int seed)
 {
