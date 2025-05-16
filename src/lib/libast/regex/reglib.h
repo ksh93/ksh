@@ -64,7 +64,7 @@ typedef struct regsubop_s
 #define _AST_REGEX_DEBUG	1
 #endif
 
-#define MBSIZE(p)	((ast.tmp_int=mbsize(p))>0?ast.tmp_int:1)
+#define MBSIZE(p)	((ast.mb.tmp_i = mbsize(p)) > 0 ? ast.mb.tmp_i : 1)
 
 #undef	RE_DUP_MAX			/* POSIX puts this in limits.h!	*/
 #define RE_DUP_MAX	(INT_MAX/2-1)	/* 2*RE_DUP_MAX won't overflow	*/

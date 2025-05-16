@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,16 +22,26 @@
 
 #undef	strcmp
 
+/*
+ * Initial ast.* values (really _ast_info.*)
+ *
+ * The order of these must be kept in sync with
+ * the _Ast_info_t struct definition in ast_std.h.
+ *
+ * Values not set here are implicitly initialized to zero.
+ */
+
 _Ast_info_t	_ast_info =
 {
-	"libast",	/* ID */
-	{ 0 },
-	0,0,0,0,0,
-	strcmp,		/* collate */
-	0,0,
-	1,		/* mb_cur_max */
-	0,0,0,0,0,0,0,
-	AST_VERSION	/* version */
+	"libast",		/* ast.id */
+	AST_VERSION,		/* ast.version */
+	0,			/* ast.env_serial */
+	{			/* ast.locale */
+		strcmp,		/* ast.locale.collate */
+	},
+	{			/* ast.mb */
+		1,		/* ast.mb.cur_max */
+	},
 };
 
 extern _Ast_info_t	_ast_info;

@@ -424,18 +424,18 @@ set_collate(Lc_category_t* cp)
 {
 	if (locales[cp->internal]->flags & LC_debug)
 	{
-		ast.collate = debug_strcoll;
-		ast.mb_xfrm = debug_strxfrm;
+		ast.locale.collate = debug_strcoll;
+		ast.mb.xfrm = debug_strxfrm;
 	}
 	else if (locales[cp->internal]->flags & LC_default)
 	{
-		ast.collate = strcmp;
-		ast.mb_xfrm = 0;
+		ast.locale.collate = strcmp;
+		ast.mb.xfrm = 0;
 	}
 	else
 	{
-		ast.collate = strcoll;
-		ast.mb_xfrm = strxfrm;
+		ast.locale.collate = strcoll;
+		ast.mb.xfrm = strxfrm;
 	}
 	return 0;
 }
@@ -544,7 +544,7 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 		return 0;
  invalid:
 	errno = EILSEQ;
-	ast.mb_sync = (const char*)sp - str;
+	ast.mb.sync = (const char*)sp - str;
 	return -1;
 }
 
@@ -2160,8 +2160,8 @@ wide_wctomb(char* u, wchar_t w)
 static int
 set_ctype(Lc_category_t* cp)
 {
-	ast.mb_sync = 0;
-	ast.mb_alpha = (Isw_f)iswalpha;
+	ast.mb.sync = 0;
+	ast.mb.alpha = (Isw_f)iswalpha;
 	/* uc2wc is the iconv(3) descriptor for chresc.c -- reset it if open */
 	if (ast.locale.uc2wc != (void*)(-1))
 	{
@@ -2175,36 +2175,36 @@ set_ctype(Lc_category_t* cp)
 #endif
 	if (locales[cp->internal]->flags & LC_debug)
 	{
-		ast.mb_cur_max = DEBUG_MB_CUR_MAX;
-		ast.mb_len = debug_mblen;
-		ast.mb_towc = debug_mbtowc;
-		ast.mb_width = debug_wcwidth;
-		ast.mb_conv = debug_wctomb;
-		ast.mb_alpha = debug_alpha;
+		ast.mb.cur_max = DEBUG_MB_CUR_MAX;
+		ast.mb.len = debug_mblen;
+		ast.mb.towc = debug_mbtowc;
+		ast.mb.width = debug_wcwidth;
+		ast.mb.conv = debug_wctomb;
+		ast.mb.alpha = debug_alpha;
 	}
 	else if ((locales[cp->internal]->flags & LC_utf8) && !(ast.locale.set & AST_LC_test))
 	{
-		ast.mb_cur_max = 6;
-		ast.mb_len = utf8_mblen;
-		ast.mb_towc = utf8_mbtowc;
-		if ((locales[cp->internal]->flags & LC_local) || !(ast.mb_width = wcwidth))
-			ast.mb_width = utf8_wcwidth;
-		ast.mb_conv = utf8_wctomb;
-		ast.mb_alpha = utf8_alpha;
+		ast.mb.cur_max = 6;
+		ast.mb.len = utf8_mblen;
+		ast.mb.towc = utf8_mbtowc;
+		if ((locales[cp->internal]->flags & LC_local) || !(ast.mb.width = wcwidth))
+			ast.mb.width = utf8_wcwidth;
+		ast.mb.conv = utf8_wctomb;
+		ast.mb.alpha = utf8_alpha;
 	}
-	else if ((locales[cp->internal]->flags & LC_default) || (ast.mb_cur_max = MB_CUR_MAX) <= 1 || !(ast.mb_len = mblen) || !(ast.mb_towc = mbtowc))
+	else if ((locales[cp->internal]->flags & LC_default) || (ast.mb.cur_max = MB_CUR_MAX) <= 1 || !(ast.mb.len = mblen) || !(ast.mb.towc = mbtowc))
 	{
-		ast.mb_cur_max = 1;
-		ast.mb_len = 0;
-		ast.mb_towc = 0;
-		ast.mb_width = default_wcwidth;
-		ast.mb_conv = 0;
+		ast.mb.cur_max = 1;
+		ast.mb.len = 0;
+		ast.mb.towc = 0;
+		ast.mb.width = default_wcwidth;
+		ast.mb.conv = 0;
 	}
 	else
 	{
-		if (!(ast.mb_width = wcwidth))
-			ast.mb_width = default_wcwidth;
-		ast.mb_conv = wide_wctomb;
+		if (!(ast.mb.width = wcwidth))
+			ast.mb.width = default_wcwidth;
+		ast.mb.conv = wide_wctomb;
 #if sjis_workaround
 		{
 			/*
@@ -2220,7 +2220,7 @@ set_ctype(Lc_category_t* cp)
 			if (mbchar(s) != buf[0])
 			{
 				memcpy(&sjis_state, &sjis_state_zero, sizeof(mbstate_t));
-				ast.mb_towc = sjis_mbtowc;
+				ast.mb.towc = sjis_mbtowc;
 			}
 		}
 #endif
@@ -2232,7 +2232,7 @@ set_ctype(Lc_category_t* cp)
 		ast.locale.set &= ~AST_LC_utf8;
 	/* provide an efficient way to check if single-byte code points are 7-bit (locale is US-ASCII or multibyte) */
 	/* (note: getcodeset() must be called *after* setting the AST_LC_utf8 bit flag correctly) */
-	if (ast.mb_cur_max == 1 && strcmp(getcodeset(), "US-ASCII") != 0)
+	if (ast.mb.cur_max == 1 && strcmp(getcodeset(), "US-ASCII") != 0)
 		ast.locale.set &= ~AST_LC_7bit;
 	else
 		ast.locale.set |= AST_LC_7bit;
@@ -2452,16 +2452,16 @@ single(int category, Lc_t* lc, unsigned int flags)
 		sfprintf(sfstderr, "locale set  %17s %16s %16s %16s", lc_categories[category].name, lc->name, sys, lc_categories[category].prev ? lc_categories[category].prev->name : NULL);
 		if (category == AST_LC_CTYPE)
 			sfprintf(sfstderr, " MB_CUR_MAX=%d%s%s%s%s%s"
-				, ast.mb_cur_max
-				, ast.mb_len == debug_mblen ? " debug_mblen" : ast.mb_len == utf8_mblen ? " utf8_mblen" : ast.mb_len == mblen ? " mblen" : ""
-				, ast.mb_towc == debug_mbtowc ? " debug_mbtowc" : ast.mb_towc == utf8_mbtowc ? " utf8_mbtowc" : ast.mb_towc == mbtowc ? " mbtowc"
+				, ast.mb.cur_max
+				, ast.mb.len == debug_mblen ? " debug_mblen" : ast.mb.len == utf8_mblen ? " utf8_mblen" : ast.mb.len == mblen ? " mblen" : ""
+				, ast.mb.towc == debug_mbtowc ? " debug_mbtowc" : ast.mb.towc == utf8_mbtowc ? " utf8_mbtowc" : ast.mb.towc == mbtowc ? " mbtowc"
 #if sjis_workaround
-					: ast.mb_towc == sjis_mbtowc ? " sjis_mbtowc"
+					: ast.mb.towc == sjis_mbtowc ? " sjis_mbtowc"
 #endif
 					: ""
-				, ast.mb_width == debug_wcwidth ? " debug_wcwidth" : ast.mb_width == utf8_wcwidth ? " utf8_wcwidth" : ast.mb_width == wcwidth ? " wcwidth" : ast.mb_width == default_wcwidth ? " default_wcwidth" : ""
-				, ast.mb_conv == debug_wctomb ? " debug_wctomb" : ast.mb_conv == utf8_wctomb ? " utf8_wctomb" : ast.mb_conv == wctomb ? " wctomb" : ""
-				, ast.mb_alpha == debug_alpha ? " debug_alpha" : ast.mb_alpha == utf8_alpha ? " utf8_alpha" : ast.mb_alpha == (Isw_f)iswalpha ? " iswalpha" : ""
+				, ast.mb.width == debug_wcwidth ? " debug_wcwidth" : ast.mb.width == utf8_wcwidth ? " utf8_wcwidth" : ast.mb.width == wcwidth ? " wcwidth" : ast.mb.width == default_wcwidth ? " default_wcwidth" : ""
+				, ast.mb.conv == debug_wctomb ? " debug_wctomb" : ast.mb.conv == utf8_wctomb ? " utf8_wctomb" : ast.mb.conv == wctomb ? " wctomb" : ""
+				, ast.mb.alpha == debug_alpha ? " debug_alpha" : ast.mb.alpha == utf8_alpha ? " utf8_alpha" : ast.mb.alpha == (Isw_f)iswalpha ? " iswalpha" : ""
 			);
 		else if (category == AST_LC_NUMERIC)
 		{

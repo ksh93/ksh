@@ -358,7 +358,7 @@ bin2utf(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 			c = 1;
 			w = *f;
 		}
-		else if ((c = (*_ast_info.mb_towc)(&w, (char*)f, fe - f)) < 0)
+		else if ((c = (*ast.mb.towc)(&w, (char*)f, fe - f)) < 0)
 		{
 			e = EINVAL;
 			break;
@@ -549,7 +549,7 @@ bin2ume(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 			c = 1;
 			w = *f;
 		}
-		else if ((c = (*_ast_info.mb_towc)(&w, (char*)f, fe - f)) < 0)
+		else if ((c = (*ast.mb.towc)(&w, (char*)f, fe - f)) < 0)
 		{
 			e = EINVAL;
 			break;
@@ -667,7 +667,7 @@ bin2ucs(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 			c = 1;
 			w = *f;
 		}
-		if ((c = (*_ast_info.mb_towc)(&w, (char*)f, fe - f)) < 0)
+		if ((c = (*ast.mb.towc)(&w, (char*)f, fe - f)) < 0)
 		{
 			e = EINVAL;
 			break;
@@ -760,7 +760,7 @@ bin2scu(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 			c = 1;
 			w = *f;
 		}
-		else if ((c = (*_ast_info.mb_towc)(&w, (char*)f, fe - f)) < 0)
+		else if ((c = (*ast.mb.towc)(&w, (char*)f, fe - f)) < 0)
 		{
 			e = EINVAL;
 			break;

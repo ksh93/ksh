@@ -416,7 +416,7 @@ fi
 # https://github.com/ksh93/ksh/issues/253#issuecomment-815290154
 if	((SHOPT_MULTIBYTE))
 then
-	unset "${!LC_@}"
+	unset LANG "${!LC_@}"
 	LANG=C.UTF-8
 	exp=$'5\n10\n5'
 	got=$(eval 'var=äëïöü'; echo ${#var}; (LANG=C; echo ${#var}); echo ${#var})

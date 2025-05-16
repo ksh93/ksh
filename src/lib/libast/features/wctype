@@ -8,6 +8,6 @@ cat <<!
 
 	#undef	iswalpha
 
-	#define iswalpha(w)	(ast.mb_alpha?(*ast.mb_alpha)(w):isalpha(w))
+	#define iswalpha(w)	(ast.mb.alpha?(*ast.mb.alpha)(w):isalpha(w))
 !
 }end

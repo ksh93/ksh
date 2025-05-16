@@ -221,44 +221,46 @@ extern char*		setlocale(int, const char*);
 
 #undef	strcoll
 #if _std_strcoll
-#define strcoll		_ast_info.collate
+#define strcoll		_ast_info.locale.collate
 #else
 #define strcoll		strcmp
 #endif
 
+/*
+ * This struct defines all the global ast.* variables.
+ * It is initialized in misc/state.c, and not by name -- so the order must be kept in sync.
+ * Changing the order also breaks ABI compat for dynamic libraries.
+ */
 typedef struct
 {
+	char		*id;
+	uint32_t	version;
+	uint32_t	env_serial;	/* increased by setenviron */
 
-	char*		id;
-
-	struct
+	struct				/* ast.locale.* -- stuff set in setlocale.c */
 	{
+	int             (*collate)(const char*, const char*);  /* strcoll(3) is redefined as this, above */
+	void		*uc2wc;		/* iconv descriptor for converting unicode to locale's wide char */
 	uint32_t	serial;
 	uint32_t	set;
-	void		*uc2wc;		/* iconv descriptor for converting unicode to locale's wide char */
-	char		sevenbit;	/* set if in a 7-bit locale (ASCII only) */
 	}		locale;
 
-	wchar_t		tmp_wchar;
-	int		tmp_int;
-
-	int		(*collate)(const char*, const char*);
-
-	int		mb_cur_max;
-	uint32_t	mb_sync;
-	int		(*mb_len)(const char*, size_t);
-	int		(*mb_towc)(wchar_t*, const char*, size_t);
-	size_t		(*mb_xfrm)(char*, const char*, size_t);
-	int		(*mb_width)(wchar_t);
-	int		(*mb_conv)(char*, wchar_t);
-
-	uint32_t	env_serial;
-	uint32_t	version;
-
-	int		(*mb_alpha)(wchar_t);
-
+	struct				/* ast.mb.* -- multibyte encoding/decoding state */
+	{
+	int		cur_max;	/* current maximum length in bytes of a character: > 1 == multibyte locale */
+	uint32_t	sync;		/* length of invalid multibyte character */
+	wchar_t		tmp_w;		/* scratch */
+	int		tmp_i;		/* scratch */
+	int		(*alpha)(wchar_t);
+	int		(*conv)(char*, wchar_t);
+	int		(*len)(const char*, size_t);
+	int		(*towc)(wchar_t*, const char*, size_t);
+	int		(*width)(wchar_t);
+	size_t		(*xfrm)(char*, const char*, size_t);
+	}		mb;
 } _Ast_info_t;
 
+/* ast is defined as _ast_info in ast.h */
 extern _Ast_info_t	_ast_info;
 
 /* direct macro access for bsd crossover */

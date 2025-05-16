@@ -36,6 +36,10 @@
 #include <sfio.h>
 #endif
 
+/*
+ * All the ast.* global state variables are actually stored in _ast_info.
+ * It's defined/initialized in misc/state.c and the struct is defined in include/ast_std.h.
+ */
 #define ast		_ast_info
 
 #ifndef PATH_MAX
@@ -211,23 +215,23 @@ typedef struct
 
 #if !AST_NOMULTIBYTE
 
-#define mbmax()		( ast.mb_cur_max )
-#define mberr()		( ast.tmp_int < 0 )
+#define mbmax()		( ast.mb.cur_max )
+#define mberr()		( ast.mb.tmp_i < 0 )
 
-#define mbcoll()	( ast.mb_xfrm != 0 )
+#define mbcoll()	( ast.mb.xfrm != 0 )
 #define mbwide()	( mbmax() > 1 )
 
-#define mb2wc(w,p,n)	( (*ast.mb_towc)(&w, (char*)(p), n) )
+#define mb2wc(w,p,n)	( (*ast.mb.towc)(&w, (char*)(p), n) )
 #define mbchar(p)	mbnchar(p, mbmax())
-#define mbnchar(p,n)	( mbwide() ? ( (ast.tmp_int = (*ast.mb_towc)(&ast.tmp_wchar, (char*)(p), n)) > 0 ? \
-				( (p+=ast.tmp_int),ast.tmp_wchar) : (p+=ast.mb_sync+1,ast.tmp_int) ) : (*(unsigned char*)(p++)) )
-#define mbinit()	( ast.mb_sync = 0 )
+#define mbnchar(p,n)	( mbwide() ? ( (ast.mb.tmp_i = (*ast.mb.towc)(&ast.mb.tmp_w, (char*)(p), n)) > 0 ? \
+			( (p+=ast.mb.tmp_i),ast.mb.tmp_w) : (p+=ast.mb.sync+1,ast.mb.tmp_i) ) : (*(unsigned char*)(p++)) )
+#define mbinit()	( ast.mb.sync = 0 )
 #define mbsize(p)	mbnsize(p, mbmax())
-#define mbnsize(p,n)	( mbwide() ? (*ast.mb_len)((char*)(p), n) : ((p), 1) )
-#define mbconv(s,w)	( ast.mb_conv ? (*ast.mb_conv)(s,w) : ((*(s)=(w)), 1) )
-#define mbwidth(w)	( ast.mb_width ? (*ast.mb_width)(w) : (w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1) )
-#define mbxfrm(t,f,n)	( mbcoll() ? (*ast.mb_xfrm)((char*)(t), (char*)(f), n) : 0 )
-#define mbalpha(w)	( ast.mb_alpha ? (*ast.mb_alpha)(w) : isalpha((w) & 0xff) )
+#define mbnsize(p,n)	( mbwide() ? (*ast.mb.len)((char*)(p), n) : ((p), 1) )
+#define mbconv(s,w)	( ast.mb.conv ? (*ast.mb.conv)(s,w) : ((*(s)=(w)), 1) )
+#define mbwidth(w)	( ast.mb.width ? (*ast.mb.width)(w) : (w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1) )
+#define mbxfrm(t,f,n)	( mbcoll() ? (*ast.mb.xfrm)((char*)(t), (char*)(f), n) : 0 )
+#define mbalpha(w)	( ast.mb.alpha ? (*ast.mb.alpha)(w) : isalpha((w) & 0xff) )
 
 #else
 
