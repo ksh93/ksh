@@ -2131,10 +2131,10 @@ static char *staknam(Namval_t *np, char *value)
 /*
  * put the name and attribute into value of attributes variable
  */
-static void attstore(register Namval_t *np, void *data)
+static void attstore(Namval_t *np, void *data)
 {
-	register int flag = np->nvflag;
-	register struct adata *ap = (struct adata*)data;
+	int flag = np->nvflag;
+	struct adata *ap = (struct adata*)data;
 	ap->tp = 0;
 	if(!(flag&NV_EXPORT) || (flag&NV_FUNCT))
 		return;

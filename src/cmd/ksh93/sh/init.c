@@ -1963,8 +1963,8 @@ static char *env_init(void)
  */
 static void env_import_attributes(char *next)
 {
-	register char		*cp;
-	register Namval_t	*np;
+	char		*cp;
+	Namval_t	*np;
 	while(cp=next)
 	{
 		if(next = strchr(++cp,'='))
