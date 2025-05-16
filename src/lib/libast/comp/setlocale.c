@@ -514,11 +514,11 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 	wchar_t		w = 0;
 
 	if (!sp || !n)
-		return 0;
+		return ast.mb.sync = 0;
 	if ((m = utf8tab[*sp]) > 0)
 	{
 		if (m > n)
-			return -1;
+			goto invalid;
 		if (wp)
 		{
 			if (m == 1)
@@ -541,7 +541,7 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 		return m;
 	}
 	if (!*sp)
-		return 0;
+		return ast.mb.sync = 0;
  invalid:
 	errno = EILSEQ;
 	ast.mb.sync = (const char*)sp - str;
@@ -2214,7 +2214,6 @@ set_ctype(Lc_category_t* cp)
 			char*	s;
 			char	buf[2];
 
-			mbinit();
 			buf[1] = 0;
 			*(s = buf) = '\\';
 			if (mbchar(s) != buf[0])

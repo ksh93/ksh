@@ -562,7 +562,6 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 void ed_putstring(Edit_t *ep, const char *str)
 {
 	int c;
-	mbinit();
 	while (c = mbchar(str))
 		ed_putchar(ep, c < 0 ? '?' : c);
 }

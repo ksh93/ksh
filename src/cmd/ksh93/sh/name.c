@@ -2957,7 +2957,6 @@ void nv_newattr (Namval_t *np, unsigned newatts, int size)
 				wchar_t c;
 				int w;
 				n = 0;
-				mbinit();
 				while(c = mbchar(cq))
 					if ((w = mbwidth(c)) > 0)
 						n += w;

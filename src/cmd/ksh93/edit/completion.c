@@ -50,7 +50,6 @@ static char *fmtx(const char *string)
 #endif /* SHOPT_HISTEXPAND */
 	if((!hexp || (*cp!=hc[0] && *cp!=hc[2])) && (*cp=='#' || *cp=='~'))
 		sfputc(sh.stk,'\\');
-	mbinit();
 	while((c=mbchar(cp)),((c>UCHAR_MAX)||(n=state[c])==0 || n==S_EPAT)
 	&& (!hexp || ((c!=hc[0]) && (c!=hc[2] || string[0]!=hc[2]))) && c!='~')
 		;
@@ -106,7 +105,6 @@ static char *overlaid(char *str,const char *newstr,int nocase)
 {
 	int c,d;
 	char *strnext;
-	mbinit();
 	while((strnext = str, c = mbchar(strnext)) && (d = mbchar(newstr), charcmp(c,d,nocase)))
 		str = strnext;
 	if(*str)
@@ -132,7 +130,6 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 	int	mode=*type, c;
 	bp = outbuff;
 	*type = 0;
-	mbinit();
 	while(cp < last)
 	{
 		xp = cp;
@@ -577,7 +574,6 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		/* first re-adjust cur */
 		c = outbuff[*cur];
 		outbuff[*cur] = 0;
-		mbinit();
 		for(out=outbuff; *out;n++)
 			mbchar(out);
 		outbuff[*cur] = c;

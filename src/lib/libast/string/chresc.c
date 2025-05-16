@@ -98,7 +98,6 @@ chrexp(const char* s, char** p, int* m, int flags)
 	char		convert;	/* set if Unicode code point needs to be converted to the current locale */
 
 	w = 0;
-	mbinit();
 	for (;;)
 	{
 		convert = 0;

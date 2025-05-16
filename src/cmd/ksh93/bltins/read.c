@@ -456,7 +456,6 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 						int	x;
 						int	z;
 
-						mbinit();
 						*cur = 0;
 						x = z = 0;
 						while (up < cur && (z = mbsize(up)) > 0)
@@ -569,7 +568,6 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		c = S_NL;
 	sh.nextprompt = 2;
 	rel = stktell(sh.stk);
-	mbinit();
 	/* val==0 at the start of a field */
 	val = 0;
 	del = 0;

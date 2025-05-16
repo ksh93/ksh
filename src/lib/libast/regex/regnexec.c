@@ -622,7 +622,6 @@ collic(Celt_t* ce, char* key, char* nxt, int c, int x)
 			c = towlower(c);
 		else
 			return 0;
-		mbinit();
 		x = mbconv(key, c);
 		key[x] = 0;
 		return collelt(ce, key, c, 0);
@@ -874,7 +873,6 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			}
 			else
 			{
-				mbinit();
 				while (s < e)
 				{
 					c = mbchar(s);
@@ -1460,7 +1458,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; s < e && i < n; i++, s = t)
 						{
 							t = s;
-							mbinit();
 							if (mbchar(t) != c)
 								break;
 							b[i] = t - s;
@@ -1471,7 +1468,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; s < e && i < n; i++, s = t)
 						{
 							t = s;
-							mbinit();
 							if (towupper(mbchar(t)) != c)
 								break;
 							b[i] = t - s;
@@ -1554,7 +1550,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; i < m && s < e; i++, s = t)
 						{
 							t = s;
-							mbinit();
 							if (mbchar(t) != c)
 								return r;
 						}
@@ -1572,7 +1567,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							}
 							if (s >= e)
 								break;
-							mbinit();
 							if (mbchar(s) != c)
 								break;
 						}
@@ -1582,7 +1576,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						for (i = 0; i < m && s < e; i++, s = t)
 						{
 							t = s;
-							mbinit();
 							if (towupper(mbchar(t)) != c)
 								return r;
 						}
@@ -1600,7 +1593,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							}
 							if (s >= e)
 								break;
-							mbinit();
 							if (towupper(mbchar(s)) != c)
 								break;
 						}

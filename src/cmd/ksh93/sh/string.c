@@ -188,7 +188,6 @@ char *sh_substitute(const char *string,const char *oldsp,char *newsp)
 		return NULL;
 	if(*(cp=oldsp) == 0)
 		goto found;
-	mbinit();
 	do
 	{
 	/* skip to first character which matches start of oldsp */
@@ -337,7 +336,6 @@ char	*sh_fmtq(const char *string)
 	int offset;
 	if(!cp)
 		return NULL;
-	mbinit();
 	offset = stktell(sh.stk);
 	state = ((c= mbchar(cp))==0);
 	if(isaletter(c))
@@ -668,9 +666,7 @@ int sh_strchr(const char *string, const char *dp)
 	{
 		wchar_t c, d;
 		cp = string;
-		mbinit();
 		d = mbchar(dp);
-		mbinit();
 		while(c = mbchar(cp))
 		{
 			if(c==d)

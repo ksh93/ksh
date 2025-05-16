@@ -225,7 +225,6 @@ typedef struct
 #define mbchar(p)	mbnchar(p, mbmax())
 #define mbnchar(p,n)	( mbwide() ? ( (ast.mb.tmp_i = (*ast.mb.towc)(&ast.mb.tmp_w, (char*)(p), n)) > 0 ? \
 			( (p+=ast.mb.tmp_i),ast.mb.tmp_w) : (p+=ast.mb.sync+1,ast.mb.tmp_i) ) : (*(unsigned char*)(p++)) )
-#define mbinit()	( ast.mb.sync = 0 )
 #define mbsize(p)	mbnsize(p, mbmax())
 #define mbnsize(p,n)	( mbwide() ? (*ast.mb.len)((char*)(p), n) : ((p), 1) )
 #define mbconv(s,w)	( ast.mb.conv ? (*ast.mb.conv)(s,w) : ((*(s)=(w)), 1) )
@@ -244,7 +243,6 @@ typedef struct
 #define mb2wc(w,p,n)	( (w) = *(unsigned char*)(p), 1 )
 #define mbchar(p)	( *(unsigned char*)(p++) )
 #define mbnchar(p,n)	mbchar(p)
-#define mbinit()	0
 #define mbsize(p)	1
 #define mbnsize(p,n)	1
 #define mbconv(s,w)	( (*(s)=(w)), 1 )
