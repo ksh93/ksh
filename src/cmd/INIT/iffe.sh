@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2025-05-01
+version=2025-05-16
 
 # DEFPATH should be inherited from package(1)
 case $DEFPATH in
@@ -2545,7 +2545,7 @@ int x;
 					*)	q="a library" ;;
 					esac
 					case $e in
-					0)	can="$can$cansep#define $c	1	/* $p is $q */"
+					0)	can="$can$cansep#define $c	1	/* ${p#"$PACKAGEROOT"[\\/]} is $q */"
 						nan="$nan$cansep$c=1"
 						cansep=$nl
 						eval $c=1
@@ -2554,11 +2554,11 @@ int x;
 						esac
 						;;
 					1)	case $all$config$undef in
-						?1?|??1)can="$can$cansep#undef	$c		/* $p is not $q */"
+						?1?|??1)can="$can$cansep#undef	$c		/* ${p#"$PACKAGEROOT"[\\/]} is not $q */"
 							nan="$nan$cansep$c="
 							cansep=$nl
 							;;
-						1??)	can="$can$cansep#define $c	0	/* $p is not $q */"
+						1??)	can="$can$cansep#define $c	0	/* ${p#"$PACKAGEROOT"[\\/]} is not $q */"
 							nan="$nan$cansep$c=0"
 							cansep=$nl
 							;;

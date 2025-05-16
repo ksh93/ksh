@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -50,7 +51,7 @@ static Error_info_t	_error_info_ =
 	2, exit, write,
 	0,0,0,0,0,0,0,0,
 	0,			/* version			*/
-	0,			/* auxilliary			*/
+	0,			/* auxiliary			*/
 	0,0,0,0,0,0,0,		/* top of old context stack	*/
 	0,0,0,0,0,0,0,		/* old empty context		*/
 	0,			/* time				*/
@@ -523,8 +524,8 @@ errorv(const char* id, int level, va_list ap)
 					errno = 0;
 				error_info.last_errno = (level >= 0) ? 0 : errno;
 			}
-			if (error_info.auxilliary && level >= 0)
-				level = (*error_info.auxilliary)(stkstd, level, flags);
+			if (error_info.auxiliary && level >= 0)
+				level = (*error_info.auxiliary)(stkstd, level, flags);
 			sfputc(stkstd, '\n');
 		}
 		if (level > 0)

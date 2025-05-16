@@ -1397,8 +1397,8 @@ static noreturn void exscript(char *path,char *argv[])
 	{
 		sabuf.ac_btime = time(NULL);
 		before = times(&buffer);
-		sabuf.ac_uid = getuid();
-		sabuf.ac_gid = getgid();
+		sabuf.ac_uid = sh.userid;
+		sabuf.ac_gid = sh.groupid;
 		strncpy(sabuf.ac_comm, (char*)path_basename(cmdname),
 			sizeof(sabuf.ac_comm));
 		shaccton = 1;

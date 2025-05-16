@@ -116,7 +116,7 @@ static History_t *hist_ptr;
 		return 0;
 	if(!(cp = getlogin()))
 	{
-		struct passwd *userinfo = getpwuid(getuid());
+		struct passwd *userinfo = getpwuid(sh.userid);
 		if(userinfo)
 			cp = userinfo->pw_name;
 		else
