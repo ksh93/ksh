@@ -432,7 +432,11 @@ void nv_attribute(Namval_t *np,Sfio_t *out,char *prefix,int noname)
 			}
 		}
 		else if(prefix && *prefix)
+		{
 			sfputr(out,prefix,' ');
+			if(*prefix=='h')
+				return;  /* don't print 'hash -t' */
+		}
 		for(tp = shtab_attributes; *tp->sh_name;tp++)
 		{
 			val = tp->sh_number;

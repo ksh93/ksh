@@ -392,7 +392,7 @@ const char sh_optalias[] =
 ;
 
 const char sh_optbuiltin[] =
-"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2022-07-03 $\n]"
+"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2025-05-20 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?builtin - add, delete, or display shell built-ins]"
 "[+DESCRIPTION?\bbuiltin\b can be used to add, delete, or display "
@@ -441,6 +441,9 @@ const char sh_optbuiltin[] =
 "[f]:[lib?Not supported.]"
 "[l?No effect.]"
 #endif /* SHOPT_DYNAMIC */
+"[p?Causes the output to be in the form of \bbuiltin\b commands that can be "
+	"used as input to the shell to recreate the current set of "
+	"builtins.]"
 "[s?Display only the special built-ins.]"
 "\n"
 "\n[pathname ...]\n"
@@ -965,7 +968,7 @@ _JOB_
 ;
 
 const char sh_opthash[] =
-"[-1c?\n@(#)$Id: hash (ksh 93u+m) 2024-06-30 $\n]"
+"[-1c?\n@(#)$Id: hash (ksh 93u+m) 2025-05-20 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?hash - display the locations of recently used programs]"
 "[+DESCRIPTION?\bhash\b displays or modifies the hash table with the "
@@ -974,7 +977,10 @@ const char sh_opthash[] =
 	"table. Otherwise, \bhash\b performs a \bPATH\b search for each "
 	"\autility\a supplied and adds the result to the hash table. "
 	"An error is issued for each \autility\a that is not found.]"
-"[r?Empty the hash table. This can also be achieved by resetting \bPATH\b.]"
+"[l?Causes the output to be in the form of hash commands that can be used "
+	"as input to the shell to recreate the current tracked aliases.]"
+"[r?Empty the hash table. This can also be achieved by resetting \bPATH\b. "
+	"This option cannot be combined with the \b-l\b option.]"
 "\n"
 "\n[utility...]\n"
 "\n"
@@ -1502,7 +1508,7 @@ const char sh_optreadonly[] =
 "[+?\breadonly\b is built in to the shell as a declaration command so that "
 	"field splitting and pathname expansion are not performed on "
 	"the arguments. Tilde expansion occurs on \avalue\a.]"
-"[p?Causes the output to be in a form of \breadonly\b commands that can be "
+"[p?Causes the output to be in the form of \breadonly\b commands that can be "
 	"used as input to the shell to recreate the current set of "
 	"readonly variables.]"
 "\n"
@@ -1758,7 +1764,7 @@ const char sh_optsleep[] =
 ;
 
 const char sh_opttrap[] =
-"[-1c?\n@(#)$Id: trap (AT&T Research) 1999-07-17 $\n]"
+"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2025-05-20 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?trap - trap signals and conditions]"
 "[+DESCRIPTION?\btrap\b is a special built-in that defines actions to be "
@@ -1797,6 +1803,7 @@ const char sh_opttrap[] =
 	"non-zero exit status, but does not terminate the invoking shell.]"
 "[+?If no \aaction\a or \acondition\as are specified then all the current "
 	"trap settings are written to standard output.]"
+"[l?Output the list of signals and their numbers to standard output.]"
 "[p?Causes the current traps to be output in a format that can be processed "
 	"as input to the shell to recreate the current traps.]"
 "\n"
@@ -1994,7 +2001,7 @@ const char sh_opttimes[] =
 ;
 
 const char sh_optumask[] =
-"[-1c?\n@(#)$Id: umask (AT&T Research) 1999-04-07 $\n]"
+"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2025-05-20 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?umask - get or set the file creation mask]"
 "[+DESCRIPTION?\bumask\b sets the file creation mask of the current "
@@ -2009,6 +2016,7 @@ const char sh_optumask[] =
 	"file creation mask for the current process to standard output.]"
 "[S?Causes the file creation mask to be written or treated as a symbolic value "
 	"rather than an octal number.]"
+"[p?Write the file creation mask in a format that can be used for reinput.]"
 "\n"
 "\n[mask]\n"
 "\n"

@@ -29,8 +29,8 @@
  * nameref [options] [arg...]
  * alias [-ptx] [arg...]
  * unalias [-a] [arg...]
- * hash [-r] [utility...]
- * builtin [-dls] [-f file] [name...]
+ * hash [-lr] [utility...]
+ * builtin [-dlps] [-f file] [name...]
  * set [options] [name...]
  * unset [-fnv] [name...]
  *
@@ -138,7 +138,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 {
 	unsigned flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
 	Dt_t *troot;
-	int rflag=0, xflag=0, n;
+	int rflag=0, xflag=0, lflag=0, n;
 	struct tdata tdata;
 	NOT_USED(argc);
 	NOT_USED(context);
@@ -155,6 +155,9 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 		tdata.aflag = *argv[1];
 		while((n = optget(argv, *argv[0]=='h' ? sh_opthash : sh_optalias))) switch(n)
 		{
+		    case 'l':
+			lflag = 1;
+			/* FALLTHROUGH */
 		    case 'p':
 			tdata.prefix = argv[0];
 			tdata.pflag = 1;
@@ -167,7 +170,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 			xflag = 1;
 			break;
 		    case 'r':
-			rflag=1;
+			rflag = 1;
 			break;
 		    case ':':
 			if(sh.shcomp)
@@ -180,6 +183,11 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 			/* self-doc: write to standard output */
 			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
 			return 0;
+		}
+		if(lflag && rflag)
+		{
+			errormsg(SH_DICT,2,"the -l and -r options cannot be combined");
+			error_info.errors++;
 		}
 		if(error_info.errors)
 		{
@@ -196,7 +204,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 		if(tdata.pflag)
 		{
 			troot = sh_subtracktree(0);	/* use existing hash table */
-			tdata.aflag = '+';		/* for 'alias -pt', don't add anything to the hash table */
+			tdata.aflag = '+';		/* for -p/-l, don't add anything to the hash table */
 		}
 		else
 		{
@@ -1131,7 +1139,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	char *arg=0, *name;
 	int n, r=0, flag=0;
 	Namval_t *np;
-	long dlete=0;
+	int dlete=0;
 	struct tdata tdata;
 	Shbltin_f addr;
 	Stk_t	*stkp;
@@ -1166,6 +1174,9 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		list = 1;
 #endif
 	        break;
+	    case 'p':
+		tdata.prefix = argv[0];
+		break;
 	    case ':':
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
@@ -1209,6 +1220,11 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #endif /* SHOPT_DYNAMIC */
 	if(*argv==0 && !dlete)
 	{
+#if SHOPT_DYNAMIC
+		if(tdata.prefix)
+			for(n = 0; n < nlib; n++)
+				sfprintf(sfstdout, "%s -f %s\n", tdata.prefix, liblist[n].lib);
+#endif
 		print_scan(sfstdout, flag, sh.bltin_tree, 1, &tdata);
 		return 0;
 	}
@@ -1216,6 +1232,12 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	flag = stktell(stkp);
 	while(arg = *argv)
 	{
+		if(tdata.prefix)
+		{
+			sfprintf(sfstdout,"%s %s\n",tdata.prefix,arg);
+			argv++;
+			continue;
+		}
 		name = path_basename(arg);
 		sfwrite(stkp,"b_",2);
 		sfputr(stkp,name,0);
@@ -1474,8 +1496,12 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 	if(nv_isattr(np,NV_NOPRINT|NV_INTEGER)==NV_NOPRINT)
 	{
 		if(is_abuiltin(np))
+		{
+			if(tp->prefix)
+				sfputr(file,tp->prefix,' ');
 			sfputr(file,nv_name(np),'\n');
-		return 0;
+		}
+		return(0);
 	}
 	if(nv_istable(np))
 	{
