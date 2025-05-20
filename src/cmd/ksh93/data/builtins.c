@@ -1508,7 +1508,7 @@ const char sh_optreadonly[] =
 "[+?\breadonly\b is built in to the shell as a declaration command so that "
 	"field splitting and pathname expansion are not performed on "
 	"the arguments. Tilde expansion occurs on \avalue\a.]"
-"[p?Causes the output to be in the form of \breadonly\b commands that can be "
+"[p?Causes the output to be in a form of \breadonly\b commands that can be "
 	"used as input to the shell to recreate the current set of "
 	"readonly variables.]"
 "\n"
