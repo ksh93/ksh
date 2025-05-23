@@ -467,16 +467,19 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		fp->value = 0;
 	if (n == 1 && (*value == '0' || *value == '-'))
 		n = 0;
-	fp->flags |= CONF_ALLOC;
 	if(!(newvalue = calloc(1, n + 1)))
 	{
+		if(fp->value && fp->value != null)
+			free(fp->value);
+		fp->value = null;
 		if (conferror)
 			(*conferror)(&state, &state, 2, "synthesize(): out of memory");
 		return NULL;
 	}
 	/* memcpy comes before free because fp->value and value might share memory */
+	fp->flags |= CONF_ALLOC;
 	memcpy(newvalue, value, n);
-	if(fp->value)
+	if(fp->value && fp->value != null)
 		free(fp->value);
 	fp->value = newvalue;
 	fp->value[n] = 0;
