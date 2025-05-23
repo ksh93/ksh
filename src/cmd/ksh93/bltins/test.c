@@ -132,7 +132,6 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	struct test tdata;
 	char *cp = argv[0];
 	int not;
-	int exitval;
 
 	NOT_USED(context);
 	tdata.av = argv;
@@ -147,12 +146,9 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		}
 		argv[argc] = NULL;
 	}
+	/* POSIX requires the test builtin to return 1 if expression is missing */
 	if(argc <= 1)
-	{
-		/* POSIX requires the test builtin to return 1 if expression is missing */
-		exitval = 1;
-		goto done;
-	}
+		return 1;
 	cp = argv[1];
 	if(c_eq(cp,'(') && argc<=6 && c_eq(argv[argc-1],')'))
 	{
@@ -186,32 +182,19 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 				if(argc==5)
 					break;
 				if(not && cp[0]=='-' && cp[2]==0)
-				{
-					exitval = (test_unop(cp[1],argv[3])!=0);
-					goto done;
-				}
+					return test_unop(cp[1],argv[3]) != 0;
 				else if(argv[1][0]=='-' && argv[1][2]==0)
-				{
-					exitval = (!test_unop(argv[1][1],cp));
-					goto done;
-				}
+					return !test_unop(argv[1][1],cp);
 				else if(not && c_eq(argv[2],'!'))
-				{
-					exitval = (*argv[3]==0);
-					goto done;
-				}
+					return *argv[3] == 0;
 				errormsg(SH_DICT,ERROR_exit(2),e_badop,cp);
 				UNREACHABLE();
 			}
-			exitval = (test_binop(op,argv[1],argv[3])^(argc!=5));
-			goto done;
+			return test_binop(op,argv[1],argv[3]) ^ (argc != 5);
 		}
 		case 3:
 			if(not)
-			{
-				exitval = (*argv[2]!=0);
-				goto done;
-			}
+				return *argv[2] != 0;
 			if(cp[0] != '-' || cp[2] || cp[1]=='?')
 			{	/*
 				 * The following ugly hack supports 'test --man --' and '[ --man -- ]' and related
@@ -232,16 +215,12 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 				}
 				break;
 			}
-			exitval = (!test_unop(cp[1],argv[2]));
-			goto done;
+			return !test_unop(cp[1],argv[2]);
 		case 2:
-			exitval = (*cp==0);
-			goto done;
+			return *cp == 0;
 	}
 	tdata.ac = argc;
-	exitval = (!expr(&tdata,0));
-done:
-	return exitval;
+	return !expr(&tdata,0);
 }
 
 /*
