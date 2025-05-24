@@ -107,7 +107,7 @@ static int test_strmatch(const char *str, const char *pat)
 static void check_toomanyops(int argc, char *argv[])
 {
 	unsigned n;
-	if(argc<2 || c_eq(argv[0],'('))
+	if(argc<4 || c_eq(argv[0],'('))
 		return;
 	/* superfluous args after simple binary expression */
 	if((n = sh_lookup(argv[2],shtab_testops)) && !(n & TEST_ANDOR))
@@ -120,7 +120,7 @@ static void check_toomanyops(int argc, char *argv[])
 		return;
 	}
 	/* superfluous args after simple unary expression */
-	if(argc>3 && argv[1][0]=='-' && isalpha(argv[1][1]) && !argv[1][2] && !(n & TEST_ANDOR) && !(sh_lookup(argv[3],shtab_testops) & TEST_ANDOR))
+	if(argv[1][0]=='-' && isalpha(argv[1][1]) && !argv[1][2] && !(n & TEST_ANDOR) && !(sh_lookup(argv[3],shtab_testops) & TEST_ANDOR))
 	{
 		errormsg(SH_DICT,ERROR_exit(2),e_toomanyops);
 		UNREACHABLE();
