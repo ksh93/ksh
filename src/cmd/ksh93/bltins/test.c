@@ -104,15 +104,15 @@ static int test_strmatch(const char *str, const char *pat)
 	return n;
 }
 
-static void check_toomanyops(char *argv[])
+static void check_toomanyops(int argc, char *argv[])
 {
 	unsigned n;
-	if(c_eq(argv[0],'(') || !argv[1] || !argv[2] || !argv[3])
+	if(argc<2 || c_eq(argv[0],'('))
 		return;
 	/* superfluous args after simple binary expression */
 	if((n = sh_lookup(argv[2],shtab_testops)) && !(n & TEST_ANDOR))
 	{
-		if(argv[4] && !(sh_lookup(argv[4],shtab_testops) & TEST_ANDOR))
+		if(argc>4 && !(sh_lookup(argv[4],shtab_testops) & TEST_ANDOR))
 		{
 			errormsg(SH_DICT,ERROR_exit(2),e_toomanyops);
 			UNREACHABLE();
@@ -120,7 +120,7 @@ static void check_toomanyops(char *argv[])
 		return;
 	}
 	/* superfluous args after simple unary expression */
-	if(argv[1][0]=='-' && isalpha(argv[1][1]) && !argv[1][2] && !(n & TEST_ANDOR) && !(sh_lookup(argv[3],shtab_testops) & TEST_ANDOR))
+	if(argc>3 && argv[1][0]=='-' && isalpha(argv[1][1]) && !argv[1][2] && !(n & TEST_ANDOR) && !(sh_lookup(argv[3],shtab_testops) & TEST_ANDOR))
 	{
 		errormsg(SH_DICT,ERROR_exit(2),e_toomanyops);
 		UNREACHABLE();
@@ -144,7 +144,6 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_exit(2),e_missing,"']'");
 			UNREACHABLE();
 		}
-		argv[argc] = NULL;
 	}
 	/* POSIX requires the test builtin to return 1 if expression is missing */
 	if(argc <= 1)
@@ -163,7 +162,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	not = c_eq(cp,'!');
 	/* kludge to fix https://github.com/ksh93/ksh/issues/739 -- on 93u+m/1.0.x, this is for POSIX mode only */
 	if(sh_isoption(SH_POSIX))
-		check_toomanyops(argv + not);
+		check_toomanyops(argc - not, argv + not);
 	/* POSIX portion for test */
 	switch(argc)
 	{

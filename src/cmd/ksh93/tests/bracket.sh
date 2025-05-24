@@ -633,4 +633,9 @@ test b = b c -a "" 2>/dev/null
 [[ aaaaa =~ aaaaaa$ ]] && err_exit 'aaaaa =~ aaaaaa$ not working' 
 
 # ======
+# https://github.com/ksh93/ksh/issues/857
+(ulimit -c 0; for f in 1 2; do [ -f /dev/null/foo ]; done) 2>/dev/null
+(((e=$?)==1)) || err_exit "[ in a for loop (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+
+# ======
 exit $((Errors<125?Errors:125))
