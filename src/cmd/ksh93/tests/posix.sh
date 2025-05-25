@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2022-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2022-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -259,6 +259,11 @@ test \( -a \) 2>/dev/null || err_exit "POSIX test/[: binary -a operator does not
 (set --trackall; test ! -o trackall) || err_exit "POSIX test/[: binary -o operator does not work with '!' as left-hand expression"
 (set --noposix --trackall; test ! -o trackall) && err_exit "ksh test/[: unary -o operator does not work with '!' negator"
 test \( -o \) 2>/dev/null || err_exit "POSIX test/[: binary -o operator does not work with '(' as left-hand expression"
+test ! -a /dev/null || err_exit 'POSIX test ! -a /dev/null returns >0'
+test ! foo -o bar && err_exit "POSIX test ! foo -o bar returns 0"
+test ! foo -a '' || err_exit "POSIX test ! foo -a '' returns >0"
+test ! foo -o ! bar && err_exit 'POSIX test ! x -o ! x returns 0'
+test ! foo -o ! '' || err_exit 'POSIX test ! x -o ! "" returns >0'
 
 # disables a hack that makes test -t ([ -t ]) equivalent to test -t 1 ([ -t 1 ]).
 # ...simple 'test -t' is hacked in the parser (so we need 'eval')...

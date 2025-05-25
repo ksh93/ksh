@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-05-26:
+
+- Fixed a POSIX mode bug in test/[ (with 'posix' shell option on):
+  * test ! foo -o bar	wrongly returned 0/true, now returns 1/false.
+  * test ! foo -a ''	wrongly returned 1/false, now returns 0/true.
+  This regression was introduced on 2021-11-13.
+
 2025-05-15:
 
 - Fixed an issue that prevented Unicode code points in $'...' strings and

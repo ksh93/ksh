@@ -78,6 +78,12 @@ static char *nxtarg(struct test*,int);
 static int expr(struct test*,int);
 static int e3(struct test*);
 
+/* check for -a or -o in POSIX mode */
+static inline int posix_andor(char *arg)
+{
+	return sh_isoption(SH_POSIX) && (sh_lookup(arg,shtab_testops) & TEST_ANDOR);
+}
+
 static int test_strmatch(const char *str, const char *pat)
 {
 	int match[2*(MATCH_MAX+1)],n;
@@ -169,6 +175,17 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 		case 5:
 			if(!not)
 				break;
+			if(posix_andor(argv[3]))
+			{	/*
+				 * In POSIX mode, enforce a violation of basic logic that sadly made it to every other shell:
+				 * "test ! foo -o bar" must return 1, i.e., is same as "test ! \( -n foo -o -n bar \)"
+				 * "test ! foo -a ''"  must return 0, i.e., is same as "test ! \( -n foo -a -n '' \)"
+				 * This only applies if argc==5; for example, "test ! -n foo -o -n bar" correctly returns 0.
+				 */
+				tdata.av++;		/* skip the '!' */
+				tdata.ac = argc - 1;
+				return expr(&tdata,0);	/* invert the exit status result by NOT inverting the logical result */
+			}
 			argv++;
 			/* FALLTHROUGH */
 		case 4:
@@ -291,20 +308,15 @@ static int e3(struct test *tp)
 	int op;
 	char *binop;
 	arg=nxtarg(tp,0);
-	if(sh_isoption(SH_POSIX) && tp->ap + 1 < tp->ac && ((op=sh_lookup(tp->av[tp->ap],shtab_testops)) & TEST_ANDOR))
-	{	/*
-		 * In POSIX mode, makes sure standard binary -a/-o takes precedence
-		 * over nonstandard unary -a/-o if the lefthand expression is "!" or "("
-		 */
-		tp->ap++;
-		if(op==TEST_AND)
-			return *arg && expr(tp,2);
-		else /* TEST_OR */
-			return *arg || expr(tp,3);
-	}
-	if(arg && c_eq(arg, '!') && tp->ap < tp->ac)
+	/*
+	 * In POSIX mode, do not process ! or ( as operators if followed directly by -a or -o;
+	 * this disables the nonstandard unary -a and -o operators in these cases. Examples:
+	 * "test ! -a /dev/null" returns 0 (is equivalent to "test -n ! -a -n /dev/null")
+	 * "test \( -o \)" is not an error and returns 0 (is equivalent to "test \( -n -o \)")
+	 */
+	if(c_eq(arg, '!') && tp->ap < tp->ac && !posix_andor(tp->av[tp->ap]))
 		return !e3(tp);
-	if(c_eq(arg, '('))
+	if(c_eq(arg, '(') && !posix_andor(tp->av[tp->ap]))
 	{
 		op = expr(tp,1);
 		cp = nxtarg(tp,0);
