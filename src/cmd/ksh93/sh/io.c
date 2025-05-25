@@ -95,9 +95,6 @@ static int	(*fdnotify)(int,int);
 #      ifndef SHUT_WR
 #         define SHUT_WR         1
 #      endif
-#      ifndef SOCK_CLOEXEC
-#         define SOCK_CLOEXEC 0
-#      endif
 #      if _socketpair_shutdown_mode
 #         define socketpipe(v,f) ((socketpair(AF_UNIX,SOCK_STREAM|((f)?SOCK_CLOEXEC:0),0,v)<0||shutdown((v)[1],SHUT_RD)<0||fchmod((v)[1],S_IWUSR)<0||shutdown((v)[0],SHUT_WR)<0||fchmod((v)[0],S_IRUSR)<0)?(-1):0)
 #      else
