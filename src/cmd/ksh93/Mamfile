@@ -83,7 +83,7 @@ make install virtual
 		exec - %{iffe_run} %{<}
 	done
 
-	loop F options externs locale cmds poll rlimits
+	loop F options externs fchdir locale cmds poll rlimits
 		make FEATURE/%{F}
 			makp features/%{F}
 			exec - %{iffe_run} %{<}
@@ -268,6 +268,7 @@ make install virtual
 	make include/io.h
 		prev %{INCLUDE_AST}/sfio.h
 		prev %{INCLUDE_AST}/ast.h
+		prev FEATURE/fchdir
 	done
 
 	make include/jobs.h
@@ -355,6 +356,7 @@ make install virtual
 			prev include/test.h
 			prev %{INCLUDE_AST}/ls.h
 			prev include/builtins.h
+			prev include/io.h
 			prev include/name.h
 			prev include/path.h
 			prev include/variables.h
