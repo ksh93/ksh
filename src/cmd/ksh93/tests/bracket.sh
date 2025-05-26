@@ -638,4 +638,24 @@ test b = b c -a "" 2>/dev/null
 (((e=$?)==1)) || err_exit "[ in a for loop (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
+
+test \( ! -e \) 2>/dev/null
+(((e=$?)==1)) || err_exit "test \\( ! -e \\) returns $e instead of 1"
+
+test \( -e \) 2>/dev/null
+(((e=$?)==0)) || err_exit "test \\( -e \\) returns $e instead of 0"
+
+test foo -a \( bar \) 2>/dev/null
+(((e=$?)==0)) || err_exit "test foo -a \\( bar \\) returns $e instead of 0"
+
+test foo -a \( "" -a ! \) 2>/dev/null
+(((e=$?)==1)) || err_exit "test foo -a \\( \"\" -a ! \\) returns $e instead of 1"
+
+test foo -a \( \( ! -a "" \) \) 2>/dev/null
+(((e=$?)==0)) || err_exit "test foo -a \\( \\( ! -a \"\" \\) \\) returns $e instead of 0"
+
+test \( foo -a bar -a baz \) 2>/dev/null
+(((e=$?)==0)) || err_exit "test \\( foo -a bar -a baz \\) returns $e instead of 0"
+
+# ======
 exit $((Errors<125?Errors:125))

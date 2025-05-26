@@ -9,6 +9,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   * test ! foo -a ''	wrongly returned 1/false, now returns 0/true.
   This regression was introduced on 2021-11-13.
 
+- Made the handling of deprecated parenthesis operators in test/[ slightly
+  more permissive for increased compatibility with other shells and external
+  test/[ commands.
+
 2025-05-15:
 
 - Fixed an issue that prevented Unicode code points in $'...' strings and

@@ -76,7 +76,7 @@ struct test
 
 static char *nxtarg(struct test*,int);
 static int expr(struct test*,int);
-static int e3(struct test*);
+static int e3(struct test*,int);
 
 /* check for -a or -o in POSIX mode */
 static inline int posix_andor(char *arg)
@@ -110,7 +110,7 @@ static int test_strmatch(const char *str, const char *pat)
 	return n;
 }
 
-static void check_toomanyops(int argc, char *argv[])
+static inline void check_toomanyops(int argc, char *argv[])
 {
 	unsigned n;
 	if(argc<4 || c_eq(argv[0],'('))
@@ -155,10 +155,11 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 	if(argc <= 1)
 		return 1;
 	cp = argv[1];
+	/* Compat kludge: if there are up to 5 args and the first and last are parentheses, remove the parentheses... */
 	if(c_eq(cp,'(') && argc<=6 && c_eq(argv[argc-1],')'))
 	{
-		/* special case ( binop ) to conform with standard */
-		if(!(argc==4 && (not=sh_lookup(cp=argv[2],shtab_testops))))
+		/* ...except if the middle arg is a binary operator, as in test '(' = ')', which must return false in POSIX */
+		if(!(argc==4 && sh_lookup(argv[2],shtab_testops)))
 		{
 			cp =  (++argv)[1];
 			++tdata.av;
@@ -242,15 +243,18 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 /*
  * evaluate a test expression.
  * flag is 0 on outer level
- * flag is 1 when in parentheses
- * flag is 2 when evaluating -a (TEST_AND)
- * flag is 3 when evaluating -o (TEST_OR)
+ * flag & FLAG_PARENS when in parentheses
+ * flag & FLAG_AND when evaluating -a (TEST_AND)
+ * flag & FLAG_OR when evaluating -o (TEST_OR)
  */
+#define FLAG_PARENS	0x01
+#define FLAG_AND	0x02
+#define FLAG_OR		0x04
 static int expr(struct test *tp,int flag)
 {
 	int r;
 	char *p;
-	r = e3(tp);
+	r = e3(tp,flag&FLAG_PARENS);
 	while(tp->ap < tp->ac)
 	{
 		p = nxtarg(tp,0);
@@ -264,17 +268,17 @@ static int expr(struct test *tp,int flag)
 		{
 			if(*++p == 'o')
 			{
-				if(flag==2)
+				if(flag&FLAG_AND)
 				{
 					tp->ap--;
 					break;
 				}
-				r |= expr(tp,3);
+				r |= expr(tp,flag&FLAG_PARENS|FLAG_OR);
 				continue;
 			}
 			else if(*p == 'a')
 			{
-				r &= expr(tp,2);
+				r &= expr(tp,flag&FLAG_PARENS|FLAG_AND);
 				continue;
 			}
 		}
@@ -302,7 +306,7 @@ static char *nxtarg(struct test *tp,int mt)
 }
 
 
-static int e3(struct test *tp)
+static int e3(struct test *tp,int inparens)
 {
 	char *arg, *cp;
 	int op;
@@ -314,11 +318,11 @@ static int e3(struct test *tp)
 	 * "test ! -a /dev/null" returns 0 (is equivalent to "test -n ! -a -n /dev/null")
 	 * "test \( -o \)" is not an error and returns 0 (is equivalent to "test \( -n -o \)")
 	 */
-	if(c_eq(arg, '!') && tp->ap < tp->ac && !posix_andor(tp->av[tp->ap]))
-		return !e3(tp);
+	if(c_eq(arg, '!') && tp->ap < tp->ac && !(inparens && tp->ap == tp->ac - 1) && !posix_andor(tp->av[tp->ap]))
+		return !e3(tp,inparens);
 	if(c_eq(arg, '(') && !posix_andor(tp->av[tp->ap]))
 	{
-		op = expr(tp,1);
+		op = expr(tp,FLAG_PARENS);
 		cp = nxtarg(tp,0);
 		if(!cp || !c_eq(cp, ')'))
 		{
@@ -361,16 +365,20 @@ static int e3(struct test *tp)
 		return *arg!=0;
 	}
 skip:
-	op = sh_lookup(binop=cp,shtab_testops);
-	if(!(op&TEST_ANDOR))
-		cp = nxtarg(tp,0);
-	if(!op)
+	if(!(op = sh_lookup(cp,shtab_testops)))
 	{
-		errormsg(SH_DICT,ERROR_exit(2),e_badop,binop);
+		if(inparens && c_eq(cp,')'))
+		{
+			tp->ap--;
+			return *arg!=0;
+		}
+		errormsg(SH_DICT,ERROR_exit(2),e_badop,cp);
 		UNREACHABLE();
 	}
-	if(op==TEST_AND || op==TEST_OR)
+	if(op&TEST_ANDOR)
 		tp->ap--;
+	else
+		cp = nxtarg(tp,0);
 	return test_binop(op,arg,cp);
 }
 
