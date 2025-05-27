@@ -1717,10 +1717,12 @@ got=$(set +x; redirect 2>&1; "$SHELL" -c 'fc -p !! !nonexistent')
 fi # SHOPT_HISTEXPND
 
 # ======
+if((SHOPT_MULTIBYTE));then
 got=$(printf '\u0025\n' 2>&1)
 exp='%'
 [[ $got == "$exp" ]] || err_exit '\u0025 misparsed as literal % in printf formatter' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi # SHOPT_MULTIBYTE
 
 # ====== MUST BE AT END ======
 # checks for tests run in parallel (see top)
