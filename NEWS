@@ -4,6 +4,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2025-05-27:
 
+- Fixed a bug in printf where \u0025 was taken as a % operator in a
+  formatter argument. For example, printf '\u0025\n' now correctly prints a
+  % followed by a newline instead of producing an error.
+
 - [v1.0] Fixed a POSIX mode bug that slipped through the cracks on
   2024-12-08: test -n -a "" incorrectly returned 0/true and now returns
   1/false if the posix shell option is on. POSIX-1.2017 rules require this

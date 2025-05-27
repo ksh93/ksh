@@ -1689,23 +1689,6 @@ case $(PATH=/opt/ast/bin:$PATH; exec cat '--???SECTION' </dev/null 2>&1) in
 esac
 
 # ======
-# checks for tests run in parallel (see top)
-wait "$parallel_1"
-case $? in
-0)	;;
-14)	err_exit "sleep doesn't exit 0 with ALRM interrupt" ;;
-15)	err_exit "ALRM signal causes sleep to terminate prematurely" ;;
-*)	err_exit "broken test" ;;
-esac
-wait "$parallel_2"
-case $? in
-0)	;;
-14)	err_exit "read -t in pipe taking too long" ;;
-15)	err_exit "read -t in pipe not taking long enough" ;;
-*)	err_exit "broken test" ;;
-esac
-
-# ======
 # https://github.com/ksh93/ksh/issues/794
 
 exp=$'issue794: --file: value not expected\n?: '
@@ -1734,4 +1717,25 @@ got=$(set +x; redirect 2>&1; "$SHELL" -c 'fc -p !! !nonexistent')
 fi # SHOPT_HISTEXPND
 
 # ======
+got=$(printf '\u0025\n' 2>&1)
+exp='%'
+[[ $got == "$exp" ]] || err_exit '\u0025 misparsed as literal % in printf formatter' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ====== MUST BE AT END ======
+# checks for tests run in parallel (see top)
+wait "$parallel_1"
+case $? in
+0)	;;
+14)	err_exit "sleep doesn't exit 0 with ALRM interrupt" ;;
+15)	err_exit "ALRM signal causes sleep to terminate prematurely" ;;
+*)	err_exit "broken test" ;;
+esac
+wait "$parallel_2"
+case $? in
+0)	;;
+14)	err_exit "read -t in pipe taking too long" ;;
+15)	err_exit "read -t in pipe not taking long enough" ;;
+*)	err_exit "broken test" ;;
+esac
 exit $((Errors<125?Errors:125))
