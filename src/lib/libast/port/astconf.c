@@ -467,7 +467,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		fp->value = 0;
 	if (n == 1 && (*value == '0' || *value == '-'))
 		n = 0;
-	if(!(newvalue = calloc(1, n + 1)))
+	if(!(newvalue = malloc(n + 1)))
 	{
 		if(fp->value && fp->value != null)
 			free(fp->value);
@@ -477,13 +477,12 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		return NULL;
 	}
 	/* memcpy comes before free because fp->value and value might share memory */
-	fp->flags |= CONF_ALLOC;
 	memcpy(newvalue, value, n);
+	newvalue[n] = 0;
 	if(fp->value && fp->value != null)
 		free(fp->value);
-	fp->value = newvalue;
-	fp->value[n] = 0;
-	return fp->value;
+	fp->flags |= CONF_ALLOC;
+	return fp->value = newvalue;
 }
 
 /*
