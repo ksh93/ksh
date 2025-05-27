@@ -2838,7 +2838,7 @@ static char *sh_tilde(const char *string)
 		if(cp = nv_getval(sh_scoped(HOME)))
 			return cp;
 		/* Fallback for unset HOME: get username and treat ~ like ~username */
-		if(!username && !((pw = getpwuid(getuid())) && (username = sh_strdup(pw->pw_name))))
+		if(!username && !((pw = getpwuid(sh.userid)) && (username = sh_strdup(pw->pw_name))))
 			return NULL;
 		string = username;
 	}

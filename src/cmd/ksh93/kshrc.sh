@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2022-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2022-2025 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -141,7 +141,7 @@ function GITBRANCH.get
 function .rc.status.get
 {
 	typeset e=$?
-	typeset clr=${.rc.fmt[status$((e > 0))]}
+	typeset clr=${.rc.fmt[status$((e != 0))]}
 	typeset q1=$'\u00AB' q2=$'\u00BB'
 	((${#q1}==1 && ${#q2}==1)) || q1='<' q2='>'
 	if	((e>256))  # add signal name

@@ -91,7 +91,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 #define REMOTE(m)	!(m)
 #endif
 
-int sh_main(int ac, char *av[], Shinit_f userinit)
+noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 {
 	char		*name;
 	int		fdin;

@@ -714,7 +714,7 @@ int nv_adddisc(Namval_t *np, const char **names, Namval_t **funs)
 }
 
 /*
- * push, pop, clne, or reorder disciplines onto node <np>
+ * push, pop, clone, or reorder disciplines onto node <np>
  * mode can be one of
  *    NV_FIRST:  Move or push <fp> to top of the stack or delete top
  *    NV_LAST:	 Move or push <fp> to bottom of stack or delete last

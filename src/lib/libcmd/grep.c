@@ -13,6 +13,7 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -207,7 +208,7 @@ labelcomp(const regex_t* re, const char* s, size_t len, regdisc_t* disc)
 	n = 0;
 	while (s < e)
 		n = (n << 3) + (*s++ - '0');
-	return (void*)((char*)0 + n);
+	return (void*)((uintptr_t)n);
 }
 
 static int
@@ -264,7 +265,7 @@ addre(State_t* state, char* s)
 	if (x)
 	{
 		b = (state->options & (REG_AUGMENTED|REG_EXTENDED)) ? "" : "\\";
-		sfprintf(state->tmp, "%s(?{%I*o})", b, sizeof(ptrdiff_t), (char*)x - (char*)0);
+		sfprintf(state->tmp, "%s(?{%I*o})", b, sizeof(ptrdiff_t), (intptr_t)x);
 		if (state->labels.tail)
 			state->labels.tail = state->labels.tail->next = x;
 		else

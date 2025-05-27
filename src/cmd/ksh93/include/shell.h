@@ -454,7 +454,7 @@ extern int 		sh_trap(const char*,int);
 extern int 		sh_fun(Namval_t*,Namval_t*, char*[]);
 extern int 		sh_funscope(int,char*[],int(*)(void*),void*,int);
 extern Sfio_t		*sh_iogetiop(int,int);
-extern int		sh_main(int, char*[], Shinit_f);
+extern noreturn void	sh_main(int, char*[], Shinit_f);
 extern int		sh_run(int, char*[]);
 extern void		sh_menu(Sfio_t*, int, char*[]);
 extern Namval_t		*sh_addbuiltin(const char*, int(*)(int, char*[],Shbltin_t*), void*);
