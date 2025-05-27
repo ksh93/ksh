@@ -53,7 +53,7 @@ const Shtable_t shtab_testops[] =
 };
 
 const char sh_opttest[] =
-"[-1c?\n@(#)$Id: test (ksh 93u+m) 2025-05-26 $\n]"
+"[-1c?\n@(#)$Id: test (ksh 93u+m) 2025-05-27 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?test, [ - evaluate expression]"
 "[+DESCRIPTION?\btest\b evaluates expressions and returns its result using the "

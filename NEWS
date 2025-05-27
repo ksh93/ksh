@@ -2,6 +2,15 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-05-27:
+
+- [v1.0] Fixed a POSIX mode bug that slipped through the cracks on
+  2024-12-08: test -n -a "" incorrectly returned 0/true and now returns
+  1/false if the posix shell option is on. POSIX-1.2017 rules require this
+  to be a test for the non-emptiness of both strings -n and "". (Natively,
+  this executes the unary -n operator on the string "-a", yielding 0/true,
+  and ignores the excess empty string operand for backward compatibility.)
+
 2025-05-26:
 
 - Fixed a POSIX mode bug in test/[ (with 'posix' shell option on):
