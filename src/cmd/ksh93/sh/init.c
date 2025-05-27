@@ -242,7 +242,11 @@ void *sh_realloc(void *ptr, size_t size)
 	void *cp;
 	cp = realloc(ptr, size);
 	if(!cp)
+	{
+		if(ptr)
+			free(ptr);
 		nomemory(size);
+	}
 	return cp;
 }
 

@@ -70,7 +70,7 @@
 #define CONF_GLOBAL	(CONF_USER<<3)
 
 #define DEFAULT(o)	((state.std||!dynamic[o].ast)?dynamic[o].std:dynamic[o].ast)
-#define INITIALIZE()	do{if(!state.data)synthesize(NULL,NULL,NULL);}while(0)
+#define INITIALIZE()	do{if(!state.data)synthesize(NULL,NULL,NULL,NULL);}while(0)
 #define STANDARD(v)	(streq(v,"standard")||streq(v,"strict")||streq(v,"posix")||streq(v,"xopen"))
 
 #define MAXVAL		256
@@ -300,12 +300,13 @@ buffer(char* s)
  */
 
 static char*
-synthesize(Feature_t* fp, const char* path, const char* value)
+synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror)
 {
 	char*		s;
 	char*		d;
 	char*		v;
 	char*		p;
+	char*		newvalue;
 	int		n;
 
 #if DEBUG_astconf
@@ -326,7 +327,11 @@ synthesize(Feature_t* fp, const char* path, const char* value)
 			n += strlen(s) + 1;
 		n = roundof(n, 32);
 		if (!(state.data = newof(0, char, n, 0)))
+		{
+			if (conferror)
+				(*conferror)(&state, &state, 2, "synthesize(): out of memory");
 			return NULL;
+		}
 		state.last = state.data + n - 1;
 		strcpy(state.data, state.name);
 		state.data += state.prefix - 1;
@@ -434,7 +439,11 @@ synthesize(Feature_t* fp, const char* path, const char* value)
 		c = n + state.last - state.data + 3 * MAXVAL;
 		c = roundof(c, 32);
 		if (!(state.data = newof(state.data, char, c, 0)))
+		{
+			if (conferror)
+				(*conferror)(&state, &state, 2, "synthesize(): out of memory");
 			return NULL;
+		}
 		state.last = state.data + c - 1;
 		state.data += state.prefix;
 		d = state.data + i;
@@ -458,15 +467,22 @@ synthesize(Feature_t* fp, const char* path, const char* value)
 		fp->value = 0;
 	if (n == 1 && (*value == '0' || *value == '-'))
 		n = 0;
-	if (!(fp->value = newof(fp->value, char, n, 1)))
-		fp->value = null;
-	else
+	if(!(newvalue = malloc(n + 1)))
 	{
-		fp->flags |= CONF_ALLOC;
-		memcpy(fp->value, value, n);
-		fp->value[n] = 0;
+		if(fp->value && fp->value != null)
+			free(fp->value);
+		fp->value = null;
+		if (conferror)
+			(*conferror)(&state, &state, 2, "synthesize(): out of memory");
+		return NULL;
 	}
-	return fp->value;
+	/* memcpy comes before free because fp->value and value might share memory */
+	memcpy(newvalue, value, n);
+	newvalue[n] = 0;
+	if(fp->value && fp->value != null)
+		free(fp->value);
+	fp->flags |= CONF_ALLOC;
+	return fp->value = newvalue;
 }
 
 /*
@@ -477,7 +493,7 @@ synthesize(Feature_t* fp, const char* path, const char* value)
  */
 
 static void
-initialize(Feature_t* fp, const char* path, const char* command, const char* succeed, const char* fail)
+initialize(Feature_t* fp, const char* path, const char* command, const char* succeed, const char* fail, Error_f conferror)
 {
 	char*	p;
 	int	ok = 1;
@@ -588,7 +604,7 @@ initialize(Feature_t* fp, const char* path, const char* command, const char* suc
 #if DEBUG_astconf
 	error(-6, "state.std=%d %s [%s] std=%s ast=%s value=%s ok=%d", state.std, fp->name, ok ? succeed : fail, fp->std, fp->ast, fp->value, ok);
 #endif
-	synthesize(fp, path, ok ? succeed : fail);
+	synthesize(fp, path, ok ? succeed : fail, conferror);
 }
 
 /*
@@ -602,9 +618,6 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 	int			n;
 	static struct utsname	uts;
 
-#ifndef UNIV_MAX
-	NOT_USED(conferror);
-#endif
 #if DEBUG_astconf
 	error(-6, "astconf format name=%s path=%s value=%s flags=%04x fp=%p%s", fp->name, path, value, flags, fp, state.synthesizing ? " SYNTHESIZING" : "");
 #else
@@ -633,8 +646,8 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 #endif
 		if (state.synthesizing && value == (char*)fp->std)
 			fp->value = (char*)value;
-		else if (!synthesize(fp, path, value))
-			initialize(fp, path, NULL, fp->std, fp->value);
+		else if (!synthesize(fp, path, value, conferror))
+			initialize(fp, path, NULL, fp->std, fp->value, conferror);
 #if DEBUG_astconf
 		error(-6, "state.std=%d %s [%s] std=%s ast=%s value=%s", state.std, fp->name, value, fp->std, fp->ast, fp->value);
 #endif
@@ -660,8 +673,8 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 	case OP_path_resolve:
 		if (state.synthesizing && value == (char*)fp->std)
 			fp->value = (char*)value;
-		else if (!synthesize(fp, path, value))
-			initialize(fp, path, NULL, "logical", DEFAULT(OP_path_resolve));
+		else if (!synthesize(fp, path, value, conferror))
+			initialize(fp, path, NULL, "logical", DEFAULT(OP_path_resolve), conferror);
 		break;
 
 	case OP_universe:
@@ -703,7 +716,11 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 					fp->value = 0;
 				n = strlen(value);
 				if (!(fp->value = newof(fp->value, char, n, 1)))
+				{
+					if (conferror)
+						(*conferror)(&state, &state, 2, "%s: out of memory", value);
 					fp->value = null;
+				}
 				else
 				{
 					fp->flags |= CONF_ALLOC;
@@ -712,10 +729,10 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 				}
 			}
 			else
-				synthesize(fp, path, value);
+				synthesize(fp, path, value, conferror);
 		}
 		else
-			initialize(fp, path, "echo", DEFAULT(OP_universe), "ucb");
+			initialize(fp, path, "echo", DEFAULT(OP_universe), "ucb", conferror);
 #endif
 #endif
 		break;
@@ -724,7 +741,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		if (state.synthesizing && value == (char*)fp->std)
 			fp->value = (char*)value;
 		else
-			synthesize(fp, path, value);
+			synthesize(fp, path, value, conferror);
 		break;
 
 	}

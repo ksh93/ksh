@@ -4,6 +4,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2025-05-27:
 
+- Fixed a crash that could occur in some scenarios when /opt/ast/bin
+  builtins handled invalid options in virtual subshells.
+
 - Fixed a bug in printf where \u0025 was taken as a % operator in a
   formatter argument. For example, printf '\u0025\n' now correctly prints a
   % followed by a newline instead of producing an error.
