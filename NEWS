@@ -2,6 +2,12 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-07-29:
+
+- Fixed a serious but rarely occurring regression that corrupts variable
+  names in assignments. It could be triggered in large scripts and cause a
+  spurious "invalid variable name" error. Bug introduced on 2024-01-16.
+
 2025-05-27:
 
 - Fixed a crash that could occur in some scenarios when /opt/ast/bin
