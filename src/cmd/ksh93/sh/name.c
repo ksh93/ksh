@@ -3010,14 +3010,13 @@ static char *oldgetenv(const char *string)
 }
 
 /*
- * This version of getenv uses the nval(3) storage to access environment values
+ * This version of getenv uses the hash storage to access environment values
  */
 char *sh_getenv(const char *name)
 {
 	Namval_t *np, *savns;
 	char *cp, *savpr;
-	/* do not read from nval(3) storage during initialization, as the environment may not be fully imported */
-	if(sh_isstate(SH_INIT))
+	if(!sh.var_tree)
 		return oldgetenv(name);
 	/* deactivate a possible namespace or compound assignment */
 	savns = sh.namespace, savpr = sh.prefix;

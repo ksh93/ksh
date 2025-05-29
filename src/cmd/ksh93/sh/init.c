@@ -427,11 +427,33 @@ static void put_cdpath(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 	sh.cdpathlist = path_addpath((Pathcomp_t*)sh.cdpathlist,val,PATH_CDPATH);
 }
 
+static struct put_lang_defer_s
+{
+	Namval_t *np;
+	const char *val;
+	int flags;
+	Namfun_t *fp;
+	struct put_lang_defer_s *next;
+} *put_lang_defer;
+
 /* Trap for the LC_* and LANG variables */
 static void put_lang(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 {
 	int type;
-	char *name = nv_name(np);
+	char *name;
+	if (val && sh_isstate(SH_INIT) && !sh_isstate(SH_LCINIT))
+	{
+		/* defer setting locale while importing environment */
+		struct put_lang_defer_s *p = sh_malloc(sizeof(struct put_lang_defer_s));
+		p->np = np;
+		p->val = val;
+		p->flags = flags;
+		p->fp = fp;
+		p->next = put_lang_defer;
+		put_lang_defer = p;
+		return;
+	}
+	name = nv_name(np);
 	if(name==(LCALLNOD)->nvname)
 		type = LC_ALL;
 	else if(name==(LCTYPENOD)->nvname)
@@ -1897,8 +1919,6 @@ static char *env_init(void)
 	char		**ep=environ;
 	char		*next = 0;	/* pointer to A__z env var */
 	int		save_env_n = 0;
-	/* set locale early to ensure locale-dependent variable names are not skipped as invalid */
-	setlocale(LC_ALL,"");
 	if(ep)
 	{
 		while(cp = *ep++)
@@ -1908,11 +1928,11 @@ static char *env_init(void)
 				next = cp + 4;
 			else if(strncmp(cp,"KSH_VERSION=",12)==0)
 				continue;
-			if(!nv_open(cp,sh.var_tree,NV_EXPORT|NV_IDENT|NV_ASSIGN|NV_NOFAIL))
+			if(!nv_open(cp,sh.var_tree,(NV_EXPORT|NV_IDENT|NV_ASSIGN|NV_NOFAIL)) && !sh.save_env_n)
 			{	/*
 				 * If the shell assignment via nv_open() failed, we cannot import this
 				 * env var (invalid name); save it for sh_envgen() to pass it on to
-				 * child processes. Re-do this after forking, as the locale may change.
+				 * child processes. This does not need to be re-done after forking.
 				 */
 				save_env_n++;
 				sh.save_env = sh_realloc(sh.save_env, save_env_n*sizeof(char*));
@@ -1920,16 +1940,25 @@ static char *env_init(void)
 			}
 		}
 	}
-	if(save_env_n==0 && sh.save_env)
-	{
-		free(sh.save_env);
-		sh.save_env = NULL;
-	}
-	sh.save_env_n = save_env_n;
+	if(save_env_n)
+		sh.save_env_n = save_env_n;
 	path_pwd();
 	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
 		sh_onoption(SH_RESTRICTED); /* restricted shell */
-	return next;
+	/*
+	 * Since AST setlocale() may use the environment (PATH, _AST_FEATURES),
+	 * defer setting locale until all of the environment has been imported.
+	 */
+	sh_onstate(SH_LCINIT);
+	while (put_lang_defer)
+	{
+		struct put_lang_defer_s *p = put_lang_defer;
+		put_lang(p->np, p->val, p->flags, p->fp);
+		put_lang_defer = p->next;
+		free(p);
+	}
+	sh_offstate(SH_LCINIT);
+	return(next);
 }
 
 /*

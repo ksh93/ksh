@@ -507,14 +507,4 @@ then	LANG=C.UTF-8
 fi
 
 # ======
-if	((SHOPT_MULTIBYTE))
-then	export LANG=C.UTF-8
-	# initial A makes it sort before LANG, LC_* -- so this checks locale is init'ed before importing environment
-	got=$(export Aコーンシェル=OK; "$SHELL" -c 'echo "${Aコーンシェル}"' 2>&1)
-	exp=OK
-	[[ $got == "$exp" ]] || err_exit 'importing environment variable with multibyte variable name' \
-		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
-fi
-
-# ======
 exit $((Errors<125?Errors:125))
