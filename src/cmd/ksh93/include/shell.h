@@ -80,7 +80,6 @@ typedef union Shnode_u Shnode_t;
 #define SH_INIT		15	/* set when initializing the shell */
 #define SH_TTYWAIT	16	/* waiting for keyboard input */
 #define SH_FCOMPLETE	17	/* set for filename completion */
-#define SH_LCINIT	18	/* set with SH_INIT while initializing locale */
 #define SH_COMPLETE	19	/* set for command completion */
 #define SH_XARG		21	/* set while in xarg (command -x) mode */
 #define SH_NOTILDEXP	22	/* set to disable tilde expansion */
