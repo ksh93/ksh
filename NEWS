@@ -8,6 +8,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   names in assignments. It could be triggered in large scripts and cause a
   spurious "invalid variable name" error. Bug introduced on 2024-01-16.
 
+- Restored the ability to import environment variables with multibyte UTF-8
+  names while in a UTF-8 locale. This broke on 2020-09-26.
+
 2025-05-27:
 
 - Fixed a crash that could occur in some scenarios when /opt/ast/bin
