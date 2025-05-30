@@ -613,10 +613,6 @@ test t -a b = b 2>/dev/null
 (((e=$?)==0)) || err_exit "${p}test t -a b = b fails (got status $e)"
 [ t -a b = b ] 2>/dev/null
 (((e=$?)==0)) || err_exit "${p}[ t -a b = b ] fails (got status $e)"
-test -n -a -z 2>/dev/null
-(((e=$?)==0)) || err_exit "${p}test -n -a -z fails (got status $e)"
-[ -n -a -z ] 2>/dev/null
-(((e=$?)==0)) || err_exit "${p}[ -n -a -z ] fails (got status $e)"
 test b = b c -a "" 2>/dev/null
 (((e=$?)==2)) || err_exit "${p}test b = b c -a \"\" is not an error (got status $e)"
 [ b = b c -a "" ] 2>/dev/null
@@ -631,6 +627,48 @@ test b = b c -a "" 2>/dev/null
 [[ aaaaa =~ aaaa$   ]] || err_exit 'aaaaa =~ aaaa$ not working'
 [[ aaaaa =~ aaaaa$  ]] || err_exit 'aaaaa =~ aaaaa$ not working'
 [[ aaaaa =~ aaaaaa$ ]] && err_exit 'aaaaa =~ aaaaaa$ not working' 
+
+# ======
+# https://github.com/ksh93/ksh/issues/857
+(ulimit -c 0; for f in 1 2; do [ -f /dev/null/foo ]; done) 2>/dev/null
+(((e=$?)==1)) || err_exit "[ in a for loop (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+
+# ======
+
+typeset -sui e=0 t=0
+# loop through triplets of test expression, expected native exit status, expected POSIX exit status
+# note: status 2 is error
+for exp in \
+	'\( ! -e \)' 1 1 \
+	'\( -e \)' 0 0 \
+	'foo -a \( bar \)' 0 0 \
+	'foo -a \( "" -a ! \)' 1 1 \
+	'\( \( ! -a "" \) \)' 0 1 \
+	'foo -a \( \( ! -a "" \) \) ' 0 1 \
+	'\( foo -a bar -a baz \)' 0 0 \
+	'foo -a \( "" -o bar \)' 0 0 \
+	'! foo -o bar' 0 1 \
+	'-n -a -z' 2 0 \
+	'-n -a ""' 2 1 \
+	'n -a -z' 0 0 \
+	'n -a ""' 1 1 \
+; do	case $((++t)) in
+	1)	c=$exp
+		;;
+	2)	eval "[ $c ]" 2>/dev/null
+		(((e=$?)==exp)) || err_exit "[ $c ] returns $e instead of $exp"
+		eval "test $c" 2>/dev/null
+		(((e=$?)==exp)) || err_exit "test $c returns $e instead of $exp"
+		;;
+	3)	(set -o posix; eval "[ $c ]") 2>/dev/null
+		(((e=$?)==exp)) || err_exit "POSIX [ $c ] returns $e instead of $exp"
+		(set -o posix; eval "test $c") 2>/dev/null
+		(((e=$?)==exp)) || err_exit "POSIX test $c returns $e instead of $exp"
+		t=0
+		;;
+	esac
+done
+unset e t
 
 # ======
 exit $((Errors<125?Errors:125))

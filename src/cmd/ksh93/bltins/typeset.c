@@ -1451,7 +1451,21 @@ static int unall(int argc, char **argv, Dt_t *troot)
 				}
 			}
 			if(!nv_isnull(np) || nv_size(np) || nv_isattr(np,~(NV_MINIMAL|NV_NOFREE)))
+			{
+				Namarr_t *ap;
+				if(sh.subshell && !sh.subshare && nv_isattr(np,NV_ARRAY|NV_NOFREE)==NV_ARRAY && (ap=nv_arrayptr(np)) && array_assoc(ap))
+				{
+					Namval_t *onp = nv_associative(np,0,NV_ACURRENT);
+					while(nv_associative(np,0,NV_ANEXT))
+					{
+						Namval_t *mp = nv_associative(np,0,NV_ACURRENT);
+						if(mp && mp->nvalue && mp->nvalue!=Empty)
+							nv_offattr(mp,NV_NOFREE);
+					}
+					nv_associative(np,(char*)onp,NV_ASETSUB);
+				}
 				nv_unset(np,0);
+			}
 			if(troot==sh.var_tree && sh.st.real_fun && (dp=sh.var_tree->walk) && dp==sh.st.real_fun->sdict)
 				nv_delete(np,dp,NV_NOFREE);
 			else if(isfun)

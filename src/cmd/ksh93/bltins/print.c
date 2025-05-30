@@ -489,17 +489,21 @@ static char strformat(char *s)
 			s = p;
 			if(c<0) /* conversion failed => empty string */
 				continue;
+			if(c=='%') /* change % to %% */
+			{
+				*t++ = '%';
+				break;
+			}
+			if(c==0)   /* change \0 to %Z */
+			{
+				*t++ = '%';
+				c = 'Z';
+				break;
+			}
 			if(w)
 			{
 				t += mbconv(t, c);
 				continue;
-			}
-			if(c=='%')
-				*t++ = '%';
-			else if(c==0)
-			{
-				*t++ = '%';
-				c = 'Z';
 			}
 			break;
 		    case 0:

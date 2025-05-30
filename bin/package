@@ -391,16 +391,12 @@ do	case $# in
 		;;
 	help|HELP|html|man|--[?m]*)
                 case $1 in
-		help)	code=0
-			case $2 in
+		help)	case $2 in
 			'')	exec 1>&2 ;;
 			esac
 			;;
-                html)	code=0 html=1
+		html)	html=1
 			echo "<html><title>$command help</title><body><h1><code>$command</code> help</h1><pre>"
-			;;
-		*)	code=2
-			exec 1>&2
 			;;
 		esac
 		# Plain-text fallback. Regenerate with:
@@ -573,14 +569,14 @@ IMPLEMENTATION
 		case $1 in
 		html)	echo "</pre></body></html>" ;;
 		esac
-		exit $code
+		exit
 		;;
 	*=*)	set DEFAULT host type "$@"
 		;;
 	*)	# simulate AST getopt(3) usage output
-		echo "Usage: $command [ options ] [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]" >&2
-		echo " Help: $command [ --help | --man ] 2>&1" >&2
-		exit 2
+		echo "Usage: $command [ options ] [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]"
+		echo " Help: $command [ --help | --man ]"
+		exit
 		;;
 	esac
 	global="$global $1"

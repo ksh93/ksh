@@ -155,10 +155,24 @@ DO
 DONE
 
 # https://github.com/ksh93/ksh/issues/94
-TEST	title='defining associative array in subshell' known=y url=https://github.com/ksh93/ksh/issues/94
+TEST	title='defining associative array in subshell'
 DO
 	(typeset -A foo=([a]=1 [b]=2 [c]=3))
+	(typeset -Ai foo=([a]=1 [b]=2 [c]=3))
 DONE
+
+TEST	title='defining and unsetting associative array in subshell'
+DO
+	(typeset -A foo=([a]=1 [b]=2 [c]=3); unset foo)
+	(typeset -Ai foo=([a]=1 [b]=2 [c]=3); unset foo)
+DONE
+
+TEST	title='unsetting associative array in subshell'
+	typeset -A foo=([a]=1 [b]=2 [c]=3)
+DO
+	(unset foo)
+DONE
+unset foo
 
 # ======
 # Memory leak when resetting PATH and clearing hash table

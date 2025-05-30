@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2025-04-24"
+#define RELEASE_DATE "2025-05-28"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -229,6 +229,7 @@ typedef struct Rule_s			/* rule item			*/
 	int		making;		/* currently make()ing		*/
 	time_t		time;		/* modification time		*/
 	time_t		parenttime;	/* parent's modification time	*/
+	time_t		origtime;	/* pre-existing modific. time	*/
 	unsigned int	line;		/* starting line in Mamfile	*/
 	unsigned int	endline;	/* ending line in Mamfile	*/
 	pid_t		pid;		/* PID of parallel bg job	*/
@@ -436,14 +437,18 @@ static void out_of_memory(void)
 
 static void error_making(Rule_t *r, int code)
 {
-	identify(stderr);
 	if (code <= 0)
 	{
-		report(state.keepgoing ? 2 : 3, code ? "target not generated" : "missing prerequisite", r->name, r);
+		report(state.ignore && code ? 1 : state.keepgoing ? 2 : 3,
+			code == -2 ? "target not updated" : code ? "target not generated" : "missing prerequisite",
+			r->name, r);
+		if (state.ignore && code)
+			return;
 		code = 1;
 	}
 	else
 	{
+		identify(stderr);
 		fprintf(stderr, "*** exit code %d making %s%s\n", code, r->name, state.ignore ? " ignored" : "");
 		unlink(r->name);
 		if (state.ignore)
@@ -1298,7 +1303,7 @@ static void bindfile(Rule_t *r)
 	{
 		if (s != r->name)
 			r->path = reduplicate(r->path, s);
-		r->time = st.st_mtime;
+		r->time = r->origtime = st.st_mtime;
 		r->flags |= RULE_exists;
 	}
 	drop(buf);
@@ -1441,13 +1446,13 @@ static void check_shellaction(Rule_t *r, int e)
 		;
 	else if (status(NULL, 0, r->name, &fstat))	/* target file exists? */
 	{
+		if (fstat.st_mtime <= r->origtime && (r->flags & (RULE_exists | RULE_dontcare)) == RULE_exists && state.strict >= 5)
+			error_making(r, -2);		/* "target not updated" */
 		r->time = fstat.st_mtime;
 		r->flags |= RULE_exists;
 	}
 	else if (!(r->flags & RULE_dontcare))
 		error_making(r, -1);			/* "target not generated" */
-	if (e > state.exitstatus)
-		state.exitstatus = e;
 }
 
 /*

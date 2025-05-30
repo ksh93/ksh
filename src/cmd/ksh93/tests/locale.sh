@@ -497,4 +497,35 @@ then	LANG=C.UTF-8
 fi
 
 # ======
+# https://github.com/ksh93/ksh/issues/861#issuecomment-2917738184
+if	((SHOPT_MULTIBYTE))
+then	LANG=C.UTF-8
+	got=$(set +x; redirect 2>&1; readonly コーンシェル=OK; echo "$コーンシェル")
+	exp=OK
+	[[ $got == "$exp" ]] || err_exit 'declaration command assignment with multibyte variable name' \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+fi
+
+# ======
+if	((SHOPT_MULTIBYTE))
+then	export LANG=C.UTF-8
+	# initial A makes it sort before LANG, LC_* -- so this checks locale is init'ed before importing environment
+	got=$(export Aコーンシェル=OK; "$SHELL" -c 'echo "${Aコーンシェル}"' 2>&1)
+	exp=OK
+	[[ $got == "$exp" ]] || err_exit 'importing environment variable with multibyte variable name' \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+	# test that this works in multiple levels of execution of scripts without hashbang (#!) path
+	echo >foo1 $'echo "foo1: A日本語の変数名==${A日本語の変数名}"\n./foo2\necho end1'
+	echo >foo2 $'echo "foo2: A日本語の変数名==${A日本語の変数名}"\n./foo3\necho end2'
+	echo >foo3 $'echo "foo3: A日本語の変数名==${A日本語の変数名}"\n./foo4\necho end3'
+	echo >foo4 $'echo "foo4: A日本語の変数名==${A日本語の変数名}"\necho end4'
+	chmod +x foo1 foo2 foo3 foo4
+	exp=$'foo1: A日本語の変数名==OK\nfoo2: A日本語の変数名==OK\nfoo3: A日本語の変数名==OK\nfoo4: A日本語の変数名==OK\nend4\nend3\nend2\nend1'
+	got=$(A日本語の変数名=OK ./foo1)
+	[[ $got == "$exp" ]] || err_exit 'importing environment variable with multibyte variable name in script without #! path' \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

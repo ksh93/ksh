@@ -1757,4 +1757,17 @@ case ${.sh.version} in
 esac
 
 # ======
+# https://github.com/ksh93/ksh/issues/861
+unset i
+typeset -i i
+for ((i=0; i<10000; i++))
+do	echo "readonly this_is_very_long_variable_name_number_$i=1"
+done >issue861.sh
+chmod +x issue861.sh
+got=$(./issue861.sh 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "variable name length corrupted when reading across buffer boundary" \
+	"(got status $e, $(printf %q "$got"))"
+unset i
+
+# ======
 exit $((Errors<125?Errors:125))

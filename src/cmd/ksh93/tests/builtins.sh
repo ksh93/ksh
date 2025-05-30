@@ -599,7 +599,6 @@ if ((!SHOPT_ECHOPRINT)) && builtin getconf 2> /dev/null; then
 	[[ $($SHELL -c 'echo -3') == -3 ]] || err_exit "echo -3 not working in ucb universe"
 fi
 $SHELL -c 'sleep $(printf "%a" .95)' 2> /dev/null || err_exit "sleep doesn't accept %a format constants"
-$SHELL -c 'test \( ! -e \)' 2> /dev/null ; [[ $? == 1 ]] || err_exit 'test \( ! -e \) not working'
 [[ $(ulimit) == "$(ulimit -fS)" ]] || err_exit 'ulimit is not the same as ulimit -fS'
 tmpfile=$tmp/file.2
 print $'\nprint -r -- "${.sh.file} ${LINENO} ${.sh.lineno}"' > $tmpfile
@@ -1722,23 +1721,6 @@ case $(PATH=/opt/ast/bin:$PATH; exec cat '--???SECTION' </dev/null 2>&1) in
 esac
 
 # ======
-# checks for tests run in parallel (see top)
-wait "$parallel_1"
-case $? in
-0)	;;
-14)	err_exit "sleep doesn't exit 0 with ALRM interrupt" ;;
-15)	err_exit "ALRM signal causes sleep to terminate prematurely" ;;
-*)	err_exit "broken test" ;;
-esac
-wait "$parallel_2"
-case $? in
-0)	;;
-14)	err_exit "read -t in pipe taking too long" ;;
-15)	err_exit "read -t in pipe not taking long enough" ;;
-*)	err_exit "broken test" ;;
-esac
-
-# ======
 # https://github.com/ksh93/ksh/issues/794
 
 exp=$'issue794: --file: value not expected\n?: '
@@ -1767,4 +1749,27 @@ got=$(set +x; redirect 2>&1; "$SHELL" -c 'fc -p !! !nonexistent')
 fi # SHOPT_HISTEXPND
 
 # ======
+if((SHOPT_MULTIBYTE));then
+got=$(printf '\u0025\n' 2>&1)
+exp='%'
+[[ $got == "$exp" ]] || err_exit '\u0025 misparsed as literal % in printf formatter' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi # SHOPT_MULTIBYTE
+
+# ====== MUST BE AT END ======
+# checks for tests run in parallel (see top)
+wait "$parallel_1"
+case $? in
+0)	;;
+14)	err_exit "sleep doesn't exit 0 with ALRM interrupt" ;;
+15)	err_exit "ALRM signal causes sleep to terminate prematurely" ;;
+*)	err_exit "broken test" ;;
+esac
+wait "$parallel_2"
+case $? in
+0)	;;
+14)	err_exit "read -t in pipe taking too long" ;;
+15)	err_exit "read -t in pipe not taking long enough" ;;
+*)	err_exit "broken test" ;;
+esac
 exit $((Errors<125?Errors:125))

@@ -272,7 +272,7 @@ The following *attribute*s are available:
 `makp` creates a rule that declares a dependency on a prerequisite file named
 by *target* in a manner equivalent to an empty `make` *target*/`done` block,
 with the optional *attribute*s applied to the new rule. A nonexistent
-prerequisite is an error unless a `virtual` or `dontcare` attribute is given.
+prerequisite is an error unless a `dontcare` attribute is given.
 Declaring a dependency on a prerequisite that is currently being made (i.e.:
 directly or indirectly within that prerequisite's block) is an error.
 
@@ -335,6 +335,11 @@ are expanded; their literal values are inserted into the *code* line
 Because variables are expanded when the line is encountered, the value
 of the automatic variables for any `exec` line depends on the position
 of the line in the rule.
+
+At strict level 5 and up, mamake throws a "target not updated" error if a
+generated file is not newer than the newest prerequisite after its
+associated shell action has been executed, unless the rule has the
+`dontcare` attribute.
 
 #### Viewpathing ####
 
@@ -612,3 +617,6 @@ maintain Mamfiles by hand. The following lists the important changes.
     * The new `-j` option for parallel building is allowed to take effect.
       Mamfile dependency declarations (`prev`, nested `make`...`done`, `bind`)
       are expected to be compatible with parallel processing.
+    * Unless the `dontcare` attribute is specified, it is an error for a
+      shell action to fail to update the timestamp of any pre-existing
+      target file associated with its rule.

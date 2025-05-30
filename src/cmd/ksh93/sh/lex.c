@@ -252,8 +252,7 @@ int sh_lex(Lex_t* lp)
 	int		n, c, mode=ST_BEGIN, wordflags=0;
 	int		inlevel=lp->lexd.level, assignment=0, ingrave=0;
 	int		epatchar=0;
-	char		*varnamefirst = NULL;
-	int		varnamelength = 0;
+	int		varnametry = 0, varnamecount = 0, varnamelength = 0;
 	SETLEN(1);
 	if(lp->lexd.paren)
 	{
@@ -311,7 +310,11 @@ int sh_lex(Lex_t* lp)
 	{
 		/* skip over characters in the current state */
 		state = sh_lexstates[mode];
-		while((n=STATE(state,c))==0);
+		do {
+			n = STATE(state,c);
+			if (varnametry)
+				varnamecount += LEN;
+		} while (n == 0);
 		switch(n)
 		{
 			case S_BREAK:
@@ -665,14 +668,18 @@ int sh_lex(Lex_t* lp)
 				}
 				/* FALLTHROUGH */
 			case S_RES:
-				varnamefirst = fcseek(0) - LEN;
+				varnametry = 1;
+				varnamecount = LEN;
 				if(!lp->lexd.dolparen)
 					lp->lexd.first = fcseek(0)-LEN;
 				else if(lp->lexd.docword)
 					lp->lexd.docend = fcseek(0)-LEN;
 				mode = ST_NAME;
 				if(c=='.')
+				{
 					fcseek(-LEN);
+					varnamecount -= LEN;
+				}
 				if(n!=S_TILDE)
 					continue;
 			tilde:
@@ -1131,12 +1138,13 @@ int sh_lex(Lex_t* lp)
 					goto epat;
 				continue;
 			case S_EQ:
-				if(varnamefirst && !varnamelength)
+				if(varnametry && !varnamelength)
 				{
-					varnamelength = fcseek(0) - LEN - varnamefirst;
+					varnamelength = varnamecount - LEN;
 					if(varnamelength > 0 && fcpeek(-LEN - 1) == '+')
 						varnamelength--;  /* += */
 				}
+				varnametry = 0;
 				assignment = lp->assignok;
 				/* FALLTHROUGH */
 			case S_COLON:
@@ -1151,8 +1159,8 @@ int sh_lex(Lex_t* lp)
 				}
 				break;
 			case S_BRACT:
-				if(varnamefirst && !varnamelength && fcpeek(-LEN - 1)!='.')
-					varnamelength = fcseek(0) - LEN - varnamefirst;
+				if(varnametry && !varnamelength && fcpeek(-LEN - 1)!='.')
+					varnamelength = varnamecount - LEN;
 				/* check for possible subscript */
 				if((n=endchar(lp))==RBRACT || n==RPAREN ||
 					(mode==ST_BRACE) ||

@@ -335,6 +335,16 @@ static void nv_restore(struct subshell *sp)
 		if(nv_isarray(mp))
 			 nv_putsub(mp,NULL,ARRAY_SCAN);
 		nofree = mp->nvfun?mp->nvfun->nofree:0;
+		if(np->nvalue==Empty)
+		{
+			if(nv_isnull(mp) && !nv_isvtree(np))
+			{
+				free(mp);
+				goto skip;
+			}
+			if(mp->nvalue && mp->nvalue!=Empty)
+				nv_offattr(mp,NV_NOFREE);
+		}
 		nv_unset(mp,NV_RDONLY|NV_CLONE);
 		if(nv_isarray(np))
 		{
