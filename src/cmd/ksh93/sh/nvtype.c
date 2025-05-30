@@ -115,7 +115,7 @@ typedef struct
 	char		*_dpointer;
 } _Align_;
 
-#define alignof(t)	((char*)&((_Align_*)0)->_d##t-(char*)&((_Align_*)0)->_c##t)
+#define alignof(t)	( offsetof(_Align_, _d##t) - offsetof(_Align_, _c##t) )
 
 static void put_type(Namval_t*, const char*, int, Namfun_t*);
 static Namval_t* create_type(Namval_t*, const char*, int, Namfun_t*);
