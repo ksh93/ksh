@@ -10,16 +10,6 @@ std	noreturn note{ noreturn ok }end compile{
 	int main(void) { foo(); }
 }end
 
-std	align note{ alignof ok }end compile{
-	#include <stdalign.h>
-	#include <stdio.h>
-	int main(void)
-	{
-		printf("Alignment of char = %zu\n", alignof(char));
-		return 0;
-	}
-}end
-
 cat{
 	#if __clang__
 	#pragma clang diagnostic ignored "-Wmissing-braces"
@@ -84,9 +74,6 @@ cat{
 	#else
 	#define noreturn /* empty */
 	#endif /* _std_noreturn */
-	#if _std_align
-	#include <stdalign.h>
-	#endif /* _std_align */
 }end
 
 if	tst - note{ <stdarg.h>+<wchar.h> works }end compile{
