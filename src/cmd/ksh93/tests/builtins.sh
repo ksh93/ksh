@@ -1645,6 +1645,17 @@ do	case $bltin in
 done 3< <(builtin)
 
 # ======
+# builtin -p must produce an error if the given builtin doesn't exist
+# https://github.com/ksh93/ksh/pull/856#issuecomment-2923384587
+exp='builtin: not: not found
+builtin: a: not found
+builtin: built-in: not found
+builtin type'
+got=$(set +x; redirect 2>&1; builtin -p not a built-in type)
+[[ $exp == $got ]] || err_exit "builtin -p doesn\'t function correctly when given arguments" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 # https://github.com/ksh-community/ksh/issues/19
 # https://github.com/ksh93/ksh/issues/602
 cd /

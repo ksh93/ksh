@@ -1234,7 +1234,13 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	{
 		if(tdata.prefix)
 		{
-			sfprintf(sfstdout,"%s %s\n",tdata.prefix,arg);
+			if(np = nv_search(arg,sh.bltin_tree,0))
+				sfprintf(sfstdout,"%s %s\n",tdata.prefix,arg);
+			else
+			{
+				errormsg(SH_DICT,ERROR_exit(0),"%s: %s",*argv,"not found");
+				r = 1;
+			}
 			argv++;
 			continue;
 		}
