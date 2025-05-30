@@ -171,6 +171,8 @@ else
 		['arr=(a b c); namespace test { typeset -g -F arr[1]=(1 2 3); }; typeset -p arr']='typeset -a -F arr=(0.0000000000 (1.0000000000 2.0000000000 3.0000000000) 0.0000000000)'
 		['arr=(a b c); namespace test { typeset -g -E arr[1]=(1 2 3); }; typeset -p arr']='typeset -a -E arr=(0 (1 2 3) 0)'
 		['arr=(a b c); namespace test { typeset -g -X24 arr[1]=(1 2 3); }; typeset -p arr']='typeset -a -X 24 arr=(0x0.000000000000000000000000p+0 (0x1.000000000000000000000000p+0 0x1.000000000000000000000000p+1 0x1.800000000000000000000000p+1) 0x0.000000000000000000000000p+0)'
+		['arr=(a b c); namespace test { typeset -A -g -i arr=([a]=1 [b]=2 [c]=3); }; typeset -p arr']='typeset -A -i arr=([a]=1 [b]=2 [c]=3)'
+		['typeset -A arr=([a]=a [b]=b [c]=c); namespace test { typeset -A -g -i arr=([a]=1 [b]=2 [c]=3); }; typeset -p arr']='typeset -A -i arr=([a]=1 [b]=2 [c]=3)'
 	)
 	for cmd in "${!exp[@]}"
 	do

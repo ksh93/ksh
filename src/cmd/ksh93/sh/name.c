@@ -2975,6 +2975,8 @@ void nv_newattr (Namval_t *np, unsigned newatts, int size)
 			free(cp);
 			cp = 0;
 		}
+		if(sh.subshell && !sh.subshare && nv_isattr(np,NV_ARRAY|NV_RDONLY)==NV_ARRAY && sp && sp!=Empty && sp!=AltEmpty && array_assoc(ap))
+			free(sp);
 	}
 	while(ap && nv_nextsub(np));
 #if SHOPT_FIXEDARRAY
