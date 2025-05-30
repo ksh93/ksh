@@ -22,7 +22,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - [v1.1] Fixed another bug with superfluous operands in test/[ that slipped
   through the cracks on 2024-12-08: test -n -a "" incorrectly returned 0. In
-  native mode, this is now an error (superflous operand to the unary -n
+  native mode, this is now an error (superfluous operand to the unary -n
   operator) and in POSIX mode, it returns 1/false, as POSIX-1.2017 rules
   require this to be a test for the non-emptiness of both strings -n and "".
 

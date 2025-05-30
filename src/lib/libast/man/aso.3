@@ -109,18 +109,21 @@ int		asorelax(long);
 The functions on the type \f3uint32_t\fP will be fully described below.
 Other functions work similarly on their respective types.
 Some of the functions may be macros that call other functions.
-64 bit operations are provided if the compiler supports 64 bit integers and/or pointers.
+64 bit operations are provided if the compiler supports 64 bit integers
+and/or pointers.
 .Ss "TYPES"
 \f3uint8_t, uint16_t, uint32_t, uint64_t\fP
 
 These are \fIunsigned integer\fP types of different sizes in bits.
-For example, \f3uint32_t\fP represents the type of unsigned integer with 32 bits or 4 bytes.
+For example, \f3uint32_t\fP represents the type of unsigned integer
+with 32 bits or 4 bytes.
 .Ss "OPERATIONS"
 .Ss "  uint32_t asoget32(uint32_t* from);"
 This function returns the value \f3*from\fP.
 .Ss "  uint32_t asoinc32(uint32_t* dest);"
 .Ss "  uint32_t asodec32(uint32_t* dest);"
-These functions increment \f3*dest\fP by 1 and decrement \f3*dest\fP by 1 in an atomic step.
+These functions increment \f3*dest\fP by 1 and decrement \f3*dest\fP by 1
+in an atomic step.
 The return value is the old value in \f3*dest\fP.
 
 Consider an example where two concurrent threads/processes call \f3asoinc32()\fP
@@ -128,22 +131,25 @@ on the same \f3dest\fP with values, say \fIv1\fP and \fIv2\fP.
 The eventual value in \f3dest\fP
 will be as if \f3*dest += 2\fP was performed in a single-threaded execution.
 
-That should be contrasted with a situation where, instead of \f3asoinc32()\fP or \f3asodec32()\fP,
+That should be contrasted with a situation where, instead of \f3asoinc32()\fP
+or \f3asodec32()\fP,
 only normal increment (++) or decrement (--) were used.
 Then, the end result could be either \f3*dest += 1\fP or \f3*dest += 2\fP,
 depending on states of the hardware cache and process scheduling.
 .Ss "  uint32_t asocas32(uint32_t* dest, uint32_t tstval, uint32_t newval);"
 This function provides the atomic \fIcompare-and-swap\fP operation.
-If the current content of \f3dest\fP is equal to \f3tstval\fP then it will be set to \f3newval\fP.
-If multiple threads/processes are performing the same operations only one will succeed with a
-return value of \f3tstval\fP.
+If the current content of \f3dest\fP is equal to \f3tstval\fP then it will be
+set to \f3newval\fP.
+If multiple threads/processes are performing the same operations only one
+will succeed with a return value of \f3tstval\fP.
 The return value is the old value in \f3*dest\fP.
 .Ss "  void asorelax(long nsec)"
 This function causes the calling process or thread to briefly pause
 for \f3nsec\fP nanoseconds.
 It is useful to implement tight loops that occasionally yield control.
 .Ss "  int asolock(unsigned int* lock, unsigned int key, int type)"
-This function uses \f3key\fP, a non-zero unsigned integer, to lock or unlock the \f3lock\fP.
+This function uses \f3key\fP, a non-zero unsigned integer, to lock or
+unlock the \f3lock\fP.
 It returns \f30\fP on success and \f3-1\fP on failure.
 The argument \f3type\fP can take one of the following values:
 .Tp
@@ -157,16 +163,19 @@ An error will result if the lock is already locked with a different key.
 .Tp
 \f3ASO_LOCK\fP:
 This is a regular locking call. If the lock is locked with a different key,
-this call will wait until the lock is open, then lock it with the given \f3key\fP.
+this call will wait until the lock is open, then lock it with
+the given \f3key\fP.
 .Tp
 \f3ASO_SPINLOCK\fP:
 Regardless of what key is currently locking the lock,
-this call will always wait until the lock is open, then lock it with the given \f3key\fP.
+this call will always wait until the lock is open, then lock it with
+the given \f3key\fP.
 Note that, if the lock is already locked with \f3key\fP, this call can result
 in a deadlock unless that lock can be opened by some other mechanism, e.g.,
 by a different process or thread.
 .Ss "  int asoloop(uintmax_t iteration);"
-This function is used to implement spin locks that periodically relinquish the processor:
+This function is used to implement spin locks that periodically relinquish
+the processor:
 .Cs
 uintmax_t iteration;
 iteration = 0;
@@ -176,9 +185,11 @@ for (;;) {
         /* an error occurred */;
 }
 .Ce
-The value of \f3iteration\fP should be \f31\fP (\fInot\fP \f30\fP) for the first loop iteration.
+The value of \f3iteration\fP should be \f31\fP (\fInot\fP \f30\fP) for the
+first loop iteration.
 \f30\fP is returned on success, \f3-1\fP on failure.
-If \f3iteration mod 4\fP is \f30\fP then \f3asorelax(1)\fP is called to temporarily relinquish
+If \f3iteration mod 4\fP is \f30\fP then \f3asorelax(1)\fP is called to
+temporarily relinquish
 the processor.
 If \f3Asodisc_t.hung != 0\fP and \f3Asodisc_t.errorf != 0\fP and
 \f3iteration mod (2**Asodisc_t.hung-1)\fP is \f30\fP,
@@ -186,98 +197,129 @@ then \f3Asodisc_t.errorf\fP is called with type \f3ASO_HUNG\fP
 and \f3-1\fP is returned.
 .Ss "DISCIPLINE"
 The Asodisc_t discipline structure allows the caller to modify default behavior.
-The \fIASO\fP discipline is global for all threads and forked children of the current process.
-The discipline is set and modified by the \f3asoinit()\fP function, described below.
+The \fIASO\fP discipline is global for all threads and forked children of the
+current process.
+The discipline is set and modified by the \f3asoinit()\fP function, described
+below.
 The structure members are:
 .Tp
 \f3uint32_t version;\fP
-This must be set to \f3ASO_VERSION\fP by the caller and is used by the implementation to detect
+This must be set to \f3ASO_VERSION\fP by the caller and is used by the
+implementation to detect
 release differences between the caller and the implementation.
-The version is integer of the form \fIYYYYMMDD\fP where \fIYYYY\fP is the release year, \fIMM\fP
+The version is integer of the form \fIYYYYMMDD\fP where \fIYYYY\fP is the
+release year, \fIMM\fP
 is the release month, and \fIDD\fP is the release day of month.
-This allows the implementation to be forwards and backwards binary compatible with all releases.
+This allows the implementation to be forwards and backwards binary compatible
+with all releases.
 .Tp
 \f3unsigned int hung;\fP
-An error occurs if \f3asoloop\fP() is called \f32**Asometh_t.hung\fP times without gaining access to the loop resource.
+An error occurs if \f3asoloop\fP() is called \f32**Asometh_t.hung\fP times
+without gaining access to the loop resource.
 The default value \f30\fP disables the test.
 .Tp
 \f3Asoerror_f errorf;\fP
 \f3int (*errorf)(int type, const char* mesg);\fP
-If \f3errorf\fP != \f30\fP then it is called for each \fIASO\fP fatal library condition.
-\f3type\fP may be one of: \f3ASO_METHOD\fP - a method error; \f3ASO_HUNG\fP - \f3asoloop\fP() was called
+If \f3errorf\fP != \f30\fP then it is called for each \fIASO\fP fatal
+library condition.
+\f3type\fP may be one of: \f3ASO_METHOD\fP - a method error;
+\f3ASO_HUNG\fP - \f3asoloop\fP() was called
 \f32**Asometh_t.hung\fP times with no access to the loop resource.
 \f3mesg\fP is a 0-terminated message description.
 .Ss "  void ASODISC(Asodisc_t* disc, Asoerror_f errorf);"
-This function-like-macro initializes \f3disc->version = ASO_VERSION\fP, \f3disc->errorf = errorf\fP,
+This function-like-macro initializes
+\f3disc->version = ASO_VERSION\fP, \f3disc->errorf = errorf\fP,
 and the remaining \f3disc\fP members to \f30\fP.
 .Ss "METHODS"
 Several atomic locking methods are implemented for atomic operations
 not supported by \fIintrinsic\fP functions or assembly instructions.
 Methods are controlled by the \f3asometh()\fP and \f3asoinit()\fP
 functions, described below.
-The \fIASO\fP method is global for all threads and forked children of the current process.
+The \fIASO\fP method is global for all threads and forked children of
+the current process.
 A given method may have multiple types.
 The methods types are:
 .Tp
 \f3ASO_INTRINSIC\fP:
-Some hardware platforms provide machine instructions to implement these operations directly.
-In that case, if a local compiler permits, calls to these \fIintrinsic\fP functions
+Some hardware platforms provide machine instructions to implement
+these operations directly.
+In that case, if a local compiler permits, calls to these
+\fIintrinsic\fP functions
 may be translated directly into their corresponding machine instructions.
-When necessary the implementation can use only the intrinsic \fIcompare-and-swap\fP
+When necessary the implementation can use only the
+intrinsic \fIcompare-and-swap\fP
 function on the largest integer type to emulate all other \fIASO\fP operations.
-The \f3ASO_INTRINSIC\fP method type is the default when supported by the compiler.
+The \f3ASO_INTRINSIC\fP method type is the default when supported
+by the compiler.
 It may be used for single-process single-thread, multi-thread, and
 multi-process applications.
-When supported by the hardware / compiler, the library provides the "\fBintrinsic\fP" method with type
+When supported by the hardware / compiler, the library provides the
+"\fBintrinsic\fP" method with type
 \f3ASO_INTRINSIC|ASO_PROCESS|ASO_THREAD|ASO_SIGNAL\fP.
 .Tp
 \f3ASO_SIGNAL\fP:
-This method type is suitable only for single-process single-thread applications.
+This method type is suitable only for single-process
+single-thread applications.
 It can be used to provide locking between asynchronous \fBsignal\fP(2) handlers
 and the main program.
 The library provides the "\fBsignal\fP" method with type \f3ASO_SIGNAL\fP.
 This is the default method type when \f3ASO_INTRINSIC\fP is not supported.
 .Tp
 \f3ASO_THREAD\fP:
-This method type is suitable for single-process single-thread, and multi-thread applications.
-It typically requires thread library support, and since the default \f3aso\fP library
-is not linked with a thread library, no \f3ASO_THREAD\fP method is provided by default.
-Threaded applications must link with \fB-ltaso\fP (before \fB-laso\fP or \fB-last\fP)
+This method type is suitable for single-process single-thread, and
+multi-thread applications.
+It typically requires thread library support, and since the default
+\f3aso\fP library is not linked with a thread library, no \f3ASO_THREAD\fP
+method is provided by default.
+Threaded applications must link with
+\fB-ltaso\fP (before \fB-laso\fP or \fB-last\fP)
 in order to access \f3ASO_THREAD\fP methods.
-The \fB-ltaso\fP library provides the "\fBspin\fP" (using \fBpthread_spin_lock\fP(3)) and
-"\fBmutex"\fP (using \fBpthread_mutex_lock\fP(3)) methods with type \f3ASO_THREAD|ASO_SIGNAL\fP.
+The \fB-ltaso\fP library provides the "\fBspin\fP" (using
+\fBpthread_spin_lock\fP(3)) and
+"\fBmutex"\fP (using \fBpthread_mutex_lock\fP(3)) methods with
+type \f3ASO_THREAD|ASO_SIGNAL\fP.
 .Tp
 \f3ASO_PROCESS\fP:
-This method type is suitable for single-process single-thread, and multi-process applications.
-Some \f3ASO_PROCESS\fP methods may also be suitable for multi-thread applications (if they have the \f3ASO_THREAD\fP type).
-These methods are typically and noticeably \fIslow\fP, up to 2 orders of magnitude slower than
+This method type is suitable for single-process single-thread,
+and multi-process applications.
+Some \f3ASO_PROCESS\fP methods may also be suitable for multi-thread
+applications (if they have the \f3ASO_THREAD\fP type).
+These methods are typically and noticeably \fIslow\fP, up to 2 orders
+of magnitude slower than
 \f3ASO_INTRINSIC\fP for some applications.
 They are provided as a last resort when other methods are not available.
-The library provides the "\fBsemaphore\fP" method with type \f3ASO_PROCESS|ASO_THREAD|ASO_SIGNAL\fP
+The library provides the "\fBsemaphore\fP" method with
+type \f3ASO_PROCESS|ASO_THREAD|ASO_SIGNAL\fP
 and the "\fBfcntl\fP" method with type \f3ASO_PROCESS|ASO_SIGNAL\fP.
 
 .Ss "  Asometh_t* asometh(int type, void* data);"
 This function looks up methods by type or name.
-If type is \f30\fP and \f3data\fP is \f30\fP then the current method is returned; a valid method
+If type is \f30\fP and \f3data\fP is \f30\fP then the current
+method is returned; a valid method
 will always be returned for this call.
-If type is \f30\fP then \f3data\fP is treated as a \f30\fP-terminated string method name;
+If type is \f30\fP then \f3data\fP is treated as a \f30\fP-terminated
+string method name;
 \f30\fP is returned if no matching method is found.
-The pseudo-type \f3ASO_NEXT\fP generates the list of all methods in successive calls:
+The pseudo-type \f3ASO_NEXT\fP generates the list of all methods
+in successive calls:
 .Cs
 Asometh_t* meth;
 meth = 0;
 while (meth = asometh(ASO_NEXT, meth))
 	/* examine meth->... */
 .Ce
-Otherwise if \f3type\fP is not \f30\fP and not \f3ASO_NEXT\fP it is treated as a combination of the ordered types
+Otherwise if \f3type\fP is not \f30\fP and not \f3ASO_NEXT\fP it is
+treated as a combination of the ordered types
 \f3ASO_THREAD\fP, \f3ASO_SIGNAL\fP, \f3ASO_INTRINSIC\fP, \f3ASO_PROCESS\fP:
 the first method with \f3(meth->type & type) != 0\fP is returned;
 \f30\fP is returned if no matching method is found.
 
 Method names are treated as a name, optionally followed by a list of
-\fB,\fP\fIname\fP=\fIvalue\fP details, and optionally ending with \fB,\fP\fIpathname\fP.
+\fB,\fP\fIname\fP=\fIvalue\fP details, and optionally ending
+with \fB,\fP\fIpathname\fP.
 The \fBsemaphore\fP method uses \fBsize\fP=\fInumber\fP to specify
-the number of semaphores and hashes \fIpathname\fP to determine the semaphore IPC key.
+the number of semaphores and hashes \fIpathname\fP to determine
+the semaphore IPC key.
 The \fBfcntl\fP method uses \fBsize\fP=\fInumber\fP to specify
 the number of 1 byte file locks and uses \fIpathname\fP as the
 file to lock using \f3fcntl(F_SETLCK[W])\fP.
@@ -323,18 +365,21 @@ A multi-process application would check for \f3(ASO_INTRINSIC|ASO_PROCESS)\fP
 instead of \f3(ASO_INTRINSIC|ASO_THREAD)\fP.
 
 .SH IMPLEMENTATION NOTES
-Unlike other \fIAST\fP library discipline/method functions which can instantiate
-multiple discipline/method handles within a single process, the \fIASO\fP
-library allows only one discipline and method to be set at a time, with the additional
-restriction that it may only be set by the main and only thread of the calling process.
+Unlike other \fIAST\fP library discipline/method functions
+which can instantiate
+multiple discipline/method handles within a single process,
+the \fIASO\fP library allows only one discipline and method to be set at a
+time, with the additional restriction that it may only be set by the main
+and only thread of the calling process.
 For this reason there is no open/close interface with an instantiation handle;
 instead the global discipline/method is simply initialized by \f3asoinit()\fP.
 
-\f3ASO_THREAD\fP and \f3ASO_PROCESS\fP methods rely on the \f3Asometh_t.lockf()\fP
-being sufficiently "heavy" to flush the calling thread/process memory cache
-so the subsequent \fIASO\fP operation operates on the physical memory location
-instead of the cached location. There is currently no other portable mechanism
-that guarantees this other than the \f3ASO_INTRINSIC\fP method.
+\f3ASO_THREAD\fP and \f3ASO_PROCESS\fP methods rely on
+the \f3Asometh_t.lockf()\fP being sufficiently "heavy" to flush the calling
+thread/process memory cache so the subsequent \fIASO\fP operation operates on
+the physical memory location instead of the cached location. There is currently
+no other portable mechanism that guarantees this other than the
+\f3ASO_INTRINSIC\fP method.
 
 .SH AUTHOR
 Kiem-Phong Vo, Adam Edgar, and Glenn Fowler

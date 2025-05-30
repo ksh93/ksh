@@ -444,6 +444,8 @@ tminit(Tm_zone_t* zp, time_t now, const char newzone)
 {
 	static uint32_t		serial = ~(uint32_t)0;
 
+	if(tz_abbr)
+		free(tz_abbr);
 	tz_abbr = 0;
 	if (serial != ast.env_serial)
 	{

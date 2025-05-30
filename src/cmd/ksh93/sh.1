@@ -2144,7 +2144,8 @@ The first (default: \f3!\fP) signals the start of a history expansion.
 The second (default: \f3^\fP) is used for short-form substitutions.
 The third (default: \f3#\fP), when found as the first character of a word,
 causes history expansion to be skipped for the rest of the words on the line.
-Multi-byte characters (e.g. UTF-8) are not supported and produce undefined results.
+Multi-byte characters (e.g. UTF-8) are not supported and produce
+undefined results.
 .TP
 .B
 .SM HISTCMD
@@ -2437,7 +2438,8 @@ The number of CPU seconds spent in user mode.
 The number of CPU seconds spent in system mode.
 .TP
 .B %[\fIp\fP][l]C
-The total number of CPU seconds, i.e. the sum of the time spent in user and system mode.
+The total number of CPU seconds, i.e. the sum of the time spent in
+user and system mode.
 .TP
 .B %P
 The CPU percentage, computed as C / R.
@@ -3134,7 +3136,8 @@ Expands to the character control-\f2x\fP.
 Same as \eC. Deprecated.
 .TP
 .BI \ex hh
-Expands to the single-byte character indicated by up to two hexadecimal digits \f2h\fP.
+Expands to the single-byte character indicated by up to two
+hexadecimal digits \f2h\fP.
 Differently from C strings, no more than two hexadecimal digits are processed.
 The string of digits \f2h\fP may be enclosed in \f3[\fPsquare brackets\f3]\fP;
 this can resolve ambiguities with subsequent text.
@@ -4794,8 +4797,10 @@ Normally, this means that a command line with an erroneous history expansion
 is lost and needs to be retyped from scratch,
 but if the \f3histreedit\fP shell option is turned on
 and a line editor is active (see \f2In-line Editing Options\fP below),
-the erroneous line is pre-filled into the next prompt's input buffer for correcting.
-The \f3histverify\fP option causes the same to be done for the results of successful
+the erroneous line is pre-filled into the next prompt's input buffer
+for correcting.
+The \f3histverify\fP option causes the same to be done for the results
+of successful
 history expansions, allowing verification and editing before execution.
 .PP
 A history expansion may have an \f2event specification\fP, which indicates
@@ -4843,12 +4848,14 @@ output by the \f3hist -l\fP command:
 The commands are shown with their event numbers.
 The current event, which we haven't typed in yet, is event 13.
 \f3!11\fP and \f3!\-2\fP refer to event 11.
-\f3!!\fP refers to the previous event, 12.  \f3!!\fP can be abbreviated \f3!\fP if it is
+\f3!!\fP refers to the previous event, 12.  \f3!!\fP can be
+abbreviated \f3!\fP if it is
 followed by \f3:\fP (see below).
 \f3!n\fP refers to event 9, which begins with \f3n\fP.
 \f3!?old?\fP also refers to event 12, which contains \f3old\fP.
-Without word designators or modifiers, history references simply expand to the
-entire event, so we might type \f3!cp\fP to redo the copy command or \f3!!|more\fP
+Without word designators or modifiers, history references simply
+expand to the entire event, so we might type \f3!cp\fP to redo the
+copy command or \f3!!|more\fP
 if the \f3diff\fP output scrolled off the top of the screen.
 .PP
 To select words from an event,
@@ -4902,8 +4909,8 @@ arguments from the \f3cp\fP command.  If we didn't care about the order of the
 \f3diff\fP, we might have said \f3diff !\-2:1\-2\fP or simply \f3diff !\-2:*\fP.
 The \f3cp\fP command might have been written \f3cp wumpus.man !#:1.old\fP,
 using \f3#\fP to refer to the current event.
-\f3!n:\- hurkle.man\fP would reuse the first two words from the \f3nroff\fP command
-to say \f3nroff \-man hurkle.man\fP.
+\f3!n:\- hurkle.man\fP would reuse the first two words from
+the \f3nroff\fP command to say \f3nroff \-man hurkle.man\fP.
 .PP
 The \f3:\fP separating the event specification from the word designator
 can be omitted if the argument selector begins with a
@@ -4911,7 +4918,8 @@ can be omitted if the argument selector begins with a
 For example, our \f3diff\fP command might have been \f3diff !!^.old !!^\fP
 or, equivalently, \f3diff !!$.old !!$\fP.
 However, if \f3!!\fP is abbreviated \f3!\fP,
-an argument selector beginning with \f3\-\fP will be interpreted as an event specification.
+an argument selector beginning with \f3\-\fP will be interpreted
+as an event specification.
 .PP
 The word(s) in a history reference can be edited
 by following them with one or more modifiers,
@@ -4946,7 +4954,8 @@ If \f2l\fP is empty,
 the \f2l\fP from the previous substitution is used,
 or if there is none,
 the \f2s\fP from the most recent \f3?\fP\f2s\fP\f3?\fP search.
-The trailing delimiter may be omitted if it is immediately followed by a newline.
+The trailing delimiter may be omitted if it is immediately followed
+by a newline.
 .TP 8
 .B &
 Repeat the previous substitution.
@@ -4981,8 +4990,10 @@ We might follow \f3mail \-s "I forgot my password" rot\fP
 with \f3!:s/rot/root\fP to correct the spelling of \f3root\fP.
 .PP
 History expansions also occur when an input line begins with \f3^\fP.
-When it is the first character on an input line, it is an abbreviation of \f3!:s^\fP.
-Thus we might have said \f3^rot^root\fP to make the spelling correction in the previous example.
+When it is the first character on an input line,
+it is an abbreviation of \f3!:s^\fP.
+Thus we might have said \f3^rot^root\fP to make the spelling correction
+in the previous example.
 This is the only history expansion that does not explicitly begin with \f3!\fP.
 .PP
 If a word on a command line begins with the history comment character \f3#\fP,
@@ -4990,7 +5001,8 @@ history expansion is ignored for the rest of that line.
 This usually causes the shell parser
 (which uses the same character to signal a comment)
 to treat the rest of the line as a comment as well,
-but as history expansion is parsed separately from the shell grammar and with different rules,
+but as history expansion is parsed separately from the shell grammar
+and with different rules,
 this cannot be guaranteed in all cases.
 If the history comment character is changed,
 the shell grammar comment character does not change along with it.
@@ -6410,9 +6422,11 @@ is given, the name
 and value of the alias is printed.
 The obsolete
 .B \-x
-option has no effect in most contexts, although if it's used with
+option has no effect in most contexts, but when it's used with
 .B \-t
-it will suppress all output.
+it will cause
+.B alias
+to do nothing.
 The exit status is non-zero if a
 .I name\^
 is given, but no value, and no alias has been defined for the

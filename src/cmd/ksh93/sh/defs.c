@@ -24,6 +24,7 @@
 #include	"shopt.h"
 #include	"defs.h"
 #include	"jobs.h"
+#include	"shlex.h"
 
 Shell_t			sh = {0};
 

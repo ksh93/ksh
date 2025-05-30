@@ -97,6 +97,8 @@ struct Namtype
 	unsigned short	nref;
 };
 
+#if !_std_align
+/* Pre-C11 fallback for alignof() */
 typedef struct
 {
 	char		_cSfdouble_t;
@@ -114,8 +116,8 @@ typedef struct
 	char		_cpointer;
 	char		*_dpointer;
 } _Align_;
-
 #define alignof(t)	((char*)&((_Align_*)0)->_d##t-(char*)&((_Align_*)0)->_c##t)
+#endif
 
 static void put_type(Namval_t*, const char*, int, Namfun_t*);
 static Namval_t* create_type(Namval_t*, const char*, int, Namfun_t*);
@@ -182,7 +184,11 @@ size_t nv_datasize(Namval_t *np, size_t *offset)
 		s = nv_size(np);
 	else
 	{
+#if !_std_align
 		a = alignof(pointer);
+#else
+		a = alignof(char*);
+#endif
 		s = nv_size(np);
 	}
 	if(a>1 && offset)
