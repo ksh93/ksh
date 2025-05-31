@@ -203,6 +203,7 @@ extern int		sfraise(Sfio_t*, int, void*);
 extern int		sfnotify(void(*)(Sfio_t*, int, void*));
 extern int		sfset(Sfio_t*, int, int);
 extern int		sfsetfd(Sfio_t*, int);
+extern int		sfsetfd_cloexec(Sfio_t*, int);
 extern Sfio_t*		sfpool(Sfio_t*, Sfio_t*, int);
 extern ssize_t		sfread(Sfio_t*, void*, size_t);
 extern ssize_t		sfwrite(Sfio_t*, const void*, size_t);

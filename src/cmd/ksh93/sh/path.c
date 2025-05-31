@@ -472,7 +472,7 @@ static int	opentype(const char *name, Pathcomp_t *pp, int fun)
 			continue;
 		if(fun && (!pp || !(pp->flags&PATH_FPATH)))
 			continue;
-		if((fd = sh_open(path_relative(stkptr(sh.stk,PATH_OFFSET)),O_RDONLY,0)) >= 0)
+		if((fd = sh_open(path_relative(stkptr(sh.stk,PATH_OFFSET)),O_RDONLY|O_cloexec,0)) >= 0)
 		{
 			if(fstat(fd,&statb)<0 || S_ISDIR(statb.st_mode))
 			{
@@ -483,11 +483,8 @@ static int	opentype(const char *name, Pathcomp_t *pp, int fun)
 		}
 	}
 	while(fd<0 && nextpp);
-	if(fd>=0 && (fd = sh_iomovefd(fd)) > 0)
-	{
-		fcntl(fd,F_SETFD,FD_CLOEXEC);
-		sh.fdstatus[fd] |= IOCLEX;
-	}
+	if(fd>=0 && (fd = sh_iomovefd(fd)) > 0 && !(sh.fdstatus[fd]&IOCLEX))
+		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 	return fd;
 }
 
@@ -889,7 +886,7 @@ static int canexecute(char *path, int isfun)
 	path = path_relative(path);
 	if(isfun)
 	{
-		if((fd=open(path,O_RDONLY,0))<0 || fstat(fd,&statb)<0)
+		if((fd=open(path,O_RDONLY|O_cloexec,0))<0 || fstat(fd,&statb)<0)
 			goto err;
 	}
 	else if(stat(path,&statb) < 0)
@@ -1346,14 +1343,13 @@ static noreturn void exscript(char *path,char *argv[])
 	{
 		static Stk_t	*envstk;
 		Stk_t		*savstk = sh.stk;
-		if (envstk)
-			stkset(envstk, NULL, 0);
-		else
-			envstk = stkopen(STK_SMALL);
-		sh.stk = envstk;
+		/* if one script executes another, sh_envgen may need to read from the old envstk, so both need to exist */
+		sh.stk = stkopen(STK_SMALL);
 		environ = sh_envgen();
+		if (envstk)
+			stkclose(envstk);
+		stkfreeze(envstk = sh.stk, 0);
 		sh.stk = savstk;
-		stkfreeze(envstk,0);
 	}
 	/*
 	 * Longjmp with SH_JMPSCRIPT triggers a chain of longjmps to restore state as appropriate,

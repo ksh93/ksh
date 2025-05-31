@@ -212,7 +212,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_exit(1),e_create,"");
 			UNREACHABLE();
 		}
-		if((fdo=open(fname,O_CREAT|O_RDWR,S_IRUSR|S_IWUSR)) < 0)
+		if((fdo=open(fname,O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR)) < 0)
 		{
 			errormsg(SH_DICT,ERROR_system(1),e_create,fname);
 			UNREACHABLE();

@@ -2146,6 +2146,7 @@ char **sh_envgen(void)
 	char **er;
 	int namec;
 	struct adata data;
+	int i;
 	data.tp = 0;
 	data.mapname = 0;
 	/* L_ARGNOD gets generated automatically as full path name of command */
@@ -2154,9 +2155,14 @@ char **sh_envgen(void)
 	namec += sh.save_env_n;
 	er = stkalloc(sh.stk,(namec+4)*sizeof(char*));
 	data.argnam = (er+=2) + sh.save_env_n;
-	/* Pass non-imported env vars to child */
-	if(sh.save_env_n)
-		memcpy(er,sh.save_env,sh.save_env_n*sizeof(char*));
+	/* Physically copy the saved non-importable env vars, as the old environ[] may be freed by exscript() */
+	for (i = 0; i < sh.save_env_n; i++)
+	{
+		size_t sz = strlen(sh.save_env[i]) + 1;
+		char *cp = stkalloc(sh.stk, sz);
+		memcpy(cp, sh.save_env[i], sz);
+		er[i] = sh.save_env[i] = cp;
+	}
 	/* Add exported vars */
 	nv_scan(sh.var_tree, pushnam,&data,NV_EXPORT, NV_EXPORT);
 	*data.argnam = 0;

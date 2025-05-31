@@ -1,0 +1,61 @@
+tst	fchdir_osearch_compat note{ can fchdir(2) use file descriptors obtained using O_PATH or O_SEARCH }end output{
+	#include <ast.h>
+	#include <wait.h>
+	#include <stdio.h>
+	#if !O_SEARCH
+	#error No O_SEARCH or O_PATH detected; fchdir is unreliable
+	#endif
+	int main(void)
+	{
+		char	dirname[64];
+		int	n;
+		pid_t	child;
+		sprintf(dirname,".dir2.%u",(unsigned int)getpid());
+		mkdir(dirname,0777);
+		child = fork();
+		if(child==0)
+		{
+	#if _lib_openat
+			if((n = openat(AT_FDCWD, dirname, O_DIRECTORY|O_NONBLOCK|O_cloexec|O_SEARCH)) < 0)
+	#else
+			if((n = open(dirname, O_DIRECTORY|O_cloexec|O_SEARCH)) < 0)  /* vulnerable to race, but that's not a concern */
+	#endif
+				return 1;  /* couldn't even obtain a file descriptor */
+			if(fchdir(n) < 0)
+				return 1;  /* couldn't change the directory (perhaps Linux <3.2.23) */
+			return 0;
+		}
+		else if(child==-1)
+		{
+			rmdir(dirname);
+			return 1;
+		}
+		/* a parent process removes the empty dir because that's safer than 'cd ..' */
+		waitpid(child, &n, 0);
+		rmdir(dirname);
+		return WEXITSTATUS(n);
+	}
+}end
+
+tst	openat_enotdir note{ does openat set ENOTDIR when it fails because the file isn't a directory }end output{
+	#include <ast.h>
+	#include <stdio.h>
+	#include <errno.h>
+	#if !_lib_openat
+	#error openat(2) doesn't exist, so this test is pointless
+	#endif
+	int main(void)
+	{
+		char	filename[64];
+		int	n, saverrno;
+		pid_t	child;
+		sprintf(filename,".file.%u",(unsigned int)getpid());
+		open(filename,O_RDWR|O_CREAT);  /* let the OS close the fd after completion */
+		openat(AT_FDCWD, filename, O_DIRECTORY|O_NONBLOCK|O_cloexec|O_SEARCH);
+		saverrno = errno;
+		unlink(filename);
+		if(saverrno != ENOTDIR)
+			return 1;
+		return 0;
+	}
+}end

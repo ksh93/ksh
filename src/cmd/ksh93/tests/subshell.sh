@@ -607,7 +607,7 @@ then    integer i
 	for ((i=11; i < 29; i++))
 	do      if      ! [[ -r /dev/fd/$i  || -w /dev/fd/$i ]]
 		then    a=$($SHELL -c "[[ -r /dev/fd/$i || -w /dev/fd/$i ]]")
-			(( $? )) || err_exit "file descriptor $i not close on exec"
+			(( $? )) || err_exit "file descriptor $i not close-on-exec"
 		fi
 	done
 fi

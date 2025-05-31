@@ -26,6 +26,7 @@
 
 #include	<ast.h>
 #include	<sfio.h>
+#include	"FEATURE/fchdir"
 
 #ifndef IOBSIZE
 #   define  IOBSIZE	(SFIO_BUFSIZE*sizeof(char*))
@@ -52,6 +53,12 @@
     struct ionod;
 #endif /* !ARG_RAW */
 
+/* if O_SEARCH/O_PATH is unreliable for fchdir, it's not worth using */
+#if !_fchdir_osearch_compat
+#undef O_SEARCH
+#define O_SEARCH 0
+#endif
+
 /*
  * Check if there is an editor active while avoiding repetitive #if flaggery.
  * The 0 definition is used to optimize out code if no editor is compiled in.
@@ -72,7 +79,7 @@ extern void 	sh_ioinit(void);
 extern int 	sh_iomovefd(int);
 extern int	sh_iorenumber(int,int);
 extern void 	sh_pclose(int[]);
-extern int	sh_rpipe(int[]);
+extern int	sh_rpipe(int[],int);
 extern void 	sh_iorestore(int,int);
 extern Sfio_t 	*sh_iostream(int);
 extern int	sh_redirect(struct ionod*,int);

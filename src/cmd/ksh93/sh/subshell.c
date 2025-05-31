@@ -105,10 +105,10 @@ void	sh_subtmpfile(void)
 		struct checkpt	*pp = (struct checkpt*)sh.jmplist;
 		struct subshell *sp = subshell_data->pipe;
 		/* save file descriptor 1 if open */
-		if((sp->tmpfd = fd = sh_fcntl(1,F_DUPFD,10)) >= 0)
+		if((sp->tmpfd = fd = sh_fcntl(1,F_dupfd_cloexec,10)) >= 0)
 		{
-			fcntl(fd,F_SETFD,FD_CLOEXEC);
-			sh.fdstatus[fd] = sh.fdstatus[1]|IOCLEX;
+			if(F_dupfd_cloexec == F_DUPFD)
+				sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 			close(1);
 		}
 		else if(errno!=EBADF)
@@ -569,18 +569,19 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		}
 		if(sp->pwdfd<0)
 		{
-			int n = open(e_dot,O_SEARCH);
+			int n = sh_open(e_dot,O_SEARCH|O_cloexec);
 			if(n>=0)
 			{
 				sp->pwdfd = n;
 				if(n<10)
 				{
-					sp->pwdfd = sh_fcntl(n,F_DUPFD,10);
-					close(n);
+					sp->pwdfd = sh_fcntl(n,F_dupfd_cloexec,10);
+					sh_close(n);
 				}
 				if(sp->pwdfd>0)
 				{
-					fcntl(sp->pwdfd,F_SETFD,FD_CLOEXEC);
+					if(!(sh.fdstatus[sp->pwdfd]&IOCLEX))
+						sh_fcntl(sp->pwdfd,F_SETFD,FD_CLOEXEC);
 					sp->pwdclose = 1;
 				}
 			}
@@ -734,7 +735,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			}
 			if(iop && sffileno(iop)==1)
 			{
-				int fd = sfsetfd(iop,sh_iosafefd(3));
+				int fd = sfsetfd_cloexec(iop,sh_iosafefd(3));
 				if(fd<0)
 				{
 					sh.toomany = 1;
@@ -745,7 +746,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				if(fd >= sh.lim.open_max)
 					sh_iovalidfd(fd);
 				sh.sftable[fd] = iop;
-				fcntl(fd,F_SETFD,FD_CLOEXEC);
 				sh.fdstatus[fd] = (sh.fdstatus[1]|IOCLEX);
 				sh.fdstatus[1] = IOCLOSE;
 			}
@@ -884,7 +884,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		else if(sp->pwd && strcmp(sp->pwd,sh.pwd))
 			path_newdir(sh.pathlist);
 		if(sp->pwdclose)
-			close(sp->pwdfd);
+			sh_close(sp->pwdfd);
 #endif /* _lib_openat */
 		free(sh.pwd);
 		sh.pwd = sp->pwd;

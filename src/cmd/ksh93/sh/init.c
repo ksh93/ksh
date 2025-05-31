@@ -1884,6 +1884,32 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 	return treep;
 }
 
+/* for env_init: performance-optimized check for "LANG=" || "LC_ALL=" || "LC_CTYPE=" */
+static inline int is_ctype_var(char *cp)
+{
+	return cp[0]=='L' &&
+		((cp[1]=='A' && cp[2]=='N' && cp[3]=='G' && cp[4]=='=') ||
+		 (cp[1]=='C' && cp[2]=='_' &&
+		  ((cp[3]=='A' && cp[4]=='L' && cp[5]=='L' && cp[6]=='=') ||
+		   (cp[3]=='C' && cp[4]=='T' && cp[5]=='Y' && cp[6]=='P' && cp[7]=='E' && cp[8]=='='))));
+}
+
+/* for env_init: import one env var */
+static void import1var(char *cp, int *save_env_n_ptr)
+{
+	int	n;
+	if(nv_open(cp,sh.var_tree,NV_EXPORT|NV_IDENT|NV_ASSIGN|NV_NOFAIL))
+		return;
+	/*
+	 * The shell assignment via nv_open() failed, so we cannot import this
+	 * env var (invalid name); save it for sh_envgen() to pass it on to
+	 * child processes. Re-do this after forking, as the locale may change.
+	 */
+	n = ++(*save_env_n_ptr);
+	sh.save_env = sh_realloc(sh.save_env, n * sizeof(char*));
+	sh.save_env[n - 1] = cp;
+}
+
 /*
  * read in the process environment and set up name-value pairs
  * skip over items that are not name-value pairs
@@ -1893,24 +1919,18 @@ static void env_init(void)
 	char		*cp;
 	char		**ep=environ;
 	int		save_env_n = 0;
-	/* set locale early to ensure locale-dependent variable names are not skipped as invalid */
-	setlocale(LC_ALL,"");
 	if(ep)
 	{
+		/* Import LC_ALL/LANG/LC_CTYPE first; the check for valid varname depends on the locale being set. */
+		while(cp = *ep++)
+			if(is_ctype_var(cp))
+				import1var(cp, &save_env_n);
+		ep = environ;
 		while(cp = *ep++)
 		{
-			if(strncmp(cp,"KSH_VERSION=",12)==0)
+			if(is_ctype_var(cp) || strncmp(cp,"KSH_VERSION=",12)==0)
 				continue;
-			if(!nv_open(cp,sh.var_tree,NV_EXPORT|NV_IDENT|NV_ASSIGN|NV_NOFAIL))
-			{	/*
-				 * If the shell assignment via nv_open() failed, we cannot import this
-				 * env var (invalid name); save it for sh_envgen() to pass it on to
-				 * child processes. Re-do this after forking, as the locale may change.
-				 */
-				save_env_n++;
-				sh.save_env = sh_realloc(sh.save_env, save_env_n*sizeof(char*));
-				sh.save_env[save_env_n-1] = cp;
-			}
+			import1var(cp, &save_env_n);
 		}
 	}
 	if(save_env_n==0 && sh.save_env)
