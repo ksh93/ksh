@@ -20,10 +20,12 @@
 #if __clang__
 #pragma clang diagnostic ignored "-Wparentheses"
 #pragma clang diagnostic ignored "-Wmissing-braces"
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
 #elif __GNUC__
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wparentheses"
 #pragma GCC diagnostic ignored "-Wmissing-braces"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 /*
  * Glenn Fowler

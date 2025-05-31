@@ -151,7 +151,8 @@ descendants have been completely processed.
 .IP
 FTW_DC: A directory that causes cycles. This is a terminal object.
 .IP
-FTW_DNR: A directory that cannot be opened for reading. This is a terminal object.
+FTW_DNR: A directory that cannot be opened for reading.
+This is a terminal object.
 .IP
 FTW_F: An ordinary file.
 .IP
@@ -167,8 +168,9 @@ The \fIstatus\fR field of \fIstruct FTW\fR is used to communicate information
 between \fIftwalk\fR and \fIuserf\fR. On calls to \fIuserf\fR, it has one of
 two values:
 .IP
-FTW_NAME: The name of the object as defined in \fIftw->name\fR should be used for
-accessing its file information. This is because \fIchdir\fR(2) has been used
+FTW_NAME: The name of the object as defined in \fIftw->name\fR
+should be used for accessing its file information.
+This is because \fIchdir\fR(2) has been used
 to set the current directory to a suitable place (see FTW_CHDIR).
 .IP
 FTW_PATH: The argument \fIpath\fR of \fIuserf\fR should be used

@@ -586,6 +586,7 @@ make install virtual
 		make sh/defs.c
 			prev include/jobs.h
 			prev include/defs.h
+			prev include/shlex.h
 			prev shopt.h
 		done
 

@@ -25,14 +25,14 @@
  *
  */
 
-#define SEARCHSIZE	80
+#define SEARCHSIZE	500
 
 #include	"FEATURE/cmds"
 #include        "FEATURE/locale"
 #include	"terminal.h"
 
 #define STRIP		0377
-#define LOOKAHEAD	80
+#define LOOKAHEAD	500
 
 #if SHOPT_MULTIBYTE
 #   include	"national.h"
