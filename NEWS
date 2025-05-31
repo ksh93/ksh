@@ -4,8 +4,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2025-05-31:
 
-- Fixed a bug that caused multiline to break when PS* prompts use the
-  kitty protocol (e.g. $'\E[4:5m' for formatting spaced dots).
+- Fixed a bug that caused the multiline option to break when PS*
+  prompts use the kitty terminal's escape sequence (e.g. $'\E[4:5m'
+  in the PS1 prompt for formatting spaced dots).
 
 2025-05-30:
 
