@@ -79,6 +79,9 @@ static int	(*fdnotify)(int,int);
 #   include <sys/socket.h>
 #   include <netdb.h>
 #   include <netinet/in.h>
+#   ifndef SOCK_CLOEXEC
+#      define SOCK_CLOEXEC 0
+#   endif
 #   if !defined(htons) && !_lib_htons
 #      define htons(x)	(x)
 #   endif
@@ -93,9 +96,9 @@ static int	(*fdnotify)(int,int);
 #         define SHUT_WR         1
 #      endif
 #      if _socketpair_shutdown_mode
-#         define pipe(v) ((socketpair(AF_UNIX,SOCK_STREAM,0,v)<0||shutdown((v)[1],SHUT_RD)<0||fchmod((v)[1],S_IWUSR)<0||shutdown((v)[0],SHUT_WR)<0||fchmod((v)[0],S_IRUSR)<0)?(-1):0)
+#         define socketpipe(v,f) ((socketpair(AF_UNIX,SOCK_STREAM|((f)?SOCK_CLOEXEC:0),0,v)<0||shutdown((v)[1],SHUT_RD)<0||fchmod((v)[1],S_IWUSR)<0||shutdown((v)[0],SHUT_WR)<0||fchmod((v)[0],S_IRUSR)<0)?(-1):0)
 #      else
-#         define pipe(v) ((socketpair(AF_UNIX,SOCK_STREAM,0,v)<0||shutdown((v)[1],SHUT_RD)<0||shutdown((v)[0],SHUT_WR)<0)?(-1):0)
+#         define socketpipe(v,f) ((socketpair(AF_UNIX,SOCK_STREAM|((f)?SOCK_CLOEXEC:0),0,v)<0||shutdown((v)[1],SHUT_RD)<0||shutdown((v)[0],SHUT_WR)<0)?(-1):0)
 #      endif
 #   endif
 
@@ -292,6 +295,8 @@ inetopen(const char* path, int flags)
 			p->ai_protocol = hint.ai_protocol;
 		if (!p->ai_socktype)
 			p->ai_socktype = hint.ai_socktype;
+		if (flags & O_cloexec)
+			p->ai_socktype |= SOCK_CLOEXEC;
 		while ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) >= 0)
 		{
 			if (server && !bind(fd, p->ai_addr, p->ai_addrlen) && !listen(fd, 5) || !server && !connect(fd, p->ai_addr, p->ai_addrlen))
@@ -633,10 +638,7 @@ static void io_preserve(Sfio_t *sp, int f2)
 	sh.sftable[fd] = sp;
 	sh.fdstatus[fd] = sh.fdstatus[f2];
 	if(fcntl(f2,F_GETFD,0)&1)
-	{
-		fcntl(fd,F_SETFD,FD_CLOEXEC);
-		sh.fdstatus[fd] |= IOCLEX;
-	}
+		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 	sh.sftable[f2] = 0;
 }
 
@@ -862,13 +864,18 @@ int sh_open(const char *path, int flags, ...)
 	if((sp = sh.sftable[fd]) && (sfset(sp,0,0) & SFIO_STRING))
 	{
 		int n,err=errno;
-		if((n = sh_fcntl(fd,F_DUPFD,10)) >= 10)
+		int dupflag = (flags&O_cloexec) ? F_dupfd_cloexec : F_DUPFD;
+		if((n = fcntl(fd,dupflag,10)) >= 10)
 		{
 			while(close(fd) < 0 && errno == EINTR)
 				errno = err;
 			fd = n;
+			if((flags&O_cloexec) && F_dupfd_cloexec == F_DUPFD)
+				fcntl(fd,F_SETFD,FD_CLOEXEC);
 		}
 	}
+	if(flags&O_cloexec)
+		mode |= IOCLEX;
 	sh.fdstatus[fd] = mode;
 	return fd;
 }
@@ -893,13 +900,19 @@ int sh_chkopen(const char *name)
  */
 int sh_iomovefd(int fdold)
 {
-	int fdnew;
+	int fdnew, dupflags;
 	if(fdold >= sh.lim.open_max)
 		sh_iovalidfd(fdold);
 	if(fdold<0 || fdold>2)
 		return fdold;
-	fdnew = sh_iomovefd(dup(fdold));
-	sh.fdstatus[fdnew] = (sh.fdstatus[fdold]&~IOCLEX);
+	if(sh.fdstatus[fdold]&IOCLEX)
+		dupflags = F_dupfd_cloexec;
+	else
+		dupflags = F_DUPFD;
+	fdnew = sh_iomovefd(fcntl(fdold,dupflags,3));
+	if((sh.fdstatus[fdold]&IOCLEX) && F_dupfd_cloexec == F_DUPFD)
+		fcntl(fdnew,F_SETFD,FD_CLOEXEC);
+	sh.fdstatus[fdnew] = sh.fdstatus[fdold];
 	close(fdold);
 	sh.fdstatus[fdold] = IOCLOSE;
 	return fdnew;
@@ -908,52 +921,69 @@ int sh_iomovefd(int fdold)
 /*
  * create a pipe and print message on failure
  */
-int	sh_pipe(int pv[])
+int	sh_pipe(int pv[], int cloexec)
 {
 	int fd[2];
-#ifdef pipe
+#ifndef socketpipe
+	return sh_rpipe(pv,cloexec);
+#else
 	if(sh_isoption(SH_POSIX))
-		return sh_rpipe(pv);
-#endif
-	if(pipe(fd)<0 || (pv[0]=fd[0])<0 || (pv[1]=fd[1])<0)
+		return sh_rpipe(pv,cloexec);
+	if(socketpipe(fd,cloexec)<0 || (pv[0]=fd[0])<0 || (pv[1]=fd[1])<0)
 	{
 		errormsg(SH_DICT,ERROR_system(1),e_pipe);
 		UNREACHABLE();
 	}
-	pv[0] = sh_iomovefd(pv[0]);
-	pv[1] = sh_iomovefd(pv[1]);
-	sh.fdstatus[pv[0]] = IONOSEEK|IOREAD;
-	sh.fdstatus[pv[1]] = IONOSEEK|IOWRITE;
+	if(cloexec)
+		cloexec = IOCLEX;
+#if !SOCK_CLOEXEC
+	if(pv[0]>2 && cloexec)
+		fcntl(pv[0],F_SETFD,FD_CLOEXEC);
+	if(pv[1]>2 && cloexec)
+		fcntl(pv[1],F_SETFD,FD_CLOEXEC);
+#endif
+	sh.fdstatus[pv[0]] = IONOSEEK|IOREAD|cloexec;
+	sh.fdstatus[pv[1]] = IONOSEEK|IOWRITE|cloexec;
+	if(pv[0]<=2)
+		pv[0] = sh_iomovefd(pv[0]);
+	if(pv[1]<=2)
+		pv[1] = sh_iomovefd(pv[1]);
+	sh_subsavefd(pv[0]);
+	sh_subsavefd(pv[1]);
+	return 0;
+#endif /* socketpipe */
+}
+
+#if !_lib_pipe2 || !O_cloexec
+#    define pipe2(a,b)	pipe(a)
+#endif
+/* create a real pipe when pipe() is socketpair */
+int	sh_rpipe(int pv[], int cloexec)
+{
+	int fd[2];
+	if(pipe2(fd,cloexec?O_cloexec:0)<0 || (pv[0]=fd[0])<0 || (pv[1]=fd[1])<0)
+	{
+		errormsg(SH_DICT,ERROR_system(1),e_pipe);
+		UNREACHABLE();
+	}
+	if(cloexec)
+		cloexec = IOCLEX;
+#if !_lib_pipe2 || !O_cloexec
+	if(pv[0]>2 && cloexec)
+		fcntl(pv[0],F_SETFD,FD_CLOEXEC);
+	if(pv[1]>2 && cloexec)
+		fcntl(pv[1],F_SETFD,FD_CLOEXEC);
+#endif
+	sh.fdstatus[pv[0]] = IONOSEEK|IOREAD|cloexec;
+	sh.fdstatus[pv[1]] = IONOSEEK|IOWRITE|cloexec;
+	if(pv[0]<=2)
+		pv[0] = sh_iomovefd(pv[0]);
+	if(pv[1]<=2)
+		pv[1] = sh_iomovefd(pv[1]);
 	sh_subsavefd(pv[0]);
 	sh_subsavefd(pv[1]);
 	return 0;
 }
-
-#ifndef pipe
-   int	sh_rpipe(int pv[])
-   {
-   	return sh_pipe(pv);
-   }
-#else
-#  undef pipe
-   /* create a real pipe when pipe() is socketpair */
-   int	sh_rpipe(int pv[])
-   {
-	int fd[2];
-	if(pipe(fd)<0 || (pv[0]=fd[0])<0 || (pv[1]=fd[1])<0)
-	{
-		errormsg(SH_DICT,ERROR_system(1),e_pipe);
-		UNREACHABLE();
-	}
-	pv[0] = sh_iomovefd(pv[0]);
-	pv[1] = sh_iomovefd(pv[1]);
-	sh.fdstatus[pv[0]] = IONOSEEK|IOREAD;
-	sh.fdstatus[pv[1]] = IONOSEEK|IOWRITE;
-	sh_subsavefd(pv[0]);
-	sh_subsavefd(pv[1]);
-	return 0;
-   }
-#endif
 
 static size_t pat_line(const regex_t* rp, const char *buff, size_t n)
 {
@@ -1104,13 +1134,18 @@ int	sh_redirect(struct ionod *iop, int flag)
 	const char *message = e_open;
 	int o_mode;		/* mode flag for open */
 	static char io_op[7];	/* used for -x trace info */
-	int trunc=0, clexec=0, fn, traceon=0;
+	int trunc=0, clexec=0, fn, traceon=0, dupflags;
 	int r, indx = sh.topfd, perm= -1;
 	char *tname=0, *after="", *trace = sh.st.trap[SH_DEBUGTRAP];
 	Namval_t *np=0;
 
 	if(flag==2 && !sh_isoption(SH_POSIX))
+	{
 		clexec = 1;
+		dupflags = F_dupfd_cloexec;
+	}
+	else
+		dupflags = F_DUPFD;
 	if(iop)
 		traceon = sh_trace(NULL,0);
 	/*
@@ -1468,7 +1503,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				{
 					if(fd==fn)
 					{
-						if((r=sh_fcntl(fd,F_DUPFD,10)) > 0)
+						if((r=sh_fcntl(fd,dupflags,10)) > 0)
 						{
 							fd = r;
 							sh_close(fn);
@@ -1480,7 +1515,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				{
 					if(fd==fn)
 					{
-						if((r=sh_fcntl(fd,F_DUPFD,10)) > 0)
+						if((r=sh_fcntl(fd,dupflags,10)) > 0)
 						{
 							fd = r;
 							sh_close(fn);
@@ -1508,7 +1543,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 					fn = fd;
 					if(fd<10)
 					{
-						if((fn=sh_fcntl(fd,F_DUPFD,10)) < 0)
+						if((fn=sh_fcntl(fd,dupflags,10)) < 0)
 							goto fail;
 						if(fn>=sh.lim.open_max && !sh_iovalidfd(fn))
 							goto fail;
@@ -1531,11 +1566,8 @@ int	sh_redirect(struct ionod *iop, int flag)
 						sh.inuse_bits |= (1<<fn);
 				}
 			}
-			if(fd >2 && clexec)
-			{
-				fcntl(fd,F_SETFD,FD_CLOEXEC);
-				sh.fdstatus[fd] |= IOCLEX;
-			}
+			if(fd>2 && clexec && !(sh.fdstatus[fd]&IOCLEX))
+				sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 		}
 		else
 			goto fail;
@@ -1687,7 +1719,7 @@ void sh_iosave(int origfd, int oldtop, char *name)
 		savefd = -1;
 	else
 	{
-		if((savefd = sh_fcntl(origfd, F_DUPFD, 10)) < 0 && errno!=EBADF)
+		if((savefd = sh_fcntl(origfd, F_dupfd_cloexec, 10)) < 0 && errno!=EBADF)
 		{
 			sh.toomany=1;
 			((struct checkpt*)sh.jmplist)->mode = SH_JMPERREXIT;
@@ -1703,7 +1735,8 @@ void sh_iosave(int origfd, int oldtop, char *name)
 	{
 		Sfio_t* sp = sh.sftable[origfd];
 		/* make saved file close-on-exec */
-		sh_fcntl(savefd,F_SETFD,FD_CLOEXEC);
+		if(F_dupfd_cloexec == F_DUPFD)
+			sh_fcntl(savefd,F_SETFD,FD_CLOEXEC);
 		if(origfd==job.fd)
 			job.fd = savefd;
 		sh.fdstatus[savefd] = sh.fdstatus[origfd];
@@ -2232,10 +2265,7 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 		return;
 	mode = sfset(sp,0,0);
 	if(sp==sh.heredocs && fd < 10 && flag==SFIO_SETFD)
-	{
-		fd = sfsetfd(sp,10);
-		fcntl(fd,F_SETFD,FD_CLOEXEC);
-	}
+		fd = sfsetfd_cloexec(sp,10);
 	if(fd < 3)
 		return;
 	if(flag==SFIO_NEW)
@@ -2544,11 +2574,21 @@ int sh_fcntl(int fd, int op, ...)
 	if(newfd>=0) switch(op)
 	{
 	    case F_DUPFD:
+#if F_dupfd_cloexec != F_DUPFD
+	    case F_dupfd_cloexec:
+#endif
 		if(sh.fdstatus[fd] == IOCLOSE)
 			sh.fdstatus[fd] = 0;
 		if(newfd>=sh.lim.open_max)
 			sh_iovalidfd(newfd);
+#if F_dupfd_cloexec != F_DUPFD
+		if(op==F_DUPFD)
+			sh.fdstatus[newfd] = (sh.fdstatus[fd]&~IOCLEX);
+		else
+			sh.fdstatus[newfd] = (sh.fdstatus[fd]|IOCLEX);
+#else
 		sh.fdstatus[newfd] = (sh.fdstatus[fd]&~IOCLEX);
+#endif
 		if(fdnotify)
 			(*fdnotify)(fd,newfd);
 		break;

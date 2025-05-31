@@ -367,15 +367,21 @@ static void	exfile(Sfio_t *iop,int fno)
 	{
 		if(fno > 0)
 		{
-			int r;
-			if(fno < 10 && ((r=sh_fcntl(fno,F_DUPFD,10))>=10))
+			if(fno < 10)
 			{
-				sh.fdstatus[r] = sh.fdstatus[fno];
-				sh_close(fno);
-				fno = r;
+				int r = sh_fcntl(fno,F_dupfd_cloexec,10);
+				if(r >= 10)
+				{
+					if(F_dupfd_cloexec != F_DUPFD)
+						sh.fdstatus[r] = sh.fdstatus[fno]|IOCLEX;
+					else
+						sh.fdstatus[r] = sh.fdstatus[fno];
+					sh_close(fno);
+					fno = r;
+				}
 			}
-			fcntl(fno,F_SETFD,FD_CLOEXEC);
-			sh.fdstatus[fno] |= IOCLEX;
+			if(!(sh.fdstatus[fno]&IOCLEX))
+				sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
 			iop = sh_iostream(fno);
 		}
 		else

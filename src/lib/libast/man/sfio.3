@@ -190,6 +190,7 @@ SFIO_EVENT
 int        sfresize(Sfio_t* f, Sfoff_t size);
 int        sfset(Sfio_t* f, int flags, int i);
 int        sfsetfd(Sfio_t* f, int fd);
+int        sfsetfd_cloexec(Sfio_t* f, int fd);
 Sfio_t*    sfstack(Sfio_t* base, Sfio_t* top);
 char*      sfstruse(Sfio_t *f);
 Sfio_t*    sfswap(Sfio_t* f1, Sfio_t* f2);
@@ -1758,6 +1759,9 @@ Then, except for \f3sfclose()\fP, the stream will be inaccessible
 until a future \f3sfsetfd()\fP call resets the file descriptor to a non-negative value.
 Thus, \f3sfsetfd(f,-1)\fP can be used to avoid closing the file descriptor
 of \f3f\fP when \f3f\fP is closed.
+.Ss "  int sfsetfd_cloexec(Sfio_t* f, int fd)"
+This function is identical to \f3sfsetfd()\fP, with the exception that it will
+give duplicated file descriptors the close-on-exec flag.
 .Ss "  Sfio_t* sfstack(Sfio_t* base, Sfio_t* top)"
 This function stacks or unstacks stream.
 Every stream stack is identified by a base stream

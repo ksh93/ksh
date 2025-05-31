@@ -79,7 +79,7 @@ extern void 	sh_ioinit(void);
 extern int 	sh_iomovefd(int);
 extern int	sh_iorenumber(int,int);
 extern void 	sh_pclose(int[]);
-extern int	sh_rpipe(int[]);
+extern int	sh_rpipe(int[],int);
 extern void 	sh_iorestore(int,int);
 extern Sfio_t 	*sh_iostream(int);
 extern int	sh_redirect(struct ionod*,int);

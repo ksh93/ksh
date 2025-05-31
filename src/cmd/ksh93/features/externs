@@ -219,7 +219,7 @@ tst	execve_dir_enoexec note{ does execve(3) set errno to ENOEXEC when trying to 
 	{
 		char	dirname[64];
 		int	e;
-		sprintf(dirname,".dir.%u",(unsigned)getpid());
+		sprintf(dirname,".dir.%u",(unsigned int)getpid());
 		mkdir(dirname,0777);
 		execve(dirname,argv,environ);
 		e = errno;
