@@ -33,6 +33,7 @@
 #include	"path.h"
 #include	"name.h"
 #include	"builtins.h"
+#include	"io.h"
 #include	<ls.h>
 #include	"test.h"
 
@@ -48,20 +49,40 @@ static void rehash(Namval_t *np,void *data)
 
 #if _lib_openat
 /*
- * Obtain a file handle to the directory "path" relative to directory "dir"
+ * Obtain a file descriptor >9 to the directory "path" relative to directory "dir"
  */
 int sh_diropenat(int dir, const char *path)
 {
-	int fd,shfd;
-	if((fd = openat(dir, path, O_DIRECTORY|O_NONBLOCK|O_cloexec)) < 0)
-#if O_SEARCH
-		if(errno != EACCES || (fd = openat(dir, path, O_SEARCH|O_DIRECTORY|O_NONBLOCK|O_cloexec)) < 0)
+	int fd, needs_cloexec = 0;
+	if((fd = openat(dir, path, O_DIRECTORY|O_NONBLOCK|O_cloexec|O_SEARCH)) < 0)
+	{
+#if !_openat_enotdir
+		struct stat fs;
+		int saverrno = errno;
+		/* Some OSes (e.g. illumos) misleadingly fail with EACCES rather than ENOTDIR */
+		if(errno==EACCES && !stat(path, &fs) && !S_ISDIR(fs.st_mode))
+			errno = ENOTDIR;
+		else
+			errno = saverrno;
 #endif
-			return fd;
-	/* Move fd to a number > 10 and register the fd number with the shell */
-	shfd = sh_fcntl(fd, F_dupfd_cloexec, 10);
-	close(fd);
-	return shfd;
+		return fd;
+	}
+	if(fd < 10)
+	{
+		/* Duplicate the fd and register it with the shell */
+		int shfd = sh_fcntl(fd, F_dupfd_cloexec, 10);
+		close(fd);
+		if(shfd < 0)
+			return shfd;
+		if(F_dupfd_cloexec == F_DUPFD)
+			needs_cloexec = 1;
+		fd = shfd;
+	}
+	else if(O_cloexec == 0)
+		needs_cloexec = 1;
+	if(needs_cloexec)
+		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
+	return fd;
 }
 #endif /* _lib_openat */
 

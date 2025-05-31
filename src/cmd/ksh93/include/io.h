@@ -26,6 +26,7 @@
 
 #include	<ast.h>
 #include	<sfio.h>
+#include	"FEATURE/fchdir"
 
 #ifndef IOBSIZE
 #   define  IOBSIZE	(SFIO_BUFSIZE*sizeof(char*))
@@ -51,6 +52,12 @@
 #ifndef ARG_RAW
     struct ionod;
 #endif /* !ARG_RAW */
+
+/* if O_SEARCH/O_PATH is unreliable for fchdir, it's not worth using */
+#if !_fchdir_osearch_compat
+#undef O_SEARCH
+#define O_SEARCH 0
+#endif
 
 /*
  * Check if there is an editor active while avoiding repetitive #if flaggery.
