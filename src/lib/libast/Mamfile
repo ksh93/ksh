@@ -1222,13 +1222,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make pathshell.o
-			make path/pathshell.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make pathcd.o
 			make path/pathcd.c
 				prev include/stk.h

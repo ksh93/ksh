@@ -81,7 +81,6 @@ got=$(<out)
 [[ $got == "$exp" ]] || err_exit "incorrect --posix settings on invoking hashbangless script from posix shell (direct)" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-: <<\DISABLED  # TODO: these do not pass yet, unless SHOPT_SPAWN is disabled.
 (./script) >|out
 got=$(<out)
 [[ $got == "$exp" ]] || err_exit "incorrect --posix settings on invoking hashbangless script from posix shell (subshell)" \
@@ -89,7 +88,6 @@ got=$(<out)
 got=$(./script)
 [[ $got == "$exp" ]] || err_exit "incorrect --posix settings on invoking hashbangless script from posix shell (comsub)" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-DISABLED
 
 got=$("$SHELL" --posix -c "$(<script)")
 [[ $got == "$exp" ]] || err_exit "incorrect --posix settings on invoking -c script from posix shell" \

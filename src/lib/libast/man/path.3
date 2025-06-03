@@ -58,7 +58,6 @@ char*     pathnext(char* \fIpath\fP, char* \fIextra\fP, long* \fIvisits\fP);
 char*     pathpath(char* \fIpath\fP, const char* \fIp\fP, const char* \fIa\fP, int \fImode\fP);
 char*     pathrepl(char* \fIpath\fP, const char* \fImatch\fP, const char* \fIreplace\fP);
 int       pathsetlink(const char* \fItext\fP, char* \fIname\fP);
-char*     pathshell(void);
 int       pathstat(const char* \fIpath\fP, struct stat* \fIst\fP);
 char*     pathtemp(char* \fIpath\fP, const char* \fIdir\fP, const char* \fIpfx\fP);
 .EE
@@ -307,18 +306,6 @@ See
 above for weird
 .IR universe (1)
 interactions hidden by this routine.
-.PP
-.L pathshell
-returns a pointer to the pathname for the shell for the current process.
-The
-.L SHELL
-environment variable is first consulted, but is rejected under suspicious
-ownership/setuid conditions of if it seems to point to
-.IR csh (1) ;
-otherwise
-.L confstr(_CS_SHELL,...)
-is used.
-A valid string is always returned.
 .PP
 .L pathstat
 first tries

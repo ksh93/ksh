@@ -221,33 +221,12 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				/* open stream should have been passed into shell */
 				if(strmatch(name,e_devfdNN))
 				{
-#if !_WINIX
-					char *cp;
-					int type;
-#endif
 					fdin = (int)strtol(name+8, NULL, 10);
 					if(fstat(fdin,&statb)<0)
 					{
 						errormsg(SH_DICT,ERROR_system(1),e_open,name);
 						UNREACHABLE();
 					}
-#if !_WINIX
-					/*
-					 * try to undo effect of Solaris 2.5+
-					 * change for argv for setuid scripts
-					 */
-					if(sh.st.repl_index > 0)
-						av[sh.st.repl_index] = sh.st.repl_arg;
-					if(((type = sh_type(cp = av[0])) & SH_TYPE_SH) && (name = nv_getval(L_ARGNOD)) && (!((type = sh_type(cp = name)) & SH_TYPE_SH)))
-					{
-						av[0] = (type & SH_TYPE_LOGIN) ? cp : path_basename(cp);
-						/* exec to change $0 for ps */
-						execv(pathshell(),av);
-						/* exec fails */
-						sh.st.dolv[0] = av[0];
-						fixargs(sh.st.dolv,1);
-					}
-#endif
 					name = av[0];
 					sh_offoption(SH_VERBOSE);
 					sh_offoption(SH_XTRACE);

@@ -703,7 +703,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			*p = path;
 			*--p = "sh";
 		}
-		strcpy(env + 2, (flags & PROC_PARANOID) ? astconf("SH", NULL, NULL) : pathshell());
+		strcpy(env + 2, astconf("SH", NULL, NULL));
 		if (forked || (flags & PROC_OVERLAY))
 			execve(env + 2, p, environ);
 #if _use_spawnveg

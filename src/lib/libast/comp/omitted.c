@@ -495,7 +495,7 @@ runve(int mode, const char* path, char* const* argv, char* const* envv)
 		p = v;
 		*p++ = (char*)path;
 		*p++ = (char*)path;
-		path = (const char*)pathshell();
+		path = "/bin/sh.exe";
 		if (*argv)
 			argv++;
 		while (*p++ = (char*)*argv++);
