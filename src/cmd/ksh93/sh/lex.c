@@ -1304,6 +1304,42 @@ breakloop:
 	if(!(state=lp->lexd.first))
 		state = fcfirst();
 	n = fcseek(0)-(char*)state;
+	/*
+	 * bug-691: Phi:
+	 * In the perf path (ksh interpreter) we don't enter the following if()
+	 * For shcomp we catch "set [+-]o comsub_brace_greedy" and set sh_option
+	 * accordingly, allowing compile to proceed in greedy mode if needed.
+	 */
+	if(sh.shcomp && lp->lex.reservok && n==3 &&
+	   state[0]=='s' && state[1]=='e'&& state[2]=='t' )
+	{
+		int o=0;
+		const char *p=state+3;
+		while(*p && *p!=';' && *p!='\n')
+		{
+			if(p[0]=='+' && p[1]=='o')
+			{
+				o=1;
+			}
+			if(p[0]=='-' && p[1]=='o')
+			{
+				o=2;
+			}
+			if( o && strncmp(p,"comsub_brace_greedy",19)==0)
+			{
+				if(o==1)
+				{
+					sh_offoption(SH_COMSUB_BRACE_GREEDY);
+				}
+				if(o==2)
+				{
+					sh_onoption(SH_COMSUB_BRACE_GREEDY);
+				}
+				break;
+			}
+			p++;
+		}
+	}
 	if(!lp->arg)
 		lp->arg = stkseek(sh.stk,ARGVAL);
 	if(n>0)
