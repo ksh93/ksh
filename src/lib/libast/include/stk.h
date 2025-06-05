@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -53,8 +54,8 @@ extern int		stkclose(Stk_t*);
 extern unsigned int	stklink(Stk_t*);
 extern void*		stkalloc(Stk_t*, size_t);
 extern char*		stkcopy(Stk_t*, const char*);
-extern void*		stkset(Stk_t*, void*, size_t);
-extern void*		_stkseek(Stk_t*, ssize_t);
+extern void*		stkset(Stk_t*, void*, ptrdiff_t);
+extern void*		_stkseek(Stk_t*, ptrdiff_t);
 extern void*		stkfreeze(Stk_t*, size_t);
 
 #endif
