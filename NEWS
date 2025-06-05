@@ -2,14 +2,25 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2025-05-30:
+2025-06-05:
 
 - [v1.1] Added 'hash -l', 'builtin -p', and 'umask -p', which can be used to
   print reinputtable commands for recreating the current hash table, builtin
   state and umask. (The latter two options are ksh93v- backports.)
 - [v1.1] Backported 'trap -l' from ksh93v- for listing signals.
 
-2025-07-29:
+2025-05-31:
+
+- Fixed a bug that caused the multiline option to break when PS*
+  prompts use the kitty terminal's escape sequence (e.g. $'\E[4:4m'
+  in the PS1 prompt for formatting spaced dots).
+
+2025-05-30:
+
+- The editor typeahead buffer and the limit for the ${.sh.edchar} variable
+  (used with the KEYBD trap) has been increased from 80 to 500 bytes.
+
+2025-05-29:
 
 - Fixed a serious but rarely occurring regression that corrupts variable
   names in assignments. It could be triggered in large scripts and cause a
@@ -29,7 +40,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - [v1.1] Fixed another bug with superfluous operands in test/[ that slipped
   through the cracks on 2024-12-08: test -n -a "" incorrectly returned 0. In
-  native mode, this is now an error (superflous operand to the unary -n
+  native mode, this is now an error (superfluous operand to the unary -n
   operator) and in POSIX mode, it returns 1/false, as POSIX-1.2017 rules
   require this to be a test for the non-emptiness of both strings -n and "".
 

@@ -23,30 +23,23 @@
 **	Written by Kiem-Phong Vo.
 */
 
-static int _sfdup(int fd, int newfd)
+static int _sfdup(int fd, int newfd, int cloexec)
 {
 	int	dupfd;
 
-#ifdef F_DUPFD	/* the simple case */
+#if F_dupfd_cloexec == F_DUPFD
 	while((dupfd = fcntl(fd,F_DUPFD,newfd)) < 0 && errno == EINTR)
 		errno = 0;
-	return dupfd;
-
-#else	/* do it the hard way */
-	if((dupfd = dup(fd)) < 0 || dupfd >= newfd)
-		return dupfd;
-
-	/* dup() succeeded but didn't get the right number, recurse */
-	newfd = _sfdup(fd,newfd);
-
-	/* close the one that didn't match */
-	CLOSE(dupfd);
-
-	return newfd;
+	if(cloexec && dupfd > -1)
+		fcntl(dupfd,F_SETFD,FD_CLOEXEC);
+#else
+	while((dupfd = fcntl(fd,cloexec?F_dupfd_cloexec:F_DUPFD,newfd)) < 0 && errno == EINTR)
+		errno = 0;
 #endif
+	return dupfd;
 }
 
-int sfsetfd(Sfio_t* f, int newfd)
+static int sfsetfd_internal(Sfio_t* f, int newfd, int cloexec)
 {
 	int		oldfd;
 
@@ -70,7 +63,7 @@ int sfsetfd(Sfio_t* f, int newfd)
 		oldfd = f->file;
 		if(oldfd >= 0)
 		{	if(newfd >= 0)
-			{	if((newfd = _sfdup(oldfd,newfd)) < 0)
+			{	if((newfd = _sfdup(oldfd,newfd,cloexec)) < 0)
 				{	SFOPEN(f,0);
 					return -1;
 				}
@@ -118,4 +111,14 @@ int sfsetfd(Sfio_t* f, int newfd)
 	f->file = newfd;
 
 	return newfd;
+}
+
+int sfsetfd(Sfio_t* f, int newfd)
+{
+	return sfsetfd_internal(f, newfd, 0);
+}
+
+int sfsetfd_cloexec(Sfio_t* f, int newfd)
+{
+	return sfsetfd_internal(f, newfd, 1);
 }

@@ -420,7 +420,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 						skip = 0;
 						continue;
 					}
-					if(n==3 && (c=='?' || c=='!'))
+					if(n==3 && (c=='?' || c=='!' || c==':'))
 						continue;
 					else if(n>1 && c==';')
 						skip = 1;

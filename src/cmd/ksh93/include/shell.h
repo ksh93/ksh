@@ -474,7 +474,7 @@ extern Sfio_t		*sh_pathopen(const char*);
 extern ssize_t 		sh_read(int, void*, size_t);
 extern ssize_t 		sh_write(int, const void*, size_t);
 extern off_t		sh_seek(int, off_t, int);
-extern int 		sh_pipe(int[]);
+extern int 		sh_pipe(int[],int);
 extern mode_t 		sh_umask(mode_t);
 extern Shwait_f		sh_waitnotify(Shwait_f);
 extern Shscope_t	*sh_getscope(int,int);
@@ -499,7 +499,6 @@ extern Shell_t		sh;
 #   define close(a)	sh_close(a)
 #   define exit(a)	sh_exit(a)
 #   define fcntl(a,b,c)	sh_fcntl(a,b,c)
-#   define pipe(a)	sh_pipe(a)
 #   define read(a,b,c)	sh_read(a,b,c)
 #   define write(a,b,c)	sh_write(a,b,c)
 #   define umask(a)	sh_umask(a)

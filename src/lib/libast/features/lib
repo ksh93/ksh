@@ -31,7 +31,7 @@ lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
 lib	mktemp,mktime
-lib	opendir,openat,pathconf
+lib	opendir,openat,pathconf,pipe2
 lib	rand_r
 lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
@@ -78,6 +78,7 @@ tst	lib_select sys/select.h note{ select() has standard 5 arg interface }end lin
 	#include <sys/types.h>
 	#include <sys/time.h>
 	#include <sys/socket.h>
+	#include <string.h>
 	int
 	main(void)
 	{	struct timeval	tmb;

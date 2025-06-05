@@ -109,6 +109,7 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#define _XPG4
 		#define _XPG3
 		#define __EXTENSIONS__	1
+		#undef _XOPEN_SOURCE
 		#define	_XOPEN_SOURCE	9900
 		#undef _POSIX_C_SOURCE
 		#include <limits.h>
@@ -136,6 +137,7 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		#define _XPG4
 		#define _XPG3
 		#define __EXTENSIONS__	1
+		#undef _XOPEN_SOURCE
 		#define	_XOPEN_SOURCE	9900
 		#undef _POSIX_C_SOURCE
 		/*

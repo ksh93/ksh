@@ -1804,7 +1804,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			do
 			{
 				/* create the pipe */
-				sh_pipe(pvn);
+				sh_pipe(pvn,1);
 				/* execute out part of pipe no wait */
 				(t->lst.lstlef)->tre.tretyp |= showme;
 				type = sh_exec(t->lst.lstlef, errorflg);
@@ -3228,30 +3228,33 @@ static void coproc_init(int pipes[])
 	{
 		/* first co-process */
 		sh_pclose(sh.cpipe);
-		sh_pipe(sh.cpipe);
+		sh_pipe(sh.cpipe,1);
 		if((outfd=sh.cpipe[1]) < 10)
 		{
-		        int fd=sh_fcntl(sh.cpipe[1],F_DUPFD,10);
+		        int fd=sh_fcntl(sh.cpipe[1],F_dupfd_cloexec,10);
 			if(fd>=10)
 			{
-			        sh.fdstatus[fd] = (sh.fdstatus[outfd]&~IOCLEX);
+				if(F_dupfd_cloexec != F_DUPFD)
+					sh.fdstatus[fd] = sh.fdstatus[outfd]|IOCLEX;
+				else
+					sh.fdstatus[fd] = (sh.fdstatus[outfd]&~IOCLEX);
 				close(outfd);
 			        sh.fdstatus[outfd] = IOCLOSE;
 				sh.cpipe[1] = fd;
 			}
 		}
-		if(fcntl(*sh.cpipe,F_SETFD,FD_CLOEXEC)>=0)
-			sh.fdstatus[sh.cpipe[0]] |= IOCLEX;
+		if(!(sh.fdstatus[sh.cpipe[0]]&IOCLEX))
+			sh_fcntl(sh.cpipe[0],F_SETFD,FD_CLOEXEC);
 		sh.fdptrs[sh.cpipe[0]] = sh.cpipe;
-		if(fcntl(sh.cpipe[1],F_SETFD,FD_CLOEXEC) >=0)
-			sh.fdstatus[sh.cpipe[1]] |= IOCLEX;
+		if(!(sh.fdstatus[sh.cpipe[1]]&IOCLEX))
+			sh_fcntl(sh.cpipe[1],F_SETFD,FD_CLOEXEC);
 	}
 	sh.outpipe = sh.cpipe;
-	sh_pipe(sh.inpipe=pipes);
+	sh_pipe(sh.inpipe=pipes,1);
 	sh.coutpipe = sh.inpipe[1];
 	sh.fdptrs[sh.coutpipe] = &sh.coutpipe;
-	if(fcntl(sh.outpipe[0],F_SETFD,FD_CLOEXEC)>=0)
-		sh.fdstatus[sh.outpipe[0]] |= IOCLEX;
+	if(!(sh.fdstatus[sh.outpipe[0]]&IOCLEX))
+		sh_fcntl(sh.outpipe[0],F_SETFD,FD_CLOEXEC);
 }
 
 #if SHOPT_SPAWN

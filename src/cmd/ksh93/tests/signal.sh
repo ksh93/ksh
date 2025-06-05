@@ -397,7 +397,14 @@ yes() for ((;;)); do print y; done
 # The test for SIGBUS trap handling below is incompatible with ASan because ASan
 # implements its own SIGBUS handler independently of ksh.
 # Also, Android does not allow ignoring SIGBUS.
-if ! [[ -v ASAN_OPTIONS || -v TSAN_OPTIONS || -v MSAN_OPTIONS || -v LSAN_OPTIONS || $HOSTTYPE == android.* ]]; then
+check_asan() {
+	# Skip test when the binary was compiled with ASAN or is gathering profiling data
+	[[ -v ASAN_OPTIONS || -v TSAN_OPTIONS || -v MSAN_OPTIONS || -v LSAN_OPTIONS ]] && return 0
+	! whence -q readelf && return 1
+	[[ -n $(readelf -s "$SHELL" | grep -E "_asan_") ]] && return 0
+	return 1
+}
+if ! check_asan && ! [[ $HOSTTYPE == android.* ]]; then
 	trap '' SIGBUS
 	got=$("$SHELL" -c 'trap date SIGBUS; trap -p SIGBUS')
 	[[ "$got" ]] && err_exit 'SIGBUS should not have a trap' \

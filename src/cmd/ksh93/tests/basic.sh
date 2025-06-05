@@ -703,19 +703,28 @@ getCmdline() {
 		getPsOutput "$1"
 	fi
 }
-if	[[ ! $(uname -s) =~ ^SunOS$ ]] &&
-	getPsOutput "$$" &&
-	[[ "$SHELL $0" == "$actual"* ]]  # "$SHELL $0" is how shtests invokes this script
-then	expect='./atest 1 2'
-	echo 'sleep 10; exit 0' >atest
-	chmod 755 atest
-	./atest 1 2 &
-	getCmdline "$!"
-	kill "$!"
-	[[ $actual == "$expect" ]] || err_exit "ksh didn't rewrite argv correctly" \
-		"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+check_profiling_or_asan() {
+	# Skip test when the binary was compiled with ASAN or is gathering profiling data
+	[[ -v ASAN_OPTIONS || -v TSAN_OPTIONS || -v MSAN_OPTIONS || -v LSAN_OPTIONS ]] && return 0
+	! whence -q readelf && return 1
+	[[ -n $(readelf -s "$SHELL" | grep -E "_asan_|__gcov") ]] && return 0
+	return 1
+}
+if ! check_profiling_or_asan
+then	if	[[ ! $(uname -s) =~ ^SunOS$ ]] &&
+		getPsOutput "$$" &&
+		[[ "$SHELL $0" == "$actual"* ]]  # "$SHELL $0" is how shtests invokes this script
+	then	expect='./atest 1 2'
+		echo 'sleep 10; exit 0' >atest
+		chmod 755 atest
+		./atest 1 2 &
+		getCmdline "$!"
+		kill "$!"
+		[[ $actual == "$expect" ]] || err_exit "ksh didn't rewrite argv correctly" \
+			"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	fi
+	unset -f getPsOutput getCmdline
 fi
-unset -f getPsOutput getCmdline
 
 # ======
 # https://bugzilla.redhat.com/1241013

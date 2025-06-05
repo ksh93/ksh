@@ -716,7 +716,7 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 }
 
 #if _pipe_socketpair && !_socketpair_devfd
-#   define sh_pipe(a)	sh_rpipe(a)
+#   define sh_pipe(a,b)	sh_rpipe(a,b)
 #endif
 
 struct argnod *sh_argprocsub(struct argnod *argp)
@@ -736,7 +736,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 #if SHOPT_DEVFD
 	sfwrite(sh.stk,e_devfdNN,8);
 	pv[2] = 0;
-	sh_pipe(pv);
+	sh_pipe(pv,0);
 #else
 	pv[0] = -1;
 	while(sh.fifo = pathtemp(0,0,0,"ksh.fifo",0), sh.fifo && mkfifo(sh.fifo,0)<0)

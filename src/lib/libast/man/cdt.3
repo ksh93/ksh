@@ -123,18 +123,21 @@ This is the type of a dictionary handle.
 It contains a field \f3Dt_t.user\fP of type \f3Dtuser_t*\fP (see below).
 .Ss "  Dtdisc_t"
 This defines the type of a discipline structure which define the lay-out of
-an object and functions to compare, hash, make, delete objects, etc. (see \f3dtdisc()\fP).
+an object and functions to compare, hash, make, delete objects,
+etc. (see \f3dtdisc()\fP).
 .Ss "  Dtmethod_t"
 This defines the type of a container method.
 .Ss "  Dtlink_t"
 This is the type of a dictionary object holder (see \f3dtdisc()\fP).
 .Ss "  Dtstat_t"
-This is the type of a structure to return dictionary statistics (see \f3dtstat()\fP).
+This is the type of a structure to return dictionary
+statistics (see \f3dtstat()\fP).
 .Ss "  Dtuser_t"
 This is the type of a structure pointed to by \f3Dt_t.user\fP.
 If a discipline function \f3memoryf()\fP was defined, this structure
 will reside in memory allocated via \f3memoryf\fP.
-Although the structure is intended to be used by an application outside of CDT operations,
+Although the structure is intended to be used by an application
+outside of CDT operations,
 the functions \f3dtuserlock()\fP and \f3dtuserdata()\fP
 are provided for certain common usages of the defined fields.
 It should be emphasized, however, that a particular application can choose
@@ -161,10 +164,12 @@ See also the events \f3DT_CLOSE\fP and \f3DT_ENDCLOSE\fP below.
 .Ss "  void dtclear(Dt_t* dt)"
 This deletes all objects in \f3dt\fP without closing \f3dt\fP.
 .Ss "  Dtdisc_t* dtdisc(Dt_t* dt, const Dtdisc_t* disc, int type)"
-If \f3disc\fP is \f3NULL\fP, \f3dtdisc()\fP returns the current discipline.
+If \f3disc\fP is \f3NULL\fP, \f3dtdisc()\fP returns the
+current discipline.
 Otherwise, it changes the discipline of \f3dt\fP to \f3disc\fP.
 Objects may be rehashed, reordered, or removed as appropriate.
-\f3type\fP can be any bit combination of \f3DT_SAMECMP\fP and \f3DT_SAMEHASH\fP.
+\f3type\fP can be any bit combination of \f3DT_SAMECMP\fP
+and \f3DT_SAMEHASH\fP.
 \f3DT_SAMECMP\fP means that objects will compare exactly the same as before
 thus obviating the need for reordering or removing new duplicates.
 \f3DT_SAMEHASH\fP means that hash values of objects remain the same
@@ -177,22 +182,29 @@ Otherwise, it changes the storage method of \f3dt\fP to \f3meth\fP.
 Objects may be rehashed, reordered, or removed as appropriate.
 \f3dtmethod()\fP returns the previous method or \f3NULL\fP on error.
 .Ss "  Dt_t* dtview(Dt_t* dt, Dt_t* view)"
-A viewpath allows a search or walk starting from a dictionary to continue to another.
-\f3dtview()\fP first terminates any current view from \f3dt\fP to another dictionary.
-Then, if \f3view\fP is \f3NULL\fP, \f3dtview\fP returns the terminated view dictionary.
-If \f3view\fP is not \f3NULL\fP, a viewpath from \f3dt\fP to \f3view\fP is established.
+A viewpath allows a search or walk starting from a dictionary
+to continue to another.
+\f3dtview()\fP first terminates any current view from \f3dt\fP
+to another dictionary.
+Then, if \f3view\fP is \f3NULL\fP, \f3dtview\fP returns
+the terminated view dictionary.
+If \f3view\fP is not \f3NULL\fP, a viewpath from \f3dt\fP
+to \f3view\fP is established.
 \f3dtview()\fP returns \f3dt\fP on success and \f3NULL\fP on error.
 .PP
-It is an error to have dictionaries on a viewpath with different storage methods.
+It is an error to have dictionaries on a viewpath with
+different storage methods.
 In addition, dictionaries on the same view path should
-treat objects in a consistent manner with respect to comparison or hashing.
+treat objects in a consistent manner with respect to
+comparison or hashing.
 If not, undefined behaviors may result.
 .Ss "  int dtcustomize(Dt_t* dt, int type, int action)"
 This customizes a storage method. The \f3type\fP argument
 is composed of bits indicating different types of customization.
 The \f3action\fP argument, if positive, turns on the desired customization;
 else, turning it off.
-The return value is a bit vector telling the customization types successfully performed.
+The return value is a bit vector telling the customization
+types successfully performed.
 
 Here are the types:
 .Tp
@@ -227,7 +239,8 @@ An error will result if the dictionary was already locked with a different key.
 \f3action > 0\fP:
 Attempt to lock \f3dt->user->lock\fP with \f3key\fP.
 If \f3dt->user.lock\fP is already locked with a different key,
-the call will block until \f3dt->user->lock\fP can be locked with the given \f3key\fP.
+the call will block until \f3dt->user->lock\fP can be locked
+with the given \f3key\fP.
 
 Note that obtaining or removing a lock with \f3dtuserlock()\fP
 is just a service provided to the
@@ -256,7 +269,8 @@ Objects are ordered by comparisons.
 Objects are unordered.
 \f3Dtset\fP keeps unique objects.
 \f3Dtbag\fP allows repeatable objects.
-The underlying data structure is a hash table with chaining to handle collisions.
+The underlying data structure is a hash table with chaining
+to handle collisions.
 .Ss "  Dtrhset"
 .Ss "  Dtrhbag"
 These methods are like \f3Dtset\fP and \f3Dtbag\fP but are based on
@@ -301,13 +315,16 @@ defined in the type \f3Dtdisc_t\fP:
     } Dtdisc_t;
 .Ce
 .Ss "  ssize_t key, size"
-Each object \f3obj\fP is identified by a key used for object comparison or hashing.
+Each object \f3obj\fP is identified by a key used for object
+comparison or hashing.
 \f3key\fP should be non-negative and defines an offset into \f3obj\fP.
 If \f3size\fP is negative, the key is a null-terminated
 string with starting address \f3*(void**)((char*)obj+key)\fP.
-If \f3size\fP is zero, the key is a null-terminated string with starting address
+If \f3size\fP is zero, the key is a null-terminated string
+with starting address
 \f3(void*)((char*)obj+key)\fP.
-Finally, if \f3size\fP is positive, the key is a byte array of length \f3size\fP
+Finally, if \f3size\fP is positive, the key is a byte array
+of length \f3size\fP
 starting at \f3(void*)((char*)obj+key)\fP.
 .Ss "  ssize_t link"
 Let \f3obj\fP be an object to be inserted into \f3dt\fP.
@@ -320,7 +337,8 @@ i.e., at address \f3(Dtlink_t*)((char*)obj+link)\fP.
 If \f3makef\fP is not \f3NULL\fP,
 \f3dtinsert()\fP, \f3dtinstall()\fP or \f3dtappend()\fP will call it
 to make a copy of \f3obj\fP suitable for insertion into \f3dt\fP.
-If \f3makef\fP is \f3NULL\fP, \f3obj\fP itself will be inserted into \f3dt\fP.
+If \f3makef\fP is \f3NULL\fP, \f3obj\fP itself will be inserted
+into \f3dt\fP.
 .Ss "  void (*freef)(Dt_t* dt, void* obj, Dtdisc_t* disc)"
 If not \f3NULL\fP,
 \f3freef\fP is used to destroy data associated with \f3obj\fP.
@@ -341,8 +359,10 @@ If \f3hashf\fP is \f3NULL\fP, an internal function is used to hash
 the key as defined by the \f3Dtdisc_t.size\fP field.
 .Ss "  void* (*memoryf)(Dt_t* dt, void* addr, size_t size, Dtdisc_t* disc)"
 If not \f3NULL\fP, \f3memoryf\fP is used to allocate and free memory.
-When \f3addr\fP is \f3NULL\fP, a memory segment of size \f3size\fP is requested.
-If \f3addr\fP is not \f3NULL\fP and \f3size\fP is zero, \f3addr\fP is to be freed.
+When \f3addr\fP is \f3NULL\fP, a memory segment of
+size \f3size\fP is requested.
+If \f3addr\fP is not \f3NULL\fP and \f3size\fP is zero,
+\f3addr\fP is to be freed.
 If \f3addr\fP is not \f3NULL\fP and \f3size\fP is positive,
 \f3addr\fP is to be resized to the given size.
 If \f3memoryf\fP is \f3NULL\fP, \fImalloc(3)\fP is used.
@@ -360,15 +380,16 @@ is significant as follows:
 
 On a negative return value, \f3dtopen()\fP will return failure.
 
-On a zero return value, \f3eventf()\fP may set \f3*(void**)data\fP to some non-\f3NULL\fP
-value to indicate that the dictionary structure itself should be allocated
-along with the \f3Dt_t.data\fP section.
+On a zero return value, \f3eventf()\fP may set \f3*(void**)data\fP
+to some non-\f3NULL\fP value to indicate that the dictionary structure
+itself should be allocated along with the \f3Dt_t.data\fP section.
 Otherwise, it will be allocated separately with \f3malloc(3)\fP.
 
 On a positive return value, the dictionary is being reconstructed
 based on the existing states of some previous dictionary.
 In this case, \f3eventf()\fP should set \f3*(void**)data\fP to point to
-the field \f3Dt_t.data\fP of the corresponding previous dictionary (see \f3DT_CLOSE\fP below).
+the field \f3Dt_t.data\fP of the corresponding previous
+dictionary (see \f3DT_CLOSE\fP below).
 If the handle of the previous dictionary was created as discussed above
 in the case of the zero return value, it will be exactly restored.
 Otherwise, a new handle will be allocated with \f3malloc()\fP.
@@ -391,43 +412,52 @@ and associated memory freed.
 On a positive return value, allocated objects and memory will be kept intact.
 This means that \f3dt->data\fP remains intact and can be reused in some future
 dictionary (see \f3DT_OPEN\fP above).
-Note, however, that \f3dt\fP itself would still be freed if it was allocated with \f3malloc(3)\fP.
+Note, however, that \f3dt\fP itself would still be freed if it was
+allocated with \f3malloc(3)\fP.
 .Tp
 \f3DT_ENDCLOSE\fP:
 This event is raised at the end of the process to close a dictionary.
 The return value of \f3eventf()\fP will be ignored.
 .Tp
 \f3DT_DISC\fP:
-This event indicates that the discipline of \f3dt\fP is being changed to a new one given in
-\f3(Dtdisc_t*)data\fP.
+This event indicates that the discipline of \f3dt\fP is being changed
+to a new one given in \f3(Dtdisc_t*)data\fP.
 .Tp
 \f3DT_METH\fP:
-This event indicates that the method of \f3dt\fP is being changed to a new one given in
-\f3(Dtmethod_t*)data\fP.
+This event indicates that the method of \f3dt\fP is being changed to
+a new one given in \f3(Dtmethod_t*)data\fP.
 .Tp
 \f3DT_HASHSIZE\fP:
-This event is raised by the methods \f3Dtset\fP, \f3Dtbag\fP, \f3Dtrhset\fP and \f3Dtrhbag\fP
-to ask an application to suggest a size (measured in objects) for the data structure in use.
-This is useful, for example, to set a initial size for a hash table to reduce collisions and rehashing.
-On each call, \f3*(ssize_t*)data\fP will initially have the current size
+This event is raised by the methods \f3Dtset\fP, \f3Dtbag\fP, \f3Dtrhset\fP
+and \f3Dtrhbag\fP to ask an application to suggest a size (measured in objects)
+for the data structure in use. This is useful, for example, to set a initial
+size for a hash table to reduce collisions and rehashing. On each
+call, \f3*(ssize_t*)data\fP will initially have the current size
 (which should be \f30\fP on the first call).
 
 The return value of the event handling function indicates actions to be taken.
 If non-positive, the method will proceed with its default actions.
-Otherwise, the application may set \f3*(ssize_t*)data\fP to suggest a table size.
-The actual table size will be based on the absolute value of \f3*(ssize_t*)data\fP
+Otherwise, the application may set \f3*(ssize_t*)data\fP to suggest
+a table size.
+The actual table size will be based on the absolute value of
+\f3*(ssize_t*)data\fP
 but may be modified to suit for the data structure in use.
-Further, if \f3*(ssize_t*)data\fP was negative, the size of the hash table will be fixed going forward.
+Further, if \f3*(ssize_t*)data\fP was negative, the size of the hash
+table will be fixed going forward.
 .Tp
 \f3DT_ERROR\fP:
 This event states an error that occurred during some operations, e.g.,
-\f3dtinsert()\fP or \f3dtinstall()\fP failing to create a new object due to a memory allocation error.
-The argument \f3(char*)data\fP is a null-terminated string describing the problem.
+\f3dtinsert()\fP or \f3dtinstall()\fP failing to create a new object due
+to a memory allocation error.
+The argument \f3(char*)data\fP is a null-terminated string describing
+the problem.
 .Tp
 \f3DT_ANNOUNCE\fP:
-The event will be a combination of this bit and a bit indicating a successful operation.
+The event will be a combination of this bit and a bit indicating
+a successful operation.
 For example, \f3DT_ANNOUNCE|DT_SEARCH\fP announces that \f3dtsearch()\fP
-found the object that was searched for.  The \f3data\fP argument points to the object itself.
+found the object that was searched for.  The \f3data\fP argument points
+to the object itself.
 
 The bits representing operations that can cause an announcement are:
 \f3DT_INSERT\fP,
@@ -448,9 +478,11 @@ The bits representing operations that can cause an announcement are:
 
 Note that a call to \f3dtinsert()\fP or \f3dtattach()\fP may return
 a successfully inserted new object or a found matching object.
-For \f3dtinsert()\fP, the former case will be announced as \f3DT_ANNOUNCE|DT_INSERT\fP while
+For \f3dtinsert()\fP, the former case will be announced as
+\f3DT_ANNOUNCE|DT_INSERT\fP while
 the latter as \f3DT_ANNOUNCE|DT_INSERT|DT_SEARCH\fP.
-For \f3dtattach()\fP, the events will be similarly announced as \f3DT_ANNOUNCE|DT_ATTACH\fP
+For \f3dtattach()\fP, the events will be similarly announced as
+\f3DT_ANNOUNCE|DT_ATTACH\fP
 and \f3DT_ANNOUNCE|DT_ATTACH|DT_SEARCH\fP.
 .Ss "#define DTOFFSET(struct_s,member)"
 This macro function computes the offset of \f3member\fP from the start
@@ -478,7 +510,8 @@ Otherwise, the return value is either the newly inserted object
 or the matching object as noted.
 .Ss "  void* dtdelete(Dt_t* dt, void* obj)"
 .Ss "  void* dtremove(Dt_t* dt, void* obj)"
-When \f3obj\fP is not \f3NULL\fP, \f3dtdelete()\fP removes some object \fImatching\fP \f3obj\fP
+When \f3obj\fP is not \f3NULL\fP, \f3dtdelete()\fP removes some
+object \fImatching\fP \f3obj\fP
 while \f3dtremove()\fP removes \f3obj\fP itself if it exists.
 When \f3obj\fP is \f3NULL\fP, if the method is \f3Dtstack\fP or \f3Dtqueue\fP
 then the stack top or queue head is respectively deleted.
@@ -493,8 +526,10 @@ This function is similar to \f3dtdelete()\fP but the object to be deleted
 from \f3dt\fP will not be freed (via the discipline \f3freef\fP function).
 .Ss "  void* dtsearch(Dt_t* dt, void* obj)"
 .Ss "  void* dtmatch(Dt_t* dt, void* key)"
-These functions find an object matching \f3obj\fP or \f3key\fP either from \f3dt\fP or
-from some dictionary accessible from \f3dt\fP via a viewpath (see \f3dtview()\fP).
+These functions find an object matching \f3obj\fP or \f3key\fP
+either from \f3dt\fP or
+from some dictionary accessible from \f3dt\fP via a viewpath (see
+\f3dtview()\fP).
 The return value is the matching object or \f3NULL\fP.
 .Ss "  void* dtfirst(Dt_t* dt)"
 .Ss "  void* dtnext(Dt_t* dt, void* obj)"
@@ -532,7 +567,8 @@ or
 .Ce
 
 The argument \f3obj\fP of \f3dtnext()\fP or \f3dtprev()\fP is treated specially
-for a method that allows multiple equal elements such as \f3Dtobag\fP or \f3Dtbag\fP.
+for a method that allows multiple equal elements such as \f3Dtobag\fP
+or \f3Dtbag\fP.
 If it is in the dictionary, then the returned object will be respectively
 immediately before or after it in the implicitly defined object ordering.
 If it is not in the dictionary but still matching a group of objects,
@@ -556,10 +592,11 @@ As such, it is possible to call \f3dtatleast()\fP or \f3dtatmost()\fP
 on an object not in the dictionary and still get a meaningful result.
 Storage methods other than \f3Dtoset\fP and \f3Dtobag\fP do not have
 an explicit ordering so \f3dtatmost()\fP
-and \f3dtatleast()\fP will return \f3NULL\fP when there are no matching objects.
+and \f3dtatleast()\fP will return \f3NULL\fP when there are no
+matching objects.
 .Ss "  dtwalk(Dt_t* dt, int (*userf)(Dt_t*, void*, void*), void* data)"
-This function calls \f3(*userf)(walk,obj,data)\fP on each object in \f3dt\fP and
-other dictionaries viewable from it.
+This function calls \f3(*userf)(walk,obj,data)\fP on each object
+in \f3dt\fP and other dictionaries viewable from it.
 \f3walk\fP is the dictionary containing \f3obj\fP.
 If \f3userf()\fP returns a \f3<0\fP value,
 \f3dtwalk()\fP terminates and returns the same value.
@@ -597,20 +634,24 @@ On success, a structure
 to be used in \f3dtstep()\fP for walking the path is returned.
 Otherwise, \f3NULL\fP is returned.
 
-If \f3obj\fP is \f3NULL\fP, the path starts at the same object returned by \f3dtfirst()\fP.
-If \f3obj\fP is not \f3NULL\fP, it must match some object in the dictionary \f3dt\fP
+If \f3obj\fP is \f3NULL\fP, the path starts at the same object
+returned by \f3dtfirst()\fP.
+If \f3obj\fP is not \f3NULL\fP, it must match some object in the
+dictionary \f3dt\fP
 and the path will start there. No matching object will result in error.
 .Ss "  void* dtstop(Dt_t* dt, void* path);"
 This function ends a path and releases all memory source associated with it.
 .Ss "  void* dtstep(Dt_t* dt, void* path);"
 This function returns the object at current position in the given \f3path\fP.
-Successive calls move forward one object at a time in the same order that \f3dtnext()\fP
-does in the example \f3for(;;)\fP loop above. If there is no more object in the path,
+Successive calls move forward one object at a time in the same order
+that \f3dtnext()\fP
+does in the example \f3for(;;)\fP loop above.
+If there is no more object in the path,
 \f3dtstep()\fP returns \f3NULL\fP.
 
 Below is a code fragment showing how to create and walk a path of objects.
-This object walking method is more restricted than the \f3dtfirst()/dtnext()\fP method
-since viewpathed dictionaries are ignored.
+This object walking method is more restricted than the
+\f3dtfirst()/dtnext()\fP method since viewpathed dictionaries are ignored.
 However, it allows multiple paths to be traversed concurrently in the
 most efficient manner possible as supported by the underlying data structures.
 .Cs
@@ -623,7 +664,8 @@ most efficient manner possible as supported by the underlying data structures.
 .Ce
 .Ss "  Dtlink_t* dtextract(Dt_t* dt)"
 .Ss "  Dtlink_t* dtrestore(Dt_t* dt, Dtlink_t* list)"
-\f3dtextract()\fP extracts the list of objects from \f3dt\fP and makes it appear empty.
+\f3dtextract()\fP extracts the list of objects from \f3dt\fP and
+makes it appear empty.
 \f3dtrestore()\fP repopulates \f3dt\fP with
 a list of objects previously obtained via \f3dtextract()\fP.
 It is important that the same discipline and method are in use at both
@@ -647,14 +689,17 @@ It returns the number of objects stored in \f3dt\fP.
 \f3Dtstat_t\fP contains the below fields:
 .Tp
 \f3int meth\fP:
-This returns the method used for the dictionary, e.g., \f3DT_SET\fP, \f3DT_OSET\fP, etc.
+This returns the method used for the dictionary, e.g., \f3DT_SET\fP,
+\f3DT_OSET\fP, etc.
 .Tp
 \f3ssize_t size\fP:
 This has the number of objects in the dictionary.
 .Tp
 \f3ssize_t mlev\fP:
-This returns the maximum number of levels in the data structure used for object storage, i.e.,
-the binary tree (e.g., \f3Dtoset\fP) or the recursive hash table based on a trie structure (e.g., \f3Dtrhset\fP).
+This returns the maximum number of levels in the data structure used
+for object storage, i.e.,
+the binary tree (e.g., \f3Dtoset\fP) or the recursive hash table based
+on a trie structure (e.g., \f3Dtrhset\fP).
 For a hash table with chaining (e.g., \f3Dtset\fP and \f3Dtbag\fP),
 it gives the length of the longest chain.
 .Tp
@@ -665,7 +710,8 @@ a level is defined as objects at that position in their chains.
 The reported levels is limited to less than \f3DT_MAXSIZE\fP.
 .Tp
 \f3ssize_t tsize[]\fP:
-For a recursive hash table using a trie structure (\f3Dtrehash\fP), this counts the number of
+For a recursive hash table using a trie structure (\f3Dtrehash\fP),
+this counts the number of
 sub-tables at each level. For example, \f3tsize[0]\fP should be 1
 only for this hash table type.
 The reported levels is limited to less than \f3DT_MAXSIZE\fP.
@@ -674,23 +720,28 @@ The reported levels is limited to less than \f3DT_MAXSIZE\fP.
 A summary message of some of the statistics.
 .Ss "HASH FUNCTIONS"
 .Ss "  unsigned int dtstrhash(unsigned int h, char* str, int n)"
-This function computes a new hash value from string \f3str\fP and seed value \f3h\fP.
+This function computes a new hash value from string \f3str\fP and
+seed value \f3h\fP.
 If \f3n\fP is positive, \f3str\fP is a byte array of length \f3n\fP;
 otherwise, \f3str\fP is a null-terminated string.
 .PP
 .SH CONCURRENCY PROGRAMMING NOTES
-Applications requiring concurrent accesses of a dictionary whether via separate threads
+Applications requiring concurrent accesses of a dictionary whether
+via separate threads
 or processes using shared memory should turn on shared mode for the dictionary.
 CDT uses locking and lockless data structures to
 provide safe concurrent accesses of objects.
-Much of this work is based on the atomic scalar operations available in \fIlibaso(3)\fP.
+Much of this work is based on the atomic scalar operations
+available in \fIlibaso(3)\fP.
 
 Even though CDT only considers objects
 via the attributes specified in a discipline structure,
-practical objects will often have many more attributes germane to the needs of an application.
+practical objects will often have many more attributes germane
+to the needs of an application.
 Thus, beyond safe concurrent dictionary operations, an application must also
 protect objects in concurrent computations outside of CDT.
-In particular, both \fIobject deletion\fP and \fIobject creation\fP should be handled with care.
+In particular, both \fIobject deletion\fP and \fIobject creation\fP
+should be handled with care.
 
 The deletion case is relatively simple.
 No object should be destroyed as long as there is a reference to it.
@@ -706,10 +757,11 @@ The simplest way to ensure this is to completely construct an object before
 before inserting it into a shared dictionary.
 However, an application using complex objects may try
 to avoid unnecessary construction work as follows.
-First, only a partial object with minimal information needed for dictionary operations
-is constructed.
-Then, either\f3dtinsert()\fP or \f3dtattach()\fP is called to insert this partial object
-into the dictionary. If the call returns this same object, then it was properly inserted and
+First, only a partial object with minimal information needed
+for dictionary operations is constructed.
+Then, either\f3dtinsert()\fP or \f3dtattach()\fP is called to insert
+this partial object into the dictionary.
+If the call returns this same object, then it was properly inserted and
 the rest of its attributes could then be filled in.
 If only a matching object is returned, then the new object is simply discarded.
 Although this object construction strategy works well in single-threaded code,
@@ -778,23 +830,27 @@ the relevant operations to wait until the object is \fIready\fP (i.e.,
 all of its attributes are constructed) before proceeding.
 The \f3asorelax(1)\fP call yields control of the processor for 1 nanosecond
 so other processes can do their work.
-Note that the test for \f3~(DT_ANNOUNCE|DT_INSERT|DT_ATTACH)\fP in \f3eventf()\fP
+Note that the test for \f3~(DT_ANNOUNCE|DT_INSERT|DT_ATTACH)\fP
+in \f3eventf()\fP
 means that the loop will execute for all CDT operations except for
 the \f3dtinsert()\fP or \f3dtattach()\fP call that actually inserts \f3obj\fP
 into the dictionary (more on this below).
 
-When the \f3while\fP loop finished, the construction of object \f3obj\fP is known
-to be completed. \f3eventf()\fP increases the reference count \f3obj->refn\fP by one
+When the \f3while\fP loop finished, the construction of
+object \f3obj\fP is known
+to be completed. \f3eventf()\fP increases the reference
+count \f3obj->refn\fP by one
 before the respective operation returns \f3obj\fP to the calling code.
 On the other hand, \f3freef()\fP waits for the reference
 count to reach zero before proceeding to destroy the object.
-Waiting for object readiness in \f3freef()\fP before object destruction is necessary
-to avoid any issues with deleting uninitialized data.
+Waiting for object readiness in \f3freef()\fP before object destruction
+is necessary to avoid any issues with deleting uninitialized data.
 Again, it should be emphasized that reference counting
 is needed only for a memory management model where objects can be freed
 regardless of whether or not there are any references to them.
 Applications that use some form of garbage collection in general or
-for dictionary objects may ignore doing reference counting as done in this example.
+for dictionary objects may ignore doing reference counting as done
+in this example.
 
 Next, consider a fragment of code to access
 objects concurrently from different threads or processes:
@@ -820,8 +876,10 @@ Then, \f3dtdelete()\fP is called to delete the object.
 A possible danger is that concurrent calls to \f3dtdelete()\fP
 may end up causing the same memory to be freed more than once.
 Fortunately, this cannot happen.
-CDT guarantees that, of all the concurrent calls to \f3dtdelete()\fP on \f3obj\fP,
-only one will get far enough to make the \f3freef()\fP call while others do nothing.
+CDT guarantees that, of all the concurrent calls to \f3dtdelete()\fP
+on \f3obj\fP,
+only one will get far enough to make the \f3freef()\fP call while
+others do nothing.
 
 Finally, consider a code fragment to construct and use the object \f3obj\fP:
 
@@ -844,22 +902,27 @@ Finally, consider a code fragment to construct and use the object \f3obj\fP:
 .Ce
 
 After the \f3dtinsert()\fP call returns,
-all other concurrent computations invoking dictionary operations to access \f3obj\fP
-will be blocked in the \f3eventf()\fP function until \f3obj->ready\fP is set to 1
-by the above \f3asocaschar()\fP call.
+all other concurrent computations invoking dictionary operations to
+access \f3obj\fP will be blocked in the \f3eventf()\fP function until
+\f3obj->ready\fP is set to 1 by the above \f3asocaschar()\fP call.
 As this is a concurrent computing application,
 the above code fragment itself can be
 executed in parallel with different but equivalent versions of \f3obj\fP.
-In that case, only one \f3dtinsert()\fP call will succeed in inserting a new object
-while the others will report a matching object, i.e., the one actually inserted.
+In that case, only one \f3dtinsert()\fP call will succeed in
+inserting a new object while the others will report a matching object,
+i.e., the one actually inserted.
 The announcement of the successful case is \f3DT_ANNOUNCE|DT_INSERT\fP
-while the announcement of the other cases is \f3DT_ANNOUNCE|DT_INSERT|DT_SEARCH\fP.
+while the announcement of the other cases is
+\f3DT_ANNOUNCE|DT_INSERT|DT_SEARCH\fP.
 The bit \f3DT_SEARCH\fP causes \f3eventf()\fP to
-to run the loop waiting for object completion. Thus, overall, except for the single case
-of a successful insertion of a new object, all other dictionary accesses that involve
+to run the loop waiting for object completion.
+Thus, overall, except for the single case
+of a successful insertion of a new object,
+all other dictionary accesses that involve
 this object will return only when the object is ready.
 
-Note that, for simplicity, the possibility of failure was ignored in the example.
+Note that, for simplicity,
+the possibility of failure was ignored in the example.
 In both successful outcomes of \f3dtinsert()\fP, the reference count of an
 appropriate object will be increased by one. Thus, care must be taken to
 reduce that reference count for the object after it is no longer needed.
@@ -870,7 +933,8 @@ that avoids an infinite loop waiting for the reference count to drop to zero.
 However, a discussion of that is beyond the scope of this document.
 .PP
 .SH IMPLEMENTATION NOTES
-\f3Dtlist\fP, \f3Dtstack\fP, \f3Dtdeque\fP and \f3Dtqueue\fP are based on doubly linked list.
+\f3Dtlist\fP, \f3Dtstack\fP, \f3Dtdeque\fP and \f3Dtqueue\fP are
+based on doubly linked list.
 \f3Dtoset\fP and \f3Dtobag\fP are based on top-down splay trees.
 \f3Dtset\fP and \f3Dtbag\fP are based on hash tables with collision chains.
 \f3Dtrhset\fP and \f3Dtrhbag\fP are based on a recursive hashing data structure
