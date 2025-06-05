@@ -312,6 +312,20 @@ int sh_lex(Lex_t* lp)
 		state = sh_lexstates[mode];
 		do {
 			n = STATE(state,c);
+                        /*
+                         * Bug-691: Phi gross hack
+                         * Greedy ${list} will treat all '}' not on a reserved
+                         * word (i.e after [;\n]) as regular char.
+                         * Non greedy close ${ on first '}' (ATT code)
+                         */
+                        if( sh_isoption(SH_COMSUB_BRACE_GREEDY) &&
+                            lp->lex.inbracecomsub && c=='}' &&
+                            ( state==sh_lexstates[ ST_BEGIN] ||
+                              state==sh_lexstates[ST_NORM]
+                            )
+                          )
+                        {  n=S_REG ; /* treat '}' as reg char */
+                        }
 			if (varnametry)
 				varnamecount += LEN;
 		} while (n == 0);
@@ -430,6 +444,10 @@ int sh_lex(Lex_t* lp)
 				lp->lex.skipword = 0;
 				/* FALLTHROUGH */
 			case S_NL:
+				/* bug-691: Phi: */
+				if( sh_isoption(SH_COMSUB_BRACE_GREEDY) )
+					lp->lex.inbracecomsub=0;
+				
 				/* skip over new-lines */
 				lp->lex.last_quote = 0;
 				while(sh.inlineno++,fcget()=='\n');
@@ -453,6 +471,10 @@ int sh_lex(Lex_t* lp)
 				}
 				continue;
 			case S_OP:
+				/* bug-691: Phi: */
+				if( sh_isoption(SH_COMSUB_BRACE_GREEDY) )
+					lp->lex.inbracecomsub=0;
+
 				/* return operator token */
 				if(c=='<' || c=='>')
 				{
@@ -1014,7 +1036,7 @@ int sh_lex(Lex_t* lp)
 						continue;
 					if((n=sh_lexstates[ST_BEGIN][c])==0 || n==S_OP || n==S_NLTOK)
 					{
-						c = LBRACE;
+						c = LBRACE;      
 						goto do_comsub;
 					}
 				}
@@ -1304,7 +1326,12 @@ breakloop:
 		if(n==LBRACT)
 			c = 0;
 		else if(n==RBRACE && lp->comsub)
-			return lp->token=n;
+		{	/* Bug-691: Phi: AT&T original non greedy path */
+			if( ! (sh_isoption(SH_COMSUB_BRACE_GREEDY) && 
+				lp->lex.inbracecomsub))
+					return lp->token=n;  
+			/* Bug-691: Phi: Greedy continue... */
+		}
 		else if(n=='~')
 			c = ARG_MAC;
 		else
@@ -1575,6 +1602,11 @@ static int comsub(Lex_t *lp, int endtok)
 	int off, messages=0, assignok=lp->assignok, csub;
 	struct _shlex_pvt_lexstate_ save = lp->lex;
 	csub = lp->comsub;
+
+	/* bug-691: Phi: */
+	if( sh_isoption(SH_COMSUB_BRACE_GREEDY) && *cp=='{' )
+		lp->lex.inbracecomsub = 1;
+	
 	sh_lexopen(lp,1);
 	lp->lexd.dolparen++;
 	lp->lexd.dolparen_arithexp = endtok==LPAREN && fcpeek(1)==LPAREN;  /* $(( */
@@ -1645,6 +1677,8 @@ static int comsub(Lex_t *lp, int endtok)
 				if(endtok==LBRACE && !lp->lex.incase)
 				{
 					lp->comsub = 0;
+					/* bug-691: Phi: */
+					if(! sh_isoption(SH_COMSUB_BRACE_GREEDY))
 					count++;
 				}
 				break;
@@ -1652,6 +1686,7 @@ static int comsub(Lex_t *lp, int endtok)
 			    rbrace:
 				if(endtok==LBRACE && --count<=0)
 					goto done;
+                                
 				if(count==1)
 					lp->comsub = endtok==LBRACE;
 				break;

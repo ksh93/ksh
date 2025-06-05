@@ -39,6 +39,7 @@ const Shtable_t shtab_options[] =
 	"braceexpand",			SH_BRACEEXPAND,
 #endif
 	"noclobber",			SH_NOCLOBBER,
+	"comsub_brace_greedy",		SH_COMSUB_BRACE_GREEDY, /* bug-691: phi: */
 #if SHOPT_ESH
 	"emacs",			SH_EMACS,
 #endif

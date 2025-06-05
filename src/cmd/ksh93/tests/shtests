@@ -376,6 +376,7 @@ do	[[ $i == *.sh ]] || i+='.sh'
 		glob.sh)	grep -c '^[[:blank:]]*test_[a-z]\{3,\}' $i ;;
 		leaks.sh)	grep -c ^TEST $i ;;
 		printf.sh)	grep -c -E '([[:blank:]]err_exit|^[[:blank:]]*T)[[:blank:]]' $i ;;
+                greedy_comsub.sh) grep -c '^T ' $i ;; # bug-691: Phi:
 		pty.sh)		grep -c 'tst ' $i ;;
 		*)		grep -c err_exit $i ;;
 		esac	)
