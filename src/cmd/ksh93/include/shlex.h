@@ -56,6 +56,7 @@ struct _shlex_pvt_lexdata_
 	char		warn;
 	char		message;
 	char		arith;
+	char		funcalias; /* bug-666: Phi: */
 	char 		*first;
 	int		level;
 	int		lastc;
