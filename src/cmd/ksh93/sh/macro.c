@@ -49,7 +49,7 @@
 #include	"streval.h"
 
 #if _WINIX
-    static int Skip;
+    static ptrdiff_t Skip;
 #endif /* _WINIX */
 
 static int	_c_;
