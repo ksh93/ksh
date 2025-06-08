@@ -50,7 +50,6 @@ struct _shlex_pvt_lexdata_
 	char		dolparen_arithexp;	/* set while comsub() is lexing an arithmetic expansion */
 	char		nest;
 	char		docword;
-	char		nested_tilde;
 	char 		*docend;
 	char		inlexskip;	/* set when sh_lex() is called from sh_lexskip() */
 	char		warn;
