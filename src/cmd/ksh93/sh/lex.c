@@ -660,10 +660,7 @@ int sh_lex(Lex_t* lp)
 				if(c=='~' && mode==ST_NESTED)
 				{
 					if(endchar(lp)==RBRACE)
-					{
-						lp->lexd.nested_tilde++;
 						goto tilde;
-					}
 					continue;
 				}
 				/* FALLTHROUGH */
@@ -686,19 +683,9 @@ int sh_lex(Lex_t* lp)
 				n = fcgetc();
 				if(n>0)
 				{
-					if(c=='~' && n==LPAREN)
-					{
-						if(lp->lexd.nested_tilde)
-							lp->lexd.nested_tilde++;
-						else if(lp->lex.incase)
-							lp->lex.incase = TEST_RE;
-					}
+					if(c=='~' && n==LPAREN && lp->lex.incase)
+						lp->lex.incase = TEST_RE;
 					fcseek(-LEN);
-					if(lp->lexd.nested_tilde)
-					{
-						lp->lexd.nested_tilde--;
-						continue;
-					}
 				}
 				if(n==LPAREN)
 					goto epat;
@@ -1038,10 +1025,6 @@ int sh_lex(Lex_t* lp)
 					fcseek(-LEN);
 				}
 				continue;
-			case S_META:
-				if(lp->lexd.warn && endchar(lp)==RBRACE && !lp->lexd.nested_tilde)
-					errormsg(SH_DICT,ERROR_warn(0),e_lexusequote,sh.inlineno,c);
-				continue;
 			case S_PUSH:
 				n = fcgetc();
 				if(n==RPAREN)
@@ -1080,14 +1063,8 @@ int sh_lex(Lex_t* lp)
 						fcseek(-LEN);
 					n = RPAREN;
 				}
-				if(c==RBRACE)
-					lp->lexd.nested_tilde = 0;
 				if(c==';' && n!=';')
-				{
-					if(lp->lexd.warn && n==RBRACE)
-						errormsg(SH_DICT,ERROR_warn(0),e_lexusequote,sh.inlineno,c);
 					continue;
-				}
 				if(mode==ST_QNEST)
 				{
 					if(lp->lexd.warn)
