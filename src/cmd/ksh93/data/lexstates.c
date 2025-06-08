@@ -353,7 +353,7 @@ static const char sh_lexstate5[256] =
 	0,	0,	0,	0,	0,	0,	0,	0,
 
   /*	space	!	"	#	$	%	&	'	*/
-	S_BLNK,	0,	S_QUOTE,0,	S_DOL,	0,	S_META,	S_LIT,
+	S_BLNK,	0,	S_QUOTE,0,	S_DOL,	0,	0,	S_LIT,
 
   /*	(	)	*	+	,	-	.	/	*/
 	S_PUSH,	S_POP,	0,	0,	0,	0,	0,	0,
@@ -362,7 +362,7 @@ static const char sh_lexstate5[256] =
 	0,	0,	0,	0,	0,	0,	0,	0,
 
   /*	8	9	:	;	<	=	>	?	*/
-	0,	0,	0,	S_POP,	S_META,	0,	S_META,	0,
+	0,	0,	0,	S_POP,	0,	0,	0,	0,
 
   /*	@	A	B	C	D	E	F	G	*/
 	0,	0,	0,	0,	0,	0,	0,	0,
@@ -386,7 +386,7 @@ static const char sh_lexstate5[256] =
 	0,	0,	0,	0,	0,	0,	0,	0,
 
   /*	x	y	z	{	|	}	~	del	*/
-	0,	0,	0,	S_BRACE,S_META,	S_POP,	S_TILDE,0
+	0,	0,	0,	S_BRACE,0,	S_POP,	S_TILDE,0
 };
 
 /*
@@ -752,7 +752,6 @@ const char e_lexobsolete4[]	= "line %d: [[ ... %s ... ]] obsolete, use ((... %s 
 const char e_lexobsolete5[]	= "line %d: set %s obsolete";
 const char e_lexobsolete6[]	= "line %d: `{' instead of `in' is obsolete";
 const char e_lexusebrace[]	= "line %d: use braces to avoid ambiguities with $id[...]";
-const char e_lexusequote[]	= "line %d: %c within ${} should be quoted";
 const char e_lexescape[]	= "line %d: escape %c to avoid ambiguities";
 const char e_lexquote[]		= "line %d: quote %c to avoid ambiguities";
 const char e_lexnested[]	= "line %d: spaces required for nested subshell";

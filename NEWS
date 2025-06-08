@@ -8,11 +8,6 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   prompts use the kitty terminal's escape sequence (e.g. $'\E[4:4m'
   in the PS1 prompt for formatting spaced dots).
 
-2025-05-30:
-
-- The editor typeahead buffer and the limit for the ${.sh.edchar} variable
-  (used with the KEYBD trap) has been increased from 80 to 500 bytes.
-
 2025-05-29:
 
 - Fixed a serious but rarely occurring regression that corrupts variable
