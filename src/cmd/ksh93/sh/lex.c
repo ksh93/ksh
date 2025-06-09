@@ -650,7 +650,10 @@ int sh_lex(Lex_t* lp)
 				if(c=='~' && mode==ST_NESTED)
 				{
 					if(endchar(lp)==RBRACE)
+					{
+						lp->lexd.nested_tilde++;
 						goto tilde;
+					}
 					continue;
 				}
 				/* FALLTHROUGH */
@@ -673,9 +676,19 @@ int sh_lex(Lex_t* lp)
 				n = fcgetc();
 				if(n>0)
 				{
-					if(c=='~' && n==LPAREN && lp->lex.incase)
-						lp->lex.incase = TEST_RE;
+					if(c=='~' && n==LPAREN)
+					{
+						if(lp->lexd.nested_tilde)
+							lp->lexd.nested_tilde++;
+						else if(lp->lex.incase)
+							lp->lex.incase = TEST_RE;
+					}
 					fcseek(-LEN);
+					if(lp->lexd.nested_tilde)
+					{
+						lp->lexd.nested_tilde--;
+						continue;
+					}
 				}
 				if(n==LPAREN)
 					goto epat;
@@ -1053,6 +1066,8 @@ int sh_lex(Lex_t* lp)
 						fcseek(-LEN);
 					n = RPAREN;
 				}
+				if(c==RBRACE)
+					lp->lexd.nested_tilde = 0;
 				if(c==';' && n!=';')
 					continue;
 				if(mode==ST_QNEST)
