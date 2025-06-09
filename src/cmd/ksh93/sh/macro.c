@@ -1166,6 +1166,7 @@ static int varsub(Mac_t *mp)
 	char		*idx = 0;
 	int		var=1,addsub=0,oldpat=mp->pattern,idnum=0,flag=0,d;
 	Stk_t		*stkp = sh.stk;
+	char		have_dot=0; /* bug-875: Phi: */
 	mp->wasexpan = 1;
 retry1:
 	idbuff[0] = 0;
@@ -1292,7 +1293,11 @@ retry1:
 			do
 			{
 				if(LEN==1)
+				{ 
+				  if(c=='.')
+					have_dot=1;
 					sfputc(stkp,c);
+				}
 				else
 					sfwrite(stkp,fcseek(0)-LEN,LEN);
 			}
@@ -1609,7 +1614,8 @@ retry1:
 				dolg = -1;
 				nextname(mp,id,0);
 				/* Check if the prefix (id) itself exists. If so, start with that. */
-				if(nv_open(id,sh.var_tree,NV_NOREF|NV_NOADD|NV_VARNAME|NV_NOFAIL))
+				/* bug-875: Phi: Don't do that for namespaced var*/
+				if( !have_dot && nv_open(id,sh.var_tree,NV_NOREF|NV_NOADD|NV_VARNAME|NV_NOFAIL))
 					v = id;
 				else
 					v = nextname(mp,id,dolmax);

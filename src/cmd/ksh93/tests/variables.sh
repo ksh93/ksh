@@ -1770,4 +1770,11 @@ got=$(./issue861.sh 2>&1)
 unset i
 
 # ======
+# https://github.com/ksh93/ksh/issues/861
+a=1 a.a=2 a.b=3 a.c=4 a.aa=5 a.ac=6
+got=$(echo ${!a.a*})
+exp="a.a a.aa a.ac"
+[[ $got == "$exp" ]] || err_exit "\${!a.*} not workig. expected '$exp' got '$got'"
+
+# ======
 exit $((Errors<125?Errors:125))
