@@ -1290,7 +1290,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 				sh.shpath = sh_strdup(cp);
 			else if(cp = nv_getval(PWDNOD))
 			{
-				ptrdiff_t offset = stktell(sh.stk);
+				int offset = stktell(sh.stk);
 				sfputr(sh.stk,cp,'/');
 				sfputr(sh.stk,argv[0],-1);
 				pathcanon(stkptr(sh.stk,offset),PATH_DOTDOT);
