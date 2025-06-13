@@ -1231,15 +1231,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make pathprog.o
-			make path/pathprog.c
-				prev FEATURE/prog
-				prev include/ast_windows.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make ftwalk.o
 			make misc/ftwalk.c
 				make include/ftwalk.h
