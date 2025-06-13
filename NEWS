@@ -2,6 +2,23 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-06-14:
+
+- Fixed a bug occurring on systems with posix_spawn(3), spawnve(2), and
+  spawn(2), which when exploited could cause ksh93 to execute scripts
+  without a shebang with a shell other than itself, provided /bin/ksh
+  was hijacked, or in the case of ksh being unable to obtain it's own
+  executable path, whatever the SHELL variable was set to.
+
+- Fixed a bug that could cause scripts without a shebang to run
+  without POSIX mode enabled when executed in a virtual subshell.
+
+- Fixed a bug that could allow an attacker to hijack ksh93 during
+  shell initialization to execv a shell other than ksh itself, leading to
+  the ksh process being surreptitiously replaced with bash, zsh, or
+  really anything, provided the binary name ends with the letters
+  'sh'.
+
 2025-05-31:
 
 - Fixed a bug that caused the multiline option to break when PS*

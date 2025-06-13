@@ -1261,34 +1261,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	}
 	/* increase SHLVL */
 	sh.shlvl++;
-#if SHOPT_SPAWN
-	{
-		/*
-		 * try to find the pathname for this interpreter
-		 * try using environment variable _ or argv[0]
-		 */
-		char *cp=nv_getval(L_ARGNOD);
-		char buff[PATH_MAX+1];
-		size_t n;
-		sh.shpath = 0;
-		if((n = pathprog(NULL, buff, sizeof(buff))) > 0 && n <= sizeof(buff))
-			sh.shpath = sh_strdup(buff);
-		else if((cp && (sh_type(cp)&SH_TYPE_SH)) || (argc>0 && strchr(cp= *argv,'/')))
-		{
-			if(*cp=='/')
-				sh.shpath = sh_strdup(cp);
-			else if(cp = nv_getval(PWDNOD))
-			{
-				int offset = stktell(sh.stk);
-				sfputr(sh.stk,cp,'/');
-				sfputr(sh.stk,argv[0],-1);
-				pathcanon(stkptr(sh.stk,offset),PATH_DOTDOT);
-				sh.shpath = sh_strdup(stkptr(sh.stk,offset));
-				stkseek(sh.stk,offset);
-			}
-		}
-	}
-#endif
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
 	astconfdisc(newconf);
 #if SHOPT_TIMEOUT
@@ -1301,7 +1273,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 #endif
 	if(argc>0)
 	{
-		int dolv_index;
 		/* check for restricted shell */
 		if(type&SH_TYPE_RESTRICTED)
 			sh_onoption(SH_RESTRICTED);
@@ -1313,10 +1284,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 			sh_done(0);
 		}
 		opt_info.disc = 0;
-		dolv_index = (argc - 1) - sh.st.dolc;
-		sh.st.dolv = argv + dolv_index;
-		sh.st.repl_index = dolv_index;
-		sh.st.repl_arg = argv[dolv_index];
+		sh.st.dolv = argv + (argc - 1) - sh.st.dolc;
 		sh.st.dolv[0] = argv[0];
 		if(sh.st.dolc < 1)
 		{
