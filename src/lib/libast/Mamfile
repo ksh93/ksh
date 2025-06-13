@@ -322,11 +322,6 @@ make install virtual
 		exec - invoke_iffe %{<}
 	done
 
-	make FEATURE/prog
-		makp features/prog
-		exec - invoke_iffe %{<}
-	done
-
 	make FEATURE/locale
 		makp features/locale
 		exec - invoke_iffe %{<}
