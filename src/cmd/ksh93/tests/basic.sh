@@ -1097,22 +1097,20 @@ got=$(set +x; SHELL="$bindir"/hijack_sh "$SHELL" -l <(echo) 2>&1)
 
 # Hijacking ksh93 shebang-less scripts for arbitrary command execution.
 # https://github.com/ksh93/ksh/pull/866
-if whence -q install
-then	export bindir
-	print 'echo GOOD' > "$bindir/dummy.sh"
-	chmod +x "$bindir/dummy.sh"
-	cp "$SHELL" "$bindir/hijack_sh"
-	exp=$'GOOD\nGOOD'
-	got=$("$bindir/hijack_sh" -c $'print $\'\#!/bin/sh\necho HIJACKED\' > "$bindir/hijack_shell"
-	chmod +x "$bindir/hijack_shell"
-	rm "$bindir/hijack_sh"
-	cp "$bindir/hijack_shell" "$bindir/hijack_sh"
-	("$bindir/dummy.sh"); "$bindir/dummy.sh"; :')
-	rm -r "$bindir"
-	unset bindir
-	[[ $exp == $got ]] || err_exit 'ksh93 shebang-less scripts are vulnerable to being hijacked for arbitrary code execution' \
-		"(exp $(printf %q "$exp"), got $(printf %q "$got"))"
-fi
+export bindir
+print 'echo GOOD' > "$bindir/dummy.sh"
+chmod +x "$bindir/dummy.sh"
+cp "$SHELL" "$bindir/hijack_sh"
+exp=$'GOOD\nGOOD'
+got=$("$bindir/hijack_sh" -c $'print $\'\#!/bin/sh\necho HIJACKED\' > "$bindir/hijack_shell"
+chmod +x "$bindir/hijack_shell"
+rm "$bindir/hijack_sh"
+cp "$bindir/hijack_shell" "$bindir/hijack_sh"
+("$bindir/dummy.sh"); "$bindir/dummy.sh"; :')
+rm -r "$bindir"
+unset bindir
+[[ $exp == $got ]] || err_exit 'ksh93 shebang-less scripts are vulnerable to being hijacked for arbitrary code execution' \
+	"(exp $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
