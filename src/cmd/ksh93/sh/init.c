@@ -1278,7 +1278,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 #endif
 	if(argc>0)
 	{
-		int dolv_index;
 		/* check for restricted shell */
 		if(type&SH_TYPE_RESTRICTED)
 			sh_onoption(SH_RESTRICTED);
@@ -1290,8 +1289,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 			sh_done(0);
 		}
 		opt_info.disc = 0;
-		dolv_index = (argc - 1) - sh.st.dolc;
-		sh.st.dolv = argv + dolv_index;
+		sh.st.dolv = argv + (argc - 1) - sh.st.dolc;
 		sh.st.dolv[0] = argv[0];
 		if(sh.st.dolc < 1)
 		{
