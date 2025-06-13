@@ -1105,8 +1105,9 @@ then	export bindir
 	exp=$'GOOD\nGOOD'
 	got=$("$bindir/hijack_sh" -c $'print $\'\#!/bin/sh\necho HIJACKED\' > "$bindir/hijack_shell"
 	chmod +x "$bindir/hijack_shell"
-	install -Dm0755 "$bindir/hijack_shell" "$bindir/hijack_sh"
-	("$bindir/dummy.sh"; :); "$bindir/dummy.sh"; :')
+	rm "$bindir/hijack_sh"
+	cp "$bindir/hijack_shell" "$bindir/hijack_sh"
+	("$bindir/dummy.sh"); "$bindir/dummy.sh"; :')
 	rm -r "$bindir"
 	unset bindir
 	[[ $exp == $got ]] || err_exit 'ksh93 shebang-less scripts are vulnerable to being hijacked for arbitrary code execution' \
