@@ -219,7 +219,8 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 			{
 				char *sp;
 				/* open stream should have been passed into shell */
-				if(strmatch(name,e_devfdNN))
+                                /* bug-877: Phi: No need for this */
+				if( 0 && strmatch(name,e_devfdNN))
 				{
 					fdin = (int)strtol(name+8, NULL, 10);
 					if(fstat(fdin,&statb)<0)
