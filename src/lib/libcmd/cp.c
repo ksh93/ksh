@@ -677,8 +677,31 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	State_t*	state;
 	Shbltin_t*	sh;
 	Shbltin_t*	cleanup = context;
+	char*		cmd;   /* bug-871: Phi: */
+	int		xmv=0; /* bug-871: Phi: */
 
+	/* bug-871: Phi: b_mv() want cp -r on xdev*/
+	if(argv[0][0]=='X')
+	{
+	  argv[0]="cp";
+	  xmv=1;
+	}
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
+
+	/*
+	 * bug-871: Phi:
+	 * The above cmdinit() do set error_info.id to cp|mv|ln from argv[0]
+	 * If we are called from b_mv() in the xdev case, we keep the
+	 * current error_id ("cp") int cmd, then we restore the error_info.id
+	 * to "mv" for accurate error message reporting.
+	 * The backup'ed error_info.id in cmd is then used down.
+	 * b_mv() in the non xdev (same FS) call b_cp() with argv[0]="mv" in
+	 * which case we don't enter the new code (cp -r; rm )
+	 */
+	cmd=error_info.id;
+	if(xmv)
+		error_info.id="mv";
+	
 	if (!(sh = CMD_CONTEXT(context)) || !(state = (State_t*)sh->ptr))
 	{
 		if (!(state = newof(0, State_t, 1, 0)))
@@ -704,7 +727,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	}
 	sfputr(state->tmp, usage_head, -1);
 	standard = !!conformance(0, 0);
-	switch (error_info.id[0])
+	switch (cmd[0]) /* bug-871: Phi: */
 	{
 	case 'c':
 	case 'C':
@@ -989,7 +1012,26 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		state->flags |= FTS_TOP;
 	if (fts = fts_open(argv, state->flags, NULL))
 	{
-		while (!sh_checksig(context) && (ent = fts_read(fts)) && !visit(state, ent));
+		/* bug-871: Phi: */
+		while (!sh_checksig(context) && (ent = fts_read(fts)))
+		{
+			/*
+			 * bug-871: Phi:
+			 * If src is a dir and -r was not given, skip src
+			 */
+			if( cmd[0]=='c' &&
+			    S_ISDIR(ent->fts_statp->st_mode) &&
+			    !state->recursive )
+			{
+				error(1,
+					"-r not specified; omitting directory %s",
+					ent->fts_path);
+				fts_read(fts);
+				continue;
+			}
+			if(visit(state, ent))
+				break;
+		}
 		fts_close(fts);
 	}
 	else if (state->link != pathsetlink)
