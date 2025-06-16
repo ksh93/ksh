@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-06-16:
+
+- Fixed a possible out of bounds crash that could occur when running
+  a POSIX function (aka a function of the form 'name() {').
+
 2025-06-14:
 
 - Fixed a bug occurring on systems with posix_spawn(3), spawnve(2), and
