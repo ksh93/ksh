@@ -52,9 +52,11 @@ combines
 and
 .IR setsid (2)
 into a single call.
-If
+If one of either
 .IR posix_spawn (3)
-is available, that function is preferred over
+or
+.IR clone (2)
+is available, those functions are preferred over
 .IR fork .
 .PP
 .LR command ,
@@ -81,30 +83,33 @@ The new process becomes a process group leader.
 The new process joins the process group
 .IR pgid .
 .PP
-The
-.L tcfd
-argument is currently only used if the operating system supports the
-.I posix_spawn_file_actions_addtcsetpgrp_np
-function.
 When
 .L tcfd
 is
 .LR >=0 ,
 spawnveg will set the controlling terminal for the new process to
-.IR tcfd .
+.IR tcfd ,
+and will set the terminal signals
+.IR SIGTSTP ,
+.IR SIGTTIN ,
+and
+.I SIGTTOU
+to their defaults in the child process before
+.I execve
+is called.
 .SH CAVEATS
-If the
-.I posix_spawn_file_actions_addtcsetpgrp_np
-function is not available, then
+If
+.I clone
+and/or
+.I POSIX_SPAWN_SETSID
+aren't available, then
 .L spawnveg
-cannot reliably set the terminal process group.
-As a result, it is incompatible with job control when used with terminals.
-Additionally, if the
-.L POSIX_SPAWN_SETSID
-attribute is not supported, then
-.L spawnveg
-cannot make the new process a session leader when using the
-.I posix_spawn
-API.
+will fall back to using
+.I fork
+in cases where either
+.I setsid
+or
+.IR tcsetpgrp (3)
+is required.
 .SH "SEE ALSO"
-fork(2), posix_spawn(3), exec(2), setpgid(2), setsid(2), spawnve(2)
+fork(2), posix_spawn(3), clone(2), exec(2), setpgid(2), setsid(2), sigaction(2), spawnve(2), tcsetpgrp(3)

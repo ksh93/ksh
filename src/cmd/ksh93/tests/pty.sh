@@ -1400,5 +1400,18 @@ I print
 r right
 !
 
+tst $LINENO << "!"
+L crash after E2BIG due to failed tcpgrp restoration
+
+d 40
+P :test-.:
+w integer savpid=$$
+w "$SHELL"
+w $(type -p true) "$(awk -v ORS= 'BEGIN { for(i=0;i<1000000;i++) print "xx"; }')"
+w ((savpid==$$)); print $?
+I print
+r ^1\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

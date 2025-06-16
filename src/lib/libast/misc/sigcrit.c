@@ -91,8 +91,13 @@ sigcritical(int op)
 	else
 	{
 		/*
-		 * a vfork() may have intervened so we
-		 * allow apparent nesting mismatches
+		 * A vfork via clone(2) may have intervened so we
+		 * allow apparent nesting mismatches. The child
+		 * shares memory and will decrease the level to 0,
+		 * which is then decreased again to -1 by the parent
+		 * once the parent's execution resumes.
+		 * (This assumes both the child and parent processes
+		 * invoke sigcritical(0).)
 		 */
 
 		if (--level <= 0)
