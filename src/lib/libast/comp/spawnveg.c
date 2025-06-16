@@ -46,8 +46,8 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 	short				flags = 0;
 	pid_t				pid;
 	posix_spawnattr_t		attr;
-	sigset_t			mask, tcmask;
 #if _lib_posix_spawn_file_actions_addtcsetpgrp_np
+	sigset_t			tcmask;
 	posix_spawn_file_actions_t	actions;
 #else
 	NOT_USED(tcfd);
