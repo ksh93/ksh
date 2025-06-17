@@ -61,8 +61,10 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 #endif
 	if (pgid && pgid != -1)
 		flags |= POSIX_SPAWN_SETPGROUP;
+#if _lib_posix_spawn_file_actions_addtcsetpgrp_np
 	if (tcfd >= 0)
 		flags |= POSIX_SPAWN_SETSIGDEF;
+#endif
 	if (flags && (err = posix_spawnattr_setflags(&attr, flags)))
 		goto bad;
 	if (pgid && pgid != -1)
