@@ -49,7 +49,6 @@
 #define S_EDOL	32	/* ends $identifier */
 #define S_BRACE	33	/* left brace */
 #define S_DOT	34	/* . char */
-#define S_META	35	/* | & ; < > inside ${...} reserved for future use */
 #define S_SPACE	S_BREAK	/* IFS space characters */
 #define S_DELIM	S_RES	/* IFS delimiter characters */
 #define S_MBYTE S_NAME	/* IFS first byte of multi-byte char */
@@ -149,7 +148,6 @@ extern const char e_lexobsolete4[];
 extern const char e_lexobsolete5[];
 extern const char e_lexobsolete6[];
 extern const char e_lexusebrace[];
-extern const char e_lexusequote[];
 extern const char e_lexescape[];
 extern const char e_lexquote[];
 extern const char e_lexnested[];

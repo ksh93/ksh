@@ -3365,26 +3365,6 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 		job_fork(-1);
 		jobfork = 1;
 		spawnpid = path_spawn(path,argv,arge,pp,(grp<<1)|1);
-		if(spawnpid < 0 && errno==ENOEXEC)
-		{
-			char *devfd;
-			int fd = open(path,O_RDONLY);
-			argv[-1] = argv[0];
-			argv[0] = path;
-			if(fd>=0)
-			{
-				struct stat statb;
-				sfprintf(sh.strbuf,"/dev/fd/%d",fd);
-				if(stat(devfd=sfstruse(sh.strbuf),&statb)>=0)
-					argv[0] =  devfd;
-			}
-			if(!sh.shpath)
-				sh.shpath = pathshell();
-			spawnpid = path_spawn(sh.shpath,&argv[-1],arge,pp,(grp<<1)|1);
-			if(fd>=0)
-				close(fd);
-			argv[0] = argv[-1];
-		}
 	fail:
 		if(jobfork && spawnpid<0)
 			job_fork(-2);

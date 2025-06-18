@@ -130,7 +130,7 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 		x = ARG_MAX;
 	if (size <= 0 || size > x)
 		size = x;
-	sh = pathshell();
+	sh = astconf("SH", NULL, NULL);
 	m = n + (argc + 4) * sizeof(char**) + strlen(sh) + 1;
 	m = roundof(m, sizeof(char**));
 	if (size < m)

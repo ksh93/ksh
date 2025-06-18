@@ -1221,8 +1221,6 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 		 */
 		if(spawn)
 		{
-			if(sh.subshell)
-				return -1;
 			do
 			{
 				if((pid=fork())>0)

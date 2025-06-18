@@ -246,7 +246,9 @@ int tty_raw(int fd, int echomode)
  */
 int ed_window(void)
 {
-	int	cols = sh.columns - 1;
+	int	cols;
+	sh_winsize();
+	cols = sh.columns - 1;
 	if(cols < MINWINDOW)
 		cols = MINWINDOW;
 	else if(cols > MAXWINDOW)
@@ -624,6 +626,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 				flush_notifybuf();
 				goto skipwinch;
 			}
+			sh_winsize();
 			ed_putchar(ep,'\r');
 			/*
 			 * Try to move cursor to start of first line and pray it works... it's very

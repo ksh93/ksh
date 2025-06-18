@@ -1085,4 +1085,32 @@ wait "$parallel_6" || err_exit '"command | while read...done" finishing too fast
 wait "$parallel_7" || err_exit 'early termination not causing broken pipe'
 
 # ======
+# Hijacking ksh93 via $SHELL for arbitrary command execution during initialization.
+# https://github.com/ksh93/ksh/issues/874
+bindir=$tmp/dir.$RANDOM/bin
+mkdir -p "$bindir"
+echo $'#!/bin/sh\necho "CODE INJECTION"' > "$bindir"/hijack_sh
+chmod +x "$bindir"/hijack_sh
+got=$(set +x; SHELL="$bindir"/hijack_sh "$SHELL" -l <(echo) 2>&1)
+[[ $got =~ "CODE INJECTION" ]] && err_exit 'ksh93 is vulnerable to being hijacked during init via $SHELL' \
+	"(got $(printf %q "$got"))"
+
+# Hijacking ksh93 shebang-less scripts for arbitrary command execution.
+# https://github.com/ksh93/ksh/pull/866
+export bindir
+print 'echo GOOD' > "$bindir/dummy.sh"
+chmod +x "$bindir/dummy.sh"
+cp "$SHELL" "$bindir/hijack_sh"
+exp=$'GOOD\nGOOD'
+got=$("$bindir/hijack_sh" -c $'print $\'\#!/bin/sh\necho HIJACKED\' > "$bindir/hijack_shell"
+chmod +x "$bindir/hijack_shell"
+rm "$bindir/hijack_sh"
+cp "$bindir/hijack_shell" "$bindir/hijack_sh"
+("$bindir/dummy.sh"); "$bindir/dummy.sh"; :')
+rm -r "$bindir"
+unset bindir
+[[ $exp == $got ]] || err_exit 'ksh93 shebang-less scripts are vulnerable to being hijacked for arbitrary code execution' \
+	"(exp $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
