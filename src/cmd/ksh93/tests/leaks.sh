@@ -356,7 +356,7 @@ DO
 	hash "${random_utils[@]}"
 DONE
 
-TEST	title='unset PATH in main shell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='unset PATH in main shell'
 DO
 	unset PATH
 	PATH=$save_PATH
@@ -443,6 +443,12 @@ TEST	title='assigning and comparing enum rvalue in arithmetic'
 	Test1_t foo
 DO
 	(((foo = amet) && foo == amet && foo != fermentum))
+DONE
+
+# ======
+TEST	title='running external command by default path'
+DO
+	command -px true
 DONE
 
 # ======
