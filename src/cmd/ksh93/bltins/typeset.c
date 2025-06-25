@@ -29,7 +29,7 @@
  * nameref [options] [arg...]
  * alias [-ptx] [arg...]
  * unalias [-a] [arg...]
- * hash [-lr] [utility...]
+ * hash [-r] [utility...]
  * builtin [-dlps] [-f file] [name...]
  * set [options] [name...]
  * unset [-fnv] [name...]
@@ -138,7 +138,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 {
 	unsigned flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
 	Dt_t *troot;
-	int rflag=0, xflag=0, lflag=0, n;
+	int rflag=0, xflag=0, n;
 	struct tdata tdata;
 	NOT_USED(argc);
 	NOT_USED(context);
@@ -155,9 +155,6 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 		tdata.aflag = *argv[1];
 		while((n = optget(argv, *argv[0]=='h' ? sh_opthash : sh_optalias))) switch(n)
 		{
-		    case 'l':
-			lflag = 1;
-			/* FALLTHROUGH */
 		    case 'p':
 			tdata.prefix = argv[0];
 			tdata.pflag = 1;
@@ -184,11 +181,6 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
 			return 0;
 		}
-		if(lflag && rflag)
-		{
-			errormsg(SH_DICT,2,"the -l and -r options cannot be combined");
-			error_info.errors++;
-		}
 		if(error_info.errors)
 		{
 			errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NULL));
@@ -204,7 +196,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 		if(tdata.pflag)
 		{
 			troot = sh_subtracktree(0);	/* use existing hash table */
-			tdata.aflag = '+';		/* for -p/-l, don't add anything to the hash table */
+			tdata.aflag = '+';		/* for 'alias -pt', don't add anything to the hash table */
 		}
 		else
 		{
@@ -1521,7 +1513,7 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 				sfputr(file,tp->prefix,' ');
 			sfputr(file,nv_name(np),'\n');
 		}
-		return(0);
+		return 0;
 	}
 	if(nv_istable(np))
 	{

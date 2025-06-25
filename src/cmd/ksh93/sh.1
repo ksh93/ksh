@@ -7030,7 +7030,7 @@ The option
 .B #
 can only be specified as the first option.
 .TP
-\f3hash\fP \*(OK \f3\-lr\fP \f2\^\fP\*(CK \*(OK \f2utility\^\fP ... \*(CK
+\f3hash\fP \*(OK \f3\-r\fP \f2\^\fP\*(CK \*(OK \f2utility\^\fP ... \*(CK
 .B hash
 displays or modifies the hash table with the locations of recently used
 programs. If given no arguments, it lists all command/path associations
@@ -7045,20 +7045,9 @@ An error message is issued for each
 .I utility\^
 that is not found and the exit status is non-zero if any were not found.
 The
-.B \-l
-option causes the output to be in the form of
-.B hash
-commands that can be reinput to recreate the current table of
-tracked aliases.
-The
 .B \-r
 option empties the hash table. This can also be achieved by resetting
 .BR PATH .
-The
-.B \-r
-and
-.B \-l
-options cannot be used simultaneously.
 .TP
 .PD 0
 \f3hist\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-Enlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK

@@ -392,7 +392,7 @@ const char sh_optalias[] =
 ;
 
 const char sh_optbuiltin[] =
-"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2025-05-20 $\n]"
+"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2025-06-25 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?builtin - add, delete, or display shell built-ins]"
 "[+DESCRIPTION?\bbuiltin\b can be used to add, delete, or display "
@@ -968,7 +968,7 @@ _JOB_
 ;
 
 const char sh_opthash[] =
-"[-1c?\n@(#)$Id: hash (ksh 93u+m) 2025-05-20 $\n]"
+"[-1c?\n@(#)$Id: hash (ksh 93u+m) 2024-06-30 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?hash - display the locations of recently used programs]"
 "[+DESCRIPTION?\bhash\b displays or modifies the hash table with the "
@@ -977,10 +977,7 @@ const char sh_opthash[] =
 	"table. Otherwise, \bhash\b performs a \bPATH\b search for each "
 	"\autility\a supplied and adds the result to the hash table. "
 	"An error is issued for each \autility\a that is not found.]"
-"[l?Causes the output to be in the form of hash commands that can be used "
-	"as input to the shell to recreate the current tracked aliases.]"
-"[r?Empty the hash table. This can also be achieved by resetting \bPATH\b. "
-	"This option cannot be combined with the \b-l\b option.]"
+"[r?Empty the hash table. This can also be achieved by resetting \bPATH\b.]"
 "\n"
 "\n[utility...]\n"
 "\n"
@@ -1764,7 +1761,7 @@ const char sh_optsleep[] =
 ;
 
 const char sh_opttrap[] =
-"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2025-05-20 $\n]"
+"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2025-06-25 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?trap - trap signals and conditions]"
 "[+DESCRIPTION?\btrap\b is a special built-in that defines actions to be "
@@ -2001,7 +1998,7 @@ const char sh_opttimes[] =
 ;
 
 const char sh_optumask[] =
-"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2025-05-20 $\n]"
+"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2025-06-25 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?umask - get or set the file creation mask]"
 "[+DESCRIPTION?\bumask\b sets the file creation mask of the current "

@@ -2,12 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-06-25:
 
-2025-06-18:
-
-- [v1.1] Added 'hash -l', 'builtin -p', and 'umask -p', which can be used to
-  print reinputtable commands for recreating the current hash table, builtin
-  state and umask. (The latter two options are ksh93v- backports.)
+- [v1.1] Backported 'builtin -p' and 'umask -p' from ksh93v-, which
+  can be used to print reinputtable commands for recreating the builtin
+  table state and umask.
 - [v1.1] Backported 'trap -l' from ksh93v- for listing signals.
 
 2025-06-14:
