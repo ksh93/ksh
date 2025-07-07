@@ -512,7 +512,7 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 						if(!nv_isnull(np) && np->nvalue!=Empty && !nv_isvtree(np))
 							sub=1;
 					}
-					else if(((np->nvalue && np->nvalue!=Empty)||nv_isvtree(np)|| nv_arrayptr(np)) && !nv_type(np))
+					else if(((np->nvalue.cp && np->nvalue.cp!=Empty)) && !nv_type(np))
 					{
 						int was_assoc_array = ap && ap->fun;
 						nv_unset(np,NV_EXPORT);  /* this can free ap */
