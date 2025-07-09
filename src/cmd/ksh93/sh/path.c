@@ -46,7 +46,7 @@ static void		funload(int,const char*);
 static void noreturn	exscript(char*, char*[]);
 static int		checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,int);
 static void		checkdup(Pathcomp_t*);
-static Pathcomp_t	*defpathinit(void);
+static Pathcomp_t	*defpath(void);
 
 static const char *std_path(void)
 {
@@ -406,9 +406,12 @@ Pathcomp_t *path_nextcomp(Pathcomp_t *pp, const char *name, Pathcomp_t *last)
 	return NULL;
 }
 
-static Pathcomp_t* defpathinit(void)
+static Pathcomp_t *defpath(void)
 {
-	return path_addpath(NULL,std_path(),PATH_PATH);
+	static Pathcomp_t *dp;
+	if (!dp)
+		dp = path_addpath(NULL, std_path(), PATH_PATH);
+	return dp;
 }
 
 static void pathinit(void)
@@ -419,7 +422,7 @@ static void pathinit(void)
 		sh.pathlist = pp = path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_PATH);
 	else
 	{
-		pp = defpathinit();
+		pp = defpath();
 		sh.pathlist = path_dup(pp);
 	}
 	if(val=sh_scoped((FPATHNOD))->nvalue)
@@ -441,7 +444,7 @@ Pathcomp_t *path_get(const char *name)
 		pp = (Pathcomp_t*)sh.pathlist;
 	}
 	if(!pp && (!(sh_scoped(PATHNOD)->nvalue)) || sh_isstate(SH_DEFPATH))
-		pp = defpathinit();
+		pp = defpath();
 	return pp;
 }
 
@@ -1619,7 +1622,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, const char *path,int type)
 	if(old)
 	{
 		if(!first && !path)
-			first = path_dup(defpathinit());
+			first = path_dup(defpath());
 		if(cp=(sh_scoped(FPATHNOD))->nvalue)
 			first = path_addpath((Pathcomp_t*)first,cp,PATH_FPATH);
 		path_delete(old);
