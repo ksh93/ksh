@@ -1220,4 +1220,34 @@ got=$("$SHELL" -c 'x=$(fn(){ return 265; };echo ok|fn); echo exited $?' 2>&1)
 	"(expected status 0 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 
 # ======
+# The saved file descriptors for the PWD of virtual subshells is leaked
+# when forking the subshell or executing a script. (The regression test
+# uses cd in a virtual subshell to trigger the bug in 93u+m and a redirect
+# command to expose it in 93u+.)
+nam1=$tmp/fdleaka.$SRANDOM
+nam2=$tmp/fdleakb.$SRANDOM
+dir1=$tmp/dir1.$SRANDOM
+dir2=$tmp/dir2.$SRANDOM
+dir3=$tmp/dir3.$SRANDOM
+dir4=$tmp/dir4.$SRANDOM
+dir5=$tmp/dir5.$SRANDOM
+dir6=$tmp/dir6.$SRANDOM
+dir7=$tmp/dir7.$SRANDOM
+mkdir "$dir1" "$dir2" "$dir3" "$dir4" "$dir5" "$dir6" "$dir7"
+exp=ok
+got=$(set +x; "$SHELL" -c "
+(cd '$dir1'; (cd '$dir2'; (cd '$dir3'; (cd '$dir4'; (cd '$dir5'; (cd '$dir6'; (cd '$dir7'
+	echo 'ulimit -n 14 && (cd /; redirect 2>&1) && true' >'$nam1'
+	echo '#/bin/sh' >'$nam2'
+	cat '$nam1' >>'$nam2'
+	chmod +x '$nam1' '$nam2'
+	'$nam1'
+	'$nam2'
+	(ulimit -t unlimited; . '$nam1')
+)))))))
+echo ok" 2>&1)
+[[ $exp == $got ]] || err_exit "PWD file descriptors made in virtual subshells leak out of subshells" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -77,7 +77,7 @@ static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 
 			if(_Sfnotify)
 				(*_Sfnotify)(f,SFIO_CLOSING,f->file);
-			CLOSE(f->file);
+			ast_close(f->file);
 			f->file = -1;
 			while(remove(ff->name) < 0 && errno == EINTR)
 				errno = 0;

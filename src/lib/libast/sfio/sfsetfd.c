@@ -67,7 +67,7 @@ static int sfsetfd_internal(Sfio_t* f, int newfd, int cloexec)
 				{	SFOPEN(f,0);
 					return -1;
 				}
-				CLOSE(oldfd);
+				ast_close(oldfd);
 			}
 			else
 			{	/* sync stream if necessary */

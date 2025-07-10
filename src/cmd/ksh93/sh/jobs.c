@@ -517,8 +517,7 @@ void job_init(void)
 		char *ttynam;
 		if(job.mypgid<0 || !(ttynam=ttyname(JOBTTY)))
 			return;
-		while(close(JOBTTY)<0 && errno==EINTR)
-			;
+		ast_close(JOBTTY);
 		if((fd = open(ttynam,O_RDWR)) <0)
 			return;
 		if(fd!=JOBTTY)

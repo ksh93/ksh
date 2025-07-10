@@ -91,7 +91,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 			errno = 0;
 		if(fd >= 0)
 		{	if((oflags&(O_CREAT|O_EXCL)) == (O_CREAT|O_EXCL) )
-			{	CLOSE(fd);	/* error: file already exists */
+			{	ast_close(fd);	/* error: file already exists */
 				return NULL;
 			}
 			if(oflags&O_TRUNC )	/* truncate file */
@@ -99,7 +99,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 				while((tf = creat(file,SFIO_CREATMODE)) < 0 &&
 				      errno == EINTR)
 					errno = 0;
-				CLOSE(tf);
+				ast_close(tf);
 			}
 		}
 		else if(oflags&O_CREAT)
@@ -107,7 +107,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 				errno = 0;
 			if((oflags&O_ACCMODE) != O_WRONLY)
 			{	/* the file now exists, reopen it for read/write */
-				CLOSE(fd);
+				ast_close(fd);
 				while((fd = open(file,oflags&O_ACCMODE)) < 0 &&
 				      errno == EINTR)
 					errno = 0;

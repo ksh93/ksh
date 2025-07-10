@@ -124,7 +124,7 @@ ttctl(int fd, int op, void* tt)
 		if ((fd = open("/dev/tty", O_RDONLY|O_cloexec)) >= 0)
 		{
 			v = ioctl(fd, op, tt);
-			close(fd);
+			ast_close(fd);
 			return v;
 		}
 	}

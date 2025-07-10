@@ -59,11 +59,11 @@ pathicase(const char *path)
 	if (r < 0 && errno == ENOTTY)	/* if it's not VFAT/FAT32...*/
 	{
 		r = ioctl(fd, FS_IOC_GETFLAGS, &attr);
-		close(fd);
+		ast_close(fd);
 		return r < 0 ? -1 : (attr & FS_CASEFOLD_FL) != 0;
 	}
 #   endif /* _linux_casefold */
-	close(fd);
+	ast_close(fd);
 	return r < 0 ? (errno != ENOTTY ? -1 : 0) : 1;
 #elif _WINIX || __APPLE__
 	/* Windows or Mac without pathconf probe: assume case insensitive */

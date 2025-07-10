@@ -26,7 +26,6 @@
 
 #include	"shopt.h"
 #include	<ast.h>
-#include	<errno.h>
 #include	"defs.h"
 #include	"path.h"
 #include	"io.h"

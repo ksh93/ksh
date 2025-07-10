@@ -53,7 +53,7 @@ static ssize_t filterread(Sfio_t*	f,	/* stream reading from */
 			else
 			{	/* eof, close write end of pipes */
 				sfset(fi->filter,SFIO_READ,0);
-				close(sffileno(fi->filter));
+				ast_close(sffileno(fi->filter));
 				sfset(fi->filter,SFIO_READ,1);
 				fi->next = fi->endb = NULL;
 			}

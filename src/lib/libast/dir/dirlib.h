@@ -32,7 +32,6 @@
 #define getdirentries	______getdirentries
 
 #include <ast.h>
-#include <errno.h>
 
 #if _lib_opendir && ( _hdr_dirent || _hdr_ndir || _sys_dir )
 

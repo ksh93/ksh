@@ -29,7 +29,6 @@
 
 #include	"shopt.h"
 #include	<ast.h>
-#include	<errno.h>
 #include	<fault.h>
 #include	"FEATURE/time"
 #if _hdr_utime

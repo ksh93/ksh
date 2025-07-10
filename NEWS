@@ -2,6 +2,18 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-07-10:
+
+- Fixed a file descriptor leak introduced in 93u+ 2012-07-27 that occurred
+  when forking nested subshells.
+
+- Fixed a bug that could cause cd(1) to fail with the wrong error message
+  if the underlying close(2) calls failed after cd failed to change the
+  directory with fchdir(2).
+
+- Fixed a file descriptor leak that could occur on systems lacking a
+  useable implementation of arc4random(3).
+
 2025-06-14:
 
 - Fixed a bug occurring on systems with posix_spawn(3), spawnve(2), and

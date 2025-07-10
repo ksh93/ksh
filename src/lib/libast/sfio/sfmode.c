@@ -218,7 +218,7 @@ int _sfpclose(Sfio_t* f)
 	else
 	{	/* close the associated stream */
 		if(p->file >= 0)
-			CLOSE(p->file);
+			ast_close(p->file);
 
 		/* wait for process termination */
 		sigcritical(SIG_REG_EXEC|SIG_REG_PROC);

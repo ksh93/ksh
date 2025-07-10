@@ -22,7 +22,6 @@
  */
 
 #include <ast.h>
-#include <errno.h>
 #include <ls.h>
 
 #include "FEATURE/eaccess"

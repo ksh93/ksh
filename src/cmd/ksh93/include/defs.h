@@ -141,6 +141,7 @@ extern int		sh_trace(char*[],int);
 extern void		sh_trim(char*);
 extern int		sh_type(const char*);
 extern void             sh_unscope(void);
+extern void		sh_clear_subshell_pwdfd(void);
 #if _lib_openat
     extern int		sh_diropenat(int,const char *);
     extern void		sh_pwdupdate(int);

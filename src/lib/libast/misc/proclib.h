@@ -27,7 +27,6 @@
 #define _PROCLIB_H
 
 #include <ast.h>
-#include <errno.h>
 #include <sig.h>
 #include <wait.h>
 

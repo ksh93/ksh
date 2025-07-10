@@ -429,7 +429,7 @@ visit(State_t* state, FTSENT* ent)
 			if (S_ISLNK(st.st_mode) && (n = -1) || (n = open(state->path, O_RDWR|O_BINARY|O_cloexec)) >= 0)
 			{
 				if (n >= 0)
-					close(n);
+					ast_close(n);
 				if (state->force)
 					/* ok */;
 				else if (state->interactive)
@@ -580,7 +580,7 @@ visit(State_t* state, FTSENT* ent)
 			{
 				error(ERROR_SYSTEM|2, "%s: cannot write", state->path);
 				if (ent->fts_statp->st_size > 0)
-					close(rfd);
+					ast_close(rfd);
 				return 0;
 			}
 			else if (ent->fts_statp->st_size > 0)
@@ -588,14 +588,14 @@ visit(State_t* state, FTSENT* ent)
 				if (!(ip = sfnew(NULL, NULL, SFIO_UNBOUND, rfd, SFIO_READ)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s read stream error", ent->fts_path, state->path);
-					close(rfd);
-					close(wfd);
+					ast_close(rfd);
+					ast_close(wfd);
 					return 0;
 				}
 				if (!(op = sfnew(NULL, NULL, SFIO_UNBOUND, wfd, SFIO_WRITE)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s write stream error", ent->fts_path, state->path);
-					close(wfd);
+					ast_close(wfd);
 					sfclose(ip);
 					return 0;
 				}
@@ -615,7 +615,7 @@ visit(State_t* state, FTSENT* ent)
 				}
 			}
 			else
-				close(wfd);
+				ast_close(wfd);
 		}
 		else if (S_ISBLK(ent->fts_statp->st_mode) || S_ISCHR(ent->fts_statp->st_mode) || S_ISFIFO(ent->fts_statp->st_mode))
 		{

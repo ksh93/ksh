@@ -77,7 +77,7 @@ aso_init_fcntl(void* data, const char* details)
 			if (!references)
 				remove(apl->path);
 		}
-		close(apl->fd);
+		ast_close(apl->fd);
 		free(apl);
 		return NULL;
 	}
@@ -152,7 +152,7 @@ aso_init_fcntl(void* data, const char* details)
 	if (apl)
 		free(apl);
 	if (fd >= 0)
-		close(fd);
+		ast_close(fd);
 	if (drop)
 		remove(path);
 	return NULL;

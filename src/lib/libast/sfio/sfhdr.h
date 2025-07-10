@@ -466,9 +466,6 @@ typedef struct _sfextern_s
 				 ((f)->endb = (f)->endr = (f)->endw = (f)->next = \
 				  (f)->data = NULL) )
 
-/* safe closing function */
-#define CLOSE(f)	{ while(close(f) < 0 && errno == EINTR) errno = 0; }
-
 /* the bottomless bit bucket */
 #define DEVNULL		"/dev/null"
 #define SFSETNULL(f)	((f)->extent = (Sfoff_t)(-1), (f)->bits |= SFIO_NULL)

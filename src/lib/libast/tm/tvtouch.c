@@ -136,7 +136,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 		mode = (~mode) & (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
 		if ((fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|O_cloexec, mode)) < 0)
 			return -1;
-		close(fd);
+		ast_close(fd);
 		errno = oerrno;
 		if ((ts[0].tv_nsec != UTIME_NOW || ts[1].tv_nsec != UTIME_NOW) && utimensat(AT_FDCWD, path, ts, (flags & TV_TOUCH_PHYSICAL) ? AT_SYMLINK_NOFOLLOW : 0))
 			return -1;
@@ -246,11 +246,12 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 			{
 				if (c = (lseek(fd, 0L, 0) == 0L && write(fd, &c, 1) == 1))
 					errno = oerrno;
-				close(fd);
+				ast_close(fd);
 				if (c)
 					return 0;
 			}
-			close(fd);
+			else
+				ast_close(fd);
 		}
 	}
 #endif
@@ -260,7 +261,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 	mode = (~mode) & (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
 	if ((fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|O_cloexec, mode)) < 0)
 		return -1;
-	close(fd);
+	ast_close(fd);
 	errno = oerrno;
 	if (av == (const Tv_t*)&now && mv == (const Tv_t*)&now)
 		return 0;

@@ -1102,7 +1102,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			if (streq(p->name, "RELEASE") && (i = open("/proc/version", O_RDONLY|O_cloexec)) >= 0)
 			{
 				n = read(i, buf, sizeof(buf) - 1);
-				close(i);
+				ast_close(i);
 				if (n > 0 && buf[n - 1] == '\n')
 					n--;
 				if (n > 0 && buf[n - 1] == '\r')

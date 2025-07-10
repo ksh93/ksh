@@ -99,7 +99,7 @@ tee_cleanup(Tee_t* tp)
 		if (tp->line >= 0)
 			sfset(sfstdout, SFIO_LINE, tp->line);
 		for (hp = tp->fd; (n = *hp) >= 0; hp++)
-			close(n);
+			ast_close(n);
 	}
 }
 

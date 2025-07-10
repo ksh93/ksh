@@ -19,7 +19,6 @@
 
 #include <tv.h>
 #include <tm.h>
-#include <errno.h>
 
 #include "FEATURE/tvlib"
 

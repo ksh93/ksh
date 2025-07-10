@@ -29,7 +29,6 @@
 
 #include <ast.h>
 #include <option.h>
-#include <errno.h>
 
 #define ERROR_VERSION	20230222L
 

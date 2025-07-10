@@ -171,11 +171,12 @@ _ast_getentropy(void *s, size_t len)
 		{
 			if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK)
 				continue;
+			ast_close(fd);
 			return -1;
 		}
 		o += r;
 	}
-	close(fd);
+	ast_close(fd);
 	return 0;
 #else
 	return -1;

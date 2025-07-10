@@ -699,14 +699,13 @@ static void unset_instance(Namval_t *node, struct Namref *nr, long mode)
 #if SHOPT_FILESCAN
     static Sfio_t *openstream(struct ionod *iop, int *save)
     {
-	int err = errno, savein, fd = sh_redirect(iop,3);
+	int savein, fd = sh_redirect(iop,3);
 	Sfio_t	*sp;
 	savein = dup(0);
 	if(fd==0)
 		fd = savein;
 	sp = sfnew(NULL,NULL,SFIO_UNBOUND,fd,SFIO_READ);
-	while(close(0)<0 && errno==EINTR)
-		errno = err;
+	ast_close(0);
 	open(e_devnull,O_RDONLY);
 	sh.offsets[0] = -1;
 	sh.offsets[1] = 0;
@@ -2138,10 +2137,8 @@ int sh_exec(const Shnode_t *t, int flags)
 #if SHOPT_FILESCAN
 			if(iop)
 			{
-				int err=errno;
 				sfclose(iop);
-				while(close(0)<0 && errno==EINTR)
-					errno = err;
+				ast_close(0);
 				dup(savein);
 				sh.cur_line = 0;
 			}
@@ -2810,6 +2807,7 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	/* except for those `lost' by trap   */
 	if(!(flags&FSHOWME))
 		sh_sigreset(2);
+	sh_clear_subshell_pwdfd();
 	sh.realsubshell++;		/* increase ${.sh.subshell} */
 	sh.subshell = 0;		/* zero virtual subshells */
 	sh.comsub = 0;
@@ -3238,7 +3236,7 @@ static void coproc_init(int pipes[])
 					sh.fdstatus[fd] = sh.fdstatus[outfd]|IOCLEX;
 				else
 					sh.fdstatus[fd] = (sh.fdstatus[outfd]&~IOCLEX);
-				close(outfd);
+				ast_close(outfd);
 			        sh.fdstatus[outfd] = IOCLOSE;
 				sh.cpipe[1] = fd;
 			}

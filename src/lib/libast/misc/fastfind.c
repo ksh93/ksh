@@ -303,7 +303,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			{
 				if (fp->disc->errorf)
 					(*fp->disc->errorf)(fp, fp->disc, ERROR_SYSTEM|2, "%s: cannot open tmp file", fp->encode.temp);
-				close(fd);
+				ast_close(fd);
 				goto drop;
 			}
 			if (fp->disc->flags & FIND_TYPE)

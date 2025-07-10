@@ -58,7 +58,6 @@ typedef struct regsubop_s
 #include "regex.h"
 
 #include <ctype.h>
-#include <errno.h>
 
 #if _BLD_DEBUG && !defined(_AST_REGEX_DEBUG)
 #define _AST_REGEX_DEBUG	1

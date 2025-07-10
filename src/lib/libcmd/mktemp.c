@@ -155,7 +155,7 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 		if (fdp || unsafe || !mkdir(path, mode))
 		{
 			if (fdp)
-				close(*fdp);
+				ast_close(*fdp);
 			sfputr(sfstdout, path, '\n');
 			break;
 		}

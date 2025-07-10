@@ -110,14 +110,10 @@ int sfclose(Sfio_t* f)
 	if(_Sfnotify)
 		(*_Sfnotify)(f, SFIO_CLOSING, (void*)((long)f->file));
 	if(f->file >= 0 && !(f->flags&SFIO_STRING))
-	{	while(close(f->file) < 0 )
-		{	if(errno == EINTR)
-				errno = 0;
-			else
-			{	rv = -1;
-				break;
-			}
-		}
+	{	errno = 0;
+		ast_close(f->file);
+		if(errno)
+			rv = -1;
 	}
 	f->file = -1;
 

@@ -36,9 +36,9 @@ procclose(Proc_t* p)
 	if (p)
 	{
 		if (p->rfd >= 0)
-			close(p->rfd);
+			ast_close(p->rfd);
 		if (p->wfd >= 0 && p->wfd != p->rfd)
-			close(p->wfd);
+			ast_close(p->wfd);
 		if (p->flags & PROC_ORPHAN)
 			status = 0;
 		else
