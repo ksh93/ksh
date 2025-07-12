@@ -148,7 +148,6 @@ static noreturn int exec_process(void *data)
 pid_t
 spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
 {
-	int		n = errno;
 	pid_t		pid;
 	char		stack[STACK_SIZE];
 	struct cargs	args = {
