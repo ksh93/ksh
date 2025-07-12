@@ -273,6 +273,8 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 #define _fast_spawnveg 0
 #endif  /* _lib_posix_spawn */
 
+#if !_lib_clone
+
 #if _lib_spawnve && _hdr_process
 #include <process.h>
 #if defined(P_NOWAIT) || defined(_P_NOWAIT)
@@ -352,6 +354,7 @@ spawnveg_slow(const char* path, char* const argv[], char* const envv[], pid_t pg
 	return pid;
 }
 
+#endif /* !_lib_clone */
 
 pid_t
 spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
