@@ -716,7 +716,7 @@ static int test_stat(const char *name,struct stat *buff)
 		return -1;
 	}
 #if _lib_openat
-	if(name==e_dot && sh.pwdfd > -1)
+	if(sh.pwdfd > -1 && strcmp(name,e_dot)==0)
 		return fstat(sh.pwdfd,buff);
 #endif
 	if(sh_isdevfd(name))
