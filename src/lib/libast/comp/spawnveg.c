@@ -92,7 +92,7 @@ static noreturn void exit_child(void)
 
 #if _lib_clone
 #define _fast_spawnveg 1
-#define STACK_SIZE 1024*56
+#define STACK_SIZE 1024*512
 #include <sched.h>
 
 /*
