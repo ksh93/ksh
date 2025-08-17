@@ -186,6 +186,8 @@ static const char usage[] =
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
 #define STREAM_PIPE	0x0004		/* pclose() on pop()		*/
 
+#define LIB_VARPREFIX	"mam_lib"	/* prefix for dependencies vars	*/
+
 struct Rule_s;
 
 typedef struct Buf_s			/* buffer stream		*/
@@ -1117,7 +1119,8 @@ static void substitute(Buf_t *buf, char *s)
 				{	/*
 					 * Perform the expansion: append the value of the variable to the buffer.
 					 */
-					if (state.strict < 2 && found_AR && strncmp(t, "mam_lib", 7) == 0)
+					if (state.strict < 2 && found_AR &&
+						strncmp(t, LIB_VARPREFIX, sizeof LIB_VARPREFIX - 1) == 0)
 					{	/*
 						 * Absurd AT&T hack from 2007. The relevant src/cmd/INIT/RELEASE entry:
 						 *	07-02-26 mamake.c: expand first of ${mam_lib*} for ${AR}
@@ -1917,8 +1920,6 @@ void append_ar_name(Buf_t *buf, char *name)
  *
  * lib is expected to be in the format "-lX"
  */
-
-#define LIB_VARPREFIX "mam_lib"
 
 static char *require(char *lib, int dontcare)
 {

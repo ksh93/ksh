@@ -591,9 +591,9 @@ const char sh_optdot[]	 =
 "[+SEE ALSO?\bcommand\b(1), \bksh\b(1)]"
 ;
 
-#ifndef ECHOPRINT
+#if !SHOPT_ECHOPRINT
     const char sh_optecho[]	= " [-n] [arg...]";
-#endif /* !ECHOPRINT */
+#endif
 
 const char sh_opteval[] =
 "[-1c?\n@(#)$Id: eval (AT&T Research) 1999-07-07 $\n]"

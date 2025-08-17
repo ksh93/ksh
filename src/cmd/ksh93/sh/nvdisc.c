@@ -22,10 +22,10 @@
  */
 
 #include	"shopt.h"
-#include        "defs.h"
-#include        "variables.h"
-#include        "builtins.h"
-#include        "path.h"
+#include	"defs.h"
+#include	"variables.h"
+#include	"builtins.h"
+#include	"path.h"
 #include	"io.h"
 #include	"shlex.h"
 

@@ -75,6 +75,7 @@ make install virtual
 		done
 		make dllscan.c
 			prev dlldefs.h
+			prev %{INCLUDE_AST}/vmalloc.h
 			prev %{INCLUDE_AST}/fts.h
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/endian.h

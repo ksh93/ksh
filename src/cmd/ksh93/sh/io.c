@@ -646,7 +646,7 @@ static void io_preserve(Sfio_t *sp, int f2)
  * Given a file descriptor <f1>, move it to a file descriptor number <f2>
  * If <f2> is needed move it, otherwise it is closed first.
  * The original stream <f1> is closed.
- *  The new file descriptor <f2> is returned;
+ * The new file descriptor <f2> is returned.
  */
 int sh_iorenumber(int f1,int f2)
 {

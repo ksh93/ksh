@@ -39,10 +39,6 @@
 #   define PIPE_BUF	512
 #endif
 
-/*
- * Note that the following structure must be the same
- * size as the Dtlink_t structure
- */
 struct Link
 {
 	struct Link	*next;

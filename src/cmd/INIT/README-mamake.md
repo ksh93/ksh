@@ -586,15 +586,16 @@ maintain Mamfiles by hand. The following lists the important changes.
   block to declare a simple prerequisite with optional attributes.
 * The special expansion syntaxes `%{`*variable*`|`*sh-script*`}` and
   `%{`*variable*`@`*sh-script*`}` have been added, allowing the editing of
-  variable value fields written to the script's standard input as lines or
-  passed as positional parameters.
+  variable value fields. The fields are either written to the script's
+  standard input as lines, or passed as positional parameters.
 * **At strict level 1 and up:**
     * Appending attributes to `done` instead of `make` is deprecated
       and produces a warning.
     * The ignored `archive` and `joint` attributes are deprecated.
     * Explicitly specifying the `generated` attribute is deprecated.
     * The dummy `info` and `meta` commands are unavailable instead of ignored.
-    * The `prev` may be used as an equivalent of `makp`.
+    * The `prev` command may be used to declare a dependency on a prerequisite
+      file. (This change is reverted at strict level 4 as `makp` was added.)
     * When `prev` references a previously processed target,
       attributes are an error instead of being ignored.
     * The legacy `silent` and `ignore` command prefixes are unavailable.
@@ -611,7 +612,8 @@ maintain Mamfiles by hand. The following lists the important changes.
     * Attempting to declare a dependency on a rule currently being made is an error.
 * **At strict level 4 and up:**
     * MAM expansions can no longer start with `${`. Only `%{` is recognized.
-    * The `prev` command may no longer be used as an equivalent of `makp`.
+    * The `prev` command may no longer be used to declare a dependency on a
+      prerequisite file. The newly added command `makp` should be used instead.
     * The `implicit` attribute is not available.
 * **At strict level 5 and up:**
     * The new `-j` option for parallel building is allowed to take effect.

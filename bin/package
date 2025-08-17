@@ -390,7 +390,7 @@ do	case $# in
 		set -x
 		;;
 	help|HELP|html|man|--[?m]*)
-                case $1 in
+		case $1 in
 		help)	code=0
 			case $2 in
 			'')	exec 1>&2 ;;

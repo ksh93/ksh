@@ -48,7 +48,7 @@
 /* These routines are referenced by this module */
 static void	exfile(Sfio_t*,int);
 static void	chkmail(char*);
-#if !defined(_NEXT_SOURCE) && !defined(__sun)
+#if !defined(__sun)
     static void	fixargs(char**,int);
 #   undef fixargs_disabled
 #else
@@ -108,6 +108,10 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 	time(&mailtime);
 	if(rshflag=sh_isoption(SH_RESTRICTED))
 		sh_offoption(SH_RESTRICTED);
+	/*
+	 * return here for shell script execution
+	 * but not for parenthesis subshells
+	 */
 	if(sigsetjmp(*((sigjmp_buf*)sh.jmpbuffer),0))
 	{
 		/* begin script execution here */

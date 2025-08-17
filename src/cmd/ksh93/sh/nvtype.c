@@ -21,9 +21,9 @@
  *
  */
 #include	"shopt.h"
-#include        "defs.h"
-#include        "io.h"
-#include        "variables.h"
+#include	"defs.h"
+#include	"io.h"
+#include	"variables.h"
 #include	"builtins.h"
 
 static const char sh_opttype[] =

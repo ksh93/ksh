@@ -2996,7 +2996,7 @@ skip:
 	return;
 }
 
-static char *oldgetenv(const char *string)
+static inline char *oldgetenv(const char *string)
 {
 	char c0,c1;
 	const char *cp, *sp;
@@ -3038,7 +3038,6 @@ char *sh_getenv(const char *name)
 	return cp;
 }
 
-#ifndef _NEXT_SOURCE
 /*
  * Some dynamic linkers will make this file see the libc getenv(),
  * so sh_getenv() is used for the astintercept() callback.  Plain
@@ -3048,11 +3047,10 @@ char *getenv(const char *name)
 {
 	return sh_getenv(name);
 }
-#endif /* _NEXT_SOURCE */
 
 #undef putenv
 /*
- * This version of putenv uses the hash storage to assign environment values
+ * This version of putenv uses the nval(3) storage to assign environment values
  */
 int putenv(const char *name)
 {

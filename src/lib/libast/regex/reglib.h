@@ -242,7 +242,7 @@ extern int		_reg_iswblank(wint_t);
 
 #endif
 
-#ifndef	iswblank
+#ifndef iswblank
 #define iswblank(x)	((x)==' '||(x)=='\t')
 #endif
 
