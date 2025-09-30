@@ -2,6 +2,11 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-09-30:
+
+- The rm path-bound built-in command from libcmd no longer suppresses error
+  messages when the -f/--force option is used.
+
 2025-06-14:
 
 - Fixed a bug occurring on systems with posix_spawn(3), spawnve(2), and
