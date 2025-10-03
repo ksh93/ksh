@@ -1721,13 +1721,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make fmtversion.o
-			make string/fmtversion.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make strelapsed.o
 			make string/strelapsed.c
 				prev include/ast.h

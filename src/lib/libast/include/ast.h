@@ -351,7 +351,6 @@ extern char*		fmtscale(Sfulong_t, int);
 extern char*		fmtsignal(int);
 extern char*		fmttime(const char*, time_t);
 extern char*		fmtuid(int);
-extern char*		fmtversion(unsigned long);
 extern void*		memdup(const void*, size_t);
 extern unsigned int	memhash(const void*, int);
 extern unsigned long	memsum(const void*, int, unsigned long);
