@@ -1721,14 +1721,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make fmttv.o
-			make string/fmttv.c
-				prev include/tm.h
-				prev tv.h
-			done
-			exec - compile %{<}
-		done
-
 		make fmtversion.o
 			make string/fmtversion.c
 				prev include/ast.h
