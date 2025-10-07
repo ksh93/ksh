@@ -31,8 +31,6 @@
 
 #define cmdinit			_cmd_init
 
-#define ERROR_CALLBACK		ERROR_SET
-
 #include <cmdext.h>
 
 #if defined(CMD_BUILTIN) && !defined(CMD_STANDALONE)
