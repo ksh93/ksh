@@ -1453,7 +1453,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						case TM_PARTS+4:
 							tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 0);
 							tm->tm_hour += m * 7 * 24;
-							set |= DAY;
+							set |= HOUR;
 							goto clear_hour;
 						case TM_PARTS+5:
 							tm->tm_mon += m;
