@@ -71,6 +71,12 @@ then
 			fi
 		done
 		wait
+		integer tries=0, maxtries=10
+		while ((running > 0 && tries < maxtries))
+		do
+			sleep 0.1
+			((tries++))
+		done
 		print running=$running maxrunning=$maxrunning
 	')
 	exp='running=0 maxrunning='$jobmax
