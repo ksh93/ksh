@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -220,7 +220,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 	char			*name, *val;
 	Sfio_t			*iop;
 	Namfun_t		*nfp;
-	char			*ifs;
+	const char		*ifs;
 	unsigned char		*cpmax;
 	unsigned char		*del;
 	char			was_escape = 0;
@@ -316,6 +316,8 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		Namval_t *mp;
 		/* set up state table based on IFS */
 		ifs = nv_getval(mp=sh_scoped(IFSNOD));
+		if(!ifs)
+			ifs = e_sptbnl; /* unset == default */
 		if((flags&R_FLAG) && sh.ifstable['\\']==S_ESC)
 			sh.ifstable['\\'] = 0;
 		else if(!(flags&R_FLAG) && sh.ifstable['\\']==0)
@@ -324,7 +326,10 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 			sh.ifstable[delim] = S_NL;
 		if(delim!='\n')
 		{
-			sh.ifstable['\n'] = 0;
+			if(strchr(ifs,'\n'))
+				sh.ifstable['\n'] = S_DELIM;
+			else
+				sh.ifstable['\n'] = 0;
 			nv_putval(mp, ifs, NV_RDONLY);
 		}
 		sh.ifstable[0] = S_EOF;
@@ -784,13 +789,13 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		{
 			/* strip off trailing space delimiters */
 			unsigned char	*vp = (unsigned char*)val + strlen(val);
-			while(sh.ifstable[*--vp]==S_SPACE);
+			while(sh.ifstable[*--vp]==S_SPACE || (isspace(*vp) && sh.ifstable[*vp]==S_DELIM));
 			if(vp==del)
 			{
 				if(vp==(unsigned char*)val)
 					vp--;
 				else
-					while(sh.ifstable[*--vp]==S_SPACE);
+					while(sh.ifstable[*--vp]==S_SPACE || (isspace(*vp) && sh.ifstable[*vp]==S_DELIM));
 			}
 			vp[1] = 0;
 		}
