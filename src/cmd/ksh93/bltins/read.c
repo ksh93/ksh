@@ -553,7 +553,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 				cpmax--;
 			if(cpmax>cp)
 			{
-				while((c=sh.ifstable[*--cpmax])==S_DELIM || c==S_SPACE);
+				while((c=sh.ifstable[*--cpmax])==S_DELIM && isspace(*cpmax) || c==S_SPACE);
 				cpmax[1] = 0;
 			}
 			else
