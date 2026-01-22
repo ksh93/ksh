@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-01-21:
+
+- Fixed several IFS field splitting bugs in read(1) that occurred
+  when it is given a null delimiter (read -d '').
+
 2025-09-30:
 
 - The rm path-bound built-in command from libcmd no longer suppresses error

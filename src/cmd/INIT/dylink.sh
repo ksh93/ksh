@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2021-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2021-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -136,7 +136,7 @@ case ${exec_file} in
 	case $HOSTTYPE in
 	darwin.*)
 		do_link "lib/$lib_file" -dynamiclib \
-			-Wl,-dylib_install_name -Wl,"$lib_linkname" \
+			-Wl,-dylib_install_name -Wl,"@rpath/$lib_linkname" \
 			"$@" -L"$dest_dir/lib" $l_flags
 		;;
 	*)	do_link "lib/$lib_file" -shared -Wl,-soname -Wl,"$lib_linkname" \

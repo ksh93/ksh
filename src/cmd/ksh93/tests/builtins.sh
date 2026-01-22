@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1576,16 +1576,6 @@ print ". $tmp/evalbug" > "$tmp/envfile"
 [[ $(ENV=$tmp/envfile "$SHELL" -i -c : 2> /dev/null) == ok ]] || err_exit 'eval inside dot script called from profile file not working'
 fi # !SHOPT_SCRIPTONLY
 
-# Backported ksh93v- 2013-03-18 test for 'read -A', where
-# IFS sets the delimiter to a newline while -d specifies
-# no delimiter (-d takes priority over IFS).
-if ((SHOPT_BRACEPAT)); then
-	got=$(printf %s\\n {a..f} | IFS=$'\n' read -rd '' -A a; typeset -p a)
-	exp=$'typeset -a a=($\'a\\nb\\nc\\nd\\ne\\nf\\n\')'
-	[[ $got == "$exp" ]] || err_exit "IFS overrides the delimiter specified by the read command's -d option" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-fi
-
 # The read builtin's -a and -A flags should function identically
 read_a_test=$tmp/read_a_test.sh
 cat > "$read_a_test" << 'EOF'
@@ -1755,6 +1745,43 @@ exp='%'
 [[ $got == "$exp" ]] || err_exit '\u0025 misparsed as literal % in printf formatter' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi # SHOPT_MULTIBYTE
+
+# ======
+# read(1): IFS field splitting bugs when given a null delimiter (-d '')
+# https://github.com/ksh93/ksh/issues/926
+unset v1 v2 L
+IFS=$'\n' read -d '' v1 v2 <<< $'a\nb'
+got="<$v1> <$v2>"
+exp="<a> <b>"
+[[ $got == "$exp" ]] || err_exit "issue 926 r1 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+IFS='' read -d '' v1 v2 <<< $'a\nb'
+got="<$v1> <$v2>"
+exp=$'<a\nb\n> <>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r2 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\0two\0three\0' | while read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'<one>\n<two>\n<three>\nend: <>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r3 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\0two\0three\0' | while IFS= read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'<one>\n<two>\n<three>\nend: <>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r4 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\ntwo\nthree\n' | while read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'end: <one\ntwo\nthree>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r5 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\ntwo\nthree\n' | while IFS= read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'end: <one\ntwo\nthree\n>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r6 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf "one\ntwo\nthXree\nX" | while IFS=X read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nthXree\nX>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r7 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf "one\ntwo\nth ree\n " | while IFS=' ' read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nth ree\n>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r8 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nthree>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r9 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(unset IFS; printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nthree>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r10 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ====== MUST BE AT END ======
 # checks for tests run in parallel (see top)
