@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -18,14 +18,14 @@
 #include <ast_release.h>
 #include "git.h"
 
-#define SH_RELEASE_DATE	"2025-06-22"	/* must be in this format for $((.sh.version)) */
+#define SH_RELEASE_DATE	"2026-01-21"	/* must be in this format for $((.sh.version)) */
 /*
  * This comment keeps SH_RELEASE_DATE a few lines away from SH_RELEASE_SVER to avoid
  * merge conflicts when cherry-picking dev branch commits onto a release branch.
  */
 #define SH_RELEASE_FORK	"93u+m"		/* only change if you develop a new ksh93 fork */
 #define SH_RELEASE_SVER	"1.1.0-alpha"	/* semantic version number: https://semver.org */
-#define SH_RELEASE_CPYR	"(c) 2020-2025 Contributors to ksh " SH_RELEASE_FORK
+#define SH_RELEASE_CPYR	"(c) 2020-2026 Contributors to ksh " SH_RELEASE_FORK
 
 /* Scripts sometimes field-split ${.sh.version}, so don't change amount of whitespace. */
 /* Arithmetic $((.sh.version)) uses the last 10 chars, so the date must be at the end. */
