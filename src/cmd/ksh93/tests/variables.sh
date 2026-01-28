@@ -1709,5 +1709,32 @@ got=$(./issue861.sh 2>&1)
 	"(got status $e, $(printf %q "$got"))"
 unset i
 
+# ======'"
+
+# Problem: the global discipline function kept applying to the local variable
+# for certain special variables. This was a design problem with nv_cover() in
+# init.c which copied the nvfun pointer, i.e., the entire discipline function
+# tree. (Note: nv_cover() is now renamed to nv_enforcedisc().)
+# Here we can only test nv_enforcedisc() variables without value constraints.
+
+exp=$'in main: MainShellValue\nin pathlocal: LocalValue'
+for v in IFS PATH SHELL FPATH CDPATH ENV
+do	got=$(eval "
+		function pathlocal
+		{
+			typeset $v=LocalValue
+			print -r -- \"in pathlocal: \$$v\"
+		}
+		function $v.get
+		{
+			.sh.value=MainShellValue
+		}
+		print -r -- \"in main: \$$v\"
+		pathlocal
+	")
+	[[ $got == "$exp" ]] || err_exit "$v discipline not scoped properly" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
 # ======
 exit $((Errors<125?Errors:125))

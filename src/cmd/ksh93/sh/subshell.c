@@ -357,7 +357,7 @@ static void nv_restore(struct subshell *sp)
 			flags |= NV_NOFREE;
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
-		if(nv_cover(mp))
+		if(nv_enforcedisc(mp))
 			nv_putval(mp,nv_getval(np),NV_RDONLY);
 		else
 			mp->nvalue = np->nvalue;

@@ -598,11 +598,13 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 			*eqp = '\0';
 			if((np = nv_search(cp,dtvnext(vartree),0)) && np->nvflag)
 			{
+				Namfun_t *fp;
 				mp = nv_search(cp,vartree,NV_ADD|NV_NOSCOPE);
 				mp->nvname = np->nvname;  /* put_lang() (init.c) compares nvname pointers */
 				mp->nvflag = np->nvflag;
 				mp->nvsize = np->nvsize;
-				mp->nvfun = nv_cover(np);
+				if (fp = nv_enforcedisc(np))
+					nv_stack(mp, fp);
 			}
 			*eqp = '=';
 		}
@@ -885,18 +887,24 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 					}
 					else if(nq)
 					{
-						if(nv_isnull(np) && c!='.' && ((np->nvfun=nv_cover(nq)) || nq==OPTINDNOD))
+						if(nv_isnull(np) && c!='.')
 						{
-							np->nvname = nq->nvname;
-#if SHOPT_NAMESPACE
-							if(sh.namespace && nv_dict(sh.namespace)==sh.var_tree && nv_isattr(nq,NV_EXPORT))
-								nv_onattr(np,NV_EXPORT);
-#endif /* SHOPT_NAMESPACE */
-							if(nq==OPTINDNOD)
+							Namfun_t *fp = nv_enforcedisc(nq);
+							if (fp)
+								nv_stack(np,fp);
+							if (fp || nq==OPTINDNOD)
 							{
-								np->nvfun = nq->nvfun;
-								np->nvalue = &sh.st.optindex;
-								nv_onattr(np,NV_INTEGER|NV_NOFREE);
+								np->nvname = nq->nvname;
+#if SHOPT_NAMESPACE
+								if(sh.namespace && nv_dict(sh.namespace)==sh.var_tree && nv_isattr(nq,NV_EXPORT))
+									nv_onattr(np,NV_EXPORT);
+#endif /* SHOPT_NAMESPACE */
+								if(nq==OPTINDNOD)
+								{
+									np->nvfun = nq->nvfun;
+									np->nvalue = &sh.st.optindex;
+									nv_onattr(np,NV_INTEGER|NV_NOFREE);
+								}
 							}
 						}
 						flags |= NV_NOSCOPE;
@@ -2342,7 +2350,7 @@ static void table_unset(Dt_t *root, int flags, Dt_t *oroot)
 	{
 		if(nq=dtsearch(oroot,np))
 		{
-			if(nv_cover(nq))
+			if(nv_enforcedisc(nq))
 			{
 				unsigned int subshell = sh.subshell;
 				sh.subshell = 0;

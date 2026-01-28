@@ -146,7 +146,7 @@ struct Ufunction
 
 extern int		array_maxindex(Namval_t*);
 extern char 		*nv_endsubscript(Namval_t*, char*, int);
-extern Namfun_t 	*nv_cover(Namval_t*);
+extern Namfun_t 	*nv_enforcedisc(Namval_t*);
 extern int		nv_arrayisset(Namval_t*, Namarr_t*);
 extern int		nv_arraysettype(Namval_t*, Namval_t*,const char*,int);
 extern int		nv_aimax(Namval_t*);
