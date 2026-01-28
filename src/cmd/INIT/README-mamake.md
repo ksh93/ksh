@@ -1,7 +1,7 @@
 # mamake and the MAM language #
 
 MAM (Make Abstract Machine) is a simple rule-based make language
-that is implemented in just eight four-letter commands and four attributes,
+that is implemented in just ten four-letter commands and four attributes,
 yet allows unlimited flexibility as it can execute arbitrary shell code.
 The program implementing MAM, `mamake`,
 is a portable C90 program written in a single file, `mamake.c`.
@@ -273,8 +273,6 @@ The following *attribute*s are available:
 by *target* in a manner equivalent to an empty `make` *target*/`done` block,
 with the optional *attribute*s applied to the new rule. A nonexistent
 prerequisite is an error unless a `dontcare` attribute is given.
-Declaring a dependency on a prerequisite that is currently being made (i.e.:
-directly or indirectly within that prerequisite's block) is an error.
 
 ### Referencing previously defined rules ###
 
@@ -284,9 +282,12 @@ If *target* matches a previously defined rule, `prev` adds a dependency on
 that rule to the current rule. This is used to make a rule a prerequisite of
 multiple `make`...`done` blocks without repeating the rule. It is an error
 to specify attributes, because the attributes of the referenced rule are used.
-In the legacy mode, attributes are silently ignored.
+Declaring a dependency on a prerequisite that is currently being made (i.e.:
+directly or indirectly within that prerequisite's block) is an error.
 
-> *Obsolete:* If the strict level is < 4, and if *target* does not match a
+> *Obsolete:*
+> In the legacy mode, attributes are silently ignored.
+> If the strict level is < 4, and if *target* does not match a
 > previously defined rule, then the following applies. In the legacy mode,
 > `prev` creates an empty dummy rule and ignores the *attribute*s; this is
 > for backward compatibility. At strict levels 1 and up, `prev` in this
@@ -314,7 +315,8 @@ to probe the C compiler for flags and features,
 or uses that script's stored results if not outdated.
 The results are stored as a series of `setv` commands
 in a file in the directory `%{INSTALLROOT}/lib/probe/C/mam`,
-the file name being a hash of full path to the compiler indicated by `%{CC}`.
+the file name being a hash of the full path to the compiler
+as indicated by `%{CC}`.
 That results file is then read and included in the current Mamfile
 as if it followed the `setv CC` command.
 

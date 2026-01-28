@@ -27,7 +27,6 @@
 
 # Escape from a non-POSIX shell
 min_posix=/if/this/is/csh/ignore/the/error/message || exec sh $0:q $argv:q
-# ('test X -ef Y' is technically non-POSIX, but practically universal)
 min_posix='test / -ef / && path=Bad && case $PATH in (Bad) exit 1;; esac && '\
 'PWD=Bad && cd -P -- / && case $PWD in (/) ;; (*) exit 1;; esac && '\
 '! { ! case x in ( x ) : ${0##*/} || : $( : ) ;; esac; } && '\
