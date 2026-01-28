@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-01-28:
+
+- Fixed incorrect behaviour that occurred when IFS, PATH, SHELL,
+  FPATH, CDPATH, SECONDS, ENV, LANG, LC_ALL, LC_CTYPE, LC_MESSAGES,
+  LC_COLLATE, LC_NUMERIC, or LC_TIME were declared as a local
+  variable within a function using 'typeset' while a custom shell
+  discipline function was defined for them in the global scope.
+
 2026-01-21:
 
 - Fixed several IFS field splitting bugs in read(1) that occurred

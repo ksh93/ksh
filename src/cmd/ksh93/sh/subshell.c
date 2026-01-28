@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -359,7 +359,7 @@ static void nv_restore(struct subshell *sp)
 			flags |= NV_NOFREE;
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
-		if(nv_cover(mp))
+		if(nv_enforcedisc(mp))
 			nv_putval(mp,nv_getval(np),NV_RDONLY);
 		else
 			mp->nvalue = np->nvalue;

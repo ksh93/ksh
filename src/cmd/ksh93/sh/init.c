@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1550,14 +1550,27 @@ void sh_reinit(void)
 }
 
 /*
- * return discipline function tree pointer if a local variable of this name should share the parent's discipline function(s)
+ * Return default discipline function tree pointer for variables that must
+ * have their standard disciplines reset when redefined as local variables
  */
-Namfun_t *nv_cover(Namval_t *np)
+Namfun_t *nv_enforcedisc(Namval_t *np)
 {
-	if(np==IFSNOD || np==PATHNOD || np==SHELLNOD || np==FPATHNOD || np==CDPNOD || np==SECONDS || np==ENVNOD)
-		return np->nvfun;
-	if(np==LCALLNOD || np==LCTYPENOD || np==LCMSGNOD || np==LCCOLLNOD || np==LCNUMNOD || np==LCTIMENOD || np==LANGNOD)
-		return np->nvfun;
+	Init_t *ip = sh.init_context;
+	if(np==IFSNOD) return &ip->IFS_init.hdr;
+	if(np==PATHNOD) return &ip->PATH_init;
+	if(np==SHELLNOD) return &ip->SHELL_init;
+	if(np==FPATHNOD) return &ip->FPATH_init;
+	if(np==CDPNOD) return &ip->CDPATH_init;
+	if(np==SECONDS) return &ip->SECONDS_init;
+	if(np==ENVNOD) return &ip->ENV_init;
+	/* locale */
+	if(np==LCALLNOD) return &ip->LC_ALL_init;
+	if(np==LCTYPENOD) return &ip->LC_TYPE_init;
+	if(np==LCMSGNOD) return &ip->LC_MSG_init;
+	if(np==LCCOLLNOD) return &ip->LC_COLL_init;
+	if(np==LCNUMNOD) return &ip->LC_NUM_init;
+	if(np==LCTIMENOD) return &ip->LC_TIME_init;
+	if(np==LANGNOD) return &ip->LANG_init;
 	return NULL;
 }
 

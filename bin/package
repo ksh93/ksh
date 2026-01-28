@@ -27,7 +27,6 @@
 
 # Escape from a non-POSIX shell
 min_posix=/if/this/is/csh/ignore/the/error/message || exec sh $0:q $argv:q
-# ('test X -ef Y' is technically non-POSIX, but practically universal)
 min_posix='test / -ef / && path=Bad && case $PATH in (Bad) exit 1;; esac && '\
 'PWD=Bad && cd -P -- / && case $PWD in (/) ;; (*) exit 1;; esac && '\
 '! { ! case x in ( x ) : ${0##*/} || : $( : ) ;; esac; } && '\
@@ -2639,12 +2638,9 @@ do_install() # dir [ command ... ]
 			trace mkdir -p "$DESTDIR$fundir" || exit
 			(set +o noglob; trace cp "$PACKAGEROOT"/src/cmd/ksh93/fun/* "$DESTDIR$fundir/") || exit
 			;;
-		*)	# AT&T --man, etc. is a glorified error message: writes to stderr and exits with status 2 :-/
-			# So we cannot reliably check for success; must check the result, too.
-			manfile=$DESTDIR$man1dir/${f##*/}.1
+		*)	manfile=$DESTDIR$man1dir/${f##*/}.1
 			bin/ksh -c '"$@" 2>&1' _ "bin/$f" --\?\?nroff >$manfile
-			if	test "$?" -eq 2 &&
-				read -r magic < "$manfile" &&
+			if	read -r magic < "$manfile" &&
 				test "X$magic" = 'X.\" format with nroff|troff|groff -man'  # string from optget.c
 			then	printf '%s: executing: %s --\\?\\?nroff > %s\n' "$action" "bin/$f" "$manfile"
 			else	rm "$manfile"
