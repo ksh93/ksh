@@ -4,6 +4,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-01-28:
 
+- Fixed a regression, introduced with the printf fixes on 2023-05-18, that
+  broke date specs relative to now, such as: printf '%T\n' 'in 10 weeks'
+
 - Fixed incorrect behaviour that occurred when IFS, PATH, SHELL,
   FPATH, CDPATH, SECONDS, ENV, LANG, LC_ALL, LC_CTYPE, LC_MESSAGES,
   LC_COLLATE, LC_NUMERIC, or LC_TIME were declared as a local
