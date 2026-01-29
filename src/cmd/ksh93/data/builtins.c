@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -392,7 +392,7 @@ const char sh_optalias[] =
 ;
 
 const char sh_optbuiltin[] =
-"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2025-06-25 $\n]"
+"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?builtin - add, delete, or display shell built-ins]"
 "[+DESCRIPTION?\bbuiltin\b can be used to add, delete, or display "
@@ -1761,7 +1761,7 @@ const char sh_optsleep[] =
 ;
 
 const char sh_opttrap[] =
-"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2025-06-25 $\n]"
+"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?trap - trap signals and conditions]"
 "[+DESCRIPTION?\btrap\b is a special built-in that defines actions to be "
@@ -1998,7 +1998,7 @@ const char sh_opttimes[] =
 ;
 
 const char sh_optumask[] =
-"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2025-06-25 $\n]"
+"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?umask - get or set the file creation mask]"
 "[+DESCRIPTION?\bumask\b sets the file creation mask of the current "
