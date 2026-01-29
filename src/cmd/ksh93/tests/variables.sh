@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1768,6 +1768,33 @@ got=$(./issue861.sh 2>&1)
 [[ e=$? -eq 0 && -z $got ]] || err_exit "variable name length corrupted when reading across buffer boundary" \
 	"(got status $e, $(printf %q "$got"))"
 unset i
+
+# ======
+
+# Problem: the global discipline function kept applying to the local variable
+# for certain special variables. This was a design problem with nv_cover() in
+# init.c which copied the nvfun pointer, i.e., the entire discipline function
+# tree. (Note: nv_cover() is now renamed to nv_enforcedisc().)
+# Here we can only test nv_enforcedisc() variables without value constraints.
+
+exp=$'in main: MainShellValue\nin pathlocal: LocalValue'
+for v in IFS PATH SHELL FPATH CDPATH ENV
+do	got=$(eval "
+		function pathlocal
+		{
+			typeset $v=LocalValue
+			print -r -- \"in pathlocal: \$$v\"
+		}
+		function $v.get
+		{
+			.sh.value=MainShellValue
+		}
+		print -r -- \"in main: \$$v\"
+		pathlocal
+	")
+	[[ $got == "$exp" ]] || err_exit "$v discipline not scoped properly" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
 
 # ======
 exit $((Errors<125?Errors:125))

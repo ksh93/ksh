@@ -245,6 +245,11 @@ int sh_lex(Lex_t *lp)
  * Get the next word and put it on the top of the stack
  * A pointer to the current word is stored in lp->arg
  * Returns the token type
+ *
+ * IMPORTANT: When the lexer reads past a buffer boundary, the buffer
+ * gets reset and any saved pointers and offsets are invalidated.
+ * This can happen at any point, including in the middle of a token.
+ * Therefore, do not save any pointer or offset to use later.
  */
 int sh_lex(Lex_t* lp)
 {
@@ -1038,10 +1043,6 @@ int sh_lex(Lex_t* lp)
 					fcseek(-LEN);
 				}
 				continue;
-			case S_META:
-				if(lp->lexd.warn && endchar(lp)==RBRACE && !lp->lexd.nested_tilde)
-					errormsg(SH_DICT,ERROR_warn(0),e_lexusequote,sh.inlineno,c);
-				continue;
 			case S_PUSH:
 				n = fcgetc();
 				if(n==RPAREN)
@@ -1083,11 +1084,7 @@ int sh_lex(Lex_t* lp)
 				if(c==RBRACE)
 					lp->lexd.nested_tilde = 0;
 				if(c==';' && n!=';')
-				{
-					if(lp->lexd.warn && n==RBRACE)
-						errormsg(SH_DICT,ERROR_warn(0),e_lexusequote,sh.inlineno,c);
 					continue;
-				}
 				if(mode==ST_QNEST)
 				{
 					if(lp->lexd.warn)

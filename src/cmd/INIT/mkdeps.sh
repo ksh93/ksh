@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#             Copyright (c) 2024 Contributors to ksh 93u+m             #
+#          Copyright (c) 2024-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -19,6 +19,9 @@
 # Greps preinstalled AST header files for '#include <foo.h>' to generate header
 # dependency rules for a library. The 'bind' command in mamake(1) Mamfiles will
 # automatically include the generated dependencies in its current rule context.
+#
+# To exclude a #include from dependency resolution, add a comment with 'NODEP'.
+# This is (rarely) needed in cases of a circular dependency or optional header.
 #
 # Usage: mkdeps -lLIBRARYNAME [ -lDEPENDNECYNAME ... ] [ HEADER.h ... ]
 # The first -l option's argument is the short name of the library to be processed.
@@ -56,7 +59,7 @@ error_out()
 grep_includes()
 {
 	spc=' 	'  # space followed by tab
-	sed -n "s|^[$spc]*#[$spc]*include[$spc]*<\([A-Za-z0-9_]*\)\.h>.*|\1|p" "$1"
+	sed -n "/NODEP/!s|^[$spc]*#[$spc]*include[$spc]*<\([A-Za-z0-9_]*\)\.h>.*|\1|p" "$1"
 }
 
 print_indent()

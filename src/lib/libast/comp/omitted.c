@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1995-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -495,7 +495,7 @@ runve(int mode, const char* path, char* const* argv, char* const* envv)
 		p = v;
 		*p++ = (char*)path;
 		*p++ = (char*)path;
-		path = (const char*)pathshell();
+		path = "/bin/sh.exe";
 		if (*argv)
 			argv++;
 		while (*p++ = (char*)*argv++);

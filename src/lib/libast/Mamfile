@@ -322,11 +322,6 @@ make install virtual
 		exec - invoke_iffe %{<}
 	done
 
-	make FEATURE/prog
-		makp features/prog
-		exec - invoke_iffe %{<}
-	done
-
 	make FEATURE/locale
 		makp features/locale
 		exec - invoke_iffe %{<}
@@ -1222,26 +1217,10 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make pathshell.o
-			make path/pathshell.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make pathcd.o
 			make path/pathcd.c
 				prev include/stk.h
 				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make pathprog.o
-			make path/pathprog.c
-				prev FEATURE/prog
-				prev include/ast_windows.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -1744,21 +1723,6 @@ make install virtual
 			make string/fmttmx.c
 				prev tv.h
 				prev tmx.h
-			done
-			exec - compile %{<}
-		done
-
-		make fmttv.o
-			make string/fmttv.c
-				prev include/tm.h
-				prev tv.h
-			done
-			exec - compile %{<}
-		done
-
-		make fmtversion.o
-			make string/fmtversion.c
-				prev include/ast.h
 			done
 			exec - compile %{<}
 		done

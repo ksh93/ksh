@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -29,16 +29,16 @@
  */
 
 #include	"shopt.h"
-#include        "defs.h"
-#include        <pwd.h>
-#include        <tmx.h>
-#include        <regex.h>
+#include	"defs.h"
+#include	<pwd.h>
+#include	<tmx.h>
+#include	<regex.h>
 #include	<math.h>
 #include	<ast_random.h>
-#include        "variables.h"
-#include        "path.h"
-#include        "fault.h"
-#include        "name.h"
+#include	"variables.h"
+#include	"path.h"
+#include	"fault.h"
+#include	"name.h"
 #include	"edit.h"
 #include	"jobs.h"
 #include	"io.h"
@@ -1272,34 +1272,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	}
 	/* increase SHLVL */
 	sh.shlvl++;
-#if SHOPT_SPAWN
-	{
-		/*
-		 * try to find the pathname for this interpreter
-		 * try using environment variable _ or argv[0]
-		 */
-		char *cp=nv_getval(L_ARGNOD);
-		char buff[PATH_MAX+1];
-		size_t n;
-		sh.shpath = 0;
-		if((n = pathprog(NULL, buff, sizeof(buff))) > 0 && n <= sizeof(buff))
-			sh.shpath = sh_strdup(buff);
-		else if((cp && (sh_type(cp)&SH_TYPE_SH)) || (argc>0 && strchr(cp= *argv,'/')))
-		{
-			if(*cp=='/')
-				sh.shpath = sh_strdup(cp);
-			else if(cp = nv_getval(PWDNOD))
-			{
-				int offset = stktell(sh.stk);
-				sfputr(sh.stk,cp,'/');
-				sfputr(sh.stk,argv[0],-1);
-				pathcanon(stkptr(sh.stk,offset),PATH_DOTDOT);
-				sh.shpath = sh_strdup(stkptr(sh.stk,offset));
-				stkseek(sh.stk,offset);
-			}
-		}
-	}
-#endif
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
 	astconfdisc(newconf);
 #if SHOPT_TIMEOUT
@@ -1312,7 +1284,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 #endif
 	if(argc>0)
 	{
-		int dolv_index;
 		/* check for restricted shell */
 		if(type&SH_TYPE_RESTRICTED)
 			sh_onoption(SH_RESTRICTED);
@@ -1324,10 +1295,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 			sh_done(0);
 		}
 		opt_info.disc = 0;
-		dolv_index = (argc - 1) - sh.st.dolc;
-		sh.st.dolv = argv + dolv_index;
-		sh.st.repl_index = dolv_index;
-		sh.st.repl_arg = argv[dolv_index];
+		sh.st.dolv = argv + (argc - 1) - sh.st.dolc;
 		sh.st.dolv[0] = argv[0];
 		if(sh.st.dolc < 1)
 		{
@@ -1379,14 +1347,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	else
 		sh_offoption(SH_PRIVILEGED);
 	/* shname for $0 in profiles and . scripts */
-	if(sh_isdevfd(argv[1]))
-		sh.shname = sh_strdup(argv[0]);
-	else
-		sh.shname = sh_strdup(sh.st.dolv[0]);
-	/*
-	 * return here for shell script execution
-	 * but not for parenthesis subshells
-	 */
+	sh.shname = sh_strdup(sh.st.dolv[0]);
 	error_info.id = sh_strdup(sh.st.dolv[0]); /* error_info.id is $0 */
 	sh.jmpbuffer = &sh.checkbase;
 	sh_pushcontext(&sh.checkbase,SH_JMPSCRIPT);
@@ -1592,14 +1553,27 @@ void sh_reinit(void)
 }
 
 /*
- * set when creating a local variable of this name
+ * Return default discipline function tree pointer for variables that must
+ * have their standard disciplines reset when redefined as local variables
  */
-Namfun_t *nv_cover(Namval_t *np)
+Namfun_t *nv_enforcedisc(Namval_t *np)
 {
-	if(np==IFSNOD || np==PATHNOD || np==SHELLNOD || np==FPATHNOD || np==CDPNOD || np==SECONDS || np==ENVNOD)
-		return np->nvfun;
-	if(np==LCALLNOD || np==LCTYPENOD || np==LCMSGNOD || np==LCCOLLNOD || np==LCNUMNOD || np==LCTIMENOD || np==LANGNOD)
-		return np->nvfun;
+	Init_t *ip = sh.init_context;
+	if(np==IFSNOD) return &ip->IFS_init.hdr;
+	if(np==PATHNOD) return &ip->PATH_init;
+	if(np==SHELLNOD) return &ip->SHELL_init;
+	if(np==FPATHNOD) return &ip->FPATH_init;
+	if(np==CDPNOD) return &ip->CDPATH_init;
+	if(np==SECONDS) return &ip->SECONDS_init;
+	if(np==ENVNOD) return &ip->ENV_init;
+	/* locale */
+	if(np==LCALLNOD) return &ip->LC_ALL_init;
+	if(np==LCTYPENOD) return &ip->LC_TYPE_init;
+	if(np==LCMSGNOD) return &ip->LC_MSG_init;
+	if(np==LCCOLLNOD) return &ip->LC_COLL_init;
+	if(np==LCNUMNOD) return &ip->LC_NUM_init;
+	if(np==LCTIMENOD) return &ip->LC_TIME_init;
+	if(np==LANGNOD) return &ip->LANG_init;
 	return NULL;
 }
 

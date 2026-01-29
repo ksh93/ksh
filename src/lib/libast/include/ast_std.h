@@ -49,7 +49,7 @@
 struct _sfio_s;
 #endif
 #define FILE		struct _sfio_s
-#ifndef	__FILE_typedef
+#ifndef __FILE_typedef
 #define __FILE_typedef	1
 #endif
 #ifndef _FILEDEFED

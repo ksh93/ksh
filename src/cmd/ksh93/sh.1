@@ -2553,6 +2553,20 @@ and
 are also
 set by
 .IR login (1).
+.PP
+The shell variables listed in this section will normally lose any special
+properties if redeclared in a local scope. The exceptions to this rule are
+.BR CDPATH ,
+.BR ENV ,
+.BR FPATH ,
+.BR IFS ,
+.BR PATH ,
+.BR SECONDS ,
+.BR SHELL ,
+and all the locale-related variables
+.RB ( LANG ,
+.BR LC_* ),
+which have their special properties reset to default in that case.
 .SS Field Splitting.
 After parameter expansion and command substitution,
 the results of substitutions are scanned for the field separator
@@ -6526,6 +6540,12 @@ whose name is
 .B lib_init()
 and invokes this function with an argument of
 .BR 0 .
+The
+.B \-p
+option causes the output to be in the form of
+.B builtin
+commands that can be used as input to the shell to recreate the current
+set of builtins.
 .TP
 .PD 0
 \f3cd\fP \*(OK \f3\-L\fP \*(CK \*(OK \f3-eP\fP \*(CK \*(OK \f2arg\^\fP \*(CK
@@ -7041,7 +7061,7 @@ that is not found and the exit status is non-zero if any were not found.
 The
 .B \-r
 option empties the hash table. This can also be achieved by resetting
-.BR PATH.
+.BR PATH .
 .TP
 .PD 0
 \f3hist\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-Enlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK
@@ -8471,7 +8491,7 @@ Seconds are zero-padded unless the
 .B posix
 shell option is on.
 .TP
-\(dg \f3trap\fP \*(OK \f3\-p\fP \*(CK \*(OK \f2action\^\fP \*(CK \*(OK \f2sig\^\fP \*(CK .\|.\|.
+\(dg \f3trap\fP \*(OK \f3\-lp\fP \*(CK \*(OK \f2action\^\fP \*(CK \*(OK \f2sig\^\fP \*(CK .\|.\|.
 The
 .B \-p
 option causes the trap
@@ -8597,6 +8617,9 @@ or
 .B return
 without an argument in a trap action will
 preserve the exit status of the command that invoked the trap.
+The
+.B \-l
+option lists the signals and their numbers to standard output.
 .TP
 \f3true\fP
 Does nothing, and exits 0. Used with
@@ -9151,7 +9174,7 @@ If no option is given,
 is assumed.
 .RE
 .TP
-\f3umask\fP \*(OK \f3\-S\fP \*(CK \*(OK \f2mask\^\fP \*(CK
+\f3umask\fP \*(OK \f3\-pS\fP \*(CK \*(OK \f2mask\^\fP \*(CK
 The user file-creation mask is set to
 .I mask\^
 (see
@@ -9174,6 +9197,9 @@ The
 option causes the mode to be printed as a symbolic
 value.  Otherwise, the
 mask is printed in octal.
+The
+.B \-p
+option writes the file creation mask in a format that can be used for reinput.
 .TP
 \f3unalias\fP \*(OK \f3\-a\fP \*(CK \f2name\^\fP .\|.\|.
 The aliases

@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: rm (ksh 93u+m) 2022-08-30 $\n]"
+"[-?\n@(#)$Id: rm (ksh 93u+m) 2025-09-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?rm - remove files]"
 "[+DESCRIPTION?\brm\b removes the named \afile\a arguments. By default it"
@@ -123,10 +123,8 @@ rm(State_t* state, FTSENT* ent)
 			}
 			error_info.errors++;
 		}
-		else if (!state->force)
-			error(2, "%s: cannot %s directory", ent->fts_path, (ent->fts_info & FTS_NR) ? "read" : "search");
 		else
-			error_info.errors++;
+			error(2, "%s: cannot %s directory", ent->fts_path, (ent->fts_info & FTS_NR) ? "read" : "search");
 		fts_set(NULL, ent, FTS_SKIP);
 		nonempty(ent);
 		break;
@@ -136,10 +134,7 @@ rm(State_t* state, FTSENT* ent)
 		if (path[0] == '.' && (!path[1] || path[1] == '.' && !path[2]) && (ent->fts_level > 0 || path[1]))
 		{
 			fts_set(NULL, ent, FTS_SKIP);
-			if (!state->force)
-				error(2, "%s: cannot remove", ent->fts_path);
-			else
-				error_info.errors++;
+			error(2, "%s: cannot remove", ent->fts_path);
 			break;
 		}
 		if (!state->recursive)
@@ -224,25 +219,17 @@ rm(State_t* state, FTSENT* ent)
 						/* FALLTHROUGH */
 					default:
 						nonempty(ent);
-						if (!state->force)
-							error(ERROR_SYSTEM|2, "%s: directory not removed", ent->fts_path);
-						else
-							error_info.errors++;
+						error(ERROR_SYSTEM|2, "%s: directory not removed", ent->fts_path);
 						break;
 					}
 			}
-			else if (!state->force)
-				error(2, "%s: cannot remove", ent->fts_path);
 			else
-				error_info.errors++;
+				error(2, "%s: cannot remove", ent->fts_path);
 		}
 		else
 		{
 			nonempty(ent);
-			if (!state->force)
-				error(2, "%s: directory not removed", ent->fts_path);
-			else
-				error_info.errors++;
+			error(2, "%s: directory not empty", ent->fts_path);
 		}
 		break;
 	default:
@@ -308,10 +295,7 @@ rm(State_t* state, FTSENT* ent)
 			case ENOENT:
 				break;
 			default:
-				if (!state->force || state->interactive)
-					error(ERROR_SYSTEM|2, "%s: not removed", ent->fts_path);
-				else
-					error_info.errors++;
+				error(ERROR_SYSTEM|2, "%s: not removed", ent->fts_path);
 				break;
 			}
 		}

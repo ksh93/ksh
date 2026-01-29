@@ -225,8 +225,6 @@ struct sh_scoped
 	char		**otrapcom;	/* save parent EXIT and signals for v=$(trap) */
 	void		*timetrap;	/* for the 'alarm' built-in */
 	struct Ufunction *real_fun;	/* current 'function name' function */
-	int             repl_index;
-	char            *repl_arg;
 };
 
 struct limits
@@ -269,7 +267,6 @@ struct Shell_s
 	Namval_t	*bltin_nodes;
 	Namval_t	*bltin_cmds;
 	History_t	*hist_ptr;
-	char		*shpath;
 	char		*user;
 	char		**sigmsg;
 	char		**login_files;

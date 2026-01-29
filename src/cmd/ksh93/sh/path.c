@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -46,7 +46,7 @@ static void		funload(int,const char*);
 static void noreturn	exscript(char*, char*[]);
 static int		checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,int);
 static void		checkdup(Pathcomp_t*);
-static Pathcomp_t	*defpathinit(void);
+static Pathcomp_t	*defpath(void);
 
 static const char *std_path(void)
 {
@@ -406,9 +406,12 @@ Pathcomp_t *path_nextcomp(Pathcomp_t *pp, const char *name, Pathcomp_t *last)
 	return NULL;
 }
 
-static Pathcomp_t* defpathinit(void)
+static Pathcomp_t *defpath(void)
 {
-	return path_addpath(NULL,std_path(),PATH_PATH);
+	static Pathcomp_t *dp;
+	if (!dp)
+		dp = path_addpath(NULL, std_path(), PATH_PATH);
+	return dp;
 }
 
 static void pathinit(void)
@@ -419,7 +422,7 @@ static void pathinit(void)
 		sh.pathlist = pp = path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_PATH);
 	else
 	{
-		pp = defpathinit();
+		pp = defpath();
 		sh.pathlist = path_dup(pp);
 	}
 	if(val=sh_scoped((FPATHNOD))->nvalue)
@@ -441,7 +444,7 @@ Pathcomp_t *path_get(const char *name)
 		pp = (Pathcomp_t*)sh.pathlist;
 	}
 	if(!pp && (!(sh_scoped(PATHNOD)->nvalue)) || sh_isstate(SH_DEFPATH))
-		pp = defpathinit();
+		pp = defpath();
 	return pp;
 }
 
@@ -483,7 +486,7 @@ static int	opentype(const char *name, Pathcomp_t *pp, int fun)
 		}
 	}
 	while(fd<0 && nextpp);
-	if(fd>=0 && (fd = sh_iomovefd(fd)) > 0 && !(sh.fdstatus[fd]&IOCLEX))
+	if(fd>=0 && (fd = sh_iomovefd(fd,10)) > 0 && !(sh.fdstatus[fd]&IOCLEX))
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 	return fd;
 }
@@ -1221,8 +1224,6 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 		 */
 		if(spawn)
 		{
-			if(sh.subshell)
-				return -1;
 			do
 			{
 				if((pid=fork())>0)
@@ -1319,7 +1320,7 @@ static noreturn void exscript(char *path,char *argv[])
 		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,path);
 		UNREACHABLE();
 	}
-	sh.infd = sh_iomovefd(sh.infd);
+	sh.infd = sh_iomovefd(sh.infd,10);
 #if SHOPT_ACCT
 	sh_accbegin(path) ;  /* reset accounting */
 #endif	/* SHOPT_ACCT */
@@ -1621,7 +1622,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, const char *path,int type)
 	if(old)
 	{
 		if(!first && !path)
-			first = path_dup(defpathinit());
+			first = path_dup(defpath());
 		if(cp=(sh_scoped(FPATHNOD))->nvalue)
 			first = path_addpath((Pathcomp_t*)first,cp,PATH_FPATH);
 		path_delete(old);

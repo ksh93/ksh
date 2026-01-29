@@ -52,13 +52,13 @@
 
 #ifndef FILE
 #define FILE		struct _sfio_s
-#ifndef	__FILE_typedef
+#ifndef __FILE_typedef
 #define __FILE_typedef	1
 #endif
-#ifndef	_FILE_DEFINED
+#ifndef _FILE_DEFINED
 #define _FILE_DEFINED   1
 #endif
-#ifndef	_FILE_defined
+#ifndef _FILE_defined
 #define _FILE_defined   1
 #endif
 #ifndef _FILEDEFED
@@ -351,7 +351,6 @@ extern char*		fmtscale(Sfulong_t, int);
 extern char*		fmtsignal(int);
 extern char*		fmttime(const char*, time_t);
 extern char*		fmtuid(int);
-extern char*		fmtversion(unsigned long);
 extern void*		memdup(const void*, size_t);
 extern unsigned int	memhash(const void*, int);
 extern unsigned long	memsum(const void*, int, unsigned long);
@@ -373,11 +372,9 @@ extern size_t		pathnative(const char*, char*, size_t);
 extern char*		pathpath(char*, const char*, const char*, int);
 extern char*		pathpath_20100601(const char*, const char*, int, char*, size_t);
 extern size_t		pathposix(const char*, char*, size_t);
-extern size_t		pathprog(const char*, char*, size_t);
 extern char*		pathrepl(char*, const char*, const char*);
 extern char*		pathrepl_20100601(char*, size_t, const char*, const char*);
 extern int		pathsetlink(const char*, const char*);
-extern char*		pathshell(void);
 extern char*		pathtemp(char*, size_t, const char*, const char*, int*);
 extern char*		pathtmp(char*, const char*, const char*, int*);
 extern char*		setenviron(const char*);

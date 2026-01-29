@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,7 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * umask [-S] [mask]
+ * umask [-pS] [mask]
  *
  *   David Korn
  *   AT&T Labs
@@ -39,12 +39,15 @@
 int	b_umask(int argc,char *argv[],Shbltin_t *context)
 {
 	char *mask;
-	int flag = 0, sflag = 0;
+	int flag = 0, pflag = 0, sflag = 0;
 	NOT_USED(context);
 	while((argc = optget(argv,sh_optumask))) switch(argc)
 	{
+		case 'p':
+			pflag = 1;
+			break;
 		case 'S':
-			sflag++;
+			sflag = 1;
 			break;
 		case ':':
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
@@ -93,11 +96,12 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 	}
 	else
 	{
+		char *prefix = pflag ? "umask " : "";
 		umask(flag=umask(0));
 		if(sflag)
-			sfprintf(sfstdout,"%s\n",fmtperm(~flag&0777));
+			sfprintf(sfstdout,"%s%s\n",prefix,fmtperm(~flag&0777));
 		else
-			sfprintf(sfstdout,"%0#4o\n",flag);
+			sfprintf(sfstdout,"%s%0#4o\n",prefix,flag);
 	}
 	return 0;
 }

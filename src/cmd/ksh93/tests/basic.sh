@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1083,6 +1083,57 @@ wait "$parallel_4" || err_exit 'output from pipe is lost with pipe to builtin'
 wait "$parallel_5" || err_exit 'command substitution causes pipefail option to hang'
 wait "$parallel_6" || err_exit '"command | while read...done" finishing too fast'
 wait "$parallel_7" || err_exit 'early termination not causing broken pipe'
+
+# ======
+# Hijacking ksh93 via $SHELL for arbitrary command execution during initialization.
+# https://github.com/ksh93/ksh/issues/874
+bindir=$tmp/dir.$RANDOM/bin
+mkdir -p "$bindir"
+echo $'#!/bin/sh\necho "CODE INJECTION"' > "$bindir"/hijack_sh
+chmod +x "$bindir"/hijack_sh
+got=$(set +x; SHELL="$bindir"/hijack_sh "$SHELL" -l <(echo) 2>&1)
+[[ $got =~ "CODE INJECTION" ]] && err_exit 'ksh93 is vulnerable to being hijacked during init via $SHELL' \
+	"(got $(printf %q "$got"))"
+
+# Hijacking ksh93 shebang-less scripts for arbitrary command execution.
+# https://github.com/ksh93/ksh/pull/866
+export bindir
+print 'echo GOOD' > "$bindir/dummy.sh"
+chmod +x "$bindir/dummy.sh"
+cp "$SHELL" "$bindir/hijack_sh"
+exp=$'GOOD\nGOOD'
+got=$("$bindir/hijack_sh" -c $'print $\'\#!/bin/sh\necho HIJACKED\' > "$bindir/hijack_shell"
+chmod +x "$bindir/hijack_shell"
+rm "$bindir/hijack_sh"
+cp "$bindir/hijack_shell" "$bindir/hijack_sh"
+("$bindir/dummy.sh"); "$bindir/dummy.sh"; :')
+rm -r "$bindir"
+unset bindir
+[[ $exp == $got ]] || err_exit 'ksh93 shebang-less scripts are vulnerable to being hijacked for arbitrary code execution' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# $0 should be the /dev/fd path for scripts executed from a /dev/fd file
+# https://github.com/ksh93/ksh/issues/874
+# https://github.com/ksh93/ksh/pull/879
+if ((SHOPT_DEVFD))
+then	# $0 should be the /dev/fd script name when the script is a process substitution
+	got=$("$SHELL" <(echo 'echo $0'))
+	if [[ ${got:0:7} != '/dev/fd' ]]
+	then err_exit '$0 is wrong for process substitution scripts' \
+		"(expected a /dev/fd file name, got $(printf %q "$got"))"
+	else	# The file descriptor for the /dev/fd script must remain open
+		if ! "$SHELL" <(echo '[[ -e $0 ]]')
+		then	err_exit 'the file descriptor corresponding to $0 is not open in /dev/fd scripts'
+		fi
+		# The file descriptor for the /dev/fd script should not be close-on-exec
+		typeset -x verify_fd_script=$tmp/verify-procsub-$RANDOM.ksh
+		echo '[[ -e $fd ]]' > "$verify_fd_script"
+		if ! "$SHELL" <(echo 'typeset -x fd=$0; "$SHELL" "$verify_fd_script"')
+		then	err_exit 'file descriptor for /dev/fd script is not passed on to child processes'
+		fi
+	fi
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

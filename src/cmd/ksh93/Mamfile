@@ -1030,7 +1030,7 @@ make install virtual
 	note * Set common compiler invocation arguments
 	note *
 
-	setv compile %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{DEBUG+-DDEBUG=%{DEBUG}} -DSH_DICT=%{SH_DICT} %{SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=%{SH_CMDLIB_DIR}} -I. -Iinclude -I%{INCLUDE_AST} -D_API_ast=20100309 -DERROR_CONTEXT_T=Error_context_t -c
+	setv compile %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{DEBUG+-DDEBUG=%{DEBUG}} -DSH_DICT=%{SH_DICT} %{SH_CMDLIB_DIR+-DSH_CMDLIB_DIR=%{SH_CMDLIB_DIR}} -I. -Iinclude -I%{INCLUDE_AST} -D_API_ast=20100309 -c
 
 	note *
 	note * Build *_dyn.o object files for dynamic library
