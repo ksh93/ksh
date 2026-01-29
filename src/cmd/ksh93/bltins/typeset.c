@@ -217,7 +217,6 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
     int    b_float(int argc,char *argv[],Shbltin_t *context){}
     int    b_functions(int argc,char *argv[],Shbltin_t *context){}
     int    b_integer(int argc,char *argv[],Shbltin_t *context){}
-    int    b_local(int argc,char *argv[],Shbltin_t *context){}
     int    b_nameref(int argc,char *argv[],Shbltin_t *context){}
 #endif
 int    b_typeset(int argc,char *argv[],Shbltin_t *context)

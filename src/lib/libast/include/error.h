@@ -31,7 +31,7 @@
 #include <option.h>
 #include <errno.h>
 
-#define ERROR_VERSION	20230222L
+#define ERROR_VERSION	20251007L
 
 #if !defined(errno) && defined(__DYNAMIC__)
 #define errno		__DYNAMIC__(errno)
@@ -75,10 +75,8 @@
 #define ERROR_SILENT		0x0002	/* context is silent		*/
 #define ERROR_NOTIFY		0x0004	/* main(-sig,0,ctx) on signal	*/
 
-#define ERROR_FREE		0x0010	/* free context on pop		*/
-#define ERROR_POP		0x0020	/* pop context			*/
-#define ERROR_PUSH		0x0040	/* push context			*/
-#define ERROR_SET		0x0080	/* set context			*/
+/* for libcmd */
+#define ERROR_CALLBACK		0x0080	/* ERROR_NOTIFY main() callback	*/
 
 #ifdef ECONNRESET
 #define ERROR_PIPE(e)		((e)==EPIPE||(e)==ECONNRESET||(e)==EIO)
@@ -86,24 +84,16 @@
 #define ERROR_PIPE(e)		((e)==EPIPE||(e)==EIO)
 #endif
 
-/*
- * errorpush()/errorpop() are obsolete -- use errorctx() instead
- */
-
-#ifndef ERROR_CONTEXT_T
-#define ERROR_CONTEXT_T		Error_info_t
-#endif
-
 #define ERROR_CONTEXT_BASE	((Error_context_t*)&error_info.context)
 
-#define errorpush(p,f)	(*(p)=*ERROR_CONTEXT_BASE,*ERROR_CONTEXT_BASE=error_info.empty,error_info.context=(Error_context_t*)(p),error_info.flags=(f))
+#define errorpush(p,f)	(*(p)=*ERROR_CONTEXT_BASE,*ERROR_CONTEXT_BASE=error_info.empty,error_info.context=(p),error_info.flags=(f))
 #define errorpop(p)	(*ERROR_CONTEXT_BASE=*(p))
 
 typedef struct Error_info_s Error_info_t;
 typedef struct Error_context_s Error_context_t;
 
 #define ERROR_CONTEXT \
-	ERROR_CONTEXT_T* context;	/* prev context stack element	*/ \
+	Error_context_t* context;	/* prev context stack element	*/ \
 	int	errors;			/* >= ERROR_ERROR count		*/ \
 	int	flags;			/* context flags		*/ \
 	int	line;			/* input|output line number	*/ \
@@ -203,6 +193,5 @@ extern void		errorv(const char*, int, va_list);
 #ifndef errorx
 extern char*		errorx(const char*, const char*, const char*, const char*);
 #endif
-extern Error_info_t*	errorctx(Error_info_t*, int, int);
 
 #endif

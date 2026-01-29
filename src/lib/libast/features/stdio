@@ -23,7 +23,6 @@ cat{
 	#define _FILE		FILE
 
 	#if !defined(__FILE) && !__CYGWIN__
-	#undef	__FILE
 	#define __FILE		FILE
 	#endif
 
@@ -224,8 +223,6 @@ cat{
 	#endif
 	#endif
 
-	#undef	extern
-
 	extern int	_doprnt(const char*, va_list, FILE*);
 	extern int	_doscan(FILE*, const char*, va_list);
 	extern int	asprintf(char**, const char*, ...);
@@ -309,8 +306,6 @@ cat{
 	extern ssize_t	getline(char**, size_t*, FILE*);
 
 	#endif
-
-	#undef	extern
 
 	#if _BLD_DLL && _DLL_INDIRECT_DATA
 

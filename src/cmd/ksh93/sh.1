@@ -2553,6 +2553,20 @@ and
 are also
 set by
 .IR login (1).
+.PP
+The shell variables listed in this section will normally lose any special
+properties if redeclared in a local scope. The exceptions to this rule are
+.BR CDPATH ,
+.BR ENV ,
+.BR FPATH ,
+.BR IFS ,
+.BR PATH ,
+.BR SECONDS ,
+.BR SHELL ,
+and all the locale-related variables
+.RB ( LANG ,
+.BR LC_* ),
+which have their special properties reset to default in that case.
 .SS Field Splitting.
 After parameter expansion and command substitution,
 the results of substitutions are scanned for the field separator

@@ -281,13 +281,11 @@ print(Sfio_t* sp, char* name, char* delim)
  * print error context FIFO stack
  */
 
-#define CONTEXT(f,p)	(((f)&ERROR_PUSH)?((Error_context_t*)&(p)->context->context):((Error_context_t*)(p)))
-
 static void
 context(Sfio_t* sp, Error_context_t* cp)
 {
 	if (cp->context)
-		context(sp, CONTEXT(cp->flags, cp->context));
+		context(sp, cp->context);
 	if (!(cp->flags & ERROR_SILENT))
 	{
 		if (cp->id)
@@ -432,7 +430,7 @@ errorv(const char* id, int level, va_list ap)
 			if (level && !(flags & ERROR_NOID))
 			{
 				if (error_info.context && level > 0)
-					context(stkstd, CONTEXT(error_info.flags, error_info.context));
+					context(stkstd, error_info.context);
 				if (file)
 					print(stkstd, file, (flags & ERROR_LIBRARY) ? " " : ": ");
 				if (flags & (ERROR_CATALOG|ERROR_LIBRARY))
@@ -592,47 +590,4 @@ errorv(const char* id, int level, va_list ap)
 	}
 	if (level >= ERROR_FATAL)
 		(*error_info.exit)(level - ERROR_FATAL + 1);
-}
-
-/*
- * error_info context control
- */
-
-static Error_info_t*	freecontext;
-
-Error_info_t*
-errorctx(Error_info_t* p, int op, int flags)
-{
-	if (op & ERROR_POP)
-	{
-		if (!(_error_infop_ = p->context))
-			_error_infop_ = &_error_info_;
-		if (op & ERROR_FREE)
-		{
-			p->context = freecontext;
-			freecontext = p;
-		}
-		p = _error_infop_;
-	}
-	else
-	{
-		if (!p)
-		{
-			if (p = freecontext)
-				freecontext = freecontext->context;
-			else if (!(p = newof(0, Error_info_t, 1, 0)))
-				return NULL;
-			*p = *_error_infop_;
-			p->errors = p->flags = p->line = p->warnings = 0;
-			p->catalog = p->file = 0;
-		}
-		if (op & ERROR_PUSH)
-		{
-			p->flags = flags;
-			p->context = _error_infop_;
-			_error_infop_ = p;
-		}
-		p->flags |= ERROR_PUSH;
-	}
-	return p;
 }

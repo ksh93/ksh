@@ -96,6 +96,4 @@ cat{
 	extern int		tmxtouch(const char*, Time_t, Time_t, Time_t, int);
 
 	extern char*		fmttmx(const char*, Time_t);
-
-	#undef	extern
 }end

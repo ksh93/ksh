@@ -55,7 +55,6 @@ int	fcfopen(Sfio_t* f)
 	n = sfvalue(f);
 	fcrestore(&save);
 	sfread(f,buff,0);
-	_Fcin.fcoff = sftell(f);
 	buff = (char*)sfreserve(f,SFIO_UNBOUND,SFIO_LOCKR);
 	_Fcin.fclast = (_Fcin.fcptr=_Fcin.fcbuff=(unsigned char*)buff)+n;
 	if(sffileno(f) >= 0)
@@ -81,8 +80,6 @@ int	fcfill(void)
 		/* see whether pointer has passed null byte */
 		if(ptr>_Fcin.fcbuff && *--ptr==0)
 			_Fcin.fcptr=ptr;
-		else
-			_Fcin.fcoff = 0;
 		return 0;
 	}
 	if(last)
@@ -97,7 +94,6 @@ int	fcfill(void)
 	if((n = ptr-_Fcin.fcbuff) && _Fcin.fcfun)
 		(*_Fcin.fcfun)(f,(const char*)_Fcin.fcbuff,n,_Fcin.context);
 	sfread(f, (char*)_Fcin.fcbuff, n);
-	_Fcin.fcoff +=n;
 	_Fcin._fcfile = 0;
 	if(!last)
 		return 0;
@@ -145,12 +141,58 @@ extern void fcrestore(Fcin_t *fp)
 }
 
 #if SHOPT_MULTIBYTE
+/* struct for part of a multibyte character that crosses buffer boundaries */
+struct Extra
+{
+	unsigned char	buff[2*MB_LEN_MAX];
+	unsigned char	*next;
+};
+
 int _fcmbget(short *len)
 {
-	int	c;
+	static struct Extra	extra;
+	int			i, c, n;
+	/*
+	 * Check if we need to piece together a split multibyte
+	 * character started at the end of the previous buffer.
+	 */
+	if(_Fcin.fcleft)
+	{
+		if((c = mbsize(extra.next)) < 0)
+			c = 1;
+		if((_Fcin.fcleft -= c) <=0)
+		{
+			_Fcin.fcptr = (unsigned char*)fcfirst() - _Fcin.fcleft; 
+			_Fcin.fcleft = 0;
+		}
+		*len = c;
+		if(c==1)
+			c = *extra.next++;
+		else if(c==0)
+			_Fcin.fcleft = 0;
+		else
+			c = mbchar(extra.next);
+		return c;
+	}
 	switch(*len = mbsize(_Fcin.fcptr))
 	{
 	    case -1:
+		/*
+		 * Invalid multibyte character. Check if we're near the end of the buffer; if so,
+		 * the multibyte character is probably split between this buffer and the next.
+		 */
+		if(_Fcin._fcfile && (n=(_Fcin.fclast-_Fcin.fcptr)) < MB_LEN_MAX)
+		{
+			memcpy(extra.buff, _Fcin.fcptr, n);
+			_Fcin.fcptr = _Fcin.fclast;
+			/* fcgetc() will read the next buffer via fcfill() */
+			for(i=n; i < MB_LEN_MAX+n; i++)
+				if((extra.buff[i] = fcgetc())==0)
+					break;
+			_Fcin.fcleft = n;
+			extra.next = extra.buff;
+			return _fcmbget(len);
+		}
 		*len = 1;
 		/* FALLTHROUGH */
 	    case 0:
