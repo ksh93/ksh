@@ -167,7 +167,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 			xflag = 1;
 			break;
 		    case 'r':
-			rflag = 1;
+			rflag=1;
 			break;
 		    case ':':
 			if(sh.shcomp)
@@ -1130,7 +1130,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	char *arg=0, *name;
 	int n, r=0, flag=0;
 	Namval_t *np;
-	int dlete=0;
+	long dlete=0;
 	struct tdata tdata;
 	Shbltin_f addr;
 	Stk_t	*stkp;
