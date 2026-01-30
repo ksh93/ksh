@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -63,6 +63,10 @@ static void	chkmail(char*);
 static struct stat lastmail;
 static time_t	mailtime;
 static char	beenhere = 0;
+
+#if SHOPT_DEVFD
+#define GOT_DEVFD	2
+#endif
 
 /*
  * search for file and exfile() it if it exists
@@ -128,7 +132,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 #endif
 	if(!beenhere)
 	{
-		beenhere++;
+		beenhere = 1;
 		sh_onstate(SH_PROFILE);
 		sh.sigflag[SIGTSTP] |= SH_SIGIGNORE;
 		/* decide whether shell is interactive */
@@ -221,11 +225,10 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				fdin = 0;
 			else
 			{
-				char *sp;
+#if SHOPT_DEVFD
 				/* open stream should have been passed into shell */
-				if(strmatch(name,e_devfdNN))
+				if(strmatch(name,e_devfdNN) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)
 				{
-					fdin = (int)strtol(name+8, NULL, 10);
 					if(fstat(fdin,&statb)<0)
 					{
 						errormsg(SH_DICT,ERROR_system(1),e_open,name);
@@ -234,11 +237,14 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 					name = av[0];
 					sh_offoption(SH_VERBOSE);
 					sh_offoption(SH_XTRACE);
+					beenhere = GOT_DEVFD;
 				}
 				else
+#endif /* SHOPT_DEVFD */
 				{
+					char *sp;
 					int isdir = 0;
-					if((fdin=sh_open(name,O_RDONLY,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
+					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
 					{
 						close(fdin);
 						isdir = 1;
@@ -253,7 +259,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 							sp = stkptr(sh.stk,PATH_OFFSET);
 						if(sp)
 						{
-							if((fdin=sh_open(sp,O_RDONLY,0))>=0)
+							if((fdin=sh_open(sp,O_RDONLY|O_cloexec,0))>=0)
 								sh.st.filename = path_fullname(sp);
 						}
 					}
@@ -275,8 +281,14 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 							strcopy(name," \"$@\"");
 						goto shell_c;
 					}
-					if(fdin==0)
-						fdin = sh_iomovefd(fdin);
+					/*
+					 * Note: fdin could wind up being zero or some such if the
+					 *       shell was opened with stdin/stdout/stderr closed
+					 *       (i.e. 0>&-), so we move the fd in such a case to
+					 *       keep that file descriptor closed.
+					 */
+					if(fdin<=2)
+						fdin = sh_iomovefd(fdin,10);
 				}
 				sh.readscript = sh.shname;
 			}
@@ -350,21 +362,30 @@ static void	exfile(Sfio_t *iop,int fno)
 	{
 		if(fno > 0)
 		{
-			if(fno < 10)
+#if SHOPT_DEVFD
+			if(beenhere == GOT_DEVFD)
+				;  /* leave the inherited /dev/fd as is */
+			else
+#endif
 			{
-				int r = sh_fcntl(fno,F_dupfd_cloexec,10);
-				if(r >= 10)
+				if(fno < 10)
 				{
-					if(F_dupfd_cloexec != F_DUPFD)
-						sh.fdstatus[r] = sh.fdstatus[fno]|IOCLEX;
-					else
-						sh.fdstatus[r] = sh.fdstatus[fno];
-					sh_close(fno);
-					fno = r;
+					int r = sh_fcntl(fno,F_dupfd_cloexec,10);
+					if(r >= 10)
+					{
+						if(F_dupfd_cloexec != F_DUPFD)
+							sh.fdstatus[r] = sh.fdstatus[fno]|IOCLEX;
+						else
+							sh.fdstatus[r] = sh.fdstatus[fno];
+						/* leave std* fds open when they're not explicitly closed */
+						if(fno > 2)
+							sh_close(fno);
+						fno = r;
+					}
 				}
+				if(!(sh.fdstatus[fno]&IOCLEX))
+					sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
 			}
-			if(!(sh.fdstatus[fno]&IOCLEX))
-				sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
 			iop = sh_iostream(fno);
 		}
 		else
@@ -372,6 +393,7 @@ static void	exfile(Sfio_t *iop,int fno)
 	}
 	else
 		fno = -1;
+	beenhere = 1;
 	sh.infd = fno;
 	if(sh_isstate(SH_INTERACTIVE))
 	{

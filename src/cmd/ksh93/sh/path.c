@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -486,7 +486,7 @@ static int	opentype(const char *name, Pathcomp_t *pp, int fun)
 		}
 	}
 	while(fd<0 && nextpp);
-	if(fd>=0 && (fd = sh_iomovefd(fd)) > 0 && !(sh.fdstatus[fd]&IOCLEX))
+	if(fd>=0 && (fd = sh_iomovefd(fd,10)) > 0 && !(sh.fdstatus[fd]&IOCLEX))
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 	return fd;
 }
@@ -1320,7 +1320,7 @@ static noreturn void exscript(char *path,char *argv[])
 		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,path);
 		UNREACHABLE();
 	}
-	sh.infd = sh_iomovefd(sh.infd);
+	sh.infd = sh_iomovefd(sh.infd,10);
 #if SHOPT_ACCT
 	sh_accbegin(path) ;  /* reset accounting */
 #endif	/* SHOPT_ACCT */

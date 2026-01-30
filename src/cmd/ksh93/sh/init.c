@@ -1339,10 +1339,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	else
 		sh_offoption(SH_PRIVILEGED);
 	/* shname for $0 in profiles and . scripts */
-	if(sh_isdevfd(argv[1]))
-		sh.shname = sh_strdup(argv[0]);
-	else
-		sh.shname = sh_strdup(sh.st.dolv[0]);
+	sh.shname = sh_strdup(sh.st.dolv[0]);
 	error_info.id = sh_strdup(sh.st.dolv[0]); /* error_info.id is $0 */
 	sh.jmpbuffer = &sh.checkbase;
 	sh_pushcontext(&sh.checkbase,SH_JMPSCRIPT);

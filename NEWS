@@ -13,6 +13,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   variable within a function using 'typeset' while a custom shell
   discipline function was defined for them in the global scope.
 
+- Fixed memory fault when attempting to run /dev/fd/1 as a script.
+
+- Fixed the value of $0 when running a /dev/fd file descriptor as a script.
+
 2026-01-21:
 
 - Fixed several IFS field splitting bugs in read(1) that occurred
