@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1453,7 +1453,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						case TM_PARTS+4:
 							tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 0);
 							tm->tm_hour += m * 7 * 24;
-							set |= DAY;
+							set |= HOUR;
 							goto clear_hour;
 						case TM_PARTS+5:
 							tm->tm_mon += m;

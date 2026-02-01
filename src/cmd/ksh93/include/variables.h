@@ -19,7 +19,7 @@
 
 #ifndef SH_VALNOD
 
-#include        <option.h>
+#include	<option.h>
 #include	<nval.h>
 
 /* used for RANDNOD ($RANDOM) */

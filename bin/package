@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -27,7 +27,6 @@
 
 # Escape from a non-POSIX shell
 min_posix=/if/this/is/csh/ignore/the/error/message || exec sh $0:q $argv:q
-# ('test X -ef Y' is technically non-POSIX, but practically universal)
 min_posix='test / -ef / && path=Bad && case $PATH in (Bad) exit 1;; esac && '\
 'PWD=Bad && cd -P -- / && case $PWD in (/) ;; (*) exit 1;; esac && '\
 '! { ! case x in ( x ) : ${0##*/} || : $( : ) ;; esac; } && '\
@@ -131,12 +130,12 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2025-04-27 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-01-21 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
 [-copyright?(c) 1994-2012 AT&T Intellectual Property]
-[-copyright?(c) 2020-2025 Contributors to ksh 93u+m]
+[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
 [+NAME?'$command$' - build, test and install ksh 93u+m]
 [+DESCRIPTION?The \b'$command$'\b command is the main control script
@@ -212,20 +211,22 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
                     release incompatibilities has for the most part been
                     futile.]
             }
-        [+install\b [ \adest_dir\a ]] [ \acommand\a ... ]]?Install commands
+        [+install\b [ \aroot_dir\a ]] [ \acommand\a ... ]]?Install commands
             from the \b$INSTALLROOT\b tree
-            into appropriate subdirectories of \adest_dir\a.
-            If \adest_dir\a does not exist,
+            into appropriate subdirectories of \aroot_dir\a,
+            typically an operating system directory such as \b/usr/local\b.
+            If \aroot_dir\a does not exist,
             then it and any necessary subdirectories are created.
-            \adest_dir\a can be a directory like \a/usr/local\a
-            to install the \acommand\as directly,
-            or a temporary directory like \a/tmp/pkgtree/usr\a
-            to prepare for packaging with operating system-specific tools.
             Each \acommand\a is first searched in \b$INSTALLROOT/dyn/bin\b
             (dynamically linked version)
             and then in \b$INSTALLROOT/bin\b.
             If no \acommand\a is specified,
-            then \aksh\a and \ashcomp\a are assumed.]
+            then \bksh\b and \bshcomp\b are assumed.
+            If you need to package the software using operating system-specific
+            tools, then pass the path to a temporary install root directory
+            in the \bDESTDIR\b variable; the software will be
+            physically installed into \b$DESTDIR\b$\aroot_dir\a but configured
+            (where applicable) to be executed from \aroot_dir\a.]
         [+make\b [ \apackage\a ]] [ \aoption\a ... ]] [ \atarget\a ... ]]?Build
 	    and install. The default \atarget\a is \binstall\b, which makes
 	    and installs \apackage\a. If the standard output is a terminal
@@ -390,7 +391,7 @@ do	case $# in
 		set -x
 		;;
 	help|HELP|html|man|--[?m]*)
-                case $1 in
+		case $1 in
 		help)	case $2 in
 			'')	exec 1>&2 ;;
 			esac
@@ -454,8 +455,8 @@ DESCRIPTION
     export [ variable ...]
           List name=value for variable, one per line. If the only attribute is
           specified then only the variable values are listed. If no variables
-          are specified then HOSTTYPE PACKAGEROOT INSTALLROOT PATH FPATH
-          MANPATH are assumed.
+          are specified then HOSTTYPE PACKAGEROOT INSTALLROOT PATH DEFPATH
+          FPATH MANPATH are assumed.
     help [ action ]
           Display help text on the standard error (standard output for action).
     host [ attribute ... ]
@@ -473,16 +474,18 @@ DESCRIPTION
                   similar, predictable style. OS point release information is
                   avoided as much as possible, but vendor resistance to release
                   incompatibilities has for the most part been futile.
-    install [ dest_dir ] [ command ... ]
+    install [ root_dir ] [ command ... ]
           Install commands from the $INSTALLROOT tree into appropriate
-          subdirectories of dest_dir. If dest_dir does not exist, then it and
-          any necessary subdirectories are created. dest_dir can be a directory
-          like /usr/local to install the commands directly, or a temporary
-          directory like /tmp/pkgtree/usr to prepare for packaging with
-          operating system-specific tools. Each command is first searched in
-          $INSTALLROOT/dyn/bin (dynamically linked version) and then in
-          $INSTALLROOT/bin. If no command is specified, then ksh and shcomp
-          are assumed.
+          subdirectories of root_dir, typically an operating system directory
+          such as /usr/local. If root_dir does not exist, then it and any
+          necessary subdirectories are created. Each command is first searched
+          in $INSTALLROOT/dyn/bin (dynamically linked version) and then in
+          $INSTALLROOT/bin. If no command is specified, then ksh and shcomp are
+          assumed. If you need to package the software using operating
+          system-specific tools, then pass the path to a temporary install root
+          directory in the DESTDIR variable; the software will be physically
+          installed into $DESTDIR$root_dir but configured (where applicable) to
+          be executed from root_dir.
     make [ package ] [ option ... ] [ target ... ]
           Build and install. The default target is install, which makes and
           installs package. If the standard output is a terminal then the
@@ -560,11 +563,11 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2025-04-27
+  version         package (ksh 93u+m) 2026-01-21
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
-  copyright       (c) 2020-2025 Contributors to ksh 93u+m
+  copyright       (c) 2020-2026 Contributors to ksh 93u+m
   license         https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html'
 		case $1 in
 		html)	echo "</pre></body></html>" ;;
@@ -2581,54 +2584,63 @@ make_recurse() # dir
 
 do_install() # dir [ command ... ]
 {
+	case $DESTDIR in
+	?*)	printf 'install: DESTDIR=%s\n' "$DESTDIR" ;;
+	esac
+	case $assign in
+	*=\'*)	printf 'install:%s\n' "$assign"
+		eval "$assign" ;;  # value(s) should be properly shellquoted
+	esac
 	cd "$INSTALLROOT"
-	printf 'install: installing from %s\n' "$PWD"
-	dd=$1
+	ird=$1
 	shift
-	case $dd in
+	case $ird in
 	'' | [!/]*)
-		err_out "ERROR: destination directory '$dd' must begin with a /" ;;
+		err_out "ERROR: install root directory '$ird' must begin with a /" ;;
 	/)
 		# avoid //foo
-		dd='' ;;
+		ird='' ;;
 	esac
 	# commands to install by default
 	test "$#" -eq 0 && set -- ksh shcomp
 	for f
 	do	test -f "bin/$f" || err_out "Not found: $f" "Build first? Run $0 make"
 	done
+	printf 'install: installing from %s into %s\n' "$PWD" "$ird"
 	# set install directories
-	bindir=$dd/bin
-	fundir=${dd:-/usr}/share/fun
-	mandir=${dd:-/usr}/share/man
+	bindir=$ird/bin
+	fundir=${ird:-/usr}/share/fun
+	mandir=${ird:-/usr}/share/man
 	man1dir=$mandir/man1
 	man3dir=$mandir/man3
-	libdir=$dd/lib
-	includedir=$dd/include
+	libdir=$ird/lib
+	includedir=$ird/include
 	# and off we go
-	trace mkdir -p "$bindir" "$man1dir" || exit
+	trace mkdir -p "$DESTDIR$bindir" "$DESTDIR$man1dir" || exit
 	for f
 	do	# macOS throws code signature error if in-use Mach-O binary is overwritten or deleted; must rename first
-		if	test -e "$bindir/$f"
-		then	trace mv "$bindir/$f" "$bindir/$f.old" || exit
+		if	test -e "$DESTDIR$bindir/$f"
+		then	trace mv "$DESTDIR$bindir/$f" "$DESTDIR$bindir/$f.old" || exit
 		fi
 		# install executable
 		if	test -f "dyn/bin/$f"
-		then	trace cp "dyn/bin/$f" "$bindir/" || exit
-		else	trace cp "bin/$f" "$bindir/" || exit
+		then	trace cp "dyn/bin/$f" "$DESTDIR$bindir/" || exit
+			case $HOSTTYPE in
+			darwin.*)
+				trace install_name_tool -add_rpath "$libdir" "$DESTDIR$bindir/$f" || exit
+				;;
+			esac
+		else	trace cp "bin/$f" "$DESTDIR$bindir/" || exit
 		fi
 		# install manual pages and autoloadable functions
 		case $f in
-		ksh)	trace cp "$PACKAGEROOT/src/cmd/ksh93/sh.1" "$man1dir/ksh.1" || exit
-			trace mkdir -p "$fundir" || exit
-			(set +o noglob; trace cp "$PACKAGEROOT"/src/cmd/ksh93/fun/* "$fundir/") || exit
+		ksh)	trace cp "$PACKAGEROOT/src/cmd/ksh93/sh.1" "$DESTDIR$man1dir/ksh.1" || exit
+			trace mkdir -p "$DESTDIR$fundir" || exit
+			(set +o noglob; trace cp "$PACKAGEROOT"/src/cmd/ksh93/fun/* "$DESTDIR$fundir/") || exit
 			;;
-		*)	# AT&T --man, etc. is a glorified error message: writes to stderr and exits with status 2 :-/
-			# So we cannot reliably check for success; must check the result, too.
-			manfile=$man1dir/${f##*/}.1
+		*)	manfile=$DESTDIR$man1dir/${f##*/}.1
 			bin/ksh -c '"$@" 2>&1' _ "bin/$f" --\?\?nroff >$manfile
-			if	test "$?" -eq 2 &&
-				read -r magic < "$manfile" &&
+			if	read -r magic < "$manfile" &&
 				test "X$magic" = 'X.\" format with nroff|troff|groff -man'  # string from optget.c
 			then	printf '%s: executing: %s --\\?\\?nroff > %s\n' "$action" "bin/$f" "$manfile"
 			else	rm "$manfile"
@@ -2637,29 +2649,29 @@ do_install() # dir [ command ... ]
 		esac
 	done
 	if	test -d "dyn/lib"
-	then	trace mkdir -p "$libdir" "$man3dir" "$includedir"
+	then	trace mkdir -p "$DESTDIR$libdir" "$DESTDIR$man3dir" "$DESTDIR$includedir"
 		# install libraries
 		set +o noglob
 		for f in dyn/lib/*
 		do	set -o noglob
 			# macOS throws code signature error if in-use Mach-O binary is overwritten or deleted; must rename first
-			fi=$libdir/${f##*/}
+			fi=$DESTDIR$libdir/${f##*/}
 			if	test -e "$fi" && ! test -L "$fi"
 			then	trace mv "$fi" "$fi.old" || exit
 			fi
 			# the extra -R is needed as a workaround for /bin/cp to copy a symlink on (at least) macOS 12.7.5
-			trace cp -PR "$f" "$libdir"/ || exit
+			trace cp -PR "$f" "$DESTDIR$libdir"/ || exit
 		done
 		# install developer stuff
-		test -d "$includedir/ast" && trace rm -rf -- "$includedir/ast"
-		trace cp -R "include/ast" "$includedir"/ || exit
-		printf "install: writing into %s:" "$man3dir"
+		test -d "$DESTDIR$includedir/ast" && trace rm -rf -- "$DESTDIR$includedir/ast"
+		trace cp -R "include/ast" "$DESTDIR$includedir"/ || exit
+		printf "install: writing into %s:" "$DESTDIR$man3dir"
 		(
 			set +o noglob
 			for f in man/man3/*.3
 			do	printf " %sast" "${f##*/}"
 				# give .3 pages an ast suffix to avoid conflicts
-				sed '/^\.TH .* 3/ s/ 3/ 3ast/' "$f" > "$man3dir/${f##*/}ast"
+				sed '/^\.TH .* 3/ s/ 3/ 3ast/' "$f" > "$DESTDIR$man3dir/${f##*/}ast"
 			done
 		)
 		printf '\n'

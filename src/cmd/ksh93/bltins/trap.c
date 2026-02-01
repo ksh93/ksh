@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,7 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * trap  [-p]  action sig...
+ * trap  [-lp]  action sig...
  * kill  [-lL] [sig...]
  * kill  [-n signum] [-s signame] pid...
  * stop  job...
@@ -44,11 +44,14 @@ static void	sig_list(int);
 int	b_trap(int argc,char *argv[],Shbltin_t *context)
 {
 	char *arg = argv[1];
-	int sig, clear = 0, dflag = 0, pflag = 0;
+	int sig, clear = 0, dflag = 0, lflag = 0, pflag = 0;
 	NOT_USED(argc);
 	NOT_USED(context);
 	while (sig = optget(argv, sh_opttrap)) switch (sig)
 	{
+	    case 'l':
+		lflag=1;
+		break;
 	    case 'p':
 		pflag=1;
 		break;
@@ -65,6 +68,11 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 	{
 		errormsg(SH_DICT,ERROR_usage(2),"%s", optusage(NULL));
 		UNREACHABLE();
+	}
+	if(lflag)
+	{
+		sig_list(-1);
+		return(0);
 	}
 	if(arg = *argv)
 	{

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1990-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -43,7 +43,7 @@ static const char usage[] =
 "[-author?Martijn Dekker <martijn@inlv.org>]"
 "[-author?Contributors to https://github.com/ksh93/ksh]"
 "[-copyright?(c) 1994-2013 AT&T Intellectual Property]"
-"[-copyright?(c) 2020-2025 Contributors to ksh 93u+m]"
+"[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
 "[+NAME?mamake - make abstract machine make]"
 "[+DESCRIPTION?\bmamake\b reads \amake abstract machine\a target and"
@@ -185,6 +185,8 @@ static const char usage[] =
 #define STREAM_KEEP	0x0001		/* don't fclose() on pop()	*/
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
 #define STREAM_PIPE	0x0004		/* pclose() on pop()		*/
+
+#define LIB_VARPREFIX	"mam_lib"	/* prefix for dependencies vars	*/
 
 struct Rule_s;
 
@@ -351,7 +353,7 @@ static void usage(void)
  * output error message identification
  */
 
-static void identify(FILE * sp)
+static void identify(FILE *sp)
 {
 	if (state.directory)
 		fprintf(sp, "%s [%s]: ", state.id, state.directory);
@@ -1117,7 +1119,8 @@ static void substitute(Buf_t *buf, char *s)
 				{	/*
 					 * Perform the expansion: append the value of the variable to the buffer.
 					 */
-					if (state.strict < 2 && found_AR && strncmp(t, "mam_lib", 7) == 0)
+					if (state.strict < 2 && found_AR &&
+						strncmp(t, LIB_VARPREFIX, sizeof LIB_VARPREFIX - 1) == 0)
 					{	/*
 						 * Absurd AT&T hack from 2007. The relevant src/cmd/INIT/RELEASE entry:
 						 *	07-02-26 mamake.c: expand first of ${mam_lib*} for ${AR}
@@ -1789,16 +1792,13 @@ static void probe(Rule_t *r, Makestate_t *stp)
 	time_t		cmd_time, output_time;
 	Buf_t		*buf;
 	struct stat	st;
-	Rule_t		*mamprobe_r;
 
 	if (!(cc = getval(state.vars, "CC")))
 		cc = "cc";
 	buf = buffer();
-	append(buf, state.installroot), append(buf, "/bin/"), append(buf, "mamprobe");
+	append(buf, state.installroot), append(buf, "/bin/mamprobe");
 	cmd = duplicate(use(buf));
-	/* we may need to wait for mamprobe to be generated */
-	if (mamprobe_r = getval(state.rules, cmd))
-		reap(mamprobe_r, 0);
+	reap(getval(state.rules, cmd), 0);  /* we may need to wait for mamprobe to be generated */
 	cmd_time = stat(cmd, &st) ? 0 : st.st_mtime;
 	if (stat(cmd, &st) < 0)
 		error_out("not found", cmd);
@@ -1917,8 +1917,6 @@ void append_ar_name(Buf_t *buf, char *name)
  *
  * lib is expected to be in the format "-lX"
  */
-
-#define LIB_VARPREFIX "mam_lib"
 
 static char *require(char *lib, int dontcare)
 {

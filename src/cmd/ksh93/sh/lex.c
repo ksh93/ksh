@@ -245,6 +245,11 @@ int sh_lex(Lex_t *lp)
  * Get the next word and put it on the top of the stack
  * A pointer to the current word is stored in lp->arg
  * Returns the token type
+ *
+ * IMPORTANT: When the lexer reads past a buffer boundary, the buffer
+ * gets reset and any saved pointers and offsets are invalidated.
+ * This can happen at any point, including in the middle of a token.
+ * Therefore, do not save any pointer or offset to use later.
  */
 int sh_lex(Lex_t* lp)
 {

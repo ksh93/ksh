@@ -2,10 +2,45 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2025-06-16:
+2026-02-01:
+
+- Replaced the 2021-03-09 fix for ${!foo@} and ${!foo*}, which was not quite
+  correct, with a new fix that also corrects ${#foo@} and ${#foo*}; these now
+  also count 'foo' itself as a variable whose name begins with 'foo'.
 
 - Fixed a possible out of bounds crash that could occur when running
   a POSIX function (aka a function of the form 'name() {').
+
+2026-01-28:
+
+- [v1.1] Backported 'builtin -p' and 'umask -p' from ksh93v-, which
+  can be used to print reinputtable commands for recreating the builtin
+  table state and umask.
+
+- [v1.1] Backported 'trap -l' from ksh93v- for listing signals.
+
+- Fixed a regression, introduced with the printf fixes on 2023-05-18, that
+  broke date specs relative to now, such as: printf '%T\n' 'in 10 weeks'
+
+- Fixed incorrect behaviour that occurred when IFS, PATH, SHELL,
+  FPATH, CDPATH, SECONDS, ENV, LANG, LC_ALL, LC_CTYPE, LC_MESSAGES,
+  LC_COLLATE, LC_NUMERIC, or LC_TIME were declared as a local
+  variable within a function using 'typeset' while a custom shell
+  discipline function was defined for them in the global scope.
+
+- Fixed memory fault when attempting to run /dev/fd/1 as a script.
+
+- Fixed the value of $0 when running a /dev/fd file descriptor as a script.
+
+2026-01-21:
+
+- Fixed several IFS field splitting bugs in read(1) that occurred
+  when it is given a null delimiter (read -d '').
+
+2025-09-30:
+
+- The rm path-bound built-in command from libcmd no longer suppresses error
+  messages when the -f/--force option is used.
 
 2025-06-14:
 

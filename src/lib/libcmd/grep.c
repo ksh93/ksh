@@ -473,7 +473,7 @@ list(Context_line_t* lp, int show, int group, void* handle)
 static int
 execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 {
-	register char*	s;
+	char*		s;
 	char*		file;
 	Item_t*		x;
 	size_t		len;
