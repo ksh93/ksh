@@ -2,6 +2,12 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-02-01:
+
+- Replaced the 2021-03-09 fix for ${!foo@} and ${!foo*}, which was not quite
+  correct, with a new fix that also corrects ${#foo@} and ${#foo*}; these now
+  also count 'foo' itself as a variable whose name begins with 'foo'.
+
 2026-01-28:
 
 - Fixed a regression, introduced with the printf fixes on 2023-05-18, that

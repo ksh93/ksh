@@ -1387,6 +1387,7 @@ exp=42.0000000000
 # ======
 # ${!FOO@} and ${!FOO*} expansions did not include FOO itself
 # https://github.com/ksh93/ksh/issues/183
+# https://github.com/ksh93/ksh/issues/875
 unset foo "${!foo@}"
 exp='foo foobar fool'
 got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo@}")
@@ -1394,6 +1395,20 @@ got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo@}")
 exp='foo/foobar/fool'
 got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo*}")
 [[ $got == "$exp" ]] || err_exit "\${!foo*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+exp=3
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${#foo@}")
+[[ $got == "$exp" ]] || err_exit "\${#foo@}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${#foo*}")
+[[ $got == "$exp" ]] || err_exit "\${#foo*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+unset a "${!a@}"
+exp="a.a a.aa a.ac"
+got=$(a=1 a.a=2 a.b=3 a.c=4 a.aa=5 a.ac=6; echo "${!a.a*}")
+[[ $got == "$exp" ]] || err_exit "\${!a.*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+exp=3
+got=$(a=1 a.a=2 a.b=3 a.c=4 a.aa=5 a.ac=6; echo "${#a.a*}")
+[[ $got == "$exp" ]] || err_exit "\${#a.*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=${!a*}
+[[ -z "$got" ]] || err_exit "a tree: subshell leak (got '$got')"
 
 # ======
 # In ksh93v- ${.sh.subshell} is unset by the $PS4 prompt
