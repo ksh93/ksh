@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -2913,11 +2913,11 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 {
 	char			*trap;
 	int			nsig;
-	struct dolnod		*argsav = 0, *saveargfor;
+	struct dolnod		*argsav=0,*saveargfor;
 	struct sh_scoped	*savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	struct sh_scoped	*prevscope = sh.st.self;
-	struct argnod		*envlist = 0;
-	int			isig, jmpval;
+	struct argnod		*envlist=0;
+	int			isig,jmpval;
 	volatile int		r = 0;
 	int			posix_fun = 0, save_loopcnt = sh.st.loopcnt;
 	char			save_invoc_local;
@@ -3049,7 +3049,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		}
 		update_sh_level();
 		if(fun)
-			r = (*fun)(arg);
+			r= (*fun)(arg);
 		else
 		{
 			if(posix_fun)
@@ -3135,10 +3135,10 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		for (isig = 0; isig < nsig; ++isig)
 			if (sh.st.trapcom[isig] && sh.st.trapcom[isig]!=Empty)
 				free(sh.st.trapcom[isig]);
-		memcpy((char*)&sh.st.trapcom[0],savsig,(size_t)nsig*sizeof(char*));
+		memcpy((char*)&sh.st.trapcom[0],savsig,nsig*sizeof(char*));
 		free(savsig);
 	}
-	sh.trapnote = 0;
+	sh.trapnote=0;
 	sh.options = save_options;
 	sh.last_root = last_root;
 	if(jmpval == SH_JMPSUB)

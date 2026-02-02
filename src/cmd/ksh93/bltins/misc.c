@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -230,15 +230,16 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 #endif
 int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 {
-	char			*script;
-	Namval_t		*np;
-	int			jmpval, fd;
-	struct sh_scoped	savst, *prevscope = sh.st.self;
-	char			*filename=0, *buffer=0, *tofree;
-	struct dolnod		*saveargfor;
-	volatile struct dolnod	*argsave=0;
-	struct checkpt		buff;
-	Sfio_t			*iop=0;
+	char *script;
+	Namval_t *np;
+	int jmpval;
+	struct sh_scoped savst, *prevscope = sh.st.self;
+	char *filename=0, *buffer=0, *tofree;
+	int	fd;
+	struct dolnod   *saveargfor;
+	volatile struct dolnod   *argsave=0;
+	struct checkpt buff;
+	Sfio_t *iop=0;
 	while (n = optget(argv,sh_optdot)) switch (n)
 	{
 	    case ':':
@@ -293,7 +294,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 	}
 	*prevscope = sh.st;
-	sh.st.lineno = np ? ((struct functnod*)nv_funtree(np))->functline : 1;
+	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
 	sh.st.save_tree = sh.var_tree;
 	if(filename)
 		sh.st.filename = filename;
@@ -304,7 +305,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	tofree = sh.st.filename;
 	if(np)
 		sh.st.filename = ((struct Ufunction*)np->nvalue)->fname;
-	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
+	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
 	if(np || argv[1])
 		argsave = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(&buff,SH_JMPDOT);
@@ -343,12 +344,12 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		prevscope->dolc = sh.st.dolc;
 		prevscope->dolv = sh.st.dolv;
 	}
-	if(sh.st.self != &savst)
+	if (sh.st.self != &savst)
 		*sh.st.self = sh.st;
 	/* only restore the top Shscope_t portion for functions */
 	memcpy(&sh.st, prevscope, sizeof(Shscope_t));
 	sh.topscope = (Shscope_t*)prevscope;
-	nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
+	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
 	if(jmpval && jmpval!=SH_JMPFUN)
 		siglongjmp(*sh.jmplist,jmpval);
 	return sh.exitval;
