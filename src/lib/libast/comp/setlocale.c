@@ -425,17 +425,23 @@ set_collate(Lc_category_t* cp)
 	if (locales[cp->internal]->flags & LC_debug)
 	{
 		ast.locale.collate = debug_strcoll;
+#if !AST_NOMULTIBYTE
 		ast.mb.xfrm = debug_strxfrm;
+#endif /* !AST_NOMULTIBYTE */
 	}
 	else if (locales[cp->internal]->flags & LC_default)
 	{
 		ast.locale.collate = strcmp;
+#if !AST_NOMULTIBYTE
 		ast.mb.xfrm = 0;
+#endif /* !AST_NOMULTIBYTE */
 	}
 	else
 	{
 		ast.locale.collate = strcoll;
+#if !AST_NOMULTIBYTE
 		ast.mb.xfrm = strxfrm;
+#endif /* !AST_NOMULTIBYTE */
 	}
 	return 0;
 }
@@ -2160,8 +2166,10 @@ wide_wctomb(char* u, wchar_t w)
 static int
 set_ctype(Lc_category_t* cp)
 {
+#if !AST_NOMULTIBYTE
 	ast.mb.sync = 0;
 	ast.mb.alpha = (Isw_f)iswalpha;
+#endif /* !AST_NOMULTIBYTE */
 	/* uc2wc is the iconv(3) descriptor for chresc.c -- reset it if open */
 	if (ast.locale.uc2wc != (void*)(-1))
 	{
@@ -2173,6 +2181,7 @@ set_ctype(Lc_category_t* cp)
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
 		sfprintf(sfstderr, "locale setf %17s %16s\n", cp->name, locales[cp->internal]->name);
 #endif
+#if !AST_NOMULTIBYTE
 	if (locales[cp->internal]->flags & LC_debug)
 	{
 		ast.mb.cur_max = DEBUG_MB_CUR_MAX;
@@ -2229,9 +2238,14 @@ set_ctype(Lc_category_t* cp)
 		ast.locale.set |= AST_LC_utf8;
 	else
 		ast.locale.set &= ~AST_LC_utf8;
+#endif /* !AST_NOMULTIBYTE */
 	/* provide an efficient way to check if single-byte code points are 7-bit (locale is US-ASCII or multibyte) */
 	/* (note: getcodeset() must be called *after* setting the AST_LC_utf8 bit flag correctly) */
+#if AST_NOMULTIBYTE
+	if (strcmp(getcodeset(), "US-ASCII") != 0)
+#else
 	if (ast.mb.cur_max == 1 && strcmp(getcodeset(), "US-ASCII") != 0)
+#endif /* AST_NOMULTIBYTE */
 		ast.locale.set &= ~AST_LC_7bit;
 	else
 		ast.locale.set |= AST_LC_7bit;
@@ -2445,6 +2459,7 @@ single(int category, Lc_t* lc, unsigned int flags)
 			(*lc_categories[category].setf)(&lc_categories[category]);
 		return (char*)lc->name;
 	}
+#if !AST_NOMULTIBYTE
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
 	{
 		header();
@@ -2478,6 +2493,7 @@ single(int category, Lc_t* lc, unsigned int flags)
 			sfprintf(sfstderr, " setenv");
 		sfprintf(sfstderr, "\n");
 	}
+#endif /* !AST_NOMULTIBYTE */
 	return (char*)lc->name;
 }
 
