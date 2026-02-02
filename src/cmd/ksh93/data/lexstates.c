@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -756,7 +756,6 @@ const char e_lexescape[]	= "line %d: escape %c to avoid ambiguities";
 const char e_lexquote[]		= "line %d: quote %c to avoid ambiguities";
 const char e_lexnested[]	= "line %d: spaces required for nested subshell";
 const char e_lexbadchar[]	= "%c: invalid character in expression - %s";
-const char e_lexfuture[]	= "line %d: \\ in front of %c reserved for future use";
 const char e_lexlongquote[]	= "line %d: %c quote may be missing";
 const char e_lexemptyfor[]	= "line %d: empty for list";
 const char e_lextypeset[]	= "line %d: %s invalid typeset option order";
