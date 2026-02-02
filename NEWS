@@ -8,6 +8,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   correct, with a new fix that also corrects ${#foo@} and ${#foo*}; these now
   also count 'foo' itself as a variable whose name begins with 'foo'.
 
+- Fixed a possible out of bounds crash that could occur when running
+  a POSIX function (aka a function of the form 'name() {').
+
 2026-01-28:
 
 - Fixed a regression, introduced with the printf fixes on 2023-05-18, that
