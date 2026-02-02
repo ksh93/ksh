@@ -162,7 +162,7 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 	char		*name=0;
 	if(sp->numnodes==0 && !nv_isnull(np) && sh.last_table)
 	{
-		/* could be an redefine */
+		/* could be a redefine */
 		Dt_t *root = nv_dict(sh.last_table);
 		sp->rp = np;
 		nv_delete(np,root,NV_NOFREE);

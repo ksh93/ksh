@@ -385,7 +385,7 @@ if	(( $# !=1 ))
 then	err_exit	'"${@-}" not expanding to null string'
 fi
 for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
-do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not an syntax error"
+do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
 done
 
 # ___ begin: IFS tests ___
