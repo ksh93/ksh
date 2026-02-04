@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-02-04:
+
+- Fixed a severe arithmetic bug (which thankfully never made it into a release
+  version) introduced on 2024-11-30, in which 'typeset -i' variables were
+  incorrectly treated as unsigned int when rendering their values as strings
+  (e.g. 'typeset -i foo=-1; echo $foo' output 4294967295 instead of -1).
+
 2026-02-01:
 
 - Replaced the 2021-03-09 fix for ${!foo@} and ${!foo*}, which was not quite

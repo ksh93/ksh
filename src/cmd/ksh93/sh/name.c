@@ -2754,7 +2754,7 @@ char *nv_getval(Namval_t *np)
 		else if(nv_isattr(np,NV_SHORT))
 			ll = *(int16_t*)vp;
 		else
-			ll = *(uint32_t*)vp;
+			ll = *(int32_t*)vp;
 		base = nv_size(np);
 		if(base==10)
 			return fmtint(ll, nv_isattr(np,NV_UNSIGN));
