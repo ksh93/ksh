@@ -816,7 +816,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ptrdiff_t nmatch, ssize_t match
 	Init_t		*ip = sh.init_context;
 	struct match	*mp = &ip->SH_MATCH_init;
 	unsigned int	savesub=sh.subshell;
-	ptrdiff_t	i,n,x;
+	ptrdiff_t	i,n;
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
 	Namval_t	*np;
 	if(sh.intrace)
@@ -831,6 +831,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ptrdiff_t nmatch, ssize_t match
 				match2d(mp);
 			for(i=0; i < mp->nmatch; i++)
 			{
+				long x;
 				nv_disc(np,&mp->hdr,NV_LAST);
 				nv_putsub(np,NULL,mp->index);
 				for(x=mp->index; x >=0; x--)

@@ -84,7 +84,7 @@ typedef struct  _mac_
 #define isescchar(s)	((s)>S_QUOTE)
 #define isqescchar(s)	((s)>=S_QUOTE)
 #define isbracechar(c)	((c)==RBRACE || (_c_=sh_lexstates[ST_BRACE][c])==S_MOD1 ||_c_==S_MOD2)
-#define ltos(x)		fmtint(x,0)
+#define ltos(x)		fmtint((intmax_t)(x),0)
 
 /* type of macro expansions */
 #define M_BRACE		1	/* ${var}	*/
@@ -176,7 +176,7 @@ char *sh_mactrim(char *str, char mode)
 	mp->patfound = 0;
 	mp->assign = 0;
 	if(mode<0)
-		mp->assign = -mode;
+		mp->assign = mode * -1;
 	mp->quoted = mp->lit = mp->split = mp->quote = 0;
 	mp->sp = 0;
 	setup_ifs(mp);
