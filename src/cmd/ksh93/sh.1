@@ -1352,6 +1352,15 @@ The number of elements in the array
 .I vname\^
 is substituted.
 .TP
+.PD 0
+\f3${#\fP\f2prefix\^\fP\f3@}\fP
+.TP
+.PD
+\f3${#\fP\f2prefix\^\fP\f3*}\fP
+These both expand to the number of variables
+that are set and whose names begin with
+.IR prefix .
+.TP
 \f3${@\fP\f2vname\^\fP\f3}\fP
 Expands to the type name (see
 .I "Type Variables"\^
@@ -1413,7 +1422,8 @@ inclusive using the same quoting rules as
 .TP
 .PD
 \f3${!\fP\f2prefix\^\fP\f3*}\fP
-These both expand to the names of the variables whose names begin with
+These both expand to the names of all variables
+that are set and whose names begin with
 .IR prefix .
 The expansions otherwise work like \f3$@\fP and \f3$*\fP, respectively
 (see under \f2Quoting\fP below).

@@ -29,7 +29,7 @@ tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 		char		buf[256];
 		pid_t		pid;
 		static char	msg[] = "hello world\n";
-		close(0);
+		ast_close(0);
 		if (pipe(pfd) < 0 ||
 		    socketpair(AF_UNIX, SOCK_STREAM, 0, sfd) < 0 ||
 		    shutdown(sfd[1], SHUT_RD) < 0 ||
@@ -39,8 +39,8 @@ tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 			return 1;
 		if (pid)
 		{
-			close(pfd[1]);
-			close(sfd[1]);
+			ast_close(pfd[1]);
+			ast_close(sfd[1]);
 			wait(&n);
 			if (sfpkrd(pfd[0], buf, sizeof(buf), '\n', -1, 1) >= 0 ||
 			    sfpkrd(sfd[0], buf, sizeof(buf), '\n', -1, 1) < 0)
@@ -48,20 +48,20 @@ tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 		}
 		else
 		{
-			close(pfd[0]);
-			close(sfd[0]);
+			ast_close(pfd[0]);
+			ast_close(sfd[0]);
 			write(pfd[1], msg, sizeof(msg) - 1);
 			write(sfd[1], msg, sizeof(msg) - 1);
 			return 0;
 		}
-		close(pfd[0]);
-		close(sfd[0]);
+		ast_close(pfd[0]);
+		ast_close(sfd[0]);
 		signal(SIGPIPE, handler);
 		if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfd) < 0 ||
 		    shutdown(sfd[1], SHUT_RD) < 0 ||
 		    shutdown(sfd[0], SHUT_WR) < 0)
 			return 1;
-		close(sfd[0]);
+		ast_close(sfd[0]);
 		write(sfd[1], msg, sizeof(msg) - 1);
 		return 1;
 	}
@@ -75,18 +75,18 @@ tst	socketpair_devfd note{ /dev/fd/N handles socketpair() }end execute{
 		int		devfd;
 		int		n;
 		int		sfd[2];
-		close(0);
+		ast_close(0);
 		open("/dev/null", O_RDONLY);
 		if ((n = open("/dev/fd/0", O_RDONLY)) < 0)
 			return 1;
-		close(n);
+		ast_close(n);
 		if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfd) < 0 ||
 		    shutdown(sfd[0], 1) < 0 ||
 		    shutdown(sfd[1], 0) < 0)
 			return 1;
-		close(0);
+		ast_close(0);
 		dup(sfd[0]);
-		close(sfd[0]);
+		ast_close(sfd[0]);
 		if ((n = open("/dev/fd/0", O_RDONLY)) < 0)
 			return 1;
 		return 0;

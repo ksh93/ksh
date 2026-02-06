@@ -166,7 +166,7 @@ extern void 		nv_unref(Namval_t*);
 extern int		nv_hasget(Namval_t*);
 extern void		clone_all_disc(Namval_t*, Namval_t*, int);
 extern Namfun_t		*nv_clone_disc(Namfun_t*, int);
-extern void		*nv_diropen(Namval_t*, const char*);
+extern void		*nv_diropen(Namval_t*, const char*, int);
 extern char		*nv_dirnext(void*);
 extern void		nv_dirclose(void*);
 extern char		*nv_getvtree(Namval_t*, Namfun_t*);

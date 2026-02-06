@@ -136,12 +136,12 @@ sh directory:
 	20.	path.c contains the code for pathname lookup and
 		some path functions.  It also contains the code
 		that executes commands and scripts.
-	21.	pmain.c is just a calls sh_main() so that all of the
+	21.	pmain.c just calls sh_main() so that all of the
 		rest of the shell can be in a shared library.
 	22.	shcomp.c contains the main program to the shell
 		compiler.  This program parses a script and creates
 		a file that the shell can read containing the parse tree.
-	23.	streval.c is an C arithmetic evaluator.
+	23.	streval.c is a C arithmetic evaluator.
 	24.	string.c contains some string related functions.
 	25.	subshell.c contains the code to save and restore
 		environments so that subshells can run without creating
@@ -149,8 +149,8 @@ sh directory:
 	26.	tdump.c contains the code to dump a parse tree into
 		a file.
 	27.	timers.c contains code for multiple event timeouts.
-	28.	trestore contains the code for restoring the parse
-		tree from the file created by tdump.
+	28.	trestore.c contains the code for restoring the parse
+		tree from the file created by tdump.c.
 	29.	waitevent.c contains the sh_waitnotify function so
 		that builtins can handle processing events when the
 		shell is waiting for input or for process completion.

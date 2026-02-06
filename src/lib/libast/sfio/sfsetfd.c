@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -68,7 +68,7 @@ static int sfsetfd_internal(Sfio_t* f, int newfd, int cloexec)
 				{	SFOPEN(f,0);
 					return -1;
 				}
-				CLOSE(oldfd);
+				ast_close(oldfd);
 			}
 			else
 			{	/* sync stream if necessary */

@@ -297,7 +297,6 @@ struct Shell_s
 	unsigned int	jobenv;		/* subshell number for jobs */
 	int		infd;		/* input file descriptor */
 	short		nextprompt;	/* next prompt is PS<nextprompt> */
-	Namval_t	*posix_fun;	/* points to last name() function */
 	char		*outbuff;	/* pointer to output buffer */
 	char		*errbuff;	/* pointer to stderr buffer */
 	char		*prompt;	/* pointer to prompt string */

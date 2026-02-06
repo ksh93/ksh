@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -124,7 +124,7 @@ ttctl(int fd, int op, void* tt)
 		if ((fd = open("/dev/tty", O_RDONLY|O_cloexec)) >= 0)
 		{
 			v = ioctl(fd, op, tt);
-			close(fd);
+			ast_close(fd);
 			return v;
 		}
 	}

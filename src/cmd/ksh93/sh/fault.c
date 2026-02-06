@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -685,10 +685,6 @@ noreturn void sh_done(int sig)
 	if(sh_isoption(SH_NOEXEC))
 		kiaclose((Lex_t*)sh.lex_context);
 #endif /* SHOPT_KIA */
-#if _lib_openat
-	if(sh.pwdfd > 0)
-		close(sh.pwdfd);
-#endif /* _lib_openat */
 	/* Exit with portable 8-bit status (128 + signum) if last child process exits due to signal */
 	if(sh.chldexitsig)
 		savxit = savxit & ~SH_EXITSIG | 0200;

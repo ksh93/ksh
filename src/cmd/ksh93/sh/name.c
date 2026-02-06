@@ -158,7 +158,7 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 	char		*name=0;
 	if(sp->numnodes==0 && !nv_isnull(np) && sh.last_table)
 	{
-		/* could be an redefine */
+		/* could be a redefine */
 		Dt_t *root = nv_dict(sh.last_table);
 		sp->rp = np;
 		nv_delete(np,root,NV_NOFREE);
@@ -2703,7 +2703,7 @@ char *nv_getval(Namval_t *np)
 		else if(nv_isattr(np,NV_SHORT))
 			ll = *(int16_t*)vp;
 		else
-			ll = *(uint32_t*)vp;
+			ll = *(int32_t*)vp;
 		base = nv_size(np);
 		if(base==10)
 			return fmtint(ll, nv_isattr(np,NV_UNSIGN));

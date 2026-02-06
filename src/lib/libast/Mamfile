@@ -1099,16 +1099,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make pathcheck.o
-			make path/pathcheck.c
-				prev include/times.h
-				prev include/error.h
-				prev include/ls.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make pathpath.o
 			make path/pathpath.c
 				prev ast_api.h

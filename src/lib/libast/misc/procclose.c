@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -36,9 +37,9 @@ procclose(Proc_t* p)
 	if (p)
 	{
 		if (p->rfd >= 0)
-			close(p->rfd);
+			ast_close(p->rfd);
 		if (p->wfd >= 0 && p->wfd != p->rfd)
-			close(p->wfd);
+			ast_close(p->wfd);
 		if (p->flags & PROC_ORPHAN)
 			status = 0;
 		else

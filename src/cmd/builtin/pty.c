@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -313,7 +313,7 @@ mkpty(int* master, int* minion)
 		return -1;
 	if (grantpt(*master) || unlockpt(*master) || !(sname = ptsname(*master)) || (*minion = open(sname, O_RDWR|O_cloexec)) < 0)
 	{
-		close(*master);
+		ast_close(*master);
 		return -1;
 	}
 #else
@@ -325,8 +325,8 @@ mkpty(int* master, int* minion)
 		struct termios	tst;
 		if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
 		{
-			close(*minion);
-			close(*master);
+			ast_close(*minion);
+			ast_close(*master);
 			return -1;
 		}
 	}
@@ -1121,7 +1121,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_system(1), "unable run %s", argv[0]);
 		UNREACHABLE();
 	}
-	close(minion);
+	ast_close(minion);
 	if (messages)
 	{
 		drop = 1;
@@ -1136,10 +1136,10 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 			error(ERROR_system(1), "%s: cannot redirect messages", messages);
 			UNREACHABLE();
 		}
-		close(2);
+		ast_close(2);
 		dup(fd);
 		if (drop)
-			close(fd);
+			ast_close(fd);
 	}
 	minion = (*fun)(mp, lp, delay, timeout);
 	master = procclose(proc);

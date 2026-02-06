@@ -543,8 +543,7 @@ static char *reduplicate(char *orig, char *s)
 	}
 	if (!(t = realloc(orig == empty ? NULL : orig, ++n)))
 		out_of_memory();
-	memcpy(t, s, n);
-	return t;
+	return memcpy(t, s, n);
 }
 
 static char *duplicate(char *s)

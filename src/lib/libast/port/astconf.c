@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1102,7 +1102,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			if (streq(p->name, "RELEASE") && (i = open("/proc/version", O_RDONLY|O_cloexec)) >= 0)
 			{
 				n = read(i, buf, sizeof(buf) - 1);
-				close(i);
+				ast_close(i);
 				if (n > 0 && buf[n - 1] == '\n')
 					n--;
 				if (n > 0 && buf[n - 1] == '\r')

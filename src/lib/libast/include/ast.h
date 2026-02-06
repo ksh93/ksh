@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,6 +35,8 @@
 #ifndef _SFIO_H
 #include <sfio.h>
 #endif
+
+#include <errno.h>
 
 /*
  * All the ast.* global state variables are actually stored in _ast_info.
@@ -153,18 +155,6 @@
 
 #define PATH_TOUCH_CREATE	01
 #define PATH_TOUCH_VERBATIM	02
-
-/*
- * pathcheck() info
- */
-
-typedef struct
-{
-	unsigned long	date;
-	char*		feature;
-	char*		host;
-	char*		user;
-} Pathcheck_t;
 
 /*
  * strgrpmatch() flags
@@ -362,7 +352,6 @@ extern char*		pathcanon_20100601(char*, size_t, int);
 extern char*		pathcat(char*, const char*, int, const char*, const char*);
 extern char*		pathcat_20100601(const char*, int, const char*, const char*, char*, size_t);
 extern int		pathcd(const char*, const char*);
-extern int		pathcheck(const char*, const char*, Pathcheck_t*);
 extern int		pathexists(char*, int);
 extern char*		pathfind(const char*, const char*, const char*, char*, size_t);
 extern int		pathgetlink(const char*, char*, int);
@@ -423,6 +412,33 @@ extern int		strvcmp(const char*, const char*);
 #if !AST_NOMULTIBYTE
 extern size_t		utf32toutf8(char*, uint32_t);
 #endif /* !AST_NOMULTIBYTE */
+
+/*
+ * Depending on the implementation, close(2) must either:
+ *   - *Never* be used after EINTR (vide Linux man pages).
+ *   - *Always* be used after EINTR (that's the generic fallback).
+ *
+ * What follows are macros that attempt to conform to the required
+ * behavior for the operating systems ksh supports.
+ */
+#if _lib_posix_close
+/* This function is quite new, but it's ultimately the best option if available */
+#define ast_close(fd)	posix_close(fd, 0)
+#elif defined(__linux__) || defined(__FreeBSD__) || _WINIX
+/* Never try again after EINTR */
+#define ast_close(fd)	do {						\
+				int _cerr = errno;			\
+				if(close(fd)<0 && errno==EINTR) 	\
+					errno = _cerr;			\
+			} while(0)
+#else
+/* Always try again after EINTR */
+#define ast_close(fd)	do {						\
+				int _cerr = errno;			\
+				while(close(fd)<0 && errno==EINTR) 	\
+					errno = _cerr;			\
+			} while(0)
+#endif
 
 /*
  * backward compat

@@ -105,7 +105,7 @@ void	sh_subtmpfile(void)
 		{
 			if(F_dupfd_cloexec == F_DUPFD)
 				sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
-			close(1);
+			ast_close(1);
 		}
 		else if(errno!=EBADF)
 		{
@@ -483,6 +483,39 @@ int sh_validate_subpwdfd(void)
 #endif /* _lib_openat */
 
 /*
+ * Close all prior file descriptors for the subshell PWDs no longer in use.
+ * This is always called after forking to avoid leaking unused file descriptors
+ * to the child processes.
+ */
+void sh_clear_subshell_pwdfd(void)
+{
+	struct subshell *sp = subshell_data;
+#if _lib_openat
+	int prevfd = sh.pwdfd;
+	while(sp)
+	{
+		if(sp->pwdfd > -1 && sp->pwdfd != prevfd)
+		{
+			sh_close(sp->pwdfd);
+			prevfd = sp->pwdfd;
+		}
+		sp = sp->prev;
+	}
+#else
+	while(sp)
+	{
+		if(sp->pwdclose)
+		{
+			sh_close(sp->pwdfd);
+			sp->pwdclose = 0;
+			sp->pwdfd = -1;
+		}
+		sp = sp->prev;
+	}
+#endif /* _lib_openat */
+}
+
+/*
  * Run command tree <t> in a virtual subshell
  * If comsub is not null, then output will be placed in temp file (or buffer)
  * If comsub is not null, the return value will be a stream consisting of
@@ -503,6 +536,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	struct dolnod   *argsav=0;
 	int argcnt;
 	memset((char*)sp, 0, sizeof(*sp));
+	sp->options = sh.options;
+	sp->subshare = sh.subshare;
+	sp->comsub = sh.comsub;
+	sp->pwdfd = -1;	/* pwdfd should not be initialized to stdin */
 	sfsync(sh.outpool);
 	sh_sigcheck();
 	sh.savesig = -1;
@@ -519,9 +556,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	sh.subshell++;		/* increase level of virtual subshells */
 	sh.realsubshell++;	/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
-	sp->sig = 0;
 	subshell_data = sp;
-	sp->options = sh.options;
 	sp->jobs = job_subsave();
 	/* make sure initialization has occurred */
 	if(!sh.pathlist)
@@ -539,8 +574,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sh_stats(STAT_COMSUB);
 	else
 		job.curpgid = 0;
-	sp->subshare = sh.subshare;
-	sp->comsub = sh.comsub;
 	sh.subshare = comsub==2;
 	if(!sh.subshare)
 		sp->pathlist = path_dup((Pathcomp_t*)sh.pathlist);
@@ -554,7 +587,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sp->pwdfd = sh.pwdfd;
 #else
 		struct subshell *xp;
-		sp->pwdfd = -1;
 		for(xp=sp->prev; xp; xp=xp->prev)
 		{
 			if(xp->pwdfd>0 && xp->pwd && strcmp(xp->pwd,sh.pwd)==0)
@@ -754,9 +786,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		/* check if standard output was preserved */
 		if(sp->tmpfd>=0)
 		{
-			int err=errno;
-			while(close(1)<0 && errno==EINTR)
-				errno = err;
+			ast_close(1);
 			if (fcntl(sp->tmpfd,F_DUPFD,1) != 1)
 			{
 				saveerrno = errno;

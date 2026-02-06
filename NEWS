@@ -2,6 +2,34 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-02-06:
+
+- Fixed a file descriptor leak introduced in 93u+ 2012-07-27 that occurred
+  when forking nested subshells.
+
+- Fixed a bug that could cause cd(1) to fail with the wrong error message
+  if the underlying close(2) calls failed after cd failed to change the
+  directory with fchdir(2).
+
+- [v1.1] Fixed a file descriptor leak that could occur on systems lacking a
+  useable implementation of arc4random(3).
+
+2026-02-04:
+
+- Fixed a severe arithmetic bug (which thankfully never made it into a release
+  version) introduced on 2024-11-30, in which 'typeset -i' variables were
+  incorrectly treated as unsigned int when rendering their values as strings
+  (e.g. 'typeset -i foo=-1; echo $foo' output 4294967295 instead of -1).
+
+2026-02-01:
+
+- Replaced the 2021-03-09 fix for ${!foo@} and ${!foo*}, which was not quite
+  correct, with a new fix that also corrects ${#foo@} and ${#foo*}; these now
+  also count 'foo' itself as a variable whose name begins with 'foo'.
+
+- Fixed a possible out of bounds crash that could occur when running
+  a POSIX function (aka a function of the form 'name() {').
+
 2026-01-28:
 
 - [v1.1] Backported 'builtin -p' and 'umask -p' from ksh93v-, which
