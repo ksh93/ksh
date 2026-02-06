@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -218,7 +218,7 @@ int _sfpclose(Sfio_t* f)
 	else
 	{	/* close the associated stream */
 		if(p->file >= 0)
-			CLOSE(p->file);
+			ast_close(p->file);
 
 		/* wait for process termination */
 		sigcritical(SIG_REG_EXEC|SIG_REG_PROC);

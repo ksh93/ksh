@@ -301,7 +301,7 @@ inetopen(const char* path, int flags)
 		{
 			if (server && !bind(fd, p->ai_addr, p->ai_addrlen) && !listen(fd, 5) || !server && !connect(fd, p->ai_addr, p->ai_addrlen))
 				goto done;
-			close(fd);
+			ast_close(fd);
 			fd = -1;
 			if (errno != EINTR)
 				break;
@@ -714,11 +714,12 @@ int sh_close(int fd)
 		sh_iovalidfd(fd);
 	if(!(sp=sh.sftable[fd]) || sfclose(sp) < 0)
 	{
-		int err=errno;
 		if(fdnotify)
 			(*fdnotify)(fd,SH_FDCLOSE);
-		while((r=close(fd)) < 0 && errno==EINTR)
-			errno = err;
+		errno = 0;
+		ast_close(fd);
+		if(errno)
+			r = -1;
 	}
 	if(fd>2)
 		sh.sftable[fd] = 0;
@@ -913,7 +914,7 @@ int sh_iomovefd(int fdold, int minfd)
 	if((sh.fdstatus[fdold]&IOCLEX) && F_dupfd_cloexec == F_DUPFD)
 		fcntl(fdnew,F_SETFD,FD_CLOEXEC);
 	sh.fdstatus[fdnew] = sh.fdstatus[fdold];
-	close(fdold);
+	ast_close(fdold);
 	sh.fdstatus[fdold] = IOCLOSE;
 	return fdnew;
 }
@@ -1075,7 +1076,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 		if((fd = sh_open(name,O_RDONLY,0)) >= 0)
 		{
 			r = fstat(fd,&statb);
-			close(fd);
+			sh_close(fd);
 			if(r)
 				return 0;
 			if(!S_ISREG(statb.st_mode))

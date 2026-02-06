@@ -246,7 +246,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 					int isdir = 0;
 					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
 					{
-						close(fdin);
+						sh_close(fdin);
 						isdir = 1;
 						fdin = -1;
 					}

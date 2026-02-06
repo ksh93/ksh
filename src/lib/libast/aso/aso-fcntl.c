@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -77,7 +78,7 @@ aso_init_fcntl(void* data, const char* details)
 			if (!references)
 				remove(apl->path);
 		}
-		close(apl->fd);
+		ast_close(apl->fd);
 		free(apl);
 		return NULL;
 	}
@@ -152,7 +153,7 @@ aso_init_fcntl(void* data, const char* details)
 	if (apl)
 		free(apl);
 	if (fd >= 0)
-		close(fd);
+		ast_close(fd);
 	if (drop)
 		remove(path);
 	return NULL;
