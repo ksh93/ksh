@@ -22,7 +22,7 @@ An auditing facility was added in July 2008. This is somewhat more
 sophisticated than the accounting facility in that it is configurable and
 writes out a more detailed record either locally or to a remote system for
 each user command that is executed. This facility can be used to monitor,
-track, record, and audit the activities of one or more users on an system,
+track, record, and audit the activities of one or more users on a system,
 including system administrators. As of ksh 93u+ 2012-06-12, this is compiled
 in to the shell by default.
 

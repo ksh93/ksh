@@ -85,6 +85,12 @@ New features in built-in commands:
   optionally be included in ksh linked against static libcmd. This grep
   supports eight kinds of regex, including sh and ksh glob patterns.
 
+- The 'builtin' and 'umask' commands now support a -p option that can be
+  used to print reinputtable commands for recreating the built-ins table
+  state and the umask.
+
+- The 'trap' command now supports the -l option for listing signals.
+
 New features in shell options:
 
 - A new --arrowkeysearch option, on by default, causes the up and down arrow

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -164,7 +164,7 @@ const char sh_set[] =
 	"automatically exported, unless they have a dot in their name.]"
 "[b?The shell writes a message to standard error as soon it detects that "
 	"a background job completes rather than waiting until the next prompt.]"
-"[e?A simple command that has an non-zero exit status will cause the shell "
+"[e?A simple command that has a non-zero exit status will cause the shell "
 	"to exit unless the simple command is:]{"
 	"[++?contained in an \b&&\b or \b||\b list.]"
 	"[++?the command immediately following \bif\b, \bwhile\b, or \buntil\b.]"
@@ -392,7 +392,7 @@ const char sh_optalias[] =
 ;
 
 const char sh_optbuiltin[] =
-"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2022-07-03 $\n]"
+"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?builtin - add, delete, or display shell built-ins]"
 "[+DESCRIPTION?\bbuiltin\b can be used to add, delete, or display "
@@ -441,6 +441,9 @@ const char sh_optbuiltin[] =
 "[f]:[lib?Not supported.]"
 "[l?No effect.]"
 #endif /* SHOPT_DYNAMIC */
+"[p?Causes the output to be in the form of \bbuiltin\b commands that can be "
+	"used as input to the shell to recreate the current set of "
+	"builtins.]"
 "[s?Display only the special built-ins.]"
 "\n"
 "\n[pathname ...]\n"
@@ -593,9 +596,9 @@ const char sh_optdot[]	 =
 "[+SEE ALSO?\bcommand\b(1), \bksh\b(1)]"
 ;
 
-#ifndef ECHOPRINT
+#if !SHOPT_ECHOPRINT
     const char sh_optecho[]	= " [-n] [arg...]";
-#endif /* !ECHOPRINT */
+#endif
 
 const char sh_opteval[] =
 "[-1c?\n@(#)$Id: eval (AT&T Research) 1999-07-07 $\n]"
@@ -990,7 +993,7 @@ const char sh_opthist[]	=
 "[-1cn?\n@(#)$Id: hist (ksh 93u+m) 2025-05-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - process command history list]"
-"[+DESCRIPTION?\b\f?\f\b lists, edits, or re-executes, commands  "
+"[+DESCRIPTION?\b\f?\f\b lists, edits, or re-executes, commands "
 	"previously entered into the current shell environment.]"
 "[+?The command history list references commands by number. The first number "
 	"in the list is selected arbitrarily. The relationship of a number "
@@ -1066,7 +1069,7 @@ const char sh_optkill[]	 =
 	"\ajob\a. This normally terminates the processes unless the signal "
 	"is being caught or ignored.]"
 _JOB_
-"[+?If the signal is not specified with either the \b-n\b or the \b-s\b  "
+"[+?If the signal is not specified with either the \b-n\b or the \b-s\b "
 	"option, the \bSIGTERM\b signal is used.]"
 "[+?If \b-l\b is specified, and no \aarg\a is specified, then \bkill\b "
 	"writes the list of signals to standard output. Otherwise, \aarg\a "
@@ -1258,11 +1261,11 @@ const char sh_optprintf[] =
 		"\b\"\b, and non-printable characters properly escaped for "
 		"use in HTML and XML documents. The alternate flag \b#\b "
 		"formats the output for use as a URI.]"
-	"[+%P?Treat \astring\a as an extended regular expression and  "
+	"[+%P?Treat \astring\a as an extended regular expression and "
 		"convert it to a shell pattern.]"
 	"[+%p?Convert number to hexadecimal.]"
 	"[+%Q?Convert number of seconds to readable time.]"
-	"[+%R?Treat \astring\a as an shell pattern expression and  "
+	"[+%R?Treat \astring\a as a shell pattern expression and "
 		"convert it to an extended regular expression.]"
 	"[+%T?Treat \astring\a as a date/time string and format it. The "
 		"\bT\b can be preceded by \b(\b\adformat\a\b)\b, where "
@@ -1758,7 +1761,7 @@ const char sh_optsleep[] =
 ;
 
 const char sh_opttrap[] =
-"[-1c?\n@(#)$Id: trap (AT&T Research) 1999-07-17 $\n]"
+"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?trap - trap signals and conditions]"
 "[+DESCRIPTION?\btrap\b is a special built-in that defines actions to be "
@@ -1797,6 +1800,7 @@ const char sh_opttrap[] =
 	"non-zero exit status, but does not terminate the invoking shell.]"
 "[+?If no \aaction\a or \acondition\as are specified then all the current "
 	"trap settings are written to standard output.]"
+"[l?Output the list of signals and their numbers to standard output.]"
 "[p?Causes the current traps to be output in a format that can be processed "
 	"as input to the shell to recreate the current traps.]"
 "\n"
@@ -1921,7 +1925,7 @@ const char sh_opttypeset[] =
 "[X]#?[n:=2*sizeof(long long)?Floating point number represented in hexadecimal "
 	"notation. \an\a specifies the number of significant figures when the "
 	"value is expanded.]"
-"[h]:[string?Used within a type definition to provide a help string  "
+"[h]:[string?Used within a type definition to provide a help string "
 	"for variable \aname\a. Otherwise, it is ignored.]"
 "[S?Used with a type definition to indicate that the variable is shared by "
 	"each instance of the type. When used inside a function defined "
@@ -1994,7 +1998,7 @@ const char sh_opttimes[] =
 ;
 
 const char sh_optumask[] =
-"[-1c?\n@(#)$Id: umask (AT&T Research) 1999-04-07 $\n]"
+"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?umask - get or set the file creation mask]"
 "[+DESCRIPTION?\bumask\b sets the file creation mask of the current "
@@ -2009,6 +2013,7 @@ const char sh_optumask[] =
 	"file creation mask for the current process to standard output.]"
 "[S?Causes the file creation mask to be written or treated as a symbolic value "
 	"rather than an octal number.]"
+"[p?Write the file creation mask in a format that can be used for reinput.]"
 "\n"
 "\n[mask]\n"
 "\n"

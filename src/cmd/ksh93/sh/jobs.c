@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -517,8 +517,7 @@ void job_init(void)
 		char *ttynam;
 		if(job.mypgid<0 || !(ttynam=ttyname(JOBTTY)))
 			return;
-		while(close(JOBTTY)<0 && errno==EINTR)
-			;
+		ast_close(JOBTTY);
 		if((fd = open(ttynam,O_RDWR)) <0)
 			return;
 		if(fd!=JOBTTY)

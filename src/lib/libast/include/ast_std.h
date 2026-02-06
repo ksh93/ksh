@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -49,7 +49,7 @@
 struct _sfio_s;
 #endif
 #define FILE		struct _sfio_s
-#ifndef	__FILE_typedef
+#ifndef __FILE_typedef
 #define __FILE_typedef	1
 #endif
 #ifndef _FILEDEFED
@@ -168,7 +168,11 @@ extern char*		setlocale(int, const char*);
 
 #define AST_LC_internal		1
 #define AST_LC_7bit		(1 << 23)
+#if AST_NOMULTIBYTE
+#define AST_LC_utf8		0
+#else
 #define AST_LC_utf8		(1 << 24)
+#endif /* AST_NOMULTIBYTE */
 #define AST_LC_test		(1 << 25)
 #define AST_LC_setenv		(1 << 26)
 #define AST_LC_find		(1 << 27)
@@ -245,6 +249,7 @@ typedef struct
 	uint32_t	set;
 	}		locale;
 
+#if !AST_NOMULTIBYTE
 	struct				/* ast.mb.* -- multibyte encoding/decoding state */
 	{
 	int		cur_max;	/* current maximum length in bytes of a character: > 1 == multibyte locale */
@@ -258,6 +263,7 @@ typedef struct
 	int		(*width)(wchar_t);
 	size_t		(*xfrm)(char*, const char*, size_t);
 	}		mb;
+#endif
 } _Ast_info_t;
 
 /* ast is defined as _ast_info in ast.h */

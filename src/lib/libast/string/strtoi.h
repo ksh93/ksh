@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -80,7 +80,7 @@
  *			k	kilo (1000)
  *			Ki	kibi (1024)
  *			M	mega (1000*1000)
- *			Mi	mibi (1024*1024)
+ *			Mi	mebi (1024*1024)
  *			P	peta (1000*1000*1000*1000*1000)
  *			Pi	pebi (1024*1024*1024*1024*1024)
  *			T	tera (1000*1000*1000*1000)

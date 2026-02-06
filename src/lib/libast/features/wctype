@@ -8,6 +8,10 @@ cat <<!
 
 	#undef	iswalpha
 
+	#if AST_NOMULTIBYTE
+	#define iswalpha(w)	isalpha(w)
+	#else
 	#define iswalpha(w)	(ast.mb.alpha?(*ast.mb.alpha)(w):isalpha(w))
+	#endif /* AST_NOMULTIBYTE */
 !
 }end

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -204,7 +204,7 @@ static void process_stream(Sfio_t* iop)
 		r = (*sp->actionf)(sp, fd, 0);
 		service_list[fd] = sp;
 		if(r<0)
-			close(fd);
+			ast_close(fd);
 	}
 }
 
@@ -284,7 +284,7 @@ static int Accept(Service_t *sp, int accept_fd)
 	fd = fcntl(accept_fd, F_DUPFD, 10);
 	if (fd >= 0)
 	{
-		close(accept_fd);
+		ast_close(accept_fd);
 		if (nq)
 		{
 			char*	av[3];
@@ -295,7 +295,7 @@ static int Accept(Service_t *sp, int accept_fd)
 			sfsprintf(buff, sizeof(buff), "%d", fd);
 			if (sh_fun(nq, sp->node, av))
 			{
-				close(fd);
+				ast_close(fd);
 				return -1;
 			}
 		}
@@ -382,7 +382,7 @@ static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 		{
 			if(service_list[i]==sp)
 			{
-				close(i);
+				ast_close(i);
 				if(--sp->refcount<=0)
 					break;
 			}
@@ -447,7 +447,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 		UNREACHABLE();
 	}
 	if((sp->fd = fcntl(fd, F_DUPFD, 10))>=10)
-		close(fd);
+		ast_close(fd);
 	else
 		sp->fd = fd;
 	np = nv_open(var,sh.var_tree,NV_ARRAY|NV_VARNAME);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -706,7 +706,7 @@ static int test_mode(const char *file)
 }
 
 /*
- * do an fstat() for /dev/fd/n, otherwise stat()
+ * do an fstat() for /dev/fd/n or PWD's fd for better performance, otherwise stat()
  */
 static int test_stat(const char *name,struct stat *buff)
 {
@@ -715,8 +715,11 @@ static int test_stat(const char *name,struct stat *buff)
 		errno = ENOENT;
 		return -1;
 	}
+#if _lib_openat
+	if(sh.pwdfd > -1 && strcmp(name,e_dot)==0)
+		return fstat(sh.pwdfd,buff);
+#endif
 	if(sh_isdevfd(name))
 		return fstat((int)strtol(name+8, NULL, 10),buff);
-	else
-		return stat(name,buff);
+	return stat(name,buff);
 }

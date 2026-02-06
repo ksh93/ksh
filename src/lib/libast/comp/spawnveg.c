@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -331,7 +331,7 @@ spawnveg_slow(const char* path, char* const argv[], char* const envv[], pid_t pg
 	}
 	if (err[0] != -1)
 	{
-		close(err[1]);
+		ast_close(err[1]);
 		if (pid != -1)
 		{
 			m = 0;
@@ -348,7 +348,7 @@ spawnveg_slow(const char* path, char* const argv[], char* const envv[], pid_t pg
 				n = m;
 			}
 		}
-		close(err[0]);
+		ast_close(err[0]);
 	}
 	fork_cleanup(pid, pgid, n);
 	return pid;

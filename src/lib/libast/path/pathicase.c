@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *              This file is part of the ksh 93u+m package              *
-*          Copyright (c) 2021-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2021-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -59,11 +59,11 @@ pathicase(const char *path)
 	if (r < 0 && errno == ENOTTY)	/* if it's not VFAT/FAT32...*/
 	{
 		r = ioctl(fd, FS_IOC_GETFLAGS, &attr);
-		close(fd);
+		ast_close(fd);
 		return r < 0 ? -1 : (attr & FS_CASEFOLD_FL) != 0;
 	}
 #   endif /* _linux_casefold */
-	close(fd);
+	ast_close(fd);
 	return r < 0 ? (errno != ENOTTY ? -1 : 0) : 1;
 #elif _WINIX || __APPLE__
 	/* Windows or Mac without pathconf probe: assume case insensitive */

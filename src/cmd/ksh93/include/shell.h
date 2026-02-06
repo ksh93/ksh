@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -297,7 +297,6 @@ struct Shell_s
 	unsigned int	jobenv;		/* subshell number for jobs */
 	int		infd;		/* input file descriptor */
 	short		nextprompt;	/* next prompt is PS<nextprompt> */
-	Namval_t	*posix_fun;	/* points to last name() function */
 	char		*outbuff;	/* pointer to output buffer */
 	char		*errbuff;	/* pointer to stderr buffer */
 	char		*prompt;	/* pointer to prompt string */

@@ -40,7 +40,6 @@ tst	fchdir_osearch_compat note{ can fchdir(2) use file descriptors obtained usin
 tst	openat_enotdir note{ does openat set ENOTDIR when it fails because the file isn't a directory }end output{
 	#include <ast.h>
 	#include <stdio.h>
-	#include <errno.h>
 	#if !_lib_openat
 	#error openat(2) doesn't exist, so this test is pointless
 	#endif

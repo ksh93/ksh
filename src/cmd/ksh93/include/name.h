@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -144,7 +144,7 @@ struct Ufunction
 
 extern int		array_maxindex(Namval_t*);
 extern char 		*nv_endsubscript(Namval_t*, char*, int);
-extern Namfun_t 	*nv_cover(Namval_t*);
+extern Namfun_t 	*nv_enforcedisc(Namval_t*);
 extern int		nv_arrayisset(Namval_t*, Namarr_t*);
 extern int		nv_arraysettype(Namval_t*, Namval_t*,const char*,int);
 extern int		nv_aimax(Namval_t*);
@@ -166,7 +166,7 @@ extern void 		nv_unref(Namval_t*);
 extern int		nv_hasget(Namval_t*);
 extern void		clone_all_disc(Namval_t*, Namval_t*, int);
 extern Namfun_t		*nv_clone_disc(Namfun_t*, int);
-extern void		*nv_diropen(Namval_t*, const char*);
+extern void		*nv_diropen(Namval_t*, const char*, int);
 extern char		*nv_dirnext(void*);
 extern void		nv_dirclose(void*);
 extern char		*nv_getvtree(Namval_t*, Namfun_t*);

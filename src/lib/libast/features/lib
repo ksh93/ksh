@@ -31,7 +31,7 @@ lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
 lib	mktemp,mktime
-lib	opendir,openat,pathconf,pipe2
+lib	opendir,openat,pathconf,pipe2,posix_close
 lib	rand_r
 lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid

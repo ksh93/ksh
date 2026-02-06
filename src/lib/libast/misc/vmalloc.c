@@ -99,6 +99,8 @@ void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 	}
 	if (tmp != bp)
 	{
+		if (vm->_list_ == bp)
+			vm->_list_ = tmp;
 		bp = tmp;
 		ap = (char*)bp + VBLOCKOFFSET;
 		if (bp->prev)

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -465,9 +465,6 @@ typedef struct _sfextern_s
 #define SFMUNMAP(f,a,s)		(munmap((caddr_t)(a),(size_t)(s)), \
 				 ((f)->endb = (f)->endr = (f)->endw = (f)->next = \
 				  (f)->data = NULL) )
-
-/* safe closing function */
-#define CLOSE(f)	{ while(close(f) < 0 && errno == EINTR) errno = 0; }
 
 /* the bottomless bit bucket */
 #define DEVNULL		"/dev/null"

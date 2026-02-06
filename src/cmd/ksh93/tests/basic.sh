@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1110,7 +1110,30 @@ cp "$bindir/hijack_shell" "$bindir/hijack_sh"
 rm -r "$bindir"
 unset bindir
 [[ $exp == $got ]] || err_exit 'ksh93 shebang-less scripts are vulnerable to being hijacked for arbitrary code execution' \
-	"(exp $(printf %q "$exp"), got $(printf %q "$got"))"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# $0 should be the /dev/fd path for scripts executed from a /dev/fd file
+# https://github.com/ksh93/ksh/issues/874
+# https://github.com/ksh93/ksh/pull/879
+if ((SHOPT_DEVFD))
+then	# $0 should be the /dev/fd script name when the script is a process substitution
+	got=$("$SHELL" <(echo 'echo $0'))
+	if [[ ${got:0:7} != '/dev/fd' ]]
+	then err_exit '$0 is wrong for process substitution scripts' \
+		"(expected a /dev/fd file name, got $(printf %q "$got"))"
+	else	# The file descriptor for the /dev/fd script must remain open
+		if ! "$SHELL" <(echo '[[ -e $0 ]]')
+		then	err_exit 'the file descriptor corresponding to $0 is not open in /dev/fd scripts'
+		fi
+		# The file descriptor for the /dev/fd script should not be close-on-exec
+		typeset -x verify_fd_script=$tmp/verify-procsub-$RANDOM.ksh
+		echo '[[ -e $fd ]]' > "$verify_fd_script"
+		if ! "$SHELL" <(echo 'typeset -x fd=$0; "$SHELL" "$verify_fd_script"')
+		then	err_exit 'file descriptor for /dev/fd script is not passed on to child processes'
+		fi
+	fi
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

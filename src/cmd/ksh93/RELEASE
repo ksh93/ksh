@@ -772,7 +772,7 @@ ____
 10-05-28  Fixed bugs in changing attributes for two dimensional arrays.
 10-05-28  Eliminated a few unreferenced variables and a reference to
 	  uninitialized memory.
-10-05-27  Rewrote the subshell code to avoid using pipes an many cases.
+10-05-27  Rewrote the subshell code to avoid using pipes in many cases.
 10-05-24  Fixed a bug which cause an exception when both -l and -s were
 	  specified with typeset -i.
 10-05-21  Inputting of three dimensional indexed arrays with ( ( (...)...)...)
@@ -1961,7 +1961,7 @@ ____
 04-09-03  <<< here documents now handle quotes in the word token correctly.
 04-08-08 +The maximum size for read -n and read -N was increased from
 	  4095 to 32M.
-04-08-04 +printf %q was modified so that if an no operand was supplied, no
+04-08-04 +printf %q was modified so that if no operand was supplied,
 	  no output would be generated rather than a quoted empty string.
 04-08-01 +The -n and -N options of the read builtin has been modified
 	  when reading variables with the binary attribute so that the
@@ -2545,7 +2545,7 @@ ____
 01-03-26  A bug in which valid scripts could produce syntax errors
 	  when run with locales that considered characters such as "'"
 	  to be space characters has been fixed.
-01-03-20  A bug in which an syntax error in an arithmetic expression
+01-03-20  A bug in which a syntax error in an arithmetic expression
 	  entered interactively could cause the shell to go into
 	  an infinite loop outputting the error message has been fixed.
 01-03-10 +ksh93 accepts -l as a synonym for -L in test on systems for

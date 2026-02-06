@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -77,7 +77,7 @@ static int _tmprmfile(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 
 			if(_Sfnotify)
 				(*_Sfnotify)(f,SFIO_CLOSING,f->file);
-			CLOSE(f->file);
+			ast_close(f->file);
 			f->file = -1;
 			while(remove(ff->name) < 0 && errno == EINTR)
 				errno = 0;

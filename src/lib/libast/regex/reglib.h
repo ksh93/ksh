@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -58,13 +58,16 @@ typedef struct regsubop_s
 #include "regex.h"
 
 #include <ctype.h>
-#include <errno.h>
 
 #if _BLD_DEBUG && !defined(_AST_REGEX_DEBUG)
 #define _AST_REGEX_DEBUG	1
 #endif
 
+#if AST_NOMULTIBYTE
+#define MBSIZE(p)	((p),1)
+#else
 #define MBSIZE(p)	((ast.mb.tmp_i = mbsize(p)) > 0 ? ast.mb.tmp_i : 1)
+#endif /* AST_NOMULTIBYTE */
 
 #undef	RE_DUP_MAX			/* POSIX puts this in limits.h!	*/
 #define RE_DUP_MAX	(INT_MAX/2-1)	/* 2*RE_DUP_MAX won't overflow	*/
@@ -242,7 +245,7 @@ extern int		_reg_iswblank(wint_t);
 
 #endif
 
-#ifndef	iswblank
+#ifndef iswblank
 #define iswblank(x)	((x)==' '||(x)=='\t')
 #endif
 
