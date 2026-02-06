@@ -523,12 +523,7 @@ void sh_clear_subshell_pwdfd(void)
  */
 Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 {
-	struct subshell sub_data = {
-		.options = sh.options,
-		.subshare = sh.subshare,
-		.comsub = sh.comsub,
-		.pwdfd = -1	/* pwdfd should not be initialized to stdin */
-	};
+	struct subshell sub_data;
 	struct subshell *sp = &sub_data;
 	int jmpval,isig,nsig=0,fatalerror=0,saveerrno=0;
 	unsigned int savecurenv = sh.curenv;
@@ -540,6 +535,11 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
 	int argcnt;
+	memset((char*)sp, 0, sizeof(*sp));
+	sp->options = sh.options;
+	sp->subshare = sh.subshare;
+	sp->comsub = sh.comsub;
+	sp->pwdfd = -1;	/* pwdfd should not be initialized to stdin */
 	sfsync(sh.outpool);
 	sh_sigcheck();
 	sh.savesig = -1;

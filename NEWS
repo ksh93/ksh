@@ -60,7 +60,6 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - The rm path-bound built-in command from libcmd no longer suppresses error
   messages when the -f/--force option is used.
->>>>>>> dev
 
 2025-06-14:
 
