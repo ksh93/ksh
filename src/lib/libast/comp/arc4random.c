@@ -1,11 +1,12 @@
 /***********************************************************************
 *                                                                      *
 *              This file is part of the ksh 93u+m package              *
-*          Copyright (c) 2023-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2023-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 OpenBSD License (reproduced below).                  *
 *                                                                      *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
