@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -139,7 +139,7 @@ static  Namfun_t *nextdisc(Namval_t *np)
 	return NULL;
 }
 
-void *nv_diropen(Namval_t *np,const char *name)
+void *nv_diropen(Namval_t *np, const char *name, int in_walk_tree)
 {
 	char *next,*last;
 	int c,len=strlen(name);
@@ -216,7 +216,7 @@ void *nv_diropen(Namval_t *np,const char *name)
 		}
 		if(next)
 			*next = c;
-		if(np==dp->hp && !next)
+		if(in_walk_tree && np==dp->hp && !next)
 			dp->hp = (Namval_t*)dtnext(dp->root,dp->hp);
 		if(np && ((nfp=nextdisc(np)) || nv_istable(np)))
 		{
@@ -976,7 +976,7 @@ static char *walk_tree(Namval_t *np, Namval_t *xp, int flags)
 	name = stkfreeze(sh.stk,1);
 	len = strlen(name);
 	sh.last_root = 0;
-	dir = nv_diropen(mp,name);
+	dir = nv_diropen(mp,name,1);
 	walk.root = sh.last_root?sh.last_root:sh.var_tree;
 	if(subscript)
 		name[strlen(name)-1] = 0;

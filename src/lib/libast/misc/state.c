@@ -39,9 +39,11 @@ _Ast_info_t	_ast_info =
 	{			/* ast.locale */
 		strcmp,		/* ast.locale.collate */
 	},
+#if !AST_NOMULTIBYTE
 	{			/* ast.mb */
 		1,		/* ast.mb.cur_max */
 	},
+#endif
 };
 
 extern _Ast_info_t	_ast_info;

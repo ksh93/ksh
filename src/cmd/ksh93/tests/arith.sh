@@ -1135,4 +1135,12 @@ else	typeset -ui i
 fi
 
 # ======
+# https://github.com/ksh93/ksh/issues/927
+unset y
+typeset -i y=0
+((y = y - 1))
+[[ $y == '-1' ]] || err_exit "variable declared with 'typeset -i' not consistently handled as signed int" \
+	"(expected '-1', got '$got')"
+
+# ======
 exit $((Errors<125?Errors:125))

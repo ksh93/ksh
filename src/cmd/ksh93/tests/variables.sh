@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -385,7 +385,7 @@ if	(( $# !=1 ))
 then	err_exit	'"${@-}" not expanding to null string'
 fi
 for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
-do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not an syntax error"
+do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
 done
 
 # ___ begin: IFS tests ___
@@ -1387,6 +1387,7 @@ exp=42.0000000000
 # ======
 # ${!FOO@} and ${!FOO*} expansions did not include FOO itself
 # https://github.com/ksh93/ksh/issues/183
+# https://github.com/ksh93/ksh/issues/875
 unset foo "${!foo@}"
 exp='foo foobar fool'
 got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo@}")
@@ -1394,6 +1395,20 @@ got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo@}")
 exp='foo/foobar/fool'
 got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo*}")
 [[ $got == "$exp" ]] || err_exit "\${!foo*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+exp=3
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${#foo@}")
+[[ $got == "$exp" ]] || err_exit "\${#foo@}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${#foo*}")
+[[ $got == "$exp" ]] || err_exit "\${#foo*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+unset a "${!a@}"
+exp="a.a a.aa a.ac"
+got=$(a=1 a.a=2 a.b=3 a.c=4 a.aa=5 a.ac=6; echo "${!a.a*}")
+[[ $got == "$exp" ]] || err_exit "\${!a.*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+exp=3
+got=$(a=1 a.a=2 a.b=3 a.c=4 a.aa=5 a.ac=6; echo "${#a.a*}")
+[[ $got == "$exp" ]] || err_exit "\${#a.*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=${!a*}
+[[ -z "$got" ]] || err_exit "a tree: subshell leak (got '$got')"
 
 # ======
 # In ksh93v- ${.sh.subshell} is unset by the $PS4 prompt
@@ -1768,6 +1783,33 @@ got=$(./issue861.sh 2>&1)
 [[ e=$? -eq 0 && -z $got ]] || err_exit "variable name length corrupted when reading across buffer boundary" \
 	"(got status $e, $(printf %q "$got"))"
 unset i
+
+# ======
+
+# Problem: the global discipline function kept applying to the local variable
+# for certain special variables. This was a design problem with nv_cover() in
+# init.c which copied the nvfun pointer, i.e., the entire discipline function
+# tree. (Note: nv_cover() is now renamed to nv_enforcedisc().)
+# Here we can only test nv_enforcedisc() variables without value constraints.
+
+exp=$'in main: MainShellValue\nin pathlocal: LocalValue'
+for v in IFS PATH SHELL FPATH CDPATH ENV
+do	got=$(eval "
+		function pathlocal
+		{
+			typeset $v=LocalValue
+			print -r -- \"in pathlocal: \$$v\"
+		}
+		function $v.get
+		{
+			.sh.value=MainShellValue
+		}
+		print -r -- \"in main: \$$v\"
+		pathlocal
+	")
+	[[ $got == "$exp" ]] || err_exit "$v discipline not scoped properly" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -646,7 +646,7 @@ static void io_preserve(Sfio_t *sp, int f2)
  * Given a file descriptor <f1>, move it to a file descriptor number <f2>
  * If <f2> is needed move it, otherwise it is closed first.
  * The original stream <f1> is closed.
- *  The new file descriptor <f2> is returned;
+ * The new file descriptor <f2> is returned.
  */
 int sh_iorenumber(int f1,int f2)
 {
@@ -897,20 +897,20 @@ int sh_chkopen(const char *name)
 }
 
 /*
- * move open file descriptor to a number > 2
+ * move open file descriptor to a number >= minfd
  */
-int sh_iomovefd(int fdold)
+int sh_iomovefd(int fdold, int minfd)
 {
 	int fdnew, dupflags;
 	if(fdold >= sh.lim.open_max)
 		sh_iovalidfd(fdold);
-	if(fdold<0 || fdold>2)
+	if(fdold<0 || fdold>=minfd)
 		return fdold;
 	if(sh.fdstatus[fdold]&IOCLEX)
 		dupflags = F_dupfd_cloexec;
 	else
 		dupflags = F_DUPFD;
-	fdnew = sh_iomovefd(fcntl(fdold,dupflags,3));
+	fdnew = sh_iomovefd(fcntl(fdold,dupflags,minfd),minfd);
 	if((sh.fdstatus[fdold]&IOCLEX) && F_dupfd_cloexec == F_DUPFD)
 		fcntl(fdnew,F_SETFD,FD_CLOEXEC);
 	sh.fdstatus[fdnew] = sh.fdstatus[fdold];
@@ -946,9 +946,9 @@ int	sh_pipe(int pv[], int cloexec)
 	sh.fdstatus[pv[0]] = IONOSEEK|IOREAD|cloexec;
 	sh.fdstatus[pv[1]] = IONOSEEK|IOWRITE|cloexec;
 	if(pv[0]<=2)
-		pv[0] = sh_iomovefd(pv[0]);
+		pv[0] = sh_iomovefd(pv[0],3);
 	if(pv[1]<=2)
-		pv[1] = sh_iomovefd(pv[1]);
+		pv[1] = sh_iomovefd(pv[1],3);
 	sh_subsavefd(pv[0]);
 	sh_subsavefd(pv[1]);
 	return 0;
@@ -978,9 +978,9 @@ int	sh_rpipe(int pv[], int cloexec)
 	sh.fdstatus[pv[0]] = IONOSEEK|IOREAD|cloexec;
 	sh.fdstatus[pv[1]] = IONOSEEK|IOWRITE|cloexec;
 	if(pv[0]<=2)
-		pv[0] = sh_iomovefd(pv[0]);
+		pv[0] = sh_iomovefd(pv[0],3);
 	if(pv[1]<=2)
-		pv[1] = sh_iomovefd(pv[1]);
+		pv[1] = sh_iomovefd(pv[1],3);
 	sh_subsavefd(pv[0]);
 	sh_subsavefd(pv[1]);
 	return 0;
@@ -1535,7 +1535,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				sh_close(fn);
 			}
 			if(flag==3)
-				return sh_iomovefd(fd);  /* ensure FD > 2 to make $(<file) work with std{in,out,err} closed */
+				return sh_iomovefd(fd,3);  /* ensure FD > 2 to make $(<file) work with std{in,out,err} closed */
 			if(fd>=0)
 			{
 				if(np)
@@ -1562,7 +1562,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				}
 				else
 				{
-					fd = sh_iorenumber(sh_iomovefd(fd),fn);
+					fd = sh_iorenumber(sh_iomovefd(fd,3),fn);
 					if(fn>2 && fn<10)
 						sh.inuse_bits |= (1<<fn);
 				}

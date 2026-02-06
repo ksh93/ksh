@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -537,7 +537,7 @@ trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; k
 (	typeset -si i
 	sleep 5
 	# if it's slow, display a counter
-	for	((i=35; i>0; i--))
+	for	((i=45; i>0; i--))
 	do	kill -s 0 "$$" 2>/dev/null || exit  # parent shell exited
 		printf '\t%s[%d]: command -x: %2ds...\r' "$Command" LINENO i
 		sleep 1

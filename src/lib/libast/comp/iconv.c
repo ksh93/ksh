@@ -353,6 +353,10 @@ bin2utf(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 	te = t + (*tn);
 	while (f < fe && t < te)
 	{
+#if AST_NOMULTIBYTE
+		c = 1;
+		w = *f;
+#else
 		if (!mbwide())
 		{
 			c = 1;
@@ -365,6 +369,7 @@ bin2utf(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 		}
 		else if (!c)
 			c = 1;
+#endif /* AST_NOMULTIBYTE */
 		if (!(w & ~0x7F))
 			*t++ = w;
 		else
@@ -544,6 +549,10 @@ bin2ume(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 	s = 0;
 	while (f < fe && t < (te - s))
 	{
+#if AST_NOMULTIBYTE
+		c = 1;
+		w = *f;
+#else
 		if (!mbwide())
 		{
 			c = 1;
@@ -556,6 +565,7 @@ bin2ume(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 		}
 		else if (!c)
 			c = 1;
+#endif /* AST_NOMULTIBYTE */
 		if (!(w & ~0x7F) && ume_d[w])
 		{
 			if (s)
@@ -662,6 +672,10 @@ bin2ucs(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 	te = t + (*tn);
 	while (f < fe && t < (te - 1))
 	{
+#if AST_NOMULTIBYTE
+		c = 1;
+		w = *f;
+#else
 		if (!mbwide())
 		{
 			c = 1;
@@ -674,6 +688,7 @@ bin2ucs(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 		}
 		else if (!c)
 			c = 1;
+#endif /* AST_NOMULTIBYTE */
 		*t++ = (w >> 8) & 0xFF;
 		*t++ = w & 0xFF;
 		f += c;
@@ -755,6 +770,10 @@ bin2scu(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 	te = t + (*tn);
 	while (f < fe && t < (te - 1))
 	{
+#if AST_NOMULTIBYTE
+		c = 1;
+		w = *f;
+#else
 		if (!mbwide())
 		{
 			c = 1;
@@ -767,6 +786,7 @@ bin2scu(_ast_iconv_t cd, char** fb, size_t* fn, char** tb, size_t* tn)
 		}
 		else if (!c)
 			c = 1;
+#endif /* AST_NOMULTIBYTE */
 		*t++ = w & 0xFF;
 		*t++ = (w >> 8) & 0xFF;
 		f += c;

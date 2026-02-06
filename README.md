@@ -230,17 +230,16 @@ bin/package use
 
 ### Install
 
-Usage: `bin/package install` *destination_directory* [ *command* ... ]
+Usage: `bin/package install` *install_root_directory* [ *command* ... ]
 
 Any command from the `arch` directory can be installed. If no *command* is
 specified, `ksh` and `shcomp` are assumed.
 
-The *destination_directory* is created if it does not exist. Commands are
-installed in its `bin` subdirectory and each command's manual page, if
-available, is installed in `share/man`.
-
-Destination directories with whitespace or shell pattern characters in their
-pathnames are not yet supported.
+The *install_root_directory* is the directory from which the command(s) will
+actually be run. It will be created if it does not exist. Commands are
+installed into its `bin` subdirectory, any shared libraries into `lib`, C
+development header files into `include/ast`, and each command's manual page,
+if available, is installed into `share/man`.
 
 If a dynamically linked version of ksh and associated commands has been
 built, then the `install` subcommand will prefer that: commands, dynamic
@@ -248,6 +247,15 @@ libraries and associated header files will be installed then. To install the
 statically linked version instead (and skip the header files), either delete
 the `dyn` subdirectory, or export `AST_NO_DYLIB=y` before building to prevent
 it from being created in the first place.
+
+An additional install prefix directory path can be passed in `DESTDIR`, which
+can be either passed as an environment variable or specified on the comannd
+line as an extra assignment-like argument. The value of `DESTDIR` will be
+prefixed to the path of every destination file when installing it, but not
+when configuring the install root directory in the installed files (as may be
+required by individual systems, e.g., to find dynamic libraries). This feature
+is designed for packagers who need to install ksh into a directory other than
+the one from which it will be run in order to package it.
 
 ## What is ksh93?
 

@@ -20,7 +20,7 @@ run{
 	cat <<!
 	#ifndef _SFSTDIO_H
 	#include <ast_common.h>
-	#include <stdio.h>
+	#include <stdio.h> /* NODEP */
 	#endif
 	!
 	case ${_hdr_wchar},${_nxt_wchar} in

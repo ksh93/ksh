@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -158,7 +158,7 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 	char		*name=0;
 	if(sp->numnodes==0 && !nv_isnull(np) && sh.last_table)
 	{
-		/* could be an redefine */
+		/* could be a redefine */
 		Dt_t *root = nv_dict(sh.last_table);
 		sp->rp = np;
 		nv_delete(np,root,NV_NOFREE);
@@ -594,11 +594,13 @@ void nv_setlist(struct argnod *arg,int flags, Namval_t *typ)
 			*eqp = '\0';
 			if((np = nv_search(cp,dtvnext(vartree),0)) && np->nvflag)
 			{
+				Namfun_t *fp;
 				mp = nv_search(cp,vartree,NV_ADD|NV_NOSCOPE);
 				mp->nvname = np->nvname;  /* put_lang() (init.c) compares nvname pointers */
 				mp->nvflag = np->nvflag;
 				mp->nvsize = np->nvsize;
-				mp->nvfun = nv_cover(np);
+				if (fp = nv_enforcedisc(np))
+					nv_stack(mp, fp);
 			}
 			*eqp = '=';
 		}
@@ -881,18 +883,24 @@ Namval_t *nv_create(const char *name,  Dt_t *root, int flags, Namfun_t *dp)
 					}
 					else if(nq)
 					{
-						if(nv_isnull(np) && c!='.' && ((np->nvfun=nv_cover(nq)) || nq==OPTINDNOD))
+						if(nv_isnull(np) && c!='.')
 						{
-							np->nvname = nq->nvname;
-#if SHOPT_NAMESPACE
-							if(sh.namespace && nv_dict(sh.namespace)==sh.var_tree && nv_isattr(nq,NV_EXPORT))
-								nv_onattr(np,NV_EXPORT);
-#endif /* SHOPT_NAMESPACE */
-							if(nq==OPTINDNOD)
+							Namfun_t *fp = nv_enforcedisc(nq);
+							if (fp)
+								nv_stack(np,fp);
+							if (fp || nq==OPTINDNOD)
 							{
-								np->nvfun = nq->nvfun;
-								np->nvalue = &sh.st.optindex;
-								nv_onattr(np,NV_INTEGER|NV_NOFREE);
+								np->nvname = nq->nvname;
+#if SHOPT_NAMESPACE
+								if(sh.namespace && nv_dict(sh.namespace)==sh.var_tree && nv_isattr(nq,NV_EXPORT))
+									nv_onattr(np,NV_EXPORT);
+#endif /* SHOPT_NAMESPACE */
+								if(nq==OPTINDNOD)
+								{
+									np->nvfun = nq->nvfun;
+									np->nvalue = &sh.st.optindex;
+									nv_onattr(np,NV_INTEGER|NV_NOFREE);
+								}
 							}
 						}
 						flags |= NV_NOSCOPE;
@@ -2291,7 +2299,7 @@ static void table_unset(Dt_t *root, int flags, Dt_t *oroot)
 	{
 		if(nq=dtsearch(oroot,np))
 		{
-			if(nv_cover(nq))
+			if(nv_enforcedisc(nq))
 			{
 				unsigned int subshell = sh.subshell;
 				sh.subshell = 0;
@@ -2695,7 +2703,7 @@ char *nv_getval(Namval_t *np)
 		else if(nv_isattr(np,NV_SHORT))
 			ll = *(int16_t*)vp;
 		else
-			ll = *(uint32_t*)vp;
+			ll = *(int32_t*)vp;
 		base = nv_size(np);
 		if(base==10)
 			return fmtint(ll, nv_isattr(np,NV_UNSIGN));
@@ -2945,7 +2953,7 @@ skip:
 	return;
 }
 
-static char *oldgetenv(const char *string)
+static inline char *oldgetenv(const char *string)
 {
 	char c0,c1;
 	const char *cp, *sp;
@@ -2987,7 +2995,6 @@ char *sh_getenv(const char *name)
 	return cp;
 }
 
-#ifndef _NEXT_SOURCE
 /*
  * Some dynamic linkers will make this file see the libc getenv(),
  * so sh_getenv() is used for the astintercept() callback.  Plain
@@ -2997,11 +3004,10 @@ char *getenv(const char *name)
 {
 	return sh_getenv(name);
 }
-#endif /* _NEXT_SOURCE */
 
 #undef putenv
 /*
- * This version of putenv uses the hash storage to assign environment values
+ * This version of putenv uses the nval(3) storage to assign environment values
  */
 int putenv(const char *name)
 {

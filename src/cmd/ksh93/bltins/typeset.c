@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -30,7 +30,7 @@
  * alias [-ptx] [arg...]
  * unalias [-a] [arg...]
  * hash [-r] [utility...]
- * builtin [-dls] [-f file] [name...]
+ * builtin [-dlps] [-f file] [name...]
  * set [options] [name...]
  * unset [-fnv] [name...]
  *
@@ -217,7 +217,6 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
     int    b_float(int argc,char *argv[],Shbltin_t *context){}
     int    b_functions(int argc,char *argv[],Shbltin_t *context){}
     int    b_integer(int argc,char *argv[],Shbltin_t *context){}
-    int    b_local(int argc,char *argv[],Shbltin_t *context){}
     int    b_nameref(int argc,char *argv[],Shbltin_t *context){}
 #endif
 int    b_typeset(int argc,char *argv[],Shbltin_t *context)
@@ -1166,6 +1165,9 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		list = 1;
 #endif
 	        break;
+	    case 'p':
+		tdata.prefix = argv[0];
+		break;
 	    case ':':
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
@@ -1209,6 +1211,11 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #endif /* SHOPT_DYNAMIC */
 	if(*argv==0 && !dlete)
 	{
+#if SHOPT_DYNAMIC
+		if(tdata.prefix)
+			for(n = 0; n < nlib; n++)
+				sfprintf(sfstdout, "%s -f %s\n", tdata.prefix, liblist[n].lib);
+#endif
 		print_scan(sfstdout, flag, sh.bltin_tree, 1, &tdata);
 		return 0;
 	}
@@ -1216,6 +1223,18 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	flag = stktell(stkp);
 	while(arg = *argv)
 	{
+		if(tdata.prefix)
+		{
+			if(np = nv_search(arg,sh.bltin_tree,0))
+				sfprintf(sfstdout,"%s %s\n",tdata.prefix,arg);
+			else
+			{
+				errormsg(SH_DICT,ERROR_exit(0),"%s: %s",*argv,"not found");
+				r = 1;
+			}
+			argv++;
+			continue;
+		}
 		name = path_basename(arg);
 		sfwrite(stkp,"b_",2);
 		sfputr(stkp,name,0);
@@ -1488,7 +1507,11 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 	if(nv_isattr(np,NV_NOPRINT|NV_INTEGER)==NV_NOPRINT)
 	{
 		if(is_abuiltin(np))
+		{
+			if(tp->prefix)
+				sfputr(file,tp->prefix,' ');
 			sfputr(file,nv_name(np),'\n');
+		}
 		return 0;
 	}
 	if(nv_istable(np))
