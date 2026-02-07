@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2025-05-16
+version=2026-02-07
 
 # DEFPATH should be inherited from package(1)
 case $DEFPATH in
@@ -597,7 +597,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 [-author?Phong Vo <kpv@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
 [-copyright?(c) 1994-2012 AT&T Intellectual Property]
-[-copyright?(c) 2020-2025 Contributors to ksh 93u+m]
+[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
 [+NAME?iffe - C compilation environment feature probe]
 [+DESCRIPTION?\biffe\b is a command interpreter that probes the C
@@ -3353,13 +3353,7 @@ $pre
 					*)	echo "extern int $v;"
 						;;
 					esac
-					echo "
-#ifdef _DLL
-#define _REF_
-#else
-#define _REF_	&
-#endif
-int main(void){char* i = (char*) _REF_ $v; return ((unsigned int)i)^0xaaaa;}"
+					echo "int main(void) { char *i = (char*) & $v; return ((unsigned int)i)^0xaaaa; }"
 					} > $tmp.c
 					is $o $v
 					rm -f $tmp.exe
