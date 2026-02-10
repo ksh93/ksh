@@ -55,6 +55,7 @@
 #define SYSSOURCE	(sh.bltin_cmds+21)	/* source */
 #define SYSRETURN	(sh.bltin_cmds+22)	/* return */
 #define SYSENUM		(sh.bltin_cmds+23)	/* enum */
+#define SYSALIAS	(sh.bltin_cmds+24)	/* alias */
 
 /* entry point for shell special builtins */
 

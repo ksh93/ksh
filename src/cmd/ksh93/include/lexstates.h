@@ -147,6 +147,8 @@ extern const char e_lexobsolete3[];
 extern const char e_lexobsolete4[];
 extern const char e_lexobsolete5[];
 extern const char e_lexobsolete6[];
+extern const char e_lexobsolete7[];
+extern const char e_lexobsolete8[];
 extern const char e_lexusebrace[];
 extern const char e_lexescape[];
 extern const char e_lexquote[];
