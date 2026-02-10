@@ -1665,7 +1665,7 @@ const char sh_optksh[] =
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"
 ;
 const char sh_optset[] =
-"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2026-02-04 $\n]"
+"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2026-02-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?set - set/unset options and positional parameters]"
 "[+DESCRIPTION?\bset\b sets or unsets options and positional parameters. "
