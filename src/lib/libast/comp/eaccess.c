@@ -28,7 +28,7 @@
 
 #include "FEATURE/eaccess"
 
-#if _lib_eaccess && !_lib_faccessat
+#if _lib_eaccess && !(_lib_faccessat && defined(AT_EACCESS))
 #undef eaccess
 extern int eaccess(const char* path, int flags);
 #endif
