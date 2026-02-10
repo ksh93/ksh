@@ -2,6 +2,51 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-02-10:
+
+- Added support for the following math functions present in C23,
+  TS 18661-1:2014, TS 18661-3:2015, and glibc:
+  - acospi
+  - asinpi
+  - atan2pi
+  - atanpi
+  - compoundn
+  - cospi
+  - exp10m1
+  - exp2m1
+  - fadd
+  - fdiv
+  - ffma
+  - fmaximum
+  - fmaximum_mag
+  - fmaximum_mag_num
+  - fmaximum_num
+  - fmaxmag
+  - fminimum
+  - fminimum_mag
+  - fminimum_mag_num
+  - fminimum_num
+  - fminmag
+  - fmul
+  - fsqrt
+  - fsub
+  - iscanonical
+  - iseqsig
+  - issignaling
+  - log10p1
+  - log2p1
+  - logp1
+  - nextdown
+  - nextup
+  - pown
+  - powr
+  - rootn
+  - roundeven
+  - rsqrt
+  - scalbln
+  - sinpi
+  - tanpi
+
 2026-02-06:
 
 - Fixed a file descriptor leak introduced in 93u+ 2012-07-27 that occurred

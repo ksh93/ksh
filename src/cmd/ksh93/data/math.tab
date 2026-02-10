@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2013 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -13,44 +13,71 @@
 #                  David Korn <dgk@research.att.com>                   #
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #         hyenias <58673227+hyenias@users.noreply.github.com>          #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 
 # <return type: i:integer f:floating-point> <#floating-point-args> <function-name> [<alias> ...]
 # <function-name>l variants are handled by features/math.sh
-# @(#)math.tab (ksh 93u+m) 2024-03-20
+# @(#)math.tab (ksh 93u+m) 2026-02-10
 f 1 acos
 f 1 acosh
+f 1 acospi
 f 1 asin
 f 1 asinh
+f 1 asinpi
 f 1 atan
 f 2 atan2
+f 2 atan2pi
 f 1 atanh
+f 1 atanpi
 f 1 cbrt
 f 1 ceil
+f 2 compoundn
 f 2 copysign
 f 1 cos
 f 1 cosh
+f 1 cospi
 f 1 erf
 f 1 erfc
 f 1 exp
 f 1 exp2
 f 1 exp10
 f 1 expm1
+f 1 exp2m1
+f 1 exp10m1
 f 1 fabs abs
+f 2 fadd
 f 2 fdim
+f 2 fdiv
+f 3 ffma
 i 1 finite
 f 1 float
 f 1 floor
 f 3 fma
 f 2 fmax
+f 2 fmaximum
+f 2 fmaximum_mag
+f 2 fmaximum_mag_num
+f 2 fmaximum_num
+f 2 fmaxmag
 f 2 fmin
+f 2 fminimum
+f 2 fminimum_mag
+f 2 fminimum_mag_num
+f 2 fminimum_num
+f 2 fminmag
 f 2 fmod
+f 2 fmul
 i 1 fpclassify
 i 1 fpclass
+f 2 fsqrt
+f 2 fsub
 f 2 hypot
 i 1 ilogb
 f 1 int
+i 1 iscanonical
+i 2 iseqsig
 i 1 isfinite
 i 2 isgreater
 i 2 isgreaterequal
@@ -61,6 +88,7 @@ i 2 islessequal
 i 2 islessgreater
 i 1 isnan
 i 1 isnormal
+i 1 issignaling
 i 1 issubnormal fpclassify=FP_SUBNORMAL
 i 2 isunordered
 i 1 iszero fpclassify=FP_ZERO fpclass=FP_NZERO|FP_PZERO {return a1==0.0||a1==-0.0;}
@@ -71,24 +99,37 @@ x 2 ldexp
 f 1 lgamma
 f 1 log
 f 1 log10
+f 1 log10p1
 f 1 log1p
 f 1 log2
+f 1 log2p1
 f 1 logb
+f 1 logp1
 f 1 nearbyint
 f 2 nextafter
+f 1 nextdown
 f 2 nexttoward
+f 1 nextup
 f 2 pow
+f 2 pown
+f 2 powr
 f 2 remainder
 f 1 rint
+f 2 rootn
 f 1 round {Sfdouble_t r;Sflong_t y;y=floor(2*a1);r=rint(a1);if(2*a1==y)r+=(r<a1)-(a1<0);return r;}
+f 1 roundeven
+f 1 rsqrt
 f 2 scalb
 f 2 scalbn
+f 2 scalbln
 i 1 signbit
 f 1 sin
 f 1 sinh
+f 1 sinpi
 f 1 sqrt
 f 1 tan
 f 1 tanh
+f 1 tanpi
 f 1 tgamma {Sfdouble_t r=exp(lgamma(a1));return (signgam<0)?-r:r;}
 f 1 trunc
 f 1 y0
