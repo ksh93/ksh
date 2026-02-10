@@ -921,7 +921,7 @@ int sh_lex(Lex_t* lp)
 						break;
 					case '@':
 					case '!':
-						if(n!=S_ALP)
+						if(n!=S_ALP && n!=S_DIG)
 							goto dolerr;
 						/* FALLTHROUGH */
 					case '#':

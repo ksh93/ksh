@@ -95,6 +95,7 @@ typedef struct  _mac_
 #define M_NAMESCAN	6	/* ${!var*}	*/
 #define M_NAMECOUNT	7	/* ${#var*}	*/
 #define M_TYPE		8	/* ${@var}	*/
+#define M_EVAL		9	/* ${$var}	*/
 
 static noreturn void	mac_error(void);
 static int	substring(const char*, size_t, const char*, int[], int);
@@ -1206,6 +1207,12 @@ retry1:
 		}
 		/* FALLTHROUGH */
 	    case S_SPC2:
+		if(type==M_BRACE && c=='$' && isalnum(mode=fcpeek(0)))
+		{
+			type = M_EVAL;
+			mode = c;
+			goto retry1;
+		}
 		var = 0;
 		*id = c;
 		v = special(c);
@@ -1402,6 +1409,39 @@ retry1:
 			sfputr(sh.strbuf,id,-1);
 			id = sfstruse(sh.strbuf);
 		}
+		if(type==M_EVAL && np && (v=nv_getval(np)))
+		{
+			/* ${$var} indirect expansion */
+			char *last;
+			long x;
+			errno = 0;
+			x = strtol(v,&last,10);
+			type = M_BRACE;
+			if(*last==0)
+			{
+				int n = (int)x;
+				if(errno==ERANGE || x!=n || x<0)
+				{
+					errormsg(SH_DICT,ERROR_system(1),e_number,v);
+					UNREACHABLE();
+				}
+				np = NULL;
+				v = NULL;
+				idnum = 0;
+				if(n==0)
+					v = special(n);
+				else if(n<=sh.st.dolc)
+				{
+					sh.used_pos = 1;
+					v = sh.st.dolv[n];
+					idnum = n;
+				}
+				fcseek(-LEN);
+				stkseek(stkp, offset);
+				break;
+			} else
+				np = nv_open(v,sh.var_tree,flag|NV_NOFAIL);
+		}
 		if(isastchar(mode))
 			var = 0;
 		if((!np || nv_isnull(np)) && type==M_BRACE && c==RBRACE && !(flag&NV_ARRAY) && strchr(id,'.'))
@@ -1560,7 +1600,7 @@ retry1:
 				v = id;
 				type = M_BRACE;
 			}
-			else if(type==M_TYPE)
+			else if(type==M_TYPE || type==M_EVAL)
 				type = M_BRACE;
 		}
 		stkseek(stkp,offset);
@@ -1590,7 +1630,7 @@ retry1:
 		c = fcget();
 	if(type>M_TREE)
 	{
-		if(c!=RBRACE)
+		if(c!=RBRACE && type!=M_EVAL)
 			mac_error();
 		if(type==M_NAMESCAN || type==M_NAMECOUNT)
 		{
@@ -1626,6 +1666,16 @@ retry1:
 					v = nv_getsub(np);
 			}
 		}
+		else if(type==M_EVAL)
+		{
+			/* ${$var} indirect expansion */
+			np = v ? nv_open(v,sh.var_tree,NV_NOREF|NV_NOADD|NV_VARNAME|NV_NOFAIL) : NULL;
+			if(np)
+			{
+				v = nv_getval(np);
+				goto skip;
+			}
+		}
 		else
 		{
 			/* type==M_SIZE: ${#var} */
@@ -1655,6 +1705,7 @@ retry1:
 		}
 		c = RBRACE;
 	}
+skip:
 	nulflg = 0;
 	if(type && c==':')
 	{
