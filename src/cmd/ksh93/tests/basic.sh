@@ -987,6 +987,15 @@ esac
 # ======
 # Test exec optimization of last command in script or subshell
 
+(
+	ulimit -t unlimited 2>/dev/null  # fork subshell
+	print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
+	"$SHELL" -c 'print "$$"'
+) >out
+pid1= pid2=
+{ read pid1 && read pid2; } <out && let "pid1 == pid2" \
+|| err_exit "last command in forked subshell not exec-optimized ($pid1 != $pid2)"
+
 got=$(
 	ulimit -t unlimited 2>/dev/null  # fork subshell
 	print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
@@ -995,6 +1004,29 @@ got=$(
 pid1= pid2=
 { read pid1 && read pid2; } <<<$got && let "pid1 == pid2" \
 || err_exit "last command in forked comsub not exec-optimized ($pid1 != $pid2)"
+
+# https://github.com/ksh93/ksh/issues/507
+mkdir "$tmp/subshell-optimize"
+cat <<'EOF1' >"$tmp/subshell-optimize/A"
+cat <<'EOF2' >B
+( echo B1 ) | cat
+( echo B2 ) | cat
+EOF2
+
+cat <<'EOF2' >C
+( echo C1 ) | cat
+( echo C2 ) | cat
+EOF2
+
+(
+	. ./B
+	. ./C
+) | cat
+EOF1
+exp=$'B1\nB2\nC1\nC2'
+got=$(cd "$tmp/subshell-optimize"; "$SHELL" "$tmp/subshell-optimize/A")
+[[ $exp == $got ]] || err_exit "last command exec optimization in virtual subshells is broken" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 cat >script <<\EOF
 echo $$
