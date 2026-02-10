@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2026-02-07
+version=2026-02-10
 
 # DEFPATH should be inherited from package(1)
 case $DEFPATH in
@@ -469,20 +469,9 @@ checkcc()
 execute()
 {
 	case $verbose in
-	0)	noteout=$nullout ;;
-	*)	noteout=$stderr ;;
+	0)	"$@" 9>&$nullout ;;
+	*)	"$@" 9>&$stderr ;;
 	esac
-	if	test "" != "$cross"
-	then	crossexec $cross "$@" 9>&$noteout
-		_execute_=$?
-	elif	test -d /NextDeveloper
-	then	"$@" <&$nullin >&$nullout 9>&$noteout
-		_execute_=$?
-		"$@" <&$nullin | cat
-	else	"$@" 9>&$noteout
-		_execute_=$?
-	fi
-	return $_execute_
 }
 
 exclude()
@@ -533,7 +522,6 @@ define=1
 explicit=0
 iff=
 usr=
-cross=
 debug=0
 deflib=
 dir=FEATURE
@@ -667,16 +655,6 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 	are defined \b1\b.]
 [v:verbose?Produce a message line on the standard error for each test as
 	it is performed.]
-[x:cross?Some tests compile an executable (\ba.out\b) and then run it.
-	If the C compiler is a cross compiler and the executable format is
-	incompatible with the execution environment then the generated
-	executables must be run in a different environment, possibly on
-	another host. \acrosstype\a is the HOSTTYPE for generated executables
-	(the \bpackage\b(1) command generates a consistent HOSTTYPE namespace).
-	Generated executables are run via \bcrossexec\b(1) with \acrosstype\a
-	as the first argument. \bcrossexec\b supports remote execution for
-	cross-compiled executables. See \bcrossexec\b(1) for
-	details.]:[crosstype]
 [X:exclude?Removes \b-I\b\adir\a and \b-I\b*/\adir\a C compiler flags.]:[dir]
 
 [ - ] [ file.iffe | statement [ : statement ... ] ]
@@ -892,8 +870,8 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 	block names are:]{
 	[+cat?The block is copied to the output file.]
 	[+compile?The block is compiled (\bcc -c\b).]
-	[+cross?The block is executed as a shell script using \bcrossexec\b(1)
-		if \b--cross\b is on, or on the local host otherwise, and the
+	[+cross?Deprecated. The block is executed
+		as a shell script on the local host, and the
 		output is copied to the output file. Test macros are not
 		exported to the script.]
 	[+execute?The block is compiled, linked, and executed. \b0\b exit
@@ -933,7 +911,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 		\b{\b ... \b}\b.  Deprecated: use { \bif\b \belif\b \belse\b
 		\bendif\b } with unnamed \b{\b ... \b}\b blocks.]
 }
-[+SEE ALSO?\bautoconf\b(1), \bconfig\b(1), \bgetconf\b(1), \bcrossexec\b(1),
+[+SEE ALSO?\bautoconf\b(1), \bconfig\b(1), \bgetconf\b(1),
 	\bpackage\b(1), \bsh\b(1)]
 '
 	while	getopts -a "$command" "$USAGE" OPT
@@ -960,7 +938,6 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 		O)	set="$set set stdio $OPTARG :" ;;
 		u)	set="$set set undef :" ;;
 		v)	set="$set set verbose :" ;;
-		x)	set="$set set cross $OPTARG :" ;;
 		X)	set="$set set exclude $OPTARG :" ;;
 		esac
 	done
@@ -983,9 +960,6 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 			;;
 		--co|--con|--conf|--confi|--config)
 			REM=C
-			;;
-		--cr=*|--cro=*|--cros=*|--cross=*)
-			REM=x$(echo X$1 | sed -e 's,[^=]*=,,')
 			;;
 		--d=*|--de=*|--deb=*|--debu=*|--debug=*)
 			REM=d$(echo X$1 | sed 's,[^=]*=,,')
@@ -1097,11 +1071,10 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 			O)	set="$set set stdio $OPTARG :" ;;
 			u)	set="$set set undef :" ;;
 			v)	set="$set set verbose :" ;;
-			x)	set="$set set cross $OPTARG :" ;;
 			X)	set="$set set exclude $OPTARG :" ;;
 			*)	echo "Usage: $command [-aCDEnpruv] [-c C-compiler-name [C-compiler-flags ...]] [-d level]
 	    [-F features-header] [-i file] [-o file] [-O stdio-header] [-e name] [-P text]
-	    [-s shell-path] [-S[flags]] [-x cross-exec-prefix] [-I dir] [-L dir] [-X dir] [ - ]
+	    [-s shell-path] [-S[flags]] [-I dir] [-L dir] [-X dir] [ - ]
 	    [ file.iffe | statement [ : statement ... ] ]" >&2
 				exit 2
 				;;
@@ -1398,7 +1371,6 @@ do	case $in in
 				O)	op=stdio ;;
 				u)	op=undef ;;
 				v)	op=verbose ;;
-				x)	op=cross ;;
 				X)	op=exclude ;;
 				esac
 				;;
@@ -1452,12 +1424,6 @@ do	case $in in
 			continue
 			;;
 		config)	config=1
-			continue
-			;;
-		cross)	case $arg in
-			""|-)	cross= ;;
-			*)	cross="$arg" libpaths= ;;
-			esac
 			continue
 			;;
 		debug)	debug=$arg
