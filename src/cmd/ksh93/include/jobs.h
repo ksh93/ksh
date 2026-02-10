@@ -31,11 +31,11 @@
 #ifndef SIGINT
 #   include	<signal.h>
 #endif /* !SIGINT */
-#include	"terminal.h"
 #if !_std_atomic
 #   include	<aso.h>
 #   define	atomic_uint uint32_t
 #endif
+#include	"terminal.h"
 
 #ifndef SIGCHLD
 #   error ksh 93u+m requires SIGCHLD
