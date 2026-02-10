@@ -18,7 +18,9 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * access() EUID/EGID implementation
+ * AST eaccess() implementation
+ * Uses POSIX faccessat() for better portability and performance
+ * Fallbacks include native eaccess(), euidaccess(), EFF_ONLY_OK, and a custom implementation
  */
 
 #include <ast.h>
@@ -26,19 +28,21 @@
 
 #include "FEATURE/eaccess"
 
-#if _lib_eaccess
+#if _lib_eaccess && !_lib_faccessat
+#undef eaccess
+extern int eaccess(const char* path, int flags);
+#endif
 
-NoN(eaccess)
-
-#else
-
-extern int
-eaccess(const char* path, int flags)
+int
+_ast_eaccess(const char* path, int flags)
 {
-#ifdef EFF_ONLY_OK
+#if _lib_faccessat && defined(AT_EACCESS)
+	return faccessat(AT_FDCWD, path, flags, AT_EACCESS);
+#elif _lib_eaccess
+	return eaccess(path, flags);
+#elif defined(EFF_ONLY_OK)
 	return access(path, flags|EFF_ONLY_OK);
-#else
-#if _lib_euidaccess
+#elif _lib_euidaccess
 	return euidaccess(path, flags);
 #else
 	int		mode;
@@ -125,7 +129,4 @@ eaccess(const char* path, int flags)
 	errno = EACCES;
 	return -1;
 #endif
-#endif
 }
-
-#endif
