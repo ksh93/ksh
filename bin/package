@@ -112,7 +112,7 @@ export TMPDIR
 
 src="cmd contrib etc lib"
 use="/usr/common /exp /usr/local /usr/add-on /usr/addon /usr/tools /usr /opt"
-usr="/home"
+usr="/home /Users"
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
 env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH DEFPATH FPATH MANPATH"
@@ -120,8 +120,6 @@ env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH DEFPATH FPATH MANPATH"
 package_use='=$HOSTTYPE=$PACKAGEROOT=$INSTALLROOT=$EXECROOT=$CC='
 
 MAKESKIP=${MAKESKIP:-"*[-.]*"}
-
-all_types='*.*|sun4'		# all but sun4 match *.*
 
 command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
@@ -270,22 +268,15 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     is done in the architecture specific view; no source view files are
     intentionally changed. This means that many different binary
     architectures can be made from a single copy of the source.]
-[+?Independent \b$PACKAGEROOT\b hierarchies can be combined by
-    appending \b$INSTALLROOT:$PACKAGEROOT\b pairs to \bVPATH\b. The
-    \bVPATH\b viewing order is from left to right.]
 [+?\b$HOSTTYPE\b names the current binary architecture and is determined
     by the output of \b'$command$'\b (no arguments). The \b$HOSTTYPE\b naming
     scheme is used to separate incompatible executable and object formats.
     All architecture specific binaries are placed under \b$INSTALLROOT\b
     (\b$PACKAGEROOT/arch/$HOSTTYPE\b). There are a few places that match
-    against \b$HOSTTYPE\b when making binaries; these are limited to
-    makefile compiler workarounds, e.g., if \b$HOSTTYPE\b matches \bhp.*\b
-    then turn off the optimizer for these objects. All other architecture
-    dependent logic is handled either by the \bAST\b \biffe\b(1) command or
-    by component specific configure scripts. Explicit \b$HOSTTYPE\b
-    values matching *,*cc*[,-*,...]] optionally set the default \bCC\b and
-    \bCCFLAGS\b. This is handy for build farms that support different
-    compilers on the same architecture.]
+    against \b$HOSTTYPE\b when making binaries, such as the code for linking
+    shared libraries. All other architecture-dependent logic is handled
+    either by the \bAST\b \biffe\b(1) command or by component-specific
+    configure scripts.]
 [+?Each component contains a \bMAM\b (make abstract machine)
     file (\bMamfile\b). A Mamfile contains a portable makefile description
     written in a simple dependency tree language using indented
@@ -531,22 +522,14 @@ DETAILS
   source view files are intentionally changed. This means that many different
   binary architectures can be made from a single copy of the source.
 
-  Independent $PACKAGEROOT hierarchies can be combined by appending
-  $INSTALLROOT:$PACKAGEROOT pairs to VPATH. The VPATH viewing order is from
-  left to right.
-
   $HOSTTYPE names the current binary architecture and is determined by the
   output of package (no arguments). The $HOSTTYPE naming scheme is used to
   separate incompatible executable and object formats. All architecture
   specific binaries are placed under $INSTALLROOT
   ($PACKAGEROOT/arch/$HOSTTYPE). There are a few places that match against
-  $HOSTTYPE when making binaries; these are limited to makefile compiler
-  workarounds, e.g., if $HOSTTYPE matches hp.* then turn off the optimizer for
-  these objects. All other architecture dependent logic is handled either by
-  the AST iffe(1) command or by component specific configure scripts. Explicit
-  $HOSTTYPE values matching *,*cc*[,-*,...] optionally set the default CC and
-  CCFLAGS. This is handy for build farms that support different compilers on
-  the same architecture.
+  $HOSTTYPE when making binaries, such as the code for linking shared
+  libraries. All other architecture-dependent logic is handled either by the
+  AST iffe(1) command or by component-specific configure scripts.
 
   Each component contains a MAM (make abstract machine) file (Mamfile). A
   Mamfile contains a portable makefile description written in a simple
@@ -586,42 +569,6 @@ IMPLEMENTATION
 	global="$global $1"
 	shift
 done
-
-# gather HOSTTYPE *,* options
-# 	,*cc*,-*,...	set CC and CCFLAGS
-
-hostopts()
-{
-	_ifs_=$IFS
-	IFS=,
-	set -- $HOSTTYPE
-	IFS=$_ifs_
-	while	:
-	do	case $# in
-		0|1)	break ;;
-		esac
-		shift
-		case $1 in
-		*cc*)	CC=$1
-			while	:
-			do	case $# in
-				0|1)	break ;;
-				esac
-				case $2 in
-				-*)	case $assign_CCFLAGS in
-					?*)	assign_CCFLAGS="$assign_CCFLAGS " ;;
-					esac
-					assign_CCFLAGS="$assign_CCFLAGS$2"
-					shift
-					;;
-				*)	break
-					;;
-				esac
-			done
-			;;
-		esac
-	done
-}
 
 # collect command line targets and definitions
 
@@ -696,9 +643,6 @@ do	case $i in
 		;;
 	esac
 done
-case $HOSTTYPE in
-*,*)	hostopts $HOSTTYPE ;;
-esac
 case $assign_CCFLAGS in
 ?*)	assign="$assign $assign_CCFLAGS"
 esac
@@ -718,7 +662,7 @@ esac
 
 packageroot() # dir
 {
-	test -d "$1/lib/$command" || test -x "$1/bin/$command"
+	test -f "$1/src/Mamfile" && test -x "$1/bin/$command"
 }
 
 # true if arg is executable
@@ -861,7 +805,7 @@ hostinfo() # attribute ...
 				break
 				;;
 			esac
-			shift;shift
+			shift 2
 		done
 		case $cpu in
 		0|1)	set						\
@@ -904,7 +848,7 @@ hostinfo() # attribute ...
 					break
 					;;
 				esac
-				shift;shift
+				shift 2
 			done
 			;;
 		esac
@@ -931,7 +875,7 @@ hostinfo() # attribute ...
 					break
 					;;
 				esac
-				shift;shift;shift
+				shift 3
 			done
 			;;
 		esac
@@ -1165,7 +1109,7 @@ int main(void)
 					esac
 					break
 				fi
-				shift;shift;shift;shift
+				shift 4
 			done
 			;;
 		esac
@@ -1593,7 +1537,7 @@ int b(void) { return 0; }
 		do	case $# in
 			[012])	break ;;
 			esac
-			shift;shift
+			shift 2
 			eval "	case \$type in
 				$1)	type=\$2; break ;;
 				esac"
@@ -1911,7 +1855,7 @@ case $x in
 				shift
 				;;
 			esac
-			run="$@"
+			run="$*"
 			;;
 		esac
 		case $PACKAGEROOT in
@@ -2159,7 +2103,7 @@ use:-)	eval "set -- $args"
 	0)	;;
 	*)	shift ;;
 	esac
-	run="$@"
+	run="$*"
 	;;
 esac
 
