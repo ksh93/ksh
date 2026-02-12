@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -530,7 +530,7 @@ static void p_redirect(const struct ionod *iop)
 		else if(iof&IORAW)
 			sfputr(outfile,sh_fmtq(iop->ioname),endc);
 		else
-			sfputr(outfile,iop->ioname,iof);
+			sfputr(outfile,iop->ioname,endc);
 		if((iof&IOLSEEK) && (iof&IOARITH))
 			sfputr(outfile, "))", endc2);
 	}

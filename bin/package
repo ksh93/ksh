@@ -112,25 +112,20 @@ export TMPDIR
 
 src="cmd contrib etc lib"
 use="/usr/common /exp /usr/local /usr/add-on /usr/addon /usr/tools /usr /opt"
-usr="/home"
+usr="/home /Users"
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
-makefiles="Mamfile"  # ksh 93u+m no longer uses these: Nmakefile nmakefile Makefile makefile
 env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH DEFPATH FPATH MANPATH"
 
 package_use='=$HOSTTYPE=$PACKAGEROOT=$INSTALLROOT=$EXECROOT=$CC='
 
-CROSS=0
-
 MAKESKIP=${MAKESKIP:-"*[-.]*"}
-
-all_types='*.*|sun4'		# all but sun4 match *.*
 
 command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-01-21 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-02-10 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -273,22 +268,15 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     is done in the architecture specific view; no source view files are
     intentionally changed. This means that many different binary
     architectures can be made from a single copy of the source.]
-[+?Independent \b$PACKAGEROOT\b hierarchies can be combined by
-    appending \b$INSTALLROOT:$PACKAGEROOT\b pairs to \bVPATH\b. The
-    \bVPATH\b viewing order is from left to right.]
 [+?\b$HOSTTYPE\b names the current binary architecture and is determined
     by the output of \b'$command$'\b (no arguments). The \b$HOSTTYPE\b naming
     scheme is used to separate incompatible executable and object formats.
     All architecture specific binaries are placed under \b$INSTALLROOT\b
     (\b$PACKAGEROOT/arch/$HOSTTYPE\b). There are a few places that match
-    against \b$HOSTTYPE\b when making binaries; these are limited to
-    makefile compiler workarounds, e.g., if \b$HOSTTYPE\b matches \bhp.*\b
-    then turn off the optimizer for these objects. All other architecture
-    dependent logic is handled either by the \bAST\b \biffe\b(1) command or
-    by component specific configure scripts. Explicit \b$HOSTTYPE\b
-    values matching *,*cc*[,-*,...]] optionally set the default \bCC\b and
-    \bCCFLAGS\b. This is handy for build farms that support different
-    compilers on the same architecture.]
+    against \b$HOSTTYPE\b when making binaries, such as the code for linking
+    shared libraries. All other architecture-dependent logic is handled
+    either by the \bAST\b \biffe\b(1) command or by component-specific
+    configure scripts.]
 [+?Each component contains a \bMAM\b (make abstract machine)
     file (\bMamfile\b). A Mamfile contains a portable makefile description
     written in a simple dependency tree language using indented
@@ -530,22 +518,14 @@ DETAILS
   source view files are intentionally changed. This means that many different
   binary architectures can be made from a single copy of the source.
 
-  Independent $PACKAGEROOT hierarchies can be combined by appending
-  $INSTALLROOT:$PACKAGEROOT pairs to VPATH. The VPATH viewing order is from
-  left to right.
-
   $HOSTTYPE names the current binary architecture and is determined by the
   output of package (no arguments). The $HOSTTYPE naming scheme is used to
   separate incompatible executable and object formats. All architecture
   specific binaries are placed under $INSTALLROOT
   ($PACKAGEROOT/arch/$HOSTTYPE). There are a few places that match against
-  $HOSTTYPE when making binaries; these are limited to makefile compiler
-  workarounds, e.g., if $HOSTTYPE matches hp.* then turn off the optimizer for
-  these objects. All other architecture dependent logic is handled either by
-  the AST iffe(1) command or by component specific configure scripts. Explicit
-  $HOSTTYPE values matching *,*cc*[,-*,...] optionally set the default CC and
-  CCFLAGS. This is handy for build farms that support different compilers on
-  the same architecture.
+  $HOSTTYPE when making binaries, such as the code for linking shared
+  libraries. All other architecture-dependent logic is handled either by the
+  AST iffe(1) command or by component-specific configure scripts.
 
   Each component contains a MAM (make abstract machine) file (Mamfile). A
   Mamfile contains a portable makefile description written in a simple
@@ -563,7 +543,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2026-01-21
+  version         package (ksh 93u+m) 2026-02-10
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -586,42 +566,6 @@ IMPLEMENTATION
 	shift
 done
 
-# gather HOSTTYPE *,* options
-# 	,*cc*,-*,...	set CC and CCFLAGS
-
-hostopts()
-{
-	_ifs_=$IFS
-	IFS=,
-	set -- $HOSTTYPE
-	IFS=$_ifs_
-	while	:
-	do	case $# in
-		0|1)	break ;;
-		esac
-		shift
-		case $1 in
-		*cc*)	CC=$1
-			while	:
-			do	case $# in
-				0|1)	break ;;
-				esac
-				case $2 in
-				-*)	case $assign_CCFLAGS in
-					?*)	assign_CCFLAGS="$assign_CCFLAGS " ;;
-					esac
-					assign_CCFLAGS="$assign_CCFLAGS$2"
-					shift
-					;;
-				*)	break
-					;;
-				esac
-			done
-			;;
-		esac
-	done
-}
-
 # collect command line targets and definitions
 
 case $_PACKAGE_HOSTTYPE_ in
@@ -633,7 +577,6 @@ case $_PACKAGE_HOSTTYPE_ in
 esac
 KEEP_PACKAGEROOT=0
 KEEP_SHELL=0	# set to 1 if SHELL is a known-good system shell, 2 if SHELL supplied by user
-USER_VPATH=
 args=
 assign=
 assign_CCFLAGS=
@@ -696,9 +639,6 @@ do	case $i in
 		;;
 	esac
 done
-case $HOSTTYPE in
-*,*)	hostopts $HOSTTYPE ;;
-esac
 case $assign_CCFLAGS in
 ?*)	assign="$assign $assign_CCFLAGS"
 esac
@@ -718,7 +658,7 @@ esac
 
 packageroot() # dir
 {
-	test -d "$1/lib/$command" || test -x "$1/bin/$command"
+	test -f "$1/src/Mamfile" && test -x "$1/bin/$command"
 }
 
 # true if arg is executable
@@ -861,7 +801,7 @@ hostinfo() # attribute ...
 				break
 				;;
 			esac
-			shift;shift
+			shift 2
 		done
 		case $cpu in
 		0|1)	set						\
@@ -904,7 +844,7 @@ hostinfo() # attribute ...
 					break
 					;;
 				esac
-				shift;shift
+				shift 2
 			done
 			;;
 		esac
@@ -931,7 +871,7 @@ hostinfo() # attribute ...
 					break
 					;;
 				esac
-				shift;shift;shift
+				shift 3
 			done
 			;;
 		esac
@@ -969,8 +909,8 @@ int main(void)
 		_hostinfo_="$_hostinfo_ $_name_"
 		;;
 	type|canon)
-		case $CROSS:$canon in
-		0:)	case $cc in
+		case $canon in
+		'')	case $cc in
 			cc)	case $KEEP_HOSTTYPE:$HOSTTYPE in
 				0:?*)	if	test -d ${PACKAGEROOT:-.}/arch/$HOSTTYPE
 					then	KEEP_HOSTTYPE=1
@@ -1165,7 +1105,7 @@ int main(void)
 					esac
 					break
 				fi
-				shift;shift;shift;shift
+				shift 4
 			done
 			;;
 		esac
@@ -1593,7 +1533,7 @@ int b(void) { return 0; }
 		do	case $# in
 			[012])	break ;;
 			esac
-			shift;shift
+			shift 2
 			eval "	case \$type in
 				$1)	type=\$2; break ;;
 				esac"
@@ -1652,6 +1592,9 @@ checkcc()
 				cc=$_onpath_
 			elif	onpath gcc
 			then	CC=gcc
+				cc=$_onpath_
+			elif	onpath tcc  # tinycc
+			then	CC=tcc
 				cc=$_onpath_
 			fi
 			;;
@@ -1743,11 +1686,13 @@ DEFPATH=$(
 ) || DEFPATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Fix for Android/Termux. The /bin directory exists with standard
 # utilities (sh, Toybox utils) but it is not included in _PATH_DEFPATH.
-# It should come first because /bin is read-only.
+# However, Android is so buggy that some stuff in /bin is broken (e.g.,
+# invoking /bin/df produces a syntax error from the shell). Let /bin come
+# last so broken binaries can be overridden.
 if	test -d /data/data/com.termux && test "$(/bin/uname -o 2>/dev/null)" = Android
 then	case ":$DEFPATH:" in
 	*:/bin:* ) ;;
-	* )	DEFPATH=/bin:$DEFPATH ;;
+	* )	DEFPATH=$DEFPATH:/bin ;;
 	esac
 fi
 # Fix for NixOS. Not all POSIX standard utilities come with the default system,
@@ -1908,7 +1853,7 @@ case $x in
 				shift
 				;;
 			esac
-			run="$@"
+			run="$*"
 			;;
 		esac
 		case $PACKAGEROOT in
@@ -2020,142 +1965,101 @@ case $x in
 		done
 		;;
 	esac
-	path=$PATH
-	PATH=$INSTALLROOT/bin:$PACKAGEROOT/bin:$PATH
 	checkcc
-	PATH=$path
 	case $cc in
-	?*)	if	test -f $INITROOT/hello.c
-		then
-			# check if $CC (full path $cc) is a cross compiler
-
-			(
-				cd "$TMPDIR" || exit 3
-				cp $INITROOT/hello.c pkg$$.c || exit 3
-				$cc -o pkg$$.exe pkg$$.c > pkg$$.e 2>&1 || {
-					if $cc -Dnew=old -o pkg$$.exe pkg$$.c > /dev/null 2>&1
-					then	err_out "${warn}$CC: must be a C compiler (not C++)"
-					else	cat pkg$$.e
-						err_out "${warn}$CC: failed to compile and link $INITROOT/hello.c -- is it a C compiler?"
-					fi
-				}
-				if ./pkg$$.exe >/dev/null 2>&1
-				then	code=0
-				else	code=1
+	?*)	# check that $CC (full path $cc) is a C compiler that produces executables for the current architecture
+		test -f "$INITROOT/hello.c" || err_out "$INITROOT: INIT source not found"
+		(
+			cd "$TMPDIR" || exit
+			cp $INITROOT/hello.c pkg$$.c || exit
+			trap "set +o noglob; rm -rf pkg$$.*" 0
+			if	! $cc -o pkg$$.exe pkg$$.c >pkg$$.e 2>&1
+			then	if	$cc -Dnew=old -o pkg$$.exe pkg$$.c >/dev/null 2>&1
+				then	err_out "$CC: must be a C compiler (not C++)"
 				fi
-				(set +o noglob; rm -f pkg$$.*)
-				exit $code
-			)
-			code=$?
-			case $code in
-			1)	CROSS=1 ;;
-			esac
-		fi
+				cat pkg$$.e
+				err_out "$CC: failed to compile and link $INITROOT/hello.c -- is it a C compiler?"
+			fi
+			./pkg$$.exe >/dev/null 2>&1 || err_out \
+				"Cross-compiling is not supported. $CC seems to be a cross-compiler." \
+				"If not, your $TMPDIR directory may be mounted without execute permission." \
+				"Try exporting TMPDIR as a directory where you can execute binary files."
+		) || exit
 		;;
 	esac
 	EXECTYPE=$HOSTTYPE
 	EXECROOT=$INSTALLROOT
-	case $CROSS in
-	0)	case $action in
-		test | use)
-			# Allow loading dynamic libraries from $INSTALLROOT/dyn/lib by setting library
-			# path variables for various systems; instead of bothering to detect the system,
-			# just set them all. (Note: not needed and potentially harmful while building.)
-			export LD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-			$show export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+	case $action in
+	test | use)
+		# Allow loading dynamic libraries from $INSTALLROOT/dyn/lib by setting library
+		# path variables for various systems; instead of bothering to detect the system,
+		# just set them all. (Note: not needed and potentially harmful while building.)
+		export LD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+		$show export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
-			case $LIBPATH in
-			'')	LIBPATH=/usr/lib:/lib ;;
-			esac
-			export LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
-			$show export LIBPATH=$LIBPATH
+		case $LIBPATH in
+		'')	LIBPATH=/usr/lib:/lib ;;
+		esac
+		export LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
+		$show export LIBPATH=$LIBPATH
 
-			export SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
-			$show export SHLIB_PATH=$SHLIB_PATH
+		export SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
+		$show export SHLIB_PATH=$SHLIB_PATH
 
-			export DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
-			$show export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
+		export DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
+		$show export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
 
-			# dynamic library search path for gcc and clang; also used for runtime linking on Haiku
-			export LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
-			$show export LIBRARY_PATH=$LIBRARY_PATH
-			;;
-		esac
-		case $action in
-		use)
-			# Include header search path for gcc and clang. Allows skipping '-I ~ast/include/ast'
-			# when compiling a test program from the command line in a 'package use' environment.
-			export C_INCLUDE_PATH=$INSTALLROOT/include/ast${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}
-			$show export C_INCLUDE_PATH=$C_INCLUDE_PATH
-			;;
-		esac
-
-		# now set up PATH
-		#
-		# NOTE: PACKAGEROOT==INSTALLROOT is possible for binary installations
-
-		case $PATH: in
-		$PACKAGEROOT/bin:*)
-			;;
-		*)	PATH=$PACKAGEROOT/bin:$PATH
-			;;
-		esac
-		case $PATH: in
-		$INSTALLROOT/bin:*)
-			;;
-		*)	PATH=$INSTALLROOT/bin:$PATH
-			test -n "${MANPATH+s}" && MANPATH=$INSTALLROOT/man:$MANPATH
-			;;
-		esac
-		case $PATH: in
-		$INSTALLROOT/dyn/bin:*)
-			;;
-		*)	PATH=$INSTALLROOT/dyn/bin:$PATH
-			;;
-		esac
-		case $FPATH: in
-		$INSTALLROOT/fun:*)
-			;;
-		*)	FPATH=$INSTALLROOT/fun${FPATH:+:$FPATH}
-			;;
-		esac
-		$show "export PATH=$PATH"
-		export PATH
-		$show "export FPATH=$FPATH"
-		export FPATH
-		if	test -n "${MANPATH+s}"
-		then	export MANPATH
-			$show "export MANPATH=$PATH"
-		fi
-		;;
-	*)	for i in package
-		do	if	onpath $i
-			then	EXECROOT=$(echo $_onpath_ | sed -e 's,//*[^/]*//*[^/]*$,,')
-				EXECTYPE=$(echo $EXECROOT | sed -e 's,.*/,,')
-				break
-			fi
-		done
-		case $HOSTTYPE in
-		$EXECTYPE)
-			OCC=$CC
-			CC=cc
-			hostinfo type
-			EXECTYPE=$_hostinfo_
-			case $HOSTTYPE in
-			$EXECTYPE)
-				err_out "$CC seems to be a cross-compiler." \
-					"Set HOSTTYPE to something other than the native $EXECTYPE." \
-					"If not, your $TMPDIR directory may be mounted without execute permission." \
-					"Try exporting TMPDIR as a directory where you can execute binary files."
-				;;
-			esac
-			;;
-		esac
-		$show EXECTYPE=$EXECTYPE
-		$show export EXECTYPE
-		export EXECTYPE
+		# dynamic library search path for gcc and clang; also used for runtime linking on Haiku
+		export LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
+		$show export LIBRARY_PATH=$LIBRARY_PATH
 		;;
 	esac
+	case $action in
+	use)
+		# Include header search path for gcc and clang. Allows skipping '-I ~ast/include/ast'
+		# when compiling a test program from the command line in a 'package use' environment.
+		export C_INCLUDE_PATH=$INSTALLROOT/include/ast${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}
+		$show export C_INCLUDE_PATH=$C_INCLUDE_PATH
+		;;
+	esac
+
+	# now set up PATH
+	#
+	# NOTE: PACKAGEROOT==INSTALLROOT is possible for binary installations
+
+	case $PATH: in
+	$PACKAGEROOT/bin:*)
+		;;
+	*)	PATH=$PACKAGEROOT/bin:$PATH
+		;;
+	esac
+	case $PATH: in
+	$INSTALLROOT/bin:*)
+		;;
+	*)	PATH=$INSTALLROOT/bin:$PATH
+		test -n "${MANPATH+s}" && MANPATH=$INSTALLROOT/man:$MANPATH
+		;;
+	esac
+	case $PATH: in
+	$INSTALLROOT/dyn/bin:*)
+		;;
+	*)	PATH=$INSTALLROOT/dyn/bin:$PATH
+		;;
+	esac
+	case $FPATH: in
+	$INSTALLROOT/fun:*)
+		;;
+	*)	FPATH=$INSTALLROOT/fun${FPATH:+:$FPATH}
+		;;
+	esac
+	$show "export PATH=$PATH"
+	export PATH
+	$show "export FPATH=$FPATH"
+	export FPATH
+	if	test -n "${MANPATH+s}"
+	then	export MANPATH
+		$show "export MANPATH=$PATH"
+	fi
 	$show EXECROOT=$EXECROOT
 	$show export EXECROOT
 	export EXECROOT
@@ -2187,50 +2091,6 @@ case $x in
 	# tame the environment
 
 	unset ERROR_OPTIONS ENV _KSHRC_WELCOMED_
-
-	# finalize the views
-
-	case $USER_VPATH in
-	'')	case $VPATH in
-		?*)	IFS=':'
-			set -- $VPATH
-			IFS=$ifs
-			USER_VPATH=
-			for i
-			do	case $i in
-				*/arch/$HOSTTYPE)	;;
-				*/arch/*/*)		;;
-				*/arch/*)		continue ;;
-				esac
-				if	packageroot $i
-				then	case $USER_VPATH in
-					'')	USER_VPATH=$i ;;
-					?*)	USER_VPATH=$USER_VPATH:$i ;;
-					esac
-				fi
-			done
-		esac
-		;;
-	esac
-	case $USER_VPATH in
-	?*)	IFS=':'
-		set -- $USER_VPATH
-		IFS=$ifs
-		USER_VPATH=
-		USER_VPATH_CHAIN=
-		p=$PACKAGEROOT
-		for i
-		do	case $i in
-			''|$PACKAGEROOT|$INSTALLROOT)
-				;;
-			?*)	USER_VPATH=$USER_VPATH:$i
-				USER_VPATH_CHAIN="$USER_VPATH_CHAIN $p $i"
-				p=$i
-				;;
-			esac
-		done
-		;;
-	esac
 	;;
 esac
 
@@ -2241,7 +2101,7 @@ use:-)	eval "set -- $args"
 	0)	;;
 	*)	shift ;;
 	esac
-	run="$@"
+	run="$*"
 	;;
 esac
 
@@ -2251,103 +2111,12 @@ if	test -r $INSTALLROOT/lib/package/profile
 then	. $INSTALLROOT/lib/package/profile
 fi
 
-# more Cygwin hassles
-
-case $HOSTTYPE in
-cygwin.*)
-	lose=
-	case $CYGWIN in
-	*nontsec*)
-		lose=ntsec
-		;;
-	*ntsec*);;
-	*)	exe=$TMPDIR/pkg$$.exe
-		rm -f "$exe"
-		: > "$exe"
-		if	test -x "$exe"
-		then	lose=ntsec
-		fi
-		;;
-	esac
-	case $CYGWIN in
-	*nobinmode*)
-		case $lose in
-		'')	lose=binmode ;;
-		*)	lose="$lose binmode" ;;
-		esac
-		;;
-	esac
-	case $lose in
-	?*)	err_out "$HOSTTYPE: export '$lose' in CYGWIN or languish in Windows"
-		;;
-	esac
-	;;
-esac
-
 # set up the view state
 
-VIEW_bin=$INSTALLROOT VIEW_src=$PACKAGEROOT VIEW_all="$INSTALLROOT $PACKAGEROOT"
-VPATH=$INSTALLROOT:$PACKAGEROOT$USER_VPATH
+VPATH=$INSTALLROOT:$PACKAGEROOT
 $show VPATH=$VPATH
 $show export VPATH
 export VPATH
-IFS=':'
-set -- $VPATH
-IFS=$ifs
-for i
-do	case $i in
-	*/arch/*/*)
-		VIEW_src="$VIEW_src $i"
-		;;
-	*/arch/*)
-		VIEW_bin="$VIEW_bin $i"
-		;;
-	*)
-		VIEW_src="$VIEW_src $i"
-		;;
-	esac
-	VIEW_all="$VIEW_all $i"
-done
-
-# return 0 if arg in src|bin|all view
-
-view() # [test] [-|type] [src|bin|all] file
-{
-	case $1 in
-	-[dfsx])_view_T_=$1; shift ;;
-	*)	_view_T_=-f ;;
-	esac
-	case $1 in
-	-)	_view_t_= ;;
-	*)	_view_t_=$1 ;;
-	esac
-	shift
-	case $1 in
-	all)	shift; _view_v_=$VIEW_all ;;
-	bin)	shift; _view_v_=$VIEW_bin ;;
-	src)	shift; _view_v_=$VIEW_src ;;
-	*)	_view_v_=$VIEW_all ;;
-	esac
-	case $1 in
-	/*)	if	test $_view_T_ $1
-		then	_view_=$1
-			return 0
-		fi
-		;;
-	*)	for _view_d_ in $_view_v_
-		do	if	test $_view_T_ $_view_d_/$1
-			then	_view_=$_view_d_/$1
-				return 0
-			fi
-		done
-		;;
-	esac
-	_view_=
-	case $_view_t_ in
-	?*)	note "$1: $_view_t_ not found" ;;
-	esac
-	return 1
-}
 
 # determine the targets
 
@@ -2377,99 +2146,26 @@ done
 
 checkaout()	# cmd ...
 {
-	case $cc in
-	'')	_PACKAGE_cc=0
-		;;
-	*)	_PACKAGE_cc=1
-		test -f "$INITROOT/hello.c" && test -f "$INITROOT/p.c" || {
-			note "$INITROOT: INIT package source not found"
-			return 1
-		}
-
-		for i in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
-		do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || return
-		done
-		;;
-	esac
-	case $_PACKAGE_cc in
-	'')	case $cc in
-		'')	_PACKAGE_cc=0 ;;
-		*)	_PACKAGE_cc=1 ;;
-		esac
-		;;
-	esac
 	for i
-	do	eval j=\$_PACKAGE_AOUT_$i
-		case $j in
-		'')	eval _PACKAGE_AOUT_$i=1 ;;
-		*)	continue ;;
-		esac
-		k=$_PACKAGE_cc
-		if	test -f $INITROOT/$i.c
-		then	k=${k}1
-		else	k=${k}0
-		fi
-		if	executable $EXECROOT/bin/$i
-		then	k=${k}1
-		else	k=${k}0
-		fi
-		: $k : compiler : source : binary :
-		case $k in
-		*00)	view - bin/$i && continue ;;
-		esac
-		case $k in
-		000)	note "$i: not found: download the INIT package $HOSTTYPE binary to continue"
-			return 1
-			;;
-		010)	note "$i: not found: set CC=C-compiler or download the INIT package $HOSTTYPE binary to continue"
-			return 1
-			;;
-		100)	note "$i: not found: download the INIT package source or $HOSTTYPE binary to continue"
-			return 1
-			;;
-		110)	case $CROSS in
-			1)	note "$i: not found: make the local $EXECTYPE binary package before $HOSTTYPE"
-				return 1
-				;;
-			esac
-			;;
-		?01)	: accept binary
-			continue
-			;;
-		011)	: accept binary
-			continue
-			;;
-		??1)	case $CROSS in
-			1)	continue ;;
-			esac
-			;;
-		esac
-		case $(ls -t $INITROOT/$i.c $INSTALLROOT/bin/$i 2>/dev/null) in
-		"$INITROOT/$i.c"*)
-			note "update $INSTALLROOT/bin/$i"
-			if	test ! -d $INSTALLROOT/bin
-			then	for j in arch arch/$HOSTTYPE arch/$HOSTTYPE/bin
-				do	test -d $PACKAGEROOT/$j || $exec mkdir $PACKAGEROOT/$j || return
-				done
-			fi
+	do	if	test ! -e "$INSTALLROOT/bin/$i" || test "$INITROOT/$i.c" -nt "$INSTALLROOT/bin/$i"
+		then	note "update $INSTALLROOT/bin/$i"
+			test -d "$INSTALLROOT/bin" || mkdir -p "$INSTALLROOT/bin"
 			rm -f "$INSTALLROOT/dyn/bin/$i" "$INSTALLROOT/src/lib/libast/$i" &
 			case $HOSTTYPE in
 			cygwin.*)
 				# Windows/Cygwin kills fork(2) after deleting *or* renaming an executable that's in use :-/
 				# To allow relinking the binary against libast later, add a _bootstrap suffix and create
 				# a symlink to it. The symlink can be removed/renamed instead of the _bootstrap binary.
-				$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/${i}_bootstrap" "$INITROOT/$i.c" || return
-				$exec ln -sf "${i}_bootstrap" "$INSTALLROOT/bin/$i" || return
+				$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/${i}_bootstrap" "$INITROOT/$i.c" || exit
+				$exec ln -sf "${i}_bootstrap" "$INSTALLROOT/bin/$i" || exit
 				;;
-			*)	$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/$i" "$INITROOT/$i.c" || return
+			*)	$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/$i" "$INITROOT/$i.c" || exit
 				;;
 			esac
 			test -f $i.o && $exec rm -f $i.o
 			hash -r
-			;;
-		esac
+		fi
 	done
-	return 0
 }
 
 
@@ -2573,14 +2269,7 @@ capture() # file command ...
 	esac
 }
 
-make_recurse() # dir
-{
-	for _make_recurse_j in $makefiles
-	do	if	view - $1/$_make_recurse_j
-		then	return
-		fi
-	done
-}
+# the 'install' subcommand
 
 do_install() # dir [ command ... ]
 {
@@ -2685,8 +2374,8 @@ case $action in
 clean|clobber)
 	cd "$PACKAGEROOT" || exit
 	note "cleaning up flat view"
-	# clean up all links with arch dir except bin/package
-	$exec find "arch/$HOSTTYPE" -path "arch/$HOSTTYPE/bin/package" -o -type f -exec "$SHELL" -c '
+	# clean up all links with arch dir
+	$exec find "arch/$HOSTTYPE" -type f -exec "$SHELL" -c '
 		first=y
 		for h					# loop through the PPs
 		do	case $first in
@@ -2791,24 +2480,13 @@ make|view)
 	for i in bin bin/ok bin/ok/lib fun include lib lib/package lib/package/gen src man man/man1 man/man3 man/man8
 	do	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
 	done
-	make_recurse src
-	o= k=
-	for i in $makefiles
-	do	case $o in
-		?*)	o="$o -o" k="$k|" ;;
-		esac
-		o="$o -name $i"
-		k="$k$i"
-	done
-	o="( $o ) -print"
 	for d in $src
 	do	i=src/$d
 		if	test -d $i
 		then	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
-			make_recurse $i
-			for j in $(cd $i; find . $o 2>/dev/null | sed -e 's,^\./,,' -e '/\//!d' -e 's,/[^/]*$,,' | sort -u)
+			for j in $(cd $i; find . -name Mamfile -print 2>/dev/null | sed -e 's,^\./,,' -e '/\//!d' -e 's,/[^/]*$,,' | sort -u)
 			do	case $j in
-				$k|$MAKESKIP) continue ;;
+				Mamfile|$MAKESKIP) continue ;;
 				esac
 				test -d $INSTALLROOT/$i/$j ||
 				$exec mkdir -p $INSTALLROOT/$i/$j || exit
@@ -2979,7 +2657,7 @@ make|view)
 
 	# initialize mamake
 
-	checkaout mamake || exit
+	checkaout mamake
 
 	case $action in
 	view)	exit 0 ;;

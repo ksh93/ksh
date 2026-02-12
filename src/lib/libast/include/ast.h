@@ -449,11 +449,7 @@ extern size_t		utf32toutf8(char*, uint32_t);
  * C library global data symbols not prototyped by <unistd.h>
  */
 
-#if !defined(environ) && defined(__DYNAMIC__)
-#define environ		__DYNAMIC__(environ)
-#else
 extern char**		environ;
-#endif
 
 #include <ast_api.h>
 

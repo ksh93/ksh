@@ -61,14 +61,6 @@ cat{
 	#	define _WINIX		1
 	#endif
 
-	/* dynamic linked library external scope handling */
-	#ifdef __DYNAMIC__
-	#	undef	__DYNAMIC__
-	#	ifndef _DLL
-	#		define _DLL		1
-	#	endif
-	#endif
-
 	#if _std_noreturn
 	#include <stdnoreturn.h>
 	#else
