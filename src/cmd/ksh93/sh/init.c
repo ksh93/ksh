@@ -1837,7 +1837,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 	base_treep = treep = dtopen(&_Nvdisc,Dtoset);
 	for(tp=name_vals;*tp->sh_name;tp++,np++)
 	{
-		if((np->nvname = strrchr(tp->sh_name,'.')) && np->nvname!=((char*)tp->sh_name))
+		if((np->nvname = (char*)strrchr(tp->sh_name,'.')) && np->nvname!=((char*)tp->sh_name))
 			np->nvname++;
 		else
 		{
