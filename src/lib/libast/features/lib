@@ -404,3 +404,14 @@ tst	- output{
 	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
 	exit 1
 }end
+
+tst	macos_strxfrm_bug - note{ macOS strxfrm(3) bug }end execute{
+	#include <string.h>
+	#include <locale.h>
+	int main(void)
+	{
+		if (!setlocale(LC_ALL,"en_GB.UTF-8"))
+			return 1;
+		return !(strxfrm(NULL,"\xC2\xA7",0) == 0);
+	}
+}end
