@@ -39,7 +39,7 @@
 typedef Sfdouble_t (*Math_f)(Sfdouble_t, ...);
 
 extern const Namdisc_t	ENUM_disc;
-static Sfdouble_t	NaN = NAN, Inf = INFINITY, Fun;
+static Sfdouble_t	NaN, Inf, Fun;
 static Namval_t Infnod =
 {
 	{ 0 },
@@ -392,6 +392,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				{
 					if (!Infnod.nvalue)
 					{
+						Inf = INFINITY;
 						Infnod.nvalue = &Inf;
 						nv_onattr(&Infnod,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 					}
@@ -401,6 +402,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				{
 					if (!NaNnod.nvalue)
 					{
+						NaN = NAN;
 						NaNnod.nvalue = &NaN;
 						nv_onattr(&NaNnod,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 					}
