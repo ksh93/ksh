@@ -325,6 +325,7 @@ make install virtual
 	done
 
 	make sh/shcomp.c
+		prev include/builtins.h
 		prev include/terminal.h
 		prev include/shnodes.h
 		prev include/path.h
