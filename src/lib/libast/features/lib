@@ -420,7 +420,7 @@ tst	machine_stack_grows_up - note{ does the machine stack grow up }end execute{
 	static int stack_up(uintptr_t p)
 	{
 		int two = 2;
-		return (uintptr_t)p < (uintptr_t)&two;
+		return p < (uintptr_t)&two;
 	}
 	int main(void)
 	{
