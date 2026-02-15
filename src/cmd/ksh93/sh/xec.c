@@ -3318,7 +3318,7 @@ static void sigreset(int mode)
  * A combined fork/exec which utilizes libast spawnveg(3) for better performance.
  * The spawnveg function will invoke posix_spawn(3) or an equivalent if possible,
  * and will fallback to fork(2) if absolutely necessary. For simple command
- * execution this codepath is prefered because it's always a bit faster than
+ * execution this codepath is preferred because it's always a bit faster than
  * the sh_fork() codepath, even when the underlying system calls it uses wind up
  * being the same.
  */

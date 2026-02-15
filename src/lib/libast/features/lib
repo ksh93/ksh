@@ -414,3 +414,17 @@ tst	macos_strxfrm_bug - note{ macOS strxfrm(3) bug }end execute{
 		return !(strxfrm(NULL,"\xC2\xA7",0) == 0);
 	}
 }end
+
+tst	machine_stack_grows_up - note{ does the machine stack grow up }end execute{
+	#include "FEATURE/common"
+	static int stack_up(uintptr_t p)
+	{
+		int two = 2;
+		return (uintptr_t)p < (uintptr_t)&two;
+	}
+	int main(void)
+	{
+		int one = 1;
+		return stack_up((uintptr_t)&one);
+	}
+}end

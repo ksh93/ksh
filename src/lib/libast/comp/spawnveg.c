@@ -34,6 +34,10 @@
 #include <ast_tty.h>
 #include <ast_fcntl.h>
 
+#if _machine_stack_grows_up
+#undef _lib_clone  /* Don't use clone on systems where the stack grows upwards (lacks testing) */
+#endif
+
 /*
  * Set the SID, PGID and TCPGRP in the child process
  * after forking.

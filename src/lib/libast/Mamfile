@@ -106,6 +106,7 @@ make install virtual
 
 	note * Main feature test for system libraries
 	make FEATURE/lib
+		prev FEATURE/common
 		makp features/lib
 		exec - invoke_iffe %{<}
 	done
