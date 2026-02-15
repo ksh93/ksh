@@ -208,7 +208,6 @@
 #define mbmax()		( ast.mb.cur_max )
 #define mberr()		( ast.mb.tmp_i < 0 )
 
-#define mbcoll()	( ast.mb.xfrm != 0 )
 #define mbwide()	( mbmax() > 1 )
 
 #define mb2wc(w,p,n)	( (*ast.mb.towc)(&w, (char*)(p), n) )
@@ -219,7 +218,6 @@
 #define mbnsize(p,n)	( mbwide() ? (*ast.mb.len)((char*)(p), n) : ((p), 1) )
 #define mbconv(s,w)	( ast.mb.conv ? (*ast.mb.conv)(s,w) : ((*(s)=(w)), 1) )
 #define mbwidth(w)	( ast.mb.width ? (*ast.mb.width)(w) : (w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1) )
-#define mbxfrm(t,f,n)	( mbcoll() ? (*ast.mb.xfrm)((char*)(t), (char*)(f), n) : 0 )
 #define mbalpha(w)	( ast.mb.alpha ? (*ast.mb.alpha)(w) : isalpha((w) & 0xff) )
 
 #else
@@ -227,7 +225,6 @@
 #define mbmax()		1
 #define mberr()		0
 
-#define mbcoll()	0
 #define mbwide()	0
 
 #define mb2wc(w,p,n)	( (w) = *(unsigned char*)(p), 1 )
@@ -237,7 +234,6 @@
 #define mbnsize(p,n)	1
 #define mbconv(s,w)	( (*(s)=(w)), 1 )
 #define mbwidth(w)	( w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1 )
-#define mbxfrm(t,f,n)	0
 #define mbalpha(w)	( isalpha((w) & 0xff) )
 
 #endif /* !AST_NOMULTIBYTE */

@@ -37,8 +37,8 @@ lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
 lib	spawn,spawnve
-lib	strcoll,strlcat,strlcpy
-lib	strmode,strxfrm,strftime,symlink,sysconf,sysinfo
+lib	strlcat,strlcpy
+lib	strmode,strftime,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
 
@@ -356,18 +356,6 @@ std	cleanup note{ stuck with standard _cleanup }end noexecute{
 	extern void _cleanup(void);
 	void _cleanup(void) { _exit(0); }
 	int main(void) { printf("cleanup\n"); exit(1); }
-}end
-
-std	strcoll note{ standard strcoll works }end execute{
-	#include <string.h>
-	#define S	"hello world"
-	int
-	main(void)
-	{
-		char	s[] = S;
-		char	t[] = S;
-		return strcoll(s, t) || strcmp(s, t);
-	}
 }end
 
 std	strtod stdlib.h note{ stuck with standard strtod }end nostatic{
