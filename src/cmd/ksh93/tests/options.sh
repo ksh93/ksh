@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -679,6 +679,41 @@ exp=$'+ true\n+ 1> /dev/null 2>& 1 3>& 1 4>& 3'
 got=$(set --pipefail; "$SHELL" -c 'kill -s PIPE $$' | true; echo $?)
 exp=$(( ${ kill -l PIPE; } + 256 ))
 [[ $got == "$exp" ]] || err_exit "status of signalled process in pipe with pipefail (expected $exp, got $got)"
+unset exp got
+
+# ======
+# ksh -n should flag all obsolete set(1) and alias(1) arguments
+if((SHOPT_VSH)); then
+script=$tmp/setscr.$RANDOM.ksh
+echo 'set -k -n +t	# Obsolete
+set --keyword		# Obsolete
+set --log		# Obsolete
+set -tn			# Obsolete
+set --nobackslashctrl	# Current
+set --trackall		# Obsolete
+set -be			# Current
+set --errexit --nolog	# Obsolete
+set -o keyword		# Obsolete
+set -o backslashctrl -v # Current
+set -o backslashctrl -h # Obsolete
+set -o viraw -m		# Obsolete
+set +o nokeyword +h	# Obsolete
+alias -x foo		# Obsolete
+alias -pt -tx		# Obsolete
+alias -p		# Current
+alias -t -pxt -xp	# Obsolete
+set -eku		# Obsolete
+set -ebku		# Obsolete
+set -o posix -emu	# Current
+set -			# Obsolete
+set +			# Obsolete
+set --			# Current' > "$script"
+exp=20
+got=($(wc -l <(set +x; "$SHELL" -n "$script" 2>&1)))
+[[ ${got[0]} -eq $exp ]] || err_exit "ksh -n is not flagging all instances of obsolete options to set and alias" \
+	"(expected $exp warnings, got ${got[0]} warnings)"
+unset script exp got
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

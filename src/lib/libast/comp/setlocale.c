@@ -95,6 +95,30 @@ header(void)
 
 #if !_lib_strxfrm
 #define strxfrm		0
+#elif _macos_strxfrm_bug
+static size_t
+_ast_strxfrm_workaround(char *s1, const char *s2, size_t n)
+{
+	size_t	r;
+	int	save = errno;
+	errno = 0;
+	r = strxfrm(s1, s2, n);
+	if (errno == 0)
+	{
+		/*
+		 * on some macOS versions, strxfrm may incorrectly return an empty string result;
+		 * fall back to simply copying the string in that case
+		 */
+		if (!r && n && *s2)
+		{
+			strncpy(s1, s2, n);
+			r = strlen(s2);
+		}
+		errno = save;
+	}
+	return r;	
+}
+#define strxfrm		_ast_strxfrm_workaround
 #endif
 
 /*

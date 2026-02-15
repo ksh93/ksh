@@ -2,7 +2,7 @@
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
 #          Copyright (c) 1984-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -49,26 +49,17 @@ shift
 # Setup.
 trap 'set +o noglob; rm -rf mkreq.$$.*' 0
 echo 'int main(void) { return 0; }' > mkreq.$$.c
-
-# Clever hack alert: obtain error message for library not found by trying to
-# link to a library called '*'; the * is presumed repeated in the error message
-# and thus serves as a wildcard for 'case' in try_to_link. This is evidently
-# a workaround for compilers that exit with status 0 (success) on error.
-# TODO: in 2023, is that still a thing at all?
 $allcc -c mkreq.$$.c || exit
-error_msg=$($allcc $ldflags -o mkreq.$$.x mkreq.$$.o -l'*' 2>&1 | sed -e 's/[][()+@?]/#/g')
 
 # Function: try to link the test program with possible extra linker flags.
 try_to_link()
 {
 	_lib=$1
 	shift
-	_out=$( { $allcc ${1+"$@"} $ldflags -o mkreq.$$.x mkreq.$$.o -l${_lib} 2>&1 || echo '' "$error_msg"
-		} | sed -e 's/[][()+@?]/#/g')
-	case ${_out} in
-	*$error_msg*)
-		return 1 ;;
-	esac
+	# Delete any previous test binary (including any OS-specific extra files).
+	test -e mkreq.$$.x && (set +o noglob; rm -rf mkreq.$$.x*)
+	# Try to link.
+	$allcc ${1+"$@"} $ldflags -o mkreq.$$.x mkreq.$$.o -l${_lib} 2>/dev/null || return
 	# To work around possible linker breakage, we have to
 	# actually run the test program, not merely link it.
 	./mkreq.$$.x
