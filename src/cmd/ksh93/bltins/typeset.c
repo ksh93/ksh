@@ -1667,8 +1667,8 @@ static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tda
 	namec = nv_scan(root, nullscan, tp, tp->scanmask, flag&~NV_IARRAY);
 	argv = tp->argnam  = stkalloc(sh.stk,(namec+1)*sizeof(char*));
 	namec = nv_scan(root, pushname, tp, tp->scanmask, flag&~NV_IARRAY);
-	if(mbcoll())
-		strsort(argv,namec,strcoll);
+	if(ast.locale.transform)
+		strsort(argv,namec,ast.locale.collate);
 	if(namec==0 && sh.namespace && nv_dict(sh.namespace)==root)
 	{
 		sfnputc(file,'\t',tp->indent);

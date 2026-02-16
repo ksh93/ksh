@@ -549,9 +549,9 @@ int test_binop(int op,const char *left,const char *right)
 		case TEST_PNE:
 			return !test_strmatch(left, right);
 		case TEST_SGT:
-			return strcoll(left, right) > 0;
+			return ast.locale.collate(left, right) > 0;
 		case TEST_SLT:
-			return strcoll(left, right) < 0;
+			return ast.locale.collate(left, right) < 0;
 		case TEST_SEQ:
 			return strcmp(left, right) == 0;
 		case TEST_SNE:

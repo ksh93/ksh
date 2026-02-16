@@ -55,6 +55,12 @@ typedef struct regsubop_s
 #include <cdt.h>
 #include <stk.h>
 
+#include <ast_release.h>
+#if _AST_release
+#define NDEBUG
+#endif
+#include <assert.h>
+
 #include "regex.h"
 
 #include <ctype.h>

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -306,9 +306,9 @@ int sh_argopts(int argc,char *argv[])
 		if(action==SORT)
 		{
 			if(argc>0)
-				strsort(argv,argc,strcoll);
+				strsort(argv,argc,ast.locale.collate);
 			else
-				strsort(sh.st.dolv+1,sh.st.dolc,strcoll);
+				strsort(sh.st.dolv+1,sh.st.dolc,ast.locale.collate);
 		}
 		if(np)
 			nv_setvec(np,0,argc,argv);
@@ -704,7 +704,7 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 			if(!(argp=nextarg) || (argp->argflag&ARG_MAKE))
 			{
 				if((argn=comargm-comargn)>1)
-					strsort(comargn,argn,strcoll);
+					strsort(comargn,argn,ast.locale.collate);
 				comargm = comargn;
 			}
 			argi++;

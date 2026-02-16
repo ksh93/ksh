@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1031,6 +1031,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 	int		et;
 	Ckey_t		key;
 
+	assert(ast.locale.transform != 0);
 	c = cc = 0;
 	for (;;)
 	{
@@ -1079,7 +1080,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 				for (e = k + bw; k < e; *k++ = *s++);
 		}
 		*k = 0;
-		mbxfrm(ce->beg, key, COLL_KEY_MAX);
+		ast.locale.transform((char*)ce->beg, (const char*)key, COLL_KEY_MAX);
 		if (ep)
 		{
 			k = key;
@@ -1135,7 +1136,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 					for (e = k + ew; k < e; *k++ = *s++);
 			}
 			*k = 0;
-			mbxfrm(ce->end, key, COLL_KEY_MAX);
+			ast.locale.transform((char*)ce->end, (const char*)key, COLL_KEY_MAX);
 			k = key;
 			c = mbchar(k);
 			if (iswupper(c))
@@ -1410,7 +1411,7 @@ bra(Cenv_t* env)
 			inrange = 1;
 		last = c;
 	}
-	if (complicated && mbcoll())
+	if (complicated && ast.locale.transform)
 	{
 		Dt_t*			dt;
 		Cchr_t*			cc;
@@ -1437,7 +1438,7 @@ bra(Cenv_t* env)
 				for (i = 0; i < elementsof(primary) - 1; i++, cc++)
 				{
 					cc->nam[0] = primary[i];
-					mbxfrm(cc->key, cc->nam, COLL_KEY_MAX);
+					ast.locale.transform((char*)cc->key, (const char*)cc->nam, COLL_KEY_MAX);
 					dtinsert(dt, cc);
 				}
 				for (i = 0; i < elementsof(cc->key); i++)
@@ -1610,7 +1611,7 @@ bra(Cenv_t* env)
 						i = 1;
 						for (;;)
 						{
-							mbxfrm(key.key, (char*)pp, COLL_KEY_MAX);
+							ast.locale.transform((char*)key.key, (const char*)pp, COLL_KEY_MAX);
 							if (!(cc = (Cchr_t*)dtsearch(dt, &key)) && !(cc = (Cchr_t*)dtprev(dt, &key)))
 							{
 								if (i)
@@ -1749,7 +1750,7 @@ ccl(Cenv_t* env, int type)
 		env->error = REG_BADESC;
 		return NULL;
 	}
-	if (!mbcoll())
+	if (!ast.locale.transform)
 	{
 		if (!(e = node(env, REX_CLASS, 1, 1, sizeof(Set_t))))
 			return NULL;
