@@ -34,10 +34,6 @@
 #include <ast_tty.h>
 #include <ast_fcntl.h>
 
-#if _machine_stack_grows_up
-#undef _lib_clone  /* Don't use clone on systems where the stack grows upwards (lacks testing) */
-#endif
-
 /*
  * Set the SID, PGID and TCPGRP in the child process
  * after forking.
@@ -155,6 +151,11 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 	pid_t		pid;
 	char		stack[STACK_SIZE];
 	struct cargs	args;
+#if _machine_stack_grows_up
+	void		*stack_top = stack;
+#else
+	void		*stack_top = stack+STACK_SIZE;
+#endif
 
 	args.path = path;
 	args.argv = (char**)argv;
@@ -163,7 +164,7 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 	args.pgid = pgid;
 	args.tcfd = tcfd;
 	sigcritical(SIG_REG_EXEC|SIG_REG_PROC|(tcfd>=0?SIG_REG_TERM:0));
-	pid = clone(exec_process, stack+STACK_SIZE, CLONE_VM|CLONE_VFORK|SIGCHLD, &args);
+	pid = clone(exec_process, stack_top, CLONE_VM|CLONE_VFORK|SIGCHLD, &args);
 	if (pid == -1)
 		args.err = errno;
 	else if (args.err)
