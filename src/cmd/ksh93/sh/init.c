@@ -960,7 +960,7 @@ static char* get_match(Namval_t *np, Namfun_t *fp)
 		free(mp->rval[i]);
 		mp->rval[i] = 0;
 	}
-	mp->rval[i] = (char*)sh_malloc((size_t)n+1);
+	mp->rval[i] = (char*)sh_malloc((size_t)(n+1));
 	mp->lastsub[i] = sub;
 	memcpy(mp->rval[i],val,(size_t)n);
 	mp->rval[i][n] = 0;

@@ -304,7 +304,7 @@ void *stkset(Sfio_t *stream, void *address, ptrdiff_t offset)
 	int frames = 0;
 	ptrdiff_t n;
 	if(!init)
-		stkinit((size_t)offset+1);
+		stkinit((size_t)(offset+1));
 	while(1)
 	{
 		fp = (struct frame*)sp->stkbase;
