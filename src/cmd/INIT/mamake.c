@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2025-05-28"
+#define RELEASE_DATE "2026-02-15"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -1505,9 +1505,9 @@ static void reap(Rule_t *r, int flag)
 		r->logtmp = NULL;
 	}
 	r->pid = 0;
-	check_shellaction(r, p_exitstatus(pstat));
 	assert(state.jobs > 0);
 	state.jobs--;
+	check_shellaction(r, p_exitstatus(pstat));
 }
 
 /*
@@ -1565,8 +1565,8 @@ static int execute_v(Rule_t *r, char **argv)
 		report(-5, argv[2], "exec", NULL);
 		execv(state.shell, argv);
 		if (errno == ENOENT)
-			exit(127);
-		exit(126);
+			_exit(127);
+		_exit(126);
 	}
 	/* parent */
 	/* run job in background if wanted & possible */

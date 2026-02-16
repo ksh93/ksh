@@ -89,12 +89,30 @@ header(void)
 #define mbtowc		0
 #endif
 
-#if !_lib_strcoll
-#define strcoll		0
-#endif
-
-#if !_lib_strxfrm
-#define strxfrm		0
+#if _macos_strxfrm_bug
+static size_t
+_ast_strxfrm_workaround(char *s1, const char *s2, size_t n)
+{
+	size_t	r;
+	int	save = errno;
+	errno = 0;
+	r = strxfrm(s1, s2, n);
+	if (errno == 0)
+	{
+		/*
+		 * on some macOS versions, strxfrm may incorrectly return an empty string result;
+		 * fall back to simply copying the string in that case
+		 */
+		if (!r && n && *s2)
+		{
+			strncpy(s1, s2, n);
+			r = strlen(s2);
+		}
+		errno = save;
+	}
+	return r;	
+}
+#define strxfrm		_ast_strxfrm_workaround
 #endif
 
 /*
@@ -425,23 +443,17 @@ set_collate(Lc_category_t* cp)
 	if (locales[cp->internal]->flags & LC_debug)
 	{
 		ast.locale.collate = debug_strcoll;
-#if !AST_NOMULTIBYTE
-		ast.mb.xfrm = debug_strxfrm;
-#endif /* !AST_NOMULTIBYTE */
+		ast.locale.transform = debug_strxfrm;
 	}
 	else if (locales[cp->internal]->flags & LC_default)
 	{
 		ast.locale.collate = strcmp;
-#if !AST_NOMULTIBYTE
-		ast.mb.xfrm = 0;
-#endif /* !AST_NOMULTIBYTE */
+		ast.locale.transform = 0;  /* check non-0 before calling, or to see if locale-based collection is active */
 	}
 	else
 	{
 		ast.locale.collate = strcoll;
-#if !AST_NOMULTIBYTE
-		ast.mb.xfrm = strxfrm;
-#endif /* !AST_NOMULTIBYTE */
+		ast.locale.transform = strxfrm;
 	}
 	return 0;
 }

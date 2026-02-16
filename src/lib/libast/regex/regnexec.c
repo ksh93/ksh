@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -578,7 +578,8 @@ collelt(Celt_t* ce, char* key, int c, int x)
 {
 	Ckey_t	elt;
 
-	mbxfrm(elt, key, COLL_KEY_MAX);
+	assert(ast.locale.transform != 0);
+	ast.locale.transform((char*)elt, key, COLL_KEY_MAX);
 	for (;; ce++)
 	{
 		switch (ce->typ)
@@ -653,6 +654,7 @@ collmatch(Rex_t* rex, unsigned char* s, unsigned char* e, unsigned char** p)
 	Ckey_t			key;
 	Ckey_t			elt;
 
+	assert(ast.locale.transform != 0);
 	ic = (rex->flags & REG_ICASE);
 	if ((w = MBSIZE(s)) > 1)
 	{
@@ -682,12 +684,12 @@ collmatch(Rex_t* rex, unsigned char* s, unsigned char* e, unsigned char** p)
 				c = s[w];
 				if (!isalpha(c))
 					break;
-				r = mbxfrm(elt, key, COLL_KEY_MAX);
+				r = ast.locale.transform((char*)elt, (const char*)key, COLL_KEY_MAX);
 				if (ic && isupper(c))
 					c = tolower(c);
 				key[w] = c;
 				key[w + 1] = 0;
-				if (mbxfrm(elt, key, COLL_KEY_MAX) != r)
+				if (ast.locale.transform((char*)elt, (const char*)key, COLL_KEY_MAX) != r)
 					break;
 				w++;
 			}

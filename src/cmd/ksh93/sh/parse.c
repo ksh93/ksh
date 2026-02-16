@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -1415,7 +1415,7 @@ static struct argnod *process_sub(Lex_t *lexp,int tok)
 static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 {
 	struct comnod	*t;
-	struct argnod	*argp;
+	struct argnod	*argp, *ap;
 	int		tok;
 	struct argnod	**argtail;
 	struct argnod	**settail;
@@ -1458,7 +1458,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			lexp->assignok = (flag&SH_ASSIGN)?SH_ASSIGN:1;
 			if(assignment)
 			{
-				struct argnod *ap=argp;
+				ap=argp;
 				if(assignment==1)
 				{
 					stkseek(sh.stk,ARGVAL);
@@ -1536,7 +1536,6 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 					type = NV_COMVAR;
 				else if((Namval_t*)t->comnamp >= SYSTYPESET && (Namval_t*)t->comnamp <= SYSTYPESET_END)
 				{
-					struct argnod  *ap;
 					for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
 					{
 						if(*ap->argval!='-')
@@ -1624,11 +1623,30 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		}
 	}
 #endif /* SHOPT_KIA */
-	/* noexec: warn about set - and set -k */
-	if(sh_isoption(SH_NOEXEC) && t->comnamp && (argp = t->comarg.ap->argnxt.ap)
-	&& (Namval_t*)t->comnamp==SYSSET && ((tok = *argp->argval)=='-' || tok=='+')
-	&& (argp->argval[1]==0 || strchr(argp->argval,'k')))
-		errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,sh.inlineno-(lexp->token=='\n'),argp->argval);
+	/* noexec: warn about obsolescent options passed to set and alias */
+	if(sh_isoption(SH_NOEXEC) && t->comnamp)
+	{
+		int lineno = sh.inlineno - (lexp->token == NL);
+		if((Namval_t*)t->comnamp==SYSSET)
+		{
+			char *prev_argval = NULL;
+			for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
+			{
+				if(strmatch(ap->argval,"(*eyword|*og|*rackall|*iraw)|([+-][^-]*[hkt]*)|([+-][hkt]*)|([+-])"))
+				{
+					if(strmatch(prev_argval,"[+-]o"))
+						errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete7,lineno,prev_argval,ap->argval);
+					else
+						errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,lineno,ap->argval);
+				}
+				prev_argval = ap->argval;
+			}
+		}
+		else if((Namval_t*)t->comnamp==SYSALIAS)
+			for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
+				if(strmatch(ap->argval, "-*x*"))
+					errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete8,lineno,ap->argval);
+	}
 	/* expand argument list if possible */
 	if(argno>0 && !(flag&(SH_ARRAY|NV_APPEND)))
 		t->comarg.ap = qscan(t,argno);

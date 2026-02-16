@@ -78,10 +78,10 @@ const struct shtable3 shtab_builtins[] =
 	"source",	NV_BLTIN|BLT_ENV,		bltin(dot_cmd),
 	"return",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
 	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
+	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
 /*
  * Builtins without offset macros in include/builtins.h follow.
  */
-	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
 	"hash",		NV_BLTIN|BLT_ENV,		bltin(alias),
 	"eval",		NV_BLTIN|BLT_ENV|BLT_SPC|BLT_EXIT,bltin(eval),
 	"exit",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
@@ -172,7 +172,7 @@ const char sh_set[] =
 "}"
 "[f?Pathname expansion is disabled.]"
 "[h?Obsolete; no effect.]"
-"[k?All arguments of the form \aname\a\b=\b\avalue\a "
+"[k?Obsolete. All arguments of the form \aname\a\b=\b\avalue\a "
 	"are removed and placed in the variable assignment list for "
 	"the command. Ordinarily, variable assignments must precede "
 	"command arguments.]"
@@ -196,12 +196,14 @@ const char sh_set[] =
 	"It must resolve to one of the following:]"
 	"{"
 		"[+allexport?Equivalent to \b-a\b.]"
+#if SHOPT_ESH || SHOPT_VSH
 		"[+arrowkeysearch?The up and down arrow keys will do a "
 		"reverse search based on the current line.]"
 		"[+backslashctrl?The backslash character \b\\\b escapes the "
 			"next control character in the \bemacs\b built-in "
 			"editor and the next \aerase\a or \akill\a character "
 			"in the \bvi\b built-in editor. On by default.]"
+#endif
 		"[+bgnice?Runs background jobs at lower priorities.]"
 #if SHOPT_BRACEPAT
 		"[+braceexpand?Equivalent to \b-B\b.] "
@@ -249,7 +251,7 @@ const char sh_set[] =
 		"[+ignoreeof?Prevents an interactive shell from exiting on "
 			"reading an end-of-file.]"
 #endif
-		"[+keyword?Equivalent to \b-k\b.]"
+		"[+keyword?Obsolete; equivalent to \b-k\b.]"
 		"[+letoctal?The \blet\b builtin recognizes octal constants "
 			"with leading 0.]"
 		"[+markdirs?A trailing \b/\b is appended to directories "
@@ -272,7 +274,7 @@ const char sh_set[] =
 		"[+privileged?Equivalent to \b-p\b.]"
 		"[+showme?Simple commands preceded by a \b;\b will be traced "
 			"as if \b-x\b were enabled but not executed.]"
-		"[+trackall?Equivalent to \b-h\b.]"
+		"[+trackall?Obsolete; equivalent to \b-h\b (no effect).]"
 		"[+unset?Opposite of \b-u\b.]"
 		"[+verbose?Equivalent to \b-v\b.]"
 #if SHOPT_VSH
@@ -1663,7 +1665,7 @@ const char sh_optksh[] =
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"
 ;
 const char sh_optset[] =
-"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2023-05-18 $\n]"
+"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2026-02-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?set - set/unset options and positional parameters]"
 "[+DESCRIPTION?\bset\b sets or unsets options and positional parameters. "

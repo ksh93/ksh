@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -42,12 +42,9 @@ regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
 	char*			b;
 	char*			x;
 	const char*		t;
-	int			i;
 	int			r;
 	int			term;
 	wchar_t			w;
-	char			xfm[256];
-	char			tmp[sizeof(xfm)];
 
 	if (size < 2 || (term = *s) != '.' && term != '=' || !*++s || *s == term && *(s + 1) == ']')
 		goto nope;
@@ -90,11 +87,17 @@ regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
 	if (b >= x)
 		goto done;
 	*b = 0;
-	for (i = 0; i < r && i < sizeof(tmp) - 1; i++)
-		tmp[i] = '0';
-	tmp[i] = 0;
-	if (mbxfrm(xfm, buf, sizeof(xfm)) >= mbxfrm(xfm, tmp, sizeof(xfm)))
+	if(!ast.locale.transform)
 		goto nope;
+	{
+		char	tmp[256];
+		int	i;
+		for (i = 0; i < r && i < sizeof(tmp) - 1; i++)
+			tmp[i] = '0';
+		tmp[i] = 0;
+		if (ast.locale.transform(NULL, buf, 0) >= ast.locale.transform(NULL, tmp, 0))
+			goto nope;
+	}
 	t = (const char*)buf;
  done:
 	if (r <= size && (char*)t != buf)

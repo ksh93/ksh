@@ -2716,13 +2716,15 @@ make install virtual
 		make regalloc.o
 			make regex/regalloc.c
 				make regex/reglib.h
-					prev std/wctype.h
-					prev std/wchar.h
-					prev std/stdio.h
-					prev include/regex.h
-					prev include/stk.h
-					prev include/cdt.h
 					prev include/ast.h
+					prev include/cdt.h
+					prev include/stk.h
+					prev ast_release.h
+					prev std/assert.h
+					prev include/regex.h
+					prev std/stdio.h
+					prev std/wchar.h
+					prev std/wctype.h
 				done
 			done
 			exec - compile %{<} -Iregex

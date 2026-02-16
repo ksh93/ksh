@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-02-15:
+
+- Fixed a bug in 'ksh -n' that caused the shell to overlook many
+  obsolete options passed to set(1) and alias(1) and incorrectly
+  flag non-obsolete options as obsolete.
+
 2026-02-06:
 
 - Fixed a file descriptor leak introduced in 93u+ 2012-07-27 that occurred
