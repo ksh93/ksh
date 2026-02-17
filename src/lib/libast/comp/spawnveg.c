@@ -151,7 +151,7 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 	pid_t		pid;
 	char		stack[STACK_SIZE];
 	struct cargs	args;
-#if _machine_stack_grows_up
+#if defined(__MACHINE_STACK_GROWS_UP) || defined(__hppa__) || defined(__metag__)
 	void		*stack_top = stack;
 #else
 	void		*stack_top = stack+STACK_SIZE;
