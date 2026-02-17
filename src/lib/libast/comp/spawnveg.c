@@ -52,7 +52,7 @@ static void setup_child(pid_t pgid, int tcfd)
 	}
 	if (tcfd >= 0)
 	{
-		if(pgid == -1)
+		if (pgid == -1)
 			pgid = getpid();
 		tcsetpgrp(tcfd, pgid);
 		signal(SIGTTIN,SIG_DFL);
@@ -81,10 +81,10 @@ static void fork_cleanup(pid_t pid, pid_t pgid, int err)
 
 static noreturn void exit_child(void)
 {
-	if(errno == ENOENT)
+	if (errno == ENOENT)
 		_exit(EXIT_NOTFOUND);
 #ifdef ENAMETOOLONG
-	if(errno == ENAMETOOLONG)
+	if (errno == ENAMETOOLONG)
 		_exit(EXIT_NOTFOUND);
 #endif
 	_exit(EXIT_NOEXEC);
@@ -365,11 +365,11 @@ pid_t
 spawnveg(const char* path, char* const argv[], char* const envv[], pid_t pgid, int tcfd)
 {
 #if !_lib_clone
-	if(tcfd >= 0)
+	if (tcfd >= 0)
 		return spawnveg_slow(path, argv, envv, pgid, tcfd);
 #endif
 #if !_lib_clone && !defined(POSIX_SPAWN_SETSID)
-	if(pgid == -1)
+	if (pgid == -1)
 		return spawnveg_slow(path, argv, envv, pgid, tcfd);
 #endif
 #if _fast_spawnveg

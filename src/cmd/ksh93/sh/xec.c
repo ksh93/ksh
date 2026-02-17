@@ -3401,19 +3401,22 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 	fail:
 		if(jobfork && spawnpid<0)
 			job_fork(-2);
-		if(spawnpid==-1) switch(errno=sh.path_err)
+		if(spawnpid == -1)
 		{
-		    case ENOENT:
-			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
-			UNREACHABLE();
+			switch(errno=sh.path_err)
+			{
+			    case ENOENT:
+				errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
+				UNREACHABLE();
 #ifdef ENAMETOOLONG
-		    case ENAMETOOLONG:
-			errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong+4);
-			UNREACHABLE();
+			    case ENAMETOOLONG:
+				errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong+4);
+				UNREACHABLE();
 #endif
-		    default:
-			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
-			UNREACHABLE();
+			    default:
+				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
+				UNREACHABLE();
+			}
 		}
 		job_unlock();
 	}
@@ -3431,7 +3434,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 		if(jmpval==SH_JMPSCRIPT)
 			nv_setlist(t->com.comset,NV_EXPORT|NV_IDENT|NV_ASSIGN,0);
 	}
-	if((t->com.comio || spawnpid<0) && jmpval && sh.topfd > topfd)
+	if((t->com.comio || spawnpid < 0) && jmpval && sh.topfd > topfd)
 		sh_iorestore(topfd,jmpval);
 	if(jmpval>SH_JMPCMD)
 		siglongjmp(*sh.jmplist,jmpval);

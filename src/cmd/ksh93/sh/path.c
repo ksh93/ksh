@@ -995,11 +995,11 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 		if(sh.subshell)
 			sh_subtmpfile();
 		spawnpid = path_spawn(opath,argv,envp,libpath,0);
-		if(spawnpid==-1)
+		if(spawnpid == -1)
 		{
 			if(sh.path_err == E2BIG)
 				break;
-			else if(sh.path_err!=ENOENT)
+			if(sh.path_err != ENOENT)
 			{
 				/*
 				 * A command was found but it couldn't be executed.
