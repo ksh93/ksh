@@ -87,6 +87,8 @@ static pid_t _spawnveg(const char *path, char* const argv[], char* const envp[],
 		if(pid>=0 || errno!=EAGAIN)
 			break;
 	}
+	if(pid<0 && job.jobcontrol)
+		tcsetpgrp(job.fd,sh.pid);  /* if spawnveg set tcpgrp, we must restore it ourselves */
 	return pid;
 }
 
@@ -993,15 +995,20 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 		if(sh.subshell)
 			sh_subtmpfile();
 		spawnpid = path_spawn(opath,argv,envp,libpath,0);
-		if(spawnpid==-1 && sh.path_err!=ENOENT)
+		if(spawnpid == -1)
 		{
-			/*
-			 * A command was found but it couldn't be executed.
-			 * POSIX specifies that the shell should continue to search for the
-			 * command in PATH and return 126 only when it can't find an executable
-			 * file in other elements of PATH.
-			 */
-			not_executable = sh.path_err;
+			if(sh.path_err == E2BIG)
+				break;
+			if(sh.path_err != ENOENT)
+			{
+				/*
+				 * A command was found but it couldn't be executed.
+				 * POSIX specifies that the shell should continue to search for the
+				 * command in PATH and return 126 only when it can't find an executable
+				 * file in other elements of PATH.
+				 */
+				not_executable = sh.path_err;
+			}
 		}
 		while(pp && (pp->flags&PATH_FPATH))
 			pp = path_nextcomp(pp,arg0,0);
@@ -1258,13 +1265,6 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 	    case EPERM:
 		sh.path_err = errno;
 		return -1;
-	    case ENOTDIR:
-	    case ENOENT:
-	    case EINTR:
-#ifdef EMLINK
-	    case EMLINK:
-#endif /* EMLINK */
-		return -1;
 	    case E2BIG:
 		if(sh_isstate(SH_XARG))
 		{
@@ -1282,10 +1282,10 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 		}
 		/* FALLTHROUGH */
 	    default:
-		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,path);
-		UNREACHABLE();
+		sh.path_err = errno;
+		return -1;
 	}
-	return 0;
+	UNREACHABLE();
 }
 
 /*
