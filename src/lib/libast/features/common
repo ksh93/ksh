@@ -146,7 +146,7 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 	static struct
 	{
 		char*	name;
-		int	size;
+		size_t	size;
 		char*	swap;
 	} int_type[] =
 	{
@@ -159,14 +159,14 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 	#endif
 	};
 
-	static int	int_size[] = { 1, 2, 4, 8 };
+	static size_t	int_size[] = { 1, 2, 4, 8 };
 
 	int
 	main(void)
 	{
-		int	t;
-		int	s;
-		int	m = 1;
+		size_t	t;
+		size_t	s;
+		size_t	m = 1;
 		int	b = 1;
 		int	w = 0;
 
@@ -200,7 +200,7 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 				}
 				else
 	#endif
-				printf("#define _ast_int%d_t		%s\n", m, int_type[t].name);
+				printf("#define _ast_int%zu_t		%s\n", m, int_type[t].name);
 				if (m > 1)
 				{
 					if (*int_type[t].swap)
@@ -209,7 +209,7 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 				}
 			}
 		}
-		printf("#define _ast_intmax_t		_ast_int%d_t\n", m);
+		printf("#define _ast_intmax_t		_ast_int%zu_t\n", m);
 		if (m == sizeof(long))
 			printf("#define _ast_intmax_long		1\n");
 		printf("#define _ast_intswap		%d\n", w);
@@ -234,7 +234,7 @@ tst	- output{
 	static struct
 	{
 		char*	name;
-		int	size;
+		size_t	size;
 		int	cond;
 	} types[] =
 	{
@@ -251,7 +251,7 @@ tst	- output{
 	int
 	main(void)
 	{
-		int	t;
+		size_t	t;
 
 		for (t = 0; t < elementsof(types); t++)
 	#if COND
@@ -265,7 +265,7 @@ tst	- output{
 			}
 			else
 	#endif
-				printf("#define _ast_sizeof_%s%s	%d	/* sizeof(%s) */\n", types[t].name, strlen(types[t].name) < 4 ? "\t" : "", types[t].size, types[t].name);
+				printf("#define _ast_sizeof_%s%s	%zu	/* sizeof(%s) */\n", types[t].name, strlen(types[t].name) < 4 ? "\t" : "", types[t].size, types[t].name);
 		printf("\n");
 		return 0;
 	}
@@ -277,6 +277,7 @@ tst	- output{
 tst note{ generating _ast_flt\*_t types }end output{
 	#define _BYTESEX_H
 
+	#include <stdlib.h>
 	#include <string.h>
 	#include <sys/types.h>
 
@@ -285,7 +286,7 @@ tst note{ generating _ast_flt\*_t types }end output{
 	static struct
 	{
 		char*	name;
-		int	size;
+		size_t	size;
 	} flt_type[] =
 	{
 		"float",	sizeof(float),
@@ -297,8 +298,8 @@ tst note{ generating _ast_flt\*_t types }end output{
 	main(void)
 	{
 		int	t;
-		int	m = 1;
-		int	e = elementsof(flt_type);
+		size_t	m = 1;
+		int	e = (int)elementsof(flt_type);
 		if (flt_type[e - 1].size <= sizeof(double))
 			e--; /* exclude "long double" */
 		else
@@ -315,11 +316,28 @@ tst note{ generating _ast_flt\*_t types }end output{
 			while (t < (e - 1) && flt_type[t].size == flt_type[t + 1].size)
 				t++;
 			m = flt_type[t].size;
-			printf("#define _ast_flt%d_t		%s\n", flt_type[t].size, flt_type[t].name);
+			printf("#define _ast_flt%zu_t		%s\n", flt_type[t].size, flt_type[t].name);
 		}
-		printf("#define _ast_fltmax_t		_ast_flt%d_t\n", m);
+		printf("#define _ast_fltmax_t		_ast_flt%zu_t\n", m);
 		if (m == sizeof(double))
 			printf("#define _ast_fltmax_double		1\n");
+		/*
+		 * Create a typedef for a signed_size_t type (because ssize_t and ptrdiff_t
+		 * are not always the same).
+		 */
+		if (sizeof(int) == sizeof(size_t))
+			printf("typedef int	signed_size_t;\n");
+	#if __STDC_VERSION__ >= 199901L
+		else if (sizeof(long long) == sizeof(size_t))
+			printf("typedef long long	signed_size_t;\n");
+	#endif
+		else if (sizeof(long) == sizeof(size_t))
+			printf("typedef long	signed_size_t;\n");
+		else
+		{
+			printf("Could not generate the type signed_size_t!\n");
+			abort();
+		}
 		return 0;
 	}
 }end fail{

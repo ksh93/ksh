@@ -87,7 +87,7 @@ static inline int posix_andor(char *arg)
 static int test_strmatch(const char *str, const char *pat)
 {
 	ssize_t match[2*(MATCH_MAX+1)],c;
-	ptrdiff_t n;
+	signed_size_t n;
 	size_t m=0;
 	const char *cp=pat;
 	while(c = *cp++)
@@ -103,7 +103,7 @@ static int test_strmatch(const char *str, const char *pat)
 		match[0] = 0;
 	if(m > elementsof(match)/2)
 		m = elementsof(match)/2;
-	n = strgrpmatch(str, pat, match, (ptrdiff_t)m, STR_GROUP|STR_MAXIMAL|STR_LEFT|STR_RIGHT);
+	n = strgrpmatch(str, pat, match, (signed_size_t)m, STR_GROUP|STR_MAXIMAL|STR_LEFT|STR_RIGHT);
 	if(m==0 && n==1)
 		match[1] = (ssize_t)strlen(str);
 	if(n)

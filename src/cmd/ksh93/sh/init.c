@@ -171,8 +171,8 @@ struct match
 	size_t		msize;
 	ptrdiff_t	vsize;
 	ptrdiff_t	vlen;
-	ptrdiff_t	first;
-	ptrdiff_t	nmatch;
+	ssize_t		first;
+	signed_size_t	nmatch;
 	int		index;
 	int		lastsub[2];
 };
@@ -780,7 +780,7 @@ static void put_lastarg(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 static void match2d(struct match *mp)
 {
 	Namval_t	*np;
-	ptrdiff_t	i;
+	signed_size_t	i;
 	Namarr_t	*ap;
 	nv_disc(SH_MATCHNOD, &mp->hdr, NV_POP);
 	if(mp->nodes)
@@ -811,12 +811,12 @@ static void match2d(struct match *mp)
  * store the most recent value for use in .sh.match
  * treat .sh.match as a two dimensional array
  */
-void sh_setmatch(const char *v, ptrdiff_t vsize, ptrdiff_t nmatch, ssize_t match[], int index)
+void sh_setmatch(const char *v, ptrdiff_t vsize, signed_size_t nmatch, ssize_t match[], int index)
 {
 	Init_t		*ip = sh.init_context;
 	struct match	*mp = &ip->SH_MATCH_init;
 	unsigned int	savesub=sh.subshell;
-	ptrdiff_t	i,n;
+	ptrdiff_t	i, n;
 	Namarr_t	*ap = nv_arrayptr(SH_MATCHNOD);
 	Namval_t	*np;
 	if(sh.intrace)
@@ -836,7 +836,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ptrdiff_t nmatch, ssize_t match
 				nv_putsub(np,NULL,mp->index);
 				for(x=mp->index; x >=0; x--)
 				{
-					n = i + x*mp->nmatch;
+					n = i + x*(ptrdiff_t)mp->nmatch;
 					if(mp->match[2*n+1]>mp->match[2*n])
 						nv_putsub(np,Empty,ARRAY_ADD|x);
 				}
@@ -883,7 +883,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ptrdiff_t nmatch, ssize_t match
 		mp->names = mp->nodes + (size_t)mp->nmatch*(NV_MINSZ+sizeof(void*));
 		np = nv_namptr(mp->nodes,0);
 		nv_disc(SH_MATCHNOD,&mp->hdr,NV_LAST);
-		for(i=nmatch; --i>=0;)
+		for(i=(ptrdiff_t)nmatch; --i>=0;)
 		{
 			if(match[2*i]>=0)
 				nv_putsub(SH_MATCHNOD,Empty,ARRAY_ADD|i);
@@ -902,11 +902,11 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ptrdiff_t nmatch, ssize_t match
 		for(n=mp->first+(mp->v-v),vsize=0,i=0; i < 2*nmatch; i++)
 		{
 			if(match[i]>=0 && (match[i] - n) > vsize)
-				vsize = match[i] -n;
+				vsize = (ptrdiff_t)match[i] -n;
 		}
 		index *= 2*mp->nmatch;
-		i = (index+2*mp->nmatch)*(ptrdiff_t)sizeof(match[0]);
-		if(i >= (ptrdiff_t)mp->msize)
+		i = (index+2*(ptrdiff_t)mp->nmatch)*(ptrdiff_t)sizeof(match[0]);
+		if(i >= (signed_size_t)mp->msize)
 			mp->match = sh_realloc(mp->match, mp->msize = 2*(size_t)i);
 		if(vsize >= mp->vsize)
 		{
@@ -933,7 +933,7 @@ static char* get_match(Namval_t *np, Namfun_t *fp)
 {
 	struct match	*mp = (struct match*)fp;
 	int		sub,sub2=0,i=!mp->index;
-	ptrdiff_t	n;
+	signed_size_t	n;
 	char		*val;
 	sub = nv_aindex(SH_MATCHNOD);
 	if(sub<0)
@@ -948,7 +948,7 @@ static char* get_match(Namval_t *np, Namfun_t *fp)
 		return mp->rval[!i];
 	else if(sub==mp->lastsub[i])
 		return mp->rval[i];
-	n = mp->match[2*sub+1]-mp->match[2*sub];
+	n = (signed_size_t)(mp->match[2*sub+1]-mp->match[2*sub]);
 	if(n<=0)
 		return mp->match[2*sub]<0?Empty:"";
 	val = mp->val+mp->match[2*sub];
@@ -1095,7 +1095,7 @@ static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namf
 	Namval_t	*mp,fake;
 	char		*name;
 	int		getname=0;
-	ptrdiff_t 	off=stktell(sh.stk);
+	ptrdiff_t	off=stktell(sh.stk);
 	NOT_USED(fp);
 	fake.nvname = nv_name(np);
 	if(!event)
@@ -1610,7 +1610,7 @@ static Namval_t *create_stat(Namval_t *np,const char *name,int flag,Namfun_t *fp
 	if(!name)
 		return SH_STATS;
 	while((i=*cp++) && i != '=' && i != '+' && i!='[');
-	n = (cp-1) -name;
+	n = (cp-1)-name;
 	for(j=0; j < sp->numnodes; j++)
 	{
 		nq = nv_namptr(sp->nodes,j);
