@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -696,16 +696,65 @@ err=$(
 	"(got $(printf %q "$err"))"
 
 # File descriptor leak after 'command not found' with process substitution as argument
-err=$(
-	ulimit -n 25 || exit 0
+exp=127
+expout=$(
 	set +x
 	PATH=/dev/null
-	for ((i=1; i<10; i++))
-	do	notfound <(:) >(:) 2> /dev/null
+	LINENO=1
+	for ((i=1; i<20; i++))
+	do	notfound
 	done 2>&1
 	exit 0
-) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
-	"(got $(printf %q "$err"))"
+)
+gotout=$(
+	ulimit -n 18 || exit 0
+	set +x
+	PATH=/dev/null
+	LINENO=1
+	for ((i=1; i<20; i++))
+	do	notfound <(:) >(:)
+	done 2>&1
+	exit
+)
+got=$?
+((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
+	"(expected exit status $exp, got status $got)"
+[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
+	$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+
+# Same as above, but also test commands executed with command(1)
+gotout=$(
+	ulimit -n 18 || exit 0
+	set +x
+	PATH=/dev/null
+	LINENO=1
+	for ((i=1; i<20; i++))
+	do	command notfound <(:) >(:)
+	done 2>&1
+	exit
+)
+got=$?
+((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
+	"(expected exit status $exp, got status $got)"
+[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
+	$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+
+# Now test with command -x
+gotout=$(
+	ulimit -n 18 || exit 0
+	set +x
+	PATH=/dev/null
+	LINENO=1
+	for ((i=1; i<20; i++))
+	do	command -x notfound <(:) >(:)
+	done 2>&1
+	exit
+)
+got=$?
+((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
+	"(expected exit status $exp, got status $got)"
+[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
+	$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
 
 got=$(command -x cat <(command -x echo foo) 2>&1) || err_exit "process substitution doesn't work with 'command'" \
 	"(got $(printf %q "$got"))"

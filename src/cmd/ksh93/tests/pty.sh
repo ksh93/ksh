@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1398,6 +1398,19 @@ w false bad rigt wrong
 w print \E3\E_\cBh
 I print
 r right
+!
+
+tst $LINENO << "!"
+L crash after E2BIG due to failed tcpgrp restoration
+
+d 40
+P :test-.:
+w integer savpid=$$
+w "$SHELL"
+w $(type -p true) "$(awk -v ORS= 'BEGIN { for(i=0;i<1000000;i++) print "xx"; }')"
+w ((savpid==$$)); print $?
+I print
+r ^1\r\n$
 !
 
 # ======

@@ -2379,6 +2379,7 @@ make install virtual
 
 		make spawnveg.o
 			make comp/spawnveg.c
+				prev ast_fcntl.h
 				prev ast_tty.h
 				prev sig.h
 				prev include/wait.h

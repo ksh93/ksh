@@ -2,6 +2,18 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-02-17:
+
+- Fixed a regression introduced on 02-02-2022 occurring on systems with
+  glibc 2.35+ that could cause the pty regression tests to crash or lockup.
+
+- Fixed a regression introduced on 02-02-2022 that could cause ksh to crash
+  after a command fails with E2BIG.
+
+- Fixed a bug that caused a file descriptor leak when a command run
+  with the 'command' builtin couldn't be executed due to an error
+  (e.g. ENOENT or E2BIG).
+
 2026-02-15:
 
 - Fixed a bug in 'ksh -n' that caused the shell to overlook many
@@ -18,7 +30,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   directory with fchdir(2).
 
 - [v1.1] Fixed a file descriptor leak that could occur on systems lacking a
-  useable implementation of arc4random(3).
+  usable implementation of arc4random(3).
 
 2026-02-04:
 

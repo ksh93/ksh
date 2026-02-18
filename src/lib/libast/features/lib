@@ -36,7 +36,7 @@ lib	rand_r
 lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
-lib	spawn,spawnve
+lib	clone,spawn,spawnve
 lib	strlcat,strlcpy
 lib	strmode,strftime,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
@@ -245,7 +245,6 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 		_exit(n);
  	}
 }end
-lib	posix_spawn_file_actions_addtcsetpgrp_np
 
 tst	lib_spawn_mode unistd.h stdlib.h note{ first spawn arg is mode and it works }end execute{
 	#include <signal.h>
@@ -378,7 +377,7 @@ tst	- output{
 	int
 	main(void)
 	{
-	#if _lib_posix_spawn || _lib_spawn_mode || _lib_spawn && _hdr_spawn && _mem_pgroup_inheritance
+	#if _lib_posix_spawn || _lib_spawn_mode || _lib_spawn && _hdr_spawn && _mem_pgroup_inheritance || _lib_clone
 		printf("#if !_AST_no_spawnveg\n");
 		printf("#define _use_spawnveg	1\n");
 		printf("#endif\n");
