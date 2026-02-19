@@ -124,10 +124,7 @@ static const char usage[] =
 
 static noreturn void outofmemory(size_t size)
 {
-	if (size)
-		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory (failed to allocate %zu bytes)", size);
-	else
-		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory or vmalloc internal error");
+	error(ERROR_SYSTEM|ERROR_PANIC, "out of memory (failed to allocate %zu bytes)", size);
 	UNREACHABLE();
 }
 

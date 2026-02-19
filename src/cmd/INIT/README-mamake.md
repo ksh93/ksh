@@ -498,7 +498,7 @@ are processed as part of the rule containing the loop.
 The *variable* is restored to its previous state after the loop completes.
 
 Note that `loop` causes repeated reading and processing of Mamfile lines,
-*not* necessarily repeated execution. For instance, a loop can be used to
+*not* repeated execution. For instance, a loop can be used to
 consolidate repetitive `make`...`done` rules. However, each rule is only made
 once and subsequent rules by the same name are an error at strict level 3
 and up, or skipped over at strict < 3. So it only makes sense to do this
@@ -578,7 +578,7 @@ maintain Mamfiles by hand. The following lists the important changes.
 * An iteration block command, `loop`...`done`, has been added.
 * A command to set common code for shell actions, `shim`, has been added.
 * The `bind` command now reads library header dependency rules from a central
-  rules file that is automatically generated for each library by the supplied
+  rules file that each library's Mamfile must generate using the supplied
   `mkdeps` script.
 * Attempting to make a rule that has already been made produces a warning.
 * Attempting to declare a dependency on a rule currently being made produces a warning.

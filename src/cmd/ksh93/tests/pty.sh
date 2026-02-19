@@ -959,9 +959,6 @@ L Ctrl+C with SIGINT ignored
 # https://github.com/ksh93/ksh/issues/343
 # Fix improved on 2024-02-12.
 # Note: without emacs, the Ctrl+C should be echoed as ^C.
-#
-# TODO: a bug in the regex engine seems to make it impossible to match a
-# literal '^' in any way, so we substitute a '.' metacharacter for now.
 
 d 40
 
@@ -972,7 +969,7 @@ p :child-1:
 w trap '' INT
 p :child-2:
 w : lorem\cCipsum
-r ^:child-2: : lorem.Cipsum\r\n$
+r ^:child-2: : lorem\^Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent
@@ -980,7 +977,7 @@ p :test-2:
 w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
 p :child-1:
 w : lorem\cCipsum
-r ^:child-1: : lorem.Cipsum\r\n$
+r ^:child-1: : lorem\^Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent, trapped in child
@@ -990,7 +987,7 @@ p :child-1:
 w trap 'echo test' INT
 p :child-2:
 w : lorem\cCipsum
-r ^:child-2: : lorem.Cipsum\r\n$
+r ^:child-2: : lorem\^Cipsum\r\n$
 w exit
 !
 

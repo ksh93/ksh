@@ -215,24 +215,10 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 				m = "1";
 			b += sfsprintf(b, e - b, cp->canon, m);
 		}
-		else if (cp->ccode == CC_NATIVE)
+		else if (cp->ccode == CC_ASCII)  /* assumes CC_NATIVE == CC_ASCII */
 		{
 			if ((locales[AST_LC_CTYPE]->flags & LC_default) || !locales[AST_LC_CTYPE]->charset || !(m = locales[AST_LC_CTYPE]->charset->code) || streq(m, "iso8859-1"))
-				switch (CC_NATIVE)
-				{
-				case CC_EBCDIC:
-					m = (const char*)"EBCDIC";
-					break;
-				case CC_EBCDIC_I:
-					m = (const char*)"EBCDIC-I";
-					break;
-				case CC_EBCDIC_O:
-					m = (const char*)"EBCDIC-O";
-					break;
-				default:
-					m = (const char*)"ISO-8859-1";
-					break;
-				}
+				m = (const char*)"ISO-8859-1";
 			b += sfsprintf(b, e - b, "%s", m);
 		}
 		*b = 0;
