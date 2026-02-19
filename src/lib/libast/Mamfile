@@ -842,22 +842,6 @@ make install virtual
 			exec - compile %{<} -Ihash
 		done
 
-		make stracmp.o
-			make string/stracmp.c
-				prev include/ccode.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make strnacmp.o
-			make string/strnacmp.c
-				prev include/ccode.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make ccmap.o
 			make string/ccmap.c
 				prev include/ccode.h

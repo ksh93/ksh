@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -528,10 +528,6 @@ static char *fmthtml(const char *string, int flags)
 {
 	const char *cp = string, *op;
 	int c, offset = stktell(sh.stk);
-	/*
-	 * The only multibyte locale ksh currently supports is UTF-8, which is a superset of ASCII. So, if we're on an
-	 * EBCDIC system, below we attempt to convert EBCDIC to ASCII only if we're not in a multibyte locale (mbwide()).
-	 */
 	if(!(flags&SFFMT_ALTER))
 	{
 		/* Encode for HTML and XML, for main text and single- and double-quoted attributes. */

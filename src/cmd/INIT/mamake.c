@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-02-15"
+#define RELEASE_DATE "2026-02-18"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -3009,6 +3009,15 @@ int main(int argc, char **argv)
 		state.explain = 0;
 	if (state.recurse)
 		state.maxjobs = 0;
+
+	/*
+	 * standards compliance for shell actions
+	 */
+
+	setenv("POSIXLY_CORRECT", "y", 1);
+#if __QNX__
+	setenv("POSIX_STRICT", "y", 1);  /* required for /bin/cp on QNX to update the target's last-modified date */
+#endif
 
 	/*
 	 * load the environment

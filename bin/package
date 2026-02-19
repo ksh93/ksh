@@ -2090,7 +2090,7 @@ case $x in
 
 	# tame the environment
 
-	unset ERROR_OPTIONS ENV _KSHRC_WELCOMED_
+	unset ERROR_OPTIONS ENV
 	;;
 esac
 

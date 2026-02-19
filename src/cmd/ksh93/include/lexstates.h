@@ -92,8 +92,8 @@
 #           if _lib_wctype && _lib_iswctype
 #               define _lib_iswblank	-1
 #               undef  isblank
-#	        define isblank(x)	local_iswblank(x)
-	        extern int		local_iswblank(wchar_t);
+#               define isblank(x)  local_iswblank(x)
+                extern int         local_iswblank(wchar_t);
 #           endif
 #       endif
 #   endif
