@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -30,12 +30,12 @@
 #include	"FEATURE/cmds"
 #include	"FEATURE/locale"
 #include	"terminal.h"
+#include	"national.h"
 
 #define STRIP		0377
 #define LOOKAHEAD	80
 
 #if SHOPT_MULTIBYTE
-#   include	"national.h"
     typedef wchar_t genchar;
 #   define CHARSIZE	(sizeof(wchar_t)<=2?3:sizeof(wchar_t))
 #else
