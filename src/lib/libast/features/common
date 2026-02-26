@@ -214,6 +214,12 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 			printf("#define _ast_intmax_long		1\n");
 		printf("#define _ast_intswap		%d\n", w);
 		printf("\n");
+		/*
+		 * Create a typedef for a signed_size_t type (because ssize_t and ptrdiff_t
+		 * are not always the same).
+		 */
+		printf("/* the POSIX ssize_t type is not guaranteed to hold values < -1 or to be the same size as size_t */\n");
+		printf("typedef _ast_int%d_t		signed_size_t;\n\n", (int)sizeof(size_t));
 		return 0;
 	}
 }end
@@ -274,10 +280,9 @@ tst	- output{
 	exit 1
 }end
 
-tst note{ generating _ast_flt\*_t and signed_size_t types }end output{
+tst note{ generating _ast_flt\*_t types }end output{
 	#define _BYTESEX_H
 
-	#include <unistd.h>
 	#include <string.h>
 	#include <sys/types.h>
 
@@ -321,27 +326,10 @@ tst note{ generating _ast_flt\*_t and signed_size_t types }end output{
 		printf("#define _ast_fltmax_t		_ast_flt%d_t\n", m);
 		if (m == sizeof(double))
 			printf("#define _ast_fltmax_double		1\n");
-		/*
-		 * Create a typedef for a signed_size_t type (because ssize_t and ptrdiff_t
-		 * are not always the same).
-		 */
-		if (sizeof(int) == sizeof(size_t))
-			printf("typedef int	signed_size_t;\n");
-	#if __STDC_VERSION__ >= 199901L
-		else if (sizeof(long long) == sizeof(size_t))
-			printf("typedef long long	signed_size_t;\n");
-	#endif
-		else if (sizeof(long) == sizeof(size_t))
-			printf("typedef long	signed_size_t;\n");
-		else
-		{
-			NOTE("Could not generate signed_size_t!");
-			return 1;
-		}
 		return 0;
 	}
 }end fail{
-	echo "$0: Could not generate _ast_flt*_t or signed_size_t types. Export IFFEFLAGS=-d1 to debug." >&2
+	echo "$0: Could not generate _ast_flt*_t types. Export IFFEFLAGS=-d1 to debug." >&2
 	exit 1
 }end
 
