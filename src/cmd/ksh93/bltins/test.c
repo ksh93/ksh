@@ -166,7 +166,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 			/* FALLTHROUGH */
 		case 4:
 		{
-			uint64_t op = sh_lookup(cp=argv[2],shtab_testops);
+			unsigned int op = sh_lookup(cp=argv[2],shtab_testops);
 			if(op&TEST_ANDOR)
 			{
 				if(sh_isoption(SH_POSIX))
@@ -293,7 +293,7 @@ static int e3(struct test *tp,int inparens)
 {
 	char *arg, *cp;
 	int op;
-	uint64_t bop;
+	unsigned int bop;
 	char *binop;
 	arg=nxtarg(tp,0);
 	/*
@@ -496,7 +496,7 @@ int test_unop(int op,const char *arg)
  * This function handles binary operators for both the
  * test/[ built-in and the [[ ... ]] compound command
  */
-int test_binop(uint64_t op,const char *left,const char *right)
+int test_binop(unsigned int op,const char *left,const char *right)
 {
 	if(op&TEST_ARITH)
 	{

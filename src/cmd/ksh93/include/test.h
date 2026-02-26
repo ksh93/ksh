@@ -55,7 +55,7 @@
 
 extern int test_unop(int, const char*);
 extern int test_inode(const char*, const char*);
-extern int test_binop(uint64_t, const char*, const char*);
+extern int test_binop(unsigned int, const char*, const char*);
 
 extern const char	sh_opttest[];
 extern const char	test_opchars[];
