@@ -761,16 +761,17 @@ make install virtual
 		done
 
 		make sh/name.c
-			prev include/builtins.h
-			prev include/shnodes.h
-			prev include/streval.h
-			prev FEATURE/externs
-			prev include/timeout.h
-			prev include/lexstates.h
-			prev include/path.h
-			prev include/variables.h
-			prev include/defs.h
 			prev shopt.h
+			prev include/defs.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/lexstates.h
+			prev include/timeout.h
+			prev FEATURE/externs
+			prev include/streval.h
+			prev include/national.h
+			prev include/shnodes.h
+			prev include/builtins.h
 		done
 
 		make sh/nvtree.c

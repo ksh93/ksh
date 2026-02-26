@@ -31,6 +31,7 @@
 #include	"timeout.h"
 #include	"FEATURE/externs"
 #include	"streval.h"
+#include	"national.h"
 
 #define NVCACHE		8	/* must be a power of 2 */
 static char	*savesub = 0;
@@ -2916,14 +2917,7 @@ void nv_newattr (Namval_t *np, unsigned newatts, int size)
 				 * Calculate the default terminal width for -L, -R, -Z if no numeric option-argument was given.
 				 * Note: we count terminal positions, not characters (double-width adds 2, control char adds 0)
 				 */
-				char *cq = cp;
-				wchar_t c;
-				int w;
-				n = 0;
-				while(c = mbchar(cq))
-					if ((w = mbwidth(c)) > 0)
-						n += w;
-				size = n;
+				size = sh_strwidth(cp);
 			}
 		}
 		else if(!trans)

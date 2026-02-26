@@ -2474,7 +2474,7 @@ void	sh_menu(Sfio_t *outfile,int argn,char *argv[])
 	i = 0;
 	for(arg=argv; *arg;arg++)
 	{
-		if((j=strlen(*arg)) > i)
+		if ((j = sh_strwidth(*arg)) > i)
 			i = j;
 	}
 	i += (ndigits+LBLSIZ);
@@ -2503,7 +2503,7 @@ skip:
 			j += nrow;
 			if(j >= argn)
 				break;
-			sfnputc(outfile,' ',fldsize-strlen(*arg));
+			sfnputc(outfile, ' ', fldsize - sh_strwidth(*arg));
 		}
 		sfputc(outfile,'\n');
 	}
