@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-02-18"
+#define RELEASE_DATE "2026-03-01"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -1504,10 +1504,11 @@ static void reap(Rule_t *r, int flag)
 		free(r->logtmp);
 		r->logtmp = NULL;
 	}
-	r->pid = 0;
 	assert(state.jobs > 0);
 	state.jobs--;
 	check_shellaction(r, p_exitstatus(pstat));
+	/* delay resetting pid until after check_shellaction() so report() shows correct line number for bg job error */
+	r->pid = 0;
 }
 
 /*
