@@ -172,7 +172,7 @@ struct match
 	ptrdiff_t	vsize;
 	ptrdiff_t	vlen;
 	ssize_t		first;
-	signed_size_t	nmatch;
+	ssize_t		nmatch;
 	int		index;
 	int		lastsub[2];
 };
@@ -780,7 +780,7 @@ static void put_lastarg(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 static void match2d(struct match *mp)
 {
 	Namval_t	*np;
-	signed_size_t	i;
+	ssize_t		i;
 	Namarr_t	*ap;
 	nv_disc(SH_MATCHNOD, &mp->hdr, NV_POP);
 	if(mp->nodes)
@@ -811,7 +811,7 @@ static void match2d(struct match *mp)
  * store the most recent value for use in .sh.match
  * treat .sh.match as a two dimensional array
  */
-void sh_setmatch(const char *v, ptrdiff_t vsize, signed_size_t nmatch, ssize_t match[], int index)
+void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[], int index)
 {
 	Init_t		*ip = sh.init_context;
 	struct match	*mp = &ip->SH_MATCH_init;
@@ -906,7 +906,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, signed_size_t nmatch, ssize_t m
 		}
 		index *= 2*mp->nmatch;
 		i = (index+2*(ptrdiff_t)mp->nmatch)*(ptrdiff_t)sizeof(match[0]);
-		if(i >= (signed_size_t)mp->msize)
+		if(i >= (ssize_t)mp->msize)
 			mp->match = sh_realloc(mp->match, mp->msize = 2*(size_t)i);
 		if(vsize >= mp->vsize)
 		{
@@ -933,7 +933,7 @@ static char* get_match(Namval_t *np, Namfun_t *fp)
 {
 	struct match	*mp = (struct match*)fp;
 	int		sub,sub2=0,i=!mp->index;
-	signed_size_t	n;
+	ssize_t		n;
 	char		*val;
 	sub = nv_aindex(SH_MATCHNOD);
 	if(sub<0)
@@ -948,7 +948,7 @@ static char* get_match(Namval_t *np, Namfun_t *fp)
 		return mp->rval[!i];
 	else if(sub==mp->lastsub[i])
 		return mp->rval[i];
-	n = (signed_size_t)(mp->match[2*sub+1]-mp->match[2*sub]);
+	n = (ssize_t)(mp->match[2*sub+1]-mp->match[2*sub]);
 	if(n<=0)
 		return mp->match[2*sub]<0?Empty:"";
 	val = mp->val+mp->match[2*sub];

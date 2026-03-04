@@ -347,8 +347,8 @@ struct Shell_s
 	int16_t		fn_depth;	/* scoped ksh-style function call depth */
 	int16_t		dot_depth;	/* dot-script and POSIX function call depth */
 	char		invoc_local;	/* set when inside of an invocation-local scope */
-	signed_size_t	xargmin;
-	signed_size_t	xargmax;
+	ssize_t		xargmin;
+	ssize_t		xargmax;
 	int		xargexit;
 	size_t		save_env_n;	/* number of saved pointers to environment variables with invalid names */
 	char		**save_env;	/* saved pointers to environment variables with invalid names */

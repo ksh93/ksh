@@ -214,12 +214,6 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 			printf("#define _ast_intmax_long		1\n");
 		printf("#define _ast_intswap		%d\n", w);
 		printf("\n");
-		/*
-		 * Create a typedef for a signed_size_t type (because ssize_t and ptrdiff_t
-		 * are not always the same).
-		 */
-		printf("/* the POSIX ssize_t type is not guaranteed to hold values < -1 or to be the same size as size_t */\n");
-		printf("typedef _ast_int%d_t		signed_size_t;\n\n", (int)sizeof(size_t));
 		return 0;
 	}
 }end

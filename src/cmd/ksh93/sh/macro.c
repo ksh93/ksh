@@ -49,7 +49,7 @@
 #include	"streval.h"
 
 #if _WINIX
-    static signed_size_t Skip;
+    static ssize_t Skip;
 #endif /* _WINIX */
 
 static int	_c_;
@@ -97,7 +97,7 @@ typedef struct  _mac_
 #define M_TYPE		8	/* ${@var}	*/
 
 static noreturn void	mac_error(void);
-static signed_size_t substring(const char*, size_t, const char*, ssize_t[], regflags_t);
+static ssize_t substring(const char*, size_t, const char*, ssize_t[], regflags_t);
 static void	copyto(Mac_t*, int, char);
 static void	comsubst(Mac_t*, Shnode_t*, char);
 static int	varsub(Mac_t*);
@@ -296,7 +296,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 		{
 			do
 			{
-				signed_size_t len;
+				ssize_t len;
 				switch(len = mbsize(cp))
 				{
 				    case -1:	/* illegal multi-byte char */
@@ -469,7 +469,7 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 	{
 		if(mbwide())
 		{
-			signed_size_t len;
+			ssize_t len;
 			do
 			{
 				switch(len = mbsize(cp))
@@ -509,7 +509,7 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 				first = fcseek(cp-first);
 				if(mbwide() && c > UCHAR_MAX)
 				{
-					signed_size_t	i;
+					ssize_t		i;
 					unsigned char	mb[8];
 
 					n = mbconv((char*)mb, (wchar_t)c);
@@ -917,7 +917,7 @@ done:
 /*
  * copy <str> to stack performing sub-expression substitutions
  */
-static void mac_substitute(Mac_t *mp, char *cp,char *str,ssize_t subexp[],signed_size_t subsize)
+static void mac_substitute(Mac_t *mp, char *cp,char *str,ssize_t subexp[],ssize_t subsize)
 {
 	ptrdiff_t c, n = stktell(sh.stk);
 	char	*first=fcseek(0);
@@ -967,7 +967,7 @@ static void mac_substitute(Mac_t *mp, char *cp,char *str,ssize_t subexp[],signed
 }
 
 #if  SHOPT_FILESCAN
-#define MAX_OFFSETS	 ((signed_size_t)(sizeof(sh.offsets)/sizeof(sh.offsets[0])))
+#define MAX_OFFSETS	 ((ssize_t)(sizeof(sh.offsets)/sizeof(sh.offsets[0])))
 #define MAX_ARGN	(32*1024)
 
 /*
@@ -1479,7 +1479,7 @@ retry1:
 			fcseek(-1);
 		if(type<=1 && np && nv_isvtree(np) && mp->pattern==1 && !mp->split)
 		{
-			signed_size_t cc=fcmbget(&LEN),peek=LEN;
+			ssize_t cc=fcmbget(&LEN),peek=LEN;
 			if(type && cc=='}')
 			{
 				cc = fcmbget(&LEN);
@@ -1707,7 +1707,7 @@ retry1:
 					type = fcget();
 					if(type=='%' || type=='#')
 					{
-						signed_size_t d = fcmbget(&LEN);
+						ssize_t d = fcmbget(&LEN);
 						fcseek(-LEN);
 						if(d=='(')
 							type = 0;
@@ -1903,10 +1903,10 @@ retry1:
 retry2:
 	if(v && (!nulflg || *v ) && c!='+')
 	{
-		signed_size_t ofs_size = 0;
+		ssize_t ofs_size = 0;
 		ssize_t match[2*(MATCH_MAX+1)];
 		int index;
-		signed_size_t nmatch, nmatch_prev;
+		ssize_t nmatch, nmatch_prev;
 		ptrdiff_t vsize_last = 0;
 		size_t tsize;
 		char *vlast = NULL, *oldv;
@@ -2239,7 +2239,7 @@ nosub:
 static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 {
 	Sfdouble_t		num;
-	signed_size_t		c;
+	ssize_t			c;
 	char			*str;
 	Sfio_t			*sp;
 	Stk_t			*stkp = sh.stk;
@@ -2252,7 +2252,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 	int			was_history = sh_isstate(SH_HISTORY);
 	int			was_verbose = sh_isstate(SH_VERBOSE);
 	int			was_interactive = sh_isstate(SH_INTERACTIVE);
-	signed_size_t		newlines,nextnewlines;
+	ssize_t			newlines,nextnewlines;
 	ssize_t			bufsize;
 	Sfoff_t			foff;
 	Namval_t		*np;
@@ -2386,7 +2386,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 		stkseek(stkp,soff+(ptrdiff_t)foff+64);
 		stkseek(stkp,soff);
 	}
-	while((str=(char*)sfreserve(sp,SFIO_UNBOUND,0)) && (c=(signed_size_t)(bufsize=sfvalue(sp)))>0)
+	while((str=(char*)sfreserve(sp,SFIO_UNBOUND,0)) && (c=(ssize_t)(bufsize=sfvalue(sp)))>0)
 	{
 #if SHOPT_CRNL
 		/* eliminate <cr> */
@@ -2664,9 +2664,9 @@ static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 static void endfield(Mac_t *mp,int split)
 {
 	struct argnod	*argp;
-	signed_size_t	count=0;
+	ssize_t		count=0;
 	Stk_t		*stkp = sh.stk;
-	if(stktell(stkp) > (signed_size_t)ARGVAL || split)
+	if(stktell(stkp) > (ssize_t)ARGVAL || split)
 	{
 		argp = stkfreeze(stkp,1);
 		argp->argnxt.cp = 0;
@@ -2682,7 +2682,7 @@ static void endfield(Mac_t *mp,int split)
 				count = path_generate(argp,mp->arghead,musttrim);
 			else
 #endif /* SHOPT_BRACEPAT */
-				count = (signed_size_t)path_expand(argp->argval,mp->arghead,musttrim);
+				count = (ssize_t)path_expand(argp->argval,mp->arghead,musttrim);
 			if(count)
 				mp->fields += count;
 			else if(split)	/* pattern is null string */
@@ -2711,12 +2711,12 @@ static void endfield(Mac_t *mp,int split)
  * Finds the right substring of STRING using the expression PAT
  * the longest substring is found when FLAG is set.
  */
-static signed_size_t substring(const char *string,size_t len,const char *pat,ssize_t match[], regflags_t flag)
+static ssize_t substring(const char *string,size_t len,const char *pat,ssize_t match[], regflags_t flag)
 {
 	const char *sp=string;
 	size_t size;
 	ssize_t smatch[2*(MATCH_MAX+1)];
-	signed_size_t n, nmatch;
+	ssize_t n, nmatch;
 	if(flag)
 	{
 		if(n=strngrpmatch(sp,len,pat,smatch,elementsof(smatch)/2,STR_RIGHT|STR_MAXIMAL))
@@ -2756,7 +2756,7 @@ static signed_size_t substring(const char *string,size_t len,const char *pat,ssi
 	static char	*_lastchar(const char *string, const char *endstring)
 	{
 		char *str = (char*)string;
-		signed_size_t c;
+		ssize_t c;
 		while(*str)
 		{
 			if((c=mbsize(str))<0)
@@ -2870,7 +2870,7 @@ static char *sh_tilde(const char *string)
 	if((c = fcgetc())=='/')
 	{
 		char		*str;
-		signed_size_t	n=0;
+		ssize_t		n=0;
 		ptrdiff_t	offset=stktell(sh.stk);
 		sfputr(sh.stk,string,-1);
 		do
