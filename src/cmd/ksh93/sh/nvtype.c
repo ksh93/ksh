@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -27,7 +27,7 @@
 #include	"builtins.h"
 
 static const char sh_opttype[] =
-"[-1c?\n@(#)$Id: type (ksh 93u+m) 2024-08-28 $\n]"
+"[-1c?\n@(#)$Id: type (ksh 93u+m) 2026-03-01 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - set the type of variables to \b\f?\f\b]"
 "[+DESCRIPTION?\b\f?\f\b sets the type on each of the variables specified "
@@ -216,7 +216,15 @@ static void put_chtype(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 {
 	if(!val && nv_isattr(np,NV_REF))
 		return;
-	nv_putv(np,val,flag,fp);
+	if(val && !flag && sh.mktype)
+	{
+		/* preserve the NV_NOFREE attribute to prevent a potential use after free */
+		unsigned short save_nofree = nv_isattr(np,NV_NOFREE);
+		nv_putv(np,val,flag,fp);
+		nv_onattr(np,save_nofree);
+	}
+	else
+		nv_putv(np,val,flag,fp);
 	if(!val)
 	{
 		Namchld_t	*pp = (Namchld_t*)fp;

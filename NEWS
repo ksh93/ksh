@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-03-01:
+
+- Fixed a use-after-free crash that could occur when variables of custom
+  types defined with 'typeset -T' were used as members of other custom types
+  defined with 'typeset -T'.
+
 2026-02-24:
 
 - The routine that prints the menu for the 'select' loop has been made aware
