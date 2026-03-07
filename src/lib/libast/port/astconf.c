@@ -284,7 +284,7 @@ static char*	feature(Feature_t*, const char*, const char*, const char*, unsigned
 
 static char *set_fp_value(Feature_t *fp, const char *str, Error_f conferror)
 {
-	if ((fp->flags & CONF_ALLOC) && fp->value && fp->value != null)
+	if ((fp->flags & CONF_ALLOC) && fp->value != null)
 		free(fp->value);
 	if(str == null)
 		return fp->value = null;
@@ -494,7 +494,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 	/* memcpy comes before free because fp->value and value might share memory */
 	memcpy(newvalue, value, n);
 	newvalue[n] = 0;
-	if(fp->value && fp->value != null)
+	if(fp->value != null)
 		free(fp->value);
 	fp->flags |= CONF_ALLOC;
 	return fp->value = newvalue;
