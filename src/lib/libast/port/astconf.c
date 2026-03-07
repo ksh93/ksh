@@ -282,6 +282,23 @@ static State_t	state = { "getconf", "_AST_FEATURES", "CONFORMANCE = standard", "
 
 static char*	feature(Feature_t*, const char*, const char*, const char*, unsigned int, Error_f);
 
+static char *set_fp_value(Feature_t *fp, const char *str, Error_f conferror)
+{
+	if ((fp->flags & CONF_ALLOC) && fp->value && fp->value != null)
+		free(fp->value);
+	if(str == null)
+		return fp->value = null;
+	fp->value = strdup(str);
+	if (!fp->value)
+	{
+		if (conferror)
+			(*conferror)(&state, &state, 2, "set_fp_value(): out of memory");
+		fp->value = null;
+	}
+	fp->flags |= CONF_ALLOC;
+	return fp->value;
+}
+
 /*
  * return fmtbuf() copy of s
  */
@@ -469,9 +486,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		n = 0;
 	if(!(newvalue = malloc(n + 1)))
 	{
-		if(fp->value && fp->value != null)
-			free(fp->value);
-		fp->value = null;
+		set_fp_value(fp, null, conferror);
 		if (conferror)
 			(*conferror)(&state, &state, 2, "synthesize(): out of memory");
 		return NULL;
@@ -631,11 +646,19 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 	{
 
 	case OP_architecture:
+	   {
+		char *hostname = getenv("HOSTNAME");
 		if (!uname(&uts))
-			return fp->value = uts.machine;
-		if (!(fp->value = getenv("HOSTNAME")))
-			fp->value = "unknown";
+		{
+			set_fp_value(fp, uts.machine, conferror);
+			return fp->value;
+		}
+		if (!hostname)
+			set_fp_value(fp, "unknown", conferror);
+		else
+			set_fp_value(fp, hostname, conferror);
 		break;
+	   }
 
 	case OP_conformance:
 		if (value && STANDARD(value))
@@ -645,7 +668,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		error(-6, "state.std=%d %s [%s] std=%s ast=%s value=%s", state.std, fp->name, value, fp->std, fp->ast, fp->value);
 #endif
 		if (state.synthesizing && value == (char*)fp->std)
-			fp->value = (char*)value;
+			set_fp_value(fp, value, conferror);
 		else if (!synthesize(fp, path, value, conferror))
 			initialize(fp, path, NULL, fp->std, fp->value, conferror);
 #if DEBUG_astconf
@@ -667,12 +690,12 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		break;
 
 	case OP_path_attributes:
-		fp->value = pathicase(path) > 0 ? "c" : null;
+		set_fp_value(fp, pathicase(path) > 0 ? "c" : null, conferror);
 		break;
 
 	case OP_path_resolve:
 		if (state.synthesizing && value == (char*)fp->std)
-			fp->value = (char*)value;
+			set_fp_value(fp, value, conferror);
 		else if (!synthesize(fp, path, value, conferror))
 			initialize(fp, path, NULL, "logical", DEFAULT(OP_path_resolve), conferror);
 		break;
@@ -712,8 +735,8 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		{
 			if (state.synthesizing)
 			{
-				if (!(fp->flags & CONF_ALLOC))
-					fp->value = 0;
+				if (!(fp->flags & CONF_ALLOC) || fp->value == null)
+					fp->value = NULL;
 				n = strlen(value);
 				if (!(fp->value = newof(fp->value, char, n, 1)))
 				{
@@ -739,7 +762,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 
 	default:
 		if (state.synthesizing && value == (char*)fp->std)
-			fp->value = (char*)value;
+			set_fp_value(fp, value, conferror);
 		else
 			synthesize(fp, path, value, conferror);
 		break;
