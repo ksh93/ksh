@@ -735,7 +735,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		{
 			if (state.synthesizing)
 			{
-				const char *mayfree;
+				char *mayfree;
 				if (!(fp->flags & CONF_ALLOC) || fp->value == null)
 					fp->value = NULL;
 				mayfree = fp->value;
