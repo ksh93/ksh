@@ -735,11 +735,14 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		{
 			if (state.synthesizing)
 			{
+				const char *mayfree;
 				if (!(fp->flags & CONF_ALLOC) || fp->value == null)
 					fp->value = NULL;
+				mayfree = fp->value;
 				n = strlen(value);
 				if (!(fp->value = newof(fp->value, char, n, 1)))
 				{
+					free(mayfree);
 					if (conferror)
 						(*conferror)(&state, &state, 2, "%s: out of memory", value);
 					fp->value = null;
