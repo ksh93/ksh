@@ -1411,9 +1411,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			{
 				Ast_confdisc_f	notify;
 
-#if _HUH20000515 /* doesn't work for shell builtins */
 				free(state.data - state.prefix);
-#endif
 				state.data = 0;
 				notify = state.notify;
 				state.notify = 0;
