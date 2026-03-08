@@ -127,7 +127,7 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 	#define _ast_int8_str	"int64"
 	#endif
 
-	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
+	#define elementsof(x)	((int)sizeof(x)/(int)sizeof(x[0]))
 
 	static char			i_char = 1;
 	static short			i_short = 1;
@@ -229,7 +229,7 @@ tst	- output{
 	#define COND		0
 	#endif
 
-	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
+	#define elementsof(x)	((int)sizeof(x)/(int)sizeof(x[0]))
 
 	static struct
 	{
@@ -280,7 +280,7 @@ tst note{ generating _ast_flt\*_t types }end output{
 	#include <string.h>
 	#include <sys/types.h>
 
-	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
+	#define elementsof(x)	((int)sizeof(x)/(int)sizeof(x[0]))
 
 	static struct
 	{
@@ -299,7 +299,7 @@ tst note{ generating _ast_flt\*_t types }end output{
 		int	t;
 		int	m = 1;
 		int	e = elementsof(flt_type);
-		if (flt_type[e - 1].size <= sizeof(double))
+		if (flt_type[e - 1].size <= (int)sizeof(double))
 			e--; /* exclude "long double" */
 		else
 		{
