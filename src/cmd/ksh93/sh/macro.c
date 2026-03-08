@@ -164,7 +164,7 @@ static void setup_ifs(Mac_t *mp)
  * yields a single pathname.
  * If <mode> negative, then expansion rules for assignment are applied.
  */
-char *sh_mactrim(char *str, char mode)
+char *sh_mactrim(char *str, int mode)
 {
 	Mac_t	*mp = (Mac_t*)sh.mac_context;
 	Stk_t	*stkp = sh.stk;
@@ -176,7 +176,7 @@ char *sh_mactrim(char *str, char mode)
 	mp->patfound = 0;
 	mp->assign = 0;
 	if(mode<0)
-		mp->assign = mode * -1;
+		mp->assign = (char)(-mode);
 	mp->quoted = mp->lit = mp->split = mp->quote = 0;
 	mp->sp = 0;
 	setup_ifs(mp);
