@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-02"
+#define RELEASE_DATE "2026-03-08"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -1620,9 +1620,8 @@ static void run(Rule_t *r, char *s)
 		x = state.exec;
 	if (x)
 	{
-		/* standards compliance for shell actions */
-		append(buf, "export POSIXLY_CORRECT=y\n");
 #if __QNX__
+		/* stop QNX /bin/cp acting like cp -p by default */
 		append(buf, "export POSIX_STRICT=y\n");
 #endif
 		/* have the shell redirect parallel job output to a temp file */
