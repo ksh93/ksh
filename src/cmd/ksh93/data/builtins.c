@@ -1722,7 +1722,7 @@ const char sh_optshift[] =
 ;
 
 const char sh_optsleep[] =
-"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2024-11-17 $\n]"
+"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2026-03-09 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?sleep - suspend execution for an interval]"
 "[+DESCRIPTION?\bsleep\b suspends execution for at least the time specified "
