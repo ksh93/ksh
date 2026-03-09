@@ -82,7 +82,7 @@ do_sleep(const Tv_t* tv, Tv_t* rv)
 #define NANOSECONDS  1000000000L
 #define MILLISECONDS 1000
 
-static inline int do_sleep_precision(const Tv_t*, Tv_t*);
+static inline void do_sleep_precision(const Tv_t*);
 
 static inline int
 do_sleep(const Tv_t* tv, Tv_t* rv)
@@ -90,7 +90,7 @@ do_sleep(const Tv_t* tv, Tv_t* rv)
 	Tv_t	tvBefore, tvAfter;
 
 	tvgettime(&tvBefore);
-	do_sleep_precision(tv, rv);
+	do_sleep_precision(tv);
 	tvgettime(&tvAfter);
 
 	/* Unfortunately, some operating systems return success for select
@@ -147,8 +147,8 @@ do_sleep(const Tv_t* tv, Tv_t* rv)
 
 #  if _lib_select && !_prefer_poll
 
-static inline int
-do_sleep_precision(const Tv_t* tv, Tv_t* rv)
+static inline void
+do_sleep_precision(const Tv_t* tv)
 {
 	/* PRECISION: microseconds */
 	struct timeval tvSleep = { tv->tv_sec, tv->tv_nsec / 1000 };
@@ -161,8 +161,8 @@ do_sleep_precision(const Tv_t* tv, Tv_t* rv)
 
 #  elif _lib_poll
 
-static inline int
-do_sleep_precision(const Tv_t* tv, Tv_t* rv)
+static inline void
+do_sleep_precision(const Tv_t* tv)
 {
 	/* PRECISION: milliseconds
 	 *
@@ -188,8 +188,8 @@ do_sleep_precision(const Tv_t* tv, Tv_t* rv)
 
 #  else  /* no select or poll */
 
-static inline int
-do_sleep_precision(const Tv_t* tv, Tv_t* rv)
+static inline void
+do_sleep_precision(const Tv_t* tv)
 {
 	time_t		s = tv->tv_sec;
 	uint32_t	n = tv->tv_nsec;
@@ -207,7 +207,7 @@ do_sleep_precision(const Tv_t* tv, Tv_t* rv)
 		if (!errno)
 		{
 			errno = oerrno;
-			return 0;
+			return;
 		}
 	}
 	else
@@ -229,17 +229,10 @@ do_sleep_precision(const Tv_t* tv, Tv_t* rv)
 					t = s;
 					s = 0;
 				}
-				if (t = sleep(t))
-				{
-					if (rv)
-					{
-						rv->tv_sec = s + t;
-						rv->tv_nsec = 0;
-					}
-					return -1;
-				}
+				if (sleep(t))
+					return;
 			}
-			return 0;
+			return;
 		}
 
 #    if _lib_usleep
@@ -254,7 +247,7 @@ do_sleep_precision(const Tv_t* tv, Tv_t* rv)
 			if (!errno)
 			{
 				errno = oerrno;
-				return 0;
+				return;
 			}
 		}
 	}
