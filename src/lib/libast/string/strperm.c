@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -36,23 +36,23 @@
 #include <ls.h>
 #include <modex.h>
 
-int
-strperm(const char* aexpr, char** e, int perm)
+mode_t
+strperm(const char* aexpr, char** e, mode_t perm)
 {
 	char*	expr = (char*)aexpr;
 	int	c;
-	int	typ;
-	int	who;
+	mode_t	typ;
+	mode_t	who;
+	mode_t	mask;
 	int	num;
 	int	op;
-	int	mask;
 	int	masked;
 
-	if (perm == -1)
+	if (perm == (mode_t)-1)
 	{
 		perm = 0;
 		masked = 1;
-		mask = ~0;
+		mask = ~0U;
 	}
 	else
 		masked = 0;

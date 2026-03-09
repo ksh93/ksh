@@ -268,9 +268,9 @@
 typedef struct _sfpool_s	Sfpool_t;
 struct _sfpool_s
 {	Sfpool_t*	next;
-	int		mode;		/* type of pool			*/
-	int		s_sf;		/* size of pool array		*/
-	int		n_sf;		/* number currently in pool	*/
+	uint32_t	mode;		/* type of pool			*/
+	ssize_t		s_sf;		/* size of pool array		*/
+	ssize_t		n_sf;		/* number currently in pool	*/
 	Sfio_t**	sf;		/* array of streams		*/
 	Sfio_t*		array[3];	/* start with 3			*/
 };
@@ -288,8 +288,8 @@ typedef struct _sfproc_s	Sfproc_t;
 struct _sfproc_s
 {	int		pid;	/* process ID			*/
 	uchar*		rdata;	/* read data being cached	*/
-	int		ndata;	/* size of cached data		*/
-	int		size;	/* buffer size			*/
+	ptrdiff_t	ndata;	/* size of cached data		*/
+	ptrdiff_t	size;	/* buffer size			*/
 	int		file;	/* saved file descriptor	*/
 	int		sigp;	/* sigpipe protection needed	*/
 };
@@ -334,7 +334,7 @@ struct _fmt_s
 
 	char*		oform;		/* original format string	*/
 	va_list		oargs;		/* original arg list		*/
-	int		argn;		/* number of args already used	*/
+	ptrdiff_t	argn;		/* number of args already used	*/
 	Fmtpos_t*	fp;		/* position list		*/
 
 	Sffmt_t*	ft;		/* formatting environment	*/
@@ -343,10 +343,10 @@ struct _fmt_s
 };
 
 struct _fmtpos_s
-{	Sffmt_t	ft;			/* environment			*/
-	Argv_t	argv;			/* argument value		*/
-	int	fmt;			/* original format		*/
-	int	need[FP_INDEX];		/* positions depending on	*/
+{	Sffmt_t		ft;		/* environment			*/
+	Argv_t		argv;		/* argument value		*/
+	int		fmt;		/* original format		*/
+	ptrdiff_t	need[FP_INDEX];	/* positions depending on	*/
 };
 
 #define LEFTP		'('
@@ -481,9 +481,9 @@ typedef struct _sfextern_s
 #define SFIO_ECONT	3	/* can continue normally		*/
 
 #define SETLOCAL(f)	((f)->mode |= SFIO_LOCAL)
-#define GETLOCAL(f,v)	((v) = ((f)->mode&SFIO_LOCAL), (f)->mode &= ~SFIO_LOCAL, (v))
+#define GETLOCAL(f,v)	((v) = ((f)->mode&SFIO_LOCAL), (f)->mode &= (uint32_t)~SFIO_LOCAL, (v))
 #define SFWRALL(f)	((f)->mode |= SFIO_RV)
-#define SFISALL(f,v)	((((v) = (f)->mode&SFIO_RV) ? ((f)->mode &= ~SFIO_RV) : 0), \
+#define SFISALL(f,v)	((((v) = (f)->mode&SFIO_RV) ? ((f)->mode &= (uint32_t)~SFIO_RV) : 0), \
 			 ((v) || ((f)->flags&(SFIO_SHARE|SFIO_APPENDWR|SFIO_WHOLE)) ) )
 #define SFSK(f,a,o,d)	(SETLOCAL(f),sfsk(f,(Sfoff_t)a,o,d))
 #define SFRD(f,b,n,d)	(SETLOCAL(f),sfrd(f,b,n,d))
@@ -500,7 +500,7 @@ typedef struct _sfextern_s
 #define SFRAISE(f,e,d)	(SETLOCAL(f),sfraise(f,e,d))
 
 /* lock/open a stream */
-#define SFMODE(f,l)	((f)->mode & ~(SFIO_RV|SFIO_RC|((l) ? SFIO_LOCK : 0)) )
+#define SFMODE(f,l)	((f)->mode & (uint32_t)~(SFIO_RV|SFIO_RC|((l) ? SFIO_LOCK : 0)) )
 #define SFLOCK(f,l)	(void)((f)->mode |= SFIO_LOCK, (f)->endr = (f)->endw = (f)->data)
 #define _SFOPENRD(f)	((f)->endr = (f)->endb)
 #define _SFOPENWR(f)	((f)->endw = ((f)->flags&SFIO_LINE) ? (f)->data : (f)->endb)
@@ -508,12 +508,12 @@ typedef struct _sfextern_s
 			 (f)->mode == SFIO_WRITE ? _SFOPENWR(f) : \
 			 ((f)->endw = (f)->endr = (f)->data) )
 #define SFOPEN(f,l)	(void)((l) ? 0 : \
-				((f)->mode &= ~(SFIO_LOCK|SFIO_RC|SFIO_RV), _SFOPEN(f), 0) )
+				((f)->mode &= (uint32_t)~(SFIO_LOCK|SFIO_RC|SFIO_RV), _SFOPEN(f), 0) )
 
 /* check to see if the stream can be accessed */
 #define SFFROZEN(f)	(((f)->mode&(SFIO_PUSH|SFIO_LOCK|SFIO_PEEK)) ? 1 : \
 			 !((f)->mode&SFIO_STDIO) ? 0 : \
-			 _Sfstdsync ? (*_Sfstdsync)(f) : (((f)->mode &= ~SFIO_STDIO),0) )
+			 _Sfstdsync ? (*_Sfstdsync)(f) : (((f)->mode &= (uint32_t)~SFIO_STDIO),0) )
 
 
 /* set discipline code */
@@ -544,7 +544,7 @@ typedef struct _sfextern_s
 /* fast peek of a stream */
 #define _SFAVAIL(f,s,n)	((n) = (f)->endb - ((s) = (f)->next) )
 #define SFRPEEK(f,s,n)	(_SFAVAIL(f,s,n) > 0 ? (n) : \
-				((n) = SFFILBUF(f,-1), (s) = (f)->next, (n)) )
+				((n) = (ptrdiff_t)SFFILBUF(f,-1), (s) = (f)->next, (n)) )
 #define SFWPEEK(f,s,n)	(_SFAVAIL(f,s,n) > 0 ? (n) : \
 				((n) = SFFLSBUF(f,-1), (s) = (f)->next, (n)) )
 
@@ -629,7 +629,7 @@ typedef struct _sftab_
 	int		(*sf_cvinitf)(void);	/* initialization function	*/
 	int		sf_cvinit;		/* initialization state		*/
 	Fmtpos_t*	(*sf_fmtposf)(Sfio_t*,const char*,va_list,Sffmt_t*,int);
-	char*		(*sf_fmtintf)(const char*,int*);
+	char*		(*sf_fmtintf)(const char*,ptrdiff_t*);
 	float*		sf_flt_pow10;		/* float powers of 10		*/
 	double*		sf_dbl_pow10;		/* double powers of 10		*/
 	Sfdouble_t*	sf_ldbl_pow10;		/* Sfdouble_t powers of 10	*/
@@ -717,19 +717,19 @@ typedef struct _sftab_
 #define MEMSET(s,c,n) \
 	switch(n) \
 	{ default : memset(s,(int)c,n); s += n; break; \
-	  case  7 : *s++ = c;		\
+	  case  7 : *s++ = (uchar)c;	\
 		    /* FALLTHROUGH */	\
-	  case  6 : *s++ = c;		\
+	  case  6 : *s++ = (uchar)c;	\
 		    /* FALLTHROUGH */	\
-	  case  5 : *s++ = c;		\
+	  case  5 : *s++ = (uchar)c;	\
 		    /* FALLTHROUGH */	\
-	  case  4 : *s++ = c;		\
+	  case  4 : *s++ = (uchar)c;	\
 		    /* FALLTHROUGH */	\
-	  case  3 : *s++ = c;		\
+	  case  3 : *s++ = (uchar)c;	\
 		    /* FALLTHROUGH */	\
-	  case  2 : *s++ = c;		\
+	  case  2 : *s++ = (uchar)c;	\
 		    /* FALLTHROUGH */	\
-	  case  1 : *s++ = c;		\
+	  case  1 : *s++ = (uchar)c;	\
 	}
 
 extern Sftab_t		_Sftable;
@@ -739,13 +739,13 @@ extern int		_sfpclose(Sfio_t*);
 extern int		_sfexcept(Sfio_t*, int, ssize_t, Sfdisc_t*);
 extern Sfrsrv_t*	_sfrsrv(Sfio_t*, ssize_t);
 extern int		_sfsetpool(Sfio_t*);
-extern char*		_sfcvt(void*,char*,size_t,int,int*,int*,int*,int);
+extern char*		_sfcvt(void*,char*,size_t,ptrdiff_t,int*,int*,ptrdiff_t*,ptrdiff_t);
 extern char**		_sfgetpath(char*);
 
 extern Sfextern_t	_Sfextern;
 
 extern int		_sfmode(Sfio_t*, int, int);
-extern int		_sftype(const char*, int*, int*);
+extern unsigned short	_sftype(const char*, int*, int*);
 
 #ifndef errno
 extern int		errno;

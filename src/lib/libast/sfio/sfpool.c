@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -76,7 +76,7 @@ static Sfpool_t* newpool(int mode)
 /* move a stream to head */
 static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 		    Sfio_t*	f,	/* the stream			*/
-		    int		n)	/* current position in pool	*/
+		    ssize_t	n)	/* current position in pool	*/
 {
 	Sfio_t*		head;
 	ssize_t		k, w, v;
@@ -106,12 +106,12 @@ static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 		if((k = v - (f->endb-f->data)) <= 0)
 			k = 0;
 		else	/* try to write out amount exceeding f's capacity */
-		{	if((w = SFWR(head,head->data,k,head->disc)) == k)
+		{	if((w = SFWR(head,head->data,(size_t)k,head->disc)) == k)
 				v -= k;
 			else	/* write failed, recover buffer then quit */
 			{	if(w > 0)
 				{	v -= w;
-					memmove(head->data,(head->data+w),v);
+					memmove(head->data,(head->data+w),(size_t)v);
 				}
 				head->next = head->data+v;
 				goto done;
@@ -120,11 +120,11 @@ static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 
 		/* move data from head to f */
 		if((head->data+k) != f->data )
-			memmove(f->data,(head->data+k),v);
+			memmove(f->data,(head->data+k),(size_t)v);
 		f->next = f->data+v;
 	}
 
-	f->mode &= ~SFIO_POOL;
+	f->mode &= (uint32_t)~SFIO_POOL;
 	head->mode |= SFIO_POOL;
 	head->next = head->endr = head->endw = head->data; /* clear write buffer */
 
@@ -133,7 +133,7 @@ static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 	rv = 0;
 
 done:
-	head->mode &= ~SFIO_LOCK; /* partially unlock because it's no longer head */
+	head->mode &= (uint32_t)~SFIO_LOCK; /* partially unlock because it's no longer head */
 
 	return rv;
 }
@@ -141,7 +141,7 @@ done:
 /* delete a stream from its pool */
 static int _sfpdelete(Sfpool_t*	p,	/* the pool		*/
 		      Sfio_t*	f,	/* the stream		*/
-		      int	n)	/* position in pool	*/
+		      ssize_t	n)	/* position in pool	*/
 {
 
 	p->n_sf -= 1;
@@ -149,7 +149,7 @@ static int _sfpdelete(Sfpool_t*	p,	/* the pool		*/
 		p->sf[n] = p->sf[n+1];
 
 	f->pool = NULL;
-	f->mode &= ~SFIO_POOL;
+	f->mode &= (uint32_t)~SFIO_POOL;
 
 	if(p->n_sf == 0 || p == &_Sfpool)
 	{	if(p != &_Sfpool)
@@ -169,7 +169,7 @@ static int _sfpdelete(Sfpool_t*	p,	/* the pool		*/
 
 	/* head stream has SFIO_POOL off */
 	f = p->sf[0];
-	f->mode &= ~SFIO_POOL;
+	f->mode &= (uint32_t)~SFIO_POOL;
 	if(!SFFROZEN(f))
 		_SFOPEN(f);
 
@@ -184,10 +184,10 @@ done:
 }
 
 static int _sfpmove(Sfio_t*	f,
-		    int	type)	/* <0 : deleting, 0: move-to-front, >0: inserting */
+		    int		type)	/* <0 : deleting, 0: move-to-front, >0: inserting */
 {
 	Sfpool_t*	p;
-	int		n;
+	ssize_t		n;
 
 	if(type > 0)
 		return _sfsetpool(f);
@@ -263,7 +263,7 @@ Sfio_t* sfpool(Sfio_t* f, Sfio_t* pf, int mode)
 	}
 
 	if(pf->pool && pf->pool != &_Sfpool) /* always use current mode */
-		mode = pf->pool->mode;
+		mode = (signed)pf->pool->mode;
 
 	if(mode&SFIO_SHARE) /* can only have write streams */
 	{	if(SFMODE(f,1) != SFIO_WRITE && _sfmode(f,SFIO_WRITE,1) < 0)

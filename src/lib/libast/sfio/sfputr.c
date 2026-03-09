@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -22,11 +23,11 @@
 **
 **	Written by Kiem-Phong Vo.
 */
-ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
-	       const char*	s,	/* string to write	*/
-	       int		rc)	/* record separator 	*/
+ptrdiff_t sfputr(Sfio_t*		f,	/* write to this stream	*/
+	         const char*		s,	/* string to write	*/
+	         int			rc)	/* record separator 	*/
 {
-	ssize_t		p, n, w, sn;
+	ptrdiff_t	p, n, w, sn;
 	uchar		*ps;
 	char		*ss;
 
@@ -39,9 +40,9 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 	for(w = 0; (*s || rc >= 0); )
 	{	/* need to communicate string size to exception handler */
 		if((f->flags&SFIO_STRING) && f->next >= f->endb )
-		{	sn = sn < 0 ? strlen(s) : (sn - (s-ss));
+		{	sn = sn < 0 ? (ptrdiff_t)strlen(s) : (sn - (s-ss));
 			ss = (char*)s; /* save current checkpoint */
-			f->val = sn + (rc >= 0 ? 1 : 0); /* space requirement */
+			f->val = (ssize_t)sn + (rc >= 0 ? 1 : 0); /* space requirement */
 			f->bits |= SFIO_PUTR; /* tell sfflsbuf to use f->val */
 		}
 
@@ -52,16 +53,16 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 			break;
 
 		if(p == 0 || (f->flags&SFIO_WHOLE) )
-		{	n = sn < 0 ? strlen(s) : sn - (s-ss);
+		{	n = sn < 0 ? (ptrdiff_t)strlen(s) : sn - (s-ss);
 			if(p >= (n + (rc < 0 ? 0 : 1)) )
 			{	/* buffer can hold everything */
 				if(n > 0)
-				{	memcpy(ps, s, n);
+				{	memcpy(ps, s, (size_t)n);
 					ps += n;
 					w += n;
 				}
 				if(rc >= 0)
-				{	*ps++ = rc;
+				{	*ps++ = (uchar)rc;
 					w += 1;
 				}
 				f->next = ps;
@@ -71,14 +72,14 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 				Sfrsrv_t*	rsrv;
 
 				p = n + (rc >= 0 ? 1 : 0);
-				if(!(rsrv = _sfrsrv(f, p)) )
+				if(!(rsrv = _sfrsrv(f, (ssize_t)p)) )
 					n = 0;
 				else
 				{	if(n > 0)
-						memcpy(rsrv->data, s, n);
+						memcpy(rsrv->data, s, (size_t)n);
 					if(rc >= 0)
-						rsrv->data[n] = rc;
-					if((n = SFWRITE(f,rsrv->data,p)) < 0 )
+						rsrv->data[n] = (uchar)rc;
+					if((n = (ptrdiff_t)SFWRITE(f,rsrv->data,(size_t)p)) < 0 )
 						n = 0;
 				}
 
@@ -88,7 +89,7 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 		}
 
 		if(*s == 0)
-		{	*ps++ = rc;
+		{	*ps++ = (uchar)rc;
 			f->next = ps;
 			w += 1;
 			break;
@@ -100,7 +101,7 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 		 * same buffer. See: https://github.com/att/ast/issues/78
 		 */
 		for(; p > 0; --p, ++ps, ++s)
-			if((*ps = *s) == 0)
+			if((*ps = (uchar)*s) == 0)
 				break;
 
 		w += ps - f->next;
@@ -116,7 +117,7 @@ ssize_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 	{	if(n > w)
 			n = w;
 		f->next -= n;
-		(void)SFWRITE(f,f->next,n);
+		(void)SFWRITE(f,f->next,(size_t)n);
 	}
 
 	SFOPEN(f,0);

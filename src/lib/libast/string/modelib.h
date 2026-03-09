@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -38,14 +39,14 @@
 
 struct modeop			/* ops for each char in mode string	*/
 {
-	int	mask1;		/* first mask				*/
-	int	shift1;		/* first shift count			*/
-	int	mask2;		/* second mask				*/
-	int	shift2;		/* second shift count			*/
+	mode_t	mask1;		/* first mask				*/
+	mode_t	shift1;		/* first shift count			*/
+	mode_t	mask2;		/* second mask				*/
+	mode_t	shift2;		/* second shift count			*/
 	char*	name;		/* mode char using mask/shift as index	*/
 };
 
 extern struct modeop	modetab[];
-extern int		permmap[];
+extern mode_t		permmap[];
 
 #endif

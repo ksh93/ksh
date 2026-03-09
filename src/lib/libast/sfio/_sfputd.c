@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -23,7 +24,7 @@
 **	Written by Kiem-Phong Vo.
 */
 
-int _sfputd(Sfio_t* f, Sfdouble_t v)
+ssize_t _sfputd(Sfio_t* f, Sfdouble_t v)
 {
 #define N_ARRAY		(16*sizeof(Sfdouble_t))
 	ssize_t		n, w;
@@ -65,7 +66,7 @@ int _sfputd(Sfio_t* f, Sfdouble_t v)
 	while(s > ends)
 	{	/* get 2^SFIO_PRECIS precision at a time */
 		n = (int)(x = ldexpl(v,SFIO_PRECIS));
-		*--s = n|SFIO_MORE;
+		*--s = (uchar)(n|SFIO_MORE);
 		v = x-n;
 		if(v <= 0.)
 			break;
@@ -76,8 +77,8 @@ int _sfputd(Sfio_t* f, Sfdouble_t v)
 	*ends &= ~SFIO_MORE;
 
 	/* write out coded bytes */
-	n = ends - s + 1;
-	w = SFWRITE(f,s,n) == n ? w+n : -1;
+	n = (ssize_t)(ends - s + 1);
+	w = SFWRITE(f,s,(size_t)n) == n ? w+n : -1;
 
 	SFOPEN(f,0);
 	return w;

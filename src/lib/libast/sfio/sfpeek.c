@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -31,7 +32,7 @@ extern ssize_t sfpeek(Sfio_t*	f,	/* file to peek */
 	int	mode;
 
 	/* query for the extent of the remainder of the buffer */
-	if((sz = size) == 0 || !bp)
+	if((sz = (ssize_t)size) == 0 || !bp)
 	{	if(f->mode&SFIO_INIT)
 			(void)_sfmode(f,0,0);
 

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -34,13 +35,13 @@
  * the link text string length is returned
  */
 
-int
-pathgetlink(const char* name, char* buf, int siz)
+ssize_t
+pathgetlink(const char* name, char* buf, size_t siz)
 {
-	int	n;
+	ssize_t n;
 
 	if ((n = readlink(name, buf, siz)) < 0) return -1;
-	if (n >= siz)
+	if (n >= (ssize_t)siz)
 	{
 		errno = EINVAL;
 		return -1;

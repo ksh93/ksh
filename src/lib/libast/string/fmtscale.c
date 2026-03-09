@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -28,11 +29,11 @@
 #include <lclib.h>
 
 char*
-fmtscale(Sfulong_t n, int k)
+fmtscale(Sfulong_t n, unsigned int k)
 {
 	Sfulong_t		m;
-	int			r;
-	int			z;
+	Sflong_t		r;
+	size_t			z;
 	const char*		u;
 	char			suf[3];
 	char*			s;
@@ -53,7 +54,7 @@ fmtscale(Sfulong_t n, int k)
 			n /= k;
 			u++;
 		}
-		if ((r = (10 * (m % k) + (k / 2)) / k) > 9)
+		if ((r = (Sflong_t)(10 * (m % k) + (k / 2)) / (signed)k) > 9)
 		{
 			r = 0;
 			n++;
@@ -79,7 +80,7 @@ fmtscale(Sfulong_t n, int k)
 	}
 	*s = 0;
 	if (n > 0 && n < 10)
-		sfsprintf(buf, z, "%I*u%c%d%s", sizeof(n), n, p->decimal >= 0 ? p->decimal : '.', r, suf);
+		sfsprintf(buf, z, "%I*u%c%jd%s", sizeof(n), n, p->decimal >= 0 ? p->decimal : '.', r, suf);
 	else
 	{
 		if (r >= 5)
