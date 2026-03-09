@@ -37,7 +37,6 @@ int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 	char *cp;
 	double d=0;
 	int sflag=0;
-	time_t tloc = 0;
 	char *last;
 	NOT_USED(context);
 	if(!(sh.sigflag[SIGALRM]&(SH_SIGFAULT|SH_SIGOFF)))
@@ -109,11 +108,6 @@ skip:
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_oneoperand);
 		UNREACHABLE();
-	}
-	if(d > .10)
-	{
-		time(&tloc);
-		tloc += (time_t)(d+.5);
 	}
 	if(sflag && d==0)
 		pause();  /* 'sleep -s' waits until a signal is sent */

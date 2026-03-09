@@ -1104,7 +1104,7 @@ cp "$SHELL" "$bindir/hijack_sh"
 exp=$'GOOD\nGOOD'
 got=$("$bindir/hijack_sh" -c $'print $\'\#!/bin/sh\necho HIJACKED\' > "$bindir/hijack_shell"
 chmod +x "$bindir/hijack_shell"
-rm "$bindir/hijack_sh"
+rm -f "$bindir/hijack_sh"
 cp "$bindir/hijack_shell" "$bindir/hijack_sh"
 ("$bindir/dummy.sh"); "$bindir/dummy.sh"; :')
 rm -r "$bindir"

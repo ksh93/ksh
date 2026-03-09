@@ -158,7 +158,6 @@ do_sleep_precision(const Tv_t* tv)
 	(void)select(0, NULL, NULL, NULL, &tvSleep);
 }
 
-
 #  elif _lib_poll
 
 static inline void

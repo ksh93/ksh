@@ -753,17 +753,11 @@ extern int		errno;
 
 /* for portable encoding of double values */
 #ifndef frexpl
-#if _ast_fltmax_double
-#define frexpl		frexp
-#endif
 #if !_lib_frexpl
 extern long double	frexpl(long double, int*);
 #endif
 #endif
 #ifndef ldexpl
-#if _ast_fltmax_double
-#define ldexpl		ldexp
-#endif
 #if !_lib_ldexpl
 extern long double	ldexpl(long double, int);
 #endif
