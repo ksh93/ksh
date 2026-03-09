@@ -47,11 +47,8 @@ do_link()
 }
 
 # Basic sanity check.
-case ${HOSTTYPE:+H}${INSTALLROOT:+I}${AST_NO_DYLIB+n} in
+case ${HOSTTYPE:+H}${INSTALLROOT:+I} in
 HI)	;;
-HIn)	note "Building dynamic libraries was disabled; skipping"
-	exit 0  # continue build
-	;;
 *)	err_out "Required environment missing"
 	;;
 esac
@@ -87,6 +84,15 @@ case ${module_name:+m}${prefix+p}${suffix+s}${version:+v} in
 msv)	note "warning: -p not given; assuming -p lib for backward compat"
 	prefix=lib ;;
 *)	err_out "-m requires -v/-p/-s and vice versa" ;;
+esac
+
+# Check if building dynamic libraries was disabled.
+case ${AST_NO_DYLIB+N}${opt_query+Q} in
+NQ)	exit 1
+	;;
+N)	note "Building dynamic libraries was disabled; skipping"
+	exit 0  # continue build
+	;;
 esac
 
 # Check for supported system.

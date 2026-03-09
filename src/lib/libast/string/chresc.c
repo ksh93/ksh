@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -46,7 +46,7 @@ utf32towc(uint32_t utf32)
 	if (utf32 <= 0x7F)
 		return utf32;
 	/* in ASCII-only locales, only ASCII (0 - 0x7F) is valid */
-	if (!mbwide() && utf32 > 0x7F && (ast.locale.set & AST_LC_7bit))
+	if (!mbwide() && (ast.locale.set & AST_LC_7bit))
 		return -1;
 	/* check for valid Unicode code point */
 	if (utf32 > 0x10FFFF || utf32 >= 0xD800 && utf32 <= 0xDFFF || utf32 >= 0xFFFE && utf32 <= 0xFFFF)
