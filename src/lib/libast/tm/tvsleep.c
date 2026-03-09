@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,8 +40,7 @@
 # endif
 #endif
 
-#define NANOSECONDS  1000000000L
-#define MILLISECONDS 1000
+static inline int do_sleep(const Tv_t*, Tv_t*);
 
 /*
  * sleep for tv
@@ -57,11 +56,14 @@ tvsleep(const Tv_t* tv, Tv_t* rv)
 	/* Return immediately if asked to sleep for no duration. */
 	if (!tv->tv_sec && !tv->tv_nsec)
 		return 0;
-
-	{
+	return do_sleep(tv, rv);
+}
 
 #if _lib_nanosleep
 
+static inline int
+do_sleep(const Tv_t* tv, Tv_t* rv)
+{
 	/* PRECISION: nanoseconds */
 	struct timespec	stv = { tv->tv_sec, tv->tv_nsec };
 	struct timespec	srv;
@@ -73,26 +75,95 @@ tvsleep(const Tv_t* tv, Tv_t* rv)
 		rv->tv_nsec = srv.tv_nsec;
 	}
 	return r;
-
-	}
+}
 
 #else
 
-	Tv_t tvBefore;
+#define NANOSECONDS  1000000000L
+#define MILLISECONDS 1000
+
+static inline int do_sleep_precision(const Tv_t*, Tv_t*);
+
+static inline int
+do_sleep(const Tv_t* tv, Tv_t* rv)
+{
+	Tv_t	tvBefore, tvAfter;
 
 	tvgettime(&tvBefore);
+	do_sleep_precision(tv, rv);
+	tvgettime(&tvAfter);
+
+	/* Unfortunately, some operating systems return success for select
+	 * or poll without having slept for the specified duration, so check
+	 * the clock.
+	 *
+	 * Although time discrepancies when sleeping are inevitable, tvsleep
+	 * can guarantee that they always lie on or after the time specified,
+	 * which is much more useful from the point of view of predictability
+	 * than if they could also occur before.
+	 */
+	if (tvAfter.tv_nsec < tvBefore.tv_nsec)
 	{
+		if (!tvAfter.tv_sec)
+			return 0;
+		--tvAfter.tv_sec;
+		tvAfter.tv_nsec += (NANOSECONDS - tvBefore.tv_nsec);
+	}
+	else
+		tvAfter.tv_nsec -= tvBefore.tv_nsec;
 
-#if _lib_select && !_prefer_poll
+	if (tvAfter.tv_sec < tvBefore.tv_sec)
+		return 0;
+	tvAfter.tv_sec -= tvBefore.tv_sec;
+	/* tvAfter now holds the non-negative time slept */
 
+	tvBefore = *tv;
+	/* Normalize the time to sleep so that ns < 10e9 */
+	tvBefore.tv_sec  += tvBefore.tv_nsec / NANOSECONDS;
+	tvBefore.tv_nsec %= NANOSECONDS;
+
+	if (tvBefore.tv_nsec < tvAfter.tv_nsec)
+	{
+		if (!tvBefore.tv_sec)
+			return 0;
+		--tvBefore.tv_sec;
+		tvBefore.tv_nsec += (NANOSECONDS - tvAfter.tv_nsec);
+	}
+	else
+		tvBefore.tv_nsec -= tvAfter.tv_nsec;
+
+	if (tvBefore.tv_sec < tvAfter.tv_sec)
+		return 0;
+	tvBefore.tv_sec -= tvAfter.tv_sec;
+
+	if (tvBefore.tv_sec > 0 || tvBefore.tv_nsec > 0)
+	{
+		if (rv)
+			*rv = tvBefore;
+		return -1;
+	}
+	return 0;
+}
+
+#  if _lib_select && !_prefer_poll
+
+static inline int
+do_sleep_precision(const Tv_t* tv, Tv_t* rv)
+{
 	/* PRECISION: microseconds */
 	struct timeval tvSleep = { tv->tv_sec, tv->tv_nsec / 1000 };
+
 	if (tv->tv_nsec % 1000)
 		++tvSleep.tv_usec;
 	(void)select(0, NULL, NULL, NULL, &tvSleep);
+}
 
-#elif _lib_poll
 
+#  elif _lib_poll
+
+static inline int
+do_sleep_precision(const Tv_t* tv, Tv_t* rv)
+{
 	/* PRECISION: milliseconds
 	 *
 	 * We can sleep for up to 24 days with a single call to poll
@@ -113,14 +184,18 @@ tvsleep(const Tv_t* tv, Tv_t* rv)
 			++timeout;
 	}
 	(void)poll(&dummy, 0, timeout);
+}
 
-#else
+#  else  /* no select or poll */
 
+static inline int
+do_sleep_precision(const Tv_t* tv, Tv_t* rv)
+{
 	time_t		s = tv->tv_sec;
 	uint32_t	n = tv->tv_nsec;
 	unsigned int	t;
 
-#if _lib_usleep
+#    if _lib_usleep
 
 	if (s < (0x7fffffff / 1000000))
 	{
@@ -138,7 +213,7 @@ tvsleep(const Tv_t* tv, Tv_t* rv)
 	else
 	{
 
-#endif
+#    endif /* _lib_usleep */
 
 		if (s += (n + 999999999L) / 1000000000L)
 		{
@@ -167,7 +242,7 @@ tvsleep(const Tv_t* tv, Tv_t* rv)
 			return 0;
 		}
 
-#if _lib_usleep
+#    if _lib_usleep
 
 		if (t = (n + 999L) / 1000L)
 		{
@@ -184,72 +259,10 @@ tvsleep(const Tv_t* tv, Tv_t* rv)
 		}
 	}
 
-#endif
-#endif
-
-	}
-
-/* Unfortunately, some operating systems return success for select
- * or poll without having slept for the specified duration, so check
- * the clock.
- *
- * Although time discrepancies when sleeping are inevitable, tvsleep
- * can guarantee that they always lie on or after the time specified,
- * which is much more useful from the point of view of predictability
- * than if they could also occur before.
- */
-	{
-		Tv_t tvAfter;
-
-		tvgettime(&tvAfter);
-
-		if (tvAfter.tv_nsec < tvBefore.tv_nsec)
-		{
-			if (!tvAfter.tv_sec)
-				return 0;
-			--tvAfter.tv_sec;
-			tvAfter.tv_nsec += (NANOSECONDS - tvBefore.tv_nsec);
-		}
-		else
-		{
-		    tvAfter.tv_nsec -= tvBefore.tv_nsec;
-		}
-		if (tvAfter.tv_sec < tvBefore.tv_sec)
-			return 0;
-		tvAfter.tv_sec -= tvBefore.tv_sec;
-		/* tvAfter now holds the non-negative time slept */
-
-		tvBefore = *tv;
-		/* Normalize the time to sleep so that ns < 10e9 */
-		tvBefore.tv_sec  += tvBefore.tv_nsec / NANOSECONDS;
-		tvBefore.tv_nsec %= NANOSECONDS;
-
-		if (tvBefore.tv_nsec < tvAfter.tv_nsec)
-		{
-			if (!tvBefore.tv_sec)
-				return 0;
-			--tvBefore.tv_sec;
-			tvBefore.tv_nsec += (NANOSECONDS - tvAfter.tv_nsec);
-		}
-		else
-		{
-			tvBefore.tv_nsec -= tvAfter.tv_nsec;
-		}
-		if (tvBefore.tv_sec < tvAfter.tv_sec)
-			return 0;
-		tvBefore.tv_sec -= tvAfter.tv_sec;
-
-		if (tvBefore.tv_sec > 0 || tvBefore.tv_nsec > 0)
-		{
-			if (rv)
-				*rv = tvBefore;
-			return -1;
-		}
-	}
-	}
-
-	return 0;
-
-#endif
+#    endif /* _lib_usleep */
 
 }
+
+#  endif /*  _lib_select && !_prefer_poll */
+
+#endif /* _lib_nanosleep */
