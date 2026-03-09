@@ -1506,7 +1506,16 @@ int b(void) { return 0; }
 					echo 'int main(void) { return 0; }' > $tmp.a.c
 					checkcc
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
-					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  )
+					file_result=$(file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g") || true
+					# Use od(1) to check the ELF header directly if file(1) failed
+					if test -z "$file_result" && test "$(uname -s | sed 's/-.*//')" != CYGWIN
+					then	elfbyte=$(( $(od -An -t x1 -j 4 -N 1 $tmp.a.exe) ))
+						if test "$elfbyte" = 2
+						then echo "ELF 64-bit"
+						else echo "ELF 32-bit"
+						fi
+					else	echo "$file_result"
+					fi )
 				case $bits in
 				*\ 64-bit* | *\ 64\ bit* | *\ 64bit*)
 					bits=64 ;;
