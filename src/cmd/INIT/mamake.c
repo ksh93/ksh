@@ -35,6 +35,7 @@ static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #include <ast.h>
 #include <error.h>
+#include <wait.h>
 
 static const char usage[] =
 "[-?\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\n]"
@@ -126,10 +127,10 @@ static const char usage[] =
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <time.h>
 
 #if !_PACKAGE_ast
+#include <sys/wait.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

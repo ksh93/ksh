@@ -202,18 +202,21 @@ make install virtual
 		exec - invoke_iffe %{<}
 	done
 
+	note * ast_param.h *
 	make FEATURE/param
 		prev std/endian.h
 		makp features/param.sh
 		exec - invoke_iffe %{<}
 	done
 
+	note * ast_tty.h *
 	make FEATURE/tty
 		prev ast_lib.h
 		makp features/tty
 		exec - invoke_iffe %{<}
 	done
 
+	note * ast_fcntl.h *
 	make FEATURE/fcntl
 		prev ast_fs.h
 		make features/fcntl.c
@@ -225,9 +228,8 @@ make install virtual
 		exec - invoke_iffe %{<} -I. -Icomp -Iinclude -Istd
 	done
 
+	note * ast_wchar.h *
 	make FEATURE/wchar
-		makp std/wctype.h
-		makp std/stdio.h
 		prev ast_common.h
 		make features/wchar
 			prev ast_common.h
@@ -258,7 +260,6 @@ make install virtual
 	make ast_wchar.h
 		prev FEATURE/wchar
 		exec - cp -f %{<} %{@}
-		prev std/stdio.h
 		prev ast_common.h
 	done
 
@@ -526,7 +527,6 @@ make install virtual
 
 	note * ast_ndbm.h *
 	make FEATURE/ndbm
-		prev std/stdio.h
 		makp features/ndbm
 		exec - invoke_iffe %{<}
 	done
@@ -611,9 +611,7 @@ make install virtual
 				makp include/ast_windows.h
 			done
 			make lcgen
-				make port/lcgen.c
-					prev std/stdio.h
-				done
+				makp port/lcgen.c
 				exec - %{CC} %{CCLDFLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS} -o lcgen port/lcgen.c
 			done
 			setv _run_lcgen_ lcgen lc.h lctab.c < port/lc.tab
@@ -666,7 +664,6 @@ make install virtual
 					make std/dirent.h
 						prev ast_dirent.h
 					done
-					prev std/dirent.h
 					make include/ls.h
 						prev ast_mode.h
 						prev ast_fs.h
@@ -1154,7 +1151,9 @@ make install virtual
 
 		make pathtmp.o
 			make path/pathtmp.c
-				prev std/stdio.h
+				make std/stdio.h
+					prev ast_stdio.h
+				done
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -1398,7 +1397,9 @@ make install virtual
 				done
 				prev include/namval.h
 				prev include/error.h
-				prev std/wctype.h
+				make std/wctype.h
+					prev ast_wctype.h
+				done
 				prev include/ast_windows.h
 			done
 			exec - compile %{<} -Iport
@@ -4254,8 +4255,10 @@ make install virtual
 		bind -last
 		make mamake.o
 			make %{PACKAGEROOT}/src/cmd/INIT/mamake.c
-				prev %{INCLUDE_AST}/error.h
-				prev %{INCLUDE_AST}/ast.h
+				prev include/ast.h
+				prev include/error.h
+				prev include/wait.h
+				prev std/stdio.h
 			done
 			exec - compile %{<} -D_PACKAGE_ast
 		done
