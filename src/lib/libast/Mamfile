@@ -4257,6 +4257,7 @@ make install virtual
 			make %{PACKAGEROOT}/src/cmd/INIT/mamake.c
 				prev include/ast.h
 				prev include/error.h
+				prev sig.h
 				prev include/wait.h
 				prev std/stdio.h
 			done
