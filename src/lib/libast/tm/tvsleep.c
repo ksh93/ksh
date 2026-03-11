@@ -33,8 +33,6 @@
 #  else
 #   include <sys/socket.h>
 #  endif
-# elif _lib_poll_notimer
-#  undef _lib_poll
 # elif _lib_poll
 #  include <poll.h>
 # endif
