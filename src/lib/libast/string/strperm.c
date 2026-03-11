@@ -52,7 +52,7 @@ strperm(const char* aexpr, char** e, mode_t perm)
 	{
 		perm = 0;
 		masked = 1;
-		mask = ~0U;
+		mask = (mode_t)~0;
 	}
 	else
 		masked = 0;
