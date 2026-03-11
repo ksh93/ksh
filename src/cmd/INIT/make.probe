@@ -3,7 +3,7 @@
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)make.probe (ksh 93u+m) 2024-08-13
+# @(#)make.probe (ksh 93u+m) 2026-03-11
 #
 # C probe for make
 #
@@ -18,8 +18,6 @@ probe_ccs="strip size nm ld ar" # longest to shortest
 probe_debug="-g"
 probe_dll="'-G 0' -Wc,dll,exportall,longname,rent -Wc,exportall -dynamic $cc_dll_def"
 probe_export_dynamic="-rdynamic -export-dynamic -Wl,-export-dynamic -Wl,-E -bexpall -force_flat_namespace"
-probe_gcc_optimize="-Os"
-probe_gcc_version="*[Gg][Cc][Cc]*"
 probe_include_local="'-ignore-source-dir -iquote' -iquote -I-"
 probe_ldasneeded="-Wl,-as-needed -Wl,-no-as-needed"
 probe_ldlazy='-zlazyload -znolazyload -Wl,-zlazyload -Wl,-znolazyload'
@@ -1454,16 +1452,20 @@ then	e=`wc -c < e`
 		esac
 	done
 
-	case $version_string in
-	$probe_gcc_version)	probe_optimize="$probe_gcc_optimize $probe_optimize" ;;
+	# don't bother probing optimization flags if some were passed in CCFLAGS
+	case $CCFLAGS in
+	-O* | *\ -O*)
+		;;
+	*)
+		for i in $probe_optimize
+		do	rm -f warn.$obj
+			$cc $i -c warn.$src 2>e && test -f warn.$obj || continue
+			case `wc -c < e` in
+			$e)	optimize=$i; break ;;
+			esac
+		done
+		;;
 	esac
-	for i in $probe_optimize
-	do	rm -f warn.$obj
-		$cc $i -c warn.$src 2>e && test -f warn.$obj || continue
-		case `wc -c < e` in
-		$e)	optimize=$i; break ;;
-		esac
-	done
 
 	eval set x $probe_strict
 	while	:
