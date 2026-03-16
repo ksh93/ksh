@@ -1,9 +1,9 @@
 :
-### this script contains archaic constructs that work with all sh variants ###
+### this sh script is POSIX compliant and compatible with shell bugs ###
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)C probe (ksh 93u+m) 2022-10-26
+# @(#)C probe (ksh 93u+m) 2026-03-15
 #
 # probe [ -d ] c-compiler-path [ attributes ]
 #
@@ -45,8 +45,10 @@ dynamic=
 exe=exe
 executable="test -x"
 hosted=
-ifs=${IFS-'
-	 '}
+CCn='
+' # newline
+CCt='	' # tab
+ifs=${IFS-" $CCt$CCn"}
 obj=o
 ppenv=
 ppopt=
@@ -216,7 +218,7 @@ main(void)
 				case $1 in
 				*=*)	continue ;;
 				esac
-				case `echo $1 | sed -e 's,.*/,,'` in
+				case ${1##*/} in
 				*CC*|*++*|*[xX][xX]*|*[pP][lL][uU][sS]*) ;;
 				*)	src=c ;;
 				esac
@@ -495,32 +497,29 @@ do	case $# in
 				*)	stdinclude="$stdinclude $1" ;;
 				esac
 				;;
-		-I-S*|-YI,*)	usrinclude="`echo $1 | sed 's/....//'`" ;;
+		-I-S*|-YI,*)	usrinclude=${1#????} ;;
 		-Y?,*)		;;
-		-Y*)		usrinclude="`echo $1 | sed 's/..//'`" ;;
+		-Y*)		usrinclude=${1#??} ;;
 		esac
 		;;
 	-D)	shift
 		case $1 in
 		[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_]*=*)
-			predef="$predef
-`echo $1 | sed -e 's/=.*//'`"
+			predef=${predef}${CCn}${1%%=*}
 			;;
 		[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_]*)
-			predef="$predef
-$1"
+			predef=${predef}${CCn}${1}
 			;;
 		esac
 		;;
 	-Dprobe);;
 	-D*)	case $1 in
 		-D[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_]*=*)
-			predef="$predef
-`echo $1 | sed -e 's/^-D//' -e 's/=.*//'`"
+			x=${1%%=*}
+			predef=${predef}${CCn}${x#-D}
 			;;
 		-D[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_]*)
-			predef="$predef
-`echo $1 | sed -e 's/^-D//'`"
+			predef=${predef}${CCn}${1#-D}
 			;;
 		esac
 		;;
@@ -534,7 +533,7 @@ $1"
 			;;
 		esac
 		;;
-	-I/*)	f=`echo X$1 | sed 's/X-I//'`
+	-I/*)	f=${1#-I}
 		case $def in
 		?*)	definclude="$definclude $f" ;;
 		*)	stdinclude="$stdinclude $f" ;;
@@ -544,7 +543,7 @@ $1"
 	-U)	shift
 		undef="$undef $1"
 		;;
-	-U*)	undef="$undef `echo $1 | sed 's/^-U//'`"
+	-U*)	undef="$undef ${1#-U}"
 		;;
 	flags.$src)def=
 		;;
@@ -799,12 +798,9 @@ case $good in
 	tstinclude=`cat tmp.tmp`
 	bad=
 	for i in $stdinclude
-	do	case "
-$tstinclude
-" in
-		*"
-$i
-"*)			;;
+	do	case $CCn$tstinclude$CCn in
+		*"$CCn$i$CCn"*)
+			;;
 		*)	bad=1
 			break
 			;;

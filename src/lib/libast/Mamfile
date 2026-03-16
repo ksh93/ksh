@@ -17,26 +17,6 @@ setv DYLIB_PRE %{mam_cc_SUFFIX_DYNAMIC?*?%{mam_cc_PREFIX_DYNAMIC}?%{mam_cc_PREFI
 setv DYLIB_SUF %{mam_cc_SUFFIX_DYNAMIC-%{mam_cc_SUFFIX_SHARED}}
 setv DYLIB_VERSION 7.0
 
-note *
-note * iffe and cc invocations are mostly the same but some add custom flags;
-note * set shim functions for brevity and "single source of truth" while allowing for variety in invocations
-note *
-
-shim - invoke_iffe()
-shim - {
-shim -     s=$1
-shim -     shift
-shim -     set -- %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS} "$@"
-shim -     iffe %{IFFEFLAGS} -v -X ast -X std -c "$*" run "$s"
-shim - }
-shim -
-shim - compile()
-shim - {
-shim -     s=$1
-shim -     shift
-shim -     %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} -I. -Icomp "$@" -Iinclude -Istd -c "$s"
-shim - }
-
 make install virtual
 	note *
 	note * Generate release information
@@ -79,6 +59,18 @@ make install virtual
 		exec -	fi
 	done
 	makp ast_release.h
+
+	note *
+	note * iffe invocations are mostly the same, but some add custom flags
+	note *
+
+	shim - invoke_iffe()
+	shim - {
+	shim -     s=$1
+	shim -     shift
+	shim -     set -- %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS} "$@"
+	shim -     iffe %{IFFEFLAGS} -v -X ast -X std -c "$*" run "$s"
+	shim - }
 
 	note *
 	note * Generate some fundamental headers from iffe feature tests
@@ -637,6 +629,17 @@ make install virtual
 		prev FEATURE/tmx
 		exec - cp -f %{<} %{@}
 	done
+
+	note *
+	note * cc invocations are mostly the same, but some add custom flags
+	note *
+
+	shim - compile()
+	shim - {
+	shim -     s=$1
+	shim -     shift
+	shim -     %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} -I. -Icomp "$@" -Iinclude -Istd -c "$s"
+	shim - }
 
 	note *
 	note * Build the library

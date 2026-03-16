@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-10"
+#define RELEASE_DATE "2026-03-15"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -133,6 +133,7 @@ static const char usage[] =
 #if !_PACKAGE_ast
 #include <sys/wait.h>
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -160,7 +161,7 @@ static const char usage[] =
 #define setsize(b,o)	((b)->nxt=(b)->buf+(o))
 #define use(b)		(*(b)->nxt=0,(b)->nxt=(b)->buf)
 
-#define CHUNK		4096
+#define CHUNK		1024		/* buffer() growth chunk size	*/
 #define KEY(a,b,c,d)	((((unsigned long)(a))<<24)|(((unsigned long)(b))<<16)|(((unsigned long)(c))<<8)|(((unsigned long)(d))))
 
 #define PARALLEL(r)	(state.maxjobs > 1 && state.strict >= 5 && !((r)->flags & RULE_virtual))
@@ -753,7 +754,6 @@ static void view(void)
 	int		c;
 	size_t		slen, plen;
 	struct stat	st, ts;
-	char		buf[CHUNK];
 	Dict_item_t	*vnode;
 
 	if (stat(".", &st))
@@ -764,8 +764,9 @@ static void view(void)
 		state.pwd = s;
 	if (!state.pwd)
 	{
-		if (!getcwd(buf, sizeof buf - 1))
-			error_out("cannot determine PWD", NULL);
+		char	buf[PATH_MAX + 1];
+		if (!getcwd(buf, sizeof buf))
+			error_out("cannot determine PWD", strerror(errno));
 		state.pwd = duplicate(buf);
 		vnode->value = state.pwd;
 	}
@@ -1382,7 +1383,7 @@ static int push(char *file, FILE *fp, int flags)
 
 static char *input(void)
 {
-	static char	input[CHUNK];  /* input buffer */
+	static char	input[4096];  /* input buffer */
 	char		*e;
 
 	assert(state.sp);
@@ -1486,12 +1487,12 @@ static void reap(Rule_t *r, int flag)
 	if (r->logtmp)
 	{
 		FILE	*logf;
-		char	b[CHUNK];
+		char	b[4096];
 		size_t	s;
 		print_nice_hdr(r);
 		if (!(logf = fopen(r->logtmp, "r")))
 			report(3, r->logtmp, "log gone", r);
-		while ((s = fread(b, 1, CHUNK, logf)) > 0)
+		while ((s = fread(b, 1, sizeof b, logf)) > 0)
 			fwrite(b, 1, s, stdout);
 		fclose(logf);
 		fflush(stdout);
@@ -2407,33 +2408,38 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 		}
 
 		case KEY('m','a','k','p'):
+			if (q = getval(state.rules, t))
+				error_out(t, q->flags & RULE_made ? "rule already made" : "rule already being made");
+		p_makp:
+			/* declare a simple source file prerequisite */
+			attributes(q = rule(t), v);
+			if (!(q->flags & RULE_virtual))
+			{
+				bindfile(q);
+				if (!(q->flags & (RULE_dontcare | RULE_exists)))
+					error_making(q, 0);
+				propagate(q, r, &st.modtime);
+			}
+			q->flags |= RULE_made;
+			report(-2, q->name, "makp", q);
+			/* update %{<}, %{^} and %{?} */
+			update_allprev(q, auto_allprev->value, auto_updprev->value);
+			continue;
+
 		case KEY('p','r','e','v'):
 		{
-			const int makp = (u[0] == 'm');
 			q = getval(state.rules, t);
-			if (!q && !makp && !state.strict)
+			if (!q && !state.strict)
 				q = rule(t); /* for backward compat */
-			else if (!q && (makp || state.strict < 4))
+			if (!q)
 			{
-				/* declare a simple source file prerequisite */
-				attributes(q = rule(t), v);
-				if (!(q->flags & RULE_virtual))
-				{
-					bindfile(q);
-					if (!(q->flags & (RULE_dontcare | RULE_exists)))
-						error_making(q, 0);
-					propagate(q, r, &st.modtime);
-				}
-				q->flags |= RULE_made;
-				report(-2, q->name, "makp", q);
-			}
-			else if (makp)
-				error_out(t, q->flags & RULE_made ? "rule already made" : "rule already being made");
-			else if (!q)
+				if (state.strict < 4)
+					goto p_makp; /* bad design decision introduced at strict 1, undone at strict 4 */
 				error_out(t, "prev: rule not made");
-			else if (*v && state.strict)
+			}
+			if (*v && state.strict)
 				error_out(v, "prev: attributes not allowed");
-			else if (q->making)
+			if (q->making)
 				report(state.strict < 3 ? 1 : 3, "rule already being made", t, NULL);
 			else
 			{	/* we may need to wait for it to finish processing */
