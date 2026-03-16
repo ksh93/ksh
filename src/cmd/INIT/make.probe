@@ -1,9 +1,9 @@
 :
-### this script contains archaic constructs that work with all sh variants ###
+### this sh script is POSIX compliant and compatible with shell bugs ###
 # Glenn Fowler
 # AT&T Research
 #
-# @(#)make.probe (ksh 93u+m) 2026-03-11
+# @(#)make.probe (ksh 93u+m) 2026-03-15
 #
 # C probe for make
 #
@@ -181,7 +181,7 @@ done
 stdinclude=$d
 
 set x $cc
-cc_dir=`echo $2 | sed -e 's,/*[^/]*$,,'`
+cc_dir=${2%/*}
 for c in $probe_ccs
 do	if	$executable $cc_dir/$c
 	then	x=$cc_dir/$c
@@ -204,7 +204,7 @@ then	eval set x $probe_verbose
 		then	case $ld in
 			ld)	ld=$i ;;
 			esac
-			ld_dir=`echo $i | sed 's,/[^/]*$,,'`
+			ld_dir=${i%/*}
 			break
 		fi
 	done
@@ -1054,7 +1054,7 @@ case $a in
 	do	if	[ -d ${d}${a} ]
 		then	stdlib="$stdlib ${d}${a}"
 		else	case $d in
-			*/lib/)	d=`echo '' $d | sed -e 's,/$,,'`
+			*/lib/)	d=${d%/}
 				if	[ -d ${d}${a} ]
 				then	stdlib="$stdlib ${d}${a}"
 				fi
@@ -1169,8 +1169,17 @@ case $stdlib in
 				esac
 				$cc $1 hosted.$obj
 			done
-			) 2>&1 | sed -e 's/[ 	:]/\\
-	/g' -e 's/-L//g' -e 's/^P,//' -e "s/[\"']//g" -e 's,^[\\\\/]*[\\\\/],/,' | sed -e '/^\$/d' -e '/^[-+]/d' -e '/^[^\\\\\\/]/d' -e '/[\\\\\\/]tmp[\\\\\\/]/d' -e 's/:\$//' -e 's,//*$,,'`
+			) 2>&1 | sed -e "s/[ ${CCt}:]/\\\\${CCn}${CCt}/g" \
+				-e 's/-L//g' \
+				-e 's/^P,//' \
+				-e "s/[\"']//g" \
+				-e 's,^[\\\\/]*[\\\\/],/,' |
+			sed -e '/^\$/d' \
+				-e '/^[-+]/d' \
+				-e '/^[^\\\\\\/]/d' \
+				-e '/[\\\\\\/]tmp[\\\\\\/]/d' \
+				-e 's/:\$//' \
+				-e 's,//*$,,'`
 		do	case " $tstlib $implib " in
 			*" $f "*)	continue ;;
 			esac

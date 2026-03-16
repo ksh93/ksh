@@ -596,7 +596,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	int rv= -1;
 	int delim = ((ep->e_raw&RAWMODE)?nttyparm.c_cc[VEOL]:'\n');
 	int mode = -1;
-	int (*waitevent)(int,long,int) = sh.waitevent;
+	Shwait_f waitevent = sh.waitevent;
 	NOT_USED(reedit);
 	/* sfpkrd must use select(2) to intercept SIGWINCH for ed_read */
 	if(size < 0)
