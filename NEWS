@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-03-16:
+
+- Fixed a bug in the join(1) built-in command (bound to /opt/ast/bin) that
+  caused it to fail if one of the file arguments is a process substitution or
+  other unseekable file stream. Unseekable files were only handled correctly
+  when passing "-" for standard input; now all unseekable files work.
+
 2026-03-09:
 
 - Fixed a bug in the sleep built-in command that could cause an excessive
