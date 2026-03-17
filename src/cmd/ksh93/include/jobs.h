@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -31,7 +31,10 @@
 #ifndef SIGINT
 #   include	<signal.h>
 #endif /* !SIGINT */
-#include	<aso.h>
+#if !_std_atomic
+#   include	<aso.h>
+#   define	atomic_uint uint32_t
+#endif
 #include	"terminal.h"
 
 #ifndef SIGCHLD
@@ -65,7 +68,7 @@ struct jobs
 	pid_t		mypgid;		/* process group ID of shell */
 	pid_t		mytgid;		/* terminal group ID of shell */
 	int		curjobid;
-	unsigned int	in_critical;	/* >0 => in critical region */
+	atomic_uint	in_critical;	/* >0 => in critical region */
 	int		savesig;	/* active signal */
 	int		numpost;	/* number of posted jobs */
 #if SHOPT_BGX
@@ -88,6 +91,18 @@ struct jobs
 
 extern struct jobs job;
 
+#if _std_atomic
+/* locking functions used when C11's atomic_uint is available */
+#define job_lock()	(job.in_critical++)
+#define job_unlock()	\
+	do { \
+		int	_sig; \
+		if (job.in_critical == 1 && (_sig = job.savesig)) \
+			job_reap(_sig); \
+		job.in_critical--; \
+	} while(0)
+#else
+/* fallbacks using the ASO functions provided by libast */
 #define job_lock()	asoincint(&job.in_critical)
 #define job_unlock()	\
 	do { \
@@ -96,6 +111,7 @@ extern struct jobs job;
 		    job_reap(_sig); \
 		asodecint(&job.in_critical); \
 	} while(0)
+#endif
 
 extern const char	e_jobusage[];
 extern const char	e_done[];

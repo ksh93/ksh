@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -47,6 +47,10 @@ main(void)
 	/* do the same with sigunblock(), just to be sure (e.g., native QNX sigunblock() is different) */
 	printf("#undef	sigunblock\n");
 	printf("#define sigunblock      _ast_sigunblock\n");
+	/* use AST eaccess(3) (which will prefer faccessat over native eaccess) */
+	printf("#undef	eaccess\n");
+	printf("#define eaccess         _ast_eaccess\n");
+	printf("extern int              eaccess(const char*, int);\n");
 	/* Override the native regex library in favor of libast's regex functions */
 	printf("#undef	regaddclass\n");
 	printf("#define regaddclass	_ast_regaddclass\n");
