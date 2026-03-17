@@ -679,13 +679,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sfswap(iop,sfstdout);
 			sfset(sfstdout,SFIO_READ,0);
 			sh.fdstatus[1] = IOWRITE;
-			flags |= sh_state(SH_NOFORK);
 		}
 		else if(sp->prev)
-		{
 			sp->pipe = sp->prev->pipe;
-			flags &= ~sh_state(SH_NOFORK);
-		}
+		flags |= sh_state(SH_NOFORK);
 		if(sh.savesig < 0)
 		{
 			sh.savesig = 0;
