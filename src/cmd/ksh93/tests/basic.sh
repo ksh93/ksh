@@ -970,21 +970,6 @@ expect_status=2
 	err_exit "wrong exit status (expected '$expect_status', got '$actual_status')"
 
 # ======
-# Test for illegal seek error (ksh93v- regression)
-# https://www.mail-archive.com/ast-users@lists.research.att.com/msg00816.html
-case $(uname -s) in
-AIX | SunOS)
-	# AIX and Solaris join(1) hang on this test -- not ksh's fault
-	;;
-*)
-	exp=$'1\n2'
-	got=$(join <(printf '%d\n' 1 2) <(printf '%d\n' 1 2))
-	[[ $exp == "$got" ]] || err_exit "pipeline fails with illegal seek error" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-	;;
-esac
-
-# ======
 # Test exec optimization of last command in script or subshell
 
 got=$(

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -25,7 +25,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: join (ksh 93u+m) 2022-08-30 $\n]"
+"[-?\n@(#)$Id: join (ksh 93u+m) 2026-03-16 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?join - relational database operator]"
 "[+DESCRIPTION?\bjoin\b performs an \aequality join\a on the files \afile1\a "
@@ -726,7 +726,7 @@ sfprintf(sfstdout, "[2#%d:0,%lld,%lld]", __LINE__, lo, hi);
 				else if ((jp->outmode & C_FILE2) && outrec(jp, 1) < 0)
 					return -1;
 				lo = -1;
-				if (cp2 = getrec(jp, 1, 1))
+				if (cp2 = getrec(jp, 1, 0))
 				{
 					n2 = jp->file[1].fieldlen;
 					continue;
@@ -933,41 +933,26 @@ b_join(int argc, char** argv, Shbltin_t* context)
 		UNREACHABLE();
 	}
 	jp->ooutmode = jp->outmode;
-	jp->file[0].name = cp = *argv++;
-	if (streq(cp,"-"))
+	/* process both file arguments */
+	for (n = 0; n <= 1; n++)
 	{
-		if (sfseek(sfstdin,0,SEEK_CUR) < 0)
+		jp->file[n].name = cp = *argv++;
+		if (streq(cp,"-"))
+			jp->file[n].iop = sfstdin;
+		else if (!(jp->file[n].iop = sfopen(NULL, cp, "r")))
 		{
-			if (sfdcseekable(sfstdin))
+			done(jp);
+			error(ERROR_system(1),"%s: cannot open",cp);
+			UNREACHABLE();
+		}
+		/* attempt to make non-seekable input seekable */
+		if (sfseek(jp->file[n].iop,0,SEEK_CUR) < 0)
+		{
+			if (sfdcseekable(jp->file[n].iop))
 				error(ERROR_warn(0),"%s: seek may fail",cp);
 			else
-				jp->file[0].discard = 1;
+				jp->file[n].discard = 1;
 		}
-		jp->file[0].iop = sfstdin;
-	}
-	else if (!(jp->file[0].iop = sfopen(NULL, cp, "r")))
-	{
-		done(jp);
-		error(ERROR_system(1),"%s: cannot open",cp);
-		UNREACHABLE();
-	}
-	jp->file[1].name = cp = *argv;
-	if (streq(cp,"-"))
-	{
-		if (sfseek(sfstdin,0,SEEK_CUR) < 0)
-		{
-			if (sfdcseekable(sfstdin))
-				error(ERROR_warn(0),"%s: seek may fail",cp);
-			else
-				jp->file[1].discard = 1;
-		}
-		jp->file[1].iop = sfstdin;
-	}
-	else if (!(jp->file[1].iop = sfopen(NULL, cp, "r")))
-	{
-		done(jp);
-		error(ERROR_system(1),"%s: cannot open",cp);
-		UNREACHABLE();
 	}
 	if (jp->buffered)
 	{
