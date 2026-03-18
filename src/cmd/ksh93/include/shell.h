@@ -194,6 +194,12 @@ typedef struct sh_scope
 
 #if _BLD_ksh
 
+#if NSIG
+#define KSH_NSIG	(NSIG)
+#else
+#define KSH_NSIG	128		/* no UN*X system is currently known to have more than 128 signals */
+#endif
+
 /* Private interface to shell scope. The first members must match the public interface. */
 struct sh_scoped
 {
@@ -225,6 +231,7 @@ struct sh_scoped
 	char		**otrapcom;	/* save parent EXIT and signals for v=$(trap) */
 	void		*timetrap;	/* for the 'alarm' built-in */
 	struct Ufunction *real_fun;	/* current 'function name' function */
+	uint8_t		trapnofree[(KSH_NSIG+7)/8];  /* bitmask to stop b_trap() freeing trapcom entries */
 };
 
 struct limits
