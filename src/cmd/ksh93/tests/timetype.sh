@@ -78,7 +78,7 @@ got=$( { set +x; "$SHELL" -c '
 typeset -T TheTime_T=(
     typeset -S skew=0
     function get {
-        now=$( date +%s )
+        printf -v now "%(%s)T"
         (( .sh.value=now+skew ))
         (( skew+=1 ))
     }

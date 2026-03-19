@@ -231,7 +231,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
             \b$PACKAGEROOT\b directory tree. Leaf directory names matching the
             \b|\b-separated shell pattern \b$MAKESKIP\b are ignored. The
             \bview\b action is done before making. \aoption\a operands are
-	    passed to the underlying make command.]
+	    passed to the underlying \bmamake\b command.]
         [+results\b [ \bfailed\b ]] [ \bpath\b ]] [ \bold\b ]] [\bmake\b | \btest\b | \bwrite\b ]]?List
             results and interesting messages captured by the most recent
             \bmake\b (default), \btest\b or \bwrite\b action. \bold\b

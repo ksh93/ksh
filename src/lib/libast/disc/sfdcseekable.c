@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -34,10 +34,7 @@ typedef struct _skable_s
 	int		eof;	/* if eof has been reached */
 } Seek_t;
 
-static ssize_t skwrite(Sfio_t*		f,	/* stream involved */
-		       const void*	buf,	/* buffer to read into */
-		       size_t		n,	/* number of bytes to read */
-		       Sfdisc_t*	disc)	/* discipline */
+static ssize_t skwrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* disc)
 {
 	NOT_USED(f);
 	NOT_USED(buf);
