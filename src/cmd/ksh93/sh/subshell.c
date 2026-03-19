@@ -938,7 +938,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	n = sh.savesig;
 	sh.savesig = 0;
 	if(n > 0)
-		kill(sh.current_pid,nsig);
+		kill(sh.current_pid, n);
 	if(sp->subpid)
 		job_wait(sp->subpid);
 	sh.comsub = sp->comsub;
