@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-17"
+#define RELEASE_DATE "2026-03-19"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -1445,7 +1445,7 @@ static void check_shellaction(Rule_t *r, int e)
 		;
 	else if (status(NULL, 0, r->name, &fstat))	/* target file exists? */
 	{
-		if (fstat.st_mtime <= r->origtime && (r->flags & (RULE_exists | RULE_dontcare)) == RULE_exists && state.strict >= 5)
+		if (fstat.st_mtime < r->origtime && (r->flags & (RULE_exists | RULE_dontcare)) == RULE_exists && state.strict >= 5)
 			error_making(r, -2);		/* "target not updated" */
 		r->time = fstat.st_mtime;
 		r->flags |= RULE_exists;
