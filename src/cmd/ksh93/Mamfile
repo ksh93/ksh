@@ -1106,7 +1106,7 @@ make install virtual
 
 	loop DIR bin include/ast lib/lib man/man1 man/man3 fun etc
 		make %{INSTALLROOT}/%{DIR}
-			exec - mkdir -p %{@}
+			exec - test -d %{@} && touch %{@} || mkdir -p %{@}
 		done
 	done
 	make %{INSTALLROOT}/lib/mam/shell

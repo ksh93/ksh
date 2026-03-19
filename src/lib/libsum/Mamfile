@@ -73,7 +73,7 @@ make install virtual
 
 	loop DIR %{INSTALLROOT}/lib/lib %{INCLUDE_AST}
 		make %{DIR}
-			exec - mkdir -p %{@}
+			exec - test -d %{@} && touch %{@} || mkdir -p %{@}
 		done
 	done
 	make %{INSTALLROOT}/lib/libsum.a

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1995-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -28,13 +28,13 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2024-12-28 $
+@(#)$Id: shtests (ksh 93u+m) 2026-03-19 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
 [-copyright?(c) 2000-2012 AT&T Intellectual Property]
-[-copyright?(c) 2020-2024 Contributors to ksh 93u+m]
+[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
 [+NAME?shtests - ksh regression test harness]
 [+DESCRIPTION?\bshtests\b is the \bksh\b(1) regression test harness for
@@ -295,6 +295,13 @@ then	s=${SHELL:##*sh}
 	then	SHCOMP=${s%-g}
 	else	SHCOMP=shcomp
 	fi
+fi
+
+# if compiled with AddressSanitizer (ASan), certain tests are expected to fail
+grep -q __asan_init "$SHELL"
+export SHELL_ASAN=$(( ! $? ))
+if	((SHELL_ASAN))
+then	export ASAN_OPTIONS=detect_leaks=0   # LeakSanitizer does not play well with the tests
 fi
 
 # when testing a shell outside of INSTALLROOT, make sure libraries in INSTALLROOT are not loaded

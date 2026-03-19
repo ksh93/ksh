@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -198,12 +198,14 @@ x=$q$'x\' #y'
 if	[[ $x != "1x' #y" ]]
 then	err_exit "$q$'x\' #y'" not working
 fi
-IFS=,
+
 x='a,b\,c,d'
-set -- $x
-if	[[ $2 != 'b\' ]]
-then	err_exit "field splitting of $x with IFS=$IFS not working"
-fi
+(
+	IFS=,
+	set -- $x
+	[[ $2 == 'b\' ]]
+) || err_exit "field splitting of $x with IFS=, not working"
+
 foo=bar
 bar=$(print -r -- ${foo+\\n\ })
 if	[[ $bar != '\n ' ]]

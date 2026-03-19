@@ -20,6 +20,11 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
+if	((SHELL_ASAN))
+then	warning "ksh was compiled with ASan; skipping tests"
+	exit 0
+fi
+
 # Determine method for running tests.
 # On Linux, we can use /proc to get byte granularity for vsize (field 23).
 if	[[ -f /proc/$$/stat && $(uname) == Linux ]]
