@@ -4159,7 +4159,7 @@ make install virtual
 	note * ensure preinstallation directories exist
 	loop DIR include/ast lib/lib lib/mam lib/file man/man3
 		make %{INSTALLROOT}/%{DIR}
-			exec - mkdir -p %{@}
+			exec - test -d %{@} && touch %{@} || mkdir -p %{@}
 		done
 	done
 
