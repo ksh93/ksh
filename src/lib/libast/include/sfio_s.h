@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #ifndef _SFIO_S_H
@@ -36,7 +37,7 @@ struct _sfio_s
 	unsigned char*	_endb;	/* end of buffer			*/
 	struct _sfio_s*	_push;	/* the stream that was pushed on	*/
 	unsigned short	_flags;	/* type of stream			*/
-	short		_file;	/* file descriptor			*/
+	int		_file;	/* file descriptor			*/
 	unsigned char*	_data;	/* base of data buffer			*/
 	ssize_t		_size;	/* buffer size				*/
 	ssize_t		_val;	/* values or string lengths		*/

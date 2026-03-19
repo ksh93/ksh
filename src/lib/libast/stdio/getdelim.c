@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -37,7 +38,7 @@ getdelim(char** sp, size_t* np, int delim, Sfio_t* f)
 
 	SFLOCK(f,0);
 
-	if(!(s = (uchar*)(*sp)) || (n = *np) < 0)
+	if(!(s = (uchar*)(*sp)) || (n = (ssize_t)*np) < 0)
 		{ s = NULL; n = 0; }
 	for(m = 0;; )
 	{	/* read new data */
@@ -59,15 +60,15 @@ getdelim(char** sp, size_t* np, int delim, Sfio_t* f)
 
 		if((m+k+1) >= n ) /* make sure there is space */
 		{	n = ((m+k+15)/8)*8;
-			if(!(s = (uchar*)realloc(s, n)) )
+			if(!(s = (uchar*)realloc(s, (size_t)n)) )
 			{	*sp = 0; *np = 0;
 				m = -1;
 				break;
 			}
-			*sp = (char*)s; *np = n;
+			*sp = (char*)s; *np = (size_t)n;
 		}
 
-		memcpy(s+m, ps, k); m += k;
+		memcpy(s+m, ps, (size_t)k); m += k;
 		f->next = ps+k; /* skip copied data in buffer */
 
 		if(s[m-1] == delim)

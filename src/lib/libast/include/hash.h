@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -118,7 +119,7 @@ typedef struct Hash_table Hash_table_t;
 
 #define HASH_HEADER			/* common bucket header		*/ \
 	Hash_bucket_t*	next;		/* next in collision chain	*/ \
-	unsigned int	hash;		/* hash flags and value		*/ \
+	unsigned long	hash;		/* hash flags and value		*/ \
 	char*		name		/* key name			*/
 
 #define HASH_DEFAULT			/* HASH_VALUE bucket elements	*/ \
@@ -167,7 +168,7 @@ struct Hash_root			/* root hash table information	*/
 struct Hash_table			/* hash table information	*/
 {
 	Hash_root_t*	root;		/* root hash table information	*/
-	int		size;		/* table size			*/
+	ssize_t		size;		/* table size			*/
 	int		buckets;	/* active bucket count		*/
 	char*		name;		/* table name			*/
 	Hash_table_t*	scope;		/* scope covered table		*/
@@ -185,7 +186,7 @@ extern Hash_bucket_t*	hashlast(Hash_table_t*);
 extern char*		hashlook(Hash_table_t*, const char*, long, const char*);
 extern Hash_bucket_t*	hashnext(Hash_position_t*);
 extern Hash_position_t*	hashscan(Hash_table_t*, int);
-extern void		hashsize(Hash_table_t*, int);
+extern void		hashsize(Hash_table_t*, ssize_t);
 extern Hash_table_t*	hashview(Hash_table_t*, Hash_table_t*);
 extern int		hashwalk(Hash_table_t*, int, int (*)(const char*, char*, void*), void*);
 

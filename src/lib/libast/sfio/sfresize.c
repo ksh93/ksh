@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -36,20 +37,20 @@ int sfresize(Sfio_t* f, Sfoff_t size)
 
 		if(f->extent >= size)
 		{	if((f->flags&SFIO_MALLOC) && (f->next - f->data) <= size)
-			{	size_t	s = (((size_t)size + 1023)/1024)*1024;
+			{	size_t	s = ((size_t)(size + 1023)/1024)*1024;
 				void*	d;
-				if(s < f->size && (d = realloc(f->data, s)) )
+				if(s < (size_t)f->size && (d = realloc(f->data, s)) )
 				{	f->data = d;
-					f->size = s;
-					f->extent = s;
+					f->size = (ssize_t)s;
+					f->extent = (ssize_t)s;
 				}
 			}
-			memclear((char*)(f->data+size), (int)(f->extent-size));
+			memclear((char*)(f->data+size), (size_t)(f->extent-size));
 		}
 		else
 		{	if(SFSK(f, size, SEEK_SET, f->disc) != size)
 				return -1;
-			memclear((char*)(f->data+f->extent), (int)(size-f->extent));
+			memclear((char*)(f->data+f->extent), (size_t)(size-f->extent));
 		}
 	}
 	else

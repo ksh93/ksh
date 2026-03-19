@@ -51,7 +51,7 @@ char*     pathbin(void);
 char*     pathcanon(char* \fIpath\fP, int \fIflags\fP);
 char*     pathcat(char* \fIpath\fP, const char* \fIdirs\fP, int \fIsep\fP, const char* \fIa\fP, const char* \fIb\fP);
 char*     pathcd(char* \fIpath\fP, const char* \fIhome\fP);
-int       pathgetlink(const char* \fIname\fP, char* \fIbuf\fP, int \fIsiz\fP);
+ssize_t   pathgetlink(const char* \fIname\fP, char* \fIbuf\fP, size_t \fIsiz\fP);
 int       pathicase(const char* \fIpath\fP);
 char*     pathnext(char* \fIpath\fP, char* \fIextra\fP, long* \fIvisits\fP);
 char*     pathpath(char* \fIpath\fP, const char* \fIp\fP, const char* \fIa\fP, int \fImode\fP);

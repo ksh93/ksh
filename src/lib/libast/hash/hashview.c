@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -74,7 +75,7 @@ hashview(Hash_table_t* top, Hash_table_t* bot)
 			for (b = *sp++; b; b = b->next)
 				if (b->hash & HASH_HIDES)
 				{
-					b->hash &= ~HASH_HIDES;
+					b->hash &= (unsigned long)~HASH_HIDES;
 					b->name = ((Hash_bucket_t*)b->name)->name;
 				}
 		top->scope = 0;

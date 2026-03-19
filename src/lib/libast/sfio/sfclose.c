@@ -83,7 +83,7 @@ int sfclose(Sfio_t* f)
 			}
 		}
 		else
-		{	f->mode &= ~SFIO_LOCK;	/**/ASSERT(_Sfpmove);
+		{	f->mode &= (uint32_t)~SFIO_LOCK;	/**/ASSERT(_Sfpmove);
 			if((*_Sfpmove)(f,-1) < 0)
 			{	SFOPEN(f,0);
 				return -1;

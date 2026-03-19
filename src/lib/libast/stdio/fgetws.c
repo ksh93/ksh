@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -32,8 +33,8 @@ fgetws(wchar_t* s, int n, Sfio_t* f)
 	wchar_t*	e = s + n - 1;
 	wint_t		c;
 
-	FWIDE(f, 0);
-	while (p < e && (c = fgetwc(f)) != WEOF && (*p++ = c) != '\n');
+	FWIDE(f, NULL);
+	while (p < e && (c = fgetwc(f)) != WEOF && (*p++ = (wchar_t)c) != '\n');
 	*p = 0;
 	return s;
 }
@@ -45,8 +46,8 @@ getws(wchar_t* s)
 	wchar_t*	e = s + BUFSIZ - 1;
 	wint_t		c;
 
-	FWIDE(sfstdin, 0);
-	while (p < e && (c = fgetwc(sfstdin)) != WEOF && (*p++ = c) != '\n');
+	FWIDE(sfstdin, NULL);
+	while (p < e && (c = fgetwc(sfstdin)) != WEOF && (*p++ = (wchar_t)c) != '\n');
 	*p = 0;
 	return s;
 }

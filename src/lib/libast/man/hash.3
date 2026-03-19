@@ -580,7 +580,7 @@ then the hash bucket
 .I key-value
 pairs for each collision chain are also dumped.
 .TP
-.L "void hashsize(Hash_table_t* tab, int size)"
+.L "void hashsize(Hash_table_t* tab, ssize_t size)"
 Changes the size of the hash table
 .L tab
 to
@@ -591,22 +591,22 @@ must be a power of 2.
 Explicit calls to this routine are not necessary as hash tables
 are automatically resized.
 .TP
-.L "int strhash(char* name)"
+.L "size_t strhash(char* name)"
 Hashes the null-terminated character string
 .L name
 using a linear congruent pseudo-random number generator algorithm
 and returns a non-negative
-.L int
+.L size_t
 hash value.
 .TP
-.L "int memhash(char* buf, int siz)"
+.L "size_t memhash(char* buf, int siz)"
 Hashes the buffer
 .L buf
 of
 .L siz
 bytes using a linear congruent pseudo-random number generator algorithm
 and returns a non-negative
-.L int
+.L size_t
 hash value.
 .TP
 .L "long strsum(char* name, long sum)"

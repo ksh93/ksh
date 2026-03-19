@@ -46,8 +46,8 @@ modecanon \- canonical file mode representation
 .EX
 #include <modex.h>
 
-int    modei(int \fIexternal\fP);
-int    modex(int \fIinternal\fP);
+mode_t modei(mode_t \fIexternal\fP);
+mode_t modex(mode_t \fIinternal\fP);
 .EE
 .SH DESCRIPTION
 POSIX threw out the file type bit macros and replaced them with
