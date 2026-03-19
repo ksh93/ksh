@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -56,7 +56,7 @@ int sfpurge(Sfio_t* f)
 	}
 #endif
 
-	switch(f->mode&~SFIO_LOCK)
+	switch(f->mode&(uint32_t)~SFIO_LOCK)
 	{
 	default :
 		SFOPEN(f,0);

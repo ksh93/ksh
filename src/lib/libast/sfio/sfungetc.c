@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -70,13 +70,13 @@ int sfungetc(Sfio_t*	f,	/* push back one byte to this stream */
 	{	uchar*	data;
 		if(f->size < 0)
 			f->size = 0;
-		if(!(data = (uchar*)malloc(f->size+16)))
+		if(!(data = (uchar*)malloc((size_t)(f->size+16))))
 		{	c = -1;
 			goto done;
 		}
 		f->flags |= SFIO_MALLOC;
 		if(f->data)
-			memcpy((char*)(data+16),(char*)f->data,f->size);
+			memcpy((char*)(data+16),(char*)f->data,(size_t)f->size);
 		f->size += 16;
 		f->data  = data;
 		f->next  = data+16;

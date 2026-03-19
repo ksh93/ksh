@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -29,12 +30,12 @@
  * return the hash of buffer s of length n
  */
 
-unsigned int
+size_t
 memhash(const void* as, int n)
 {
 	const unsigned char*	s = (const unsigned char*)as;
 	const unsigned char*	e = s + n;
-	unsigned int		c = 0;
+	size_t			c = 0;
 
 	while (s < e) HASHPART(c, *s++);
 	return c;

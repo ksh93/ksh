@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -45,11 +46,11 @@ ssize_t sfnputc(Sfio_t*		f,	/* file to write */
 	if((size_t)(p = (f->endb-(ps = f->next))) < n)
 		{ ps = buf; p = sizeof(buf); }
 	if((size_t)p > n)
-		p = n;
-	MEMSET(ps,c,p);
+		p = (ssize_t)n;
+	MEMSET(ps,c,(size_t)p);
 	ps -= p;
 
-	w = n;
+	w = (ssize_t)n;
 	if(ps == f->next)
 	{	/* simple sfwrite */
 		f->next += p;
@@ -60,12 +61,12 @@ ssize_t sfnputc(Sfio_t*		f,	/* file to write */
 
 	for(;;)
 	{	/* hard write of data */
-		if((p = SFWRITE(f,ps,p)) <= 0 || (n -= p) <= 0)
-		{	w -= n;
+		if((p = SFWRITE(f,ps,(size_t)p)) <= 0 || (ssize_t)(n -= (size_t)p) <= 0)
+		{	w -= (ssize_t)n;
 			goto done;
 		}
-		if((size_t)p > n)
-			p = n;
+		if(p > (ssize_t)n)
+			p = (ssize_t)n;
 	}
 done :
 	SFOPEN(f,local);

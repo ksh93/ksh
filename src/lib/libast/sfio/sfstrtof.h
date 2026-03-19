@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -162,19 +163,19 @@ S2F_function(const char* str, char** end)
 #endif
 {
 #if !S2F_scan
-	unsigned char*	s = (unsigned char*)str;
+	uchar*		s = (uchar*)str;
 #if S2F_size
-	unsigned char*	z = s + size;
+	uchar*		z = s + size;
 	int		back = 1;
 	int		b;
 #endif
-	unsigned char*		t;
+	uchar*		t;
 #endif
 	S2F_batch	n;
 	int		c;
 	int		digits;
 	int		m;
-	unsigned char*	cv;
+	uchar*		cv;
 	int		negative;
 	int		enegative;
 	int		fraction;
@@ -366,8 +367,8 @@ S2F_function(const char* str, char** end)
 		if (c >= '0' && c <= '9')
 		{
 			digits++;
-			n = (n << 3) + (n << 1) + (c - '0');
-			if (n >= ((~((S2F_batch)0)) / 10) && part < elementsof(parts))
+			n = (n << 3) + (n << 1) + (S2F_batch)(c - '0');
+			if (n >= ((~((S2F_batch)0)) / 10) && part < (ssize_t)elementsof(parts))
 			{
 				parts[part].batch = n;
 				n = 0;
@@ -410,7 +411,7 @@ S2F_function(const char* str, char** end)
 	 * don't forget the last part
 	 */
 
-	if (n && part < elementsof(parts))
+	if (n && part < (ssize_t)elementsof(parts))
 	{
 		parts[part].batch = n;
 		parts[part].digits = digits;
@@ -431,7 +432,7 @@ S2F_function(const char* str, char** end)
 		n = 0;
 		while (c >= '0' && c <= '9')
 		{
-			n = (n << 3) + (n << 1) + (c - '0');
+			n = (n << 3) + (n << 1) + (S2F_batch)(c - '0');
 			c = GET(s);
 		}
 		if (enegative)

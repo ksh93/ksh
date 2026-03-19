@@ -207,7 +207,7 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	if(savf.data)
 	{	SFSTRSIZE(&savf);
 		if(!(savf.flags&SFIO_MALLOC) )
-			(void)sfsetbuf(f,savf.data,savf.size);
+			(void)sfsetbuf(f,savf.data,(size_t)savf.size);
 		if(savf.extent > 0)
 			(void)sfwrite(f,savf.data,(size_t)savf.extent);
 		(void)sfseek(f,(Sfoff_t)(savf.next - savf.data),SEEK_SET);

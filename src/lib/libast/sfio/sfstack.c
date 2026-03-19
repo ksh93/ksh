@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -44,7 +45,7 @@ Sfio_t* sfstack(Sfio_t*	f1,	/* base of stack	*/
 	if(f2 == SFIO_POPSTACK)
 	{	if(!(f2 = f1->push))
 			return NULL;
-		f2->mode &= ~SFIO_PUSH;
+		f2->mode &= (uint32_t)~SFIO_PUSH;
 	}
 	else
 	{	if(f2->push)
@@ -81,7 +82,7 @@ Sfio_t* sfstack(Sfio_t*	f1,	/* base of stack	*/
 	}
 	else
 	{	/* unfreeze the just exposed stream */
-		f1->mode &= ~SFIO_PUSH;
+		f1->mode &= (uint32_t)~SFIO_PUSH;
 		f2->push = NULL;
 		rf = f2;
 	}

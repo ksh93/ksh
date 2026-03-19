@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -45,7 +46,7 @@ int sfvsscanf(const char* s, const char* form, va_list args)
 	f.flags = SFIO_STRING|SFIO_READ;
 	f.bits = SFIO_PRIVATE;
 	f.mode = SFIO_READ;
-	f.size = strlen((char*)s);
+	f.size = (ssize_t)strlen((char*)s);
 	f.data = f.next = f.endw = (uchar*)s;
 	f.endb = f.endr = f.data+f.size;
 

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -51,7 +52,7 @@ dumpbucket(Hash_table_t* tab, int flags)
 	Hash_bucket_t**		sp;
 	Hash_bucket_t*		b;
 	Hash_bucket_t**		sx;
-	int			n;
+	size_t			n;
 	unsigned char*		s;
 
 	NoP(flags);
@@ -64,7 +65,7 @@ dumpbucket(Hash_table_t* tab, int flags)
 				n++;
 		if (n)
 		{
-			sfprintf(sfstderr, "%5d %2d :", sp - tab->table, n);
+			sfprintf(sfstderr, "%5td %2zu :", sp - tab->table, n);
 			for (b = *sp; b; b = b->next)
 				if (!(b->hash & HASH_DELETED) && (!(tab->flags & HASH_VALUE) || b->value))
 				{
@@ -112,12 +113,12 @@ dumptable(Hash_table_t* tab, int flags)
 	sfprintf(sfstderr, "\n");
 	sfprintf(sfstderr, "        address:     0x%08lx\n", (unsigned long)tab);
 	sfprintf(sfstderr, "        flags:       ");
-	if (tab->frozen) sfprintf(sfstderr, "frozen=%d ", tab->frozen);
+	if (tab->frozen) sfprintf(sfstderr, "frozen=%u ", (unsigned int)tab->frozen);
 	dumpflags(tab->flags);
 	sfprintf(sfstderr, "\n");
-	sfprintf(sfstderr, "        size:        %d\n", tab->size);
+	sfprintf(sfstderr, "        size:        %jd\n", (intmax_t)tab->size);
 	sfprintf(sfstderr, "        buckets:     %d\n", tab->buckets);
-	sfprintf(sfstderr, "        bucketsize:  %d\n", tab->bucketsize * sizeof(char*));
+	sfprintf(sfstderr, "        bucketsize:  %zu\n", (size_t)tab->bucketsize * sizeof(char*));
 	sfprintf(sfstderr, "\n");
 	if ((flags | tab->flags) & HASH_BUCKET) dumpbucket(tab, flags);
 }
@@ -135,7 +136,7 @@ dumproot(Hash_root_t* root, int flags)
 	sfprintf(sfstderr, "        address:     0x%08lx\n", (unsigned long)root);
 	sfprintf(sfstderr, "        flags:       ");
 	dumpflags(root->flags);
-	if (root->namesize) sfprintf(sfstderr, "namesize=%d ", root->namesize);
+	if (root->namesize) sfprintf(sfstderr, "namesize=%zu ", root->namesize);
 	if (root->local->alloc) sfprintf(sfstderr, "alloc=0x%08lx ", (unsigned long)root->local->alloc);
 	if (root->local->compare) sfprintf(sfstderr, "compare=0x%08lx ", (unsigned long)root->local->compare);
 	if (root->local->free) sfprintf(sfstderr, "free=0x%08lx ", (unsigned long)root->local->free);
