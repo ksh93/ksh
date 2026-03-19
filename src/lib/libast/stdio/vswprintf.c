@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -42,7 +43,7 @@ vswprintf(wchar_t* s, size_t n, const wchar_t* fmt, va_list args)
 	f.flags = SFIO_STRING|SFIO_WRITE;
 	f.bits = SFIO_PRIVATE;
 	f.mode = SFIO_WRITE;
-	f.size = n - 1;
+	f.size = (ssize_t)n - 1;
 	f.data = f.next = f.endr = (uchar*)s;
 	f.endb = f.endw = f.data + f.size;
 
@@ -52,7 +53,7 @@ vswprintf(wchar_t* s, size_t n, const wchar_t* fmt, va_list args)
 
 	v = vfwprintf(&f, fmt, args);
 	*f.next = 0;
-	_Sfi = f.next - f.data;
+	_Sfi = (ssize_t)(f.next - f.data);
 	return v;
 }
 

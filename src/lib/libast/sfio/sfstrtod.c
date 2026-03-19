@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -24,10 +25,10 @@
 **	Written by Kiem-Phong Vo.
 */
 
-#define BATCH	(2*sizeof(int))	/* accumulate this many digits at a time */
-#define IPART		0	/* doing integer part */
-#define FPART		1	/* doing fractional part */
-#define EPART		2	/* doing exponent part */
+#define BATCH	((int)(2*sizeof(int)))	/* accumulate this many digits at a time */
+#define IPART		0		/* doing integer part */
+#define FPART		1		/* doing fractional part */
+#define EPART		2		/* doing exponent part */
 
 static Sfdouble_t sfpow10(int n)
 {

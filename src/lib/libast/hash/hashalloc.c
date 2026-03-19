@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -66,7 +67,7 @@ hashalloc(Hash_table_t* ref, ...)
 	tab->bucketsize = (sizeof(Hash_header_t) + sizeof(char*) - 1) / sizeof(char*);
 	if (ref)
 	{
-		tab->flags = ref->flags & ~HASH_RESET;
+		tab->flags = (short)(ref->flags & ~HASH_RESET);
 		tab->root = ref->root;
 		internal = HASH_INTERNAL;
 	}
@@ -97,9 +98,9 @@ hashalloc(Hash_table_t* ref, ...)
 			tab->root->local->alloc = va_arg(ap, Hash_alloc_f);
 			break;
 		case HASH_bucketsize:
-			n = (va_arg(ap, int) + sizeof(char*) - 1) / sizeof(char*);
+			n = (va_arg(ap, int) + (int)sizeof(char*) - 1) / (int)sizeof(char*);
 			if (n > UCHAR_MAX) goto out;
-			if (n > tab->bucketsize) tab->bucketsize = n;
+			if (n > tab->bucketsize) tab->bucketsize = (unsigned char)n;
 			break;
 		case HASH_clear:
 			tab->flags &= ~(va_arg(ap, int) & ~internal);
@@ -125,7 +126,7 @@ hashalloc(Hash_table_t* ref, ...)
 			break;
 		case HASH_namesize:
 			if (ref) goto out;
-			tab->root->namesize = va_arg(ap, int);
+			tab->root->namesize = (size_t)va_arg(ap, int);
 			break;
 		case HASH_region:
 			goto out;
@@ -176,11 +177,11 @@ hashalloc(Hash_table_t* ref, ...)
 			{
 				if (region)
 				{
-					if (!(tab->table = (Hash_bucket_t**)(*region)(handle, NULL, sizeof(Hash_bucket_t*) * tab->size, 0)))
+					if (!(tab->table = (Hash_bucket_t**)(*region)(handle, NULL, sizeof(Hash_bucket_t*) * (size_t)tab->size, 0)))
 						goto out;
-					memset(tab->table, 0, sizeof(Hash_bucket_t*) * tab->size);
+					memset(tab->table, 0, sizeof(Hash_bucket_t*) * (size_t)tab->size);
 				}
-				else if (!(tab->table = newof(0, Hash_bucket_t*, tab->size, 0))) goto out;
+				else if (!(tab->table = newof(0, Hash_bucket_t*, (size_t)tab->size, 0))) goto out;
 			}
 			if (!ref)
 			{

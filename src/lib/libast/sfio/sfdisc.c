@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -70,14 +70,14 @@ static ssize_t _dccaread(Sfio_t* f, void* buf, size_t size, Sfdisc_t* disc)
 	if(!prev)
 		return -1;
 
-	if(size <= 0) /* nothing to do */
-		return size;
+	if((ssize_t)size <= 0) /* nothing to do */
+		return (ssize_t)size;
 
 	/* read from available data */
 	dcca = (Dccache_t*)disc;
 	if((sz = dcca->endb - dcca->data) > (ssize_t)size)
 		sz = (ssize_t)size;
-	memcpy(buf, dcca->data, sz);
+	memcpy(buf, dcca->data, (size_t)sz);
 
 	if((dcca->data += sz) >= dcca->endb) /* free empty cache */
 	{	prev->disc = disc->disc;
@@ -123,7 +123,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 	if(!(f->flags&SFIO_STRING))
 	{	(void)SFSYNC(f); /* do a silent buffer synch */
 		if((f->mode&SFIO_READ) && (f->mode&SFIO_SYNCED) )
-		{	f->mode &= ~SFIO_SYNCED;
+		{	f->mode &= (uint32_t)~SFIO_SYNCED;
 			f->endb = f->next = f->endr = f->endw = f->data;
 		}
 
@@ -147,7 +147,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 
 		/* trick the new discipline into processing already buffered data */
 		if((f->mode&SFIO_READ) && n > 0 && disc && disc->readf )
-		{	if(!(dcca = (Dccache_t*)malloc(sizeof(Dccache_t)+n)) )
+		{	if(!(dcca = (Dccache_t*)malloc(sizeof(Dccache_t)+(size_t)n)) )
 				goto done;
 			memclear(dcca, sizeof(Dccache_t));
 
@@ -157,7 +157,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 			/* move buffered data into the temp discipline */
 			dcca->data = ((uchar*)dcca) + sizeof(Dccache_t);
 			dcca->endb = dcca->data + n;
-			memcpy(dcca->data, f->next, n);
+			memcpy(dcca->data, f->next, (size_t)n);
 			f->endb = f->next = f->endr = f->endw = f->data;
 		}
 	}
@@ -239,7 +239,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 				sfsetbuf(f,NULL,0);
 			else
 			{	int	flags = f->flags;
-				sfsetbuf(f,f->data,f->size);
+				sfsetbuf(f,f->data,(size_t)f->size);
 				f->flags |= (flags&SFIO_MALLOC);
 			}
 		}

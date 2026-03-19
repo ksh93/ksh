@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -32,49 +33,49 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 	int		local, justseek;
 
 	if(!f)
-		return (ssize_t)(-1);
+		return -1;
 
 	GETLOCAL(f,local);
 	justseek = f->bits&SFIO_JUSTSEEK; f->bits &= ~SFIO_JUSTSEEK;
 
 	if(!buf)
-		return (ssize_t)(n == 0 ? 0 : -1) ;
+		return n == 0 ? 0 : -1;
 
 	/* release peek lock */
 	if(f->mode&SFIO_PEEK)
 	{	if(!(f->mode&SFIO_READ) )
-			return (ssize_t)(-1);
+			return -1;
 
 		if(f->mode&SFIO_GETR)
 		{	if(((uchar*)buf + f->val) != f->next &&
 			   (!f->rsrv || f->rsrv->data != (uchar*)buf) )
-				return (ssize_t)(-1);
-			f->mode &= ~SFIO_PEEK;
+				return -1;
+			f->mode &= (uint32_t)~SFIO_PEEK;
 			return 0;
 		}
 		else
 		{	if((uchar*)buf != f->next)
-				return (ssize_t)(-1);
-			f->mode &= ~SFIO_PEEK;
+				return -1;
+			f->mode &= (uint32_t)~SFIO_PEEK;
 			if(f->mode&SFIO_PKRD)
 			{	/* actually read the data now */
-				f->mode &= ~SFIO_PKRD;
+				f->mode &= (uint32_t)~SFIO_PKRD;
 				if(n > 0)
-					n = (r = read(f->file,f->data,n)) < 0 ? 0 : r;
+					n = (r = read(f->file,f->data,n)) < 0 ? 0 : (size_t)r;
 				f->endb = f->data+n;
 				f->here += n;
 			}
 			f->next += n;
 			f->endr = f->endb;
-			return n;
+			return (ssize_t)n;
 		}
 	}
 
 	s = begs = (uchar*)buf;
-	for(;; f->mode &= ~SFIO_LOCK)
+	for(;; f->mode &= (uint32_t)~SFIO_LOCK)
 	{	/* check stream mode */
 		if(SFMODE(f,local) != SFIO_READ && _sfmode(f,SFIO_READ,local) < 0)
-		{	n = s > begs ? s-begs : (size_t)(-1);
+		{	n = s > begs ? (size_t)(s-begs) : (size_t)(-1);
 			return (ssize_t)n;
 		}
 
@@ -84,13 +85,13 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 		{	if(r > (ssize_t)n)
 				r = (ssize_t)n;
 			if(s != f->next)
-				memmove(s, f->next, r);
+				memmove(s, f->next, (size_t)r);
 			f->next += r;
 			s += r;
-			n -= r;
+			n -= (size_t)r;
 		}
 
-		if(n <= 0)	/* all done */
+		if((ssize_t)n <= 0)	/* all done */
 			break;
 
 		if(!(f->flags&SFIO_STRING) && !(f->bits&SFIO_MMAP) )
@@ -100,8 +101,8 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 			if(SFDIRECT(f,n) ||
 			   ((f->flags&SFIO_SHARE) && f->extent < 0) )
 				r = (ssize_t)n;
-			else if(justseek && n <= f->iosz && f->iosz <= f->size)
-				r = f->iosz;	/* limit buffering */
+			else if(justseek && n <= f->iosz && f->iosz <= (size_t)f->size)
+				r = (ssize_t)f->iosz;	/* limit buffering */
 			else	r = f->size;	/* full buffering */
 
 			/* if read almost full size, then just do it direct */
@@ -109,9 +110,9 @@ ssize_t sfread(Sfio_t*	f,	/* read from this stream. 	*/
 				r = (ssize_t)n;
 
 			/* read directly to user's buffer */
-			if(r == (ssize_t)n && (r = SFRD(f,s,r,f->disc)) >= 0)
+			if(r == (ssize_t)n && (r = SFRD(f,s,(size_t)r,f->disc)) >= 0)
 			{	s += r;
-				n -= r;
+				n -= (size_t)r;
 				if(r == 0 || n == 0) /* eof or eob */
 					break;
 			}

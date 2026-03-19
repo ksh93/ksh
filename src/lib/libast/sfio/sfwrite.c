@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -32,7 +33,7 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 	int		local;
 
 	if(!f)
-		return (ssize_t)(-1);
+		return -1;
 
 	GETLOCAL(f,local);
 
@@ -42,30 +43,30 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 	/* release peek lock */
 	if(f->mode&SFIO_PEEK)
 	{	if(!(f->mode&SFIO_WRITE) && (f->flags&SFIO_RDWR) != SFIO_RDWR)
-			return (ssize_t)(-1);
+			return -1;
 
 		if((uchar*)buf != f->next &&
 		   (!f->rsrv || f->rsrv->data != (uchar*)buf) )
-			return (ssize_t)(-1);
+			return -1;
 
-		f->mode &= ~SFIO_PEEK;
+		f->mode &= (uint32_t)~SFIO_PEEK;
 
 		if(f->mode&SFIO_PKRD)
 		{	/* read past peeked data */
 			char		buf[16];
 			ssize_t	r;
 
-			for(w = n; w > 0; )
-			{	if((r = w) > sizeof(buf))
+			for(w = (ssize_t)n; w > 0; )
+			{	if((r = w) > (ssize_t)sizeof(buf))
 					r = sizeof(buf);
-				if((r = read(f->file,buf,r)) <= 0)
-				{	n -= w;
+				if((r = read(f->file,buf,(size_t)r)) <= 0)
+				{	n -= (size_t)w;
 					break;
 				}
 				else	w -= r;
 			}
 
-			f->mode &= ~SFIO_PKRD;
+			f->mode &= (uint32_t)~SFIO_PKRD;
 			f->endb = f->data + n;
 			f->here += n;
 		}
@@ -75,7 +76,7 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 	}
 
 	s = begs = (uchar*)buf;
-	for(;; f->mode &= ~SFIO_LOCK)
+	for(;; f->mode &= (uint32_t)~SFIO_LOCK)
 	{	/* check stream mode */
 		if(SFMODE(f,local) != SFIO_WRITE && _sfmode(f,SFIO_WRITE,local) < 0 )
 		{	w = s > begs ? s-begs : -1;
@@ -90,14 +91,14 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 		{	if(w > (ssize_t)n)
 				w = (ssize_t)n;
 			f->next = (s += w);
-			n -= w;
+			n -= (size_t)w;
 			break;
 		}
 
 		/* attempt to create space in buffer */
 		if(w == 0 || ((f->flags&SFIO_WHOLE) && w < (ssize_t)n) )
 		{	if(f->flags&SFIO_STRING) /* extend buffer */
-			{	(void)SFWR(f, s, n-w, f->disc);
+			{	(void)SFWR(f, s, n-(size_t)w, f->disc);
 				if((w = f->endb - f->next) < (ssize_t)n)
 				{	if(!(f->flags&SFIO_STRING)) /* maybe sftmp */
 					{	if(f->next > f->data)
@@ -117,7 +118,7 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 		}
 
 		if(!(f->flags&SFIO_STRING) && f->next == f->data &&
-		   (((f->flags&SFIO_WHOLE) && w <= n) || SFDIRECT(f,n)) )
+		   (((f->flags&SFIO_WHOLE) && w <= (ssize_t)n) || SFDIRECT(f,n)) )
 		{	/* bypass buffering */
 			if((w = SFWR(f,s,n,f->disc)) <= 0 )
 				break;
@@ -127,12 +128,13 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 				w = (ssize_t)n;
 			if(w <= 0) /* no forward progress possible */
 				break;
-			memmove(f->next, s, w);
+			memmove(f->next, s, (size_t)w);
 			f->next += w;
 		}
 
 		s += w;
-		if((n -= w) <= 0)
+		n -= (size_t)w;
+		if((ssize_t)n <= 0)
 			break;
 	}
 
@@ -142,8 +144,8 @@ ssize_t sfwrite(Sfio_t*		f,	/* write to this stream. 	*/
 
 	/* check to see if buffer should be flushed */
 	else if(n == 0 && (f->flags&SFIO_LINE) && !(f->flags&SFIO_STRING))
-	{	if((ssize_t)(n = f->next-f->data) > (w = s-begs))
-			n = w;
+	{	if((ssize_t)(n = (size_t)(f->next-f->data)) > (w = s-begs))
+			n = (size_t)w;
 		if(n > 0 && n < HIFORLINE)
 		{	for(next = f->next-1; n > 0; --n, --next)
 			{	if(*next == '\n')

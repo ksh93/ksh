@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -25,14 +26,14 @@
 **	Written by Kiem-Phong Vo.
 */
 
-Sfio_t* sfnew(Sfio_t*	oldf,	/* old stream to be reused */
-	      void*	buf,	/* a buffer to read/write, if NULL, will be allocated */
-	      size_t	size,	/* buffer size if buf is given or desired buffer size */
-	      int	file,	/* file descriptor to read/write from */
-	      int	flags)	/* type of file stream */
+Sfio_t* sfnew(Sfio_t*		oldf,	/* old stream to be reused */
+	      void*		buf,	/* a buffer to read/write, if NULL, will be allocated */
+	      size_t		size,	/* buffer size if buf is given or desired buffer size */
+	      int		file,	/* file descriptor to read/write from */
+	      unsigned short	flags)	/* type of file stream */
 {
 	Sfio_t*		f;
-	int		sflags;
+	unsigned short	sflags;
 
 
 	if(!(flags&SFIO_RDWR))
@@ -99,8 +100,8 @@ Sfio_t* sfnew(Sfio_t*	oldf,	/* old stream to be reused */
 
 	f->mode |= SFIO_INIT;
 	if(size != (size_t)SFIO_UNBOUND)
-	{	f->size = size;
-		f->data = size <= 0 ? NULL : (uchar*)buf;
+	{	f->size = (ssize_t)size;
+		f->data = size == (size_t)-1 ? NULL : (uchar*)buf;
 	}
 	f->endb = f->endr = f->endw = f->next = f->data;
 

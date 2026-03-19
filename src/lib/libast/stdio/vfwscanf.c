@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -77,7 +77,7 @@ wideread(Sfio_t* f, void* buf, size_t size, Sfdisc_t* dp)
 	if (r != sizeof(wuf[0]))
 		return -1;
 	wuf[1] = 0;
-	r = wcstombs(buf, wuf, size);
+	r = (ssize_t)wcstombs(buf, wuf, size);
 	return r;
 }
 
@@ -90,7 +90,7 @@ vfwscanf(Sfio_t* f, const wchar_t* fmt, va_list args)
 	Wide_t*	w;
 	char	buf[1024];
 
-	FWIDE(f, WEOF);
+	FWIDE(f, EOF);
 	n = wcstombs(NULL, fmt, 0);
 	if (w = newof(0, Wide_t, 1, n))
 	{

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -53,7 +53,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 				   =2: same as >0, but always use select(2)
 				*/
 {
-	ssize_t		r;
+	ssize_t		r, q;
 	int		ntry, t;
 	char		*buf = (char*)argbuf, *endbuf;
 
@@ -78,7 +78,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 			pbuf.ctlbuf.maxlen = -1;
 			pbuf.ctlbuf.len = 0;
 			pbuf.ctlbuf.buf = NULL;
-			pbuf.databuf.maxlen = n;
+			pbuf.databuf.maxlen = (int)n;
 			pbuf.databuf.buf = buf;
 			pbuf.databuf.len = 0;
 
@@ -187,17 +187,17 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 		else /* get here means: tm < 0 && action <= 0 && rc >= 0 */
 		{	/* number of records read at a time */
 			if((action = action ? -action : 1) > (int)n)
-				action = n;
+				action = (int)n;
 			r = 0;
-			while((t = read(fd,buf,action)) > 0)
-			{	r += t;
-				for(endbuf = buf+t; buf < endbuf;)
+			while((q = read(fd,buf,(size_t)action)) > 0)
+			{	r += q;
+				for(endbuf = buf+q; buf < endbuf;)
 					if(*buf++ == rc)
 						action -= 1;
-				if(action == 0 || (int)(n-r) < action)
+				if(action == 0 || ((int)n-(int)r) < action)
 					break;
 			}
-			return r == 0 ? t : r;
+			return r == 0 ? q : r;
 		}
 	}
 
@@ -215,7 +215,7 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 
 	/* advance */
 	if(action <= 0)
-		r = read(fd,buf,r);
+		r = read(fd,buf,(size_t)r);
 
 	return r;
 }

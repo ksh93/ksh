@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -54,10 +55,10 @@ typedef struct				/* root local pointers		*/
 
 #define _HASH_LAST_PRIVATE_ \
 	const char*	name;		/* last lookup name		*/ \
-	unsigned int	hash;		/* last lookup hash		*/
+	unsigned long	hash;		/* last lookup hash		*/
 
 #define _HASH_ROOT_PRIVATE_ \
-	int		namesize;	/* fixed name size: 0 => string	*/ \
+	size_t		namesize;	/* fixed name size: 0 => string	*/ \
 	int		meanchain;	/* resize mean chain length	*/ \
 	Hash_local_t*	local;		/* root local pointers		*/ \
 	Hash_root_t*	next;		/* next in list	of all roots	*/ \
@@ -74,7 +75,7 @@ typedef struct				/* root local pointers		*/
 #define HASHMINSIZE	(1<<4)		/* min table slots (power of 2)	*/
 #define HASHMEANCHAIN	2		/* def resize mean chain len	*/
 
-#define HASHMOD(t,h)	(h &= (t->size - 1))
+#define HASHMOD(t,h)	(h &= (unsigned long)(t->size - 1))
 #define HASHVAL(x)	((x)&~HASH_FLAGS)
 
 #define HASH(r,n,h)	if (r->local->hash) h = r->namesize ? (*r->local->hash)(n, r->namesize) : (*r->local->hash)(n);\
@@ -85,9 +86,9 @@ typedef struct				/* root local pointers		*/
 				if (r->namesize)\
 				{\
 					const char*	_hash_s2 = _hash_s1 + r->namesize;\
-					while (_hash_s1 < _hash_s2) HASHPART(h, *_hash_s1++);\
+					while (_hash_s1 < _hash_s2) HASHPART(h, (size_t)*_hash_s1++);\
 				}\
-				else while (*_hash_s1) HASHPART(h, *_hash_s1++);\
+				else while (*_hash_s1) HASHPART(h, (size_t)*_hash_s1++);\
 			}
 
 typedef struct				/* library private info		*/

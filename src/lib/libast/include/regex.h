@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,66 +40,66 @@
 
 /* regcomp flags */
 
-#define REG_AUGMENTED	0x00000001	/* enable ! & < >		*/
-#define REG_EXTENDED	0x00000002	/* enable ( | )			*/
-#define REG_ICASE	0x00000004	/* ignore case in match		*/
-#define REG_NEWLINE	0x00000008	/* ^/$ match embedded \n	*/
-#define REG_NOSUB	0x00000010	/* don't report subexp matches	*/
-#define REG_SHELL	0x00000020	/* shell pattern syntax		*/
+#define REG_AUGMENTED	0x00000001U	/* enable ! & < >		*/
+#define REG_EXTENDED	0x00000002U	/* enable ( | )			*/
+#define REG_ICASE	0x00000004U	/* ignore case in match		*/
+#define REG_NEWLINE	0x00000008U	/* ^/$ match embedded \n	*/
+#define REG_NOSUB	0x00000010U	/* don't report subexp matches	*/
+#define REG_SHELL	0x00000020U	/* shell pattern syntax		*/
 
 /* nonstandard regcomp flags */
 
-#define REG_LEFT	0x00000100	/* implicit ^...		*/
-#define REG_LITERAL	0x00000200	/* no operators			*/
-#define REG_MINIMAL	0x00000400	/* minimal match		*/
-#define REG_NULL	0x00000800	/* allow null patterns		*/
-#define REG_RIGHT	0x00001000	/* implicit ...$		*/
-#define REG_LENIENT	0x00002000	/* look the other way		*/
-#define REG_ESCAPE	0x00004000	/* \ escapes delimiter in [...]	*/
-#define REG_FIRST	0x00008000	/* first match found will do	*/
-#define REG_MULTIPLE	0x00010000	/* multiple \n sep patterns	*/
-#define REG_DISCIPLINE	0x00020000	/* regex_t.re_disc is valid	*/
-#define REG_SPAN	0x00040000	/* . matches \n			*/
-#define REG_COMMENT	0x00080000	/* ignore pattern space & #...\n*/
-#define REG_MULTIREF	0x00100000	/* multiple digit backrefs	*/
-#define REG_MUSTDELIM	0x08000000	/* all delimiters required	*/
-#define REG_DELIMITED	0x10000000	/* pattern[0] is delimiter	*/
-#define REG_CLASS_ESCAPE 0x80000000	/* \ escapes in [...]		*/
+#define REG_LEFT	0x00000100U	/* implicit ^...		*/
+#define REG_LITERAL	0x00000200U	/* no operators			*/
+#define REG_MINIMAL	0x00000400U	/* minimal match		*/
+#define REG_NULL	0x00000800U	/* allow null patterns		*/
+#define REG_RIGHT	0x00001000U	/* implicit ...$		*/
+#define REG_LENIENT	0x00002000U	/* look the other way		*/
+#define REG_ESCAPE	0x00004000U	/* \ escapes delimiter in [...]	*/
+#define REG_FIRST	0x00008000U	/* first match found will do	*/
+#define REG_MULTIPLE	0x00010000U	/* multiple \n sep patterns	*/
+#define REG_DISCIPLINE	0x00020000U	/* regex_t.re_disc is valid	*/
+#define REG_SPAN	0x00040000U	/* . matches \n			*/
+#define REG_COMMENT	0x00080000U	/* ignore pattern space & #...\n*/
+#define REG_MULTIREF	0x00100000U	/* multiple digit backrefs	*/
+#define REG_MUSTDELIM	0x08000000U	/* all delimiters required	*/
+#define REG_DELIMITED	0x10000000U	/* pattern[0] is delimiter	*/
+#define REG_CLASS_ESCAPE 0x80000000U	/* \ escapes in [...]		*/
 
-#define REG_SHELL_DOT	0x00200000	/* explicit leading . match	*/
-#define REG_SHELL_ESCAPED 0x00400000	/* \ not special		*/
-#define REG_SHELL_GROUP	0x20000000	/* (|&) inside [@|&](...) only	*/
-#define REG_SHELL_PATH	0x00800000	/* explicit / match		*/
+#define REG_SHELL_DOT	0x00200000U	/* explicit leading . match	*/
+#define REG_SHELL_ESCAPED 0x00400000U	/* \ not special		*/
+#define REG_SHELL_GROUP	0x20000000U	/* (|&) inside [@|&](...) only	*/
+#define REG_SHELL_PATH	0x00800000U	/* explicit / match		*/
 
-#define REG_REGEXP	0x40000000	/* <regexp.h> compatibility	*/
+#define REG_REGEXP	0x40000000U	/* <regexp.h> compatibility	*/
 
 /* regexec flags */
 
-#define REG_NOTBOL	0x00000040	/* ^ is not a special char	*/
-#define REG_NOTEOL	0x00000080	/* $ is not a special char	*/
+#define REG_NOTBOL	0x00000040U	/* ^ is not a special char	*/
+#define REG_NOTEOL	0x00000080U	/* $ is not a special char	*/
 
 /* nonstandard regexec flags */
 
-#define REG_INVERT	0x01000000	/* invert regrexec match sense	*/
-#define REG_STARTEND	0x02000000	/* subject==match[0].rm_{so,eo} */
-#define REG_ADVANCE	0x04000000	/* advance match[0].rm_{so,eo}	*/
+#define REG_INVERT	0x01000000U	/* invert regrexec match sense	*/
+#define REG_STARTEND	0x02000000U	/* subject==match[0].rm_{so,eo} */
+#define REG_ADVANCE	0x04000000U	/* advance match[0].rm_{so,eo}	*/
 
 /* regalloc flags */
 
-#define REG_NOFREE	0x00000001	/* don't free			*/
+#define REG_NOFREE	0x00000001U	/* don't free			*/
 
 /* regsubcomp/regsubexec flags */
 
-#define REG_SUB_ALL	0x00000001	/* substitute all occurrences	*/
-#define REG_SUB_LOWER	0x00000002	/* substitute to lower case	*/
-#define REG_SUB_UPPER	0x00000004	/* substitute to upper case	*/
-#define REG_SUB_PRINT	0x00000010	/* internal no-op		*/
-#define REG_SUB_NUMBER	0x00000020	/* internal no-op		*/
-#define REG_SUB_STOP	0x00000040	/* internal no-op		*/
-#define REG_SUB_WRITE	0x00000080	/* internal no-op		*/
-#define REG_SUB_LAST	0x00000100	/* last substitution option	*/
-#define REG_SUB_FULL	0x00000200	/* fully delimited		*/
-#define REG_SUB_USER	0x00001000	/* first user flag bit		*/
+#define REG_SUB_ALL	0x00000001U	/* substitute all occurrences	*/
+#define REG_SUB_LOWER	0x00000002U	/* substitute to lower case	*/
+#define REG_SUB_UPPER	0x00000004U	/* substitute to upper case	*/
+#define REG_SUB_PRINT	0x00000010U	/* internal no-op		*/
+#define REG_SUB_NUMBER	0x00000020U	/* internal no-op		*/
+#define REG_SUB_STOP	0x00000040U	/* internal no-op		*/
+#define REG_SUB_WRITE	0x00000080U	/* internal no-op		*/
+#define REG_SUB_LAST	0x00000100U	/* last substitution option	*/
+#define REG_SUB_FULL	0x00000200U	/* fully delimited		*/
+#define REG_SUB_USER	0x00001000U	/* first user flag bit		*/
 
 /* regex error codes */
 
@@ -129,7 +129,6 @@ struct regex_s; typedef struct regex_s regex_t;
 struct regdisc_s; typedef struct regdisc_s regdisc_t;
 
 typedef int (*regclass_t)(int);
-typedef uint32_t regflags_t;
 typedef int (*regerror_t)(const regex_t*, regdisc_t*, int, ...);
 typedef void* (*regcomp_t)(const regex_t*, const char*, size_t, regdisc_t*);
 typedef int (*regexec_t)(const regex_t*, void*, const char*, size_t, const char*, size_t, char**, regdisc_t*);
@@ -153,7 +152,7 @@ typedef struct regsub_s
 	regflags_t	re_flags;	/* regsubcomp() flags		*/
 	char*		re_buf;		/* regsubexec() output buffer	*/
 	size_t		re_len;		/* re_buf length		*/
-	int		re_min;		/* regsubcomp() min matches	*/
+	ssize_t		re_min;		/* regsubcomp() min matches	*/
 #ifdef _REG_SUB_PRIVATE_
 	_REG_SUB_PRIVATE_
 #endif
