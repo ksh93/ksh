@@ -28,13 +28,14 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-15"
+#define RELEASE_DATE "2026-03-17"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
 
 #include <ast.h>
 #include <error.h>
+#include <sfdisc.h>
 #include <sig.h>
 #include <wait.h>
 
@@ -2134,8 +2135,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 		switch (KEY(u[0], u[1], u[2], u[3]))
 		{
 		case KEY('b','i','n','d'):
-			if (!(t[0] == '-' && t[1] == 'l'))
-				error_out("bad -lname", t);
+			if (!(t[0] == '-' && t[1] == 'l' && isalnum(t[2])))
+				error_out("syntax error", u);
 			/* make sure it's finished linking before calling require() */
 			append_ar_name(buf, t + 2);
 			if (q = getval(state.rules, use(buf)))
@@ -2223,6 +2224,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 					error_out("syntax error", u);
 				break;
 			}
+			if (!*r->name)
+				error_out("done without make", NULL);
 			/* make block done */
 			if (*t)
 			{	/* target is optional; use it for sanity check if present */
@@ -2328,6 +2331,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				error_out("syntax error", u);
 			/* remember current offset for repeated reading */
 			if ((saveoff = ftello(state.sp->fp)) < 0)
+#if _PACKAGE_ast
+				/* buffer a non-seekable stream to make it seekable */
+				if (sfdcseekable(state.sp->fp) < 0 || (saveoff = ftello(state.sp->fp)) < 0)
+#endif
 				error_out("unseekable input", u);
 			/* iterate through one or more whitespace-separated words */
 			vnode = search(state.vars, t, 1);
@@ -2366,6 +2373,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			char *save_making = auto_making->value;
 			char *save_allprev = auto_allprev->value;
 			char *save_updprev = auto_updprev->value;
+			if (!*t)
+				error_out("syntax error", u);
 			if ((q = getval(state.rules, t)) && (q->flags & RULE_made))
 				report(state.strict < 3 ? 1 : 3, "rule already made", t, NULL);
 			if (!q)
@@ -2408,6 +2417,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 		}
 
 		case KEY('m','a','k','p'):
+			if (!*t)
+				error_out("syntax error", u);
 			if (q = getval(state.rules, t))
 				error_out(t, q->flags & RULE_made ? "rule already made" : "rule already being made");
 		p_makp:
@@ -2427,7 +2438,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			continue;
 
 		case KEY('p','r','e','v'):
-		{
+			if (!*t)
+				error_out("syntax error", u);
 			q = getval(state.rules, t);
 			if (!q && !state.strict)
 				q = rule(t); /* for backward compat */
@@ -2450,9 +2462,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			/* update %{<}, %{^} and %{?} */
 			update_allprev(q, auto_allprev->value, auto_updprev->value);
 			continue;
-		}
 
 		case KEY('s','e','t','v'):
+			if (!*t)
+				error_out("syntax error", u);
 			if (!getval(state.vars, t))
 			{
 				if (*v == '"' && state.strict < 2)

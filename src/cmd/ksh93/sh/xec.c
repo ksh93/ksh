@@ -584,7 +584,6 @@ int sh_eval(Sfio_t *iop, int mode)
 		sfclose(io_save);
 		io_save = 0;
 	}
-
 	sh_freeup();
 	sh.st.staklist = saveslp;
 	if(jmpval>SH_JMPEVAL)
