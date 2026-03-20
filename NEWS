@@ -2,6 +2,15 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-03-20:
+
+- Fixed a memory leak that occurred when any subshell or ksh function with
+  'function name' syntax is invoked while at least one signal or EXIT trap
+  is set in the invoking environment.
+
+- Fixed an issue, introduced on 2022-06-13, causing a subshell to fork
+  unnecessarily if an EXIT pseudosignal trap is set within it.
+
 2026-03-16:
 
 - Fixed a bug in the join(1) built-in command (bound to /opt/ast/bin) that

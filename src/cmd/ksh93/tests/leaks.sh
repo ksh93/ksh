@@ -457,4 +457,14 @@ DO
 DONE
 
 # ======
+TEST	title='trap and command substitution'
+	trap ': long-enough trap action to detect the leak' USR1
+DO
+	v=`echo a`
+	v=$(echo a)
+	(echo a)
+DONE >/dev/null
+trap - USR1
+
+# ======
 exit $((Errors<125?Errors:125))
