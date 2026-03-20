@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -109,9 +109,9 @@ struct _dtmethod_s
 
 /* structure to hold methods that manipulate an object */
 struct _dtdisc_s
-{	int		key;	/* where the key resides 	*/
-	int		size;	/* key size and type		*/
-	int		link;	/* offset to Dtlink_t field	*/
+{	ssize_t		key;	/* where the key resides 	*/
+	ssize_t		size;	/* key size and type		*/
+	ssize_t		link;	/* offset to Dtlink_t field	*/
 	Dtmake_f	makef;	/* object constructor		*/
 	Dtfree_f	freef;	/* object destructor		*/
 	Dtcompar_f	comparf;/* to compare two objects	*/
@@ -274,7 +274,7 @@ extern void*		dllmeth(const char*, const char*, unsigned long);
 
 #define _DTCMP(dt,k1,k2,dc) \
 			((dc)->comparf  ? (*(dc)->comparf)((dt), (k1), (k2), (dc)) : \
-			 (dc)->size > 0 ? memcmp((void*)(k1), ((void*)k2), (dc)->size) : \
+			 (dc)->size > 0 ? memcmp((void*)(k1), ((void*)k2), (size_t)((dc)->size)) : \
 					  strcmp((char*)(k1), ((char*)k2)) )
 
 #define _DTHSH(dt,ky,dc) ((dc)->hashf   ? (*(dc)->hashf)((dt), (ky), (dc)) : \

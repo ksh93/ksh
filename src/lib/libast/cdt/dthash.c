@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"dthdr.h"
@@ -68,11 +69,11 @@ static int htable(Dt_t* dt)
 		return 0;
 
 	/* allocate new table */
-	if(!(htbl = (Dtlink_t**)(*dt->memoryf)(dt, 0, n*sizeof(Dtlink_t*), disc)) )
+	if(!(htbl = (Dtlink_t**)(*dt->memoryf)(dt, 0, (size_t)n*sizeof(Dtlink_t*), disc)) )
 	{	DTERROR(dt, "Error in allocating an extended hash table");
 		return -1;
 	}
-	memset(htbl, 0, n*sizeof(Dtlink_t*));
+	memset(htbl, 0, (size_t)n*sizeof(Dtlink_t*));
 
 	if(hash->htbl)
 	{
@@ -80,7 +81,7 @@ static int htable(Dt_t* dt)
 		for(endt = (t = hash->htbl) + hash->tblz; t < endt; ++t)
 		{	for(l = *t; l; l = next)
 			{	next = l->_rght;
-				l->_rght = htbl[k = l->_hash&(n-1)];
+				l->_rght = htbl[k = (ssize_t)(l->_hash&((size_t)(n-1)))];
 				htbl[k] = l;
 			}
 		}
@@ -137,7 +138,7 @@ static void* hnext(Dt_t* dt, Dtlink_t* l)
 		return _DTOBJ(dt->disc, next);
 	}
 	else
-	{	t = hash->htbl + (l->_hash & (hash->tblz-1)) + 1;
+	{	t = hash->htbl + (l->_hash & ((uint)(hash->tblz-1))) + 1;
 		endt = hash->htbl + hash->tblz;
 		for(; t < endt; ++t)
 		{	if(!(l = *t) )
@@ -230,8 +231,8 @@ static void* hstat(Dt_t* dt, Dtstat_t* st)
 	{	memset(st, 0, sizeof(Dtstat_t));
 		st->meth  = dt->meth->type;
 		st->size  = hash->data.size;
-		st->space = sizeof(Dthash_t) + hash->tblz*sizeof(Dtlink_t*) +
-			    (dt->disc->link >= 0 ? 0 : hash->data.size*sizeof(Dthold_t));
+		st->space = (ssize_t)(sizeof(Dthash_t) + (size_t)hash->tblz*sizeof(Dtlink_t*) +
+			    (dt->disc->link >= 0 ? 0 : (size_t)hash->data.size*sizeof(Dthold_t)));
 
 		for(endt = (t = hash->htbl) + hash->tblz; t < endt; ++t)
 		{	for(n = 0, l = *t; l; l = l->_rght)
@@ -304,7 +305,7 @@ static void* dthashchain(Dt_t* dt, void* obj, int type)
 	}
 	hsh = _DTHSH(dt,key,disc);
 
-	tbl = hash->htbl + (hsh & (hash->tblz-1));
+	tbl = hash->htbl + (hsh & ((uint)(hash->tblz-1)));
 	pp = ll = NULL; /* pp is the before, ll is the here */
 	for(p = NULL, l = *tbl; l; p = l, l = l->_rght)
 	{	if(hsh == l->_hash)
@@ -377,7 +378,7 @@ static void* dthashchain(Dt_t* dt, void* obj, int type)
 	do_insert: /* inserting a new object */
 		if(hash->tblz < HLOAD(hash->data.size) )
 		{	htable(dt); /* resize table */
-			tbl = hash->htbl + (hsh & (hash->tblz-1));
+			tbl = hash->htbl + (hsh & ((uint)(hash->tblz-1)));
 		}
 
 		if(!lnk) /* inserting a new object */
