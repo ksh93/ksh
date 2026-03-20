@@ -164,6 +164,8 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 			}
 			else
 			{
+				const int index = sig / 8;
+				const uint8_t sigbit = (uint8_t)1 << sig % 8;
 				/*
 				 * Trap or ignore EXIT (0) or a signal. A virtual subshell must fork
 				 * in order to receive signals correctly and (because other commands
@@ -176,16 +178,11 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 				arg = sh.st.trapcom[sig];
 				sh_sigtrap(sig);
 				sh.st.trapcom[sig] = (sh.sigflag[sig]&SH_SIGOFF) ? Empty : sh_strdup(action);
-				if(arg && arg != Empty)
-				{
-					const int index = sig / 8;
-					const uint8_t sigbit = (uint8_t)1 << sig % 8;
-					/* free unless nofree bit is set */
-					if (!(sh.st.trapnofree[index] & sigbit))
-						free(arg);
-					/* clear nofree bit to avoid memory leak if trap is overwritten in same scope */
-					sh.st.trapnofree[index] &= ~sigbit;
-				}
+				/* free unless nofree bit is set */
+				if(arg && arg != Empty && !(sh.st.trapnofree[index] & sigbit))
+					free(arg);
+				/* clear nofree bit to avoid memory leak if trap is overwritten in same scope */
+				sh.st.trapnofree[index] &= ~sigbit;
 			}
 		}
 		/*
