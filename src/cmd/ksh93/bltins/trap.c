@@ -164,20 +164,25 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 			}
 			else
 			{
+				const int index = sig / 8;
+				const uint8_t sigbit = (uint8_t)1 << sig % 8;
 				/*
-				 * Trap or ignore a real signal. A virtual subshell needs to fork in
-				 * order to receive signals correctly and (because other commands
+				 * Trap or ignore EXIT (0) or a signal. A virtual subshell must fork
+				 * in order to receive signals correctly and (because other commands
 				 * may cause a virtual subshell to fork) to ensure a persistent PID.
 				 */
-				if(sh.subshell && !sh.subshare)
+				if(sig > 0 && sh.subshell && !sh.subshare)
 					sh_subfork();
 				if(sig >= sh.st.trapmax)
 					sh.st.trapmax = sig+1;
 				arg = sh.st.trapcom[sig];
 				sh_sigtrap(sig);
 				sh.st.trapcom[sig] = (sh.sigflag[sig]&SH_SIGOFF) ? Empty : sh_strdup(action);
-				if(arg && arg != Empty)
+				/* free unless nofree bit is set */
+				if(arg && arg != Empty && !(sh.st.trapnofree[index] & sigbit))
 					free(arg);
+				/* clear nofree bit to avoid memory leak if trap is overwritten in same scope */
+				sh.st.trapnofree[index] &= ~sigbit;
 			}
 		}
 		/*
