@@ -45,10 +45,9 @@ aso_init_fcntl(void* data, const char* details)
 	char*		opt;
 	size_t		size;
 	size_t		references;
-	int		n;
 	int		fd;
 	int		drop;
-	int		perm;
+	mode_t		perm;
 	struct flock	lock;
 	char		buf[PATH_MAX];
 	char		tmp[64];
@@ -57,18 +56,18 @@ aso_init_fcntl(void* data, const char* details)
 	{
 		lock.l_type = F_WRLCK;
 		lock.l_whence = SEEK_SET;
-		lock.l_start = apl->size;
+		lock.l_start = (off_t)apl->size;
 		lock.l_len = sizeof(references);
 		if (fcntl(apl->fd, F_SETLKW, &lock) >= 0)
 		{
-			if (lseek(apl->fd, apl->size, SEEK_SET) != apl->size)
+			if (lseek(apl->fd, (off_t)apl->size, SEEK_SET) != (ssize_t)apl->size)
 				references = 0;
 			else if (read(apl->fd, &references, sizeof(references)) != sizeof(references))
 				references = 0;
 			else if (references > 0)
 			{
 				references--;
-				if (lseek(apl->fd, apl->size, SEEK_SET) != apl->size)
+				if (lseek(apl->fd, (off_t)apl->size, SEEK_SET) != (ssize_t)apl->size)
 					references = 0;
 				else if (write(apl->fd, &references, sizeof(references)) != sizeof(references))
 					references = 0;
@@ -91,9 +90,10 @@ aso_init_fcntl(void* data, const char* details)
 		{
 			if (strneq(path, "perm=", 5))
 			{
-				if ((n = opt - (path + 5)) >= sizeof(tmp))
-					n = sizeof(tmp) - 1;
-				memcpy(tmp, path + 5, n);
+				ptrdiff_t n;
+				if ((n = opt - (path + 5)) >= (ssize_t)sizeof(tmp))
+					n = (ptrdiff_t)sizeof(tmp) - 1;
+				memcpy(tmp, path + 5, (size_t)n);
 				tmp[n] = 0;
 				perm = strperm(tmp, NULL, perm);
 			}
@@ -116,7 +116,7 @@ aso_init_fcntl(void* data, const char* details)
 		goto bad;
 	if (fd >= 0 || (fd = open(path, O_RDWR|O_cloexec)) < 0 && (fd = open(path, O_CREAT|O_RDWR|O_cloexec, perm)) >= 0)
 	{
-		if (lseek(fd, size, SEEK_SET) != size)
+		if (lseek(fd, (off_t)size, SEEK_SET) != (ssize_t)size)
 			goto bad;
 		references = 1;
 		if (write(fd, &references, sizeof(references)) != sizeof(references))
@@ -124,7 +124,7 @@ aso_init_fcntl(void* data, const char* details)
 	}
 	else
 	{
-		if ((size = lseek(fd, 0, SEEK_END)) <= sizeof(references))
+		if ((size = (size_t)lseek(fd, 0, SEEK_END)) <= sizeof(references))
 			goto bad;
 		size -= sizeof(references);
 		lock.l_type = F_WRLCK;
@@ -133,12 +133,12 @@ aso_init_fcntl(void* data, const char* details)
 		lock.l_len = sizeof(references);
 		if (fcntl(fd, F_SETLKW, &lock) < 0)
 			goto bad;
-		if (lseek(fd, size, SEEK_SET) != size)
+		if (lseek(fd, (off_t)size, SEEK_SET) != (ssize_t)size)
 			goto bad;
 		if (read(fd, &references, sizeof(references)) != sizeof(references))
 			goto bad;
 		references++;
-		if (lseek(fd, size, SEEK_SET) != size)
+		if (lseek(fd, (off_t)size, SEEK_SET) != (ssize_t)size)
 			goto bad;
 		if (write(fd, &references, sizeof(references)) != sizeof(references))
 			goto bad;
@@ -172,10 +172,10 @@ aso_lock_fcntl(void* data, ssize_t k, void volatile* p)
 	else
 	{
 		lock.l_type = F_WRLCK;
-		k = HASH(p, apl->size) + 1;
+		k = HASH(p, (ssize_t)apl->size) + 1;
 	}
 	lock.l_whence = SEEK_SET;
-	lock.l_start = k - 1;
+	lock.l_start = (off_t)k - 1;
 	lock.l_len = 1;
 	return fcntl(apl->fd, F_SETLKW, &lock) < 0 ? -1 : k;
 }

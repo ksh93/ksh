@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"dthdr.h"
@@ -33,7 +34,7 @@ ssize_t dtstat(Dt_t* dt, Dtstat_t* dtst)
 
 	str = dtst->mesg;
 	end = &dtst->mesg[sizeof(dtst->mesg)] - 1;
-	str += sfsprintf(str, end - str, "Objects=%d Levels=%d(Largest:", dtst->size, dtst->mlev+1);
+	str += sfsprintf(str, (size_t)(end - str), "Objects=%zd Levels=%zd(Largest:", dtst->size, dtst->mlev+1);
 
 	/* print top 3 levels */
 	for(k = maxk = 0; k <= dtst->mlev; ++k)
@@ -42,7 +43,7 @@ ssize_t dtstat(Dt_t* dt, Dtstat_t* dtst)
 	if(maxk > 0)
 		maxk -= 1;
 	for(k = 0; k < 3 && maxk <= dtst->mlev; ++k, ++maxk)
-		str += sfsprintf(str, end - str, " lev[%d]=%d", maxk, dtst->lsize[maxk] );
+		str += sfsprintf(str, (size_t)(end - str), " lev[%zd]=%zd", maxk, dtst->lsize[maxk] );
 	if (str < end)
 		*str++ = ')';
 	*str = 0;

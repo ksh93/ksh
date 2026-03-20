@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -78,9 +78,9 @@ extern Asometh_t*		_asometh(int, void*);
 extern int			asoinit(const char*, Asometh_t*, Asodisc_t*);
 extern int			asolock(unsigned int volatile*, unsigned int, int);
 extern int			asoloop(uintmax_t);
-extern int			asorelax(long);
+extern int			asorelax(uint32_t);
 
-extern uint8_t			asocas8(uint8_t volatile*, int, int);
+extern uint8_t			asocas8(uint8_t volatile*, uint8_t, uint8_t);
 extern uint8_t			asoget8(uint8_t volatile*);
 extern uint8_t			asoinc8(uint8_t volatile*);
 extern uint8_t			asodec8(uint8_t volatile*);
