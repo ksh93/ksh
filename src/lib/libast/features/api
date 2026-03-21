@@ -6,6 +6,10 @@ api ast 20120528 regexec regnexec regsubexec
 
 api ast 20120411 cmdopen
 
+api ast 20110505 cmdopen
+
 api ast 20100601 pathaccess pathcanon pathcat pathpath pathrepl
+
+api ast 20000308 sfkeyprintf
 
 print	#define _AST_VERSION	AST_VERSION	/* pre-20100601 compatibility */
