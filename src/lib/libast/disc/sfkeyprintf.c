@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -83,7 +84,7 @@ getfield(Field_t* f, int restore)
 	if (f->first)
 		f->first = 0;
 	else if (restore)
-		*s = f->delimiter;
+		*s = (char)f->delimiter;
 	b = ++s;
 	lp = rp = n = 0;
 	for (;;)
@@ -150,9 +151,9 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 
 	NOT_USED(sp);
 	fp->level++;
-	if (fp->fmt.t_str && fp->fmt.n_str > 0 && (v = fmtbuf(fp->fmt.n_str + 1)))
+	if (fp->fmt.t_str && fp->fmt.n_str > 0 && (v = fmtbuf((size_t)(fp->fmt.n_str + 1))))
 	{
-		memcpy(v, fp->fmt.t_str, fp->fmt.n_str);
+		memcpy(v, fp->fmt.t_str, (size_t)fp->fmt.n_str);
 		v[fp->fmt.n_str] = 0;
 		b = v;
 		for (;;)
@@ -190,7 +191,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 						x = FMT_case;
 					else if (streq(a, "edit"))
 						x = FMT_edit;
-					*(a + 4) = d;
+					*(a + 4) = (char)d;
 					if (x)
 						a = 0;
 				}
@@ -203,7 +204,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 		h = (*fp->lookup)(fp->handle, &fp->fmt, a, &s, &n);
 		fp->fmt.t_str = t;
 		if (i)
-			*v++ = i;
+			*v++ = (char)i;
 	}
 	else
 	{
@@ -214,7 +215,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 	switch (fp->fmt.fmt)
 	{
 	case 'c':
-		value->c = s ? *s : n;
+		value->c = s ? *s : (char)n;
 		break;
 	case 'd':
 	case 'i':
@@ -262,20 +263,20 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 
 						fmt = *fp;
 						fmt.fmt.form = v;
-						for (h = 0; h < elementsof(fmt.tmp); h++)
+						for (h = 0; h < (ssize_t)elementsof(fmt.tmp); h++)
 							fmt.tmp[h] = 0;
 						if (!fp->tmp[0] && !(fp->tmp[0] = sfstropen()) || sfprintf(fp->tmp[0], "%!", &fmt) <= 0 || !(s = sfstruse(fp->tmp[0])))
 							s = "";
-						*(v - 1) = d;
+						*(v - 1) = (char)d;
 						if (f.delimiter)
-							*f.next = d;
-						for (h = 0; h < elementsof(fmt.tmp); h++)
+							*f.next = (char)d;
+						for (h = 0; h < (ssize_t)elementsof(fmt.tmp); h++)
 							if (fmt.tmp[h])
 								sfclose(fmt.tmp[h]);
 						h = 1;
 						break;
 					}
-					*(v - 1) = d;
+					*(v - 1) = (char)d;
 				}
 				break;
 			case FMT_edit:
@@ -317,7 +318,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 		value->s = "\n";
 		break;
 	case '.':
-		value->i = n;
+		value->i = (int)n;
 		break;
 	default:
 		if ((!fp->convert || !(value->s = (*fp->convert)(fp->handle, &fp->fmt, a, s, n))) && (!fp->tmp[0] && !(fp->tmp[0] = sfstropen()) || sfprintf(fp->tmp[0], "%%%c", fp->fmt.fmt) <= 0 || !(value->s = sfstruse(fp->tmp[0]))))
@@ -332,13 +333,11 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
  * this is the original interface
  */
 
-#undef	sfkeyprintf
-
-int
+ssize_t
 sfkeyprintf(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup, Sf_key_convert_t convert)
 {
-	int		i;
-	int		r;
+	size_t		i;
+	ssize_t		r;
 	Fmt_t		fmt;
 
 	memset(&fmt, 0, sizeof(fmt));
@@ -355,35 +354,5 @@ sfkeyprintf(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup
 	for (i = 0; i < elementsof(fmt.re); i++)
 		if (fmt.re[i])
 			regfree(fmt.re[i]);
-	return r;
-}
-
-#undef	_AST_API_H
-
-#include <ast_api.h>
-
-/*
- * Sffmt_t* callback args
- */
-
-int
-sfkeyprintf_20000308(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup, Sf_key_convert_t convert)
-{
-	int		i;
-	int		r;
-	Fmt_t		fmt;
-
-	memset(&fmt, 0, sizeof(fmt));
-	fmt.version = 20030909;
-	fmt.fmt.version = SFIO_VERSION;
-	fmt.fmt.form = (char*)format;
-	fmt.fmt.extf = getfmt;
-	fmt.handle = handle;
-	fmt.lookup = lookup;
-	fmt.convert = convert;
-	r = sfprintf(sp, "%!", &fmt) - fmt.invisible;
-	for (i = 0; i < elementsof(fmt.tmp); i++)
-		if (fmt.tmp[i])
-			sfclose(fmt.tmp[i]);
 	return r;
 }
