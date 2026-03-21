@@ -51,8 +51,8 @@ typedef struct
 typedef struct
 {
 	char*			next;
-	int			delimiter;
 	int			first;
+	char			delimiter;
 } Field_t;
 
 typedef union
@@ -73,9 +73,9 @@ getfield(Field_t* f, int restore)
 {
 	char*	s;
 	int	n;
-	int	c;
-	int	lp;
-	int	rp;
+	char	c;
+	char	lp;
+	char	rp;
 	char*	b;
 
 	if (!f->delimiter)
@@ -84,7 +84,7 @@ getfield(Field_t* f, int restore)
 	if (f->first)
 		f->first = 0;
 	else if (restore)
-		*s = (char)f->delimiter;
+		*s = f->delimiter;
 	b = ++s;
 	lp = rp = n = 0;
 	for (;;)
