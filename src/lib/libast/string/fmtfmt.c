@@ -35,7 +35,7 @@
  *	l	long
  *	p	void*
  *	s	string
- *	t	ssize_t
+ *	t	ptrdiff_t
  *	z	size_t
  *	?	unknown
  */
