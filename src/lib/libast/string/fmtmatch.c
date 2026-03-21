@@ -176,7 +176,7 @@ fmtmatch(const char* as)
 				for (z = s; *z != '}'; z++)
 					if (!*z)
 						return NULL;
-				n = (int)(z - s);
+				n = (ssize_t)(z - s);
 				if (*++z == '?')
 					n++;
 				x = *p + n;
