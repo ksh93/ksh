@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -32,20 +33,20 @@
  * this is a workaround for 4 byte magic predicting 8 byte swap
  */
 
-int
-swapop(const void* internal, const void* external, int size)
+ssize_t
+swapop(const void* internal, const void* external, ssize_t size)
 {
 	int	op;
-	int	z;
+	ssize_t	z;
 	char	tmp[sizeof(intmax_t)];
 
 	if ((z = size) < 0)
 		z = -z;
 	if (z <= 1)
 		return 0;
-	if (z <= sizeof(intmax_t))
+	if (z <= (ssize_t)sizeof(intmax_t))
 		for (op = 0; op < z; op++)
-			if (!memcmp(internal, swapmem(op, external, tmp, z), z))
+			if (!memcmp(internal, swapmem(op, external, tmp, (size_t)z), (size_t)z))
 			{
 				if (size < 0 && z == 4 && op == 3)
 					op = 7;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -60,7 +60,7 @@ regerror(int code, const regex_t* p, char* buf, size_t size)
 	NoP(p);
 	if (code++ == REG_VERSIONID)
 		s = (const char*)fmtident(&id[1]);
-	else if (code >= 0 && code < elementsof(reg_error))
+	else if (code >= 0 && code < (ssize_t)elementsof(reg_error))
 		s = reg_error[code];
 	else
 		s = (const char*)"unknown error";

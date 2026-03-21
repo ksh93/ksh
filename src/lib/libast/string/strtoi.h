@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -115,7 +115,7 @@
 #endif
 
 #define ADDOVER(n,c,s)	((S2I_umax-(n))<((S2I_unumber)((c)+(s))))
-#define MPYOVER(n,c)	(((S2I_unumber)(n))>(S2I_umax/(c)))
+#define MPYOVER(n,c)	(((S2I_unumber)(n))>(S2I_umax/(S2I_unumber)(c)))
 
 static const S2I_unumber	mm[] =
 {
@@ -256,10 +256,10 @@ S2I_function(const char* a, char** e, int base)
 	{
 		if (S2I_valid(p) && (c = *p++) >= '0' && c <= '9')
 		{
-			n = c - '0';
+			n = (S2I_unumber)(c - '0');
 			if (S2I_valid(p) && (c = *p) >= '0' && c <= '9')
 			{
-				n = (n << 3) + (n << 1) + c - '0';
+				n = (n << 3) + (n << 1) + (S2I_unumber)c - '0';
 				p++;
 			}
 			if (S2I_valid(p) && *p == '#')
@@ -267,7 +267,7 @@ S2I_function(const char* a, char** e, int base)
 				if (n >= 2 && n <= 64)
 				{
 					k = s = p + 1;
-					base = n;
+					base = (int)n;
 				}
 			}
 			else if (base)
@@ -301,7 +301,7 @@ S2I_function(const char* a, char** e, int base)
 		else
 		{
 			if (basep)
-				*basep = base;
+				*basep = (char)base;
 			m = -1;
 		}
 #endif
@@ -332,9 +332,9 @@ S2I_function(const char* a, char** e, int base)
 				{
 					n = (n << 3) + (n << 1);
 					c -= '0';
-					if (ADDOVER(n, c, negative))
+					if (ADDOVER(n, (S2I_unumber)c, (S2I_unumber)negative))
 						overflow = 1;
-					n += c;
+					n += (S2I_unumber)c;
 				}
 			}
 			else if (p && (s - p) != (3 + S2I_valid(s)))
@@ -359,7 +359,7 @@ S2I_function(const char* a, char** e, int base)
 					n = negative ? S2I_min : S2I_max;
 #endif
 				}
-				return n;
+				return (S2I_type)n;
 			}
 			else
 			{
@@ -392,7 +392,7 @@ S2I_function(const char* a, char** e, int base)
 					n <<= shift;
 					if (ADDOVER(n, c, negative))
 						overflow = 1;
-					n += c;
+					n += (S2I_unumber)c;
 				}
 			}
 		}
@@ -403,10 +403,10 @@ S2I_function(const char* a, char** e, int base)
 					overflow = 1;
 				else
 				{
-					n *= base;
+					n *= (S2I_unumber)base;
 					if (ADDOVER(n, c, negative))
 						overflow = 1;
-					n += c;
+					n += (S2I_unumber)c;
 				}
 			}
 		c = *(s - 1);
@@ -502,17 +502,17 @@ S2I_function(const char* a, char** e, int base)
 					/* pseudo-float */
 					if (MPYOVER(n, m))
 						overflow = 1;
-					n *= m;
+					n *= (S2I_unumber)m;
 					v = 0;
 					while (S2I_valid(s) && (c = *s++) >= '0' && c <= '9')
-						v += (m /= 10) * (c - '0');
-					if (ADDOVER(n, v, negative))
+						v += (S2I_unumber)((m /= 10) * (c - '0'));
+					if (ADDOVER(n, v, (S2I_unumber)negative))
 						overflow = 1;
 					n += v;
 					v = 0;
 				}
 				else
-					v = m;
+					v = (S2I_unumber)m;
 				s--;
 				shift = 0;
 				break;
@@ -551,9 +551,9 @@ S2I_function(const char* a, char** e, int base)
 				}
 				else
 #if S2I_unsigned
-				if (shift >= (sizeof(S2I_type) * CHAR_BIT))
+				if (shift >= ((ssize_t)sizeof(S2I_type) * CHAR_BIT))
 #else
-				if (shift >= (sizeof(S2I_type) * CHAR_BIT - 1))
+				if (shift >= ((ssize_t)sizeof(S2I_type) * CHAR_BIT - 1))
 #endif
 				{
 					v = 0;
@@ -620,5 +620,5 @@ S2I_function(const char* a, char** e, int base)
 		errno = ERANGE;
 		return (S2I_type)S2I_max;
 	}
-	return negative ? -n : n;
+	return negative ? (S2I_type)-n : (S2I_type)n;
 }

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -33,14 +34,14 @@ fmtnum(unsigned long n, int m)
 	int		i;
 	unsigned long	r;
 	char*		buf;
-	int		z;
+	size_t		z;
 
 	char		suf[2];
 
 	if (m > 1)
 	{
 		r = n;
-		n /= m;
+		n /= (unsigned long)m;
 		r -= n;
 	}
 	else

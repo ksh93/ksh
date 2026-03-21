@@ -188,7 +188,12 @@ b_fold(int argc, char** argv, Shbltin_t* context)
 			cols['\t'] = cols[' '];
 			continue;
 		case 'c':
-			contsize = stresc(cont = strdup(opt_info.arg));
+			if(!(cont = strdup(opt_info.arg)))
+			{
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+				UNREACHABLE();
+			}
+			contsize = (size_t)stresc(cont);
 			continue;
 		case 'd':
 			if (n = *opt_info.arg)

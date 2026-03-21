@@ -62,29 +62,29 @@ _reg_iswblank(wint_t wc)
 
 #endif
 
-static int  Isalnum(int c) { return  iswalnum(c); }
+static int  Isalnum(int c) { return  iswalnum((wint_t)c); }
 static int  Isalpha(int c) { return  iswalpha(c); }
-static int  Isblank(int c) { return  iswblank(c); }
-static int  Iscntrl(int c) { return  iswcntrl(c); }
-static int  Isdigit(int c) { return  iswdigit(c); }
-static int Notdigit(int c) { return !iswdigit(c); }
-static int  Isgraph(int c) { return  iswgraph(c); }
-static int  Islower(int c) { return  iswlower(c); }
-static int  Isprint(int c) { return  iswprint(c); }
+static int  Isblank(int c) { return  iswblank((wint_t)c); }
+static int  Iscntrl(int c) { return  iswcntrl((wint_t)c); }
+static int  Isdigit(int c) { return  iswdigit((wint_t)c); }
+static int Notdigit(int c) { return !iswdigit((wint_t)c); }
+static int  Isgraph(int c) { return  iswgraph((wint_t)c); }
+static int  Islower(int c) { return  iswlower((wint_t)c); }
+static int  Isprint(int c) { return  iswprint((wint_t)c); }
 static int  Ispunct(int c)
 {
 #if _iswpunct_broken  /* workaround assumes ASCII */
 	if (c < 128)
 		return ispunct(c);
 #endif
-	return iswpunct(c);
+	return iswpunct((wint_t)c);
 }
-static int  Isspace(int c) { return  iswspace(c); }
-static int Notspace(int c) { return !iswspace(c); }
-static int  Isupper(int c) { return  iswupper(c); }
-static int   Isword(int c) { return  iswalnum(c) || c == '_'; }
-static int  Notword(int c) { return !iswalnum(c) && c != '_'; }
-static int Isxdigit(int c) { return  iswxdigit(c);}
+static int  Isspace(int c) { return  iswspace((wint_t)c); }
+static int Notspace(int c) { return !iswspace((wint_t)c); }
+static int  Isupper(int c) { return  iswupper((wint_t)c); }
+static int   Isword(int c) { return  iswalnum((wint_t)c) || c == '_'; }
+static int  Notword(int c) { return !iswalnum((wint_t)c) && c != '_'; }
+static int Isxdigit(int c) { return  iswxdigit((wint_t)c);}
 
 #if _lib_wctype
 
@@ -156,22 +156,22 @@ static Ctype_t ctype[] =
 
 #if _lib_wctype
 
-static int Is_wc_1(int c) { return iswctype(c, ctype[CTYPES+0].wtype); }
-static int Is_wc_2(int c) { return iswctype(c, ctype[CTYPES+1].wtype); }
-static int Is_wc_3(int c) { return iswctype(c, ctype[CTYPES+2].wtype); }
-static int Is_wc_4(int c) { return iswctype(c, ctype[CTYPES+3].wtype); }
-static int Is_wc_5(int c) { return iswctype(c, ctype[CTYPES+4].wtype); }
-static int Is_wc_6(int c) { return iswctype(c, ctype[CTYPES+5].wtype); }
-static int Is_wc_7(int c) { return iswctype(c, ctype[CTYPES+6].wtype); }
-static int Is_wc_8(int c) { return iswctype(c, ctype[CTYPES+7].wtype); }
-static int Is_wc_9(int c) { return iswctype(c, ctype[CTYPES+8].wtype); }
-static int Is_wc_10(int c) { return iswctype(c, ctype[CTYPES+9].wtype); }
-static int Is_wc_11(int c) { return iswctype(c, ctype[CTYPES+10].wtype); }
-static int Is_wc_12(int c) { return iswctype(c, ctype[CTYPES+11].wtype); }
-static int Is_wc_13(int c) { return iswctype(c, ctype[CTYPES+12].wtype); }
-static int Is_wc_14(int c) { return iswctype(c, ctype[CTYPES+13].wtype); }
-static int Is_wc_15(int c) { return iswctype(c, ctype[CTYPES+14].wtype); }
-static int Is_wc_16(int c) { return iswctype(c, ctype[CTYPES+15].wtype); }
+static int Is_wc_1(int c) { return iswctype((wint_t)c, ctype[CTYPES+0].wtype); }
+static int Is_wc_2(int c) { return iswctype((wint_t)c, ctype[CTYPES+1].wtype); }
+static int Is_wc_3(int c) { return iswctype((wint_t)c, ctype[CTYPES+2].wtype); }
+static int Is_wc_4(int c) { return iswctype((wint_t)c, ctype[CTYPES+3].wtype); }
+static int Is_wc_5(int c) { return iswctype((wint_t)c, ctype[CTYPES+4].wtype); }
+static int Is_wc_6(int c) { return iswctype((wint_t)c, ctype[CTYPES+5].wtype); }
+static int Is_wc_7(int c) { return iswctype((wint_t)c, ctype[CTYPES+6].wtype); }
+static int Is_wc_8(int c) { return iswctype((wint_t)c, ctype[CTYPES+7].wtype); }
+static int Is_wc_9(int c) { return iswctype((wint_t)c, ctype[CTYPES+8].wtype); }
+static int Is_wc_10(int c) { return iswctype((wint_t)c, ctype[CTYPES+9].wtype); }
+static int Is_wc_11(int c) { return iswctype((wint_t)c, ctype[CTYPES+10].wtype); }
+static int Is_wc_12(int c) { return iswctype((wint_t)c, ctype[CTYPES+11].wtype); }
+static int Is_wc_13(int c) { return iswctype((wint_t)c, ctype[CTYPES+12].wtype); }
+static int Is_wc_14(int c) { return iswctype((wint_t)c, ctype[CTYPES+13].wtype); }
+static int Is_wc_15(int c) { return iswctype((wint_t)c, ctype[CTYPES+14].wtype); }
+static int Is_wc_16(int c) { return iswctype((wint_t)c, ctype[CTYPES+15].wtype); }
 
 #endif
 
@@ -199,7 +199,7 @@ regclass(const char* s, char** e)
 	if (!(c = *s++))
 		return NULL;
 	for (t = s; *t && (*t != c || *(t + 1) != ']'); t++);
-	if (*t != c || !(n = t - s))
+	if (*t != c || !(n = (size_t)(t - s)))
 		return NULL;
 	for (cp = ctypes; cp; cp = cp->next)
 		if (n == cp->size && strneq(s, cp->name, n))

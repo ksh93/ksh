@@ -50,7 +50,7 @@ void       regfree(regex_t* \fIre\fP);
 
 regclass_t regclass(const char* \fIstr\fP, char** \fIend\fP);
 int        regaddclass(const char* \fIname\fP, regclass_t \fIclassf\fP);
-int        regcollate(const char* \fIstr\fP, char** \fIend\fP, char* \fIbuf\fP, int \fIsize\fP);
+int        regcollate(const char* \fIstr\fP, char** \fIend\fP, char* \fIbuf\fP, size_t \fIsize\fP, wchar_t* \fIwchar\fP);
 
 regstat_t* regstat(const regex_t* \fIre\fP);
 

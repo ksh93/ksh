@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -67,14 +68,14 @@ fmtls(char* buf, const char* name, struct stat* st, const char* info, const char
 			if (flags & LS_NUMBER)
 				s += sfsprintf(s, LS_W_MAX, " %-*I*d", LS_W_NAME - 1, sizeof(st->st_uid), st->st_uid);
 			else
-				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtuid(st->st_uid));
+				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtuid((int)st->st_uid));
 		}
 		if (!(flags & LS_NOGROUP))
 		{
 			if (flags & LS_NUMBER)
 				s += sfsprintf(s, LS_W_MAX, " %-*I*d", LS_W_NAME - 1, sizeof(st->st_gid), st->st_gid);
 			else
-				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtgid(st->st_gid));
+				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtgid((int)st->st_gid));
 		}
 		if (S_ISBLK(st->st_mode) || S_ISCHR(st->st_mode))
 			s += sfsprintf(s, LS_W_MAX, "%8s ", fmtdev(st));

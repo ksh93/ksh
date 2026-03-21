@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -51,7 +51,7 @@ fmtuid(int uid)
 	Id_t*		ip;
 	char*		name;
 	struct passwd*	pw;
-	int		z;
+	size_t		z;
 
 	static Dt_t*		dict;
 	static Dtdisc_t		disc;
@@ -64,7 +64,7 @@ fmtuid(int uid)
 	}
 	else if (ip = (Id_t*)dtmatch(dict, &uid))
 		return ip->name;
-	if (pw = getpwuid(uid))
+	if (pw = getpwuid((uid_t)uid))
 	{
 		name = pw->pw_name;
 #if _WINIX

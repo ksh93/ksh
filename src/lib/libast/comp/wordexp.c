@@ -45,7 +45,7 @@ static int	sh_unquote(char* string)
 		return sp-string;
 	if((dp=sp) > string && sp[-1]=='$')
 	{
-		int n=stresc(sp+1);
+		ptrdiff_t n=stresc(sp+1);
 		/* copy all but trailing ' */
 		while(--n>0)
 			*dp++ = *++sp;

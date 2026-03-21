@@ -42,11 +42,11 @@ swap \- integral representation conversion routines
 .SH SYNOPSIS
 .L "#include <swap.h>"
 .sp
-.L "int swapop(const void* internal, const void* external, int width);
+.L "ssize_t swapop(const void* internal, const void* external, ssize_t width);
 .br
-.L "int_max swapget(int op, const void* from, int width);"
+.L "intmax_t swapget(int op, const void* from, size_t width);"
 .br
-.L "void* swapput(int op, void* to, int width, int_max value);"
+.L "void* swapput(int op, void* to, size_t width, intmax_t value);"
 .br
 .L "void* swapmem(int op, const void* from, void* to, size_t n);"
 .SH DESCRIPTION
