@@ -37,7 +37,7 @@ extern struct passwd*	getpwuid(uid_t);
 typedef struct Id_s
 {
 	Dtlink_t	link;
-	int		id;
+	uid_t		id;
 	char		name[1];
 } Id_t;
 
@@ -46,7 +46,7 @@ typedef struct Id_s
  */
 
 char*
-fmtuid(int uid)
+fmtuid(uid_t uid)
 {
 	Id_t*		ip;
 	char*		name;
@@ -59,12 +59,12 @@ fmtuid(int uid)
 	if (!dict)
 	{
 		disc.key = offsetof(Id_t, id);
-		disc.size = sizeof(int);
+		disc.size = sizeof(uid_t);
 		dict = dtopen(&disc, Dtset);
 	}
 	else if (ip = (Id_t*)dtmatch(dict, &uid))
 		return ip->name;
-	if (pw = getpwuid((uid_t)uid))
+	if (pw = getpwuid(uid))
 	{
 		name = pw->pw_name;
 #if _WINIX

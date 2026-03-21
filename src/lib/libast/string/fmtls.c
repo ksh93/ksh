@@ -68,14 +68,14 @@ fmtls(char* buf, const char* name, struct stat* st, const char* info, const char
 			if (flags & LS_NUMBER)
 				s += sfsprintf(s, LS_W_MAX, " %-*I*d", LS_W_NAME - 1, sizeof(st->st_uid), st->st_uid);
 			else
-				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtuid((int)st->st_uid));
+				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtuid(st->st_uid));
 		}
 		if (!(flags & LS_NOGROUP))
 		{
 			if (flags & LS_NUMBER)
 				s += sfsprintf(s, LS_W_MAX, " %-*I*d", LS_W_NAME - 1, sizeof(st->st_gid), st->st_gid);
 			else
-				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtgid((int)st->st_gid));
+				s += sfsprintf(s, LS_W_MAX, " %-*s", LS_W_NAME - 1, fmtgid(st->st_gid));
 		}
 		if (S_ISBLK(st->st_mode) || S_ISCHR(st->st_mode))
 			s += sfsprintf(s, LS_W_MAX, "%8s ", fmtdev(st));
