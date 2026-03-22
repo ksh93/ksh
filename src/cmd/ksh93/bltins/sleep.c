@@ -158,7 +158,7 @@ void sh_delay(double t, int sflag)
 		ts = tx;
 	}
 #if __APPLE__ && __MACH__
-	if (sh_isstate(SH_INTERACTIVE))
-		signal(SIGTSTP,SIG_DFL);
+	if (sh_isstate(SH_INTERACTIVE) && !(sh.sigflag[SIGTSTP] & SH_SIGOFF))
+		signal(SIGTSTP,sh_fault);
 #endif
 }
