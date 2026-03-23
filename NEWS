@@ -2,6 +2,12 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-03-23:
+
+- Fixed a bug in command substitutions, where a command substitution would
+  fail to catch standard output after a nested function redirects standard
+  output to /dev/null.
+
 2026-03-22:
 
 - Fixed a bug where the interactive shell would sometimes suspend itself

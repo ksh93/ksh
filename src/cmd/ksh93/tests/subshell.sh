@@ -1250,4 +1250,71 @@ echo ok" 2>&1)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Command substitution loses stdout after nested function redirects stdout to /dev/null
+# https://github.com/ksh93/ksh/issues/951
+
+got=$(
+	function echo_devnull {
+		echo "DEVNULL" >/dev/null
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=$(func)
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 1a (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	function echo_devnull {
+		echo "DEVNULL" >/dev/null
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=${ func; }
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 1b (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	function echo_devnull {
+		ulimit -c 0
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=$(func)
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 2a (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	function echo_devnull {
+		ulimit -c 0
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=${ func; }
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 2b (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	OUT=$(ulimit -c 0 >&2; echo OK)
+	echo "OUT: ${OUT}"
+)
+exp='OUT: OK'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 3 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

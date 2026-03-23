@@ -1156,10 +1156,8 @@ int	sh_redirect(struct ionod *iop, int flag)
 	 * 'redirect'. This forking workaround is necessary to avoid that bug.
 	 * For shared-state comsubs, forking is incorrect, so error out then.
 	 * TODO: actually fix the bug and remove this workaround.
-	 * (Note that sh.redir0 is set to 1 in xec.c immediately before processing
-	 * redirections for any built-in command, including 'exec' and 'redirect'.)
 	 */
-	if(sh.subshell && sh.comsub && sh.redir0==1)
+	if(sh.subshell && sh.comsub && (flag==1 || flag==2 || (sfset(sfstdout,0,0) & SFIO_STRING)))
 	{
 		struct ionod *i;
 		for(i = iop; i; i = i->ionxt)
