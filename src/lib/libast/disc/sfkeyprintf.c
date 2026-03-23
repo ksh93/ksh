@@ -329,10 +329,6 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 	return 0;
 }
 
-/*
- * this is the original interface
- */
-
 ssize_t
 sfkeyprintf(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup, Sf_key_convert_t convert)
 {
@@ -341,6 +337,7 @@ sfkeyprintf(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup
 	Fmt_t		fmt;
 
 	memset(&fmt, 0, sizeof(fmt));
+	fmt.version = 20030909;
 	fmt.fmt.version = SFIO_VERSION;
 	fmt.fmt.form = (char*)format;
 	fmt.fmt.extf = getfmt;
@@ -351,8 +348,5 @@ sfkeyprintf(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup
 	for (i = 0; i < elementsof(fmt.tmp); i++)
 		if (fmt.tmp[i])
 			sfclose(fmt.tmp[i]);
-	for (i = 0; i < elementsof(fmt.re); i++)
-		if (fmt.re[i])
-			regfree(fmt.re[i]);
 	return r;
 }
