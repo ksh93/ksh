@@ -297,15 +297,11 @@ cat{
 	extern int	putc_unlocked(int, FILE*);
 	extern int	putchar_unlocked(int);
 
-	#ifdef _USE_GNU
-
 	extern int	fcloseall(void);
 	extern FILE*	fmemopen(void*, size_t, const char*);
 	extern ssize_t	__getdelim(char**, size_t*, int, FILE*);
 	extern ssize_t	getdelim(char**, size_t*, int, FILE*);
 	extern ssize_t	getline(char**, size_t*, FILE*);
-
-	#endif
 
 	#if _BLD_DLL && _DLL_INDIRECT_DATA
 
