@@ -2597,14 +2597,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make fmtmsglib.o
-			make comp/fmtmsglib.c
-				makp comp/fmtmsg.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make fnmatch.o
 			make comp/fnmatch.c
 				make comp/fnmatch.h
@@ -4232,22 +4224,6 @@ make install virtual
 		exec - mkdeps -last %{^} > %{@}
 		makp %{INSTALLROOT}/bin/mkdeps
 	done %{INSTALLROOT}/lib/mam/ast
-
-	make %{INSTALLROOT}/lib/package/gen/.asthdr_tstamp
-		prev comp/fmtmsg.h
-		note * install our own versions of these if iffe hasn't detected these in the system
-		exec - CCt='	'  # one tab
-		exec - for src in %{^}
-		exec - do	hdr=$(basename "$src" .h)
-		exec -		grep -q "define[ $CCt][ $CCt]*_[hl][di][rb]_$hdr" ast_lib.h && continue
-		exec -		dst=%{INCLUDE_AST}/$hdr.h
-		exec -		if	! cmp -s "$src" "$dst"
-		exec -		then	cp -f "$src" "$dst" || exit
-		exec -		fi
-		exec - done
-		exec - touch %{@}
-		prev ast_lib.h
-	done
 
 	note *
 	note * mamake was previously built by package.sh without libast;
