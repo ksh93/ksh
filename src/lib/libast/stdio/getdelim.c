@@ -86,3 +86,9 @@ __getdelim(char** sp, size_t* np, int delim, Sfio_t* f)
 {
 	return getdelim(sp, np, delim, f);
 }
+
+ssize_t
+getline(char** sp, size_t* np, Sfio_t* f)
+{
+	return getdelim(sp, np, '\n', f);
+}

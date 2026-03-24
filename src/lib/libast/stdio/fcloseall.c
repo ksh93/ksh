@@ -49,3 +49,14 @@ fcloseall(void)
 	}
 	return 0; /* always return 0 per GNU */
 }
+
+int
+fflush(Sfio_t* f)
+{
+	if (!f)
+		return fcloseall();
+
+	if (f->extent > 0)
+		sfseek(f, 0, SEEK_CUR|SFIO_PUBLIC);
+	return (sfsync(f) < 0 || sfpurge(f) < 0) ? -1 : 0;
+}
