@@ -42,6 +42,8 @@
 
 #undef	strsignal
 
+#include <sys/types.h>
+
 struct _m_
 {
 	char*		text;
