@@ -3,7 +3,7 @@ ref	-D_def_map_ast=1
 cmd	universe
 
 sys	mman
-hdr	fcntl,dirent,direntry,filio,fmtmsg,fnmatch,jioctl,libgen,limits
+hdr	fcntl,dirent,direntry,filio,fnmatch,jioctl,libgen,limits
 hdr	locale,ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs
 hdr	wctype
@@ -25,7 +25,7 @@ dat	_tzname,tzname
 lib	BSDsetpgrp
 lib	_cleanup
 lib	bcopy,bzero,confstr,dirread
-lib	fchmod,fcntl,fmtmsg,fnmatch,fork,fsync
+lib	fchmod,fcntl,fnmatch,fork,fsync
 lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
