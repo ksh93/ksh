@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-19"
+#define RELEASE_DATE "2026-03-25"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -160,9 +160,9 @@ static const char usage[] =
 #define unadd(b)	(--(b)->nxt)
 #define getsize(b)	((b)->nxt-(b)->buf)
 #define setsize(b,o)	((b)->nxt=(b)->buf+(o))
-#define use(b)		(*(b)->nxt=0,(b)->nxt=(b)->buf)
+#define use(b)		(((b)->nxt >= (b)->end) ? append(b, "") : NULL, *(b)->nxt = 0, (b)->nxt = (b)->buf)
 
-#define CHUNK		1024		/* buffer() growth chunk size	*/
+#define CHUNK		128		/* buffer() growth chunk size	*/
 #define KEY(a,b,c,d)	((((unsigned long)(a))<<24)|(((unsigned long)(b))<<16)|(((unsigned long)(c))<<8)|(((unsigned long)(d))))
 
 #define PARALLEL(r)	(state.maxjobs > 1 && state.strict >= 5 && !((r)->flags & RULE_virtual))
