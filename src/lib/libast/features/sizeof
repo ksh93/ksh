@@ -3,11 +3,11 @@ tst	- note{ sizeof(integral-type) }end output{
 	int
 	main(void)
 	{
-		printf("#define _ast_sizeof_char	%zu\n", sizeof(char));
-		printf("#define _ast_sizeof_short	%zu\n", sizeof(short));
-		printf("#define _ast_sizeof_int		%zu\n", sizeof(int));
-		printf("#define _ast_sizeof_long	%zu\n", sizeof(long));
-		printf("#define _ast_sizeof_intmax_t	%zu\n", sizeof(_ast_intmax_t));
+		printf("#define _ast_sizeof_char	%lu\n", (unsigned long)sizeof(char));
+		printf("#define _ast_sizeof_short	%lu\n", (unsigned long)sizeof(short));
+		printf("#define _ast_sizeof_int		%lu\n", (unsigned long)sizeof(int));
+		printf("#define _ast_sizeof_long	%lu\n", (unsigned long)sizeof(long));
+		printf("#define _ast_sizeof_intmax_t	%lu\n", (unsigned long)sizeof(_ast_intmax_t));
 		return 0;
 	}
 }end fail{

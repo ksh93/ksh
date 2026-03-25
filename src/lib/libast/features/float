@@ -957,23 +957,23 @@ tst	- note{ double exponent bitfoolery }end output{
 	int
 	main(void)
 	{
-		size_t			i;
-		size_t			j;
+		unsigned long		i;
+		unsigned long		j;
 		unsigned _ast_int4_t	e;
 		_ast_dbl_exp_t		a;
 		_ast_dbl_exp_t		b;
 		a.f = 1;
 		b.f = 2;
-		for (i = 0; i < sizeof(a.e) / sizeof(a.e[0]); i++)
+		for (i = 0; i < (unsigned long)(sizeof(a.e) / sizeof(a.e[0])); i++)
 			if (e = a.e[i] ^ b.e[i])
 			{
-				for (j = i + 1; j < sizeof(a.e) / sizeof(a.e[0]); j++)
+				for (j = i + 1; j < (unsigned long)(sizeof(a.e) / sizeof(a.e[0])); j++)
 					if (a.e[j] ^ b.e[j])
 						return 0;
 				printf("typedef union _ast_dbl_exp_u\n{\n\tuint32_t\t\te[sizeof(double)/4];\n\tdouble\t\t\tf;\n} _ast_dbl_exp_t;\n\n");
-				printf("#define _ast_dbl_exp_index	%zu\n", i);
+				printf("#define _ast_dbl_exp_index	%lu\n", i);
 				for (i = 0; !(e & 1); e >>= 1, i++);
-				printf("#define _ast_dbl_exp_shift	%zu\n\n", i);
+				printf("#define _ast_dbl_exp_shift	%lu\n\n", i);
 				return 0;
 			}
 		return 0;
@@ -994,23 +994,23 @@ tst	- note{ long double exponent bitfoolery }end output{
 	int
 	main(void)
 	{
-		size_t			i;
-		size_t			j;
+		unsigned long		i;
+		unsigned long		j;
 		unsigned _ast_int4_t	e;
 		_ast_fltmax_exp_t	a;
 		_ast_fltmax_exp_t	b;
 		a.f = 1;
 		b.f = 2;
-		for (i = 0; i < sizeof(a.e) / sizeof(a.e[0]); i++)
+		for (i = 0; i < (unsigned long)(sizeof(a.e) / sizeof(a.e[0])); i++)
 			if (e = a.e[i] ^ b.e[i])
 			{
-				for (j = i + 1; j < sizeof(a.e) / sizeof(a.e[0]); j++)
+				for (j = i + 1; j < (unsigned long)(sizeof(a.e) / sizeof(a.e[0])); j++)
 					if (a.e[j] ^ b.e[j])
 						return 0;
 				printf("typedef union _fltmax_exp_u\n{\n\tuint32_t\t\te[sizeof(_ast_fltmax_t)/4];\n\t_ast_fltmax_t\t\tf;\n} _ast_fltmax_exp_t;\n\n");
-				printf("#define _ast_fltmax_exp_index\t%zu\n", i);
+				printf("#define _ast_fltmax_exp_index\t%lu\n", i);
 				for (i = 0; !(e & 1); e >>= 1, i++);
-				printf("#define _ast_fltmax_exp_shift\t%zu\n\n", i);
+				printf("#define _ast_fltmax_exp_shift\t%lu\n\n", i);
 				return 0;
 			}
 		return 0;
