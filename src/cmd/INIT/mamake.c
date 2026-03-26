@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-25"
+#define RELEASE_DATE "2026-03-26"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -546,6 +546,53 @@ static char *reduplicate(char *orig, char *s)
 static char *duplicate(char *s)
 {
 	return reduplicate(NULL, s);
+}
+
+/*
+ * Remove duplicates from the set of space-separated fields in the string r.
+ * Keep the last-mentioned item of each field that occurs multiple times (this
+ * is required for passing libraries to the linker in the correct order; that
+ * is, each dependency must come after all the libraries that depend on it).
+ *
+ * Returns an allocated copy of the deduplicated string, unless it's empty.
+ */
+
+static char *dedup_fields(char *r)
+{
+	Buf_t	*query = buffer(), *fields = buffer(), *scratch = buffer();
+	char	*s, sav, nodupes;
+
+	while (1)
+	{
+		/* Find start of next field */
+		for (; *r == ' '; r++);
+		if (!*r)
+			break;
+		/* Find end of next field */
+		for (s = r; *s && *s != ' '; s++);
+		/* Scan ahead for duplicates; if none found, append it to fields */
+		sav = *s, *s = '\0';
+		if (sav)
+		{	/* prepend and append spaces to avoid substring matches */
+			add(scratch, ' '), append(scratch, s + 1), add(scratch, ' ');
+			add(query, ' '), append(query, r), add(query, ' ');
+			nodupes = !strstr(use(scratch), use(query));
+		}
+		else	/* already at end: no dupes ahead */
+			nodupes = 1;
+		if (nodupes)
+			add(fields, ' '), append(fields, r);
+		*s = sav;
+		r = s;
+	}
+	r = use(fields);
+	if (*r == ' ')
+		r++;
+	r = duplicate(r);
+	drop(scratch);
+	drop(fields);
+	drop(query);
+	return r;
 }
 
 /*
@@ -1996,11 +2043,11 @@ static char *require(char *lib, int dontcare)
 				r = "";
 			}
 		}
-		r = duplicate(r);
+		drop(tmp);
+		r = dedup_fields(r);
+		drop(buf);
 		setval(state.vars, varname, r);
 		report(-4, r, varname, NULL);
-		drop(tmp);
-		drop(buf);
 	}
 	return r;
 }

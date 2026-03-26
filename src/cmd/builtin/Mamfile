@@ -21,13 +21,12 @@ make install virtual
 
 	make pty
 		bind -lcmd
-		bind -lutil dontcare
 		make pty.o
 			make pty.c
 				make FEATURE/pty
 					makp features/pty
 					exec - iffe %{IFFEFLAGS} -v -c "%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{LDFLAGS}" ref \
-					exec -	-I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libast} %{mam_libcmd} : run %{<}
+					exec -	-I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libast} : run %{<}
 				done
 				prev %{INCLUDE_AST}/ast_time.h
 				prev %{INCLUDE_AST}/vmalloc.h
@@ -40,7 +39,7 @@ make install virtual
 			exec -	-DERROR_CATALOG=\""builtin"\" -DCMD_STANDALONE=b_pty -c %{<}
 		done pty.o
 		exec - %{CC} %{CCLDFLAGS} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS} \
-		exec -	-o pty pty.o %{mam_libutil} %{mam_libast} %{mam_libcmd}
+		exec -	-o pty pty.o %{mam_libcmd}
 	done pty
 
 	note *
@@ -51,7 +50,7 @@ make install virtual
 		prev pty
 		makp %{INSTALLROOT}/lib/lib/cmd
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED}'
-		exec - dylink -e pty %{mam_libutil} $(cat %{<}) pty.o
+		exec - dylink -e pty $(cat %{<}) pty.o
 	done
 
 	note *

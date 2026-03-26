@@ -27,6 +27,8 @@ z)	emulate ksh ;;
 esac
 set -o noglob -o nounset
 : $INSTALLROOT	# error out early
+CCn='
+' # literal newline
 
 # Get colon-separated compiler and linker invocations from arguments.
 # Like this whole build system, we assume arguments do not contain
@@ -84,6 +86,7 @@ self=$1
 shift
 exec >$self.req
 echo " -l$self"
+dupes=$(
 for name
 do	if	test -f $INSTALLROOT/lib/lib/$name
 	then	grep '^ -l.' $INSTALLROOT/lib/lib/$name
@@ -92,4 +95,22 @@ do	if	test -f $INSTALLROOT/lib/lib/$name
 	then	try_to_link $name -L$INSTALLROOT/lib || try_to_link $name || continue
 	fi
 	echo " -l$name"
-done | sort -u
+done
+)
+# Remove duplicates from the set of newline-separated items in 'dupes'.
+# Keep the last-mentioned of each item that occurs multiple times (this is
+# required for passing libraries to the linker in the correct order; that
+# is, each dependency must come after all the libraries that depend on it).
+while	test -n "$dupes"
+do	# Grab first item from dupes
+	item=${dupes%%"$CCn"*}
+	# Remove that item from dupes
+	dupes=${dupes#"$item"}
+	dupes=${dupes#"$CCn"} # remove $CCn separately as last item won't end in it
+	# Skip the item if another identical item is still in dupes
+	case "$CCn$dupes$CCn" in
+	*"$CCn$item$CCn"*)
+		continue ;;
+	esac
+	echo "$item"
+done

@@ -140,6 +140,16 @@ struct Fts
 
 };
 
+/* avoid link-time conflicts with (at least) AddressSanitizer fts interceptors on FreeBSD */
+#define fts_children	_ast_fts_children
+#define fts_close	_ast_fts_close
+#define fts_flags	_ast_fts_flags
+#define fts_local	_ast_fts_local
+#define fts_notify	_ast_fts_notify
+#define fts_open	_ast_fts_open
+#define fts_read	_ast_fts_read
+#define fts_set		_ast_fts_set
+
 extern FTSENT*	fts_children(FTS*, int);
 extern int	fts_close(FTS*);
 extern int	fts_flags(void);
