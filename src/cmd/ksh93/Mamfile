@@ -71,7 +71,7 @@ make install virtual
 	note * Feature tests
 	note *
 
-	setv iffe_run iffe %{IFFEFLAGS} -v -c '%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS}' ref -I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libdll} %{mam_libcmd} %{mam_libast} %{mam_libm} %{mam_libnsl} : run
+	setv iffe_run iffe %{IFFEFLAGS} -v -c '%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS}' ref -I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libast} %{mam_libm} %{mam_libnsl} : run
 
 	make FEATURE/math
 		make features/math.sh
@@ -1113,8 +1113,7 @@ make install virtual
 
 	shim - link_binary()
 	shim - {
-	shim -     %{CC} %{CCLDFLAGS} %{mam_cc_FLAGS} %{CCFLAGS} %{LDFLAGS} \
-	shim -		-o "$@" %{mam_libshell} %{mam_libnsl} %{mam_libast} %{mam_libm}
+	shim -     %{CC} %{CCLDFLAGS} %{mam_cc_FLAGS} %{CCFLAGS} %{LDFLAGS} -o "$@" %{mam_libshell}
 	shim - }
 
 	make ksh
@@ -1148,14 +1147,14 @@ make install virtual
 		prev ksh
 		prev %{dyn_libshell}
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED} %{mam_cc_EXPORT_DYNAMIC}'
-		exec - dylink -e ksh $(cat shell.req) %{mam_libnsl} %{mam_libm} pmain.o
+		exec - dylink -e ksh $(cat shell.req) pmain.o
 	done
 
 	make %{INSTALLROOT}/dyn/bin/shcomp dontcare
 		prev shcomp
 		prev %{dyn_libshell}
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED} %{mam_cc_EXPORT_DYNAMIC}'
-		exec - dylink -e shcomp $(cat shell.req) %{mam_libnsl} %{mam_libm} shcomp.o
+		exec - dylink -e shcomp $(cat shell.req) shcomp.o
 	done
 
 	note *
