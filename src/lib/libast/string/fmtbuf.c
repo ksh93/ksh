@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -43,7 +43,7 @@ fmtbuf(size_t n)
 		{
 			if (n > bigsiz)
 			{
-				bigsiz = roundof(n, 8 * 1024);
+				bigsiz = roundof(n, 8U * 1024U);
 				if (!(big = newof(big, char, bigsiz, 0)))
 					return NULL;
 			}

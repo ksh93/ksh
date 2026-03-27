@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -45,7 +45,7 @@ static int	sh_unquote(char* string)
 		return sp-string;
 	if((dp=sp) > string && sp[-1]=='$')
 	{
-		int n=stresc(sp+1);
+		ptrdiff_t n=stresc(sp+1);
 		/* copy all but trailing ' */
 		while(--n>0)
 			*dp++ = *++sp;

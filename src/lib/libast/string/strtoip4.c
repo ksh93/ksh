@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -62,7 +63,7 @@ strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
 	{
 		n = 0;
 		while ((c = *s++) >= '0' && c <= '9')
-			n = n * 10 + (c - '0');
+			n = n * 10 + ((unsigned)c - '0');
 		if ((c == 'x' || c == 'X') && !part)
 		{
 			addr = n;
@@ -76,7 +77,7 @@ strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
 					c -= 'F' - 10;
 				else
 					break;
-				addr = addr * 16 + c;
+				addr = addr * 16 + (unsigned)c;
 			}
 			part = 4;
 			break;
@@ -101,7 +102,7 @@ strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
 			{
 				n = 0;
 				while ((c = *s++) >= '0' && c <= '9')
-					n = n * 10 + (c - '0');
+					n = n * 10 + ((unsigned)c - '0');
 				z = (z << 8) | n;
 				part++;
 				if (c != '.')
@@ -111,7 +112,7 @@ strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
 			if (part > 4)
 				goto done;
 			if (z <= 32 && (!old || part < 2))
-				bits = z;
+				bits = (unsigned char)z;
 			else if (z)
 			{
 				if (part == 4 && (z & 0x8000001) == 1)

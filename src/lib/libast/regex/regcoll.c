@@ -38,19 +38,19 @@
 int
 regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
 {
-	int			c;
+	char			c;
+	char			term;
 	char*			b;
 	char*			x;
 	const char*		t;
-	int			r;
-	int			term;
+	ptrdiff_t		r;
 	wchar_t			w;
 
 	if (size < 2 || (term = *s) != '.' && term != '=' || !*++s || *s == term && *(s + 1) == ']')
 		goto nope;
 	t = s;
 	w = mbchar(s);
-	if ((r = (s - t)) > 1)
+	if ((r = s - t) > 1)
 	{
 		if (*s++ != term || *s++ != ']')
 			goto oops;
@@ -90,9 +90,9 @@ regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
 	if(!ast.locale.transform)
 		goto nope;
 	{
-		char	tmp[256];
-		int	i;
-		for (i = 0; i < r && i < sizeof(tmp) - 1; i++)
+		char		tmp[256];
+		ssize_t		i;
+		for (i = 0; i < r && i < (ssize_t)sizeof(tmp) - 1; i++)
 			tmp[i] = '0';
 		tmp[i] = 0;
 		if (ast.locale.transform(NULL, buf, 0) >= ast.locale.transform(NULL, tmp, 0))
@@ -100,17 +100,17 @@ regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
 	}
 	t = (const char*)buf;
  done:
-	if (r <= size && (char*)t != buf)
+	if (r <= (ssize_t)size && (char*)t != buf)
 	{
-		memcpy(buf, t, r);
-		if (r < size)
+		memcpy(buf, t, (size_t)r);
+		if (r < (ssize_t)size)
 			buf[r] = 0;
 	}
 	if (wc)
 		*wc = w;
 	if (e)
 		*e = (char*)s;
-	return r;
+	return (int)r;
  oops:
  	s--;
  nope:

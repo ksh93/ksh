@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -36,9 +37,9 @@ strvcmp(const char* a, const char* b)
 		{
 			na = nb = 0;
 			while (isdigit(*a))
-				na = na * 10 + *a++ - '0';
+				na = na * 10 + (unsigned)*a++ - '0';
 			while (isdigit(*b))
-				nb = nb * 10 + *b++ - '0';
+				nb = nb * 10 + (unsigned)*b++ - '0';
 			if (na < nb)
 				return -1;
 			if (na > nb)
