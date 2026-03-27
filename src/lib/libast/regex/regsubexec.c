@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -29,10 +29,10 @@
 	{ \
 		if (((b)->re_end - (b)->re_cur) < (n)) \
 		{ \
-			size_t	o = (b)->re_cur - (b)->re_buf; \
-			size_t	a = ((b)->re_end - (b)->re_buf); \
-			if (a < n) \
-				a = roundof(n, 128); \
+			size_t	o = ((size_t)((b)->re_cur - (b)->re_buf)); \
+			size_t	a = ((size_t)((b)->re_end - (b)->re_buf)); \
+			if (a < (size_t)(n)) \
+				a = (size_t)roundof(n, 128); \
 			a *= 2; \
 			if (!((b)->re_buf = alloc(p->env->disc, (b)->re_buf, a))) \
 			{ \
@@ -56,7 +56,7 @@
 	do if (z) \
 	{ \
 		NEED(p, b, z, r); \
-		memcpy((b)->re_cur, x, z); \
+		memcpy((b)->re_cur, x, (size_t)(z)); \
 		(b)->re_cur += (z); \
 	} while (0)
 
@@ -78,12 +78,12 @@ sub(const regex_t* p, regsub_t* b, const char* ss, regsubop_t* op, size_t nmatch
 		case -1:
 			break;
 		case 0:
-			if (op->off >= nmatch)
+			if ((size_t)op->off >= nmatch)
 				return REG_ESUBREG;
-			if ((c = match[op->off].rm_so) < 0)
+			if ((c = (int)match[op->off].rm_so) < 0)
 				continue;
 			s = (char*)ss + c;
-			if ((c = match[op->off].rm_eo) < 0)
+			if ((c = (int)match[op->off].rm_eo) < 0)
 				continue;
 			e = (char*)ss + c;
 			NEED(p, b, e - s, return c);
@@ -95,7 +95,7 @@ sub(const regex_t* p, regsub_t* b, const char* ss, regsubop_t* op, size_t nmatch
 					c = *s++;
 					if (islower(c))
 						c = toupper(c);
-					*b->re_cur++ = c;
+					*b->re_cur++ = (char)c;
 				}
 				break;
 			case REG_SUB_LOWER:
@@ -104,7 +104,7 @@ sub(const regex_t* p, regsub_t* b, const char* ss, regsubop_t* op, size_t nmatch
 					c = *s++;
 					if (isupper(c))
 						c = tolower(c);
-					*b->re_cur++ = c;
+					*b->re_cur++ = (char)c;
 				}
 				break;
 			case REG_SUB_UPPER|REG_SUB_LOWER:
@@ -115,7 +115,7 @@ sub(const regex_t* p, regsub_t* b, const char* ss, regsubop_t* op, size_t nmatch
 						c = tolower(c);
 					else if (islower(c))
 						c = toupper(c);
-					*b->re_cur++ = c;
+					*b->re_cur++ = (char)c;
 				}
 				break;
 			default:
@@ -147,7 +147,7 @@ regsubexec(const regex_t* p, const char* s, size_t nmatch, regmatch_t* match)
 	int		c;
 	regsub_t*	b;
 	const char*	e;
-	int		m;
+	ssize_t		m;
 
 	if (!p->env->sub || (p->env->flags & REG_NOSUB) || !nmatch)
 		return fatal(p->env->disc, REG_BADPAT, NULL);
@@ -169,7 +169,7 @@ regsubexec(const regex_t* p, const char* s, size_t nmatch, regmatch_t* match)
 		s += match->rm_eo;
 		if (m <= 0 && !(b->re_flags & REG_SUB_ALL) || !*s)
 			break;
-		if (c = regnexec(p, s, e - s, nmatch, match, p->env->flags|(match->rm_so == match->rm_eo ? REG_ADVANCE : 0)))
+		if (c = regnexec(p, s, (size_t)(e - s), nmatch, match, p->env->flags|(match->rm_so == match->rm_eo ? REG_ADVANCE : 0)))
 		{
 			if (c != REG_NOMATCH)
 				return fatal(p->env->disc, c, NULL);
@@ -184,11 +184,11 @@ regsubexec(const regex_t* p, const char* s, size_t nmatch, regmatch_t* match)
 	while (s < e)
 	{
 		c = *s++;
-		PUTC(p, b, c, return fatal(p->env->disc, c, NULL));
+		PUTC(p, b, (char)c, return fatal(p->env->disc, c, NULL));
 	}
 	NEED(p, b, 1, return fatal(p->env->disc, c, NULL));
 	*b->re_cur = 0;
-	b->re_len = b->re_cur - b->re_buf;
+	b->re_len = (size_t)(b->re_cur - b->re_buf);
 	return 0;
 }
 
@@ -205,7 +205,7 @@ regsubexec(const regex_t* p, const char* s, size_t nmatch, oldregmatch_t* oldmat
 	if (oldmatch)
 	{
 		regmatch_t*	match;
-		ssize_t		i;
+		size_t		i;
 		int		r;
 
 		if (!(match = oldof(0, regmatch_t, nmatch, 0)))
@@ -218,8 +218,8 @@ regsubexec(const regex_t* p, const char* s, size_t nmatch, oldregmatch_t* oldmat
 		if (!(r = regsubexec_20120528(p, s, nmatch, match)))
 			for (i = 0; i < nmatch; i++)
 			{
-				oldmatch[i].rm_so = match[i].rm_so;
-				oldmatch[i].rm_eo = match[i].rm_eo;
+				oldmatch[i].rm_so = (int)match[i].rm_so;
+				oldmatch[i].rm_eo = (int)match[i].rm_eo;
 			}
 		free(match);
 		return r;

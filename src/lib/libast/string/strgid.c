@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -75,28 +75,28 @@ strgid(const char* name)
 	else if (ip = (Id_t*)dtmatch(dict, name))
 		return ip->id;
 	if (gr = getgrnam(name))
-		id = gr->gr_gid;
+		id = (int)gr->gr_gid;
 	else if (pw = getpwnam(name))
-		id = pw->pw_gid;
+		id = (int)pw->pw_gid;
 	else
 	{
-		id = strtol(name, &e, 0);
+		id = (int)strtol(name, &e, 0);
 #if _WINIX
 		if (!*e)
 		{
-			if (!getgrgid(id))
+			if (!getgrgid((gid_t)id))
 				id = -1;
 		}
 		else if (!streq(name, "sys"))
 			id = -1;
 		else if (gr = getgrnam("Administrators"))
-			id = gr->gr_gid;
+			id = (int)gr->gr_gid;
 		else if (pw = getpwnam("Administrator"))
-			id = pw->pw_gid;
+			id = (int)pw->pw_gid;
 		else
 			id = -1;
 #else
-		if (*e || !getgrgid(id))
+		if (*e || !getgrgid((gid_t)id))
 			id = -1;
 #endif
 	}

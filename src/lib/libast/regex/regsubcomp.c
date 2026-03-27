@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -71,7 +71,7 @@ regsubflags(regex_t* p, const char* s, char** e, int delim, const regflags_t* ma
 		else
 		{
 			for (m = map; *m; m++)
-				if (*m++ == c)
+				if ((signed)*m++ == c)
 				{
 					if (flags & *m)
 					{
@@ -115,8 +115,8 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 	int		sre;
 	int		f;
 	int		g;
-	int		n;
-	int		nops;
+	ptrdiff_t	n;
+	size_t		nops;
 	const char*	o;
 	regdisc_t*	disc;
 
@@ -179,11 +179,12 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 		}
 		if (*s)
 		{
-			if (n = regsubflags(p, s, &e, d, map, &minmatch, &flags))
-				return n;
+			int ret;
+			if (ret = regsubflags(p, s, &e, d, map, &minmatch, &flags))
+				return ret;
 			s = (const char*)e;
 		}
-		p->re_npat = s - o;
+		p->re_npat = (size_t)(s - o);
 		s = r;
 	}
 	else
@@ -195,7 +196,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 	again:
 		if (!c)
 		{
-			p->re_npat = s - o - 1;
+			p->re_npat = (size_t)(s - o - 1);
 			break;
 		}
 		else if (c == '\\')
@@ -214,7 +215,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 			}
 			if (c == '&')
 			{
-				*t++ = c;
+				*t++ = (char)c;
 				continue;
 			}
 		}
@@ -222,7 +223,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 		{
 			if (sre)
 			{
-				*t++ = c;
+				*t++ = (char)c;
 				continue;
 			}
 		}
@@ -245,7 +246,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 					c = toupper(c);
 				break;
 			}
-			*t++ = c;
+			*t++ = (char)c;
 			continue;
 		}
 		switch (c)
@@ -268,7 +269,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 				s++;
 				if (isupper(c))
 					c = tolower(c);
-				*t++ = c;
+				*t++ = (char)c;
 			}
 			continue;
 		case 'u':
@@ -277,13 +278,13 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 				s++;
 				if (islower(c))
 					c = toupper(c);
-				*t++ = c;
+				*t++ = (char)c;
 			}
 			continue;
 		case 'E':
 			f = g;
 		set:
-			if ((op->len = (t - sub->re_rhs) - op->off) && (n = ++op - sub->re_ops) >= nops)
+			if ((op->len = (t - sub->re_rhs) - op->off) && (n = ++op - sub->re_ops) >= (ssize_t)nops)
 			{
 				if (!(sub->re_ops = (regsubop_t*)alloc(p->env->disc, sub->re_ops, (nops *= 2) * sizeof(regsubop_t))))
 				{
@@ -306,7 +307,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 		default:
 			if (!sre)
 			{
-				*t++ = chresc(s - 2, &e);
+				*t++ = (char)chresc(s - 2, &e);
 				s = (const char*)e;
 				continue;
 			}
@@ -314,12 +315,12 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 			c = -1;
 			break;
 		}
-		if (c > p->re_nsub)
+		if (c > (ssize_t)p->re_nsub)
 		{
 			regfree(p);
 			return fatal(disc, REG_ESUBREG, s - 1);
 		}
-		if ((n = op - sub->re_ops) >= (nops - 2))
+		if ((n = op - sub->re_ops) >= ((ssize_t)nops - 2))
 		{
 			if (!(sub->re_ops = (regsubop_t*)alloc(p->env->disc, sub->re_ops, (nops *= 2) * sizeof(regsubop_t))))
 			{
@@ -337,7 +338,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 		op->op = f;
 		op->off = t - sub->re_rhs;
 	}
-	if ((op->len = (t - sub->re_rhs) - op->off) && (n = ++op - sub->re_ops) >= nops)
+	if ((op->len = (t - sub->re_rhs) - op->off) && (n = ++op - sub->re_ops) >= (ssize_t)nops)
 	{
 		if (!(sub->re_ops = (regsubop_t*)alloc(p->env->disc, sub->re_ops, (nops *= 2) * sizeof(regsubop_t))))
 		{

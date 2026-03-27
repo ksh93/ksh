@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -603,7 +603,7 @@ static const unsigned char tab[] =
 };
 
 #define MAP	256
-#define MAPS	(sizeof(tab)/MAP)
+#define MAPS	((int)sizeof(tab)/MAP)
 
 struct Map_s; typedef struct Map_s Map_t;
 
@@ -666,7 +666,7 @@ _ccmap(int i, int o)
 	z = (unsigned char*)tab + MAP * (2 * (i - 1) + 1);
 	m = map->map;
 	for (n = 0; n < MAP; n++)
-		m[n] = n;
+		m[n] = (unsigned char)n;
 	for (n = MAP - 1; n >= 0; n--)
 		m[n] = a[z[n]];
 	map->next = maps;

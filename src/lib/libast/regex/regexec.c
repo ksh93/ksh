@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,10 +35,10 @@ regexec_20120528(const regex_t* p, const char* s, size_t nmatch, regmatch_t* mat
 	if (flags & REG_STARTEND)
 	{
 		int		r;
-		int		m = match->rm_so;
+		regoff_t	m = match->rm_so;
 		regmatch_t*	e;
 
-		if (!(r = regnexec(p, s + m, match->rm_eo - m, nmatch, match, flags)) && m > 0)
+		if (!(r = regnexec(p, s + m, (size_t)(match->rm_eo - m), nmatch, match, flags)) && m > 0)
 			for (e = match + nmatch; match < e; match++)
 				if (match->rm_so >= 0)
 				{
@@ -71,8 +71,8 @@ regexec(const regex_t* p, const char* s, size_t nmatch, oldregmatch_t* oldmatch,
 		if (!(r = regexec_20120528(p, s, nmatch, match, flags)))
 			for (i = 0; i < nmatch; i++)
 			{
-				oldmatch[i].rm_so = match[i].rm_so;
-				oldmatch[i].rm_eo = match[i].rm_eo;
+				oldmatch[i].rm_so = (int)match[i].rm_so;
+				oldmatch[i].rm_eo = (int)match[i].rm_eo;
 			}
 		free(match);
 		return r;

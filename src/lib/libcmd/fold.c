@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -188,7 +188,12 @@ b_fold(int argc, char** argv, Shbltin_t* context)
 			cols['\t'] = cols[' '];
 			continue;
 		case 'c':
-			contsize = stresc(cont = strdup(opt_info.arg));
+			if(!(cont = strdup(opt_info.arg)))
+			{
+				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+				UNREACHABLE();
+			}
+			contsize = (size_t)stresc(cont);
 			continue;
 		case 'd':
 			if (n = *opt_info.arg)

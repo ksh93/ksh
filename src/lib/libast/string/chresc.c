@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -44,7 +45,7 @@ utf32towc(uint32_t utf32)
 
 	/* in ASCII range: no conversion needed (we only support supersets of ASCII) */
 	if (utf32 <= 0x7F)
-		return utf32;
+		return (int)utf32;
 	/* in ASCII-only locales, only ASCII (0 - 0x7F) is valid */
 	if (!mbwide() && (ast.locale.set & AST_LC_7bit))
 		return -1;
@@ -53,7 +54,7 @@ utf32towc(uint32_t utf32)
 		return -1;
 	/* in UTF-8 locale: no conversion needed */
 	if (ast.locale.set & AST_LC_utf8)
-		return utf32;
+		return (int)utf32;
 	/* open an iconv descriptor for converting from UTF-8 to the current locale --
 	 * remember it across invocations; setlocale will close/reset it upon changing locale */
 	if (ast.locale.uc2wc == (void*)(-1) && (ast.locale.uc2wc = iconv_open(getcodeset(), "UTF-8")) == (void*)(-1))
@@ -65,11 +66,11 @@ utf32towc(uint32_t utf32)
 	inbuf = tmp_in;
 	outbuf = tmp_out;
 	outbytesleft = sizeof(tmp_out);
-	if (iconv(ast.locale.uc2wc, &inbuf, &inbytesleft, &outbuf, &outbytesleft) < 0 || inbytesleft)
+	if (iconv(ast.locale.uc2wc, &inbuf, &inbytesleft, &outbuf, &outbytesleft) == (size_t)-1 || inbytesleft)
 		return -1;
 	if (!mbwide())
 		return *(unsigned char*)tmp_out;
-	if (mb2wc(wchar, tmp_out, outbuf - tmp_out) <= 0)
+	if (mb2wc(wchar, tmp_out, (size_t)(outbuf - tmp_out)) <= 0)
 		return -1;
 	return wchar;
 }
@@ -246,7 +247,7 @@ chrexp(const char* s, char** p, int* m, int flags)
 					w = 1;
 				if (n <= 2 && !(flags & FMT_EXP_CHAR) ||
 					n > 2 && !(flags & FMT_EXP_WIDE) ||
-					convert && (c = utf32towc(c)) <= 0)
+					convert && (c = utf32towc((uint32_t)c)) <= 0)
 				{
 					s = b;
 					goto noexpand;

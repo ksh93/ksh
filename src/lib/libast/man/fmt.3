@@ -49,14 +49,14 @@ char*      fmtdev(struct stat* \fIst\fP);
 char*      fmtelapsed(unsigned long \fIcount\fP, unsigned long \fIpersec\fP)
 char*      fmtesc(const char* \fIstring\fP);
 char*      fmtfs(struct stat* \fIst\fP);
-char*      fmtgid(int \fIgid\fP);
+char*      fmtgid(gid_t \fIgid\fP);
 char*      fmtmatch(const char* \fIre\fP);
 char*      fmtmode(mode_t \fImode\fP, int \fIexternal\fP);
 char*      fmtperm(mode_t \fIperm\fP);
 char*      fmtre(const char* \fIpattern\fP);
 char*      fmtsignal(int \fIsig\fP);
 char*      fmttime(const char* \fIformat\fP, time_t \fItm\fP);
-char*      fmtuid(int \fIuid\fP);
+char*      fmtuid(uid_t \fIuid\fP);
 .EE
 .SH DESCRIPTION
 These routines return a pointer to a formatted string for various numeric

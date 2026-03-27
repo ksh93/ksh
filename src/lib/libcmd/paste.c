@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -79,10 +79,10 @@ typedef struct Delim_s
  * to <out>
  */
 
-static int paste(int nstream,Sfio_t* streams[],Sfio_t *out, const char *delim, int dsiz, int dlen, Delim_t* mp)
+static int paste(ssize_t nstream,Sfio_t* streams[],Sfio_t *out, const char *delim, ssize_t dsiz, ssize_t dlen, Delim_t* mp)
 {
 	const char *cp;
-	int d, n, i, z, more=1;
+	ssize_t d, n, i, z, more=1;
 	Sfio_t *fp;
 	do
 	{
@@ -98,11 +98,11 @@ static int paste(int nstream,Sfio_t* streams[],Sfio_t *out, const char *delim, i
 					else if(!more) /* first stream with output */
 					{
 						if(dsiz == 1)
-							sfnputc(out, *delim, n);
+							sfnputc(out, *delim, (size_t)n);
 						else if(dlen>0)
 						{
 							for(d=n; d>dlen; d-=dlen)
-								sfwrite(out,delim,dsiz);
+								sfwrite(out,delim,(size_t)dsiz);
 							if(d)
 							{
 								if(mp)
@@ -110,12 +110,12 @@ static int paste(int nstream,Sfio_t* streams[],Sfio_t *out, const char *delim, i
 										z += mp[i].len;
 								else
 									z = d;
-								sfwrite(out,delim,z);
+								sfwrite(out,delim,(size_t)z);
 							}
 						}
 						more = n+1;
 					}
-					if(sfwrite(out,cp,sfvalue(fp)-((n+1)<nstream)) < 0)
+					if(sfwrite(out,cp,(size_t)(sfvalue(fp)-((n+1)<nstream))) < 0)
 						return -1;
 				}
 				else
@@ -142,11 +142,11 @@ static int paste(int nstream,Sfio_t* streams[],Sfio_t *out, const char *delim, i
 /*
  * Handles paste -s, for file <in> to file <out> using delimiters <delim>
  */
-static int spaste(Sfio_t *in,Sfio_t* out,const char *delim,int dlen,Delim_t* mp)
+static int spaste(Sfio_t *in,Sfio_t* out,const char *delim,ssize_t dlen,Delim_t* mp)
 {
 	const char *cp;
-	int d=0;
-	if((cp = sfgetr(in,'\n',0)) && sfwrite(out,cp,sfvalue(in)-1) < 0)
+	ssize_t d=0;
+	if((cp = sfgetr(in,'\n',0)) && sfwrite(out,cp,(size_t)sfvalue(in)-1) < 0)
 		return -1;
 	while(cp=sfgetr(in, '\n',0))
 	{
@@ -161,7 +161,7 @@ static int spaste(Sfio_t *in,Sfio_t* out,const char *delim,int dlen,Delim_t* mp)
 				sfputc(out,c);
 			d++;
 		}
-		if(sfwrite(out,cp,sfvalue(in)-1) < 0)
+		if(sfwrite(out,cp,(size_t)sfvalue(in)-1) < 0)
 			return -1;
 	}
 	sfputc(out,'\n');
@@ -176,7 +176,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 	char 		*cp, *delim;
 	char		*ep;
 	Delim_t		*mp;
-	int		dlen, dsiz;
+	ssize_t		dlen, dsiz;
 	char		defdelim[2];
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
@@ -217,7 +217,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();
 	}
-	dlen = dsiz = stresc(delim);
+	dlen = dsiz = (ssize_t)stresc(delim);
 	mp = 0;
 	if (mbwide())
 	{
@@ -231,7 +231,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 		}
 		if(dlen < dsiz)
 		{
-			if (!(mp = newof(0, Delim_t, dlen, 0)))
+			if (!(mp = newof(0, Delim_t, (size_t)dlen, 0)))
 			{
 				free(delim);
 				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
@@ -243,7 +243,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 			{
 				mp[dlen].chr = cp;
 				mbchar(cp);
-				mp[dlen].len = cp - mp[dlen].chr;
+				mp[dlen].len = (size_t)(cp - mp[dlen].chr);
 				dlen++;
 			}
 		}
@@ -257,7 +257,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 		n = 1;
 	if(!sflag)
 	{
-		if (!(streams = stkalloc(stkstd,n*sizeof(Sfio_t*))))
+		if (!(streams = stkalloc(stkstd,(size_t)n*sizeof(Sfio_t*))))
 		{
 			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
