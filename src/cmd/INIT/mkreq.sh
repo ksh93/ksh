@@ -28,7 +28,7 @@ esac
 set -o noglob -o nounset
 : $INSTALLROOT	# error out early
 CCn='
-' # literal newline
+' # one newline
 
 # Get colon-separated compiler and linker invocations from arguments.
 # Like this whole build system, we assume arguments do not contain

@@ -26,7 +26,7 @@ make install virtual
 	bind -lsum
 	make cmd.req
 		makp %{INSTALLROOT}/bin/mkreq
-		exec - mkreq %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} : %{LDFLAGS} : cmd fsg md util ast
+		exec - mkreq %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} : %{LDFLAGS} : cmd fsg md ast
 	done
 
 	note *
