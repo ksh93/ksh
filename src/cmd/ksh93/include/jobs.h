@@ -17,7 +17,8 @@
 *               Vincent Mihalkovic <vmihalko@redhat.com>               *
 *                                                                      *
 ***********************************************************************/
-#ifndef JOB_NFLAG
+#ifndef _JOBS_H
+#define _JOBS_H
 /*
  *	Interface to job control for shell
  *	written by David Korn
@@ -150,4 +151,4 @@ extern int	job_switch(struct process*,int);
 extern void	job_fork(pid_t);
 extern int	job_reap(int);
 
-#endif /* !JOB_NFLAG */
+#endif /* !_JOBS_H */

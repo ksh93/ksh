@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef _io_h_defined
-#define _io_h_defined	1
+#ifndef _IO_H
+#define _IO_H
 
 #include	<ast.h>
 #include	<sfio.h>
@@ -49,9 +49,9 @@
 #define IOPICKFD	0x10000 /* file descriptor number was selected automatically */
 #define IOHERESTRING	0x20000 /* allow here documents to be string streams */
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
     struct ionod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* if O_SEARCH/O_PATH is unreliable for fchdir, it's not worth using */
 #if !_fchdir_osearch_compat
@@ -125,4 +125,4 @@ extern const char	e_stdprompt[];
 extern const char	e_supprompt[];
 extern const char	e_ambiguous[];
 
-#endif /* _io_h_defined */
+#endif /* _IO_H */

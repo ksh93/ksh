@@ -624,18 +624,10 @@ do	for cmd in kill $(whence -p kill)
 	done
 done
 
-# ======
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
-
-wait "$parallel_1"
-r=$(< parallel_1.err) || exit 125
-eval "$r"
-
+wait "$parallel_1"; r=$(< parallel_1.err) || exit 125; eval "$r"
 wait "$parallel_2" || err_exit "'trap - INT' causing trap to not be ignored"
+wait "$parallel_3"; r=$(< parallel_3.err) || exit 125; eval "$r"
 
-wait "$parallel_3"
-r=$(< parallel_3.err) || exit 125
-eval "$r"
-
-# ======
 exit $((Errors<125?Errors:125))

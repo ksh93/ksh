@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -17,8 +17,8 @@
 *                                                                      *
 ***********************************************************************/
 
-#ifndef _terminal_
-#define _terminal_	1
+#ifndef _TERMINAL_H
+#define _TERMINAL_H
 
 /*
  * terminal interface
@@ -40,4 +40,4 @@ extern int	sh_tcsetattr(int,int,struct termios*);
 #define tcgetattr(a,b)		sh_tcgetattr(a,b)
 #define tcsetattr(a,b,c)	sh_tcsetattr(a,b,c)
 
-#endif /* _terminal_ */
+#endif /* !_TERMINAL_H */

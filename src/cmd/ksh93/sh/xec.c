@@ -1696,8 +1696,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					siglongjmp(*sh.jmplist,jmpval);
 				sh_done(0);
 			}
-			else
-				sh_subshell(t->par.partre,flags,0);
+			sh_subshell(t->par.partre,flags,0);
 			break;
 
 		    /*
@@ -1819,7 +1818,6 @@ int sh_exec(const Shnode_t *t, int flags)
 		     * List of semicolon-separated commands
 		     */
 		    case TLST:
-		    {
 			do
 			{
 				sh_exec(t->lst.lstlef,errorflg|(flags & ARG_OPTIMIZE));
@@ -1828,7 +1826,6 @@ int sh_exec(const Shnode_t *t, int flags)
 			while(t->tre.tretyp == TLST);
 			sh_exec(t,flags);
 			break;
-		    }
 
 		    /*
 		     * Logical and: command && command

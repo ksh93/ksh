@@ -155,7 +155,6 @@
 
 #define SFCLRBITS(f)	(SFMVUNSET(f), ((f)->bits &= ~SFIO_TMPBITS) )
 
-
 /* bits for the mode field, SFIO_INIT defined in sfio_t.h */
 #define SFIO_RC		00000010	/* peeking for a record			*/
 #define SFIO_RV		00000020	/* reserve without read	or most write	*/
@@ -514,7 +513,6 @@ typedef struct _sfextern_s
 #define SFFROZEN(f)	(((f)->mode&(SFIO_PUSH|SFIO_LOCK|SFIO_PEEK)) ? 1 : \
 			 !((f)->mode&SFIO_STDIO) ? 0 : \
 			 _Sfstdsync ? (*_Sfstdsync)(f) : (((f)->mode &= (uint32_t)~SFIO_STDIO),0) )
-
 
 /* set discipline code */
 #define SFDISC(f,dc,iof) \

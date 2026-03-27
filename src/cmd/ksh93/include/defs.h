@@ -24,8 +24,8 @@
  * Shell interface private definitions
  *
  */
-#ifndef defs_h_defined
-#define defs_h_defined
+#ifndef _DEFS_H
+#define _DEFS_H
 
 /* In case multibyte support was disabled for ksh only (SHOPT_MULTIBYTE==0) and not for libast */
 #if !SHOPT_MULTIBYTE && !AST_NOMULTIBYTE
@@ -235,4 +235,4 @@ extern const char	e_scriptonly[];
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */
 
-#endif /* !defs_h_defined */
+#endif /* !_DEFS_H */

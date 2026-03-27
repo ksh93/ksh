@@ -149,7 +149,6 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 			}
 #endif /* _sffmt_small */
 
-
 	SFCVINIT();	/* initialize conversion tables */
 
 	if(!f || !form)

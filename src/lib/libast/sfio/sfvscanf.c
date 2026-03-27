@@ -267,7 +267,6 @@ no_match: /* this unget is lossy on a stream with small buffer */
 }
 #endif /*_has_multibyte*/
 
-
 int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 	     const char*	form,		/* scanning format */
 	     va_list		args)
@@ -313,7 +312,6 @@ int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 #define SFgetc(f,c)	((c) = (d < endd || (SFend(f), SFbuf(f), d < endd)) ? \
 				(int)(*d++) : -1 )
 #define SFungetc(f,c)	(d -= 1)
-
 
 	SFCVINIT();	/* initialize conversion tables */
 

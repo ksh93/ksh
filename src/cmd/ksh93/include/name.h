@@ -16,8 +16,8 @@
 *         hyenias <58673227+hyenias@users.noreply.github.com>          *
 *                                                                      *
 ***********************************************************************/
-#ifndef name_h_defined
-#define name_h_defined
+#ifndef _NAME_H
+#define _NAME_H
 /*
  * This is the implementation header file for name-value pairs
  */
@@ -50,7 +50,6 @@
 #define ARRAY_LOOKUP	1
 #define ARRAY_DELETE	2
 
-
 struct Namref
 {
 	Namval_t	*np;
@@ -80,9 +79,9 @@ struct Ufunction
 	Namval_t	*np;		/* function node pointer */
 };
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
     struct argnod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* attributes of Namval_t items */
 
@@ -237,4 +236,5 @@ extern const char	e_typecompat[];
 extern const char	e_globalref[];
 extern const char	e_tolower[];
 extern const char	e_toupper[];
-#endif /* name_h_defined */
+
+#endif /* !_NAME_H */

@@ -15,7 +15,9 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#ifndef TEST_ARITH
+#ifndef _TEST_H
+#define _TEST_H
+
 /*
  *	UNIX shell
  *	David Korn
@@ -65,4 +67,4 @@ extern const char	e_badop[];
 extern const char	e_tstbegin[];
 extern const char	e_tstend[];
 
-#endif /* TEST_ARITH */
+#endif /* !_TEST_H */

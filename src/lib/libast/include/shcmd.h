@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,10 +32,10 @@
 
 #define SHLIB(m)	unsigned long	plugin_version(void) { return SH_PLUGIN_VERSION; }
 
-#ifndef SH_VERSION
+#ifndef _SHELL_H
 #   define Shell_t	void
 #endif
-#ifndef NV_DEFAULT
+#ifndef _NVAL_H
 #   define Namval_t	void
 #endif
 
@@ -66,7 +66,7 @@ struct Shbltin_s
 	int		invariant;
 };
 
-#if defined(shell_h_defined) || defined(defs_h_defined)
+#if defined(_SHELL_H) || defined(_DEFS_H)
 #   undef Shell_t
 #   undef Namval_t
 #else
@@ -92,4 +92,4 @@ struct Shbltin_s
 
 extern int		astintercept(Shbltin_t*, int);
 
-#endif
+#endif /* !_SHCMD_H */

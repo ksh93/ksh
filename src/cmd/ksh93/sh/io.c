@@ -2471,22 +2471,14 @@ void	sh_menu(Sfio_t *outfile,int argn,char *argv[])
 	}
 	i = 0;
 	for(arg=argv; *arg;arg++)
-	{
 		if ((j = sh_strwidth(*arg)) > i)
 			i = j;
-	}
 	i += (ndigits+LBLSIZ);
 	if(i < wsize)
 		ncol = wsize/i;
-	if(argn > nrow*ncol)
-	{
-		nrow = 1 + (argn-1)/ncol;
-	}
-	else
-	{
+	if(argn <= nrow*ncol)
 		ncol = 1 + (argn-1)/nrow;
-		nrow = 1 + (argn-1)/ncol;
-	}
+	nrow = 1 + (argn-1)/ncol;
 skip:
 	fldsize = (wsize/ncol)-(ndigits+LBLSIZ);
 	for(i=0;i<nrow;i++)

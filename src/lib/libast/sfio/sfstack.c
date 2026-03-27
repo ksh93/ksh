@@ -19,7 +19,6 @@
 ***********************************************************************/
 #include	"sfhdr.h"
 
-
 /*	Push/pop streams
 **
 **	Written by Kiem-Phong Vo.

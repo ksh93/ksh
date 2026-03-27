@@ -1050,16 +1050,6 @@ done
 unset testcode
 
 # ======
-# checks for tests run in parallel (see near the top)
-wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"
-wait "$parallel_2" || err_exit 'ALRM signal not working'
-wait "$parallel_3" || err_exit 'ignored traps not being ignored'
-wait "$parallel_4" || err_exit 'output from pipe is lost with pipe to builtin'
-wait "$parallel_5" || err_exit 'command substitution causes pipefail option to hang'
-wait "$parallel_6" || err_exit '"command | while read...done" finishing too fast'
-wait "$parallel_7" || err_exit 'early termination not causing broken pipe'
-
-# ======
 # Hijacking ksh93 via $SHELL for arbitrary command execution during initialization.
 # https://github.com/ksh93/ksh/issues/874
 bindir=$tmp/dir.$RANDOM/bin
@@ -1110,5 +1100,14 @@ then	# $0 should be the /dev/fd script name when the script is a process substit
 	fi
 fi
 
-# ======
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
+# checks for tests run in parallel (see near the top)
+wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"
+wait "$parallel_2" || err_exit 'ALRM signal not working'
+wait "$parallel_3" || err_exit 'ignored traps not being ignored'
+wait "$parallel_4" || err_exit 'output from pipe is lost with pipe to builtin'
+wait "$parallel_5" || err_exit 'command substitution causes pipefail option to hang'
+wait "$parallel_6" || err_exit '"command | while read...done" finishing too fast'
+wait "$parallel_7" || err_exit 'early termination not causing broken pipe'
+
 exit $((Errors<125?Errors:125))

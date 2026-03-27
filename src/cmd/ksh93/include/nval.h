@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -17,7 +17,8 @@
 *                   Chase <nicetrynsa@protonmail.ch>                   *
 *                                                                      *
 ***********************************************************************/
-#ifndef NV_DEFAULT
+#ifndef _NVAL_H
+#define _NVAL_H
 /*
  * David Korn
  * AT&T Labs
@@ -291,4 +292,4 @@ extern const Namdisc_t	*nv_discfun(int);
 #define nv_size(np)		nv_setsize((np),-1)
 #define nv_stack(np,nf)		nv_disc(np,nf,0)
 
-#endif /* NV_DEFAULT */
+#endif /* !_NVAL_H */

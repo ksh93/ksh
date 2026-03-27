@@ -16,8 +16,8 @@
 *                                                                      *
 ***********************************************************************/
 
-#ifndef __builtins_h_defined
-#define __builtins_h_defined
+#ifndef _BUILTINS_H
+#define _BUILTINS_H
 
 #include	<option.h>
 #include	"shtable.h"
@@ -200,4 +200,4 @@ extern const char sh_opttimes[];
 
 extern const char e_dict[];
 
-#endif /* __builtins_h_defined */
+#endif /* _BUILTINS_H */

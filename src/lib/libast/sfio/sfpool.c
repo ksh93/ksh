@@ -65,7 +65,6 @@ static Sfpool_t* newpool(int mode)
 
 	}
 
-
 	p->mode = mode&SFIO_SHARE;
 	p->s_sf = sizeof(p->array)/sizeof(p->array[0]);
 	p->sf = p->array;
@@ -81,7 +80,6 @@ static int _sfphead(Sfpool_t*	p,	/* the pool			*/
 	Sfio_t*		head;
 	ssize_t		k, w, v;
 	int		rv;
-
 
 	if(n == 0)
 		return 0;
@@ -300,10 +298,8 @@ Sfio_t* sfpool(Sfio_t* f, Sfio_t* pf, int mode)
 
 done:
 	if(f)
-	{	SFOPEN(f,0);
-	}
+		SFOPEN(f,0);
 	if(pf)
-	{	SFOPEN(pf,0);
-	}
+		SFOPEN(pf,0);
 	return rv;
 }

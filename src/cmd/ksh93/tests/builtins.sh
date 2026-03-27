@@ -1751,7 +1751,7 @@ got=$(unset IFS; printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "
 exp=$'end: <one\ntwo\nthree>'
 [[ $got == "$exp" ]] || err_exit "issue 926 r10 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# ====== MUST BE AT END ======
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"
 case $? in
@@ -1767,4 +1767,5 @@ case $? in
 15)	err_exit "read -t in pipe not taking long enough" ;;
 *)	err_exit "broken test" ;;
 esac
+
 exit $((Errors<125?Errors:125))

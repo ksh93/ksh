@@ -15,6 +15,9 @@
 *                                                                      *
 ***********************************************************************/
 
+#ifndef _VERSION_H
+#define _VERSION_H
+
 #include <ast_release.h>
 #include "git.h"
 
@@ -45,3 +48,5 @@
  * cause bytecode from newer versions to fail on older versions of ksh.
  */
 #define SHCOMP_HDR_VERSION	5
+
+#endif /* !_VERSION_H */
