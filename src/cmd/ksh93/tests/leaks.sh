@@ -314,6 +314,7 @@ TEST	title='alias in command substitution'
 DO
 	eval 'a=`ls`'
 DONE
+unalias ls
 
 # case3: Function call via autoload
 TEST	title='function call via autoload in command substitution'

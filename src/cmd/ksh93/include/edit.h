@@ -16,7 +16,8 @@
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *                                                                      *
 ***********************************************************************/
-#ifndef SEARCHSIZE
+#ifndef _EDIT_H
+#define _EDIT_H
 /*
  *  edit.h -  common data structure for vi and emacs edit options
  *
@@ -211,4 +212,4 @@ extern void	emacs_redraw(void*);
 extern void	vi_redraw(void*);
 #endif /* SHOPT_VSH */
 
-#endif /* !SEARCHSIZE */
+#endif /* !_EDIT_H */

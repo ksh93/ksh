@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,7 +14,8 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                                                                      *
 ***********************************************************************/
-#ifndef HIST_VERSION
+#ifndef _HIST_H
+#define _HIST_H
 /*
  *	Interface for history mechanism
  *	written by David Korn
@@ -91,4 +92,4 @@ extern char 		*hist_word(char*, int, int);
 
 #endif /* SHOPT_SCRIPTONLY */
 
-#endif /* HIST_VERSION */
+#endif /* !_HIST_H */

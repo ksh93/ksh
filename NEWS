@@ -6,7 +6,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - Fixed a bug in command substitutions, where a command substitution would
   fail to catch standard output after a nested function redirects standard
-  output to /dev/null.
+  output to /dev/null. Bug introduced on 2022-01-11.
 
 2026-03-22:
 

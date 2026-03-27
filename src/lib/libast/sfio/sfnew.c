@@ -35,7 +35,6 @@ Sfio_t* sfnew(Sfio_t*		oldf,	/* old stream to be reused */
 	Sfio_t*		f;
 	unsigned short	sflags;
 
-
 	if(!(flags&SFIO_RDWR))
 		return NULL;
 

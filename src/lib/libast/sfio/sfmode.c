@@ -113,7 +113,6 @@ int _sfsetpool(Sfio_t* f)
 	if(!(p = f->pool) )
 		p = f->pool = &_Sfpool;
 
-
 	rv = -1;
 
 	if(p->n_sf >= p->s_sf)
@@ -296,7 +295,6 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 	int	n;
 	Sfoff_t	addr;
 	int	rv = 0;
-
 
 	if(wanted&SFIO_SYNCED) /* for (SFIO_SYNCED|SFIO_READ) stream, just junk data */
 	{	wanted &= (uint32_t)~SFIO_SYNCED;

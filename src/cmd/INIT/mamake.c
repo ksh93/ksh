@@ -814,7 +814,7 @@ static void view(void)
 	{
 		char	buf[PATH_MAX + 1];
 		if (!getcwd(buf, sizeof buf))
-			error_out("cannot determine PWD", strerror(errno));
+			error_out(strerror(errno), "cannot determine PWD");
 		state.pwd = duplicate(buf);
 		vnode->value = state.pwd;
 	}
@@ -2263,7 +2263,6 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			continue;
 
 		case KEY('d','o','n','e'):
-			r->endline = state.sp->line;
 			if (parentstate)
 			{
 				/* loop block done */
@@ -2274,6 +2273,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			if (!*r->name)
 				error_out("done without make", NULL);
 			/* make block done */
+			r->endline = state.sp->line;
 			if (*t)
 			{	/* target is optional; use it for sanity check if present */
 				q = rule(t);
