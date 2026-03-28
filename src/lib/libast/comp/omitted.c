@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1995-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -357,7 +357,7 @@ convert(const char* d, const char* s)
 {
 	const char*	t;
 	const char*	v;
-	int		i;
+	size_t		i;
 
 	for (i = 0; i < elementsof(convertvars); i++)
 	{

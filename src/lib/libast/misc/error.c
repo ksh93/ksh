@@ -136,7 +136,7 @@ setopt(void* a, const void* p, int n, const char* v)
 					error_state.breakpoint = ERROR_PANIC;
 					break;
 				default:
-					error_state.breakpoint = strtol(v, NULL, 0);
+					error_state.breakpoint = (int)strtol(v, NULL, 0);
 					break;
 				}
 			else
@@ -152,12 +152,12 @@ setopt(void* a, const void* p, int n, const char* v)
 			break;
 		case OPT_COUNT:
 			if (n)
-				error_state.count = strtol(v, NULL, 0);
+				error_state.count = strtoul(v, NULL, 0);
 			else
 				error_state.count = 0;
 			break;
 		case OPT_FD:
-			error_info.fd = n ? strtol(v, NULL, 0) : -1;
+			error_info.fd = n ? (int)strtol(v, NULL, 0) : -1;
 			break;
 		case OPT_LIBRARY:
 			if (n)
@@ -167,7 +167,7 @@ setopt(void* a, const void* p, int n, const char* v)
 			break;
 		case OPT_MASK:
 			if (n)
-				error_info.mask = strtol(v, NULL, 0);
+				error_info.mask = (int)strtol(v, NULL, 0);
 			else
 				error_info.mask = 0;
 			break;
@@ -208,7 +208,7 @@ setopt(void* a, const void* p, int n, const char* v)
 			break;
 		case OPT_TRACE:
 			if (n)
-				error_info.trace = -strtol(v, NULL, 0);
+				error_info.trace = -((int)strtol(v, NULL, 0));
 			else
 				error_info.trace = 0;
 			break;
@@ -277,7 +277,7 @@ context(Sfio_t* sp, Error_context_t* cp)
  * debugging breakpoint
  */
 
-extern void
+static void
 error_break(void)
 {
 	char*	s;
@@ -307,7 +307,7 @@ error(int level, ...)
 void
 errorv(const char* id, int level, va_list ap)
 {
-	int		n;
+	ptrdiff_t	n;
 	int		fd;
 	int		flags;
 	char*		s;
@@ -349,7 +349,7 @@ errorv(const char* id, int level, va_list ap)
 			catalog = 0;
 			library = 0;
 		}
-		else if ((library = strchr(catalog, ':')) && !*++library)
+		else if ((library = (char*)strchr(catalog, ':')) && !*++library)
 			library = 0;
 	}
 	else
@@ -379,8 +379,8 @@ errorv(const char* id, int level, va_list ap)
 	fd = (flags & ERROR_OUTPUT) ? va_arg(ap, int) : error_info.fd;
 	if (error_info.write)
 	{
-		long	off;
-		char*	bas;
+		ptrdiff_t	off;
+		char*		bas;
 
 		bas = stkptr(stkstd, 0);
 		if (off = stktell(stkstd))
@@ -429,7 +429,7 @@ errorv(const char* id, int level, va_list ap)
 		}
 		if (error_info.time)
 		{
-			if ((d = times(&us)) < error_info.time || error_info.time == 1)
+			if ((d = (unsigned long)times(&us)) < error_info.time || error_info.time == 1)
 				error_info.time = d;
 			sfprintf(stkstd, " %05lu.%05lu.%05lu ", d - error_info.time, (unsigned long)us.tms_utime, (unsigned long)us.tms_stime);
 		}
@@ -509,7 +509,7 @@ errorv(const char* id, int level, va_list ap)
 		{
 			n = stktell(stkstd);
 			s = stkptr(stkstd, 0);
-			if (t = memchr(s, '\f', n))
+			if (t = memchr(s, '\f', (size_t)n))
 			{
 				n -= ++t - s;
 				s = t;
@@ -521,11 +521,11 @@ errorv(const char* id, int level, va_list ap)
 			sfsync(sfstderr);
 			if (fd == sffileno(sfstderr) && error_info.write == write)
 			{
-				sfwrite(sfstderr, s, n);
+				sfwrite(sfstderr, s, (size_t)n);
 				sfsync(sfstderr);
 			}
 			else
-				(*error_info.write)(fd, s, n);
+				(*error_info.write)(fd, s, (size_t)n);
 		}
 		else
 		{

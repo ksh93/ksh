@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *              This file is part of the ksh 93u+m package              *
-*             Copyright (c) 2024 Contributors to ksh 93u+m             *
+*          Copyright (c) 2024-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -10,12 +10,13 @@
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
 #include <ast.h>
 
-void noreturn _ast_assertfail(const char *a, const char *fun, const char *file, int line)
+noreturn void _ast_assertfail(const char *a, const char *fun, const char *file, int line)
 {
 #if _has___func__ || _has___FUNCTION__
 	sfprintf(sfstderr,"\n*** assertion %s failed in %s(), %s:%d\n", a, fun, file, line);

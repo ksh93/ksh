@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -52,10 +53,10 @@ ftwalk(const char* path, int (*userf)(Ftw_t*), int flags, int (*comparf)(Ftw_t*,
 	FTSENT*		e;
 	int		children;
 	int		rv;
-	int		oi;
-	int		ns;
-	int		os;
-	int		nd;
+	unsigned short	oi;
+	short		os;
+	size_t		ns;
+	size_t		nd;
 	FTSENT*		x;
 	FTSENT*		dd[2];
 
@@ -142,7 +143,7 @@ ftwalk(const char* path, int (*userf)(Ftw_t*), int flags, int (*comparf)(Ftw_t*,
 		}
 		rv = (*userf)((Ftw_t*)e);
 		e->info = oi;
-		if (e->status == ns)
+		if (e->status == (ssize_t)ns)
 			e->status = os;
 		while (nd > 0)
 			dd[--nd]->info |= FTS_DD;

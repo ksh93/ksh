@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -59,7 +59,7 @@ struct _glob_
 	const char*	gl_suffix;
 	unsigned char*	gl_intr;
 
-	int		gl_delim;
+	char		gl_delim;
 
 	void*		gl_handle;
 	void*		(*gl_diropen)(glob_t*, const char*);
@@ -79,9 +79,9 @@ struct _glob_
 	/* AST additions */
 
 	char*		(*gl_nextdir)(glob_t*, char*);
-	unsigned long	gl_status;
+	int		gl_status;
 	unsigned long	gl_version;
-	unsigned short	gl_extra;
+	size_t		gl_extra;
 
 #ifdef _GLOB_PRIVATE_
 	_GLOB_PRIVATE_
