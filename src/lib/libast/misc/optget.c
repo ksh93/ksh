@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2025-05-02"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-03-28"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -4603,7 +4603,7 @@ optget(char** argv, const char* oopts)
 			{
 				if (c >= 0 && c < (ssize_t)sizeof(map) && map[c] && cache->equiv[map[c]])
 					c = cache->equiv[map[c]];
-				if (k = cache->flags[map[c]])
+				if (c >= 0 && c < sizeof(map) && map[c] && (k = cache->flags[map[c]]))
 				{
 					opt_info.arg = 0;
 

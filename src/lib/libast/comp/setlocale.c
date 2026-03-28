@@ -104,10 +104,7 @@ _ast_strxfrm_workaround(char *s1, const char *s2, size_t n)
 		 * fall back to simply copying the string in that case
 		 */
 		if (!r && n && *s2)
-		{
-			strncpy(s1, s2, n);
-			r = strlen(s2);
-		}
+			r = strlcpy(s1, s2, n);
 		errno = save;
 	}
 	return r;	
