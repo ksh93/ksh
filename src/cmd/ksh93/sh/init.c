@@ -918,8 +918,8 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 			mp->match[index+i++] = -1;
 		if(index==0)
 			v+= mp->first;
-		memcpy(mp->val+mp->vlen,v,(size_t)(vsize-mp->vlen));
-		mp->val[mp->vlen=vsize] = 0;
+		strlcpy(mp->val + mp->vlen, v, (size_t)(vsize - mp->vlen + 1));
+		mp->vlen = vsize;
 		mp->lastsub[0] = mp->lastsub[1] = -1;
 	}
 }
