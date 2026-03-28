@@ -58,7 +58,7 @@
 #undef	ioctl
 #undef	sleep
 
-static int		ttctl(int, int, void*);
+static int		ttctl(int, unsigned long, void*);
 
 void
 astwinsize(int fd, int* rows, int* cols)
@@ -101,8 +101,8 @@ astwinsize(int fd, int* rows, int* cols)
 	{
 		char*		s;
 
-		if (rows) *rows = (s = getenv("LINES")) ? strtol(s, NULL, 0) : 0;
-		if (cols) *cols = (s = getenv("COLUMNS")) ? strtol(s, NULL, 0) : 0;
+		if (rows) *rows = (s = getenv("LINES")) ? (int)strtol(s, NULL, 0) : 0;
+		if (cols) *cols = (s = getenv("COLUMNS")) ? (int)strtol(s, NULL, 0) : 0;
 	}
 }
 
@@ -113,7 +113,7 @@ astwinsize(int fd, int* rows, int* cols)
  */
 
 static int
-ttctl(int fd, int op, void* tt)
+ttctl(int fd, unsigned long op, void* tt)
 {
 	int	v;
 

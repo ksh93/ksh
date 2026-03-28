@@ -81,7 +81,7 @@ int dttreeprint(Dt_t* dt, Dtlink_t* here, int lev, char* (*objprintf)(void*) )
 #endif
 
 /* terminal object: DT_FIRST|DT_LAST */
-void* tfirstlast(Dt_t* dt, int type)
+static void* tfirstlast(Dt_t* dt, int type)
 {
 	Dtlink_t	*t, *root;
 	Dtdisc_t	*disc = dt->disc;

@@ -404,7 +404,7 @@ extern int		strtoip4(const char*, char**, uint32_t*, unsigned char*);
 extern long		strton(const char*, char**, char*, int);
 extern intmax_t		strtonll(const char*, char**, char*, int);
 extern int		struid(const char*);
-extern int		struniq(char**, int);
+extern ptrdiff_t	struniq(char**, ptrdiff_t);
 extern int		strvcmp(const char*, const char*);
 #if !AST_NOMULTIBYTE
 extern size_t		utf32toutf8(char*, uint32_t);

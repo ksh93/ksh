@@ -175,12 +175,12 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 			{
 				if (arg2 != PROC_ARG_NULL)
 				{
-					ast_close(arg2);
-					if (fcntl(arg1, F_DUPFD, arg2) != arg2)
+					ast_close((int)arg2);
+					if (fcntl((int)arg1, F_DUPFD, arg2) != arg2)
 						return -1;
 				}
 				if (op & PROC_FD_CHILD)
-					ast_close(arg1);
+					ast_close((int)arg1);
 			}
 			break;
 		case PROC_fd_ctty:
@@ -190,7 +190,7 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 					ast_close(i);
 			arg2 = -1;
 #ifdef TIOCSCTTY
-			if (ioctl(arg1, TIOCSCTTY, NULL) < 0)
+			if (ioctl((int)arg1, TIOCSCTTY, NULL) < 0)
 				return -1;
 #else
 			if (!(s = ttyname(arg1)))
@@ -199,18 +199,18 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 				return -1;
 #endif /* TIOCSCTTY */
 			for (i = 0; i <= 2; i++)
-				if (arg1 != i && arg2 != i && fcntl(arg1, F_DUPFD, i) != i)
+				if (arg1 != i && (int)arg2 != i && fcntl((int)arg1, F_DUPFD, i) != i)
 					return -1;
 			if (arg1 > 2)
-				ast_close(arg1);
+				ast_close((int)arg1);
 			if (arg2 > 2)
-				ast_close(arg2);
+				ast_close((int)arg2);
 			break;
 		case PROC_sig_dfl:
-			signal(arg1, SIG_DFL);
+			signal((int)arg1, SIG_DFL);
 			break;
 		case PROC_sig_ign:
-			signal(arg1, SIG_IGN);
+			signal((int)arg1, SIG_IGN);
 			break;
 		case PROC_sys_pgrp:
 			if (arg1 < 0)
@@ -219,12 +219,12 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 			{
 				if (arg1 == 1)
 					arg1 = 0;
-				if (setpgid(0, arg1) < 0 && arg1 && errno == EPERM)
+				if (setpgid(0, (int)arg1) < 0 && arg1 && errno == EPERM)
 					setpgid(0, 0);
 			}
 			break;
 		case PROC_sys_umask:
-			umask(arg1);
+			umask((mode_t)arg1);
 			break;
 		default:
 			return -1;
@@ -551,7 +551,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 		{
 			if (!fork())
 			{
-				sfsprintf(path, sizeof(path), "%d", getppid());
+				sfsprintf(path, sizeof(path), "%d", (int)getppid());
 				execlp("trace", "trace", "-p", path, NULL);
 				_exit(EXIT_NOTFOUND);
 			}
@@ -692,7 +692,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			if (!(flags & PROC_ARGMOD))
 			{
 				while (*p++);
-				if (!(v = newof(0, char*, p - argv + 2, 0)))
+				if (!(v = newof(0, char*, (size_t)(p - argv + 2), 0)))
 					goto cleanup;
 				p = v + 2;
 				if (*argv)

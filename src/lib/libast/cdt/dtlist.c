@@ -56,7 +56,7 @@ int dtlistprint(Dt_t* dt, Dtlink_t* here, char* (*objprintf)(void*) )
 #endif
 
 /* terminal objects: DT_FIRST|DT_LAST */
-void* lfirstlast(Dt_t* dt, int type)
+static void* lfirstlast(Dt_t* dt, int type)
 {
 	Dtlink_t	*lnk;
 	Dtdisc_t	*disc = dt->disc;
@@ -72,7 +72,7 @@ void* lfirstlast(Dt_t* dt, int type)
 }
 
 /* DT_CLEAR */
-void* lclear(Dt_t* dt)
+static void* lclear(Dt_t* dt)
 {
 	Dtlink_t	*lnk, *next;
 	Dtdisc_t	*disc = dt->disc;
@@ -93,7 +93,7 @@ void* lclear(Dt_t* dt)
 }
 
 /* DT_FLATTEN|DT_EXTRACT|DT_RESTORE */
-void* llist(Dt_t* dt, Dtlink_t* lnk, int type)
+static void* llist(Dt_t* dt, Dtlink_t* lnk, int type)
 {
 	Dtlist_t	*list = (Dtlist_t*)dt->data;
 

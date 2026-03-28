@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -102,13 +102,13 @@ typedef struct
 	Finddisc_t*	disc;		\
 	Vmalloc_t*	vm;		\
 	char**		dirs;		\
-	int*		lens;		\
+	ssize_t*	lens;		\
 	Sfio_t*		fp;		\
 	Findverify_f	verifyf;	\
 	int		generate;	\
 	int		method;		\
 	int		secure;		\
-	int		types;		\
+	unsigned long	types;		\
 	int		verify;		\
 	Code_t		code;
 
