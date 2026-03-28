@@ -35,14 +35,14 @@ struct list
  * result replaces <string>
  * length of resulting string is returned.
  */
-static int	sh_unquote(char* string)
+static void	sh_unquote(char* string)
 {
 	char *sp=string, *dp;
-	int c;
+	char c;
 	while((c= *sp) && c!='\'')
 		sp++;
 	if(c==0)
-		return sp-string;
+		return;
 	if((dp=sp) > string && sp[-1]=='$')
 	{
 		ptrdiff_t n=stresc(sp+1);
@@ -56,7 +56,7 @@ static int	sh_unquote(char* string)
 			*dp++ = c;
 	}
 	*dp=0;
-	return dp-string;
+	return;
 }
 
 int	wordexp(const char *string, wordexp_t *wdarg, int flags)
@@ -64,7 +64,7 @@ int	wordexp(const char *string, wordexp_t *wdarg, int flags)
 	Sfio_t *iop;
 	char *cp=(char*)string;
 	int c,quoted=0,literal=0,ac=0;
-	int offset;
+	ptrdiff_t offset;
 	char *savebase,**av;
 	if(offset=stktell(stkstd))
 		savebase = stkfreeze(stkstd,0);
@@ -150,8 +150,8 @@ int	wordexp(const char *string, wordexp_t *wdarg, int flags)
 	if(flags&WRDE_DOOFFS)
 		c += wdarg->we_offs;
 	if(flags&WRDE_APPEND)
-		av = (char**)realloc(&wdarg->we_wordv[-1], (wdarg->we_wordc+c)*sizeof(char*));
-	else if(av = (char**)malloc(c*sizeof(char*)))
+		av = (char**)realloc(&wdarg->we_wordv[-1], (wdarg->we_wordc+(size_t)c)*sizeof(char*));
+	else if(av = (char**)malloc((size_t)c*sizeof(char*)))
 	{
 		if(flags&WRDE_DOOFFS)
 			memset(av,0,(wdarg->we_offs+1)*sizeof(char*));
@@ -160,8 +160,8 @@ int	wordexp(const char *string, wordexp_t *wdarg, int flags)
 	}
 	if(!av)
 		return WRDE_NOSPACE;
-	c = stktell(stkstd);
-	if(!(cp = (char*)malloc(sizeof(char*)+c)))
+	c = (int)stktell(stkstd);
+	if(!(cp = (char*)malloc(sizeof(char*)+(size_t)c)))
 	{
 		c=WRDE_NOSPACE;
 		goto err;
@@ -172,10 +172,10 @@ int	wordexp(const char *string, wordexp_t *wdarg, int flags)
 	wdarg->we_wordv = av;
 	if(flags&WRDE_APPEND)
 		av += wdarg->we_wordc;
-	wdarg->we_wordc += ac;
+	wdarg->we_wordc += (size_t)ac;
 	if(flags&WRDE_DOOFFS)
 		av += wdarg->we_offs;
-	memcpy(cp,stkptr(stkstd,offset),c);
+	memcpy(cp,stkptr(stkstd,offset),(size_t)c);
 	while(ac-- > 0)
 	{
 		*av++ = cp;

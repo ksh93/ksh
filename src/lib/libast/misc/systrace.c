@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -29,7 +30,7 @@
 void
 systrace(const char* id)
 {
-	int		n;
+	size_t		n;
 	char*		out;
 	char*		s;
 	char		buf[PATH_MAX];
@@ -54,7 +55,7 @@ systrace(const char* id)
 	av[6] = 0;
 	ov[0] = PROC_FD_DUP(open("/dev/null", O_WRONLY), 2, PROC_FD_PARENT|PROC_FD_CHILD);
 	ov[1] = 0;
-	sfsprintf(out, &buf[sizeof(buf)] - out, ".%d", getpid());
+	sfsprintf(out, (size_t)(&buf[sizeof(buf)] - out), ".%d", (int)getpid());
 	for (n = 0; n < elementsof(trace); n++)
 		if (!procfree(procopen(trace[n], av + 1, NULL, ov, PROC_ARGMOD|PROC_GID|PROC_UID|(n == (elementsof(trace) - 1) ? PROC_CLEANUP : 0))))
 		{

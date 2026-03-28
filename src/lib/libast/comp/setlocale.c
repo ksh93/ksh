@@ -220,7 +220,7 @@ debug_mbtowc(wchar_t* p, const char* s, size_t n)
 		return -1;
 	if ((w = ((unsigned char*)s)[1]) < '0' || w > ('0' + DX))
 		goto single;
-	if ((w -= '0' - DD) > n)
+	if ((w -= '0' - DD) > (ssize_t)n)
 		return -1;
 	r = s + w - 1;
 	q = s += 2;
@@ -255,7 +255,7 @@ debug_wctomb(char* s, wchar_t c)
 	{
 		w++;
 		if (s)
-			*s = c;
+			*s = (char)c;
 	}
 	else if ((i = c & ((1<<DZ)-1)) > DX)
 		return -1;
@@ -267,12 +267,12 @@ debug_wctomb(char* s, wchar_t c)
 		c >>= DZ;
 		w++;
 		if (s)
-			*s++ = i + '0';
+			*s++ = (char)(i + '0');
 		while (i--)
 		{
 			w++;
 			if (s)
-				*s++ = (k = c & ((1<<DC)-1)) ? k : '?';
+				*s++ = (k = c & ((1<<DC)-1)) ? (char)k : '?';
 			c >>= DC;
 		}
 		w++;
@@ -333,7 +333,7 @@ debug_strxfrm(char* t, const char* s, size_t n)
 				{
 					for (q = s + 2; q < r; q++)
 						if (t < e)
-							*t++ = debug_order[*((unsigned char*)q)];
+							*t++ = (char)debug_order[*((unsigned char*)q)];
 					while (w++ < DX)
 						if (t < e)
 							*t++ = 1;
@@ -348,9 +348,9 @@ debug_strxfrm(char* t, const char* s, size_t n)
 			if (t)
 			{
 				if (t < e)
-					*t++ = debug_order[((unsigned char*)s)[0]];
+					*t++ = (char)debug_order[((unsigned char*)s)[0]];
 				if (t < e)
-					*t++ = debug_order[((unsigned char*)s)[1]];
+					*t++ = (char)debug_order[((unsigned char*)s)[1]];
 				if (t < e)
 					*t++ = 1;
 				if (t < e)
@@ -365,11 +365,11 @@ debug_strxfrm(char* t, const char* s, size_t n)
 			if (t)
 			{
 				if (t < e)
-					*t++ = debug_order[((unsigned char*)s)[0]];
+					*t++ = (char)debug_order[((unsigned char*)s)[0]];
 				if (t < e)
-					*t++ = debug_order[((unsigned char*)s)[1]];
+					*t++ = (char)debug_order[((unsigned char*)s)[1]];
 				if (t < e)
-					*t++ = debug_order[((unsigned char*)s)[2]];
+					*t++ = (char)debug_order[((unsigned char*)s)[2]];
 				if (t < e)
 					*t++ = 1;
 			}
@@ -380,7 +380,7 @@ debug_strxfrm(char* t, const char* s, size_t n)
 		if (t)
 		{
 			if (t < e)
-				*t++ = debug_order[((unsigned char*)s)[0]];
+				*t++ = (char)debug_order[((unsigned char*)s)[0]];
 			if (t < e)
 				*t++ = 1;
 			if (t < e)
@@ -395,7 +395,7 @@ debug_strxfrm(char* t, const char* s, size_t n)
 		return z;
 	if (t < e)
 		*t = 0;
-	return t - o;
+	return (size_t)(t - o);
 }
 
 static int
@@ -476,7 +476,7 @@ sjis_mbtowc(wchar_t* p, const char* s, size_t n)
 		*p = *s;
 		return 1;
 	}
-	return mbrtowc(p, s, n, &sjis_state);
+	return (int)mbrtowc(p, s, n, &sjis_state);
 }
 
 #else
@@ -488,7 +488,7 @@ sjis_mbtowc(wchar_t* p, const char* s, size_t n)
 static int
 utf8_wctomb(char* u, wchar_t w)
 {
-	return (int)utf32toutf8(u, w);
+	return (int)utf32toutf8(u, (uint32_t)w);
 }
 
 static const uint32_t		utf8mask[] =
@@ -527,7 +527,7 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 {
 	unsigned char*	sp = (unsigned char*)str;
 	size_t		m;
-	int		i;
+	size_t		i;
 	int		c;
 	wchar_t		w = 0;
 
@@ -552,17 +552,17 @@ utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
 					goto invalid;
 				w = (w<<6) | (c&0x3f);
 			}
-			if (!(utf8mask[m] & w) || w >= 0xd800 && (w <= 0xdfff || w >= 0xfffe && w <= 0xffff))
+			if (!(utf8mask[m] & (uint32_t)w) || w >= 0xd800 && (w <= 0xdfff || w >= 0xfffe && w <= 0xffff))
 				goto invalid;
 			*wp = w;
 		}
-		return m;
+		return (int)m;
 	}
 	if (!*sp)
 		return ast.mb.sync = 0;
  invalid:
 	errno = EILSEQ;
-	ast.mb.sync = (const char*)sp - str;
+	ast.mb.sync = (uint32_t)((const char*)sp - str);
 	return -1;
 }
 
@@ -2456,7 +2456,7 @@ single(int category, Lc_t* lc, unsigned int flags)
 			return NULL;
 		}
 		if ((lc->flags & LC_default) || category == AST_LC_MESSAGES && lc->name[0] == 'e' && lc->name[1] == 'n' && (lc->name[2] == 0 || lc->name[2] == '_' && lc->name[3] == 'U'))
-			ast.locale.set &= ~(1<<category);
+			ast.locale.set &= (uint32_t)~(1<<category);
 		else
 			ast.locale.set |= (1<<category);
 	}
@@ -2518,11 +2518,12 @@ static int
 composite(const char* s, int initialize)
 {
 	const char*	t;
-	int		i;
-	int		j;
-	int		k;
+	int		count;
 	int		n;
-	int		m;
+	size_t		i;
+	size_t		j;
+	size_t		k;
+	size_t		m;
 	const char*	w;
 	Lc_t*		p;
 	int		cat[AST_LC_COUNT];
@@ -2535,18 +2536,18 @@ composite(const char* s, int initialize)
 		n++;
 		j = 0;
 		w = s;
-		for (i = 1; i < AST_LC_COUNT; i++)
+		for (count = 1; count < AST_LC_COUNT; count++)
 		{
 			s = w;
-			t = lc_categories[i].name;
+			t = lc_categories[count].name;
 			while (*t && *s++ == *t++);
 			if (!*t && *s++ == '=')
 			{
-				cat[j++] = i;
+				cat[j++] = count;
 				if (s[0] != 'L' || s[1] != 'C' || s[2] != '_')
 					break;
 				w = s;
-				i = -1;
+				count = -1;
 			}
 		}
 		for (s = w; *s && *s != '='; s++);
@@ -2566,7 +2567,7 @@ composite(const char* s, int initialize)
 			}
 			else if (*s++ == ';')
 			{
-				if ((m = s - w - 1) >= sizeof(buf))
+				if ((m = (size_t)(s - w - 1)) >= sizeof(buf))
 					m = sizeof(buf) - 1;
 				memcpy(buf, w, m);
 				buf[m] = 0;
@@ -2596,7 +2597,7 @@ composite(const char* s, int initialize)
 			p = lcmake(w);
 		else
 		{
-			if ((j = s - w - 1) >= sizeof(buf))
+			if ((j = (size_t)(s - w - 1)) >= sizeof(buf))
 				j = sizeof(buf) - 1;
 			memcpy(buf, w, j);
 			buf[j] = 0;
@@ -2606,8 +2607,8 @@ composite(const char* s, int initialize)
 		{
 			if (!single(n, p, 0))
 			{
-				for (i = 1; i < n; i++)
-					single(i, NULL, 0);
+				for (count = 1; count < n; count++)
+					single(count, NULL, 0);
 				return -1;
 			}
 		}
@@ -2635,7 +2636,7 @@ _ast_setlocale(int category, const char* locale)
 	int			i;
 	int			j;
 	int			k;
-	int			f;
+	unsigned int		f;
 	Lc_t*			p;
 	int			cat[AST_LC_COUNT];
 

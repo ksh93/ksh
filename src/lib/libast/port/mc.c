@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -153,7 +153,7 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
 							v = lc_categories[category].name;
 							break;
 						default:
-							*s++ = c;
+							*s++ = (char)c;
 							continue;
 						}
 						if (v)
@@ -172,7 +172,7 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
 					/* FALLTHROUGH */
 				default:
 					if (s < e)
-						*s++ = c;
+						*s++ = (char)c;
 					continue;
 				}
 				break;
@@ -268,9 +268,9 @@ mcopen(Sfio_t* ip)
 		 * get the component dimensions
 		 */
 
-		mc->nstrs = sfgetu(ip);
-		mc->nmsgs = sfgetu(ip);
-		mc->num = sfgetu(ip);
+		mc->nstrs = (size_t)sfgetu(ip);
+		mc->nmsgs = (size_t)sfgetu(ip);
+		mc->num = (int)sfgetu(ip);
 		if (sfeof(ip))
 			goto bad;
 	}
@@ -281,11 +281,11 @@ mcopen(Sfio_t* ip)
 	 * allocate the remaining space
 	 */
 
-	if (!(mc->set = vmnewof(vm, 0, Mcset_t, mc->num + 1, 0)))
+	if (!(mc->set = vmnewof(vm, 0, Mcset_t, (size_t)mc->num + 1, 0)))
 		goto bad;
 	if (!ip)
 		return mc;
-	if (!(mp = vmnewof(vm, 0, char*, mc->nmsgs + mc->num + 1, 0)))
+	if (!(mp = vmnewof(vm, 0, char*, mc->nmsgs + (size_t)mc->num + 1, 0)))
 		goto bad;
 	if (!(rp = sp = vmalloc(vm, mc->nstrs + 1)))
 		goto bad;
@@ -294,12 +294,12 @@ mcopen(Sfio_t* ip)
 	 * get the set dimensions and initialize the msg pointers
 	 */
 
-	while (i = sfgetu(ip))
+	while (i = (int)sfgetu(ip))
 	{
 		if (i > mc->num)
 			goto bad;
-		n = sfgetu(ip);
-		mc->set[i].num = n;
+		n = (size_t)sfgetu(ip);
+		mc->set[i].num = (int)n;
 		mc->set[i].msg = mp;
 		mp += n + 1;
 	}
@@ -310,7 +310,7 @@ mcopen(Sfio_t* ip)
 
 	for (i = 1; i <= mc->num; i++)
 		for (j = 1; j <= mc->set[i].num; j++)
-			if (n = sfgetu(ip))
+			if (n = (size_t)sfgetu(ip))
 			{
 				mc->set[i].msg[j] = sp;
 				sp += n;
@@ -320,7 +320,7 @@ mcopen(Sfio_t* ip)
 	 * read the string table
 	 */
 
-	if (sfread(ip, rp, mc->nstrs) != mc->nstrs || sfgetc(ip) != EOF)
+	if (sfread(ip, rp, mc->nstrs) != (ssize_t)mc->nstrs || sfgetc(ip) != EOF)
 		goto bad;
 	if (!(mc->tmp = sfstropen()))
 		goto bad;
@@ -344,7 +344,7 @@ mcget(Mc_t* mc, int set, int num, const char* msg)
 {
 	char*		s;
 	size_t		n;
-	int		p;
+	ptrdiff_t	p;
 
 	if (!mc || set < 0 || set > mc->num || num < 1 || num > mc->set[set].num || !(s = mc->set[set].msg[num]))
 		return (char*)msg;
@@ -404,7 +404,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 
 				mp = mc->set[set].msg + num;
 				while (num && !mp[--num]);
-				mc->nmsgs -= mc->set[set].num - num;
+				mc->nmsgs -= (size_t)(mc->set[set].num - num);
 				if (!(mc->set[set].num = num) && mc->num == set)
 				{
 					/*
@@ -428,7 +428,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 		if (set > mc->gen)
 		{
 			i = MC_SET_MAX;
-			if (!(sp = vmnewof(mc->vm, 0, Mcset_t, i + 1, 0)))
+			if (!(sp = vmnewof(mc->vm, 0, Mcset_t, (size_t)i + 1, 0)))
 				return -1;
 			mc->gen = i;
 			for (i = 1; i <= mc->num; i++)
@@ -454,7 +454,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 					i = 2 * num;
 				if (i > MC_NUM_MAX)
 					i = MC_NUM_MAX;
-				if (!(mp = vmnewof(mc->vm, 0, char*, i + 1, 0)))
+				if (!(mp = vmnewof(mc->vm, 0, char*, (size_t)i + 1, 0)))
 					return -1;
 				mc->gen = i;
 				sp->msg = mp;
@@ -466,13 +466,13 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 				i = 2 * mc->gen;
 				if (i > MC_NUM_MAX)
 					i = MC_NUM_MAX;
-				if (!(mp = vmnewof(mc->vm, sp->msg, char*, i + 1, 0)))
+				if (!(mp = vmnewof(mc->vm, sp->msg, char*, (size_t)i + 1, 0)))
 					return -1;
 				sp->gen = i;
 				sp->msg = mp;
 			}
 		}
-		mc->nmsgs += num - sp->num;
+		mc->nmsgs += (size_t)(num - sp->num);
 		sp->num = num;
 	}
 
@@ -512,7 +512,7 @@ mcdump(Mc_t* mc, Sfio_t* op)
 {
 	int		i;
 	int		j;
-	int		n;
+	size_t		n;
 	char*		s;
 	Mcset_t*	sp;
 
@@ -618,7 +618,7 @@ mcindex(const char* s, char** e, int* set, int* msg)
 	char*		t;
 
 	m = 0;
-	n = strtol(s, &t, 0);
+	n = (int)strtol(s, &t, 0);
 	if (t == (char*)s)
 	{
 		SFCVINIT();
@@ -635,7 +635,7 @@ mcindex(const char* s, char** e, int* set, int* msg)
 		s = (const char*)t;
 	r = n;
 	if (*s)
-		m = strtol(s + 1, e, 0);
+		m = (int)strtol(s + 1, e, 0);
 	else
 	{
 		if (e)

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -81,7 +81,7 @@ typedef int (*Stat_f)(const char*, struct stat*);
 	FTSENT*		right;			/* right child		*/ \
 	FTSENT*		pwd;			/* pwd parent		*/ \
 	FTSENT*		stack;			/* getlist() stack	*/ \
-	long		nlink;			/* FTS_D link count	*/ \
+	nlink_t		nlink;			/* FTS_D link count	*/ \
 	unsigned char	must;			/* must stat		*/ \
 	unsigned char	type;			/* DT_* type		*/ \
 	unsigned char	symlink;		/* originally a symlink	*/ \
@@ -422,7 +422,7 @@ setdir(char* home, char* path)
 static int
 setpdir(char* home, char* path, char* base)
 {
-	int	c;
+	char	c;
 	int	cdrv;
 
 	if (base > path)
@@ -597,7 +597,7 @@ toplist(FTS* fts, char* const* pathnames)
 			break;
 		path = f->fts_name;
 		if (!physical)
-			f->fts_namelen = (fts->flags & FTS_SEEDOTDIR) ? strlen(path) : (pathcanon(path, strlen(path) + 1, 0) - path);
+			f->fts_namelen = (fts->flags & FTS_SEEDOTDIR) ? strlen(path) : (size_t)(pathcanon(path, strlen(path) + 1, 0) - path);
 		else if (*path != '.')
 		{
 			f->fts_namelen = strlen(path);
@@ -624,7 +624,7 @@ toplist(FTS* fts, char* const* pathnames)
 				fts->flags |= FTS_SEEDOTDIR;
 			for (s = path + strlen(path); s > path && *(s - 1) == '/'; s--);
 			*s = 0;
-			f->fts_namelen = s - path;
+			f->fts_namelen = (size_t)(s - path);
 		}
 		if (!*path)
 		{
@@ -896,7 +896,7 @@ fts_read(FTS* fts)
 			 * add object's name to the path
 			 */
 
-			if ((fts->baselen = f->fts_namelen) >= (fts->endbuf - fts->base) && resize(fts, fts->baselen))
+			if ((ssize_t)(fts->baselen = f->fts_namelen) >= fts->endbuf - fts->base && resize(fts, fts->baselen))
 				return NULL;
 			memcpy(fts->base, f->name, fts->baselen + 1);
 			fts->name = fts->cd ? fts->path : fts->base;
@@ -937,7 +937,7 @@ fts_read(FTS* fts)
 				fts->link = f->fts_link;
 				f->fts_link = 0;
 				f->fts_path = PATH(fts, fts->path, f->fts_level);
-				f->fts_pathlen = (fts->base - f->fts_path) + fts->baselen;
+				f->fts_pathlen = (size_t)(fts->base - f->fts_path) + fts->baselen;
 				f->fts_accpath = ACCESS(fts, f);
 				fts->state = FTS_preorder_return;
 				goto note;
@@ -1027,7 +1027,7 @@ fts_read(FTS* fts)
 				 * check for space
 				 */
 
-				if (i >= fts->endbuf - fts->endbase)
+				if ((ssize_t)i >= fts->endbuf - fts->endbase)
 				{
 		   	   		if (resize(fts, i))
 						return NULL;
@@ -1081,7 +1081,7 @@ fts_read(FTS* fts)
 					 */
 
 					f->fts_path = PATH(fts, fts->path, 1);
-					f->fts_pathlen = fts->endbase - f->fts_path + f->fts_namelen;
+					f->fts_pathlen = (size_t)(fts->endbase - f->fts_path) + f->fts_namelen;
 					f->fts_accpath = ACCESS(fts, f);
 					fts->previous = fts->current;
 					fts->current = f;
@@ -1128,7 +1128,7 @@ fts_read(FTS* fts)
 				fts->link = f->fts_link;
 				f->fts_link = fts->top;
 				f->fts_path = PATH(fts, fts->path, f->fts_level);
-				f->fts_pathlen = (fts->base - f->fts_path) + f->fts_namelen;
+				f->fts_pathlen = (size_t)(fts->base - f->fts_path) + f->fts_namelen;
 				f->fts_accpath = ACCESS(fts, f);
 				fts->state = FTS_children_return;
 				goto note;
@@ -1195,7 +1195,7 @@ fts_read(FTS* fts)
 						fts->curdir = fts->cd ? 0 : t;
 						f->fts_info = FTS_DP;
 						f->fts_path = PATH(fts, fts->path, f->fts_level);
-						f->fts_pathlen = (fts->base - f->fts_path) + f->fts_namelen;
+						f->fts_pathlen = (size_t)(fts->base - f->fts_path) + f->fts_namelen;
 						f->fts_accpath = ACCESS(fts, f);
 
 						/*
@@ -1438,7 +1438,7 @@ fts_set(FTS* fts, FTSENT* f, int status)
 	default:
 		return -1;
 	}
-	f->status = status;
+	f->status = (short)status;
 	return 0;
 }
 

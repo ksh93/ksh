@@ -28,8 +28,8 @@
 
 #include <ast.h>
 
-int
-struniq(char** argv, int n)
+ptrdiff_t
+struniq(char** argv, ptrdiff_t n)
 {
 	char**	ao;
 	char**	an;
@@ -41,8 +41,8 @@ struniq(char** argv, int n)
 	{
 		while (streq(*ao, *an))
 			if (++an >= ae)
-				return (int)(ao - argv + 1);
+				return ao - argv + 1;
 		*++ao = *an;
 	}
-	return (int)(ao - argv + 1);
+	return ao - argv + 1;
 }
