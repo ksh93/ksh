@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2025-05-02"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-03-28"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -4601,7 +4601,7 @@ optget(char** argv, const char* oopts)
 			{
 				if (c >= 0 && c < sizeof(map) && map[c] && cache->equiv[map[c]])
 					c = cache->equiv[map[c]];
-				if (k = cache->flags[map[c]])
+				if (c >= 0 && c < sizeof(map) && map[c] && (k = cache->flags[map[c]]))
 				{
 					opt_info.arg = 0;
 

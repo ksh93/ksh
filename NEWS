@@ -7,6 +7,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a potential crash (buffer read overflow) in the .sh.match code
   that was backported on 2022-02-08.
 
+- Fixed a crash in option parsing that could happen if a multibyte character
+  was passed as an option to a command.
+
 2026-03-23:
 
 - Fixed a bug in command substitutions, where a command substitution would
