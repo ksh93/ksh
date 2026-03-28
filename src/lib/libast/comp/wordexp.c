@@ -33,7 +33,6 @@ struct list
 /*
  * eliminates shell quoting as inserted with sh_fmtq
  * result replaces <string>
- * length of resulting string is returned.
  */
 static void	sh_unquote(char* string)
 {
