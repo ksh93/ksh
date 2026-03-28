@@ -56,7 +56,6 @@ static void	sh_unquote(char* string)
 			*dp++ = c;
 	}
 	*dp=0;
-	return;
 }
 
 int	wordexp(const char *string, wordexp_t *wdarg, int flags)
