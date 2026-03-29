@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfdchdr.h"
@@ -37,8 +38,7 @@ typedef struct _dosdisc
 {
 	Sfdisc_t	disc;
 	struct map	*maptable;
-	int		mapsize;
-	int		maptop;
+	void		*buff;
 	Sfoff_t		lhere;
 	Sfoff_t		llast;
 	Sfoff_t		lmax;
@@ -46,17 +46,18 @@ typedef struct _dosdisc
 	Sfoff_t		phere;
 	Sfoff_t		plast;
 	Sfoff_t		begin;
-	int		skip;
-	void		*buff;
+	size_t		mapsize;
+	Sfoff_t		skip;
+	ptrdiff_t	bsize;
+	ssize_t		maptop;
 	char		last;
 	char		extra;
-	int		bsize;
 } Dosdisc_t;
 
 static void addmapping(Dosdisc_t *dp)
 {
-	int n;
-	if((n=dp->maptop++)>=dp->mapsize)
+	ssize_t n;
+	if((n=dp->maptop++)>=(ssize_t)dp->mapsize)
 	{
 		dp->mapsize *= 2;
 		if(!(dp->maptable=(struct map*)realloc(dp->maptable,(dp->mapsize+1)*sizeof(struct map))))
@@ -94,7 +95,8 @@ static ssize_t dos_read(Sfio_t *iop, void *buff, size_t size, Sfdisc_t* disc)
 {
 	Dosdisc_t *dp = (Dosdisc_t*)disc;
 	char *cp = (char*)buff, *first, *cpmax;
-	int n, count, m;
+	ptrdiff_t m, count;
+	ssize_t n;
 	if(dp->extra)
 	{
 		dp->extra=0;
@@ -133,7 +135,7 @@ static ssize_t dos_read(Sfio_t *iop, void *buff, size_t size, Sfdisc_t* disc)
 		if(cp > cpmax || *cp=='\n')
 			break;
 	}
-	dp->skip = cp-1 - (char*)buff;
+	dp->skip = (Sfoff_t)(cp-1 - (char*)buff);
 	/* if not \r\n in buffer, just return */
 	if((count = cpmax+1-cp) <=0)
 	{
@@ -157,9 +159,9 @@ static ssize_t dos_read(Sfio_t *iop, void *buff, size_t size, Sfdisc_t* disc)
 		}
 	}
 	/* save original discipline inside buffer */
-	if(count > dp->bsize && !(dp->buff = realloc(dp->buff, dp->bsize = count)))
+	if(count > dp->bsize && !(dp->buff = realloc(dp->buff, (size_t)(dp->bsize = count))))
 		return -1;
-	memcpy(dp->buff, cp, count);
+	memcpy(dp->buff, cp, (size_t)count);
 	count=1;
 	while(1)
 	{
@@ -171,7 +173,7 @@ static ssize_t dos_read(Sfio_t *iop, void *buff, size_t size, Sfdisc_t* disc)
 		if(cp<=cpmax && *cp!='\n')
 			continue;
 		if((m=(cp-first)-1) >0)
-			memcpy(first-count, first, m);
+			memcpy(first-count, first, (size_t)m);
 		if(cp > cpmax)
 			break;
 		count++;
@@ -186,7 +188,7 @@ done:
 		if(dp->maptable && dp->lmax > dp->maptable[dp->maptop-1].logical+CHUNK)
 			addmapping(dp);
 	}
-	return n-count;
+	return n-(ssize_t)count;
 }
 
 /*
@@ -238,7 +240,8 @@ static Sfoff_t dos_seek(Sfio_t *iop, Sfoff_t offset, int whence, Sfdisc_t* disc)
 	Dosdisc_t *dp = (Dosdisc_t*)disc;
 	struct map dummy, *mp=0;
 	Sfoff_t physical;
-	int n,size;
+	ssize_t n;
+	size_t size;
 retry:
 	switch(whence)
 	{
@@ -268,9 +271,9 @@ retry:
 		break;
 	}
 	if(sfsetbuf(iop,(char*)iop,0))
-		size = sfvalue(iop);
+		size = (size_t)sfvalue(iop);
 	else
-		size = iop->endb-iop->data;
+		size = (size_t)(iop->endb-iop->data);
 	if(mp)
 	{
 		sfsk(iop,mp->physical,SEEK_SET,disc);

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -71,11 +71,11 @@ number(char* s, char* e, long n, int p, int w, int pad)
 	}
 	b = s;
 	if (p > 0)
-		s += sfsprintf(s, e - s, "%0*lu", p, n);
+		s += sfsprintf(s, (size_t)(e - s), "%0*lu", p, n);
 	else if (p < 0)
-		s += sfsprintf(s, e - s, "%*lu", -p, n);
+		s += sfsprintf(s, (size_t)(e - s), "%*lu", -p, n);
 	else
-		s += sfsprintf(s, e - s, "%lu", n);
+		s += sfsprintf(s, (size_t)(e - s), "%lu", n);
 	if (w && (s - b) > w)
 		*(s = b + w) = 0;
 	return s;
@@ -145,7 +145,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 		if (c != '%')
 		{
 			if (cp < ep)
-				*cp++ = c;
+				*cp++ = (char)c;
 			continue;
 		}
 		alt = 0;
@@ -216,7 +216,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 					else if (c == ')' && !--i)
 						break;
 					else if (arg < &argbuf[sizeof(argbuf) - 1])
-						*arg++ = c;
+						*arg++ = (char)c;
 				}
 				*arg = 0;
 				arg = argbuf;
@@ -358,7 +358,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 		case 'P':	/* (AST|GNU) lower case meridian */
 			p = tm_info.format[TM_MERIDIAN + (tm->tm_hour >= 12)];
 			while (cp < ep && (n = *p++))
-				*cp++ = isupper(n) ? tolower(n) : n;
+				*cp++ = (char)(isupper(n) ? tolower(n) : n);
 			continue;
 		case 'q':	/* quarter of the year (1-4) */
 			cp = number(cp, ep, (long)(tm->tm_mon / 3) + 1, 0, width, pad);
@@ -530,14 +530,14 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 			f = fmt;
 			*f++ = '%';
 			if (pad == '0')
-				*f++ = pad;
+				*f++ = (char)pad;
 			if (width)
-				f += sfsprintf(f, &fmt[sizeof(fmt)] - f, "%d", width);
-			f += sfsprintf(f, &fmt[sizeof(fmt)] - f, "I%du", sizeof(Tmxsec_t));
-			cp += sfsprintf(cp, ep - cp, fmt, tmxsec(now));
+				f += sfsprintf(f, (size_t)(&fmt[sizeof(fmt)] - f), "%d", width);
+			f += sfsprintf(f, (size_t)(&fmt[sizeof(fmt)] - f), "I%du", sizeof(Tmxsec_t));
+			cp += sfsprintf(cp, (size_t)(ep - cp), fmt, tmxsec(now));
 			if (parts > 1)
 			{
-				n = sfsprintf(cp, ep - cp, ".%09I*u", sizeof(Tmxnsec_t), tmxnsec(now));
+				n = (int)sfsprintf(cp, (size_t)(ep - cp), ".%09I*u", sizeof(Tmxnsec_t), tmxnsec(now));
 				if (prec && n >= prec)
 					n = prec + 1;
 				cp += n;
@@ -595,7 +595,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 				continue;
 			}
 			if ((ep - cp) >= 16)
-				cp = tmpoff(cp, ep - cp, "", (flags & TM_UTC) ? 0 : tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0), pad == '_' ? -24 * 60 : 24 * 60);
+				cp = tmpoff(cp, (size_t)(ep - cp), "", (flags & TM_UTC) ? 0 : tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0), pad == '_' ? -24 * 60 : 24 * 60);
 			continue;
 		case 'Z':	/* time zone */
 			if (arg)
@@ -623,7 +623,7 @@ tmxfmt(char* buf, size_t len, const char* format, Time_t t)
 			if (cp < ep)
 				*cp++ = '%';
 			if (cp < ep)
-				*cp++ = c;
+				*cp++ = (char)c;
 			continue;
 		}
 	index:

@@ -100,8 +100,8 @@
 #undef	telldir
 
 #define _DIR_PRIVATE_ \
-	int		dd_loc;		/* offset in block		*/ \
-	int		dd_size;	/* valid data in block		*/ \
+	ssize_t		dd_loc;		/* offset in block		*/ \
+	ssize_t		dd_size;	/* valid data in block		*/ \
 	char*		dd_buf;		/* directory block		*/
 
 #undef	_DIRENT_H

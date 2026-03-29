@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -37,11 +37,11 @@ typedef struct
 	Sfdisc_t	disc;		/* sfio discipline		*/
 	Sfio_t*		input;		/* tied with this input stream	*/
 	Sfio_t*		error;		/* tied with this error stream	*/
+	size_t		match;		/* match length, 0 if none	*/
 	int		rows;		/* max rows			*/
 	int		cols;		/* max cols			*/
 	int		row;		/* current row			*/
 	int		col;		/* current col			*/
-	int		match;		/* match length, 0 if none	*/
 	char		pattern[128];	/* match pattern		*/
 	char		prompt[1];	/* prompt string		*/
 } More_t;
@@ -69,7 +69,7 @@ static ssize_t moreread(Sfio_t* f, void* buf, size_t n, Sfdisc_t* dp)
 static int ttyquery(Sfio_t* rp, Sfio_t* wp, const char* label, Sfdisc_t* dp)
 {
 	int		r;
-	int		n;
+	size_t		n;
 
 #ifdef TCSADRAIN
 	unsigned char	c;
@@ -88,9 +88,9 @@ static int ttyquery(Sfio_t* rp, Sfio_t* wp, const char* label, Sfdisc_t* dp)
 	tty = old;
 	tty.c_cc[VTIME] = 0;
 	tty.c_cc[VMIN] = 1;
-	tty.c_lflag &= ~(ICANON|ECHO|ECHOK|ISIG);
+	tty.c_lflag &= (tcflag_t)~(ICANON|ECHO|ECHOK|ISIG);
 	tcsetattr(rfd, TCSADRAIN, &tty);
-	if ((r = read(rfd, &c, 1)) == 1)
+	if ((r = (int)read(rfd, &c, 1)) == 1)
 	{
 		if (c == old.c_cc[VEOF])
 			r = -1;
@@ -135,7 +135,7 @@ static ssize_t morewrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 	int		r;
 
 	if (!more->row)
-		return n;
+		return (ssize_t)n;
 	if (!more->col)
 		return sfwr(f, buf, n, dp);
 	w = 0;
@@ -148,10 +148,10 @@ static ssize_t morewrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 		for (r = more->pattern[0];; s++)
 		{
 			if (s >= e)
-				return n;
+				return (ssize_t)n;
 			if (*s == '\n')
 				b = s + 1;
-			else if (*s == r && (e - s) >= more->match && !strncmp(s, more->pattern, more->match))
+			else if (*s == r && (e - s) >= (ssize_t)more->match && !strncmp(s, more->pattern, more->match))
 				break;
 		}
 		s = b;
@@ -182,7 +182,7 @@ static ssize_t morewrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 			more->col = 1;
 			continue;
 		}
-		w += sfwr(f, b, s - b, dp);
+		w += sfwr(f, b, (size_t)(s - b), dp);
 		b = s;
 		r = ttyquery(sfstdin, f, more->prompt, dp);
 		if (r == '/' || r == 'n')
@@ -190,7 +190,7 @@ static ssize_t morewrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 			if (r == '/')
 			{
 				sfwr(f, "/", 1, dp);
-				if ((s = sfgetr(sfstdin, '\n', 1)) && (n = sfvalue(sfstdin) - 1) > 0)
+				if ((s = sfgetr(sfstdin, '\n', 1)) && (n = (size_t)sfvalue(sfstdin) - 1) > 0)
 				{
 					if (n >= sizeof(more->pattern))
 						n = sizeof(more->pattern) - 1;
@@ -218,11 +218,11 @@ static ssize_t morewrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 			break;
 		default:
 			more->row = 0;
-			return n;
+			return (ssize_t)n;
 		}
 	}
 	if (s > b)
-		w += sfwr(f, b, s - b, dp);
+		w += sfwr(f, b, (size_t)(s - b), dp);
 	return w;
 }
 

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfdchdr.h"
@@ -35,9 +36,9 @@ typedef struct _file_s
 typedef struct _union_s
 {
 	Sfdisc_t	disc;	/* discipline structure */
-	short		type;	/* type of streams	*/
-	short		c;	/* current stream	*/
-	short		n;	/* number of streams	*/
+	int		type;	/* type of streams	*/
+	int		c;	/* current stream	*/
+	int		n;	/* number of streams	*/
 	Sfoff_t		here;	/* current location	*/
 	File_t		f[1];	/* array of streams	*/
 } Union_t;
@@ -63,10 +64,10 @@ static ssize_t unread(Sfio_t*	f,	/* stream involved */
 	ssize_t	r, m;
 
 	un = (Union_t*)disc;
-	m = n;
+	m = (ssize_t)n;
 	f = un->f[un->c].f;
 	while(1)
-	{	if((r = sfread(f,buf,m)) < 0 || (r == 0 && un->c == un->n-1) )
+	{	if((r = sfread(f,buf,(size_t)m)) < 0 || (r == 0 && un->c == un->n-1) )
 			break;
 
 		m -= r;
@@ -79,7 +80,7 @@ static ssize_t unread(Sfio_t*	f,	/* stream involved */
 		if(sfeof(f) && un->c < un->n-1)
 			f = un->f[un->c += 1].f;
 	}
-	return n-m;
+	return (ssize_t)n-m;
 }
 
 static Sfoff_t unseek(Sfio_t* f, Sfoff_t addr, int type, Sfdisc_t* disc)
@@ -148,7 +149,7 @@ int sfdcunion(Sfio_t* f, Sfio_t** array, int n)
 	if(n <= 0)
 		return -1;
 
-	if(!(un = (Union_t*)malloc(sizeof(Union_t)+(n-1)*sizeof(File_t))) )
+	if(!(un = (Union_t*)malloc(sizeof(Union_t)+((size_t)n-1)*sizeof(File_t))) )
 		return -1;
 	memset(un, 0, sizeof(*un));
 
