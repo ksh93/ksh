@@ -15,7 +15,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@main
     - name: Build
-      run: bin/package make -j5
+      run: bin/package make -j5 CCFLAGS=-Og LDFLAGS=-g
     - name: Regression tests
       run: |
         PS4="$PS4[ci.yml] "
@@ -30,13 +30,13 @@ jobs:
         sed --regexp-extended --in-place=.orig \
           '/^SHOPT (AUDIT|BGX|BRACEPAT|DEVFD|DYNAMIC|EDPREDICT|ESH|FIXEDARRAY|HISTEXPAND|MULTIBYTE|NAMESPACE|OPTIMIZE|SPAWN|STATS|SUID_EXEC|VSH)=/ s/=1?/=0/' \
           src/cmd/ksh93/SHOPT.sh &&
-        bin/package make -j5 &&
+        bin/package make -j5 CCFLAGS=-Og LDFLAGS=-g &&
         : default regression tests with SHOPTs disabled &&
         script -q -e -c "bin/shtests" &&
         : enable SHOPT_SCRIPTONLY, rebuild ksh &&
         sed --regexp-extended --in-place=.orig \
           '/^SHOPT SCRIPTONLY=/ s/=0?/=1/' \
           src/cmd/ksh93/SHOPT.sh &&
-        bin/package make -j5 &&
+        bin/package make -j5 CCFLAGS=-Og LDFLAGS=-g &&
         : default regression tests with SHOPT_SCRIPTONLY enabled &&
         script -q -e -c "bin/shtests"
