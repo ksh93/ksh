@@ -96,84 +96,6 @@ make install virtual
 	done
 
 	note *
-	note * Generate a shopt.h compile-time options header from SHOPT.sh and probe results.
-	note *
-
-	make shopt.h notrace
-		prev FEATURE/options
-		makp SHOPT.sh
-		makp Mamfile
-		note *
-		note * the SHOPT.sh file calls the SHOPT function once for each option
-		note *
-		exec -	writedef()
-		exec -	{
-		exec -		echo "${3:-#ifndef SHOPT_$1}"
-		exec -		echo "#   define SHOPT_$1	$2"
-		exec -		echo "#endif"
-		exec -		echo
-		exec -	}
-		exec -
-		exec -	SHOPT()
-		exec -	{
-		exec -		n=${1%%=*}	# name
-		exec -		v=${1#*=}	# value
-		exec -		# probe certain options if they don't have a value configured
-		exec -		case $1 in
-		exec -		'MULTIBYTE=')
-		exec -			# by default, SHOPT_MULTIBYTE is the opposite of AST_NOMULTIBYE
-		exec -			writedef MULTIBYTE 1 '#if !defined(SHOPT_MULTIBYTE) && !AST_NOMULTIBYTE' ;;
-		exec -		'DEVFD=')
-		exec -			# if /dev/fd/n exposes file descriptor n, make SHOPT_DEVFD use this for
-		exec -			# process substitutions instead of FIFOs, which are not as secure
-		exec -			# WARNING: do not use 'test -e' for this test (too many shells break it
-		exec -			# by failing to test for the physical existence of /dev/fd/9 in the FS)
-		exec -			ls -d /dev/fd/9 9<&0 >/dev/null 2>&1 && writedef DEVFD 1 ;;
-		exec -		'TEST_L=')
-		exec -			# if external 'test' supports lowercase -l as equivalent to -L, enable
-		exec -			# SHOPT_TEST_L so ksh supports it for compatibility with local scripts
-		exec -			ln -s /dev/null "$EXECROOT/link$$"
-		exec -			if	env test -l "$EXECROOT/link$$" && env test ! -l .
-		exec -			then	writedef TEST_L 1
-		exec -			fi 2>/dev/null
-		exec -			rm -f "$EXECROOT/link$$" ;;
-		exec -		'PRINTF_LEGACY=')
-		exec -			# if external 'printf' allows POSIX-ignorant syntax (i.e., a format operand
-		exec -			# starting with '-' without prior '--'), enable code for backward compat
-		exec -			case $(env printf '-zut%s\n' alors 2>/dev/null) in
-		exec -			-zutalors)
-		exec -				writedef PRINTF_LEGACY 1 ;;
-		exec -			esac ;;
-		exec -		# some other SHOPTs may be probed for using feature tests in features/options
-		exec -		*=?*)
-		exec -			writedef "$n" "$v" ;;
-		exec -		esac
-		exec -		echo "* SHOPT_$n = ${v:-(probe)}" >&2  # show in make.out
-		exec -	}
-		exec -
-		exec -	exec > %{@}
-		exec -	echo '/* Generated from ksh93/SHOPT.sh by ksh93/Mamfile */'
-		exec -	echo
-		exec -	. "$PACKAGEROOT/src/cmd/ksh93/SHOPT.sh"
-		exec -	cat <<-EOF
-		exec -		#include "FEATURE/options"
-		exec -
-		exec -		/* overrides */
-		exec -		#if SHOPT_SCRIPTONLY
-		exec -		#   undef SHOPT_ACCT
-		exec -		#   undef SHOPT_AUDIT
-		exec -		#   undef SHOPT_ESH
-		exec -		#   undef SHOPT_HISTEXPAND
-		exec -		#   undef SHOPT_SYSRC
-		exec -		#   undef SHOPT_VSH
-		exec -		#endif
-		exec -		#if !_sys_acct
-		exec -		#   undef SHOPT_ACCT
-		exec -		#endif
-		exec -	EOF
-	done shopt.h
-
-	note *
 	note * ksh93 C header (*.h) dependencies
 	note *
 
@@ -326,7 +248,7 @@ make install virtual
 	make sh/pmain.c
 		prev FEATURE/externs
 		prev include/shell.h
-		prev shopt.h
+		prev FEATURE/options
 	done
 
 	make sh/shcomp.c
@@ -337,7 +259,7 @@ make install virtual
 		prev include/defs.h
 		prev include/shell.h
 		prev include/version.h
-		prev shopt.h
+		prev FEATURE/options
 	done
 
 	note *
@@ -355,7 +277,7 @@ make install virtual
 			prev %{INCLUDE_AST}/tmx.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/cd_pwd.c
@@ -368,7 +290,7 @@ make install virtual
 			prev include/variables.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/cflow.c
@@ -377,19 +299,19 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/ast.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/deparse.c
 			prev include/test.h
 			prev include/shnodes.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/enum.c
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/getopts.c
@@ -398,7 +320,7 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev include/variables.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/hist.c
@@ -412,7 +334,7 @@ make install virtual
 			prev %{INCLUDE_AST}/tv.h
 			prev %{INCLUDE_AST}/ls.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/misc.c
@@ -428,7 +350,7 @@ make install virtual
 			prev include/shnodes.h
 			prev include/variables.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/mkservice.c
@@ -436,7 +358,7 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev include/nval.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/print.c
@@ -448,7 +370,7 @@ make install virtual
 			prev include/io.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/read.c
@@ -463,7 +385,7 @@ make install virtual
 			prev include/defs.h
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/sleep.c
@@ -473,14 +395,14 @@ make install virtual
 			prev %{INCLUDE_AST}/ast_float.h
 			prev %{INCLUDE_AST}/tmx.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/trap.c
 			prev include/builtins.h
 			prev include/jobs.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/test.c
@@ -495,7 +417,7 @@ make install virtual
 			prev %{INCLUDE_AST}/ls.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/ulimit.c
@@ -506,7 +428,7 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/sfio.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/umask.c
@@ -516,7 +438,7 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/sfio.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make bltins/whence.c
@@ -527,7 +449,7 @@ make install virtual
 			prev include/shtable.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/main.c
@@ -546,7 +468,7 @@ make install virtual
 			prev %{INCLUDE_AST}/ls.h
 			prev %{INCLUDE_AST}/sfio.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/nvdisc.c
@@ -556,7 +478,7 @@ make install virtual
 			prev include/builtins.h
 			prev include/variables.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/nvtype.c
@@ -564,7 +486,7 @@ make install virtual
 			prev include/variables.h
 			prev include/io.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/arith.c
@@ -575,7 +497,7 @@ make install virtual
 			prev include/name.h
 			prev include/lexstates.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/args.c
@@ -588,14 +510,14 @@ make install virtual
 			prev include/jobs.h
 			prev include/path.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/array.c
 			prev %{INCLUDE_AST}/ast_release.h
 			prev include/name.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make edit/completion.c
@@ -606,14 +528,14 @@ make install virtual
 			prev include/lexstates.h
 			prev %{INCLUDE_AST}/ast_wchar.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/defs.c
 			prev include/jobs.h
 			prev include/defs.h
 			prev include/shlex.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make edit/edit.c
@@ -628,7 +550,7 @@ make install virtual
 			prev FEATURE/time
 			prev include/fault.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/expand.c
@@ -641,7 +563,7 @@ make install virtual
 			prev include/test.h
 			prev include/variables.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/fault.c
@@ -655,7 +577,7 @@ make install virtual
 			prev include/io.h
 			prev include/fcin.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/fcin.c
@@ -663,7 +585,7 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/sfio.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make edit/history.c
@@ -679,7 +601,7 @@ make install virtual
 			prev FEATURE/time
 			prev %{INCLUDE_AST}/sfio.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/init.c
@@ -702,7 +624,7 @@ make install virtual
 			prev %{INCLUDE_AST}/regex.h
 			prev %{INCLUDE_AST}/tmx.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/io.c
@@ -722,7 +644,7 @@ make install virtual
 			prev %{INCLUDE_AST}/ls.h
 			prev include/fcin.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/jobs.c
@@ -731,7 +653,7 @@ make install virtual
 			prev include/io.h
 			prev %{INCLUDE_AST}/wait.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/lex.c
@@ -746,7 +668,7 @@ make install virtual
 			prev include/nval.h
 			prev include/fcin.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/macro.c
@@ -762,11 +684,11 @@ make install virtual
 			prev %{INCLUDE_AST}/regex.h
 			prev include/fcin.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/name.c
-			prev shopt.h
+			prev FEATURE/options
 			prev include/defs.h
 			prev include/variables.h
 			prev include/path.h
@@ -784,7 +706,7 @@ make install virtual
 			prev include/argnod.h
 			prev include/name.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/parse.c
@@ -798,7 +720,7 @@ make install virtual
 			prev include/shell.h
 			prev include/defs.h
 			prev include/version.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/string.c
@@ -809,14 +731,14 @@ make install virtual
 			prev include/defs.h
 			prev %{INCLUDE_AST}/ast_wchar.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/streval.c
 			prev FEATURE/externs
 			prev %{INCLUDE_AST}/error.h
 			prev include/streval.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/subshell.c
@@ -829,7 +751,7 @@ make install virtual
 			prev include/io.h
 			prev %{INCLUDE_AST}/ls.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/tdump.c
@@ -837,7 +759,7 @@ make install virtual
 			prev include/path.h
 			prev include/shnodes.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/timers.c
@@ -847,7 +769,7 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/sig.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/trestore.c
@@ -855,12 +777,12 @@ make install virtual
 			prev include/path.h
 			prev include/shnodes.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/waitevent.c
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/xec.c
@@ -878,13 +800,13 @@ make install virtual
 			prev include/variables.h
 			prev include/fcin.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/limits.c
 			prev include/ulimit.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/msg.c
@@ -898,38 +820,38 @@ make install virtual
 			prev include/path.h
 			prev include/defs.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/testops.c
 			prev include/test.h
 			prev include/defs.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/keywords.c
 			prev include/shlex.h
 			prev include/shell.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/options.c
 			prev include/shtable.h
 			prev include/name.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/signals.c
 			prev include/jobs.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/aliases.c
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/variables.c
@@ -940,13 +862,13 @@ make install virtual
 			prev include/shtable.h
 			prev include/shell.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/lexstates.c
 			prev include/lexstates.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make edit/emacs.c
@@ -957,7 +879,7 @@ make install virtual
 			prev include/io.h
 			prev include/defs.h
 			prev %{INCLUDE_AST}/ast.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make edit/vi.c
@@ -969,13 +891,13 @@ make install virtual
 			prev include/io.h
 			prev %{INCLUDE_AST}/ast.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make edit/hexpand.c
 			prev include/edit.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		setv _libshell_c_sources_ %{^}
@@ -996,7 +918,7 @@ make install virtual
 			prev include/path.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make sh/path.c
@@ -1013,7 +935,7 @@ make install virtual
 			prev %{INCLUDE_AST}/ls.h
 			prev include/fcin.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		make data/builtins.c
@@ -1027,7 +949,7 @@ make install virtual
 			prev include/ulimit.h
 			prev include/shtable.h
 			prev include/defs.h
-			prev shopt.h
+			prev FEATURE/options
 		done
 
 		setv _libshell_c_sources_dyn_ %{^}
@@ -1080,7 +1002,7 @@ make install virtual
 				prev FEATURE/math
 				prev include/streval.h
 				prev %{INCLUDE_AST}/ast_standards.h
-				prev shopt.h
+				prev FEATURE/options
 			done
 			exec - %{compile} %{<}
 		done

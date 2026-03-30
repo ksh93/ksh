@@ -27,7 +27,7 @@
  *   Coded April 1983.
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<fault.h>
 #include	"FEATURE/time"

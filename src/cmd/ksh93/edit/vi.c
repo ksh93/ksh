@@ -27,7 +27,7 @@
  *		cbosgd!pds
 -*/
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 
 #if SHOPT_VSH

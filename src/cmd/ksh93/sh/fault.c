@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
 #include	"io.h"

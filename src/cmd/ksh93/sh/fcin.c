@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<sfio.h>
 #include	<error.h>

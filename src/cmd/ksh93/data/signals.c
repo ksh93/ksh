@@ -15,7 +15,7 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"jobs.h"
 

@@ -20,7 +20,7 @@
  * tables for the test builtin [[ ... ]] and [ ... ]
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	"defs.h"
 #include	"test.h"

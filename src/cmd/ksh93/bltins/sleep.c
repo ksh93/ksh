@@ -24,7 +24,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<tmx.h>
 #include	<ast_float.h>
