@@ -17,7 +17,7 @@
 *                                                                      *
 ***********************************************************************/
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<shell.h>
 #include	"shtable.h"

@@ -19,7 +19,7 @@
 ***********************************************************************/
 
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"shtable.h"
 #include	<signal.h>

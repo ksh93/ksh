@@ -26,7 +26,7 @@
  *  This is the parser for a shell language
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
 #include	<error.h>

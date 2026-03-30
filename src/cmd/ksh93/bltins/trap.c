@@ -28,7 +28,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"jobs.h"
 #include	"builtins.h"

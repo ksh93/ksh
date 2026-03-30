@@ -27,7 +27,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<pwd.h>
 #include	<tmx.h>

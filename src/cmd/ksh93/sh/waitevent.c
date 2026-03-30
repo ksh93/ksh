@@ -15,7 +15,7 @@
 *                                                                      *
 ***********************************************************************/
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 /*
  *  This installs a hook to allow the processing of events when

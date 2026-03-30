@@ -21,7 +21,7 @@
  * This file defines all the read/write shell global variables
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"jobs.h"
 #include	"shlex.h"

@@ -20,7 +20,7 @@
  * AT&T Labs
  *
  */
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"io.h"
 #include	"variables.h"

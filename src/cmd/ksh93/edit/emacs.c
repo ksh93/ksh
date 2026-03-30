@@ -53,7 +53,7 @@ One line screen editor for any program
  *		- ^X^D command to show any debugging info
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 
 #if SHOPT_ESH

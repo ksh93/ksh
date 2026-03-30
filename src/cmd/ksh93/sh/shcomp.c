@@ -23,7 +23,7 @@
  *
  */
 
-#include "shopt.h"
+#include "FEATURE/options"
 #include "version.h"
 
 static const char usage[] =

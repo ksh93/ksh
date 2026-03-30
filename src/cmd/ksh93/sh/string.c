@@ -20,7 +20,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<ast_wchar.h>
 #include	"defs.h"

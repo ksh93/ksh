@@ -19,7 +19,7 @@
  * data for string evaluator library
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast_standards.h>
 #include	"streval.h"
 

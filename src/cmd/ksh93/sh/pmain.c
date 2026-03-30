@@ -16,7 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<shell.h>
 #include	"FEATURE/externs"
 
