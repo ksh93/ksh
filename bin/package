@@ -125,7 +125,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-02-10 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-03-31 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -145,8 +145,9 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 [+?Note that no environment variables need be set by the user;
     \b'$command$'\b determines the environment based on the current working
     directory. The \buse\b action starts a \bsh\b(1) with the environment
-    initialized. \bCC\b, \bCCFLAGS\b, \bHOSTTYPE\b and \bSHELL\b may be set
-    by explicit command argument assignments to override the defaults.]
+    initialized. \bCC\b, \bCCFLAGS\b, \bHOSTTYPE\b, \bHOSTTAG\b and \bSHELL\b
+    may be set by explicit command argument assignments to override the
+    defaults.]
 [+?The command arguments are composed of a sequence of words: zero or
     more \aqualifiers\a, one \aaction\a, and zero or more action-specific
     \aarguments\a, and zero or more \aname=value\a definitions.
@@ -277,6 +278,13 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     shared libraries. All other architecture-dependent logic is handled
     either by the \bAST\b \biffe\b(1) command or by component-specific
     configure scripts.]
+[+?\b$HOSTTAG\b may contain a short string that, if present, will be added
+    to the detected \b$HOSTTYPE\b separated by a comma. This is useful to
+    maintain several object code directories for the same architecture (for
+    example, with different \bCCFLAGS\b or built from different \bgit\b(1)
+    branches) under \barch\b while still auto-detecting \b$HOSTTYPE\b.
+    The value must not contain whitespace or other shell-unsafe characters.
+    If \bHOSTTYPE\b is specified manually, \bHOSTTAG\b is ignored.]
 [+?Each component contains a \bMAM\b (make abstract machine)
     file (\bMamfile\b). A Mamfile contains a portable makefile description
     written in a simple dependency tree language using indented
@@ -406,9 +414,9 @@ DESCRIPTION
 
   Note that no environment variables need be set by the user; package
   determines the environment based on the current working directory. The use
-  action starts a sh(1) with the environment initialized. CC, CCFLAGS, HOSTTYPE
-  and SHELL may be set by explicit command argument assignments to override the
-  defaults.
+  action starts a sh(1) with the environment initialized. CC, CCFLAGS,
+  HOSTTYPE, HOSTTAG and SHELL may be set by explicit command argument
+  assignments to override the defaults.
 
   The command arguments are composed of a sequence of words: zero or more
   qualifiers, one action, and zero or more action-specific arguments, and zero
@@ -481,8 +489,8 @@ DESCRIPTION
           build is done in the $INSTALLROOT directory tree viewpathed on top of
           the $PACKAGEROOT directory tree. Leaf directory names matching the
           |-separated shell pattern $MAKESKIP are ignored. The view action is
-          done before making. option operands are passed to the underlying make
-          command.
+          done before making. option operands are passed to the underlying
+          mamake command.
     results [ failed ] [ path ] [ old ] [make | test | write ]
           List results and interesting messages captured by the most recent
           make (default), test or write action. old specifies the previous
@@ -527,6 +535,14 @@ DETAILS
   libraries. All other architecture-dependent logic is handled either by the
   AST iffe(1) command or by component-specific configure scripts.
 
+  $HOSTTAG may contain a short string that, if present, will be added to the
+  detected $HOSTTYPE separated by a comma. This is useful to maintain several
+  object code directories for the same architecture (for example, with
+  different CCFLAGS or built from different git(1) branches) under arch while
+  still auto-detecting $HOSTTYPE. The value must not contain whitespace or
+  other shell-unsafe characters. If HOSTTYPE is specified manually, HOSTTAG is
+  ignored.
+
   Each component contains a MAM (make abstract machine) file (Mamfile). A
   Mamfile contains a portable makefile description written in a simple
   dependency tree language using indented make...done blocks.
@@ -543,7 +559,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2026-02-10
+  version         package (ksh 93u+m) 2026-03-31
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -605,7 +621,8 @@ do	case $i in
 			assign="$assign $n=$vq"
 			eval "$n=\$v"
 			;;
-		CC)	eval "$n=\$v"
+		CC | HOSTTAG)
+			eval "$n=\$v"
 			;;
 		CCFLAGS)
 			eval "$n=\$v"
@@ -1544,6 +1561,11 @@ int b(void) { return 0; }
 	done
 	set -- $_hostinfo_
 	_hostinfo_=$*
+
+	# add host tag if given
+	case $HOSTTAG in
+	?*)	_hostinfo_=${_hostinfo_},$HOSTTAG ;;
+	esac
 
 	# restore the global state
 
