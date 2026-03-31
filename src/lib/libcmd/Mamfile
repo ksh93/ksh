@@ -360,7 +360,7 @@ make install virtual
 
 	loop DIR include/ast lib/lib lib/mam
 		make %{INSTALLROOT}/%{DIR}
-			exec - test -d %{@} && touch %{@} || mkdir -p %{@}
+			exec - mkdir -p %{@}
 		done
 	done
 	make %{INSTALLROOT}/lib/libcmd.a

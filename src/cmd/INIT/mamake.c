@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-26"
+#define RELEASE_DATE "2026-03-30"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -178,6 +178,7 @@ static const char usage[] =
 #define RULE_notrace	0x0100		/* do not xtrace shell action	*/
 #define RULE_updated	0x0200		/* rule was outdated and remade */
 #define RULE_preexisted	0x0400		/* the rule's target preexisted	*/
+#define RULE_force	0x0800		/* always run the shell action	*/
 
 #define STREAM_KEEP	0x0001		/* don't fclose() on pop()	*/
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
@@ -1335,7 +1336,7 @@ static char *find(Buf_t *buf, char *file, struct stat *st)
 }
 
 /*
- * bind r to a file and return the modify time
+ * bind r to a file
  */
 
 static void bindfile(Rule_t *r)
@@ -1474,9 +1475,13 @@ static void print_nice_hdr(Rule_t *r)
 		fname, r->line, r->endline, rnamepre, rname);
 	/* -e option */
 	if (state.explain)
+	{
 		fprintf(stderr, "# reason: target %s\n",
+			r->flags & RULE_virtual ? "is virtual" :
+			r->flags & RULE_force ? "is forced" :
 			r->flags & RULE_preexisted ? "older than prerequisites" :
-				r->flags & RULE_virtual ? "is virtual" : "not found");
+			"not found");
+	}
 }
 
 /*
@@ -1492,7 +1497,9 @@ static void check_shellaction(Rule_t *r, int e)
 		;
 	else if (status(NULL, 0, r->name, &fstat))	/* target file exists? */
 	{
-		if (fstat.st_mtime < r->origtime && (r->flags & (RULE_exists | RULE_dontcare)) == RULE_exists && state.strict >= 5)
+		char	existed = (r->flags & RULE_exists) && !(r->flags & RULE_dontcare);
+		char	notnew = fstat.st_mtime <= r->origtime && !(r->flags & RULE_force);
+		if (existed && notnew && S_ISREG(fstat.st_mode) && state.strict >= 5)
 			error_making(r, -2);		/* "target not updated" */
 		r->time = fstat.st_mtime;
 		r->flags |= RULE_exists;
@@ -1925,6 +1932,10 @@ static void attributes(Rule_t *r, char *s)
 			if (n == 7 && !strncmp(t, "notrace", n))
 				flag = RULE_notrace;
 			break;
+		case 'f':
+			if (n == 5 && !strncmp(t, "force", n))
+				flag = RULE_force;
+			break;
 		}
 		if (flag > 0)
 			r->flags |= flag;
@@ -2300,26 +2311,32 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				st.bg = st.bg->next;
 				free(prev);
 			}
-			if (st.cmd && state.active && (state.force || r->time < st.modtime || !r->time && !st.modtime))
+			if (state.active)
 			{
-				/* flag for -e */
-				if (r->time)
-					r->flags |= RULE_preexisted;
-				/* show a nice trace header */
-				if ((!PARALLEL(r) || state.chaos) && !(r->flags & RULE_error))
-					print_nice_hdr(r);
-				/* run the shell action */
-				run(r, use(st.cmd));
-				if (!r->pid)
-					propagate(r, NULL, &st.modtime);
-				r->flags |= RULE_updated;
-			}
-			else if (st.modtime > r->parenttime && r->flags & RULE_generated)
-			{
-				/* if we didn't generate the target in this run, but it's newer than the parent
-				 * target, then the generation of the parent target was probably interrupted
-				 * and then resumed in this run, so include this target in %{?} for consistency */
-				r->flags |= RULE_updated;
+				char	outdated;
+				outdated = r->time < st.modtime || !r->time && !st.modtime || state.force || r->flags & RULE_force;
+				s = st.cmd ? use(st.cmd) : NULL;
+				if (s && outdated)
+				{
+					/* flag for -e */
+					if (r->time)
+						r->flags |= RULE_preexisted;
+					/* show a nice trace header */
+					if ((!PARALLEL(r) || state.chaos) && !(r->flags & RULE_error))
+						print_nice_hdr(r);
+					/* run the shell action */
+					run(r, s);
+					if (!r->pid)
+						propagate(r, NULL, &st.modtime);
+					r->flags |= RULE_updated;
+				}
+				else if (st.modtime > r->parenttime && r->flags & RULE_generated)
+				{
+					/* if we didn't generate the target in this run, but it's newer than the parent
+					 * target, then the generation of the parent target was probably interrupted
+					 * and then resumed in this run, so include this target in %{?} for consistency */
+					r->flags |= RULE_updated;
+				}
 			}
 			r->flags |= RULE_made;
 			if (!(r->flags & (RULE_dontcare|RULE_error|RULE_exists|RULE_generated|RULE_virtual)))

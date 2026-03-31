@@ -13,7 +13,7 @@ note *
 make install virtual
 	loop DIR bin include/ast lib/lib lib/probe/C/make lib/probe/C/mam
 		make %{INSTALLROOT}/%{DIR}
-			exec - test -d %{@} && touch %{@} || mkdir -p %{@}
+			exec - mkdir -p %{@}
 		done
 	done
 
