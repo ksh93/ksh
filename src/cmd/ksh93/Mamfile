@@ -8,7 +8,7 @@ setv INSTALLROOT ../../..
 setv CC cc
 setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} -D_BLD_ksh %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?}
 setv CCFLAGS
-setv CCLDFLAGS %{-strip-symbols?1?%{mam_cc_LD_STRIP}??}
+setv CCLDFLAGS %{-strip-symbols?1?%{mam_cc_LD_STRIP}??} %{mam_cc_EXPORT_DYNAMIC}
 setv IFFEFLAGS
 setv LDFLAGS
 setv SH_DICT \"libshell\"
