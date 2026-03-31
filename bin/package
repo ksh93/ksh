@@ -1509,10 +1509,12 @@ int b(void) { return 0; }
 					file_result=$(file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g") || true
 					# Use od(1) to check the ELF header directly if file(1) failed
 					if test -z "$file_result" && test "$(uname -s | sed 's/-.*//')" != CYGWIN
-					then	elfbyte=$(( $(od -An -t x1 -j 4 -N 1 $tmp.a.exe) ))
-						if test "$elfbyte" = 2
+					then	elfbytes=$(od -A n -t x1 -N 5 $tmp.a.exe | tr -d ' 	\n')
+						if test "$elfbytes" = "7f454c4602"
 						then echo "ELF 64-bit"
-						else echo "ELF 32-bit"
+						elif test "$elfbytes" = "7f454c4601"
+						then echo "ELF 32-bit"
+						else echo "Unknown bits"
 						fi
 					else	echo "$file_result"
 					fi )
