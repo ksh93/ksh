@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,7 +15,9 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#ifndef NOTSYM
+#ifndef _SHLEX_H
+#define _SHLEX_H
+
 /*
  *	UNIX shell
  *	Written by David Korn
@@ -190,4 +192,4 @@ extern noreturn void 	sh_syntax(Lex_t*, int);
     extern unsigned long        kiaentity(Lex_t*, const char*,int,int,int,int,unsigned long,int,int,const char*);
 #endif /* SHOPT_KIA */
 
-#endif /* !NOTSYM */
+#endif /* !_SHLEX_H */

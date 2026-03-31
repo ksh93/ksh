@@ -49,7 +49,7 @@ tst	lib_mmap note{ standard mmap interface that works }end execute{
 		if ((fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0666)) < 0)
 			return 1;
 
-		for (i = 0; i < sizeof(buf); ++i)
+		for (i = 0; i < (int)sizeof(buf); ++i)
 			buf[i] = '0' + (i%10);
 		for (i = 0; i < WRITE; ++i)
 			if (write(fd,buf,sizeof(buf)) != sizeof(buf))
@@ -190,7 +190,7 @@ tst	note{ mmap is fast enough to be worth using }end output{
 		if ((fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0666)) < 0)
 			return 1;
 
-		for (i = 0; i < sizeof(buf); ++i)
+		for (i = 0; i < (int)sizeof(buf); ++i)
 			buf[i] = '0' + (i%10);
 		for (i = 0; i < WRITE; ++i)
 			if (write(fd,buf,sizeof(buf)) != sizeof(buf))

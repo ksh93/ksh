@@ -49,7 +49,7 @@
  *     may be temporarily turned off without turning off the option.
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<wait.h>
 #include	"io.h"
@@ -1419,6 +1419,9 @@ int	job_wait(pid_t pid)
 		else if((pw->p_flag&P_STOPPED) && pw->p_exit==SIGTSTP)
 		{
 			job.parent = 0;
+			/* make sure the main shell handles ^Z and is not suspended itself */
+			if(sh_isstate(SH_INTERACTIVE))
+				signal(SIGTSTP, sh.sigflag[SIGTSTP]&SH_SIGOFF ? SIG_IGN : sh_fault);
 			kill(sh.current_pid,SIGTSTP);
 		}
 	}

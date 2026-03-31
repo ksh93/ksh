@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef _national_h_defined
-#define _national_h_defined	1
+#ifndef _NATIONAL_H
+#define _NATIONAL_H
 
 #if SHOPT_MULTIBYTE
 #   ifndef MARKER
@@ -35,4 +35,4 @@
 extern int sh_strchr(const char*,const char*);
 extern int sh_strwidth(const char*);
 
-#endif /* _national_h_defined */
+#endif /* !_NATIONAL_H */

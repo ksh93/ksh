@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -27,7 +28,7 @@
 
 char* sfvprints(const char* form, va_list args)
 {
-	int		rv;
+	ssize_t		rv;
 	Sfnotify_f	notify = _Sfnotify;
 	static Sfio_t*	f;
 
@@ -45,7 +46,7 @@ char* sfvprints(const char* form, va_list args)
 	if(rv < 0 || sfputc(f,'\0') < 0)
 		return NULL;
 
-	_Sfi = (f->next - f->data) - 1;
+	_Sfi = (ssize_t)(f->next - f->data) - 1;
 	return (char*)f->data;
 }
 
@@ -62,7 +63,7 @@ char* sfprints(const char* form, ...)
 ssize_t sfvaprints(char** sp, const char* form, va_list args)
 {
 	char	*s;
-	ssize_t	n;
+	size_t	n;
 
 	if(!sp || !(s = sfvprints(form,args)) )
 		return -1;
@@ -70,13 +71,13 @@ ssize_t sfvaprints(char** sp, const char* form, va_list args)
 	{	if(!(*sp = (char*)malloc(n = strlen(s)+1)) )
 			return -1;
 		memcpy(*sp, s, n);
-		return n-1;
+		return (ssize_t)n-1;
 	}
 }
 
 ssize_t sfaprints(char** sp, const char* form, ...)
 {
-	ssize_t	n;
+	ssize_t n;
 	va_list	args;
 	va_start(args,form);
 	n = sfvaprints(sp, form, args);

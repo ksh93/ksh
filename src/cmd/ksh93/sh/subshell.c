@@ -25,7 +25,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<ls.h>
 #include	"io.h"
@@ -525,11 +525,12 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 {
 	struct subshell sub_data;
 	struct subshell *sp = &sub_data;
-	int jmpval,isig,nsig=0,fatalerror=0,saveerrno=0;
+	int n, jmpval, fatalerror = 0, saveerrno = 0;
 	unsigned int savecurenv = sh.curenv;
 	int savejobpgid = job.curpgid;
 	int *saveexitval = job.exitval;
 	char **savsig;
+	size_t nsig = 0;
 	Sfio_t *iop=0;
 	struct checkpt checkpoint;
 	struct sh_scoped savst;
@@ -597,7 +598,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		}
 		if(sp->pwdfd<0)
 		{
-			int n = sh_open(e_dot,O_SEARCH|O_cloexec);
+			n = sh_open(e_dot,O_SEARCH|O_cloexec);
 			if(n>=0)
 			{
 				sp->pwdfd = n;
@@ -618,33 +619,17 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 #endif /* _lib_openat */
 		sp->mask = sh.mask;
 		sh_stats(STAT_SUBSHELL);
-		/* save trap table */
-		sh.st.otrapcom = 0;
-		sh.st.otrap = savst.trap;
-		if((nsig=sh.st.trapmax)>0 || sh.st.trapcom[0])
-		{
-			savsig = sh_malloc(nsig * sizeof(char*));
-			/*
-			 * the data is, usually, modified in code like:
-			 *	tmp = buf[i]; buf[i] = sh_strdup(tmp); free(tmp);
-			 * so sh.st.trapcom needs a "deep copy" to properly save/restore pointers.
-			 */
-			for (isig = 0; isig < nsig; ++isig)
-			{
-				if(sh.st.trapcom[isig] == Empty)
-					savsig[isig] = Empty;
-				else if(sh.st.trapcom[isig])
-					savsig[isig] = sh_strdup(sh.st.trapcom[isig]);
-				else
-					savsig[isig] = NULL;
-			}
-			/* this is needed for var=$(trap) */
-			sh.st.otrapcom = (char**)savsig;
-		}
 		sp->cpid = sh.cpid;
 		sp->coutpipe = sh.coutpipe;
 		sp->cpipe = sh.cpipe[1];
 		sh.cpid = 0;
+		/* save trap table */
+		memset(sh.st.trapnofree, 0xFF, sizeof sh.st.trapnofree);
+		sh.st.otrap = savst.trap;
+		if((nsig = sh.st.trapmax * sizeof(char**)) > 0)
+			savsig = sh.st.otrapcom = memcpy(stkalloc(sh.stk, nsig), sh.st.trapcom, nsig);
+		else
+			sh.st.otrapcom = NULL;
 		if(sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
 			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
 		sh_sigreset(0);
@@ -679,13 +664,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sfswap(iop,sfstdout);
 			sfset(sfstdout,SFIO_READ,0);
 			sh.fdstatus[1] = IOWRITE;
-			flags |= sh_state(SH_NOFORK);
 		}
 		else if(sp->prev)
-		{
 			sp->pipe = sp->prev->pipe;
-			flags &= ~sh_state(SH_NOFORK);
-		}
+		flags |= sh_state(SH_NOFORK);
 		if(sh.savesig < 0)
 		{
 			sh.savesig = 0;
@@ -808,7 +790,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	sh.bckpid = sp->bckpid;
 	if(!sh.subshare)	/* restore environment if saved */
 	{
-		int n;
 		struct rand *rp;
 		sh.options = sp->options;
 		/* Clean up subshell hash table. */
@@ -865,13 +846,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sh.st = savst;
 		sh.st.otrap = 0;
 		if(nsig)
-		{
-			for (isig = 0; isig < nsig; ++isig)
-				if (sh.st.trapcom[isig] && sh.st.trapcom[isig]!=Empty)
-					free(sh.st.trapcom[isig]);
-			memcpy((char*)&sh.st.trapcom[0],savsig,nsig*sizeof(char*));
-			free(savsig);
-		}
+			memcpy(sh.st.trapcom, savsig, nsig);
 		sh.options = sp->options;
 #if _lib_openat
 		if(sh.pwdfd != sp->pwdfd)
@@ -960,10 +935,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	}
 	sh_sigcheck();
 	sh.trapnote = 0;
-	nsig = sh.savesig;
+	n = sh.savesig;
 	sh.savesig = 0;
-	if(nsig>0)
-		kill(sh.current_pid,nsig);
+	if(n > 0)
+		kill(sh.current_pid, n);
 	if(sp->subpid)
 		job_wait(sp->subpid);
 	sh.comsub = sp->comsub;

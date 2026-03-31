@@ -16,7 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	"lexstates.h"
 

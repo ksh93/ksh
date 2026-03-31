@@ -24,7 +24,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
 #include	"variables.h"
@@ -591,7 +591,6 @@ int sh_eval(Sfio_t *iop, int mode)
 		sfclose(io_save);
 		io_save = 0;
 	}
-
 	sh_freeup();
 	sh.st.staklist = saveslp;
 	if(jmpval>SH_JMPEVAL)
@@ -1719,22 +1718,21 @@ int sh_exec(const Shnode_t *t, int flags)
 			flags &= ~ARG_OPTIMIZE;
 			if(!sh.subshell && !sh.st.trapdontexec && (flags&sh_state(SH_NOFORK)))
 			{
-				/* This is the last command, so avoid creating a subshell */
-				char *savsig;
-				int nsig,jmpval;
+				/* This is the last command, so avoid creating a subshell, but still act like one */
+				size_t nsig;
+				int jmpval;
 				struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
-				sh.st.otrapcom = 0;
-				if((nsig=sh.st.trapmax*sizeof(char*))>0 || sh.st.trapcom[0])
-				{
-					nsig += sizeof(char*);
-					savsig = sh_malloc(nsig);
-					memcpy(savsig,(char*)&sh.st.trapcom[0],nsig);
-					sh.st.otrapcom = (char**)savsig;
-				}
-				/* Still act like a subshell: reseed $RANDOM and increment ${.sh.subshell} */
+				/* Save traps for printing, then reset them */
+				memset(sh.st.trapnofree, 0xFF, sizeof sh.st.trapnofree);
+				if ((nsig = sh.st.trapmax * sizeof(char*)) > 0)
+					sh.st.otrapcom = memcpy(stkalloc(sh.stk, nsig), sh.st.trapcom, nsig);
+				else
+					sh.st.otrapcom = NULL;
+				sh_sigreset(0);
+				/* Reseed $RANDOM and increment ${.sh.subshell} */
 				sh_invalidate_rand_seed();
 				sh.realsubshell++;
-				sh_sigreset(0);
+				/* Execute the last command and exit normally, except for SH_JMPSCRIPT */
 				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval==0)
@@ -1744,8 +1742,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					siglongjmp(*sh.jmplist,jmpval);
 				sh_done(0);
 			}
-			else
-				sh_subshell(t->par.partre,flags,0);
+			sh_subshell(t->par.partre,flags,0);
 			break;
 
 		    /*
@@ -1867,7 +1864,6 @@ int sh_exec(const Shnode_t *t, int flags)
 		     * List of semicolon-separated commands
 		     */
 		    case TLST:
-		    {
 			do
 			{
 				sh_exec(t->lst.lstlef,errorflg|(flags & ARG_OPTIMIZE));
@@ -1876,7 +1872,6 @@ int sh_exec(const Shnode_t *t, int flags)
 			while(t->tre.tretyp == TLST);
 			sh_exec(t,flags);
 			break;
-		    }
 
 		    /*
 		     * Logical and: command && command
@@ -2901,16 +2896,16 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
 int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 {
 	char			*trap;
-	int			nsig;
 	struct dolnod		*argsav=0,*saveargfor;
 	struct sh_scoped	*savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	struct sh_scoped	*prevscope = sh.st.self;
 	struct argnod		*envlist=0;
-	int			isig,jmpval;
+	int			jmpval;
 	volatile int		r = 0;
 	int			posix_fun = 0, save_loopcnt = sh.st.loopcnt;
 	char			save_invoc_local;
 	char 			**savsig;
+	size_t			nsig;
 	struct funenv		*fp = 0;
 	struct checkpt		*buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 	Namval_t		*nspace = sh.namespace;
@@ -2988,24 +2983,9 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		}
 		sh.st.cmdname = argv[0];
 		/* save trap table */
-		if((nsig=sh.st.trapmax)>0 || sh.st.trapcom[0])
-		{
-			savsig = sh_malloc((size_t)nsig * sizeof(char*));
-			/*
-			 * the data is, usually, modified in code like:
-			 *	tmp = buf[i]; buf[i] = sh_strdup(tmp); free(tmp);
-			 * so sh.st.trapcom needs a "deep copy" to properly save/restore pointers.
-			 */
-			for (isig = 0; isig < nsig; ++isig)
-			{
-				if(sh.st.trapcom[isig] == Empty)
-					savsig[isig] = Empty;
-				else if(sh.st.trapcom[isig])
-					savsig[isig] = sh_strdup(sh.st.trapcom[isig]);
-				else
-					savsig[isig] = NULL;
-			}
-		}
+		memset(sh.st.trapnofree, 0xFF, sizeof sh.st.trapnofree);
+		if((nsig = sh.st.trapmax * sizeof(char**)) > 0)
+			savsig = memcpy(stkalloc(sh.stk, nsig), sh.st.trapcom, nsig);
 		if(!fun && sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
 			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
 		sh_sigreset(-1);
@@ -3120,13 +3100,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh.topscope = (Shscope_t*)prevscope;
 	nv_getval(sh_scoped(IFSNOD));
 	if(nsig)
-	{
-		for (isig = 0; isig < nsig; ++isig)
-			if (sh.st.trapcom[isig] && sh.st.trapcom[isig]!=Empty)
-				free(sh.st.trapcom[isig]);
-		memcpy((char*)&sh.st.trapcom[0],savsig,nsig*sizeof(char*));
-		free(savsig);
-	}
+		memcpy(sh.st.trapcom, savsig, nsig);
 	sh.trapnote=0;
 	sh.options = save_options;
 	sh.last_root = last_root;

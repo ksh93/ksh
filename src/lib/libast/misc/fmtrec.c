@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -39,13 +40,13 @@ fmtrec(Recfmt_t f, int fs)
 	{
 	case REC_delimited:
 		*s++ = 'd';
-		if ((del[0] = REC_D_DELIMITER(f)) != '\n')
+		if ((del[0] = (char)(REC_D_DELIMITER(f))) != '\n')
 		{
 			del[1] = 0;
 			if (fs)
-				sfsprintf(s, e - s, "0x%02x", *(unsigned char*)del);
+				sfsprintf(s, (size_t)(e - s), "0x%02x", *(unsigned char*)del);
 			else
-				sfsprintf(s, e - s, "%s", fmtquote(del, NULL, NULL, 1, 0));
+				sfsprintf(s, (size_t)(e - s), "%s", fmtquote(del, NULL, NULL, 1, 0));
 		}
 		else
 			*s = 0;
@@ -53,18 +54,18 @@ fmtrec(Recfmt_t f, int fs)
 	case REC_fixed:
 		if (!fs)
 			*s++ = 'f';
-		sfsprintf(s, e - s, "%lu", REC_F_SIZE(f));
+		sfsprintf(s, (size_t)(e - s), "%lu", REC_F_SIZE(f));
 		break;
 	case REC_variable:
 		*s++ = 'v';
 		if (n = REC_V_SIZE(f))
-			s += sfsprintf(s, e - s, "%lu", n);
+			s += sfsprintf(s, (size_t)(e - s), "%lu", n);
 		if (REC_V_HEADER(f) != 4)
-			s += sfsprintf(s, e - s, "h%u", REC_V_HEADER(f));
+			s += sfsprintf(s, (size_t)(e - s), "h%u", REC_V_HEADER(f));
 		if (REC_V_OFFSET(f) != 0)
-			s += sfsprintf(s, e - s, "o%u", REC_V_OFFSET(f));
+			s += sfsprintf(s, (size_t)(e - s), "o%u", REC_V_OFFSET(f));
 		if (REC_V_LENGTH(f) != 2)
-			s += sfsprintf(s, e - s, "z%u", REC_V_LENGTH(f));
+			s += sfsprintf(s, (size_t)(e - s), "z%u", REC_V_LENGTH(f));
 		if (REC_V_LITTLE(f) != 0)
 			*s++ = 'l';
 		if (REC_V_INCLUSIVE(f) == 0)
@@ -76,13 +77,13 @@ fmtrec(Recfmt_t f, int fs)
 		switch (n = REC_M_INDEX(f))
 		{
 		case REC_M_data:
-			sfsprintf(s, e - s, "data");
+			sfsprintf(s, (size_t)(e - s), "data");
 			break;
 		case REC_M_path:
-			sfsprintf(s, e - s, "path");
+			sfsprintf(s, (size_t)(e - s), "path");
 			break;
 		default:
-			sfsprintf(s, e - s, "%lu", n);
+			sfsprintf(s, (size_t)(e - s), "%lu", n);
 			break;
 		}
 		break;
@@ -91,7 +92,7 @@ fmtrec(Recfmt_t f, int fs)
 		*s = 0;
 		break;
 	default:
-		sfsprintf(s, e - s, "u%u.0x%07x", RECTYPE(f), REC_U_ATTRIBUTES(f));
+		sfsprintf(s, (size_t)(e - s), "u%u.0x%07x", RECTYPE(f), REC_U_ATTRIBUTES(f));
 		break;
 	}
 	return b;

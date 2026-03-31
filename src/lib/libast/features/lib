@@ -3,8 +3,8 @@ ref	-D_def_map_ast=1
 cmd	universe
 
 sys	mman
-hdr	fcntl,dirent,direntry,filio,fmtmsg,fnmatch,jioctl,libgen,limits
-hdr	locale,ndir,nl_types,process,spawn,utime
+hdr	fcntl,dirent,direntry,filio,fnmatch,jioctl,libgen,limits
+hdr	execinfo,locale,ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs
 hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
@@ -16,7 +16,7 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 	main(void)
 	{
 		wchar_t	w = 'a';
-		return iswalnum(w) == 0;
+		return iswalnum((wint_t)w) == 0;
 	}
 }end
 
@@ -24,8 +24,8 @@ dat	_tzname,tzname
 
 lib	BSDsetpgrp
 lib	_cleanup
-lib	bcopy,bzero,confstr,dirread
-lib	fchmod,fcntl,fmtmsg,fnmatch,fork,fsync
+lib	backtrace,backtrace_symbols,bcopy,bzero,confstr,dirread
+lib	fchmod,fcntl,fnmatch,fork,fsync
 lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
@@ -150,9 +150,9 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 	int
 	main(int argc, char **argv)
 	{
-		char*			s;
 		pid_t			pid;
 		posix_spawnattr_t	attr;
+		size_t			len;
 		int			n;
 		int			status;
 		char*			cmd[3];
@@ -196,17 +196,17 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 			_exit(0);
 		}
 		/* must return exec-type errors or it's useless to us *unless* there is no [v]fork() */
-		n = strlen(cmd[0]);
-		if (n >= (sizeof(tmp) - 3))
+		len = strlen(cmd[0]);
+		if (len >= (sizeof(tmp) - 3))
 		{
 			NOTE("test executable path too long");
 			_exit(0);
 		}
 		strcpy(tmp, cmd[0]);
-		tmp[n] = '.';
-		tmp[n+1] = 's';
-		tmp[n+2] = 'h';
-		tmp[n+3] = 0;
+		tmp[len] = '.';
+		tmp[len+1] = 's';
+		tmp[len+2] = 'h';
+		tmp[len+3] = 0;
 		if ((n = open(tmp, O_CREAT|O_WRONLY, S_IRWXU|S_IRWXG|S_IRWXO)) < 0 ||
 		    chmod(tmp, S_IRWXU|S_IRWXG|S_IRWXO) < 0 ||
 		    write(n, "exit 99\n", 8) != 8 ||
@@ -297,17 +297,17 @@ tst	socket_peek note{ recv(MSG_PEEK) works on socketpair() }end execute{
 	int
 	main(void)
 	{
-		int		i;
-		int		fds[2];
-		char		buf[128];
-
-		static char	msg[] = "abcd";
-
 	#ifdef __HAIKU__
 		/* On Haiku this test will either fail (without additional LDFLAGS),
 		   or with -lnetwork it will lock up. */
 		return 1;
 	#else
+		size_t		i;
+		int		fds[2];
+		char		buf[128];
+
+		static char	msg[] = "abcd";
+
 		if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds))
 			return 1;
 		if (write(fds[1], msg, sizeof(msg)) != sizeof(msg))

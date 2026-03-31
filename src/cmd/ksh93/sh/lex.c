@@ -25,7 +25,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<fcin.h>
 #include	<nval.h>

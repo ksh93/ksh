@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -260,14 +260,14 @@ mntopen(const char* path, const char* mode)
 #if _lib_getfsstat
 	if ((n = getfsstat(NULL, 0, MNT_WAIT)) <= 0)
 		return NULL;
-	n = (n - 1) * sizeof(struct statfs);
+	n = (n - 1) * (int)sizeof(struct statfs);
 #else
 	n = 0;
 #endif
-	if (!(mp = newof(0, Handle_t, 1, n)))
+	if (!(mp = newof(0, Handle_t, 1, (size_t)n)))
 		return NULL;
 #if _lib_getfsstat
-	n = getfsstat(mp->next = mp->buf, n + sizeof(struct statfs), MNT_WAIT);
+	n = getfsstat(mp->next = mp->buf, (size_t)n + sizeof(struct statfs), MNT_WAIT);
 #else
 	n = getmntinfo(&mp->next, 0);
 #endif
@@ -284,8 +284,8 @@ Mnt_t*
 mntread(void* handle)
 {
 	Handle_t*	mp = (Handle_t*)handle;
-	int		i;
-	int		n;
+	size_t		i;
+	ssize_t		n;
 	unsigned long	flags;
 
 	if (mp->next < mp->last)
@@ -294,7 +294,7 @@ mntread(void* handle)
 		n = 0;
 		for (i = 0; i < elementsof(options); i++)
 			if (flags & options[i].flag)
-				n += sfsprintf(mp->opt + n, sizeof(mp->opt) - n - 1, ",%s", options[i].name);
+				n += sfsprintf(mp->opt + n, sizeof(mp->opt) - (size_t)n - 1, ",%s", options[i].name);
 		set(&mp->hdr, mp->next->f_mntfromname, mp->next->f_mntonname, TYPE(mp->next), n ? (mp->opt + 1) : NULL);
 		mp->next++;
 		return &mp->hdr.mnt;
@@ -749,7 +749,7 @@ mntread(void* handle)
 		goto again;
 	default:
 		if (s < m)
-			*s++ = c;
+			*s++ = (char)c;
 		break;
 	}
 

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -397,14 +397,7 @@ yes() for ((;;)); do print y; done
 # The test for SIGBUS trap handling below is incompatible with ASan because ASan
 # implements its own SIGBUS handler independently of ksh.
 # Also, Android does not allow ignoring SIGBUS.
-check_asan() {
-	# Skip test when the binary was compiled with ASAN or is gathering profiling data
-	[[ -v ASAN_OPTIONS || -v TSAN_OPTIONS || -v MSAN_OPTIONS || -v LSAN_OPTIONS ]] && return 0
-	! whence -q readelf && return 1
-	[[ -n $(readelf -s "$SHELL" | grep -E "_asan_") ]] && return 0
-	return 1
-}
-if ! check_asan && ! [[ $HOSTTYPE == android.* ]]; then
+if ! ((SHELL_ASAN)) && ! [[ $HOSTTYPE == android.* ]]; then
 	trap '' SIGBUS
 	got=$("$SHELL" -c 'trap date SIGBUS; trap -p SIGBUS')
 	[[ "$got" ]] && err_exit 'SIGBUS should not have a trap' \
@@ -631,18 +624,10 @@ do	for cmd in kill $(whence -p kill)
 	done
 done
 
-# ======
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
-
-wait "$parallel_1"
-r=$(< parallel_1.err) || exit 125
-eval "$r"
-
+wait "$parallel_1"; r=$(< parallel_1.err) || exit 125; eval "$r"
 wait "$parallel_2" || err_exit "'trap - INT' causing trap to not be ignored"
+wait "$parallel_3"; r=$(< parallel_3.err) || exit 125; eval "$r"
 
-wait "$parallel_3"
-r=$(< parallel_3.err) || exit 125
-eval "$r"
-
-# ======
 exit $((Errors<125?Errors:125))

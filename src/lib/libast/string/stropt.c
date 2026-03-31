@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -125,23 +126,23 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 				{
 					if (c == '\\')
 					{
-						*t++ = chresc(s - 1, &e);
+						*t++ = (char)chresc(s - 1, &e);
 						s = e;
 					}
 					else if (c == qr)
 					{
 						if (qr != ql)
-							*t++ = c;
+							*t++ = (char)c;
 						if (--qc <= 0)
 							qr = ql = 0;
 					}
 					else if (c == ql)
 					{
-						*t++ = c;
+						*t++ = (char)c;
 						qc++;
 					}
 					else if (qr)
-						*t++ = c;
+						*t++ = (char)c;
 					else if (c == ',' || isspace(c))
 						break;
 					else if (c == '"' || c == '\'')
@@ -151,7 +152,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 					}
 					else
 					{
-						*t++ = c;
+						*t++ = (char)c;
 						if (c == '{')
 						{
 							ql = c;
@@ -174,7 +175,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 				c = *s;
 				*s++ = 0;
 			}
-			n = p ? (*f)(a, p, n, v) : (*f)(a, p, v - u, u);
+			n = p ? (*f)(a, p, n, v) : (*f)(a, p, (int)(v - u), u);
 			if (n || !c)
 				break;
 		}

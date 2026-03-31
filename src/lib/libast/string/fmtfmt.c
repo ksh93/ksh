@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -47,15 +48,15 @@ fmtfmt(const char* as)
 {
 	char*		s = (char*)as;
 	char*		buf;
-	int		i;
 	int		c;
 	int		a;
 	int		q;
 	int		x;
 	int		t;
-	int		m;
 	int		n;
-	int		z;
+	ssize_t		i;
+	ssize_t		m;
+	ssize_t		z;
 	char		formats[256];
 	unsigned int	extra[elementsof(formats)];
 
@@ -175,10 +176,10 @@ fmtfmt(const char* as)
 				i = a;
 			else
 				i++;
-			if (i < elementsof(formats))
+			if (i < (ssize_t)elementsof(formats))
 			{
-				formats[i] = t;
-				if (extra[i] = x)
+				formats[i] = (char)t;
+				if (extra[i] = (unsigned)x)
 					do z++; while (x /= 10);
 				if (m < i)
 					m = i;
@@ -189,7 +190,7 @@ fmtfmt(const char* as)
 		}
 		break;
 	}
-	s = buf = fmtbuf(m + z);
+	s = buf = fmtbuf((size_t)(m + z));
 	for (i = 1; i <= m; i++)
 	{
 		if (extra[i])

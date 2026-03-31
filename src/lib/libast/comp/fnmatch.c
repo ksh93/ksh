@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -44,28 +45,29 @@ static const Map_t	map[] =
 extern int
 fnmatch(const char* pattern, const char* subject, int flags)
 {
-	int			reflags = REG_SHELL|REG_LEFT;
+	regflags_t		reflags = REG_SHELL|REG_LEFT;
 	const Map_t*		mp;
 	regex_t			re;
 	regmatch_t		match;
+	int			ret;
 
 	for (mp = map; mp < &map[elementsof(map)]; mp++)
 		if (flags & mp->fnm)
-			reflags |= mp->reg;
+			reflags |= (regflags_t)mp->reg;
 	if (flags & FNM_LEADING_DIR)
 	{
-		if (!(reflags = regcomp(&re, pattern, reflags)))
+		if (!(ret = regcomp(&re, pattern, reflags)))
 		{
-			reflags = regexec(&re, subject, 1, &match, 0);
+			ret = regexec(&re, subject, 1, &match, 0);
 			regfree(&re);
-			if (!reflags && (reflags = subject[match.rm_eo]))
-				reflags = reflags == '/' ? 0 : FNM_NOMATCH;
+			if (!ret && (ret = subject[match.rm_eo]))
+				ret = ret == '/' ? 0 : FNM_NOMATCH;
 		}
 	}
-	else if (!(reflags = regcomp(&re, pattern, reflags|REG_RIGHT)))
+	else if (!(ret = regcomp(&re, pattern, reflags|REG_RIGHT)))
 	{
-		reflags = regexec(&re, subject, 0, NULL, 0);
+		ret = regexec(&re, subject, 0, NULL, 0);
 		regfree(&re);
 	}
-	return reflags;
+	return ret;
 }

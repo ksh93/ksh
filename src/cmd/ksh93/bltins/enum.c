@@ -15,7 +15,7 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 
 #define ENUM_ID "enum (ksh 93u+m) 2024-11-28"

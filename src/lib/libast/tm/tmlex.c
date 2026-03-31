@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -49,7 +50,7 @@ tmlex(const char* s, char** e, char** tab, int ntab, char** suf, int nsuf)
 
 	for (p = tab, n = ntab; n-- && (x = *p); p++)
 		if (*x && *x != '%' && tmword(s, e, x, suf, nsuf))
-			return p - tab;
+			return (int)(p - tab);
 	if (tm_info.format != tm_data.format && tab >= tm_info.format && tab < tm_info.format + TM_NFORM)
 	{
 		tab = tm_data.format + (tab - tm_info.format);
@@ -57,7 +58,7 @@ tmlex(const char* s, char** e, char** tab, int ntab, char** suf, int nsuf)
 			suf = tm_data.format + (suf - tm_info.format);
 		for (p = tab, n = ntab; n-- && (x = *p); p++)
 			if (*x && *x != '%' && tmword(s, e, x, suf, nsuf))
-				return p - tab;
+				return (int)(p - tab);
 	}
 	return -1;
 }

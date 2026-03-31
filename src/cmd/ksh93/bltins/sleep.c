@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -24,7 +24,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<tmx.h>
 #include	<ast_float.h>
@@ -37,7 +37,6 @@ int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 	char *cp;
 	double d=0;
 	int sflag=0;
-	time_t tloc = 0;
 	char *last;
 	NOT_USED(context);
 	if(!(sh.sigflag[SIGALRM]&(SH_SIGFAULT|SH_SIGOFF)))
@@ -110,26 +109,11 @@ skip:
 		errormsg(SH_DICT,ERROR_exit(1),e_oneoperand);
 		UNREACHABLE();
 	}
-	if(d > .10)
-	{
-		time(&tloc);
-		tloc += (time_t)(d+.5);
-	}
 	if(sflag && d==0)
 		pause();  /* 'sleep -s' waits until a signal is sent */
-	else while(1)
-	{
-		time_t now;
-		errno = 0;
-		sh.lastsig=0;
+	else
 		sh_delay(d,sflag);
-		if(sflag || tloc==0 || errno!=EINTR || sh.lastsig)
-			break;
-		sh_sigcheck();
-		if(tloc < (now=time(NULL)))
-			break;
-		d = (double)(tloc-now);
-	}
+	sh_sigcheck();
 	return 0;
 }
 
@@ -174,7 +158,7 @@ void sh_delay(double t, int sflag)
 		ts = tx;
 	}
 #if __APPLE__ && __MACH__
-	if (sh_isstate(SH_INTERACTIVE))
-		signal(SIGTSTP,SIG_DFL);
+	if (sh_isstate(SH_INTERACTIVE) && !(sh.sigflag[SIGTSTP] & SH_SIGOFF))
+		signal(SIGTSTP,sh_fault);
 #endif
 }

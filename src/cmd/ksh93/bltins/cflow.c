@@ -27,7 +27,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<ast.h>
 #include	<error.h>

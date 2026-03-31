@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -38,8 +39,7 @@
 typedef int (*Sf_key_lookup_t)(void*, Sffmt_t*, const char*, char**, Sflong_t*);
 typedef char* (*Sf_key_convert_t)(void*, Sffmt_t*, const char*, char*, Sflong_t);
 
-extern int		sfkeyprintf(Sfio_t*, void*, const char*, Sf_key_lookup_t, Sf_key_convert_t);
-extern int		sfkeyprintf_20000308(Sfio_t*, void*, const char*, Sf_key_lookup_t, Sf_key_convert_t);
+extern ssize_t		sfkeyprintf(Sfio_t*, void*, const char*, Sf_key_lookup_t, Sf_key_convert_t);
 
 /*
  * pure sfio read and/or write disciplines

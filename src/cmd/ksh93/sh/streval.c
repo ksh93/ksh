@@ -27,7 +27,7 @@
  *	 and has a separate executor
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"streval.h"
 #include	<ctype.h>
 #include	<error.h>

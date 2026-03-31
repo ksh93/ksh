@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -91,12 +91,12 @@ fmtquote(const char* as, const char* qb, const char* qe, size_t n, int flags)
 		{
 #if _hdr_wchar && _hdr_wctype
 			c = mbchar(s);
-			if (!spaced && !escaped && (iswspace(c) || iswcntrl(c)))
+			if (!spaced && !escaped && (iswspace((wint_t)c) || iswcntrl((wint_t)c)))
 				spaced = 1;
 			s -= m;
 #endif
 			while (m--)
-				*b++ = *s++;
+				*b++ = (char)*s++;
 		}
 		else
 		{
@@ -176,8 +176,8 @@ fmtquote(const char* as, const char* qb, const char* qe, size_t n, int flags)
 					{
 						escaped = 1;
 						*b++ = '\'';
-						*b++ = c;
-						*b++ = *s++;
+						*b++ = (char)c;
+						*b++ = (char)*s++;
 						if (shell)
 						{
 							spaced = 1;
@@ -188,7 +188,7 @@ fmtquote(const char* as, const char* qb, const char* qe, size_t n, int flags)
 					else
 					{
 						escaped = 1;
-						*b++ = c;
+						*b++ = (char)c;
 						c = *s++;
 					}
 				}

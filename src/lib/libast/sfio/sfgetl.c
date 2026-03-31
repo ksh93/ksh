@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -27,7 +28,7 @@ Sflong_t sfgetl(Sfio_t* f)
 {
 	Sflong_t	v;
 	uchar		*s, *ends, c;
-	int		p;
+	ptrdiff_t	p;
 
 	if(!f || (f->mode != SFIO_READ && _sfmode(f,SFIO_READ,0) < 0))
 		return (Sflong_t)(-1);
@@ -42,10 +43,10 @@ Sflong_t sfgetl(Sfio_t* f)
 		for(ends = s+p; s < ends;)
 		{	c = *s++;
 			if(c&SFIO_MORE)
-				v = ((Sfulong_t)v << SFIO_UBITS) | SFUVALUE(c);
+				v = (Sflong_t)(((Sfulong_t)v << SFIO_UBITS) | SFUVALUE(c));
 			else
 			{	/* special translation for this byte */
-				v = ((Sfulong_t)v << SFIO_SBITS) | SFSVALUE(c);
+				v = (Sflong_t)(((Sfulong_t)v << SFIO_SBITS) | SFSVALUE(c));
 				f->next = s;
 				v = (c&SFIO_SIGN) ? -v-1 : v;
 				goto done;

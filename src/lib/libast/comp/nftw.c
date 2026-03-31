@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -37,11 +38,11 @@ nftw_user(Ftw_t* ftw)
 		n = FTW_DNR;
 	else if ((n & FTW_SL) && (!(nftw_flags & FTW_PHYSICAL) || stat(ftw->path, &st)))
 		n = FTW_SLN;
-	nftw.base = ftw->pathlen - ftw->namelen;
-	nftw.level = ftw->level;
+	nftw.base = (int)(ftw->pathlen - ftw->namelen);
+	nftw.level = (int)ftw->level;
 	nftw.quit = 0;
 	n = (*nftw_userf)(ftw->path, &ftw->statb, n, &nftw);
-	ftw->status = nftw.quit;
+	ftw->status = (short)nftw.quit;
 	return n;
 }
 

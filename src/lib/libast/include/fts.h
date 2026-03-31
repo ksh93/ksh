@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -139,6 +139,16 @@ struct Fts
 #endif
 
 };
+
+/* avoid link-time conflicts with (at least) AddressSanitizer fts interceptors on FreeBSD */
+#define fts_children	_ast_fts_children
+#define fts_close	_ast_fts_close
+#define fts_flags	_ast_fts_flags
+#define fts_local	_ast_fts_local
+#define fts_notify	_ast_fts_notify
+#define fts_open	_ast_fts_open
+#define fts_read	_ast_fts_read
+#define fts_set		_ast_fts_set
 
 extern FTSENT*	fts_children(FTS*, int);
 extern int	fts_close(FTS*);

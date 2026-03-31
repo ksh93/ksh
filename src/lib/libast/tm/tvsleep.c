@@ -33,8 +33,6 @@
 #  else
 #   include <sys/socket.h>
 #  endif
-# elif _lib_poll_notimer
-#  undef _lib_poll
 # elif _lib_poll
 #  include <poll.h>
 # endif
@@ -72,7 +70,7 @@ do_sleep(const Tv_t* tv, Tv_t* rv)
 	if ((r = nanosleep(&stv, &srv)) && errno == EINTR && rv)
 	{
 		rv->tv_sec = srv.tv_sec;
-		rv->tv_nsec = srv.tv_nsec;
+		rv->tv_nsec = (uint32_t)srv.tv_nsec;
 	}
 	return r;
 }
@@ -157,7 +155,6 @@ do_sleep_precision(const Tv_t* tv)
 		++tvSleep.tv_usec;
 	(void)select(0, NULL, NULL, NULL, &tvSleep);
 }
-
 
 #  elif _lib_poll
 

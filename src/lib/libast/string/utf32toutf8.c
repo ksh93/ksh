@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -51,7 +51,7 @@ static const Utf8_t	ops[] =
 size_t
 utf32toutf8(char* s, uint32_t w)
 {
-	int	i;
+	size_t	i;
 	char*	b;
 	char	tmp[UTF8_LEN_MAX];
 
@@ -62,20 +62,20 @@ utf32toutf8(char* s, uint32_t w)
 		if (w < ops[i].range)
 		{
 			b = s;
-			*s++ = ops[i].prefix | (w >> ops[i].shift);
+			*s++ = (char)(ops[i].prefix | (w >> ops[i].shift));
 			switch (ops[i].shift)
 			{
-			case 30: *s++ = 0x80 | ((w >> 24) & 0x3f);
+			case 30: *s++ = (char)(0x80 | ((w >> 24) & 0x3f));
 				 /* FALLTHROUGH */
-			case 24: *s++ = 0x80 | ((w >> 18) & 0x3f);
+			case 24: *s++ = (char)(0x80 | ((w >> 18) & 0x3f));
 				 /* FALLTHROUGH */
-			case 18: *s++ = 0x80 | ((w >> 12) & 0x3f);
+			case 18: *s++ = (char)(0x80 | ((w >> 12) & 0x3f));
 				 /* FALLTHROUGH */
-			case 12: *s++ = 0x80 | ((w >>  6) & 0x3f);
+			case 12: *s++ = (char)(0x80 | ((w >>  6) & 0x3f));
 				 /* FALLTHROUGH */
-			case  6: *s++ = 0x80 | (w & 0x3f);
+			case  6: *s++ = (char)(0x80 | (w & 0x3f));
 			}
-			return s - b;
+			return (size_t)(s - b);
 		}
 	}
 	return 0;

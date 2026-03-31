@@ -1794,7 +1794,12 @@ got=$(unset IFS; printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "
 exp=$'end: <one\ntwo\nthree>'
 [[ $got == "$exp" ]] || err_exit "issue 926 r10 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# ====== MUST BE AT END ======
+# ======
+got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
+(( (e = $?) <= 128 )) || err_exit "crash passing multibyte character option" \
+	"(got exit status $e/SIG$(kill -l "$e"), output $(printf %q "$got"))"
+
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"
 case $? in
@@ -1810,4 +1815,5 @@ case $? in
 15)	err_exit "read -t in pipe not taking long enough" ;;
 *)	err_exit "broken test" ;;
 esac
+
 exit $((Errors<125?Errors:125))

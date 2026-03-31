@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -33,11 +34,11 @@ char*
 hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 {
 	Hash_bucket_t*	b;
-	unsigned int	n;
+	size_t		n;
 	Hash_last_t*	last;
 	Hash_table_t*	top;
 	Hash_bucket_t*	prev;
-	unsigned int	i;
+	size_t		i;
 
 	if ((flags & (HASH_LOOKUP|HASH_INTERNAL)) == (HASH_LOOKUP|HASH_INTERNAL))
 	{
@@ -50,7 +51,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 		{
 			s2 = name;
 			n = 0;
-			while (c = *s2++) HASHPART(n, c);
+			while (c = *s2++) HASHPART(n, (size_t)c);
 		}
 		i = n;
 		for (;;)
@@ -162,7 +163,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 				value = 0;
 				if (tab == top || (flags & HASH_SCOPE))
 				{
-					if (flags & HASH_OPAQUE) b->hash &= ~HASH_OPAQUED;
+					if (flags & HASH_OPAQUE) b->hash &= (unsigned long)~HASH_OPAQUED;
 					else if (!(tab->root->flags & HASH_BUCKET))
 					{
 						if (tab->root->local->free && b->value)
@@ -209,7 +210,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 				}
 				else
 				{
-					int	m;
+					size_t	m;
 					char*	t;
 
 					if (!(i = tab->bucketsize))
@@ -231,7 +232,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 				}
 				if (name && (b->hash & HASH_FREENAME))
 				{
-					b->hash &= ~HASH_FREENAME;
+					b->hash &= (unsigned long)~HASH_FREENAME;
 					if (tab->root->local->region) (*tab->root->local->region)(tab->root->local->handle, (char*)name, 0, 0);
 					else free((void*)name);
 				}
@@ -279,7 +280,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 	}
 	else
 	{
-		int	m = tab->bucketsize * sizeof(char*);
+		size_t	m = tab->bucketsize * sizeof(char*);
 
 		if (flags & HASH_VALUE)
 		{
@@ -294,7 +295,7 @@ hashlook(Hash_table_t* tab, const char* name, long flags, const char* value)
 		else if (!(n = HASH_SIZEOF(flags)))
 		{
 			if (!(flags & HASH_FIXED)) n = m;
-			else if ((n = (int)integralof(value)) < m) n = m;
+			else if ((n = (size_t)integralof(value)) < m) n = m;
 		}
 		else if (n < m) n = m;
 		if (!prev && (tab->flags & HASH_ALLOCATE))

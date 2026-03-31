@@ -28,14 +28,16 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-08"
+#define RELEASE_DATE "2026-03-30"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
 
 #include <ast.h>
 #include <error.h>
+#include <sfdisc.h>
 #include <sig.h>
+#include <wait.h>
 
 static const char usage[] =
 "[-?\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\n]"
@@ -127,11 +129,12 @@ static const char usage[] =
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <time.h>
 
 #if !_PACKAGE_ast
+#include <sys/wait.h>
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -157,18 +160,12 @@ static const char usage[] =
 #define unadd(b)	(--(b)->nxt)
 #define getsize(b)	((b)->nxt-(b)->buf)
 #define setsize(b,o)	((b)->nxt=(b)->buf+(o))
-#define use(b)		(*(b)->nxt=0,(b)->nxt=(b)->buf)
+#define use(b)		(((b)->nxt >= (b)->end) ? append(b, "") : NULL, *(b)->nxt = 0, (b)->nxt = (b)->buf)
 
-#define CHUNK		4096
+#define CHUNK		128		/* buffer() growth chunk size	*/
 #define KEY(a,b,c,d)	((((unsigned long)(a))<<24)|(((unsigned long)(b))<<16)|(((unsigned long)(c))<<8)|(((unsigned long)(d))))
 
-#ifdef SA_RESTART
 #define PARALLEL(r)	(state.maxjobs > 1 && state.strict >= 5 && !((r)->flags & RULE_virtual))
-#else
-/* disable parallel build on systems that can't auto-restart interrupted system calls */
-#define PARALLEL(r)	0
-#define SA_RESTART	0
-#endif
 
 #define RULE_active	0x0001		/* active target		*/
 #define RULE_dontcare	0x0002		/* ok if not found		*/
@@ -181,6 +178,7 @@ static const char usage[] =
 #define RULE_notrace	0x0100		/* do not xtrace shell action	*/
 #define RULE_updated	0x0200		/* rule was outdated and remade */
 #define RULE_preexisted	0x0400		/* the rule's target preexisted	*/
+#define RULE_force	0x0800		/* always run the shell action	*/
 
 #define STREAM_KEEP	0x0001		/* don't fclose() on pop()	*/
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
@@ -552,6 +550,53 @@ static char *duplicate(char *s)
 }
 
 /*
+ * Remove duplicates from the set of space-separated fields in the string r.
+ * Keep the last-mentioned item of each field that occurs multiple times (this
+ * is required for passing libraries to the linker in the correct order; that
+ * is, each dependency must come after all the libraries that depend on it).
+ *
+ * Returns an allocated copy of the deduplicated string, unless it's empty.
+ */
+
+static char *dedup_fields(char *r)
+{
+	Buf_t	*query = buffer(), *fields = buffer(), *scratch = buffer();
+	char	*s, sav, nodupes;
+
+	while (1)
+	{
+		/* Find start of next field */
+		for (; *r == ' '; r++);
+		if (!*r)
+			break;
+		/* Find end of next field */
+		for (s = r; *s && *s != ' '; s++);
+		/* Scan ahead for duplicates; if none found, append it to fields */
+		sav = *s, *s = '\0';
+		if (sav)
+		{	/* prepend and append spaces to avoid substring matches */
+			add(scratch, ' '), append(scratch, s + 1), add(scratch, ' ');
+			add(query, ' '), append(query, r), add(query, ' ');
+			nodupes = !strstr(use(scratch), use(query));
+		}
+		else	/* already at end: no dupes ahead */
+			nodupes = 1;
+		if (nodupes)
+			add(fields, ' '), append(fields, r);
+		*s = sav;
+		r = s;
+	}
+	r = use(fields);
+	if (*r == ' ')
+		r++;
+	r = duplicate(r);
+	drop(scratch);
+	drop(fields);
+	drop(query);
+	return r;
+}
+
+/*
  * open a new dictionary
  */
 
@@ -758,7 +803,6 @@ static void view(void)
 	int		c;
 	size_t		slen, plen;
 	struct stat	st, ts;
-	char		buf[CHUNK];
 	Dict_item_t	*vnode;
 
 	if (stat(".", &st))
@@ -769,8 +813,9 @@ static void view(void)
 		state.pwd = s;
 	if (!state.pwd)
 	{
-		if (!getcwd(buf, sizeof buf - 1))
-			error_out("cannot determine PWD", NULL);
+		char	buf[PATH_MAX + 1];
+		if (!getcwd(buf, sizeof buf))
+			error_out(strerror(errno), "cannot determine PWD");
 		state.pwd = duplicate(buf);
 		vnode->value = state.pwd;
 	}
@@ -1291,7 +1336,7 @@ static char *find(Buf_t *buf, char *file, struct stat *st)
 }
 
 /*
- * bind r to a file and return the modify time
+ * bind r to a file
  */
 
 static void bindfile(Rule_t *r)
@@ -1387,7 +1432,7 @@ static int push(char *file, FILE *fp, int flags)
 
 static char *input(void)
 {
-	static char	input[CHUNK];  /* input buffer */
+	static char	input[4096];  /* input buffer */
 	char		*e;
 
 	assert(state.sp);
@@ -1430,9 +1475,13 @@ static void print_nice_hdr(Rule_t *r)
 		fname, r->line, r->endline, rnamepre, rname);
 	/* -e option */
 	if (state.explain)
+	{
 		fprintf(stderr, "# reason: target %s\n",
+			r->flags & RULE_virtual ? "is virtual" :
+			r->flags & RULE_force ? "is forced" :
 			r->flags & RULE_preexisted ? "older than prerequisites" :
-				r->flags & RULE_virtual ? "is virtual" : "not found");
+			"not found");
+	}
 }
 
 /*
@@ -1448,7 +1497,9 @@ static void check_shellaction(Rule_t *r, int e)
 		;
 	else if (status(NULL, 0, r->name, &fstat))	/* target file exists? */
 	{
-		if (fstat.st_mtime <= r->origtime && (r->flags & (RULE_exists | RULE_dontcare)) == RULE_exists && state.strict >= 5)
+		char	existed = (r->flags & RULE_exists) && !(r->flags & RULE_dontcare);
+		char	notnew = fstat.st_mtime <= r->origtime && !(r->flags & RULE_force);
+		if (existed && notnew && S_ISREG(fstat.st_mode) && state.strict >= 5)
 			error_making(r, -2);		/* "target not updated" */
 		r->time = fstat.st_mtime;
 		r->flags |= RULE_exists;
@@ -1491,12 +1542,12 @@ static void reap(Rule_t *r, int flag)
 	if (r->logtmp)
 	{
 		FILE	*logf;
-		char	b[CHUNK];
+		char	b[4096];
 		size_t	s;
 		print_nice_hdr(r);
 		if (!(logf = fopen(r->logtmp, "r")))
 			report(3, r->logtmp, "log gone", r);
-		while ((s = fread(b, 1, CHUNK, logf)) > 0)
+		while ((s = fread(b, 1, sizeof b, logf)) > 0)
 			fwrite(b, 1, s, stdout);
 		fclose(logf);
 		fflush(stdout);
@@ -1529,18 +1580,6 @@ static int wreap_nowait(Dict_item_t *item)
 {
 	reap(item->value, WNOHANG);
 	return 0;
-}
-
-/*
- * SIGCHLD handling (initialised in main())
- * just a dummy to make it not ignored
- */
-
-static sigset_t empty_sigmask;
-
-static void sigchld_dummy(int sig)
-{
-	assert(sig == SIGCHLD);
 }
 
 /*
@@ -1577,7 +1616,8 @@ static int execute_v(Rule_t *r, char **argv)
 		assert(state.jobs <= state.maxjobs);
 		while (state.jobs == state.maxjobs)
 		{
-			sigsuspend(&empty_sigmask);
+			siginfo_t dummy;
+			waitid(P_ALL, 0, &dummy, WEXITED|WNOWAIT);
 			walk(state.rules, wreap_nowait);
 		}
 		/* let it run in parallel */
@@ -1892,6 +1932,10 @@ static void attributes(Rule_t *r, char *s)
 			if (n == 7 && !strncmp(t, "notrace", n))
 				flag = RULE_notrace;
 			break;
+		case 'f':
+			if (n == 5 && !strncmp(t, "force", n))
+				flag = RULE_force;
+			break;
 		}
 		if (flag > 0)
 			r->flags |= flag;
@@ -2010,11 +2054,11 @@ static char *require(char *lib, int dontcare)
 				r = "";
 			}
 		}
-		r = duplicate(r);
+		drop(tmp);
+		r = dedup_fields(r);
+		drop(buf);
 		setval(state.vars, varname, r);
 		report(-4, r, varname, NULL);
-		drop(tmp);
-		drop(buf);
 	}
 	return r;
 }
@@ -2149,8 +2193,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 		switch (KEY(u[0], u[1], u[2], u[3]))
 		{
 		case KEY('b','i','n','d'):
-			if (!(t[0] == '-' && t[1] == 'l'))
-				error_out("bad -lname", t);
+			if (!(t[0] == '-' && t[1] == 'l' && isalnum(t[2])))
+				error_out("syntax error", u);
 			/* make sure it's finished linking before calling require() */
 			append_ar_name(buf, t + 2);
 			if (q = getval(state.rules, use(buf)))
@@ -2230,7 +2274,6 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			continue;
 
 		case KEY('d','o','n','e'):
-			r->endline = state.sp->line;
 			if (parentstate)
 			{
 				/* loop block done */
@@ -2238,7 +2281,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 					error_out("syntax error", u);
 				break;
 			}
+			if (!*r->name)
+				error_out("done without make", NULL);
 			/* make block done */
+			r->endline = state.sp->line;
 			if (*t)
 			{	/* target is optional; use it for sanity check if present */
 				q = rule(t);
@@ -2265,26 +2311,32 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				st.bg = st.bg->next;
 				free(prev);
 			}
-			if (st.cmd && state.active && (state.force || r->time < st.modtime || !r->time && !st.modtime))
+			if (state.active)
 			{
-				/* flag for -e */
-				if (r->time)
-					r->flags |= RULE_preexisted;
-				/* show a nice trace header */
-				if ((!PARALLEL(r) || state.chaos) && !(r->flags & RULE_error))
-					print_nice_hdr(r);
-				/* run the shell action */
-				run(r, use(st.cmd));
-				if (!r->pid)
-					propagate(r, NULL, &st.modtime);
-				r->flags |= RULE_updated;
-			}
-			else if (st.modtime > r->parenttime && r->flags & RULE_generated)
-			{
-				/* if we didn't generate the target in this run, but it's newer than the parent
-				 * target, then the generation of the parent target was probably interrupted
-				 * and then resumed in this run, so include this target in %{?} for consistency */
-				r->flags |= RULE_updated;
+				char	outdated;
+				outdated = r->time < st.modtime || !r->time && !st.modtime || state.force || r->flags & RULE_force;
+				s = st.cmd ? use(st.cmd) : NULL;
+				if (s && outdated)
+				{
+					/* flag for -e */
+					if (r->time)
+						r->flags |= RULE_preexisted;
+					/* show a nice trace header */
+					if ((!PARALLEL(r) || state.chaos) && !(r->flags & RULE_error))
+						print_nice_hdr(r);
+					/* run the shell action */
+					run(r, s);
+					if (!r->pid)
+						propagate(r, NULL, &st.modtime);
+					r->flags |= RULE_updated;
+				}
+				else if (st.modtime > r->parenttime && r->flags & RULE_generated)
+				{
+					/* if we didn't generate the target in this run, but it's newer than the parent
+					 * target, then the generation of the parent target was probably interrupted
+					 * and then resumed in this run, so include this target in %{?} for consistency */
+					r->flags |= RULE_updated;
+				}
 			}
 			r->flags |= RULE_made;
 			if (!(r->flags & (RULE_dontcare|RULE_error|RULE_exists|RULE_generated|RULE_virtual)))
@@ -2343,6 +2395,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				error_out("syntax error", u);
 			/* remember current offset for repeated reading */
 			if ((saveoff = ftello(state.sp->fp)) < 0)
+#if _PACKAGE_ast
+				/* buffer a non-seekable stream to make it seekable */
+				if (sfdcseekable(state.sp->fp) < 0 || (saveoff = ftello(state.sp->fp)) < 0)
+#endif
 				error_out("unseekable input", u);
 			/* iterate through one or more whitespace-separated words */
 			vnode = search(state.vars, t, 1);
@@ -2381,6 +2437,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			char *save_making = auto_making->value;
 			char *save_allprev = auto_allprev->value;
 			char *save_updprev = auto_updprev->value;
+			if (!*t)
+				error_out("syntax error", u);
 			if ((q = getval(state.rules, t)) && (q->flags & RULE_made))
 				report(state.strict < 3 ? 1 : 3, "rule already made", t, NULL);
 			if (!q)
@@ -2423,33 +2481,41 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 		}
 
 		case KEY('m','a','k','p'):
-		case KEY('p','r','e','v'):
-		{
-			const int makp = (u[0] == 'm');
-			q = getval(state.rules, t);
-			if (!q && !makp && !state.strict)
-				q = rule(t); /* for backward compat */
-			else if (!q && (makp || state.strict < 4))
-			{
-				/* declare a simple source file prerequisite */
-				attributes(q = rule(t), v);
-				if (!(q->flags & RULE_virtual))
-				{
-					bindfile(q);
-					if (!(q->flags & (RULE_dontcare | RULE_exists)))
-						error_making(q, 0);
-					propagate(q, r, &st.modtime);
-				}
-				q->flags |= RULE_made;
-				report(-2, q->name, "makp", q);
-			}
-			else if (makp)
+			if (!*t)
+				error_out("syntax error", u);
+			if (q = getval(state.rules, t))
 				error_out(t, q->flags & RULE_made ? "rule already made" : "rule already being made");
-			else if (!q)
+		p_makp:
+			/* declare a simple source file prerequisite */
+			attributes(q = rule(t), v);
+			if (!(q->flags & RULE_virtual))
+			{
+				bindfile(q);
+				if (!(q->flags & (RULE_dontcare | RULE_exists)))
+					error_making(q, 0);
+				propagate(q, r, &st.modtime);
+			}
+			q->flags |= RULE_made;
+			report(-2, q->name, "makp", q);
+			/* update %{<}, %{^} and %{?} */
+			update_allprev(q, auto_allprev->value, auto_updprev->value);
+			continue;
+
+		case KEY('p','r','e','v'):
+			if (!*t)
+				error_out("syntax error", u);
+			q = getval(state.rules, t);
+			if (!q && !state.strict)
+				q = rule(t); /* for backward compat */
+			if (!q)
+			{
+				if (state.strict < 4)
+					goto p_makp; /* bad design decision introduced at strict 1, undone at strict 4 */
 				error_out(t, "prev: rule not made");
-			else if (*v && state.strict)
+			}
+			if (*v && state.strict)
 				error_out(v, "prev: attributes not allowed");
-			else if (q->making)
+			if (q->making)
 				report(state.strict < 3 ? 1 : 3, "rule already being made", t, NULL);
 			else
 			{	/* we may need to wait for it to finish processing */
@@ -2460,9 +2526,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			/* update %{<}, %{^} and %{?} */
 			update_allprev(q, auto_allprev->value, auto_updprev->value);
 			continue;
-		}
 
 		case KEY('s','e','t','v'):
+			if (!*t)
+				error_out("syntax error", u);
 			if (!getval(state.vars, t))
 			{
 				if (*v == '"' && state.strict < 2)
@@ -3103,21 +3170,6 @@ int main(int argc, char **argv)
 	{
 		recurse();
 		return state.exitstatus;
-	}
-
-	/*
-	 * set up SIGCHLD handling for parallel processing
-	 */
-
-	if (SA_RESTART && state.maxjobs > 1)
-	{
-		struct sigaction act;
-		sigemptyset(&empty_sigmask);
-		act.sa_handler = sigchld_dummy;
-		sigemptyset(&act.sa_mask);
-		sigaddset(&act.sa_mask, SIGCHLD);
-		act.sa_flags = SA_NOCLDSTOP | SA_RESTART;
-		sigaction(SIGCHLD, &act, NULL);
 	}
 
 	/*

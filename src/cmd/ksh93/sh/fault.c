@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
 #include	"io.h"
@@ -133,6 +133,9 @@ void	sh_fault(int sig)
 			goto done;
 		}
 	}
+	/* make sure ^Z is handled correctly after interrupt */
+	if(sig==SIGINT && sh_isstate(SH_INTERACTIVE))
+		signal(SIGTSTP, sh.sigflag[SIGTSTP]&SH_SIGOFF ? SIG_IGN : sh_fault);
 	errno = 0;
 	if(pp->mode==SH_JMPCMD || (pp->mode==1 && sh.bltinfun) && !(flag&SH_SIGIGNORE))
 		sh.lastsig = sig;

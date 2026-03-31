@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -137,7 +137,7 @@ static State_t			state =
 };
 
 static int
-asoerror(int type, const char* format, const char* a, const char* b, long n)
+asoerror(int type, const char* format, const char* a, const char* b, unsigned int n)
 {
 	char	buf[128];
 
@@ -165,7 +165,7 @@ Asometh_t*
 _asometh(int type, void* data)
 {
 	size_t		n;
-	int		i;
+	size_t		i;
 	char*		e;
 	Asometh_t*	meth;
 	char*		name;
@@ -191,7 +191,7 @@ _asometh(int type, void* data)
 	}
 	if (!(name = (char*)data))
 		return state.meth;
-	n = (e = strchr(name, ',')) ? (e - name) : strlen(name);
+	n = (e = strchr(name, ',')) ? (size_t)(e - name) : strlen(name);
 	for (i = 0; i < elementsof(method); i++)
 		if (strncmp(name, method[i]->name, n) == 0)
 		{
@@ -302,7 +302,7 @@ lock(void* data, ssize_t k, void volatile* p)
 uint8_t
 asoget8(uint8_t volatile* p)
 {
-	int	o;
+	uint8_t		o;
 
 	do
 	{
@@ -314,7 +314,7 @@ asoget8(uint8_t volatile* p)
 uint16_t
 asoget16(uint16_t volatile* p)
 {
-	int	o;
+	uint16_t	o;
 
 	do
 	{
@@ -371,7 +371,7 @@ uint8_t
 asoinc8(uint8_t volatile* p)
 {
 	ssize_t		k;
-	int		o;
+	uint8_t		o;
 
 #if defined(_aso_inc8)
 	if (!state.lockf)
@@ -396,7 +396,7 @@ uint16_t
 asoinc16(uint16_t volatile* p)
 {
 	ssize_t		k;
-	int		o;
+	uint16_t	o;
 
 #if defined(_aso_inc16)
 	if (!state.lockf)
@@ -421,7 +421,7 @@ uint32_t
 asoinc32(uint32_t volatile* p)
 {
 	ssize_t		k;
-	int		o;
+	uint32_t	o;
 
 #if defined(_aso_inc32)
 	if (!state.lockf)
@@ -479,7 +479,7 @@ uint8_t
 asodec8(uint8_t volatile* p)
 {
 	ssize_t		k;
-	int		o;
+	uint8_t		o;
 
 #if defined(_aso_dec8)
 	if (!state.lockf)
@@ -504,7 +504,7 @@ uint16_t
 asodec16(uint16_t volatile* p)
 {
 	ssize_t		k;
-	int		o;
+	uint16_t	o;
 
 #if defined(_aso_dec16)
 	if (!state.lockf)
@@ -529,7 +529,7 @@ uint32_t
 asodec32(uint32_t volatile* p)
 {
 	ssize_t		k;
-	int		o;
+	uint32_t	o;
 
 #if defined(_aso_dec32)
 	if (!state.lockf)
@@ -584,7 +584,7 @@ asodec64(uint64_t volatile* p)
  */
 
 uint8_t
-asocas8(uint8_t volatile* p, int o, int n)
+asocas8(uint8_t volatile* p, uint8_t o, uint8_t n)
 {
 	ssize_t		k;
 
@@ -597,10 +597,10 @@ asocas8(uint8_t volatile* p, int o, int n)
 		U16_8_t		u;
 		U16_8_t		v;
 		U16_8_t*	a;
-		int		s;
-		int		i;
+		ssize_t		s;
+		ssize_t		i;
 
-		s = (int)(integralof(p) & (sizeof(u.i) - 1));
+		s = (ssize_t)(integralof(p) & (sizeof(u.i) - 1));
 		a = (U16_8_t*)((char*)0 + (integralof(p) & ~(sizeof(u.i) - 1)));
 		for (;;)
 		{
@@ -624,10 +624,10 @@ asocas8(uint8_t volatile* p, int o, int n)
 		U32_8_t		u;
 		U32_8_t		v;
 		U32_8_t*	a;
-		int		s;
-		int		i;
+		ssize_t		s;
+		ssize_t		i;
 
-		s = (int)(integralof(p) & (sizeof(u.i) - 1));
+		s = (ssize_t)(integralof(p) & (sizeof(u.i) - 1));
 		a = (U32_8_t*)((char*)0 + (integralof(p) & ~(sizeof(u.i) - 1)));
 		for (;;)
 		{
@@ -651,10 +651,10 @@ asocas8(uint8_t volatile* p, int o, int n)
 		U64_8_t		u;
 		U64_8_t		v;
 		U64_8_t*	a;
-		int		s;
-		int		i;
+		ssize_t		s;
+		ssize_t		i;
 
-		s = (int)(integralof(p) & (sizeof(u.i) - 1));
+		s = (ssize_t)(integralof(p) & (sizeof(u.i) - 1));
 		a = (U64_8_t*)((char*)0 + (integralof(p) & ~(sizeof(u.i) - 1)));
 		for (;;)
 		{
@@ -696,10 +696,10 @@ asocas16(uint16_t volatile* p, uint16_t o, uint16_t n)
 		U32_16_t	u;
 		U32_16_t	v;
 		U32_16_t*	a;
-		int		s;
-		int		i;
+		ssize_t		s;
+		ssize_t		i;
 
-		s = (int)(integralof(p) & (sizeof(u.i) - 1)) / 2;
+		s = (ssize_t)(integralof(p) & (sizeof(u.i) - 1)) / 2;
 		a = (U32_16_t*)((char*)0 + (integralof(p) & ~(sizeof(u.i) - 1)));
 		for (;;)
 		{
@@ -723,10 +723,10 @@ asocas16(uint16_t volatile* p, uint16_t o, uint16_t n)
 		U64_16_t	u;
 		U64_16_t	v;
 		U64_16_t*	a;
-		int		s;
-		int		i;
+		ssize_t		s;
+		ssize_t		i;
 
-		s = (int)(integralof(p) & (sizeof(u.i) - 1)) / 2;
+		s = (ssize_t)(integralof(p) & (sizeof(u.i) - 1)) / 2;
 		a = (U64_16_t*)((char*)0 + (integralof(p) & ~(sizeof(u.i) - 1)));
 		for (;;)
 		{
@@ -768,10 +768,10 @@ asocas32(uint32_t volatile* p, uint32_t o, uint32_t n)
 		U64_32_t	u;
 		U64_32_t	v;
 		U64_32_t*	a;
-		int		s;
-		int		i;
+		ssize_t		s;
+		ssize_t		i;
 
-		s = (int)(integralof(p) & (sizeof(u.i) - 1)) / 4;
+		s = (ssize_t)(integralof(p) & (sizeof(u.i) - 1)) / 4;
 		a = (U64_32_t*)((char*)0 + (integralof(p) & ~(sizeof(u.i) - 1)));
 		for (;;)
 		{

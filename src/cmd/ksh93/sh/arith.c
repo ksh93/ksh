@@ -23,7 +23,7 @@
  *   AT&T Labs
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"lexstates.h"
 #include	"name.h"

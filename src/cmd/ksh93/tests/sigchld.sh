@@ -91,13 +91,13 @@ then
 			unset proc[\$!]
 		" CHLD
 
-		{ sleep .3; print a; exit 1; } &
+		{ sleep .6; print a; exit 1; } &
 		proc[$!]=( name=a status=1 )
 
-		{ sleep .2; print b; exit 2; } &
+		{ sleep .4; print b; exit 2; } &
 		proc[$!]=( name=b status=2 )
 
-		{ sleep .1; print c; exit 3; } &
+		{ sleep .2; print c; exit 3; } &
 		proc[$!]=( name=c status=3 )
 
 		while	(( ${#proc[@]} ))
@@ -146,9 +146,9 @@ done
 trap - CHLD
 
 if((!SHOPT_SCRIPTONLY));then
-x=$($SHELL 2> /dev/null -ic '/dev/null/notfound; sleep .05 & sleep .1;jobs')
+x=$($SHELL 2> /dev/null -ic '/dev/null/notfound; sleep .2 & sleep .4;jobs')
 [[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after notfound'
-x=$($SHELL 2> /dev/null  -ic 'kill -0 12345678901234567876; sleep .05 & sleep .1;jobs')
+x=$($SHELL 2> /dev/null  -ic 'kill -0 12345678901234567876; sleep .2 & sleep .4;jobs')
 [[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after error message'
 fi # !SHOPT_SCRIPTONLY
 

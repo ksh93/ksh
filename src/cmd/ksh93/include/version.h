@@ -15,10 +15,13 @@
 *                                                                      *
 ***********************************************************************/
 
+#ifndef _VERSION_H
+#define _VERSION_H
+
 #include <ast_release.h>
 #include "git.h"
 
-#define SH_RELEASE_DATE	"2026-03-07"	/* must be in this format for $((.sh.version)) */
+#define SH_RELEASE_DATE	"2026-03-28"	/* must be in this format for $((.sh.version)) */
 /*
  * This comment keeps SH_RELEASE_DATE a few lines away from SH_RELEASE_SVER to avoid
  * merge conflicts when cherry-picking dev branch commits onto a release branch.
@@ -45,3 +48,5 @@
  * cause bytecode from newer versions to fail on older versions of ksh.
  */
 #define SHCOMP_HDR_VERSION	5
+
+#endif /* !_VERSION_H */
