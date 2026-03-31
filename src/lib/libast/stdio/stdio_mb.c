@@ -158,7 +158,7 @@ putwchar(wchar_t c)
 }
 
 int
-swprintf(wchar_t* s, size_t size, const wchar_t* fmt, ...)
+swprintf(wchar_t *restrict s, size_t size, const wchar_t *restrict fmt, ...)
 {
 	va_list	args;
 	int	v;
@@ -170,7 +170,7 @@ swprintf(wchar_t* s, size_t size, const wchar_t* fmt, ...)
 }
 
 int
-swscanf(const wchar_t* s, const wchar_t* fmt, ...)
+swscanf(const wchar_t *restrict s, const wchar_t *restrict fmt, ...)
 {
 	va_list	args;
 	int	v;
@@ -327,7 +327,7 @@ vfwscanf(Sfio_t* f, const wchar_t* fmt, va_list args)
 }
 
 int
-vswprintf(wchar_t* s, size_t n, const wchar_t* fmt, va_list args)
+vswprintf(wchar_t *restrict s, size_t n, const wchar_t *restrict fmt, va_list args)
 {
 	Sfio_t	f;
 	int	v;
@@ -358,7 +358,7 @@ vswprintf(wchar_t* s, size_t n, const wchar_t* fmt, va_list args)
 }
 
 int
-vswscanf(const wchar_t* s, const wchar_t* fmt, va_list args)
+vswscanf(const wchar_t *restrict s, const wchar_t *restrict fmt, va_list args)
 {
 	Sfio_t	f;
 

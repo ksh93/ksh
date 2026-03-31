@@ -3,8 +3,8 @@ ref	-D_def_map_ast=1
 cmd	universe
 
 sys	mman
-hdr	fcntl,dirent,direntry,filio,fnmatch,jioctl,libgen,limits
-hdr	execinfo,locale,ndir,nl_types,process,spawn,utime
+hdr	dirent,direntry,jioctl
+hdr	execinfo,ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs
 hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
@@ -22,25 +22,20 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 
 dat	_tzname,tzname
 
-lib	BSDsetpgrp
-lib	_cleanup
-lib	backtrace,backtrace_symbols,bcopy,bzero,confstr,dirread
-lib	fchmod,fcntl,fnmatch,fork,fsync
-lib	getconf,getdents,getdirentries,getdtablesize
-lib	gethostname,getpagesize,getrlimit,getuniverse
-lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
-lib	mbtowc,mbrtowc,memalign,memdup
-lib	mktemp,mktime
+lib	backtrace,backtrace_symbols,confstr,dirread
+lib	fcntl,fsync
+lib	getdents,getdirentries,getdtablesize
+lib	gethostname,getpagesize,getrlimit
+lib	madvise,memalign,memdup
 lib	opendir,openat,pathconf,pipe2,posix_close
-lib	rand_r
-lib	rewinddir,setlocale
-lib	setpgrp,setpgrp2,setreuid,setuid
+lib	rewinddir
+lib	setreuid,setuid
 lib	socketpair
 lib	clone,spawn,spawnve
-lib	strlcat,strlcpy
-lib	strmode,strftime,symlink,sysconf,sysinfo
-lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
-lib	ftruncate,truncate
+lib	strlcat,strlcpy,stpcpy
+lib	strmode,sysconf,sysinfo
+lib	tzset,universe,utime
+lib	ftruncate
 
 lib,npt	strtod,strtold,strtol,strtoll,strtoul,strtoull stdlib.h
 lib,npt	sigflag signal.h
@@ -52,7 +47,7 @@ mem	DIR.dd_fd sys/types.h - dirent.h - sys/dir.h
 mem	inheritance.pgroup spawn.h
 mem	tm.tm_zone time.h
 
-sys	dir,filio,ioctl,jioctl,localedef,ptem,resource
+sys	dir,filio,ioctl,jioctl,ptem,resource
 sys	socket,stream,systeminfo,universe
 
 tst	lib_poll note{ poll() args comply with the POSIX standard }end execute{
@@ -347,14 +342,6 @@ tst	cross{
 		;;
 	esac
 	echo "#define _UNIV_DEFAULT	\"$u\"	/* default universe name */"
-}end
-
-std	cleanup note{ stuck with standard _cleanup }end noexecute{
-	extern void exit(int);
-	extern void _exit(int);
-	extern void _cleanup(void);
-	void _cleanup(void) { _exit(0); }
-	int main(void) { printf("cleanup\n"); exit(1); }
 }end
 
 std	strtod stdlib.h note{ stuck with standard strtod }end nostatic{

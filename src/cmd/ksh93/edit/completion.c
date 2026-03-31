@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -79,14 +79,12 @@ static int charcmp(int a, int b, int nocase)
 {
 	if(nocase)
 	{
-#if _lib_towlower
 		if(mbwide())
 		{
 			a = (int)towlower((wint_t)a);
 			b = (int)towlower((wint_t)b);
 		}
 		else
-#endif
 		{
 			a = tolower(a);
 			b = tolower(b);
@@ -649,8 +647,8 @@ int ed_fulledit(Edit_t *ep)
 		sh_onstate(SH_HISTORY);
 		hist_flush(sh.hist_ptr);
 	}
-	cp = strcopy((char*)ep->e_inbuf,e_runvi);
-	cp = strcopy(cp, fmtint(ep->e_hline,1));
+	cp = stpcpy((char*)ep->e_inbuf,e_runvi);
+	cp = stpcpy(cp, fmtint(ep->e_hline,1));
 #if SHOPT_VSH
 	ep->e_eol = ((unsigned char*)cp - (unsigned char*)ep->e_inbuf)-(sh_isoption(SH_VI)!=0);
 #else

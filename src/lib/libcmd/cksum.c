@@ -451,13 +451,13 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 	FTSENT*		ent;
 	int		logical;
 	Optdisc_t	optdisc;
-	State_t		state;
+	State_t		state = {
+		.flags = SUM_SIZE,
+		.warn = 1
+	};
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
-	memset(&state, 0, sizeof(state));
 	flags = fts_flags() | FTS_META | FTS_TOP | FTS_NOPOSTORDER;
-	state.flags = SUM_SIZE;
-	state.warn = 1;
 	logical = 1;
 	method = 0;
 	optinit(&optdisc, optinfo);

@@ -34,7 +34,7 @@ int sfscanf(Sfio_t* f, const char* form, ...)
 	return rv;
 }
 
-int sfvsscanf(const char* s, const char* form, va_list args)
+int sfvsscanf(const char *restrict s, const char *restrict form, va_list args)
 {
 	Sfio_t	f;
 
@@ -53,7 +53,7 @@ int sfvsscanf(const char* s, const char* form, va_list args)
 	return sfvscanf(&f,form,args);
 }
 
-int sfsscanf(const char* s, const char* form,...)
+int sfsscanf(const char *restrict s, const char *restrict form,...)
 {
 	va_list		args;
 	int		rv;

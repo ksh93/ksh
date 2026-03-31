@@ -38,13 +38,12 @@
 ..
 .TH MEM 3
 .SH NAME
-mem \- memory buffer routines
+mem \- memory buffer routine
 .SH SYNOPSIS
 .EX
 #include <ast.h>
 
 void*   memdup(const void* \fIbuf\fP, size_t \fIn\fP)
-void*   memzero(void* \fIbuf\fP, size_t \fIn\fP);
 .EE
 .SH DESCRIPTION
 .L memdup
@@ -58,14 +57,6 @@ and returns a pointer to the new copy.
 0 is returned if
 .IR malloc (3)
 fails.
-.PP
-.L memzero
-sets the first
-.I n
-bytes in
-.I buf
-to
-.IR 0 .
 .SH "SEE ALSO"
 .br
 .IR str (3),

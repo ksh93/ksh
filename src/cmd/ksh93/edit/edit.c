@@ -1209,12 +1209,7 @@ int	ed_external(const genchar *src, char *dest)
 		int c;
 		char buffer[MAXLINE*sizeof(genchar)] = "";
 		c = ed_external(src,buffer);
-
-#if _lib_wcscpy
-		wcscpy((wchar_t *)dest,(const wchar_t *)buffer);
-#else
-		strcopy(dest,buffer);
-#endif
+		wcscpy((wchar_t*)dest,(const wchar_t*)buffer);
 		return c;
 	}
 	while((wc = *src++) && dp<dpmax)
@@ -1310,8 +1305,7 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 		nv_unset(ED_CHRNOD,0);
 	else if(bufsize>0)
 	{
-		strncopy(inbuff,cp,bufsize);
-		inbuff[bufsize-1]='\0';
+		strlcpy(inbuff,cp,bufsize);
 		insize = strlen(inbuff);
 	}
 	else

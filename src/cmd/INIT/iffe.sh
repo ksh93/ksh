@@ -82,10 +82,10 @@ is_hdr() # [ - ] [ file.c ] hdr
 	esac
 	is hdr $1
 	case $1 in
-	sys/types.h | limits.h | stdio.h | unistd.h)
-		# These are often tested for repeatedly, especially sys/types.h.
-		# But POSIX has specified these since issue 1 (1988). It's 2023.
-		# Skip the compile to save time, but act like a positive test.
+	sys/types.h | limits.h | stddef.h | stdio.h | stdlib.h | unistd.h)
+		# These are often tested for repeatedly, but POSIX has specified
+		# these since issue 1 (1988). It's 2026. Skip the compile to save time,
+		# but act like a positive test.
 		: 2>$tmp.e
 		;;
 	*)	compile $cc -c $_is_hdr_file <&$nullin >&$nullout 2>$tmp.e
@@ -689,7 +689,7 @@ case $( (getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null ) in
 	}
 [+?\abegin\a\b{\b ... \b}end\b delimit multiline code blocks that override
 	or augment the default code provided by \biffe\b. User supplied code
-	blocks should be compatible with the C89/C90 C language
+	blocks should be compatible with the C99 C language
 	standard for maximal portability. Test code may call the function
 	\bNOTE("...")\b to emit short text in \b--verbose\b output; only one
 	\bNOTE()\b should be called per test for readability. In addition to
@@ -1162,7 +1162,6 @@ can=
 cansep=
 cctest=
 file=
-hdrtest=
 ifelse=NONE
 ifstack=
 ini=
@@ -2262,51 +2261,6 @@ int x;
 		# check the candidate macros
 
 		cc="$cc $mac"
-
-		# check for global default headers (some cc -E insist on compiling)
-
-		case $hdrtest in
-		'')	hdrtest=1
-			allinc=
-			for x in types
-			do	case $config in
-				0)	c=_sys_${x}
-					;;
-				1)	case $shell in
-					ksh)	typeset -u u=$x ;;
-					*)	u=$(echo $x | tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ) ;;
-					esac
-					c=HAVE_SYS_${u}_H
-					;;
-				esac
-				x=sys/$x.h
-				echo "${allinc}#include <$x>" > $tmp.c
-				if	is_hdr $x
-				then	gothdr="$gothdr + $x"
-					case $explicit in
-					0)	can="$can$cansep#define $c	1	/* #include <$x> ok */"
-						nan="$nan$cansep$c=1"
-						cansep=$nl
-						;;
-					esac
-					eval $c=1
-					allinc="${allinc}#include <$x>$nl"
-				else	gothdr="$gothdr - $x"
-					case $explicit$all$config$undef in
-					0?1?|0??1)
-						can="$can$cansep#undef	$c		/* #include <$x> not ok */"
-						nan="$nan$cansep$c="
-						cansep=$nl
-						;;
-					01??)	can="$can$cansep#define $c	0	/* #include <$x> not ok */"
-						nan="$nan$cansep$c=0"
-						cansep=$nl
-						;;
-					esac
-				fi
-			done
-			;;
-		esac
 
 		# add implicit headers/libraries before the checks
 

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -27,7 +27,7 @@
 #include <wc.h>
 #include <ctype.h>
 
-#if _hdr_wchar && _hdr_wctype && _lib_iswctype
+#if _hdr_wchar && _hdr_wctype
 
 #include <wchar.h>
 #include <wctype.h>
@@ -59,7 +59,7 @@ Wc_t* wc_init(int mode)
 		return NULL;
 	if (!mbwide())
 		wp->mb = 0;
-#if _hdr_wchar && _hdr_wctype && _lib_iswctype
+#if _hdr_wchar && _hdr_wctype
 	else if (!(mode & WC_NOUTF8) && (ast.locale.set & AST_LC_utf8))
 		wp->mb = 1;
 #endif

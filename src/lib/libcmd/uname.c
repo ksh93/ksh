@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -123,7 +123,7 @@ uname(struct utsname* ut)
 	if (gethostname(ut->nodename, sizeof(ut->nodename) - 1))
 		return -1;
 #else
-	strncpy(ut->nodename, "local", sizeof(ut->nodename) - 1);
+	strlcpy(ut->nodename, "local", sizeof(ut->nodename));
 #endif
 #ifdef HOSTTYPE
 	if (!(ut->sysname = sys))
@@ -330,7 +330,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 		s = buf;
 		if (!flags)
 			flags = OPT_system;
-		memzero(&ut, sizeof(ut));
+		memset(&ut, 0, sizeof(ut));
 		if (uname(&ut) < 0)
 		{
 			error(ERROR_usage(2), "information unavailable");
@@ -405,7 +405,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 					t++;
 				else
 					t = (char*)hosttype;
-				strncpy(s = buf, t, sizeof(buf) - 1);
+				strlcpy(s = buf, t, sizeof(buf));
 			}
 			output(OPT_implementation, s, "implementation");
 		}

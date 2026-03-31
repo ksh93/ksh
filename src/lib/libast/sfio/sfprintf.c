@@ -34,7 +34,7 @@ ssize_t sfprintf(Sfio_t* f, const char* form, ...)
 	return rv;
 }
 
-ssize_t sfvsprintf(char* s, size_t n, const char* form, va_list args)
+ssize_t sfvsprintf(char *restrict s, size_t n, const char *restrict form, va_list args)
 {
 	Sfio_t		*f;
 	ssize_t		rv;
@@ -65,7 +65,7 @@ ssize_t sfvsprintf(char* s, size_t n, const char* form, va_list args)
 	return rv;
 }
 
-ssize_t sfsprintf(char* s, size_t n, const char* form, ...)
+ssize_t sfsprintf(char *restrict s, size_t n, const char *restrict form, ...)
 {
 	va_list	args;
 	ssize_t rv;

@@ -298,7 +298,12 @@ static char *dotpaths_lib(Pathcomp_t *pp, char *path)
 		*last = 0;
 	else
 		path = (char*)e_dot;
-	r = stat(path,&statb);
+#if _lib_openat
+	if(path==e_dot && sh.pwdfd>-1)
+		r = fstat(sh.pwdfd,&statb);
+	else
+#endif
+		r = stat(path,&statb);
 	if(last)
 		*last = '/';
 	if(r>=0)
@@ -1396,7 +1401,7 @@ static noreturn void exscript(char *path,char *argv[])
 		before = times(&buffer);
 		sabuf.ac_uid = sh.userid;
 		sabuf.ac_gid = sh.groupid;
-		strncpy(sabuf.ac_comm, (char*)path_basename(cmdname),
+		strlcpy(sabuf.ac_comm, (char*)path_basename(cmdname),
 			sizeof(sabuf.ac_comm));
 		shaccton = 1;
 	}

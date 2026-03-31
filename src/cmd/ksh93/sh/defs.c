@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,11 +26,21 @@
 #include	"jobs.h"
 #include	"shlex.h"
 
-Shell_t			sh = {0};
+Shell_t			sh = {
+	.cpipe[0] = -1,
+	.coutpipe = -1,
+#if _lib_openat
+	.pwdfd = -1,
+#endif
+	.radixpoint = '.',	/* pre-locale init */
+	.stk = stkstd
+};
 
 Dtdisc_t	_Nvdisc =
 {
-	offsetof(Namval_t,nvname), -1 , 0, 0, 0, nv_compare
+	.key = offsetof(Namval_t,nvname),
+	.size = -1,
+	.comparf = nv_compare
 };
 
 struct jobs	job = {0};

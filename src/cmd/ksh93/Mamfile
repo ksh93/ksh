@@ -6,7 +6,7 @@ note *
 setv MAMAKE_STRICT 5
 setv INSTALLROOT ../../..
 setv CC cc
-setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} -D_BLD_ksh %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?}
+setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} -D_BLD_ksh %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?} %{mam_cc_STDC}
 setv CCFLAGS
 setv CCLDFLAGS %{-strip-symbols?1?%{mam_cc_LD_STRIP}??} %{mam_cc_EXPORT_DYNAMIC}
 setv IFFEFLAGS
@@ -271,6 +271,7 @@ make install virtual
 			prev include/shlex.h
 			prev include/fcin.h
 			prev include/builtins.h
+			prev %{INCLUDE_AST}/tv.h
 			prev %{INCLUDE_AST}/tmx.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
@@ -619,6 +620,7 @@ make install virtual
 			prev include/variables.h
 			prev %{INCLUDE_AST}/ast_random.h
 			prev %{INCLUDE_AST}/regex.h
+			prev %{INCLUDE_AST}/tv.h
 			prev %{INCLUDE_AST}/tmx.h
 			prev include/defs.h
 			prev FEATURE/options
@@ -766,6 +768,7 @@ make install virtual
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/sig.h
 			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/tv.h
 			prev FEATURE/options
 		done
 
@@ -797,6 +800,7 @@ make install virtual
 			prev include/variables.h
 			prev include/fcin.h
 			prev include/defs.h
+			prev %{INCLUDE_AST}/tv.h
 			prev FEATURE/options
 		done
 

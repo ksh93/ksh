@@ -43,6 +43,7 @@ probe_shared_name="-Wl,-soname= -h"
 probe_shared_registry='"-update_registry $probe_shared_registry_file"'
 probe_shared_registry_file='registry.ld'
 probe_shared_registry_path="\$(LIBDIR)/$probe_shared_registry_file"
+probe_stdc="-std=gnu23 -std=c23 -std=gnu11 -std=c11 -std=gnu99 -std=c99"
 probe_strict="'-ansi -pedantic' '-ansi -strict' -strict -ansi"
 probe_stripflags="'-f -s' -f -s"
 probe_unresolved="'-expect_unresolved \"*\"'"
@@ -1476,6 +1477,22 @@ then	e=`wc -c < e`
 		;;
 	esac
 
+	# use the newest C standard available
+	eval set x $probe_stdc
+	while	:
+	do	shift
+		case $# in
+		0)	break ;;
+		esac
+		rm -f warn.$obj
+		$cc $1 -c warn.$src 2>e && test -f warn.$obj || continue
+		n=`wc -c < e`
+		if	test $n -ge $e
+		then	stdc=$1
+			break
+		fi
+	done
+
 	eval set x $probe_strict
 	while	:
 	do	shift
@@ -2006,6 +2023,7 @@ CC_SIZE=$size
 CC_STATIC=$static
 CC_STDINCLUDE=$stdinclude
 CC_STDLIB=$stdlib
+CC_STDC=$stdc
 CC_STRICT=$strict
 CC_STRIP=$strip
 CC_STRIP_FLAGS=$stripflags
@@ -2114,6 +2132,7 @@ echo CC.SIZE = $CC_SIZE
 echo CC.STATIC = $CC_STATIC
 echo CC.STDINCLUDE = $CC_STDINCLUDE
 echo CC.STDLIB = $CC_STDLIB
+echo CC.STDC = $CC_STDC
 echo CC.STRICT = $CC_STRICT
 echo CC.STRIP = $CC_STRIP
 echo CC.STRIP.FLAGS = $CC_STRIP_FLAGS

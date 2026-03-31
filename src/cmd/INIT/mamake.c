@@ -201,11 +201,7 @@ typedef struct Dict_item_s		/* dictionary item		*/
 	struct Dict_item_s	*left;	/* left child			*/
 	struct Dict_item_s	*right;	/* right child			*/
 	void			*value;	/* user defined value		*/
-#if __STDC_VERSION__ >= 199901L
 	char			name[];	/* 0 terminated name		*/
-#else
-	char			name[1];/* 0 terminated name		*/
-#endif
 } Dict_item_t;
 
 typedef struct Dict_s			/* dictionary handle		*/
@@ -248,11 +244,7 @@ typedef struct View_s			/* viewpath level		*/
 {
 	struct View_s	*next;		/* next level in viewpath	*/
 	size_t		node;		/* viewpath node path length	*/
-#if __STDC_VERSION__ >= 199901L
 	char		dir[];		/* viewpath level dir prefix	*/
-#else
-	char		dir[1];		/* viewpath level dir prefix	*/
-#endif
 } View_t;
 
 typedef struct Makestate_s		/* make() shareable state	*/
@@ -401,11 +393,7 @@ static void report(int level, char *text, char *item, Rule_t *r)
 			fprintf(stderr, "%s: ", item);
 		fprintf(stderr, "%s", text);
 		if (r && r->time && state.debug <= -2)
-#if __STDC_VERSION__ >= 199901L
 			fprintf(stderr, " %llu", (unsigned long long)r->time);
-#else
-			fprintf(stderr, " %lu", (unsigned long)r->time);
-#endif
 		fprintf(stderr, "\n");
 		if (level > 2)
 			exit_wait(level - 2);

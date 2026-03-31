@@ -86,7 +86,7 @@ extern char 		*path_pwd(void);
 extern Pathcomp_t	*path_nextcomp(Pathcomp_t*,const char*,Pathcomp_t*);
 extern int		path_search(const char*,Pathcomp_t**,int);
 extern char		*path_relative(const char*);
-extern int		path_complete(const char*, const char*,struct argnod**);
+extern int		path_complete(const char *restrict, const char *restrict,struct argnod**);
 #if SHOPT_BRACEPAT
     extern int 		path_generate(struct argnod*,struct argnod**, int);
 #endif /* SHOPT_BRACEPAT */

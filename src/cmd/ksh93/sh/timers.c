@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -20,6 +20,7 @@
 #include	<ast.h>
 #include	<sig.h>
 #include	<error.h>
+#include	<tv.h>
 #include	"fault.h"
 #include	"defs.h"
 #include	"FEATURE/time"
@@ -44,9 +45,9 @@ static char time_state;
 static Sfdouble_t getnow(void)
 {
 	Sfdouble_t now;
-	struct timeval tp;
-	timeofday(&tp);
-	now = tp.tv_sec + 1.e-6*tp.tv_usec;
+	Tv_t tp;
+	tvgettime(&tp);
+	now = tp.tv_sec + 1.e-6*(tp.tv_nsec/1000);
 	return now+.001;
 }
 

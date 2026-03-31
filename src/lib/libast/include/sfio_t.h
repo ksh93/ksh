@@ -66,59 +66,46 @@
 #define SFIO_RDWRSTR	(SFIO_RDWR|SFIO_STRING)
 
 /* for static initialization of an Sfio_t structure */
-#define SFNEW(data,size,file,type,disc)	\
-	{ (unsigned char*)(data),			/* next		*/ \
-	  (unsigned char*)(data),			/* endw		*/ \
-	  (unsigned char*)(data),			/* endr		*/ \
-	  (unsigned char*)(data),			/* endb		*/ \
-	  NULL,						/* push		*/ \
-	  (unsigned short)((type)&SFIO_FLAGS),		/* flags	*/ \
-	  (short)(file),				/* file		*/ \
-	  (unsigned char*)(data),			/* data		*/ \
-	  (ssize_t)(size),				/* size		*/ \
-	  -1,						/* val		*/ \
-	  0,						/* extent	*/ \
-	  0,						/* here		*/ \
-	  0,						/* ngetr	*/ \
-	  {0},						/* tiny		*/ \
-	  0,						/* bits		*/ \
-	  (unsigned int)(((type)&(SFIO_RDWR))|SFIO_INIT), /* mode	*/ \
-	  (struct _sfdisc_s*)(disc),			/* disc		*/ \
-	  NULL,						/* pool		*/ \
-	  NULL,						/* rsrv		*/ \
-	  NULL,						/* proc		*/ \
-	  NULL,						/* stdio	*/ \
-	  0,						/* lpos		*/ \
-	  0,						/* iosz		*/ \
-	  0						/* getr		*/ \
+#define SFNEW(data,size,file,type,dsc)	\
+	{ ._next = (unsigned char*)(data),				\
+	  ._endw = (unsigned char*)(data),				\
+	  ._endr = (unsigned char*)(data),				\
+	  ._endb = (unsigned char*)(data),				\
+	  ._flags = (unsigned short)((type)&SFIO_FLAGS),		\
+	  ._file = (short)(file),					\
+	  ._data = (unsigned char*)(data),				\
+	  ._size = (ssize_t)(size),					\
+	  ._val = -1,							\
+	  .mode = (unsigned int)(((type)&(SFIO_RDWR))|SFIO_INIT),	\
+	  .disc = (struct _sfdisc_s*)(dsc)				\
 	}
 
 /* function to clear an Sfio_t structure */
 #define SFCLEAR(f) \
-	( (f)->next = NULL,				/* next		*/ \
-	  (f)->endw = NULL,				/* endw		*/ \
-	  (f)->endr = NULL,				/* endr		*/ \
-	  (f)->endb = NULL,				/* endb		*/ \
-	  (f)->push = NULL,				/* push		*/ \
-	  (f)->flags = 0,				/* flags	*/ \
-	  (f)->file = -1,				/* file		*/ \
-	  (f)->data = NULL,				/* data		*/ \
-	  (f)->size = -1,				/* size		*/ \
-	  (f)->val = -1,				/* val		*/ \
-	  (f)->extent = -1,				/* extent	*/ \
-	  (f)->here = 0,				/* here		*/ \
-	  (f)->ngetr = 0,				/* ngetr	*/ \
-	  (f)->tiny[0] = 0,				/* tiny		*/ \
-	  (f)->bits = 0,				/* bits		*/ \
-	  (f)->mode = 0,				/* mode		*/ \
-	  (f)->disc = NULL,				/* disc		*/ \
-	  (f)->pool = NULL,				/* pool		*/ \
-	  (f)->rsrv = NULL,				/* rsrv		*/ \
-	  (f)->proc = NULL,				/* proc		*/ \
-	  (f)->stdio = NULL,				/* stdio	*/ \
-	  (f)->lpos = 0,				/* lpos		*/ \
-	  (f)->iosz = 0,				/* iosz		*/ \
-	  (f)->getr = 0					/* getr		*/ \
+	( (f)->next = NULL,						\
+	  (f)->endw = NULL,						\
+	  (f)->endr = NULL,						\
+	  (f)->endb = NULL,						\
+	  (f)->push = NULL,						\
+	  (f)->flags = 0,						\
+	  (f)->file = -1,						\
+	  (f)->data = NULL,						\
+	  (f)->size = -1,						\
+	  (f)->val = -1,						\
+	  (f)->extent = -1,						\
+	  (f)->here = 0,						\
+	  (f)->ngetr = 0,						\
+	  (f)->tiny[0] = 0,						\
+	  (f)->bits = 0,						\
+	  (f)->mode = 0,						\
+	  (f)->disc = NULL,						\
+	  (f)->pool = NULL,						\
+	  (f)->rsrv = NULL,						\
+	  (f)->proc = NULL,						\
+	  (f)->stdio = NULL,						\
+	  (f)->lpos = 0,						\
+	  (f)->iosz = 0,						\
+	  (f)->getr = 0							\
 	)
 
 /* expose next stream inside discipline function; state saved in int f */

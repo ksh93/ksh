@@ -31,22 +31,12 @@
 #undef	_def_map_ast
 #include <ast_map.h>
 
-#undef	_lib_strftime	/* we can pass X/Open */
-
-#if _lib_strftime
-
-NoN(strftime)
-
-#else
-
 extern size_t
-strftime(char* buf, size_t len, const char* format, const struct tm* tm)
+strftime(char *restrict buf, size_t len, const char *restrict format, const struct tm* tm)
 {
 	char*	s;
 	time_t		t;
-	Tm_t		tl;
-
-	memset(&tl, 0, sizeof(tl));
+	Tm_t		tl = {0};
 
 	/*
 	 * nl_langinfo() may call strftime() with bogus tm except for
@@ -93,5 +83,3 @@ strftime(char* buf, size_t len, const char* format, const struct tm* tm)
 		return 0;
 	return (size_t)(s - buf);
 }
-
-#endif

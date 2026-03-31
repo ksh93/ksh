@@ -59,9 +59,7 @@
 #undef	_SGIAPI
 #define _SGIAPI		1
 
-#if _hdr_limits
 #include <limits.h>
-#endif
 
 #undef	_SGIAPI
 #define _SGIAPI		0

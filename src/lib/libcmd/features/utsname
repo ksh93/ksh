@@ -1,7 +1,6 @@
 lib	getdomainname,gethostid,gethostname,sethostname,syscall,systeminfo,uname
-lib	syssgi
 mem	utsname.base_rel,utsname.idnumber,utsname.m_type,utsname.nodeext sys/utsname.h
-sys	syscall,systeminfo,syssgi
+sys	syscall,systeminfo
 
 tst	cross{
 	u=$(p=$(getconf PATH 2>/dev/null) && PATH=$p; uname -o 2>/dev/null)

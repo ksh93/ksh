@@ -35,7 +35,7 @@ static int _dttype2005(Dt_t* dt, int type)
 Dt_t* _dtopen(Dtdisc_t* disc, Dtmethod_t* meth, unsigned long version)
 {
 	Dtdata_t	*data;
-	Dt_t		*dt, pdt;
+	Dt_t		*dt;
 	int		ev;
 	unsigned int	type;
 
@@ -45,10 +45,10 @@ Dt_t* _dtopen(Dtdisc_t* disc, Dtmethod_t* meth, unsigned long version)
 	dt = NULL;
 	data = NULL;
 	type = meth->type;
-
-	memset(&pdt, 0, sizeof(Dt_t));
-	pdt.searchf = meth->searchf;
-	pdt.meth = meth;
+	Dt_t pdt = {
+		.searchf = meth->searchf,
+		.meth = meth
+	};
 	dtdisc(&pdt,disc,0); /* note that this sets pdt.memoryf */
 
 	if(disc->eventf)

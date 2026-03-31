@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -146,15 +146,11 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	char		*lastval=0;
 	int		lastsub=0;
 	Math_f		fun;
-	struct lval	node;
-	node.emode = ep->emode;
-	node.expr = ep->expr;
-	node.elen = ep->elen;
-	node.value = 0;
-	node.nosub = 0;
-	node.sub = 0;
-	node.enum_p = 0;
-	node.isenum = 0;
+	struct lval	node = {
+		.emode = ep->emode,
+		.expr = ep->expr,
+		.elen = ep->elen
+	};
 	if(sh.arithrecursion++ >= MAXLEVEL)
 	{
 		arith_error(e_recursive,ep->expr,ep->emode);
@@ -884,15 +880,15 @@ again:
 
 Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const char**,struct lval*,int,Sfdouble_t),int emode)
 {
-	struct vars cur;
 	Arith_t *ep;
 	int offset;
-	memset(&cur,0,sizeof(cur));
-     	cur.expr = cur.nextchr = string;
-	cur.convert = fun;
-	cur.emode = emode;
-	cur.errmsg.value = 0;
-	cur.errmsg.emode = emode;
+	struct vars cur = {
+		.expr = string,
+		.nextchr = string,
+		.convert = fun,
+		.emode = emode,
+		.errmsg = { .emode = emode }
+	};
 	stkseek(sh.stk,sizeof(Arith_t));
 	if(!expr(&cur,0) && cur.errmsg.value)
 	{

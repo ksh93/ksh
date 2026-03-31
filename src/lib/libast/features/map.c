@@ -156,7 +156,7 @@ main(void)
 #if _npt_strtold && !_std_strtold
 	printf("#ifndef _ISOC99_SOURCE\n");
 #endif
-	printf("extern _ast_fltmax_t	strtold(const char*, char**);\n");
+	printf("extern long double	strtold(const char*, char**);\n");
 #if _npt_strtold && !_std_strtold
 	printf("#endif\n");
 #endif
@@ -165,7 +165,7 @@ main(void)
 #if _npt_strtoll && !_std_strtol
 	printf("#ifndef _ISOC99_SOURCE\n");
 #endif
-	printf("extern _ast_intmax_t		strtoll(const char*, char**, int);\n");
+	printf("extern long long	strtoll(const char*, char**, int);\n");
 #if _npt_strtoll && !_std_strtol
 	printf("#endif\n");
 #endif
@@ -174,7 +174,7 @@ main(void)
 #if _npt_strtoull && !_std_strtol
 	printf("#ifndef _ISOC99_SOURCE\n");
 #endif
-	printf("extern unsigned _ast_intmax_t	strtoull(const char*, char**, int);\n");
+	printf("extern unsigned long long	strtoull(const char*, char**, int);\n");
 #if _npt_strtoull && !_std_strtoul
 	printf("#endif\n");
 #endif

@@ -16,7 +16,7 @@
 
 /*
  * Since native OS assert.h headers often don't play well with libast,
- * here is a simple AST implementation of assert.h as defined in C90.
+ * here is a simple AST implementation of assert.h as defined in C99.
  * It may be included more than once with or without NDEBUG defined.
  *
  * In addition, static_assert is defined as the C11 keyword
@@ -29,17 +29,13 @@
 #undef assert
 #ifdef NDEBUG
 #  define	assert(e)	((void)0)
-#elif _has___func__
-#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, __func__, __FILE__, __LINE__))
-#elif _has___FUNCTION__
-#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, __FUNCTION__, __FILE__, __LINE__))
 #else
-#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, NULL, __FILE__, __LINE__))
+#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, __func__, __FILE__, __LINE__))
 #endif
 
 #ifndef _ASSERT_H
 #  define _ASSERT_H
-extern noreturn void _ast_assertfail(const char*, const char*, const char*, int);
+extern noreturn void _ast_assertfail(const char *restrict, const char *restrict, const char *restrict, int);
 #  if _has__Static_assert && !defined(static_assert)
 #    define static_assert	_Static_assert
 #  endif

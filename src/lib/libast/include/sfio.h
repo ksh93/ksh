@@ -181,8 +181,8 @@ extern Sfio_t		_Sfstdout;
 extern Sfio_t		_Sfstderr;
 
 extern Sfio_t*		sfnew(Sfio_t*, void*, size_t, int, unsigned short);
-extern Sfio_t*		sfopen(Sfio_t*, const char*, const char*);
-extern Sfio_t*		sfpopen(Sfio_t*, const char*, const char*);
+extern Sfio_t*		sfopen(Sfio_t*, const char *restrict, const char *restrict);
+extern Sfio_t*		sfpopen(Sfio_t*, const char *restrict, const char *restrict);
 extern Sfio_t*		sfstack(Sfio_t*, Sfio_t*);
 extern Sfio_t*		sfswap(Sfio_t*, Sfio_t*);
 extern Sfio_t*		sftmp(size_t);
@@ -213,14 +213,14 @@ extern ssize_t		sfnputc(Sfio_t*, int, size_t);
 extern int		sfungetc(Sfio_t*, int);
 extern ssize_t		sfprintf(Sfio_t*, const char*, ...);
 extern char*		sfprints(const char*, ...);
-extern ssize_t		sfaprints(char**, const char*, ...);
-extern ssize_t		sfsprintf(char*, size_t, const char*, ...);
-extern ssize_t		sfvsprintf(char*, size_t, const char*, va_list);
-extern ssize_t		sfvasprints(char**, const char*, va_list);
+extern ssize_t		sfaprints(char **restrict, const char *restrict, ...);
+extern ssize_t		sfsprintf(char *restrict, size_t, const char *restrict, ...);
+extern ssize_t		sfvsprintf(char *restrict, size_t, const char *restrict, va_list);
+extern ssize_t		sfvasprints(char **restrict, const char *restrict, va_list);
 extern ssize_t		sfvprintf(Sfio_t*, const char*, va_list);
 extern int		sfscanf(Sfio_t*, const char*, ...);
-extern int		sfsscanf(const char*, const char*, ...);
-extern int		sfvsscanf(const char*, const char*, va_list);
+extern int		sfsscanf(const char *restrict, const char *restrict, ...);
+extern int		sfvsscanf(const char *restrict, const char *restrict, va_list);
 extern int		sfvscanf(Sfio_t*, const char*, va_list);
 
 /* io functions with discipline continuation */

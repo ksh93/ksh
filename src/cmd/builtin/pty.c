@@ -135,7 +135,7 @@ static noreturn void outofmemory(size_t size)
 	{
 		static char sname[MAXNAME];
 		char *last;
-		strncpy(sname,name,sizeof(sname));
+		strlcpy(sname,name,sizeof(sname));
 		last = strrchr(sname,'/');
 		last[1] = 't';
 		return sname;

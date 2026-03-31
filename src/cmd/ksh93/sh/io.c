@@ -128,7 +128,7 @@ struct addrinfo
 };
 
 static int
-getaddrinfo(const char* node, const char* service, const struct addrinfo* hint, struct addrinfo **addr)
+getaddrinfo(const char *restrict node, const char *restrict service, const struct addrinfo *restrict hint, struct addrinfo **restrict addr)
 {
 	unsigned long	    	ip_addr = 0;
 	unsigned short	    	ip_port = 0;
@@ -216,17 +216,14 @@ static int	onintr(struct addrinfo*);
 static int
 inetopen(const char* path, int flags)
 {
-	char*		s;
-	char*		t;
+	char			*s, *t, *tofree;
 	int			fd;
 	int			oerrno;
-	struct addrinfo		hint;
+	struct addrinfo		hint = { .ai_family = PF_UNSPEC };
 	struct addrinfo*	addr;
 	struct addrinfo*	p;
 	int			server = !!(flags&O_SERVICE);
 
-	memset(&hint, 0, sizeof(hint));
-	hint.ai_family = PF_UNSPEC;
 	switch (path[0])
 	{
 #ifdef IPPROTO_SCTP
@@ -265,17 +262,19 @@ inetopen(const char* path, int flags)
 	}
 	if(flags==O_NONBLOCK)
 		return 1;
-	s = sh_strdup(path);
+	tofree = s = sh_strdup(path);
 	if (t = strchr(s, '/'))
 	{
 		*t++ = 0;
 		if (streq(s, "local"))
-			s = sh_strdup("localhost");
+			s = "localhost";
+		else
+			t = strchr(path,'/')+1;  /* POSIX requires getaddrinfo()'s arguments not overlap */
 		fd = getaddrinfo(s, t, &hint, &addr);
 	}
 	else
 		fd = -1;
-	free(s);
+	free(tofree);
 	if (fd)
 	{
 		if (fd != EAI_SYSTEM)
@@ -1033,13 +1032,15 @@ static Sfoff_t	file_offset(int fn, char *fname)
 	Sfio_t		*sp = sh.sftable[fn];
 	char		*cp;
 	Sfoff_t		off;
-	struct Eof	endf;
 	Namval_t	*mp = nv_open("EOF",sh.var_tree,0);
 	Namval_t	*pp = nv_open("CUR",sh.var_tree,0);
-	memset(&endf,0,sizeof(struct Eof));
-	endf.fd = fn;
-	endf.hdr.disc = &EOF_disc;
-	endf.hdr.nofree = 1;
+	struct Eof	endf = {
+		.fd = fn,
+		.hdr = {
+			.disc = &EOF_disc,
+			.nofree = 1
+		}
+	};
 	if(mp)
 		nv_stack(mp, &endf.hdr);
 	if(pp)
@@ -1398,11 +1399,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 						UNREACHABLE();
 					}
 					if(perm>0)
-#if _lib_fchmod
 						fchmod(fd,perm);
-#else
-						chmod(tname,perm);
-#endif
 				}
 			}
 		traceit:

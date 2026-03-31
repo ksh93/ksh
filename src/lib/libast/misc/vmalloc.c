@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *              This file is part of the ksh 93u+m package              *
-*             Copyright (c) 2025 Contributors to ksh 93u+m             *
+*          Copyright (c) 2025-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -10,6 +10,7 @@
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -28,11 +29,7 @@ typedef struct Vmblock
 	size_t		size;		/* the size of the allocated block	*/
 	struct Vmblock	*prev;		/* previous block in list		*/
 	struct Vmblock	*next;		/* next block in list			*/
-#if __STDC_VERSION__ >= 199901L
 	max_align_t	vblock[];	/* the virtual allocated block, aligned	*/
-#else
-	max_align_t	vblock[1];	/* ...C90 fallback with struct hack	*/
-#endif
 } Vmblock_t;
 
 #define VBLOCKOFFSET	offsetof(Vmblock_t, vblock)

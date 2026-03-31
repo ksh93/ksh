@@ -27,9 +27,9 @@
 */
 
 extern
-Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
-		const char*	file,		/* file/string to be opened */
-		const char*	mode)		/* mode of the stream */
+Sfio_t* _sfopen(Sfio_t*			f,		/* old stream structure */
+		const char *restrict	file,		/* file/string to be opened */
+		const char *restrict	mode)		/* mode of the stream */
 {
 	int		fd, oldfd, oflags, fflags;
 	unsigned short	sflags;

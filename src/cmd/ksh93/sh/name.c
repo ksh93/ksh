@@ -39,7 +39,9 @@ static Namval_t	NullNode;
 static Dt_t	*Refdict;
 static Dtdisc_t	_Refdisc =
 {
-	offsetof(struct Namref,np),sizeof(struct Namval_t*),sizeof(struct Namref)
+	.key = offsetof(struct Namref,np),
+	.size = sizeof(struct Namval_t*),
+	.link = sizeof(struct Namref)
 };
 
 static void	pushnam(Namval_t*,void*);
@@ -1361,7 +1363,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 	char			*cp=(char*)name;
 	int			c;
 	Namval_t		*np=0;
-	Namfun_t		fun;
+	Namfun_t		fun={0};
 	int			append=0;
 	const char		*msg = e_varname;
 	char			*fname = 0;
@@ -1371,7 +1373,6 @@ Namval_t *nv_open(const char *name, Dt_t *root, int flags)
 	struct Cache_entry	*xp;
 #endif
 	sh_stats(STAT_NVOPEN);
-	memset(&fun,0,sizeof(fun));
 	sh.openmatch = 0;
 	sh.last_table = 0;
 	if(!root)
@@ -2127,7 +2128,7 @@ static char *staknam(Namval_t *np, char *value)
 {
 	char *p,*q;
 	q = stkalloc(sh.stk,strlen(nv_name(np))+(value?strlen(value):0)+2);
-	p=strcopy(q,nv_name(np));
+	p=stpcpy(q,nv_name(np));
 	*p++ = '=';
 	strcpy(p,value);
 	return q;
@@ -2153,11 +2154,8 @@ static void pushnam(Namval_t *np, void *data)
 char **sh_envgen(void)
 {
 	char **er;
-	int namec;
-	struct adata data;
-	int i;
-	data.tp = 0;
-	data.mapname = 0;
+	int i, namec;
+	struct adata data = {0};
 	/* L_ARGNOD gets generated automatically as full path name of command */
 	nv_offattr(L_ARGNOD,NV_EXPORT);
 	namec = nv_scan(sh.var_tree,nullscan,NULL,NV_EXPORT,NV_EXPORT);
@@ -2248,12 +2246,12 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,int mask, int fl
 {
 	Namval_t *np;
 	Dt_t *base=0;
-	struct scan sdata;
-	sdata.scanmask = mask;
-	sdata.scanflags = flags&~NV_NOSCOPE;
-	sdata.scanfn = fn;
-	sdata.scancount = 0;
-	sdata.scandata = data;
+	struct scan sdata = {
+		.scanmask = mask,
+		.scanflags = flags&~NV_NOSCOPE,
+		.scanfn = fn,
+		.scandata = data
+	};
 	if(flags&NV_NOSCOPE)
 		base = dtview((Dt_t*)root,0);
 	for(np=(Namval_t*)dtfirst(root);np; np=(Namval_t*)dtnext(root,np))

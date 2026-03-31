@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -27,6 +27,7 @@
 #include	"defs.h"
 #include	<error.h>
 #include	<tmx.h>
+#include	<tv.h>
 #include	"builtins.h"
 #include	"fcin.h"
 #include	"shlex.h"
@@ -96,9 +97,9 @@ static 	void *time_delete(struct tevent *item, void *list)
 
 static Time_t getnow(void)
 {
-	struct timeval tmp;
-	timeofday(&tmp);
-	return tmp.tv_sec + 1.e-6 * tmp.tv_usec;
+	Tv_t tmp;
+	tvgettime(&tmp);
+	return tmp.tv_sec + 1.e-9 * tmp.tv_nsec;
 }
 
 static void	print_alarms(void *list)

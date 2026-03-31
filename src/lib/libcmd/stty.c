@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -921,12 +921,12 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 	int			flags = 0;
 	int			fd = 0;
 	const Tty_t*		tp;
-	Optdisc_t		disc;
+	Optdisc_t		disc = {
+		.version = OPT_VERSION,
+		.infof = infof
+	};
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_INTERACTIVE);
-	memset(&disc, 0, sizeof(disc));
-	disc.version = OPT_VERSION;
-	disc.infof = infof;
 	opt_info.disc = &disc;
 	for (;;)
 	{

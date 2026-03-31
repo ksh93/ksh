@@ -31,9 +31,7 @@ struct Ctype_s
 	size_t		size;
 	regclass_t	ctype;
 	Ctype_t*	next;
-#if _lib_wctype
 	wctype_t	wtype;
-#endif
 };
 
 static Ctype_t*		ctypes;
@@ -43,24 +41,6 @@ static Ctype_t*		ctypes;
  * and the fact that ctype functions are macros
  * and any local extensions that may not even have functions or macros
  */
-
-#if _need_iswblank
-
-int
-_reg_iswblank(wint_t wc)
-{
-	static int	initialized;
-	static wctype_t	wt;
-
-	if (!initialized)
-	{
-		initialized = 1;
-		wt = wctype("blank");
-	}
-	return iswctype(wc, wt);
-}
-
-#endif
 
 static int  Isalnum(int c) { return  iswalnum((wint_t)c); }
 static int  Isalpha(int c) { return  iswalpha(c); }
@@ -86,8 +66,6 @@ static int   Isword(int c) { return  iswalnum((wint_t)c) || c == '_'; }
 static int  Notword(int c) { return !iswalnum((wint_t)c) && c != '_'; }
 static int Isxdigit(int c) { return  iswxdigit((wint_t)c);}
 
-#if _lib_wctype
-
 static int Is_wc_1(int);
 static int Is_wc_2(int);
 static int Is_wc_3(int);
@@ -105,9 +83,9 @@ static int Is_wc_14(int);
 static int Is_wc_15(int);
 static int Is_wc_16(int);
 
-#endif
-
 #define SZ(s)		s,(sizeof(s)-1)
+#define CTYPES		13
+#define WTYPES		16
 
 static Ctype_t ctype[] =
 {
@@ -124,10 +102,6 @@ static Ctype_t ctype[] =
 	{ SZ("upper"), Isupper },
 	{ SZ("word"),  Isword  },
 	{ SZ("xdigit"),Isxdigit},
-
-#define CTYPES		13
-
-#if _lib_wctype
 	{ 0, 0,        Is_wc_1 },
 	{ 0, 0,        Is_wc_2 },
 	{ 0, 0,        Is_wc_3 },
@@ -144,17 +118,7 @@ static Ctype_t ctype[] =
 	{ 0, 0,        Is_wc_14 },
 	{ 0, 0,        Is_wc_15 },
 	{ 0, 0,        Is_wc_16 },
-
-#define WTYPES		16
-
-#else
-
-#define WTYPES		0
-
-#endif
 };
-
-#if _lib_wctype
 
 static int Is_wc_1(int c) { return iswctype((wint_t)c, ctype[CTYPES+0].wtype); }
 static int Is_wc_2(int c) { return iswctype((wint_t)c, ctype[CTYPES+1].wtype); }
@@ -172,8 +136,6 @@ static int Is_wc_13(int c) { return iswctype((wint_t)c, ctype[CTYPES+12].wtype);
 static int Is_wc_14(int c) { return iswctype((wint_t)c, ctype[CTYPES+13].wtype); }
 static int Is_wc_15(int c) { return iswctype((wint_t)c, ctype[CTYPES+14].wtype); }
 static int Is_wc_16(int c) { return iswctype((wint_t)c, ctype[CTYPES+15].wtype); }
-
-#endif
 
 /*
  * return pointer to ctype function for :class:] in s
@@ -208,7 +170,6 @@ regclass(const char* s, char** e)
 	lc = (Ctype_t*)setlocale(LC_CTYPE, NULL);
 	for (cp = ctype; cp < &ctype[elementsof(ctype)]; cp++)
 	{
-#if _lib_wctype
 		if (!zp)
 		{
 			if (!cp->size)
@@ -216,11 +177,9 @@ regclass(const char* s, char** e)
 			else if (!xp && cp->next && cp->next != lc)
 				xp = cp;
 		}
-#endif
 		if (n == cp->size && strneq(s, cp->name, n) && (!cp->next || cp->next == lc))
 			goto found;
 	}
-#if _lib_wctype
 	if (!(cp = zp))
 	{
 		if (!(cp = xp))
@@ -247,7 +206,6 @@ regclass(const char* s, char** e)
 	}
 	cp->size = n;
 	cp->next = lc;
-#endif
  found:
 	if (e)
 		*e = (char*)t + 2;

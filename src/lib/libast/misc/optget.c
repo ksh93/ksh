@@ -451,13 +451,13 @@ secname(char* section)
 			s = "MISCELLANEOUS ";
 			break;
 		default:
-			s = 0;
+			s = NULL;
 			break;
 		}
 		if (s)
-			t = strcopy(t, s);
+			t = stpcpy(t, s);
 	}
-	s = 0;
+	s = NULL;
 	for (i = 0; i < elementsof(sections); i++)
 	{
 		if (section[0] == sections[i].section[0] && (section[1] == sections[i].section[1] || !sections[i].section[1]))
@@ -468,10 +468,10 @@ secname(char* section)
 	}
 	if (!s)
 	{
-		t = strcopy(t, "SECTION ");
+		t = stpcpy(t, "SECTION ");
 		s = section;
 	}
-	strcopy(t, s);
+	stpcpy(t, s);
 	return b;
 }
 

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,10 +32,10 @@ int main(int argc, char *argv[])
 {
 #if _lib_memcntl
 	/* advise larger stack size */
-	struct memcntl_mha mha;
-	mha.mha_cmd = MHA_MAPSIZE_STACK;
-	mha.mha_flags = 0;
-	mha.mha_pagesize = 64 * 1024;
+	struct memcntl_mha mha = {
+		.mha_cmd = MHA_MAPSIZE_STACK,
+		.mha_pagesize = 64 * 1024
+	};
 	(void)memcntl(NULL, 0, MC_HAT_ADVISE, (caddr_t)&mha, 0, 0);
 #endif
 	sh_main(argc, argv, NULL);

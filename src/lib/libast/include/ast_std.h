@@ -59,9 +59,6 @@ struct _sfio_s;
 #endif
 
 #include <ast_lib.h>
-#if !_lib_fork
-#error In 2022, libast joined the 21st century and started requiring fork(2).
-#endif
 #include <ast_sys.h>
 #include <ast_fcntl.h>
 #include <ast_limits.h>
@@ -93,34 +90,6 @@ struct _sfio_s;
 #ifndef __DEFINED_FILE
 #define __DEFINED_FILE 1
 #endif
-#endif
-
-/* locale stuff */
-
-#if !_hdr_locale
-
-struct lconv
-{
-	char*	decimal_point;
-	char*	thousands_sep;
-	char*	grouping;
-	char*	int_curr_symbol;
-	char*	currency_symbol;
-	char*	mon_decimal_point;
-	char*	mon_thousands_sep;
-	char*	mon_grouping;
-	char*	positive_sign;
-	char*	negative_sign;
-	char	int_frac_digits;
-	char	frac_digits;
-	char	p_cs_precedes;
-	char	p_sep_by_space;
-	char	n_cs_precedes;
-	char	n_sep_by_space;
-	char	p_sign_posn;
-	char	n_sign_posn;
-};
-
 #endif
 
 #undef	getenv
@@ -238,7 +207,7 @@ typedef struct
 	struct				/* ast.locale.* -- stuff set in setlocale.c */
 	{
 	int             (*collate)(const char*, const char*);     /* strcoll(3), an alternative, or strcmp(3) for no collation */
-	size_t		(*transform)(char*, const char*, size_t); /* strxfrm(3), an alternative, or 0 for no collation */
+	size_t		(*transform)(char *restrict, const char *restrict, size_t); /* strxfrm(3), an alternative, or 0 for no collation */
 	void		*uc2wc;		/* iconv descriptor for converting unicode to locale's wide char */
 	uint32_t	serial;
 	uint32_t	set;		/* AST_LC_* bit flags (see above) */
@@ -254,7 +223,7 @@ typedef struct
 	int		(*alpha)(wchar_t);
 	int		(*conv)(char*, wchar_t);
 	int		(*len)(const char*, size_t);
-	int		(*towc)(wchar_t*, const char*, size_t);
+	int		(*towc)(wchar_t *restrict, const char *restrict, size_t);
 	int		(*width)(wchar_t);
 	}		mb;
 #endif
@@ -264,10 +233,6 @@ typedef struct
 extern _Ast_info_t	_ast_info;
 
 /* direct macro access for bsd crossover */
-
-#if !defined(memzero) && !defined(_lib_memzero)
-#define memzero(b,n)	memset(b,0,n)
-#endif
 
 #if !defined(remove)
 extern int		remove(const char*);

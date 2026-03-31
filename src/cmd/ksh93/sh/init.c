@@ -32,6 +32,7 @@
 #include	"defs.h"
 #include	<pwd.h>
 #include	<tmx.h>
+#include	<tv.h>
 #include	<regex.h>
 #include	<math.h>
 #include	<ast_random.h>
@@ -96,7 +97,6 @@ static wctrans_t wctrans(const char *name)
 #define towctrans	sh_towctrans
 static int towctrans(int c, wctrans_t t)
 {
-#if _lib_towupper && _lib_towlower
 	if(mbwide())
 	{
 		if(t==1 && iswupper((wint_t)c))
@@ -105,7 +105,6 @@ static int towctrans(int c, wctrans_t t)
 			c = (int)towupper((wint_t)c);
 	}
 	else
-#endif
 	if(t==1 && isupper(c))
 		c = tolower(c);
 	else if(t==2 && islower(c))
@@ -470,7 +469,6 @@ static void put_lang(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 		}
 	}
 	nv_putv(np, val, flags, fp);
-#if _lib_localeconv
 	if(type==LC_ALL || type==LC_NUMERIC || type==LC_LANG)
 	{
 		struct lconv *lp = localeconv();
@@ -478,7 +476,6 @@ static void put_lang(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 		/* Multibyte radix points are not (yet?) supported */
 		sh.radixpoint = strlen(cp)==1 ? *cp : '.';
 	}
-#endif
 }
 
 /* Trap for IFS assignment and invalidates state table */
@@ -553,14 +550,13 @@ static char* get_ifs(Namval_t *np, Namfun_t *fp)
 /*
  * these functions are used to get and set the SECONDS variable
  */
-#define dtime(tp) ((double)((tp)->tv_sec)+1e-6*((double)((tp)->tv_usec)))
-#define tms	timeval
+#define dtime(tp) ((double)((tp)->tv_sec)+1e-9*((double)((tp)->tv_nsec)))
 
 static void put_seconds(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 {
 	double d;
 	double *dp = np->nvalue;
-	struct tms tp;
+	Tv_t tp;
 	if(!val)
 	{
 		nv_putv(np, val, flags, fp);
@@ -577,19 +573,19 @@ static void put_seconds(Namval_t *np,const char *val,int flags,Namfun_t *fp)
 	}
 	nv_putv(np, val, flags, fp);
 	d = *dp;
-	timeofday(&tp);
+	tvgettime(&tp);
 	*dp = dtime(&tp)-d;
 }
 
 static char* get_seconds(Namval_t *np, Namfun_t *fp)
 {
 	size_t places = nv_size(np);
-	struct tms tp;
+	Tv_t tp;
 	double d;
 	double *dp = np->nvalue;
 	double offset = dp ? *dp : 0;
 	NOT_USED(fp);
-	timeofday(&tp);
+	tvgettime(&tp);
 	d = dtime(&tp)- offset;
 	sfprintf(sh.strbuf,"%.*f",places,d);
 	return sfstruse(sh.strbuf);
@@ -597,11 +593,11 @@ static char* get_seconds(Namval_t *np, Namfun_t *fp)
 
 static Sfdouble_t nget_seconds(Namval_t *np, Namfun_t *fp)
 {
-	struct tms tp;
+	Tv_t tp;
 	double *dp = np->nvalue;
 	double offset = dp ? *dp : 0;
 	NOT_USED(fp);
-	timeofday(&tp);
+	tvgettime(&tp);
 	return dtime(&tp) - offset;
 }
 
@@ -1240,13 +1236,10 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
 	sh.lex_context = sh_lexopen(0,1);
-	sh.radixpoint = '.';  /* pre-locale init */
 	sh.strbuf = sfstropen();
-	stkoverflow(sh.stk = stkstd, nomemory);
+	stkoverflow(sh.stk, nomemory);
 	sfsetbuf(sh.strbuf,NULL,64);
 	error_info.catalog = e_dict;
-	sh.cpipe[0] = -1;
-	sh.coutpipe = -1;
 	sh_ioinit();
 	/* initialize signal handling */
 	sh_siginit();
@@ -1402,13 +1395,12 @@ static void freeup_tree(Dt_t *tree)
  */
 void sh_reinit(void)
 {
-	Shopt_t opt;
+	Shopt_t opt = {0};
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
 	sh_onstate(SH_INIT);
 	sh_offstate(SH_FORKED);
 	/* Reset shell options; inherit some */
-	memset(&opt,0,sizeof(opt));
 	if(sh_isoption(SH_POSIX))
 		on_option(&opt,SH_POSIX);
 #if SHOPT_ESH

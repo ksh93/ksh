@@ -36,21 +36,12 @@
 #include <namval.h>
 #include <error.h>
 
-#if ( _lib_wcwidth || _lib_wctomb ) && _hdr_wctype
+#if _hdr_wctype
 #include <wctype.h>
 #endif
 
-#if _lib_wcwidth
 #undef	wcwidth
-#else
-#define wcwidth			0
-#endif
-
-#if _lib_wctomb
 #undef	wctomb
-#else
-#define wctomb			0
-#endif
 
 #ifdef mblen
 #undef	mblen
@@ -84,14 +75,14 @@ header(void)
  * LC_COLLATE and LC_CTYPE native support
  */
 
-#if !_lib_mbtowc || MB_LEN_MAX <= 1
+#if MB_LEN_MAX <= 1
 #define mblen		0
 #define mbtowc		0
 #endif
 
 #if _macos_strxfrm_bug
 static size_t
-_ast_strxfrm_workaround(char *s1, const char *s2, size_t n)
+_ast_strxfrm_workaround(char *restrict s1, const char *restrict s2, size_t n)
 {
 	size_t	r;
 	int	save = errno;
@@ -187,7 +178,7 @@ static unsigned char debug_order[] =
 };
 
 static int
-debug_mbtowc(wchar_t* p, const char* s, size_t n)
+debug_mbtowc(wchar_t *restrict p, const char *restrict s, size_t n)
 {
 	const char*	q;
 	const char*	r;
@@ -459,14 +450,14 @@ set_collate(Lc_category_t* cp)
  * workaround the interesting SJIS that translates unshifted 7 bit ASCII!
  */
 
-#if _hdr_wchar && _typ_mbstate_t && _lib_mbrtowc && !AST_NOMULTIBYTE
+#if _hdr_wchar && !AST_NOMULTIBYTE
 
 #define sjis_workaround	1
 static mbstate_t	sjis_state_zero;
 static mbstate_t	sjis_state;
 
 static int
-sjis_mbtowc(wchar_t* p, const char* s, size_t n)
+sjis_mbtowc(wchar_t *restrict p, const char *restrict s, size_t n)
 {
 	if (n && p && s && (*s == '\\' || *s == '~') && !memcmp(&sjis_state, &sjis_state_zero, sizeof(mbstate_t)))
 	{
@@ -520,7 +511,7 @@ static const unsigned char	utf8tab[256] =
 };
 
 static int
-utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
+utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 {
 	unsigned char*	sp = (unsigned char*)str;
 	size_t		m;
@@ -2139,7 +2130,7 @@ utf8_alpha(wchar_t c)
 
 #endif /* !AST_NOMULTIBYTE */
 
-#if !_hdr_wchar || !_lib_wctype || !_lib_iswctype
+#if !_hdr_wchar
 #undef	iswalpha
 #define iswalpha	default_iswalpha
 static int
@@ -2354,28 +2345,6 @@ setopt(void* a, const void* p, int n, const char* v)
 	}
 	return 0;
 }
-
-#if !_lib_setlocale
-
-#define setlocale(c,l)		default_setlocale(c,l)
-
-static char*
-default_setlocale(int category, const char* locale)
-{
-	Lc_t*		lc;
-
-	if (locale)
-	{
-		if (!(lc = lcmake(locale)) || !(lc->flags & LC_default))
-			return NULL;
-		locales[0]->flags &= ~lc->flags;
-		locales[1]->flags &= ~lc->flags;
-		return lc->name;
-	}
-	return (locales[1]->flags & (1<<category)) ? locales[1]->name : locales[0]->name;
-}
-
-#endif
 
 /*
  * set a single AST_LC_* locale category

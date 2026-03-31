@@ -114,7 +114,7 @@ set(Header_t* hp, const char* fs, const char* dir, const char* type, const char*
 			flags = 0;
 		SetErrorMode(mode);
 		s = strcopy(hp->mnt.options = hp->opt, type);
-		s = strcopy(s, ",ignorecase");
+		s = stpcpy(s, ",ignorecase");
 		if (options)
 		{
 			*s++ = ',';
