@@ -59,7 +59,7 @@ make install virtual
 	note *
 
 	make %{INSTALLROOT}/bin
-		exec - test -d %{@} && touch %{@} || mkdir -p %{@}
+		exec - mkdir -p %{@}
 	done
 	make %{INSTALLROOT}/bin/pty
 		prev pty

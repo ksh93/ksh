@@ -127,7 +127,7 @@ make install virtual
 
 	loop DIR %{INSTALLROOT}/lib/lib %{INCLUDE_AST}
 		make %{DIR}
-			exec - test -d %{@} && touch %{@} || mkdir -p %{@}
+			exec - mkdir -p %{@}
 		done
 	done
 	make %{INSTALLROOT}/lib/libdll.a

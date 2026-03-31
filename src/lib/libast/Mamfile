@@ -21,11 +21,9 @@ make install virtual
 	note *
 	note * Generate release information
 	note *
-	note * (The target is 'virtual' as it needs to be run at
-	note * every build, so we can catch changes of git status)
-	note *
-	make ast_release_info notrace virtual
+	make ast_release.h force notrace
 		note * Check that we are not only in a git repo, but in our own git repo
+		exec -	r=0
 		exec -	if	top_level=$(git rev-parse --show-toplevel 2>/dev/null) &&
 		exec -		test -n "$top_level" && test -f "$top_level/src/lib/libast/Mamfile" &&
 		exec -		git_branch=$(git branch 2>/dev/null)
@@ -38,6 +36,7 @@ make install virtual
 		exec -			then	echo "#ifndef _AST_release"
 		exec -				echo "#    define _AST_release	1"
 		exec -				echo "#endif"
+		exec -				r=1
 		exec -			else	echo "/*"
 		exec -				echo " * on a git release branch, but changes were made;"
 		exec -				echo " * _AST_release not defined by default"
@@ -52,13 +51,17 @@ make install virtual
 		exec -		echo "#ifndef _AST_release"
 		exec -		echo "#    define _AST_release	1"
 		exec -		echo "#endif"
-		exec -	fi > ast_release.h.new
+		exec -		r=1
+		exec -	fi > ast_release.h.new || exit
+		exec -	case $r in
+		exec -	0)	echo '# building a development version' ;;
+		exec -	1)	echo '# building a release version' ;;
+		exec -	esac >&2  # for the log
 		exec -	if	cmp -s ast_release.h.new ast_release.h
 		exec -	then	rm -f ast_release.h.new
 		exec -	else	mv -f ast_release.h.new ast_release.h
 		exec -	fi
 	done
-	makp ast_release.h
 
 	note *
 	note * iffe invocations are mostly the same, but some add custom flags
@@ -597,7 +600,6 @@ make install virtual
 	note * another one that's hard to parallelise *
 	make lc.h
 		prev include/ast.h
-		makp port/lc.tab
 		make lctab.c
 			make port/lclang.h
 				makp include/ast_windows.h
@@ -606,6 +608,7 @@ make install virtual
 				makp port/lcgen.c
 				exec - %{CC} %{CCLDFLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS} -o lcgen port/lcgen.c
 			done
+			makp port/lc.tab
 			setv _run_lcgen_ lcgen lc.h lctab.c < port/lc.tab
 			exec - %{_run_lcgen_}
 		done
@@ -3667,7 +3670,7 @@ make install virtual
 	note * ensure preinstallation directories exist
 	loop DIR include/ast lib/lib lib/mam lib/file man/man3
 		make %{INSTALLROOT}/%{DIR}
-			exec - test -d %{@} && touch %{@} || mkdir -p %{@}
+			exec - mkdir -p %{@}
 		done
 	done
 
