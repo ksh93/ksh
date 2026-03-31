@@ -2210,7 +2210,7 @@ set_ctype(Lc_category_t* cp)
 		ast.mb.conv = utf8_wctomb;
 		ast.mb.alpha = utf8_alpha;
 	}
-	else if ((locales[cp->internal]->flags & LC_default) || (ast.mb.cur_max = MB_CUR_MAX) <= 1 || !(ast.mb.len = mblen) || !(ast.mb.towc = mbtowc))
+	else if ((locales[cp->internal]->flags & LC_default) || (ast.mb.cur_max = (uint32_t)MB_CUR_MAX) <= 1 || !(ast.mb.len = mblen) || !(ast.mb.towc = mbtowc))
 	{
 		ast.mb.cur_max = 1;
 		ast.mb.len = 0;

@@ -168,7 +168,7 @@ tmopt(void* a, const void* p, int n, const char* v)
 		switch (((Namval_t*)p)->value)
 		{
 		case TM_DEFAULT:
-			tm_info.deformat = (n && (n = strlen(v)) > 0 && (n < 2 || v[n-2] != '%' || v[n-1] != '?')) ? strdup(v) : tm_info.format[TM_DEFAULT];
+			tm_info.deformat = (n && (n = (int)strlen(v)) > 0 && (n < 2 || v[n-2] != '%' || v[n-1] != '?')) ? strdup(v) : tm_info.format[TM_DEFAULT];
 			break;
 		case TM_type:
 			tm_info.local->type = (n && *v) ? ((zp = tmtype(v, NULL)) ? zp->type : strdup(v)) : 0;
@@ -264,8 +264,8 @@ tmlocal(time_t now)
 			break;
 		}
 	}
-	local.west = n;
-	local.dst = m;
+	local.west = (short)n;
+	local.dst = (short)m;
 
 	/*
 	 * now get the time zone names
@@ -328,11 +328,11 @@ tmlocal(time_t now)
 				if (!(s = zp->daylight))
 				{
 					e = (s = buf) + sizeof(buf);
-					s = tmpoff(s, e - s, zp->standard, 0, 0);
+					s = tmpoff(s, (size_t)(e - s), zp->standard, 0, 0);
 					if (s < e - 1)
 					{
 						*s++ = ' ';
-						tmpoff(s, e - s, tm_info.format[TM_DT], m, TM_DST);
+						tmpoff(s, (size_t)(e - s), tm_info.format[TM_DT], m, TM_DST);
 					}
 					s = strdup(buf);
 				}
@@ -348,13 +348,13 @@ tmlocal(time_t now)
 			 */
 
 			e = (s = buf) + sizeof(buf);
-			s = tmpoff(s, e - s, tm_info.format[TM_UT], n, 0);
+			s = tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], n, 0);
 			if (!local.standard)
 				local.standard = strdup(buf);
 			if (s < e - 1)
 			{
 				*s++ = ' ';
-				tmpoff(s, e - s, tm_info.format[TM_UT], m, TM_DST);
+				tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], m, TM_DST);
 				if (!local.daylight)
 					local.daylight = strdup(buf);
 			}

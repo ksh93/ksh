@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -66,7 +66,7 @@ fixup(Lc_info_t* li, char** b)
 {
 	char**			v;
 	char**			e;
-	int			n;
+	unsigned int		n;
 
 	static int		must[] =
 	{
@@ -185,10 +185,10 @@ static const Map_t map[] =
 static char*
 word2posix(char* f, char* w, int alternate)
 {
-	char*	r;
-	int	c;
-	int	p;
-	int	n;
+	char*		r;
+	char		c;
+	char		p;
+	ssize_t		n;
 
 	while (*w)
 	{
@@ -357,10 +357,10 @@ native_lc_time(Lc_info_t* li)
 	n = nt + ns + nl;
 	for (i = 0; i < elementsof(map); i++)
 		n += GetLocaleInfo(lcid, map[i].native, 0, 0);
-	if (!(b = newof(0, char*, TM_NFORM, n)))
+	if (!(b = newof(0, char*, TM_NFORM, (size_t)n)))
 		return;
 	s = (char*)(b + TM_NFORM);
-	for (i = 0; i < elementsof(map); i++)
+	for (i = 0; i < (int)elementsof(map); i++)
 	{
 		if (!(m = GetLocaleInfo(lcid, map[i].native, s, n)))
 			goto bad;
@@ -510,8 +510,8 @@ native_lc_time(Lc_info_t* li)
 	char*	s;
 	char*	t;
 	char**	b;
-	int	n;
-	int	i;
+	size_t	n;
+	unsigned int	i;
 
 	n = 0;
 	for (i = 0; i < elementsof(map); i++)
@@ -571,7 +571,7 @@ load(Lc_info_t* li)
 		tm_info.deformat = tm_info.format[TM_DEFAULT];
 	if (mcfind(NULL, NULL, LC_TIME, 0, path, sizeof(path)) && (sp = sfopen(NULL, path, "r")))
 	{
-		n = sfsize(sp);
+		n = (ssize_t)sfsize(sp);
 		tp = 0;
 		if (u = (unsigned char*)sfreserve(sp, 3, 1))
 		{
@@ -580,19 +580,19 @@ load(Lc_info_t* li)
 				if (tp = sfstropen())
 				{
 					sfread(sp, u, 3);
-					n = iconv_move(cvt, sp, tp, SFIO_UNBOUND, NULL);
+					n = (ssize_t)iconv_move(cvt, sp, tp, (size_t)SFIO_UNBOUND, NULL);
 				}
 				iconv_close(cvt);
 			}
 			if (!tp)
 				sfread(sp, u, 0);
 		}
-		if (b = newof(0, char*, TM_NFORM, n + 2))
+		if (b = newof(0, char*, TM_NFORM, (size_t)n + 2))
 		{
 			v = b;
 			e = b + TM_NFORM;
 			s = (char*)e;
-			if (tp && memcpy(s, sfstrbase(tp), n) || !tp && sfread(sp, s, n) == n)
+			if (tp && memcpy(s, sfstrbase(tp), (size_t)n) || !tp && sfread(sp, s, (size_t)n) == n)
 			{
 				s[n] = '\n';
 				while (v < e)

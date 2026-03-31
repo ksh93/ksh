@@ -73,7 +73,7 @@ int
 tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int flags)
 {
 	int		fd;
-	int		mode;
+	mode_t		mode;
 	int		oerrno;
 	struct stat	st;
 	Tv_t		now;
