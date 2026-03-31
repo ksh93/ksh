@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include "sfdchdr.h"
@@ -57,12 +58,12 @@ static ssize_t pfxwrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 	e = s + n;
 	do
 	{
-		if (!(t = memchr(s, '\n', e - s)))
+		if (!(t = memchr(s, '\n', (size_t)(e - s))))
 		{
 			skip = 1;
 			t = e - 1;
 		}
-		n = t - s + 1;
+		n = (size_t)(t - s + 1);
 		if (pfx->skip)
 			pfx->skip = 0;
 		else
@@ -96,7 +97,7 @@ int sfdcprefix(Sfio_t* f, const char* prefix)
 {
 	Prefix_t*	pfx;
 	char*		s;
-	size_t			n;
+	size_t		n;
 
 	/*
 	 * this is a writeonly discipline
@@ -114,7 +115,7 @@ int sfdcprefix(Sfio_t* f, const char* prefix)
 	memcpy(pfx->prefix, prefix, n);
 	s = (char*)prefix + n;
 	while (--s > (char*)prefix && (*s == ' ' || *s == '\t'));
-	n = s - (char*)prefix;
+	n = (size_t)(s - (char*)prefix);
 	if (*s != ' ' || *s != '\t')
 		n++;
 	pfx->empty = n;

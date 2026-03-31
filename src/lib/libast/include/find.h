@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -61,7 +61,7 @@ typedef struct Finddisc_s
 typedef struct Find_s
 {
 	const char*	id;		/* library ID string		*/
-	unsigned long	stamp;		/* codes time stamp		*/
+	time_t		stamp;		/* codes time stamp		*/
 
 #ifdef _FIND_PRIVATE_
 	_FIND_PRIVATE_

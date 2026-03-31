@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,6 +15,7 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *                      Phi <phi.debian@gmail.com>                      *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -62,10 +63,10 @@ tmfix(Tm_t* tm)
 	 * adjust from shortest to longest units
 	 */
 
-	if ((n = tm->tm_nsec) < 0)
+	if ((n = (int)tm->tm_nsec) < 0)
 	{
 		tm->tm_sec -= (TMX_RESOLUTION - n) / TMX_RESOLUTION;
-		tm->tm_nsec = TMX_RESOLUTION - (-n) % TMX_RESOLUTION;
+		tm->tm_nsec = (unsigned)(TMX_RESOLUTION - (-n) % TMX_RESOLUTION);
 	}
 	else if (n >= TMX_RESOLUTION)
 	{

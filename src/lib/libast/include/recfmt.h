@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -48,7 +49,7 @@ typedef uint32_t Recfmt_t;
 #define REC_F_SIZE(f)		((f)&((1<<28)-1))
 
 #define REC_U_TYPE(t,a)		(((t)<<28)|((a)&((1<<28)-1)))
-#define REC_U_ATTRIBUTES(f)	((f)&~((1<<28)-1))
+#define REC_U_ATTRIBUTES(f)	((f)&(Recfmt_t)~((1<<28)-1))
 
 #define REC_V_TYPE(h,o,z,l,i)	((REC_variable<<28)|((h)<<23)|((o)<<19)|(((z)-1)<<18)|((l)<<17)|((i)<<16))
 #define REC_V_RECORD(f,s)	(((f)&(((1<<16)-1)<<16))|(s))

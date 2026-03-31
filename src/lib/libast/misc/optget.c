@@ -4603,7 +4603,7 @@ optget(char** argv, const char* oopts)
 			{
 				if (c >= 0 && c < (ssize_t)sizeof(map) && map[c] && cache->equiv[map[c]])
 					c = cache->equiv[map[c]];
-				if (c >= 0 && c < sizeof(map) && map[c] && (k = cache->flags[map[c]]))
+				if (c >= 0 && c < (ssize_t)sizeof(map) && map[c] && (k = cache->flags[map[c]]))
 				{
 					opt_info.arg = 0;
 
