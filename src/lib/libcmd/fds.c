@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -45,13 +45,6 @@ static const char usage[] =
 #endif /* __ANDROID_API__ */
 #else
 #undef	S_IFSOCK
-#endif
-
-#ifndef minor
-#define minor(x)	(int)((x)&0xff)
-#endif
-#ifndef major
-#define major(x)	(int)(((unsigned int)(x)>>8)&0xff)
 #endif
 
 #ifdef S_IFSOCK
@@ -161,7 +154,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 	char*			m;
 	char*			x;
 	int			flags;
-	int			details;
+	int64_t			details;
 	int			open_max;
 	int			unit;
 	Sfio_t*			sp;
@@ -194,7 +187,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 			details = opt_info.num;
 			continue;
 		case 'u':
-			unit = opt_info.num;
+			unit = (int)opt_info.num;
 			continue;
 		case '?':
 			/* self-doc: write to standard output */
@@ -222,7 +215,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 	}
 	if (unit == 1)
 		sp = sfstdout;
-	else if (fstat(unit, &st) || !(sp = sfnew(NULL, NULL, SFIO_UNBOUND, unit, SFIO_WRITE)))
+	else if (fstat(unit, &st) || !(sp = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, unit, SFIO_WRITE)))
 	{
 		error(ERROR_SYSTEM|3, "%d: cannot write to file descriptor");
 		UNREACHABLE();
@@ -350,7 +343,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 				a = fam;
 				e = (b = (unsigned char*)&addr) + addrlen;
 				while (b < e && a < &fam[sizeof(fam)-1])
-					a += sfsprintf(a, &fam[sizeof(fam)] - a - 1, ".%d", *b++);
+					a += sfsprintf(a, (size_t)(&fam[sizeof(fam)] - a - 1), ".%d", *b++);
 				a = a == fam ? "0" : fam + 1;
 			}
 			if (port)

@@ -66,7 +66,7 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 	mode_t		mode = 0;
 	mode_t		mask;
 	int		fd;
-	int		i;
+	size_t		i;
 	int		quiet = 0;
 	int		unsafe = 0;
 	int*		fdp = &fd;
@@ -136,7 +136,7 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 	}
 	if (t = strrchr(pfx, '/'))
 	{
-		i = ++t - pfx;
+		i = (size_t)(++t - pfx);
 		dir = fmtbuf(i);
 		memcpy(dir, pfx, i);
 		dir[i] = 0;
