@@ -33,9 +33,14 @@ noreturn void _ast_assertfail(const char *a, const char *fun, const char *file, 
 		void* callstack[200];
 		int i, frames = backtrace(callstack, 200);
 		char** strs = backtrace_symbols(callstack, frames);
-		for (i = 0; i < frames; ++i)
-			sfprintf(sfstderr, "%s\n", strs[i]);
-		free(strs);
+		if(strs)
+		{
+			for (i = 0; i < frames; ++i)
+				sfprintf(sfstderr, "%s\n", strs[i]);
+			free(strs);
+		}
+		else
+			sfprintf(sfstderr, "Could not obtain a backtrace (%s)\n", strerror(errno));
 	}
 #endif
 	sfsync(NULL);
