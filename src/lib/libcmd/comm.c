@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -63,7 +63,7 @@ static const char usage[] =
 static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 {
 	char *cp1, *cp2;
-	int n1 = 0, n2 = 0, n, comp;
+	ssize_t n1 = 0, n2 = 0, n, comp;
 	if(cp1 = sfgetr(in1,'\n',0))
 		n1 = sfvalue(in1);
 	if(cp2 = sfgetr(in2,'\n',0))
@@ -71,7 +71,7 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 	while(cp1 && cp2)
 	{
 		n=(n1<n2?n1:n2);
-		if((comp=memcmp(cp1,cp2,n-1))==0 && (comp=n1-n2)==0)
+		if((comp=memcmp(cp1,cp2,(size_t)n-1))==0 && (comp=n1-n2)==0)
 		{
 			if(mode&C_COMMON)
 			{
@@ -81,7 +81,7 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 					if(mode==C_ALL)
 						sfputc(out,'\t');
 				}
-				if(sfwrite(out,cp1,n) < 0)
+				if(sfwrite(out,cp1,(size_t)n) < 0)
 					return -1;
 			}
 			if(cp1 = sfgetr(in1,'\n',0))
@@ -95,7 +95,7 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 			{
 				if(mode&C_FILE1)
 					sfputc(out,'\t');
-				if(sfwrite(out,cp2,n2) < 0)
+				if(sfwrite(out,cp2,(size_t)n2) < 0)
 					return -1;
 			}
 			if(cp2 = sfgetr(in2,'\n',0))
@@ -103,7 +103,7 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 		}
 		else
 		{
-			if((mode&C_FILE1) && sfwrite(out,cp1,n1) < 0)
+			if((mode&C_FILE1) && sfwrite(out,cp1,(size_t)n1) < 0)
 				return -1;
 			if(cp1 = sfgetr(in1,'\n',0))
 				n1 = sfvalue(in1);
@@ -132,7 +132,7 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 	{
 		if(n)
 			sfputc(out,'\t');
-		if(sfwrite(out,cp1,n1) < 0)
+		if(sfwrite(out,cp1,(size_t)n1) < 0)
 			return -1;
 		if(!(cp1 = sfgetr(in1,'\n',0)))
 			return 0;

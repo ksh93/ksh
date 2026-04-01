@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -13,6 +13,7 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -29,12 +30,12 @@
  * copy the lines starting at offset <start> from in <in> to <out>
  * in reverse order
  */
-int rev_line(Sfio_t *in, Sfio_t *out, off_t start)
+int rev_line(Sfio_t *in, Sfio_t *out, Sfoff_t start)
 {
 	char *cp, *cpold;
-	int n, nleft=0;
+	ssize_t n, nleft=0;
 	char buff[BUFSIZE];
-	off_t offset;
+	Sfoff_t offset;
 	if(sfseek(in,0,SEEK_CUR) < 0)
 	{
 		Sfio_t *tmp = sftmp(4*SFIO_BUFSIZE);
@@ -59,7 +60,7 @@ int rev_line(Sfio_t *in, Sfio_t *out, off_t start)
 			offset = start;
 		}
 		sfseek(in, offset, SEEK_SET);
-		if((n=sfread(in, buff, n)) <=0)
+		if((n=sfread(in, buff, (size_t)n)) <=0)
 			break;
 		cp = buff+n;
 		n = *buff;
@@ -77,13 +78,13 @@ int rev_line(Sfio_t *in, Sfio_t *out, off_t start)
 			while(*--cp != '\n');
 			if(cp==buff && n!='\n')
 			{
-				*cp = n;
+				*cp = (char)n;
 				nleft += cpold-cp;
 				break;
 			}
 			else
 				cp++;
-			if(sfwrite(out,cp,cpold-cp) < 0)
+			if(sfwrite(out,cp,(size_t)(cpold-cp)) < 0)
 				return -1;
 			if(nleft)
 			{

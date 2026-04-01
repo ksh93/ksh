@@ -79,12 +79,12 @@ tee_write(Sfio_t* fp, const void* buf, size_t n, Sfdisc_t* handle)
 		ep = bp + n;
 		while (bp < ep)
 		{
-			if ((r = write(fd, bp, ep - bp)) <= 0)
+			if ((r = write(fd, bp, (size_t)(ep - bp))) <= 0)
 				return -1;
 			bp += r;
 		}
 	} while ((fd = *hp++) >= 0);
-	return n;
+	return (ssize_t)n;
 }
 
 static void
@@ -160,7 +160,7 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 	argc -= opt_info.index;
 	if (argc > 0)
 	{
-		if (tp = stkalloc(stkstd, sizeof(Tee_t) + argc * sizeof(int)))
+		if (tp = stkalloc(stkstd, sizeof(Tee_t) + (size_t)argc * sizeof(int)))
 		{
 			memset(&tp->disc, 0, sizeof(tp->disc));
 			tp->disc.writef = tee_write;
