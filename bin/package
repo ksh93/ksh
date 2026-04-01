@@ -1526,7 +1526,7 @@ int b(void) { return 0; }
 					file_result=$(file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g") || true
 					# Use od(1) to check the ELF header directly if file(1) failed
 					if test -z "$file_result" && test "$(uname -s | sed 's/-.*//')" != CYGWIN
-					then	elfbytes=$(od -A n -t x1 -N 5 $tmp.a.exe | tr -d ' 	\n')
+					then	elfbytes=$(od -An -tx1 -N 5 $tmp.a.exe | tr -d ' 	\n')
 						if test "$elfbytes" = "7f454c4602"
 						then echo "ELF 64-bit"
 						elif test "$elfbytes" = "7f454c4601"

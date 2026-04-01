@@ -394,7 +394,7 @@ then	LC_ALL=en_US.UTF-8
 	LC_ALL=C.UTF-8 eval $'[[ $(print -r -- "$x") == $\'hello\\u[20ac]\\xee world\' ]]' || err_exit '%q with unicode and non-unicode not working'
 	if	[[ $(whence od) ]]
 	then	got='68656c6c6fe282acee20776f726c640a'
-		[[ $(print -r -- "$x" | od -A n -tx1 \
+		[[ $(print -r -- "$x" | od -An -tx1 \
 			| awk 'BEGIN { ORS=""; } { for (i=1; i<=NF; i++) print $i; }') \
 			== "$got" ]] \
 		|| err_exit "incorrect string from printf %q"
