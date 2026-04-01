@@ -293,13 +293,13 @@ static struct				/* program state		*/
 	int		force;		/* all targets out of date	*/
 	int		ignore;		/* ignore command errors	*/
 	int		indent;		/* debug indent			*/
-	int		installrootlen;	/* strlen of %{INSTALLROOT}	*/
-	int		packagerootlen;	/* strlen of %{PACKAGEROOT}	*/
 	int		keepgoing;	/* do siblings on error		*/
 	int		never;		/* never execute		*/
 	int		probed;		/* probe already done		*/
 	int		verified;	/* don't bother with verify()	*/
 	int		jobs, maxjobs;	/* for parallel sh execution	*/
+	size_t		installrootlen;	/* strlen of %{INSTALLROOT}	*/
+	size_t		packagerootlen;	/* strlen of %{PACKAGEROOT}	*/
 
 	Stream_t	streams[4];	/* input file stream stack	*/
 	Stream_t	*sp;		/* input stream stack pointer	*/
@@ -501,8 +501,8 @@ static char *appendn(Buf_t *buf, char *str, size_t n)
 
 	if ((n + 1) >= (size_t)(buf->end - buf->nxt))
 	{
-		i = buf->nxt - buf->buf;
-		m = (((buf->end - buf->buf) + n + CHUNK + 1) / CHUNK) * CHUNK;
+		i = (size_t)(buf->nxt - buf->buf);
+		m = (((size_t)(buf->end - buf->buf) + n + CHUNK + 1) / CHUNK) * CHUNK;
 		if (!(buf->buf = realloc(buf->buf, m)))
 			out_of_memory();
 		buf->end = buf->buf + m;
@@ -881,7 +881,7 @@ static void view(void)
 				zp = zp->next = vp;
 			if (!c)
 				break;
-			*t++ = c;
+			*t++ = (char)c;
 			s = t;
 		}
 	}
@@ -972,7 +972,7 @@ static void substitute(Buf_t *buf, char *s)
 			if (c == '[')
 			{
 				append(buf, b);
-				*vnterm = c;
+				*vnterm = (char)c;
 				continue;
 			}
 
@@ -992,7 +992,7 @@ static void substitute(Buf_t *buf, char *s)
 			if ((c == ':' || c == '=') && (state.strict >= 2 || !v || c == ':' && !*v))
 			{
 				append(buf, b);
-				*vnterm = c;
+				*vnterm = (char)c;
 				continue;
 			}
 
@@ -1003,7 +1003,7 @@ static void substitute(Buf_t *buf, char *s)
 
 			/* Un-terminate the variable name */
 
-			*vnterm = c;
+			*vnterm = (char)c;
 
 			/* Find the ending '}', dealing with nesting */
 
@@ -1027,7 +1027,7 @@ static void substitute(Buf_t *buf, char *s)
 				q = cond(t - 1);
 				if (v)
 				{
-					if (((q - t) != 1 || *t != '*') && strncmp(v, t, q - t))
+					if (((q - t) != 1 || *t != '*') && strncmp(v, t, (size_t)(q - t)))
 						v = 0;
 				}
 				else if (q == t)
@@ -1040,7 +1040,7 @@ static void substitute(Buf_t *buf, char *s)
 						c = *t;
 						*t = 0;
 						substitute(buf, q + 1);
-						*t = c;
+						*t = (char)c;
 					}
 				}
 				else
@@ -1051,7 +1051,7 @@ static void substitute(Buf_t *buf, char *s)
 						c = *q;
 						*q = 0;
 						substitute(buf, t + 1);
-						*q = c;
+						*q = (char)c;
 					}
 				}
 				break;
@@ -1072,9 +1072,9 @@ static void substitute(Buf_t *buf, char *s)
 							q++;
 						n++;
 						c = *q, *q = 0;  /* terminate for duplicate() */
-						if (!(argv = realloc(argv, (n+1)*sizeof(char*))) || !(argv[n-1] = duplicate(a)))
+						if (!(argv = realloc(argv, (size_t)(n+1)*sizeof(char*))) || !(argv[n-1] = duplicate(a)))
 							out_of_memory();
-						*q = c;
+						*q = (char)c;
 					}
 					if (!argv)
 						break;
@@ -1120,13 +1120,13 @@ static void substitute(Buf_t *buf, char *s)
 					q = use(scr);
 					if ((argv ? (argv[2] = q, execute_v(NULL, argv)) : execute(NULL, q)) != 0)
 						error_out("expansion script error", t);
-					*s = n;
+					*s = (char)n;
 					drop(scr);
 					/* read output back, converting each newline but the last to a space */
 					if (!(f = fopen(out, "r")))
 						error_out(strerror(errno), "could not open pipe command output for reading");
 					while ((c = getc(f)) != EOF)
-						add(buf, (final_newline = (c == '\n')) ? ' ' : c);
+						add(buf, (final_newline = (c == '\n')) ? ' ' : (char)c);
 					if (final_newline)
 						unadd(buf);
 					if (ferror(f) || fclose(f) == EOF)
@@ -1150,7 +1150,7 @@ static void substitute(Buf_t *buf, char *s)
 					c = *s;
 					*s = 0;
 					substitute(buf, t);
-					*s = c;
+					*s = (char)c;
 					break;
 				}
 				if (c != '-')
@@ -1211,7 +1211,7 @@ static void substitute(Buf_t *buf, char *s)
 					c = *s;
 					*s = 0;
 					append(buf, b);
-					*s = c;
+					*s = (char)c;
 					continue;
 				}
 				break;
@@ -1220,7 +1220,7 @@ static void substitute(Buf_t *buf, char *s)
 				s++;
 		}
 		else
-			add(buf, c);
+			add(buf, (char)c);
 	}
 }
 
@@ -1314,7 +1314,7 @@ static char *find(Buf_t *buf, char *file, struct stat *st)
 					c = vp->dir[vp->node];
 					vp->dir[vp->node] = 0;
 					append(buf, vp->dir);
-					vp->dir[vp->node] = c;
+					vp->dir[vp->node] = (char)c;
 				}
 				else
 				{
@@ -1322,7 +1322,7 @@ static char *find(Buf_t *buf, char *file, struct stat *st)
 					append(buf, "/");
 				}
 				append(buf, file);
-				o = getsize(buf);
+				o = (size_t)getsize(buf);
 				s = use(buf);
 				if (s = status(buf, o, s, st))
 				{
@@ -1754,7 +1754,7 @@ static void run(Rule_t *r, char *s)
 					else
 					{
 						for (i = 3; isspace(*(t + i)); i++);
-						*s = c;
+						*s = (char)c;
 						for (s = t + i; *s && !isspace(*s); s++);
 						c = *s;
 						*s = 0;
@@ -1778,7 +1778,7 @@ static void run(Rule_t *r, char *s)
 					}
 				}
 			}
-		} while (*s = c);
+		} while (*s = (char)c);
 		s = use(buf);
 		if (tofree)
 			free(tofree);
@@ -1857,7 +1857,7 @@ static void probe(Rule_t *r, Makestate_t *stp)
 		pop();
 	}
 	for (h = 0, s = cc; *s; s++)
-		h = h * 0x63c63cd9L + *s + 0x9c39c33dL;
+		h = h * 0x63c63cd9L + (unsigned long)*s + 0x9c39c33dL;
 	/* use the hash as the file name */
 	append(buf, state.installroot);
 	append(buf, "/lib/probe/C/mam/");
@@ -1897,7 +1897,7 @@ static void attributes(Rule_t *r, char *s)
 		int	flag = 0;
 		for (; isspace(*s); s++);
 		for (t = s; *s && !isspace(*s); s++);
-		if (!(n = s - t))
+		if (!(n = (size_t)(s - t)))
 			break;
 		switch (*t)
 		{
@@ -1953,7 +1953,7 @@ static void attributes(Rule_t *r, char *s)
  * append libNAME.a to the given buffer
  */
 
-void append_ar_name(Buf_t *buf, char *name)
+static void append_ar_name(Buf_t *buf, char *name)
 {
 	append(buf, "lib");
 	append(buf, name);
@@ -2019,7 +2019,7 @@ static char *require(char *lib, int dontcare)
 					break;
 				do
 				{
-					add(tmp, c);
+					add(tmp, (char)c);
 				} while ((c = fgetc(f)) != EOF && !isspace(c));
 				s = use(tmp);
 				if (s[0] && (s[0] != '-' || s[1]))
@@ -2883,7 +2883,7 @@ int main(int argc, char **argv)
 		case 'j':
 			append(state.opt, " -j");
 			append(state.opt, opt_info.arg);
-			state.maxjobs = opt_info.num;
+			state.maxjobs = (int)opt_info.num;
 			continue;
 		case 'k':
 			append(state.opt, " -k");
@@ -2916,7 +2916,7 @@ int main(int argc, char **argv)
 		case 'D':
 			append(state.opt, " -D");
 			append(state.opt, opt_info.arg);
-			state.debug = -opt_info.num;
+			state.debug = -((int)opt_info.num);
 			if (state.debug > 0)
 				state.debug = 0;
 			continue;
@@ -2956,7 +2956,7 @@ int main(int argc, char **argv)
 				break;
 			}
 			for (t = s += 2; *t && *t != '='; t++);
-			if (!strncmp(s, "debug-symbols", t - s) && append(state.opt, " -G") || !strncmp(s, "strip-symbols", t - s) && append(state.opt, " -S"))
+			if (!strncmp(s, "debug-symbols", (size_t)(t - s)) && append(state.opt, " -G") || !strncmp(s, "strip-symbols", (size_t)(t - s)) && append(state.opt, " -S"))
 			{
 				if (*t)
 				{
@@ -2973,7 +2973,7 @@ int main(int argc, char **argv)
 				}
 				setval(state.vars, s - 1, v);
 				if (c)
-					*t = c;
+					*t = (char)c;
 				continue;
 			}
 			usage();
@@ -3137,7 +3137,7 @@ int main(int argc, char **argv)
 				append(tmp, ".FORCE");
 				setval(state.vars, use(tmp), v);
 				drop(tmp);
-				*t = c;
+				*t = (char)c;
 				break;
 			}
 		}

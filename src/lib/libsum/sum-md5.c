@@ -334,7 +334,7 @@ md5_print(Sum_t* p, Sfio_t* sp, int flags, size_t scale)
 {
 	Md5_t*		x = (Md5_t*)p;
 	unsigned char*	d;
-	int		n;
+	size_t		n;
 
 	NOT_USED(scale);
 	d = (flags & SUM_TOTAL) ? x->digest_sum : x->digest;
