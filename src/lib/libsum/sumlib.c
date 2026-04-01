@@ -357,7 +357,7 @@ int
 sumusage(Sfio_t* sp)
 {
 	size_t	i;
-	int	n = 0;
+	ssize_t	n = 0;
 
 	for (i = 0; i < elementsof(methods); i++)
 	{
@@ -367,5 +367,5 @@ sumusage(Sfio_t* sp)
 	}
 	for (i = 0; i < elementsof(maps); i++)
 		n += sfprintf(sp, "[+%s?%s Shorthand for \b%s\b.]", maps[i].match, maps[i].description, maps[i].map);
-	return n;
+	return (int)n;
 }
