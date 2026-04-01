@@ -208,7 +208,7 @@ sha1_block(Sum_t* p, const void* s, size_t len)
 {
 	Sha1_t*		sha = (Sha1_t*)p;
 	uint8_t*	data = (uint8_t*)s;
-	unsigned int	i, j;
+	size_t		i, j;
 
 	if (len) {
 		j = sha->count[0];
@@ -302,7 +302,7 @@ sha1_print(Sum_t* p, Sfio_t* sp, int flags, size_t scale)
 {
 	Sha1_t*	sha = (Sha1_t*)p;
 	unsigned char*	d;
-	int		n;
+	size_t		n;
 
 	NOT_USED(scale);
 	d = (flags & SUM_TOTAL) ? sha->digest_sum : sha->digest;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1996-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -12,6 +12,7 @@
 *                                                                      *
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -53,7 +54,7 @@ prng_open(const Method_t* method, const char* name)
 	const char*	s;
 	const char*	t;
 	const char*	v;
-	int		i;
+	ptrdiff_t	i;
 
 	if (sum = newof(0, Prng_t, 1, 0))
 	{
@@ -67,12 +68,12 @@ prng_open(const Method_t* method, const char* name)
 			if (*s == '=' && !v)
 				v = s;
 		i = (v ? v : s) - t;
-		if (isdigit(*t) || v && strneq(t, "mpy", i) && (t = v + 1))
-			sum->mpy = strtoul(t, NULL, 0);
-		else if (strneq(t, "add", i))
-			sum->add = v ? strtoul(v + 1, NULL, 0) : ~sum->add;
-		else if (strneq(t, "init", i))
-			sum->init = v ? strtoul(v + 1, NULL, 0) : ~sum->init;
+		if (isdigit(*t) || v && strneq(t, "mpy", (size_t)i) && (t = v + 1))
+			sum->mpy = (Prngnum_t)strtoul(t, NULL, 0);
+		else if (strneq(t, "add", (size_t)i))
+			sum->add = v ? (Prngnum_t)strtoul(v + 1, NULL, 0) : ~sum->add;
+		else if (strneq(t, "init", (size_t)i))
+			sum->init = v ? (Prngnum_t)strtoul(v + 1, NULL, 0) : ~sum->init;
 		if (*s == '-')
 			s++;
 	}
