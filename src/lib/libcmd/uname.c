@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -274,7 +274,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case ':':
 			{
-				char **new_argv = stkalloc(stkstd, (argc + 3) * sizeof(char*));
+				char **new_argv = stkalloc(stkstd, (size_t)(argc + 3) * sizeof(char*));
 				new_argv[0] = "command";
 				new_argv[1] = "-px";
 				for (n = 0; n <= argc; n++)
@@ -319,7 +319,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 			*t++ = 'S';
 			*t++ = '_';
 			while (t < e && (n = *s++))
-				*t++ = islower(n) ? toupper(n) : n;
+				*t++ = (char)(islower(n) ? toupper(n) : n);
 			*t = 0;
 			sfprintf(sfstdout, "%s%c", *(t = astconf(buf, NULL, NULL)) ? t : *(t = astconf(buf+3, NULL, NULL)) ? t :  "unknown", *argv ? ' ' : '\n');
 		}
@@ -400,7 +400,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 #endif
 			if (!s && !*(s = astconf("PLATFORM", NULL, NULL)) && !*(s = astconf("HW_NAME", NULL, NULL)))
 			{
-				if (t = strchr(hosttype, '.'))
+				if (t = (char*)strchr(hosttype, '.'))
 					t++;
 				else
 					t = (char*)hosttype;

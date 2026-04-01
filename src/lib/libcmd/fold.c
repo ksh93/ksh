@@ -83,25 +83,27 @@ static const char usage[] =
 #define T_SP	5
 #define T_RET	6
 
-static void fold(Sfio_t *in, Sfio_t *out, int width, const char *cont, size_t contsize, char *cols)
+static void fold(Sfio_t *in, Sfio_t *out, ptrdiff_t width, const char *cont, size_t contsize, char *cols)
 {
 	char *cp, *first;
-	int n, col=0, x=0;
+	ptrdiff_t n, col=0;
+	ssize_t s;
+	char x=0;
 	char *last_space=0;
 	cols[0] = 0;
 	for (;;)
 	{
 		if (!(cp  = sfgetr(in,'\n',0)))
 		{
-			if (!(cp = sfgetr(in,'\n',-1)) || (n = sfvalue(in)) <= 0)
+			if (!(cp = sfgetr(in,'\n',-1)) || (s = sfvalue(in)) <= 0)
 				break;
-			x = cp[--n];
-			cp[n] = '\n';
+			x = cp[--s];
+			cp[s] = '\n';
 		}
 		/* special case -b since no column adjustment is needed */
-		if(cols['\b']==0 && (n=sfvalue(in))<=width)
+		if(cols['\b']==0 && (s=sfvalue(in))<=width)
 		{
-			sfwrite(out,cp,n);
+			sfwrite(out,cp,(size_t)s);
 			continue;
 		}
 		first = cp;
@@ -116,7 +118,7 @@ static void fold(Sfio_t *in, Sfio_t *out, int width, const char *cont, size_t co
 					col = last_space - first;
 				else
 					col = width-col;
-				sfwrite(out,first,col);
+				sfwrite(out,first,(size_t)col);
 				first += col;
 				col = 0;
 				last_space = 0;
@@ -141,7 +143,7 @@ static void fold(Sfio_t *in, Sfio_t *out, int width, const char *cont, size_t co
 				col +=n;
 				if((cp-first) > (width-col))
 				{
-					sfwrite(out,first,(--cp)-first);
+					sfwrite(out,first,(size_t)((--cp)-first));
 					sfwrite(out, cont, contsize);
 					first = cp;
 					col =  TABSIZE-1;
@@ -159,14 +161,15 @@ static void fold(Sfio_t *in, Sfio_t *out, int width, const char *cont, size_t co
 			}
 			break;
 		}
-		sfwrite(out,first,cp-first);
+		sfwrite(out,first,(size_t)(cp-first));
 	}
 }
 
 int
 b_fold(int argc, char** argv, Shbltin_t* context)
 {
-	int n, width=WIDTH;
+	int n;
+	ptrdiff_t width=WIDTH;
 	Sfio_t *fp;
 	char *cp;
 	char *cont="\n";
@@ -205,7 +208,7 @@ b_fold(int argc, char** argv, Shbltin_t* context)
 				cols['\t'] = T_SP;
 			continue;
 		case 'w':
-			if ((width = opt_info.num) <= 0)
+			if ((width = (ptrdiff_t)opt_info.num) <= 0)
 				error(2, "%d: width must be positive", opt_info.num);
 			continue;
 		case ':':

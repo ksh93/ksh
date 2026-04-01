@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -178,11 +178,11 @@ putid(Sfio_t* sp, int flags, const char* label, const char* name, long number)
 	if (flags & O_FLAG)
 	{
 		if (name) sfputr(sp, name, -1);
-		else sfprintf(sp, "%lu", number);
+		else sfprintf(sp, "%ld", number);
 	}
 	else
 	{
-		sfprintf(sp, "%u", number);
+		sfprintf(sp, "%ld", number);
 		if (name) sfprintf(sp, "(%s)", name);
 	}
 }
@@ -228,7 +228,7 @@ getids(Sfio_t* sp, const char* name, int flags)
 
 			if ((maxgroups = getgroups(0, groups)) <= 0)
 				maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
-			if (!(groups = newof(0, gid_t, maxgroups + 1, 0)))
+			if (!(groups = newof(0, gid_t, (size_t)maxgroups + 1, 0)))
 			{
 				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [group array]");
 				UNREACHABLE();
@@ -249,7 +249,7 @@ getids(Sfio_t* sp, const char* name, int flags)
 		{
 			if (!(pw = getpwnam(name)))
 			{
-				user = strtol(name, &s, 0);
+				user = (uid_t)strtol(name, &s, 0);
 				if (*s || !(pw = getpwuid(user)))
 				{
 					error(ERROR_exit(1), "%s: name not found", name);
@@ -302,8 +302,8 @@ getids(Sfio_t* sp, const char* name, int flags)
 #endif
 	if ((flags & (U_FLAG|G_FLAG|S_FLAG)) == (U_FLAG|G_FLAG|S_FLAG))
 	{
-		putid(sp, flags, "uid", name, user);
-		putid(sp, flags, " gid", gname, group);
+		putid(sp, flags, "uid", name, (long)user);
+		putid(sp, flags, " gid", gname, (long)group);
 		if ((flags & X_FLAG) && name)
 		{
 #if _lib_getgrent
@@ -335,9 +335,9 @@ getids(Sfio_t* sp, const char* name, int flags)
 		else
 		{
 			if ((euid = geteuid()) != user)
-				putid(sp, flags, " euid", (pw = getpwuid(euid)) ? pw->pw_name : NULL, euid);
+				putid(sp, flags, " euid", (pw = getpwuid(euid)) ? pw->pw_name : NULL, (long)euid);
 			if ((egid = getegid()) != group)
-				putid(sp, flags, " egid", (grp = getgrgid(egid)) ? grp->gr_name : NULL, egid);
+				putid(sp, flags, " egid", (grp = getgrgid(egid)) ? grp->gr_name : NULL, (long)egid);
 			if (ngroups > 0)
 			{
 				sfputr(sp, " groups", -1);
@@ -356,7 +356,7 @@ getids(Sfio_t* sp, const char* name, int flags)
 				}
 			}
 #if _lib_fsid
-			putid(sp, flags, " fsid", fs_name, fs_id);
+			putid(sp, flags, " fsid", fs_name, (long)fs_id);
 #endif
 		}
 		sfputc(sp,'\n');

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -62,7 +62,7 @@ int
 b_mkdir(int argc, char** argv, Shbltin_t* context)
 {
 	char*		path;
-	int		n;
+	ssize_t		n;
 	mode_t		mode = DIRMODE;
 	mode_t		mask = 0;
 	int		mflag = 0;
@@ -142,7 +142,7 @@ b_mkdir(int argc, char** argv, Shbltin_t* context)
 			 */
 
 			made = 0;
-			n = strlen(path);
+			n = (ssize_t)strlen(path);
 			while (n > 0 && path[--n] == '/');
 			path[n + 1] = 0;
 			for (part = path, n = *part; n;)
@@ -157,12 +157,12 @@ b_mkdir(int argc, char** argv, Shbltin_t* context)
 				if (mkdir(path, n ? dmode : mode) < 0 && errno != EEXIST && access(path, F_OK) < 0)
 				{
 					error(ERROR_system(0), "%s: cannot create intermediate directory", path);
-					*part = n;
+					*part = (char)n;
 					break;
 				}
 				if (vflag)
 					error(0, "%s: directory created", path);
-				if (!(*part = n))
+				if (!(*part = (char)n))
 				{
 					made = 1;
 					break;

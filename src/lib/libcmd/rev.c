@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -56,7 +56,7 @@ static const char usage[] =
  */
 static int rev_char(Sfio_t *in, Sfio_t *out)
 {
-	int c;
+	char c;
 	char *ep, *bp, *cp;
 	wchar_t *wp, *xp;
 	size_t n;
@@ -67,10 +67,10 @@ static int rev_char(Sfio_t *in, Sfio_t *out)
 		w = 0;
 		while(cp = bp = sfgetr(in,'\n',0))
 		{
-			ep = bp + (n=sfvalue(in)) - 1;
+			ep = bp + (n=(size_t)sfvalue(in)) - 1;
 			if (n > w)
 			{
-				w = roundof(n + 1, 1024);
+				w = roundof(n + 1, 1024U);
 				if (!(wp = newof(wp, wchar_t, w, 0)))
 				{
 					error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
@@ -84,7 +84,7 @@ static int rev_char(Sfio_t *in, Sfio_t *out)
 			while (xp > wp)
 				cp += mbconv(cp, *--xp);
 			*cp++ = '\n';
-			if (sfwrite(out, bp, cp - bp) < 0)
+			if (sfwrite(out, bp, (size_t)(cp - bp)) < 0)
 			{
 				if (wp)
 					free(wp);
@@ -97,7 +97,7 @@ static int rev_char(Sfio_t *in, Sfio_t *out)
 	else
 		while(cp = bp = sfgetr(in,'\n',0))
 		{
-			ep = bp + (n=sfvalue(in)) -1;
+			ep = bp + (n=(size_t)sfvalue(in)) -1;
 			while(ep > bp)
 			{
 				c = *--ep;

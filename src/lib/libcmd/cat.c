@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -126,14 +126,15 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 	unsigned char*	end;
 	unsigned char*	buf;
 	unsigned char*	nxt;
-	int		n;
 	int		line;
 	int		raw;
 	int		last;
-	int		c;
-	int		m;
+	ptrdiff_t	c;
+	ptrdiff_t	m;
+	ptrdiff_t	n;
 	int		any;
 	int		header;
+	ssize_t		sz;
 
 	unsigned char	meta[3];
 	unsigned char	tmp[32];
@@ -167,7 +168,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 						{
 							if (last > 0)
 							{
-								*end = last;
+								*end = (unsigned char)last;
 								last = -1;
 								c = end - pp + 1;
 								if ((m = mbsize(pp)) == c)
@@ -178,21 +179,21 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 										header = 0;
 										sfprintf(op, "%6d\t", line);
 									}
-									sfwrite(op, cur, m);
+									sfwrite(op, cur, (size_t)m);
 									*(cp = cur = end) = 0;
 								}
 								else
 								{
-									memcpy(tmp, pp, c);
+									memcpy(tmp, pp, (size_t)c);
 									if (!(nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0)))
 									{
 										states[0] = sfvalue(ip) ? T_ERROR : T_EOF;
 										*(cp = end = tmp + sizeof(tmp) - 1) = 0;
 										last = -1;
 									}
-									else if ((n = sfvalue(ip)) <= 0)
+									else if ((sz = sfvalue(ip)) <= 0)
 									{
-										states[0] = n ? T_ERROR : T_EOF;
+										states[0] = sz ? T_ERROR : T_EOF;
 										*(cp = end = tmp + sizeof(tmp) - 1) = 0;
 										last = -1;
 									}
@@ -204,9 +205,9 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 										*end = 0;
 									}
  mb:
-									if ((n = end - cp + 1) >= (sizeof(tmp) - c))
-										n = sizeof(tmp) - c - 1;
-									memcpy(tmp + c, cp, n);
+									if ((n = end - cp + 1) >= ((ssize_t)sizeof(tmp) - c))
+										n = (ssize_t)sizeof(tmp) - c - 1;
+									memcpy(tmp + c, cp, (size_t)n);
 									if ((m = mbsize(tmp)) >= c)
 									{
 										any = 1;
@@ -215,7 +216,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 											header = 0;
 											sfprintf(op, "%6d\t", line);
 										}
-										sfwrite(op, tmp, m);
+										sfwrite(op, tmp, (size_t)m);
 										cur = cp += m - c;
 									}
 								}
@@ -242,7 +243,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 				sfprintf(op, "%6d\t", line);
 			}
 			if (m)
-				sfwrite(op, cur, m);
+				sfwrite(op, cur, (size_t)m);
 		}
  special:
 		switch (n)
@@ -292,7 +293,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 			{
 				if (!(n = states[c]))
 				{
-					*(cur = tmp) = c;
+					*(cur = tmp) = (unsigned char)c;
 					m = 1;
 					goto flush;
 				}
@@ -301,7 +302,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 					cp--;
 					goto special;
 				}
-				tmp[0] = c;
+				tmp[0] = (unsigned char)c;
 				c = 1;
 				goto mb;
 			}
@@ -318,7 +319,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 			do
 			{
 				n = c & ~0200;
-				meta[2] = printof(n);
+				meta[2] = (unsigned char)printof(n);
 				sfwrite(op, (char*)meta, 3);
 			} while (states[c = *++cp] == T_CNTL8BIT && raw);
 			break;
@@ -326,7 +327,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 			meta[1] = '-';
 			do
 			{
-				meta[2] = c & ~0200;
+				meta[2] = (unsigned char)(c & ~0200);
 				sfwrite(op, (char*)meta, 3);
 			} while (states[c = *++cp] == T_EIGHTBIT && raw);
 			break;
@@ -530,7 +531,7 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 			continue;
 		}
 		if (flags&U_FLAG)
-			sfsetbuf(fp, fp, -1);
+			sfsetbuf(fp, fp, (size_t)SFIO_UNBOUND);
 		if (dovcat)
 			n = vcat(states, fp, sfstdout, reserve, flags);
 		else if (sfmove(fp, sfstdout, SFIO_UNBOUND, -1) >= 0 && sfeof(fp))
