@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -39,7 +39,7 @@ static char *fmtx(const char *string)
 	int	 	n = 0, c;
 	int		pos = 0;
 	unsigned char 	*state = (unsigned char*)sh_lexstates[ST_NORM];
-	int		offset = stktell(sh.stk);
+	ptrdiff_t	offset = stktell(sh.stk);
 	char		hc[3];
 #if SHOPT_HISTEXPAND
 	const char	hexp = sh_isoption(SH_HISTEXPAND)!=0;
@@ -55,17 +55,18 @@ static char *fmtx(const char *string)
 		;
 	if(n==S_EOF && *string!='#')
 		return (char*)string;
-	sfwrite(sh.stk,string,--cp-string);
+	sfwrite(sh.stk,string,(size_t)(--cp-string));
 	for(string=cp;c=mbchar(cp);string=cp)
 	{
-		if((n=cp-string)==1)
+		ptrdiff_t diff = cp-string;
+		if(diff==1)
 		{
 			if(((n=state[c]) && n!=S_EPAT) || (hexp && ((c==hc[0]) || (c==hc[2] && !pos))))
 				sfputc(sh.stk,'\\');
 			sfputc(sh.stk,c);
 		}
 		else
-			sfwrite(sh.stk,string,n);
+			sfwrite(sh.stk,string,(size_t)diff);
 		pos++;
 	}
 	sfputc(sh.stk,0);
@@ -81,16 +82,10 @@ static int charcmp(int a, int b, int nocase)
 	{
 #if _lib_towlower
 		if(mbwide())
-		{
-			a = (int)towlower((wint_t)a);
-			b = (int)towlower((wint_t)b);
-		}
+			return towlower((wint_t)a)==towlower((wint_t)b);
 		else
 #endif
-		{
-			a = tolower(a);
-			b = tolower(b);
-		}
+			return tolower(a)==tolower(b);
 	}
 	return a==b;
 }
@@ -138,7 +133,7 @@ static char *find_begin(char outbuff[], char *last, int endchar, int *type)
 		    case '\'': case '"':
 			if(!inquote)
 			{
-				inquote = c;
+				inquote = (char)c;
 				bp = xp;
 				break;
 			}
@@ -328,7 +323,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		{
 			/* expand ${!varname@} to complete variable name(s) */
 			sfputr(sh.stk,"${!",-1);
-			sfwrite(sh.stk,out,last-out);
+			sfwrite(sh.stk,out,(size_t)(last-out));
 			sfputr(sh.stk,"@}",-1);
 			out = last;
 		}
@@ -370,10 +365,11 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 	if(mode!='*')
 		sh_onoption(SH_MARKDIRS);
 	{
-		char	**com;
-		char	*cp=begin, *left=0, *saveout=(char*)e_dot;
-		int	nocase=0, narg, cmd_completion=0;
-		int	size='x';
+		char		**com;
+		char		*cp=begin, *left=0, *saveout=(char*)e_dot;
+		int		nocase=0, narg, cmd_completion=0;
+		int		size='x';
+		ptrdiff_t	sz;
 		while(cp>outbuff && ((size=cp[-1])==' ' || size=='\t'))
 			cp--;
 		if(!var && !strchr(ap->argval,'/') && (((cp==outbuff&&sh.nextprompt==1) || (strchr(";&|(",size)) && (cp==outbuff+1||size=='('||cp[-2]!='>') && *begin!='~' )))
@@ -434,7 +430,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			goto done;
 		}
 		/* see if there is enough room */
-		size = *eol - (out-begin);
+		sz = *eol - (out-begin);
 		if(mode=='\\')
 		{
 			int c;
@@ -449,22 +445,22 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 				nocase = (pathicase(saveout) > 0);
 #endif
 			if(dir)
-				*dir = c;
+				*dir = (char)c;
 			/* just expand until name is unique */
-			size += strlen(*com);
+			sz += (ptrdiff_t)strlen(*com);
 		}
 		else
 		{
-			size += narg;
+			sz += narg;
 			{
 				char **savcom = com;
 				while (*com)
-					size += strlen(cp=fmtx(*com++));
+					sz += (ptrdiff_t)strlen(cp=fmtx(*com++));
 				com = savcom;
 			}
 		}
 		/* see if room for expansion */
-		if(outbuff+size >= &outbuff[MAXLINE])
+		if(outbuff+sz >= &outbuff[MAXLINE])
 		{
 			com[0] = ap->argval;
 			com[1] = 0;
@@ -481,7 +477,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 				if(*cp==var)
 					cp++;
 				else
-					*begin++ = var;
+					*begin++ = (char)var;
 				out = strcopy(begin,cp);
 				var = 0;
 			}
@@ -555,11 +551,11 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 				out--;
 			*out = 0;
 		}
-		*cur = (out-outbuff);
+		*cur = (int)(out-outbuff);
 		/* restore rest of buffer */
 		if(left)
 			out = strcopy(out,left);
-		*eol = (out-outbuff);
+		*eol = (int)(out-outbuff);
 	}
  done:
 	sh_offstate(SH_FCOMPLETE);
@@ -570,7 +566,8 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		sh_offoption(SH_MARKDIRS);
 #if SHOPT_MULTIBYTE
 	{
-		int c,n=0;
+		char c;
+		int n=0;
 		/* first re-adjust cur */
 		c = outbuff[*cur];
 		outbuff[*cur] = 0;
@@ -596,17 +593,17 @@ int ed_macro(Edit_t *ep, int i)
 	Namval_t *np;
 	genchar buff[LOOKAHEAD+1];
 	if(i != '@')
-		ep->e_macro[1] = i;
+		ep->e_macro[1] = (char)i;
 	/* macros of the form <ESC>[c evoke alias __c */
 	if(i=='_')
-		ep->e_macro[2] = i = ed_getchar(ep,1);
+		ep->e_macro[2] = (char)(i = ed_getchar(ep,1));
 	else
 		ep->e_macro[2] = 0;
 	if (isalnum(i)&&(np=nv_search(ep->e_macro,sh.alias_tree,0))&&(out=nv_getval(np)))
 	{
-#if SHOPT_MULTIBYTE
 		/* copy to buff in internal representation */
-		int c = 0;
+#if SHOPT_MULTIBYTE
+		char c = 0;
 		if( strlen(out) > LOOKAHEAD )
 		{
 			c = out[LOOKAHEAD];
@@ -615,13 +612,16 @@ int ed_macro(Edit_t *ep, int i)
 		i = ed_internal(out,buff);
 		if(c)
 			out[LOOKAHEAD] = c;
-#else
-		strncpy((char*)buff,out,LOOKAHEAD);
-		buff[LOOKAHEAD] = 0;
-		i = strlen((char*)buff);
-#endif /* SHOPT_MULTIBYTE */
 		while(i-- > 0)
 			ed_ungetchar(ep,buff[i]);
+#else
+		size_t len;
+		strncpy((char*)buff,out,LOOKAHEAD);
+		buff[LOOKAHEAD] = 0;
+		len = strlen((char*)buff);
+		while(len-- > 0)
+			ed_ungetchar(ep,buff[len]);
+#endif /* SHOPT_MULTIBYTE */
 		return 1;
 	}
 	return 0;
@@ -645,16 +645,16 @@ int ed_fulledit(Edit_t *ep)
 		ep->e_inbuf[ep->e_eol+1] = 0;
 		ed_external(ep->e_inbuf, (char *)ep->e_inbuf);
 #endif /* SHOPT_MULTIBYTE */
-		sfwrite(sh.hist_ptr->histfp,(char*)ep->e_inbuf,ep->e_eol+1);
+		sfwrite(sh.hist_ptr->histfp,(char*)ep->e_inbuf,(size_t)ep->e_eol+1);
 		sh_onstate(SH_HISTORY);
 		hist_flush(sh.hist_ptr);
 	}
 	cp = strcopy((char*)ep->e_inbuf,e_runvi);
 	cp = strcopy(cp, fmtint(ep->e_hline,1));
 #if SHOPT_VSH
-	ep->e_eol = ((unsigned char*)cp - (unsigned char*)ep->e_inbuf)-(sh_isoption(SH_VI)!=0);
+	ep->e_eol = (int)(((unsigned char*)cp - (unsigned char*)ep->e_inbuf)-(sh_isoption(SH_VI)!=0));
 #else
-	ep->e_eol = ((unsigned char*)cp - (unsigned char*)ep->e_inbuf);
+	ep->e_eol = (int)((unsigned char*)cp - (unsigned char*)ep->e_inbuf);
 #endif
 	return 0;
 }
