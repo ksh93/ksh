@@ -4,7 +4,7 @@ cmd	universe
 
 sys	mman
 hdr	fcntl,dirent,direntry,filio,fnmatch,jioctl,libgen,limits
-hdr	execinfo,locale,ndir,nl_types,process,spawn,utime
+hdr	locale,ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs
 hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
@@ -24,7 +24,7 @@ dat	_tzname,tzname
 
 lib	BSDsetpgrp
 lib	_cleanup
-lib	backtrace,backtrace_symbols,bcopy,bzero,confstr,dirread
+lib	bcopy,bzero,confstr,dirread
 lib	fchmod,fcntl,fnmatch,fork,fsync
 lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse

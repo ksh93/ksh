@@ -16,10 +16,6 @@
 
 #include <ast.h>
 
-#if _hdr_execinfo
-#include <execinfo.h>
-#endif
-
 noreturn void _ast_assertfail(const char *a, const char *fun, const char *file, int line)
 {
 #if _has___func__ || _has___FUNCTION__
@@ -27,21 +23,6 @@ noreturn void _ast_assertfail(const char *a, const char *fun, const char *file, 
 #else
 	NOT_USED(fun);
 	sfprintf(sfstderr,"\n*** assertion %s failed in %s:%d\n", a, file, line);
-#endif
-#if _lib_backtrace && _lib_backtrace_symbols
-	{
-		void* callstack[200];
-		int i, frames = backtrace(callstack, 200);
-		char** strs = backtrace_symbols(callstack, frames);
-		if(strs)
-		{
-			for (i = 0; i < frames; ++i)
-				sfprintf(sfstderr, "%s\n", strs[i]);
-			free(strs);
-		}
-		else
-			sfprintf(sfstderr, "Could not obtain a backtrace (%s)\n", strerror(errno));
-	}
 #endif
 	sfsync(NULL);
 	abort();
