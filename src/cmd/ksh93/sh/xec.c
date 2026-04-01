@@ -457,13 +457,18 @@ static Namfun_t level_disc_fun = { &level_disc, 1 };
 int sh_debug(const char *trap, const char *name, const char *subscript, char *const argv[], int flags)
 {
 	Namval_t		*np = SH_COMMANDNOD;
-	int			n=4, offset=stktell(sh.stk);
-	void			*sav = stkfreeze(sh.stk,0);
-	struct sh_scoped	*savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	const char		*cp = "+=( ";
+	void			*sav;
+	struct sh_scoped	*savst;
+	char			*save_prefix;
+	ptrdiff_t		offset;
+	int			n = 4;
 	if(sh.indebug)
 		return 0;
 	sh.indebug = 1;
+	offset = stktell(sh.stk);
+	sav = stkfreeze(sh.stk,0);
+	savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	if(name)
 	{
 		sfputr(sh.stk,name,-1);
@@ -495,6 +500,8 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	np->nvalue = stkfreeze(sh.stk,1);
 	sh.st.lineno = error_info.line;
 	*savst = sh.st;
+	save_prefix = sh.prefix;
+	sh.prefix = NULL;
 	sh.st.trap[SH_DEBUGTRAP] = 0;
 	/* set up .sh.level variable */
 	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
@@ -502,6 +509,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	nv_offattr(SH_LEVELNOD,NV_RDONLY);
 	/* run the trap */
 	n = sh_trap(trap,0);
+	/* restore state */
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
 	np->nvalue = NULL;
 	sh.indebug = 0;
@@ -510,6 +518,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	/* restore scope */
 	update_sh_level();
 	sh.st = *savst;
+	sh.prefix = save_prefix;
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
 	else
