@@ -1,0 +1,61 @@
+header	sys/types.h
+header	pty.h
+header	libutil.h
+header	sys/pty.h
+header	sys/ptyio.h
+header	sys/vty.h
+header	sys/ioctl.h
+header	stropts.h
+
+lib	openpty,_getpty,ptsname -lutil
+lib	grantpt,unlockpt,posix_openpt stdlib.h
+lib	cfmakeraw termios.h
+
+typ	useconds_t = uint32_t
+
+tst output{
+	#include	<fcntl.h>
+	#if _lib_ptsname
+	#include	<stdlib.h>
+	#endif
+	#include	<unistd.h>
+	#include	<sys/types.h>
+	#include	<sys/stat.h>
+	#include	<sfio.h>
+	int main(void)
+	{
+		size_t		i;
+		struct stat	statb;
+		static char*	pty[] = { "/dev/ptyp0000", "/dev/ptym/ptyp0", "/dev/ptyp0" };
+	#if _lib_ptsname
+		int		fd;
+		static char*	ptc[] = { "/dev/ptmx", "/dev/ptc", "/dev/ptmx_bsd" };
+
+		for (i = 0; i < sizeof(ptc) / sizeof(ptc[0]); i++)
+			if((fd = open(ptc[i], 2))>=0)
+			{
+				if (ptsname(fd))
+				{
+					sfprintf(sfstdout, "#define _pty_clone\t\"%s\"\n", ptc[i]);
+					close(fd);
+					break;
+				}
+				close(fd);
+			}
+	#endif
+		for (i = 0;; i++)
+			if(i >= (sizeof(pty) / sizeof(pty[0]) - 1) || stat(pty[i], &statb)>=0)
+			{
+				sfprintf(sfstdout, "#define _pty_first\t\"%s\"\n", pty[i]);
+				break;
+			}
+		return 0;
+	}
+}end fail{
+	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
+	exit 1
+}end
+
+extern	_getpty		char*		(int*, int, mode_t, int)
+extern	openpty		int		(int*, int*, char*, struct termios*, struct winsize*)
+extern	ptsname		char*		(int)

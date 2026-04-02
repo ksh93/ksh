@@ -1261,7 +1261,7 @@ done
 exp='good'
 got=$($SHELL -c 't=good; t=bad command -@; print $t' 2>/dev/null)
 [[ $exp == $got ]] || err_exit "temp var assignment with 'command'" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # In ksh93v- 2013-10-10 alpha cd doesn't fail on directories without execute permission.

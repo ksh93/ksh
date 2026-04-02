@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -86,7 +86,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 	    case 'N':
 		if(indx<=0)
 		{
-			if((flag = hist_max(hp) - opt_info.num-1) < 0)
+			if((flag = hist_max(hp) - (int)opt_info.num-1) < 0)
 				flag = 1;
 			range[++indx] = flag;
 			break;
@@ -300,16 +300,16 @@ static void hist_subst(const char *command,int fd,char *replace)
 {
 	char *newp=replace;
 	char *sp;
-	int c;
+	size_t c;
 	off_t size;
 	char *string;
 	while(*++newp != '='); /* skip to '=' */
 	if((size = lseek(fd,0,SEEK_END)) < 0)
 		return;
 	lseek(fd,0,SEEK_SET);
-	c =  (int)size;
+	c = (size_t)size;
 	string = stkalloc(sh.stk,c+1);
-	if(read(fd,string,c)!=c)
+	if(read(fd,string,c)!=(ssize_t)c)
 		return;
 	string[c] = 0;
 	*newp++ =  0;

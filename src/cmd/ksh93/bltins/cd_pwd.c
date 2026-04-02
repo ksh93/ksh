@@ -374,7 +374,7 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 	}
 	if(flag)
 	{
-		cp = strcpy(stkseek(sh.stk,strlen(cp)+PATH_MAX),cp);
+		cp = strcpy(stkseek(sh.stk,(ptrdiff_t)strlen(cp)+PATH_MAX),cp);
 		pathcanon(cp,PATH_PHYSICAL);
 	}
 	sfputr(sfstdout,cp,'\n');

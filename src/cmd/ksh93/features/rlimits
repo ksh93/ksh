@@ -1,6 +1,7 @@
 hdr,sys	resource,vlimit sys/time.h
 lib	getrlimit,ulimit,vlimit
 typ	rlim_t sys/types.h sys/time.h sys/resource.h
+typ	__rlimit_resource_t sys/resource.h
 
 cat{
 
