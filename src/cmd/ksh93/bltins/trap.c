@@ -165,7 +165,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 			else
 			{
 				const int index = sig / 8;
-				const uint8_t sigbit = (uint8_t)1 << sig % 8;
+				const uint8_t sigbit = (uint8_t)(1 << sig % 8);
 				/*
 				 * Trap or ignore EXIT (0) or a signal. A virtual subshell must fork
 				 * in order to receive signals correctly and (because other commands
@@ -174,7 +174,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 				if(sig > 0 && sh.subshell && !sh.subshare)
 					sh_subfork();
 				if(sig >= sh.st.trapmax)
-					sh.st.trapmax = sig+1;
+					sh.st.trapmax = (unsigned short)sig+1;
 				arg = sh.st.trapcom[sig];
 				sh_sigtrap(sig);
 				sh.st.trapcom[sig] = (sh.sigflag[sig]&SH_SIGOFF) ? Empty : sh_strdup(action);
@@ -358,18 +358,18 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 static int sig_number(const char *string)
 {
 	const Shtable_t	*tp;
-	int		n, o, sig=0;
+	int		n, sig=0;
 	char		*last, *name;
 	if(isdigit(*string))
 	{
-		n = strtol(string,&last,10);
+		n = (int)strtol(string,&last,10);
 		if(*last)
 			n = -1;
 	}
 	else
 	{
 		int c;
-		o = stktell(sh.stk);
+		ptrdiff_t o = stktell(sh.stk);
 		do
 		{
 			c = *string++;
@@ -385,20 +385,20 @@ static int sig_number(const char *string)
 			o += 3;
 			if(isdigit(*stkptr(sh.stk,o)))
 			{
-				n = strtol(stkptr(sh.stk,o),&last,10);
+				n = (int)strtol(stkptr(sh.stk,o),&last,10);
 				if(!*last)
 					return n;
 			}
 		}
 		tp = sh_locate(stkptr(sh.stk,o),(const Shtable_t*)shtab_signals,sizeof(*shtab_signals));
-		n = tp->sh_number;
+		n = (int)tp->sh_number;
 		if(sig==1 && (n>=(SH_TRAP-1) && n < (1<<SH_SIGBITS)))
 		{
 			/* sig prefix cannot match internal traps */
 			n = 0;
 			tp = (Shtable_t*)((char*)tp + sizeof(*shtab_signals));
 			if(strcmp(stkptr(sh.stk,o),tp->sh_name)==0)
-				n = tp->sh_number;
+				n = (int)tp->sh_number;
 		}
 		if((n>>SH_SIGBITS)&SH_SIGRUNTIME)
 			n = sh.sigruntime[(n&((1<<SH_SIGBITS)-1))-1];
@@ -505,7 +505,7 @@ static void sig_list(int flag)
 		}
 		else if(sig&SH_TRAP)
 			traps[sig&~SH_TRAP] = (char*)tp->sh_name;
-		else if(sig-- && sig < elementsof(names))
+		else if(sig-- && sig < (int)elementsof(names))
 			names[sig] = (char*)tp->sh_name;
 	}
 	if(flag > 0)
