@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -276,11 +276,11 @@ b_getconf(int argc, char** argv, Shbltin_t* context)
 	/*
 	 * Run the external getconf command
 	 */
-	new_argv = stkalloc(stkstd, (argc + 3) * sizeof(char*));
+	new_argv = stkalloc(stkstd, (size_t)(argc + 3) * sizeof(char*));
 	new_argv[0] = "command";
 	new_argv[1] = "-x";
 	new_argv[2] = native;
-	memcpy(new_argv + 3, oargv + 1, argc * sizeof(char*));
+	memcpy(new_argv + 3, oargv + 1, (size_t)argc * sizeof(char*));
 	if ((n = sh_run(context, argc + 2, new_argv)) >= EXIT_NOEXEC)
 		error(ERROR_SYSTEM|2, "%s: exec error [%d]", native, n);
 	return n;

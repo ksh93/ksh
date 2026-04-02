@@ -4,7 +4,7 @@ cmd	universe
 
 sys	mman
 hdr	dirent,direntry,jioctl
-hdr	execinfo,ndir,nl_types,process,spawn,utime
+hdr	ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs
 hdr	wctype
 hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
@@ -22,7 +22,7 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 
 dat	_tzname,tzname
 
-lib	backtrace,backtrace_symbols,confstr,dirread
+lib	confstr,dirread
 lib	fcntl,fsync
 lib	getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit

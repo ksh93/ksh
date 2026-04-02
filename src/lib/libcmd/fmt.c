@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -56,10 +56,10 @@ typedef struct Fmt_s
 	char*	endbuf;
 	Sfio_t*	in;
 	Sfio_t*	out;
+	ptrdiff_t prefix;
 	int	indent;
 	int	nextdent;
 	int	nwords;
-	int	prefix;
 	int	quote;
 	int	retain;
 	int	section;
@@ -78,7 +78,7 @@ outline(Fmt_t* fp)
 	char*	cp = fp->outbuf;
 	int	n = 0;
 	int	c;
-	int	d;
+	ptrdiff_t d;
 
 	if (!fp->outp)
 		return;
@@ -138,8 +138,8 @@ split(Fmt_t* fp, char* buf, int splice)
 	char*	qp;
 	int	c = 1;
 	int	q = 0;
-	int	n;
-	int	prefix;
+	ptrdiff_t n;
+	ptrdiff_t prefix;
 
 	for (ep = buf; *ep == ' '; ep++);
 	prefix = ep - buf;
@@ -151,7 +151,7 @@ split(Fmt_t* fp, char* buf, int splice)
 	if ((*ep == 0 || *buf == '.') && !isoption(fp, 'o'))
 	{
 		if (*ep)
-			prefix = strlen(buf);
+			prefix = (ptrdiff_t)strlen(buf);
 		outline(fp);
 		strcpy(fp->outbuf, buf);
 		fp->outp = fp->outbuf+prefix;
@@ -182,7 +182,7 @@ split(Fmt_t* fp, char* buf, int splice)
 			if (c == '\\' && *ep)
 				ep++;
 		}
-		n = (ep-cp);
+		n = ep-cp;
 		if (n && isoption(fp, 'o'))
 		{
 			for (qp = cp; qp < ep; qp++)
@@ -199,13 +199,13 @@ split(Fmt_t* fp, char* buf, int splice)
 		if (fp->nwords == 0)
 		{
 			if (fp->prefix)
-				memset(fp->outbuf, ' ', fp->prefix);
+				memset(fp->outbuf, ' ', (size_t)fp->prefix);
 			fp->outp = &fp->outbuf[fp->prefix];
 			while (*cp == ' ')
 				cp++;
-			n = (ep-cp);
+			n = ep-cp;
 		}
-		memcpy(fp->outp, cp, n);
+		memcpy(fp->outp, cp, (size_t)n);
 		fp->outp += n;
 		fp->nwords++;
 	}
@@ -398,14 +398,14 @@ dofmt(Fmt_t* fp)
 					if (cp < lp && *cp == ']')
 					{
 						cp++;
-						*dp++ = c;
+						*dp++ = (char)c;
 					}
 					else
 					{
 						fp->section = 1;
 						fp->retain = 0;
 					flush:
-						*dp++ = c;
+						*dp++ = (char)c;
 						*dp = 0;
 						split(fp, buf, 0);
 						outline(fp);
@@ -519,7 +519,7 @@ dofmt(Fmt_t* fp)
 				if (!ep)
 					ep = dp;
 				c = isoption(fp, 'o') ? 1 : TABSZ - (dp - buf) % TABSZ;
-				if (dp >= &buf[sizeof(buf) - c - 3])
+				if (dp >= &buf[sizeof(buf) - (size_t)c - 3])
 				{
 					cp--;
 					break;
@@ -547,7 +547,7 @@ dofmt(Fmt_t* fp)
 				ep = 0;
 			else if (!ep)
 				ep = dp;
-			*dp++ = c;
+			*dp++ = (char)c;
 		}
 		if (ep)
 			*ep = 0;
@@ -590,7 +590,7 @@ b_fmt(int argc, char** argv, Shbltin_t* context)
 			setoption(&fmt, n);
 			continue;
 		case 'w':
-			if (opt_info.num < TABSZ || opt_info.num>= sizeof(outbuf))
+			if (opt_info.num < TABSZ || opt_info.num >= (ssize_t)sizeof(outbuf))
 				error(2, "width out of range");
 			fmt.endbuf = &outbuf[opt_info.num];
 			continue;

@@ -16,28 +16,9 @@
 
 #include <ast.h>
 
-#if _hdr_execinfo
-#include <execinfo.h>
-#endif
-
 noreturn void _ast_assertfail(const char *restrict a, const char *restrict fun, const char *restrict file, int line)
 {
 	sfprintf(sfstderr,"\n*** assertion %s failed in %s(), %s:%d\n", a, fun, file, line);
-#if _lib_backtrace && _lib_backtrace_symbols
-	{
-		void* callstack[200];
-		int i, frames = backtrace(callstack, 200);
-		char** strs = backtrace_symbols(callstack, frames);
-		if(strs)
-		{
-			for (i = 0; i < frames; ++i)
-				sfprintf(sfstderr, "%s\n", strs[i]);
-			free(strs);
-		}
-		else
-			sfprintf(sfstderr, "Could not obtain a backtrace (%s)\n", strerror(errno));
-	}
-#endif
 	sfsync(NULL);
 	abort();
 }

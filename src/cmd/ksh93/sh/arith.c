@@ -93,7 +93,8 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 		if(!np)
 			return NULL;
 		root = sh.last_root;
-		if(cp[flag+1]=='[')
+		/* cp[flag] may be the terminating 0 byte */
+		if(cp[flag] && cp[flag+1]=='[')
 			flag++;
 		else
 			flag = 0;

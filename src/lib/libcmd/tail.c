@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -140,8 +140,8 @@ struct Tail_s
 	Sfoff_t		cur;
 	Sfoff_t		end;
 	unsigned long	expire;
-	long		dev;
-	long		ino;
+	dev_t		dev;
+	ino_t		ino;
 	int		fifo;
 };
 
@@ -155,14 +155,14 @@ static const char	header_fmt[] = "\n==> %s <==\n";
 static Sfoff_t
 tailpos(Sfio_t* fp, Sfoff_t number, int delim)
 {
-	size_t		n;
-	Sfoff_t	offset;
-	Sfoff_t	first;
-	Sfoff_t	last;
+	ssize_t		n;
+	Sfoff_t		offset;
+	Sfoff_t		first;
+	Sfoff_t		last;
 	char*		s;
 	char*		t;
-	unsigned char		incomplete;
-	struct stat		st;
+	unsigned char	incomplete;
+	struct stat	st;
 
 	last = sfsize(fp);
 	if ((first = sfseek(fp, 0, SEEK_CUR)) < 0)
@@ -179,7 +179,7 @@ tailpos(Sfio_t* fp, Sfoff_t number, int delim)
 		if ((offset = last - SFIO_BUFSIZE) < first)
 			offset = first;
 		sfseek(fp, offset, SEEK_SET);
-		n = last - offset;
+		n = (ssize_t)(last - offset);
 		if (!(s = sfreserve(fp, n, SFIO_LOCKR)))
 			return -1;
 		t = s + n;
@@ -221,8 +221,8 @@ pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
 	Sfoff_t		offset[2];
 	Sfio_t*		tmp[2];
 
-	if (delim < 0 && a > number)
-		a = number;
+	if (delim < 0 && (ssize_t)a > number)
+		a = (size_t)number;
 	out = tmp[0] = sftmp(a);
 	tmp[1] = sftmp(a);
 	offset[0] = offset[1] = 0;
@@ -437,7 +437,6 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 	struct stat	st;
 	const char*	format = header_fmt+1;
 	ssize_t		z;
-	ssize_t		w;
 	Sfio_t*		op;
 	Tail_t*		fp;
 	Tail_t*		pp;
@@ -567,7 +566,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				{
 				case 0:
 					if (r)
-						opt_info.offset = t - r - 1;
+						opt_info.offset = (int)(t - r - 1);
 					break;
 				case 'c':
 					flags &= ~LINES;
@@ -584,7 +583,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				default:
 					error(2, "%s: invalid suffix", t - 1);
 					if (r)
-						opt_info.offset = strlen(r);
+						opt_info.offset = (int)strlen(r);
 					break;
 				}
 				break;
@@ -637,7 +636,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 	}
 	if (flags & FOLLOW)
 	{
-		if (!(fp = stkalloc(stkstd, argc * sizeof(Tail_t))))
+		if (!(fp = stkalloc(stkstd, (size_t)argc * sizeof(Tail_t))))
 		{
 			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
@@ -685,10 +684,11 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 					n = 1;
 					if (timeout)
 						fp->expire = NOW + timeout;
-					z = fp->fifo ? SFIO_UNBOUND : st.st_size - fp->cur;
+					z = fp->fifo ? SFIO_UNBOUND : (ssize_t)(st.st_size - fp->cur);
 					i = 0;
 					if ((s = sfreserve(fp->sp, z, SFIO_LOCKR)) || (z = sfvalue(fp->sp)) && (s = sfreserve(fp->sp, z, SFIO_LOCKR)) && (i = 1))
 					{
+						ptrdiff_t w;
 						z = sfvalue(fp->sp);
 						for (r = s + z; r > s && *(r - 1) != '\n'; r--);
 						if ((w = r - s) || i && (w = z))
@@ -699,13 +699,13 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 								sfprintf(sfstdout, format, fp->name);
 								format = header_fmt;
 							}
-							fp->cur += w;
-							sfwrite(sfstdout, s, w);
+							fp->cur += (Sfoff_t)w;
+							sfwrite(sfstdout, s, (size_t)w);
 						}
 						else
 							w = 0;
-						sfread(fp->sp, s, w);
-						fp->end += w;
+						sfread(fp->sp, s, (size_t)w);
+						fp->end += (Sfoff_t)w;
 					}
 					goto next;
 				}

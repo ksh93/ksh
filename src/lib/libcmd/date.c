@@ -23,6 +23,12 @@
  * date -- set/display date
  */
 
+#include <cmd.h>
+#include <ls.h>
+#include <proc.h>
+#include <tmx.h>
+#include <times.h>
+
 static const char usage[] =
 "[-?\n@(#)$Id: date (ksh 93u+m) 2026-03-11 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
@@ -192,12 +198,6 @@ static const char usage[] =
 "	\bstrftime\b(3), \btm\b(3)]"
 ;
 
-#include <cmd.h>
-#include <ls.h>
-#include <proc.h>
-#include <tmx.h>
-#include <times.h>
-
 typedef struct Fmt
 {
 	struct Fmt*	next;
@@ -242,7 +242,7 @@ settime(Shbltin_t* context, Time_t now, int adjust, int network)
 	}
 	*argv++ = buf;
 	*argv = 0;
-	if (!sh_run(context, argv - args, args))
+	if (!sh_run(context, (int)(argv - args), args))
 		return 0;
 	return -1;
 }

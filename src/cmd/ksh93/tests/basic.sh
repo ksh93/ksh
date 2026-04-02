@@ -937,6 +937,11 @@ else
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
+# DEBUG trap failed to reset compound assignment state
+# https://github.com/ksh93/ksh/issues/908
+got=$(set +x; trap 'function f { :; }' DEBUG; { b=(v1=1 v2=2); } 2>&1)
+[[ -z $got ]] || err_exit "DEBUG trap with function definition invoked by compound assignment (got $(printf %q "$got"))"
+
 # ======
 # In ksh93v- and ksh2020 EXIT traps don't work in forked subshells
 # https://github.com/att/ast/issues/1452

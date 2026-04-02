@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1996-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -122,7 +122,7 @@ long_print(Sum_t* p, Sfio_t* sp, int flags, size_t scale)
 	if (flags & SUM_SIZE)
 	{
 		z = (flags & SUM_TOTAL) ? x->total_size : x->size;
-		if ((flags & SUM_SCALE) && ((n = scale) || (n = x->method->scale)))
+		if ((flags & SUM_SCALE) && ((n = scale) || (n = (size_t)x->method->scale)))
 			z = SCALE(z, n);
 		sfprintf(sp, " %*I*u", (flags & SUM_LEGACY) ? 6 : 0, sizeof(z), z);
 	}
@@ -258,7 +258,7 @@ match(const char* s, const char* p)
 		}
 		s = b;
 	}
-	return 0;
+	UNREACHABLE();
 }
 
 /*
@@ -268,7 +268,7 @@ match(const char* s, const char* p)
 Sum_t*
 sumopen(const char* name)
 {
-	int	n;
+	size_t	n;
 
 	if (!name || !name[0] || name[0] == '-' && !name[1])
 		name = "default";
@@ -356,10 +356,10 @@ sumclose(Sum_t* p)
 int
 sumusage(Sfio_t* sp)
 {
-	int	i;
-	int	n;
+	size_t	i;
+	ssize_t	n = 0;
 
-	for (i = n = 0; i < elementsof(methods); i++)
+	for (i = 0; i < elementsof(methods); i++)
 	{
 		n += sfprintf(sp, "[+%s?%s]", methods[i].match, methods[i].description);
 		if (methods[i].options)
@@ -367,5 +367,5 @@ sumusage(Sfio_t* sp)
 	}
 	for (i = 0; i < elementsof(maps); i++)
 		n += sfprintf(sp, "[+%s?%s Shorthand for \b%s\b.]", maps[i].match, maps[i].description, maps[i].map);
-	return n;
+	return (int)n;
 }

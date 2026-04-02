@@ -395,38 +395,38 @@ static void sane(struct termios *sp)
 
 static int gin(char *arg,struct termios *sp)
 {
-	int i;
+	speed_t i;
 	if(*arg++ != ':')
 		return 0;
-	sp->c_iflag = strtol(arg,&arg,16);
+	sp->c_iflag = (tcflag_t)strtol(arg,&arg,16);
 	if(*arg++ != ':')
 		return 0;
-	sp->c_oflag = strtol(arg,&arg,16);
+	sp->c_oflag = (tcflag_t)strtol(arg,&arg,16);
 	if(*arg++ != ':')
 		return 0;
-	sp->c_cflag = strtol(arg,&arg,16);
+	sp->c_cflag = (tcflag_t)strtol(arg,&arg,16);
 	if(*arg++ != ':')
 		return 0;
-	sp->c_lflag = strtol(arg,&arg,16);
+	sp->c_lflag = (tcflag_t)strtol(arg,&arg,16);
 	if(*arg++ != ':')
 		return 0;
 	for(i=0;i< NCCS; i++)
 	{
-		sp->c_cc[i] = strtol(arg,&arg,16);
+		sp->c_cc[i] = (cc_t)strtol(arg,&arg,16);
 		if(*arg++ != ':')
 			return 0;
 	}
 #if _mem_c_line_termios
-	sp->c_line =
+	sp->c_line = (cc_t)
 #endif
 		strtol(arg,&arg,16);
 	if(*arg++ != ':')
 		return 0;
-	i = strtol(arg,&arg,16);
+	i = (speed_t)strtol(arg,&arg,16);
 	if(*arg++ != ':')
 		return 0;
 	cfsetispeed(sp, i);
-	i = strtol(arg,&arg,16);
+	i = (speed_t)strtol(arg,&arg,16);
 	if(*arg++ != ':')
 		return 0;
 	cfsetospeed(sp, i);
@@ -459,7 +459,8 @@ static void output(struct termios *sp, int flags)
 	const Tty_t *tp;
 	struct termios tty;
 	int delim = ' ';
-	int i,off,off2;
+	int off,off2;
+	size_t i;
 	char schar[2];
 	unsigned int ispeed = cfgetispeed(sp);
 	unsigned int ospeed = cfgetospeed(sp);
@@ -572,7 +573,7 @@ static void output(struct termios *sp, int flags)
 
 static const Tty_t *lookup(const char *name)
 {
-	int i;
+	size_t i;
 	for(i=0; i < elementsof(Ttable); i++)
 	{
 		if(strcmp(Ttable[i].name,name)==0)
@@ -583,7 +584,7 @@ static const Tty_t *lookup(const char *name)
 
 static const Tty_t *getspeed(unsigned long val)
 {
-	int i;
+	size_t i;
 	for(i=0; i < elementsof(Ttable); i++)
 	{
 		if(Ttable[i].type==SPEED && Ttable[i].mask==val)
@@ -597,7 +598,7 @@ static int gettchar(const char *cp)
 	if(*cp==0)
 		return -1;
 	if(cp[1]==0)
-		return (unsigned)cp[0];
+		return cp[0];
 	if(*cp=='^' && cp[1] && cp[2]==0)
 	{
 		switch(cp[1])
@@ -647,7 +648,7 @@ static void set(char *argv[], struct termios *sp)
 			}
 			c = gettchar(*argv++);
 			if(c>=0)
-				sp->c_cc[tp->mask] = c;
+				sp->c_cc[tp->mask] = (cc_t)c;
 			else
 				sp->c_cc[tp->mask] = _POSIX_VDISABLE;
 			break;
@@ -717,16 +718,16 @@ static void set(char *argv[], struct termios *sp)
 				UNREACHABLE();
 			}
 			argv++;
-			n=strtol(cp,&cp,10);
+			n=(int)strtol(cp,&cp,10);
 			if(*cp)
 			{
 				error(ERROR_system(1),"%d: invalid number of %s",argv[-1],tp->name);
 				UNREACHABLE();
 			}
 			if(tp->mask)
-				win.ws_col = n;
+				win.ws_col = (unsigned short)n;
 			else
-				win.ws_row = n;
+				win.ws_row = (unsigned short)n;
 			if(ioctl(0,TIOCSWINSZ,&win)<0)
 			{
 				error(ERROR_system(1),"cannot set %s",tp->name);
@@ -759,16 +760,16 @@ static void set(char *argv[], struct termios *sp)
 			{
 #if _mem_c_line_termios
 			case C_LINE:
-				sp->c_line = c;
+				sp->c_line = (cc_t)c;
 				break;
 #endif
 			case C_SPEED:
-				if(getspeed(c))
+				if(getspeed((unsigned long)c))
 				{
 					if (*tp->name != 'o')
-						cfsetispeed(sp, c);
+						cfsetispeed(sp, (speed_t)c);
 					if (*tp->name != 'i')
-						cfsetospeed(sp, c);
+						cfsetospeed(sp, (speed_t)c);
 				}
 				else
 				{
@@ -777,16 +778,16 @@ static void set(char *argv[], struct termios *sp)
 				}
 				break;
 			case T_CHAR:
-				sp->c_cc[tp->mask] = c;
+				sp->c_cc[tp->mask] = (cc_t)c;
 				break;
 			}
 			break;
 		    case SPEED:
-			cfsetospeed(sp, tp->mask);
-			cfsetispeed(sp, tp->mask);
+			cfsetospeed(sp, (speed_t)tp->mask);
+			cfsetispeed(sp, (speed_t)tp->mask);
 			break;
 		    case SIZE:
-			sp->c_cflag &= ~CSIZE;
+			sp->c_cflag &= (tcflag_t)~CSIZE;
 			sp->c_cflag |= tp->mask;
 			break;
 		    case SANE:
@@ -801,8 +802,8 @@ static void set(char *argv[], struct termios *sp)
 			}
 			else
 			{
-				sp->c_iflag &= ~IUCLC;
-				sp->c_oflag &= ~OLCUC;
+				sp->c_iflag &= (tcflag_t)~IUCLC;
+				sp->c_oflag &= (tcflag_t)~OLCUC;
 			}
 			break;
 #endif /* OLCUC && IUCLC */
@@ -813,7 +814,8 @@ static void set(char *argv[], struct termios *sp)
 
 static void listchars(Sfio_t *sp,int type)
 {
-	int i,c;
+	size_t i;
+	int c;
 	c = (type==CHAR?'c':'n');
 	for(i=0; i < elementsof(Ttable); i++)
 	{
@@ -824,7 +826,7 @@ static void listchars(Sfio_t *sp,int type)
 
 static void listgroup(Sfio_t *sp,int type, const char *description)
 {
-	int i;
+	size_t i;
 	sfprintf(sp,"[+");
 	for(i=0; i < elementsof(Ttable); i++)
 	{
@@ -836,7 +838,7 @@ static void listgroup(Sfio_t *sp,int type, const char *description)
 
 static void listmask(Sfio_t *sp,unsigned int mask,const char *description)
 {
-	int i;
+	size_t i;
 	sfprintf(sp,"[+");
 	for(i=0; i < elementsof(Ttable); i++)
 	{
@@ -848,7 +850,7 @@ static void listmask(Sfio_t *sp,unsigned int mask,const char *description)
 
 static void listfields(Sfio_t *sp,int field)
 {
-	int i;
+	size_t i;
 	for(i=0; i < elementsof(Ttable); i++)
 	{
 		if(Ttable[i].field==field &&  Ttable[i].type==BIT && *Ttable[i].description)
