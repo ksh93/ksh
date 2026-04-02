@@ -126,7 +126,7 @@ typedef struct edit
 	void	*e_vi;		/* vi specific data */
 	void	*e_emacs;	/* emacs specific data */
 	char	*e_stkptr;	/* saved stack pointer */
-	int	e_stkoff;	/* saved stack offset */
+	ptrdiff_t e_stkoff;	/* saved stack offset */
 	char	**e_clist;	/* completion list after <ESC>= */
 	int	e_nlist;	/* number of elements on completion list */
 #if SHOPT_ESH || SHOPT_VSH
@@ -189,8 +189,8 @@ extern void	*ed_open(void);
 	extern int ed_internal(const char*, genchar*);
 	extern int ed_external(const genchar*, char*);
 	extern void ed_gencpy(genchar*,const genchar*);
-	extern void ed_genncpy(genchar*,const genchar*,int);
-	extern int ed_genlen(const genchar*);
+	extern void ed_genncpy(genchar*,const genchar*,size_t);
+	extern size_t ed_genlen(const genchar*);
 #endif /* SHOPT_MULTIBYTE */
 #if SHOPT_EDPREDICT
     extern int	ed_histgen(Edit_t*, const char*);

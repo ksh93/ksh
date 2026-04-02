@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -61,8 +61,9 @@ struct subst
 
 static char *parse_subst(const char *s, struct subst *sb)
 {
-	char	*cp,del;
-	int	off,n = 0;
+	char		*cp,del;
+	ptrdiff_t	off;
+	int		n = 0;
 
 	/* build the strings on the stack, mainly for '&' substitution in "new" */
 	off = stktell(sh.stk);
@@ -149,8 +150,9 @@ void hist_setchars(char *hc)
 
 int hist_expand(const char *ln, char **xp)
 {
-	int	off,	/* stack offset */
-		q,	/* quotation flags */
+	ptrdiff_t off,	/* stack offset */
+		  off2; /* other stack offset */
+	int	q,	/* quotation flags */
 		p,	/* flag */
 		c,	/* current char */
 		flag=0;	/* HIST_* flags */
@@ -242,10 +244,10 @@ int hist_expand(const char *ln, char **xp)
 		case '#': /* the line up to current position */
 			flag |= HIST_HASH;
 			cp++;
-			n = stktell(sh.stk); /* terminate string and dup */
+			off2 = stktell(sh.stk); /* terminate string and dup */
 			sfputc(sh.stk,'\0');
 			cc = sh_strdup(stkptr(sh.stk,0));
-			stkseek(sh.stk,n); /* remove null byte again */
+			stkseek(sh.stk,off2); /* remove null byte again */
 			ref = sfopen(ref, cc, "s"); /* open as file */
 			n = 0; /* skip history file referencing */
 			break;
@@ -316,7 +318,7 @@ getline:
 			if(n < 0) /* determine index for backref */
 				n = sh.hist_ptr->histind + n;
 			/* search and use history file if found */
-			if(n > 0 && hist_seek(sh.hist_ptr, n) != -1)
+			if(n > 0 && hist_seek(sh.hist_ptr, (int)n) != -1)
 				ref = sh.hist_ptr->histfp;
 
 		}
@@ -326,16 +328,16 @@ getline:
 			c = *cp;
 			*cp = '\0';
 			errormsg(SH_DICT, ERROR_ERROR, "%s: event not found", evp);
-			*cp = c;
+			*cp = (char)c;
 			ERROROUT;
 		}
 
 		if(str) /* string search: restore orig. line */
 		{
 			if(flag&HIST_QUESTION)
-				*cp++ = c; /* skip second question mark */
+				*cp++ = (char)c; /* skip second question mark */
 			else
-				*cp = c;
+				*cp = (char)c;
 		}
 
 		/* colon introduces either word designators or modifiers */
@@ -375,7 +377,7 @@ getline:
 					else
 					{
 						w[0] = -2;
-						w[1] = sftell(ref) + hl.hist_char;
+						w[1] = (Sfoff_t)(sftell(ref) + hl.hist_char);
 					}
 					sfseek(wm, 0, SEEK_SET);
 					goto skip;
@@ -431,7 +433,7 @@ getline:
 			c = *cp;
 			*cp = '\0';
 			errormsg(SH_DICT, ERROR_ERROR, "%s: bad word specifier", evp);
-			*cp = c;
+			*cp = (char)c;
 			ERROROUT;
 		}
 
@@ -492,7 +494,7 @@ getsel:
 			c = *cp;
 			*cp = '\0';
 			errormsg(SH_DICT, ERROR_ERROR, "%s: bad word specifier", evp);
-			*cp = c;
+			*cp = (char)c;
 			ERROROUT;
 		}
 		else if(w[1] == -2)	/* skip last word */
@@ -558,30 +560,30 @@ getsel:
 
 			if(c == 'h' || c == 'r') /* head or base */
 			{
-				n = -1;
+				Sfoff_t sfloc = -1;
 				while((c = sfgetc(tmp)) > 0)
 				{	/* remember position of / or . */
 					if((c == '/' && *cp == 'h') || (c == '.' && *cp == 'r'))
-						n = sftell(tmp2);
+						sfloc = sftell(tmp2);
 					sfputc(tmp2, c);
 				}
-				if(n > 0)
+				if(sfloc > 0)
 				{	 /* rewind to last / or . */
-					sfseek(tmp2, n, SEEK_SET);
+					sfseek(tmp2, sfloc, SEEK_SET);
 					/* end string there */
 					sfputc(tmp2, '\0');
 				}
 			}
 			else if(c == 't' || c == 'e') /* tail or suffix */
 			{
-				n = 0;
+				Sfoff_t sfloc = 0;
 				while((c = sfgetc(tmp)) > 0)
 				{	/* remember position of / or . */
 					if((c == '/' && *cp == 't') || (c == '.' && *cp == 'e'))
-						n = sftell(tmp);
+						sfloc = sftell(tmp);
 				}
 				/* rewind to last / or . */
-				sfseek(tmp, n, SEEK_SET);
+				sfseek(tmp, sfloc, SEEK_SET);
 				/* copy from there on */
 				while((c = sfgetc(tmp)) > 0)
 					sfputc(tmp2, c);
@@ -596,10 +598,10 @@ getsel:
 					if(!sb.str[0] && wm)
 					{
 						char *sbuf = sfsetbuf(wm, (void*)1, 0);
-						int n = sftell(wm);
-						sb.str[0] = sh_malloc(n + 1);
-						sb.str[0][n] = '\0';
-						memcpy(sb.str[0], sbuf, n);
+						size_t sfloc = (size_t)sftell(wm);
+						sb.str[0] = sh_malloc(sfloc + 1);
+						sb.str[0][sfloc] = '\0';
+						memcpy(sb.str[0], sbuf, sfloc);
 					}
 					cp = parse_subst(cp, &sb);
 				}
@@ -612,7 +614,7 @@ getsel:
 						 "%s%s: no previous substitution",
 						(flag & HIST_QUICKSUBST) ? ":s" : "",
 						evp);
-					*cp = c;
+					*cp = (char)c;
 					ERROROUT;
 				}
 
@@ -629,7 +631,7 @@ getsel:
 						*tempcp = '\0';
 						sfputr(tmp2, str, -1);
 						sfputr(tmp2, sb.str[1], -1);
-						*tempcp = c;
+						*tempcp = (char)c;
 						str = tempcp + strlen(sb.str[0]);
 					}
 					else if(!sftell(tmp2))
@@ -640,7 +642,7 @@ getsel:
 							 "%s%s: substitution failed",
 							(flag & HIST_QUICKSUBST) ? ":s" : "",
 							evp);
-						*cp = c;
+						*cp = (char)c;
 						ERROROUT;
 					}
 					/* loop if g modifier specified */

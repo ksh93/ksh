@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -260,7 +260,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			{
 				/* accept a backslashed character */
 				cur--;
-				out[cur++] = c;
+				out[cur++] = (genchar)c;
 				out[eol] = '\0';
 				draw(ep,APPEND);
 				continue;
@@ -342,12 +342,12 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			for(i= ++eol; i>cur; i--)
 				out[i] = out[i-1];
 			backslash = (c == '\\' && !sh_isoption(SH_NOBACKSLCTRL));
-			out[cur++] = c;
+			out[cur++] = (genchar)c;
 			draw(ep,APPEND);
 			continue;
 		case cntl('Y') :
 			{
-				c = genlen(kstack);
+				c = (int)genlen(kstack);
 				if ((c + eol) > scend)
 				{
 					beep();
@@ -358,9 +358,9 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 					out[c+i] = out[i];
 				kptr=kstack;
 				while (i = *kptr++)
-					out[cur++] = i;
+					out[cur++] = (genchar)i;
 				draw(ep,UPDATE);
-				eol = genlen(out);
+				eol = (int)genlen(out);
 				continue;
 			}
 		case '\n':
@@ -376,7 +376,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			kptr = &kstack[count];	/* move old contents here */
 			if (killing)		/* prepend to killbuf */
 			{
-				c = genlen(kstack) + CHARSIZE; /* include '\0' */
+				c = (int)(genlen(kstack) + CHARSIZE); /* include '\0' */
 				while(c--)	/* copy stuff */
 					kptr[c] = kstack[c];
 			}
@@ -385,7 +385,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 			killing = 2;		/* we are killing */
 			i -= count;
 			eol -= count;
-			genncpy(kstack,out+i,cur-i);
+			genncpy(kstack,out+i,(size_t)(cur-i));
 			gencpy(out+i,out+cur);
 			ep->mark = i;
 			goto update;
@@ -441,7 +441,7 @@ int ed_emacsread(void *context, int fd,char *buff,int scend, int reedit)
 #endif /* SHOPT_MULTIBYTE */
 					{
 						c += 'A' - 'a';
-						out[i] = c;
+						out[i] = (genchar)c;
 					}
 				}
 				i++;
@@ -488,7 +488,7 @@ update:
 			{
 				c = out[i - 1];
 				out[i-1] = out[i-2];
-				out[i-2] = c;
+				out[i-2] = (genchar)c;
 			}
 			else
 			{
@@ -639,7 +639,7 @@ update:
 			ed_internal((char*)(out),out);
 #endif /* SHOPT_MULTIBYTE */
 		drawline:
-			eol = genlen(out);
+			eol = (int)genlen(out);
 			cur = eol;
 			draw(ep,UPDATE);
 			/* skip blank lines when going up/down in history */
@@ -778,7 +778,7 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 #endif /* SHOPT_MULTIBYTE */
 					{
 						i += 'a' - 'A';
-						out[cur] = i;
+						out[cur] = (genchar)i;
 					}
 					cur++;
 				}
@@ -868,7 +868,7 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 				beep();
 				break;
 			}
-			if ((eol - cur) >= sizeof(name))
+			if ((eol - cur) >= (ssize_t)sizeof(name))
 			{
 				beep();
 				return -1;
@@ -1221,7 +1221,7 @@ static void xcommands(Emacs_t *ep,int count)
 			if(hline == histlines && sh.hist_ptr)
 			{
 				hist_eof(sh.hist_ptr);
-				histlines = (int)sh.hist_ptr->histind;
+				histlines = sh.hist_ptr->histind;
 				hline = histlines;
 				if(histlines >= sh.hist_ptr->histsize)
 					hist_flush(sh.hist_ptr);
@@ -1364,13 +1364,13 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 					string[--sl] = '\0';
 			}
 		}
-		string[sl++] = i;
+		string[sl++] = (genchar)i;
 		string[sl] = '\0';
 		cur = sl;
 		draw(ep,APPEND);
 	}
 	skip:
-	i = genlen(string);
+	i = (int)genlen(string);
 	if(ep->prevdirection == -2 && i!=4 || direction!=1)
 		ep->prevdirection = -1;
 	if (direction < 1)
@@ -1440,7 +1440,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 	sptr = drawbuff;
 	logcursor = sptr + cur;
 	longline = NORMAL;
-	ep->lastdraw = option;
+	ep->lastdraw = (char)option;
 
 	if (option == FIRST || option == REFRESH)
 	{
@@ -1511,7 +1511,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 	    print(i)&&((ep->cursor-ep->screen)<(w_size-1)))
 	{
 		putchar(ep->ed,i);
-		*ep->cursor++ = i;
+		*ep->cursor++ = (genchar)i;
 		*ep->cursor = '\0';
 		return;
 	}
@@ -1529,7 +1529,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 	 If not, adjust the screen offset so it does.
 	**********************/
 
-	i = ncursor - nscreen;
+	i = (int)(ncursor - nscreen);
 	if ((ep->offset && i<=ep->offset)||(i >= (ep->offset+w_size)))
 	{
 		/* Center the cursor on the screen */
@@ -1565,7 +1565,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 			sptr++;
 			continue;
 		}
-		setcursor(ep,sptr-ep->screen,*nptr);
+		setcursor(ep,(int)(sptr-ep->screen),*nptr);
 		*sptr++ = *nptr++;
 #if SHOPT_MULTIBYTE
 		while(*nptr==MARKER)
@@ -1607,10 +1607,10 @@ static void draw(Emacs_t *ep,Draw_t option)
 		setcursor(ep,w_size,longline);
 		ep->overflow = longline;
 	}
-	i = (ncursor-nscreen) - ep->offset;
+	i = (int)((ncursor-nscreen) - ep->offset);
 	setcursor(ep,i,0);
 	if(option==FINAL && ep->ed->e_multiline)
-		setcursor(ep,nscend+1-nscreen,0);
+		setcursor(ep,(int)(nscend+1-nscreen),0);
 	ep->scvalid = 1;
 	return;
 }
@@ -1635,7 +1635,7 @@ void emacs_redraw(void *vp)
 
 static void setcursor(Emacs_t *ep,int newp,int c)
 {
-	int oldp = ep->cursor - ep->screen;
+	int oldp = (int)(ep->cursor - ep->screen);
 	newp  = ed_setcursor(ep->ed, ep->screen, oldp, newp, 0);
 	if(c)
 	{
@@ -1668,7 +1668,7 @@ static int blankline(Emacs_t *ep, genchar *out, int uptocursor)
 	for(x=0; uptocursor ? (x < cur) : (x <= eol); x++)
 	{
 #if SHOPT_MULTIBYTE
-		if(!iswspace((wchar_t)out[x]))
+		if(!iswspace((wint_t)out[x]))
 #else
 		if(!isspace(out[x]))
 #endif /* SHOPT_MULTIBYTE */

@@ -12,6 +12,7 @@
 *                                                                      *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #ifndef _HIST_H
@@ -34,7 +35,7 @@ typedef struct
 	Sfdisc_t	histdisc;	/* discipline for history */
 	Sfio_t		*histfp;	/* history file stream pointer */
 	char		*histname;	/* name of history file */
-	int32_t		histind;	/* current command number index */
+	int		histind;	/* current command number index */
 	int		histsize;	/* number of accessible history lines */
 #ifdef _HIST_PRIVATE
 	_HIST_PRIVATE
@@ -45,7 +46,7 @@ typedef struct
 {
 	int hist_command;
 	int hist_line;
-	int hist_char;
+	ptrdiff_t hist_char;
 } Histloc_t;
 
 #if SHOPT_SCRIPTONLY
@@ -70,8 +71,8 @@ typedef struct
 extern const char	hist_fname[];
 
 extern int _Hist;
-#define hist_min(hp)	((_Hist=((int)((hp)->histind-(hp)->histsize)))>=0?_Hist:0)
-#define hist_max(hp)	((int)((hp)->histind))
+#define hist_min(hp)	((_Hist=((hp)->histind-(hp)->histsize))>=0?_Hist:0)
+#define hist_max(hp)	((hp)->histind)
 /* these are the history interface routines */
 extern int		sh_histinit(void);
 extern void 		hist_cancel(History_t*);
@@ -81,10 +82,10 @@ extern void 		hist_eof(History_t*);
 extern Histloc_t	hist_find(History_t*,char*,int, int, int);
 extern void 		hist_flush(History_t*);
 extern void 		hist_list(History_t*,Sfio_t*, off_t, int, char*);
-extern int		hist_match(History_t*,off_t, char*, int*);
+extern int		hist_match(History_t*,off_t, char*, ptrdiff_t*);
 extern off_t		hist_tell(History_t*,int);
 extern off_t		hist_seek(History_t*,int);
-extern int		hist_iswordbndry(char);
+extern int		hist_iswordbndry(int);
 extern char 		*hist_word(char*, int, int);
 #if !_BLD_ksh || SHOPT_ESH
     extern Histloc_t	hist_locate(History_t*,int, int, int);
