@@ -91,10 +91,7 @@ pid_t	pid_fromstring(char *str)
 	pid_t	pid;
 	char	*last;
 	errno = 0;
-	if(sizeof(pid)==sizeof(Sflong_t))
-		pid = (pid_t)strtoll(str, &last, 10);
-	else
-		pid = (pid_t)strtol(str, &last, 10);
+	pid = (pid_t)strtoll(str, &last, 10);
 	if(errno==ERANGE || *last)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),"%s: invalid process ID",str);
@@ -191,7 +188,8 @@ void job_chldtrap(int unpost)
 {
 	struct process *pw,*pwnext;
 	pid_t bckpid;
-	int oldexit,trapnote;
+	int oldexit;
+	unsigned char trapnote;
 	job_lock();
 	sh.sigflag[SIGCHLD] &= ~SH_SIGTRAP;
 	trapnote = sh.trapnote;
@@ -347,7 +345,7 @@ int job_reap(int sig)
 		else if(WIFSTOPPED(wstat))
 		{
 			pw->p_flag |= (P_NOTIFY|P_SIGNALLED|P_STOPPED|P_BG);
-			pw->p_exit = WSTOPSIG(wstat);
+			pw->p_exit = (unsigned short)WSTOPSIG(wstat);
 			if(pw->p_pgrp && pw->p_pgrp==job.curpgid && sh_isstate(SH_STOPOK))
 				kill(sh.current_pid,pw->p_exit);
 			if(px)
@@ -398,7 +396,7 @@ int job_reap(int sig)
 			{
 				pw->p_exit =  pw->p_exitmin;
 				if(WEXITSTATUS(wstat) > pw->p_exitmin)
-					pw->p_exit = WEXITSTATUS(wstat);
+					pw->p_exit = (unsigned short)WEXITSTATUS(wstat);
 			}
 #if SHOPT_BGX
 			if(pw->p_flag&P_BG)
@@ -566,8 +564,8 @@ void job_init(void)
 #ifdef CNSUSP
 	/* set the switch character */
 	tty_get(JOBTTY,&my_stty);
-	job.suspend = (unsigned)my_stty.c_cc[VSUSP];
-	if(job.suspend == (unsigned char)CNSUSP)
+	job.suspend = my_stty.c_cc[VSUSP];
+	if(job.suspend == CNSUSP)
 	{
 		my_stty.c_cc[VSUSP] = CSWTCH;
 		tty_set(JOBTTY,TCSAFLUSH,&my_stty);
@@ -782,7 +780,8 @@ int job_list(struct process *pw,int flag)
 	struct process *px = pw;
 	int  n;
 	const char *msg;
-	int msize;
+	size_t mlen;
+	char c;
 	if(!pw || pw->p_job<=0)
 		return 1;
 	if(pw->p_env != sh.jobenv)
@@ -799,14 +798,14 @@ int job_list(struct process *pw,int flag)
 	job_lock();
 	n = px->p_job;
 	if(px==job.pwlist)
-		msize = '+';
+		c = '+';
 	else if(px==job.pwlist->p_nxtjob)
-		msize = '-';
+		c = '-';
 	else
-		msize = ' ';
+		c = ' ';
 	if(flag&JOB_NLFLAG)
 		sfputc(outfile,'\n');
-	sfprintf(outfile,"[%d] %c ",n, msize);
+	sfprintf(outfile,"[%d] %c ",n, c);
 	do
 	{
 		n = 0;
@@ -823,19 +822,19 @@ int job_list(struct process *pw,int flag)
 			msg = sh_translate(e_running);
 		px->p_flag &= ~P_NOTIFY;
 		sfputr(outfile,msg,-1);
-		msize = strlen(msg);
+		mlen = strlen(msg);
 		if(n)
 		{
 			sfprintf(outfile,"(%d)",n);
-			msize += (3+(n>10)+(n>100));
+			mlen += (3+(n>10)+(n>100));
 		}
 		if(px->p_flag&P_COREDUMP)
 		{
 			msg = sh_translate(e_coredump);
 			sfputr(outfile, msg, -1);
-			msize += strlen(msg);
+			mlen += strlen(msg);
 		}
-		sfnputc(outfile,' ',MAXMSG>msize?MAXMSG-msize:1);
+		sfnputc(outfile,' ',MAXMSG>mlen?MAXMSG-mlen:1);
 		if(flag&JOB_LFLAG)
 			px = px->p_nxtproc;
 		else
@@ -1016,9 +1015,9 @@ static struct process *job_byname(char *name)
 {
 	struct process *pw = job.pwlist;
 	struct process *pz = 0;
-	int *flag = 0;
+	ptrdiff_t *flag = 0;
+	ptrdiff_t offset;
 	char *cp = name;
-	int offset;
 	if(!sh.hist_ptr)
 		return NULL;
 	if(*cp=='?')
@@ -1150,7 +1149,7 @@ int job_post(pid_t pid, pid_t join)
 	pw->p_pid = pid;
 	if(!sh.outpipe || sh.cpid==pid)
 		pw->p_flag = P_EXITSAVE;
-	pw->p_exitmin = sh.xargexit;
+	pw->p_exitmin = (unsigned short)sh.xargexit;
 	pw->p_exit = 0;
 	if(sh_isstate(SH_MONITOR))
 	{
@@ -1172,7 +1171,7 @@ int job_post(pid_t pid, pid_t join)
 		pw->p_name = -1;
 	if ((val = job_chksave(pid))>=0 && !jobfork)
 	{
-		pw->p_exit = val;
+		pw->p_exit = (unsigned short)val;
 		if(pw->p_exit==SH_STOPSIG)
 		{
 			pw->p_flag |= (P_SIGNALLED|P_STOPPED);
