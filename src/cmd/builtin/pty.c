@@ -511,7 +511,8 @@ typedef struct Master_s
 	char*		prompt;		/* peek prompt				*/
 	ptrdiff_t	cursor;		/* cursor in buf, 0 if fresh line	*/
 	int		line;		/* prompt line number			*/
-	char		restore;	/* previous line save char		*/
+	char		save;		/* previous line's saved char		*/
+	char		saving;		/* set if saved char is to be restored	*/
 } Master_t;
 #define BUFUNDERFLOW	128		/* bytes of buffer underflow to allow	*/
 
@@ -537,13 +538,13 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
  again:
 	if (prompt)
 	{
-		if (bp->cur < bp->end && bp->restore >= 0)
-			*bp->cur = bp->restore;
+		if (bp->cur < bp->end && bp->saving)
+			*bp->cur = bp->save;
 		if (strneq(bp->cur, promptbuf, promptlen))
 			r = bp->cur;
 		else
 			r = 0;
-		if (bp->cur < bp->end && bp->restore >= 0)
+		if (bp->cur < bp->end && bp->saving)
 			*bp->cur = 0;
 		if (r)
 		{
@@ -571,10 +572,11 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	}
 	else if (bp->nxt)
 	{
-		if (bp->restore >= 0)
-			*bp->cur = bp->restore;
+		if (bp->saving)
+			*bp->cur = bp->save;
 		r = bp->cur;
-		bp->restore = *bp->nxt;
+		bp->save = *bp->nxt;
+		bp->saving = 1;
 		*bp->nxt = 0;
 		if (bp->nxt >= bp->end)
 		{
@@ -600,10 +602,10 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		}
 		else if (bp->cur < bp->end)
 		{
-			if (bp->restore >= 0)
+			if (bp->saving)
 			{
-				*bp->cur = bp->restore;
-				bp->restore = -1;
+				*bp->cur = bp->save;
+				bp->saving = 0;
 			}
 			r = bp->cur;
 			*bp->end = 0;
@@ -631,10 +633,10 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		{
 			if (bp->cur < bp->end)
 			{
-				if (bp->restore >= 0)
+				if (bp->saving)
 				{
-					*bp->cur = bp->restore;
-					bp->restore = -1;
+					*bp->cur = bp->save;
+					bp->saving = 0;
 				}
 				r = bp->cur;
 				*bp->end = 0;
@@ -669,11 +671,12 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	}
 	memcpy(bp->end, s, (size_t)n);
 	bp->end += n;
-	if ((r = bp->cur) > bp->buf && bp->restore >= 0)
-		*r = bp->restore;
+	if ((r = bp->cur) > bp->buf && bp->saving)
+		*r = bp->save;
 	if (bp->cur = memchr(bp->cur, '\n', (size_t)(bp->end - bp->cur)))
 	{
-		bp->restore = *++bp->cur;
+		bp->save = *++bp->cur;
+		bp->saving = 1;
 		*bp->cur = 0;
 		if (bp->cur >= bp->end)
 		{
@@ -687,7 +690,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	}
 	else
 	{
-		bp->restore = -1;
+		bp->saving = 0;
 		bp->cur = r;
 		bp->nxt = 0;
 		must = 0;
@@ -803,7 +806,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 	master->buf = master->bufunderflow + BUFUNDERFLOW;
 	master->cur = master->end = master->buf;
 	master->max = master->buf + 2 * SFIO_BUFSIZE - 1;
-	master->restore = -1;
+	master->saving = 0;
 	errno = 0;
 	id = error_info.id;
 	error_info.id = 0;
