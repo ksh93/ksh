@@ -70,7 +70,7 @@ typedef struct  _mac_
 	char		patfound;	/* set if pattern character found */
 	char		noextpat;	/* set to disallow extended patterns */
 	char		wasexpan;	/* set when word resulted from a $ or ` expansion */
-	char		assign;		/* set for assignments */
+	int8_t		assign;		/* set for assignments */
 	char		arith;		/* set for ((...)) */
 	char		arrayok;	/* $x[] ok for arrays */
 	char		subcopy;	/* set when copying subscript */
@@ -164,7 +164,7 @@ static void setup_ifs(Mac_t *mp)
  * yields a single pathname.
  * If <mode> negative, then expansion rules for assignment are applied.
  */
-char *sh_mactrim(char *str, int mode)
+char *sh_mactrim(char *str, int8_t mode)
 {
 	Mac_t	*mp = (Mac_t*)sh.mac_context;
 	Stk_t	*stkp = sh.stk;
@@ -176,7 +176,7 @@ char *sh_mactrim(char *str, int mode)
 	mp->patfound = 0;
 	mp->assign = 0;
 	if(mode<0)
-		mp->assign = (char)(-mode);
+		mp->assign = mode * -1;
 	mp->quoted = mp->lit = mp->split = mp->quote = 0;
 	mp->sp = 0;
 	setup_ifs(mp);
@@ -1701,7 +1701,7 @@ retry1:
 				char split = mp->split;
 				short quoted = mp->quoted;
 				char arith = mp->arith;
-				char assign = mp->assign;
+				int8_t assign = mp->assign;
 				if(newops)
 				{
 					type = fcget();

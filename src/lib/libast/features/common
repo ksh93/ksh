@@ -340,7 +340,7 @@ tst note{ generating _ast_flt\*_t types }end output{
 typ int8_t stdint.h inttypes.h no{
 	#undef	_typ_int8_t
 	#define	_typ_int8_t	1
-	typedef _ast_int1_t int8_t;
+	typedef signed _ast_int1_t int8_t;
 }end
 typ uint8_t stdint.h inttypes.h no{
 	#undef	_typ_uint8_t
