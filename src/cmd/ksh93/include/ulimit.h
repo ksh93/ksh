@@ -166,6 +166,10 @@
 #define LIM_SECOND	4
 #define LIM_MICROSECOND	5
 
+#if _lib_getrlimit && !_typ___rlimit_resource_t
+    typedef int __rlimit_resource_t;  /* workaround for glibc's nonstandard rlimit type */
+#endif
+
 typedef struct Limit_s
 {
 	const char*	name;

@@ -43,7 +43,7 @@ struct	tevent
 	Namval_t	*node;
 	Namval_t	*action;
 	struct tevent	*next;
-	long		milli;
+	Sflong_t	milli;
 	int		flags;
 	void            *timeout;
 };
@@ -71,7 +71,7 @@ static void *time_add(struct tevent *item, void *list)
 		tp->next = item;
 	}
 	tp = item;
-	tp->timeout = sh_timeradd(tp->milli,tp->flags&R_FLAG,trap_timeout,tp);
+	tp->timeout = sh_timeradd((Sfulong_t)tp->milli,tp->flags&R_FLAG,trap_timeout,tp);
 	return list;
 }
 
@@ -112,13 +112,13 @@ static void	print_alarms(void *list)
 			char *name = nv_name(tp->node);
 			if(tp->flags&R_FLAG)
 			{
-				double d = tp->milli;
+				Sfdouble_t d = tp->milli;
 				sfprintf(sfstdout,e_alrm1,name,d/1000.);
 			}
 			else
 			{
-				Time_t num = nv_getnum(tp->node), now = getnow();
-				sfprintf(sfstdout,e_alrm2,name,(double)(num - now));
+				Sfdouble_t d = tp->milli;
+				sfprintf(sfstdout,e_alrm2,name,d/1000.);
 			}
 		}
 		tp = tp->next;

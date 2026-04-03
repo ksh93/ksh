@@ -42,7 +42,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	if(nv_search(s,sh.fun_tree,0))
 #endif /* SHOPT_NAMESPACE */
 	{
-		int savtop = stktell(stkp);
+		ptrdiff_t savtop = stktell(stkp);
 		void *savptr = stkfreeze(stkp,0);
 		sfputc(stkp,'$');
 		sfputc(stkp,'(');
@@ -146,7 +146,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 			opt_info.arg = 0;
 			flag = '?';
 		}
-		*(options = value) = flag;
+		*(options = value) = (char)flag;
 		sh.st.opterror = 1;
 		if (opt_info.offset != 0 && !argv[opt_info.index][opt_info.offset])
 		{
@@ -183,7 +183,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		r = 0;
 	error_info.context->flags &= ~ERROR_SILENT;
 	sh.st.optindex = opt_info.index;
-	sh.st.optchar = opt_info.offset;
+	sh.st.optchar = (short)opt_info.offset;
 	nv_putval(np, options, 0);
 	np = sh_scoped(OPTARGNOD);
 	if(opt_info.num == LONG_MIN)
