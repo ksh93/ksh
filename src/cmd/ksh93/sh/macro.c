@@ -2210,7 +2210,8 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 		out_offset:
 			stkset(stkp,savptr,savtop);
 			*mp = savemac;
-			if((Sflong_t)num!=num)
+			/* must use <= >= not < >, as we have reduced precision at these sizes */
+			if(isinf(num) || isnan(num) || num <= LDBL_LLONG_MIN || num >= LDBL_LLONG_MAX || (Sflong_t)num!=num)
 				sfprintf(sh.strbuf,"%.*Lg",LDBL_DIG,num);
 			else if(num)
 				sfprintf(sh.strbuf,"%jd",(Sflong_t)num);
