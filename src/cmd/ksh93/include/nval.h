@@ -113,12 +113,18 @@ struct Namval
 	Namfun_t	*nvfun;		/* pointer to trap functions */
 	void		*nvalue;	/* pointer to any kind of value */
 	void		*nvmeta;	/* pointer to any of various kinds of type-dependent data */
-	void		*pad;		/* for alignment purposes */
 };
 
 #define NV_CLASS	".sh.type"
 #define NV_DATA		"_"	/* special class or instance variable */
-#define NV_MINSZ	(sizeof(struct Namval)-offsetof(struct Namval, nvflag))
+
+/* For aligning and addressing Namval_t data headers or array members with the nvlink member chopped off */
+struct _Namval_align_
+{
+	char		dummy;
+	max_align_t	probe;
+};
+#define NV_MINSZ	roundof(sizeof(struct Namval) - offsetof(struct Namval, nvname), offsetof(struct _Namval_align_, probe))
 #define nv_namptr(p,n)	((Namval_t*)((char*)(p)+(n)*NV_MINSZ-offsetof(struct Namval, nvname)))
 
 /* The following attributes are for internal use */
