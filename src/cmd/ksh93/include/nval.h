@@ -43,6 +43,35 @@ typedef struct Namarray Namarr_t;
 typedef struct Namdecl Namdecl_t;
 
 /*
+ * Poor man's alignof() -- the real one is not available in C99 and cannot
+ * be portably reimplemented. This nv_alignof() version can only be used
+ * with types defined in the dummy struct below. The _c* char entries are
+ * anchors.  Alignment is calculated using the offset of the _d* item with
+ * the desired type to the corresponding char.
+ */
+typedef struct
+{
+	char		_cSfdouble_t;
+	Sfdouble_t	_dSfdouble_t;
+	char		_cdouble;
+	double		_ddouble;
+	char		_cfloat;
+	float		_dfloat;
+	char		_cSflong_t;
+	Sflong_t	_dSflong_t;
+	char		_cint32_t;
+	int32_t		_dint32_t;
+	char		_cint16_t;
+	int16_t		_dint16_t;
+	char		_cpointer;
+	void		*_dpointer;
+	char		_cmax_align_t;
+	max_align_t	_dmax_align_t;
+} _Namval_align_;
+
+#define nv_alignof(t)	( offsetof(_Namval_align_, _d##t) - offsetof(_Namval_align_, _c##t) )
+
+/*
  * This defines the template for nodes that have their own assignment
  * and or lookup functions
  */
@@ -125,12 +154,7 @@ struct Namval
 #define NV_DATA		"_"	/* special class or instance variable */
 
 /* For aligning and addressing Namval_t data headers or array members with the nvlink member chopped off */
-struct _Namval_align_
-{
-	char		dummy;
-	max_align_t	probe;
-};
-#define NV_MINSZ	roundof(sizeof(struct Namval) - offsetof(struct Namval, nvname), offsetof(struct _Namval_align_, probe))
+#define NV_MINSZ	roundof(sizeof(struct Namval) - offsetof(struct Namval, nvname), nv_alignof(max_align_t))
 #define nv_namptr(p,n)	((Namval_t*)((char*)(p) + (n) * NV_MINSZ - offsetof(struct Namval, nvname)))
 
 /* The following attributes are for internal use */

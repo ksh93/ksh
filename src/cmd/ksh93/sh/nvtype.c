@@ -97,26 +97,6 @@ struct Namtype
 	size_t		current;
 };
 
-typedef struct
-{
-	char		_cSfdouble_t;
-	Sfdouble_t	_dSfdouble_t;
-	char		_cdouble;
-	double		_ddouble;
-	char		_cfloat;
-	float		_dfloat;
-	char		_cSflong_t;
-	Sflong_t	_dSflong_t;
-	char		_cint32_t;
-	int32_t		_dint32_t;
-	char		_cint16_t;
-	int16_t		_dint16_t;
-	char		_cpointer;
-	char		*_dpointer;
-} _Align_;
-
-#define alignof(t)	( offsetof(_Align_, _d##t) - offsetof(_Align_, _c##t) )
-
 static void put_type(Namval_t*, const char*, int, Namfun_t*);
 static Namval_t* create_type(Namval_t*, const char*, int, Namfun_t*);
 static Namfun_t* clone_type(Namval_t*, Namval_t*, int, Namfun_t*);
@@ -145,17 +125,17 @@ size_t nv_datasize(Namval_t *np, size_t *offset)
 		{
 			if(nv_isattr(np, NV_LONG))
 			{
-				a = alignof(Sfdouble_t);
+				a = nv_alignof(Sfdouble_t);
 				s = sizeof(Sfdouble_t);
 			}
 			else if(nv_isattr(np, NV_SHORT))
 			{
-				a = alignof(float);
+				a = nv_alignof(float);
 				s = sizeof(float);
 			}
 			else
 			{
-				a = alignof(double);
+				a = nv_alignof(double);
 				s = sizeof(double);
 			}
 		}
@@ -163,17 +143,17 @@ size_t nv_datasize(Namval_t *np, size_t *offset)
 		{
 			if(nv_isattr(np, NV_LONG))
 			{
-				a = alignof(Sflong_t);
+				a = nv_alignof(Sflong_t);
 				s = sizeof(Sflong_t);
 			}
 			else if(nv_isattr(np, NV_SHORT))
 			{
-				a = alignof(int16_t);
+				a = nv_alignof(int16_t);
 				s = sizeof(int16_t);
 			}
 			else
 			{
-				a = alignof(int32_t);
+				a = nv_alignof(int32_t);
 				s = sizeof(int32_t);
 			}
 		}
@@ -182,7 +162,7 @@ size_t nv_datasize(Namval_t *np, size_t *offset)
 		s = nv_size(np);
 	else
 	{
-		a = alignof(pointer);
+		a = nv_alignof(pointer);
 		s = nv_size(np);
 	}
 	if(a>1 && offset)
