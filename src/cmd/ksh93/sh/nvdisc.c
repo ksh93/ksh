@@ -220,7 +220,7 @@ static void block_done(struct blocked *bp)
  */
 static void chktfree(Namval_t *np, struct vardisc *vp)
 {
-	int n;
+	size_t n;
 	for(n=0; n< sizeof(vp->disc)/sizeof(*vp->disc); n++)
 	{
 		if(vp->disc[n])
@@ -340,7 +340,7 @@ static void	assign(Namval_t *np,const char* val,int flags,Namfun_t *handle)
 	{
 		Dt_t *root = sh_subfuntree(1);
 		Namval_t *pp=0;
-		int n;
+		size_t n;
 		Namarr_t *ap;
 		block(bp,type);
 		nv_disc(np,handle,NV_POP);
@@ -677,7 +677,7 @@ static const Namdisc_t Nv_bdisc	= {   0, putdisc, 0, 0, setdisc };
 Namfun_t *nv_clone_disc(Namfun_t *fp, int flags)
 {
 	Namfun_t	*nfp;
-	int		size;
+	size_t		size;
 	if(!fp->disc && !fp->next && (fp->nofree&1))
 		return fp;
 	if(!(size=fp->dsize) && (!fp->disc || !(size=fp->disc->dsize)))
@@ -692,19 +692,19 @@ Namfun_t *nv_clone_disc(Namfun_t *fp, int flags)
 int nv_adddisc(Namval_t *np, const char **names, Namval_t **funs)
 {
 	Nambfun_t *vp;
-	int n=0;
+	ssize_t n=0;
 	const char **av=names;
 	if(av)
 	{
 		while(*av++)
 			n++;
 	}
-	vp = sh_newof(NULL,Nambfun_t,1,n*sizeof(Namval_t*));
-	vp->fun.dsize = sizeof(Nambfun_t)+n*sizeof(Namval_t*);
+	vp = sh_newof(NULL,Nambfun_t,1,(size_t)n*sizeof(Namval_t*));
+	vp->fun.dsize = sizeof(Nambfun_t)+(size_t)n*sizeof(Namval_t*);
 	vp->fun.nofree |= 2;
 	vp->num = n;
 	if(funs)
-		memcpy(vp->bltins, funs,n*sizeof(Namval_t*));
+		memcpy(vp->bltins, funs,(size_t)n*sizeof(Namval_t*));
 	else while(n>=0)
 		vp->bltins[n--] = 0;
 	vp->fun.disc = &Nv_bdisc;
@@ -821,7 +821,7 @@ Namfun_t *nv_hasdisc(Namval_t *np, const Namdisc_t *dp)
 
 static void *newnode(const char *name)
 {
-	int s;
+	size_t s;
 	Namval_t *np = sh_newof(0,Namval_t,1,s=strlen(name)+1);
 	np->nvname = (char*)np+sizeof(Namval_t);
 	memcpy(np->nvname,name,s);
@@ -833,7 +833,7 @@ static void *newnode(const char *name)
  */
 static void *num_clone(Namval_t *np, void *val)
 {
-	int size;
+	size_t size;
 	void *nval;
 	if(!val)
 		return NULL;
@@ -897,7 +897,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, int flags)
 	Namfun_t	*fp, *fpnext;
 	const char	*val = mp->nvalue;
 	unsigned short	flag = mp->nvflag;
-	unsigned short	size = mp->nvsize;
+	size_t		size = mp->nvsize;
 	for(fp=mp->nvfun; fp; fp=fpnext)
 	{
 		fpnext = fp->next;
@@ -1036,7 +1036,8 @@ Namval_t *nv_search(const char *name, Dt_t *root, int mode)
  */
 Namval_t *nv_bfsearch(const char *name, Dt_t *root, Namval_t **var, char **last)
 {
-	int		c,offset = stktell(sh.stk);
+	char		c;
+	ptrdiff_t	offset = stktell(sh.stk);
 	char		*sp, *cp=0;
 	Namval_t	*np, *nq;
 	char		*dname=0;
@@ -1126,7 +1127,7 @@ Namval_t *sh_addbuiltin(const char *path, Shbltin_f bltin, void *extra)
 	const char	*name;
 	char		*cp;
 	Namval_t	*np, *nq=0;
-	int		offset=stktell(sh.stk);
+	ptrdiff_t	offset=stktell(sh.stk);
 	if(extra==(void*)1)
 		name = path;
 	else if((name = path_basename(path))==path && bltin!=b_typeset && (nq=nv_bfsearch(name,sh.bltin_tree,NULL,&cp)))
@@ -1263,8 +1264,6 @@ struct adata
 	Namval_t	*tp;
 	char		*mapname;
 	char		**argnam;
-	int		attsize;
-	char		*attval;
 };
 
 static void delete_fun(Namval_t *np, void *data)
@@ -1317,7 +1316,7 @@ static char *get_table(Namval_t *np, Namfun_t *fp)
 	if(out)
 		sfseek(out,0,SEEK_SET);
 	else
-		out =  sfnew(NULL,NULL,-1,-1,SFIO_WRITE|SFIO_STRING);
+		out =  sfnew(NULL,NULL,(size_t)-1,-1,SFIO_WRITE|SFIO_STRING);
 	for(np=(Namval_t*)dtfirst(root);np;np=(Namval_t*)dtnext(root,np))
 	{
 		if(!nv_isnull(np) || np->nvfun || nv_isattr(np,~NV_NOFREE))
@@ -1436,7 +1435,7 @@ Namval_t *sh_fsearch(const char *fname, int add)
 {
 	if(*fname!='.')
 	{
-		int	offset = stktell(sh.stk);
+		ptrdiff_t offset = stktell(sh.stk);
 		sfputr(sh.stk,nv_name(sh.namespace),'.');
 		sfputr(sh.stk,fname,0);
 		fname = stkptr(sh.stk,offset);
