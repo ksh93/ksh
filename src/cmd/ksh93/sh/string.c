@@ -694,7 +694,7 @@ size_t sh_strwidth(const char *s)
 		if (c < 0)				/* invalid multibyte character: count as 1 position */
 			w++;
 		else if ((n = mbwidth(c)) > 0)		/* don't count control characters (which yield -1) */
-			w += (unsigned)n;
+			w += (size_t)n;
 	}
 	return w;
 }

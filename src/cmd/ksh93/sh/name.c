@@ -2807,7 +2807,7 @@ Sfdouble_t nv_getnum(Namval_t *np)
  *   value to conform to <newatts>.  The <size> of left and right
  *   justified fields may be given.
  */
-void nv_newattr (Namval_t *np, unsigned newatts, ssize_t size)
+void nv_newattr(Namval_t *np, unsigned newatts, ssize_t size)
 {
 	char *sp;
 	char *cp = 0;

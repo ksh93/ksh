@@ -103,7 +103,13 @@ struct Namdecl
 /* attributes of name-value node attribute flags */
 
 #define NV_DEFAULT 0
-/* This defines the attributes for an attributed name-value pair node */
+
+/*
+ * This defines the attributes for an attributed name-value pair node.
+ *
+ * NOTE: For NV_MINSZ and nv_namptr (below) to work correctly, nvlink
+ * and nvname must be the first two members, in that order.
+*/
 struct Namval
 {
 	Dtlink_t	nvlink;		/* space for cdt links */
@@ -125,7 +131,7 @@ struct _Namval_align_
 	max_align_t	probe;
 };
 #define NV_MINSZ	roundof(sizeof(struct Namval) - offsetof(struct Namval, nvname), offsetof(struct _Namval_align_, probe))
-#define nv_namptr(p,n)	((Namval_t*)((char*)(p)+(n)*NV_MINSZ-offsetof(struct Namval, nvname)))
+#define nv_namptr(p,n)	((Namval_t*)((char*)(p) + (n) * NV_MINSZ - offsetof(struct Namval, nvname)))
 
 /* The following attributes are for internal use */
 #define NV_NOFREE	0x200	/* don't free the space when releasing value */
