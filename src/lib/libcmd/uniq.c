@@ -182,7 +182,7 @@ static int uniq(Sfio_t *fdin, Sfio_t *fdout, ssize_t fields, ssize_t chars, ssiz
 							outp[f--] = ' ';
 							do
 							{
-								outp[f--] = '0' + (count % 10);
+								outp[f--] = (char)('0' + (count % 10));
 							} while (count /= 10);
 							while (f >= 0)
 								outp[f--] = ' ';

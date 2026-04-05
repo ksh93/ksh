@@ -25,7 +25,7 @@ Namdisc_t;
 .ft 5
 Namval_t 	*nv_open(const char *\fIname\fP, Dt_t *\fIdict\fP, int \fIflags\fP);
 Namval_t	*nv_create(const char *\fIname\fP,  Dt_t *\fIdict\fP, int \fIflags\fP, Namfun_t *\fIfp\fP);
-Namval_t	*nv_namptr(void *\fIptr\fP, int \fIindx\fP);
+Namval_t	*nv_namptr(void *\fIptr\fP, size_t \fIindx\fP);
 void		nv_delete(Namval_t *\fInp\fP, Dt_t *\fIdict\fP, int \fInofree\fP);
 .ft R
 .fi
@@ -44,13 +44,13 @@ int		nv_clone(Namval_t *\fIsrc\fP, Namval_t *\fIdest\fP, int \fIflags\fP);
 .nf
 .ft 5
 int		nv_isnull(Namval_t *\fInp\fP);
-int		nv_setsize(Namval_t *\fInp\fP, int \fIsize\fP);
-int		nv_size(Namval_t *\fInp\fP);
+size_t		nv_setsize(Namval_t *\fInp\fP, size_t \fIsize\fP);
+size_t		nv_size(Namval_t *\fInp\fP);
 unsigned	nv_isattr(Namval_t *\fInp\fP, unsigned \fIflags\fP);
 Namfun_t	*nv_isvtree(Namval_t *\fInp\fP);
 unsigned	nv_onattr(Namval_t *\fInp\fP, unsigned \fIflags\fP);
 unsigned	nv_offattr(Namval_t *\fInp\fP, unsigned \fIflags\fP);
-void		nv_newattr(Namval_t *\fInp\fP, unsigned \fIflags\fP, int \fIsize\fP);
+void		nv_newattr(Namval_t *\fInp\fP, unsigned \fIflags\fP, ssize_t \fIsize\fP);
 .ft R
 .fi
 
@@ -206,8 +206,8 @@ justified variables, the arithmetic base for integer variables,
 and the precision or number of places after the decimal point
 for floating point variables.  If \fIsize\fP is greater than or
 equal to zero, the current size is changed to this value.
-The \f3nv_size()\fP function is equivalent to \f3nv_setsize()\fP
-with the second argument negative.
+The \f3nv_setsize()\fP function is equivalent to \f3nv_size()\fP
+when the second argument is equal to -1.
 .PP
 The \f3nv_getval()\fP function returns the value of the given
 name-value pair as a string.  A \f3NULL\fP return value indicates

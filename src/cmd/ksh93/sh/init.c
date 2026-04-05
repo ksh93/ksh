@@ -787,7 +787,7 @@ static void match2d(struct match *mp)
 			if(i > 9)
 			{
 				*np->nvname = (char)('0' + i / 10);
-				np->nvname[1] = '0' + (i % 10);
+				np->nvname[1] = (char)('0' + (i % 10));
 			}
 			else
 				*np->nvname = (char)('0' + i);

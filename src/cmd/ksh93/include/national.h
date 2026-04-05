@@ -32,7 +32,7 @@
 #   endif
 #endif /* SHOPT_MULTIBYTE */
 
-extern int sh_strchr(const char*,const char*);
-extern int sh_strwidth(const char*);
+extern ptrdiff_t sh_strchr(const char*,const char*);
+extern size_t sh_strwidth(const char*);
 
 #endif /* !_NATIONAL_H */
