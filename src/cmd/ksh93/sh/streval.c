@@ -240,7 +240,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				arith_error(node.value,ptr,ep->emode);
 			*++sp = num;
 			type = node.isfloat;
-			if(num > LDBL_ULLONG_MAX || num < LDBL_LLONG_MIN)
+			if(isinf(num) || isnan(num) || num > LDBL_ULLONG_MAX || num < LDBL_LLONG_MIN)
 				type = 1;
 			else
 			{
@@ -250,7 +250,8 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 					type = 2;
 					d -= LDBL_LLONG_MAX;
 				}
-				if((Sflong_t)d!=d)
+				/* must use <= >= not < >, as we have reduced precision at these sizes */
+				if(d <= LDBL_LLONG_MIN || d >= LDBL_LLONG_MAX || (Sflong_t)d!=d)
 					type = 1;
 			}
 			*++tp = type;
