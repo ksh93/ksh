@@ -104,7 +104,7 @@ int main(void)
 #endif
 
 	c = 0;
-	c = ~c;
+	c = (char)~c;
 	uc = 0;
 	uc = (unsigned char)~uc;
 	us = 0;

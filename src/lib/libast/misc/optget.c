@@ -999,7 +999,7 @@ init(char* s, Optpass_t* p)
 							p->flags |= OPT_functions;
 							p->prefix = 0;
 						}
-						p->section[0] = '0' + (n % 10);
+						p->section[0] = (char)('0' + (n % 10));
 						n = 1;
 						if (isupper(*s))
 							p->section[n++] = *s++;

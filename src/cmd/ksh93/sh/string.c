@@ -103,7 +103,7 @@ int sh_lookopt(const char *sp, int *invert)
 			if(strcmp(sp,t)==0)
 			{
 				*invert ^= no;
-				return tp->sh_number;
+				return (int)tp->sh_number;
 			}
 			s=sw=sp;
 			tw=t;
@@ -116,7 +116,7 @@ int sh_lookopt(const char *sp, int *invert)
 					if (!*t)
 					{
 						*invert ^= no;
-						return tp->sh_number;
+						return (int)tp->sh_number;
 					}
 					if (hit || amb)
 					{
@@ -125,7 +125,7 @@ int sh_lookopt(const char *sp, int *invert)
 					}
 					else
 					{
-						hit = tp->sh_number;
+						hit = (int)tp->sh_number;
 						inv = no;
 					}
 					break;
@@ -234,7 +234,7 @@ void	sh_trim(char *sp)
 @*/
 {
 	char *dp;
-	int c;
+	char c;
 	if(sp)
 	{
 		dp = sp;
@@ -243,7 +243,7 @@ void	sh_trim(char *sp)
 			int len;
 			if(mbwide() && (len=mbsize(sp))>1)
 			{
-				memmove(dp, sp, len);
+				memmove(dp, sp, (size_t)len);
 				dp += len;
 				sp += len;
 				continue;
@@ -265,7 +265,7 @@ static char	*sh_fmtcsv(const char *string)
 {
 	const char *cp = string;
 	int c;
-	int offset;
+	ptrdiff_t offset;
 	if(!cp)
 		return NULL;
 	offset = stktell(sh.stk);
@@ -273,7 +273,7 @@ static char	*sh_fmtcsv(const char *string)
 	if(c==0)
 		return (char*)string;
 	sfputc(sh.stk,'"');
-	sfwrite(sh.stk,string,cp-string);
+	sfwrite(sh.stk,string,(size_t)(cp-string));
 	if(c=='"')
 		sfputc(sh.stk,'"');
 	string = cp;
@@ -281,13 +281,13 @@ static char	*sh_fmtcsv(const char *string)
 	{
 		if(c=='"')
 		{
-			sfwrite(sh.stk,string,cp-string);
+			sfwrite(sh.stk,string,(size_t)(cp-string));
 			string = cp;
 			sfputc(sh.stk,'"');
 		}
 	}
 	if(--cp>string)
-		sfwrite(sh.stk,string,cp-string);
+		sfwrite(sh.stk,string,(size_t)(cp-string));
 	sfputc(sh.stk,'"');
 	sfputc(sh.stk,0);
 	return stkptr(sh.stk,offset);
@@ -304,9 +304,9 @@ static int	sh_isprint(int c)
 	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
 		return isprint(c);			/* use plain isprint(3) */
 	else if(!(ast.locale.set & AST_LC_utf8))	/* not in UTF-8 locale? */
-		return iswgraph(c);			/* the test below would not be valid */
+		return iswgraph((wint_t)c);		/* the test below would not be valid */
 	else if(iswgraph(0x5E38) && !iswgraph(0xFEFF))	/* can we use iswgraph(3)? */
-		return iswgraph(c);			/* use iswgraph(3) */
+		return iswgraph((wint_t)c);		/* use iswgraph(3) */
 	else						/* fallback: */
 		return !(c <= 0x001F ||			/* control characters */
 			c >= 0x007F && c <= 0x009F ||	/* control characters */
@@ -329,7 +329,7 @@ char	*sh_fmtq(const char *string)
 {
 	const char *cp = string, *op;
 	int c, state;
-	int offset;
+	ptrdiff_t offset;
 	if(!cp)
 		return NULL;
 	offset = stktell(sh.stk);
@@ -342,12 +342,13 @@ char	*sh_fmtq(const char *string)
 			return (char*)string;
 		if(c=='=' || c=='+' && *cp=='=')
 		{
+			size_t write_len;
 			if(*cp==0)
 				return (char*)string;
 			if(*cp=='=')
 				cp++;
-			c = cp - string;
-			sfwrite(sh.stk,string,c);
+			write_len = (size_t)(cp - string);
+			sfwrite(sh.stk,string,write_len);
 			string = cp;
 			c = mbchar(cp);
 		}
@@ -365,8 +366,8 @@ char	*sh_fmtq(const char *string)
 	{
 		if(state==1)
 			sfputc(sh.stk,'\'');
-		if(c = --cp - string)
-			sfwrite(sh.stk,string,c);
+		if(--cp - string)
+			sfwrite(sh.stk,string,(size_t)(cp-string));
 		if(state==1)
 			sfputc(sh.stk,'\'');
 	}
@@ -435,7 +436,7 @@ char	*sh_fmtq(const char *string)
 				sfputc(sh.stk,c);
 			}
 			else
-				sfwrite(sh.stk,op, cp-op);
+				sfwrite(sh.stk,op,(size_t)(cp-op));
 		}
 		sfputc(sh.stk,'\'');
 	}
@@ -459,13 +460,13 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 	int n;
 	int q;
 	int a;
-	int offset;
+	ptrdiff_t offset;
 
 	if (--fold < 8)
 		fold = 0;
 	if(single)
 		return sh_fmtcsv(cp);
-	if (!cp || !*cp || !fold || fold && strlen(string) < fold)
+	if (!cp || !*cp || !fold || fold && (ssize_t)strlen(string) < fold)
 		return sh_fmtq(cp);
 	offset = stktell(sh.stk);
 	single = single ? 1 : 3;
@@ -496,7 +497,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				q = 1;
 			else if (c == a)
 			{
-				sfwrite(sh.stk,bp, cp - bp);
+				sfwrite(sh.stk,bp,(size_t)(cp-bp));
 				bp = cp;
 				vp = cp + 1;
 				a = 0;
@@ -598,20 +599,20 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				else if (n && --n <= 0)
 				{
 					n = fold - 2;
-					sfwrite(sh.stk,bp, --cp - bp);
+					sfwrite(sh.stk,bp,(size_t)(--cp-bp));
 					bp = cp;
 					sfwrite(sh.stk,"'\\\n'", 4);
 				}
 				else if (n == 1 && *cp == '\'')
 				{
 					n = fold - 5;
-					sfwrite(sh.stk,bp, --cp - bp);
+					sfwrite(sh.stk,bp,(size_t)(--cp-bp));
 					bp = cp;
 					sfwrite(sh.stk,"'\\\n\\''", 6);
 				}
 				else if (c == '\'')
 				{
-					sfwrite(sh.stk,bp, cp - bp - 1);
+					sfwrite(sh.stk,bp,(size_t)(cp-bp-1));
 					bp = cp;
 					if (n && (n -= 4) <= 0)
 					{
@@ -622,7 +623,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 						sfwrite(sh.stk,"'\\''", 4);
 				}
 			}
-			sfwrite(sh.stk,bp, cp - bp - 1);
+			sfwrite(sh.stk,bp,(size_t)(cp-bp-1));
 			sfputc(sh.stk,'\'');
 		}
 		else if (n = fold)
@@ -633,15 +634,15 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				if (--n <= 0)
 				{
 					n = fold;
-					sfwrite(sh.stk,bp, --cp - bp);
+					sfwrite(sh.stk,bp,(size_t)(--cp-bp));
 					bp = cp;
 					sfwrite(sh.stk,"\\\n", 2);
 				}
 			}
-			sfwrite(sh.stk,bp, cp - bp - 1);
+			sfwrite(sh.stk,bp,(size_t)(cp-bp-1));
 		}
 		else
-			sfwrite(sh.stk,bp, cp - bp);
+			sfwrite(sh.stk,bp,(size_t)(cp-bp));
 		if (c)
 		{
 			sfputc(sh.stk,'\\');
@@ -656,7 +657,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
  * Find a multi-byte character in a string.
  * NOTE: Unlike strchr(3), the return value is an integer offset or -1 if not found.
  */
-int sh_strchr(const char *string, const char *dp)
+ptrdiff_t sh_strchr(const char *string, const char *dp)
 {
 	const char *cp;
 	if(mbwide())
@@ -680,15 +681,16 @@ int sh_strchr(const char *string, const char *dp)
 /*
  * Return the number of terminal columns occupied by a string when printed.
  */
-int sh_strwidth(const char *s)
+size_t sh_strwidth(const char *s)
 {
-	int w = 0, c, n;
+	size_t w = 0;
+	int c, n;
 	while (c = mbchar(s))
 	{
 		if (c < 0)				/* invalid multibyte character: count as 1 position */
 			w++;
 		else if ((n = mbwidth(c)) > 0)		/* don't count control characters (which yield -1) */
-			w += n;
+			w += (size_t)n;
 	}
 	return w;
 }
