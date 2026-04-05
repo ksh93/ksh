@@ -2135,13 +2135,13 @@ utf8_alpha(wchar_t c)
 
 #endif /* !AST_NOMULTIBYTE */
 
-#if !_hdr_wchar
+#if !_hdr_wchar || !_lib_wctype || !_lib_iswctype
 #undef	iswalpha
 #define iswalpha	default_iswalpha
 static int
-iswalpha(wchar_t c)
+iswalpha(wint_t c)
 {
-	return c <= 0x7f ? isalpha(c) : 0;
+	return c <= 0x7f ? isalpha((int)c) : 0;
 }
 #endif
 

@@ -26,6 +26,7 @@ lib	confstr,dirread
 lib	fcntl,fsync
 lib	getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit
+lib	iswblank,iswctype,wctype
 lib	madvise,memalign,memdup
 lib	opendir,openat,pathconf,pipe2,posix_close
 lib	rewinddir

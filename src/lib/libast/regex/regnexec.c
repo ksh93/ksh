@@ -662,6 +662,9 @@ collmatch(Rex_t* rex, unsigned char* s, unsigned char* e, unsigned char** p)
 		key[w] = 0;
 		t = s;
 		c = mbchar(t);
+#if !_lib_wctype
+		c &= 0xff;
+#endif
 		x = 0;
 	}
 	else

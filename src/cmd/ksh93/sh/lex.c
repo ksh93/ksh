@@ -41,6 +41,24 @@
 #define SYNBAD		3	/* exit value for syntax errors */
 #define STACK_ARRAY	3	/* size of depth match stack growth */
 
+#if _lib_iswblank < 0	/* set in lexstates.h to enable this code */
+
+int
+local_iswblank(wint_t wc)
+{
+	static int      initialized;
+	static wctype_t wt;
+
+	if (!initialized)
+	{
+		initialized = 1;
+		wt = wctype("blank");
+	}
+	return iswctype(wc, wt);
+}
+
+#endif
+
 #define pushlevel(lp,c,s)	((lp->lexd.level>=lex_max?stack_grow():1) &&\
 				((lex_match[lp->lexd.level++]=lp->lexd.lastc),\
 				lp->lexd.lastc=(((s)<<CHAR_BIT)|(c))))

@@ -1,4 +1,4 @@
-lib	iswblank
+lib	iswblank,wctype,iswctype,iswblank
 hdr	wchar,wctype
 
 tst	note{ do wctrans/towctrans work }end output{
