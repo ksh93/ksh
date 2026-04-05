@@ -86,7 +86,7 @@
 #define S2F_exp_2_min	(DBL_MIN_EXP)
 #define S2F_exp_2_max	(DBL_MAX_EXP)
 #endif
-#if S2F_type == 2
+#if S2F_type == 2 || S2F_type == 3
 #define S2F_number	long double
 #define S2F_ldexp	ldexpl
 #define S2F_pow10	_Sflpow10

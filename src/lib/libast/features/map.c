@@ -156,7 +156,7 @@ main(void)
 #if _npt_strtold && !_std_strtold
 	printf("#ifndef _ISOC99_SOURCE\n");
 #endif
-	printf("extern long double	strtold(const char*, char**);\n");
+	printf("extern _ast_fltmax_t	strtold(const char*, char**);\n");  /* TODO: 'long double' SEGV's on macOS */
 #if _npt_strtold && !_std_strtold
 	printf("#endif\n");
 #endif
