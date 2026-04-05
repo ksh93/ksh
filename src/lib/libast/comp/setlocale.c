@@ -40,7 +40,12 @@
 #include <wctype.h>
 #endif
 
+#if _lib_wcwidth
 #undef	wcwidth
+#else
+#define wcwidth 0
+#endif
+
 #undef	wctomb
 
 #ifdef mblen

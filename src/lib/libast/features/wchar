@@ -10,6 +10,7 @@ cat{
 	#endif
 }end
 
+lib	wcwidth	stdlib.h stdio.h wchar.h
 hdr	wchar
 nxt	wchar
 
