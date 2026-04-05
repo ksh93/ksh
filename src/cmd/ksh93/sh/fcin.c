@@ -34,9 +34,9 @@ Fcin_t _Fcin = {0};
 /*
  * open stream <f> for fast character input
  */
-int	fcfopen(Sfio_t* f)
+ssize_t	fcfopen(Sfio_t* f)
 {
-	int	n;
+	ssize_t	n;
 	char	*buff;
 	Fcin_t	save;
 	errno = 0;
@@ -70,9 +70,9 @@ int	fcfopen(Sfio_t* f)
  * If last is non-zero, and the stream is a file, 0 is returned when
  * the previous character is a 0 byte.
  */
-int	fcfill(void)
+int fcfill(void)
 {
-	int	n;
+	ptrdiff_t n;
 	Sfio_t	*f;
 	unsigned char	*last=_Fcin.fclast, *ptr=_Fcin.fcptr;
 	if(!(f=fcfile()))
@@ -93,7 +93,7 @@ int	fcfill(void)
 	}
 	if((n = ptr-_Fcin.fcbuff) && _Fcin.fcfun)
 		(*_Fcin.fcfun)(f,(const char*)_Fcin.fcbuff,n,_Fcin.context);
-	sfread(f, (char*)_Fcin.fcbuff, n);
+	sfread(f, (char*)_Fcin.fcbuff, (size_t)n);
 	_Fcin._fcfile = 0;
 	if(!last)
 		return 0;
@@ -122,7 +122,7 @@ int fcclose(void)
 /*
  * Set the notify function that is called for each fcfill()
  */
-void fcnotify(void (*fun)(Sfio_t*,const char*,int,void*),void* context)
+void fcnotify(void (*fun)(Sfio_t*,const char*,ptrdiff_t,void*),void* context)
 {
 	_Fcin.fcfun = fun;
 	_Fcin.context = context;
@@ -151,7 +151,8 @@ struct Extra
 int _fcmbget(short *len)
 {
 	static struct Extra	extra;
-	int			i, c, n;
+	int			c;
+	ptrdiff_t		i, n;
 	/*
 	 * Check if we need to piece together a split multibyte
 	 * character started at the end of the previous buffer.
@@ -165,7 +166,7 @@ int _fcmbget(short *len)
 			_Fcin.fcptr = (unsigned char*)fcfirst() - _Fcin.fcleft; 
 			_Fcin.fcleft = 0;
 		}
-		*len = c;
+		*len = (short)c;
 		if(c==1)
 			c = *extra.next++;
 		else if(c==0)
@@ -174,7 +175,7 @@ int _fcmbget(short *len)
 			c = mbchar(extra.next);
 		return c;
 	}
-	switch(*len = mbsize(_Fcin.fcptr))
+	switch(*len = (short)mbsize(_Fcin.fcptr))
 	{
 	    case -1:
 		/*
@@ -183,11 +184,11 @@ int _fcmbget(short *len)
 		 */
 		if(_Fcin._fcfile && (n=(_Fcin.fclast-_Fcin.fcptr)) < MB_LEN_MAX)
 		{
-			memcpy(extra.buff, _Fcin.fcptr, n);
+			memcpy(extra.buff, _Fcin.fcptr, (size_t)n);
 			_Fcin.fcptr = _Fcin.fclast;
 			/* fcgetc() will read the next buffer via fcfill() */
 			for(i=n; i < MB_LEN_MAX+n; i++)
-				if((extra.buff[i] = fcgetc())==0)
+				if((extra.buff[i] = (unsigned char)fcgetc())==0)
 					break;
 			_Fcin.fcleft = n;
 			extra.next = extra.buff;

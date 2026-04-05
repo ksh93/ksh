@@ -12,6 +12,7 @@
 *                                                                      *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #ifndef _FCIN_H
@@ -34,9 +35,9 @@ typedef struct _fcin
 	unsigned char	*fcptr;		/* pointer to next input char */
 	unsigned char	fcchar;		/* saved character */
 	short		fclen;		/* last multibyte char len */
-	void (*fcfun)(Sfio_t*,const char*,int,void*);	/* advance function */
+	void (*fcfun)(Sfio_t*,const char*,ptrdiff_t,void*);	/* advance function */
 	void		*context;	/* context pointer */
-	int		fcleft;		/* for multibyte boundary */
+	ptrdiff_t	fcleft;		/* for multibyte boundary */
 } Fcin_t;
 
 #if SHOPT_MULTIBYTE
@@ -46,9 +47,9 @@ typedef struct _fcin
 #   define fcmbget(x)	(fcget())
 #endif
 #define fcfile()	(_Fcin._fcfile)
-#define fcgetc()	(*_Fcin.fcptr++ ? (int)_Fcin.fcptr[-1] : fcfill())
-#define fcget()		((int)(*_Fcin.fcptr++))
-#define fcpeek(n)	((int)_Fcin.fcptr[n])
+#define fcgetc()	(*_Fcin.fcptr++ ? _Fcin.fcptr[-1] : fcfill())
+#define fcget()		(*_Fcin.fcptr++)
+#define fcpeek(n)	(_Fcin.fcptr[n])
 #define fcseek(n)	((char*)(_Fcin.fcptr+=(n)))
 #define fcfirst()	((char*)_Fcin.fcbuff)
 #define fclast()	((char*)_Fcin.fclast)
@@ -57,9 +58,9 @@ typedef struct _fcin
 #define fcsave(x)	(*(x) = _Fcin)
 #define fcrestore(x)	(_Fcin = *(x))
 extern int		fcfill(void);
-extern int		fcfopen(Sfio_t*);
+extern ssize_t		fcfopen(Sfio_t*);
 extern int		fcclose(void);
-void			fcnotify(void(*)(Sfio_t*,const char*,int,void*),void*);
+void			fcnotify(void(*)(Sfio_t*,const char*,ptrdiff_t,void*),void*);
 
 extern Fcin_t		_Fcin;		/* used by macros */
 
