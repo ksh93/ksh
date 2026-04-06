@@ -22,7 +22,6 @@
 
 #include	"FEATURE/options"
 #include	<ast.h>
-#include	<ast_wchar.h>
 #include	"defs.h"
 #include	"shtable.h"
 #include	"lexstates.h"

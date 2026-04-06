@@ -524,7 +524,6 @@ make install virtual
 			prev include/io.h
 			prev include/path.h
 			prev include/lexstates.h
-			prev %{INCLUDE_AST}/ast_wchar.h
 			prev include/defs.h
 			prev FEATURE/options
 		done
@@ -604,7 +603,6 @@ make install virtual
 
 		make sh/init.c
 			prev %{INCLUDE_AST}/wctype.h
-			prev %{INCLUDE_AST}/ast_wchar.h
 			prev include/version.h
 			prev include/lexstates.h
 			prev FEATURE/externs
@@ -728,7 +726,6 @@ make install virtual
 			prev include/lexstates.h
 			prev include/shtable.h
 			prev include/defs.h
-			prev %{INCLUDE_AST}/ast_wchar.h
 			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
 		done

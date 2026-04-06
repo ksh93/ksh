@@ -26,7 +26,6 @@
 
 #if !SHOPT_SCRIPTONLY
 
-#include	<ast_wchar.h>
 #include	"lexstates.h"
 #include	"path.h"
 #include	"io.h"

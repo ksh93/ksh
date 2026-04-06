@@ -292,7 +292,7 @@ debug_wcwidth(wchar_t c)
 }
 
 static int
-debug_alpha(wchar_t c)
+debug_alpha(wint_t c)
 {
 	return isalpha((c >> DZ) & ((1<<DC)-1));
 }
@@ -2120,7 +2120,7 @@ static const unsigned char	utf8_wam[] =
 };
 
 static int
-utf8_alpha(wchar_t c)
+utf8_alpha(wint_t c)
 {
 	return !!(utf8_wam[(c >> 3) & 0x1fff] & (1 << (c & 0x7)));
 }
@@ -2145,7 +2145,7 @@ iswalpha(wint_t c)
 }
 #endif
 
-typedef int (*Isw_f)(wchar_t);
+typedef int (*Isw_f)(wint_t);
 
 static int
 wide_wctomb(char* u, wchar_t w)

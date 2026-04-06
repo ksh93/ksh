@@ -11,7 +11,7 @@ cat <<!
 	#if AST_NOMULTIBYTE
 	#define iswalpha(w)	isalpha((int)(w))
 	#else
-	#define iswalpha(w)	(ast.mb.alpha?(*ast.mb.alpha)((wchar_t)(w)):isalpha((int)(w)))
+	#define iswalpha(w)	(ast.mb.alpha?(*ast.mb.alpha)((wint_t)(w)):isalpha((int)(w)))
 	#endif /* AST_NOMULTIBYTE */
 !
 }end

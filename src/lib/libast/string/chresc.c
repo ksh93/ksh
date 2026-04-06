@@ -20,7 +20,6 @@
 
 #include <ast.h>
 #include <ctype.h>
-#include <ast_wchar.h>
 #include <error.h>
 #include <iconv.h>
 

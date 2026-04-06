@@ -193,6 +193,8 @@ extern char*		setlocale(int, const char*);
 #define LC_LANG			(-AST_LC_LANG)
 #endif
 
+#include <ast_wchar.h>
+
 /*
  * This struct defines all the global ast.* variables.
  * It is initialized in misc/state.c, and not by name -- so the order must be kept in sync.
@@ -220,7 +222,7 @@ typedef struct
 	uint32_t	sync;		/* length of invalid multibyte character */
 	wchar_t		tmp_w;		/* scratch */
 	int		tmp_i;		/* scratch */
-	int		(*alpha)(wchar_t);
+	int		(*alpha)(wint_t);
 	int		(*conv)(char*, wchar_t);
 	int		(*len)(const char*, size_t);
 	int		(*towc)(wchar_t *restrict, const char *restrict, size_t);
