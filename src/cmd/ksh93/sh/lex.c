@@ -44,7 +44,7 @@
 #if _lib_iswblank < 0	/* set in lexstates.h to enable this code */
 
 int
-local_iswblank(wchar_t wc)
+local_iswblank(wint_t wc)
 {
 	static int      initialized;
 	static wctype_t wt;
@@ -2463,7 +2463,7 @@ static int alias_exceptf(Sfio_t *iop,int type,void *data, Sfdisc_t *handle)
 	{
 		/* if last character is a blank, then next word can be an alias */
 		int c = fcpeek(-1);
-		if(isblank((wint_t)c))
+		if(isblank(c))
 			lp->aliasok = 1;
 		*ap->buf = (char)ap->nextc;
 		ap->nextc = 0;
