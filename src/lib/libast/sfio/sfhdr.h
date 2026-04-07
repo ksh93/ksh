@@ -694,42 +694,6 @@ typedef struct _sftab_
 /* fast functions for memory copy and memory clear */
 #define memclear(s,n)	memzero(s,n)
 
-/* note that MEMCPY advances the associated pointers */
-#define MEMCPY(to,fr,n) \
-	switch(n) \
-	{ default : memcpy(to,fr,n); to += n; fr += n; break; \
-	  case  7 : *to++ = *fr++;	\
-		/* FALLTHROUGH */	\
-	  case  6 : *to++ = *fr++;	\
-		/* FALLTHROUGH */	\
-	  case  5 : *to++ = *fr++;	\
-		/* FALLTHROUGH */	\
-	  case  4 : *to++ = *fr++;	\
-		/* FALLTHROUGH */	\
-	  case  3 : *to++ = *fr++;	\
-		/* FALLTHROUGH */	\
-	  case  2 : *to++ = *fr++;	\
-		/* FALLTHROUGH */	\
-	  case  1 : *to++ = *fr++;	\
-	}
-#define MEMSET(s,c,n) \
-	switch(n) \
-	{ default : memset(s,(int)c,n); s += n; break; \
-	  case  7 : *s++ = (uchar)c;	\
-		    /* FALLTHROUGH */	\
-	  case  6 : *s++ = (uchar)c;	\
-		    /* FALLTHROUGH */	\
-	  case  5 : *s++ = (uchar)c;	\
-		    /* FALLTHROUGH */	\
-	  case  4 : *s++ = (uchar)c;	\
-		    /* FALLTHROUGH */	\
-	  case  3 : *s++ = (uchar)c;	\
-		    /* FALLTHROUGH */	\
-	  case  2 : *s++ = (uchar)c;	\
-		    /* FALLTHROUGH */	\
-	  case  1 : *s++ = (uchar)c;	\
-	}
-
 extern Sftab_t		_Sftable;
 
 extern int		_sfpopen(Sfio_t*, int, int, int);

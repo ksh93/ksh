@@ -47,8 +47,7 @@ ssize_t sfnputc(Sfio_t*		f,	/* file to write */
 		{ ps = buf; p = sizeof(buf); }
 	if((size_t)p > n)
 		p = (ssize_t)n;
-	MEMSET(ps,c,(size_t)p);
-	ps -= p;
+	memset(ps,c,(size_t)p);
 
 	w = (ssize_t)n;
 	if(ps == f->next)
