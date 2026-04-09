@@ -153,6 +153,8 @@ typedef union Shnode_u Shnode_t;
 #define SH_MULTILINE	47
 #define SH_NOBACKSLCTRL	48
 #endif
+/* bug-691: Phi: ${ list } } [;\n] } eat '}' until we get one followin [;\n] */
+#define SH_COMSUB_BRACE_GREEDY 49 /* Bug-691: */
 #define SH_LOGIN_SHELL	67
 
 #if _BLD_ksh

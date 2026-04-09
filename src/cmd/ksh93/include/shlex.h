@@ -36,6 +36,7 @@ struct _shlex_pvt_lexstate_
 {
 	char		incase;		/* 1 for case pattern, 2 after case */
 	char		intest;		/* 1 inside [[ ... ]] */
+	char		inbracecomsub;	/* 1 inside ${ ... [;\n]} bug-691: Phi:*/
 	char		testop1;	/* 1 when unary test op legal */
 	char		testop2;	/* 1 when binary test op legal */
 	char		reservok;	/* >0 for reserved word legal */

@@ -492,6 +492,7 @@ Shnode_t *sh_dolparen(Lex_t* lp)
 		t = sh_cmd(lp,RPAREN,SH_NL|SH_EMPTY);
 		break;
 	    case LBRACE:
+		lp->lex.inbracecomsub=1; /* bug-691: Phi: */
 		t = sh_cmd(lp,RBRACE,SH_NL|SH_EMPTY);
 		break;
 	}
