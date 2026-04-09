@@ -7,7 +7,7 @@ setv MAMAKE_STRICT 5
 
 setv INSTALLROOT ../../..
 setv CC cc
-setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?} %{mam_cc_STDC}
+setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?}
 setv CCFLAGS
 setv CCLDFLAGS %{-strip-symbols?1?%{mam_cc_LD_STRIP}??} %{mam_cc_EXPORT_DYNAMIC}
 setv IFFEFLAGS
