@@ -1082,3 +1082,13 @@ elif	tst need_ast_pow_funs -lm note{ are IEEE pow function replacements needed }
 	#endif
 }
 endif
+
+# this bug was found on Solaris 11.4 Studio cc
+tst	nan_signbit_inverted note{ NaN signbit inverted }end execute{
+	#include <math.h>
+	int main(void)
+	{
+		double p = NAN, n = -NAN;
+		return !signbit(p) && signbit(n);
+	}
+}end
