@@ -324,7 +324,7 @@ int sh_lex(Lex_t* lp)
 		state = sh_lexstates[mode];
 		do {
 			n = STATE(state,c);
-			if (varnametry)
+			if (varnametry && c != '\\')
 				varnamecount += LEN;
 		} while (n == 0);
 		switch(n)

@@ -504,6 +504,20 @@ then	LANG=C.UTF-8
 	exp=OK
 	[[ $got == "$exp" ]] || err_exit 'declaration command assignment with multibyte variable name' \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	cat >linecontinuation.sh <<-'EOF'
+		export a\
+		bc\
+		def=OK1
+		export コ\
+		ーン\
+		シェル=OK2
+		echo $abcdef
+		echo $コーンシェル
+	EOF
+	got=$("$SHELL" linecontinuation.sh 2>&1)
+	exp=$'OK1\nOK2'
+	[[ $got == "$exp" ]] || err_exit 'declaration command assignment with multibyte variable name and line continuation' \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 fi
 
 # ======
