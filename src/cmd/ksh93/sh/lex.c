@@ -35,6 +35,7 @@
 #include	"lexstates.h"
 #include	"io.h"
 #include	"shlex.h"
+#include	"builtins.h"
 #include	<ast_release.h>
 
 #define TEST_RE		3
@@ -176,6 +177,12 @@ static int lexfill(Lex_t *lp)
 	savelex = *lp;
 	ap = lp->arg;
 	c = fcfill();
+	if (c < EOF && !sh_isstate(SH_INTERACTIVE))
+	{
+		/* Error reading from script */
+		errormsg(SH_DICT, sh.bltinfun==b_dot_cmd ? ERROR_system(1) : ERROR_SYSTEM|ERROR_PANIC, e_readscript);
+		UNREACHABLE();
+	}
 	if(ap)
 		lp->arg = ap;
 	docextra = lp->lexd.docextra;

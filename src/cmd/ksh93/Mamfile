@@ -654,18 +654,18 @@ make install virtual
 		done
 
 		make sh/lex.c
-			prev %{INCLUDE_AST}/ast_release.h
-			prev include/shlex.h
-			prev include/io.h
-			prev include/lexstates.h
-			prev include/test.h
-			prev include/argnod.h
-			prev include/shell.h
-			prev include/defs.h
-			prev include/nval.h
-			prev include/fcin.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev include/fcin.h
+			prev include/nval.h
+			prev include/defs.h
+			prev include/argnod.h
+			prev include/test.h
+			prev include/lexstates.h
+			prev include/io.h
+			prev include/shlex.h
+			prev include/builtins.h
+			prev %{INCLUDE_AST}/ast_release.h
 		done
 
 		make sh/macro.c

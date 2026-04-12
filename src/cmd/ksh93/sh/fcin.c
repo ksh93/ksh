@@ -43,6 +43,7 @@ int	fcfopen(Sfio_t* f)
 	_Fcin.fcbuff = _Fcin.fcptr;
 	_Fcin._fcfile = f;
 	fcsave(&save);
+	errno = 0;
 	if(!(buff=(char*)sfreserve(f,SFIO_UNBOUND,SFIO_LOCKR)))
 	{
 		fcrestore(&save);
@@ -50,6 +51,8 @@ int	fcfopen(Sfio_t* f)
 		_Fcin.fcptr = _Fcin.fcbuff = &_Fcin.fcchar;
 		_Fcin.fclast = 0;
 		_Fcin._fcfile = NULL;
+		if (errno && sferror(f))
+			return EOF - 1;
 		return EOF;
 	}
 	n = sfvalue(f);
@@ -73,6 +76,7 @@ int	fcfopen(Sfio_t* f)
 int	fcfill(void)
 {
 	int	n;
+	int	e;
 	Sfio_t	*f;
 	unsigned char	*last=_Fcin.fclast, *ptr=_Fcin.fcptr;
 	if(!(f=fcfile()))
@@ -97,8 +101,8 @@ int	fcfill(void)
 	_Fcin._fcfile = 0;
 	if(!last)
 		return 0;
-	else if(fcfopen(f) < 0)
-		return EOF;
+	else if((e = fcfopen(f)) < 0)
+		return e;
 	return *_Fcin.fcptr++;
 }
 
