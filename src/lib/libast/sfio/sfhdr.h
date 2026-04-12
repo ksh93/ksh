@@ -65,10 +65,6 @@
 #define _lib_locale	1
 #endif
 
-#if !_mmap_worthy
-#undef MAP_TYPE
-#endif
-
 #include	"FEATURE/float"
 
 #include	<error.h>
