@@ -37,7 +37,6 @@
 #include	"test.h"
 #include	"history.h"
 #include	"version.h"
-#include	<assert.h>
 
 #define HERE_MEM	SFIO_BUFSIZE	/* size of here-docs kept in memory */
 
@@ -1822,7 +1821,6 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 		{
 			/* redirect standard output to standard error */
 			ioq = stkalloc(sh.stk,sizeof(struct ionod));
-			assert(ioq != NULL);
 			memset(ioq,0,sizeof(*ioq));
 			ioq->ioname = "1";
 			ioq->iolst = 0;
