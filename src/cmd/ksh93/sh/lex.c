@@ -326,7 +326,7 @@ int sh_lex(Lex_t* lp)
 		state = sh_lexstates[mode];
 		do {
 			n = STATE(state,c);
-			if (varnametry && c != '\\')
+			if (varnametry)
 				varnamecount += LEN;
 		} while (n == 0);
 		switch(n)
@@ -603,6 +603,8 @@ int sh_lex(Lex_t* lp)
 					lp->comp_assign = 0;
 				return lp->token=c;
 			case S_ESC:
+				if(varnametry)
+					varnamecount--;
 				/* check for \<new-line> */
 				n = fcgetc();
 				c=2;
