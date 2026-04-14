@@ -34,7 +34,7 @@ Fcin_t _Fcin = {0};
 /*
  * open stream <f> for fast character input
  */
-ssize_t	fcfopen(Sfio_t* f)
+ssize_t fcfopen(Sfio_t* f)
 {
 	ssize_t	n;
 	char	*buff;
@@ -73,7 +73,7 @@ ssize_t	fcfopen(Sfio_t* f)
  * If last is non-zero, and the stream is a file, 0 is returned when
  * the previous character is a 0 byte.
  */
-int fcfill(void)
+int	fcfill(void)
 {
 	ptrdiff_t	n;
 	ssize_t		e;

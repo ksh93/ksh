@@ -150,7 +150,7 @@ static void lex_advance(Sfio_t *iop, const char *buff, ptrdiff_t size, void *con
 	}
 	if(lp->lexd.first)
 	{
-		size -= lp->lexd.first-(char*)buff;
+		size -= (lp->lexd.first-(char*)buff);
 		buff = lp->lexd.first;
 		if(!lp->lexd.inlexskip)
 			lp->arg = stkseek(sh.stk,ARGVAL);
