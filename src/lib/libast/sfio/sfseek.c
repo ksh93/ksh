@@ -26,7 +26,7 @@
 
 static void newpos(Sfio_t* f, Sfoff_t p)
 {
-#if _mmap_worthy
+#if _lib_mmap
 	if((f->bits&SFIO_MMAP) && f->data)
 	{	SFMUNMAP(f, f->data, f->endb-f->data);
 		f->data = NULL;
@@ -187,21 +187,12 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	if((p += type == SEEK_CUR ? s : 0) < 0)
 		goto done;
 
-#if _mmap_worthy
+#if _lib_mmap
 	if(f->bits&SFIO_MMAP)
-	{	/* if mmap is not great, stop mmapping if moving around too much */
-#if _mmap_worthy < 2
-		if((f->next - f->data) < ((f->endb - f->data)/4) )
-		{	SFSETBUF(f,f->tiny,(size_t)SFIO_UNBOUND);
-			hardseek = 1; /* this forces a hard seek below */
-		}
-		else
-#endif
-		{	/* for mmap, f->here can be virtual except for hardseek */
-			newpos(f,p);
-			if(!hardseek)
-				goto done;
-		}
+	{	/* for mmap, f->here can be virtual except for hardseek */
+		newpos(f,p);
+		if(!hardseek)
+			goto done;
 	}
 #endif
 

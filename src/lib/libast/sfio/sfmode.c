@@ -327,7 +327,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 
 	if(f->mode&SFIO_GETR)
 	{	f->mode &= (uint32_t)~SFIO_GETR;
-#if _mmap_worthy
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 		{
 			if (!++f->ngetr)
@@ -442,7 +442,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 			if((f->flags&(SFIO_SHARE|SFIO_PUBLIC)) == (SFIO_SHARE|SFIO_PUBLIC) &&
 			   (addr = SFSK(f,0,SEEK_CUR,f->disc)) != f->here)
 			{
-#if _mmap_worthy
+#if _lib_mmap
 				if((f->bits&SFIO_MMAP) && f->data)
 				{	SFMUNMAP(f,f->data,f->endb-f->data);
 					f->data = NULL;
@@ -490,7 +490,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 		}
 
 		f->mode = SFIO_WRITE|SFIO_LOCK;
-#if _mmap_worthy
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 		{	if(f->data)
 				SFMUNMAP(f,f->data,f->endb-f->data);

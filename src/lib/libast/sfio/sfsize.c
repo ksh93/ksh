@@ -69,7 +69,7 @@ Sfoff_t sfsize(Sfio_t* f)
 
 	if(f->here != s && (f->mode&SFIO_READ) )
 	{	/* buffered data is known to be invalid */
-#if _mmap_worthy
+#if _lib_mmap
 		if((f->bits&SFIO_MMAP) && f->data)
 		{	SFMUNMAP(f,f->data,f->endb-f->data);
 			f->data = NULL;

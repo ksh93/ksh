@@ -87,7 +87,7 @@ static int sfsetfd_internal(Sfio_t* f, int newfd, int cloexec)
 					return -1;
 				}
 
-#if _mmap_worthy
+#if _lib_mmap
 				if((f->bits&SFIO_MMAP) && f->data)
 				{	SFMUNMAP(f,f->data,f->endb-f->data);
 					f->data = NULL;
