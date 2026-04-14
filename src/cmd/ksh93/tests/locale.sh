@@ -499,11 +499,26 @@ fi
 # ======
 # https://github.com/ksh93/ksh/issues/861#issuecomment-2917738184
 if	((SHOPT_MULTIBYTE))
-then	LANG=C.UTF-8
+then	export LANG=C.UTF-8
 	got=$(set +x; redirect 2>&1; readonly コーンシェル=OK; echo "$コーンシェル")
 	exp=OK
 	[[ $got == "$exp" ]] || err_exit 'declaration command assignment with multibyte variable name' \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	cat >linecontinuation.sh <<-'EOF'
+		export a\
+		bc\
+		def=OK1
+		export コ\
+		ーン\
+		シェル=OK2
+		echo $abcdef
+		echo $コーンシェル
+	EOF
+	got=$("$SHELL" linecontinuation.sh 2>&1)
+	exp=$'OK1\nOK2'
+	[[ $got == "$exp" ]] || err_exit 'declaration command assignment with multibyte variable name and line continuation' \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	unset LANG
 fi
 
 # ======

@@ -207,6 +207,8 @@ char *sh_mactrim(char *str, int8_t mode)
  */
 int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
 {
+	struct checkpt checkpoint;
+	int	jmpval;
 	int	flags = argp->argflag;
 	char	*str = argp->argval;
 	Mac_t	*mp = (Mac_t*)sh.mac_context;
@@ -244,22 +246,34 @@ int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
 	mp->patfound = 0;
 	if(mp->pattern)
 		mp->arrayok = 0;
-	copyto(mp,0,mp->arith);
-	if(!arghead)
+	/* copyto may call varsub, which may call nv_getval, which may (via other calls) longjmp if a shell
+	 * discipline function throws an error, so add this to the longjmp chain to restore global state */
+	sh_pushcontext(&checkpoint,1);
+	jmpval = sigsetjmp(checkpoint.buff,0);
+	if(!jmpval)
 	{
-		argp->argchn.cp = stkfreeze(stkp,1);
-		if(nv_getoptimize())
-			argp->argflag |= ARG_MAKE;
+		copyto(mp,0,mp->arith);
+		if(!arghead)
+		{
+			argp->argchn.cp = stkfreeze(stkp,1);
+			if(nv_getoptimize())
+				argp->argflag |= ARG_MAKE;
+		}
+		else
+		{
+			endfield(mp,mp->quoted|mp->atmode);
+			flags = mp->fields;
+			if(flags==1 && nv_getoptimize())
+				argp->argchn.ap = *arghead;
+		}
 	}
-	else
-	{
-		endfield(mp,mp->quoted|mp->atmode);
-		flags = mp->fields;
-		if(flags==1 && nv_getoptimize())
-			argp->argchn.ap = *arghead;
-	}
+	/* restore state */
 	nv_setoptimize(saveoptimize);
 	*mp = savemac;
+	/* continue the longjmp chain */
+	sh_popcontext(&checkpoint);
+	if(jmpval)
+		siglongjmp(*sh.jmplist,jmpval);
 	return flags;
 }
 
@@ -2440,7 +2454,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 			str[c] = 0;
 		else
 		{
-			/* can't write past buffer so save last character */
+			/* can't write past buffer so save last byte */
 			c -= 1;
 			lastc = str[c];
 			str[c] = 0;
@@ -2478,6 +2492,7 @@ static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 	int		n,nopat,len;
 	Stk_t		*stkp=sh.stk;
 	char		oldpat = mp->pattern;
+	const char	multibyte = mbwide() && size > 1;
 	nopat = (mp->quote||(mp->assign==1)||mp->arith);
 	if(mp->sp)
 		sfwrite(mp->sp,str,(size_t)size);
@@ -2488,7 +2503,7 @@ static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 		/* insert \ before file expansion characters */
 		while(size-->0)
 		{
-			if(mbwide() && (len=mbsize(cp))>1)
+			if(multibyte && (len=mbsize(cp))>1)
 			{
 				cp += len;
 				size -= (len-1);
@@ -2565,7 +2580,7 @@ static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 		while(size-->0)
 		{
 			n = ifs_state[c = *(unsigned char*)cp++];
-			if(mbwide() && n!=S_MBYTE && (len=mbsize(cp-1))>1)
+			if(multibyte && n!=S_MBYTE && (len=mbsize(cp-1))>1)
 			{
 				sfwrite(stkp,cp-1,(size_t)len);
 				cp += --len;
@@ -2586,7 +2601,7 @@ static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 				mp->patfound = mp->pattern;
 			else if(n && mp->ifs)
 			{
-				if(mbwide() && n==S_MBYTE)
+				if(multibyte && n==S_MBYTE)
 				{
 					if(sh_strchr(mp->ifsp,cp-1)<0)
 					{
@@ -2610,7 +2625,7 @@ static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 				{
 					while(size>0 && ((n = ifs_state[c = *(unsigned char*)cp++])==S_SPACE || n==S_NL))
 						size--;
-					if(mbwide() && n==S_MBYTE && sh_strchr(mp->ifsp,cp-1)>=0)
+					if(multibyte && n==S_MBYTE && sh_strchr(mp->ifsp,cp-1)>=0)
 					{
 						n = mbsize(cp-1) - 1;
 						if(n==-2)

@@ -96,7 +96,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 	struct stat	st;
 	uchar*		obuf = NULL;
 	ssize_t		osize = 0;
-#ifdef MAP_TYPE
+#if _lib_mmap
 	int		okmmap;
 #endif
 
@@ -164,7 +164,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 	bufsize = 0;
 	oflags = f->flags;
 
-#ifdef MAP_TYPE
+#if _lib_mmap
 	/* see if memory mapping is possible (see sfwrite for SFIO_BOTH) */
 	okmmap = (buf || (f->flags&SFIO_STRING) || (f->flags&SFIO_RDWR) == SFIO_RDWR) ? 0 : 1;
 
@@ -222,7 +222,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 			f->blksz = (size_t)st.st_blksize;
 #endif
 			bufsize = 64 * 1024;
-#ifdef MAP_TYPE
+#if _lib_mmap
 			if(S_ISDIR(st.st_mode) || (Sfoff_t)st.st_size < (Sfoff_t)SFIO_GRAIN)
 				okmmap = 0;
 #endif
@@ -230,7 +230,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 				f->here = SFSK(f,0,SEEK_CUR,f->disc);
 			else	f->here = -1;
 
-#ifdef MAP_TYPE
+#if _lib_mmap
 #if O_TEXT /* no memory mapping with O_TEXT because read()/write() alter data stream */
 			if(okmmap && f->here >= 0 &&
 			   (fcntl((int)f->file,F_GETFL,0) & O_TEXT) )
@@ -307,7 +307,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 		}
 	}
 
-#ifdef MAP_TYPE
+#if _lib_mmap
 	if(okmmap && size && (f->mode&SFIO_READ) && f->extent >= 0 )
 	{	/* see if we can try memory mapping */
 		if(!disc)

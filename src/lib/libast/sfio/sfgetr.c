@@ -124,7 +124,7 @@ char* sfgetr(Sfio_t*	f,	/* stream to read from	*/
 		un += n;
 		ends = f->next;
 		f->next += n;
-		MEMCPY(s,ends,(size_t)n);
+		memcpy(s,ends,(size_t)n);
 	}
 
 done:
