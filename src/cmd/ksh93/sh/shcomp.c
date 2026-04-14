@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 			UNREACHABLE();
 		}
 		if(fstat(sffileno(out),&statb) >=0)
-			chmod(cp,(statb.st_mode&~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
+			chmod(cp,(statb.st_mode&(mode_t)~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
 	}
 	else
 		out = sfstdout;

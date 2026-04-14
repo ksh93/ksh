@@ -492,6 +492,7 @@ make install virtual
 
 		make sh/array.c
 			prev %{INCLUDE_AST}/ast_release.h
+			prev %{INCLUDE_AST}/assert.h
 			prev include/name.h
 			prev include/defs.h
 			prev FEATURE/options
