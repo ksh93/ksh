@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 		}
 		fd = sffileno(out);
 		if(fstat(fd,&statb)>=0)
-			fchmod(fd,(statb.st_mode&~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
+			fchmod(fd,(statb.st_mode&(mode_t)~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
 	}
 	else
 		out = sfstdout;

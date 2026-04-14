@@ -55,7 +55,7 @@ static int read_tree(Namval_t* np, Sfio_t *iop, int n, Namfun_t *dp)
 	NOT_USED(dp);
 	if(n>=0)
 		return -1;
-	while((c = sfgetc(iop)) && isblank((wint_t)c));
+	while((c = sfgetc(iop)) && isblank(c));
 	sfungetc(iop,c);
 	sfputr(sh.strbuf,nv_name(np),'=');
 	sp = sfopen(NULL,sfstruse(sh.strbuf),"s");

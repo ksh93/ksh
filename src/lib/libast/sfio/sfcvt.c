@@ -102,7 +102,9 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 
 		if (isnan(f))
 		{
-#if _lib_signbit
+#if _lib_signbit && _nan_signbit_inverted
+			if (!signbit(f))
+#elif _lib_signbit
 			if (signbit(f))
 #else
 			if (f < 0)
@@ -250,7 +252,9 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 
 		if(isnan(f))
 		{
-#if _lib_signbit
+#if _lib_signbit && _nan_signbit_inverted
+			if (!signbit(f))
+#elif _lib_signbit
 			if (signbit(f))
 #else
 			if (f < 0)
