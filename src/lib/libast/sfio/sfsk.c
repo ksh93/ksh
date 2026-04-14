@@ -38,7 +38,7 @@ Sfoff_t sfsk(Sfio_t* f, Sfoff_t addr, int type, Sfdisc_t* disc)
 			return (Sfoff_t)(-1);
 		if(SFSYNC(f) < 0)
 			return (Sfoff_t)(-1);
-#if _mmap_worthy
+#if _lib_mmap
 		if(f->mode == SFIO_READ && (f->bits&SFIO_MMAP) && f->data)
 		{	SFMUNMAP(f, f->data, f->endb-f->data);
 			f->data = NULL;

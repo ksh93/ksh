@@ -79,7 +79,7 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 			{	f->endb = f->next = f->endr = f->data;
 				f->mode &= (uint32_t)~SFIO_SYNCED;
 			}
-#if _mmap_worthy
+#if _lib_mmap
 			if((f->bits&SFIO_MMAP) && f->data)
 			{	SFMUNMAP(f, f->data, f->endb-f->data);
 				f->data = NULL;
@@ -119,7 +119,7 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 			}
 		}
 
-#if _mmap_worthy
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 		{	ssize_t	a, round;
 			struct stat	st;

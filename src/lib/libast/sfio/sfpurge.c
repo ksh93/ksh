@@ -44,7 +44,7 @@ int sfpurge(Sfio_t* f)
 	SFLOCK(f,0);
 
 	/* if memory map must be a read stream, pretend data is gone */
-#if _mmap_worthy
+#if _lib_mmap
 	if(f->bits&SFIO_MMAP)
 	{	f->here -= f->endb - f->next;
 		if(f->data)

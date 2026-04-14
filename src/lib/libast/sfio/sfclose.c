@@ -95,7 +95,7 @@ int sfclose(Sfio_t* f)
 
 	if(f->data && (!local || (f->flags&SFIO_STRING) || (f->bits&SFIO_MMAP) ) )
 	{	/* free buffer */
-#if _mmap_worthy
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 			SFMUNMAP(f,f->data,f->endb-f->data);
 		else
