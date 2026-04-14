@@ -89,13 +89,13 @@
 #       define isalpha(x)      iswalpha(x)
 #       if defined(iswblank) || _lib_iswblank
 #           undef  isblank
-#           define isblank(x)      iswblank(x)
+#           define isblank(x)      iswblank((wint_t)(x))
 #       else
 #           if _lib_wctype && _lib_iswctype
 #               define _lib_iswblank	-1
 #               undef  isblank
-#               define isblank(x)  local_iswblank(x)
-                extern int         local_iswblank(wchar_t);
+#               define isblank(x)  local_iswblank((wint_t)(x))
+                extern int         local_iswblank(wint_t);
 #           endif
 #       endif
 #   endif
