@@ -444,7 +444,7 @@ loop_fmt:
 							if(!(ft->flags&SFFMT_VALUE) )
 								goto t_arg;
 							if((t_str = argv.s) &&
-							   (n_str = (ptrdiff_t)ft->size) < 0)
+							   (n_str = ft->size) < 0)
 								n_str = (ptrdiff_t)strlen(t_str);
 						}
 						else
