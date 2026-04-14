@@ -19,7 +19,7 @@
 ########################################################################
 : generate getconf and limits info
 #
-# @(#)conf.sh (ksh 93u+m) 2026-03-15
+# @(#)conf.sh (ksh 93u+m) 2026-04-09
 #
 # this script generates these files from the table file in the first arg
 # the remaining args are the C compiler name and flags
@@ -193,12 +193,9 @@ case $append$extra in
 		esac
 		case $line in
 		""|\#*)	;;
-		*)	set x $line
-			shift; name=$1
-			shift; standard=$1
-			shift; call=$1
-			shift; section=$1
-			shift; flags=$1
+		*)	set -- $line
+			name=$1 standard=$2 call=$3 section=$4 flags=$5
+			shift 4
 			alternates=
 			define=
 			values=

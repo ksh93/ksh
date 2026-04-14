@@ -431,7 +431,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
  done:
 	*--ep = '\0';
 	if(len)
-		*len = (ep-b);
+		*len = ep - b;
 	return b;
  around:
 	if (((m >> x) & 0xf) >= 8)
