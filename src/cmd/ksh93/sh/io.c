@@ -2078,21 +2078,12 @@ int sh_iocheckfd(int fd)
 		return n;
 	if(!(n&(IOREAD|IOWRITE)))
 	{
-#ifdef F_GETFL
 		if((flags=fcntl(fd,F_GETFL,0)) < 0)
 			return sh.fdstatus[fd]=IOCLOSE;
 		if((flags&O_ACCMODE)!=O_WRONLY)
 			n |= IOREAD;
 		if((flags&O_ACCMODE)!=O_RDONLY)
 			n |= IOWRITE;
-#else
-		struct stat statb;
-		if((flags = fstat(fd,&statb))< 0)
-			return sh.fdstatus[fd]=IOCLOSE;
-		n |= (IOREAD|IOWRITE);
-		if(read(fd,"",0) < 0)
-			n &= ~IOREAD;
-#endif /* F_GETFL */
 	}
 	if(!(n&(IOSEEK|IONOSEEK)))
 	{

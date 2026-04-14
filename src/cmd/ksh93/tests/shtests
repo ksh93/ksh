@@ -28,7 +28,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2026-03-30 $
+@(#)$Id: shtests (ksh 93u+m) 2026-04-04 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -303,6 +303,10 @@ export SHELL_ASAN=$(( ! $? ))
 if	((SHELL_ASAN))
 then	export ASAN_OPTIONS=detect_leaks=0   # LeakSanitizer does not play well with the tests
 fi
+
+# same for UndefinedBehaviorSanitizer (UBSan)
+grep -q __ubsan_handle_ "$SHELL"
+export SHELL_UBSAN=$(( ! $? ))
 
 # when testing a shell outside of INSTALLROOT, make sure libraries in INSTALLROOT are not loaded
 # The variables unset below should be the same ones that are set for 'test' or 'use' in bin/package

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -16,6 +16,9 @@
 ########################################################################
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
+
+# ======
+# select
 
 PS3='ABC '
 
@@ -68,6 +71,37 @@ exp=a1x
 got=$(for i in a b c; do print -n $i; for j in 1 2 3; do print -n $j; for k in x y z; do print -n $k; continue 3; done; done; done)
 exp=a1xb1xc1x
 [[ $got == "$exp" ]] || err_exit "'continue 3' broken (expected '$exp', got '$got')"
+
+# '! break' is not portable (as of 2026, it fails on mksh, dash, yash),
+# but on ksh93 we should be able to rely on it.
+# Also test 'break' with an argument, because on 93u+m/1.1, that's a
+# different code path ('break' without arguments is optimised).
+for i in 0 1
+do	! break
+done && err_exit "'! break' fails to set nonzero exit status"
+for i in 0 1
+do	! break 1
+done && err_exit "'! break 1' fails to set nonzero exit status"
+while :
+do	! break
+done && err_exit "'! break' fails to set nonzero exit status"
+while :
+do	! break 1
+done && err_exit "'! break 1' fails to set nonzero exit status"
+
+# Same with '! continue'.
+for i in 0 1
+do	case $i,$? in
+	1,0)	err_exit "'! continue' fails to set nonzero exit status" ;;
+	esac
+	! continue
+done
+for i in 0 1
+do	case $i,$? in
+	1,0)	err_exit "'! continue 1' fails to set nonzero exit status" ;;
+	esac
+	! continue 1
+done
 
 # ======
 # arithmetic for

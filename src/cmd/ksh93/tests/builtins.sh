@@ -1023,10 +1023,19 @@ unset foo
 
 # ======
 # Test the output of nonstandard date formats with 'printf %T'
-[[ $(printf '%(%l)T') == $(printf '%(%_I)T') ]] || err_exit 'date format %l is not the same as %_I'
-[[ $(printf '%(%k)T') == $(printf '%(%_H)T') ]] || err_exit 'date format %k is not the same as %_H'
-[[ $(printf '%(%f)T') == $(printf '%(%Y.%m.%d-%H:%M:%S)T') ]] || err_exit 'date format %f is not the same as %Y.%m.%d-%H:%M:%S'
-[[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] && err_exit 'date format %q is the same as %Qz'
+# Try each test up to twice in case we cross second/hour/day boundaries between the two printf invocations
+for i in 0 1
+do	[[ $(printf '%(%l)T') == $(printf '%(%_I)T') ]] && break
+done || err_exit 'date format %l is not the same as %_I'
+for i in 0 1
+do	[[ $(printf '%(%k)T') == $(printf '%(%_H)T') ]] && break
+done || err_exit 'date format %k is not the same as %_H'
+for i in 0 1
+do	[[ $(printf '%(%f)T') == $(printf '%(%Y.%m.%d-%H:%M:%S)T') ]] && break
+done || err_exit 'date format %f is not the same as %Y.%m.%d-%H:%M:%S'
+for i in 0 1
+do	[[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] || ! break
+done && err_exit 'date format %q is the same as %Qz'
 [[ $(printf '%(%Z)T') == $(date '+%Z') ]] || err_exit "date format %Z is incorrect (expected $(date '+%Z'), got $(printf '%(%Z)T'))"
 
 # Test manually specified blank and zero padding with 'printf %T'

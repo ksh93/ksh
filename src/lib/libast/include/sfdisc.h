@@ -45,7 +45,6 @@ extern ssize_t		sfkeyprintf(Sfio_t*, void*, const char*, Sf_key_lookup_t, Sf_key
  * pure sfio read and/or write disciplines
  */
 
-extern int		sfdcdio(Sfio_t*, size_t);
 extern int		sfdcdos(Sfio_t*);
 extern int		sfdcfilter(Sfio_t*, const char*);
 extern int		sfdcmore(Sfio_t*, const char*, int, int);
