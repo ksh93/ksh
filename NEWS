@@ -2,6 +2,10 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-04-15:
+
+- The ksh93 codebase now requires a C99 compiler to build.
+
 2026-04-14:
 
 - Ksh is now capable of allocating memory within a 64-bit address space. This
@@ -53,8 +57,6 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - Fixed an issue, introduced on 2022-06-13, causing a subshell to fork
   unnecessarily if an EXIT pseudosignal trap is set within it.
-
-- The ksh93 codebase now requires a C99 compiler to build.
 
 2026-03-16:
 

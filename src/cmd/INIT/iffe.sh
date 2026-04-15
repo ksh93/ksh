@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2026-02-30
+version=2026-04-15
 
 # DEFPATH should be inherited from package(1)
 case $DEFPATH in
