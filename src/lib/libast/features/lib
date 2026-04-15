@@ -3,7 +3,7 @@ ref	-D_def_map_ast=1
 cmd	universe
 
 sys	mman
-hdr	fcntl,dirent,direntry,filio,fmtmsg,fnmatch,jioctl,libgen,limits
+hdr	fcntl,dirent,direntry,filio,fnmatch,jioctl,libgen,limits
 hdr	locale,ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs
 hdr	wctype
@@ -16,7 +16,7 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 	main(void)
 	{
 		wchar_t	w = 'a';
-		return iswalnum(w) == 0;
+		return iswalnum((wint_t)w) == 0;
 	}
 }end
 
@@ -25,7 +25,7 @@ dat	_tzname,tzname
 lib	BSDsetpgrp
 lib	_cleanup
 lib	bcopy,bzero,confstr,dirread
-lib	fchmod,fcntl,fmtmsg,fnmatch,fork,fsync
+lib	fchmod,fcntl,fnmatch,fork,fsync
 lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
@@ -36,9 +36,9 @@ lib	rand_r
 lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
-lib	spawn,spawnve
-lib	strcoll,strlcat,strlcpy
-lib	strmode,strxfrm,strftime,symlink,sysconf,sysinfo
+lib	clone,spawn,spawnve
+lib	strlcat,strlcpy
+lib	strmode,strftime,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
 
@@ -150,9 +150,9 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 	int
 	main(int argc, char **argv)
 	{
-		char*			s;
 		pid_t			pid;
 		posix_spawnattr_t	attr;
+		size_t			len;
 		int			n;
 		int			status;
 		char*			cmd[3];
@@ -196,17 +196,17 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 			_exit(0);
 		}
 		/* must return exec-type errors or it's useless to us *unless* there is no [v]fork() */
-		n = strlen(cmd[0]);
-		if (n >= (sizeof(tmp) - 3))
+		len = strlen(cmd[0]);
+		if (len >= (sizeof(tmp) - 3))
 		{
 			NOTE("test executable path too long");
 			_exit(0);
 		}
 		strcpy(tmp, cmd[0]);
-		tmp[n] = '.';
-		tmp[n+1] = 's';
-		tmp[n+2] = 'h';
-		tmp[n+3] = 0;
+		tmp[len] = '.';
+		tmp[len+1] = 's';
+		tmp[len+2] = 'h';
+		tmp[len+3] = 0;
 		if ((n = open(tmp, O_CREAT|O_WRONLY, S_IRWXU|S_IRWXG|S_IRWXO)) < 0 ||
 		    chmod(tmp, S_IRWXU|S_IRWXG|S_IRWXO) < 0 ||
 		    write(n, "exit 99\n", 8) != 8 ||
@@ -245,7 +245,6 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 		_exit(n);
  	}
 }end
-lib	posix_spawn_file_actions_addtcsetpgrp_np
 
 tst	lib_spawn_mode unistd.h stdlib.h note{ first spawn arg is mode and it works }end execute{
 	#include <signal.h>
@@ -298,17 +297,17 @@ tst	socket_peek note{ recv(MSG_PEEK) works on socketpair() }end execute{
 	int
 	main(void)
 	{
-		int		i;
-		int		fds[2];
-		char		buf[128];
-
-		static char	msg[] = "abcd";
-
 	#ifdef __HAIKU__
 		/* On Haiku this test will either fail (without additional LDFLAGS),
 		   or with -lnetwork it will lock up. */
 		return 1;
 	#else
+		size_t		i;
+		int		fds[2];
+		char		buf[128];
+
+		static char	msg[] = "abcd";
+
 		if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds))
 			return 1;
 		if (write(fds[1], msg, sizeof(msg)) != sizeof(msg))
@@ -358,18 +357,6 @@ std	cleanup note{ stuck with standard _cleanup }end noexecute{
 	int main(void) { printf("cleanup\n"); exit(1); }
 }end
 
-std	strcoll note{ standard strcoll works }end execute{
-	#include <string.h>
-	#define S	"hello world"
-	int
-	main(void)
-	{
-		char	s[] = S;
-		char	t[] = S;
-		return strcoll(s, t) || strcmp(s, t);
-	}
-}end
-
 std	strtod stdlib.h note{ stuck with standard strtod }end nostatic{
 	double strtod(const char* s, char** e) { return 0.0; }
 	int main(void) { printf(""); return strtod("1",0) != 0; }
@@ -390,7 +377,7 @@ tst	- output{
 	int
 	main(void)
 	{
-	#if _lib_posix_spawn || _lib_spawn_mode || _lib_spawn && _hdr_spawn && _mem_pgroup_inheritance
+	#if _lib_posix_spawn || _lib_spawn_mode || _lib_spawn && _hdr_spawn && _mem_pgroup_inheritance || _lib_clone
 		printf("#if !_AST_no_spawnveg\n");
 		printf("#define _use_spawnveg	1\n");
 		printf("#endif\n");
@@ -403,4 +390,15 @@ tst	- output{
 }end fail{
 	echo "$0: Output block failed to compile. Export IFFEFLAGS=-d1 to debug." >&2
 	exit 1
+}end
+
+tst	macos_strxfrm_bug - note{ macOS strxfrm(3) bug }end execute{
+	#include <string.h>
+	#include <locale.h>
+	int main(void)
+	{
+		if (!setlocale(LC_ALL,"en_GB.UTF-8"))
+			return 1;
+		return !(strxfrm(NULL,"\xC2\xA7",0) == 0);
+	}
 }end

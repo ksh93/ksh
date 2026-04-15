@@ -22,7 +22,7 @@
  * AT&T Labs
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 
 #if SHOPT_MKSERVICE
@@ -237,7 +237,7 @@ static int waitnotify(int fd, long timeout, int rw)
 			sfprintf(sfstderr," %d",sffileno(poll_list[i]));
 		sfputc(sfstderr,'\n');
 #endif
-		nready  = sfpoll(poll_list,pstream-poll_list,timeout);
+		nready = sfpoll(poll_list,(int)(pstream-poll_list),(int)timeout);
 #ifdef DEBUG
 		sfprintf(sfstderr,"after poll nready=%d",nready);
 		for(i=0; i < nready; i++)
@@ -258,7 +258,7 @@ static int waitnotify(int fd, long timeout, int rw)
 
 static int service_init(void)
 {
-	int n = 20;
+	size_t n = 20;
 	file_list = (int*)sh_newof(NULL,short,n,0);
 	poll_list = sh_newof(NULL,Sfio_t*,n,0);
 	service_list = sh_newof(NULL,Service_t*,n,0);
@@ -345,7 +345,7 @@ static char* setdisc(Namval_t* np, const char* event, Namval_t* action, Namfun_t
 	Service_t*	sp = (Service_t*)fp;
 	const char*	cp;
 	int		i;
-	int		n = strlen(event) - 1;
+	size_t		n = strlen(event) - 1;
 	Namval_t*	nq;
 
 	for (i = 0; cp = disctab[i]; i++)

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"dthdr.h"
@@ -80,7 +81,7 @@ int dttreeprint(Dt_t* dt, Dtlink_t* here, int lev, char* (*objprintf)(void*) )
 #endif
 
 /* terminal object: DT_FIRST|DT_LAST */
-void* tfirstlast(Dt_t* dt, int type)
+static void* tfirstlast(Dt_t* dt, int type)
 {
 	Dtlink_t	*t, *root;
 	Dtdisc_t	*disc = dt->disc;
@@ -207,7 +208,7 @@ static void* tstat(Dt_t* dt, Dtstat_t* st)
 		/**/DEBUG_ASSERT((dt->data->type&DT_SHARE) || size == dt->data->size);
 		st->meth  = dt->meth->type;
 		st->size  = size;
-		st->space = sizeof(Dttree_t) + (dt->disc->link >= 0 ? 0 : size*sizeof(Dthold_t));
+		st->space = (ssize_t)(sizeof(Dttree_t) + (dt->disc->link >= 0 ? 0 : (size_t)size*sizeof(Dthold_t)));
 		return (void*)size;
 	}
 }

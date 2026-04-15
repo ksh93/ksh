@@ -6,7 +6,7 @@ tst	- note{ number of bits in pointer }end output{
 	int
 	main(void)
 	{
-		printf("#define _ptr_bits	%d\n", sizeof(char*) * 8);
+		printf("#define _ptr_bits	%lu\n", (unsigned long)(sizeof(char*) * 8));
 		return 0;
 	}
 }end fail{

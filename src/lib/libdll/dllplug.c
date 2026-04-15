@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1997-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -45,9 +45,6 @@ dllplugin(const char* lib, const char* name, const char* ver, unsigned long rel,
 			while (dle = dllsread(dls))
 			{
 				hit = 1;
-#if 0
-			again:
-#endif
 				if (dll = dllopen(dle->path, flags|RTLD_GLOBAL|RTLD_PARENT))
 				{
 					if (!dllcheck(dll, dle->path, rel, cur))
@@ -63,29 +60,6 @@ dllplugin(const char* lib, const char* name, const char* ver, unsigned long rel,
 				}
 				else
 				{
-#if 0
-					/*
-					 * dlopen() should load implicit libraries
-					 * this code does that
-					 * but it doesn't help on galadriel
-					 */
-
-					char*	s;
-					char*	e;
-
-					if ((s = dllerror(1)) && (e = strchr(s, ':')))
-					{
-						*e = 0;
-						error(1, "AHA %s implicit", s);
-						dll = dllplugin(lib, s, 0, 0, 0, flags, path, size);
-						*e = ':';
-						if (dll)
-						{
-							error(1, "AHA implicit %s => %s", s, path);
-							goto again;
-						}
-					}
-#endif
 					errorf("dll", NULL, 1, "dllplugin: %s dlopen failed: %s", dle->path, dllerror(1));
 					err = state.error;
 				}

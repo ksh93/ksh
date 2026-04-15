@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -92,12 +93,12 @@ base64encode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 					*fn = fp;
 				if (tn)
 					*tn = tp;
-				n = tp - (unsigned char*)tb + 1;
+				n = (size_t)(tp - (unsigned char*)tb + 1);
 				tp = tmp;
 				te = tp + sizeof(tmp) - B64_EC + 1;
 			}
-			b = *fp++ << 16;
-			b |= *fp++ << 8;
+			b = (unsigned long)(*fp++ << 16);
+			b |= (unsigned long)(*fp++ << 8);
 			b |= *fp++;
 			*tp++ = m[b >> 18];
 			*tp++ = m[(b >> 12) & 077];
@@ -106,7 +107,7 @@ base64encode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 		} while (tp < tc);
 		if (n)
 		{
-			n += tp - tmp + (fp < fe);
+			n += (size_t)(tp - tmp + (fp < fe));
 			tp = tmp;
 		}
 		else
@@ -121,33 +122,33 @@ base64encode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 				*fn = fp;
 			if (tn)
 				*tn = tp;
-			n = tp - (unsigned char*)tb + 1;
+			n = (size_t)(tp - (unsigned char*)tb + 1);
 			tp = tmp;
 			te = tp + sizeof(tmp) - B64_EC + 1;
 		}
-		b = *fp++ << 16;
+		b = (unsigned long)(*fp++ << 16);
 		if (fz == 2)
-			b |= *fp++ << 8;
+			b |= (unsigned long)(*fp++ << 8);
 		*tp++ = m[b >> 18];
 		*tp++ = m[(b >> 12) & 077];
 		*tp++ = (fz == 2) ? m[(b >> 6) & 077] : PAD;
 		*tp++ = PAD;
 	}
 	if (n)
-		n += (tp - tmp) - 1;
+		n += (size_t)(tp - tmp) - 1;
 	else
 	{
 		if (tp > (unsigned char*)tb && *(tp - 1) == '\n')
 			tp--;
 		if (tp < te)
 			*tp = 0;
-		n = tp - (unsigned char*)tb;
+		n = (size_t)(tp - (unsigned char*)tb);
 		if (tn)
 			*tn = tp;
 		if (fn)
 			*fn = fp;
 	}
-	return n;
+	return (ssize_t)n;
 }
 
 /*
@@ -173,7 +174,7 @@ base64decode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 	{
 		memset(m, B64_IGN, sizeof(map));
 		for (tp = (unsigned char*)alp; c = *tp; tp++)
-			m[c] =  tp - (unsigned char*)alp;
+			m[c] = (unsigned char)(tp - (unsigned char*)alp);
 		m[PAD] = B64_PAD;
 		m[' '] = m['\t'] = m['\n'] = B64_SPC;
 	}
@@ -201,7 +202,7 @@ base64decode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 		{
 			if ((c = m[*fp++]) < 64)
 			{
-				v = (v << 6) | c;
+				v = (v << 6) | (unsigned long)c;
 				if (++state == 4)
 				{
 					if (tp >= tx)
@@ -213,12 +214,12 @@ base64decode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 							n = tp - (unsigned char*)tb + 4;
 							if (tp < te)
 							{
-								*tp++ = (v >> 16);
+								*tp++ = (unsigned char)(v >> 16);
 								if (tp < te)
 								{
-									*tp++ = (v >> 8);
+									*tp++ = (unsigned char)(v >> 8);
 									if (tp < te)
-										*tp++ = (v);
+										*tp++ = (unsigned char)(v);
 								}
 							}
 							if (tn)
@@ -229,9 +230,9 @@ base64decode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 					}
 					else
 					{
-						*tp++ = (v >> 16);
-						*tp++ = (v >> 8);
-						*tp++ = (v);
+						*tp++ = (unsigned char)(v >> 16);
+						*tp++ = (unsigned char)(v >> 8);
+						*tp++ = (unsigned char)(v);
 					}
 					fc = fp;
 					state = 0;
@@ -247,7 +248,7 @@ base64decode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 			goto done;
 		case 2:
 			if (tp < te)
-				*tp++ = v >> 4;
+				*tp++ = (unsigned char)(v >> 4);
 			else if (n)
 				n++;
 			else
@@ -262,9 +263,9 @@ base64decode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 		case 3:
 			if (tp < te)
 			{
-				*tp++ = v >> 10;
+				*tp++ = (unsigned char)(v >> 10);
 				if (tp < te)
-					*tp++ = v >> 2;
+					*tp++ = (unsigned char)(v >> 2);
 				else
 				{
 					n = tp - (unsigned char*)tb + 2;

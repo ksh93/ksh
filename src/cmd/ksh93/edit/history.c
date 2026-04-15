@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -39,12 +39,12 @@
  */
 
 
-#include "shopt.h"
+#include "FEATURE/options"
 #include <ast.h>
 
 #if !SHOPT_SCRIPTONLY
 
-#define HIST_MAX	(sizeof(int)*HIST_BSIZE)
+#define HIST_MAX	((ssize_t)sizeof(int)*HIST_BSIZE)
 #define HIST_BIG	(0100000-1024)	/* 1K less than maximum short */
 #define HIST_LINE	32		/* typical length for history line */
 #define HIST_MARKSZ	6
@@ -65,7 +65,7 @@
 #define _HIST_PRIVATE \
 	off_t	histcnt;	/* offset into history file */\
 	off_t	histmarker;	/* offset of last command marker */ \
-	int	histflush;	/* set if flushed outside of hflush() */\
+	ssize_t	histflush;	/* set if flushed outside of hflush() */\
 	int	histmask;	/* power of two mask for histcnt */ \
 	char	histbuff[HIST_BSIZE+1];	/* history file buffer */ \
 	int	histwfail; \
@@ -153,7 +153,9 @@ static History_t *hist_ptr;
 static int sh_checkaudit(const char *name, char *logbuf, size_t len)
 {
 	char	*cp, *last;
-	int	id1, id2, r=0, n, fd;
+	uid_t	id1, id2;
+	int	r=0, fd;
+	ssize_t	n;
 	if((fd=open(name, O_RDONLY|O_cloexec)) < 0)
 		return 0;
 	if((n = read(fd, logbuf,len-1)) < 0)
@@ -167,9 +169,9 @@ static int sh_checkaudit(const char *name, char *logbuf, size_t len)
 	do
 	{
 		cp++;
-		id1 = id2 = strtol(cp,&last,10);
+		id1 = id2 = (uid_t)strtol(cp,&last,10);
 		if(*last=='-')
-			id1 = strtol(last+1,&last,10);
+			id1 = (uid_t)strtol(last+1,&last,10);
 		if(sh.euserid >=id1 && sh.euserid <= id2)
 			r |= 1;
 		if(sh.userid >=id1 && sh.userid <= id2)
@@ -211,7 +213,7 @@ int  sh_histinit(void)
 		return 1;
 	if(!(histname = nv_getval(HISTFILE)))
 	{
-		int offset = stktell(sh.stk);
+		ptrdiff_t offset = stktell(sh.stk);
 		if(cp=nv_getval(HOME))
 			sfputr(sh.stk,cp,-1);
 		sfputr(sh.stk,hist_fname,0);
@@ -257,7 +259,7 @@ retry:
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
 	if(cp=nv_getval(HISTSIZE))
 	{
-		intmax_t m = strtoll(cp, NULL, 10);
+		long long m = strtoll(cp, NULL, 10);
 		if(m>HIST_MAX)
 			m = HIST_MAX;
 		else if(m<0)
@@ -267,12 +269,12 @@ retry:
 	else
 		maxlines = HIST_DFLT;
 	for(histmask=16;histmask <= maxlines; histmask <<=1 );
-	hp = new_of(History_t,(--histmask)*sizeof(off_t));
+	hp = new_of(History_t,(size_t)(--histmask)*sizeof(off_t));
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
 	hp->histfp= sfnew(NULL,hp->histbuff,HIST_BSIZE,fd,SFIO_READ|SFIO_WRITE|SFIO_APPENDWR|SFIO_SHARE);
-	memset((char*)hp->histcmds,0,sizeof(off_t)*(hp->histmask+1));
+	memset((char*)hp->histcmds,0,sizeof(off_t)*(size_t)(hp->histmask+1));
 	hp->histind = 1;
 	hp->histcmds[1] = 2;
 	hp->histcnt = 2;
@@ -289,10 +291,10 @@ retry:
 	{
 		int first,last;
 		off_t mark,size = (HIST_MAX/4)+maxlines*HIST_LINE;
-		hp->histind = first = hist_nearend(hp,hp->histfp,hsize-size);
+		hp->histind = first = (int)hist_nearend(hp,hp->histfp,hsize-size);
 		histinit = 1;
 		hist_eof(hp);	 /* this sets histind to last command */
-		if((hist_start = (last=(int)hp->histind)-maxlines) <=0)
+		if((hist_start = (last=hp->histind)-maxlines) <=0)
 			hist_start = 1;
 		mark = hp->histmarker;
 		while(first > hist_start)
@@ -319,7 +321,7 @@ retry:
 	if(hist_clean(fd) && hist_start>1 && hsize > HIST_MAX)
 	{
 #ifdef DEBUG
-		sfprintf(sfstderr,"%jd: hist_trim hsize=%d\n",(Sflong_t)sh.current_pid,hsize);
+		sfprintf(sfstderr,"%jd: hist_trim hsize=%jd\n",(Sflong_t)sh.current_pid,(intmax_t)hsize);
 		sfsync(sfstderr);
 #endif /* DEBUG */
 		hp = hist_trim(hp,(int)hp->histind-maxlines);
@@ -352,7 +354,7 @@ retry:
 					sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 				tty = ttyname(2);
 				hp->tty = sh_strdup(tty?tty:"notty");
-				hp->auditfp = sfnew(NULL,NULL,-1,fd,SFIO_WRITE);
+				hp->auditfp = sfnew(NULL,NULL,(size_t)-1,fd,SFIO_WRITE);
 			}
 		}
 	}
@@ -470,9 +472,9 @@ static History_t* hist_trim(History_t *hp, int n)
 			cp++;
 		if(cp > endbuff)
 			cp = endbuff;
-		c = cp-buff;
+		c = (int)(cp-buff);
 		hist_new->histcnt += c;
-		sfwrite(hist_new->histfp,buff,c);
+		sfwrite(hist_new->histfp,buff,(size_t)c);
 	}
 	hist_cancel(hist_new);
 	sfclose(hist_old->histfp);
@@ -486,7 +488,8 @@ static History_t* hist_trim(History_t *hp, int n)
 static int hist_nearend(History_t *hp, Sfio_t *iop, off_t size)
 {
 	unsigned char *cp, *endbuff;
-	int n, incmd=1;
+	int incmd=1;
+	ssize_t n;
 	unsigned char *buff, marker[4];
 	if(size <= 2L || sfseek(iop,size,SEEK_SET)<0)
 		goto begin;
@@ -516,7 +519,7 @@ static int hist_nearend(History_t *hp, Sfio_t *iop, off_t size)
 				break;
 		}
 		size += n;
-		sfread(iop,(char*)buff,n);
+		sfread(iop,(char*)buff,(size_t)n);
 		if(incmd < 0)
 		{
 			if((n=sfread(iop,(char*)marker,4))==4)
@@ -525,7 +528,7 @@ static int hist_nearend(History_t *hp, Sfio_t *iop, off_t size)
 				if(n < size/2)
 				{
 					hp->histmarker = hp->histcnt = size+4;
-					return n;
+					return (int)n;
 				}
 				n=4;
 			}
@@ -554,7 +557,9 @@ void hist_eof(History_t *hp)
 	char *cp,*first,*endbuff;
 	int incmd = 0;
 	off_t count = hp->histcnt;
-	int oldind=0,n,skip=0;
+	int oldind=0;
+	ptrdiff_t skip=0;
+	ssize_t n;
 	off_t last = sfseek(hp->histfp,0,SEEK_END);
 	if(last < count)
 	{
@@ -627,7 +632,7 @@ again:
 		}
 	refill:
 		count += (--cp-first);
-		skip = (cp-endbuff);
+		skip = cp-endbuff;
 		if(!incmd && !skip)
 			hp->histcmds[hist_ind(hp,++hp->histind)] = count;
 	}
@@ -709,12 +714,12 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 {
 	History_t *hp = (History_t*)handle;
 	char *bufptr = ((char*)buff)+insize;
-	int c,size = insize;
+	ssize_t size = (ssize_t)insize;
 	off_t cur;
-	int saved=0;
+	int c,saved=0;
 	char saveptr[HIST_MARKSZ];
 	if(!hp->histflush)
-		return write(sffileno(iop),(char*)buff,size);
+		return write(sffileno(iop),(char*)buff,(size_t)size);
 	if((cur = lseek(sffileno(iop),0,SEEK_END)) <0)
 	{
 		errormsg(SH_DICT,2,"hist_flush: EOF seek failed errno=%d",errno);
@@ -734,10 +739,10 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	}
 	/* don't count empty lines */
 	if(++bufptr <= (char*)buff)
-		return insize;
+		return (ssize_t)insize;
 	*bufptr++ = '\n';
 	*bufptr++ = 0;
-	size = bufptr - (char*)buff;
+	size = (ssize_t)(bufptr - (char*)buff);
 #if	 SHOPT_AUDIT
 	if(hp->auditfp)
 	{
@@ -751,13 +756,13 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 #if	SHOPT_ACCTFILE
 	if(acctfd)
 	{
-		int timechars, offset;
-		offset = stktell(sh.stk);
+		ssize_t timechars;
+		ptrdiff_t offset = stktell(sh.stk);
 		sfputr(sh.stk,buff,-1);
 		stkseek(sh.stk,stktell(sh.stk) - 1);
-		timechars = sfprintf(sh.stk, "\t%s\t%x\n",logname,time(NULL));
+		timechars = sfprintf(sh.stk, "\t%s\t%lx\n",logname,(unsigned long)time(NULL));
 		lseek(acctfd, 0, SEEK_END);
-		write(acctfd, stkptr(sh.stk,offset), size - 2 + timechars);
+		write(acctfd, stkptr(sh.stk,offset), (size_t)(size - 2 + timechars));
 		stkseek(sh.stk,offset);
 
 	}
@@ -767,7 +772,7 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 		size++;
 		*bufptr++ = 0;
 	}
-	hp->histcnt +=  size;
+	hp->histcnt += size;
 	c = hist_ind(hp,++hp->histind);
 	hp->histcmds[c] = hp->histcnt;
 	if(hp->histflush>HIST_MARKSZ && hp->histcnt > hp->histmarker+HIST_BSIZE/2)
@@ -780,13 +785,13 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 		size += HIST_MARKSZ;
 	}
 	errno = 0;
-	size = write(sffileno(iop),(char*)buff,size);
+	size = write(sffileno(iop),(char*)buff,(size_t)size);
 	if(saved)
 		memcpy(bufptr,saveptr,HIST_MARKSZ);
 	if(size>=0)
 	{
 		hp->histwfail = 0;
-		return insize;
+		return (ssize_t)insize;
 	}
 	return -1;
 }
@@ -799,9 +804,9 @@ static void hist_marker(char *buff,long cmdno)
 {
 	*buff++ = HIST_CMDNO;
 	*buff++ = 0;
-	*buff++ = (cmdno>>16);
-	*buff++ = (cmdno>>8);
-	*buff++ = cmdno;
+	*buff++ = (char)(cmdno>>16);
+	*buff++ = (char)(cmdno>>8);
+	*buff++ = (char)cmdno;
 	*buff++ = 0;
 }
 
@@ -862,7 +867,7 @@ Histloc_t hist_find(History_t*hp,char *string,int index1,int flag,int direction)
 {
 	int index2;
 	off_t offset;
-	int *coffset=0;
+	ptrdiff_t *coffset=0;
 	Histloc_t location;
 	location.hist_command = -1;
 	location.hist_char = 0;
@@ -915,21 +920,23 @@ Histloc_t hist_find(History_t*hp,char *string,int index1,int flag,int direction)
  * If coffset==0 then line must begin with string
  * returns the line number of the match if successful, otherwise -1
  */
-int hist_match(History_t *hp,off_t offset,char *string,int *coffset)
+int hist_match(History_t *hp,off_t offset,char *string,ptrdiff_t *coffset)
 {
 	unsigned char *first, *cp;
-	int m,n,c=1,line=0;
+	int c=1,line=0;
+	ssize_t m;
+	size_t n;
 	sfseek(hp->histfp,offset,SEEK_SET);
 	if(!(cp = first = (unsigned char*)sfgetr(hp->histfp,0,0)))
 		return -1;
 	m = sfvalue(hp->histfp);
-	n = (int)strlen(string);
-	while(m > n)
+	n = strlen(string);
+	while(m > (ssize_t)n)
 	{
 		if(strncmp((char*)cp,string,n)==0)
 		{
 			if(coffset)
-				*coffset = (cp-first);
+				*coffset = cp-first;
 			return line;
 		}
 		if(!coffset)
@@ -980,7 +987,7 @@ int hist_copy(char *s1,int size,int command,int line)
 				*--s1 = 0;
 				break;
 			}
-			*s1++ = c;
+			*s1++ = (char)c;
 		}
 	}
 	sfseek(hp->histfp,0,SEEK_END);
@@ -997,7 +1004,7 @@ int hist_copy(char *s1,int size,int command,int line)
  * character following c is considered to start a new word
  */
 
-int hist_iswordbndry(char c)
+int hist_iswordbndry(int c)
 {
 	return isspace(c) || strchr("|&;()`<>",c);
 }
@@ -1016,8 +1023,8 @@ char *hist_word(char *string,int size,int word)
 	History_t *hp = hist_ptr;
 	if(!hp)
 		return NULL;
-	hist_copy(string,size,(int)hp->histind-1,-1);
-	for(quoted=0;c = *cp;cp++)
+	hist_copy(string,size,hp->histind-1,-1);
+	for(quoted=0;c = (int)*cp;cp++)
 	{
 		is_boundary = !quoted && hist_iswordbndry(c);
 		if(is_boundary && flag)
@@ -1087,7 +1094,7 @@ Histloc_t hist_locate(History_t *hp,int command,int line,int lines)
 	}
 	else
 	{
-		int least = (int)hp->histind-hp->histsize;
+		int least = hp->histind-hp->histsize;
 		while(1)
 		{
 			if(line >=0)

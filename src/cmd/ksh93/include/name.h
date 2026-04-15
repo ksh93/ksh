@@ -16,8 +16,8 @@
 *         hyenias <58673227+hyenias@users.noreply.github.com>          *
 *                                                                      *
 ***********************************************************************/
-#ifndef name_h_defined
-#define name_h_defined
+#ifndef _NAME_H
+#define _NAME_H
 /*
  * This is the implementation header file for name-value pairs
  */
@@ -50,7 +50,6 @@
 #define ARRAY_LOOKUP	1
 #define ARRAY_DELETE	2
 
-
 struct Namref
 {
 	Namval_t	*np;
@@ -58,7 +57,7 @@ struct Namref
 	Dt_t		*root;
 	char		*sub;
 #if SHOPT_FIXEDARRAY
-	int		curi;
+	ssize_t		curi;
 	char		dim;
 #endif /* SHOPT_FIXEDARRAY */
 };
@@ -79,9 +78,9 @@ struct Ufunction
 	Namval_t	*np;		/* function node pointer */
 };
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
     struct argnod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* attributes of Namval_t items */
 
@@ -142,12 +141,12 @@ struct Ufunction
 #define array_elem(ap)	((ap)->nelem&ARRAY_MASK)
 #define array_assoc(ap)	((ap)->fun)
 
-extern int		array_maxindex(Namval_t*);
+extern ssize_t		array_maxindex(Namval_t*);
 extern char 		*nv_endsubscript(Namval_t*, char*, int);
 extern Namfun_t 	*nv_enforcedisc(Namval_t*);
 extern int		nv_arrayisset(Namval_t*, Namarr_t*);
 extern int		nv_arraysettype(Namval_t*, Namval_t*,const char*,int);
-extern int		nv_aimax(Namval_t*);
+extern ssize_t		nv_aimax(Namval_t*);
 extern int		nv_atypeindex(Namval_t*, const char*);
 extern void		nv_setlist(struct argnod*, int, Namval_t*);
 #if SHOPT_OPTIMIZE
@@ -161,7 +160,7 @@ extern void		nv_setlist(struct argnod*, int, Namval_t*);
 #   define nv_setoptimize(argaddr)	/* no-op */
 #   define nv_getoptimize()		NULL
 #endif /* SHOPT_OPTIMIZE */
-extern void		nv_outname(Sfio_t*,char*, int);
+extern void		nv_outname(Sfio_t*,char*, ptrdiff_t);
 extern void 		nv_unref(Namval_t*);
 extern int		nv_hasget(Namval_t*);
 extern void		clone_all_disc(Namval_t*, Namval_t*, int);
@@ -186,7 +185,7 @@ extern int		nv_istable(Namval_t*);
 extern size_t		nv_datasize(Namval_t*, size_t*);
 extern Namfun_t		*nv_mapchar(Namval_t*, const char*);
 #if SHOPT_FIXEDARRAY
-   extern int		nv_arrfixed(Namval_t*, Sfio_t*, int, char*);
+   extern ssize_t	nv_arrfixed(Namval_t*, Sfio_t*, int, char*);
 #endif /* SHOPT_FIXEDARRAY */
 
 extern const Namdisc_t	RESTRICTED_disc;
@@ -235,4 +234,5 @@ extern const char	e_typecompat[];
 extern const char	e_globalref[];
 extern const char	e_tolower[];
 extern const char	e_toupper[];
-#endif /* name_h_defined */
+
+#endif /* !_NAME_H */

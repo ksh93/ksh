@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -17,7 +17,8 @@
 *                   Chase <nicetrynsa@protonmail.ch>                   *
 *                                                                      *
 ***********************************************************************/
-#ifndef NV_DEFAULT
+#ifndef _NVAL_H
+#define _NVAL_H
 /*
  * David Korn
  * AT&T Labs
@@ -40,6 +41,35 @@ typedef struct Namdisc Namdisc_t;
 typedef struct Nambfun Nambfun_t;
 typedef struct Namarray Namarr_t;
 typedef struct Namdecl Namdecl_t;
+
+/*
+ * Poor man's alignof() -- the real one is not available in C99 and cannot
+ * be portably reimplemented. This nv_alignof() version can only be used
+ * with types defined in the dummy struct below. The _c* char entries are
+ * anchors.  Alignment is calculated using the offset of the _d* item with
+ * the desired type to the corresponding char.
+ */
+typedef struct
+{
+	char		_cSfdouble_t;
+	Sfdouble_t	_dSfdouble_t;
+	char		_cdouble;
+	double		_ddouble;
+	char		_cfloat;
+	float		_dfloat;
+	char		_cSflong_t;
+	Sflong_t	_dSflong_t;
+	char		_cint32_t;
+	int32_t		_dint32_t;
+	char		_cint16_t;
+	int16_t		_dint16_t;
+	char		_cpointer;
+	void		*_dpointer;
+	char		_cmax_align_t;
+	max_align_t	_dmax_align_t;
+} _Namval_align_;
+
+#define nv_alignof(t)	( offsetof(_Namval_align_, _d##t) - offsetof(_Namval_align_, _c##t) )
 
 /*
  * This defines the template for nodes that have their own assignment
@@ -66,7 +96,7 @@ struct Namfun
 	const Namdisc_t	*disc;
 	char		nofree;
 	unsigned int	subshell;
-	uint32_t	dsize;
+	size_t		dsize;
 	Namfun_t	*next;
 	char		*last;
 	Namval_t	*type;
@@ -75,7 +105,7 @@ struct Namfun
 struct Nambfun
 {
 	Namfun_t        fun;
-	int		num;
+	ssize_t		num;
 	const char	**bnames;
 	Namval_t	*bltins[1];
 };
@@ -102,24 +132,19 @@ struct Namdecl
 /* attributes of name-value node attribute flags */
 
 #define NV_DEFAULT 0
-/* This defines the attributes for an attributed name-value pair node */
+
+/*
+ * This defines the attributes for an attributed name-value pair node.
+ *
+ * NOTE: For NV_MINSZ and nv_namptr (below) to work correctly, nvlink
+ * and nvname must be the first two members, in that order.
+*/
 struct Namval
 {
 	Dtlink_t	nvlink;		/* space for cdt links */
 	char		*nvname;	/* pointer to name of the node */
-#if _ast_sizeof_pointer == 8
-#   if _ast_intswap > 0
-	unsigned short	nvflag; 	/* attributes */
-	unsigned short	pad1;
-#   else
-	unsigned short	pad1;
-	unsigned short	nvflag; 	/* attributes */
-#   endif
-	uint32_t  	nvsize;		/* size or base */
-#else
-	unsigned short	nvflag; 	/* attributes */
-	unsigned short 	nvsize;		/* size or base */
-#endif
+	uint16_t	nvflag; 	/* attributes */
+	size_t  	nvsize;		/* size or base */
 	Namfun_t	*nvfun;		/* pointer to trap functions */
 	void		*nvalue;	/* pointer to any kind of value */
 	void		*nvmeta;	/* pointer to any of various kinds of type-dependent data */
@@ -127,8 +152,10 @@ struct Namval
 
 #define NV_CLASS	".sh.type"
 #define NV_DATA		"_"	/* special class or instance variable */
-#define NV_MINSZ	(sizeof(struct Namval)-sizeof(Dtlink_t)-sizeof(char*))
-#define nv_namptr(p,n)	((Namval_t*)((char*)(p)+(n)*NV_MINSZ-sizeof(Dtlink_t)))
+
+/* For aligning and addressing Namval_t data headers or array members with the nvlink member chopped off */
+#define NV_MINSZ	roundof(sizeof(struct Namval) - offsetof(struct Namval, nvname), nv_alignof(max_align_t))
+#define nv_namptr(p,n)	((Namval_t*)((char*)(p) + (n) * NV_MINSZ - offsetof(struct Namval, nvname)))
 
 /* The following attributes are for internal use */
 #define NV_NOFREE	0x200	/* don't free the space when releasing value */
@@ -266,7 +293,7 @@ extern int		nv_isnull(Namval_t*);
 extern Namfun_t		*nv_isvtree(Namval_t*);
 extern Namval_t		*nv_lastdict(void);
 extern Namval_t		*nv_mkinttype(char*, size_t, int, const char*, Namdisc_t*);
-extern void 		nv_newattr(Namval_t*,unsigned,int);
+extern void 		nv_newattr(Namval_t*,unsigned,ssize_t);
 extern void 		nv_newtype(Namval_t*);
 extern Namval_t		*nv_open(const char*,Dt_t*,int);
 extern void 		nv_putval(Namval_t*,const char*,int);
@@ -279,7 +306,7 @@ extern void		nv_setref(Namval_t*, Dt_t*,int);
 extern int		nv_settype(Namval_t*, Namval_t*, int);
 extern void 		nv_setvec(Namval_t*,int,int,char*[]);
 extern void		nv_setvtree(Namval_t*);
-extern int 		nv_setsize(Namval_t*,int);
+extern size_t 		nv_setsize(Namval_t*,size_t);
 extern Namfun_t		*nv_disc(Namval_t*,Namfun_t*,int);
 extern void 		nv_unset(Namval_t*,int);
 extern Namval_t		*nv_search(const char *, Dt_t*, int);
@@ -288,7 +315,7 @@ extern Namval_t		*nv_type(Namval_t*);
 extern void		nv_addtype(Namval_t*,const char*, Optdisc_t*, size_t);
 extern const Namdisc_t	*nv_discfun(int);
 
-#define nv_size(np)		nv_setsize((np),-1)
+#define nv_size(np)		nv_setsize((np),(size_t)-1)
 #define nv_stack(np,nf)		nv_disc(np,nf,0)
 
-#endif /* NV_DEFAULT */
+#endif /* !_NVAL_H */

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,7 +23,7 @@
  *   AT&T Labs
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"lexstates.h"
 #include	"name.h"
@@ -39,7 +39,7 @@
 typedef Sfdouble_t (*Math_f)(Sfdouble_t, ...);
 
 extern const Namdisc_t	ENUM_disc;
-static Sfdouble_t	NaN = NAN, Inf = INFINITY, Fun;
+static Sfdouble_t	NaN, Inf, Fun;
 static Namval_t Infnod =
 {
 	{ 0 },
@@ -93,7 +93,8 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 		if(!np)
 			return NULL;
 		root = sh.last_root;
-		if(cp[flag+1]=='[')
+		/* cp[flag] may be the terminating 0 byte */
+		if(cp[flag] && cp[flag+1]=='[')
 			flag++;
 		else
 			flag = 0;
@@ -392,6 +393,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				{
 					if (!Infnod.nvalue)
 					{
+						Inf = INFINITY;
 						Infnod.nvalue = &Inf;
 						nv_onattr(&Infnod,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 					}
@@ -401,6 +403,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				{
 					if (!NaNnod.nvalue)
 					{
+						NaN = NAN;
 						NaNnod.nvalue = &NaN;
 						nv_onattr(&NaNnod,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
 					}

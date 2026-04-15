@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -49,7 +50,7 @@ tmxtouch(const char* path, Time_t at, Time_t mt, Time_t ct, int flags)
 		ap = 0;
 	else
 	{
-		av.tv_sec = tmxsec(at);
+		av.tv_sec = (time_t)tmxsec(at);
 		av.tv_nsec = tmxnsec(at);
 		ap = &av;
 	}
@@ -59,7 +60,7 @@ tmxtouch(const char* path, Time_t at, Time_t mt, Time_t ct, int flags)
 		mp = 0;
 	else
 	{
-		mv.tv_sec = tmxsec(mt);
+		mv.tv_sec = (time_t)tmxsec(mt);
 		mv.tv_nsec = tmxnsec(mt);
 		mp = &mv;
 	}
@@ -69,7 +70,7 @@ tmxtouch(const char* path, Time_t at, Time_t mt, Time_t ct, int flags)
 		cp = 0;
 	else
 	{
-		cv.tv_sec = tmxsec(ct);
+		cv.tv_sec = (time_t)tmxsec(ct);
 		cv.tv_nsec = tmxnsec(ct);
 		cp = &cv;
 	}

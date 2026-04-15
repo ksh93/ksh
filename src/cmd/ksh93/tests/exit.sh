@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -28,19 +28,19 @@ fi
 function abspath
 {
 	base=$(basename $SHELL)
-	cd ${SHELL%/$base}
+	cd "${SHELL%/$base}"
 	newdir=$(pwd)
 	cd ~-
-	print $newdir/$base
+	print -r "$newdir/$base"
 }
 # test for proper exit of shell
 if ((!execve_ignores_argv0)) && builtin getconf 2>/dev/null; then
-	ABSHELL=$(abspath)
+	export ABSHELL=$(abspath)
 	print exit 0 >.profile
-	${ABSHELL}  <<!
-	HOME=$PWD \
-	PATH=$PATH \
-	SHELL=$ABSSHELL \
+	"$ABSHELL" <<!
+	HOME=\$PWD \
+	PATH=\$PATH \
+	SHELL=\$ABSSHELL \
 	$(
 		v=$(getconf LIBPATH)
 		for v in ${v//,/ }
@@ -49,7 +49,12 @@ if ((!execve_ignores_argv0)) && builtin getconf 2>/dev/null; then
 			eval [[ \$$v ]] && eval print -n \" \"\$v=\"\$$v\"
 		done
 	) \
-	LD_LIBRARY_PATH=\$LD_LIBRARY_PATH LIBPATH=\$LIBPATH SHLIB_PATH=\$SHLIB_PATH DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH exec -c -a -ksh ${ABSHELL} -c "exit 1" 1>/dev/null 2>&1
+	ASAN_OPTIONS=\$ASAN_OPTIONS \
+	LD_LIBRARY_PATH=\$LD_LIBRARY_PATH \
+	LIBPATH=\$LIBPATH \
+	SHLIB_PATH=\$SHLIB_PATH \
+	DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH \
+	exec -c -a -ksh "\$ABSHELL" -c "exit 1" 1>/dev/null 2>&1
 !
 	status=$?
 	if	[[ -o noprivileged && $status != 0 ]]

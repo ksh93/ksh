@@ -124,10 +124,7 @@ static const char usage[] =
 
 static noreturn void outofmemory(size_t size)
 {
-	if (size)
-		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory (failed to allocate %zu bytes)", size);
-	else
-		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory or vmalloc internal error");
+	error(ERROR_SYSTEM|ERROR_PANIC, "out of memory (failed to allocate %zu bytes)", size);
 	UNREACHABLE();
 }
 
@@ -257,13 +254,13 @@ mkpty(int* master, int* minion)
 #endif
 	tty.c_oflag |= (ONLCR | OPOST);
 #ifdef OCRNL
-	tty.c_oflag &= ~OCRNL;
+	tty.c_oflag &= (tcflag_t)~OCRNL;
 #endif
 #ifdef ONLRET
-	tty.c_oflag &= ~ONLRET;
+	tty.c_oflag &= (tcflag_t)~ONLRET;
 #endif
 	tty.c_iflag |= BRKINT;
-	tty.c_iflag &= ~IGNBRK;
+	tty.c_iflag &= (tcflag_t)~IGNBRK;
 	tty.c_cc[VTIME] = 0;
 	tty.c_cc[VMIN] = CMIN;
 #ifdef B115200
@@ -374,7 +371,7 @@ runcmd(char** argv, int minion, int session)
  */
 
 static int
-process(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
+process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 {
 	int		i;
 	int		n;
@@ -422,7 +419,7 @@ process(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 					sfclose(mp);
 					mp = 0;
 				}
-				else if ((r = sfvalue(mp)) > 0 && (sfwrite(sfstdout, s, r) != r || sfsync(sfstdout)))
+				else if ((r = sfvalue(mp)) > 0 && (sfwrite(sfstdout, s, (size_t)r) != r || sfsync(sfstdout)))
 				{
 					error(ERROR_SYSTEM|2, "output write failed");
 					goto done;
@@ -512,9 +509,10 @@ typedef struct Master_s
 	char*		bufunderflow;	/* FIXME: kludge to cope with underflow	*/
 	char*		buf;		/* current buffer			*/
 	char*		prompt;		/* peek prompt				*/
-	int		cursor;		/* cursor in buf, 0 if fresh line	*/
+	ptrdiff_t	cursor;		/* cursor in buf, 0 if fresh line	*/
 	int		line;		/* prompt line number			*/
-	int		restore;	/* previous line save char		*/
+	char		save;		/* previous line's saved char		*/
+	char		saving;		/* set if saved char is to be restored	*/
 } Master_t;
 #define BUFUNDERFLOW	128		/* bytes of buffer underflow to allow	*/
 
@@ -533,21 +531,20 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	char*		t;
 	ssize_t		n;
 	size_t		promptlen = 0;
-	ptrdiff_t	d;
 	char		promptbuf[64];
 
 	if (prompt)
-		promptlen = sfsprintf(promptbuf, sizeof(promptbuf), prompt, ++bp->line);
+		promptlen = (size_t)sfsprintf(promptbuf, sizeof(promptbuf), prompt, ++bp->line);
  again:
 	if (prompt)
 	{
-		if (bp->cur < bp->end && bp->restore >= 0)
-			*bp->cur = bp->restore;
+		if (bp->cur < bp->end && bp->saving)
+			*bp->cur = bp->save;
 		if (strneq(bp->cur, promptbuf, promptlen))
 			r = bp->cur;
 		else
 			r = 0;
-		if (bp->cur < bp->end && bp->restore >= 0)
+		if (bp->cur < bp->end && bp->saving)
 			*bp->cur = 0;
 		if (r)
 		{
@@ -561,7 +558,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 				error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
 				return r;
 			}
-			while (r = memchr(r, '\n', bp->end - r))
+			while (r = memchr(r, '\n', (size_t)(bp->end - r)))
 			{
 				if (strneq(r, promptbuf, promptlen))
 				{
@@ -575,10 +572,11 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	}
 	else if (bp->nxt)
 	{
-		if (bp->restore >= 0)
-			*bp->cur = bp->restore;
+		if (bp->saving)
+			*bp->cur = bp->save;
 		r = bp->cur;
-		bp->restore = *bp->nxt;
+		bp->save = *bp->nxt;
+		bp->saving = 1;
 		*bp->nxt = 0;
 		if (bp->nxt >= bp->end)
 		{
@@ -588,12 +586,12 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		else
 		{
 			bp->cur = bp->nxt;
-			if (bp->nxt = memchr(bp->nxt + 1, '\n', bp->end - bp->nxt - 1))
+			if (bp->nxt = memchr(bp->nxt + 1, '\n', (size_t)(bp->end - bp->nxt - 1)))
 				bp->nxt++;
 		}
 		goto done;
 	}
-	if ((n = sfpoll(&mp, 1, timeout)) <= 0 || !((int)sfvalue(mp) & SFIO_READ))
+	if ((n = sfpoll(&mp, 1, timeout)) <= 0 || !(sfvalue(mp) & SFIO_READ))
 	{
 		if (n < 0)
 		{
@@ -604,10 +602,10 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		}
 		else if (bp->cur < bp->end)
 		{
-			if (bp->restore >= 0)
+			if (bp->saving)
 			{
-				*bp->cur = bp->restore;
-				bp->restore = -1;
+				*bp->cur = bp->save;
+				bp->saving = 0;
 			}
 			r = bp->cur;
 			*bp->end = 0;
@@ -635,10 +633,10 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		{
 			if (bp->cur < bp->end)
 			{
-				if (bp->restore >= 0)
+				if (bp->saving)
 				{
-					*bp->cur = bp->restore;
-					bp->restore = -1;
+					*bp->cur = bp->save;
+					bp->saving = 0;
 				}
 				r = bp->cur;
 				*bp->end = 0;
@@ -655,43 +653,44 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		return NULL;
 	}
 	n = sfvalue(mp);
-	error(-2, "b \"%s\"", fmtnesq(s, "\"", n));
+	error(-2, "b \"%s\"", fmtnesq(s, "\"", (size_t)n));
 	if ((bp->max - bp->end) < n)
 	{
 		size_t	new_buf_size;
 		r = bp->buf;
-		new_buf_size = roundof(bp->max - bp->buf + 1 + n, SFIO_BUFSIZE);
+		new_buf_size = (size_t)roundof(bp->max - bp->buf + 1 + n, SFIO_BUFSIZE);
 		bp->bufunderflow = vmresize(bp->vm, bp->bufunderflow, new_buf_size + BUFUNDERFLOW);
 		bp->buf = bp->bufunderflow + BUFUNDERFLOW;
 		bp->max = bp->buf + new_buf_size - 1;
 		if (bp->buf != r)
 		{
-			d = bp->buf - r;
+			ptrdiff_t d = bp->buf - r;
 			bp->cur += d;
 			bp->end += d;
 		}
 	}
-	memcpy(bp->end, s, n);
+	memcpy(bp->end, s, (size_t)n);
 	bp->end += n;
-	if ((r = bp->cur) > bp->buf && bp->restore >= 0)
-		*r = bp->restore;
-	if (bp->cur = memchr(bp->cur, '\n', bp->end - bp->cur))
+	if ((r = bp->cur) > bp->buf && bp->saving)
+		*r = bp->save;
+	if (bp->cur = memchr(bp->cur, '\n', (size_t)(bp->end - bp->cur)))
 	{
-		bp->restore = *++bp->cur;
+		bp->save = *++bp->cur;
+		bp->saving = 1;
 		*bp->cur = 0;
 		if (bp->cur >= bp->end)
 		{
 			bp->cur = bp->end = bp->buf;
 			bp->nxt = 0;
 		}
-		else if (bp->nxt = memchr(bp->cur + 1, '\n', bp->end - bp->cur - 1))
+		else if (bp->nxt = memchr(bp->cur + 1, '\n', (size_t)(bp->end - bp->cur - 1)))
 			bp->nxt++;
 		if (prompt)
 			goto again;
 	}
 	else
 	{
-		bp->restore = -1;
+		bp->saving = 0;
 		bp->cur = r;
 		bp->nxt = 0;
 		must = 0;
@@ -704,7 +703,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	{
 		r -= bp->cursor; /* FIXME: r may now be before bp->buf */
 		if (r < bp->bufunderflow)
-			error(ERROR_PANIC, "pty.c:%d: internal error: r is %d bytes before bp->bufunderflow", __LINE__, bp->bufunderflow - r);
+			error(ERROR_PANIC, "pty.c:%d: internal error: r is %td bytes before bp->bufunderflow", __LINE__, bp->bufunderflow - r);
 		bp->cursor = 0;
 	}
 	for (t = 0, n = 0; *s; s++)
@@ -781,11 +780,11 @@ struct Cond_s
 };
 
 static int
-dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
+dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 {
 	int		op;
 	int		line;
-	int		n;
+	intmax_t	n;
 	char*		s;
 	char*		m;
 	char*		e;
@@ -807,7 +806,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 	master->buf = master->bufunderflow + BUFUNDERFLOW;
 	master->cur = master->end = master->buf;
 	master->max = master->buf + 2 * SFIO_BUFSIZE - 1;
-	master->restore = -1;
+	master->saving = 0;
 	errno = 0;
 	id = error_info.id;
 	error_info.id = 0;
@@ -832,7 +831,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 			if (master->prompt && !masterline(mp, lp, master->prompt, 0, timeout, master))
 				goto done;
 			if (delay)
-				usleep((unsigned long)delay * 1000);
+				usleep(delay * 1000);
 			if (op == 'w')
 				error(-1, "w \"%s\\r\"", s);
 			else
@@ -845,10 +844,10 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 				goto done;
 			}
 			if (delay)
-				usleep((unsigned long)delay * 1000);
+				usleep(delay * 1000);
 			break;
 		case 'd':
-			delay = (int)strtol(s, &e, 0);
+			delay = (useconds_t)strtol(s, &e, 0);
 			if (*e)
 				error(2, "%s: invalid delay -- milliseconds expected", s);
 			break;
@@ -922,11 +921,11 @@ dialogue(Sfio_t* mp, Sfio_t* lp, int delay, int timeout)
 			match(s, m, 1);
 			break;
 		case 's':
-			n = (int)strtol(s, &e, 0);
+			n = strtoll(s, &e, 0);
 			if (*e)
 				error(2, "%s: invalid delay -- milliseconds expected", s);
 			if (n)
-				usleep((unsigned long)n * 1000);
+				usleep((useconds_t)n * 1000);
 			break;
 		case 't':
 			timeout = (int)strtol(s, &e, 0);
@@ -1021,13 +1020,13 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	Sfio_t*		lp;
 	char		buf[64];
 
-	int		delay = 0;
+	useconds_t	delay = 0;
 	char*		log = 0;
 	char*		messages = 0;
 	char*		stty = 0;
 	int		session = 1;
 	int		timeout = 1000;
-	int		(*fun)(Sfio_t*,Sfio_t*,int,int) = process;
+	int		(*fun)(Sfio_t*,Sfio_t*,useconds_t,int) = process;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	for (;;)
@@ -1057,7 +1056,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 			stty = opt_info.arg;
 			continue;
 		case 'w':
-			delay = (int)opt_info.num;
+			delay = (useconds_t)opt_info.num;
 			continue;
 		case ':':
 			break;
@@ -1079,7 +1078,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_system(1), "unable to create pty");
 		UNREACHABLE();
 	}
-	if (!(mp = sfnew(NULL, 0, SFIO_UNBOUND, master, SFIO_READ|SFIO_WRITE)))
+	if (!(mp = sfnew(NULL, 0, (size_t)SFIO_UNBOUND, master, SFIO_READ|SFIO_WRITE)))
 	{
 		error(ERROR_system(1), "cannot open master stream");
 		UNREACHABLE();
@@ -1091,7 +1090,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		for (s = stty; *s; s++)
 			if (isspace(*s))
 				n++;
-		ap = newof(0, Argv_t, 1, (n + 2) * sizeof(char*) + (s - stty + 1));
+		ap = newof(0, Argv_t, 1, (size_t)(n + 2) * sizeof(char*) + (size_t)(s - stty + 1));
 		ap->argc = n + 1;
 		ap->argv = (char**)(ap + 1);
 		ap->args = (char*)(ap->argv + n + 2);

@@ -94,7 +94,7 @@ typedef struct Feature_s
 	char*		value;
 	char*		std;
 	char*		ast;
-	short		length;
+	ssize_t		length;
 	short		standard;
 	unsigned int	flags;
 	short		op;
@@ -282,6 +282,23 @@ static State_t	state = { "getconf", "_AST_FEATURES", "CONFORMANCE = standard", "
 
 static char*	feature(Feature_t*, const char*, const char*, const char*, unsigned int, Error_f);
 
+static char *set_fp_value(Feature_t *fp, const char *str, Error_f conferror)
+{
+	if ((fp->flags & CONF_ALLOC) && fp->value != null)
+		free(fp->value);
+	if(str == null)
+		return fp->value = null;
+	fp->value = strdup(str);
+	if (!fp->value)
+	{
+		if (conferror)
+			(*conferror)(&state, &state, 2, "set_fp_value(): out of memory");
+		fp->value = null;
+	}
+	fp->flags |= CONF_ALLOC;
+	return fp->value;
+}
+
 /*
  * return fmtbuf() copy of s
  */
@@ -307,7 +324,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 	char*		v;
 	char*		p;
 	char*		newvalue;
-	int		n;
+	ptrdiff_t	n;
 
 #if DEBUG_astconf
 	if (fp)
@@ -321,12 +338,12 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		char*		de;
 		char*		ve;
 
-		state.prefix = strlen(state.name) + 1;
+		state.prefix = (int)strlen(state.name) + 1;
 		n = state.prefix + 3 * MAXVAL;
 		if ((s = getenv(state.name)) || getenv(state.strict) && (s = (char*)state.standard))
 			n += strlen(s) + 1;
 		n = roundof(n, 32);
-		if (!(state.data = newof(0, char, n, 0)))
+		if (!(state.data = newof(0, char, (size_t)n, 0)))
 		{
 			if (conferror)
 				(*conferror)(&state, &state, 2, "synthesize(): out of memory");
@@ -371,11 +388,11 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 	{
 		if (!value)
 			return NULL;
-		n = strlen(value);
+		n = (ptrdiff_t)strlen(value);
 		goto ok;
 	}
 	s = (char*)fp->name;
-	n = fp->length;
+	n = (ptrdiff_t)fp->length;
 	d = state.data;
 	for (;;)
 	{
@@ -383,7 +400,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 			d++;
 		if (!*d)
 			break;
-		if (strneq(d, s, n) && isspace(d[n]))
+		if (strneq(d, s, (size_t)n) && isspace(d[n]))
 		{
 			if (!value)
 			{
@@ -398,7 +415,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 			for (; isspace(*s); s++);
 			for (v = s; *s && !isspace(*s); s++);
 			n = s - v;
-			if ((!path || *path == *p && strlen(path) == (v - p - 1) && !memcmp(path, p, v - p - 1)) && strneq(v, value, n))
+			if ((!path || *path == *p && (ssize_t)strlen(path) == (v - p - 1) && !memcmp(path, p, (size_t)(v - p - 1))) && strneq(v, value, (size_t)n))
 				goto ok;
 			for (; isspace(*s); s++);
 			if (*s)
@@ -428,17 +445,17 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		value = "0";
 	if (!path || !path[0] || path[0] == '/' && !path[1])
 		path = "-";
-	n += strlen(path) + strlen(value) + 3;
+	n += (ptrdiff_t)(strlen(path) + strlen(value) + 3);
 	if (d + n >= state.last)
 	{
-		int	c;
-		int	i;
+		ptrdiff_t c;
+		ptrdiff_t i;
 
 		i = d - state.data;
 		state.data -= state.prefix;
 		c = n + state.last - state.data + 3 * MAXVAL;
 		c = roundof(c, 32);
-		if (!(state.data = newof(state.data, char, c, 0)))
+		if (!(state.data = newof(state.data, char, (size_t)c, 0)))
 		{
 			if (conferror)
 				(*conferror)(&state, &state, 2, "synthesize(): out of memory");
@@ -467,19 +484,17 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		fp->value = 0;
 	if (n == 1 && (*value == '0' || *value == '-'))
 		n = 0;
-	if(!(newvalue = malloc(n + 1)))
+	if(!(newvalue = malloc((size_t)(n + 1))))
 	{
-		if(fp->value && fp->value != null)
-			free(fp->value);
-		fp->value = null;
+		set_fp_value(fp, null, conferror);
 		if (conferror)
 			(*conferror)(&state, &state, 2, "synthesize(): out of memory");
 		return NULL;
 	}
 	/* memcpy comes before free because fp->value and value might share memory */
-	memcpy(newvalue, value, n);
+	memcpy(newvalue, value, (size_t)n);
 	newvalue[n] = 0;
-	if(fp->value && fp->value != null)
+	if(fp->value != null)
 		free(fp->value);
 	fp->flags |= CONF_ALLOC;
 	return fp->value = newvalue;
@@ -524,7 +539,7 @@ initialize(Feature_t* fp, const char* path, const char* command, const char* suc
 	default:
 		if (p = getenv("PATH"))
 		{
-			int		r = 1;
+			ptrdiff_t	r = 1;
 			char*		d = p;
 			Sfio_t*		tmp;
 
@@ -544,7 +559,7 @@ initialize(Feature_t* fp, const char* path, const char* command, const char* suc
 						{
 							if (r = p - d - 1)
 							{
-								sfwrite(tmp, d, r);
+								sfwrite(tmp, d, (size_t)r);
 								sfputc(tmp, '/');
 								sfputr(tmp, command, 0);
 								if ((d = sfstruse(tmp)) && !eaccess(d, X_OK))
@@ -615,8 +630,10 @@ static char*
 format(Feature_t* fp, const char* path, const char* value, unsigned int flags, Error_f conferror)
 {
 	Feature_t*		sp;
-	int			n;
 	static struct utsname	uts;
+#ifdef UNIV_MAX
+	int			n;
+#endif
 
 #if DEBUG_astconf
 	error(-6, "astconf format name=%s path=%s value=%s flags=%04x fp=%p%s", fp->name, path, value, flags, fp, state.synthesizing ? " SYNTHESIZING" : "");
@@ -624,18 +641,26 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 	NOT_USED(flags);
 #endif
 	if (value)
-		fp->flags &= ~CONF_GLOBAL;
+		fp->flags &= (unsigned)~CONF_GLOBAL;
 	else if (fp->flags & CONF_GLOBAL)
 		return fp->value;
 	switch (fp->op)
 	{
 
 	case OP_architecture:
+	   {
+		char *hostname = getenv("HOSTNAME");
 		if (!uname(&uts))
-			return fp->value = uts.machine;
-		if (!(fp->value = getenv("HOSTNAME")))
-			fp->value = "unknown";
+		{
+			set_fp_value(fp, uts.machine, conferror);
+			return fp->value;
+		}
+		if (!hostname)
+			set_fp_value(fp, "unknown", conferror);
+		else
+			set_fp_value(fp, hostname, conferror);
 		break;
+	   }
 
 	case OP_conformance:
 		if (value && STANDARD(value))
@@ -645,7 +670,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		error(-6, "state.std=%d %s [%s] std=%s ast=%s value=%s", state.std, fp->name, value, fp->std, fp->ast, fp->value);
 #endif
 		if (state.synthesizing && value == (char*)fp->std)
-			fp->value = (char*)value;
+			set_fp_value(fp, value, conferror);
 		else if (!synthesize(fp, path, value, conferror))
 			initialize(fp, path, NULL, fp->std, fp->value, conferror);
 #if DEBUG_astconf
@@ -667,12 +692,12 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		break;
 
 	case OP_path_attributes:
-		fp->value = pathicase(path) > 0 ? "c" : null;
+		set_fp_value(fp, pathicase(path) > 0 ? "c" : null, conferror);
 		break;
 
 	case OP_path_resolve:
 		if (state.synthesizing && value == (char*)fp->std)
-			fp->value = (char*)value;
+			set_fp_value(fp, value, conferror);
 		else if (!synthesize(fp, path, value, conferror))
 			initialize(fp, path, NULL, "logical", DEFAULT(OP_path_resolve), conferror);
 		break;
@@ -712,11 +737,15 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 		{
 			if (state.synthesizing)
 			{
-				if (!(fp->flags & CONF_ALLOC))
-					fp->value = 0;
-				n = strlen(value);
-				if (!(fp->value = newof(fp->value, char, n, 1)))
+				char *mayfree;
+				size_t len;
+				if (!(fp->flags & CONF_ALLOC) || fp->value == null)
+					fp->value = NULL;
+				mayfree = fp->value;
+				len = strlen(value);
+				if (!(fp->value = newof(fp->value, char, len, 1)))
 				{
+					free(mayfree);
 					if (conferror)
 						(*conferror)(&state, &state, 2, "%s: out of memory", value);
 					fp->value = null;
@@ -724,8 +753,8 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 				else
 				{
 					fp->flags |= CONF_ALLOC;
-					memcpy(fp->value, value, n);
-					fp->value[n] = 0;
+					memcpy(fp->value, value, len);
+					fp->value[len] = 0;
 				}
 			}
 			else
@@ -739,7 +768,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 
 	default:
 		if (state.synthesizing && value == (char*)fp->std)
-			fp->value = (char*)value;
+			set_fp_value(fp, value, conferror);
 		else
 			synthesize(fp, path, value, conferror);
 		break;
@@ -759,7 +788,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 static char*
 feature(Feature_t* fp, const char* name, const char* path, const char* value, unsigned int flags, Error_f conferror)
 {
-	int		n;
+	size_t		n;
 
 	if (value && (streq(value, "-") || streq(value, "0")))
 		value = null;
@@ -784,7 +813,7 @@ feature(Feature_t* fp, const char* name, const char* path, const char* value, un
 		fp->op = -1;
 		fp->name = (const char*)fp + sizeof(Feature_t);
 		strcpy((char*)fp->name, name);
-		fp->length = n;
+		fp->length = (ssize_t)n;
 		fp->std = &null[0];
 		fp->next = state.features;
 		state.features = fp;
@@ -830,7 +859,7 @@ lookup(Lookup_t* look, const char* name, unsigned int flags)
 		name++;
  again:
 	for (p = prefix; p < &prefix[prefix_elements]; p++)
-		if (strneq(name, p->name, p->length) && ((c = name[p->length] == '_' || name[p->length] == '(' || name[p->length] == '#') || (v = isdigit(name[p->length]) && name[p->length + 1] == '_')))
+		if (strneq(name, p->name, (size_t)p->length) && ((c = name[p->length] == '_' || name[p->length] == '(' || name[p->length] == '#') || (v = isdigit(name[p->length]) && name[p->length + 1] == '_')))
 		{
 			if (p->call < 0)
 			{
@@ -934,7 +963,7 @@ fmtlower(const char* s)
 	{
 		if (isupper(c))
 			c = tolower(c);
-		*t++ = c;
+		*t++ = (char)c;
 	}
 	*t = 0;
 	return b;
@@ -956,7 +985,6 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 	char*		f;
 	const char*	s;
 	int		i;
-	int		n;
 	int		olderrno;
 	int		drop;
 	int		defined;
@@ -1040,7 +1068,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 	case CONF_confstr:
 		call = "confstr";
 #if _lib_confstr
-		if (!(v = confstr(p->op, buf, sizeof(buf))))
+		if (!(v = (Sflong_t)confstr(p->op, buf, sizeof(buf))))
 		{
 			defined = 0;
 			v = -1;
@@ -1101,7 +1129,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 		{
 			if (streq(p->name, "RELEASE") && (i = open("/proc/version", O_RDONLY|O_cloexec)) >= 0)
 			{
-				n = read(i, buf, sizeof(buf) - 1);
+				ssize_t n = read(i, buf, sizeof(buf) - 1);
 				ast_close(i);
 				if (n > 0 && buf[n - 1] == '\n')
 					n--;
@@ -1146,7 +1174,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			s = p->limit.string;
 			break;
 		}
-		flags &= ~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
+		flags &= (unsigned)~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
 		v = -1;
 		errno = EINVAL;
 		defined = 0;
@@ -1157,10 +1185,10 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 		if (!errno)
 		{
 			if ((p->flags & CONF_FEATURE) || !(p->flags & (CONF_LIMIT|CONF_MINMAX)))
-				flags &= ~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
+				flags &= (unsigned)~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
 		}
 		else if (flags & CONF_PREFIXED)
-			flags &= ~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
+			flags &= (unsigned)~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
 		else if (errno != EINVAL || !i)
 		{
 			if (!sp)
@@ -1176,7 +1204,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 			}
 			else
 			{
-				flags &= ~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
+				flags &= (unsigned)~(CONF_LIMIT_DEF|CONF_MINMAX_DEF);
 				flags |= CONF_ERROR;
 			}
 		}
@@ -1310,7 +1338,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 	if (!(listflags & ~(ASTCONF_error|ASTCONF_system)))
 		for (fp = state.features; fp; fp = fp->next)
 			if (streq(name, fp->name))
-				return format(fp, path, 0, listflags, conferror);
+				return format(fp, path, 0, (unsigned)listflags, conferror);
 	return (listflags & ASTCONF_error) ? NULL : null;
 }
 
@@ -1336,7 +1364,7 @@ nativeconf(Proc_t** pp, const char* operand)
 	ops[1] = 0;
 	if (*pp = procopen(_pth_getconf, cmd, environ, ops, PROC_READ))
 	{
-		if (sp = sfnew(NULL, NULL, SFIO_UNBOUND, (*pp)->rfd, SFIO_READ))
+		if (sp = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, (*pp)->rfd, SFIO_READ))
 		{
 			sfdisc(sp, SFIO_POPDISC);
 			return sp;
@@ -1371,7 +1399,7 @@ char*
 astgetconf(const char* name, const char* path, const char* value, int flags, Error_f conferror)
 {
 	char*		s;
-	int		n;
+	size_t		n;
 	Lookup_t	look;
 	Sfio_t*		tmp;
 
@@ -1385,9 +1413,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			{
 				Ast_confdisc_f	notify;
 
-#if _HUH20000515 /* doesn't work for shell builtins */
 				free(state.data - state.prefix);
-#endif
 				state.data = 0;
 				notify = state.notify;
 				state.notify = 0;
@@ -1401,9 +1427,9 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 	INITIALIZE();
 	if (!path)
 		path = root;
-	if (state.recent && streq(name, state.recent->name) && (s = format(state.recent, path, value, flags, conferror)))
+	if (state.recent && streq(name, state.recent->name) && (s = format(state.recent, path, value, (unsigned)flags, conferror)))
 		return s;
-	if (lookup(&look, name, flags))
+	if (lookup(&look, name, (unsigned)flags))
 	{
 		if (value)
 		{
@@ -1444,7 +1470,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 
 			strcpy(altname, name);
 			altname[n - 3] = 0;
-			if (lookup(&altlook, altname, flags))
+			if (lookup(&altlook, altname, (unsigned)flags))
 			{
 				if (value)
 				{
@@ -1457,7 +1483,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			}
 			for (s = altname; *s; s++)
 				if (isupper(*s))
-					*s = tolower(*s);
+					*s = (char)tolower(*s);
 			if (tmp = sfstropen())
 			{
 				for (n = 0; n < elementsof(dirs); n++)
@@ -1476,7 +1502,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			}
 		}
 	}
-	if ((look.standard < 0 || look.standard == CONF_AST) && look.call <= 0 && look.section <= 1 && (s = feature(0, look.name, path, value, flags, conferror)))
+	if ((look.standard < 0 || look.standard == CONF_AST) && look.call <= 0 && look.section <= 1 && (s = feature(0, look.name, path, value, (unsigned)flags, conferror)))
 		return s;
 	errno = EINVAL;
 	if (conferror && !(flags & ASTCONF_system))
@@ -1592,7 +1618,7 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 				for (s = f; *s && *s != '=' && *s != ':' && !isspace(*s); s++);
 				if (*s)
 					for (*s++ = 0; isspace(*s); s++);
-				if (!lookup(&look, f, flags))
+				if (!lookup(&look, f, (unsigned)flags))
 				{
 					if(pattern)
 					{

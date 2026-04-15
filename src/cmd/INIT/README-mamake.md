@@ -18,11 +18,12 @@ than was actually implemented in `mamake.c`.
 This file documents the MAM implementation that is currently in use.
 
 Since fixing and maintaining AT&T `nmake` proved impractical, `mamake` is
-used here as a full `make` replacement, with some features gradually added to
+used here as a full `make` replacement. A number of features were added to
 the language to facilitate human maintenance of the `Mamfile`s.
 
 ## Table of contents ##
 
+* [Invoking mamake](#user-content-invoking-mamake)
 * [General overview of the MAM language](#user-content-general-overview-of-the-mam-language)
     * [Strict and legacy modes](#user-content-strict-and-legacy-modes)
 * [MAM variables](#user-content-mam-variables)
@@ -48,6 +49,52 @@ the language to facilitate human maintenance of the `Mamfile`s.
 * [Parallel processing](#user-content-parallel-processing)
 * [Debugging mamake](#user-content-debugging-mamake)
 * [Appendix: Main changes from the AT&T version](#user-content-appendix-main-changes-from-the-att-version)
+* [Appendix: mamake compiled against libast](#user-content-appendix-mamake-compiled-against-libast)
+
+## Invoking mamake ##
+
+`mamake` is usually invoked indirectly through the `bin/package make`
+subcommand. Short-form `mamake` options added to the `make` subcommand are
+passed on to mamake (e.g., `bin/package make -j8` to run up to 8 shell
+actions in parallel). These options are the following:
+```
+  -c              Chaotic simultaneous output when executing shell actions in
+                  parallel. See -j below.
+  -e              Explain reason for triggering action. Ignored if -F is on.
+  -f FILE         Read FILE instead of the default. The default value is
+                  Mamfile.
+  -i              Ignore action errors.
+  -j MAXJOBS      Execute up to MAXJOBS shell actions in parallel. Unless -c is
+                  given, each shell action's output is saved up and then logged
+                  in one go when it finishes, avoiding chaotic logs. Rules with
+                  the virtual attribute are never run in parallel. Ignored if
+                  MAMAKE_STRICT is unset or less than 5.
+  -k              If an error occurs, keep going and build as much as possible.
+                  Rules that depend on rules that had errors will not have
+                  their actions executed.
+  -n              Print actions but do not execute. Recursion actions (see -r)
+                  are still executed. Use -N to disable recursion actions too.
+  -r PATTERN      Recursively make leaf directories matching PATTERN. Only leaf
+                  directories containing a file named Mamfile are considered.
+                  The bind commands in the Mamfile found in each leaf directory
+                  are scanned for leaf directory prerequisites; the recursion
+                  order is determined by a topological sort of these
+                  prerequisites.
+  -C DIRECTORY    Do all work in DIRECTORY. All messages will mention
+                  DIRECTORY.
+  -D LEVEL        Set the debug trace level to LEVEL. Higher levels produce
+                  more output.
+  -F              Force all targets to be out of date.
+  -N              Like -n but recursion actions (see -r) are also disabled.
+  -V              Print the program version and exit.
+  -G              Compile and link with debugging symbol options enabled.
+  -S              Strip link-time static symbols from executables.
+```
+
+To invoke mamake directly, first build the distribution, then enter
+`bin/package use` which puts you in the requisite environment (such as a
+correctly set `VPATH`; see [Viewpathing](#user-content-viewpathing) below),
+then `cd ~ast` to go into the object code directory.
 
 ## General overview of the MAM language ##
 
@@ -198,9 +245,6 @@ The *operand string* is any arbitrary text until the end of the line.
 A `make`...`done` block defines the rule named *target* using the other commands described here.
 Unless the `virtual` attribute is used, *target* names the pathname of the file generated or referenced by the rule.
 
-`mamake` processes the commands within the block if the *target* is out
-of date or if the rule has the `virtual` attribute (see below).
-
 The *target* may be repeated as the operand to the `done` command.
 In that case, it is matched against the current `make` *target* and
 any mismatch will produce a "mismatched done statement" error.
@@ -215,7 +259,9 @@ Dependencies may be defined in two ways:
    The dependency is defined as if that block were repeated at the `prev` command's location.
 
 If the block contains one or more `exec` commands (see **Shell actions** below),
-the `done` command executes the shell script defined by them.
+then the `done` command will execute the shell script defined by them
+if the *target* is out of date
+or if the rule has the `virtual` attribute (see below).
 
 A `make`...`done` rule may lack any `exec` action, in which case it declares a
 dependency (a file that must be present and whose timestamp is propagated to
@@ -227,17 +273,19 @@ by `done`. The one-line `makp` command (see below) may be used as a shorthand
 for the latter case.
 
 Making a prerequisite that is currently being made, or one that has already
-been made, produces a warning; at strict level 3 and up, this is an error.
+been made, is an error.
 
 One or more *attribute*s may be specified by appending them to the `make` command.
-(At strict levels < 2, they may also be appended to the `done` command; the effect
-is the same either way. At strict level 1, this produces a deprecation warning.)
 Attributes apply to the current rule only and do not propagate down to nested rules.
 The following *attribute*s are available:
 
 * `dontcare`: Marks files that do not need to exist.
   If the file exists then its last-modified timestamp is checked and propagated,
   otherwise it is silently ignored. 
+* `force`: The associated shell action (if any) is always run, regardless of
+  whether the target file is outdated. In addition, no error is thrown if a
+  regular target file's timestamp wasn't updated after running the associated
+  shell action.
 * `ignore`: The timestamp associated with the *target* is ignored in dependency resolution.
 * `notrace`: Disables echoing (xtrace) of shell action commands.
   This does not disable the trace header for the containing rule (see *Shell actions* below).
@@ -247,6 +295,15 @@ The following *attribute*s are available:
   By convention, a virtual rule with target `install` performs pre-installation.
 
 > *Obsolete:*
+> 
+> At strict levels < 2:
+> 
+> * Making a prerequisite that is currently being made, or one that has
+>   already been made, is not an error, but produces a warning.
+> * Attributes may also be appended to the `done` command; the effect is the
+>   same as appending them to `make`. At strict level 1, this produces a
+>   deprecation warning.
+> 
 > At strict level 4 and up, the following *attribute* is not available.
 > 
 > * `implicit`: Equivalent to `dontcare`.
@@ -256,14 +313,14 @@ The following *attribute*s are available:
 > specifying these is an error.
 > 
 > * `archive`: Ignored.
->   Historically used to mark the generation of an `ar`(1) archive.
+>   Historically a no-op used to mark the generation of an `ar`(1) archive.
 > * `generated`: Marks rules that produce output files generated by a shell action.
 >   The explicit assignment of this attribute is ignored at strict level 1.
 >   The `exec` command implicitly assigns this attribute.
 >   If a rule has this attribute, other rules dependent on this rule
 >   will avoid applying viewpathing based on this rule.
 > * `joint`: Ignored.
->   Historically used to mark one of a group of rules that are built by a single shell action.
+>   Historically a no-op used to mark a group of rules that are built by a single shell action.
 
 ### Simple prerequisite rules ###
 
@@ -339,14 +396,15 @@ of the automatic variables for any `exec` line depends on the position
 of the line in the rule.
 
 At strict level 5 and up, mamake throws a "target not updated" error if a
-generated file is not newer than the newest prerequisite after its
+generated regular file is not newer than the newest prerequisite after its
 associated shell action has been executed, unless the rule has the
-`dontcare` attribute.
+`dontcare` or `force` attribute.
 
 #### Viewpathing ####
 
 After MAM variable expansion, *viewpathing* is applied.
-The first colon-separated element of `%{VPATH}` is considered
+The first colon-separated element of
+the `VPATH` environment variable is considered
 the object code directory and the second the source code directory;
 viewpathing provides the first with a view to the second.
 Viewpathing applies two transformations.
@@ -498,13 +556,14 @@ are processed as part of the rule containing the loop.
 The *variable* is restored to its previous state after the loop completes.
 
 Note that `loop` causes repeated reading and processing of Mamfile lines,
-*not* necessarily repeated execution. For instance, a loop can be used to
+*not* repeated execution. For instance, a loop can be used to
 consolidate repetitive `make`...`done` rules. However, each rule is only made
 once and subsequent rules by the same name are an error at strict level 3
 and up, or skipped over at strict < 3. So it only makes sense to do this
 if the contained make target names are modified by the expansion of the
 iteration *variable*.
 
+Unless `mamake` was compiled against libast,
 `loop` requires that the Mamfile be seekable (i.e.: not a pipe).
 
 ### Including a MAM file ###
@@ -559,6 +618,10 @@ split into whitespace-separated command arguments and inserted before every
 `valgrind`, `strace`, or `dtruss`, which are used by passing a command to
 them as a set of operands.
 
+The `-D` option tells `mamake` to produce debug output. It expects a
+numeric option-argument up to 5, indicating the debug trace level.
+Higher levels produce more output.
+
 ## Appendix: Main changes from the AT&T version ##
 
 Compared to the original AT&T version, ksh 93u+m made a number of
@@ -571,14 +634,15 @@ maintain Mamfiles by hand. The following lists the important changes.
 * Fixed a bug that stopped a rule marked `virtual` (not associated with
   any file) from being executed if a file by that rule's name exists.
 * Unrecognized commands and rule attributes throw an error instead of being silently ignored.
-  This also applies to the `bind` command with an argument not starting with `-l`.
+  This also applies to commands with missing non-optional arguments,
+  as well as the `bind` command with an argument not starting with `-l`.
 * It has been made optional to repeat the `make` target after `done`.
 * The `notrace` attribute was added to disable xtrace for a rule's shell action.
 * The automatic variables `%{@}`, `%{<}`, `%{^}` and `%{?}` have been added.
 * An iteration block command, `loop`...`done`, has been added.
 * A command to set common code for shell actions, `shim`, has been added.
 * The `bind` command now reads library header dependency rules from a central
-  rules file that is automatically generated for each library by the supplied
+  rules file that each library's Mamfile must generate using the supplied
   `mkdeps` script.
 * Attempting to make a rule that has already been made produces a warning.
 * Attempting to declare a dependency on a rule currently being made produces a warning.
@@ -590,6 +654,7 @@ maintain Mamfiles by hand. The following lists the important changes.
   `%{`*variable*`@`*sh-script*`}` have been added, allowing the editing of
   variable value fields. The fields are either written to the script's
   standard input as lines, or passed as positional parameters.
+* The `force` attribute has been added.
 * **At strict level 1 and up:**
     * Appending attributes to `done` instead of `make` is deprecated
       and produces a warning.
@@ -623,4 +688,14 @@ maintain Mamfiles by hand. The following lists the important changes.
       are expected to be compatible with parallel processing.
     * Unless the `dontcare` attribute is specified, it is an error for a
       shell action to fail to update the timestamp of any pre-existing
-      target file associated with its rule.
+      regular target file associated with its rule.
+
+## Appendix: mamake compiled against libast ##
+
+`mamake` stands on its own as a portable C program with no dependencies.
+However, after building libast, the ksh 93u+m build system rebuilds `mamake`
+to link it against that library, which enhances its functionality in the
+following ways:
+* The AST self-documentation options such as `--man` an `--help` are added.
+  Type `mamake '--???'` for more information (this works for any AST command).
+* The `loop` command can now handle a non-seekable Mamfile (e.g. a pipe).

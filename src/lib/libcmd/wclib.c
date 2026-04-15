@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -108,7 +108,7 @@ static int invalid(const char *file, int nlines)
  * handle UTF space characters
  */
 
-static int chkstate(int state, unsigned int c)
+static int chkstate(int state, int c)
 {
 	switch(state)
 	{
@@ -145,7 +145,7 @@ static int chkstate(int state, unsigned int c)
 		state = (c==0x9f?10:0);
 		break;
 	case 8:
-		return (iswspace(c)?10:0);
+		return (iswspace((wint_t)c)?10:0);
 	}
 	return state;
 }
@@ -169,7 +169,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 	int		lasttype = WC_SP;
 	unsigned int	lastchar;
 	ssize_t		n;
-	ssize_t		o;
+	ptrdiff_t	o;
 	unsigned char*	buff;
 	wchar_t		x;
 	unsigned char	side[32];
@@ -182,14 +182,14 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 		cp = buff = endbuff = 0;
 		for (;;)
 		{
-			if (cp >= endbuff || (n = mb2wc(x, cp, endbuff-cp)) < 0)
+			if (cp >= endbuff || (n = mb2wc(x, cp, (size_t)(endbuff-cp))) < 0)
 			{
-				if ((o = endbuff-cp) < sizeof(side))
+				if ((o = endbuff-cp) < (ssize_t)sizeof(side))
 				{
 					if (buff)
 					{
 						if (o)
-							memcpy(side, cp, o);
+							memcpy(side, cp, (size_t)o);
 					}
 					else
 						o = 0;
@@ -201,10 +201,10 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 						break;
 					}
 					nbytes += n;
-					if ((c = sizeof(side) - o) > n)
+					if ((c = (ssize_t)sizeof(side) - o) > n)
 						c = n;
 					if (c)
-						memcpy(cp, buff, c);
+						memcpy(cp, buff, (size_t)c);
 					endbuff = buff + n;
 					cp = side;
 					x = mbchar(cp);
@@ -222,7 +222,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 					x = -1;
 				}
 				if (x == -1 && eline != nlines && !(wp->mode & WC_QUIET))
-					eline = invalid(file, nlines);
+					eline = invalid(file, (int)nlines);
 			}
 			else
 				cp += n ? n : 1;
@@ -234,7 +234,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 				nlines++;
 				lasttype = 1;
 			}
-			else if (iswspace(x))
+			else if (iswspace((wint_t)x))
 				lasttype = 1;
 			else if (lasttype)
 			{
@@ -279,7 +279,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 						nlines++;
 					if ((c = type[*cp]) && !lasttype)
 						nwords++;
-					lasttype = c;
+					lasttype = (int)c;
 					continue;
 				}
 				if (!lasttype && type[*cp])
@@ -327,7 +327,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 	}
 	else
 	{
-		int		lineoff=0;
+		ptrdiff_t	lineoff=0;
 		int		skip=0;
 		int		adjust=0;
 		int		state=0;
@@ -352,7 +352,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 					nlines++;
 				if((c = type[*cp]) && !lasttype)
 					nwords++;
-				lasttype = c;
+				lasttype = (int)c;
 				endbuff = start;
 				continue;
 			}
@@ -453,7 +453,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 						skip = 0;
 						state = 0;
 						if(eline!=nlines && !(wp->mode & WC_QUIET))
-							eline = invalid(file, nlines);
+							eline = invalid(file, (int)nlines);
 						while(mbc(c) && ((c|WC_ERR) || (c&7)==0))
 							c=type[*cp++];
 						if(eol(c) && (cp > endbuff))

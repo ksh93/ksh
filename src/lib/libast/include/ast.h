@@ -157,6 +157,11 @@
 #define PATH_TOUCH_VERBATIM	02
 
 /*
+ * regex flags type (included here for the strgrpmatch() family)
+ */
+typedef uint32_t regflags_t;
+
+/*
  * strgrpmatch() flags
  */
 
@@ -165,7 +170,6 @@
 #define STR_RIGHT	0x04		/* implicit right anchor	*/
 #define STR_ICASE	0x08		/* ignore case			*/
 #define STR_GROUP	0x10		/* (|&) inside [@|&](...) only	*/
-#define STR_INT		0x20		/* int* match array		*/
 
 /*
  * fmtquote() flags
@@ -208,7 +212,6 @@
 #define mbmax()		( ast.mb.cur_max )
 #define mberr()		( ast.mb.tmp_i < 0 )
 
-#define mbcoll()	( ast.mb.xfrm != 0 )
 #define mbwide()	( mbmax() > 1 )
 
 #define mb2wc(w,p,n)	( (*ast.mb.towc)(&w, (char*)(p), n) )
@@ -217,9 +220,8 @@
 			( (p+=ast.mb.tmp_i),ast.mb.tmp_w) : (p+=ast.mb.sync+1,ast.mb.tmp_i) ) : (*(unsigned char*)(p++)) )
 #define mbsize(p)	mbnsize(p, mbmax())
 #define mbnsize(p,n)	( mbwide() ? (*ast.mb.len)((char*)(p), n) : ((p), 1) )
-#define mbconv(s,w)	( ast.mb.conv ? (*ast.mb.conv)(s,w) : ((*(s)=(w)), 1) )
+#define mbconv(s,w)	( ast.mb.conv ? (*ast.mb.conv)(s,w) : ((*(s)=(char)(w)), 1) )
 #define mbwidth(w)	( ast.mb.width ? (*ast.mb.width)(w) : (w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1) )
-#define mbxfrm(t,f,n)	( mbcoll() ? (*ast.mb.xfrm)((char*)(t), (char*)(f), n) : 0 )
 #define mbalpha(w)	( ast.mb.alpha ? (*ast.mb.alpha)(w) : isalpha((w) & 0xff) )
 
 #else
@@ -227,7 +229,6 @@
 #define mbmax()		1
 #define mberr()		0
 
-#define mbcoll()	0
 #define mbwide()	0
 
 #define mb2wc(w,p,n)	( (w) = *(unsigned char*)(p), 1 )
@@ -235,9 +236,8 @@
 #define mbnchar(p,n)	mbchar(p)
 #define mbsize(p)	1
 #define mbnsize(p,n)	1
-#define mbconv(s,w)	( (*(s)=(w)), 1 )
+#define mbconv(s,w)	( (*(s)=(char)(w)), 1 )
 #define mbwidth(w)	( w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1 )
-#define mbxfrm(t,f,n)	0
 #define mbalpha(w)	( isalpha((w) & 0xff) )
 
 #endif /* !AST_NOMULTIBYTE */
@@ -254,7 +254,6 @@
 #define oldof(p,t,n,x)	((p)?(t*)realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)malloc(sizeof(t)*(n)+(x)))
 #define pointerof(x)	((void*)((uintptr_t)(x)))
 #define roundof(x,y)	(((x)+(y)-1)&~((y)-1))
-#define ssizeof(x)	((int)sizeof(x))
 
 #define streq(a,b)	(!strcmp(a,b))
 #define strneq(a,b,n)	(!strncmp(a,b,n))
@@ -322,27 +321,27 @@ extern char*		conformance(const char*, size_t);
 extern char*		getcodeset(void);
 extern char*		fmtbuf(size_t);
 extern char*		fmtclock(Sfulong_t);
-extern char*		fmtelapsed(unsigned long, int);
+extern char*		fmtelapsed(unsigned long, unsigned long);
 extern char*		fmtesc(const char*);
 extern char*		fmtesq(const char*, const char*);
 extern char*		fmtident(const char*);
 extern char*		fmtip4(uint32_t, int);
 extern char*		fmtfmt(const char*);
-extern char*		fmtgid(int);
+extern char*		fmtgid(gid_t);
 extern char*		fmtint(intmax_t, int);
 extern char*		fmtmatch(const char*);
-extern char*		fmtmode(int, int);
+extern char*		fmtmode(mode_t, int);
 extern char*		fmtnesq(const char*, const char*, size_t);
 extern char*		fmtnum(unsigned long, int);
-extern char*		fmtperm(int);
+extern char*		fmtperm(mode_t);
 extern char*		fmtquote(const char*, const char*, const char*, size_t, int);
 extern char*		fmtre(const char*);
-extern char*		fmtscale(Sfulong_t, int);
+extern char*		fmtscale(Sfulong_t, unsigned int);
 extern char*		fmtsignal(int);
 extern char*		fmttime(const char*, time_t);
-extern char*		fmtuid(int);
+extern char*		fmtuid(uid_t);
 extern void*		memdup(const void*, size_t);
-extern unsigned int	memhash(const void*, int);
+extern size_t		memhash(const void*, int);
 extern unsigned long	memsum(const void*, int, unsigned long);
 extern char*		pathaccess(char*, const char*, const char*, const char*, int);
 extern char*		pathaccess_20100601(const char*, const char*, const char*, int, char*, size_t);
@@ -354,7 +353,7 @@ extern char*		pathcat_20100601(const char*, int, const char*, const char*, char*
 extern int		pathcd(const char*, const char*);
 extern int		pathexists(char*, int);
 extern char*		pathfind(const char*, const char*, const char*, char*, size_t);
-extern int		pathgetlink(const char*, char*, int);
+extern ssize_t		pathgetlink(const char*, char*, size_t);
 extern int		pathicase(const char*);
 extern int		pathinclude(const char*);
 extern size_t		pathnative(const char*, char*, size_t);
@@ -368,21 +367,19 @@ extern char*		pathtemp(char*, size_t, const char*, const char*, int*);
 extern char*		pathtmp(char*, const char*, const char*, int*);
 extern char*		setenviron(const char*);
 extern pid_t		spawnveg(const char*, char* const[], char* const[], pid_t, int);
-extern int		stracmp(const char*, const char*);
 extern char*		strcopy(char*, const char*);
 extern unsigned long	strelapsed(const char*, char**, int);
-extern int		stresc(char*);
-extern int		strexp(char*, int);
+extern ptrdiff_t	stresc(char*);
+extern ptrdiff_t	strexp(char*, int);
 extern long		streval(const char*, char**, long(*)(const char*, char**));
 extern long		strexpr(const char*, char**, long(*)(const char*, char**, void*), void*);
 extern int		strgid(const char*);
-extern int		strgrpmatch(const char*, const char*, ssize_t*, int, int);
-extern int		strngrpmatch(const char*, size_t, const char*, ssize_t*, int, int);
-extern unsigned int	strhash(const char*);
+extern ssize_t		strgrpmatch(const char*, const char*, ssize_t*, ssize_t, regflags_t);
+extern ssize_t		strngrpmatch(const char*, size_t, const char*, ssize_t*, ssize_t, regflags_t);
+extern size_t		strhash(const char*);
 extern void*		strlook(const void*, size_t, const char*);
-extern int		strmatch(const char*, const char*);
-extern int		strmode(const char*);
-extern int		strnacmp(const char*, const char*, size_t);
+extern ssize_t		strmatch(const char*, const char*);
+extern mode_t		strmode(const char*);
 extern char*		strncopy(char*, const char*, size_t);
 extern int		strnpcmp(const char*, const char*, size_t);
 extern double		strntod(const char*, size_t, char**);
@@ -396,18 +393,18 @@ extern uintmax_t	strntoull(const char*, size_t, char**, int);
 extern int		strnvcmp(const char*, const char*, size_t);
 extern int		stropt(const char*, const void*, int, int(*)(void*, const void*, int, const char*), void*);
 extern int		strpcmp(const char*, const char*);
-extern int		strperm(const char*, char**, int);
+extern mode_t		strperm(const char*, char**, mode_t);
 extern void*		strpsearch(const void*, size_t, size_t, const char*, char**);
 extern void*		strsearch(const void*, size_t, size_t, Strcmp_f, const char*, void*);
 extern void		strsort(char**, int, int(*)(const char*, const char*));
-extern char*		strsubmatch(const char*, const char*, int);
+extern char*		strsubmatch(const char*, const char*, regflags_t);
 extern unsigned long	strsum(const char*, unsigned long);
 extern char*		strtape(const char*, char**);
 extern int		strtoip4(const char*, char**, uint32_t*, unsigned char*);
 extern long		strton(const char*, char**, char*, int);
 extern intmax_t		strtonll(const char*, char**, char*, int);
 extern int		struid(const char*);
-extern int		struniq(char**, int);
+extern ptrdiff_t	struniq(char**, ptrdiff_t);
 extern int		strvcmp(const char*, const char*);
 #if !AST_NOMULTIBYTE
 extern size_t		utf32toutf8(char*, uint32_t);

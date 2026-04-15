@@ -1267,6 +1267,12 @@ then	got=$( { "$SHELL" -c '
 	'; } 2>&1)
 	((!(e = $?))) || err_exit 'crash with alarm and IFS' \
 		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
+	# alarm output should print the full floating point number
+	exp=$'alarm bar +2.200\nalarm -r foo +100.123'
+	got=$( "$SHELL" -c 'alarm -r foo 100.123; alarm bar 2.2; alarm' )
+	[[ $exp == $got ]] || err_exit "alarm output fumbles floating point numbers" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======
@@ -1292,7 +1298,7 @@ done
 exp='good'
 got=$($SHELL -c 't=good; t=bad command -@; print $t' 2>/dev/null)
 [[ $exp == $got ]] || err_exit "temp var assignment with 'command'" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # In ksh93v- 2013-10-10 alpha cd doesn't fail on directories without execute permission.
@@ -1794,7 +1800,12 @@ got=$(unset IFS; printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "
 exp=$'end: <one\ntwo\nthree>'
 [[ $got == "$exp" ]] || err_exit "issue 926 r10 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# ====== MUST BE AT END ======
+# ======
+got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
+(( (e = $?) <= 128 )) || err_exit "crash passing multibyte character option" \
+	"(got exit status $e/SIG$(kill -l "$e"), output $(printf %q "$got"))"
+
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"
 case $? in
@@ -1810,4 +1821,5 @@ case $? in
 15)	err_exit "read -t in pipe not taking long enough" ;;
 *)	err_exit "broken test" ;;
 esac
+
 exit $((Errors<125?Errors:125))

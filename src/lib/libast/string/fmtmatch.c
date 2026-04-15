@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,12 +40,11 @@ fmtmatch(const char* as)
 	char*	z;
 	int	a;
 	int	e;
-	int	n;
+	ssize_t	n;
 	char*	buf;
 	char*	stack[32];
 
-	c = 3 * (strlen(s) + 1);
-	buf = fmtbuf(c);
+	buf = fmtbuf(3 * (strlen(s) + 1));
 	t = b = buf + 3;
 	p = stack;
 	if (a = *s == '^')
@@ -68,14 +67,14 @@ fmtmatch(const char* as)
 				*t++ = *s++;
 				*t++ = '(';
 				*t++ = '\\';
-				*t++ = c;
+				*t++ = (char)c;
 				c = ')';
 				break;
 			case '|':
 			case '&':
 				if (c == '(')
 				{
-					*t++ = c;
+					*t++ = (char)c;
 					c = *s++;
 					goto logical;
 				}
@@ -87,11 +86,11 @@ fmtmatch(const char* as)
 				*t++ = '\\';
 				break;
 			}
-			*t++ = c;
+			*t++ = (char)c;
 			continue;
 		case '[':
 			x = t;
-			*t++ = c;
+			*t++ = (char)c;
 			if ((c = *s++) == '^')
 			{
 				*t++ = '!';
@@ -100,18 +99,18 @@ fmtmatch(const char* as)
 			else if (c == '!')
 			{
 				*t++ = '\\';
-				*t++ = c;
+				*t++ = (char)c;
 				c = *s++;
 			}
 			for (;;)
 			{
-				if (!(*t++ = c))
+				if (!(*t++ = (char)c))
 					return NULL;
 				if (c == '\\')
-					*t++ = c;
+					*t++ = (char)c;
 				if ((c = *s++) == ']')
 				{
-					*t++ = c;
+					*t++ = (char)c;
 					break;
 				}
 			}
@@ -154,7 +153,7 @@ fmtmatch(const char* as)
 			if (p == stack)
 				return NULL;
 			p--;
-			*t++ = c;
+			*t++ = (char)c;
 			switch (*s)
 			{
 			case 0:
@@ -177,7 +176,7 @@ fmtmatch(const char* as)
 				for (z = s; *z != '}'; z++)
 					if (!*z)
 						return NULL;
-				n = z - s;
+				n = (ssize_t)(z - s);
 				if (*++z == '?')
 					n++;
 				x = *p + n;
@@ -229,7 +228,7 @@ fmtmatch(const char* as)
 			n = *(t - 1);
 			if (t == b || n == '(' || n == '|')
 				return NULL;
-			*(t - 1) = c;
+			*(t - 1) = (char)c;
 			if (c == '{')
 			{
 				for (z = s; *z != '}'; z++)
@@ -243,7 +242,7 @@ fmtmatch(const char* as)
 				*t++ = '-';
 			}
 			*t++ = '(';
-			*t++ = n;
+			*t++ = (char)n;
 			*t++ = ')';
 			continue;
 		case '|':
@@ -258,14 +257,14 @@ fmtmatch(const char* as)
 				*--b = '(';
 				*--b = '@';
 			}
-			*t++ = c;
+			*t++ = (char)c;
 			continue;
 		case '$':
 			if (e = !*s)
 				break;
 			/* FALLTHROUGH */
 		default:
-			*t++ = c;
+			*t++ = (char)c;
 			continue;
 		}
 		break;

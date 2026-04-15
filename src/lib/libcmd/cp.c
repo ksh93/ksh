@@ -135,7 +135,7 @@ static const char usage_tail[] =
 #include <stk.h>
 #include <tmx.h>
 
-#define PATH_CHUNK	256
+#define PATH_CHUNK	256U
 
 #define CP		1
 #define LN		2
@@ -159,17 +159,14 @@ typedef struct State_s			/* program state		*/
 	int		force;		/* force approval		*/
 	int		hierarchy;	/* preserve hierarchy		*/
 	int		interactive;	/* prompt for approval		*/
-	int		missmode;	/* default missing dir mode	*/
+	mode_t		missmode;	/* default missing dir mode	*/
+	mode_t		perm;		/* permissions to preserve	*/
 	int		op;		/* {CP,LN,MV}			*/
-	int		perm;		/* permissions to preserve	*/
-	int		postsiz;	/* state.path post index	*/
-	int		presiz;		/* state.path pre index		*/
 	int		preserve;	/* preserve { ids perms times }	*/
 	int		recursive;	/* subtrees too			*/
 	int		remove;		/* remove destination before op	*/
-	int		suflen;		/* strlen(state.suffix)		*/
 	int		sync;		/* fsync() each file after copy	*/
-	int		uid;		/* caller UID			*/
+	uid_t		uid;		/* caller UID			*/
 	int		update;		/* replace only if newer	*/
 	int		verbose;	/* list each file before op	*/
 	int		wflags;		/* open() for write flags	*/
@@ -178,7 +175,10 @@ typedef struct State_s			/* program state		*/
 	int		(*stat)(const char*, struct stat*);	/* stat	*/
 
 #define INITSTATE	pathsiz		/* (re)init state before this	*/
-	int		pathsiz;	/* state.path buffer size	*/
+	size_t		pathsiz;	/* state.path buffer size	*/
+	size_t		postsiz;	/* state.path post index	*/
+	ssize_t		presiz;		/* state.path pre index		*/
+	size_t		suflen;		/* strlen(state.suffix)		*/
 
 
 	char*		path;		/* to pathname buffer		*/
@@ -231,10 +231,11 @@ visit(State_t* state, FTSENT* ent)
 {
 	char*		base;
 	int		n;
-	int		len;
+	ssize_t		len;
 	int		rm = state->remove || ent->fts_info == FTS_SL;
 	int		m;
 	int		v;
+	size_t		length;
 	char*		s;
 	char*		e;
 	char*		protection;
@@ -253,12 +254,12 @@ visit(State_t* state, FTSENT* ent)
 	if (ent->fts_level == 0)
 	{
 		base = ent->fts_name;
-		len = ent->fts_namelen;
+		len = (ssize_t)ent->fts_namelen;
 		if (state->hierarchy)
 			state->presiz = -1;
 		else
 		{
-			state->presiz = ent->fts_pathlen;
+			state->presiz = (ssize_t)ent->fts_pathlen;
 			while (*base == '.' && *(base + 1) == '/')
 				for (base += 2; *base == '/'; base++);
 			if (*base == '.' && !*(base + 1))
@@ -278,12 +279,12 @@ visit(State_t* state, FTSENT* ent)
 	else
 	{
 		base = ent->fts_path + state->presiz + 1;
-		len = ent->fts_pathlen - state->presiz - 1;
+		len = (ssize_t)ent->fts_pathlen - state->presiz - 1;
 	}
 	len++;
 	if (state->directory)
 	{
-		if ((state->postsiz + len) > state->pathsiz && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + len, PATH_CHUNK), 0)))
+		if ((state->postsiz + (size_t)len) > state->pathsiz && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + (size_t)len, PATH_CHUNK), 0)))
 		{
 			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
@@ -291,7 +292,7 @@ visit(State_t* state, FTSENT* ent)
 		if (state->hierarchy && ent->fts_level == 0 && strchr(base, '/'))
 		{
 			s = state->path + state->postsiz;
-			memcpy(s, base, len);
+			memcpy(s, base, (size_t)len);
 			while (e = strchr(s, '/'))
 			{
 				*e = 0;
@@ -322,7 +323,7 @@ visit(State_t* state, FTSENT* ent)
 		if (state->preserve && state->op != LN || ent->fts_level > 0 && (ent->fts_statp->st_mode & S_IRWXU) != S_IRWXU)
 		{
 			if (len && ent->fts_level > 0)
-				memcpy(state->path + state->postsiz, base, len);
+				memcpy(state->path + state->postsiz, base, (size_t)len);
 			else
 				state->path[state->postsiz] = 0;
 			if (stat(state->path, &st))
@@ -362,7 +363,7 @@ visit(State_t* state, FTSENT* ent)
 			/* FALLTHROUGH */
 		case FTS_D:
 			if (state->directory)
-				memcpy(state->path + state->postsiz, base, len);
+				memcpy(state->path + state->postsiz, base, (size_t)len);
 			if (!(*state->stat)(state->path, &st))
 			{
 				if (!S_ISDIR(st.st_mode))
@@ -396,7 +397,7 @@ visit(State_t* state, FTSENT* ent)
 		break;
 	}
 	if (state->directory)
-		memcpy(state->path + state->postsiz, base, len);
+		memcpy(state->path + state->postsiz, base, (size_t)len);
 	if ((*state->stat)(state->path, &st))
 		st.st_mode = 0;
 	else if (state->update && !S_ISDIR(st.st_mode) && (unsigned long)ent->fts_statp->st_mtime < (unsigned long)st.st_mtime)
@@ -485,12 +486,12 @@ visit(State_t* state, FTSENT* ent)
 				e = (char*)dot;
 				s = state->path;
 			}
-			n = strlen(s);
+			length = strlen(s);
 			if (fts = fts_open((char**)e, FTS_NOCHDIR|FTS_ONEPATH|FTS_PHYSICAL|FTS_NOPOSTORDER|FTS_NOSTAT|FTS_NOSEEDOTDIR, NULL))
 			{
 				while (sub = fts_read(fts))
 				{
-					if (strneq(s, sub->fts_name, n) && sub->fts_name[n] == '.' && strneq(sub->fts_name + n + 1, state->suffix, state->suflen) && (m = strtol(sub->fts_name + n + state->suflen + 1, &e, 10)) && streq(e, state->suffix) && m > v)
+					if (strneq(s, sub->fts_name, length) && sub->fts_name[length] == '.' && strneq(sub->fts_name + length + 1, state->suffix, state->suflen) && (m = (int)strtol(sub->fts_name + length + state->suflen + 1, &e, 10)) && streq(e, state->suffix) && m > v)
 						v = m;
 					if (sub->fts_level)
 						fts_set(NULL, sub, FTS_SKIP);
@@ -555,12 +556,13 @@ visit(State_t* state, FTSENT* ent)
 	case CP:
 		if (S_ISLNK(ent->fts_statp->st_mode))
 		{
-			if ((n = pathgetlink(ent->fts_path, state->text, sizeof(state->text) - 1)) < 0)
+			ssize_t l;
+			if ((l = pathgetlink(ent->fts_path, state->text, sizeof(state->text) - 1)) < 0)
 			{
 				error(ERROR_SYSTEM|2, "%s: cannot read symbolic link text", ent->fts_path);
 				return 0;
 			}
-			state->text[n] = 0;
+			state->text[l] = 0;
 			if (pathsetlink(state->text, state->path))
 			{
 				error(ERROR_SYSTEM|2, "%s: cannot copy symbolic link to %s", ent->fts_path, state->path);
@@ -585,14 +587,14 @@ visit(State_t* state, FTSENT* ent)
 			}
 			else if (ent->fts_statp->st_size > 0)
 			{
-				if (!(ip = sfnew(NULL, NULL, SFIO_UNBOUND, rfd, SFIO_READ)))
+				if (!(ip = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, rfd, SFIO_READ)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s read stream error", ent->fts_path, state->path);
 					ast_close(rfd);
 					ast_close(wfd);
 					return 0;
 				}
-				if (!(op = sfnew(NULL, NULL, SFIO_UNBOUND, wfd, SFIO_WRITE)))
+				if (!(op = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, wfd, SFIO_WRITE)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s write stream error", ent->fts_path, state->path);
 					ast_close(wfd);
@@ -874,12 +876,12 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		argc--;
 		argv++;
 	}
-	if (!(v = stkalloc(stkstd, (argc + 2) * sizeof(char*))))
+	if (!(v = stkalloc(stkstd, (size_t)(argc + 2) * sizeof(char*))))
 	{
 		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();
 	}
-	memcpy(v, argv, (argc + 1) * sizeof(char*));
+	memcpy(v, argv, (size_t)(argc + 1) * sizeof(char*));
 	argv = v;
 	if (!standard)
 	{

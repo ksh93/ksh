@@ -1,4 +1,4 @@
-lib	eaccess,euidaccess
+lib	faccessat,eaccess,euidaccess
 macro{
 	#include <sys/types.h>
 	#include <unistd.h>

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,6 +15,7 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -164,7 +165,7 @@ extern char**		tmlocale(void);
 extern Tm_t*		tmmake(time_t*);
 extern char*		tmpoff(char*, size_t, const char*, int, int);
 extern time_t		tmscan(const char*, char**, const char*, char**, time_t*, long);
-extern int		tmsleep(time_t, time_t);
+extern int		tmsleep(time_t, uint32_t);
 extern time_t		tmtime(Tm_t*, int);
 extern Tm_zone_t*	tmtype(const char*, char**);
 extern int		tmweek(Tm_t*, int, int, int);

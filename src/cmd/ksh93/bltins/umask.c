@@ -24,7 +24,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<sfio.h>
 #include	<error.h>
@@ -39,7 +39,8 @@
 int	b_umask(int argc,char *argv[],Shbltin_t *context)
 {
 	char *mask;
-	int flag = 0, pflag = 0, sflag = 0;
+	mode_t flag = 0;
+	int pflag = 0, sflag = 0;
 	NOT_USED(context);
 	while((argc = optget(argv,sh_optumask))) switch(argc)
 	{
@@ -65,13 +66,13 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 	argv += opt_info.index;
 	if(mask = *argv)
 	{
-		int c;
 		if(isdigit(*mask))
 		{
+			int c;
 			while(c = *mask++)
 			{
 				if (c>='0' && c<='7')
-					flag = (flag<<3) + (c-'0');
+					flag = (mode_t)((flag<<3) + (mode_t)(c-'0'));
 				else
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_number,*argv);
@@ -82,6 +83,7 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 		else
 		{
 			char *cp = mask;
+			mode_t c;
 			flag = umask(0);
 			c = strperm(cp,&cp,~flag&0777);
 			if(*cp)

@@ -1,5 +1,61 @@
 # SHOPT_* option probe
-# More (shell script-based) probes are in src/cmd/ksh93/Mamfile
+
+tst	note{ reading compile-time ksh options from SHOPT.sh }end run{
+	writedef()
+	{
+		echo "${3:-#ifndef SHOPT_$1}"
+		echo "#   define SHOPT_$1	$2"
+		echo "#endif"
+		echo
+	}
+
+	SHOPT()
+	{
+		n=${1%%=*}	# name
+		v=${1#*=}	# value
+		# probe certain options if they don't have a value configured
+		case $1 in
+		'MULTIBYTE=')
+			# by default, SHOPT_MULTIBYTE is the opposite of AST_NOMULTIBYE
+			writedef MULTIBYTE 1 '#if !defined(SHOPT_MULTIBYTE) && !AST_NOMULTIBYTE' ;;
+		'DEVFD=')
+			# if /dev/fd/n exposes file descriptor n, make SHOPT_DEVFD use this for
+			# process substitutions instead of FIFOs, which are not as secure
+			# WARNING: do not use 'test -e' for this test (too many shells break it
+			# by failing to test for the physical existence of /dev/fd/9 in the FS)
+			ls -d /dev/fd/9 9<&0 >/dev/null 2>&1 && writedef DEVFD 1 ;;
+		'TEST_L=')
+			# if external 'test' supports lowercase -l as equivalent to -L, enable
+			# SHOPT_TEST_L so ksh supports it for compatibility with local scripts
+			ln -s /dev/null "$EXECROOT/link$$"
+			if	env test -l "$EXECROOT/link$$" && env test ! -l .
+			then	writedef TEST_L 1
+			fi 2>/dev/null
+			rm -f "$EXECROOT/link$$" ;;
+		'PRINTF_LEGACY=')
+			# if external 'printf' allows POSIX-ignorant syntax (i.e., a format operand
+			# starting with '-' without prior '--'), enable code for backward compat
+			case $(env printf '-zut%s\n' alors 2>/dev/null) in
+			-zutalors)
+				writedef PRINTF_LEGACY 1 ;;
+			esac ;;
+		# some other SHOPTs may be probed for using feature tests in features/options
+		*=?*)
+			writedef "$n" "$v" ;;
+		esac
+		printf '\n\t* SHOPT_%s = %s' "$n" "${v:-(probe)}" >&9  # show in make.out
+	}
+
+	# the SHOPT.sh file calls the SHOPT function once for each option
+	echo ''
+	. "$PACKAGEROOT/src/cmd/ksh93/SHOPT.sh"
+
+	# cosmetic: position iffe's "yes"
+	printf '\n...' >&9
+}end fail{
+	echo "$0: compile-time ksh options probe failed" >&2
+	exit 1
+}end
 
 tst	note{ can we probe file system case insensitivity }end output{
 	#include <ast.h>
@@ -11,10 +67,26 @@ tst	note{ can we probe file system case insensitivity }end output{
 		int r;
 		r = pathicase("/");
 		r = (r > -1 || errno != ENOSYS);
-		printf("#ifndef %s\n#   define %s\t%d\n#endif\n", o, o, r);
+		printf("#ifndef %s\n#   define %s\t%d\n#endif\n\n", o, o, r);
 		return !r;
 	}
 }end
 
 # for SHOPT_ACCT:
 sys	acct
+
+tst note{ writing overrides }end cat{
+
+	/* overrides */
+	#if SHOPT_SCRIPTONLY
+	#   undef SHOPT_ACCT
+	#   undef SHOPT_AUDIT
+	#   undef SHOPT_ESH
+	#   undef SHOPT_HISTEXPAND
+	#   undef SHOPT_SYSRC
+	#   undef SHOPT_VSH
+	#endif
+	#if !_sys_acct
+	#   undef SHOPT_ACCT
+	#endif
+}end

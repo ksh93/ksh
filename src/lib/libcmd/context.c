@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2014 AT&T Intellectual Property          *
-*             Copyright (c) 2025 Contributors to ksh 93u+m             *
+*          Copyright (c) 2025-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -13,10 +13,11 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#define CONTEXT_BLOCK		(1024*1024)
-#define CONTEXT_LINE		(4*1024)
+#define CONTEXT_BLOCK		(1024U*1024U)
+#define CONTEXT_LINE		(4U*1024U)
 
 #define _CONTEXT_LINE_PRIVATE_		\
 	unsigned char	show;		\
@@ -30,10 +31,10 @@
 	char*		buf;		\
 	char*		cur;		\
 	char*		end;		\
-	unsigned int	before;		\
-	unsigned int	after;		\
-	unsigned int	total;		\
-	unsigned int	curline;	\
+	size_t		before;		\
+	size_t		after;		\
+	size_t		total;		\
+	size_t		curline;	\
 	uintmax_t	lineno;		\
 	Context_line_t	line[1];
 
@@ -101,11 +102,11 @@ context_line(Context_t* cp)
 		lp->span = 0;
 		free(lp->data);
 	}
-	n = cp->end - cp->cur;
+	n = (size_t)(cp->end - cp->cur);
 	if (s = memchr(cp->cur, '\n', n))
 	{
 		lp->data = cp->cur;
-		n = s - cp->cur + 1;
+		n = (size_t)(s - cp->cur + 1);
 		cp->cur += n;
 		lp->size = n;
 	}
@@ -127,11 +128,11 @@ context_line(Context_t* cp)
 			if ((r = sfread(cp->ip, cp->buf, CONTEXT_BLOCK)) <= 0)
 				return 0;
 			cp->end = cp->buf + r;
-			n = (s = memchr(cp->buf, '\n', r)) ? (s - cp->buf + 1) : r;
-			if (n > (e - t))
+			n = (s = memchr(cp->buf, '\n', (size_t)r)) ? (size_t)(s - cp->buf + 1) : (size_t)r;
+			if ((ssize_t)n > (e - t))
 			{
 				r = t - lp->data;
-				m = r + (s - cp->buf);
+				m = (size_t)(r + (s - cp->buf));
 				m = roundof(m, CONTEXT_LINE);
 				if (!(lp->data = oldof(lp->data, char, m, 0)))
 					return 0;
@@ -141,7 +142,7 @@ context_line(Context_t* cp)
 			t += n;
 			cp->cur = cp->buf + n;
 		} while (!s);
-		lp->size = t - lp->data;
+		lp->size = (size_t)(t - lp->data);
 	}
 	lp->line = ++cp->lineno;
 	return lp;
@@ -150,8 +151,8 @@ context_line(Context_t* cp)
 int
 context_show(Context_t* cp)
 {
-	int	i;
-	int	j;
+	size_t		i;
+	size_t		j;
 
 	j = cp->curline;
 	for (i = 0; i < cp->after; i++)
@@ -178,7 +179,7 @@ context_show(Context_t* cp)
 int
 context_close(Context_t* cp)
 {
-	int	j;
+	size_t		j;
 
 	for (j = 0; j < cp->total; j++)
 	{

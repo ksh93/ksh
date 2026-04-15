@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -133,9 +133,9 @@ int
 ccmapid(const char* name)
 {
 	const Ccmap_t*	mp;
-	int		c;
 	const Ccmap_t*	bp;
-	int		n;
+	int		c;
+	ssize_t		n;
 	ssize_t		sub[2];
 
 	bp = 0;

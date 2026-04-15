@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,7 +26,7 @@
  *  This is the parser for a shell language
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
 #include	<error.h>
@@ -79,8 +79,10 @@ static unsigned long writedefs(Lex_t *lexp,struct argnod *arglist, int line, int
 {
 	struct argnod *argp = arglist;
 	char *cp;
-	int n,eline;
-	int width=0;
+	int eline;
+	size_t width=0;
+	int n;
+	ssize_t len;
 	unsigned long r=0;
 	static char atbuff[20];
 	int  justify=0;
@@ -114,11 +116,11 @@ static unsigned long writedefs(Lex_t *lexp,struct argnod *arglist, int line, int
 			while((n= *++cp))
 			{
 				if(isdigit(n))
-					width = 10*width + n-'0';
+					width = 10*width + (size_t)n-'0';
 				else if(n=='L' || n=='R' || n =='Z')
-					justify=n;
+					justify = n;
 				else
-					*attribute++ = n;
+					*attribute++ = (char)n;
 			}
 		}
 	}
@@ -128,11 +130,11 @@ static unsigned long writedefs(Lex_t *lexp,struct argnod *arglist, int line, int
 	while(argp)
 	{
 		if((cp=strchr(argp->argval,'='))||(cp=strchr(argp->argval,'?')))
-			n = cp-argp->argval;
+			p = (ssize_t)(cp-argp->argval);
 		else
-			n = strlen(argp->argval);
+			p = (ssize_t)strlen(argp->argval);
 		eline = sh.inlineno-(lexp->token==NL);
-		r=kiaentity(lexp,argp->argval,n,type,line,eline,parent,justify,width,atbuff);
+		r=kiaentity(lexp,argp->argval,p,type,line,eline,parent,justify,width,atbuff);
 		sfprintf(kia.tmp,"p;%..64d;v;%..64d;%d;%d;s;\n",kia.current,r,line,eline);
 		argp = argp->argnxt.ap;
 	}
@@ -396,7 +398,7 @@ void	*sh_parse(Sfio_t *iop, int flag)
 	Lex_t		*lexp = (Lex_t*)sh.lex_context;
 	Fcin_t		sav_input;
 	struct argnod	*sav_arg = lexp->arg;
-	int		sav_prompt = sh.nextprompt;
+	short		sav_prompt = sh.nextprompt;
 	if(sh.binscript && (sffileno(iop)==sh.infd || (flag&SH_FUNEVAL)))
 		return sh_trestore(iop);
 	fcsave(&sav_input);
@@ -738,10 +740,10 @@ static struct regnod*	syncase(Lex_t *lexp,int esym)
 static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 {
 	Shnode_t	*t, *tw = tf;
-	int		offset;
+	ptrdiff_t	offset;
 	struct argnod	*argp;
 	int		n;
-	int		argflag = lexp->arg->argflag;
+	uint8_t		argflag = lexp->arg->argflag;
 	Fcin_t		sav_input;
 	/* save current input */
 	fcsave(&sav_input);
@@ -762,7 +764,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 		if(!lexp->token)
 			break;
 		/* remove trailing white space */
-		while(offset>ARGVAL && ((c= *stkptr(sh.stk,offset-1)),isspace(c)))
+		while(offset>(signed)ARGVAL && ((c= *stkptr(sh.stk,offset-1)),isspace(c)))
 			offset--;
 		/* check for empty initialization expression */
 		if(offset==ARGVAL && n==0)
@@ -778,7 +780,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 		else
 			tw->wh.whtre = t;
 	}
-	while((offset=fcpeek(0)) && isspace(offset))
+	while((offset=fcpeek(0)) && isspace((int)offset))
 		fcseek(1);
 	sfputr(sh.stk,fcseek(0),-1);
 	argp = stkfreeze(sh.stk,1);
@@ -819,7 +821,9 @@ static Shnode_t *funct(Lex_t *lexp)
 #if SHOPT_KIA
 	unsigned long current = kia.current;
 #endif /* SHOPT_KIA */
-	int nargs=0,size=0,jmpval;
+	size_t nargs=0;
+	size_t size=0;
+	int jmpval;
 	struct  checkpt buff;
 	int save_optget = opt_get;
 	void	*in_mktype = sh.mktype;
@@ -867,7 +871,7 @@ static Shnode_t *funct(Lex_t *lexp)
 			}
 			if(c)
 				sh_syntax(lexp,2);
-			nargs = argv-argv0;
+			nargs = (size_t)(argv-argv0);
 			size += sizeof(struct dolnod)+(nargs+ARG_SPARE)*sizeof(char*);
 			if(sh.shcomp && strncmp(".sh.math.",t->funct.functnam,9)==0)
 			{
@@ -875,7 +879,7 @@ static Shnode_t *funct(Lex_t *lexp)
 				Namval_t *np= nv_open(t->funct.functnam,sh.fun_tree,NV_ADD|NV_VARNAME);
 				rp = np->nvalue = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
 				memset(rp, 0, sizeof(struct Ufunction));
-				rp->argc = ac->comarg.dp->dolnum;
+				rp->argc = (short)ac->comarg.dp->dolnum;
 			}
 		}
 		while(lexp->token==NL)
@@ -997,25 +1001,26 @@ static int check_array(Lex_t *lexp)
 static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
 {
 	int n;
+	size_t len;
 	Shnode_t *t, **tp;
 	struct comnod *ac = NULL;
 	int array=0, index=0;
 	Namval_t *np;
 	lexp->assignlevel++;
-	n = strlen(ap->argval)-1;
-	if(ap->argval[n]!='=')
+	len = strlen(ap->argval)-1;
+	if(ap->argval[len]!='=')
 		sh_syntax(lexp,0);
-	if(ap->argval[n-1]=='+')
+	if(ap->argval[len-1]=='+')
 	{
-		ap->argval[n--]=0;
+		ap->argval[len--]=0;
 		array = ARG_APPEND;
 		type |= NV_APPEND;
 	}
 	/* shift right */
-	while(n > 0)
+	while(len > 0)
 	{
-		ap->argval[n] = ap->argval[n-1];
-		n--;
+		ap->argval[len] = ap->argval[len-1];
+		len--;
 	}
 	*ap->argval=0;
 	t = getnode(fornod);
@@ -1196,7 +1201,8 @@ static Shnode_t	*item(Lex_t *lexp,int flag)
 	int tok = (lexp->token&0xff);
 	int savwdval = lexp->lasttok;
 	int savline = lexp->lastline;
-	int showme=0, comsub;
+	int showme=0;
+	char comsub;
 	if(!(flag&SH_NOIO) && (tok=='<' || tok=='>' || lexp->token==IOVNAME))
 		io=inout(lexp,NULL,1);
 	else
@@ -1399,12 +1405,12 @@ static struct argnod *process_sub(Lex_t *lexp,int tok)
 {
 	struct argnod *argp;
 	Shnode_t *t;
-	int mode = (tok==OPROCSYM);
+	uint8_t mode = (tok==OPROCSYM);
 	t = sh_cmd(lexp,RPAREN,SH_NL);
 	argp = stkalloc(sh.stk,sizeof(struct argnod));
 	*argp->argval = 0;
 	argp->argchn.ap = (struct argnod*)makeparent(lexp,mode?TFORK|FPIN|FAMP|FPCL:TFORK|FPOU,t);
-	argp->argflag =  (ARG_EXP|mode);
+	argp->argflag = (ARG_EXP|mode);
 	return argp;
 }
 
@@ -1415,7 +1421,7 @@ static struct argnod *process_sub(Lex_t *lexp,int tok)
 static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 {
 	struct comnod	*t;
-	struct argnod	*argp;
+	struct argnod	*argp, *ap;
 	int		tok;
 	struct argnod	**argtail;
 	struct argnod	**settail;
@@ -1424,7 +1430,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 	int		was_assign = 0;
 	int		argno = 0;
 	int		assignment = 0;
-	int		key_on = (!(flag&SH_NOIO) && sh_isoption(SH_KEYWORD));
+	char		key_on = (!(flag&SH_NOIO) && sh_isoption(SH_KEYWORD));
 	int		associative=0;
 	if((argp=lexp->arg) && (argp->argflag&ARG_ASSIGN) && argp->argval[0]=='[')
 	{
@@ -1458,11 +1464,11 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 			lexp->assignok = (flag&SH_ASSIGN)?SH_ASSIGN:1;
 			if(assignment)
 			{
-				struct argnod *ap=argp;
+				ap=argp;
 				if(assignment==1)
 				{
 					stkseek(sh.stk,ARGVAL);
-					sfwrite(sh.stk,argp->argval,lexp->varnamelength);
+					sfwrite(sh.stk,argp->argval,(size_t)lexp->varnamelength);
 					ap = stkfreeze(sh.stk,1);
 					ap->argflag = ARG_RAW;
 					ap->argchn.ap = 0;
@@ -1530,13 +1536,12 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		{
 			if(argp->argflag&ARG_ASSIGN)
 			{
-				int intypeset = lexp->intypeset;
+				char intypeset = lexp->intypeset;
 				lexp->intypeset = 0;
 				if(t->comnamp == SYSCOMPOUND)
 					type = NV_COMVAR;
 				else if((Namval_t*)t->comnamp >= SYSTYPESET && (Namval_t*)t->comnamp <= SYSTYPESET_END)
 				{
-					struct argnod  *ap;
 					for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
 					{
 						if(*ap->argval!='-')
@@ -1624,11 +1629,30 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 		}
 	}
 #endif /* SHOPT_KIA */
-	/* noexec: warn about set - and set -k */
-	if(sh_isoption(SH_NOEXEC) && t->comnamp && (argp = t->comarg.ap->argnxt.ap)
-	&& (Namval_t*)t->comnamp==SYSSET && ((tok = *argp->argval)=='-' || tok=='+')
-	&& (argp->argval[1]==0 || strchr(argp->argval,'k')))
-		errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,sh.inlineno-(lexp->token=='\n'),argp->argval);
+	/* noexec: warn about obsolescent options passed to set and alias */
+	if(sh_isoption(SH_NOEXEC) && t->comnamp)
+	{
+		int lineno = sh.inlineno - (lexp->token == NL);
+		if((Namval_t*)t->comnamp==SYSSET)
+		{
+			char *prev_argval = NULL;
+			for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
+			{
+				if(strmatch(ap->argval,"(*eyword|*og|*rackall|*iraw)|([+-][^-]*[hkt]*)|([+-][hkt]*)|([+-])"))
+				{
+					if(strmatch(prev_argval,"[+-]o"))
+						errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete7,lineno,prev_argval,ap->argval);
+					else
+						errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete5,lineno,ap->argval);
+				}
+				prev_argval = ap->argval;
+			}
+		}
+		else if((Namval_t*)t->comnamp==SYSALIAS)
+			for(ap = t->comarg.ap->argnxt.ap; ap; ap = ap->argnxt.ap)
+				if(strmatch(ap->argval, "-*x*"))
+					errormsg(SH_DICT,ERROR_warn(0),e_lexobsolete8,lineno,ap->argval);
+	}
 	/* expand argument list if possible */
 	if(argno>0 && !(flag&(SH_ARRAY|NV_APPEND)))
 		t->comarg.ap = qscan(t,argno);
@@ -1774,7 +1798,7 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 		if(lexp->arg->argflag&ARG_RAW)
 			iof |= IORAW;
 	}
-	iop->iofile=iof;
+	iop->iofile=(unsigned)iof;
 	if(flag>0)
 		/* allow alias substitutions and parameter assignments */
 		lexp->aliasok = lexp->assignok = 1;
@@ -1857,7 +1881,7 @@ static struct argnod *qscan(struct comnod *ac,int argn)
 			errormsg(SH_DICT,ERROR_warn(0),message,ac->comline);
 	}
 	/* leave space for an extra argument at the front */
-	dp = stkalloc(sh.stk,(unsigned)sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + argn*sizeof(char*));
+	dp = stkalloc(sh.stk,sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argn*sizeof(char*));
 	cp = dp->dolval+ARG_SPARE;
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;
@@ -2032,13 +2056,13 @@ static Shnode_t *test_primary(Lex_t *lexp)
  * return an entity checksum
  * The entity is created if it doesn't exist
  */
-unsigned long kiaentity(Lex_t *lexp,const char *name,int len,int type,int first,int last,unsigned long parent, int pkind, int width, const char *attr)
+unsigned long kiaentity(Lex_t *lexp,const char *name,ssize_t len,int type,int first,int last,unsigned long parent, int pkind, size_t width, const char *attr)
 {
 	Namval_t *np;
-	long offset = stktell(sh.stk);
+	ptrdiff_t offset = stktell(sh.stk);
 	sfputc(sh.stk,type);
 	if(len>0)
-		sfwrite(sh.stk,name,len);
+		sfwrite(sh.stk,name,(size_t)len);
 	else
 	{
 		if(type=='p')
@@ -2058,9 +2082,9 @@ unsigned long kiaentity(Lex_t *lexp,const char *name,int len,int type,int first,
 		if(!pkind)
 			pkind = '0';
 		if(len>0)
-			sfprintf(kia.file,"%..64d;%c;%.*s;%d;%d;%..64d;%..64d;%c;%d;%s\n",np->hash,type,len,name,first,last,parent,kia.fscript,pkind,width,attr);
+			sfprintf(kia.file,"%..64d;%c;%.*s;%d;%d;%..64d;%..64d;%c;%zu;%s\n",np->hash,type,len,name,first,last,parent,kia.fscript,pkind,width,attr);
 		else
-			sfprintf(kia.file,"%..64d;%c;%s;%d;%d;%..64d;%..64d;%c;%d;%s\n",np->hash,type,name,first,last,parent,kia.fscript,pkind,width,attr);
+			sfprintf(kia.file,"%..64d;%c;%s;%d;%d;%..64d;%..64d;%c;%zu;%s\n",np->hash,type,name,first,last,parent,kia.fscript,pkind,width,attr);
 	}
 	return np->hash;
 }
@@ -2076,25 +2100,25 @@ static void kia_add(Namval_t *np, void *data)
 
 int kiaclose(Lex_t *lexp)
 {
-	off_t off1,off2;
-	int n;
+	Sflong_t off1,off2;
+	ssize_t n;
 	if(kia.file)
 	{
 		unsigned long r = kiaentity(lexp,kia.scriptname,-1,'p',-1,sh.inlineno-1,0,'s',0,"");
 		kiaentity(lexp,kia.scriptname,-1,'p',1,sh.inlineno-1,r,'s',0,"");
 		kiaentity(lexp,kia.scriptname,-1,'f',1,sh.inlineno-1,r,'s',0,"");
 		nv_scan(kia.entity_tree,kia_add,lexp,NV_TAGGED,0);
-		off1 = sfseek(kia.file,0,SEEK_END);
+		off1 = (Sflong_t)sfseek(kia.file,0,SEEK_END);
 		sfseek(kia.tmp,0,SEEK_SET);
 		sfmove(kia.tmp,kia.file,SFIO_UNBOUND,-1);
-		off2 = sfseek(kia.file,0,SEEK_END);
+		off2 = (Sflong_t)sfseek(kia.file,0,SEEK_END);
 		if(off2==off1)
-			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%jd;%zu\nDIRECTORY;",(Sflong_t)kia.begin,(size_t)(off1-kia.begin));
+			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%jd;%jd\nDIRECTORY;",(Sflong_t)kia.begin,off1-(Sflong_t)kia.begin);
 		else
-			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%jd;%zu\nRELATIONSHIP;%jd;%zu\nDIRECTORY;",(Sflong_t)kia.begin,(size_t)(off1-kia.begin),(Sflong_t)off1,(size_t)(off2-off1));
+			n= sfprintf(kia.file,"DIRECTORY\nENTITY;%jd;%jd\nRELATIONSHIP;%jd;%jd\nDIRECTORY;",(Sflong_t)kia.begin,off1-(Sflong_t)kia.begin,off1,off2-off1);
 		if(off2 >= INT_MAX)
 			off2 = -(n+12);
-		sfprintf(kia.file,"%010.10jd;%010d\n",(Sflong_t)off2+10, n+12);
+		sfprintf(kia.file,"%010.10jd;%010zd\n",off2+10, n+12);
 	}
 	return sfclose(kia.file);
 }

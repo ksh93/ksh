@@ -2,11 +2,106 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2026-02-10:
+2026-04-14:
 
 - Support for ${$var} indirect expansion has been backported from ksh93v-.
   If the variable var expands to a variable name, ${$var} expands to the
   value of that variable. Otherwise, it expands to an empty string.
+
+2026-04-13:
+
+- Fixed a potential crash that could occur if a shell discipline function
+  throws an error (such as 'parameter not set' if the -u option is on).
+
+2026-04-12:
+
+- The 2023-02-22 fix for detecting errors while reading a script has been
+  fixed to also detect errors while reading a compound command from a script.
+
+- Fixed a corner case bug where backslash line continuation inserted within a
+  variable name passed to a declaration command produdced incorrect results.
+  This bug was introduced on 2024-01-16 and exacerbated on 2025-05-29.
+
+2026-04-01:
+
+- Fixed a bug where a DEBUG trap containing a function definition would fail
+  with a spurious error message when invoked by running a compound assignment.
+
+2026-03-28:
+
+- Fixed a potential crash (buffer read overflow) in the .sh.match code
+  that was backported on 2022-02-08.
+
+- Fixed a crash in option parsing that could happen if a multibyte character
+  was passed as an option to a command.
+
+2026-03-23:
+
+- Fixed a bug in command substitutions, where a command substitution would
+  fail to catch standard output after a nested function redirects standard
+  output to /dev/null. Bug introduced on 2022-01-11.
+
+2026-03-22:
+
+- Fixed a bug where the interactive shell would sometimes suspend itself
+  after suspending a child process with SIGTSTP (Ctrl+Z).
+
+2026-03-20:
+
+- Fixed a memory leak that occurred when any subshell or ksh function with
+  'function name' syntax is invoked while at least one signal or EXIT trap
+  is set in the invoking environment.
+
+- Fixed an issue, introduced on 2022-06-13, causing a subshell to fork
+  unnecessarily if an EXIT pseudosignal trap is set within it.
+
+2026-03-16:
+
+- Fixed a bug in the join(1) built-in command (bound to /opt/ast/bin) that
+  caused it to fail if one of the file arguments is a process substitution or
+  other unseekable file stream. Unseekable files were only handled correctly
+  when passing "-" for standard input; now all unseekable files work.
+
+2026-03-09:
+
+- Fixed a bug in the sleep built-in command that could cause an excessive
+  sleep duration if a signal was received during the sleep.
+
+2026-03-07:
+
+- Fixed an invalid free crash that could occur when using the libcmd
+  builtins with /opt/ast/bin prefixed in the PATH and the POSIXLY_CORRECT
+  environment variable set to 1.
+
+2026-03-01:
+
+- Fixed a use-after-free crash that could occur when variables of custom
+  types defined with 'typeset -T' were used as members of other custom types
+  defined with 'typeset -T'.
+
+2026-02-24:
+
+- The routine that prints the menu for the 'select' loop has been made aware
+  of multibyte character locales, so that using UTF-8 characters will no
+  longer result in menu columns that are not properly lined up.
+
+2026-02-17:
+
+- Fixed a regression introduced on 02-02-2022 occurring on systems with
+  glibc 2.35+ that could cause the pty regression tests to crash or lockup.
+
+- Fixed a regression introduced on 02-02-2022 that could cause ksh to crash
+  after a command fails with E2BIG.
+
+- Fixed a bug that caused a file descriptor leak when a command run
+  with the 'command' builtin couldn't be executed due to an error
+  (e.g. ENOENT or E2BIG).
+
+2026-02-15:
+
+- Fixed a bug in 'ksh -n' that caused the shell to overlook many
+  obsolete options passed to set(1) and alias(1) and incorrectly
+  flag non-obsolete options as obsolete.
 
 2026-02-06:
 
@@ -18,7 +113,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   directory with fchdir(2).
 
 - [v1.1] Fixed a file descriptor leak that could occur on systems lacking a
-  useable implementation of arc4random(3).
+  usable implementation of arc4random(3).
 
 2026-02-04:
 

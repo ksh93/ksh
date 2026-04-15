@@ -70,7 +70,6 @@ For more details, see the NEWS file and for complete details, see the git log.
 	   message instead of terminating the shell.
 	-  'suspend' now refuses to suspend a login shell, as there is probably
 	   no parent shell to return to and the login session would freeze.
-	   If you really want to suspend a login shell, use 'kill -s STOP $$'.
 	-  'times' now gives high precision output in a POSIX compliant format.
 
 6.	'command' and 'nohup' no longer expand aliases in their first argument,

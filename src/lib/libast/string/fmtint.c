@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -83,22 +84,24 @@ fmtint(intmax_t ll, int unsign)
 {
 	char		*buff;
 	uintmax_t	n,m;
-	int		j=0,k=3*sizeof(ll);
+	int		j=0;
+	ssize_t		k=3*(ssize_t)sizeof(ll);
 	if(unsign || ll>=0)
-		n = ll;
+		n = (uintmax_t)ll;
 	else
 	{
-		n = -ll;
+		n = (uintmax_t)-ll;
 		j = 1;
 	}
 	if(n<10)
 	{
-		buff = fmtbuf(k=3);
+		k = 3;
+		buff = fmtbuf((size_t)k);
 		buff[--k] = 0;
-		buff[--k] = '0' + n;
+		buff[--k] = (char)('0' + n);
 		goto skip;
 	}
-	buff = fmtbuf(k);
+	buff = fmtbuf((size_t)k);
 	buff[--k] = 0;
 	do
 	{

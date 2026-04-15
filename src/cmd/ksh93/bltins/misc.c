@@ -36,7 +36,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"variables.h"
 #include	"shnodes.h"
@@ -153,12 +153,12 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		sh_onstate(SH_EXEC);
 		if(sh.subshell && !sh.subshare)
 		{
-			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + argc*sizeof(char*));
+			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argc*sizeof(char*));
 			struct comnod *t = stkalloc(sh.stk,sizeof(struct comnod));
 			memset(t, 0, sizeof(struct comnod));
 			dp->dolnum = argc;
 			dp->dolbot = ARG_SPARE;
-			memcpy(dp->dolval+ARG_SPARE, argv, (argc+1)*sizeof(char*));
+			memcpy(dp->dolval+ARG_SPARE, argv, (size_t)(argc+1)*sizeof(char*));
 			t->comarg.dp = dp;
 			sh_exec((Shnode_t*)t,sh_isstate(SH_ERREXIT));
 			sh_offstate(SH_EXEC);
@@ -524,12 +524,12 @@ int    b_jobs(int n,char *argv[],Shbltin_t *context)
  */
 static void	print_times(struct timeval utime, struct timeval stime)
 {
-	Sfulong_t ut_min = utime.tv_sec / 60;
-	Sfulong_t ut_sec = utime.tv_sec % 60;
-	Sfulong_t ut_ms = utime.tv_usec / 1000;
-	Sfulong_t st_min = stime.tv_sec / 60;
-	Sfulong_t st_sec = stime.tv_sec % 60;
-	Sfulong_t st_ms = stime.tv_usec / 1000;
+	Sfulong_t ut_min = (Sfulong_t)(utime.tv_sec / 60);
+	Sfulong_t ut_sec = (Sfulong_t)(utime.tv_sec % 60);
+	Sfulong_t ut_ms = (Sfulong_t)(utime.tv_usec / 1000);
+	Sfulong_t st_min = (Sfulong_t)(stime.tv_sec / 60);
+	Sfulong_t st_sec = (Sfulong_t)(stime.tv_sec % 60);
+	Sfulong_t st_ms = (Sfulong_t)(stime.tv_usec / 1000);
 	sfprintf(sfstdout, sh_isoption(SH_POSIX) ? "%jum%ju%c%03jus %jum%ju%c%03jus\n" : "%jum%02ju%c%03jus %jum%02ju%c%03jus\n",
 		ut_min, ut_sec, sh.radixpoint, ut_ms, st_min, st_sec, sh.radixpoint, st_ms);
 }
@@ -550,7 +550,7 @@ static void	print_cpu_times(void)
 {
 	struct timeval utime, stime;
 	Sfdouble_t dtime;
-	int clk_tck = sh.lim.clk_tck;
+	clock_t clk_tck = sh.lim.clk_tck;
 	struct tms cpu_times;
 	times(&cpu_times);
 	/* Print the time (user & system) consumed by the shell. */

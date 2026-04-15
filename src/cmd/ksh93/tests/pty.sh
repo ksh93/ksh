@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -33,8 +33,8 @@
 
 ((!SHOPT_SCRIPTONLY)) || { warning "interactive shell was compiled out -- tests skipped"; exit 0; }
 whence -q pty || { warning "pty command not found -- tests skipped"; exit 0; }
-case $(uname -s; [[ $HOSTTYPE == android.* ]] && echo _no_) in
-Darwin | DragonFly | FreeBSD | Linux | MidnightBSD )
+case $(uname -s) in
+Darwin | DragonFly | FreeBSD | Linux | NetBSD | MidnightBSD | OpenBSD )
 	;;
 * )	warning "pty not confirmed to work correctly on this system -- tests skipped"
 	exit 0 ;;
@@ -613,16 +613,19 @@ L race condition while launching external commands
 
 # Test for bug in ksh binaries that use posix_spawn() while job control is active.
 # See discussion at: https://github.com/ksh93/ksh/issues/79
+#
+# The 'r /dev/null' tests are deliberately not anchored as Android/Termux ls(1) insists
+# on inserting colouring escape sequences regardless of the TERM or LS_COLORS env vars.
 
 d 40
 p :test-1:
 w printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done
 r ^:test-1: printf '%s\\n' 1 2 3 4 5 | while read; do ls /dev/null; done\r\n$
-r ^/dev/null\r\n$
-r ^/dev/null\r\n$
-r ^/dev/null\r\n$
-r ^/dev/null\r\n$
-r ^/dev/null\r\n$
+r /dev/null
+r /dev/null
+r /dev/null
+r /dev/null
+r /dev/null
 r ^:test-2:
 !
 
@@ -702,7 +705,7 @@ r ^:test-1: do something\r\n$
 r : syntax error: `do' unexpected\r\n$
 w fc -lN1
 r ^:test-2: fc -lN1\r\n$
-r \tdo something\r\n$
+r [[:blank:]]do something\r\n$
 !
 
 tst $LINENO <<"!"
@@ -812,7 +815,7 @@ d 40
 r /synerror: syntax error: `\(' unmatched\r\n$
 p :test-1:
 w echo ok
-r ^:test-1: echo ok\r\n$
+r echo ok\r\n$
 r ^ok\r\n$
 !
 
@@ -840,8 +843,8 @@ c foo \E#
 r ^:test-1: #foo\r\n$
 w hist -lnN 1
 r ^:test-2: hist -lnN 1\r\n$
-r \t#foo\r\n$
-r \thist -lnN 1\r\n$
+r [[:blank:]]#foo\r\n$
+r [[:blank:]]hist -lnN 1\r\n$
 !
 
 ((SHOPT_VSH || SHOPT_ESH)) && tst $LINENO <<"!"
@@ -959,9 +962,6 @@ L Ctrl+C with SIGINT ignored
 # https://github.com/ksh93/ksh/issues/343
 # Fix improved on 2024-02-12.
 # Note: without emacs, the Ctrl+C should be echoed as ^C.
-#
-# TODO: a bug in the regex engine seems to make it impossible to match a
-# literal '^' in any way, so we substitute a '.' metacharacter for now.
 
 d 40
 
@@ -972,7 +972,7 @@ p :child-1:
 w trap '' INT
 p :child-2:
 w : lorem\cCipsum
-r ^:child-2: : lorem.Cipsum\r\n$
+r ^:child-2: : lorem\^Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent
@@ -980,7 +980,7 @@ p :test-2:
 w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
 p :child-1:
 w : lorem\cCipsum
-r ^:child-1: : lorem.Cipsum\r\n$
+r ^:child-1: : lorem\^Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent, trapped in child
@@ -990,7 +990,7 @@ p :child-1:
 w trap 'echo test' INT
 p :child-2:
 w : lorem\cCipsum
-r ^:child-2: : lorem.Cipsum\r\n$
+r ^:child-2: : lorem\^Cipsum\r\n$
 w exit
 !
 
@@ -1398,6 +1398,19 @@ w false bad rigt wrong
 w print \E3\E_\cBh
 I print
 r right
+!
+
+tst $LINENO << "!"
+L crash after E2BIG due to failed tcpgrp restoration
+
+d 40
+P :test-.:
+w integer savpid=$$
+w "$SHELL"
+w $(type -p true) "$(awk -v ORS= 'BEGIN { for(i=0;i<1000000;i++) print "xx"; }')"
+w ((savpid==$$)); print $?
+I print
+r ^1\r\n$
 !
 
 # ======

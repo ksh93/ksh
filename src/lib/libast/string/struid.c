@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -69,22 +69,22 @@ struid(const char* name)
 	else if (ip = (Id_t*)dtmatch(dict, name))
 		return ip->id;
 	if (pw = getpwnam(name))
-		id = pw->pw_uid;
+		id = (int)pw->pw_uid;
 	else
 	{
-		id = strtol(name, &e, 0);
+		id = (int)strtol(name, &e, 0);
 #if _WINIX
 		if (!*e)
 		{
-			if (!getpwuid(id))
+			if (!getpwuid((uid_t)id))
 				id = -1;
 		}
 		else if (streq(name, "root") && (pw = getpwnam("Administrator")))
-			id = pw->pw_uid;
+			id = (int)pw->pw_uid;
 		else
 			id = -1;
 #else
-		if (*e || !getpwuid(id))
+		if (*e || !getpwuid((uid_t)id))
 			id = -1;
 #endif
 	}

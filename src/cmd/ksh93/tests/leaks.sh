@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -19,6 +19,11 @@
 ########################################################################
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
+
+if	((SHELL_ASAN))
+then	warning "ksh was compiled with ASan; skipping tests"
+	exit 0
+fi
 
 # Determine method for running tests.
 # On Linux, we can use /proc to get byte granularity for vsize (field 23).
@@ -309,6 +314,7 @@ TEST	title='alias in command substitution'
 DO
 	eval 'a=`ls`'
 DONE
+unalias ls
 
 # case3: Function call via autoload
 TEST	title='function call via autoload in command substitution'
@@ -450,6 +456,16 @@ TEST	title='running external command by default path'
 DO
 	command -px true
 DONE
+
+# ======
+TEST	title='trap and command substitution'
+	trap ': long-enough trap action to detect the leak' USR1
+DO
+	v=`echo a`
+	v=$(echo a)
+	(echo a)
+DONE >/dev/null
+trap - USR1
 
 # ======
 exit $((Errors<125?Errors:125))

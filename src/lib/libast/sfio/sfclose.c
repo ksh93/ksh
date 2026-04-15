@@ -83,7 +83,7 @@ int sfclose(Sfio_t* f)
 			}
 		}
 		else
-		{	f->mode &= ~SFIO_LOCK;	/**/ASSERT(_Sfpmove);
+		{	f->mode &= (uint32_t)~SFIO_LOCK;	/**/ASSERT(_Sfpmove);
 			if((*_Sfpmove)(f,-1) < 0)
 			{	SFOPEN(f,0);
 				return -1;
@@ -95,7 +95,7 @@ int sfclose(Sfio_t* f)
 
 	if(f->data && (!local || (f->flags&SFIO_STRING) || (f->bits&SFIO_MMAP) ) )
 	{	/* free buffer */
-#ifdef MAP_TYPE
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 			SFMUNMAP(f,f->data,f->endb-f->data);
 		else

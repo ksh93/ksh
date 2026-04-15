@@ -1745,11 +1745,6 @@ EOF
 	"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
-# checks for tests run in parallel (see top)
-wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
-wait "$parallel_2" || err_exit "TMOUT applies to 'read' from a non-terminal"
-
-# ======
 # TODO: fix to support > 4 year digits well before the year 10,000 :)
 got=$((.sh.version))
 exp='^[[:digit:]]{8}$'
@@ -1811,7 +1806,6 @@ do	got=$(eval "
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 done
 
-# ======
 # Tests for ${$var} indirection
 unset foo bar
 bar=correct
@@ -1874,5 +1868,9 @@ ret=$?
 ((ret == 1)) || err_exit "ksh cannot cope with negative numbers when using variable indirection" \
 	"(got status $ret, output: $(printf %q "$got"))"
 
-# ======
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
+# checks for tests run in parallel (see top)
+wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
+wait "$parallel_2" || err_exit "TMOUT applies to 'read' from a non-terminal"
+
 exit $((Errors<125?Errors:125))

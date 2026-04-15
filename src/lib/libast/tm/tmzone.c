@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -56,7 +56,7 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 	static char		off[16];
 
 	tmset(tm_info.zone, time(NULL), 0);
-	if ((name[0] == '+' || name[0] == '-') && (fixed.west = tmgoff(name, &e, TM_LOCALZONE)) != TM_LOCALZONE && (!*e || isspace(*e)))
+	if ((name[0] == '+' || name[0] == '-') && (fixed.west = (short)tmgoff(name, &e, TM_LOCALZONE)) != TM_LOCALZONE && (!*e || isspace(*e)))
 	{
 		p = fixed.standard = fixed.daylight = off;
 		*p++ = 'Z';
@@ -69,7 +69,7 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 			*p++ = 'W';
 		p += sfsprintf(p, sizeof(off) - 2, "%u", d / 60);
 		if (d = (d % 60) / 15)
-			*p++ = 'A' + d - 1;
+			*p++ = (char)('A' + d - 1);
 		*p = 0;
 		fixed.dst = 0;
 		if (end)
@@ -101,9 +101,9 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 		}
 		fixed.west += d;
 		if (name[1] == 'E')
-			fixed.west = -fixed.west;
-		fixed.dst = name[0] == 'Z' ? 0 : d ? -d : TM_DST;
-		memcpy(fixed.standard = fixed.daylight = off, name, d);
+			fixed.west = fixed.west * -1;
+		fixed.dst = name[0] == 'Z' ? 0 : d ? (short)-d : TM_DST;
+		memcpy(fixed.standard = fixed.daylight = off, name, (size_t)d);
 		off[d] = 0;
 		if (end)
 			*end = e;

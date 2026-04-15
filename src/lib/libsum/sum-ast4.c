@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1996-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -80,7 +80,7 @@ ast4_block(Sum_t* p, const void* s, size_t n)
 	Ast4_sum_t*	a = &((Ast4_t*)p)->cur;
 	unsigned char*	b = (unsigned char*)s;
 	unsigned char*	e = b + n;
-	int		c;
+	unsigned int	c;
 
 	while (b < e)
 	{

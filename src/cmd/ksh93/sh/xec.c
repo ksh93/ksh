@@ -24,7 +24,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
 #include	"variables.h"
@@ -42,11 +42,6 @@
 
 #if _lib_getrusage && !defined(RUSAGE_SELF)
 #   include <sys/resource.h>
-#endif
-
-#undef _use_ntfork_tcpgrp
-#if SHOPT_SPAWN && _lib_posix_spawn > 1 && _lib_posix_spawn_file_actions_addtcsetpgrp_np
-#define _use_ntfork_tcpgrp 1
 #endif
 
 #if SHOPT_SPAWN
@@ -469,13 +464,18 @@ static Namfun_t level_disc_fun = { &level_disc, 1 };
 int sh_debug(const char *trap, const char *name, const char *subscript, char *const argv[], int flags)
 {
 	Namval_t		*np = SH_COMMANDNOD;
-	int			n=4, offset=stktell(sh.stk);
-	void			*sav = stkfreeze(sh.stk,0);
-	struct sh_scoped	*savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	const char		*cp = "+=( ";
+	void			*sav;
+	struct sh_scoped	*savst;
+	char			*save_prefix;
+	ptrdiff_t		offset;
+	int			n = 4;
 	if(sh.indebug)
 		return 0;
 	sh.indebug = 1;
+	offset = stktell(sh.stk);
+	sav = stkfreeze(sh.stk,0);
+	savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	if(name)
 	{
 		sfputr(sh.stk,name,-1);
@@ -507,6 +507,8 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	np->nvalue = stkfreeze(sh.stk,1);
 	sh.st.lineno = error_info.line;
 	*savst = sh.st;
+	save_prefix = sh.prefix;
+	sh.prefix = NULL;
 	sh.st.trap[SH_DEBUGTRAP] = 0;
 	/* set up .sh.level variable */
 	if(!SH_LEVELNOD->nvfun || !SH_LEVELNOD->nvfun->disc)
@@ -514,6 +516,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	nv_offattr(SH_LEVELNOD,NV_RDONLY);
 	/* run the trap */
 	n = sh_trap(trap,0);
+	/* restore state */
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
 	np->nvalue = NULL;
 	sh.indebug = 0;
@@ -522,6 +525,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	/* restore scope */
 	update_sh_level();
 	sh.st = *savst;
+	sh.prefix = save_prefix;
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
 	else
@@ -596,7 +600,6 @@ int sh_eval(Sfio_t *iop, int mode)
 		sfclose(io_save);
 		io_save = 0;
 	}
-
 	sh_freeup();
 	sh.st.staklist = saveslp;
 	if(jmpval>SH_JMPEVAL)
@@ -1436,11 +1439,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					fifo_save_ppid = sh.current_pid;
 #endif
 #if SHOPT_SPAWN
-#if _use_ntfork_tcpgrp
 				if(com)
-#else
-				if(com && !job.jobcontrol)
-#endif /* _use_ntfork_tcpgrp */
 				{
 					parent = sh_ntfork(t,com,&jobid,topfd);
 					if(parent<0)
@@ -1728,22 +1727,21 @@ int sh_exec(const Shnode_t *t, int flags)
 			flags &= ~ARG_OPTIMIZE;
 			if(!sh.subshell && !sh.st.trapdontexec && (flags&sh_state(SH_NOFORK)))
 			{
-				/* This is the last command, so avoid creating a subshell */
-				char *savsig;
-				int nsig,jmpval;
+				/* This is the last command, so avoid creating a subshell, but still act like one */
+				size_t nsig;
+				int jmpval;
 				struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
-				sh.st.otrapcom = 0;
-				if((nsig=sh.st.trapmax*sizeof(char*))>0 || sh.st.trapcom[0])
-				{
-					nsig += sizeof(char*);
-					savsig = sh_malloc(nsig);
-					memcpy(savsig,(char*)&sh.st.trapcom[0],nsig);
-					sh.st.otrapcom = (char**)savsig;
-				}
-				/* Still act like a subshell: reseed $RANDOM and increment ${.sh.subshell} */
+				/* Save traps for printing, then reset them */
+				memset(sh.st.trapnofree, 0xFF, sizeof sh.st.trapnofree);
+				if ((nsig = sh.st.trapmax * sizeof(char*)) > 0)
+					sh.st.otrapcom = memcpy(stkalloc(sh.stk, nsig), sh.st.trapcom, nsig);
+				else
+					sh.st.otrapcom = NULL;
+				sh_sigreset(0);
+				/* Reseed $RANDOM and increment ${.sh.subshell} */
 				sh_invalidate_rand_seed();
 				sh.realsubshell++;
-				sh_sigreset(0);
+				/* Execute the last command and exit normally, except for SH_JMPSCRIPT */
 				sh_pushcontext(buffp,SH_JMPEXIT);
 				jmpval = sigsetjmp(buffp->buff,0);
 				if(jmpval==0)
@@ -1753,8 +1751,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					siglongjmp(*sh.jmplist,jmpval);
 				sh_done(0);
 			}
-			else
-				sh_subshell(t->par.partre,flags,0);
+			sh_subshell(t->par.partre,flags,0);
 			break;
 
 		    /*
@@ -1876,7 +1873,6 @@ int sh_exec(const Shnode_t *t, int flags)
 		     * List of semicolon-separated commands
 		     */
 		    case TLST:
-		    {
 			do
 			{
 				sh_exec(t->lst.lstlef,errorflg|(flags & ARG_OPTIMIZE));
@@ -1885,7 +1881,6 @@ int sh_exec(const Shnode_t *t, int flags)
 			while(t->tre.tretyp == TLST);
 			sh_exec(t,flags);
 			break;
-		    }
 
 		    /*
 		     * Logical and: command && command
@@ -2910,16 +2905,16 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
 int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 {
 	char			*trap;
-	int			nsig;
 	struct dolnod		*argsav=0,*saveargfor;
 	struct sh_scoped	*savst = stkalloc(sh.stk,sizeof(struct sh_scoped));
 	struct sh_scoped	*prevscope = sh.st.self;
 	struct argnod		*envlist=0;
-	int			isig,jmpval;
+	int			jmpval;
 	volatile int		r = 0;
 	int			posix_fun = 0, save_loopcnt = sh.st.loopcnt;
 	char			save_invoc_local;
 	char 			**savsig;
+	size_t			nsig;
 	struct funenv		*fp = 0;
 	struct checkpt		*buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 	Namval_t		*nspace = sh.namespace;
@@ -2997,24 +2992,9 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		}
 		sh.st.cmdname = argv[0];
 		/* save trap table */
-		if((nsig=sh.st.trapmax)>0 || sh.st.trapcom[0])
-		{
-			savsig = sh_malloc((size_t)nsig * sizeof(char*));
-			/*
-			 * the data is, usually, modified in code like:
-			 *	tmp = buf[i]; buf[i] = sh_strdup(tmp); free(tmp);
-			 * so sh.st.trapcom needs a "deep copy" to properly save/restore pointers.
-			 */
-			for (isig = 0; isig < nsig; ++isig)
-			{
-				if(sh.st.trapcom[isig] == Empty)
-					savsig[isig] = Empty;
-				else if(sh.st.trapcom[isig])
-					savsig[isig] = sh_strdup(sh.st.trapcom[isig]);
-				else
-					savsig[isig] = NULL;
-			}
-		}
+		memset(sh.st.trapnofree, 0xFF, sizeof sh.st.trapnofree);
+		if((nsig = sh.st.trapmax * sizeof(char**)) > 0)
+			savsig = memcpy(stkalloc(sh.stk, nsig), sh.st.trapcom, nsig);
 		if(!fun && sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
 			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
 		sh_sigreset(-1);
@@ -3129,13 +3109,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	sh.topscope = (Shscope_t*)prevscope;
 	nv_getval(sh_scoped(IFSNOD));
 	if(nsig)
-	{
-		for (isig = 0; isig < nsig; ++isig)
-			if (sh.st.trapcom[isig] && sh.st.trapcom[isig]!=Empty)
-				free(sh.st.trapcom[isig]);
-		memcpy((char*)&sh.st.trapcom[0],savsig,nsig*sizeof(char*));
-		free(savsig);
-	}
+		memcpy(sh.st.trapcom, savsig, nsig);
 	sh.trapnote=0;
 	sh.options = save_options;
 	sh.last_root = last_root;
@@ -3324,9 +3298,12 @@ static void sigreset(int mode)
 }
 
 /*
- * A combined fork/exec for systems with slow fork().
- * Incompatible with job control on interactive shells (job.jobcontrol) if
- * the system does not support posix_spawn_file_actions_addtcsetpgrp_np().
+ * A combined fork/exec which utilizes libast spawnveg(3) for better performance.
+ * The spawnveg function will invoke posix_spawn(3) or an equivalent if possible,
+ * and will fallback to fork(2) if absolutely necessary. For simple command
+ * execution this codepath is preferred because it's always a bit faster than
+ * the sh_fork() codepath, even when the underlying system calls it uses wind up
+ * being the same.
  */
 static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 {
@@ -3337,9 +3314,6 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 	char		**arge, *path;
 	volatile pid_t	grp = 0;
 	Pathcomp_t	*pp;
-#if _use_ntfork_tcpgrp
-	volatile int	jobwasset=0;
-#endif /* _use_ntfork_tcpgrp */
 	sh_pushcontext(buffp,SH_JMPCMD);
 	errorpush(&buffp->err,ERROR_SILENT);
 	job_lock();		/* errormsg will unlock */
@@ -3391,14 +3365,6 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 		}
 		arge = sh_envgen();
 		sh.exitval = 0;
-#if _use_ntfork_tcpgrp
-		if(job.jobcontrol)
-		{
-			signal(SIGTTIN,SIG_DFL);
-			signal(SIGTTOU,SIG_DFL);
-			signal(SIGTSTP,SIG_DFL);
-			jobwasset++;
-		}
 		if(sh_isstate(SH_MONITOR) && job.jobcontrol)
 		{
 			if(job.curpgid==0)
@@ -3406,7 +3372,6 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 			else
 				grp = job.curpgid;
 		}
-#endif /* _use_ntfork_tcpgrp */
 
 		sfsync(NULL);
 		sigreset(0);	/* set signals to ignore */
@@ -3421,19 +3386,6 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 			job_fork(-2);
 		if(spawnpid == -1)
 		{
-#if _use_ntfork_tcpgrp
-			if(jobwasset)
-			{
-				signal(SIGTTIN,SIG_IGN);
-				signal(SIGTTOU,SIG_IGN);
-				if(sh_isstate(SH_INTERACTIVE))
-					signal(SIGTSTP,SIG_IGN);
-				else
-					signal(SIGTSTP,SIG_DFL);
-			}
-			if(job.jobcontrol)
-				tcsetpgrp(job.fd,sh.pid);
-#endif /* _use_ntfork_tcpgrp */
 			switch(errno=sh.path_err)
 			{
 			    case ENOENT:
@@ -3456,17 +3408,6 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 	sh_popcontext(buffp);
 	if(buffp->olist)
 		free_list(buffp->olist);
-#if _use_ntfork_tcpgrp
-	if(jobwasset)
-	{
-		signal(SIGTTIN,SIG_IGN);
-		signal(SIGTTOU,SIG_IGN);
-		if(sh_isstate(SH_INTERACTIVE))
-			signal(SIGTSTP,SIG_IGN);
-		else
-			signal(SIGTSTP,SIG_DFL);
-	}
-#endif /* _use_ntfork_tcpgrp */
 	if(sigwasset)
 		sigreset(1);	/* restore ignored signals */
 	if(scope)
@@ -3476,7 +3417,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 		if(jmpval==SH_JMPSCRIPT)
 			nv_setlist(t->com.comset,NV_EXPORT|NV_IDENT|NV_ASSIGN,0);
 	}
-	if(t->com.comio && (jmpval || spawnpid<=0) && sh.topfd > topfd)
+	if((t->com.comio || spawnpid < 0) && jmpval && sh.topfd > topfd)
 		sh_iorestore(topfd,jmpval);
 	if(jmpval>SH_JMPCMD)
 		siglongjmp(*sh.jmplist,jmpval);

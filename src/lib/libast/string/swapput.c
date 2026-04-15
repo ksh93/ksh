@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -31,13 +32,13 @@
  */
 
 void*
-swapput(int op, void* b, int n, intmax_t v)
+swapput(int op, void* b, size_t n, intmax_t v)
 {
 	char*	p = (char*)b + n;
 
 	while (p > (char*)b)
 	{
-		*--p = v;
+		*--p = (char)v;
 		v >>= CHAR_BIT;
 	}
 	if (op)

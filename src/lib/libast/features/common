@@ -10,6 +10,13 @@ std	noreturn note{ noreturn ok }end compile{
 	int main(void) { foo(); }
 }end
 
+std	atomic note{ _Atomic ok }end compile{
+	#include <stdlib.h>
+	#include <stdatomic.h>
+	static atomic_uint i = 0;
+	int main(void) { return i; }
+}end
+
 cat{
 	#if __clang__
 	#pragma clang diagnostic ignored "-Wmissing-braces"
@@ -66,6 +73,9 @@ cat{
 	#else
 	#define noreturn /* empty */
 	#endif /* _std_noreturn */
+	#if _std_atomic
+	#include <stdatomic.h>
+	#endif /* _std_atomic */
 }end
 
 if	tst - note{ <stdarg.h>+<wchar.h> works }end compile{
@@ -127,7 +137,7 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 - -DN=5 - -DN=6 - -DN=7 - -DN=8 - -DN=0 outp
 	#define _ast_int8_str	"int64"
 	#endif
 
-	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
+	#define elementsof(x)	((int)sizeof(x)/(int)sizeof(x[0]))
 
 	static char			i_char = 1;
 	static short			i_short = 1;
@@ -229,7 +239,7 @@ tst	- output{
 	#define COND		0
 	#endif
 
-	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
+	#define elementsof(x)	((int)sizeof(x)/(int)sizeof(x[0]))
 
 	static struct
 	{
@@ -280,7 +290,7 @@ tst note{ generating _ast_flt\*_t types }end output{
 	#include <string.h>
 	#include <sys/types.h>
 
-	#define elementsof(x)	(sizeof(x)/sizeof(x[0]))
+	#define elementsof(x)	((int)sizeof(x)/(int)sizeof(x[0]))
 
 	static struct
 	{
@@ -299,7 +309,7 @@ tst note{ generating _ast_flt\*_t types }end output{
 		int	t;
 		int	m = 1;
 		int	e = elementsof(flt_type);
-		if (flt_type[e - 1].size <= sizeof(double))
+		if (flt_type[e - 1].size <= (int)sizeof(double))
 			e--; /* exclude "long double" */
 		else
 		{
@@ -330,7 +340,7 @@ tst note{ generating _ast_flt\*_t types }end output{
 typ int8_t stdint.h inttypes.h no{
 	#undef	_typ_int8_t
 	#define	_typ_int8_t	1
-	typedef _ast_int1_t int8_t;
+	typedef signed _ast_int1_t int8_t;
 }end
 typ uint8_t stdint.h inttypes.h no{
 	#undef	_typ_uint8_t

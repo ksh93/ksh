@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,8 +16,8 @@
 *                                                                      *
 ***********************************************************************/
 
-#ifndef __builtins_h_defined
-#define __builtins_h_defined
+#ifndef _BUILTINS_H
+#define _BUILTINS_H
 
 #include	<option.h>
 #include	"shtable.h"
@@ -55,6 +55,7 @@
 #define SYSSOURCE	(sh.bltin_cmds+21)	/* source */
 #define SYSRETURN	(sh.bltin_cmds+22)	/* return */
 #define SYSENUM		(sh.bltin_cmds+23)	/* enum */
+#define SYSALIAS	(sh.bltin_cmds+24)	/* alias */
 
 /* entry point for shell special builtins */
 
@@ -112,7 +113,7 @@ extern int b_times(int, char*[],Shbltin_t*);
     extern int B_echo(int, char*[],Shbltin_t*);
 #endif /* SHOPT_ECHOPRINT */
 
-extern short		b_enum_nelem(Namfun_t*);
+extern ssize_t		b_enum_nelem(Namfun_t*);
 
 extern const char	e_alrm1[];
 extern const char	e_alrm2[];
@@ -201,4 +202,4 @@ extern const char sh_opttimes[];
 
 extern const char e_dict[];
 
-#endif /* __builtins_h_defined */
+#endif /* _BUILTINS_H */

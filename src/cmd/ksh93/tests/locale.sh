@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -499,11 +499,26 @@ fi
 # ======
 # https://github.com/ksh93/ksh/issues/861#issuecomment-2917738184
 if	((SHOPT_MULTIBYTE))
-then	LANG=C.UTF-8
+then	export LANG=C.UTF-8
 	got=$(set +x; redirect 2>&1; readonly コーンシェル=OK; echo "$コーンシェル")
 	exp=OK
 	[[ $got == "$exp" ]] || err_exit 'declaration command assignment with multibyte variable name' \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	cat >linecontinuation.sh <<-'EOF'
+		export a\
+		bc\
+		def=OK1
+		export コ\
+		ーン\
+		シェル=OK2
+		echo $abcdef
+		echo $コーンシェル
+	EOF
+	got=$("$SHELL" linecontinuation.sh 2>&1)
+	exp=$'OK1\nOK2'
+	[[ $got == "$exp" ]] || err_exit 'declaration command assignment with multibyte variable name and line continuation' \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+	unset LANG
 fi
 
 # ======
@@ -525,6 +540,27 @@ then	export LANG=C.UTF-8
 	got=$(A日本語の変数名=OK ./foo1)
 	[[ $got == "$exp" ]] || err_exit 'importing environment variable with multibyte variable name in script without #! path' \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+fi
+
+# ======
+# A strxfrm(3) bug on some macOS versions caused false positive matches in bracket patterns.
+# This test is to ensure the workaround is functional.
+# https://github.com/ksh93/ksh/issues/936
+if	(LC_ALL=en_GB.UTF-8; eval 'c=$'\''\342\202\254'\'; [[ ${#c} == 1 ]]) 2>/dev/null
+then	LC_ALL=en_GB.UTF-8 "$SHELL" -c "LINENO=$((LINENO+1))"'
+	. "${SHTESTS_COMMON:-${0%/*}/_common}"
+	for c in k $'\''\uE9'\'' $'\''\uFC'\'' $'\''\uA7'\'' $'\''\u39a'\'' \
+		$'\''\u1D542'\'' $'\''\u306E'\'' $'\''\u2FA6'\'' '\''$\u4EBA'\''
+	do	case $c in 
+		[\|-])    err_exit "'\''$c'\'' wrongly matches [\\|-]" ;;
+		esac
+		case $c in 
+		[x\|x-])  err_exit "'\''$c'\'' wrongly matches [x\\|x-]" ;;
+		esac
+	done
+	exit $((Errors<125?Errors:125))
+	' "$0"
+	((Errors += $?))
 fi
 
 # ======

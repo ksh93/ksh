@@ -112,7 +112,7 @@ export TMPDIR
 
 src="cmd contrib etc lib"
 use="/usr/common /exp /usr/local /usr/add-on /usr/addon /usr/tools /usr /opt"
-usr="/home"
+usr="/home /Users"
 ccs="/usr/kvm /usr/ccs/bin"
 org="gnu GNU"
 env="HOSTTYPE PACKAGEROOT INSTALLROOT PATH DEFPATH FPATH MANPATH"
@@ -121,13 +121,11 @@ package_use='=$HOSTTYPE=$PACKAGEROOT=$INSTALLROOT=$EXECROOT=$CC='
 
 MAKESKIP=${MAKESKIP:-"*[-.]*"}
 
-all_types='*.*|sun4'		# all but sun4 match *.*
-
 command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-02-10 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-04-02 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -147,8 +145,9 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 [+?Note that no environment variables need be set by the user;
     \b'$command$'\b determines the environment based on the current working
     directory. The \buse\b action starts a \bsh\b(1) with the environment
-    initialized. \bCC\b, \bCCFLAGS\b, \bHOSTTYPE\b and \bSHELL\b may be set
-    by explicit command argument assignments to override the defaults.]
+    initialized. \bCC\b, \bCCFLAGS\b, \bHOSTTYPE\b, \bHOSTTAG\b and \bSHELL\b
+    may be set by explicit command argument assignments to override the
+    defaults.]
 [+?The command arguments are composed of a sequence of words: zero or
     more \aqualifiers\a, one \aaction\a, and zero or more action-specific
     \aarguments\a, and zero or more \aname=value\a definitions.
@@ -233,7 +232,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
             \b$PACKAGEROOT\b directory tree. Leaf directory names matching the
             \b|\b-separated shell pattern \b$MAKESKIP\b are ignored. The
             \bview\b action is done before making. \aoption\a operands are
-	    passed to the underlying make command.]
+	    passed to the underlying \bmamake\b command.]
         [+results\b [ \bfailed\b ]] [ \bpath\b ]] [ \bold\b ]] [\bmake\b | \btest\b | \bwrite\b ]]?List
             results and interesting messages captured by the most recent
             \bmake\b (default), \btest\b or \bwrite\b action. \bold\b
@@ -270,22 +269,22 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     is done in the architecture specific view; no source view files are
     intentionally changed. This means that many different binary
     architectures can be made from a single copy of the source.]
-[+?Independent \b$PACKAGEROOT\b hierarchies can be combined by
-    appending \b$INSTALLROOT:$PACKAGEROOT\b pairs to \bVPATH\b. The
-    \bVPATH\b viewing order is from left to right.]
 [+?\b$HOSTTYPE\b names the current binary architecture and is determined
     by the output of \b'$command$'\b (no arguments). The \b$HOSTTYPE\b naming
     scheme is used to separate incompatible executable and object formats.
     All architecture specific binaries are placed under \b$INSTALLROOT\b
     (\b$PACKAGEROOT/arch/$HOSTTYPE\b). There are a few places that match
-    against \b$HOSTTYPE\b when making binaries; these are limited to
-    makefile compiler workarounds, e.g., if \b$HOSTTYPE\b matches \bhp.*\b
-    then turn off the optimizer for these objects. All other architecture
-    dependent logic is handled either by the \bAST\b \biffe\b(1) command or
-    by component specific configure scripts. Explicit \b$HOSTTYPE\b
-    values matching *,*cc*[,-*,...]] optionally set the default \bCC\b and
-    \bCCFLAGS\b. This is handy for build farms that support different
-    compilers on the same architecture.]
+    against \b$HOSTTYPE\b when making binaries, such as the code for linking
+    shared libraries. All other architecture-dependent logic is handled
+    either by the \bAST\b \biffe\b(1) command or by component-specific
+    configure scripts.]
+[+?\b$HOSTTAG\b may contain a short string that, if present, will be added
+    to the detected \b$HOSTTYPE\b separated by a comma. This is useful to
+    maintain several object code directories for the same architecture (for
+    example, with different \bCCFLAGS\b or built from different \bgit\b(1)
+    branches) under \barch\b while still auto-detecting \b$HOSTTYPE\b.
+    The value must not contain whitespace or other shell-unsafe characters.
+    If \bHOSTTYPE\b is specified manually, \bHOSTTAG\b is ignored.]
 [+?Each component contains a \bMAM\b (make abstract machine)
     file (\bMamfile\b). A Mamfile contains a portable makefile description
     written in a simple dependency tree language using indented
@@ -415,9 +414,9 @@ DESCRIPTION
 
   Note that no environment variables need be set by the user; package
   determines the environment based on the current working directory. The use
-  action starts a sh(1) with the environment initialized. CC, CCFLAGS, HOSTTYPE
-  and SHELL may be set by explicit command argument assignments to override the
-  defaults.
+  action starts a sh(1) with the environment initialized. CC, CCFLAGS,
+  HOSTTYPE, HOSTTAG and SHELL may be set by explicit command argument
+  assignments to override the defaults.
 
   The command arguments are composed of a sequence of words: zero or more
   qualifiers, one action, and zero or more action-specific arguments, and zero
@@ -490,8 +489,8 @@ DESCRIPTION
           build is done in the $INSTALLROOT directory tree viewpathed on top of
           the $PACKAGEROOT directory tree. Leaf directory names matching the
           |-separated shell pattern $MAKESKIP are ignored. The view action is
-          done before making. option operands are passed to the underlying make
-          command.
+          done before making. option operands are passed to the underlying
+          mamake command.
     results [ failed ] [ path ] [ old ] [make | test | write ]
           List results and interesting messages captured by the most recent
           make (default), test or write action. old specifies the previous
@@ -527,22 +526,22 @@ DETAILS
   source view files are intentionally changed. This means that many different
   binary architectures can be made from a single copy of the source.
 
-  Independent $PACKAGEROOT hierarchies can be combined by appending
-  $INSTALLROOT:$PACKAGEROOT pairs to VPATH. The VPATH viewing order is from
-  left to right.
-
   $HOSTTYPE names the current binary architecture and is determined by the
   output of package (no arguments). The $HOSTTYPE naming scheme is used to
   separate incompatible executable and object formats. All architecture
   specific binaries are placed under $INSTALLROOT
   ($PACKAGEROOT/arch/$HOSTTYPE). There are a few places that match against
-  $HOSTTYPE when making binaries; these are limited to makefile compiler
-  workarounds, e.g., if $HOSTTYPE matches hp.* then turn off the optimizer for
-  these objects. All other architecture dependent logic is handled either by
-  the AST iffe(1) command or by component specific configure scripts. Explicit
-  $HOSTTYPE values matching *,*cc*[,-*,...] optionally set the default CC and
-  CCFLAGS. This is handy for build farms that support different compilers on
-  the same architecture.
+  $HOSTTYPE when making binaries, such as the code for linking shared
+  libraries. All other architecture-dependent logic is handled either by the
+  AST iffe(1) command or by component-specific configure scripts.
+
+  $HOSTTAG may contain a short string that, if present, will be added to the
+  detected $HOSTTYPE separated by a comma. This is useful to maintain several
+  object code directories for the same architecture (for example, with
+  different CCFLAGS or built from different git(1) branches) under arch while
+  still auto-detecting $HOSTTYPE. The value must not contain whitespace or
+  other shell-unsafe characters. If HOSTTYPE is specified manually, HOSTTAG is
+  ignored.
 
   Each component contains a MAM (make abstract machine) file (Mamfile). A
   Mamfile contains a portable makefile description written in a simple
@@ -560,7 +559,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2026-02-10
+  version         package (ksh 93u+m) 2026-04-02
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -582,42 +581,6 @@ IMPLEMENTATION
 	global="$global $1"
 	shift
 done
-
-# gather HOSTTYPE *,* options
-# 	,*cc*,-*,...	set CC and CCFLAGS
-
-hostopts()
-{
-	_ifs_=$IFS
-	IFS=,
-	set -- $HOSTTYPE
-	IFS=$_ifs_
-	while	:
-	do	case $# in
-		0|1)	break ;;
-		esac
-		shift
-		case $1 in
-		*cc*)	CC=$1
-			while	:
-			do	case $# in
-				0|1)	break ;;
-				esac
-				case $2 in
-				-*)	case $assign_CCFLAGS in
-					?*)	assign_CCFLAGS="$assign_CCFLAGS " ;;
-					esac
-					assign_CCFLAGS="$assign_CCFLAGS$2"
-					shift
-					;;
-				*)	break
-					;;
-				esac
-			done
-			;;
-		esac
-	done
-}
 
 # collect command line targets and definitions
 
@@ -658,7 +621,8 @@ do	case $i in
 			assign="$assign $n=$vq"
 			eval "$n=\$v"
 			;;
-		CC)	eval "$n=\$v"
+		CC | HOSTTAG)
+			eval "$n=\$v"
 			;;
 		CCFLAGS)
 			eval "$n=\$v"
@@ -692,9 +656,6 @@ do	case $i in
 		;;
 	esac
 done
-case $HOSTTYPE in
-*,*)	hostopts $HOSTTYPE ;;
-esac
 case $assign_CCFLAGS in
 ?*)	assign="$assign $assign_CCFLAGS"
 esac
@@ -714,7 +675,7 @@ esac
 
 packageroot() # dir
 {
-	test -d "$1/lib/$command" || test -x "$1/bin/$command"
+	test -f "$1/src/Mamfile" && test -x "$1/bin/$command"
 }
 
 # true if arg is executable
@@ -857,7 +818,7 @@ hostinfo() # attribute ...
 				break
 				;;
 			esac
-			shift;shift
+			shift 2
 		done
 		case $cpu in
 		0|1)	set						\
@@ -900,7 +861,7 @@ hostinfo() # attribute ...
 					break
 					;;
 				esac
-				shift;shift
+				shift 2
 			done
 			;;
 		esac
@@ -927,7 +888,7 @@ hostinfo() # attribute ...
 					break
 					;;
 				esac
-				shift;shift;shift
+				shift 3
 			done
 			;;
 		esac
@@ -1161,7 +1122,7 @@ int main(void)
 					esac
 					break
 				fi
-				shift;shift;shift;shift
+				shift 4
 			done
 			;;
 		esac
@@ -1562,7 +1523,18 @@ int b(void) { return 0; }
 					echo 'int main(void) { return 0; }' > $tmp.a.c
 					checkcc
 					$cc $CCFLAGS -o $tmp.a.exe $tmp.a.c </dev/null >/dev/null 2>&1
-					file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g"  )
+					file_result=$(file $tmp.a.exe 2>/dev/null | sed "s/$tmp\.a\.exe//g") || true
+					# Use od(1) to check the ELF header directly if file(1) failed
+					if test -z "$file_result" && test "$(uname -s | sed 's/-.*//')" != CYGWIN
+					then	elfbytes=$(od -An -tx1 -N 5 $tmp.a.exe | tr -d ' 	\n')
+						if test "$elfbytes" = "7f454c4602"
+						then echo "ELF 64-bit"
+						elif test "$elfbytes" = "7f454c4601"
+						then echo "ELF 32-bit"
+						else echo "Unknown bits"
+						fi
+					else	echo "$file_result"
+					fi )
 				case $bits in
 				*\ 64-bit* | *\ 64\ bit* | *\ 64bit*)
 					bits=64 ;;
@@ -1589,12 +1561,18 @@ int b(void) { return 0; }
 		do	case $# in
 			[012])	break ;;
 			esac
-			shift;shift
+			shift 2
 			eval "	case \$type in
 				$1)	type=\$2; break ;;
 				esac"
 		done
 		_hostinfo_="$_hostinfo_ $type"
+
+		# add host tag if given
+
+		case $HOSTTAG in
+		?*)	_hostinfo_=${_hostinfo_},$HOSTTAG ;;
+		esac
 		;;
 	esac
 	done
@@ -1742,11 +1720,13 @@ DEFPATH=$(
 ) || DEFPATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Fix for Android/Termux. The /bin directory exists with standard
 # utilities (sh, Toybox utils) but it is not included in _PATH_DEFPATH.
-# It should come first because /bin is read-only.
+# However, Android is so buggy that some stuff in /bin is broken (e.g.,
+# invoking /bin/df produces a syntax error from the shell). Let /bin come
+# last so broken binaries can be overridden.
 if	test -d /data/data/com.termux && test "$(/bin/uname -o 2>/dev/null)" = Android
 then	case ":$DEFPATH:" in
 	*:/bin:* ) ;;
-	* )	DEFPATH=/bin:$DEFPATH ;;
+	* )	DEFPATH=$DEFPATH:/bin ;;
 	esac
 fi
 # Fix for NixOS. Not all POSIX standard utilities come with the default system,
@@ -1907,7 +1887,7 @@ case $x in
 				shift
 				;;
 			esac
-			run="$@"
+			run="$*"
 			;;
 		esac
 		case $PACKAGEROOT in
@@ -2144,7 +2124,7 @@ case $x in
 
 	# tame the environment
 
-	unset ERROR_OPTIONS ENV _KSHRC_WELCOMED_
+	unset ERROR_OPTIONS ENV
 	;;
 esac
 
@@ -2155,7 +2135,7 @@ use:-)	eval "set -- $args"
 	0)	;;
 	*)	shift ;;
 	esac
-	run="$@"
+	run="$*"
 	;;
 esac
 

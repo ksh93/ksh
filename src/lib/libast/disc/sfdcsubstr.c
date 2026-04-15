@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfdchdr.h"
@@ -45,9 +46,9 @@ static ssize_t streamio(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc, int type
 
 	/* read just what we need */
 	if(su->extent >= 0 && (ssize_t)n > (io = (ssize_t)(su->extent - su->here)) )
-		n = io;
-	if(n <= 0)
-		return n;
+		n = (size_t)io;
+	if((ssize_t)n <= 0)
+		return (ssize_t)n;
 
 	/* save current location in parent stream */
 	parent = sfsk(f,0,SEEK_CUR,disc);

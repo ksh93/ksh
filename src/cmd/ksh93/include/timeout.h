@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,6 +15,10 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
+
+#ifndef _TIMEOUT_H
+#define _TIMEOUT_H
+
 /*
  *	UNIX shell
  *
@@ -22,9 +26,9 @@
  *
  */
 
-#ifndef TGRACE
 #define TGRACE		60	/* grace period before termination */
 				/* The time_warn message contains this number */
 extern const char	e_timeout[];
 extern const char	e_timewarn[];
-#endif /* TGRACE */
+
+#endif /* !_TIMEOUT_H */

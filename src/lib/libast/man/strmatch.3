@@ -40,9 +40,9 @@
 .SH NAME
 strmatch \- match shell file patterns
 .SH SYNOPSIS
-.L "int strmatch(const char* s, const char* p)"
+.L "ssize_t strmatch(const char* s, const char* p)"
 .br
-.L "char* strsubmatch(const char* s, const char* p, int flags)"
+.L "char* strsubmatch(const char* s, const char* p, regflags_t flags)"
 .SH DESCRIPTION
 .I strmatch
 compares the string

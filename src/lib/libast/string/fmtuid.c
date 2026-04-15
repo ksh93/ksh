@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -37,7 +37,7 @@ extern struct passwd*	getpwuid(uid_t);
 typedef struct Id_s
 {
 	Dtlink_t	link;
-	int		id;
+	uid_t		id;
 	char		name[1];
 } Id_t;
 
@@ -46,12 +46,12 @@ typedef struct Id_s
  */
 
 char*
-fmtuid(int uid)
+fmtuid(uid_t uid)
 {
 	Id_t*		ip;
 	char*		name;
 	struct passwd*	pw;
-	int		z;
+	size_t		z;
 
 	static Dt_t*		dict;
 	static Dtdisc_t		disc;
@@ -59,7 +59,7 @@ fmtuid(int uid)
 	if (!dict)
 	{
 		disc.key = offsetof(Id_t, id);
-		disc.size = sizeof(int);
+		disc.size = sizeof(uid_t);
 		dict = dtopen(&disc, Dtset);
 	}
 	else if (ip = (Id_t*)dtmatch(dict, &uid))

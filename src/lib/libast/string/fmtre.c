@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -31,26 +31,26 @@
 typedef struct Stack_s
 {
 	char*		beg;
-	short		len;
-	short		min;
+	ptrdiff_t	dlen;
+	char		min;
 } Stack_t;
 
 char*
 fmtre(const char* as)
 {
 	char*		s = (char*)as;
-	int		c;
+	char		c;
+	ssize_t		i;
 	char*		t;
 	Stack_t*	p;
 	char*		x;
-	int		n;
-	int		end;
+	char		n;
+	char		end;
 	char*		buf;
 	Stack_t		stack[32];
 
 	end = 1;
-	c = 2 * strlen(s) + 1;
-	t = buf = fmtbuf(c);
+	t = buf = fmtbuf(2 * strlen(s) + 1);
 	p = stack;
 	if (*s != '*' || *(s + 1) == '(' || *(s + 1) == '-' && *(s + 2) == '(')
 		*t++ = '^';
@@ -111,7 +111,7 @@ fmtre(const char* as)
 					return NULL;
 				p->beg = s - 1;
 				s = x;
-				p->len = s - p->beg;
+				p->dlen = s - p->beg;
 				if (p->min = *s == '-')
 					s++;
 				p++;
@@ -144,14 +144,14 @@ fmtre(const char* as)
 						for (s += 3; *t = *s; t++, s++);
 						continue;
 					}
-					p->len = 0;
+					p->dlen = 0;
 					p->min = 0;
 					*t++ = *s++;
 					*t++ = '?';
 				}
 				else
 				{
-					p->len = c != '@';
+					p->dlen = c != '@';
 					if (p->min = *s == '-')
 						s++;
 					*t++ = *s++;
@@ -180,7 +180,7 @@ fmtre(const char* as)
 			if (p >= &stack[elementsof(stack)])
 				return NULL;
 			p->beg = s - 1;
-			p->len = 0;
+			p->dlen = 0;
 			p->min = 0;
 			p++;
 			*t++ = c;
@@ -190,8 +190,8 @@ fmtre(const char* as)
 				return NULL;
 			*t++ = c;
 			p--;
-			for (c = 0; c < p->len; c++)
-				*t++ = p->beg[c];
+			for (i = 0; i < p->dlen; i++)
+				*t++ = p->beg[i];
 			if (p->min)
 				*t++ = '?';
 			continue;

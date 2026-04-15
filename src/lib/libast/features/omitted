@@ -33,7 +33,7 @@ tst	note{ check for Win32 .exe botches }end output{
 		struct stat	st;
 		char		buf[256];
 
-		snprintf(buf, sizeof(buf), "rm -rf .iff-%d", getpid());
+		snprintf(buf, sizeof(buf), "rm -rf .iff-%d", (int)getpid());
 		if (_mkdir(buf+7, 0755))
 			return 1;
 		if (_chdir(buf+7))

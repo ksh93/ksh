@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,7 +15,7 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 
 #define ENUM_ID "enum (ksh 93u+m) 2024-11-28"
@@ -103,15 +103,15 @@ extern const char is_spcbuiltin[];
 struct Enum
 {
 	Namfun_t	hdr;
-	short		nelem;
-	short		iflag;
+	ssize_t		nelem;
+	char		iflag;
 	const char	*values[1];
 };
 
 /*
  * For range checking in arith.c
  */
-short b_enum_nelem(Namfun_t *fp)
+ssize_t b_enum_nelem(Namfun_t *fp)
 {
 	return ((struct Enum *)fp)->nelem;
 }
@@ -120,7 +120,7 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 {
 	Namval_t	*np;
 	struct Enum	*ep;
-	int		n=0;
+	ssize_t		n=0;
 	const char	*v;
 	NOT_USED(op);
 	np = *(Namval_t**)(fp+1);
@@ -137,7 +137,7 @@ static int enuminfo(Opt_t* op, Sfio_t *out, const char *str, Optdisc_t *fp)
 		if(str[4]=='v')
 			sfprintf(out,"\b%s\b",ep->values[n]);
 		else
-			sfprintf(out,"\b%d\b",n);
+			sfprintf(out,"\b%jd\b",(intmax_t)n);
 	}
 	else if(strcmp(str,"case")==0)
 	{
@@ -155,8 +155,8 @@ static Namfun_t *clone_enum(Namval_t* np, Namval_t *mp, int flags, Namfun_t *fp)
 	NOT_USED(np);
 	NOT_USED(mp);
 	NOT_USED(flags);
-	ep = sh_newof(0,struct Enum,1,pp->nelem*sizeof(char*));
-	memcpy(ep,pp,sizeof(struct Enum)+pp->nelem*sizeof(char*));
+	ep = sh_newof(0,struct Enum,1,(size_t)pp->nelem*sizeof(char*));
+	memcpy(ep,pp,sizeof(struct Enum)+(size_t)pp->nelem*sizeof(char*));
 	return &ep->hdr;
 }
 
@@ -198,12 +198,12 @@ static void put_enum(Namval_t* np,const char *val,int flags,Namfun_t *fp)
 
 static char* get_enum(Namval_t* np, Namfun_t *fp)
 {
-	static char buff[6];
+	static char buff[21];
 	struct Enum *ep = (struct Enum*)fp;
-	long n = nv_getn(np,fp);
+	long long n = nv_getn(np,fp);
 	if(n < ep->nelem)
 		return (char*)ep->values[n];
-	sfsprintf(buff,sizeof(buff),"%u%c",n,0);
+	sfsprintf(buff,sizeof(buff),"%lld%c",n,0);
 	return buff;
 }
 
@@ -211,7 +211,9 @@ const Namdisc_t ENUM_disc = { 0, put_enum, get_enum, nv_getn, 0, 0, clone_enum }
 
 int b_enum(int argc, char** argv, Shbltin_t *context)
 {
-	int			sz,i,n,iflag = 0;
+	int			i;
+	char			iflag = 0;
+	size_t			sz,n;
 	Namval_t		*np, *tp;
 	Namarr_t		*ap;
 	char			*cp,*sp;
@@ -276,7 +278,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 		sz += n*sizeof(char*);
 		ep = sh_newof(0,struct Enum,1,sz);
 		ep->iflag = iflag;
-		ep->nelem = n;
+		ep->nelem = (ssize_t)n;
 		cp = (char*)&ep->values[n+1];
 		nv_putsub(np, NULL, ARRAY_SCAN);
 		ep->values[n] = 0;

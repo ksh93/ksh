@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *              This file is part of the ksh 93u+m package              *
-*             Copyright (c) 2025 Contributors to ksh 93u+m             *
+*          Copyright (c) 2025-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -10,6 +10,7 @@
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -42,8 +43,8 @@ extern void		vmclear(Vmalloc_t*);
 extern void		vmclose(Vmalloc_t*);
 
 /* region option bits */
-#define VM_INIT		0x01			/* initialize allocated/grown memory	*/
-#define VM_FREEONFAIL	0x02			/* vmresize frees block on resize fail	*/
+#define VM_INIT		0x01U			/* initialize allocated/grown memory	*/
+#define VM_FREEONFAIL	0x02U			/* vmresize frees block on resize fail	*/
 
 /* legacy */
 #define vmnewof(v,p,t,n,x)	( (t*)_Vm_newoldof_((v), (p), sizeof(t)*(n)+(x), 1) )

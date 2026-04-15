@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2026-02-10
+version=2026-02-30
 
 # DEFPATH should be inherited from package(1)
 case $DEFPATH in
@@ -3065,7 +3065,10 @@ $src
 						execute $tmp.sh <&$nullin || e=1
 						;;
 					run*|norun*)
-						(eval "$src") <&$nullin || e=1
+						case $verbose in
+						0)	(eval "$src") 9>&$nullout ;;
+						*)	(eval "$src") 9>&$stderr ;;
+						esac <&$nullin || e=1
 						;;
 					mac*|nomac*)
 						if	compile $cc -E -P $tmp.c <&$nullin >$tmp.i

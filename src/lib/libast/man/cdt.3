@@ -109,7 +109,7 @@ ssize_t   dtstat(Dt_t* dt, Dtstat_t* st);
 .Ce
 .Ss "HASH FUNCTION"
 .Cs
-unsigned int dtstrhash(unsigned int h, char* str, int n);
+unsigned int dtstrhash(unsigned int h, void* str, ssize_t n);
 .Ce
 .SH DESCRIPTION
 .PP
@@ -719,7 +719,7 @@ The reported levels is limited to less than \f3DT_MAXSIZE\fP.
 \f3char* mesg\fP:
 A summary message of some of the statistics.
 .Ss "HASH FUNCTIONS"
-.Ss "  unsigned int dtstrhash(unsigned int h, char* str, int n)"
+.Ss "  unsigned int dtstrhash(unsigned int h, void* str, ssize_t n);"
 This function computes a new hash value from string \f3str\fP and
 seed value \f3h\fP.
 If \f3n\fP is positive, \f3str\fP is a byte array of length \f3n\fP;

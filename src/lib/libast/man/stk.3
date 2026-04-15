@@ -20,14 +20,14 @@ Stk_t *stkinstall(Stk_t *\fIstack\fP, char *(\fIoverflow\fP)(size_t));
 int stkclose(Stk_t *\fIstack\fP);
 unsigned int stklink(Stk_t *\fIstack\fP)
 
-void *stkalloc(Stk_t *\fIstack\fP, unsigned \fIsize\fP);
+void *stkalloc(Stk_t *\fIstack\fP, size_t \fIsize\fP);
 char *stkcopy(Stk_t *\fIstack\fP, const char *\fIstring\fP);
-void *stkset(Stk_t *\fIstack\fP, void *\fIaddress\fP, unsigned \fIoffset\fP);
+void *stkset(Stk_t *\fIstack\fP, void *\fIaddress\fP, ptrdiff_t \fIoffset\fP);
 
-void *stkseek(Stk_t *\fIstack\fP, unsigned \fIoffset\fP);
-int stktell(Stk_t *\fIstack\fP);
-char *stkptr(Stk_t *\fIstack\fP, unsigned \fIoffset\fP);
-void *stkfreeze(Stk_t *\fIstack\fP, unsigned \fIextra\fP);
+void *stkseek(Stk_t *\fIstack\fP, ptrdiff_t \fIoffset\fP);
+ptrdiff_t stktell(Stk_t *\fIstack\fP);
+char *stkptr(Stk_t *\fIstack\fP, ptrdiff_t \fIoffset\fP);
+void *stkfreeze(Stk_t *\fIstack\fP, size_t \fIextra\fP);
 \fR
 .fi
 .SH DESCRIPTION

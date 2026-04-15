@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,6 +15,7 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -61,19 +62,19 @@ tmxtime(Tm_t* tm, int west)
 	if (y < 69 || y > (TMX_MAXYEAR - 1900))
 		return TMX_NOTIME;
 	y--;
-	t = y * 365 + y / 4 - y / 100 + (y + (1900 - 1600)) / 400 - (1970 - 1901) * 365 - (1970 - 1901) / 4;
+	t = (Time_t)(y * 365 + y / 4 - y / 100 + (y + (1900 - 1600)) / 400 - (1970 - 1901) * 365 - (1970 - 1901) / 4);
 	if ((n = tm->tm_mon) > 11)
 		n = 11;
 	y += 1901;
 	if (n > 1 && tmisleapyear(y))
 		t++;
-	t += tm_data.sum[n] + tm->tm_mday - 1;
+	t += (Time_t)(tm_data.sum[n] + tm->tm_mday - 1);
 	t *= 24;
-	t += tm->tm_hour;
+	t += (Time_t)tm->tm_hour;
 	t *= 60;
-	t += tm->tm_min;
+	t += (Time_t)tm->tm_min;
 	t *= 60;
-	t += sec = tm->tm_sec;
+	t += (Time_t)(sec = tm->tm_sec);
 	if (west != TM_UTCZONE && !(tm_info.flags & TM_UTC))
 	{
 		/*
@@ -82,24 +83,24 @@ tmxtime(Tm_t* tm, int west)
 
 		if (west == TM_LOCALZONE)
 		{
-			t += tm_info.zone->west * 60;
+			t += (Time_t)tm_info.zone->west * 60;
 			if (!tm_info.zone->daylight)
 				tm->tm_isdst = 0;
 			else
 			{
 				y = tm->tm_year;
 				tm->tm_year = tmequiv(tm) - 1900;
-				now = tmxsec(tmxtime(tm, tm_info.zone->west));
+				now = (time_t)tmxsec(tmxtime(tm, tm_info.zone->west));
 				tm->tm_year = y;
 				if (!(tl = tmlocaltime(&now)))
 					return TMX_NOTIME;
 				if (tm->tm_isdst = tl->tm_isdst)
-					t += tm_info.zone->dst * 60;
+					t += (Time_t)tm_info.zone->dst * 60;
 			}
 		}
 		else
 		{
-			t += west * 60;
+			t += (Time_t)west * 60;
 			if (!tm_info.zone->daylight)
 				tm->tm_isdst = 0;
 			else if (tm->tm_isdst < 0)
@@ -107,7 +108,7 @@ tmxtime(Tm_t* tm, int west)
 				y = tm->tm_year;
 				tm->tm_year = tmequiv(tm) - 1900;
 				tm->tm_isdst = 0;
-				now = tmxsec(tmxtime(tm, tm_info.zone->west));
+				now = (time_t)tmxsec(tmxtime(tm, tm_info.zone->west));
 				tm->tm_year = y;
 				if (!(tl = tmlocaltime(&now)))
 					return TMX_NOTIME;
@@ -124,11 +125,11 @@ tmxtime(Tm_t* tm, int west)
 		 * leap second adjustments
 		 */
 
-		for (lp = &tm_data.leap[0]; t < lp->time - (lp+1)->total; lp++);
-		t += lp->total;
+		for (lp = &tm_data.leap[0]; (signed)t < lp->time - (lp+1)->total; lp++);
+		t += (Time_t)lp->total;
 		n = lp->total - (lp+1)->total;
-		if (t <= (lp->time + n) && (n > 0 && sec > 59 || n < 0 && sec > (59 + n) && sec <= 59))
-			t -= n;
+		if ((signed)t <= (lp->time + n) && (n > 0 && sec > 59 || n < 0 && sec > (59 + n) && sec <= 59))
+			t -= (Time_t)n;
 	}
 	return tmxsns(t, tm->tm_nsec);
 }

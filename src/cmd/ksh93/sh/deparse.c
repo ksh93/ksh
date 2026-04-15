@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"shnodes.h"
 #include	"test.h"
@@ -437,7 +437,7 @@ static void p_arg(const struct argnod *arg,int endchar,int opts)
 		{
 			/* compound assignment */
 			struct fornod *fp=(struct fornod*)arg->argchn.ap;
-			sfprintf(outfile,"%s=(\n",fp->fornam);
+			sfprintf(outfile, arg->argflag&ARG_APPEND ? "%s+=(\n" : "%s=(\n", fp->fornam);
 			sfnputc(outfile,'\t',++level);
 			p_tree(fp->fortre,0);
 			if(--level)
