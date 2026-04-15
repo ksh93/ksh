@@ -63,6 +63,7 @@ struct jobs
 {
 	struct process	*pwlist;	/* head of process list */
 	int		*exitval;	/* pipe exit values */
+	unsigned char	*freejobs;	/* free jobs numbers */
 	pid_t		curpgid;	/* current process GID */
 	pid_t		parent;		/* set by fork() */
 	pid_t		mypid;		/* process ID of shell */
@@ -75,13 +76,12 @@ struct jobs
 #if SHOPT_BGX
 	int		numbjob;	/* number of background jobs */
 #endif /* SHOPT_BGX */
-	short		fd;		/* tty descriptor number */
-	int		suspend;	/* suspend character */
+	int		fd;		/* tty descriptor number */
+	cc_t		suspend;	/* suspend character */
 	char		jobcontrol;	/* turned on for interactive shell with control of terminal */
 	char		waitsafe;	/* wait will not block */
 	char		waitall;	/* wait for all jobs in pipe */
 	char		toclear;	/* job table needs clearing */
-	unsigned char	*freejobs;	/* free jobs numbers */
 };
 
 /* flags for joblist */

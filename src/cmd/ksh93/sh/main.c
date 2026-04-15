@@ -102,6 +102,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 	Sfio_t		*iop;
 	struct stat	statb;
 	int		i;
+	size_t		j;
 	int		rshflag;	/* set for restricted shell */
 	char		*command;
 #ifdef	_hdr_nc
@@ -162,8 +163,8 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 		if(!sh_isoption(SH_RC) && !fstat(0, &statb) && REMOTE(statb.st_mode))
 			sh_onoption(SH_RC);
 #endif
-		for(i=0; i<elementsof(sh.offoptions.v); i++)
-			sh.options.v[i] &= ~sh.offoptions.v[i];
+		for(j=0; j<elementsof(sh.offoptions.v); j++)
+			sh.options.v[j] &= ~sh.offoptions.v[j];
 		if(sh_isoption(SH_INTERACTIVE))
 		{
 #ifdef SIGXCPU
@@ -640,7 +641,7 @@ static void chkmail(char *files)
 	char		*cp,*sp,*qp;
 	char		save;
 	struct argnod	*arglist=0;
-	int		offset = stktell(sh.stk);
+	ptrdiff_t	offset = stktell(sh.stk);
 	char	 	*savstak = stkptr(sh.stk,0);
 	struct stat	statb;
 	if(*(cp=files) == 0)
@@ -733,8 +734,8 @@ static void fixargs(char **argv, int mode)
 {
 #   if PSTAT
 	char *cp;
-	int offset=0,size;
-	static int command_len;
+	size_t offset=0,size;
+	static size_t command_len;
 	char *buff;
 	union pstun un;
 	if(mode==0)
@@ -746,7 +747,7 @@ static void fixargs(char **argv, int mode)
 		command_len = st.command_length;
 		return;
 	}
-	stkseek(sh.stk,command_len+2);
+	stkseek(sh.stk,(ssize_t)command_len+2);
 	buff = stkseek(sh.stk,0);
 	if(command_len==0)
 		return;
@@ -765,7 +766,7 @@ static void fixargs(char **argv, int mode)
 #   elif _lib_setproctitle
 #	define CMDMAXLEN 255
 	char *cp;
-	int offset=0,size;
+	size_t offset=0,size;
 	char buff[CMDMAXLEN + 1];
 	if(mode==0)
 		return;
@@ -783,12 +784,12 @@ static void fixargs(char **argv, int mode)
 #   else
 	/* Generic version, works on at least Linux and macOS */
 	char *cp;
-	int offset=0,size;
-	static int buffsize;
+	size_t offset=0, size;
+	static size_t buffsize;
 	static char *buff;
 	if(mode==0)
 	{
-		int i;
+		ssize_t i;
 		buff = argv[0];
 		for(i=0; argv[i]; i++)
 			buffsize += strlen(argv[i]) + 1;

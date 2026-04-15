@@ -46,9 +46,8 @@ tst	openat_enotdir note{ does openat set ENOTDIR when it fails because the file 
 	int main(void)
 	{
 		char	filename[64];
-		int	n, saverrno;
-		pid_t	child;
-		sprintf(filename,".file.%u",(unsigned int)getpid());
+		int	saverrno;
+		sprintf(filename,".file.%ju",(uintmax_t)getpid());
 		open(filename,O_RDWR|O_CREAT);  /* let the OS close the fd after completion */
 		openat(AT_FDCWD, filename, O_DIRECTORY|O_NONBLOCK|O_cloexec|O_SEARCH);
 		saverrno = errno;

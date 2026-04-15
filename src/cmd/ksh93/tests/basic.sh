@@ -963,6 +963,30 @@ for t in {A..Z}; do
 done
 
 # ======
+# Is ksh93 capable of operating within a 64-bit address space?
+# https://github.com/ksh93/ksh/issues/592
+integer res ret=0
+if [[ -f /proc/meminfo ]] && ! check_profiling_or_asan
+then	meminfo=($(grep 'MemAvailable:' /proc/meminfo))
+	integer res
+	((res = meminfo[1] / 1000000))
+	# Don't try unless we have at least 5 * 2 + 2 GB of available RAM
+	if ((res >= 12))
+	then	got=$(	ulimit -t unlimited 2>/dev/null  # Fork
+			# Allocate 5 gigabytes into the variable 'v'.
+			# This test must allocate more than UINT_MAX.
+			printf -v v "%5000000000d" 0
+			echo ${#v}
+		)
+		if (($? != 0))
+		then	err_exit "ksh crashes when attempting to allocate 5 gigabytes to a variable"
+		elif [[ $got != 5000000000 ]]
+		then	err_exit "ksh cannot allocate at least 5 gigabytes to a variable (got $(printf %q "$got"))"
+		fi
+	fi
+fi
+
+# ======
 # Is an invalid flag handled correctly?
 # ksh2020 regression: https://github.com/att/ast/issues/1284
 actual=$($SHELL --verson 2>&1)

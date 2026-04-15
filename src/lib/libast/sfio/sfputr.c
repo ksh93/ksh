@@ -79,7 +79,7 @@ ptrdiff_t sfputr(Sfio_t*		f,	/* write to this stream	*/
 						memcpy(rsrv->data, s, (size_t)n);
 					if(rc >= 0)
 						rsrv->data[n] = (uchar)rc;
-					if((n = (ptrdiff_t)SFWRITE(f,rsrv->data,(size_t)p)) < 0 )
+					if((n = SFWRITE(f,rsrv->data,(size_t)p)) < 0 )
 						n = 0;
 				}
 

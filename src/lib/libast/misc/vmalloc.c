@@ -172,15 +172,13 @@ void vmfree(Vmalloc_t *vm, void *ap)
  */
 void vmclear(Vmalloc_t *vm)
 {
-	Vmblock_t	*bp, *bpnext;
+	Vmblock_t	*bp;
 
-	bpnext = vm->_list_;
-	while (bp = bpnext)
+	while (bp = vm->_list_)
 	{
-		bpnext = bp->next;
+		vm->_list_ = bp->next;
 		free(bp);
 	}
-	vm->_list_ = NULL;
 }
 
 /*

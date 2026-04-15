@@ -2518,19 +2518,12 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make sfdcdio.o
-			make disc/sfdcdio.c
+		make sfdcdos.o
+			make disc/sfdcdos.c
 				make disc/sfdchdr.h
 					prev include/sfdisc.h
 					prev sfio/sfhdr.h
 				done
-			done
-			exec - compile %{<} -Idisc -Iport -Isfio
-		done
-
-		make sfdcdos.o
-			make disc/sfdcdos.c
-				prev disc/sfdchdr.h
 			done
 			exec - compile %{<} -Idisc -Iport -Isfio
 		done

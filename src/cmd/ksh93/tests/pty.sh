@@ -927,7 +927,7 @@ p :test-1:
 w PS2.get() { trap --bad-option 2>/dev/null; .sh.value="NOT REACHED"; }
 p :test-2:
 w echo \$\(
-r :test-2: echo \$\(
+r echo \$\(\r\n$
 w echo one \\
 r > echo one \\
 w two three
@@ -1254,16 +1254,16 @@ p :test-1:
 w cd chrtest3; .sh.tilde.get() { print -n WRONG_TILDE_EXPANSION >&2; };
 p :test-2:
 w ls \\~\t
-r ^:test-2: ls \\~ab/\r\n$
+r ls \\~ab/\r\n$
 p :test-3:
 w ls '~\t
-r ^:test-3: ls \\~ab/\r\n$
+r ls \\~ab/\r\n$
 p :test-4:
 w ls "~\t
-r ^:test-4: ls \\~ab/\r\n$
+r ls \\~ab/\r\n$
 p :test-5:
 w ls $'~\t
-r ^:test-5: ls \\~ab/\r\n$
+r ls \\~ab/\r\n$
 !
 
 ((SHOPT_VSH || SHOPT_ESH)) &&

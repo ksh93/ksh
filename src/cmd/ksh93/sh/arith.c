@@ -74,9 +74,9 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 	lvalue->ovalue = 0;
 	if(cp>=lvalue->expr &&  cp < lvalue->expr+lvalue->elen)
 	{
-		int offset;
+		ptrdiff_t offset;
 		/* do binding to node now */
-		int c = cp[flag];
+		char c = cp[flag];
 		cp[flag] = 0;
 		if((!(np = nv_open(cp,sh.var_tree,assign|NV_VARNAME|NV_NOADD|NV_NOFAIL)) || nv_isnull(np))
 		&& sh_macfun(cp, offset = stktell(sh.stk)))
@@ -110,7 +110,8 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 	while(nv_isref(np))
 	{
 #if SHOPT_FIXEDARRAY
-		int n,dim;
+		int dim;
+		ssize_t n;
 		dim = nv_refdimen(np);
 		n = nv_refindex(np);
 #endif /* SHOPT_FIXEDARRAY */
@@ -165,7 +166,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 				sfputr(sh.strbuf,sub,-1);
 				sub = sfstruse(sh.strbuf);
 			}
-			*cp = flag;
+			*cp = (char)flag;
 			if(c || hasdot)
 			{
 				np = nv_open(sub,sh.var_tree,NV_VARNAME|assign);
@@ -201,7 +202,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
 }
 
 /* look up a function in the standard math function table */
-static Math_f sh_mathstdfun(const char *fname, size_t fsize, short * nargs)
+static Math_f sh_mathstdfun(const char *fname, size_t fsize, short *nargs)
 {
 	const struct mathtab *tp;
 	char c = fname[0];
@@ -327,8 +328,8 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			}
 			if(c=='(')
 			{
-				int off=stktell(sh.stk);
-				int fsize = str- (char*)(*ptr);
+				ptrdiff_t off = stktell(sh.stk);
+				size_t fsize = (size_t)(str- (char*)(*ptr));
 				const struct mathtab *tp;
 				c = **ptr;
 				lvalue->fun = 0;
@@ -337,7 +338,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				if(np=nv_search(stkptr(sh.stk,off),sh.fun_tree,0))
 				{
 					struct Ufunction *rp = np->nvalue;
-					lvalue->nargs = -rp->argc;
+					lvalue->nargs = rp->argc * -1;
 					lvalue->fun = (Math_f)np;
 					break;
 				}
@@ -354,7 +355,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			if((lvalue->emode&ARITH_COMP) && dot)
 			{
 				lvalue->value = (char*)*ptr;
-				lvalue->flag =  str-lvalue->value;
+				lvalue->flag =  (short)(str-lvalue->value);
 				break;
 			}
 			*str = 0;
@@ -362,10 +363,10 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				np = L_ARGNOD;
 			else
 			{
-				int offset = stktell(sh.stk);
+				ptrdiff_t offset = stktell(sh.stk);
 				char *saveptr = stkfreeze(sh.stk,0);
 				Dt_t  *root = (lvalue->emode&ARITH_COMP)?sh.var_base:sh.var_tree;
-				*str = c;
+				*str = (char)c;
 				cp = str;
 				while(c=='[' || c=='.')
 				{
@@ -412,14 +413,14 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				else if(!(np = nv_open(*ptr,root,NV_NOREF|NV_VARNAME|dot)))
 				{
 					lvalue->value = (char*)*ptr;
-					lvalue->flag =  str-lvalue->value;
+					lvalue->flag =  (short)(str-lvalue->value);
 				}
 				if(saveptr != stkptr(sh.stk,0))
 					stkset(sh.stk,saveptr,offset);
 				else
 					stkseek(sh.stk,offset);
 			}
-			*str = c;
+			*str = (char)c;
 			if(!np && lvalue->value)
 				break;
 			lvalue->value = (char*)np;
@@ -429,7 +430,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			lvalue->flag = 0;
 			if(c=='[')
 			{
-				lvalue->flag = (str-lvalue->expr);
+				lvalue->flag = (short)(str-lvalue->expr);
 				do
 				{
 					while(c=='.')
@@ -447,7 +448,8 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		}
 		else
 		{
-			char	lastbase=0, *val = xp, oerrno = errno;
+			char	lastbase=0, *val = xp;
+			int	oerrno = errno;
 			lvalue->isenum = 0;
 			errno = 0;
 			r = strtonll(val,&str, &lastbase,-1);
@@ -486,7 +488,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			{
 				if(val[2]=='#')
 					val += 3;
-				if((str-val)>2*sizeof(Sflong_t))
+				if((str-val)>(2*(ssize_t)sizeof(Sflong_t)))
 				{
 					Sfdouble_t rr;
 					rr = strtold(val,&str);

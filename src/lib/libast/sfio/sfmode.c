@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
@@ -270,7 +270,7 @@ static int _sfpmode(Sfio_t* f, int type)
 	else
 	{	/* restore read data */
 		if(p->ndata > f->size)	/* may lose data!!! */
-			p->ndata = (ptrdiff_t)f->size;
+			p->ndata = f->size;
 		if(p->ndata > 0)
 		{	memcpy(f->data,p->rdata,(size_t)p->ndata);
 			f->endb = f->data+p->ndata;

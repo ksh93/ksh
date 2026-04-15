@@ -1018,6 +1018,9 @@ int main(void)
 		*-linux-android*)
 			# Android/Termux is very much its own thing, so identify it as 'android', not 'linux'
 			canon=${canon%-linux-*}-android ;;
+		*-nto-qnx[0-9]*)
+			# QNX Neutrino, e.g.: i486-pc-nto-qnx6.5.0 - swap last two fields so we call it qnx, not nto
+			canon=${canon%-nto-*}-${canon#*-nto-}-nto ;;
 		esac
 		case -${canon}- in
 		--|*-powerpc-*)

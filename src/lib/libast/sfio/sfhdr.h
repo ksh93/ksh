@@ -530,7 +530,7 @@ typedef struct _sfextern_s
 /* fast peek of a stream */
 #define _SFAVAIL(f,s,n)	((n) = (f)->endb - ((s) = (f)->next) )
 #define SFRPEEK(f,s,n)	(_SFAVAIL(f,s,n) > 0 ? (n) : \
-				((n) = (ptrdiff_t)SFFILBUF(f,-1), (s) = (f)->next, (n)) )
+				((n) = SFFILBUF(f,-1), (s) = (f)->next, (n)) )
 #define SFWPEEK(f,s,n)	(_SFAVAIL(f,s,n) > 0 ? (n) : \
 				((n) = SFFLSBUF(f,-1), (s) = (f)->next, (n)) )
 

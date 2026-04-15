@@ -20,7 +20,7 @@
 
 #include "stdhdr.h"
 
-extern char*
+static char*
 _stdgets(Sfio_t* f, char* us, ptrdiff_t n, int isgets)
 {
 	ptrdiff_t	p;
