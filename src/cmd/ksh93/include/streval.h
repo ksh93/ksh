@@ -73,13 +73,13 @@ struct lval
 	Sfdouble_t	(*fun)(Sfdouble_t,...);
 	const char	*expr;
 	const void	*enum_p;	/* pointer to the lvalue's enum type */
-	int		nosub;
 	char		*sub;
+	size_t		elen;
+	int		nosub;
+	int		emode;
 	short		flag;
 	short		nargs;
-	short		emode;
 	short		level;
-	short		elen;
 	char		isenum;		/* set if the lvalue is of an enum type */
 	char		isfloat;
 };
@@ -95,10 +95,10 @@ typedef struct _arith_
 	unsigned char	*code;
 	const char	*expr;
 	Sfdouble_t	(*fun)(const char**,struct lval*,int,Sfdouble_t);
-	short		size;
-	short		staksize;
-	short		emode;
-	short		elen;
+	size_t		elen;
+	ptrdiff_t	size;
+	ptrdiff_t	staksize;
+	int		emode;
 } Arith_t;
 #define ARITH_COMP	04	/* set when compile separate from execute */
 #define ARITH_ASSIGNOP	010	/* set during assignment operators */

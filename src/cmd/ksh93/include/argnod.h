@@ -31,7 +31,7 @@ struct ionod
 	struct ionod	*iolst;
 	char		*iodelim;
 	off_t		iooffset;
-	long		iosize;
+	Sfoff_t		iosize;
 	char		*iovname;
 };
 

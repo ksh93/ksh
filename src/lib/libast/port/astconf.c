@@ -392,7 +392,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		goto ok;
 	}
 	s = (char*)fp->name;
-	n = (ptrdiff_t)fp->length;
+	n = fp->length;
 	d = state.data;
 	for (;;)
 	{

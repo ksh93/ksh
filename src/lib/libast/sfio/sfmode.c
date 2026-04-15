@@ -270,7 +270,7 @@ static int _sfpmode(Sfio_t* f, int type)
 	else
 	{	/* restore read data */
 		if(p->ndata > f->size)	/* may lose data!!! */
-			p->ndata = (ptrdiff_t)f->size;
+			p->ndata = f->size;
 		if(p->ndata > 0)
 		{	memcpy(f->data,p->rdata,(size_t)p->ndata);
 			f->endb = f->data+p->ndata;

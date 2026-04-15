@@ -187,13 +187,13 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 			UNREACHABLE();
 		}
 	}
-	for(i=0; i < (unsigned)sp->numnodes; i++)
+	for(i=0; i < (size_t)sp->numnodes; i++)
 	{
 		if(np == sp->nodes[i])
 		{
 			if(remove)
 			{
-				while(++i < (unsigned)sp->numnodes)
+				while(++i < (size_t)sp->numnodes)
 					sp->nodes[i-1] = sp->nodes[i];
 				sp->numnodes--;
 			}
@@ -2894,7 +2894,7 @@ void nv_newattr(Namval_t *np, unsigned newatts, ssize_t size)
 				if(!*sp) sp--;		/* if number was 0, leave one zero */
 			}
 			len = strlen(sp);
-			cp = (char*)sh_malloc((len >= (unsigned)size ? len : (unsigned)size) + 1);
+			cp = (char*)sh_malloc((len >= (size_t)size ? len : (size_t)size) + 1);
 			strcpy(cp, sp);
 			if(sp && (mp=nv_opensub(np)))
 			{
