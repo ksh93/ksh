@@ -1464,7 +1464,7 @@ retry1:
 				stkseek(stkp, offset);
 				break;
 			} else
-				np = nv_open(v,sh.var_tree,flag|NV_NOFAIL);
+				np = nv_open(v,sh.var_tree,nvflag|NV_NOFAIL);
 		}
 		if(isastchar(mode))
 			var = 0;
