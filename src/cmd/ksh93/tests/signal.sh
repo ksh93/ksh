@@ -394,10 +394,10 @@ yes() for ((;;)); do print y; done
 		fi
 	done
 
-# The test for SIGBUS trap handling below is incompatible with ASan because ASan
-# implements its own SIGBUS handler independently of ksh.
+# The test for SIGBUS trap handling below is incompatible with ASan or UBSan
+# because these implement their own SIGBUS handler independently of ksh.
 # Also, Android does not allow ignoring SIGBUS.
-if ! ((SHELL_ASAN)) && ! [[ $HOSTTYPE == android.* ]]; then
+if ! ((SHELL_ASAN || SHELL_UBSAN)) && ! [[ $HOSTTYPE == android.* ]]; then
 	trap '' SIGBUS
 	got=$("$SHELL" -c 'trap date SIGBUS; trap -p SIGBUS')
 	[[ "$got" ]] && err_exit 'SIGBUS should not have a trap' \

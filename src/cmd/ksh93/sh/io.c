@@ -2090,33 +2090,16 @@ uint8_t sh_iocheckfd(int fd)
 		return n;
 	if(!(n&(IOREAD|IOWRITE)))
 	{
-#ifdef F_GETFL
 		if((flags=fcntl(fd,F_GETFL,0)) < 0)
 			return sh.fdstatus[fd]=IOCLOSE;
 		if((flags&O_ACCMODE)!=O_WRONLY)
 			n |= IOREAD;
 		if((flags&O_ACCMODE)!=O_RDONLY)
 			n |= IOWRITE;
-#else
-		struct stat statb;
-		if((flags = fstat(fd,&statb))< 0)
-			return sh.fdstatus[fd]=IOCLOSE;
-		n |= (IOREAD|IOWRITE);
-		if(read(fd,"",0) < 0)
-			n &= ~IOREAD;
-#endif /* F_GETFL */
 	}
 	if(!(n&(IOSEEK|IONOSEEK)))
 	{
 		struct stat statb;
-		/* /dev/null check is a workaround for select bug */
-		static ino_t null_ino;
-		static dev_t null_dev;
-		if(null_ino==0 && stat(e_devnull,&statb) >=0)
-		{
-			null_ino = statb.st_ino;
-			null_dev = statb.st_dev;
-		}
 		if(tty_check(fd))
 			n |= IOTTY;
 		if(lseek(fd,0,SEEK_CUR)<0)
@@ -2136,13 +2119,10 @@ uint8_t sh_iocheckfd(int fd)
 #endif /* S_ISSOCK */
 		}
 		else if((fstat(fd,&statb)>=0) && (
-			S_ISFIFO(statb.st_mode) ||
+			S_ISFIFO(statb.st_mode)
 #ifdef S_ISSOCK
-			S_ISSOCK(statb.st_mode) ||
+			|| S_ISSOCK(statb.st_mode)
 #endif /* S_ISSOCK */
-			/* The following is for sockets on the sgi */
-			(statb.st_ino==0 && (statb.st_mode & (mode_t)~(S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR|S_IWGRP|S_IWOTH|S_IXUSR|S_IXGRP|S_IXOTH|S_ISUID|S_ISGID))==0) ||
-			(S_ISCHR(statb.st_mode) && (statb.st_ino!=null_ino || statb.st_dev!=null_dev))
 		))
 			n |= IONOSEEK;
 		else
