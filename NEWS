@@ -4,7 +4,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-04-14:
 
-- Ksh is now capable of allocating memory within a 64-bit address space.
+- Ksh is now capable of allocating memory within a 64-bit address space. This
+  means variables can now contain multi-gigabyte values without ksh crashing.
 
 2026-04-13:
 
