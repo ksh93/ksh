@@ -82,7 +82,7 @@ static unsigned long writedefs(Lex_t *lexp,struct argnod *arglist, int line, int
 	int eline;
 	size_t width=0;
 	int n;
-	ssize_t len;
+	ssize_t len, p;
 	unsigned long r=0;
 	static char atbuff[20];
 	int  justify=0;

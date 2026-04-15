@@ -36,13 +36,13 @@
 /* used for output of shell errors */
 #define ERRIO		2
 
-#define IOREAD		001
-#define IOWRITE		002
-#define IODUP 		004
-#define IOSEEK		010
-#define IONOSEEK	020
-#define IOTTY 		040
-#define IOCLEX 		0100
+#define IOREAD		001U
+#define IOWRITE		002U
+#define IODUP 		004U
+#define IOSEEK		010U
+#define IONOSEEK	020U
+#define IOTTY 		040U
+#define IOCLEX 		0100U
 #define IOCLOSE		(IOSEEK|IONOSEEK)
 
 #define IOSUBSHELL	0x8000	/* must be larger than any file descriptor */
@@ -74,7 +74,7 @@
 #define sh_editor_active()	0
 #endif
 
-extern int	sh_iocheckfd(int);
+extern uint8_t	sh_iocheckfd(int);
 extern void 	sh_ioinit(void);
 extern int 	sh_iomovefd(int,int);
 extern int	sh_iorenumber(int,int);

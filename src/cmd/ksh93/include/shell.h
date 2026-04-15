@@ -364,7 +364,7 @@ struct Shell_s
 	Shbltin_t	bltindata;
 	ptrdiff_t	offsets[10];
 	Sfio_t		**sftable;
-	unsigned char	*fdstatus;
+	uint8_t		*fdstatus;
 	char		*pwd;
 #if _lib_openat
 	int		pwdfd;		/* file descriptor for pwd */

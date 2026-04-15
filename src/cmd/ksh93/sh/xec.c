@@ -147,10 +147,10 @@ static inline Sfdouble_t timeval_to_double(struct timeval tv)
  */
 static void l_time(Sfio_t *outfile, struct timeval *tv, int precision)
 {
-	Sfulong_t hr = tv->tv_sec / (60 * 60);
-	Sfulong_t min = (tv->tv_sec / 60) % 60;
-	Sfulong_t sec = tv->tv_sec % 60;
-	Sfulong_t frac = tv->tv_usec;
+	Sfulong_t hr = (Sfulong_t)(tv->tv_sec / (60 * 60));
+	Sfulong_t min = (Sfulong_t)((tv->tv_sec / 60) % 60);
+	Sfulong_t sec = (Sfulong_t)(tv->tv_sec % 60);
+	Sfulong_t frac = (Sfulong_t)(tv->tv_usec);
 
 	/* scale fraction from micro to milli, centi, or deci second according to precision */
 	int n;
@@ -170,7 +170,9 @@ static void l_time(Sfio_t *outfile, struct timeval *tv, int precision)
 
 static void p_time(Sfio_t *out, const char *format, struct timeval tm[3])
 {
-	int		c,n,offset = stktell(sh.stk);
+	int		c;
+	ptrdiff_t	offset = stktell(sh.stk);
+	size_t		write_len;
 	const char	*first;
 	struct timeval	*tvp;
 	for(first=format; *format; format++)
@@ -180,7 +182,7 @@ static void p_time(Sfio_t *out, const char *format, struct timeval tm[3])
 		c = *format;
 		if(c!='%')
 			continue;
-		sfwrite(sh.stk, first, format-first);
+		sfwrite(sh.stk, first, (size_t)(format-first));
 		c = *++format;
 		if(c=='\0')
 		{
@@ -235,8 +237,9 @@ static void p_time(Sfio_t *out, const char *format, struct timeval tm[3])
 		else
 		{
 			/* scale fraction from micro to milli, centi, or deci second according to precision */
-			Sfulong_t sec = tvp->tv_sec;
-			Sfulong_t n, frac = tvp->tv_usec;
+			Sfulong_t sec = (Sfulong_t)tvp->tv_sec;
+			Sfulong_t frac = (Sfulong_t)tvp->tv_usec;
+			int n;
 			for(n = 3 + (3 - precision); n > 0; --n)
 				frac /= 10;
 			if(precision)
@@ -247,10 +250,10 @@ static void p_time(Sfio_t *out, const char *format, struct timeval tm[3])
 		first = format+1;
 	}
 	if(format>first)
-		sfwrite(sh.stk,first, format-first);
+		sfwrite(sh.stk,first, (size_t)(format-first));
 	sfputc(sh.stk,'\n');
-	n = stktell(sh.stk)-offset;
-	sfwrite(out,stkptr(sh.stk,offset),n);
+	write_len = (size_t)(stktell(sh.stk)-offset);
+	sfwrite(out,stkptr(sh.stk,offset),write_len);
 	stkseek(sh.stk,offset);
 }
 
@@ -407,11 +410,11 @@ static void out_string(Sfio_t *iop, const char *cp, int c, int quoted)
 {
 	if(quoted)
 	{
-		int n = stktell(sh.stk);
+		ptrdiff_t n = stktell(sh.stk);
 		cp = sh_fmtq(cp);
 		if(iop==sh.stk && cp==stkptr(sh.stk,n))
 		{
-			*stkptr(sh.stk,stktell(sh.stk)-1) = c;
+			*stkptr(sh.stk,stktell(sh.stk)-1) = (char)c;
 			return;
 		}
 	}
@@ -481,7 +484,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 			cp+=1, n-=1;
 		if(!(flags&ARG_ASSIGN))
 			n -= 2;
-		sfwrite(sh.stk,cp,n);
+		sfwrite(sh.stk,cp,(size_t)n);
 	}
 	if(*argv && !(flags&ARG_RAW))
 		out_string(sh.stk, *argv++,' ', 0);
@@ -538,7 +541,7 @@ int sh_eval(Sfio_t *iop, int mode)
 	struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 	static Sfio_t *io_save;
 	volatile int traceon=0, lineno=0;
-	int binscript=sh.binscript;
+	char binscript=sh.binscript;
 	char comsub = sh.comsub;
 	io_save = iop; /* preserve correct value across longjmp */
 	sh.binscript = 0;
@@ -698,7 +701,7 @@ static void unset_instance(Namval_t *node, struct Namref *nr, long mode)
 	savein = dup(0);
 	if(fd==0)
 		fd = savein;
-	sp = sfnew(NULL,NULL,SFIO_UNBOUND,fd,SFIO_READ);
+	sp = sfnew(NULL,NULL,(size_t)SFIO_UNBOUND,fd,SFIO_READ);
 	ast_close(0);
 	open(e_devnull,O_RDONLY);
 	sh.offsets[0] = -1;
@@ -1082,13 +1085,15 @@ int sh_exec(const Shnode_t *t, int flags)
 				/* check for builtins */
 				if(np && is_abuiltin(np))
 				{
-					volatile char scope=0, share=0, was_mktype=(sh.mktype!=NULL);
-					volatile void *save_ptr;
-					volatile void *save_data;
-					int save_prompt;
-					int was_nofork = execflg?sh_isstate(SH_NOFORK):0;
-					struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
-					Shbltin_t *bp = &sh.bltindata;
+					volatile char	scope=0;
+					volatile void	*save_ptr;
+					volatile void	*save_data;
+					volatile short	save_prompt;
+					volatile int	share=0;
+					char		was_mktype=(sh.mktype!=NULL);
+					char		was_nofork = execflg && sh_isstate(SH_NOFORK);
+					struct checkpt	*buffp = stkalloc(sh.stk,sizeof(struct checkpt));
+					Shbltin_t	*bp = &sh.bltindata;
 					save_ptr = bp->ptr;
 					save_data = bp->data;
 					if(execflg)
@@ -1590,7 +1595,8 @@ int sh_exec(const Shnode_t *t, int flags)
 		    case TSETIO:
 		    {
 			pid_t	pid = 0;
-			int 	jmpval, waitall = 0;
+			int 	jmpval;
+			char	waitall = 0;
 			int 	simple = (t->fork.forktre->tre.tretyp&COMMSK)==TCOM;
 			struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 			if(sh.subshell && !sh.subshare)
@@ -1603,7 +1609,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				for (i = t->fork.forkio; i; i = i->ionxt)
 				{
 					unsigned f = i->iofile;
-					if ((f & ~(IOUFD|IOPUT))==(IOMOV|IORAW) && !strcmp(i->ioname,"-") || (f & IOUFD)==1 && sh.comsub)
+					if ((f & (unsigned)~(IOUFD|IOPUT))==(IOMOV|IORAW) && !strcmp(i->ioname,"-") || (f & IOUFD)==1 && sh.comsub)
 					{
 						sh_subfork();
 						break;
@@ -1650,7 +1656,8 @@ int sh_exec(const Shnode_t *t, int flags)
 				free_list(buffp->olist);
 			if(type&FPIN)
 			{
-				int e = sh.exitval, c = sh.chldexitsig;
+				int e = sh.exitval;
+				char c = sh.chldexitsig;
 				job.waitall = waitall;
 				if(!(e & SH_EXITSIG))
 				{
@@ -1717,11 +1724,11 @@ int sh_exec(const Shnode_t *t, int flags)
 		    {
 			int	pvo[3];	/* old pipe for multi-stage */
 			int	pvn[3];	/* current set up pipe */
-			int	savepipe = pipejob;
+			char	savepipe = pipejob;
 			int	savelock = nlock;
 			int	showme = t->tre.tretyp&FSHOWME;
-			int	e, c;
-			int	waitall, savewaitall = job.waitall;
+			int	e;
+			char	c, waitall, savewaitall = job.waitall;
 			int	savejobid = job.curjobid;
 			int	*exitval=0,*saveexitval = job.exitval;
 			pid_t	savepgid = job.curpgid;
@@ -1744,8 +1751,8 @@ int sh_exec(const Shnode_t *t, int flags)
 				job.curpgid = 0;
 				while((tn=tn->lst.lstrit) && tn->tre.tretyp==TFIL)
 					job.waitall++;
-				exitval = job.exitval = stkalloc(sh.stk,job.waitall*sizeof(int));
-				memset(exitval,0,job.waitall*sizeof(int));
+				exitval = job.exitval = stkalloc(sh.stk,(size_t)job.waitall*sizeof(int));
+				memset(exitval,0,(size_t)job.waitall*sizeof(int));
 			}
 			else
 				job.waitall = !pipejob && (sh_isstate(SH_MONITOR) || sh_isstate(SH_TIMING));
@@ -1902,7 +1909,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				if(t->tre.tretyp&COMSCAN)
 				{
 					char *val;
-					int save_prompt;
+					short save_prompt;
 					if(refresh)
 					{
 						sh_menu(sfstderr,nargs,args);
@@ -1929,7 +1936,7 @@ int sh_exec(const Shnode_t *t, int flags)
 							goto check;
 						}
 						while(c = *cp++)
-							if(c < '0' && c > '9')
+							if(c < '0' || c > '9')
 								break;
 						if(c!=0)
 							c = nargs;
@@ -2234,7 +2241,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			{
 				Dt_t *root;
 				Namval_t *oldnspace = sh.namespace;
-				int offset = stktell(sh.stk);
+				ptrdiff_t offset = stktell(sh.stk);
 				int	flags=NV_NOARRAY|NV_VARNAME;
 				struct checkpt *chkp = stkalloc(sh.stk,sizeof(struct checkpt));
 				int jmpval;
@@ -2279,7 +2286,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			/* Function names cannot be special builtin */
 			if(cp || sh.prefix)
 			{
-				int offset = stktell(sh.stk);
+				ptrdiff_t offset = stktell(sh.stk);
 				if(sh.prefix)
 				{
 					cp = sh.prefix;
@@ -2290,7 +2297,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 				else
 				{
-					sfwrite(sh.stk,fname,cp++-fname);
+					sfwrite(sh.stk,fname,(size_t)(cp++-fname));
 					sfputc(sh.stk,0);
 					npv = nv_open(stkptr(sh.stk,offset),sh.var_tree,NV_NOARRAY|NV_VARNAME);
 				}
@@ -2382,7 +2389,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				rp->nspace = sh.namespace;
 				rp->fname = 0;
 				rp->argv = ac ? ac->comarg.dp->dolval + 1 : NULL;
-				rp->argc = ac ? ac->comarg.dp->dolnum : 0;
+				rp->argc = ac ? (short)ac->comarg.dp->dolnum : 0;
 				rp->fdict = sh.fun_tree;
 				fp = (struct functnod*)(slp+1);
 				if(fp->functtyp==(TFUN|FAMP))
@@ -2453,7 +2460,7 @@ int sh_exec(const Shnode_t *t, int flags)
 					{
 						char unop[3];
 						unop[0] = '-';
-						unop[1] = n;
+						unop[1] = (char)n;
 						unop[2] = 0;
 						argv[1] = unop;
 						argv[2] = left;
@@ -2481,7 +2488,7 @@ int sh_exec(const Shnode_t *t, int flags)
 						argv[5] = 0;
 						sh_debug(trap,NULL,NULL,argv,pattern);
 					}
-					n = test_binop(n,left,right);
+					n = test_binop((unsigned)n,left,right);
 					if(traceon)
 					{
 						sfprintf(sfstderr,"%s %s ",sh_fmtq(left),op);
@@ -2552,17 +2559,17 @@ int sh_run(int argn, char *argv[])
 {
 	struct dolnod	*dp;
 	struct comnod	*t = stkalloc(sh.stk,sizeof(struct comnod));
-	int		savtop = stktell(sh.stk);
+	ptrdiff_t	savtop = stktell(sh.stk);
 	void		*savptr = stkfreeze(sh.stk,0);
 	Opt_t		*op, *np = optctx(0, 0);
 	Shbltin_t	bltindata;
 	bltindata = sh.bltindata;
 	op = optctx(np, 0);
 	memset(t, 0, sizeof(struct comnod));
-	dp = stkalloc(sh.stk, (unsigned)sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + argn*sizeof(char*));
+	dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argn*sizeof(char*));
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;
-	memcpy(dp->dolval+ARG_SPARE, argv, (argn+1)*sizeof(char*));
+	memcpy(dp->dolval+ARG_SPARE, argv, (size_t)(argn+1)*sizeof(char*));
 	t->comarg.dp = dp;
 	if(!strchr(argv[0],'/'))
 		t->comnamp = nv_bfsearch(argv[0],sh.fun_tree,(Namval_t**)&t->comnamq,NULL);
@@ -2642,16 +2649,16 @@ static void timed_out(void *handle)
  */
 pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 {
-	static long forkcnt = 1000L;
+	static Sfulong_t forkcnt = 1000UL;
 	pid_t	curpgid = job.curpgid;
 	pid_t	postid = (flags&FAMP)?0:curpgid;
 	int	sig,nochild;
 	if(parent<0)
 	{
 		sh_sigcheck();
-		if((forkcnt *= 2) > 1000L*SH_FORKLIM)
+		if((forkcnt *= 2) > 1000UL*SH_FORKLIM)
 		{
-			forkcnt=1000L;
+			forkcnt=1000UL;
 			errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_nofork);
 			UNREACHABLE();
 		}
@@ -2661,17 +2668,18 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 		{
 			if(nochild)
 				pause();
-			else if(forkcnt>1000L)
+			else if(forkcnt>1000UL)
 				forkcnt /= 2;
 			sh_timerdel(timeout);
 			timeout = 0;
 		}
 		return -1;
 	}
-	forkcnt = 1000L;
+	forkcnt = 1000UL;
 	if(parent)
 	{
-		int myjob,waitall=job.waitall;
+		int myjob;
+		char waitall=job.waitall;
 		if(job.toclear)
 			job_clear();
 		job.waitall = waitall;
@@ -2809,7 +2817,7 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
 	Namval_t	node,*mp,*np, *nref[9], **nr=nref;
 	char		*argv[2];
 	struct funenv	funenv;
-	int		i;
+	size_t		i;
 	np = (Namval_t*)fp;
 	funenv.node = np;
 	funenv.nref = nref;
@@ -2819,7 +2827,7 @@ Sfdouble_t sh_mathfun(void *fp, int nargs, Sfdouble_t *arg)
 	SH_VALNOD->nvmeta = NULL;
 	SH_VALNOD->nvflag = NV_LDOUBLE|NV_NOFREE;
 	SH_VALNOD->nvalue = NULL;
-	for(i=0; i < nargs; i++)
+	for(i=0; i < (size_t)nargs; i++)
 	{
 		*nr++ = mp = nv_namptr(sh.mathnodes,i);
 		mp->nvalue = arg++;
@@ -2923,7 +2931,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	if(!posix_fun)
 	{
-		char	*save_debugtrap = 0;
+		char	*save_debugtrap = NULL;
 		if(!fun)
 		{
 			if(nv_isattr(fp->node,NV_TAGGED))
@@ -3122,7 +3130,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 	struct checkpt	*checkpoint;
 	int		jmpval = 0;
 	int		jmpthresh;
-	int		offset = 0;
+	ptrdiff_t	offset = 0;
 	char		*base;
 	Namval_t	node;
 	struct Namref	nr;

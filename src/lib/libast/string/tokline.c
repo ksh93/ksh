@@ -77,7 +77,7 @@ spliceline(Sfio_t* s, int op, void* val, Sfdisc_t* ad)
 		{
 			if (!(buf = sfgetr(d->sp, '\n', 0)) && !(buf = sfgetr(d->sp, '\n', -1)))
 				return 0;
-			n = (ptrdiff_t)sfvalue(d->sp);
+			n = sfvalue(d->sp);
 			q = d->quote;
 			j = 0;
 			(*d->line)++;

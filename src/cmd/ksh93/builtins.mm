@@ -488,8 +488,8 @@ an efficient manner:
 .EX
 \fIyourfunction\fP()
 {
-        char	*savebase;
-        int	saveoffset;
+        char		*savebase;
+        ptrdiff_t	saveoffset;
         if(saveoffset=stktell(stkstd))
         	savebase = stkfreeze(stkstd,0);
         \fR...\fP
