@@ -2010,11 +2010,8 @@ case $x in
 			cd "$TMPDIR" || exit
 			cp $INITROOT/hello.c pkg$$.c || exit
 			trap "set +o noglob; rm -rf pkg$$.*" 0
-			if	! $cc -o pkg$$.exe pkg$$.c >pkg$$.e 2>&1
-			then	if	$cc -Dnew=old -Drestrict= -o pkg$$.exe pkg$$.c >/dev/null 2>&1
-				then	err_out "$CC: must be a C99 compiler (not C++)"
-				fi
-				cat pkg$$.e
+			if	! $cc $CCFLAGS -o pkg$$.exe pkg$$.c >pkg$$.e 2>&1
+			then	cat pkg$$.e
 				err_out "$CC: failed to compile and link $INITROOT/hello.c -- is it a C99 compiler?"
 			fi
 			./pkg$$.exe >/dev/null 2>&1 || err_out \
