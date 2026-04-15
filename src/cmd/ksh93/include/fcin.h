@@ -60,7 +60,7 @@ typedef struct _fcin
 extern int		fcfill(void);
 extern ssize_t		fcfopen(Sfio_t*);
 extern int		fcclose(void);
-void			fcnotify(void(*)(Sfio_t*,const char*,ptrdiff_t,void*),void*);
+extern void		fcnotify(void(*)(Sfio_t*,const char*,ptrdiff_t,void*),void*);
 
 extern Fcin_t		_Fcin;		/* used by macros */
 

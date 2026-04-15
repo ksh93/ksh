@@ -19,6 +19,7 @@ tst	pipe_socketpair note{ use socketpair() for peekable pipe() }end execute{
 	#endif
 	static void handler(int sig)
 	{
+		NOT_USED(sig);
 		_exit(0);
 	}
 	int main(void)
@@ -72,7 +73,6 @@ tst	socketpair_devfd note{ /dev/fd/N handles socketpair() }end execute{
 	#include <sys/socket.h>
 	int main(void)
 	{
-		int		devfd;
 		int		n;
 		int		sfd[2];
 		ast_close(0);

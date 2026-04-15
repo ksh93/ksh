@@ -836,7 +836,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 				nv_putsub(np,NULL,mp->index);
 				for(x=mp->index; x >=0; x--)
 				{
-					n = i + x*(ptrdiff_t)mp->nmatch;
+					n = i + x*mp->nmatch;
 					if(mp->match[2*n+1]>mp->match[2*n])
 						nv_putsub(np,Empty,ARRAY_ADD|x);
 				}
@@ -883,7 +883,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 		mp->names = mp->nodes + (size_t)mp->nmatch*(NV_MINSZ+sizeof(void*));
 		np = nv_namptr(mp->nodes,0);
 		nv_disc(SH_MATCHNOD,&mp->hdr,NV_LAST);
-		for(i=(ptrdiff_t)nmatch; --i>=0;)
+		for(i=nmatch; --i>=0;)
 		{
 			if(match[2*i]>=0)
 				nv_putsub(SH_MATCHNOD,Empty,ARRAY_ADD|i);
@@ -902,10 +902,10 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 		for(n=mp->first+(mp->v-v),vsize=0,i=0; i < 2*nmatch; i++)
 		{
 			if(match[i]>=0 && (match[i] - n) > vsize)
-				vsize = (ptrdiff_t)match[i] -n;
+				vsize = match[i] -n;
 		}
 		index *= 2*mp->nmatch;
-		i = (index+2*(ptrdiff_t)mp->nmatch)*(ptrdiff_t)sizeof(match[0]);
+		i = (index+2*mp->nmatch)*(ptrdiff_t)sizeof(match[0]);
 		if(i >= (ssize_t)mp->msize)
 			mp->match = sh_realloc(mp->match, mp->msize = 2*(size_t)i);
 		if(vsize >= mp->vsize)

@@ -2,11 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2026-04-14:
+2026-xx-xx:
 
 - Support for ${$var} indirect expansion has been backported from ksh93v-.
   If the variable var expands to a variable name, ${$var} expands to the
   value of that variable. Otherwise, it expands to an empty string.
+
+2026-04-14:
+
+- Ksh is now capable of allocating memory within a 64-bit address space. This
+  means variables can now contain multi-gigabyte values without ksh crashing.
 
 2026-04-13:
 

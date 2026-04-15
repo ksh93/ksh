@@ -967,9 +967,9 @@ static void mac_substitute(Mac_t *mp, char *cp,char *str,ssize_t subexp[],ssize_
 				continue;
 			}
 			n -= '0';
-			if(n<subsize && (c=(ptrdiff_t)subexp[2*n])>=0)
+			if(n<subsize && (c=subexp[2*n])>=0)
 			{
-				if((n=(ptrdiff_t)subexp[2*n+1]-c)>0)
+				if((n=subexp[2*n+1]-c)>0)
 					mac_copy(mp,str+c,n);
 			}
 		}
@@ -1289,7 +1289,7 @@ retry1:
 		else if(sh.cur_line)
 		{
 			sh.used_pos = 1;
-			v = getdolarg((ptrdiff_t)c,&vsize);
+			v = getdolarg(c,&vsize);
 		}
 #endif  /* SHOPT_FILESCAN */
 		else if(c <= sh.st.dolc)
@@ -2009,7 +2009,7 @@ retry2:
 					{
 						vlast = v;
 						vsize_last = vsize;
-						vsize = (ptrdiff_t)match[0];
+						vsize = match[0];
 					}
 					else if(c=='#')
 						vsize = 0;
@@ -2070,7 +2070,7 @@ retry2:
 						continue;
 					}
 					if (match[0])
-						mac_copy(mp, v, (ptrdiff_t)match[0]);
+						mac_copy(mp, v, match[0]);
 					if (mbwide())  /* locale uses multibyte characters? */
 					{
 						int	wc;
@@ -2103,7 +2103,7 @@ retry2:
 						buf = sh_malloc((size_t)(match[1] - match[0]));
 						for (cp = v + match[0], cq = buf; cp < v + match[1]; cp++, cq++)
 							*cq = (char)(c == '^' ? toupper(*cp) : tolower(*cp));
-						mac_copy(mp, buf, (ptrdiff_t)(match[1] - match[0]));
+						mac_copy(mp, buf, match[1] - match[0]);
 						free(buf);
 					}
 					v += match[1];
@@ -2510,7 +2510,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 			lastc = str[c];
 			str[c] = 0;
 		}
-		mac_copy(mp,str,(ptrdiff_t)c);
+		mac_copy(mp,str,c);
 	}
 	if(was_interactive)
 		sh_onstate(SH_INTERACTIVE);

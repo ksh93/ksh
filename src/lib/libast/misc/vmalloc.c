@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *              This file is part of the ksh 93u+m package              *
-*             Copyright (c) 2025 Contributors to ksh 93u+m             *
+*          Copyright (c) 2025-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -175,15 +175,13 @@ void vmfree(Vmalloc_t *vm, void *ap)
  */
 void vmclear(Vmalloc_t *vm)
 {
-	Vmblock_t	*bp, *bpnext;
+	Vmblock_t	*bp;
 
-	bpnext = vm->_list_;
-	while (bp = bpnext)
+	while (bp = vm->_list_)
 	{
-		bpnext = bp->next;
+		vm->_list_ = bp->next;
 		free(bp);
 	}
-	vm->_list_ = NULL;
 }
 
 /*
