@@ -561,7 +561,22 @@ then	LC_ALL=en_GB.UTF-8 "$SHELL" -c "LINENO=$((LINENO+1))"'
 	exit $((Errors<125?Errors:125))
 	' "$0"
 	((Errors += $?))
+	unset LC_ALL
 fi
+
+# ======
+# Some systems' iconv(3) try to give some vague ASCII approximation of an unsupported Unicode code point
+# for non-Unicode locales, e.g., on macOS: '.' for '…' or 'i' for 'ĳ'! Also, Solaris iconv fails to fail
+# altogether, and returns '?' for unsupported code points. Make sure we block all that harmful nonsense.
+case " ${locales[*]} " in
+*" en_GB.ISO8859-1 "*)
+	LANG=en_GB.ISO8859-1
+	for exp in '\u[2026]' '\u133' '\u2116' '\u210a' '\u2122' '\u2103' '\u2109'
+	do	eval "got=\$'$exp'"
+		[[ $got == "$exp" ]] || err_exit "unspported code point $exp fails to fail in iso-8858-1 (got '$got')"
+	done
+	unset LANG
+esac
 
 # ======
 exit $((Errors<125?Errors:125))
