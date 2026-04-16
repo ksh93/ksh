@@ -42,6 +42,7 @@ utf32towc(uint32_t utf32)
 	size_t		inbytesleft, outbytesleft;
 	char		tmp_in[UTF8_LEN_MAX+1], tmp_out[16];
 	wchar_t		wchar;
+	ptrdiff_t	bytelen;
 
 	/* in ASCII range: no conversion needed (we only support supersets of ASCII) */
 	if (utf32 <= 0x7F)
@@ -68,9 +69,15 @@ utf32towc(uint32_t utf32)
 	outbytesleft = sizeof(tmp_out);
 	if (iconv(ast.locale.uc2wc, &inbuf, &inbytesleft, &outbuf, &outbytesleft) == (size_t)-1 || inbytesleft)
 		return -1;
+	/* macOS iconv(3) in single-byte ISO-8859 locales tries to convert Unicode code points to equivalent
+	 * multi-character strings, but we can't use that here, because chrexp() returns a single character.
+	 * On Solaris/illumos, iconv fails to fail and returns '?' for unsupported codepoints. Reject both. */
+	if (*(unsigned char*)tmp_out <= 0x7F)
+		return -1;
+	bytelen = outbuf - tmp_out;
 	if (!mbwide())
-		return *(unsigned char*)tmp_out;
-	if (mb2wc(wchar, tmp_out, (size_t)(outbuf - tmp_out)) <= 0)
+		return bytelen==1 ? *(unsigned char*)tmp_out : -1;
+	if (mb2wc(wchar, tmp_out, (size_t)bytelen) <= 0)
 		return -1;
 	return wchar;
 }
