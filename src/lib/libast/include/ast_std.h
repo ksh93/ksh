@@ -63,6 +63,11 @@ struct _sfio_s;
 #include <ast_fcntl.h>
 #include <ast_limits.h>
 
+/*
+ * Workaround for implementing SFIO's version of FILE*
+ * (system headers of course assume FILE* is a different type).
+ */
+
 #ifdef	_SKIP_SFSTDIO_H
 #undef	_SKIP_SFSTDIO_H
 #else
@@ -89,6 +94,12 @@ struct _sfio_s;
 #endif
 #ifndef __DEFINED_FILE
 #define __DEFINED_FILE 1
+#endif
+#ifndef _FILE_DEFINED
+#define _FILE_DEFINED   1
+#endif
+#ifndef _FILE_defined
+#define _FILE_defined   1
 #endif
 #endif
 
