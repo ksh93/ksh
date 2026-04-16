@@ -128,11 +128,11 @@ int sh_argopts(int argc,char *argv[])
 	Namval_t	*np = NULL;
 	const char	*cp;
 	int		verbose, f;
-	Optdisc_t	disc;
+	Optdisc_t	disc = {
+		.version = OPT_VERSION,
+		.infof = infof
+	};
 	newflags=sh.options;
-	memset(&disc, 0, sizeof(disc));
-	disc.version = OPT_VERSION;
-	disc.infof = infof;
 	opt_info.disc = &disc;
 
 	if(argc>0)
@@ -496,7 +496,7 @@ struct dolnod *sh_argcreate(char *argv[])
 	{
 		n--;
 		*pp++ = sp;
-		sp = strcopy(sp, *argv++) + 1;
+		sp = stpcpy(sp, *argv++) + 1;
 	}
 	*pp = NULL;
 	return dp;

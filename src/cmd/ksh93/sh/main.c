@@ -277,9 +277,9 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 						/* try sh -c 'name "$@"' */
 						sh_onoption(SH_CFLAG);
 						sh.comdiv = (char*)sh_malloc(strlen(name)+7);
-						name = strcopy(sh.comdiv,name);
+						name = stpcpy(sh.comdiv,name);
 						if(sh.st.dolc)
-							strcopy(name," \"$@\"");
+							strcpy(name," \"$@\"");
 						goto shell_c;
 					}
 					/*

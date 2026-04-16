@@ -69,8 +69,8 @@ SFIO_IOINTR
 .nf
 .ft 5
 Sfio_t*    sfnew(Sfio_t* f, void* buf, size_t size, int fd, int flags);
-Sfio_t*    sfopen(Sfio_t* f, const char* string, const char* mode);
-Sfio_t*    sfpopen(Sfio_t* f, const char* cmd, const char* mode);
+Sfio_t*    sfopen(Sfio_t* f, const char *restrict string, const char *restrict mode);
+Sfio_t*    sfpopen(Sfio_t* f, const char *restrict cmd, const char *restrict mode);
 Sfio_t*    sfstropen(void);
 Sfio_t*    sftmp(size_t size);
 int        sfclose(Sfio_t* f);
@@ -107,19 +107,19 @@ void*     sfreserve(Sfio_t* f, ssize_t n, int type);
 .Ss "DATA FORMATTING"
 .nf
 .ft 5
-int       sfscanf(Sfio_t* f, const char* format, ...);
-int       sfsscanf(const char* s, const char* format, ...);
-int       sfvsscanf(const char* s, const char* format, va_list args);
-int       sfvscanf(Sfio_t* f, const char* format, va_list args);
+int        sfscanf(Sfio_t* f, const char* format, ...);
+int        sfsscanf(const char *restrict s, const char *restrict format, ...);
+int        sfvsscanf(const char *restrict s, const char *restrict format, va_list args);
+int        sfvscanf(Sfio_t* f, const char* format, va_list args);
 
-ssize_t   sfprintf(Sfio_t* f, const char* format, ...);
-char*     sfprints(const char* format, ...);
-char*     sfvprints(const char* format, va_list args);
-ssize_t   sfaprints(char** sp, const char* format, ...);
-ssize_t   sfvaprints(char** sp, const char* format, va_list args);
-ssize_t   sfsprintf(char* s, size_t n, const char* format, ...);
-ssize_t   sfvsprintf(char* s, size_t n, const char* format, va_list args);
-ssize_t   sfvprintf(Sfio_t* f, const char* format, va_list args);
+ssize_t    sfprintf(Sfio_t* f, const char* format, ...);
+char*      sfprints(const char* format, ...);
+char*      sfvprints(const char* format, va_list args);
+ssize_t    sfaprints(char **restrict sp, const char *restrict format, ...);
+ssize_t    sfvaprints(char **restrict sp, const char *restrict format, va_list args);
+ssize_t    sfsprintf(char *restrict s, size_t n, const char *restrict format, ...);
+ssize_t    sfvsprintf(char *restrict s, size_t n, const char *restrict format, va_list args);
+ssize_t    sfvprintf(Sfio_t* f, const char* format, va_list args);
 
 Sffmt_t;
 
@@ -454,7 +454,7 @@ opened for both read and write, e.g., sockets.
 \f3flags\fP:
 This is composed from \f3SFIO_EOF\fP and
 bit values defined in the \fBBIT FLAGS\fP section.
-.Ss "  Sfio_t* sfopen(Sfio_t* f, const char* string, const char* mode)"
+.Ss "  Sfio_t* sfopen(Sfio_t* f, const char *restrict string, const char *restrict mode)"
 
 If \f3string\fP is \f3NULL\fP,
 \f3f\fP is a file stream and
@@ -501,7 +501,7 @@ both read and write.
 
 \f3x\fP specifies exclusive mode, i.e.,
 a file opened for writing should not already exist.
-.Ss "  Sfio_t* sfpopen(Sfio_t* f, const char* cmd, const char* mode)"
+.Ss "  Sfio_t* sfpopen(Sfio_t* f, const char *restrict cmd, const char *restrict mode)"
 This function opens a stream that corresponds to the coprocess \f3cmd\fP.
 The argument \f3mode\fP should be composed from \f3r\fP, \f3w\fP, and \f3+\fP.
 The argument \f3f\fP, if not \f3NULL\fP,
@@ -1086,12 +1086,12 @@ when the format of the structure \f3Sffmt_t\fP changes.
 Note that the version number corresponds to the Sfio version number
 which is defined in the macro value \f3SFIO_VERSION\fP.
 .Ss "  ssize_t sfprintf(Sfio_t* f, const char* format, ...);"
-.Ss "  char*   sfprints(const char* format, ...);"
-.Ss "  char*   sfvprints(const char* format, va_list args);"
-.Ss "  ssize_t sfaprints(char** sp, const char* format, ...);"
-.Ss "  ssize_t sfvaprints(char** sp, const char* format, va_list args);"
-.Ss "  ssize_t sfsprintf(char* s, size_t n, const char* format, ...)"
-.Ss "  ssize_t sfvsprintf(char* s, size_t n, const char* format, va_list args);"
+.Ss "  char* sfprints(const char* format, ...);"
+.Ss "  char* sfvprints(const char* format, va_list args);"
+.Ss "  ssize_t sfaprints(char **restrict sp, const char *restrict format, ...);"
+.Ss "  ssize_t sfvaprints(char **restrict sp, const char *restrict format, va_list args);"
+.Ss "  ssize_t sfsprintf(char *restrict s, size_t n, const char *restrict format, ...)"
+.Ss "  ssize_t sfvsprintf(char *restrict s, size_t n, const char *restrict format, va_list args);"
 .Ss "  ssize_t sfvprintf(Sfio_t* f, const char* format, va_list args);"
 These functions format output data.
 \f3sfprintf()\fP and \f3sfvprintf()\fP write to output stream \f3f\fP.
@@ -1309,8 +1309,8 @@ to be passed to the extension function \f3Sffmt_t.extf\fP.
 Parentheses shall be balanced.
 If \f3extfdata\fP is \f3*\fP, the string is obtained from the argument list.
 .Ss "  int sfscanf(Sfio_t* f, const char* format, ...)"
-.Ss "  int sfsscanf(const char* s, const char* format, ...)"
-.Ss "  int sfvsscanf(const char* s, const char* format, va_list args)"
+.Ss "  int sfsscanf(const char *restrict s, const char *restrict format, ...)"
+.Ss "  int sfvsscanf(const char *restrict s, const char *restrict format, va_list args)"
 .Ss "  int sfvscanf(Sfio_t* f, const char* format, va_list args)"
 These functions scan data items.
 \f3sfscanf()\fP scans from the input stream \f3f\fP

@@ -50,5 +50,8 @@ into
 A pointer to the 0 character in
 .I a
 is returned.
+Unlike
+.IR stpcpy ,
+this function is capable of operating on overlapping buffers.
 .SH "SEE ALSO"
-strcpy(3)
+strcpy(3), stpcpy(3)

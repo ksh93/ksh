@@ -49,32 +49,6 @@
 #endif
 
 /*
- * work around botched headers that assume <stdio.h>
- */
-
-#ifndef FILE
-#define FILE		struct _sfio_s
-#ifndef __FILE_typedef
-#define __FILE_typedef	1
-#endif
-#ifndef _FILE_DEFINED
-#define _FILE_DEFINED   1
-#endif
-#ifndef _FILE_defined
-#define _FILE_defined   1
-#endif
-#ifndef _FILEDEFED
-#define _FILEDEFED	1
-#endif
-#ifndef __FILE_defined
-#define __FILE_defined  1
-#endif
-#ifndef ____FILE_defined
-#define ____FILE_defined  1
-#endif
-#endif
-
-/*
  * tcc on FreeBSD: Avoid using nonexistent math
  * builtins by pretending to be an ancient gcc.
  */
@@ -194,14 +168,6 @@ typedef uint32_t regflags_t;
 #endif /* !AST_NOMULTIBYTE */
 #define FMT_EXP_NOCR	0x100		/* skip \r			*/
 #define FMT_EXP_NONL	0x200		/* skip \n			*/
-
-/*
- * Define inline as an empty macro if we are
- * compiling with C89.
- */
-#if __STDC_VERSION__ < 199901L
-#define inline
-#endif
 
 /*
  * multibyte macros
@@ -383,13 +349,13 @@ extern mode_t		strmode(const char*);
 extern char*		strncopy(char*, const char*, size_t);
 extern int		strnpcmp(const char*, const char*, size_t);
 extern double		strntod(const char*, size_t, char**);
-extern _ast_fltmax_t	strntold(const char*, size_t, char**);
+extern long double	strntold(const char*, size_t, char**);
 extern long		strntol(const char*, size_t, char**, int);
-extern intmax_t		strntoll(const char*, size_t, char**, int);
+extern long long	strntoll(const char*, size_t, char**, int);
 extern long		strnton(const char*, size_t, char**, char*, int);
 extern unsigned long	strntoul(const char*, size_t, char**, int);
-extern intmax_t		strntonll(const char*, size_t, char**, char*, int);
-extern uintmax_t	strntoull(const char*, size_t, char**, int);
+extern long long	strntonll(const char*, size_t, char**, char*, int);
+extern unsigned long long strntoull(const char*, size_t, char**, int);
 extern int		strnvcmp(const char*, const char*, size_t);
 extern int		stropt(const char*, const void*, int, int(*)(void*, const void*, int, const char*), void*);
 extern int		strpcmp(const char*, const char*);
@@ -402,7 +368,7 @@ extern unsigned long	strsum(const char*, unsigned long);
 extern char*		strtape(const char*, char**);
 extern int		strtoip4(const char*, char**, uint32_t*, unsigned char*);
 extern long		strton(const char*, char**, char*, int);
-extern intmax_t		strtonll(const char*, char**, char*, int);
+extern long long	strtonll(const char*, char**, char*, int);
 extern int		struid(const char*);
 extern ptrdiff_t	struniq(char**, ptrdiff_t);
 extern int		strvcmp(const char*, const char*);

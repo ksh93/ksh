@@ -79,7 +79,7 @@ One line screen editor for any program
     static int	print(int);
     static int	_isword(int);
 #   define  isword(c)	_isword(out[c])
-#   define digit(c)	((c&~STRIP)==0 && isdigit(c))
+#   define digit(c)	iswdigit((wint_t)(c))
 
 #else
 #   define gencpy(a,b)	strcopy((char*)(a),(char*)(b))
@@ -1588,7 +1588,7 @@ static int print(int c)
 
 static int _isword(int c)
 {
-	return (c&~STRIP) || isalnum(c) || c=='_';
+	return iswalnum((wint_t)c) || c=='_';
 }
 #endif /* SHOPT_MULTIBYTE */
 

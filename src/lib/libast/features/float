@@ -1,6 +1,6 @@
 set	nooptimize
 set	stdio FEATURE/standards
-hdr	float,limits,math,values
+hdr	float,math,values
 lib,npt	frexp,ldexp,finite,finitel,copysign,copysignl,powf,pow,powl FEATURE/standards math.h -lm
 #
 # The "does foo(3) compile and link" tests below are compiled and linked, but
@@ -122,9 +122,7 @@ macro{
 	#if _hdr_float
 	#include <float.h>
 	#endif
-	#if _hdr_limits
 	#include <limits.h>
-	#endif
 	#if _hdr_math
 	#include <math.h>
 	#endif
@@ -280,9 +278,7 @@ tst	- note{ missing floating point limits }end output{
 	#if _hdr_float
 	#include <float.h>
 	#endif
-	#if _hdr_limits
 	#include <limits.h>
-	#endif
 	#if _hdr_math
 	#include <math.h>
 	#endif

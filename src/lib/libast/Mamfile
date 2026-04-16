@@ -387,9 +387,9 @@ make install virtual
 	make include/ast.h
 		prev ast_api.h
 		make include/ast_std.h
+			prev ast_wchar.h
 			make include/regex.h
 				prev ast_api.h
-				prev ast_wchar.h
 				prev ast_common.h
 			done
 			prev ast_map.h
@@ -874,7 +874,6 @@ make install virtual
 		make chresc.o
 			make string/chresc.c
 				prev include/ast.h
-				prev ast_wchar.h
 				prev include/error.h
 				make std/iconv.h
 					prev ast_iconv.h
@@ -950,6 +949,14 @@ make install virtual
 
 		make strlcpy.o
 			make string/strlcpy.c
+				prev ast_map.h
+				prev include/ast.h
+			done
+			exec - compile %{<}
+		done
+
+		make stpcpy.o
+			make string/stpcpy.c
 				prev ast_map.h
 				prev include/ast.h
 			done
@@ -2578,14 +2585,6 @@ make install virtual
 			exec - compile %{<} -Idisc -Iport -Isfio
 		done
 
-		make wc.o
-			make comp/wc.c
-				prev std/wchar.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make utf32toutf8.o
 			make string/utf32toutf8.c
 				prev include/ast.h
@@ -2654,40 +2653,11 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make strptime.o
-			make comp/strptime.c
-				prev ast_map.h
-				prev tmx.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make tempnam.o
 			make comp/tempnam.c
 				prev std/stdio.h
 				prev include/ast.h
 				prev include/ast_std.h
-			done
-			exec - compile %{<}
-		done
-
-		make wordexp.o
-			make comp/wordexp.c
-				prev include/stk.h
-				make comp/wordexp.h
-					prev ast_common.h
-				done
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make mktime.o
-			make comp/mktime.c
-				prev ast_map.h
-				prev include/tm.h
-				prev include/ast.h
 			done
 			exec - compile %{<}
 		done
@@ -3695,7 +3665,7 @@ make install virtual
 			done
 		done
 		note * ...comp(atibility)
-		loop HDR ftw re_comp wordexp fnmatch
+		loop HDR ftw re_comp fnmatch
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev comp/%{HDR}.h
 				exec - cp -f %{<} %{@}

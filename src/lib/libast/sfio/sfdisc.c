@@ -149,7 +149,7 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 		if((f->mode&SFIO_READ) && n > 0 && disc && disc->readf )
 		{	if(!(dcca = (Dccache_t*)malloc(sizeof(Dccache_t)+(size_t)n)) )
 				goto done;
-			memclear(dcca, sizeof(Dccache_t));
+			memset(dcca, 0, sizeof(Dccache_t));
 
 			dcca->disc.readf = _dccaread;
 			dcca->disc.exceptf = _dccaexcept;

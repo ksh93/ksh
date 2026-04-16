@@ -39,7 +39,7 @@ _filbuf(Sfio_t* f)
 }
 
 int
-asprintf(char** s, const char* fmt, ...)
+asprintf(char **restrict s, const char *restrict fmt, ...)
 {
 	va_list	args;
 	int	v;
@@ -86,7 +86,7 @@ fgetpos(Sfio_t* f, fpos_t* pos)
 }
 
 Sfio_t*
-fopen(const char* path, const char* mode)
+fopen(const char *restrict path, const char *restrict mode)
 {
 	return sfopen(NULL, path, mode);
 }
@@ -131,7 +131,7 @@ fread(void* p, size_t s, size_t n, Sfio_t* f)
 }
 
 Sfio_t*
-freopen(const char* path, const char* mode, Sfio_t* f)
+freopen(const char *restrict path, const char *restrict mode, Sfio_t* f)
 {
 	return sfopen(f, path, mode);
 }
@@ -296,7 +296,7 @@ setvbuf(Sfio_t* f, char* buf, int type, size_t size)
 }
 
 int
-snprintf(char* s, size_t n, const char* fmt, ...)
+snprintf(char *restrict s, size_t n, const char *restrict fmt, ...)
 {
 	va_list	args;
 	int	v;
@@ -308,7 +308,7 @@ snprintf(char* s, size_t n, const char* fmt, ...)
 }
 
 int
-sprintf(char* s, const char* fmt, ...)
+sprintf(char *restrict s, const char *restrict fmt, ...)
 {
 	va_list	args;
 	int	v;
@@ -321,7 +321,7 @@ sprintf(char* s, const char* fmt, ...)
 
 
 int
-sscanf(const char* s, const char* fmt, ...)
+sscanf(const char *restrict s, const char *restrict fmt, ...)
 {
 	va_list	args;
 	int	v;
@@ -345,7 +345,7 @@ ungetc(int c, Sfio_t* f)
 }
 
 int
-vasprintf(char** s, const char* fmt, va_list args)
+vasprintf(char **restrict s, const char *restrict fmt, va_list args)
 {
 	Sfio_t*	f;
 	int	v;
@@ -390,7 +390,7 @@ vscanf(const char* fmt, va_list args)
 }
 
 int
-vsnprintf(char* s, size_t n, const char* form, va_list args)
+vsnprintf(char *restrict s, size_t n, const char *restrict form, va_list args)
 {
 	Sfio_t*	f;
 	int rv;
@@ -418,13 +418,13 @@ vsnprintf(char* s, size_t n, const char* form, va_list args)
 }
 
 int
-vsprintf(char* s, const char* fmt, va_list args)
+vsprintf(char *restrict s, const char *restrict fmt, va_list args)
 {
 	return vsnprintf(s, 4 * SFIO_BUFSIZE, fmt, args);
 }
 
 int
-vsscanf(const char* s, const char* fmt, va_list args)
+vsscanf(const char *restrict s, const char *restrict fmt, va_list args)
 {
 	return sfvsscanf(s, fmt, args);
 }

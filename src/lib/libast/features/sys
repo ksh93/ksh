@@ -58,7 +58,8 @@ extern	eaccess		int		(const char*, int)
 extern	fsync		int		(int)
 extern	ftruncate	int		(int, off_t)
 extern	memalign	void*		(size_t, size_t)
-extern	strlcat		size_t		(char*, const char*, size_t)
-extern	strlcpy		size_t		(char*, const char*, size_t)
+extern	strlcat		size_t		(char *restrict, const char *restrict, size_t)
+extern	strlcpy		size_t		(char *restrict, const char *restrict, size_t)
+extern	stpcpy		char*		(char *restrict, const char *restrict)
 
 print	#include <stdarg.h>

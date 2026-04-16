@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1994-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,7 +15,31 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#ifndef printf
-#include <stdio.h>
-#endif
-int main(void) { int new = 0; printf("hello world\n"); return new;}
+
+/*
+ * Compiler test used by bin/package to enforce C99 and block C++
+ */
+
+struct foo
+{
+	char *bar;
+	/* flexible array member requires C99 */
+	int baz[];
+};
+
+/* restrict requires C99, is an error in C++ */
+void r(const char *restrict cp)
+{
+	(void)cp;
+}
+
+int main(void)
+{
+	/* designated struct initializer requires C99 */
+	struct foo s = { .bar = "quux" };
+	/* variable name 'new' is an error in C++ */
+	int new = 0;
+
+	r(s.bar);
+	return new;
+}

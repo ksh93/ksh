@@ -56,11 +56,8 @@
 #   define gencpy(a,b)	ed_gencpy(a,b)
 #   define genncpy(a,b,n)	ed_genncpy(a,b,n)
 #   define genlen(str)	ed_genlen(str)
-#   define digit(c)	((c&~STRIP)==0 && isdigit(c))
+#   define digit(c)	iswdigit((wint_t)(c))
 #   define is_print(c)	((c&~STRIP) || isprint(c))
-#   if !_lib_iswprint && !defined(iswprint)
-#	define iswprint(c)	((c&~0177) || isprint(c))
-#   endif
     static int _isalph(int);
     static int _isblank(int);
 #   undef  isblank
@@ -2584,11 +2581,7 @@ yankeol:
 #if SHOPT_MULTIBYTE
     static int _isalph(int v)
     {
-#if _lib_iswalnum
 	return iswalnum(v) || v=='_';
-#else
-	return (v&~STRIP) || isalnum(v) || v=='_';
-#endif
     }
 
 

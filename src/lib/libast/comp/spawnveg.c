@@ -150,19 +150,19 @@ spawnveg_fast(const char* path, char* const argv[], char* const envv[], pid_t pg
 {
 	pid_t		pid;
 	char		stack[STACK_SIZE];
-	struct cargs	args;
 #if defined(__MACHINE_STACK_GROWS_UP) || defined(__hppa__) || defined(__metag__)
 	void		*stack_top = stack;
 #else
 	void		*stack_top = stack+STACK_SIZE;
 #endif
+	struct cargs	args = {
+		.path = path,
+		.argv = (char**)argv,
+		.envv = (char**)(envv ? envv : environ),
+		.pgid = pgid,
+		.tcfd = tcfd
+	};
 
-	args.path = path;
-	args.argv = (char**)argv;
-	args.envv = (char**)(envv ? envv : environ);
-	args.err = 0;
-	args.pgid = pgid;
-	args.tcfd = tcfd;
 	sigcritical(SIG_REG_EXEC|SIG_REG_PROC|(tcfd>=0?SIG_REG_TERM:0));
 	pid = clone(exec_process, stack_top, CLONE_VM|CLONE_VFORK|SIGCHLD, &args);
 	if (pid == -1)

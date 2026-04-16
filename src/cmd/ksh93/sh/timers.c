@@ -20,6 +20,7 @@
 #include	<ast.h>
 #include	<sig.h>
 #include	<error.h>
+#include	<tv.h>
 #include	"fault.h"
 #include	"defs.h"
 #include	"FEATURE/time"
@@ -44,9 +45,9 @@ static char time_state;
 static Sfdouble_t getnow(void)
 {
 	Sfdouble_t now;
-	struct timeval tp;
-	timeofday(&tp);
-	now = tp.tv_sec + 1.e-6*tp.tv_usec;
+	Tv_t tp;
+	tvgettime(&tp);
+	now = tp.tv_sec + 1.e-6*(tp.tv_nsec/1000);
 	return now+.001;
 }
 

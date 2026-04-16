@@ -454,8 +454,8 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 	State_t		state;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
-	memset(&state, 0, sizeof(state));
 	flags = fts_flags() | FTS_META | FTS_TOP | FTS_NOPOSTORDER;
+	memset(&state, 0, sizeof(state));
 	state.flags = SUM_SIZE;
 	state.warn = 1;
 	logical = 1;

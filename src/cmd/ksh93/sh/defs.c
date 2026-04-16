@@ -26,11 +26,21 @@
 #include	"jobs.h"
 #include	"shlex.h"
 
-Shell_t			sh = {0};
+Shell_t			sh = {
+	.cpipe[0] = -1,
+	.coutpipe = -1,
+#if _lib_openat
+	.pwdfd = -1,
+#endif
+	.radixpoint = '.',	/* pre-locale init */
+	.stk = stkstd
+};
 
 Dtdisc_t	_Nvdisc =
 {
-	offsetof(Namval_t,nvname), -1 , 0, 0, 0, nv_compare
+	.key = offsetof(Namval_t,nvname),
+	.size = -1,
+	.comparf = nv_compare
 };
 
 struct jobs	job = {0};

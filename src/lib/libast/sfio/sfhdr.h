@@ -51,18 +51,10 @@
 
 /* AST always provides multibyte handling */
 #undef _hdr_wchar
-#undef _lib_mbrtowc
-#undef _lib_wcrtomb
 #define _hdr_wchar	1
-#define _lib_mbrtowc	1
-#define _lib_wcrtomb	1
 
 #if _mem_st_blksize_stat
 #define _stat_blksize	1
-#endif
-
-#if _lib_localeconv && _hdr_locale
-#define _lib_locale	1
 #endif
 
 #include	"FEATURE/float"
@@ -686,9 +678,6 @@ typedef struct _sftab_
 #undef max
 #define min(x,y)	((x) < (y) ? (x) : (y))
 #define max(x,y)	((x) > (y) ? (x) : (y))
-
-/* fast functions for memory copy and memory clear */
-#define memclear(s,n)	memzero(s,n)
 
 extern Sftab_t		_Sftable;
 

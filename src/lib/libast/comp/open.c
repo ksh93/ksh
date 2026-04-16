@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -76,11 +77,7 @@ _ast_open(const char* path, int op, ...)
 						close(fd);
 						return -1;
 					}
-#if _lib_fchmod
 					if (mode && fchmod(fd, mode))
-#else
-					if (mode && chmod(path, mode))
-#endif
 						errno = save_errno;
 				}
 				if ((op & O_ACCMODE) == O_RDWR)

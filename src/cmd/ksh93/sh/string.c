@@ -22,7 +22,6 @@
 
 #include	"FEATURE/options"
 #include	<ast.h>
-#include	<ast_wchar.h>
 #include	"defs.h"
 #include	"shtable.h"
 #include	"lexstates.h"
@@ -30,10 +29,6 @@
 
 #if _hdr_wctype
 #   include <wctype.h>
-#endif
-
-#if !_lib_iswprint && !defined(iswprint)
-#   define iswprint(c)		(((c)&~0377) || isprint(c))
 #endif
 
 /*
@@ -489,7 +484,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 #if SHOPT_MULTIBYTE
 			if (c >= 0x200)
 				continue;
-			if (c == '\'' || !iswprint(c))
+			if (c == '\'' || !iswprint((wint_t)c))
 #else
 			if (c == '\'' || !isprint(c))
 #endif /* SHOPT_MULTIBYTE */
@@ -554,7 +549,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 					break;
 		    		default:
 #if SHOPT_MULTIBYTE
-					if(!iswprint(c))
+					if(!iswprint((wint_t)c))
 #else
 					if(!isprint(c))
 #endif

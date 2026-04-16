@@ -10,9 +10,8 @@ cat{
 	#endif
 }end
 
-lib	mbstowcs,wctomb,wcrtomb,wcslen,wcstombs,wcwidth stdlib.h stdio.h wchar.h
-lib	towlower,towupper stdlib.h stdio.h wchar.h
-typ	mbstate_t stdlib.h stdio.h wchar.h
+lib	wcwidth	stdlib.h stdio.h wchar.h
+hdr	wchar
 nxt	wchar
 
 run{
@@ -116,28 +115,6 @@ run{
 	#define wprintf		_ast_wprintf
 	#define wscanf		_ast_wscanf
 
-	#if !_typ_mbstate_t
-	#undef	_typ_mbstate_t
-	#define _typ_mbstate_t	1
-	typedef char mbstate_t;
-	#endif
-
-	#if !_lib_mbstowcs
-	extern size_t		mbstowcs(wchar_t*, const char*, size_t);
-	#endif
-	#if !_lib_wctomb
-	extern int		wctomb(char*, wchar_t);
-	#endif
-	#if !_lib_wcrtomb
-	extern size_t		wcrtomb(char*, wchar_t, mbstate_t*);
-	#endif
-	#if !_lib_wcslen
-	extern size_t		wcslen(const wchar_t*);
-	#endif
-	#if !_lib_wcstombs
-	extern size_t		wcstombs(char*, const wchar_t*, size_t);
-	#endif
-
 	extern int		fwprintf(FILE*, const wchar_t*, ...);
 	extern int		fwscanf(FILE*, const wchar_t*, ...);
 	extern wint_t		fgetwc(FILE*);
@@ -150,15 +127,15 @@ run{
 	extern wchar_t*		getws(wchar_t*);
 	extern wint_t		putwc(wchar_t, FILE*);
 	extern wint_t		putwchar(wchar_t);
-	extern int		swprintf(wchar_t*, size_t, const wchar_t*, ...);
-	extern int		swscanf(const wchar_t*, const wchar_t*, ...);
+	extern int		swprintf(wchar_t *restrict, size_t, const wchar_t *restrict, ...);
+	extern int		swscanf(const wchar_t *restrict, const wchar_t *restrict, ...);
 	extern wint_t		ungetwc(wint_t, FILE*);
 	extern int		vfwprintf(FILE*, const wchar_t*, va_list);
 	extern int		vfwscanf(FILE*, const wchar_t*, va_list);
 	extern int		vwprintf(const wchar_t*, va_list);
 	extern int		vwscanf(const wchar_t*, va_list);
-	extern int		vswprintf(wchar_t*, size_t, const wchar_t*, va_list);
-	extern int		vswscanf(const wchar_t*, const wchar_t*, va_list);
+	extern int		vswprintf(wchar_t *restrict, size_t, const wchar_t *restrict, va_list);
+	extern int		vswscanf(const wchar_t *restrict, const wchar_t *restrict, va_list);
 	extern int		wprintf(const wchar_t*, ...);
 	extern int		wscanf(const wchar_t*, ...);
 

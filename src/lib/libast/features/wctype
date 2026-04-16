@@ -9,9 +9,9 @@ cat <<!
 	#undef	iswalpha
 
 	#if AST_NOMULTIBYTE
-	#define iswalpha(w)	isalpha(w)
+	#define iswalpha(w)	isalpha((int)(w))
 	#else
-	#define iswalpha(w)	(ast.mb.alpha?(*ast.mb.alpha)(w):isalpha(w))
+	#define iswalpha(w)	(ast.mb.alpha?(*ast.mb.alpha)((wint_t)(w)):isalpha((int)(w)))
 	#endif /* AST_NOMULTIBYTE */
 !
 }end

@@ -31,6 +31,7 @@
  *	S2F_function	the function name
  *	S2F_static	<0:export =0:extern >0:static
  *	S2F_type	0:float 1:double 2:long.double
+ *			3:long.double without fallback to double
  *	S2F_qualifier	1 for optional [fFlL] qualifier suffix
  *	S2F_size	1 for interface with size_t second arg
  *	S2F_scan	1 for alternate interface with these arguments:
@@ -86,7 +87,7 @@
 #define S2F_exp_2_min	(DBL_MIN_EXP)
 #define S2F_exp_2_max	(DBL_MAX_EXP)
 #endif
-#if S2F_type == 2
+#if S2F_type == 2 || S2F_type == 3
 #define S2F_number	long double
 #define S2F_ldexp	ldexpl
 #define S2F_pow10	_Sflpow10

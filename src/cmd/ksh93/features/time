@@ -1,38 +1,10 @@
 hdr	utime,sys/resource
-lib	getrusage,gettimeofday,setitimer
-mem	timeval.tv_usec sys/time.h
-tst	lib_2_timeofday note{ 2 arg gettimeofday() }end link{
-	#include <sys/types.h>
-	#include <sys/time.h>
-	int main(void)
-	{
-		struct timeval tv;
-		struct timezone tz;
-		return gettimeofday(&tv, &tz);
-	}
-}end
-tst	lib_1_timeofday note{ 1 arg gettimeofday() }end link{
-	#include <sys/types.h>
-	#include <sys/time.h>
-	int main(void)
-	{
-		struct timeval tv;
-		return gettimeofday(&tv);
-	}
-}end
+lib	getrusage,setitimer
 cat{
 	#undef _def_time
 	#include	<times.h>
 	#include	<sys/time.h>
 	#define _def_time	1
-	#undef timeofday
-	#if _lib_2_timeofday
-	#define timeofday(p)	gettimeofday(p,NULL)
-	#else
-	#if _lib_1_timeofday
-	#define timeofday(p)	gettimeofday(p)
-	#endif
-	#endif
 	/* BSD timeradd and timersub macros */
 	#if !defined(timeradd)
 	#define	timeradd(tvp, uvp, vvp)						\

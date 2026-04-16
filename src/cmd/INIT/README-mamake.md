@@ -4,7 +4,7 @@ MAM (Make Abstract Machine) is a simple rule-based make language
 that is implemented in just ten four-letter commands and four attributes,
 yet allows unlimited flexibility as it can execute arbitrary shell code.
 The program implementing MAM, `mamake`,
-is a portable C90 program written in a single file, `mamake.c`.
+is a portable C99 program written in a single file, `mamake.c`.
 This allows ksh 93u+m,
 or other programs using this build system,
 to be built using only a standard C compiler and utilities installation

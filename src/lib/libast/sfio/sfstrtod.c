@@ -64,13 +64,9 @@ Sfdouble_t _sfstrtod(const char*	s,	/* string to convert */
 	int		n, c, m;
 	int		mode, fexp, sign, expsign;
 	Sfdouble_t	dval;
-#if _lib_locale
 	int		decpoint = 0;
 	int		thousand = 0;
 	SFSETLOCALE(&decpoint,&thousand);
-#else
-#define decpoint	'.'
-#endif
 
 	/* skip initial blanks */
 	while(isspace(*s))

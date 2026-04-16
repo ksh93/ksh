@@ -79,11 +79,11 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	int nosupport, ret=0;
 	rlim_t i=0, unit;
 	char tmp[41];
-	Optdisc_t disc;
+	Optdisc_t disc = {
+		.version = OPT_VERSION,
+		.infof = infof
+	};
 	NOT_USED(context);
-	memset(&disc, 0, sizeof(disc));
-	disc.version = OPT_VERSION;
-	disc.infof = infof;
 	opt_info.disc = &disc;
 	while((n = optget(argv,sh_optulimit))) switch(n)
 	{

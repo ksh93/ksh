@@ -1,6 +1,5 @@
 iff	AST_COMMON
-hdr	pthread,stdarg,stddef,stdint,inttypes,types,unistd
-sys	types
+hdr	stdarg,stdint,inttypes
 typ	__va_list stdio.h
 
 std	noreturn note{ noreturn ok }end compile{
@@ -512,12 +511,8 @@ tst	- -DTRY=1 - -DTRY=1 -Dvoid=char - -DTRY=2 - -DTRY=3 - -DTRY=4 output{
 
 cat{
 	#ifndef _AST_STD_H
-	#	if _hdr_stddef
 	#	include	<stddef.h>
-	#	endif
-	#	if _sys_types
 	#	include	<sys/types.h>
-	#	endif
 	#	if _hdr_stdint
 	#	include	<stdint.h>
 	#	else
@@ -556,7 +551,6 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 	 * executing it, put it in a test function that is called with argc as the argument.
 	 * argc should never be zero on init, but hopefully optimizers aren't that smart.
 	 */
-	#include <stdio.h>
 	#include "ast_release.h"
 	void testfn(int a)
 	{
@@ -579,32 +573,6 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 	}
 }end fail{
 	echo '#define UNREACHABLE()	abort()'
-}end
-
-# TODO: remove when we require C99
-tst	has___func__ note{ does this compiler have __func__ }end execute{
-	#include <string.h>
-	int testfn(void)
-	{
-		return strcmp(__func__,"testfn")==0;
-	}
-	int main(void)
-	{
-		return !(testfn && strcmp(__func__,"main")==0);
-	}
-}end
-
-# TODO: remove when we require C99 (use __func__)
-tst	has___FUNCTION__ note{ does this compiler have __FUNCTION__ }end execute{
-	#include <string.h>
-	int testfn(void)
-	{
-		return strcmp(__FUNCTION__,"testfn")==0;
-	}
-	int main(void)
-	{
-		return !(testfn && strcmp(__FUNCTION__,"main")==0);
-	}
 }end
 
 tst	has__Static_assert note{ does this compiler have _Static_assert }end execute{

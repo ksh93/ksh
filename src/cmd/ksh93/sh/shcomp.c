@@ -134,13 +134,15 @@ int main(int argc, char *argv[])
 	if(cp= *argv)
 	{
 		struct stat statb;
+		int fd;
 		if(!(out = sfopen(NULL,cp,"w")))
 		{
 			errormsg(SH_DICT,ERROR_system(1),"%s: cannot create",cp);
 			UNREACHABLE();
 		}
-		if(fstat(sffileno(out),&statb) >=0)
-			chmod(cp,(statb.st_mode&(mode_t)~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
+		fd = sffileno(out);
+		if(fstat(fd,&statb)>=0)
+			fchmod(fd,(statb.st_mode&(mode_t)~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
 	}
 	else
 		out = sfstdout;

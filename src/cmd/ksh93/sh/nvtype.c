@@ -795,12 +795,12 @@ void nv_addtype(Namval_t *np, const char *optstr, Optdisc_t *op, size_t optsz)
 void nv_newtype(Namval_t *mp)
 {
 	struct	{
-		    Optdisc_t	opt;
-		    Namval_t	*np;
-		}	optdisc;
-	memset(&optdisc,0,sizeof(optdisc));
-	optdisc.opt.infof = typeinfo;
-	optdisc.np = mp;
+	    Optdisc_t	opt;
+	    Namval_t	*np;
+	} optdisc = {
+		.opt = { .infof = typeinfo },
+		.np = mp
+	};
 	nv_addtype(mp,sh_opttype, &optdisc.opt, sizeof(optdisc));
 }
 
@@ -920,7 +920,7 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 	nq = nv_namptr(pp->nodes,0);
 	nq->nvname = cp;
 	nv_onattr(nq,NV_MINIMAL);
-	cp = strcopy(cp,NV_DATA);
+	cp = stpcpy(cp,NV_DATA);
 	*cp++ = 0;
 	for(name=0, offset=0, k=i=1; i < numnodes; i++)
 	{

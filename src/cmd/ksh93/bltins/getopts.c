@@ -62,12 +62,12 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	int jmpval;
 	volatile int extended, r= -1;
 	struct checkpt buff, *pp;
-	Optdisc_t disc;
+	Optdisc_t disc = {
+		.version = OPT_VERSION,
+		.infof = infof
+	};
 
 	NOT_USED(context);
-	memset(&disc, 0, sizeof(disc));
-	disc.version = OPT_VERSION;
-	disc.infof = infof;
 	value[1] = 0;
 	key[1] = 0;
 	while((flag = optget(argv,sh_optgetopts))) switch(flag)

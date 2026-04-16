@@ -537,16 +537,14 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
 	int argcnt;
+	sfsync(sh.outpool);
 	memset((char*)sp, 0, sizeof(*sp));
 	sp->options = sh.options;
 	sp->subshare = sh.subshare;
 	sp->comsub = sh.comsub;
 	sp->pwdfd = -1;	/* pwdfd should not be initialized to stdin */
-	sfsync(sh.outpool);
 	sh_sigcheck();
 	sh.savesig = -1;
-	if(argsav = sh_arguse())
-		argcnt = argsav->dolrefcnt;
 	if(sh.curenv==0)
 	{
 		subshell_data=0;
@@ -559,6 +557,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	sh.realsubshell++;	/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
 	subshell_data = sp;
+	if(argsav = sh_arguse())
+		argcnt = argsav->dolrefcnt;
 	sp->jobs = job_subsave();
 	/* make sure initialization has occurred */
 	if(!sh.pathlist)

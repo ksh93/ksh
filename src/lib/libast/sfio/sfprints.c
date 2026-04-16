@@ -60,7 +60,7 @@ char* sfprints(const char* form, ...)
 	return s;
 }
 
-ssize_t sfvaprints(char** sp, const char* form, va_list args)
+ssize_t sfvaprints(char **restrict sp, const char *restrict form, va_list args)
 {
 	char	*s;
 	size_t	n;
@@ -75,7 +75,7 @@ ssize_t sfvaprints(char** sp, const char* form, va_list args)
 	}
 }
 
-ssize_t sfaprints(char** sp, const char* form, ...)
+ssize_t sfaprints(char **restrict sp, const char *restrict form, ...)
 {
 	ssize_t n;
 	va_list	args;

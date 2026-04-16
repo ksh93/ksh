@@ -112,7 +112,7 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 			f->next = f->data ? f->data + p : NULL;
 			f->here = p;
 			if(p > f->extent)
-				memclear((char*)(f->data+f->extent),(size_t)(p-f->extent));
+				memset((char*)(f->data+f->extent),0,(size_t)(p-f->extent));
 			goto done;
 		}
 

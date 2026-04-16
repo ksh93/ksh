@@ -6,7 +6,7 @@ note *
 setv MAMAKE_STRICT 5
 setv INSTALLROOT ../../..
 setv CC cc
-setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?} %{mam_cc_NOSTRICTALIASING} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""%{mam_cc_HOSTTYPE}"\" -D_BLD_cmd
+setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{-debug-symbols?1?%{mam_cc_DEBUG} -D_BLD_DEBUG?%{mam_cc_OPTIMIZE}?} -DERROR_CATALOG=\""libcmd"\" -DHOSTTYPE=\""%{mam_cc_HOSTTYPE}"\" -D_BLD_cmd
 setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS

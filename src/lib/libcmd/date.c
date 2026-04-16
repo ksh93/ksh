@@ -30,7 +30,7 @@
 #include <times.h>
 
 static const char usage[] =
-"[-?\n@(#)$Id: date (AT&T Research) 2011-01-27 $\n]"
+"[-?\n@(#)$Id: date (ksh 93u+m) 2026-03-11 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?date - set/list/convert dates]"
 "[+DESCRIPTION?\bdate\b sets the current date and time (with appropriate"
@@ -163,7 +163,7 @@ static const char usage[] =
 "	after the AST library release date are not accounted for.]"
 "[m:modify-time|mtime?List file argument modify times.]"
 "[n!:network?Set network time.]"
-"[p:parse?Add \aformat\a to the list of \bstrptime\b(3) parse conversion"
+"[p:parse?Add \aformat\a to the list of \bstrftime\b(3) parse conversion"
 "	formats. \aformat\a follows the same conventions as the"
 "	\b--format\b option, with the addition of these format"
 "	fields:]:[format]{"
@@ -195,7 +195,7 @@ static const char usage[] =
 "\n"
 
 "[+SEE ALSO?\bcrontab\b(1), \bls\b(1), \btouch\b(1), \bfmtelapsed\b(3),"
-"	\bstrftime\b(3), \bstrptime\b(3), \btm\b(3)]"
+"	\bstrftime\b(3), \btm\b(3)]"
 ;
 
 typedef struct Fmt

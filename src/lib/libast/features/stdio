@@ -225,7 +225,7 @@ cat{
 
 	extern int	_doprnt(const char*, va_list, FILE*);
 	extern int	_doscan(FILE*, const char*, va_list);
-	extern int	asprintf(char**, const char*, ...);
+	extern int	asprintf(char **restrict, const char *restrict, ...);
 	extern int	clearerr(FILE*);
 	extern int	fclose(FILE*);
 	extern FILE*	fdopen(int, const char*);
@@ -236,13 +236,13 @@ cat{
 	extern int	fgetpos(FILE*, fpos_t*);
 	extern char*	fgets(char*, int, FILE*);
 	extern int	fileno(FILE*);
-	extern FILE*	fopen(const char*, const char*);
+	extern FILE*	fopen(const char *restrict, const char *restrict);
 	extern int	fprintf(FILE*, const char*, ...);
 	extern int	fpurge(FILE*);
 	extern int	fputc(int, FILE*);
 	extern int	fputs(const char*, FILE*);
 	extern size_t	fread(void*, size_t, size_t, FILE*);
-	extern FILE*	freopen(const char*, const char*, FILE*);
+	extern FILE*	freopen(const char *restrict, const char *restrict, FILE*);
 	extern int	fscanf(FILE*, const char*, ...);
 	extern int	fseek(FILE*, long, int);
 	extern int	fseeko(FILE*, off_t, int);
@@ -267,19 +267,19 @@ cat{
 	extern int	setbuffer(FILE*, char*, int);
 	extern int	setlinebuf(FILE*);
 	extern int	setvbuf(FILE*, char*, int, size_t);
-	extern int	snprintf(char*, size_t, const char*, ...);
-	extern int	sprintf(char*, const char*, ...);
-	extern int	sscanf(const char*, const char*, ...);
+	extern int	snprintf(char *restrict, size_t, const char *restrict, ...);
+	extern int	sprintf(char *restrict, const char *restrict, ...);
+	extern int	sscanf(const char *restrict, const char *restrict, ...);
 	extern FILE*	tmpfile(void);
 	extern int	ungetc(int, FILE*);
-	extern int	vasprintf(char**, const char*, va_list);
+	extern int	vasprintf(char **restrict, const char *restrict, va_list);
 	extern int	vfprintf(FILE*, const char*, va_list);
 	extern int	vfscanf(FILE*, const char*, va_list);
 	extern int	vprintf(const char*, va_list);
 	extern int	vscanf(const char*, va_list);
-	extern int	vsnprintf(char*, size_t, const char*, va_list);
-	extern int	vsprintf(char*, const char*, va_list);
-	extern int	vsscanf(const char*, const char*, va_list);
+	extern int	vsnprintf(char *restrict, size_t, const char *restrict, va_list);
+	extern int	vsprintf(char *restrict, const char *restrict, va_list);
+	extern int	vsscanf(const char *restrict, const char *restrict, va_list);
 
 	extern void	clearerr_unlocked(FILE*);
 	extern int	feof_unlocked(FILE*);
