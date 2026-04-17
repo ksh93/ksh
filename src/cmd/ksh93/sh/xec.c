@@ -1270,7 +1270,7 @@ int sh_exec(const Shnode_t *t, int flags)
 							}
 							else
 							{
-								errormsg(SH_DICT,ERROR_exit(0),e_found,"function");
+								errormsg(SH_DICT,ERROR_exit(0),e_autoloadnotfound,com0);
 								sh.exitval = ERROR_NOENT;
 							}
 							goto setexit;

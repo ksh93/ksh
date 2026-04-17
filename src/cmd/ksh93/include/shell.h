@@ -166,6 +166,7 @@ typedef union Shnode_u Shnode_t;
 
 /* error messages */
 extern const char	e_found[];
+extern const char	e_autoloadnotfound[];
 #ifdef ENAMETOOLONG
 extern const char	e_toolong[];
 #endif
@@ -314,7 +315,7 @@ struct Shell_s
 	char		intrap_exit_n;	/* set if 'exit n' within trap */
 	char		forked;
 	char		binscript;
-	char		funload;
+	char		funload;	/* set while autoloading a function via funload() */
 	char		used_pos;	/* used positional parameter */
 	char		universe;
 	char		winch;		/* set upon window size change or 'set -b' notification */
@@ -380,6 +381,7 @@ struct Shell_s
 	Dt_t		*prev_root;
 	Dt_t		*fpathdict;
 	Dt_t		*typedict;
+	Dt_t		*funload_loopdetect_tree; /* for function autoload loop detection */
 	char		ifstable[256];
 	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */
 	Shopt_t		glob_options;

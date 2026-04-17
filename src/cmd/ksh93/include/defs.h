@@ -129,6 +129,7 @@ extern void		sh_setmatch(const char*,ptrdiff_t,ssize_t,ssize_t[],int);
 extern void		sh_scope(struct argnod*, int);
 extern Namval_t		*sh_scoped(Namval_t*);
 extern Dt_t		*sh_subtracktree(int);
+extern Dt_t		*sh_subloopdetecttree(int);
 extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
