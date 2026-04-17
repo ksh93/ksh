@@ -77,6 +77,7 @@ const char e_logout[]		= "Use 'exit' to terminate this shell";
 const char e_exec[]		= "%s: cannot execute";
 const char e_pwd[]		= "cannot determine present working directory";
 const char e_found[]		= "%s: not found";
+const char e_autoloadnotfound[] = "autoload: %s: function not found";
 #ifdef ENAMETOOLONG
 const char e_toolong[]		= "%s: file name too long";
 #endif

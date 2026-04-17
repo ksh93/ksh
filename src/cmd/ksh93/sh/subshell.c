@@ -58,6 +58,7 @@ static struct subshell
 	struct Link	*svar;	/* save shell variable table */
 	Dt_t		*sfun;	/* function scope for subshell */
 	Dt_t		*strack;/* tracked alias scope for subshell */
+	Dt_t		*sfaldt;/* subshell function autoload loop detection tree */
 	Pathcomp_t	*pathlist; /* for PATH variable */
 	Shopt_t		options;/* save shell options */
 	pid_t		subpid;	/* child process ID */
@@ -425,6 +426,27 @@ Dt_t *sh_subfuntree(int create)
 		}
 	}
 	return sh.fun_tree;
+}
+
+/*
+ * Return pointer to the function autoload loop detection tree.
+ * Create new one if in a subshell and one doesn't exist and 'create' is non-zero.
+ */
+Dt_t *sh_subloopdetecttree(int create)
+{
+	struct subshell *sp = subshell_data;
+	if(!sh.funload_loopdetect_tree)
+		sh.funload_loopdetect_tree = dtopen(&_Nvdisc,Dtoset);
+	if(create && sh.subshell && !sh.subshare)
+	{
+		if(sp && !sp->sfaldt)
+		{
+			sp->sfaldt = dtopen(&_Nvdisc,Dtoset);
+			dtview(sp->sfaldt, sh.funload_loopdetect_tree);
+			sh.funload_loopdetect_tree = sp->sfaldt;
+		}
+	}
+	return sh.funload_loopdetect_tree;
 }
 
 int sh_subsavefd(int fd)
@@ -840,6 +862,12 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				}
 			}
 			dtclose(sp->sfun);
+		}
+		/* Clean up subshell autoload loop detection tree. */
+		if(sp->sfaldt)
+		{
+			sh.funload_loopdetect_tree = dtview(sp->sfaldt,0);
+			dtclose(sp->sfaldt);
 		}
 		n = sh.st.trapmax-savst.trapmax;
 		sh_sigreset(1);

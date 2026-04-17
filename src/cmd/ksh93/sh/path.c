@@ -540,11 +540,14 @@ char *path_fullname(const char *name)
 static void funload(int fno, const char *name)
 {
 	char		*pname,*oldname=sh.st.filename, buff[IOBSIZE+1];
-	Namval_t	*np, *np_loopdetect;
-	static Dt_t	*loopdetect_tree;
+	Namval_t	*np_loopdetect;
+	Dt_t		*loopdetect_tree;
 	struct Ufunction *rp,*rpfirst;
 	int		savestates = sh_getstate(), savelineno = sh.inlineno;
 	char		oldload = sh.funload;
+	volatile char	*errorname = NULL;
+	volatile int	jmpval;
+	struct checkpt	checkpoint;
 	pname = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 	if(sh.fpathdict && (rp = dtmatch(sh.fpathdict,pname)))
 	{
@@ -558,6 +561,7 @@ static void funload(int fno, const char *name)
 		}
 		do
 		{
+			Namval_t *np;
 			if((np = dtsearch(funtree,rp->np)) && is_afunction(np))
 			{
 				if(np->nvalue)
@@ -572,42 +576,55 @@ static void funload(int fno, const char *name)
 		free(pname);
 		return;
 	}
-	if(!loopdetect_tree)
-		loopdetect_tree = dtopen(&_Nvdisc,Dtoset);
-	else if(nv_search(pname,loopdetect_tree,0))
+	loopdetect_tree = sh_subloopdetecttree(1);
+	if(nv_search(pname,loopdetect_tree,0))
 	{
+		dtclear(loopdetect_tree);
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),"autoload loop: %s in %s",name,pname);
 		UNREACHABLE();
 	}
-	np_loopdetect = nv_search(pname,loopdetect_tree,NV_ADD);
+	np_loopdetect = nv_search(pname,loopdetect_tree,NV_ADD|NV_NOSCOPE);
 	sh_onstate(SH_NOALIAS);
 	sh.readscript = (char*)name;
 	sh.st.filename = pname;
 	sh.funload = 1;
 	sh.inlineno = 1;
 	error_info.line = 0;
-	sh_eval(sfnew(NULL,buff,IOBSIZE,fno,SFIO_READ),SH_FUNEVAL);
+	/* sh_eval may longjmp if the script throws an error; to restore
+	 * state, we must include this function in the longjmp chain */
+	sh_pushcontext(&checkpoint,1);
+	jmpval = sigsetjmp(checkpoint.buff,0);
+	if(!jmpval)
+	{
+		Namval_t *np;
+		/* run the function script */
+		sh_eval(sfnew(NULL,buff,IOBSIZE,fno,SFIO_READ),SH_FUNEVAL);
+		/* check if the expected function was loaded */
+#if SHOPT_NAMESPACE
+		if(sh.namespace)
+			np = sh_fsearch(name,0);
+		else
+#endif /* SHOPT_NAMESPACE */
+			np = nv_search(name,sh.fun_tree,0);
+		if(!np || !np->nvalue)
+			errorname = stkcopy(sh.stk,sh.st.filename);
+	}
+	/* restore state */
 	sh_close(fno);
 	sh.readscript = 0;
-#if SHOPT_NAMESPACE
-	if(sh.namespace)
-		np = sh_fsearch(name,0);
-	else
-#endif /* SHOPT_NAMESPACE */
-		np = nv_search(name,sh.fun_tree,0);
-	if(!np || !np->nvalue)
-		pname = stkcopy(sh.stk,sh.st.filename);
-	else
-		pname = 0;
-	free(sh.st.filename);
+	free(pname);
 	sh.funload = oldload;
 	sh.inlineno = savelineno;
 	sh.st.filename = oldname;
 	sh_setstate(savestates);
 	nv_delete(np_loopdetect,loopdetect_tree,0);
-	if(pname)
+	/* continue the longjmp chain on error */
+	sh_popcontext(&checkpoint);
+	if(jmpval)
+		siglongjmp(*sh.jmplist,jmpval);
+	if(errorname)
 	{
-		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),e_funload,name,pname);
+		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),e_funload,name,errorname);
 		UNREACHABLE();
 	}
 }
