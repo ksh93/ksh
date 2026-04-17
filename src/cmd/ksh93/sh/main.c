@@ -387,7 +387,8 @@ static void	exfile(Sfio_t *iop,int fno)
 				if(!(sh.fdstatus[fno]&IOCLEX))
 					sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
 			}
-			iop = sh_iostream(fno);
+			/* buffer the stream in script mode */
+			iop = sh_iostream(fno,1);
 		}
 		else
 			iop = sfstdin;
