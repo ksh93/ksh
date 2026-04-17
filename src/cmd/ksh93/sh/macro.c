@@ -1185,7 +1185,8 @@ static int varsub(Mac_t *mp)
 	ptrdiff_t	vsize = -1;
 	char		idbuff[3], *id = idbuff, *pattern=0, *repstr=0, *arrmax=0;
 	char		*idx = 0;
-	int		var=1,addsub=0,idnum=0,nvflag=0;
+	int		var=1,addsub=0,idnum=0;
+	nvflag_t	nvflag=0;
 	char		oldpat=mp->pattern;
 	Stk_t		*stkp = sh.stk;
 	size_t		replen=0;

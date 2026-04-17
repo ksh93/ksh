@@ -45,8 +45,8 @@ struct nvdir
 
 static int	Indent;
 char *nv_getvtree(Namval_t*, Namfun_t *);
-static void put_tree(Namval_t*, const char*, int,Namfun_t*);
-static char *walk_tree(Namval_t*, Namval_t*, int);
+static void put_tree(Namval_t*, const char*, nvflag_t,Namfun_t*);
+static char *walk_tree(Namval_t*, Namval_t*, nvflag_t);
 
 static int read_tree(Namval_t* np, Sfio_t *iop, int n, Namfun_t *dp)
 {
@@ -64,7 +64,7 @@ static int read_tree(Namval_t* np, Sfio_t *iop, int n, Namfun_t *dp)
 	return c;
 }
 
-static Namval_t *create_tree(Namval_t *np,const char *name,int flag,Namfun_t *dp)
+static Namval_t *create_tree(Namval_t *np,const char *name,nvflag_t flag,Namfun_t *dp)
 {
 	Namfun_t *fp=dp;
 	fp->dsize = 0;
@@ -80,7 +80,7 @@ static Namval_t *create_tree(Namval_t *np,const char *name,int flag,Namfun_t *dp
 	return (flag&NV_NOADD) ? 0 : np;
 }
 
-static Namfun_t *clone_tree(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp){
+static Namfun_t *clone_tree(Namval_t *np, Namval_t *mp, nvflag_t flags, Namfun_t *fp){
 	Namfun_t	*dp;
 	if ((flags&NV_MOVE) && nv_type(np))
 		return fp;
@@ -380,7 +380,7 @@ void nv_attribute(Namval_t *np,Sfio_t *out,char *prefix,int noname)
 {
 	const Shtable_t *tp;
 	char *cp;
-	unsigned val,mask,attr;
+	nvflag_t val,mask,attr;
 	char *ip=0;
 	Namfun_t *fp=0;
 	Namval_t *typep=0;
@@ -535,13 +535,13 @@ void nv_attribute(Namval_t *np,Sfio_t *out,char *prefix,int noname)
 
 struct Walk
 {
-	Sfio_t	*out;
-	Dt_t	*root;
-	int	noscope;
-	int	indent;
-	int	nofollow;
-	int	array;
-	int	flags;
+	Sfio_t		*out;
+	Dt_t		*root;
+	nvflag_t	noscope;
+	int		indent;
+	int		nofollow;
+	int		array;
+	nvflag_t	flags;
 };
 
 void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
@@ -672,7 +672,8 @@ static void outval(char *name, const char *vname, struct Walk *wp)
 {
 	Namval_t *np, *nq=0, *last_table=sh.last_table;
 	Namfun_t *fp;
-	int isarray=0, special=0,mode=0;
+	int isarray=0, special=0;
+	nvflag_t mode=0;
 	Dt_t *root = wp->root?wp->root:sh.var_base;
 	if(*name!='.' || vname[strlen(vname)-1]==']')
 		mode = NV_ARRAY;
@@ -943,7 +944,7 @@ static char **genvalue(char **argv, const char *prefix, ptrdiff_t n, struct Walk
 /*
  * walk the virtual tree and print or delete name-value pairs
  */
-static char *walk_tree(Namval_t *np, Namval_t *xp, int flags)
+static char *walk_tree(Namval_t *np, Namval_t *xp, nvflag_t flags)
 {
 	static Sfio_t *out;
 	struct Walk walk;
@@ -957,7 +958,8 @@ static char *walk_tree(Namval_t *np, Namval_t *xp, int flags)
 	char *name,*cp, **argv;
 	char *subscript=0;
 	void *dir;
-	int n=0, noscope=(flags&NV_NOSCOPE);
+	int n=0;
+	nvflag_t noscope=(flags&NV_NOSCOPE);
 	Namarr_t *arp = nv_arrayptr(np);
 	Dt_t	*save_tree = sh.var_tree;
 	Namval_t	*mp=0;
@@ -1068,7 +1070,7 @@ Namfun_t *nv_isvtree(Namval_t *np)
  */
 char *nv_getvtree(Namval_t *np, Namfun_t *fp)
 {
-	int flags=0;
+	nvflag_t flags=0;
 	size_t dsize=fp?fp->dsize:0;
 	for(; fp && fp->next; fp=fp->next)
 	{
@@ -1091,7 +1093,7 @@ char *nv_getvtree(Namval_t *np, Namfun_t *fp)
 /*
  * put discipline for compound initializations
  */
-static void put_tree(Namval_t *np, const char *val, int flags,Namfun_t *fp)
+static void put_tree(Namval_t *np, const char *val, nvflag_t flags,Namfun_t *fp)
 {
 	struct Namarray *ap;
 	int nleft = 0;

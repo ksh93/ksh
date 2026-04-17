@@ -877,9 +877,9 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 			stkseek(sh.stk,n);
 			if(np)
 			{
-				n = np->nvflag;
+				nvflag_t save_nvflag = np->nvflag;
 				np = sh_addbuiltin(stkptr(sh.stk,PATH_OFFSET),funptr(np),nv_context(np));
-				np->nvflag = n;
+				np->nvflag = save_nvflag;
 			}
 		}
 		if(f<0 && errno!=ENOENT)
@@ -1813,7 +1813,7 @@ static char *talias_get(Namval_t *np, Namfun_t *nvp)
 	return ptr+PATH_OFFSET;
 }
 
-static void talias_put(Namval_t* np,const char *val,int flags,Namfun_t *fp)
+static void talias_put(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 {
 	if(!val && np->nvalue)
 	{

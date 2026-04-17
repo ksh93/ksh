@@ -369,7 +369,7 @@ static char* setdisc(Namval_t* np, const char* event, Namval_t* action, Namfun_t
 	return nv_setdisc(np, event, action, fp);
 }
 
-static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
+static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 {
 	Service_t* sp = (Service_t*)fp;
 	if (!val)

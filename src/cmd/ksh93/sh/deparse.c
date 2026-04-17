@@ -39,10 +39,10 @@
 #define POST	2
 
 /* flags that can be specified with p_tree() */
-#define NO_NEWLINE	(1 << 0)
-#define NEED_BRACE	(1 << 1)
-#define NO_BRACKET	(1 << 2)
-#define PROC_SUBST	(1 << 3)
+#define NO_NEWLINE	(1U << 0)
+#define NEED_BRACE	(1U << 1)
+#define NO_BRACKET	(1U << 2)
+#define PROC_SUBST	(1U << 3)
 
 static void p_comlist(const struct dolnod*,int);
 static void p_arg(const struct argnod*, int endchar, int opts);
@@ -51,7 +51,7 @@ static void p_keyword(const char*,int);
 static void p_redirect(const struct ionod*);
 static void p_switch(const struct regnod*);
 static void here_body(const struct ionod*);
-static void p_tree(const Shnode_t*,int);
+static void p_tree(const Shnode_t*,uint32_t);
 
 static int level;
 static int begin_line;
@@ -62,7 +62,7 @@ static const struct ionod *here_doc;
 static Sfio_t *outfile;
 static const char *forinit = "";
 
-void sh_deparse(Sfio_t *out, const Shnode_t *t,int tflags, int initlevel)
+void sh_deparse(Sfio_t *out, const Shnode_t *t,uint32_t tflags, int initlevel)
 {
 	int firstnodetype = t->tre.tretyp & COMMSK;
 	char needouterbrace = (tflags & NEED_BRACE) && firstnodetype != TLST && (!(tflags & NV_FPOSIX) || firstnodetype != TPAR);
@@ -78,12 +78,12 @@ void sh_deparse(Sfio_t *out, const Shnode_t *t,int tflags, int initlevel)
 /*
  * print script corresponding to shell tree <t>
  */
-static void p_tree(const Shnode_t *t,int tflags)
+static void p_tree(const Shnode_t *t,uint32_t tflags)
 {
 	char *cp=0;
-	int save = end_line;
-	int needbrace = (tflags&NEED_BRACE);
-	int procsub = (tflags&PROC_SUBST);
+	int save = end_line, e;
+	uint32_t needbrace = (tflags&NEED_BRACE);
+	uint32_t procsub = (tflags&PROC_SUBST);
 	tflags &= ~NEED_BRACE;
 	if(tflags&NO_NEWLINE)
 		end_line = ' ';
@@ -281,10 +281,10 @@ static void p_tree(const Shnode_t *t,int tflags)
 			if(t->for_.forlst)
 			{
 				sfputr(outfile,"in",' ');
-				tflags = end_line;
+				e = end_line;
 				end_line = '\n';
 				p_comarg(t->for_.forlst);
-				end_line = tflags;
+				end_line = e;
 			}
 			else
 				sfputc(outfile,'\n');
@@ -303,10 +303,10 @@ static void p_tree(const Shnode_t *t,int tflags)
 			{
 				begin_line = 1;
 				sfputr(outfile,"in",'\n');
-				tflags = end_line;
+				e = end_line;
 				end_line = '\n';
 				p_switch(t->sw.swlst);
-				end_line = tflags;
+				end_line = e;
 			}
 			p_keyword("esac",END);
 			break;
@@ -323,7 +323,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 				if(t->funct.functargs)
 				{
 					/* function reference list (for .sh.math.* functions) */
-					int e = end_line;
+					e = end_line;
 					sfputc(outfile,' ');
 					end_line = '\n';
 					p_comarg(t->funct.functargs);

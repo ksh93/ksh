@@ -58,7 +58,7 @@ static Namval_t FunNode =
 	"?",
 };
 
-static Namval_t *scope(Namval_t *np,struct lval *lvalue,int assign)
+static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 {
 	int	flag = lvalue->flag;
 	char	*sub=0, *cp=(char*)np;
@@ -234,7 +234,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 	    case ASSIGN:
 	    {
 		Namval_t *np;
-		unsigned short attr;
+		nvflag_t attr;
 		if (lvalue->sub && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
 		{
 			np = (Namval_t*)lvalue->sub; /* use saved subscript reference instead of last worked value */
@@ -307,7 +307,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		if(isaletter(c))
 		{
 			Namval_t *np=0;
-			int dot=0;
+			nvflag_t dot=0;
 			while(1)
 			{
 				while(xp=str, c=mbchar(str), isaname(c));
