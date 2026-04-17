@@ -157,7 +157,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		UNREACHABLE();
 	}
 	if(!((fdmode=sh.fdstatus[fd])&IOREAD) || !(fdmode&(IOSEEK|IONOSEEK)))
-		fdmode = sh_iocheckfd(fd);
+		fdmode = sh_iocheckfd(fd,NULL);
 	if(fd<0 || !(fdmode&IOREAD))
 	{
 		errormsg(SH_DICT,ERROR_system(1),msg);
@@ -243,7 +243,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 	char			inquote = 0;
 	struct checkpt		buff;
 	Edit_t			*ep = (struct edit*)sh.ed_context;
-	if(!(iop=sh.sftable[fd]) && !(iop=sh_iostream(fd)))
+	if(!(iop=sh.sftable[fd]) && !(iop=sh_iostream(fd,0)))
 		return 1;
 	sh_stats(STAT_READS);
 	if(names && (name = *names))

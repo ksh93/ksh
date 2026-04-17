@@ -2,6 +2,18 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-04-17:
+
+- Fixed a severe problem with invalid buffer handling in the shell's lexical
+  analysis and parsing of scripts that could cause spurious syntax errors or
+  crash the shell if the size of a script exceeded the buffer size of 64 KiB
+  and certain grammatical constructs happened to cross buffer boundaries. To
+  prevent this, the entire script is now buffered in memory before parsing
+  commences. If the script file size cannot be determined (when loading from
+  a pipe), the shell now allocates a fixed-size 2 MiB buffer and scripts are
+  buffered one line at a time with a maximum length of 2 MiB per script line.
+  The problem now fixed has been present since the early days of AT&T ksh93.
+
 2026-04-16:
 
 - Fixed breakage in autoload loop detection when first invoking an

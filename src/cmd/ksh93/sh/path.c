@@ -539,12 +539,13 @@ char *path_fullname(const char *name)
  */
 static void funload(int fno, const char *name)
 {
-	char		*pname,*oldname=sh.st.filename, buff[IOBSIZE+1];
+	char		*pname, *oldname = sh.st.filename;
 	Namval_t	*np_loopdetect;
 	Dt_t		*loopdetect_tree;
 	struct Ufunction *rp,*rpfirst;
 	int		savestates = sh_getstate(), savelineno = sh.inlineno;
 	char		oldload = sh.funload;
+	volatile Sfio_t	*iop = NULL;
 	volatile char	*errorname = NULL;
 	volatile int	jmpval;
 	struct checkpt	checkpoint;
@@ -597,8 +598,9 @@ static void funload(int fno, const char *name)
 	if(!jmpval)
 	{
 		Namval_t *np;
-		/* run the function script */
-		sh_eval(sfnew(NULL,buff,IOBSIZE,fno,SFIO_READ),SH_FUNEVAL);
+		/* run the function script, telling sh_iostream to buffer it in script mode */
+		if (iop = sh_iostream(fno,1))
+			sh_eval((Sfio_t*)iop,SH_FUNEVAL);
 		/* check if the expected function was loaded */
 #if SHOPT_NAMESPACE
 		if(sh.namespace)
@@ -618,10 +620,16 @@ static void funload(int fno, const char *name)
 	sh.st.filename = oldname;
 	sh_setstate(savestates);
 	nv_delete(np_loopdetect,loopdetect_tree,0);
-	/* continue the longjmp chain on error */
+	/* continue the longjmp chain if the shell thew an error */
 	sh_popcontext(&checkpoint);
 	if(jmpval)
 		siglongjmp(*sh.jmplist,jmpval);
+	/* check for autoload errors */
+	if(!iop)
+	{
+		error(ERROR_SYSTEM|2, "autoload: internal error: failed to open stream");
+		UNREACHABLE();
+	}
 	if(errorname)
 	{
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOEXEC),e_funload,name,errorname);
@@ -910,7 +918,7 @@ static int canexecute(char *path, int isfun)
 	path = path_relative(path);
 	if(isfun)
 	{
-		if((fd=open(path,O_RDONLY|O_cloexec,0))<0 || fstat(fd,&statb)<0)
+		if((fd=sh_open(path,O_RDONLY|O_cloexec,0))<0 || fstat(fd,&statb)<0)
 			goto err;
 	}
 	else if(stat(path,&statb) < 0)

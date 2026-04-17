@@ -130,7 +130,7 @@ void	sh_subtmpfile(void)
 			sh.fdstatus[1] = sh.fdstatus[fd];
 			sh.fdstatus[fd] = IOCLOSE;
 		}
-		sh_iostream(1);
+		sh_iostream(1,0);
 		sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
 		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
 		if(pp && pp->olist  && pp->olist->strm == sfstdout)
@@ -744,7 +744,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		if(sp->pipefd>=0)
 		{
 			/* sftmp() file has been returned into pipe */
-			iop = sh_iostream(sp->pipefd);
+			iop = sh_iostream(sp->pipefd,0);
 			sfclose(sfstdout);
 		}
 		else

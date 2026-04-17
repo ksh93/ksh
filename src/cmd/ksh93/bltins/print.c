@@ -348,7 +348,7 @@ skip2:
 		fdmode = 0;
 	}
 	else if(!(fdmode=sh.fdstatus[fd]))
-		fdmode = sh_iocheckfd(fd);
+		fdmode = sh_iocheckfd(fd,NULL);
 	if(!(fdmode&IOWRITE))
 	{
 		/* don't print error message for stdout for compatibility */

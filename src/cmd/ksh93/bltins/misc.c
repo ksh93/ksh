@@ -234,7 +234,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	Namval_t *np;
 	int jmpval;
 	struct sh_scoped savst, *prevscope = sh.st.self;
-	char *filename=0, *buffer=0, *tofree;
+	char *filename=0, *tofree;
 	int	fd;
 	struct dolnod   *saveargfor;
 	volatile struct dolnod   *argsave=0;
@@ -324,15 +324,12 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		else
 		{
 			/* run the dot script */
-			buffer = sh_malloc(IOBSIZE+1);
-			iop = sfnew(NULL,buffer,IOBSIZE,fd,SFIO_READ);
+			iop = sh_iostream(fd,1);
 			sh_offstate(SH_NOFORK);
 			sh_eval(iop,sh_isstate(SH_PROFILE)?SH_FUNEVAL:0);
 		}
 	}
 	sh_popcontext(&buff);
-	if(buffer)
-		free(buffer);
 	if(!np)
 		free(tofree);
 	sh.dot_depth--;

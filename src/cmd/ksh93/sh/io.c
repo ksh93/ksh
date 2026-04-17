@@ -335,6 +335,7 @@ static int  	eval_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
 static int  	slowexcept(Sfio_t*, int, void*, Sfdisc_t*);
 static int	pipeexcept(Sfio_t*, int, void*, Sfdisc_t*);
 static ssize_t	piperead(Sfio_t*, void*, size_t, Sfdisc_t*);
+static ssize_t	scriptpiperead(Sfio_t*, void*, size_t, Sfdisc_t*);
 static ssize_t	slowread(Sfio_t*, void*, size_t, Sfdisc_t*);
 static ssize_t	subread(Sfio_t*, void*, size_t, Sfdisc_t*);
 static ssize_t	tee_write(Sfio_t*,const void*,size_t,Sfdisc_t*);
@@ -469,8 +470,10 @@ void sh_ioinit(void)
 	sh.sftable[1] = sfstdout;
 	sh.sftable[2] = sfstderr;
 	sfnotify(sftrack);
-	sh_iostream(0);
-	sh_iostream(1);
+	/* init standard input (0) stream, potentially for reading a script */
+	sh_iostream(0,1);
+	/* init standard output (1) stream */
+	sh_iostream(1,0);
 	/* all write streams are in the same pool and share outbuff */
 	sh.outpool = sfopen(NULL,NULL,"sw");  /* pool identifier */
 	sh.outbuff = (char*)sh_malloc(IOBSIZE+4);
@@ -536,13 +539,17 @@ static int outexcept(Sfio_t *iop,int type,void *data,Sfdisc_t *handle)
  * For output streams, the buffer is set to sh.output and put into
  * the sh.outpool synchronization pool
  */
-Sfio_t *sh_iostream(int fd)
+Sfio_t *sh_iostream(int fd, int read_script)
 {
 	Sfio_t *iop;
-	uint8_t status = sh_iocheckfd(fd);
+	ssize_t filesize;
+	uint8_t status;
 	unsigned short flags = SFIO_WRITE;
 	char *bp;
 	Sfdisc_t *dp;
+	size_t iobsize = IOBSIZE;
+	char scriptpipe = 0;
+	status = sh_iocheckfd(fd, read_script ? &filesize : NULL);
 	if(status==IOCLOSE)
 	{
 		switch(fd)
@@ -558,7 +565,28 @@ Sfio_t *sh_iostream(int fd)
 	}
 	if(status&IOREAD)
 	{
-		bp = (char *)sh_malloc(IOBSIZE+1);
+		if (read_script)
+		{
+			if (!(status & IONOSEEK))
+			{
+				/* seekable script input: buffer the entire script */
+				if (filesize < 0)
+				{
+					/* fstat() failed in sh_iocheckfd */
+					error(ERROR_SYSTEM|ERROR_PANIC, "sh_iostream: fstat(%d) failed", fd);
+					UNREACHABLE();
+				}
+				iobsize = (size_t)filesize;
+			}
+			else if (!(status & IOTTY))
+			{
+				/* for non-seekable script input, stop individual lines crossing buffer
+				 * boundaries: read one line at a time, allowing for very long lines */
+				scriptpipe = 1;
+				iobsize = 2097152;
+			}
+		}
+		bp = sh_malloc(iobsize + 1);
 		flags |= SFIO_READ;
 		if(!(status&IOWRITE))
 			flags &= ~SFIO_WRITE;
@@ -571,9 +599,9 @@ Sfio_t *sh_iostream(int fd)
 	{
 		if(status&IOTTY)
 			sfset(iop,SFIO_LINE|SFIO_WCWIDTH,1);
-		sfsetbuf(iop, bp, IOBSIZE);
+		sfsetbuf(iop, bp, iobsize);
 	}
-	else if(!(iop=sfnew((fd<=2?iop:0),bp,IOBSIZE,fd,flags)))
+	else if(!(iop=sfnew((fd<=2?iop:0),bp,iobsize,fd,flags)))
 		return NULL;
 	dp = sh_newof(0,Sfdisc_t,1,0);
 	if(status&IOREAD)
@@ -586,7 +614,7 @@ Sfio_t *sh_iostream(int fd)
 			dp->readf = slowread;
 		else if(status&IONOSEEK)
 		{
-			dp->readf = piperead;
+			dp->readf = scriptpipe ? scriptpiperead : piperead;
 			sfset(iop, SFIO_IOINTR,1);
 		}
 		else
@@ -665,7 +693,7 @@ int sh_iorenumber(int f1,int f2)
 		sh_close(f2);
 		if(f2<=2 && sp)
 		{
-			Sfio_t *spnew = sh_iostream(f1);
+			Sfio_t *spnew = sh_iostream(f1,0);
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
 			sfsetfd(spnew,f2);
 			sfswap(spnew,sp);
@@ -680,7 +708,7 @@ int sh_iorenumber(int f1,int f2)
 				UNREACHABLE();
 			}
 			else if(f2 <= 2)
-				sh_iostream(f2);
+				sh_iostream(f2,0);
 		}
 		if(sp)
 			sh.sftable[f1] = 0;
@@ -837,7 +865,7 @@ int sh_open(const char *path, int flags, ...)
 			fd = nfd;
 			goto ok;
 		}
-		if((fdmode=sh_iocheckfd(fd))==IOCLOSE)
+		if((fdmode=sh_iocheckfd(fd,NULL))==IOCLOSE)
 			return -1;
 		flags &= O_ACCMODE;
 		if(!(fdmode&IOWRITE) && ((flags==O_WRONLY) || (flags==O_RDWR)))
@@ -1323,7 +1351,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 					goto fail;
 				if(fd>= sh.lim.open_max)
 					sh_iovalidfd(fd);
-				sh_iocheckfd(dupfd);
+				sh_iocheckfd(dupfd,NULL);
 				sh.fdstatus[fd] = (sh.fdstatus[dupfd]&~IOCLEX);
 				if(toclose<0 && sh.fdstatus[fd]&IOREAD)
 					sh.fdstatus[fd] |= IODUP;
@@ -1445,7 +1473,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				uint8_t fdstatus = sh.fdstatus[fn];
 				int r = 0;
 				if(!(fdstatus&(IOSEEK|IONOSEEK)))
-					fdstatus = sh_iocheckfd(fn);
+					fdstatus = sh_iocheckfd(fn,NULL);
 				sfsprintf(io_op,sizeof(io_op),"%d\0",fn);
 				if(fdstatus==IOCLOSE)
 				{
@@ -1488,7 +1516,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 						goto fail;
 					}
 					if(!sp)
-						sp = sh_iostream(fn);
+						sp = sh_iostream(fn,0);
 					r=io_patseek(rp,sp,iof);
 					if(sp && flag==3)
 					{
@@ -1564,7 +1592,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 					nv_onattr(np,NV_INT32);
 					v = fn;
 					nv_putval(np,(char*)&v, NV_INT32);
-					sh_iocheckfd(fd);
+					sh_iocheckfd(fd,NULL);
 				}
 				else
 				{
@@ -1865,7 +1893,7 @@ int sh_ioaccess(int fd,int mode)
 	uint8_t flags;
 	if(mode==X_OK)
 		return -1;
-	if((flags=sh_iocheckfd(fd))!=IOCLOSE)
+	if((flags=sh_iocheckfd(fd,NULL))!=IOCLOSE)
 	{
 		if(mode==F_OK)
 			return 0;
@@ -2080,18 +2108,59 @@ static ssize_t slowread(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 }
 
 /*
- * check and return the attributes for a file descriptor
+ * This is the read discipline that is applied to scripts that are read line by
+ * line from a non-seekable, non-tty file, such as a pipe. In this mode, the
+ * buffer will only contain one line at a time. However, individual lines may
+ * be read in chunks (e.g. on macOS, 8KiB chunks if reading from a socketpair).
+ *
+ * Returns the length of the line read, including the terminating '\n' (if any).
  */
-uint8_t sh_iocheckfd(int fd)
+static ssize_t scriptpiperead(Sfio_t *iop, void *buff, size_t buffsize, Sfdisc_t *handle)
 {
-	int flags;
-	uint8_t n;
+	ssize_t	ibuffsize = (ssize_t)buffsize, chunksize;
+	char	*ibuff = buff, at_eol;
+	NOT_USED(handle);
+	/* Read up to one 'record' (line) without timeout, without
+	 * peeking, allowing input in chunks until the buffer is full.
+	 * Note: sfpkrd returns 0 for end of file, < 0 for error. */
+	do {
+		chunksize = sfpkrd(sffileno(iop), ibuff, (size_t)ibuffsize, '\n', -1L, -1);
+		if (chunksize < 0)
+			return -1;
+		at_eol = chunksize==0 || ibuff[chunksize - 1]=='\n';
+		ibuff += chunksize;
+		ibuffsize -= chunksize;
+	} while (!at_eol && ibuffsize > 0);
+	/* Don't allow a line to cross buffer boundaries. */
+	if (!at_eol)
+	{
+		errormsg(SH_DICT, ERROR_exit(0), "input line %d too long", sh.inlineno);
+		errno = ERANGE;
+		return -1;
+	}
+	return (ssize_t)(ibuff - (char*)buff);
+}
+
+/*
+ * check and return the attributes for a file descriptor
+ *
+ * for seekable files, optionally store the file size obtained with fstat in *filesize_p
+ */
+uint8_t sh_iocheckfd(int fd, ssize_t *filesize_p)
+{
+	struct stat	statb;
+	uint8_t		n;
+	int		fstatresult = -2;
 	if((n=sh.fdstatus[fd])&IOCLOSE)
-		return n;
+		goto bail;
 	if(!(n&(IOREAD|IOWRITE)))
 	{
+		int	flags;
 		if((flags=fcntl(fd,F_GETFL,0)) < 0)
-			return sh.fdstatus[fd]=IOCLOSE;
+		{
+			n = sh.fdstatus[fd] = IOCLOSE;
+			goto bail;
+		}
 		if((flags&O_ACCMODE)!=O_WRONLY)
 			n |= IOREAD;
 		if((flags&O_ACCMODE)!=O_RDONLY)
@@ -2099,14 +2168,15 @@ uint8_t sh_iocheckfd(int fd)
 	}
 	if(!(n&(IOSEEK|IONOSEEK)))
 	{
-		struct stat statb;
 		if(tty_check(fd))
 			n |= IOTTY;
+		if((fstatresult = fstat(fd,&statb)) < 0)
+			goto bail;
 		if(lseek(fd,0,SEEK_CUR)<0)
 		{
 			n |= IONOSEEK;
 #ifdef S_ISSOCK
-			if((fstat(fd,&statb)>=0) && S_ISSOCK(statb.st_mode))
+			if(S_ISSOCK(statb.st_mode))
 			{
 				n |= IOREAD|IOWRITE;
 #   if _socketpair_shutdown_mode
@@ -2118,12 +2188,11 @@ uint8_t sh_iocheckfd(int fd)
 			}
 #endif /* S_ISSOCK */
 		}
-		else if((fstat(fd,&statb)>=0) && (
-			S_ISFIFO(statb.st_mode)
+		else if(S_ISFIFO(statb.st_mode)
 #ifdef S_ISSOCK
 			|| S_ISSOCK(statb.st_mode)
 #endif /* S_ISSOCK */
-		))
+		)
 			n |= IONOSEEK;
 		else
 			n |= IOSEEK;
@@ -2132,8 +2201,12 @@ uint8_t sh_iocheckfd(int fd)
 		n &= ~IOWRITE;
 	else if(fd==1)
 		n &= ~IOREAD;
-	sh.fdstatus[fd] = n;
-	return n;
+	if (filesize_p && fstatresult < -1)
+		fstatresult = fstat(fd,&statb);
+bail:
+	if (filesize_p)
+		*filesize_p = fstatresult >= 0 ? (ssize_t)statb.st_size : -1;
+	return sh.fdstatus[fd] = n;
 }
 
 /*
@@ -2268,7 +2341,7 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 			if(mode&SFIO_READ)
 				fdstatus |= IOREAD;
 			sh.fdstatus[fd] = fdstatus;
-			sh_iostream(fd);
+			sh_iostream(fd,0);
 		}
 		if((pp=(struct checkpt*)sh.jmplist) && pp->mode==SH_JMPCMD)
 		{
@@ -2630,13 +2703,13 @@ Sfio_t *sh_iogetiop(int fd, int mode)
 		return iop;
 	}
 	if(!(n=sh.fdstatus[fd]))
-		n = sh_iocheckfd(fd);
+		n = sh_iocheckfd(fd,NULL);
 	if(mode==SFIO_WRITE && !(n&IOWRITE))
 		return iop;
 	if(mode==SFIO_READ && !(n&IOREAD))
 		return iop;
 	if(!(iop = sh.sftable[fd]))
-		iop=sh_iostream(fd);
+		iop=sh_iostream(fd,0);
 	return iop;
 }
 
@@ -2654,7 +2727,7 @@ Sfio_t	*sh_fd2sfio(int fd)
 {
 	uint8_t status;
 	Sfio_t *sp = sh.sftable[fd];
-	if(!sp  && (status = sh_iocheckfd(fd))!=IOCLOSE)
+	if(!sp  && (status = sh_iocheckfd(fd,NULL))!=IOCLOSE)
 	{
 		unsigned short flags=0;
 		if(status&IOREAD)
@@ -2667,6 +2740,9 @@ Sfio_t	*sh_fd2sfio(int fd)
 	return sp;
 }
 
+/*
+ * Open a script
+ */
 Sfio_t *sh_pathopen(const char *cp)
 {
 	int n;
@@ -2677,7 +2753,8 @@ Sfio_t *sh_pathopen(const char *cp)
 		errormsg(SH_DICT,ERROR_system(1),e_open,cp);
 		UNREACHABLE();
 	}
-	return sh_iostream(n);
+	/* buffer the stream in script mode */
+	return sh_iostream(n,1);
 }
 
 int sh_isdevfd(const char *fd)

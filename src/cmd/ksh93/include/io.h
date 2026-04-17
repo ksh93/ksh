@@ -74,14 +74,14 @@
 #define sh_editor_active()	0
 #endif
 
-extern uint8_t	sh_iocheckfd(int);
+extern uint8_t	sh_iocheckfd(int,ssize_t*);
 extern void 	sh_ioinit(void);
 extern int 	sh_iomovefd(int,int);
 extern int	sh_iorenumber(int,int);
 extern void 	sh_pclose(int[]);
 extern int	sh_rpipe(int[],int);
 extern void 	sh_iorestore(int,int);
-extern Sfio_t 	*sh_iostream(int);
+extern Sfio_t 	*sh_iostream(int,int);
 extern int	sh_redirect(struct ionod*,int);
 extern void 	sh_iosave(int,int,char*);
 extern int 	sh_iovalidfd(int);
