@@ -105,7 +105,7 @@ extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
-extern void		sh_deparse(Sfio_t*,const Shnode_t*,uint32_t,int);
+extern void		sh_deparse(Sfio_t*,const Shnode_t*,uint64_t,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
 extern char 		**sh_envgen(void);
 extern Sfdouble_t	sh_arith(const char*);

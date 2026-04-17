@@ -51,7 +51,7 @@ static void p_keyword(const char*,int);
 static void p_redirect(const struct ionod*);
 static void p_switch(const struct regnod*);
 static void here_body(const struct ionod*);
-static void p_tree(const Shnode_t*,uint32_t);
+static void p_tree(const Shnode_t*,uint64_t);
 
 static int level;
 static int begin_line;
@@ -62,7 +62,7 @@ static const struct ionod *here_doc;
 static Sfio_t *outfile;
 static const char *forinit = "";
 
-void sh_deparse(Sfio_t *out, const Shnode_t *t,uint32_t tflags, int initlevel)
+void sh_deparse(Sfio_t *out, const Shnode_t *t,uint64_t tflags, int initlevel)
 {
 	int firstnodetype = t->tre.tretyp & COMMSK;
 	char needouterbrace = (tflags & NEED_BRACE) && firstnodetype != TLST && (!(tflags & NV_FPOSIX) || firstnodetype != TPAR);
@@ -78,12 +78,12 @@ void sh_deparse(Sfio_t *out, const Shnode_t *t,uint32_t tflags, int initlevel)
 /*
  * print script corresponding to shell tree <t>
  */
-static void p_tree(const Shnode_t *t,uint32_t tflags)
+static void p_tree(const Shnode_t *t,uint64_t tflags)
 {
 	char *cp=0;
 	int save = end_line, e;
-	uint32_t needbrace = (tflags&NEED_BRACE);
-	uint32_t procsub = (tflags&PROC_SUBST);
+	uint64_t needbrace = (tflags&NEED_BRACE);
+	uint64_t procsub = (tflags&PROC_SUBST);
 	tflags &= ~NEED_BRACE;
 	if(tflags&NO_NEWLINE)
 		end_line = ' ';
