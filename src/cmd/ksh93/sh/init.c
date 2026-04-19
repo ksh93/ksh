@@ -699,7 +699,7 @@ void sh_reseed_rand(struct rand *rp)
 	unsigned int		time;
 	static unsigned int	seq;
 	timeofday(&tp);
-	time = (unsigned int)remainder(dtime(&tp) * 10000.0, (double)UINT_MAX);
+	time = (unsigned int)fmod(dtime(&tp) * 10000.0, (double)UINT_MAX);
 	rp->rand_seed = (unsigned int)sh.current_pid ^ time ^ ++seq;
 	rp->rand_last = -1;
 }
