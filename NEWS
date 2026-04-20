@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-04-20:
+
+- [v1.0] Fixed the -n (noexec) shell linter option so that
+	ksh --noexec nonexistent_script
+  i.e., running the ksh linter a script with a typo in the file name, will
+  now produce the expected error message and no longer quietly "succeed".
+
 2026-04-17:
 
 - Fixed a severe problem with invalid buffer handling in the shell's lexical

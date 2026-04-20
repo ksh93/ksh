@@ -716,4 +716,9 @@ unset script exp got
 fi
 
 # ======
+# ksh -n should error out if script doesn't exist
+# https://github.com/ksh93/ksh/issues/969
+PATH=/dev/null "$SHELL" -n nonexistent_script 2>/dev/null && err_exit "'ksh -n nonexistent_script' fails to error out"
+
+# ======
 exit $((Errors<125?Errors:125))
