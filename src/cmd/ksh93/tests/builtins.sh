@@ -419,7 +419,7 @@ wait $pid1
 (( $? == 1 )) || err_exit "wait not saving exit value"
 wait $pid2
 (( $? == 127 )) || err_exit "subshell job known to parent"
-env='LD_LIBRARY_PATH=$LD_LIBRARY_PATH LIBPATH=$LIBPATH SHLIB_PATH=$SHLIB_PATH DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH'
+env='LD_LIBRARY_PATH=$LD_LIBRARY_PATH LIBPATH=$LIBPATH SHLIB_PATH=$SHLIB_PATH DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH LIBRARY_PATH=$LIBRARY_PATH'
 if builtin getconf 2> /dev/null; then
 	v=$(getconf LIBPATH)
 	for v in ${v//,/ }
@@ -599,7 +599,7 @@ if ((!SHOPT_ECHOPRINT)) && builtin getconf 2> /dev/null; then
 	[[ $($SHELL -c 'echo -3') == -3 ]] || err_exit "echo -3 not working in ucb universe"
 fi
 $SHELL -c 'sleep $(printf "%a" .95)' 2> /dev/null || err_exit "sleep doesn't accept %a format constants"
-[[ $(ulimit) == "$(ulimit -fS)" ]] || err_exit 'ulimit is not the same as ulimit -fS'
+[[ $(ulimit 2>/dev/null) == "$(ulimit -fS 2>/dev/null)" ]] || err_exit 'ulimit is not the same as ulimit -fS'
 tmpfile=$tmp/file.2
 print $'\nprint -r -- "${.sh.file} ${LINENO} ${.sh.lineno}"' > $tmpfile
 [[ $( . "$tmpfile") == "$tmpfile 2 1" ]] || err_exit 'dot command not working'
@@ -621,8 +621,10 @@ done
 n=$(printf "%b" 'a\0b\0c' | wc -c)
 (( n == 5 )) || err_exit '\0 not working with %b format with printf'
 
-t=$(ulimit -t)
-[[ $($SHELL -c 'ulimit -v 15000 2>/dev/null; ulimit -t') == "$t" ]] || err_exit 'ulimit -v changes ulimit -t'
+if	t=$(ulimit -t 2>/dev/null)
+then	[[ $($SHELL -c 'ulimit -v 15000 2>/dev/null; ulimit -t') == "$t" ]] || err_exit 'ulimit -v changes ulimit -t'
+else	warning "can't query ulimit; skipping test for ulimit -v changing ulimit -t"
+fi
 
 $SHELL 2> /dev/null -c 'cd ""' && err_exit 'cd "" not producing an error'
 [[ $($SHELL 2> /dev/null -c 'cd "";print hi') != hi ]] && err_exit 'cd "" should not terminate script'
@@ -1427,32 +1429,33 @@ got=$(	readonly v=foo
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
-if((!SHOPT_SCRIPTONLY));then
-
 # https://github.com/att/ast/issues/872
-hist_leak=$tmp/hist_leak.sh
-print 'ulimit -n 15' > "$hist_leak"
-for ((i=0; i!=11; i++)) do
-	print 'true foo\nhist -s foo=bar 2> /dev/null' >> "$hist_leak"
-done
-print 'print OK' >> "$hist_leak"
-exp="OK"
-got="$($SHELL -i "$hist_leak" 2>&1)"
-[[ $exp == "$got" ]] || err_exit "file descriptor leak in hist builtin" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+if	((!SHOPT_SCRIPTONLY))
+then	if	(ulimit -n 15) 2>/dev/null
+	then	hist_leak=$tmp/hist_leak.sh
+		print 'ulimit -n 15' > "$hist_leak"
+		for ((i=0; i!=11; i++)) do
+			print 'true foo\nhist -s foo=bar 2> /dev/null' >> "$hist_leak"
+		done
+		print 'print OK' >> "$hist_leak"
+		exp="OK"
+		got="$($SHELL -i "$hist_leak" 2>&1)"
+		[[ $exp == "$got" ]] || err_exit "file descriptor leak in hist builtin" \
+			"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# File descriptor leak after hist builtin substitution error
-hist_error_leak=$tmp/hist_error_leak.sh
-print 'ulimit -n 15' > "$hist_error_leak"
-for ((i=0; i!=11; i++)) do
-	print 'hist -s no=yes 2> /dev/null' >> "$hist_error_leak"
-done
-print 'print OK' >> "$hist_error_leak"
-exp="OK"
-got="$($SHELL -i "$hist_error_leak" 2>&1)"
-[[ $exp == "$got" ]] || err_exit "file descriptor leak after substitution error in hist builtin" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-
+		# File descriptor leak after hist builtin substitution error
+		hist_error_leak=$tmp/hist_error_leak.sh
+		print 'ulimit -n 15' > "$hist_error_leak"
+		for ((i=0; i!=11; i++)) do
+			print 'hist -s no=yes 2> /dev/null' >> "$hist_error_leak"
+		done
+		print 'print OK' >> "$hist_error_leak"
+		exp="OK"
+		got="$($SHELL -i "$hist_error_leak" 2>&1)"
+		[[ $exp == "$got" ]] || err_exit "file descriptor leak after substitution error in hist builtin" \
+			"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	else	warning "can't set ulimit; skipping tests for file descriptor leaks in hist builtin"
+	fi
 fi # !SHOPT_SCRIPTONLY
 
 # ======

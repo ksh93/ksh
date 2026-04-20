@@ -54,6 +54,7 @@ if ((!execve_ignores_argv0)) && builtin getconf 2>/dev/null; then
 	LIBPATH=\$LIBPATH \
 	SHLIB_PATH=\$SHLIB_PATH \
 	DYLD_LIBRARY_PATH=\$DYLD_LIBRARY_PATH \
+	LIBRARY_PATH=\$LIBRARY_PATH \
 	exec -c -a -ksh "\$ABSHELL" -c "exit 1" 1>/dev/null 2>&1
 !
 	status=$?

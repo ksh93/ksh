@@ -192,7 +192,7 @@
 
 	# end standalone test generation
 
-	PATH=:$PATH
+	PATH=.:$PATH
 	tst "$SHELL" > SIGINT_tst.out
 
 	typeset -A exp
@@ -506,10 +506,10 @@ echo begin
 "$1" -c 'kill -9 "$$"'
 # this extra comment disables an exec optimization
 EOF
-expect=$'^begin\n/.*/sigtest.sh: line 2: [1-9][0-9]*: Killed\n[1-9][0-9]{1,2}$'
+expect=$'^begin\n/.*/sigtest.sh: line 2: [1-9][0-9]*: (Killed|Kill Thread)\n[1-9][0-9]{1,2}$'
 actual=$(export LANG=C; "$SHELL" -c '"$1" "$2" "$1"; echo "$?"' x "$SHELL" "$tmp/sigtest.sh" 2>&1)
 if	! [[ $actual =~ $expect ]]
-then	[[ $actual == *Killed*Killed* ]] && msg='ksh killed itself' || msg='unexpected output'
+then	[[ $actual == *Kill*Kill* ]] && msg='ksh killed itself' || msg='unexpected output'
 	err_exit "$msg after child process signal (expected match to $(printf %q "$expect"); got $(printf %q "$actual"))"
 fi
 let "${actual##*$'\n'} > 128" || err_exit "child process signal did not cause exit status > 128" \

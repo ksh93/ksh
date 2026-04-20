@@ -43,7 +43,7 @@ then	getmem()
 # Otherwise, make do with the nonstandard 'rss' (real resident size) keyword
 # of the 'ps' command (the standard 'vsz', virtual size, is not usable).
 elif	n=$(ps -o rss= -p "$$" 2>/dev/null) &&
-	let "($n) == ($n) && n > 0"
+	let "($n) == ($n) && n > 0" 2>/dev/null
 then	getmem()
 	{
 		ps -o rss= -p "$$"

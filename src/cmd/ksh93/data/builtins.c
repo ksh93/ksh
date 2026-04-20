@@ -560,7 +560,7 @@ const char sh_optcommand[] =
 ;
 
 const char sh_optdot[]	 =
-"[-1c?\n@(#)$Id: \b.\b (ksh 93u+m) 2023-02-22 $\n]"
+"[-1c?\n@(#)$Id: source (ksh 93u+m) 2023-02-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - execute commands in the current environment]"
 "[+DESCRIPTION?\b.\b and \bsource\b are built-in commands that execute "
