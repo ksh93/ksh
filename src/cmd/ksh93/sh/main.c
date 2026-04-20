@@ -214,10 +214,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 			sh_onoption(SH_RESTRICTED);
 		/* open input file if specified */
 		if(sh.comdiv)
-		{
-		shell_c:
 			iop = sfnew(NULL,sh.comdiv,strlen(sh.comdiv),0,SFIO_STRING|SFIO_READ);
-		}
 		else
 		{
 			name = error_info.id;
@@ -243,7 +240,6 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				else
 #endif /* SHOPT_DEVFD */
 				{
-					char *sp;
 					int isdir = 0;
 					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
 					{
@@ -253,34 +249,19 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 					}
 					else
 						sh.st.filename = path_fullname(name);
-					sp = 0;
-					if(fdin < 0 && !strchr(name,'/'))
+					if(fdin < 0 && !strchr(name,'/') && path_absolute(name,NULL,0))
 					{
-						if(path_absolute(name,NULL,0))
-							sp = stkptr(sh.stk,PATH_OFFSET);
-						if(sp)
-						{
-							if((fdin=sh_open(sp,O_RDONLY|O_cloexec,0))>=0)
-								sh.st.filename = path_fullname(sp);
-						}
+						char *sp = stkptr(sh.stk,PATH_OFFSET);
+						if((fdin=sh_open(sp,O_RDONLY|O_cloexec,0))>=0)
+							sh.st.filename = path_fullname(sp);
 					}
 					if(fdin<0)
 					{
 						if(isdir)
 							errno = EISDIR;
 						 error_info.id = av[0];
-						if(sp || errno!=ENOENT)
-						{
-							errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
-							UNREACHABLE();
-						}
-						/* try sh -c 'name "$@"' */
-						sh_onoption(SH_CFLAG);
-						sh.comdiv = (char*)sh_malloc(strlen(name)+7);
-						name = strcopy(sh.comdiv,name);
-						if(sh.st.dolc)
-							strcopy(name," \"$@\"");
-						goto shell_c;
+						errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
+						UNREACHABLE();
 					}
 					/*
 					 * Note: fdin could wind up being zero or some such if the

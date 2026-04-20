@@ -30,6 +30,11 @@ For more details, see the NEWS file and for complete details, see the git log.
 	the discipline function was set for. This means '_' now always
 	refers to the type variable when used in a type declaration.
 
+6.	We've removed an undocumented and inconsistent hack that made
+		ksh somecommand arg1 arg2 arg3
+	equivalent to
+		ksh -c 'somecommand "$@"' dummy arg1 arg2 arg3
+	if, and only if, the command "somecommand" was not found on $PATH.
 
 ____________________________________________________________________________
 

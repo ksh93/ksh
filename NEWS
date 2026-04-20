@@ -2,6 +2,26 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-04-20:
+
+- [v1.1] Removed an undocumented and inconsistent hack that made
+	ksh somecommand arg1 arg2 arg3
+  equivalent to
+	ksh -c 'somecommand "$@"' dummy arg1 arg2 arg3
+  if, and only if, the command "somecommand" was not found on $PATH. For
+  instance, the command
+	ksh print hello there
+  would output "hello there" if the command 'print' didn't exist as an
+  external command, whereas
+	ksh echo hello there
+  would usually fail as ksh tried to execute /bin/echo as a shell script,
+  because 'echo' usually exists on PATH as an external command. This
+  inconsistency, among others, is the reason why the correct documented -c
+  usage is now required. One other important effect of this fix is that
+	ksh --noexec nonexistent_script
+  i.e., running the ksh linter a script with a typo in the file name, will
+  now produce the expected error message and no longer quietly "succeed".
+
 2026-04-17:
 
 - Fixed a severe problem with invalid buffer handling in the shell's lexical
