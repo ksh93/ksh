@@ -419,7 +419,7 @@ extern size_t		utf32toutf8(char*, uint32_t);
  * behavior for the operating systems ksh supports.
  */
 #if _lib_posix_close
-/* This function is quite new, but it's ultimately the best option if available */
+/* This function, standardized as of POSIX Issue 8 (2024), is the best option if available */
 #define ast_close(fd)	posix_close(fd, 0)
 #elif defined(__linux__) || defined(__FreeBSD__) || _WINIX
 /* Never try again after EINTR */

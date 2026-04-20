@@ -565,9 +565,9 @@ then	LC_ALL=en_GB.UTF-8 "$SHELL" -c "LINENO=$((LINENO+1))"'
 fi
 
 # ======
-# Some systems' iconv(3) try to give some vague ASCII approximation of an unsupported Unicode code point
-# for non-Unicode locales, e.g., on macOS: '.' for '…' or 'i' for 'ĳ'! Also, Solaris iconv fails to fail
-# altogether, and returns '?' for unsupported code points. Make sure we block all that harmful nonsense.
+# macOS's iconv(3) may return multiple-character string approximations for Unicode code points in UTF-8
+# locales, but those cannot be used in \u[...] expansions. Also, Solaris iconv fails to fail altogether,
+# and returns '?' for unsupported code points. Make sure chrexp() performs correctly in these scenarios.
 case " ${locales[*]} " in
 *" en_GB.ISO8859-1 "*)
 	LANG=en_GB.ISO8859-1
