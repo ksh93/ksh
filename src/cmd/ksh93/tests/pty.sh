@@ -1377,5 +1377,22 @@ I print
 r ^1\r\n$
 !
 
+tst $LINENO <<"!"
+L loss of here-doc in loaded function after interrupting a here-doc
+# https://github.com/ksh93/ksh/issues/978
+
+d 15
+P :test-1:
+w function fn { cat <<EOF\nthis is a test\nEOF\necho 'HERE-DOC LOST'\n}
+P :test-2:
+w sleep 3
+s 50
+c \cC
+P :test-3:
+w fn
+r fn
+r ^this is a test\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
