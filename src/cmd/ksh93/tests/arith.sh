@@ -318,7 +318,7 @@ then	err_exit 'display of unsigned integers in non-decimal bases wrong'
 fi
 $SHELL -c 'i=0;(( ofiles[i] != -1 && (ofiles[i] < mins || mins == -1) ));exit 0' 2> /dev/null || err_exit 'lexical error with arithmetic expression'
 $SHELL -c '(( +1 == 1))' 2> /dev/null || err_exit 'unary + not working'
-typeset -E20 val=123.01234567890
+typeset -lE20 val=123.01234567890
 [[ $val == 123.0123456789 ]] || err_exit "rounding error val=$val"
 if	[[ $(print x$((10))=foo) != x10=foo ]]
 then	err_exit 'parsing error with x$((10))=foo'
