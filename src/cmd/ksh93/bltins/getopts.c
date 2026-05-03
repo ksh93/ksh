@@ -55,6 +55,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 
 int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 {
+	const int longjmpmode = sh_isstate(SH_INTERACTIVE) ? SH_JMPFUN : SH_JMPERREXIT;
 	char *options=error_info.context->id;
 	Namval_t *np;
 	int flag, mode;
@@ -117,7 +118,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		if(r==0)
 			return 2;
 		pp = (struct checkpt*)sh.jmplist;
-		pp->mode = SH_JMPERREXIT;
+		pp->mode = longjmpmode;
 		sh_exit(2);
 	}
 	opt_info.disc = &disc;
@@ -126,8 +127,16 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	    case '?':
 		if(mode==0)
 		{
-			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			/* a ksh script's self-doc: write to standard output and force script to exit with status 2 */
+			error(ERROR_usage(0), "%s", opt_info.arg);
+			if (!sh_isstate(SH_INTERACTIVE) || sh_isstate(SH_PROFILE) || sh.fn_depth || sh.dot_depth)
+			{
+				r = -2;
+				siglongjmp(*sh.jmplist,longjmpmode);  /* back to if(jmpval) above */
+			}
+			/* try to act sensibly if getopts encounters --help, etc. directly on interactive command line */
+			mode = 1;
+			r = 2;
 		}
 		opt_info.option[1] = '?';
 		/* FALLTHROUGH */

@@ -702,7 +702,7 @@ const char sh_optexport[] =
 ;
 
 const char sh_optgetopts[] =
-":[-1c?\n@(#)$Id: getopts (AT&T Research) 2005-01-01 $\n]"
+":[-1c?\n@(#)$Id: getopts (ksh 93u+m) 2026-05-02 $\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - parse utility options]"

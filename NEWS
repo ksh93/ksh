@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-05-02:
+
+- When a function that uses the 'getopts' built-in command is invoked from
+  the interactive command line with one of the AST self-documentation options
+  such as --help or --man, 'getopts' will no longer stop the execution of any
+  commands that follow the function call on the same command line.
+
 2026-04-22:
 
 - Fixed a bug that causes the loss of the contents of all here-documents
