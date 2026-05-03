@@ -9,6 +9,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   such as --help or --man, 'getopts' will no longer stop the execution of any
   commands that follow the function call on the same command line.
 
+- The shell's POSIX mode has been amended to disable long options (including
+  --help, etc., which would abort the script), which are incompatible with
+  the POSIX spec and may prevent POSIX scripts from printing their own usage
+  message. This is only disabled if the --posix option is on *and* getopts is
+  given an options string that does not use ksh's extended getopts interface.
+
 2026-04-22:
 
 - Fixed a bug that causes the loss of the contents of all here-documents

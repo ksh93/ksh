@@ -116,6 +116,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	{
 		sh_popcontext(&buff);
 		sh.st.opterror = 1;
+		opt_info.posix = 0;
 		if(r==0)
 			return 2;
 		pp = (struct checkpt*)sh.jmplist;
@@ -123,6 +124,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		sh_exit(r==-2 ? 0 : 2);
 	}
 	opt_info.disc = &disc;
+	opt_info.posix = sh_isoption(SH_POSIX) && !extended;
 	switch(opt_info.index>=0 && opt_info.index<=argc?(opt_info.num= LONG_MIN,flag=optget(argv,options)):0)
 	{
 	    case '?':
@@ -210,5 +212,6 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		nv_putval(np, opt_info.arg, NV_RDONLY);
 	sh_popcontext(&buff);
 	opt_info.disc = 0;
+	opt_info.posix = 0;
 	return r;
 }

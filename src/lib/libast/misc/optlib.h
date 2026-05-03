@@ -103,7 +103,6 @@ typedef struct Optstate_s
 } Optstate_t;
 
 #define _OPT_PRIVATE_ \
-	char            pad[2*sizeof(void*)]; \
 	Optstate_t*	state;
 
 #include <error.h>

@@ -322,12 +322,7 @@ static Msg_t		C_LC_MESSAGES_libast[] =
 	{ C("version") },
 };
 
-/*
- * 2007-03-19 move opt_info from _opt_info_ to (*_opt_data_)
- *	      to allow future Opt_t growth
- */
-
-static Opt_t	_opt_info_ = { 0,0,0,0,0,0,0,{0},{0},0,0,0,{0},{0},&state };
+static Opt_t	_opt_info_ = { 0,NULL,NULL,0,NULL,0,0,{0},{0},NULL,0,0,0,&state };
 Opt_t*		_opt_infop_ = &_opt_info_;
 
 Optstate_t*
@@ -4403,7 +4398,21 @@ optget(char** argv, const char* oopts)
 			}
 			if (!(s = argv[opt_info.index]))
 				return 0;
-			if (!prefix)
+			if (opt_info.posix)
+			{
+				/*
+				 * POSIX mode: only short options with single '-' prefix are recognized
+				 */
+
+				if (!prefix || *s != '-')
+				{
+					opt_info.index++;
+					return 0;
+				}
+				prefix = 1;
+				n = 1;
+			}
+			else if (!prefix)
 			{
 				/*
 				 * long with no prefix (dd style)
@@ -4551,7 +4560,7 @@ optget(char** argv, const char* oopts)
 	 *	v	long option value (via =) if w != 0
 	 */
 
-	if (c == '?')
+	if (c == '?' && !opt_info.posix)
 	{
 		/*
 		 * ? always triggers internal help

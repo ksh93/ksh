@@ -6960,7 +6960,7 @@ is used for each of the parameters that requires
 \f3getopts\fP \*(OK \f3\-a\fP \f2name\^\fP \*(CK \f2optstring vname\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
 Checks
 .I arg
-for legal options.
+for valid options.
 If
 .I arg
 is omitted,
@@ -8257,6 +8257,11 @@ signal to stopped jobs or processes upon sending a
 or
 .B TERM
 signal;
+.IP \[bu]
+causes the \fBgetopts\fR built-in command to disable the built-in handling
+of \fB-?\fR and long-form options (including the self-documentation options
+such as \fB--help\fR), unless the options string given to \fBgetopts\fR uses
+the extended interface;
 .IP \[bu]
 disables the special handling of \f3/dev/fd/\fP\f2n\fP in file existence and
 access test operators in \fBtest\fR/\fB[\fR and \fB[[\fR, causing these to
