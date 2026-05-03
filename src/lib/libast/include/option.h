@@ -46,11 +46,8 @@ typedef struct Optdisc_s
 	Optinfo_f	infof;		/* runtime info function	*/
 } Optdisc_t;
 
-/* NOTE: Opt_t member order fixed by a previous binary release */
-
 #ifndef _OPT_PRIVATE_
-#define _OPT_PRIVATE_	\
-	char		pad[3*sizeof(void*)];
+#define _OPT_PRIVATE_
 #endif
 
 typedef struct Opt_s
@@ -67,7 +64,7 @@ typedef struct Opt_s
 	Optdisc_t*	disc;		/* user discipline		*/
 	intmax_t	number;		/* # numeric argument		*/
 	unsigned char	assignment;	/* option arg assignment op	*/
-	unsigned char	pads[sizeof(void*)-1];
+	char		posix;		/* set for POSIX compliance	*/
 	_OPT_PRIVATE_
 } Opt_t;
 

@@ -248,6 +248,14 @@ for c in a e f g A E F G
 do	printf "%$c" 1.5 2>/dev/null || err_exit "POSIX printf %$c fails to accept floating point operand"
 done >/dev/null
 
+# causes the getopts built-in command to disable the built-in handling of '-?' and long-form
+# options (including the self-documentation options such as --help), unless the options string
+# given to getopts uses the extended interface;
+got=$("$SHELL" -o posix -c 'while getopts x o; do case $o in \?) echo "MY USAGE MESSAGE";; esac; done' sh -\? 2>&1)
+[[ $got == *$'\nMY USAGE MESSAGE' ]] || err_exit "POSIX getopts fails to let script handle -? itself (got $(printf %q "$got"))"
+got=$("$SHELL" -o posix -c 'while getopts x o; do case $o in \?) echo "MY USAGE MESSAGE";; esac; done' sh --help 2>&1)
+[[ $got == *$'\nMY USAGE MESSAGE' ]] || err_exit "POSIX getopts fails to let script handle --help itself (got $(printf %q "$got"))"
+
 # changes the test/[ built-in command to make its deprecated expr1 -a expr2 and expr1 -o expr2 operators work
 # even if expr1 equals "!" or "(" (which means the nonstandard unary -a file and -o option operators cannot
 # be directly negated using ! or wrapped in parentheses);
