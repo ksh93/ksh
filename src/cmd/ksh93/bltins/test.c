@@ -206,16 +206,9 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 					av[1] = argv[1];
 					av[2] = 0;
 					if (optget(av,sh_opttest) == '?')
-					{
-						/* self-doc: write to standard output */
-						error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-						return 0;
-					}
-					else
-					{
-						errormsg(SH_DICT, ERROR_exit(2), "%s", opt_info.arg);
-						UNREACHABLE();
-					}
+						return optselfdoc();
+					errormsg(SH_DICT, ERROR_exit(2), "%s", opt_info.arg);
+					UNREACHABLE();
 				}
 				break;
 			}

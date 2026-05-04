@@ -1061,9 +1061,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		case ':':
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}

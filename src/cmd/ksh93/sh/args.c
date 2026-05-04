@@ -228,8 +228,7 @@ int sh_argopts(int argc,char *argv[])
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			continue;
 		    case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+			optselfdoc();
 			return -1;
 		}
 		if(f)

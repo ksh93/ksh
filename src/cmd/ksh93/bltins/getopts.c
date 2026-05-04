@@ -80,9 +80,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc for getopts itself: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
@@ -131,7 +129,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		if(mode==0)
 		{
 			/* a ksh script's self-doc: write to standard output and force script to exit with status 0 */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+			optselfdoc();
 			if (!sh_isstate(SH_INTERACTIVE) || sh_isstate(SH_PROFILE) || sh.fn_depth || sh.dot_depth)
 			{
 				r = -2;

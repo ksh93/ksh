@@ -308,9 +308,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			break;
 		case '?':
 			opt_info.disc = NULL;
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 #if SHOPT_PRINTF_LEGACY
 skipopts:
