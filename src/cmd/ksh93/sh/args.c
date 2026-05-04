@@ -227,7 +227,7 @@ int sh_argopts(int argc,char *argv[])
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			continue;
 		    case '?':
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
+			optselfdoc();
 			return -1;
 		}
 		if(f)

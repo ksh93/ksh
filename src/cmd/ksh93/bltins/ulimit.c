@@ -106,8 +106,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 	}
 	opt_info.disc = 0;
 	/* default to -f */

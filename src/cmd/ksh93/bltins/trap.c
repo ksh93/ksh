@@ -56,8 +56,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-		return 2;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
@@ -253,8 +252,7 @@ int	b_kill(int argc,char *argv[],Shbltin_t *context)
 			flag |= L_FLAG;
 			break;
 		case '?':
-			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 	}
 endopts:
 	argv += opt_info.index;
@@ -315,8 +313,7 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 	}
 	if(error_info.errors)	/* no options supported (except AST --man, etc.) */
 	{

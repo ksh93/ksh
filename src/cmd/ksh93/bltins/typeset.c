@@ -108,8 +108,7 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-			return 2;
+			return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -176,8 +175,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 		    case '?':
 			if(sh.shcomp)
 				return 2;
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-			return 2;
+			return optselfdoc();
 		}
 		if(error_info.errors)
 		{
@@ -439,9 +437,8 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				errormsg(SH_DICT,2, "%s", opt_info.arg);
 				break;
 			case '?':
-				errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
 				opt_info.disc = 0;
-				return 2;
+				return optselfdoc();
 		}
 	}
 endargs:
@@ -1163,8 +1160,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		UNREACHABLE();
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
@@ -1329,8 +1325,7 @@ static int unall(int argc, char **argv, Dt_t *troot)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			errormsg(SH_DICT,ERROR_usage(0), "%s", opt_info.arg);
-			return 2;
+			return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors || (*argv==0 &&!all))

@@ -205,8 +205,9 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 					av[0] = argv[0];
 					av[1] = argv[1];
 					av[2] = 0;
-					optget(av,sh_opttest);
-					errormsg(SH_DICT,ERROR_usage(2), "%s",opt_info.arg);
+					if (optget(av,sh_opttest) == '?')
+						return optselfdoc();
+					errormsg(SH_DICT, ERROR_exit(2), "%s", opt_info.arg);
 					UNREACHABLE();
 				}
 				break;

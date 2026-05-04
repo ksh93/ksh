@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -78,6 +78,7 @@ extern int		optget(char**, const char*);
 extern int		optjoin(char**, ...);
 extern char*		opthelp(const char*, const char*);
 extern char*		optusage(const char*);
+extern int		optselfdoc(void);
 extern int		optstr(const char*, const char*);
 extern int		optesc(Sfio_t*, const char*, int);
 extern Opt_t*		optctx(Opt_t*, Opt_t*);

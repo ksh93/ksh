@@ -347,8 +347,7 @@ b_rm(int argc, char** argv, Shbltin_t* context)
 			state.verbose = 1;
 			continue;
 		case '?':
-			error(ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			break;

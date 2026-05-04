@@ -215,8 +215,7 @@ b_chmod(int argc, char** argv, Shbltin_t* context)
 			logical = 0;
 			continue;
 		case '?':
-			error(ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		}
 		break;
 	}

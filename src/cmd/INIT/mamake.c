@@ -2929,8 +2929,7 @@ int main(int argc, char **argv)
 			setval(state.vars, "-strip-symbols", "1");
 			continue;
 		case '?':
-			error(ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;

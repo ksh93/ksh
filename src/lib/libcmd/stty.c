@@ -967,8 +967,7 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 			}
 			break;
 		case '?':
-			error(ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		}
 		break;
 	}

@@ -5783,3 +5783,14 @@ optstr(const char* str, const char* opts)
  outofmemory:
 	return opterror(NULL, 0, 0, NULL, NULL);
 }
+
+/*
+ * Show self-documentation.
+ * For "case '?'" in getopt loops.
+ */
+int
+optselfdoc(void)
+{
+	error(ERROR_USAGE, "%s", opt_info.arg);
+	return 2;
+}

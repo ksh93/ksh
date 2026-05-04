@@ -1061,8 +1061,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		case ':':
 			break;
 		case '?':
-			error(ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		}
 		break;
 	}

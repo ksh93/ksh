@@ -420,8 +420,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 			error(2, opt_info.arg);
 			continue;
 		case '?':
-			error(ERROR_usage(2), opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		}
 		break;
 	}
@@ -475,8 +474,7 @@ int	b_eloop(int argc, char** argv, Shbltin_t *context)
 			error(2, opt_info.arg);
 			continue;
 		case '?':
-			error(ERROR_usage(2), opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		}
 		break;
 	}

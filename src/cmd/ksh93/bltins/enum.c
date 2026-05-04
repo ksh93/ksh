@@ -232,8 +232,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 			iflag = 'i';
 			continue;
 		case '?':
-			error(ERROR_usage(2), "%s", opt_info.arg);
-			UNREACHABLE();
+			return optselfdoc();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			break;

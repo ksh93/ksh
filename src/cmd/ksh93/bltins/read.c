@@ -146,8 +146,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		UNREACHABLE();
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)

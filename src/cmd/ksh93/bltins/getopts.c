@@ -80,8 +80,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		errormsg(SH_DICT,ERROR_usage(2), "%s", opt_info.arg);
-		UNREACHABLE();
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
@@ -129,8 +128,8 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	    case '?':
 		if(mode==0)
 		{
-			/* a ksh script's self-doc: write to standard output and force script to exit with status 2 */
-			error(ERROR_usage(0), "%s", opt_info.arg);
+			/* a ksh script's self-doc: write to standard error and force script to exit with status 2 */
+			optselfdoc();
 			if (!sh_isstate(SH_INTERACTIVE) || sh_isstate(SH_PROFILE) || sh.fn_depth || sh.dot_depth)
 			{
 				r = -2;

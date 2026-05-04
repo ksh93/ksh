@@ -451,8 +451,7 @@ while(1) switch(n=optget(argv,"xf:[file]"))
 		error(ERROR_exit(0), opt_info.arg);
 		break;
 	case '?':
-		error(ERROR_usage(2), opt_info.arg);
-		UNREACHABLE();
+		return optselfdoc();
 }
 .EE
 .H 2 "Storage Management"

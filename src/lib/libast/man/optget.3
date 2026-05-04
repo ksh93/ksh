@@ -61,8 +61,30 @@ void    optinit(Optdisc_t* \fIdisc\fP, Error_f \fIerrorf\fP);
 int     optget(char** \fIargv\fP, const char* \fIusage\fP);
 int     optstr(const char* \fIstring\fP, const char* \fIusage\fP);
 int     optjoin(char** \fIargv\fP, ... [int (*\fIoptfun\fP)(char** \fIargv\fP, int \fIlast\fP)]);
+int     optselfdoc(void);
 char*   optusage(const char* \fIopts\fP);
 int     optesc(Sfio_t* \fIsp\fP, const char* \fIstring\fP, int \fIflags\fP);
 .EE
 .SH DESCRIPTION
+.PP
+(Most documentation for
+.B optget
+and friends is yet to be written.)
+.PP
+The
+.B optselfdoc
+function is for use under
+.I "case '?'"
+in the switch statement within the
+.B getopts
+loop. It diplays the commands's documentation when an
+AST self-doc option such as
+.I \-\-man
+is given. Up to ksh 93u+m/1.0.x, the documentation is written to
+standard error and the function always returns 2.
+In ksh 93u+m/1.1 and up, the documentation will be
+written to standard output and the function will always return 0.
+The return value may be used as the exit status of the command
+by invoking it like
+.IR "return optselfdoc()" .
 .SH "SEE ALSO"
