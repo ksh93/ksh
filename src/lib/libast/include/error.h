@@ -30,7 +30,7 @@
 #include <ast.h>
 #include <option.h>
 
-#define ERROR_VERSION	20251007L
+#define ERROR_VERSION	20260506L
 
 #define ERROR_debug(n)	(-(n))
 #define ERROR_exit(n)	((n)+ERROR_ERROR)
@@ -66,6 +66,7 @@
 #define ERROR_PROMPT	0x1000		/* omit trailing newline	*/
 #define ERROR_NOID	0x2000		/* omit err_id			*/
 #define ERROR_LIBRARY	0x4000		/* library routine error	*/
+#define ERROR_SFIO_OUT	0x8000		/* next arg is Sfio stream	*/
 
 #define ERROR_INTERACTIVE	0x0001	/* context is interactive	*/
 #define ERROR_SILENT		0x0002	/* context is silent		*/

@@ -5790,6 +5790,6 @@ optstr(const char* str, const char* opts)
 int
 optselfdoc(void)
 {
-	error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+	error(ERROR_USAGE|ERROR_SFIO_OUT, sfstdout, "%s", opt_info.arg);
 	return 0;
 }

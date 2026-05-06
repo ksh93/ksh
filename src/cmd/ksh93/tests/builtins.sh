@@ -1817,6 +1817,11 @@ got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
 (( (e = $?) <= 128 )) || err_exit "crash passing multibyte character option" \
 	"(got exit status $e/SIG$(kill -l "$e"), output $(printf %q "$got"))"
 
+# ======
+# on 93u+m/1.1+, we write self-doc to standard output, so it should be caught by comsubs
+{ got=$(shift --man); } >/dev/null 2>&1
+[[ $got == NAME* ]] || err_exit "AST self-doc to stdout not caught by command substitution"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"

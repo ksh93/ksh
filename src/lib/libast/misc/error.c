@@ -309,6 +309,7 @@ errorv(const char* id, int level, va_list ap)
 {
 	ptrdiff_t	n;
 	int		fd;
+	Sfio_t*		iop;
 	int		flags;
 	char*		s;
 	char*		t;
@@ -376,6 +377,7 @@ errorv(const char* id, int level, va_list ap)
 	flags &= ~error_info.clear;
 	if (!library)
 		flags &= ~ERROR_LIBRARY;
+	iop = (flags & ERROR_SFIO_OUT) ? va_arg(ap, Sfio_t*) : NULL;
 	fd = (flags & ERROR_OUTPUT) ? va_arg(ap, int) : error_info.fd;
 	if (error_info.write)
 	{
@@ -519,7 +521,12 @@ errorv(const char* id, int level, va_list ap)
 #endif
 			sfsync(sfstdout);
 			sfsync(sfstderr);
-			if (fd == sffileno(sfstderr) && error_info.write == write)
+			if (iop)
+			{
+				sfwrite(iop, s, (size_t)n);
+				sfsync(iop);
+			}
+			else if (fd == sffileno(sfstderr) && error_info.write == write)
 			{
 				sfwrite(sfstderr, s, (size_t)n);
 				sfsync(sfstderr);
