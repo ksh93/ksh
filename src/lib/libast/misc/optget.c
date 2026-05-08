@@ -4405,10 +4405,7 @@ optget(char** argv, const char* oopts)
 				 */
 
 				if (!prefix || *s != '-')
-				{
-					opt_info.index++;
 					return 0;
-				}
 				prefix = 1;
 				n = 1;
 			}

@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-05-08:
+
+- Fixed a bug in the POSIX mode 'getopts', introduced 2026-05-02, where OPTIND
+  was increased by one too many at the end of options, causing the idiomatic
+  'shift $((OPTIND-1))' command to shift out one non-option argument too many.
+
 2026-05-02:
 
 - When a function that uses the 'getopts' built-in command is invoked from
