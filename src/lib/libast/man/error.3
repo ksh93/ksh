@@ -124,7 +124,7 @@ and
 .I error_info.warnings
 is incremented.
 .TP
-.I "ERROR_ERROR [2]"
+.B "ERROR_ERROR [2]"
 (soft error)
 .I error_info.errors
 is incremented.
@@ -146,12 +146,12 @@ The following may be inclusive-or'd into
 .I level
 for alternate behavior:
 .TP
-.L ERROR_SYSTEM
+.B ERROR_SYSTEM
 The error text for
 .I errno
 is appended to the message.
 .TP
-.L ERROR_OUTPUT
+.B ERROR_OUTPUT
 The next argument is the file descriptor where the error message
 should be emitted.
 .TP
@@ -159,25 +159,25 @@ should be emitted.
 The next argument is the Sfio stream where the error message
 should be emitted.
 .TP
-.L ERROR_SOURCE
+.B ERROR_SOURCE
 Then next two arguments are a file name and line number that are added
 to the message after
 .IR error_info.id .
 .TP
-.L ERROR_USAGE
+.B ERROR_USAGE
 A usage message is emitted.
 .TP
-.L ERROR_PROMPT
+.B ERROR_PROMPT
 The trailing
 .I newline
 is suppressed.
 .TP
-.L ERROR_NOID
+.B ERROR_NOID
 The
 .I error_info.id
 prefix is suppressed.
 .TP
-.L ERROR_LIBRARY
+.B ERROR_LIBRARY
 The message is from a library routine.
 .SH ENVIRONMENT
 The elements of the global struct

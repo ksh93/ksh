@@ -82,10 +82,8 @@ pathcd(const char* path, const char* home)
 
 		if ((n = (ptrdiff_t)strlen(p)) < PATH_MAX)
 			return -1;
-#ifdef ENAMETOOLONG
 		if (errno != ENAMETOOLONG)
 			return -1;
-#endif
 
 		/*
 		 * path is too long -- copy so it can be modified in place

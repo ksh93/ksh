@@ -29,11 +29,7 @@
 #include <mnt.h>
 #include <ls.h>
 
-#if _lib_mntopen && _lib_mntread && _lib_mntclose
-
-NoN(mnt)
-
-#else
+#if !(_lib_mntopen && _lib_mntread && _lib_mntclose)
 
 /*
  * the original interface just had mode
@@ -789,4 +785,8 @@ mntwrite(void* handle, const Mnt_t* mnt)
 	return -1;
 }
 
-#endif
+#else
+
+NoN(mnt)
+
+#endif /* !(_lib_mntopen && _lib_mntread && _lib_mntclose) */

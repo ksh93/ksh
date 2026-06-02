@@ -2362,14 +2362,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make fsync.o
-			make comp/fsync.c
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make spawnveg.o
 			make comp/spawnveg.c
 				prev ast_fcntl.h
@@ -2377,30 +2369,6 @@ make install virtual
 				prev sig.h
 				prev include/wait.h
 				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make putenv.o
-			make comp/putenv.c
-				prev ast_map.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make setenv.o
-			make comp/setenv.c
-				prev ast_map.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make unsetenv.o
-			make comp/unsetenv.c
-				prev ast_map.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -2645,24 +2613,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make strftime.o
-			make comp/strftime.c
-				prev ast_map.h
-				prev include/tm.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make strptime.o
-			make comp/strptime.c
-				prev ast_map.h
-				prev tmx.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make tempnam.o
 			make comp/tempnam.c
 				prev std/stdio.h
@@ -2678,15 +2628,6 @@ make install virtual
 				make comp/wordexp.h
 					prev ast_common.h
 				done
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make mktime.o
-			make comp/mktime.c
-				prev ast_map.h
-				prev include/tm.h
 				prev include/ast.h
 			done
 			exec - compile %{<}

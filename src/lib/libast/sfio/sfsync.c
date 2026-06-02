@@ -77,13 +77,12 @@ int sfsync(Sfio_t* f)
 {
 	int		local, rv;
 	uint32_t	lock;
-	Sfio_t*	origf;
+	Sfio_t*		origf;
 
-	if(!(origf = f) )
+	if(!f)
 		return _sfall();
 
-	if(!(origf)) return -1;
-
+	origf = f;
 	GETLOCAL(origf,local);
 
 	if(origf->disc == _Sfudisc)	/* throw away ungetc */

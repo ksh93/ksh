@@ -66,7 +66,7 @@ struct frame
 	char	*prev;		/* address of previous frame */
 	char	*end;		/* address of end this frame */
 	char	**aliases;	/* address aliases */
-	ssize_t	nalias;	/* number of aliases */
+	ssize_t	nalias;		/* number of aliases */
 };
 
 struct stk

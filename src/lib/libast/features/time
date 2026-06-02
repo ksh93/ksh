@@ -1,4 +1,4 @@
-lib	getrusage,nanosleep,usleep,_strftime
+lib	getrusage,nanosleep,usleep
 typ	clock_t = uint32_t
 typ	time_t = int64_t
 typ	suseconds_t = int32_t

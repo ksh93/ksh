@@ -25,12 +25,12 @@ dat	_tzname,tzname
 lib	BSDsetpgrp
 lib	_cleanup
 lib	bcopy,bzero,confstr,dirread
-lib	fchmod,fcntl,fnmatch,fork,fsync
+lib	fchmod,fcntl,fnmatch,fork
 lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
-lib	mktemp,mktime
+lib	mktemp
 lib	opendir,openat,pathconf,pipe2,posix_close
 lib	rand_r
 lib	rewinddir,setlocale
@@ -38,7 +38,7 @@ lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
 lib	clone,spawn,spawnve
 lib	strlcat,strlcpy
-lib	strmode,strftime,symlink,sysconf,sysinfo
+lib	strmode,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate
 
