@@ -26,11 +26,7 @@
 #undef	_def_map_ast
 #include <ast_map.h>
 
-#if _lib_strlcat
-
-NoN(strlcat)
-
-#else
+#if !_lib_strlcat
 
 /*
  * append t onto s limiting total size of s to n
@@ -69,4 +65,8 @@ strlcat(char* s, const char* t, size_t n)
 	return (size_t)(t - o) + m - 1;
 }
 
-#endif
+#else
+
+NoN(strlcat)
+
+#endif /* !_lib_strlcat */

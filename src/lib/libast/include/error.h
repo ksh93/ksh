@@ -138,45 +138,6 @@ struct Error_info_s			/* error state			*/
 #ifndef errno
 extern int	errno;			/* system call error status	*/
 #endif
-#ifndef E2BIG
-#define E2BIG	ENOMEM
-#endif
-#ifndef EAGAIN
-#define EAGAIN	11
-#endif
-#ifndef EBADF
-#define EBADF	9
-#endif
-#ifndef EBUSY
-#define EBUSY	16
-#endif
-#ifndef EDEADLK
-#define EDEADLK	45
-#endif
-#ifndef EINTR
-#define EINTR	4
-#endif
-#ifndef EILSEQ
-#define EILSEQ	EIO
-#endif
-#ifndef EINVAL
-#define EINVAL	22
-#endif
-#ifndef ENOMEM
-#define ENOMEM	12
-#endif
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-#ifndef EPERM
-#define EPERM	1
-#endif
-#ifndef ERANGE
-#define ERANGE	E2BIG
-#endif
-#ifndef ESPIPE
-#define ESPIPE	29
-#endif
 
 extern Error_info_t*	_error_infop_;
 

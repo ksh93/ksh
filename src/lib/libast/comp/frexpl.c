@@ -26,11 +26,7 @@
 
 #include "FEATURE/float"
 
-#if _lib_frexpl && _lib_ldexpl
-
-NoN(frexpl)
-
-#else
+#if !(_lib_frexpl && _lib_ldexpl)
 
 #ifndef LDBL_MAX_EXP
 #define LDBL_MAX_EXP	DBL_MAX_EXP
@@ -155,4 +151,8 @@ ldexpl(long double f, int x)
 
 #endif
 
-#endif
+#else
+
+NoN(frexpl)
+
+#endif /* !(_lib_frexpl && _lib_ldexpl) */

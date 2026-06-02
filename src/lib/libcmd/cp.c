@@ -834,11 +834,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 			state->backup = 1;
 			continue;
 		case 'F':
-#if _lib_fsync
 			state->sync = 1;
-#else
-			error(1, "%s not implemented on this system", opt_info.name);
-#endif
 			continue;
 		case 'H':
 			state->flags |= FTS_META|FTS_PHYSICAL;

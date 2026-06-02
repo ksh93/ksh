@@ -1062,11 +1062,9 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 	    case ENOENT:
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found,arg0);
 		UNREACHABLE();
-#ifdef ENAMETOOLONG
 	    case ENAMETOOLONG:
 		errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong,arg0);
 		UNREACHABLE();
-#endif
 	    /* other cases return exit status 126 (the command was found, but wasn't executable) */
 	    default:
 		errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec,arg0);
@@ -1288,10 +1286,8 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 #endif
 		}
 	    }
-#ifdef ENAMETOOLONG
 	    /* FALLTHROUGH */
 	    case ENAMETOOLONG:
-#endif /* ENAMETOOLONG */
 	    /* FALLTHROUGH */
 	    case EPERM:
 		sh.path_err = errno;

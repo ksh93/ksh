@@ -26,11 +26,7 @@
 
 #include "FEATURE/float"
 
-#if _lib_frexp && _lib_ldexp
-
-NoN(frexp)
-
-#else
+#if !(_lib_frexp && _lib_ldexp)
 
 #if defined(_ast_dbl_exp_index) && defined(_ast_dbl_exp_shift)
 
@@ -147,4 +143,8 @@ ldexp(double f, int x)
 
 #endif
 
-#endif
+#else
+
+NoN(frexp)
+
+#endif /* !(_lib_frexp && _lib_ldexp) */

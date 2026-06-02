@@ -26,11 +26,7 @@
 #undef	_def_map_ast
 #include <ast_map.h>
 
-#if _lib_strlcpy
-
-NoN(strlcpy)
-
-#else
+#if !_lib_strlcpy
 
 /*
  * copy at most n chars from t into s
@@ -57,4 +53,8 @@ strlcpy(char* s, const char* t, size_t n)
 	return (size_t)(t - o - 1);
 }
 
-#endif
+#else
+
+NoN(strlcpy)
+
+#endif /* !_lib_strlcpy */
