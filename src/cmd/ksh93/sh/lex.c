@@ -2481,6 +2481,7 @@ done:
 
 static void setupalias(Lex_t *lp, const char *string,Namval_t *np)
 {
+	size_t slen;
 	Sfio_t *iop, *base;
 	struct alias *ap = (struct alias*)sh_malloc(sizeof(struct alias));
 	ap->disc = alias_disc;
@@ -2501,7 +2502,11 @@ static void setupalias(Lex_t *lp, const char *string,Namval_t *np)
 	}
 	else
 		ap->nextc = 0;
-	iop = sfopen(NULL,(char*)string,"s");
+	/* copy alias value to stack to avoid use after free if alias redefines itself */
+	slen = strlen(string) + 1;
+	string = memcpy(stkalloc(sh.stk, slen), string, slen);
+	/* set up input stream for alias value */
+	iop = sfopen(NULL, string, "s");
 	sfdisc(iop, &ap->disc);
 	lp->lexd.nocopy++;
 	if(!(base=fcfile()))
