@@ -320,4 +320,11 @@ chmod +x bad_func  # bug only triggered if file is executable
 (($? > 0)) || err_exit "'hash'/'alias -t' autoloads function"
 
 # ======
+# Use after free if alias redefines itself
+# https://github.com/ksh93/ksh/issues/732
+got=$(set +x; { "$SHELL" -c $'alias foo="alias foo=false\ntrue"\nfoo ' ;} 2>&1)
+(( (e = $?) == 0 )) || err_exit "alias redefining itself:" \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
