@@ -435,7 +435,7 @@ tmlocal(time_t now)
 void
 tminit(Tm_zone_t* zp, time_t now, const char newzone)
 {
-	static uint32_t		serial = ~(uint32_t)0;
+	static uint64_t		serial = ~(uint64_t)0;
 
 	if(tz_abbr)
 		free(tz_abbr);

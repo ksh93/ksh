@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1985-2014 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-05-02"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-06-20"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -897,17 +897,19 @@ init(char* s, Optpass_t* p)
 	char*	e;
 	int	l;
 
-	if (!state.localized)
+	if (!state.localized || state.localized != ast.locale.serial)
+	{
+		state.localized = ast.locale.serial;
+		setlocale(LC_ALL, "");
+	}
+	if (!state.xp)
 	{
 		unsigned char	*opts = (unsigned char*)OPT_FLAGS;
-		unsigned char	*o;
-		state.localized = 1;
-		if (!ast.locale.serial)
-			setlocale(LC_ALL, "");
+		unsigned char	i, *o;
 		state.xp = sfstropen();
 		if (!map[opts[0]])
-			for (n = 0, o = opts; *o; o++)
-				map[*o] = (unsigned char)++n;
+			for (i = 0, o = opts; *o; o++)
+				map[*o] = ++i;
 	}
 #if _BLD_DEBUG
 	error(-2, "optget debug");
