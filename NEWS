@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-06-19:
+
+- Fixed a memory leak that occurred when using printf date/time formatting
+  (i.e., %(...)T) with a user-supplied date/time.
+
 2026-06-14:
 
 - Fixed a potential crash (use after free) that could occur if a multi-line
