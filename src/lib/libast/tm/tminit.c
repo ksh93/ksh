@@ -445,6 +445,10 @@ tminit(Tm_zone_t* zp, time_t now, const char newzone)
 		serial = ast.env_serial;
 		if (tm_info.local)
 		{
+			if (tm_info.local->standard)
+				free(tm_info.local->standard);
+			if (tm_info.local->daylight)
+				free(tm_info.local->daylight);
 			memset(tm_info.local, 0, sizeof(*tm_info.local));
 			tm_info.local = 0;
 		}
