@@ -34,7 +34,6 @@
 _Ast_info_t	_ast_info =
 {
 	"libast",		/* ast.id */
-	AST_VERSION,		/* ast.version */
 	0,			/* ast.env_serial */
 	{			/* ast.locale */
 		strcmp,		/* ast.locale.collate */

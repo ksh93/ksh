@@ -232,8 +232,7 @@ extern char*		setlocale(int, const char*);
 typedef struct
 {
 	char		*id;
-	uint32_t	version;
-	uint32_t	env_serial;	/* increased by setenviron */
+	uint64_t	env_serial;	/* should be increased on every change of an environment variable */
 
 	struct				/* ast.locale.* -- stuff set in setlocale.c */
 	{

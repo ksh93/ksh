@@ -1155,7 +1155,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 		{
 			if (streq(p->name, "VERSION"))
 			{
-				v = ast.version;
+				v = AST_VERSION;
 				break;
 			}
 		}
