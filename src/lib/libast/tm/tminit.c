@@ -203,9 +203,6 @@ tmlocal(time_t now)
 
 	static Tm_zone_t	local;
 
-	local.standard = 0;
-	local.daylight = 0;
-
 #if _tzset_environ
 	{
 		char**	v = environ;
@@ -220,10 +217,7 @@ tmlocal(time_t now)
 			environ[0] = TZ;
 		}
 		else
-		{
 			TZ[0] = 0;
-			e = 0;
-		}
 #endif
 #if _lib_tzset
 		tzset();
@@ -271,6 +265,16 @@ tmlocal(time_t now)
 	 * now get the time zone names
 	 */
 
+	if (local.standard)
+	{
+		free(local.standard);
+		local.standard = NULL;
+	}
+	if (local.daylight)
+	{
+		free(local.daylight);
+		local.daylight = NULL;
+	}
 	if (tz_abbr)
 	{
 		if (!isdst)
@@ -292,21 +296,19 @@ tmlocal(time_t now)
 	}
 	else
 #endif
-	if ((s = getenv("TZNAME")) && *s && (s = strdup(s)))
+	if ((s = getenv("TZNAME")) && *s)
 	{
 		/*
 		 * BSD
 		 */
 
+		s = strdup(s);
 		if (!local.standard)
 			local.standard = s;
-		if (!local.daylight)
+		if (!local.daylight && s && (s = strchr(s, ',')))
 		{
-			if (s = strchr(s, ','))
-				*s++ = 0;
-			else
-				s = "";
-			local.daylight = s;
+			*s++ = 0;
+			local.daylight = strdup(s);
 		}
 	}
 	else
@@ -324,7 +326,7 @@ tmlocal(time_t now)
 			{
 				local.type = t;
 				if (!local.standard)
-					local.standard = zp->standard;
+					local.standard = strdup(zp->standard);
 				if (!(s = zp->daylight))
 				{
 					e = (s = buf) + sizeof(buf);
@@ -334,10 +336,10 @@ tmlocal(time_t now)
 						*s++ = ' ';
 						tmpoff(s, (size_t)(e - s), tm_info.format[TM_DT], m, TM_DST);
 					}
-					s = strdup(buf);
+					s = buf;
 				}
 				if (!local.daylight)
-					local.daylight = s;
+					local.daylight = strdup(s);
 				break;
 			}
 		}
@@ -360,7 +362,7 @@ tmlocal(time_t now)
 			}
 		}
 	}
-	if (!*local.standard && !local.west && !local.dst && (s = getenv("TZ")))
+	if (!local.standard && !local.west && !local.dst && (s = getenv("TZ")))
 	{
 		if ((zp = tmzone(s, &t, NULL, NULL)) && !*t)
 		{
@@ -372,10 +374,6 @@ tmlocal(time_t now)
 		}
 		else
 			local.standard = strdup(s);
-		if (!local.standard)
-			local.standard = "";
-		if (!local.daylight)
-			local.daylight = "";
 	}
 
 	/*
@@ -388,7 +386,7 @@ tmlocal(time_t now)
 	 * the time zone type is probably related to the locale
 	 */
 
-	if (!local.type)
+	if (!local.type && local.standard)
 	{
 		s = local.standard;
 		t = 0;
@@ -415,7 +413,7 @@ tmlocal(time_t now)
 		if (tp->tm_sec != 60)
 			tm_info.flags |= TM_ADJUST;
 	}
-	if (!(tm_info.flags & TM_UTC))
+	if (!(tm_info.flags & TM_UTC) && local.standard)
 	{
 		s = local.standard;
 		zp = tm_data.zone;
