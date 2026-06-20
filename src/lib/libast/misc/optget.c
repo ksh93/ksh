@@ -1174,13 +1174,29 @@ font(int f, int style, int set)
 static Push_t*
 info(Push_t* psp, char* s, char* e, Sfio_t* ip, char* id)
 {
-	char*	b;
-	size_t	n;
-	Push_t*	tsp;
+	char*		b;
+	size_t		n;
+	Push_t*		tsp;
+
+	int		save_index;
+	int		save_offset;
+	long		save_num;
+	intmax_t	save_number;
+	char*		save_arg;
 
 	static Push_t	push;
 
+	save_index = opt_info.index;
+	save_offset = opt_info.offset;
+	save_num = opt_info.num;
+	save_number = opt_info.number;
+	save_arg = opt_info.arg;
 	b = expand(s, e, &s, ip, id);
+	opt_info.index = save_index;
+	opt_info.offset = save_offset;
+	opt_info.num = save_num;
+	opt_info.number = save_number;
+	opt_info.arg = save_arg;
 	n = strlen(b);
 	if (tsp = newof(0, Push_t, 1, n + 1))
 	{
@@ -4379,7 +4395,8 @@ optget(char** argv, const char* oopts)
 	 */
 
 	opt_info.assignment = 0;
-	nov = no = num = 1;
+	num = 1;
+	no = nov = 0;
 	e = w = v = 0;
 	n = x = 0;
 	for (;;)
