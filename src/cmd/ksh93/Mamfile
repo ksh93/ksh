@@ -94,11 +94,51 @@ make install virtual
 		exec - %{iffe_run} %{<}
 	done
 
-	loop F externs fchdir locale cmds poll rlimits
-		make FEATURE/%{F}
-			makp features/%{F}
-			exec - %{iffe_run} %{<}
+	make FEATURE/externs
+		make features/externs
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/sfio.h
+			prev %{INCLUDE_AST}/stk.h
+			prev %{INCLUDE_AST}/wait.h
 		done
+		exec - %{iffe_run} %{<}
+	done
+
+	make FEATURE/fchdir
+		make features/fchdir
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/wait.h
+			prev %{INCLUDE_AST}/stdio.h
+		done
+		exec - %{iffe_run} %{<}
+	done
+
+	make FEATURE/locale
+		make features/locale
+			prev %{INCLUDE_AST}/stdio.h
+			prev %{INCLUDE_AST}/wchar.h
+			prev %{INCLUDE_AST}/wctype.h
+		done
+		exec - %{iffe_run} %{<}
+	done
+
+	make FEATURE/cmds
+		makp features/cmds
+		exec - %{iffe_run} %{<}
+	done
+
+	make FEATURE/poll
+		make features/poll
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/sig.h
+		done
+		exec - %{iffe_run} %{<}
+	done
+
+	make FEATURE/rlimits
+		makp features/rlimits
+		exec - %{iffe_run} %{<}
 	done
 
 	note *
