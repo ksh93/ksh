@@ -1022,6 +1022,7 @@ static struct process *job_byname(char *name)
 		return NULL;
 	if(*cp=='?')
 		cp++,flag= &offset;
+	for(;pw;pw=pw->p_nxtjob)
 	{
 		if(hist_match(sh.hist_ptr,pw->p_name,cp,flag)>=0)
 		{
