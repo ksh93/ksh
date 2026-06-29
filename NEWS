@@ -2,6 +2,20 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-01:
+
+- Fixed two longstanding bugs in job control: if the -m (--monitor) option was
+  on in a script, then:
+  - subshells invoked by the main shell environment did not become the
+    leader of their own process group;
+  - if the shell was built with the SHOPT_SPAWN compile-time option active
+    (default on most systems), then external non-background commands invoked
+    from the script didn't become the leader of their own process group.
+
+- Fixed a race condition in job control where all processes belonging
+  to a pipeline would not always be assigned the same process group.
+  Bug introduced on 2021-02-11.
+
 2026-06-28:
 
 - Fixed a bug in job control that broke job search by command line; instead

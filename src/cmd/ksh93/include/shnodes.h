@@ -40,6 +40,10 @@
 #define FLINENO		(04<<COMBITS)		/* for/case has line number */
 #define FOPTGET		(0200<<COMBITS)		/* function calls getopts */
 
+/* extra option bit flags for _sh_fork() -- these share bitspace with command tree type bits above */
+#define F_SUBFORK	(01000<<COMBITS)	/* set when sh_subfork() forks a subshell */
+#define F_COMFORK	(02000<<COMBITS)	/* set when sh_exec() forks to execve(2) a command */
+
 #define TNEGATE		(01<<COMBITS)		/* ! inside [[ ... ]] */
 #define TBINARY		(02<<COMBITS)		/* binary operator in [[ ... ]] */
 #define TUNARY		(04<<COMBITS)		/* unary operator in [[ ... ]] */

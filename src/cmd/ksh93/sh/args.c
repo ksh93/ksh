@@ -389,7 +389,7 @@ static void applyopts(Shopt_t newflags)
 				off_option(&newflags,SH_PRIVILEGED);
 	}
 	/* sync monitor (part of job control) state with -o monitor option change */
-	if(!sh_isoption(SH_MONITOR) && is_option(&newflags,SH_MONITOR))
+	if(is_option(&newflags,SH_MONITOR))
 		sh_onstate(SH_MONITOR);
 	else if(sh_isoption(SH_MONITOR) && !is_option(&newflags,SH_MONITOR))
 		sh_offstate(SH_MONITOR);

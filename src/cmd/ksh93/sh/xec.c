@@ -1397,15 +1397,17 @@ int sh_exec(const Shnode_t *t, int flags)
 				if(sh.fifo)
 					fifo_save_ppid = sh.current_pid;
 #endif
-#if SHOPT_SPAWN
 				if(com)
 				{
+#if SHOPT_SPAWN
 					parent = sh_ntfork(t,com,&jobid,topfd);
 					if(parent<0)
 						break;
+#else
+					parent = sh_fork(type|F_COMFORK,&jobid);
+#endif /* SHOPT_SPAWN */
 				}
 				else
-#endif /* SHOPT_SPAWN */
 					parent = sh_fork(type,&jobid);
 			}
 			if(job.parent=parent)
@@ -2725,6 +2727,8 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	if(sh.trapnote&SH_SIGTERM)
 		sh_exit(SH_EXITSIG|SIGTERM);
 	sh_timerdel(NULL);
+	if(!job.jobcontrol && !(flags&(FAMP|F_SUBFORK|F_COMFORK)))
+		sh_offstate(SH_MONITOR);
 	if(sh_isstate(SH_MONITOR))
 	{
 		if(postid==0)
@@ -2733,14 +2737,16 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 			job.curpgid = sh.current_pid;
 		if(job.jobcontrol && job.curpgid==sh.current_pid && !(flags&FAMP))
 			tcsetpgrp(job.fd,job.curpgid);
+		if(flags&F_SUBFORK)
+			sh_offstate(SH_MONITOR);
 	}
 	if(job.jobcontrol)
 	{
 		signal(SIGTTIN,SIG_DFL);
 		signal(SIGTTOU,SIG_DFL);
 		signal(SIGTSTP,SIG_DFL);
+		job.jobcontrol = 0;
 	}
-	job.jobcontrol = 0;
 	job.toclear = 1;
 	sh_offoption(SH_LOGIN_SHELL);
 	sh_onstate(SH_FORKED);
@@ -2749,7 +2755,7 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 #endif	/* SHOPT_ACCT */
 	/* Reset remaining signals to parent */
 	/* except for those `lost' by trap   */
-	if(!(flags&FSHOWME))
+	if(!(flags&F_SUBFORK))
 		sh_sigreset(2);
 	sh_clear_subshell_pwdfd();
 	sh.realsubshell++;		/* increase ${.sh.subshell} */
@@ -3314,14 +3320,13 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 		}
 		arge = sh_envgen();
 		sh.exitval = 0;
-		if(sh_isstate(SH_MONITOR) && job.jobcontrol)
+		if(sh_isstate(SH_MONITOR))
 		{
 			if(job.curpgid==0)
 				grp = 1;
 			else
 				grp = job.curpgid;
 		}
-
 		sfsync(NULL);
 		sigreset(0);	/* set signals to ignore */
 		sigwasset++;

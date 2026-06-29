@@ -921,19 +921,14 @@ Otherwise, the tilde expansion is left unchanged.
 A
 .I subshell\^
 is a separate execution environment that is a complete duplicate of the
-current shell environment, except for two things: all traps are reset to
-default except those for signals that are being ignored, and subshells
-cannot be interactive (i.e., they have no command prompt).
+current shell environment, except for three things: all traps are reset
+to default except those for signals that are being ignored, job control
+is deactivated, and subshells cannot be interactive (i.e., they have no
+command prompt).
 Changes made within a subshell do not affect the parent environment and are
 lost when the subshell exits.
 .PP
-Particular care should be taken not to confuse a subshell with a newly
-invoked shell that is merely a child process of the current shell,
-and which (unlike a subshell) starts from scratch in terms of
-variables and functions and may be interactive.
-Beware of shell tutorials on the Internet that confuse these.
-.PP
-Subshells cannot be created or invoked using any command.
+There is no command for creating or invoking a subshell.
 Instead, the following are automatically run in a subshell:
 .RS 8
 .IP \[bu] 3
@@ -952,13 +947,21 @@ all elements of a pipeline except the last;
 any command executed asynchronously (i.e., in a background process).
 .RE
 .PP
+Particular care should be taken not to confuse a subshell with a newly
+invoked shell that is merely a child process of the current shell,
+and which (unlike a subshell) starts from scratch in terms of
+variables and functions and may be interactive.
+Beware of shell tutorials on the Internet that confuse these.
+.PP
 Creating processes is expensive, so as a performance optimization, a
 subshell of a non-interactive shell may share the process of its parent
 environment. Such a subshell is known as a virtual subshell.
 Subshells are virtual unless or until something (such as asynchronous
 execution, or an attempt to set a process limit using the
 .B ulimit
-built-in command, or other implementation- or system-defined requirements)
+built-in command,
+or job control requiring the subshell to start a new process group,
+or other implementation- or system-defined requirements)
 makes it necessary to
 .IR fork (2)
 it into a separate process.
@@ -4384,7 +4387,7 @@ command with the
 .B \-T
 and no option argument or operands will write all the type definitions to
 standard output in a form that can be read in to create all they types.
-.SS Jobs.
+.SS Job Control.
 If the
 .B monitor
 option of the
@@ -6366,7 +6369,6 @@ The same as
 .BR typeset\ \-fu .
 .TP
 \f3bg\fP \*(OK \f2job\^\fP.\|.\|. \*(CK
-This command is only on systems that support job control.
 Puts each specified
 .I job\^
 into the background.
@@ -6810,7 +6812,6 @@ The same as
 .BR hist .
 .TP
 \f3fg\fP \*(OK \f2job\^\fP.\|.\|. \*(CK
-This command is only on systems that support job control.
 Each
 .I job\^
 specified is brought to the foreground and waited for in
@@ -7857,13 +7858,12 @@ All variable assignment arguments are placed in the environment for a command,
 not just those that precede the command name.
 .TP 8
 .B \-m
-Background jobs will run in a separate process group
-and a line will print upon completion.
-The exit status of background jobs is reported in a completion message.
+Each job will run in a separate process group.
 A pipeline will not terminate until all component commands of the pipeline
 have terminated.
-On systems with job control,
-this option is turned on automatically for
+On interactive shells, a line is shown when starting a background job
+and the job's exit status is reported upon completion.
+This option is turned on automatically for
 interactive shells.
 .TP 8
 .B \-n
