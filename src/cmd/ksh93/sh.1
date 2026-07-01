@@ -3252,8 +3252,13 @@ double precision floating point
 arithmetic or long double precision floating point for
 systems that provide this data type.
 Floating point constants follow the ANSI C programming language
-floating point conventions.
-The case-insensitive floating point constants
+floating point conventions, except that the radix point character
+is determined by the
+.SM LC_NUMERIC
+locale category; set
+.B LC_NUMERIC=C
+to use a period.
+The ASCII case-insensitive floating point constants
 .B NaN
 and
 .B Inf
@@ -9713,6 +9718,7 @@ Thus, a trap on
 .B CHLD
 won't be executed until the foreground job terminates.
 .PP
-It is a good idea to leave a space after the comma operator in
+It is a good idea to leave a space both before and after the comma
+operator in
 arithmetic expressions to prevent the comma from being interpreted
 as the decimal point character in certain locales.
