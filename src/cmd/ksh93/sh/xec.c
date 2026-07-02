@@ -64,22 +64,21 @@ struct funenv
 
 /* ========	command execution	======== */
 
-#if !SHOPT_DEVFD
-    static pid_t fifo_save_ppid;
-
-    static void fifo_check(void *handle)
-    {
+/* Timer check for process substitution using fallback FIFO method */
+static pid_t fifo_save_ppid;
+static void fifo_check(void *handle)
+{
 	NOT_USED(handle);
 	if(getppid() != fifo_save_ppid)
 	{
 		unlink(sh.fifo);
 		sh_done(0);
 	}
-    }
+}
 
-    /* Remove any remaining FIFOs to stop unused process substitutions blocking on trying to open the FIFO */
-    static void fifo_cleanup(void)
-    {
+/* Remove any remaining FIFOs to stop unused process substitutions blocking on trying to open the FIFO */
+static void fifo_cleanup(void)
+{
 	if(sh.fifo_tree)
 	{
 		Namval_t	*fifo = dtfirst(sh.fifo_tree);
@@ -92,8 +91,7 @@ struct funenv
 			sh.fifo_tree = NULL;
 		}
 	}
-    }
-#endif /* !SHOPT_DEVFD */
+}
 
 #if _lib_getrusage
 /* getrusage tends to have higher precision */
@@ -1244,9 +1242,7 @@ int sh_exec(const Shnode_t *t, int flags)
 						/* failure on special built-ins fatal */
 						if(jmpval<=SH_JMPCMD && (!nv_isattr(np,BLT_SPC) || command) && !was_mktype)
 							jmpval=0;
-#if !SHOPT_DEVFD
 						fifo_cleanup();
-#endif
 					}
 					bp->bnode = 0;
 					if(bp->ptr != nv_context(np))
@@ -1396,9 +1392,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			else if(!io)
 			{
 			setexit:
-#if !SHOPT_DEVFD
 				fifo_cleanup();
-#endif
 				if(sh.topfd > topfd && !(sh.subshell && (np==SYSEXEC || np==SYSREDIR)))
 					sh_iorestore(topfd,jmpval);  /* avoid leaking unused file descriptors */
 				exitset();
@@ -1438,10 +1432,8 @@ int sh_exec(const Shnode_t *t, int flags)
 					pipes[2] = 0;
 					coproc_init(pipes);
 				}
-#if !SHOPT_DEVFD
 				if(sh.fifo)
 					fifo_save_ppid = sh.current_pid;
-#endif
 				if(com)
 				{
 #if SHOPT_SPAWN
@@ -1507,7 +1499,6 @@ int sh_exec(const Shnode_t *t, int flags)
 				struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 				struct ionod *iop;
 				int	rewrite=0;
-#if !SHOPT_DEVFD
 				char	*save_sh_fifo = sh.fifo;
 				if(sh.fifo_tree)
 				{
@@ -1515,7 +1506,6 @@ int sh_exec(const Shnode_t *t, int flags)
 					dtclose(sh.fifo_tree);
 					sh.fifo_tree = NULL;
 				}
-#endif
 				sh_invalidate_rand_seed();
 				if(no_fork)
 					sh_sigreset(2);
@@ -1538,9 +1528,9 @@ int sh_exec(const Shnode_t *t, int flags)
 				/* pipe in or out */
 				if((type&FAMP) && sh_isoption(SH_BGNICE))
 					nice(4);
-#if !SHOPT_DEVFD
 				if(sh.fifo && (type&(FPIN|FPOU)))
 				{
+					/* code for process substitution using fallback FIFO method */
 					int	fn, fd, save_errno;
 					void	*fifo_timer = sh_timeradd(50,1,fifo_check,NULL);
 					fd = (type&FPIN) ? 0 : 1;
@@ -1562,7 +1552,6 @@ int sh_exec(const Shnode_t *t, int flags)
 					sh_close(fn);
 					type &= ~(FPIN|FPOU);
 				}
-#endif /* !SHOPT_DEVFD */
 				if(type&FPIN)
 				{
 					sh_iorenumber(sh.inpipe[0],0);
@@ -1620,13 +1609,11 @@ int sh_exec(const Shnode_t *t, int flags)
 					path_exec(com0,com,t->com.comset);
 				}
 			done:
-#if !SHOPT_DEVFD
 				if(save_sh_fifo)
 				{
 					unlink(save_sh_fifo);
 					free(save_sh_fifo);
 				}
-#endif
 				sh_popcontext(buffp);
 				if(jmpval>SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
@@ -3151,10 +3138,8 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 	struct funenv	fun;
 	char		*fname = nv_getval(SH_FUNNAMENOD);
 	pid_t		pipepid = sh.pipepid;
-#if !SHOPT_DEVFD
 	Dt_t		*save_fifo_tree = sh.fifo_tree;
 	sh.fifo_tree = NULL;
-#endif
 	sh.pipepid = 0;
 	sh_stats(STAT_FUNCT);
 	if((struct sh_scoped*)sh.topscope != sh.st.self)
@@ -3178,10 +3163,8 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 			nv_unset(np, NV_RDONLY);
 		}
 	}
-#if !SHOPT_DEVFD
 	fifo_cleanup();
 	sh.fifo_tree = save_fifo_tree;
-#endif
 }
 
 /*

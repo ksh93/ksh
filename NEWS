@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-02:
+
+- Process substitution now no longer depends on compile-time detection of
+  /dev/fd/N, but detects this at runtime instead and transparently falls
+  back to the legacy method with FIFOs whenever /dev/fd is unavailable. This
+  fixes process substituion on FreeBSD, where /dev/fd is an optional file
+  system that may be mounted and unmounted at any time.
+
 2026-07-01:
 
 - Fixed two longstanding bugs in job control: if the -m (--monitor) option was

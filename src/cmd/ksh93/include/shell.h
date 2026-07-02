@@ -343,6 +343,8 @@ struct Shell_s
 	int		cpipe[3];
 	int		coutpipe;
 	int		inuse_bits;
+	char		*fifo;		/* FIFO name for current process substitution */
+	Dt_t		*fifo_tree;	/* for cleaning up process substitution FIFOs */
 	struct argnod	*envlist;
 	struct dolnod	*arglist;
 	int16_t		fn_depth;	/* scoped ksh-style function call depth */
@@ -408,10 +410,6 @@ struct Shell_s
 #if SHOPT_FILESCAN
 	char		*cur_line;
 #endif /* SHOPT_FILESCAN */
-#if !SHOPT_DEVFD
-	char		*fifo;		/* FIFO name for current process substitution */
-	Dt_t		*fifo_tree;	/* for cleaning up process substitution FIFOs */
-#endif /* !SHOPT_DEVFD */
 #endif /* _BLD_ksh */
 };
 
