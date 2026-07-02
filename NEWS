@@ -10,6 +10,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   fixes process substituion on FreeBSD, where /dev/fd is an optional file
   system that may be mounted and unmounted at any time.
 
+- Fixed input buffer memory corruption occurring for inpnut from the terminal
+  and other non-seekable input on FreeBSD. Bug introduced on 2026-04-17.
+
 2026-07-01:
 
 - Fixed two longstanding bugs in job control: if the -m (--monitor) option was

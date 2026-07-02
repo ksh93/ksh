@@ -565,9 +565,9 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	}
 	if(status&IOREAD)
 	{
-		if (read_script)
+		if (read_script && !(status & IOTTY))
 		{
-			if (!(status & IONOSEEK))
+			if (!(status & IONOSEEK) && filesize != 0)
 			{
 				/* seekable script input: buffer the entire script */
 				if (filesize < 0)
@@ -578,7 +578,7 @@ Sfio_t *sh_iostream(int fd, int read_script)
 				}
 				iobsize = (size_t)filesize;
 			}
-			else if (!(status & IOTTY))
+			else
 			{
 				/* for non-seekable script input, stop individual lines crossing buffer
 				 * boundaries: read one line at a time, allowing for very long lines */
@@ -612,7 +612,7 @@ Sfio_t *sh_iostream(int fd, int read_script)
 		dp->exceptf = slowexcept;
 		if(status&IOTTY)
 			dp->readf = slowread;
-		else if(status&IONOSEEK)
+		else if(status&IONOSEEK || scriptpipe)
 		{
 			dp->readf = scriptpipe ? scriptpiperead : piperead;
 			sfset(iop, SFIO_IOINTR,1);
@@ -2167,10 +2167,10 @@ uint8_t sh_iocheckfd(int fd, ssize_t *filesize_p)
 	if(!(n&(IOSEEK|IONOSEEK)))
 	{
 		if(tty_check(fd))
-			n |= IOTTY;
-		if((fstatresult = fstat(fd,&statb)) < 0)
+			n |= IOTTY|IONOSEEK;
+		else if((fstatresult = fstat(fd,&statb)) < 0)
 			goto bail;
-		if(lseek(fd,0,SEEK_CUR)<0)
+		else if(lseek(fd,0,SEEK_CUR)<0)
 		{
 			n |= IONOSEEK;
 #ifdef S_ISSOCK
