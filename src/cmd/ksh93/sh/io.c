@@ -1742,15 +1742,13 @@ void sh_iosave(int origfd, int oldtop, char *name)
 			}
 		}
 	}
-#if SHOPT_DEVFD
 	if(origfd <0)
 	{
+		/* for process substitution using /dev/fd */
 		savefd = origfd;
 		origfd = -origfd;
 	}
-	else
-#endif /* SHOPT_DEVFD */
-	if(flag&IOPICKFD)
+	else if(flag&IOPICKFD)
 		savefd = -1;
 	else
 	{

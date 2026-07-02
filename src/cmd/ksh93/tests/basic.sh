@@ -1110,7 +1110,9 @@ unset bindir
 # $0 should be the /dev/fd path for scripts executed from a /dev/fd file
 # https://github.com/ksh93/ksh/issues/874
 # https://github.com/ksh93/ksh/pull/879
-if ((SHOPT_DEVFD))
+# WARNING: do not use 'test -e' to check if /dev/fd is functional (too many shells
+# break it by failing to test for the physical existence of /dev/fd/9 in the FS)
+if	ls -d /dev/fd/9 9<&0 >/dev/null 2>&1
 then	# $0 should be the /dev/fd script name when the script is a process substitution
 	got=$("$SHELL" <(echo 'echo $0'))
 	if [[ ${got:0:7} != '/dev/fd' ]]
