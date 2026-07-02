@@ -2188,9 +2188,9 @@ uint8_t sh_iocheckfd(int fd, ssize_t *filesize_p)
 		}
 		else if(S_ISFIFO(statb.st_mode)
 #ifdef S_ISSOCK
-			|| S_ISSOCK(statb.st_mode)
+		|| S_ISSOCK(statb.st_mode)
 #endif /* S_ISSOCK */
-		)
+		|| S_ISCHR(statb.st_mode))
 			n |= IONOSEEK;
 		else
 			n |= IOSEEK;
