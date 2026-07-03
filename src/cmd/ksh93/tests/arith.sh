@@ -318,8 +318,14 @@ then	err_exit 'display of unsigned integers in non-decimal bases wrong'
 fi
 $SHELL -c 'i=0;(( ofiles[i] != -1 && (ofiles[i] < mins || mins == -1) ));exit 0' 2> /dev/null || err_exit 'lexical error with arithmetic expression'
 $SHELL -c '(( +1 == 1))' 2> /dev/null || err_exit 'unary + not working'
-typeset -lE20 val=123.01234567890
-[[ $val == 123.0123456789 ]] || err_exit "rounding error val=$val"
+
+sizeof_ld=$(awk '/^#define _ast_sizeof_long_double/ { print $3; exit; }' "$INSTALLROOT/include/ast/ast_common.h")
+if	((sizeof_ld < 12))
+then	warning "sizeof(long double) < 12; skipping rounding error test"
+else	typeset -lE20 val=123.01234567890
+	[[ $val == 123.0123456789 ]] || err_exit "rounding error val=$val"
+fi
+
 if	[[ $(print x$((10))=foo) != x10=foo ]]
 then	err_exit 'parsing error with x$((10))=foo'
 fi
