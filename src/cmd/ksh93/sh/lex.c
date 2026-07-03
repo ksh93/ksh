@@ -2508,7 +2508,10 @@ static void setupalias(Lex_t *lp, const char *string,Namval_t *np)
 	}
 	else
 		ap->nextc = 0;
-	iop = sfopen(NULL,(char*)string,"s");
+	/* copy alias value to stack to avoid use after free if alias redefines itself */
+	string = stkcopy(sh.stk, string);
+	/* set up input stream for alias value */
+	iop = sfopen(NULL, string, "s");
 	sfdisc(iop, &ap->disc);
 	lp->lexd.nocopy++;
 	if(!(base=fcfile()))

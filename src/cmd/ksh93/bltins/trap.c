@@ -59,9 +59,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
@@ -262,9 +260,7 @@ int	b_kill(int argc,char *argv[],Shbltin_t *context)
 			flag |= L_FLAG;
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 endopts:
 	argv += opt_info.index;
@@ -325,9 +321,7 @@ int	b_suspend(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	if(error_info.errors)	/* no options supported (except AST --man, etc.) */
 	{

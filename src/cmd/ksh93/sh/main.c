@@ -64,9 +64,7 @@ static struct stat lastmail;
 static time_t	mailtime;
 static char	beenhere = 0;
 
-#if SHOPT_DEVFD
 #define GOT_DEVFD	2
-#endif
 
 /*
  * search for file and exfile() it if it exists
@@ -223,7 +221,6 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				fdin = 0;
 			else
 			{
-#if SHOPT_DEVFD
 				/* open stream should have been passed into shell */
 				if(strmatch(name,e_devfdNN) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)
 				{
@@ -238,7 +235,6 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 					beenhere = GOT_DEVFD;
 				}
 				else
-#endif /* SHOPT_DEVFD */
 				{
 					int isdir = 0;
 					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
@@ -344,11 +340,9 @@ static void	exfile(Sfio_t *iop,int fno)
 	{
 		if(fno > 0)
 		{
-#if SHOPT_DEVFD
 			if(beenhere == GOT_DEVFD)
 				;  /* leave the inherited /dev/fd as is */
 			else
-#endif
 			{
 				if(fno < 10)
 				{

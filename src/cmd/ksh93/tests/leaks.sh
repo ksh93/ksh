@@ -468,4 +468,14 @@ DONE >/dev/null
 trap - USR1
 
 # ======
+# https://github.com/ksh93/ksh/issues/995
+TEST	title='printf date/time formatting with user-supplied date/time'
+	export date
+DO
+	printf -v date '%(%K.%3N)T'
+	printf -v jday '%(%j)T' "${date}"
+DONE
+unset date jday
+
+# ======
 exit $((Errors<125?Errors:125))

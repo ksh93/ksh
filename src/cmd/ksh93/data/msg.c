@@ -78,9 +78,7 @@ const char e_exec[]		= "%s: cannot execute";
 const char e_pwd[]		= "cannot determine present working directory";
 const char e_found[]		= "%s: not found";
 const char e_autoloadnotfound[] = "autoload: %s: function not found";
-#ifdef ENAMETOOLONG
 const char e_toolong[]		= "%s: file name too long";
-#endif
 const char e_defined[]		= "%s: function not defined";
 const char e_subscript[]	= "%s: subscript out of range";
 const char e_toodeep[]		= "%s: recursion too deep";

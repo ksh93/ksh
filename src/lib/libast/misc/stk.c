@@ -66,7 +66,7 @@ struct frame
 	char	*prev;		/* address of previous frame */
 	char	*end;		/* address of end this frame */
 	char	**aliases;	/* address aliases */
-	ssize_t	nalias;	/* number of aliases */
+	ssize_t	nalias;		/* number of aliases */
 };
 
 struct stk
@@ -367,7 +367,7 @@ void *stkalloc(Sfio_t *stream, size_t n)
 }
 
 /*
- * begin a new stack word of at least <n> bytes
+ * begin a new stack object of at least <n> bytes
  */
 void *_stkseek(Sfio_t *stream, ptrdiff_t n)
 {
@@ -406,46 +406,38 @@ void	*stkfreeze(Sfio_t *stream, size_t extra)
 }
 
 /*
- * copy string <str> onto the stack as a new stack word
+ * copy string <str> onto the stack as a new object
  */
 char	*stkcopy(Sfio_t *stream, const char* str)
 {
-	unsigned char *cp = (unsigned char*)str;
+	char *cp, *tp;
 	size_t n;
 	size_t off = (size_t)stktell(stream);
-	char buff[40], *tp=buff;
+	/* save unterminated object */
 	if(off)
 	{
-		if(off > sizeof(buff))
+		if (!(tp = malloc(off)))
 		{
-			if(!(tp = malloc(off)))
-			{
-				struct stk *sp = stream2stk(stream);
-				if(!sp->stkoverflow || !(tp = (*sp->stkoverflow)(off)))
-					return NULL;
-			}
+			struct stk *sp = stream2stk(stream);
+			if (!sp->stkoverflow || !(tp = (*sp->stkoverflow)(off)))
+				return NULL;
 		}
 		memcpy(tp, stream->_data, off);
 	}
-	while(*cp++);
-	n = roundof((size_t)(cp-(unsigned char*)str),STK_ALIGN);
-	if(!init)
-		stkinit(n);
-	if(stkleft(stream) <= (ssize_t)n && !stkgrow(stream,n))
-		cp = 0;
-	else
+	/* allocate space for string on stack */
+	n = strlen(str) + 1;
+	if (!(cp = stkalloc(stream, n)))
+		return NULL;
+	/* restore unterminated object */
+	if (off)
 	{
-		strcpy((char*)(cp=stream->_data),str);
-		stream->_data = stream->_next = cp+n;
-		if(off)
-		{
-			_stkseek(stream,(ptrdiff_t)off);
-			memcpy(stream->_data, tp, off);
-		}
-	}
-	if(tp!=buff)
+		if (!_stkseek(stream,(ptrdiff_t)off))
+			return NULL;
+		memcpy(stream->_data, tp, off);
 		free(tp);
-	return (char*)cp;
+	}
+	/* copy string to stack */
+	return memcpy(cp, str, n);
 }
 
 /*

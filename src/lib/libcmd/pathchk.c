@@ -187,13 +187,11 @@ static int pathchk(char* path, int mode)
 				name_max=(r<_POSIX_NAME_MAX?_POSIX_NAME_MAX:r);
 			else if(errno==EINVAL)
 				continue;
-#ifdef ENAMETOOLONG
 			else if(errno==ENAMETOOLONG)
 			{
 				error(2,"%s: pathname too long",path);
 				return -1;
 			}
-#endif /*ENAMETOOLONG*/
 			else
 				break;
 		}
@@ -255,9 +253,7 @@ b_pathchk(int argc, char** argv, Shbltin_t* context)
 			error(2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}

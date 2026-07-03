@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1985-2014 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-03-28"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-06-20"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -322,12 +322,7 @@ static Msg_t		C_LC_MESSAGES_libast[] =
 	{ C("version") },
 };
 
-/*
- * 2007-03-19 move opt_info from _opt_info_ to (*_opt_data_)
- *	      to allow future Opt_t growth
- */
-
-static Opt_t	_opt_info_ = { 0,0,0,0,0,0,0,{0},{0},0,0,0,{0},{0},&state };
+static Opt_t	_opt_info_ = { 0,NULL,NULL,0,NULL,0,0,{0},{0},NULL,0,0,0,&state };
 Opt_t*		_opt_infop_ = &_opt_info_;
 
 Optstate_t*
@@ -902,17 +897,19 @@ init(char* s, Optpass_t* p)
 	char*	e;
 	int	l;
 
-	if (!state.localized)
+	if (!state.localized || state.localized != ast.locale.serial)
+	{
+		state.localized = ast.locale.serial;
+		setlocale(LC_ALL, "");
+	}
+	if (!state.xp)
 	{
 		unsigned char	*opts = (unsigned char*)OPT_FLAGS;
-		unsigned char	*o;
-		state.localized = 1;
-		if (!ast.locale.serial)
-			setlocale(LC_ALL, "");
+		unsigned char	i, *o;
 		state.xp = sfstropen();
 		if (!map[opts[0]])
-			for (n = 0, o = opts; *o; o++)
-				map[*o] = (unsigned char)++n;
+			for (i = 0, o = opts; *o; o++)
+				map[*o] = ++i;
 	}
 #if _BLD_DEBUG
 	error(-2, "optget debug");
@@ -1177,13 +1174,29 @@ font(int f, int style, int set)
 static Push_t*
 info(Push_t* psp, char* s, char* e, Sfio_t* ip, char* id)
 {
-	char*	b;
-	size_t	n;
-	Push_t*	tsp;
+	char*		b;
+	size_t		n;
+	Push_t*		tsp;
+
+	int		save_index;
+	int		save_offset;
+	long		save_num;
+	intmax_t	save_number;
+	char*		save_arg;
 
 	static Push_t	push;
 
+	save_index = opt_info.index;
+	save_offset = opt_info.offset;
+	save_num = opt_info.num;
+	save_number = opt_info.number;
+	save_arg = opt_info.arg;
 	b = expand(s, e, &s, ip, id);
+	opt_info.index = save_index;
+	opt_info.offset = save_offset;
+	opt_info.num = save_num;
+	opt_info.number = save_number;
+	opt_info.arg = save_arg;
 	n = strlen(b);
 	if (tsp = newof(0, Push_t, 1, n + 1))
 	{
@@ -4382,7 +4395,8 @@ optget(char** argv, const char* oopts)
 	 */
 
 	opt_info.assignment = 0;
-	nov = no = num = 1;
+	num = 1;
+	no = nov = 0;
 	e = w = v = 0;
 	n = x = 0;
 	for (;;)
@@ -4403,7 +4417,18 @@ optget(char** argv, const char* oopts)
 			}
 			if (!(s = argv[opt_info.index]))
 				return 0;
-			if (!prefix)
+			if (opt_info.posix)
+			{
+				/*
+				 * POSIX mode: only short options with single '-' prefix are recognized
+				 */
+
+				if (!prefix || *s != '-')
+					return 0;
+				prefix = 1;
+				n = 1;
+			}
+			else if (!prefix)
 			{
 				/*
 				 * long with no prefix (dd style)
@@ -4551,7 +4576,7 @@ optget(char** argv, const char* oopts)
 	 *	v	long option value (via =) if w != 0
 	 */
 
-	if (c == '?')
+	if (c == '?' && !opt_info.posix)
 	{
 		/*
 		 * ? always triggers internal help
@@ -5772,4 +5797,15 @@ optstr(const char* str, const char* opts)
 	return c;
  outofmemory:
 	return opterror(NULL, 0, 0, NULL, NULL);
+}
+
+/*
+ * Show self-documentation.
+ * For "case '?'" in getopt loops.
+ */
+int
+optselfdoc(void)
+{
+	error(ERROR_USAGE|ERROR_SFIO_OUT, sfstdout, "%s", opt_info.arg);
+	return 0;
 }

@@ -37,9 +37,7 @@
 #if SHOPT_KIA
 #   include	"shlex.h"
 #endif
-#if SHOPT_KIA || SHOPT_DEVFD
-#   include	"io.h"
-#endif
+#include	"io.h"
 
 #define SORT		1
 #define PRINT		2
@@ -228,8 +226,7 @@ int sh_argopts(int argc,char *argv[])
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			continue;
 		    case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+			optselfdoc();
 			return -1;
 		}
 		if(f)
@@ -391,7 +388,7 @@ static void applyopts(Shopt_t newflags)
 				off_option(&newflags,SH_PRIVILEGED);
 	}
 	/* sync monitor (part of job control) state with -o monitor option change */
-	if(!sh_isoption(SH_MONITOR) && is_option(&newflags,SH_MONITOR))
+	if(is_option(&newflags,SH_MONITOR))
 		sh_onstate(SH_MONITOR);
 	else if(sh_isoption(SH_MONITOR) && !is_option(&newflags,SH_MONITOR))
 		sh_offstate(SH_MONITOR);
@@ -731,34 +728,45 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	int savestates = sh_getstate();
 	char savejobcontrol = job.jobcontrol;
 	unsigned int savesubshell = sh.subshell;
+	int use_devfd = 1;
+	struct stat statb;
 	ap = stkseek(sh.stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
 	fd = argp->argflag&ARG_RAW;
 	if(fd==0 && sh.subshell)
 		sh_subtmpfile();
-#if SHOPT_DEVFD
-	sfwrite(sh.stk,e_devfdNN,8);
 	pv[2] = 0;
 	sh_pipe(pv,0);
-#else
-	pv[0] = -1;
-	while(sh.fifo = pathtemp(0,0,0,"ksh.fifo",0), sh.fifo && mkfifo(sh.fifo,0)<0)
-	{
-		if(errno==EEXIST || errno==EACCES || errno==ENOENT || errno==ENOTDIR || errno==EROFS)
-			continue;		/* lost race (name conflict or tmp dir change); try again */
-		sh.fifo = 0;
-		break;
-	}
-	if(!sh.fifo)
-	{
-		errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "process substitution: FIFO creation failed");
-		UNREACHABLE();
-	}
-	chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
-	sfputr(sh.stk,sh.fifo,0);
-#endif /* SHOPT_DEVFD */
+	sfwrite(sh.stk,e_devfdNN,8);
 	sfputr(sh.stk,fmtint(pv[fd],1),0);
+	/*
+	 * Check if /dev/fd/pv[fd] exists in the file system. If not, fall back to the FIFO method.
+	 * This must be done at runtime because on some systems (looking at you, FreeBSD), /dev/fd
+	 * is implemented as an optional file system that may be mounted and unmounted at any time.
+	 */
+	if (stat((char*)ap + ARGVAL, &statb) < 0 || S_ISREG(statb.st_mode) || S_ISDIR(statb.st_mode))
+	{
+		sh_close(pv[0]);
+		sh_close(pv[1]);
+		use_devfd = 0;
+		pv[0] = -1;
+		while(sh.fifo = pathtemp(0,0,0,"ksh.fifo",0), sh.fifo && mkfifo(sh.fifo,0)<0)
+		{
+			if(errno==EEXIST || errno==EACCES || errno==ENOENT || errno==ENOTDIR || errno==EROFS)
+				continue;	/* lost race (name conflict or tmp dir change); try again */
+			sh.fifo = 0;
+			break;
+		}
+		if(!sh.fifo)
+		{
+			errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "process substitution: FIFO creation failed");
+			UNREACHABLE();
+		}
+		chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
+		stkseek(sh.stk,ARGVAL);
+		sfputr(sh.stk,sh.fifo,0);
+	}
 	ap = stkfreeze(sh.stk,0);
 	sh.inpipe = sh.outpipe = 0;
 	/* turn off job control */
@@ -777,17 +785,20 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	sh.subshell = savesubshell;
 	job.jobcontrol = savejobcontrol;
 	sh_setstate(savestates);
-#if SHOPT_DEVFD
-	sh_close(pv[1-fd]);
-	sh_iosave(-pv[fd], sh.topfd, NULL);
-#else
-	/* remember the FIFO for cleanup in case the command never opens it (see fifo_cleanup(), xec.c) */
-	if(!sh.fifo_tree)
-		sh.fifo_tree = dtopen(&_Nvdisc,Dtoset);
-	nv_search(sh.fifo,sh.fifo_tree,NV_ADD);
-	free(sh.fifo);
-	sh.fifo = 0;
-#endif /* SHOPT_DEVFD */
+	if (use_devfd)
+	{
+		sh_close(pv[1-fd]);
+		sh_iosave(-pv[fd], sh.topfd, NULL);
+	}
+	else
+	{
+		/* remember the FIFO for cleanup in case the command never opens it (see fifo_cleanup(), xec.c) */
+		if(!sh.fifo_tree)
+			sh.fifo_tree = dtopen(&_Nvdisc,Dtoset);
+		nv_search(sh.fifo,sh.fifo_tree,NV_ADD);
+		free(sh.fifo);
+		sh.fifo = 0;
+	}
 	return ap;
 }
 

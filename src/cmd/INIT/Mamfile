@@ -22,7 +22,7 @@ make install virtual
 	note *
 
 	make helper_scripts virtual
-		loop SCRIPT iffe mktest regress mkreq mkreq-maplib proto dylink mkdeps
+		loop SCRIPT iffe mktest regress mkreq mkreq-maplib proto dylink mkdeps git_wd_isclean
 			make %{SCRIPT}
 				makp %{@}.sh
 				exec - cp %{<} %{@} && chmod u+w,+x %{@}

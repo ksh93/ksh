@@ -83,10 +83,8 @@ static noreturn void exit_child(void)
 {
 	if (errno == ENOENT)
 		_exit(EXIT_NOTFOUND);
-#ifdef ENAMETOOLONG
 	if (errno == ENAMETOOLONG)
 		_exit(EXIT_NOTFOUND);
-#endif
 	_exit(EXIT_NOEXEC);
 }
 

@@ -807,8 +807,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 			state.options |= REG_FIRST|REG_NOSUB;
 		break;
 	case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+		optselfdoc();
 		r = 0;
 		goto done;
 	case ':':

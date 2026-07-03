@@ -1430,5 +1430,18 @@ r fn
 r ^this is a test\r\n$
 !
 
+tst $LINENO <<"!"
+L getopts aborts execution of command line
+# https://github.com/ksh93/ksh/issues/978#issuecomment-4306610198
+
+d 15
+p :test-1:
+w function fn { while getopts x o; do :; done; }; fn --help; echo OK/CONTINUED/1
+u ^OK/CONTINUED/1\r\n$
+p :test-2:
+w set -- --help; OPTIND=1; while getopts x o; do :; done; echo OK/CONTINUED/2
+u ^OK/CONTINUED/2\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))

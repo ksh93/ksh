@@ -26,11 +26,7 @@
 
 #include <ast.h>
 
-#if _WINIX
-
-NoN(getcwd)
-
-#else
+#if !_WINIX
 
 #include "FEATURE/syscall"
 
@@ -315,6 +311,10 @@ getcwd(char* buf, size_t len)
 	return NULL;
 }
 
-#endif
+#endif /* defined(SYSGETCWD) */
 
-#endif
+#else
+
+NoN(getcwd)
+
+#endif /* !_WINIX */

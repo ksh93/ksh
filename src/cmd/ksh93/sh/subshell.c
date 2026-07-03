@@ -158,7 +158,7 @@ void sh_subfork(void)
 		sh_subtmpfile();
 	sh.curenv = 0;
 	sh.savesig = -1;
-	if(pid = sh_fork(FSHOWME,NULL))
+	if(pid = sh_fork(F_SUBFORK,NULL))
 	{
 		sh.curenv = curenv;
 		/* this is the parent part of the fork */
@@ -708,6 +708,11 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				else
 					sh_subfork();
 			}
+			/* On scripts with -m on, we must fork any non-comsub subshell invoked from the main
+			 * shell in order for it to start and lead a new process group (via _sh_fork()).  */
+			else if(sh_isstate(SH_MONITOR))
+				sh_subfork();
+			/* Execute the subshell tree */
 			sh_exec(t,flags);
 		}
 	}

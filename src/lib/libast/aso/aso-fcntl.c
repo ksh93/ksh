@@ -20,11 +20,7 @@
 
 #include "asohdr.h"
 
-#if !_aso_fcntl
-
-NoN(aso_meth_fcntl)
-
-#else
+#if _aso_fcntl
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -182,4 +178,8 @@ aso_lock_fcntl(void* data, ssize_t k, void volatile* p)
 
 Asometh_t	_aso_meth_fcntl = { "fcntl", ASO_PROCESS, aso_init_fcntl, aso_lock_fcntl };
 
-#endif
+#else
+
+NoN(aso_meth_fcntl)
+
+#endif /* _aso_fcntl */

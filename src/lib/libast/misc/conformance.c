@@ -109,7 +109,7 @@ conformance(const char* s, size_t n)
 	const char*	e;
 	const char*	t;
 
-	static uint32_t	serial = ~(uint32_t)0;
+	static uint64_t	serial = ~(uint64_t)0;
 
 	if (!(p = ids) || serial != ast.env_serial)
 	{

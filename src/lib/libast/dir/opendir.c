@@ -32,13 +32,7 @@
 
 #include "dirlib.h"
 
-#if _dir_ok
-
-NoN(opendir)
-
-#else
-
-static const char id_dir[] = "\n@(#)$Id: directory (AT&T Research) 1993-04-01 $\0\n";
+#if !_dir_ok
 
 static DIR*	freedirp;		/* always keep one dirp */
 
@@ -91,4 +85,8 @@ closedir(DIR* dirp)
 	}
 }
 
-#endif
+#else
+
+NoN(opendir)
+
+#endif /* !_dir_ok */

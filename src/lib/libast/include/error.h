@@ -30,7 +30,7 @@
 #include <ast.h>
 #include <option.h>
 
-#define ERROR_VERSION	20251007L
+#define ERROR_VERSION	20260506L
 
 #define ERROR_debug(n)	(-(n))
 #define ERROR_exit(n)	((n)+ERROR_ERROR)
@@ -66,6 +66,7 @@
 #define ERROR_PROMPT	0x1000		/* omit trailing newline	*/
 #define ERROR_NOID	0x2000		/* omit err_id			*/
 #define ERROR_LIBRARY	0x4000		/* library routine error	*/
+#define ERROR_SFIO_OUT	0x8000		/* next arg is Sfio stream	*/
 
 #define ERROR_INTERACTIVE	0x0001	/* context is interactive	*/
 #define ERROR_SILENT		0x0002	/* context is silent		*/
@@ -137,45 +138,6 @@ struct Error_info_s			/* error state			*/
 
 #ifndef errno
 extern int	errno;			/* system call error status	*/
-#endif
-#ifndef E2BIG
-#define E2BIG	ENOMEM
-#endif
-#ifndef EAGAIN
-#define EAGAIN	11
-#endif
-#ifndef EBADF
-#define EBADF	9
-#endif
-#ifndef EBUSY
-#define EBUSY	16
-#endif
-#ifndef EDEADLK
-#define EDEADLK	45
-#endif
-#ifndef EINTR
-#define EINTR	4
-#endif
-#ifndef EILSEQ
-#define EILSEQ	EIO
-#endif
-#ifndef EINVAL
-#define EINVAL	22
-#endif
-#ifndef ENOMEM
-#define ENOMEM	12
-#endif
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-#ifndef EPERM
-#define EPERM	1
-#endif
-#ifndef ERANGE
-#define ERANGE	E2BIG
-#endif
-#ifndef ESPIPE
-#define ESPIPE	29
 #endif
 
 extern Error_info_t*	_error_infop_;

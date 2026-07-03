@@ -298,7 +298,7 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 	Catalog_t*	cp = NULL;
 	Message_t*	mp;
 
-	static uint32_t	serial;
+	static uint64_t	serial = ~(uint64_t)0;
 	static char*	nlspath;
 
 	oerrno = errno;

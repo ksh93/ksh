@@ -40,8 +40,8 @@
  *
  *  2. The state flag, sh_isstate(SH_MONITOR), determines whether the bits
  *     of job control that are relevant for both scripts and interactive
- *     shells are active, which is mostly making sure that a background job
- *     gets its own process group (setpgid(3)).
+ *     shells are active, which is mostly making sure that each job gets
+ *     its own process group (setpgid(3)).
  *
  *  3. The -m (-o monitor) shell option, sh_isoption(SH_MONITOR), is just
  *     that. When the user turns it on or off, the state flag is synched
@@ -1022,6 +1022,7 @@ static struct process *job_byname(char *name)
 		return NULL;
 	if(*cp=='?')
 		cp++,flag= &offset;
+	for(;pw;pw=pw->p_nxtjob)
 	{
 		if(hist_match(sh.hist_ptr,pw->p_name,cp,flag)>=0)
 		{

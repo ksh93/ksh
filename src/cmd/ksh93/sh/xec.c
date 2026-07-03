@@ -64,22 +64,21 @@ struct funenv
 
 /* ========	command execution	======== */
 
-#if !SHOPT_DEVFD
-    static pid_t fifo_save_ppid;
-
-    static void fifo_check(void *handle)
-    {
+/* Timer check for process substitution using fallback FIFO method */
+static pid_t fifo_save_ppid;
+static void fifo_check(void *handle)
+{
 	NOT_USED(handle);
 	if(getppid() != fifo_save_ppid)
 	{
 		unlink(sh.fifo);
 		sh_done(0);
 	}
-    }
+}
 
-    /* Remove any remaining FIFOs to stop unused process substitutions blocking on trying to open the FIFO */
-    static void fifo_cleanup(void)
-    {
+/* Remove any remaining FIFOs to stop unused process substitutions blocking on trying to open the FIFO */
+static void fifo_cleanup(void)
+{
 	if(sh.fifo_tree)
 	{
 		Namval_t	*fifo = dtfirst(sh.fifo_tree);
@@ -92,8 +91,7 @@ struct funenv
 			sh.fifo_tree = NULL;
 		}
 	}
-    }
-#endif /* !SHOPT_DEVFD */
+}
 
 #if _lib_getrusage
 /* getrusage tends to have higher precision */
@@ -1244,9 +1242,7 @@ int sh_exec(const Shnode_t *t, int flags)
 						/* failure on special built-ins fatal */
 						if(jmpval<=SH_JMPCMD && (!nv_isattr(np,BLT_SPC) || command) && !was_mktype)
 							jmpval=0;
-#if !SHOPT_DEVFD
 						fifo_cleanup();
-#endif
 					}
 					bp->bnode = 0;
 					if(bp->ptr != nv_context(np))
@@ -1396,9 +1392,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			else if(!io)
 			{
 			setexit:
-#if !SHOPT_DEVFD
 				fifo_cleanup();
-#endif
 				if(sh.topfd > topfd && !(sh.subshell && (np==SYSEXEC || np==SYSREDIR)))
 					sh_iorestore(topfd,jmpval);  /* avoid leaking unused file descriptors */
 				exitset();
@@ -1438,19 +1432,19 @@ int sh_exec(const Shnode_t *t, int flags)
 					pipes[2] = 0;
 					coproc_init(pipes);
 				}
-#if !SHOPT_DEVFD
 				if(sh.fifo)
 					fifo_save_ppid = sh.current_pid;
-#endif
-#if SHOPT_SPAWN
 				if(com)
 				{
+#if SHOPT_SPAWN
 					parent = sh_ntfork(t,com,&jobid,topfd);
 					if(parent<0)
 						break;
+#else
+					parent = sh_fork(type|F_COMFORK,&jobid);
+#endif /* SHOPT_SPAWN */
 				}
 				else
-#endif /* SHOPT_SPAWN */
 					parent = sh_fork(type,&jobid);
 			}
 			if(job.parent=parent)
@@ -1505,7 +1499,6 @@ int sh_exec(const Shnode_t *t, int flags)
 				struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 				struct ionod *iop;
 				int	rewrite=0;
-#if !SHOPT_DEVFD
 				char	*save_sh_fifo = sh.fifo;
 				if(sh.fifo_tree)
 				{
@@ -1513,7 +1506,6 @@ int sh_exec(const Shnode_t *t, int flags)
 					dtclose(sh.fifo_tree);
 					sh.fifo_tree = NULL;
 				}
-#endif
 				sh_invalidate_rand_seed();
 				if(no_fork)
 					sh_sigreset(2);
@@ -1536,9 +1528,9 @@ int sh_exec(const Shnode_t *t, int flags)
 				/* pipe in or out */
 				if((type&FAMP) && sh_isoption(SH_BGNICE))
 					nice(4);
-#if !SHOPT_DEVFD
 				if(sh.fifo && (type&(FPIN|FPOU)))
 				{
+					/* code for process substitution using fallback FIFO method */
 					int	fn, fd, save_errno;
 					void	*fifo_timer = sh_timeradd(50,1,fifo_check,NULL);
 					fd = (type&FPIN) ? 0 : 1;
@@ -1560,7 +1552,6 @@ int sh_exec(const Shnode_t *t, int flags)
 					sh_close(fn);
 					type &= ~(FPIN|FPOU);
 				}
-#endif /* !SHOPT_DEVFD */
 				if(type&FPIN)
 				{
 					sh_iorenumber(sh.inpipe[0],0);
@@ -1618,13 +1609,11 @@ int sh_exec(const Shnode_t *t, int flags)
 					path_exec(com0,com,t->com.comset);
 				}
 			done:
-#if !SHOPT_DEVFD
 				if(save_sh_fifo)
 				{
 					unlink(save_sh_fifo);
 					free(save_sh_fifo);
 				}
-#endif
 				sh_popcontext(buffp);
 				if(jmpval>SH_JMPEXIT)
 					siglongjmp(*sh.jmplist,jmpval);
@@ -2783,6 +2772,8 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	if(sh.trapnote&SH_SIGTERM)
 		sh_exit(SH_EXITSIG|SIGTERM);
 	sh_timerdel(NULL);
+	if(!job.jobcontrol && !(flags&(FAMP|F_SUBFORK|F_COMFORK)))
+		sh_offstate(SH_MONITOR);
 	if(sh_isstate(SH_MONITOR))
 	{
 		if(postid==0)
@@ -2791,14 +2782,16 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 			job.curpgid = sh.current_pid;
 		if(job.jobcontrol && job.curpgid==sh.current_pid && !(flags&FAMP))
 			tcsetpgrp(job.fd,job.curpgid);
+		if(flags&F_SUBFORK)
+			sh_offstate(SH_MONITOR);
 	}
 	if(job.jobcontrol)
 	{
 		signal(SIGTTIN,SIG_DFL);
 		signal(SIGTTOU,SIG_DFL);
 		signal(SIGTSTP,SIG_DFL);
+		job.jobcontrol = 0;
 	}
-	job.jobcontrol = 0;
 	job.toclear = 1;
 	sh_offoption(SH_LOGIN_SHELL);
 	sh_onstate(SH_FORKED);
@@ -2807,7 +2800,7 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 #endif	/* SHOPT_ACCT */
 	/* Reset remaining signals to parent */
 	/* except for those `lost' by trap   */
-	if(!(flags&FSHOWME))
+	if(!(flags&F_SUBFORK))
 		sh_sigreset(2);
 	sh_clear_subshell_pwdfd();
 	sh.realsubshell++;		/* increase ${.sh.subshell} */
@@ -3145,10 +3138,8 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 	struct funenv	fun;
 	char		*fname = nv_getval(SH_FUNNAMENOD);
 	pid_t		pipepid = sh.pipepid;
-#if !SHOPT_DEVFD
 	Dt_t		*save_fifo_tree = sh.fifo_tree;
 	sh.fifo_tree = NULL;
-#endif
 	sh.pipepid = 0;
 	sh_stats(STAT_FUNCT);
 	if((struct sh_scoped*)sh.topscope != sh.st.self)
@@ -3172,10 +3163,8 @@ static void sh_funct(Namval_t *np,int argn, char *argv[],struct argnod *envlist,
 			nv_unset(np, NV_RDONLY);
 		}
 	}
-#if !SHOPT_DEVFD
 	fifo_cleanup();
 	sh.fifo_tree = save_fifo_tree;
-#endif
 }
 
 /*
@@ -3372,14 +3361,13 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 		}
 		arge = sh_envgen();
 		sh.exitval = 0;
-		if(sh_isstate(SH_MONITOR) && job.jobcontrol)
+		if(sh_isstate(SH_MONITOR))
 		{
 			if(job.curpgid==0)
 				grp = 1;
 			else
 				grp = job.curpgid;
 		}
-
 		sfsync(NULL);
 		sigreset(0);	/* set signals to ignore */
 		sigwasset++;
@@ -3398,11 +3386,9 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 			    case ENOENT:
 				errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_found+4);
 				UNREACHABLE();
-#ifdef ENAMETOOLONG
 			    case ENAMETOOLONG:
 				errormsg(SH_DICT,ERROR_exit(ERROR_NOENT),e_toolong+4);
 				UNREACHABLE();
-#endif
 			    default:
 				errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_exec+4);
 				UNREACHABLE();

@@ -86,9 +86,7 @@ typedef struct State_s			/* program state		*/
 	uid_t		uid;		/* caller UID			*/
 	int		unconditional;	/* enable dir rwx on preorder	*/
 	int		verbose;	/* display each file		*/
-#if _lib_fsync
 	char		buf[SFIO_BUFSIZE];/* clobber buffer		*/
-#endif
 } State_t;
 
 /*
@@ -262,7 +260,6 @@ rm(State_t* state, FTSENT* ent)
 				break;
 			}
 		}
-#if _lib_fsync
 		if (state->clobber && S_ISREG(ent->fts_statp->st_mode) && ent->fts_statp->st_size > 0)
 		{
 			if ((n = open(path, O_WRONLY|O_cloexec)) < 0)
@@ -286,7 +283,6 @@ rm(State_t* state, FTSENT* ent)
 				ast_close(n);
 			}
 		}
-#endif
 		if (remove(path))
 		{
 			nonempty(ent);
@@ -334,11 +330,7 @@ b_rm(int argc, char** argv, Shbltin_t* context)
 			state.recursive = 1;
 			continue;
 		case 'c':
-#if _lib_fsync
 			state.clobber = 1;
-#else
-			error(1, "%s not implemented on this system", opt_info.name);
-#endif
 			continue;
 		case 'u':
 			state.unconditional = 1;
@@ -347,9 +339,7 @@ b_rm(int argc, char** argv, Shbltin_t* context)
 			state.verbose = 1;
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			break;

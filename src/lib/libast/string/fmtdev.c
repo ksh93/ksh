@@ -27,7 +27,7 @@
 #include <ast.h>
 #include <ctype.h>
 #include <ls.h>
-#ifdef __linux__
+#if defined(__linux__) || defined(__GNU__)
 #include <sys/sysmacros.h>
 #endif
 

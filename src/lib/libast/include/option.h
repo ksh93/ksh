@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -46,11 +46,8 @@ typedef struct Optdisc_s
 	Optinfo_f	infof;		/* runtime info function	*/
 } Optdisc_t;
 
-/* NOTE: Opt_t member order fixed by a previous binary release */
-
 #ifndef _OPT_PRIVATE_
-#define _OPT_PRIVATE_	\
-	char		pad[3*sizeof(void*)];
+#define _OPT_PRIVATE_
 #endif
 
 typedef struct Opt_s
@@ -67,7 +64,7 @@ typedef struct Opt_s
 	Optdisc_t*	disc;		/* user discipline		*/
 	intmax_t	number;		/* # numeric argument		*/
 	unsigned char	assignment;	/* option arg assignment op	*/
-	unsigned char	pads[sizeof(void*)-1];
+	char		posix;		/* set for POSIX compliance	*/
 	_OPT_PRIVATE_
 } Opt_t;
 
@@ -81,6 +78,7 @@ extern int		optget(char**, const char*);
 extern int		optjoin(char**, ...);
 extern char*		opthelp(const char*, const char*);
 extern char*		optusage(const char*);
+extern int		optselfdoc(void);
 extern int		optstr(const char*, const char*);
 extern int		optesc(Sfio_t*, const char*, int);
 extern Opt_t*		optctx(Opt_t*, Opt_t*);

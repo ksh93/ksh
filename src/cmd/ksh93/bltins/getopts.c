@@ -55,6 +55,7 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 
 int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 {
+	const int longjmpmode = sh_isstate(SH_INTERACTIVE) ? SH_JMPFUN : SH_JMPERREXIT;
 	char *options=error_info.context->id;
 	Namval_t *np;
 	int flag, mode;
@@ -79,9 +80,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc for getopts itself: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;
@@ -115,22 +114,29 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 	{
 		sh_popcontext(&buff);
 		sh.st.opterror = 1;
+		opt_info.posix = 0;
 		if(r==0)
 			return 2;
 		pp = (struct checkpt*)sh.jmplist;
-		pp->mode = SH_JMPERREXIT;
+		pp->mode = longjmpmode;
 		sh_exit(r==-2 ? 0 : 2);
 	}
 	opt_info.disc = &disc;
+	opt_info.posix = sh_isoption(SH_POSIX) && !extended;
 	switch(opt_info.index>=0 && opt_info.index<=argc?(opt_info.num= LONG_MIN,flag=optget(argv,options)):0)
 	{
 	    case '?':
 		if(mode==0)
 		{
 			/* a ksh script's self-doc: write to standard output and force script to exit with status 0 */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			r = -2;
-			siglongjmp(*sh.jmplist,SH_JMPERREXIT);  /* back to if(jmpval) above */
+			optselfdoc();
+			if (!sh_isstate(SH_INTERACTIVE) || sh_isstate(SH_PROFILE) || sh.fn_depth || sh.dot_depth)
+			{
+				r = -2;
+				siglongjmp(*sh.jmplist,longjmpmode);  /* back to if(jmpval) above */
+			}
+			/* try to act sensibly if getopts encounters --help, etc. directly on interactive command line */
+			mode = 1;
 		}
 		opt_info.option[1] = '?';
 		/* FALLTHROUGH */
@@ -204,5 +210,6 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		nv_putval(np, opt_info.arg, NV_RDONLY);
 	sh_popcontext(&buff);
 	opt_info.disc = 0;
+	opt_info.posix = 0;
 	return r;
 }

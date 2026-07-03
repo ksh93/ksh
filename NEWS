@@ -2,6 +2,66 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-02:
+
+- Process substitution now no longer depends on compile-time detection of
+  /dev/fd/N, but detects this at runtime instead and transparently falls
+  back to the legacy method with FIFOs whenever /dev/fd is unavailable. This
+  fixes process substituion on FreeBSD, where /dev/fd is an optional file
+  system that may be mounted and unmounted at any time.
+
+- Fixed input buffer memory corruption occurring for inpnut from the terminal
+  and other non-seekable input on FreeBSD. Bug introduced on 2026-04-17.
+
+2026-07-01:
+
+- Fixed two longstanding bugs in job control: if the -m (--monitor) option was
+  on in a script, then:
+  - subshells invoked by the main shell environment did not become the
+    leader of their own process group;
+  - if the shell was built with the SHOPT_SPAWN compile-time option active
+    (default on most systems), then external non-background commands invoked
+    from the script didn't become the leader of their own process group.
+
+- Fixed a race condition in job control where all processes belonging
+  to a pipeline would not always be assigned the same process group.
+  Bug introduced on 2021-02-11.
+
+2026-06-28:
+
+- Fixed a bug in job control that broke job search by command line; instead
+  of searching the whole jobs list, a command like 'fg %?STRING' only matched
+  STRING for the first job in the list. Bug introduced on 2022-01-02.
+
+2026-06-19:
+
+- Fixed a memory leak that occurred when using printf date/time formatting
+  (i.e., %(...)T) with a user-supplied date/time.
+
+2026-06-14:
+
+- Fixed a potential crash (use after free) that could occur if a multi-line
+  alias redefines itself while its value is being parsed and executed.
+
+2026-05-08:
+
+- Fixed a bug in the POSIX mode 'getopts', introduced 2026-05-02, where OPTIND
+  was increased by one too many at the end of options, causing the idiomatic
+  'shift $((OPTIND-1))' command to shift out one non-option argument too many.
+
+2026-05-02:
+
+- When a function that uses the 'getopts' built-in command is invoked from
+  the interactive command line with one of the AST self-documentation options
+  such as --help or --man, 'getopts' will no longer stop the execution of any
+  commands that follow the function call on the same command line.
+
+- The shell's POSIX mode has been amended to disable long options (including
+  --help, etc., which would abort the script), which are incompatible with
+  the POSIX spec and may prevent POSIX scripts from printing their own usage
+  message. This is only disabled if the --posix option is on *and* getopts is
+  given an options string that does not use ksh's extended getopts interface.
+
 2026-04-22:
 
 - Fixed a bug that causes the loss of the contents of all here-documents

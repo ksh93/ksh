@@ -18,12 +18,6 @@ tst	note{ reading compile-time ksh options from SHOPT.sh }end run{
 		'MULTIBYTE=')
 			# by default, SHOPT_MULTIBYTE is the opposite of AST_NOMULTIBYE
 			writedef MULTIBYTE 1 '#if !defined(SHOPT_MULTIBYTE) && !AST_NOMULTIBYTE' ;;
-		'DEVFD=')
-			# if /dev/fd/n exposes file descriptor n, make SHOPT_DEVFD use this for
-			# process substitutions instead of FIFOs, which are not as secure
-			# WARNING: do not use 'test -e' for this test (too many shells break it
-			# by failing to test for the physical existence of /dev/fd/9 in the FS)
-			ls -d /dev/fd/9 9<&0 >/dev/null 2>&1 && writedef DEVFD 1 ;;
 		'TEST_L=')
 			# if external 'test' supports lowercase -l as equivalent to -L, enable
 			# SHOPT_TEST_L so ksh supports it for compatibility with local scripts

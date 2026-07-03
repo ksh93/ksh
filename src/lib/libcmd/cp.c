@@ -834,11 +834,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 			state->backup = 1;
 			continue;
 		case 'F':
-#if _lib_fsync
 			state->sync = 1;
-#else
-			error(1, "%s not implemented on this system", opt_info.name);
-#endif
 			continue;
 		case 'H':
 			state->flags |= FTS_META|FTS_PHYSICAL;
@@ -860,9 +856,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 			state->remove = 1;
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
