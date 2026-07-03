@@ -211,8 +211,8 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		/* remaining number of digits to compute; add 1 for later rounding */
 		n = (((format&SFFMT_EFORMAT) || *decpt <= 0) ? 1 : *decpt+1) - n;
 		if(n_digit > 0)
-		{	if(n_digit > LDBL_DIG)
-				n_digit = LDBL_DIG;
+		{	if(n_digit > size - 1)
+				n_digit = size - 1;
 			n += n_digit;
 		}
 
@@ -359,8 +359,8 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		/* remaining number of digits to compute; add 1 for later rounding */
 		n = (((format&SFFMT_EFORMAT) || *decpt <= 0) ? 1 : *decpt+1) - n;
 		if(n_digit > 0)
-		{	if(n_digit > DBL_DIG)
-				n_digit = DBL_DIG;
+		{	if(n_digit > size - 1)
+				n_digit = size - 1;
 			n += n_digit;
 		}
 
