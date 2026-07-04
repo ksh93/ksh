@@ -1235,10 +1235,11 @@ int	sh_redirect(struct ionod *iop, int flag)
 		{
 			if(iof&IOLSEEK)
 			{
-				struct argnod *ap = stkalloc(sh.stk,ARGVAL+strlen(iop->ioname));
+				size_t len = strlen(iop->ioname) + 1;
+				struct argnod *ap = stkalloc(sh.stk, ARGVAL + len);
 				memset(ap, 0, ARGVAL);
 				ap->argflag = ARG_MAC;
-				strcpy(ap->argval,iop->ioname);
+				memcpy(ap->argval, iop->ioname, len);
 				fname=sh_macpat(ap,(iof&IOARITH)?ARG_ARITH:ARG_EXP);
 			}
 			else if(!(iof&IOPROCSUB))
@@ -1247,7 +1248,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 		if((iof&IOPROCSUB) && !(iof&IOLSEEK))
 		{
 			/* handle process substitution passed to redirection */
-			struct argnod *ap = stkalloc(sh.stk,ARGVAL+strlen(iop->ioname));
+			struct argnod *ap = stkalloc(sh.stk, ARGVAL);
 			memset(ap, 0, ARGVAL);
 			if(iof&IOPUT)
 				ap->argflag = ARG_RAW;
