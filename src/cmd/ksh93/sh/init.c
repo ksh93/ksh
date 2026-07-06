@@ -1293,12 +1293,12 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 		opt_info.disc = 0;
 		sh.st.dolv = argv + (argc - 1) - sh.st.dolc;
 		sh.st.dolv[0] = argv[0];
-		if(sh.st.dolc < 1)
+		if(sh.st.dolc < 1 && !sh_isoption(SH_CFLAG))
 		{
 			sh_onoption(SH_SFLAG);
 			off_option(&sh.offoptions,SH_SFLAG);
 		}
-		if(!sh_isoption(SH_SFLAG))
+		if(!sh_isoption(SH_SFLAG) && sh.st.dolc >= 1)
 		{
 			sh.st.dolc--;
 			sh.st.dolv++;

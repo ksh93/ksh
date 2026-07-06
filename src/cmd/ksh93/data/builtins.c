@@ -1598,7 +1598,7 @@ const char sh_optksh[] =
 "[s?Read and execute a script from standard input instead of a file. "
 	"The command name (\b$0\b) cannot be set. "
 	"Any \aarg\as become the positional parameters starting at \b$1\b. "
-	"This option is forced on if no \aarg\a is given "
+	"This option is forced on if neither \b-c\b nor any \aarg\a is given "
 	"and is ignored if \b-c\b is also specified.]"
 "[i?Specifies that the shell is interactive."
 #if SHOPT_SCRIPTONLY
