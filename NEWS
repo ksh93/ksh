@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-06:
+
+- Fixed: on the shell's invocation, the -s option (read script from standard
+  input) was incorrectly forced on if -c was used to pass a shell script as
+  a command line argument without passing any further arguments.
+
 2026-07-03:
 
 - Fixed a bug in the printf built-in where the output of %.Ng, where N is

@@ -721,4 +721,10 @@ fi
 PATH=/dev/null "$SHELL" -n nonexistent_script 2>/dev/null && err_exit "'ksh -n nonexistent_script' fails to error out"
 
 # ======
+# ksh -c should not force on -s
+exp='chB'
+got=$("$SHELL" -c 'print $-')
+[[ $got == "$exp" ]] || err_exit "default options upon invocation with -c script (expected '$exp', got '$got')"
+
+# ======
 exit $((Errors<125?Errors:125))
