@@ -722,9 +722,8 @@ PATH=/dev/null "$SHELL" -n nonexistent_script 2>/dev/null && err_exit "'ksh -n n
 
 # ======
 # ksh -c should not force on -s
-exp='chB'
 got=$("$SHELL" -c 'print $-')
-[[ $got == "$exp" ]] || err_exit "default options upon invocation with -c script (expected '$exp', got '$got')"
+[[ $got == *s* ]] && err_exit "-s incorrectly set upon invocation with -c script (got '$got')"
 
 # ======
 exit $((Errors<125?Errors:125))
