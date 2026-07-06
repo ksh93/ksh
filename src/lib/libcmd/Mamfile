@@ -386,5 +386,5 @@ make install virtual
 	done %{INSTALLROOT}/lib/mam/cmd
 done install
 
-make test dontcare virtual
+make test virtual
 done test

@@ -16,6 +16,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *         hyenias <58673227+hyenias@users.noreply.github.com>          *
 *            Johnothan King <johnothanking@protonmail.com>             *
+*                  Manuel Einfalt <m-einfalt@gmx.de>                   *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"

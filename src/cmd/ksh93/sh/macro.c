@@ -2780,25 +2780,24 @@ static void tilde_expand2(ptrdiff_t offset)
 
 /*
  * This routine is used to resolve ~ expansion.
- * A ~ by itself is replaced with the users login directory.
+ * A ~ by itself is replaced by the user's login directory.
  * A ~- is replaced by the previous working directory in shell.
  * A ~+ is replaced by the present working directory in shell.
- * If ~name  is replaced with login directory of name.
+ * ~name is replaced by the login directory of name.
  * If string doesn't start with ~ or ~... not found then 0 returned.
  */
 static char *sh_tilde(const char *string)
 {
-	char		*cp;
 	int		c;
 	struct passwd	*pw = NULL;
-	Namval_t	*np=0;
-	unsigned int	save;
+	Namval_t	*np;
 	static Dt_t	*logins_tree;
 	if(*string++!='~')
 		return NULL;
 	if((c = *string)==0)
 	{
 		static char	*username;
+		char		*cp;
 		if(cp = nv_getval(sh_scoped(HOME)))
 			return cp;
 		/* Fallback for unset HOME: get username and treat ~ like ~username */
@@ -2806,14 +2805,10 @@ static char *sh_tilde(const char *string)
 			return NULL;
 		string = username;
 	}
-	if((c=='-' || c=='+') && string[1]==0)
-	{
-		if(c=='+')
-			cp = nv_getval(sh_scoped(PWDNOD));
-		else
-			cp = nv_getval(sh_scoped(OLDPWDNOD));
-		return cp;
-	}
+	if(c=='+' && string[1]==0)
+		return nv_getval(sh_scoped(PWDNOD));
+	if(c=='-' && string[1]==0)
+		return nv_getval(sh_scoped(OLDPWDNOD));
 #if _WINIX
 	if((c = fcgetc())=='/')
 	{
@@ -2853,7 +2848,7 @@ skip:
 		logins_tree = dtopen(&_Nvdisc,Dtbag);
 	if(np=nv_search(string,logins_tree,NV_ADD))
 	{
-		save = sh.subshell;
+		unsigned int save = sh.subshell;
 		sh.subshell = 0;
 		nv_putval(np, pw->pw_dir,0);
 		sh.subshell = save;

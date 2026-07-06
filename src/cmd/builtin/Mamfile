@@ -68,5 +68,5 @@ make install virtual
 	done
 done install
 
-make test dontcare virtual
+make test virtual
 done test

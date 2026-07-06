@@ -2156,7 +2156,7 @@ uint8_t sh_iocheckfd(int fd, ssize_t *filesize_p)
 		int	flags;
 		if((flags=fcntl(fd,F_GETFL,0)) < 0)
 		{
-			n = sh.fdstatus[fd] = IOCLOSE;
+			n = IOCLOSE;
 			goto bail;
 		}
 		if((flags&O_ACCMODE)!=O_WRONLY)

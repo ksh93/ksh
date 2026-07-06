@@ -151,5 +151,5 @@ make install virtual
 	done %{INSTALLROOT}/lib/mam/dll
 done install
 
-make test dontcare virtual
+make test virtual
 done test

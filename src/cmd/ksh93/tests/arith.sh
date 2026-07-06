@@ -16,6 +16,7 @@
 #         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #                  Lev Kujawski <int21h@mailbox.org>                   #
 #                      Phi <phi.debian@gmail.com>                      #
+#                  Manuel Einfalt <m-einfalt@gmx.de>                   #
 #                                                                      #
 ########################################################################
 

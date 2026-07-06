@@ -1171,7 +1171,7 @@ note *
 note * Run regression tests.
 note *
 
-make test dontcare virtual
+make test virtual
 	prev install
 	make test.ksh virtual
 		makp tests/shtests
