@@ -1143,4 +1143,9 @@ let "$? <= 128" || err_exit "crash on huge RLIMIT_NOFILE"
 let "$? <= 128" || err_exit "crash on tiny RLIMIT_NOFILE"
 
 # ======
+got=$(set +x; redirect 2>&1; print 'xyz' | "$SHELL" -c 'read -n2 && print "$REPLY"')
+exp=xy
+[[ $got == "$exp" ]] || err_exit "read -n2 from pipe fails (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

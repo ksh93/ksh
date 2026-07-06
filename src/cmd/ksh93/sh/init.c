@@ -1242,7 +1242,12 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	error_info.catalog = e_dict;
 	sh.cpipe[0] = -1;
 	sh.coutpipe = -1;
-	sh_ioinit();
+	/* initialize file descriptor states */
+	if(!sh_iovalidfd(16))
+	{
+		errormsg(SH_DICT,ERROR_PANIC,"open files limit insufficient");
+		UNREACHABLE();
+	}
 	/* initialize signal handling */
 	sh_siginit();
 	/* set up memory for name-value pairs */
@@ -1326,6 +1331,8 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 #endif /* _WINIX */
 		}
 	}
+	/* initialize input/output streams */
+	sh_ioinit();
 	/* import variable attributes from environment */
 	if(!sh_isoption(SH_POSIX))
 		env_import_attributes(save_envmarker);
