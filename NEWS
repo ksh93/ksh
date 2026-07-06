@@ -8,6 +8,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   input) was incorrectly forced on if -c was used to pass a shell script as
   a command line argument without passing any further arguments.
 
+- Fixed a bug where read -nN would fail in a -c script when reading from a
+  pipe, e.g., this failed: print xyz | ksh -c 'read -n2 && print "$REPLY"'.
+  Bug introduced on 2026-04-17.
+
 2026-07-03:
 
 - Fixed a bug in the printf built-in where the output of %.Ng, where N is

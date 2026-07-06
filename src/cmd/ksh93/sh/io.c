@@ -461,11 +461,6 @@ void sh_ioinit(void)
 {
 	filemapsize = 8;
 	filemap = (struct fdsave*)sh_malloc(filemapsize*sizeof(struct fdsave));
-	if(!sh_iovalidfd(16))
-	{
-		errormsg(SH_DICT,ERROR_PANIC,"open files limit insufficient");
-		UNREACHABLE();
-	}
 	sh.sftable[0] = sfstdin;
 	sh.sftable[1] = sfstdout;
 	sh.sftable[2] = sfstderr;
@@ -549,7 +544,11 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	Sfdisc_t *dp;
 	size_t iobsize = IOBSIZE;
 	char scriptpipe = 0;
+	if (read_script && !sh_isoption(SH_SFLAG))
+		read_script = 0;
 	status = sh_iocheckfd(fd, read_script ? &filesize : NULL);
+	if (read_script && (status & IOTTY))
+		read_script = 0;
 	if(status==IOCLOSE)
 	{
 		switch(fd)
@@ -565,7 +564,7 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	}
 	if(status&IOREAD)
 	{
-		if (read_script && !(status & IOTTY))
+		if (read_script)
 		{
 			if (!(status & IONOSEEK) && filesize != 0)
 			{

@@ -1142,12 +1142,16 @@ let "$? <= 128" || err_exit "crash on huge RLIMIT_NOFILE"
 (ulimit -n 8; "$SHELL" --version) >/dev/null 2>&1
 let "$? <= 128" || err_exit "crash on tiny RLIMIT_NOFILE"
 
-
 # ======
 got=$(eval ': >>&2' 2>&1)
 [[ e=$? -eq 3 && $got == *'syntax error'* ]] || err_exit ">>&2 should be a syntax error (got \$?==$e, $(printf %q "$got"))"
 got=$(eval ': <<&2' 2>&1)
 [[ e=$? -eq 3 && $got == *'syntax error'* ]] || err_exit "<<&2 should be a syntax error (got \$?==$e, $(printf %q "$got"))"
+
+# ======
+got=$(set +x; redirect 2>&1; print 'xyz' | "$SHELL" -c 'read -n2 && print "$REPLY"')
+exp=xy
+[[ $got == "$exp" ]] || err_exit "read -n2 from pipe fails (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
