@@ -3689,7 +3689,7 @@ make install virtual
 	done
 done install
 
-make test dontcare virtual
+make test virtual
 	make test.mamake virtual
 		makp %{PACKAGEROOT}/src/cmd/INIT/mamake.tst
 		exec - : testing the libast rebuild of mamake at $PWD/mamake :

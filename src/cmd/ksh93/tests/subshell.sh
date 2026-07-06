@@ -258,7 +258,7 @@ then	err=$(
 			do	exec {i}>&1
 			done
 			for ((i=0; i < 20; i++))
-			do      y=$(foo)
+			do	y=$(foo)
 			done
 		EOF
 	) || {
@@ -605,11 +605,13 @@ cat > $tmpfile <<-\EOF
 $SHELL 2> /dev/null "$tmpfile" || err_exit 'IFS in subshell causes core dump'
 
 unset i
-if      [[ -d /dev/fd ]]
-then    integer i
+# WARNING: do not use 'test -e' to check if /dev/fd is functional (too many shells
+# break it by failing to test for the physical existence of /dev/fd/9 in the FS)
+if	ls -d /dev/fd/9 9<&0 >/dev/null 2>&1
+then	integer i
 	for ((i=11; i < 29; i++))
-	do      if      ! [[ -r /dev/fd/$i  || -w /dev/fd/$i ]]
-		then    a=$($SHELL -c "[[ -r /dev/fd/$i || -w /dev/fd/$i ]]")
+	do	if	! [[ -r /dev/fd/$i || -w /dev/fd/$i ]]
+		then	a=$($SHELL -c "[[ -r /dev/fd/$i || -w /dev/fd/$i ]]")
 			(( $? )) || err_exit "file descriptor $i not close-on-exec"
 		fi
 	done
@@ -628,8 +630,8 @@ dot=$(cat <<-EOF
 		$(ls -d .)
 	EOF
 ) ) & sleep .1
-if      kill -0 $! 2> /dev/null
-then    err_exit  'command substitution containing here-doc with command substitution fails'
+if	kill -0 $! 2> /dev/null
+then	err_exit  'command substitution containing here-doc with command substitution fails'
 fi
 
 printf=$(whence -p printf)

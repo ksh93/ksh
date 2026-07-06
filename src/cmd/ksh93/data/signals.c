@@ -47,9 +47,6 @@ const struct shtable2 shtab_signals[] =
 #ifdef SIGALRM1
 	"ALRM1",	VAL(SIGALRM1,SH_SIGDONE),			S("Scheduling - reserved"),
 #endif /* SIGALRM */
-#ifdef SIGAPOLLO
-	"APOLLO",	VAL(SIGAPOLLO,0),				S("SIGAPOLLO"),
-#endif /* SIGAPOLLO */
 #ifdef SIGBUS
 	"BUS",		VAL(SIGBUS,SH_SIGDONE),				S("Bus error"),
 #endif /* SIGBUS */

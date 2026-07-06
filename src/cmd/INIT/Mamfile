@@ -163,7 +163,7 @@ make install virtual
 	done req_files
 done install
 
-make test dontcare virtual
+make test virtual
 	make test.mamake virtual
 		makp mamake.tst
 		exec - : testing non-libast mamake at $PWD/mamake :
