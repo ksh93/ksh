@@ -1993,8 +1993,12 @@ const char sh_opttimes[] =
 "[--catalog?" SH_DICT "]"
 "[+NAME?times - display CPU usage by the shell and child processes]"
 "[+DESCRIPTION?\btimes\b displays the accumulated user and system CPU times, "
-"one line with the times used by the shell and another with those used by "
-"all of the shell's child processes. No options are supported.]"
+"one line with the times used by the shell process "
+"from which \btimes\b was invoked "
+"and another with those used by all of its child processes. "
+"No options are supported.]"
+"[+?When \btimes\b is invoked from a subshell, "
+"times are reset when the subshell forks its own process.]"
 "[+SEE ALSO?\btime\b(1)]"
 ;
 

@@ -8504,9 +8504,16 @@ or
 .RE
 .TP
 \f3times\fP
-Displays the accumulated user and system CPU times, one line with the times
-used by the shell and another with those used by all of the shell's child
-processes. No options are supported.
+Displays the accumulated user and system CPU times,
+one line with the times used by the shell process from which
+.B times
+was invoked and another with those used by all of its child processes.
+No options are supported.
+When
+.B times
+is invoked from a subshell (see
+.I Subshells\^
+above), times are reset when the subshell forks its own process.
 Seconds are zero-padded unless the
 .B posix
 shell option is on.
