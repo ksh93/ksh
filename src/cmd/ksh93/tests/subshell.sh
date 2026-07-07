@@ -1233,15 +1233,15 @@ got=$("$SHELL" -c 'x=$(fn(){ return 265; };echo ok|fn); echo exited $?' 2>&1)
 # uses cd in a virtual subshell to trigger the bug in 93u+m and a redirect
 # command to expose it in 93u+.)
 if	(ulimit -n 14 && ulimit -t unlimited) 2>/dev/null
-then	nam1=$tmp/fdleaka.$SRANDOM
-	nam2=$tmp/fdleakb.$SRANDOM
-	dir1=$tmp/dir1.$SRANDOM
-	dir2=$tmp/dir2.$SRANDOM
-	dir3=$tmp/dir3.$SRANDOM
-	dir4=$tmp/dir4.$SRANDOM
-	dir5=$tmp/dir5.$SRANDOM
-	dir6=$tmp/dir6.$SRANDOM
-	dir7=$tmp/dir7.$SRANDOM
+then	nam1=$tmp/fdleaka.$RANDOM
+	nam2=$tmp/fdleakb.$RANDOM
+	dir1=$tmp/dir1.$RANDOM
+	dir2=$tmp/dir2.$RANDOM
+	dir3=$tmp/dir3.$RANDOM
+	dir4=$tmp/dir4.$RANDOM
+	dir5=$tmp/dir5.$RANDOM
+	dir6=$tmp/dir6.$RANDOM
+	dir7=$tmp/dir7.$RANDOM
 	mkdir "$dir1" "$dir2" "$dir3" "$dir4" "$dir5" "$dir6" "$dir7"
 	exp=ok
 	got=$(set +x; "$SHELL" -c "
