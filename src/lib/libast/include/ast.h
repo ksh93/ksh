@@ -72,6 +72,9 @@
 #ifndef ____FILE_defined
 #define ____FILE_defined  1
 #endif
+#ifndef _STDFILES_DECLARED
+#define _STDFILES_DECLARED 1
+#endif
 #endif
 
 /*
