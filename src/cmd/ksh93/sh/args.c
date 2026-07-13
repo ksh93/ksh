@@ -231,6 +231,12 @@ int sh_argopts(int argc,char *argv[])
 		}
 		if(f)
 		{
+			if(o==SH_MONITOR && f)
+			{
+				/* set -m: allow applyopts() to reactivate job control (e.g. in a subshell)
+				 * even when the -m option was already on; this behaviour matches bash */
+				sh_offoption(SH_MONITOR);
+			}
 #if SHOPT_ESH && SHOPT_VSH
 			if(o==SH_VI || o==SH_EMACS || o==SH_GMACS)
 			{
@@ -387,11 +393,20 @@ static void applyopts(Shopt_t newflags)
 			(sh.userid==sh.euserid && sh.groupid==sh.egroupid))
 				off_option(&newflags,SH_PRIVILEGED);
 	}
-	/* sync monitor (part of job control) state with -o monitor option change */
-	if(is_option(&newflags,SH_MONITOR))
+	/* sync job control state with -o monitor option change */
+	if(!sh_isoption(SH_MONITOR) && is_option(&newflags,SH_MONITOR))
+	{
 		sh_onstate(SH_MONITOR);
+		if(job.inited)
+			job.jobcontrol = 1;
+		else
+			job_init_tty();
+	}
 	else if(sh_isoption(SH_MONITOR) && !is_option(&newflags,SH_MONITOR))
+	{
 		sh_offstate(SH_MONITOR);
+		job.jobcontrol = 0;
+	}
 	sh.options = newflags;
 }
 

@@ -1533,6 +1533,7 @@ void sh_reinit(void)
 	}
 	/* Reset state for subshells, environment, job control, function calls and file descriptors */
 	sh.subshell = sh.realsubshell = sh.comsub = sh.curenv = sh.jobenv = sh.inuse_bits = sh.fn_depth = sh.dot_depth = 0;
+	job.inited = 0;
 	sh.envlist = NULL;
 	sh.last_root = NULL;
 	/* Free up the dictionary trees themselves */

@@ -27,24 +27,26 @@
  *  Revised January, 1992
  *  Mended February, 2021
  *  Corrected March, 2025
+ *  Re-amended July, 2026
  *
  *  Aspects of job control are (de)activated using a global flag variable,
  *  a state bit, and a shell option bit. It is important to understand the
  *  difference and set/check them in a manner consistent with their purpose.
  *
- *  1. The job.jobcontrol flag is for job control on interactive shells.
- *     It is set to nonzero by job_init() if, and only if, the shell is
- *     interactive *and* managed to get control of the terminal. Therefore,
+ *  1. The job.jobcontrol flag is for the job control aspects to do with the
+ *     tty. It is set to nonzero by job_init_tty() if the shell managed to
+ *     get control of the terminal. This is done at init time on interactive
+ *     shells, or, for scripts, when the -m option is turned on. Therefore,
  *     any changing of terminal settings (tcsetpgrp(3), tty_set()) should
  *     only be done if job.jobcontrol is nonzero.
  *
  *  2. The state flag, sh_isstate(SH_MONITOR), determines whether the bits
- *     of job control that are relevant for both scripts and interactive
- *     shells are active, which is mostly making sure that each job gets
+ *     of job control that are relevant with and without control of the
+ *     terminal are active, which is mostly making sure that each job gets
  *     its own process group (setpgid(3)).
  *
  *  3. The -m (-o monitor) shell option, sh_isoption(SH_MONITOR), is just
- *     that. When the user turns it on or off, the state flag is synched
+ *     that. When the user turns it on or off, the flags above are synched
  *     with it. It should usually not be directly checked for, as the state
  *     may be temporarily turned off without turning off the option.
  */
@@ -498,16 +500,23 @@ static void job_waitsafe(int sig)
  */
 void job_init(void)
 {
-	int ntry=0;
 	job.fd = JOBTTY;
 	signal(SIGCHLD,job_waitsafe);
 	if(njob_savelist < NJOB_SAVELIST)
 		init_savelist();
-	if(!sh_isoption(SH_INTERACTIVE))
-		return;
 	job.mypgid = getpgrp();
+	/*
+	 * On interactive shells, initialize the tty aspects of job control now.
+	 * (For scripts, we do this from args.c when the -m option is turned on.)
+	 */
+	if(sh_isoption(SH_INTERACTIVE))
+		job_init_tty();
+}
+
+void job_init_tty(void)
+{
 	/* some systems have job control, but not initialized */
-	if(job.mypgid<=0)
+	if(sh_isoption(SH_INTERACTIVE) && job.mypgid<=0)
 	{
 		/* Get a controlling terminal and set process group */
 		/* This should have already been done by rlogin */
@@ -526,18 +535,22 @@ void job_init(void)
 	possible = (setpgid(0,job.mypgid) >= 0) || errno==EPERM;
 	if(possible)
 	{
+		int ntry = 0;
 		/* wait until we are in the foreground */
 		while((job.mytgid=tcgetpgrp(JOBTTY)) != job.mypgid)
 		{
 			if(job.mytgid <= 0)
 				return;
+			/* Avoid hang witout -i, or with -i -c */
+			if(!sh_isoption(SH_INTERACTIVE) || sh_isoption(SH_CFLAG))
+				break;
 			/* Stop this shell until continued */
 			signal(SIGTTIN,SIG_DFL);
 			kill(sh.pid,SIGTTIN);
 			/* resumes here after continue tries again */
 			if(ntry++ > IOMAXTRY)
 			{
-				errormsg(SH_DICT,0,e_no_start);
+				errormsg(SH_DICT,ERROR_warn(0),e_no_start);
 				return;
 			}
 		}
@@ -559,7 +572,8 @@ void job_init(void)
 	signal(SIGTTIN,SIG_IGN);
 	signal(SIGTTOU,SIG_IGN);
 	/* The shell now handles ^Z */
-	signal(SIGTSTP,sh_fault);
+	if(sh_isoption(SH_INTERACTIVE))
+		signal(SIGTSTP,sh_fault);
 	tcsetpgrp(JOBTTY,sh.pid);
 #ifdef CNSUSP
 	/* set the switch character */
@@ -571,8 +585,8 @@ void job_init(void)
 		tty_set(JOBTTY,TCSAFLUSH,&my_stty);
 	}
 #endif /* CNSUSP */
-	sh_onoption(SH_MONITOR);
-	job.jobcontrol++;
+	job.jobcontrol = 1;
+	job.inited = 1;
 	return;
 }
 
@@ -620,7 +634,7 @@ int job_close(void)
 		}
 	}
 	job_unlock();
-	if(job.jobcontrol && setpgid(0,job.mypgid)>=0)
+	if(setpgid(0,job.mypgid)>=0 && job.jobcontrol)
 		tcsetpgrp(job.fd,job.mypgid);
 #   ifdef CNSUSP
 	if(possible && job.suspend==CNSUSP)
@@ -906,7 +920,7 @@ int job_kill(struct process *pw,int sig)
 	pid = pw->p_pid;
 	if(by_number)
 	{
-		if(pid==0 && job.jobcontrol)
+		if(pid==0 && sh_isstate(SH_MONITOR))
 			r = job_walk(outfile, job_kill,sig, NULL);
 		if(sig==SIGSTOP && pid==sh.pid && sh_isoption(SH_LOGIN_SHELL))
 		{

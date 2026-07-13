@@ -78,7 +78,8 @@ struct jobs
 #endif /* SHOPT_BGX */
 	int		fd;		/* tty descriptor number */
 	cc_t		suspend;	/* suspend character */
-	char		jobcontrol;	/* turned on for interactive shell with control of terminal */
+	char		inited;		/* set when tty job control is fully initialized */
+	char		jobcontrol;	/* turned on for shell with control of terminal */
 	char		waitsafe;	/* wait will not block */
 	char		waitall;	/* wait for all jobs in pipe */
 	char		toclear;	/* job table needs clearing */
@@ -144,6 +145,7 @@ extern void	job_subrestore(void*);
 extern void	job_chldtrap(int);
 #endif /* SHOPT_BGX */
 extern void	job_init(void);
+extern void	job_init_tty(void);
 extern int	job_close(void);
 extern int	job_list(struct process*,int);
 extern int	job_hup(struct process *, int);

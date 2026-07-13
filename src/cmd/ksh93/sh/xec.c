@@ -779,7 +779,8 @@ static int check_exec_optimization(int type, int execflg, int execflg2, struct i
 	|| sh.subshell
 	|| ((struct checkpt*)sh.jmplist)->mode==SH_JMPEVAL
 	|| sh_isstate(SH_XARG)
-	|| (pipejob && (sh_isstate(SH_MONITOR) || sh_isoption(SH_PIPEFAIL) || sh_isstate(SH_TIMING))))
+	|| sh_isstate(SH_MONITOR)
+	|| (pipejob && (sh_isoption(SH_PIPEFAIL) || sh_isstate(SH_TIMING))))
 	{
 		return 0;
 	}

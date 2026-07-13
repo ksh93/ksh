@@ -829,17 +829,10 @@ got=$?
 [[ $exp == $got ]] || err_exit "Test 3B: failed to run executable command after encountering non-executable command" \
 	"(expected $exp, got $got)"
 if((!SHOPT_SCRIPTONLY));then
-case $(uname -s) in
-AIX)
-	# ksh -ic hangs on AIX
-	;;
-*)
 	PATH=$PWD:$PWD/cmddir $SHELL -ic 'noexecute; exit $?'
 	got=$?
 	[[ $exp == $got ]] || err_exit "Test 3C: failed to run executable command after encountering non-executable command" \
 		"(expected $exp, got $got)"
-	;;
-esac
 fi # !SHOPT_SCRIPTONLY
 PATH=$PWD:$PWD/cmddir $SHELL -c 'command -x noexecute; exit $?'
 got=$?
