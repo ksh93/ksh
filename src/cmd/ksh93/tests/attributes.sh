@@ -167,7 +167,7 @@ foo
 if	(( ${#LAST} != 2 ))
 then	err_exit 'LAST!=2'
 fi
-[[ $(set | grep LAST) == LAST=02 ]] || err_exit "LAST not correct in set list"
+[[ $(set | grep ^LAST=) == LAST=02 ]] || err_exit "LAST not correct in set list"
 set -a
 unset foo
 foo=bar
