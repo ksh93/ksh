@@ -197,6 +197,7 @@ tmlocal(time_t now)
 	int			i;
 	int			m;
 	int			o;
+	int			p;
 	int			isdst;
 	char*			t;
 	struct tm*		tp;
@@ -238,6 +239,7 @@ tmlocal(time_t now)
 
 	tm_info.zone = tm_info.local = &local;
 	n = tzwest(&now, &isdst);
+	p = n;
 	o = isdst;
 
 	/*
@@ -251,6 +253,7 @@ tmlocal(time_t now)
 		now -= 31 * 24 * 60 * 60;
 		if ((m = tzwest(&now, &isdst)) != n && ((!isdst && o) || (isdst && !o)))
 		{
+			n = p;
 			if (!isdst)
 			{
 				isdst = n;
@@ -259,6 +262,8 @@ tmlocal(time_t now)
 			}
 			break;
 		}
+		else if (m != n)
+			n = m;
 	}
 	m -= n;
 	isdst = o;
