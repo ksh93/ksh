@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-16:
+
+- Fixed: assigning a value to a 'typeset -b' binary data variable that is
+  shorter than the previous value caused the shell to crash or output garbage.
+
 2026-07-15:
 
 - Fixed: the value of $? was incorrectly 0 in the EXIT trap when the shell

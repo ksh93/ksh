@@ -1930,7 +1930,10 @@ void nv_putval(Namval_t *np, const char *sp, int flags)
 					memcpy(cp,*vpp,oldsize);
 				*vpp = cp;
 				if(size <= oldsize)
+				{
+					nv_setsize(np,size);
 					return;
+				}
 				dot = (size_t)base64decode(sp,dot, NULL, cp+oldsize, size-oldsize,NULL);
 				dot += oldsize;
 				if(!nv_isattr(np,NV_ZFILL) || nv_size(np)==0)
