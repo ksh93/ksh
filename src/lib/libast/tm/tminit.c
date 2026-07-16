@@ -261,8 +261,7 @@ tmlocal(time_t now)
 			}
 			break;
 		}
-		else if (m != n)
-			n = m;
+		n = m;
 		if (i == 11)
 		{
 			n = p;
