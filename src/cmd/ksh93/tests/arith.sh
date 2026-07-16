@@ -1150,4 +1150,14 @@ typeset -i y=0
 	"(expected '-1', got '$got')"
 
 # ======
+# https://github.com/ksh93/ksh/issues/789
+"$SHELL" -c ': $((-2**63/-1))' &
+pid=$!
+(sleep 1; kill -9 $pid) &
+{ wait $pid; } 2>/dev/null
+e=$?
+kill $!
+(($e < 128)) || err_exit "\$((-2**63/-1)) hangs or crashes shell (got status $e/SIG$(kill -l $e))"
+
+# ======
 exit $((Errors<125?Errors:125))

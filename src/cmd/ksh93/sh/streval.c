@@ -135,6 +135,19 @@ static Sfdouble_t U2F(Sfulong_t u)
 #define U2F(x)		x
 #endif
 
+/*
+ * Safely cast a float f to an unsigned integer. Casting a float to an unsigned integer is undefined
+ * behaviour if it is negative (and the real-world behaviour in fact differs between x86_64 and ARM
+ * architectures). So, if f is negative, we invert the sign using the unary minus, do the typecast on
+ * that, and then do another unary minus operation -- at which point we're performing a unary minus on
+ * a positive unsigned integer value, which is well-defined behaviour in C and yields a positive
+ * wrapped-around unsigned integer value, which is fine to typecast back to a float type.
+ */
+static inline Sfulong_t F2U(Sfdouble_t f)
+{
+	return f < 0 ? -((Sfulong_t)-f) : (Sfulong_t)f;
+}
+
 Sfdouble_t	arith_exec(Arith_t *ep)
 {
 	Sfdouble_t	num=0,*dp,*sp;
@@ -334,7 +347,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			if(!(Sflong_t)num)
 				arith_error(e_divzero,ep->expr,ep->emode);
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) % (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) % F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) % (Sflong_t)(num);
 			break;
@@ -344,42 +357,48 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				num = sp[-1]/num;
 				type = 1;
 			}
-			/* Avoid typecasting a negative float (Sfdouble_t) to an
-			 * unsigned integer (Sfulong_t), which is undefined behaviour */
-			else if((Sfulong_t)(num < 0 ? -num : num)==0)
+			else if(F2U(num)==0)
 				arith_error(e_divzero,ep->expr,ep->emode);
 			else if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) / (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) / F2U(num));
 			else
-				num = (Sflong_t)(sp[-1]) / (Sflong_t)(num);
+			{
+				Sflong_t x = (Sflong_t)sp[-1];
+				Sflong_t y = (Sflong_t)num;
+				/* avoid SIGFPE on x86_64 upon (Sfdouble_t)(-LLONG_MIN / -1) */
+				if(x==LLONG_MIN && y==-1)
+					num = LDBL_LLONG_MAX + 1.0;
+				else
+					num = (Sfdouble_t)(x / y);
+			}
 			break;
 		    case A_LSHIFT:
 			if(tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) << (long)(num));
+				num = U2F(F2U(sp[-1]) << (long)(num));
 			else
 				num = (Sflong_t)(sp[-1]) << (long)(num);
 			break;
 		    case A_RSHIFT:
 			if(tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) >> (long)(num));
+				num = U2F(F2U(sp[-1]) >> (long)(num));
 			else
 				num = (Sflong_t)(sp[-1]) >> (long)(num);
 			break;
 		    case A_XOR:
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) ^ (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) ^ F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) ^ (Sflong_t)(num);
 			break;
 		    case A_OR:
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) | (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) | F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) | (Sflong_t)(num);
 			break;
 		    case A_AND:
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) & (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) & F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) & (Sflong_t)(num);
 			break;
