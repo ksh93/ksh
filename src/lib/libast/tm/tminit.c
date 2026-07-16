@@ -256,9 +256,8 @@ tmlocal(time_t now)
 			n = p;
 			if (!isdst)
 			{
-				isdst = n;
 				n = m;
-				m = isdst;
+				m = p;
 			}
 			break;
 		}
