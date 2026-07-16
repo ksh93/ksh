@@ -264,6 +264,8 @@ tmlocal(time_t now)
 		}
 		else if (m != n)
 			n = m;
+		if (i == 11)
+			n = p;
 	}
 	m -= n;
 	isdst = o;

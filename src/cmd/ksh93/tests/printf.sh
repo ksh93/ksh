@@ -237,6 +237,10 @@ C='Historical change from standard to DST (bad time)'
 export TZ=America/Kentucky/Louisville
 T '#126766800'					'1974-01-07 00:00:00'
 
+C='Historical change from standard to standard (bad time)'
+export TZ=America/Argentina/San_Juan
+T '#1086148800'				'2004-06-02 00:00:00'
+
 C='POSIX timezone strings without rules (bad time, musl)' #https://github.com/ksh93/ksh/issues/976
 export TZ=EST5EDT
 T '#1274252800'				'2010-05-19 03:06:40'
