@@ -245,7 +245,7 @@ tmlocal(time_t now)
 	/*
 	 * compute local DST offset by roaming
 	 * through the last 12 months until tzwest() changes
-	 * with a system-recofgnized DST change
+	 * with a system-recognized DST change
 	 */
 
 	for (i = 0; i < 12; i++)
@@ -265,7 +265,10 @@ tmlocal(time_t now)
 		else if (m != n)
 			n = m;
 		if (i == 11)
+		{
 			n = p;
+			m = n;
+		}
 	}
 	m -= n;
 	isdst = o;
