@@ -196,6 +196,7 @@ tmlocal(time_t now)
 	char*			e = NULL;
 	int			i;
 	int			m;
+	int			o;
 	int			isdst;
 	char*			t;
 	struct tm*		tp;
@@ -237,16 +238,18 @@ tmlocal(time_t now)
 
 	tm_info.zone = tm_info.local = &local;
 	n = tzwest(&now, &isdst);
+	o = isdst;
 
 	/*
 	 * compute local DST offset by roaming
 	 * through the last 12 months until tzwest() changes
+	 * with a system-recofgnized DST change
 	 */
 
 	for (i = 0; i < 12; i++)
 	{
 		now -= 31 * 24 * 60 * 60;
-		if ((m = tzwest(&now, &isdst)) != n)
+		if ((m = tzwest(&now, &isdst)) != n && ((!isdst && o) || (isdst && !o)))
 		{
 			if (!isdst)
 			{
@@ -254,10 +257,11 @@ tmlocal(time_t now)
 				n = m;
 				m = isdst;
 			}
-			m -= n;
 			break;
 		}
 	}
+	m -= n;
+	isdst = o;
 	local.west = (short)n;
 	local.dst = (short)m;
 

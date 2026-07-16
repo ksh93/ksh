@@ -220,6 +220,19 @@ T '#236961303'				'1977-07-05 17:35:03'
 export TZ=Europe/London
 T '#0'					'1970-01-01 01:00:00'
 
+C='Proper offset within one year of a zone change (bad time)'
+export TZ=America/Indiana/Knox
+T '#1150126200'				'2006-06-12 10:30:00'
+
+C='Before and after a zone change (bad time)'
+export TZ=Pacific/Apia
+T '#1325239200'				'2011-12-31 00:00:00'
+T '#1325239199'				'2011-12-29 23:59:59'
+
+C='POSIX timezone strings without rules (bad time, musl)' #https://github.com/ksh93/ksh/issues/976
+export TZ=EST5EDT
+T '#1274252800'				'2010-05-19 03:06:40'
+
 format='%Y-%m-%d'
 export TZ=UTC
 
