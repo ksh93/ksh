@@ -7,6 +7,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: the value of $? was incorrectly 0 in the EXIT trap when the shell
   aborted due to an error.
 
+- Fixed: $((-2**63/-1)) threw SIGFPE or froze the shell.
+
 2026-07-13:
 
 - Fixed: when the -m option is turned on in a non-interactive shell, and the
