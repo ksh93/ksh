@@ -545,6 +545,7 @@ void sh_exit(int xno)
 		sh.exitval = xno;
 	if(xno==SH_EXITSIG)
 		sh.exitval |= (sig=sh.lastsig);
+	sh.savexit = sh.exitval; /* update $? */
 	if(pp && pp->mode>1)
 		cursig = -1;
 	sh_offstate(SH_EXEC);

@@ -257,5 +257,11 @@ exp=9
 (trap 'false; exit' EXIT; exit 9)
 let "(got=$?)==exp" || err_exit "explicit exit status outside trap not honoured (got $got, expected $exp)"
 
+# https://github.com/ksh93/ksh/issues/1006
+got=$("$SHELL" 2>&1 -c 'unset nounset; set -o nounset -o errexit; trap "echo \$?" EXIT;
+	[[ -n $nounset ]] || echo Wot?' && echo "Clean." || echo "Exit code $?")
+exp=$': nounset: parameter not set\n1\nExit code 1'
+[[ $got == *"$exp" ]] || err_exit "value of \$ in EXIT trap (expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ======
 exit $((Errors<125?Errors:125))
