@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-17:
+
+- The 2020-09-05/2021-04-30/2021-05-03 fix for erroneous syntax errors in
+  parameter expansions such as ${var:-wor)d} or ${var+w(ord} was ineffective
+  for positional parameters (e.g., ${1:-wor)d} or ${2+w(ord}) due to an
+  additional problem in the lexer, which has now been found and fixed.
+
 2026-07-16:
 
 - Fixed: assigning a value to a 'typeset -b' binary data variable that is

@@ -932,10 +932,10 @@ int sh_lex(Lex_t* lp)
 							n = S_ALP;
 						/* FALLTHROUGH */
 					case RBRACE:
-						if(n==S_ALP)
+						if(n==S_ALP || n==S_DIG)
 						{
 							setchar(lp,RBRACE);
-							if(c=='.')
+							if(c=='.' && n==S_ALP)
 								fcseek(-LEN);
 							mode = ST_BRACE;
 						}
