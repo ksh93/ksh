@@ -7,6 +7,11 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: assigning a value to a 'typeset -b' binary data variable that is
   shorter than the previous value caused the shell to crash or output garbage.
 
+- The shell's timer/alarm-related features ($TMOUT, 'read -t', the 'alarm'
+  built-in, and various internal timeout handling) now use the POSIX functions
+  timer_create(2) and friends with CLOCK_MONOTONIC, where available. This
+  guarantees a correct delay even if the system clock is adjusted during it.
+
 2026-07-15:
 
 - Fixed: the value of $? was incorrectly 0 in the EXIT trap when the shell
