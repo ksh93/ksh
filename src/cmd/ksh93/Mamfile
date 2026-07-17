@@ -60,7 +60,7 @@ make install virtual
 	make shell.req
 		makp %{INSTALLROOT}/bin/mkreq
 		exec - mkreq %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} : %{LDFLAGS} : \
-		exec -		shell dll cmd ast m jobs i socket nsl secdb network
+		exec -		shell dll cmd ast m jobs i socket nsl secdb network rt
 	done
 
 	note *
