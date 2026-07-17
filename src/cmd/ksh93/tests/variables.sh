@@ -1275,6 +1275,49 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	done
 done
 
+# Same again for positional parameters (minus the conditional assignment operators).
+# https://github.com/ksh93/ksh/issues/907
+
+set -- some_value  # $1 is set, $2 is unset
+
+for op in - :-
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
+		if	[[ $got != "$word" ]]
+		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected \"$word\", got \"$got\""
+	        fi
+	done
+done
+
+for op in - :- \? :\?
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${1${op}${word}}" 2>&1)
+		if	[[ $got != "$1" ]]
+		then	err_exit "\${1${op}${word}} when PP 1 is set: expected \"$1\", got \"$got\""
+		fi
+	done
+done
+
+for op in + :+
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
+		if	[[ $got != "" ]]
+		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected null, got \"$got\""
+		fi
+	done
+done
+
+for op in \? :\?
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
+		if	[[ $got != *": 2: $word" ]]
+		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected *\": 2: $word\", got \"$got\""
+		fi
+	done
+done
+
+set --
+
 # ======
 # https://bugzilla.redhat.com/1147645
 case $'\n'$(env 'BASH_FUNC_a%%=() { echo test; }' "$SHELL" -c set) in
