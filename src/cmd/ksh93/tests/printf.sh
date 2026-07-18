@@ -227,15 +227,15 @@ T '#1325239199'				'2011-12-29 23:59:59'
 
 C='Historical change from one DST zone to another (bad time)'
 export TZ=Europe/Chisinau
-T '#642286800'					'1990-05-10 00:00:00'
+T '#642286800'				'1990-05-10 00:00:00'
 
 C='Historical change from DST to standard (bad time)'
 export TZ=America/Indiana/Knox
-T '#688626000'					'1991-10-28 00:00:00'
+T '#688626000'				'1991-10-28 00:00:00'
 
 C='Historical change from standard to DST (bad time)'
 export TZ=America/Kentucky/Louisville
-T '#126766800'					'1974-01-07 00:00:00'
+T '#126766800'				'1974-01-07 00:00:00'
 
 C='Historical change from standard to standard (bad time)'
 export TZ=America/Argentina/San_Juan
