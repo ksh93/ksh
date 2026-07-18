@@ -226,7 +226,7 @@ static char *setdisc(Namval_t *np, const char *event, Namval_t* action, Namfun_t
 /*
  * catch assignments and set alarm traps
  */
-static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
+static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 {
 	struct tevent	*tp = (struct tevent*)fp;
 	double		d, x;

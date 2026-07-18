@@ -43,6 +43,12 @@ typedef struct Namarray Namarr_t;
 typedef struct Namdecl Namdecl_t;
 
 /*
+ * Any place that assigns or compares the NV_* symbols below to a var should use 'nvflag_t' for the
+ * type of the var rather than 'unsigned short', 'int', etc.
+ */
+typedef uint64_t nvflag_t;
+
+/*
  * Poor man's alignof() -- the real one is not available in C99 and cannot
  * be portably reimplemented. This nv_alignof() version can only be used
  * with types defined in the dummy struct below. The _c* char entries are
@@ -78,17 +84,17 @@ typedef struct
 struct Namdisc
 {
 	size_t	dsize;
-	void	(*putval)(Namval_t*, const char*, int, Namfun_t*);
+	void	(*putval)(Namval_t*, const char*, nvflag_t, Namfun_t*);
 	char	*(*getval)(Namval_t*, Namfun_t*);
 	Sfdouble_t	(*getnum)(Namval_t*, Namfun_t*);
 	char	*(*setdisc)(Namval_t*, const char*, Namval_t*, Namfun_t*);
-	Namval_t *(*createf)(Namval_t*, const char*, int, Namfun_t*);
-	Namfun_t *(*clonef)(Namval_t*, Namval_t*, int, Namfun_t*);
+	Namval_t *(*createf)(Namval_t*, const char*, nvflag_t, Namfun_t*);
+	Namfun_t *(*clonef)(Namval_t*, Namval_t*, nvflag_t, Namfun_t*);
 	char	*(*namef)(Namval_t*, Namfun_t*);
 	Namval_t *(*nextf)(Namval_t*, Dt_t*, Namfun_t*);
 	Namval_t *(*typef)(Namval_t*, Namfun_t*);
 	int	(*readf)(Namval_t*, Sfio_t*, int, Namfun_t*);
-	int	(*writef)(Namval_t*, Sfio_t*, int, Namfun_t*);
+	int	(*writef)(Namval_t*, Sfio_t*, nvflag_t, Namfun_t*);
 };
 
 struct Namfun
@@ -115,7 +121,7 @@ struct Namarray
 {
 	Namfun_t	hdr;
 	long		nelem;				/* number of elements */
-	void	*(*fun)(Namval_t*,const char*,int);	/* associative arrays */
+	void	*(*fun)(Namval_t*,const char*,nvflag_t);/* associative arrays */
 	void		*fixed;			/* for fixed-size arrays */
 	Dt_t		*table;			/* for subscripts */
 	void		*scope;			/* non-zero when scoped */
@@ -131,7 +137,7 @@ struct Namdecl
 
 /* attributes of name-value node attribute flags */
 
-#define NV_DEFAULT 0
+#define NV_DEFAULT ((nvflag_t)0)
 
 /*
  * This defines the attributes for an attributed name-value pair node.
@@ -143,7 +149,7 @@ struct Namval
 {
 	Dtlink_t	nvlink;		/* space for cdt links */
 	char		*nvname;	/* pointer to name of the node */
-	uint16_t	nvflag; 	/* attributes */
+	nvflag_t	nvflag; 	/* attributes */
 	size_t  	nvsize;		/* size or base */
 	Namfun_t	*nvfun;		/* pointer to trap functions */
 	void		*nvalue;	/* pointer to any kind of value */
@@ -158,65 +164,69 @@ struct Namval
 #define nv_namptr(p,n)	((Namval_t*)((char*)(p) + (n) * NV_MINSZ - offsetof(struct Namval, nvname)))
 
 /* The following attributes are for internal use */
-#define NV_NOFREE	0x200	/* don't free the space when releasing value */
-#define NV_ARRAY	0x400	/* node is an array */
-#define NV_REF		0x4000	/* reference bit */
-#define NV_TABLE	0x800	/* node is a dictionary table */
-#define NV_MINIMAL	0x1000	/* node does not contain all fields */
+#define NV_NOFREE	((nvflag_t)1 << 9)	/* don't free the space when releasing value */
+#define NV_ARRAY	((nvflag_t)1 << 10)	/* node is an array */
+#define NV_REF		((nvflag_t)1 << 14)	/* reference bit */
+#define NV_TABLE	((nvflag_t)1 << 11)	/* node is a dictionary table */
+#define NV_MINIMAL	((nvflag_t)1 << 12)	/* node does not contain all fields */
 #if _BLD_ksh
 #if SHOPT_OPTIMIZE
-#define NV_NOOPTIMIZE	NV_TABLE	/* disable loop invariants optimizer */
+#define NV_NOOPTIMIZE	NV_TABLE		/* disable loop invariants optimizer */
 #else
 #define NV_NOOPTIMIZE	0
 #endif /* SHOPT_OPTIMIZE */
 #endif /* _BLD_ksh */
 
-#define NV_INTEGER	0x2	/* integer attribute */
+#define NV_INTEGER	((nvflag_t)1 << 1)	/* integer attribute */
 /* The following attributes are valid only when NV_INTEGER is off */
-#define NV_LTOU		0x4	/* convert to uppercase */
-#define NV_UTOL		0x8	/* convert to lowercase */
-#define NV_ZFILL	0x10	/* right justify and fill with leading zeros */
-#define NV_RJUST	0x20	/* right justify and blank fill */
-#define NV_LJUST	0x40	/* left justify and blank fill */
-#define NV_BINARY	0x100	/* fixed size data buffer */
-#define NV_RAW		NV_LJUST	/* used only with NV_BINARY */
+#define NV_LTOU		((nvflag_t)1 << 2)	/* convert to uppercase */
+#define NV_UTOL		((nvflag_t)1 << 3)	/* convert to lowercase */
+#define NV_ZFILL	((nvflag_t)1 << 4)	/* right justify and fill with leading zeros */
+#define NV_RJUST	((nvflag_t)1 << 5)	/* right justify and blank fill */
+#define NV_LJUST	((nvflag_t)1 << 6)	/* left justify and blank fill */
+#define NV_BINARY	((nvflag_t)1 << 8)	/* fixed size data buffer */
+#define NV_RAW		NV_LJUST		/* used only with NV_BINARY */
 #define NV_HOST		(NV_RJUST|NV_LJUST)	/* map to host filename */
 
 /* The following attributes do not affect the value */
-#define NV_RDONLY	0x1	/* readonly bit */
-#define NV_EXPORT	0x2000	/* export bit */
-#define NV_TAGGED	0x8000	/* user define tag bit */
+#define NV_RDONLY	((nvflag_t)1 << 0)	/* readonly bit */
+#define NV_EXPORT	((nvflag_t)1 << 13)	/* export bit */
+#define NV_TAGGED	((nvflag_t)1 << 15)	/* user define tag bit */
 
 /* The following are used with NV_INTEGER */
-#define NV_SHORT	(NV_RJUST)	/* when integers are not long */
-#define NV_LONG		(NV_UTOL)	/* for long long and long double */
-#define NV_UNSIGN	(NV_LTOU)	/* for unsigned quantities */
+#define NV_SHORT	(NV_RJUST)		/* when integers are not long */
+#define NV_LONG		(NV_UTOL)		/* for long long and long double */
+#define NV_UNSIGN	(NV_LTOU)		/* for unsigned quantities */
 #define NV_DOUBLE	(NV_INTEGER|NV_ZFILL)	/* for floating point */
-#define NV_EXPNOTE	(NV_LJUST)	/* for scientific notation */
-#define NV_HEXFLOAT	(NV_LTOU)	/* for C99 base16 float notation */
-#define NV_FLTSIZEZERO	-1		/* a float with size of 0 being <0 */
+#define NV_EXPNOTE	(NV_LJUST)		/* for scientific notation */
+#define NV_HEXFLOAT	(NV_LTOU)		/* for C99 base16 float notation */
+#define NV_FLTSIZEZERO	-1			/* a float with size of 0 being <0 */
 
-/* options for nv_open */
+/* options of nv_open. */
+#define NV_APPEND	((nvflag_t)1 << 32)	/* append value */
+#define NV_MOVE		((nvflag_t)1 << 43)	/* for use with nv_clone */
+#define NV_ADD		((nvflag_t)1 << 45)	/* add node if not found */
+#define NV_ASSIGN	NV_NOFREE		/* assignment is possible */
+#define NV_NOARRAY	((nvflag_t)1 << 37)	/* array name not possible */
+#define NV_IARRAY	((nvflag_t)1 << 38)	/* for indexed array */
+#define NV_NOREF	NV_REF			/* don't follow reference */
+#define NV_IDENT	((nvflag_t)1 << 7)	/* name must be identifier */
+#define NV_VARNAME	((nvflag_t)1 << 33)	/* name must be ?(.)id*(.id) */
+#define NV_NOADD	((nvflag_t)1 << 34)	/* do not add node */
+#define NV_NOSCOPE	((nvflag_t)1 << 35)	/* look only in current scope */
+#define NV_NOFAIL	((nvflag_t)1 << 36)	/* return 0 on failure, no msg */
+#define NV_NODISC	NV_IDENT		/* ignore disciplines */
+#define NV_UNATTR	((nvflag_t)1 << 39)	/* unset attributes before assignment */
+#define NV_GLOBAL	((nvflag_t)1 << 44)	/* create global variable, ignoring local scope */
+/* Moved here from name.h */
+#define NV_TYPE		((nvflag_t)1 << 40)
+#define NV_STATIC	((nvflag_t)1 << 41)
+#define NV_COMVAR	((nvflag_t)1 << 42)
+#define NV_FARRAY	((nvflag_t)1 << 46)	/* fixed-size arrays */
+/* Mask for flags pertaining to nv_open */
 
-#define NV_APPEND	0x10000		/* append value */
-#define NV_MOVE		0x8000000	/* for use with nv_clone */
-#define NV_ADD		8
-					/* add node if not found */
-#define NV_ASSIGN	NV_NOFREE	/* assignment is possible */
-#define NV_NOARRAY	0x200000	/* array name not possible */
-#define NV_IARRAY	0x400000	/* for indexed array */
-#define NV_NOREF	NV_REF		/* don't follow reference */
-#define NV_IDENT	0x80		/* name must be identifier */
-#define NV_VARNAME	0x20000		/* name must be ?(.)id*(.id) */
-#define NV_NOADD	0x40000		/* do not add node */
-#define NV_NOSCOPE	0x80000		/* look only in current scope */
-#define NV_NOFAIL	0x100000	/* return 0 on failure, no msg */
-#define NV_NODISC	NV_IDENT	/* ignore disciplines */
-#define NV_UNATTR	0x800000	/* unset attributes before assignment */
-#define NV_GLOBAL	0x20000000	/* create global variable, ignoring local scope */
-
-#define NV_FUNCT	NV_IDENT	/* option for nv_create */
-#define NV_BLTINOPT	NV_ZFILL	/* mark builtins in libcmd */
+#define NV_FUNCT	NV_IDENT		/* option for nv_create */
+#define NV_BLTINOPT	NV_ZFILL		/* mark builtins in libcmd */
 
 #define NV_PUBLIC	(~(NV_NOSCOPE|NV_ASSIGN|NV_IDENT|NV_VARNAME|NV_NOADD))
 
@@ -269,8 +279,8 @@ struct Namval
 
 /* prototype for array interface */
 extern Namarr_t	*nv_arrayptr(Namval_t*);
-extern Namarr_t	*nv_setarray(Namval_t*,void*(*)(Namval_t*,const char*,int));
-extern void	*nv_associative(Namval_t*,const char*,int);
+extern Namarr_t	*nv_setarray(Namval_t*,void*(*)(Namval_t*,const char*,nvflag_t));
+extern void	*nv_associative(Namval_t*,const char*,nvflag_t);
 extern int	nv_aindex(Namval_t*);
 extern int	nv_nextsub(Namval_t*);
 extern char	*nv_getsub(Namval_t*);
@@ -279,10 +289,10 @@ extern Namval_t	*nv_opensub(Namval_t*);
 
 /* name-value pair function prototypes */
 extern int		nv_adddisc(Namval_t*, const char**, Namval_t**);
-extern int		nv_clone(Namval_t*, Namval_t*, int);
+extern int		nv_clone(Namval_t*, Namval_t*, nvflag_t);
 extern void		*nv_context(Namval_t*);
-extern Namval_t		*nv_create(const char*, Dt_t*, int,Namfun_t*);
-extern void		nv_delete(Namval_t*, Dt_t*, int);
+extern Namval_t		*nv_create(const char*, Dt_t*, nvflag_t,Namfun_t*);
+extern void		nv_delete(Namval_t*, Dt_t*, nvflag_t);
 extern Dt_t		*nv_dict(Namval_t*);
 extern Sfdouble_t	nv_getn(Namval_t*, Namfun_t*);
 extern Sfdouble_t	nv_getnum(Namval_t*);
@@ -293,23 +303,23 @@ extern int		nv_isnull(Namval_t*);
 extern Namfun_t		*nv_isvtree(Namval_t*);
 extern Namval_t		*nv_lastdict(void);
 extern Namval_t		*nv_mkinttype(char*, size_t, int, const char*, Namdisc_t*);
-extern void 		nv_newattr(Namval_t*,unsigned,ssize_t);
+extern void 		nv_newattr(Namval_t*,nvflag_t,ssize_t);
 extern void 		nv_newtype(Namval_t*);
-extern Namval_t		*nv_open(const char*,Dt_t*,int);
-extern void 		nv_putval(Namval_t*,const char*,int);
-extern void 		nv_putv(Namval_t*,const char*,int,Namfun_t*);
-extern int		nv_rename(Namval_t*,int);
+extern Namval_t		*nv_open(const char*,Dt_t*,nvflag_t);
+extern void 		nv_putval(Namval_t*,const char*,nvflag_t);
+extern void 		nv_putv(Namval_t*,const char*,nvflag_t,Namfun_t*);
+extern int		nv_rename(Namval_t*,nvflag_t);
 extern void		nv_rehash(Namval_t*,void*);
-extern int		nv_scan(Dt_t*,void(*)(Namval_t*,void*),void*,int,int);
+extern int		nv_scan(Dt_t*,void(*)(Namval_t*,void*),void*,nvflag_t,nvflag_t);
 extern char 		*nv_setdisc(Namval_t*,const char*,Namval_t*,Namfun_t*);
-extern void		nv_setref(Namval_t*, Dt_t*,int);
-extern int		nv_settype(Namval_t*, Namval_t*, int);
+extern void		nv_setref(Namval_t*,Dt_t*,nvflag_t);
+extern int		nv_settype(Namval_t*,Namval_t*,nvflag_t);
 extern void 		nv_setvec(Namval_t*,int,int,char*[]);
 extern void		nv_setvtree(Namval_t*);
 extern size_t 		nv_setsize(Namval_t*,size_t);
-extern Namfun_t		*nv_disc(Namval_t*,Namfun_t*,int);
-extern void 		nv_unset(Namval_t*,int);
-extern Namval_t		*nv_search(const char *, Dt_t*, int);
+extern Namfun_t		*nv_disc(Namval_t*,Namfun_t*,nvflag_t);
+extern void 		nv_unset(Namval_t*,nvflag_t);
+extern Namval_t		*nv_search(const char *, Dt_t*, nvflag_t);
 extern char		*nv_name(Namval_t*);
 extern Namval_t		*nv_type(Namval_t*);
 extern void		nv_addtype(Namval_t*,const char*, Optdisc_t*, size_t);

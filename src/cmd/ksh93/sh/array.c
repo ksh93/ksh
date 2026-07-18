@@ -81,7 +81,7 @@ struct assoc_array
    static void array_fixed_setdata(Namval_t*,Namarr_t*,struct fixed_array*);
 #endif /* SHOPT_FIXEDARRAY */
 
-static Namarr_t *array_scope(Namarr_t *ap, int flags)
+static Namarr_t *array_scope(Namarr_t *ap, nvflag_t flags)
 {
 	Namarr_t *aq;
 #if SHOPT_FIXEDARRAY
@@ -273,7 +273,7 @@ int nv_arrayisset(Namval_t *np, Namarr_t *arp)
  * Delete space as necessary if flag is ARRAY_DELETE
  * After the lookup is done the last @ or * subscript is incremented
  */
-static Namval_t *array_find(Namval_t *np,Namarr_t *arp, int flag)
+static Namval_t *array_find(Namval_t *np,Namarr_t *arp, nvflag_t flag)
 {
 	struct index_array	*ap = (struct index_array*)arp;
 	void			**vpp;	/* pointer to value pointer */
@@ -409,7 +409,7 @@ static Namval_t *array_find(Namval_t *np,Namarr_t *arp, int flag)
 /*
  * for 'typeset -T' types
  */
-int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, int flags)
+int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, nvflag_t flags)
 {
 	Namval_t	*nq;
 	Namarr_t	*ap = nv_arrayptr(np);
@@ -437,7 +437,7 @@ int nv_arraysettype(Namval_t *np, Namval_t *tp, const char *sub, int flags)
 }
 
 
-static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, int flags, Namfun_t *fp)
+static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, nvflag_t flags, Namfun_t *fp)
 {
 	Namarr_t		*ap = (Namarr_t*)fp;
 	Namval_t		*nq, *mq;
@@ -590,7 +590,7 @@ static Sfdouble_t array_getnum(Namval_t *np, Namfun_t *disc)
 	return nv_getn(np,&ap->hdr);
 }
 
-static void array_putval(Namval_t *np, const char *string, int flags, Namfun_t *dp)
+static void array_putval(Namval_t *np, const char *string, nvflag_t flags, Namfun_t *dp)
 {
 	Namarr_t	*ap = (Namarr_t*)dp;
 	void		**vpp;	/* pointer to value pointer */
@@ -916,7 +916,7 @@ Namarr_t *nv_arrayptr(Namval_t *np)
  * Verify that argument is an indexed array and convert to associative,
  * freeing relevant storage
  */
-static Namarr_t *nv_changearray(Namval_t *np, void *(*fun)(Namval_t*,const char*,int))
+static Namarr_t *nv_changearray(Namval_t *np, void *(*fun)(Namval_t*,const char*,nvflag_t))
 {
 	Namarr_t *ap;
 	char numbuff[NUMSIZE+1];
@@ -962,7 +962,7 @@ static Namarr_t *nv_changearray(Namval_t *np, void *(*fun)(Namval_t*,const char*
  * set the associative array processing method for node <np> to <fun>
  * The array pointer is returned if successful.
  */
-Namarr_t *nv_setarray(Namval_t *np, void *(*fun)(Namval_t*,const char*,int))
+Namarr_t *nv_setarray(Namval_t *np, void *(*fun)(Namval_t*,const char*,nvflag_t))
 {
 	Namarr_t	*ap;
 	char		*value=0;
@@ -1480,7 +1480,7 @@ skip:
  * process an array subscript for node <np> given the subscript <cp>
  * returns pointer to character after the subscript
  */
-char *nv_endsubscript(Namval_t *np, char *cp, int mode)
+char *nv_endsubscript(Namval_t *np, char *cp, nvflag_t mode)
 {
 	int quoted=0;
 	char c;
@@ -1650,10 +1650,10 @@ ssize_t nv_aimax(Namval_t* np)
 /*
  *  This is the default implementation for associative arrays
  */
-void *nv_associative(Namval_t *np,const char *sp,int mode)
+void *nv_associative(Namval_t *np,const char *sp,nvflag_t mode)
 {
 	struct assoc_array *ap = (struct assoc_array*)nv_arrayptr(np);
-	int type;
+	nvflag_t type;
 	switch(mode)
 	{
 	    case NV_AINIT:

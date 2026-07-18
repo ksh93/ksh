@@ -29,20 +29,20 @@
 typedef struct shtable1
 {
 	const char	*sh_name;
-	const unsigned	sh_number;
+	const uint32_t	sh_number;
 } Shtable_t;
 
 struct shtable2
 {
 	const char	*sh_name;
-	const unsigned	sh_number;
+	const uint32_t	sh_number;
 	const char	*sh_value;
 };
 
 struct shtable3
 {
 	const char	*sh_name;
-	const unsigned	sh_number;
+	const uint32_t	sh_number;
 	int		(*sh_value)(int, char*[], Shbltin_t*);
 };
 

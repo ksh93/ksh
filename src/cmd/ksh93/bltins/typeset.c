@@ -66,7 +66,7 @@ struct tdata
 	short     	aflag;
 	short     	pflag;
 	int     	argnum;
-	int     	scanmask;
+	nvflag_t     	scanmask;
 	Dt_t 		*scanroot;
 	char    	**argnam;
 	size_t		indent;
@@ -77,9 +77,9 @@ struct tdata
 static int	print_namval(Sfio_t*, Namval_t*, int, struct tdata*);
 static void	print_attribute(Namval_t*,void*);
 static void	print_all(Sfio_t*, Dt_t*, struct tdata*);
-static void	print_scan(Sfio_t*, int, Dt_t*, int, struct tdata*);
+static void	print_scan(Sfio_t*, nvflag_t, Dt_t*, int, struct tdata*);
 static int	unall(int, char**, Dt_t*);
-static int	setall(char**, int, Dt_t*, struct tdata*);
+static int	setall(char**, nvflag_t, Dt_t*, struct tdata*);
 static void	pushname(Namval_t*,void*);
 static void(*nullscan)(Namval_t*,void*);
 
@@ -92,14 +92,15 @@ static void(*nullscan)(Namval_t*,void*);
 #endif
 int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 {
-	int flag;
+	int n;
+	nvflag_t flag;
 	char *command = argv[0];
 	struct tdata tdata;
 	NOT_USED(argc);
 	NOT_USED(context);
 	memset(&tdata,0,sizeof(tdata));
 	tdata.aflag = '-';
-	while((flag = optget(argv,*command=='e'?sh_optexport:sh_optreadonly))) switch(flag)
+	while((n = optget(argv,*command=='e'?sh_optexport:sh_optreadonly))) switch(n)
 	{
 		case 'p':
 			tdata.prefix = command;
@@ -134,7 +135,7 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 #endif
 int    b_alias(int argc,char *argv[],Shbltin_t *context)
 {
-	unsigned flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
+	nvflag_t flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
 	Dt_t *troot;
 	int rflag=0, xflag=0, n;
 	struct tdata tdata;
@@ -217,7 +218,8 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 #endif
 int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 {
-	int		n, flag = NV_VARNAME|NV_ASSIGN;
+	int		n;
+	nvflag_t	flag = NV_VARNAME|NV_ASSIGN;
 	struct tdata	tdata;
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
@@ -644,12 +646,14 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 	}
 }
 
-static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
+static int     setall(char **argv,nvflag_t flag,Dt_t *troot,struct tdata *tp)
 {
 	char *name;
 	char *last = 0;
-	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
-	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
+	nvflag_t nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
+	int r=0, ref=0;
+	nvflag_t comvar=(flag&NV_COMVAR);
+	nvflag_t iarray=(flag&NV_IARRAY);
 	Dt_t *save_vartree = NULL;
 #if SHOPT_NAMESPACE
 	Namval_t *save_namespace = NULL;
@@ -686,11 +690,11 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 			nvflags |= (NV_NOREF|NV_NOADD|NV_NOFAIL);
 		while(name = *++argv)
 		{
-			unsigned newflag;
-			Namval_t *np;
+			nvflag_t	newflag;
+			Namval_t	*np;
 			Namarr_t	*ap=0;
 			Namval_t	*mp;
-			unsigned curflag;
+			nvflag_t	curflag;
 			if(troot == sh.fun_tree)
 			{
 				/*
@@ -1122,8 +1126,9 @@ Shbltin_f sh_getlib(char* sym, Pathcomp_t* pp)
 int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 {
 	char *arg=0, *name;
-	int n, r=0, flag=0;
+	int n, r=0;
 	ptrdiff_t offset;
+	nvflag_t flag=0;
 	Namval_t *np;
 	int dlete=0;
 	struct tdata tdata;
@@ -1324,7 +1329,8 @@ static int unall(int argc, char **argv, Dt_t *troot)
 	const char *name;
 	volatile int r;
 	Dt_t	*dp;
-	int nflag=0,all=0,isfun,jmpval;
+	int all=0,isfun,jmpval;
+	nvflag_t nflag=0;
 	struct checkpt buff;
 	NOT_USED(argc);
 	if(troot==sh.alias_tree)
@@ -1637,7 +1643,7 @@ static void	print_attribute(Namval_t *np,void *data)
  * print the nodes in tree <root> which have attributes <flag> set
  * if <option> is non-zero, no subscript or value is printed
  */
-static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tdata *tp)
+static void print_scan(Sfio_t *file, nvflag_t flag, Dt_t *root, int option,struct tdata *tp)
 {
 	char **argv;
 	Namval_t *np;

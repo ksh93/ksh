@@ -105,7 +105,7 @@ extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
-extern void		sh_deparse(Sfio_t*,const Shnode_t*,int,int);
+extern void		sh_deparse(Sfio_t*,const Shnode_t*,nvflag_t,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
 extern char 		**sh_envgen(void);
 extern Sfdouble_t	sh_arith(const char*);
@@ -149,7 +149,7 @@ extern void		sh_clear_subshell_pwdfd(void);
     extern int		sh_validate_subpwdfd(void);
 #endif /* _lib_openat */
 #if SHOPT_NAMESPACE
-    extern Namval_t	*sh_fsearch(const char *,int);
+    extern Namval_t	*sh_fsearch(const char *,nvflag_t);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */

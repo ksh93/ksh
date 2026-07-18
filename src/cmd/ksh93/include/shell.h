@@ -420,7 +420,7 @@ typedef struct Libcomp_s
 	char*		lib;
 	dev_t		dev;
 	ino_t		ino;
-	unsigned int	attr;
+	nvflag_t	attr;
 } Libcomp_t;
 extern Libcomp_t *liblist;
 

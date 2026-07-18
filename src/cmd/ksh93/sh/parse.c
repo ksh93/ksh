@@ -50,8 +50,8 @@ static Shnode_t	*sh_cmd(Lex_t*,int,int);
 static Shnode_t	*term(Lex_t*,int);
 static Shnode_t	*list(Lex_t*,int);
 static struct regnod	*syncase(Lex_t*,int);
-static Shnode_t	*item(Lex_t*,int);
-static Shnode_t	*simple(Lex_t*,int, struct ionod*);
+static Shnode_t	*item(Lex_t*,nvflag_t);
+static Shnode_t	*simple(Lex_t*,nvflag_t, struct ionod*);
 static int	skipnl(Lex_t*,int);
 static Shnode_t	*test_expr(Lex_t*,int);
 static Shnode_t	*test_and(Lex_t*);
@@ -998,13 +998,14 @@ static int check_array(Lex_t *lexp)
 /*
  * Compound assignment
  */
-static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
+static struct argnod *assign(Lex_t *lexp, struct argnod *ap, nvflag_t type)
 {
 	int n;
 	size_t len;
 	Shnode_t *t, **tp;
 	struct comnod *ac = NULL;
-	int array=0, index=0;
+	uint32_t array=0;
+	int index=0;
 	Namval_t *np;
 	lexp->assignlevel++;
 	len = strlen(ap->argval)-1;
@@ -1194,7 +1195,7 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, int type)
  *	case ... in ... esac
  *	begin ... end
  */
-static Shnode_t	*item(Lex_t *lexp,int flag)
+static Shnode_t	*item(Lex_t *lexp,nvflag_t flag)
 {
 	Shnode_t *t;
 	struct ionod *io;
@@ -1418,7 +1419,7 @@ static struct argnod *process_sub(Lex_t *lexp,int tok)
 /*
  * This is for a simple command, for list, or compound assignment
  */
-static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
+static Shnode_t *simple(Lex_t *lexp,nvflag_t flag, struct ionod *io)
 {
 	struct comnod	*t;
 	struct argnod	*argp, *ap;
@@ -1426,7 +1427,7 @@ static Shnode_t *simple(Lex_t *lexp,int flag, struct ionod *io)
 	struct argnod	**argtail;
 	struct argnod	**settail;
 	int		cmdarg = 0;
-	int		type = 0;
+	nvflag_t	type = 0;
 	int		was_assign = 0;
 	int		argno = 0;
 	int		assignment = 0;
