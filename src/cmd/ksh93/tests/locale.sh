@@ -579,4 +579,22 @@ case " ${locales[*]} " in
 esac
 
 # ======
+# Crash or freeze when combining an unterminated here-document with a pattern seeking redirection
+for locale in C C.UTF-8
+do	for reproducer in \
+	$'cat <<EOF <#*termin*\nUnterminated heredoc' \
+	$'cat <<EOF <#NO_MATCH\nUnterminated heredoc' \
+	$'cat <<EOF\n\x[D3]'  # invalid UTF-8 at end
+	do	LC_CTYPE=$locale "$SHELL" -c "$reproducer" > out 2>&1 &
+		pid=$!
+		(sleep .5; kill -9 $pid) &
+		wait $pid 2> out2
+		e=$?
+		kill $! 2>/dev/null
+		((e==0)) || err_exit "$(printf %q "$reproducer") with LC_CTYPE=$locale: expected status 0," \
+			"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) with output $(printf %q "$(<out)$(<out2)")"
+	done
+done
+
+# ======
 exit $((Errors<125?Errors:125))

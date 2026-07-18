@@ -9,6 +9,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   for positional parameters (e.g., ${1:-wor)d} or ${2+w(ord}) due to an
   additional problem in the lexer, which has now been found and fixed.
 
+- Fixed a potential crash or freeze in the processing of an unterminated
+  here-document combined with a pattern matching redirection.
+
 2026-07-16:
 
 - Fixed: assigning a value to a 'typeset -b' binary data variable that is
