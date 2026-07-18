@@ -41,7 +41,7 @@ int 		sh_trap(const char *\fIstring\fP, int \fImode\fP);
 int		sh_run(int \fIargc\fP, char *\fIargv\fP[]);
 int 		sh_eval(Sfio_t *\fIsp\fP, int \fImode\fP);
 int 		sh_fun(Namval_t *\fIfunnode\fP, Namval_t *\fIvarnode\fP, char *\fIargv\fP[]);
-int 		sh_funscope(int \fIargc\fP, char *\fIargv\fP[], int(*\fIfn\fP)(void*), void *\fIarg\fP, int \fIflags\fP);
+int 		sh_funscope(int \fIargc\fP, char *\fIargv\fP[], int(*\fIfn\fP)(void*), void *\fIarg\fP, int \fIexecflg\fP);
 Shscope_t	*sh_getscope(int \fIindex\fP, int \fIwhence\fP);
 Shscope_t	*sh_setscope(Shscope_t *\fIscope\fP);
 

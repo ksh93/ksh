@@ -147,7 +147,7 @@ extern void		sh_clear_subshell_pwdfd(void);
     extern int		sh_validate_subpwdfd(void);
 #endif /* _lib_openat */
 #if SHOPT_NAMESPACE
-    extern Namval_t	*sh_fsearch(const char *,int);
+    extern Namval_t	*sh_fsearch(const char *,nvflag_t);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */

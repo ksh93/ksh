@@ -98,7 +98,11 @@ struct argnod
 		char		*cp;
 		int		len;
 	}		argchn;
-	unsigned char	argflag;
+	/*
+	 * argflag must be 8 bits because the code expects that assigning
+	 * to it will mask off any high bits; e.g., ARG_ARITH and friends.
+	 */
+	uint8_t		argflag;
 	char		argval[4];
 };
 
