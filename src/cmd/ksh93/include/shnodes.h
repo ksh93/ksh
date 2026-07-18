@@ -191,6 +191,7 @@ struct arithnod
 #define IOREWRITE	0x80000	/* rewrite/truncate upon command success: >;word <>;word */
 #define IOCOPY		IOCLOB	/* copy skipped lines onto standard output */
 #define IOPROCSUB	IOARITH	/* process substitution redirection */
+#define IOFREEABLE	0x100000/* node is allocated on heap */
 
 union Shnode_u
 {

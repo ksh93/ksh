@@ -600,6 +600,13 @@ exp=$'startONE TWO THREEend\nstartONE/TWO/THREEend'
 [[ $got == "$exp" ]] || err_exit '$@ and $* in here-document' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# ======
+# Attempt to free unallocated I/O node in here_copy() when an unterminated
+# command substitution follows a here-document redirection. Fixed 2026-07-18.
+exp='*syntax error*'
+got=$( { "$SHELL" -c $'cat <<EOF $(\n'; } 2>&1)
+[[ e=$? -eq 3 && $got == $exp ]] || err_exit "here-document redirection followed by unterminated command substitution" \
+	"(expected status 3 and match of $exp, got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
