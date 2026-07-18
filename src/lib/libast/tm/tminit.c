@@ -253,6 +253,7 @@ tmlocal(time_t now)
 		now -= 31 * 24 * 60 * 60;
 		if ((m = tzwest(&now, &isdst)) != n && ((!isdst && o) || (isdst && !o)))
 		{
+			m -= (n - p);
 			n = p;
 			if (!isdst)
 			{
