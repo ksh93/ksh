@@ -172,6 +172,11 @@ tmxdate(const char* s, char** e, Time_t now)
 	int		dir;
 	int		dst;
 	int		zone;
+	int		dst_old;
+	int		west_old;
+	int		isdst_old;
+	int		first = 1;
+	int		good_check = 0;
 	int		c;
 	int		f;
 	int		i;
@@ -206,7 +211,13 @@ tmxdate(const char* s, char** e, Time_t now)
 	 */
 
 	tm = tmxtm(&ts, now, NULL, 1);
+	if (!first && dst_old == tm->tm_zone->dst && west_old == tm->tm_zone->west && isdst_old == tm->tm_isdst)
+		good_check = 1;
+	dst_old = tm->tm_zone->dst;
+	west_old = tm->tm_zone->west;
+	isdst_old = tm->tm_isdst;
 	tm_info.date = tm->tm_zone;
+	first = 0;
 	day = -1;
 	dir = 0;
 	dst = TM_DST;
@@ -1779,6 +1790,15 @@ tmxdate(const char* s, char** e, Time_t now)
 			tm->tm_mday += j;
 		}
 	}
+	tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 1);
+	if (!first)
+	{
+		int offset = tm->tm_zone->west - west_old;
+		if (tm->tm_isdst)
+			offset += tm->tm_zone->dst - dst_old;
+		tm->tm_min += offset;
+		tmfix(tm);
+	}
 	now = tmxtime(tm, zone);
 	if (tm->tm_year <= 70 && tmxsec(now) > 31536000)
 	{
@@ -1787,5 +1807,7 @@ tmxdate(const char* s, char** e, Time_t now)
 	}
 	if (e)
 		*e = last;
+	if (!good_check)
+		goto reset;
 	return now;
 }
