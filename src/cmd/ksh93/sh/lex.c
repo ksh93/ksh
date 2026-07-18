@@ -1750,7 +1750,7 @@ static void nested_here(Lex_t *lp)
 	lp->arg = endword(0);
 	iop->ioname = (char*)(iop+1);
 	strcpy(iop->ioname,lp->arg->argval);
-	iop->iofile = (IODOC|IORAW);
+	iop->iofile = IODOC | IORAW | IOFREEABLE;
 	if(lp->lexd.docword>1)
 		iop->iofile |= IOSTRIP;
 	lp->heredoc = iop;
@@ -2060,7 +2060,7 @@ static ptrdiff_t here_copy(Lex_t *lp,struct ionod *iop)
 		n=0;
 	}
 done:
-	if(lp->lexd.dolparen)
+	if(iop->iofile & IOFREEABLE)
 		free(iop);
 	else if(!special)
 		iop->iofile |= IOQUOTE;
