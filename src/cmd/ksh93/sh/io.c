@@ -1022,7 +1022,9 @@ static size_t pat_line(const regex_t* rp, const char *buff, size_t n)
 	const char *cp=buff, *sp;
 	while(n>0)
 	{
-		for(sp=cp; n-->0 && *cp++ != '\n';);
+		sp = cp;
+		while(n>0 && *cp++ != '\n')
+			n--;
 		if(regnexec(rp,sp,(size_t)(cp-sp), 0, NULL, 0)==0)
 			return (size_t)(sp-buff);
 	}
@@ -1049,7 +1051,7 @@ static int io_patseek(regex_t *rp, Sfio_t* sp, unsigned int flags)
 		if(m && (flags&IOCOPY))
 			sfwrite(sfstdout,cp,m);
 		sfread(sp,cp,m);
-		if(m<n)
+		if(m<n || n==0)
 			break;
 	}
 	if(!close_exec)

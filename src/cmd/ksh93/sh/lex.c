@@ -2054,6 +2054,8 @@ static ptrdiff_t here_copy(Lex_t *lp,struct ionod *iop)
 		    case S_DOL:
 			special++;
 			break;
+		    case S_EOF:
+			goto done;
 		}
 		n=0;
 	}
