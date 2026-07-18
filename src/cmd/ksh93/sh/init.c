@@ -1542,6 +1542,11 @@ void sh_reinit(void)
 	freeup_tree(sh.track_tree);
 	freeup_tree(sh.typedict);
 	freeup_tree(sh.var_tree);
+	if(sh.funload_loopdetect_tree)
+	{
+		freeup_tree(sh.funload_loopdetect_tree);
+		sh.funload_loopdetect_tree = NULL;
+	}
 #if SHOPT_STATS
 	free(sh.stats);
 #endif
