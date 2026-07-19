@@ -49,7 +49,7 @@ extern Sfio_t		_Stk_data;
 
 extern Stk_t*		stkopen(int);
 extern Stk_t*		stkinstall(Stk_t*, char*(*)(size_t));	/* deprecated */
-extern void		stkoverflow(Stk_t*, void*(*)(size_t));
+extern void		stkoverflow(Stk_t*, void(*)(size_t));
 extern int		stkclose(Stk_t*);
 extern unsigned int	stklink(Stk_t*);
 extern void*		stkalloc(Stk_t*, size_t);
