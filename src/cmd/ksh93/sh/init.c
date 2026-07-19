@@ -575,7 +575,7 @@ static void put_seconds(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp
 	{
 		nv_setsize(np,3);
 		nv_onattr(np,NV_DOUBLE);
-		dp = np->nvalue = new_of(double,0);
+		dp = np->nvalue = sh_malloc(sizeof(double));
 	}
 	nv_putv(np, val, flags, fp);
 	d = *dp;

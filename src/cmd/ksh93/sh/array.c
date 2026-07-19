@@ -812,7 +812,7 @@ static struct index_array *array_grow(Namval_t *np, struct index_array *arp,ssiz
 		UNREACHABLE();
 	}
 	i = (newsize - 1) * (ssize_t)sizeof(void*) + newsize;
-	ap = new_of(struct index_array,(size_t)i);
+	ap = sh_malloc(sizeof(struct index_array) + (size_t)i);
 	memset(ap,0,sizeof(*ap)+(size_t)i);
 	ap->maxi = newsize;
 	ap->cur = maxi;

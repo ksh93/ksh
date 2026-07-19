@@ -1694,7 +1694,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 				else
 					ld = sh_arith(sp);
 				if(!*vpp)
-					*vpp = new_of(Sfdouble_t,0);
+					*vpp = sh_malloc(sizeof(Sfdouble_t));
 				else if(flags&NV_APPEND)
 					old = *(Sfdouble_t*)*vpp;
 				*(Sfdouble_t*)*vpp = old ? ld+old : ld;
@@ -1714,7 +1714,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 				else
 					d = sh_arith(sp);
 				if(!*vpp)
-					*vpp = new_of(double,0);
+					*vpp = sh_malloc(sizeof(double));
 				else if(flags&NV_APPEND)
 					od = *(double*)*vpp;
 				*(double*)*vpp = od ? d+od : d;
@@ -1758,7 +1758,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 				else if(sp)
 					ll = (Sflong_t)sh_arith(sp);
 				if(!*vpp)
-					*vpp = new_of(Sflong_t,0);
+					*vpp = sh_malloc(sizeof(Sflong_t));
 				else if(flags&NV_APPEND)
 					oll = *(Sflong_t*)*vpp;
 				*(Sflong_t*)*vpp = ll + oll;
@@ -1812,7 +1812,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 				{
 					int16_t os=0;
 					if(!*vpp)
-						*vpp = new_of(int16_t,0);
+						*vpp = sh_malloc(sizeof(int16_t));
 					else if(flags&NV_APPEND)
 						os = *(int16_t*)*vpp;
 					*(int16_t*)*vpp = os + (int16_t)l;
@@ -1821,7 +1821,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 				{
 					int32_t ol=0;
 					if(!*vpp)
-						*vpp = new_of(int32_t,0);
+						*vpp = sh_malloc(sizeof(int32_t));
 					else if(flags&NV_APPEND)
 						ol = *(int32_t*)*vpp;
 					*(int32_t*)*vpp = l + ol;

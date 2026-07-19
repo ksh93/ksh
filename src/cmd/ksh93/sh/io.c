@@ -2351,7 +2351,7 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 			 * be closed in case a longjmp prevents
 			 * built-ins from cleanup
 			 */
-			item = new_of(struct openlist, 0);
+			item = sh_malloc(sizeof(struct openlist));
 			item->strm = sp;
 			item->next = pp->olist;
 			pp->olist = item;
@@ -2400,7 +2400,7 @@ Sfio_t *sh_sfeval(char *argv[])
 	if(argv[1])
 	{
 		struct eval *ep;
-		ep = new_of(struct eval,0);
+		ep = sh_malloc(sizeof(struct eval));
 		ep->disc = eval_disc;
 		ep->argv = argv;
 		ep->addspace  = 0;
