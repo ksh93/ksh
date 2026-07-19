@@ -1900,7 +1900,7 @@ static ptrdiff_t here_copy(Lex_t *lp,struct ionod *iop)
 			}
 			else
 				c = lexfill(lp);
-			if(c<0)
+			if(c<=0)
 				break;
 			if(n==S_ESC)
 			{
@@ -2054,8 +2054,6 @@ static ptrdiff_t here_copy(Lex_t *lp,struct ionod *iop)
 		    case S_DOL:
 			special++;
 			break;
-		    case S_EOF:
-			goto done;
 		}
 		n=0;
 	}
