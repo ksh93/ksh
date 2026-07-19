@@ -609,4 +609,14 @@ got=$( { "$SHELL" -c $'cat <<EOF $(\n'; } 2>&1)
 	"(expected status 3 and match of $exp, got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
 
 # ======
+# a test from modernish
+CCn=$'\n' CCt=$'\t' IFS=
+eval 'got=$(cat <<-\EOT'$CCn$CCt'abc \'$CCn$CCt'def \\'$CCn$CCt'ghi' \
+	'\\\'$CCn$CCt'jkl \\\\'$CCn$CCt'end'$CCn$CCt'EOT'$CCn$CCt')'
+IFS=$' \t\n'
+exp=$'abc \\\ndef \\\\\nghi \\\\\\\njkl \\\\\\\\\nend'
+[[ $got == "$exp" ]] || err_exit "backslash in nonexpanding here-document" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
