@@ -64,7 +64,7 @@ do_sleep(const Tv_t* tv, Tv_t* rv)
 {
 	/* PRECISION: nanoseconds */
 	struct timespec	stv = { tv->tv_sec, tv->tv_nsec };
-	struct timespec	srv;
+	struct timespec	srv = { 0 };
 	int r;
 
 	if ((r = nanosleep(&stv, &srv)) && errno == EINTR && rv)

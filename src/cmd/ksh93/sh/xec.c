@@ -2195,6 +2195,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			}
 			else
 			{
+				tb.tv_sec = tb.tv_usec = 0;
 				before_usr.tv_sec = before_usr.tv_usec = 0;
 				before_sys.tv_sec = before_sys.tv_usec = 0;
 			}
