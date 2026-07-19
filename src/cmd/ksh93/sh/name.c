@@ -1864,6 +1864,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 			/*
 			 * return the host file name given the UNIX name
 			 */
+			memset(buff,0,sizeof buff);
 			pathnative(sp,buff,sizeof(buff));
 			if(buff[1]==':' && buff[2]=='/')
 			{

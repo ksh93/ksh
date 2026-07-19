@@ -4284,7 +4284,7 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 int
 optget(char** argv, const char* oopts)
 {
-	int		c;
+	int		c = 0;
 	char*		s;
 	char*		a;
 	char*		b;

@@ -585,7 +585,7 @@ Sfio_t *sh_iostream(int fd, int read_script)
 				iobsize = 2097152;
 			}
 		}
-		bp = sh_malloc(iobsize + 1);
+		bp = sh_calloc(1, iobsize + 1);
 		flags |= SFIO_READ;
 		if(!(status&IOWRITE))
 			flags &= ~SFIO_WRITE;

@@ -1163,12 +1163,14 @@ loop_fmt :
 			if(fmt == 'e' || fmt == 'E' && (v |= SFFMT_UPPER))
 			{	v |= SFFMT_EFORMAT;
 				n = (precis = precis < 0 ? FPRECIS : precis)+1;
+				memset(tmp,0,sizeof tmp);
 				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(n,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 				goto e_format;
 			}
 			else if(fmt == 'f' || fmt == 'F' && (v |= SFFMT_UPPER))
 			{	precis = precis < 0 ? FPRECIS : precis;
+				memset(tmp,0,sizeof tmp);
 				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(precis,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 				goto f_format;
@@ -1181,6 +1183,7 @@ loop_fmt :
 					else	precis = 2*(sizeof(double) - 2);
 				}
 				n = precis + 1;
+				memset(tmp,0,sizeof tmp);
 				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(n,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 
@@ -1198,6 +1201,7 @@ loop_fmt :
 				if(fmt == 'G')
 					v |= SFFMT_UPPER;
 				v |= SFFMT_EFORMAT;
+				memset(tmp,0,sizeof tmp);
 				ep = _sfcvt(valp,tmp+1,sizeof(tmp)-1, min(precis,SFIO_FDIGITS),
 					    &decpt, &sign, &n_s, v);
 				if(dval == 0.)

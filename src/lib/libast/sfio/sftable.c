@@ -329,7 +329,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 
 	maxp = nargs > xargs ? nargs : xargs;
 	if(!fp) /* constructing position array only */
-	{	if(!dollar || !(fp = (Fmtpos_t*)malloc((size_t)(maxp+1)*sizeof(Fmtpos_t))) )
+	{	if(!dollar || !(fp = calloc((size_t)(maxp + 1), sizeof(Fmtpos_t))) )
 			return NULL;
 		for(n = 0; n <= maxp; ++n)
 			fp[n].ft.fmt = 0;
