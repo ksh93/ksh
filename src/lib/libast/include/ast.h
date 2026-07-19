@@ -199,14 +199,6 @@ typedef uint32_t regflags_t;
 #define FMT_EXP_NONL	0x200		/* skip \n			*/
 
 /*
- * Define inline as an empty macro if we are
- * compiling with C89.
- */
-#if __STDC_VERSION__ < 199901L
-#define inline
-#endif
-
-/*
  * multibyte macros
  */
 
