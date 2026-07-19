@@ -1135,7 +1135,7 @@ int job_post(pid_t pid, pid_t join)
 	if(pw=freelist)
 		freelist = pw->p_nxtjob;
 	else
-		pw = new_of(struct process,0);
+		pw = sh_malloc(sizeof(struct process));
 	pw->p_flag = 0;
 	job.numpost++;
 	if(join && job.pwlist)
@@ -1749,7 +1749,7 @@ again:
 
 void *job_subsave(void)
 {
-	struct back_save *bp = new_of(struct back_save,0);
+	struct back_save *bp = sh_malloc(sizeof(struct back_save));
 	job_lock();
 	*bp = bck;
 	bp->prev = bck.prev;

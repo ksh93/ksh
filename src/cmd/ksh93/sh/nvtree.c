@@ -144,10 +144,10 @@ void *nv_diropen(Namval_t *np, const char *name, int in_walk_tree)
 	char *next,*last;
 	int c;
 	size_t len=strlen(name);
-	struct nvdir *save, *dp = new_of(struct nvdir,len+1);
+	struct nvdir *save, *dp;
 	Namval_t *nq=0,fake;
 	Namfun_t *nfp=0;
-	memset(dp, 0, sizeof(*dp));
+	dp = sh_calloc(1, sizeof(struct nvdir) + len + 1);
 	dp->data = (char*)(dp+1);
 	if(name[len-1]=='*' || name[len-1]=='@')
 		len -= 1;
@@ -221,7 +221,7 @@ void *nv_diropen(Namval_t *np, const char *name, int in_walk_tree)
 			dp->hp = (Namval_t*)dtnext(dp->root,dp->hp);
 		if(np && ((nfp=nextdisc(np)) || nv_istable(np)))
 		{
-			save = new_of(struct nvdir,0);
+			save = sh_malloc(sizeof(struct nvdir));
 			*save = *dp;
 			dp->prev = save;
 			if(nv_istable(np))
@@ -307,7 +307,7 @@ char *nv_dirnext(void *dir)
 					if(save)
 						return cp;
 					len = strlen(cp);
-					save = new_of(struct nvdir,len+1);
+					save = sh_malloc(sizeof(struct nvdir) + len + 1);
 					*save = *dp;
 					dp->prev = save;
 					dp->root = root;

@@ -2357,10 +2357,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 			}
 			if(!np->nvalue)
-			{
-				np->nvalue = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
-				memset(np->nvalue,0,sizeof(struct Ufunction));
-			}
+				np->nvalue = sh_calloc(1, sizeof(struct Ufunction) + (sh.funload ? sizeof(Dtlink_t) : 0));
 			if(t->funct.functstak)
 			{
 				struct Ufunction *rp = np->nvalue;
