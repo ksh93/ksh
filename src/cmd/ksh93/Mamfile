@@ -632,25 +632,26 @@ make install virtual
 		done
 
 		make sh/init.c
-			prev %{INCLUDE_AST}/wctype.h
-			prev %{INCLUDE_AST}/ast_wchar.h
-			prev include/version.h
-			prev include/lexstates.h
-			prev FEATURE/externs
-			prev FEATURE/time
-			prev include/builtins.h
-			prev include/shlex.h
-			prev include/io.h
-			prev include/jobs.h
-			prev include/edit.h
-			prev include/name.h
-			prev include/fault.h
-			prev include/path.h
-			prev include/variables.h
-			prev %{INCLUDE_AST}/regex.h
-			prev %{INCLUDE_AST}/tmx.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/tmx.h
+			prev %{INCLUDE_AST}/regex.h
+			prev %{INCLUDE_AST}/vmalloc.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/fault.h
+			prev include/name.h
+			prev include/edit.h
+			prev include/jobs.h
+			prev include/io.h
+			prev include/shlex.h
+			prev include/builtins.h
+			prev FEATURE/time
+			prev FEATURE/externs
+			prev include/lexstates.h
+			prev include/version.h
+			prev %{INCLUDE_AST}/ast_wchar.h
+			prev %{INCLUDE_AST}/wctype.h
 		done
 
 		make sh/io.c

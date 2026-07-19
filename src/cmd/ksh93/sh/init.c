@@ -33,6 +33,7 @@
 #include	<tmx.h>
 #include	<regex.h>
 #include	<math.h>
+#include	<vmalloc.h>
 #include	"variables.h"
 #include	"path.h"
 #include	"fault.h"
@@ -160,6 +161,7 @@ struct ifs
 struct match
 {
 	Namfun_t	hdr;
+	Vmalloc_t	*vm;
 	const char	*v;
 	char		*val;
 	char		*rval[2];
@@ -816,6 +818,13 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 	Namval_t	*np;
 	if(sh.intrace)
 		return;
+	if(!mp->vm)
+	{
+		if(!(mp->vm = vmopen()))
+			nomemory(sizeof(Vmalloc_t));
+		mp->vm->options = VM_INIT;
+		mp->vm->outofmemory = nomemory;
+	}
 	sh.subshell = 0;
 	if(index<0)
 	{
@@ -861,7 +870,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 				}
 				np = nv_namptr(np+1,0);
 			}
-			free(mp->nodes);
+			vmfree(mp->vm, mp->nodes);
 			mp->nodes = 0;
 		}
 		mp->vlen = 0;
@@ -874,7 +883,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 			sh.subshell = savesub;
 			return;
 		}
-		mp->nodes = sh_calloc((size_t)mp->nmatch*(NV_MINSZ+sizeof(void*)+3),1);
+		mp->nodes = vmalloc(mp->vm, (size_t)mp->nmatch * (NV_MINSZ + sizeof(void*) + 3));
 		mp->names = mp->nodes + (size_t)mp->nmatch*(NV_MINSZ+sizeof(void*));
 		np = nv_namptr(mp->nodes,0);
 		nv_disc(SH_MATCHNOD,&mp->hdr,NV_LAST);
@@ -902,11 +911,11 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 		index *= 2*mp->nmatch;
 		i = (index+2*mp->nmatch)*(ptrdiff_t)sizeof(match[0]);
 		if(i >= (ssize_t)mp->msize)
-			mp->match = sh_realloc(mp->match, mp->msize = 2*(size_t)i);
+			mp->match = vmresize(mp->vm, mp->match, mp->msize = 2*(size_t)i);
 		if(vsize >= mp->vsize)
 		{
 			mp->vsize = mp->vsize ? 2 * vsize : vsize + 1;
-			mp->val = sh_realloc(mp->val, (size_t)mp->vsize);
+			mp->val = vmresize(mp->vm, mp->val, (size_t)mp->vsize);
 		}
 		memcpy(mp->match+index,match,(size_t)nmatch*2*sizeof(match[0]));
 		for(i=0; i < 2*nmatch; i++)
@@ -950,12 +959,7 @@ static char* get_match(Namval_t *np, Namfun_t *fp)
 	if(mp->val[mp->match[2*sub+1]]==0)
 		return val;
 	mp->index = i;
-	if(mp->rval[i])
-	{
-		free(mp->rval[i]);
-		mp->rval[i] = 0;
-	}
-	mp->rval[i] = (char*)sh_malloc((size_t)(n+1));
+	mp->rval[i] = vmresize_i(mp->vm, mp->rval[i], (size_t)n + 1, 0);
 	mp->lastsub[i] = sub;
 	memcpy(mp->rval[i],val,(size_t)n);
 	mp->rval[i][n] = 0;
