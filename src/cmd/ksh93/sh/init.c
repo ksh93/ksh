@@ -220,7 +220,7 @@ static void		stat_init(void);
 /*
  * Exception callback routine for stk(3) and sh_*alloc wrappers.
  */
-static noreturn void *nomemory(size_t s)
+static noreturn void nomemory(size_t s)
 {
 	errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "out of memory (needed %zu bytes)", s);
 	UNREACHABLE();
