@@ -1408,6 +1408,18 @@ static void freeup_tree(Dt_t *tree)
 }
 
 /*
+ * Return true if a variable node is in the array of predefined nodes
+ * initialized by sh_inittree(), which cannot be individually freed.
+ *
+ * Note that freeing the node itself is distinct from freeing its value,
+ * so the NV_NOFREE attribute is irrelevant here.
+ */
+int nv_ispredef(Namval_t *np)
+{
+	return np >= sh.bltin_nodes && np < &sh.bltin_nodes[nvars];
+}
+
+/*
  * Reinitialize before executing a script without a #! path.
  * This is done in a fork of the shell.
  */
@@ -1530,9 +1542,6 @@ void sh_reinit(void)
 		if((dp = sh.var_tree)->walk)
 			dp = dp->walk;	/* the dictionary in which the item was found */
 		npnext = (Namval_t*)dtnext(sh.var_tree,np);
-		/* cannot delete default variables */
-		if(np >= sh.bltin_nodes && np < &sh.bltin_nodes[nvars])
-			continue;
 		nv_delete(np,dp,nv_isattr(np,NV_NOFREE));
 	}
 	/* Reset state for subshells, environment, job control, function calls and file descriptors */
