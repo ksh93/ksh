@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-06-20"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-07-20"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -4313,9 +4313,11 @@ optget(char** argv, const char* oopts)
 	int		numchr = 0;
 	int		prefix;
 	int		version;
+	int		retval;
 	Help_t*		hp;
 	Push_t*		psp;
 	Push_t*		tsp;
+	Push_t*		tofree = NULL;
 	Sfio_t*		vp;
 	Sfio_t*		xp;
 	Optcache_t*	cache;
@@ -4723,11 +4725,15 @@ optget(char** argv, const char* oopts)
 		}
 		else
 			cache = 0;
+		/****
+		 ****	In this loop, tofree may be set, so optget must
+		 ****	only return via cleanup_and_return from now on.
+		 ****/
 		for (;;)
 		{
 			if (!(*(s = next(s, version))) || *s == '\n' || *s == ' ')
 			{
-				if (!(tsp = psp))
+				if (!psp)
 				{
 					if (cache)
 					{
@@ -4765,8 +4771,13 @@ optget(char** argv, const char* oopts)
 					break;
 				}
 				s = psp->ob;
+				tsp = psp;
 				psp = psp->next;
-				free(tsp);
+				/*
+				 * Delay freeing tsp; a skip() call may still read from it
+				 */
+				tsp->next = tofree;
+				tofree = tsp;
 				continue;
 			}
 			if (*s == '\f')
@@ -4963,7 +4974,8 @@ optget(char** argv, const char* oopts)
 							if (!(n = (m || *s == ':' || *s == '|' || *s == '?' || *s == ']' || *s == 0)) && x)
 							{
 								psp = pop(psp);
-								return opterror("?", 0, version, id, catalog);
+								retval = opterror("?", 0, version, id, catalog);
+								goto cleanup_and_return;
 							}
 							for (x = k; *(f + 1) == '|' && (j = *(f + 2)) && j != '!' && j != '=' && j != ':' && j != '?' && j != ']'; f += 2);
 							if (*f == ':')
@@ -5223,7 +5235,10 @@ optget(char** argv, const char* oopts)
 				*w++ = *b++;
 			}
 			if (!num && v)
-				return opterror(no ? "!" : "=", 0, version, id, catalog);
+			{
+				retval = opterror(no ? "!" : "=", 0, version, id, catalog);
+				goto cleanup_and_return;
+			}
 			w = &opt_info.name[prefix];
 			c = x;
 			s = a;
@@ -5248,7 +5263,8 @@ optget(char** argv, const char* oopts)
 		if (w || !isdigit(c) || !numopt || !(pass->flags & OPT_numeric))
 		{
 			pop(psp);
-			return opterror("", 0, version, id, catalog);
+			retval = opterror("", 0, version, id, catalog);
+			goto cleanup_and_return;
 		}
 		s = numopt;
 		c = opt_info.option[1] = (char)numchr;
@@ -5271,7 +5287,8 @@ optget(char** argv, const char* oopts)
 				if (v)
 				{
 					pop(psp);
-					return opterror("!", 0, version, id, catalog);
+					retval = opterror("!", 0, version, id, catalog);
+					goto cleanup_and_return;
 				}
 				opt_info.num = (long)(opt_info.number = 0);
 			}
@@ -5289,7 +5306,8 @@ optget(char** argv, const char* oopts)
 						if (!opt_info.arg)
 						{
 							pop(psp);
-							return opterror(s, 0, version, id, catalog);
+							retval = opterror(s, 0, version, id, catalog);
+							goto cleanup_and_return;
 						}
 					}
 					else if (*(t = next(s + 2, version)) == '[')
@@ -5315,7 +5333,8 @@ optget(char** argv, const char* oopts)
 					if (err || e == opt_info.arg)
 					{
 						pop(psp);
-						return opterror(s, err, version, id, catalog);
+						retval = opterror(s, err, version, id, catalog);
+						goto cleanup_and_return;
 					}
 				}
 			}
@@ -5339,14 +5358,16 @@ optget(char** argv, const char* oopts)
 						c = opterror(s, err, version, id, catalog);
 					}
 					pop(psp);
-					return c;
+					retval = c;
+					goto cleanup_and_return;
 				}
 				else if (*e)
 				{
 					opt_info.offset += e - opt_info.arg;
 					opt_info.index--;
 					pop(psp);
-					return c;
+					retval = c;
+					goto cleanup_and_return;
 				}
 			}
 		}
@@ -5373,7 +5394,8 @@ optget(char** argv, const char* oopts)
 					{
 						pop(psp);
 						opt_info.offset = 0;
-						return opterror(s, err, version, id, catalog);
+						retval = opterror(s, err, version, id, catalog);
+						goto cleanup_and_return;
 					}
 				}
 			}
@@ -5382,7 +5404,8 @@ optget(char** argv, const char* oopts)
 		{
 			opt_info.index--;
 			pop(psp);
-			return opterror(s, 0, version, id, catalog);
+			retval = opterror(s, 0, version, id, catalog);
+			goto cleanup_and_return;
 		}
 		opt_info.offset = 0;
 	optarg:
@@ -5496,7 +5519,8 @@ optget(char** argv, const char* oopts)
 								if (!(n = (m || *s == ':' || *s == '|' || *s == '?' || *s == ']')) && x)
 								{
 									pop(psp);
-									return opterror("&", 0, version, id, catalog);
+									retval = opterror("&", 0, version, id, catalog);
+									goto cleanup_and_return;
 								}
 								for (x = k; *(f + 1) == '|' && (j = *(f + 2)) && j != '!' && j != '=' && j != ':' && j != '?' && j != ']'; f += 2);
 								if (*f == ':')
@@ -5528,7 +5552,8 @@ optget(char** argv, const char* oopts)
 				if (!(opt_info.num = (long)(opt_info.number = x)))
 				{
 					pop(psp);
-					return opterror("*", 0, version, id, catalog);
+					retval = opterror("*", 0, version, id, catalog);
+					goto cleanup_and_return;
 				}
 			}
 		}
@@ -5536,7 +5561,8 @@ optget(char** argv, const char* oopts)
 	else if (w && v)
 	{
 		pop(psp);
-		return opterror("=", 0, version, id, catalog);
+		retval = opterror("=", 0, version, id, catalog);
+		goto cleanup_and_return;
 	}
 	else
 	{
@@ -5548,7 +5574,8 @@ optget(char** argv, const char* oopts)
 		}
 	}
 	pop(psp);
-	return c;
+	retval = c;
+	goto cleanup_and_return;
  help:
 	if (v && *v == '?' && *(v + 1) == '?' && *(v + 2))
 	{
@@ -5566,7 +5593,8 @@ optget(char** argv, const char* oopts)
 			{
 				opt_info.arg = sfprints("\fversion=%d", version);
 				pop(psp);
-				return '?';
+				retval = '?';
+				goto cleanup_and_return;
 			}
 			state.force = hp->style;
 		}
@@ -5574,7 +5602,8 @@ optget(char** argv, const char* oopts)
 		{
 			opt_info.arg = sfprints("\f%s", conformance(w, 0));
 			pop(psp);
-			return '?';
+			retval = '?';
+			goto cleanup_and_return;
 		}
 		else if (match(s, "ESC", -1, ID, NULL) || match(s, "EMPHASIS", -1, ID, NULL))
 			state.emphasis = n;
@@ -5582,7 +5611,8 @@ optget(char** argv, const char* oopts)
 		{
 			opt_info.arg = sfprints("\f%s", secname(*w != '?' ? w : pass->section));
 			pop(psp);
-			return '?';
+			retval = '?';
+			goto cleanup_and_return;
 		}
 		else if (match(s, "PREFORMAT", -1, ID, NULL))
 			state.flags |= OPT_preformat;
@@ -5590,7 +5620,8 @@ optget(char** argv, const char* oopts)
 		{
 			opt_info.arg = sfprints("\f%s", pass->section);
 			pop(psp);
-			return '?';
+			retval = '?';
+			goto cleanup_and_return;
 		}
 		else if (match(s, "TEST", -1, ID, NULL))
 		{
@@ -5600,23 +5631,36 @@ optget(char** argv, const char* oopts)
 		else
 		{
 			pop(psp);
-			return opterror(v, 0, version, id, catalog);
+			retval = opterror(v, 0, version, id, catalog);
+			goto cleanup_and_return;
 		}
 		psp = pop(psp);
 		if (argv == state.strv)
-			return '#';
+		{
+			retval = '#';
+			goto cleanup_and_return;
+		}
 		goto again;
 	}
 	if ((opt_info.arg = opthelp(NULL, v)) == (char*)unknown)
 	{
 		pop(psp);
-		return opterror(v, 0, version, id, catalog);
+		retval = opterror(v, 0, version, id, catalog);
+		goto cleanup_and_return;
 	}
 	pop(psp);
-	return '?';
+	retval = '?';
+	goto cleanup_and_return;
  outofmemory:
 	pop(psp);
-	return opterror(NULL, 0, 0, NULL, NULL);
+	retval = opterror(NULL, 0, 0, NULL, NULL);
+ cleanup_and_return:
+	while (tsp = tofree)
+	{
+		tofree = tofree->next;
+		free(tsp);
+	}
+	return retval;
 }
 
 /*
