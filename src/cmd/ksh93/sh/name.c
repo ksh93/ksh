@@ -1340,7 +1340,8 @@ void nv_delete(Namval_t* np, Dt_t *root, nvflag_t flags)
 					nv_associative(np,0,NV_AFREE);
 					free(np->nvfun);
 				}
-				free(np);
+				if(!nv_ispredef(np))
+					free(np);
 			}
 		}
 	}

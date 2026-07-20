@@ -1789,6 +1789,13 @@ do	got=$(eval "
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 done
 
+# ======
+# Another bug Nathan Mills found by fuzzing ksh
+got=$( { "$SHELL" -c '(.sh[0]=); exit'; } 2>&1)
+[[ e=$? -eq 1 && $got == *read\ only* ]] || err_exit "attempt to assign to .sh array in subshell" \
+	"(expected status 1 and match of *'read only'*," \
+	"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'

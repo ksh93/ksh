@@ -1294,7 +1294,8 @@ static void put_table(Namval_t* np, const char* val, nvflag_t flags, Namfun_t* f
 		nv_unset(mp,flags);
 		nq = (Namval_t*)dtnext(root,mp);
 		dtdelete(root,mp);
-		free(mp);
+		if(!nv_ispredef(mp))
+			free(mp);
 	}
 	if(sh.last_root==root)
 		sh.last_root = NULL;

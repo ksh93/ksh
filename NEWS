@@ -6,6 +6,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - Fixed a use-after-free in optget(3) long-form option parsing.
 
+- Fixed an invalid free that occurred upon exiting the subshell when
+  attempting to assign to an array subscript of .sh in a subshell.
+
 2026-07-19:
 
 - Fixed various potential crashes and misbehaviour due to the use of
