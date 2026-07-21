@@ -2929,7 +2929,13 @@ int main(int argc, char **argv)
 			setval(state.vars, "-strip-symbols", "1");
 			continue;
 		case '?':
+			/* self-documentation */
+#if AST_VERSION >= 20260721
 			return optselfdoc();
+#else
+			error(ERROR_usage(0), "%s", opt_info.arg);
+			return 2;
+#endif
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
