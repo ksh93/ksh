@@ -2,6 +2,11 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-07-21:
+
+- Fixed a crash when attempting to access a positional parameter with a
+  number exceeding PTRDIFF_MAX (or, until 2026-04-14, INT_MAX).
+
 2025-07-20:
 
 - Fixed a use-after-free in optget(3) long-form option parsing.
