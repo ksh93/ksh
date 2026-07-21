@@ -172,7 +172,7 @@ Sfio_t *stkopen(int flags)
 	struct frame *fp;
 	Sfdisc_t *dp;
 	char *cp;
-	if(!(stream = calloc(1, sizeof(Sfio_t) + sizeof(struct frame) + sizeof(Sfdisc_t))))
+	if(!(stream = calloc(1, sizeof(Sfio_t) + sizeof(Sfdisc_t) + sizeof(struct stk))))
 		return NULL;
 	dp = (Sfdisc_t*)(stream+1);
 	dp->exceptf = stkexcept;
