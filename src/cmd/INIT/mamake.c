@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1990-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -28,14 +28,16 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2025-05-28"
+#define RELEASE_DATE "2026-03-30"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
 
 #include <ast.h>
 #include <error.h>
+#include <sfdisc.h>
 #include <sig.h>
+#include <wait.h>
 
 static const char usage[] =
 "[-?\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\n]"
@@ -43,7 +45,7 @@ static const char usage[] =
 "[-author?Martijn Dekker <martijn@inlv.org>]"
 "[-author?Contributors to https://github.com/ksh93/ksh]"
 "[-copyright?(c) 1994-2013 AT&T Intellectual Property]"
-"[-copyright?(c) 2020-2025 Contributors to ksh 93u+m]"
+"[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
 "[+NAME?mamake - make abstract machine make]"
 "[+DESCRIPTION?\bmamake\b reads \amake abstract machine\a target and"
@@ -127,11 +129,12 @@ static const char usage[] =
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <time.h>
 
 #if !_PACKAGE_ast
+#include <sys/wait.h>
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -157,18 +160,12 @@ static const char usage[] =
 #define unadd(b)	(--(b)->nxt)
 #define getsize(b)	((b)->nxt-(b)->buf)
 #define setsize(b,o)	((b)->nxt=(b)->buf+(o))
-#define use(b)		(*(b)->nxt=0,(b)->nxt=(b)->buf)
+#define use(b)		(((b)->nxt >= (b)->end) ? append(b, "") : NULL, *(b)->nxt = 0, (b)->nxt = (b)->buf)
 
-#define CHUNK		4096
+#define CHUNK		128		/* buffer() growth chunk size	*/
 #define KEY(a,b,c,d)	((((unsigned long)(a))<<24)|(((unsigned long)(b))<<16)|(((unsigned long)(c))<<8)|(((unsigned long)(d))))
 
-#ifdef SA_RESTART
 #define PARALLEL(r)	(state.maxjobs > 1 && state.strict >= 5 && !((r)->flags & RULE_virtual))
-#else
-/* disable parallel build on systems that can't auto-restart interrupted system calls */
-#define PARALLEL(r)	0
-#define SA_RESTART	0
-#endif
 
 #define RULE_active	0x0001		/* active target		*/
 #define RULE_dontcare	0x0002		/* ok if not found		*/
@@ -181,10 +178,13 @@ static const char usage[] =
 #define RULE_notrace	0x0100		/* do not xtrace shell action	*/
 #define RULE_updated	0x0200		/* rule was outdated and remade */
 #define RULE_preexisted	0x0400		/* the rule's target preexisted	*/
+#define RULE_force	0x0800		/* always run the shell action	*/
 
 #define STREAM_KEEP	0x0001		/* don't fclose() on pop()	*/
 #define STREAM_MUST	0x0002		/* push() file must exist	*/
 #define STREAM_PIPE	0x0004		/* pclose() on pop()		*/
+
+#define LIB_VARPREFIX	"mam_lib"	/* prefix for dependencies vars	*/
 
 struct Rule_s;
 
@@ -293,13 +293,13 @@ static struct				/* program state		*/
 	int		force;		/* all targets out of date	*/
 	int		ignore;		/* ignore command errors	*/
 	int		indent;		/* debug indent			*/
-	int		installrootlen;	/* strlen of %{INSTALLROOT}	*/
-	int		packagerootlen;	/* strlen of %{PACKAGEROOT}	*/
 	int		keepgoing;	/* do siblings on error		*/
 	int		never;		/* never execute		*/
 	int		probed;		/* probe already done		*/
 	int		verified;	/* don't bother with verify()	*/
 	int		jobs, maxjobs;	/* for parallel sh execution	*/
+	size_t		installrootlen;	/* strlen of %{INSTALLROOT}	*/
+	size_t		packagerootlen;	/* strlen of %{PACKAGEROOT}	*/
 
 	Stream_t	streams[4];	/* input file stream stack	*/
 	Stream_t	*sp;		/* input stream stack pointer	*/
@@ -351,7 +351,7 @@ static void usage(void)
  * output error message identification
  */
 
-static void identify(FILE * sp)
+static void identify(FILE *sp)
 {
 	if (state.directory)
 		fprintf(sp, "%s [%s]: ", state.id, state.directory);
@@ -501,8 +501,8 @@ static char *appendn(Buf_t *buf, char *str, size_t n)
 
 	if ((n + 1) >= (size_t)(buf->end - buf->nxt))
 	{
-		i = buf->nxt - buf->buf;
-		m = (((buf->end - buf->buf) + n + CHUNK + 1) / CHUNK) * CHUNK;
+		i = (size_t)(buf->nxt - buf->buf);
+		m = (((size_t)(buf->end - buf->buf) + n + CHUNK + 1) / CHUNK) * CHUNK;
 		if (!(buf->buf = realloc(buf->buf, m)))
 			out_of_memory();
 		buf->end = buf->buf + m;
@@ -541,13 +541,59 @@ static char *reduplicate(char *orig, char *s)
 	}
 	if (!(t = realloc(orig == empty ? NULL : orig, ++n)))
 		out_of_memory();
-	memcpy(t, s, n);
-	return t;
+	return memcpy(t, s, n);
 }
 
 static char *duplicate(char *s)
 {
 	return reduplicate(NULL, s);
+}
+
+/*
+ * Remove duplicates from the set of space-separated fields in the string r.
+ * Keep the last-mentioned item of each field that occurs multiple times (this
+ * is required for passing libraries to the linker in the correct order; that
+ * is, each dependency must come after all the libraries that depend on it).
+ *
+ * Returns an allocated copy of the deduplicated string, unless it's empty.
+ */
+
+static char *dedup_fields(char *r)
+{
+	Buf_t	*query = buffer(), *fields = buffer(), *scratch = buffer();
+	char	*s, sav, nodupes;
+
+	while (1)
+	{
+		/* Find start of next field */
+		for (; *r == ' '; r++);
+		if (!*r)
+			break;
+		/* Find end of next field */
+		for (s = r; *s && *s != ' '; s++);
+		/* Scan ahead for duplicates; if none found, append it to fields */
+		sav = *s, *s = '\0';
+		if (sav)
+		{	/* prepend and append spaces to avoid substring matches */
+			add(scratch, ' '), append(scratch, s + 1), add(scratch, ' ');
+			add(query, ' '), append(query, r), add(query, ' ');
+			nodupes = !strstr(use(scratch), use(query));
+		}
+		else	/* already at end: no dupes ahead */
+			nodupes = 1;
+		if (nodupes)
+			add(fields, ' '), append(fields, r);
+		*s = sav;
+		r = s;
+	}
+	r = use(fields);
+	if (*r == ' ')
+		r++;
+	r = duplicate(r);
+	drop(scratch);
+	drop(fields);
+	drop(query);
+	return r;
 }
 
 /*
@@ -757,7 +803,6 @@ static void view(void)
 	int		c;
 	size_t		slen, plen;
 	struct stat	st, ts;
-	char		buf[CHUNK];
 	Dict_item_t	*vnode;
 
 	if (stat(".", &st))
@@ -768,8 +813,9 @@ static void view(void)
 		state.pwd = s;
 	if (!state.pwd)
 	{
-		if (!getcwd(buf, sizeof buf - 1))
-			error_out("cannot determine PWD", NULL);
+		char	buf[PATH_MAX + 1];
+		if (!getcwd(buf, sizeof buf))
+			error_out(strerror(errno), "cannot determine PWD");
 		state.pwd = duplicate(buf);
 		vnode->value = state.pwd;
 	}
@@ -835,7 +881,7 @@ static void view(void)
 				zp = zp->next = vp;
 			if (!c)
 				break;
-			*t++ = c;
+			*t++ = (char)c;
 			s = t;
 		}
 	}
@@ -926,7 +972,7 @@ static void substitute(Buf_t *buf, char *s)
 			if (c == '[')
 			{
 				append(buf, b);
-				*vnterm = c;
+				*vnterm = (char)c;
 				continue;
 			}
 
@@ -946,7 +992,7 @@ static void substitute(Buf_t *buf, char *s)
 			if ((c == ':' || c == '=') && (state.strict >= 2 || !v || c == ':' && !*v))
 			{
 				append(buf, b);
-				*vnterm = c;
+				*vnterm = (char)c;
 				continue;
 			}
 
@@ -957,7 +1003,7 @@ static void substitute(Buf_t *buf, char *s)
 
 			/* Un-terminate the variable name */
 
-			*vnterm = c;
+			*vnterm = (char)c;
 
 			/* Find the ending '}', dealing with nesting */
 
@@ -981,7 +1027,7 @@ static void substitute(Buf_t *buf, char *s)
 				q = cond(t - 1);
 				if (v)
 				{
-					if (((q - t) != 1 || *t != '*') && strncmp(v, t, q - t))
+					if (((q - t) != 1 || *t != '*') && strncmp(v, t, (size_t)(q - t)))
 						v = 0;
 				}
 				else if (q == t)
@@ -994,7 +1040,7 @@ static void substitute(Buf_t *buf, char *s)
 						c = *t;
 						*t = 0;
 						substitute(buf, q + 1);
-						*t = c;
+						*t = (char)c;
 					}
 				}
 				else
@@ -1005,7 +1051,7 @@ static void substitute(Buf_t *buf, char *s)
 						c = *q;
 						*q = 0;
 						substitute(buf, t + 1);
-						*q = c;
+						*q = (char)c;
 					}
 				}
 				break;
@@ -1026,9 +1072,9 @@ static void substitute(Buf_t *buf, char *s)
 							q++;
 						n++;
 						c = *q, *q = 0;  /* terminate for duplicate() */
-						if (!(argv = realloc(argv, (n+1)*sizeof(char*))) || !(argv[n-1] = duplicate(a)))
+						if (!(argv = realloc(argv, (size_t)(n+1)*sizeof(char*))) || !(argv[n-1] = duplicate(a)))
 							out_of_memory();
-						*q = c;
+						*q = (char)c;
 					}
 					if (!argv)
 						break;
@@ -1074,13 +1120,13 @@ static void substitute(Buf_t *buf, char *s)
 					q = use(scr);
 					if ((argv ? (argv[2] = q, execute_v(NULL, argv)) : execute(NULL, q)) != 0)
 						error_out("expansion script error", t);
-					*s = n;
+					*s = (char)n;
 					drop(scr);
 					/* read output back, converting each newline but the last to a space */
 					if (!(f = fopen(out, "r")))
 						error_out(strerror(errno), "could not open pipe command output for reading");
 					while ((c = getc(f)) != EOF)
-						add(buf, (final_newline = (c == '\n')) ? ' ' : c);
+						add(buf, (final_newline = (c == '\n')) ? ' ' : (char)c);
 					if (final_newline)
 						unadd(buf);
 					if (ferror(f) || fclose(f) == EOF)
@@ -1104,7 +1150,7 @@ static void substitute(Buf_t *buf, char *s)
 					c = *s;
 					*s = 0;
 					substitute(buf, t);
-					*s = c;
+					*s = (char)c;
 					break;
 				}
 				if (c != '-')
@@ -1117,7 +1163,8 @@ static void substitute(Buf_t *buf, char *s)
 				{	/*
 					 * Perform the expansion: append the value of the variable to the buffer.
 					 */
-					if (state.strict < 2 && found_AR && strncmp(t, "mam_lib", 7) == 0)
+					if (state.strict < 2 && found_AR &&
+						strncmp(t, LIB_VARPREFIX, sizeof LIB_VARPREFIX - 1) == 0)
 					{	/*
 						 * Absurd AT&T hack from 2007. The relevant src/cmd/INIT/RELEASE entry:
 						 *	07-02-26 mamake.c: expand first of ${mam_lib*} for ${AR}
@@ -1164,7 +1211,7 @@ static void substitute(Buf_t *buf, char *s)
 					c = *s;
 					*s = 0;
 					append(buf, b);
-					*s = c;
+					*s = (char)c;
 					continue;
 				}
 				break;
@@ -1173,7 +1220,7 @@ static void substitute(Buf_t *buf, char *s)
 				s++;
 		}
 		else
-			add(buf, c);
+			add(buf, (char)c);
 	}
 }
 
@@ -1267,7 +1314,7 @@ static char *find(Buf_t *buf, char *file, struct stat *st)
 					c = vp->dir[vp->node];
 					vp->dir[vp->node] = 0;
 					append(buf, vp->dir);
-					vp->dir[vp->node] = c;
+					vp->dir[vp->node] = (char)c;
 				}
 				else
 				{
@@ -1275,7 +1322,7 @@ static char *find(Buf_t *buf, char *file, struct stat *st)
 					append(buf, "/");
 				}
 				append(buf, file);
-				o = getsize(buf);
+				o = (size_t)getsize(buf);
 				s = use(buf);
 				if (s = status(buf, o, s, st))
 				{
@@ -1289,7 +1336,7 @@ static char *find(Buf_t *buf, char *file, struct stat *st)
 }
 
 /*
- * bind r to a file and return the modify time
+ * bind r to a file
  */
 
 static void bindfile(Rule_t *r)
@@ -1385,7 +1432,7 @@ static int push(char *file, FILE *fp, int flags)
 
 static char *input(void)
 {
-	static char	input[CHUNK];  /* input buffer */
+	static char	input[4096];  /* input buffer */
 	char		*e;
 
 	assert(state.sp);
@@ -1428,9 +1475,13 @@ static void print_nice_hdr(Rule_t *r)
 		fname, r->line, r->endline, rnamepre, rname);
 	/* -e option */
 	if (state.explain)
+	{
 		fprintf(stderr, "# reason: target %s\n",
+			r->flags & RULE_virtual ? "is virtual" :
+			r->flags & RULE_force ? "is forced" :
 			r->flags & RULE_preexisted ? "older than prerequisites" :
-				r->flags & RULE_virtual ? "is virtual" : "not found");
+			"not found");
+	}
 }
 
 /*
@@ -1446,7 +1497,9 @@ static void check_shellaction(Rule_t *r, int e)
 		;
 	else if (status(NULL, 0, r->name, &fstat))	/* target file exists? */
 	{
-		if (fstat.st_mtime <= r->origtime && (r->flags & (RULE_exists | RULE_dontcare)) == RULE_exists && state.strict >= 5)
+		char	existed = (r->flags & RULE_exists) && !(r->flags & RULE_dontcare);
+		char	notnew = fstat.st_mtime <= r->origtime && !(r->flags & RULE_force);
+		if (existed && notnew && S_ISREG(fstat.st_mode) && state.strict >= 5)
 			error_making(r, -2);		/* "target not updated" */
 		r->time = fstat.st_mtime;
 		r->flags |= RULE_exists;
@@ -1489,12 +1542,12 @@ static void reap(Rule_t *r, int flag)
 	if (r->logtmp)
 	{
 		FILE	*logf;
-		char	b[CHUNK];
+		char	b[4096];
 		size_t	s;
 		print_nice_hdr(r);
 		if (!(logf = fopen(r->logtmp, "r")))
 			report(3, r->logtmp, "log gone", r);
-		while ((s = fread(b, 1, CHUNK, logf)) > 0)
+		while ((s = fread(b, 1, sizeof b, logf)) > 0)
 			fwrite(b, 1, s, stdout);
 		fclose(logf);
 		fflush(stdout);
@@ -1502,10 +1555,11 @@ static void reap(Rule_t *r, int flag)
 		free(r->logtmp);
 		r->logtmp = NULL;
 	}
-	r->pid = 0;
-	check_shellaction(r, p_exitstatus(pstat));
 	assert(state.jobs > 0);
 	state.jobs--;
+	check_shellaction(r, p_exitstatus(pstat));
+	/* delay resetting pid until after check_shellaction() so report() shows correct line number for bg job error */
+	r->pid = 0;
 }
 
 /*
@@ -1526,18 +1580,6 @@ static int wreap_nowait(Dict_item_t *item)
 {
 	reap(item->value, WNOHANG);
 	return 0;
-}
-
-/*
- * SIGCHLD handling (initialised in main())
- * just a dummy to make it not ignored
- */
-
-static sigset_t empty_sigmask;
-
-static void sigchld_dummy(int sig)
-{
-	assert(sig == SIGCHLD);
 }
 
 /*
@@ -1563,8 +1605,8 @@ static int execute_v(Rule_t *r, char **argv)
 		report(-5, argv[2], "exec", NULL);
 		execv(state.shell, argv);
 		if (errno == ENOENT)
-			exit(127);
-		exit(126);
+			_exit(127);
+		_exit(126);
 	}
 	/* parent */
 	/* run job in background if wanted & possible */
@@ -1574,7 +1616,8 @@ static int execute_v(Rule_t *r, char **argv)
 		assert(state.jobs <= state.maxjobs);
 		while (state.jobs == state.maxjobs)
 		{
-			sigsuspend(&empty_sigmask);
+			siginfo_t dummy;
+			waitid(P_ALL, 0, &dummy, WEXITED|WNOWAIT);
 			walk(state.rules, wreap_nowait);
 		}
 		/* let it run in parallel */
@@ -1617,6 +1660,10 @@ static void run(Rule_t *r, char *s)
 		x = state.exec;
 	if (x)
 	{
+#if __QNX__
+		/* stop QNX /bin/cp acting like cp -p by default */
+		append(buf, "export POSIX_STRICT=y\n");
+#endif
 		/* have the shell redirect parallel job output to a temp file */
 		if (PARALLEL(r) && !state.chaos)
 		{
@@ -1707,7 +1754,7 @@ static void run(Rule_t *r, char *s)
 					else
 					{
 						for (i = 3; isspace(*(t + i)); i++);
-						*s = c;
+						*s = (char)c;
 						for (s = t + i; *s && !isspace(*s); s++);
 						c = *s;
 						*s = 0;
@@ -1731,7 +1778,7 @@ static void run(Rule_t *r, char *s)
 					}
 				}
 			}
-		} while (*s = c);
+		} while (*s = (char)c);
 		s = use(buf);
 		if (tofree)
 			free(tofree);
@@ -1789,16 +1836,13 @@ static void probe(Rule_t *r, Makestate_t *stp)
 	time_t		cmd_time, output_time;
 	Buf_t		*buf;
 	struct stat	st;
-	Rule_t		*mamprobe_r;
 
 	if (!(cc = getval(state.vars, "CC")))
 		cc = "cc";
 	buf = buffer();
-	append(buf, state.installroot), append(buf, "/bin/"), append(buf, "mamprobe");
+	append(buf, state.installroot), append(buf, "/bin/mamprobe");
 	cmd = duplicate(use(buf));
-	/* we may need to wait for mamprobe to be generated */
-	if (mamprobe_r = getval(state.rules, cmd))
-		reap(mamprobe_r, 0);
+	reap(getval(state.rules, cmd), 0);  /* we may need to wait for mamprobe to be generated */
 	cmd_time = stat(cmd, &st) ? 0 : st.st_mtime;
 	if (stat(cmd, &st) < 0)
 		error_out("not found", cmd);
@@ -1813,7 +1857,7 @@ static void probe(Rule_t *r, Makestate_t *stp)
 		pop();
 	}
 	for (h = 0, s = cc; *s; s++)
-		h = h * 0x63c63cd9L + *s + 0x9c39c33dL;
+		h = h * 0x63c63cd9L + (unsigned long)*s + 0x9c39c33dL;
 	/* use the hash as the file name */
 	append(buf, state.installroot);
 	append(buf, "/lib/probe/C/mam/");
@@ -1853,7 +1897,7 @@ static void attributes(Rule_t *r, char *s)
 		int	flag = 0;
 		for (; isspace(*s); s++);
 		for (t = s; *s && !isspace(*s); s++);
-		if (!(n = s - t))
+		if (!(n = (size_t)(s - t)))
 			break;
 		switch (*t)
 		{
@@ -1888,6 +1932,10 @@ static void attributes(Rule_t *r, char *s)
 			if (n == 7 && !strncmp(t, "notrace", n))
 				flag = RULE_notrace;
 			break;
+		case 'f':
+			if (n == 5 && !strncmp(t, "force", n))
+				flag = RULE_force;
+			break;
 		}
 		if (flag > 0)
 			r->flags |= flag;
@@ -1905,7 +1953,7 @@ static void attributes(Rule_t *r, char *s)
  * append libNAME.a to the given buffer
  */
 
-void append_ar_name(Buf_t *buf, char *name)
+static void append_ar_name(Buf_t *buf, char *name)
 {
 	append(buf, "lib");
 	append(buf, name);
@@ -1917,8 +1965,6 @@ void append_ar_name(Buf_t *buf, char *name)
  *
  * lib is expected to be in the format "-lX"
  */
-
-#define LIB_VARPREFIX "mam_lib"
 
 static char *require(char *lib, int dontcare)
 {
@@ -1973,7 +2019,7 @@ static char *require(char *lib, int dontcare)
 					break;
 				do
 				{
-					add(tmp, c);
+					add(tmp, (char)c);
 				} while ((c = fgetc(f)) != EOF && !isspace(c));
 				s = use(tmp);
 				if (s[0] && (s[0] != '-' || s[1]))
@@ -2008,11 +2054,11 @@ static char *require(char *lib, int dontcare)
 				r = "";
 			}
 		}
-		r = duplicate(r);
+		drop(tmp);
+		r = dedup_fields(r);
+		drop(buf);
 		setval(state.vars, varname, r);
 		report(-4, r, varname, NULL);
-		drop(tmp);
-		drop(buf);
 	}
 	return r;
 }
@@ -2147,8 +2193,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 		switch (KEY(u[0], u[1], u[2], u[3]))
 		{
 		case KEY('b','i','n','d'):
-			if (!(t[0] == '-' && t[1] == 'l'))
-				error_out("bad -lname", t);
+			if (!(t[0] == '-' && t[1] == 'l' && isalnum(t[2])))
+				error_out("syntax error", u);
 			/* make sure it's finished linking before calling require() */
 			append_ar_name(buf, t + 2);
 			if (q = getval(state.rules, use(buf)))
@@ -2228,7 +2274,6 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			continue;
 
 		case KEY('d','o','n','e'):
-			r->endline = state.sp->line;
 			if (parentstate)
 			{
 				/* loop block done */
@@ -2236,7 +2281,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 					error_out("syntax error", u);
 				break;
 			}
+			if (!*r->name)
+				error_out("done without make", NULL);
 			/* make block done */
+			r->endline = state.sp->line;
 			if (*t)
 			{	/* target is optional; use it for sanity check if present */
 				q = rule(t);
@@ -2263,26 +2311,32 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				st.bg = st.bg->next;
 				free(prev);
 			}
-			if (st.cmd && state.active && (state.force || r->time < st.modtime || !r->time && !st.modtime))
+			if (state.active)
 			{
-				/* flag for -e */
-				if (r->time)
-					r->flags |= RULE_preexisted;
-				/* show a nice trace header */
-				if ((!PARALLEL(r) || state.chaos) && !(r->flags & RULE_error))
-					print_nice_hdr(r);
-				/* run the shell action */
-				run(r, use(st.cmd));
-				if (!r->pid)
-					propagate(r, NULL, &st.modtime);
-				r->flags |= RULE_updated;
-			}
-			else if (st.modtime > r->parenttime && r->flags & RULE_generated)
-			{
-				/* if we didn't generate the target in this run, but it's newer than the parent
-				 * target, then the generation of the parent target was probably interrupted
-				 * and then resumed in this run, so include this target in %{?} for consistency */
-				r->flags |= RULE_updated;
+				char	outdated;
+				outdated = r->time < st.modtime || !r->time && !st.modtime || state.force || r->flags & RULE_force;
+				s = st.cmd ? use(st.cmd) : NULL;
+				if (s && outdated)
+				{
+					/* flag for -e */
+					if (r->time)
+						r->flags |= RULE_preexisted;
+					/* show a nice trace header */
+					if ((!PARALLEL(r) || state.chaos) && !(r->flags & RULE_error))
+						print_nice_hdr(r);
+					/* run the shell action */
+					run(r, s);
+					if (!r->pid)
+						propagate(r, NULL, &st.modtime);
+					r->flags |= RULE_updated;
+				}
+				else if (st.modtime > r->parenttime && r->flags & RULE_generated)
+				{
+					/* if we didn't generate the target in this run, but it's newer than the parent
+					 * target, then the generation of the parent target was probably interrupted
+					 * and then resumed in this run, so include this target in %{?} for consistency */
+					r->flags |= RULE_updated;
+				}
 			}
 			r->flags |= RULE_made;
 			if (!(r->flags & (RULE_dontcare|RULE_error|RULE_exists|RULE_generated|RULE_virtual)))
@@ -2341,6 +2395,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				error_out("syntax error", u);
 			/* remember current offset for repeated reading */
 			if ((saveoff = ftello(state.sp->fp)) < 0)
+#if _PACKAGE_ast
+				/* buffer a non-seekable stream to make it seekable */
+				if (sfdcseekable(state.sp->fp) < 0 || (saveoff = ftello(state.sp->fp)) < 0)
+#endif
 				error_out("unseekable input", u);
 			/* iterate through one or more whitespace-separated words */
 			vnode = search(state.vars, t, 1);
@@ -2379,6 +2437,8 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			char *save_making = auto_making->value;
 			char *save_allprev = auto_allprev->value;
 			char *save_updprev = auto_updprev->value;
+			if (!*t)
+				error_out("syntax error", u);
 			if ((q = getval(state.rules, t)) && (q->flags & RULE_made))
 				report(state.strict < 3 ? 1 : 3, "rule already made", t, NULL);
 			if (!q)
@@ -2421,33 +2481,41 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 		}
 
 		case KEY('m','a','k','p'):
-		case KEY('p','r','e','v'):
-		{
-			const int makp = (u[0] == 'm');
-			q = getval(state.rules, t);
-			if (!q && !makp && !state.strict)
-				q = rule(t); /* for backward compat */
-			else if (!q && (makp || state.strict < 4))
-			{
-				/* declare a simple source file prerequisite */
-				attributes(q = rule(t), v);
-				if (!(q->flags & RULE_virtual))
-				{
-					bindfile(q);
-					if (!(q->flags & (RULE_dontcare | RULE_exists)))
-						error_making(q, 0);
-					propagate(q, r, &st.modtime);
-				}
-				q->flags |= RULE_made;
-				report(-2, q->name, "makp", q);
-			}
-			else if (makp)
+			if (!*t)
+				error_out("syntax error", u);
+			if (q = getval(state.rules, t))
 				error_out(t, q->flags & RULE_made ? "rule already made" : "rule already being made");
-			else if (!q)
+		p_makp:
+			/* declare a simple source file prerequisite */
+			attributes(q = rule(t), v);
+			if (!(q->flags & RULE_virtual))
+			{
+				bindfile(q);
+				if (!(q->flags & (RULE_dontcare | RULE_exists)))
+					error_making(q, 0);
+				propagate(q, r, &st.modtime);
+			}
+			q->flags |= RULE_made;
+			report(-2, q->name, "makp", q);
+			/* update %{<}, %{^} and %{?} */
+			update_allprev(q, auto_allprev->value, auto_updprev->value);
+			continue;
+
+		case KEY('p','r','e','v'):
+			if (!*t)
+				error_out("syntax error", u);
+			q = getval(state.rules, t);
+			if (!q && !state.strict)
+				q = rule(t); /* for backward compat */
+			if (!q)
+			{
+				if (state.strict < 4)
+					goto p_makp; /* bad design decision introduced at strict 1, undone at strict 4 */
 				error_out(t, "prev: rule not made");
-			else if (*v && state.strict)
+			}
+			if (*v && state.strict)
 				error_out(v, "prev: attributes not allowed");
-			else if (q->making)
+			if (q->making)
 				report(state.strict < 3 ? 1 : 3, "rule already being made", t, NULL);
 			else
 			{	/* we may need to wait for it to finish processing */
@@ -2458,9 +2526,10 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			/* update %{<}, %{^} and %{?} */
 			update_allprev(q, auto_allprev->value, auto_updprev->value);
 			continue;
-		}
 
 		case KEY('s','e','t','v'):
+			if (!*t)
+				error_out("syntax error", u);
 			if (!getval(state.vars, t))
 			{
 				if (*v == '"' && state.strict < 2)
@@ -2814,7 +2883,7 @@ int main(int argc, char **argv)
 		case 'j':
 			append(state.opt, " -j");
 			append(state.opt, opt_info.arg);
-			state.maxjobs = opt_info.num;
+			state.maxjobs = (int)opt_info.num;
 			continue;
 		case 'k':
 			append(state.opt, " -k");
@@ -2847,7 +2916,7 @@ int main(int argc, char **argv)
 		case 'D':
 			append(state.opt, " -D");
 			append(state.opt, opt_info.arg);
-			state.debug = -opt_info.num;
+			state.debug = -((int)opt_info.num);
 			if (state.debug > 0)
 				state.debug = 0;
 			continue;
@@ -2860,9 +2929,13 @@ int main(int argc, char **argv)
 			setval(state.vars, "-strip-symbols", "1");
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			/* self-documentation */
+#if AST_VERSION >= 20260721
+			return optselfdoc();
+#else
+			error(ERROR_usage(0), "%s", opt_info.arg);
+			return 2;
+#endif
 		case ':':
 			error(2, "%s", opt_info.arg);
 			continue;
@@ -2887,7 +2960,7 @@ int main(int argc, char **argv)
 				break;
 			}
 			for (t = s += 2; *t && *t != '='; t++);
-			if (!strncmp(s, "debug-symbols", t - s) && append(state.opt, " -G") || !strncmp(s, "strip-symbols", t - s) && append(state.opt, " -S"))
+			if (!strncmp(s, "debug-symbols", (size_t)(t - s)) && append(state.opt, " -G") || !strncmp(s, "strip-symbols", (size_t)(t - s)) && append(state.opt, " -S"))
 			{
 				if (*t)
 				{
@@ -2904,7 +2977,7 @@ int main(int argc, char **argv)
 				}
 				setval(state.vars, s - 1, v);
 				if (c)
-					*t = c;
+					*t = (char)c;
 				continue;
 			}
 			usage();
@@ -3068,7 +3141,7 @@ int main(int argc, char **argv)
 				append(tmp, ".FORCE");
 				setval(state.vars, use(tmp), v);
 				drop(tmp);
-				*t = c;
+				*t = (char)c;
 				break;
 			}
 		}
@@ -3101,21 +3174,6 @@ int main(int argc, char **argv)
 	{
 		recurse();
 		return state.exitstatus;
-	}
-
-	/*
-	 * set up SIGCHLD handling for parallel processing
-	 */
-
-	if (SA_RESTART && state.maxjobs > 1)
-	{
-		struct sigaction act;
-		sigemptyset(&empty_sigmask);
-		act.sa_handler = sigchld_dummy;
-		sigemptyset(&act.sa_mask);
-		sigaddset(&act.sa_mask, SIGCHLD);
-		act.sa_flags = SA_NOCLDSTOP | SA_RESTART;
-		sigaction(SIGCHLD, &act, NULL);
 	}
 
 	/*

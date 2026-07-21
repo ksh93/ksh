@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#             Copyright (c) 2024 Contributors to ksh 93u+m             #
+#          Copyright (c) 2024-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -16,14 +16,6 @@
 # MAM dependency rules generator for $INSTALLROOT/include/ast headers
 # By Martijn Dekker <martijn@inlv.org>, 2024-07-15
 #
-# Greps preinstalled AST header files for '#include <foo.h>' to generate header
-# dependency rules for a library. The 'bind' command in mamake(1) Mamfiles will
-# automatically include the generated dependencies in its current rule context.
-#
-# Usage: mkdeps -lLIBRARYNAME [ -lDEPENDNECYNAME ... ] [ HEADER.h ... ]
-# The first -l option's argument is the short name of the library to be processed.
-# The second and further -l options indicate its library header dependencies.
-#
 # This sh script is POSIX compliant and compatible with shell bugs.
 #
 
@@ -31,6 +23,45 @@
 case ${ZSH_VERSION+z} in
 z)	emulate ksh ;;
 *)	(command set -o posix) 2>/dev/null && set -o posix ;;
+esac
+
+case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
+0123)	optstring=$'
+[-?
+@(#)$Id: mkdeps (ksh 93u+m) 2026-04-04 $
+]
+[-author?Martijn Dekker <martijn@inlv.org>]
+[-copyright?(c) 2024-2026 Contributors to ksh 93u+m]
+[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
+[+NAME?mkdeps - MAM dependency rules generator for \binclude/ast\b headers]
+[+DESCRIPTION?The \bmkdeps\b command greps the preinstalled AST header files in
+    \b$INSTALLROOT/include/ast\b for all \b#include <\b\afoo\a\b.h>\b
+    preprocessor directives and uses this information to generate header
+    dependency rules for a library compiled by this repository. The generated
+    dependency rules are stored in \b$INSTALLROOT/lib/mam/\b\alibname\a, where
+    \alibname\a is the option-argument of the first-given \b-l\b option. Other
+    modules using that library will then use the \bbind\b command in their
+    \bmamake\b(1) \bMamfile\bs to automatically include these generated
+    dependencies in the current rule context.]
+[+?All \aheaderbasename\a arguments are header file names without any
+    directory path and minus the \b.h\b suffix. Each argument must represent
+    a header file that exists as \b$INSTALLROOT/\b\aheaderbasename\a\b.h\b.]
+[+HANDLING CIRCULAR DEPENDENCIES?To exclude a \b#include\b from dependency
+    resolution, add a comment with the string \bNODEP\b. This tag is needed
+    rarely, in cases of a circular dependency that cannot be resolved or in
+    case of an optional header, and should only be applied with great
+    discernment.]
+[l]:[libname?The first \b-l\b option'\'$'s argument is the short name of the
+     library to be processed, minus the \blib\b prefix. The second and further
+     \b-l\b options similarly indicate the libaries upon whose headers the
+     first library depends.]
+
+[ headerbasename ... ]
+
+[+SEE ALSO?\bmamake\b(1)]\n'
+	;;
+*)	optstring='l:';
+	;;
 esac
 
 # Safe-ish mode.
@@ -56,7 +87,7 @@ error_out()
 grep_includes()
 {
 	spc=' 	'  # space followed by tab
-	sed -n "s|^[$spc]*#[$spc]*include[$spc]*<\([A-Za-z0-9_]*\)\.h>.*|\1|p" "$1"
+	sed -n "/NODEP/!s|^[$spc]*#[$spc]*include[$spc]*<\([A-Za-z0-9_]*\)\.h>.*|\1|p" "$1"
 }
 
 print_indent()
@@ -104,7 +135,7 @@ make_hdrdeps()
 
 # Parse options.
 lib= libdeps=
-while getopts 'l:' opt
+while getopts "$optstring" opt
 do	case $opt in
 	l)	case $lib in
 		'')	lib=$OPTARG ;;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -28,11 +29,12 @@
 **	Written by Kiem-Phong Vo
 */
 
-int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
-	      int	n)	/* see above */
+ptrdiff_t _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
+		    ptrdiff_t	n)	/* see above */
 {
-	ssize_t		r;
-	int		first, local, rcrv, rc, justseek;
+	ptrdiff_t	r, ret;
+	int		first, local, rc, justseek;
+	unsigned int	rcrv;
 
 	if(!f)
 		return -1;
@@ -45,7 +47,7 @@ int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
 
 	justseek = f->bits&SFIO_JUSTSEEK; f->bits &= ~SFIO_JUSTSEEK;
 
-	for(first = 1;; first = 0, (f->mode &= ~SFIO_LOCK) )
+	for(first = 1;; first = 0, (f->mode &= (uint32_t)~SFIO_LOCK) )
 	{	/* check mode */
 		if(SFMODE(f,local) != SFIO_READ && _sfmode(f,SFIO_READ,local) < 0)
 			return -1;
@@ -62,17 +64,17 @@ int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
 			/* try shifting left to make room for new data */
 			if(!(f->bits&SFIO_MMAP) && f->next > f->data &&
 			   n > (f->size - (f->endb-f->data)) )
-			{	ssize_t	s = r;
+			{	size_t	s = (size_t)r;
 
 				/* try to maintain block alignment */
-				if(f->blksz > 0 && (f->here%f->blksz) == 0 )
-				{	s = ((r + f->blksz-1)/f->blksz)*f->blksz;
-					if(s+n > f->size)
-						s = r;
+				if(f->blksz > 0 && ((unsigned)f->here%f->blksz) == 0 )
+				{	s = (((size_t)r + f->blksz-1)/f->blksz)*f->blksz;
+					if((ptrdiff_t)s+n > f->size)
+						s = (size_t)r;
 				}
 
 				memmove(f->data, f->endb-s, s);
-				f->next = f->data + (s-r);
+				f->next = f->data + (s-(size_t)r);
 				f->endb = f->data + s;
 			}
 		}
@@ -86,15 +88,15 @@ int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
 			if(n > 0)
 			{	if(r > n && f->extent < 0 && (f->flags&SFIO_SHARE) )
 					r = n;	/* read only as much as requested */
-				else if(justseek && n <= f->iosz && f->iosz <= f->size)
-					r = f->iosz;	/* limit buffer filling */
+				else if(justseek && n <= (ssize_t)f->iosz && (ssize_t)f->iosz <= f->size)
+					r = (ptrdiff_t)f->iosz;	/* limit buffer filling */
 			}
 		}
 
 		/* SFRD takes care of discipline read and stack popping */
 		f->mode |= rcrv;
 		f->getr = rc;
-		if((r = SFRD(f,f->endb,r,f->disc)) >= 0)
+		if((r = SFRD(f,f->endb,(size_t)r,f->disc)) >= 0)
 		{	r = f->endb - f->next;
 			break;
 		}
@@ -102,7 +104,7 @@ int _sffilbuf(Sfio_t*	f,	/* fill the read buffer of this stream */
 
 	SFOPEN(f,local);
 
-	rcrv = (n == 0) ? (r > 0 ? (int)(*f->next++) : EOF) : (int)r;
+	ret = (n == 0) ? (r > 0 ? *f->next++ : EOF) : r;
 
-	return rcrv;
+	return ret;
 }

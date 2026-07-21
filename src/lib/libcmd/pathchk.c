@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -179,7 +179,7 @@ static int pathchk(char* path, int mode)
 			errno=0;
 			cp[-1] = 0;
 			r = mypathconf(path, 0);
-			if((cp[-1]=c)==0)
+			if((cp[-1]=(char)c)==0)
 				cp--;
 			else while(*cp=='/')
 				cp++;
@@ -187,13 +187,11 @@ static int pathchk(char* path, int mode)
 				name_max=(r<_POSIX_NAME_MAX?_POSIX_NAME_MAX:r);
 			else if(errno==EINVAL)
 				continue;
-#ifdef ENAMETOOLONG
 			else if(errno==ENAMETOOLONG)
 			{
 				error(2,"%s: pathname too long",path);
 				return -1;
 			}
-#endif /*ENAMETOOLONG*/
 			else
 				break;
 		}
@@ -208,7 +206,7 @@ static int pathchk(char* path, int mode)
 		while((c= *cp++) && c!='/')
 			if((mode & COMPONENTS) && !isport(c))
 			{
-				buf[0] = c;
+				buf[0] = (char)c;
 				buf[1] = 0;
 				error(2,"%s: '%s' not in portable character set",path,fmtquote(buf, NULL, "'", 1, 0));
 				return -1;
@@ -255,9 +253,7 @@ b_pathchk(int argc, char** argv, Shbltin_t* context)
 			error(2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}

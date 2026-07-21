@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -19,7 +19,7 @@
 ***********************************************************************/
 
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"shtable.h"
 #include	<signal.h>
@@ -78,10 +78,10 @@ const struct shtable3 shtab_builtins[] =
 	"source",	NV_BLTIN|BLT_ENV,		bltin(dot_cmd),
 	"return",	NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
 	"enum",		NV_BLTIN|BLT_ENV|BLT_DCL,	bltin(enum),
+	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
 /*
  * Builtins without offset macros in include/builtins.h follow.
  */
-	"alias",	NV_BLTIN|BLT_ENV,		bltin(alias),
 	"hash",		NV_BLTIN|BLT_ENV,		bltin(alias),
 	"eval",		NV_BLTIN|BLT_ENV|BLT_SPC|BLT_EXIT,bltin(eval),
 	"exit",		NV_BLTIN|BLT_ENV|BLT_SPC,	bltin(return),
@@ -164,7 +164,7 @@ const char sh_set[] =
 	"automatically exported, unless they have a dot in their name.]"
 "[b?The shell writes a message to standard error as soon it detects that "
 	"a background job completes rather than waiting until the next prompt.]"
-"[e?A simple command that has an non-zero exit status will cause the shell "
+"[e?A simple command that has a non-zero exit status will cause the shell "
 	"to exit unless the simple command is:]{"
 	"[++?contained in an \b&&\b or \b||\b list.]"
 	"[++?the command immediately following \bif\b, \bwhile\b, or \buntil\b.]"
@@ -172,7 +172,7 @@ const char sh_set[] =
 "}"
 "[f?Pathname expansion is disabled.]"
 "[h?Obsolete; no effect.]"
-"[k?All arguments of the form \aname\a\b=\b\avalue\a "
+"[k?Obsolete. All arguments of the form \aname\a\b=\b\avalue\a "
 	"are removed and placed in the variable assignment list for "
 	"the command. Ordinarily, variable assignments must precede "
 	"command arguments.]"
@@ -196,12 +196,14 @@ const char sh_set[] =
 	"It must resolve to one of the following:]"
 	"{"
 		"[+allexport?Equivalent to \b-a\b.]"
+#if SHOPT_ESH || SHOPT_VSH
 		"[+arrowkeysearch?The up and down arrow keys will do a "
 		"reverse search based on the current line.]"
 		"[+backslashctrl?The backslash character \b\\\b escapes the "
 			"next control character in the \bemacs\b built-in "
 			"editor and the next \aerase\a or \akill\a character "
 			"in the \bvi\b built-in editor. On by default.]"
+#endif
 		"[+bgnice?Runs background jobs at lower priorities.]"
 #if SHOPT_BRACEPAT
 		"[+braceexpand?Equivalent to \b-B\b.] "
@@ -249,7 +251,7 @@ const char sh_set[] =
 		"[+ignoreeof?Prevents an interactive shell from exiting on "
 			"reading an end-of-file.]"
 #endif
-		"[+keyword?Equivalent to \b-k\b.]"
+		"[+keyword?Obsolete; equivalent to \b-k\b.]"
 		"[+letoctal?The \blet\b builtin recognizes octal constants "
 			"with leading 0.]"
 		"[+markdirs?A trailing \b/\b is appended to directories "
@@ -272,7 +274,7 @@ const char sh_set[] =
 		"[+privileged?Equivalent to \b-p\b.]"
 		"[+showme?Simple commands preceded by a \b;\b will be traced "
 			"as if \b-x\b were enabled but not executed.]"
-		"[+trackall?Equivalent to \b-h\b.]"
+		"[+trackall?Obsolete; equivalent to \b-h\b (no effect).]"
 		"[+unset?Opposite of \b-u\b.]"
 		"[+verbose?Equivalent to \b-v\b.]"
 #if SHOPT_VSH
@@ -392,7 +394,7 @@ const char sh_optalias[] =
 ;
 
 const char sh_optbuiltin[] =
-"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2022-07-03 $\n]"
+"[-1c?\n@(#)$Id: builtin (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?builtin - add, delete, or display shell built-ins]"
 "[+DESCRIPTION?\bbuiltin\b can be used to add, delete, or display "
@@ -441,6 +443,9 @@ const char sh_optbuiltin[] =
 "[f]:[lib?Not supported.]"
 "[l?No effect.]"
 #endif /* SHOPT_DYNAMIC */
+"[p?Causes the output to be in the form of \bbuiltin\b commands that can be "
+	"used as input to the shell to recreate the current set of "
+	"builtins.]"
 "[s?Display only the special built-ins.]"
 "\n"
 "\n[pathname ...]\n"
@@ -560,7 +565,7 @@ const char sh_optcommand[] =
 ;
 
 const char sh_optdot[]	 =
-"[-1c?\n@(#)$Id: \b.\b (ksh 93u+m) 2023-02-22 $\n]"
+"[-1c?\n@(#)$Id: source (ksh 93u+m) 2023-02-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - execute commands in the current environment]"
 "[+DESCRIPTION?\b.\b and \bsource\b are built-in commands that execute "
@@ -593,9 +598,9 @@ const char sh_optdot[]	 =
 "[+SEE ALSO?\bcommand\b(1), \bksh\b(1)]"
 ;
 
-#ifndef ECHOPRINT
+#if !SHOPT_ECHOPRINT
     const char sh_optecho[]	= " [-n] [arg...]";
-#endif /* !ECHOPRINT */
+#endif
 
 const char sh_opteval[] =
 "[-1c?\n@(#)$Id: eval (AT&T Research) 1999-07-07 $\n]"
@@ -702,7 +707,7 @@ const char sh_optexport[] =
 ;
 
 const char sh_optgetopts[] =
-":[-1c?\n@(#)$Id: getopts (ksh 93u+m) 2025-05-02 $\n]"
+":[-1c?\n@(#)$Id: getopts (ksh 93u+m) 2026-05-08 $\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - parse utility options]"
@@ -864,9 +869,8 @@ const char sh_optgetopts[] =
 "\noptstring name [args...]\n"
 "\n"
 "[+EXIT STATUS]{"
-	"[+0?An option specified was found, or an information message was generated.]"
+	"[+0?An option specified was found, or an information or usage message was generated.]"
 	"[+1?An end of options was encountered.]"
-	"[+2?A usage message was generated.]"
 "}"
 ;
 
@@ -990,7 +994,7 @@ const char sh_opthist[]	=
 "[-1cn?\n@(#)$Id: hist (ksh 93u+m) 2025-05-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - process command history list]"
-"[+DESCRIPTION?\b\f?\f\b lists, edits, or re-executes, commands  "
+"[+DESCRIPTION?\b\f?\f\b lists, edits, or re-executes, commands "
 	"previously entered into the current shell environment.]"
 "[+?The command history list references commands by number. The first number "
 	"in the list is selected arbitrarily. The relationship of a number "
@@ -1066,7 +1070,7 @@ const char sh_optkill[]	 =
 	"\ajob\a. This normally terminates the processes unless the signal "
 	"is being caught or ignored.]"
 _JOB_
-"[+?If the signal is not specified with either the \b-n\b or the \b-s\b  "
+"[+?If the signal is not specified with either the \b-n\b or the \b-s\b "
 	"option, the \bSIGTERM\b signal is used.]"
 "[+?If \b-l\b is specified, and no \aarg\a is specified, then \bkill\b "
 	"writes the list of signals to standard output. Otherwise, \aarg\a "
@@ -1258,11 +1262,11 @@ const char sh_optprintf[] =
 		"\b\"\b, and non-printable characters properly escaped for "
 		"use in HTML and XML documents. The alternate flag \b#\b "
 		"formats the output for use as a URI.]"
-	"[+%P?Treat \astring\a as an extended regular expression and  "
+	"[+%P?Treat \astring\a as an extended regular expression and "
 		"convert it to a shell pattern.]"
 	"[+%p?Convert number to hexadecimal.]"
 	"[+%Q?Convert number of seconds to readable time.]"
-	"[+%R?Treat \astring\a as an shell pattern expression and  "
+	"[+%R?Treat \astring\a as a shell pattern expression and "
 		"convert it to an extended regular expression.]"
 	"[+%T?Treat \astring\a as a date/time string and format it. The "
 		"\bT\b can be preceded by \b(\b\adformat\a\b)\b, where "
@@ -1600,7 +1604,7 @@ const char sh_optksh[] =
 "[s?Read and execute a script from standard input instead of a file. "
 	"The command name (\b$0\b) cannot be set. "
 	"Any \aarg\as become the positional parameters starting at \b$1\b. "
-	"This option is forced on if no \aarg\a is given "
+	"This option is forced on if neither \b-c\b nor any \aarg\a is given "
 	"and is ignored if \b-c\b is also specified.]"
 "[i?Specifies that the shell is interactive."
 #if SHOPT_SCRIPTONLY
@@ -1660,7 +1664,7 @@ const char sh_optksh[] =
 "[+SEE ALSO?\bset\b(1), \bbuiltin\b(1)]"
 ;
 const char sh_optset[] =
-"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2023-05-18 $\n]"
+"+[-1c?\n@(#)$Id: set (ksh 93u+m) 2026-02-10 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?set - set/unset options and positional parameters]"
 "[+DESCRIPTION?\bset\b sets or unsets options and positional parameters. "
@@ -1724,7 +1728,7 @@ const char sh_optshift[] =
 ;
 
 const char sh_optsleep[] =
-"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2024-11-17 $\n]"
+"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2026-03-09 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?sleep - suspend execution for an interval]"
 "[+DESCRIPTION?\bsleep\b suspends execution for at least the time specified "
@@ -1758,7 +1762,7 @@ const char sh_optsleep[] =
 ;
 
 const char sh_opttrap[] =
-"[-1c?\n@(#)$Id: trap (AT&T Research) 1999-07-17 $\n]"
+"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?trap - trap signals and conditions]"
 "[+DESCRIPTION?\btrap\b is a special built-in that defines actions to be "
@@ -1797,6 +1801,7 @@ const char sh_opttrap[] =
 	"non-zero exit status, but does not terminate the invoking shell.]"
 "[+?If no \aaction\a or \acondition\as are specified then all the current "
 	"trap settings are written to standard output.]"
+"[l?Output the list of signals and their numbers to standard output.]"
 "[p?Causes the current traps to be output in a format that can be processed "
 	"as input to the shell to recreate the current traps.]"
 "\n"
@@ -1921,7 +1926,7 @@ const char sh_opttypeset[] =
 "[X]#?[n:=2*sizeof(long long)?Floating point number represented in hexadecimal "
 	"notation. \an\a specifies the number of significant figures when the "
 	"value is expanded.]"
-"[h]:[string?Used within a type definition to provide a help string  "
+"[h]:[string?Used within a type definition to provide a help string "
 	"for variable \aname\a. Otherwise, it is ignored.]"
 "[S?Used with a type definition to indicate that the variable is shared by "
 	"each instance of the type. When used inside a function defined "
@@ -1988,13 +1993,17 @@ const char sh_opttimes[] =
 "[--catalog?" SH_DICT "]"
 "[+NAME?times - display CPU usage by the shell and child processes]"
 "[+DESCRIPTION?\btimes\b displays the accumulated user and system CPU times, "
-"one line with the times used by the shell and another with those used by "
-"all of the shell's child processes. No options are supported.]"
+"one line with the times used by the shell process "
+"from which \btimes\b was invoked "
+"and another with those used by all of its child processes. "
+"No options are supported.]"
+"[+?When \btimes\b is invoked from a subshell, "
+"times are reset when the subshell forks its own process.]"
 "[+SEE ALSO?\btime\b(1)]"
 ;
 
 const char sh_optumask[] =
-"[-1c?\n@(#)$Id: umask (AT&T Research) 1999-04-07 $\n]"
+"[-1c?\n@(#)$Id: umask (ksh 93u+m) 2026-01-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?umask - get or set the file creation mask]"
 "[+DESCRIPTION?\bumask\b sets the file creation mask of the current "
@@ -2009,6 +2018,7 @@ const char sh_optumask[] =
 	"file creation mask for the current process to standard output.]"
 "[S?Causes the file creation mask to be written or treated as a symbolic value "
 	"rather than an octal number.]"
+"[p?Write the file creation mask in a format that can be used for reinput.]"
 "\n"
 "\n[mask]\n"
 "\n"
@@ -2140,8 +2150,8 @@ const char sh_optwhence[] =
 ;
 
 
-const char e_alrm1[]		= "alarm -r %s +%.3g\n";
-const char e_alrm2[]		= "alarm %s %.3f\n";
+const char e_alrm1[]		= "alarm -r %s +%.3Lf\n";
+const char e_alrm2[]		= "alarm %s +%.3Lf\n";
 const char e_baddisc[]		= "%s: invalid discipline function";
 const char e_nofork[]		= "cannot fork";
 const char e_nosignal[]		= "%s: unknown signal name";

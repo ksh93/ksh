@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -27,7 +27,7 @@
  *	 and has a separate executor
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"streval.h"
 #include	<ctype.h>
 #include	<error.h>
@@ -54,7 +54,7 @@
 #define pow2size(x)		((x)<=2?2:(x)<=4?4:(x)<=8?8:(x)<=16?16:(x)<=32?32:64)
 #define round(x,size)		(((x)+(size)-1)&~((size)-1))
 #define stkpush(stk,v,val,type)	((((v)->offset=round(stktell(stk),pow2size(sizeof(type)))),\
-				stkseek(stk,(v)->offset+sizeof(type)), \
+				stkseek(stk,(v)->offset+(ssize_t)sizeof(type)), \
 				*((type*)stkptr(stk,(v)->offset)) = (val)),(v)->offset)
 #define roundptr(ep,cp,type)	(((unsigned char*)(ep))+round(cp-((unsigned char*)(ep)),pow2size(sizeof(type))))
 
@@ -65,12 +65,12 @@ struct vars				/* vars stacked per invocation */
 	const char	*errchr; 	/* next char after error	*/
 	const char	*errstr;	/* error string			*/
 	struct lval	errmsg;	 	/* error message text		*/
-	int		offset;		/* offset for pushchr macro	*/
-	int		staksize;	/* current stack size needed	*/
-	int		stakmaxsize;	/* maximum stack size needed	*/
-	unsigned char	paren;	 	/* parenthesis level		*/
-	char		infun;	/* incremented by comma inside function	*/
+	ptrdiff_t	offset;		/* offset for pushchr macro	*/
+	ptrdiff_t	staksize;	/* current stack size needed	*/
+	ptrdiff_t	stakmaxsize;	/* maximum stack size needed	*/
 	int		emode;
+	int		infun;		/* incremented by comma inside function	*/
+	unsigned int	paren;	 	/* parenthesis level		*/
 	Sfdouble_t	(*convert)(const char**,struct lval*,int,Sfdouble_t);
 };
 
@@ -90,7 +90,7 @@ typedef int        (*Math_3i_f)(Sfdouble_t,Sfdouble_t,Sfdouble_t);
 /*
  * convert ASCII char to math expression token
  */
-#define getop(c)	(((c) >= sizeof(strval_states))? \
+#define getop(c)	(((c) >= ((ssize_t)sizeof(strval_states)))? \
 				((c)=='|'?A_OR:((c)=='^'?A_XOR:((c)=='~'?A_TILDE:A_REG))):\
 				strval_states[(c)])
 
@@ -135,6 +135,19 @@ static Sfdouble_t U2F(Sfulong_t u)
 #define U2F(x)		x
 #endif
 
+/*
+ * Safely cast a float f to an unsigned integer. Casting a float to an unsigned integer is undefined
+ * behaviour if it is negative (and the real-world behaviour in fact differs between x86_64 and ARM
+ * architectures). So, if f is negative, we invert the sign using the unary minus, do the typecast on
+ * that, and then do another unary minus operation -- at which point we're performing a unary minus on
+ * a positive unsigned integer value, which is well-defined behaviour in C and yields a positive
+ * wrapped-around unsigned integer value, which is fine to typecast back to a float type.
+ */
+static inline Sfulong_t F2U(Sfdouble_t f)
+{
+	return f < 0 ? -((Sfulong_t)-f) : (Sfulong_t)f;
+}
+
 Sfdouble_t	arith_exec(Arith_t *ep)
 {
 	Sfdouble_t	num=0,*dp,*sp;
@@ -163,7 +176,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	if(ep->staksize < SMALL_STACK)
 		sp = small_stack;
 	else
-		sp = stkalloc(sh.stk,ep->staksize*(sizeof(Sfdouble_t)+1));
+		sp = stkalloc(sh.stk,(size_t)ep->staksize*(sizeof(Sfdouble_t)+1));
 	tp = (char*)(sp+ep->staksize);
 	tp--,sp--;
 	while(c = *cp++)
@@ -224,7 +237,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			c = *(short*)cp;
 			cp += sizeof(short);
 			lastval = node.value = (char*)dp;
-			if(node.flag = c)
+			if(node.flag = (short)c)
 				lastval = 0;
 			node.isfloat=0;
 			node.level = sh.arithrecursion;
@@ -240,7 +253,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				arith_error(node.value,ptr,ep->emode);
 			*++sp = num;
 			type = node.isfloat;
-			if(num > LDBL_ULLONG_MAX || num < LDBL_LLONG_MIN)
+			if(isinf(num) || isnan(num) || num > LDBL_ULLONG_MAX || num < LDBL_LLONG_MIN)
 				type = 1;
 			else
 			{
@@ -250,10 +263,11 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 					type = 2;
 					d -= LDBL_LLONG_MAX;
 				}
-				if((Sflong_t)d!=d)
+				/* must use <= >= not < >, as we have reduced precision at these sizes */
+				if(d <= LDBL_LLONG_MIN || d >= LDBL_LLONG_MAX || (Sflong_t)d!=d)
 					type = 1;
 			}
-			*++tp = type;
+			*++tp = (char)type;
 			c = 0;
 			break;
 		    case A_ENUM:
@@ -271,7 +285,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				c = 0;
 			cp += sizeof(short);
 			node.value = (char*)dp;
-			node.flag = c;
+			node.flag = (short)c;
 			if(lastval)
 				node.isenum = 1;
 			node.enum_p = 0;
@@ -284,7 +298,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				r =  (*ep->fun)(&ptr,&node,VALUE,num);
 				if(r!=num)
 				{
-					node.flag=c;
+					node.flag=(short)c;
 					node.value = (char*)dp;
 					num = (*ep->fun)(&ptr,&node,ASSIGN,r);
 				}
@@ -297,14 +311,15 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			cp = roundptr(ep,cp,Math_f);
 			*++sp = (Sfdouble_t)(cp-ep->code);
 			cp += sizeof(Math_f);
-			*++tp = *cp++;
+			*++tp = (char)*cp++;
 			continue;
 		    case A_PUSHN:
 			cp = roundptr(ep,cp,Sfdouble_t);
 			num = *((Sfdouble_t*)cp);
 			cp += sizeof(Sfdouble_t);
 			*++sp = num;
-			*++tp = type = *cp++;
+			type = (int)*cp++;
+			*++tp = (char)type;
 			break;
 		    case A_NOT:
 			type=0;
@@ -332,7 +347,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			if(!(Sflong_t)num)
 				arith_error(e_divzero,ep->expr,ep->emode);
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) % (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) % F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) % (Sflong_t)(num);
 			break;
@@ -342,42 +357,48 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				num = sp[-1]/num;
 				type = 1;
 			}
-			/* Avoid typecasting a negative float (Sfdouble_t) to an
-			 * unsigned integer (Sfulong_t), which is undefined behaviour */
-			else if((Sfulong_t)(num < 0 ? -num : num)==0)
+			else if(F2U(num)==0)
 				arith_error(e_divzero,ep->expr,ep->emode);
 			else if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) / (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) / F2U(num));
 			else
-				num = (Sflong_t)(sp[-1]) / (Sflong_t)(num);
+			{
+				Sflong_t x = (Sflong_t)sp[-1];
+				Sflong_t y = (Sflong_t)num;
+				/* avoid SIGFPE on x86_64 upon (Sfdouble_t)(-LLONG_MIN / -1) */
+				if(x==LLONG_MIN && y==-1)
+					num = LDBL_LLONG_MAX + 1.0;
+				else
+					num = (Sfdouble_t)(x / y);
+			}
 			break;
 		    case A_LSHIFT:
 			if(tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) << (long)(num));
+				num = U2F(F2U(sp[-1]) << (long)(num));
 			else
 				num = (Sflong_t)(sp[-1]) << (long)(num);
 			break;
 		    case A_RSHIFT:
 			if(tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) >> (long)(num));
+				num = U2F(F2U(sp[-1]) >> (long)(num));
 			else
 				num = (Sflong_t)(sp[-1]) >> (long)(num);
 			break;
 		    case A_XOR:
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) ^ (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) ^ F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) ^ (Sflong_t)(num);
 			break;
 		    case A_OR:
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) | (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) | F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) | (Sflong_t)(num);
 			break;
 		    case A_AND:
 			if(type==2 || tp[-1]==2)
-				num = U2F((Sfulong_t)(sp[-1]) & (Sfulong_t)(num));
+				num = U2F(F2U(sp[-1]) & F2U(num));
 			else
 				num = (Sflong_t)(sp[-1]) & (Sflong_t)(num);
 			break;
@@ -475,7 +496,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			type  |= (*tp!=0);
 		}
 		*sp = num;
-		*tp = type;
+		*tp = (char)type;
 	}
 	if(sh.arithrecursion>0)
 		sh.arithrecursion--;
@@ -761,7 +782,7 @@ again:
 
 		case A_QUEST:
 		{
-			int offset1,offset2;
+			ptrdiff_t offset1,offset2;
 			sfputc(sh.stk,A_JMPZ);
 			offset1 = stkpush(sh.stk,vp,0,short);
 			sfputc(sh.stk,A_POP);
@@ -771,11 +792,11 @@ again:
 				ERROR(vp,e_questcolon);
 			sfputc(sh.stk,A_JMP);
 			offset2 = stkpush(sh.stk,vp,0,short);
-			*((short*)stkptr(sh.stk,offset1)) = stktell(sh.stk);
+			*((short*)stkptr(sh.stk,offset1)) = (short)stktell(sh.stk);
 			sfputc(sh.stk,A_POP);
 			if(!expr(vp,3))
 				return 0;
-			*((short*)stkptr(sh.stk,offset2)) = stktell(sh.stk);
+			*((short*)stkptr(sh.stk,offset2)) = (short)stktell(sh.stk);
 			lvalue.value = 0;
 			wasop = 0;
 			break;
@@ -789,7 +810,7 @@ again:
 		case A_ANDAND:
 		case A_OROR:
 		{
-			int offset;
+			ptrdiff_t offset;
 			if(op==A_ANDAND)
 				op = A_JMPZ;
 			else
@@ -799,7 +820,7 @@ again:
 			sfputc(sh.stk,A_POP);
 			if(!expr(vp,c))
 				return 0;
-			*((short*)stkptr(sh.stk,offset)) = stktell(sh.stk);
+			*((short*)stkptr(sh.stk,offset)) = (short)stktell(sh.stk);
 			if(op!=A_QCOLON)
 				sfputc(sh.stk,A_NOTNOT);
 			lvalue.value = 0;
@@ -886,14 +907,14 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 {
 	struct vars cur;
 	Arith_t *ep;
-	int offset;
+	ptrdiff_t offset;
 	memset(&cur,0,sizeof(cur));
      	cur.expr = cur.nextchr = string;
 	cur.convert = fun;
 	cur.emode = emode;
 	cur.errmsg.value = 0;
 	cur.errmsg.emode = emode;
-	stkseek(sh.stk,sizeof(Arith_t));
+	stkseek(sh.stk,(ssize_t)sizeof(Arith_t));
 	if(!expr(&cur,0) && cur.errmsg.value)
 	{
 		if(cur.errstr)
@@ -914,7 +935,7 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 	ep->code = (unsigned char*)(ep+1);
 	ep->fun = fun;
 	ep->emode = emode;
-	ep->size = offset - sizeof(Arith_t);
+	ep->size = offset - (ssize_t)sizeof(Arith_t);
 	ep->staksize = cur.stakmaxsize+1;
 	if(last)
 		*last = (char*)(cur.nextchr);
@@ -938,7 +959,7 @@ Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const ch
 	Arith_t *ep;
 	Sfdouble_t d;
 	char *sp=0;
-	int offset;
+	ptrdiff_t offset;
 	if(offset=stktell(sh.stk))
 		sp = stkfreeze(sh.stk,1);
 	ep = arith_compile(s,end,convert,emode);

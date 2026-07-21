@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -78,7 +78,7 @@ int dtcustomize(Dt_t* dt, int type, int action)
 	if((type&DT_SHARE) &&
 	   (!dt->meth->eventf || (*dt->meth->eventf)(dt, DT_SHARE, (void*)((long)action)) >= 0) )
 	{	if(action <= 0 )
-			dt->data->type &= ~DT_SHARE;
+			dt->data->type &= (unsigned)~DT_SHARE;
 		else	dt->data->type |=  DT_SHARE;
 		done |= DT_SHARE;
 	}
@@ -86,7 +86,7 @@ int dtcustomize(Dt_t* dt, int type, int action)
 	if((type&DT_ANNOUNCE) &&
 	   (!dt->meth->eventf || (*dt->meth->eventf)(dt, DT_ANNOUNCE, (void*)((long)action)) >= 0) )
 	{	if(action <= 0 )
-			dt->data->type &= ~DT_ANNOUNCE;
+			dt->data->type &= (unsigned)~DT_ANNOUNCE;
 		else	dt->data->type |=  DT_ANNOUNCE;
 		done |= DT_ANNOUNCE;
 	}

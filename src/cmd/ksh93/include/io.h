@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef _io_h_defined
-#define _io_h_defined	1
+#ifndef _IO_H
+#define _IO_H
 
 #include	<ast.h>
 #include	<sfio.h>
@@ -36,22 +36,22 @@
 /* used for output of shell errors */
 #define ERRIO		2
 
-#define IOREAD		001
-#define IOWRITE		002
-#define IODUP 		004
-#define IOSEEK		010
-#define IONOSEEK	020
-#define IOTTY 		040
-#define IOCLEX 		0100
+#define IOREAD		001U
+#define IOWRITE		002U
+#define IODUP 		004U
+#define IOSEEK		010U
+#define IONOSEEK	020U
+#define IOTTY 		040U
+#define IOCLEX 		0100U
 #define IOCLOSE		(IOSEEK|IONOSEEK)
 
 #define IOSUBSHELL	0x8000	/* must be larger than any file descriptor */
 #define IOPICKFD	0x10000 /* file descriptor number was selected automatically */
 #define IOHERESTRING	0x20000 /* allow here documents to be string streams */
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
     struct ionod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* if O_SEARCH/O_PATH is unreliable for fchdir, it's not worth using */
 #if !_fchdir_osearch_compat
@@ -74,14 +74,14 @@
 #define sh_editor_active()	0
 #endif
 
-extern int	sh_iocheckfd(int);
+extern uint8_t	sh_iocheckfd(int,ssize_t*);
 extern void 	sh_ioinit(void);
-extern int 	sh_iomovefd(int);
+extern int 	sh_iomovefd(int,int);
 extern int	sh_iorenumber(int,int);
 extern void 	sh_pclose(int[]);
 extern int	sh_rpipe(int[],int);
 extern void 	sh_iorestore(int,int);
-extern Sfio_t 	*sh_iostream(int);
+extern Sfio_t 	*sh_iostream(int,int);
 extern int	sh_redirect(struct ionod*,int);
 extern void 	sh_iosave(int,int,char*);
 extern int 	sh_iovalidfd(int);
@@ -125,4 +125,4 @@ extern const char	e_stdprompt[];
 extern const char	e_supprompt[];
 extern const char	e_ambiguous[];
 
-#endif /* _io_h_defined */
+#endif /* _IO_H */

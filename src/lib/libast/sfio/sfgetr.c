@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -47,7 +48,7 @@ char* sfgetr(Sfio_t*	f,	/* stream to read from	*/
 	type = type < 0 ? SFIO_LASTR : type == 1 ? SFIO_STRING : type;
 
 	if(type&SFIO_LASTR) /* return the broken record */
-	{	if((f->flags&SFIO_STRING) && (un = f->endb - f->next))
+	{	if((f->flags&SFIO_STRING) && (un = (ssize_t)(f->endb - f->next)))
 		{	us = f->next;
 			f->next = f->endb;
 			found = 1;
@@ -80,7 +81,7 @@ char* sfgetr(Sfio_t*	f,	/* stream to read from	*/
 			}
 		}
 
-		if(!(s = (uchar*)memchr((char*)s,rc,n)))
+		if(!(s = (uchar*)memchr((char*)s,rc,(size_t)n)))
 			s = ends;
 	do_copy:
 		if(s < ends) /* found separator */
@@ -92,14 +93,14 @@ char* sfgetr(Sfio_t*	f,	/* stream to read from	*/
 			    ((f->flags&SFIO_STRING) && (f->bits&SFIO_BOTH) ) ) )
 			{	/* returning data in buffer */
 				us = f->next;
-				un = s - f->next;
+				un = (ssize_t)(s - f->next);
 				f->next = s;
 				goto done;
 			}
 		}
 
 		/* amount to be read */
-		n = s - f->next;
+		n = (ssize_t)(s - f->next);
 
 		if(!found && (_Sfmaxr > 0 && un+n+1 >= _Sfmaxr || (f->flags&SFIO_STRING))) /* already exceed limit */
 		{	us = NULL;
@@ -123,7 +124,7 @@ char* sfgetr(Sfio_t*	f,	/* stream to read from	*/
 		un += n;
 		ends = f->next;
 		f->next += n;
-		MEMCPY(s,ends,n);
+		memcpy(s,ends,(size_t)n);
 	}
 
 done:

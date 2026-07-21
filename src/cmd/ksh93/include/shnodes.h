@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,13 +16,13 @@
 *                                                                      *
 ***********************************************************************/
 #ifndef _SHNODES_H
-#define _SHNODES_H	1
+#define _SHNODES_H
+
 /*
  *	UNIX shell
  *	Written by David Korn
  *
  */
-
 
 #include	<ast.h>
 #include	"argnod.h"
@@ -39,6 +39,10 @@
 #define FPOSIX		(02<<COMBITS)		/* POSIX semantics function */
 #define FLINENO		(04<<COMBITS)		/* for/case has line number */
 #define FOPTGET		(0200<<COMBITS)		/* function calls getopts */
+
+/* extra option bit flags for _sh_fork() -- these share bitspace with command tree type bits above */
+#define F_SUBFORK	(01000<<COMBITS)	/* set when sh_subfork() forks a subshell */
+#define F_COMFORK	(02000<<COMBITS)	/* set when sh_exec() forks to execve(2) a command */
 
 #define TNEGATE		(01<<COMBITS)		/* ! inside [[ ... ]] */
 #define TBINARY		(02<<COMBITS)		/* binary operator in [[ ... ]] */
@@ -186,6 +190,7 @@ struct arithnod
 #define IOREWRITE	0x80000	/* rewrite/truncate upon command success: >;word <>;word */
 #define IOCOPY		IOCLOB	/* copy skipped lines onto standard output */
 #define IOPROCSUB	IOARITH	/* process substitution redirection */
+#define IOFREEABLE	0x100000/* node is allocated on heap */
 
 union Shnode_u
 {
@@ -209,8 +214,8 @@ union Shnode_u
 
 extern void			sh_freeup(void);
 extern void			sh_funstaks(struct slnod*,int);
-extern Sfio_t 			*sh_subshell(Shnode_t*, volatile int, int);
-extern int			sh_tdump(Sfio_t*, const Shnode_t*);
+extern Sfio_t 			*sh_subshell(Shnode_t*, volatile int, char);
+extern ssize_t			sh_tdump(Sfio_t*, const Shnode_t*);
 extern Shnode_t			*sh_trestore(Sfio_t*);
 
-#endif /* _SHNODES_H */
+#endif /* !_SHNODES_H */

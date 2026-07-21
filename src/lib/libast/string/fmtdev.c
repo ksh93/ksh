@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,6 +15,7 @@
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *
+*               Anuradha Weeraman <anuradha@debian.org>                *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -27,7 +28,7 @@
 #include <ast.h>
 #include <ctype.h>
 #include <ls.h>
-#ifdef __linux__
+#if defined(__linux__) || defined(__GNU__)
 #include <sys/sysmacros.h>
 #endif
 
@@ -35,23 +36,23 @@ char*
 fmtdev(struct stat* st)
 {
 	char*		buf;
-	unsigned long	mm;
+	dev_t		mm;
 	unsigned int	ma;
 	unsigned int	mi;
-	int		z;
+	size_t		z;
 
 	mm = (S_ISBLK(st->st_mode) || S_ISCHR(st->st_mode)) ? idevice(st) : st->st_dev;
-	ma = major(mm);
-	mi = minor(mm);
+	ma = (unsigned int)major(mm);
+	mi = (unsigned int)minor(mm);
 	buf = fmtbuf(z = 17);
-	if (ma == '#' && isalnum(mi))
+	if (ma == '#' && isalnum((int)mi))
 	{
 		/*
 		 * Plan? Nein!
 		 */
 
-		buf[0] = ma;
-		buf[1] = mi;
+		buf[0] = (char)ma;
+		buf[1] = (char)mi;
 		buf[2] = 0;
 	}
 	else

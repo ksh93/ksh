@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -14,6 +14,7 @@
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #            Johnothan King <johnothanking@protonmail.com>             #
 #         hyenias <58673227+hyenias@users.noreply.github.com>          #
+#                    Sertonix <sertonix@posteo.net>                    #
 #                                                                      #
 ########################################################################
 
@@ -167,7 +168,7 @@ foo
 if	(( ${#LAST} != 2 ))
 then	err_exit 'LAST!=2'
 fi
-[[ $(set | grep LAST) == LAST=02 ]] || err_exit "LAST not correct in set list"
+[[ $(set | grep ^LAST=) == LAST=02 ]] || err_exit "LAST not correct in set list"
 set -a
 unset foo
 foo=bar
@@ -859,6 +860,45 @@ exp='typeset -L 5 s=$'\''1\n2\a3\t4\x[0b]5'\'
 got=$(s=$'1\n2\a3\t4\v5'; typeset -L s; typeset -p s)
 [[ $got == "$exp" ]] || err_exit "default terminal width for typeset -L incorrect" \
 	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+# ======
+# Garbage left in binary variable after assigning nothing
+# Reproducer by Derek Newhall (@dnewhall)
+# https://github.com/ksh93/ksh/issues/892
+exp=$'[0]  \n[12] Zm9vYmFyCg== foobar\n\n[0]  \n[12] Zm9vYmFyCg== foobar\n\n[0]  \n[0]  \n[0]  '
+got=$(set +x; redirect 2>&1; "$SHELL" -s <<-'EOF'
+	# Define a binary variable
+	typeset -b bin1
+	# Currently empty: '[0]  '
+	printf "[%d] %s %B\n" ${#bin1} "$bin1" bin1
+	# Set to "foobar" using read: '[12] Zm9vYmFyCg== foobar'
+	read -n 1024 bin1 <<<"foobar"
+	printf "[%d] %s %B\n" ${#bin1} "$bin1" bin1
+	# Set to nothing
+	bin1=
+	# Now prints garbage: '[12] ADmRhH9iAA== 9��b'
+	printf "[%d] %s %B\n" ${#bin1} "$bin1" bin1
+	# Reset to foobar using base64
+	bin1=Zm9vYmFyCg==
+	# Works: '[12] Zm9vYmFyCg== foobar'
+	printf "[%d] %s %B\n" ${#bin1} "$bin1" bin1
+	# Set to nothing again
+	bin1=
+	# Different garbage: '12] ACeIhH9iAA== '��b~$ '
+	printf "[%d] %s %B\n" ${#bin1} "$bin1" bin1
+	# Reset using pad characters
+	bin1====
+	# Empty again: '[0]  '
+	printf "[%d] %s %B\n" ${#bin1} "$bin1" bin1
+	# Set to nothing
+	bin1=
+	# Still empty: '[0]  '
+	printf "[%d] %s %B\n" ${#bin1} "$bin1" bin1
+	EOF
+)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit "emptying a binary variable's value" \
+	"(expected status 0 and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

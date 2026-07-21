@@ -1,7 +1,7 @@
 #
 # posix { getconf limits } macro table
 #
-# @(#)conf.tab (ksh 93u+m) 2024-07-01
+# @(#)conf.tab (ksh 93u+m) 2025-04-11
 #
 # name standard call section flags [ header ... ] [ value ... ]
 #
@@ -103,7 +103,7 @@ FILESIZEBITS			POSIX	PC 1 LMU	(8*sizeof(off_t)) 32
 FILE_LOCKING			POSIX	SC 1 FU
 FORT_DEV			POSIX	SC 2 CFUW
 FORT_RUN			POSIX	SC 2 CFUW
-FSYNC				POSIX	SC 1 CDFUW	_lib_fsync
+FSYNC				POSIX	SC 1 CDFUW	1
 GETGR_R_SIZE_MAX		C	QQ 1 L
 GETPW_R_SIZE_MAX		C	QQ 1 L
 HOSTID				C	QQ 1 L

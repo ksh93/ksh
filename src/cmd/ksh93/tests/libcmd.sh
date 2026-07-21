@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #           Copyright (c) 2019-2020 Contributors to ksh2020            #
-#          Copyright (c) 2022-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2022-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -928,6 +928,26 @@ if builtin cp 2>/dev/null; then
 	got=$(set +x; { (ulimit -c 0; cp --preserve=foo); } 2>&1)
 	let "(e=$?) == 2" || err_exit "crash on unexpected option value" \
 		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+fi
+
+# =====
+# Tests for the join builtin
+if builtin join 2>/dev/null; then
+	# Tests for illegal seek error
+	# https://www.mail-archive.com/ast-users@lists.research.att.com/msg00816.html
+	# (not actually a 93v- regression; the bug was always in the AST join command)
+
+	got=$(join 2>&1 <(printf '%d\n' 1 2) <(printf '%d\n' 1 2))
+	exp=$'1\n2'
+	[[ $got == "$exp" ]] || err_exit "join(1) with process substitutions" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	got=$(join 2>&1 -1 2 -2 1 \
+		<(printf 'red Beaune France\nwhite Riesling Germany\nred Rioja Spain\n') \
+		<(printf 'Beaune 5/5\nRiesling 3/5\nRioja 4/5\n'))
+	exp=$'Beaune red France 5/5\nRiesling white Germany 3/5\nRioja red Spain 4/5'
+	[[ $got == "$exp" ]] || err_exit "join(1) with field args and process substitutions" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======

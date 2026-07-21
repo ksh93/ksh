@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,7 +26,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<error.h>
 #include	"variables.h"
@@ -69,9 +69,9 @@ int sh_diropenat(int dir, const char *path)
 	}
 	if(fd < 10)
 	{
-		/* Duplicate the fd and register it with the shell */
-		int shfd = sh_fcntl(fd, F_dupfd_cloexec, 10);
-		close(fd);
+		/* Duplicate the fd */
+		int shfd = fcntl(fd, F_dupfd_cloexec, 10);
+		ast_close(fd);
 		if(shfd < 0)
 			return shfd;
 		if(F_dupfd_cloexec == F_DUPFD)
@@ -81,7 +81,8 @@ int sh_diropenat(int dir, const char *path)
 	else if(O_cloexec == 0)
 		needs_cloexec = 1;
 	if(needs_cloexec)
-		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
+		fcntl(fd,F_SETFD,FD_CLOEXEC);
+	sh.fdstatus[fd] = (IOREAD|IOCLEX);
 	return fd;
 }
 #endif /* _lib_openat */
@@ -92,7 +93,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	Pathcomp_t *cdpath = 0;
 	const char *dp;
 	int saverrno=0;
-	int rval,pflag=0,eflag=0,ret=1;
+	int rval,pflag=0,eflag=0,ret=1,saverr;
 	char *oldpwd, *cp;
 	Namval_t *opwdnod, *pwdnod;
 #if _lib_openat
@@ -118,9 +119,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		case '?':
 			if(sh_isoption(SH_RESTRICTED))
 				break;
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	if(pflag && eflag)
 		ret = 2;  /* exit status is 2 if -eP are both on and chdir failed */
@@ -240,7 +239,9 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 				sh_pwdupdate(newdirfd);
 				goto success;
 			}
+			saverr = errno;
 			sh_close(newdirfd);
+			errno = saverr;
 		}
 #if !O_SEARCH
 		else if((rval=chdir(cp)) >= 0)
@@ -268,7 +269,9 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 				sh_pwdupdate(newdirfd);
 				goto success;
 			}
+			saverr = errno;
 			sh_close(newdirfd);
+			errno = saverr;
 		}
 #if !O_SEARCH
 		else if((rval=chdir(dir)) >= 0)
@@ -355,9 +358,7 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -371,7 +372,7 @@ int	b_pwd(int argc, char *argv[],Shbltin_t *context)
 	}
 	if(flag)
 	{
-		cp = strcpy(stkseek(sh.stk,strlen(cp)+PATH_MAX),cp);
+		cp = strcpy(stkseek(sh.stk,(ptrdiff_t)strlen(cp)+PATH_MAX),cp);
 		pathcanon(cp,PATH_PHYSICAL);
 	}
 	sfputr(sfstdout,cp,'\n');

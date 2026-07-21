@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,23 +23,23 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"shnodes.h"
 #include	"path.h"
 #include	"io.h"
 
-static int p_comlist(const struct dolnod*);
-static int p_arg(const struct argnod*);
-static int p_comarg(const struct comnod*);
-static int p_redirect(const struct ionod*);
-static int p_switch(const struct regnod*);
-static int p_tree(const Shnode_t*);
-static int p_string(const char*);
+static ssize_t p_comlist(const struct dolnod*);
+static ssize_t p_arg(const struct argnod*);
+static ssize_t p_comarg(const struct comnod*);
+static ssize_t p_redirect(const struct ionod*);
+static ssize_t p_switch(const struct regnod*);
+static ssize_t p_tree(const Shnode_t*);
+static ssize_t p_string(const char*);
 
 static Sfio_t *outfile;
 
-int sh_tdump(Sfio_t *out, const Shnode_t *t)
+ssize_t sh_tdump(Sfio_t *out, const Shnode_t *t)
 {
 	outfile = out;
 	return p_tree(t);
@@ -48,7 +48,7 @@ int sh_tdump(Sfio_t *out, const Shnode_t *t)
 /*
  * print script corresponding to shell tree <t>
  */
-static int p_tree(const Shnode_t *t)
+static ssize_t p_tree(const Shnode_t *t)
 {
 	if(!t)
 		return sfputl(outfile,-1);
@@ -135,9 +135,9 @@ static int p_tree(const Shnode_t *t)
 	return -1;
 }
 
-static int p_arg(const struct argnod *arg)
+static ssize_t p_arg(const struct argnod *arg)
 {
-	int n;
+	size_t n;
 	struct fornod *fp;
 	while(arg)
 	{
@@ -169,7 +169,7 @@ static int p_arg(const struct argnod *arg)
 	return sfputu(outfile,0);
 }
 
-static int p_redirect(const struct ionod *iop)
+static ssize_t p_redirect(const struct ionod *iop)
 {
 	while(iop)
 	{
@@ -184,7 +184,7 @@ static int p_redirect(const struct ionod *iop)
 		if(iop->iodelim)
 		{
 			p_string(iop->iodelim);
-			sfputl(outfile,iop->iosize);
+			sfputl(outfile,(Sflong_t)iop->iosize);
 			sfseek(sh.heredocs,iop->iooffset,SEEK_SET);
 			sfmove(sh.heredocs,outfile, iop->iosize,-1);
 		}
@@ -197,7 +197,7 @@ static int p_redirect(const struct ionod *iop)
 	return sfputl(outfile,-1);
 }
 
-static int p_comarg(const struct comnod *com)
+static ssize_t p_comarg(const struct comnod *com)
 {
 	p_redirect(com->comio);
 	p_arg(com->comset);
@@ -210,10 +210,10 @@ static int p_comarg(const struct comnod *com)
 	return sfputu(outfile,com->comline);
 }
 
-static int p_comlist(const struct dolnod *dol)
+static ssize_t p_comlist(const struct dolnod *dol)
 {
 	char *cp, *const*argv;
-	int n;
+	ptrdiff_t n;
 	argv = dol->dolval+ARG_SPARE;
 	while(cp = *argv)
 		argv++;
@@ -225,7 +225,7 @@ static int p_comlist(const struct dolnod *dol)
 	return sfputu(outfile,0);
 }
 
-static int p_switch(const struct regnod *reg)
+static ssize_t p_switch(const struct regnod *reg)
 {
 	while(reg)
 	{
@@ -237,7 +237,7 @@ static int p_switch(const struct regnod *reg)
 	return sfputl(outfile,-1);
 }
 
-static int p_string(const char *string)
+static ssize_t p_string(const char *string)
 {
 	size_t n=strlen(string);
 	if(sfputu(outfile,n+1)<0)

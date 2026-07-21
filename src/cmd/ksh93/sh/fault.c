@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
 #include	"io.h"
@@ -95,7 +95,7 @@ void	sh_fault(int sig)
 		if(flag&SH_SIGIGNORE)
 		{
 			if(sh.subshell)
-				sh.ignsig = sig;
+				sh.ignsig = (unsigned char)sig;
 			sigrelease(sig);
 			goto done;
 		}
@@ -109,7 +109,7 @@ void	sh_fault(int sig)
 					sh.trapnote |= SH_SIGTERM;
 				goto done;
 			}
-			sh.lastsig = sig;
+			sh.lastsig = (unsigned char)sig;
 			sigrelease(sig);
 			if(pp->mode != SH_JMPSUB)
 			{
@@ -133,9 +133,12 @@ void	sh_fault(int sig)
 			goto done;
 		}
 	}
+	/* make sure ^Z is handled correctly after interrupt */
+	if(sig==SIGINT && sh_isstate(SH_INTERACTIVE))
+		signal(SIGTSTP, sh.sigflag[SIGTSTP]&SH_SIGOFF ? SIG_IGN : sh_fault);
 	errno = 0;
 	if(pp->mode==SH_JMPCMD || (pp->mode==1 && sh.bltinfun) && !(flag&SH_SIGIGNORE))
-		sh.lastsig = sig;
+		sh.lastsig = (unsigned char)sig;
 	if(trap)
 	{
 		/*
@@ -147,7 +150,7 @@ void	sh_fault(int sig)
 	}
 	else
 	{
-		sh.lastsig = sig;
+		sh.lastsig = (unsigned char)sig;
 		flag = SH_SIGSET;
 		if(sig==SIGTSTP && pp->mode==SH_JMPCMD)
 		{
@@ -199,7 +202,7 @@ done:
  */
 void	sh_winsize(void)
 {
-	int		lines, columns;
+	int32_t		lines, columns;
 	int32_t		i;
 	astwinsize(2,&lines,&columns);
 	if (lines < 0 || lines > USHRT_MAX)
@@ -235,8 +238,8 @@ void sh_siginit(void)
 #if defined(SIGRTMIN) && defined(SIGRTMAX)
 	if ((n = SIGRTMIN) > 0 && (sig = SIGRTMAX) > n && sig < SH_TRAP)
 	{
-		sh.sigruntime[SH_SIGRTMIN] = n;
-		sh.sigruntime[SH_SIGRTMAX] = sig;
+		sh.sigruntime[SH_SIGRTMIN] = (unsigned char)n;
+		sh.sigruntime[SH_SIGRTMAX] = (unsigned char)sig;
 	}
 #endif /* SIGRTMIN && SIGRTMAX */
 	n = SIGTERM;
@@ -253,10 +256,10 @@ void sh_siginit(void)
 		tp++;
 	}
 	sh.sigmax = n++;
-	sh.st.trapcom = (char**)sh_calloc(n,sizeof(char*));
-	sh.sigflag = (unsigned char*)sh_calloc(n,1);
-	sh.sigmsg = (char**)sh_calloc(n,sizeof(char*));
-	for(tp=shtab_signals; sig=tp->sh_number; tp++)
+	sh.st.trapcom = (char**)sh_calloc((size_t)n,sizeof(char*));
+	sh.sigflag = (unsigned char*)sh_calloc((size_t)n,1);
+	sh.sigmsg = (char**)sh_calloc((size_t)n,sizeof(char*));
+	for(tp=shtab_signals; sig=(int)tp->sh_number; tp++)
 	{
 		n = (sig>>SH_SIGBITS);
 		if((sig &= ((1<<SH_SIGBITS)-1)) > (sh.sigmax+1))
@@ -266,7 +269,7 @@ void sh_siginit(void)
 			sig = sh.sigruntime[sig];
 		if(sig>=0)
 		{
-			sh.sigflag[sig] = n;
+			sh.sigflag[sig] = (unsigned char)n;
 			if(*tp->sh_name)
 				sh.sigmsg[sig] = (char*)tp->sh_value;
 		}
@@ -298,7 +301,7 @@ void	sh_sigtrap(int sig)
 				signal(sig,fun);
 		}
 		flag &= ~(SH_SIGSET|SH_SIGTRAP);
-		sh.sigflag[sig] = flag;
+		sh.sigflag[sig] = (unsigned char)flag;
 	}
 }
 
@@ -350,7 +353,7 @@ void	sh_sigreset(int mode)
 				flag &= ~SH_SIGFAULT;
 				flag |= SH_SIGOFF;
 			}
-			sh.sigflag[sig] = flag;
+			sh.sigflag[sig] = (unsigned char)flag;
 		}
 	}
 	for(sig=SH_DEBUGTRAP; sig>=0; sig--)
@@ -387,7 +390,7 @@ void	sh_sigclear(int sig)
 			free(trap);
 		sh.st.trapcom[sig]=0;
 	}
-	sh.sigflag[sig] = flag;
+	sh.sigflag[sig] = (unsigned char)flag;
 }
 
 /*
@@ -405,7 +408,7 @@ void	sh_chktrap(void)
 	/* execute errexit trap first */
 	if(sh_isstate(SH_ERREXIT) && sh.exitval)
 	{
-		int	sav_trapnote = sh.trapnote;
+		unsigned char	sav_trapnote = sh.trapnote;
 		sh.trapnote &= ~SH_SIGSET;
 		if(sh.st.trap[SH_ERRTRAP])
 		{
@@ -446,10 +449,10 @@ void	sh_chktrap(void)
 				 * another command, so the lexer state is overwritten. Escape to avoid crashing the lexer. */
 				if(sh.nextprompt == 2)
 				{
-					fcclose();		/* force lexer to abort partial command */
-					sh.nextprompt = 1;	/* next display prompt is PS1 */
-					sh.lastsig = sig;	/* make sh_exit() set $? to signal exit status */
-					sh_exit(SH_EXITSIG);	/* start a new command line */
+					fcclose();				/* force lexer to abort partial command */
+					sh.nextprompt = 1;			/* next display prompt is PS1 */
+					sh.lastsig = (unsigned char)sig;	/* make sh_exit() set $? to signal exit status */
+					sh_exit(SH_EXITSIG);			/* start a new command line */
 				}
  			}
 		}
@@ -469,7 +472,7 @@ int sh_trap(const char *trap, int mode)
 	int	was_verbose = sh_isstate(SH_VERBOSE);
 	char	was_no_trapdontexec = !sh.st.trapdontexec;
 	char	save_chldexitsig = sh.chldexitsig;
-	int	staktop = stktell(sh.stk);
+	ptrdiff_t staktop = stktell(sh.stk);
 	void	*savptr = stkfreeze(sh.stk,0);
 	struct	checkpt buff;
 	Fcin_t	savefc;
@@ -542,6 +545,7 @@ void sh_exit(int xno)
 		sh.exitval = xno;
 	if(xno==SH_EXITSIG)
 		sh.exitval |= (sig=sh.lastsig);
+	sh.savexit = sh.exitval; /* update $? */
 	if(pp && pp->mode>1)
 		cursig = -1;
 	sh_offstate(SH_EXEC);
@@ -685,10 +689,6 @@ noreturn void sh_done(int sig)
 	if(sh_isoption(SH_NOEXEC))
 		kiaclose((Lex_t*)sh.lex_context);
 #endif /* SHOPT_KIA */
-#if _lib_openat
-	if(sh.pwdfd > 0)
-		close(sh.pwdfd);
-#endif /* _lib_openat */
 	/* Exit with portable 8-bit status (128 + signum) if last child process exits due to signal */
 	if(sh.chldexitsig)
 		savxit = savxit & ~SH_EXITSIG | 0200;

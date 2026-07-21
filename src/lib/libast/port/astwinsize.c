@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -58,7 +58,7 @@
 #undef	ioctl
 #undef	sleep
 
-static int		ttctl(int, int, void*);
+static int		ttctl(int, unsigned long, void*);
 
 void
 astwinsize(int fd, int* rows, int* cols)
@@ -101,8 +101,8 @@ astwinsize(int fd, int* rows, int* cols)
 	{
 		char*		s;
 
-		if (rows) *rows = (s = getenv("LINES")) ? strtol(s, NULL, 0) : 0;
-		if (cols) *cols = (s = getenv("COLUMNS")) ? strtol(s, NULL, 0) : 0;
+		if (rows) *rows = (s = getenv("LINES")) ? (int)strtol(s, NULL, 0) : 0;
+		if (cols) *cols = (s = getenv("COLUMNS")) ? (int)strtol(s, NULL, 0) : 0;
 	}
 }
 
@@ -113,7 +113,7 @@ astwinsize(int fd, int* rows, int* cols)
  */
 
 static int
-ttctl(int fd, int op, void* tt)
+ttctl(int fd, unsigned long op, void* tt)
 {
 	int	v;
 
@@ -124,7 +124,7 @@ ttctl(int fd, int op, void* tt)
 		if ((fd = open("/dev/tty", O_RDONLY|O_cloexec)) >= 0)
 		{
 			v = ioctl(fd, op, tt);
-			close(fd);
+			ast_close(fd);
 			return v;
 		}
 	}

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -48,13 +49,13 @@ extern Sfio_t		_Stk_data;
 
 extern Stk_t*		stkopen(int);
 extern Stk_t*		stkinstall(Stk_t*, char*(*)(size_t));	/* deprecated */
-extern void		stkoverflow(Stk_t*, void*(*)(size_t));
+extern void		stkoverflow(Stk_t*, void(*)(size_t));
 extern int		stkclose(Stk_t*);
 extern unsigned int	stklink(Stk_t*);
 extern void*		stkalloc(Stk_t*, size_t);
 extern char*		stkcopy(Stk_t*, const char*);
-extern void*		stkset(Stk_t*, void*, size_t);
-extern void*		_stkseek(Stk_t*, ssize_t);
+extern void*		stkset(Stk_t*, void*, ptrdiff_t);
+extern void*		_stkseek(Stk_t*, ptrdiff_t);
 extern void*		stkfreeze(Stk_t*, size_t);
 
 #endif

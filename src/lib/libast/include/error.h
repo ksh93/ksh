@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -29,13 +29,9 @@
 
 #include <ast.h>
 #include <option.h>
-#include <errno.h>
 
-#define ERROR_VERSION	20230222L
+#define ERROR_VERSION	20260506L
 
-#if !defined(errno) && defined(__DYNAMIC__)
-#define errno		__DYNAMIC__(errno)
-#endif
 #define ERROR_debug(n)	(-(n))
 #define ERROR_exit(n)	((n)+ERROR_ERROR)
 #define ERROR_system(n)	(((n)+ERROR_ERROR)|ERROR_SYSTEM)
@@ -70,15 +66,14 @@
 #define ERROR_PROMPT	0x1000		/* omit trailing newline	*/
 #define ERROR_NOID	0x2000		/* omit err_id			*/
 #define ERROR_LIBRARY	0x4000		/* library routine error	*/
+#define ERROR_SFIO_OUT	0x8000		/* next arg is Sfio stream	*/
 
 #define ERROR_INTERACTIVE	0x0001	/* context is interactive	*/
 #define ERROR_SILENT		0x0002	/* context is silent		*/
 #define ERROR_NOTIFY		0x0004	/* main(-sig,0,ctx) on signal	*/
 
-#define ERROR_FREE		0x0010	/* free context on pop		*/
-#define ERROR_POP		0x0020	/* pop context			*/
-#define ERROR_PUSH		0x0040	/* push context			*/
-#define ERROR_SET		0x0080	/* set context			*/
+/* for libcmd */
+#define ERROR_CALLBACK		0x0080	/* ERROR_NOTIFY main() callback	*/
 
 #ifdef ECONNRESET
 #define ERROR_PIPE(e)		((e)==EPIPE||(e)==ECONNRESET||(e)==EIO)
@@ -86,24 +81,16 @@
 #define ERROR_PIPE(e)		((e)==EPIPE||(e)==EIO)
 #endif
 
-/*
- * errorpush()/errorpop() are obsolete -- use errorctx() instead
- */
-
-#ifndef ERROR_CONTEXT_T
-#define ERROR_CONTEXT_T		Error_info_t
-#endif
-
 #define ERROR_CONTEXT_BASE	((Error_context_t*)&error_info.context)
 
-#define errorpush(p,f)	(*(p)=*ERROR_CONTEXT_BASE,*ERROR_CONTEXT_BASE=error_info.empty,error_info.context=(Error_context_t*)(p),error_info.flags=(f))
+#define errorpush(p,f)	(*(p)=*ERROR_CONTEXT_BASE,*ERROR_CONTEXT_BASE=error_info.empty,error_info.context=(p),error_info.flags=(f))
 #define errorpop(p)	(*ERROR_CONTEXT_BASE=*(p))
 
 typedef struct Error_info_s Error_info_t;
 typedef struct Error_context_s Error_context_t;
 
 #define ERROR_CONTEXT \
-	ERROR_CONTEXT_T* context;	/* prev context stack element	*/ \
+	Error_context_t* context;	/* prev context stack element	*/ \
 	int	errors;			/* >= ERROR_ERROR count		*/ \
 	int	flags;			/* context flags		*/ \
 	int	line;			/* input|output line number	*/ \
@@ -152,45 +139,6 @@ struct Error_info_s			/* error state			*/
 #ifndef errno
 extern int	errno;			/* system call error status	*/
 #endif
-#ifndef E2BIG
-#define E2BIG	ENOMEM
-#endif
-#ifndef EAGAIN
-#define EAGAIN	11
-#endif
-#ifndef EBADF
-#define EBADF	9
-#endif
-#ifndef EBUSY
-#define EBUSY	16
-#endif
-#ifndef EDEADLK
-#define EDEADLK	45
-#endif
-#ifndef EINTR
-#define EINTR	4
-#endif
-#ifndef EILSEQ
-#define EILSEQ	EIO
-#endif
-#ifndef EINVAL
-#define EINVAL	22
-#endif
-#ifndef ENOMEM
-#define ENOMEM	12
-#endif
-#ifndef ENOSYS
-#define ENOSYS	EINVAL
-#endif
-#ifndef EPERM
-#define EPERM	1
-#endif
-#ifndef ERANGE
-#define ERANGE	E2BIG
-#endif
-#ifndef ESPIPE
-#define ESPIPE	29
-#endif
 
 extern Error_info_t*	_error_infop_;
 
@@ -203,6 +151,5 @@ extern void		errorv(const char*, int, va_list);
 #ifndef errorx
 extern char*		errorx(const char*, const char*, const char*, const char*);
 #endif
-extern Error_info_t*	errorctx(Error_info_t*, int, int);
 
 #endif

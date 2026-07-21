@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -937,6 +937,11 @@ else
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
+# DEBUG trap failed to reset compound assignment state
+# https://github.com/ksh93/ksh/issues/908
+got=$(set +x; trap 'function f { :; }' DEBUG; { b=(v1=1 v2=2); } 2>&1)
+[[ -z $got ]] || err_exit "DEBUG trap with function definition invoked by compound assignment (got $(printf %q "$got"))"
+
 # ======
 # In ksh93v- and ksh2020 EXIT traps don't work in forked subshells
 # https://github.com/att/ast/issues/1452
@@ -958,6 +963,30 @@ for t in {A..Z}; do
 done
 
 # ======
+# Is ksh93 capable of operating within a 64-bit address space?
+# https://github.com/ksh93/ksh/issues/592
+integer res ret=0
+if [[ -f /proc/meminfo ]] && ! check_profiling_or_asan
+then	meminfo=($(grep 'MemAvailable:' /proc/meminfo))
+	integer res
+	((res = meminfo[1] / 1000000))
+	# Don't try unless we have at least 5 * 2 + 2 GB of available RAM
+	if ((res >= 12))
+	then	got=$(	ulimit -t unlimited 2>/dev/null  # Fork
+			# Allocate 5 gigabytes into the variable 'v'.
+			# This test must allocate more than UINT_MAX.
+			printf -v v "%5000000000d" 0
+			echo ${#v}
+		)
+		if (($? != 0))
+		then	err_exit "ksh crashes when attempting to allocate 5 gigabytes to a variable"
+		elif [[ $got != 5000000000 ]]
+		then	err_exit "ksh cannot allocate at least 5 gigabytes to a variable (got $(printf %q "$got"))"
+		fi
+	fi
+fi
+
+# ======
 # Is an invalid flag handled correctly?
 # ksh2020 regression: https://github.com/att/ast/issues/1284
 actual=$($SHELL --verson 2>&1)
@@ -970,22 +999,16 @@ expect_status=2
 	err_exit "wrong exit status (expected '$expect_status', got '$actual_status')"
 
 # ======
-# Test for illegal seek error (ksh93v- regression)
-# https://www.mail-archive.com/ast-users@lists.research.att.com/msg00816.html
-case $(uname -s) in
-AIX | SunOS)
-	# AIX and Solaris join(1) hang on this test -- not ksh's fault
-	;;
-*)
-	exp=$'1\n2'
-	got=$(join <(printf '%d\n' 1 2) <(printf '%d\n' 1 2))
-	[[ $exp == "$got" ]] || err_exit "pipeline fails with illegal seek error" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-	;;
-esac
-
-# ======
 # Test exec optimization of last command in script or subshell
+
+(
+	ulimit -t unlimited 2>/dev/null  # fork subshell
+	print "${.sh.pid:-$("$SHELL" -c 'echo "$PPID"')}"  # fallback for pre-93u+m ksh without ${.sh.pid}
+	"$SHELL" -c 'print "$$"'
+) >out
+pid1= pid2=
+{ read pid1 && read pid2; } <out && let "pid1 == pid2" \
+|| err_exit "last command in forked subshell not exec-optimized ($pid1 != $pid2)"
 
 got=$(
 	ulimit -t unlimited 2>/dev/null  # fork subshell
@@ -995,6 +1018,29 @@ got=$(
 pid1= pid2=
 { read pid1 && read pid2; } <<<$got && let "pid1 == pid2" \
 || err_exit "last command in forked comsub not exec-optimized ($pid1 != $pid2)"
+
+# https://github.com/ksh93/ksh/issues/507
+mkdir "$tmp/subshell-optimize"
+cat <<'EOF1' >"$tmp/subshell-optimize/A"
+cat <<'EOF2' >B
+( echo B1 ) | cat
+( echo B2 ) | cat
+EOF2
+
+cat <<'EOF2' >C
+( echo C1 ) | cat
+( echo C2 ) | cat
+EOF2
+
+(
+	. ./B
+	. ./C
+) | cat
+EOF1
+exp=$'B1\nB2\nC1\nC2'
+got=$(cd "$tmp/subshell-optimize"; "$SHELL" "$tmp/subshell-optimize/A")
+[[ $exp == $got ]] || err_exit "last command exec optimization in virtual subshells is broken" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 cat >script <<\EOF
 echo $$
@@ -1075,16 +1121,6 @@ done
 unset testcode
 
 # ======
-# checks for tests run in parallel (see near the top)
-wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"
-wait "$parallel_2" || err_exit 'ALRM signal not working'
-wait "$parallel_3" || err_exit 'ignored traps not being ignored'
-wait "$parallel_4" || err_exit 'output from pipe is lost with pipe to builtin'
-wait "$parallel_5" || err_exit 'command substitution causes pipefail option to hang'
-wait "$parallel_6" || err_exit '"command | while read...done" finishing too fast'
-wait "$parallel_7" || err_exit 'early termination not causing broken pipe'
-
-# ======
 # Hijacking ksh93 via $SHELL for arbitrary command execution during initialization.
 # https://github.com/ksh93/ksh/issues/874
 bindir=$tmp/dir.$RANDOM/bin
@@ -1104,13 +1140,47 @@ cp "$SHELL" "$bindir/hijack_sh"
 exp=$'GOOD\nGOOD'
 got=$("$bindir/hijack_sh" -c $'print $\'\#!/bin/sh\necho HIJACKED\' > "$bindir/hijack_shell"
 chmod +x "$bindir/hijack_shell"
-rm "$bindir/hijack_sh"
+rm -f "$bindir/hijack_sh"
 cp "$bindir/hijack_shell" "$bindir/hijack_sh"
 ("$bindir/dummy.sh"); "$bindir/dummy.sh"; :')
 rm -r "$bindir"
 unset bindir
 [[ $exp == $got ]] || err_exit 'ksh93 shebang-less scripts are vulnerable to being hijacked for arbitrary code execution' \
-	"(exp $(printf %q "$exp"), got $(printf %q "$got"))"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# $0 should be the /dev/fd path for scripts executed from a /dev/fd file
+# https://github.com/ksh93/ksh/issues/874
+# https://github.com/ksh93/ksh/pull/879
+# WARNING: do not use 'test -e' to check if /dev/fd is functional (too many shells
+# break it by failing to test for the physical existence of /dev/fd/9 in the FS)
+if	ls -d /dev/fd/9 9<&0 >/dev/null 2>&1
+then	# $0 should be the /dev/fd script name when the script is a process substitution
+	got=$("$SHELL" <(echo 'echo $0'))
+	if [[ ${got:0:7} != '/dev/fd' ]]
+	then err_exit '$0 is wrong for process substitution scripts' \
+		"(expected a /dev/fd file name, got $(printf %q "$got"))"
+	else	# The file descriptor for the /dev/fd script must remain open
+		if ! "$SHELL" <(echo '[[ -e $0 ]]')
+		then	err_exit 'the file descriptor corresponding to $0 is not open in /dev/fd scripts'
+		fi
+		# The file descriptor for the /dev/fd script should not be close-on-exec
+		typeset -x verify_fd_script=$tmp/verify-procsub-$RANDOM.ksh
+		echo '[[ -e $fd ]]' > "$verify_fd_script"
+		if ! "$SHELL" <(echo 'typeset -x fd=$0; "$SHELL" "$verify_fd_script"')
+		then	err_exit 'file descriptor for /dev/fd script is not passed on to child processes'
+		fi
+	fi
+fi
+
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
+# checks for tests run in parallel (see near the top)
+wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"
+wait "$parallel_2" || err_exit 'ALRM signal not working'
+wait "$parallel_3" || err_exit 'ignored traps not being ignored'
+wait "$parallel_4" || err_exit 'output from pipe is lost with pipe to builtin'
+wait "$parallel_5" || err_exit 'command substitution causes pipefail option to hang'
+wait "$parallel_6" || err_exit '"command | while read...done" finishing too fast'
+wait "$parallel_7" || err_exit 'early termination not causing broken pipe'
+
 exit $((Errors<125?Errors:125))

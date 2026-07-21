@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -59,11 +60,11 @@ vchdir(const char* path)
 int
 pathcd(const char* path, const char* home)
 {
-	char*	p = (char*)path;
-	char*	s;
-	int	n;
-	int	i;
-	int	r;
+	char*		p = (char*)path;
+	char*		s;
+	ptrdiff_t	i;
+	ptrdiff_t	n;
+	int		r;
 
 	r = 0;
 	for (;;)
@@ -79,12 +80,10 @@ pathcd(const char* path, const char* home)
 		 * chdir failed
 		 */
 
-		if ((n = strlen(p)) < PATH_MAX)
+		if ((n = (ptrdiff_t)strlen(p)) < PATH_MAX)
 			return -1;
-#ifdef ENAMETOOLONG
 		if (errno != ENAMETOOLONG)
 			return -1;
-#endif
 
 		/*
 		 * path is too long -- copy so it can be modified in place

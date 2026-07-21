@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -537,7 +537,7 @@ trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; k
 (	typeset -si i
 	sleep 5
 	# if it's slow, display a counter
-	for	((i=35; i>0; i--))
+	for	((i=45; i>0; i--))
 	do	kill -s 0 "$$" 2>/dev/null || exit  # parent shell exited
 		printf '\t%s[%d]: command -x: %2ds...\r' "$Command" LINENO i
 		sleep 1
@@ -751,10 +751,11 @@ PATH=$savePATH
 # POSIX: If a command is found but isn't executable, the exit status should be 126.
 # The tests are arranged as follows:
 #   Test *A runs commands with the -c execve(2) optimization.
-#   Test *B runs commands with spawnveg (i.e., with posix_spawn(3) where available).
-#   Test *C runs commands with fork(2) in an interactive shell.
+#   Test *B runs commands in a non-interactive shell.
+#   Test *C runs commands in an interactive shell.
 #   Test *D runs commands with 'command -x'.
 #   Test *E runs commands with 'exec'.
+#   Test *F forks commands with '&'.
 # https://github.com/att/ast/issues/485
 rm -rf noexecute
 print 'print cannot execute' > noexecute
@@ -782,6 +783,10 @@ PATH=$PWD $SHELL -c 'exec noexecute' > /dev/null 2>&1
 got=$?
 [[ $exp == $got ]] || err_exit "Test 1E: exit status of exec'd non-executable command wrong" \
 	"(expected $exp, got $got)"
+PATH=$PWD $SHELL -c 'noexecute & wait $!; exit $?' > /dev/null 2>&1
+got=$?
+[[ $exp == $got ]] || err_exit "Test 1F: exit status of forked job non-executable command wrong" \
+	"(expected $exp, got $got)"
 
 # Add an empty directory where the command isn't found.
 PATH=$PWD:$PWD/emptydir $SHELL -c 'noexecute' > /dev/null 2>&1
@@ -806,6 +811,10 @@ PATH=$PWD:$PWD/emptydir $SHELL -c 'exec noexecute' > /dev/null 2>&1
 got=$?
 [[ $exp == $got ]] || err_exit "Test 2E: exit status of exec'd non-executable command wrong" \
 	"(expected $exp, got $got)"
+PATH=$PWD:$PWD/emptydir $SHELL -c 'noexecute & wait $!; exit $?' > /dev/null 2>&1
+got=$?
+[[ $exp == $got ]] || err_exit "Test 2F: exit status of forked job non-executable command wrong" \
+	"(expected $exp, got $got)"
 
 # If an executable command is found after a non-executable command, skip the non-executable one.
 print 'true' > cmddir/noexecute
@@ -820,17 +829,10 @@ got=$?
 [[ $exp == $got ]] || err_exit "Test 3B: failed to run executable command after encountering non-executable command" \
 	"(expected $exp, got $got)"
 if((!SHOPT_SCRIPTONLY));then
-case $(uname -s) in
-AIX)
-	# ksh -ic hangs on AIX
-	;;
-*)
 	PATH=$PWD:$PWD/cmddir $SHELL -ic 'noexecute; exit $?'
 	got=$?
 	[[ $exp == $got ]] || err_exit "Test 3C: failed to run executable command after encountering non-executable command" \
 		"(expected $exp, got $got)"
-	;;
-esac
 fi # !SHOPT_SCRIPTONLY
 PATH=$PWD:$PWD/cmddir $SHELL -c 'command -x noexecute; exit $?'
 got=$?
@@ -839,6 +841,10 @@ got=$?
 PATH=$PWD:$PWD/cmddir $SHELL -c 'exec noexecute'
 got=$?
 [[ $exp == $got ]] || err_exit "Test 3E: failed to run exec'd executable command after encountering non-executable command" \
+	"(expected $exp, got $got)"
+PATH=$PWD:$PWD/cmddir $SHELL -c 'noexecute & wait $!; exit $?'
+got=$?
+[[ $exp == $got ]] || err_exit "Test 3F: failed to run forked job executable command after encountering non-executable command" \
 	"(expected $exp, got $got)"
 
 # Same test as above, but with a directory of the same name in the PATH.
@@ -866,10 +872,14 @@ PATH=$PWD:$PWD/cmddir $SHELL -c 'exec noexecute' > /dev/null 2>&1
 got=$?
 [[ $exp == $got ]] || err_exit "Test 4E: failed to run exec'd executable command after encountering directory with same name in PATH" \
 	"(expected $exp, got $got)"
+PATH=$PWD:$PWD/cmddir $SHELL -c 'noexecute & wait $!; exit $?' > /dev/null 2>&1
+got=$?
+[[ $exp == $got ]] || err_exit "Test 4F: failed to run executable command as forked job after encountering directory with same name in PATH" \
+	"(expected $exp, got $got)"
 # Don't treat directories as commands.
 # https://github.com/att/ast/issues/757
 mkdir cat
-PATH=".:$PATH" cat < /dev/null || err_exit "Test 4F: directories should not be treated as executables"
+PATH=".:$PATH" cat < /dev/null || err_exit "Test 4G: directories should not be treated as executables"
 
 # Test attempts to run directories located in the PATH.
 exp=126
@@ -895,6 +905,10 @@ PATH=$PWD $SHELL -c 'exec noexecute' > /dev/null 2>&1
 got=$?
 [[ $exp == $got ]] || err_exit "Test 5E: exit status of exec'd non-executable command wrong" \
 	"(expected $exp, got $got)"
+PATH=$PWD $SHELL -c 'noexecute & wait $!; exit $?' > /dev/null 2>&1
+got=$?
+[[ $exp == $got ]] || err_exit "Test 5F: exit status of forked job non-executable command wrong" \
+	"(expected $exp, got $got)"
 
 # Tests for attempting to run a non-existent command.
 exp=127
@@ -919,6 +933,10 @@ got=$?
 PATH=/dev/null $SHELL -c 'exec nonexist' > /dev/null 2>&1
 got=$?
 [[ $exp == $got ]] || err_exit "Test 6E: exit status of exec'd non-existent command wrong" \
+	"(expected $exp, got $got)"
+PATH=/dev/null $SHELL -c 'nonexist & wait $!; exit $?' > /dev/null 2>&1
+got=$?
+[[ $exp == $got ]] || err_exit "Test 6F: exit status of forked job non-existent command wrong" \
 	"(expected $exp, got $got)"
 
 # Tests for attempting to use a command name that's too long.
@@ -946,6 +964,10 @@ got=$?
 PATH=$PWD $SHELL -c "exec $long_cmd" > /dev/null 2>&1
 got=$?
 [[ $exp == $got ]] || err_exit "Test 7E: exit status or error message for exec'd command with long name wrong" \
+	"(expected $exp, got $got)"
+PATH=$PWD $SHELL -c "$long_cmd & wait \$!; exit \$?" > /dev/null 2>&1
+got=$?
+[[ $exp == $got ]] || err_exit "Test 7F: exit status or error message for forked job command with long name wrong" \
 	"(expected $exp, got $got)"
 
 # ======

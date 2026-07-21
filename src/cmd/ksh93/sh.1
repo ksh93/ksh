@@ -930,19 +930,14 @@ Otherwise, the tilde expansion is left unchanged.
 A
 .I subshell\^
 is a separate execution environment that is a complete duplicate of the
-current shell environment, except for two things: all traps are reset to
-default except those for signals that are being ignored, and subshells
-cannot be interactive (i.e., they have no command prompt).
+current shell environment, except for three things: all traps are reset
+to default except those for signals that are being ignored, job control
+is deactivated, and subshells cannot be interactive (i.e., they have no
+command prompt).
 Changes made within a subshell do not affect the parent environment and are
 lost when the subshell exits.
 .PP
-Particular care should be taken not to confuse a subshell with a newly
-invoked shell that is merely a child process of the current shell,
-and which (unlike a subshell) starts from scratch in terms of
-variables and functions and may be interactive.
-Beware of shell tutorials on the Internet that confuse these.
-.PP
-Subshells cannot be created or invoked using any command.
+There is no command for creating or invoking a subshell.
 Instead, the following are automatically run in a subshell:
 .RS 8
 .IP \[bu] 3
@@ -961,13 +956,21 @@ all elements of a pipeline except the last;
 any command executed asynchronously (i.e., in a background process).
 .RE
 .PP
+Particular care should be taken not to confuse a subshell with a newly
+invoked shell that is merely a child process of the current shell,
+and which (unlike a subshell) starts from scratch in terms of
+variables and functions and may be interactive.
+Beware of shell tutorials on the Internet that confuse these.
+.PP
 Creating processes is expensive, so as a performance optimization, a
 subshell of a non-interactive shell may share the process of its parent
 environment. Such a subshell is known as a virtual subshell.
 Subshells are virtual unless or until something (such as asynchronous
 execution, or an attempt to set a process limit using the
 .B ulimit
-built-in command, or other implementation- or system-defined requirements)
+built-in command,
+or job control requiring the subshell to start a new process group,
+or other implementation- or system-defined requirements)
 makes it necessary to
 .IR fork (2)
 it into a separate process.
@@ -1352,6 +1355,15 @@ The number of elements in the array
 .I vname\^
 is substituted.
 .TP
+.PD 0
+\f3${#\fP\f2prefix\^\fP\f3@}\fP
+.TP
+.PD
+\f3${#\fP\f2prefix\^\fP\f3*}\fP
+These both expand to the number of variables
+that are set and whose names begin with
+.IR prefix .
+.TP
 \f3${@\fP\f2vname\^\fP\f3}\fP
 Expands to the type name (see
 .I "Type Variables"\^
@@ -1413,7 +1425,8 @@ inclusive using the same quoting rules as
 .TP
 .PD
 \f3${!\fP\f2prefix\^\fP\f3*}\fP
-These both expand to the names of the variables whose names begin with
+These both expand to the names of all variables
+that are set and whose names begin with
 .IR prefix .
 The expansions otherwise work like \f3$@\fP and \f3$*\fP, respectively
 (see under \f2Quoting\fP below).
@@ -2553,6 +2566,20 @@ and
 are also
 set by
 .IR login (1).
+.PP
+The shell variables listed in this section will normally lose any special
+properties if redeclared in a local scope. The exceptions to this rule are
+.BR CDPATH ,
+.BR ENV ,
+.BR FPATH ,
+.BR IFS ,
+.BR PATH ,
+.BR SECONDS ,
+.BR SHELL ,
+and all the locale-related variables
+.RB ( LANG ,
+.BR LC_* ),
+which have their special properties reset to default in that case.
 .SS Field Splitting.
 After parameter expansion and command substitution,
 the results of substitutions are scanned for the field separator
@@ -3228,8 +3255,13 @@ double precision floating point
 arithmetic or long double precision floating point for
 systems that provide this data type.
 Floating point constants follow the ANSI C programming language
-floating point conventions.
-The case-insensitive floating point constants
+floating point conventions, except that the radix point character
+is determined by the
+.SM LC_NUMERIC
+locale category; set
+.B LC_NUMERIC=C
+to use a period.
+The ASCII case-insensitive floating point constants
 .B NaN
 and
 .B Inf
@@ -4417,7 +4449,7 @@ command with the
 .B \-T
 and no option argument or operands will write all the type definitions to
 standard output in a form that can be read in to create all they types.
-.SS Jobs.
+.SS Job Control.
 If the
 .B monitor
 option of the
@@ -6439,7 +6471,6 @@ The same as
 .BR typeset\ \-fu .
 .TP
 \f3bg\fP \*(OK \f2job\^\fP.\|.\|. \*(CK
-This command is only on systems that support job control.
 Puts each specified
 .I job\^
 into the background.
@@ -6526,6 +6557,12 @@ whose name is
 .B lib_init()
 and invokes this function with an argument of
 .BR 0 .
+The
+.B \-p
+option causes the output to be in the form of
+.B builtin
+commands that can be used as input to the shell to recreate the current
+set of builtins.
 .TP
 .PD 0
 \f3cd\fP \*(OK \f3\-L\fP \*(CK \*(OK \f3-eP\fP \*(CK \*(OK \f2arg\^\fP \*(CK
@@ -6883,7 +6920,6 @@ The same as
 .BR hist .
 .TP
 \f3fg\fP \*(OK \f2job\^\fP.\|.\|. \*(CK
-This command is only on systems that support job control.
 Each
 .I job\^
 specified is brought to the foreground and waited for in
@@ -6930,7 +6966,7 @@ is used for each of the parameters that requires
 \f3getopts\fP \*(OK \f3\-a\fP \f2name\^\fP \*(CK \f2optstring vname\^\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
 Checks
 .I arg
-for legal options.
+for valid options.
 If
 .I arg
 is omitted,
@@ -7041,7 +7077,7 @@ that is not found and the exit status is non-zero if any were not found.
 The
 .B \-r
 option empties the hash table. This can also be achieved by resetting
-.BR PATH.
+.BR PATH .
 .TP
 .PD 0
 \f3hist\fP \*(OK \f3\-e\fP \f2ename\^\fP \ \*(CK \*(OK \f3\-N\fP \f2num\^\fP \*(CK \*(OK \f3\-Enlr\^\fP \*(CK \*(OK \f2first\^\fP \*(OK \f2last\^\fP \*(CK \*(CK
@@ -7933,13 +7969,12 @@ All variable assignment arguments are placed in the environment for a command,
 not just those that precede the command name.
 .TP 8
 .B \-m
-Background jobs will run in a separate process group
-and a line will print upon completion.
-The exit status of background jobs is reported in a completion message.
+Each job will run in a separate process group.
 A pipeline will not terminate until all component commands of the pipeline
 have terminated.
-On systems with job control,
-this option is turned on automatically for
+On interactive shells, a line is shown when starting a background job
+and the job's exit status is reported upon completion.
+This option is turned on automatically for
 interactive shells.
 .TP 8
 .B \-n
@@ -8021,7 +8056,7 @@ multiple file systems can be part case-sensitive and part case-insensitive.
 In more precise terms, each slash-separated path name component pattern \fIp\fR
 is treated as \fB\(ap(i:\fR\fIp\fR\fB)\fR
 if its parent directory exists on a case-insensitive file system.
-This option is only present on operating systems that support
+This option has no effect on operating systems that do not support
 case-insensitive file systems.
 .TP 8
 .B globex
@@ -8227,6 +8262,11 @@ signal to stopped jobs or processes upon sending a
 or
 .B TERM
 signal;
+.IP \[bu]
+causes the \fBgetopts\fR built-in command to disable the built-in handling
+of \fB-?\fR and long-form options (including the self-documentation options
+such as \fB--help\fR), unless the options string given to \fBgetopts\fR uses
+the extended interface;
 .IP \[bu]
 disables the special handling of \f3/dev/fd/\fP\f2n\fP in file existence and
 access test operators in \fBtest\fR/\fB[\fR and \fB[[\fR, causing these to
@@ -8464,14 +8504,21 @@ or
 .RE
 .TP
 \f3times\fP
-Displays the accumulated user and system CPU times, one line with the times
-used by the shell and another with those used by all of the shell's child
-processes. No options are supported.
+Displays the accumulated user and system CPU times,
+one line with the times used by the shell process from which
+.B times
+was invoked and another with those used by all of its child processes.
+No options are supported.
+When
+.B times
+is invoked from a subshell (see
+.I Subshells\^
+above), times are reset when the subshell forks its own process.
 Seconds are zero-padded unless the
 .B posix
 shell option is on.
 .TP
-\(dg \f3trap\fP \*(OK \f3\-p\fP \*(CK \*(OK \f2action\^\fP \*(CK \*(OK \f2sig\^\fP \*(CK .\|.\|.
+\(dg \f3trap\fP \*(OK \f3\-lp\fP \*(CK \*(OK \f2action\^\fP \*(CK \*(OK \f2sig\^\fP \*(CK .\|.\|.
 The
 .B \-p
 option causes the trap
@@ -8597,6 +8644,9 @@ or
 .B return
 without an argument in a trap action will
 preserve the exit status of the command that invoked the trap.
+The
+.B \-l
+option lists the signals and their numbers to standard output.
 .TP
 \f3true\fP
 Does nothing, and exits 0. Used with
@@ -9151,7 +9201,7 @@ If no option is given,
 is assumed.
 .RE
 .TP
-\f3umask\fP \*(OK \f3\-S\fP \*(CK \*(OK \f2mask\^\fP \*(CK
+\f3umask\fP \*(OK \f3\-pS\fP \*(CK \*(OK \f2mask\^\fP \*(CK
 The user file-creation mask is set to
 .I mask\^
 (see
@@ -9174,6 +9224,9 @@ The
 option causes the mode to be printed as a symbolic
 value.  Otherwise, the
 mask is printed in octal.
+The
+.B \-p
+option writes the file creation mask in a format that can be used for reinput.
 .TP
 \f3unalias\fP \*(OK \f3\-a\fP \*(CK \f2name\^\fP .\|.\|.
 The aliases
@@ -9430,7 +9483,9 @@ Any
 .IR arg s
 become the positional parameters starting at
 .BR $1 .
-This option is forced on if no
+This option is forced on if neither
+.B \-c
+nor any
 .I arg
 is given and is ignored if
 .B \-c
@@ -9672,6 +9727,7 @@ Thus, a trap on
 .B CHLD
 won't be executed until the foreground job terminates.
 .PP
-It is a good idea to leave a space after the comma operator in
+It is a good idea to leave a space both before and after the comma
+operator in
 arithmetic expressions to prevent the comma from being interpreted
 as the decimal point character in certain locales.

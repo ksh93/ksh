@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -24,7 +24,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<error.h>
 #include	<ls.h>
@@ -86,8 +86,9 @@ static inline int posix_andor(char *arg)
 
 static int test_strmatch(const char *str, const char *pat)
 {
-	int match[2*(MATCH_MAX+1)],n;
-	int c, m=0;
+	ssize_t match[2*(MATCH_MAX+1)],c;
+	ssize_t n;
+	size_t m=0;
 	const char *cp=pat;
 	while(c = *cp++)
 	{
@@ -100,14 +101,14 @@ static int test_strmatch(const char *str, const char *pat)
 		m++;
 	else
 		match[0] = 0;
-	if(m >  elementsof(match)/2)
+	if(m > elementsof(match)/2)
 		m = elementsof(match)/2;
-	n = strgrpmatch(str, pat, (ssize_t*)match, m, STR_GROUP|STR_MAXIMAL|STR_LEFT|STR_RIGHT|STR_INT);
+	n = strgrpmatch(str, pat, match, (ssize_t)m, STR_GROUP|STR_MAXIMAL|STR_LEFT|STR_RIGHT);
 	if(m==0 && n==1)
-		match[1] = (int)strlen(str);
+		match[1] = (ssize_t)strlen(str);
 	if(n)
 		sh_setmatch(str, -1, n, match, 0);
-	return n;
+	return n != 0;
 }
 
 int b_test(int argc, char *argv[],Shbltin_t *context)
@@ -165,7 +166,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 			/* FALLTHROUGH */
 		case 4:
 		{
-			int op = sh_lookup(cp=argv[2],shtab_testops);
+			unsigned int op = sh_lookup(cp=argv[2],shtab_testops);
 			if(op&TEST_ANDOR)
 			{
 				if(sh_isoption(SH_POSIX))
@@ -205,16 +206,9 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 					av[1] = argv[1];
 					av[2] = 0;
 					if (optget(av,sh_opttest) == '?')
-					{
-						/* self-doc: write to standard output */
-						error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-						return 0;
-					}
-					else
-					{
-						errormsg(SH_DICT, ERROR_exit(2), "%s", opt_info.arg);
-						UNREACHABLE();
-					}
+						return optselfdoc();
+					errormsg(SH_DICT, ERROR_exit(2), "%s", opt_info.arg);
+					UNREACHABLE();
 				}
 				break;
 			}
@@ -292,6 +286,7 @@ static int e3(struct test *tp,int inparens)
 {
 	char *arg, *cp;
 	int op;
+	unsigned int bop;
 	char *binop;
 	arg=nxtarg(tp,0);
 	/*
@@ -324,7 +319,7 @@ static int e3(struct test *tp,int inparens)
 		 */
 		if(cp)
 		{
-			op = strtol(cp,&binop, 10);
+			op = (int)strtol(cp,&binop, 10);
 			return *binop ? 0 : tty_check(op);
 		}
 		else
@@ -347,7 +342,7 @@ static int e3(struct test *tp,int inparens)
 		return *arg!=0;
 	}
 skip:
-	if(!(op = sh_lookup(cp,shtab_testops)))
+	if(!(bop = sh_lookup(cp,shtab_testops)))
 	{
 		if(inparens && c_eq(cp,')'))
 		{
@@ -357,11 +352,11 @@ skip:
 		errormsg(SH_DICT,ERROR_exit(2),e_badop,cp);
 		UNREACHABLE();
 	}
-	if(op&TEST_ANDOR)
+	if(bop&TEST_ANDOR)
 		tp->ap--;
 	else
 		cp = nxtarg(tp,0);
-	return test_binop(op,arg,cp);
+	return test_binop(bop,arg,cp);
 }
 
 int test_unop(int op,const char *arg)
@@ -451,11 +446,11 @@ int test_unop(int op,const char *arg)
 		if(*arg=='?')
 			return sh_lookopt(arg+1,&f)>0;
 		op = sh_lookopt(arg,&f);
-		return op>0 && (f==(sh_isoption(op)!=0));
+		return op>0 && (f==(sh_isoption((uint64_t)op)!=0));
 	    case 't':
 	    {
 		char *last;
-		op = strtol(arg,&last, 10);
+		op = (int)strtol(arg,&last, 10);
 		return *last ? 0 : tty_check(op);
 	    }
 	    case 'v':
@@ -483,7 +478,7 @@ int test_unop(int op,const char *arg)
 	    default:
 	    {
 		static char a[3] = "-?";
-		a[1]= op;
+		a[1] = (char)op;
 		errormsg(SH_DICT,ERROR_exit(2),e_badop,a);
 		UNREACHABLE();
 	    }
@@ -494,7 +489,7 @@ int test_unop(int op,const char *arg)
  * This function handles binary operators for both the
  * test/[ built-in and the [[ ... ]] compound command
  */
-int test_binop(int op,const char *left,const char *right)
+int test_binop(unsigned int op,const char *left,const char *right)
 {
 	if(op&TEST_ARITH)
 	{
@@ -549,9 +544,9 @@ int test_binop(int op,const char *left,const char *right)
 		case TEST_PNE:
 			return !test_strmatch(left, right);
 		case TEST_SGT:
-			return strcoll(left, right) > 0;
+			return ast.locale.collate(left, right) > 0;
 		case TEST_SLT:
-			return strcoll(left, right) < 0;
+			return ast.locale.collate(left, right) < 0;
 		case TEST_SEQ:
 			return strcmp(left, right) == 0;
 		case TEST_SNE:
@@ -685,7 +680,7 @@ skip:
 			}
 		}
 #endif /* _lib_getgroups */
-		if(statb.st_mode & mode)
+		if(statb.st_mode & (mode_t)mode)
 			return 0;
 	}
 	return -1;
@@ -702,11 +697,11 @@ static int test_mode(const char *file)
 	statb.st_mode = 0;
 	if(file && (*file==0 || test_stat(file,&statb)<0))
 		return 0;
-	return statb.st_mode;
+	return (int)statb.st_mode;
 }
 
 /*
- * do an fstat() for /dev/fd/n, otherwise stat()
+ * do an fstat() for /dev/fd/n or PWD's fd for better performance, otherwise stat()
  */
 static int test_stat(const char *name,struct stat *buff)
 {
@@ -715,8 +710,11 @@ static int test_stat(const char *name,struct stat *buff)
 		errno = ENOENT;
 		return -1;
 	}
+#if _lib_openat
+	if(sh.pwdfd > -1 && strcmp(name,e_dot)==0)
+		return fstat(sh.pwdfd,buff);
+#endif
 	if(sh_isdevfd(name))
 		return fstat((int)strtol(name+8, NULL, 10),buff);
-	else
-		return stat(name,buff);
+	return stat(name,buff);
 }

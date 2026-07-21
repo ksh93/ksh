@@ -54,7 +54,8 @@ tst	note{ determining default number of extra bytes per argument for arguments l
 
 	int main(int argc,char *argv[])
 	{
-		int extra_bytes = 0, envlen, argmax, i;
+		size_t extra_bytes = 0, envlen;
+		int argmax, i;
 		pid_t childpid;
 		Sfio_t *notebuf;
 		char *note;
@@ -69,7 +70,7 @@ tst	note{ determining default number of extra bytes per argument for arguments l
 			for(i=0; environ[i]; i++)
 				envlen += strlen(environ[i]) + 1 + extra_bytes;
 			envlen += 1 + extra_bytes;	/* final null element */
-			argmax = (int)astconf_long(CONF_ARG_MAX) - envlen;
+			argmax = (int)astconf_long(CONF_ARG_MAX) - (int)envlen;
 			if (argmax < 2048)
 			{
 				error(ERROR_ERROR|2, "argmax too small");
@@ -82,7 +83,7 @@ tst	note{ determining default number of extra bytes per argument for arguments l
 				int bytec;
 
 				error_info.id="_arg_extrabytes test (child)";
-				argv = stkalloc(stkstd, (argmax / 2 + 1) * sizeof(char*));
+				argv = stkalloc(stkstd, (size_t)(argmax / 2 + 1) * sizeof(char*));
 				argc = bytec = 0;
 				while(bytec < argmax)
 				{
@@ -137,13 +138,13 @@ tst	note{ determining default number of extra bytes per argument for arguments l
 		}
 		/* show note in iffe output via inherited FD 9 */
 		notebuf = sfstropen();
-		sfprintf(notebuf," %d ...",extra_bytes);
+		sfprintf(notebuf," %zu ...",extra_bytes);
 		note = sfstruse(notebuf);
 		write(9,note,strlen(note));
 		sfclose(notebuf);
 		/* add #define to header via stdout */
 		sfprintf(sfstdout,
-			"#define _arg_extrabytes\t%d\t/* extra bytes per argument for arguments list */\n",
+			"#define _arg_extrabytes\t%zu\t/* extra bytes per argument for arguments list */\n",
 			extra_bytes);
 		return 0;
 	}

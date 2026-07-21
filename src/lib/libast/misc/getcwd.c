@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -25,11 +26,7 @@
 
 #include <ast.h>
 
-#if _WINIX
-
-NoN(getcwd)
-
-#else
+#if !_WINIX
 
 #include "FEATURE/syscall"
 
@@ -81,7 +78,7 @@ getcwd(char* buf, size_t len)
 struct dirlist				/* long path chdir(2) component	*/
 {
 	struct dirlist*	next;		/* next component		*/
-	int		index;		/* index from end of buf	*/
+	ssize_t		index;		/* index from end of buf	*/
 };
 
 /*
@@ -147,8 +144,8 @@ getcwd(char* buf, size_t len)
 	char*		p;
 	char*		s;
 	DIR*		dirp = 0;
-	int		n;
-	int		x;
+	size_t		n;
+	ssize_t		x;
 	size_t		namlen;
 	ssize_t		extra = -1;
 	struct dirent*	entry;
@@ -200,9 +197,9 @@ getcwd(char* buf, size_t len)
 	}
 	if (!buf)
 	{
-		extra = len;
+		extra = (ssize_t)len;
 		len = PATH_MAX;
-		if (!(buf = newof(0, char, len, extra))) ERROR(ENOMEM);
+		if (!(buf = newof(0, char, len, (size_t)extra))) ERROR(ENOMEM);
 	}
 	d = dots;
 	p = buf + len - 1;
@@ -239,8 +236,8 @@ getcwd(char* buf, size_t len)
 				{
 					d = buf;
 					while (*d++ = *p++);
-					len = d - buf;
-					if (extra >= 0 && !(buf = newof(buf, char, len, extra))) ERROR(ENOMEM);
+					len = (size_t)(d - buf);
+					if (extra >= 0 && !(buf = newof(buf, char, len, (size_t)extra))) ERROR(ENOMEM);
 				}
 				if (dirstk && popdir(dirstk, buf + len - 1))
 				{
@@ -271,7 +268,7 @@ getcwd(char* buf, size_t len)
 		{
 			if (!(entry = readdir(dirp))) ERROR(ENOENT);
 			namlen = D_NAMLEN(entry);
-			if ((d - dots) > (PATH_MAX - 1 - namlen))
+			if ((d - dots) > (ssize_t)(PATH_MAX - 1 - namlen))
 			{
 				*d = 0;
 				if (namlen >= PATH_MAX || !(dirstk = pushdir(dirstk, dots + 3, p, buf + len - 1))) ERROR(ERANGE);
@@ -285,7 +282,7 @@ getcwd(char* buf, size_t len)
 		{
 			x = (buf + len - 1) - (p += namlen);
 			s = buf + len;
-			if (extra < 0 || !(buf = newof(buf, char, len += PATH_MAX, extra))) ERROR(ERANGE);
+			if (extra < 0 || !(buf = newof(buf, char, len += PATH_MAX, (size_t)extra))) ERROR(ERANGE);
 			p = buf + len;
 			while (p > buf + len - 1 - x) *--p = *--s;
 		}
@@ -314,6 +311,10 @@ getcwd(char* buf, size_t len)
 	return NULL;
 }
 
-#endif
+#endif /* defined(SYSGETCWD) */
 
-#endif
+#else
+
+NoN(getcwd)
+
+#endif /* !_WINIX */

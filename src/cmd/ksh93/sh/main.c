@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -25,7 +25,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<sfio.h>
 #include	<ls.h>
@@ -48,7 +48,7 @@
 /* These routines are referenced by this module */
 static void	exfile(Sfio_t*,int);
 static void	chkmail(char*);
-#if !defined(_NEXT_SOURCE) && !defined(__sun)
+#if !defined(__sun)
     static void	fixargs(char**,int);
 #   undef fixargs_disabled
 #else
@@ -63,6 +63,8 @@ static void	chkmail(char*);
 static struct stat lastmail;
 static time_t	mailtime;
 static char	beenhere = 0;
+
+#define GOT_DEVFD	2
 
 /*
  * search for file and exfile() it if it exists
@@ -94,10 +96,11 @@ static int sh_source(Sfio_t *iop, const char *file)
 noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 {
 	char		*name;
-	int		fdin;
+	int		fdin = STDIN_FILENO;
 	Sfio_t		*iop;
 	struct stat	statb;
 	int		i;
+	size_t		j;
 	int		rshflag;	/* set for restricted shell */
 	char		*command;
 #ifdef	_hdr_nc
@@ -108,6 +111,10 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 	time(&mailtime);
 	if(rshflag=sh_isoption(SH_RESTRICTED))
 		sh_offoption(SH_RESTRICTED);
+	/*
+	 * return here for shell script execution
+	 * but not for parenthesis subshells
+	 */
 	if(sigsetjmp(*((sigjmp_buf*)sh.jmpbuffer),0))
 	{
 		/* begin script execution here */
@@ -124,7 +131,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 #endif
 	if(!beenhere)
 	{
-		beenhere++;
+		beenhere = 1;
 		sh_onstate(SH_PROFILE);
 		sh.sigflag[SIGTSTP] |= SH_SIGIGNORE;
 		/* decide whether shell is interactive */
@@ -154,8 +161,8 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 		if(!sh_isoption(SH_RC) && !fstat(0, &statb) && REMOTE(statb.st_mode))
 			sh_onoption(SH_RC);
 #endif
-		for(i=0; i<elementsof(sh.offoptions.v); i++)
-			sh.options.v[i] &= ~sh.offoptions.v[i];
+		for(j=0; j<elementsof(sh.offoptions.v); j++)
+			sh.options.v[j] &= ~sh.offoptions.v[j];
 		if(sh_isoption(SH_INTERACTIVE))
 		{
 #ifdef SIGXCPU
@@ -205,23 +212,16 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 			sh_onoption(SH_RESTRICTED);
 		/* open input file if specified */
 		if(sh.comdiv)
-		{
-		shell_c:
 			iop = sfnew(NULL,sh.comdiv,strlen(sh.comdiv),0,SFIO_STRING|SFIO_READ);
-		}
 		else
 		{
 			name = error_info.id;
 			error_info.id = sh.shname;
-			if(sh_isoption(SH_SFLAG))
-				fdin = 0;
-			else
+			if(!sh_isoption(SH_SFLAG))
 			{
-				char *sp;
 				/* open stream should have been passed into shell */
-				if(strmatch(name,e_devfdNN))
+				if(strmatch(name,e_devfdNN) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)
 				{
-					fdin = (int)strtol(name+8, NULL, 10);
 					if(fstat(fdin,&statb)<0)
 					{
 						errormsg(SH_DICT,ERROR_system(1),e_open,name);
@@ -230,49 +230,41 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 					name = av[0];
 					sh_offoption(SH_VERBOSE);
 					sh_offoption(SH_XTRACE);
+					beenhere = GOT_DEVFD;
 				}
 				else
 				{
 					int isdir = 0;
-					if((fdin=sh_open(name,O_RDONLY,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
+					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
 					{
-						close(fdin);
+						sh_close(fdin);
 						isdir = 1;
 						fdin = -1;
 					}
 					else
 						sh.st.filename = path_fullname(name);
-					sp = 0;
-					if(fdin < 0 && !strchr(name,'/'))
+					if(fdin < 0 && !strchr(name,'/') && path_absolute(name,NULL,0))
 					{
-						if(path_absolute(name,NULL,0))
-							sp = stkptr(sh.stk,PATH_OFFSET);
-						if(sp)
-						{
-							if((fdin=sh_open(sp,O_RDONLY,0))>=0)
-								sh.st.filename = path_fullname(sp);
-						}
+						char *sp = stkptr(sh.stk,PATH_OFFSET);
+						if((fdin=sh_open(sp,O_RDONLY|O_cloexec,0))>=0)
+							sh.st.filename = path_fullname(sp);
 					}
 					if(fdin<0)
 					{
 						if(isdir)
 							errno = EISDIR;
 						 error_info.id = av[0];
-						if(sp || errno!=ENOENT)
-						{
-							errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
-							UNREACHABLE();
-						}
-						/* try sh -c 'name "$@"' */
-						sh_onoption(SH_CFLAG);
-						sh.comdiv = (char*)sh_malloc(strlen(name)+7);
-						name = strcopy(sh.comdiv,name);
-						if(sh.st.dolc)
-							strcopy(name," \"$@\"");
-						goto shell_c;
+						errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
+						UNREACHABLE();
 					}
-					if(fdin==0)
-						fdin = sh_iomovefd(fdin);
+					/*
+					 * Note: fdin could wind up being zero or some such if the
+					 *       shell was opened with stdin/stdout/stderr closed
+					 *       (i.e. 0>&-), so we move the fd in such a case to
+					 *       keep that file descriptor closed.
+					 */
+					if(fdin<=2)
+						fdin = sh_iomovefd(fdin,10);
 				}
 				sh.readscript = sh.shname;
 			}
@@ -346,28 +338,37 @@ static void	exfile(Sfio_t *iop,int fno)
 	{
 		if(fno > 0)
 		{
-			if(fno < 10)
+			if(beenhere == GOT_DEVFD)
+				;  /* leave the inherited /dev/fd as is */
+			else
 			{
-				int r = sh_fcntl(fno,F_dupfd_cloexec,10);
-				if(r >= 10)
+				if(fno < 10)
 				{
-					if(F_dupfd_cloexec != F_DUPFD)
-						sh.fdstatus[r] = sh.fdstatus[fno]|IOCLEX;
-					else
-						sh.fdstatus[r] = sh.fdstatus[fno];
-					sh_close(fno);
-					fno = r;
+					int r = sh_fcntl(fno,F_dupfd_cloexec,10);
+					if(r >= 10)
+					{
+						if(F_dupfd_cloexec != F_DUPFD)
+							sh.fdstatus[r] = sh.fdstatus[fno]|IOCLEX;
+						else
+							sh.fdstatus[r] = sh.fdstatus[fno];
+						/* leave std* fds open when they're not explicitly closed */
+						if(fno > 2)
+							sh_close(fno);
+						fno = r;
+					}
 				}
+				if(!(sh.fdstatus[fno]&IOCLEX))
+					sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
 			}
-			if(!(sh.fdstatus[fno]&IOCLEX))
-				sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
-			iop = sh_iostream(fno);
+			/* buffer the stream in script mode */
+			iop = sh_iostream(fno,1);
 		}
 		else
 			iop = sfstdin;
 	}
 	else
 		fno = -1;
+	beenhere = 1;
 	sh.infd = fno;
 	if(sh_isstate(SH_INTERACTIVE))
 	{
@@ -418,20 +419,6 @@ static void	exfile(Sfio_t *iop,int fno)
 			fcclose();
 			while(top=sfstack(iop,SFIO_POPSTACK))
 				sfclose(top);
-		}
-		/*
-		 * Reset the lexer state and make sure the heredocs file is
-		 * closed and set to NULL. For now we only do this when we get
-		 * here in an interactive shell and we have a leftover heredoc.
-		 */
-		if(sh_isstate(SH_INTERACTIVE) && jmpval==SH_JMPERREXIT && sh.heredocs)
-		{
-			Lex_t *lp;
-			sfclose(sh.heredocs);
-			sh.heredocs = NULL;
-			lp = (Lex_t*)sh.lex_context;
-			lp->heredoc = NULL;
-			sh_lexopen(lp,0);
 		}
 		/* make sure that we own the terminal */
 		tcsetpgrp(job.fd,sh.pid);
@@ -614,7 +601,7 @@ static void chkmail(char *files)
 	char		*cp,*sp,*qp;
 	char		save;
 	struct argnod	*arglist=0;
-	int		offset = stktell(sh.stk);
+	ptrdiff_t	offset = stktell(sh.stk);
 	char	 	*savstak = stkptr(sh.stk,0);
 	struct stat	statb;
 	if(*(cp=files) == 0)
@@ -707,8 +694,8 @@ static void fixargs(char **argv, int mode)
 {
 #   if PSTAT
 	char *cp;
-	int offset=0,size;
-	static int command_len;
+	size_t offset=0,size;
+	static size_t command_len;
 	char *buff;
 	union pstun un;
 	if(mode==0)
@@ -720,7 +707,7 @@ static void fixargs(char **argv, int mode)
 		command_len = st.command_length;
 		return;
 	}
-	stkseek(sh.stk,command_len+2);
+	stkseek(sh.stk,(ssize_t)command_len+2);
 	buff = stkseek(sh.stk,0);
 	if(command_len==0)
 		return;
@@ -739,7 +726,7 @@ static void fixargs(char **argv, int mode)
 #   elif _lib_setproctitle
 #	define CMDMAXLEN 255
 	char *cp;
-	int offset=0,size;
+	size_t offset=0,size;
 	char buff[CMDMAXLEN + 1];
 	if(mode==0)
 		return;
@@ -757,12 +744,12 @@ static void fixargs(char **argv, int mode)
 #   else
 	/* Generic version, works on at least Linux and macOS */
 	char *cp;
-	int offset=0,size;
-	static int buffsize;
+	size_t offset=0, size;
+	static size_t buffsize;
 	static char *buff;
 	if(mode==0)
 	{
-		int i;
+		ssize_t i;
 		buff = argv[0];
 		for(i=0; argv[i]; i++)
 			buffsize += strlen(argv[i]) + 1;

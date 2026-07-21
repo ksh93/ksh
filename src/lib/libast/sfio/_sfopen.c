@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -30,7 +31,8 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 		const char*	file,		/* file/string to be opened */
 		const char*	mode)		/* mode of the stream */
 {
-	int	fd, oldfd, oflags, fflags, sflags;
+	int		fd, oldfd, oflags, fflags;
+	unsigned short	sflags;
 
 	/* get the control flags */
 	if((sflags = _sftype(mode,&oflags,&fflags)) == 0)
@@ -49,8 +51,8 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 				else	f->bits &= ~SFIO_BOTH;
 
 				if(f->flags&SFIO_READ)
-					f->mode = (f->mode&~SFIO_WRITE)|SFIO_READ;
-				else	f->mode = (f->mode&~SFIO_READ)|SFIO_WRITE;
+					f->mode = (f->mode&(uint32_t)~SFIO_WRITE)|SFIO_READ;
+				else	f->mode = (f->mode&(uint32_t)~SFIO_READ)|SFIO_WRITE;
 			}
 		}
 		else /* make sure there is no buffered data */
@@ -91,7 +93,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 			errno = 0;
 		if(fd >= 0)
 		{	if((oflags&(O_CREAT|O_EXCL)) == (O_CREAT|O_EXCL) )
-			{	CLOSE(fd);	/* error: file already exists */
+			{	ast_close(fd);	/* error: file already exists */
 				return NULL;
 			}
 			if(oflags&O_TRUNC )	/* truncate file */
@@ -99,7 +101,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 				while((tf = creat(file,SFIO_CREATMODE)) < 0 &&
 				      errno == EINTR)
 					errno = 0;
-				CLOSE(tf);
+				ast_close(tf);
 			}
 		}
 		else if(oflags&O_CREAT)
@@ -107,7 +109,7 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 				errno = 0;
 			if((oflags&O_ACCMODE) != O_WRONLY)
 			{	/* the file now exists, reopen it for read/write */
-				CLOSE(fd);
+				ast_close(fd);
 				while((fd = open(file,oflags&O_ACCMODE)) < 0 &&
 				      errno == EINTR)
 					errno = 0;
@@ -126,9 +128,10 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 	return f;
 }
 
-int _sftype(const char* mode, int* oflagsp, int* fflagsp)
+unsigned short _sftype(const char* mode, int* oflagsp, int* fflagsp)
 {
-	int	sflags, oflags, fflags;
+	unsigned short	sflags;
+	int		oflags, fflags;
 
 	if(!mode)
 		return 0;

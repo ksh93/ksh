@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -24,8 +24,8 @@
  * Shell interface private definitions
  *
  */
-#ifndef defs_h_defined
-#define defs_h_defined
+#ifndef _DEFS_H
+#define _DEFS_H
 
 /* In case multibyte support was disabled for ksh only (SHOPT_MULTIBYTE==0) and not for libast */
 #if !SHOPT_MULTIBYTE && !AST_NOMULTIBYTE
@@ -105,7 +105,7 @@ extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
-extern void		sh_deparse(Sfio_t*,const Shnode_t*,int,int);
+extern void		sh_deparse(Sfio_t*,const Shnode_t*,nvflag_t,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
 extern char 		**sh_envgen(void);
 extern Sfdouble_t	sh_arith(const char*);
@@ -113,9 +113,9 @@ extern void		*sh_arithcomp(char*);
 extern pid_t 		sh_fork(int,int*);
 extern pid_t		_sh_fork(pid_t, int ,int*);
 extern void		sh_invalidate_ifs(void);
-extern char 		*sh_mactrim(char*,int);
+extern char 		*sh_mactrim(char*,int8_t);
 extern int 		sh_macexpand(struct argnod*,struct argnod**,int);
-extern int		sh_macfun(const char*,int);
+extern int		sh_macfun(const char*,ptrdiff_t);
 extern void 		sh_machere(Sfio_t*, Sfio_t*, char*);
 extern void 		*sh_macopen(void);
 extern char 		*sh_macpat(struct argnod*,int);
@@ -126,10 +126,11 @@ extern int		sh_mathstd(const char*);
 extern void		sh_printopts(Shopt_t,int,Shopt_t*);
 extern int 		sh_readline(char**,volatile int,int,ssize_t,Sflong_t);
 extern Sfio_t		*sh_sfeval(char*[]);
-extern void		sh_setmatch(const char*,int,int,int[],int);
-extern void             sh_scope(struct argnod*, int);
+extern void		sh_setmatch(const char*,ptrdiff_t,ssize_t,ssize_t[],int);
+extern void		sh_scope(struct argnod*, int);
 extern Namval_t		*sh_scoped(Namval_t*);
 extern Dt_t		*sh_subtracktree(int);
+extern Dt_t		*sh_subloopdetecttree(int);
 extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
@@ -140,14 +141,15 @@ extern const char	*_sh_translate(const char*);
 extern int		sh_trace(char*[],int);
 extern void		sh_trim(char*);
 extern int		sh_type(const char*);
-extern void             sh_unscope(void);
+extern void		sh_unscope(void);
+extern void		sh_clear_subshell_pwdfd(void);
 #if _lib_openat
     extern int		sh_diropenat(int,const char *);
     extern void		sh_pwdupdate(int);
     extern int		sh_validate_subpwdfd(void);
 #endif /* _lib_openat */
 #if SHOPT_NAMESPACE
-    extern Namval_t	*sh_fsearch(const char *,int);
+    extern Namval_t	*sh_fsearch(const char *,nvflag_t);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */
@@ -157,7 +159,6 @@ extern void		*sh_calloc(size_t nmemb, size_t size);
 extern char		*sh_strdup(const char *s);
 extern void		*sh_memdup(const void *s, size_t n);
 extern char		*sh_getcwd(void);
-#define new_of(type,x)	((type*)sh_malloc((unsigned)sizeof(type)+(x)))
 #define sh_newof(p,t,n,x)	((p)?(t*)sh_realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)sh_calloc(1,sizeof(t)*(n)+(x)))
 
 #define URI_RFC3986_UNRESERVED "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
@@ -172,7 +173,7 @@ extern char		*sh_getcwd(void);
 
 #if SHOPT_SCRIPTONLY
 #define is_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] & ((uint64_t)1 << ((x) % WBITS))) )
-#define on_option(s,x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? errormsg(SH_DICT,ERROR_exit(1),e_scriptonly) : ((s)->v[((x)&WMASK)/WBITS] |= ((uint64_t)1 << ((x) % WBITS))) )
+#define on_option(s,x)	( (x)==SH_INTERACTIVE || (x)==SH_HISTORY ? (uint64_t)errormsg(SH_DICT,ERROR_exit(1),e_scriptonly) : ((s)->v[((x)&WMASK)/WBITS] |= ((uint64_t)1 << ((x) % WBITS))) )
 #define off_option(s,x)	((x)==SH_INTERACTIVE || (x)==SH_HISTORY ? 0 : ((s)->v[((x)&WMASK)/WBITS] &= ~((uint64_t)1 << ((x) % WBITS))) )
 #else
 #define is_option(s,x)	((s)->v[((x)&WMASK)/WBITS] & ((uint64_t)1 << ((x) % WBITS)))
@@ -236,4 +237,4 @@ extern const char	e_scriptonly[];
 #   define sh_stats(x)
 #endif /* SHOPT_STATS */
 
-#endif /* !defs_h_defined */
+#endif /* !_DEFS_H */

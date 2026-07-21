@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,7 +23,7 @@
  *
  */
 
-#include "shopt.h"
+#include "FEATURE/options"
 #include "version.h"
 
 static const char usage[] =
@@ -73,6 +73,7 @@ static const char usage[] =
 #include	"shnodes.h"
 #include	"sys/stat.h"
 #include	"terminal.h"
+#include	"builtins.h"
 
 #define CNTL(x)	((x)&037)
 static const char header[6] = { CNTL('k'),CNTL('s'),CNTL('h'),0,SHCOMP_HDR_VERSION,0 };
@@ -100,9 +101,7 @@ int main(int argc, char *argv[])
 		errormsg(SH_DICT,2,"%s",opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	sh_init(argc,argv,NULL);
 	script_id = error_info.id;  /* set by sh_init() */
@@ -139,7 +138,7 @@ int main(int argc, char *argv[])
 			UNREACHABLE();
 		}
 		if(fstat(sffileno(out),&statb) >=0)
-			chmod(cp,(statb.st_mode&~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
+			chmod(cp,(statb.st_mode&(mode_t)~S_IFMT)|S_IXUSR|S_IXGRP|S_IXOTH);
 	}
 	else
 		out = sfstdout;
@@ -172,7 +171,7 @@ int main(int argc, char *argv[])
 		stkset(sh.stk,NULL,0);
 		if(t = (Shnode_t*)sh_parse(in,0))
 		{
-			if((t->tre.tretyp&(COMMSK|COMSCAN))==0 && t->com.comnamp && strcmp(nv_name((Namval_t*)t->com.comnamp),"alias")==0)
+			if((t->tre.tretyp&(COMMSK|COMSCAN))==0 && t->com.comnamp && (Namval_t*)t->com.comnamp==SYSALIAS)
 				/* Create aliases found in the script to prevent syntax errors */
 				sh_exec(t,0);
 			if(!dflag && sh_tdump(out,t) < 0)

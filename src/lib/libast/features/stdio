@@ -7,6 +7,7 @@ cat{
 	#define _FILEDEFED	1
 	#define __FILE_defined  1
 	#define ____FILE_defined    1
+	#define _STDFILES_DECLARED  1
 
 	#ifndef __FILE_TAG
 	#define __FILE_TAG	_sfio_s
@@ -23,7 +24,6 @@ cat{
 	#define _FILE		FILE
 
 	#if !defined(__FILE) && !__CYGWIN__
-	#undef	__FILE
 	#define __FILE		FILE
 	#endif
 
@@ -224,8 +224,6 @@ cat{
 	#endif
 	#endif
 
-	#undef	extern
-
 	extern int	_doprnt(const char*, va_list, FILE*);
 	extern int	_doscan(FILE*, const char*, va_list);
 	extern int	asprintf(char**, const char*, ...);
@@ -270,7 +268,7 @@ cat{
 	extern int	setbuffer(FILE*, char*, int);
 	extern int	setlinebuf(FILE*);
 	extern int	setvbuf(FILE*, char*, int, size_t);
-	extern int	snprintf(char*, int, const char*, ...);
+	extern int	snprintf(char*, size_t, const char*, ...);
 	extern int	sprintf(char*, const char*, ...);
 	extern int	sscanf(const char*, const char*, ...);
 	extern FILE*	tmpfile(void);
@@ -280,7 +278,7 @@ cat{
 	extern int	vfscanf(FILE*, const char*, va_list);
 	extern int	vprintf(const char*, va_list);
 	extern int	vscanf(const char*, va_list);
-	extern int	vsnprintf(char*, int, const char*, va_list);
+	extern int	vsnprintf(char*, size_t, const char*, va_list);
 	extern int	vsprintf(char*, const char*, va_list);
 	extern int	vsscanf(const char*, const char*, va_list);
 
@@ -300,17 +298,11 @@ cat{
 	extern int	putc_unlocked(int, FILE*);
 	extern int	putchar_unlocked(int);
 
-	#ifdef _USE_GNU
-
 	extern int	fcloseall(void);
 	extern FILE*	fmemopen(void*, size_t, const char*);
 	extern ssize_t	__getdelim(char**, size_t*, int, FILE*);
 	extern ssize_t	getdelim(char**, size_t*, int, FILE*);
 	extern ssize_t	getline(char**, size_t*, FILE*);
-
-	#endif
-
-	#undef	extern
 
 	#if _BLD_DLL && _DLL_INDIRECT_DATA
 
@@ -331,11 +323,11 @@ cat{
 	#define feof(f)		sfeof(f)
 	#define ferror(f)	sferror(f)
 	#define fileno(f)	sffileno(f)
-	#define fputc(c,f)	sfputc(f,c)
+	#define fputc(c,f)	((int)sfputc(f,c))
 	#define getc(f)		sfgetc(f)
 	#define getchar()	sfgetc(sfstdin)
-	#define putc(c,f)	sfputc(f,c)
-	#define putchar(c)	sfputc(sfstdout,c)
+	#define putc(c,f)	((int)sfputc(f,c))
+	#define putchar(c)	((int)sfputc(sfstdout,c))
 
 	#else
 
@@ -346,14 +338,14 @@ cat{
 	#define feof(f)		(_sf_(f)->_flags&_SFIO_EOF)
 	#define ferror(f)	(_sf_(f)->_flags&_SFIO_ERROR)
 	#define fileno(f)	(_sf_(f)->_file)
-	#define fputc(c,f)	(_sf_(f)->_next>=_sf_(f)->_endw?_sfflsbuf(_sf_(f),(int)((unsigned char)(c))):(int)(*_sf_(f)->_next++=(unsigned char)(c)))
-	#define getc(f)		(_sf_(f)->_next>=_sf_(f)->_endr?_sffilbuf(_sf_(f),0):(int)(*_sf_(f)->_next++))
+	#define fputc(c,f)	(_sf_(f)->_next>=_sf_(f)->_endw?(int)_sfflsbuf(_sf_(f),(int)((unsigned char)(c))):(int)(*_sf_(f)->_next++=(unsigned char)(c)))
+	#define getc(f)		(_sf_(f)->_next>=_sf_(f)->_endr?(int)_sffilbuf(_sf_(f),0):(int)(*_sf_(f)->_next++))
 	#define getchar()	getc(stdin)
 	#define putc(c,f)	fputc(c,f)
 	#define putchar(c)	fputc(c,stdout)
 
-	extern int		_sffilbuf(FILE*, int);
-	extern int		_sfflsbuf(FILE*, int);
+	extern ssize_t		_sffilbuf(FILE*, ssize_t);
+	extern ssize_t		_sfflsbuf(FILE*, ssize_t);
 
 	#endif
 }end

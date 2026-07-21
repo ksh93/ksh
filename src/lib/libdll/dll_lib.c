@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1997-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -12,6 +12,7 @@
 *                                                                      *
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -59,7 +60,7 @@ dllnames(const char* id, const char* name, Dllnames_t* names)
 	 * determine the base name
 	 */
 
-	if ((s = strrchr(name, '/')) || (s = strrchr(name, '\\')))
+	if ((s = (char*)strrchr(name, '/')) || (s = (char*)strrchr(name, '\\')))
 		s++;
 	else
 		s = (char*)name;
@@ -108,7 +109,7 @@ dll_lib(Dllnames_t* names, unsigned long version, Dllerror_f dllerrorf, void* di
 	void*			dll;
 	Dll_lib_t*		lib;
 	Dll_lib_f		libf;
-	ssize_t			n;
+	size_t			len;
 	char			sym[64];
 
 	static Dll_lib_t*	loaded;
@@ -131,7 +132,8 @@ dll_lib(Dllnames_t* names, unsigned long version, Dllerror_f dllerrorf, void* di
 	 * load
 	 */
 
-	if (!(dll = dllplugin(names->id, names->name, NULL, version, NULL, RTLD_LAZY, names->path, names->data + sizeof(names->data) - names->path)) && (streq(names->name, names->base) || !(dll = dllplugin(names->id, names->base, NULL, version, NULL, RTLD_LAZY, names->path, names->data + sizeof(names->data) - names->path))))
+	if (!(dll = dllplugin(names->id, names->name, NULL, version, NULL, RTLD_LAZY, names->path, (size_t)(names->data + sizeof(names->data) - names->path))) && (streq(names->name, names->base)
+				|| !(dll = dllplugin(names->id, names->base, NULL, version, NULL, RTLD_LAZY, names->path, (size_t)(names->data + sizeof(names->data) - names->path)))))
 	{
 		if (dllerrorf)
 			(*dllerrorf)(NULL, disc, 2, "%s: library not found", names->name);
@@ -158,11 +160,11 @@ dll_lib(Dllnames_t* names, unsigned long version, Dllerror_f dllerrorf, void* di
 	 * add to the loaded list
 	 */
 
-	if (lib = newof(0, Dll_lib_t, 1, (n = strlen(names->base)) + strlen(names->path) + 1))
+	if (lib = newof(0, Dll_lib_t, 1, (len = strlen(names->base)) + strlen(names->path) + 1))
 	{
 		lib->libf = libf;
 		strcpy(lib->base, names->base);
-		strcpy(lib->path = lib->base + n + 1, names->path);
+		strcpy(lib->path = lib->base + len + 1, names->path);
 		lib->next = loaded;
 		loaded = lib;
 		errorf("dll", NULL, -1, "dll_lib: %s version %lu loaded from %s", names->name, version, lib->path);

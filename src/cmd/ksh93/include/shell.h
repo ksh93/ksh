@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,8 +16,9 @@
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *                                                                      *
 ***********************************************************************/
-#ifndef shell_h_defined
-#define shell_h_defined
+#ifndef _SHELL_H
+#define _SHELL_H
+
 /*
  * David Korn
  * AT&T Labs
@@ -169,9 +170,8 @@ typedef union Shnode_u Shnode_t;
 
 /* error messages */
 extern const char	e_found[];
-#ifdef ENAMETOOLONG
+extern const char	e_autoloadnotfound[];
 extern const char	e_toolong[];
-#endif
 extern const char	e_format[];
 extern const char 	e_number[];
 extern const char	e_restricted[];
@@ -225,12 +225,13 @@ struct sh_scoped
 	char		**otrapcom;	/* save parent EXIT and signals for v=$(trap) */
 	void		*timetrap;	/* for the 'alarm' built-in */
 	struct Ufunction *real_fun;	/* current 'function name' function */
+	uint8_t		trapnofree[16];	/* bitmask to stop b_trap() freeing trapcom entries */
 };
 
 struct limits
 {
+	clock_t		clk_tck;	/* number of ticks per second */
 	int		open_max;	/* maximum number of file descriptors */
-	int		clk_tck;	/* number of ticks per second */
 	int		child_max;	/* maximum number of children */
 };
 
@@ -273,7 +274,7 @@ struct Shell_s
 	void		*ed_context;
 	int		sigmax;
 	Shwait_f	waitevent;
-	int		subshell;	/* set for virtual subshell */
+	unsigned int	subshell;	/* set for virtual subshell */
 	int		realsubshell;	/* ${.sh.subshell}, actual subshell level (including virtual and forked) */
 	char		nv_restore;	/* set while restoring variables upon terminating a virtual subshell */
 	int32_t		shlvl;		/* $SHLVL, non-subshell child shell level */
@@ -297,7 +298,6 @@ struct Shell_s
 	unsigned int	jobenv;		/* subshell number for jobs */
 	int		infd;		/* input file descriptor */
 	short		nextprompt;	/* next prompt is PS<nextprompt> */
-	Namval_t	*posix_fun;	/* points to last name() function */
 	char		*outbuff;	/* pointer to output buffer */
 	char		*errbuff;	/* pointer to stderr buffer */
 	char		*prompt;	/* pointer to prompt string */
@@ -318,12 +318,12 @@ struct Shell_s
 	uint32_t	srand_upper_bound;
 	char		forked;
 	char		binscript;
-	char		funload;
+	char		funload;	/* set while autoloading a function via funload() */
 	char		used_pos;	/* used positional parameter */
 	char		universe;
 	char		winch;		/* set upon window size change or 'set -b' notification */
-	unsigned short	lines;		/* current vertical terminal size */
-	unsigned short	columns;	/* current horizontal terminal size */
+	int32_t		lines;		/* current vertical terminal size */
+	int32_t		columns;	/* current horizontal terminal size */
 	short		arithrecursion;	/* current arithmetic recursion level */
 	char		indebug; 	/* set when in debug trap */
 	unsigned char	ignsig;		/* ignored signal in subshell */
@@ -343,15 +343,17 @@ struct Shell_s
 	int		cpipe[3];
 	int		coutpipe;
 	int		inuse_bits;
+	char		*fifo;		/* FIFO name for current process substitution */
+	Dt_t		*fifo_tree;	/* for cleaning up process substitution FIFOs */
 	struct argnod	*envlist;
 	struct dolnod	*arglist;
 	int16_t		fn_depth;	/* scoped ksh-style function call depth */
 	int16_t		dot_depth;	/* dot-script and POSIX function call depth */
 	char		invoc_local;	/* set when inside of an invocation-local scope */
-	int		xargmin;
-	int		xargmax;
+	ssize_t		xargmin;
+	ssize_t		xargmax;
 	int		xargexit;
-	int		save_env_n;	/* number of saved pointers to environment variables with invalid names */
+	size_t		save_env_n;	/* number of saved pointers to environment variables with invalid names */
 	char		**save_env;	/* saved pointers to environment variables with invalid names */
 	mode_t		mask;
 	void		*init_context;
@@ -366,9 +368,9 @@ struct Shell_s
 	Shinit_f	userinit;
 	Shbltin_f	bltinfun;
 	Shbltin_t	bltindata;
-	int		offsets[10];
+	ptrdiff_t	offsets[10];
 	Sfio_t		**sftable;
-	unsigned char	*fdstatus;
+	uint8_t		*fdstatus;
 	char		*pwd;
 #if _lib_openat
 	int		pwdfd;		/* file descriptor for pwd */
@@ -384,6 +386,7 @@ struct Shell_s
 	Dt_t		*prev_root;
 	Dt_t		*fpathdict;
 	Dt_t		*typedict;
+	Dt_t		*funload_loopdetect_tree; /* for function autoload loop detection */
 	char		ifstable[256];
 	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */
 	Shopt_t		glob_options;
@@ -407,10 +410,6 @@ struct Shell_s
 #if SHOPT_FILESCAN
 	char		*cur_line;
 #endif /* SHOPT_FILESCAN */
-#if !SHOPT_DEVFD
-	char		*fifo;		/* FIFO name for current process substitution */
-	Dt_t		*fifo_tree;	/* for cleaning up process substitution FIFOs */
-#endif /* !SHOPT_DEVFD */
 #endif /* _BLD_ksh */
 };
 
@@ -421,7 +420,7 @@ typedef struct Libcomp_s
 	char*		lib;
 	dev_t		dev;
 	ino_t		ino;
-	unsigned int	attr;
+	nvflag_t	attr;
 } Libcomp_t;
 extern Libcomp_t *liblist;
 
@@ -477,9 +476,9 @@ extern Shwait_f		sh_waitnotify(Shwait_f);
 extern Shscope_t	*sh_getscope(int,int);
 extern Shscope_t	*sh_setscope(Shscope_t*);
 extern void		sh_sigcheck(void);
-extern uint64_t		sh_isoption(int);
-extern uint64_t		sh_onoption(int);
-extern uint64_t		sh_offoption(int);
+extern uint64_t		sh_isoption(uint64_t);
+extern uint64_t		sh_onoption(uint64_t);
+extern uint64_t		sh_offoption(uint64_t);
 extern int		sh_exec(const Shnode_t*,int);
 
 /*
@@ -491,7 +490,7 @@ extern Shell_t		sh;
 
 #define chdir(a)	sh_chdir(a)
 #define fchdir(a)	sh_fchdir(a)
-#ifndef defs_h_defined
+#ifndef _DEFS_H
 #   define access(a,b)	sh_access(a,b)
 #   define close(a)	sh_close(a)
 #   define exit(a)	sh_exit(a)
@@ -502,10 +501,10 @@ extern Shell_t		sh;
 #   define dup		sh_dup
 #   define open		sh_open
 #   define lseek	sh_seek
-#endif /* !defs_h_defined */
+#endif /* !_DEFS_H */
 
 #define SH_SIGSET	4
 #define SH_EXITSIG	0400	/* signal exit bit */
 #define SH_EXITMASK	(SH_EXITSIG-1)	/* normal exit status bits */
 
-#endif /* !shell_h_defined */
+#endif /* !_SHELL_H */

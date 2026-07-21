@@ -15,7 +15,6 @@ SHOPT BRACEPAT=1			# C-shell {...,...} expansions (, required)
 SHOPT CMDLIB_HDR=  # '<cmdlist.h>'	# custom -lcmd list for path-bound builtins
 SHOPT CMDLIB_DIR=  # '"/opt/ast/bin"'	# virtual directory prefix for path-bound builtins
 SHOPT CRNL=				# accept MS Windows newlines (<cr><nl>) for <nl>
-SHOPT DEVFD=				# use /dev/fd instead of FIFOs for process substitutions
 SHOPT ECHOPRINT=			# make echo equivalent to print
 SHOPT ESH=1				# emacs/gmacs edit mode
 SHOPT FILESCAN=1			# fast file scan: while <file; do [use $REPLY or positional parameters]; done

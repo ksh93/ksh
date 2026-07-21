@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -39,15 +40,16 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 	unsigned char*	b = addr;
 	unsigned char*	x = b + IP6ADDR;
 	unsigned char*	z;
-	int		c;
+	int		c = 0;
 	uint32_t	a;
 
 	static unsigned char	lex[256];
 
 	if (!lex[0])
 	{
-		for (c = 0; c < sizeof(lex); ++c)
-			lex[c] = END;
+		size_t i;
+		for (i = 0; i < sizeof(lex); ++i)
+			lex[i] = END;
 		lex['0'] = 0;
 		lex['1'] = 1;
 		lex['2'] = 2;
@@ -81,14 +83,14 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 			case PFX:
 				if ((x - b) < 2)
 					break;
-				*b++ = a>>8;
-				*b++ = a;
+				*b++ = (unsigned char)(a>>8);
+				*b++ = (unsigned char)a;
 				break;
 			case COL:
 				if ((x - b) < 2)
 					break;
-				*b++ = a>>8;
-				*b++ = a;
+				*b++ = (unsigned char)(a>>8);
+				*b++ = (unsigned char)a;
 				a = 0;
 				if (*s == ':')
 				{
@@ -121,17 +123,17 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 					case END:
 					case PFX:
 						if (b < x)
-							*b++ = a;
+							*b++ = (unsigned char)a;
 						a = 0;
 						break;
 					case DOT:
 						if (b >= x)
 							break;
-						*b++ = a;
+						*b++ = (unsigned char)a;
 						a = 0;
 						continue;
 					default:
-						a = (a * 10) + c;
+						a = (a * 10) + (unsigned)c;
 						continue;
 					}
 					break;
@@ -157,7 +159,7 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 				}
 				break;
 			default:
-				a = (a << 4) | c;
+				a = (a << 4) | (unsigned)c;
 				continue;
 			}
 			break;
@@ -182,11 +184,11 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 			{
 				a = 0;
 				while ((c = lex[*((unsigned char*)s++)]) < 10)
-					a = a * 10 + c;
+					a = a * 10 + (unsigned)c;
 			}
 			else
 				a = 0xff;
-			*bits = a;
+			*bits = (unsigned char)a;
 		}
 	}
 	if (e)

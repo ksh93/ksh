@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -27,7 +27,7 @@
  *		cbosgd!pds
 -*/
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 
 #if SHOPT_VSH
@@ -175,7 +175,7 @@ static int	blankline(Vi_t*, int);
 static void	cursor(Vi_t*, int);
 static void	del_line(Vi_t*,int);
 static int	getcount(Vi_t*,int);
-static void	getline(Vi_t*,int);
+static void	get_line(Vi_t*,int);
 static int	getrchar(Vi_t*);
 static int	mvcursor(Vi_t*,int);
 static void	refresh(Vi_t*,int);
@@ -312,7 +312,7 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
 		vp->ofirst_wind = INVALID;
 		refresh(vp,INPUT);
 	}
-	getline(vp,APPEND);
+	get_line(vp,APPEND);
 	if(vp->ed->e_multiline)
 		cursor(vp, last_phys);
 	/*** add a new line if user typed unescaped \n ***/
@@ -371,7 +371,7 @@ static void append(Vi_t *vp,int c, int mode)
 			for(i = ++last_virt;  i > j; --i)
 				virtual[i] = virtual[i-1];
 		}
-		virtual[++cur_virt] = c;
+		virtual[++cur_virt] = (genchar)c;
 	}
 	else
 		ed_ringbell();
@@ -507,7 +507,7 @@ static int cntlmode(Vi_t *vp)
 		default:		/** input mode **/
 			if(!was_inmacro)
 			{
-				vp->last_cmd = c;
+				vp->last_cmd = (char)c;
 				vp->lastrepeat = vp->repeat;
 			}
 			vp->repeat = 1;
@@ -620,7 +620,7 @@ static int cntlmode(Vi_t *vp)
 #if SHOPT_MULTIBYTE
 			ed_internal((char*)virtual,virtual);
 #endif /* SHOPT_MULTIBYTE */
-			if((last_virt=genlen(virtual)-1) >= 0  && cur_virt == INVALID)
+			if((last_virt=(int)genlen(virtual)-1) >= 0  && cur_virt == INVALID)
 				cur_virt = 0;
 			virtual[last_virt+1] = '\0';
 			gencpy(vp->U_space, virtual);
@@ -643,7 +643,7 @@ static int cntlmode(Vi_t *vp)
 			else
 			{
 				gencpy(virtual, vp->U_space);
-				last_virt = genlen(vp->U_space) - 1;
+				last_virt = (int)genlen(vp->U_space) - 1;
 				cur_virt = 0;
 			}
 			break;
@@ -684,7 +684,7 @@ static int cntlmode(Vi_t *vp)
 			if(curhline == histmax && sh.hist_ptr)
 			{
 				hist_eof(sh.hist_ptr);
-				histmax = (int)sh.hist_ptr->histind;
+				histmax = sh.hist_ptr->histind;
 				curhline = histmax;
 				if(histmax >= sh.hist_ptr->histsize)
 					hist_flush(sh.hist_ptr);
@@ -715,7 +715,7 @@ static int cntlmode(Vi_t *vp)
 						}
 						else
 						{
-							cur_virt = p-virtual;
+							cur_virt = (int)(p-virtual);
 							append(vp,'#', APPEND);
 						}
 					}
@@ -815,7 +815,7 @@ static void cdelete(Vi_t *vp,int nchars, int mode)
 			i = cp[nchars];
 			cp[nchars] = 0;
 			gencpy(yankbuf,cp);
-			cp[nchars] = i;
+			cp[nchars] = (genchar)i;
 		}
 
 		/*** now delete these characters ***/
@@ -1045,7 +1045,7 @@ static int getcount(Vi_t *vp,int c)
  *
 }*/
 
-static void getline(Vi_t* vp,int mode)
+static void get_line(Vi_t* vp,int mode)
 {
 	int	c;
 	int	tmp;
@@ -1106,7 +1106,7 @@ static void getline(Vi_t* vp,int mode)
 					c = max_virt-cur_virt;
 					if(c > 0 && last_save>=cur_virt)
 					{
-						genncpy((&virtual[cur_virt]),&saveline[cur_virt],c);
+						genncpy((&virtual[cur_virt]),&saveline[cur_virt],(size_t)c);
 						if(last_virt>=last_save)
 							last_virt=last_save-1;
 						refresh(vp,INPUT);
@@ -1132,7 +1132,7 @@ static void getline(Vi_t* vp,int mode)
 					c = last_save = last_virt+1;
 					if(c >= MAXLINE)
 						c = MAXLINE-1;
-					genncpy(saveline, virtual, c);
+					genncpy(saveline, virtual, (size_t)c);
 				}
 			}
 			break;
@@ -1269,8 +1269,8 @@ static void getline(Vi_t* vp,int mode)
 				ed_ringbell();
 				break;
 			}
-			/* FALLTHROUGH */
 		}
+		/* FALLTHROUGH */
 		default:
 		fallback:
 			if( mode == REPLACE )
@@ -1562,7 +1562,7 @@ static int mvcursor(Vi_t* vp,int motion)
 
 	case 'T':		/** find up to new char backward **/
 	case 'F':		/** find new char backward **/
-		vp->last_find = motion;
+		vp->last_find = (char)motion;
 		if((vp->findchar=getrchar(vp))==ESC)
 			return 1;
 find_b:
@@ -1592,7 +1592,7 @@ find_b:
 		if(tcur_virt > last_virt )
 			return 0;
 		nextc = virtual[tcur_virt];
-		count = strchr(paren_chars,nextc)-paren_chars;
+		count = (int)(strchr(paren_chars,nextc)-paren_chars);
 		if(count < 3)
 		{
 			incr = 1;
@@ -1721,7 +1721,7 @@ static void refresh(Vi_t* vp, int mode)
 	}
 	virtual[last_virt+1] = 0;
 	ncur_phys = ed_virt_to_phys(vp->ed,virtual,physical,cur_virt,v,p);
-	p = genlen(physical);
+	p = (int)genlen(physical);
 	if( --p < 0 )
 		last_phys = 0;
 	else
@@ -1881,9 +1881,9 @@ static void replace(Vi_t *vp, int c, int increment)
 	}
 	else
 	{
-		virtual[cur_virt] = c;
-		physical[cur_phys] = c;
-		window[cur_window] = c;
+		virtual[cur_virt] = (genchar)c;
+		physical[cur_phys] = (genchar)c;
+		window[cur_window] = (genchar)c;
 		putchar(c);
 		if(increment)
 		{
@@ -1922,7 +1922,7 @@ static void restore_v(Vi_t *vp)
 	save_v(vp);
 	gencpy(virtual, tmpspace);
 	cur_virt = tmpcol;
-	last_virt = genlen(tmpspace) - 1;
+	last_virt = (int)genlen(tmpspace) - 1;
 	vp->ocur_virt = MAXCHAR;	/** invalidate refresh optimization **/
 	return;
 }
@@ -1944,7 +1944,7 @@ static void save_last(Vi_t* vp)
 		/*** save last thing user typed ***/
 		if(i >= MAXLINE)
 			i = MAXLINE-1;
-		genncpy(vp->lastline, (&virtual[first_virt]), i);
+		genncpy(vp->lastline, (&virtual[first_virt]), (size_t)i);
 		vp->lastline[i] = '\0';
 	}
 	return;
@@ -1991,7 +1991,7 @@ static int curline_search(Vi_t *vp, const char *string)
 	for(dp=(char*)vp->u_space,dpmax=dp+strlen(dp)-len; dp<=dpmax; dp++)
 	{
 		if(strncmp(cp,dp,len)==0)
-			return dp - (char*)vp->u_space;
+			return (int)(dp - (char*)vp->u_space);
 	}
 #if SHOPT_MULTIBYTE
 	ed_internal((char*)vp->u_space,vp->u_space);
@@ -2015,7 +2015,7 @@ static int search(Vi_t* vp,int mode)
 		append(vp,mode, APPEND);
 		refresh(vp,INPUT);
 		first_virt = 1;
-		getline(vp,SEARCH);
+		get_line(vp,SEARCH);
 		first_virt = 0;
 		virtual[last_virt + 1] = '\0';	/*** make null-terminated ***/
 		vp->direction = mode=='/' ? -1 : 1;
@@ -2495,7 +2495,7 @@ deleol:
 		else
 			if((c=getrchar(vp))==ESC)
 				return GOOD;
-		*p = c;
+		*p = (genchar)c;
 		save_v(vp);
 		while(trepeat--)
 			replace(vp,c, trepeat!=0);
@@ -2607,7 +2607,7 @@ static int blankline(Vi_t *vp, int uptocursor)
 	for(x=0; x <= (uptocursor ? cur_virt : last_virt); x++)
 	{
 #if SHOPT_MULTIBYTE
-		if(!iswspace((wchar_t)virtual[x]))
+		if(!iswspace((wint_t)virtual[x]))
 #else
 		if(!isspace(virtual[x]))
 #endif /* SHOPT_MULTIBYTE */

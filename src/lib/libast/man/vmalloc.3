@@ -35,10 +35,11 @@ void      vmclose(Vmalloc_t* vm);
 .Cs
 void      *vmalloc(Vmalloc_t* vm, size_t size);
 void      *vmresize(Vmalloc_t* vm, void* addr, size_t size);
+void      *vmresize_i(Vmalloc_t* vm, void* addr, size_t size, int init);
 char      *vmstrdup(Vmalloc_t *vm, const char *s);
 void      vmfree(Vmalloc_t* vm, void* addr);
 .Ce
-.Ss "MACROS"
+.Ss "LEGACY MACROS"
 .Cs
 void      *vmnewof(Vmalloc_t* vm, void* addr, type, size_t n, size_t x);
 void      *vmoldof(Vmalloc_t* vm, void* addr, type, size_t n, size_t x);
@@ -88,15 +89,17 @@ typedef struct
 The
 .I options
 field is an options bitmask.
-If the bit flag
+If the
 .B VM_INIT
-is set, then all memory allocated in the region,
+option bit is set, then all memory allocated in the region,
 including memory added when resizing,
 will be automatically initialized to zero.
-If the bit flag
+If the
 .B VM_FREEONFAIL
-is set, then
+option bit is set, then
 .B vmresize
+and
+.B vmresize_i
 will free an existing block that it failed to resize before returning
 .BR NULL .
 All other bits are reserved for future use and should be zero.
@@ -174,7 +177,7 @@ to change the size of the block pointed to by
 to the new
 .IR size .
 The block may be moved to a different location in memory.
-The new block is initialized with as much of the old contents as will fit.
+The new block is initialized with as much of the old content as will fit.
 If the new size is larger than the old,
 then the added memory is either left uninitialized or,
 if the region has the
@@ -193,6 +196,15 @@ The
 .B vmresize
 function is suitable for use as a memory discipline function, for example, as
 .BR re_resizef " (with " re_resizehandle " set to the region) in the AST " regex "(3) library."
+.PP
+.Ss "  void *vmresize_i(Vmalloc_t *vm, void *addr, size_t size, int init);"
+This function does the same as
+.BR vmresize ,
+except that the
+.B VM_INIT
+option bit is ignored and the non-zeroness of the
+.I init
+parameter determines for each call whether initialization is done.
 .PP
 .Ss "  char *vmstrdup(Vmalloc_t *vm, const char *s);"
 String duplication.
@@ -213,14 +225,13 @@ Free the block pointed to by
 from the region
 .IR vm .
 .PP
-.Ss "MACROS"
+.Ss "LEGACY MACROS"
 .PP
 .Ss "  void *vmnewof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
 .Ss "  void *vmoldof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
 These macro functions are provided for backward compatibility.
-.B vmnewof
-uses
-.B vmresize
+They call
+.B vmresize_i
 to resize block
 .I addr
 to the new size
@@ -230,18 +241,11 @@ or, if
 is
 .BR NULL ,
 to allocate a new block of that size.
-Any additional space beyond old content is always initialized to zero
-(i.e., regardless of whether the region has the
-.B VM_INIT
-option bit set).
-If the block is moved, as much old content is copied as will fit.
-.B vmoldof
-is the same as
+Whereas
 .B vmnewof
-except that it never initializes added memory.
-Both functions return the new or resized block, or
-.B NULL
-on failure.
+initializes added memory,
+.B vmoldof
+does not.
 .SH HISTORY
 AT&T was providing its own feature-packed Vmalloc memory allocator
 in libast since the 1990s and maintained it until the early 2010s.

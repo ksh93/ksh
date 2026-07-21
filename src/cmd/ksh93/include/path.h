@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -15,7 +15,8 @@
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
-#ifndef PATH_OFFSET
+#ifndef _PATH_H
+#define _PATH_H
 
 /*
  *	UNIX shell path handling interface
@@ -32,12 +33,12 @@
 #   endif
 #endif /* !SHOPT_SPAWN */
 
-#define PATH_PATH		0001
-#define PATH_FPATH		0002
-#define PATH_CDPATH		0004
-#define PATH_BFPATH		0010
-#define PATH_SKIP		0020
-#define PATH_STD_DIR		0100	/* directory is on  $(getconf PATH) */
+#define PATH_PATH		0001U
+#define PATH_FPATH		0002U
+#define PATH_CDPATH		0004U
+#define PATH_BFPATH		0010U
+#define PATH_SKIP		0020U
+#define PATH_STD_DIR		0100U	/* directory is on $(getconf PATH) */
 
 #define PATH_OFFSET	2		/* path offset for path_join */
 #define MAXDEPTH	1024		/* maximum shell function recursion depth */
@@ -56,19 +57,19 @@ typedef struct pathcomp
 	char		*lib;
 	char		*bbuf;
 	char		*blib;
-	unsigned short	len;
-	unsigned short	flags;
+	size_t		len;
+	uint16_t	flags;
 } Pathcomp_t;
 
-#ifndef ARG_RAW
+#ifndef _ARGNOD_H
     struct argnod;
-#endif /* !ARG_RAW */
+#endif /* !_ARGNOD_H */
 
 /* pathname handling routines */
 extern void		path_newdir(Pathcomp_t*);
 extern Pathcomp_t	*path_dirfind(Pathcomp_t*,const char*,int);
 extern Pathcomp_t	*path_unsetfpath(void);
-extern Pathcomp_t	*path_addpath(Pathcomp_t*,const char*,int);
+extern Pathcomp_t	*path_addpath(Pathcomp_t*,const char*,uint16_t);
 extern Pathcomp_t	*path_dup(Pathcomp_t*);
 extern void		path_delete(Pathcomp_t*);
 extern void 		path_settrackedalias(const char*,Pathcomp_t*);
@@ -76,7 +77,7 @@ extern Namval_t		*path_gettrackedalias(const char*);
 extern Pathcomp_t 	*path_absolute(const char*, Pathcomp_t*, int);
 extern char 		*path_basename(const char*);
 extern char 		*path_fullname(const char*);
-extern int 		path_expand(const char*, struct argnod**, int);
+extern size_t 		path_expand(const char*, struct argnod**, int);
 extern noreturn void 	path_exec(const char*,char*[],struct argnod*);
 extern pid_t		path_spawn(const char*,char*[],char*[],Pathcomp_t*,int);
 extern int		path_open(const char*,Pathcomp_t*);
@@ -85,9 +86,9 @@ extern char 		*path_pwd(void);
 extern Pathcomp_t	*path_nextcomp(Pathcomp_t*,const char*,Pathcomp_t*);
 extern int		path_search(const char*,Pathcomp_t**,int);
 extern char		*path_relative(const char*);
-extern int		path_complete(const char*, const char*,struct argnod**);
+extern size_t		path_complete(const char*, const char*,struct argnod**);
 #if SHOPT_BRACEPAT
-    extern int 		path_generate(struct argnod*,struct argnod**, int);
+    extern ssize_t	path_generate(struct argnod*,struct argnod**, int);
 #endif /* SHOPT_BRACEPAT */
 
 #if SHOPT_DYNAMIC
@@ -124,4 +125,4 @@ extern const char e_autoloadfrom[];
 	extern void sh_accsusp(void);
 #endif /* SHOPT_ACCT */
 
-#endif /*! PATH_OFFSET */
+#endif /* !_PATH_H */

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,7 +16,8 @@
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *                                                                      *
 ***********************************************************************/
-#ifndef SEARCHSIZE
+#ifndef _EDIT_H
+#define _EDIT_H
 /*
  *  edit.h -  common data structure for vi and emacs edit options
  *
@@ -28,14 +29,14 @@
 #define SEARCHSIZE	80
 
 #include	"FEATURE/cmds"
-#include        "FEATURE/locale"
+#include	"FEATURE/locale"
 #include	"terminal.h"
+#include	"national.h"
 
 #define STRIP		0377
 #define LOOKAHEAD	80
 
 #if SHOPT_MULTIBYTE
-#   include	"national.h"
     typedef wchar_t genchar;
 #   define CHARSIZE	(sizeof(wchar_t)<=2?3:sizeof(wchar_t))
 #else
@@ -112,7 +113,7 @@ typedef struct edit
 	void	*e_vi;		/* vi specific data */
 	void	*e_emacs;	/* emacs specific data */
 	char	*e_stkptr;	/* saved stack pointer */
-	int	e_stkoff;	/* saved stack offset */
+	ptrdiff_t e_stkoff;	/* saved stack offset */
 	char	**e_clist;	/* completion list after <ESC>= */
 	int	e_nlist;	/* number of elements on completion list */
 #if SHOPT_ESH || SHOPT_VSH
@@ -167,8 +168,8 @@ extern void	*ed_open(void);
 	extern int ed_internal(const char*, genchar*);
 	extern int ed_external(const genchar*, char*);
 	extern void ed_gencpy(genchar*,const genchar*);
-	extern void ed_genncpy(genchar*,const genchar*,int);
-	extern int ed_genlen(const genchar*);
+	extern void ed_genncpy(genchar*,const genchar*,size_t);
+	extern size_t ed_genlen(const genchar*);
 #endif /* SHOPT_MULTIBYTE */
 
 extern const char	e_runvi[];
@@ -211,4 +212,4 @@ extern void	emacs_redraw(void*);
 extern void	vi_redraw(void*);
 #endif /* SHOPT_VSH */
 
-#endif /* !SEARCHSIZE */
+#endif /* !_EDIT_H */

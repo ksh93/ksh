@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1994-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -31,7 +31,7 @@ opt=
 case `(getopts '[-][123:xyz]' opt --xyz; echo 0$opt) 2>/dev/null` in
 0123)	USAGE=$'
 [-?
-@(#)$Id: mamprobe (ksh 93u+m) 2024-08-12 $
+@(#)$Id: mamprobe (ksh 93u+m) 2026-03-16 $
 ]
 [+NAME?mamprobe - generate MAM cc probe info]
 [+DESCRIPTION?\bmamprobe\b generates MAM (make abstract machine) \bcc\b(1)
@@ -126,7 +126,7 @@ do	case $# in
 	case $1 in
 	'')	continue ;;
 	esac
-	makeprobe=${1%/bin/*}/$script
+	makeprobe=${1%/*}/$script
 	if	test -x "$makeprobe"
 	then	break
 	fi

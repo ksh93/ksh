@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -318,6 +318,13 @@ echo 'bad_func() { :; }' >bad_func
 chmod +x bad_func  # bug only triggered if file is executable
 (FPATH=$PWD; alias -t bad_func 2>/dev/null; typeset -f bad_func >/dev/null)
 (($? > 0)) || err_exit "'hash'/'alias -t' autoloads function"
+
+# ======
+# Use after free if alias redefines itself
+# https://github.com/ksh93/ksh/issues/990
+got=$(set +x; { "$SHELL" -c $'alias foo="alias foo=false\ntrue"\nfoo ' ;} 2>&1)
+(( (e = $?) == 0 )) || err_exit "alias redefining itself:" \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got")"
 
 # ======
 exit $((Errors<125?Errors:125))

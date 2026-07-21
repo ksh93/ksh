@@ -67,9 +67,8 @@ tst	prefer_poll note{ is select less precise than 1 ms }end execute{
 				--tvAfter.tv_sec;
 				tvAfter.tv_usec += 1000000;
 			}
-			if ((tvAfter.tv_sec == tvBefore.tv_sec) &&
-				tvAfter.tv_usec - tvBefore.tv_usec < 1000)
-				return -1;
+			if ((tvAfter.tv_sec == tvBefore.tv_sec) && tvAfter.tv_usec - tvBefore.tv_usec < 1000)
+				return 1;
 		}
 		return 0;
 	}
@@ -108,24 +107,5 @@ tst	- -DN=1 - -DN=2 - -DN=3 - -DN=4 output{
 #endif
 #endif
 		return 0;
-	}
-}end
-
-tst	lib_poll_notimer note{ poll with no fds ignores timeout }end execute{
-	#include <sys/types.h>
-	#include <poll.h>
-	extern time_t	time(time_t*);
-	#define TIMEOUT		4
-	int
-	main(void)
-	{
-		unsigned long	start;
-		unsigned long	finish;
-		struct pollfd	fd;
-		start = time(NULL);
-		if (poll(&fd, 0, TIMEOUT * 1000) < 0)
-			return 0;
-		finish = time(NULL);
-		return (finish - start) > (TIMEOUT / 2);
 	}
 }end

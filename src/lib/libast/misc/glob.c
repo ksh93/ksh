@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -38,7 +38,7 @@
  * GLOB_MAGIC is used for sanity checking. Its significant bits must not overlap with those used
  * for flags. If a new GLOB_* flag bit is added to glob.h, these must be adapted accordingly.
  */
-#define GLOB_MAGIC	0xAAA80000	/* 10101010101010000000000000000000 */
+#define GLOB_MAGIC	0xAAA80000U	/* 10101010101010000000000000000000 */
 #define GLOB_FLAGMASK	0x0007FFFF	/* 00000000000001111111111111111111 */
 
 #define MATCH_RAW	1
@@ -60,7 +60,7 @@ typedef int (*GL_stat_f)(const char*, struct stat*);
 	globlist_t*	gl_rescan; \
 	globlist_t*	gl_match; \
 	Stk_t*		gl_stak; \
-	int		re_flags; \
+	regflags_t	re_flags; \
 	int		re_first; \
 	regex_t*	gl_ignore; \
 	regex_t*	gl_ignorei; \
@@ -206,10 +206,10 @@ errorcheck(glob_t* gp, const char* path)
  */
 
 static void
-trim(char* sp, char* p1, int* n1, char* p2, int* n2)
+trim(char* sp, char* p1, ptrdiff_t* n1, char* p2, ptrdiff_t* n2)
 {
 	char*	dp = sp;
-	int	c;
+	char	c;
 
 	if (p1)
 		*n1 = 0;
@@ -233,13 +233,13 @@ trim(char* sp, char* p1, int* n1, char* p2, int* n2)
 }
 
 static void
-addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char* endslash, int meta)
+addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char* endslash, unsigned char meta)
 {
 	globlist_t*	ap;
-	int		offset;
+	ptrdiff_t	offset;
 	int		type;
 
-	stkseek(globstk,MATCHPATH(gp));
+	stkseek(globstk,(ptrdiff_t)MATCHPATH(gp));
 	if (dir)
 	{
 		sfputr(globstk,dir,-1);
@@ -295,7 +295,7 @@ addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char*
  */
 
 static void
-glob_dir(glob_t* gp, globlist_t* ap, int re_flags)
+glob_dir(glob_t* gp, globlist_t* ap, regflags_t re_flags)
 {
 	char*		rescan;
 	char*		prefix;
@@ -310,14 +310,14 @@ glob_dir(glob_t* gp, globlist_t* ap, int re_flags)
 	regex_t		rec;
 	regex_t		rei;
 	int		notdir;
-	int		t1;
-	int		t2;
-	int		bracket;
+	ptrdiff_t	t1;
+	ptrdiff_t	t2;
+	unsigned char	bracket;
 
-	int		anymeta = ap->gl_flags & MATCH_META;
+	unsigned char	anymeta = ap->gl_flags & MATCH_META;
 	int		complete = 0;
 	int		err = 0;
-	int		meta = ((gp->re_flags & REG_ICASE) && *ap->gl_begin != '/') ? MATCH_META : 0;
+	unsigned char	meta = ((gp->re_flags & REG_ICASE) && *ap->gl_begin != '/') ? MATCH_META : 0;
 	int		quote = 0;
 	int		savequote = 0;
 	char*		restore1 = 0;
@@ -604,15 +604,15 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	char**		argv;
 	char**		av;
 	size_t		skip;
-	unsigned long	f;
+	int		f;
 	int		n;
 	int		x;
-	int		re_flags;
+	regflags_t	re_flags;
 
 	const char*	nocheck = pattern;
-	int		optlen = 0;
-	int		suflen = 0;
-	int		extra = 1;
+	ptrdiff_t	optlen = 0;
+	size_t		suflen = 0;
+	ssize_t		extra = 1;
 	unsigned char	intr = 0;
 
 	gp->gl_rescan = 0;
@@ -620,7 +620,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	gp->gl_errfn = errfn;
 	if (flags & GLOB_APPEND)
 	{
-		if ((gp->gl_flags |= GLOB_APPEND) ^ (flags|GLOB_MAGIC))
+		if ((unsigned)(gp->gl_flags |= GLOB_APPEND) ^ ((unsigned)flags|GLOB_MAGIC))
 			return GLOB_APPERR;
 		if (((gp->gl_flags & GLOB_STACK) == 0) == (gp->gl_stak == 0))
 			return GLOB_APPERR;
@@ -631,7 +631,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	}
 	else
 	{
-		gp->gl_flags = (flags & GLOB_FLAGMASK) | GLOB_MAGIC;
+		gp->gl_flags = (signed)(((unsigned)flags & GLOB_FLAGMASK) | GLOB_MAGIC);
 		gp->re_flags = REG_SHELL|REG_NOSUB|REG_LEFT|REG_RIGHT|((flags&GLOB_AUGMENTED)?REG_AUGMENTED:0);
 		gp->gl_pathc = 0;
 		gp->gl_ignore = 0;
@@ -767,11 +767,11 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	ap->gl_next = 0;
 	ap->gl_flags = 0;
 	ap->gl_begin = ap->gl_path + gp->gl_extra;
-	pat = strcopy(ap->gl_begin, pattern + optlen);
+	pat = strcopy(ap->gl_begin, pattern + (size_t)optlen);
 	if (suflen)
 		pat = strcopy(pat, gp->gl_suffix);
 	if (optlen)
-		strlcpy(gp->gl_pat = gp->gl_opt = pat + 1, pattern, optlen);
+		strlcpy(gp->gl_pat = gp->gl_opt = pat + 1, pattern, (size_t)optlen);
 	else
 		gp->gl_pat = 0;
 	suflen = 0;
@@ -801,10 +801,10 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		gp->gl_list = gp->gl_match;
 	else
 	{
-		argv = stkalloc(globstk,(gp->gl_pathc + extra) * sizeof(char*));
+		argv = stkalloc(globstk,(gp->gl_pathc + (size_t)extra) * sizeof(char*));
 		if (gp->gl_flags & GLOB_APPEND)
 		{
-			skip += --extra;
+			skip += (size_t)--extra;
 			memcpy(argv, gp->gl_pathv, skip * sizeof(char*));
 			av = argv + skip;
 		}
@@ -825,9 +825,9 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		*argv = 0;
 		if (!(flags & GLOB_NOSORT) && (argv - av) > 1)
 		{
-			strsort(av, argv - av, strcoll);
+			strsort(av, (int)(argv - av), ast.locale.collate);
 			if (gp->gl_starstar > 1)
-				av[gp->gl_pathc = struniq(av, argv - av)] = 0;
+				av[gp->gl_pathc = (size_t)struniq(av, argv - av)] = 0;
 			gp->gl_starstar = 0;
 		}
 	}
@@ -841,7 +841,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 void
 _ast_globfree(glob_t* gp)
 {
-	if ((gp->gl_flags & GLOB_MAGIC) == GLOB_MAGIC)
+	if (((unsigned)gp->gl_flags & GLOB_MAGIC) == GLOB_MAGIC)
 	{
 		gp->gl_flags &= ~GLOB_MAGIC;
 		if (gp->gl_stak)

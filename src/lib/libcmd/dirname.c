@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -96,7 +96,7 @@ static void l_dirname(Sfio_t *outfile, const char *pathname, char termch)
 		if(last!=pathname && pathname[0]=='/' && pathname[1]=='/' && *astconf("PATH_LEADING_SLASHES",NULL,NULL)!='1')
 			pathname++;
 	}
-	sfwrite(outfile,pathname,last+1-pathname);
+	sfwrite(outfile,pathname,(size_t)(last+1-pathname));
 	sfputc(outfile,termch);
 }
 
@@ -129,9 +129,7 @@ b_dirname(int argc, char** argv, Shbltin_t* context)
 			error(2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}

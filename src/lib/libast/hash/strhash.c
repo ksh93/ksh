@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -30,12 +30,12 @@
  * return the hash of the null-terminated string s
  */
 
-unsigned int
+size_t
 strhash(const char* as)
 {
 	const unsigned char*	s = (const unsigned char*)as;
-	unsigned int		i = 0;
-	unsigned int		c;
+	size_t			i = 0;
+	size_t			c;
 
 	while (c = *s++) HASHPART(i, c);
 	return i;

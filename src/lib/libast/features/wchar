@@ -20,7 +20,7 @@ run{
 	cat <<!
 	#ifndef _SFSTDIO_H
 	#include <ast_common.h>
-	#include <stdio.h>
+	#include <stdio.h> /* NODEP */
 	#endif
 	!
 	case ${_hdr_wchar},${_nxt_wchar} in
@@ -69,7 +69,7 @@ tst	iswpunct_broken note{ is iswpunct(3) broken }end execute{
 				'<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', '\0' };
 		int i;
 		for (i = 0; c[i]; i++)
-			if (ispunct(c[i]) && !iswpunct(c[i]))
+			if (ispunct(c[i]) && !iswpunct((wint_t)c[i]))
 				return 0;
 		return 1;
 	}

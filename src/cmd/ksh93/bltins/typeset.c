@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -30,7 +30,7 @@
  * alias [-ptx] [arg...]
  * unalias [-a] [arg...]
  * hash [-r] [utility...]
- * builtin [-dls] [-f file] [name...]
+ * builtin [-dlps] [-f file] [name...]
  * set [options] [name...]
  * unset [-fnv] [name...]
  *
@@ -39,7 +39,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<error.h>
 #include	"path.h"
@@ -66,10 +66,10 @@ struct tdata
 	short     	aflag;
 	short     	pflag;
 	int     	argnum;
-	int     	scanmask;
+	nvflag_t     	scanmask;
 	Dt_t 		*scanroot;
 	char    	**argnam;
-	int		indent;
+	size_t		indent;
 	int		noref;
 };
 
@@ -77,9 +77,9 @@ struct tdata
 static int	print_namval(Sfio_t*, Namval_t*, int, struct tdata*);
 static void	print_attribute(Namval_t*,void*);
 static void	print_all(Sfio_t*, Dt_t*, struct tdata*);
-static void	print_scan(Sfio_t*, int, Dt_t*, int, struct tdata*);
+static void	print_scan(Sfio_t*, nvflag_t, Dt_t*, int, struct tdata*);
 static int	unall(int, char**, Dt_t*);
-static int	setall(char**, int, Dt_t*, struct tdata*);
+static int	setall(char**, nvflag_t, Dt_t*, struct tdata*);
 static void	pushname(Namval_t*,void*);
 static void(*nullscan)(Namval_t*,void*);
 
@@ -92,14 +92,15 @@ static void(*nullscan)(Namval_t*,void*);
 #endif
 int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 {
-	int flag;
+	int n;
+	nvflag_t flag;
 	char *command = argv[0];
 	struct tdata tdata;
 	NOT_USED(argc);
 	NOT_USED(context);
 	memset(&tdata,0,sizeof(tdata));
 	tdata.aflag = '-';
-	while((flag = optget(argv,*command=='e'?sh_optexport:sh_optreadonly))) switch(flag)
+	while((n = optget(argv,*command=='e'?sh_optexport:sh_optreadonly))) switch(n)
 	{
 		case 'p':
 			tdata.prefix = command;
@@ -108,9 +109,7 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -136,7 +135,7 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 #endif
 int    b_alias(int argc,char *argv[],Shbltin_t *context)
 {
-	unsigned flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
+	nvflag_t flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
 	Dt_t *troot;
 	int rflag=0, xflag=0, n;
 	struct tdata tdata;
@@ -177,9 +176,7 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 		    case '?':
 			if(sh.shcomp)
 				return 0;
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		if(error_info.errors)
 		{
@@ -217,12 +214,12 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
     int    b_float(int argc,char *argv[],Shbltin_t *context){}
     int    b_functions(int argc,char *argv[],Shbltin_t *context){}
     int    b_integer(int argc,char *argv[],Shbltin_t *context){}
-    int    b_local(int argc,char *argv[],Shbltin_t *context){}
     int    b_nameref(int argc,char *argv[],Shbltin_t *context){}
 #endif
 int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 {
-	int		n, flag = NV_VARNAME|NV_ASSIGN;
+	int		n;
+	nvflag_t	flag = NV_VARNAME|NV_ASSIGN;
 	struct tdata	tdata;
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
@@ -239,7 +236,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 	}
 	else if(argv[0][0] != 't')		/* not <t>ypeset */
 	{
-		char **new_argv = stkalloc(sh.stk, (argc + 2) * sizeof(char*));
+		char **new_argv = stkalloc(sh.stk, (size_t)(argc + 2) * sizeof(char*));
 		error_info.id = new_argv[0] = SYSTYPESET->nvname;
 		if(argv[0][0] == 'a')		/* <a>utoload == typeset -fu */
 			new_argv[1] = "-fu";
@@ -294,7 +291,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				/* FALLTHROUGH */
 			case 'F':
 			case 'X':
-				if(!opt_info.arg || (tdata.argnum = opt_info.num) <0)
+				if(!opt_info.arg || (tdata.argnum = (int)opt_info.num) <0)
 					tdata.argnum = (n=='X'?2*sizeof(Sfdouble_t):10);
 				else if (tdata.argnum==0)
 					tdata.argnum = NV_FLTSIZEZERO;
@@ -371,7 +368,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				troot = sh.fun_tree;
 				break;
 			case 'i':
-				if(!opt_info.arg || (tdata.argnum = opt_info.num) <2 || tdata.argnum >64)
+				if(!opt_info.arg || (tdata.argnum = (int)opt_info.num) <2 || tdata.argnum >64)
 					tdata.argnum = 10;
 				if(isfloat)
 				{
@@ -443,9 +440,7 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 				break;
 			case '?':
 				opt_info.disc = 0;
-				/* self-doc: write to standard output */
-				error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-				return 0;
+				return optselfdoc();
 		}
 	}
 endargs:
@@ -526,9 +521,9 @@ endargs:
 	{
 		Stk_t *stkp = sh.stk;
 #if SHOPT_NAMESPACE
-		int off = 0;
+		ptrdiff_t off = 0;
 #endif /* SHOPT_NAMESPACE */
-		int offset = stktell(stkp);
+		ptrdiff_t offset = stktell(stkp);
 		if(!tdata.prefix)
 			return sh_outtype(sfstdout);
 		sfputr(stkp,NV_CLASS,-1);
@@ -651,12 +646,14 @@ static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 	}
 }
 
-static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
+static int     setall(char **argv,nvflag_t flag,Dt_t *troot,struct tdata *tp)
 {
 	char *name;
 	char *last = 0;
-	int nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
-	int r=0, ref=0, comvar=(flag&NV_COMVAR),iarray=(flag&NV_IARRAY);
+	nvflag_t nvflags=(flag&(NV_ARRAY|NV_NOARRAY|NV_VARNAME|NV_IDENT|NV_ASSIGN|NV_STATIC|NV_MOVE));
+	int r=0, ref=0;
+	nvflag_t comvar=(flag&NV_COMVAR);
+	nvflag_t iarray=(flag&NV_IARRAY);
 	Dt_t *save_vartree = NULL;
 #if SHOPT_NAMESPACE
 	Namval_t *save_namespace = NULL;
@@ -693,11 +690,11 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 			nvflags |= (NV_NOREF|NV_NOADD|NV_NOFAIL);
 		while(name = *++argv)
 		{
-			unsigned newflag;
-			Namval_t *np;
+			nvflag_t	newflag;
+			Namval_t	*np;
 			Namarr_t	*ap=0;
 			Namval_t	*mp;
-			unsigned curflag;
+			nvflag_t	curflag;
 			if(troot == sh.fun_tree)
 			{
 				/*
@@ -761,7 +758,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 					r++;
 				if(tp->help)
 				{
-					int offset = stktell(sh.stk);
+					ptrdiff_t offset = stktell(sh.stk);
 					if(!np)
 					{
 						sfputr(sh.stk,sh.prefix,'.');
@@ -967,7 +964,7 @@ static int     setall(char **argv,int flag,Dt_t *troot,struct tdata *tp)
 					if(flag&NV_RDONLY && !tp->argnum && !(flag&(NV_INTEGER|NV_BINARY)) && !(flag&(NV_LJUST|NV_RJUST|NV_ZFILL)))
 						/* New requested attribute(s) are readonly, have a provided or defaulted size of 0, and are
 						   not a string justification nor numeric. Justified or binary strings can have a size of 0. */
-						nv_newattr(np, newflag&~NV_ASSIGN, np->nvsize);
+						nv_newattr(np, newflag&~NV_ASSIGN, (ssize_t)np->nvsize);
 					else
 						nv_newattr(np, newflag&~NV_ASSIGN, tp->argnum);
 				}
@@ -1095,7 +1092,7 @@ int sh_addlib(void* dll, char* name, Pathcomp_t* pp)
 	if (nlib >= maxlib)
 	{
 		maxlib += GROWLIB;
-		liblist = sh_newof(liblist, Libcomp_t, maxlib+1, 0);
+		liblist = sh_newof(liblist, Libcomp_t, (size_t)maxlib+1, 0);
 	}
 	liblist[nlib].dll = dll;
 	liblist[nlib].attr = (sp->nosfio?BLT_NOSFIO:0);
@@ -1129,9 +1126,11 @@ Shbltin_f sh_getlib(char* sym, Pathcomp_t* pp)
 int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 {
 	char *arg=0, *name;
-	int n, r=0, flag=0;
+	int n, r=0;
+	ptrdiff_t offset;
+	nvflag_t flag=0;
 	Namval_t *np;
-	long dlete=0;
+	int dlete=0;
 	struct tdata tdata;
 	Shbltin_f addr;
 	Stk_t	*stkp;
@@ -1166,13 +1165,14 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 		list = 1;
 #endif
 	        break;
+	    case 'p':
+		tdata.prefix = argv[0];
+		break;
 	    case ':':
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
@@ -1209,13 +1209,30 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #endif /* SHOPT_DYNAMIC */
 	if(*argv==0 && !dlete)
 	{
+#if SHOPT_DYNAMIC
+		if(tdata.prefix)
+			for(n = 0; n < nlib; n++)
+				sfprintf(sfstdout, "%s -f %s\n", tdata.prefix, liblist[n].lib);
+#endif
 		print_scan(sfstdout, flag, sh.bltin_tree, 1, &tdata);
 		return 0;
 	}
 	r = 0;
-	flag = stktell(stkp);
+	offset = stktell(stkp);
 	while(arg = *argv)
 	{
+		if(tdata.prefix)
+		{
+			if(np = nv_search(arg,sh.bltin_tree,0))
+				sfprintf(sfstdout,"%s %s\n",tdata.prefix,arg);
+			else
+			{
+				errormsg(SH_DICT,ERROR_exit(0),"%s: %s",*argv,"not found");
+				r = 1;
+			}
+			argv++;
+			continue;
+		}
 		name = path_basename(arg);
 		sfwrite(stkp,"b_",2);
 		sfputr(stkp,name,0);
@@ -1227,7 +1244,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 			{
 				if(!dlete && !liblist[n].dll)
 					continue;
-				if(dlete || (addr = (Shbltin_f)dlllook(liblist[n].dll,stkptr(stkp,flag))))
+				if(dlete || (addr = (Shbltin_f)dlllook(liblist[n].dll,stkptr(stkp,offset))))
 #else
 		if(dlete)
 			for(n=dlete; --n>=0;)
@@ -1260,7 +1277,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,ERROR_exit(0),"%s: %s",*argv,errmsg);
 			r = 1;
 		}
-		stkseek(stkp,flag);
+		stkseek(stkp,offset);
 		argv++;
 	}
 	return r;
@@ -1312,7 +1329,8 @@ static int unall(int argc, char **argv, Dt_t *troot)
 	const char *name;
 	volatile int r;
 	Dt_t	*dp;
-	int nflag=0,all=0,isfun,jmpval;
+	int all=0,isfun,jmpval;
+	nvflag_t nflag=0;
 	struct checkpt buff;
 	NOT_USED(argc);
 	if(troot==sh.alias_tree)
@@ -1337,9 +1355,7 @@ static int unall(int argc, char **argv, Dt_t *troot)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors || (*argv==0 &&!all))
@@ -1476,7 +1492,8 @@ static int unall(int argc, char **argv, Dt_t *troot)
 static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 {
 	char	*cp;
-	int	indent=tp->indent, outname=0, isfun;
+	size_t	indent=tp->indent;
+	int	outname=0, isfun;
 	char	tempexport=0;
 	sh_sigcheck();
 	if(flag)
@@ -1488,7 +1505,11 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 	if(nv_isattr(np,NV_NOPRINT|NV_INTEGER)==NV_NOPRINT)
 	{
 		if(is_abuiltin(np))
+		{
+			if(tp->prefix)
+				sfputr(file,tp->prefix,' ');
 			sfputr(file,nv_name(np),'\n');
+		}
 		return 0;
 	}
 	if(nv_istable(np))
@@ -1554,7 +1575,7 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 			sfputc(file, '\n');
 			sh_deparse(file, (Shnode_t*)(rp->ptree), 2 | nv_isattr(np,NV_FPOSIX), 0);
 		}
-		return nv_size(np) + 1;
+		return 1;
 	}
 	if(nv_arrayptr(np))
 	{
@@ -1622,7 +1643,7 @@ static void	print_attribute(Namval_t *np,void *data)
  * print the nodes in tree <root> which have attributes <flag> set
  * if <option> is non-zero, no subscript or value is printed
  */
-static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tdata *tp)
+static void print_scan(Sfio_t *file, nvflag_t flag, Dt_t *root, int option,struct tdata *tp)
 {
 	char **argv;
 	Namval_t *np;
@@ -1642,10 +1663,10 @@ static void print_scan(Sfio_t *file, int flag, Dt_t *root, int option,struct tda
 	if(flag==NV_LTOU || flag==NV_UTOL)
 		tp->scanmask |= NV_UTOL|NV_LTOU;
 	namec = nv_scan(root, nullscan, tp, tp->scanmask, flag&~NV_IARRAY);
-	argv = tp->argnam  = stkalloc(sh.stk,(namec+1)*sizeof(char*));
+	argv = tp->argnam  = stkalloc(sh.stk,(size_t)(namec+1)*sizeof(char*));
 	namec = nv_scan(root, pushname, tp, tp->scanmask, flag&~NV_IARRAY);
-	if(mbcoll())
-		strsort(argv,namec,strcoll);
+	if(ast.locale.transform)
+		strsort(argv,namec,ast.locale.collate);
 	if(namec==0 && sh.namespace && nv_dict(sh.namespace)==root)
 	{
 		sfnputc(file,'\t',tp->indent);

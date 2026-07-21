@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -25,11 +26,7 @@
 
 #include "FEATURE/float"
 
-#if _lib_frexpl && _lib_ldexpl
-
-NoN(frexpl)
-
-#else
+#if !(_lib_frexpl && _lib_ldexpl)
 
 #ifndef LDBL_MAX_EXP
 #define LDBL_MAX_EXP	DBL_MAX_EXP
@@ -47,7 +44,7 @@ static long double	pow2tab[LDBL_MAX_EXP + 1];
 static int
 init(void)
 {
-	int		x;
+	size_t		x;
 	long double	g;
 
 	g = 1;
@@ -154,4 +151,8 @@ ldexpl(long double f, int x)
 
 #endif
 
-#endif
+#else
+
+NoN(frexpl)
+
+#endif /* !(_lib_frexpl && _lib_ldexpl) */

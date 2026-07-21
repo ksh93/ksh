@@ -2,6 +2,339 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2025-07-21:
+
+- Fixed a crash when attempting to access a positional parameter with a
+  number exceeding PTRDIFF_MAX (or, until 2026-04-14, INT_MAX).
+
+2025-07-20:
+
+- Fixed a use-after-free in optget(3) long-form option parsing.
+
+- Fixed an invalid free that occurred upon exiting the subshell when
+  attempting to assign to an array subscript of .sh in a subshell.
+
+2026-07-19:
+
+- Fixed various potential crashes and misbehaviour due to the use of
+  uninitialised memory.
+
+2026-07-18:
+
+- Fixed a crash that occurred when an unterminated command substitution
+  follows a here-document redirection. For example, ksh -c $'cat <<EOF $(\n'
+  now throws the expected syntax error without crashing.
+
+2026-07-17:
+
+- The 2020-09-05/2021-04-30/2021-05-03 fix for erroneous syntax errors in
+  parameter expansions such as ${var:-wor)d} or ${var+w(ord} was ineffective
+  for positional parameters (e.g., ${1:-wor)d} or ${2+w(ord}) due to an
+  additional problem in the lexer, which has now been found and fixed.
+
+- Fixed a potential crash or freeze in the processing of an unterminated
+  here-document combined with a pattern matching redirection.
+
+2026-07-16:
+
+- Fixed: assigning a value to a 'typeset -b' binary data variable that is
+  shorter than the previous value caused the shell to crash or output garbage.
+
+- The shell's timer/alarm-related features ($TMOUT, 'read -t', the 'alarm'
+  built-in, and various internal timeout handling) now use the POSIX functions
+  timer_create(2) and friends with CLOCK_MONOTONIC, where available. This
+  guarantees a correct delay even if the system clock is adjusted during it.
+
+2026-07-15:
+
+- Fixed: the value of $? was incorrectly 0 in the EXIT trap when the shell
+  aborted due to an error.
+
+- Fixed: $((-2**63/-1)) threw SIGFPE or froze the shell.
+
+2026-07-13:
+
+- Fixed: when the -m option is turned on in a non-interactive shell, and the
+  shell controls a terminal, the terminal foreground process group ID was not
+  set correctly when running external commands. Bug introduced on 2026-07-01.
+
+2026-07-06:
+
+- Fixed: on the shell's invocation, the -s option (read script from standard
+  input) was incorrectly forced on if -c was used to pass a shell script as
+  a command line argument without passing any further arguments.
+
+- Fixed a bug where read -nN would fail in a -c script when reading from a
+  pipe, e.g., this failed: print xyz | ksh -c 'read -n2 && print "$REPLY"'.
+  Bug introduced on 2026-04-17.
+
+2026-07-03:
+
+- Fixed a bug in the printf built-in where the output of %.Ng, where N is
+  a number of digits > 18, was truncated for numbers longer than 18 digits.
+
+2026-07-02:
+
+- Process substitution now no longer depends on compile-time detection of
+  /dev/fd/N, but detects this at runtime instead and transparently falls
+  back to the legacy method with FIFOs whenever /dev/fd is unavailable. This
+  fixes process substituion on FreeBSD, where /dev/fd is an optional file
+  system that may be mounted and unmounted at any time.
+
+- Fixed input buffer memory corruption occurring for inpnut from the terminal
+  and other non-seekable input on FreeBSD. Bug introduced on 2026-04-17.
+
+2026-07-01:
+
+- Fixed two longstanding bugs in job control: if the -m (--monitor) option was
+  on in a script, then:
+  - subshells invoked by the main shell environment did not become the
+    leader of their own process group;
+  - if the shell was built with the SHOPT_SPAWN compile-time option active
+    (default on most systems), then external non-background commands invoked
+    from the script didn't become the leader of their own process group.
+
+- Fixed a race condition in job control where all processes belonging
+  to a pipeline would not always be assigned the same process group.
+  Bug introduced on 2021-02-11.
+
+2026-06-28:
+
+- Fixed a bug in job control that broke job search by command line; instead
+  of searching the whole jobs list, a command like 'fg %?STRING' only matched
+  STRING for the first job in the list. Bug introduced on 2022-01-02.
+
+2026-06-19:
+
+- Fixed a memory leak that occurred when using printf date/time formatting
+  (i.e., %(...)T) with a user-supplied date/time.
+
+2026-06-14:
+
+- Fixed a potential crash (use after free) that could occur if a multi-line
+  alias redefines itself while its value is being parsed and executed.
+
+2026-05-08:
+
+- Fixed a bug in the POSIX mode 'getopts', introduced 2026-05-02, where OPTIND
+  was increased by one too many at the end of options, causing the idiomatic
+  'shift $((OPTIND-1))' command to shift out one non-option argument too many.
+
+2026-05-02:
+
+- When a function that uses the 'getopts' built-in command is invoked from
+  the interactive command line with one of the AST self-documentation options
+  such as --help or --man, 'getopts' will no longer stop the execution of any
+  commands that follow the function call on the same command line.
+
+- The shell's POSIX mode has been amended to disable long options (including
+  --help, etc., which would abort the script), which are incompatible with
+  the POSIX spec and may prevent POSIX scripts from printing their own usage
+  message. This is only disabled if the --posix option is on *and* getopts is
+  given an options string that does not use ksh's extended getopts interface.
+
+2026-04-22:
+
+- Fixed a bug that causes the loss of the contents of all here-documents
+  in already-loaded functions if a command on the interactive shell is
+  interrupted, such as with Ctrl+C. Bug introduced on 2024-02-22.
+
+2026-04-20:
+
+- [v1.1] Removed an undocumented and inconsistent hack that made
+	ksh somecommand arg1 arg2 arg3
+  equivalent to
+	ksh -c 'somecommand "$@"' dummy arg1 arg2 arg3
+  if, and only if, the command "somecommand" was not found on $PATH. For
+  instance, the command
+	ksh print hello there
+  would output "hello there" if the command 'print' didn't exist as an
+  external command, whereas
+	ksh echo hello there
+  would usually fail as ksh tried to execute /bin/echo as a shell script,
+  because 'echo' usually exists on PATH as an external command. This
+  inconsistency, among others, is the reason why the correct documented -c
+  usage is now required. One other important effect of this fix is that
+	ksh --noexec nonexistent_script
+  i.e., running the ksh linter a script with a typo in the file name, will
+  now produce the expected error message and no longer quietly "succeed".
+
+2026-04-17:
+
+- Fixed a severe problem with invalid buffer handling in the shell's lexical
+  analysis and parsing of scripts that could cause spurious syntax errors or
+  crash the shell if the size of a script exceeded the buffer size of 64 KiB
+  and certain grammatical constructs happened to cross buffer boundaries. To
+  prevent this, the entire script is now buffered in memory before parsing
+  commences. If the script file size cannot be determined (when loading from
+  a pipe), the shell now allocates a fixed-size 2 MiB buffer and scripts are
+  buffered one line at a time with a maximum length of 2 MiB per script line.
+  The problem now fixed has been present since the early days of AT&T ksh93.
+
+2026-04-16:
+
+- Fixed breakage in autoload loop detection when first invoking an
+  autoloadable function on FPATH from within a subshell.
+
+2026-04-14:
+
+- Ksh is now capable of allocating memory within a 64-bit address space. This
+  means variables can now contain multi-gigabyte values without ksh crashing.
+
+2026-04-13:
+
+- Fixed a potential crash that could occur if a shell discipline function
+  throws an error (such as 'parameter not set' if the -u option is on).
+
+2026-04-12:
+
+- The 2023-02-22 fix for detecting errors while reading a script has been
+  fixed to also detect errors while reading a compound command from a script.
+
+- Fixed a corner case bug where backslash line continuation inserted within a
+  variable name passed to a declaration command produdced incorrect results.
+  This bug was introduced on 2024-01-16 and exacerbated on 2025-05-29.
+
+2026-04-01:
+
+- Fixed a bug where a DEBUG trap containing a function definition would fail
+  with a spurious error message when invoked by running a compound assignment.
+
+2026-03-28:
+
+- Fixed a potential crash (buffer read overflow) in the .sh.match code
+  that was backported on 2022-02-08.
+
+- Fixed a crash in option parsing that could happen if a multibyte character
+  was passed as an option to a command.
+
+2026-03-23:
+
+- Fixed a bug in command substitutions, where a command substitution would
+  fail to catch standard output after a nested function redirects standard
+  output to /dev/null. Bug introduced on 2022-01-11.
+
+2026-03-22:
+
+- Fixed a bug where the interactive shell would sometimes suspend itself
+  after suspending a child process with SIGTSTP (Ctrl+Z).
+
+2026-03-20:
+
+- Fixed a memory leak that occurred when any subshell or ksh function with
+  'function name' syntax is invoked while at least one signal or EXIT trap
+  is set in the invoking environment.
+
+- Fixed an issue, introduced on 2022-06-13, causing a subshell to fork
+  unnecessarily if an EXIT pseudosignal trap is set within it.
+
+2026-03-16:
+
+- Fixed a bug in the join(1) built-in command (bound to /opt/ast/bin) that
+  caused it to fail if one of the file arguments is a process substitution or
+  other unseekable file stream. Unseekable files were only handled correctly
+  when passing "-" for standard input; now all unseekable files work.
+
+2026-03-09:
+
+- Fixed a bug in the sleep built-in command that could cause an excessive
+  sleep duration if a signal was received during the sleep.
+
+2026-03-07:
+
+- Fixed an invalid free crash that could occur when using the libcmd
+  builtins with /opt/ast/bin prefixed in the PATH and the POSIXLY_CORRECT
+  environment variable set to 1.
+
+2026-03-01:
+
+- Fixed a use-after-free crash that could occur when variables of custom
+  types defined with 'typeset -T' were used as members of other custom types
+  defined with 'typeset -T'.
+
+2026-02-24:
+
+- The routine that prints the menu for the 'select' loop has been made aware
+  of multibyte character locales, so that using UTF-8 characters will no
+  longer result in menu columns that are not properly lined up.
+
+2026-02-17:
+
+- Fixed a regression introduced on 02-02-2022 occurring on systems with
+  glibc 2.35+ that could cause the pty regression tests to crash or lockup.
+
+- Fixed a regression introduced on 02-02-2022 that could cause ksh to crash
+  after a command fails with E2BIG.
+
+- Fixed a bug that caused a file descriptor leak when a command run
+  with the 'command' builtin couldn't be executed due to an error
+  (e.g. ENOENT or E2BIG).
+
+2026-02-15:
+
+- Fixed a bug in 'ksh -n' that caused the shell to overlook many
+  obsolete options passed to set(1) and alias(1) and incorrectly
+  flag non-obsolete options as obsolete.
+
+2026-02-06:
+
+- Fixed a file descriptor leak introduced in 93u+ 2012-07-27 that occurred
+  when forking nested subshells.
+
+- Fixed a bug that could cause cd(1) to fail with the wrong error message
+  if the underlying close(2) calls failed after cd failed to change the
+  directory with fchdir(2).
+
+- [v1.1] Fixed a file descriptor leak that could occur on systems lacking a
+  usable implementation of arc4random(3).
+
+2026-02-04:
+
+- Fixed a severe arithmetic bug (which thankfully never made it into a release
+  version) introduced on 2024-11-30, in which 'typeset -i' variables were
+  incorrectly treated as unsigned int when rendering their values as strings
+  (e.g. 'typeset -i foo=-1; echo $foo' output 4294967295 instead of -1).
+
+2026-02-01:
+
+- Replaced the 2021-03-09 fix for ${!foo@} and ${!foo*}, which was not quite
+  correct, with a new fix that also corrects ${#foo@} and ${#foo*}; these now
+  also count 'foo' itself as a variable whose name begins with 'foo'.
+
+- Fixed a possible out of bounds crash that could occur when running
+  a POSIX function (aka a function of the form 'name() {').
+
+2026-01-28:
+
+- [v1.1] Backported 'builtin -p' and 'umask -p' from ksh93v-, which
+  can be used to print reinputtable commands for recreating the builtin
+  table state and umask.
+
+- [v1.1] Backported 'trap -l' from ksh93v- for listing signals.
+
+- Fixed a regression, introduced with the printf fixes on 2023-05-18, that
+  broke date specs relative to now, such as: printf '%T\n' 'in 10 weeks'
+
+- Fixed incorrect behaviour that occurred when IFS, PATH, SHELL,
+  FPATH, CDPATH, SECONDS, ENV, LANG, LC_ALL, LC_CTYPE, LC_MESSAGES,
+  LC_COLLATE, LC_NUMERIC, or LC_TIME were declared as a local
+  variable within a function using 'typeset' while a custom shell
+  discipline function was defined for them in the global scope.
+
+- Fixed memory fault when attempting to run /dev/fd/1 as a script.
+
+- Fixed the value of $0 when running a /dev/fd file descriptor as a script.
+
+2026-01-21:
+
+- Fixed several IFS field splitting bugs in read(1) that occurred
+  when it is given a null delimiter (read -d '').
+
+2025-09-30:
+
+- The rm path-bound built-in command from libcmd no longer suppresses error
+  messages when the -f/--force option is used.
+
 2025-06-14:
 
 - Fixed a bug occurring on systems with posix_spawn(3), spawnve(2), and

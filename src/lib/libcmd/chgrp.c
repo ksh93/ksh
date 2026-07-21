@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -139,62 +139,61 @@ extern int	lchown(const char*, uid_t, gid_t);
 static void
 getids(char* s, char** e, Key_t* key, int options)
 {
-	char*	t;
-	int	n;
-	int	m;
-	char*	z;
-	char	buf[64];
+	char*		t;
+	ptrdiff_t	n;
+	char*		z;
+	char		buf[64];
 
 	key->uid = key->gid = -1;
 	while (isspace(*s))
 		s++;
-	for (t = s; (n = *t) && n != ':' && n != '.' && !isspace(n); t++);
+	for (t = s; (n = *t) && n != ':' && n != '.' && !isspace((int)n); t++);
 	if (n)
 	{
 		options |= OPT_CHOWN;
-		if ((n = t++ - s) >= sizeof(buf))
-			n = sizeof(buf) - 1;
-		*((s = (char*)memcpy(buf, s, n)) + n) = 0;
+		if ((n = t++ - s) >= (ssize_t)sizeof(buf))
+			n = (ssize_t)sizeof(buf) - 1;
+		*((s = (char*)memcpy(buf, s, (size_t)n)) + n) = 0;
 	}
 	if (options & OPT_CHOWN)
 	{
 		if (*s)
 		{
-			n = (int)strtol(s, &z, 0);
+			int i, j = (int)strtol(s, &z, 0);
 			if (*z || !(options & OPT_NUMERIC))
 			{
-				if ((m = struid(s)) >= 0)
-					n = m;
+				if ((i = struid(s)) >= 0)
+					j = i;
 				else if (*z)
 				{
 					error(ERROR_exit(1), "%s: unknown user", s);
 					UNREACHABLE();
 				}
 			}
-			key->uid = n;
+			key->uid = j;
 		}
-		for (s = t; (n = *t) && !isspace(n); t++);
+		for (s = t; (n = *t) && !isspace((int)n); t++);
 		if (n)
 		{
-			if ((n = t++ - s) >= sizeof(buf))
-				n = sizeof(buf) - 1;
-			*((s = (char*)memcpy(buf, s, n)) + n) = 0;
+			if ((n = t++ - s) >= (ssize_t)sizeof(buf))
+				n = (ssize_t)sizeof(buf) - 1;
+			*((s = (char*)memcpy(buf, s, (size_t)n)) + n) = 0;
 		}
 	}
 	if (*s)
 	{
-		n = (int)strtol(s, &z, 0);
+		int i, j = (int)strtol(s, &z, 0);
 		if (*z || !(options & OPT_NUMERIC))
 		{
-			if ((m = strgid(s)) >= 0)
-				n = m;
+			if ((i = strgid(s)) >= 0)
+				j = i;
 			else if (*z)
 			{
 				error(ERROR_exit(1), "%s: unknown group", s);
 				UNREACHABLE();
 			}
 		}
-		key->gid = n;
+		key->gid = j;
 	}
 	if (e)
 		*e = t;
@@ -213,7 +212,6 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	Map_t*		m;
 	FTS*		fts;
 	FTSENT*		ent;
-	int		i;
 	Dt_t*		map = 0;
 	int		logical = 1;
 	int		flags;
@@ -223,7 +221,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	char*		usage;
 	char*		t;
 	Sfio_t*		sp;
-	unsigned long	before;
+	time_t		before;
 	Dtdisc_t	mapdisc;
 	Key_t		keys[3];
 	Key_t		key;
@@ -301,8 +299,8 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 				error(ERROR_exit(1), "%s: cannot stat", opt_info.arg);
 				UNREACHABLE();
 			}
-			uid = st.st_uid;
-			gid = st.st_gid;
+			uid = (int)st.st_uid;
+			gid = (int)st.st_gid;
 			options |= OPT_UID|OPT_GID;
 			continue;
 		case 'u':
@@ -332,9 +330,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			error(2, "%s", opt_info.arg);
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}
@@ -437,14 +433,15 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			chownf = chown;
 			op = "chown";
 		commit:
-			if ((unsigned long)ent->fts_statp->st_ctime >= before)
+			if (ent->fts_statp->st_ctime >= before)
 				break;
 			if (map)
 			{
+				size_t i;
 				options &= ~(OPT_UID|OPT_GID);
 				uid = gid = -1;
-				keys[0].uid = keys[1].uid = ent->fts_statp->st_uid;
-				keys[0].gid = keys[2].gid = ent->fts_statp->st_gid;
+				keys[0].uid = keys[1].uid = (int)ent->fts_statp->st_uid;
+				keys[0].gid = keys[2].gid = (int)ent->fts_statp->st_gid;
 				i = 0;
 				do
 				{
@@ -466,9 +463,9 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 			else
 			{
 				if (!(options & OPT_UID))
-					uid = ent->fts_statp->st_uid;
+					uid = (int)ent->fts_statp->st_uid;
 				if (!(options & OPT_GID))
-					gid = ent->fts_statp->st_gid;
+					gid = (int)ent->fts_statp->st_gid;
 			}
 			if ((options & OPT_UNMAPPED) && (uid < 0 || gid < 0))
 			{
@@ -479,7 +476,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 				else
 					error(ERROR_warn(0), "%s: GID not mapped", ent->fts_path);
 			}
-			if (uid != ent->fts_statp->st_uid && uid >= 0 || gid != ent->fts_statp->st_gid && gid >= 0)
+			if (uid != (int)ent->fts_statp->st_uid && uid >= 0 || gid != (int)ent->fts_statp->st_gid && gid >= 0)
 			{
 				if (options & (OPT_SHOW|OPT_VERBOSE))
 				{
@@ -490,7 +487,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 					}
 					sfprintf(sfstdout, "%s uid:%05d->%05d gid:%05d->%05d %s\n", op, ent->fts_statp->st_uid, uid, ent->fts_statp->st_gid, gid, ent->fts_path);
 				}
-				if (!(options & OPT_SHOW) && (*chownf)(ent->fts_accpath, uid, gid) && !(options & OPT_FORCE))
+				if (!(options & OPT_SHOW) && (*chownf)(ent->fts_accpath, (uid_t)uid, (gid_t)gid) && !(options & OPT_FORCE))
 					error(ERROR_system(0), "%s: cannot change%s", ent->fts_path, s);
 			}
 			break;

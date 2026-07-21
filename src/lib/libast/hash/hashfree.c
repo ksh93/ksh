@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -71,7 +72,7 @@ hashfree(Hash_table_t* tab)
 				else if (freevalue && p->value) (*freevalue)(p->value);
 				if (p->hash & HASH_FREENAME)
 				{
-					p->hash &= ~HASH_FREENAME;
+					p->hash &= (unsigned long)~HASH_FREENAME;
 					if (region) (*region)(handle, p->name, 0, 0);
 					else free(p->name);
 				}
@@ -82,7 +83,7 @@ hashfree(Hash_table_t* tab)
 				}
 				else if (p->hash & HASH_HIDES)
 				{
-					p->hash &= ~HASH_HIDES;
+					p->hash &= (unsigned long)~HASH_HIDES;
 					p->name = ((Hash_bucket_t*)p->name)->name;
 				}
 			}

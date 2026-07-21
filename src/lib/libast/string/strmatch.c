@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -58,7 +58,7 @@
 static struct State_s
 {
 	regmatch_t*	match;
-	int		nmatch;
+	ssize_t		nmatch;
 } matchstate;
 
 /*
@@ -71,12 +71,12 @@ static struct State_s
  * including s+sub[1]
  */
 
-int
-strngrpmatch(const char* b, size_t z, const char* p, ssize_t* sub, int n, int flags)
+ssize_t
+strngrpmatch(const char* b, size_t z, const char* p, ssize_t* sub, ssize_t n, regflags_t flags)
 {
 	regex_t*	re;
 	ssize_t*	end;
-	int		i;
+	ssize_t		i;
 	regflags_t	reflags;
 
 	/*
@@ -92,16 +92,7 @@ strngrpmatch(const char* b, size_t z, const char* p, ssize_t* sub, int n, int fl
 	if (!*p)
 	{
 		if (sub && n > 0)
-		{
-			if (flags & STR_INT)
-			{
-				int*	subi = (int*)sub;
-
-				subi[0] = subi[1] = 0;
-			}
-			else
-				sub[0] = sub[1] = 0;
-		}
+			sub[0] = sub[1] = 0;
 		return *b == 0;
 	}
 
@@ -131,34 +122,20 @@ strngrpmatch(const char* b, size_t z, const char* p, ssize_t* sub, int n, int fl
 		return 0;
 	if (n > matchstate.nmatch)
 	{
-		if (!(matchstate.match = newof(matchstate.match, regmatch_t, n, 0)))
+		if (!(matchstate.match = newof(matchstate.match, regmatch_t, (size_t)n, 0)))
 			return 0;
 		matchstate.nmatch = n;
 	}
-	if (regnexec(re, b, z, n, matchstate.match, reflags & ~(REG_MINIMAL|REG_SHELL_GROUP|REG_LEFT|REG_RIGHT|REG_ICASE)))
+	if (regnexec(re, b, z, (size_t)n, matchstate.match, reflags & ~(REG_MINIMAL|REG_SHELL_GROUP|REG_LEFT|REG_RIGHT|REG_ICASE)))
 		return 0;
 	if (!sub || n <= 0)
 		return 1;
-	i = re->re_nsub;
-	if (flags & STR_INT)
+	i = (ssize_t)re->re_nsub;
+	end = sub + n * 2;
+	for (n = 0; sub < end && n <= i; n++)
 	{
-		int*	subi = (int*)sub;
-		int*	endi = subi + n * 2;
-
-		for (n = 0; subi < endi && n <= i; n++)
-		{
-			*subi++ = matchstate.match[n].rm_so;
-			*subi++ = matchstate.match[n].rm_eo;
-		}
-	}
-	else
-	{
-		end = sub + n * 2;
-		for (n = 0; sub < end && n <= i; n++)
-		{
-			*sub++ = matchstate.match[n].rm_so;
-			*sub++ = matchstate.match[n].rm_eo;
-		}
+		*sub++ = matchstate.match[n].rm_so;
+		*sub++ = matchstate.match[n].rm_eo;
 	}
 	return i + 1;
 }
@@ -168,7 +145,7 @@ strngrpmatch(const char* b, size_t z, const char* p, ssize_t* sub, int n, int fl
  * returns 1 for match 0 otherwise
  */
 
-int
+ssize_t
 strmatch(const char* s, const char* p)
 {
 	return strngrpmatch(s, s ? strlen(s) : 0, p, NULL, 0, STR_MAXIMAL|STR_LEFT|STR_RIGHT);
@@ -183,15 +160,15 @@ strmatch(const char* s, const char* p)
  */
 
 char*
-strsubmatch(const char* s, const char* p, int flags)
+strsubmatch(const char* s, const char* p, regflags_t flags)
 {
 	ssize_t	match[2];
 
 	return strngrpmatch(s, s ? strlen(s) : 0, p, match, 1, (flags ? STR_MAXIMAL : 0)|STR_LEFT) ? (char*)s + match[1] : NULL;
 }
 
-int
-strgrpmatch(const char* b, const char* p, ssize_t* sub, int n, int flags)
+ssize_t
+strgrpmatch(const char* b, const char* p, ssize_t* sub, ssize_t n, regflags_t flags)
 {
 	return strngrpmatch(b, b ? strlen(b) : 0, p, sub, n, flags);
 }

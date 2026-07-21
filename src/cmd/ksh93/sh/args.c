@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,7 +26,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"path.h"
 #include	"jobs.h"
@@ -37,9 +37,7 @@
 #if SHOPT_KIA
 #   include	"shlex.h"
 #endif
-#if SHOPT_KIA || SHOPT_DEVFD
-#   include	"io.h"
-#endif
+#include	"io.h"
 
 #define SORT		1
 #define PRINT		2
@@ -57,7 +55,7 @@ static  const char optksh[] =
 	"H"
 #endif
 	;
-static const int flagval[]  =
+static const uint64_t flagval[]  =
 {
 	SH_DICTIONARY, SH_INTERACTIVE, SH_RESTRICTED, SH_CFLAG,
 	SH_ALLEXPORT, SH_NOTIFY, SH_ERREXIT, SH_NOGLOB, SH_TRACKALL,
@@ -115,13 +113,15 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
  */
 int sh_argopts(int argc,char *argv[])
 {
-	int		n,o;
+	int		n;
 	Arg_t		*ap = (Arg_t*)(sh.arg_context);
 #if SHOPT_KIA
 	Lex_t		*lp = (Lex_t*)(sh.lex_context);
 #endif
 	Shopt_t		newflags;
-	int		defaultflag=0, setflag=0, action=0, trace=(int)sh_isoption(SH_XTRACE);
+	int		defaultflag=0, setflag=0, action=0;
+	uint64_t	o,trace=sh_isoption(SH_XTRACE);
+	int		opts;
 	int		invalidate_ifs = 0;
 	Namval_t	*np = NULL;
 	const char	*cp;
@@ -157,18 +157,19 @@ int sh_argopts(int argc,char *argv[])
 					  ((opt_info.arg&&(!*opt_info.arg||*opt_info.arg=='-'))?(PRINT_TABLE|PRINT_NO_HEADER):0);
 				continue;
 			}
-			o = sh_lookopt(opt_info.arg,&f);
-			if(o<=0 || (setflag && (o&SH_COMMANDLINE)))
+			opts = sh_lookopt(opt_info.arg,&f);
+			if(opts<=0 || (setflag && (opts&SH_COMMANDLINE)))
 			{
-				errormsg(SH_DICT,2, "%s: %s option", opt_info.arg, o<0 ? "ambiguous" : "unknown");
+				errormsg(SH_DICT,2, "%s: %s option", opt_info.arg, opts<0 ? "ambiguous" : "unknown");
 				error_info.errors++;
 			}
-			o &= 0xff;
-			if(sh_isoption(SH_RESTRICTED) && !f && o==SH_RESTRICTED)
+			opts &= 0xff;
+			if(sh_isoption(SH_RESTRICTED) && !f && opts==SH_RESTRICTED)
 			{
 				errormsg(SH_DICT,ERROR_exit(1), e_restricted, opt_info.arg);
 				UNREACHABLE();
 			}
+			o = (uint64_t)opts;
 			break;
 		    case -6:	/* --default */
 			{
@@ -225,12 +226,17 @@ int sh_argopts(int argc,char *argv[])
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			continue;
 		    case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+			optselfdoc();
 			return -1;
 		}
 		if(f)
 		{
+			if(o==SH_MONITOR && f)
+			{
+				/* set -m: allow applyopts() to reactivate job control (e.g. in a subshell)
+				 * even when the -m option was already on; this behaviour matches bash */
+				sh_offoption(SH_MONITOR);
+			}
 #if SHOPT_ESH && SHOPT_VSH
 			if(o==SH_VI || o==SH_EMACS || o==SH_GMACS)
 			{
@@ -306,9 +312,9 @@ int sh_argopts(int argc,char *argv[])
 		if(action==SORT)
 		{
 			if(argc>0)
-				strsort(argv,argc,strcoll);
+				strsort(argv,argc,ast.locale.collate);
 			else
-				strsort(sh.st.dolv+1,sh.st.dolc,strcoll);
+				strsort(sh.st.dolv+1,sh.st.dolc,ast.locale.collate);
 		}
 		if(np)
 			nv_setvec(np,0,argc,argv);
@@ -387,11 +393,20 @@ static void applyopts(Shopt_t newflags)
 			(sh.userid==sh.euserid && sh.groupid==sh.egroupid))
 				off_option(&newflags,SH_PRIVILEGED);
 	}
-	/* sync monitor (part of job control) state with -o monitor option change */
+	/* sync job control state with -o monitor option change */
 	if(!sh_isoption(SH_MONITOR) && is_option(&newflags,SH_MONITOR))
+	{
 		sh_onstate(SH_MONITOR);
+		if(job.inited)
+			job.jobcontrol = 1;
+		else
+			job_init_tty();
+	}
 	else if(sh_isoption(SH_MONITOR) && !is_option(&newflags,SH_MONITOR))
+	{
 		sh_offstate(SH_MONITOR);
+		job.jobcontrol = 0;
+	}
 	sh.options = newflags;
 }
 
@@ -405,7 +420,7 @@ char *sh_argdolminus(void* context)
 	char *flagp=ap->flagadr;
 	while(cp< &optksh[NUM_OPTS])
 	{
-		int n = flagval[cp-optksh];
+		uint64_t n = flagval[cp-optksh];
 		if(sh_isoption(n))
 			*flagp++ = *cp;
 		cp++;
@@ -477,20 +492,21 @@ struct dolnod *sh_argcreate(char *argv[])
 {
 	struct dolnod *dp;
 	char **pp=argv, *sp;
-	int 	n;
+	size_t	n;
 	size_t	size=0;
 	/* count args and number of bytes of arglist */
 	while(sp= *pp++)
 		size += strlen(sp);
-	n = (pp - argv)-1;
-	dp=new_of(struct dolnod,n*sizeof(char*)+size+n);
+	n = (size_t)(pp - argv)-1;
+	dp = sh_malloc(sizeof(struct dolnod) + n * sizeof(char*) + size + n);
 	dp->dolrefcnt=1;	/* use count */
-	dp->dolnum = n;
+	dp->dolnum = (int)n;
 	dp->dolnxt = 0;
 	pp = dp->dolval;
 	sp = (char*)dp + sizeof(struct dolnod) + n*sizeof(char*);
-	while(n--)
+	while(n)
 	{
+		n--;
 		*pp++ = sp;
 		sp = strcopy(sp, *argv++) + 1;
 	}
@@ -549,7 +565,7 @@ void sh_printopts(Shopt_t oflags,int mode, Shopt_t *mask)
 	const Shtable_t *tp;
 	const char *name;
 	int on;
-	int value;
+	uint64_t value;
 	if(!(mode&PRINT_NO_HEADER))
 		sfputr(sfstdout,sh_translate(e_heading),'\n');
 	if(mode&PRINT_TABLE)
@@ -560,14 +576,14 @@ void sh_printopts(Shopt_t oflags,int mode, Shopt_t *mask)
 		int	i;
 
 		c = 0;
-		for(tp=shtab_options; value=tp->sh_number; tp++)
+		for(tp=shtab_options; value=(uint64_t)tp->sh_number; tp++)
 		{
 			if(mask && !is_option(mask,value&0xff))
 				continue;
 			name = tp->sh_name;
 			if(name[0] == 'n' && name[1] == 'o' && name[2] != 't')
 				name += 2;
-			if(c<(w=strlen(name)))
+			if(c<(w=(int)strlen(name)))
 				c = w;
 		}
 		c += 4;
@@ -575,7 +591,7 @@ void sh_printopts(Shopt_t oflags,int mode, Shopt_t *mask)
 			w = 2*c;
 		r = w / c;
 		i = 0;
-		for(tp=shtab_options; value=tp->sh_number; tp++)
+		for(tp=shtab_options; value=(uint64_t)tp->sh_number; tp++)
 		{
 			if(mask && !is_option(mask,value&0xff))
 				continue;
@@ -604,7 +620,7 @@ void sh_printopts(Shopt_t oflags,int mode, Shopt_t *mask)
 #endif
 	if(!(mode&(PRINT_ALL|PRINT_VERBOSE))) /* only print set options */
 		sfwrite(sfstdout,"set --default",13);
-	for(tp=shtab_options; value=tp->sh_number; tp++)
+	for(tp=shtab_options; value=(uint64_t)tp->sh_number; tp++)
 	{
 		if(mask && !is_option(mask,value&0xff))
 			continue;
@@ -703,8 +719,8 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 				sh_trim(*comargn);
 			if(!(argp=nextarg) || (argp->argflag&ARG_MAKE))
 			{
-				if((argn=comargm-comargn)>1)
-					strsort(comargn,argn,strcoll);
+				if((argn=(int)(comargm-comargn))>1)
+					strsort(comargn,argn,ast.locale.collate);
 				comargm = comargn;
 			}
 			argi++;
@@ -727,34 +743,45 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	int savestates = sh_getstate();
 	char savejobcontrol = job.jobcontrol;
 	unsigned int savesubshell = sh.subshell;
+	int use_devfd = 1;
+	struct stat statb;
 	ap = stkseek(sh.stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
 	fd = argp->argflag&ARG_RAW;
 	if(fd==0 && sh.subshell)
 		sh_subtmpfile();
-#if SHOPT_DEVFD
-	sfwrite(sh.stk,e_devfdNN,8);
 	pv[2] = 0;
 	sh_pipe(pv,0);
-#else
-	pv[0] = -1;
-	while(sh.fifo = pathtemp(0,0,0,"ksh.fifo",0), sh.fifo && mkfifo(sh.fifo,0)<0)
-	{
-		if(errno==EEXIST || errno==EACCES || errno==ENOENT || errno==ENOTDIR || errno==EROFS)
-			continue;		/* lost race (name conflict or tmp dir change); try again */
-		sh.fifo = 0;
-		break;
-	}
-	if(!sh.fifo)
-	{
-		errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "process substitution: FIFO creation failed");
-		UNREACHABLE();
-	}
-	chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
-	sfputr(sh.stk,sh.fifo,0);
-#endif /* SHOPT_DEVFD */
+	sfwrite(sh.stk,e_devfdNN,8);
 	sfputr(sh.stk,fmtint(pv[fd],1),0);
+	/*
+	 * Check if /dev/fd/pv[fd] exists in the file system. If not, fall back to the FIFO method.
+	 * This must be done at runtime because on some systems (looking at you, FreeBSD), /dev/fd
+	 * is implemented as an optional file system that may be mounted and unmounted at any time.
+	 */
+	if (stat((char*)ap + ARGVAL, &statb) < 0 || S_ISREG(statb.st_mode) || S_ISDIR(statb.st_mode))
+	{
+		sh_close(pv[0]);
+		sh_close(pv[1]);
+		use_devfd = 0;
+		pv[0] = -1;
+		while(sh.fifo = pathtemp(0,0,0,"ksh.fifo",0), sh.fifo && mkfifo(sh.fifo,0)<0)
+		{
+			if(errno==EEXIST || errno==EACCES || errno==ENOENT || errno==ENOTDIR || errno==EROFS)
+				continue;	/* lost race (name conflict or tmp dir change); try again */
+			sh.fifo = 0;
+			break;
+		}
+		if(!sh.fifo)
+		{
+			errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "process substitution: FIFO creation failed");
+			UNREACHABLE();
+		}
+		chmod(sh.fifo,S_IRUSR|S_IWUSR);	/* mkfifo + chmod works regardless of umask */
+		stkseek(sh.stk,ARGVAL);
+		sfputr(sh.stk,sh.fifo,0);
+	}
 	ap = stkfreeze(sh.stk,0);
 	sh.inpipe = sh.outpipe = 0;
 	/* turn off job control */
@@ -768,22 +795,25 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	else
 		sh.outpipe = pv;
 	sh_onstate(SH_PROCSUB);
-	sh_exec((Shnode_t*)argp->argchn.ap,(int)sh_isstate(SH_ERREXIT));
+	sh_exec((Shnode_t*)argp->argchn.ap,sh_isstate(SH_ERREXIT));
 	/* restore the previous state */
 	sh.subshell = savesubshell;
 	job.jobcontrol = savejobcontrol;
 	sh_setstate(savestates);
-#if SHOPT_DEVFD
-	sh_close(pv[1-fd]);
-	sh_iosave(-pv[fd], sh.topfd, NULL);
-#else
-	/* remember the FIFO for cleanup in case the command never opens it (see fifo_cleanup(), xec.c) */
-	if(!sh.fifo_tree)
-		sh.fifo_tree = dtopen(&_Nvdisc,Dtoset);
-	nv_search(sh.fifo,sh.fifo_tree,NV_ADD);
-	free(sh.fifo);
-	sh.fifo = 0;
-#endif /* SHOPT_DEVFD */
+	if (use_devfd)
+	{
+		sh_close(pv[1-fd]);
+		sh_iosave(-pv[fd], sh.topfd, NULL);
+	}
+	else
+	{
+		/* remember the FIFO for cleanup in case the command never opens it (see fifo_cleanup(), xec.c) */
+		if(!sh.fifo_tree)
+			sh.fifo_tree = dtopen(&_Nvdisc,Dtoset);
+		nv_search(sh.fifo,sh.fifo_tree,NV_ADD);
+		free(sh.fifo);
+		sh.fifo = 0;
+	}
 	return ap;
 }
 

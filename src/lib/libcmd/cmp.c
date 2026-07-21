@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -124,7 +124,7 @@ pretty(Sfio_t *out, int o, int delim, int flags)
 			*s++ = ' ';
 			*s++ = ' ';
 		}
-		*s++ = o;
+		*s++ = (char)o;
 	}
 	*s = 0;
 	sfputr(out, buf, delim);
@@ -137,15 +137,15 @@ pretty(Sfio_t *out, int o, int delim, int flags)
 static int
 cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfoff_t count, Sfoff_t differences)
 {
-	int		c1;
-	int		c2;
+	ptrdiff_t	c1;
+	ptrdiff_t	c2;
 	unsigned char*	p1 = 0;
 	unsigned char*	p2 = 0;
 	Sfoff_t	lines = 1;
 	unsigned char*	e1 = 0;
 	unsigned char*	e2 = 0;
 	Sfoff_t		pos = 0;
-	int		n1 = 0;
+	ptrdiff_t	n1 = 0;
 	int		ret = 0;
 	unsigned char*	last;
 
@@ -179,7 +179,7 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 				return ret;
 			}
 			if (count > 0 && c1 > count)
-				c1 = (int)count;
+				c1 = (ptrdiff_t)count;
 			e1 = p1 + c1;
 			n1 = c1;
 		}
@@ -206,7 +206,7 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 		pos += c1;
 		if (flags & CMP_SILENT)
 		{
-			if (memcmp(p1, p2, c1))
+			if (memcmp(p1, p2, (size_t)c1))
 				return 1;
 			p1 += c1;
 			p2 += c1;
@@ -231,7 +231,7 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 					if (flags & (CMP_BYTES|CMP_CHARS|CMP_VERBOSE))
 					{
 						sfputc(sfstdout, (flags & CMP_VERBOSE) ? ' ' : ',');
-						pretty(sfstdout, c1, -1, flags);
+						pretty(sfstdout, (int)c1, -1, flags);
 						pretty(sfstdout, *(p2-1), '\n', flags);
 					}
 					else
@@ -307,9 +307,7 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 			error(2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}

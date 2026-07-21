@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -25,7 +25,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<ls.h>
 #include	"io.h"
@@ -40,10 +40,6 @@
 #   define PIPE_BUF	512
 #endif
 
-/*
- * Note that the following structure must be the same
- * size as the Dtlink_t structure
- */
 struct Link
 {
 	struct Link	*next;
@@ -62,6 +58,7 @@ static struct subshell
 	struct Link	*svar;	/* save shell variable table */
 	Dt_t		*sfun;	/* function scope for subshell */
 	Dt_t		*strack;/* tracked alias scope for subshell */
+	Dt_t		*sfaldt;/* subshell function autoload loop detection tree */
 	Pathcomp_t	*pathlist; /* for PATH variable */
 	Shopt_t		options;/* save shell options */
 	pid_t		subpid;	/* child process ID */
@@ -72,7 +69,7 @@ static struct subshell
 	int		tmpfd;	/* saved tmp file descriptor */
 	int		pipefd;	/* read fd if pipe is created */
 	char		jobcontrol;
-	unsigned char	fdstatus;
+	uint8_t		fdstatus;
 	int		fdsaved; /* bit mask for saved file descriptors */
 	int		sig;	/* signal for $$ */
 	pid_t		bckpid;
@@ -109,7 +106,7 @@ void	sh_subtmpfile(void)
 		{
 			if(F_dupfd_cloexec == F_DUPFD)
 				sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
-			close(1);
+			ast_close(1);
 		}
 		else if(errno!=EBADF)
 		{
@@ -133,7 +130,7 @@ void	sh_subtmpfile(void)
 			sh.fdstatus[1] = sh.fdstatus[fd];
 			sh.fdstatus[fd] = IOCLOSE;
 		}
-		sh_iostream(1);
+		sh_iostream(1,0);
 		sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
 		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
 		if(pp && pp->olist  && pp->olist->strm == sfstdout)
@@ -161,7 +158,7 @@ void sh_subfork(void)
 		sh_subtmpfile();
 	sh.curenv = 0;
 	sh.savesig = -1;
-	if(pid = sh_fork(FSHOWME,NULL))
+	if(pid = sh_fork(F_SUBFORK,NULL))
 	{
 		sh.curenv = curenv;
 		/* this is the parent part of the fork */
@@ -192,7 +189,7 @@ void sh_subfork(void)
 	}
 }
 
-int nv_subsaved(Namval_t *np, int flags)
+int nv_subsaved(Namval_t *np, nvflag_t flags)
 {
 	struct subshell	*sp;
 	struct Link		*lp, *lpprev;
@@ -320,7 +317,8 @@ static void nv_restore(struct subshell *sp)
 	struct Link	*lp, *lq;
 	Namval_t	*mp, *np;
 	Namval_t	*mpnext;
-	int		flags,nofree;
+	nvflag_t	flags;
+	char		nofree;
 	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
 	{
@@ -363,7 +361,7 @@ static void nv_restore(struct subshell *sp)
 			flags |= NV_NOFREE;
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
-		if(nv_cover(mp))
+		if(nv_enforcedisc(mp))
 			nv_putval(mp,nv_getval(np),NV_RDONLY);
 		else
 			mp->nvalue = np->nvalue;
@@ -430,6 +428,27 @@ Dt_t *sh_subfuntree(int create)
 	return sh.fun_tree;
 }
 
+/*
+ * Return pointer to the function autoload loop detection tree.
+ * Create new one if in a subshell and one doesn't exist and 'create' is non-zero.
+ */
+Dt_t *sh_subloopdetecttree(int create)
+{
+	struct subshell *sp = subshell_data;
+	if(!sh.funload_loopdetect_tree)
+		sh.funload_loopdetect_tree = dtopen(&_Nvdisc,Dtoset);
+	if(create && sh.subshell && !sh.subshare)
+	{
+		if(sp && !sp->sfaldt)
+		{
+			sp->sfaldt = dtopen(&_Nvdisc,Dtoset);
+			dtview(sp->sfaldt, sh.funload_loopdetect_tree);
+			sh.funload_loopdetect_tree = sp->sfaldt;
+		}
+	}
+	return sh.funload_loopdetect_tree;
+}
+
 int sh_subsavefd(int fd)
 {
 	struct subshell *sp = subshell_data;
@@ -487,26 +506,64 @@ int sh_validate_subpwdfd(void)
 #endif /* _lib_openat */
 
 /*
+ * Close all prior file descriptors for the subshell PWDs no longer in use.
+ * This is always called after forking to avoid leaking unused file descriptors
+ * to the child processes.
+ */
+void sh_clear_subshell_pwdfd(void)
+{
+	struct subshell *sp = subshell_data;
+#if _lib_openat
+	int prevfd = sh.pwdfd;
+	while(sp)
+	{
+		if(sp->pwdfd > -1 && sp->pwdfd != prevfd)
+		{
+			sh_close(sp->pwdfd);
+			prevfd = sp->pwdfd;
+		}
+		sp = sp->prev;
+	}
+#else
+	while(sp)
+	{
+		if(sp->pwdclose)
+		{
+			sh_close(sp->pwdfd);
+			sp->pwdclose = 0;
+			sp->pwdfd = -1;
+		}
+		sp = sp->prev;
+	}
+#endif /* _lib_openat */
+}
+
+/*
  * Run command tree <t> in a virtual subshell
  * If comsub is not null, then output will be placed in temp file (or buffer)
  * If comsub is not null, the return value will be a stream consisting of
  * output of command <t>.  Otherwise, NULL will be returned.
  */
-Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
+Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 {
 	struct subshell sub_data;
 	struct subshell *sp = &sub_data;
-	int jmpval,isig,nsig=0,fatalerror=0,saveerrno=0;
+	int n, jmpval, fatalerror = 0, saveerrno = 0;
 	unsigned int savecurenv = sh.curenv;
 	int savejobpgid = job.curpgid;
 	int *saveexitval = job.exitval;
 	char **savsig;
+	size_t nsig = 0;
 	Sfio_t *iop=0;
 	struct checkpt checkpoint;
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
 	int argcnt;
 	memset((char*)sp, 0, sizeof(*sp));
+	sp->options = sh.options;
+	sp->subshare = sh.subshare;
+	sp->comsub = sh.comsub;
+	sp->pwdfd = -1;	/* pwdfd should not be initialized to stdin */
 	sfsync(sh.outpool);
 	sh_sigcheck();
 	sh.savesig = -1;
@@ -523,9 +580,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	sh.subshell++;		/* increase level of virtual subshells */
 	sh.realsubshell++;	/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
-	sp->sig = 0;
 	subshell_data = sp;
-	sp->options = sh.options;
 	sp->jobs = job_subsave();
 	/* make sure initialization has occurred */
 	if(!sh.pathlist)
@@ -543,8 +598,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sh_stats(STAT_COMSUB);
 	else
 		job.curpgid = 0;
-	sp->subshare = sh.subshare;
-	sp->comsub = sh.comsub;
 	sh.subshare = comsub==2;
 	if(!sh.subshare)
 		sp->pathlist = path_dup((Pathcomp_t*)sh.pathlist);
@@ -558,7 +611,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		sp->pwdfd = sh.pwdfd;
 #else
 		struct subshell *xp;
-		sp->pwdfd = -1;
 		for(xp=sp->prev; xp; xp=xp->prev)
 		{
 			if(xp->pwdfd>0 && xp->pwd && strcmp(xp->pwd,sh.pwd)==0)
@@ -569,7 +621,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		}
 		if(sp->pwdfd<0)
 		{
-			int n = sh_open(e_dot,O_SEARCH|O_cloexec);
+			n = sh_open(e_dot,O_SEARCH|O_cloexec);
 			if(n>=0)
 			{
 				sp->pwdfd = n;
@@ -590,33 +642,17 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 #endif /* _lib_openat */
 		sp->mask = sh.mask;
 		sh_stats(STAT_SUBSHELL);
-		/* save trap table */
-		sh.st.otrapcom = 0;
-		sh.st.otrap = savst.trap;
-		if((nsig=sh.st.trapmax)>0 || sh.st.trapcom[0])
-		{
-			savsig = sh_malloc(nsig * sizeof(char*));
-			/*
-			 * the data is, usually, modified in code like:
-			 *	tmp = buf[i]; buf[i] = sh_strdup(tmp); free(tmp);
-			 * so sh.st.trapcom needs a "deep copy" to properly save/restore pointers.
-			 */
-			for (isig = 0; isig < nsig; ++isig)
-			{
-				if(sh.st.trapcom[isig] == Empty)
-					savsig[isig] = Empty;
-				else if(sh.st.trapcom[isig])
-					savsig[isig] = sh_strdup(sh.st.trapcom[isig]);
-				else
-					savsig[isig] = NULL;
-			}
-			/* this is needed for var=$(trap) */
-			sh.st.otrapcom = (char**)savsig;
-		}
 		sp->cpid = sh.cpid;
 		sp->coutpipe = sh.coutpipe;
 		sp->cpipe = sh.cpipe[1];
 		sh.cpid = 0;
+		/* save trap table */
+		memset(sh.st.trapnofree, 0xFF, sizeof sh.st.trapnofree);
+		sh.st.otrap = savst.trap;
+		if((nsig = sh.st.trapmax * sizeof(char**)) > 0)
+			savsig = sh.st.otrapcom = memcpy(stkalloc(sh.stk, nsig), sh.st.trapcom, nsig);
+		else
+			sh.st.otrapcom = NULL;
 		if(sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
 			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
 		sh_sigreset(0);
@@ -651,13 +687,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			sfswap(iop,sfstdout);
 			sfset(sfstdout,SFIO_READ,0);
 			sh.fdstatus[1] = IOWRITE;
-			flags |= sh_state(SH_NOFORK);
 		}
 		else if(sp->prev)
-		{
 			sp->pipe = sp->prev->pipe;
-			flags &= ~sh_state(SH_NOFORK);
-		}
+		flags |= sh_state(SH_NOFORK);
 		if(sh.savesig < 0)
 		{
 			sh.savesig = 0;
@@ -675,6 +708,11 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 				else
 					sh_subfork();
 			}
+			/* On scripts with -m on, we must fork any non-comsub subshell invoked from the main
+			 * shell in order for it to start and lead a new process group (via _sh_fork()).  */
+			else if(sh_isstate(SH_MONITOR))
+				sh_subfork();
+			/* Execute the subshell tree */
 			sh_exec(t,flags);
 		}
 	}
@@ -711,14 +749,15 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		if(sp->pipefd>=0)
 		{
 			/* sftmp() file has been returned into pipe */
-			iop = sh_iostream(sp->pipefd);
+			iop = sh_iostream(sp->pipefd,0);
 			sfclose(sfstdout);
 		}
 		else
 		{
 			if(sh.spid)
 			{
-				int e = sh.exitval, c = sh.chldexitsig;
+				int e = sh.exitval;
+				char c = sh.chldexitsig;
 				job_wait(sh.spid);
 				sh.exitval = e, sh.chldexitsig = c;
 				if(sh.pipepid==sh.spid)
@@ -758,9 +797,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 		/* check if standard output was preserved */
 		if(sp->tmpfd>=0)
 		{
-			int err=errno;
-			while(close(1)<0 && errno==EINTR)
-				errno = err;
+			ast_close(1);
 			if (fcntl(sp->tmpfd,F_DUPFD,1) != 1)
 			{
 				saveerrno = errno;
@@ -782,7 +819,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	sh.bckpid = sp->bckpid;
 	if(!sh.subshare)	/* restore environment if saved */
 	{
-		int n;
 		struct rand *rp;
 		sh.options = sp->options;
 		/* Clean up subshell hash table. */
@@ -832,20 +868,20 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 			}
 			dtclose(sp->sfun);
 		}
+		/* Clean up subshell autoload loop detection tree. */
+		if(sp->sfaldt)
+		{
+			sh.funload_loopdetect_tree = dtview(sp->sfaldt,0);
+			dtclose(sp->sfaldt);
+		}
 		n = sh.st.trapmax-savst.trapmax;
 		sh_sigreset(1);
 		if(n>0)
-			memset(&sh.st.trapcom[savst.trapmax],0,n*sizeof(char*));
+			memset(&sh.st.trapcom[savst.trapmax],0,(size_t)n*sizeof(char*));
 		sh.st = savst;
 		sh.st.otrap = 0;
 		if(nsig)
-		{
-			for (isig = 0; isig < nsig; ++isig)
-				if (sh.st.trapcom[isig] && sh.st.trapcom[isig]!=Empty)
-					free(sh.st.trapcom[isig]);
-			memcpy((char*)&sh.st.trapcom[0],savsig,nsig*sizeof(char*));
-			free(savsig);
-		}
+			memcpy(sh.st.trapcom, savsig, nsig);
 		sh.options = sp->options;
 #if _lib_openat
 		if(sh.pwdfd != sp->pwdfd)
@@ -934,10 +970,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, int comsub)
 	}
 	sh_sigcheck();
 	sh.trapnote = 0;
-	nsig = sh.savesig;
+	n = sh.savesig;
 	sh.savesig = 0;
-	if(nsig>0)
-		kill(sh.current_pid,nsig);
+	if(n > 0)
+		kill(sh.current_pid, n);
 	if(sp->subpid)
 		job_wait(sp->subpid);
 	sh.comsub = sp->comsub;

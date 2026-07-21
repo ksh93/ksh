@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -41,7 +41,7 @@ cmdrun(int argc, char** argv, Cmddisc_t* disc)
 }
 
 Cmdarg_t*
-cmdopen(char** argv, int argmax, int size, const char* argpat, int flags)
+cmdopen(char** argv, int argmax, ssize_t size, const char* argpat, uint32_t flags)
 {
 	Cmddisc_t	disc;
 
@@ -72,18 +72,6 @@ cmdopen(char** argv, int argmax, int size, const char* argpat, int flags)
 
 static const char*	echo[] = { "echo", 0 };
 
-Cmdarg_t*
-cmdopen_20110505(char** argv, int argmax, int size, const char* argpat, int flags, Error_f errorf)
-{
-	Cmddisc_t	disc;
-
-	memset(&disc, 0, sizeof(disc));
-	disc.version = CMD_VERSION;
-	disc.flags = flags;
-	disc.errorf = errorf;
-	return cmdopen_20120411(argv, argmax, size, argpat, &disc);
-}
-
 /*
  * open a cmdarg stream
  * initialize the command for execution
@@ -91,22 +79,22 @@ cmdopen_20110505(char** argv, int argmax, int size, const char* argpat, int flag
  */
 
 Cmdarg_t*
-cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_t* disc)
+cmdopen_20120411(char** argv, int argmax, ssize_t size, const char* argpat, Cmddisc_t* disc)
 {
 	Cmdarg_t*	cmd;
-	int		n;
+	ssize_t		n;
 	char**		p;
 	char*		s;
 	char*		sh;
 	char*		exe;
-	int		c;
-	int		m;
+	ssize_t		c;
+	ssize_t		m;
 	int		argc;
-	long		x;
+	ssize_t		x;
 
 	char**		post = 0;
 
-	n = sizeof(char**);
+	n = (ssize_t)sizeof(char**);
 	if (*argv)
 	{
 		for (p = argv + 1; *p; p++)
@@ -120,23 +108,23 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 			else
 				n += strlen(*p) + 1;
 		}
-		argc = p - argv;
+		argc = (int)(p - argv);
 	}
 	else
 		argc = 0;
 	for (p = environ; *p; p++)
-		n += sizeof(char**) + strlen(*p) + 1;
-	if ((x = astconf_long(CONF_ARG_MAX)) <= 0)
+		n += (ssize_t)(sizeof(char**) + strlen(*p) + 1);
+	if ((x = (ssize_t)astconf_long(CONF_ARG_MAX)) <= 0)
 		x = ARG_MAX;
 	if (size <= 0 || size > x)
 		size = x;
 	sh = astconf("SH", NULL, NULL);
-	m = n + (argc + 4) * sizeof(char**) + strlen(sh) + 1;
-	m = roundof(m, sizeof(char**));
+	m = n + (argc + 4) * (ssize_t)sizeof(char**) + (ssize_t)strlen(sh) + 1;
+	m = (ssize_t)roundof((size_t)m, sizeof(char**));
 	if (size < m)
 	{
 		if (disc->errorf)
-			(*disc->errorf)(NULL, sh, 2, "size must be at least %d", m);
+			(*disc->errorf)(NULL, sh, 2, "size must be at least %jd", (intmax_t)m);
 		return NULL;
 	}
 	if ((m = x / 10) > 2048)
@@ -144,8 +132,8 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 	if (size > (x - m))
 		size = x - m;
 	n = size - n;
-	m = ((disc->flags & CMD_INSERT) && argpat) ? (strlen(argpat) + 1) : 0;
-	if (!(cmd = newof(0, Cmdarg_t, 1, n + m)))
+	m = ((disc->flags & CMD_INSERT) && argpat) ? ((ssize_t)strlen(argpat) + 1) : 0;
+	if (!(cmd = newof(0, Cmdarg_t, 1, (size_t)(n + m))))
 	{
 		if (disc->errorf)
 			(*disc->errorf)(NULL, sh, ERROR_SYSTEM|2, "out of memory");
@@ -156,9 +144,9 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 	cmd->errorf = disc->errorf;
 	if (!(cmd->runf = disc->runf))
 		cmd->runf = cmdrun;
-	c = n / sizeof(char**);
+	c = n / (ssize_t)sizeof(char**);
 	if (argmax <= 0 || argmax > c)
-		argmax = c;
+		argmax = (int)c;
 	s = cmd->buf;
 	if (!(exe = argv[0]))
 	{
@@ -172,13 +160,13 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 	}
 	else if (!(disc->flags & CMD_CHECKED))
 	{
-		if (!pathpath(exe, NULL, PATH_REGULAR|PATH_EXECUTE, s, n + m))
+		if (!pathpath(exe, NULL, PATH_REGULAR|PATH_EXECUTE, s, (size_t)(n + m)))
 		{
-			n = EXIT_NOTFOUND;
+			int ret = EXIT_NOTFOUND;
 			if (cmd->errorf)
 				(*cmd->errorf)(NULL, cmd, ERROR_SYSTEM|2, "%s: command not found", exe);
 			if (disc->flags & CMD_EXIT)
-				(*error_info.exit)(n);
+				(*error_info.exit)(ret);
 			free(cmd);
 			return NULL;
 		}
@@ -188,10 +176,10 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 	if (m)
 	{
 		cmd->insert = strcpy(s, argpat);
-		cmd->insertlen = m - 1;
+		cmd->insertlen = (size_t)m - 1;
 		s += m;
 	}
-	s += sizeof(char**) - (s - cmd->buf) % sizeof(char**);
+	s += sizeof(char**) - (size_t)(s - cmd->buf) % sizeof(char**);
 	p = (char**)s;
 	n -= strlen(*p++ = sh) + 1;
 	cmd->argv = p;
@@ -207,7 +195,7 @@ cmdopen_20120411(char** argv, int argmax, int size, const char* argpat, Cmddisc_
 		c = *cmd->insert;
 		while (s = *argv)
 		{
-			while ((s = strchr(s, c)) && strncmp(cmd->insert, s, cmd->insertlen))
+			while ((s = strchr(s, (int)c)) && strncmp(cmd->insert, s, cmd->insertlen))
 				s++;
 			*p++ = s ? *argv : NULL;
 			argv++;
@@ -243,7 +231,7 @@ cmdflush(Cmdarg_t* cmd)
 			(*cmd->errorf)(NULL, cmd, 2, "%d arg command would be too long", cmd->argcount);
 		return -1;
 	}
-	cmd->total.args += cmd->argcount;
+	cmd->total.args += (size_t)cmd->argcount;
 	cmd->total.commands++;
 	cmd->argcount = 0;
 	if (p = cmd->postarg)
@@ -258,7 +246,7 @@ cmdflush(Cmdarg_t* cmd)
 		char*	t;
 		char*	u;
 		int	c;
-		int	m;
+		size_t	m;
 
 		a = cmd->firstarg[0];
 		b = (char*)&cmd->nextarg[1];
@@ -273,12 +261,12 @@ cmdflush(Cmdarg_t* cmd)
 				{
 					if (!(u = strchr(t, c)))
 					{
-						b += sfsprintf(b, e - b, "%s", t);
+						b += sfsprintf(b, (size_t)(e - b), "%s", t);
 						break;
 					}
 					if (!strncmp(s, u, m))
 					{
-						b += sfsprintf(b, e - b, "%-.*s%s", u - t, t, a);
+						b += sfsprintf(b, (size_t)(e - b), "%-.*s%s", u - t, t, a);
 						t = u + m;
 					}
 					else if (b >= e)
@@ -375,7 +363,7 @@ cmdarg(Cmdarg_t* cmd, const char* file, int len)
 			}
 		}
 		*cmd->nextarg++ = cmd->nextstr;
-		memcpy(cmd->nextstr, file, len);
+		memcpy(cmd->nextstr, file, (size_t)len);
 		cmd->nextstr[len] = 0;
 		cmd->argcount++;
 		if (cmd->argcount >= cmd->argmax && (i = cmdflush(cmd)) > r)

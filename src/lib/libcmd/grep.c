@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2014 AT&T Intellectual Property          *
-*             Copyright (c) 2025 Contributors to ksh 93u+m             *
+*          Copyright (c) 2025-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,7 +23,7 @@ static const char usage[] =
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?Doug McIlroy <doug@research.bell-labs.com>]"
 "[-copyright?(c) 1992-2014 AT&T Intellectual Property]"
-"[-copyright?(c) 2025 Contributors to ksh 93u+m]"
+"[-copyright?(c) 2025-2026 Contributors to ksh 93u+m]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
 #ifndef ERROR_CATALOG
 #define ERROR_CATALOG "libcmd"
@@ -178,11 +178,11 @@ struct State_s				/* program state		*/
 
 	regmatch_t	posvec[1];	/* match position vector	*/
 	regmatch_t*	pos;		/* match position pointer	*/
-	int		posnum;		/* number of match positions	*/
+	size_t		posnum;		/* number of match positions	*/
 
-	int		after;		/* # lines to list after match	*/
-	int		before;		/* # lines to list before match	*/
-	int		list;		/* list files with hits		*/
+	ssize_t		after;		/* # lines to list after match	*/
+	ssize_t		before;		/* # lines to list before match	*/
+	ssize_t		list;		/* list files with hits		*/
 	regflags_t	options;	/* regex options		*/
 
 	unsigned char	any;		/* if any pattern hit		*/
@@ -205,15 +205,23 @@ labelcomp(const regex_t* re, const char* s, size_t len, regdisc_t* disc)
 	const char*	e = s + len;
 	uintmax_t	n;
 
+	NOT_USED(re);
+	NOT_USED(disc);
 	n = 0;
 	while (s < e)
-		n = (n << 3) + (*s++ - '0');
+		n = (n << 3) + (uintmax_t)(*s++ - '0');
 	return (void*)((uintptr_t)n);
 }
 
 static int
 labelexec(const regex_t* re, void* data, const char* xstr, size_t xlen, const char* sstr, size_t slen, char** snxt, regdisc_t* disc)
 {
+	NOT_USED(re);
+	NOT_USED(xstr);
+	NOT_USED(xlen);
+	NOT_USED(sstr);
+	NOT_USED(slen);
+	NOT_USED(snxt);
 	((State_t*)disc)->hit = (Item_t*)data;
 	return 0;
 }
@@ -221,7 +229,7 @@ labelexec(const regex_t* re, void* data, const char* xstr, size_t xlen, const ch
 static int
 addre(State_t* state, char* s)
 {
-	int		c;
+	size_t		c;
 	int		r;
 	char*		b;
 	Item_t*		x;
@@ -236,7 +244,7 @@ addre(State_t* state, char* s)
 			error(2, "%s: label:pattern expected", b);
 			goto done;
 		}
-		c = s - b;
+		c = (size_t)(s - b);
 		s++;
 		if (!(x = vmnewof(state->vm, 0, Item_t, 1, c)))
 		{
@@ -265,7 +273,7 @@ addre(State_t* state, char* s)
 	if (x)
 	{
 		b = (state->options & (REG_AUGMENTED|REG_EXTENDED)) ? "" : "\\";
-		sfprintf(state->tmp, "%s(?{%I*o})", b, sizeof(ptrdiff_t), (intptr_t)x);
+		sfprintf(state->tmp, "%s(?{%I*o})", b, sizeof(intptr_t), (intptr_t)x);
 		if (state->labels.tail)
 			state->labels.tail = state->labels.tail->next = x;
 		else
@@ -336,7 +344,7 @@ compile(State_t* state)
 		error_info.line = 0;
 		while (s = (char*)sfreserve(f, SFIO_UNBOUND, SFIO_LOCKR))
 		{
-			if (!(n = sfvalue(f)))
+			if (!(n = (size_t)sfvalue(f)))
 				break;
 			if (s[n - 1] != '\n')
 			{
@@ -346,7 +354,7 @@ compile(State_t* state)
 					sfread(f, s, 0);
 					break;
 				}
-				n = t - s + 1;
+				n = (size_t)(t - s + 1);
 			}
 			s[n - 1] = 0;
 			if (addre(state, s))
@@ -409,7 +417,7 @@ compile(State_t* state)
 }
 
 static int
-hit(State_t* state, const char* prefix, int sep, int line, const char* s, size_t len)
+hit(State_t* state, const char* prefix, int sep, uintmax_t line, const char* s, size_t len)
 {
 	regmatch_t*		pos;
 
@@ -431,29 +439,29 @@ hit(State_t* state, const char* prefix, int sep, int line, const char* s, size_t
 		if (state->prefix)
 			sfprintf(sfstdout, "%s%c", prefix, sep);
 		if (state->number && line)
-			sfprintf(sfstdout, "%d%c", line, sep);
+			sfprintf(sfstdout, "%ju%c", line, sep);
 		if (state->label)
 			sfprintf(sfstdout, "%s%c", state->hit->string, sep);
 		if (!pos)
 			sfwrite(sfstdout, s, len + 1);
 		else if (state->only)
 		{
-			sfwrite(sfstdout, s + state->pos[0].rm_so, state->pos[0].rm_eo - state->pos[0].rm_so);
+			sfwrite(sfstdout, s + state->pos[0].rm_so, (size_t)(state->pos[0].rm_eo - state->pos[0].rm_so));
 			sfputc(sfstdout, '\n');
 			s += state->pos[0].rm_eo;
-			if ((len -= state->pos[0].rm_eo) && !regnexec(&state->re, s, len, state->posnum, state->pos, 0))
+			if ((len -= (size_t)state->pos[0].rm_eo) && !regnexec(&state->re, s, len, state->posnum, state->pos, 0))
 				goto another;
 		}
 		else
 		{
 			do
 			{
-				sfwrite(sfstdout, s, state->pos[0].rm_so);
+				sfwrite(sfstdout, s, (size_t)state->pos[0].rm_so);
 				sfwrite(sfstdout, bold, sizeof(bold));
-				sfwrite(sfstdout, s + state->pos[0].rm_so, state->pos[0].rm_eo - state->pos[0].rm_so);
+				sfwrite(sfstdout, s + state->pos[0].rm_so, (size_t)(state->pos[0].rm_eo - state->pos[0].rm_so));
 				sfwrite(sfstdout, normal, sizeof(normal));
 				s += state->pos[0].rm_eo;
-				if (!(len -= state->pos[0].rm_eo))
+				if (!(len -= (size_t)state->pos[0].rm_eo))
 					break;
 			} while (!regnexec(&state->re, s, len, state->posnum, state->pos, 0));
 			sfwrite(sfstdout, s, len + 1);
@@ -473,7 +481,7 @@ list(Context_line_t* lp, int show, int group, void* handle)
 static int
 execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 {
-	register char*	s;
+	char*		s;
 	char*		file;
 	Item_t*		x;
 	size_t		len;
@@ -493,7 +501,7 @@ execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 		Context_t*	cp;
 		Context_line_t*	lp;
 
-		if (!(cp = context_open(input, state->before, state->after, list, state)))
+		if (!(cp = context_open(input, (size_t)state->before, (size_t)state->after, list, state)))
 		{
 			error(2, "context_open() failed");
 			goto bad;
@@ -518,10 +526,10 @@ execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 				goto bad;
 			error_info.line++;
 			if (s = sfgetr(input, '\n', 0))
-				len = sfvalue(input) - 1;
+				len = (size_t)sfvalue(input) - 1;
 			else if (s = sfgetr(input, '\n', -1))
 			{
-				len = sfvalue(input);
+				len = (size_t)sfvalue(input);
 				s[len] = '\n';
 			}
 			else if (sferror(input) && errno != EISDIR)
@@ -536,7 +544,7 @@ execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 				regfatal(&state->re, 2, result);
 				goto bad;
 			}
-			if ((result == 0) == state->match && hit(state, name, ':', error_info.line, s, len) < 0)
+			if ((result == 0) == state->match && hit(state, name, ':', (uintmax_t)error_info.line, s, len) < 0)
 				break;
 		}
 	}
@@ -589,7 +597,7 @@ execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 }
 
 static int
-grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
+grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 {
 	int	c;
 	char*	s;
@@ -669,7 +677,7 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 	case 'A':
 		if (opt_info.arg)
 		{
-			state.after = (int)strtol(opt_info.arg, &s, 0);
+			state.after = (ssize_t)strtol(opt_info.arg, &s, 0);
 			if (*s || state.after < 0)
 			{
 	badafter:
@@ -683,7 +691,7 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 	case 'B':
 		if (opt_info.arg)
 		{
-			state.before = (int)strtol(opt_info.arg, &s, 0);
+			state.before = (ssize_t)strtol(opt_info.arg, &s, 0);
 			if (*s || state.before < 0)
 			{
 	badbefore:
@@ -697,10 +705,10 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 	case 'C':
 		if (opt_info.arg)
 		{
-			state.before = (int)strtol(opt_info.arg, &s, 0);
+			state.before = (ssize_t)strtol(opt_info.arg, &s, 0);
 			if (state.before < 0 || (*s && *s != ','))
 				goto badbefore;
-			state.after = (*s == ',') ? (int)strtol(s + 1, &s, 0) : state.before;
+			state.after = (*s == ',') ? (ssize_t)strtol(s + 1, &s, 0) : state.before;
 			if (*s || state.after < 0)
 				goto badafter;
 		}
@@ -708,10 +716,10 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 			state.before = state.after = 2;
 		break;
 	case 'H':
-		state.prefix = opt_info.num;
+		state.prefix = (unsigned char)opt_info.num;
 		break;
 	case 'L':
-		state.list = -opt_info.num;
+		state.list = (ssize_t)(-opt_info.num);
 		break;
 	case 'N':
 		h = opt_info.arg;
@@ -739,7 +747,7 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 		state.options |= REG_ICASE;
 		break;
 	case 'l':
-		state.list = opt_info.num;
+		state.list = (ssize_t)opt_info.num;
 		break;
 	case 'm':
 		state.label = 1;
@@ -762,7 +770,7 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 			flags &= ~FTS_TOP;
 		break;
 	case 's':
-		state.suppress = opt_info.num;
+		state.suppress = (unsigned char)opt_info.num;
 		break;
 	case 't':
 		state.count |= 2;
@@ -799,8 +807,7 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 			state.options |= REG_FIRST|REG_NOSUB;
 		break;
 	case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
+		optselfdoc();
 		r = 0;
 		goto done;
 	case ':':
@@ -933,8 +940,8 @@ grep(char* id, int options, int argc, char** argv, Shbltin_t* context)
 int
 b_grep(int argc, char** argv, Shbltin_t* context)
 {
-	char*	s;
-	int	options;
+	char*		s;
+	regflags_t	options;
 
 	NoP(argc);
 	options = 0;

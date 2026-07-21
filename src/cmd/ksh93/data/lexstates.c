@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,7 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	"lexstates.h"
 
@@ -749,14 +749,15 @@ const char e_lexobsolete1[]	= "line %d: `...` obsolete, use $(...)";
 const char e_lexobsolete2[]	= "line %d: -a obsolete, use -e";
 const char e_lexobsolete3[]	= "line %d: '=' obsolete, use '=='";
 const char e_lexobsolete4[]	= "line %d: [[ ... %s ... ]] obsolete, use ((... %s ...))";
-const char e_lexobsolete5[]	= "line %d: set %s obsolete";
+const char e_lexobsolete5[]	= "line %d: 'set %s' obsolete";
 const char e_lexobsolete6[]	= "line %d: `{' instead of `in' is obsolete";
+const char e_lexobsolete7[]	= "line %d: 'set %s %s' is obsolete";
+const char e_lexobsolete8[]	= "line %d: 'alias %s' is obsolete";
 const char e_lexusebrace[]	= "line %d: use braces to avoid ambiguities with $id[...]";
 const char e_lexescape[]	= "line %d: escape %c to avoid ambiguities";
 const char e_lexquote[]		= "line %d: quote %c to avoid ambiguities";
 const char e_lexnested[]	= "line %d: spaces required for nested subshell";
 const char e_lexbadchar[]	= "%c: invalid character in expression - %s";
-const char e_lexfuture[]	= "line %d: \\ in front of %c reserved for future use";
 const char e_lexlongquote[]	= "line %d: %c quote may be missing";
 const char e_lexemptyfor[]	= "line %d: empty for list";
 const char e_lextypeset[]	= "line %d: %s invalid typeset option order";

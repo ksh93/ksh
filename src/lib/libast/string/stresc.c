@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -27,7 +28,7 @@
 
 #include <ast.h>
 
-int
+ptrdiff_t
 strexp(char* s, int flags)
 {
 	char*		t;
@@ -51,13 +52,13 @@ strexp(char* s, int flags)
 				continue;
 			}
 		}
-		*t++ = c;
+		*t++ = (char)c;
 	}
 	*t = 0;
 	return t - b;
 }
 
-int
+ptrdiff_t
 stresc(char* s)
 {
 	return strexp(s, FMT_EXP_CHAR|FMT_EXP_LINE|FMT_EXP_WIDE);

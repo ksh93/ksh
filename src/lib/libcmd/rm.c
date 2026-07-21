@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: rm (ksh 93u+m) 2022-08-30 $\n]"
+"[-?\n@(#)$Id: rm (ksh 93u+m) 2025-09-30 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?rm - remove files]"
 "[+DESCRIPTION?\brm\b removes the named \afile\a arguments. By default it"
@@ -68,11 +68,11 @@ static const char usage[] =
 
 #define RM_ENTRY	1
 
-#define beenhere(f)	(((f)->fts_number>>1)==(f)->fts_statp->st_nlink)
+#define beenhere(f)	(((f)->fts_number>>1)==((signed)((f)->fts_statp->st_nlink)))
 #define isempty(f)	(!((f)->fts_number&RM_ENTRY))
 #define nonempty(f)	((f)->fts_parent->fts_number|=RM_ENTRY)
 #define pathchunk(n)	roundof(n,1024)
-#define retry(f)	((f)->fts_number=((f)->fts_statp->st_nlink<<1))
+#define retry(f)	((f)->fts_number=((long)(((f)->fts_statp->st_nlink<<1))))
 
 typedef struct State_s			/* program state		*/
 {
@@ -83,12 +83,10 @@ typedef struct State_s			/* program state		*/
 	int		interactive;	/* prompt for approval		*/
 	int		recursive;	/* remove subtrees too		*/
 	int		terminal;	/* attached to terminal		*/
-	int		uid;		/* caller UID			*/
+	uid_t		uid;		/* caller UID			*/
 	int		unconditional;	/* enable dir rwx on preorder	*/
 	int		verbose;	/* display each file		*/
-#if _lib_fsync
 	char		buf[SFIO_BUFSIZE];/* clobber buffer		*/
-#endif
 } State_t;
 
 /*
@@ -123,10 +121,8 @@ rm(State_t* state, FTSENT* ent)
 			}
 			error_info.errors++;
 		}
-		else if (!state->force)
-			error(2, "%s: cannot %s directory", ent->fts_path, (ent->fts_info & FTS_NR) ? "read" : "search");
 		else
-			error_info.errors++;
+			error(2, "%s: cannot %s directory", ent->fts_path, (ent->fts_info & FTS_NR) ? "read" : "search");
 		fts_set(NULL, ent, FTS_SKIP);
 		nonempty(ent);
 		break;
@@ -136,10 +132,7 @@ rm(State_t* state, FTSENT* ent)
 		if (path[0] == '.' && (!path[1] || path[1] == '.' && !path[2]) && (ent->fts_level > 0 || path[1]))
 		{
 			fts_set(NULL, ent, FTS_SKIP);
-			if (!state->force)
-				error(2, "%s: cannot remove", ent->fts_path);
-			else
-				error_info.errors++;
+			error(2, "%s: cannot remove", ent->fts_path);
 			break;
 		}
 		if (!state->recursive)
@@ -224,25 +217,17 @@ rm(State_t* state, FTSENT* ent)
 						/* FALLTHROUGH */
 					default:
 						nonempty(ent);
-						if (!state->force)
-							error(ERROR_SYSTEM|2, "%s: directory not removed", ent->fts_path);
-						else
-							error_info.errors++;
+						error(ERROR_SYSTEM|2, "%s: directory not removed", ent->fts_path);
 						break;
 					}
 			}
-			else if (!state->force)
-				error(2, "%s: cannot remove", ent->fts_path);
 			else
-				error_info.errors++;
+				error(2, "%s: cannot remove", ent->fts_path);
 		}
 		else
 		{
 			nonempty(ent);
-			if (!state->force)
-				error(2, "%s: directory not removed", ent->fts_path);
-			else
-				error_info.errors++;
+			error(2, "%s: directory not empty", ent->fts_path);
 		}
 		break;
 	default:
@@ -275,7 +260,6 @@ rm(State_t* state, FTSENT* ent)
 				break;
 			}
 		}
-#if _lib_fsync
 		if (state->clobber && S_ISREG(ent->fts_statp->st_mode) && ent->fts_statp->st_size > 0)
 		{
 			if ((n = open(path, O_WRONLY|O_cloexec)) < 0)
@@ -291,15 +275,14 @@ rm(State_t* state, FTSENT* ent)
 						error(ERROR_SYSTEM|2, "%s: data clear error", ent->fts_path);
 						break;
 					}
-					if (c <= sizeof(state->buf))
+					if (c <= (ssize_t)sizeof(state->buf))
 						break;
-					c -= sizeof(state->buf);
+					c -= (ssize_t)sizeof(state->buf);
 				}
 				fsync(n);
-				close(n);
+				ast_close(n);
 			}
 		}
-#endif
 		if (remove(path))
 		{
 			nonempty(ent);
@@ -308,10 +291,7 @@ rm(State_t* state, FTSENT* ent)
 			case ENOENT:
 				break;
 			default:
-				if (!state->force || state->interactive)
-					error(ERROR_SYSTEM|2, "%s: not removed", ent->fts_path);
-				else
-					error_info.errors++;
+				error(ERROR_SYSTEM|2, "%s: not removed", ent->fts_path);
 				break;
 			}
 		}
@@ -350,11 +330,7 @@ b_rm(int argc, char** argv, Shbltin_t* context)
 			state.recursive = 1;
 			continue;
 		case 'c':
-#if _lib_fsync
 			state.clobber = 1;
-#else
-			error(1, "%s not implemented on this system", opt_info.name);
-#endif
 			continue;
 		case 'u':
 			state.unconditional = 1;
@@ -363,9 +339,7 @@ b_rm(int argc, char** argv, Shbltin_t* context)
 			state.verbose = 1;
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			break;

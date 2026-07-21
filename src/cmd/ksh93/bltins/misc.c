@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -36,7 +36,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"variables.h"
 #include	"shnodes.h"
@@ -55,8 +55,6 @@
 #else
 #include	<times.h>
 #endif
-
-#define DOTMAX	MAXDEPTH	/* maximum level of . nesting */
 
 /*
  * Handler function for nv_scan() that unsets a variable's export attribute
@@ -96,9 +94,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -155,12 +151,12 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		sh_onstate(SH_EXEC);
 		if(sh.subshell && !sh.subshare)
 		{
-			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + argc*sizeof(char*));
+			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argc*sizeof(char*));
 			struct comnod *t = stkalloc(sh.stk,sizeof(struct comnod));
 			memset(t, 0, sizeof(struct comnod));
 			dp->dolnum = argc;
 			dp->dolbot = ARG_SPARE;
-			memcpy(dp->dolval+ARG_SPARE, argv, (argc+1)*sizeof(char*));
+			memcpy(dp->dolval+ARG_SPARE, argv, (size_t)(argc+1)*sizeof(char*));
 			t->comarg.dp = dp;
 			sh_exec((Shnode_t*)t,sh_isstate(SH_ERREXIT));
 			sh_offstate(SH_EXEC);
@@ -185,9 +181,7 @@ int    b_let(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors || !*argv)
@@ -211,9 +205,7 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -236,7 +228,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	Namval_t *np;
 	int jmpval;
 	struct sh_scoped savst, *prevscope = sh.st.self;
-	char *filename=0, *buffer=0, *tofree;
+	char *filename=0, *tofree;
 	int	fd;
 	struct dolnod   *saveargfor;
 	volatile struct dolnod   *argsave=0;
@@ -248,9 +240,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	script = *argv;
@@ -259,52 +249,47 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NULL));
 		UNREACHABLE();
 	}
-	if(sh.dot_depth >= DOTMAX)
+	if(sh.dot_depth >= MAXDEPTH)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_toodeep,script);
 		UNREACHABLE();
 	}
-	if(!(np=sh.posix_fun))
+	/* check for KornShell style function first */
+	np = nv_search(script,sh.fun_tree,0);
+	if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && context->bnode==SYSDOT))
 	{
-		/* check for KornShell style function first */
-		np = nv_search(script,sh.fun_tree,0);
-		if(np && is_afunction(np) && !nv_isattr(np,NV_FPOSIX) && !(sh_isoption(SH_POSIX) && context->bnode==SYSDOT))
+		if(!np->nvalue)
 		{
-			if(!np->nvalue)
+			path_search(script,NULL,0);
+			if(np->nvalue)
 			{
-				path_search(script,NULL,0);
-				if(np->nvalue)
-				{
-					if(nv_isattr(np,NV_FPOSIX))
-						np = 0;
-				}
-				else
-				{
-					errormsg(SH_DICT,ERROR_exit(1),e_found,script);
-					UNREACHABLE();
-				}
+				if(nv_isattr(np,NV_FPOSIX))
+					np = 0;
 			}
-		}
-		else
-			np = 0;
-		if(!np)
-		{
-			if((fd=path_open(script,path_get(script))) < 0)
+			else
 			{
-				errormsg(SH_DICT,ERROR_system(1),e_open,script);
+				errormsg(SH_DICT,ERROR_exit(1),e_found,script);
 				UNREACHABLE();
 			}
-			filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 		}
+	}
+	else
+		np = 0;
+	if(!np)
+	{
+		/* open the dot script */
+		if((fd=path_open(script,path_get(script))) < 0)
+		{
+			errormsg(SH_DICT,ERROR_system(1),e_open,script);
+			UNREACHABLE();
+		}
+		filename = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 	}
 	*prevscope = sh.st;
 	sh.st.lineno = np?((struct functnod*)nv_funtree(np))->functline:1;
 	sh.st.save_tree = sh.var_tree;
 	if(filename)
-	{
 		sh.st.filename = filename;
-		sh.st.lineno = 1;
-	}
 	sh.st.prevst = prevscope;
 	sh.st.self = &savst;
 	sh.topscope = (Shscope_t*)sh.st.self;
@@ -313,7 +298,6 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	if(np)
 		sh.st.filename = ((struct Ufunction*)np->nvalue)->fname;
 	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
-	sh.posix_fun = 0;
 	if(np || argv[1])
 		argsave = sh_argnew(argv,&saveargfor);
 	sh_pushcontext(&buff,SH_JMPDOT);
@@ -325,18 +309,19 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 		sh.dot_depth++;
 		update_sh_level();
 		if(np)
+		{
+			/* execute the function as though it were a dot script */
 			sh_exec((Shnode_t*)(nv_funtree(np)),sh_isstate(SH_ERREXIT));
+		}
 		else
 		{
-			buffer = sh_malloc(IOBSIZE+1);
-			iop = sfnew(NULL,buffer,IOBSIZE,fd,SFIO_READ);
+			/* run the dot script */
+			iop = sh_iostream(fd,1);
 			sh_offstate(SH_NOFORK);
 			sh_eval(iop,sh_isstate(SH_PROFILE)?SH_FUNEVAL:0);
 		}
 	}
 	sh_popcontext(&buff);
-	if(buffer)
-		free(buffer);
 	if(!np)
 		free(tofree);
 	sh.dot_depth--;
@@ -350,7 +335,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	}
 	if (sh.st.self != &savst)
 		*sh.st.self = sh.st;
-	/* only restore the top Shscope_t portion for POSIX functions */
+	/* only restore the top Shscope_t portion for functions */
 	memcpy(&sh.st, prevscope, sizeof(Shscope_t));
 	sh.topscope = (Shscope_t*)prevscope;
 	nv_putval(SH_PATHNAMENOD, sh.st.filename ,NV_NOFREE);
@@ -391,9 +376,7 @@ int    b_shift(int n, char *argv[], Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -424,9 +407,7 @@ int    b_wait(int n,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -458,9 +439,7 @@ int    b_bg(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -502,9 +481,7 @@ int    b_jobs(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	if(error_info.errors)
@@ -528,12 +505,12 @@ int    b_jobs(int n,char *argv[],Shbltin_t *context)
  */
 static void	print_times(struct timeval utime, struct timeval stime)
 {
-	Sfulong_t ut_min = utime.tv_sec / 60;
-	Sfulong_t ut_sec = utime.tv_sec % 60;
-	Sfulong_t ut_ms = utime.tv_usec / 1000;
-	Sfulong_t st_min = stime.tv_sec / 60;
-	Sfulong_t st_sec = stime.tv_sec % 60;
-	Sfulong_t st_ms = stime.tv_usec / 1000;
+	Sfulong_t ut_min = (Sfulong_t)(utime.tv_sec / 60);
+	Sfulong_t ut_sec = (Sfulong_t)(utime.tv_sec % 60);
+	Sfulong_t ut_ms = (Sfulong_t)(utime.tv_usec / 1000);
+	Sfulong_t st_min = (Sfulong_t)(stime.tv_sec / 60);
+	Sfulong_t st_sec = (Sfulong_t)(stime.tv_sec % 60);
+	Sfulong_t st_ms = (Sfulong_t)(stime.tv_usec / 1000);
 	sfprintf(sfstdout, sh_isoption(SH_POSIX) ? "%jum%ju%c%03jus %jum%ju%c%03jus\n" : "%jum%02ju%c%03jus %jum%02ju%c%03jus\n",
 		ut_min, ut_sec, sh.radixpoint, ut_ms, st_min, st_sec, sh.radixpoint, st_ms);
 }
@@ -554,7 +531,7 @@ static void	print_cpu_times(void)
 {
 	struct timeval utime, stime;
 	Sfdouble_t dtime;
-	int clk_tck = sh.lim.clk_tck;
+	clock_t clk_tck = sh.lim.clk_tck;
 	struct tms cpu_times;
 	times(&cpu_times);
 	/* Print the time (user & system) consumed by the shell. */
@@ -615,9 +592,7 @@ int	b_universe(int argc, char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argv += opt_info.index;
 	argc -= opt_info.index;

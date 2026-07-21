@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1995-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -28,13 +28,13 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2024-12-28 $
+@(#)$Id: shtests (ksh 93u+m) 2026-04-04 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
 [-copyright?(c) 2000-2012 AT&T Intellectual Property]
-[-copyright?(c) 2020-2024 Contributors to ksh 93u+m]
+[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]
 [-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
 [+NAME?shtests - ksh regression test harness]
 [+DESCRIPTION?\bshtests\b is the \bksh\b(1) regression test harness for
@@ -297,6 +297,17 @@ then	s=${SHELL:##*sh}
 	fi
 fi
 
+# if compiled with AddressSanitizer (ASan), certain tests are expected to fail
+grep -q __asan_init "$SHELL"
+export SHELL_ASAN=$(( ! $? ))
+if	((SHELL_ASAN))
+then	export ASAN_OPTIONS=detect_leaks=0   # LeakSanitizer does not play well with the tests
+fi
+
+# same for UndefinedBehaviorSanitizer (UBSan)
+grep -q __ubsan_handle_ "$SHELL"
+export SHELL_UBSAN=$(( ! $? ))
+
 # when testing a shell outside of INSTALLROOT, make sure libraries in INSTALLROOT are not loaded
 # The variables unset below should be the same ones that are set for 'test' or 'use' in bin/package
 if	! [[ ${SHELL%/*} -ef $INSTALLROOT/bin || ${SHELL%/*} -ef $INSTALLROOT/dyn/bin ]]
@@ -320,24 +331,14 @@ fi
 export HOME=$tmp
 
 # make the SHOPT_* macros available to the tests as environment variables
-command unset "${!SHOPT_@}" 2>/dev/null
-SHOPT()
-{
-	[[ $1 == *=* ]] && eval "export SHOPT_${ printf %q "${1%%=*}"; }=${ printf %q "${1#*=}"; }"
-}
-. "${SHOPTFILE:-../SHOPT.sh}"
-unset -f SHOPT
-# override with probed values from shopt.h:
-# change '#define SHOPT_foo = bar' to 'export SHOPT_foo=bar' and evaluate
-if	[[ -f $INSTALLROOT/src/cmd/ksh93/shopt.h ]] &&
-	i=$(sed -n $'/^#[ \t]*define[ \t][ \t]*SHOPT_/ {
-				s/.*define[ \t][ \t]*//
-				s/[ \t][ \t]*/=/
-				s/^/export /
-				p
-			}' "$INSTALLROOT"/src/cmd/ksh93/shopt.h)
-then	eval "$i" || exit
-else	echo "$0: cannot grep shopt.h" >&2
+# find $'#   define SHOPT_foo\tbar', change to '[[ -v SHOPT_foo ]] || export SHOPT_foo=bar' and evaluate
+t=$INSTALLROOT/src/cmd/ksh93/FEATURE/options
+if	[[ -f $t ]] &&
+	i=$(sed -n 's/^#   define \(SHOPT_[A-Za-z0-9_]*\)	\(.*\)/[[ -v \1 ]] || export \1=\2/p' "$t") &&
+	[[ -n $i ]] &&
+	eval "$i"
+then	: ok
+else	echo "$0: failed to read FEATURE/options" >&2
 	exit 1
 fi
 

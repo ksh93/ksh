@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -40,7 +40,7 @@ union _u_
 	uintmax_t		u6;
 	_ast_fltmax_t		u7;
 	void*			u8;
-	char*			(*u9)();
+	char*			(*u9)(void);
 	jmp_buf			u10;
 };
 
@@ -73,9 +73,9 @@ main(void)
 
 	u.u2 = u.u4;
 	v.u2 = u.u2 + 1;
-	bit1 = u.u1 ^ v.u1;
+	bit1 = (unsigned long)(u.u1 ^ v.u1);
 	v.u2 = u.u2 + 2;
-	bit2 = u.u1 ^ v.u1;
+	bit2 = (unsigned long)(u.u1 ^ v.u1);
 	align0 = sizeof(struct _s_) - sizeof(union _u_);
 	bits0 = 0;
 	k = 0;
@@ -86,7 +86,7 @@ main(void)
 		for (i = 0; i < align0; i++)
 		{
 			v.u2 = u.u2 + i;
-			bits1 |= u.u1 ^ v.u1;
+			bits1 |= (unsigned long)(u.u1 ^ v.u1);
 		}
 		if (!bits0 || bits1 < bits0)
 		{
@@ -99,20 +99,20 @@ main(void)
 	for (bits1 = bits0; i < align1; i++)
 	{
 		v.u2 = u.u2 + i;
-		bits1 |= u.u1 ^ v.u1;
+		bits1 |= (unsigned long)(u.u1 ^ v.u1);
 	}
 	align2 = roundof(align0, 4);
 	for (bits2 = bits1; i < align2; i++)
 	{
 		v.u2 = u.u2 + i;
-		bits2 |= u.u1 ^ v.u1;
+		bits2 |= (unsigned long)(u.u1 ^ v.u1);
 	}
 	printf("\n");
 	printf("#define ALIGN_CHUNK		%d\n", sizeof(char*) >= 4 ? 8192 : 1024);
 	printf("#define ALIGN_INTEGRAL		uintptr_t\n");
 	printf("#define ALIGN_INTEGER(x)	((intptr_t)(x))\n");
 	printf("#define ALIGN_POINTER(x)	((char*)(x))\n");
-	if (bits2 == (align2 - 1))
+	if ((signed)bits2 == (align2 - 1))
 		printf("#define ALIGN_ROUND(x,y)	ALIGN_POINTER(ALIGN_INTEGER((x)+(y)-1)&~((y)-1))\n");
 	else
 		printf("#define ALIGN_ROUND(x,y)	ALIGN_POINTER(ALIGN_INTEGER(ALIGN_ALIGN(x)+(((y)+%d)/%d)-1)&~((((y)+%d)/%d)-1))\n", align0, align0, align0, align0);

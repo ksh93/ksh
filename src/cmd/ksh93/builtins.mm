@@ -451,9 +451,7 @@ while(1) switch(n=optget(argv,"xf:[file]"))
 		error(ERROR_exit(0), opt_info.arg);
 		break;
 	case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 }
 .EE
 .H 2 "Storage Management"
@@ -489,8 +487,8 @@ an efficient manner:
 .EX
 \fIyourfunction\fP()
 {
-        char	*savebase;
-        int	saveoffset;
+        char		*savebase;
+        ptrdiff_t	saveoffset;
         if(saveoffset=stktell(stkstd))
         	savebase = stkfreeze(stkstd,0);
         \fR...\fP

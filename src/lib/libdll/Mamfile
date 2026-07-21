@@ -10,7 +10,7 @@ setv mam_cc_FLAGS %{mam_cc_TARGET} %{mam_cc_DLL} %{-debug-symbols?1?%{mam_cc_DEB
 setv CCFLAGS
 setv IFFEFLAGS
 setv LDFLAGS
-setv CCLDFLAGS
+setv CCLDFLAGS %{mam_cc_EXPORT_DYNAMIC}
 setv DYLIB_PRE %{mam_cc_SUFFIX_DYNAMIC?*?%{mam_cc_PREFIX_DYNAMIC}?%{mam_cc_PREFIX_SHARED}?}
 setv DYLIB_SUF %{mam_cc_SUFFIX_DYNAMIC-%{mam_cc_SUFFIX_SHARED}}
 setv DYLIB_VERSION 4.0
@@ -75,6 +75,7 @@ make install virtual
 		done
 		make dllscan.c
 			prev dlldefs.h
+			prev %{INCLUDE_AST}/vmalloc.h
 			prev %{INCLUDE_AST}/fts.h
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/endian.h
@@ -150,5 +151,5 @@ make install virtual
 	done %{INSTALLROOT}/lib/mam/dll
 done install
 
-make test dontcare virtual
+make test virtual
 done test

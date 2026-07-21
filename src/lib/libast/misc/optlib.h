@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -95,7 +95,7 @@ typedef struct Optstate_s
 	int		width;		/* format line width		*/
 	int		flags;		/* display flags		*/
 	int		emphasis;	/* ANSI term emphasis ok	*/
-	int		localized;	/* locale initialized		*/
+	uint32_t	localized;	/* locale initialization serial	*/
 	Dtdisc_t	msgdisc;	/* msgdict discipline		*/
 	Dt_t*		msgdict;	/* default ast.id catalog msgs	*/
 	Optcache_t*	cache;		/* OPT_cache cache		*/
@@ -103,7 +103,6 @@ typedef struct Optstate_s
 } Optstate_t;
 
 #define _OPT_PRIVATE_ \
-	char            pad[2*sizeof(void*)]; \
 	Optstate_t*	state;
 
 #include <error.h>

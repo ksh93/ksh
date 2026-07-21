@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -19,11 +19,7 @@
 
 #include <ast.h>
 
-#if _lib_memdup
-
-NoN(memdup)
-
-#else
+#if !_lib_memdup
 
 /*
  * return a copy of s of n chars using malloc
@@ -37,4 +33,8 @@ memdup(const void* s, size_t n)
 	return (t = newof(0, char, n, 0)) ? memcpy(t, s, n) : 0;
 }
 
-#endif
+#else
+
+NoN(memdup)
+
+#endif /* !_lib_memdup */

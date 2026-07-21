@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -203,7 +203,7 @@ pr(State_t* state, Sfio_t* op, Sfio_t* ip, char* file, int perm, struct stat* st
 				if (*p != '\n')
 					sumblock(state->sum, "\r", 1);
 			}
-			while (r = memchr(p, '\r', e - p))
+			while (r = memchr(p, '\r', (size_t)(e - p)))
 			{
 				if (++r >= e)
 				{
@@ -211,17 +211,17 @@ pr(State_t* state, Sfio_t* op, Sfio_t* ip, char* file, int perm, struct stat* st
 					peek = 1;
 					break;
 				}
-				sumblock(state->sum, p, r - p - (*r == '\n'));
+				sumblock(state->sum, p, (size_t)(r - p - (*r == '\n')));
 				p = r;
 			}
-			sumblock(state->sum, p, e - p);
+			sumblock(state->sum, p, (size_t)(e - p));
 		}
 		if (peek)
 			sumblock(state->sum, "\r", 1);
 	}
 	else
 		while (p = sfreserve(ip, SFIO_UNBOUND, 0))
-			sumblock(state->sum, p, sfvalue(ip));
+			sumblock(state->sum, p, (size_t)sfvalue(ip));
 	if (sfvalue(ip))
 		error(ERROR_SYSTEM|2, "%s: read error", file);
 	sumdone(state->sum);
@@ -258,7 +258,7 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 	char*		e;
 	char*		file;
 	int		attr;
-	int		mode;
+	mode_t		mode;
 	int		uid = -1;
 	int		gid = -1;
 	Sfio_t*		sp;
@@ -272,7 +272,7 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 			file = t;
 		*file++ = 0;
 		attr = 0;
-		if ((mode = strtol(file, &e, 8)) && *e == ' ' && (e - file) == 4)
+		if ((mode = (mode_t)strtoul(file, &e, 8)) && *e == ' ' && (e - file) == 4)
 		{
 			mode = modei(mode);
 			if (t = strchr(++e, ' '))
@@ -326,43 +326,43 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 				}
 				else
 				{
-					if (uid < 0 || uid == st.st_uid)
+					if (uid < 0 || uid == (int)st.st_uid)
 						uid = -1;
 					else if (!state->permissions)
 					{
 						if (state->silent)
 							error_info.errors++;
 						else
-							error(2, "%s: UID should be %s", file, fmtuid(uid));
+							error(2, "%s: UID should be %s", file, fmtuid((uid_t)uid));
 					}
-					if (gid < 0 || gid == st.st_gid)
+					if (gid < 0 || gid == (int)st.st_gid)
 						gid = -1;
 					else if (!state->permissions)
 					{
 						if (state->silent)
 							error_info.errors++;
 						else
-							error(2, "%s: GID should be %s", file, fmtgid(gid));
+							error(2, "%s: GID should be %s", file, fmtgid((gid_t)gid));
 					}
 					if (state->permissions && (uid >= 0 || gid >= 0))
 					{
-						if (chown(file, uid, gid) < 0)
+						if (chown(file, (uid_t)uid, (uid_t)gid) < 0)
 						{
 							if (uid < 0)
-								error(ERROR_SYSTEM|2, "%s: cannot change group to %s", file, fmtgid(gid));
+								error(ERROR_SYSTEM|2, "%s: cannot change group to %s", file, fmtgid((gid_t)gid));
 							else if (gid < 0)
-								error(ERROR_SYSTEM|2, "%s: cannot change user to %s", file, fmtuid(uid));
+								error(ERROR_SYSTEM|2, "%s: cannot change user to %s", file, fmtuid((uid_t)uid));
 							else
-								error(ERROR_SYSTEM|2, "%s: cannot change user to %s and group to %s", file, fmtuid(uid), fmtgid(gid));
+								error(ERROR_SYSTEM|2, "%s: cannot change user to %s and group to %s", file, fmtuid((uid_t)uid), fmtgid((gid_t)gid));
 						}
 						else
 						{
 							if (uid < 0)
-								error(1, "%s: changed group to %s", file, fmtgid(gid));
+								error(1, "%s: changed group to %s", file, fmtgid((gid_t)gid));
 							else if (gid < 0)
-								error(1, "%s: changed user to %s", file, fmtuid(uid));
+								error(1, "%s: changed user to %s", file, fmtuid((uid_t)uid));
 							else
-								error(1, "%s: changed user to %s and group to %s", file, fmtuid(uid), fmtgid(gid));
+								error(1, "%s: changed user to %s and group to %s", file, fmtuid((uid_t)uid), fmtgid((gid_t)gid));
 						}
 					}
 					if ((st.st_mode & S_IPERM) ^ mode)
@@ -423,7 +423,7 @@ list(State_t* state, Sfio_t* lp)
 static int
 order(FTSENT* const* f1, FTSENT* const* f2)
 {
-	return strcoll((*f1)->fts_name, (*f2)->fts_name);
+	return ast.locale.collate((*f1)->fts_name, (*f2)->fts_name);
 }
 
 /*
@@ -472,7 +472,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 			state.text = 0;
 			continue;
 		case 'B':
-			state.scale = opt_info.num;
+			state.scale = (size_t)opt_info.num;
 			continue;
 		case 'c':
 			if (!(state.check = sfstropen()))
@@ -502,13 +502,13 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 			method = "sys5";
 			continue;
 		case 'S':
-			state.silent = opt_info.num;
+			state.silent = (int)opt_info.num;
 			continue;
 		case 't':
 			state.total = 1;
 			continue;
 		case 'w':
-			state.warn = opt_info.num;
+			state.warn = (int)opt_info.num;
 			continue;
 		case 'x':
 			method = opt_info.arg;
@@ -530,9 +530,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 			state.text = 1;
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		case ':':
 			error(2, "%s", opt_info.arg);
 			break;

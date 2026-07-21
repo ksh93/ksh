@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2022-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2022-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -12,6 +12,7 @@
 #                      Phi <phi.debian@gmail.com>                      #
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
+#                  Manuel Einfalt <m-einfalt@gmx.de>                   #
 #                                                                      #
 ########################################################################
 
@@ -581,6 +582,12 @@ function do_test
 T $'a e\nf j\n'			'%s %5$s\n'		a b c d e f g h i j
 T $'a \n'			'%s %99$s\n'		a b c d e f g h i j
 T $'first fifth\nsixth \n'	'%s %5$s\n'		first 2+ @ 2/0 fifth sixth
+
+# ======
+# https://github.com/ksh93/ksh/issues/952
+exp=100000000000000000000
+printf -v got '%.21g' 1e20
+[[ $got == "$exp" ]] || err_exit "%.21g corrupts 1e20 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

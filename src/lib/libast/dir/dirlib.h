@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -32,7 +33,6 @@
 #define getdirentries	______getdirentries
 
 #include <ast.h>
-#include <errno.h>
 
 #if _lib_opendir && ( _hdr_dirent || _hdr_ndir || _sys_dir )
 
@@ -100,8 +100,8 @@
 #undef	telldir
 
 #define _DIR_PRIVATE_ \
-	int		dd_loc;		/* offset in block		*/ \
-	int		dd_size;	/* valid data in block		*/ \
+	ssize_t		dd_loc;		/* offset in block		*/ \
+	ssize_t		dd_size;	/* valid data in block		*/ \
 	char*		dd_buf;		/* directory block		*/
 
 #undef	_DIRENT_H
@@ -110,7 +110,7 @@
 #define _DIRENT_H	1
 #endif
 
-#ifndef	DIRBLKSIZ
+#ifndef DIRBLKSIZ
 #ifdef	DIRBLK
 #define DIRBLKSIZ	DIRBLK
 #else

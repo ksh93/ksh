@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -385,7 +385,7 @@ if	(( $# !=1 ))
 then	err_exit	'"${@-}" not expanding to null string'
 fi
 for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
-do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not an syntax error"
+do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
 done
 
 # ___ begin: IFS tests ___
@@ -1275,6 +1275,49 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	done
 done
 
+# Same again for positional parameters (minus the conditional assignment operators).
+# https://github.com/ksh93/ksh/issues/907
+
+set -- some_value  # $1 is set, $2 is unset
+
+for op in - :-
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
+		if	[[ $got != "$word" ]]
+		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected \"$word\", got \"$got\""
+	        fi
+	done
+done
+
+for op in - :- \? :\?
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${1${op}${word}}" 2>&1)
+		if	[[ $got != "$1" ]]
+		then	err_exit "\${1${op}${word}} when PP 1 is set: expected \"$1\", got \"$got\""
+		fi
+	done
+done
+
+for op in + :+
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
+		if	[[ $got != "" ]]
+		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected null, got \"$got\""
+		fi
+	done
+done
+
+for op in \? :\?
+do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
+	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
+		if	[[ $got != *": 2: $word" ]]
+		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected *\": 2: $word\", got \"$got\""
+		fi
+	done
+done
+
+set --
+
 # ======
 # https://bugzilla.redhat.com/1147645
 case $'\n'$(env 'BASH_FUNC_a%%=() { echo test; }' "$SHELL" -c set) in
@@ -1387,6 +1430,7 @@ exp=42.0000000000
 # ======
 # ${!FOO@} and ${!FOO*} expansions did not include FOO itself
 # https://github.com/ksh93/ksh/issues/183
+# https://github.com/ksh93/ksh/issues/875
 unset foo "${!foo@}"
 exp='foo foobar fool'
 got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo@}")
@@ -1394,6 +1438,20 @@ got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo@}")
 exp='foo/foobar/fool'
 got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${!foo*}")
 [[ $got == "$exp" ]] || err_exit "\${!foo*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+exp=3
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${#foo@}")
+[[ $got == "$exp" ]] || err_exit "\${#foo@}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=$(IFS=/; foo=bar foobar=fbar fool=pity; print -r -- "${#foo*}")
+[[ $got == "$exp" ]] || err_exit "\${#foo*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+unset a "${!a@}"
+exp="a.a a.aa a.ac"
+got=$(a=1 a.a=2 a.b=3 a.c=4 a.aa=5 a.ac=6; echo "${!a.a*}")
+[[ $got == "$exp" ]] || err_exit "\${!a.*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+exp=3
+got=$(a=1 a.a=2 a.b=3 a.c=4 a.aa=5 a.ac=6; echo "${#a.a*}")
+[[ $got == "$exp" ]] || err_exit "\${#a.*}: expected $(printf %q "$exp"), got $(printf %q "$got")"
+got=${!a*}
+[[ -z "$got" ]] || err_exit "a tree: subshell leak (got '$got')"
 
 # ======
 # In ksh93v- ${.sh.subshell} is unset by the $PS4 prompt
@@ -1730,11 +1788,6 @@ EOF
 	"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
-# checks for tests run in parallel (see top)
-wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
-wait "$parallel_2" || err_exit "TMOUT applies to 'read' from a non-terminal"
-
-# ======
 # TODO: fix to support > 4 year digits well before the year 10,000 :)
 got=$((.sh.version))
 exp='^[[:digit:]]{8}$'
@@ -1770,4 +1823,48 @@ got=$(./issue861.sh 2>&1)
 unset i
 
 # ======
+
+# Problem: the global discipline function kept applying to the local variable
+# for certain special variables. This was a design problem with nv_cover() in
+# init.c which copied the nvfun pointer, i.e., the entire discipline function
+# tree. (Note: nv_cover() is now renamed to nv_enforcedisc().)
+# Here we can only test nv_enforcedisc() variables without value constraints.
+
+exp=$'in main: MainShellValue\nin pathlocal: LocalValue'
+for v in IFS PATH SHELL FPATH CDPATH ENV
+do	got=$(eval "
+		function pathlocal
+		{
+			typeset $v=LocalValue
+			print -r -- \"in pathlocal: \$$v\"
+		}
+		function $v.get
+		{
+			.sh.value=MainShellValue
+		}
+		print -r -- \"in main: \$$v\"
+		pathlocal
+	")
+	[[ $got == "$exp" ]] || err_exit "$v discipline not scoped properly" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
+# ======
+# Another bug Nathan Mills found by fuzzing ksh
+got=$( { "$SHELL" -c '(.sh[0]=); exit'; } 2>&1)
+[[ e=$? -eq 1 && $got == *read\ only* ]] || err_exit "attempt to assign to .sh array in subshell" \
+	"(expected status 1 and match of *'read only'*," \
+	"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
+
+# ..and another one
+got=$( { "$SHELL" -c ': ${44444444444444444444444444444444}'; } 2>&1)
+[[ e=$? -eq 1 && $got == *'out of range'* ]] || err_exit "positional parameter with too-large number" \
+	"(expected status 1 and match of *'out of range'*," \
+	"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
+
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
+# checks for tests run in parallel (see top)
+wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
+wait "$parallel_2" || err_exit "TMOUT applies to 'read' from a non-terminal"
+
 exit $((Errors<125?Errors:125))

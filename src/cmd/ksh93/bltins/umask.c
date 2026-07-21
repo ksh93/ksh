@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,7 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * umask [-S] [mask]
+ * umask [-pS] [mask]
  *
  *   David Korn
  *   AT&T Labs
@@ -24,7 +24,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<sfio.h>
 #include	<error.h>
@@ -39,20 +39,22 @@
 int	b_umask(int argc,char *argv[],Shbltin_t *context)
 {
 	char *mask;
-	int flag = 0, sflag = 0;
+	mode_t flag = 0;
+	int pflag = 0, sflag = 0;
 	NOT_USED(context);
 	while((argc = optget(argv,sh_optumask))) switch(argc)
 	{
+		case 'p':
+			pflag = 1;
+			break;
 		case 'S':
-			sflag++;
+			sflag = 1;
 			break;
 		case ':':
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	if(error_info.errors)
 	{
@@ -62,13 +64,13 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 	argv += opt_info.index;
 	if(mask = *argv)
 	{
-		int c;
 		if(isdigit(*mask))
 		{
+			int c;
 			while(c = *mask++)
 			{
 				if (c>='0' && c<='7')
-					flag = (flag<<3) + (c-'0');
+					flag = (mode_t)((flag<<3) + (mode_t)(c-'0'));
 				else
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_number,*argv);
@@ -79,6 +81,7 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 		else
 		{
 			char *cp = mask;
+			mode_t c;
 			flag = umask(0);
 			c = strperm(cp,&cp,~flag&0777);
 			if(*cp)
@@ -93,11 +96,12 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 	}
 	else
 	{
+		char *prefix = pflag ? "umask " : "";
 		umask(flag=umask(0));
 		if(sflag)
-			sfprintf(sfstdout,"%s\n",fmtperm(~flag&0777));
+			sfprintf(sfstdout,"%s%s\n",prefix,fmtperm(~flag&0777));
 		else
-			sfprintf(sfstdout,"%0#4o\n",flag);
+			sfprintf(sfstdout,"%s%0#4o\n",prefix,flag);
 	}
 	return 0;
 }

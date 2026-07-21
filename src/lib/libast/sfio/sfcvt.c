@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,6 +16,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *         hyenias <58673227+hyenias@users.noreply.github.com>          *
 *            Johnothan King <johnothanking@protonmail.com>             *
+*                  Manuel Einfalt <m-einfalt@gmx.de>                   *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -79,11 +80,11 @@ static int neg0d(double f)
 char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 	     char*	buf,		/* conversion goes here		*/
 	     size_t	size,		/* size of buf			*/
-	     int	n_digit,	/* number of digits wanted	*/
+	     ptrdiff_t	n_digit,	/* number of digits wanted	*/
 	     int*	decpt,		/* to return decimal point	*/
 	     int*	sign,		/* to return sign		*/
-	     int*	len,		/* return string length		*/
-	     int	format)		/* conversion format		*/
+	     ptrdiff_t*	len,		/* return string length		*/
+	     ptrdiff_t format)		/* conversion format		*/
 {
 	char			*sp;
 	long			n, v;
@@ -102,7 +103,9 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 
 		if (isnan(f))
 		{
-#if _lib_signbit
+#if _lib_signbit && _nan_signbit_inverted
+			if (!signbit(f))
+#elif _lib_signbit
 			if (signbit(f))
 #else
 			if (f < 0)
@@ -139,8 +142,8 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		{	Sfdouble_t	g;
 			b = sp = buf;
 			ep = (format & SFFMT_UPPER) ? ux : lx;
-			if(n_digit <= 0 || n_digit >= (size - 9))
-				n_digit = size - 9;
+			if(n_digit <= 0 || (size_t)n_digit >= (size - 9))
+				n_digit = (ptrdiff_t)size - 9;
 			endsp = sp + n_digit + 1;
 
 			g = frexpl(f, &x);
@@ -209,8 +212,8 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		/* remaining number of digits to compute; add 1 for later rounding */
 		n = (((format&SFFMT_EFORMAT) || *decpt <= 0) ? 1 : *decpt+1) - n;
 		if(n_digit > 0)
-		{	if(n_digit > LDBL_DIG)
-				n_digit = LDBL_DIG;
+		{	if(n_digit > size - 1)
+				n_digit = size - 1;
 			n += n_digit;
 		}
 
@@ -236,7 +239,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 					goto done;
 				}
 				else if((n = (long)(f *= 10.)) < 10)
-				{	*sp++ = '0' + n;
+				{	*sp++ = (char)('0' + n);
 					f -= n;
 				}
 				else /* n == 10 */
@@ -250,7 +253,9 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 
 		if(isnan(f))
 		{
-#if _lib_signbit
+#if _lib_signbit && _nan_signbit_inverted
+			if (!signbit(f))
+#elif _lib_signbit
 			if (signbit(f))
 #else
 			if (f < 0)
@@ -287,8 +292,8 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		{	double		g;
 			b = sp = buf;
 			ep = (format & SFFMT_UPPER) ? ux : lx;
-			if(n_digit <= 0 || n_digit >= (size - 9))
-				n_digit = size - 9;
+			if(n_digit <= 0 || (size_t)n_digit >= (size - 9))
+				n_digit = (ptrdiff_t)size - 9;
 			endsp = sp + n_digit + 1;
 
 			g = frexp(f, &x);
@@ -355,8 +360,8 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
 		/* remaining number of digits to compute; add 1 for later rounding */
 		n = (((format&SFFMT_EFORMAT) || *decpt <= 0) ? 1 : *decpt+1) - n;
 		if(n_digit > 0)
-		{	if(n_digit > DBL_DIG)
-				n_digit = DBL_DIG;
+		{	if(n_digit > size - 1)
+				n_digit = size - 1;
 			n += n_digit;
 		}
 
@@ -427,7 +432,7 @@ char* _sfcvt(void*	vp,		/* pointer to value to convert	*/
  done:
 	*--ep = '\0';
 	if(len)
-		*len = ep-b;
+		*len = ep - b;
 	return b;
  around:
 	if (((m >> x) & 0xf) >= 8)

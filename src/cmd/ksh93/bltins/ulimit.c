@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	<ast.h>
 #include	<sfio.h>
 #include	<error.h>
@@ -70,14 +70,14 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 {
 	char *limit;
 	int mode=0, n;
-	unsigned long hit = 0;
+	unsigned long hit = 0, label;
 #if _lib_getrlimit
 	struct rlimit rlp;
 #endif /* _lib_getrlimit */
 	const Limit_t* tp;
 	char* conf;
-	int label, unit, nosupport, ret=0;
-	rlim_t i=0;
+	int nosupport, ret=0;
+	rlim_t i=0, unit;
 	char tmp[41];
 	Optdisc_t disc;
 	NOT_USED(context);
@@ -94,7 +94,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			mode |= SOFT;
 			continue;
 		case 'a':
-			hit = ~0;
+			hit = ~0UL;
 			break;
 		default:
 			if(n < 0)
@@ -106,9 +106,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
 			break;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 	}
 	opt_info.disc = 0;
 	/* default to -f */
@@ -134,7 +132,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 		if(!(hit&1))
 			continue;
 		nosupport = (n = tp->index) == RLIMIT_UNKNOWN;
-		unit = shtab_units[tp->type];
+		unit = (rlim_t)shtab_units[tp->type];
 		if(limit)
 		{
 			if(sh.subshell && !sh.subshare)
@@ -145,11 +143,11 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			{
 				char *last;
 				/* an explicit suffix unit overrides the default */
-				if((i=strtol(limit,&last,0))!=ULIMIT_INFINITY && !*last)
+				if((i=(rlim_t)strtol(limit,&last,0))!=ULIMIT_INFINITY && !*last)
 					i *= unit;
-				else if((i=strton(limit,&last,NULL,0))==ULIMIT_INFINITY || *last)
+				else if((i=(rlim_t)strton(limit,&last,NULL,0))==ULIMIT_INFINITY || *last)
 				{
-					if((i=sh_strnum(limit,&last,2))==ULIMIT_INFINITY || *last)
+					if((i=(rlim_t)sh_strnum(limit,&last,2))==ULIMIT_INFINITY || *last)
 					{
 						errormsg(SH_DICT,ERROR_system(1),e_number,limit);
 						UNREACHABLE();
@@ -165,7 +163,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			else
 			{
 #if _lib_getrlimit
-				if(getrlimit(n,&rlp) <0)
+				if(getrlimit((__rlimit_resource_t)n,&rlp) <0)
 				{
 					errormsg(SH_DICT,ERROR_system(1),e_number,limit);
 					UNREACHABLE();
@@ -174,7 +172,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 					rlp.rlim_max = i;
 				if(mode&SOFT)
 					rlp.rlim_cur = i;
-				if(setrlimit(n,&rlp) <0)
+				if(setrlimit((__rlimit_resource_t)n,&rlp) <0)
 				{
 					errormsg(SH_DICT,ERROR_system(1),e_overlimit,limit);
 					UNREACHABLE();
@@ -193,7 +191,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			if(!nosupport)
 			{
 #if _lib_getrlimit
-				if(getrlimit(n,&rlp)<0)
+				if(getrlimit((__rlimit_resource_t)n,&rlp)<0)
 				{
 					errormsg(SH_DICT,ERROR_system(0),e_limit,tp->description);
 					ret++;

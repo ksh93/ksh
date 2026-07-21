@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -35,7 +36,7 @@ optesc(Sfio_t* sp, const char* s, int esc)
 
 	if (*s == '[' && *(s + 1) == '+' && *(s + 2) == '?')
 	{
-		c = strlen(s);
+		c = (int)strlen(s);
 		if (s[c - 1] == ']')
 		{
 			sfprintf(sp, "%-.*s", c - 4, s + 3);
@@ -52,13 +53,13 @@ optesc(Sfio_t* sp, const char* s, int esc)
 			if (isalpha(c) && *s == '(' && isdigit(*(s + 1)) && *(s + 2) == ')')
 			{
 				sfputc(sp, '\b');
-				sfwrite(sp, m, s - m);
+				sfwrite(sp, m, (size_t)(s - m));
 				sfputc(sp, '\b');
 				sfwrite(sp, s, 3);
 				s += 3;
 			}
 			else
-				sfwrite(sp, m, s - m);
+				sfwrite(sp, m, (size_t)(s - m));
 		}
 		else if (c == '-' && *s == '-' || c == '<')
 		{
@@ -72,11 +73,11 @@ optesc(Sfio_t* sp, const char* s, int esc)
 			if (c == '<' && *s == '>' || isspace(*s) || *s == 0 || *s == '=' || *s == ':' || *s == ';' || *s == '.' || *s == ',')
 			{
 				sfputc(sp, '\b');
-				sfwrite(sp, m, s - m);
+				sfwrite(sp, m, (size_t)(s - m));
 				sfputc(sp, '\b');
 			}
 			else
-				sfwrite(sp, m, s - m);
+				sfwrite(sp, m, (size_t)(s - m));
 		}
 		else
 		{

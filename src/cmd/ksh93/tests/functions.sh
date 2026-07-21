@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -1581,6 +1581,48 @@ do	got=$(unset -f "$b"; PATH=/dev/null; "$b" --version 2>&1)
 	[[ e=$? -eq s && $got =~ $exp ]] || err_exit "'unset -f $b' fails in subshell (2b)" \
 		"(expected status $s and ERE match of $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 done
+
+# ======
+# test autoloading a function from within a command substitutino
+# https://github.com/ksh93/ksh/issues/971
+
+print -r >test_program \
+'autoload my_function
+
+# If I called this function directly, all problems go away:
+# my_function
+
+# Without that, this first command substitution works:
+functions my_function third_function
+print "$(my_function)"
+
+# But when I do it a second time:
+functions my_function third_function
+print "$(my_function)"
+# ./test_program: line 4: autoload loop: my_function in /home/perette/bin/shfuncs/my_function'
+
+print -r >my_function \
+'autoload third_function
+function my_function {
+        third_function
+        print "my_function was called."
+}'
+
+print -r >third_function \
+'function third_function {
+        print "Third function got called."
+}'
+
+got=$(FPATH=$PWD; set +x; . ./test_program 2>&1)
+exp='typeset -fu my_function
+Third function got called.
+my_function was called.
+typeset -fu my_function
+Third function got called.
+my_function was called.'
+
+[[ $got == "$exp" ]] || err_exit "autoloading a function from a command substitution" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

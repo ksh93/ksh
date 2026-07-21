@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -59,7 +59,7 @@ static void _sfcleanup(void)
 	Sfpool_t*	p;
 	Sfio_t*		f;
 	int		n;
-	int		pool;
+	unsigned int	pool;
 
 	f = (Sfio_t*)Version; /* shut compiler warning */
 
@@ -83,7 +83,7 @@ static void _sfcleanup(void)
 
 			/* from now on, write streams are unbuffered */
 			pool = f->mode&SFIO_POOL;
-			f->mode &= ~SFIO_POOL;
+			f->mode &= (uint32_t)~SFIO_POOL;
 			if((f->flags&SFIO_WRITE) && !(f->mode&SFIO_WRITE))
 				(void)_sfmode(f,SFIO_WRITE,1);
 			if(f->data &&
@@ -102,7 +102,8 @@ int _sfsetpool(Sfio_t* f)
 {
 	Sfpool_t*	p;
 	Sfio_t**	array;
-	int		n, rv;
+	int		rv;
+	ssize_t		n;
 
 	if(!_Sfcleanup)
 	{	_Sfcleanup = _sfcleanup;
@@ -111,7 +112,6 @@ int _sfsetpool(Sfio_t* f)
 
 	if(!(p = f->pool) )
 		p = f->pool = &_Sfpool;
-
 
 	rv = -1;
 
@@ -122,11 +122,11 @@ int _sfsetpool(Sfio_t* f)
 		}
 		else	/* allocate a larger array */
 		{	n = (p->sf != p->array ? p->s_sf : (p->s_sf/4 + 1)*4) + 4;
-			if(!(array = (Sfio_t**)malloc(n*sizeof(Sfio_t*))) )
+			if(!(array = (Sfio_t**)malloc((size_t)n*sizeof(Sfio_t*))) )
 				goto done;
 
 			/* move old array to new one */
-			memcpy(array,p->sf,p->n_sf*sizeof(Sfio_t*));
+			memcpy(array,p->sf,(size_t)p->n_sf*sizeof(Sfio_t*));
 			if(p->sf != p->array)
 				free(p->sf);
 
@@ -153,12 +153,12 @@ Sfrsrv_t* _sfrsrv(Sfio_t* f, ssize_t size)
 	/* make buffer if nothing yet */
 	size = ((size + SFIO_GRAIN-1)/SFIO_GRAIN)*SFIO_GRAIN;
 	if(!(rsrv = f->rsrv) || size > rsrv->size)
-	{	if(!(rs = (Sfrsrv_t*)malloc(size+sizeof(Sfrsrv_t))))
+	{	if(!(rs = calloc(1, (size_t)size + sizeof(Sfrsrv_t))))
 			size = -1;
 		else
 		{	if(rsrv)
 			{	if(rsrv->slen > 0)
-					memcpy(rs,rsrv,sizeof(Sfrsrv_t)+rsrv->slen);
+					memcpy(rs,rsrv,sizeof(Sfrsrv_t)+(size_t)rsrv->slen);
 				free(rsrv);
 			}
 			f->rsrv = rsrv = rs;
@@ -218,7 +218,7 @@ int _sfpclose(Sfio_t* f)
 	else
 	{	/* close the associated stream */
 		if(p->file >= 0)
-			CLOSE(p->file);
+			ast_close(p->file);
 
 		/* wait for process termination */
 		sigcritical(SIG_REG_EXEC|SIG_REG_PROC);
@@ -256,7 +256,7 @@ static int _sfpmode(Sfio_t* f, int type)
 		if(p->ndata > p->size)
 		{	if(p->rdata)
 				free(p->rdata);
-			if((p->rdata = (uchar*)malloc(p->ndata)) )
+			if((p->rdata = (uchar*)malloc((size_t)p->ndata)) )
 				p->size = p->ndata;
 			else
 			{	p->size = 0;
@@ -264,7 +264,7 @@ static int _sfpmode(Sfio_t* f, int type)
 			}
 		}
 		if(p->ndata > 0)
-			memcpy(p->rdata,f->next,p->ndata);
+			memcpy(p->rdata,f->next,(size_t)p->ndata);
 		f->endb = f->data;
 	}
 	else
@@ -272,7 +272,7 @@ static int _sfpmode(Sfio_t* f, int type)
 		if(p->ndata > f->size)	/* may lose data!!! */
 			p->ndata = f->size;
 		if(p->ndata > 0)
-		{	memcpy(f->data,p->rdata,p->ndata);
+		{	memcpy(f->data,p->rdata,(size_t)p->ndata);
 			f->endb = f->data+p->ndata;
 			p->ndata = 0;
 		}
@@ -296,12 +296,11 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 	Sfoff_t	addr;
 	int	rv = 0;
 
-
 	if(wanted&SFIO_SYNCED) /* for (SFIO_SYNCED|SFIO_READ) stream, just junk data */
-	{	wanted &= ~SFIO_SYNCED;
+	{	wanted &= (uint32_t)~SFIO_SYNCED;
 		if((f->mode&(SFIO_SYNCED|SFIO_READ)) == (SFIO_SYNCED|SFIO_READ) )
 		{	f->next = f->endb = f->endr = f->data;
-			f->mode &= ~SFIO_SYNCED;
+			f->mode &= (uint32_t)~SFIO_SYNCED;
 		}
 	}
 
@@ -327,8 +326,8 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 	}
 
 	if(f->mode&SFIO_GETR)
-	{	f->mode &= ~SFIO_GETR;
-#ifdef MAP_TYPE
+	{	f->mode &= (uint32_t)~SFIO_GETR;
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 		{
 			if (!++f->ngetr)
@@ -341,7 +340,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 		}
 #endif
 		if(f->getr)
-		{	f->next[-1] = f->getr;
+		{	f->next[-1] = (uchar)f->getr;
 			f->getr = 0;
 		}
 	}
@@ -361,7 +360,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 		{	local = 1;
 			goto err_notify;
 		}
-		f->mode &= ~SFIO_POOL;
+		f->mode &= (uint32_t)~SFIO_POOL;
 	}
 
 	SFLOCK(f,local);
@@ -382,7 +381,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 			goto err_notify;
 
 		if((f->flags&SFIO_STRING) && f->size >= 0 && f->data)
-		{	f->mode &= ~SFIO_INIT;
+		{	f->mode &= (uint32_t)~SFIO_INIT;
 			f->extent = ((f->flags&SFIO_READ) || (f->bits&SFIO_BOTH)) ?
 					f->size : 0;
 			f->here = 0;
@@ -394,7 +393,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 		}
 		else
 		{	n = f->flags;
-			(void)SFSETBUF(f,f->data,f->size);
+			(void)SFSETBUF(f,f->data,(size_t)f->size);
 			f->flags |= (n&SFIO_MALLOC);
 		}
 	}
@@ -443,7 +442,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 			if((f->flags&(SFIO_SHARE|SFIO_PUBLIC)) == (SFIO_SHARE|SFIO_PUBLIC) &&
 			   (addr = SFSK(f,0,SEEK_CUR,f->disc)) != f->here)
 			{
-#ifdef MAP_TYPE
+#if _lib_mmap
 				if((f->bits&SFIO_MMAP) && f->data)
 				{	SFMUNMAP(f,f->data,f->endb-f->data);
 					f->data = NULL;
@@ -480,7 +479,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 
 		/* reset buffer and seek pointer */
 		if(!(f->mode&SFIO_SYNCED) )
-		{	intptr_t nn = f->endb - f->next;
+		{	ptrdiff_t nn = f->endb - f->next;
 			if(f->extent >= 0 && (nn > 0 || (f->data && (f->bits&SFIO_MMAP))) )
 			{	/* reset file pointer */
 				addr = f->here - nn;
@@ -491,7 +490,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 		}
 
 		f->mode = SFIO_WRITE|SFIO_LOCK;
-#ifdef MAP_TYPE
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 		{	if(f->data)
 				SFMUNMAP(f,f->data,f->endb-f->data);
@@ -512,7 +511,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 			wanted = SFIO_READ;
 
 		/* set errno for operations that access wrong stream type */
-		if(wanted != (f->mode&SFIO_RDWR) && f->file >= 0)
+		if(wanted != (int)(f->mode&SFIO_RDWR) && f->file >= 0)
 			errno = EBADF;
 
 		if(_Sfnotify) /* notify application of the error */

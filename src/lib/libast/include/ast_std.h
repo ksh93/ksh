@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -31,6 +31,14 @@
 #define _AST_STD_H		1
 #define _AST_STD_I		1
 
+/*
+ * Define inline as an empty macro if we are
+ * compiling with C89.
+ */
+#if __STDC_VERSION__ < 199901L
+#define inline
+#endif
+
 #include <ast_standards.h>
 #include <ast_common.h>
 
@@ -49,7 +57,7 @@
 struct _sfio_s;
 #endif
 #define FILE		struct _sfio_s
-#ifndef	__FILE_typedef
+#ifndef __FILE_typedef
 #define __FILE_typedef	1
 #endif
 #ifndef _FILEDEFED
@@ -92,6 +100,9 @@ struct _sfio_s;
 #endif
 #ifndef __DEFINED_FILE
 #define __DEFINED_FILE 1
+#endif
+#ifndef _STDFILES_DECLARED
+#define _STDFILES_DECLARED 1
 #endif
 #endif
 
@@ -166,15 +177,20 @@ extern char*		setlocale(int, const char*);
 #define AST_LC_COUNT		13	/* number of preceding AST_LC_* defines */
 #define AST_LC_LANG		255
 
-#define AST_LC_internal		1
-#define AST_LC_7bit		(1 << 23)
-#define AST_LC_utf8		(1 << 24)
-#define AST_LC_test		(1 << 25)
-#define AST_LC_setenv		(1 << 26)
-#define AST_LC_find		(1 << 27)
-#define AST_LC_debug		(1 << 28)
-#define AST_LC_setlocale	(1 << 29)
-#define AST_LC_translate	(1 << 30)
+/* bit flags for ast.locale.set */
+#define AST_LC_internal		1U
+#define AST_LC_7bit		(1U << 23)
+#if AST_NOMULTIBYTE
+#define AST_LC_utf8		0
+#else
+#define AST_LC_utf8		(1U << 24)
+#endif /* AST_NOMULTIBYTE */
+#define AST_LC_test		(1U << 25)
+#define AST_LC_setenv		(1U << 26)
+#define AST_LC_find		(1U << 27)
+#define AST_LC_debug		(1U << 28)
+#define AST_LC_setlocale	(1U << 29)
+#define AST_LC_translate	(1U << 30)
 
 #ifndef LC_ALL
 #define LC_ALL			(-AST_LC_ALL)
@@ -219,13 +235,6 @@ extern char*		setlocale(int, const char*);
 #define LC_LANG			(-AST_LC_LANG)
 #endif
 
-#undef	strcoll
-#if _std_strcoll
-#define strcoll		_ast_info.locale.collate
-#else
-#define strcoll		strcmp
-#endif
-
 /*
  * This struct defines all the global ast.* variables.
  * It is initialized in misc/state.c, and not by name -- so the order must be kept in sync.
@@ -234,20 +243,21 @@ extern char*		setlocale(int, const char*);
 typedef struct
 {
 	char		*id;
-	uint32_t	version;
-	uint32_t	env_serial;	/* increased by setenviron */
+	uint64_t	env_serial;	/* should be increased on every change of an environment variable */
 
 	struct				/* ast.locale.* -- stuff set in setlocale.c */
 	{
-	int             (*collate)(const char*, const char*);  /* strcoll(3) is redefined as this, above */
+	int             (*collate)(const char*, const char*);     /* strcoll(3), an alternative, or strcmp(3) for no collation */
+	size_t		(*transform)(char*, const char*, size_t); /* strxfrm(3), an alternative, or 0 for no collation */
 	void		*uc2wc;		/* iconv descriptor for converting unicode to locale's wide char */
 	uint32_t	serial;
-	uint32_t	set;
+	uint32_t	set;		/* AST_LC_* bit flags (see above) */
 	}		locale;
 
+#if !AST_NOMULTIBYTE
 	struct				/* ast.mb.* -- multibyte encoding/decoding state */
 	{
-	int		cur_max;	/* current maximum length in bytes of a character: > 1 == multibyte locale */
+	uint32_t	cur_max;	/* current maximum length in bytes of a character: > 1 == multibyte locale */
 	uint32_t	sync;		/* length of invalid multibyte character */
 	wchar_t		tmp_w;		/* scratch */
 	int		tmp_i;		/* scratch */
@@ -256,8 +266,8 @@ typedef struct
 	int		(*len)(const char*, size_t);
 	int		(*towc)(wchar_t*, const char*, size_t);
 	int		(*width)(wchar_t);
-	size_t		(*xfrm)(char*, const char*, size_t);
 	}		mb;
+#endif
 } _Ast_info_t;
 
 /* ast is defined as _ast_info in ast.h */

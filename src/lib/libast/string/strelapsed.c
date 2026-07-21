@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -37,10 +37,10 @@ strelapsed(const char* s, char** e, int n)
 	int		c;
 	unsigned long	v;
 	unsigned long	t = 0;
-	int		f = 0;
+	unsigned long	f = 0;
 	int		p = 0;
 	int		z = 1;
-	int		m;
+	unsigned long	m;
 	const char*	last;
 
 	for (;;)
@@ -60,11 +60,11 @@ strelapsed(const char* s, char** e, int n)
 		}
 		v = 0;
 		while ((c = *s++) >= '0' && c <= '9')
-			v = v * 10 + c - '0';
-		v *= n;
+			v = v * 10 + (unsigned long)c - '0';
+		v *= (unsigned long)n;
 		if (c == '.')
-			for (m = n; (c = *s++) >= '0' && c <= '9';)
-				f += (m /= 10) * (c - '0');
+			for (m = (unsigned long)n; (c = *s++) >= '0' && c <= '9';)
+				f += (m /= 10) * ((unsigned long)c - '0');
 		if (c == '%')
 		{
 			t = ~t;

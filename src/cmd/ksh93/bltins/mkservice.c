@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -22,7 +22,7 @@
  * AT&T Labs
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 
 #if SHOPT_MKSERVICE
@@ -204,7 +204,7 @@ static void process_stream(Sfio_t* iop)
 		r = (*sp->actionf)(sp, fd, 0);
 		service_list[fd] = sp;
 		if(r<0)
-			close(fd);
+			ast_close(fd);
 	}
 }
 
@@ -237,7 +237,7 @@ static int waitnotify(int fd, long timeout, int rw)
 			sfprintf(sfstderr," %d",sffileno(poll_list[i]));
 		sfputc(sfstderr,'\n');
 #endif
-		nready  = sfpoll(poll_list,pstream-poll_list,timeout);
+		nready = sfpoll(poll_list,(int)(pstream-poll_list),(int)timeout);
 #ifdef DEBUG
 		sfprintf(sfstderr,"after poll nready=%d",nready);
 		for(i=0; i < nready; i++)
@@ -258,7 +258,7 @@ static int waitnotify(int fd, long timeout, int rw)
 
 static int service_init(void)
 {
-	int n = 20;
+	size_t n = 20;
 	file_list = (int*)sh_newof(NULL,short,n,0);
 	poll_list = sh_newof(NULL,Sfio_t*,n,0);
 	service_list = sh_newof(NULL,Service_t*,n,0);
@@ -284,7 +284,7 @@ static int Accept(Service_t *sp, int accept_fd)
 	fd = fcntl(accept_fd, F_DUPFD, 10);
 	if (fd >= 0)
 	{
-		close(accept_fd);
+		ast_close(accept_fd);
 		if (nq)
 		{
 			char*	av[3];
@@ -295,7 +295,7 @@ static int Accept(Service_t *sp, int accept_fd)
 			sfsprintf(buff, sizeof(buff), "%d", fd);
 			if (sh_fun(nq, sp->node, av))
 			{
-				close(fd);
+				ast_close(fd);
 				return -1;
 			}
 		}
@@ -345,7 +345,7 @@ static char* setdisc(Namval_t* np, const char* event, Namval_t* action, Namfun_t
 	Service_t*	sp = (Service_t*)fp;
 	const char*	cp;
 	int		i;
-	int		n = strlen(event) - 1;
+	size_t		n = strlen(event) - 1;
 	Namval_t*	nq;
 
 	for (i = 0; cp = disctab[i]; i++)
@@ -369,7 +369,7 @@ static char* setdisc(Namval_t* np, const char* event, Namval_t* action, Namfun_t
 	return nv_setdisc(np, event, action, fp);
 }
 
-static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
+static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 {
 	Service_t* sp = (Service_t*)fp;
 	if (!val)
@@ -382,7 +382,7 @@ static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
 		{
 			if(service_list[i]==sp)
 			{
-				close(i);
+				ast_close(i);
 				if(--sp->refcount<=0)
 					break;
 			}
@@ -420,9 +420,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 			error(2, opt_info.arg);
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}
@@ -447,7 +445,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 		UNREACHABLE();
 	}
 	if((sp->fd = fcntl(fd, F_DUPFD, 10))>=10)
-		close(fd);
+		ast_close(fd);
 	else
 		sp->fd = fd;
 	np = nv_open(var,sh.var_tree,NV_ARRAY|NV_VARNAME);
@@ -476,9 +474,7 @@ int	b_eloop(int argc, char** argv, Shbltin_t *context)
 			error(2, opt_info.arg);
 			continue;
 		case '?':
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
+			return optselfdoc();
 		}
 		break;
 	}

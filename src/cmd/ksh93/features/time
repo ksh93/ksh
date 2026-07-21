@@ -1,6 +1,33 @@
 hdr	utime,sys/resource
-lib	getrusage,gettimeofday,setitimer
-mem	timeval.tv_usec sys/time.h
+lib	getrusage,gettimeofday
+
+lib	setitimer note{ setitimer with ITIMER_REAL }end link{
+	#include <sys/time.h>
+	int main(void)
+	{
+		struct itimerval tnew, told;
+		setitimer(ITIMER_REAL,&tnew,&told);
+		return 0;
+	}
+}end
+
+lib	timer_create -lrt note{ timer_create et al, with CLOCK_MONOTONIC }end link{
+	#include <signal.h>
+	#include <time.h>
+	int main(void)
+	{
+		timer_t timer;
+		struct sigevent sev;
+		struct itimerspec tnew, told;
+		sev.sigev_notify = SIGEV_SIGNAL;
+		sev.sigev_signo = SIGALRM;
+		timer_create(CLOCK_MONOTONIC,&sev,&timer);
+		timer_settime(timer,0,&tnew,&told);
+		timer_delete(timer);
+		return 0;
+	}
+}end
+
 tst	lib_2_timeofday note{ 2 arg gettimeofday() }end link{
 	#include <sys/types.h>
 	#include <sys/time.h>

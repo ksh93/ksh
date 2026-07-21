@@ -2,7 +2,7 @@
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
 #          Copyright (c) 1984-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -27,6 +27,8 @@ z)	emulate ksh ;;
 esac
 set -o noglob -o nounset
 : $INSTALLROOT	# error out early
+CCn='
+' # one newline
 
 # Get colon-separated compiler and linker invocations from arguments.
 # Like this whole build system, we assume arguments do not contain
@@ -49,26 +51,17 @@ shift
 # Setup.
 trap 'set +o noglob; rm -rf mkreq.$$.*' 0
 echo 'int main(void) { return 0; }' > mkreq.$$.c
-
-# Clever hack alert: obtain error message for library not found by trying to
-# link to a library called '*'; the * is presumed repeated in the error message
-# and thus serves as a wildcard for 'case' in try_to_link. This is evidently
-# a workaround for compilers that exit with status 0 (success) on error.
-# TODO: in 2023, is that still a thing at all?
 $allcc -c mkreq.$$.c || exit
-error_msg=$($allcc $ldflags -o mkreq.$$.x mkreq.$$.o -l'*' 2>&1 | sed -e 's/[][()+@?]/#/g')
 
 # Function: try to link the test program with possible extra linker flags.
 try_to_link()
 {
 	_lib=$1
 	shift
-	_out=$( { $allcc ${1+"$@"} $ldflags -o mkreq.$$.x mkreq.$$.o -l${_lib} 2>&1 || echo '' "$error_msg"
-		} | sed -e 's/[][()+@?]/#/g')
-	case ${_out} in
-	*$error_msg*)
-		return 1 ;;
-	esac
+	# Delete any previous test binary (including any OS-specific extra files).
+	test -e mkreq.$$.x && (set +o noglob; rm -rf mkreq.$$.x*)
+	# Try to link.
+	$allcc ${1+"$@"} $ldflags -o mkreq.$$.x mkreq.$$.o -l${_lib} 2>/dev/null || return
 	# To work around possible linker breakage, we have to
 	# actually run the test program, not merely link it.
 	./mkreq.$$.x
@@ -93,6 +86,7 @@ self=$1
 shift
 exec >$self.req
 echo " -l$self"
+dupes=$(
 for name
 do	if	test -f $INSTALLROOT/lib/lib/$name
 	then	grep '^ -l.' $INSTALLROOT/lib/lib/$name
@@ -101,4 +95,22 @@ do	if	test -f $INSTALLROOT/lib/lib/$name
 	then	try_to_link $name -L$INSTALLROOT/lib || try_to_link $name || continue
 	fi
 	echo " -l$name"
-done | sort -u
+done
+)
+# Remove duplicates from the set of newline-separated items in 'dupes'.
+# Keep the last-mentioned of each item that occurs multiple times (this is
+# required for passing libraries to the linker in the correct order; that
+# is, each dependency must come after all the libraries that depend on it).
+while	test -n "$dupes"
+do	# Grab first item from dupes
+	item=${dupes%%"$CCn"*}
+	# Remove that item from dupes
+	dupes=${dupes#"$item"}
+	dupes=${dupes#"$CCn"} # remove $CCn separately as last item won't end in it
+	# Skip the item if another identical item is still in dupes
+	case "$CCn$dupes$CCn" in
+	*"$CCn$item$CCn"*)
+		continue ;;
+	esac
+	echo "$item"
+done

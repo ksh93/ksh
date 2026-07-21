@@ -96,7 +96,7 @@ typedef uint64_t sha2_word64;	/* Exactly 8 bytes */
 #define REVERSE32(w,x)	{ \
 	sha2_word32 tmp = (w); \
 	tmp = (tmp >> 16) | (tmp << 16); \
-	(x) = ((tmp & 0xff00ff00UL) >> 8) | ((tmp & 0x00ff00ffUL) << 8); \
+	(x) = ((sha2_word32)(((tmp & 0xff00ff00UL) >> 8) | ((tmp & 0x00ff00ffUL) << 8))); \
 }
 #if _ast_LL
 #define REVERSE64(w,x)	{ \

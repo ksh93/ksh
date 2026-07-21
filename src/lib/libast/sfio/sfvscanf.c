@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -51,13 +51,13 @@ static void _sfbuf(Sfio_t* f, int* peek)
 /* buffer used during scanning of a double value or a multi-byte
    character. the fields mirror certain local variables in sfvscanf. */
 typedef struct _scan_s
-{	int	error;	/* get set by _sfdscan if no value specified	*/
-	int	inp;	/* last input character read			*/
-	int	width;	/* field width					*/
-	Sfio_t	*f;	/* stream being scanned				*/
-	uchar	*d, *endd, *data;	/* local buffering system	*/
-	int	peek;	/* != 0 if unseekable/share stream		*/
-	int	n_input;/* number of input bytes processed		*/
+{	int		error;			/* get set by _sfdscan if no value specified	*/
+	int		inp;			/* last input character read			*/
+	ptrdiff_t	width;			/* field width					*/
+	Sfio_t		*f;			/* stream being scanned				*/
+	uchar		*d, *endd, *data;	/* local buffering system	*/
+	int		peek;			/* != 0 if unseekable/share stream		*/
+	ssize_t		n_input;		/* number of input bytes processed		*/
 } Scan_t;
 
 /* ds != 0 for scanning double values */
@@ -88,7 +88,7 @@ static int _scgetc(void* arg, int flag)
 	if(sc->d >= sc->endd) /* refresh local buffer */
 	{	sc->n_input += sc->d - sc->data;
 		if(sc->peek)
-			SFREAD(sc->f, sc->data, sc->d - sc->data);
+			SFREAD(sc->f, sc->data, (size_t)(sc->d - sc->data));
 		else	sc->f->next = sc->d;
 
 		_sfbuf(sc->f, &sc->peek);
@@ -108,15 +108,15 @@ static int _scgetc(void* arg, int flag)
 
 /* structure to match characters in a character class */
 typedef struct _accept_s
-{	char	ok[SFIO_MAXCHAR+1];
+{	uchar	ok[SFIO_MAXCHAR+1];
 	int	yes;
-	char	*form, *endf;
+	uchar	*form, *endf;
 #if _has_multibyte
 	wchar_t	wc;
 #endif
 } Accept_t;
 
-static char* _sfsetclass(const char*	form,	/* format string			*/
+static uchar* _sfsetclass(uchar*	form,	/* format string			*/
 			 Accept_t*	ac,	/* values of accepted characters	*/
 			 int		flags)	/* SFFMT_LONG for wchar_t		*/
 {
@@ -133,10 +133,10 @@ static char* _sfsetclass(const char*	form,	/* format string			*/
 		ac->ok[c] = !ac->yes;
 
 	if(*form == ']' || *form == '-') /* special first char */
-	{	ac->ok[*((unsigned char*)form)] = ac->yes;
+	{	ac->ok[*form] = (uchar)ac->yes;
 		form += 1;
 	}
-	ac->form = (char*)form;
+	ac->form = form;
 
 	if(flags&SFFMT_LONG)
 		SFMBCLR(&mbs);
@@ -151,7 +151,7 @@ static char* _sfsetclass(const char*	form,	/* format string			*/
 				goto one_char;
 #endif
 			for(; c <= endc; ++c)
-				ac->ok[c] = ac->yes;
+				ac->ok[c] = (uchar)ac->yes;
 			n = 3;
 		}
 		else
@@ -161,36 +161,37 @@ static char* _sfsetclass(const char*	form,	/* format string			*/
 				return NULL;
 			if(n == 1)
 #endif
-				ac->ok[c] = ac->yes;
+				ac->ok[c] = (uchar)ac->yes;
 		}
 	}
 
-	ac->endf = (char*)form;
-	return (char*)(form+1);
+	ac->endf = form;
+	return form+1;
 }
 
 #if _has_multibyte
 static int _sfwaccept(wchar_t wc, Accept_t* ac)
 {
-	int		endc, c, n;
-	wchar_t		fwc;
-	char		*form = ac->form;
+	int	endc, c;
+	size_t	n;
+	wchar_t	fwc;
+	uchar	*form = ac->form;
 	SFMBDCL(mbs)
 
 	SFMBCLR(&mbs);
 	for(n = 1; *form != ']'; form += n)
-	{	if((c = *((uchar*)form)) == 0)
+	{	if((c = *form) == 0)
 			return 0;
 
 		if(*(form+1) == '-')
-		{	endc = *((uchar*)(form+2));
+		{	endc = *(form+2);
 			if(c >= 128 || endc >= 128 ) /* range must be ASCII */
 				goto one_char;
 			n = 3;
 		}
 		else
 		{ one_char:
-			if((n = mbrtowc(&fwc, form, ac->endf-form, &mbs)) > 1 &&
+			if((n = mbrtowc(&fwc, (const char*)form, (size_t)(ac->endf-form), &mbs)) > 1 &&
 			   wc == fwc )
 				return ac->yes;
 		}
@@ -211,12 +212,13 @@ static int _sfgetwc(Scan_t*	sc,	/* the scanning handle		*/
 		    Accept_t*	ac,	/* accept handle for %[		*/
 		    void*	mbs)	/* multibyte parsing state	*/
 {
-	int		n, v;
-	unsigned char	b[16];		/* assuming that SFMBMAX <= 16! */
+	size_t	n;
+	int	v;
+	uchar	b[16];		/* assuming that SFMBMAX <= 16! */
 
 	/* shift left data so that there will be more room to back up on error.
 	   this won't help streams with small buffers - c'est la vie! */
-	if(sc->d > sc->f->data && (n = sc->endd - sc->d) > 0 && n < SFMBMAX)
+	if(sc->d > sc->f->data && (n = (size_t)(sc->endd - sc->d)) > 0 && n < SFMBMAX)
 	{	memmove(sc->f->data, sc->d, n);
 		if(sc->f->endr == sc->f->endb)
 			sc->f->endr = sc->f->data+n;
@@ -231,7 +233,7 @@ static int _sfgetwc(Scan_t*	sc,	/* the scanning handle		*/
 	for(n = 0; n < SFMBMAX; )
 	{	if((v = _scgetc(sc, 0)) <= 0)
 			goto no_match;
-		else	b[n++] = v;
+		else	b[n++] = (uchar)v;
 
 		if(mbrtowc(wc, (char*)b, n, (mbstate_t*)mbs) == (size_t)(-1))
 			goto no_match;  /* malformed multi-byte char */
@@ -265,14 +267,14 @@ no_match: /* this unget is lossy on a stream with small buffer */
 }
 #endif /*_has_multibyte*/
 
-
 int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 	     const char*	form,		/* scanning format */
 	     va_list		args)
 {
-	int		inp, shift, base, width;
-	ssize_t		size;
-	int		fmt, flags, dot, n_assign, v, n, n_input;
+	int		inp, shift;
+	ssize_t		n_input;
+	ptrdiff_t	base, size, width;
+	int		fmt, flags, dot, n_assign, v;
 	char		*sp;
 
 	Accept_t	acc;
@@ -284,7 +286,7 @@ int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 	Fmtpos_t*	fp;
 	char		*oform;
 	va_list		oargs;
-	int		argp, argn;
+	ptrdiff_t	argp, argn;
 
 	int		decimal = 0, thousand = 0;
 
@@ -296,7 +298,7 @@ int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 
 	void*		value;	/* location to assign scanned value */
 	char*		t_str;
-	ssize_t		n_str;
+	ptrdiff_t	n, n_str;
 
 	/* local buffering system */
 	Scan_t		scd;
@@ -306,11 +308,10 @@ int sfvscanf(Sfio_t*		f,		/* file to be scanned */
 #define SFlen(f)	(d - data)
 #define SFinit(f)	((peek = f->extent < 0 && (f->flags&SFIO_SHARE)), SFbuf(f) )
 #define SFend(f)	((n_input += SFlen(f)), \
-			 (peek ? SFREAD(f,data,SFlen(f)) : ((f->next = d),0)) )
+			 (peek ? SFREAD(f,data,(size_t)SFlen(f)) : ((f->next = d),0)) )
 #define SFgetc(f,c)	((c) = (d < endd || (SFend(f), SFbuf(f), d < endd)) ? \
 				(int)(*d++) : -1 )
 #define SFungetc(f,c)	(d -= 1)
-
 
 	SFCVINIT();	/* initialize conversion tables */
 
@@ -443,13 +444,13 @@ loop_fmt:
 							if(!(ft->flags&SFFMT_VALUE) )
 								goto t_arg;
 							if((t_str = argv.s) &&
-							   (n_str = (int)ft->size) < 0)
-								n_str = strlen(t_str);
+							   (n_str = ft->size) < 0)
+								n_str = (ptrdiff_t)strlen(t_str);
 						}
 						else
 						{ t_arg:
 							if((t_str = va_arg(args,char*)) )
-								n_str = strlen(t_str);
+								n_str = (ptrdiff_t)strlen(t_str);
 						}
 					}
 					goto loop_flags;
@@ -546,7 +547,7 @@ loop_fmt:
 			else if (fmt == 'z')
 				flags = (flags&~SFFMT_TYPES) | SFFMT_ZFLAG;
 			else if(isdigit(*form))
-				for(size = 0, n = *form; isdigit(n); n = *++form)
+				for(size = 0, n = *form; isdigit((int)n); n = *++form)
 					size = size*10 + (n - '0');
 			goto loop_flags;
 
@@ -643,7 +644,7 @@ loop_fmt:
 			else	flags |= SFFMT_SKIP;
 		}
 		else if(ft && ft->extf)
-		{	FMTSET(ft, form,args, fmt, size,flags, width,0,base, t_str,n_str);
+		{	FMTSET(ft, form,args, fmt, size, flags, width,0,base, t_str,n_str);
 			SFend(f); SFOPEN(f,0);
 			v = (*ft->extf)(f, &argv, ft);
 			SFLOCK(f,0); SFbuf(f);
@@ -829,7 +830,7 @@ loop_fmt:
 				{	/* fast base 10 conversion */
 #define TEN(x) (((x) << 3) + ((x) << 1) )
 					if (inp >= '0' && inp <= '9')
-					{	argv.lu = TEN(argv.lu) + (inp-'0');
+					{	argv.lu = TEN(argv.lu) + (Sfulong_t)(inp-'0');
 						n += 1;
 					}
 					else if(inp == thousand)
@@ -847,7 +848,7 @@ loop_fmt:
 				}
 
 				if(fmt == 'i' && inp == '#' && !(flags&SFFMT_ALTER) )
-				{	base = (int)argv.lu;
+				{	base = (ptrdiff_t)argv.lu;
 					if(base < 2 || base > SFIO_RADIX)
 						goto pop_fmt;
 					argv.lu = 0;
@@ -874,13 +875,13 @@ loop_fmt:
 					else	shift = base < 64 ? 5 : 6;
 
 			base_shift:	do
-					{ argv.lu = (argv.lu << shift) + sp[inp];
+					{ argv.lu = (argv.lu << shift) + (Sfulong_t)sp[inp];
 					} while(--width > 0 &&
 					        SFgetc(f,inp) >= 0 && sp[inp] < base);
 				}
 				else
 				{	do
-					{ argv.lu = (argv.lu * base) + sp[inp];
+					{ argv.lu = (argv.lu * (Sfulong_t)base) + (Sfulong_t)sp[inp];
 					} while(--width > 0 &&
 						SFgetc(f,inp) >= 0 && sp[inp] < base);
 				}
@@ -945,7 +946,7 @@ loop_fmt:
 			}
 			else	size = 0;
 
-			if(fmt == '[' && !(form = _sfsetclass(form,&acc,flags)) )
+			if(fmt == '[' && !(form = (const char*)_sfsetclass((uchar*)form,&acc,flags)) )
 			{	SFungetc(f,inp);
 				goto pop_fmt;
 			}
@@ -970,13 +971,13 @@ loop_fmt:
 				{	if(isspace(inp))
 						break;
 					if((n += 1) <= size)
-						*argv.s++ = inp;
+						*argv.s++ = (char)inp;
 				} while(--width > 0 && SFgetc(f,inp) >= 0);
 			}
 			else if(fmt == 'c')
 			{	do
 			 	{	if((n += 1) <= size)
-						*argv.s++ = inp;
+						*argv.s++ = (char)inp;
 				} while(--width > 0 && SFgetc(f,inp) >= 0);
 			}
 			else /* if(fmt == '[') */
@@ -990,7 +991,7 @@ loop_fmt:
 						}
 					}
 					if((n += 1) <= size)
-						*argv.s++ = inp;
+						*argv.s++ = (char)inp;
 				} while(--width > 0 && SFgetc(f,inp) >= 0);
 			}
 

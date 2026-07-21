@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -77,7 +78,7 @@ lextok(char* s, int c, char** p, int* n)
 
 	if (*s == '(' && (!c || c == ' ' || c == '\n'))
 	{
-		q = strtol(s + 1, &b, 10);
+		q = (int)strtol(s + 1, &b, 10);
 		if (*b == ':')
 		{
 			if (*(t = ++b + q) == ')' || *t == '\t')
@@ -252,7 +253,7 @@ tokscan(char* s, char** nxt, const char* fmt, ...)
 			}
 			else
 			{
-				if (p_char) *p_char = c;
+				if (p_char) *p_char = (char)c;
 				s++;
 				num++;
 			}

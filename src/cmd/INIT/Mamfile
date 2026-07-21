@@ -22,7 +22,7 @@ make install virtual
 	note *
 
 	make helper_scripts virtual
-		loop SCRIPT iffe mktest regress crossexec mkreq mkreq-maplib mprobe proto dylink mkdeps
+		loop SCRIPT iffe mktest regress mkreq mkreq-maplib proto dylink mkdeps git_wd_isclean
 			make %{SCRIPT}
 				makp %{@}.sh
 				exec - cp %{<} %{@} && chmod u+w,+x %{@}
@@ -56,18 +56,6 @@ make install virtual
 	note * probe initialization
 	note *
 
-	make %{INSTALLROOT}/lib/probe/C/probe
-		prev C+probe
-		exec - cp -f %{<} %{@}
-	done
-	make %{INSTALLROOT}/lib/probe/C/mam/probe
-		prev mprobe
-		exec - cp -f %{<} %{@}
-	done
-	make %{INSTALLROOT}/lib/probe/C/mam/mprobe
-		prev mprobe
-		exec - cp -f %{<} %{@}
-	done
 	make %{INSTALLROOT}/lib/probe/C/make/probe
 		prev probe
 		exec - cp -f %{<} %{@}
@@ -175,7 +163,7 @@ make install virtual
 	done req_files
 done install
 
-make test dontcare virtual
+make test virtual
 	make test.mamake virtual
 		makp mamake.tst
 		exec - : testing non-libast mamake at $PWD/mamake :

@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -37,7 +37,7 @@ int sfpoll(Sfio_t** fa,	/* array of streams to poll		*/
 	if(n <= 0 || !fa)
 		return -1;
 
-	if(!(status = (int*)malloc(2*n*sizeof(int))) )
+	if(!(status = (int*)malloc(2*(size_t)n*sizeof(int))) )
 		return -1;
 	check = status+n; /* streams that need polling */
 

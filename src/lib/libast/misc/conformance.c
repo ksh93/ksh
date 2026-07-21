@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,9 +35,9 @@ initconformance(void)
 	char*			m;
 	char**			p;
 	char*			t;
-	int			h;
-	int			i;
-	int			j;
+	size_t			h;
+	size_t			i;
+	size_t			j;
 	int			c;
 	Sfio_t*			sp;
 
@@ -49,6 +49,7 @@ initconformance(void)
 		for (i = h = 0, j = 1; i < elementsof(conf); i++)
 			if (*(m = astconf(conf[i], NULL, NULL)) && (h |= (1<<i)) || !i && (m = "ast"))
 			{
+				ptrdiff_t d;
 				t = m;
 				while ((c = *m++) && c != '.')
 				{
@@ -58,12 +59,12 @@ initconformance(void)
 				}
 				sfputc(sp, 0);
 				j++;
-				if ((c = (m - t)) == 6 && strneq(t, "linux", 5))
+				if ((d = (m - t)) == 6 && strneq(t, "linux", 5))
 				{
 					sfputr(sp, "gnu", 0);
 					j++;
 				}
-				else if (c > 3 && strneq(t, "bsd", 3) || c == 7 && strneq(t, "debian", 7))
+				else if (d > 3 && strneq(t, "bsd", 3) || d == 7 && strneq(t, "debian", 7))
 				{
 					sfputr(sp, "bsd", 0);
 					j++;
@@ -71,7 +72,7 @@ initconformance(void)
 				if (h & 1)
 					break;
 			}
-		i = sfstrtell(sp);
+		i = (size_t)sfstrtell(sp);
 		sfstrseek(sp, 0, SEEK_SET);
 		if (p = newof(0, char*, j, i))
 		{
@@ -108,7 +109,7 @@ conformance(const char* s, size_t n)
 	const char*	e;
 	const char*	t;
 
-	static uint32_t	serial = ~(uint32_t)0;
+	static uint64_t	serial = ~(uint64_t)0;
 
 	if (!(p = ids) || serial != ast.env_serial)
 	{
@@ -139,7 +140,7 @@ conformance(const char* s, size_t n)
 			break;
 		q = p;
 		while (m = *q++)
-			if (strneq(t, m, s - t))
+			if (strneq(t, m, (size_t)(s - t)))
 				return m;
 		if (s < e)
 			s++;

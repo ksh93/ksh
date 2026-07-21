@@ -22,24 +22,24 @@ cat{
 
 if mem stat.st_mtim.tv_nsec sys/stat.h {
 	/* POSIX-1.2017 */
-	#define ST_ATIME_NSEC_GET(st)	((st)->st_atim.tv_nsec)
-	#define ST_CTIME_NSEC_GET(st)	((st)->st_ctim.tv_nsec)
-	#define ST_MTIME_NSEC_GET(st)	((st)->st_mtim.tv_nsec)
+	#define ST_ATIME_NSEC_GET(st)	((uint32_t)(st)->st_atim.tv_nsec)
+	#define ST_CTIME_NSEC_GET(st)	((uint32_t)(st)->st_ctim.tv_nsec)
+	#define ST_MTIME_NSEC_GET(st)	((uint32_t)(st)->st_mtim.tv_nsec)
 }
 elif mem stat.st_mtimespec.tv_nsec sys/stat.h {
-	#define ST_ATIME_NSEC_GET(st)	((st)->st_atimespec.tv_nsec)
-	#define ST_CTIME_NSEC_GET(st)	((st)->st_ctimespec.tv_nsec)
-	#define ST_MTIME_NSEC_GET(st)	((st)->st_mtimespec.tv_nsec)
+	#define ST_ATIME_NSEC_GET(st)	((uint32_t)(st)->st_atimespec.tv_nsec)
+	#define ST_CTIME_NSEC_GET(st)	((uint32_t)(st)->st_ctimespec.tv_nsec)
+	#define ST_MTIME_NSEC_GET(st)	((uint32_t)(st)->st_mtimespec.tv_nsec)
 }
 elif mem stat.st_mtim.st__tim.tv_nsec sys/stat.h {
-	#define ST_ATIME_NSEC_GET(st)	((st)->st_atim.st__tim.tv_nsec)
-	#define ST_CTIME_NSEC_GET(st)	((st)->st_ctim.st__tim.tv_nsec)
-	#define ST_MTIME_NSEC_GET(st)	((st)->st_mtim.st__tim.tv_nsec)
+	#define ST_ATIME_NSEC_GET(st)	((uint32_t)(st)->st_atim.st__tim.tv_nsec)
+	#define ST_CTIME_NSEC_GET(st)	((uint32_t)(st)->st_ctim.st__tim.tv_nsec)
+	#define ST_MTIME_NSEC_GET(st)	((uint32_t)(st)->st_mtim.st__tim.tv_nsec)
 }
 elif mem stat.st_mtimensec sys/stat.h {
-	#define ST_ATIME_NSEC_GET(st)	((st)->st_atimensec)
-	#define ST_CTIME_NSEC_GET(st)	((st)->st_ctimensec)
-	#define ST_MTIME_NSEC_GET(st)	((st)->st_mtimensec)
+	#define ST_ATIME_NSEC_GET(st)	((uint32_t)(st)->st_atimensec)
+	#define ST_CTIME_NSEC_GET(st)	((uint32_t)(st)->st_ctimensec)
+	#define ST_MTIME_NSEC_GET(st)	((uint32_t)(st)->st_mtimensec)
 }
 else pass{ no_stat_nsec=1 }end {
 	#define ST_ATIME_NSEC_GET(st)	0
@@ -72,6 +72,4 @@ cat{
 	extern int		tvcmp(const Tv_t*, const Tv_t*);
 	extern int		tvtouch(const char*, const Tv_t*, const Tv_t*, const Tv_t*, int);
 	extern int		tvsleep(const Tv_t*, Tv_t*);
-
-	extern char*		fmttv(const char*, Tv_t*);
 }end

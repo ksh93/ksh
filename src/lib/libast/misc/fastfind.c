@@ -111,7 +111,7 @@ static char*		findnames[] =
  * converted value copied to b of size n
  */
 
-char*
+static char*
 typefix(char* buf, const char* t)
 {
 	int	c;
@@ -123,7 +123,7 @@ typefix(char* buf, const char* t)
 	{
 		if (isupper(c))
 			c = tolower(c);
-		if ((*b++ = c) == '/' && (*t == 'x' || *t == 'X') && *(t + 1) == '-')
+		if ((*b++ = (char)c) == '/' && (*t == 'x' || *t == 'X') && *(t + 1) == '-')
 			t += 2;
 	}
 	*b = 0;
@@ -141,15 +141,15 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 	char*		p;
 	char*		s;
 	char*		b;
-	int		i;
-	int		j;
+	ssize_t		i;
+	ssize_t		j;
 	char*		path;
 	int		brace = 0;
 	int		paren = 0;
-	int		k;
+	size_t		k;
 	int		q;
 	int		fd;
-	int		uid;
+	uid_t		uid;
 	Vmalloc_t*	vm;
 	Type_t*		tp;
 	struct stat	st;
@@ -178,7 +178,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 		if (file && (!*file || streq(file, "-")))
 			file = 0;
 		uid = geteuid();
-		j = (findcodes[0] = (char*)file) && *file == '/' ? 1 : elementsof(findcodes);
+		j = (findcodes[0] = (char*)file) && *file == '/' ? 1 : (ssize_t)elementsof(findcodes);
 
 		/*
 		 * look for the codes file, but since it may not exist yet,
@@ -303,7 +303,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			{
 				if (fp->disc->errorf)
 					(*fp->disc->errorf)(fp, fp->disc, ERROR_SYSTEM|2, "%s: cannot open tmp file", fp->encode.temp);
-				close(fd);
+				ast_close(fd);
 				goto drop;
 			}
 			if (fp->disc->flags & FIND_TYPE)
@@ -352,8 +352,8 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 		i = sizeof(Decode_t) + sizeof(Code_t);
 		if (!pattern || !*pattern)
 			pattern = "*";
-		i += (j = 2 * (strlen(pattern) + 1));
-		if (!(fp = vmnewof(vm, 0, Find_t, 1, i)))
+		i += (j = 2 * ((ssize_t)strlen(pattern) + 1));
+		if (!(fp = vmnewof(vm, 0, Find_t, 1, (size_t)i)))
 		{
 			vmclose(vm);
 			return NULL;
@@ -408,18 +408,18 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			setgid(getgid());
 		fp->stamp = st.st_mtime;
 		b = (s = fp->decode.temp) + 1;
-		for (i = 0; i < elementsof(fp->decode.bigram1); i++)
+		for (i = 0; i < (ssize_t)elementsof(fp->decode.bigram1); i++)
 		{
 			if ((j = sfgetc(fp->fp)) == EOF)
 				goto invalid;
-			if (!(*s++ = fp->decode.bigram1[i] = j) && i)
+			if (!(*s++ = fp->decode.bigram1[i] = (char)j) && i)
 			{
 				i = -i;
 				break;
 			}
 			if ((j = sfgetc(fp->fp)) == EOF)
 				goto invalid;
-			if (!(*s++ = fp->decode.bigram2[i] = j) && (i || fp->decode.bigram1[0] >= '0' && fp->decode.bigram1[0] <= '1'))
+			if (!(*s++ = fp->decode.bigram2[i] = (char)j) && (i || fp->decode.bigram1[0] >= '0' && fp->decode.bigram1[0] <= '1'))
 				break;
 		}
 		if (streq(b, FF_typ_magic))
@@ -444,7 +444,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			}
 			if (type && !j)
 				goto drop;
-			fp->types = j;
+			fp->types = (unsigned long)j;
 		}
 		else if (streq(b, FF_dir_magic))
 			fp->method = FF_dir;
@@ -455,9 +455,9 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			fp->method = FF_gnu;
 			while (j = sfgetc(fp->fp))
 			{
-				if (j == EOF || fp->decode.count >= sizeof(fp->decode.path))
+				if (j == EOF || fp->decode.count >= (ssize_t)sizeof(fp->decode.path))
 					goto invalid;
-				fp->decode.path[fp->decode.count++] = j;
+				fp->decode.path[fp->decode.count++] = (char)j;
 			}
 		}
 		else
@@ -467,16 +467,16 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			{
 				if ((j = sfgetc(fp->fp)) == EOF)
 					goto invalid;
-				fp->decode.bigram2[i = -i] = j;
+				fp->decode.bigram2[i = -i] = (char)j;
 			}
-			while (++i < elementsof(fp->decode.bigram1))
+			while (++i < (ssize_t)elementsof(fp->decode.bigram1))
 			{
 				if ((j = sfgetc(fp->fp)) == EOF)
 					goto invalid;
-				fp->decode.bigram1[i] = j;
+				fp->decode.bigram1[i] = (char)j;
 				if ((j = sfgetc(fp->fp)) == EOF)
 					goto invalid;
-				fp->decode.bigram2[i] = j;
+				fp->decode.bigram2[i] = (char)j;
 			}
 			if ((fp->decode.peek = sfgetc(fp->fp)) != FF_OFF)
 				goto invalid;
@@ -498,7 +498,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 				{
 					if (!(fp->dirs = vmnewof(fp->vm, 0, char*, 2 * k + 1, 0)))
 						goto drop;
-					if (!(fp->lens = vmnewof(fp->vm, 0, int, 2 * k, 0)))
+					if (!(fp->lens = vmnewof(fp->vm, 0, ssize_t, 2 * k, 0)))
 						goto drop;
 					p = 0;
 					b = fp->decode.temp;
@@ -511,7 +511,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 					 * could be *both* ways)
 					 */
 
-					for (i = q = 0; i < k; i++)
+					for (i = q = 0; i < (ssize_t)k; i++)
 					{
 						if (*(s = disc->dirs[i]) == '/')
 							sfsprintf(b, sizeof(fp->decode.temp) - 1, "%s", s);
@@ -531,7 +531,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 						s = pathcanon(b, sizeof(fp->decode.temp), PATH_PHYSICAL);
 						*s = '/';
 						*(s + 1) = 0;
-						if (!strneq(b, fp->dirs[q - 1], s - b))
+						if (!strneq(b, fp->dirs[q - 1], (size_t)(s - b)))
 						{
 							if (!(fp->dirs[q] = vmstrdup(fp->vm, b)))
 								goto nomemory;
@@ -542,7 +542,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 					}
 					strsort(fp->dirs, q, strcasecmp);
 					for (i = 0; i < q; i++)
-						fp->lens[i] = strlen(fp->dirs[i]);
+						fp->lens[i] = (ssize_t)strlen(fp->dirs[i]);
 				}
 			}
 		}
@@ -618,12 +618,13 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			}
 			if (s != pattern && !streq(pattern, "*"))
 			{
+				int r;
 				fp->decode.match = 1;
-				if (i = regcomp(&fp->decode.re, pattern, REG_SHELL|REG_AUGMENTED|(fp->decode.ignorecase?REG_ICASE:0)))
+				if (r = regcomp(&fp->decode.re, pattern, REG_SHELL|REG_AUGMENTED|(fp->decode.ignorecase?REG_ICASE:0)))
 				{
 					if (disc->errorf)
 					{
-						regerror(i, &fp->decode.re, fp->decode.temp, sizeof(fp->decode.temp));
+						regerror(r, &fp->decode.re, fp->decode.temp, sizeof(fp->decode.temp));
 						(*fp->disc->errorf)(fp, fp->disc, 2, "%s: %s", pattern, fp->decode.temp);
 					}
 					goto drop;
@@ -631,15 +632,16 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 			}
 			if (*s)
 			{
+				int r;
 				*b++ = 0;
-				while (i = *s++)
-					*b++ = i;
+				while (r = *s++)
+					*b++ = (char)r;
 				*b-- = 0;
 				fp->decode.end = b;
 				if (fp->decode.ignorecase)
 					for (s = fp->decode.pattern; s <= b; s++)
 						if (isupper(*s))
-							*s = tolower(*s);
+							*s = (char)tolower(*s);
 			}
 		}
 	}
@@ -681,10 +683,10 @@ findread(Find_t* fp)
 	char*		b;
 	char*		e;
 	int		c;
-	int		n;
-	int		m;
-	int		ignorecase;
-	int		t = 0;
+	ptrdiff_t	n;
+	ssize_t		m;
+	unsigned int	ignorecase;
+	Sfulong_t	t = 0;
 	unsigned char	w[4];
 	struct stat	st;
 
@@ -704,7 +706,7 @@ findread(Find_t* fp)
 		{
 		case FF_dir:
 			t = 0;
-			n = sfgetl(fp->fp);
+			n = (ptrdiff_t)sfgetl(fp->fp);
 			goto grab;
 		case FF_gnu:
 			if ((c = sfgetc(fp->fp)) == EOF)
@@ -726,14 +728,14 @@ findread(Find_t* fp)
 			goto grab;
 		case FF_typ:
 			t = sfgetu(fp->fp);
-			n = sfgetl(fp->fp);
+			n = (ptrdiff_t)sfgetl(fp->fp);
 		grab:
 			p = fp->decode.path + (fp->decode.count += n);
 			do
 			{
 				if ((c = sfgetc(fp->fp)) == EOF)
 					return NULL;
-			} while (*p++ = c);
+			} while (*p++ = (char)c);
 			p -= 2;
 			break;
 		case FF_old:
@@ -787,7 +789,7 @@ findread(Find_t* fp)
 					*p++ = fp->decode.bigram2[c & ((1<<(CHAR_BIT-1))-1)];
 				}
 				else
-					*p++ = c;
+					*p++ = (char)c;
 			*p-- = 0;
 			t = 0;
 			break;
@@ -814,7 +816,7 @@ findread(Find_t* fp)
 				{
 					if (!(*fp->dirs)[m])
 						goto next;
-					if (!strncasecmp(*fp->dirs, fp->decode.path, m))
+					if (!strncasecmp(*fp->dirs, fp->decode.path, (size_t)m))
 						break;
 				}
 				else if (n == m)
@@ -847,10 +849,10 @@ findread(Find_t* fp)
 			else
 				n = 1;
 			if (fp->verifyf)
-				n = (*fp->verifyf)(fp, fp->decode.path, n, fp->disc);
+				n = (*fp->verifyf)(fp, fp->decode.path, (size_t)n, fp->disc);
 			else if (stat(fp->decode.path, &st))
 				n = -1;
-			else if ((unsigned long)st.st_mtime > fp->stamp)
+			else if (st.st_mtime > fp->stamp)
 				n = 1;
 			else
 				n = 0;
@@ -906,7 +908,7 @@ findread(Find_t* fp)
 			{
 				if (fp->disc->errorf)
 				{
-					regerror(n, &fp->decode.re, fp->decode.temp, sizeof(fp->decode.temp));
+					regerror((int)n, &fp->decode.re, fp->decode.temp, sizeof(fp->decode.temp));
 					(*fp->disc->errorf)(fp, fp->disc, 2, "%s: %s", fp->decode.pattern, fp->decode.temp);
 				}
 				return NULL;
@@ -935,7 +937,7 @@ findwrite(Find_t* fp, const char* path, size_t len, const char* type)
 		return -1;
 	if (type && fp->method == FF_dir)
 	{
-		len = sfsprintf(fp->encode.mark, sizeof(fp->encode.mark), "%-.*s/", len, path);
+		len = (size_t)sfsprintf(fp->encode.mark, sizeof(fp->encode.mark), "%-.*s/", len, path);
 		path = fp->encode.mark;
 	}
 	s = (unsigned char*)path;
@@ -955,7 +957,7 @@ findwrite(Find_t* fp, const char* path, size_t len, const char* type)
 			break;
 		s++;
 	}
-	n = s - (unsigned char*)path;
+	n = (int)(s - (unsigned char*)path);
 	switch (fp->method)
 	{
 	case FF_gnu:
@@ -1103,7 +1105,7 @@ findsync(Find_t* fp)
 		for (n = USHRT_MAX; n >= 0; n--)
 			if (d = fp->encode.hits[n])
 			{
-				fp->encode.hits[n] = m;
+				fp->encode.hits[n] = (unsigned short)m;
 				if ((m += d) > FF_MAX)
 					break;
 			}
@@ -1115,11 +1117,11 @@ findsync(Find_t* fp)
 				{
 					d = fp->encode.code[n][m];
 					b = fp->encode.hits[d] - 1;
-					fp->encode.code[n][m] = b + FF_MAX;
+					fp->encode.code[n][m] = (unsigned short)(b + FF_MAX);
 					if (fp->encode.hits[d]++ >= FF_MAX)
 						fp->encode.hits[d] = 0;
-					fp->encode.bigram[b *= 2] = n;
-					fp->encode.bigram[b + 1] = m;
+					fp->encode.bigram[b *= 2] = (unsigned char)n;
+					fp->encode.bigram[b + 1] = (unsigned char)m;
 				}
 				else
 					fp->encode.code[n][m] = 0;

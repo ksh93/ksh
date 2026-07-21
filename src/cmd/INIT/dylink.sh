@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2021-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2021-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -47,11 +47,8 @@ do_link()
 }
 
 # Basic sanity check.
-case ${HOSTTYPE:+H}${INSTALLROOT:+I}${AST_NO_DYLIB+n} in
+case ${HOSTTYPE:+H}${INSTALLROOT:+I} in
 HI)	;;
-HIn)	note "Building dynamic libraries was disabled; skipping"
-	exit 0  # continue build
-	;;
 *)	err_out "Required environment missing"
 	;;
 esac
@@ -87,6 +84,15 @@ case ${module_name:+m}${prefix+p}${suffix+s}${version:+v} in
 msv)	note "warning: -p not given; assuming -p lib for backward compat"
 	prefix=lib ;;
 *)	err_out "-m requires -v/-p/-s and vice versa" ;;
+esac
+
+# Check if building dynamic libraries was disabled.
+case ${AST_NO_DYLIB+N}${opt_query+Q} in
+NQ)	exit 1
+	;;
+N)	note "Building dynamic libraries was disabled; skipping"
+	exit 0  # continue build
+	;;
 esac
 
 # Check for supported system.
@@ -136,7 +142,7 @@ case ${exec_file} in
 	case $HOSTTYPE in
 	darwin.*)
 		do_link "lib/$lib_file" -dynamiclib \
-			-Wl,-dylib_install_name -Wl,"$lib_linkname" \
+			-Wl,-dylib_install_name -Wl,"@rpath/$lib_linkname" \
 			"$@" -L"$dest_dir/lib" $l_flags
 		;;
 	*)	do_link "lib/$lib_file" -shared -Wl,-soname -Wl,"$lib_linkname" \

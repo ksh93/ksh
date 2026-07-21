@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -16,6 +16,7 @@
 #         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #                  Lev Kujawski <int21h@mailbox.org>                   #
 #                      Phi <phi.debian@gmail.com>                      #
+#                  Manuel Einfalt <m-einfalt@gmx.de>                   #
 #                                                                      #
 ########################################################################
 
@@ -318,8 +319,14 @@ then	err_exit 'display of unsigned integers in non-decimal bases wrong'
 fi
 $SHELL -c 'i=0;(( ofiles[i] != -1 && (ofiles[i] < mins || mins == -1) ));exit 0' 2> /dev/null || err_exit 'lexical error with arithmetic expression'
 $SHELL -c '(( +1 == 1))' 2> /dev/null || err_exit 'unary + not working'
-typeset -E20 val=123.01234567890
-[[ $val == 123.0123456789 ]] || err_exit "rounding error val=$val"
+
+sizeof_ld=$(awk '/^#define _ast_sizeof_long_double/ { print $3; exit; }' "$INSTALLROOT/include/ast/ast_common.h")
+if	((sizeof_ld < 12))
+then	warning "sizeof(long double) < 12; skipping rounding error test"
+else	typeset -lE20 val=123.01234567890
+	[[ $val == 123.0123456789 ]] || err_exit "rounding error val=$val"
+fi
+
 if	[[ $(print x$((10))=foo) != x10=foo ]]
 then	err_exit 'parsing error with x$((10))=foo'
 fi
@@ -1133,6 +1140,24 @@ else	typeset -ui i
 	[[ $got == "$exp" ]] || err_exit "return value of assigning -1 to unsigned int (expected '$exp', got '$got')"
 	unset i
 fi
+
+# ======
+# https://github.com/ksh93/ksh/issues/927
+unset y
+typeset -i y=0
+((y = y - 1))
+[[ $y == '-1' ]] || err_exit "variable declared with 'typeset -i' not consistently handled as signed int" \
+	"(expected '-1', got '$got')"
+
+# ======
+# https://github.com/ksh93/ksh/issues/789
+"$SHELL" -c ': $((-2**63/-1))' &
+pid=$!
+(sleep 1; kill -9 $pid) &
+{ wait $pid; } 2>/dev/null
+e=$?
+kill $!
+(($e < 128)) || err_exit "\$((-2**63/-1)) hangs or crashes shell (got status $e/SIG$(kill -l $e))"
 
 # ======
 exit $((Errors<125?Errors:125))

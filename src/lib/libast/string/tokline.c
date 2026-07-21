@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -57,7 +57,7 @@ spliceline(Sfio_t* s, int op, void* val, Sfdisc_t* ad)
 	Splice_t*	d = (Splice_t*)ad;
 	char*		b;
 	int		c;
-	int		n;
+	ptrdiff_t	n;
 	int		q;
 	int		j;
 	char*		e;
@@ -132,7 +132,7 @@ spliceline(Sfio_t* s, int op, void* val, Sfdisc_t* ad)
 				}
 			}
 		} while (n <= 0);
-		sfsetbuf(s, buf, n);
+		sfsetbuf(s, buf, (size_t)n);
 		d->quote = q;
 		return 1;
 	default:
@@ -179,7 +179,7 @@ tokline(const char* arg, int flags, int* line)
 	}
 	else if ((p = sfreserve(f, 0, 0)) && sfvalue(f) > 11 && strmatch(p, "#!!! +([-0-9]) *([!\n]) !!!\n*") && (e = strchr(p, '\n')))
 	{
-		flags = strtol(p + 5, &p, 10);
+		flags = (int)strtol(p + 5, &p, 10);
 		error(flags, "%s:%-.*s", arg, e - p - 4, p);
 	}
 	d->disc.exceptf = spliceline;

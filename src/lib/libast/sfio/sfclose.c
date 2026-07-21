@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
@@ -82,7 +83,7 @@ int sfclose(Sfio_t* f)
 			}
 		}
 		else
-		{	f->mode &= ~SFIO_LOCK;	/**/ASSERT(_Sfpmove);
+		{	f->mode &= (uint32_t)~SFIO_LOCK;	/**/ASSERT(_Sfpmove);
 			if((*_Sfpmove)(f,-1) < 0)
 			{	SFOPEN(f,0);
 				return -1;
@@ -94,7 +95,7 @@ int sfclose(Sfio_t* f)
 
 	if(f->data && (!local || (f->flags&SFIO_STRING) || (f->bits&SFIO_MMAP) ) )
 	{	/* free buffer */
-#ifdef MAP_TYPE
+#if _lib_mmap
 		if(f->bits&SFIO_MMAP)
 			SFMUNMAP(f,f->data,f->endb-f->data);
 		else
@@ -110,14 +111,10 @@ int sfclose(Sfio_t* f)
 	if(_Sfnotify)
 		(*_Sfnotify)(f, SFIO_CLOSING, (void*)((long)f->file));
 	if(f->file >= 0 && !(f->flags&SFIO_STRING))
-	{	while(close(f->file) < 0 )
-		{	if(errno == EINTR)
-				errno = 0;
-			else
-			{	rv = -1;
-				break;
-			}
-		}
+	{	errno = 0;
+		ast_close(f->file);
+		if(errno)
+			rv = -1;
 	}
 	f->file = -1;
 

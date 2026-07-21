@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	"shnodes.h"
 #include	"test.h"
@@ -39,10 +39,10 @@
 #define POST	2
 
 /* flags that can be specified with p_tree() */
-#define NO_NEWLINE	(1 << 0)
-#define NEED_BRACE	(1 << 1)
-#define NO_BRACKET	(1 << 2)
-#define PROC_SUBST	(1 << 3)
+#define NO_NEWLINE	(1U << 0)
+#define NEED_BRACE	(1U << 1)
+#define NO_BRACKET	(1U << 2)
+#define PROC_SUBST	(1U << 3)
 
 static void p_comlist(const struct dolnod*,int);
 static void p_arg(const struct argnod*, int endchar, int opts);
@@ -51,7 +51,7 @@ static void p_keyword(const char*,int);
 static void p_redirect(const struct ionod*);
 static void p_switch(const struct regnod*);
 static void here_body(const struct ionod*);
-static void p_tree(const Shnode_t*,int);
+static void p_tree(const Shnode_t*,nvflag_t);
 
 static int level;
 static int begin_line;
@@ -62,7 +62,7 @@ static const struct ionod *here_doc;
 static Sfio_t *outfile;
 static const char *forinit = "";
 
-void sh_deparse(Sfio_t *out, const Shnode_t *t,int tflags, int initlevel)
+void sh_deparse(Sfio_t *out, const Shnode_t *t,nvflag_t tflags, int initlevel)
 {
 	int firstnodetype = t->tre.tretyp & COMMSK;
 	char needouterbrace = (tflags & NEED_BRACE) && firstnodetype != TLST && (!(tflags & NV_FPOSIX) || firstnodetype != TPAR);
@@ -78,12 +78,12 @@ void sh_deparse(Sfio_t *out, const Shnode_t *t,int tflags, int initlevel)
 /*
  * print script corresponding to shell tree <t>
  */
-static void p_tree(const Shnode_t *t,int tflags)
+static void p_tree(const Shnode_t *t,nvflag_t tflags)
 {
 	char *cp=0;
-	int save = end_line;
-	int needbrace = (tflags&NEED_BRACE);
-	int procsub = (tflags&PROC_SUBST);
+	int save = end_line, e;
+	uint32_t needbrace = (tflags&NEED_BRACE);
+	uint32_t procsub = (tflags&PROC_SUBST);
 	tflags &= ~NEED_BRACE;
 	if(tflags&NO_NEWLINE)
 		end_line = ' ';
@@ -111,7 +111,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 
 		case TCOM:
 			if(begin_line && level>0)
-				sfnputc(outfile,'\t',level);
+				sfnputc(outfile,'\t',(size_t)level);
 			begin_line = 0;
 			p_comarg((struct comnod*)t);
 			break;
@@ -179,7 +179,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 				arg = (t->wh.whinc)->arexpr;
 				sfprintf(outfile," %s))\n",arg->argval);
 				if(level>1)
-					sfnputc(outfile,'\t',level-1);
+					sfnputc(outfile,'\t',(size_t)level-1);
 			}
 			else
 				p_tree(t->wh.whtre,0);
@@ -267,7 +267,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 		{
 			struct argnod *ap = t->ar.arexpr;
 			if(begin_line && level)
-				sfnputc(outfile,'\t',level);
+				sfnputc(outfile,'\t',(size_t)level);
 			sfprintf(outfile,"((%s))%c",ap->argval,end_line);
 			if(!(tflags&NO_NEWLINE))
 				begin_line=1;
@@ -281,10 +281,10 @@ static void p_tree(const Shnode_t *t,int tflags)
 			if(t->for_.forlst)
 			{
 				sfputr(outfile,"in",' ');
-				tflags = end_line;
+				e = end_line;
 				end_line = '\n';
 				p_comarg(t->for_.forlst);
-				end_line = tflags;
+				end_line = e;
 			}
 			else
 				sfputc(outfile,'\n');
@@ -303,10 +303,10 @@ static void p_tree(const Shnode_t *t,int tflags)
 			{
 				begin_line = 1;
 				sfputr(outfile,"in",'\n');
-				tflags = end_line;
+				e = end_line;
 				end_line = '\n';
 				p_switch(t->sw.swlst);
-				end_line = tflags;
+				end_line = e;
 			}
 			p_keyword("esac",END);
 			break;
@@ -314,7 +314,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 		/* function definition */
 		case TFUN:
 			if(begin_line && level>0)
-				sfnputc(outfile,'\t',level);
+				sfnputc(outfile,'\t',(size_t)level);
 			if(t->tre.tretyp&FPOSIX)
 				sfprintf(outfile,"%s()\n",t->funct.functnam);
 			else
@@ -323,7 +323,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 				if(t->funct.functargs)
 				{
 					/* function reference list (for .sh.math.* functions) */
-					int e = end_line;
+					e = end_line;
 					sfputc(outfile,' ');
 					end_line = '\n';
 					p_comarg(t->funct.functargs);
@@ -355,7 +355,7 @@ static void p_tree(const Shnode_t *t,int tflags)
 					sfputr(outfile,"!",' ');
 				if(t->tre.tretyp&TUNARY)
 				{
-					un_op[1] = flags;
+					un_op[1] = (char)flags;
 					sfputr(outfile,un_op,' ');
 				}
 				else
@@ -396,7 +396,7 @@ static void p_keyword(const char *word,int flag)
 	if(!(flag & BEGIN))
 		level--;
 	if(begin_line && level)
-		sfnputc(outfile,'\t',level);
+		sfnputc(outfile,'\t',(size_t)level);
 	sfputr(outfile,word,sep);
 	if(sep=='\n')
 		begin_line=1;
@@ -437,11 +437,11 @@ static void p_arg(const struct argnod *arg,int endchar,int opts)
 		{
 			/* compound assignment */
 			struct fornod *fp=(struct fornod*)arg->argchn.ap;
-			sfprintf(outfile,"%s=(\n",fp->fornam);
-			sfnputc(outfile,'\t',++level);
+			sfprintf(outfile, arg->argflag&ARG_APPEND ? "%s+=(\n" : "%s=(\n", fp->fornam);
+			sfnputc(outfile,'\t',(size_t)++level);
 			p_tree(fp->fortre,0);
 			if(--level)
-				sfnputc(outfile,'\t',level);
+				sfnputc(outfile,'\t',(size_t)level);
 			sfputc(outfile,')');
 		}
 		else if((arg->argflag&ARG_RAW) && (cp[1] || (*cp!='[' && *cp!=']')))
@@ -458,7 +458,8 @@ static void p_arg(const struct argnod *arg,int endchar,int opts)
 static void p_redirect(const struct ionod *iop)
 {
 	char *cp;
-	int iof, endc, endc2 = -1;
+	int endc, endc2 = -1;
+	unsigned int iof;
 	for(;iop;iop=iop->ionxt)
 	{
 		iof=iop->iofile;
@@ -530,7 +531,7 @@ static void p_redirect(const struct ionod *iop)
 		else if(iof&IORAW)
 			sfputr(outfile,sh_fmtq(iop->ioname),endc);
 		else
-			sfputr(outfile,iop->ioname,iof);
+			sfputr(outfile,iop->ioname,endc);
 		if((iof&IOLSEEK) && (iof&IOARITH))
 			sfputr(outfile, "))", endc2);
 	}
@@ -589,11 +590,11 @@ static void p_comlist(const struct dolnod *dol,int endchar)
 static void p_switch(const struct regnod *reg)
 {
 	if(level>1)
-		sfnputc(outfile,'\t',level-1);
+		sfnputc(outfile,'\t',(size_t)level-1);
 	p_arg(reg->regptr,')',PRE);
 	begin_line = 0;
 	sfputc(outfile,'\n');
-	sfnputc(outfile,'\t',level);
+	sfnputc(outfile,'\t',(size_t)level);
 	if(reg->regcom)
 		p_tree(reg->regcom,0);
 	level++;
@@ -615,7 +616,7 @@ static void here_body(const struct ionod *iop)
 {
 	Sfio_t *infile;
 	if(iop->iofile&IOSTRG)
-		infile = sfnew(NULL,iop->ioname,iop->iosize,-1,SFIO_STRING|SFIO_READ);
+		infile = sfnew(NULL,iop->ioname,(size_t)iop->iosize,-1,SFIO_STRING|SFIO_READ);
 	else
 		sfseek(infile=sh.heredocs,iop->iooffset,SEEK_SET);
 	sfmove(infile,outfile,iop->iosize,-1);

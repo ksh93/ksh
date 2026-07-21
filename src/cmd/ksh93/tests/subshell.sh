@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -242,30 +242,33 @@ foo=$($SHELL  <<- ++EOF++
 )
 [[ $foo == foobar ]] || err_exit 'trap on exit when last commands is subshell is not triggered'
 
-err=$(
-	ulimit -n 1024
-	$SHELL  2>&1  <<- \EOF
-	        date=$(whence -p date)
-	        function foo
-	        {
-	                x=$( $date > /dev/null 2>&1 ;:)
-	        }
-		# consume almost all fds to push the test to the fd limit #
-		integer max=$(ulimit --nofile)
-		(( max -= 6 ))
-		for ((i=20; i < max; i++))
-		do	exec {i}>&1
-		done
-	        for ((i=0; i < 20; i++))
-	        do      y=$(foo)
-	        done
-	EOF
-) || {
-	err=${err%%$'\n'*}
-	err=${err#*:}
-	err=${err##[[:space:]]}
-	err_exit "nested command substitution with redirections failed -- $err"
-}
+if	(ulimit -n 1024) 2>/dev/null
+then	err=$(
+		ulimit -n 1024
+		$SHELL  2>&1  <<- \EOF
+			date=$(whence -p date)
+			function foo
+			{
+				x=$( $date > /dev/null 2>&1 ;:)
+			}
+			# consume almost all fds to push the test to the fd limit #
+			integer max=$(ulimit --nofile)
+			(( max -= 6 ))
+			for ((i=20; i < max; i++))
+			do	exec {i}>&1
+			done
+			for ((i=0; i < 20; i++))
+			do	y=$(foo)
+			done
+		EOF
+	) || {
+		err=${err%%$'\n'*}
+		err=${err#*:}
+		err=${err##[[:space:]]}
+		err_exit "nested command substitution with redirections failed -- $err"
+	}
+else	warning "can't set ulimit; skipping test for nested command substitution with redirections"
+fi
 
 exp=0
 $SHELL -c $'
@@ -602,11 +605,13 @@ cat > $tmpfile <<-\EOF
 $SHELL 2> /dev/null "$tmpfile" || err_exit 'IFS in subshell causes core dump'
 
 unset i
-if      [[ -d /dev/fd ]]
-then    integer i
+# WARNING: do not use 'test -e' to check if /dev/fd is functional (too many shells
+# break it by failing to test for the physical existence of /dev/fd/9 in the FS)
+if	ls -d /dev/fd/9 9<&0 >/dev/null 2>&1
+then	integer i
 	for ((i=11; i < 29; i++))
-	do      if      ! [[ -r /dev/fd/$i  || -w /dev/fd/$i ]]
-		then    a=$($SHELL -c "[[ -r /dev/fd/$i || -w /dev/fd/$i ]]")
+	do	if	! [[ -r /dev/fd/$i || -w /dev/fd/$i ]]
+		then	a=$($SHELL -c "[[ -r /dev/fd/$i || -w /dev/fd/$i ]]")
 			(( $? )) || err_exit "file descriptor $i not close-on-exec"
 		fi
 	done
@@ -625,8 +630,8 @@ dot=$(cat <<-EOF
 		$(ls -d .)
 	EOF
 ) ) & sleep .1
-if      kill -0 $! 2> /dev/null
-then    err_exit  'command substitution containing here-doc with command substitution fails'
+if	kill -0 $! 2> /dev/null
+then	err_exit  'command substitution containing here-doc with command substitution fails'
 fi
 
 printf=$(whence -p printf)
@@ -719,7 +724,7 @@ got=$(
 
 # function set in subshell, unset in subshell of that subshell
 exp='*: f: not found'
-got=$( f() { echo WRONG; }; ( unset -f f; PATH=/dev/null f 2>&1 ) )
+got=$( f() { echo WRONG; }; ( unset -f f; PATH=/dev/null/none f 2>&1 ) )
 [[ $got == $exp ]] || err_exit 'unset -f fails in sub-subshell on function set in subshell' \
 	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
 
@@ -1053,12 +1058,15 @@ got=$(d=${ true & x=1; echo end; }; echo $d $x)
 
 # ======
 # https://github.com/ksh93/ksh/issues/289
-got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ ulimit -t 1; }); ulimit -t)
-[[ $got == 1 ]] && err_exit "'ulimit' command run in subshare leaks out of parent virtual subshell"
-got=$(_AST_FEATURES="TEST_TMP_VAR - $$" "$SHELL" -c '(d=${ builtin getconf;}); getconf TEST_TMP_VAR' 2>&1)
-[[ $got == $$ ]] && err_exit "'builtin' command run in subshare leaks out of parent virtual subshell"
-got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ exec true; }); echo ok)
-[[ $got == ok ]] || err_exit "'exec' command run in subshare disregards parent virtual subshell"
+if	(ulimit -t 1) 2>/dev/null
+then	got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ ulimit -t 1; }); ulimit -t)
+	[[ $got == 1 ]] && err_exit "'ulimit' command run in subshare leaks out of parent virtual subshell"
+	got=$(_AST_FEATURES="TEST_TMP_VAR - $$" "$SHELL" -c '(d=${ builtin getconf;}); getconf TEST_TMP_VAR' 2>&1)
+	[[ $got == $$ ]] && err_exit "'builtin' command run in subshare leaks out of parent virtual subshell"
+	got=$(ulimit -t unlimited 2>/dev/null; (dummy=${ exec true; }); echo ok)
+	[[ $got == ok ]] || err_exit "'exec' command run in subshare disregards parent virtual subshell"
+else	warning "can't set ulimit; skipping test for 'exec' command run in subshare disregarding parent virtual subshell"
+fi
 
 # ======
 # https://github.com/ksh93/ksh/pull/294#discussion_r624627501
@@ -1218,6 +1226,106 @@ got=$("$SHELL" -c 'x=$(fn(){ return 9; };echo ok|fn); echo exited $?' 2>&1)
 got=$("$SHELL" -c 'x=$(fn(){ return 265; };echo ok|fn); echo exited $?' 2>&1)
 [[ e=$? -eq 0 && $got == "$exp" ]] || err_exit "regression involving SIGPIPE in subshell" \
 	"(expected status 0 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+
+# ======
+# The saved file descriptors for the PWD of virtual subshells is leaked
+# when forking the subshell or executing a script. (The regression test
+# uses cd in a virtual subshell to trigger the bug in 93u+m and a redirect
+# command to expose it in 93u+.)
+if	(ulimit -n 14 && ulimit -t unlimited) 2>/dev/null
+then	nam1=$tmp/fdleaka.$SRANDOM
+	nam2=$tmp/fdleakb.$SRANDOM
+	dir1=$tmp/dir1.$SRANDOM
+	dir2=$tmp/dir2.$SRANDOM
+	dir3=$tmp/dir3.$SRANDOM
+	dir4=$tmp/dir4.$SRANDOM
+	dir5=$tmp/dir5.$SRANDOM
+	dir6=$tmp/dir6.$SRANDOM
+	dir7=$tmp/dir7.$SRANDOM
+	mkdir "$dir1" "$dir2" "$dir3" "$dir4" "$dir5" "$dir6" "$dir7"
+	exp=ok
+	got=$(set +x; "$SHELL" -c "
+	(cd '$dir1'; (cd '$dir2'; (cd '$dir3'; (cd '$dir4'; (cd '$dir5'; (cd '$dir6'; (cd '$dir7'
+		echo 'ulimit -n 14 && (cd /; redirect 2>&1) && true' >'$nam1'
+		echo '#/bin/sh' >'$nam2'
+		cat '$nam1' >>'$nam2'
+		chmod +x '$nam1' '$nam2'
+		'$nam1'
+		'$nam2'
+		(ulimit -t unlimited; . '$nam1')
+	)))))))
+	echo ok" 2>&1)
+	[[ $exp == $got ]] || err_exit "PWD file descriptors made in virtual subshells leak out of subshells" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+else	warning "can't set ulimit; skipping test for PWD file descriptors leaking out of virtual subshells"
+fi
+
+# ======
+# Command substitution loses stdout after nested function redirects stdout to /dev/null
+# https://github.com/ksh93/ksh/issues/951
+
+got=$(
+	function echo_devnull {
+		echo "DEVNULL" >/dev/null
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=$(func)
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 1a (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	function echo_devnull {
+		echo "DEVNULL" >/dev/null
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=${ func; }
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 1b (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	function echo_devnull {
+		ulimit -c 0
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=$(func)
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 2a (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	function echo_devnull {
+		ulimit -c 0
+	}
+	function func {
+		echo_devnull >&2
+		echo "FUNC"
+	}
+	OUT=${ func; }
+	echo "OUT: ${OUT}"
+)
+exp='OUT: FUNC'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 2b (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(
+	OUT=$(ulimit -c 0 >&2; echo OK)
+	echo "OUT: ${OUT}"
+)
+exp='OUT: OK'
+[[ $got == "$exp" ]] || err_exit "bug 951 test 3 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

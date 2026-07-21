@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"sfdchdr.h"
@@ -53,7 +54,7 @@ static ssize_t filterread(Sfio_t*	f,	/* stream reading from */
 			else
 			{	/* eof, close write end of pipes */
 				sfset(fi->filter,SFIO_READ,0);
-				close(sffileno(fi->filter));
+				ast_close(sffileno(fi->filter));
 				sfset(fi->filter,SFIO_READ,1);
 				fi->next = fi->endb = NULL;
 			}
@@ -67,7 +68,7 @@ static ssize_t filterread(Sfio_t*	f,	/* stream reading from */
 
 			if(r == 1) /* non-blocking write */
 			{	errno = 0;
-				if((w = sfwr(fi->filter, fi->next, w, 0)) > 0)
+				if((w = sfwr(fi->filter, fi->next, (size_t)w, 0)) > 0)
 					fi->next += w;
 				else if(errno != EAGAIN)
 					return 0;

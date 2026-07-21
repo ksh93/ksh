@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2013 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 #include	"dthdr.h"
@@ -34,7 +35,7 @@ uint dtstrhash(uint h, void* args, ssize_t n)
 #define FNV_PRIME	((1<<24) + (1<<8) + 0x93)
 #define FNV_OFFSET	2166136261U
 #endif
-	h = (h == 0 || h == ~0) ? FNV_OFFSET : h;
+	h = (h == 0 || h == ~0U) ? FNV_OFFSET : h;
 	if(n <= 0) /* see discipline key definition for == 0 */
 	{	for(; *s != 0; ++s )
 			h = (h ^ s[0]) * FNV_PRIME;

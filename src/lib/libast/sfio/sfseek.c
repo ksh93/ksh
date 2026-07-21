@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,7 +26,7 @@
 
 static void newpos(Sfio_t* f, Sfoff_t p)
 {
-#ifdef MAP_TYPE
+#if _lib_mmap
 	if((f->bits&SFIO_MMAP) && f->data)
 	{	SFMUNMAP(f, f->data, f->endb-f->data);
 		f->data = NULL;
@@ -61,7 +61,7 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 
 	/* set and initialize the stream to a definite mode */
 	if((int)SFMODE(f,local) != (mode = f->mode&SFIO_RDWR))
-	{	int	flags = f->flags;
+	{	unsigned short	flags = f->flags;
 
 		if(hardseek&SFIO_PUBLIC) /* seek ptr must follow file descriptor */
 			f->flags |= SFIO_SHARE|SFIO_PUBLIC;
@@ -112,7 +112,7 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 			f->next = f->data ? f->data + p : NULL;
 			f->here = p;
 			if(p > f->extent)
-				memclear((char*)(f->data+f->extent),(int)(p-f->extent));
+				memclear((char*)(f->data+f->extent),(size_t)(p-f->extent));
 			goto done;
 		}
 
@@ -187,43 +187,33 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	if((p += type == SEEK_CUR ? s : 0) < 0)
 		goto done;
 
-#ifdef MAP_TYPE
+#if _lib_mmap
 	if(f->bits&SFIO_MMAP)
-	{	/* if mmap is not great, stop mmapping if moving around too much */
-#if _mmap_worthy < 2
-		if((f->next - f->data) < ((f->endb - f->data)/4) )
-		{	SFSETBUF(f,f->tiny,(size_t)SFIO_UNBOUND);
-			hardseek = 1; /* this forces a hard seek below */
-		}
-		else
-#endif
-		{	/* for mmap, f->here can be virtual except for hardseek */
-			newpos(f,p);
-			if(!hardseek)
-				goto done;
-		}
+	{	/* for mmap, f->here can be virtual except for hardseek */
+		newpos(f,p);
+		if(!hardseek)
+			goto done;
 	}
 #endif
 
 	if(f->endb > f->next)
 	{	/* reduce wastage in future buffer fillings */
-		f->iosz = (f->next - f->data) + (f->endb - f->next)/2;
 		f->iosz = ((f->iosz + f->blksz-1)/f->blksz)*f->blksz;
 	}
-	if(f->iosz >= f->size)
+	if(f->iosz >= (size_t)f->size)
 		f->iosz = 0;
 
 	/* buffer is now considered empty */
 	f->next = f->endr = f->endb = f->data;
 
 	/* small backseeks often come in bunches, so seek back as far as possible */
-	if(p < f->lpos && f->size > f->blksz && (p + f->blksz) > s)
+	if(p < f->lpos && (size_t)f->size > f->blksz && ((size_t)p + f->blksz) > (size_t)s)
 	{	if((r = s - f->size) < 0)
 			r = 0;
 	}
 	/* try to align buffer to block boundary to enhance I/O speed */
-	else if(f->blksz > 0 && f->size >= 2*f->blksz)
-		r = p - (p%f->blksz);
+	else if(f->blksz > 0 && (size_t)f->size >= 2*f->blksz)
+		r = p - (p%(Sflong_t)f->blksz);
 	else
 	{	r = p;
 
@@ -241,7 +231,7 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	}
 
 	if(r < p) /* read to cover p */
-	{	(void)SFRD(f, f->data, f->size, f->disc);
+	{	(void)SFRD(f, f->data, (size_t)f->size, f->disc);
 		if(p <= f->here && p >= (f->here - (f->endb - f->data)) )
 			f->next = f->endb - (size_t)(f->here-p);
 		else /* recover from read failure by just seeking to p */

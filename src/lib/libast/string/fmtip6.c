@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -33,10 +33,10 @@ dec(char* s, char* p, int n)
 	while (*s = *p++)
 		s++;
 	if (n >= 100)
-		*s++ = '0' + ((n / 100) % 10);
+		*s++ = (char)('0' + ((n / 100) % 10));
 	if (n >= 10)
-		*s++ = '0' + ((n / 10) % 10);
-	*s++ = '0' + (n % 10);
+		*s++ = (char)('0' + ((n / 10) % 10));
+	*s++ = (char)('0' + (n % 10));
 	return s;
 }
 
@@ -74,7 +74,7 @@ fmtip6(const unsigned char* addr, int bits)
 	for (i = z; i < n; i += 2)
 	{
 		for (k = i; i < n - 1 && !a[i] && !a[i + 1]; i += 2);
-		if ((r[k] = i - k) > r[m] || r[k] == r[m] && i >= (n - 1))
+		if ((r[k] = (unsigned char)(i - k)) > r[m] || r[k] == r[m] && i >= (n - 1))
 			m = k;
 	}
 	if (!m)

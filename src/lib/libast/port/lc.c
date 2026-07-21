@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -30,7 +31,7 @@
 typedef struct Local_s
 {
 	const char*	name;
-	int		size;
+	size_t		size;
 } Local_t;
 
 #undef	setlocale	/* this file deals with the system locale */
@@ -169,12 +170,12 @@ lcinfo(int category)
  */
 
 static int
-match(const char* s, const char* p, int minimum, int standard)
+match(const char* s, const char* p, size_t minimum, int standard)
 {
 	const char*	t;
 	const char*	x;
 	int		w;
-	int		z;
+	ptrdiff_t	z;
 
 	z = 0;
 	do
@@ -230,14 +231,14 @@ match(const char* s, const char* p, int minimum, int standard)
 				p++;
 			}
 			if ((!*t || *t == ',') && (!*p || *p == '|' || w))
-				return p - x;
-			if (minimum && z < (p - x) && (p - x) >= minimum)
+				return (p - x) != 0;
+			if (minimum && z < (p - x) && (p - x) >= (ssize_t)minimum)
 				z = p - x;
 		}
 		while (*p && *p != '|')
 			p++;
 	} while (*p++);
-	return z;
+	return z != 0;
 }
 
 /*
@@ -275,7 +276,7 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 		{
 			for (t = lp->code; s < e && (*s = *t++); s++);
 			*s++ = 0;
-			return s - buf;
+			return (size_t)(s - buf);
 		}
 		if (flags & LC_verbose)
 		{
@@ -290,7 +291,7 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 				}
 				else if (!isalnum(c))
 					u = 1;
-				*s++ = c;
+				*s++ = (char)c;
 			}
 		}
 		else
@@ -320,11 +321,11 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 					}
 					else if (!isalnum(c))
 						u = 1;
-					*s++ = c;
+					*s++ = (char)c;
 				}
 			}
 			else
-				for (t = tp->code; s < e && (*s = toupper(*t++)); s++);
+				for (t = tp->code; s < e && (*s = (char)toupper(*t++)); s++);
 			if (r)
 			{
 				*s = 0;
@@ -347,25 +348,25 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 			t = cp->code;
 			if (streq(cp->code, "utf8") && (t = _locale_utf8_str))
 				for (; s < e && (c = *t++); s++)
-					*s = c;
+					*s = (char)c;
 			else
 				for (t = cp->code; s < e && (c = *t++); s++)
 				{
 					if (islower(c))
 						c = toupper(c);
-					*s = c;
+					*s = (char)c;
 				}
 		}
 		for (c = '@'; ap && s < e; ap = ap->next)
 			if (!(flags & (LC_abbreviated|LC_default|LC_verbose)) || !(ap->attribute->flags & LC_default))
 			{
-				*s++ = c;
+				*s++ = (char)c;
 				c = ',';
 				for (t = ap->attribute->name; s < e && (*s = *t++); s++);
 			}
 	}
 	*s++ = 0;
-	return s - buf;
+	return (size_t)(s - buf);
 }
 
 /*
@@ -431,9 +432,10 @@ lcmake(const char* name)
 	const Lc_attribute_t*	ap;
 	Lc_attribute_list_t*	ai;
 	Lc_attribute_list_t*	al;
-	int			i;
-	int			n;
-	int			z;
+	ssize_t			i;
+	size_t			j;
+	size_t			n;
+	size_t			z;
 	char			buf[PATH_MAX / 2];
 	char			tmp[PATH_MAX / 2];
 	Local_t			local[2];
@@ -502,7 +504,7 @@ lcmake(const char* name)
 		{
 			if (isupper(c))
 				c = tolower(c);
-			*s++ = c;
+			*s++ = (char)c;
 		}
 	}
 	if ((t = a) && s < e)
@@ -530,7 +532,7 @@ lcmake(const char* name)
 				break;
 			if (isupper(c))
 				c = tolower(c);
-			*s++ = c;
+			*s++ = (char)c;
 		}
 	}
 	*s = 0;
@@ -557,7 +559,7 @@ lcmake(const char* name)
 			c = s[2];
 			s[2] = 0;
 			for (lp = lc_languages; lp->code && !streq(s, lp->code); lp++);
-			s[2] = c;
+			s[2] = (char)c;
 			if (lp->code)
 				n = 1;
 		}
@@ -580,10 +582,10 @@ lcmake(const char* name)
 					z = 0;
 					tpb = 0;
 					for (tp = lc_territories; tp->name; tp++)
-						if ((i = match(s, tp->name, 3, 0)) > z)
+						if ((i = match(s, tp->name, 3, 0)) > (ssize_t)z)
 						{
 							tpb = tp;
-							if ((z = i) == n)
+							if ((z = (size_t)i) == n)
 								break;
 						}
 					if (tpb)
@@ -658,8 +660,8 @@ lcmake(const char* name)
 					{
 						if (lp != &lc_languages[0])
 						{
-							for (i = 0; i < elementsof(tp->languages) && lp != tp->languages[i]; i++);
-							if (i >= elementsof(tp->languages))
+							for (j = 0; j < elementsof(tp->languages) && lp != tp->languages[j]; j++);
+							if (j >= elementsof(tp->languages))
 								tp = 0;
 						}
 						break;
@@ -670,8 +672,8 @@ lcmake(const char* name)
 				for (tp = lc_territories; tp->code; tp++)
 					if (match(s, tp->name, 3, 0))
 					{
-						for (i = 0; i < elementsof(tp->languages) && lp != tp->languages[i]; i++);
-						if (i < elementsof(tp->languages))
+						for (j = 0; j < elementsof(tp->languages) && lp != tp->languages[j]; j++);
+						if (j < elementsof(tp->languages))
 							break;
 					}
 			}
@@ -700,7 +702,7 @@ lcmake(const char* name)
 					}
 			if (!cp->code)
 			{
-				for (i = 0; i < elementsof(lp->attributes) && (ap = lp->attributes[i]); i++)
+				for (j = 0; j < elementsof(lp->attributes) && (ap = lp->attributes[j]); j++)
 					if (match(w, ap->name, 5, 0))
 					{
 						if (ai = newof(0, Lc_attribute_list_t, 1, 0))
@@ -711,7 +713,7 @@ lcmake(const char* name)
 						}
 						break;
 					}
-				if (i >= elementsof(lp->attributes) && (ap = newof(0, Lc_attribute_t, 1, sizeof(Lc_attribute_list_t) + s - w + 1)))
+				if (j >= elementsof(lp->attributes) && (ap = newof(0, Lc_attribute_t, 1, sizeof(Lc_attribute_list_t) + (size_t)(s - w + 1))))
 				{
 					ai = (Lc_attribute_list_t*)(ap + 1);
 					strcpy((char*)(((Lc_attribute_t*)ap)->name = (const char*)(ai + 1)), w);
@@ -720,7 +722,7 @@ lcmake(const char* name)
 					al = ai;
 				}
 			}
-			*s = c;
+			*s = (char)c;
 		} while (*s++);
 	}
 
@@ -752,15 +754,15 @@ lcmake(const char* name)
 	local[1].name = default_lc.code;
 	local[1].size = strlen(local[1].name);
 	i = -1;
-	for (c = 0; c < elementsof(local); ++c)
-		if (strneq(name, local[c].name, local[c].size))
+	for (j = 0; j < elementsof(local); ++j)
+		if (strneq(name, local[j].name, local[j].size))
 		{
-			switch (name[local[c].size])
+			switch (name[local[j].size])
 			{
 			case '.':
 			case '_':
 			case 0:
-				i = c;
+				i = (ssize_t)j;
 				z += local[!i].size + n;
 				break;
 			}
@@ -784,15 +786,15 @@ lcmake(const char* name)
 	if (streq(lc->charset->code, "utf8"))
 		lc->flags |= LC_utf8;
 	lc->attributes = al;
-	for (i = 0; i < elementsof(lc->info); i++)
-		lc->info[i].lc = lc;
+	for (j = 0; j < elementsof(lc->info); j++)
+		lc->info[j].lc = lc;
 #if _WINIX
 	n = SUBLANG_DEFAULT;
 	if (tp)
-		for (i = 0; i < elementsof(tp->languages); i++)
-			if (lp == tp->languages[i])
+		for (j = 0; j < elementsof(tp->languages); j++)
+			if (lp == tp->languages[j])
 			{
-				n = tp->indices[i];
+				n = tp->indices[j];
 				break;
 			}
 	lc->index = MAKELCID(MAKELANGID(lp->index, n), SORT_DEFAULT);
@@ -835,9 +837,9 @@ lcscan(Lc_t* lc)
 		ls->language = elementsof(ls->lc.territory->languages);
 		ls->attribute = elementsof(ls->lc.language->attributes);
 	}
-	if (++ls->attribute >= elementsof(ls->lc.language->attributes) || !(ls->list.attribute = ls->lc.language->attributes[ls->attribute]))
+	if (++ls->attribute >= (ssize_t)elementsof(ls->lc.language->attributes) || !(ls->list.attribute = ls->lc.language->attributes[ls->attribute]))
 	{
-		if (++ls->language >= elementsof(ls->lc.territory->languages) || !(ls->lc.language = ls->lc.territory->languages[ls->language]))
+		if (++ls->language >= (ssize_t)elementsof(ls->lc.territory->languages) || !(ls->lc.language = ls->lc.territory->languages[ls->language]))
 		{
 			if (!lc_territories[++ls->territory].code)
 			{

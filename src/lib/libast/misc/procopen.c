@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -175,22 +175,22 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 			{
 				if (arg2 != PROC_ARG_NULL)
 				{
-					close(arg2);
-					if (fcntl(arg1, F_DUPFD, arg2) != arg2)
+					ast_close((int)arg2);
+					if (fcntl((int)arg1, F_DUPFD, arg2) != arg2)
 						return -1;
 				}
 				if (op & PROC_FD_CHILD)
-					close(arg1);
+					ast_close((int)arg1);
 			}
 			break;
 		case PROC_fd_ctty:
 			setsid();
 			for (i = 0; i <= 2; i++)
 				if (arg1 != i)
-					close(i);
+					ast_close(i);
 			arg2 = -1;
 #ifdef TIOCSCTTY
-			if (ioctl(arg1, TIOCSCTTY, NULL) < 0)
+			if (ioctl((int)arg1, TIOCSCTTY, NULL) < 0)
 				return -1;
 #else
 			if (!(s = ttyname(arg1)))
@@ -199,18 +199,18 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 				return -1;
 #endif /* TIOCSCTTY */
 			for (i = 0; i <= 2; i++)
-				if (arg1 != i && arg2 != i && fcntl(arg1, F_DUPFD, i) != i)
+				if (arg1 != i && (int)arg2 != i && fcntl((int)arg1, F_DUPFD, i) != i)
 					return -1;
 			if (arg1 > 2)
-				close(arg1);
+				ast_close((int)arg1);
 			if (arg2 > 2)
-				close(arg2);
+				ast_close((int)arg2);
 			break;
 		case PROC_sig_dfl:
-			signal(arg1, SIG_DFL);
+			signal((int)arg1, SIG_DFL);
 			break;
 		case PROC_sig_ign:
-			signal(arg1, SIG_IGN);
+			signal((int)arg1, SIG_IGN);
 			break;
 		case PROC_sys_pgrp:
 			if (arg1 < 0)
@@ -219,12 +219,12 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 			{
 				if (arg1 == 1)
 					arg1 = 0;
-				if (setpgid(0, arg1) < 0 && arg1 && errno == EPERM)
+				if (setpgid(0, (int)arg1) < 0 && arg1 && errno == EPERM)
 					setpgid(0, 0);
 			}
 			break;
 		case PROC_sys_umask:
-			umask(arg1);
+			umask((mode_t)arg1);
 			break;
 		default:
 			return -1;
@@ -260,11 +260,11 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 #if F_dupfd_cloexec == F_DUPFD
 					fcntl(m->save, F_SETFD, FD_CLOEXEC);
 #endif /* F_dupfd_cloexec == F_DUPFD */
-					close(arg2);
+					ast_close(arg2);
 					if (fcntl(arg1, F_DUPFD, arg2) != arg2)
 						return -1;
 					if (op & PROC_FD_CHILD)
-						close(arg1);
+						ast_close(arg1);
 				}
 				else if (op & PROC_FD_CHILD)
 				{
@@ -336,21 +336,21 @@ restore(Proc_t* proc)
 		case PROC_fd_dup|PROC_FD_CHILD:
 		case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
 			if (m->op & PROC_FD_PARENT)
-				close(m->arg.fd.parent.fd);
+				ast_close(m->arg.fd.parent.fd);
 			if (m->arg.fd.child.fd != m->arg.fd.parent.fd && m->arg.fd.child.fd != PROC_ARG_NULL)
 			{
 				if (!(m->op & PROC_FD_PARENT))
 				{
 					if (m->op & PROC_FD_CHILD)
 					{
-						close(m->arg.fd.parent.fd);
+						ast_close(m->arg.fd.parent.fd);
 						fcntl(m->arg.fd.child.fd, F_DUPFD, m->arg.fd.parent.fd);
 					}
 					fcntl(m->arg.fd.parent.fd, F_SETFD, m->arg.fd.parent.flag);
 				}
-				close(m->arg.fd.child.fd);
+				ast_close(m->arg.fd.child.fd);
 				fcntl(m->save, F_DUPFD, m->arg.fd.child.fd);
-				close(m->save);
+				ast_close(m->save);
 				if (m->arg.fd.child.flag)
 					fcntl(m->arg.fd.child.fd, F_SETFD, FD_CLOEXEC);
 			}
@@ -535,8 +535,8 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 		{
 			if (!(proc->pid = fork()))
 			{
-				close(pop[0]);
-				close(pop[1]);
+				ast_close(pop[0]);
+				ast_close(pop[1]);
 			}
 			else
 			{
@@ -551,7 +551,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 		{
 			if (!fork())
 			{
-				sfsprintf(path, sizeof(path), "%d", getppid());
+				sfsprintf(path, sizeof(path), "%d", (int)getppid());
 				execlp("trace", "trace", "-p", path, NULL);
 				_exit(EXIT_NOTFOUND);
 			}
@@ -692,7 +692,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			if (!(flags & PROC_ARGMOD))
 			{
 				while (*p++);
-				if (!(v = newof(0, char*, p - argv + 2, 0)))
+				if (!(v = newof(0, char*, (size_t)(p - argv + 2), 0)))
 					goto cleanup;
 				p = v + 2;
 				if (*argv)
@@ -755,7 +755,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 				{
 				case PROC_fd_dup|PROC_FD_PARENT:
 				case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-					close(PROC_ARG(n, 1));
+					ast_close(PROC_ARG(n, 1));
 					break;
 				case PROC_sys_pgrp:
 					if (proc->pgrp < 0)
@@ -782,19 +782,19 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			{
 			case 0:
 				proc->wfd = pio[1];
-				close(pio[0]);
+				ast_close(pio[0]);
 				break;
 			default:
 #if _pipe_rw || _lib_socketpair
 				proc->wfd = pio[0];
 #else
 				proc->wfd = poi[1];
-				close(poi[0]);
+				ast_close(poi[0]);
 #endif /* _pipe_rw || _lib_socketpair */
 				/* FALLTHROUGH */
 			case 1:
 				proc->rfd = pio[0];
-				close(pio[1]);
+				ast_close(pio[1]);
 				break;
 			}
 			if (proc->rfd > 2)
@@ -809,7 +809,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			while (waitpid(proc->pid, &i, 0) == -1 && errno == EINTR);
 			if (read(pop[0], &proc->pid, sizeof(proc->pid)) != sizeof(proc->pid))
 				goto bad;
-			close(pop[0]);
+			ast_close(pop[0]);
 		}
 		return proc;
 	}
@@ -831,22 +831,22 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			case PROC_fd_dup|PROC_FD_CHILD:
 			case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
 				if (PROC_ARG(n, 2) != PROC_ARG_NULL)
-					close(PROC_ARG(n, 1));
+					ast_close(PROC_ARG(n, 1));
 				break;
 			}
 	if (pio[0] >= 0)
-		close(pio[0]);
+		ast_close(pio[0]);
 	if (pio[1] >= 0)
-		close(pio[1]);
+		ast_close(pio[1]);
 	if (pop[0] >= 0)
-		close(pop[0]);
+		ast_close(pop[0]);
 	if (pop[1] >= 0)
-		close(pop[1]);
+		ast_close(pop[1]);
 #if !_pipe_rw && !_lib_socketpair
 	if (poi[0] >= 0)
-		close(poi[0]);
+		ast_close(poi[0]);
 	if (poi[1] >= 0)
-		close(poi[1]);
+		ast_close(poi[1]);
 #endif /* !_pipe_rw && !_lib_socketpair */
 	procfree(proc);
 	return NULL;

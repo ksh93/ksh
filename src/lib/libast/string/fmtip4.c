@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -28,12 +29,12 @@ char*
 fmtip4(uint32_t addr, int bits)
 {
 	char*	buf;
-	int	z;
-	int	i;
+	size_t	z;
+	ssize_t	i;
 
 	buf = fmtbuf(z = 20);
 	i = sfsprintf(buf, z, "%d.%d.%d.%d", (addr>>24)&0xff, (addr>>16)&0xff, (addr>>8)&0xff, (addr)&0xff);
 	if (bits >= 0 && bits <= 32)
-		sfsprintf(buf + i, z - i, "/%d", bits);
+		sfsprintf(buf + i, z - (size_t)i, "/%d", bits);
 	return buf;
 }

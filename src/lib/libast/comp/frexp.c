@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -25,11 +26,7 @@
 
 #include "FEATURE/float"
 
-#if _lib_frexp && _lib_ldexp
-
-NoN(frexp)
-
-#else
+#if !(_lib_frexp && _lib_ldexp)
 
 #if defined(_ast_dbl_exp_index) && defined(_ast_dbl_exp_shift)
 
@@ -43,7 +40,7 @@ static double		pow2tab[DBL_MAX_EXP + 1];
 static int
 init(void)
 {
-	int		x;
+	size_t		x;
 	double		g;
 
 	g = 1;
@@ -146,4 +143,8 @@ ldexp(double f, int x)
 
 #endif
 
-#endif
+#else
+
+NoN(frexp)
+
+#endif /* !(_lib_frexp && _lib_ldexp) */

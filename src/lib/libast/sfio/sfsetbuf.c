@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -68,13 +68,13 @@ static int sfsetlinemode(void)
 					++astsfio;
 				for(endw = astsfio; *endw && !ISSEPAR(*endw); ++endw)
 					;
-				if((endw-astsfio) > (sizeof(sf_line)-1) &&
+				if((endw-astsfio) > ((ssize_t)sizeof(sf_line)-1) &&
 				   strncmp(astsfio,sf_line,sizeof(sf_line)-1) == 0)
 					modes |= SFIO_LINE;
-				else if((endw-astsfio) > (sizeof(sf_maxr)-1) &&
+				else if((endw-astsfio) > ((ssize_t)sizeof(sf_maxr)-1) &&
 				   strncmp(astsfio,sf_maxr,sizeof(sf_maxr)-1) == 0)
 					_Sfmaxr = (ssize_t)strtonll(astsfio+sizeof(sf_maxr)-1,NULL,NULL,0);
-				else if((endw-astsfio) > (sizeof(sf_wcwidth)-1) &&
+				else if((endw-astsfio) > ((ssize_t)sizeof(sf_wcwidth)-1) &&
 				   strncmp(astsfio,sf_wcwidth,sizeof(sf_wcwidth)-1) == 0)
 					modes |= SFIO_WCWIDTH;
 			}
@@ -89,13 +89,14 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 	       void*	buf,	/* new buffer */
 	       size_t	size)	/* buffer size, -1 for default size */
 {
-	int		sf_malloc, oflags, init, local;
+	int		oflags, init, local;
+	unsigned short	sf_malloc;
 	ssize_t		bufsize, blksz;
 	Sfdisc_t*	disc;
 	struct stat	st;
 	uchar*		obuf = NULL;
 	ssize_t		osize = 0;
-#ifdef MAP_TYPE
+#if _lib_mmap
 	int		okmmap;
 #endif
 
@@ -139,7 +140,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 			return NULL;
 
 		/* turn off the SFIO_SYNCED bit because buffer is changing */
-		f->mode &= ~SFIO_SYNCED;
+		f->mode &= (uint32_t)~SFIO_SYNCED;
 	}
 
 	SFLOCK(f,local);
@@ -163,7 +164,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 	bufsize = 0;
 	oflags = f->flags;
 
-#ifdef MAP_TYPE
+#if _lib_mmap
 	/* see if memory mapping is possible (see sfwrite for SFIO_BOTH) */
 	okmmap = (buf || (f->flags&SFIO_STRING) || (f->flags&SFIO_RDWR) == SFIO_RDWR) ? 0 : 1;
 
@@ -221,7 +222,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 			f->blksz = (size_t)st.st_blksize;
 #endif
 			bufsize = 64 * 1024;
-#ifdef MAP_TYPE
+#if _lib_mmap
 			if(S_ISDIR(st.st_mode) || (Sfoff_t)st.st_size < (Sfoff_t)SFIO_GRAIN)
 				okmmap = 0;
 #endif
@@ -229,7 +230,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 				f->here = SFSK(f,0,SEEK_CUR,f->disc);
 			else	f->here = -1;
 
-#ifdef MAP_TYPE
+#if _lib_mmap
 #if O_TEXT /* no memory mapping with O_TEXT because read()/write() alter data stream */
 			if(okmmap && f->here >= 0 &&
 			   (fcntl((int)f->file,F_GETFL,0) & O_TEXT) )
@@ -242,7 +243,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 		if(_Sfpage <= 0)
 		{
 #if _lib_getpagesize
-			if((_Sfpage = (size_t)getpagesize()) <= 0)
+			if((_Sfpage = (ssize_t)getpagesize()) <= 0)
 #endif
 				_Sfpage = SFIO_PAGE;
 		}
@@ -276,17 +277,20 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 						f->flags |= SFIO_LINE|SFIO_WCWIDTH;
 #if _sys_stat
 					else	/* special case /dev/null */
-					{	int	dev, ino;
-						static int null_checked, null_dev, null_ino;
-						dev = (int)st.st_dev;
-						ino = (int)st.st_ino;
+					{	dev_t		dev;
+						ino_t		ino;
+						static int	null_checked;
+						static dev_t	null_dev;
+						static ino_t	null_ino;
+						dev = st.st_dev;
+						ino = st.st_ino;
 						if(!null_checked)
 						{	if(stat(DEVNULL,&st) < 0)
 								null_checked = -1;
 							else
 							{	null_checked = 1;
-								null_dev = (int)st.st_dev;
-								null_ino = (int)st.st_ino;
+								null_dev = st.st_dev;
+								null_ino = st.st_ino;
 							}
 						}
 						if(null_checked >= 0 && dev == null_dev && ino == null_ino)
@@ -303,7 +307,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 		}
 	}
 
-#ifdef MAP_TYPE
+#if _lib_mmap
 	if(okmmap && size && (f->mode&SFIO_READ) && f->extent >= 0 )
 	{	/* see if we can try memory mapping */
 		if(!disc)
@@ -314,8 +318,8 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 		{	f->bits |= SFIO_MMAP;
 			if(size == (size_t)SFIO_UNBOUND)
 			{	if(bufsize > _Sfpage)
-					size = bufsize * SFIO_NMAP;
-				else	size = _Sfpage * SFIO_NMAP;
+					size = (size_t)bufsize * SFIO_NMAP;
+				else	size = (size_t)_Sfpage * SFIO_NMAP;
 				if(size > 256*1024)
 					size = 256*1024;
 			}
@@ -328,7 +332,7 @@ setbuf:
 	if(size == (size_t)SFIO_UNBOUND)
 	{	/* define a default size suitable for block transfer */
 		if(init && osize > 0)
-			size = osize;
+			size = (size_t)osize;
 		else if(f == sfstderr && (f->mode&SFIO_WRITE))
 			size = 0;
 		else if(f->flags&SFIO_STRING )
@@ -336,8 +340,8 @@ setbuf:
 		else if((f->flags&SFIO_READ) && !(f->bits&SFIO_BOTH) &&
 			f->extent > 0 && f->extent < (Sfoff_t)_Sfpage )
 			size = (((size_t)f->extent + SFIO_GRAIN-1)/SFIO_GRAIN)*SFIO_GRAIN;
-		else if((ssize_t)(size = _Sfpage) < bufsize)
-			size = bufsize;
+		else if((ssize_t)(size = (size_t)_Sfpage) < bufsize)
+			size = (size_t)bufsize;
 
 		buf = NULL;
 	}
@@ -369,13 +373,13 @@ setbuf:
 	}
 
 	/* set up new buffer */
-	f->size = size;
+	f->size = (ssize_t)size;
 	f->next = f->data = f->endr = f->endw = (uchar*)buf;
 	f->endb = buf ? ((f->mode&SFIO_READ) ? f->data : f->data+size) : NULL;
 	if(f->flags&SFIO_STRING)
 	{	/* these fields are used to test actual size - see sfseek() */
 		f->extent = (!sf_malloc &&
-			     ((f->flags&SFIO_READ) || (f->bits&SFIO_BOTH)) ) ? size : 0;
+			     ((f->flags&SFIO_READ) || (f->bits&SFIO_BOTH)) ) ? (Sflong_t)size : 0;
 		f->here = 0;
 
 		/* read+string stream should have all data available */
@@ -402,7 +406,7 @@ done:
 		blksz = SFIO_GRAIN;
 	while(blksz > f->size/2)
 		blksz /= 2;
-	f->blksz = blksz;
+	f->blksz = (size_t)blksz;
 
 	SFOPEN(f,local);
 

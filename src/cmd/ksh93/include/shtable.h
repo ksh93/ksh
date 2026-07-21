@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,6 +16,7 @@
 *                                                                      *
 ***********************************************************************/
 #ifndef _SHTABLE_H
+#define _SHTABLE_H
 
 /*
  * David Korn
@@ -25,25 +26,23 @@
  *
  */
 
-#define _SHTABLE_H	1
-
 typedef struct shtable1
 {
 	const char	*sh_name;
-	const unsigned	sh_number;
+	const uint32_t	sh_number;
 } Shtable_t;
 
 struct shtable2
 {
 	const char	*sh_name;
-	const unsigned	sh_number;
+	const uint32_t	sh_number;
 	const char	*sh_value;
 };
 
 struct shtable3
 {
 	const char	*sh_name;
-	const unsigned	sh_number;
+	const uint32_t	sh_number;
 	int		(*sh_value)(int, char*[], Shbltin_t*);
 };
 
@@ -60,4 +59,4 @@ extern const Shtable_t		*sh_locate(const char*, const Shtable_t*, int);
 extern int			sh_lookopt(const char*, int*);
 extern Dt_t			*sh_inittree(const struct shtable2*);
 
-#endif /* _SHTABLE_H */
+#endif /* !_SHTABLE_H */

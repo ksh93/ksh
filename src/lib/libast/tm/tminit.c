@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -32,16 +32,11 @@
 #include "FEATURE/tmlib"
 
 #ifndef tzname
-#	if defined(__DYNAMIC__)
-#		undef	_dat_tzname
-#		define	tzname		__DYNAMIC__(tzname)
-#	else
-#		if !_dat_tzname
-#			if _dat__tzname
-#				undef	_dat_tzname
-#				define _dat_tzname	1
-#				define tzname		_tzname
-#			endif
+#	if !_dat_tzname
+#		if _dat__tzname
+#			undef	_dat_tzname
+#			define _dat_tzname	1
+#			define tzname		_tzname
 #		endif
 #	endif
 #	if _dat_tzname && !defined(tzname)
@@ -173,7 +168,7 @@ tmopt(void* a, const void* p, int n, const char* v)
 		switch (((Namval_t*)p)->value)
 		{
 		case TM_DEFAULT:
-			tm_info.deformat = (n && (n = strlen(v)) > 0 && (n < 2 || v[n-2] != '%' || v[n-1] != '?')) ? strdup(v) : tm_info.format[TM_DEFAULT];
+			tm_info.deformat = (n && (n = (int)strlen(v)) > 0 && (n < 2 || v[n-2] != '%' || v[n-1] != '?')) ? strdup(v) : tm_info.format[TM_DEFAULT];
 			break;
 		case TM_type:
 			tm_info.local->type = (n && *v) ? ((zp = tmtype(v, NULL)) ? zp->type : strdup(v)) : 0;
@@ -208,9 +203,6 @@ tmlocal(time_t now)
 
 	static Tm_zone_t	local;
 
-	local.standard = 0;
-	local.daylight = 0;
-
 #if _tzset_environ
 	{
 		char**	v = environ;
@@ -225,10 +217,7 @@ tmlocal(time_t now)
 			environ[0] = TZ;
 		}
 		else
-		{
 			TZ[0] = 0;
-			e = 0;
-		}
 #endif
 #if _lib_tzset
 		tzset();
@@ -269,13 +258,23 @@ tmlocal(time_t now)
 			break;
 		}
 	}
-	local.west = n;
-	local.dst = m;
+	local.west = (short)n;
+	local.dst = (short)m;
 
 	/*
 	 * now get the time zone names
 	 */
 
+	if (local.standard)
+	{
+		free(local.standard);
+		local.standard = NULL;
+	}
+	if (local.daylight)
+	{
+		free(local.daylight);
+		local.daylight = NULL;
+	}
 	if (tz_abbr)
 	{
 		if (!isdst)
@@ -297,21 +296,19 @@ tmlocal(time_t now)
 	}
 	else
 #endif
-	if ((s = getenv("TZNAME")) && *s && (s = strdup(s)))
+	if ((s = getenv("TZNAME")) && *s)
 	{
 		/*
 		 * BSD
 		 */
 
+		s = strdup(s);
 		if (!local.standard)
 			local.standard = s;
-		if (!local.daylight)
+		if (!local.daylight && s && (s = strchr(s, ',')))
 		{
-			if (s = strchr(s, ','))
-				*s++ = 0;
-			else
-				s = "";
-			local.daylight = s;
+			*s++ = 0;
+			local.daylight = strdup(s);
 		}
 	}
 	else
@@ -329,20 +326,20 @@ tmlocal(time_t now)
 			{
 				local.type = t;
 				if (!local.standard)
-					local.standard = zp->standard;
+					local.standard = strdup(zp->standard);
 				if (!(s = zp->daylight))
 				{
 					e = (s = buf) + sizeof(buf);
-					s = tmpoff(s, e - s, zp->standard, 0, 0);
+					s = tmpoff(s, (size_t)(e - s), zp->standard, 0, 0);
 					if (s < e - 1)
 					{
 						*s++ = ' ';
-						tmpoff(s, e - s, tm_info.format[TM_DT], m, TM_DST);
+						tmpoff(s, (size_t)(e - s), tm_info.format[TM_DT], m, TM_DST);
 					}
-					s = strdup(buf);
+					s = buf;
 				}
 				if (!local.daylight)
-					local.daylight = s;
+					local.daylight = strdup(s);
 				break;
 			}
 		}
@@ -353,19 +350,19 @@ tmlocal(time_t now)
 			 */
 
 			e = (s = buf) + sizeof(buf);
-			s = tmpoff(s, e - s, tm_info.format[TM_UT], n, 0);
+			s = tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], n, 0);
 			if (!local.standard)
 				local.standard = strdup(buf);
 			if (s < e - 1)
 			{
 				*s++ = ' ';
-				tmpoff(s, e - s, tm_info.format[TM_UT], m, TM_DST);
+				tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], m, TM_DST);
 				if (!local.daylight)
 					local.daylight = strdup(buf);
 			}
 		}
 	}
-	if (!*local.standard && !local.west && !local.dst && (s = getenv("TZ")))
+	if (!local.standard && !local.west && !local.dst && (s = getenv("TZ")))
 	{
 		if ((zp = tmzone(s, &t, NULL, NULL)) && !*t)
 		{
@@ -377,10 +374,6 @@ tmlocal(time_t now)
 		}
 		else
 			local.standard = strdup(s);
-		if (!local.standard)
-			local.standard = "";
-		if (!local.daylight)
-			local.daylight = "";
 	}
 
 	/*
@@ -393,7 +386,7 @@ tmlocal(time_t now)
 	 * the time zone type is probably related to the locale
 	 */
 
-	if (!local.type)
+	if (!local.type && local.standard)
 	{
 		s = local.standard;
 		t = 0;
@@ -420,7 +413,7 @@ tmlocal(time_t now)
 		if (tp->tm_sec != 60)
 			tm_info.flags |= TM_ADJUST;
 	}
-	if (!(tm_info.flags & TM_UTC))
+	if (!(tm_info.flags & TM_UTC) && local.standard)
 	{
 		s = local.standard;
 		zp = tm_data.zone;
@@ -442,7 +435,7 @@ tmlocal(time_t now)
 void
 tminit(Tm_zone_t* zp, time_t now, const char newzone)
 {
-	static uint32_t		serial = ~(uint32_t)0;
+	static uint64_t		serial = ~(uint64_t)0;
 
 	if(tz_abbr)
 		free(tz_abbr);
@@ -452,6 +445,10 @@ tminit(Tm_zone_t* zp, time_t now, const char newzone)
 		serial = ast.env_serial;
 		if (tm_info.local)
 		{
+			if (tm_info.local->standard)
+				free(tm_info.local->standard);
+			if (tm_info.local->daylight)
+				free(tm_info.local->daylight);
 			memset(tm_info.local, 0, sizeof(*tm_info.local));
 			tm_info.local = 0;
 		}

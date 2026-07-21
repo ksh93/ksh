@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -16,7 +16,8 @@
 *                                                                      *
 ***********************************************************************/
 #ifndef _ULIMIT_H
-#define _ULIMIT_H 1
+#define _ULIMIT_H
+
 /*
  * This is for the ulimit built-in command
  */
@@ -165,6 +166,10 @@
 #define LIM_SECOND	4
 #define LIM_MICROSECOND	5
 
+#if _lib_getrlimit && !_typ___rlimit_resource_t
+    typedef int __rlimit_resource_t;  /* workaround for glibc's nonstandard rlimit type */
+#endif
+
 typedef struct Limit_s
 {
 	const char*	name;
@@ -181,4 +186,4 @@ extern const int	shtab_units[];
 extern const char	e_unlimited[];
 extern const char*	e_units[];
 
-#endif /* _ULIMIT_H */
+#endif /* !_ULIMIT_H */

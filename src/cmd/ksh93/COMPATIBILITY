@@ -30,6 +30,11 @@ For more details, see the NEWS file and for complete details, see the git log.
 	the discipline function was set for. This means '_' now always
 	refers to the type variable when used in a type declaration.
 
+6.	We've removed an undocumented and inconsistent hack that made
+		ksh somecommand arg1 arg2 arg3
+	equivalent to
+		ksh -c 'somecommand "$@"' dummy arg1 arg2 arg3
+	if, and only if, the command "somecommand" was not found on $PATH.
 
 ____________________________________________________________________________
 
@@ -70,7 +75,6 @@ For more details, see the NEWS file and for complete details, see the git log.
 	   message instead of terminating the shell.
 	-  'suspend' now refuses to suspend a login shell, as there is probably
 	   no parent shell to return to and the login session would freeze.
-	   If you really want to suspend a login shell, use 'kill -s STOP $$'.
 	-  'times' now gives high precision output in a POSIX compliant format.
 
 6.	'command' and 'nohup' no longer expand aliases in their first argument,
@@ -246,6 +250,10 @@ For more details, see the NEWS file and for complete details, see the git log.
 	locale on Linux/BSD/macOS is el_GR.ISO8859-7, echo $'\u03B1' now
 	outputs a Greek lower-case alpha encoded in ISO8859-7 ($'\xE1').
 	(Post-1.0 fix introduced in ksh 93u+m/1.0.11)
+
+39.	For scripts read from a pipe or other non-seekable input, there is
+	now a maximum line length of 2 MiB. (Post-1.0 change introduced in
+	ksh 93u+m/1.0.11, necessary to fix buffer overflows in the parser)
 
 ____________________________________________________________________________
 

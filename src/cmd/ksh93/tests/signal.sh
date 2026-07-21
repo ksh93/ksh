@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -192,7 +192,7 @@
 
 	# end standalone test generation
 
-	PATH=:$PATH
+	PATH=.:$PATH
 	tst "$SHELL" > SIGINT_tst.out
 
 	typeset -A exp
@@ -394,17 +394,10 @@ yes() for ((;;)); do print y; done
 		fi
 	done
 
-# The test for SIGBUS trap handling below is incompatible with ASan because ASan
-# implements its own SIGBUS handler independently of ksh.
+# The test for SIGBUS trap handling below is incompatible with ASan or UBSan
+# because these implement their own SIGBUS handler independently of ksh.
 # Also, Android does not allow ignoring SIGBUS.
-check_asan() {
-	# Skip test when the binary was compiled with ASAN or is gathering profiling data
-	[[ -v ASAN_OPTIONS || -v TSAN_OPTIONS || -v MSAN_OPTIONS || -v LSAN_OPTIONS ]] && return 0
-	! whence -q readelf && return 1
-	[[ -n $(readelf -s "$SHELL" | grep -E "_asan_") ]] && return 0
-	return 1
-}
-if ! check_asan && ! [[ $HOSTTYPE == android.* ]]; then
+if ! ((SHELL_ASAN || SHELL_UBSAN)) && ! [[ $HOSTTYPE == android.* ]]; then
 	trap '' SIGBUS
 	got=$("$SHELL" -c 'trap date SIGBUS; trap -p SIGBUS')
 	[[ "$got" ]] && err_exit 'SIGBUS should not have a trap' \
@@ -513,10 +506,10 @@ echo begin
 "$1" -c 'kill -9 "$$"'
 # this extra comment disables an exec optimization
 EOF
-expect=$'^begin\n/.*/sigtest.sh: line 2: [1-9][0-9]*: Killed\n[1-9][0-9]{1,2}$'
+expect=$'^begin\n/.*/sigtest.sh: line 2: [1-9][0-9]*: (Killed|Kill Thread)\n[1-9][0-9]{1,2}$'
 actual=$(export LANG=C; "$SHELL" -c '"$1" "$2" "$1"; echo "$?"' x "$SHELL" "$tmp/sigtest.sh" 2>&1)
 if	! [[ $actual =~ $expect ]]
-then	[[ $actual == *Killed*Killed* ]] && msg='ksh killed itself' || msg='unexpected output'
+then	[[ $actual == *Kill*Kill* ]] && msg='ksh killed itself' || msg='unexpected output'
 	err_exit "$msg after child process signal (expected match to $(printf %q "$expect"); got $(printf %q "$actual"))"
 fi
 let "${actual##*$'\n'} > 128" || err_exit "child process signal did not cause exit status > 128" \
@@ -631,18 +624,10 @@ do	for cmd in kill $(whence -p kill)
 	done
 done
 
-# ======
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
-
-wait "$parallel_1"
-r=$(< parallel_1.err) || exit 125
-eval "$r"
-
+wait "$parallel_1"; r=$(< parallel_1.err) || exit 125; eval "$r"
 wait "$parallel_2" || err_exit "'trap - INT' causing trap to not be ignored"
+wait "$parallel_3"; r=$(< parallel_3.err) || exit 125; eval "$r"
 
-wait "$parallel_3"
-r=$(< parallel_3.err) || exit 125
-eval "$r"
-
-# ======
 exit $((Errors<125?Errors:125))

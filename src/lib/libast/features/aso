@@ -8,7 +8,7 @@ if	aso note{ gcc 4.1+ 64 bit memory atomic operations model }end link{
 			uint32_t j = 0;
 			uint16_t l = 0;
 			uint8_t  m = 0;
-			return __sync_fetch_and_add(&i,7)+__sync_fetch_and_add(&j,7)+__sync_fetch_and_add(&l,7)+__sync_fetch_and_add(&m,7);
+			return (int)(__sync_fetch_and_add(&i,7)+__sync_fetch_and_add(&j,7)+__sync_fetch_and_add(&l,7)+__sync_fetch_and_add(&m,7));
 		}
 	}end && {
 		#define _aso_cas8(p,o,n)	__sync_val_compare_and_swap(p,o,n)

@@ -11,6 +11,8 @@ lib	openpty,_getpty,ptsname -lutil
 lib	grantpt,unlockpt,posix_openpt stdlib.h
 lib	cfmakeraw termios.h
 
+typ	useconds_t = uint32_t
+
 tst output{
 	#include	<fcntl.h>
 	#if _lib_ptsname
@@ -22,7 +24,7 @@ tst output{
 	#include	<sfio.h>
 	int main(void)
 	{
-		int		i;
+		size_t		i;
 		struct stat	statb;
 		static char*	pty[] = { "/dev/ptyp0000", "/dev/ptym/ptyp0", "/dev/ptyp0" };
 	#if _lib_ptsname

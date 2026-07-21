@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,7 +23,7 @@
  *
  */
 
-#include	"shopt.h"
+#include	"FEATURE/options"
 #include	"defs.h"
 #include	<error.h>
 #include	<tmx.h>
@@ -42,7 +42,7 @@ struct	tevent
 	Namval_t	*node;
 	Namval_t	*action;
 	struct tevent	*next;
-	long		milli;
+	Sflong_t	milli;
 	int		flags;
 	void            *timeout;
 };
@@ -70,7 +70,7 @@ static void *time_add(struct tevent *item, void *list)
 		tp->next = item;
 	}
 	tp = item;
-	tp->timeout = sh_timeradd(tp->milli,tp->flags&R_FLAG,trap_timeout,tp);
+	tp->timeout = sh_timeradd((Sfulong_t)tp->milli,tp->flags&R_FLAG,trap_timeout,tp);
 	return list;
 }
 
@@ -111,13 +111,13 @@ static void	print_alarms(void *list)
 			char *name = nv_name(tp->node);
 			if(tp->flags&R_FLAG)
 			{
-				double d = tp->milli;
+				Sfdouble_t d = tp->milli;
 				sfprintf(sfstdout,e_alrm1,name,d/1000.);
 			}
 			else
 			{
-				Time_t num = nv_getnum(tp->node), now = getnow();
-				sfprintf(sfstdout,e_alrm2,name,(double)(num - now));
+				Sfdouble_t d = tp->milli;
+				sfprintf(sfstdout,e_alrm2,name,d/1000.);
 			}
 		}
 		tp = tp->next;
@@ -226,7 +226,7 @@ static char *setdisc(Namval_t *np, const char *event, Namval_t* action, Namfun_t
 /*
  * catch assignments and set alarm traps
  */
-static void putval(Namval_t* np, const char* val, int flag, Namfun_t* fp)
+static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 {
 	struct tevent	*tp = (struct tevent*)fp;
 	double		d, x;
@@ -295,9 +295,7 @@ int	b_alarm(int argc,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
 	    case '?':
-		/* self-doc: write to standard output */
-		error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-		return 0;
+		return optselfdoc();
 	}
 	argc -= opt_info.index;
 	argv += opt_info.index;

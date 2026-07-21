@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -79,7 +79,7 @@ static State_t	state =
 	{	offsetof(Catalog_t, name),	0,	0	},
 };
 
-static int
+static ptrdiff_t
 tempget(Sfio_t* sp)
 {
 	if (sfstrtell(sp) > sfstrsize(sp) / 2)
@@ -88,7 +88,7 @@ tempget(Sfio_t* sp)
 }
 
 static char*
-tempuse(Sfio_t* sp, int off)
+tempuse(Sfio_t* sp, ptrdiff_t off)
 {
 	sfputc(sp, 0);
 	return sfstrbase(sp) + off;
@@ -293,12 +293,12 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 {
 	char*		r;
 	char*		t;
-	int		p;
+	ptrdiff_t	p;
 	int		oerrno;
 	Catalog_t*	cp = NULL;
 	Message_t*	mp;
 
-	static uint32_t	serial;
+	static uint64_t	serial = ~(uint64_t)0;
 	static char*	nlspath;
 
 	oerrno = errno;
@@ -310,7 +310,7 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 
 	if (!cmd && !cat)
 		goto done;
-	if (cmd && (t = strrchr(cmd, '/')))
+	if (cmd && (t = (char*)strrchr(cmd, '/')))
 		cmd = (const char*)(t + 1);
 
 	/*

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -491,7 +491,7 @@ $SHELL $f > $g
 [[ $(grep meep $g | grep -v foobar) != '' ]] && err_exit 'here-doc losing $var expansions on boundaries in rare cases'
 
 print foo > $tmp/foofile
-x=$( $SHELL 2> /dev/null 'read <<< $(<'"$tmp"'/foofile) 2> /dev/null;print -r "$REPLY"')
+x=$( $SHELL 2> /dev/null -c 'read <<< $(<'"$tmp"'/foofile) 2> /dev/null;print -r "$REPLY"')
 [[ $x == foo ]] || err_exit '<<< $(<file) not working'
 
 # ======
@@ -600,6 +600,23 @@ exp=$'startONE TWO THREEend\nstartONE/TWO/THREEend'
 [[ $got == "$exp" ]] || err_exit '$@ and $* in here-document' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# ======
+# Attempt to free unallocated I/O node in here_copy() when an unterminated
+# command substitution follows a here-document redirection. Fixed 2026-07-18.
+exp='*syntax error*'
+got=$( { "$SHELL" -c $'cat <<EOF $(\n'; } 2>&1)
+[[ e=$? -eq 3 && $got == $exp ]] || err_exit "here-document redirection followed by unterminated command substitution" \
+	"(expected status 3 and match of $exp, got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
+
+# ======
+# a test from modernish
+CCn=$'\n' CCt=$'\t' IFS=
+eval 'got=$(cat <<-\EOT'$CCn$CCt'abc \'$CCn$CCt'def \\'$CCn$CCt'ghi' \
+	'\\\'$CCn$CCt'jkl \\\\'$CCn$CCt'end'$CCn$CCt'EOT'$CCn$CCt')'
+IFS=$' \t\n'
+exp=$'abc \\\ndef \\\\\nghi \\\\\\\njkl \\\\\\\\\nend'
+[[ $got == "$exp" ]] || err_exit "backslash in nonexpanding here-document" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

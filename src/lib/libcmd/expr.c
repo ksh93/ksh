@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -183,9 +183,10 @@ static int getnode(State_t* state, Node_t *np)
 {
 	char*	sp;
 	char*	cp;
-	int	i;
-	int	j;
-	int	k;
+	ssize_t	i;
+	ssize_t	j;
+	ssize_t	k;
+	size_t	l;
 	int	tok;
 	char*	ep;
 
@@ -223,7 +224,7 @@ static int getnode(State_t* state, Node_t *np)
 					error(ERROR_exit(2), "string argument expected");
 					UNREACHABLE();
 				}
-				np->num = strlen(cp);
+				np->num = (long)strlen(cp);
 				np->type = T_NUM;
 				goto next;
 			}
@@ -260,7 +261,7 @@ static int getnode(State_t* state, Node_t *np)
 					error(ERROR_exit(2), "position argument expected");
 					UNREACHABLE();
 				}
-				i = strtol(cp, &ep, 10);
+				i = (ssize_t)strtol(cp, &ep, 10);
 				if (*ep || --i < 0)
 					i = -1;
 				if (!(cp = *state->arglist++))
@@ -268,10 +269,10 @@ static int getnode(State_t* state, Node_t *np)
 					error(ERROR_exit(2), "length argument expected");
 					UNREACHABLE();
 				}
-				j = strtol(cp, &ep, 10);
+				j = (ssize_t)strtol(cp, &ep, 10);
 				if (*ep)
 					j = -1;
-				k = strlen(sp);
+				k = (ssize_t)strlen(sp);
 				if (i < 0 || i >= k || j < 0)
 					sp = "";
 				else
@@ -311,9 +312,9 @@ static int getnode(State_t* state, Node_t *np)
 	if (!(cp = *state->arglist))
 		return 0;
 	state->arglist++;
-	for (i=0; i < sizeof(optable)/sizeof(*optable); i++)
-		if (*cp==optable[i].opname[0] && cp[1]==optable[i].opname[1])
-			return optable[i].op;
+	for (l=0; l < sizeof(optable)/sizeof(*optable); l++)
+		if (*cp==optable[l].opname[0] && cp[1]==optable[l].opname[1])
+			return optable[l].op;
 	error(ERROR_exit(2),"%s: unknown operator argument",cp);
 	UNREACHABLE();
 }
@@ -457,16 +458,16 @@ static int expr_cmp(State_t* state, Node_t *np)
 			np->num = streq(left,right);
 			break;
 		    case 1:
-			np->num = (strcoll(left,right)>0);
+			np->num = ast.locale.collate(left,right) > 0;
 			break;
 		    case 2:
-			np->num = (strcoll(left,right)<0);
+			np->num = ast.locale.collate(left,right) < 0;
 			break;
 		    case 3:
-			np->num = (strcoll(left,right)>=0);
+			np->num = ast.locale.collate(left,right) >= 0;
 			break;
 		    case 4:
-			np->num = (strcoll(left,right)<=0);
+			np->num = ast.locale.collate(left,right) <= 0;
 			break;
 		    case 5:
 			np->num = !streq(left,right);
@@ -543,11 +544,7 @@ b_expr(int argc, char** argv, Shbltin_t* context)
 		 *	 unknown - options
 		 */
 		if(n=='?')
-		{
-			/* self-doc: write to standard output */
-			error(ERROR_USAGE|ERROR_OUTPUT, STDOUT_FILENO, "%s", opt_info.arg);
-			return 0;
-		}
+			return optselfdoc();
 		if (opt_info.option[1] != '?')
 			break;
 		error(ERROR_usage(2), "%s", opt_info.arg);

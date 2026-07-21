@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2014 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -35,7 +35,7 @@
 
 typedef struct
 {
-	int32_t		nsec;
+	uint32_t	nsec;
 	int		year;
 	int		mon;
 	int		week;
@@ -306,7 +306,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 				continue;
 			case 'N':
 				NUMBER(9, 0, 999999999L);
-				set.nsec = n;
+				set.nsec = (uint32_t)n;
 				continue;
 			case 'p':
 				if ((n = tmlex(s, &u, tm_info.format + TM_MERIDIAN, TM_UT - TM_MERIDIAN, NULL, 0)) < 0)
@@ -478,19 +478,19 @@ tmxscan(const char* s, char** e, const char* format, char** f, Time_t t, long fl
 		if (!initialized)
 		{
 			Sfio_t*	sp;
-			int		n;
-			off_t			m;
+			size_t		n;
+			off_t		m;
 
 			initialized = 1;
 			if ((v = getenv("DATEMSK")) && *v && (sp = sfopen(NULL, v, "r")))
 			{
 				for (n = 1; sfgetr(sp, '\n', 0); n++);
 				m = sfseek(sp, 0L, SEEK_CUR);
-				if (p = newof(0, char*, n, m))
+				if (p = newof(0, char*, n, (size_t)m))
 				{
 					sfseek(sp, 0L, SEEK_SET);
 					v = (char*)(p + n);
-					if (sfread(sp, v, m) != m)
+					if (sfread(sp, v, (size_t)m) != m)
 					{
 						free(p);
 						p = 0;

@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -419,7 +419,7 @@ wait $pid1
 (( $? == 1 )) || err_exit "wait not saving exit value"
 wait $pid2
 (( $? == 127 )) || err_exit "subshell job known to parent"
-env='LD_LIBRARY_PATH=$LD_LIBRARY_PATH LIBPATH=$LIBPATH SHLIB_PATH=$SHLIB_PATH DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH'
+env='LD_LIBRARY_PATH=$LD_LIBRARY_PATH LIBPATH=$LIBPATH SHLIB_PATH=$SHLIB_PATH DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH LIBRARY_PATH=$LIBRARY_PATH'
 if builtin getconf 2> /dev/null; then
 	v=$(getconf LIBPATH)
 	for v in ${v//,/ }
@@ -599,7 +599,7 @@ if ((!SHOPT_ECHOPRINT)) && builtin getconf 2> /dev/null; then
 	[[ $($SHELL -c 'echo -3') == -3 ]] || err_exit "echo -3 not working in ucb universe"
 fi
 $SHELL -c 'sleep $(printf "%a" .95)' 2> /dev/null || err_exit "sleep doesn't accept %a format constants"
-[[ $(ulimit) == "$(ulimit -fS)" ]] || err_exit 'ulimit is not the same as ulimit -fS'
+[[ $(ulimit 2>/dev/null) == "$(ulimit -fS 2>/dev/null)" ]] || err_exit 'ulimit is not the same as ulimit -fS'
 tmpfile=$tmp/file.2
 print $'\nprint -r -- "${.sh.file} ${LINENO} ${.sh.lineno}"' > $tmpfile
 [[ $( . "$tmpfile") == "$tmpfile 2 1" ]] || err_exit 'dot command not working'
@@ -621,8 +621,10 @@ done
 n=$(printf "%b" 'a\0b\0c' | wc -c)
 (( n == 5 )) || err_exit '\0 not working with %b format with printf'
 
-t=$(ulimit -t)
-[[ $($SHELL -c 'ulimit -v 15000 2>/dev/null; ulimit -t') == "$t" ]] || err_exit 'ulimit -v changes ulimit -t'
+if	t=$(ulimit -t 2>/dev/null)
+then	[[ $($SHELL -c 'ulimit -v 15000 2>/dev/null; ulimit -t') == "$t" ]] || err_exit 'ulimit -v changes ulimit -t'
+else	warning "can't query ulimit; skipping test for ulimit -v changing ulimit -t"
+fi
 
 $SHELL 2> /dev/null -c 'cd ""' && err_exit 'cd "" not producing an error'
 [[ $($SHELL 2> /dev/null -c 'cd "";print hi') != hi ]] && err_exit 'cd "" should not terminate script'
@@ -1032,10 +1034,19 @@ unset foo
 
 # ======
 # Test the output of nonstandard date formats with 'printf %T'
-[[ $(printf '%(%l)T') == $(printf '%(%_I)T') ]] || err_exit 'date format %l is not the same as %_I'
-[[ $(printf '%(%k)T') == $(printf '%(%_H)T') ]] || err_exit 'date format %k is not the same as %_H'
-[[ $(printf '%(%f)T') == $(printf '%(%Y.%m.%d-%H:%M:%S)T') ]] || err_exit 'date format %f is not the same as %Y.%m.%d-%H:%M:%S'
-[[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] && err_exit 'date format %q is the same as %Qz'
+# Try each test up to twice in case we cross second/hour/day boundaries between the two printf invocations
+for i in 0 1
+do	[[ $(printf '%(%l)T') == $(printf '%(%_I)T') ]] && break
+done || err_exit 'date format %l is not the same as %_I'
+for i in 0 1
+do	[[ $(printf '%(%k)T') == $(printf '%(%_H)T') ]] && break
+done || err_exit 'date format %k is not the same as %_H'
+for i in 0 1
+do	[[ $(printf '%(%f)T') == $(printf '%(%Y.%m.%d-%H:%M:%S)T') ]] && break
+done || err_exit 'date format %f is not the same as %Y.%m.%d-%H:%M:%S'
+for i in 0 1
+do	[[ $(printf '%(%q)T') == $(printf '%(%Qz)T') ]] || ! break
+done && err_exit 'date format %q is the same as %Qz'
 [[ $(printf '%(%Z)T') == $(date '+%Z') ]] || err_exit "date format %Z is incorrect (expected $(date '+%Z'), got $(printf '%(%Z)T'))"
 
 # Test manually specified blank and zero padding with 'printf %T'
@@ -1267,6 +1278,12 @@ then	got=$( { "$SHELL" -c '
 	'; } 2>&1)
 	((!(e = $?))) || err_exit 'crash with alarm and IFS' \
 		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
+
+	# alarm output should print the full floating point number
+	exp=$'alarm bar +2.200\nalarm -r foo +100.123'
+	got=$( "$SHELL" -c 'alarm -r foo 100.123; alarm bar 2.2; alarm' )
+	[[ $exp == $got ]] || err_exit "alarm output fumbles floating point numbers" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi
 
 # ======
@@ -1292,7 +1309,7 @@ done
 exp='good'
 got=$($SHELL -c 't=good; t=bad command -@; print $t' 2>/dev/null)
 [[ $exp == $got ]] || err_exit "temp var assignment with 'command'" \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # In ksh93v- 2013-10-10 alpha cd doesn't fail on directories without execute permission.
@@ -1449,32 +1466,33 @@ got=$(	readonly v=foo
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
-if((!SHOPT_SCRIPTONLY));then
-
 # https://github.com/att/ast/issues/872
-hist_leak=$tmp/hist_leak.sh
-print 'ulimit -n 15' > "$hist_leak"
-for ((i=0; i!=11; i++)) do
-	print 'true foo\nhist -s foo=bar 2> /dev/null' >> "$hist_leak"
-done
-print 'print OK' >> "$hist_leak"
-exp="OK"
-got="$($SHELL -i "$hist_leak" 2>&1)"
-[[ $exp == "$got" ]] || err_exit "file descriptor leak in hist builtin" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+if	((!SHOPT_SCRIPTONLY))
+then	if	(ulimit -n 15) 2>/dev/null
+	then	hist_leak=$tmp/hist_leak.sh
+		print 'ulimit -n 15' > "$hist_leak"
+		for ((i=0; i!=11; i++)) do
+			print 'true foo\nhist -s foo=bar 2> /dev/null' >> "$hist_leak"
+		done
+		print 'print OK' >> "$hist_leak"
+		exp="OK"
+		got="$($SHELL -i "$hist_leak" 2>&1)"
+		[[ $exp == "$got" ]] || err_exit "file descriptor leak in hist builtin" \
+			"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# File descriptor leak after hist builtin substitution error
-hist_error_leak=$tmp/hist_error_leak.sh
-print 'ulimit -n 15' > "$hist_error_leak"
-for ((i=0; i!=11; i++)) do
-	print 'hist -s no=yes 2> /dev/null' >> "$hist_error_leak"
-done
-print 'print OK' >> "$hist_error_leak"
-exp="OK"
-got="$($SHELL -i "$hist_error_leak" 2>&1)"
-[[ $exp == "$got" ]] || err_exit "file descriptor leak after substitution error in hist builtin" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-
+		# File descriptor leak after hist builtin substitution error
+		hist_error_leak=$tmp/hist_error_leak.sh
+		print 'ulimit -n 15' > "$hist_error_leak"
+		for ((i=0; i!=11; i++)) do
+			print 'hist -s no=yes 2> /dev/null' >> "$hist_error_leak"
+		done
+		print 'print OK' >> "$hist_error_leak"
+		exp="OK"
+		got="$($SHELL -i "$hist_error_leak" 2>&1)"
+		[[ $exp == "$got" ]] || err_exit "file descriptor leak after substitution error in hist builtin" \
+			"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	else	warning "can't set ulimit; skipping tests for file descriptor leaks in hist builtin"
+	fi
 fi # !SHOPT_SCRIPTONLY
 
 # ======
@@ -1576,16 +1594,6 @@ print ". $tmp/evalbug" > "$tmp/envfile"
 [[ $(ENV=$tmp/envfile "$SHELL" -i -c : 2> /dev/null) == ok ]] || err_exit 'eval inside dot script called from profile file not working'
 fi # !SHOPT_SCRIPTONLY
 
-# Backported ksh93v- 2013-03-18 test for 'read -A', where
-# IFS sets the delimiter to a newline while -d specifies
-# no delimiter (-d takes priority over IFS).
-if ((SHOPT_BRACEPAT)); then
-	got=$(printf %s\\n {a..f} | IFS=$'\n' read -rd '' -A a; typeset -p a)
-	exp=$'typeset -a a=($\'a\\nb\\nc\\nd\\ne\\nf\\n\')'
-	[[ $got == "$exp" ]] || err_exit "IFS overrides the delimiter specified by the read command's -d option" \
-		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-fi
-
 # The read builtin's -a and -A flags should function identically
 read_a_test=$tmp/read_a_test.sh
 cat > "$read_a_test" << 'EOF'
@@ -1643,6 +1651,17 @@ do	case $bltin in
 	got=$(set +x; { "$bltin" --version; } 2>&1)  # the extra { } are needed for 'redirect'
 	[[ $got == "  version  "* ]] || err_exit "$bltin does not support --version (got $(printf %q "$got"))"
 done 3< <(builtin)
+
+# ======
+# builtin -p must produce an error if the given builtin doesn't exist
+# https://github.com/ksh93/ksh/pull/856#issuecomment-2923384587
+exp='builtin: not: not found
+builtin: a: not found
+builtin: built-in: not found
+builtin type'
+got=$(set +x; redirect 2>&1; builtin -p not a built-in type)
+[[ $exp == $got ]] || err_exit "builtin -p doesn\'t function correctly when given arguments" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 # https://github.com/ksh-community/ksh/issues/19
@@ -1756,7 +1775,54 @@ exp='%'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 fi # SHOPT_MULTIBYTE
 
-# ====== MUST BE AT END ======
+# ======
+# read(1): IFS field splitting bugs when given a null delimiter (-d '')
+# https://github.com/ksh93/ksh/issues/926
+unset v1 v2 L
+IFS=$'\n' read -d '' v1 v2 <<< $'a\nb'
+got="<$v1> <$v2>"
+exp="<a> <b>"
+[[ $got == "$exp" ]] || err_exit "issue 926 r1 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+IFS='' read -d '' v1 v2 <<< $'a\nb'
+got="<$v1> <$v2>"
+exp=$'<a\nb\n> <>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r2 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\0two\0three\0' | while read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'<one>\n<two>\n<three>\nend: <>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r3 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\0two\0three\0' | while IFS= read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'<one>\n<two>\n<three>\nend: <>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r4 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\ntwo\nthree\n' | while read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'end: <one\ntwo\nthree>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r5 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf 'one\ntwo\nthree\n' | while IFS= read -r -d "" L; do printf "<%s>\\n" "$L"; done; printf "end: <%s>\\n" "$L")
+exp=$'end: <one\ntwo\nthree\n>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r6 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf "one\ntwo\nthXree\nX" | while IFS=X read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nthXree\nX>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r7 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf "one\ntwo\nth ree\n " | while IFS=' ' read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nth ree\n>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r8 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nthree>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r9 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(unset IFS; printf "one\ntwo\nthree\n" | while read -r -d "" L; do printf "<%s>\n" "$L"; done; printf "end: <%s>\n" "$L")
+exp=$'end: <one\ntwo\nthree>'
+[[ $got == "$exp" ]] || err_exit "issue 926 r10 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
+(( (e = $?) <= 128 )) || err_exit "crash passing multibyte character option" \
+	"(got exit status $e/SIG$(kill -l "$e"), output $(printf %q "$got"))"
+
+# ======
+# on 93u+m/1.1+, we write self-doc to standard output, so it should be caught by comsubs
+{ got=$(shift --man); } >/dev/null 2>&1
+[[ $got == NAME* ]] || err_exit "AST self-doc to stdout not caught by command substitution"
+
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"
 case $? in
@@ -1772,4 +1838,5 @@ case $? in
 15)	err_exit "read -t in pipe not taking long enough" ;;
 *)	err_exit "broken test" ;;
 esac
+
 exit $((Errors<125?Errors:125))

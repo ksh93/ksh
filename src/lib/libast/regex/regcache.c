@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -38,12 +38,12 @@ typedef struct Cache_s
 	unsigned long	serial;
 	regflags_t	reflags;
 	int		keep;
-	int		size;
+	size_t		size;
 } Cache_t;
 
 typedef struct State_s
 {
-	unsigned int	size;
+	size_t		size;
 	unsigned long	serial;
 	char*		locale;
 	Cache_t**	cache;
@@ -58,9 +58,9 @@ static State_t	matchstate;
 static void
 flushcache(void)
 {
-	int		i;
+	ssize_t		i;
 
-	for (i = matchstate.size; i--;)
+	for (i = (ssize_t)matchstate.size; i--;)
 		if (matchstate.cache[i] && matchstate.cache[i]->keep)
 		{
 			matchstate.cache[i]->keep = 0;
@@ -76,11 +76,12 @@ regex_t*
 regcache(const char* pattern, regflags_t reflags, int* status)
 {
 	Cache_t*	cp;
-	int		i;
+	ssize_t		i;
+	int		j;
 	char*		s;
-	int		empty;
-	int		unused;
-	int		old;
+	ssize_t		empty;
+	ssize_t		unused;
+	ssize_t		old;
 	Key_t		key;
 
 	/*
@@ -90,7 +91,7 @@ regcache(const char* pattern, regflags_t reflags, int* status)
 	if (!pattern)
 	{
 		flushcache();
-		i = 0;
+		j = 0;
 		if (reflags > matchstate.size)
 		{
 			if (matchstate.cache = newof(matchstate.cache, Cache_t*, reflags, 0))
@@ -98,11 +99,11 @@ regcache(const char* pattern, regflags_t reflags, int* status)
 			else
 			{
 				matchstate.size = 0;
-				i = 1;
+				j = 1;
 			}
 		}
 		if (status)
-			*status = i;
+			*status = j;
 		return NULL;
 	}
 	if (!matchstate.cache)
@@ -128,13 +129,13 @@ regcache(const char* pattern, regflags_t reflags, int* status)
 	 * check if the pattern is in the cache
 	 */
 
-	for (i = 0; i < sizeof(key) && pattern[i]; i++)
+	for (i = 0; i < (ssize_t)sizeof(key) && pattern[i]; i++)
 		((char*)&key)[i] = pattern[i];
-	for (; i < sizeof(key); i++)
+	for (; i < (ssize_t)sizeof(key); i++)
 		((char*)&key)[i] = 0;
 	empty = unused = -1;
 	old = 0;
-	for (i = matchstate.size; i--;)
+	for (i = (ssize_t)matchstate.size; i--;)
 		if (!matchstate.cache[i])
 			empty = i;
 		else if (!matchstate.cache[i]->keep)
@@ -163,9 +164,9 @@ regcache(const char* pattern, regflags_t reflags, int* status)
 			cp->keep = 0;
 			regfree(&cp->re);
 		}
-		if ((i = strlen(pattern) + 1) > cp->size)
+		if ((i = (ssize_t)strlen(pattern) + 1) > (ssize_t)cp->size)
 		{
-			cp->size = roundof(i, ROUND);
+			cp->size = (size_t)roundof(i, ROUND);
 			if (!(cp->pattern = newof(cp->pattern, char, cp->size, 0)))
 			{
 				if (status)
@@ -174,13 +175,13 @@ regcache(const char* pattern, regflags_t reflags, int* status)
 			}
 		}
 		strcpy(cp->pattern, pattern);
-		while (++i < sizeof(Key_t))
+		while (++i < (ssize_t)sizeof(Key_t))
 			cp->pattern[i] = 0;
 		pattern = (const char*)cp->pattern;
-		if (i = regcomp(&cp->re, pattern, reflags))
+		if (j = regcomp(&cp->re, pattern, reflags))
 		{
 			if (status)
-				*status = i;
+				*status = j;
 			return NULL;
 		}
 		cp->keep = 1;
