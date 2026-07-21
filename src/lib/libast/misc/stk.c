@@ -143,13 +143,8 @@ static int stkexcept(Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
 			size_t size = (size_t)sfvalue(stream);
 			if(init)
 			{
-				Sfio_t *old = 0;
-				if(stream!=stkstd)
-					old = stkinstall(stream,NULL);
-				if(!stkgrow(stkstd,size-(size_t)(stkstd->_endb-stkstd->_data)))
+				if(!stkgrow(stream, size - (size_t)(stream->_endb - stream->_data)))
 					return -1;
-				if(old)
-					stkinstall(old,NULL);
 			}
 			else
 				stkinit(size);
