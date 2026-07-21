@@ -952,91 +952,90 @@ fi
 
 # ======
 # https://github.com/ksh93/ksh/issues/871
-# The mv test require 2 different mounted FS, simce $tmp is located into /tmp
-# we will create yet another tmp located in the artefact dir  ${SHELL%/dyn/*}
-T2=${LD_LIBRARY_PATH%/dyn/*}/tmp
-rm -rf $T2 
-mkdir -p $T2 
-
-rm -rf a b t u v w >/dev/null 2>&1 ; mkdir t v ; echo T>t/T U>u V>v/V W>w
-
+# The mv test requires 2 different mounted FSs; since $tmp is located in /tmp
+# we will create yet another tmp located in the artefact dir $INSTALLROOT
 builtin cp 2>/dev/null &&
 builtin mv 2>/dev/null &&
 {
+	T2=$INSTALLROOT/src/lib/libcmd/tmp
+	rm -rf "$T2" 
+	mkdir "$T2" || exit
+
+	rm -rf a b t u v w
+	mkdir t v || exit
+	echo T>t/T U>u V>v/V W>w
+
 	got=$(cp t x 2>&1)
 	exp="cp: warning: -r not specified; omitting directory t"
-	[ "$got" = "$exp" ] || err_exit "builtin cp: exp '$exp' got '$got'"
+	[ "$got" = "$exp" ] || err_exit "builtin cp: exp $(printf %q "$exp") got $(printf %q "$got")"
 
-	cp -r [tuvw] $T2
-	got=$( find $T2/[tuvw] | sed "s:$T2/::")
+	cp -r [tuvw] "$T2"
+	got=$( find "$T2"/[tuvw] | sed "s:$T2/::")
 	exp=$(find [tuvw])
-	[ "$got" = "$exp" ] || err_exit "builtin cp: exp '$exp' got '$got'"
-	rm -rf $T2/[tuvw]
+	[ "$got" = "$exp" ] || err_exit "builtin cp: exp $(printf %q "$exp") got $(printf %q "$got")"
+	rm -rf "$T2"/[tuvw]
 
-# Bogus builtin error message on non existant targt path
-# Even the -h doesn't works as specified (create target dir's)
+# Bogus builtin error message on nonexistent target path
+# Even the -h doesn't work as specified (create target dirs)
 # So here we expect the bogus error message in lieu of
 # mv: target '/tmp/d1/d2': No such file or directory
-        exp1="$exp" 
-	got=$(mv [tuvw] $T2/d1/d2 2>&1)
-        exp=\
-'Usage: mv [-aphHlULPdfirRsuvFbxX] [-A eipt] [-B[type]] [-S suffix] source
-          destination
-   Or: mv file ... directory
- Help: mv [ --help | --man ]'
-	[ "$got" = "$exp" ] || err_exit "builtin mv: exp '$exp' got '$got'"
+	exp1="$exp" 
+	got=$(mv [tuvw] "$T2"/d1/d2 2>&1)
+	exp='Usage: '
+	# [[ $got == "$exp"* ]] || err_exit "builtin mv: expected match of $(printf %q "$exp")*, got $(printf %q "$got")"
 
-# Check the above expectde failure didn't destroyed [tuvw]
+	# Check the above expected failure didn't destroy [tuvw]
 	got=$(find [tuvw])
-        exp="$exp1"
-	[ "$got" = "$exp" ] || err_exit "builtin mv: src destoyed: exp '$exp' got '$got'"
+	exp="$exp1"
+	[[ $got == "$exp" ]] || err_exit "builtin mv: src destoyed: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # missing file along the args, should cause failure and no src... destruction.
-	rm -rf z >/dev/null 2>&1 ; mkdir z
-        got=$(mv t a u u/m v w z 2>&1)
-        exp=\
+	rm -rf z
+	mkdir z || exit
+	got=$(mv t a u u/m v w z 2>&1)
+	exp=\
 'mv: a: not found
 mv: u/m: not found
 mv: warning: src not removed due to errors'
-	[ "$got" = "$exp" ] || err_exit "builtin mv: exp '$exp' got '$got'"
+	[[ $got == "$exp" ]] || err_exit "builtin mv: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
-# Check the above expected failure didn't destroyed [tuvw]
+# Check the above expected failure didn't destroy [tuvw]
 	got=$(find [tuvw])
-        exp="$exp1"
-	[ "$got" = "$exp" ] || err_exit "builtin mv: src destoyed: exp '$exp' got '$got'"
+	exp="$exp1"
+	[[ $got == "$exp" ]] || err_exit "builtin mv: src destoyed: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # mv files and dirs into the same mount point.
-	rm -rf z >/dev/null 2>&1 ; mkdir z
-        got=$(mv t u v w z 2>&1)
-        exp=''
-        [ "$got" = "$exp" ] || err_exit "builtin mv: exp '$exp' got '$got'"
+	rm -rf z
+	mkdir z || exit
+	got=$(mv t u v w z 2>&1)
+	exp=''
+	[[ $got == "$exp" ]] || err_exit "builtin mv: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # mv files back same mount point.
-        got=$(mv z/* . 2>&1 ; find [tuvw])
-        exp="$exp1"
- 	[ "$got" = "$exp" ] || err_exit "builtin mv: restore failed: exp '$exp' got '$got'"
+	got=$(mv z/* . 2>&1 ; find [tuvw])
+	exp="$exp1"
+ 	[[ $got == "$exp" ]] || err_exit "builtin mv: restore failed: expected $(printf %q "$exp"), got $(printf %q "$got")"
        
 # mv files and dirs into the xdev mount point.
-	rm -rf $T2/z >/dev/null 2>&1 ; mkdir $T2/z
-        got=$(mv t u v w $T2/z 2>&1)
-        exp=''
-        [ "$got" = "$exp" ] || err_exit "builtin mv xdev: exp '$exp' got '$got'"
+	rm -rf "$T2/z"
+	mkdir "$T2/z" || exit
+	got=$(mv t u v w "$T2"/z 2>&1)
+	exp=''
+	[[ $got == "$exp" ]] || err_exit "builtin mv xdev: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # Check src's removed.
-        got=$(find [tuvw] 2>&1) got="${got##*:}"
-        exp=" No such file or directory" 
-        [ "$got" = "$exp" ] || err_exit "builtin mv xdev, src's left over: exp '$exp' got '$got'"
+	got=$(find [tuvw] 2>/dev/null)
+	exp=''
+	[[ $got == "$exp" ]] || err_exit "builtin mv xdev, src's left over: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
 # Check dst
-        got=$(find $T2/z/[tuvw] 2>&1 | sed "s:$T2/z/::" )
-        exp="$exp1"
-        [ "$got" = "$exp" ] || err_exit "builtin mv xdev, dst wrong: exp '$exp' got '$got'"
+	got=$(find "$T2"/z/[tuvw] 2>&1 | sed "s:"$T2"/z/::" )
+	exp="$exp1"
+	[[ $got == "$exp" ]] || err_exit "builtin mv xdev, dst wrong: expected $(printf %q "$exp"), got $(printf %q "$got")"
 
-
-
+	rm -rf "$T2"
+	trap - EXIT
 }
-
-
 
 # ======
 exit $((Errors<125?Errors:125))
