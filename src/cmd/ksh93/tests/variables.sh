@@ -1856,6 +1856,12 @@ got=$( { "$SHELL" -c '(.sh[0]=); exit'; } 2>&1)
 	"(expected status 1 and match of *'read only'*," \
 	"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
 
+# ..and another one
+got=$( { "$SHELL" -c ': ${44444444444444444444444444444444}'; } 2>&1)
+[[ e=$? -eq 1 && $got == *'out of range'* ]] || err_exit "positional parameter with too-large number" \
+	"(expected status 1 and match of *'out of range'*," \
+	"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
