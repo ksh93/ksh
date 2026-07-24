@@ -51,7 +51,7 @@ make install virtual
 		prev pty
 		makp %{INSTALLROOT}/lib/lib/cmd
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED}'
-		exec - dylink -e pty $(cat %{<}) %{mam_libutil} pty.o
+		exec - dylink -e pty -lcmd %{mam_libutil} pty.o
 	done
 
 	note *

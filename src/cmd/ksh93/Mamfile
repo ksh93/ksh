@@ -1110,21 +1110,21 @@ make install virtual
 			prev %{OBJ}
 		done
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED}'
-		exec - dylink -m shell -v %{DYLIB_VERSION} -p '%{DYLIB_PRE}' -s '%{DYLIB_SUF}' $(sed 1d shell.req) %{_libshell_object_files_} %{_libshell_dyn_obj_files_}
+		exec - dylink -m shell -v %{DYLIB_VERSION} -p '%{DYLIB_PRE}' -s '%{DYLIB_SUF}' %{_libshell_object_files_} %{_libshell_dyn_obj_files_}
 	done
 
 	make %{INSTALLROOT}/dyn/bin/ksh dontcare
 		prev ksh
 		prev %{dyn_libshell}
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED} %{mam_cc_EXPORT_DYNAMIC}'
-		exec - dylink -e ksh $(cat shell.req) pmain.o
+		exec - dylink -e ksh -l shell pmain.o
 	done
 
 	make %{INSTALLROOT}/dyn/bin/shcomp dontcare
 		prev shcomp
 		prev %{dyn_libshell}
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED} %{mam_cc_EXPORT_DYNAMIC}'
-		exec - dylink -e shcomp $(cat shell.req) shcomp.o
+		exec - dylink -e shcomp -l shell shcomp.o
 	done
 
 	note *
