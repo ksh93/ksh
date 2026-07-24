@@ -116,7 +116,7 @@ static Sfdouble_t setalarm(Sfdouble_t t)
 	unsigned seconds = (unsigned)t;
 	if(t && seconds<1)
 		seconds=1;
-	t = (Sfdouble_t)alarm(seconds);
+	return (Sfdouble_t)alarm(seconds);
 #endif
 error_out:
 	errormsg(SH_DICT,ERROR_system(1),e_alarm);
