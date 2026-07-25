@@ -1185,11 +1185,13 @@ static int varsub(Mac_t *mp)
 	ptrdiff_t	vsize = -1;
 	char		idbuff[3], *id = idbuff, *pattern=0, *repstr=0, *arrmax=0;
 	char		*idx = 0;
-	int		var=1,addsub=0,idnum=0,nvflag=0;
+	int		var = 1, addsub = 0;
+	nvflag_t	nvflag=0;
 	char		oldpat=mp->pattern;
 	Stk_t		*stkp = sh.stk;
 	size_t		replen=0;
 	ptrdiff_t	offset = -1;
+	ptrdiff_t	idnum = 0;  /* for ${1?message} where 1 is any positional parameter */
 	mp->wasexpan = 1;
 retry1:
 	idbuff[0] = 0;
@@ -1271,11 +1273,20 @@ retry1:
 		if(type)
 		{
 			int d;
+			uintmax_t n = (uintmax_t)c;
 			while((d=fcget()),isadigit(d))
-				c = 10*c + (d-'0');
+			{
+				n = 10 * n + (d - '0');
+				if (n > PTRDIFF_MAX)
+				{
+					errormsg(SH_DICT,ERROR_exit(1),e_subscript,"(PP)");
+					UNREACHABLE();
+				}
+			}
 			fcseek(-1);
+			c = (ptrdiff_t)n;
 		}
-		idnum = (int)c;
+		idnum = c;
 		if(c==0)
 			v = special((wchar_t)c);
 #if  SHOPT_FILESCAN

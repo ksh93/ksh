@@ -23,10 +23,10 @@ Namdisc_t;
 .SS "OPENING/CLOSING"
 .nf
 .ft 5
-Namval_t 	*nv_open(const char *\fIname\fP, Dt_t *\fIdict\fP, int \fIflags\fP);
-Namval_t	*nv_create(const char *\fIname\fP,  Dt_t *\fIdict\fP, int \fIflags\fP, Namfun_t *\fIfp\fP);
+Namval_t 	*nv_open(const char *\fIname\fP, Dt_t *\fIdict\fP, nvflag_t \fIflags\fP);
+Namval_t	*nv_create(const char *\fIname\fP,  Dt_t *\fIdict\fP, nvflag_t \fIflags\fP, Namfun_t *\fIfp\fP);
 Namval_t	*nv_namptr(void *\fIptr\fP, size_t \fIindx\fP);
-void		nv_delete(Namval_t *\fInp\fP, Dt_t *\fIdict\fP, int \fInofree\fP);
+void		nv_delete(Namval_t *\fInp\fP, Dt_t *\fIdict\fP, nvflag_t \fInofree\fP);
 .ft R
 .fi
 .SS "GETTING AND SETTING VALUES"
@@ -35,9 +35,9 @@ void		nv_delete(Namval_t *\fInp\fP, Dt_t *\fIdict\fP, int \fInofree\fP);
 char		*nv_getval(Namval_t *\fInp\fP);
 Sfdouble_t	nv_getnum(Namval_t *\fInp\fP);
 char		*nv_name(Namval_t *\fInp\fP);
-void		nv_putval(Namval_t *\fInp\fP, const char *\fIval\fP, int \fIflags\fP);
-void		nv_unset(Namval_t *\fInp\fP, int \fIflags\fP);
-int		nv_clone(Namval_t *\fIsrc\fP, Namval_t *\fIdest\fP, int \fIflags\fP);
+void		nv_putval(Namval_t *\fInp\fP, const char *\fIval\fP, nvflag_t \fIflags\fP);
+void		nv_unset(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
+int		nv_clone(Namval_t *\fIsrc\fP, Namval_t *\fIdest\fP, nvflag_t \fIflags\fP);
 .ft R
 .fi
 .SS "ATTRIBUTES AND SIZE"
@@ -46,11 +46,11 @@ int		nv_clone(Namval_t *\fIsrc\fP, Namval_t *\fIdest\fP, int \fIflags\fP);
 int		nv_isnull(Namval_t *\fInp\fP);
 size_t		nv_setsize(Namval_t *\fInp\fP, size_t \fIsize\fP);
 size_t		nv_size(Namval_t *\fInp\fP);
-unsigned	nv_isattr(Namval_t *\fInp\fP, unsigned \fIflags\fP);
+unsigned	nv_isattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
 Namfun_t	*nv_isvtree(Namval_t *\fInp\fP);
-unsigned	nv_onattr(Namval_t *\fInp\fP, unsigned \fIflags\fP);
-unsigned	nv_offattr(Namval_t *\fInp\fP, unsigned \fIflags\fP);
-void		nv_newattr(Namval_t *\fInp\fP, unsigned \fIflags\fP, ssize_t \fIsize\fP);
+unsigned	nv_onattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
+unsigned	nv_offattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
+void		nv_newattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP, ssize_t \fIsize\fP);
 .ft R
 .fi
 
@@ -58,7 +58,7 @@ void		nv_newattr(Namval_t *\fInp\fP, unsigned \fIflags\fP, ssize_t \fIsize\fP);
 .nf
 .ft 5
 unsigned	nv_isarray(Namval_t *\fInp\fP);
-Namarr_t	*nv_setarray(Namval_t *\fInp\fP, void*(*\fIfun\fP)(Namval_t*, const char*, int));
+Namarr_t	*nv_setarray(Namval_t *\fInp\fP, void*(*\fIfun\fP)(Namval_t*, const char*, nvflag_t));
 Namarr_t	*nv_arrayptr(Namval_t *\fInp\fP);
 Namval_t	*nv_putsub(Namval_t *\fInp\fP, char *\fIname\fP, long \fImode\fP);
 Namval_t	*nv_opensub(Namval_t *\fInp\fP);
@@ -71,13 +71,13 @@ int		nv_aindex(Namval_t *\fInp\fP);
 .SS "DISCIPLINES"
 .nf
 .ft 5
-Namfun_t	*nv_disc(Namval_t *\fInp\fP, Namfun_t *\fIfp\fP, int \fIflags\fP);
+Namfun_t	*nv_disc(Namval_t *\fInp\fP, Namfun_t *\fIfp\fP, nvflag_t \fIflags\fP);
 Namfun_t	*nv_hasdisc(Namval_t *\fInp\fP, const Namdisc_t *\fIdp\fP);
 char		*nv_getv(Namval_t *\fInp\fP, Namfun_t *\fIfp\fP);
 Sfdouble_t	nv_getn(Namval_t *\fInp\fP, Namfun_t *\fIfp\fP);
-void		nv_putv(Namval_t *\fInp\fP, const char *\fIval\fP, int \fIflags\fP, Namfun_t *\fIfp\fP);
+void		nv_putv(Namval_t *\fInp\fP, const char *\fIval\fP, nvflag_t \fIflags\fP, Namfun_t *\fIfp\fP);
 char		*nv_setdisc(Namval_t *\fInp\fP, const char *\fIa\fP, Namval_t *\fIf\fP, Namfun_t *\fIfp\fP);
-char		*nv_adddisc(Namval_t *\fInp\fP, const char **\fInames\fP);
+char		*nv_adddisc(Namval_t *\fInp\fP, const char **\fInames\fP, Namval_t **\fPfuns\fP);
 const Namdisc_t	*nv_discfun(int \fIwhich\fP);
 .ft R
 .fi
@@ -85,7 +85,7 @@ const Namdisc_t	*nv_discfun(int \fIwhich\fP);
 .nf
 .ft 5
 Namval_t	*nv_type(Namval_t  *\fInp\fP);
-int		*nv_settype(Namval_t  *\fInp\fP, Namval_t *\fItp\fP, int \fIflags\fP);
+int		*nv_settype(Namval_t  *\fInp\fP, Namval_t *\fItp\fP, nvflag_t \fIflags\fP);
 Namval_t	*nv_mkinttype(char *\fIname\fP, size_t \fIsz\fP, int \fIus\fP, const char *\fIstr\fP, Namdisc_t *\fIdp\fP);
 void		nv_addtype(Namval_t *\fInp\fP, const char *\fIstr\fP, Optdisc_t* *\fIop\fP, size_t \fIsz\fP);
 .ft R
@@ -93,10 +93,10 @@ void		nv_addtype(Namval_t *\fInp\fP, const char *\fIstr\fP, Optdisc_t* *\fIop\fP
 .SS "MISCELLANEOUS FUNCTIONS"
 .nf
 .ft 5
-int		nv_scan(Dt_t *\fIdict\fP, void(*\fIfn\fP)(Namval_t*,void*), void *\fIdata\fP, int \fImask\fP, int \fIflags\fP);
+int		nv_scan(Dt_t *\fIdict\fP, void(*\fIfn\fP)(Namval_t*,void*), void *\fIdata\fP, nvflag_t \fImask\fP, nvflag_t \fIflags\fP);
 Dt_t		*nv_dict(Namval_t *\fInp\fP);
 void		nv_setvtree(Namval_t *\fInp\fP);
-void		nv_setref(Namval_t *\fInp\fP, Dt_t *\fIdp\fP, int \fIflags\fP);
+void		nv_setref(Namval_t *\fInp\fP, Dt_t *\fIdp\fP, nvflag_t \fIflags\fP);
 Namval_t	*nv_lastdict(void);
 .ft R
 .fi
@@ -189,7 +189,7 @@ Name-value pairs can also be allocated without belonging to
 a dictionary.  They will typically be looked up by a \fIcreate\fP
 discipline associated with a parent node.  In this case the
 node size will be \f3NV_MINSZ\fP and \fIn\fP nodes can be allocated
-vial \f3calloc(5NV_MINSZ,\fP\fIn\fP\f3)\fP(3).
+via \f3calloc(5NV_MINSZ,\fP\fIn\fP\f3)\fP(3).
 The \f3nv_namptr\fP function can be used on the pointer returned by
 \f3calloc\fP along with the element number to return the
 corresponding node.
@@ -376,15 +376,17 @@ can therefore be shared by several name-value pairs.
 It contains following public fields in the order listed:
 .nf
       \f3size_t	dsize;\fP
-      \f3void	(*putval)(Namval_t*,const char*,int,Namfun_t*);\fP
+      \f3void	(*putval)(Namval_t*,const char*,nvflag_t,Namfun_t*);\fP
       \f3char	*(*getval)(Namval_t*,Namfun_t*);\fP
       \f3double	(*getnum)(Namval_t*,Namfun_t*);\fP
       \f3char	*(*setdisc)(Namval_t*,const char*,Namval_t*,Namfun_t*);\fP
-      \f3Namval_t	*(*createf)(Namval_t*,const char*,Namfun_t*);\fP
-      \f3Namfun_t	*(*clonef)(Namval_t*,Namval_t*,int,Namfun_t*);\fP
+      \f3Namval_t	*(*createf)(Namval_t*,const char*,nvflag_t,Namfun_t*);\fP
+      \f3Namfun_t	*(*clonef)(Namval_t*,Namval_t*,nvflag_t,Namfun_t*);\fP
       \f3char	*(*namef)(Namval_t*,Namfun_t*);\fP
       \f3Namval_t	*(*nextf)(Namval_t*,Dt_t*,Namfun_t*);\fP
       \f3Namval_t	*(*typef)(Namval_t*,Namfun_t*);\fP
+      \f3Namval_t	*(*readf)(Namval_t*,Sfio_t*,int,Namfun_t*);\fP
+      \f3Namval_t	*(*writef)(Namval_t*,Sfio_t*,nvflag_t,Namfun_t*);\fP
 .fi
 The \f3Namfun_t\fP type contains a member named
 \f3disc\fP which points to a \f3Namdisc_t\fP structure.

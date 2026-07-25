@@ -269,7 +269,8 @@ retry:
 	else
 		maxlines = HIST_DFLT;
 	for(histmask=16;histmask <= maxlines; histmask <<=1 );
-	hp = new_of(History_t,(size_t)(--histmask)*sizeof(off_t));
+	histmask--;
+	hp = sh_calloc(1, sizeof(History_t) + (size_t)histmask * sizeof(off_t));
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;

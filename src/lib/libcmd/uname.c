@@ -292,6 +292,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
+	memset(buf, 0, sizeof buf);
 	if (sethost)
 	{
 #if _lib_sethostname

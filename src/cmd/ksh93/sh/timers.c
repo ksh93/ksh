@@ -52,30 +52,75 @@ static Sfdouble_t getnow(void)
 
 /*
  * set an alarm for <t> seconds
+ * t==0 to disable alarm
  */
 static Sfdouble_t setalarm(Sfdouble_t t)
 {
-#if defined(_lib_setitimer) && defined(ITIMER_REAL)
+#if _lib_timer_create
+	/*
+	 * POSIX timer_settime(2) version.
+	 * Resistant to system clock changes due to CLOCK_MONOTONIC.
+	 */
+	static timer_t timer;
+	static int created;
+	struct itimerspec tnew, told;
+	if(!t)
+	{
+		if(created)
+		{
+			timer_delete(timer);
+			created = 0;
+		}
+		return 0;
+	}
+	if(!created)
+	{
+		struct sigevent sev;
+		memset(&sev,0,sizeof sev);
+		sev.sigev_notify = SIGEV_SIGNAL;
+		sev.sigev_signo = SIGALRM;
+		if(timer_create(CLOCK_MONOTONIC,&sev,&timer) < 0)
+			goto error_out;
+		created++;
+	}
+	tnew.it_value.tv_sec = t;
+	tnew.it_value.tv_nsec = 1.e9 * (t - (Sfdouble_t)tnew.it_value.tv_sec);
+	/* Minimum delay: 1ms */
+	if(tnew.it_value.tv_sec==0 && tnew.it_value.tv_nsec < 1000000L)
+		tnew.it_value.tv_nsec = 1000000L;
+	tnew.it_interval.tv_sec = 0;
+	tnew.it_interval.tv_nsec = 0;
+	if(timer_settime(timer,0,&tnew,&told) < 0)
+		goto error_out;
+	return told.it_value.tv_sec + 1.e-9 * told.it_value.tv_nsec;
+#elif _lib_setitimer
+	/*
+	 * setitimer(2) fallback. POSIX no longer specifies this function
+	 * as of Issue 8 (2024). Not resistant to system clock changes.
+	 */
 	struct itimerval tnew, told;
 	tnew.it_value.tv_sec = t;
 	tnew.it_value.tv_usec = 1.e6*(t- (Sfdouble_t)tnew.it_value.tv_sec);
+	/* Minimum delay: 1ms */
 	if(t && tnew.it_value.tv_sec==0 && tnew.it_value.tv_usec<1000)
 		tnew.it_value.tv_usec = 1000;
 	tnew.it_interval.tv_sec = 0;
 	tnew.it_interval.tv_usec = 0;
 	if(setitimer(ITIMER_REAL,&tnew,&told) < 0)
-	{
-		errormsg(SH_DICT,ERROR_system(1),e_alarm);
-		UNREACHABLE();
-	}
-	t = told.it_value.tv_sec + 1.e-6*told.it_value.tv_usec;
+		goto error_out;
+	return told.it_value.tv_sec + 1.e-6 * told.it_value.tv_usec;
 #else
+	/*
+	 * Fall back to one-second granularity.
+	 */
 	unsigned seconds = (unsigned)t;
 	if(t && seconds<1)
 		seconds=1;
-	t = (Sfdouble_t)alarm(seconds);
+	return (Sfdouble_t)alarm(seconds);
 #endif
-	return t;
+error_out:
+	errormsg(SH_DICT,ERROR_system(1),e_alarm);
+	UNREACHABLE();
 }
 
 /* signal handler for alarm call */
@@ -89,7 +134,7 @@ static void sigalrm(int sig)
 	if(time_state&SIGALRM_CALL)
 		time_state &= ~SIGALRM_CALL;
 	else if(alarm(0))
-		kill(sh.current_pid,SIGALRM|SH_TRAP);
+		sh_fault(SIGALRM|SH_TRAP);
 	if(time_state)
 	{
 		if(time_state&IN_ADDTIMEOUT)

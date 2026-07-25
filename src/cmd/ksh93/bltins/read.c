@@ -233,11 +233,11 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 	int			wrd;
 	ptrdiff_t		rel;
 	long			array_index = 0;
-	void			*timeslot=0;
+	volatile void		*timeslot = NULL;
 	int			delim = '\n';
 	int			jmpval=0;
 	int			binary;
-	int			oflags=NV_VARNAME;
+	nvflag_t		oflags=NV_VARNAME;
 	char			inquote = 0;
 	struct checkpt		buff;
 	Edit_t			*ep = (struct edit*)sh.ed_context;
@@ -485,7 +485,10 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 			}
 		}
 		if(timeslot)
-			sh_timerdel(timeslot);
+		{
+			sh_timerdel((void*)timeslot);
+			timeslot = NULL;
+		}
 		if(binary && !((size=(ssize_t)nv_size(np)) && nv_isarray(np) && c!=size))
 		{
 #if SHOPT_OPTIMIZE
@@ -527,7 +530,10 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		}
 	}
 	if(timeslot)
-		sh_timerdel(timeslot);
+	{
+		sh_timerdel((void*)timeslot);
+		timeslot = NULL;
+	}
 	if(cp)
 	{
 		cpmax = cp + c;
@@ -843,6 +849,8 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		}
 	}
 done:
+	if(timeslot)
+		sh_timerdel((void*)timeslot);
 	if(timeout || (sh.fdstatus[fd]&(IOTTY|IONOSEEK)))
 		sh_popcontext(&buff);
 	if(was_write)

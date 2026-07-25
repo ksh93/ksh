@@ -60,7 +60,7 @@ make install virtual
 	make shell.req
 		makp %{INSTALLROOT}/bin/mkreq
 		exec - mkreq %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} : %{LDFLAGS} : \
-		exec -		shell dll cmd ast m jobs i socket nsl secdb network
+		exec -		shell dll cmd ast m jobs i socket nsl secdb network rt
 	done
 
 	note *
@@ -652,26 +652,27 @@ make install virtual
 		done
 
 		make sh/init.c
-			prev %{INCLUDE_AST}/wctype.h
-			prev %{INCLUDE_AST}/ast_wchar.h
-			prev include/version.h
-			prev include/lexstates.h
-			prev FEATURE/externs
-			prev FEATURE/time
-			prev include/builtins.h
-			prev include/shlex.h
-			prev include/io.h
-			prev include/jobs.h
-			prev include/edit.h
-			prev include/name.h
-			prev include/fault.h
-			prev include/path.h
-			prev include/variables.h
-			prev %{INCLUDE_AST}/ast_random.h
-			prev %{INCLUDE_AST}/regex.h
-			prev %{INCLUDE_AST}/tmx.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/tmx.h
+			prev %{INCLUDE_AST}/regex.h
+			prev %{INCLUDE_AST}/ast_random.h
+			prev %{INCLUDE_AST}/vmalloc.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/fault.h
+			prev include/name.h
+			prev include/edit.h
+			prev include/jobs.h
+			prev include/io.h
+			prev include/shlex.h
+			prev include/builtins.h
+			prev FEATURE/time
+			prev FEATURE/externs
+			prev include/lexstates.h
+			prev include/version.h
+			prev %{INCLUDE_AST}/ast_wchar.h
+			prev %{INCLUDE_AST}/wctype.h
 		done
 
 		make sh/io.c
@@ -1130,21 +1131,21 @@ make install virtual
 			prev %{OBJ}
 		done
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED}'
-		exec - dylink -m shell -v %{DYLIB_VERSION} -p '%{DYLIB_PRE}' -s '%{DYLIB_SUF}' $(sed 1d shell.req) %{_libshell_object_files_} %{_libshell_dyn_obj_files_}
+		exec - dylink -m shell -v %{DYLIB_VERSION} -p '%{DYLIB_PRE}' -s '%{DYLIB_SUF}' %{_libshell_object_files_} %{_libshell_dyn_obj_files_}
 	done
 
 	make %{INSTALLROOT}/dyn/bin/ksh dontcare
 		prev ksh
 		prev %{dyn_libshell}
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED} %{mam_cc_EXPORT_DYNAMIC}'
-		exec - dylink -e ksh $(cat shell.req) pmain.o
+		exec - dylink -e ksh -l shell pmain.o
 	done
 
 	make %{INSTALLROOT}/dyn/bin/shcomp dontcare
 		prev shcomp
 		prev %{dyn_libshell}
 		exec - export LDFLAGS='%{LDFLAGS} %{CCLDFLAGS} %{mam_cc_LD_NOASNEEDED} %{mam_cc_EXPORT_DYNAMIC}'
-		exec - dylink -e shcomp $(cat shell.req) shcomp.o
+		exec - dylink -e shcomp -l shell shcomp.o
 	done
 
 	note *

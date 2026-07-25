@@ -430,7 +430,7 @@ static void out_string(Sfio_t *iop, const char *cp, int c, int quoted)
  * If a script changes .sh.level inside a DEBUG trap, it will switch the
  * scope as if it were executing the trap at that function call depth.
  */
-static void put_level(Namval_t* np,const char *val,int flags,Namfun_t *fp)
+static void put_level(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 {
 	Shscope_t	*sp;
 	int16_t		level, oldlevel = sh.level;
@@ -873,7 +873,8 @@ int sh_exec(const Shnode_t *t, int flags)
 			char		*trap;
 			Namval_t	*np, *nq, *last_table;
 			struct ionod	*io;
-			int		command=0, flgs=NV_ASSIGN, jmpval=0;
+			int		command=0, jmpval=0;
+			nvflag_t	flgs = NV_ASSIGN;
 			sh.bltindata.invariant = type>>(COMBITS+2);
 			type &= (COMMSK|COMSCAN);
 			sh_stats(STAT_SCMDS);
@@ -2252,6 +2253,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			}
 			else
 			{
+				tb.tv_sec = tb.tv_usec = 0;
 				before_usr.tv_sec = before_usr.tv_usec = 0;
 				before_sys.tv_sec = before_sys.tv_usec = 0;
 			}
@@ -2290,7 +2292,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				Dt_t *root;
 				Namval_t *oldnspace = sh.namespace;
 				ptrdiff_t offset = stktell(sh.stk);
-				int	flags=NV_NOARRAY|NV_VARNAME;
+				nvflag_t nvflgs =NV_NOARRAY|NV_VARNAME;
 				struct checkpt *chkp = stkalloc(sh.stk,sizeof(struct checkpt));
 				int jmpval;
 				if(cp)
@@ -2305,7 +2307,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 				sfputc(sh.stk,'.');
 				sfputr(sh.stk,fname,0);
-				np = nv_open(stkptr(sh.stk,offset),sh.var_tree,flags);
+				np = nv_open(stkptr(sh.stk,offset),sh.var_tree,nvflgs);
 				offset = stktell(sh.stk);
 				if(nv_istable(np))
 					root = nv_dict(np);
@@ -2417,10 +2419,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 			}
 			if(!np->nvalue)
-			{
-				np->nvalue = new_of(struct Ufunction,sh.funload?sizeof(Dtlink_t):0);
-				memset(np->nvalue,0,sizeof(struct Ufunction));
-			}
+				np->nvalue = sh_calloc(1, sizeof(struct Ufunction) + (sh.funload ? sizeof(Dtlink_t) : 0));
 			if(t->funct.functstak)
 			{
 				struct Ufunction *rp = np->nvalue;

@@ -585,7 +585,7 @@ Sfio_t *sh_iostream(int fd, int read_script)
 				iobsize = 2097152;
 			}
 		}
-		bp = sh_malloc(iobsize + 1);
+		bp = sh_calloc(1, iobsize + 1);
 		flags |= SFIO_READ;
 		if(!(status&IOWRITE))
 			flags &= ~SFIO_WRITE;
@@ -1022,7 +1022,9 @@ static size_t pat_line(const regex_t* rp, const char *buff, size_t n)
 	const char *cp=buff, *sp;
 	while(n>0)
 	{
-		for(sp=cp; n-->0 && *cp++ != '\n';);
+		sp = cp;
+		while(n>0 && *cp++ != '\n')
+			n--;
 		if(regnexec(rp,sp,(size_t)(cp-sp), 0, NULL, 0)==0)
 			return (size_t)(sp-buff);
 	}
@@ -1049,7 +1051,7 @@ static int io_patseek(regex_t *rp, Sfio_t* sp, unsigned int flags)
 		if(m && (flags&IOCOPY))
 			sfwrite(sfstdout,cp,m);
 		sfread(sp,cp,m);
-		if(m<n)
+		if(m<n || n==0)
 			break;
 	}
 	if(!close_exec)
@@ -2349,7 +2351,7 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 			 * be closed in case a longjmp prevents
 			 * built-ins from cleanup
 			 */
-			item = new_of(struct openlist, 0);
+			item = sh_malloc(sizeof(struct openlist));
 			item->strm = sp;
 			item->next = pp->olist;
 			pp->olist = item;
@@ -2398,7 +2400,7 @@ Sfio_t *sh_sfeval(char *argv[])
 	if(argv[1])
 	{
 		struct eval *ep;
-		ep = new_of(struct eval,0);
+		ep = sh_malloc(sizeof(struct eval));
 		ep->disc = eval_disc;
 		ep->argv = argv;
 		ep->addspace  = 0;

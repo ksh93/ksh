@@ -153,7 +153,7 @@ Sfrsrv_t* _sfrsrv(Sfio_t* f, ssize_t size)
 	/* make buffer if nothing yet */
 	size = ((size + SFIO_GRAIN-1)/SFIO_GRAIN)*SFIO_GRAIN;
 	if(!(rsrv = f->rsrv) || size > rsrv->size)
-	{	if(!(rs = (Sfrsrv_t*)malloc((size_t)size+sizeof(Sfrsrv_t))))
+	{	if(!(rs = calloc(1, (size_t)size + sizeof(Sfrsrv_t))))
 			size = -1;
 		else
 		{	if(rsrv)

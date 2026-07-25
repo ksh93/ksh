@@ -96,7 +96,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 {
 	char		*name;
-	int		fdin;
+	int		fdin = STDIN_FILENO;
 	Sfio_t		*iop;
 	struct stat	statb;
 	int		i;
@@ -217,9 +217,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 		{
 			name = error_info.id;
 			error_info.id = sh.shname;
-			if(sh_isoption(SH_SFLAG))
-				fdin = 0;
-			else
+			if(!sh_isoption(SH_SFLAG))
 			{
 				/* open stream should have been passed into shell */
 				if(strmatch(name,e_devfdNN) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)

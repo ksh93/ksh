@@ -35,6 +35,7 @@
 
 #include	<sfio_t.h>
 #include	<ast.h>
+#include	<vmalloc.h>
 #include	<align.h>
 #include	<stk.h>
 
@@ -53,7 +54,7 @@
 #define STK_FSIZE	(1024*sizeof(char*))
 #define STK_HDRSIZE	(sizeof(Sfio_t)+sizeof(Sfdisc_t))
 
-typedef void* (*_stk_overflow_)(size_t);
+typedef void (*_stk_overflow_)(size_t);
 typedef char* (*_old_stk_overflow_)(size_t);	/* for stkinstall (deprecated) */
 
 static int stkexcept(Sfio_t*,int,void*,Sfdisc_t*);
@@ -71,9 +72,9 @@ struct frame
 
 struct stk
 {
-	_stk_overflow_	stkoverflow;	/* called when malloc fails */
 	unsigned int	stkref;		/* reference count */
 	int		stkflags;	/* stack attributes */
+	Vmalloc_t	*vm;		/* the stack's Vmalloc region */
 	char		*stkbase;	/* beginning of current stack frame */
 	char		*stkend;	/* end of current stack frame */
 };
@@ -92,7 +93,7 @@ static const char Omsg[] = "out of memory while growing stack\n";
 /*
  * default overflow exception
  */
-static noreturn void *overflow(size_t n)
+static noreturn void overflow(size_t n)
 {
 	NoP(n);
 	write(2,Omsg, sizeof(Omsg)-1);
@@ -121,29 +122,12 @@ static int stkexcept(Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
 	    case SFIO_CLOSING:
 		{
 			struct stk *sp = stream2stk(stream);
-			char *cp = sp->stkbase;
-			struct frame *fp;
 			if(--sp->stkref == 0)
 			{
 				if(stream==stkstd)
 					stkset(stream,NULL,0);
 				else
-				{
-					while(1)
-					{
-						fp = (struct frame*)cp;
-						if(fp->prev)
-						{
-							cp = fp->prev;
-							free(fp);
-						}
-						else
-						{
-							free(fp);
-							break;
-						}
-					}
-				}
+					vmclose(sp->vm);
 			}
 			stream->_data = stream->_next = 0;
 		}
@@ -159,13 +143,8 @@ static int stkexcept(Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
 			size_t size = (size_t)sfvalue(stream);
 			if(init)
 			{
-				Sfio_t *old = 0;
-				if(stream!=stkstd)
-					old = stkinstall(stream,NULL);
-				if(!stkgrow(stkstd,size-(size_t)(stkstd->_endb-stkstd->_data)))
+				if(!stkgrow(stream, size - (size_t)(stream->_endb - stream->_data)))
 					return -1;
-				if(old)
-					stkinstall(old,NULL);
 			}
 			else
 				stkinit(size);
@@ -188,22 +167,24 @@ Sfio_t *stkopen(int flags)
 	struct frame *fp;
 	Sfdisc_t *dp;
 	char *cp;
-	if(!(stream=newof(NULL,Sfio_t, 1, sizeof(*dp)+sizeof(*sp))))
+	if(!(stream = calloc(1, sizeof(Sfio_t) + sizeof(Sfdisc_t) + sizeof(struct stk))))
 		return NULL;
 	dp = (Sfdisc_t*)(stream+1);
 	dp->exceptf = stkexcept;
 	sp = (struct stk*)(dp+1);
+	sp->vm = vmopen();
+	sp->vm->options = VM_INIT;  /* initialize all stack memory */
 	sp->stkref = 1;
 	sp->stkflags = flags;
-	if(flags&STK_NULL) sp->stkoverflow = 0;
-	else sp->stkoverflow = stkcur?stkcur->stkoverflow:overflow;
+	if(!(flags&STK_NULL))
+		sp->vm->outofmemory = stkcur ? stkcur->vm->outofmemory : overflow;
 	bsize = init+sizeof(struct frame);
 	if(flags&STK_SMALL)
 		bsize = roundof(bsize,STK_FSIZE/16);
 	else
 		bsize = roundof(bsize,STK_FSIZE);
 	bsize -= sizeof(struct frame);
-	if(!(fp=newof(NULL,struct frame, 1,bsize)))
+	if(!(fp = vmalloc(sp->vm, sizeof(struct frame) + bsize)))
 	{
 		free(stream);
 		return NULL;
@@ -233,7 +214,7 @@ Sfio_t *stkinstall(Sfio_t *stream, _old_stk_overflow_ oflow)
 	{
 		stkinit(1);
 		if(oflow)
-			stkcur->stkoverflow = (_stk_overflow_)oflow;
+			stkcur->vm->outofmemory = (_stk_overflow_)oflow;
 		return NULL;
 	}
 	old = stkcur?stk2stream(stkcur):0;
@@ -248,7 +229,7 @@ Sfio_t *stkinstall(Sfio_t *stream, _old_stk_overflow_ oflow)
 	else
 		sp = stkcur;
 	if(oflow)
-		sp->stkoverflow = (_stk_overflow_)oflow;
+		sp->vm->outofmemory = (_stk_overflow_)oflow;
 	return old;
 }
 
@@ -261,7 +242,7 @@ void stkoverflow(Sfio_t *stream, _stk_overflow_ oflow)
 	if(!init)
 		stkinit(1);
 	sp = stream2stk(stream);
-	sp->stkoverflow = oflow ? oflow : (sp->stkflags & STK_NULL ? NULL : overflow);
+	sp->vm->outofmemory = oflow ? oflow : (sp->stkflags & STK_NULL ? NULL : overflow);
 }
 
 /*
@@ -331,7 +312,7 @@ void *stkset(Sfio_t *stream, void *address, ptrdiff_t offset)
 		{
 			sp->stkbase = fp->prev;
 			sp->stkend = ((struct frame*)(fp->prev))->end;
-			free(fp);
+			vmfree(sp->vm, fp);
 		}
 		else
 			break;
@@ -410,34 +391,38 @@ void	*stkfreeze(Sfio_t *stream, size_t extra)
  */
 char	*stkcopy(Sfio_t *stream, const char* str)
 {
+	struct stk *sp = stream2stk(stream);
 	char *cp, *tp;
 	size_t n;
+	void *base = stkptr(stream,0);
 	size_t off = (size_t)stktell(stream);
 	/* save unterminated object */
 	if(off)
 	{
-		if (!(tp = malloc(off)))
-		{
-			struct stk *sp = stream2stk(stream);
-			if (!sp->stkoverflow || !(tp = (*sp->stkoverflow)(off)))
-				return NULL;
-		}
+		if (!(tp = vmalloc(sp->vm, off)))
+			return NULL;
 		memcpy(tp, stream->_data, off);
 	}
 	/* allocate space for string on stack */
 	n = strlen(str) + 1;
 	if (!(cp = stkalloc(stream, n)))
-		return NULL;
+		goto error_out;
 	/* restore unterminated object */
 	if (off)
 	{
 		if (!_stkseek(stream,(ptrdiff_t)off))
-			return NULL;
+			goto error_out;
 		memcpy(stream->_data, tp, off);
-		free(tp);
+		vmfree(sp->vm, tp);
 	}
 	/* copy string to stack */
 	return memcpy(cp, str, n);
+
+error_out:
+	if(off)
+		vmfree(sp->vm, tp);
+	stkset(stream, base, (ptrdiff_t)off);
+	return NULL;
 }
 
 /*
@@ -470,10 +455,10 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 		sp->stkbase = ((struct frame*)dp)->prev;
 		end = fp->end;
 		oldbase = dp;
+		endoff = end - dp;
 	}
-	endoff = end - dp;
-	cp = newof(dp, char, n, (size_t)nn*sizeof(char*));
-	if(!cp && (!sp->stkoverflow || !(cp = (*sp->stkoverflow)(n))))
+	cp = vmresize(sp->vm, dp, n + (size_t)nn * sizeof(char*));
+	if(!cp)
 		return NULL;
 	if(dp==cp)
 	{

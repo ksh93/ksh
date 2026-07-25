@@ -2,6 +2,55 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-24:
+
+- Fix for 'read -t': the timeout was not deactivated if the read operation
+  was interrupted before the timeout occurred. On interactive shells, after
+  Ctrl+C, this caused command line entry to be interrupted by that timeout.
+
+2026-07-21:
+
+- Fixed a crash when attempting to access a positional parameter with a
+  number exceeding PTRDIFF_MAX (or, until 2026-04-14, INT_MAX).
+
+2026-07-20:
+
+- Fixed a use-after-free in optget(3) long-form option parsing.
+
+- Fixed an invalid free that occurred upon exiting the subshell when
+  attempting to assign to an array subscript of .sh in a subshell.
+
+2026-07-19:
+
+- Fixed various potential crashes and misbehaviour due to the use of
+  uninitialised memory.
+
+2026-07-18:
+
+- Fixed a crash that occurred when an unterminated command substitution
+  follows a here-document redirection. For example, ksh -c $'cat <<EOF $(\n'
+  now throws the expected syntax error without crashing.
+
+2026-07-17:
+
+- The 2020-09-05/2021-04-30/2021-05-03 fix for erroneous syntax errors in
+  parameter expansions such as ${var:-wor)d} or ${var+w(ord} was ineffective
+  for positional parameters (e.g., ${1:-wor)d} or ${2+w(ord}) due to an
+  additional problem in the lexer, which has now been found and fixed.
+
+- Fixed a potential crash or freeze in the processing of an unterminated
+  here-document combined with a pattern matching redirection.
+
+2026-07-16:
+
+- Fixed: assigning a value to a 'typeset -b' binary data variable that is
+  shorter than the previous value caused the shell to crash or output garbage.
+
+- The shell's timer/alarm-related features ($TMOUT, 'read -t', the 'alarm'
+  built-in, and various internal timeout handling) now use the POSIX functions
+  timer_create(2) and friends with CLOCK_MONOTONIC, where available. This
+  guarantees a correct delay even if the system clock is adjusted during it.
+
 2026-07-15:
 
 - Fixed: the value of $? was incorrectly 0 in the EXIT trap when the shell

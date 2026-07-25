@@ -58,11 +58,11 @@ Vmalloc_t *vmopen(void)
 /*
  * Allocate a block in a region.
  */
-void *vmalloc(Vmalloc_t *vm, size_t size)
+static inline void *vmalloc_i(Vmalloc_t *vm, size_t size, int init)
 {
 	Vmblock_t	*bp;
 
-	if (!(bp = (vm->options & VM_INIT) ? calloc(1, size + VBLOCKOFFSET) : malloc(size + VBLOCKOFFSET)))
+	if (!(bp = init ? calloc(1, size + VBLOCKOFFSET) : malloc(size + VBLOCKOFFSET)))
 		return fail(vm, size);
 	bp->size = size;
 	/* insert at front of list */
@@ -73,17 +73,22 @@ void *vmalloc(Vmalloc_t *vm, size_t size)
 	return (char*)bp + VBLOCKOFFSET;
 }
 
+void *vmalloc(Vmalloc_t *vm, size_t size)
+{
+	return vmalloc_i(vm, size, vm->options & VM_INIT);
+}
+
 /*
  * Resize a block in a region.
  * If ap is NULL, allocates a new block.
  * If size is 0, ap is freed.
  */
-void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
+void *vmresize_i(Vmalloc_t *vm, void *ap, size_t size, int init)
 {
 	Vmblock_t	*bp, *tmp;
 
 	if (!ap)
-		return vmalloc(vm, size);
+		return vmalloc_i(vm, size, init);
 	if (!size)
 	{
 		vmfree(vm, ap);
@@ -109,29 +114,15 @@ void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 			bp->next->prev = bp;
 	}
 	/* Initialize added memory */
-	if ((vm->options & VM_INIT) && (size > bp->size))
+	if (init && (size > bp->size))
 		memset((char*)ap + bp->size, 0, size - bp->size);
 	bp->size = size;
 	return ap;
 }
 
-/*
- * Helper function for vmnewof() and vmoldof() macros.
- * Allocate or resize a block in a region, with or without initialization of new memory.
- */
-void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
+void *vmresize(Vmalloc_t *vm, void *ap, size_t size)
 {
-	uint32_t	save_opt;
-
-	save_opt = vm->options;
-	if (init)
-		vm->options |= VM_INIT;
-	else
-		vm->options &= ~VM_INIT;
-	ap = vmresize(vm, ap, size);
-	vm->options = save_opt;
-	return ap;
-	
+	return vmresize_i(vm, ap, size, vm->options & VM_INIT);
 }
 
 /*
@@ -139,18 +130,13 @@ void *_Vm_newoldof_(Vmalloc_t *vm, void *ap, size_t size, int init)
  */
 char *vmstrdup(Vmalloc_t *vm, const char *s)
 {
-	Vmblock_t	*bp;
+	void		*ap;
 	size_t		size;
 
-	if (!(bp = malloc((size = strlen(s) + 1) + VBLOCKOFFSET)))
-		return fail(vm, size);
-	bp->size = size;
-	/* insert at front of list */
-	bp->prev = NULL;
-	if (bp->next = vm->_list_)
-		bp->next->prev = bp;
-	vm->_list_ = bp;
-	return memcpy((char*)bp + VBLOCKOFFSET, s, size);
+	size = strlen(s) + 1;
+	if (!(ap = vmalloc_i(vm, size, 0)))
+		return NULL;
+	return memcpy(ap, s, size);
 }
 
 /*

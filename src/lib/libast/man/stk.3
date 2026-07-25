@@ -15,8 +15,8 @@
 #include <stk.h>
 
 Stk_t *stkopen(int \fIflags\fP);
-void stkoverflow(Stk_t *\fIstack\fP, void *(\fIoverflow\fP)(size_t));
-Stk_t *stkinstall(Stk_t *\fIstack\fP, char *(\fIoverflow\fP)(size_t));
+void stkoverflow(Stk_t *\fIstack\fP, void (*\fIoverflow\fP)(size_t));
+Stk_t *stkinstall(Stk_t *\fIstack\fP, char *(*\fIoverflow\fP)(size_t));
 int stkclose(Stk_t *\fIstack\fP);
 unsigned int stklink(Stk_t *\fIstack\fP)
 
@@ -91,7 +91,8 @@ to \f3malloc\fP(3).
 The \fIoverflow\fP function can call \f3exit\fP(3), call \f3longjmp\fP(3)
 or return.
 If the \f2overflow\fP function returns,
-it must return a pointer to a memory region of the given size.
+normal failure behavior is resumed and the calling function will return
+.BR NULL .
 If \f2overflow\fP is \f3NULL\fP, then the stack overflow action
 is reset to the default.
 If the stack was opened with the \f3STK_NULL\fP option,
@@ -105,7 +106,12 @@ is deprecated and provided for backward compatibility.
 and returns a pointer to the previous \f3stkstd\fP stack.
 If the \fIoverflow\fP argument is not null and the stack was not opened with
 the \f3STK_NULL\fP option, then \fIoverflow\fP sets the overflow action
-(see \f3stkoverflow\fP() above).
+(see \f3stkoverflow\fP() above, except that the function type is
+.B "char*"
+and not
+.B void
+for backward compatibility reasons;
+the return pointer is no longer used).
 When \fIstack\fP is a null pointer,
 the \f3stkstd\fP stack is not changed
 but the \fIoverflow\fP function for the \f3stkstd\fP stack can be changed

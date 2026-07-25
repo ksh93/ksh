@@ -105,7 +105,7 @@ extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
 extern char		*sh_checkid(char*,char*);
 extern void		sh_chktrap(void);
-extern void		sh_deparse(Sfio_t*,const Shnode_t*,int,int);
+extern void		sh_deparse(Sfio_t*,const Shnode_t*,nvflag_t,int);
 extern int		sh_debug(const char*,const char*,const char*,char *const[],int);
 extern char 		**sh_envgen(void);
 extern Sfdouble_t	sh_arith(const char*);
@@ -149,7 +149,7 @@ extern void		sh_clear_subshell_pwdfd(void);
     extern int		sh_validate_subpwdfd(void);
 #endif /* _lib_openat */
 #if SHOPT_NAMESPACE
-    extern Namval_t	*sh_fsearch(const char *,int);
+    extern Namval_t	*sh_fsearch(const char *,nvflag_t);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */
@@ -159,7 +159,6 @@ extern void		*sh_calloc(size_t nmemb, size_t size);
 extern char		*sh_strdup(const char *s);
 extern void		*sh_memdup(const void *s, size_t n);
 extern char		*sh_getcwd(void);
-#define new_of(type,x)	((type*)sh_malloc(sizeof(type)+(x)))
 #define sh_newof(p,t,n,x)	((p)?(t*)sh_realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)sh_calloc(1,sizeof(t)*(n)+(x)))
 
 #define URI_RFC3986_UNRESERVED "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"

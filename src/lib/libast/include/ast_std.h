@@ -31,6 +31,14 @@
 #define _AST_STD_H		1
 #define _AST_STD_I		1
 
+/*
+ * Define inline as an empty macro if we are
+ * compiling with C89.
+ */
+#if __STDC_VERSION__ < 199901L
+#define inline
+#endif
+
 #include <ast_standards.h>
 #include <ast_common.h>
 

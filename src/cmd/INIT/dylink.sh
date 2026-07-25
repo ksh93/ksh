@@ -21,6 +21,8 @@ z)	emulate ksh ;;
 *)	(command set -o posix) 2>/dev/null && set -o posix ;;
 esac
 set -o noglob	# avoid pathname expansion interfering with field splitting
+CCn='
+'  # newline
 
 note()
 {
@@ -55,17 +57,36 @@ esac
 
 # Parse options.
 unset opt_query exec_file module_name l_flags version prefix suffix
+deproot=$INSTALLROOT/lib/lib
 while getopts 'Qe:m:l:v:p:s:' opt
 do	case $opt in
-	Q)	opt_query=y ;;      # query support for dynamic libraries on this system
-	e)	exec_file=$OPTARG ;;
-	m)	module_name=$OPTARG ;;
-	l)	l_flags="$l_flags -l$OPTARG" ;;
-	v)	version=$OPTARG ;;  # this should be like 6.0
-	p)	prefix=$OPTARG ;;   # this should be 'lib' or empty
-	s)	suffix=$OPTARG ;;   # this should be like .dylib or .so
-	'?')	exit 2 ;;
-	*)	err_out "Internal error (getopts)" ;;
+	Q)	opt_query=y         # query support for dynamic libraries on this system
+		;;
+	e)	exec_file=$OPTARG
+		;;
+	m)	test -n "${module_name+m}" && err_out "-m cannot be used more than once"
+		test -n "${l_flags+l}" && err_out "-m cannot be used after -l"
+		test -f "$OPTARG.req" || err_out "$OPTARG.req not found -- generate it with mkreq(1)"
+		l_flags=$(sed 1d "$OPTARG.req") || exit
+		module_name=$OPTARG
+		;;
+	l)	if	test -f "$OPTARG.req"
+		then    l_flags=${l_flags:+$l_flags$CCn}$(cat "$OPTARG.req") || exit
+		elif	test -f "$deproot/$OPTARG"
+		then	l_flags=${l_flags:+$l_flags$CCn}$(cat "$deproot/$OPTARG") || exit
+		else	l_flags=${l_flags:+$l_flags$CCn}\ -l$OPTARG
+		fi
+		;;
+	v)	version=$OPTARG     # this should be like 6.0
+		;;
+	p)	prefix=$OPTARG      # this should be 'lib' or empty
+		;;
+	s)	suffix=$OPTARG      # this should be like .dylib or .so
+		;;
+	'?')	exit 2
+		;;
+	*)	err_out "Internal error (getopts)"
+		;;
 	esac
 done
 shift $((OPTIND - 1))
@@ -118,6 +139,26 @@ cygwin.*)
 	esac
 	;;
 esac
+
+# Deduplicate -l flags.
+# Keep the last-mentioned of each item that occurs multiple times (this is
+# required for passing libraries to the linker in the correct order; that
+# is, each dependency must come after all the libraries that depend on it).
+dupes=$l_flags
+l_flags=
+while	test -n "$dupes"
+do	# Grab first item from dupes
+	item=${dupes%%"$CCn"*}
+	# Remove that item from dupes
+	dupes=${dupes#"$item"}
+	dupes=${dupes#"$CCn"} # remove $CCn separately as last item won't end in it
+	# Skip the item if another identical item is still in dupes
+	case "$CCn$dupes$CCn" in
+	*"$CCn$item$CCn"*)
+		continue ;;
+	esac
+	l_flags="$l_flags$item"
+done
 
 # Set destination directory.
 dest_dir=$INSTALLROOT/dyn
