@@ -191,14 +191,14 @@ static void
 tmlocal(time_t now)
 {
 	Tm_zone_t*		zp;
-	int			n;
 	char*			s;
 	char*			e = NULL;
-	int			i;
-	int			m;
-	int			o;
-	int			p;
-	int			isdst;
+	int			utc_offset;	/* offset from Coordinated Universal Time (UTC) */
+	int			utc_offset_old;
+	int			isdst;		/* nonzero if daylight saving time */
+	int			isdst_old;
+	int			dst_offset;
+	int			month;
 	char*			t;
 	struct tm*		tp;
 	char			buf[16];
@@ -238,9 +238,9 @@ tmlocal(time_t now)
 	 */
 
 	tm_info.zone = tm_info.local = &local;
-	n = tzwest(&now, &isdst);
-	p = n;
-	o = isdst;
+	utc_offset = tzwest(&now, &isdst);
+	utc_offset_old = utc_offset;
+	isdst_old = isdst;
 
 	/*
 	 * compute local DST offset by roaming
@@ -248,31 +248,32 @@ tmlocal(time_t now)
 	 * with a system-recognized DST change
 	 */
 
-	for (i = 0; i < 12; i++)
+	for (month = 1; month <= 12; month++)
 	{
 		now -= 31 * 24 * 60 * 60;
-		if ((m = tzwest(&now, &isdst)) != n && ((!isdst && o) || (isdst && !o)))
+		/* only break offset calculations for a DST shift */
+		if ((dst_offset = tzwest(&now, &isdst)) != utc_offset && ((!isdst && isdst_old) || (isdst && !isdst_old)))
 		{
-			m -= (n - p);
-			n = p;
+			dst_offset -= (utc_offset - utc_offset_old);
+			utc_offset = utc_offset_old;
 			if (!isdst)
 			{
-				n = m;
-				m = p;
+				utc_offset = dst_offset;
+				dst_offset = utc_offset_old;
 			}
 			break;
 		}
-		n = m;
-		if (i == 11)
+		utc_offset = dst_offset;
+		if (month == 12)
 		{
-			n = p;
-			m = n;
+			utc_offset = utc_offset_old;
+			dst_offset = utc_offset;
 		}
 	}
-	m -= n;
-	isdst = o;
-	local.west = (short)n;
-	local.dst = (short)m;
+	dst_offset -= utc_offset;
+	isdst = isdst_old;
+	local.west = (short)utc_offset;
+	local.dst = (short)dst_offset;
 
 	/*
 	 * now get the time zone names
@@ -335,7 +336,7 @@ tmlocal(time_t now)
 		{
 			if (zp->type)
 				t = zp->type;
-			if (zp->west == n && zp->dst == m)
+			if (zp->west == utc_offset && zp->dst == dst_offset)
 			{
 				local.type = t;
 				if (!local.standard)
@@ -347,7 +348,7 @@ tmlocal(time_t now)
 					if (s < e - 1)
 					{
 						*s++ = ' ';
-						tmpoff(s, (size_t)(e - s), tm_info.format[TM_DT], m, TM_DST);
+						tmpoff(s, (size_t)(e - s), tm_info.format[TM_DT], dst_offset, TM_DST);
 					}
 					s = buf;
 				}
@@ -363,13 +364,13 @@ tmlocal(time_t now)
 			 */
 
 			e = (s = buf) + sizeof(buf);
-			s = tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], n, 0);
+			s = tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], utc_offset, 0);
 			if (!local.standard)
 				local.standard = strdup(buf);
 			if (s < e - 1)
 			{
 				*s++ = ' ';
-				tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], m, TM_DST);
+				tmpoff(s, (size_t)(e - s), tm_info.format[TM_UT], dst_offset, TM_DST);
 				if (!local.daylight)
 					local.daylight = strdup(buf);
 			}

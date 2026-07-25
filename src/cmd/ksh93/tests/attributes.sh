@@ -15,6 +15,7 @@
 #            Johnothan King <johnothanking@protonmail.com>             #
 #         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #                    Sertonix <sertonix@posteo.net>                    #
+#               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
 #                                                                      #
 ########################################################################
 
