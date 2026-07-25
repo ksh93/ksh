@@ -211,14 +211,62 @@ function do_test # 1:LINENO 2:printf-STRING 3:match-string
 }
 
 # The first tests require a time zone with one or more historical changes.
-format='%Y-%m-%d %H:%M:%S'
-export TZ=Europe/Riga
-
 C='Historical changes (bad time)' # https://github.com/ksh93/ksh/issues/669
+export TZ=Europe/Riga
+format='%Y-%m-%d %H:%M:%S'
 T '#236961303'				'1977-07-05 17:35:03'
+format='%s'
+T '1977-07-05 17:35:03'		'236961303'
 
 export TZ=Europe/London
+format='%Y-%m-%d %H:%M:%S'
 T '#0'					'1970-01-01 01:00:00'
+format='%s'
+T '1970-01-01 01:00:00'		'0'
+
+C='Before and after a historical change (bad time)'
+export TZ=Pacific/Apia
+format='%Y-%m-%d %H:%M:%S'
+T '#1325239200'			'2011-12-31 00:00:00'
+T '#1325239199'			'2011-12-29 23:59:59'
+format='%s'
+T '2011-12-31 00:00:00'		'1325239200'
+T '2011-12-29 23:59:59'		'1325239199'
+
+C='Historical change from one DST zone to another (bad time)'
+export TZ=Europe/Chisinau
+format='%Y-%m-%d %H:%M:%S'
+T '#642286800'				'1990-05-10 00:00:00'
+format='%s'
+T '1990-05-10 00:00:00'		'642286800'
+
+C='Historical change from DST to standard (bad time)'
+export TZ=America/Indiana/Knox
+format='%Y-%m-%d %H:%M:%S'
+T '#688626000'				'1991-10-28 00:00:00'
+format='%s'
+T '1991-10-28 00:00:00'		'688626000'
+
+C='Historical change from standard to DST (bad time)'
+export TZ=America/Kentucky/Louisville
+format='%Y-%m-%d %H:%M:%S'
+T '#126766800'				'1974-01-07 00:00:00'
+format='%s'
+T '1974-01-07 00:00:00'		'126766800'
+
+C='Historical change from standard to standard (bad time)'
+export TZ=America/Argentina/San_Juan
+format='%Y-%m-%d %H:%M:%S'
+T '#1086148800'			'2004-06-02 00:00:00'
+format='%s'
+T '2004-06-02 00:00:00'		'1086148800'
+
+C='POSIX timezone strings without rules (bad time, musl)' #https://github.com/ksh93/ksh/issues/976
+export TZ=EST5EDT
+format='%Y-%m-%d %H:%M:%S'
+T '#1274252800'			'2010-05-19 03:06:40'
+format='%s'
+T '2010-05-19 03:06:40'		'1274252800'
 
 format='%Y-%m-%d'
 export TZ=UTC

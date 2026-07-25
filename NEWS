@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-25:
+
+- For 'printf %T' and the date(1) builtin, multiple problems have been
+  fixed with the conversion of Daylight Savings Time offsets, as well as
+  contemporaneous time zones.
+
 2026-07-24:
 
 - Fix for 'read -t': the timeout was not deactivated if the read operation

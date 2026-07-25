@@ -172,6 +172,10 @@ tmxdate(const char* s, char** e, Time_t now)
 	int		dir;
 	int		dst;
 	int		zone;
+	int		offset;
+	int		dst_old;
+	int		west_old;
+	int		isdst_old;
 	int		c;
 	int		f;
 	int		i;
@@ -206,6 +210,11 @@ tmxdate(const char* s, char** e, Time_t now)
 	 */
 
 	tm = tmxtm(&ts, now, NULL, 1);
+
+	dst_old = tm->tm_zone->dst;
+	west_old = tm->tm_zone->west;
+	isdst_old = tm->tm_isdst;
+
 	tm_info.date = tm->tm_zone;
 	day = -1;
 	dir = 0;
@@ -1779,6 +1788,17 @@ tmxdate(const char* s, char** e, Time_t now)
 			tm->tm_mday += j;
 		}
 	}
+
+	/*
+	 * Apply an offset to correct for historical time zone changes.
+	 */
+	tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 1);
+	offset = tm->tm_zone->west - west_old;
+	if (tm->tm_isdst)
+		offset += tm->tm_zone->dst - dst_old;
+	tm->tm_min += offset;
+	tmfix(tm);
+
 	now = tmxtime(tm, zone);
 	if (tm->tm_year <= 70 && tmxsec(now) > 31536000)
 	{
@@ -1787,5 +1807,13 @@ tmxdate(const char* s, char** e, Time_t now)
 	}
 	if (e)
 		*e = last;
+
+	/*
+	 * Ensure that a proper time zone has been chosen. If the time
+	 * zones differ, this means that a historical change has occurred.
+	 */
+	if (!(dst_old == tm->tm_zone->dst && west_old == tm->tm_zone->west && isdst_old == tm->tm_isdst))
+		goto reset;
+
 	return now;
 }
