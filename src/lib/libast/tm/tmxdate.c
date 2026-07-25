@@ -1791,14 +1791,11 @@ tmxdate(const char* s, char** e, Time_t now)
 		}
 	}
 	tm = tmxtm(tm, tmxtime(tm, zone), tm->tm_zone, 1);
-	if (!first)
-	{
-		int offset = tm->tm_zone->west - west_old;
-		if (tm->tm_isdst)
-			offset += tm->tm_zone->dst - dst_old;
-		tm->tm_min += offset;
-		tmfix(tm);
-	}
+	int offset = tm->tm_zone->west - west_old;
+	if (tm->tm_isdst)
+		offset += tm->tm_zone->dst - dst_old;
+	tm->tm_min += offset;
+	tmfix(tm);
 	now = tmxtime(tm, zone);
 	if (tm->tm_year <= 70 && tmxsec(now) > 31536000)
 	{
