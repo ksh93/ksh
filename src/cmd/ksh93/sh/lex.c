@@ -607,7 +607,7 @@ int sh_lex(Lex_t* lp)
 					lp->comp_assign = 0;
 				return lp->token=c;
 			case S_ESC:
-				if(varnametry)
+				if(mode==ST_NAME && varnametry)
 					varnamecount--;
 				/* check for \<new-line> */
 				n = fcgetc();
@@ -669,13 +669,13 @@ int sh_lex(Lex_t* lp)
 				}
 				/* FALLTHROUGH */
 			case S_RES:
-				varnametry = 1;
-				varnamecount = LEN;
 				if(!lp->lexd.dolparen)
 					lp->lexd.first = fcseek(0)-LEN;
 				else if(lp->lexd.docword)
 					lp->lexd.docend = fcseek(0)-LEN;
 				mode = ST_NAME;
+				varnametry = 1;
+				varnamecount = LEN;
 				if(c=='.')
 				{
 					fcseek(-LEN);
@@ -873,7 +873,7 @@ int sh_lex(Lex_t* lp)
 				poplevel(lp);
 				break;
 			case S_DOT:
-				if(varnamelength && fcpeek(-LEN - 1)==']')
+				if(mode==ST_NAME && varnamelength && fcpeek(-LEN - 1)==']')
 					varnamelength = 0;
 				/* make sure next character is alpha */
 				if((n = fcgetc()) > 0)
@@ -1131,7 +1131,7 @@ int sh_lex(Lex_t* lp)
 					goto epat;
 				continue;
 			case S_EQ:
-				if(varnametry && !varnamelength)
+				if(mode==ST_NAME && varnametry && !varnamelength)
 				{
 					varnamelength = varnamecount - LEN;
 					if(varnamelength > 0 && fcpeek(-LEN - 1) == '+')
@@ -1152,7 +1152,7 @@ int sh_lex(Lex_t* lp)
 				}
 				break;
 			case S_BRACT:
-				if(varnametry && !varnamelength && fcpeek(-LEN - 1)!='.')
+				if(mode==ST_NAME && varnametry && !varnamelength && fcpeek(-LEN - 1)!='.')
 					varnamelength = varnamecount - LEN;
 				/* check for possible subscript */
 				if((n=endchar(lp))==RBRACT || n==RPAREN ||
