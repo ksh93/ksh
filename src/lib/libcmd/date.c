@@ -30,7 +30,7 @@
 #include <times.h>
 
 static const char usage[] =
-"[-?\n@(#)$Id: date (AT&T Research) 2011-01-27 $\n]"
+"[-?\n@(#)$Id: date (ksh 93u+m) 2026-07-25 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?date - set/list/convert dates]"
 "[+DESCRIPTION?\bdate\b sets the current date and time (with appropriate"

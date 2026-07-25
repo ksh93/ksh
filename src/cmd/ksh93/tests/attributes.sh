@@ -15,6 +15,7 @@
 #            Johnothan King <johnothanking@protonmail.com>             #
 #         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #                    Sertonix <sertonix@posteo.net>                    #
+#               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
 #                                                                      #
 ########################################################################
 
@@ -359,9 +360,9 @@ $SHELL -c 'builtin date' >/dev/null 2>&1 &&
 # check env var changes against a builtin that uses the env var
 
 SEC=1234252800
-ETZ=EST5EDT
+ETZ=EST5EDT,M3.2.0/2:00:00,M11.1.0/2:00:00
 EDT=03
-PTZ=PST8PDT
+PTZ=PST8PDT,M3.2.0/2:00:00,M11.1.0/2:00:00
 PDT=00
 
 CMD="date -f%H \\#$SEC"
