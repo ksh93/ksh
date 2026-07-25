@@ -4,9 +4,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-07-25:
 
-- For 'printf %T' and the date(1) builtin, multiple problems have been fixed
-  with the conversion of Daylight Savings Time offsets and contemporaneous
-  time zones on Linux systems with musl libc.
+- For 'printf %T' and the date(1) builtin, multiple problems have been
+  fixed with the conversion of Daylight Savings Time offsets, as well as
+  contemporaneous time zones.
 
 2026-07-24:
 
