@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -950,6 +950,12 @@ got=$(typeset toto[${SUCCESS:=0}]="SUCCESS" 2>&1; typeset -p toto)
 exp='typeset -a toto=(SUCCESS)'
 [[ $got == "$exp" ]] || err_exit "array index containing expansion containing '=' misparsed in declaration command" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# https://github.com/ksh93/ksh/issues/905
+unset x y2
+got=$( set +x; redirect 2>&1; x=( (a=1 b=2) (c=3 d=4) ); typeset y2=${x[0].a}; echo $y2 )
+exp='1'
+[[ $got == "$exp" ]] || err_exit "typeset y2=\${x[0].a} (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

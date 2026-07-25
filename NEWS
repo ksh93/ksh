@@ -8,6 +8,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   fixed with the conversion of Daylight Savings Time offsets, as well as
   contemporaneous time zones.
 
+- Fixed a bug, introduced on 2024-01-16, where 'typeset -r y=${x[0].a}'
+  would cause typeset to throw a spurious "invalid variable name" error
+  due to the ]. in the ${x[0].a} expansion.
+
 2026-07-24:
 
 - Fix for 'read -t': the timeout was not deactivated if the read operation
