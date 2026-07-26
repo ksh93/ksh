@@ -186,6 +186,21 @@ void	sh_fault(int sig)
 	}
 done:
 	/*
+	 * Do not return on SIGFPE because, at least on x86_64, we risk the faulty arithmetic operation
+	 * being retried, causing the shell to freeze in an infinite loop of SIGFPE and sh_fault calls.
+	 * Instead, execute the trap (if any) and, if it returns here, then throw an error and longjmp.
+	 */
+	if(sig==SIGFPE)
+	{
+		sh.sigflag[sig] &= ~SH_SIGTRAP;
+		if(trap)
+			sh_trap(trap,0);
+		sigrelease(sig);
+		pp->mode = SH_JMPERREXIT;
+		errormsg(SH_DICT,ERROR_PANIC,"arithmetic fault");
+		UNREACHABLE();
+	}
+	/*
 	 * Always restore errno, because this code is run during signal handling which may interrupt loops like:
 	 *	while((fd = open(path, flags, mode)) < 0)
 	 *		if(errno!=EINTR)
