@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-07-26:
+
+- Fixed problems in the mv(1) and cp(1) path-bound built-in commands:
+  - mv(1) now correctly moves entire directory hierarchies across file systems.
+  - Non-recursive cp(1) no longer attempts to copy a directory as a plain file.
+  - cp(1) now correctly copies special files such as FIFOs.
+  - A nonexistent destination directory now results in a useful error message.
+
 2026-07-25:
 
 - For 'printf %T' and the date(1) builtin, multiple problems have been

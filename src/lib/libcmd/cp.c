@@ -24,7 +24,7 @@
  */
 
 static const char usage_head[] =
-"[-?\n@(#)$Id: cp (ksh 93u+m) 2024-11-26 $\n]"
+"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-26 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -71,14 +71,15 @@ static const char usage_ln[] =
 ;
 
 static const char usage_mv[] =
-"[+NAME?mv - rename files]"
+"[+NAME?mv - move or rename files]"
 "[+DESCRIPTION?If the last argument names an existing directory, \bmv\b "
-    "renames each \afile\a into a file with the same name in that directory. "
+    "moves each \afile\a into that directory. "
     "Otherwise, if only two files are given, \bmv\b renames the first onto "
     "the second. It is an error if the last argument is not a directory and "
-    "more than two files are given. If a source and destination file reside "
-    "on different filesystems then \bmv\b copies the file contents to the "
-    "destination and then deletes the source file.]"
+    "more than two files are given. Each source file or directory that "
+    "resides on another file system than the destination is recursively "
+    "copied to the destination and deleted. However, \bmv\b will not cross "
+    "file system boundaries while traversing source directory hierarchies.]"
 
 "[U:remove-destination?Remove existing destination files before moving.]"
 ;
@@ -116,17 +117,18 @@ static const char usage_tail[] =
 "[b?\b--backup\b using the type in the \bVERSION_CONTROL\b environment "
     "variable.]"
 "[x|X:xdev|local|mount|one-file-system?Do not descend into directories "
-    "in different filesystems than their parents.]"
+    "in other file systems than their parents.]"
 
 "\n"
 "\nsource destination\n"
 "file ... directory\n"
 "\n"
 
-"[+SEE ALSO?\bpax\b(1), \bfsync\b(2), \brename\b(2), \bunlink\b(2),"
-"	\bremove\b(3)]"
+"[+SEE ALSO?\bpax\b(1), \bfsync\b(2), \blink\b(2), \bsymlink\b(2), "
+    "\brename\b(2), \bremove\b(2), \brmdir\b(2), \bunlink\b(2)]"
 ;
 
+#include <ast_release.h>
 #include <cmd.h>
 #include <ls.h>
 #include <times.h>
@@ -134,12 +136,14 @@ static const char usage_tail[] =
 #include <hashkey.h>
 #include <stk.h>
 #include <tmx.h>
+#include <libgen.h>
 
 #define PATH_CHUNK	256U
 
-#define CP		1
-#define LN		2
-#define MV		3
+#define CP		0x1		/* cp(1), copy files or dirs	*/
+#define LN		0x2		/* ln(1), hard link or symlink	*/
+#define MV		0x4		/* mv(1), move or rename	*/
+#define MV_XDEV		(0x8 | CP)	/* mv(1), cross-device move	*/
 
 #define PRESERVE_IDS	0x1		/* preserve UID and GID		*/
 #define PRESERVE_PERM	0x2		/* preserve permissions		*/
@@ -153,23 +157,23 @@ static const char usage_tail[] =
 typedef struct State_s			/* program state		*/
 {
 	Shbltin_t*	context;	/* builtin context		*/
+	int		op;		/* {CP,LN,MV,MV_XDEV}		*/
+	int		preserve;	/* preserve { ids perms times }	*/
 	int		backup;		/* BAK_* type			*/
-	int		directory;	/* destination is directory	*/
-	int		flags;		/* FTS_* flags			*/
-	int		force;		/* force approval		*/
-	int		hierarchy;	/* preserve hierarchy		*/
-	int		interactive;	/* prompt for approval		*/
+	int		wflags;		/* open() for write flags	*/
 	mode_t		missmode;	/* default missing dir mode	*/
 	mode_t		perm;		/* permissions to preserve	*/
-	int		op;		/* {CP,LN,MV}			*/
-	int		preserve;	/* preserve { ids perms times }	*/
-	int		recursive;	/* subtrees too			*/
-	int		remove;		/* remove destination before op	*/
-	int		sync;		/* fsync() each file after copy	*/
 	uid_t		uid;		/* caller UID			*/
-	int		update;		/* replace only if newer	*/
-	int		verbose;	/* list each file before op	*/
-	int		wflags;		/* open() for write flags	*/
+
+	char		directory;	/* destination is directory	*/
+	char		force;		/* force approval		*/
+	char		hierarchy;	/* preserve hierarchy		*/
+	char		interactive;	/* prompt for approval		*/
+	char		recursive;	/* subtrees too			*/
+	char		remove;		/* remove destination before op	*/
+	char		sync;		/* fsync() each file after copy	*/
+	char		update;		/* replace only if newer	*/
+	char		verbose;	/* list each file before op	*/
 
 	int		(*link)(const char*, const char*);	/* link	*/
 	int		(*stat)(const char*, struct stat*);	/* stat	*/
@@ -179,7 +183,6 @@ typedef struct State_s			/* program state		*/
 	size_t		postsiz;	/* state.path post index	*/
 	ssize_t		presiz;		/* state.path pre index		*/
 	size_t		suflen;		/* strlen(state.suffix)		*/
-
 
 	char*		path;		/* to pathname buffer		*/
 	char*		opname;		/* state.op message string	*/
@@ -191,6 +194,35 @@ typedef struct State_s			/* program state		*/
 } State_t;
 
 static const char	dot[2] = { '.' };
+
+static void noreturn
+outofmemory(State_t *state)
+{
+	if (state->path)
+	{
+		free(state->path);
+		state->path = NULL;
+	}
+	state->pathsiz = 0;
+	state->context->ptr = NULL;
+	free(state);
+	error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
+	UNREACHABLE();
+}
+
+static void
+grow_path(State_t *state, size_t len)
+{
+	char	*tmp;
+
+	if (state->pathsiz >= state->postsiz + len)
+		return;
+	state->pathsiz = roundof(state->postsiz + 2, PATH_CHUNK);
+	tmp = realloc(state->path, state->pathsiz);
+	if (!tmp)
+		outofmemory(state);
+	state->path = tmp;
+}
 
 /*
  * preserve support
@@ -207,6 +239,7 @@ preserve(State_t* state, const char* path, struct stat* ns, struct stat* os)
 	{
 		n = ((ns->st_uid != os->st_uid) << 1) | (ns->st_gid != os->st_gid);
 		if (n && chown(state->path, os->st_uid, os->st_gid))
+		{
 			switch (n)
 			{
 			case 01:
@@ -219,6 +252,7 @@ preserve(State_t* state, const char* path, struct stat* ns, struct stat* os)
 				error(ERROR_SYSTEM|2, "%s: cannot reset owner to %s and group to %s", path, fmtuid(os->st_uid), fmtgid(os->st_gid));
 				break;
 			}
+		}
 	}
 }
 
@@ -284,11 +318,7 @@ visit(State_t* state, FTSENT* ent)
 	len++;
 	if (state->directory)
 	{
-		if ((state->postsiz + (size_t)len) > state->pathsiz && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + (size_t)len, PATH_CHUNK), 0)))
-		{
-			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
-			UNREACHABLE();
-		}
+		grow_path(state, (size_t)len);
 		if (state->hierarchy && ent->fts_level == 0 && strchr(base, '/'))
 		{
 			s = state->path + state->postsiz;
@@ -320,7 +350,20 @@ visit(State_t* state, FTSENT* ent)
 	switch (ent->fts_info)
 	{
 	case FTS_DP:
-		if (state->preserve && state->op != LN || ent->fts_level > 0 && (ent->fts_statp->st_mode & S_IRWXU) != S_IRWXU)
+		/*
+		 * Post-order visit of directory -- a second
+		 * visit after all operations on it are done.
+		 */
+		if (state->op == MV_XDEV)
+		{
+			/*
+			 * Cross-device move: we have copied and unlinked the contents of
+			 * the directory, so now attempt to remove the directory itself.
+			 */
+			if (rmdir(ent->fts_path))
+				error(ERROR_SYSTEM|2,"%s: cannot remove", ent->fts_path);
+		}
+		else if (state->preserve && state->op != LN || ent->fts_level > 0 && (ent->fts_statp->st_mode & S_IRWXU) != S_IRWXU)
 		{
 			if (len && ent->fts_level > 0)
 				memcpy(state->path + state->postsiz, base, (size_t)len);
@@ -343,8 +386,11 @@ visit(State_t* state, FTSENT* ent)
 		if (!state->recursive)
 		{
 			fts_set(NULL, ent, FTS_SKIP);
-			if (state->op == CP)
-				error(1, "%s: directory -- copying as plain file", ent->fts_path);
+			if (state->op & CP)
+			{
+				error(2, "%s: skipping directory", ent->fts_path);
+				return 0;
+			}
 			else if (state->link == link && !state->force)
 			{
 				error(2, "%s: cannot link directory", ent->fts_path);
@@ -359,20 +405,26 @@ visit(State_t* state, FTSENT* ent)
 		case FTS_DNX:
 			error(2, "%s: cannot search directory", ent->fts_path);
 			fts_set(NULL, ent, FTS_SKIP);
-
 			/* FALLTHROUGH */
 		case FTS_D:
 			if (state->directory)
 				memcpy(state->path + state->postsiz, base, (size_t)len);
+			m = -1;
 			if (!(*state->stat)(state->path, &st))
 			{
+				if (state->op == MV_XDEV)
+				{
+					/* Refuse to write into an existing directory other than the destination. */
+					error(2, "%s: cannot %s existing directory", state->path, state->opname);
+					return -1;
+				}
 				if (!S_ISDIR(st.st_mode))
 				{
 					error(2, "%s: not a directory -- %s ignored", state->path, ent->fts_path);
 					return 0;
 				}
 			}
-			else if (mkdir(state->path, (ent->fts_statp->st_mode & S_IPERM)|(ent->fts_info == FTS_D ? S_IRWXU : 0)))
+			else if (m = mkdir(state->path, (ent->fts_statp->st_mode & S_IPERM)|(ent->fts_info == FTS_D ? S_IRWXU : 0)))
 			{
 				error(ERROR_SYSTEM|2, "%s: cannot create directory -- %s ignored", state->path, ent->fts_path);
 				fts_set(NULL, ent, FTS_SKIP);
@@ -383,6 +435,9 @@ visit(State_t* state, FTSENT* ent)
 				state->path[state->postsiz++] = '/';
 				state->presiz--;
 			}
+			/* mv: show --verbose message on successful mkdir */
+			if (state->op == MV_XDEV && m == 0)
+				goto success;
 			return 0;
 		}
 		break;
@@ -510,10 +565,7 @@ visit(State_t* state, FTSENT* ent)
 			sfprintf(state->tmp, "%s%s", state->path, state->suffix);
 		backup:
 			if (!(s = sfstruse(state->tmp)))
-			{
-				error(ERROR_SYSTEM|3, "%s: out of memory", state->path);
-				UNREACHABLE();
-			}
+				outofmemory(state);
 			if (rename(state->path, s))
 			{
 				error(ERROR_SYSTEM|2, "%s: cannot backup to %s", state->path, s);
@@ -533,27 +585,14 @@ visit(State_t* state, FTSENT* ent)
 	switch (state->op)
 	{
 	case MV:
-		for (;;)
-		{
-			if (!rename(ent->fts_path, state->path))
-				goto success;
-			if (errno == ENOENT)
-				rm = 1;
-			else if (!rm && st.st_mode && !remove(state->path))
-			{
-				rm = 1;
-				continue;
-			}
-			if (errno != EXDEV && (rm || S_ISDIR(ent->fts_statp->st_mode)))
-			{
-				error(ERROR_SYSTEM|2, "%s: cannot rename to %s", ent->fts_path, state->path);
-				return 0;
-			}
-			else
-				break;
-		}
-		/* FALLTHROUGH */
+		if (!rename(ent->fts_path, state->path))
+			goto success;
+		if (errno != ENOENT && st.st_mode && !remove(state->path) && !rename(ent->fts_path, state->path))
+			goto success;
+		error(ERROR_SYSTEM|2, "%s: cannot rename to %s", ent->fts_path, state->path);
+		return 0;
 	case CP:
+	case MV_XDEV:
 		if (S_ISLNK(ent->fts_statp->st_mode))
 		{
 			ssize_t l;
@@ -569,7 +608,7 @@ visit(State_t* state, FTSENT* ent)
 				return 0;
 			}
 		}
-		else if (state->op == CP || S_ISREG(ent->fts_statp->st_mode) || S_ISDIR(ent->fts_statp->st_mode))
+		else if (S_ISREG(ent->fts_statp->st_mode) || S_ISDIR(ent->fts_statp->st_mode))
 		{
 			int	rfd = -1;
 			int	wfd = -1;
@@ -646,8 +685,12 @@ visit(State_t* state, FTSENT* ent)
 						preserve(state, state->path, &st, ent->fts_statp);
 				}
 			}
-			if (state->op == MV && remove(ent->fts_path))
+			/* For a cross-device move, delete the file after copying. */
+			if (state->op == MV_XDEV && unlink(ent->fts_path))
+			{
 				error(ERROR_SYSTEM|1, "%s: cannot remove", ent->fts_path);
+				return 0;
+			}
 		}
 	success:
 		if (state->verbose)
@@ -666,16 +709,18 @@ visit(State_t* state, FTSENT* ent)
 int
 b_cp(int argc, char** argv, Shbltin_t* context)
 {
-	char*		file;
+	char*		dest;
 	char*		s;
 	char**		v;
 	char*		backup_type;
 	FTS*		fts;
 	FTSENT*		ent;
 	const char*	usage;
+	int		FTS_flags = 0;  /* capitals to avoid name conflict with libast's fts_flags() */
 	int		path_resolve = 0;
 	int		standard;
-	struct stat	st;
+	int		dest_exists;
+	struct stat	dest_stat;
 	State_t*	state;
 	Shbltin_t*	sh;
 	Shbltin_t*	cleanup = context;
@@ -684,10 +729,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	if (!(sh = CMD_CONTEXT(context)) || !(state = (State_t*)sh->ptr))
 	{
 		if (!(state = newof(0, State_t, 1, 0)))
-		{
-			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
-			UNREACHABLE();
-		}
+			outofmemory(state);
 		if (sh)
 			sh->ptr = state;
 	}
@@ -696,14 +738,11 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	state->context = context;
 	state->presiz = -1;
 	backup_type = 0;
-	state->flags = FTS_NOCHDIR|FTS_NOSEEDOTDIR;
+	FTS_flags = FTS_NOCHDIR|FTS_NOSEEDOTDIR;
 	state->uid = geteuid();
 	state->wflags = O_WRONLY|O_CREAT|O_TRUNC|O_BINARY;
 	if (!state->tmp && !(state->tmp = sfstropen()))
-	{
-		error(ERROR_SYSTEM|3, "out of memory");
-		UNREACHABLE();
-	}
+		outofmemory(state);
 	sfputr(state->tmp, usage_head, -1);
 	standard = !!conformance(0, 0);
 	switch (error_info.id[0])
@@ -719,7 +758,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	case 'L':
 		sfputr(state->tmp, usage_ln, -1);
 		state->op = LN;
-		state->flags |= FTS_PHYSICAL;
+		FTS_flags |= FTS_PHYSICAL;
 		state->link = link;
 		state->remove = 1;
 		state->stat = lstat;
@@ -729,7 +768,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	case 'M':
 		sfputr(state->tmp, usage_mv, -1);
 		state->op = MV;
-		state->flags |= FTS_PHYSICAL;
+		FTS_flags |= FTS_PHYSICAL;
 		state->preserve = PRESERVE_IDS|PRESERVE_PERM|PRESERVE_TIME;
 		state->stat = lstat;
 		path_resolve = 1;
@@ -740,17 +779,14 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	}
 	sfputr(state->tmp, usage_tail, -1);
 	if (!(usage = sfstruse(state->tmp)))
-	{
-		error(ERROR_SYSTEM|3, "out of memory");
-		UNREACHABLE();
-	}
+		outofmemory(state);
 	state->opname = state->op == CP ? ERROR_translate(0, 0, 0, "overwrite") : ERROR_translate(0, 0, 0, "replace");
 	for (;;)
 	{
 		switch (optget(argv, usage))
 		{
 		case 'a':
-			state->flags |= FTS_PHYSICAL;
+			FTS_flags |= FTS_PHYSICAL;
 			state->preserve = PRESERVE_IDS|PRESERVE_PERM|PRESERVE_TIME;
 			state->recursive = 1;
 			path_resolve = 1;
@@ -810,8 +846,8 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 			state->recursive = 1;
 			if (path_resolve < 1)
 			{
-				state->flags &= ~FTS_META;
-				state->flags |= FTS_PHYSICAL;
+				FTS_flags &= ~FTS_META;
+				FTS_flags |= FTS_PHYSICAL;
 				path_resolve = 1;
 			}
 			continue;
@@ -827,7 +863,7 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 			state->verbose = 1;
 			continue;
 		case 'x':
-			state->flags |= FTS_XDEV;
+			FTS_flags |= FTS_XDEV;
 			continue;
 		case 'B':
 			backup_type = opt_info.arg;
@@ -837,16 +873,16 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 			state->sync = 1;
 			continue;
 		case 'H':
-			state->flags |= FTS_META|FTS_PHYSICAL;
+			FTS_flags |= FTS_META|FTS_PHYSICAL;
 			path_resolve = 1;
 			continue;
 		case 'L':
-			state->flags &= ~FTS_PHYSICAL;
+			FTS_flags &= ~FTS_PHYSICAL;
 			path_resolve = 1;
 			continue;
 		case 'P':
-			state->flags &= ~FTS_META;
-			state->flags |= FTS_PHYSICAL;
+			FTS_flags &= ~FTS_META;
+			FTS_flags |= FTS_PHYSICAL;
 			path_resolve = 1;
 			continue;
 		case 'S':
@@ -870,11 +906,13 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		argc--;
 		argv++;
 	}
+
+	/*
+	 * At this point, argc==0 for 1 arg, argc==1 for 2 args, etc.
+	 */
+
 	if (!(v = stkalloc(stkstd, (size_t)(argc + 2) * sizeof(char*))))
-	{
-		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
-		UNREACHABLE();
-	}
+		outofmemory(state);
 	memcpy(v, argv, (size_t)(argc + 1) * sizeof(char*));
 	argv = v;
 	if (!standard)
@@ -888,9 +926,11 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	}
 	if (state->backup)
 	{
-		if (!(file = backup_type) && !(backup_type = getenv("VERSION_CONTROL")))
+		char *type_optarg = backup_type;
+		if (!type_optarg && !(backup_type = getenv("VERSION_CONTROL")))
 			state->backup = 0;
 		else
+		{
 			switch (strkey(backup_type))
 			{
 			case HASHKEY6('e','x','i','s','t','i'):
@@ -932,10 +972,11 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 				state->backup = BAK_number;
 				break;
 			default:
-				if (file)
-					error(2, "%s: unknown backup type", backup_type);
+				if (type_optarg)
+					error(2, "%s: unknown backup type", type_optarg);
 				break;
 			}
+		}
 		if (!state->suffix && !(state->suffix = getenv("SIMPLE_BACKUP_SUFFIX")))
 			state->suffix = "~";
 		state->suflen = strlen(state->suffix);
@@ -946,49 +987,138 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		UNREACHABLE();
 	}
 	if (!path_resolve)
-		state->flags |= fts_flags() | FTS_META;
-	file = argv[argc];
+		FTS_flags |= fts_flags() | FTS_META;
+	/* save the destination argument */
+	dest = argv[argc];
+	/* let argv contain only the source argument(s) */
 	argv[argc] = 0;
-	if (s = strrchr(file, '/'))
+	if (s = strrchr(dest, '/'))
 	{
 		while (*s == '/')
 			s++;
 		if (!(!*s || *s == '.' && (!*++s || *s == '.' && !*++s)))
 			s = 0;
 	}
-	if (file != (char*)dot)
-		pathcanon(file, 0, 0);
-	if (!(state->directory = !stat(file, &st) && S_ISDIR(st.st_mode)) && argc > 1)
+	if (dest != (char*)dot)
+		pathcanon(dest, 0, 0);
+	dest_exists = stat(dest, &dest_stat) == 0;
+	state->directory = dest_exists && S_ISDIR(dest_stat.st_mode);
+	if (!state->directory && (s || argc > 1))
 	{
-		error(ERROR_usage(2), "%s", optusage(NULL));
-		UNREACHABLE();
+		error(3, "%s: not a directory", dest);
+		return 1;
 	}
-	if (s && !state->directory)
-		error(3, "%s: not a directory", file);
-	state->postsiz = strlen(file);
-	if (state->pathsiz < roundof(state->postsiz + 2, PATH_CHUNK) && !(state->path = newof(state->path, char, state->pathsiz = roundof(state->postsiz + 2, PATH_CHUNK), 0)))
+	if (!dest_exists)
 	{
-		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
-		UNREACHABLE();
+		char *dup, *parent;
+		/*
+		 * If the destination argument does not exist, see if its
+		 * parent directory does; if so, mv will use its st_dev
+		 * ID to check for the need to move across file systems.
+		 */
+		if (!(dup = strdup(dest)))
+			outofmemory(state);
+		parent = dirname(dup);
+		dest_exists = stat(parent, &dest_stat) == 0;
+		free(dup);
+		if (!dest_exists)
+		{
+			/* Any operation would fail now. */
+			error(2|ERROR_SYSTEM, "%s: cannot access parent", dest);
+			return 1;
+		}
 	}
-	memcpy(state->path, file, state->postsiz + 1);
+	state->postsiz = strlen(dest);
+	grow_path(state, 2);
+	memcpy(state->path, dest, state->postsiz + 1);
 	if (state->directory && state->path[state->postsiz - 1] != '/')
 		state->path[state->postsiz++] = '/';
 	if (state->hierarchy)
 	{
 		if (!state->directory)
-			error(3, "%s: last argument must be a directory", file);
-		state->missmode = st.st_mode;
+			error(3, "%s: last argument must be a directory", dest);
+		state->missmode = dest_stat.st_mode;
 	}
 	state->perm = state->uid ? S_IPERM : (S_IPERM & ~S_ISVTX);
 	if (!state->recursive)
-		state->flags |= FTS_TOP;
-	if (fts = fts_open(argv, state->flags, NULL))
+		FTS_flags |= FTS_TOP;
+
+	/*
+	 * Main operation starts here.
+	 */
+
+	if (state->op == MV)
 	{
+		struct stat src_stat;
+		int i, save_flags, save_preserve;
+		char save_recursive;
+		char *av[2];
+#if _AST_release
+		const int force_xdev = 0;
+#else
+		/* for regression testing */
+		const int force_xdev = getenv("_LIBCMD_MV_FORCE_XDEV") != NULL;
+#endif
+		/*
+		 * For mv, each source file/directory may or may not need to
+		 * be copied and removed due to being on another file system
+		 * than the destination, so each source argument may require
+		 * different fts(3) traversal flags. Therefore, we must open
+		 * a separate fts stream for each one.
+		 */
+		av[1] = NULL;
+		for (i = 0; argv[i]; i++)
+		{
+			av[0] = argv[i];
+			if (stat(av[0], &src_stat) == -1)
+			{
+				if (errno == ENOENT)
+					error(2, "%s: not found", av[0]);
+				else
+					error(ERROR_SYSTEM|2, "%s: cannot move", av[0]);
+				continue;
+			}
+			if (src_stat.st_dev != dest_stat.st_dev || force_xdev)
+			{
+				/* we have a cross-device move */
+				save_flags = FTS_flags;
+				save_preserve = state->preserve;
+				save_recursive = state->recursive;
+				/* set flags for 'cp -ax' equivalence plus removal */
+				state->op = MV_XDEV;
+				FTS_flags = FTS_PHYSICAL | FTS_NOCHDIR | FTS_NOSEEDOTDIR | FTS_XDEV;
+				state->preserve = PRESERVE_IDS | PRESERVE_PERM | PRESERVE_TIME;
+				state->recursive = 1;
+			}
+			if (fts = fts_open(av, FTS_flags, NULL))
+			{
+				while (!sh_checksig(context) && (ent = fts_read(fts)) && !visit(state, ent));
+				fts_close(fts);
+			}
+			else
+				error(ERROR_SYSTEM|2, "%s: cannot move", av[0]);
+			if (state->op == MV_XDEV)
+			{
+				state->op = MV;
+				FTS_flags = save_flags;
+				state->preserve = save_preserve;
+				state->recursive = save_recursive;
+			}
+			if (sh_checksig(context))
+				break;
+		}
+	}
+	else if (fts = fts_open(argv, FTS_flags, NULL))
+	{
+		/*
+		 * Main loop for cp and ln: all the source arguments are
+		 * handled in a single fts(3) run.
+		 */
 		while (!sh_checksig(context) && (ent = fts_read(fts)) && !visit(state, ent));
 		fts_close(fts);
 	}
 	else if (state->link != pathsetlink)
+	{
 		switch (state->op)
 		{
 		case CP:
@@ -997,10 +1127,8 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		case LN:
 			error(ERROR_SYSTEM|2, "%s: cannot link", argv[0]);
 			break;
-		case MV:
-			error(ERROR_SYSTEM|2, "%s: cannot move", argv[0]);
-			break;
 		}
+	}
 	else if ((*state->link)(*argv, state->path))
 		error(ERROR_SYSTEM|2, "%s: cannot link to %s", *argv, state->path);
 	if (cleanup && !sh)
