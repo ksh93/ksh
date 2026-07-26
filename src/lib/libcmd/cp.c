@@ -658,7 +658,20 @@ visit(State_t* state, FTSENT* ent)
 			else
 				ast_close(wfd);
 		}
-		else if (S_ISBLK(ent->fts_statp->st_mode) || S_ISCHR(ent->fts_statp->st_mode) || S_ISFIFO(ent->fts_statp->st_mode))
+		else if (S_ISFIFO(ent->fts_statp->st_mode))
+		{
+			/*
+			 * POSIX mknod spec: "The only portable use of mknod() is to create a FIFO-special file."
+			 * FreeBSD mknod(2): "Creating anything else than a block or character special file is not supported."
+			 * So, in the real world, we need to special-case FIFOs. Thankfully mkfifo(2) is in the standard, too.
+			 */
+			if (mkfifo(state->path, ent->fts_statp->st_mode))
+			{
+				error(ERROR_SYSTEM|2, "%s: cannot copy special file to %s", ent->fts_path, state->path);
+				return 0;
+			}
+		}
+		else if (S_ISBLK(ent->fts_statp->st_mode) || S_ISCHR(ent->fts_statp->st_mode))
 		{
 			if (mknod(state->path, ent->fts_statp->st_mode, idevice(ent->fts_statp)))
 			{
