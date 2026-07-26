@@ -980,8 +980,8 @@ then	for i in 1 2
 		fi
 		[[ $got == "$exp" ]] || err_exit "$mv: expected $(printf %q "$exp"), got $(printf %q "$got")"
 		got=$(find z -print 2>&1)
-		exp=$'z\nz/u\nz/t\nz/t/T\nz/v\nz/v/V\nz/w'
-		[[ $got == "$exp" ]] || err_exit "$mv: result: expected $(printf %q "$exp"), got $(printf %q "$got")"
+		exp=$'z\nz/t\nz/t/T\nz/u\nz/v\nz/v/V\nz/w'
+		[[ $(sort <<<"$got") == "$exp" ]] || err_exit "$mv: result: expected $(printf %q "$exp"), got $(printf %q "$got")"
 		[[ -e t || -e u || -e v || -e w ]] && err_exit "$mv: source remains after move"
 
 		# mv them back
@@ -993,7 +993,7 @@ then	for i in 1 2
 		[[ $got == "$exp" ]] || err_exit "$mv: restore: expected $(printf %q "$exp"), got $(printf %q "$got")"
 		got=$(find t u v w -print 2>&1)
 		exp=$'t\nt/T\nu\nv\nv/V\nw'
-		[[ $got == "$exp" ]] || err_exit "$mv: restore: result: expected $(printf %q "$exp"), got $(printf %q "$got")"
+		[[ $(sort <<<"$got") == "$exp" ]] || err_exit "$mv: restore: result: expected $(printf %q "$exp"), got $(printf %q "$got")"
 		[[ -e z/t || -e z/u || -e z/v || -e z/w ]] && err_exit "$mv: restore: source remains after move"
 
 		# attempt to mv several files/directories into a file
