@@ -28,7 +28,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2026-04-04 $
+@(#)$Id: shtests (ksh 93u+m) 2026-07-26 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -341,6 +341,14 @@ then	: ok
 else	echo "$0: failed to read FEATURE/options" >&2
 	exit 1
 fi
+
+# make the _AST_release macro, or its absence, available to the tests
+# (for regression tests that only work on non-release builds)
+unset _AST_release
+case $( < "$INSTALLROOT/include/ast/ast_release.h" ) in
+~(E)$'\n'#[[:blank:]]*define[[:blank:]]+_AST_release[[:blank:]] )
+	export _AST_release=1 ;;
+esac
 
 SHOPT_MULTIBYTE=$( LC_ALL=C.UTF-8; x=$'\xc3\xa9'; print $(( ${#x}==1 )) )
 if	(( !SHOPT_MULTIBYTE && utf8 && !posix && !compile ))

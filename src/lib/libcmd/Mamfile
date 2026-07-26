@@ -88,13 +88,14 @@ make install virtual
 			prev cmd.h
 		done
 		make cp.c
-			prev %{INCLUDE_AST}/tmx.h
-			prev %{INCLUDE_AST}/stk.h
-			prev %{INCLUDE_AST}/hashkey.h
-			prev %{INCLUDE_AST}/fts.h
-			prev %{INCLUDE_AST}/times.h
-			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/ast_release.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/times.h
+			prev %{INCLUDE_AST}/fts.h
+			prev %{INCLUDE_AST}/hashkey.h
+			prev %{INCLUDE_AST}/stk.h
+			prev %{INCLUDE_AST}/tmx.h
 		done
 		make cut.c
 			prev cmd.h

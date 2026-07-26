@@ -21,6 +21,7 @@
 # Tests for path-bound built-ins from src/lib/libcmd
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
+unset _LIBCMD_MV_FORCE_XDEV
 
 # ======
 # Tests for the cp builtin
@@ -948,6 +949,84 @@ if builtin join 2>/dev/null; then
 	exp=$'Beaune red France 5/5\nRiesling white Germany 3/5\nRioja red Spain 4/5'
 	[[ $got == "$exp" ]] || err_exit "join(1) with field args and process substitutions" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
+# ======
+# mv used to fail to move directory hierarchies across file systems
+# https://github.com/ksh93/ksh/issues/871
+# test mv without and with cross-device move (copy/delete) mode; use a special
+# environment variable to avoid requiring two actual different file systems
+builtin mkfifo 2>/dev/null
+if	builtin cp 2>/dev/null &&
+	builtin mv 2>/dev/null
+then	for i in 1 2
+	do	rm -rf t u v w && mkdir t v || exit
+		: >t/T >u >v/V >w
+
+		got=$(cp t x 2>&1)
+		exp='cp: t: skipping directory'
+		[[ $got = "$exp" ]] || err_exit "cp: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+		# ID for mv(1) test failures
+		mv=mv${_LIBCMD_MV_FORCE_XDEV+ (xdev)}
+
+		# mv files and dirs
+		rm -rf z
+		mkdir z || exit
+		got=$(mv -v t u v w z 2>&1)
+		if	[[ -v _LIBCMD_MV_FORCE_XDEV ]]
+		then	exp=$'t -> z/t\nt/T -> z/t/T\nu -> z/u\nv -> z/v\nv/V -> z/v/V\nw -> z/w'
+		else	exp=$'t -> z/t\nu -> z/u\nv -> z/v\nw -> z/w'
+		fi
+		[[ $got == "$exp" ]] || err_exit "$mv: expected $(printf %q "$exp"), got $(printf %q "$got")"
+		got=$(find z -print 2>&1)
+		exp=$'z\nz/u\nz/t\nz/t/T\nz/v\nz/v/V\nz/w'
+		[[ $got == "$exp" ]] || err_exit "$mv: result: expected $(printf %q "$exp"), got $(printf %q "$got")"
+		[[ -e t || -e u || -e v || -e w ]] && err_exit "$mv: source remains after move"
+
+		# mv them back
+		got=$(mv -v z/* . 2>&1)
+		if	[[ -v _LIBCMD_MV_FORCE_XDEV ]]
+		then	exp=$'z/t -> ./t\nz/t/T -> ./t/T\nz/u -> ./u\nz/v -> ./v\nz/v/V -> ./v/V\nz/w -> ./w'
+		else	exp=$'z/t -> ./t\nz/u -> ./u\nz/v -> ./v\nz/w -> ./w'
+		fi
+		[[ $got == "$exp" ]] || err_exit "$mv: restore: expected $(printf %q "$exp"), got $(printf %q "$got")"
+		got=$(find t u v w -print 2>&1)
+		exp=$'t\nt/T\nu\nv\nv/V\nw'
+		[[ $got == "$exp" ]] || err_exit "$mv: restore: result: expected $(printf %q "$exp"), got $(printf %q "$got")"
+		[[ -e z/t || -e z/u || -e z/v || -e z/w ]] && err_exit "$mv: restore: source remains after move"
+
+		# attempt to mv several files/directories into a file
+		got=$(mv t u v w 2>&1)
+		exp='mv: w: not a directory'
+		[[ $got == "$exp" ]] || err_exit "$mv args into file: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+		# attempt to mv several files/directories into a nonexistent path
+		got=$(mv t u v w non/existent/path 2>&1)
+		exp='mv: non/existent/path: not a directory'
+		[[ $got == "$exp" ]] || err_exit "$mv args into file: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+		# attempt to overwrite an existing directory
+		mkdir v/t || exit
+		got=$(mv -v v/t ./ 2>&1)
+		exp='mv: ./t: cannot replace existing directory'
+		[[ $got == "$exp" ]] || err_exit "$mv: overwrite directory: expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+		# copy and move a special file
+		mkfifo fifo
+		[[ -p fifo ]] || err_exit "mkfifo failed"
+		cp -a fifo v/t/
+		[[ -p v/t/fifo ]] || err_exit "cp: copying a FIFO failed"
+		rm -f v/t/fifo
+		mv fifo v/t/
+		[[ -p v/t/fifo && ! -e fifo ]] || err_exit "$mv: moving a FIFO failed"
+
+		# On non-release builds, repeat these tests while forcing cross-device mv mode, i.e., copy & delete.
+		# We cannot actually test cross-device moves as mount points are system-specific, but this is close.
+		[[ -v _AST_release ]] && break
+		((i==1)) && export _LIBCMD_MV_FORCE_XDEV=1
+	done
+	unset _LIBCMD_MV_FORCE_XDEV
 fi
 
 # ======
