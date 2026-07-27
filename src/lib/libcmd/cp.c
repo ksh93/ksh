@@ -24,7 +24,7 @@
  */
 
 static const char usage_head[] =
-"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-26 $\n]"
+"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-27 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -658,22 +658,10 @@ visit(State_t* state, FTSENT* ent)
 			else
 				ast_close(wfd);
 		}
-		else if (S_ISFIFO(ent->fts_statp->st_mode))
+		else if ((n = S_ISFIFO(ent->fts_statp->st_mode)) || S_ISBLK(ent->fts_statp->st_mode) || S_ISCHR(ent->fts_statp->st_mode))
 		{
-			/*
-			 * POSIX mknod spec: "The only portable use of mknod() is to create a FIFO-special file."
-			 * FreeBSD mknod(2): "Creating anything else than a block or character special file is not supported."
-			 * So, in the real world, we need to special-case FIFOs. Thankfully mkfifo(2) is in the standard, too.
-			 */
-			if (mkfifo(state->path, ent->fts_statp->st_mode))
-			{
-				error(ERROR_SYSTEM|2, "%s: cannot copy special file to %s", ent->fts_path, state->path);
-				return 0;
-			}
-		}
-		else if (S_ISBLK(ent->fts_statp->st_mode) || S_ISCHR(ent->fts_statp->st_mode))
-		{
-			if (mknod(state->path, ent->fts_statp->st_mode, idevice(ent->fts_statp)))
+			/* Avoid passing dev != 0 for FIFOs */
+			if (mknod(state->path, ent->fts_statp->st_mode, n ? 0 : idevice(ent->fts_statp)))
 			{
 				error(ERROR_SYSTEM|2, "%s: cannot copy special file to %s", ent->fts_path, state->path);
 				return 0;
