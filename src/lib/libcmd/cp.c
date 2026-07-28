@@ -24,7 +24,7 @@
  */
 
 static const char usage_head[] =
-"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-27 $\n]"
+"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-28 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -48,6 +48,8 @@ static const char usage_cp[] =
     "}"
 "[p:preserve?Preserve file owner, group, permissions and timestamps.]"
 "[r|R:recursive?Operate on the contents of directories recursively.]"
+"[x|X:xdev|local|mount|one-file-system?Do not descend into directories "
+    "in other file systems than their parents.]"
 "[h:hierarchy|parents?Form the name of each destination file by "
     "appending to the target directory a slash and the specified source file "
     "name. The last argument must be an existing directory. Missing "
@@ -116,8 +118,6 @@ static const char usage_tail[] =
     "variable, or the default value \b~\b.]:[suffix]"
 "[b?\b--backup\b using the type in the \bVERSION_CONTROL\b environment "
     "variable.]"
-"[x|X:xdev|local|mount|one-file-system?Do not descend into directories "
-    "in other file systems than their parents.]"
 
 "\n"
 "\nsource destination\n"
