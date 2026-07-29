@@ -35,7 +35,6 @@
 
 #include	<sfio_t.h>
 #include	<ast.h>
-#include	<vmalloc.h>
 #include	<align.h>
 #include	<stk.h>
 
@@ -72,9 +71,9 @@ struct frame
 
 struct stk
 {
+	_stk_overflow_	stkoverflow;	/* called when malloc fails */
 	unsigned int	stkref;		/* reference count */
 	int		stkflags;	/* stack attributes */
-	Vmalloc_t	*vm;		/* the stack's Vmalloc region */
 	char		*stkbase;	/* beginning of current stack frame */
 	char		*stkend;	/* end of current stack frame */
 };
@@ -127,7 +126,14 @@ static int stkexcept(Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
 				if(stream==stkstd)
 					stkset(stream,NULL,0);
 				else
-					vmclose(sp->vm);
+				{
+					void *bp = sp->stkbase, *fp;
+					while(fp = bp)
+					{
+						bp = ((struct frame*)bp)->prev;
+						free(fp);
+					}
+				}
 			}
 			stream->_data = stream->_next = 0;
 		}
@@ -172,19 +178,16 @@ Sfio_t *stkopen(int flags)
 	dp = (Sfdisc_t*)(stream+1);
 	dp->exceptf = stkexcept;
 	sp = (struct stk*)(dp+1);
-	sp->vm = vmopen();
-	sp->vm->options = VM_INIT;  /* initialize all stack memory */
 	sp->stkref = 1;
 	sp->stkflags = flags;
-	if(!(flags&STK_NULL))
-		sp->vm->outofmemory = stkcur ? stkcur->vm->outofmemory : overflow;
+	sp->stkoverflow = flags&STK_NULL ? 0 : stkcur ? stkcur->stkoverflow : overflow;
 	bsize = init+sizeof(struct frame);
 	if(flags&STK_SMALL)
 		bsize = roundof(bsize,STK_FSIZE/16);
 	else
 		bsize = roundof(bsize,STK_FSIZE);
 	bsize -= sizeof(struct frame);
-	if(!(fp = vmalloc(sp->vm, sizeof(struct frame) + bsize)))
+	if(!(fp = malloc(sizeof(struct frame) + bsize)))
 	{
 		free(stream);
 		return NULL;
@@ -214,7 +217,7 @@ Sfio_t *stkinstall(Sfio_t *stream, _old_stk_overflow_ oflow)
 	{
 		stkinit(1);
 		if(oflow)
-			stkcur->vm->outofmemory = (_stk_overflow_)oflow;
+			stkcur->stkoverflow = (_stk_overflow_)oflow;
 		return NULL;
 	}
 	old = stkcur?stk2stream(stkcur):0;
@@ -229,7 +232,7 @@ Sfio_t *stkinstall(Sfio_t *stream, _old_stk_overflow_ oflow)
 	else
 		sp = stkcur;
 	if(oflow)
-		sp->vm->outofmemory = (_stk_overflow_)oflow;
+		sp->stkoverflow = (_stk_overflow_)oflow;
 	return old;
 }
 
@@ -242,7 +245,7 @@ void stkoverflow(Sfio_t *stream, _stk_overflow_ oflow)
 	if(!init)
 		stkinit(1);
 	sp = stream2stk(stream);
-	sp->vm->outofmemory = oflow ? oflow : (sp->stkflags & STK_NULL ? NULL : overflow);
+	sp->stkoverflow = oflow ? oflow : (sp->stkflags & STK_NULL ? NULL : overflow);
 }
 
 /*
@@ -312,7 +315,7 @@ void *stkset(Sfio_t *stream, void *address, ptrdiff_t offset)
 		{
 			sp->stkbase = fp->prev;
 			sp->stkend = ((struct frame*)(fp->prev))->end;
-			vmfree(sp->vm, fp);
+			free(fp);
 		}
 		else
 			break;
@@ -333,6 +336,8 @@ found:
 
 /*
  * allocate <n> bytes on the current stack
+ *
+ * Since 2026-07-29, initialize them to zero.
  */
 void *stkalloc(Sfio_t *stream, size_t n)
 {
@@ -344,7 +349,7 @@ void *stkalloc(Sfio_t *stream, size_t n)
 		return NULL;
 	old = stream->_data;
 	stream->_data = stream->_next = old+n;
-	return old;
+	return memset(old, 0, n);
 }
 
 /*
@@ -391,7 +396,6 @@ void	*stkfreeze(Sfio_t *stream, size_t extra)
  */
 char	*stkcopy(Sfio_t *stream, const char* str)
 {
-	struct stk *sp = stream2stk(stream);
 	char *cp, *tp;
 	size_t n;
 	void *base = stkptr(stream,0);
@@ -399,7 +403,7 @@ char	*stkcopy(Sfio_t *stream, const char* str)
 	/* save unterminated object */
 	if(off)
 	{
-		if (!(tp = vmalloc(sp->vm, off)))
+		if (!(tp = malloc(off)))
 			return NULL;
 		memcpy(tp, stream->_data, off);
 	}
@@ -413,14 +417,14 @@ char	*stkcopy(Sfio_t *stream, const char* str)
 		if (!_stkseek(stream,(ptrdiff_t)off))
 			goto error_out;
 		memcpy(stream->_data, tp, off);
-		vmfree(sp->vm, tp);
+		free(tp);
 	}
 	/* copy string to stack */
 	return memcpy(cp, str, n);
 
 error_out:
 	if(off)
-		vmfree(sp->vm, tp);
+		free(tp);
 	stkset(stream, base, (ptrdiff_t)off);
 	return NULL;
 }
@@ -457,7 +461,7 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 		oldbase = dp;
 		endoff = end - dp;
 	}
-	cp = vmresize(sp->vm, dp, n + (size_t)nn * sizeof(char*));
+	cp = realloc(dp, n + (size_t)nn * sizeof(char*));
 	if(!cp)
 		return NULL;
 	if(dp==cp)

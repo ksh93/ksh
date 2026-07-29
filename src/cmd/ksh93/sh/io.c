@@ -1238,7 +1238,6 @@ int	sh_redirect(struct ionod *iop, int flag)
 			{
 				size_t len = strlen(iop->ioname) + 1;
 				struct argnod *ap = stkalloc(sh.stk, ARGVAL + len);
-				memset(ap, 0, ARGVAL);
 				ap->argflag = ARG_MAC;
 				memcpy(ap->argval, iop->ioname, len);
 				fname=sh_macpat(ap,(iof&IOARITH)?ARG_ARITH:ARG_EXP);
@@ -1250,7 +1249,6 @@ int	sh_redirect(struct ionod *iop, int flag)
 		{
 			/* handle process substitution passed to redirection */
 			struct argnod *ap = stkalloc(sh.stk, ARGVAL);
-			memset(ap, 0, ARGVAL);
 			if(iof&IOPUT)
 				ap->argflag = ARG_RAW;
 			else if(sh.subshell)

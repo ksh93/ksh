@@ -140,12 +140,7 @@ cutinit(int mode, char* str, Delim_t* wdelim, Delim_t* ldelim, size_t reclen)
 		UNREACHABLE();
 	}
 	if (cut->mb = mbwide())
-	{
-		memset(cut->space, 0, sizeof(cut->space) / 2);
 		memset(cut->space + sizeof(cut->space) / 2, SP_WIDE, sizeof(cut->space) / 2);
-	}
-	else
-		memset(cut->space, 0, sizeof(cut->space));
 	cut->wdelim = *wdelim;
 	if (wdelim->len == 1)
 		cut->space[wdelim->chr] = SP_WORD;

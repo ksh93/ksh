@@ -1788,7 +1788,6 @@ int sh_exec(const Shnode_t *t, int flags)
 				while((tn=tn->lst.lstrit) && tn->tre.tretyp==TFIL)
 					job.waitall++;
 				exitval = job.exitval = stkalloc(sh.stk,(size_t)job.waitall*sizeof(int));
-				memset(exitval,0,(size_t)job.waitall*sizeof(int));
 			}
 			else
 				job.waitall = !pipejob && (sh_isstate(SH_MONITOR) || sh_isstate(SH_TIMING));
@@ -2612,7 +2611,6 @@ int sh_run(int argn, char *argv[])
 	Shbltin_t	bltindata;
 	bltindata = sh.bltindata;
 	op = optctx(np, 0);
-	memset(t, 0, sizeof(struct comnod));
 	dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argn*sizeof(char*));
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;

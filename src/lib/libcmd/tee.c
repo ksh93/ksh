@@ -160,7 +160,6 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 	{
 		if (tp = stkalloc(stkstd, sizeof(Tee_t) + (size_t)argc * sizeof(int)))
 		{
-			memset(&tp->disc, 0, sizeof(tp->disc));
 			tp->disc.writef = tee_write;
 			if (context)
 				sh_context(context)->data = (void*)tp;

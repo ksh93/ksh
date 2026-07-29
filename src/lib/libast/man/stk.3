@@ -135,6 +135,7 @@ The
 active stack that can be used to hold any object of the given \fIsize\fP.
 \f3stkalloc\fP() is similar to \f3malloc\fP(3) except that individual
 items returned by \f3stkalloc\fP() can not be freed.
+Since 2026-07-29, \f3stkalloc\fP() initializes all allocated bytes to zero.
 \f3stkalloc\fP() causes the offset of the current object to be set to
 zero.
 .PP
