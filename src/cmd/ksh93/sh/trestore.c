@@ -141,7 +141,6 @@ static Shnode_t *r_tree(void)
 			slp->slnext = sh.st.staklist;
 			sh.st.staklist = 0;
 			fp = (struct functnod*)(slp+1);
-			memset(fp, 0, sizeof(*fp));
 			fp->functtyp = TFUN|FAMP;
 			if(sh.st.filename)
 				fp->functnam = stkcopy(sh.stk,sh.st.filename);

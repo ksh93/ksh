@@ -153,7 +153,6 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		{
 			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argc*sizeof(char*));
 			struct comnod *t = stkalloc(sh.stk,sizeof(struct comnod));
-			memset(t, 0, sizeof(struct comnod));
 			dp->dolnum = argc;
 			dp->dolbot = ARG_SPARE;
 			memcpy(dp->dolval+ARG_SPARE, argv, (size_t)(argc+1)*sizeof(char*));

@@ -1755,7 +1755,6 @@ make install virtual
 			make misc/stk.c
 				prev include/sfio_t.h
 				prev include/ast.h
-				prev include/vmalloc.h
 				prev align.h
 				prev include/stk.h
 			done

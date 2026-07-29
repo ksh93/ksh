@@ -1843,7 +1843,6 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 		{
 			/* redirect standard output to standard error */
 			ioq = stkalloc(sh.stk,sizeof(struct ionod));
-			memset(ioq,0,sizeof(*ioq));
 			ioq->ioname = "1";
 			ioq->iolst = 0;
 			ioq->iodelim = 0;
