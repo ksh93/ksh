@@ -24,7 +24,7 @@
  */
 
 static const char usage_head[] =
-"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-28 $\n]"
+"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-31 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -133,7 +133,6 @@ static const char usage_tail[] =
 #include <ls.h>
 #include <times.h>
 #include <fts.h>
-#include <hashkey.h>
 #include <stk.h>
 #include <tmx.h>
 #include <libgen.h>
@@ -932,45 +931,39 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 			state->backup = 0;
 		else
 		{
-			switch (strkey(backup_type))
+			/* This array must be sorted */
+			static const char *opts[] =
 			{
-			case HASHKEY6('e','x','i','s','t','i'):
-			case HASHKEY5('e','x','i','s','t'):
-			case HASHKEY4('e','x','i','s'):
-			case HASHKEY3('e','x','i'):
-			case HASHKEY2('e','x'):
-			case HASHKEY1('e'):
-			case HASHKEY3('n','i','l'):
-			case HASHKEY2('n','i'):
+				/*  0 */  "existing",
+				/*  1 */  "never",
+				/*  2 */  "nil",
+				/*  3 */  "none",
+				/*  4 */  "numbered",
+				/*  5 */  "off",
+				/*  6 */  "simple",
+				/*  7 */  "t"
+			};
+			switch (strdisabbrev(backup_type, opts, elementsof(opts), DISABBREV_SORTED))
+			{
+			case 0:
+			case 2:
 				state->backup = BAK_existing;
 				break;
-			case HASHKEY5('n','e','v','e','r'):
-			case HASHKEY4('n','e','v','e'):
-			case HASHKEY3('n','e','v'):
-			case HASHKEY2('n','e'):
-			case HASHKEY6('s','i','m','p','l','e'):
-			case HASHKEY5('s','i','m','p','l'):
-			case HASHKEY4('s','i','m','p'):
-			case HASHKEY3('s','i','m'):
-			case HASHKEY2('s','i'):
-			case HASHKEY1('s'):
+			case 1:
+			case 6:
 				state->backup = BAK_simple;
 				break;
-			case HASHKEY4('n','o','n','e'):
-			case HASHKEY3('n','o','n'):
-			case HASHKEY2('n','o'):
-			case HASHKEY3('o','f','f'):
-			case HASHKEY2('o','f'):
-			case HASHKEY1('o'):
+			case 3:
+			case 5:
 				state->backup = 0;
 				break;
-			case HASHKEY6('n','u','m','b','e','r'):
-			case HASHKEY5('n','u','m','b','e'):
-			case HASHKEY4('n','u','m','b'):
-			case HASHKEY3('n','u','m'):
-			case HASHKEY2('n','u'):
-			case HASHKEY1('t'):
+			case 4:
+			case 7:
 				state->backup = BAK_number;
+				break;
+			case -2:
+				if (type_optarg)
+					error(2, "%s: ambiguous backup type", type_optarg);
 				break;
 			default:
 				if (type_optarg)

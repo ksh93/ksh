@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-1c?\n@(#)$Id: grep (ksh 93u+m) 2025-05-05 $\n]"
+"[-1c?\n@(#)$Id: grep (ksh 93u+m) 2026-07-31 $\n]"
 #if STANDALONE
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?Doug McIlroy <doug@research.bell-labs.com>]"
@@ -135,7 +135,7 @@ static const char usage[] =
  * 1. fgrep does not have usual operators. REG_LITERAL
  * caters for this.
  * 2. grep allows null expressions, hence REG_NULL.
- * 3. it may be possible to combine the multiple 
+ * 3. it may be possible to combine the multiple
  * patterns of grep into single patterns.
  * 4. anchoring by -x has to be done separately from
  * compilation (remember that fgrep has no ^ or $ operator),
@@ -489,7 +489,7 @@ execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 	int		line;
 
 	int		r = 1;
-	
+
 	if (!name)
 		name = "(standard input)"; /* posix! (ast prefers /dev/stdin) */
 	file = error_info.file;
@@ -788,17 +788,14 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 		state.options |= REG_LEFT|REG_RIGHT;
 		break;
 	case -2:
+	{
 		/* --highlight|color|colour */
-		s = opt_info.arg;
-		if (!s || strcasecmp(s, "auto") == 0)
-			c = 0;
-		else if (strcasecmp(s, "always") == 0)
-			c = 1;
-		else if (strcasecmp(s, "never") == 0)
-			c = 2;
-		else
+		static const char *opts[] = { "auto", "always", "never" };
+		/* undocumented: the option value is case-insensitive for compat with GNU grep */
+		c = opt_info.arg ? strdisabbrev(opt_info.arg, opts, elementsof(opts), DISABBREV_ICASE) : 0;
+		if (c < 0)
 		{
-			error(2, "%s: bad highlight option", s);
+			error(2, "%s: %s highlight option", opt_info.arg, c == -2 ? "ambiguous" : "bad");
 			goto done;
 		}
 		if (c == 0 && isatty(STDOUT_FILENO) || c == 1)
@@ -806,6 +803,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 		else
 			state.options |= REG_FIRST|REG_NOSUB;
 		break;
+	}
 	case '?':
 		optselfdoc();
 		r = 0;

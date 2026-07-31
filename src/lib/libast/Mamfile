@@ -832,9 +832,8 @@ make install virtual
 			exec - compile %{<} -Ihash
 		done
 
-		make strkey.o
-			make hash/strkey.c
-				makp include/hashkey.h
+		make strdisabbrev.o
+			make string/strdisabbrev.c
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -3619,7 +3618,7 @@ make install virtual
 	done
 
 	note * section 3 manual pages
-	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd hash iblocks ip6 mem modecanon optget path proc regex setenviron sfio sig spawnveg stk strcopy strdup strelapsed stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tm tmx tok touch tv
+	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd hash iblocks ip6 mem modecanon optget path proc regex setenviron sfio sig spawnveg stk strcopy strdisabbrev strdup strelapsed stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tm tmx tok touch tv
 		make %{INSTALLROOT}/man/man3/%{SECT3MAN}.3
 			makp man/%{SECT3MAN}.3
 			exec - cp -f %{<} %{@}
@@ -3629,7 +3628,7 @@ make install virtual
 	note * #include headers
 	make %{INSTALLROOT}/lib/mam/ast
 		note * ...main AST headers
-		loop HDR ast ast_dir ast_std ast_windows ccode cdt cmdarg debug error find ftwalk fts glob hash hashkey hashpart ip6 ls mc mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk stak swap tar times tm tok vdb wait fnv aso vmalloc
+		loop HDR ast ast_dir ast_std ast_windows ccode cdt cmdarg debug error find ftwalk fts glob hash hashpart ip6 ls mc mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk stak swap tar times tm tok vdb wait fnv aso vmalloc
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev include/%{HDR}.h
 				exec - cp -f %{<} %{@}
