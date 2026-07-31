@@ -23,13 +23,14 @@
 #include <ast.h>
 
 #define crc_description \
-	"32 bit CRC (cyclic redundancy check)."
+	"32 bit CRC (cyclic redundancy check). " \
+	"The following suboptions may be appended to \bcrc\b:"
 #define crc_options	"\
-[+polynomial?The 32 bit crc polynomial bitmask with implicit bit 32.]:[mask:=0xedb88320]\
-[+done?XOR the final crc value with \anumber\a. 0xffffffff is used if \anumber\a is omitted.]:?[number:=0]\
-[+init?The initial crc value. 0xffffffff is used if \anumber\a is omitted.]:?[number:=0]\
-[+rotate?XOR each input character with the high order crc byte (instead of the low order).]\
-[+size?Include the total number of bytes in the crc. \anumber\a, if specified, is first XOR'd into the size.]:?[number:=0]\
+[+-polynomial?The 32 bit crc polynomial bitmask with implicit bit 32.]:[mask:=0xedb88320]\
+[+-done?XOR the final crc value with \anumber\a.]:?[number:!0xffffffff:=0]\
+[+-init?The initial crc value.]:?[number:!0xffffffff:=0]\
+[+-rotate?XOR each input character with the high order crc byte (instead of the low order).]\
+[+-size?Include the total number of bytes in the crc. \anumber\a, if specified, is first XOR'd into the size.]:?[number:=0]\
 "
 #define crc_match	"crc"
 #define crc_open	crc_open
