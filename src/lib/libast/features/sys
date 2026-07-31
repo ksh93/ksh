@@ -7,6 +7,7 @@ header	sys/types.h
 header	stdint.h
 header	inttypes.h
 header	string.h
+header	strings.h
 header	unistd.h
 header	limits.h
 header	fcntl.h

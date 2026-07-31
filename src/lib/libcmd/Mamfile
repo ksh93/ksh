@@ -30,10 +30,19 @@ make install virtual
 	done
 
 	note *
-	note * Header dependencies and feature tests
+	note * Feature tests
 	note *
 
-	setv run_iffe iffe %{IFFEFLAGS} -v -c "%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS}" ref -I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libutil} %{mam_libast} : run
+	loop F symlink sockets ids utsname
+		make FEATURE/%{F}
+			makp features/%{F}
+			exec - iffe %{IFFEFLAGS} -v -c "%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS}" ref -I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libutil} %{mam_libast} : run %{<}
+		done
+	done
+
+	note *
+	note * Header dependencies
+	note *
 
 	make c_sources virtual
 		make cmdinit.c
@@ -53,10 +62,7 @@ make install virtual
 			prev cmd.h
 		done
 		make chgrp.c
-			make FEATURE/symlink
-				makp features/symlink
-				exec - %{run_iffe} %{<}
-			done
+			prev FEATURE/symlink
 			prev %{INCLUDE_AST}/fts.h
 			prev %{INCLUDE_AST}/endian.h
 			prev %{INCLUDE_AST}/ls.h
@@ -93,7 +99,6 @@ make install virtual
 			prev %{INCLUDE_AST}/ls.h
 			prev %{INCLUDE_AST}/times.h
 			prev %{INCLUDE_AST}/fts.h
-			prev %{INCLUDE_AST}/hashkey.h
 			prev %{INCLUDE_AST}/stk.h
 			prev %{INCLUDE_AST}/tmx.h
 		done
@@ -116,10 +121,7 @@ make install virtual
 		done
 		make fds.c
 			prev %{INCLUDE_AST}/endian.h
-			make FEATURE/sockets
-				makp features/sockets
-				exec - %{run_iffe} %{<}
-			done
+			prev FEATURE/sockets
 			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
 		done
@@ -139,10 +141,7 @@ make install virtual
 		done
 		make id.c
 			prev %{INCLUDE_AST}/stdio.h
-			make FEATURE/ids
-				makp features/ids
-				exec - %{run_iffe} %{<}
-			done
+			prev FEATURE/ids
 			prev cmd.h
 		done
 		make join.c
@@ -225,10 +224,7 @@ make install virtual
 			prev cmd.h
 		done
 		make uname.c
-			make FEATURE/utsname
-				makp features/utsname
-				exec - %{run_iffe} %{<}
-			done
+			prev FEATURE/utsname
 			prev %{INCLUDE_AST}/proc.h
 			prev cmd.h
 		done

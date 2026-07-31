@@ -1,0 +1,134 @@
+.TH STRDISABBREV 3
+.SH NAME
+strdisabbrev \- disabbreviate a string
+.SH SYNOPSIS
+.EX
+int strdisabbrev(const char *abbrev,
+                 const char *list[],
+                 int num,
+                 unsigned int flags);
+.EE
+.SH DESCRIPTION
+The
+.B strdisabbrev
+function is designed to facilitate user-friendly parsing of
+option keywords in command line utilities.
+It matches a string abbreviation
+.I abbrev
+against an array of strings
+.I list
+that has
+.I num
+elements. The value of the
+.I num
+argument is typically passed as
+.BR elementsof( \fIlist\fP ) .
+.PP
+If exactly one of the strings in
+.I list
+begins with
+.IR abbrev ,
+then
+.B strdisabbrev
+returns the array index to it.
+If more than one string in
+.I list
+begins with
+.IR abbrev ,
+then
+.B strdisabbrev
+returns
+.B -2
+to signal an ambiguous abbreviation.
+.PP
+However, if
+.I abbrev
+is fully identical to at least one of the strings in
+.IR list ,
+then the index to the first such identical string is returned,
+even if a longer string beginning with that string exists in
+.IR list .
+(For example, this would allow a string \(lqglob\(rq to be recognised if
+.I list
+also contains a string \(lqglobstar\(rq.)
+.SH OPTIONS
+If the
+.I flags
+argument has the
+\f[CB]ABBREV_ICASE\fP
+bit set, all string comparisons are case-insensitive,
+otherwise they are case-sensitive.
+.PP
+If it has the
+\f[CB]ABBREV_SORTED\fP
+bit set,
+.I list
+is assumed to be lexicographically sorted.
+The sort order must be consistent with the state of the
+\f[CB]ABBREV_ICASE\fP
+bit flag.
+This is a performance optimisation that causes
+.B strdisabbrev
+to stop searching
+.I list
+once an element is reached whose first
+.BR "strlen(" \fIabbrev\fP ")"
+bytes sort after
+.IR abbrev .
+.PP
+All other bits in
+.I flags
+are reserved for future use.
+.SH "RETURN VALUES"
+.TP
+.B -2
+Ambiguous abbreviation: more than one string in
+.I list
+begins with,
+and is longer than,
+.IR abbrev .
+.TP
+.B -1
+None of the strings in
+.I list
+begin with
+.IR abbrev ,
+or the value passed in
+.I num
+is less than 1.
+.TP
+.B ">= 0"
+Any non-negative return value is an index into the
+.I list
+array,
+either to the first string that is identical to
+.IR abbrev ,
+or to the only string that begins with
+.I abbrev
+and is longer than it.
+.SH CAVEATS
+If
+.I num
+is greater than the number of elements in
+.IR list ,
+the behaviour is undefined.
+If the
+\f[CB]ABBREV_SORTED\fP
+bit is passed without
+.I list
+being correctly sorted,
+the behaviour will be incorrect.
+.SH BUGS
+If
+.I list
+contains more than one string that is identical to
+.IR abbrev ,
+any second and further such strings are ignored.
+.SH AUTHOR
+Martijn Dekker <martijn@inlv.org>
+.SH HISTORY
+The
+.B strdisabbrev
+function was added to libast at
+\f[CB]AST_VERSION\fP
+20260731.

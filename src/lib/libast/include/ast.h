@@ -199,6 +199,13 @@ typedef uint32_t regflags_t;
 #define FMT_EXP_NONL	0x200		/* skip \n			*/
 
 /*
+ * strdisabbrev() flags
+ */
+
+#define DISABBREV_ICASE		0x1	/* ignore case			*/
+#define DISABBREV_SORTED	0x2	/* assume input list is sorted	*/
+
+/*
  * multibyte macros
  */
 
@@ -363,6 +370,7 @@ extern char*		pathtmp(char*, const char*, const char*, int*);
 extern char*		setenviron(const char*);
 extern pid_t		spawnveg(const char*, char* const[], char* const[], pid_t, int);
 extern char*		strcopy(char*, const char*);
+extern int		strdisabbrev(const char*, const char*[], int, unsigned int);
 extern unsigned long	strelapsed(const char*, char**, int);
 extern ptrdiff_t	stresc(char*);
 extern ptrdiff_t	strexp(char*, int);
