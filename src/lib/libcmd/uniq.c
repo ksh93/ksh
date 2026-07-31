@@ -23,7 +23,7 @@
  */
 
 static const char usage[] =
-"[-n?\n@(#)$Id: uniq (AT&T Research) 2009-11-28 $\n]"
+"[-n?\n@(#)$Id: uniq (ksh 93u+m) 2026-07-31 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?uniq - Report or filter out repeated lines in a file]"
 "[+DESCRIPTION?\buniq\b reads the input, compares adjacent lines, and "
@@ -38,7 +38,7 @@ static const char usage[] =
 	"the line.]"
 "[d:repeated|duplicates?Output the first of each duplicate line.]"
 "[D:all-repeated?Output all duplicate lines as a group with an empty "
-    "line delimiter specified by \adelimit\a:]:?[delimit:=none]"
+    "line delimiter specified by \adelimit\a:]:?[delimit:!none]"
     "{"
 	"[n:none?Do not delimit duplicate groups.]"
 	"[p:prepend?Prepend an empty line before each group.]"

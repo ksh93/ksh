@@ -23,11 +23,12 @@
 #include <fnv.h>
 
 #define prng_description \
-	"32 bit PRNG (pseudo random number generator) hash."
+	"32 bit PRNG (pseudo random number generator) hash. " \
+	"The following suboptions may be appended to \bprng\b:"
 #define prng_options	"\
-[+mpy?The 32 bit PRNG multiplier.]:[number:=0x01000193]\
-[+add?The 32 bit PRNG addend.]:[number:=0]\
-[+init?The PRNG initial value. 0xffffffff is used if \anumber\a is omitted.]:?[number:=0x811c9dc5]\
+[+-mpy?The 32 bit PRNG multiplier.]:[number:=0x01000193]\
+[+-add?The 32 bit PRNG addend.]:[number:=0]\
+[+-init?The PRNG initial value.]:?[number:!0xffffffff:=0x811c9dc5]\
 "
 #define prng_match	"prng"
 #define prng_done	long_done

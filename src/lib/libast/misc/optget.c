@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-07-20"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-08-01"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -2040,6 +2040,10 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 							ptrdiff_t ol;
 							ptrdiff_t vl;
 
+							/*
+							 * Generate documentation for optional and default option values in suboptions.
+							 */
+
 							a = 0;
 							o = 0;
 							v = 0;
@@ -2080,36 +2084,36 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 							}
 							if (a & OPT_optional)
 							{
+								sfputc(sp, ' ');
 								if (o)
 								{
-									sfprintf(sp, " %s ", T(NULL, ID, "If the option value is omitted then"));
-									sfputr(sp, font(FONT_BOLD, style, 1), -1);
+									sfputr(ip, font(FONT_BOLD, style, 1), -1);
 									t = o + ol;
 									while (o < t)
 									{
 										if (((c = *o++) == ':' || c == '?') && *o == c)
 											o++;
-										sfputc(sp, c);
+										sfputc(ip, c);
 									}
-									sfputr(sp, font(FONT_BOLD, style, 0), -1);
-									sfprintf(sp, " %s.", T(NULL, ID, "is assumed"));
+									sfputr(ip, font(FONT_BOLD, style, 0), -1);
+									sfprintf(sp, T(NULL, ID, "If the option value is omitted, then %s is assumed."), sfstruse(ip));
 								}
 								else
-									sfprintf(sp, " %s", T(NULL, ID, "The option value may be omitted."));
+									sfputr(sp, T(NULL, ID, "The option value may be omitted."), -1);
 							}
 							if (v)
 							{
-								sfprintf(sp, " %s ", T(NULL, ID, "The default value is"));
-								sfputr(sp, font(FONT_BOLD, style, 1), -1);
+								sfputr(ip, font(FONT_BOLD, style, 1), -1);
 								t = v + vl;
 								while (v < t)
 								{
 									if (((c = *v++) == ':' || c == '?') && *v == c)
 										v++;
-									sfputc(sp, c);
+									sfputc(ip, c);
 								}
-								sfputr(sp, font(FONT_BOLD, style, 0), -1);
-								sfputc(sp, '.');
+								sfputr(ip, font(FONT_BOLD, style, 0), -1);
+								sfputc(sp, ' ');
+								sfprintf(sp, T(NULL, ID, "The default value is %s."), sfstruse(ip));
 							}
 							s = skip(s, 0, 0, 0, 1, 0, 1, version);
 						}
@@ -3444,13 +3448,15 @@ opthelp(const char* oopts, const char* what)
 						if ((a & OPT_invert) && w && (d || u))
 						{
 							u = skip(w, ':', '?', 0, 1, 0, 0, version);
+							sfputc(sp_info, ' ');
 							if (f)
-								sfprintf(sp_info, " %s; -\b%c\b %s --\bno%-.*s\b.", T(NULL, ID, "On by default"), f, T(NULL, ID, "means"), u - w, w);
+								sfprintf(sp_info, T(NULL, ID, "On by default; -%c%c%c means --%cno%-.*s%c."), '\b', f, '\b', '\b', u - w, w, '\b');
 							else
-								sfprintf(sp_info, " %s %s\bno%-.*s\b %s.", T(NULL, ID, "On by default; use"), "--"+2-prefix, u - w, w, T(NULL, ID, "to turn off"));
-							if (!(t = sfstruse(sp_info)))
+								sfprintf(sp_info, T(NULL, ID, "On by default; use %s%cno%-.*s%c to turn off."), "--"+2-prefix, '\b', u - w, w, '\b');
+							if (!(t = sfstruse(sp_info)) || !(t = strdup(t)))
 								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 0, 0, sp_info, version, NULL, NULL, &bflags);
+							free(t);
 						}
 						if (*p == GO)
 						{
@@ -3459,30 +3465,45 @@ opthelp(const char* oopts, const char* what)
 						}
 						else
 							y = " ";
+
+						/*
+						 * Generate documentation for optional and default option values in main options.
+						 * (For suboptions, similar processing is done separately, in textout().)
+						 */
+
 						if (a & OPT_optional)
 						{
 							if (ov)
 							{
-								sfprintf(sp_info, "%s%s \b", y, T(NULL, ID, "If the option value is omitted then"));
 								t = ov + ol;
+								sfputc(sp_info, '\b');
 								while (ov < t)
 								{
 									if (((c = *ov++) == ':' || c == '?') && *ov == c)
 										ov++;
 									sfputc(sp_info, c);
 								}
-								sfprintf(sp_info, "\b %s.", T(NULL, ID, "is assumed"));
+								sfputc(sp_info, '\b');
+								if (!(t = sfstruse(sp_info)) || !(t = strdup(t)))
+									goto outofmemory;
+								sfputr(sp_info, y, -1);
+								sfprintf(sp_info, T(NULL, ID, "If the option value is omitted, then %s is assumed."), t);
+								free(t);
 							}
 							else
-								sfprintf(sp_info, "%s%s", y, T(NULL, ID, "The option value may be omitted."));
-							if (!(t = sfstruse(sp_info)))
+							{
+								sfputr(sp_info, y, -1);
+								sfputr(sp_info, T(NULL, ID, "The option value may be omitted."), -1);
+							}
+							if (!(t = sfstruse(sp_info)) || !(t = strdup(t)))
 								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 4, 0, sp_info, version, NULL, NULL, &bflags);
+							free(t);
 							y = " ";
 						}
 						if (v)
 						{
-							sfprintf(sp_info, "%s%s \b", y, T(NULL, ID, "The default value is"));
+							sfputc(sp_info, '\b');
 							t = v + vl;
 							while (v < t)
 							{
@@ -3491,10 +3512,15 @@ opthelp(const char* oopts, const char* what)
 								sfputc(sp_info, c);
 							}
 							sfputc(sp_info, '\b');
-							sfputc(sp_info, '.');
-							if (!(t = sfstruse(sp_info)))
+							if (!(t = sfstruse(sp_info)) || !(t = strdup(t)))
+								goto outofmemory;
+							sfputr(sp_info, y, -1);
+							sfprintf(sp_info, T(NULL, ID, "The default value is %s."), t);
+							free(t);
+							if (!(t = sfstruse(sp_info)) || !(t = strdup(t)))
 								goto outofmemory;
 							textout(sp_body, t, 0, 0, style, 4, 0, sp_info, version, NULL, NULL, &bflags);
+							free(t);
 						}
 					}
 					else if (!mutex)
