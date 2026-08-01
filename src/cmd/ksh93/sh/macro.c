@@ -1969,7 +1969,18 @@ retry2:
 							elementsof(match) / 2,
 							flag);
 					if(nmatch && repstr && !mp->macsub)
+					{
+						if(np==SH_MATCHNOD)
+						{
+							/*
+							 * An op on .sh.match itself would read from and write to
+							 * its value at the same time, so make a copy for reading.
+							 */
+							sfputr(sh.strbuf, v, -1);
+							v = sfstruse(sh.strbuf);
+						}
 						sh_setmatch(v,vsize,nmatch,match,index++);
+					}
 					if(nmatch)
 					{
 						vlast = v;
@@ -2074,7 +2085,8 @@ retry2:
 				if(ap)
 				{
 					ap = nv_arrayptr(np); /* update */
-					ap->nelem |= ARRAY_SCAN;
+					if(ap)
+						ap->nelem |= ARRAY_SCAN;
 				}
 				if(nv_nextsub(np) == 0)
 					break;
