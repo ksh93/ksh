@@ -897,4 +897,11 @@ do	case $i in
 done
 
 # ======
+exp='abc Abc'
+got=$( set +x; { "$SHELL" -c 'v=abc; : ${v//*/}; print -r "${.sh.match[@]} ${.sh.match[@]/a/A}"'; } 2>&1 )
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit '${.sh.match[@]} ${.sh.match[@]/a/A}' \
+	"(expected status 0 and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

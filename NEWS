@@ -7,6 +7,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed bogus expansion values of ${var/#pattern/replacement} or
   ${var/%pattern/replacement} that occurred when var is unset.
 
+- Substring matching operations on .sh.match itself now work correctly,
+  e.g.: digits_only=${.sh.match[0]//[^0-9]/}
+  Note that such operations do still immediately update .sh.match.
+
+- Fixed a segfault upon, e.g., "${.sh.match[@]} ${.sh.match[@]/a/A}".
+
 2026-07-26:
 
 - Fixed problems in the mv(1) and cp(1) path-bound built-in commands:

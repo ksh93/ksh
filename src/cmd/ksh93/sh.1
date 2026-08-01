@@ -1863,9 +1863,13 @@ representing the first match.
 If no match is found,
 .B .sh.match
 is not reset or modified.
-Note that even matching operations performed on the
+Matching operations where the
+.I parameter\^
+is
 .B .sh.match
-variable itself will overwrite it upon finding a match.
+itself will work normally,
+which includes overwriting
+.BR .sh.match .
 .TP
 .B .sh.math
 Used for defining arithmetic functions
