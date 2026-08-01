@@ -1599,7 +1599,10 @@ and replaces the longest match of
 .I pattern\^
 with the given
 .IR string.
-Each occurrence of \f3\e\fP\f2n\^\fP in
+If
+.I parameter\^
+is unset, these expansions have no effect.
+Otherwise, each occurrence of \f3\e\fP\f2n\^\fP in
 .I string
 is replaced by the portion of \f2parameter\^\fP
 that matches the \f2n\^\fP-th subpattern.
@@ -1645,6 +1648,7 @@ In this case, the
 portion of
 .I word\^
 will be re-evaluated for each element.
+If the array has no elements, no operation is applied.
 .SS Shell Variables.
 The following
 parameters

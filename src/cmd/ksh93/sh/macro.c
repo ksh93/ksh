@@ -1898,28 +1898,33 @@ retry1:
 	/* check for substring operations */
 	else if(c == '#' || c == '%' || c=='/')
 	{
-		if(c=='/')
+		/* none of these should have an effect if there is no value... */
+		if(v)
 		{
-			if(type=='/' || type=='#' || type=='%')
+			if(c=='/')
 			{
-				c = type;
-				type = '/';
-				argp++;
+				if(type=='/' || type=='#' || type=='%')
+				{
+					c = type;
+					type = '/';
+					argp++;
+				}
+				else
+					type = 0;
 			}
 			else
-				type = 0;
+			{
+				if(type==c) /* ## or %% */
+					argp++;
+				else
+					type = 0;
+			}
+			pattern = sh_strdup(argp);
+			if((type=='/' || c=='/') && (repstr = mac_getstring(pattern)))
+				replen = strlen(repstr);
 		}
-		else
-		{
-			if(type==c) /* ## or %% */
-				argp++;
-			else
-				type = 0;
-		}
-		pattern = sh_strdup(argp);
-		if((type=='/' || c=='/') && (repstr = mac_getstring(pattern)))
-			replen = strlen(repstr);
-		if(v || c=='/' && offset>=0)
+		/* ...but do always skip past the pattern */
+		if(offset>=0)
 			stkseek(stkp,offset);
 	}
 	/* discount the quotes around $@ if there are zero PPs, so that empty "$@" generates zero fields */

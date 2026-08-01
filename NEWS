@@ -2,6 +2,11 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-08-01:
+
+- Fixed bogus expansion values of ${var/#pattern/replacement} or
+  ${var/%pattern/replacement} that occurred when var is unset.
+
 2026-07-26:
 
 - Fixed problems in the mv(1) and cp(1) path-bound built-in commands:
