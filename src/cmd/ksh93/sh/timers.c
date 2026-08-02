@@ -134,7 +134,7 @@ static void sigalrm(int sig)
 	if(time_state&SIGALRM_CALL)
 		time_state &= ~SIGALRM_CALL;
 	else if(alarm(0))
-		sh_fault(SIGALRM|SH_TRAP);
+		sh_fault(SIGALRM);
 	if(time_state)
 	{
 		if(time_state&IN_ADDTIMEOUT)
