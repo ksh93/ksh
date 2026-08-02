@@ -3201,7 +3201,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *argv[])
 	jmpthresh = is_abuiltin(np) ? SH_JMPCMD : SH_JMPFUN;
 	checkpoint = stkalloc(sh.stk,sizeof(struct checkpt));
 	sh_pushcontext(checkpoint, jmpthresh);
-	jmpval = sigsetjmp(checkpoint->buff,1);
+	jmpval = sigsetjmp(checkpoint->buff, 0);
 	if(jmpval == 0)
 	{
 		if(is_abuiltin(np))

@@ -50,15 +50,6 @@ void	sh_fault(int sig)
 	struct checkpt	*pp = (struct checkpt*)sh.jmplist;
 	int		action=0;
 	int		save_errno = errno;
-	/* reset handler */
-	if(!(sig&SH_TRAP))
-		signal(sig, sh_fault);
-	sig &= ~SH_TRAP;
-#ifdef SIGWINCH
-	if(sig==SIGWINCH)
-		sh_winsize();
-#endif  /* SIGWINCH */
-	trap = sh.st.trapcom[sig];
 	if(sh.savesig)
 	{
 		/* critical region, save and process later */
@@ -66,6 +57,11 @@ void	sh_fault(int sig)
 			sh.savesig = sig;
 		goto done;
 	}
+#ifdef SIGWINCH
+	if(sig==SIGWINCH)
+		sh_winsize();
+#endif  /* SIGWINCH */
+	trap = sh.st.trapcom[sig];
 	if(sig==SIGALRM && sh.bltinfun==b_sleep)
 	{
 		if(trap && *trap)
