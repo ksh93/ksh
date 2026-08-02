@@ -64,7 +64,6 @@ done:
 	argv += opt_info.index;
 	if(*argv)
 	{
-		int r;
 		intmax_t l = strtoll(*argv, NULL, 10);
 		if(do_exit)
 		{
@@ -72,13 +71,13 @@ done:
 			if (sh.intrap)
 				sh.intrap_exit_n = 1;
 		}
-		else if(r = (int)l, l != (intmax_t)r)	/* return: convert to int and check for overflow (should be safe enough) */
+		else if (l < INT_MIN || l > INT_MAX)
 		{
 			errormsg(SH_DICT,ERROR_warn(0),"%s: out of range",*argv);
 			n = 128;			/* overflow is undefined, so use a consistent status for this */
 		}
 		else
-			n = r;
+			n = (int)l;
 	}
 	else
 	{
