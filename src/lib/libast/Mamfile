@@ -1104,15 +1104,6 @@ make install virtual
 			exec - compile %{<} -Iport
 		done
 
-		make pathfind.o
-			make path/pathfind.c
-				prev include/ls.h
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make pathicase.o
 			make path/pathicase.c
 				prev include/error.h
