@@ -50,21 +50,19 @@ pathicase(const char *path)
 	return r < 0L ? -1 : r > 0L;
 #elif _linux_fatfs
 	/* Linux */
-	int attr = 0, fd, r;
+	int attr = 0, fd, r, save_errno = errno;
 	if ((fd = open(path, O_RDONLY|O_NONBLOCK)) < 0)
 		return -1;
-	r = ioctl(fd, FAT_IOCTL_GET_ATTRIBUTES, &attr);
+	r = ioctl(fd, FAT_IOCTL_GET_ATTRIBUTES, &attr) < 0 ? (errno == ENOTTY ? 0 : -1) : 1;
 #   if _linux_casefold
 	/* Linux 5.2+ */
-	if (r < 0 && errno == ENOTTY)	/* if it's not VFAT/FAT32...*/
-	{
-		r = ioctl(fd, FS_IOC_GETFLAGS, &attr);
-		ast_close(fd);
-		return r < 0 ? -1 : (attr & FS_CASEFOLD_FL) != 0;
-	}
+	if (r == 0)	/* if it's not VFAT/FAT32...*/
+		r = ioctl(fd, FS_IOC_GETFLAGS, &attr) < 0 ? -1 : (attr & FS_CASEFOLD_FL) != 0;
 #   endif /* _linux_casefold */
 	ast_close(fd);
-	return r < 0 ? (errno != ENOTTY ? -1 : 0) : 1;
+	if (r >= 0)
+		errno = save_errno;
+	return r;
 #elif _WINIX || __APPLE__
 	/* Windows or Mac without pathconf probe: assume case insensitive */
 	return 1;
