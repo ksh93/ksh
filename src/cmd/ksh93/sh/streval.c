@@ -68,7 +68,7 @@ struct vars				/* vars stacked per invocation */
 	ptrdiff_t	offset;		/* offset for pushchr macro	*/
 	ptrdiff_t	staksize;	/* current stack size needed	*/
 	ptrdiff_t	stakmaxsize;	/* maximum stack size needed	*/
-	int		emode;
+	int		flags;		/* ARITH_* bit flags		*/
 	int		infun;		/* incremented by comma inside function	*/
 	unsigned int	paren;	 	/* parenthesis level		*/
 	Sfdouble_t	(*convert)(const char**,struct lval*,int,Sfdouble_t);
@@ -109,11 +109,10 @@ static int _seterror(struct vars *vp,const char *msg)
 	return 0;
 }
 
-
-static void arith_error(const char *message,const char *expr, int mode)
+static noreturn void arith_error(const char *message,const char *expr)
 {
-	mode = (mode&3)!=0;
-	errormsg(SH_DICT,ERROR_exit(mode),message,expr);
+	errormsg(SH_DICT, ERROR_exit(1), message, expr);
+	UNREACHABLE();
 }
 
 #if _ast_no_um2fm
@@ -152,25 +151,21 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 {
 	Sfdouble_t	num=0,*dp,*sp;
 	unsigned char	*cp = ep->code;
-	int		c,type=0;
+	ptrdiff_t	c;
+	int		type=0;
 	char		*tp;
 	Sfdouble_t	small_stack[SMALL_STACK+1],arg[9];
 	const char	*ptr = "";
 	char		*lastval=0;
 	int		lastsub=0;
 	Math_f		fun;
-	struct lval	node;
-	node.emode = ep->emode;
+	struct lval	node = { 0 };
+	node.flags = ep->flags;
 	node.expr = ep->expr;
 	node.elen = ep->elen;
-	node.value = 0;
-	node.nosub = 0;
-	node.sub = 0;
-	node.enum_p = 0;
-	node.isenum = 0;
 	if(sh.arithrecursion++ >= MAXLEVEL)
 	{
-		arith_error(e_recursive,ep->expr,ep->emode);
+		arith_error(e_recursive,ep->expr);
 		return 0;
 	}
 	if(ep->staksize < SMALL_STACK)
@@ -184,17 +179,17 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 		if(c&T_NOFLOAT)
 		{
 			if(type==1 || ((c&T_BINARY) && (c&T_OP)!=A_MOD  && tp[-1]==1))
-				arith_error(e_incompatible,ep->expr,ep->emode);
+				arith_error(e_incompatible,ep->expr);
 		}
 		switch(c&T_OP)
 		{
 		    case A_JMP: case A_JMPZ: case A_JMPNZ:
 			c &= T_OP;
-			cp = roundptr(ep,cp,short);
+			cp = roundptr(ep,cp,ptrdiff_t);
 			if((c==A_JMPZ && num) || (c==A_JMPNZ &&!num))
-				cp += sizeof(short);
+				cp += sizeof(ptrdiff_t);
 			else
-				cp = (unsigned char*)ep + *((short*)cp);
+				cp = (unsigned char*)ep + *((ptrdiff_t*)cp);
 			continue;
 		    case A_NOTNOT:
 			num = (num!=0);
@@ -228,29 +223,29 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			sp--;
 			continue;
 		    case A_ASSIGNOP1:
-			node.emode |= ARITH_ASSIGNOP;
+			node.flags |= ARITH_ASSIGNOP;
 			/* FALLTHROUGH */
 		    case A_PUSHV:
 			cp = roundptr(ep,cp,Sfdouble_t*);
 			dp = *((Sfdouble_t**)cp);
 			cp += sizeof(Sfdouble_t*);
-			c = *(short*)cp;
-			cp += sizeof(short);
+			c = *(ptrdiff_t*)cp;
+			cp += sizeof(ptrdiff_t);
 			lastval = node.value = (char*)dp;
-			if(node.flag = (short)c)
+			if(node.sub_idx = c)
 				lastval = 0;
 			node.isfloat=0;
 			node.level = sh.arithrecursion;
 			node.nosub = 0;
 			num = (*ep->fun)(&ptr,&node,VALUE,num);
-			if(node.emode&ARITH_ASSIGNOP)
+			if(node.flags & ARITH_ASSIGNOP)
 			{
 				lastsub = node.nosub;
 				node.nosub = 0;
-				node.emode &= ~ARITH_ASSIGNOP;
+				node.flags &= ~ARITH_ASSIGNOP;
 			}
 			if(node.value != (char*)dp)
-				arith_error(node.value,ptr,ep->emode);
+				arith_error(node.value,ptr);
 			*++sp = num;
 			type = node.isfloat;
 			if(isinf(num) || isnan(num) || num > LDBL_ULLONG_MAX || num < LDBL_LLONG_MIN)
@@ -280,12 +275,12 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			cp = roundptr(ep,cp,Sfdouble_t*);
 			dp = *((Sfdouble_t**)cp);
 			cp += sizeof(Sfdouble_t*);
-			c = *(short*)cp;
+			c = *(ptrdiff_t*)cp;
 			if(c<0)
 				c = 0;
-			cp += sizeof(short);
+			cp += sizeof(ptrdiff_t);
 			node.value = (char*)dp;
-			node.flag = (short)c;
+			node.sub_idx = c;
 			if(lastval)
 				node.isenum = 1;
 			node.enum_p = 0;
@@ -293,12 +288,12 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			if(lastval && node.enum_p)
 			{
 				Sfdouble_t r;
-				node.flag = 0;
+				node.sub_idx = 0;
 				node.value = lastval;
 				r =  (*ep->fun)(&ptr,&node,VALUE,num);
 				if(r!=num)
 				{
-					node.flag=(short)c;
+					node.sub_idx = c;
 					node.value = (char*)dp;
 					num = (*ep->fun)(&ptr,&node,ASSIGN,r);
 				}
@@ -345,7 +340,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			break;
 		    case A_MOD:
 			if(!(Sflong_t)num)
-				arith_error(e_divzero,ep->expr,ep->emode);
+				arith_error(e_divzero,ep->expr);
 			if(type==2 || tp[-1]==2)
 				num = U2F(F2U(sp[-1]) % F2U(num));
 			else
@@ -358,7 +353,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				type = 1;
 			}
 			else if(F2U(num)==0)
-				arith_error(e_divzero,ep->expr,ep->emode);
+				arith_error(e_divzero,ep->expr);
 			else if(type==2 || tp[-1]==2)
 				num = U2F(F2U(sp[-1]) / F2U(num));
 			else
@@ -586,7 +581,7 @@ static int expr(struct vars *vp,int precedence)
 	lvalue.value = 0;
 	lvalue.nargs = 0;
 	lvalue.fun = 0;
-	assignop.flag = 0;  /* silence gcc warning */
+	assignop.sub_idx = 0;  /* silence gcc warning */
 again:
 	op = gettok(vp);
 	c = 2*MAXPREC+1;
@@ -662,9 +657,9 @@ again:
 				sfputc(sh.stk,A_ENUM);
 			sfputc(sh.stk,assignop.value?A_ASSIGNOP1:A_PUSHV);
 			stkpush(sh.stk,vp,lvalue.value,char*);
-			if(lvalue.flag<0)
-				lvalue.flag = 0;
-			stkpush(sh.stk,vp,lvalue.flag,short);
+			if(lvalue.sub_idx < 0)
+				lvalue.sub_idx = 0;
+			stkpush(sh.stk,vp,lvalue.sub_idx,ptrdiff_t);
 			if(vp->nextchr==0)
 				ERROR(vp,e_number);
 			if(!(strval_precedence[op]&SEQPOINT))
@@ -713,10 +708,10 @@ again:
 
 		case A_LPAR:
 		{
-			int	infun = vp->infun;
-			int	userfun=0;
-			Sfdouble_t (*fun)(Sfdouble_t,...);
-			int nargs = lvalue.nargs;
+			int		infun = vp->infun;
+			int		userfun = 0;
+			Sfdouble_t	(*fun)(Sfdouble_t, ...);
+			short		nargs = lvalue.nargs;
 			if(nargs<0)
 				nargs = -nargs;
 			fun = lvalue.fun;
@@ -726,9 +721,9 @@ again:
 				if(vp->staksize++>=vp->stakmaxsize)
 					vp->stakmaxsize = vp->staksize;
 				vp->infun=1;
-				if((int)lvalue.nargs<0)
+				if(lvalue.nargs < 0)
 					userfun = T_BINARY;
-				else if((int)lvalue.nargs&040)
+				else if(lvalue.nargs & 040)
 					userfun = T_NOFLOAT;
 				sfputc(sh.stk,A_PUSHF);
 				stkpush(sh.stk,vp,fun,Math_f);
@@ -744,7 +739,7 @@ again:
 			vp->paren--;
 			if(fun)
 			{
-				int  x= (nargs&010)?2:-1;
+				short x = (nargs & 010) ? 2 : -1;
 				nargs &= 7;
 				if(vp->infun != nargs)
 					ERROR(vp,e_argcount);
@@ -772,7 +767,7 @@ again:
 			{
 				sfputc(sh.stk,A_STORE);
 				stkpush(sh.stk,vp,lvalue.value,char*);
-				stkpush(sh.stk,vp,lvalue.flag,short);
+				stkpush(sh.stk,vp,lvalue.sub_idx,ptrdiff_t);
 				vp->staksize--;
 			}
 			else
@@ -784,19 +779,19 @@ again:
 		{
 			ptrdiff_t offset1,offset2;
 			sfputc(sh.stk,A_JMPZ);
-			offset1 = stkpush(sh.stk,vp,0,short);
+			offset1 = stkpush(sh.stk,vp,0,ptrdiff_t);
 			sfputc(sh.stk,A_POP);
 			if(!expr(vp,1))
 				return 0;
 			if(gettok(vp)!=A_COLON)
 				ERROR(vp,e_questcolon);
 			sfputc(sh.stk,A_JMP);
-			offset2 = stkpush(sh.stk,vp,0,short);
-			*((short*)stkptr(sh.stk,offset1)) = (short)stktell(sh.stk);
+			offset2 = stkpush(sh.stk,vp,0,ptrdiff_t);
+			*((ptrdiff_t*)stkptr(sh.stk,offset1)) = (ptrdiff_t)stktell(sh.stk);
 			sfputc(sh.stk,A_POP);
 			if(!expr(vp,3))
 				return 0;
-			*((short*)stkptr(sh.stk,offset2)) = (short)stktell(sh.stk);
+			*((ptrdiff_t*)stkptr(sh.stk,offset2)) = (ptrdiff_t)stktell(sh.stk);
 			lvalue.value = 0;
 			wasop = 0;
 			break;
@@ -816,11 +811,11 @@ again:
 			else
 				op = A_JMPNZ;
 			sfputc(sh.stk,op);
-			offset = stkpush(sh.stk,vp,0,short);
+			offset = stkpush(sh.stk,vp,0,ptrdiff_t);
 			sfputc(sh.stk,A_POP);
 			if(!expr(vp,c))
 				return 0;
-			*((short*)stkptr(sh.stk,offset)) = (short)stktell(sh.stk);
+			*((ptrdiff_t*)stkptr(sh.stk,offset)) = stktell(sh.stk);
 			if(op!=A_QCOLON)
 				sfputc(sh.stk,A_NOTNOT);
 			lvalue.value = 0;
@@ -850,7 +845,7 @@ again:
 			pos = vp->nextchr;
 			lvalue.isfloat = 0;
 			lvalue.expr = vp->expr;
-			lvalue.emode = vp->emode;
+			lvalue.flags = vp->flags;
 			if(op==A_LIT)
 			{
 				/* character constants */
@@ -891,11 +886,11 @@ again:
 		{
 			if(vp->staksize++>=vp->stakmaxsize)
 				vp->stakmaxsize = vp->staksize;
-			if(assignop.flag<0)
-				assignop.flag = 0;
+			if(assignop.sub_idx < 0)
+				assignop.sub_idx = 0;
 			sfputc(sh.stk,c&1?A_ASSIGNOP:A_STORE);
 			stkpush(sh.stk,vp,assignop.value,char*);
-			stkpush(sh.stk,vp,assignop.flag,short);
+			stkpush(sh.stk,vp,assignop.sub_idx,ptrdiff_t);
 		}
 	}
  done:
@@ -903,7 +898,7 @@ again:
 	return 1;
 }
 
-Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const char**,struct lval*,int,Sfdouble_t),int emode)
+Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const char**,struct lval*,int,Sfdouble_t),int flags)
 {
 	struct vars cur;
 	Arith_t *ep;
@@ -911,9 +906,9 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 	memset(&cur,0,sizeof(cur));
      	cur.expr = cur.nextchr = string;
 	cur.convert = fun;
-	cur.emode = emode;
+	cur.flags = flags;
 	cur.errmsg.value = 0;
-	cur.errmsg.emode = emode;
+	cur.errmsg.flags = flags;
 	stkseek(sh.stk,(ssize_t)sizeof(Arith_t));
 	if(!expr(&cur,0) && cur.errmsg.value)
 	{
@@ -934,7 +929,7 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 	ep->elen = strlen(string);
 	ep->code = (unsigned char*)(ep+1);
 	ep->fun = fun;
-	ep->emode = emode;
+	ep->flags = flags;
 	ep->size = offset - (ssize_t)sizeof(Arith_t);
 	ep->staksize = cur.stakmaxsize+1;
 	if(last)
@@ -954,7 +949,7 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
  *
  * NOTE: (*convert)() may call arith_strval()
  */
-Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const char**,struct lval*,int,Sfdouble_t), int emode)
+Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const char**,struct lval*,int,Sfdouble_t))
 {
 	Arith_t *ep;
 	Sfdouble_t d;
@@ -962,8 +957,8 @@ Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const ch
 	ptrdiff_t offset;
 	if(offset=stktell(sh.stk))
 		sp = stkfreeze(sh.stk,1);
-	ep = arith_compile(s,end,convert,emode);
-	ep->emode = emode;
+	ep = arith_compile(s,end,convert,0);
+	ep->flags = 0;
 	d = arith_exec(ep);
 	stkset(sh.stk,sp?sp:(char*)ep,offset);
 	return d;
