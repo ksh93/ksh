@@ -73,11 +73,11 @@ struct lval
 	Sfdouble_t	(*fun)(Sfdouble_t,...);
 	const char	*expr;
 	const void	*enum_p;	/* pointer to the lvalue's enum type */
-	char		*sub;
+	void		*sub_np;	/* Namval_t array subscript reference saved for ASSIGN */
+	ptrdiff_t	sub_idx;	/* char index to potential array subscript */
 	size_t		elen;
 	int		nosub;
-	int		emode;
-	short		flag;
+	int		flags;		/* ARITH_* bit flags */
 	short		nargs;
 	short		level;
 	char		isenum;		/* set if the lvalue is of an enum type */
@@ -98,7 +98,7 @@ typedef struct _arith_
 	size_t		elen;
 	ptrdiff_t	size;
 	ptrdiff_t	staksize;
-	int		emode;
+	int		flags;		/* ARITH_* bit flags */
 } Arith_t;
 #define ARITH_COMP	04	/* set when compile separate from execute */
 #define ARITH_ASSIGNOP	010	/* set during assignment operators */
@@ -197,7 +197,7 @@ extern const struct 		mathtab shtab_math[];
 #define VALUE	2
 #define MESSAGE	3
 
-extern Sfdouble_t arith_strval(const char*,char**,Sfdouble_t(*)(const char**,struct lval*,int,Sfdouble_t),int);
+extern Sfdouble_t arith_strval(const char*,char**,Sfdouble_t(*)(const char**,struct lval*,int,Sfdouble_t));
 extern Arith_t *arith_compile(const char*,char**,Sfdouble_t(*)(const char**,struct lval*,int,Sfdouble_t),int);
 extern Sfdouble_t arith_exec(Arith_t*);
 

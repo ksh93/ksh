@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-08-03:
+
+- Fixed crashes that could occur when an arithmetic syntax error is thrown
+  in an arithmetic expression processed via the print or printf built-ins.
+
+- ksh no longer crashes or misbehaves when an arithmetic expression
+  longer than 32767 bytes contains an array subscript.
+
 2026-08-01:
 
 - Fixed bogus expansion values of ${var/#pattern/replacement} or

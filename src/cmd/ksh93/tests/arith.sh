@@ -1160,4 +1160,13 @@ kill $!
 (($e < 128)) || err_exit "\$((-2**63/-1)) hangs or crashes shell (got status $e/SIG$(kill -l $e))"
 
 # ======
+# https://github.com/ksh93/ksh/issues/1004
+CCn=$'\n'
+exp="$SHELL: printf: 1,2m34: arithmetic syntax error$CCn$SHELL: printf: warning: invalid argument of type d${CCn}1"
+got=$(set +x; { LANG=C "$SHELL" -c "printf $'%\\'d\\n' 1,2m34"; } 2>&1)
+[[ e=$? -eq 1 && $got == "$exp" ]] || err_exit "printf %'d on bad input" \
+	"(expected status 1 and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

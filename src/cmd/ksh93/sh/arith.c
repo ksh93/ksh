@@ -60,13 +60,13 @@ static Namval_t FunNode =
 
 static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 {
-	int	flag = lvalue->flag;
-	char	*sub=0, *cp=(char*)np;
-	Namval_t *mp;
-	int	c=0,nosub = lvalue->nosub;
-	Dt_t	*sdict = (sh.st.real_fun? sh.st.real_fun->sdict:0);
-	Dt_t	*nsdict = (sh.namespace?nv_dict(sh.namespace):0);
-	Dt_t	*root = sh.var_tree;
+	ptrdiff_t	sub_idx = lvalue->sub_idx;
+	char		*sub = NULL, *cp = (char*)np;
+	Namval_t	*mp;
+	int		c = 0, nosub = lvalue->nosub;
+	Dt_t		*sdict = sh.st.real_fun ? sh.st.real_fun->sdict : NULL;
+	Dt_t		*nsdict = sh.namespace ? nv_dict(sh.namespace) : NULL;
+	Dt_t		*root = sh.var_tree;
 	assign = assign?NV_ASSIGN:0;
 	lvalue->nosub = 0;
 	if(nosub<0 && lvalue->ovalue)
@@ -76,31 +76,31 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 	{
 		ptrdiff_t offset;
 		/* do binding to node now */
-		char c = cp[flag];
-		cp[flag] = 0;
+		char saved_c = cp[sub_idx];
+		cp[sub_idx] = 0;
 		if((!(np = nv_open(cp,sh.var_tree,assign|NV_VARNAME|NV_NOADD|NV_NOFAIL)) || nv_isnull(np))
 		&& sh_macfun(cp, offset = stktell(sh.stk)))
 		{
 			Fun = sh_arith(sub=stkptr(sh.stk,offset));
 			FunNode.nvalue = &Fun;
 			nv_onattr(&FunNode,NV_NOFREE|NV_LDOUBLE|NV_RDONLY);
-			cp[flag] = c;
+			cp[sub_idx] = saved_c;
 			return &FunNode;
 		}
 		if(!np && assign)
 			np = nv_open(cp,sh.var_tree,assign|NV_VARNAME);
-		cp[flag] = c;
+		cp[sub_idx] = saved_c;
 		if(!np)
 			return NULL;
 		root = sh.last_root;
-		/* cp[flag] may be the terminating 0 byte */
-		if(cp[flag] && cp[flag+1]=='[')
-			flag++;
+		/* cp[sub_idx] may be the terminating 0 byte */
+		if(cp[sub_idx] && cp[sub_idx + 1]=='[')
+			sub_idx++;
 		else
-			flag = 0;
+			sub_idx = 0;
 		cp = (char*)np;
 	}
-	if((lvalue->emode & ARITH_COMP) && dtvnext(root))
+	if((lvalue->flags & ARITH_COMP) && dtvnext(root))
 	{
 		if(mp = nv_search(cp, sdict ? sdict : root, NV_NOSCOPE|NV_REF))
 			np = mp;
@@ -129,10 +129,10 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 		if(sub)
 			nv_putsub(np,sub,assign==NV_ASSIGN?ARRAY_ADD:0);
 	}
-	if(!nosub && flag)
+	if(!nosub && sub_idx)
 	{
 		int		hasdot = 0;
-		cp = (char*)&lvalue->expr[flag];
+		cp = (char*)&lvalue->expr[sub_idx];
 		if(sub)
 		{
 			goto skip;
@@ -142,6 +142,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 		{
 			Namarr_t	*ap;
 			Namval_t	*nq;
+			char		saved_c;
 			cp = nv_endsubscript(np,cp,0);
 			if(c || *cp=='.')
 			{
@@ -158,7 +159,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 					continue;
 				}
 			}
-			flag = *cp;
+			saved_c = *cp;
 			*cp = 0;
 			if(c || hasdot)
 			{
@@ -166,7 +167,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 				sfputr(sh.strbuf,sub,-1);
 				sub = sfstruse(sh.strbuf);
 			}
-			*cp = (char)flag;
+			*cp = saved_c;
 			if(c || hasdot)
 			{
 				np = nv_open(sub,sh.var_tree,NV_VARNAME|assign);
@@ -235,13 +236,13 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 	    {
 		Namval_t *np;
 		nvflag_t attr;
-		if (lvalue->sub && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
+		if (lvalue->sub_np && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
 		{
-			np = (Namval_t*)lvalue->sub; /* use saved subscript reference instead of last worked value */
+			np = lvalue->sub_np; /* use saved subscript reference instead of last worked value */
 			nv_putsub(np, NULL, lvalue->nosub-1);
 			/* reset nosub and sub for next assignment in a compound arithmetic expression */
 			lvalue->nosub = 0;
-			lvalue->sub = 0;
+			lvalue->sub_np = NULL;
 		}
 		else
 		{
@@ -346,16 +347,16 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 					lvalue->fun = (Math_f)sh_mathstdfun(*ptr,fsize,&lvalue->nargs);
 				if(lvalue->fun)
 					break;
-				if(lvalue->emode&ARITH_COMP)
+				if(lvalue->flags & ARITH_COMP)
 					lvalue->value = (char*)e_function;
 				else
 					lvalue->value = (char*)ERROR_dictionary(e_function);
 				return r;
 			}
-			if((lvalue->emode&ARITH_COMP) && dot)
+			if((lvalue->flags & ARITH_COMP) && dot)
 			{
 				lvalue->value = (char*)*ptr;
-				lvalue->flag =  (short)(str-lvalue->value);
+				lvalue->sub_idx = str - lvalue->value;
 				break;
 			}
 			*str = 0;
@@ -365,7 +366,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			{
 				ptrdiff_t offset = stktell(sh.stk);
 				char *saveptr = stkfreeze(sh.stk,0);
-				Dt_t  *root = (lvalue->emode&ARITH_COMP)?sh.var_base:sh.var_tree;
+				Dt_t  *root = (lvalue->flags & ARITH_COMP) ? sh.var_base : sh.var_tree;
 				*str = (char)c;
 				cp = str;
 				while(c=='[' || c=='.')
@@ -413,7 +414,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				else if(!(np = nv_open(*ptr,root,NV_NOREF|NV_VARNAME|dot)))
 				{
 					lvalue->value = (char*)*ptr;
-					lvalue->flag =  (short)(str-lvalue->value);
+					lvalue->sub_idx = str - lvalue->value;
 				}
 				if(saveptr != stkptr(sh.stk,0))
 					stkset(sh.stk,saveptr,offset);
@@ -427,10 +428,10 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			/* bind subscript later */
 			if(nv_isattr(np,NV_DOUBLE)==NV_DOUBLE)
 				lvalue->isfloat=1;
-			lvalue->flag = 0;
+			lvalue->sub_idx = 0;
 			if(c=='[')
 			{
-				lvalue->flag = (short)(str-lvalue->expr);
+				lvalue->sub_idx = str - lvalue->expr;
 				do
 				{
 					while(c=='.')
@@ -537,12 +538,12 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			nv_unset(&node,0);
 			return r;
 		}
-		if(((lvalue->emode&2) || lvalue->level>1 || sh_isoption(SH_NOUNSET)) && nv_isnull(np) && !nv_isattr(np,NV_INTEGER))
+		if((lvalue->level>1 || sh_isoption(SH_NOUNSET)) && nv_isnull(np) && !nv_isattr(np,NV_INTEGER))
 		{
 			*ptr = nv_name(np);
 		skip:
 			lvalue->value = (char*)ERROR_dictionary(e_notset);
-			lvalue->emode |= 010;
+			lvalue->flags |= ARITH_ASSIGNOP;
 			return 0;
 		}
 		r = nv_getnum(np);
@@ -550,18 +551,19 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			lvalue->isfloat= (r!=(Sflong_t)r);
 		else if(nv_isattr(np,NV_DOUBLE)==NV_DOUBLE)
 			lvalue->isfloat=1;
-		if((lvalue->emode&ARITH_ASSIGNOP) && nv_isarray(np))
+		if((lvalue->flags&ARITH_ASSIGNOP) && nv_isarray(np))
 		{
 			lvalue->nosub = nv_aindex(np)+1; /* subscript number of array */
-			lvalue->sub = (char*)np; /* store subscript reference for upcoming iteration of ASSIGN */
+			lvalue->sub_np = np; /* store subscript reference for upcoming iteration of ASSIGN */
 		}
 		return r;
 	    }
 	    case MESSAGE:
 		sfsync(NULL);
-		if(lvalue->emode&ARITH_COMP)
+		if(lvalue->flags & ARITH_COMP)
 			return -1;
-		errormsg(SH_DICT,ERROR_exit((lvalue->emode&3)!=0),lvalue->value,*ptr);
+		errormsg(SH_DICT, ERROR_exit(1), lvalue->value, *ptr);
+		UNREACHABLE();
 	}
 	*ptr = str;
 	return r;
@@ -570,12 +572,13 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 /*
  * convert number defined by string to a Sfdouble_t
  * ptr is set to the last character processed
- * if mode>0, an error will be fatal with value <mode>
+ * if fatal != 0, an error will be fatal with exit status 1
  */
-Sfdouble_t sh_strnum(const char *str, char** ptr, int mode)
+Sfdouble_t sh_strnum(const char *str, char** ptr, int fatal)
 {
-	Sfdouble_t d;
-	char base = (sh_isoption(sh.bltinfun==b_let ? SH_LETOCTAL : SH_POSIX) ? 0 : 10), *last;
+	volatile Sfdouble_t d;
+	int jmpval = 0;
+	char *last;
 	if(*str==0)
 	{
 		d = 0.0;
@@ -583,6 +586,7 @@ Sfdouble_t sh_strnum(const char *str, char** ptr, int mode)
 	}
 	else
 	{
+		char base = (sh_isoption(sh.bltinfun==b_let ? SH_LETOCTAL : SH_POSIX) ? 0 : 10);
 		errno = 0;
 		d = strtonll(str,&last,&base,-1);
 		if(*last && sh_isstate(SH_INIT))
@@ -606,12 +610,24 @@ Sfdouble_t sh_strnum(const char *str, char** ptr, int mode)
 			else
 			{
 				if(!last || *last!=sh.radixpoint || last[1]!=sh.radixpoint)
-					d = arith_strval(str,&last,arith,mode);
-				if(!ptr && *last && mode>0)
 				{
-					errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*last,str);
-					UNREACHABLE();
+					struct checkpt	*checkp;
+					/*
+					 * If non-fatal errors are requested, make errors longjmp back here.
+					 */
+					if(!fatal)
+					{
+						checkp = stkalloc(sh.stk, sizeof *checkp);
+						sh_pushcontext(checkp, SH_JMPEVAL);
+						jmpval = sigsetjmp(checkp->buff, 0);
+					}
+					if(!jmpval)
+						d = arith_strval(str, &last, arith);
+					if(!fatal)
+						sh_popcontext(checkp);
 				}
+				if(!ptr && *last && !jmpval)
+					errormsg(SH_DICT, ERROR_exit(fatal != 0), e_lexbadchar, *last, str);
 			}
 		}
 		else if(!d && *str=='-')
@@ -619,6 +635,8 @@ Sfdouble_t sh_strnum(const char *str, char** ptr, int mode)
 	}
 	if(ptr)
 		*ptr = last;
+	if(jmpval > SH_JMPEVAL)
+		siglongjmp(*sh.jmplist,jmpval);
 	return d;
 }
 
@@ -631,7 +649,7 @@ void	*sh_arithcomp(char *str)
 {
 	const char *ptr = str;
 	Arith_t *ep;
-	ep = arith_compile(str,(char**)&ptr,arith,ARITH_COMP|1);
+	ep = arith_compile(str,(char**)&ptr,arith,ARITH_COMP);
 	if(*ptr)
 	{
 		errormsg(SH_DICT,ERROR_exit(1),e_lexbadchar,*ptr,str);
