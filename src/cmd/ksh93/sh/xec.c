@@ -802,7 +802,6 @@ int sh_exec(const Shnode_t *t, int flags)
 		char		*cp=0, **com=0, *comn;
 		int		argn;
 		int 		skipexitset = 0;
-		volatile int	was_interactive = 0;
 		volatile int	was_errexit = sh_isstate(SH_ERREXIT);
 		volatile int	was_monitor = sh_isstate(SH_MONITOR);
 		volatile int	echeck = 0;
@@ -1610,8 +1609,9 @@ int sh_exec(const Shnode_t *t, int flags)
 			sh_pushcontext(buffp,SH_JMPIO);
 			if(type&FPIN)
 			{
-				was_interactive = sh_isstate(SH_INTERACTIVE);
-				sh_offstate(SH_INTERACTIVE);
+				/*
+				 * Read from a pipe in the current environment (last element of pipeline).
+				 */
 				sh_iosave(0,sh.topfd,NULL);
 				sh.pipepid = simple;
 				sh_iorenumber(sh.inpipe[0],0);
@@ -2528,8 +2528,6 @@ int sh_exec(const Shnode_t *t, int flags)
 		}
 		if(sh.trapnote&SH_SIGSET)
 			sh_exit(SH_EXITSIG|sh.lastsig);
-		if(was_interactive)
-			sh_onstate(SH_INTERACTIVE);
 		if(was_monitor && sh_isoption(SH_MONITOR))
 			sh_onstate(SH_MONITOR);
 		if(was_errexit)
