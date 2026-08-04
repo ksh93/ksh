@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-08-04:
+
+- Fixed a potential crash when suspending (^Z), on the interactive shell,
+  a multi-element pipeline with the last element running in the current
+  environment.
+
 2026-08-03:
 
 - Fixed crashes that could occur when an arithmetic syntax error is thrown
