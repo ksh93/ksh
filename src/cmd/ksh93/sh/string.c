@@ -520,29 +520,29 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 			{
 				switch (c)
 				{
-		    		case '\033':		/* ASCII ESC */
+				case '\033':		/* ASCII ESC */
 					c = 'E';
 					break;
-		    		case '\n':
+				case '\n':
 					q = 0;
 					n = fold - 1;
 					break;
-		    		case '\r':
+				case '\r':
 					c = 'r';
 					break;
-		    		case '\t':
+				case '\t':
 					c = 't';
 					break;
-		    		case '\f':
+				case '\f':
 					c = 'f';
 					break;
-		    		case '\b':
+				case '\b':
 					c = 'b';
 					break;
-		    		case '\a':
+				case '\a':
 					c = 'a';
 					break;
-		    		case '\\':
+				case '\\':
 					if (*cp == 'n')
 					{
 						c = '\n';
@@ -552,7 +552,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 					}
 				case '\'':
 					break;
-		    		default:
+				default:
 #if SHOPT_MULTIBYTE
 					if(!iswprint(c))
 #else

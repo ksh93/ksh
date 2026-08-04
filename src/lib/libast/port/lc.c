@@ -387,7 +387,7 @@ lccanon(Lc_t* lc, unsigned long flags, char* buf, size_t siz)
 		    GetLocaleInfo(lc->index, LOCALE_SENGLANGUAGE, lang, sizeof(lang)) &&
 		    GetLocaleInfo(lc->index, LOCALE_SENGCOUNTRY, ctry, sizeof(ctry)))
 		{
-		    	if (!GetLocaleInfo(lc->index, LOCALE_IDEFAULTANSICODEPAGE, code, sizeof(code)))
+			if (!GetLocaleInfo(lc->index, LOCALE_IDEFAULTANSICODEPAGE, code, sizeof(code)))
 				code[0] = 0;
 			if (!lc->charset || !lc->charset->ms)
 				return sfsprintf(buf, siz, "%s_%s", lang, ctry);

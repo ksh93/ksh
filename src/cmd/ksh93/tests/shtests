@@ -28,7 +28,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2026-07-26 $
+@(#)$Id: shtests (ksh 93u+m) 2026-08-04 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -189,6 +189,7 @@ command set +o posix 2>/dev/null
 unset DISPLAY FIGNORE HISTFILE POSIXLY_CORRECT _AST_FEATURES
 export ENV=/./dev/null SHTESTS_COMMON=$PWD/_common
 trap + $(kill -l)	# unadvertised -- set all signals to SIG_DFL
+redirect 3>&- 4>&- 5>&- 6>&- 7>&- 8>&- 9>&-  # in case of unwanted inherited open files
 
 integer compile=-1 posix=-1 utf8=-1
 integer debug=0 keep=0 locale=0 time=1

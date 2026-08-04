@@ -2376,10 +2376,10 @@ addin:
 		}
 		save_v(vp);
 		if( cur_virt != INVALID )
- 		{
- 			vp->o_v_char = virtual[cur_virt];
+		{
+			vp->o_v_char = virtual[cur_virt];
 			first_virt = cur_virt--;
-  		}
+		}
 		return INSERT;
 
 	case 'C':		/** change to eol and insert **/

@@ -1056,9 +1056,9 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 				}
 				if (n == rf && better(env,
 						     (Pos_t*)env->bestpos->vec,
-				   		     (Pos_t*)env->pos->vec,
-				   		     (Pos_t*)env->bestpos->vec+env->bestpos->cur,
-				   		     (Pos_t*)env->pos->vec+env->pos->cur,
+						     (Pos_t*)env->pos->vec,
+						     (Pos_t*)env->bestpos->vec+env->bestpos->cur,
+						     (Pos_t*)env->pos->vec+env->pos->cur,
 						     0) <= 0)
 					return GOOD;
 			}
@@ -1411,9 +1411,9 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				}
 				if (rex->re.nest.primary >= 0)
 					return NONE;
-			    	if (rex->re.nest.type[c] & (REX_NEST_delimiter|REX_NEST_separator|REX_NEST_terminator))
+				if (rex->re.nest.type[c] & (REX_NEST_delimiter|REX_NEST_separator|REX_NEST_terminator))
 					break;
-			    	if (!(s = nestmatch(s, env->end, rex->re.nest.type, c)))
+				if (!(s = nestmatch(s, env->end, rex->re.nest.type, c)))
 					return NONE;
 			} while (s < env->end && !(rex->re.nest.type[*(s-1)] & (REX_NEST_delimiter|REX_NEST_separator|REX_NEST_terminator)));
 			break;

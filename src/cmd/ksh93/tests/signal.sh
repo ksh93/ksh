@@ -388,9 +388,9 @@ yes() for ((;;)); do print y; done
 				do	("\$bindate"; sleep .01)
 				done > /dev/null
 				EOF
-    			} 2>> /dev/null
-    			got=$(kill -l $?)
-    			[[ $exp == $got ]] || err_exit "kill -$exp \$\$ failed, required termination by signal '$got'"
+			} 2>> /dev/null
+			got=$(kill -l $?)
+			[[ $exp == $got ]] || err_exit "kill -$exp \$\$ failed, required termination by signal '$got'"
 		fi
 	done
 
@@ -615,8 +615,16 @@ trap - INT
 # ======
 # Ancient SIGCONT nonsense present as early as ksh88:
 # the 'kill' built-in sent SIGCONT along with every non-SIGCONT signal issued!
+set -- kill
+case $(command -x kill --version 2>&1) in
+*'AT&T Research'*)
+	# reject -- old ksh builtin as external command, sends spurious SIGCONT (on OmniOS, maybe other illumos)
+	;;
+*)	set -- "$@" $(command -x -v kill)
+	;;
+esac
 for sig in TERM HUP INT USR1
-do	for cmd in kill $(whence -p kill)
+do	for cmd
 	do	got=$("$SHELL" -c "trap 'echo \"SIGCONT (!!)\"' CONT; trap 'echo SIG$sig' $sig; $cmd -s $sig \$\$")
 		[[ e=$? -eq 0 && $got == "SIG$sig" ]] || err_exit "CONT+$sig trap, SIG$sig issued using '$cmd':" \
 			"expected status 0, SIG$sig;" \

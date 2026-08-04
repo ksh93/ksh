@@ -630,7 +630,7 @@ function test2
 		(( out.res == 0 )) || err_exit "${currtest.name}: Test shell returned with exit code ${out.res}"
 		[[ "${out.stdout}" == "${currtest.expected_output}" ]] || err_exit "${currtest.name}: Expected stdout == $(printf "%q\n" "${currtest.expected_output}"), got $(printf "%q\n" "${out.stdout}")"
 		[[ "${out.stderr}" == '' ]] || err_exit "${currtest.name}: Expected empty stderr, got $(printf "%q\n" "${out.stderr}")"
-   	done
+	done
 
 	return 0
 }

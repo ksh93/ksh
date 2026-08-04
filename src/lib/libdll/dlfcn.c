@@ -35,7 +35,7 @@
 
 	/*
 	 * HP-UX
- 	 */
+	 */
 
 #	include <dl.h>
 #	ifndef BIND_FIRST
@@ -141,7 +141,7 @@
 				return 1;
 			ld_info = realloc(ld_info, ld_info_size *= 2);
 		}
- 	}
+	}
 
 	/* find the loaded module whose data area contains the
 	 * address passed in. Remember that procedure pointers

@@ -879,7 +879,7 @@ int sh_open(const char *path, int flags, ...)
 		while((fd = open(path, flags, mode)) < 0)
 			if(errno!=EINTR || sh.trapnote)
 				return -1;
- 	}
+	}
  ok:
 	flags &= O_ACCMODE;
 	if(flags==O_WRONLY)
@@ -1115,7 +1115,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 				return 0;
 			if(!S_ISREG(statb.st_mode))
 				return 0;
-		 	*perm = statb.st_mode&(RW_ALL|(S_IXUSR|S_IXGRP|S_IXOTH));
+			*perm = statb.st_mode&(RW_ALL|(S_IXUSR|S_IXGRP|S_IXOTH));
 		}
 		else if(fd < 0  && errno!=ENOENT)
 			return 0;

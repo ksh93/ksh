@@ -61,6 +61,7 @@ parallel_2=$!
 
 # ======
 # Test shell builtin commands
+unset foo
 : ${foo=bar} || err_exit ": failed"
 [[ $foo == bar ]] || err_exit ": side effects failed"
 set -- - foobar

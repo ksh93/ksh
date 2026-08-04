@@ -299,7 +299,7 @@ fi # can_close_stdout
 	do_it_all()
 	{
 		dd 2>/dev/null  # not a ksh93 builtin
-	 	return $?
+		return $?
 	}
 	do_it_all ; exit $?
 	hello world

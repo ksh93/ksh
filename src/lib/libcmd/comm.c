@@ -153,7 +153,7 @@ b_comm(int argc, char *argv[], Shbltin_t* context)
 	{
 		switch (optget(argv, usage))
 		{
- 		case '1':
+		case '1':
 			mode &= ~C_FILE1;
 			continue;
 		case '2':

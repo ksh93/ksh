@@ -428,9 +428,9 @@ int    b_bg(int n,char *argv[],Shbltin_t *context)
 	int flag = **argv;
 	const char *optstr = sh_optbg;
 	NOT_USED(context);
-	if(*argv[0]=='f')
+	if(flag=='f')
 		optstr = sh_optfg;
-	else if(*argv[0]=='d')
+	else if(flag=='d')
 		optstr = sh_optdisown;
 	while((n = optget(argv,optstr))) switch(n)
 	{

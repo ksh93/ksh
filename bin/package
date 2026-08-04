@@ -125,7 +125,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-04-02 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-08-04 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -1735,7 +1735,7 @@ fi
 # Fix for NixOS. Not all POSIX standard utilities come with the default system,
 # e.g. 'bc', 'file', 'vi'. The command that NixOS recommends to get missing
 # utilities, e.g. 'nix-env -iA nixos.bc', installs them in a default profile
-# directory that is not in $(getconf PATH). So add this path to the standard path.
+# directory that, in versions before February 2026, is not in $(getconf PATH).
 # See: https://github.com/NixOS/nixpkgs/issues/65512
 if	test -e /etc/NIXOS &&
 	nix_profile_dir=/nix/var/nix/profiles/default/bin &&
@@ -1744,15 +1744,8 @@ then	case ":$DEFPATH:" in
 	*:"$nix_profile_dir":* )
 		# nothing to do
 		;;
-	* )	# insert the default profile directory as the second entry
-		DEFPATH=$(
-			set -f
-			IFS=:
-			set -- $DEFPATH
-			one=$1
-			shift
-			echo "$one:$nix_profile_dir${1+:}$*"
-		) ;;
+	* )	# add the default profile directory
+		DEFPATH=$DEFPATH:$nix_profile_dir ;;
 	esac
 fi
 # Fix for AIX. At least as of version 7.1, the system default 'find', 'diff -u' and 'patch' utilities
@@ -2950,7 +2943,10 @@ test)	# run all available default regression tests, using our newly compiled she
 	cd "$INSTALLROOT" || err_out "run '$0 make' first"
 	if	test "$KEEP_SHELL" -lt 2
 	then	executable bin/ksh || err_out "build ksh first, or supply a SHELL=/path/to/ksh argument"
-		SHELL=$INSTALLROOT/bin/ksh
+		if	test -e "$INSTALLROOT/dyn/bin/ksh"
+		then	SHELL=$INSTALLROOT/dyn/bin/ksh
+		else	SHELL=$INSTALLROOT/bin/ksh
+		fi
 	fi
 	export SHELL
 	set -f

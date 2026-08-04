@@ -441,7 +441,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 #endif
 					fp[n].argv.d  = va_arg(args,double);
 				break;
-	 		  case SFFMT_POINTER:
+			  case SFFMT_POINTER:
 					fp[n].argv.vp = va_arg(args,void*);
 				break;
 			  case SFFMT_CHAR:

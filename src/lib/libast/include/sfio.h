@@ -365,7 +365,7 @@ __INLINE__ ssize_t sfmaxr(ssize_t n, int s)	{ return __sf_maxr(n,s); }
 
 #define sfstrseek(f,p,m) \
 	( (m) == SEEK_SET ? \
-	 	(((p) < 0 || (p) > (f)->_size) ? (char*)0 : \
+		(((p) < 0 || (p) > (f)->_size) ? (char*)0 : \
 		 (char*)((f)->_next = (f)->_data+(p)) ) \
 	: (m) == SEEK_CUR ? \
 		((f)->_next += (p), \

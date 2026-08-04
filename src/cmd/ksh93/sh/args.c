@@ -143,7 +143,7 @@ int sh_argopts(int argc,char *argv[])
 		f=*opt_info.option=='-' && (opt_info.num || opt_info.arg);
 		switch(n)
 		{
-	 	    case 'A':
+		    case 'A':
 			np = nv_open(opt_info.arg,sh.var_tree,NV_ARRAY|NV_VARNAME);
 			if(f)
 				nv_unset(np,0);
@@ -185,11 +185,11 @@ int sh_argopts(int argc,char *argv[])
 				}
 			}
 			defaultflag++;
-		    	continue;
+			continue;
 		    case -7:	/* --state */
 			f = 0;
-		    	goto byname;
-	 	    case 'D':
+			goto byname;
+		    case 'D':
 			on_option(&newflags,SH_NOEXEC);
 			goto skip;
 		    case 's':

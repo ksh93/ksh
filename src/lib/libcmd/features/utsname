@@ -3,10 +3,28 @@ lib	syssgi
 mem	utsname.base_rel,utsname.idnumber,utsname.m_type,utsname.nodeext sys/utsname.h
 sys	syscall,systeminfo,syssgi
 
-tst	cross{
-	u=$(p=$(getconf PATH 2>/dev/null) && PATH=$p; uname -o 2>/dev/null)
+tst	note{ default OS name }end cross{
+	# Ensure the use of the system's standard uname from the default PATH.
+	u=$(
+		# DEFPATH should be inherited from package(1), but just in case...
+		case $DEFPATH in
+		( /* )	;;
+		( * )	DEFPATH=$(
+				# support Android/Termux, NixOS, Solaris/illumos, generic /bin:/usr/bin
+				PATH=/data/data/com.termux/files/usr/bin:/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+				getconf PATH
+			)
+			case $?,$DEFPATH in
+			(0,/*)	PATH=$DEFPATH:$PATH ;;
+			esac ;;
+		esac
+		uname -o 2>/dev/null
+	)
 	case $u in
-	'')	;;
-	*)	echo "#define _UNAME_os_DEFAULT     \"$u\"  /* default os name */" ;;
+	'')	return 1  # output 'no'
+		;;
+	*)	echo "#define _UNAME_os_DEFAULT	\"$u\"  /* default OS name */"
+		printf ' %s ...' "$u" >&9  # output OS name before 'yes'
+		;;
 	esac
 }end

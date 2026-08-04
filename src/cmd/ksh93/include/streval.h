@@ -146,7 +146,6 @@ typedef struct _arith_
 #define A_INCR		34
 #define A_DECR  	35
 #define A_PUSHV 	36
-#define A_PUSHL 	37
 #define A_PUSHN 	38
 #define A_PUSHF 	39
 #define A_STORE 	40

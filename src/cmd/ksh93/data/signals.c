@@ -77,7 +77,7 @@ const struct shtable2 shtab_signals[] =
 	"ERR",		VAL(SIGERR,0),					"",
 #endif /* SIGERR */
 	"EXIT",		VAL(0,0),					"",
-	"FPE",		VAL(SIGFPE,SH_SIGDONE),				S("Floating exception"),
+	"FPE",		VAL(SIGFPE,SH_SIGDONE),				S("Arithmetic fault"),
 #ifdef SIGFREEZE
 	"FREEZE",	VAL(SIGFREEZE,SH_SIGIGNORE),			S("Special signal used by CPR"),
 #endif	/* SIGFREEZE */

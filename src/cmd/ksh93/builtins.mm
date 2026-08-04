@@ -487,15 +487,15 @@ an efficient manner:
 .EX
 \fIyourfunction\fP()
 {
-        char		*savebase;
-        ptrdiff_t	saveoffset;
-        if(saveoffset=stktell(stkstd))
-        	savebase = stkfreeze(stkstd,0);
-        \fR...\fP
-        if(saveoffset)
-        	stkset(stkstd,savebase,saveoffset);
-        else
-        	stkseek(stkstd,0);
+	char		*savebase;
+	ptrdiff_t	saveoffset;
+	if(saveoffset=stktell(stkstd))
+		savebase = stkfreeze(stkstd,0);
+	\fR...\fP
+	if(saveoffset)
+		stkset(stkstd,savebase,saveoffset);
+	else
+		stkseek(stkstd,0);
 }
 .EE
 .H 1 "CALLING \f5ksh\fP SERVICES"

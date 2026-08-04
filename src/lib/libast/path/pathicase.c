@@ -65,9 +65,11 @@ pathicase(const char *path)
 	return r;
 #elif _WINIX || __APPLE__
 	/* Windows or Mac without pathconf probe: assume case insensitive */
+	NOT_USED(path);
 	return 1;
 #else
 	/* Not implemented */
+	NOT_USED(path);
 	errno = ENOSYS;
 	return -1;
 #endif

@@ -685,7 +685,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 		int	isdevtty=0;
 		struct stat statb;
 		struct utimbuf utimes;
-	 	if(errno==0 && !ep->e_tty)
+		if(errno==0 && !ep->e_tty)
 		{
 			if((ep->e_tty=ttyname(fd)) && stat(ep->e_tty,&statb)>=0)
 			{

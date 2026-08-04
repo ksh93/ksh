@@ -79,18 +79,16 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 	Tv_t		now;
 #if _lib_utimets || _lib_utimensat
 	struct timespec	ts[2];
-#endif
+#endif /* _lib_utimets || _lib_utimensat */
 #if !_lib_utimets
 #if _lib_utimes
 	struct timeval	am[2];
-#else
-#if _hdr_utime
+#elif _hdr_utime
 	struct utimbuf	am;
 #else
 	time_t		am[2];
-#endif
-#endif
-#endif
+#endif /* _lib_utimes */
+#endif /* !_lib_utimets */
 
 	oerrno = errno;
 #if _lib_utimensat
@@ -142,7 +140,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 			return -1;
 		return 0;
 	}
-#endif
+#endif /* _lib_utimensat */
 	if ((av == TV_TOUCH_RETAIN || mv == TV_TOUCH_RETAIN) && stat(path, &st))
 	{
 		errno = oerrno;
@@ -216,8 +214,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 		errno = oerrno;
 		return 0;
 	}
-#else
-#if _lib_utime
+#elif _lib_utime
 	am.actime = (av == TV_TOUCH_RETAIN) ? st.st_atime : av->tv_sec;
 	am.modtime = (mv == TV_TOUCH_RETAIN) ? st.st_mtime : mv->tv_sec;
 	if (!utime(path, &am))
@@ -228,9 +225,8 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 		errno = oerrno;
 		return 0;
 	}
-#endif
-#endif
-#endif
+#endif /* _lib_utime_now */
+#endif /* _lib_utimes */
 	if (!access(path, F_OK))
 	{
 		if (av != (const Tv_t*)&now || mv != (const Tv_t*)&now)
@@ -254,7 +250,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 				ast_close(fd);
 		}
 	}
-#endif
+#endif /* _lib_utimets */
 	if (errno != ENOENT || !(flags & TV_TOUCH_CREATE))
 		return -1;
 	umask(mode = umask(0));
@@ -267,17 +263,13 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 		return 0;
 #if _lib_utimets
 	return utimets(path, ts);
-#else
-#if _lib_utimes
+#elif _lib_utimes
 	return utimes(path, am);
-#else
-#if _lib_utime
+#elif _lib_utime
 	return utime(path, &am);
 #else
 	errno = EINVAL;
 	return -1;
-#endif
-#endif
-#endif
+#endif /* _lib_utimets */
 
 }

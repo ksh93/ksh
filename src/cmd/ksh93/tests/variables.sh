@@ -640,7 +640,7 @@ x=$(foo)
 cat > $tmp/script <<-\!
 	posixfun()
 	{
-		unset x
+	 	unset x
 	 	nameref x=$1
 	 	print  -r -- "$x"
 	}

@@ -112,7 +112,7 @@ regcollate(const char* s, char** e, char* buf, size_t size, wchar_t* wc)
 		*e = (char*)s;
 	return (int)r;
  oops:
- 	s--;
+	s--;
  nope:
 	if (e)
 		*e = (char*)s;

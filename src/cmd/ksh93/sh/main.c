@@ -253,7 +253,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 					{
 						if(isdir)
 							errno = EISDIR;
-						 error_info.id = av[0];
+						error_info.id = av[0];
 						errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
 						UNREACHABLE();
 					}

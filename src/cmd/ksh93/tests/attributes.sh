@@ -357,8 +357,11 @@ unset foo
 
 $SHELL 2> /dev/null -c 'export foo=(bar=3)' && err_exit 'compound variables cannot be exported'
 
-$SHELL -c 'builtin date' >/dev/null 2>&1 &&
-{
+# ======
+
+if	! builtin date 2>/dev/null
+then	warning "date(1) built-in not available; skipping env var changes test"
+else
 
 # check env var changes against a builtin that uses the env var
 
@@ -382,12 +385,14 @@ set -- \
 
 while	(( $# >= 4 ))
 do	exp=$1
-	got=$(print $($SHELL -c "builtin date; $2 $CMD; $3 $CMD; $4 $CMD"))
+	got=$(print $(eval "$2 $CMD; $3 $CMD; $4 $CMD"))
 	[[ $got == $exp ]] || err_exit "[ '$2'  '$3'  '$4' ] env sequence failed -- expected '$exp', got '$got'"
 	shift 4
 done
 
-}
+fi # ! builtin date
+
+# ======
 
 unset v
 typeset -H v=/dev/null
