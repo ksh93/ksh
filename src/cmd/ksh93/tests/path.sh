@@ -533,7 +533,7 @@ fi
 # 'command -x' used to hang in an endless E2BIG loop on Linux and macOS
 ofile=$tmp/command_x_chunks.sh
 trap 'sleep_pid=; while kill -9 $pid; do :; done 2>/dev/null; err_exit "'\''command -x'\'' hung"' TERM
-trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; kill -s INT $$"' INT
+trap 'kill $sleep_pid; while kill -9 $pid; do :; done 2>/dev/null; trap - INT; kill -s INT "$$"' INT
 (	typeset -si i
 	sleep 5
 	# if it's slow, display a counter

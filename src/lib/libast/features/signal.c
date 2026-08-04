@@ -105,7 +105,7 @@ static struct _m_ map[] =
 #endif
 #ifdef SIGFPE
 #define HAD_SIGFPE	1
-"Floating exception",		"FPE",		SIGFPE,
+"Arithmetic fault",		"FPE",		SIGFPE,
 #endif
 #ifdef SIGFREEZE
 #define HAD_SIGFREEZE	1

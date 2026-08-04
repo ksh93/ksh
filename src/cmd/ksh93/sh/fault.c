@@ -452,7 +452,7 @@ void	sh_chktrap(void)
 			if(trap=sh.st.trapcom[sig])
 			{
 				cursig = sig;
- 				sh_trap(trap,0);
+				sh_trap(trap,0);
 				cursig = -1;
 				/* If we're in a PS2 prompt, then we just parsed and executed a trap in the middle of parsing
 				 * another command, so the lexer state is overwritten. Escape to avoid crashing the lexer. */
@@ -463,7 +463,7 @@ void	sh_chktrap(void)
 					sh.lastsig = (unsigned char)sig;	/* make sh_exit() set $? to signal exit status */
 					sh_exit(SH_EXITSIG);			/* start a new command line */
 				}
- 			}
+			}
 		}
 	}
 }

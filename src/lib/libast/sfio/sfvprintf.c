@@ -139,8 +139,8 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 #define SFINIT(f)	(SFBUF(f), n_output = 0)
 #define SFEND(f)	((n_output += d - f->next), (f->next = d))
 #define SFputc(f,c)	{ if(d < endd) 	  { *d++ = (uchar)c; } \
-	  		  else		  { SFEND(f); SMputc(f,c); SFBUF(f); } \
-	  		}
+			  else		  { SFEND(f); SMputc(f,c); SFBUF(f); } \
+			}
 #define SFnputc(f,c,n)	{ if(d+n <= endd) { while(n--) *d++ = (uchar)(c); } \
 			  else		  { SFEND(f); SMnputc(f,c,(size_t)(n)); SFBUF(f); } \
 			}
@@ -1087,7 +1087,7 @@ loop_fmt :
 			if(n_s < 0 && (flags&SFFMT_THOUSAND) && (n = endsp-sp) > 3)
 			{	if((n %= 3) == 0)
 					n = 3;
- 				for(ep = buf+SLACK, endep = ep + n; ; )
+				for(ep = buf+SLACK, endep = ep + n; ; )
 				{	while(ep < endep)
 						*ep++ = *sp++;
 					if(sp == endsp)

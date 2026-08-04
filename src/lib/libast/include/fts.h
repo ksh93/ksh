@@ -111,10 +111,6 @@ struct Ftsent
 	int		fts_errno;	/* errno for this entry		*/
 	unsigned short	fts_info;	/* info flags			*/
 
-	unsigned short	_fts_namelen;	/* old fts_namelen		*/
-	unsigned short	_fts_pathlen;	/* old fts_pathlen		*/
-	short		_fts_level;	/* old fts_level		*/
-
 	short		_fts_status;	/* <ftwalk.h> compatibility	*/
 	struct stat	_fts_statb;	/* <ftwalk.h> compatibility	*/
 

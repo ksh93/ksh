@@ -240,13 +240,13 @@ b_pathchk(int argc, char** argv, Shbltin_t* context)
 	{
 		switch (optget(argv, usage))
 		{
-  		case 'a':
+		case 'a':
 			mode |= COMPONENTS|PATH;
 			continue;
-  		case 'p':
+		case 'p':
 			mode |= COMPONENTS;
 			continue;
-  		case 'P':
+		case 'P':
 			mode |= PATH;
 			continue;
 		case ':':

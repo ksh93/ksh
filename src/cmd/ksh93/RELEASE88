@@ -309,7 +309,7 @@ of ksh.
 	    value when . completes.
 
     m.  The read built-in has been changed as follows:
-    	1.  A -A option to read has been added to allow the fields to be
+	1.  A -A option to read has been added to allow the fields to be
 	    read into an indexed array.
 	2.  A -t n option has been added which causes read to
 	    timeout after n seconds when reading from a slow device.

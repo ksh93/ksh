@@ -35,14 +35,19 @@ set -o noglob
 command=iffe
 version=2026-02-30
 
-# DEFPATH should be inherited from package(1)
+# DEFPATH should be inherited from package(1), but just in case...
 case $DEFPATH in
 /*)	;;
-*)	DEFPATH=$(getconf PATH) ||
-	{
-		echo "$command: DEFPATH not set" >&2
-		exit 1
-	} ;;
+*)	DEFPATH=$(
+		# support Android/Termux, NixOS, Solaris/illumos, generic /bin:/usr/bin
+		PATH=/data/data/com.termux/files/usr/bin:/run/current-system/sw/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:/bin:/usr/bin:$PATH
+		getconf PATH
+	)
+	case $?,$DEFPATH in
+	0,/*)	;;
+	*)	echo "$command: DEFPATH not set" >&2
+		exit 1 ;;
+	esac ;;
 esac
 
 compile() # $cc ...

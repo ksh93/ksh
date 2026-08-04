@@ -833,7 +833,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	{
 		switch (n = optget(argv, usage))
 		{
- 		case 'j':
+		case 'j':
 			/*
 			 * check for obsolete "-j1 field" and "-j2 field"
 			 */
@@ -870,7 +870,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 				n = '2';
 			}
 			/* FALLTHROUGH */
- 		case '1':
+		case '1':
 		case '2':
 			if (opt_info.num <=0)
 				error(2,"field number must positive");

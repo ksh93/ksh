@@ -522,7 +522,7 @@ static int gettok(struct vars *vp)
 			if(sh.radixpoint==',' && (c=peekchr(vp))>='0' && c<='9')
 			{
 				op = A_DIG;
-		    		goto keep;
+				goto keep;
 			}
 			break;
 		    case A_DOT:
@@ -904,7 +904,7 @@ Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const cha
 	Arith_t *ep;
 	ptrdiff_t offset;
 	memset(&cur,0,sizeof(cur));
-     	cur.expr = cur.nextchr = string;
+	cur.expr = cur.nextchr = string;
 	cur.convert = fun;
 	cur.flags = flags;
 	cur.errmsg.value = 0;

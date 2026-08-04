@@ -78,8 +78,8 @@ Sfio_t* _sfopen(Sfio_t*		f,		/* old stream structure */
 
 	if(sflags&SFIO_STRING)
 	{	f = sfnew(f,(char*)file,
-		  	  file ? (size_t)strlen((char*)file) : (size_t)SFIO_UNBOUND,
-		  	  -1,sflags);
+			  file ? (size_t)strlen((char*)file) : (size_t)SFIO_UNBOUND,
+			  -1,sflags);
 	}
 	else
 	{	if(!file)

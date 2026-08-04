@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -190,15 +190,15 @@ got=${x.b}
 [[ "$got" == "$expected" ]] || err_exit "type '_' reference failed -- expected '$expected', got '$got'"
 
 typeset -T Tst_t=(
-	 function f
-	 {
-	 	A_t a
-	 	print ${ _.g ${a.x}; }
-	 }
-	 function g
-	 {
-	 	print foo
-	 }
+	function f
+	{
+		A_t a
+		print ${ _.g ${a.x}; }
+	}
+	function g
+	{
+		print foo
+	}
 )
 Tst_t tst
 expected=foo
@@ -249,14 +249,14 @@ $SHELL > /dev/null  <<- '+++++' || err_exit 'passing _ as nameref arg not workin
 	 	print -r -- "$v"
 	}
 	typeset -T A_t=(
- 		typeset blah=xxx
+	 	typeset blah=xxx
 	 	function f { f1 _ ;}
 	)
 	A_t a
 	[[ ${ a.f ./t1;} == "$a" ]]
 +++++
 expected='A_t b.a=(name=one)'
-[[ $( $SHELL << \+++
+[[ $( $SHELL <<- '+++'
 	typeset -T A_t=(
 	     typeset name=aha
 	)

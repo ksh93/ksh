@@ -243,7 +243,7 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 				NOTE("ENOEXEC reports no error");
 		}
 		_exit(n);
- 	}
+	}
 }end
 
 tst	lib_spawn_mode unistd.h stdlib.h note{ first spawn arg is mode and it works }end execute{

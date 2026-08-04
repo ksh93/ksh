@@ -976,7 +976,7 @@ loop_fmt:
 			}
 			else if(fmt == 'c')
 			{	do
-			 	{	if((n += 1) <= size)
+				{	if((n += 1) <= size)
 						*argv.s++ = (char)inp;
 				} while(--width > 0 && SFgetc(f,inp) >= 0);
 			}

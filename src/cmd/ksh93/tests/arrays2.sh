@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -181,7 +181,7 @@ function test_short_integer
 		# 2D integer arrays: the following two tests crash for both "integer -s" and "integer"
 		( cmd='integer    -r -a x=( [0]=( [0]=1 [1]=2 [2]=3 ) [1]=( [0]=4 [1]=5 [2]=6 ) [2]=( [0]=7 [1]=8 [2]=9 ) ) ; print "${x[1][1]}"' stdoutpattern='5' )
 		( cmd='integer -s -r -a x=( [0]=( [0]=1 [1]=2 [2]=3 ) [1]=( [0]=4 [1]=5 [2]=6 ) [2]=( [0]=7 [1]=8 [2]=9 ) ) ; print "${x[1][1]}"' stdoutpattern='5' )
-   	)
+	)
 	typeset testname
 	integer i
 
@@ -191,8 +191,8 @@ function test_short_integer
 
 		out.stderr="${ { out.stdout="${ ${SHELL} -o nounset -o errexit -c "${tst.cmd}" ; (( out.res=$? )) ; }" ; } 2>&1 ; }"
 
-	        [[ "${out.stdout}" == ${tst.stdoutpattern}      ]] || err_exit "${testname}: Expected stdout to match $(printf '%q\n' "${tst.stdoutpattern}"), got $(printf '%q\n' "${out.stdout}")"
-       		[[ "${out.stderr}" == ''			]] || err_exit "${testname}: Expected empty stderr, got $(printf '%q\n' "${out.stderr}")"
+		[[ "${out.stdout}" == ${tst.stdoutpattern}      ]] || err_exit "${testname}: Expected stdout to match $(printf '%q\n' "${tst.stdoutpattern}"), got $(printf '%q\n' "${out.stdout}")"
+		[[ "${out.stderr}" == ''			]] || err_exit "${testname}: Expected empty stderr, got $(printf '%q\n' "${out.stderr}")"
 		(( out.res == 0 )) || err_exit "${testname}: Unexpected exit code ${out.res}"
 	done
 

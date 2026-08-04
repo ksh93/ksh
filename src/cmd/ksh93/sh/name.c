@@ -1883,7 +1883,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 		{
 			for( ; *sp == ' ' || *sp == '\t'; sp++)
 				;
-	        	if((nv_isattr(np,NV_ZFILL)) && (nv_isattr(np,NV_LJUST)))
+			if((nv_isattr(np,NV_ZFILL)) && (nv_isattr(np,NV_LJUST)))
 				for( ; *sp == '0'; sp++)
 					;
 			size = nv_size(np);
@@ -2060,7 +2060,7 @@ static void rightjust(char *str, size_t size, char fill)
 	if (n == 0)
 	{
 		while (sp > str)
-	       		*--sp = ' ';
+			*--sp = ' ';
 		return;
 	}
 	while(n)
@@ -2750,7 +2750,7 @@ char *nv_getval(Namval_t *np)
 		}
 		else if(nv_isattr(np,NV_UNSIGN))
 		{
-	        	if(nv_isattr(np,NV_LONG))
+			if(nv_isattr(np,NV_LONG))
 				ll = (Sflong_t)(*(Sfulong_t*)vp);
 			else if(nv_isattr(np,NV_SHORT))
 				ll = *(uint16_t*)vp;
@@ -2806,7 +2806,7 @@ Sfdouble_t nv_getnum(Namval_t *np)
 		errormsg(SH_DICT,ERROR_exit(1),e_number,nv_name(np));
 		UNREACHABLE();
 	}
-     	if(np->nvfun && np->nvfun->disc)
+	if(np->nvfun && np->nvfun->disc)
 	{
 		if(!nv_local)
 		{
@@ -2822,7 +2822,7 @@ Sfdouble_t nv_getnum(Namval_t *np)
 		if(str)
 			nv_putsub(np,str,0L);
 	}
-     	if(nv_isattr(np,NV_INTEGER))
+	if(nv_isattr(np,NV_INTEGER))
 	{
 		vp = np->nvalue;
 		if(!vp || vp==Empty)
@@ -2830,9 +2830,9 @@ Sfdouble_t nv_getnum(Namval_t *np)
 		else if(nv_isattr(np, NV_DOUBLE)==NV_DOUBLE)
 		{
 			if(nv_isattr(np, NV_LONG))
-	                       	r = *(Sfdouble_t*)vp;
+				r = *(Sfdouble_t*)vp;
 			else
-       	                	r = *(double*)vp;
+				r = *(double*)vp;
 		}
 		else if(nv_isattr(np, NV_UNSIGN))
 		{
@@ -2942,7 +2942,7 @@ void nv_newattr(Namval_t *np, nvflag_t newatts, ssize_t size)
 		nv_setsize(np,oldsize);
 		np->nvflag = oldatts;
 		if (sp = nv_getval(np))
- 		{
+		{
 			size_t len;
 			if(nv_isattr(np,NV_ZFILL) && *sp=='0')
 			{

@@ -167,7 +167,7 @@ static FTSENT*
 node(FTS* fts, FTSENT* parent, char* name, size_t namelen)
 {
 	FTSENT*	f;
-	size_t		n;
+	size_t	n;
 
 	if (fts->free && namelen < MINNAME)
 	{
@@ -443,7 +443,7 @@ setpdir(char* home, char* path, char* base)
 static int
 popdirs(FTS* fts)
 {
-	FTSENT*f;
+	FTSENT*	f;
 	char*	s;
 	char*	e;
 #ifndef verify
@@ -671,8 +671,8 @@ order(FTS* fts)
 {
 	FTSENT*	f;
 	FTSENT*	root;
-	FTSENT*			top;
-	FTSENT*			bot;
+	FTSENT*	top;
+	FTSENT*	bot;
 
 	top = bot = root = 0;
 	for (f = fts->todo; f; f = f->fts_link)
@@ -782,11 +782,7 @@ fts_open(char* const* pathnames, int flags, int (*comparf)(FTSENT* const*, FTSEN
 	}
 	else
 		fts->todo = toplist(fts, pathnames);
-#if _HUH_1997_01_07
-	if (!fts->todo || fts->todo->fts_info == FTS_NS && !fts->todo->fts_link)
-#else
 	if (!fts->todo)
-#endif
 	{
 		fts_close(fts);
 		return NULL;
@@ -1029,7 +1025,7 @@ fts_read(FTS* fts)
 
 				if ((ssize_t)i >= fts->endbuf - fts->endbase)
 				{
-		   	   		if (resize(fts, i))
+					if (resize(fts, i))
 						return NULL;
 					fts->endbase = fts->base + fts->baselen;
 					if (fts->endbase[-1] != '/')

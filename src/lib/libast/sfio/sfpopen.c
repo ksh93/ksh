@@ -58,7 +58,7 @@ Sfio_t*	sfpopen(Sfio_t*		f,
 	if (!(proc = procopen(0, av, 0, 0, flags)))
 		return NULL;
 	if (!(f = sfnew(f, NULL, (size_t)SFIO_UNBOUND,
-	       		(sflags&SFIO_READ) ? proc->rfd : proc->wfd, sflags|((sflags&SFIO_RDWR)?0:SFIO_READ))) ||
+			(sflags&SFIO_READ) ? proc->rfd : proc->wfd, sflags|((sflags&SFIO_RDWR)?0:SFIO_READ))) ||
 	    _sfpopen(f, (sflags&SFIO_READ) ? proc->wfd : -1, proc->pid, pflags) < 0)
 	{
 		if (f) sfclose(f);

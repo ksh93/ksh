@@ -1176,6 +1176,7 @@ make test virtual
 	prev install
 	make test.ksh virtual
 		makp tests/shtests
+		exec - : ---- Regression-testing "$SHELL" ----
 		exec - cd "$PACKAGEROOT/src/cmd/ksh93/tests" && ./shtests
 	done
 done test

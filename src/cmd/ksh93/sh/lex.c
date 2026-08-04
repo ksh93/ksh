@@ -1549,9 +1549,9 @@ breakloop:
  * unreliable hack. The lexer does not have real shell grammar knowledge; that's what the
  * parser is for. However, a clean separation between lexical analysis and parsing is not
  * possible, because the design of the shell language is fundamentally messy. So we need the
- * parser to set the some flags in the lexer at the appropriate times to avoid spurious
- * syntax errors (these are the non-private Lex_t struct members). But the parser obviously
- * cannot do this if we're not using it.
+ * parser to set some flags in the lexer at the appropriate times to avoid spurious syntax
+ * errors (these are the non-private Lex_t struct members). But the parser obviously cannot
+ * do this if we're not using it.
  *
  * The comsub() hack below, along with all the dolparen checks in the lexer, tries to work
  * around this fundamental problem as best we can to make it work in all but corner cases.

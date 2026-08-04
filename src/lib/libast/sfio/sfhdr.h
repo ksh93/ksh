@@ -661,7 +661,7 @@ typedef struct _sftab_
 	{ while((utype)v >= 10000) \
 	  {	n = v; v = (type)(((utype)v)/10000); \
 		n = (type)((utype)n - ((utype)v)*10000); \
-	  	s -= 4; SFDIGIT(n,1000,s[0]); SFDIGIT(n,100,s[1]); \
+		s -= 4; SFDIGIT(n,1000,s[0]); SFDIGIT(n,100,s[1]); \
 			s[2] = *(list = (char*)_Sfdec + (n <<= 1)); s[3] = *(list+1); \
 	  } \
 	  if(v < 100) \

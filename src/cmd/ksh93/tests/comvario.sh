@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -370,11 +370,11 @@ function test6
 
 		# subtests4: Same as subtests1 but variable "va" is an 2d indexed array
 		( cmd='compound vx=( compound -a va=( [3][17]=( integer -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -C vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'		arrefname='va[3][17].ar' )
- 		( cmd='compound vx=( compound -a va=( [3][17]=( float	-A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -C vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'		arrefname='va[3][17].ar' )
- 		( cmd='compound vx=( compound -a va=( [3][17]=( typeset -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -C vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=["\']*9.*)&(.*\\[aa\\]=["\']*4.*)' arrefname='va[3][17].ar' )
- 		( cmd='compound vx=( compound -a va=( [3][17]=( integer -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -v vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'		arrefname='va[3][17].ar' )
- 		( cmd='compound vx=( compound -a va=( [3][17]=( float	-A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -v vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'		arrefname='va[3][17].ar' )
- 		( cmd='compound vx=( compound -a va=( [3][17]=( typeset -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -v vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=["\']*9.*)&(.*\\[aa\\]=["\']*4.*)' arrefname='va[3][17].ar' )
+		( cmd='compound vx=( compound -a va=( [3][17]=( float	-A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -C vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'		arrefname='va[3][17].ar' )
+		( cmd='compound vx=( compound -a va=( [3][17]=( typeset -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -C vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=["\']*9.*)&(.*\\[aa\\]=["\']*4.*)' arrefname='va[3][17].ar' )
+		( cmd='compound vx=( compound -a va=( [3][17]=( integer -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -v vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'		arrefname='va[3][17].ar' )
+		( cmd='compound vx=( compound -a va=( [3][17]=( float	-A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -v vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'		arrefname='va[3][17].ar' )
+		( cmd='compound vx=( compound -a va=( [3][17]=( typeset -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -v vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=["\']*9.*)&(.*\\[aa\\]=["\']*4.*)' arrefname='va[3][17].ar' )
 
 		# subtests5: Same as subtests1 but variable "va" is an associative array
 		( cmd='compound vx=( compound -A va=( [l]=( integer -A ar=( [aa]=4 [bb]=9 ) ; ) ; ) ; ) ; print -C vx' stdoutpattern=$'~(Alr)(.*\\[bb\\]=9.*)&(.*\\[aa\\]=4.*)'			arrefname='va[l].ar' )

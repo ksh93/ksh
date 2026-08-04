@@ -55,7 +55,7 @@ function foobar
 	2)	print -r - "$0";;
 	3)	typeset foo=foo
 		integer bar=10
-	 	print -r - "$foo" "$bar";;
+		print -r - "$foo" "$bar";;
 	4)	trap 'foo=36' EXIT
 		typeset foo=20;;
 	esac
@@ -857,9 +857,9 @@ $SHELL -c '
 ( $SHELL << \++EOF++
 function main
 {
- 	typeset key
- 	typeset -A entry
- 	entry[a]=( value=aaa )
+	typeset key
+	typeset -A entry
+	entry[a]=( value=aaa )
 }
 main
 ++EOF++
@@ -919,7 +919,7 @@ function foo
 
 function bar
 {
-    	typeset xyz=bar
+	typeset xyz=bar
 	set -- $((LINENO+2))
 	trap 'traceback $LINENO' DEBUG
 	: $LINENO "$1"
@@ -988,7 +988,7 @@ function _Dbg_debug_trap_handler
 	while((--.level>=0))
 	do
 		((.sh.level = .level))
-      		_Dbg_print_frame  "${.level}" "$0" "${.sh.file}" "${.sh.lineno}" "${.sh.command##* }" "$@"
+		_Dbg_print_frame  "${.level}" "$0" "${.sh.file}" "${.sh.lineno}" "${.sh.command##* }" "$@"
 	done
 }
 

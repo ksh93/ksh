@@ -649,7 +649,7 @@ skip:
 		{
 			if(!S_ISREG(statb.st_mode) || mode!=X_OK)
 				return 0;
-		    	/* root needs execute permission for someone */
+			/* root needs execute permission for someone */
 			mode = (S_IXUSR|S_IXGRP|S_IXOTH);
 		}
 		else if(sh.euserid == statb.st_uid)

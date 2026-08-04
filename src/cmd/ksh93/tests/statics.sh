@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2011 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -630,7 +630,7 @@ function test2
 		(( out.res == 0 )) || err_exit "${currtest.name}: Test shell returned with exit code ${out.res}"
 		[[ "${out.stdout}" == "${currtest.expected_output}" ]] || err_exit "${currtest.name}: Expected stdout == $(printf "%q\n" "${currtest.expected_output}"), got $(printf "%q\n" "${out.stdout}")"
 		[[ "${out.stderr}" == '' ]] || err_exit "${currtest.name}: Expected empty stderr, got $(printf "%q\n" "${out.stderr}")"
-   	done
+	done
 
 	return 0
 }
