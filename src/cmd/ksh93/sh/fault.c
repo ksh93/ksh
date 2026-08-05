@@ -59,7 +59,7 @@ void	sh_fault(int sig)
 	}
 #ifdef SIGWINCH
 	if(sig==SIGWINCH)
-		sh_winsize();
+		sh_winsize(0);
 #endif  /* SIGWINCH */
 	trap = sh.st.trapcom[sig];
 	if(sig==SIGALRM && sh.bltinfun==b_sleep)
@@ -211,11 +211,27 @@ done:
  * Get window size and update LINES and COLUMNS.
  * If the number of columns changed, flags a window size change in sh.winch.
  */
-void	sh_winsize(void)
+void	sh_winsize(int keep_env)
 {
-	int32_t		lines, columns;
+	int		lines, columns;
 	int32_t		i;
+	char		*lastc, base = 10;
+	/*
+	 * Get terminal window size.
+	 */
 	astwinsize(2,&lines,&columns);
+	/*
+	 * When called from main(), override with values inherited from environment until SIGWINCH.
+	 * This enables the idiom  COLUMNS=72 ksh -c 'some formatting command'  to control columns.
+	 */
+	if (keep_env)
+	{
+		intmax_t tmp;
+		if (!nv_isnull(LINES) && (tmp = strtonll(nv_getval(LINES),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX)
+			lines = (int)tmp;
+		if (!nv_isnull(COLUMNS) && (tmp = strtonll(nv_getval(COLUMNS),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX)
+			columns = (int)tmp;
+	}
 	if (lines < 0 || lines > USHRT_MAX)
 		lines = 0;
 	if (columns < 0 || columns > USHRT_MAX)
@@ -233,7 +249,8 @@ void	sh_winsize(void)
 	{
 		nv_putval(COLUMNS, (char*)&i, NV_INT32|NV_RDONLY);
 		sh.columns = columns;
-		sh.winch = 1;
+		if (!keep_env)
+			sh.winch = 1;
 	}
 }
 

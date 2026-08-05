@@ -8,6 +8,14 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   a multi-element pipeline with the last element running in the current
   environment.
 
+- For non-interactive shells, the COLUMNS and LINES variables now initially
+  respect their values inherited from the environment, if any. They will
+  still be updated upon the next window size change (SIGWINCH) or, on the
+  interactive shell, when any external command returns. This change aligns
+  ksh with bash in supporting idioms like:
+	$ COLUMNS=60 ksh somescript.ksh
+	$ COLUMNS=60 print --man
+
 2026-08-03:
 
 - Fixed crashes that could occur when an arithmetic syntax error is thrown

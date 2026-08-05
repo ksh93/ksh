@@ -305,7 +305,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 		fdin = sh.infd;
 		fixargs(sh.st.dolv,1);
 	}
-	sh_winsize();
+	sh_winsize(1);
 	if(!sh.columns)
 		sh.columns = 80;
 	if(!sh.lines)

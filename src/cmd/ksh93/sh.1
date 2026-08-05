@@ -1896,13 +1896,22 @@ Set to a value that identifies the version of this shell.
 .B
 .SM COLUMNS
 Width of the terminal window in character positions.
-Updated automatically at initialization and on receiving a
+When the shell is invoked as non-interactive and the variable exists in the
+environment with a valid value, then its value is initially kept. Otherwise
+it is initialized from the width of the terminal window, or 80 if it cannot
+be obtained. The value is updated automatically upon receiving a
 .B SIGWINCH
-signal.
+signal and, if job control is active on the terminal, when an external
+foreground command terminates.
 The shell uses the value to define the width of the edit window
 for the shell edit modes and for printing
 .B select
 lists.
+The formatting of every commands's
+.B --man
+and
+.B --help
+option output uses this variable if it is exported.
 .TP
 .B
 .SM KSH_VERSION
@@ -1920,7 +1929,10 @@ refers to the line following the assignment.
 .B
 .SM LINES
 Height of the terminal window in lines.
-Updated automatically at initialization and on receiving a
+When the shell is invoked as non-interactive and the variable exists in the
+environment with a valid value, then its value is initially kept. Otherwise
+it is initialized from the height of the terminal window, or 24 if it cannot
+be obtained. The value is updated automatically upon receiving a
 .B SIGWINCH
 signal.
 The shell uses the value to determine the column length for printing

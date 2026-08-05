@@ -432,7 +432,16 @@ int job_reap(int sig)
 			px = job_byjid(pw->p_job);
 			for(; px && (px->p_flag&P_DONE); px=px->p_nxtproc);
 			if(!px)
+			{
+				/* Reset terminal process group to ksh's own. */
 				tcsetpgrp(JOBTTY,job.mypid);
+				/*
+				 * Since SIGWINCH is sent to the current process group, ksh will not have
+				 * received it if the window size changed while waiting for the job.
+				 * Therefore, re-query the window size and update COLUMNS/LINES now.
+				 */
+				sh_winsize(0);
+			}
 		}
 #if !SHOPT_BGX
 		if(!sh.intrap && sh.st.trapcom[SIGCHLD] && pid>0 && (pwfg!=job_bypid(pid)))
