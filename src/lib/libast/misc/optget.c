@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-08-01"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-08-04"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -2343,6 +2343,26 @@ list(Sfio_t* sp, const List_t* lp)
 }
 
 /*
+ * get terminal width, overridable by COLUMNS env var
+ */
+
+static int
+get_terminal_width(void)
+{
+	char		*cp, *lastc, base = 10;
+	int		width = 0;
+	intmax_t	tmp;
+
+	if ((cp = getenv("COLUMNS")) && (tmp = strtonll(cp,&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX)
+		width = (int)tmp;
+	else
+		astwinsize(1, NULL, &width);
+	if (width < 20 || width > USHRT_MAX)
+		width = OPT_WIDTH;
+	return width;
+}
+
+/*
  * return pointer to help message sans `Usage: command'
  * if oopts is 0 then state.pass is used
  * what:
@@ -3773,9 +3793,7 @@ opthelp(const char* oopts, const char* what)
 	}
 	if (!(p = sfstruse(sp)))
 		goto outofmemory;
-	astwinsize(1, NULL, &state.width);
-	if (state.width < 20)
-		state.width = OPT_WIDTH;
+	state.width = get_terminal_width();
 	m = (ptrdiff_t)strlen((style <= STYLE_long && error_info.id && !strchr(error_info.id, '/')) ? error_info.id : id) + 1;
 	margin = style == STYLE_api ? (8 * 1024) : (state.width - 1);
 	if (!(state.flags & OPT_preformat))
