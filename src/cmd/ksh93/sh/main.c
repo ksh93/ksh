@@ -576,6 +576,8 @@ static void	exfile(Sfio_t *iop,int fno)
 		}
 	}
 done:
+	if(sh_isoption(SH_NOEXEC) && !sh_isoption(SH_POSIX) && !sh.exitval)
+		sh.exitval = error_info.warnings != 0;
 	sh_popcontext(&buff);
 	if(sh_isstate(SH_INTERACTIVE))
 	{

@@ -7,6 +7,16 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed ksh crashing upon parsing a very long list of simple commands
   separated by semicolons or, in 'eval' or dot script contexts, by newlines.
 
+- [v1.1] The -n/--noexec option can now effectively be set in subshells of
+  interactive shells, e.g., within a parentheses block.
+
+- [v1.1] The -n/--noexec option, when given at the shell's invocation, now
+  causes the shell to exit with status 1 if the linter emitted any warnings.
+
+- [v1.1] The 'eval' command has a new -n/--noexec option that causes it to
+  subject the command(s) given to static analysis in the manner of the
+  -n/--noexec shell option, emitting warnings for deprecated usages.
+
 2026-08-04:
 
 - Fixed a potential crash when suspending (^Z), on the interactive shell,

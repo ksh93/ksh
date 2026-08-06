@@ -371,7 +371,7 @@ int sh_argopts(int argc,char *argv[])
 static void applyopts(Shopt_t newflags)
 {
 	/* cannot set -n for interactive shells since there is no way out */
-	if(sh_isoption(SH_INTERACTIVE))
+	if(sh_isstate(SH_INTERACTIVE))
 		off_option(&newflags,SH_NOEXEC);
 	if(is_option(&newflags,SH_PRIVILEGED))
 		on_option(&newflags,SH_NOUSRPROFILE);

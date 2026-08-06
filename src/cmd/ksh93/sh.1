@@ -6841,10 +6841,20 @@ To continue our example, for a \f3bool\fP variable \f3v\fP,
 and if a variable named \f3true\fP exists, it is ignored.
 .RE
 .TP
-\(dg \f3eval\fP \*(OK \f2arg\^\fP .\|.\|. \*(CK
+\(dg \f3eval\fP \*(OK \f3\-n\fP \*(CK \*(OK \f2arg\^\fP .\|.\|. \*(CK
 The arguments are read as input
 to the shell
 and the resulting command(s) executed.
+If the
+.B \-n
+(a.k.a.
+.BR \-\-noexec )
+option is given, the command(s) are not executed but their code is subjected
+to static analysis (linting) in the manner of the
+.BR -n
+option of the
+.B set
+command.
 .TP
 \(dg \f3exec\fP \*(OK \f3\-c\fP \*(CK \*(OK \f3\-a\fP \f2name\^\fP \*(CK \*(OK \f2arg\^\fP .\|.\|. \*(CK
 If
@@ -7998,7 +8008,12 @@ This option is turned on automatically for
 interactive shells.
 .TP 8
 .B \-n
-Read commands and check them for syntax errors, but do not execute them.
+Do not execute commands, but check them for syntax errors and perform static
+analysis (linting) to emit warnings for certain deprecated or obsolete usages.
+If this option is given on the shell's invocation, then any warnings from
+the linter cause the shell to exit with status 1, unless the
+.B posix
+option is on.
 Ignored for interactive shells.
 .TP 8
 .B \-o
@@ -8213,6 +8228,10 @@ While on, the \fBposix\fR option
 .IP \[bu]
 disallows brace expansion on the results of unquoted expansions
 (if the \fB\-B\fR/\fBbraceexpand\fR option is turned back on);
+.IP \[bu]
+causes the shell with the
+.BR \-n / noexec
+option on to exit with status 0 even if the linter emitted warnings;
 .IP \[bu]
 disables the special handling of repeated
 .I isspace

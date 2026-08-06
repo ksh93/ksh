@@ -589,6 +589,8 @@ int sh_eval(Sfio_t *iop, int mode)
 		if(!(mode&SH_FUNEVAL))
 			break;
 	}
+	if(sh_isoption(SH_NOEXEC) && !sh.exitval)
+		sh.exitval = error_info.warnings != 0;  /* for 'eval -n' */
 	sh_popcontext(buffp);
 	sh.binscript = binscript;
 	sh.comsub = comsub;

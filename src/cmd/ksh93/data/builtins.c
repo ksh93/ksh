@@ -603,7 +603,7 @@ const char sh_optdot[]	 =
 #endif
 
 const char sh_opteval[] =
-"[-1c?\n@(#)$Id: eval (AT&T Research) 1999-07-07 $\n]"
+"[-1c?\n@(#)$Id: eval (ksh 93u+m) 2026-08-06 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?eval - create a shell command and process it]"
 "[+DESCRIPTION?\beval\b is a shell special built-in command that constructs "
@@ -613,10 +613,14 @@ const char sh_opteval[] =
 	"command words are expanded twice; once to construct \aarg\a, and "
 	"again when the shell executes the constructed command.]"
 "[+?It is not an error if \aarg\a is not given.]"
+"[n:noexec?Do not execute the expanded \aarg\as, but let the shell's "
+	"built-in linter perform static analysis on them.]"
 "\n"
 "\n[arg...]\n"
 "\n"
 "[+EXIT STATUS?If \aarg\a is not specified, the exit status is \b0\b. "
+	"If the \a-n\a option is given, it is 1 if the linter emitted any "
+	"warnings, 0 otherwise. For a syntax error, the exit status is 3. "
 	"Otherwise, it is the exit status of the command defined by the "
 	"\aarg\a operands.]"
 "[+SEE ALSO?\bexec\b(1), \btrap\b(1), \b.\b(1)]"

@@ -91,6 +91,10 @@ New features in built-in commands:
 
 - The 'trap' command now supports the -l option for listing signals.
 
+- The 'eval' command has a new -n/--noexec option that causes it to subject
+  the command(s) given to static analysis in the manner of the -n/--noexec
+  shell option, emitting warnings for deprecated usages.
+
 New features in shell options:
 
 - A new --arrowkeysearch option, on by default, causes the up and down arrow
@@ -102,6 +106,12 @@ New features in shell options:
   (those with a syntax involving parentheses) from fields resulting from
   field splitting (e.g., unquoted variables as command arguments). This
   remains disabled by default for compatibility with POSIX and ksh88.
+
+- The -n/--noexec option can now effectively be set in subshells of
+  interactive shells, e.g., within a parentheses block.
+
+- The -n/--noexec option, when given at the shell's invocation, now causes
+  the shell to exit with status 1 if the linter emitted any warnings.
 
 New features in shell variables:
 

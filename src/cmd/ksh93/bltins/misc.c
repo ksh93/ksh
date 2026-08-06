@@ -195,11 +195,14 @@ int    b_let(int argc,char *argv[],Shbltin_t *context)
 
 int    b_eval(int argc,char *argv[], Shbltin_t *context)
 {
-	int r;
+	int r, lint = 0;
 	NOT_USED(argc);
 	NOT_USED(context);
 	while (r = optget(argv,sh_opteval)) switch (r)
 	{
+	    case 'n':
+		lint = 1;
+		break;
 	    case ':':
 		errormsg(SH_DICT,2, "%s", opt_info.arg);
 		break;
@@ -213,7 +216,13 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
 	}
 	argv += opt_info.index;
 	if(*argv && **argv)
+	{
+		if(lint)
+			sh_onoption(SH_NOEXEC);
 		sh_eval(sh_sfeval(argv),0);
+		if(lint)
+			sh_offoption(SH_NOEXEC);
+	}
 	return sh.exitval;
 }
 
