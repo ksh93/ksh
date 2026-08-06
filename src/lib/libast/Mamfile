@@ -3569,6 +3569,14 @@ make install virtual
 			exec - compile %{<}
 		done
 
+		make ast_close.o
+			make port/ast_close.c
+				prev include/ast.h
+				prev include/error.h
+			done
+			exec - compile %{<}
+		done
+
 		note * include shell action for linking the library
 		incl link_ar.mam
 

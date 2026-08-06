@@ -134,6 +134,8 @@ struct Error_info_s			/* error state			*/
 	char*	(*translate)(const char*, const char*, const char*, const char*);	/* format translator */
 
 	const char*	catalog;	/* message catalog		*/
+
+	void	(*io)(char*, int);	/* I/O error handler		*/
 };
 
 #ifndef errno

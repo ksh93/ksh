@@ -322,7 +322,7 @@ vfwscanf(Sfio_t* f, const wchar_t* fmt, va_list args)
 			free(w);
 			v = -1;
 		}
-		close(d);
+		ast_close(d);
 	}
 	else
 		v = -1;
