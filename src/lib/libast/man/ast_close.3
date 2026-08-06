@@ -1,0 +1,76 @@
+.TH AST_CLOSE 3
+.SH NAME
+ast_close \- portably and reliably close a file descriptor
+.SH SYNOPSIS
+.EX
+#include <ast.h>
+int \f3ast_close\fP(int \f2fd\fP);
+
+#include <error.h>
+void (*\f3error_info.io\fP)(char *\f2path\fP, int \f2fd\fP);
+.EE
+.SH DESCRIPTION
+The
+.B ast_close
+function closes a file descriptor so that it becomes invalid and may be
+reused. If the file descriptor was the last reference to an object, then
+its associated resources are deallocated. For example, if it was the
+last reference to a file that has been unlinked with
+.BR unlink (2)
+or
+.BR remove (2),
+then the file's data blocks are deallocated in the file system and made
+available as free space.
+.PP
+Unlike the native
+.BR close (2)
+implementations of Unix-like operationg systems,
+and unlike even
+.BR posix_close (2),
+.B ast_close
+can be relied upon both
+to fully close any valid and open file descriptor
+and to return 0 upon success,
+unless an I/O error occurred (see below).
+It works around the known system-specific complications
+and intricacies on the supported operating systems. In particular,
+.B ast_close
+never returns a
+\f[CB]EINTR\fP
+or
+\f[CB]EINPROGRESS\fP
+error, nor is there any failure mode where it should be retried.
+.SH "RETURN VALUES"
+.TP
+.B -1
+An error occurred. The
+.B errno
+variable has been set to one of the errors detailed below.
+.TP
+.B 0
+Succes.
+.SH ERRORS
+.TP
+\f[CB]EBADF\fP
+The file descriptor passed was not valid.
+.TP
+\f[CB]EIO\fP
+Although the file descriptor has been closed, an input/output error occurred
+as the operating system was finalising write operations. Data may have been
+lost.
+.SH AUTHOR
+Martijn Dekker <martijn@inlv.org>
+.br
+based on prior work by Johnothan King <johnothanking@protonmail.com>
+.SH HISTORY
+The
+.B ast_close
+function was added to libast at
+\f[CB]AST_VERSION\fP
+20260805, replacing an earlier
+.B ast_close
+macro added on 2026-02-05.
+.SH SEE ALSO
+.BR close (2),
+.BR posix_close (2),
+.BR sfio (3)

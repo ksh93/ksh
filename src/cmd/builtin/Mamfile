@@ -25,7 +25,10 @@ make install virtual
 		make pty.o
 			make pty.c
 				make FEATURE/pty
-					makp features/pty
+					make features/pty
+						prev %{INCLUDE_AST}/ast.h
+						prev %{INCLUDE_AST}/ast_fs.h
+					done
 					exec - iffe %{IFFEFLAGS} -v -c "%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{LDFLAGS}" ref \
 					exec -	-I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libast} %{mam_libutil} : run %{<}
 				done

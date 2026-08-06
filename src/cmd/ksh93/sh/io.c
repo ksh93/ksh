@@ -743,10 +743,7 @@ int sh_close(int fd)
 	{
 		if(fdnotify)
 			(*fdnotify)(fd,SH_FDCLOSE);
-		errno = 0;
-		ast_close(fd);
-		if(errno)
-			r = -1;
+		r = ast_close(fd);
 	}
 	if(fd>2)
 		sh.sftable[fd] = 0;
@@ -892,12 +889,11 @@ int sh_open(const char *path, int flags, ...)
 		sh_iovalidfd(fd);
 	if((sp = sh.sftable[fd]) && (sfset(sp,0,0) & SFIO_STRING))
 	{
-		int n,err=errno;
+		int n;
 		int dupflag = (flags&O_cloexec) ? F_dupfd_cloexec : F_DUPFD;
 		if((n = fcntl(fd,dupflag,10)) >= 10)
 		{
-			while(close(fd) < 0 && errno == EINTR)
-				errno = err;
+			ast_close(fd);
 			fd = n;
 			if((flags&O_cloexec) && F_dupfd_cloexec == F_DUPFD)
 				fcntl(fd,F_SETFD,FD_CLOEXEC);

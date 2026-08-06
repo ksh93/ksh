@@ -314,6 +314,7 @@ extern void		astwinsize(int, int*, int*);
 #define astconf_ulong(x)	strtoul(astconf(x,NULL,NULL),NULL,0)
 #endif
 
+extern int		ast_close(int);
 extern ssize_t		base64encode(const void*, size_t, void**, void*, size_t, void**);
 extern ssize_t		base64decode(const void*, size_t, void**, void*, size_t, void**);
 extern int		chresc(const char*, char**);
@@ -410,33 +411,6 @@ extern int		strvcmp(const char*, const char*);
 #if !AST_NOMULTIBYTE
 extern size_t		utf32toutf8(char*, uint32_t);
 #endif /* !AST_NOMULTIBYTE */
-
-/*
- * Depending on the implementation, close(2) must either:
- *   - *Never* be used after EINTR (vide Linux man pages).
- *   - *Always* be used after EINTR (that's the generic fallback).
- *
- * What follows are macros that attempt to conform to the required
- * behavior for the operating systems ksh supports.
- */
-#if _lib_posix_close
-/* This function, standardized as of POSIX Issue 8 (2024), is the best option if available */
-#define ast_close(fd)	posix_close(fd, 0)
-#elif defined(__linux__) || defined(__FreeBSD__) || _WINIX
-/* Never try again after EINTR */
-#define ast_close(fd)	do {						\
-				int _cerr = errno;			\
-				if(close(fd)<0 && errno==EINTR) 	\
-					errno = _cerr;			\
-			} while(0)
-#else
-/* Always try again after EINTR */
-#define ast_close(fd)	do {						\
-				int _cerr = errno;			\
-				while(close(fd)<0 && errno==EINTR) 	\
-					errno = _cerr;			\
-			} while(0)
-#endif
 
 /*
  * backward compat
