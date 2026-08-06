@@ -1131,6 +1131,21 @@ then	# $0 should be the /dev/fd script name when the script is a process substit
 	fi
 fi
 
+# ======
+for sep in ';' $'\n'
+do
+	got=$(set +x; redirect 2>&1; export sep; "$SHELL" <<-'EOF'
+		s=":$sep:$sep:$sep:$sep:$sep:$sep:$sep:$sep"
+		while	((${#s} < 250000))
+		do	s=$s$s$s$s
+		done
+		eval "set -n; $s"
+		EOF
+	)
+	[[ e=$? -eq 0 || -z $got ]] || err_exit "parsing a very long list of commands separated by $(printf %q "$sep")" \
+		"(expected status 0 and '', got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
+done
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see near the top)
 wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"

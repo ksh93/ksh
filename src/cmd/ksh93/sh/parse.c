@@ -62,6 +62,8 @@ static void	dcl_hacktivate(void), dcl_dehacktivate(void), (*orig_exit)(int), dcl
 static Dt_t	*dcl_tree;
 static unsigned	dcl_recursion;
 
+static size_t	leftidx;	/* current index into leftstack in sh_cmd() */
+
 #define sh_getlineno(lp)	(lp->lastline)
 
 #define CNTL(x)		((x)&037)
@@ -294,6 +296,7 @@ static noreturn void dcl_exit(int e)
 {
 	dcl_recursion = 1;
 	dcl_dehacktivate();
+	leftidx = 0;  /* additional reset for sh_cmd() */
 	(*error_info.exit)(e);
 	UNREACHABLE();
 }
@@ -569,13 +572,21 @@ void sh_funstaks(struct slnod *slp,int flag)
 static Shnode_t	*sh_cmd(Lex_t *lexp, int sym, int flag)
 {
 	Shnode_t	*left, *right;
-	int		type = FINT|FAMP;
+	static Shnode_t	**leftstack;	/* stack of left-hand nodes */
+	static size_t	leftmax;	/* current max size of leftstack */
+     /* static ssize_t	leftidx; */	/* current index into leftstack (declared globally so dcl_exit() can reset it) */
+	const size_t	leftidx_on_entrance = leftidx;
 	dcl_hacktivate();
+    semicolon_recurse:
 	if(sym==NL)
 		lexp->lasttok = 0;
 	left = list(lexp,flag);
 	if(lexp->token==NL)
 	{
+		/*
+		 * If we're parsing the entire script before executing, then
+		 * treat the newlines that separate commands as semicolons.
+		 */
 		if(flag&SH_NL)
 			lexp->token=';';
 	}
@@ -584,11 +595,12 @@ static Shnode_t	*sh_cmd(Lex_t *lexp, int sym, int flag)
 	switch(lexp->token)
 	{
 	    case COOPSYM:		/* set up a cooperating process */
-		type |= (FPIN|FPOU|FPCL|FCOOP);
-		/* FALLTHROUGH */
 	    case '&':
 		if(left)
 		{
+			int type = FINT|FAMP;
+			if(lexp->token==COOPSYM)
+				type |= FPIN|FPOU|FPCL|FCOOP;
 			/* (...)& -> {...;} & */
 			if(left->tre.tretyp==TPAR)
 				left = left->par.partre;
@@ -598,7 +610,22 @@ static Shnode_t	*sh_cmd(Lex_t *lexp, int sym, int flag)
 	    case ';':
 		if(!left)
 			sh_syntax(lexp,0);
-		if(right=sh_cmd(lexp,sym,flag|SH_EMPTY))
+		/*
+		 * To stop very large lists overflowing the C stack, avoid real recursion here.
+		 * Only the 'left' node pointer needs recursion behaviour, so stack it manually.
+		 */
+		if(leftidx==leftmax)
+		{
+			leftmax = !leftmax ? 8 : leftmax < 2048 ? 2 * leftmax : leftmax + 2048;
+			leftstack = sh_realloc(leftstack, leftmax * sizeof left);
+		}
+		leftstack[leftidx++] = left;
+		flag |= SH_EMPTY;
+		goto semicolon_recurse;
+	    semicolon_return:
+		right = left;
+		left = leftstack[--leftidx];
+		if(right)
 			left=makelist(lexp,TLST, left, right);
 		break;
 	    case EOFSYM:
@@ -612,6 +639,8 @@ static Shnode_t	*sh_cmd(Lex_t *lexp, int sym, int flag)
 				sh_syntax(lexp,0);
 		}
 	}
+	if(lexp->token!=';' && leftidx > leftidx_on_entrance)
+		goto semicolon_return;
 	dcl_dehacktivate();
 	return left;
 }
