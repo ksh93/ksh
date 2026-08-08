@@ -28,7 +28,7 @@
 #include <fcntl.h>
 
 static const char usage[] =
-"[-?\n@(#)$Id: cat (ksh 93u+m) 2022-08-30 $\n]"
+"[-?\n@(#)$Id: cat (ksh 93u+m) 2026-08-08 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?cat - concatenate files]"
 "[+DESCRIPTION?\bcat\b copies each \afile\a in sequence to the standard"
@@ -48,11 +48,8 @@ static const char usage[] =
     "printable characters as themselves; control characters as \b^\b "
     "followed by a letter of the alphabet; and characters with the high bit "
     "set as the lower 7 bit character prefixed by \bM^\b for 7 bit "
-    "non-printable characters and \bM-\b for all other characters. If the 7 "
-    "bit character encoding is not ASCII then the characters are converted "
-    "to ASCII to determine \ahigh bit set\a, and if set it is cleared and "
-    "converted back to the native encoding. Multibyte characters in the "
-    "current locale are treated as printable characters.]"
+    "non-printable characters and \bM-\b for all other characters. "
+    "Non-ASCII printable characters are not recognized.]"
 "[A:show-all?Equivalent to \b-vET\b.]"
 "[B:squeeze-blank?Multiple adjacent new-line characters are replaced by one"
 "	new-line.]"
@@ -121,20 +118,17 @@ static int
 vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 {
 	unsigned char*	cp;
-	unsigned char*	pp;
 	unsigned char*	cur;
 	unsigned char*	end;
 	unsigned char*	buf;
 	unsigned char*	nxt;
 	int		line;
-	int		raw;
 	int		last;
 	ptrdiff_t	c;
 	ptrdiff_t	m;
 	ptrdiff_t	n;
 	int		any;
 	int		header;
-	ssize_t		sz;
 
 	unsigned char	meta[3];
 	unsigned char	tmp[32];
@@ -146,92 +140,10 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 	header = flags & (B_FLAG|N_FLAG);
 	line = 1;
 	states[0] = T_ENDBUF;
-	raw = !mbwide();
 	for (;;)
 	{
 		cur = cp;
-		if (raw)
-			while (!(n = states[*cp++]));
-		else
-			for (;;)
-			{
-				while (!(n = states[*cp++]));
-				if (n < T_CONTROL)
-					break;
-				if ((m = mbsize(pp = cp - 1)) > 1)
-					cp += m - 1;
-				else
-				{
-					if (m <= 0)
-					{
-						if (cur == pp)
-						{
-							if (last > 0)
-							{
-								*end = (unsigned char)last;
-								last = -1;
-								c = end - pp + 1;
-								if ((m = mbsize(pp)) == c)
-								{
-									any = 1;
-									if (header)
-									{
-										header = 0;
-										sfprintf(op, "%6d\t", line);
-									}
-									sfwrite(op, cur, (size_t)m);
-									*(cp = cur = end) = 0;
-								}
-								else
-								{
-									memcpy(tmp, pp, (size_t)c);
-									if (!(nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0)))
-									{
-										states[0] = sfvalue(ip) ? T_ERROR : T_EOF;
-										*(cp = end = tmp + sizeof(tmp) - 1) = 0;
-										last = -1;
-									}
-									else if ((sz = sfvalue(ip)) <= 0)
-									{
-										states[0] = sz ? T_ERROR : T_EOF;
-										*(cp = end = tmp + sizeof(tmp) - 1) = 0;
-										last = -1;
-									}
-									else
-									{
-										cp = buf = nxt;
-										end = buf + n - 1;
-										last = *end;
-										*end = 0;
-									}
- mb:
-									if ((n = end - cp + 1) >= ((ssize_t)sizeof(tmp) - c))
-										n = (ssize_t)sizeof(tmp) - c - 1;
-									memcpy(tmp + c, cp, (size_t)n);
-									if ((m = mbsize(tmp)) >= c)
-									{
-										any = 1;
-										if (header)
-										{
-											header = 0;
-											sfprintf(op, "%6d\t", line);
-										}
-										sfwrite(op, tmp, (size_t)m);
-										cur = cp += m - c;
-									}
-								}
-								continue;
-							}
-						}
-						else
-						{
-							cp = pp + 1;
-							n = 0;
-						}
-					}
-					break;
-				}
-			}
+		while (!(n = states[*cp++]));
 		c = *--cp;
 		if ((m = cp - cur) || n >= T_CONTROL)
 		{
@@ -297,14 +209,8 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 					m = 1;
 					goto flush;
 				}
-				if (raw || n < T_CONTROL)
-				{
-					cp--;
-					goto special;
-				}
-				tmp[0] = (unsigned char)c;
-				c = 1;
-				goto mb;
+				cp--;
+				goto special;
 			}
 			break;
 		case T_CONTROL:
@@ -321,7 +227,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 				n = c & ~0200;
 				meta[2] = (unsigned char)printof(n);
 				sfwrite(op, (char*)meta, 3);
-			} while (states[c = *++cp] == T_CNTL8BIT && raw);
+			} while (states[c = *++cp] == T_CNTL8BIT);
 			break;
 		case T_EIGHTBIT:
 			meta[1] = '-';
@@ -329,7 +235,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 			{
 				meta[2] = (unsigned char)(c & ~0200);
 				sfwrite(op, (char*)meta, 3);
-			} while (states[c = *++cp] == T_EIGHTBIT && raw);
+			} while (states[c = *++cp] == T_EIGHTBIT);
 			break;
 		case T_NEWLINE:
 			if (header && !(flags & B_FLAG))
