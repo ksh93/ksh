@@ -26,6 +26,7 @@
 
 #include <cmd.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 static const char usage[] =
 "[-?\n@(#)$Id: cat (ksh 93u+m) 2026-08-08 $\n]"
@@ -49,7 +50,9 @@ static const char usage[] =
     "followed by a letter of the alphabet; and characters with the high bit "
     "set as the lower 7 bit character prefixed by \bM^\b for 7 bit "
     "non-printable characters and \bM-\b for all other characters. "
-    "Non-ASCII printable characters are not recognized.]"
+    "In extended single-byte locales such as ISO-8859-*, "
+    "high-bit printable characters remain unmodified. "
+    "Multibyte printable characters are not yet recognized.]"
 "[A:show-all?Equivalent to \b-vET\b.]"
 "[B:squeeze-blank?Multiple adjacent new-line characters are replaced by one"
 "	new-line.]"
@@ -386,10 +389,18 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 	{
 		memset(states, T_CONTROL, ' ');
 		states[RUBOUT] = T_CONTROL;
-		memset(states+0200, T_EIGHTBIT, 0200);
 		memset(states+0200, T_CNTL8BIT, ' ');
+		memset(states+0200+(ptrdiff_t)' ', T_EIGHTBIT, 0200-(size_t)' ');
 		states[RUBOUT|0200] = T_CNTL8BIT;
 		states['\n'] = 0;
+		/* Disable encoding for high-bit printable characters in single-byte locales */
+		if (!mbwide() && !(ast.locale.set & AST_LC_7bit))
+		{
+			int	i;
+			for (i = 0200; i <= 0377; i++)
+				if (isprint(i))
+					states[i] = 0;
+		}
 	}
 	if (flags&T_FLAG)
 		states['\t'] = T_CONTROL;
