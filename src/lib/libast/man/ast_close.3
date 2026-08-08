@@ -53,11 +53,29 @@ Succes.
 .TP
 \f[CB]EBADF\fP
 The file descriptor passed was not valid.
+.PP
+Depending on the operating system,
+.B ast_close
+may also return the following errors.
+The file descriptor is still closed in spite of these errors.
 .TP
 \f[CB]EIO\fP
-Although the file descriptor has been closed, an input/output error occurred
-as the operating system was finalising write operations. Data may have been
-lost.
+An input/output error occurred as the operating system was finalising write
+operations. Data may have been lost.
+.TP
+\f[CB]ENOLINKfP
+The file is located on a remote machine to which the link is no longer
+active.
+.TP
+\f[CB]ENOSPC\fP
+Not enough space on the file system. Data in the write cache has been lost.
+.TP
+\f[CB]EDQUOT\fP
+The user exceeded their storage quota on the file system. Data in the write
+cache may have been lost.
+.TP
+\f[CB]ETIMEDOUT\fP
+The connection to an NFS mount timed out while closing the file.
 .SH AUTHOR
 Martijn Dekker <martijn@inlv.org>
 .br
