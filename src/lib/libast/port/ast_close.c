@@ -18,9 +18,13 @@
 #include <error.h>
 
 /*
- * Depending on the implementation, close(2) must either:
- *   - always be repeated after EINTR (HP-UX and AIX), or
- *   - never be repreated after EINTR (most systems).
+ * Depending on the implementation, after EINTR, close(2) must either
+ * always, or never be repeated. And if it must be repeated, then the FD
+ * state is indeterminate on some systems, so the repeated close(2) call may
+ * or may not return -1 and set errno to EBADF.
+ *
+ * posix_close(2) was introduced to fix this mess, but it introduced a
+ * complication of its own: EINPROGRESS, a non-error returned as an error.
  *
  * What follows is a function that attempts to conform to the
  * required behavior for the operating systems ksh supports.
@@ -40,13 +44,18 @@ int ast_close(int fd)
 
 	r = posix_close(fd, 0);
 
-#elif defined(__hpux) || defined(__hpux__)
+#elif defined(hpux) || defined(__hpux) || defined(__QNX__)
 
 	/*
 	 * HP-UX: "[EINTR] An attempt to close a slow device or connection or
 	 * file with pending aio requests was interrupted by a signal. The file
 	 * descriptor still points to an open device or connection or file."
 	 * https://support.hpe.com/hpesc/public/docDisplay?docId=c01922498
+	 *
+	 * QNX: "[EINTR] The close() call was interrupted by a signal. In the
+	 * QNX Neutrino implementation, the file descriptor remains open."
+	 * https://www.qnx.com/developers/docs/7.1/com.qnx.doc.neutrino.lib_ref/topic/c/close.html
+	 * https://www.qnx.com/developers/docs/6.5.0SP1.update/#./com.qnx.doc.neutrino_lib_ref/c/close.html
 	 */
 
 	while ((r = close(fd)) != 0 && errno == EINTR)
@@ -76,11 +85,19 @@ int ast_close(int fd)
 	/*
 	 * Never try again after EINTR (most systems).
 	 *
-	 * Quoting the STANDARDS section in NetBSD's close(2):
-	 * "The finality of close(), even on error, is not specified by
-	 * POSIX, but most operating systems, including FreeBSD, OpenBSD,
-	 * Linux, and Solaris, implement the same semantics."
-	 * https://man.netbsd.org/close.2
+	 * Linux close(2): "[...] the Linux kernel /always/ releases the file
+	 * descriptor early in the close operation, freeing it for reuse; the
+	 * steps that may return an error, such as flushing data to the
+	 * filesystem or device, occur only later in the close operation."
+	 *
+	 * FreeBSD close(2): "In case of any error except EBADF, the supplied
+	 * file descriptor is deallocated and therefore is no longer valid."
+	 *
+	 * NetBSD, OpenBSD, DragonflyBSD, and Solaris/illumos have been
+	 * confirmed to work the same way by a reading of their kernel sources.
+	 * The Solaris/illumos close(2) manual is highly misleading on this.
+	 *
+	 * There's nothing for the caller to do, so treat this as a non-error.
 	 */
 
 	if ((r = close(fd)) != 0 && errno == EINTR)
