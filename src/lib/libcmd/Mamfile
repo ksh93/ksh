@@ -58,7 +58,6 @@ make install virtual
 			prev cmd.h
 		done
 		make cat.c
-			prev %{INCLUDE_AST}/endian.h
 			prev cmd.h
 		done
 		make chgrp.c

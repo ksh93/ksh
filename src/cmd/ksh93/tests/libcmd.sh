@@ -493,9 +493,9 @@ if builtin cat 2> /dev/null; then
 	[[ $got == "$exp" ]] || err_exit "cat -n failed (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 	# -s Equivalent to -S for att universe and -B otherwise.
-	if [[ $(whence -t /opt/ast/bin/getconf 2>&1) == 'builtin' ]]; then
-		got=$(cat -s "$tmp/sample_file")
-		case $(/opt/ast/bin/getconf UNIVERSE) in
+	if	builtin getconf 2>/dev/null
+	then	got=$(cat -s "$tmp/sample_file")
+		case $(getconf UNIVERSE) in
 		att)	exp=$(cat -S "$tmp/sample_file") ;;
 		*)	exp=$(cat -B "$tmp/sample_file") ;;
 		esac
