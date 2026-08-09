@@ -50,8 +50,7 @@ static const char usage[] =
     "followed by a letter of the alphabet; and characters with the high bit "
     "set as the lower 7 bit character prefixed by \bM^\b for 7 bit "
     "non-printable characters and \bM-\b for all other characters. "
-    "In extended single-byte locales such as ISO-8859-*, "
-    "high-bit printable characters remain unmodified. "
+    "Operating system locale settings determine what characters are printable. "
     "Multibyte printable characters are not yet recognized.]"
 "[A:show-all?Equivalent to \b-vET\b.]"
 "[B:squeeze-blank?Multiple adjacent new-line characters are replaced by one"
@@ -97,10 +96,6 @@ static const char usage[] =
 
 typedef void* (*Reserve_f)(Sfio_t*, ssize_t, int);
 
-#ifndef sfvalue
-#define sfvalue(f)	((f)->_val)
-#endif
-
 static void*
 regress(Sfio_t* sp, ssize_t n, int f)
 {
@@ -127,11 +122,12 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 	unsigned char*	nxt;
 	int		line;
 	int		last;
-	ptrdiff_t	c;
-	ptrdiff_t	m;
-	ptrdiff_t	n;
+	int		c;
+	int		n;
 	int		any;
 	int		header;
+	ptrdiff_t	m;
+	ssize_t		sfv;
 
 	unsigned char	meta[3];
 	unsigned char	tmp[32];
@@ -146,8 +142,10 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 	for (;;)
 	{
 		cur = cp;
-		while (!(n = states[*cp++]));
-		c = *--cp;
+		while (states[*cp] == 0)
+			cp++;
+		c = *cp;
+		n = states[c];
 		if ((m = cp - cur) || n >= T_CONTROL)
 		{
  flush:
@@ -184,22 +182,18 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 				goto flush;
 			}
 			c = last;
-			if (!(nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0)))
+			nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0);
+			sfv = sfvalue(ip);
+			if (!nxt || sfv <= 0)
 			{
 				*(cp = end = tmp + sizeof(tmp) - 1) = 0;
-				states[0] = (m = sfvalue(ip)) ? T_ERROR : T_EOF;
-				last = -1;
-			}
-			else if ((m = sfvalue(ip)) <= 0)
-			{
-				*(cp = end = tmp + sizeof(tmp) - 1) = 0;
-				states[0] = m ? T_ERROR : T_EOF;
+				states[0] = sfv ? T_ERROR : T_EOF;
 				last = -1;
 			}
 			else
 			{
 				buf = nxt;
-				end = buf + m - 1;
+				end = buf + sfv - 1;
 				last = *end;
 				*end = 0;
 				cp = buf;
@@ -253,18 +247,14 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 			{
 				if ((n = states[*++cp]) == T_ENDBUF)
 				{
+					ssize_t	sfv;
 					if (cp < end || last != '\n')
 						break;
-					if (!(nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0)))
+					nxt = (unsigned char*)(*reserve)(ip, SFIO_UNBOUND, 0);
+					sfv = sfvalue(ip);
+					if (!nxt || sfv <= 0)
 					{
-						states[0] = sfvalue(ip) ? T_ERROR : T_EOF;
-						cp = end = tmp;
-						*cp-- = 0;
-						last = -1;
-					}
-					else if ((n = sfvalue(ip)) <= 0)
-					{
-						states[0] = n ? T_ERROR : T_EOF;
+						states[0] = sfv ? T_ERROR : T_EOF;
 						cp = end = tmp;
 						*cp-- = 0;
 						last = -1;
@@ -272,7 +262,7 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 					else
 					{
 						buf = nxt;
-						end = buf + n - 1;
+						end = buf + sfv - 1;
 						last = *end;
 						*end = 0;
 						cp = buf - 1;
