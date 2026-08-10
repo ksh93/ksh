@@ -300,6 +300,17 @@ static int	sh_isprint(int c)
 {
 	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
 		return isprint(c);			/* use plain isprint(3) */
+	/* On some systems, iswgraph(3) returns true for some of these. Override for consistency. */
+	if ((ast.locale.set & AST_LC_utf8) &&
+			(c == 0x00A0 ||			/* non-breaking space */
+			c == 0x061C ||			/* arabic letter mark */
+			c == 0x1680 ||			/* ogham space mark */
+			c == 0x180E ||			/* mongolian vowel separator */
+			c >= 0x2000 && c <= 0x200F ||	/* spaces and format characters */
+			c >= 0x2028 && c <= 0x202F ||	/* separators and format characters */
+			c >= 0x205F && c <= 0x206F ||	/* various format characters */
+			c == 0x3000))			/* ideographic space */
+		return 0;
 	return iswgraph((wint_t)c);
 }
 
