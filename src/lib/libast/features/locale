@@ -3,7 +3,6 @@ tst	- note{ canonical UTF-8 name }end run{
 	ifs=$IFS
 	str=
 	sys=
-	unset LC_ALL
 	for i in $(PATH=${DEFPATH:-/bin:/usr/bin}:$PATH locale -a | grep -i '\.UTF[-8]*$')
 	do	IFS=.
 		set -- $i
@@ -11,11 +10,6 @@ tst	- note{ canonical UTF-8 name }end run{
 		case $2 in
 		UTF-8)	str=$2
 			break
-			;;
-		*)	if	(LC_CTYPE=$1.UTF-8 PATH=${DEFPATH:-/bin:/usr/bin}:$PATH locale LC_CTYPE | grep -i utf.*8) >/dev/null 2>&1
-			then	str=UTF-8
-				break
-			fi
 			;;
 		esac
 		sys=$2
