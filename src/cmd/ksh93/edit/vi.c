@@ -58,9 +58,6 @@
 #   define genlen(str)	ed_genlen(str)
 #   define digit(c)	((c&~STRIP)==0 && isdigit(c))
 #   define is_print(c)	((c&~STRIP) || isprint(c))
-#   if !_lib_iswprint && !defined(iswprint)
-#	define iswprint(c)	((c&~0177) || isprint(c))
-#   endif
     static int _isalph(int);
     static int _isblank(int);
 #   undef  isblank

@@ -1,22 +1,24 @@
 tst	- note{ canonical UTF-8 name }end run{
+	set -o noglob
 	ifs=$IFS
 	str=
 	sys=
-	for i in `PATH=/bin:/usr/bin:$PATH locale -a | grep -i '^[^C].*\.UTF[-8]*$'`
+	unset LC_ALL
+	for i in $(PATH=${DEFPATH:-/bin:/usr/bin}:$PATH locale -a | grep -i '\.UTF[-8]*$')
 	do	IFS=.
-		set '' $i
+		set -- $i
 		IFS=$ifs
-		case $3 in
-		UTF-8)	str=$3
+		case $2 in
+		UTF-8)	str=$2
 			break
 			;;
-		*)	if	$SHELL -c "LC_CTYPE=$2.UTF-8 PATH=/bin:/usr/bin:$PATH locale LC_CTYPE | grep -i utf.*8" >/dev/null 2>&1
+		*)	if	(LC_CTYPE=$1.UTF-8 PATH=${DEFPATH:-/bin:/usr/bin}:$PATH locale LC_CTYPE | grep -i utf.*8) >/dev/null 2>&1
 			then	str=UTF-8
 				break
 			fi
 			;;
 		esac
-		sys=$3
+		sys=$2
 	done
 	case $str in
 	'')	str=$sys ;;
@@ -25,4 +27,19 @@ tst	- note{ canonical UTF-8 name }end run{
 	'')	echo "#define _locale_utf8_str	0" ;;
 	*)	echo "#define _locale_utf8_str	\"$str\"" ;;
 	esac
+}end
+
+test - note{ default native UTF-8 locale for LC_CTYPE }end run{
+	loc=
+	all=$(PATH=${DEFPATH:-/bin:/usr/bin}:$PATH locale -a | grep -i '\.UTF[-8]*$')
+	if	test -n "$all"
+	then	loc=$(echo "$all" | grep -i '^C\.')
+		test -z "$loc" && loc=$(echo "$all" | grep -i '^en_US\.')
+		test -z "$loc" && loc=$(echo "$all" | grep -i '^en_' | head -1)
+		test -z "$loc" && loc=$(echo "$all" | sed -n -e '1p')
+	fi
+	if	test -n "$loc"
+	then	echo "#define _locale_utf8_native_ctype	\"$loc\""
+	else	echo "#define _locale_utf8_native_ctype	0"
+	fi
 }end

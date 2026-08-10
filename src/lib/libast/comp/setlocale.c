@@ -35,6 +35,7 @@
 #include <mc.h>
 #include <namval.h>
 #include <error.h>
+#include "FEATURE/locale"
 
 #if ( _lib_wcwidth || _lib_wctomb ) && _hdr_wctype
 #include <wctype.h>
@@ -2419,7 +2420,22 @@ single(int category, Lc_t* lc, unsigned int flags)
 				}
 		}
 		else if (lc->flags & (LC_debug|LC_local))
-			sys = setlocale(lc_categories[category].external, lcmake(NULL)->name);
+		{
+			const char *name;
+			/*
+			 * For the local AST UTF-8 locales (C.UTF-8 and C_EU.UTF-8), the
+			 * operating system's iswprint(3) and iswgraph(3) functions may break,
+			 * because the native setlocale(3) call may not recognise these. But as
+			 * far as LC_CTYPE is concerned, all UTF-8 locales are equivalent.
+			 * Therefore, if available, use a native system locale for these, as
+			 * found by src/lib/libast/features/locale.
+			 */
+			if (_locale_utf8_native_ctype && (lc->flags & LC_utf8) && category == AST_LC_CTYPE)
+				name = _locale_utf8_native_ctype;
+			else
+				name = lcmake(NULL)->name;
+			sys = setlocale(lc_categories[category].external, name);
+		}
 		else if (!(sys = setlocale(lc_categories[category].external, lc->name)) &&
 			 (streq(lc->name, lc->code) || !(sys = setlocale(lc_categories[category].external, lc->code))) &&
 			 !streq(lc->code, lc->language->code))
@@ -2684,11 +2700,15 @@ _ast_setlocale(int category, const char* locale)
 			return (char*)locales[0]->name;
 		return sfstruse(sp);
 	}
-	if (!ast.locale.serial++)
+	if (ast.locale.serial == 0)
 	{
 		stropt(getenv("LC_OPTIONS"), options, sizeof(*options), setopt, NULL);
 		initialized = 0;
 	}
+	ast.locale.serial++;
+	/* avoid reinit upon wraparound to 0 */
+	if (ast.locale.serial == 0)
+                ast.locale.serial = 1;
 	if ((ast.locale.set & (AST_LC_debug|AST_LC_setlocale)) && !(ast.locale.set & AST_LC_internal))
 	{
 		header();

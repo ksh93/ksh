@@ -1393,10 +1393,10 @@ make install virtual
 				done
 				prev include/namval.h
 				prev include/error.h
+				prev FEATURE/locale
 				make std/wctype.h
 					prev ast_wctype.h
 				done
-				prev include/ast_windows.h
 			done
 			exec - compile %{<} -Iport
 		done
