@@ -1358,7 +1358,7 @@ static int unall(int argc, char **argv, Dt_t *troot)
 	}
 	while(name = *argv++)
 	{
-		sh_pushcontext(&buff,1);
+		sh_pushcontext(&buff,SH_JMPCMD);
 		jmpval = sigsetjmp(buff.buff,0);
 		np = 0;
 		if(jmpval==0)
@@ -1384,6 +1384,8 @@ static int unall(int argc, char **argv, Dt_t *troot)
 			np=nv_open(name,troot,NV_NOADD|nflag);
 		}
 		sh_popcontext(&buff);
+		if(jmpval > SH_JMPCMD)
+			siglongjmp(*sh.jmplist,jmpval);
 		if(jmpval)
 		{
 			r = 1;

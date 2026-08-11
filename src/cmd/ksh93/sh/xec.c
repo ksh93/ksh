@@ -2942,14 +2942,14 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		sh.invoc_local = 0;
 	}
 	argsav = sh_argnew(argv,&saveargfor);
-	sh_pushcontext(buffp,SH_JMPFUN);
-	errorpush(&buffp->err,0);
-	error_info.id = argv[0];
 	if(!fun)
 	{
 		sh.st.funname = nv_name(fp->node);
 		nv_putval(SH_FUNNAMENOD,sh.st.funname,NV_NOFREE);
 	}
+	sh_pushcontext(buffp,SH_JMPFUN);
+	errorpush(&buffp->err,0);
+	error_info.id = argv[0];
 	jmpval = sigsetjmp(buffp->buff,0);
 	if(jmpval == 0)
 	{
