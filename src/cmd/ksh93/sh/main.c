@@ -331,7 +331,6 @@ static void	exfile(Sfio_t *iop,int fno)
 	int maxtry=IOMAXTRY, tdone=0, execflags;
 	int states,jmpval;
 	struct checkpt buff;
-	sh_pushcontext(&buff,SH_JMPERREXIT);
 	/* open input stream */
 	nv_putval(SH_PATHNAMENOD, sh.st.filename, NV_NOFREE);
 	if(!iop)
@@ -391,6 +390,7 @@ static void	exfile(Sfio_t *iop,int fno)
 		sh_offoption(SH_HISTORY);
 	}
 	states = sh_getstate();
+	sh_pushcontext(&buff,SH_JMPERREXIT);
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval)
 	{

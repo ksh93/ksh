@@ -576,7 +576,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	}
 	sh.curenv = ++subenv;
 	savst = sh.st;
-	sh_pushcontext(&checkpoint,SH_JMPSUB);
 	sh.subshell++;		/* increase level of virtual subshells */
 	sh.realsubshell++;	/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
@@ -661,6 +660,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		/* save upper bound for $SRANDOM */
 		sp->srand_upper_bound = sh.srand_upper_bound;
 	}
+	sh_pushcontext(&checkpoint,SH_JMPSUB);
 	jmpval = sigsetjmp(checkpoint.buff,0);
 	if(jmpval==0)
 	{
