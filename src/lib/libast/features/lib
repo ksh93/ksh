@@ -38,6 +38,7 @@ lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
 lib	clone,spawn,spawnve
 lib	strlcat,strlcpy
+lib	strcasestr
 lib	strmode,symlink,sysconf,sysinfo
 lib	telldir,tmpnam,tzset,universe,unlink,utime,wctype
 lib	ftruncate,truncate

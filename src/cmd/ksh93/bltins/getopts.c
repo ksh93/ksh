@@ -143,7 +143,7 @@ int	b_getopts(int argc,char *argv[],Shbltin_t *context)
 		/* FALLTHROUGH */
 	    case ':':
 		key[0] = opt_info.option[1];
-		if(strmatch(opt_info.arg,"*unknown*"))
+		if(strstr(opt_info.arg,"unknown"))
 			flag = '?';
 		if(mode)
 			opt_info.arg = key;

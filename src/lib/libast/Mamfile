@@ -2199,6 +2199,13 @@ make install virtual
 			exec - compile %{<}
 		done
 
+		make strcasestr.o
+			make comp/strcasestr.c
+				prev include/ast.h
+			done
+			exec - compile %{<}
+		done
+
 		make strtod.o
 			make comp/strtod.c
 				make sfio/sfstrtof.h

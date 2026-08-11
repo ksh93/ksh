@@ -301,16 +301,16 @@ static void put_ed(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	/* turn on vi or emacs option if editor name is either */
 	cp = path_basename(cp);
 #if SHOPT_VSH
-	if(strmatch(cp,"*[Vv][Ii]*"))
+	if(strcasestr(cp,"vi"))
 		newopt=SH_VI;
 #endif
 #if SHOPT_VSH && SHOPT_ESH
 	else
 #endif
 #if SHOPT_ESH
-	     if(strmatch(cp,"*gmacs*"))
+	     if(strstr(cp,"gmacs"))
 		newopt=SH_GMACS;
-	else if(strmatch(cp,"*macs*"))
+	else if(strstr(cp,"macs"))
 		newopt=SH_EMACS;
 #endif
 	if(newopt)

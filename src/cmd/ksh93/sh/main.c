@@ -193,7 +193,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				if(name = sh_mactry(nv_getval(ENVNOD)))
 					name = *name ? sh_strdup(name) : NULL;
 #if SHOPT_SYSRC
-				if(!strmatch(name, "?(.)/./*"))
+				if(strncmp(name, "/./", 3) != 0 && strncmp(name, "././", 4) != 0)
 					sh_source(iop, e_sysrc);
 #endif
 				if(name)
@@ -223,7 +223,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 			if(!sh_isoption(SH_SFLAG))
 			{
 				/* open stream should have been passed into shell */
-				if(strmatch(name,e_devfdNN) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)
+				if(sh_isdevfd(name) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)
 				{
 					if(fstat(fdin,&statb)<0)
 					{

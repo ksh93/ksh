@@ -138,6 +138,5 @@ extern int		sh_argopts(int,char*[]);
 extern const char	e_heading[];
 extern const char	e_subst[];
 extern const char	e_exec[];
-extern const char	e_devfdNN[];
 
 #endif /* _ARGNOD_H */

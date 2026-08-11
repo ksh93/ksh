@@ -752,7 +752,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 		sh_subtmpfile();
 	pv[2] = 0;
 	sh_pipe(pv,0);
-	sfwrite(sh.stk,e_devfdNN,8);
+	sfwrite(sh.stk,"/dev/fd/",8);
 	sfputr(sh.stk,fmtint(pv[fd],1),0);
 	/*
 	 * Check if /dev/fd/pv[fd] exists in the file system. If not, fall back to the FIFO method.
