@@ -55,17 +55,7 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
    Opening braces are on a line of their own, at the same indentation level
    as their corresponding closing brace.
    Comments always use `/*`...`*/`.
-8. Good judgment may override the preceding policy points.
-9. **AI policy:** All AI/LLM-generated code is derived from undisclosed
-   sources and may therefore constitute copyright infringement and/or
-   plagiarism. For this reason, and to uphold the long Unix tradition in
-   which it stands, **this code base shall remain 100% human-written
-   forever**. The same applies to documentation and commit messages (see
-   point 6) and to bug reports and pull requests. It is acceptable to
-   consult AI for last-resort assistance in solving a problem, but not for
-   AI to write the solution. **Anyone suspected of 'vibe-coding' will have
-   their contributions rejected or reverted, and may be banned from the
-   project** to avoid quality degradation and potential legal liability.
+8. Good judgment may override this policy.
 
 ## Why?
 
