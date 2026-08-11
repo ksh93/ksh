@@ -140,7 +140,7 @@ static History_t *hist_ptr;
 	if(sh_isdevfd(acctfile))
 	{
 		char newfile[16];
-		sfsprintf(newfile,sizeof(newfile),"%.8s%d\0",e_devfdNN,acctfd);
+		sfsprintf(newfile,sizeof(newfile),"/dev/fd/%d\0",acctfd);
 		nv_putval(np,newfile,NV_RDONLY);
 	}
 	else if(!(sh.fdstatus[acctfd]&IOCLEX))

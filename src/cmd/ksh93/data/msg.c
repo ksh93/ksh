@@ -153,7 +153,6 @@ const char e_no_proc[]		= "no such process";
 const char e_jobusage[]		= "%s: Arguments must be %%job or process IDs";
 const char e_coredump[]		= "(coredump)";
 const char e_alphanum[]		= "[_[:alpha:]]*([_[:alnum:]])";
-const char e_devfdNN[]		= "/dev/fd/+([0-9])";
 const char e_signo[]		= "Signal %d";
 
 /* string constants */

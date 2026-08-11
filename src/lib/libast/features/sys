@@ -61,5 +61,6 @@ extern	ftruncate	int		(int, off_t)
 extern	memalign	void*		(size_t, size_t)
 extern	strlcat		size_t		(char*, const char*, size_t)
 extern	strlcpy		size_t		(char*, const char*, size_t)
+extern	strcasestr	char*		(const char*, const char*)
 
 print	#include <stdarg.h>

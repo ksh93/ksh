@@ -1169,8 +1169,17 @@ Namval_t *nv_putsub(Namval_t *np,char *sp,long mode)
 	{
 		if(sp && sp!=Empty)
 		{
-			if(ap && ap->xp && !strmatch(sp,"+([0-9])"))
+			char *dp = NULL;
+			if(ap && ap->xp)
 			{
+				/* if sp is either the empty string or all digits, dp will point to the terminating 0 byte */
+				dp = sp;
+				while (*dp >= '0' && *dp <= '9')
+					dp++;
+			}
+			if(dp && !(*sp != '\0' && *dp == '\0'))
+			{
+				/* all-digits array subscript */
 				Namval_t *mp = nv_namptr(ap->xp,0);
 				nv_putval(mp, sp,0);
 				size = nv_getnum(mp);
