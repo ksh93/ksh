@@ -60,10 +60,13 @@ static Sfdouble_t setalarm(Sfdouble_t t)
 	/*
 	 * POSIX timer_settime(2) version.
 	 * Resistant to system clock changes due to CLOCK_MONOTONIC.
+	 *
+	 * ...except on Oracle Solaris which only allows CLOCK_MONOTONIC
+	 * for root and specially privileged processes. :-/
 	 */
 	static timer_t timer;
-	static int created;
-	struct itimerspec tnew, told;
+	static char created;
+	struct itimerspec tnew = { 0 }, told;
 	if(!t)
 	{
 		if(created)
@@ -75,21 +78,19 @@ static Sfdouble_t setalarm(Sfdouble_t t)
 	}
 	if(!created)
 	{
-		struct sigevent sev;
-		memset(&sev,0,sizeof sev);
+		struct sigevent sev = { 0 };
 		sev.sigev_notify = SIGEV_SIGNAL;
 		sev.sigev_signo = SIGALRM;
 		if(timer_create(CLOCK_MONOTONIC,&sev,&timer) < 0)
-			goto error_out;
-		created++;
+			if(timer_create(CLOCK_REALTIME,&sev,&timer) < 0)
+				goto error_out;
+		created = 1;
 	}
 	tnew.it_value.tv_sec = t;
 	tnew.it_value.tv_nsec = 1.e9 * (t - (Sfdouble_t)tnew.it_value.tv_sec);
 	/* Minimum delay: 1ms */
 	if(tnew.it_value.tv_sec==0 && tnew.it_value.tv_nsec < 1000000L)
 		tnew.it_value.tv_nsec = 1000000L;
-	tnew.it_interval.tv_sec = 0;
-	tnew.it_interval.tv_nsec = 0;
 	if(timer_settime(timer,0,&tnew,&told) < 0)
 		goto error_out;
 	return told.it_value.tv_sec + 1.e-9 * told.it_value.tv_nsec;
