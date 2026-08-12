@@ -11,19 +11,31 @@ lib	setitimer note{ setitimer with ITIMER_REAL }end link{
 	}
 }end
 
-lib	timer_create -lrt note{ timer_create et al, with CLOCK_MONOTONIC }end link{
+lib	timer_create -lrt note{ timer_create et al, with CLOCK_MONOTONIC }end execute{
 	#include <signal.h>
 	#include <time.h>
+	#include <unistd.h>
 	int main(void)
 	{
-		timer_t timer;
-		struct sigevent sev;
-		struct itimerspec tnew, told;
+		timer_t			timer;
+		struct sigevent		sev = { 0 };
+		struct itimerspec	tnew = { 0 }, told;
+		/*
+		 * On at least Solaris 11.4.0 (2018), timer_create will fail with EPERM
+		 * without root privileges, so we can't use it. Drop privs for testing.
+		 */
+		if (geteuid() == 0)
+			setuid(1);
 		sev.sigev_notify = SIGEV_SIGNAL;
 		sev.sigev_signo = SIGALRM;
-		timer_create(CLOCK_MONOTONIC,&sev,&timer);
-		timer_settime(timer,0,&tnew,&told);
-		timer_delete(timer);
+		tnew.it_value.tv_sec = 1;
+		tnew.it_value.tv_nsec = 0;
+		if (timer_create(CLOCK_MONOTONIC, &sev, &timer) < 0)
+			return 1;
+		if (timer_settime(timer, 0, &tnew, &told) < 0)
+			return 1;
+		if (timer_delete(timer) < 0)
+			return 1;
 		return 0;
 	}
 }end
