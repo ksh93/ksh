@@ -68,6 +68,7 @@ struct sh_type
 	void		*previous;
 	Namval_t	**nodes;
 	Namval_t	*rp;
+	void		*save_L_ARGNOD;
 	short		numnodes;
 	short		maxnodes;
 };
@@ -169,6 +170,9 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 		sp->rp = np;
 		nv_delete(np,root,NV_NOFREE);
 		np = nv_search(sp->rp->nvname,root,NV_ADD);
+		/* save $_, minus Cdt linkage (nvlink), i.e., starting from nvname */
+		sp->save_L_ARGNOD = stkalloc(sh.stk, sizeof(Namval_t)-offsetof(Namval_t,nvname));
+		memcpy(sp->save_L_ARGNOD, &L_ARGNOD->nvname, sizeof(Namval_t)-offsetof(Namval_t,nvname));
 	}
 	if(sp->numnodes && strncmp(np->nvname,NV_CLASS,sizeof(NV_CLASS)-1))
 	{
@@ -187,6 +191,8 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 			Dt_t *root = nv_dict(sh.last_table);
 			nv_delete(sp->nodes[0],root,NV_NOFREE);
 			dtinsert(root,sp->rp);
+			/* restore $_ state saved in previous sh_addnode call */
+			memcpy(&L_ARGNOD->nvname, sp->save_L_ARGNOD, sizeof(Namval_t)-offsetof(Namval_t,nvname));
 			errormsg(SH_DICT,ERROR_exit(1),e_redef,sp->nodes[0]->nvname);
 			UNREACHABLE();
 		}
