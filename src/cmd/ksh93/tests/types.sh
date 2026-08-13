@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -877,6 +877,20 @@ Version*93u+m/1.0* | Version*93??\ * | Version*93?\ *)
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	;;
 esac
+
+# ======
+# https://github.com/ksh93/ksh/issues/791
+CCn=$'\n'
+exp="$SHELL: Foo_t: type cannot be redefined${CCn}typeset -x _=Foo_t"
+got=$(set +x; redirect 2>&1; ENV=/./dev/null "$SHELL" -i <<-'EOF'
+	typeset -T Foo_t=(typeset name=)
+	typeset -T Foo_t=(typeset name=)
+	typeset -p _
+	EOF
+)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit "'typeset -p _' after failing to redefine a type variable" \
+	"(expected status 0 and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
