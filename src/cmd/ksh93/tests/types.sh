@@ -880,6 +880,7 @@ esac
 
 # ======
 # https://github.com/ksh93/ksh/issues/791
+if ((!SHOPT_SCRIPTONLY)); then
 CCn=$'\n'
 exp="$SHELL: Foo_t: type cannot be redefined${CCn}typeset -x _=Foo_t"
 got=$(set +x; redirect 2>&1; ENV=/./dev/null "$SHELL" -i <<-'EOF'
@@ -891,6 +892,7 @@ got=$(set +x; redirect 2>&1; ENV=/./dev/null "$SHELL" -i <<-'EOF'
 [[ e=$? -eq 0 && $got == "$exp" ]] || err_exit "'typeset -p _' after failing to redefine a type variable" \
 	"(expected status 0 and $(printf %q "$exp")," \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
+fi # !SHOPT_SCRIPTONLY
 
 # ======
 exit $((Errors<125?Errors:125))
