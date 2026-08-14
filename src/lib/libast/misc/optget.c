@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-08-04"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-08-14"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -1284,7 +1284,6 @@ label(Sfio_t* sp, int sep, char* s, int about, int z, int level, int style, int 
 	Push_t*		tsp;
 
 	int		r = 0;
-	int		n = 1;
 	Push_t*		psp = 0;
 
 	if ((ostyle = style) > (STYLE_nroff - (sep <= 0)) && f != FONT_LITERAL && f >= 0)
@@ -1382,17 +1381,6 @@ label(Sfio_t* sp, int sep, char* s, int about, int z, int level, int style, int 
 		}
 		switch (c = *s++)
 		{
-		case '(':
-			if (n)
-			{
-				n = 0;
-				if (f > 0)
-				{
-					sfputr(sp, font(f, style, 0), -1);
-					f = 0;
-				}
-			}
-			break;
 		case '?':
 		case ':':
 		case ']':
