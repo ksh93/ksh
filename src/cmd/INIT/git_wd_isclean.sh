@@ -18,7 +18,8 @@
 # development build (libast/Mamfile) and whether to add /MOD to ksh's version
 # string (ksh93/Mamfile).
 
-git update-index --really-refresh >/dev/null &&
+git update-index --really-refresh >/dev/null  # may return status 1
+
 exec git diff-index --quiet HEAD -- \
 	':(top)src/lib/libast/*/*.[ch]' \
 	':(top)src/lib/libast/*/*.tab' \
