@@ -1665,6 +1665,31 @@ static int execute(Rule_t *r, char *s)
 }
 
 /*
+ * generate an alias command for a hardcoded standard command path
+ */
+
+static void path_alias(Buf_t *buf, char *cmd, char *var)
+{
+	char	*cp;
+	append(buf,"alias ");
+	append(buf,cmd);
+	if (!(cp = getval(state.vars, var)))
+	{
+		/* fallback: path var isn't set yet, so fall pack to searching the command on $DEFPATH */
+		append(buf,"='PATH=${DEFPATH?} command ");
+		append(buf,cmd);
+		append(buf,"'\n");
+		return;
+	}
+	if (cp[0] != '/' || strchr(cp, '\''))
+		error_out("bogus standard path", cp);
+	/* to deal with unsafe characters other than "'", use 2 levels of single quotes */
+	append(buf,"=\\''");
+	append(buf,cp);
+	append(buf,"'\\'\n");
+}
+
+/*
  * run action s to update r
  */
 
@@ -1716,6 +1741,16 @@ static void run(Rule_t *r, char *s)
 			"*)	PATH=.:$PATH;;\n"
 			"esac\n"
 		);
+
+		/* use hardcoded paths for standard commands as found by mamprobe(1) */
+		path_alias(buf, "cat", "STDCAT");
+		path_alias(buf, "chmod", "STDCHMOD");
+		path_alias(buf, "cmp", "STDCMP");
+		path_alias(buf, "cp", "STDCP");
+		path_alias(buf, "ln", "STDLN");
+		path_alias(buf, "mv", "STDMV");
+		path_alias(buf, "rm", "STDRM");
+
 		/* disable global pathname expansion for safer field splitting */
 		if (state.strict >= 2)
 			append(buf,"set -f\n");

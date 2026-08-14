@@ -125,7 +125,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-08-04 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-08-14 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -563,7 +563,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2026-04-02
+  version         package (ksh 93u+m) 2026-08-14
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -1665,7 +1665,11 @@ sanitize_PATH()
 		# with special-casing of ksh's virtual built-ins directory
 		case $dir in
 		/opt/ast/bin)
-			test ! -d "$dir" && sdir=$dir ;;
+			case ${KSH_VERSION-} in
+			Version*)
+				sdir=$dir ;;
+			*)	continue ;;
+			esac ;;
 		*/* | [!+-]* | [+-]*[!0123456789]*)
 			sdir=$(cd -- $dir 2>/dev/null && pwd -P && echo X) ;;
 		*)	sdir=$(cd ./$dir 2>/dev/null && pwd -P && echo X) ;;
@@ -1682,7 +1686,7 @@ sanitize_PATH()
 	printf '%s\n' "${sPATH#:}"
 )
 
-# Ensure a sane $PATH beginning with standard utilities.
+# Determine the default $PATH for the system's standard utilities.
 # POSIXly, a simple 'getconf PATH' should do it, but reality is otherwise.
 # Find preferred getconf(1) on NixOS and Solaris/illumos.
 # Compile fallback programs on systems without getconf(1).
@@ -1760,10 +1764,23 @@ then	case $(uname) in
 	AIX )	DEFPATH="/opt/freeware/bin:$DEFPATH" ;;
 	esac
 fi
+# Prepend ksh93's default virtual directory for pathbound builtins,
+# it this ksh is new enough to run them by direct path invocation.
+case ${KSH_VERSION-} in
+Version*)
+	if	test ! -d /opt/ast/bin
+	then	/opt/ast/bin/basename --version >/dev/null 2>&1
+		case $? in
+		0|2)	DEFPATH=/opt/ast/bin:$DEFPATH ;;
+		esac
+	fi
+esac
 
 export DEFPATH  # for iffe, etc.
 
-PATH=$(sanitize_PATH "/opt/ast/bin:$DEFPATH:$PATH")
+# do not put $DEFPATH first, e.g., it must be possible to choose another compiler with $PATH.
+# For some standard command invocations it is safer to use $DEFPATH; they should be special-cased.
+PATH=$(sanitize_PATH "/opt/ast/bin:$PATH:$DEFPATH")
 
 # remove $INSTALLROOT/... from these; may be harmful while building
 # (these comes pre-set when running package from a 'package use' environment)
