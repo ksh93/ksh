@@ -28,7 +28,7 @@
  * coded for portability
  */
 
-#define RELEASE_DATE "2026-03-30"
+#define RELEASE_DATE "2026-08-14"
 static char id[] = "\n@(#)$Id: mamake (ksh 93u+m) " RELEASE_DATE " $\0\n";
 
 #if _PACKAGE_ast
@@ -165,7 +165,16 @@ static const char usage[] =
 #define CHUNK		128		/* buffer() growth chunk size	*/
 #define KEY(a,b,c,d)	((((unsigned long)(a))<<24)|(((unsigned long)(b))<<16)|(((unsigned long)(c))<<8)|(((unsigned long)(d))))
 
+#if !defined(MAMAKE_NO_WAITID) && __CYGWIN__
+#define MAMAKE_NO_WAITID 1
+#endif
+
+#if !MAMAKE_NO_WAITID || defined(SA_RESTART)
 #define PARALLEL(r)	(state.maxjobs > 1 && state.strict >= 5 && !((r)->flags & RULE_virtual))
+#else
+#define PARALLEL(r)	0
+#define SA_RESTART	0
+#endif /* !MAMAKE_NO_WAITID || defined(SA_RESTART) */
 
 #define RULE_active	0x0001		/* active target		*/
 #define RULE_dontcare	0x0002		/* ok if not found		*/
@@ -1582,6 +1591,20 @@ static int wreap_nowait(Dict_item_t *item)
 	return 0;
 }
 
+#if MAMAKE_NO_WAITID
+/*
+ * SIGCHLD handling (initialised in main())
+ * just a dummy to make it not ignored
+ */
+
+static sigset_t empty_sigmask;
+
+static void sigchld_dummy(int sig)
+{
+	assert(sig == SIGCHLD);
+}
+#endif /* MAMAKE_NO_WAITID */
+
 /*
  * pass shell action argv[2] to ${SHELL:-/bin/sh}
  * argv[4, 5, ...] become $1, $2, ... in the shell
@@ -1616,8 +1639,12 @@ static int execute_v(Rule_t *r, char **argv)
 		assert(state.jobs <= state.maxjobs);
 		while (state.jobs == state.maxjobs)
 		{
+#if !MAMAKE_NO_WAITID
 			siginfo_t dummy;
 			waitid(P_ALL, 0, &dummy, WEXITED|WNOWAIT);
+#else
+			sigsuspend(&empty_sigmask);
+#endif /* !MAMAKE_NO_WAITID */
 			walk(state.rules, wreap_nowait);
 		}
 		/* let it run in parallel */
@@ -3175,6 +3202,23 @@ int main(int argc, char **argv)
 		recurse();
 		return state.exitstatus;
 	}
+
+#if MAMAKE_NO_WAITID
+	/*
+	 * set up SIGCHLD handling for parallel processing
+	 */
+
+	if (SA_RESTART && state.maxjobs > 1)
+	{
+		struct sigaction act;
+		sigemptyset(&empty_sigmask);
+		act.sa_handler = sigchld_dummy;
+		sigemptyset(&act.sa_mask);
+		sigaddset(&act.sa_mask, SIGCHLD);
+		act.sa_flags = SA_NOCLDSTOP | SA_RESTART;
+		sigaction(SIGCHLD, &act, NULL);
+	}
+#endif /* MAMAKE_NO_WAITID */
 
 	/*
 	 * read the mamfile(s) and bring the targets up to date
