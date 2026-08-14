@@ -2144,7 +2144,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				struct argnod *rex = t->reg.regptr;
 				while(rex)
 				{
-					const unsigned char raw = rex->argflag & ARG_RAW;
+					const uint8_t raw = rex->argflag & ARG_RAW;
 					char *s;
 					if(rex->argflag&ARG_MAC)
 						s = sh_macpat(rex,(flags & ARG_OPTIMIZE)|ARG_EXP);

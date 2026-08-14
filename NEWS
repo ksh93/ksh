@@ -2,6 +2,11 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-08-14:
+
+- In the --man/--help output for built-in commands, text marked as italic
+  is no longer rendered as bold + underlined, but only as underlined.
+
 2026-08-13:
 
 - Fixed corruption of $_, crashing the shell upon 'typeset -p _', after an

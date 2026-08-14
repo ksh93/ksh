@@ -108,7 +108,7 @@ _ast_strxfrm_workaround(char *s1, const char *s2, size_t n)
 			r = strlcpy(s1, s2, n);
 		errno = save;
 	}
-	return r;	
+	return r;
 }
 #define strxfrm		_ast_strxfrm_workaround
 #endif

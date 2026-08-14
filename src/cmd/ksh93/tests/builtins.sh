@@ -1711,13 +1711,13 @@ let "(e=$?) == 2" || err_exit "crash on unexpected option value" \
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
 
 # ======
-if((SHOPT_HISTEXPAND));then
+if ((SHOPT_HISTEXPAND && !SHOPT_SCRIPTONLY)); then
 exp=$'*\n'$SHELL': fc: !nonexistent: event not found'
 got=$(set +x; redirect 2>&1; "$SHELL" -c 'fc -p !! !nonexistent')
 [[ e=$? -eq 1 && $got == $exp ]] || err_exit "fc -p with error" \
 	"(expected \$?==1, match of $(printf %q "$exp");" \
 	"got \$?==$e$( ((e>128)) && print -n /SIG && kill -l "$e"), $(printf %q "$got"))"
-fi # SHOPT_HISTEXPND
+fi # SHOPT_HISTEXPAND && !SHOPT_SCRIPTONLY
 
 # ======
 if((SHOPT_MULTIBYTE));then

@@ -1345,7 +1345,7 @@ make install virtual
 				prev include/ccode.h
 				prev port/lclib.h
 			done
-			exec - compile %{<} -Iport -DERROR_CATALOG=\""libast"\"
+			exec - compile %{<} -Iport '-DERROR_CATALOG="libast"'
 		done
 
 		make errorf.o
@@ -3458,7 +3458,7 @@ make install virtual
 				prev include/ast.h
 				prev misc/univlib.h
 			done
-			exec - compile %{<} -Imisc -DCONF_LIBSUFFIX=\""%{DYLIB_SUF}"\" -DCONF_LIBPREFIX=\""%{DYLIB_PRE}"\" -DHOSTTYPE=\""%{mam_cc_HOSTTYPE}"\"
+			exec - compile %{<} -Imisc '-DCONF_LIBSUFFIX="%{DYLIB_SUF}"' '-DCONF_LIBPREFIX="%{DYLIB_PRE}"' '-DHOSTTYPE="%{mam_cc_HOSTTYPE}"'
 		done
 
 		make astdynamic.o
