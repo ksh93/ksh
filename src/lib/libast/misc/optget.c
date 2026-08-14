@@ -2543,7 +2543,7 @@ opthelp(const char* oopts, const char* what)
 		sfputc(mp, '\f');
 		break;
 	default:
-		/* We deliberately don't initialise state.emphasis to 0 here to aviod breaking '--???ESC' and '--???noESC'. */
+		/* We deliberately don't initialise state.emphasis to 0 here to avoid breaking '--???ESC' and '--???noESC'. */
 		if (!state.emphasis)
 		{
 			if (x = getenv("ERROR_OPTIONS"))

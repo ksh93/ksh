@@ -40,7 +40,7 @@ make install virtual
 				prev %{INCLUDE_AST}/cmd.h
 			done pty.c
 			exec - %{CC} %{mam_cc_FLAGS} %{CCFLAGS} -I. -I%{INCLUDE_AST} \
-			exec -	-DERROR_CATALOG=\""builtin"\" -DCMD_STANDALONE=b_pty -c %{<}
+			exec -	'-DERROR_CATALOG="builtin"' -DCMD_STANDALONE=b_pty -c %{<}
 		done pty.o
 		exec - %{CC} %{CCLDFLAGS} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS} \
 		exec -	-o pty pty.o %{mam_libcmd} %{mam_libutil}
