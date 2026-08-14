@@ -168,8 +168,16 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 	    only clean up this flat view and do not delete \b$INSTALLROOT\b.]
         [+force?Force the action to override saved state.]
         [+never?Run make -N and show other actions.]
+	[+nolog?Do not redirect standard output and standard error into
+	    \b$INSTALLROOT/lib/package/gen/make.out\b. This qualifier should be
+	    used if separate and unmodified standard output and standard error
+	    streams are required.
+	    Note that passing the \b-j\b\aN\a option to the \bmake\b action
+	    for parallel building will still combine the streams, unless
+	    \b-c\b for chaotic parallel build output is also given.]
         [+only?Only operate on the specified packages.]
-        [+quiet?Do not list captured action output.]
+        [+quiet?Do not list captured action output.
+	    Has no effect if \bnolog\b is also given.]
         [+show?Run make -n and show other actions.]
         [+verbose?Provide detailed action output.]
         [+DEBUG?Trace the package script actions in detail.]
@@ -226,6 +234,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
         [+make\b [ \apackage\a ]] [ \aoption\a ... ]] [ \atarget\a ... ]]?Build
 	    and install. The default \atarget\a is \binstall\b, which makes
 	    and installs \apackage\a. If the standard output is a terminal
+	    and the \bnolog\b qualifier is not given,
 	    then the output is also captured in
             \b$INSTALLROOT/lib/package/gen/make.out\b. The build is done in
             the \b$INSTALLROOT\b directory tree viewpathed on top of the
@@ -344,6 +353,7 @@ makeflags=''
 nl="
 "
 noexec=
+nolog=0
 only=0
 output=
 quiet=0
@@ -373,6 +383,8 @@ do	case $# in
 	force)	force=1
 		;;
 	never)	exec=echo noexec=-N
+		;;
+	nolog)	nolog=1
 		;;
 	only)	only=1
 		;;
@@ -435,8 +447,15 @@ DESCRIPTION
           clean up this flat view and do not delete $INSTALLROOT.
     force Force the action to override saved state.
     never Run make -N and show other actions.
+    nolog Do not redirect standard output and standard error into
+          $INSTALLROOT/lib/package/gen/make.out. This qualifier should be used
+          if separate and unmodified standard output and standard error streams
+          are required. Note that passing the -jN option to the make action for
+          parallel building will still combine the streams, unless -c for
+          chaotic parallel build output is also given.
     only  Only operate on the specified packages.
-    quiet Do not list captured action output.
+    quiet Do not list captured action output. Has no effect if nolog is also
+          given.
     show  Run make -n and show other actions.
     verbose
           Provide detailed action output.
@@ -484,13 +503,13 @@ DESCRIPTION
           be executed from root_dir.
     make [ package ] [ option ... ] [ target ... ]
           Build and install. The default target is install, which makes and
-          installs package. If the standard output is a terminal then the
-          output is also captured in $INSTALLROOT/lib/package/gen/make.out. The
-          build is done in the $INSTALLROOT directory tree viewpathed on top of
-          the $PACKAGEROOT directory tree. Leaf directory names matching the
-          |-separated shell pattern $MAKESKIP are ignored. The view action is
-          done before making. option operands are passed to the underlying
-          mamake command.
+          installs package. If the standard output is a terminal and the nolog
+          qualifier is not given, then the output is also captured in
+          $INSTALLROOT/lib/package/gen/make.out. The build is done in the
+          $INSTALLROOT directory tree viewpathed on top of the $PACKAGEROOT
+          directory tree. Leaf directory names matching the |-separated shell
+          pattern $MAKESKIP are ignored. The view action is done before making.
+          option operands are passed to the underlying mamake command.
     results [ failed ] [ path ] [ old ] [make | test | write ]
           List results and interesting messages captured by the most recent
           make (default), test or write action. old specifies the previous
@@ -2215,6 +2234,28 @@ checkaout()	# cmd ...
 	done
 }
 
+# helper for capture()
+
+capture_exec()
+{
+	case $s in
+	?*)	echo "$s"  ;;
+	esac
+	case $action in
+	'' | make)
+		# list main environment values
+		for i in CC SHELL $env
+		do	case $i in
+			FPATH | MANPATH)
+				continue ;;  # not relevant for building
+			esac
+			eval "echo \"$i=\$$i\""
+		done
+		;;
+	esac
+	(PS4="$action: executing"; set -o xtrace; : "$@")
+	"$@"
+}
 
 # capture command output
 
@@ -2230,45 +2271,48 @@ capture() # file command ...
 			s=
 			;;
 		*)	output=$o
-			if	test -f $o.old
-			then	mv $o.old $o.out.1
-				if	test -f $o.out
-				then	mv $o.out $o.out.2
+			case $nolog in
+			0)	if	test -f $o.old
+				then	mv $o.old $o.out.1
+					if	test -f $o.out
+					then	mv $o.out $o.out.2
+					fi
+				elif	test -f $o.out
+				then	for i in $(set +o noglob; ls -t $o.out.? 2>/dev/null)
+					do	break
+					done
+					case $i in
+					*.1)	i=2 ;;
+					*.2)	i=3 ;;
+					*.3)	i=4 ;;
+					*.4)	i=5 ;;
+					*.5)	i=6 ;;
+					*.6)	i=7 ;;
+					*.7)	i=8 ;;
+					*.8)	i=9 ;;
+					*)	i=1 ;;
+					esac
+					mv $o.out $o.out.$i
 				fi
-			elif	test -f $o.out
-			then	for i in $(set +o noglob; ls -t $o.out.? 2>/dev/null)
-				do	break
-				done
-				case $i in
-				*.1)	i=2 ;;
-				*.2)	i=3 ;;
-				*.3)	i=4 ;;
-				*.4)	i=5 ;;
-				*.5)	i=6 ;;
-				*.6)	i=7 ;;
-				*.7)	i=8 ;;
-				*.8)	i=9 ;;
-				*)	i=1 ;;
-				esac
-				mv $o.out $o.out.$i
-			fi
-			o=$o.out
-			: > $o
-			note "$action output captured in $o"
+				o=$o.out
+				: > $o
+				note "$action output captured in $o"
+				;;
+			esac
 			s="$command: $action start at $(date) in $INSTALLROOT"
 			cmd='case $error_status in 0) r=done;; *) r=failed;; esac;'
 			cmd=$cmd' echo "$command: $action $r at $(date) in $INSTALLROOT"'
-			case $quiet in
-			0)	cmd="$cmd 2>&1 | tee -a $o" ;;
-			*)	cmd="$cmd >> $o" ;;
+			case $nolog:$quiet in
+			0:0)	cmd="$cmd 2>&1 | tee -a $o" ;;
+			0:*)	cmd="$cmd >> $o" ;;
 			esac
 			trap "$cmd" 0
 			trap "error_status=1; $cmd; trap 1 0; kill -1 $$" 1
 			trap "error_status=1; $cmd; trap 2 0; kill -2 $$" 2
 			;;
 		esac
-		case $quiet in
-		0)	# Connect 'tee' to a FIFO instead of a pipe, so that we can obtain
+		case $nolog:$quiet in
+		0:0)	# Connect 'tee' to a FIFO instead of a pipe, so that we can obtain
 			# the build's exit status and use it for $error_status
 			rm -f $o.fifo
 			mkfifo -m 600 $o.fifo || exit
@@ -2282,25 +2326,12 @@ capture() # file command ...
 			o=$o.fifo
 			;;
 		esac
-		{
-			case $s in
-			?*)	echo "$s"  ;;
-			esac
-			case $action in
-			'' | make)
-				# list main environment values
-				for i in CC SHELL $env
-				do	case $i in
-					FPATH | MANPATH)
-						continue ;;  # not relevant for building
-					esac
-					eval "echo \"$i=\$$i\""
-				done
-				;;
-			esac
-			(PS4="$action: executing"; set -o xtrace; : "$@")
-			"$@"
-		} < /dev/null > $o 2>&1
+		case $nolog in
+		0)	capture_exec "$@" < /dev/null > $o 2>&1
+			;;
+		*)	capture_exec "$@" < /dev/null
+			;;
+		esac
 		;;
 	*)	$make "$@"
 		;;
