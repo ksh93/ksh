@@ -156,8 +156,6 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     The default with no arguments is \bhost type\b.]
 [+?The qualifiers are:]
     {
-        [+debug|environment?Show environment and actions but do not
-            execute.]
 	[+flat?With the \bmake\b action, create a flat view by linking all
 	    files from \b$INSTALLROOT\b, minus \b*.old\b files,
 	    onto their corresponding path under \b$PACKAGEROOT\b.
@@ -166,8 +164,6 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 	    Only one architecture can have a flat view.
 	    If \bflat\b is specified with the \bclean\b action, then
 	    only clean up this flat view and do not delete \b$INSTALLROOT\b.]
-        [+force?Force the action to override saved state.]
-        [+never?Run make -N and show other actions.]
 	[+nolog?Do not redirect standard output and standard error into
 	    \b$INSTALLROOT/lib/package/gen/make.out\b. This qualifier should be
 	    used if separate and unmodified standard output and standard error
@@ -175,10 +171,8 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 	    Note that passing the \b-j\b\aN\a option to the \bmake\b action
 	    for parallel building will still combine the streams, unless
 	    \b-c\b for chaotic parallel build output is also given.]
-        [+only?Only operate on the specified packages.]
         [+quiet?Do not list captured action output.
 	    Has no effect if \bnolog\b is also given.]
-        [+show?Run make -n and show other actions.]
         [+verbose?Provide detailed action output.]
         [+DEBUG?Trace the package script actions in detail.]
     }
@@ -340,24 +334,18 @@ esac
 
 action=
 bit=
-exec=
 flat=0
-force=0
 global=
 hi=
 ifs=${IFS-'
 	 '}
 lo=
-make=
 makeflags=''
 nl="
 "
-noexec=
 nolog=0
-only=0
 output=
 quiet=0
-show=:
 tab="        "
 verbose=0
 AUTHORIZE=
@@ -375,22 +363,11 @@ do	case $# in
 		shift
 		break
 		;;
-	debug|environment)
-		exec=echo make=echo show=echo
-		;;
 	flat)	flat=1
-		;;
-	force)	force=1
-		;;
-	never)	exec=echo noexec=-N
 		;;
 	nolog)	nolog=1
 		;;
-	only)	only=1
-		;;
 	quiet)	quiet=1
-		;;
-	show)	exec=echo noexec=-n
 		;;
 	verbose)verbose=1
 		;;
@@ -441,26 +418,20 @@ DESCRIPTION
   is host type.
 
   The qualifiers are:
-    debug|environment
-          Show environment and actions but do not execute.
     flat  With the make action, create a flat view by linking all files from
           $INSTALLROOT, minus *.old files, onto their corresponding path under
           $PACKAGEROOT. Subsequent make actions will update an existing flat
           view whether or not flat is specified. Only one architecture can have
           a flat view. If flat is specified with the clean action, then only
           clean up this flat view and do not delete $INSTALLROOT.
-    force Force the action to override saved state.
-    never Run make -N and show other actions.
     nolog Do not redirect standard output and standard error into
           $INSTALLROOT/lib/package/gen/make.out. This qualifier should be used
           if separate and unmodified standard output and standard error streams
           are required. Note that passing the -jN option to the make action for
           parallel building will still combine the streams, unless -c for
           chaotic parallel build output is also given.
-    only  Only operate on the specified packages.
     quiet Do not list captured action output. Has no effect if nolog is also
           given.
-    show  Run make -n and show other actions.
     verbose
           Provide detailed action output.
     DEBUG Trace the package script actions in detail.
@@ -688,8 +659,7 @@ esac
 case $action in
 use)	case $1 in
 	.)	shift
-		PACKAGEROOT=$PWD
-		$show export PACKAGEROOT
+		export PACKAGEROOT=$PWD
 	esac
 	;;
 esac
@@ -1895,9 +1865,6 @@ case $x in
 	case $KEEP_PACKAGEROOT in
 	0)	case $action in
 		use)	PACKAGEROOT=
-			case $show in
-			echo)	exec=echo make=echo show=echo ;;
-			esac
 			eval "set -- $args"
 			case $# in
 			0)	;;
@@ -1975,9 +1942,7 @@ case $x in
 		;;
 	esac
 	INITROOT=$PACKAGEROOT/src/cmd/INIT
-	$show PACKAGEROOT=$PACKAGEROOT
-	$show export PACKAGEROOT
-	export PACKAGEROOT
+	export PACKAGEROOT=$PACKAGEROOT
 
 	# initialize the architecture environment
 
@@ -1989,8 +1954,6 @@ case $x in
 		export _PACKAGE_HOSTTYPE_
 		;;
 	esac
-	$show HOSTTYPE=$HOSTTYPE
-	$show export HOSTTYPE
 	export HOSTTYPE
 	INSTALLROOT=$PACKAGEROOT/arch/$HOSTTYPE
 	case $action in
@@ -2001,8 +1964,6 @@ case $x in
 		fi
 		;;
 	esac
-	$show INSTALLROOT=$INSTALLROOT
-	$show export INSTALLROOT
 	export INSTALLROOT
 
 	# check the basic package hierarchy
@@ -2028,10 +1989,10 @@ case $x in
 		}
 
 		for i in arch arch/$HOSTTYPE
-		do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
+		do	test -d $PACKAGEROOT/$i || mkdir $PACKAGEROOT/$i || exit
 		done
 		for i in lib
-		do	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
+		do	test -d $INSTALLROOT/$i || mkdir $INSTALLROOT/$i || exit
 		done
 		;;
 	esac
@@ -2065,23 +2026,14 @@ case $x in
 		# path variables for various systems; instead of bothering to detect the system,
 		# just set them all. (Note: not needed and potentially harmful while building.)
 		export LD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-		$show export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-
 		case $LIBPATH in
 		'')	LIBPATH=/usr/lib:/lib ;;
 		esac
 		export LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
-		$show export LIBPATH=$LIBPATH
-
 		export SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
-		$show export SHLIB_PATH=$SHLIB_PATH
-
 		export DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
-		$show export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
-
 		# dynamic library search path for gcc and clang; also used for runtime linking on Haiku
 		export LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
-		$show export LIBRARY_PATH=$LIBRARY_PATH
 		;;
 	esac
 	case $action in
@@ -2089,7 +2041,6 @@ case $x in
 		# Include header search path for gcc and clang. Allows skipping '-I ~ast/include/ast'
 		# when compiling a test program from the command line in a 'package use' environment.
 		export C_INCLUDE_PATH=$INSTALLROOT/include/ast${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}
-		$show export C_INCLUDE_PATH=$C_INCLUDE_PATH
 		;;
 	esac
 
@@ -2122,16 +2073,11 @@ case $x in
 	*)	FPATH=$INSTALLROOT/fun${FPATH:+:$FPATH}
 		;;
 	esac
-	$show "export PATH=$PATH"
 	export PATH
-	$show "export FPATH=$FPATH"
 	export FPATH
 	if	test -n "${MANPATH+s}"
 	then	export MANPATH
-		$show "export MANPATH=$PATH"
 	fi
-	$show EXECROOT=$EXECROOT
-	$show export EXECROOT
 	export EXECROOT
 
 	# grab a decent default shell
@@ -2155,8 +2101,6 @@ case $x in
 		;;
 	esac
 	export SHELL
-	$show SHELL=$SHELL
-	$show export SHELL
 
 	# tame the environment
 
@@ -2183,10 +2127,7 @@ fi
 
 # set up the view state
 
-VPATH=$INSTALLROOT:$PACKAGEROOT
-$show VPATH=$VPATH
-$show export VPATH
-export VPATH
+export VPATH=$INSTALLROOT:$PACKAGEROOT
 
 # determine the targets
 
@@ -2226,13 +2167,13 @@ checkaout()	# cmd ...
 				# Windows/Cygwin kills fork(2) after deleting *or* renaming an executable that's in use :-/
 				# To allow relinking the binary against libast later, add a _bootstrap suffix and create
 				# a symlink to it. The symlink can be removed/renamed instead of the _bootstrap binary.
-				$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/${i}_bootstrap" "$INITROOT/$i.c" || exit
-				$exec ln -sf "${i}_bootstrap" "$INSTALLROOT/bin/$i" || exit
+				$CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/${i}_bootstrap" "$INITROOT/$i.c" || exit
+				ln -sf "${i}_bootstrap" "$INSTALLROOT/bin/$i" || exit
 				;;
-			*)	$exec $CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/$i" "$INITROOT/$i.c" || exit
+			*)	$CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/$i" "$INITROOT/$i.c" || exit
 				;;
 			esac
-			test -f $i.o && $exec rm -f $i.o
+			test -f $i.o && rm -f $i.o
 			hash -r
 		fi
 	done
@@ -2266,9 +2207,9 @@ capture_exec()
 capture() # file command ...
 {
 	tee_pid=
-	case $make:$noexec in
-	:)	d=$PACKAGEBIN/gen
-		test -d $d || $exec mkdir $d
+	case $make in
+	'')	d=$PACKAGEBIN/gen
+		test -d $d || mkdir $d
 		o=$d/$action
 		case $o in
 		$output)o=$o.out
@@ -2457,7 +2398,7 @@ clean|clobber)
 	cd "$PACKAGEROOT" || exit
 	note "cleaning up flat view"
 	# clean up all links with arch dir
-	$exec find "arch/$HOSTTYPE" -type f -exec "$SHELL" -c '
+	find "arch/$HOSTTYPE" -type f -exec "$SHELL" -c '
 		first=y
 		for h					# loop through the PPs
 		do	case $first in
@@ -2473,11 +2414,11 @@ clean|clobber)
 	' "$0" {} +
 	case $flat in
 	0)	note "deleting arch/$HOSTTYPE"
-		$exec rm -rf arch/$HOSTTYPE
+		rm -rf arch/$HOSTTYPE
 		;;
 	esac
 	note "removing empty directories"
-	$exec find . -depth -type d -exec rmdir {} + 2>/dev/null
+	find . -depth -type d -exec rmdir {} + 2>/dev/null
 	;;
 
 export)	case $INSTALLROOT in
@@ -2485,15 +2426,11 @@ export)	case $INSTALLROOT in
 		INSTALLROOT=$INSTALLROOT/arch/$HOSTTYPE
 		;;
 	esac
-	case $only in
-	0)	v='$i=' ;;
-	*)	v= ;;
-	esac
 	eval "set -- $target"
 	test "$#" -eq 0 && set -- $env
 	while	test "$#" -gt 0
 	do	i=$1
-		eval "echo \"$v\$$i\""
+		eval "echo \"\$i=\$$i\""
 		shift
 	done
 	;;
@@ -2557,21 +2494,21 @@ make|view)
 	then	note "initialize the $INSTALLROOT view"
 	fi
 	for i in arch arch/$HOSTTYPE
-	do	test -d $PACKAGEROOT/$i || $exec mkdir $PACKAGEROOT/$i || exit
+	do	test -d $PACKAGEROOT/$i || mkdir $PACKAGEROOT/$i || exit
 	done
 	for i in bin bin/ok bin/ok/lib fun include lib lib/package lib/package/gen src man man/man1 man/man3 man/man8
-	do	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
+	do	test -d $INSTALLROOT/$i || mkdir $INSTALLROOT/$i || exit
 	done
 	for d in $src
 	do	i=src/$d
 		if	test -d $i
-		then	test -d $INSTALLROOT/$i || $exec mkdir $INSTALLROOT/$i || exit
+		then	test -d $INSTALLROOT/$i || mkdir $INSTALLROOT/$i || exit
 			for j in $(cd $i; find . -name Mamfile -print 2>/dev/null | sed -e 's,^\./,,' -e '/\//!d' -e 's,/[^/]*$,,' | sort -u)
 			do	case $j in
 				Mamfile|$MAKESKIP) continue ;;
 				esac
 				test -d $INSTALLROOT/$i/$j ||
-				$exec mkdir -p $INSTALLROOT/$i/$j || exit
+				mkdir -p $INSTALLROOT/$i/$j || exit
 			done
 		fi
 	done
@@ -2608,25 +2545,25 @@ make|view)
 				$t*)	;;
 				$b*)	cc=$b
 					;;
-				$s*)	$exec cd $INSTALLROOT/lib/package/gen
+				$s*)	cd $INSTALLROOT/lib/package/gen
 					tmp=pkg$$
-					$exec eval "echo 'int main(void){return 0;}' > $tmp.c"
-					if	$exec $s -o $tmp.exe $tmp.c >/dev/null 2>&1 &&
+					eval "echo 'int main(void){return 0;}' > $tmp.c"
+					if	$s -o $tmp.exe $tmp.c >/dev/null 2>&1 &&
 						test -x $tmp.exe
 					then	case $HOSTTYPE in
 						*.mips*)$s -version >/dev/null 2>&1 || s= ;;
 						esac
 						case $s in
-						?*)	$exec sed "s/^HOSTTYPE=.*/HOSTTYPE=$HOSTTYPE/" < "$s" > "$b" || exit
-							$exec chmod +x "$b" || exit
+						?*)	sed "s/^HOSTTYPE=.*/HOSTTYPE=$HOSTTYPE/" < "$s" > "$b" || exit
+							chmod +x "$b" || exit
 							cc=$b
 							intercept=1
 							note "update $b"
 							;;
 						esac
 					fi
-					(set +o noglob; $exec rm -rf $tmp.*)
-					$exec touch "$t"
+					(set +o noglob; rm -rf $tmp.*)
+					touch "$t"
 					cd $PACKAGEROOT
 					;;
 				esac
@@ -2641,7 +2578,7 @@ make|view)
 				do	test -x "$s" || continue
 					case $(ls -t "$b" "$s" 2>/dev/null) in
 					$b*)	;;
-					$s*)	$exec cp "$s" "$b"
+					$s*)	cp "$s" "$b"
 						note "update $b"
 						;;
 					esac
@@ -2659,7 +2596,7 @@ make|view)
 		onpath $c ||
 		case $(ls -t "$b" "$s" 2>/dev/null) in
 		$b*)	;;
-		$s*)	$exec cp "$s" "$b"
+		$s*)	cp "$s" "$b"
 			note "update $b"
 			;;
 		esac
@@ -2671,7 +2608,7 @@ make|view)
 		test -x "$s" || continue
 		case $(ls -t "$b" "$s" 2>/dev/null) in
 		$b*)	;;
-		$s*)	$exec cp "$s" "$b"
+		$s*)	cp "$s" "$b"
 			note "update $b"
 			;;
 		esac
@@ -2681,26 +2618,23 @@ make|view)
 	*)	err_out "$CC: not found -- set CC=C-compiler"
 		;;
 	esac
-	case $exec in
-	'')	cd $INSTALLROOT/lib/package/gen
-		tmp=pkg$$
-		echo 'int main(void){return 0;}' > $tmp.c
-		if	$CC -o $tmp.exe $tmp.c > /dev/null 2> $tmp.err &&
-			test -x $tmp.exe
-		then	: ok
-		else	note "$CC: failed to compile this program:"
-			cat $tmp.c >&2
-			if	test -s $tmp.err
-			then	cat $tmp.err >&2
-			else	note "$CC: not a C compiler"
-			fi
-			(set +o noglob; rm -rf $tmp.*)
-			exit 1
+	cd $INSTALLROOT/lib/package/gen
+	tmp=pkg$$
+	echo 'int main(void){return 0;}' > $tmp.c
+	if	$CC -o $tmp.exe $tmp.c > /dev/null 2> $tmp.err &&
+		test -x $tmp.exe
+	then	: ok
+	else	note "$CC: failed to compile this program:"
+		cat $tmp.c >&2
+		if	test -s $tmp.err
+		then	cat $tmp.err >&2
+		else	note "$CC: not a C compiler"
 		fi
 		(set +o noglob; rm -rf $tmp.*)
-		cd $PACKAGEROOT
-		;;
-	esac
+		exit 1
+	fi
+	(set +o noglob; rm -rf $tmp.*)
+	cd $PACKAGEROOT
 
 	# check against previous compiler and flags
 
@@ -2723,7 +2657,7 @@ make|view)
 				note "$var changed from $old to $new"
 				err=y ;;
 			esac
-		elif	test -d "$INSTALLROOT/lib/package/gen"   # does not exist if 'bin/package debug make'
+		elif	test -d "$INSTALLROOT/lib/package/gen"
 		then	case $new in
 			'')	;;
 			*)	echo "$new" ;;
@@ -2751,11 +2685,8 @@ make|view)
 
 	# record the build host name
 
-	case $exec in
-	'')	hostinfo name
-		echo "$_hostinfo_" | sed 's,\..*,,' > $PACKAGEBIN/gen/host
-		;;
-	esac
+	hostinfo name
+	echo "$_hostinfo_" | sed 's,\..*,,' > $PACKAGEBIN/gen/host
 
 	# transition - we no longer install these there and old versions get in the way
 
@@ -2779,16 +2710,16 @@ make|view)
 		do	executable $i && {
 				cmp -s $i ok/$i 2>/dev/null || {
 					test -f ok/$i &&
-					$exec $rm ok/$i </dev/null
+					$rm ok/$i </dev/null
 					test -f ok/$i &&
-					$exec $mv ok/$i ok/$i.old </dev/null
+					$mv ok/$i ok/$i.old </dev/null
 					test -f ok/$i &&
-					case $exec:$i in
-					:ksh)
+					case $i in
+					ksh)
 						err_out "ok/$i: cannot update [may be in use by a running process] remove manually and try again"
 						;;
 					esac
-					$exec $cp $i ok/$i
+					$cp $i ok/$i
 				}
 			}
 		done
@@ -2812,13 +2743,13 @@ make|view)
 	case $target in
 	'')	target="install" ;;
 	esac
-	eval "capture \$MAMAKE_DEBUG_PREFIX mamake $makeflags \$noexec $target $assign"
+	eval "capture \$MAMAKE_DEBUG_PREFIX mamake $makeflags $target $assign"
 
 	case $HOSTTYPE in
 	darwin.*)
 		# clean up macOS .dSYM bundles belonging to deleted temps
 		cd "$PACKAGEROOT" || exit
-		$exec find "arch/$HOSTTYPE" -type d -name '*.dSYM' -exec "$SHELL" -c '
+		find "arch/$HOSTTYPE" -type d -name '*.dSYM' -exec "$SHELL" -c '
 			first=y
 			for d					# loop through the PPs
 			do	case $first in
@@ -2843,7 +2774,7 @@ make|view)
 	case $flat in
 	1)	note "$a flat view"
 		cd "$PACKAGEROOT" || exit
-		$exec find "arch/$HOSTTYPE" -type f ! -name '*.old' -exec "$SHELL" -c '
+		find "arch/$HOSTTYPE" -type f ! -name '*.old' -exec "$SHELL" -c '
 			for h
 			do	p=${h#"arch/$HOSTTYPE/"}
 				test "$h" -ef "$p" && continue	# already created
@@ -2943,11 +2874,11 @@ results)eval "set -- $target"
 			do	echo "$sep==> $j <=="
 				sep=$nl
 				case $filter in
-				cat)	$exec cat $j
+				cat)	cat $j
 					;;
-				errors)	$exec grep -E -i '\*\*\*|FAIL[ES]|^TEST.* [123456789][0123456789]* error|core.*dump' $j | sed -e '/^TEST.\//s,/[^ ]*/,,'
+				errors)	grep -E -i '\*\*\*|FAIL[ES]|^TEST.* [123456789][0123456789]* error|core.*dump' $j | sed -e '/^TEST.\//s,/[^ ]*/,,'
 					;;
-				*)	$exec grep -E -i '^TEST|FAIL' $j
+				*)	grep -E -i '^TEST|FAIL' $j
 					;;
 				esac
 			done
@@ -2976,8 +2907,8 @@ results)eval "set -- $target"
 					case $filter in
 					errors)	$exeg grep -E '^pax:|\*\*\*' $j
 						;;
-					*)	$exec grep -E -iv '^(# reason:|$||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|read|probe|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
-						$exec grep :
+					*)	grep -E -iv '^(# reason:|$||[\+\[]|cc[^-:]|kill |make.*(file system time|has been replaced)|so|[0123456789]+ error|uncrate |[0123456789]+ block|ar: creat|iffe: test: |conf: (check|generate|read|probe|test)|[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789]*=|gsf@research|ar:.*warning|cpio:|ld:.*(duplicate symbol|to obtain more information)|[0123456789]*$|(checking|creating|touch) [/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789])| obsolete predefined symbol | is (almost always misused|dangerous|deprecated|not implemented)| trigraph| assigned to | cast .* different size| integer overflow .*<<| optimization may be attained | passed as |::__builtin|^creating.*\.a$|warning.*not optimized|exceeds size thresh|ld:.*preempts|is unchanged|with value >=|(-l|lib)\*|/(ast|sys)/(dir|limits|param|stropts)\.h.*redefined|usage|base registers|`\.\.\.` obsolete'"$i" $j |
+						grep :
 						;;
 					esac
 				done
@@ -3020,10 +2951,7 @@ use)	# finalize the environment
 	x=$x:$INSTALLROOT
 	case $CDPATH: in
 	$x:*)	;;
-	*)	CDPATH=$x:$CDPATH
-		$show CDPATH=$CDPATH
-		$show export CDPATH
-		export CDPATH
+	*)	export CDPATH=$x:$CDPATH
 		;;
 	esac
 	eval PACKAGE_USE=$package_use
@@ -3045,11 +2973,9 @@ use)	# finalize the environment
 			"You're using the shell:" \
 			"    $SHELL" \
 			"Type 'exit' to leave and go back to normal."
-		case $show in
-		':')	$exec exec $SHELL ;;
-		esac
+		exec $SHELL
 		;;
-	*)	$exec exec $SHELL -c "$run"
+	*)	exec $SHELL -c "$run"
 		;;
 	esac
 	;;
