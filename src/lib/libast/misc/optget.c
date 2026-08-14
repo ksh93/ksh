@@ -158,7 +158,7 @@ static const char*	end[] =
 
 static const char	term_off[] =	{CC_esc,'[','0','m',0};
 static const char	term_B_on[] =	{CC_esc,'[','1','m',0};
-static const char	term_I_on[] =	{CC_esc,'[','1',';','4','m',0};
+static const char	term_I_on[] =	{CC_esc,'[','4','m',0};
 
 static const Font_t	fonts[] =
 {
