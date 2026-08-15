@@ -3,7 +3,7 @@
 This documentation was adapted from a 2008 blog post by Finnbarr P. Murphy
 and was added to the ksh 93u+m distribution under the same license as ksh
 by permission from the author, given on 24th Jan 2021.
-[Original](https://blog.fpmurphy.com/2008/12/ksh93-auditing-and-accounting.html).
+[Original](https://web.archive.org/web/20240303045802/https://blog.fpmurphy.com/2008/12/ksh93-auditing-and-accounting.html).
 The responsibility for any errors in this file lies with the current
 ksh 93u+m maintainers and not with the original author.
 
@@ -31,7 +31,7 @@ Both facilities only work for interactive users.
 To enable or disable one or both facilities, you need to modify the compile
 time options in `src/cmd/ksh93/SHOPT.sh` as follows. Use `0` to disable and
 `1` to enable (except for `SHOPT_AUDITFILE`). Then recompile the sources;
-see `README` for building instructions.
+see `README.md` in the top directory for building instructions.
 
     SHOPT ACCT=1                          # accounting
     SHOPT ACCTFILE=1                      # per-user accounting info
@@ -123,6 +123,7 @@ semicolon. The first field is the UID of the user executing the command.
 The second field is the time in seconds since the Epoch. The third field is
 the terminal device on which the command was executed, and the final field
 is the actual command executed by the user.
+The command is shown as originally typed; variables, etc., are not expanded.
 
     500;1230606552;/dev/pts/2; echo ${.sh.version}
     500;1230606554;/dev/pts/2; pwd
@@ -130,18 +131,31 @@ is the actual command executed by the user.
     500;1230606563;/dev/pts/2; date
     500;1230606565;/dev/pts/2; exit
 
-As before, here is a simple ksh93 script which parses this audit file,
+What is not visible is that each entry in this file is terminated by a 0
+(zero) byte following the final newline character of each command. Because
+commands may span multiple lines, this is the only way to reliably separate
+audit records from each other. But it makes parsing the file in the shell a
+bit challenging, as variable values cannot contain the 0 byte.
+
+The `xargs` comand with the `-0` option can come to the rescue here. Here is
+a ksh script that is designed to be called by `xargs -0`. It loops through
+its command line arguments which it expects to be audit log entries,
 replaces the UID with the actual user's name and seconds since the Epoch
 with the actual date and time, and outputs the enhanced records in a comma
 separated value (CSV) format.
 
-    #!/bin/ksh93
-    AUDITFILE="/tmp/ksh_auditfile"
-    while IFS=";" read uid sec tty cmdstr
+    for entry
     do
-       printf '%(%Y-%m-%d %H:%M:%S)T, %s, %d, %s, %s\n' \
-          "#$sec" "$(id -un $uid)" "$uid" "$tty" "$cmdstr"
-    done < $AUDITFILE
+       IFS=";" read -d "" uid sec tty cmdstr <<<$entry
+       cmdstr=${cmdstr%$'\n'}  # remove extra newline added by here-string
+       printf '%(%Y-%m-%d %H:%M:%S)T, %s, %d, %s, %s' \
+          "#$sec" "${id[$uid]:=$(id -un $uid)}" "$uid" "$tty" "$cmdstr"
+    done
+
+Save as `parseaudit.ksh` and invoke as follows (assuming your ksh93 is
+invoked as `ksh` and the audit file lives at `/tmp/ksh_auditfile`):
+
+    xargs -0 ksh parseaudit.ksh </tmp/ksh_auditfile
 
 Here is the output for the above audit records.
 
