@@ -75,7 +75,6 @@ hexadecimal seconds since the Unix epoch (00:00:00 UTC on 1 January 1970).
 The following shell script can be used to access the records in this file
 and output them in a more useful format.
 
-    #!/bin/ksh93
     ACCTFILE="/tmp/ksh_acctfile"
     printf "DATE       TIME     LOGIN  COMMAMD\n\n"
     # set IFS to TAB only
@@ -137,25 +136,20 @@ commands may span multiple lines, this is the only way to reliably separate
 audit records from each other. But it makes parsing the file in the shell a
 bit challenging, as variable values cannot contain the 0 byte.
 
-The `xargs` comand with the `-0` option can come to the rescue here. Here is
-a ksh script that is designed to be called by `xargs -0`. It loops through
-its command line arguments which it expects to be audit log entries,
+As before, here is a simple ksh93 script which parses this audit file. It reads
+0-terminated records by specifying an empty record separator (`-d ""`) to the
+`read` command and splits the fields by semicolon. It assumes that every
+command string ends in a newline, so it doesn't add one itself. Then it
 replaces the UID with the actual user's name and seconds since the Epoch
 with the actual date and time, and outputs the enhanced records in a comma
 separated value (CSV) format.
 
-    for entry
+    AUDITFILE="/tmp/ksh_auditfile"
+    while IFS=";" read -d "" uid sec tty cmdstr
     do
-       IFS=";" read -d "" uid sec tty cmdstr <<<$entry
-       cmdstr=${cmdstr%$'\n'}  # remove extra newline added by here-string
        printf '%(%Y-%m-%d %H:%M:%S)T, %s, %d, %s, %s' \
-          "#$sec" "${id[$uid]:=$(id -un $uid)}" "$uid" "$tty" "$cmdstr"
-    done
-
-Save as `parseaudit.ksh` and invoke as follows (assuming your ksh93 is
-invoked as `ksh` and the audit file lives at `/tmp/ksh_auditfile`):
-
-    xargs -0 ksh parseaudit.ksh </tmp/ksh_auditfile
+          "#$sec" "${cached_id[$uid]:=$(id -un $uid)}" "$uid" "$tty" "$cmdstr"
+    done < $AUDITFILE
 
 Here is the output for the above audit records.
 
