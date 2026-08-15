@@ -1,7 +1,7 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1992-2012 AT&T Intellectual Property          *
+*          Copyright (c) 1992-2013 AT&T Intellectual Property          *
 *          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
@@ -25,7 +25,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: id (AT&T Research) 2004-06-11 $\n]"
+"[-?\n@(#)$Id: id (ksh 93u+m) 2026-08-15 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?id - return user identity]"
 "[+DESCRIPTION?If no \auser\a operand is specified \bid\b writes user and "
@@ -214,13 +214,13 @@ getids(Sfio_t* sp, const char* name, int flags)
 
 	if (flags & GG_FLAG)
 	{
-		static int	maxgroups;
+		static int	maxgroups = -1;
 
 		/*
 		 * get supplemental groups if required
 		 */
 
-		if (!maxgroups)
+		if (maxgroups < 0)
 		{
 			/*
 			 * first time
@@ -245,21 +245,19 @@ getids(Sfio_t* sp, const char* name, int flags)
 	if (name)
 	{
 		flags |= X_FLAG;
-		if (!(flags & N_FLAG) || (flags & (G_FLAG|GG_FLAG)))
+		if (!(pw = getpwnam(name)))
 		{
-			if (!(pw = getpwnam(name)))
+			/* numeric "name": look up user name (GNU/BSD extension) */
+			user = (uid_t)strtol(name, &s, 0);
+			if (*s || !(pw = getpwuid(user)))
 			{
-				user = (uid_t)strtol(name, &s, 0);
-				if (*s || !(pw = getpwuid(user)))
-				{
-					error(ERROR_exit(1), "%s: name not found", name);
-					UNREACHABLE();
-				}
-				name = pw->pw_name;
+				error(ERROR_exit(1), "%s: name not found", name);
+				UNREACHABLE();
 			}
-			user = pw->pw_uid;
-			group = pw->pw_gid;
+			name = pw->pw_name;
 		}
+		user = pw->pw_uid;
+		group = pw->pw_gid;
 #if _lib_fsid
 		if (!(flags & N_FLAG) || (flags & S_FLAG))
 		{
