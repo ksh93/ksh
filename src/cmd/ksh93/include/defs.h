@@ -123,7 +123,7 @@ extern int		sh_outtype(Sfio_t*);
 extern char 		*sh_mactry(char*);
 extern int		sh_mathstd(const char*);
 extern void		sh_printopts(Shopt_t,int,Shopt_t*);
-extern int 		sh_readline(char**,volatile int,int,ssize_t,Sflong_t);
+extern int 		sh_readline(char**,volatile int,int,int,ssize_t,Sflong_t);
 extern Sfio_t		*sh_sfeval(char*[]);
 extern void		sh_setmatch(const char*,ptrdiff_t,ssize_t,ssize_t[],int);
 extern void		sh_scope(struct argnod*, int);

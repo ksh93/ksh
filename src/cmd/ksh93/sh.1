@@ -7638,6 +7638,9 @@ instead of the newline control character.
 Multibyte characters for
 .I delim\^
 are not supported.
+If
+.I delim\^
+is the empty string, the read continues until the first 0 byte.
 .TP 8
 .B \-n
 Causes at most

@@ -1769,6 +1769,12 @@ got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
 (( (e = $?) <= 128 )) || err_exit "crash passing multibyte character option" \
 	"(got exit status $e/SIG$(kill -l "$e"), output $(printf %q "$got"))"
 
+# ======
+# https://github.com/ksh93/ksh/issues/993
+printf 'x\ny:' | IFS= read -rd : -n2 got
+exp=$'x\n'
+[[ $got == "$exp" ]] || err_exit "read -n ignores -d (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"
