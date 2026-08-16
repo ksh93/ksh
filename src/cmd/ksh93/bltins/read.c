@@ -45,7 +45,6 @@
 #define NN_FLAG	0x10	/* fixed size read exact */
 #define V_FLAG	0x20	/* use default value */
 #define C_FLAG	0x40	/* read into compound variable */
-#define D_FLAG	8	/* must be number of bits for all flags */
 #define SS_FLAG	0x80	/* read .csv format file */
 
 struct read_save
@@ -65,6 +64,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 	char *prompt;
 	const char *msg = e_file+4;
 	int ret, flags=0, fd=0;
+	int delim = '\n';
 	uint8_t fdmode;
 	ssize_t len=0;
 	size_t q;
@@ -103,12 +103,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		timeout = sec ? 1000*sec : 1;
 		break;
 	    case 'd':
-		if(opt_info.arg && *opt_info.arg!='\n')
-		{
-			const unsigned char c = *(unsigned char*)opt_info.arg;
-			flags &= ((1<<D_FLAG+1)-1);
-			flags |= (c<<D_FLAG+1) | (1<<D_FLAG);
-		}
+		delim = *opt_info.arg;
 		break;
 	    case 'p':
 	    coprocess:
@@ -116,7 +111,6 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		msg = e_query;
 		break;
 	    case 'n': case 'N':
-		flags &= ((1<<D_FLAG)-1);
 		flags |= (ret=='n'?N_FLAG:NN_FLAG);
 		len = (ssize_t)opt_info.num;
 		break;
@@ -188,7 +182,7 @@ bypass:
 	sh.timeout = 0;
 	save_prompt = sh.nextprompt;
 	sh.nextprompt = 0;
-	ret = sh_readline(argv,fd,flags,len,timeout);
+	ret = sh_readline(argv,fd,flags,delim,len,timeout);
 	sh.nextprompt = save_prompt;
 	if(ret==0 && (ret=(sfeof(sh.sftable[fd])||sferror(sh.sftable[fd]))))
 	{
@@ -214,7 +208,7 @@ static void timedout(void *handle)
  *  <flags> is union of -A, -r, -s, and contains delimiter if not '\n'
  *  <timeout> is the number of milliseconds until timeout
  */
-int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t timeout)
+int sh_readline(char **names, volatile int fd, int flags, int delim, ssize_t size, Sflong_t timeout)
 {
 	ssize_t			c;
 	unsigned char		*cp;
@@ -234,7 +228,6 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 	ptrdiff_t		rel;
 	long			array_index = 0;
 	volatile void		*timeslot = NULL;
-	int			delim = '\n';
 	int			jmpval=0;
 	int			binary;
 	nvflag_t		oflags=NV_VARNAME;
@@ -298,13 +291,12 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 		np = sh_scoped(REPLYNOD);
 	}
 	keytrap =  ep?ep->e_keytrap:0;
-	if(size || (flags>>D_FLAG))	/* delimiter not new-line or fixed size read */
+	if(size || delim != '\n')	/* delimiter not new-line or fixed size read */
 	{
 		if((sh.fdstatus[fd]&IOTTY) && !keytrap)
 			tty_raw(fd,1);
 		if(!(flags&(N_FLAG|NN_FLAG)))
 		{
-			delim = ((unsigned)flags)>>(D_FLAG+1);
 			ep->e_nttyparm.c_cc[VEOL] = (cc_t)delim;
 			ep->e_nttyparm.c_lflag |= ISIG;
 			tty_set(fd,TCSADRAIN,&ep->e_nttyparm);
@@ -427,7 +419,7 @@ int sh_readline(char **names, volatile int fd, int flags, ssize_t size, Sflong_t
 						m = (cp = sfreserve(iop,c,SFIO_LOCKR)) ? sfvalue(iop) : 0;
 					}
 				}
-				if(m>0 && (flags&N_FLAG) && !binary && (v=memchr(cp,'\n',(size_t)m)))
+				if(m>0 && (flags&N_FLAG) && !binary && (v=memchr(cp,delim,(size_t)m)))
 				{
 					*v++ = 0;
 					m = v-(char*)cp;

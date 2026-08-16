@@ -1823,6 +1823,12 @@ got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
 { got=$(shift --man); } >/dev/null 2>&1
 [[ $got == NAME* ]] || err_exit "AST self-doc to stdout not caught by command substitution"
 
+# ======
+# https://github.com/ksh93/ksh/issues/993
+printf 'x\ny:' | IFS= read -rd : -n2 got
+exp=$'x\n'
+[[ $got == "$exp" ]] || err_exit "read -n ignores -d (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"

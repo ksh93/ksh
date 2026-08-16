@@ -1432,7 +1432,7 @@ const char sh_optpwd[] =
 ;
 
 const char sh_optread[] =
-"[-1c?\n@(#)$Id: read (ksh 93u+m) 2026-07-24 $\n]"
+"[-1c?\n@(#)$Id: read (ksh 93u+m) 2026-08-16 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?read - read a line from standard input]"
 "[+DESCRIPTION?\bread\b reads a line from standard input and breaks it "
@@ -1457,7 +1457,11 @@ const char sh_optread[] =
 "[A|a?Unset \avar\a and then create an indexed array containing each field in "
 	"the line starting at index 0.]"
 "[C?Unset \avar\a and read  \avar\a as a compound variable.]"
-"[d]:[delim?Read until delimiter \adelim\a instead of to the end of line.]"
+"[d]:[delim?Causes the read to continue to the first character of \adelim\a"
+	"instead of the newline control character. "
+	"Multibyte characters for \adelim\a are not supported. "
+	"If \adelim\a is the empty string, "
+	"the read continues until the first 0 byte.]"
 "[n]#[count?Read at most \acount\a characters or (for binary fields) bytes."
 #if _pipe_socketpair
 	" When reading from a slow device, "

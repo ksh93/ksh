@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-08-16:
+
+- Fixed a long-standing bug in the 'read' built-in: the -d option was
+  ignored when combined with -n. The two options can now be used together.
+
 2026-08-14:
 
 - In the --man/--help output for built-in commands, text marked as italic
