@@ -103,7 +103,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		timeout = sec ? 1000*sec : 1;
 		break;
 	    case 'd':
-		delim = *opt_info.arg;
+		delim = *(unsigned char*)opt_info.arg;
 		break;
 	    case 'p':
 	    coprocess:
