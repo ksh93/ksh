@@ -43,6 +43,7 @@
 #include	"history.h"
 #include	"edit.h"
 #include	"shlex.h"
+#include	"builtins.h"
 
 #if SHOPT_ESH || SHOPT_VSH
 static char *cursor_up;  /* move cursor up one line */
@@ -593,7 +594,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 {
 	Edit_t *ep = (Edit_t*)context;
 	int rv= -1;
-	int delim = ((ep->e_raw&RAWMODE)?nttyparm.c_cc[VEOL]:'\n');
+	int delim = (ep->e_raw&RAWMODE || sh.bltinfun==b_read) ? nttyparm.c_cc[VEOL] : '\n';
 	int mode = -1;
 	Shwait_f waitevent = sh.waitevent;
 	NOT_USED(reedit);

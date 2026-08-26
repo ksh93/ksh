@@ -586,18 +586,19 @@ make install virtual
 		done
 
 		make edit/edit.c
-			prev include/shlex.h
-			prev include/edit.h
-			prev include/history.h
-			prev include/terminal.h
-			prev include/io.h
-			prev include/variables.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/ls.h
-			prev FEATURE/time
-			prev include/fault.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev include/fault.h
+			prev FEATURE/time
+			prev %{INCLUDE_AST}/ls.h
+			prev include/defs.h
+			prev include/variables.h
+			prev include/io.h
+			prev include/terminal.h
+			prev include/history.h
+			prev include/edit.h
+			prev include/shlex.h
+			prev include/builtins.h
 		done
 
 		make sh/expand.c

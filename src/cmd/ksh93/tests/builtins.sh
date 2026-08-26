@@ -1828,6 +1828,9 @@ got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
 printf 'x\ny:' | IFS= read -rd : -n2 got
 exp=$'x\n'
 [[ $got == "$exp" ]] || err_exit "read -n ignores -d (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+printf 'xyz\naA:bc\n:' | read -rd: -n10 got
+exp=$'xyz\naA'
+[[ $got == "$exp" ]] || err_exit "read from pipe with custom delimiter (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
