@@ -291,19 +291,16 @@ int sh_readline(char **names, volatile int fd, int flags, int delim, ssize_t siz
 		np = sh_scoped(REPLYNOD);
 	}
 	keytrap =  ep?ep->e_keytrap:0;
+	ep->e_nttyparm.c_cc[VEOL] = (cc_t)delim;
 	if(size || delim != '\n')	/* delimiter not new-line or fixed size read */
 	{
 		if((sh.fdstatus[fd]&IOTTY) && !keytrap)
 			tty_raw(fd,1);
-		if(!(flags&(N_FLAG|NN_FLAG)))
-		{
-			ep->e_nttyparm.c_cc[VEOL] = (cc_t)delim;
-			ep->e_nttyparm.c_lflag |= ISIG;
-			tty_set(fd,TCSADRAIN,&ep->e_nttyparm);
-		}
+		ep->e_nttyparm.c_lflag |= ISIG;
+		tty_set(fd,TCSADRAIN,&ep->e_nttyparm);
 	}
 	binary = nv_isattr(np,NV_BINARY);
-	if(!binary && !(flags&(N_FLAG|NN_FLAG)))
+	if(!binary)
 	{
 		Namval_t *mp;
 		/* set up state table based on IFS */
