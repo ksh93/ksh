@@ -638,4 +638,10 @@ printf -v got '%.21g' 1e20
 [[ $got == "$exp" ]] || err_exit "%.21g corrupts 1e20 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+exp=$'ksh: printf: @: arithmetic syntax error\nksh: printf: warning: invalid argument of type d\n0'
+got=$(printf %d\\n @ 2>&1 | sed 's/^[^:]*:/ksh:/')
+[[ $got == "$exp" ]] || err_exit "invalid arith expression '@' passed to %d" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

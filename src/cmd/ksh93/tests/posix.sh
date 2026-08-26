@@ -248,6 +248,11 @@ for c in a e f g A E F G
 do	printf "%$c" 1.5 2>/dev/null || err_exit "POSIX printf %$c fails to accept floating point operand"
 done >/dev/null
 
+exp=$'ksh: printf: @: bad number\nksh: printf: warning: invalid argument of type d\n0'
+got=$(printf %d\\n @ 2>&1 | sed 's/^[^:]*:/ksh:/')
+[[ $got == "$exp" ]] || err_exit "invalid number '@' passed to %d" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # causes the getopts built-in command to disable the built-in handling of '-?' and long-form
 # options (including the self-documentation options such as --help), unless the options string
 # given to getopts uses the extended interface;

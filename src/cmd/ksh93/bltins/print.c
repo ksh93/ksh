@@ -944,11 +944,6 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 					d = longmax;
 				}
 				value->ll = (Sflong_t)d;
-				if(lastchar == argp)
-				{
-					value->ll = *argp;
-					lastchar = "";
-				}
 				break;
 			}
 			fe->size = sizeof(value->ll);
