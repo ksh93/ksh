@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2026-02-30
+version=2026-08-27
 
 # DEFPATH should be inherited from package(1), but just in case...
 case $DEFPATH in
@@ -552,7 +552,7 @@ libpaths="DYLD_LIBRARY_PATH LD_LIBRARY_PATH LD_LIBRARYN32_PATH LD_LIBRARY64_PATH
 nl="
 "
 optimize=1
-occ=cc
+occ=${CC:-cc}
 one=
 out=
 puthdr=

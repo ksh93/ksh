@@ -21,7 +21,7 @@ command=regress
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: regress (ksh 93u+m) 2024-02-13 $
+@(#)$Id: regress (ksh 93u+m) 2024-08-27 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-copyright?(c) 1995-2012 AT&T Intellectual Property]
@@ -1090,13 +1090,18 @@ function RESULTS # pipe*
 			continue
 		fi
 		diff -u $IGNORESPACE $i $j >$i.diff 2>&1
-		if	[[ -s $i.diff ]]
-		then	failed=$failed${failed:+,}${i#$TWD/}
+		case $? in
+		0)	;;
+		1)	failed=$failed${failed:+,}${i#$TWD/}
 			if	[[ $TEST_verbose ]]
 			then	print -u2 "	===" diff $IGNORESPACE ${i#$TWD/} "('-': actual; '+': expected) ==="
 				cat $i.diff >&2
 			fi
-		fi
+			;;
+		*)	print -u2 -- "$0: FATAL: diff(1) failed with status $?"
+			exit 128
+			;;
+		esac
 	done
 	if	[[ $JOBOP ]]
 	then	if	[[ $JOBPID ]] && ! kill -0 $JOBPID 2>/dev/null

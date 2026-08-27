@@ -1749,7 +1749,15 @@ export DEFPATH  # for iffe, etc.
 
 # do not put $DEFPATH first, e.g., it must be possible to choose another compiler with $PATH.
 # For some standard command invocations it is safer to use $DEFPATH; they should be special-cased.
-PATH=$(sanitize_PATH "/opt/ast/bin:$PATH:$DEFPATH")
+case $(uname -s 2>/dev/null) in
+SunOS)	# Make an exception for /usr/xpg?/bin on Solaris and illumos. The standard utilities in
+	# /usr/bin are museum-grade and deficient, so we have to make sure to get POSIX-compliant
+	# utilities for the build to work correctly. This should not affect compiler selection.
+	PATH=$(sanitize_PATH "/opt/ast/bin:/usr/xpg7/bin:/usr/xpg6/bin:/usr/xpg4/bin:$PATH:$DEFPATH")
+	;;
+*)	PATH=$(sanitize_PATH "/opt/ast/bin:$PATH:$DEFPATH")
+	;;
+esac
 
 # remove $INSTALLROOT/... from these; may be harmful while building
 # (these comes pre-set when running package from a 'package use' environment)
