@@ -1,7 +1,7 @@
 ########################################################################
 #                                                                      #
 #              This file is part of the ksh 93u+m package              #
-#          Copyright (c) 2022-2025 Contributors to ksh 93u+m           #
+#          Copyright (c) 2022-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -206,28 +206,6 @@ then
 	esac
 	export FPATH
 	autoload autocd cd dirs man mcd popd pushd
-
-	# Workaround for "System Integrity Protection" on macOS which filters
-	# out DYLD_* env vars whenever anything in /bin or /usr/bin is run,
-	# which kills env "$SHELL" for a preinstalled dynamically linked $SHELL
-	case $HOSTTYPE,${DYLD_LIBRARY_PATH+s} in
-	darwin.*,s)
-		function env
-		{
-			typeset -a opts
-			typeset -si i=0
-			while	[[ $1 == -* && $1 != -- ]]
-			do	opts[i++]=$1
-				case $1 in
-				-u | -S | -P)
-					(($# > 1)) && opts[i++]=$2 && shift ;;
-				esac
-				shift
-			done
-			command -p env "${opts[@]}" "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH" "$@"
-		}
-		;;
-	esac
 
 	# Print welcome message
 	set -- ${.sh.version}

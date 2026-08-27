@@ -195,6 +195,15 @@ case ${exec_file} in
 	done
 	;;
 *)	# Link an executable.
-	do_link "bin/$exec_file" "$@" -L"$dest_dir/lib" $l_flags
+	case $HOSTTYPE in
+	darwin.*)
+		# since macOS SIP broke DYLD_LIBRARY_PATH, add a temporary @rpath
+		do_link "bin/$exec_file" "$@" -headerpad_max_install_names -L"$dest_dir/lib" $l_flags
+		install_name_tool -add_rpath "$dest_dir/lib" "$dest_dir/bin/$exec_file"
+		;;
+	*)
+		do_link "bin/$exec_file" "$@" -L"$dest_dir/lib" $l_flags
+		;;
+	esac
 	;;
 esac

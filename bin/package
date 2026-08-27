@@ -125,7 +125,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-08-14 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-08-27 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -226,8 +226,8 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
             physically installed into \b$DESTDIR\b$\aroot_dir\a but configured
             (where applicable) to be executed from \aroot_dir\a.]
         [+make\b [ \apackage\a ]] [ \aoption\a ... ]] [ \atarget\a ... ]]?Build
-	    and install. The default \atarget\a is \binstall\b, which makes
-	    and installs \apackage\a. If the standard output is a terminal
+	    and preinstall. The default \atarget\a is \binstall\b, which makes
+	    and preinstalls \apackage\a. If the standard output is a terminal
 	    and the \bnolog\b qualifier is not given,
 	    then the output is also captured in
             \b$INSTALLROOT/lib/package/gen/make.out\b. The build is done in
@@ -292,13 +292,6 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     file (\bMamfile\b). A Mamfile contains a portable makefile description
     written in a simple dependency tree language using indented
     \bmake\b...\bdone\b blocks.]
-[+?All scripts and commands under \b$PACKAGEROOT\b use \b$PATH\b
-    relative pathnames (via the \bAST\b \bpathpath\b(3) function); there
-    are no embedded absolute pathnames. This means that binaries generated
-    under \b$PACKAGEROOT\b may be copied to a different root; users need
-    only change their \b$PATH\b variable to reference the new installation
-    root \bbin\b directory. \b'$command$' install\b installs binary packages in
-    a new \b$INSTALLROOT\b.]
 
 [ qualifier ... ] [ action ] [ arg ... ] [ n=v ... ]
 
@@ -375,16 +368,7 @@ do	case $# in
 		PS4='+$LINENO:$SECONDS+ '
 		set -x
 		;;
-	help|HELP|html|man|--[?m]*)
-		case $1 in
-		help)	case $2 in
-			'')	exec 1>&2 ;;
-			esac
-			;;
-		html)	html=1
-			echo "<html><title>$command help</title><body><h1><code>$command</code> help</h1><pre>"
-			;;
-		esac
+	help|HELP|man|--[?m]*)
 		# Plain-text fallback. Regenerate with:
 		# ksh -c 'COLUMNS=80 bin/package --man' 2>&1 | sed "s/'/'\\\\''/g; 1s/^/echo '/; \$s/\$/'/"
 		echo 'NAME
@@ -473,9 +457,9 @@ DESCRIPTION
           installed into $DESTDIR$root_dir but configured (where applicable) to
           be executed from root_dir.
     make [ package ] [ option ... ] [ target ... ]
-          Build and install. The default target is install, which makes and
-          installs package. If the standard output is a terminal and the nolog
-          qualifier is not given, then the output is also captured in
+          Build and preinstall. The default target is install, which makes and
+          preinstalls package. If the standard output is a terminal and the
+          nolog qualifier is not given, then the output is also captured in
           $INSTALLROOT/lib/package/gen/make.out. The build is done in the
           $INSTALLROOT directory tree viewpathed on top of the $PACKAGEROOT
           directory tree. Leaf directory names matching the |-separated shell
@@ -537,27 +521,17 @@ DETAILS
   Mamfile contains a portable makefile description written in a simple
   dependency tree language using indented make...done blocks.
 
-  All scripts and commands under $PACKAGEROOT use $PATH relative pathnames (via
-  the AST pathpath(3) function); there are no embedded absolute pathnames. This
-  means that binaries generated under $PACKAGEROOT may be copied to a different
-  root; users need only change their $PATH variable to reference the new
-  installation root bin directory. package install installs binary packages in
-  a new $INSTALLROOT.
-
 SEE ALSO
   autoconfig(1), cksum(1), expmake(1), gzip(1), make(1), mamake(1), pax(1),
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2026-08-14
+  version         package (ksh 93u+m) 2026-08-27
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
   copyright       (c) 2020-2026 Contributors to ksh 93u+m
   license         https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html'
-		case $1 in
-		html)	echo "</pre></body></html>" ;;
-		esac
 		exit
 		;;
 	*=*)	set DEFAULT host type "$@"
@@ -1785,12 +1759,6 @@ case $SHLIB_PATH in
 "$INSTALLROOT"/dyn/lib:*)
 	SHLIB_PATH=${SHLIB_PATH#*:} ;;
 esac
-case $DYLD_LIBRARY_PATH in
-"$INSTALLROOT"/dyn/lib)
-	unset DYLD_LIBRARY_PATH ;;
-"$INSTALLROOT"/dyn/lib:*)
-	DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH#*:} ;;
-esac
 case $LIBRARY_PATH in
 "$INSTALLROOT"/dyn/lib)
 	unset LIBRARY_PATH ;;
@@ -1838,7 +1806,7 @@ export|setup|use)
 		*:$INSTALLROOT/bin:*)
 			case $LD_LIBRARY_PATH: in
 			$INSTALLROOT/dyn/lib:*)
-				case $DYLD_LIBRARY_PATH: in
+				case $LIBRARY_PATH: in
 				$INSTALLROOT/dyn/lib:*)
 					x=1
 					;;
@@ -2027,7 +1995,6 @@ case $x in
 		esac
 		export LIBPATH=$INSTALLROOT/dyn/bin:$INSTALLROOT/dyn/lib:$LIBPATH
 		export SHLIB_PATH=$INSTALLROOT/dyn/lib${SHLIB_PATH:+:$SHLIB_PATH}
-		export DYLD_LIBRARY_PATH=$INSTALLROOT/dyn/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
 		# dynamic library search path for gcc and clang; also used for runtime linking on Haiku
 		export LIBRARY_PATH=$INSTALLROOT/dyn/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
 		;;
@@ -2335,6 +2302,7 @@ do_install() # dir [ command ... ]
 		then	trace cp "dyn/bin/$f" "$DESTDIR$bindir/" || exit
 			case $HOSTTYPE in
 			darwin.*)
+				trace install_name_tool -delete_rpath "$INSTALLROOT/dyn/lib" "$DESTDIR$bindir/$f" # ignore error
 				trace install_name_tool -add_rpath "$libdir" "$DESTDIR$bindir/$f" || exit
 				;;
 			esac
@@ -2954,7 +2922,7 @@ use)	# finalize the environment
 	export PACKAGE_USE
 	unset LC_ALL  # respect the user's locale again; avoids multibyte corruption
 
-	for s in "$INSTALLROOT/dyn/bin/ksh" "$INSTALLROOT/$OK/bin/ksh" "$INSTALLROOT/bin/ksh"
+	for s in "$INSTALLROOT/dyn/bin/ksh" "$INSTALLROOT/bin/ksh"
 	do	if	"$s" -c ':' 2>/dev/null
 		then	export SHELL=$s
 			break

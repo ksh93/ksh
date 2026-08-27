@@ -28,7 +28,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2026-08-04 $
+@(#)$Id: shtests (ksh 93u+m) 2026-08-27 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -312,7 +312,7 @@ export SHELL_UBSAN=$(( ! $? ))
 # when testing a shell outside of INSTALLROOT, make sure libraries in INSTALLROOT are not loaded
 # The variables unset below should be the same ones that are set for 'test' or 'use' in bin/package
 if	! [[ ${SHELL%/*} -ef $INSTALLROOT/bin || ${SHELL%/*} -ef $INSTALLROOT/dyn/bin ]]
-then	unset -v LD_LIBRARY_PATH LIBPATH SHLIB_PATH DYLD_LIBRARY_PATH LIBRARY_PATH C_INCLUDE_PATH
+then	unset -v LD_LIBRARY_PATH LIBPATH SHLIB_PATH LIBRARY_PATH C_INCLUDE_PATH
 fi
 
 tmp=$(
