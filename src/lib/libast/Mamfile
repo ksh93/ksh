@@ -22,6 +22,11 @@ make install virtual
 	note * Generate release information
 	note *
 	make ast_release.h force notrace
+		note * Transition [2026-08-28] - makes sure these removed headers don't interfere
+		exec -	rm -f %{INCLUDE_AST}/wctype.h \
+		exec -		%{INCLUDE_AST}/ast_wctype.h \
+		exec -		%{INSTALLROOT}/src/lib/libast/ast_wctype.h \
+		exec -		%{INSTALLROOT}/src/lib/libast/FEATURE/wctype
 		note * Check that we are not only in a git repo, but in our own git repo
 		exec -	r=0
 		exec -	if	top_level=$(git rev-parse --show-toplevel 2>/dev/null) &&
@@ -468,16 +473,6 @@ make install virtual
 		exec - invoke_iffe %{<}
 	done
 
-	note * ast_wctype.h *
-	make FEATURE/wctype
-		makp features/wctype
-		exec - invoke_iffe %{<}
-		prev std/endian.h
-		make std/wchar.h
-			prev ast_wchar.h
-		done
-	done
-
 	note * ast_stdio.h *
 	make FEATURE/stdio
 		prev include/sfio_s.h
@@ -549,7 +544,7 @@ make install virtual
 	note * copy most of the FEATURE/* results above to canonically named header files; separating
 	note * this allows all of the above tests, which don't depend on each other, to run in parallel
 
-	loop NAME dirent wctype stdio nl_types mode ccode time float ndbm sizeof random
+	loop NAME dirent stdio nl_types mode ccode time float ndbm sizeof random
 		make ast_%{NAME}.h
 			prev FEATURE/%{NAME}
 			exec - cp -f %{<} %{@}
@@ -1394,9 +1389,6 @@ make install virtual
 				prev include/namval.h
 				prev include/error.h
 				prev FEATURE/locale
-				make std/wctype.h
-					prev ast_wctype.h
-				done
 			done
 			exec - compile %{<} -Iport
 		done
@@ -1464,7 +1456,9 @@ make install virtual
 				prev port/lclib.h
 				make sfio/sfhdr.h
 					prev port/lclib.h
-					prev std/wchar.h
+					make std/wchar.h
+						prev ast_wchar.h
+					done
 					prev include/error.h
 					prev FEATURE/float
 					prev include/ls.h
@@ -1551,7 +1545,6 @@ make install virtual
 
 		make fmtesc.o
 			make string/fmtesc.c
-				prev std/wctype.h
 				prev std/wchar.h
 				prev include/ccode.h
 				prev include/ast.h
@@ -2641,7 +2634,6 @@ make install virtual
 					prev include/regex.h
 					prev std/stdio.h
 					prev std/wchar.h
-					prev std/wctype.h
 				done
 			done
 			exec - compile %{<} -Iregex
@@ -3648,14 +3640,14 @@ make install virtual
 			done
 		done
 		note * ...std
-		loop HDR assert bytesex endian dirent iconv nl_types stdio wchar wctype
+		loop HDR assert bytesex endian dirent iconv nl_types stdio wchar
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev std/%{HDR}.h
 				exec - cp -f %{<} %{@}
 			done
 		done
 		note * ...generated headers
-		loop HDR ast_release ast_standards ast_common ast_lib ast_sys lc align sig tmx tv ast_api ast_ccode ast_fcntl ast_float ast_fs ast_map ast_mode ast_ndbm ast_param ast_random ast_time ast_tty ast_limits ast_sizeof ast_dirent ast_iconv ast_nl_types ast_stdio ast_wchar ast_wctype
+		loop HDR ast_release ast_standards ast_common ast_lib ast_sys lc align sig tmx tv ast_api ast_ccode ast_fcntl ast_float ast_fs ast_map ast_mode ast_ndbm ast_param ast_random ast_time ast_tty ast_limits ast_sizeof ast_dirent ast_iconv ast_nl_types ast_stdio ast_wchar
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev %{HDR}.h
 				exec - cp -f %{<} %{@}

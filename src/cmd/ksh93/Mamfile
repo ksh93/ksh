@@ -118,7 +118,6 @@ make install virtual
 		make features/locale
 			prev %{INCLUDE_AST}/stdio.h
 			prev %{INCLUDE_AST}/wchar.h
-			prev %{INCLUDE_AST}/wctype.h
 		done
 		exec - %{iffe_run} %{<}
 	done
@@ -258,7 +257,6 @@ make install virtual
 	done
 
 	make include/lexstates.h
-		prev %{INCLUDE_AST}/wctype.h
 		prev %{INCLUDE_AST}/wchar.h
 		prev FEATURE/locale
 	done
@@ -673,7 +671,6 @@ make install virtual
 			prev include/lexstates.h
 			prev include/version.h
 			prev %{INCLUDE_AST}/ast_wchar.h
-			prev %{INCLUDE_AST}/wctype.h
 		done
 
 		make sh/io.c
@@ -773,7 +770,6 @@ make install virtual
 		done
 
 		make sh/string.c
-			prev %{INCLUDE_AST}/wctype.h
 			prev include/national.h
 			prev include/lexstates.h
 			prev include/shtable.h

@@ -1031,7 +1031,7 @@ int sh_lex(Lex_t* lp)
 					}
 				}
 			err:
-				if(iswalpha(c))
+				if(mbisalpha(c))
 					continue;
 				n = endchar(lp);
 				mode = oldmode(lp);

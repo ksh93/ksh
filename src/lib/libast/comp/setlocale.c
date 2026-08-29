@@ -2140,17 +2140,15 @@ utf8_alpha(wchar_t c)
 
 #endif /* !AST_NOMULTIBYTE */
 
-#if !_hdr_wchar || !_lib_wctype || !_lib_iswctype
-#undef	iswalpha
-#define iswalpha	default_iswalpha
 static int
-iswalpha(wchar_t c)
+default_iswalpha(wchar_t c)
 {
-	return c <= 0x7f ? isalpha(c) : 0;
-}
+#if _hdr_wchar && _lib_wctype && _lib_iswctype
+	return iswalpha((wint_t)c);
+#else
+	return c >= 0 && c <= 0x7f ? isalpha((int)c) : 0;
 #endif
-
-typedef int (*Isw_f)(wchar_t);
+}
 
 static int
 wide_wctomb(char* u, wchar_t w)
@@ -2178,7 +2176,7 @@ set_ctype(Lc_category_t* cp)
 {
 #if !AST_NOMULTIBYTE
 	ast.mb.sync = 0;
-	ast.mb.alpha = (Isw_f)iswalpha;
+	ast.mb.alpha = default_iswalpha;
 #endif /* !AST_NOMULTIBYTE */
 	/* uc2wc is the iconv(3) descriptor for chresc.c -- reset it if open */
 	if (ast.locale.uc2wc != (void*)(-1))
@@ -2500,7 +2498,7 @@ single(int category, Lc_t* lc, unsigned int flags)
 					: ""
 				, ast.mb.width == debug_wcwidth ? " debug_wcwidth" : ast.mb.width == utf8_wcwidth ? " utf8_wcwidth" : ast.mb.width == wcwidth ? " wcwidth" : ast.mb.width == default_wcwidth ? " default_wcwidth" : ""
 				, ast.mb.conv == debug_wctomb ? " debug_wctomb" : ast.mb.conv == utf8_wctomb ? " utf8_wctomb" : ast.mb.conv == wctomb ? " wctomb" : ""
-				, ast.mb.alpha == debug_alpha ? " debug_alpha" : ast.mb.alpha == utf8_alpha ? " utf8_alpha" : ast.mb.alpha == (Isw_f)iswalpha ? " iswalpha" : ""
+				, ast.mb.alpha == debug_alpha ? " debug_alpha" : ast.mb.alpha == utf8_alpha ? " utf8_alpha" : ast.mb.alpha == default_iswalpha ? " default_iswalpha" : ""
 			);
 		else if (category == AST_LC_NUMERIC)
 		{

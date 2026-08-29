@@ -63,7 +63,7 @@ _reg_iswblank(wint_t wc)
 #endif
 
 static int  Isalnum(int c) { return  iswalnum((wint_t)c); }
-static int  Isalpha(int c) { return  iswalpha(c); }
+static int  Isalpha(int c) { return  mbisalpha(c); }
 static int  Isblank(int c) { return  iswblank((wint_t)c); }
 static int  Iscntrl(int c) { return  iswcntrl((wint_t)c); }
 static int  Isdigit(int c) { return  iswdigit((wint_t)c); }
