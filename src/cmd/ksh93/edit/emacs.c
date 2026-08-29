@@ -63,9 +63,9 @@ One line screen editor for any program
 #include	"history.h"
 #include	"edit.h"
 #include	"terminal.h"
-#if SHOPT_MULTIBYTE
-#include	<wctype.h>
-#endif /* SHOPT_MULTIBYTE */
+#if SHOPT_MULTIBYTE && _hdr_wctype
+#    include	<wctype.h>
+#endif /* SHOPT_MULTIBYTE && _hdr_wctype */
 #include	<ast_release.h>
 
 #undef putchar

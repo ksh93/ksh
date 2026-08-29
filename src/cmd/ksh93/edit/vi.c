@@ -52,7 +52,9 @@
 
 #if SHOPT_MULTIBYTE
 #   include	"lexstates.h"
-#   include	<wctype.h>
+#   if _hdr_wctype
+#	include	<wctype.h>
+#   endif
 #   define gencpy(a,b)	ed_gencpy(a,b)
 #   define genncpy(a,b,n)	ed_genncpy(a,b,n)
 #   define genlen(str)	ed_genlen(str)

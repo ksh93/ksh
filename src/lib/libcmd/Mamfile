@@ -145,7 +145,6 @@ make install virtual
 			prev cmd.h
 		done
 		make join.c
-			prev %{INCLUDE_AST}/wctype.h
 			prev %{INCLUDE_AST}/wchar.h
 			prev %{INCLUDE_AST}/sfdisc.h
 			prev cmd.h
@@ -243,7 +242,6 @@ make install virtual
 			prev cmd.h
 		done
 		make wclib.c
-			prev %{INCLUDE_AST}/wctype.h
 			prev %{INCLUDE_AST}/wchar.h
 			prev wc.h
 			prev cmd.h
