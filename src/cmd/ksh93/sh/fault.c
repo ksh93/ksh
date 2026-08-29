@@ -510,6 +510,11 @@ int sh_trap(const char *trap, int mode)
 	if(was_no_trapdontexec)
 		sh.st.trapdontexec = 's';  /* special value for direct sh_trap() call */
 	sh_pushcontext(&buff,SH_JMPTRAP);
+	if(!was_no_trapdontexec)
+	{
+		errorpush(&buff.err,0);
+		error_info.id = "(trap)";
+	}
 	jmpval = sigsetjmp(buff.buff,0);
 	if(jmpval == 0)
 	{
