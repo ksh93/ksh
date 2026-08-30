@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-08-30:
+
+- Fixed a bug that caused non-importable environment variables (i.e., those
+  with names that are not valid shell variable names) to disappear from the
+  environment of child processes after invoking more than two external
+  commands, potentially crashing the shell. Bug introduced on 2025-05-30.
+
 2026-08-29:
 
 - If an error (such as a syntax error) occurs in a trap action, the error

@@ -16,6 +16,7 @@
 #         hyenias <58673227+hyenias@users.noreply.github.com>          #
 #                  Lev Kujawski <int21h@mailbox.org>                   #
 #                      Phi <phi.debian@gmail.com>                      #
+#                  Alexander Moch <mail@alexmoch.com>                  #
 #                                                                      #
 ########################################################################
 
@@ -1801,6 +1802,18 @@ got=$( { "$SHELL" -c ': ${44444444444444444444444444444444}'; } 2>&1)
 [[ e=$? -eq 1 && $got == *'out of range'* ]] || err_exit "positional parameter with too-large number" \
 	"(expected status 1 and match of *'out of range'*," \
 	"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) and $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/pull/1017
+# Environment variables with invalid names cannot be imported as shell
+# variables, but must still be passed on to every child process, not just
+# the first few. sh_envgen() used to repoint the saved pointers to these at
+# stack memory that was reused shortly afterwards, so they silently vanished
+# from the environment of later child processes (and could crash the shell).
+exp=6
+got=$(env 'BAD-NAME=ok' "$SHELL" -c 'i=0; while ((++i<=6)); do env; done' 2>&1 | grep -c '^BAD-NAME=ok$')
+[[ $got == "$exp" ]] || err_exit 'env var with invalid name not passed on to all child processes' \
+	"(expected $exp, got $got)"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)

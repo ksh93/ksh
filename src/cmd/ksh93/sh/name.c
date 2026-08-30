@@ -14,6 +14,7 @@
 *                  Martijn Dekker <martijn@inlv.org>                   *
 *            Johnothan King <johnothanking@protonmail.com>             *
 *         hyenias <58673227+hyenias@users.noreply.github.com>          *
+*                  Alexander Moch <mail@alexmoch.com>                  *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -2220,13 +2221,13 @@ char **sh_envgen(void)
 	namec += sh.save_env_n;
 	er = stkalloc(sh.stk,(size_t)(namec+4)*sizeof(char*));
 	data.argnam = (er+=2) + sh.save_env_n;
-	/* Physically copy the saved non-importable env vars, as the old environ[] may be freed by exscript() */
+	/* Copy any saved non-importable env vars from the array created by import1var() in init.c */
 	for (i = 0; i < sh.save_env_n; i++)
 	{
 		size_t sz = strlen(sh.save_env[i]) + 1;
 		char *cp = stkalloc(sh.stk, sz);
 		memcpy(cp, sh.save_env[i], sz);
-		er[i] = sh.save_env[i] = cp;
+		er[i] = cp;
 	}
 	/* Add exported vars */
 	nv_scan(sh.var_tree, pushnam,&data,NV_EXPORT, NV_EXPORT);
