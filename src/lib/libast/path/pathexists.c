@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -61,8 +61,6 @@ pathexists(char* path, int mode)
 	t = &tree;
 	e = (c = *path) == '/' ? path + 1 : path;
 	cmp = pathicase(path) > 0 ? strcasecmp : strcmp;
-	if ((ast.locale.set & (AST_LC_debug|AST_LC_find)) == (AST_LC_debug|AST_LC_find))
-		sfprintf(sfstderr, "locale test %s\n", path);
 	while (c)
 	{
 		p = t;
@@ -89,8 +87,6 @@ pathexists(char* path, int mode)
 			}
 			else
 				ee = 0;
-			if ((ast.locale.set & (AST_LC_debug|AST_LC_find)) == (AST_LC_debug|AST_LC_find))
-				sfprintf(sfstderr, "locale stat %s\n", path);
 			x = stat(path, &st);
 			if (ee)
 			{

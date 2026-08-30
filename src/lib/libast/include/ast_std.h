@@ -188,7 +188,6 @@ extern char*		setlocale(int, const char*);
 #define AST_LC_test		(1U << 25)
 #define AST_LC_setenv		(1U << 26)
 #define AST_LC_find		(1U << 27)
-#define AST_LC_debug		(1U << 28)
 #define AST_LC_setlocale	(1U << 29)
 #define AST_LC_translate	(1U << 30)
 

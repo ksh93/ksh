@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -25,7 +25,7 @@
 
 #undef	localeconv
 
-static struct lconv	debug_lconv, default_lconv;
+static struct lconv	comma_lconv, dot_lconv;
 
 /*
  * POSIX does not specify the order in which struct lconv members are declared,
@@ -34,26 +34,26 @@ static struct lconv	debug_lconv, default_lconv;
  */
 static void init_lconv_structs(void)
 {
-	debug_lconv.decimal_point = ",";
-	default_lconv.decimal_point = debug_lconv.thousands_sep = ".";
-	default_lconv.thousands_sep =
-		debug_lconv.grouping = default_lconv.grouping =
-		debug_lconv.int_curr_symbol = default_lconv.int_curr_symbol =
-		debug_lconv.currency_symbol = default_lconv.currency_symbol =
-		debug_lconv.mon_decimal_point = default_lconv.mon_decimal_point =
-		debug_lconv.mon_thousands_sep = default_lconv.mon_thousands_sep =
-		debug_lconv.mon_grouping = default_lconv.mon_grouping =
-		debug_lconv.positive_sign = default_lconv.positive_sign =
-		debug_lconv.negative_sign = default_lconv.negative_sign =
+	comma_lconv.decimal_point = ",";
+	dot_lconv.decimal_point = comma_lconv.thousands_sep = ".";
+	dot_lconv.thousands_sep =
+		comma_lconv.grouping = dot_lconv.grouping =
+		comma_lconv.int_curr_symbol = dot_lconv.int_curr_symbol =
+		comma_lconv.currency_symbol = dot_lconv.currency_symbol =
+		comma_lconv.mon_decimal_point = dot_lconv.mon_decimal_point =
+		comma_lconv.mon_thousands_sep = dot_lconv.mon_thousands_sep =
+		comma_lconv.mon_grouping = dot_lconv.mon_grouping =
+		comma_lconv.positive_sign = dot_lconv.positive_sign =
+		comma_lconv.negative_sign = dot_lconv.negative_sign =
 		"";
-	debug_lconv.int_frac_digits = default_lconv.int_frac_digits =
-		debug_lconv.frac_digits = default_lconv.frac_digits =
-		debug_lconv.p_cs_precedes = default_lconv.p_cs_precedes =
-		debug_lconv.p_sep_by_space = default_lconv.p_sep_by_space =
-		debug_lconv.n_cs_precedes = default_lconv.n_cs_precedes =
-		debug_lconv.n_sep_by_space = default_lconv.n_sep_by_space =
-		debug_lconv.p_sign_posn = default_lconv.p_sign_posn =
-		debug_lconv.n_sign_posn = default_lconv.n_sign_posn =
+	comma_lconv.int_frac_digits = dot_lconv.int_frac_digits =
+		comma_lconv.frac_digits = dot_lconv.frac_digits =
+		comma_lconv.p_cs_precedes = dot_lconv.p_cs_precedes =
+		comma_lconv.p_sep_by_space = dot_lconv.p_sep_by_space =
+		comma_lconv.n_cs_precedes = dot_lconv.n_cs_precedes =
+		comma_lconv.n_sep_by_space = dot_lconv.n_sep_by_space =
+		comma_lconv.p_sign_posn = dot_lconv.p_sign_posn =
+		comma_lconv.n_sign_posn = dot_lconv.n_sign_posn =
 		CHAR_MAX;
 }
 
@@ -62,9 +62,9 @@ static void init_lconv_structs(void)
 struct lconv*
 localeconv(void)
 {
-	if(!default_lconv.decimal_point)
+	if(!dot_lconv.decimal_point)
 		init_lconv_structs();
-	return &default_lconv;
+	return &dot_lconv;
 }
 
 #endif
@@ -76,11 +76,9 @@ localeconv(void)
 struct lconv*
 _ast_localeconv(void)
 {
-	if(!default_lconv.decimal_point)
+	if(!dot_lconv.decimal_point)
 		init_lconv_structs();
-	if ((locales[AST_LC_MONETARY]->flags | locales[AST_LC_NUMERIC]->flags) & LC_debug)
-		return &debug_lconv;
 	if ((locales[AST_LC_NUMERIC]->flags & (LC_default|LC_local)) == LC_local)
-		return locales[AST_LC_NUMERIC]->territory == &lc_territories[0] ? &default_lconv : &debug_lconv;
+		return locales[AST_LC_NUMERIC]->territory == &lc_territories[0] ? &dot_lconv : &comma_lconv;
 	return localeconv();
 }

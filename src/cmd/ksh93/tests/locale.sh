@@ -24,35 +24,6 @@ IFS=$'\n'; set -o noglob
 typeset -a locales=( $(command -p locale -a 2>/dev/null) )
 IFS=$' \t\n'
 
-a=$($SHELL -c '/' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
-b=$($SHELL -c '(LC_ALL=debug / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
-[[ "$b" == "$a" ]] || err_exit "locale not restored after subshell -- expected '$a', got '$b'"
-b=$($SHELL -c '(LC_ALL=debug; / 2>/dev/null); /' 2>&1 | sed -e "s,.*: *,," -e "s, *\[.*,,")
-[[ "$b" == "$a" ]] || err_exit "locale not restored after subshell -- expected '$a', got '$b'"
-
-# multibyte locale tests
-if ((SHOPT_MULTIBYTE))
-then	LC_ALL=debug
-	x='a<2b|>c<3d|\>e'
-	typeset -A exp=(
-		['${x:0:1}']=a
-		['${x:1:1}']='<2b|>'
-		['${x:3:1}']='<3d|\>'
-		['${x:4:1}']=e
-		['${x:1}']='<2b|>c<3d|\>e'
-		['${x: -1:1}']=e
-		['${x: -2:1}']='<3d|\>'
-		['${x:1:3}']='<2b|>c<3d|\>'
-		['${x:1:20}']='<2b|>c<3d|\>e'
-		['${x#??}']='c<3d|\>e'
-	)
-	for i in "${!exp[@]}"
-	do	eval "got=$i"
-		test "$got" = "${exp[$i]}" || err_exit "$i: expected '${exp[$i]}', got '$got'"
-	done
-	unset exp LC_ALL
-fi # SHOPT_MULTIBYTE
-
 # test Shift JIS \x81\x40 ... \x81\x7E encodings
 # (shift char followed by 7 bit ASCII)
 
@@ -261,145 +232,11 @@ got=$("$SHELL" -c $'\u[5929]()\n{\nprint OK;\n}; \u[5929]' 2>&1)
 unset LC_CTYPE
 fi # SHOPT_MULTIBYTE
 
-# this locale is supported by AST on all platforms
-# mainly used to debug multibyte and message translation code
-# however wctype is not supported but that's ok for these tests
-
-locale=debug
-
-if((SHOPT_MULTIBYTE)); then
-if	[[ "$(LC_ALL=$locale $SHELL <<- \+EOF+
-		x=a<1z>b<2yx>c
-		print ${#x}
-		+EOF+)" != 5
-	]]
-then	err_exit '${#x} not working with multibyte locales'
-fi
-fi # SHOPT_MULTIBYTE
-
-dir=_not_found_
-exp=2
-for cmd in \
-	"cd $dir; export LC_ALL=debug; cd $dir" \
-	"cd $dir; LC_ALL=debug cd $dir" \
-
-do	got=$($SHELL -c "$cmd" 2>&1 | sort -u | wc -l)
-	(( ${got:-0} == $exp )) || err_exit "'$cmd' sequence failed -- error message not localized"
-done
-exp=121
-for lc in LANG LC_MESSAGES LC_ALL
-do	for cmd in "($lc=$locale;cd $dir)" "$lc=$locale;cd $dir;unset $lc" "function tst { typeset $lc=$locale;cd $dir; }; tst"
-	do	tst="$lc=C;cd $dir;$cmd;cd $dir;:"
-		$SHELL -c "unset LANG \${!LC_*}; $SHELL -c '$tst'" > out 2>&1 ||
-		err_exit "'$tst' failed -- exit status $?"
-		integer id=0
-		unset msg
-		typeset -A msg
-		got=
-		while	read -r line
-		do	line=${line##*:}
-			if	[[ ! ${msg[$line]} ]]
-			then	msg[$line]=$((++id))
-			fi
-			got+=${msg[$line]}
-		done < out
-		[[ $got == $exp ]] || err_exit "'$tst' failed -- expected '$exp', got '$got'"
-	done
-done
-
-if((SHOPT_MULTIBYTE)); then
-exp=123
-got=$(LC_ALL=debug $SHELL -c "a<2A@>z=$exp; print \$a<2A@>z")
-[[ $got == $exp ]] || err_exit "multibyte debug locale \$a<2A@>z failed -- expected '$exp', got '$got'"
-fi # SHOPT_MULTIBYTE
-
-unset LC_ALL LC_MESSAGES
-export LANG=debug
-function message
-{
-	print -r $"An error occurred."
-}
-exp=$'(libshell,3,46)\nAn error occurred.\n(libshell,3,46)'
-alt=$'(debug,message,libshell,An error occurred.)\nAn error occurred.\n(debug,message,libshell,An error occurred.)'
-got=$(message; LANG=C message; message)
-[[ $got == "$exp" || $got == "$alt" ]] || {
-	EXP=$(printf %q "$exp")
-	ALT=$(printf %q "$alt")
-	GOT=$(printf %q "$got")
-	err_exit "LANG change not seen by function -- expected $EXP or $ALT, got $GOT"
-}
-
-a_thing=fish
-got=$(print -r aa$"\\ahello \" /\\${a_thing}/\\"zz)
-exp='aa(debug,'$Command',libshell,\ahello " /\fish/\)zz'
-[[ $got == "$exp" ]] || err_exit "$\"...\" containing expansions fails: expected $exp, got $got"
-
-exp='(debug,'$Command',libshell,This is a string\n)'
-typeset got=$"This is a string\n"
-[[ $got == "$exp" ]] || err_exit "$\"...\" in assignment expansion fails: expected $exp got $got"
-
 unset LANG
 
 LC_ALL=C
 x=$"hello"
 [[ $x == hello ]] || err_exit 'assignment of message strings not working'
-
-# tests for multibyte character at buffer boundary
-{
-	print 'cat << \\EOF'
-	for ((i=1; i < 164; i++))
-	do	print 123456789+123456789+123456789+123456789+123456789
-	done
-	print $'next character is multibyte<2b|>c<3d|\>foo'
-	for ((i=1; i < 10; i++))
-	do	print 123456789+123456789+123456789+123456789+123456789
-	done
-	print EOF
-} > script$$.1
-chmod +x script$$.1
-x=$(  LC_ALL=debug $SHELL ./script$$.1)
-[[ ${#x} == 8641 ]] || err_exit 'here doc contains wrong number of chars with multibyte locale'
-[[ $x == *$'next character is multibyte<2b|>c<3d|\>foo'* ]] || err_exit "here_doc doesn't contain line with multibyte chars"
-
-
-x=$(LC_ALL=debug $SHELL -c 'x="a<2b|>c";print -r -- ${#x}')
-if((SHOPT_MULTIBYTE)); then
-(( x == 3  )) || err_exit 'character length of multibyte character should be 3'
-else
-(( x == 7  )) || err_exit 'character length of multibyte character should be 7 with SHOPT_MULTIBYTE disabled'
-fi # SHOPT_MULTIBYTE
-x=$(LC_ALL=debug $SHELL -c 'typeset -R10 x="a<2b|>c";print -r -- "${x}"')
-[[ $x == '   a<2b|>c' ]] || err_exit 'typeset -R10 should begin with three spaces'
-x=$(LC_ALL=debug $SHELL -c 'typeset -L10 x="a<2b|>c";print -r -- "${x}"')
-[[ $x == 'a<2b|>c   ' ]] || err_exit 'typeset -L10 should end in three spaces'
-
-if	false &&  # Disable this test because it really tests the OS-provided en_US.UTF-8 locale data, which may be broken.
-	$SHELL -c "export LC_ALL=en_US.UTF-8; c=$'\342\202\254'; [[ \${#c} == 1 ]]" 2>/dev/null
-then	LC_ALL=en_US.UTF-8
-	unset i p1 p2 x
-	for i in 9 b c d 20 2000 2001 2002 2003 2004 2005 2006 2008 2009 200a 2028 2029 3000 # 1680 1803 2007 202f 205f
-	do	if	! eval "[[ \$'\\u[$i]' == [[:space:]] ]]"
-		then	x+=,$i
-		fi
-	done
-	if	[[ $x ]]
-	then	if	[[ $x == ,*,* ]]
-		then	p1=s p2="are not space characters"
-		else	p1=  p2="is not a space character"
-		fi
-		err_exit "unicode char$p1 ${x#?} $p2 in locale $LC_ALL"
-	fi
-	unset x
-	x=$(export LC_ALL=C.UTF-8; printf "hello\u[20ac]\xee world")
-	LC_ALL=C.UTF-8 eval $'[[ $(print -r -- "$x") == $\'hello\\u[20ac]\\xee world\' ]]' || err_exit '%q with unicode and non-unicode not working'
-	if	[[ $(whence od) ]]
-	then	got='68656c6c6fe282acee20776f726c640a'
-		[[ $(print -r -- "$x" | od -An -tx1 \
-			| awk 'BEGIN { ORS=""; } { for (i=1; i<=NF; i++) print $i; }') \
-			== "$got" ]] \
-		|| err_exit "incorrect string from printf %q"
-	fi
-fi
 
 # this test backported from 93v- and fixed
 if	((SHOPT_MULTIBYTE))
