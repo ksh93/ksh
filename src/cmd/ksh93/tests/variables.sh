@@ -1325,6 +1325,17 @@ case $'\n'$(env 'BASH_FUNC_a%%=() { echo test; }' "$SHELL" -c set) in
 	err_exit 'ksh imports environment variables with invalid names' ;;
 esac
 
+# Environment variables with invalid names cannot be imported as shell
+# variables, but must still be passed on to every child process, not just
+# the first few. sh_envgen() used to repoint the saved pointers to these at
+# stack memory that was reused shortly afterwards, so they silently vanished
+# from the environment of later child processes (and could crash the shell).
+
+exp=6
+got=$(env 'BAD-NAME=ok' "$SHELL" -c 'i=0; while ((++i<=6)); do env; done' 2>&1 | grep -c '^BAD-NAME=ok$')
+[[ $got == "$exp" ]] || err_exit 'env var with invalid name not passed on to all child processes' \
+	"(expected $exp, got $got)"
+
 # ======
 # Autoloading a function caused $LINENO to be off by the # of lines in the function definition file.
 # https://github.com/ksh93/ksh/issues/116
