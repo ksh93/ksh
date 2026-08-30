@@ -42,7 +42,6 @@ typedef	struct
 	Dtlink_t	link;		/* dictionary link		*/
 	Dt_t*		messages;	/* message dictionary handle	*/
 	nl_catd		cat;		/* message catalog handle	*/
-	int		debug;		/* special debug locale		*/
 	const char*	locale;		/* message catalog locale	*/
 	const char*	nlspath;	/* message catalog NLSPATH	*/
 	char		name[1];	/* catalog name			*/
@@ -369,30 +368,12 @@ sfprintf(sfstderr, "AHA#%d:%s cp->locale `%s' %p loc `%s' %p\n", __LINE__, __FIL
 		cp->nlspath = nlspath;
 		if (cp->cat != NOCAT)
 			catclose(cp->cat);
-		if ((cp->cat = find(cp->locale, cp->name)) == NOCAT)
-			cp->debug = streq(cp->locale, "debug");
-		else
-			cp->debug = 0;
+		cp->cat = find(cp->locale, cp->name);
 #if DEBUG_trace
-sfprintf(sfstderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __FILE__, cp->cat, cp->debug, NOCAT);
+sfprintf(sfstderr, "AHA#%d:%s cp->cat %p NOCAT %p\n", __LINE__, __FILE__, cp->cat, NOCAT);
 #endif
 	}
-	if (cp->cat == NOCAT)
-	{
-		if (cp->debug)
-		{
-			p = tempget(state.tmp);
-			sfprintf(state.tmp, "(%s,%d,%d)", cp->name, mp->set, mp->seq);
-			r = tempuse(state.tmp, p);
-		}
-		else if (ast.locale.set & AST_LC_debug)
-		{
-			p = tempget(state.tmp);
-			sfprintf(state.tmp, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
-			r = tempuse(state.tmp, p);
-		}
-	}
-	else
+	if (cp->cat != NOCAT)
 	{
 		/*
 		 * get the translated message
@@ -409,22 +390,10 @@ sfprintf(sfstderr, "AHA#%d:%s cp->cat %p cp->debug %d NOCAT %p\n", __LINE__, __F
 				r = (char*)msg;
 			}
 		}
-		if (ast.locale.set & AST_LC_debug)
-		{
-			p = tempget(state.tmp);
-			sfprintf(state.tmp, "(%s,%d,%d)%s", cp->name, mp->set, mp->seq, r);
-			r = tempuse(state.tmp, p);
-		}
 	}
 	if (ast.locale.set & AST_LC_translate)
 		sfprintf(sfstderr, "translate locale=%s catalog=%s set=%d seq=%d \"%s\" => \"%s\"\n", cp->locale, cp->name, mp->set, mp->seq, msg, r == (char*)msg ? "NOPE" : r);
  done:
-	if (r == (char*)msg && (!cp && streq(loc, "debug") || cp && cp->debug))
-	{
-		p = tempget(state.tmp);
-		sfprintf(state.tmp, "(%s,%s,%s,%s)", loc, cmd, cat, r);
-		r = tempuse(state.tmp, p);
-	}
 	errno = oerrno;
 	return r;
 }

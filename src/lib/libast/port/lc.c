@@ -65,37 +65,7 @@ static Lc_t		default_lc =
 	}
 };
 
-static Lc_numeric_t	debug_numeric = { ',', '.' };
-
-static Lc_t		debug_lc =
-{
-	"debug",
-	"debug",
-	&lc_languages[1],
-	&lc_territories[1],
-	&lc_charsets[0],
-	0,
-	LC_debug|LC_checked|LC_local,
-	0,
-	{
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, &debug_numeric },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 },
-		{ &debug_lc, 0, 0 }
-	},
-	&default_lc
-};
-
-static Lc_t*		lcs = &debug_lc;
+static Lc_t*		lcs = &default_lc;
 
 Lc_t*			locales[] =
 {
@@ -272,7 +242,7 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 	e = &buf[siz - 3];
 	if (lp)
 	{
-		if (lp->flags & (LC_debug|LC_default))
+		if (lp->flags & LC_default)
 		{
 			for (t = lp->code; s < e && (*s = *t++); s++);
 			*s++ = 0;
@@ -376,7 +346,7 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 size_t
 lccanon(Lc_t* lc, unsigned long flags, char* buf, size_t siz)
 {
-	if ((flags & LC_local) && (!lc->language || !(lc->language->flags & (LC_debug|LC_default))))
+	if ((flags & LC_local) && (!lc->language || !(lc->language->flags & LC_default)))
 	{
 #if _WINIX
 		char	lang[64];
@@ -536,10 +506,6 @@ lcmake(const char* name)
 		}
 	}
 	*s = 0;
-#if AHA
-	if ((ast.locale.set & AST_LC_debug) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale make %s language=%s territory=%s charset=%s attributes=%s\n", name, language_name, territory_name, charset_name, attributes_name);
-#endif
 	tp = 0;
 	cp = ppa = 0;
 	al = 0;
@@ -734,10 +700,6 @@ lcmake(const char* name)
 		for (cp = lc_charsets; cp->code; cp++)
 			if (match_charset(s, cp))
 				break;
-#if AHA
-	if ((ast.locale.set & AST_LC_debug) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale make %s charset_name=%s cp=%s ppa=%s lp=%s\n", name, charset_name, cp ? cp->code : 0, ppa, lp->charset);
-#endif
 	if (!cp || !cp->code)
 		cp = ppa ? ppa : lp->charset;
  mapped:
@@ -801,8 +763,6 @@ lcmake(const char* name)
 #endif
 	lc->next = lcs;
 	lcs = lc;
-	if ((ast.locale.set & AST_LC_debug) && !(ast.locale.set & AST_LC_internal))
-		sfprintf(sfstderr, "locale make %17s %16s %16s %16s language=%s territory=%s charset=%s%s\n", "", lc->name, lc->code, "", lc->language->name, lc->territory->name, lc->charset->code, (lc->flags & LC_local) ? " local" : "");
 	return lc;
 }
 

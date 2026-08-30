@@ -1,6 +1,6 @@
 iff AST_API
 
-ver ast 20260829
+ver ast 20260830
 
 api ast 20120528 regexec regnexec regsubexec
 

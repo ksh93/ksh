@@ -817,7 +817,7 @@ got=$(typeset -xF5 num=7.75; "$SHELL" -c 'typeset -p num')
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 # try again with AST debug locale which has the comma as the radix point
 exp='typeset -x num=7,75000'
-got=$(export LC_NUMERIC=debug; typeset -xF5 num=7,75; "$SHELL" -c 'typeset -p num')
+got=$(export LC_NUMERIC=C_EU; typeset -xF5 num=7,75; "$SHELL" -c 'typeset -p num')
 [[ $got == "$exp" ]] || err_exit "floating ',' attribute/value not imported correctly" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
