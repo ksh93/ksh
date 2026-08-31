@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: expr (AT&T Research) 2010-08-11 $\n]"
+"[-?\n@(#)$Id: expr (ksh 93u+m) 2026-08-31 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?expr - evaluate arguments as an expression]"
 "[+DESCRIPTION?\bexpr\b evaluates an expression given as arguments and writes "
@@ -330,6 +330,7 @@ static int expr_cond(State_t* state, Node_t *np)
 		int n;
 		Node_t rp;
 		char *cp;
+		char rpbuf[36];
 		tok = getnode(state, &rp);
 		if (np->type&T_STR)
 			cp = np->str;
@@ -337,6 +338,8 @@ static int expr_cond(State_t* state, Node_t *np)
 			sfsprintf(cp=state->buf,sizeof(state->buf),"%d",np->num);
 		np->num = 0;
 		np->type = T_NUM;
+		if (!(rp.type&T_STR))
+			sfsprintf(rp.str = rpbuf, sizeof(rpbuf), "%d", rp.num);
 		if (n = regcomp(&re, rp.str, REG_LEFT|REG_LENIENT))
 			regfatal(&re, ERROR_exit(2), n);
 		if (!(n = regexec(&re, cp, elementsof(match), match, 0)))

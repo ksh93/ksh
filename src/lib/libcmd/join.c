@@ -219,6 +219,11 @@ getolist(Join_t* jp, const char* first, char** arglist)
 	char*		str;
 
 	outptr = jp->outlist = newof(0, ptrdiff_t, NFIELD + 1, 0);
+	if (!outptr)
+	{
+		error(ERROR_SYSTEM|ERROR_PANIC,"out of memory");
+		UNREACHABLE();
+	}
 	outmax = outptr + NFIELD;
 	while (c = *cp++)
 	{
@@ -243,7 +248,14 @@ getolist(Join_t* jp, const char* first, char** arglist)
 	skip:
 		if (outptr >= outmax)
 		{
-			jp->outlist = newof(jp->outlist, ptrdiff_t, 2 * nfield + 1, 0);
+			ptrdiff_t *newoutlist = newof(jp->outlist, ptrdiff_t, 2 * nfield + 1, 0);
+			if (!newoutlist)
+			{
+				done(jp);
+				error(ERROR_SYSTEM|ERROR_PANIC,"out of memory");
+				UNREACHABLE();
+			}
+			jp->outlist = newoutlist;
 			outptr = jp->outlist + nfield;
 			nfield *= 2;
 			outmax = jp->outlist + nfield;
@@ -325,8 +337,16 @@ getrec(Join_t* jp, ptrdiff_t index, ptrdiff_t discard)
 		{
 			if (field >= fieldmax)
 			{
+				Field_t *newfields;
 				n = 2 * fp->maxfields;
-				fp->fields = newof(fp->fields, Field_t, (size_t)n + 1, 0);
+				newfields = newof(fp->fields, Field_t, (size_t)n + 1, 0);
+				if (!newfields)
+				{
+					done(jp);
+					error(ERROR_SYSTEM|ERROR_PANIC,"out of memory");
+					UNREACHABLE();
+				}
+				fp->fields = newfields;
 				field = fp->fields + fp->maxfields;
 				fp->maxfields = n;
 				fieldmax = fp->fields + n;
@@ -699,13 +719,15 @@ sfprintf(sfstdout, "[2#%d:0,%lld,%lld]", __LINE__, lo, hi);
 				next:
 					if (n2 > jp->samesize)
 					{
+						char *newsame;
 						jp->samesize = roundof(n2, 16);
-						if (!(jp->same = newof(jp->same, char, (size_t)jp->samesize, 0)))
+						if (!(newsame = newof(jp->same, char, (size_t)jp->samesize, 0)))
 						{
 							done(jp);
 							error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 							UNREACHABLE();
 						}
+						jp->same = newsame;
 					}
 					o2 = n2;
 					memcpy(jp->same, cp2, (size_t)o2);

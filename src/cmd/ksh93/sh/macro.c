@@ -1437,7 +1437,7 @@ retry1:
 		{
 			/* id points to stack, which will be overwritten; save it for error message */
 			sfputr(sh.strbuf,id,-1);
-			id = sfstruse(sh.strbuf);
+			id = sh_struse(sh.strbuf);
 		}
 		if(isastchar(mode))
 			var = 0;
@@ -1554,7 +1554,7 @@ retry1:
 					nv_typename(nq,sh.strbuf);
 				else
 					nv_attribute(np,sh.strbuf,"typeset",1);
-				v = sfstruse(sh.strbuf);
+				v = sh_struse(sh.strbuf);
 			}
 #if  SHOPT_FILESCAN
 			else if(sh.cur_line && np==REPLYNOD)
@@ -1979,7 +1979,7 @@ retry2:
 							 * its value at the same time, so make a copy for reading.
 							 */
 							sfputr(sh.strbuf, v, -1);
-							v = sfstruse(sh.strbuf);
+							v = sh_struse(sh.strbuf);
 						}
 						sh_setmatch(v,vsize,nmatch,match,index++);
 					}
@@ -2097,7 +2097,7 @@ retry2:
 				sh.instance++;
 				sfprintf(sh.strbuf,"[%s]",nv_getsub(np));
 				sh.instance--;
-				v = sfstruse(sh.strbuf);
+				v = sh_struse(sh.strbuf);
 				mac_copy(mp, v, (ptrdiff_t)strlen(v));
 			}
 			if(dolg==0 && dolmax==0)
@@ -2247,7 +2247,7 @@ retry2:
 			if(nv_isarray(np))
 			{
 				sfprintf(sh.strbuf,"%s[%s]\0",nv_name(np),nv_getsub(np));
-				id = sfstruse(sh.strbuf);
+				id = sh_struse(sh.strbuf);
 			}
 			else
 				id = nv_name(np);
@@ -2328,7 +2328,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 				sfprintf(sh.strbuf,"%jd",(Sflong_t)num);
 			else
 				sfprintf(sh.strbuf,"%Lg",num);
-			str = sfstruse(sh.strbuf);
+			str = sh_struse(sh.strbuf);
 			mac_copy(mp,str,(ptrdiff_t)strlen(str));
 			sh.st.staklist = saveslp;
 			fcrestore(&save);

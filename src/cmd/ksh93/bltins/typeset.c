@@ -722,7 +722,7 @@ static int     setall(char **argv,nvflag_t flag,Dt_t *troot,struct tdata *tp)
 					if(sh.prefix)
 					{
 						sfprintf(sh.strbuf,"%s.%s",sh.prefix,name);
-						name = sfstruse(sh.strbuf);
+						name = sh_struse(sh.strbuf);
 					}
 #if SHOPT_NAMESPACE
 					np = 0;
@@ -1395,7 +1395,7 @@ static int unall(int argc, char **argv, Dt_t *troot)
 				/* prefix the namespace name */
 				sfputr(sh.strbuf,nv_name(sh.namespace),'.');
 				sfputr(sh.strbuf,name,'\0');
-				nsname = sfstruse(sh.strbuf);
+				nsname = sh_struse(sh.strbuf);
 				np = nv_search(nsname,troot,NV_NOSCOPE);
 				if(troot!=sh.fun_base && !np && (np2=nv_search(nsname,troot,0)) && is_afunction(np2))
 				{	/* create dummy virtual subshell node without NV_FUNCTION attribute */

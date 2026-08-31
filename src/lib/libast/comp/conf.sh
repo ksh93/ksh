@@ -816,7 +816,7 @@ ${head}
 #include <unistd.h>$systeminfo$headers
 ${tail}
 #undef conf
-unsigned int conf[] = {
+unsigned long long conf[] = {
 !
 			sed 's/$/,/' $1
 			echo "};"

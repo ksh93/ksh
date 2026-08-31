@@ -1030,4 +1030,19 @@ then	for i in 1 2
 fi
 
 # ======
+# crash in expr, found by Siteshwar Vashisht using gcc static analysis and Claude Opus 4.6
+# https://github.com/ksh93/ksh/issues/1015 > ksh-ddf87f04-ai-analysis.tar.gz > Low/99.txt
+if	builtin expr 2>/dev/null
+then	exp='0'
+	got=$(
+		ulimit -c 0  # fork
+		set +x
+		redirect 2>&1
+		expr match somestring length anotherstring
+	)
+	[[ e=$? -eq 1 && $got == "$exp" ]] || err_exit "expr match somestring length anotherstring" \
+		"(expected status 1 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

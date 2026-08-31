@@ -246,6 +246,8 @@ Sfdisc_t* sfdisc(Sfio_t* f, Sfdisc_t* disc)
 	}
 
 done :
+	if (dcca && rdisc == NULL)
+		free(dcca);
 	SFOPEN(f,0);
 	return rdisc;
 }

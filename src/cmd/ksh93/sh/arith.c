@@ -165,7 +165,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 			{
 				sfputr(sh.strbuf,nv_name(np),-1);
 				sfputr(sh.strbuf,sub,-1);
-				sub = sfstruse(sh.strbuf);
+				sub = sh_struse(sh.strbuf);
 			}
 			*cp = saved_c;
 			if(c || hasdot)
@@ -477,7 +477,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 			if(c=='.' && sh.radixpoint!='.')
 			{
 				sfprintf(sh.strbuf, "%s: radix point '.' requires LC_NUMERIC=C", val);
-				lvalue->value = sfstruse(sh.strbuf);
+				lvalue->value = sh_struse(sh.strbuf);
 				return r;
 			}
 			if(c==sh.radixpoint || c=='e' || c == 'E' || lastbase == 16 && (c == 'p' || c == 'P'))

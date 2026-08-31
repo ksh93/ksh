@@ -272,6 +272,15 @@ char *sh_strdup(const char *s)
 	return dup;
 }
 
+char *sh_struse(Sfio_t *iop)
+{
+	char *s;
+	s = sfstruse(iop);
+	if(!s)	/* failed to add 0 terminator */
+		nomemory(1);
+	return s;
+}
+
 void *sh_memdup(const void *s, size_t n)
 {
 	void *dup;
@@ -594,7 +603,7 @@ static char* get_seconds(Namval_t *np, Namfun_t *fp)
 	timeofday(&tp);
 	d = dtime(&tp)- offset;
 	sfprintf(sh.strbuf,"%.*f",places,d);
-	return sfstruse(sh.strbuf);
+	return sh_struse(sh.strbuf);
 }
 
 static Sfdouble_t nget_seconds(Namval_t *np, Namfun_t *fp)
@@ -766,7 +775,7 @@ static void put_lastarg(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp
 	if(flags&NV_INTEGER)
 	{
 		sfprintf(sh.strbuf,"%.*Lg",12,*((Sfdouble_t*)val));
-		val = sfstruse(sh.strbuf);
+		val = sh_struse(sh.strbuf);
 	}
 	if(val)
 		val = sh_strdup(val);
@@ -1028,7 +1037,7 @@ static char *name_math(Namval_t *np, Namfun_t *fp)
 {
 	NOT_USED(fp);
 	sfprintf(sh.strbuf,".sh.math.%s",np->nvname);
-	return sfstruse(sh.strbuf);
+	return sh_struse(sh.strbuf);
 }
 
 static const Namdisc_t	math_child_disc =
@@ -1090,7 +1099,7 @@ static char* get_math(Namval_t *np, Namfun_t *fp)
 			sfputc(sh.strbuf,' ');
 		sfputr(sh.strbuf,mp->nvname+9,-1);
 	}
-	val = sfstruse(sh.strbuf);
+	val = sh_struse(sh.strbuf);
 	return val;
 }
 
@@ -1278,7 +1287,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	if(!ENVNOD->nvalue)
 	{
 		sfprintf(sh.strbuf,"%s/.kshrc",nv_getval(HOME));
-		nv_putval(ENVNOD,sfstruse(sh.strbuf),NV_RDONLY);
+		nv_putval(ENVNOD,sh_struse(sh.strbuf),NV_RDONLY);
 	}
 	/* increase SHLVL */
 	sh.shlvl++;
@@ -1670,7 +1679,7 @@ static char *name_stat(Namval_t *np, Namfun_t *fp)
 {
 	NOT_USED(fp);
 	sfprintf(sh.strbuf,".sh.stats.%s",np->nvname);
-	return sfstruse(sh.strbuf);
+	return sh_struse(sh.strbuf);
 }
 
 static const Namdisc_t	stat_child_disc =

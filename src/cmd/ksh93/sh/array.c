@@ -382,7 +382,7 @@ static Namval_t *array_find(Namval_t *np,Namarr_t *arp, nvflag_t flag)
 			if(!ap->header.table)
 				ap->header.table = dtopen(&_Nvdisc,Dtoset);
 			sfprintf(sh.strbuf,"%jd",(intmax_t)ap->cur);
-			cp = sfstruse(sh.strbuf);
+			cp = sh_struse(sh.strbuf);
 			mp = nv_search(cp, ap->header.table, NV_ADD);
 			mp->nvmeta = np;
 			nv_arraychild(np,mp,0);
@@ -882,7 +882,7 @@ int nv_atypeindex(Namval_t *np, const char *tname)
 	Namval_t	*tp;
 	size_t		n = strlen(tname)-1;
 	sfprintf(sh.strbuf,"%s.%.*s",NV_CLASS,n,tname);
-	tp = nv_open(sfstruse(sh.strbuf), sh.var_tree, NV_NOADD|NV_VARNAME|NV_NOFAIL);
+	tp = nv_open(sh_struse(sh.strbuf), sh.var_tree, NV_NOADD|NV_VARNAME|NV_NOFAIL);
 	if(tp)
 	{
 		struct index_array *ap = (struct index_array*)nv_arrayptr(np);
@@ -1244,7 +1244,7 @@ Namval_t *nv_putsub(Namval_t *np,char *sp,long mode)
 					if(!ap->header.table)
 						ap->header.table = dtopen(&_Nvdisc,Dtoset);
 					sfprintf(sh.strbuf,"%jd",(intmax_t)ap->cur);
-					cp = sfstruse(sh.strbuf);
+					cp = sh_struse(sh.strbuf);
 					mp = nv_search(cp, ap->header.table, NV_ADD);
 					mp->nvmeta = np;
 					nv_arraychild(np,mp,0);

@@ -59,12 +59,13 @@ getdelim(char** sp, size_t* np, int delim, Sfio_t* f)
 		}
 
 		if((m+k+1) >= n ) /* make sure there is space */
-		{	n = ((m+k+15)/8)*8;
-			if(!(s = (uchar*)realloc(s, (size_t)n)) )
-			{	*sp = 0; *np = 0;
-				m = -1;
+		{	uchar *new_s;
+			n = ((m+k+15)/8)*8;
+			if(!(new_s = (uchar*)realloc(s, (size_t)n)) )
+			{	m = -1;
 				break;
 			}
+			s = new_s;
 			*sp = (char*)s; *np = (size_t)n;
 		}
 

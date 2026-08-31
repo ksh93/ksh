@@ -2167,7 +2167,7 @@ noreturn void sh_syntax(Lex_t *lp, int special)
 		sfprintf(sh.strbuf, sh_translate(e_unexpected), fmttoken(lp, lp->token));
 	/* reset lexer state */
 	sh_lexopen(lp, 0);
-	errormsg(SH_DICT, ERROR_exit(SYNBAD), "%s", sfstruse(sh.strbuf));
+	errormsg(SH_DICT, ERROR_exit(SYNBAD), "%s", sh_struse(sh.strbuf));
 	UNREACHABLE();
 }
 

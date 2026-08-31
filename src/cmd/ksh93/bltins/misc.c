@@ -238,7 +238,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	struct sh_scoped savst, *prevscope = sh.st.self;
 	char *filename=0, *tofree;
 	int	fd;
-	struct dolnod   *saveargfor;
+	struct dolnod   *saveargfor = 0;
 	volatile struct dolnod   *argsave=0;
 	struct checkpt buff;
 	Sfio_t *iop=0;

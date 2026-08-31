@@ -95,6 +95,5 @@
 
 extern double		debug_elapsed(int);
 extern noreturn void	debug_fatal(const char*, int);
-extern void		systrace(const char*);
 
 #endif

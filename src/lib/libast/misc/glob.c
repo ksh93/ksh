@@ -835,6 +835,9 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		gp->gl_flags &= ~GLOB_STARSTAR;
 	if (gp->gl_stak)
 		globstk = oldstak;
+	/* avoid leaving a dangling pointer to our local variable */
+	if (gp->gl_intr == &intr)
+		gp->gl_intr = NULL;
 	return gp->gl_error;
 }
 

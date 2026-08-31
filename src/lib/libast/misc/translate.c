@@ -78,21 +78,6 @@ static State_t	state =
 	{	offsetof(Catalog_t, name),	0,	0	},
 };
 
-static ptrdiff_t
-tempget(Sfio_t* sp)
-{
-	if (sfstrtell(sp) > sfstrsize(sp) / 2)
-		sfstrseek(sp, 0, SEEK_SET);
-	return sfstrtell(sp);
-}
-
-static char*
-tempuse(Sfio_t* sp, ptrdiff_t off)
-{
-	sfputc(sp, 0);
-	return sfstrbase(sp) + off;
-}
-
 /*
  * add msg to dict
  */
@@ -245,7 +230,8 @@ match(const char* cat, const char* msg)
 				s[n] = 0;
 				t = strchr(s, ':');
 			}
-			*t = 0;
+			if (t)
+				*t = 0;
 		}
 		if (*s && ((cp = (Catalog_t*)dtmatch(state.catalogs, s)) || (cp = init(s))) && cp->messages && (mp = (Message_t*)dtmatch(cp->messages, msg)))
 		{
@@ -292,7 +278,6 @@ translate(const char* loc, const char* cmd, const char* cat, const char* msg)
 {
 	char*		r;
 	char*		t;
-	ptrdiff_t	p;
 	int		oerrno;
 	Catalog_t*	cp = NULL;
 	Message_t*	mp;

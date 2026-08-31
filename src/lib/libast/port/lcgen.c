@@ -276,6 +276,7 @@ main(int argc, char** argv)
 	}
 	if (!(lf = fopen(lib, "w")))
 	{
+		fclose(hf);
 		fprintf(stderr, "%s: %s: cannot write\n", command, lib);
 		return 1;
 	}
@@ -332,6 +333,11 @@ main(int argc, char** argv)
 		}
 		while (vp < ve)
 			*vp++ = 0;
+		if (!arg[0])
+		{
+			fprintf(stderr, "%s: %d: empty first argument\n", command, line);
+			goto error_out;
+		}
 		if (*arg[0] == ':')
 		{
 			if (!strcmp(arg[0], ":map:"))
@@ -339,7 +345,7 @@ main(int argc, char** argv)
 				if (type != TERRITORY)
 				{
 					fprintf(stderr, "%s: %d: %s: must be specified after :territory:\n", command, line, arg[0]);
-					return 1;
+					goto error_out;
 				}
 				type = MAP;
 				continue;
@@ -349,7 +355,7 @@ main(int argc, char** argv)
 				if (type != INIT)
 				{
 					fprintf(stderr, "%s: %d: %s must be specified first\n", command, line, arg[0]);
-					return 1;
+					goto error_out;
 				}
 				type = CHARSET;
 				continue;
@@ -359,7 +365,7 @@ main(int argc, char** argv)
 				if (type != LANGUAGE)
 				{
 					fprintf(stderr, "%s: %d: %s: must be specified after :language:\n", command, line, arg[0]);
-					return 1;
+					goto error_out;
 				}
 				type = TERRITORY;
 				continue;
@@ -369,7 +375,7 @@ main(int argc, char** argv)
 				if (type != CHARSET)
 				{
 					fprintf(stderr, "%s: %d: %s must be specified after :charset:\n", command, line, arg[0]);
-					return 1;
+					goto error_out;
 				}
 				type = LANGUAGE;
 				continue;
@@ -377,13 +383,13 @@ main(int argc, char** argv)
 			else
 			{
 				fprintf(stderr, "%s: %d: %s invalid\n", command, line, arg[0]);
-				return 1;
+				goto error_out;
 			}
 		}
 		if (!arg[1])
 		{
 			fprintf(stderr, "%s: %d: at least two arguments expected\n", command, line);
-			return 1;
+			goto error_out;
 		}
 		switch (type)
 		{
@@ -391,7 +397,7 @@ main(int argc, char** argv)
 			if (!(cp = newof(0, Charset_t, 1, (size_t)(s - b + 1))))
 			{
 				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
+				goto error_out;
 			}
 			b = (char*)(cp + 1);
 			cp->link.code = copy(&b, arg[0]);
@@ -400,14 +406,14 @@ main(int argc, char** argv)
 			if (cp != (Charset_t*)enter(&state.charset, (Link_t*)cp))
 			{
 				fprintf(stderr, "%s: %d: %s: duplicate charset\n", command, line, cp->link.code);
-				return 1;
+				goto error_out;
 			}
 			break;
 		case TERRITORY:
 			if (!(tp = newof(0, Territory_t, 1, (size_t)(s - b + 1))))
 			{
 				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
+				goto error_out;
 			}
 			b = (char*)(tp + 1);
 			tp->link.code = copy(&b, arg[0]);
@@ -424,12 +430,12 @@ main(int argc, char** argv)
 					if (!(lp = (Language_t*)lookup(&state.language, b)))
 					{
 						fprintf(stderr, "%s: %d: %s: unknown language\n", command, line, b);
-						return 1;
+						goto error_out;
 					}
 					if (!(ll = newof(0, Language_list_t, 1, 0)))
 					{
 						fprintf(stderr, "%s: %d: out of memory\n", command, line);
-						return 1;
+						goto error_out;
 					}
 					if (!tp->languages)
 						tp->languages = ll;
@@ -454,14 +460,14 @@ main(int argc, char** argv)
 			if (tp != (Territory_t*)enter(&state.territory, (Link_t*)tp))
 			{
 				fprintf(stderr, "%s: %d: %s: duplicate territory\n", command, line, tp->link.code);
-				return 1;
+				goto error_out;
 			}
 			break;
 		case LANGUAGE:
 			if (!(lp = newof(0, Language_t, 1, (size_t)(s - b + 1))))
 			{
 				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
+				goto error_out;
 			}
 			b = (char*)(lp + 1);
 			lp->link.code = copy(&b, arg[0]);
@@ -472,7 +478,7 @@ main(int argc, char** argv)
 			else if (!(lp->charset = (Charset_t*)lookup(&state.charset, arg[3])))
 			{
 				fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
-				return 1;
+				goto error_out;
 			}
 			lp->attributes = 0;
 			if (s = copy(&b, arg[4]))
@@ -497,14 +503,14 @@ main(int argc, char** argv)
 					if (!(ap = newof(0, Attribute_t, 1, 0)))
 					{
 						fprintf(stderr, "%s: %d: out of memory\n", command, line);
-						return 1;
+						goto error_out;
 					}
 					ap->link.code = b;
 					ap->link.index = i++;
 					if (!(al = newof(0, Attribute_list_t, 1, 0)))
 					{
 						fprintf(stderr, "%s: %d: out of memory\n", command, line);
-						return 1;
+						goto error_out;
 					}
 					if (!lp->attributes)
 						lp->attributes = al;
@@ -523,38 +529,38 @@ main(int argc, char** argv)
 			if (lp != (Language_t*)enter(&state.language, (Link_t*)lp))
 			{
 				fprintf(stderr, "%s: %d: %s: duplicate language\n", command, line, lp->link.code);
-				return 1;
+				goto error_out;
 			}
 			break;
 		case MAP:
 			if (!(mp = newof(0, Map_t, 1, (size_t)(s - b + 1))))
 			{
 				fprintf(stderr, "%s: %d: out of memory\n", command, line);
-				return 1;
+				goto error_out;
 			}
 			b = (char*)(mp + 1);
 			mp->link.code = copy(&b, arg[0]);
 			if (!arg[2])
 			{
 				fprintf(stderr, "%s: %d: territory code expected\n", command, line);
-				return 1;
+				goto error_out;
 			}
 			if (!(mp->language = (Language_t*)lookup(&state.language, arg[1])))
 			{
 				fprintf(stderr, "%s: %d: %s: unknown language\n", command, line, arg[1]);
-				return 1;
+				goto error_out;
 			}
 			if (!(mp->territory = (Territory_t*)lookup(&state.territory, arg[2])))
 			{
 				fprintf(stderr, "%s: %d: %s: unknown territory\n", command, line, arg[2]);
-				return 1;
+				goto error_out;
 			}
 			if (!arg[3])
 				mp->charset = 0;
 			else if (!(mp->charset = (Charset_t*)lookup(&state.charset, arg[3])))
 			{
 				fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
-				return 1;
+				goto error_out;
 			}
 			mp->attribute = 0;
 			if (arg[4])
@@ -568,13 +574,13 @@ main(int argc, char** argv)
 				if (!mp->attribute)
 				{
 					fprintf(stderr, "%s: %d: %s: unknown attribute\n", command, line, arg[4]);
-					return 1;
+					goto error_out;
 				}
 			}
 			if (mp != (Map_t*)enter(&state.map, (Link_t*)mp))
 			{
 				fprintf(stderr, "%s: %d: %s: duplicate map\n", command, line, mp->link.code);
-				return 1;
+				goto error_out;
 			}
 			break;
 		}
@@ -745,4 +751,8 @@ main(int argc, char** argv)
 	fprintf(hf, "\n#endif\n");
 	fclose(hf);
 	return 0;
+error_out:
+	fclose(hf);
+	fclose(lf);
+	return 1;
 }

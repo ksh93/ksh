@@ -722,7 +722,7 @@ done:
 	if(stktell(sh.stk) && !(flag & HIST_ERROR))
 	{
 		sfputr(sh.strbuf, stkfreeze(sh.stk,1), -1);
-		*xp = sfstruse(sh.strbuf);
+		*xp = sh_struse(sh.strbuf);
 	}
 	else
 		*xp = 0;

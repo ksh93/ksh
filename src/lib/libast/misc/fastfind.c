@@ -648,7 +648,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 	return fp;
  nomemory:
 	if (disc->errorf)
-		(*fp->disc->errorf)(fp, fp->disc, 2, "out of memory");
+		(*disc->errorf)(fp, fp->disc, 2, "out of memory");
 	if (!vm)
 		return NULL;
 	if (!fp)

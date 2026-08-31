@@ -262,7 +262,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 			UNREACHABLE();
 		}
 		sfprintf(sh.strbuf,"%s.%s",NV_CLASS,np->nvname);
-		tp = nv_open(sfstruse(sh.strbuf), sh.var_tree, NV_VARNAME);
+		tp = nv_open(sh_struse(sh.strbuf), sh.var_tree, NV_VARNAME);
 		n = sz;
 		i = 0;
 		nv_onattr(tp, NV_UINT16);

@@ -188,14 +188,14 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	{
 		/* check for leading .. */
 		sfprintf(sh.strbuf,"%s",dir);
-		cp = sfstruse(sh.strbuf);
+		cp = sh_struse(sh.strbuf);
 		pathcanon(cp, 0);
 		if(cp[0]=='.' && cp[1]=='.' && (cp[2]=='/' || cp[2]==0))
 		{
 			if(!sh.strbuf2)
 				sh.strbuf2 = sfstropen();
 			sfprintf(sh.strbuf2,"%s/%s",oldpwd,cp);
-			dir = sfstruse(sh.strbuf2);
+			dir = sh_struse(sh.strbuf2);
 			pathcanon(dir, 0);
 		}
 	}
