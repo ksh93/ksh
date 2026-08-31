@@ -417,7 +417,7 @@ printf_v:
 				exitval = 1;
 	}
 	if(vname)
-		nv_putval(vname, sfstruse(outfile), 0);
+		nv_putval(vname, sh_struse(outfile), 0);
 #if !SHOPT_SCRIPTONLY
 	else if(sflag)
 	{
@@ -750,7 +750,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		if(argp)
 		{
 			sfprintf(sh.strbuf,"%s.%.*s",argp,fe->n_str,fe->t_str);
-			argp = sfstruse(sh.strbuf);
+			argp = sh_struse(sh.strbuf);
 		}
 	}
 	else
@@ -1004,7 +1004,10 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 			UNREACHABLE();
 		}
 		if (format == '.')
-			value->i = (int)value->ll;
+		{
+			int tmpi = (int)value->ll;
+			value->i = tmpi;
+		}
 		if(*lastchar)
 		{
 			errormsg(SH_DICT,ERROR_warn(0),e_argtype,format);
@@ -1035,7 +1038,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		if(!sh.strbuf2)
 			sh.strbuf2 = sfstropen();
 		fe->size = fmtbase64(sh.strbuf2,value->s, fe->flags&SFFMT_ALTER);
-		value->s = sfstruse(sh.strbuf2);
+		value->s = sh_struse(sh.strbuf2);
 		fe->flags |= SFFMT_SHORT;
 		break;
 	case 'H':
@@ -1070,7 +1073,8 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		}
 		else
 		{
-			value->s = fmtelapsed((unsigned long)value->ll, 1);
+			unsigned long e = (unsigned long)value->ll;
+			value->s = fmtelapsed(e, 1);
 			fe->fmt = 's';
 			fe->size = -1;
 		}
@@ -1079,12 +1083,17 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		if(fe->n_str>0)
 		{
 			char nc;
+			Sflong_t ll = value->ll;
 			nc = fe->t_str[fe->n_str];
 			fe->t_str[fe->n_str] = 0;
-			value->s = fmttmx(fe->t_str, (Time_t)value->ll);
+			value->s = fmttmx(fe->t_str, (Time_t)ll);
 			fe->t_str[fe->n_str] = nc;
 		}
-		else value->s = fmttmx(NULL, (Time_t)value->ll);
+		else
+		{
+			Sflong_t ll = value->ll;
+			value->s = fmttmx(NULL, (Time_t)ll);
+		}
 		fe->fmt = 's';
 		fe->size = -1;
 		break;

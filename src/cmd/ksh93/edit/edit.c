@@ -296,7 +296,7 @@ static void get_tput(char *tp, char **cpp)
 	sh_offoption(SH_XTRACE);
 	sh.st.trap[SH_DEBUGTRAP] = NULL;
 	sfprintf(sh.strbuf,".sh.value=${ \\command -p tput %s 2>/dev/null;}",tp);
-	sh_trap(sfstruse(sh.strbuf),0);
+	sh_trap(sh_struse(sh.strbuf),0);
 	if((cp = nv_getval(SH_VALNOD)) && (!*cpp || strcmp(cp,*cpp)!=0))
 	{
 		if(*cpp)
@@ -580,7 +580,7 @@ static void ed_nputchar(Edit_t *ep, int n, int c)
 static void flush_notifybuf(void)
 {
 	char *cp;
-	if(sh.notifybuf && (cp = sfstruse(sh.notifybuf)) && *cp)
+	if(sh.notifybuf && (cp = sh_struse(sh.notifybuf)) && *cp)
 		sfputr(sfstderr, cp, -1);
 }
 

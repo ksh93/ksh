@@ -189,7 +189,7 @@ static char *name_chtype(Namval_t *np, Namfun_t *fp)
 		nv_arrfixed(np,sh.strbuf,1,NULL);
 #endif /* SHOPT_FIXEDARRAY */
 	sh.last_table = tp;
-	return sfstruse(sh.strbuf);
+	return sh_struse(sh.strbuf);
 }
 
 static void put_chtype(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
@@ -782,7 +782,7 @@ void nv_addtype(Namval_t *np, const char *optstr, Optdisc_t *op, size_t optsz)
 		if(!sh.strbuf2)
 			sh.strbuf2 = sfstropen();
 		sfprintf(sh.strbuf2,".%s.%s",nv_name(bp)+1,name);
-		name = sfstruse(sh.strbuf2);
+		name = sh_struse(sh.strbuf2);
 	}
 #endif /* SHOPT_NAMESPACE */
 	if((bp=nv_search(name,sh.fun_tree,NV_NOSCOPE)) && !bp->nvalue)
@@ -1216,7 +1216,7 @@ void nv_typename(Namval_t *tp, Sfio_t *out)
 	if((dp = (Namtype_t*)nv_hasdisc(tp,&type_disc)) && dp->bp)
 	{
 		nv_typename(dp->bp,out);
-		sfprintf(out,"%s.%s",sfstruse(out),cp);
+		sfprintf(out,"%s.%s",sh_struse(out),cp);
 	}
 	else
 		sfputr(out,cp,-1);

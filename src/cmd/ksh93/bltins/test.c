@@ -414,7 +414,7 @@ int test_unop(int op,const char *arg)
 		if(test_stat(arg,&statb)>=0 && S_ISCDF(statb.st_mode))
 			return 1;
 		sfputr(sh.strbuf,arg,'+');
-		return test_stat(sfstruse(sh.strbuf),&statb)>=0 && S_ISCDF(statb.st_mode);
+		return test_stat(sh_struse(sh.strbuf),&statb)>=0 && S_ISCDF(statb.st_mode);
 	    }
 #else
 		return 0;
@@ -557,7 +557,7 @@ int test_binop(unsigned int op,const char *left,const char *right)
 			return strcmp(left, right) != 0;
 		case TEST_REP:
 			sfprintf(sh.strbuf, "~(E)%s", right);
-			return test_strmatch(left, sfstruse(sh.strbuf)) > 0;
+			return test_strmatch(left, sh_struse(sh.strbuf)) > 0;
 		case TEST_EF:
 			return test_inode(left,right);
 		case TEST_NT:

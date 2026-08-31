@@ -197,14 +197,17 @@ static const char	dot[2] = { '.' };
 static void noreturn
 outofmemory(State_t *state)
 {
-	if (state->path)
+	if (state)
 	{
-		free(state->path);
-		state->path = NULL;
+		if (state->path)
+		{
+			free(state->path);
+			state->path = NULL;
+		}
+		if (state->context)
+			state->context->ptr = NULL;
+		free(state);
 	}
-	state->pathsiz = 0;
-	state->context->ptr = NULL;
-	free(state);
 	error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 	UNREACHABLE();
 }

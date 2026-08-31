@@ -24,7 +24,8 @@
  * hash table library
  */
 
-#include "hashlib.h"
+#include <ast.h>
+#include <hashpart.h>
 
 /*
  * return a running 32 bit checksum of string s

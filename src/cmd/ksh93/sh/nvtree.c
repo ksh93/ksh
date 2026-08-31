@@ -58,7 +58,7 @@ static int read_tree(Namval_t* np, Sfio_t *iop, int n, Namfun_t *dp)
 	while((c = sfgetc(iop)) && isblank(c));
 	sfungetc(iop,c);
 	sfputr(sh.strbuf,nv_name(np),'=');
-	sp = sfopen(NULL,sfstruse(sh.strbuf),"s");
+	sp = sfopen(NULL,sh_struse(sh.strbuf),"s");
 	sfstack(iop,sp);
 	c=sh_eval(iop,SH_READEVAL);
 	return c;

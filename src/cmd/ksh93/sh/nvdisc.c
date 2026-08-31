@@ -62,7 +62,7 @@ char *nv_getv(Namval_t *np, Namfun_t *nfp)
 	else if(fp && fp->disc->getnum)
 	{
 		sfprintf(sh.strbuf,"%.*Lg",12,(*fp->disc->getnum)(np,fp));
-		cp = sfstruse(sh.strbuf);
+		cp = sh_struse(sh.strbuf);
 	}
 	else
 	{

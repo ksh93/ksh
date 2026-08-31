@@ -418,9 +418,7 @@ make install virtual
 		done
 	done
 
-	makp include/tar.h
-
-	makp include/vdb.h
+	makp include/hashpart.h
 
 	make include/vmalloc.h
 		prev include/ast_std.h
@@ -436,13 +434,6 @@ make install virtual
 
 	make FEATURE/syscall
 		makp features/syscall
-		exec - invoke_iffe %{<}
-	done
-
-	make FEATURE/hack
-		make features/hack
-			prev FEATURE/common
-		done
 		exec - invoke_iffe %{<}
 	done
 
@@ -731,94 +722,20 @@ make install virtual
 			exec - compile %{<} -Imisc
 		done
 
-		make hashalloc.o
-			make hash/hashalloc.c
-				prev FEATURE/hack
-				make hash/hashlib.h
-					make include/hash.h
-						makp include/hashpart.h
-					done
-					prev include/ast.h
-				done
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashdump.o
-			make hash/hashdump.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashfree.o
-			make hash/hashfree.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashlast.o
-			make hash/hashlast.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashlook.o
-			make hash/hashlook.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashscan.o
-			make hash/hashscan.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashsize.o
-			make hash/hashsize.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashview.o
-			make hash/hashview.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make hashwalk.o
-			make hash/hashwalk.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
-		make memhash.o
-			make hash/memhash.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
-		done
-
 		make memsum.o
 			make hash/memsum.c
-				prev hash/hashlib.h
+				prev include/ast.h
+				prev include/hashpart.h
 			done
-			exec - compile %{<} -Ihash
+			exec - compile %{<}
 		done
 
-		make strhash.o
-			make hash/strhash.c
-				prev hash/hashlib.h
+		make strsum.o
+			make hash/strsum.c
+				prev include/ast.h
+				prev include/hashpart.h
 			done
-			exec - compile %{<} -Ihash
+			exec - compile %{<}
 		done
 
 		make strdisabbrev.o
@@ -826,13 +743,6 @@ make install virtual
 				prev include/ast.h
 			done
 			exec - compile %{<}
-		done
-
-		make strsum.o
-			make hash/strsum.c
-				prev hash/hashlib.h
-			done
-			exec - compile %{<} -Ihash
 		done
 
 		make ccmap.o
@@ -1017,34 +927,6 @@ make install virtual
 
 		make strnvcmp.o
 			make string/strnvcmp.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make tok.o
-			make string/tok.c
-				make include/tok.h
-					prev include/ast.h
-				done
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make tokline.o
-			make string/tokline.c
-				prev include/tok.h
-				prev include/error.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make tokscan.o
-			make string/tokscan.c
-				prev FEATURE/hack
-				prev include/tok.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -1313,18 +1195,6 @@ make install virtual
 		make sigflag.o
 			make comp/sigflag.c
 				prev sig.h
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
-		make systrace.o
-			make misc/systrace.c
-				prev include/debug.h
-				make include/proc.h
-					prev include/ast.h
-				done
-				prev include/error.h
 				prev include/ast.h
 			done
 			exec - compile %{<}
@@ -1809,7 +1679,9 @@ make install virtual
 				prev ast_tty.h
 				prev include/ls.h
 				make misc/proclib.h
-					prev include/proc.h
+					make include/proc.h
+						prev include/ast.h
+					done
 					make include/wait.h
 						prev include/ast.h
 					done
@@ -2591,17 +2463,6 @@ make install virtual
 				prev std/stdio.h
 				prev include/ast.h
 				prev include/ast_std.h
-			done
-			exec - compile %{<}
-		done
-
-		make wordexp.o
-			make comp/wordexp.c
-				prev include/stk.h
-				make comp/wordexp.h
-					prev ast_common.h
-				done
-				prev include/ast.h
 			done
 			exec - compile %{<}
 		done
@@ -3599,7 +3460,7 @@ make install virtual
 	done
 
 	note * section 3 manual pages
-	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd hash iblocks ip6 mem modecanon optget path proc regex setenviron sfio sig spawnveg stk strcopy strdisabbrev strdup strelapsed stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tm tmx tok touch tv
+	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd iblocks ip6 mem modecanon optget path proc regex setenviron sfio sig spawnveg stk strcopy strdisabbrev strdup strelapsed stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tm tmx touch tv
 		make %{INSTALLROOT}/man/man3/%{SECT3MAN}.3
 			makp man/%{SECT3MAN}.3
 			exec - cp -f %{<} %{@}
@@ -3609,14 +3470,14 @@ make install virtual
 	note * #include headers
 	make %{INSTALLROOT}/lib/mam/ast
 		note * ...main AST headers
-		loop HDR ast ast_dir ast_std ast_windows ccode cdt cmdarg debug error find ftwalk fts glob hash hashpart ip6 ls mc mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk stak swap tar times tm tok vdb wait fnv aso vmalloc
+		loop HDR ast ast_dir ast_std ast_windows ccode cdt cmdarg debug error find ftwalk fts glob hashpart ip6 ls mc mnt modecanon modex namval option proc recfmt regex sfio sfio_s sfio_t sfdisc shcmd stk stak swap times tm wait fnv aso vmalloc
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev include/%{HDR}.h
 				exec - cp -f %{<} %{@}
 			done
 		done
 		note * ...comp(atibility)
-		loop HDR ftw re_comp wordexp fnmatch
+		loop HDR ftw re_comp fnmatch
 			make %{INCLUDE_AST}/%{HDR}.h
 				prev comp/%{HDR}.h
 				exec - cp -f %{<} %{@}

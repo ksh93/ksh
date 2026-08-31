@@ -718,6 +718,8 @@ loop_fmt:
 
 		if(fmt == 'n') /* return length of consumed input */
 		{
+			if(flags&SFFMT_SKIP)
+				continue;
 #if !_ast_intmax_long
 			if(size == sizeof(Sflong_t) )
 				*((Sflong_t*)value) = (Sflong_t)(n_input+SFlen(f));

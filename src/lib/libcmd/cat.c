@@ -134,7 +134,8 @@ vcat(char* states, Sfio_t* ip, Sfio_t* op, Reserve_f reserve, int flags)
 
 	meta[0] = 'M';
 	last = -1;
-	*(cp = buf = end = tmp) = 0;
+	cp = buf = end = tmp;
+	*cp = 0;
 	any = 0;
 	header = flags & (B_FLAG|N_FLAG);
 	line = 1;

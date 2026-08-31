@@ -946,7 +946,7 @@ int sh_exec(const Shnode_t *t, int flags)
 							{
 								sfputr(sh.strbuf,NV_CLASS,-1);
 								sfputr(sh.strbuf,nv_name(sh.namespace),-1);
-								sh.prefix = sh_strdup(sfstruse(sh.strbuf));
+								sh.prefix = sh_strdup(sh_struse(sh.strbuf));
 								nv_open(sh.prefix,sh.var_base,NV_VARNAME);
 							}
 							else

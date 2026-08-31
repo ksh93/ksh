@@ -1869,7 +1869,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 				else
 					sfprintf(sh.strbuf,"%ld",(long)((flags&NV_SHORT)?*((int16_t*)sp):*((int32_t*)sp)));
 			}
-			sp = sfstruse(sh.strbuf);
+			sp = sh_struse(sh.strbuf);
 		}
 		if(nv_isattr(np, NV_HOST|NV_INTEGER)==NV_HOST && sp)
 		{
@@ -2709,7 +2709,7 @@ char *nv_getval(Namval_t *np)
 		if(sub)
 		{
 			sfprintf(sh.strbuf,"%s[%s]",nv_name(np),sub);
-			return sfstruse(sh.strbuf);
+			return sh_struse(sh.strbuf);
 		}
 		return nv_name(np);
 	}
@@ -2753,7 +2753,7 @@ char *nv_getval(Namval_t *np)
 					format = "%.*f";
 				sfprintf(sh.strbuf,format,nv_size(np),d);
 			}
-			return sfstruse(sh.strbuf);
+			return sh_struse(sh.strbuf);
 		}
 		else if(nv_isattr(np,NV_UNSIGN))
 		{
@@ -2775,7 +2775,7 @@ char *nv_getval(Namval_t *np)
 			return fmtint(ll, nv_isattr(np,NV_UNSIGN));
 		/* render a possibly signed non-base-10 integer with its base# prefix */
 		sfprintf(sh.strbuf, nv_isattr(np,NV_UNSIGN) ? "%#..*I*u" : "%#..*I*d", base, sizeof ll, ll);
-		return sfstruse(sh.strbuf);
+		return sh_struse(sh.strbuf);
 	}
 done:
 	/*
@@ -3215,7 +3215,7 @@ int nv_rename(Namval_t *np, nvflag_t flags)
 	{
 		sfprintf(sh.strbuf,"%s[%d]",nv_name(np),index);
 		/* create a virtual node */
-		if(mp = nv_open(sfstruse(sh.strbuf),sh.var_tree,NV_VARNAME|NV_ADD|NV_ARRAY))
+		if(mp = nv_open(sh_struse(sh.strbuf),sh.var_tree,NV_VARNAME|NV_ADD|NV_ARRAY))
 		{
 			if(ap = nv_arrayptr(np))
 				ap->nelem++;
@@ -3272,7 +3272,7 @@ int nv_rename(Namval_t *np, nvflag_t flags)
 			sfprintf(sh.strbuf,"typeset -a %s=",nv_name(mp));
 			nv_outnode(nr,sh.strbuf,-1,0);
 			sfwrite(sh.strbuf,")\n",2);
-			cp = sfstruse(sh.strbuf);
+			cp = sh_struse(sh.strbuf);
 			iop = sfopen(NULL,cp,"s");
 			if(trace)
 				sh_offoption(SH_XTRACE);
@@ -3568,7 +3568,7 @@ char *nv_name(Namval_t *np)
 		else
 			sfprintf(sh.strbuf,"%s.%s",nv_name(mp),np->nvname);
 		sh.last_table = nq;
-		return sfstruse(sh.strbuf);
+		return sh_struse(sh.strbuf);
 	}
 	if(nv_istable(np))
 		sh.last_table = nv_parent(np);
@@ -3604,7 +3604,7 @@ char *nv_name(Namval_t *np)
 	if(ap && ap->fixed)
 		nv_arrfixed(np,sh.strbuf,1,NULL);
 #endif /* SHOPT_FIXEDARRAY */
-	return sfstruse(sh.strbuf);
+	return sh_struse(sh.strbuf);
 }
 
 Namval_t *nv_lastdict(void)

@@ -105,7 +105,7 @@ size_t path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 	{
 		char *trimmedpat;
 		sfputr(sh.strbuf,pattern,-1);
-		trimmedpat = sfstruse(sh.strbuf);
+		trimmedpat = sh_struse(sh.strbuf);
 		sh_trim(trimmedpat);
 		glob(trimmedpat,flags,0,gp);
 		/*
@@ -249,7 +249,7 @@ ssize_t path_generate(struct argnod *todo, struct argnod **arghead, int musttrim
 	struct argnod *top = 0;
 	struct argnod *apin;
 	char *pat = NULL, *rescan;
-	char *format;
+	char *format = "%d";
 	char comma, range=0;
 	ssize_t first = 0, last = 0, incr = 0, count = 0;
 	char tmp[32], end[1];

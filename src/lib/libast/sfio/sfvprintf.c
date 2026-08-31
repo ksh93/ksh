@@ -556,22 +556,36 @@ loop_fmt :
 				else if(_Sftype[fmt]&(SFFMT_INT|SFFMT_UINT) )
 				{	if(size == sizeof(short))
 					{	if(_Sftype[fmt]&SFFMT_INT)
-							argv.i = argv.h;
-						else	argv.i = argv.uh;
+						{	int tmpi = (int)argv.h;
+							argv.i = tmpi;
+						}
+						else
+						{	int tmpi = (int)argv.uh;
+							argv.i = tmpi;
+						}
 					}
 					else if(size == sizeof(char))
 					{	if(_Sftype[fmt]&SFFMT_INT)
-							argv.i = argv.c;
-						else	argv.i = argv.uc;
+						{	int tmpi = (int)argv.c;
+							argv.i = tmpi;
+						}
+						else
+						{	int tmpi = (int)argv.uc;
+							argv.i = tmpi;
+						}
 					}
 				}
 				else if(_Sftype[fmt]&SFFMT_FLOAT )
 				{	if(size == sizeof(float) )
-						argv.d = argv.f;
+					{	double tmpd = (double)argv.f;
+						argv.d = tmpd;
+					}
 				}
 				else if(_Sftype[fmt]&SFFMT_CHAR)
 				{	if(base < 0)
-						argv.i = (int)argv.c;
+					{	int tmpi = (int)argv.c;
+						argv.i = tmpi;
+					}
 				}
 			}
 		}
@@ -1418,6 +1432,10 @@ done:
 	while((fm = fmstk) )
 	{	if(fm->eventf)
 			(*fm->eventf)(f,SFIO_FINAL,NULL,fm->ft);
+		if(fm->form)
+		{	va_end(fm->args);
+			va_end(fm->oargs);
+		}
 		fmstk = fm->next;
 		free(fm);
 	}
@@ -1435,5 +1453,6 @@ done:
 	else	f->next += q;
 
 	SFOPEN(f,0);
+	va_end(oargs);
 	return n_output;
 }
