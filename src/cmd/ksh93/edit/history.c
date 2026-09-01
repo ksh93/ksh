@@ -906,7 +906,10 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	}
 	/* don't count empty lines */
 	if(++bufptr <= (char*)buff)
+	{
+		hist_unlock(hp);
 		return (ssize_t)insize;
+	}
 	*bufptr++ = '\n';
 	*bufptr++ = 0;
 	size = (ssize_t)(bufptr - (char*)buff);
