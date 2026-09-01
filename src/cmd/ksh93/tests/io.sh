@@ -24,7 +24,7 @@ sh -c 'exec 3>&1' 1>&- 2>/dev/null
 typeset -si can_close_stdout=$?
 
 # Socketpairs as pipes aren't available on all systems.
-grep -q _pipe_socketpair "$INSTALLROOT/src/cmd/ksh93/FEATURE/poll"
+grep -qE '_pipe_socketpair|_socketpair_devfd' "$INSTALLROOT/src/cmd/ksh93/FEATURE/poll"
 typeset -si pipe_socketpair=$?
 ((pipe_socketpair > 1)) && exit 2
 ((pipe_socketpair = !pipe_socketpair))  # invert exit status logic to get boolean logic

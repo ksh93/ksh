@@ -26,7 +26,7 @@ CCn='
 
 note()
 {
-	printf "$0: %s\\n" "$@" >&2
+	printf "${0##*/}: %s\\n" "$@" >&2
 }
 
 err_out()
