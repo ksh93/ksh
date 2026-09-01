@@ -166,7 +166,7 @@ static char*
 copy(char** p, char* f)
 {
 	char*	t;
-	char*		b;
+	char*	b;
 
 	if (!f)
 		return NULL;
