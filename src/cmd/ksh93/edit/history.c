@@ -67,6 +67,8 @@
 	off_t	histmarker;	/* offset of last command marker */ \
 	ssize_t	histflush;	/* set if flushed outside of hflush() */\
 	int	histmask;	/* power of two mask for histcnt */ \
+	int	histlockfd;	/* lock file descriptor for shared HISTFILE */ \
+	int	histlockcnt;	/* nested history lock counter */ \
 	char	histbuff[HIST_BSIZE+1];	/* history file buffer */ \
 	int	histwfail; \
 	_HIST_AUDIT \
@@ -97,6 +99,10 @@ static int	hist_check(int);
 static int	hist_clean(int);
 static ssize_t	hist_write(Sfio_t*, const void*, size_t, Sfdisc_t*);
 static int	hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
+static int	hist_lockfd(const char*);
+static int	hist_setlock(int, short);
+static int	hist_lock(History_t*);
+static void	hist_unlock(History_t*);
 
 static int	histinit;
 static mode_t	histmode;
@@ -188,6 +194,53 @@ done:
 static const unsigned char hist_stamp[2] = { HIST_UNDO, HIST_VERSION };
 static const Sfdisc_t hist_disc = { NULL, hist_write, NULL, hist_exceptf, NULL};
 
+static int hist_lockfd(const char *histname)
+{
+	char *lockname;
+	size_t n = strlen(histname) + 6;
+	int fd;
+	lockname = sh_malloc(n);
+	sfsprintf(lockname, n, "%s.lock", histname);
+	fd = sh_open(lockname, O_BINARY|O_RDWR|O_CREAT|O_cloexec, S_IRUSR|S_IWUSR);
+	free(lockname);
+	return fd;
+}
+
+static int hist_setlock(int fd, short type)
+{
+	struct flock lock;
+	memset(&lock, 0, sizeof(lock));
+	lock.l_type = type;
+	lock.l_whence = SEEK_SET;
+	while(fcntl(fd, F_SETLKW, &lock) < 0)
+	{
+		if(errno != EINTR)
+			return -1;
+	}
+	return 0;
+}
+
+static int hist_lock(History_t *hp)
+{
+	if(!hp || hp->histlockfd < 0)
+		return 0;
+	if(hp->histlockcnt++ > 0)
+		return 0;
+	if(hist_setlock(hp->histlockfd, F_WRLCK) == 0)
+		return 0;
+	hp->histlockcnt--;
+	return -1;
+}
+
+static void hist_unlock(History_t *hp)
+{
+	if(!hp || hp->histlockfd < 0 || hp->histlockcnt <= 0)
+		return;
+	if(--hp->histlockcnt > 0)
+		return;
+	hist_setlock(hp->histlockfd, F_UNLCK);
+}
+
 static void hist_touch(void *handle)
 {
 	touch((char*)handle, 0, 0, 0);
@@ -208,6 +261,7 @@ int  sh_histinit(void)
 	int histmask, maxlines, hist_start=0, n;
 	char *cp;
 	off_t hsize = 0;
+	int lockfd = -1;
 
 	if(sh.hist_ptr=hist_ptr)
 		return 1;
@@ -222,6 +276,14 @@ int  sh_histinit(void)
 	}
 retry:
 	cp = path_relative(histname);
+	if((lockfd = hist_lockfd(cp)) >= 0)
+	{
+		if(hist_setlock(lockfd, F_WRLCK) < 0)
+		{
+			sh_close(lockfd);
+			lockfd = -1;
+		}
+	}
 	if(!histinit)
 		histmode = S_IRUSR|S_IWUSR;
 	if((fd=sh_open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)
@@ -240,7 +302,14 @@ retry:
 		sh_close(fd);
 		hsize = 0;
 		if(unlink(cp)>=0)
+		{
+			if(lockfd >= 0)
+			{
+				hist_setlock(lockfd, F_UNLCK);
+				sh_close(lockfd);
+			}
 			goto retry;
+		}
 		fd = -1;
 	}
 	if(fd < 0)
@@ -249,12 +318,14 @@ retry:
 		if(sh.userid)
 		{
 			if(!(fname = pathtmp(NULL,0,0,NULL)))
-				return 0;
+				goto fail;
 			fd = sh_open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
 		}
 	}
 	if(fd<0)
-		return 0;
+	{
+		goto fail;
+	}
 	if(!(sh.fdstatus[fd]&IOCLEX))
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
 	if(cp=nv_getval(HISTSIZE))
@@ -275,10 +346,18 @@ retry:
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
 	hp->histfp= sfnew(NULL,hp->histbuff,HIST_BSIZE,fd,SFIO_READ|SFIO_WRITE|SFIO_APPENDWR|SFIO_SHARE);
+	if(!hp->histfp)
+	{
+		free(hp);
+		sh_close(fd);
+		goto fail;
+	}
 	memset((char*)hp->histcmds,0,sizeof(off_t)*(size_t)(hp->histmask+1));
 	hp->histind = 1;
 	hp->histcmds[1] = 2;
 	hp->histcnt = 2;
+	hp->histlockfd = lockfd;
+	hp->histlockcnt = lockfd >= 0;
 	hp->histname = sh_strdup(histname);
 	hp->histdisc = hist_disc;
 	if(hsize==0)
@@ -327,6 +406,7 @@ retry:
 #endif /* DEBUG */
 		hp = hist_trim(hp,(int)hp->histind-maxlines);
 	}
+	hist_unlock(hp);
 	sfdisc(hp->histfp,&hp->histdisc);
 	HISTCUR->nvalue = &hp->histind;
 	sh_timeradd(1000L*(HIST_RECENT-30), 1, hist_touch, hp->histname);
@@ -361,6 +441,13 @@ retry:
 	}
 #endif
 	return 1;
+fail:
+	if(lockfd >= 0)
+	{
+		hist_setlock(lockfd, F_UNLCK);
+		sh_close(lockfd);
+	}
+	return 0;
 }
 
 /*
@@ -368,6 +455,7 @@ retry:
  */
 void hist_close(History_t *hp)
 {
+	int lockfd = hp->histlockfd;
 	sfclose(hp->histfp);
 #if SHOPT_AUDIT
 	if(hp->auditfp)
@@ -377,6 +465,11 @@ void hist_close(History_t *hp)
 		sfclose(hp->auditfp);
 	}
 #endif /* SHOPT_AUDIT */
+	if(lockfd >= 0)
+	{
+		hist_setlock(lockfd, F_UNLCK);
+		sh_close(lockfd);
+	}
 	free(hp);
 	hist_ptr = 0;
 	sh.hist_ptr = 0;
@@ -415,30 +508,50 @@ static int hist_clean(int fd)
  */
 static History_t* hist_trim(History_t *hp, int n)
 {
-	char *cp;
+	char *cp, *tmpname;
 	int incmd=1, c=0;
-	History_t *hist_new, *hist_old = hp;
+	int fd, i, index;
+	mode_t mode = S_IRUSR|S_IWUSR;
+	History_t *hist_old = hp;
+	Sfio_t *hist_new, *new_histfp;
 	char *buff, *endbuff;
-	off_t oldp,newp;
+	char tmpbuff[HIST_BSIZE+1];
+	char locbuff[HIST_MARKSZ];
+	off_t oldp, newp;
+	off_t histcnt = 2, histmarker = 2;
+	int histind = 1;
 	struct stat statb;
-	if(unlink(hist_old->histname) < 0)
+	tmpname = sh_malloc(strlen(hist_old->histname) + 64);
+	fd = -1;
+	for(i=0; i < 64; i++)
 	{
-		errormsg(SH_DICT,ERROR_warn(0),"cannot trim history file %s; make sure parent directory is writable",hist_old->histname);
+		sfsprintf(tmpname, strlen(hist_old->histname)+64, "%s.tmp.%jd.%d", hist_old->histname, (intmax_t)sh.current_pid, i);
+		if((fd = sh_open(tmpname,O_BINARY|O_RDWR|O_CREAT|O_EXCL|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
+			break;
+		if(errno != EEXIST)
+			break;
+	}
+	if(fd < 0)
+	{
+		free(tmpname);
+		errormsg(SH_DICT,ERROR_warn(0),"cannot create temporary history file for %s",hist_old->histname);
 		return hist_ptr = hist_old;
 	}
-	hist_ptr = 0;
 	if(fstat(sffileno(hist_old->histfp),&statb)>=0)
 	{
-		histinit = 1;
-		histmode =  statb.st_mode;
+		mode = statb.st_mode;
+		fchmod(fd, mode);
 	}
-	if(!sh_histinit())
+	hist_new = sfnew(NULL,tmpbuff,HIST_BSIZE,fd,SFIO_WRITE);
+	if(!hist_new)
 	{
-		/* use the old history file */
+		sh_close(fd);
+		unlink(tmpname);
+		free(tmpname);
+		errormsg(SH_DICT,ERROR_warn(0),"cannot open temporary history stream for %s",hist_old->histname);
 		return hist_ptr = hist_old;
 	}
-	hist_new = hist_ptr;
-	hist_ptr = hist_old;
+	sfwrite(hist_new,(char*)hist_stamp,2);
 	if(--n < 0)
 		n = 0;
 	newp = hist_seek(hist_old,++n);
@@ -446,15 +559,13 @@ static History_t* hist_trim(History_t *hp, int n)
 	{
 		if(!incmd)
 		{
-			c = hist_ind(hist_new,++hist_new->histind);
-			hist_new->histcmds[c] = hist_new->histcnt;
-			if(hist_new->histcnt > hist_new->histmarker+HIST_BSIZE/2)
+			histind++;
+			if(histcnt > histmarker+HIST_BSIZE/2)
 			{
-				char locbuff[HIST_MARKSZ];
-				hist_marker(locbuff,hist_new->histind);
-				sfwrite(hist_new->histfp,locbuff,HIST_MARKSZ);
-				hist_new->histcnt += HIST_MARKSZ;
-				hist_new->histmarker = hist_new->histcmds[hist_ind(hist_new,c)] = hist_new->histcnt;
+				hist_marker(locbuff,histind);
+				sfwrite(hist_new,locbuff,HIST_MARKSZ);
+				histcnt += HIST_MARKSZ;
+				histmarker = histcnt;
 			}
 			oldp = newp;
 			newp = hist_seek(hist_old,++n);
@@ -474,13 +585,53 @@ static History_t* hist_trim(History_t *hp, int n)
 		if(cp > endbuff)
 			cp = endbuff;
 		c = (int)(cp-buff);
-		hist_new->histcnt += c;
-		sfwrite(hist_new->histfp,buff,(size_t)c);
+		histcnt += c;
+		sfwrite(hist_new,buff,(size_t)c);
 	}
-	hist_cancel(hist_new);
+	sfputc(hist_new,HIST_UNDO);
+	sfputc(hist_new,0);
+	sfsync(hist_new);
+	sfclose(hist_new);
+	if(rename(tmpname,hist_old->histname) < 0)
+	{
+		unlink(tmpname);
+		free(tmpname);
+		errormsg(SH_DICT,ERROR_warn(0),"cannot replace history file %s during trim",hist_old->histname);
+		return hist_ptr = hist_old;
+	}
+	free(tmpname);
+	if((fd = sh_open(hist_old->histname,O_BINARY|O_APPEND|O_RDWR|O_cloexec,mode)) < 0)
+	{
+		errormsg(SH_DICT,ERROR_warn(0),"cannot reopen history file %s after trim",hist_old->histname);
+		return hist_ptr = hist_old;
+	}
+	if(fd > 0 && fd < 10)
+	{
+		if((i = sh_fcntl(fd, F_dupfd_cloexec, 10)) >= 0)
+		{
+			sh_close(fd);
+			fd = i;
+		}
+	}
+	new_histfp = sfnew(NULL,NULL,(size_t)-1,fd,SFIO_READ|SFIO_WRITE|SFIO_APPENDWR|SFIO_SHARE);
+	if(!new_histfp)
+	{
+		sh_close(fd);
+		errormsg(SH_DICT,ERROR_warn(0),"cannot recreate history stream for %s after trim",hist_old->histname);
+		return hist_ptr = hist_old;
+	}
 	sfclose(hist_old->histfp);
-	free(hist_old);
-	return hist_ptr = hist_new;
+	hist_old->histfp = new_histfp;
+	sfsetbuf(hist_old->histfp, hist_old->histbuff, HIST_BSIZE);
+	memset((char*)hist_old->histcmds,0,sizeof(off_t)*(size_t)(hist_old->histmask+1));
+	index = histinit;
+	hist_old->histind = 1;
+	hist_old->histcmds[1] = 2;
+	hist_old->histcnt = hist_old->histmarker = 2;
+	histinit = 1;
+	hist_eof(hist_old);
+	histinit = index;
+	return hist_ptr = hist_old;
 }
 
 /*
@@ -561,7 +712,9 @@ void hist_eof(History_t *hp)
 	int oldind=0;
 	ptrdiff_t skip=0;
 	ssize_t n;
-	off_t last = sfseek(hp->histfp,0,SEEK_END);
+	off_t last;
+	hist_lock(hp);
+	last = sfseek(hp->histfp,0,SEEK_END);
 	if(last < count)
 	{
 		last = -1;
@@ -663,6 +816,7 @@ again:
 		last = 0;
 		goto again;
 	}
+	hist_unlock(hp);
 }
 
 /*
@@ -673,12 +827,14 @@ void hist_cancel(History_t *hp)
 	int c;
 	if(!hp)
 		return;
+	hist_lock(hp);
 	sfputc(hp->histfp,HIST_UNDO);
 	sfputc(hp->histfp,0);
 	sfsync(hp->histfp);
 	hp->histcnt += 2;
 	c = hist_ind(hp,--hp->histind);
 	hp->histcmds[c] = hp->histcnt;
+	hist_unlock(hp);
 }
 
 /*
@@ -689,6 +845,7 @@ void hist_flush(History_t *hp)
 	char *buff;
 	if(hp)
 	{
+		hist_lock(hp);
 		if(buff=(char*)sfreserve(hp->histfp,0,SFIO_LOCKR))
 		{
 			hp->histflush = sfvalue(hp->histfp)+1;
@@ -698,11 +855,14 @@ void hist_flush(History_t *hp)
 			hp->histflush=0;
 		if(sfsync(hp->histfp)<0)
 		{
+			hist_unlock(hp);
 			hist_close(hp);
 			if(!sh_histinit())
 				sh_offoption(SH_HISTORY);
+			return;
 		}
 		hp->histflush = 0;
+		hist_unlock(hp);
 	}
 }
 
@@ -719,11 +879,17 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	off_t cur;
 	int c,saved=0;
 	char saveptr[HIST_MARKSZ];
+	hist_lock(hp);
 	if(!hp->histflush)
-		return write(sffileno(iop),(char*)buff,(size_t)size);
+	{
+		size = write(sffileno(iop),(char*)buff,(size_t)size);
+		hist_unlock(hp);
+		return size;
+	}
 	if((cur = lseek(sffileno(iop),0,SEEK_END)) <0)
 	{
 		errormsg(SH_DICT,2,"hist_flush: EOF seek failed errno=%d",errno);
+		hist_unlock(hp);
 		return -1;
 	}
 	hp->histcnt = cur;
@@ -792,8 +958,10 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	if(size>=0)
 	{
 		hp->histwfail = 0;
+		hist_unlock(hp);
 		return (ssize_t)insize;
 	}
+	hist_unlock(hp);
 	return -1;
 }
 
