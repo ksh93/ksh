@@ -99,9 +99,6 @@ static int	hist_check(int);
 static int	hist_clean(int);
 static ssize_t	hist_write(Sfio_t*, const void*, size_t, Sfdisc_t*);
 static int	hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
-static int	hist_setlock(int, short);
-static int	hist_lock(History_t*);
-static void	hist_unlock(History_t*);
 
 static int	histinit;
 static mode_t	histmode;
@@ -195,15 +192,10 @@ static const Sfdisc_t hist_disc = { NULL, hist_write, NULL, hist_exceptf, NULL};
 
 static int hist_setlock(int fd, short type)
 {
-	struct flock lock;
-	memset(&lock, 0, sizeof(lock));
-	lock.l_type = type;
-	lock.l_whence = SEEK_SET;
+	struct flock lock = { .l_type = type, .l_whence = SEEK_SET };
 	while(fcntl(fd, F_SETLKW, &lock) < 0)
-	{
 		if(errno != EINTR)
 			return -1;
-	}
 	return 0;
 }
 
@@ -299,14 +291,12 @@ int  sh_histinit(void)
 		if(sh.userid)
 		{
 			if(!(fname = pathtmp(NULL,0,0,NULL)))
-				goto fail;
+				goto fail_return;
 			fd = sh_open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
 		}
 	}
 	if(fd<0)
-	{
-		goto fail;
-	}
+		goto fail_return;
 	if(!(sh.fdstatus[fd]&IOCLEX))
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
 	if(cp=nv_getval(HISTSIZE))
@@ -331,7 +321,7 @@ int  sh_histinit(void)
 	{
 		free(hp);
 		sh_close(fd);
-		goto fail;
+		goto fail_return;
 	}
 	memset((char*)hp->histcmds,0,sizeof(off_t)*(size_t)(hp->histmask+1));
 	hp->histind = 1;
@@ -422,7 +412,7 @@ int  sh_histinit(void)
 	}
 #endif
 	return 1;
-fail:
+fail_return:
 	if(lockfd >= 0)
 		hist_setlock(lockfd, F_UNLCK);
 	if(fd >= 0)
@@ -601,7 +591,7 @@ trimfail:
 		unlink(tmpname);
 		free(tmpname);
 	}
-	errormsg(SH_DICT,ERROR_warn(0),"could not trim %s; export TMPDIR as a directory with appropriate permissions",hist_old->histname);
+	errormsg(SH_DICT,ERROR_warn(0),e_histtrim,hist_old->histname);
 	return hist_ptr = hist_old;
 }
 

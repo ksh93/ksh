@@ -69,6 +69,7 @@ typedef struct
 
 /* the following are readonly */
 extern const char	hist_fname[];
+extern const char	e_histtrim[];
 
 extern int _Hist;
 #define hist_min(hp)	((_Hist=((hp)->histind-(hp)->histsize))>=0?_Hist:0)
