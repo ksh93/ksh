@@ -1,7 +1,7 @@
 #
 # posix { getconf limits } macro table
 #
-# @(#)conf.tab (ksh 93u+m) 2025-04-11
+# @(#)conf.tab (ksh 93u+m) 2026-09-01
 #
 # name standard call section flags [ header ... ] [ value ... ]
 #

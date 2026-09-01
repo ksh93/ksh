@@ -207,11 +207,6 @@ else	STDED=ex
 fi
 STDEDFLAGS=-
 
-case ${KSH_VERSION-} in
-Version*)
-	kshbuiltins=$(builtin | grep '^/') ;;
-*)	unset kshbuiltins ;;
-esac
 set STDCAT cat STDCHMOD chmod STDCMP cmp STDCP cp STDLN ln STDMV mv STDRM rm
 while	:
 do	case $# in
@@ -219,23 +214,10 @@ do	case $# in
 	esac
 	p=$2
 	set -f; IFS=:
-	for d in $DEFPATH:$PATH
+	for d in $DEFPATH $PATH
 	do	case $d in
 		/*)	;;
 		*)	continue ;;
-		esac
-		case ${kshbuiltins+s} in
-		s)	case $CCn$kshbuiltins$CCn in
-			*"$CCn$d/$p$CCn"*)
-				if	test ! -e "$d/$p"
-				then	# only use pathbound builtins on ksh versions that can run them by direct path
-					"$d/$p" --version >/dev/null 2>&1
-					case $? in
-					0|2)	p=$d/$p
-						break ;;
-					esac
-				fi
-			esac ;;
 		esac
 		if	test -x "$d/$p"
 		then	p=$d/$p
