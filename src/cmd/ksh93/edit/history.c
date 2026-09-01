@@ -99,7 +99,6 @@ static int	hist_check(int);
 static int	hist_clean(int);
 static ssize_t	hist_write(Sfio_t*, const void*, size_t, Sfdisc_t*);
 static int	hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
-static int	hist_lockfd(const char*);
 static int	hist_setlock(int, short);
 static int	hist_lock(History_t*);
 static void	hist_unlock(History_t*);
@@ -194,18 +193,6 @@ done:
 static const unsigned char hist_stamp[2] = { HIST_UNDO, HIST_VERSION };
 static const Sfdisc_t hist_disc = { NULL, hist_write, NULL, hist_exceptf, NULL};
 
-static int hist_lockfd(const char *histname)
-{
-	char *lockname;
-	size_t n = strlen(histname) + 6;
-	int fd;
-	lockname = sh_malloc(n);
-	sfsprintf(lockname, n, "%s.lock", histname);
-	fd = sh_open(lockname, O_BINARY|O_RDWR|O_CREAT|O_cloexec, S_IRUSR|S_IWUSR);
-	free(lockname);
-	return fd;
-}
-
 static int hist_setlock(int fd, short type)
 {
 	struct flock lock;
@@ -254,7 +241,7 @@ static void hist_touch(void *handle)
  */
 int  sh_histinit(void)
 {
-	int fd;
+	int fd = -1;
 	History_t *hp;
 	char *histname;
 	char *fname=0;
@@ -274,16 +261,7 @@ int  sh_histinit(void)
 		stkseek(sh.stk,offset);
 		histname = stkptr(sh.stk,offset);
 	}
-retry:
 	cp = path_relative(histname);
-	if((lockfd = hist_lockfd(cp)) >= 0)
-	{
-		if(hist_setlock(lockfd, F_WRLCK) < 0)
-		{
-			sh_close(lockfd);
-			lockfd = -1;
-		}
-	}
 	if(!histinit)
 		histmode = S_IRUSR|S_IWUSR;
 	if((fd=sh_open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)
@@ -296,21 +274,24 @@ retry:
 			fd=n;
 		}
 	}
+	if(fd >= 0 && hist_setlock(fd, F_WRLCK) == 0)
+		lockfd = fd;
 	/* make sure that file has history file format */
 	if(hsize && hist_check(fd))
 	{
-		sh_close(fd);
-		hsize = 0;
-		if(unlink(cp)>=0)
+		if(ftruncate(fd, (off_t)0) >= 0)
+		{
+			lseek(fd,0,SEEK_SET);
+			hsize = 0;
+		}
+		else
 		{
 			if(lockfd >= 0)
-			{
 				hist_setlock(lockfd, F_UNLCK);
-				sh_close(lockfd);
-			}
-			goto retry;
+			sh_close(fd);
+			fd = -1;
+			lockfd = -1;
 		}
-		fd = -1;
 	}
 	if(fd < 0)
 	{
@@ -443,10 +424,9 @@ retry:
 	return 1;
 fail:
 	if(lockfd >= 0)
-	{
 		hist_setlock(lockfd, F_UNLCK);
-		sh_close(lockfd);
-	}
+	if(fd >= 0)
+		sh_close(fd);
 	return 0;
 }
 
@@ -455,7 +435,11 @@ fail:
  */
 void hist_close(History_t *hp)
 {
-	int lockfd = hp->histlockfd;
+	if(hp->histlockfd >= 0 && hp->histlockcnt > 0)
+	{
+		hp->histlockcnt = 1;
+		hist_unlock(hp);
+	}
 	sfclose(hp->histfp);
 #if SHOPT_AUDIT
 	if(hp->auditfp)
@@ -465,11 +449,6 @@ void hist_close(History_t *hp)
 		sfclose(hp->auditfp);
 	}
 #endif /* SHOPT_AUDIT */
-	if(lockfd >= 0)
-	{
-		hist_setlock(lockfd, F_UNLCK);
-		sh_close(lockfd);
-	}
 	free(hp);
 	hist_ptr = 0;
 	sh.hist_ptr = 0;
@@ -508,48 +487,30 @@ static int hist_clean(int fd)
  */
 static History_t* hist_trim(History_t *hp, int n)
 {
-	char *cp, *tmpname;
+	char *cp, *tmpname = NULL;
 	int incmd=1, c=0;
-	int fd, i, index;
-	mode_t mode = S_IRUSR|S_IWUSR;
+	int fd, index, r;
+	int histfd = sffileno(hp->histfp);
 	History_t *hist_old = hp;
-	Sfio_t *hist_new, *new_histfp;
+	Sfio_t *hist_new;
 	char *buff, *endbuff;
 	char tmpbuff[HIST_BSIZE+1];
 	char locbuff[HIST_MARKSZ];
+	char copybuff[HIST_BSIZE];
 	off_t oldp, newp;
 	off_t histcnt = 2, histmarker = 2;
 	int histind = 1;
-	struct stat statb;
-	tmpname = sh_malloc(strlen(hist_old->histname) + 64);
-	fd = -1;
-	for(i=0; i < 64; i++)
-	{
-		sfsprintf(tmpname, strlen(hist_old->histname)+64, "%s.tmp.%jd.%d", hist_old->histname, (intmax_t)sh.current_pid, i);
-		if((fd = sh_open(tmpname,O_BINARY|O_RDWR|O_CREAT|O_EXCL|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
-			break;
-		if(errno != EEXIST)
-			break;
-	}
+	tmpname = pathtmp(NULL,0,0,NULL);
+	if(!tmpname)
+		goto trimfail;
+	fd = sh_open(tmpname,O_BINARY|O_RDWR|O_CREAT|O_EXCL|O_cloexec,S_IRUSR|S_IWUSR);
 	if(fd < 0)
-	{
-		free(tmpname);
-		errormsg(SH_DICT,ERROR_warn(0),"cannot create temporary history file for %s",hist_old->histname);
-		return hist_ptr = hist_old;
-	}
-	if(fstat(sffileno(hist_old->histfp),&statb)>=0)
-	{
-		mode = statb.st_mode;
-		fchmod(fd, mode);
-	}
-	hist_new = sfnew(NULL,tmpbuff,HIST_BSIZE,fd,SFIO_WRITE);
+		goto trimfail;
+	hist_new = sfnew(NULL,tmpbuff,HIST_BSIZE,fd,SFIO_READ|SFIO_WRITE);
 	if(!hist_new)
 	{
 		sh_close(fd);
-		unlink(tmpname);
-		free(tmpname);
-		errormsg(SH_DICT,ERROR_warn(0),"cannot open temporary history stream for %s",hist_old->histname);
-		return hist_ptr = hist_old;
+		goto trimfail;
 	}
 	sfwrite(hist_new,(char*)hist_stamp,2);
 	if(--n < 0)
@@ -590,39 +551,41 @@ static History_t* hist_trim(History_t *hp, int n)
 	}
 	sfputc(hist_new,HIST_UNDO);
 	sfputc(hist_new,0);
-	sfsync(hist_new);
-	sfclose(hist_new);
-	if(rename(tmpname,hist_old->histname) < 0)
+	if(sfsync(hist_new) < 0 || sfseek(hist_new,(off_t)0,SEEK_SET) < 0)
 	{
-		unlink(tmpname);
-		free(tmpname);
-		errormsg(SH_DICT,ERROR_warn(0),"cannot replace history file %s during trim",hist_old->histname);
-		return hist_ptr = hist_old;
+		sfclose(hist_new);
+		goto trimfail;
 	}
-	free(tmpname);
-	if((fd = sh_open(hist_old->histname,O_BINARY|O_APPEND|O_RDWR|O_cloexec,mode)) < 0)
+	if(sfsync(hist_old->histfp) < 0 || ftruncate(histfd,(off_t)0) < 0 || lseek(histfd,(off_t)0,SEEK_SET) < 0)
 	{
-		errormsg(SH_DICT,ERROR_warn(0),"cannot reopen history file %s after trim",hist_old->histname);
-		return hist_ptr = hist_old;
+		sfclose(hist_new);
+		goto trimfail;
 	}
-	if(fd > 0 && fd < 10)
+	while((r=sfread(hist_new,copybuff,sizeof(copybuff))) > 0)
 	{
-		if((i = sh_fcntl(fd, F_dupfd_cloexec, 10)) >= 0)
+		char *cpw = copybuff;
+		ssize_t left = r;
+		while(left > 0)
 		{
-			sh_close(fd);
-			fd = i;
+			ssize_t wr = write(histfd,cpw,(size_t)left);
+			if(wr < 0)
+			{
+				sfclose(hist_new);
+				goto trimfail;
+			}
+			cpw += wr;
+			left -= wr;
 		}
 	}
-	new_histfp = sfnew(NULL,NULL,(size_t)-1,fd,SFIO_READ|SFIO_WRITE|SFIO_APPENDWR|SFIO_SHARE);
-	if(!new_histfp)
+	if(r < 0 || sfsync(hist_old->histfp) < 0 || sfseek(hist_old->histfp,(off_t)0,SEEK_END) < 0)
 	{
-		sh_close(fd);
-		errormsg(SH_DICT,ERROR_warn(0),"cannot recreate history stream for %s after trim",hist_old->histname);
-		return hist_ptr = hist_old;
+		sfclose(hist_new);
+		goto trimfail;
 	}
-	sfclose(hist_old->histfp);
-	hist_old->histfp = new_histfp;
-	sfsetbuf(hist_old->histfp, hist_old->histbuff, HIST_BSIZE);
+	sfclose(hist_new);
+	unlink(tmpname);
+	free(tmpname);
+	sfpurge(hist_old->histfp);
 	memset((char*)hist_old->histcmds,0,sizeof(off_t)*(size_t)(hist_old->histmask+1));
 	index = histinit;
 	hist_old->histind = 1;
@@ -631,6 +594,14 @@ static History_t* hist_trim(History_t *hp, int n)
 	histinit = 1;
 	hist_eof(hist_old);
 	histinit = index;
+	return hist_ptr = hist_old;
+trimfail:
+	if(tmpname)
+	{
+		unlink(tmpname);
+		free(tmpname);
+	}
+	errormsg(SH_DICT,ERROR_warn(0),"could not trim %s; export TMPDIR as a directory with appropriate permissions",hist_old->histname);
 	return hist_ptr = hist_old;
 }
 
