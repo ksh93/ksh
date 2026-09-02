@@ -211,6 +211,8 @@ int  sh_histinit(void)
 
 	if(sh.hist_ptr=hist_ptr)
 		return 1;
+	if(sh.subshell && !sh.subshare)
+		sh_subfork();
 	if(!(histname = nv_getval(HISTFILE)))
 	{
 		ptrdiff_t offset = stktell(sh.stk);
@@ -274,6 +276,7 @@ retry:
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
+	sh.fdstatus[fd] = IOHIST;  /* tell sftrack to set IOCLEX (close-on-exec bit) */
 	hp->histfp= sfnew(NULL,hp->histbuff,HIST_BSIZE,fd,SFIO_READ|SFIO_WRITE|SFIO_APPENDWR|SFIO_SHARE);
 	memset((char*)hp->histcmds,0,sizeof(off_t)*(size_t)(hp->histmask+1));
 	hp->histind = 1;
@@ -355,6 +358,7 @@ retry:
 					sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 				tty = ttyname(2);
 				hp->tty = sh_strdup(tty?tty:"notty");
+				sh.fdstatus[fd] = IOHIST;  /* tell sftrack to set IOCLEX (close-on-exec bit) */
 				hp->auditfp = sfnew(NULL,NULL,(size_t)-1,fd,SFIO_WRITE);
 			}
 		}

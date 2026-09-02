@@ -44,6 +44,7 @@
 #define IOTTY 		040U
 #define IOCLEX 		0100U
 #define IOCLOSE		(IOSEEK|IONOSEEK)
+#define IOHIST		(IOCLOSE|IOCLEX)
 
 #define IOSUBSHELL	0x8000	/* must be larger than any file descriptor */
 #define IOPICKFD	0x10000 /* file descriptor number was selected automatically */
