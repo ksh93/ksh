@@ -288,7 +288,7 @@ int  sh_histinit(void)
 	if(!histinit)
 		histmode = S_IRUSR|S_IWUSR;
 	if((fd=sh_open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)
-		hsize=lseek(fd,0,SEEK_END);
+		hsize=0;
 	if(fd > 0 && fd < 10)
 	{
 		if((n=sh_fcntl(fd,F_dupfd_cloexec,10))>=0)
@@ -298,7 +298,13 @@ int  sh_histinit(void)
 		}
 	}
 	if(fd >= 0 && hist_setlock(fd, F_WRLCK) == 0)
+	{
 		lockfd = fd;
+		if((hsize=lseek(fd,0,SEEK_END)) < 0)
+			hsize = 0;
+	}
+	else if(fd >= 0 && (hsize=lseek(fd,0,SEEK_END)) < 0)
+		hsize = 0;
 	/* make sure that file has history file format */
 	if(hsize && hist_check(fd))
 	{
