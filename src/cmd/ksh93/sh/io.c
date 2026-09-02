@@ -2328,12 +2328,14 @@ static void	sftrack(Sfio_t* sp, int flag, void* data)
 		return;
 	if(flag==SFIO_NEW)
 	{
-		if(!sh.sftable[fd] && sh.fdstatus[fd]==IOCLOSE)
+		if(!sh.sftable[fd] && (sh.fdstatus[fd]==IOCLOSE || sh.fdstatus[fd]==IOHIST))
 		{
 			uint8_t fdstatus = (mode&SFIO_WRITE)?IOWRITE:0;
 			sh.sftable[fd] = sp;
 			if(mode&SFIO_READ)
 				fdstatus |= IOREAD;
+			if(sh.fdstatus[fd]==IOHIST)
+				fdstatus |= IOCLEX;  /* the file descriptor has the close-on-exec bit */
 			sh.fdstatus[fd] = fdstatus;
 			sh_iostream(fd,0);
 		}
