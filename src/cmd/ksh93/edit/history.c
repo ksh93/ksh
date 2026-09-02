@@ -392,6 +392,14 @@ int  sh_histinit(void)
 			first = hist_nearend(hp,hp->histfp,hsize-size);
 			hp->histind = first;
 		}
+		if(hist_start <= 1)
+		{
+			hist_start = 1;
+			hp->histind = 1;
+			hp->histcnt = 2;
+			hp->histcmds[1] = 2;
+			sfseek(hp->histfp,(off_t)2,SEEK_SET);
+		}
 		histinit = hist_start;
 		hist_eof(hp);
 		if(!histinit)
@@ -525,10 +533,9 @@ static History_t* hist_trim(History_t *hp, int n)
 	Sfio_t *hist_new = NULL;
 	char *buff, *endbuff;
 	char tmpbuff[HIST_BSIZE+1];
-	char locbuff[HIST_MARKSZ];
 	char copybuff[HIST_BSIZE];
 	off_t oldp, newp;
-	off_t histcnt = 2, histmarker = 2;
+	off_t histcnt = 2;
 	int histind = 1;
 	tmpname = pathtmp(NULL,0,0,NULL);
 	if(!tmpname)
@@ -552,13 +559,6 @@ static History_t* hist_trim(History_t *hp, int n)
 		if(!incmd)
 		{
 			histind++;
-			if(histcnt > histmarker+HIST_BSIZE/2)
-			{
-				hist_marker(locbuff,histind);
-				sfwrite(hist_new,locbuff,HIST_MARKSZ);
-				histcnt += HIST_MARKSZ;
-				histmarker = histcnt;
-			}
 			oldp = newp;
 			newp = hist_seek(hist_old,++n);
 			if(newp <=oldp)
@@ -875,8 +875,7 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	char *bufptr = ((char*)buff)+insize;
 	ssize_t size = (ssize_t)insize;
 	off_t cur;
-	int c,saved=0;
-	char saveptr[HIST_MARKSZ];
+	int c;
 	hist_lock(hp);
 	if(!hp->histflush)
 	{
@@ -943,19 +942,8 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	hp->histcnt += size;
 	c = hist_ind(hp,++hp->histind);
 	hp->histcmds[c] = hp->histcnt;
-	if(hp->histflush>HIST_MARKSZ && hp->histcnt > hp->histmarker+HIST_BSIZE/2)
-	{
-		memcpy(saveptr,bufptr,HIST_MARKSZ);
-		saved=1;
-		hp->histcnt += HIST_MARKSZ;
-		hist_marker(bufptr,hp->histind);
-		hp->histmarker = hp->histcmds[hist_ind(hp,c)] = hp->histcnt;
-		size += HIST_MARKSZ;
-	}
 	errno = 0;
 	size = write(sffileno(iop),(char*)buff,(size_t)size);
-	if(saved)
-		memcpy(bufptr,saveptr,HIST_MARKSZ);
 	if(size>=0)
 	{
 		hp->histwfail = 0;

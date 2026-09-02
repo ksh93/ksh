@@ -355,7 +355,9 @@ skip2:
 		errormsg(SH_DICT,ERROR_system(1),msg);
 		UNREACHABLE();
 	}
-	if(!(outfile=sh.sftable[fd]))
+	if(sflag)
+		outfile = sh.hist_ptr->histfp;
+	else if(!(outfile=sh.sftable[fd]))
 	{
 		unsigned short sfflags = SFIO_WRITE|((fdmode&IOREAD)?SFIO_READ:0);
 		sh_onstate(SH_NOTRACK);
@@ -364,7 +366,10 @@ skip2:
 		sfpool(outfile,sh.outpool,SFIO_WRITE);
 	}
 	/* turn off share to guarantee atomic writes for printf */
-	n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
+	if(!sflag)
+		n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
+	else
+		n = SFIO_SHARE;
 printf_v:
 	if(format)
 	{
