@@ -131,7 +131,7 @@ static void lex_advance(Sfio_t *iop, const char *buff, ptrdiff_t size, void *con
 	/* write to history file and to stderr if necessary */
 	if(iop && !sfstacked(iop))
 	{
-		if(sh_isstate(SH_HISTORY) && sh.hist_ptr)
+		if(sh_isstate(SH_HISTORY) && sh.hist_ptr && sh.infd>=0 && (sh.fdstatus[sh.infd]&IOTTY))
 			sfwrite(sh.hist_ptr->histfp, buff, (size_t)size);
 		if(sh_isstate(SH_VERBOSE))
 			sfwrite(sfstderr, buff, (size_t)size);

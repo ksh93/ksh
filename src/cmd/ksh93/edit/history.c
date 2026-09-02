@@ -199,6 +199,35 @@ static int hist_setlock(int fd, short type)
 	return 0;
 }
 
+static int hist_rewrite_head(History_t *hp, const void *buf, size_t len)
+{
+	int fd = hp->histlockfd;
+	int flags;
+	ssize_t wr;
+	if(fd < 0)
+		return -1;
+	if((flags = fcntl(fd, F_GETFL)) < 0)
+		return -1;
+	if((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) < 0)
+		return -1;
+	if(lseek(fd, (off_t)0, SEEK_SET) < 0)
+	{
+		if(flags&O_APPEND)
+			fcntl(fd, F_SETFL, flags);
+		return -1;
+	}
+	wr = write(fd, buf, len);
+	if(flags&O_APPEND)
+		fcntl(fd, F_SETFL, flags);
+	if(wr != (ssize_t)len)
+		return -1;
+	if(sfseek(hp->histfp, (off_t)0, SEEK_END) < 0)
+		return -1;
+	if(sfpurge(hp->histfp) < 0)
+		return -1;
+	return 0;
+}
+
 static int hist_lock(History_t *hp)
 {
 	if(!hp || hp->histlockfd < 0)
@@ -771,14 +800,10 @@ again:
 			hp->histind = 1;
 		if(last<0)
 		{
-			char	buff[HIST_MARKSZ];
-			hist_marker(buff,hp->histind);
-			if(sfseek(hp->histfp,(off_t)0,SEEK_SET) >= 0)
-			{
-				sfwrite(hp->histfp,(char*)hist_stamp,2);
-				sfwrite(hp->histfp,buff,HIST_MARKSZ);
-				sfsync(hp->histfp);
-			}
+			char buff[2+HIST_MARKSZ];
+			memcpy(buff,(char*)hist_stamp,2);
+			hist_marker(buff+2,hp->histind);
+			hist_rewrite_head(hp,buff,sizeof(buff));
 		}
 		last = 0;
 		goto again;
