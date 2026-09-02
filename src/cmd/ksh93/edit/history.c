@@ -289,6 +289,7 @@ int  sh_histinit(void)
 	}
 	if(fd < 0)
 	{
+		errormsg(SH_DICT,ERROR_warn(0),e_histinittemp,histname);
 		/* don't allow root a history_file in /tmp */
 		if(sh.userid)
 		{
@@ -483,7 +484,8 @@ static History_t* hist_trim(History_t *hp, int n)
 {
 	char *cp, *tmpname = NULL;
 	int incmd=1, c=0;
-	int fd, index, r;
+	int fd, index;
+	ssize_t r;
 	int histfd = sffileno(hp->histfp);
 	History_t *hist_old = hp;
 	Sfio_t *hist_new;
