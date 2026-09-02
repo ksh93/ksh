@@ -46,7 +46,6 @@ const char e_query[]		= "no query process";
 const char e_history[]		= "no history file";
 const char e_histopen[]		= "cannot open history file";
 const char e_histtrim[]		= "could not trim %s; export TMPDIR as a directory with appropriate permissions";
-const char e_histinittemp[]	= "failed to init %s; history will not survive shell session";
 #endif /* !SHOPT_SCRIPTONLY */
 const char e_optincompat1[]	= "%s cannot be used with other options";
 const char e_optincompat2[]	= "%s cannot be used with %s";

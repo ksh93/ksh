@@ -289,7 +289,6 @@ int  sh_histinit(void)
 	}
 	if(fd < 0)
 	{
-		errormsg(SH_DICT,ERROR_warn(0),e_histinittemp,histname);
 		/* don't allow root a history_file in /tmp */
 		if(sh.userid)
 		{
