@@ -208,9 +208,12 @@ int  sh_histinit(void)
 	int histmask, maxlines, hist_start=0, n;
 	char *cp;
 	off_t hsize = 0;
+	int cloexec = 0;
 
 	if(sh.hist_ptr=hist_ptr)
 		return 1;
+	if(sh.subshell && !sh.subshare)
+		sh_subfork();
 	if(!(histname = nv_getval(HISTFILE)))
 	{
 		ptrdiff_t offset = stktell(sh.stk);
@@ -224,20 +227,25 @@ retry:
 	cp = path_relative(histname);
 	if(!histinit)
 		histmode = S_IRUSR|S_IWUSR;
-	if((fd=sh_open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)
+	if((fd=open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)
 		hsize=lseek(fd,0,SEEK_END);
 	if(fd > 0 && fd < 10)
 	{
-		if((n=sh_fcntl(fd,F_dupfd_cloexec,10))>=0)
+		if((n=fcntl(fd,F_dupfd_cloexec,10))>=0)
 		{
+			if(F_dupfd_cloexec != F_DUPFD)
+				cloexec = 1;
 			sh_close(fd);
 			fd=n;
 		}
+		else if(O_cloexec != 0)
+			cloexec = 1;
 	}
 	/* make sure that file has history file format */
 	if(hsize && hist_check(fd))
 	{
 		sh_close(fd);
+		cloexec = 0;
 		hsize = 0;
 		if(unlink(cp)>=0)
 			goto retry;
@@ -250,13 +258,15 @@ retry:
 		{
 			if(!(fname = pathtmp(NULL,0,0,NULL)))
 				return 0;
-			fd = sh_open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
+			fd = open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
+			if(O_cloexec != 0)
+				cloexec = 1;
 		}
 	}
 	if(fd<0)
 		return 0;
-	if(!(sh.fdstatus[fd]&IOCLEX))
-		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
+	if(!cloexec)
+		fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
 	if(cp=nv_getval(HISTSIZE))
 	{
 		long long m = strtoll(cp, NULL, 10);
