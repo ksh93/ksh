@@ -484,11 +484,11 @@ static History_t* hist_trim(History_t *hp, int n)
 {
 	char *cp, *tmpname = NULL;
 	int incmd=1, c=0;
-	int fd, index;
+	int fd = -1, index, started_copyback = 0;
 	ssize_t r;
 	int histfd = sffileno(hp->histfp);
 	History_t *hist_old = hp;
-	Sfio_t *hist_new;
+	Sfio_t *hist_new = NULL;
 	char *buff, *endbuff;
 	char tmpbuff[HIST_BSIZE+1];
 	char locbuff[HIST_MARKSZ];
@@ -506,6 +506,7 @@ static History_t* hist_trim(History_t *hp, int n)
 	if(!hist_new)
 	{
 		sh_close(fd);
+		fd = -1;
 		goto trimfail;
 	}
 	sfwrite(hist_new,(char*)hist_stamp,2);
@@ -550,35 +551,33 @@ static History_t* hist_trim(History_t *hp, int n)
 	if(sfsync(hist_new) < 0 || sfseek(hist_new,(off_t)0,SEEK_SET) < 0)
 	{
 		sfclose(hist_new);
+		hist_new = NULL;
 		goto trimfail;
 	}
-	if(sfsync(hist_old->histfp) < 0 || ftruncate(histfd,(off_t)0) < 0 || lseek(histfd,(off_t)0,SEEK_SET) < 0)
+	if(sfpurge(hist_old->histfp) < 0 || ftruncate(histfd,(off_t)0) < 0 || sfseek(hist_old->histfp,(off_t)0,SEEK_SET) < 0)
 	{
 		sfclose(hist_new);
+		hist_new = NULL;
 		goto trimfail;
 	}
+	started_copyback = 1;
 	while((r=sfread(hist_new,copybuff,sizeof(copybuff))) > 0)
 	{
-		char *cpw = copybuff;
-		ssize_t left = r;
-		while(left > 0)
+		if(sfwrite(hist_old->histfp,copybuff,(size_t)r) != r)
 		{
-			ssize_t wr = write(histfd,cpw,(size_t)left);
-			if(wr < 0)
-			{
-				sfclose(hist_new);
-				goto trimfail;
-			}
-			cpw += wr;
-			left -= wr;
+			sfclose(hist_new);
+			hist_new = NULL;
+			goto trimfail;
 		}
 	}
 	if(r < 0 || sfsync(hist_old->histfp) < 0 || sfseek(hist_old->histfp,(off_t)0,SEEK_END) < 0)
 	{
 		sfclose(hist_new);
+		hist_new = NULL;
 		goto trimfail;
 	}
 	sfclose(hist_new);
+	hist_new = NULL;
 	unlink(tmpname);
 	free(tmpname);
 	sfpurge(hist_old->histfp);
@@ -592,9 +591,12 @@ static History_t* hist_trim(History_t *hp, int n)
 	histinit = index;
 	return hist_ptr = hist_old;
 trimfail:
+	if(hist_new)
+		sfclose(hist_new);
 	if(tmpname)
 	{
-		unlink(tmpname);
+		if(!started_copyback)
+			unlink(tmpname);
 		free(tmpname);
 	}
 	errormsg(SH_DICT,ERROR_warn(0),e_histtrim,hist_old->histname);
@@ -771,13 +773,12 @@ again:
 		if(last<0)
 		{
 			char	buff[HIST_MARKSZ];
-			int	fd = open(hp->histname,O_RDWR|O_cloexec);
-			if(fd>=0)
+			hist_marker(buff,hp->histind);
+			if(sfseek(hp->histfp,(off_t)0,SEEK_SET) >= 0)
 			{
-				hist_marker(buff,hp->histind);
-				write(fd,(char*)hist_stamp,2);
-				write(fd,buff,HIST_MARKSZ);
-				sh_close(fd);
+				sfwrite(hp->histfp,(char*)hist_stamp,2);
+				sfwrite(hp->histfp,buff,HIST_MARKSZ);
+				sfsync(hp->histfp);
 			}
 		}
 		last = 0;
@@ -1257,7 +1258,7 @@ done:
  */
 static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 {
-	int newfd,oldfd;
+	int newfd,oldfd,lockcnt=0,relock=0;
 	History_t *hp = (History_t*)handle;
 	NOT_USED(data);
 	if(type==SFIO_WRITE)
@@ -1265,7 +1266,17 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 		if(errno==ENOSPC || hp->histwfail++ >= 10)
 			return 0;
 		/* write failure could be NFS problem, try to reopen */
-		sh_close(oldfd=sffileno(fp));
+		oldfd = sffileno(fp);
+		if(oldfd < 0)
+			return -1;
+		if(hp->histlockfd==oldfd && hp->histlockcnt>0)
+		{
+			relock = 1;
+			lockcnt = hp->histlockcnt;
+			hp->histlockfd = -1;
+			hp->histlockcnt = 0;
+		}
+		sh_close(oldfd);
 		if((newfd=sh_open(hp->histname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
 		{
 			if(newfd != oldfd)
@@ -1276,8 +1287,24 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 				{
 					if(dupfd > -1)
 						sh_close(dupfd);
+					if(relock)
+					{
+						hp->histlockfd = oldfd;
+						hp->histlockcnt = 0;
+					}
 					return -1;
 				}
+			}
+			if(relock)
+			{
+				if(hist_setlock(oldfd,F_WRLCK) < 0)
+				{
+					hp->histlockfd = oldfd;
+					hp->histlockcnt = 0;
+					return -1;
+				}
+				hp->histlockfd = oldfd;
+				hp->histlockcnt = lockcnt;
 			}
 			if(!(sh.fdstatus[oldfd]&IOCLEX))
 				sh_fcntl(oldfd,F_SETFD,FD_CLOEXEC);
@@ -1293,6 +1320,11 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 				hp->histind = index;
 			}
 			return 1;
+		}
+		if(relock)
+		{
+			hp->histlockfd = oldfd;
+			hp->histlockcnt = 0;
 		}
 		errormsg(SH_DICT,2,"History file write error-%d %s: file unrecoverable",errno,hp->histname);
 		return -1;
