@@ -421,6 +421,8 @@ printf_v:
 #if !SHOPT_SCRIPTONLY
 	else if(sflag)
 	{
+		if(n&SFIO_SHARE)
+			sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,1);
 		hist_flush(sh.hist_ptr);
 		sh_offstate(SH_HISTORY);
 	}
