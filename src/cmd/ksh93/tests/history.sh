@@ -25,7 +25,7 @@
 # Basic sanity: a single interactive session writes and retains history
 
 histfile=$tmp/hist_basic
-got=$( set +x; HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic '
+got=$(HISTFILE=$histfile HISTSIZE=512 "$SHELL" +E -ic '
 	print -s "echo alpha"
 	print -s "echo bravo"
 	print -s "echo charlie"
@@ -42,11 +42,11 @@ got=$( set +x; HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic '
 # visible to a subsequent session using the same HISTFILE.
 
 histfile=$tmp/hist_reopen
-HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic '
+HISTFILE=$histfile HISTSIZE=512 "$SHELL" +E -ic '
 	print -s "first_session_cmd"
 	exit
 ' </dev/null 2>/dev/null
-got=$( set +x; HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic '
+got=$(HISTFILE=$histfile HISTSIZE=512 "$SHELL" +E -ic '
 	hist -l -N 5 2>/dev/null
 	exit
 ' 2>/dev/null )
@@ -56,19 +56,18 @@ got=$( set +x; HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic '
 
 # ======
 # Concurrent writes: N sessions writing to the same HISTFILE should not
-# lose entries.  This is the scenario described in issue #997.
+# lose entries. See https://github.com/ksh93/ksh/issues/997
 #
-# We spawn several background shells that each write a unique set of
+# Spawn several background shells that each write a unique set of
 # lines, wait for all of them, then verify all entries exist.
 
 histfile=$tmp/hist_concurrent
-n_sessions=5
-n_lines=20
+typeset -i n_sessions=64 n_lines=255 s present total
 
 for ((s=0; s<n_sessions; s++))
-do
-	HISTFILE=$histfile HISTSIZE=$((n_sessions * n_lines + 100)) \
-	$SHELL +E -ic "
+do	HISTFILE=$histfile HISTSIZE=$((n_sessions * n_lines + 100)) \
+	"$SHELL" +E -ic "
+		typeset -i i
 		for ((i=0; i<$n_lines; i++))
 		do	print -s \"session_${s}_cmd_\${i}\"
 		done
@@ -76,32 +75,20 @@ do
 	" </dev/null 2>/dev/null &
 done
 wait
-
 # Read back: all entries should be present
-got=$( set +x; HISTFILE=$histfile HISTSIZE=$((n_sessions * n_lines + 100)) \
-	$SHELL +E -ic 'hist -l -N '$((n_sessions * n_lines + 50))' 2>/dev/null; exit' 2>/dev/null )
-missing=0
-for ((s=0; s<n_sessions; s++))
-do
-	for ((i=0; i<n_lines; i++))
-	do	[[ $got == *"session_${s}_cmd_${i}"* ]] || ((missing++))
-	done
-done
-# Allow a small margin for inherent raciness on systems without working
-# fcntl locking, but the majority should survive.
-total=$((n_sessions * n_lines))
-threshold=$(( total * 80 / 100 ))
-present=$(( total - missing ))
-(( present >= threshold )) \
-	|| err_exit "concurrent history writes: only $present/$total entries survived" \
-		"(expected at least $threshold)"
+# (for reasonable processing speed, just count the lines and don't check their contents)
+((total = n_sessions * n_lines))
+present=$(HISTFILE=$histfile HISTSIZE=$((n_sessions * n_lines + 100)) \
+	"$SHELL" -c "hist -l -N $((n_sessions * n_lines + 50))" | wc -l)
+((present == total)) || err_exit "concurrent history writes: only $present/$total entries survived" # \
+unset n_sessions n_lines s present total
 
 # ======
 # History trimming: writing more than HISTSIZE entries should trigger
 # a trim, and the most recent entries should be retained.
 
 histfile=$tmp/hist_trim
-HISTFILE=$histfile HISTSIZE=50 $SHELL +E -ic '
+HISTFILE=$histfile HISTSIZE=50 "$SHELL" +E -ic '
 	for ((i=0; i<100; i++))
 	do	print -s "trimtest_cmd_${i}"
 	done
@@ -109,7 +96,7 @@ HISTFILE=$histfile HISTSIZE=50 $SHELL +E -ic '
 ' </dev/null 2>/dev/null
 # The last 50 entries (trimtest_cmd_50 .. trimtest_cmd_99) should survive;
 # the first entries should have been trimmed away.
-got=$( set +x; HISTFILE=$histfile HISTSIZE=50 $SHELL +E -ic '
+got=$(HISTFILE=$histfile HISTSIZE=50 "$SHELL" +E -ic '
 	hist -l -N 60 2>/dev/null
 	exit
 ' 2>/dev/null )
@@ -121,17 +108,14 @@ got=$( set +x; HISTFILE=$histfile HISTSIZE=50 $SHELL +E -ic '
 
 # ======
 # Concurrent writes during trim: multiple sessions write enough to
-# trigger trimming while other sessions are also writing.  Verify no
+# trigger trimming while other sessions are also writing. Verify no
 # crash and that the file remains a valid history file.
 
 histfile=$tmp/hist_trim_race
-n_sessions=4
-n_lines=80
-histsize=60
+typeset -i n_sessions=4 n_lines=80 histsize=60 s
 
 for ((s=0; s<n_sessions; s++))
-do
-	HISTFILE=$histfile HISTSIZE=$histsize $SHELL +E -ic "
+do	HISTFILE=$histfile HISTSIZE=$histsize "$SHELL" +E -ic "
 		for ((i=0; i<$n_lines; i++))
 		do	print -s \"trim_race_${s}_cmd_\${i}\"
 		done
@@ -141,7 +125,7 @@ done
 wait
 
 # Verify the file is still usable (ksh can open it and read history)
-got=$( set +x; HISTFILE=$histfile HISTSIZE=$histsize $SHELL +E -ic '
+got=$(HISTFILE=$histfile HISTSIZE=$histsize "$SHELL" +E -ic '
 	hist -l -N 10 2>/dev/null
 	exit
 ' 2>/dev/null )
@@ -150,17 +134,20 @@ got=$( set +x; HISTFILE=$histfile HISTSIZE=$histsize $SHELL +E -ic '
 	|| err_exit "history file not usable after concurrent trim" \
 		"(empty hist -l output)"
 
+unset n_sessions n_lines histsize s
+
 # ======
 # History file with non-writable parent directory: verify that trim
-# still works (the new code uses ftruncate+copyback via TMPDIR rather
-# than unlink+recreate).
+# still works (the new code truncates the history file in place and
+# copies the trimmed version back from a temporary file, instead of
+# recreating and unlinking the history file).
 
 if	(( $(id -u) != 0 ))
 then	histdir=$tmp/hist_noperm_dir
 	mkdir "$histdir"
 	histfile=$histdir/sh_history
 	# Pre-create the history file while directory is writable
-	HISTFILE=$histfile HISTSIZE=50 $SHELL +E -ic '
+	HISTFILE=$histfile HISTSIZE=50 "$SHELL" +E -ic '
 		for ((i=0; i<80; i++))
 		do	print -s "noperm_cmd_${i}"
 		done
@@ -168,7 +155,7 @@ then	histdir=$tmp/hist_noperm_dir
 	' </dev/null 2>/dev/null
 	# Now make parent non-writable and try again -- trim should still work
 	chmod a-w "$histdir"
-	got=$( set +x; HISTFILE=$histfile HISTSIZE=50 $SHELL +E -ic '
+	got=$(HISTFILE=$histfile HISTSIZE=50 "$SHELL" +E -ic '
 		print -s "after_chmod_cmd"
 		hist -l -N 5 2>/dev/null
 		exit
@@ -181,24 +168,22 @@ fi
 
 # ======
 # Rapidly alternating sessions: open, write one entry, close; repeat
-# with the same HISTFILE.  Tests lock acquire/release cycling.
+# with the same HISTFILE. Tests lock acquire/release cycling.
 
 histfile=$tmp/hist_cycle
 for ((s=0; s<10; s++))
-do
-	HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic "
+do	HISTFILE=$histfile HISTSIZE=512 "$SHELL" +E -ic "
 		print -s \"cycle_cmd_$s\"
 		exit
 	" </dev/null 2>/dev/null
 done
-got=$( set +x; HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic '
+got=$(HISTFILE=$histfile HISTSIZE=512 "$SHELL" +E -ic '
 	hist -l -N 15 2>/dev/null
 	exit
 ' 2>/dev/null )
 missing=0
 for ((s=0; s<10; s++))
-do
-	[[ $got == *"cycle_cmd_$s"* ]] || ((missing++))
+do	[[ $got == *"cycle_cmd_$s"* ]] || ((missing++))
 done
 (( missing == 0 )) \
 	|| err_exit "sequential session cycling: $missing/10 entries lost" \
@@ -209,17 +194,16 @@ done
 # no corruption or crashes.
 
 histfile=$tmp/hist_stress
-n_sessions=20
+typeset -i n_sessions=200 s
 for ((s=0; s<n_sessions; s++))
-do
-	HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic "
+do	HISTFILE=$histfile HISTSIZE=512 "$SHELL" +E -ic "
 		print -s \"stress_cmd_$s\"
 		exit
 	" </dev/null 2>/dev/null &
 done
 wait
 # Verify no crash and file is parseable
-got=$( set +x; HISTFILE=$histfile HISTSIZE=512 $SHELL +E -ic '
+got=$(HISTFILE=$histfile HISTSIZE=512 "$SHELL" +E -ic '
 	hist -l -N 1 2>/dev/null
 	exit
 ' 2>/dev/null )
@@ -230,6 +214,8 @@ got=$(dd if="$histfile" bs=1 count=1 2>/dev/null | od -An -tx1 | tr -d ' ')
 [[ $got == 81 ]] \
 	|| err_exit "history file magic byte corrupted after stress test" \
 		"(expected 81, got $(printf %q "$got"))"
+
+unset n_sessions s
 
 # ======
 exit $((Errors<125?Errors:125))
