@@ -146,12 +146,12 @@ extern Error_info_t*	_error_infop_;
 
 #define error_info	(*_error_infop_)
 
-extern void		error(int, ...);
-extern int		errormsg(const char*, int, ...);
-extern int		errorf(void*, void*, int, ...);
-extern void		errorv(const char*, int, va_list);
+extern void		error(int, ...) cold;
+extern int		errormsg(const char*, int, ...) cold;
+extern int		errorf(void*, void*, int, ...) cold;
+extern void		errorv(const char*, int, va_list) cold;
 #ifndef errorx
-extern char*		errorx(const char*, const char*, const char*, const char*);
+extern char*		errorx(const char*, const char*, const char*, const char*) cold;
 #endif
 
 #endif

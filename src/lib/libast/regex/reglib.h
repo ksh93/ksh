@@ -570,6 +570,6 @@ extern State_t		state;
 extern void*		alloc(regdisc_t*, void*, size_t);
 extern regclass_t	classfun(int);
 extern void		drop(regdisc_t*, Rex_t*);
-extern int		fatal(regdisc_t*, int, const char*);
+extern int		fatal(regdisc_t*, int, const char*) cold;
 
 #endif

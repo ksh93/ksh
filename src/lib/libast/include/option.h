@@ -76,9 +76,9 @@ extern Opt_t*		_opt_infop_;
 
 extern int		optget(char**, const char*);
 extern int		optjoin(char**, ...);
-extern char*		opthelp(const char*, const char*);
-extern char*		optusage(const char*);
-extern int		optselfdoc(void);
+extern char*		opthelp(const char*, const char*) cold;
+extern char*		optusage(const char*) cold;
+extern int		optselfdoc(void) cold;
 extern int		optstr(const char*, const char*);
 extern int		optesc(Sfio_t*, const char*, int);
 extern Opt_t*		optctx(Opt_t*, Opt_t*);

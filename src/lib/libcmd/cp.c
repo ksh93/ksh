@@ -194,7 +194,7 @@ typedef struct State_s			/* program state		*/
 
 static const char	dot[2] = { '.' };
 
-static void noreturn
+static cold void noreturn
 outofmemory(State_t *state)
 {
 	if (state)

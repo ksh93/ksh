@@ -136,7 +136,7 @@ static State_t			state =
 	ASO_METHOD, ASO_LOCKF
 };
 
-static int
+static cold int
 asoerror(int type, const char* format, const char* a, const char* b, unsigned int n)
 {
 	char	buf[128];

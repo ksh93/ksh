@@ -422,7 +422,7 @@ typedef struct Sha256_s
 	(h) = T1 + Sigma0_256(a) + Maj((a), (b), (c)); \
 	j++
 
-static void SHA256_Transform(SHA256_CTX* sha, const sha2_word32* data) {
+static vecdisp void SHA256_Transform(SHA256_CTX* sha, const sha2_word32* data) {
 	sha2_word32	a, b, c, d, e, f, g, h, s0, s1;
 	sha2_word32	T1, *W256;
 	int		j;
@@ -480,7 +480,7 @@ static void SHA256_Transform(SHA256_CTX* sha, const sha2_word32* data) {
 
 #else /* SHA2_UNROLL_TRANSFORM */
 
-static void SHA256_Transform(SHA256_CTX* sha, const sha2_word32* data) {
+static vecdisp void SHA256_Transform(SHA256_CTX* sha, const sha2_word32* data) {
 	sha2_word32	a, b, c, d, e, f, g, h, s0, s1;
 	sha2_word32	T1, T2, *W256;
 	int		j;
@@ -608,7 +608,7 @@ sha256_block(Sum_t* p, const void* s, size_t len)
 	return 0;
 }
 
-static int
+static vecdisp int
 sha256_init(Sum_t* p)
 {
 	Sha256_t*	sha = (Sha256_t*)p;
@@ -634,7 +634,7 @@ sha256_open(const Method_t* method, const char* name)
 	return (Sum_t*)sha;
 }
 
-static int
+static vecdisp int
 sha256_done(Sum_t* p)
 {
 	Sha256_t*	sha = (Sha256_t*)p;
@@ -846,7 +846,7 @@ static void SHA512_Transform(SHA512_CTX* sha, const sha2_word64* data) {
 
 #else /* SHA2_UNROLL_TRANSFORM */
 
-static void SHA512_Transform(SHA512_CTX* sha, const sha2_word64* data) {
+static vecdisp void SHA512_Transform(SHA512_CTX* sha, const sha2_word64* data) {
 	sha2_word64	a, b, c, d, e, f, g, h, s0, s1;
 	sha2_word64	T1, T2, *W512 = (sha2_word64*)sha->buffer;
 	int		j;
@@ -972,7 +972,7 @@ sha512_block(Sum_t* p, const void* s, size_t len)
 	return 0;
 }
 
-static int
+static vecdisp int
 sha512_init(Sum_t* p)
 {
 	Sha512_t*	sha = (Sha512_t*)p;
@@ -998,7 +998,7 @@ sha512_open(const Method_t* method, const char* name)
 	return (Sum_t*)sha;
 }
 
-static int
+static vecdisp int
 sha512_done(Sum_t* p)
 {
 	Sha512_t*	sha = (Sha512_t*)p;
@@ -1110,7 +1110,7 @@ sha512_data(Sum_t* p, Sumdata_t* data)
 #define SHA384_CTX		Sha384_t
 #define SHA384_DIGEST_LENGTH	48
 
-static int
+static vecdisp int
 sha384_init(Sum_t* p)
 {
 	Sha384_t*	sha = (Sha384_t*)p;

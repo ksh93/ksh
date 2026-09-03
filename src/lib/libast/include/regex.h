@@ -191,7 +191,7 @@ struct regex_s
 #define reginit(disc)	(memset(disc,0,sizeof(*(disc))),(disc)->re_version=REG_VERSION)
 
 extern int	regcomp(regex_t*, const char*, regflags_t);
-extern size_t	regerror(int, const regex_t*, char*, size_t);
+extern size_t	regerror(int, const regex_t*, char*, size_t) cold;
 extern int	regexec(const regex_t*, const char*, size_t, regmatch_t*, regflags_t);
 extern void	regfree(regex_t*);
 
@@ -209,8 +209,8 @@ extern regclass_t regclass(const char*, char**);
 extern int	regaddclass(const char*, regclass_t);
 extern int	regcollate(const char*, char**, char*, size_t, wchar_t*);
 extern int	regnexec(const regex_t*, const char*, size_t, size_t, regmatch_t*, regflags_t);
-extern void	regfatal(regex_t*, int, int);
-extern void	regfatalpat(regex_t*, int, int, const char*);
+extern void	regfatal(regex_t*, int, int) cold;
+extern void	regfatalpat(regex_t*, int, int, const char*) cold;
 extern regstat_t* regstat(const regex_t*);
 
 extern regex_t*	regcache(const char*, regflags_t, int*);

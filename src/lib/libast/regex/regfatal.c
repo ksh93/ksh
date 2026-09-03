@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -26,7 +26,7 @@
 
 #include <error.h>
 
-void
+cold void
 regfatalpat(regex_t* p, int level, int code, const char* pat)
 {
 	char	buf[128];
@@ -39,7 +39,7 @@ regfatalpat(regex_t* p, int level, int code, const char* pat)
 		error(level, "regular expression: %s", buf);
 }
 
-void
+cold void
 regfatal(regex_t* p, int level, int code)
 {
 	regfatalpat(p, level, code, NULL);

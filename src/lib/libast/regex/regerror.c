@@ -52,7 +52,7 @@ static const char*	reg_error[] =
 	/* REG_PANIC	*/	"unrecoverable internal error",
 };
 
-size_t
+cold size_t
 regerror(int code, const regex_t* p, char* buf, size_t size)
 {
 	const char*	s;
@@ -78,7 +78,7 @@ regerror(int code, const regex_t* p, char* buf, size_t size)
  * discipline error intercept
  */
 
-int
+cold int
 fatal(regdisc_t* disc, int code, const char* pattern)
 {
 	if (disc->re_errorf)

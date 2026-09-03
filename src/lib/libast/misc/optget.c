@@ -2367,7 +2367,7 @@ get_terminal_width(void)
  * margin flush pops to previous indent
  */
 
-char*
+cold char*
 opthelp(const char* oopts, const char* what)
 {
 	Sfio_t*		sp;
@@ -4155,7 +4155,7 @@ opthelp(const char* oopts, const char* what)
  * compatibility wrapper to opthelp()
  */
 
-char*
+cold char*
 optusage(const char* opts)
 {
 	return opthelp(opts, NULL);
@@ -4197,7 +4197,7 @@ optnumber(const char* s, char** t, int* e)
  * optget() return value is returned
  */
 
-static int
+static cold int
 opterror(char* p, int err, int version, char* id, char* catalog)
 {
 	Sfio_t*		mp;
@@ -5880,7 +5880,7 @@ optstr(const char* str, const char* opts)
  * Show self-documentation.
  * For "case '?'" in getopt loops.
  */
-int
+cold int
 optselfdoc(void)
 {
 	error(ERROR_USAGE|ERROR_SFIO_OUT, sfstdout, "%s", opt_info.arg);
