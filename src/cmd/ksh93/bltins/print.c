@@ -355,9 +355,12 @@ skip2:
 		errormsg(SH_DICT,ERROR_system(1),msg);
 		UNREACHABLE();
 	}
+#if !SHOPT_SCRIPTONLY
 	if(sflag)
 		outfile = sh.hist_ptr->histfp;
-	else if(!(outfile=sh.sftable[fd]))
+	else
+#endif /* !SHOPT_SCRIPTONLY */
+	if(!(outfile=sh.sftable[fd]))
 	{
 		unsigned short sfflags = SFIO_WRITE|((fdmode&IOREAD)?SFIO_READ:0);
 		sh_onstate(SH_NOTRACK);
@@ -366,10 +369,14 @@ skip2:
 		sfpool(outfile,sh.outpool,SFIO_WRITE);
 	}
 	/* turn off share to guarantee atomic writes for printf */
+#if SHOPT_SCRIPTONLY
+	n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
+#else
 	if(!sflag)
 		n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
 	else
 		n = SFIO_SHARE;
+#endif /* SHOPT_SCRIPTONLY */
 printf_v:
 	if(format)
 	{
@@ -423,19 +430,18 @@ printf_v:
 	}
 	if(vname)
 		nv_putval(vname, sh_struse(outfile), 0);
-#if !SHOPT_SCRIPTONLY
-	else if(sflag)
-	{
-		if(n&SFIO_SHARE)
-			sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,1);
-		hist_flush(sh.hist_ptr);
-		sh_offstate(SH_HISTORY);
-	}
-#endif /* !SHOPT_SCRIPTONLY */
 	else
 	{
 		if(n&SFIO_SHARE)
 			sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,1);
+#if !SHOPT_SCRIPTONLY
+		if(sflag)
+		{
+			hist_flush(sh.hist_ptr);
+			sh_offstate(SH_HISTORY);
+		}
+		else
+#endif /* !SHOPT_SCRIPTONLY */
 		if (sfsync(outfile) < 0)
 			exitval = 1;
 	}
