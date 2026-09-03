@@ -535,8 +535,6 @@ static History_t* hist_trim(History_t *hp, int n)
 	char tmpbuff[HIST_BSIZE+1];
 	char copybuff[HIST_BSIZE];
 	off_t oldp, newp;
-	off_t histcnt = 2;
-	int histind = 1;
 	tmpname = pathtmp(NULL,0,0,NULL);
 	if(!tmpname)
 		goto trimfail;
@@ -558,7 +556,6 @@ static History_t* hist_trim(History_t *hp, int n)
 	{
 		if(!incmd)
 		{
-			histind++;
 			oldp = newp;
 			newp = hist_seek(hist_old,++n);
 			if(newp <=oldp)
@@ -577,7 +574,6 @@ static History_t* hist_trim(History_t *hp, int n)
 		if(cp > endbuff)
 			cp = endbuff;
 		c = (int)(cp-buff);
-		histcnt += c;
 		sfwrite(hist_new,buff,(size_t)c);
 	}
 	sfputc(hist_new,HIST_UNDO);

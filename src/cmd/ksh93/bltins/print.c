@@ -368,15 +368,13 @@ skip2:
 		sh_offstate(SH_NOTRACK);
 		sfpool(outfile,sh.outpool,SFIO_WRITE);
 	}
-	/* turn off share to guarantee atomic writes for printf */
-#if SHOPT_SCRIPTONLY
-	n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
-#else
-	if(!sflag)
-		n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
-	else
+#if !SHOPT_SCRIPTONLY
+	if(sflag)
 		n = SFIO_SHARE;
-#endif /* SHOPT_SCRIPTONLY */
+	else
+#endif /* !SHOPT_SCRIPTONLY */
+	/* turn off share to guarantee atomic writes for printf */
+	n = sfset(outfile,SFIO_SHARE|SFIO_PUBLIC,0);
 printf_v:
 	if(format)
 	{
