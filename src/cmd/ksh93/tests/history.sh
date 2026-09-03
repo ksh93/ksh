@@ -35,9 +35,7 @@ got=$(print -s "hello$$"; fc -l -0 2>&1)
 # Vashisht on 2026-09-02, then corrected and largely rewritten by Martijn Dekker.
 # See https://github.com/ksh93/ksh/issues/997 and https://github.com/ksh93/ksh/pull/1020
 
-# ------
 # Basic sanity: a single interactive session writes and retains history
-
 histfile=$tmp/hist_basic
 got=$(
 	HISTFILE=$histfile
@@ -50,9 +48,7 @@ got=$(
 	|| err_exit "single session: print -s entries not retained in history (got $(printf %q "$got"))"
 [[ -f $histfile ]] || err_exit "HISTFILE not created"
 
-# ------
 # History file survives re-open
-
 histfile=$tmp/hist_reopen
 HISTFILE=$histfile
 print -s "first_session_cmd"
@@ -61,10 +57,8 @@ got=$(HISTFILE=$histfile; fc -l -N 5 2>&1)
 [[ $got == *first_session_cmd* ]] \
 	|| err_exit "history entry from prior session not visible after reopen (got $(printf %q "$got"))"
 
-# ------
 # Concurrent writes to the same HISTFILE
 # note: n_sessions * n_lines should be < 16384
-
 histfile=$tmp/hist_concurrent
 typeset -i n_sessions=64 n_lines=255 present total
 typeset -Z3 s i
@@ -99,9 +93,7 @@ else	err_exit "concurrent history writes: expected $total entries, got $present.
 fi
 unset n_sessions n_lines s present total
 
-# ------
 # History trimming
-
 typeset -i size1 size2
 mkdir hist_trim
 histfile=$tmp/hist_trim/sh_history
@@ -131,10 +123,8 @@ grep -q trimtest_cmd_950 "$histfile" || err_exit "first kept entry trimmed"
 grep -q extra1001 "$histfile" || err_exit "extra entry not added"
 unset size1 size2
 
-# ------
 # Rapidly alternating sessions: open, write one entry, close; repeat
 # with the same HISTFILE. Tests lock acquire/release cycling.
-
 typeset -i s total=1000 present missing
 histfile=$tmp/hist_cycle
 exp=
@@ -159,11 +149,9 @@ fi
 unset s total present missing
 HISTFILE=/dev/null
 
-# ------
-# Stress test: many concurrent sessions each writing one line
-
-histfile=$tmp/hist_stress
-typeset -i total=4000 present s
+# Stress test 1: many concurrent sessions each writing one line, history file reinitialised for each line
+histfile=$tmp/hist_stress_1
+typeset -i total=2000 present s
 for ((s=0; s<total; s++))
 do	(HISTFILE=$histfile; print -s "stress_cmd_$s") &
 done
@@ -172,7 +160,7 @@ got=$(HISTFILE=$histfile; fc -l -N 1 2>&1)
 [[ e=$? -eq 0 && -n $got ]] || err_exit "ksh produced no history output after $total concurrent sessions" \
 	"(got status $e, $(printf %q "$got")"
 # verify history file's initial magic byte (HIST_UNDO == 8#201)
-(LC_CTYPE=C; [[ $(<$histfile) == $'\201'* ]]) || err_exit "history file magic byte corrupted after stress test"
+(LC_CTYPE=C; [[ $(<$histfile) == $'\201'* ]]) || err_exit "history file magic byte corrupted after stress test 1"
 # read back
 got=$(HISTFILE=$histfile; fc -l -N "$((total + 50))" 2>&1 | sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort -n -t_ -k3)
 present=$(print "$got" | wc -l)
@@ -181,13 +169,42 @@ then	exp=
 	for ((s=0; s<total; s++))
 	do	exp+=${exp:+$'\n'}stress_cmd_$s
 	done
-	test "$got" = "$exp" || err_exit "concurrent one-line stress test: got $total entries as expected, but entries differ." \
+	test "$got" = "$exp" || err_exit "concurrent one-line stress test 1: got $total entries as expected, but entries differ." \
 		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 else
-	err_exit "concurrent one-line stress test: expected $total entries, got $present." \
+	err_exit "concurrent one-line stress test 1: expected $total entries, got $present." \
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+fi
+unset total present s histfile
+
+# Stress test 2: many concurrent sessions each writing one line, history file initialised once
+HISTFILE=$tmp/hist_stress_2
+typeset -i total=2000 present s
+for ((s=0; s<total; s++))
+do      print -s "stress_cmd_$s" &
+done
+wait
+got=$(fc -l -N 1 2>&1)
+[[ e=$? -eq 0 && -n $got ]] || err_exit "ksh produced no history output after $total concurrent sessions" \
+	"(got status $e, $(printf %q "$got")"
+# verify history file's initial magic byte (HIST_UNDO == 8#201)
+(LC_CTYPE=C; [[ $(<$HISTFILE) == $'\201'* ]]) || err_exit "history file magic byte corrupted after stress test 2"
+# read back
+got=$(fc -l -N "$((total + 50))" 2>&1 | sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort -n -t_ -k3)
+present=$(print "$got" | wc -l)
+if	((present == total))
+then	exp=
+	for ((s=0; s<total; s++))
+	do	exp+=${exp:+$'\n'}stress_cmd_$s
+	done
+	test "$got" = "$exp" || err_exit "concurrent one-line stress test 2: got $total entries as expected, but entries differ." \
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+else
+	err_exit "concurrent one-line stress test 2: expected $total entries, got $present." \
 		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 fi
 unset total present s
+HISTFILE=/dev/null
 
 # ======
 exit $((Errors<125?Errors:125))
