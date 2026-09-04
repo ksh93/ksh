@@ -1516,6 +1516,25 @@ int sh_exec(const Shnode_t *t, int flags)
 				}
 				if(type&FPOU)
 				{
+					int fd, flags;
+					struct stat s1, s2;
+					if(sh.fdstatus[1]&IOWRITE && fstat(1,&s1)==0 && S_ISREG(s1.st_mode))
+					{	/*
+						 * We're about to connect standard output (1) to an open pipe. If another
+						 * open file descriptor fd > 1 is redirected to the same regular file as
+						 * current standard output, both it and the pipe will write to the same
+						 * file. By default, each would use their own buffering, which would
+						 * produce indeterminate results. To avoid this, put the other open file
+						 * descriptor(s) in O_APPEND mode for atomic writes to current end of file.
+						 */
+						for(fd=2; fd < sh.lim.open_max; fd++)
+						{
+							if(sh.fdstatus[fd]&IOWRITE && fstat(fd,&s2)==0
+							&& s1.st_dev==s2.st_dev && s1.st_ino==s2.st_ino
+							&& (flags = fcntl(fd,F_GETFL)) >= 0 && !(flags&O_APPEND))
+								fcntl(fd,F_SETFL,flags|O_APPEND);
+						}
+					}
 					sh_iorenumber(sh.outpipe[1],1);
 					sh_pclose(sh.outpipe);
 				}

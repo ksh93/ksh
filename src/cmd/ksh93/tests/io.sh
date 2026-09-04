@@ -1148,4 +1148,85 @@ exp=xy
 [[ $got == "$exp" ]] || err_exit "read -n2 from pipe fails (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/att/ast/issues/1093
+# Check that I/O errors are detected, even with SIGPIPE ignored
+got=$(
+	set +x
+	{
+		(
+			trap "" PIPE
+			typeset -F3 i
+			# allow for buffering: keep trying for up to a second before giving up
+			for ((i = SECONDS + 1; SECONDS < i; ))
+			do	print hi || { print "$?" >&2; exit; }
+			done
+		) | true
+	} 2>&1
+)
+exp='1'
+[[ $got == "$exp" ]] || err_exit "I/O error not detected (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/975
+# 'print -uFD' output, where FD > 1, was intermittently lost or corrupted when
+# a pipeline that writes to standard error runs inside a command substitution
+# that also redirects the FD to 1 (standard output). This resulted in two
+# output streams simultaneously writing to the same regular file, each using
+# their own buffering, which produced indeterminate results. The fix puts the
+# shared file descriptor in O_APPEND mode which tells the kernel to append each
+# write atomically to the current end of file.
+for ((fd=2; fd<=9; fd++))
+do	got=$(
+		eval "{
+			{
+				print -u$fd foobar
+				print abcdefghijk
+				print -u$fd bazquux
+			} | cat
+		} $fd>&1"
+	)
+	exp=$'foobar\nbazquux\nabcdefghijk'
+	[[ $got == "$exp" ]] || err_exit "bug 975, print -u$fd (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+# same again for shell redirection
+for ((fd=2; fd<=9; fd++))
+do	got=$(
+		eval "{
+			{
+				print >&$fd foobar
+				print abcdefghijk
+				print >&$fd bazquux
+			} | cat
+		} $fd>&1"
+	)
+	exp=$'foobar\nbazquux\nabcdefghijk'
+	[[ $got == "$exp" ]] || err_exit "bug 975, print >&$fd (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
+# Stress test for this race condition
+fails=0
+typeset -i i j fails n=200
+for ((i=0; i<n; i++))
+do
+	got=$(
+		{
+			{
+				print -u7 foobar
+				for ((j=0; j<200; j++))
+				do	print abcdefghijk
+				done
+				print >&7 done
+			} | cat
+		} 7>&1
+	)
+	exp=$'foobar\ndone'
+	for ((j=0; j<200; j++))
+	do	exp+=$'\nabcdefghijk'
+	done  # omit final \n to match comsub's stripping of final newline
+	[[ $got == "$exp" ]] || ((fails++))
+done
+((fails == 0)) || err_exit "bug 975 stress test: $fails/$n iterations produced wrong output"
+unset i j fails n
+
+# ======
 exit $((Errors<125?Errors:125))

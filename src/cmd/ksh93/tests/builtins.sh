@@ -723,28 +723,6 @@ read baz <<< 'foo\\\\bar'
 [[ $baz == 'foo\\bar' ]] || err_exit 'read of foo\\\\bar not getting foo\\bar'
 
 # ======
-# Check that I/O errors are detected <https://github.com/att/ast/issues/1093>
-actual=$(
-    set +x
-    {
-	(
-	    trap "" PIPE
-	    for ((i = SECONDS + 1; SECONDS < i; )); do
-		print hi || {
-		    print $? >&2
-		    exit
-		}
-	    done
-	) | true
-    } 2>&1
-)
-expect='1'
-if [[ $actual != "$expect" ]]
-then
-    err_exit "I/O error not detected: expected $(printf %q "$expect"), got $(printf %q "$actual")"
-fi
-
-# ======
 # 'time' keyword and 'times' builtin
 
 exp=$'^user\t0m00.[0-9]{2}s\nsys\t0m00.[0-9]{2}s\n0m00.[0-9]{3}s 0m00.[0-9]{3}s\n0m00.000s 0m00.000s$'
