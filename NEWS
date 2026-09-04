@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-04:
+
+- Fixed a longstanding bug in which output data loss or corruption could
+  intermittently occur if, within a command substitution, standard error is
+  redirected to standard output and, within that redirection, standard
+  output is then connected to a pipe.
+
 2026-09-02:
 
 - Fixed a bug, introduced on 2025-05-30, that made 'print -s' ineffective
