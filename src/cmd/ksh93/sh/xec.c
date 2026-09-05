@@ -1413,7 +1413,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			int no_fork,jobid;
 			int pipes[3];
 			if(sh.subshell)
-				sh_subtmpfile(0);
+				sh_subtmpfile(1);
 			if(no_fork = check_exec_optimization(type,execflg,execflg2,t->fork.forkio))
 				parent = 0;
 			else
@@ -1793,7 +1793,7 @@ int sh_exec(const Shnode_t *t, int flags)
 			job.exitval = 0;
 			job.curjobid = 0;
 			if(sh.subshell)
-				sh_subtmpfile(0);
+				sh_subtmpfile(1);
 			sh.inpipe = pvo;
 			sh.outpipe = pvn;
 			pvo[1] = -1;

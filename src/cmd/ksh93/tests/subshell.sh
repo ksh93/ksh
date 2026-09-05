@@ -1160,6 +1160,13 @@ exp=OK0
 [[ $got == $exp ]] || err_exit "capturing output from ksh when piped doesn't work correctly" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# A command substitution must retain output from a child that is not waited for.
+got=$(timeout 5 "$SHELL" -c 'echo "<$(sh -c "(sleep 1; echo after) &"; echo now)>"')
+exp='<now
+after>'
+[[ $got == "$exp" ]] || err_exit 'command substitution loses output from a non-waited-for child' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ======
 # A virtual subshell should trim its exit status to 8 bits just like a real subshell, but if
 # its last command was killed by a signal then that should still be reflected in the 9th bit.

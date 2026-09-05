@@ -130,9 +130,13 @@ void sh_subtmpfile(char usepipe)
 		sh_rpipe(fds,1);
 		sp->pipefd = fds[0];
 		sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
-		/* write the data to the pipe */
-		while(off = sftell(sfstdout))
-			write(fds[1],sfsetbuf(sfstdout,(void*)sfstdout,0),(size_t)off);
+		/* write any data already buffered in the temporary stream to the pipe */
+		if((off = sftell(sfstdout)) > 0)
+		{
+			char *buf = sfsetbuf(sfstdout,(void*)sfstdout,0);
+			if(buf)
+				write(fds[1],buf,(size_t)off);
+		}
 		sfclose(sfstdout);
 		if((sh_fcntl(fds[1],F_dupfd_cloexec,1)) != 1)
 		{
@@ -178,7 +182,7 @@ void sh_subfork(void)
 		trap = sh_strdup(trap);
 	/* create a temp file if inside a command substitution */
 	if(sp->pipe)
-		sh_subtmpfile(0);
+		sh_subtmpfile(1);
 	sh.curenv = 0;
 	sh.savesig = -1;
 	if(pid = sh_fork(F_SUBFORK,NULL))
