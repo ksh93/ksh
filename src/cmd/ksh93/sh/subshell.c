@@ -93,33 +93,57 @@ static unsigned int subenv;
 
 /*
  * This routine will turn the sftmp() file into a real temporary file
+ * or, if <usepipe> is nonzero, into a pipe.
  */
-void	sh_subtmpfile(void)
+void sh_subtmpfile(char usepipe)
 {
-	if(sfset(sfstdout,0,0)&SFIO_STRING)
+	struct checkpt	*pp = (struct checkpt*)sh.jmplist;
+	struct subshell	*sp = subshell_data->pipe;
+	int		fd;
+	/* only do this for memory-resident streams */
+	if(!(sfset(sfstdout,0,0)&SFIO_STRING))
+		return;
+	/* save file descriptor 1 if open */
+	if((sp->tmpfd = fd = sh_fcntl(1,F_dupfd_cloexec,10)) >= 0)
 	{
-		int fd;
-		struct checkpt	*pp = (struct checkpt*)sh.jmplist;
-		struct subshell *sp = subshell_data->pipe;
-		/* save file descriptor 1 if open */
-		if((sp->tmpfd = fd = sh_fcntl(1,F_dupfd_cloexec,10)) >= 0)
-		{
-			if(F_dupfd_cloexec == F_DUPFD)
-				sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
-			ast_close(1);
-		}
-		else if(errno!=EBADF)
-		{
-			errormsg(SH_DICT,ERROR_system(1),e_toomany);
-			UNREACHABLE();
-		}
-		/* popping a discipline forces a /tmp file create */
+		if(F_dupfd_cloexec == F_DUPFD)
+			fcntl(fd,F_SETFD,FD_CLOEXEC);
+		ast_close(1);
+	}
+	else if(errno!=EBADF)
+	{
+		errormsg(SH_DICT,ERROR_system(1),e_toomany);
+		UNREACHABLE();
+	}
+	if(!usepipe)
+	{
+		/* popping a discipline forces the creation of a temp file */
 		sfdisc(sfstdout,SFIO_POPDISC);
-		if((fd=sffileno(sfstdout))<0)
+		fd = sffileno(sfstdout);
+	}
+	if(usepipe || fd < 0)
+	{
+		/* pipe requested or could not create temp file: use a pipe */
+		int fds[3];
+		Sfoff_t off;
+		fds[2] = 0;
+		sh_rpipe(fds,1);
+		sp->pipefd = fds[0];
+		sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
+		/* write the data to the pipe */
+		while(off = sftell(sfstdout))
+			write(fds[1],sfsetbuf(sfstdout,(void*)sfstdout,0),(size_t)off);
+		sfclose(sfstdout);
+		if((sh_fcntl(fds[1],F_dupfd_cloexec,1)) != 1)
 		{
-			errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,"could not create temp file");
+			errormsg(SH_DICT,ERROR_system(1),e_file+4);
 			UNREACHABLE();
 		}
+		sh_close(fds[1]);
+	}
+	else
+	{
+		/* a temp file has been created */
 		sh.fdstatus[fd] = IOREAD|IOWRITE;
 		sfsync(sfstdout);
 		if(fd==1)
@@ -130,14 +154,13 @@ void	sh_subtmpfile(void)
 			sh.fdstatus[1] = sh.fdstatus[fd];
 			sh.fdstatus[fd] = IOCLOSE;
 		}
-		sh_iostream(1,0);
-		sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
-		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
-		if(pp && pp->olist  && pp->olist->strm == sfstdout)
-			pp->olist->strm = 0;
 	}
+	sh_iostream(1,0);
+	sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
+	sfpool(sfstdout,sh.outpool,SFIO_WRITE);
+	if(pp && pp->olist && pp->olist->strm == sfstdout)
+		pp->olist->strm = 0;
 }
-
 
 /*
  * This routine creates a temp file if necessary, then forks a virtual subshell into a real subshell.
@@ -153,9 +176,9 @@ void sh_subfork(void)
 	char *trap = sh.st.trapcom[0];
 	if(trap)
 		trap = sh_strdup(trap);
-	/* see whether inside $(...) */
+	/* create a temp file if inside a command substitution */
 	if(sp->pipe)
-		sh_subtmpfile();
+		sh_subtmpfile(0);
 	sh.curenv = 0;
 	sh.savesig = -1;
 	if(pid = sh_fork(F_SUBFORK,NULL))

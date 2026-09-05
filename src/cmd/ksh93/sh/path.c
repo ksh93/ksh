@@ -1020,7 +1020,7 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 		else
 			opath = arg0;
 		if(sh.subshell)
-			sh_subtmpfile();
+			sh_subtmpfile(0);
 		spawnpid = path_spawn(opath,argv,envp,libpath,0);
 		if(spawnpid == -1)
 		{

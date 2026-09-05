@@ -279,6 +279,14 @@ int job_reap(int sig)
 			if(waitevent && (*waitevent)(-1,-1L,0))
 				flags |= WNOHANG;
 		}
+		if(sh.comsub && !(sfset(sfstdout,0,0)&SFIO_STRING))
+		{
+			/* in a comsub that uses a pipe: flush */
+			char b[SFIO_BUFSIZE];
+			ssize_t s;
+			while((s = sfread(sfstdin,b,sizeof(b))) > 0)
+				sfwrite(sfstdout,b,(size_t)s);
+		}
 		while(1)
 		{
 			pid = waitpid((pid_t)-1,&wstat,flags);

@@ -750,7 +750,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	ap->argflag &= ~ARG_RAW;
 	fd = argp->argflag&ARG_RAW;
 	if(fd==0 && sh.subshell)
-		sh_subtmpfile();
+		sh_subtmpfile(0);
 	pv[2] = 0;
 	sh_pipe(pv,0);
 	sfwrite(sh.stk,"/dev/fd/",8);
