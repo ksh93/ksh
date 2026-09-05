@@ -155,7 +155,6 @@ void sh_subtmpfile(char usepipe)
 			if(buf)
 				write(fds[1],buf,(size_t)off);
 		}
-		sfclose(sfstdout);
 		if((sh_fcntl(fds[1],F_dupfd_cloexec,1)) != 1)
 		{
 			errormsg(SH_DICT,ERROR_system(1),e_file+4);
@@ -163,6 +162,10 @@ void sh_subtmpfile(char usepipe)
 		}
 		sh_fcntl(1,F_SETFD,0);
 		sh_close(fds[1]);
+		/* replace the closed string stream with a stream for the pipe */
+		sh.sftable[1] = 0;
+		sfclose(sfstdout);
+		sfstdout = sh_iostream(1,0);
 	}
 	else
 	{
