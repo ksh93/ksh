@@ -169,7 +169,7 @@ extern int		sh_lex(Lex_t*);
 extern Shnode_t		*sh_dolparen(Lex_t*);
 extern Lex_t		*sh_lexopen(Lex_t*, int);
 extern void 		sh_lexskip(Lex_t*,char,int,int);
-extern noreturn void 	sh_syntax(Lex_t*, int);
+extern noreturn void 	sh_syntax(Lex_t*, int) cold;
 
 #if SHOPT_KIA
     typedef struct

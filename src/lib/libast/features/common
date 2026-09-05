@@ -466,9 +466,11 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 			__builtin_unreachable();
 		default:
 	#if _AST_release
-			printf("#   define UNREACHABLE()\t__builtin_unreachable()\n");
+			printf("#define UNREACHABLE()\t__builtin_unreachable()\n");
+			printf("#define ASSUME(...)\tdo { if (!(__VA_ARGS__)) __builtin_unreachable(); } while(0)\n");
 	#else
-			printf("#   define UNREACHABLE()\tabort()\n");
+			printf("#define UNREACHABLE()\tabort()\n");
+			printf("#define ASSUME(...)\tdo { if (!(__VA_ARGS__)) abort(); } while(0)\n");
 	#endif
 		}
 	}
@@ -479,6 +481,61 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 	}
 }end fail{
 	echo '#define UNREACHABLE()	abort()'
+	echo '#define ASSUME(...)	do { if (!(__VA_ARGS__)) abort(); } while(0)'
+}end
+
+tst - note{ does this compiler have __builtin_expect() }end output{
+	#include <stdio.h>
+	int main(void)
+	{
+		int i = 2;
+		if(__builtin_expect(i == 2, 1))
+		{
+			switch(__builtin_expect(i, 2))
+			{
+				case 2:
+					printf("#undef likely\n");
+					printf("#undef unlikely\n");
+					printf("#define likely(x)\t((int)__builtin_expect(!!(x), 1))\n");
+					printf("#define unlikely(x)\t((int)__builtin_expect(!!(x), 0))\n");
+					return 0;
+				default:
+					return 1;
+			}
+		}
+		else if(__builtin_expect(i == -1, 0))
+			return 1;
+	}
+}end fail{
+	echo '#undef likely'
+	echo '#undef unlikely'
+	echo '#define likely(x)	(!!(x))'
+	echo '#define unlikely(x)	(!!(x))'
+}end
+
+tst - note{ does this compiler have __builtin_expect_with_probability() }end output{
+	#include <stdio.h>
+	int main(void)
+	{
+		int i = 2;
+		if(__builtin_expect_with_probability(i == 2, 1, 0.9))
+		{
+			switch(__builtin_expect_with_probability(i, 2, 0.99))
+			{
+				case 2:
+					printf("#undef expect\n");
+					printf("#define expect(x,y,z)\t__builtin_expect_with_probability((x), (y), (z))\n");
+					return 0;
+				default:
+					return 1;
+			}
+		}
+		else if(__builtin_expect_with_probability(i == -1, 0, 0.1))
+			return 1;
+	}
+}end fail{
+	echo '#undef expect'
+	echo '#define expect(x,y,z)	(x)'
 }end
 
 # TODO: remove when we require C99
@@ -512,4 +569,154 @@ tst	has__Static_assert note{ does this compiler have _Static_assert }end execute
 	{
 		_Static_assert(2 + 2 == 4, "poof goes reality");
 	}
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have cold and hot attributes }end output{
+	#include <stdio.h>
+	#undef cold
+	#undef hot
+	#define cold	__attribute__((__cold__))
+	#define hot	__attribute__((__hot__))
+	cold static void foo(void);
+	cold static void foo(void)
+	{
+		printf("#undef cold\n");
+		printf("#define cold\t__attribute__((__cold__))\n");
+	}
+	hot static void bar(void)
+	{
+		printf("#undef hot\n");
+		printf("#define hot\t__attribute__((__hot__))\n");
+	}
+	int main(void)
+	{
+		foo();
+		bar();
+		return 0;
+	}
+}end fail{
+	echo '#undef cold'
+	echo '#undef hot'
+	echo '#define cold'
+	echo '#define hot'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the malloc attribute }end output{
+	#include <stdio.h>
+	#include <stdlib.h>
+	#undef malloc_attr
+	#define malloc_attr	__attribute__((__malloc__))
+	malloc_attr static void *foo(void)
+	{
+		printf("#undef malloc_attr\n");
+		printf("#define malloc_attr\t__attribute__((__malloc__))\n");
+		return malloc(1);
+	}
+	int main(void)
+	{
+		free(foo());
+		return 0;
+	}
+}end fail{
+	echo '#undef malloc_attr'
+	echo '#define malloc_attr'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the always_inline attribute }end output{
+	#include <stdio.h>
+	#undef always_inline
+	#define always_inline	inline __attribute__((__always_inline__))
+	static always_inline void foo(void)
+	{
+		printf("#undef always_inline\n");
+		printf("#define always_inline\tinline __attribute__((__always_inline__))\n");
+	}
+	int main(void)
+	{
+		foo();
+		return 0;
+	}
+}end fail{
+	echo '#undef always_inline'
+	echo '#define always_inline'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the returns_nonnull attribute }end output{
+	#include <stdio.h>
+	#undef returns_nonnull
+	#define returns_nonnull	__attribute__((__returns_nonnull__))
+	returns_nonnull static char* foo(void)
+	{
+		return "#define returns_nonnull\t__attribute__((__returns_nonnull__))";
+	}
+	int main(void)
+	{
+		printf("#undef returns_nonnull\n");
+		printf("%s\n", foo());
+		return 0;
+	}
+}end fail{
+	echo '#undef returns_nonnull'
+	echo '#define returns_nonnull'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the nonnull attribute }end output{
+	#include <stdio.h>
+	#undef nonnull
+	#define nonnull(...)	__attribute__((__nonnull__(__VA_ARGS__)))
+	static nonnull(1) void foo(char* str)
+	{
+		printf("%s\n", str);
+	}
+	int main(void)
+	{
+		foo("#undef nonnull");
+		foo("#define nonnull(...)\t__attribute__((__nonnull__(__VA_ARGS__)))");
+		return 0;
+	}
+}end fail{
+	echo '#undef nonnull'
+	echo '#define nonnull(...)'
+}end
+
+tst - -Werror=ignored-attributes note{ are x86-64-v4 and x86-64-v3 targetable }end output{
+	#include <stdio.h>
+	#undef vecdisp
+	#define vecdisp	__attribute__((__target_clones__("arch=x86-64-v4", "arch=x86-64-v3", "default")))
+	static vecdisp char *foo(char* str)
+	{
+		return str;
+	}
+	int main(void)
+	{
+		char *str1 = foo("#undef vecdisp");
+		char *str2 = foo("#define vecdisp\t__attribute__((__target_clones__(\"arch=x86-64-v4\", \"arch=x86-64-v3\", \"default\")))");
+		printf("%s\n%s\n", str1, str2);
+		return 0;
+	}
+}end fail{
+	echo '#undef vecdisp'
+	echo '#define vecdisp'
+}end
+
+tst - -Werror=ignored-attributes note{ is BMI2 available }end output{
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <x86intrin.h>
+	#undef bmi2
+	#define bmi2	__attribute__((__target__("bmi2")))
+	static bmi2 char *foo(char* str)
+	{
+		volatile unsigned int i = _bzhi_u32(0xC0, 8 - 3);
+		return str;
+	}
+	int main(void)
+	{
+		char *str1 = foo("#undef bmi2");
+		char *str2 = foo("#define bmi2\t__attribute__((__target__(\"bmi2\")))");
+		printf("%s\n%s\n", str1, str2);
+		return 0;
+	}
+}end fail{
+	echo '#undef bmi2'
 }end

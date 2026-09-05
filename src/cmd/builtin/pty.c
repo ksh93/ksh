@@ -122,7 +122,7 @@ static const char usage[] =
 #define CMIN		1
 #endif
 
-static noreturn void outofmemory(size_t size)
+static cold noreturn void outofmemory(size_t size)
 {
 	error(ERROR_SYSTEM|ERROR_PANIC, "out of memory (failed to allocate %zu bytes)", size);
 	UNREACHABLE();

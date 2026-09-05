@@ -233,7 +233,7 @@ tst	- -lm - - output{
 		printf("extern void*		dlllook(void*, const char*);\n");
 		printf("extern int		dllcheck(void*, const char*, unsigned long, unsigned long*);\n");
 		printf("extern unsigned long	dllversion(void*, const char*);\n");
-		printf("extern char*		dllerror(int);\n");
+		printf("extern char*		dllerror(int) cold;\n");
 	#if _hdr_rld_interface
 		if (i >= 0)
 		{

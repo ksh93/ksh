@@ -2133,7 +2133,7 @@ static char	*fmttoken(Lex_t *lp, int sym)
 /*
  * print a bad syntax message
  */
-noreturn void sh_syntax(Lex_t *lp, int special)
+cold noreturn void sh_syntax(Lex_t *lp, int special)
 {
 	const int eof = lp->token==EOFSYM && lp->lasttok;
 	Sfio_t *sp;

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1996-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -50,7 +50,7 @@
 #endif
 
 /* Inmos transputer would love this algorithm */
-static int
+static vecdisp int
 att_block(Sum_t* p, const void* s, size_t n)
 {
 	uint32_t	c = ((Integral_t*)p)->sum;

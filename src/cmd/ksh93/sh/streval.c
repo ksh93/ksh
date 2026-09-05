@@ -100,7 +100,7 @@ typedef int        (*Math_3i_f)(Sfdouble_t,Sfdouble_t,Sfdouble_t);
 /*
  * set error message string and return 0
  */
-static int _seterror(struct vars *vp,const char *msg)
+static cold int _seterror(struct vars *vp,const char *msg)
 {
 	if(!vp->errmsg.value)
 		vp->errmsg.value = (char*)msg;
@@ -109,7 +109,7 @@ static int _seterror(struct vars *vp,const char *msg)
 	return 0;
 }
 
-static noreturn void arith_error(const char *message,const char *expr)
+static cold noreturn void arith_error(const char *message,const char *expr)
 {
 	errormsg(SH_DICT, ERROR_exit(1), message, expr);
 	UNREACHABLE();

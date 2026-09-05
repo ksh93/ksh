@@ -294,7 +294,7 @@ error_break(void)
 	}
 }
 
-void
+cold void
 error(int level, ...)
 {
 	va_list	ap;
@@ -304,7 +304,7 @@ error(int level, ...)
 	va_end(ap);
 }
 
-void
+cold void
 errorv(const char* id, int level, va_list ap)
 {
 	ptrdiff_t	n;
