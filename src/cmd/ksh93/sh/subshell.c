@@ -829,16 +829,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			{
 				struct stat st;
 				int fd;
-				if(sh.spid)
-				{
-					int e = sh.exitval;
-					char c = sh.chldexitsig;
-					job_wait(sh.spid);
-					sh.exitval = e, sh.chldexitsig = c;
-					if(sh.pipepid==sh.spid)
-						sh.spid = 0;
-					sh.pipepid = 0;
-				}
 				if(fstat(1,&st)==0)
 				{
 					for(fd=sh.lim.open_max-1; fd>1; fd--)
@@ -866,6 +856,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				sp->pipefd = -1;
 				iop = sp->pipebuf;
 				sp->pipebuf = NULL;
+				if(iop)
+					sfseek(iop,0,SEEK_SET);
 				sfstdout = &_Sfstdout;
 			}
 			else
