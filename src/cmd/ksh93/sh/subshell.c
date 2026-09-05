@@ -165,7 +165,7 @@ void sh_subtmpfile(char usepipe)
 		sp->pipeoutfd = 1;
 		/* replace the closed string stream with a stream for the pipe */
 		sh.sftable[1] = 0;
-		sfclose(sfstdout);
+		sh.fdstatus[1] = IONOSEEK|IOREAD;
 		sfstdout = sh_iostream(1,0);
 	}
 	else
@@ -800,7 +800,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		{
 			char buf[SFIO_BUFSIZE];
 			ssize_t n;
-			sh_close(sp->pipeoutfd);
+			if(sp->pipeoutfd!=1)
+				sh_close(sp->pipeoutfd);
 			if(sp->pipeoutfd==1)
 			{
 				/* use the data pipe itself as the command substitution output */
