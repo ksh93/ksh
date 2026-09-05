@@ -119,7 +119,7 @@ void sh_subtmpfile(char usepipe)
 	/* popping a discipline forces the creation of a temp file */
 	sfdisc(sfstdout,SFIO_POPDISC);
 	fd = sffileno(sfstdout);
-	if(usepipe == 1 && sh.comsub!=2 && fd>=0)
+	if(usepipe && sh.comsub!=2 && fd>=0)
 	{
 		int fds[3];
 		fds[2] = 0;
@@ -139,7 +139,7 @@ void sh_subtmpfile(char usepipe)
 			sh.fdstatus[fd] = IOCLOSE;
 		}
 	}
-	else if(fd < 0 && usepipe)
+	else if(fd < 0)
 	{
 		/* pipe requested or could not create temp file: use a pipe */
 		int fds[3];

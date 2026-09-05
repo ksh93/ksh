@@ -177,7 +177,7 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 
 	if((fd = _tmpfd()) < 0 )
 	{
-		/* Keep the string stream when no temporary-file backend exists. */
+		/* keep the string stream when no temporary-file backend exists */
 		f->disc = NULL;
 		return 0;
 	}
