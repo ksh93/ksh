@@ -158,6 +158,8 @@ void sh_subtmpfile(char usepipe)
 		/* pipe requested or could not create temp file: use a pipe */
 		int fds[3];
 		Sfoff_t off;
+		/* The temporary stream may have lost its descriptor before fallback. */
+		sfsetfd(sfstdout,-1);
 		fds[2] = 0;
 		sh_rpipe(fds,1);
 		sp->pipefd = fds[0];
