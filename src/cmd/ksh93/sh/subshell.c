@@ -158,21 +158,20 @@ void sh_subtmpfile(char usepipe)
 		/* pipe requested or could not create temp file: use a pipe */
 		int fds[3];
 		Sfoff_t off;
+		char *buf = NULL;
 		/* The temporary stream may have lost its descriptor before fallback. */
+		if((off = sftell(sfstdout)) > 0)
+			buf = sfsetbuf(sfstdout,(void*)sfstdout,0);
+		sp->pipebuf = sftmp(SFIO_UNBOUND);
+		if(buf)
+			sfwrite(sp->pipebuf,buf,(size_t)off);
 		sfsetfd(sfstdout,-1);
+		sfclose(sfstdout);
 		fds[2] = 0;
 		sh_rpipe(fds,1);
 		sp->pipefd = fds[0];
-		sp->pipebuf = sftmp(SFIO_UNBOUND);
 		sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
 		fcntl(sp->pipefd,F_SETFL,O_NONBLOCK);
-		/* write any data already buffered in the temporary stream to the pipe */
-		if((off = sftell(sfstdout)) > 0)
-		{
-			char *buf = sfsetbuf(sfstdout,(void*)sfstdout,0);
-			if(buf)
-				write(fds[1],buf,(size_t)off);
-		}
 		if((sh_fcntl(fds[1],F_dupfd_cloexec,1)) != 1)
 		{
 			errormsg(SH_DICT,ERROR_system(1),e_file+4);
