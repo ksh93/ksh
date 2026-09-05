@@ -69,7 +69,6 @@ static struct subshell
 	int		tmpfd;	/* saved tmp file descriptor */
 	int		pipefd;	/* read fd if pipe is created */
 	int		pipeoutfd;	/* write fd used to detect descendant exit */
-	Sfio_t		*pipebuf;	/* fallback pipe output */
 	char		jobcontrol;
 	uint8_t		fdstatus;
 	int		fdsaved; /* bit mask for saved file descriptors */
@@ -91,24 +90,6 @@ static struct subshell
 } *subshell_data;
 
 static unsigned int subenv;
-
-int sh_subpipe_drain(void)
-{
-	struct subshell *sp = subshell_data;
-	char buf[SFIO_BUFSIZE];
-	ssize_t n;
-	int drained = 0;
-	if(!sp || !(sp=sp->pipe) || sp->pipefd<0 || sp->pipeoutfd!=1)
-		return 0;
-	while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
-	{
-		drained = 1;
-		if(!sp->pipebuf || sfwrite(sp->pipebuf,buf,(size_t)n)!=(size_t)n)
-			break;
-	}
-	return drained;
-}
-
 
 /*
  * This routine will turn the sftmp() file into a real temporary file
@@ -800,47 +781,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			ssize_t n;
 			if(sp->pipeoutfd!=1)
 				sh_close(sp->pipeoutfd);
-			if(sp->pipeoutfd==1)
-			{
-				struct stat st;
-				int fd;
-				if(fstat(1,&st)==0)
-				{
-					for(fd=sh.lim.open_max-1; fd>1; fd--)
-					{
-						struct stat ast;
-						if(fd!=sp->pipefd && fstat(fd,&ast)==0 &&
-						   ast.st_dev==st.st_dev && ast.st_ino==st.st_ino)
-							sh_close(fd);
-					}
-				}
-				sfclose(sfstdout);
-				ast_close(1);
-				fcntl(sp->pipefd,F_SETFL,0);
-				while(sh_subpipe_drain())
-				{
-					if(errno==EAGAIN || errno==EWOULDBLOCK)
-						continue;
-					if(!sp->pipebuf)
-						break;
-					if(read(sp->pipefd,buf,sizeof(buf))<=0)
-						break;
-				}
-				sh_close(sp->pipefd);
-				sp->pipefd = -1;
-				iop = sp->pipebuf;
-				sp->pipebuf = NULL;
-				if(iop)
-					sfseek(iop,0,SEEK_SET);
-				sfstdout = &_Sfstdout;
-			}
-			else
-			{
-				while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
-					;
-				sh_close(sp->pipefd);
-				sp->pipefd = -1;
-			}
+			while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
+				;
+			sh_close(sp->pipefd);
+			sp->pipefd = -1;
 		}
 		if(sp->pipeoutfd!=1)
 		{
