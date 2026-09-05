@@ -164,6 +164,8 @@ void sh_subtmpfile(char usepipe)
 		sh_close(fds[1]);
 		sp->pipeoutfd = 1;
 		/* replace the closed string stream with a stream for the pipe */
+		sfclose(sfstdout);
+		sfstdout = &_Sfstdout;
 		sh.sftable[1] = 0;
 		sh.fdstatus[1] = IONOSEEK|IOREAD;
 		sfstdout = sh_iostream(1,0);
@@ -182,11 +184,14 @@ void sh_subtmpfile(char usepipe)
 			sh.fdstatus[fd] = IOCLOSE;
 		}
 	}
-	sh_iostream(1,0);
-	sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
-	sfpool(sfstdout,sh.outpool,SFIO_WRITE);
-	if(pp && pp->olist && pp->olist->strm == sfstdout)
-		pp->olist->strm = 0;
+	if(sp->pipeoutfd!=1)
+	{
+		sh_iostream(1,0);
+		sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
+		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
+		if(pp && pp->olist && pp->olist->strm == sfstdout)
+			pp->olist->strm = 0;
+	}
 }
 
 /*
@@ -806,10 +811,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			{
 				/* use the data pipe itself as the command substitution output */
 				iop = sh_iostream(sp->pipefd,0);
-				sh.sftable[1] = 0;
 				sfclose(sfstdout);
-				sfswap(iop,sfstdout);
-				iop = sfswap(sfstdout,NULL);
+				sfstdout = &_Sfstdout;
 			}
 			else
 			{
