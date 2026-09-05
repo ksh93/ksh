@@ -119,7 +119,7 @@ void sh_subtmpfile(char usepipe)
 	/* popping a discipline forces the creation of a temp file */
 	sfdisc(sfstdout,SFIO_POPDISC);
 	fd = sffileno(sfstdout);
-	if(usepipe && sh.comsub!=2)
+	if(usepipe && sh.comsub!=2 && fd>=0)
 	{
 		int fds[3];
 		fds[2] = 0;
@@ -162,6 +162,7 @@ void sh_subtmpfile(char usepipe)
 		}
 		sh_fcntl(1,F_SETFD,0);
 		sh_close(fds[1]);
+		sp->pipeoutfd = 1;
 		/* replace the closed string stream with a stream for the pipe */
 		sh.sftable[1] = 0;
 		sfclose(sfstdout);
@@ -800,11 +801,22 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			char buf[SFIO_BUFSIZE];
 			ssize_t n;
 			sh_close(sp->pipeoutfd);
-			while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
-				;
-			sh_close(sp->pipefd);
-			sp->pipefd = -1;
+			if(sp->pipeoutfd==1)
+			{
+				/* use the data pipe itself as the command substitution output */
+				iop = sh_iostream(sp->pipefd,0);
+				sh.sftable[1] = 0;
+				sfclose(sfstdout);
+			}
+			else
+			{
+				while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
+					;
+				sh_close(sp->pipefd);
+				sp->pipefd = -1;
+			}
 		}
+		if(sp->pipeoutfd!=1)
 		{
 			if(sh.spid)
 			{
