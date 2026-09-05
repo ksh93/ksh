@@ -807,6 +807,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				iop = sh_iostream(sp->pipefd,0);
 				sh.sftable[1] = 0;
 				sfclose(sfstdout);
+				sfswap(iop,sfstdout);
+				iop = sfswap(sfstdout,NULL);
 			}
 			else
 			{
