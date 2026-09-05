@@ -1328,12 +1328,12 @@ exp='OUT: OK'
 [[ $got == "$exp" ]] || err_exit "bug 951 test 3 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
-# A command substitution lost output from a child that is not waited for
+# Command substitutions lost output from child processes that are not waited for
 # https://github.com/ksh93/ksh/issues/124
-got=$(echo "<$( ( (sleep 1; echo after) & ); echo now)>")
+got=$(echo "<$( ( (sleep .1; echo after) & ); echo now)>")
 exp='<now
 after>'
-[[ $got == "$exp" ]] || err_exit 'command substitution loses output from a non-waited-for child' \
+[[ $got == "$exp" ]] || err_exit 'command substitution loses output from non-waited-for child' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

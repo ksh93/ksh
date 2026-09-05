@@ -1211,28 +1211,39 @@ done
 
 # Stress test for this race condition
 fails=0
-typeset -i i j fails n=200
+typeset -i i fails n=200
+exp=$'start\nend1\nend2\nend3'
+for ((i=0; i<n; i++))
+do	exp+=$'\nabcdefghijk'
+done  # omit final \n to match comsub's stripping of final newline
+explen=${#exp}
 for ((i=0; i<n; i++))
 do
 	got=$(
 		{
 			{
-				print -u7 foobar
-				for ((j=0; j<200; j++))
+				print -u8 start
+				# i can be reused safely in the subshell
+				for ((i=0; i<200; i++))
 				do	print abcdefghijk
 				done
-				print >&7 done
+				print >&7 end1
+				print -u8 end2
+				print >&9 end3
 			} | cat
-		} 7>&1
+		} 7>&1 8>&1 9>&1
 	)
-	exp=$'foobar\ndone'
-	for ((j=0; j<200; j++))
-	do	exp+=$'\nabcdefghijk'
-	done  # omit final \n to match comsub's stripping of final newline
-	[[ $got == "$exp" ]] || ((fails++))
+	# The reproducer is inherently racy at the script level as it has four streams writing
+	# to the same comsub capture file, one buffered via cat(1). The end* lines will usually
+	# appear before any of the 'abcdefghijk' lines, but may intermittently appear anywhere
+	# else. This test only checks that no data loss occurs and that each individual line is
+	# written atomically, i.e., without being corrupted or lost. Therefore, only check the
+	# length, the beginning ('start'), and the presence of intact end{1,2,3} anywhere.
+	[[ ${#got} -eq $explen && $got == $'start\n'* && $got$'\n' == *$'\nend1\n'*
+	   && $got$'\n' == *$'\nend2\n'* && $got$'\n' == *$'\nend3\n'* ]] || ((fails++))
 done
 ((fails == 0)) || err_exit "bug 975 stress test: $fails/$n iterations produced wrong output"
-unset i j fails n
+unset i fails n explen
 
 # ======
 exit $((Errors<125?Errors:125))
