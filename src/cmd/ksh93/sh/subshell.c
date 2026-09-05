@@ -143,6 +143,7 @@ void sh_subtmpfile(char usepipe)
 			errormsg(SH_DICT,ERROR_system(1),e_file+4);
 			UNREACHABLE();
 		}
+		sh_fcntl(1,F_SETFD,0);
 		sh_close(fds[1]);
 	}
 	else
