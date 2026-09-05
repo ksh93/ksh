@@ -1160,6 +1160,11 @@ exp=OK0
 [[ $got == $exp ]] || err_exit "capturing output from ksh when piped doesn't work correctly" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# A permanent redirection must not keep a fallback command-substitution pipe open.
+got=$("$SHELL" -c 'x=$(redirect 3>&1; echo hi); print -r -- "$x"')
+[[ $got == hi ]] || err_exit 'command substitution hangs after a permanent stdout redirection' \
+	"(expected hi, got $(printf %q "$got"))"
+
 # ======
 # A virtual subshell should trim its exit status to 8 bits just like a real subshell, but if
 # its last command was killed by a signal then that should still be reflected in the 9th bit.

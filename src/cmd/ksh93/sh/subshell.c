@@ -825,6 +825,18 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				sh_close(sp->pipeoutfd);
 			if(sp->pipeoutfd==1)
 			{
+				struct stat st;
+				int fd;
+				if(fstat(1,&st)==0)
+				{
+					for(fd=sh.lim.open_max-1; fd>1; fd--)
+					{
+						struct stat ast;
+						if(fd!=sp->pipefd && fstat(fd,&ast)==0 &&
+						   ast.st_dev==st.st_dev && ast.st_ino==st.st_ino)
+							sh_close(fd);
+					}
+				}
 				sfclose(sfstdout);
 				fcntl(sp->pipefd,F_SETFL,0);
 				while(sh_subpipe_drain())
