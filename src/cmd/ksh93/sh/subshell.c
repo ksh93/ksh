@@ -139,7 +139,7 @@ void sh_subtmpfile(char usepipe)
 			sh.fdstatus[fd] = IOCLOSE;
 		}
 	}
-	else if(fd < 0)
+	else if(fd < 0 && usepipe)
 	{
 		/* pipe requested or could not create temp file: use a pipe */
 		int fds[3];
@@ -733,7 +733,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sp->tmpfd = -1;
 			sp->pipefd = -1;
 			/* use sftmp() file for standard output */
-			if(!(iop = sftmp(SFIO_UNBOUND)))
+			if(!(iop = sftmp(PIPE_BUF)))
 			{
 				sfswap(sp->saveout,sfstdout);
 				errormsg(SH_DICT,ERROR_system(1),e_tmpcreate);
