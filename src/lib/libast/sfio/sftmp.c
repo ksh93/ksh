@@ -176,11 +176,7 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	newf.mode = SFIO_AVAIL;
 
 	if((fd = _tmpfd()) < 0 )
-	{
-		/* keep the string stream when no temporary-file backend exists */
-		f->disc = NULL;
-		return 0;
-	}
+		return -1;
 
 	/* make sure that the notify function won't be called here since
 	   we are only interested in creating the file, not the stream */

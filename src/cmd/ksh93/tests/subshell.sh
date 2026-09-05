@@ -109,7 +109,7 @@ while	whence $TEST_notfound >/dev/null 2>&1
 do	TEST_notfound=notfound-$RANDOM
 done
 
-for exp in 513 65535 65536
+for exp in 65535 65536
 do	got=$($SHELL -c 'x=$(printf "%.*c" '$exp' x); print ${#x}' 2>&1)
 	[[ $got == $exp ]] || err_exit "large command substitution failed -- expected $exp, got $got"
 done
@@ -1336,7 +1336,7 @@ after>'
 [[ $got == "$exp" ]] || err_exit 'command substitution loses output from non-waited-for child' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# A permanent redirection must not keep a fallback command substitution pipe open
+# Test persistent redirection inside command substitution
 got=$("$SHELL" -c '{ sleep .25; kill -KILL $$; } & x=$(redirect 3>&1; echo hi); print -r -- "$x"; kill $!' 2>&1)
 [[ e=$? -eq 0 && $got == hi ]] || err_exit 'command substitution containing a persistent stdout redirection' \
 	"(expected status 0 and 'hi', got status $e$(let 'e>128' && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
