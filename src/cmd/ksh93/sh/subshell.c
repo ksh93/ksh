@@ -68,6 +68,7 @@ static struct subshell
 	mode_t		mask;	/* saved umask */
 	int		tmpfd;	/* saved tmp file descriptor */
 	int		pipefd;	/* read fd if pipe is created */
+	int		pipeoutfd;	/* write fd used to detect descendant exit */
 	char		jobcontrol;
 	uint8_t		fdstatus;
 	int		fdsaved; /* bit mask for saved file descriptors */
@@ -115,13 +116,30 @@ void sh_subtmpfile(char usepipe)
 		errormsg(SH_DICT,ERROR_system(1),e_toomany);
 		UNREACHABLE();
 	}
-	if(!usepipe)
+	/* popping a discipline forces the creation of a temp file */
+	sfdisc(sfstdout,SFIO_POPDISC);
+	fd = sffileno(sfstdout);
+	if(usepipe)
 	{
-		/* popping a discipline forces the creation of a temp file */
-		sfdisc(sfstdout,SFIO_POPDISC);
-		fd = sffileno(sfstdout);
+		int fds[3];
+		fds[2] = 0;
+		sh_rpipe(fds,0);
+		sp->pipefd = fds[0];
+		sp->pipeoutfd = fds[1];
+		sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
+		sh_fcntl(sp->pipeoutfd,F_SETFD,0);
+		sh.fdstatus[fd] = IOREAD|IOWRITE;
+		sfsync(sfstdout);
+		if(fd==1)
+			fcntl(1,F_SETFD,0);
+		else
+		{
+			sfsetfd(sfstdout,1);
+			sh.fdstatus[1] = sh.fdstatus[fd];
+			sh.fdstatus[fd] = IOCLOSE;
+		}
 	}
-	if(usepipe || fd < 0)
+	else if(fd < 0)
 	{
 		/* pipe requested or could not create temp file: use a pipe */
 		int fds[3];
@@ -776,11 +794,14 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sh_onstate(SH_MONITOR);
 		if(sp->pipefd>=0)
 		{
-			/* sftmp() file has been returned into pipe */
-			iop = sh_iostream(sp->pipefd,0);
-			sfclose(sfstdout);
+			char buf[SFIO_BUFSIZE];
+			ssize_t n;
+			sh_close(sp->pipeoutfd);
+			while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
+				;
+			sh_close(sp->pipefd);
+			sp->pipefd = -1;
 		}
-		else
 		{
 			if(sh.spid)
 			{
