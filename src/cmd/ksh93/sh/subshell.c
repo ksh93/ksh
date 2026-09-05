@@ -139,14 +139,6 @@ void sh_subtmpfile(char usepipe)
 			sh.fdstatus[fd] = IOCLOSE;
 		}
 	}
-	else if(fd < 0 && usepipe != 2)
-	{
-		/*
-		 * With no temporary-file backend, keep built-in output in an
-		 * unbounded memory stream rather than forcing it through a pipe.
-		 */
-		sh.fdstatus[1] = IOWRITE;
-	}
 	else if(fd < 0)
 	{
 		/* pipe requested or could not create temp file: use a pipe */
@@ -741,14 +733,11 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sp->tmpfd = -1;
 			sp->pipefd = -1;
 			/* use sftmp() file for standard output */
-			if(!(iop = sftmp(0)))
+			if(!(iop = sftmp(SFIO_UNBOUND)))
 			{
-				if(!(iop = sftmp(SFIO_UNBOUND)))
-				{
-					sfswap(sp->saveout,sfstdout);
-					errormsg(SH_DICT,ERROR_system(1),e_tmpcreate);
-					UNREACHABLE();
-				}
+				sfswap(sp->saveout,sfstdout);
+				errormsg(SH_DICT,ERROR_system(1),e_tmpcreate);
+				UNREACHABLE();
 			}
 			sfswap(iop,sfstdout);
 			sfset(sfstdout,SFIO_READ,0);
