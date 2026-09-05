@@ -827,12 +827,24 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			{
 				struct stat st;
 				int fd;
+				if(sh.spid)
+				{
+					int e = sh.exitval;
+					char c = sh.chldexitsig;
+					job_wait(sh.spid);
+					sh.exitval = e, sh.chldexitsig = c;
+					if(sh.pipepid==sh.spid)
+						sh.spid = 0;
+					sh.pipepid = 0;
+				}
 				if(fstat(1,&st)==0)
 				{
 					for(fd=sh.lim.open_max-1; fd>1; fd--)
 					{
 						struct stat ast;
-						if(fd!=sp->pipefd && fstat(fd,&ast)==0 &&
+						if(fd < (int)(sizeof(sp->fdsaved) * 8) &&
+						   (sp->fdsaved & (1<<fd)) &&
+						   fd!=sp->pipefd && fstat(fd,&ast)==0 &&
 						   ast.st_dev==st.st_dev && ast.st_ino==st.st_ino)
 							sh_close(fd);
 					}
