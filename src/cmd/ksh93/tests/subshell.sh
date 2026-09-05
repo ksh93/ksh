@@ -109,7 +109,7 @@ while	whence $TEST_notfound >/dev/null 2>&1
 do	TEST_notfound=notfound-$RANDOM
 done
 
-for exp in 65535 65536
+for exp in 513 65535 65536
 do	got=$($SHELL -c 'x=$(printf "%.*c" '$exp' x); print ${#x}' 2>&1)
 	[[ $got == $exp ]] || err_exit "large command substitution failed -- expected $exp, got $got"
 done
