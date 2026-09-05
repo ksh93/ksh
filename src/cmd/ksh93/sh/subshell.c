@@ -167,7 +167,7 @@ void sh_subtmpfile(char usepipe)
 		sfclose(sfstdout);
 		sfstdout = &_Sfstdout;
 		sh.sftable[1] = 0;
-		sh.fdstatus[1] = IONOSEEK|IOREAD;
+		sh.fdstatus[1] = IONOSEEK|IOWRITE;
 		sfstdout = sh_iostream(1,0);
 	}
 	else
