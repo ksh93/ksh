@@ -69,6 +69,7 @@ static struct subshell
 	int		tmpfd;	/* saved tmp file descriptor */
 	int		pipefd;	/* read fd if pipe is created */
 	int		pipeoutfd;	/* write fd used to detect descendant exit */
+	Sfio_t		*pipebuf;	/* fallback pipe output */
 	char		jobcontrol;
 	uint8_t		fdstatus;
 	int		fdsaved; /* bit mask for saved file descriptors */
@@ -90,6 +91,19 @@ static struct subshell
 } *subshell_data;
 
 static unsigned int subenv;
+
+int sh_subpipe_drain(void)
+{
+	struct subshell *sp = subshell_data;
+	char buf[SFIO_BUFSIZE];
+	ssize_t n;
+	if(!sp || !(sp=sp->pipe) || sp->pipefd<0 || sp->pipeoutfd!=1)
+		return 0;
+	while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
+		if(!sp->pipebuf || sfwrite(sp->pipebuf,buf,(size_t)n)!=(size_t)n)
+			break;
+	return 1;
+}
 
 
 /*
@@ -147,7 +161,9 @@ void sh_subtmpfile(char usepipe)
 		fds[2] = 0;
 		sh_rpipe(fds,1);
 		sp->pipefd = fds[0];
+		sp->pipebuf = sftmp(SFIO_UNBOUND);
 		sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
+		fcntl(sp->pipefd,F_SETFL,O_NONBLOCK);
 		/* write any data already buffered in the temporary stream to the pipe */
 		if((off = sftell(sfstdout)) > 0)
 		{
@@ -809,9 +825,21 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				sh_close(sp->pipeoutfd);
 			if(sp->pipeoutfd==1)
 			{
-				/* use the data pipe itself as the command substitution output */
-				iop = sh_iostream(sp->pipefd,0);
 				sfclose(sfstdout);
+				fcntl(sp->pipefd,F_SETFL,0);
+				while(sh_subpipe_drain())
+				{
+					if(errno==EAGAIN || errno==EWOULDBLOCK)
+						continue;
+					if(!sp->pipebuf)
+						break;
+					if(read(sp->pipefd,buf,sizeof(buf))<=0)
+						break;
+				}
+				sh_close(sp->pipefd);
+				sp->pipefd = -1;
+				iop = sp->pipebuf;
+				sp->pipebuf = NULL;
 				sfstdout = &_Sfstdout;
 			}
 			else

@@ -259,6 +259,7 @@ int job_reap(int sig)
 	int flags;
 	struct jobsave *jp;
 	int nochild = 0, oerrno = errno, wstat;
+	int subpipe;
 	Waitevent_f waitevent = sh.waitevent;
 	static int wcontinued = WCONTINUED;
 #ifdef DEBUG
@@ -281,6 +282,9 @@ int job_reap(int sig)
 		}
 		while(1)
 		{
+			subpipe = (sig == 0) && sh_subpipe_drain();
+			if(subpipe)
+				flags |= WNOHANG;
 			pid = waitpid((pid_t)-1,&wstat,flags);
 			/* some systems (Linux 2.6) may return EINVAL when there are no continued children */
 			if (pid<0 && errno==EINVAL && (flags&WCONTINUED))
@@ -308,6 +312,11 @@ int job_reap(int sig)
 #endif /* SHOPT_BGX */
 				nochild = 1;
 			}
+		}
+		if(pid==0 && subpipe)
+		{
+			sh_subpipe_drain();
+			continue;
 		}
 		if(pid<=0)
 			break;
