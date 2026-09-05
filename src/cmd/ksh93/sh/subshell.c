@@ -159,37 +159,9 @@ void sh_subtmpfile(char usepipe)
 	}
 	else if(fd < 0)
 	{
-		/* pipe requested or could not create temp file: use a pipe */
-		int fds[3];
-		Sfoff_t off;
-		char *buf = NULL;
-		/* The temporary stream may have lost its descriptor before fallback. */
-		if((off = sftell(sfstdout)) > 0)
-			buf = sfsetbuf(sfstdout,(void*)sfstdout,0);
-		sp->pipebuf = sftmp(SFIO_UNBOUND);
-		if(buf)
-			sfwrite(sp->pipebuf,buf,(size_t)off);
-		sfsetfd(sfstdout,-1);
-		sfclose(sfstdout);
-		fds[2] = 0;
-		sh_rpipe(fds,1);
-		sp->pipefd = fds[0];
-		sh_fcntl(sp->pipefd,F_SETFD,FD_CLOEXEC);
-		fcntl(sp->pipefd,F_SETFL,O_NONBLOCK);
-		if((sh_fcntl(fds[1],F_dupfd_cloexec,1)) != 1)
-		{
-			errormsg(SH_DICT,ERROR_system(1),e_file+4);
-			UNREACHABLE();
-		}
-		sh_fcntl(1,F_SETFD,0);
-		sh_close(fds[1]);
-		sp->pipeoutfd = 1;
-		/* replace the closed string stream with a stream for the pipe */
-		sfclose(sfstdout);
-		sfstdout = &_Sfstdout;
-		sh.sftable[1] = 0;
-		sh.fdstatus[1] = IONOSEEK|IOWRITE;
-		sfstdout = sh_iostream(1,0);
+		sfswap(sp->saveout,sfstdout);
+		errormsg(SH_DICT,ERROR_system(1),e_tmpcreate);
+		UNREACHABLE();
 	}
 	else
 	{
