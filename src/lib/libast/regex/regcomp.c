@@ -2571,7 +2571,9 @@ seq(Cenv_t* env)
 {
 	Rex_t*		e;
 	Rex_t*		f;
-	Rex_t*		head;	/* accumulated sequence	*/
+	Rex_t**		el;	/* accumulated sequence elements	*/
+	size_t		ne;	/* number of accumulated elements	*/
+	size_t		ae;	/* allocated elements			*/
 	Token_t		tok;
 	ssize_t		c;
 	ptrdiff_t	n = 1;
@@ -2590,10 +2592,12 @@ seq(Cenv_t* env)
 	 * Very long concatenations (e.g. the [[ s == pattern ]] in the
 	 * arrays regression test, built from a huge variable) used to
 	 * recurse once per element via seq()->seq(), overflowing the C
-	 * stack.  Accumulate the elements into a list iteratively
-	 * instead.  https://github.com/ksh93/ksh/issues/207
+	 * stack.  Accumulate the elements iteratively instead, then
+	 * combine them right to left with cat() exactly as the nested
+	 * recursive cat() calls would.  https://github.com/ksh93/ksh/issues/207
 	 */
-	head = 0;
+	el = 0;
+	ne = ae = 0;
 	for (;;)
 	{
 		s = buf;
@@ -2631,7 +2635,7 @@ seq(Cenv_t* env)
 			eat(env);
 		}
 		if (c == T_BAD)
-			return NULL;
+			goto bad;
 		if (s > buf)
 			switch (c)
 			{
@@ -2646,7 +2650,7 @@ seq(Cenv_t* env)
 				{
 					j = s - buf;
 					if (!(e = node(env, REX_STRING, 0, 0, (size_t)j)))
-						return NULL;
+						goto bad;
 					memcpy((char*)(e->re.string.base = (unsigned char*)e->re.data), (char*)buf, (size_t)j);
 					e->re.string.size = (size_t)j;
 				}
@@ -2655,30 +2659,30 @@ seq(Cenv_t* env)
 					if (!(f = node(env, REX_ONECHAR, 1, 1, 0)))
 					{
 						drop(env->disc, e);
-						return NULL;
+						goto bad;
 					}
 					f->re.onechar = (unsigned char)((env->flags & REG_ICASE) ? toupper((int)x) : x);
 				}
 				else
 				{
 					if (!(f = node(env, REX_STRING, 0, 0, (size_t)n)))
-						return NULL;
+						goto bad;
 					memcpy((char*)(f->re.string.base = (unsigned char*)f->re.data), (char*)p, (size_t)n);
 					f->re.string.size = (size_t)n;
 				}
 				if (!(f = rep(env, f, 0, 0)))
 				{
 					drop(env->disc, e);
-					return NULL;
+					goto bad;
 				}
 				if (e && !(f = cat(env, e, f)))
-					return NULL;
+					goto bad;
 				e = f;
 				break;
 			default:
 				j = s - buf;
 				if (!(e = node(env, REX_STRING, 0, 0, (size_t)j)))
-					return NULL;
+					goto bad;
 				memcpy((char*)(e->re.string.base = (unsigned char*)e->re.data), (char*)buf, (size_t)j);
 				e->re.string.size = (size_t)j;
 				break;
@@ -2690,7 +2694,7 @@ seq(Cenv_t* env)
 			if (c > env->parno || !env->paren[c])
 			{
 				env->error = REG_ESUBREG;
-				return NULL;
+				goto bad;
 			}
 			env->paren[c]->re.group.back = 1;
 			e = rep(env, node(env, REX_BACK, (ptrdiff_t)c, 0, 0), 0, 0);
@@ -2702,7 +2706,8 @@ seq(Cenv_t* env)
 			case T_CLOSE:
 			case T_BAR:
 			case T_END:
-				return node(env, REX_NULL, 0, 0, 0);
+				e = node(env, REX_NULL, 0, 0, 0);
+				goto out;
 			case T_DOLL:
 				eat(env);
 				e = rep(env, node(env, REX_END, 0, 0, 0), 0, 0);
@@ -2729,20 +2734,20 @@ seq(Cenv_t* env)
 				{
 					drop(env->disc, e);
 					env->error = (*env->cursor == 0 || *env->cursor == env->delimiter || *env->cursor == env->terminator) ? REG_EPAREN : REG_ENULL;
-					return NULL;
+					goto bad;
 				}
 				if (token(env) != T_CLOSE)
 				{
 					drop(env->disc, e);
 					env->error = REG_EPAREN;
-					return NULL;
+					goto bad;
 				}
 				env->parnest--;
 				eat(env);
 				if (!(f = node(env, REX_GROUP, 0, 0, 0)))
 				{
 					drop(env->disc, e);
-					return NULL;
+					goto bad;
 				}
 				if (parno < (ssize_t)elementsof(env->paren))
 					env->paren[parno] = f;
@@ -2755,13 +2760,13 @@ seq(Cenv_t* env)
 					env->token = tok;
 				}
 				if (!(e = rep(env, f, parno, env->parno)))
-					return NULL;
+					goto bad;
 				if (env->type == KRE)
 				{
 					if (!(f = node(env, REX_GROUP, 0, 0, 0)))
 					{
 						drop(env->disc, e);
-						return NULL;
+						goto bad;
 					}
 					if (--parno < (ssize_t)elementsof(env->paren))
 						env->paren[parno] = f;
@@ -2781,7 +2786,7 @@ seq(Cenv_t* env)
 				if (!(e = grp(env, env->parno + 1)))
 				{
 					if (env->error)
-						return NULL;
+						goto bad;
 					if (env->literal == env->pattern && env->literal == p)
 						env->literal = env->cursor;
 					continue;
@@ -2854,30 +2859,47 @@ seq(Cenv_t* env)
 				break;
 			default:
 				env->error = REG_BADRPT;
-				return NULL;
+				goto bad;
 			}
 		if (e && *env->cursor != 0 && *env->cursor != env->delimiter && *env->cursor != env->terminator)
 		{
 			/*
-			 * More sequence elements follow; combine this element
-			 * into the accumulated left operand with cat() (just
-			 * as the recursion's nested cat() calls would) and
-			 * iterate rather than recursing.
+			 * More sequence elements follow; accumulate this
+			 * element and iterate rather than recursing.
 			 */
-			if (head)
+			if (ne >= ae)
 			{
-				if (!(head = cat(env, head, e)))
-					return NULL;
+				ae = ae ? 2 * ae : 16;
+				if (!(el = newof(el, Rex_t*, ae, 0)))
+				{
+					env->error = REG_ESPACE;
+					goto bad;
+				}
 			}
-			else
-				head = e;
+			el[ne++] = e;
 			continue;
 		}
-		if (!head)
-			return e;
-		if (!(e = cat(env, head, e)))
-			return NULL;
+	out:
+		/*
+		 * Combine the accumulated elements right to left with
+		 * cat(), exactly as the recursion's nested cat() calls
+		 * would, with the final element as the rightmost operand.
+		 */
+		while (ne > 0)
+		{
+			f = el[--ne];
+			if (!e)
+				e = f;
+			else if (!(e = cat(env, f, e)))
+				goto bad;
+		}
+		free(el);
 		return e;
+ bad:
+		while (ne > 0)
+			drop(env->disc, el[--ne]);
+		free(el);
+		return NULL;
 	}
 }
 
