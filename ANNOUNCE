@@ -93,7 +93,9 @@ New features in built-in commands:
 
 - The 'eval' command has a new -n/--noexec option that causes it to subject
   the command(s) given to static analysis in the manner of the -n/--noexec
-  shell option, emitting warnings for deprecated usages.
+  shell option, emitting warnings for deprecated usages. The exit status
+  behaviour is slightly different: 'eval -n' returns 1 if any warnings were
+  found without syntax errors. Syntax errors produce status 3 as always.
 
 New features in shell options:
 
@@ -109,9 +111,6 @@ New features in shell options:
 
 - The -n/--noexec option can now effectively be set in subshells of
   interactive shells, e.g., within a parentheses block.
-
-- The -n/--noexec option, when given at the shell's invocation, now causes
-  the shell to exit with status 1 if the linter emitted any warnings.
 
 New features in shell variables:
 
