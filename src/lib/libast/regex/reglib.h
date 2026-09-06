@@ -448,6 +448,8 @@ typedef struct Rep_catch_s
 	struct Rex_s*	ref;
 	unsigned char*	beg;
 	int		n;
+	int		serial;		/* ref->serial for vector frames	*/
+	struct Rex_s*	next;		/* ref->next for vector frames	*/
 } Rep_catch_t;
 
 /*
@@ -525,6 +527,8 @@ typedef struct reglib_s			/* library private regex_t info	*/
 	regmatch_t*	best;		/* ditto in best match yet	*/
 	Stk_t*		mst;		/* match stack			*/
 	Stk_pos_t	stk;		/* exec stack pos		*/
+	Vector_t*	reps;		/* iterative parserep() frames	*/
+	Vector_t*	nexts;		/* iterative seq() REX_NULL tail*/
 	size_t		min;		/* minimum match length		*/
 	size_t		nsub;		/* internal re_nsub		*/
 	regflags_t	flags;		/* flags from regcomp()		*/
