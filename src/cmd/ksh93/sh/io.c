@@ -128,7 +128,10 @@ struct addrinfo
 };
 
 static int
-getaddrinfo(const char* node, const char* service, const struct addrinfo* hint, struct addrinfo **addr)
+getaddrinfo(const char *restrict node,
+	const char *restrict service,
+	const struct addrinfo *restrict hint,
+	struct addrinfo **restrict addr)
 {
 	unsigned long	    	ip_addr = 0;
 	unsigned short	    	ip_port = 0;

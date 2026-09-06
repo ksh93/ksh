@@ -31,7 +31,7 @@
  */
 
 char*
-tmfmt(char* buf, size_t len, const char* format, time_t* clock)
+tmfmt(char *restrict buf, size_t len, const char *restrict format, time_t* clock)
 {
 	return tmxfmt(buf, len, format, tmxclock(clock));
 }

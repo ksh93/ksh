@@ -119,7 +119,7 @@ void* sfreserve(Sfio_t*	f,	/* file to peek */
 		/* do a buffer refill or flush */
 		now = n;
 		if(f->mode&SFIO_WRITE)
-			(void)SFFLSBUF(f, iosz);
+			(void)SFFLSBUF(f, -1);
 		else if(type == SFIO_LOCKR && f->extent < 0 && (f->flags&SFIO_SHARE) )
 		{	if(n == 0) /* peek-read only if there is no buffered data */
 			{	f->mode |= SFIO_RV;

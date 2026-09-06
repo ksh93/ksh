@@ -28,11 +28,7 @@ typedef struct Vmblock
 	size_t		size;		/* the size of the allocated block	*/
 	struct Vmblock	*prev;		/* previous block in list		*/
 	struct Vmblock	*next;		/* next block in list			*/
-#if __STDC_VERSION__ >= 199901L
 	max_align_t	vblock[];	/* the virtual allocated block, aligned	*/
-#else
-	max_align_t	vblock[1];	/* ...C90 fallback with struct hack	*/
-#endif
 } Vmblock_t;
 
 #define VBLOCKOFFSET	offsetof(Vmblock_t, vblock)
