@@ -93,7 +93,7 @@ typedef struct Stack_s
  */
 
 char*
-tmxfmt(char* buf, size_t len, const char* format, Time_t t)
+tmxfmt(char *restrict buf, size_t len, const char *restrict format, Time_t t)
 {
 	char*		cp;
 	char*		ep;

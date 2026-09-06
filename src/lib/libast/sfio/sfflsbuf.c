@@ -22,11 +22,15 @@
 /*	Write a buffer out to a file descriptor or
 **	extending a buffer for a SFIO_STRING stream.
 **
+**	If c < 0, returns the size of the buffered content written.
+**	If c >= 0, also write c (typecast to unsigned char) and return c.
+**	On failure, -1 is returned in either case.
+**
 **	Written by Kiem-Phong Vo
 */
 
 ptrdiff_t _sfflsbuf(Sfio_t*	f,	/* write out the buffered content of this stream */
-		  ptrdiff_t c)		/* if c>=0, c is also written out */
+		    int		c)	/* if c>=0, c is also written out */
 {
 	ssize_t		n, w, written;
 	uchar*		data;

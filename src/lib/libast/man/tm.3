@@ -176,7 +176,7 @@ to determine its proper value after the
 .L tmfix()
 adjustments.
 .TP
-.L "char* tmfmt(char* buf, size_t len, const char* format, time_t* clock)"
+.L "char* tmfmt(char *restrict buf, size_t len, const char *restrict format, time_t* clock)"
 Formats the date pointed to by
 .L clock
 into the buffer

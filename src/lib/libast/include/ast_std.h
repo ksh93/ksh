@@ -31,14 +31,6 @@
 #define _AST_STD_H		1
 #define _AST_STD_I		1
 
-/*
- * Define inline as an empty macro if we are
- * compiling with C89.
- */
-#if __STDC_VERSION__ < 199901L
-#define inline
-#endif
-
 #include <ast_standards.h>
 #include <ast_common.h>
 
@@ -236,8 +228,8 @@ extern char*		setlocale(int, const char*);
 
 /*
  * This struct defines all the global ast.* variables.
- * It is initialized in misc/state.c, and not by name -- so the order must be kept in sync.
- * Changing the order also breaks ABI compat for dynamic libraries.
+ * It is initialized in misc/state.c.
+ * Changing the order or types breaks ABI compat for dynamic libraries.
  */
 typedef struct
 {
@@ -247,7 +239,8 @@ typedef struct
 	struct				/* ast.locale.* -- stuff set in setlocale.c */
 	{
 	int             (*collate)(const char*, const char*);     /* strcoll(3), an alternative, or strcmp(3) for no collation */
-	size_t		(*transform)(char*, const char*, size_t); /* strxfrm(3), an alternative, or 0 for no collation */
+	size_t		(*transform)(char *restrict, const char *restrict, size_t);
+					/* strxfrm(3), an alternative, or 0 for no collation */
 	void		*uc2wc;		/* iconv descriptor for converting unicode to locale's wide char */
 	uint32_t	serial;
 	uint32_t	set;		/* AST_LC_* bit flags (see above) */
@@ -263,7 +256,7 @@ typedef struct
 	int		(*alpha)(wchar_t);
 	int		(*conv)(char*, wchar_t);
 	int		(*len)(const char*, size_t);
-	int		(*towc)(wchar_t*, const char*, size_t);
+	int		(*towc)(wchar_t *restrict, const char *restrict, size_t);
 	int		(*width)(wchar_t);
 	}		mb;
 #endif

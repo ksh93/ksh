@@ -25,22 +25,21 @@
 /*
  * Initial ast.* values (really _ast_info.*)
  *
- * The order of these must be kept in sync with
- * the _Ast_info_t struct definition in ast_std.h.
- *
+ * The _Ast_info_t definition is in include/ast_std.h.
  * Values not set here are implicitly initialized to zero.
  */
 
 _Ast_info_t	_ast_info =
 {
-	"libast",		/* ast.id */
-	0,			/* ast.env_serial */
-	{			/* ast.locale */
-		strcmp,		/* ast.locale.collate */
+	.id = "libast",
+	.locale =
+	{
+		.collate = strcmp,
 	},
 #if !AST_NOMULTIBYTE
-	{			/* ast.mb */
-		1,		/* ast.mb.cur_max */
+	.mb =
+	{
+		.cur_max = 1,
 	},
 #endif
 };

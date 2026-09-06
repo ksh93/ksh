@@ -462,8 +462,8 @@ static void output(struct termios *sp, int flags)
 	int off,off2;
 	size_t i;
 	char schar[2];
-	unsigned int ispeed = cfgetispeed(sp);
-	unsigned int ospeed = cfgetospeed(sp);
+	speed_t ispeed = cfgetispeed(sp);
+	speed_t ospeed = cfgetospeed(sp);
 	if(flags&G_FLAG)
 	{
 		gout(sp);
@@ -543,14 +543,14 @@ static void output(struct termios *sp, int flags)
 				sfprintf(sfstdout,"%s ",tp->name);
 			break;
 		    case SPEED:
-			if(tp->mask==ispeed)
+			if(tp->mask == (unsigned long)ispeed)
 			{
 				if(ispeed!=ospeed)
 					schar[0]='i';
 				else
 					schar[0]=0;
 			}
-			else if(tp->mask==ospeed)
+			else if(tp->mask == (unsigned long)ospeed)
 				schar[0]='o';
 			else
 				continue;

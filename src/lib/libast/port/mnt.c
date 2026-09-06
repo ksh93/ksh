@@ -263,7 +263,7 @@ mntopen(const char* path, const char* mode)
 	if (!(mp = newof(0, Handle_t, 1, (size_t)n)))
 		return NULL;
 #if _lib_getfsstat
-	n = getfsstat(mp->next = mp->buf, (size_t)n + sizeof(struct statfs), MNT_WAIT);
+	n = getfsstat(mp->next = mp->buf, n + (int)sizeof(struct statfs), MNT_WAIT);
 #else
 	n = getmntinfo(&mp->next, 0);
 #endif
