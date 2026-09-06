@@ -2598,6 +2598,30 @@ seq(Cenv_t* env)
 	 */
 	el = 0;
 	ne = ae = 0;
+
+	/*
+	 * Accumulate one more element.  Each element must remain a
+	 * single node (or a node whose ->next chain the recursive
+	 * algorithm would have built via its nested cat() calls), so
+	 * that the final right-to-left combine below always passes
+	 * cat() a single-node left operand -- cat() links via
+	 * e->next = f and would clobber an existing chain otherwise.
+	 */
+#define ACCUM(x) \
+	do \
+	{ \
+		if (ne >= ae) \
+		{ \
+			ae = ae ? 2 * ae : 16; \
+			if (!(el = newof(el, Rex_t*, ae, 0))) \
+			{ \
+				env->error = REG_ESPACE; \
+				goto bad; \
+			} \
+		} \
+		el[ne++] = (x); \
+	} while (0)
+
 	for (;;)
 	{
 		s = buf;
@@ -2675,8 +2699,14 @@ seq(Cenv_t* env)
 					drop(env->disc, e);
 					goto bad;
 				}
-				if (e && !(f = cat(env, e, f)))
-					goto bad;
+				/*
+				 * The recursion builds cat(prefix, cat(rep,
+				 * tail)); accumulate the prefix separately so
+				 * the rep stays a single node and the combine
+				 * below reproduces that nesting exactly.
+				 */
+				if (e)
+					ACCUM(e);
 				e = f;
 				break;
 			default:
@@ -2867,16 +2897,7 @@ seq(Cenv_t* env)
 			 * More sequence elements follow; accumulate this
 			 * element and iterate rather than recursing.
 			 */
-			if (ne >= ae)
-			{
-				ae = ae ? 2 * ae : 16;
-				if (!(el = newof(el, Rex_t*, ae, 0)))
-				{
-					env->error = REG_ESPACE;
-					goto bad;
-				}
-			}
-			el[ne++] = e;
+			ACCUM(e);
 			continue;
 		}
 	out:
@@ -2906,6 +2927,7 @@ seq(Cenv_t* env)
 		free(el);
 		return NULL;
 	}
+#undef ACCUM
 }
 
 static Rex_t*
