@@ -294,7 +294,8 @@ serialize(Cenv_t* env, Rex_t* e, int n)
 }
 
 /*
- * catenate e and f into a sequence, collapsing them if possible
+ * concatenate two expression fragments e and f into a sequence, collapsing them if
+ * possible, e.g., collapse adjacent dots, handle REX_NULL, drop NULL right operands
  */
 
 static Rex_t*
@@ -2566,14 +2567,38 @@ grp(Cenv_t* env, int parno)
 	return NULL;
 }
 
+/*
+ * helper for seq()
+ */
+
+static int
+grow_leftstack(Cenv_t* env, Rex_t*** leftstack_p, size_t* leftmax_p)
+{
+	Rex_t** new_leftstack;
+	*leftmax_p = !(*leftmax_p) ? 8 : *leftmax_p < 2048 ? 2 * (*leftmax_p) : *leftmax_p + 2048;
+	new_leftstack = realloc(*leftstack_p, (*leftmax_p) * sizeof(Rex_t*));
+	if (!new_leftstack)
+	{
+		env->error = REG_ESPACE;
+		return -1;
+	}
+	*leftstack_p = new_leftstack;
+	return 0;
+}
+
+/*
+ * core term parser: parses a concatenation sequence while building literals and atoms,
+ * handling groups, classes, anchors, backrefs and special tokens, and applying quantifiers
+ */
+
 static Rex_t*
 seq(Cenv_t* env)
 {
 	Rex_t*		e;
 	Rex_t*		f;
-	Rex_t**		el;	/* accumulated sequence elements	*/
-	size_t		ne;	/* number of accumulated elements	*/
-	size_t		ae;	/* allocated elements			*/
+	Rex_t**		leftstack = NULL;	/* manual stack of left-side sequence elements	*/
+	size_t		leftmax = 0;		/* current size of leftstack allocation		*/
+	size_t		leftidx = 0;		/* stack index / number of pushed elements	*/
 	Token_t		tok;
 	ssize_t		c;
 	ptrdiff_t	n = 1;
@@ -2589,38 +2614,19 @@ seq(Cenv_t* env)
 	unsigned char	buf[256];
 
 	/*
-	 * Very long concatenations (e.g. the [[ s == pattern ]] in the
-	 * arrays regression test, built from a huge variable) used to
-	 * recurse once per element via seq()->seq(), overflowing the C
-	 * stack.  Accumulate the elements iteratively instead, then
-	 * combine them right to left with cat() exactly as the nested
-	 * recursive cat() calls would.  https://github.com/ksh93/ksh/issues/207
+	 * Very long concatenations may overflow the C stack if seq() recursively calls
+	 * itself for each element. Therefore, accumulate the elements iteratively, and
+	 * after that, combine them right to left with cat() in a non-recursive loop. To
+	 * that end, define a macro to push one element on a stack we maintain manually.
 	 */
-	el = 0;
-	ne = ae = 0;
-
-	/*
-	 * Accumulate one more element.  Each element must remain a
-	 * single node (or a node whose ->next chain the recursive
-	 * algorithm would have built via its nested cat() calls), so
-	 * that the final right-to-left combine below always passes
-	 * cat() a single-node left operand -- cat() links via
-	 * e->next = f and would clobber an existing chain otherwise.
-	 */
-#define ACCUM(x) \
+	#define PUSH_ELEMENT(element) \
 	do \
 	{ \
-		if (ne >= ae) \
-		{ \
-			ae = ae ? 2 * ae : 16; \
-			if (!(el = newof(el, Rex_t*, ae, 0))) \
-			{ \
-				env->error = REG_ESPACE; \
-				goto bad; \
-			} \
-		} \
-		el[ne++] = (x); \
+		if (leftidx == leftmax && grow_leftstack(env, &leftstack, &leftmax) != 0) \
+			goto error_return; \
+		leftstack[leftidx++] = (element); \
 	} while (0)
+	/* ...end of macro definition */
 
 	for (;;)
 	{
@@ -2639,7 +2645,7 @@ seq(Cenv_t* env)
 				c = (c == C_ESC) ? env->token.lex : mbchar(p);
 				if (env->flags & REG_ICASE)
 					c = (ssize_t)towupper((wint_t)c);
-				if ((size_t)(&buf[sizeof(buf)] - s) < MB_CUR_MAX)
+				if (&buf[sizeof(buf)] - s < (ptrdiff_t)MB_CUR_MAX)
 					break;
 				if ((n = mbconv((char*)s, (wchar_t)c)) < 0)
 					*s++ = (unsigned char)c;
@@ -2659,8 +2665,9 @@ seq(Cenv_t* env)
 			eat(env);
 		}
 		if (c == T_BAD)
-			goto bad;
+			goto error_return;
 		if (s > buf)
+		{
 			switch (c)
 			{
 			case T_STAR:
@@ -2674,7 +2681,7 @@ seq(Cenv_t* env)
 				{
 					j = s - buf;
 					if (!(e = node(env, REX_STRING, 0, 0, (size_t)j)))
-						goto bad;
+						goto error_return;
 					memcpy((char*)(e->re.string.base = (unsigned char*)e->re.data), (char*)buf, (size_t)j);
 					e->re.string.size = (size_t)j;
 				}
@@ -2683,40 +2690,35 @@ seq(Cenv_t* env)
 					if (!(f = node(env, REX_ONECHAR, 1, 1, 0)))
 					{
 						drop(env->disc, e);
-						goto bad;
+						goto error_return;
 					}
 					f->re.onechar = (unsigned char)((env->flags & REG_ICASE) ? toupper((int)x) : x);
 				}
 				else
 				{
 					if (!(f = node(env, REX_STRING, 0, 0, (size_t)n)))
-						goto bad;
+						goto error_return;
 					memcpy((char*)(f->re.string.base = (unsigned char*)f->re.data), (char*)p, (size_t)n);
 					f->re.string.size = (size_t)n;
 				}
 				if (!(f = rep(env, f, 0, 0)))
 				{
 					drop(env->disc, e);
-					goto bad;
+					goto error_return;
 				}
-				/*
-				 * The recursion builds cat(prefix, cat(rep,
-				 * tail)); accumulate the prefix separately so
-				 * the rep stays a single node and the combine
-				 * below reproduces that nesting exactly.
-				 */
 				if (e)
-					ACCUM(e);
+					PUSH_ELEMENT(e);
 				e = f;
 				break;
 			default:
 				j = s - buf;
 				if (!(e = node(env, REX_STRING, 0, 0, (size_t)j)))
-					goto bad;
+					goto error_return;
 				memcpy((char*)(e->re.string.base = (unsigned char*)e->re.data), (char*)buf, (size_t)j);
 				e->re.string.size = (size_t)j;
 				break;
 			}
+		}
 		else if (c > T_BACK)
 		{
 			eat(env);
@@ -2724,12 +2726,13 @@ seq(Cenv_t* env)
 			if (c > env->parno || !env->paren[c])
 			{
 				env->error = REG_ESUBREG;
-				goto bad;
+				goto error_return;
 			}
 			env->paren[c]->re.group.back = 1;
 			e = rep(env, node(env, REX_BACK, (ptrdiff_t)c, 0, 0), 0, 0);
 		}
 		else
+		{
 			switch (c)
 			{
 			case T_AND:
@@ -2737,7 +2740,7 @@ seq(Cenv_t* env)
 			case T_BAR:
 			case T_END:
 				e = node(env, REX_NULL, 0, 0, 0);
-				goto out;
+				goto combine_and_return;
 			case T_DOLL:
 				eat(env);
 				e = rep(env, node(env, REX_END, 0, 0, 0), 0, 0);
@@ -2764,20 +2767,20 @@ seq(Cenv_t* env)
 				{
 					drop(env->disc, e);
 					env->error = (*env->cursor == 0 || *env->cursor == env->delimiter || *env->cursor == env->terminator) ? REG_EPAREN : REG_ENULL;
-					goto bad;
+					goto error_return;
 				}
 				if (token(env) != T_CLOSE)
 				{
 					drop(env->disc, e);
 					env->error = REG_EPAREN;
-					goto bad;
+					goto error_return;
 				}
 				env->parnest--;
 				eat(env);
 				if (!(f = node(env, REX_GROUP, 0, 0, 0)))
 				{
 					drop(env->disc, e);
-					goto bad;
+					goto error_return;
 				}
 				if (parno < (ssize_t)elementsof(env->paren))
 					env->paren[parno] = f;
@@ -2790,13 +2793,13 @@ seq(Cenv_t* env)
 					env->token = tok;
 				}
 				if (!(e = rep(env, f, parno, env->parno)))
-					goto bad;
+					goto error_return;
 				if (env->type == KRE)
 				{
 					if (!(f = node(env, REX_GROUP, 0, 0, 0)))
 					{
 						drop(env->disc, e);
-						goto bad;
+						goto error_return;
 					}
 					if (--parno < (ssize_t)elementsof(env->paren))
 						env->paren[parno] = f;
@@ -2816,7 +2819,7 @@ seq(Cenv_t* env)
 				if (!(e = grp(env, env->parno + 1)))
 				{
 					if (env->error)
-						goto bad;
+						goto error_return;
 					if (env->literal == env->pattern && env->literal == p)
 						env->literal = env->cursor;
 					continue;
@@ -2889,45 +2892,38 @@ seq(Cenv_t* env)
 				break;
 			default:
 				env->error = REG_BADRPT;
-				goto bad;
+				goto error_return;
 			}
+		}
 		if (e && *env->cursor != 0 && *env->cursor != env->delimiter && *env->cursor != env->terminator)
 		{
-			/*
-			 * More sequence elements follow; accumulate this
-			 * element and iterate rather than recursing.
-			 */
-			ACCUM(e);
+			/* more sequence elements follow */
+			PUSH_ELEMENT(e);
 			continue;
 		}
-	out:
+ combine_and_return:
 		/*
-		 * Combine the accumulated elements right to left with
-		 * cat(), exactly as the recursion's nested cat() calls
-		 * would, with the final element as the rightmost operand.
-		 * A NULL e (e.g. from a failed bra()) is significant: the
-		 * recursion's cat(env, x, NULL) drops the left operand and
-		 * returns NULL, so a NULL final element must absorb and
-		 * drop every accumulated element to its left, yielding
-		 * NULL for the whole sequence.
+		 * Combine the pushed elements right to left with cat().
+		 * On a NULL result, e.g. from bra(), this loop drops the whole left side.
 		 */
-		while (ne > 0)
+		while (leftidx > 0)
 		{
-			f = el[--ne];
+			f = leftstack[--leftidx];
 			if (!e)
-				drop(env->disc, f);	/* NULL result absorbs f */
+				drop(env->disc, f);
 			else if (!(e = cat(env, f, e)))
-				goto bad;
+				goto error_return;
 		}
-		free(el);
+		free(leftstack);
 		return e;
- bad:
-		while (ne > 0)
-			drop(env->disc, el[--ne]);
-		free(el);
-		return NULL;
-	}
-#undef ACCUM
+	} /* end of for (;;) */
+	UNREACHABLE();
+	#undef PUSH_ELEMENT
+ error_return:
+	while (leftidx > 0)
+		drop(env->disc, leftstack[--leftidx]);
+	free(leftstack);
+	return NULL;
 }
 
 static Rex_t*
