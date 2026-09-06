@@ -2571,6 +2571,7 @@ seq(Cenv_t* env)
 {
 	Rex_t*		e;
 	Rex_t*		f;
+	Rex_t*		head;	/* accumulated sequence	*/
 	Token_t		tok;
 	ssize_t		c;
 	ptrdiff_t	n = 1;
@@ -2585,6 +2586,14 @@ seq(Cenv_t* env)
 	unsigned char*	u;
 	unsigned char	buf[256];
 
+	/*
+	 * Very long concatenations (e.g. the [[ s == pattern ]] in the
+	 * arrays regression test, built from a huge variable) used to
+	 * recurse once per element via seq()->seq(), overflowing the C
+	 * stack.  Accumulate the elements into a list iteratively
+	 * instead.  https://github.com/ksh93/ksh/issues/207
+	 */
+	head = 0;
 	for (;;)
 	{
 		s = buf;
@@ -2657,21 +2666,22 @@ seq(Cenv_t* env)
 					memcpy((char*)(f->re.string.base = (unsigned char*)f->re.data), (char*)p, (size_t)n);
 					f->re.string.size = (size_t)n;
 				}
-				if (!(f = rep(env, f, 0, 0)) || !(f = cat(env, f, seq(env))))
+				if (!(f = rep(env, f, 0, 0)))
 				{
 					drop(env->disc, e);
 					return NULL;
 				}
-				if (e)
-					f = cat(env, e, f);
-				return f;
+				if (e && !(f = cat(env, e, f)))
+					return NULL;
+				e = f;
+				break;
 			default:
 				j = s - buf;
 				if (!(e = node(env, REX_STRING, 0, 0, (size_t)j)))
 					return NULL;
 				memcpy((char*)(e->re.string.base = (unsigned char*)e->re.data), (char*)buf, (size_t)j);
 				e->re.string.size = (size_t)j;
-				return cat(env, e, seq(env));
+				break;
 			}
 		else if (c > T_BACK)
 		{
@@ -2847,7 +2857,26 @@ seq(Cenv_t* env)
 				return NULL;
 			}
 		if (e && *env->cursor != 0 && *env->cursor != env->delimiter && *env->cursor != env->terminator)
-			e = cat(env, e, seq(env));
+		{
+			/*
+			 * More sequence elements follow; combine this element
+			 * into the accumulated left operand with cat() (just
+			 * as the recursion's nested cat() calls would) and
+			 * iterate rather than recursing.
+			 */
+			if (head)
+			{
+				if (!(head = cat(env, head, e)))
+					return NULL;
+			}
+			else
+				head = e;
+			continue;
+		}
+		if (!head)
+			return e;
+		if (!(e = cat(env, head, e)))
+			return NULL;
 		return e;
 	}
 }

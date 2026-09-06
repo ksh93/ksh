@@ -401,7 +401,8 @@ parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 	Rex_t		catcher;
 	Rex_t*		rep = rex;
 	unsigned char*	p = s;
-	ssize_t		top = 0;
+	ssize_t		base;
+	ssize_t		top;
 	Rep_catch_t*	frame;
 
 	DEBUG_TEST(0x0010,(sfprintf(sfstdout, "AHA#%04d 0x%04x parserep %s %d %d %d %d `%-.*s'\n", __LINE__, debug_flag, rexname(rex->re.group.expr.rex), rex->re.group.number, rex->lo, n, rex->hi, env->end - s, s)),(0));
@@ -412,16 +413,18 @@ parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 	 * maintained env->reps stack, avoids C stack overflow on very
 	 * large matches, e.g. millions of characters matched by a shell
 	 * pattern such as +(x).  https://github.com/ksh93/ksh/issues/207
-	 * The frame->n and frame->beg members keep the catcher values
-	 * (n and the position where the iteration attempt started) as
-	 * saved by the original recursive implementation.
+	 * Frames occupy env->reps slots [base, top); each frame keeps
+	 * the catcher values (cont, ref, beg, n) as saved by the
+	 * original recursive implementation, plus the iteration end
+	 * position handed back by the REX_REP_CATCH handoff in parse()
+	 * so that the iteration resumes where the catcher was reached.
 	 */
 	if (!env->reps && !(env->reps = vecopen(16, sizeof(Rep_catch_t))))
 	{
 		env->error = REG_ESPACE;
 		return BAD;
 	}
-	env->reps->cur = 0;
+	top = base = env->reps->cur;
 	for (;;)
 	{
 		if ((rep->flags & REG_MINIMAL) && n >= rep->lo && n < rep->hi)
@@ -453,20 +456,24 @@ parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 			}
 			frame->cont = cont;
 			frame->ref = rep;
-			frame->beg = p;
+			frame->beg = (unsigned int)(p - env->beg);
+			frame->end = frame->beg;
 			frame->n = n;
 			frame->serial = rep->serial;
 			frame->next = rep->next;
+			frame->top = base;
 			env->reps->cur = ++top;
 			catcher.type = REX_REP_CATCH;
 			catcher.serial = rep->serial;
 			catcher.re.rep_catch.ref = rep;
 			catcher.re.rep_catch.cont = cont;
-			catcher.re.rep_catch.beg = p;
+			catcher.re.rep_catch.beg = frame->beg;
+			catcher.re.rep_catch.end = frame->beg;
 			catcher.re.rep_catch.n = n + 1;
+			catcher.re.rep_catch.top = base;
 			catcher.next = rep->next;
 			if (n == 0)
-				rep->re.rep_catch.beg = p;
+				rep->re.rep_catch.beg = frame->beg;
 			if (env->stack)
 			{
 				if (matchpush(env, rep))
@@ -476,7 +483,7 @@ parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x PUSH %d   (%z,%z)(%z,%z)(%z,%z) (%z,%z)(%z,%z)(%z,%z)\n", __LINE__, debug_flag, rep->re.group.number, env->best[0].rm_so, env->best[0].rm_eo, env->best[1].rm_so, env->best[1].rm_eo, env->best[2].rm_so, env->best[2].rm_eo, env->match[0].rm_so, env->match[0].rm_eo, env->match[1].rm_so, env->match[1].rm_eo, env->match[2].rm_so, env->match[2].rm_eo)),(0));
 			}
 			r = parse(env, rep->re.group.expr.rex, &catcher, p);
-			DEBUG_TEST(0x0010,(sfprintf(sfstdout, "AHA#%04d 0x%04x parserep parse %d %d `%-.*s'\n", __LINE__, debug_flag, rep->re.group.number, r, env->end - p, p)),(0));
+			DEBUG_TEST(0x0010,(sfprintf(sfstdout, "AHA#%04d 0x%04x parserep parse %d %d %d `%-.*s'\n", __LINE__, debug_flag, rep->re.group.number, r, env->end - p, p)),(0));
 			if (env->stack)
 			{
 				pospop(env);
@@ -499,6 +506,18 @@ DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x POP  %d %d (%z,%z)(%z,%z)(
 					goto ret;
 				}
 				r = GOOD;
+				/*
+				 * a catcher belonging to this iteration
+				 * stack handed the repetition back to us;
+				 * resume the current frame where its
+				 * iteration was reached
+				 */
+				frame = (Rep_catch_t*)env->reps->vec + top - 1;
+				if (frame->end != frame->beg)
+				{
+					p = env->beg + frame->end;
+					frame->end = frame->beg;
+				}
 				break;
 			}
 		}
@@ -531,28 +550,28 @@ DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x POP  %d %d (%z,%z)(%z,%z)(
 		 * return the result through the manually maintained
 		 * iteration stack
 		 */
-		while (top > 0)
+		while (top > base)
 		{
 			env->reps->cur = --top;
 			frame = (Rep_catch_t*)env->reps->vec + top;
 			rep = frame->ref;
 			cont = frame->cont;
-			p = frame->beg;
+			p = env->beg + frame->beg;
 			n = frame->n;
 			if (env->stack && pospush(env, (Rex_t*)frame, p, END_ANY))
 				goto bad;
-			if (s == frame->beg && frame->n > rep->lo)
+			if (p == env->beg + frame->end && frame->n > rep->lo)
 			{
 				/*
 				 * optional empty iteration
 				 */
-				if (!env->stack || s != rep->re.rep_catch.beg && !rep->re.group.expr.rex->re.group.back)
+				if (!env->stack || p != env->beg + rep->re.rep_catch.beg && !rep->re.group.expr.rex->re.group.back)
 					r = NONE;
-				else if (pospush(env, (Rex_t*)frame, s, END_ANY))
+				else if (pospush(env, (Rex_t*)frame, p, END_ANY))
 					r = BAD;
 				else
 				{
-					r = follow(env, (Rex_t*)frame, cont, s);
+					r = follow(env, (Rex_t*)frame, cont, p);
 					pospop(env);
 				}
 				if (env->stack)
@@ -563,18 +582,17 @@ DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x POP  %d %d (%z,%z)(%z,%z)(
 				pospop(env);
 			break;
 		}
-		if (top <= 0)
+		if (top <= base)
 			goto ret;
 		n++;
 	}
  bad:
 	r = BAD;
  ret:
-	env->reps->cur = 0;
-	while (top > 0)
+	env->reps->cur = base;
+	while (top > base)
 	{
-		top--;
-		frame = (Rep_catch_t*)env->reps->vec + top;
+		frame = (Rep_catch_t*)env->reps->vec + --top;
 		if (frame->n == 0)
 			frame->ref->re.rep_catch.beg = frame->beg;
 	}
@@ -1320,12 +1338,12 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 			catcher.type = REX_GROUP_AHEAD_CATCH;
 			catcher.flags = rex->flags;
 			catcher.serial = rex->serial;
-			catcher.re.rep_catch.beg = s;
+			catcher.re.rep_catch.beg = (unsigned int)(s - env->beg);
 			catcher.re.rep_catch.cont = cont;
 			catcher.next = rex->next;
 			return parse(env, rex->re.group.expr.rex, &catcher, s);
 		case REX_GROUP_AHEAD_CATCH:
-			return follow(env, rex, rex->re.rep_catch.cont, rex->re.rep_catch.beg);
+			return follow(env, rex, rex->re.rep_catch.cont, env->beg + rex->re.rep_catch.beg);
 		case REX_GROUP_AHEAD_NOT:
 			r = parse(env, rex->re.group.expr.rex, NULL, s);
 			if (r == NONE)
@@ -1724,17 +1742,17 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				pospop(env);
 			return r;
 		case REX_REP_CATCH:
-			DEBUG_TEST(0x0020,(sfprintf(sfstdout, "AHA#%04d 0x%04x %s n %d len %d s `%-.*s'\n", __LINE__, debug_flag, rexname(rex), rex->re.rep_catch.n, s - rex->re.rep_catch.beg, env->end - s, s)),(0));
+			DEBUG_TEST(0x0020,(sfprintf(sfstdout, "AHA#%04d 0x%04x %s n %d len %d s `%-.*s'\n", __LINE__, debug_flag, rexname(rex), rex->re.rep_catch.n, s - (env->beg + rex->re.rep_catch.beg), env->end - s, s)),(0));
 			if (env->stack && pospush(env, rex, s, END_ANY))
 				return BAD;
-			if (s == rex->re.rep_catch.beg && rex->re.rep_catch.n > rex->re.rep_catch.ref->lo)
+			if (s == env->beg + rex->re.rep_catch.beg && rex->re.rep_catch.n > rex->re.rep_catch.ref->lo)
 			{
 				/*
 				 * optional empty iteration
 				 */
 
 DEBUG_TEST(0x0002,(sfprintf(sfstdout, "AHA#%04d %p re.group.back=%d re.group.expr.rex=%s\n", __LINE__, rex->re.rep_catch.ref->re.group.expr.rex, rex->re.rep_catch.ref->re.group.expr.rex->re.group.back, rexname(rex->re.rep_catch.ref->re.group.expr.rex))),(0));
-				if (!env->stack || s != rex->re.rep_catch.ref->re.rep_catch.beg && !rex->re.rep_catch.ref->re.group.expr.rex->re.group.back)
+				if (!env->stack || s != env->beg + rex->re.rep_catch.ref->re.rep_catch.beg && !rex->re.rep_catch.ref->re.group.expr.rex->re.group.back)
 					r = NONE;
 				else if (pospush(env, rex, s, END_ANY))
 					r = BAD;
@@ -1744,14 +1762,17 @@ DEBUG_TEST(0x0002,(sfprintf(sfstdout, "AHA#%04d %p re.group.back=%d re.group.exp
 					pospop(env);
 				}
 			}
-			else if (env->reps && env->reps->cur > 0 &&
+			else if (env->reps && env->reps->cur > rex->re.rep_catch.top &&
 			    ((Rep_catch_t*)env->reps->vec + env->reps->cur - 1)->ref == rex->re.rep_catch.ref)
 			{
 				/*
 				 * this catcher belongs to the manually
 				 * maintained iteration stack in parserep();
-				 * hand the iteration back to it
+				 * hand the iteration back to it along with
+				 * the position where the iteration was
+				 * reached
 				 */
+				((Rep_catch_t*)env->reps->vec + env->reps->cur - 1)->end = (unsigned int)(s - env->beg);
 				r = GOOD;
 			}
 			else

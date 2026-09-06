@@ -446,10 +446,12 @@ typedef struct Rep_catch_s
 {
 	struct Rex_s*	cont;
 	struct Rex_s*	ref;
-	unsigned char*	beg;
+	unsigned int	beg;		/* match begin offset from env->beg	*/
+	unsigned int	end;		/* handed-back iteration end offset	*/
 	int		n;
 	int		serial;		/* ref->serial for vector frames	*/
 	struct Rex_s*	next;		/* ref->next for vector frames	*/
+	ssize_t		top;		/* parserep() stack base for vector frames */
 } Rep_catch_t;
 
 /*
