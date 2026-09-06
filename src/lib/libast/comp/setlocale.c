@@ -222,8 +222,8 @@ static cold int utf8_eilseq_err(unsigned char i)
  * This is libast's performance optimized implementation of C99 mbtowc.
  * It places ASCII on the fast codepath without sacrificing too much
  * UTF performance. The BMI2 codepath uses the bzhi instruction to
- * negate the branch prediction penalty almost completely.
- * According to gcov and gperf this is among the most frequently called
+ * negate the branch prediction penalty and gain performance.
+ * According to gcov and gprof this is among the most frequently called
  * functions in this codebase (it usually deals with ASCII characters
  * in shell scripts). The function ought be structured for the best
  * possible branch prediction, since cache misses will tank performance

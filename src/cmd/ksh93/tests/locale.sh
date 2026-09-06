@@ -383,7 +383,7 @@ fi
 # A strxfrm(3) bug on some macOS versions caused false positive matches in bracket patterns.
 # This test is to ensure the workaround is functional.
 # https://github.com/ksh93/ksh/issues/936
-if	(LC_ALL=en_GB.UTF-8; eval 'c=$'\''\342\202\254'\'; [[ ${#c} == 1 ]]) 2>/dev/null
+if	(LC_ALL=en_GB.UTF-8; eval 'c=$'\''\342\202\254'\'; [[ ${#c} == 1 ]])# 2>/dev/null
 then	LC_ALL=en_GB.UTF-8 "$SHELL" -c "LINENO=$((LINENO+1))"'
 	. "${SHTESTS_COMMON:-${0%/*}/_common}"
 	for c in k $'\''\uE9'\'' $'\''\uFC'\'' $'\''\uA7'\'' $'\''\u39a'\'' \
