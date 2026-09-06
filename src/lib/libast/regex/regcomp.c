@@ -2884,12 +2884,17 @@ seq(Cenv_t* env)
 		 * Combine the accumulated elements right to left with
 		 * cat(), exactly as the recursion's nested cat() calls
 		 * would, with the final element as the rightmost operand.
+		 * A NULL e (e.g. from a failed bra()) is significant: the
+		 * recursion's cat(env, x, NULL) drops the left operand and
+		 * returns NULL, so a NULL final element must absorb and
+		 * drop every accumulated element to its left, yielding
+		 * NULL for the whole sequence.
 		 */
 		while (ne > 0)
 		{
 			f = el[--ne];
 			if (!e)
-				e = f;
+				drop(env->disc, f);	/* NULL result absorbs f */
 			else if (!(e = cat(env, f, e)))
 				goto bad;
 		}
