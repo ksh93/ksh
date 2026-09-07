@@ -6852,9 +6852,12 @@ If the
 option is given, the command(s) are not executed but their code is subjected
 to static analysis (linting) in the manner of the
 .BR \-n
-option of the
-.B set
-command.
+shell invocation option, with one difference:
+any warnings from
+the linter cause
+.B eval \-n
+to exit with status 1
+(unless there are syntax errors, which produce status 3 as always).
 .TP
 \(dg \f3exec\fP \*(OK \f3\-c\fP \*(CK \*(OK \f3\-a\fP \f2name\^\fP \*(CK \*(OK \f2arg\^\fP .\|.\|. \*(CK
 If
@@ -8013,10 +8016,6 @@ interactive shells.
 .B \-n
 Do not execute commands, but check them for syntax errors and perform static
 analysis (linting) to emit warnings for certain deprecated or obsolete usages.
-If this option is given on the shell's invocation, then any warnings from
-the linter cause the shell to exit with status 1, unless the
-.B posix
-option is on.
 Ignored for interactive shells.
 .TP 8
 .B \-o
@@ -8231,10 +8230,6 @@ While on, the \fBposix\fR option
 .IP \[bu]
 disallows brace expansion on the results of unquoted expansions
 (if the \fB\-B\fR/\fBbraceexpand\fR option is turned back on);
-.IP \[bu]
-causes the shell with the
-.BR \-n / noexec
-option on to exit with status 0 even if the linter emitted warnings;
 .IP \[bu]
 disables the special handling of repeated
 .I isspace
