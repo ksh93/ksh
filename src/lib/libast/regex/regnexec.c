@@ -78,7 +78,8 @@ static const char*	rexnames[] =
 	"REX_WBEG",
 	"REX_WEND",
 	"REX_WORD",
-	"REX_WORD_NOT"
+	"REX_WORD_NOT",
+	"REX_REP_SCAN"
 };
 
 static const char* rexname(Rex_t* rex)
@@ -392,6 +393,234 @@ _better(Env_t* env, Pos_t* os, Pos_t* ns, Pos_t* oend, Pos_t* nend, int level)
 #define follow(e,r,c,s)	((r)->next?parse(e,(r)->next,c,s):(c)?parse(e,c,0,s):BEST)
 
 static int		parse(Env_t*, Rex_t*, Rex_t*, unsigned char*);
+
+/*
+ * repfixed() determines whether a repetition body always matches the same,
+ * input-independent number of characters.  Only for such bodies may the
+ * iterative parserep() fast path be used: a fixed-length body reaches its
+ * continuation at a unique position, so no backtracking into the body is
+ * possible and the recursion can be flattened into a loop.  Anything with a
+ * variable-length match (alternation, nested repetition, greedy class or dot,
+ * backreference, ...) can require the body to be re-matched at a different
+ * length during backtracking, which only the recursive algorithm models
+ * correctly, so those return 0 (conservative: when in doubt, recurse).
+ */
+
+static int
+repfixed(Rex_t* e)
+{
+	for (; e; e = e->next)
+	{
+		switch (e->type)
+		{
+		case REX_NULL:
+		case REX_BEG:
+		case REX_END:
+		case REX_BEG_STR:
+		case REX_END_STR:
+		case REX_FIN_STR:
+		case REX_WBEG:
+		case REX_WEND:
+		case REX_WORD:
+		case REX_WORD_NOT:
+			break;				/* zero-width assertions */
+		case REX_STRING:
+			break;				/* fixed string */
+		case REX_ONECHAR:
+		case REX_DOT:
+		case REX_CLASS:
+		case REX_COLL_CLASS:
+			if (e->lo != e->hi)
+				return 0;		/* variable count */
+			break;				/* fixed count */
+		case REX_GROUP:
+			if (e->lo != e->hi)
+				return 0;
+			if (!repfixed(e->re.group.expr.rex))
+				return 0;
+			break;
+		default:
+			return 0;			/* anything else: recurse */
+		}
+	}
+	return 1;
+}
+
+/*
+ * Iterative parserep() for repetition bodies whose match length is fixed
+ * (repfixed()).  Such a body reaches its continuation at a unique position,
+ * so the per-iteration recursion of the general algorithm is unnecessary: the
+ * body is matched one iteration at a time in a loop (each via a REX_REP_SCAN
+ * continuation that records the end position without recursing), and then the
+ * continuation is retried at each reachable iteration count, greedy first.
+ * The C stack depth is thus independent of the repetition count, so patterns
+ * such as +(x) no longer overflow the stack on huge input.
+ * https://github.com/ksh93/ksh/issues/207
+ */
+
+static int
+parserepfix(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
+{
+	Rex_t		catcher;
+	int		i;
+	int		r;
+	int		count = n;		/* iterations matched so far	*/
+	int		lo = (int)rex->lo;
+	int		hi = rex->hi > RE_DUP_MAX ? 0x7fffffff : (int)rex->hi;
+	int		g0 = rex->re.group.number;		/* first group in rep	*/
+	size_t		ng = env->stack && g0 > 0 ? (size_t)(rex->re.group.last - g0 + 1) : 0;	/* groups to snapshot	*/
+	unsigned char*	cur = s;
+	unsigned char**	pos = 0;		/* stop position per count	*/
+	regmatch_t*	snap = 0;		/* submatch state per count	*/
+	size_t		npos = 0;		/* stop points recorded		*/
+	size_t		apos = 0;		/* stop points allocated	*/
+
+	/*
+	 * Forward: match the body as many times as possible.  Each iteration is
+	 * matched with a REX_REP_SCAN continuation that records the end position
+	 * and, while the submatch state is still live (the body's group catchers
+	 * undo it on the way out), snapshots it.  pos[k] is the position after k
+	 * iterations and snap[k] the submatch state then.
+	 */
+	r = NONE;
+	for (;;)
+	{
+		/*
+		 * Record a potential stop position for the current count, along
+		 * with its submatch state.
+		 */
+		if (count >= lo && count <= hi)
+		{
+			if (npos >= apos)
+			{
+				apos = apos ? 2 * apos : 16;
+				if (!(pos = newof(pos, unsigned char*, apos, 0)) ||
+				    ng && !(snap = newof(snap, regmatch_t, apos * ng, 0)))
+				{
+					env->error = REG_ESPACE;
+					r = BAD;
+					goto done;
+				}
+			}
+			pos[npos] = cur;
+			if (ng && count == n)
+				/*
+				 * No iteration has completed yet, so no scan catcher
+				 * has snapshotted this count's submatch state; take it
+				 * from the incoming match state.
+				 */
+				memcpy(&snap[npos * ng], &env->match[g0], ng * sizeof(regmatch_t));
+			/* else the just-completed iteration's scan catcher wrote snap[npos] */
+			npos++;
+		}
+		if (count >= hi)
+			break;
+
+		/* match one more iteration */
+		catcher.type = REX_REP_SCAN;
+		catcher.serial = rex->serial;
+		catcher.re.rep_catch.ref = rex;
+		catcher.re.rep_catch.cont = cont;
+		catcher.re.rep_catch.beg = cur;
+		catcher.re.rep_catch.end = 0;
+		catcher.re.rep_catch.n = count + 1;
+		catcher.re.rep_catch.snap = 0;
+		catcher.next = rex->next;
+		if (ng)
+		{
+			/*
+			 * Ensure room for the next stop point's snapshot, and have
+			 * the catcher write it there while the state is live.
+			 */
+			if (npos >= apos)
+			{
+				apos = apos ? 2 * apos : 16;
+				if (!(pos = newof(pos, unsigned char*, apos, 0)) ||
+				    !(snap = newof(snap, regmatch_t, apos * ng, 0)))
+				{
+					env->error = REG_ESPACE;
+					r = BAD;
+					goto done;
+				}
+			}
+			catcher.re.rep_catch.snap = &snap[npos * ng];
+		}
+		if (count == 0)
+			rex->re.rep_catch.beg = cur;
+		if (env->stack)
+		{
+			if (matchpush(env, rex))
+			{
+				r = BAD;
+				goto done;
+			}
+			if (pospush(env, rex, cur, BEG_ONE))
+			{
+				r = BAD;
+				goto done;
+			}
+		}
+		i = parse(env, rex->re.group.expr.rex, &catcher, cur);
+		if (env->stack)
+		{
+			pospop(env);
+			matchpop(env, rex);
+		}
+		if (i == BAD)
+		{
+			r = BAD;
+			goto done;
+		}
+		if (i != GOOD)
+			break;				/* body did not match */
+		cur = catcher.re.rep_catch.end;
+		count++;
+		if (cur == catcher.re.rep_catch.beg && count > lo)
+			break;				/* empty iteration: stop */
+	}
+
+	/*
+	 * Backward: retry the continuation at each recorded stop position,
+	 * greedy (largest count) first, restoring that count's submatch state.
+	 */
+	while (npos > 0)
+	{
+		npos--;
+		cur = pos[npos];
+		if (ng)
+			memcpy(&env->match[g0], &snap[npos * ng], ng * sizeof(regmatch_t));
+		if (env->stack && pospush(env, rex, cur, END_ANY))
+		{
+			r = BAD;
+			goto done;
+		}
+		i = follow(env, rex, cont, cur);
+		if (env->stack)
+			pospop(env);
+		switch (i)
+		{
+		case BAD:
+			r = BAD;
+			goto done;
+		case CUT:
+			r = CUT;
+			goto done;
+		case BEST:
+			r = BEST;
+			goto done;
+		case GOOD:
+			r = GOOD;
+			goto done;
+		}
+	}
+	r = NONE;
+ done:
+	if (pos)
+		free(pos);
+	if (snap)
+		free(snap);
+	return r;
+}
 
 static int
 parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
@@ -1618,7 +1847,10 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 		case REX_REP:
 			if (env->stack && pospush(env, rex, s, BEG_REP))
 				return BAD;
-			r = parserep(env, rex, cont, s, 0);
+			if (!(rex->flags & REG_MINIMAL) && repfixed(rex->re.group.expr.rex))
+				r = parserepfix(env, rex, cont, s, 0);
+			else
+				r = parserep(env, rex, cont, s, 0);
 			if (env->stack)
 				pospop(env);
 			return r;
@@ -1648,6 +1880,24 @@ DEBUG_TEST(0x0002,(sfprintf(sfstdout, "AHA#%04d %p re.group.back=%d re.group.exp
 			if (env->stack)
 				pospop(env);
 			return r;
+		case REX_REP_SCAN:
+			/*
+			 * One repetition-body iteration completed at s.  Record the
+			 * end position and a snapshot of the submatch state (which the
+			 * body's group catchers are about to undo on their way out),
+			 * and report success to the iterative parserep(); this does not
+			 * recurse, so the C stack does not grow per iteration.
+			 * https://github.com/ksh93/ksh/issues/207
+			 */
+			rex->re.rep_catch.end = s;
+			if (rex->re.rep_catch.snap)
+			{
+				Rex_t*	ref = rex->re.rep_catch.ref;
+				int	num = ref->re.group.last - ref->re.group.number + 1;
+				if (num > 0)
+					memcpy(rex->re.rep_catch.snap, &env->match[ref->re.group.number], (size_t)num * sizeof(regmatch_t));
+			}
+			return GOOD;
 		case REX_STRING:
 DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s \"%-.*s\" `%-.*s'\n", __LINE__, debug_flag, rexname(rex), rex->re.string.size, rex->re.string.base, env->end - s, s)),(0));
 			if (rex->re.string.size > (size_t)(env->end - s))

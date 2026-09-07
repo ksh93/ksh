@@ -126,6 +126,7 @@ typedef struct regsubop_s
 #define REX_WEND		40	/* \>				*/
 #define REX_WORD		41	/* word boundary		*/
 #define REX_WORD_NOT		42	/* not word boundary		*/
+#define REX_REP_SCAN		43	/* REX_REP iteration scan (internal) */
 
 #define T_META		((int)UCHAR_MAX+1)
 #define T_STAR		(T_META+0)
@@ -447,6 +448,8 @@ typedef struct Rep_catch_s
 	struct Rex_s*	cont;
 	struct Rex_s*	ref;
 	unsigned char*	beg;
+	unsigned char*	end;		/* REX_REP_SCAN: iteration end position */
+	regmatch_t*	snap;		/* REX_REP_SCAN: submatch snapshot destination */
 	int		n;
 } Rep_catch_t;
 
