@@ -2602,7 +2602,7 @@ seq(Cenv_t* env)
 				c = (c == C_ESC) ? env->token.lex : mbchar(p);
 				if (env->flags & REG_ICASE)
 					c = (ssize_t)towupper((wint_t)c);
-				if ((size_t)(&buf[sizeof(buf)] - s) < MB_CUR_MAX)
+				if (&buf[sizeof(buf)] - s < (ptrdiff_t)MB_CUR_MAX)
 					break;
 				if ((n = mbconv((char*)s, (wchar_t)c)) < 0)
 					*s++ = (unsigned char)c;

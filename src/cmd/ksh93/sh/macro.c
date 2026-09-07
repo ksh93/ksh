@@ -285,7 +285,8 @@ int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
  */
 void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 {
-	ptrdiff_t	c,n;
+	int		c, n;
+	ptrdiff_t	s;
 	const char	*state = sh_lexstates[ST_QUOTE];
 	char		*cp;
 	Mac_t		*mp = (Mac_t*)sh.mac_context;
@@ -333,10 +334,10 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 				;
 		if(n==S_NL || n==S_QUOTE || n==S_RBRA)
 			continue;
-		c = (cp-1)-fcseek(0);
-		if(c)
-			sfwrite(outfile,fcseek(0),(size_t)c);
-		cp = fcseek(c+1);
+		s = (cp - 1) - fcseek(0);
+		if(s)
+			sfwrite(outfile,fcseek(0),(size_t)s);
+		cp = fcseek(s + 1);
 		switch(n)
 		{
 		    case S_EOF:
@@ -458,7 +459,8 @@ char *sh_macpat(struct argnod *arg, int flags)
  */
 static void copyto(Mac_t *mp,int endch, char newquote)
 {
-	ptrdiff_t	c, n;
+	int		c, n;
+	ptrdiff_t	d;
 	const char	*state = sh_lexstates[ST_MACRO];
 	char		*cp,*first;
 	Lex_t		*lp = (Lex_t*)sh.lex_context;
@@ -504,12 +506,12 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 				}
 			}
 			while(n == 0);
-			c = (cp-len) - first;
+			d = (cp - len) - first;
 		}
 		else
 		{
 			while((n=state[*(unsigned char*)cp++])==0);
-			c = (cp-1) - first;
+			d = (cp - 1) - first;
 		}
 		switch(n)
 		{
@@ -518,8 +520,8 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 			{
 				/* process ANSI C escape character */
 				char *addr= --cp;
-				if(c)
-					sfwrite(stkp,first,(size_t)c);
+				if(d)
+					sfwrite(stkp,first,(size_t)d);
 				c = chresc(cp,&addr);
 				cp = addr;
 				first = fcseek(cp-first);
@@ -544,9 +546,9 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 #endif
 			else if(mp->split && endch && !mp->quote && !mp->lit)
 			{
-				if(c)
-					mac_copy(mp,first,c);
-				cp = fcseek(c+2);
+				if(d)
+					mac_copy(mp,first,d);
+				cp = fcseek(d+2);
 				if(c= cp[-1])
 				{
 					sfputc(stkp,c);
@@ -584,16 +586,16 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 					if(ere && n==S_ESC && *cp =='\\' && cp[1]=='$')
 					{
 						/* convert \\\$ into \$' */
-						sfwrite(stkp,first,(size_t)c+1);
-						cp = first = fcseek(c+3);
+						sfwrite(stkp,first,(size_t)(d + 1));
+						cp = first = fcseek(d + 3);
 					}
 					break;
 				}
 				if(!(ere && *cp=='$') && (mp->lit || (mp->quote && !isqescchar(n) && n!=S_ENDCH)))
 				{
 					/* add \ for file expansion */
-					sfwrite(stkp,first,(size_t)c+1);
-					first = fcseek(c);
+					sfwrite(stkp,first,(size_t)(d + 1));
+					first = fcseek(d);
 					break;
 				}
 			}
@@ -602,24 +604,24 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 			if(!mp->quote || isqescchar(n) || n==S_ENDCH)
 			{
 				/* eliminate \ */
-				if(c)
-					sfwrite(stkp,first,(size_t)c);
+				if(d)
+					sfwrite(stkp,first,(size_t)d);
 				/* check new-line joining */
-				first = fcseek(c+1);
+				first = fcseek(d + 1);
 			}
 			cp += (n!=S_EOF);
 			break;
 		    case S_GRAVE: case S_DOL:
 			if(mp->lit)
 				break;
-			if(c)
+			if(d)
 			{
 				if(mp->split && !mp->quote && endch)
-					mac_copy(mp,first,c);
+					mac_copy(mp,first,d);
 				else
-					sfwrite(stkp,first,(size_t)c);
+					sfwrite(stkp,first,(size_t)d);
 			}
-			first = fcseek(c+1);
+			first = fcseek(d + 1);
 			c = mp->pattern;
 			if(n==S_GRAVE)
 				comsubst(mp,NULL,0);
@@ -638,8 +640,8 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 					else if(c=='"' && n!='\\')
 						break;
 				}
-				n = cp-first;
-				sfwrite(stkp,first,(size_t)n);
+				d = cp - first;
+				sfwrite(stkp,first,(size_t)d);
 				sfputc(stkp,0);
 				cp = stkptr(stkp,off);
 				dp = (char*)sh_translate(cp);
@@ -649,7 +651,7 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 					cp = first;
 					break;
 				}
-				resume = fcseek(n);
+				resume = fcseek(d);
 				fcclose();
 				fcsopen(dp);
 				cp = first = fcseek(0);
@@ -680,12 +682,12 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 			}
 			/* FALLTHROUGH */
 		    case S_EOF:
-			if(c)
+			if(d)
 			{
 				if(mp->split && !mp->quote && !mp->lit && endch)
-					mac_copy(mp,first,c);
+					mac_copy(mp,first,d);
 				else
-					sfwrite(stkp,first,(size_t)c);
+					sfwrite(stkp,first,(size_t)d);
 			}
 			if(n==S_EOF && resume)
 			{
@@ -695,8 +697,8 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 				cp = first = fcseek(0);
 				continue;
 			}
-			c += (n!=S_EOF);
-			first = fcseek(c);
+			d += (n != S_EOF);
+			first = fcseek(d);
 			if(tilde>=0)
 				tilde_expand2(tilde);
 			goto done;
@@ -713,14 +715,14 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 			}
 			if(n==S_LIT && mp->quote)
 				break;
-			if(c)
+			if(d)
 			{
 				if(mp->split && endch && !mp->quote && !mp->lit)
-					mac_copy(mp,first,c);
+					mac_copy(mp,first,d);
 				else
-					sfwrite(stkp,first,(size_t)c);
+					sfwrite(stkp,first,(size_t)d);
 			}
-			first = fcseek(c+1);
+			first = fcseek(d + 1);
 			if(n==S_LIT)
 			{
 				if(mp->quote)
@@ -741,10 +743,10 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 				ptrdiff_t offset=0;
 				char oldpat = mp->pattern;
 				char oldarith = mp->arith, oldsub=mp->subcopy;
-				sfwrite(stkp,first,(size_t)++c);
+				sfwrite(stkp,first,(size_t)++d);
 				if(mp->assign&1)
 				{
-					if(first[c-2]=='.')
+					if(first[d-2]=='.')
 						offset = stktell(stkp);
 					if(isastchar(*cp) && cp[1]==']')
 					{
@@ -752,7 +754,7 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 						UNREACHABLE();
 					}
 				}
-				first = fcseek(c);
+				first = fcseek(d);
 				mp->pattern = 4;
 				mp->arith = 0;
 				mp->subcopy = 0;
@@ -826,10 +828,10 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 		    case S_COM:
 			if(mp->pattern==4 && (mp->quote || mp->lit))
 			{
-				if(c)
+				if(d)
 				{
-					sfwrite(stkp,first,(size_t)c);
-					first = fcseek(c);
+					sfwrite(stkp,first,(size_t)d);
+					first = fcseek(d);
 				}
 				sfputc(stkp,ESCAPE);
 			}
@@ -857,16 +859,16 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 			}
 			if(mp->pattern==3)
 				break;
-			if(c)
-				sfwrite(stkp,first,(size_t)c);
-			first = fcseek(c);
+			if(d)
+				sfwrite(stkp,first,(size_t)d);
+			first = fcseek(d);
 			sfputc(stkp,ESCAPE);
 			break;
 		    case S_EQ:
 			if(mp->assign==1)
 			{
 				if(*cp=='~' && !endch && !mp->quote && !mp->lit && !sh_isstate(SH_NOTILDEXP))
-					tilde = stktell(stkp)+(c+1);
+					tilde = stktell(stkp) + (d + 1);
 				mp->assign = 2;
 			}
 			break;
@@ -874,9 +876,9 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 		    case S_COLON:
 			if(tilde >=0)
 			{
-				if(c)
-					sfwrite(stkp,first,(size_t)c);
-				first = fcseek(c);
+				if(d)
+					sfwrite(stkp,first,(size_t)d);
+				first = fcseek(d);
 				tilde_expand2(tilde);
 #if _WINIX
 				if(Skip)
@@ -886,19 +888,19 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 				}
 #endif /* _WINIX */
 				tilde = -1;
-				c=0;
+				d = 0;
 			}
 			if(n==S_COLON && mp->assign==2 && *cp=='~' && endch==0 && !mp->quote && !mp->lit && !sh_isstate(SH_NOTILDEXP))
-				tilde = stktell(stkp)+(c+1);
+				tilde = stktell(stkp) + (d + 1);
 			else if(n==S_SLASH && mp->pattern==2)
 			{
 				if(mp->quote || mp->lit)
 					goto pattern;
-				sfwrite(stkp,first,(size_t)c+1);
-				first = fcseek(c+1);
-				c = stktell(stkp);
+				sfwrite(stkp,first,(size_t)(d + 1));
+				first = fcseek(d + 1);
+				d = stktell(stkp);
 				sh_lexskip(lp,RBRACE,0,ST_NESTED);
-				stkseek(stkp,c);
+				stkseek(stkp,d);
 				cp = fcseek(-1);
 				sfwrite(stkp,first,(size_t)(cp-first));
 				first=cp;
@@ -907,19 +909,19 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 		    case S_DOT:
 			if(*cp=='.' && mp->subcopy==1)
 			{
-				sfwrite(stkp,first,(size_t)c);
+				sfwrite(stkp,first,(size_t)d);
 				sfputc(stkp,0);
 				dotdot = stktell(stkp);
-				cp = first = fcseek(c+2);
+				cp = first = fcseek(d + 2);
 			}
 			break;
 		    case S_BRAOP:
 			/* escape a quoted !^- within a bracket expression */
 			if(!bracketexpr || !(mp->quote || mp->lit))
 				continue;
-			if(c)
-				sfwrite(stkp,first,(size_t)c);
-			first = fcseek(c);
+			if(d)
+				sfwrite(stkp,first,(size_t)d);
+			first = fcseek(d);
 			sfputc(stkp,ESCAPE);
 			break;
 		}
@@ -1176,7 +1178,7 @@ static char *nextname(Mac_t *mp,const char *prefix, ptrdiff_t len)
  */
 static int varsub(Mac_t *mp)
 {
-	ptrdiff_t	c, mode=0;
+	int		c, mode=0;
 	int		type=0; /* M_xxx */
 	char		*v = NULL, *argp = NULL;
 	Namval_t	*np = NULL;
@@ -1193,7 +1195,7 @@ static int varsub(Mac_t *mp)
 	Stk_t		*stkp = sh.stk;
 	size_t		replen=0;
 	ptrdiff_t	offset = -1;
-	ptrdiff_t	idnum = 0;  /* for ${1?message} where 1 is any positional parameter */
+	ptrdiff_t	ppnum = 0;  /* positional parameter number */
 	mp->wasexpan = 1;
 retry1:
 	idbuff[0] = 0;
@@ -1270,15 +1272,15 @@ retry1:
 		return 1;
 	    case S_DIG:
 		var = 0;
-		c -= '0';
+		ppnum = c - '0';
 		nv_setoptimize(NULL);
 		if(type)
 		{
 			int d;
-			uintmax_t n = (uintmax_t)c;
+			uintmax_t n = (uintmax_t)ppnum;
 			while((d=fcget()),isadigit(d))
 			{
-				n = 10 * n + (d - '0');
+				n = 10 * n + (uintmax_t)(d - '0');
 				if (n > PTRDIFF_MAX)
 				{
 					errormsg(SH_DICT,ERROR_exit(1),e_subscript,"(PP)");
@@ -1286,22 +1288,21 @@ retry1:
 				}
 			}
 			fcseek(-1);
-			c = (ptrdiff_t)n;
+			ppnum = (ptrdiff_t)n;
 		}
-		idnum = c;
-		if(c==0)
-			v = special((wchar_t)c);
+		if(ppnum==0)
+			v = special(0);
 #if  SHOPT_FILESCAN
 		else if(sh.cur_line)
 		{
 			sh.used_pos = 1;
-			v = getdolarg(c,&vsize);
+			v = getdolarg(ppnum, &vsize);
 		}
 #endif  /* SHOPT_FILESCAN */
-		else if(c <= sh.st.dolc)
+		else if(ppnum <= sh.st.dolc)
 		{
 			sh.used_pos = 1;
-			v = sh.st.dolv[c];
+			v = sh.st.dolv[ppnum];
 		}
 		else
 			v = 0;
@@ -1311,14 +1312,14 @@ retry1:
 			unsigned char d = fcpeek(0);
 			if(!(d && strchr(":+-?=",d)))
 			{
-				errormsg(SH_DICT,ERROR_exit(1),e_notset,ltos(c));
+				errormsg(SH_DICT,ERROR_exit(1),e_notset,ltos(ppnum));
 				UNREACHABLE();
 			}
 		}
 		break;
 	    case S_ALP:
 	    {
-		intmax_t d;
+		int d;
 		Namval_t *np_orig;
 		if(c=='.' && type==0)
 			goto nosub;
@@ -1357,7 +1358,6 @@ retry1:
 				else
 				{
 					fcseek(-LEN);
-					c = stktell(stkp);
 					if(d!='.')
 						sfputc(stkp,LBRACT);
 					v = stkptr(stkp,subcopy(mp,1));
@@ -1665,30 +1665,31 @@ retry1:
 		}
 		else
 		{
+			ptrdiff_t d;
 			/* type==M_SIZE: ${#var} */
 			if(!isastchar(mode))
-				c = charlen(v,vsize);
+				d = charlen(v,vsize);
 			else if(dolg>0)
 			{
 #if  SHOPT_FILESCAN
 				if(sh.cur_line)
 				{
 					getdolarg(MAX_ARGN,NULL);
-					c = sh.offsets[0];
+					d = sh.offsets[0];
 				}
 				else
 #endif  /* SHOPT_FILESCAN */
-				c = sh.st.dolc;
+				d = sh.st.dolc;
 			}
 			else if(dolg<0)
 			{
 				ap = nv_arrayptr(np); /* update */
-				c = array_elem(ap);
+				d = array_elem(ap);
 			}
 			else
-				c = (v!=0);
+				d = (v!=0);
 			dolg = dolmax = 0;
-			v = ltos(c);
+			v = ltos(d);
 		}
 		c = RBRACE;
 	}
@@ -1847,7 +1848,8 @@ retry1:
 				v = 0;
 			else if(mbwide())
 			{
-				for(c = sliceoffset; c; c--)
+				ptrdiff_t d;
+				for(d = sliceoffset; d; d--)
 					mbchar(v);
 				c = ':';
 			}
@@ -2211,8 +2213,8 @@ retry2:
 		{
 			if(np)
 				id = nv_name(np);
-			else if(idnum)
-				id = ltos(idnum);
+			else if(ppnum)
+				id = ltos(ppnum);
 			if(*argp)
 			{
 				sfputc(stkp,0);
@@ -2283,7 +2285,8 @@ nosub:
 static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 {
 	Sfdouble_t		num;
-	ssize_t			c;
+	int			c;
+	ptrdiff_t		s;
 	char			*str;
 	Sfio_t			*sp;
 	Stk_t			*stkp = sh.stk;
@@ -2361,7 +2364,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 		c = sh.inlineno;
 		sh.inlineno = error_info.line+sh.st.firstline;
 		t = (Shnode_t*)sh_parse(sp,SH_EOF|SH_NL);
-		sh.inlineno = (int)c;
+		sh.inlineno = c;
 		type = 1;
 	}
 	if(t)
@@ -2434,36 +2437,36 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 		stkseek(stkp,soff+(ptrdiff_t)foff+64);
 		stkseek(stkp,soff);
 	}
-	while((str=(char*)sfreserve(sp,SFIO_UNBOUND,0)) && (c=(ssize_t)(bufsize=sfvalue(sp)))>0)
+	while((str = sfreserve(sp,SFIO_UNBOUND,0)) && (s = (ptrdiff_t)(bufsize = sfvalue(sp))) > 0)
 	{
 #if SHOPT_CRNL
 		/* eliminate <cr> */
 		char *dp;
 		char *buff = str;
-		while(c>1 && (*str !='\r'|| str[1]!='\n'))
+		while(s > 1 && (*str !='\r' || str[1] != '\n'))
 		{
-			c--;
+			s--;
 			str++;
 		}
 		dp = str;
-		while(c>1)
+		while(s > 1)
 		{
 			str++;
-			c--;
-			while(c>1 && (*str!='\r' || str[1]!='\n'))
+			s--;
+			while(s > 1 && (*str != '\r' || str[1] != '\n'))
 			{
-				c--;
+				s--;
 				*dp++ = *str++;
 			}
 		}
-		if(c)
+		if(s)
 			*dp++ = *str++;
 		str = buff;
-		c = dp-str;
+		s = dp - str;
 #endif /* SHOPT_CRNL */
 		/* delay appending trailing new-lines */
-		for(nextnewlines=0; c-->0 && str[c]=='\n'; nextnewlines++);
-		if(c < 0)
+		for(nextnewlines = 0; s-- > 0 && str[s] == '\n'; nextnewlines++);
+		if(s < 0)
 		{
 			newlines += nextnewlines;
 			continue;
@@ -2483,16 +2486,16 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 			lastc = 0;
 		}
 		newlines = nextnewlines;
-		if(++c < bufsize)
-			str[c] = 0;
+		if(++s < bufsize)
+			str[s] = 0;
 		else
 		{
 			/* can't write past buffer so save last byte */
-			c -= 1;
-			lastc = str[c];
-			str[c] = 0;
+			s--;
+			lastc = str[s];
+			str[s] = 0;
 		}
-		mac_copy(mp,str,c);
+		mac_copy(mp,str,s);
 	}
 	if(was_interactive)
 		sh_onstate(SH_INTERACTIVE);
@@ -2521,8 +2524,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 {
 	const char	*cp=str;
-	ptrdiff_t	c;
-	int		n,nopat,len;
+	int		c, n, nopat,len;
 	Stk_t		*stkp=sh.stk;
 	char		oldpat = mp->pattern;
 	const char	multibyte = mbwide() && size > 1;
@@ -2580,8 +2582,9 @@ static void mac_copy(Mac_t *mp,const char *str, ptrdiff_t size)
 				c=0;
 			if(c)
 			{
-				if(c = (cp-1) - str)
-					sfwrite(stkp,str,(size_t)c);
+				ptrdiff_t d;
+				if(d = (cp - 1) - str)
+					sfwrite(stkp,str,(size_t)d);
 				sfputc(stkp,ESCAPE);
 				str = cp-1;
 			}

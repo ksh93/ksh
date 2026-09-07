@@ -96,7 +96,7 @@ header(void)
 
 #if _macos_strxfrm_bug
 static size_t
-_ast_strxfrm_workaround(char *s1, const char *s2, size_t n)
+_ast_strxfrm_workaround(char *restrict s1, const char *restrict s2, size_t n)
 {
 	size_t	r;
 	int	save = errno;
@@ -223,11 +223,9 @@ static cold int utf8_eilseq_err(unsigned char i)
  * It places ASCII on the fast codepath without sacrificing too much
  * UTF performance. The BMI2 codepath uses the bzhi instruction to
  * negate the branch prediction penalty and gain performance.
- * According to gcov and gprof this is among the most frequently called
- * functions in this codebase (it usually deals with ASCII characters
- * in shell scripts). The function ought be structured for the best
- * possible branch prediction, since cache misses will tank performance
- * here.
+ * This is among the most frequently called functions in this codebase.
+ * The function ought be structured for the best possible branch prediction,
+ * since cache misses will tank performance here.
  */
 static hot always_inline int
 utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)

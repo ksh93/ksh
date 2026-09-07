@@ -29,17 +29,13 @@
 #undef assert
 #ifdef NDEBUG
 #  define	assert(e)	((void)0)
-#elif _has___func__
-#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, __func__, __FILE__, __LINE__))
-#elif _has___FUNCTION__
-#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, __FUNCTION__, __FILE__, __LINE__))
 #else
-#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, NULL, __FILE__, __LINE__))
+#  define	assert(e)	((e) ? (void)0 : _ast_assertfail(#e, __func__, __FILE__, __LINE__))
 #endif
 
 #ifndef _ASSERT_H
 #  define _ASSERT_H
-extern noreturn void _ast_assertfail(const char*, const char*, const char*, int) cold;
+extern noreturn void _ast_assertfail(const char *restrict, const char *restrict, const char *restrict, int) cold;
 #  if _has__Static_assert && !defined(static_assert)
 #    define static_assert	_Static_assert
 #  endif
