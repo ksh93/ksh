@@ -7,6 +7,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: PWD and ENV were not properly reinitialised when executing a shell
   script without a #! path.
 
+- Fixed a possible crash after unsetting RANDOM. Bug introduced on 2022-07-21.
+
 2026-09-04:
 
 - Fixed a longstanding bug in which output data loss or corruption could
