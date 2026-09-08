@@ -1284,11 +1284,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	}
 	/* read the environment */
 	env_init();
-	if(!ENVNOD->nvalue)
-	{
-		sfprintf(sh.strbuf,"%s/.kshrc",nv_getval(HOME));
-		nv_putval(ENVNOD,sh_struse(sh.strbuf),NV_RDONLY);
-	}
 	/* increase SHLVL */
 	sh.shlvl++;
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
@@ -1578,6 +1573,12 @@ void sh_reinit(void)
 	free(sh.mathnodes);
 	free(sh.init_context);
 	sh.init_context = nv_init();
+	/* Trigger verification and possible re-init of $PWD (via path_pwd called from env_init) */
+	if(sh.pwd)
+	{
+		free(sh.pwd);
+		sh.pwd = NULL;
+	}
 	/* Re-import the environment (re-exported in exscript()) */
 	env_init();
 	/* Increase SHLVL */
@@ -1960,6 +1961,11 @@ static void env_init(void)
 	path_pwd();
 	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
 		sh_onoption(SH_RESTRICTED); /* restricted shell */
+	if(!ENVNOD->nvalue)
+	{
+		sfprintf(sh.strbuf,"%s/.kshrc",nv_getval(HOME));
+		nv_putval(ENVNOD,sh_struse(sh.strbuf),NV_RDONLY);
+	}
 }
 
 /*
