@@ -683,6 +683,15 @@ void sh_reseed_rand(struct rand *rp)
 	rp->rand_last = -1;
 }
 
+static const Namdisc_t RAND_disc	= {  sizeof(struct rand), put_rand, get_rand, nget_rand };
+
+void sh_invalidate_rand_seed(void)
+{
+	struct rand *rp = (struct rand*)nv_hasdisc(RANDNOD, &RAND_disc);
+	if(rp)
+		rp->rand_last = RAND_SEED_INVALIDATED;
+}
+
 /*
  * The following three functions are for SRANDOM
  */
@@ -1025,7 +1034,6 @@ static const Namdisc_t EDITOR_disc	= {  sizeof(Namfun_t), put_ed };
 static const Namdisc_t HISTFILE_disc	= {  sizeof(Namfun_t), put_history };
 static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex, 0, 0, clone_optindex };
 static const Namdisc_t SECONDS_disc	= {  sizeof(Namfun_t), put_seconds, get_seconds, nget_seconds };
-static const Namdisc_t RAND_disc	= {  sizeof(struct rand), put_rand, get_rand, nget_rand };
 static const Namdisc_t SRAND_disc	= {  sizeof(Namfun_t), put_srand, get_srand, nget_srand };
 static const Namdisc_t LINENO_disc	= {  sizeof(Namfun_t), put_lineno, get_lineno, nget_lineno };
 static const Namdisc_t L_ARG_disc	= {  sizeof(Namfun_t), put_lastarg, get_lastarg };
