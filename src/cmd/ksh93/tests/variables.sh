@@ -1725,8 +1725,7 @@ got=$(set +x; { "$SHELL" -c '
 
 # ======
 # https://github.com/ksh93/ksh/issues/435
-"$SHELL" <<\EOF >/dev/null 2>&1; (((e=$?)==1)) || err_exit "getn/get discipline crash" \
-	"(expected status 1, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+"$SHELL" <<\EOF >/dev/null 2>&1
 unset nonexistent_var
 foo=nonexistent_var
 foo.getn() { :; }
@@ -1735,6 +1734,8 @@ unset -f foo.getn
 trap 'echo $((foo))' EXIT   # throw the echo $((foo)) 'unset parameter' error twice
 echo $((foo))
 EOF
+(((e=$?)==1)) || err_exit "getn/get discipline crash" \
+	"(expected status 1, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 
 # ======
 # exec after unset SHLVL
@@ -1773,7 +1774,7 @@ unset i
 
 exp=$'in main: MainShellValue\nin pathlocal: LocalValue'
 for v in IFS PATH SHELL FPATH CDPATH ENV
-do	got=$(eval "
+do	got=$(ulimit -c 0 2>/dev/null; eval "
 		function pathlocal
 		{
 			typeset $v=LocalValue
@@ -1814,6 +1815,18 @@ exp=6
 got=$(env 'BAD-NAME=ok' "$SHELL" -c 'i=0; while ((++i<=6)); do env; done' 2>&1 | grep -c '^BAD-NAME=ok$')
 [[ $got == "$exp" ]] || err_exit 'env var with invalid name not passed on to all child processes' \
 	"(expected $exp, got $got)"
+
+# ======
+# Unset predefined variables with default values were not reinitialised when executing a script without a #! path
+print -r "for var do
+	[[ -v \$var ]] || print -r \"\err_exit $((LINENO+1)) 'predefined variable \$var not reinitialised in executed script'\"
+done" >unset_execute_test
+chmod +x unset_execute_test
+{ errors=$("$SHELL" -xc 'unset "$@"; ./unset_execute_test "$@"' unset_execute_test \
+	PS2 IFS PWD SHELL MAILCHECK RANDOM ENV FCEDIT PS3 PPID _ TMOUT SECONDS LINENO OPTIND PS4 KSH_VERSION \
+	.sh.version .sh.file .sh.subshell .sh.lineno .sh.math .sh.pid .sh.ppid); } 2>/dev/null
+[[ e=$? -eq 0 ]] || err_exit "unset_execute_test crashes (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
+eval "$errors"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
