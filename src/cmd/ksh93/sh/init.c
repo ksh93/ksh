@@ -1740,8 +1740,6 @@ static Init_t *nv_init(void)
 {
 	Sfdouble_t d=0;
 	Init_t *ip = sh_newof(0,Init_t,1,0);
-	sh.nvfun.last = (char*)&sh;
-	sh.nvfun.nofree = 1;
 	sh.var_base = sh.var_tree = sh_inittree(shtab_variables);
 	SHLVL->nvalue = &sh.shlvl;
 	ip->IFS_init.hdr.disc = &IFS_disc;
@@ -1895,11 +1893,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 		if(name_vals==(const struct shtable2*)shtab_builtins)
 			np->nvalue = ((struct shtable3*)tp)->sh_value;
 		else
-		{
-			if(name_vals == shtab_variables)
-				np->nvfun = &sh.nvfun;
 			np->nvalue = (void*)tp->sh_value;
-		}
 		nv_setattr(np,tp->sh_number);
 		if(nv_isattr(np,NV_TABLE))
 			nv_mount(np,NULL,dict=dtopen(&_Nvdisc,Dtoset));

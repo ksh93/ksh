@@ -386,7 +386,6 @@ struct Shell_s
 	Shopt_t		offoptions;	/* options that were explicitly disabled by the user on the command line */
 	Shopt_t		glob_options;
 	Namval_t	*typeinit;
-	Namfun_t	nvfun;
 	char		*mathnodes;
 	char		*bltin_dir;
 	char		tilde_block;	/* set to block .sh.tilde.{get,set} discipline */
