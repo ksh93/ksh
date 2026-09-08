@@ -66,14 +66,6 @@ static int chr2str(char* buf, char v)
 	}
 }
 
-/* On some platform(s), large functions are not compilable.
-** In such a case, the below macro should be defined non-zero so that
-** some in-lined macros will be made smaller, trading time for space.
-*/
-#if !defined(_sffmt_small) && defined(_UTS)
-#define _sffmt_small	1
-#endif
-
 ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 		    const char*		form,		/* format to use	*/
 		    va_list		args)		/* arg list if !argf	*/
@@ -117,7 +109,7 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 
 	/* local io system */
 	ssize_t		o, n_output;
-#define SMputc(f,c)	{ if((o = (ssize_t)SFFLSBUF(f,c)) >= 0 ) n_output += 1; \
+#define SMputc(f,c)	{ if((o = (ssize_t)SFFLSBUF(f,(int)(c))) >= 0 ) n_output += 1; \
 			  else		{ SFBUF(f); goto done; } \
 			}
 #define SMnputc(f,c,n)	{ if((o = (ssize_t)SFNPUTC(f,c,(size_t)(n))) > 0 ) n_output += 1; \
@@ -126,14 +118,7 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 #define SMwrite(f,s,n)	{ if((o = (ssize_t)SFWRITE(f,s,(size_t)(n))) > 0 ) n_output += o; \
 			  if(o != (ssize_t)(n))	{ SFBUF(f); goto done; } \
 			}
-#if _sffmt_small /* these macros are made smaller at some performance cost */
-#define SFBUF(f)
-#define SFINIT(f)	(n_output = 0)
-#define SFEND(f)
-#define SFputc(f,c)	SMputc(f,c)
-#define SFnputc(f,c,n)	SMnputc(f,c,n)
-#define SFwrite(f,s,n)	SMwrite(f,s,n)
-#else
+
 	uchar	*d, *endd;
 #define SFBUF(f)	(d = f->next, endd = f->endb)
 #define SFINIT(f)	(SFBUF(f), n_output = 0)
@@ -147,7 +132,6 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 #define SFwrite(f,s,n)	{ if(d+n <= endd) { while(n--) *d++ = (uchar)(*s++); } \
 			  else 		  { SFEND(f); SMwrite(f,s,(size_t)(n)); SFBUF(f); } \
 			}
-#endif /* _sffmt_small */
 
 	SFCVINIT();	/* initialize conversion tables */
 

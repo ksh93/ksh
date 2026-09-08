@@ -92,7 +92,7 @@ header(void)
 
 #if _macos_strxfrm_bug
 static size_t
-_ast_strxfrm_workaround(char *s1, const char *s2, size_t n)
+_ast_strxfrm_workaround(char *restrict s1, const char *restrict s2, size_t n)
 {
 	size_t	r;
 	int	save = errno;
@@ -154,7 +154,7 @@ static mbstate_t	sjis_state_zero;
 static mbstate_t	sjis_state;
 
 static int
-sjis_mbtowc(wchar_t* p, const char* s, size_t n)
+sjis_mbtowc(wchar_t *restrict p, const char *restrict s, size_t n)
 {
 	if (n && p && s && (*s == '\\' || *s == '~') && !memcmp(&sjis_state, &sjis_state_zero, sizeof(mbstate_t)))
 	{
@@ -208,7 +208,7 @@ static const unsigned char	utf8tab[256] =
 };
 
 static int
-utf8_mbtowc(wchar_t* wp, const char* str, size_t n)
+utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 {
 	unsigned char*	sp = (unsigned char*)str;
 	size_t		m;

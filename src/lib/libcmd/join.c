@@ -149,7 +149,7 @@ typedef struct Join_s
 	ptrdiff_t	ooutmode;
 	char*		nullfield;
 	char*		delimstr;
-	ptrdiff_t	delim;
+	int		delim;
 	size_t		delimlen;
 	ptrdiff_t	buffered;
 	ptrdiff_t	ignorecase;
@@ -308,7 +308,7 @@ getrec(Join_t* jp, ptrdiff_t index, ptrdiff_t discard)
 	Field_t*	field = fp->fields;
 	Field_t*	fieldmax = field + fp->maxfields;
 	char*		cp;
-	ptrdiff_t	n;
+	int		n;
 	char*		tp;
 	ptrdiff_t	j;
 
@@ -338,8 +338,8 @@ getrec(Join_t* jp, ptrdiff_t index, ptrdiff_t discard)
 			if (field >= fieldmax)
 			{
 				Field_t *newfields;
-				n = 2 * fp->maxfields;
-				newfields = newof(fp->fields, Field_t, (size_t)n + 1, 0);
+				ptrdiff_t m = 2 * fp->maxfields;
+				newfields = newof(fp->fields, Field_t, (size_t)m + 1, 0);
 				if (!newfields)
 				{
 					done(jp);
@@ -348,8 +348,8 @@ getrec(Join_t* jp, ptrdiff_t index, ptrdiff_t discard)
 				}
 				fp->fields = newfields;
 				field = fp->fields + fp->maxfields;
-				fp->maxfields = n;
-				fieldmax = fp->fields + n;
+				fp->maxfields = m;
+				fieldmax = fp->fields + m;
 			}
 			field->beg = cp;
 			if (jp->delim == -1)
@@ -471,10 +471,10 @@ static unsigned char* u1;
 #endif
 
 /*
- * print field <n> from file <index>
+ * print field <field> from file <index>
  */
 static int
-outfield(Join_t* jp, ptrdiff_t index, ptrdiff_t n, char last)
+outfield(Join_t* jp, ptrdiff_t index, ptrdiff_t field, char last)
 {
 	File_t*		fp = &jp->file[index];
 	char*		cp;
@@ -482,11 +482,12 @@ outfield(Join_t* jp, ptrdiff_t index, ptrdiff_t n, char last)
 	ptrdiff_t	size;
 	Sfio_t*		iop = jp->outfile;
 	char*		tp;
+	int		n;
 
-	if (n < fp->nfields)
+	if (field < fp->nfields)
 	{
-		cp = fp->fields[n].beg;
-		cpmax = fp->fields[n].end + 1;
+		cp = fp->fields[field].beg;
+		cpmax = fp->fields[field].end + 1;
 	}
 	else
 		cp = cpmax = NULL;
@@ -545,7 +546,7 @@ outfield(Join_t* jp, ptrdiff_t index, ptrdiff_t n, char last)
 	{
 		if (!jp->nullfield)
 			sfputc(iop, n);
-		else if (sfputr(iop, jp->nullfield, (int)n) < 0)
+		else if (sfputr(iop, jp->nullfield, n) < 0)
 			return -1;
 	}
 	else
@@ -837,7 +838,7 @@ sfprintf(sfstdout, "[X#%d:%d,%p,%p,%d,%02o,%02o%s]", __LINE__, n, cp1, cp2, cmp,
 int
 b_join(int argc, char** argv, Shbltin_t* context)
 {
-	ptrdiff_t	n;
+	int		n;
 	char*		cp;
 	Join_t*		jp;
 	char*		e;
@@ -862,9 +863,10 @@ b_join(int argc, char** argv, Shbltin_t* context)
 
 			if (opt_info.offset == 0)
 			{
+				size_t	s;
 				cp = argv[opt_info.index - 1];
-				for (n = (ptrdiff_t)strlen(cp) - 1; n > 0 && cp[n] != 'j'; n--);
-				n = cp[n] == 'j';
+				for (s = strlen(cp) - 1; s > 0 && cp[s] != 'j'; s--);
+				n = cp[s] == 'j';
 			}
 			else
 				n = 0;
@@ -872,7 +874,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 			{
 				if (opt_info.num!=1 && opt_info.num!=2)
 					error(2,"-jfileno field: fileno must be 1 or 2");
-				n = (ptrdiff_t)('0' + opt_info.num);
+				n = '0' + (int)opt_info.num;
 				if (!(cp = argv[opt_info.index]))
 				{
 					argc = 0;
@@ -918,11 +920,12 @@ b_join(int argc, char** argv, Shbltin_t* context)
 			jp->state[' '] = jp->state['\t'] = 0;
 			if (jp->mb)
 			{
+				ptrdiff_t	d;
 				cp = opt_info.arg;
 				jp->delim = mbchar(cp);
-				if ((n = cp - opt_info.arg) > 1)
+				if ((d = cp - opt_info.arg) > 1)
 				{
-					jp->delimlen = (size_t)n;
+					jp->delimlen = (size_t)d;
 					jp->delimstr = opt_info.arg;
 					continue;
 				}

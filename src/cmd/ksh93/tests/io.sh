@@ -1154,4 +1154,96 @@ exp=xy
 [[ $got == "$exp" ]] || err_exit "read -n2 from pipe fails (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# https://github.com/att/ast/issues/1093
+# Check that I/O errors are detected, even with SIGPIPE ignored
+got=$(
+	set +x
+	{
+		(
+			trap "" PIPE
+			typeset -F3 i
+			# allow for buffering: keep trying for up to a second before giving up
+			for ((i = SECONDS + 1; SECONDS < i; ))
+			do	print hi || { print "$?" >&2; exit; }
+			done
+		) | true
+	} 2>&1
+)
+exp='1'
+[[ $got == "$exp" ]] || err_exit "I/O error not detected (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/975
+# 'print -uFD' output, where FD > 1, was intermittently lost or corrupted when
+# a pipeline that writes to standard error runs inside a command substitution
+# that also redirects the FD to 1 (standard output). This resulted in two
+# output streams simultaneously writing to the same regular file, each using
+# their own buffering, which produced indeterminate results. The fix puts the
+# shared file descriptor in O_APPEND mode which tells the kernel to append each
+# write atomically to the current end of file.
+for ((fd=2; fd<=9; fd++))
+do	got=$(
+		eval "{
+			{
+				print -u$fd foobar
+				print abcdefghijk
+				print -u$fd bazquux
+			} | cat
+		} $fd>&1"
+	)
+	exp=$'foobar\nbazquux\nabcdefghijk'
+	[[ $got == "$exp" ]] || err_exit "bug 975, print -u$fd (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+# same again for shell redirection
+for ((fd=2; fd<=9; fd++))
+do	got=$(
+		eval "{
+			{
+				print >&$fd foobar
+				print abcdefghijk
+				print >&$fd bazquux
+			} | cat
+		} $fd>&1"
+	)
+	exp=$'foobar\nbazquux\nabcdefghijk'
+	[[ $got == "$exp" ]] || err_exit "bug 975, print >&$fd (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
+# Stress test for this race condition
+fails=0
+typeset -i i fails n=200
+exp=$'start\nend1\nend2\nend3'
+for ((i=0; i<n; i++))
+do	exp+=$'\nabcdefghijk'
+done  # omit final \n to match comsub's stripping of final newline
+explen=${#exp}
+for ((i=0; i<n; i++))
+do
+	got=$(
+		{
+			{
+				print -u8 start
+				# i can be reused safely in the subshell
+				for ((i=0; i<200; i++))
+				do	print abcdefghijk
+				done
+				print >&7 end1
+				print -u8 end2
+				print >&9 end3
+			} | cat
+		} 7>&1 8>&1 9>&1
+	)
+	# The reproducer is inherently racy at the script level as it has four streams writing
+	# to the same comsub capture file, one buffered via cat(1). The end* lines will usually
+	# appear before any of the 'abcdefghijk' lines, but may intermittently appear anywhere
+	# else. This test only checks that no data loss occurs and that each individual line is
+	# written atomically, i.e., without being corrupted or lost. Therefore, only check the
+	# length, the beginning ('start'), and the presence of intact end{1,2,3} anywhere.
+	[[ ${#got} -eq $explen && $got == $'start\n'* && $got$'\n' == *$'\nend1\n'*
+	   && $got$'\n' == *$'\nend2\n'* && $got$'\n' == *$'\nend3\n'* ]] || ((fails++))
+done
+((fails == 0)) || err_exit "bug 975 stress test: $fails/$n iterations produced wrong output"
+unset i fails n explen
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -168,7 +168,7 @@ static size_t scantree(Dt_t *tree, const char *pattern, struct argnod **arghead)
  * Generate the list of files found by adding a suffix to end of name
  * The number of matches is returned
  */
-size_t path_complete(const char *name,const char *suffix, struct argnod **arghead)
+size_t path_complete(const char *restrict name,const char *restrict suffix, struct argnod **arghead)
 {
 	sufstr = suffix;
 	suflen = strlen(suffix);

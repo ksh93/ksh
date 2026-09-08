@@ -2,6 +2,20 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-08:
+
+- Fixed: PWD and ENV were not properly reinitialised when executing a shell
+  script without a #! path.
+
+- Fixed a possible crash after unsetting RANDOM. Bug introduced on 2022-07-21.
+
+2026-09-04:
+
+- Fixed a longstanding bug in which output data loss or corruption could
+  intermittently occur if, within a command substitution, standard error is
+  redirected to standard output and, within that redirection, standard
+  output is then connected to a pipe.
+
 2026-09-02:
 
 - Fixed a bug, introduced on 2025-05-30, that made 'print -s' ineffective
@@ -52,9 +66,6 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - [v1.1] The -n/--noexec option can now effectively be set in subshells of
   interactive shells, e.g., within a parentheses block.
-
-- [v1.1] The -n/--noexec option, when given at the shell's invocation, now
-  causes the shell to exit with status 1 if the linter emitted any warnings.
 
 - [v1.1] The 'eval' command has a new -n/--noexec option that causes it to
   subject the command(s) given to static analysis in the manner of the
