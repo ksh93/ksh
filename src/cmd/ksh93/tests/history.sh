@@ -76,7 +76,7 @@ wait
 ((total = n_sessions * n_lines))
 got=$(
 	HISTFILE=$histfile
-	fc -l -N "$((n_sessions * n_lines + 50))" 2>&1 | sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort
+	fc -l -N "$((n_sessions * n_lines + 50))" 2>&1 | LC_ALL=C sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort
 )
 present=$(print "$got" | wc -l)
 if	((present == total))
@@ -87,9 +87,9 @@ then	exp=
 		done
 	done
 	test "$got" = "$exp" || err_exit "concurrent history writes: got $total entries as expected, but entries differ." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 else	err_exit "concurrent history writes: expected $total entries, got $present." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 fi
 unset n_sessions n_lines s present total
 
@@ -134,7 +134,7 @@ do	HISTFILE=$histfile
 	HISTFILE=/dev/null
 done
 HISTFILE=$histfile
-got=$(fc -l -N "$((total + 15))" 2>&1 | sed $'s/^[0-9]*[ \t]*//')
+got=$(fc -l -N "$((total + 15))" 2>&1 | LC_ALL=C sed $'s/^[0-9]*[ \t]*//')
 present=$(print "$got" | wc -l)
 if	((present == total))
 then	exp=
@@ -142,9 +142,9 @@ then	exp=
 	do	exp+=${exp:+$'\n'}cycle_cmd_$s
 	done
 	test "$got" = "$exp" || err_exit "sequential session cycling: got $total entries as expected, but entries differ." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 else	err_exit "sequential session cycling: expected $total entries, got $present." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 fi
 unset s total present missing
 HISTFILE=/dev/null
@@ -162,7 +162,7 @@ got=$(HISTFILE=$histfile; fc -l -N 1 2>&1)
 # verify history file's initial magic byte (HIST_UNDO == 8#201)
 (LC_CTYPE=C; [[ $(<$histfile) == $'\201'* ]]) || err_exit "history file magic byte corrupted after stress test 1"
 # read back
-got=$(HISTFILE=$histfile; fc -l -N "$((total + 50))" 2>&1 | sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort -n -t_ -k3)
+got=$(HISTFILE=$histfile; fc -l -N "$((total + 50))" 2>&1 | LC_ALL=C sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort -n -t_ -k3)
 present=$(print "$got" | wc -l)
 if	((present == total))
 then	exp=
@@ -170,10 +170,10 @@ then	exp=
 	do	exp+=${exp:+$'\n'}stress_cmd_$s
 	done
 	test "$got" = "$exp" || err_exit "concurrent one-line stress test 1: got $total entries as expected, but entries differ." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 else
 	err_exit "concurrent one-line stress test 1: expected $total entries, got $present." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 fi
 unset total present s histfile
 
@@ -190,7 +190,7 @@ got=$(fc -l -N 1 2>&1)
 # verify history file's initial magic byte (HIST_UNDO == 8#201)
 (LC_CTYPE=C; [[ $(<$HISTFILE) == $'\201'* ]]) || err_exit "history file magic byte corrupted after stress test 2"
 # read back
-got=$(fc -l -N "$((total + 50))" 2>&1 | sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort -n -t_ -k3)
+got=$(fc -l -N "$((total + 50))" 2>&1 | LC_ALL=C sed $'s/^[0-9]*[ \t]*//' | LC_ALL=C sort -n -t_ -k3)
 present=$(print "$got" | wc -l)
 if	((present == total))
 then	exp=
@@ -198,10 +198,10 @@ then	exp=
 	do	exp+=${exp:+$'\n'}stress_cmd_$s
 	done
 	test "$got" = "$exp" || err_exit "concurrent one-line stress test 2: got $total entries as expected, but entries differ." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 else
 	err_exit "concurrent one-line stress test 2: expected $total entries, got $present." \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$exp") <(print -r -- "$got") | LC_ALL=C sed $'s/^/\t| /; 25s/.*/\t| [...]/; 26,$d')"
 fi
 unset total present s
 HISTFILE=/dev/null

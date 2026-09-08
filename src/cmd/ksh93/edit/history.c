@@ -67,8 +67,8 @@
 	off_t	histmarker;	/* offset of last command marker */ \
 	ssize_t	histflush;	/* set if flushed outside of hflush() */\
 	int	histmask;	/* power of two mask for histcnt */ \
-	int	histlockfd;	/* lock file descriptor for shared HISTFILE */ \
-	int	histlockcnt;	/* nested history lock counter */ \
+	int	histlockfd;	/* lock file descriptor for history file */ \
+	int	histlockcnt;	/* history lock reference counter */ \
 	char	histbuff[HIST_BSIZE+1];	/* history file buffer */ \
 	int	histwfail; \
 	_HIST_AUDIT \
@@ -193,8 +193,8 @@ static const Sfdisc_t hist_disc = { NULL, hist_write, NULL, hist_exceptf, NULL};
 static int hist_setlock(int fd, short type)
 {
 	struct flock lock = { .l_type = type, .l_whence = SEEK_SET };
-	while(fcntl(fd, F_SETLKW, &lock) < 0)
-		if(errno != EINTR)
+	while (fcntl(fd, F_SETLKW, &lock) < 0)
+		if (errno != EINTR)
 			return -1;
 	return 0;
 }
@@ -204,37 +204,37 @@ static int hist_rewrite_head(History_t *hp, const void *buf, size_t len)
 	int fd = hp->histlockfd;
 	int flags;
 	ssize_t wr;
-	if(fd < 0)
+	if (fd < 0)
 		return -1;
-	if((flags = fcntl(fd, F_GETFL)) < 0)
+	if ((flags = fcntl(fd, F_GETFL)) < 0)
 		return -1;
-	if((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) < 0)
+	if ((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) < 0)
 		return -1;
-	if(lseek(fd, (off_t)0, SEEK_SET) < 0)
+	if (lseek(fd, 0, SEEK_SET) < 0)
 	{
-		if(flags&O_APPEND)
+		if (flags&O_APPEND)
 			fcntl(fd, F_SETFL, flags);
 		return -1;
 	}
 	wr = write(fd, buf, len);
-	if(flags&O_APPEND)
+	if (flags&O_APPEND)
 		fcntl(fd, F_SETFL, flags);
-	if(wr != (ssize_t)len)
+	if (wr != (ssize_t)len)
 		return -1;
-	if(sfseek(hp->histfp, (off_t)0, SEEK_END) < 0)
+	if (sfseek(hp->histfp, 0, SEEK_END) < 0)
 		return -1;
-	if(sfpurge(hp->histfp) < 0)
+	if (sfpurge(hp->histfp) < 0)
 		return -1;
 	return 0;
 }
 
 static int hist_lock(History_t *hp)
 {
-	if(!hp || hp->histlockfd < 0)
+	if (!hp || hp->histlockfd < 0)
 		return 0;
-	if(hp->histlockcnt++ > 0)
+	if (hp->histlockcnt++ > 0)
 		return 0;
-	if(hist_setlock(hp->histlockfd, F_WRLCK) == 0)
+	if (hist_setlock(hp->histlockfd, F_WRLCK) == 0)
 		return 0;
 	hp->histlockcnt--;
 	return -1;
@@ -242,9 +242,9 @@ static int hist_lock(History_t *hp)
 
 static void hist_unlock(History_t *hp)
 {
-	if(!hp || hp->histlockfd < 0 || hp->histlockcnt <= 0)
+	if (!hp || hp->histlockfd < 0 || hp->histlockcnt <= 0)
 		return;
-	if(--hp->histlockcnt > 0)
+	if (--hp->histlockcnt > 0)
 		return;
 	hist_setlock(hp->histlockfd, F_UNLCK);
 }
@@ -288,7 +288,7 @@ int  sh_histinit(void)
 	if(!histinit)
 		histmode = S_IRUSR|S_IWUSR;
 	if((fd=sh_open(cp,O_BINARY|O_APPEND|O_RDWR|O_CREAT|O_cloexec,histmode))>=0)
-		hsize=0;
+		hsize = 0;
 	if(fd > 0 && fd < 10)
 	{
 		if((n=sh_fcntl(fd,F_dupfd_cloexec,10))>=0)
@@ -297,25 +297,25 @@ int  sh_histinit(void)
 			fd=n;
 		}
 	}
-	if(fd >= 0 && hist_setlock(fd, F_WRLCK) == 0)
+	if (fd >= 0)
 	{
-		lockfd = fd;
-		if((hsize=lseek(fd,0,SEEK_END)) < 0)
+		if (hist_setlock(fd, F_WRLCK) == 0)
+			lockfd = fd;
+		hsize = lseek(fd, 0, SEEK_END);
+		if (hsize < 0)
 			hsize = 0;
 	}
-	else if(fd >= 0 && (hsize=lseek(fd,0,SEEK_END)) < 0)
-		hsize = 0;
 	/* make sure that file has history file format */
 	if(hsize && hist_check(fd))
 	{
-		if(ftruncate(fd, (off_t)0) >= 0)
+		if (ftruncate(fd, 0) >= 0)
 		{
-			lseek(fd,0,SEEK_SET);
+			lseek(fd, 0, SEEK_SET);
 			hsize = 0;
 		}
 		else
 		{
-			if(lockfd >= 0)
+			if (lockfd >= 0)
 				hist_setlock(lockfd, F_UNLCK);
 			sh_close(fd);
 			fd = -1;
@@ -328,12 +328,12 @@ int  sh_histinit(void)
 		if(sh.userid)
 		{
 			if(!(fname = pathtmp(NULL,0,0,NULL)))
-				goto fail_return;
+				goto initfail;
 			fd = sh_open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
 		}
 	}
 	if(fd<0)
-		goto fail_return;
+		goto initfail;
 	if(!(sh.fdstatus[fd]&IOCLEX))
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
 	if(cp=nv_getval(HISTSIZE))
@@ -355,11 +355,11 @@ int  sh_histinit(void)
 	hp->histmask = histmask;
 	sh.fdstatus[fd] = IOHIST;  /* tell sftrack to set IOCLEX (close-on-exec bit) */
 	hp->histfp= sfnew(NULL,hp->histbuff,HIST_BSIZE,fd,SFIO_READ|SFIO_WRITE|SFIO_APPENDWR|SFIO_SHARE);
-	if(!hp->histfp)
+	if (!hp->histfp)
 	{
 		free(hp);
 		sh_close(fd);
-		goto fail_return;
+		goto initfail;
 	}
 	memset((char*)hp->histcmds,0,sizeof(off_t)*(size_t)(hp->histmask+1));
 	hp->histind = 1;
@@ -392,13 +392,13 @@ int  sh_histinit(void)
 			first = hist_nearend(hp,hp->histfp,hsize-size);
 			hp->histind = first;
 		}
-		if(hist_start <= 1)
+		if (hist_start <= 1)
 		{
 			hist_start = 1;
 			hp->histind = 1;
 			hp->histcnt = 2;
 			hp->histcmds[1] = 2;
-			sfseek(hp->histfp,(off_t)2,SEEK_SET);
+			sfseek(hp->histfp, 2, SEEK_SET);
 		}
 		histinit = hist_start;
 		hist_eof(hp);
@@ -459,10 +459,10 @@ int  sh_histinit(void)
 	}
 #endif
 	return 1;
-fail_return:
-	if(lockfd >= 0)
+initfail:
+	if (lockfd >= 0)
 		hist_setlock(lockfd, F_UNLCK);
-	if(fd >= 0)
+	if (fd >= 0)
 		sh_close(fd);
 	return 0;
 }
@@ -472,7 +472,7 @@ fail_return:
  */
 void hist_close(History_t *hp)
 {
-	if(hp->histlockfd >= 0 && hp->histlockcnt > 0)
+	if (hp->histlockfd >= 0 && hp->histlockcnt > 0)
 	{
 		hp->histlockcnt = 1;
 		hist_unlock(hp);
@@ -529,43 +529,45 @@ static History_t* hist_trim(History_t *hp, int n)
 	int fd = -1, index, started_copyback = 0;
 	ssize_t r;
 	int histfd = sffileno(hp->histfp);
-	History_t *hist_old = hp;
-	Sfio_t *hist_new = NULL;
+	History_t *hist_orig = hp;
+	Sfio_t *hist_tmp = NULL;
 	char *buff, *endbuff;
-	char tmpbuff[HIST_BSIZE+1];
+	char tmpbuff[HIST_BSIZE + 1];
 	char copybuff[HIST_BSIZE];
 	off_t oldp, newp;
 	tmpname = pathtmp(NULL,0,0,NULL);
-	if(!tmpname)
+	if (!tmpname)
 		goto trimfail;
 	fd = sh_open(tmpname,O_BINARY|O_RDWR|O_CREAT|O_EXCL|O_cloexec,S_IRUSR|S_IWUSR);
-	if(fd < 0)
+	if (fd < 0)
 		goto trimfail;
-	hist_new = sfnew(NULL,tmpbuff,HIST_BSIZE,fd,SFIO_READ|SFIO_WRITE);
-	if(!hist_new)
+	hist_tmp = sfnew(NULL, tmpbuff, HIST_BSIZE, fd, SFIO_READ|SFIO_WRITE);
+	if (!hist_tmp)
 	{
 		sh_close(fd);
 		fd = -1;
 		goto trimfail;
 	}
-	sfwrite(hist_new,(char*)hist_stamp,2);
+	sfwrite(hist_tmp, (char*)hist_stamp, 2);
 	if(--n < 0)
 		n = 0;
-	newp = hist_seek(hist_old,++n);
+	newp = hist_seek(hist_orig, ++n);
 	while(1)
 	{
 		if(!incmd)
 		{
 			oldp = newp;
-			newp = hist_seek(hist_old,++n);
+			newp = hist_seek(hist_orig, ++n);
 			if(newp <=oldp)
 				break;
 		}
-		if(!(buff=(char*)sfreserve(hist_old->histfp,SFIO_UNBOUND,0)))
+		if (!(buff = sfreserve(hist_orig->histfp, SFIO_UNBOUND, 0)))
 			break;
-		*(endbuff=(cp=buff)+sfvalue(hist_old->histfp)) = 0;
+		endbuff = buff + sfvalue(hist_orig->histfp);
+		*endbuff = 0;
 		/* copy to null byte */
 		incmd = 0;
+		cp = buff;
 		while(*cp++);
 		if(cp > endbuff)
 			incmd = 1;
@@ -574,63 +576,44 @@ static History_t* hist_trim(History_t *hp, int n)
 		if(cp > endbuff)
 			cp = endbuff;
 		c = (int)(cp-buff);
-		sfwrite(hist_new,buff,(size_t)c);
+		sfwrite(hist_tmp, buff, (size_t)c);
 	}
-	sfputc(hist_new,HIST_UNDO);
-	sfputc(hist_new,0);
-	if(sfsync(hist_new) < 0 || sfseek(hist_new,(off_t)0,SEEK_SET) < 0)
-	{
-		sfclose(hist_new);
-		hist_new = NULL;
+	sfputc(hist_tmp, HIST_UNDO);
+	sfputc(hist_tmp, 0);
+	if (sfsync(hist_tmp) < 0 || sfseek(hist_tmp, 0, SEEK_SET) < 0)
 		goto trimfail;
-	}
-	if(sfpurge(hist_old->histfp) < 0 || ftruncate(histfd,(off_t)0) < 0 || sfseek(hist_old->histfp,(off_t)0,SEEK_SET) < 0)
-	{
-		sfclose(hist_new);
-		hist_new = NULL;
+	if (sfpurge(hist_orig->histfp) < 0 || ftruncate(histfd, 0) < 0 || sfseek(hist_orig->histfp, 0, SEEK_SET) < 0)
 		goto trimfail;
-	}
 	started_copyback = 1;
-	while((r=sfread(hist_new,copybuff,sizeof(copybuff))) > 0)
-	{
-		if(sfwrite(hist_old->histfp,copybuff,(size_t)r) != r)
-		{
-			sfclose(hist_new);
-			hist_new = NULL;
+	while ((r = sfread(hist_tmp, copybuff, sizeof copybuff)) > 0)
+		if (sfwrite(hist_orig->histfp, copybuff, (size_t)r) != r)
 			goto trimfail;
-		}
-	}
-	if(r < 0 || sfsync(hist_old->histfp) < 0 || sfseek(hist_old->histfp,(off_t)0,SEEK_END) < 0)
-	{
-		sfclose(hist_new);
-		hist_new = NULL;
+	if (r < 0 || sfsync(hist_orig->histfp) < 0 || sfseek(hist_orig->histfp,(off_t)0,SEEK_END) < 0)
 		goto trimfail;
-	}
-	sfclose(hist_new);
-	hist_new = NULL;
+	sfclose(hist_tmp);
 	unlink(tmpname);
 	free(tmpname);
-	sfpurge(hist_old->histfp);
-	memset((char*)hist_old->histcmds,0,sizeof(off_t)*(size_t)(hist_old->histmask+1));
+	sfpurge(hist_orig->histfp);
+	memset(hist_orig->histcmds, 0, sizeof(off_t) * (size_t)(hist_orig->histmask + 1));
 	index = histinit;
-	hist_old->histind = 1;
-	hist_old->histcmds[1] = 2;
-	hist_old->histcnt = hist_old->histmarker = 2;
+	hist_orig->histind = 1;
+	hist_orig->histcmds[1] = 2;
+	hist_orig->histcnt = hist_orig->histmarker = 2;
 	histinit = 1;
-	hist_eof(hist_old);
+	hist_eof(hist_orig);
 	histinit = index;
-	return hist_ptr = hist_old;
+	return hist_ptr = hist_orig;
 trimfail:
-	if(hist_new)
-		sfclose(hist_new);
-	if(tmpname)
+	if (hist_tmp)
+		sfclose(hist_tmp);
+	if (tmpname)
 	{
-		if(!started_copyback)
+		if (!started_copyback)
 			unlink(tmpname);
 		free(tmpname);
 	}
-	errormsg(SH_DICT,ERROR_warn(0),e_histtrim,hist_old->histname);
-	return hist_ptr = hist_old;
+	errormsg(SH_DICT, ERROR_warn(0), e_histtrim, hist_orig->histname);
+	return hist_ptr = hist_orig;
 }
 
 /*
@@ -802,10 +785,10 @@ again:
 			hp->histind = 1;
 		if(last<0)
 		{
-			char buff[2+HIST_MARKSZ];
-			memcpy(buff,(char*)hist_stamp,2);
-			hist_marker(buff+2,hp->histind);
-			hist_rewrite_head(hp,buff,sizeof(buff));
+			char buff[2 + HIST_MARKSZ];
+			memcpy(buff, hist_stamp, 2);
+			hist_marker(buff + 2, hp->histind);
+			hist_rewrite_head(hp, buff, sizeof buff);
 		}
 		last = 0;
 		goto again;
@@ -1272,7 +1255,8 @@ done:
  */
 static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 {
-	int newfd,oldfd,lockcnt=0,relock=0;
+	int newfd,oldfd;
+	int lockcnt = 0, relock = 0;
 	History_t *hp = (History_t*)handle;
 	NOT_USED(data);
 	if(type==SFIO_WRITE)
@@ -1281,9 +1265,9 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 			return 0;
 		/* write failure could be NFS problem, try to reopen */
 		oldfd = sffileno(fp);
-		if(oldfd < 0)
+		if (oldfd < 0)
 			return -1;
-		if(hp->histlockfd==oldfd && hp->histlockcnt>0)
+		if (hp->histlockfd == oldfd && hp->histlockcnt > 0)
 		{
 			relock = 1;
 			lockcnt = hp->histlockcnt;
@@ -1301,7 +1285,7 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 				{
 					if(dupfd > -1)
 						sh_close(dupfd);
-					if(relock)
+					if (relock)
 					{
 						hp->histlockfd = oldfd;
 						hp->histlockcnt = 0;
@@ -1309,9 +1293,9 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 					return -1;
 				}
 			}
-			if(relock)
+			if (relock)
 			{
-				if(hist_setlock(oldfd,F_WRLCK) < 0)
+				if (hist_setlock(oldfd,F_WRLCK) < 0)
 				{
 					hp->histlockfd = oldfd;
 					hp->histlockcnt = 0;
@@ -1335,12 +1319,12 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 			}
 			return 1;
 		}
-		if(relock)
+		if (relock)
 		{
 			hp->histlockfd = oldfd;
 			hp->histlockcnt = 0;
 		}
-		errormsg(SH_DICT,2,"History file write error-%d %s: file unrecoverable",errno,hp->histname);
+		errormsg(SH_DICT, 2, e_histwrite, hp->histname, strerror(errno));
 		return -1;
 	}
 	return 0;
