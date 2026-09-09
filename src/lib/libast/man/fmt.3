@@ -1,95 +1,83 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH FMT 3
 .SH NAME
 fmt \- string formatting routines
 .SH SYNOPSIS
-.EX
+.nf
+.ft CW
 #include <ast.h>
 #include <ls.h>
 
-char*      fmtint(intmax_t \fInumber\fP, int \fIunsign\fP);
+char*      fmtbuf(size_t \fIsize\fP);
+char*      fmtclock(Sfulong_t \fItics\fP);
 char*      fmtdev(struct stat* \fIst\fP);
-char*      fmtelapsed(unsigned long \fIcount\fP, unsigned long \fIpersec\fP)
+char*      fmtelapsed(unsigned long \fIcount\fP, unsigned long \fIpersec\fP);
 char*      fmtesc(const char* \fIstring\fP);
+char*      fmtfmt(const char* \fIformat\fP);
 char*      fmtfs(struct stat* \fIst\fP);
 char*      fmtgid(gid_t \fIgid\fP);
+char*      fmtident(const char* \fIstring\fP);
+char*      fmtint(intmax_t \fInumber\fP, int \fIunsign\fP);
+char*      fmtip4(uint32_t \fIaddr\fP, int \fIbits\fP);
 char*      fmtmatch(const char* \fIre\fP);
 char*      fmtmode(mode_t \fImode\fP, int \fIexternal\fP);
+char*      fmtnum(unsigned long \fInumber\fP, int \fIdivide\fP);
 char*      fmtperm(mode_t \fIperm\fP);
 char*      fmtre(const char* \fIpattern\fP);
+char*      fmtscale(Sfulong_t \fInumber\fP, unsigned int \fIscale\fP);
 char*      fmtsignal(int \fIsig\fP);
 char*      fmttime(const char* \fIformat\fP, time_t \fItm\fP);
 char*      fmtuid(uid_t \fIuid\fP);
-.EE
+.ft
+.fi
 .SH DESCRIPTION
 These routines return a pointer to a formatted string for various numeric
 and string entities.
 Some routines may cache information to speed up the next call.
 Most of the routines return a pointer to a private buffer, the
-contents of which are overwritten on the next call to that routine.
+contents of which are overwritten on subsequent calls;
+fmtbuf(3) describes the private buffer allocation.
 Most
-.L fmt
+\f(CWfmt\fP
 routines have a corresponding
-.L str
+\f(CWstr\fP
 routine that converts in the other direction.
 There is nothing spectacular about this collection other than that
 it provides a single place where the exact format is spelled out.
 .PP
-.L fmtint
-is a performance-optimized function for formatting a base-10 integer
-.IR number .
-If
-.I "unsign != 0"
-then the
-.IR number
-is treated as unsigned.
+\f(CWfmtbuf\fP
+returns a pointer to a temporary buffer of
+.I size
+bytes, used by the other routines to hold their formatted results.
+Buffers of up to 16384 bytes come from a single static buffer that is
+overwritten on each call; larger requests are satisfied by a single
+dynamically allocated buffer that is reused and grown as needed.
+The caller must not retain the returned pointer across subsequent calls.
 .PP
-.L fmtdev
+\f(CWfmtclock\fP
+formats the
+.BR clock (3)
+elapsed tick count
+.I tics
+into a human-readable string of at most 6 characters.
+Values are expressed in microseconds, milliseconds, or
+\f(CWfmtelapsed\fP
+units as appropriate.
+\f(CW0\fP is returned if
+.IR "tics == 0" ,
+and
+\f(CW%\fP
+if
+.IR "tics == ~(Sfulong_t)0" .
+.PP
+\f(CWfmtdev\fP
 returns the device handle name specified by the
-.L stat
+\f(CWstat\fP
 structure
 .IR st .
 This is the device information displayed by
 .IR "ls \-l" .
 .PP
-.L fmtelapsed
+\f(CWfmtelapsed\fP
 formats the elapsed time for
 .I (count/persec)
 seconds.
@@ -107,50 +95,117 @@ minutes
 .B h
 hours
 .TP
-.B days
+.B d
+days
 .TP
-.B weeks
+.B w
+weeks
 .TP
 .B M
 months
 .TP
 .B Y
 years
-.TP
-.B S
-scores
 .RE
+.IP
+\f(CW0\fP is returned if
+.IR "count == 0" ,
+and
+\f(CW%\fP
+if
+.IR "count == ~0UL" .
 .PP
-.L fmtesc
+\f(CWfmtesc\fP
 formats non-ASCII characters in
 .I string
 into C-style
-.B \e
+.B \ee
 sequences.
 These sequences are understood by
-.L chresc
+\f(CWchresc\fP
 and
-.LR chrtoi .
+\f(CWchrtoi\fP.
 .PP
-.L fmtfs
+\f(CWfmtfmt\fP
+returns the
+.BR printf (3)
+format signature of
+.IR format :
+a string containing one character per conversion specification,
+each optionally preceded by the count of
+.B *
+arguments.
+The signature characters are:
+.BR c ,
+.BR d ,
+.BR D ,
+.BR f ,
+.BR h ,
+.BR i ,
+.BR j ,
+.BR l ,
+.BR p ,
+.BR s ,
+.BR t ,
+.BR z ,
+and
+.B ?
+for an unrecognized specification.
+.PP
+\f(CWfmtfs\fP
 returns the file system type name corresponding to the
-.L stat
+\f(CWstat\fP
 structure
 .IR st .
 .PP
-.L fmtgid
+\f(CWfmtgid\fP
 returns the group name for
 .IR gid .
 .PP
-.L fmtmatch
+\f(CWfmtident\fP
 returns the
-.L strmatch
+.BR what (1)
+or
+.BR ident (1)
+identification string contained in
+.IR string ,
+stripping the leading
+\f(CW@(#)\fP,
+\f(CW$Id:\fP
+and
+\f(CW[...]\fP
+usage markers.
+.I string
+is returned unchanged if it contains no such markers.
+.PP
+\f(CWfmtint\fP
+is a performance-optimized function for formatting a base-10 integer
+.IR number .
+If
+.I "unsign != 0"
+then the
+.IR number
+is treated as unsigned.
+.PP
+\f(CWfmtip4\fP
+formats the host-order IPv4 address
+.I addr
+in dotted-quad notation.
+If
+.I bits
+is between 0 and 32 then a
+.BI / bits
+prefix suffix is appended.
+.PP
+\f(CWfmtmatch\fP
+returns the
+\f(CWstrmatch\fP
 equivalent pattern for the regular expression pattern
 .IR re .
 0 is returned for invalid
 .IR re .
 .PP
-.L fmtmode
+\f(CWfmtmode\fP
 returns the
 .I "ls \-l"
 mode string for the file mode bits in
@@ -160,42 +215,83 @@ If
 then
 .I mode
 is
-.IR modecanon (3)
+\f(CWmodecanon\fP(3)
 canonical.
 .PP
-.L fmtperm
+\f(CWfmtnum\fP
+formats
+.IR number ,
+first divided by
+.I divide
+if
+.IR "divide > 1" ,
+as a scaled value of at most 5 characters with a binary
+(1024-based) metric suffix selected from
+.BR k ,
+.B m
+and
+.BR g .
+.PP
+\f(CWfmtperm\fP
 returns the
 .I chmod
 permission string for the permission bits in
 .IR perm .
 .PP
-.L fmtre
+\f(CWfmtre\fP
 returns the regular expression
 equivalent pattern for the
-.L strmatch
+\f(CWstrmatch\fP
 pattern
 .IR pattern .
 0 is returned for invalid
 .IR pattern .
 .PP
-.L fmtsignal
-returns the signal name, sans
-.LR SIG ,
-for the signal number
+\f(CWfmtscale\fP
+formats
+.I number
+scaled by
+.IR scale ,
+which must be 1000 or 1024, using a metric suffix.
+The result is at most 5 characters.
+For
+.I scale
+1000 the suffixes are
+.BR b ,
+.BR k ,
+.BR M ,
+.BR G ,
+.BR T ,
+.B P
+and
+.BR E ;
+for 1024 they are
+.BR Ki ,
+.BR Mi ,
+.BR Gi ,
+.BR Ti ,
+.BR Pi
+and
+.BR Ei .
+.PP
+\f(CWfmtsignal\fP
+returns the signal description text for the signal number
 .IR sig .
 If
 .I "sig < 0"
-then the description text for
+then the signal name, sans
+\f(CWSIG\fP,
+for
 .I \-sig
 is returned.
 .PP
-.L fmttime
+\f(CWfmttime\fP
 returns the results of
 .I "tmfmt(buf,sizeof(buf),format,tm)"
 in the private buffer
 .IR buf .
 .PP
-.L fmtuid
+\f(CWfmtuid\fP
 returns the user name for
 .IR uid .
 .SH "SEE ALSO"
