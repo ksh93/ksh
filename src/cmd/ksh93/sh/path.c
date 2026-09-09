@@ -987,7 +987,8 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 	char **envp;
 	const char *opath;
 	Pathcomp_t *libpath, *pp=0;
-	int slash=0, not_executable=0;
+	Namval_t *np;
+	int slash=0, not_executable=0, giveup=0;
 	pid_t spawnpid;
 	nv_setlist(local,NV_EXPORT|NV_IDENT|NV_ASSIGN,0);
 	envp = sh_envgen();
@@ -1006,10 +1007,34 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 	sh.path_err= ENOENT;
 	sfsync(NULL);
 	sh_timerdel(NULL);
+	/*
+	 * If a tracked alias (hashed $PATH location) for arg0 already exists -- e.g. because
+	 * path_search() just found and cached one while checking if arg0 is a function or
+	 * builtin -- try executing that cached location before doing a full, uncached $PATH
+	 * search below. This avoids blindly redoing the $PATH search that was just done,
+	 * including redundant, futile execve(2) calls on $PATH components that are already
+	 * known not to contain the command. (https://github.com/ksh93/ksh/issues/992)
+	 */
+	if(!slash && (np = path_gettrackedalias(arg0)))
+	{
+		libpath = np->nvalue;
+		path_nextcomp(libpath,arg0,libpath);
+		opath = (char*)stkfreeze(sh.stk,1) + PATH_OFFSET;
+		if(sh.subshell)
+			sh_subtmpfile();
+		spawnpid = path_spawn(opath,argv,envp,libpath,0);
+		if(spawnpid == -1)
+		{
+			if(sh.path_err == E2BIG)
+				giveup = 1;  /* no other candidate will fare better; give up like the loop below does */
+			else if(sh.path_err != ENOENT)
+				not_executable = sh.path_err;
+		}
+	}
 	/* find first path that has a library component */
 	while(pp && (pp->flags&PATH_SKIP))
 		pp = pp->next;
-	if(pp || slash) do
+	if(!giveup && (pp || slash)) do
 	{
 		sh_sigcheck();
 		if(libpath=pp)
