@@ -1,0 +1,1030 @@
+.\" Derived from the FreeBSD fts(3) manual page.
+.\"
+.\" Copyright (c) 1989, 1991, 1993, 1994
+.\"	The Regents of the University of California.  All rights reserved.
+.\" Copyright (c) 2001-2026 The FreeBSD Project.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.TH FTS 3
+.SH NAME
+fts \- traverse a file hierarchy
+.SH LIBRARY
+libast
+.SH SYNOPSIS
+.nf
+.ft CW
+#include <fts.h>
+
+FTS*     fts_open(char* const* \fIpaths\fP, int \fIflags\fP, int (*\fIcomparf\fP)(FTSENT* const*, FTSENT* const*));
+FTSENT*  fts_read(FTS* \fIfts\fP);
+FTSENT*  fts_children(FTS* \fIfts\fP, int \fIflags\fP);
+int      fts_set(FTS* \fIfts\fP, FTSENT* \fIf\fP, int \fIflags\fP);
+int      fts_close(FTS* \fIfts\fP);
+
+int      fts_flags(void);
+int      fts_local(FTSENT* \fIf\fP);
+int      fts_notify(int (*\fInotifyf\fP)(FTS*, FTSENT*, void*), void* \fIcontext\fP);
+.ft
+.fi
+.SH DESCRIPTION
+The
+.B fts
+functions are provided for traversing
+UNIX
+file hierarchies.
+A simple overview is that the
+\f(CWfts_open\fP
+function returns a
+"handle"
+on a file hierarchy, which is then supplied to
+the other
+.B fts
+functions.
+The
+\f(CWfts_read\fP
+function returns a pointer to a structure describing one of the files
+in the file hierarchy.
+The
+\f(CWfts_children\fP
+function returns a pointer to a linked list of structures, each of
+which describes one of the files contained in a directory in the
+hierarchy.
+In general, directories are visited two distinguishable times; in pre-order
+(before any of their descendants are visited) and in post-order (after all
+of their descendants have been visited).
+Files are visited once.
+It is possible to walk the hierarchy
+"logically",
+i.e., visiting the files that symbolic links point to,
+or physically (visiting the symbolic links themselves),
+order the walk of the hierarchy, and
+prune and/or re-visit portions of the hierarchy.
+.PP
+Two structures are defined (and typedef'd) in the include file
+\f(CW<fts.h>\fP.
+The first is
+.BR FTS ,
+the structure that represents the file hierarchy itself.
+The second is
+.BR FTSENT ,
+the structure that represents a file in the file
+hierarchy.
+Normally, an
+.B FTSENT
+structure is returned for every file in the file
+hierarchy.
+In this manual page,
+.I file
+and
+.I "FTSENT structure"
+are generally interchangeable.
+.PP
+The
+.B FTS
+structure is opaque to the application except for two fields:
+.IR fts_handle ,
+a
+.B void*
+the application may use to store per-hierarchy data, and
+.IR fts_errno ,
+which holds the
+.B errno
+value for the most recent stream-level error (0 if none).
+.PP
+The
+.B FTSENT
+structure contains at least the following fields, which are
+described in greater detail below:
+.nf
+.ft CW
+
+typedef struct Ftsent {
+	char*		fts_accpath;	/* path relative to .		*/
+	char*		fts_name;	/* file name			*/
+	char*		fts_path;	/* path relative to top dir	*/
+	FTSENT*		fts_cycle;	/* offender if cycle		*/
+	FTSENT*		fts_link;	/* next child			*/
+	FTSENT*		fts_parent;	/* parent directory		*/
+	struct stat*	fts_statp;	/* stat info			*/
+	void*		fts_pointer;	/* local pointer value		*/
+	long		fts_number;	/* local numeric value		*/
+	int		fts_errno;	/* errno for this entry		*/
+	unsigned short	fts_info;	/* info flags			*/
+	FTS*		fts;		/* fts_open() handle		*/
+	size_t		fts_namelen;	/* strlen(fts_name)		*/
+	size_t		fts_pathlen;	/* strlen(fts_path)		*/
+	ssize_t		fts_level;	/* file tree depth, 0 at top	*/
+} FTSENT;
+.ft
+.fi
+.PP
+These fields are defined as follows:
+.TP
+.I fts_info
+One of the following values describing the returned
+.B FTSENT
+structure and
+the file it represents.
+With the exception of directories visited in pre-order
+.RB ( FTS_D ),
+all of these
+entries are terminal, that is, they will not be revisited, nor will any
+of their descendants be visited.
+The
+.B FTS_D
+value is combined (inclusive-or) with other flag bits to form
+the composite values listed below it.
+.RS
+.TP
+.B FTS_D
+A directory being visited in pre-order.
+.TP
+.B FTS_DP
+A directory being visited in post-order.
+The contents of the
+.B FTSENT
+structure are unchanged from when
+the directory was visited in pre-order, except for the
+.I fts_info
+field and the
+.I fts_statp
+field, which is re-stat'ed to update link counts and times.
+.TP
+.B FTS_DC
+A directory that causes a cycle in the tree.
+(The
+.I fts_cycle
+field of the
+.B FTSENT
+structure will be filled in as well.)
+.TP
+.B FTS_DNR
+A directory which cannot be read.
+This is returned, in place of
+.BR FTS_D ,
+when the directory could not be entered and read.
+This is an error return, and the
+.I fts_errno
+field will be set to indicate what caused the error.
+.TP
+.B FTS_DNX
+A directory which cannot be searched (accessed).
+This is returned when
+.IR opendir (3)
+on the directory fails for lack of search permission.
+This is an error return, and the
+.I fts_errno
+field will be set to indicate what caused the error.
+.TP
+.B FTS_DOT
+A file named
+.B .
+or
+.B ..
+which was not specified as a path name to
+\f(CWfts_open\fP
+(see
+.BR FTS_SEEDOT ) .
+.TP
+.B FTS_F
+A regular file (not a directory or symbolic link).
+.TP
+.B FTS_NS
+A file for which no
+.IR stat (2)
+information was available.
+The contents of the
+.I fts_statp
+field are undefined.
+This is an error return, and the
+.I fts_errno
+field will be set to indicate what caused the error.
+.TP
+.B FTS_NSOK
+A file for which no
+.IR stat (2)
+information was requested (see
+.BR FTS_NOSTAT ) .
+The contents of the
+.I fts_statp
+field are undefined.
+.TP
+.B FTS_SL
+A symbolic link.
+Symbolic links are only returned in physical mode (see
+.BR FTS_PHYSICAL )
+or when they reference a non-existent file.
+.TP
+.B FTS_SLNONE
+A symbolic link with a non-existent target.
+The contents of the
+.I fts_statp
+field reference the file characteristic information for the symbolic link
+itself.
+.RE
+.TP
+.I fts_accpath
+A path for accessing the file from the current directory.
+Unless the
+.B FTS_NOCHDIR
+option was specified, this is the same as
+.I fts_name ,
+valid only while the traversal is positioned in the file's parent
+directory; otherwise it is the same as
+.IR fts_path .
+.TP
+.I fts_path
+The path for the file relative to the root of the traversal.
+This path contains the path specified to
+\f(CWfts_open\fP
+as a prefix.
+A leading
+.B ./
+is omitted unless the
+.B FTS_SEEDOTDIR
+option is in effect.
+.TP
+.I fts_pathlen
+The length of the string referenced by
+.IR fts_path .
+.TP
+.I fts_name
+The name of the file.
+.TP
+.I fts_namelen
+The length of the string referenced by
+.IR fts_name .
+.TP
+.I fts_level
+The depth of the traversal, numbered from 0 to N, where this file
+was found.
+The
+.B FTSENT
+structure representing the parent of the starting point (or root)
+of the traversal is numbered \-1, and the
+.B FTSENT
+structure for the root
+itself is numbered 0.
+.TP
+.I fts_errno
+Upon return of a
+.B FTSENT
+structure from the
+\f(CWfts_children\fP
+or
+\f(CWfts_read\fP
+functions, with its
+.I fts_info
+field set to
+.BR FTS_DNR ,
+.BR FTS_DNX ,
+.BR FTS_NS
+or
+.BR FTS_ERR ,
+the
+.I fts_errno
+field contains the value of the external variable
+.B errno
+specifying the cause of the error.
+Otherwise, the contents of the
+.I fts_errno
+field are undefined.
+.TP
+.I fts_number
+This field is provided for the use of the application program and is
+not modified by the
+.B fts
+functions.
+It is initialized to 0.
+.TP
+.I fts_pointer
+This field is provided for the use of the application program and is
+not modified by the
+.B fts
+functions.
+It is initialized to
+.BR NULL .
+.TP
+.I fts_parent
+A pointer to the
+.B FTSENT
+structure referencing the file in the hierarchy
+immediately above the current file, i.e., the directory of which this
+file is a member.
+A parent structure for the initial entry point is provided as well;
+only its
+.IR fts_level ,
+.I fts_number
+and
+.I fts_pointer
+fields are guaranteed to be initialized.
+.TP
+.I fts_link
+Upon return from the
+\f(CWfts_children\fP
+function, the
+.I fts_link
+field points to the next structure in the NULL-terminated linked list of
+directory members.
+Otherwise, the contents of the
+.I fts_link
+field are undefined.
+.TP
+.I fts_cycle
+If a directory causes a cycle in the hierarchy (see
+.BR FTS_DC ) ,
+either because
+of a hard link between two directories, or a symbolic link pointing to a
+directory, the
+.I fts_cycle
+field of the structure will point to the
+.B FTSENT
+structure in the hierarchy that references the same file as the current
+.B FTSENT
+structure.
+Otherwise, the contents of the
+.I fts_cycle
+field are undefined.
+.TP
+.I fts_statp
+A pointer to
+.IR stat (2)
+information for the file.
+.TP
+.I fts
+A pointer to the
+.B FTS
+stream handle returned by
+\f(CWfts_open\fP.
+.PP
+A single buffer is used for all of the paths of all of the files in the
+file hierarchy.
+Therefore, the
+.I fts_path
+and
+.I fts_accpath
+fields are guaranteed to be
+.BR NUL -terminated
+.I only
+for the file most recently returned by
+\f(CWfts_read\fP.
+To use these fields to reference any files represented by other
+.B FTSENT
+structures will require that the path buffer be modified using the
+information contained in that
+.B FTSENT
+structure's
+.I fts_pathlen
+field.
+Any such modifications should be undone before further calls to
+\f(CWfts_read\fP
+are attempted.
+The
+.I fts_name
+field is always
+.BR NUL -terminated.
+.SS "Thread Safety"
+The
+.B fts
+functions can safely be used in multi-threaded programs provided no
+two threads access the same
+.B FTS
+or
+.B FTSENT
+structure simultaneously.
+However, unless the
+.B FTS_NOCHDIR
+flag was passed to
+\f(CWfts_open\fP,
+calls to
+\f(CWfts_read\fP
+and
+\f(CWfts_children\fP
+may change the current working directory, which will affect all
+threads.
+Conversely, changing the current working directory either during or
+between calls to
+\f(CWfts_read\fP
+or
+\f(CWfts_children\fP
+(even in a single-threaded program) may cause
+.B fts
+to malfunction unless the
+.B FTS_NOCHDIR
+flag was passed to
+\f(CWfts_open\fP
+and all paths in
+.I paths
+were absolute.
+.SS fts_open
+The
+\f(CWfts_open\fP
+function takes a pointer to an array of character pointers naming one
+or more paths which make up a logical file hierarchy to be traversed.
+The array must be terminated by a
+.B NULL
+pointer.
+If the
+.B FTS_ONEPATH
+option is set,
+.I paths
+is instead a single
+.BR "const char *"
+naming the lone path to traverse.
+If
+.I paths
+is
+.BR NULL ,
+or (without
+.BR FTS_ONEPATH )
+the array is empty, the path
+.B .
+is traversed.
+.PP
+There are
+a number of options, at least one of which (either
+.B FTS_LOGICAL
+or
+.BR FTS_PHYSICAL )
+governs the treatment of symbolic links.
+The options are selected by
+.IR or 'ing
+the following values:
+.TP
+.B FTS_LOGICAL
+This option (value 0, the default) causes the
+.B fts
+routines to return
+.B FTSENT
+structures for the targets of symbolic links
+instead of the symbolic links themselves.
+If this option is in effect, the only symbolic links for which
+.B FTSENT
+structures
+are returned to the application are those referencing non-existent files.
+Exactly one of
+.B FTS_LOGICAL
+or
+.B FTS_PHYSICAL
+is in effect for any traversal;
+.B FTS_LOGICAL
+is the default when
+.B FTS_PHYSICAL
+is not specified.
+.TP
+.B FTS_PHYSICAL
+This option causes the
+.B fts
+routines to return
+.B FTSENT
+structures for symbolic links themselves instead
+of the target files they point to.
+If this option is set,
+.B FTSENT
+structures for all symbolic links in the
+hierarchy are returned to the application.
+.TP
+.B FTS_META
+This option causes any symbolic link specified as a root path to be
+followed immediately, whether or not
+.B FTS_LOGICAL
+is also in effect.
+It is a libast extension, also available under the name
+.BR FTS_COMFOLLOW .
+.TP
+.B FTS_NOCHDIR
+To allow descending to arbitrary depths
+(independent of
+.BR PATH_MAX )
+and improve performance, the
+.B fts
+functions change directories as they walk the file hierarchy.
+This has the side-effect that an application cannot rely on being
+in any particular directory during the traversal.
+The
+.B FTS_NOCHDIR
+option turns off this feature, and the
+.B fts
+functions will not change the current directory.
+Note that applications should not themselves change their current directory
+and try to access files unless
+.B FTS_NOCHDIR
+is specified and absolute
+pathnames were provided as arguments to
+\f(CWfts_open\fP.
+.TP
+.B FTS_NOSTAT
+By default, returned
+.B FTSENT
+structures reference file characteristic information (the
+.I fts_statp
+field) for each file visited.
+This option relaxes that requirement as a performance optimization,
+allowing the
+.B fts
+functions to set the
+.I fts_info
+field to
+.B FTS_NSOK
+and leave the contents of the
+.I fts_statp
+field undefined.
+The roots and any directories encountered during traversal are still
+fully populated.
+.TP
+.B FTS_SEEDOT
+By default, unless they are specified as path arguments to
+\f(CWfts_open\fP,
+any files named
+.B .
+or
+.B ..
+encountered in the file hierarchy are ignored.
+This option causes the
+.B fts
+routines to return
+.B FTSENT
+structures for them (as
+.BR FTS_DOT ) .
+.TP
+.B FTS_SEEDOTDIR
+Retain a leading
+.B ./
+in returned
+.I fts_path
+values.
+This is the default when a root path itself begins with
+.B .
+when
+.B FTS_PHYSICAL
+is in effect.
+.TP
+.B FTS_NOSEEDOTDIR
+Never retain a leading
+.B ./
+in returned
+.I fts_path
+values; such prefixes are stripped from root paths.
+This option overrides
+.BR FTS_SEEDOTDIR .
+.TP
+.B FTS_TOP
+Do not traverse subdirectories; the root paths are returned as terminal
+entries.
+.TP
+.B FTS_NOPREORDER
+Do not return pre-order
+.RB ( FTS_D )
+visits for directories.
+.TP
+.B FTS_NOPOSTORDER
+Do not return post-order
+.RB ( FTS_DP )
+visits for directories.
+.TP
+.B FTS_XDEV
+This option prevents
+.B fts
+from descending into directories that have a different device number
+than the file from which the descent began.
+.TP
+.B FTS_ONEPATH
+The
+.I paths
+argument is a single
+.BR "const char *"
+rather than a NULL-terminated array of paths.
+.TP
+.B FTS_USER
+The first option bit available for application use; the
+.B fts
+functions ignore it.
+.PP
+The
+.I comparf
+argument points to a user-defined function which may be used to order
+the traversal of the hierarchy.
+It
+takes two pointers to pointers to
+.B FTSENT
+structures as arguments and
+should return a negative value, zero, or a positive value to indicate
+if the file referenced by its first argument comes before, in any order
+with respect to, or after, the file referenced by its second argument.
+The
+.IR fts_accpath ,
+.I fts_path
+and
+.I fts_pathlen
+fields of the
+.B FTSENT
+structures may
+.I never
+be used in this comparison.
+If the
+.I fts_info
+field is set to
+.B FTS_NS
+or
+.BR FTS_NSOK ,
+the
+.I fts_statp
+field may not either.
+If the
+.I comparf
+argument is
+.BR NULL ,
+the directory traversal order is in the order listed in
+.I paths
+for the root paths, and in the order listed in the directory for
+everything else.
+.SS fts_read
+The
+\f(CWfts_read\fP
+function returns a pointer to an
+.B FTSENT
+structure describing a file in
+the hierarchy.
+Directories (that are readable and do not cause cycles) are visited at
+least twice, once in pre-order and once in post-order.
+All other files are visited at least once.
+(Hard links between directories that do not cause cycles or symbolic
+links to symbolic links may cause files to be visited more than once,
+or directories more than twice.)
+.PP
+If all the members of the hierarchy have been returned,
+\f(CWfts_read\fP
+returns
+.BR NULL .
+If an error unrelated to a file in the hierarchy occurs,
+\f(CWfts_read\fP
+returns
+.BR NULL
+and sets the
+.I fts_errno
+field of the stream handle appropriately.
+If an error related to a returned file occurs, a pointer to an
+.B FTSENT
+structure is returned (see
+.IR fts_info ) .
+.PP
+The
+.B FTSENT
+structures returned by
+\f(CWfts_read\fP
+may be overwritten after a call to
+\f(CWfts_close\fP
+on the same file hierarchy stream, or, after a call to
+\f(CWfts_read\fP
+on the same file hierarchy stream unless they represent a directory,
+in which case they will not be overwritten until the directory's
+post-order
+.B FTSENT
+structure has been returned.
+.SS fts_children
+The
+\f(CWfts_children\fP
+function returns a pointer to an
+.B FTSENT
+structure describing the first entry in a NULL-terminated linked list of
+the files in the directory represented by the
+.B FTSENT
+structure most recently returned by
+\f(CWfts_read\fP.
+The list is linked through the
+.I fts_link
+field of the
+.B FTSENT
+structure, and is ordered by the user-specified comparison function, if any.
+Repeated calls to
+\f(CWfts_children\fP
+will recreate this linked list.
+.PP
+As a special case, if
+\f(CWfts_read\fP
+has not yet been called for a hierarchy,
+\f(CWfts_children\fP
+will return a pointer to the files in the logical directory specified to
+\f(CWfts_open\fP,
+i.e., the arguments specified to
+\f(CWfts_open\fP.
+Otherwise, if the
+.B FTSENT
+structure most recently returned by
+\f(CWfts_read\fP
+is not a directory being visited in pre-order,
+or the directory does not contain any files,
+\f(CWfts_children\fP
+returns
+.BR NULL .
+If an error occurs,
+\f(CWfts_children\fP
+returns
+.B NULL
+and sets the stream
+.I fts_errno
+appropriately.
+.PP
+The
+.B FTSENT
+structures returned by
+\f(CWfts_children\fP
+may be overwritten after a call to
+\f(CWfts_children\fP,
+\f(CWfts_close\fP
+or
+\f(CWfts_read\fP
+on the same file hierarchy stream.
+.PP
+.I flags
+may be set to
+.B FTS_NOSTAT
+to indicate that the file characteristic information in the returned
+list is not needed;
+the contents of the
+.I fts_statp
+fields are then undefined.
+.SS fts_set
+The
+\f(CWfts_set\fP
+function allows the user application to determine further processing
+for the file
+.I f ,
+which must be the entry most recently returned by
+\f(CWfts_read\fP.
+The
+.I fts
+argument is ignored by this implementation and may be
+.BR NULL .
+The
+\f(CWfts_set\fP
+function
+returns 0 on success, and \-1 if an error occurs.
+Its
+.I flags
+argument must have one of the following values:
+.TP
+.B FTS_AGAIN
+Re-visit the file; any file type may be re-visited.
+The next call to
+\f(CWfts_read\fP
+will return the referenced file.
+The
+.I fts_statp
+and
+.I fts_info
+fields of the structure will be reinitialized at that time,
+but no other fields will have been changed.
+This option is meaningful only for the most recently returned
+file from
+\f(CWfts_read\fP.
+Normal use is for post-order directory visits, where it causes the
+directory to be re-visited (in both pre- and post-order) as well as all
+of its descendants.
+.TP
+.B FTS_FOLLOW
+The referenced file must be a symbolic link.
+The next call to
+\f(CWfts_read\fP
+returns the file with the
+.I fts_info
+and
+.I fts_statp
+fields reinitialized to reflect the target of the symbolic link instead
+of the symbolic link itself.
+If the target of the symbolic link does not exist, the fields of the
+returned structure are unchanged and the
+.I fts_info
+field is set to
+.BR FTS_SLNONE .
+If the target of the link is a directory, the pre-order return, followed
+by the return of all of its descendants, followed by a post-order return,
+is done.
+.TP
+.B FTS_SKIP
+No descendants of this file are visited.
+The file must be a directory being visited in pre-order
+.RB ( FTS_D ) .
+.TP
+.B FTS_NOPOSTORDER
+Suppress the post-order
+.RB ( FTS_DP )
+visit for this directory.
+.TP
+.B FTS_STAT
+Inform
+.B fts
+that the application has already obtained
+.IR stat (2)
+information for the file in
+.IR f->fts_statp ;
+it will not be re-stat'ed.
+This is a libast extension.
+.SS fts_close
+The
+\f(CWfts_close\fP
+function closes a file hierarchy stream
+.I fts
+and, unless the
+.B FTS_NOCHDIR
+option was specified, restores the current directory to the directory
+from which
+\f(CWfts_open\fP
+was called to open
+.IR fts .
+It returns 0.
+.SS fts_flags
+The
+\f(CWfts_flags\fP
+function returns the default traversal flags implied by the
+.BR astconf (3)
+.B PATH_RESOLVE
+configuration:
+.B FTS_LOGICAL
+if
+\(lqlogical\(rq,
+.B FTS_PHYSICAL|FTS_SEEDOTDIR
+if
+\(lqphysical\(rq,
+and
+.B FTS_META|FTS_PHYSICAL|FTS_SEEDOTDIR
+otherwise.
+This is a libast extension.
+.SS fts_local
+The
+\f(CWfts_local\fP
+function returns non-zero if the file described by
+.I f
+resides on a local file system, 0 otherwise.
+This is a libast extension.
+.SS fts_notify
+The
+\f(CWfts_notify\fP
+function registers or deregisters a notification function called as
+.IB notifyf ( fts ", " f ", " context )
+for each entry returned by
+\f(CWfts_read\fP.
+If
+.I context
+is not
+.BR NULL ,
+.I notifyf
+is added to the notification list;
+if
+.I context
+is
+.BR NULL ,
+the first registered occurrence of
+.I notifyf
+is removed.
+A return value greater than 0 from
+.I notifyf
+stops the traversal of the current entry;
+a value less than 0 aborts the traversal with a stream error.
+\f(CWfts_notify\fP
+returns 0 on success and \-1 on error.
+This is a libast extension.
+.SH "RETURN VALUES"
+The
+\f(CWfts_open\fP
+function returns a pointer to the new
+.B fts
+stream on success and
+.B NULL
+on failure.
+.PP
+The
+\f(CWfts_read\fP
+function returns a pointer to the next file entry on success, or if an
+error occurs that relates specifically to that file entry.
+On reaching the end of the file hierarchy, or on failure, it returns
+.BR NULL ;
+in the latter case the stream
+.I fts_errno
+field is set to an appropriate non-zero value.
+.PP
+The
+\f(CWfts_children\fP
+function returns a pointer to a linked list of file entries on
+success.
+On reaching the end of the file hierarchy it returns
+.BR NULL .
+On failure, it returns
+.B NULL
+and sets the stream
+.I fts_errno
+field to an appropriate non-zero value.
+.PP
+The
+\f(CWfts_set\fP
+function returns 0 on success and \-1 if its
+.I flags
+argument is invalid or
+.I f
+is not the current entry.
+.PP
+The
+\f(CWfts_close\fP
+function returns 0.
+.SH ERRORS
+The
+\f(CWfts_open\fP
+function may fail and set
+.B errno
+for any of the errors specified for the library functions
+.IR open (2)
+and
+.IR malloc (3) .
+.PP
+The
+\f(CWfts_close\fP
+function may fail and set
+.B errno
+for any of the errors specified for the library functions
+.IR chdir (2)
+and
+.IR close (2) .
+.PP
+The
+\f(CWfts_read\fP
+and
+\f(CWfts_children\fP
+functions may fail and set
+.B errno
+for any of the errors specified for the library functions
+.IR chdir (2) ,
+.IR malloc (3) ,
+.IR opendir (3) ,
+.IR readdir (3)
+and
+.IR stat (2) .
+.PP
+In addition, the
+\f(CWfts_children\fP ,
+\f(CWfts_open\fP
+and
+\f(CWfts_set\fP
+functions may fail and set
+.B errno
+as follows:
+.TP
+.B EINVAL
+The options were invalid, or the list was empty.
+.SH "SEE ALSO"
+find(1),
+chdir(2),
+stat(2),
+ftwalk(3),
+qsort(3)
+.SH HISTORY
+The
+.B fts
+interface was first introduced in
+4.4BSD.
+This manual page describes the
+.B libast
+version, which differs in detail from the 4.4BSD and
+FreeBSD
+interfaces; in particular, it adds the
+\f(CWfts_flags\fP,
+\f(CWfts_local\fP
+and
+\f(CWfts_notify\fP
+functions and the
+.BR FTS_META ,
+.BR FTS_TOP ,
+.BR FTS_NOPREORDER ,
+.BR FTS_NOPOSTORDER ,
+.BR FTS_ONEPATH ,
+.BR FTS_SEEDOTDIR
+and
+.B FTS_NOSEEDOTDIR
+options, and lacks the
+FreeBSD
+.BR fts_openat ,
+.BR fts_open_b ,
+\f(CWfts_get_stream\fP
+and client-pointer interfaces.
