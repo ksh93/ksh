@@ -9,6 +9,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - Fixed a possible crash after unsetting RANDOM. Bug introduced on 2022-07-21.
 
+- Fixed a possible crash when attempting to set an integer variable to a
+  multibyte character.
+
 2026-09-04:
 
 - Fixed a longstanding bug in which output data loss or corruption could
