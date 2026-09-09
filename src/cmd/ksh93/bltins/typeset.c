@@ -1550,7 +1550,7 @@ static int print_namval(Sfio_t *file,Namval_t *np,int flag, struct tdata *tp)
 			else if(sh.hist_ptr)
 				iop = (sh.hist_ptr)->histfp;
 			if(iop && sfseek(iop,(Sfoff_t)rp->hoffset,SEEK_SET)>=0)
-				sfmove(iop,file, nv_size(np), -1);
+				sfmove(iop,file, (Sfoff_t)nv_size(np), -1);
 			else
 				flag = '\n';
 			if(fname)

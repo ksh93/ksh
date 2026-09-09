@@ -1006,7 +1006,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	}
 	sh.st.staklist = (struct slnod*)slp;
 	last = fctell();
-	fp->functline = (last-first);
+	fp->functline = (int)(last-first);
 	fp->functtre = t;
 	sh.mktype = in_mktype;
 	if(sh.funlog)

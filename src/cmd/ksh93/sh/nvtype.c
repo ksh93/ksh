@@ -1452,7 +1452,7 @@ int	sh_outtype(Sfio_t *out)
 				else if(sh.hist_ptr)
 					iop = sh.hist_ptr->histfp;
 				if(iop && sfseek(iop,(Sfoff_t)rp->hoffset,SEEK_SET)>=0)
-					sfmove(iop,out, nv_size(mp), -1);
+					sfmove(iop,out, (Sfoff_t)nv_size(mp), -1);
 				else
 					sfputc(iop,'\n');
 				if(xp)

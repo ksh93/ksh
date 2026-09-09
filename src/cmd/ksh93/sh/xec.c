@@ -2401,7 +2401,7 @@ int sh_exec(const Shnode_t *t, int flags)
 				fp = (struct functnod*)(slp+1);
 				if(fp->functtyp==(TFUN|FAMP))
 					rp->fname = fp->functnam;
-				nv_setsize(np,fp->functline);
+				nv_setsize(np,(size_t)fp->functline);
 				nv_offattr(np,NV_FPOSIX);
 				if(sh.funload)
 				{
