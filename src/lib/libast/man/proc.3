@@ -1,53 +1,17 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH PROC 3
 .SH NAME
 proc \- process control routines (deprecated)
 .SH SYNOPSIS
-.EX
+.nf
+.ft CW
 #include <proc.h>
 
 Proc_t* procopen(const char* \fIcommand\fP, char** \fIargv\fP, char** \fIenvv\fP, int64_t* \fIopv\fP, int \fIflags\fP);
 int procfree(Proc_t* \fIproc\fP);
 int procclose(Proc_t* \fIproc\fP);
 int procrun(const char* \fIcommand\fP, char** \fIargv\fP);
-.EE
+.ft
+.fi
 .SH DESCRIPTION
 These routines provide a portable interface to process creation and execution.
 They used to work on systems with only
@@ -60,7 +24,7 @@ and
 .IR execve (2),
 this interface is deprecated and only kept for backward compatibility.
 .PP
-.L procopen
+\f(CWprocopen\fP
 runs
 .I command
 with arguments
@@ -74,21 +38,21 @@ and flags in
 .PP
 .I command
 is searched for using the
-.L PATH
+\f(CWPATH\fP
 environment variable from the calling environment.
 If
 .I command
 is
-.L 0
+\f(CW0\fP
 then the shell returned by
 .IR astconf (3)
 is used.
 If
 .I envv
 is not
-.L 0
+\f(CW0\fP
 then it is a
-.L 0
+\f(CW0\fP
 terminated vector of
 \fIname\fP[=\fIvalue\fP]
 strings that are added to the
@@ -105,7 +69,7 @@ is omitted then
 .I name
 is removed from the child environment.
 The
-.L _
+\f(CW_\fP
 environment variable is set to contain the pathname for
 .I command
 and will appear at the top of the child environment.
@@ -113,14 +77,14 @@ and will appear at the top of the child environment.
 If
 .I opv
 is not
-.L 0
+\f(CW0\fP
 then it is a zero-terminated vector of operations to perform.
 In the following
 .I context
 is a combination of
-.L PROC_FD_CHILD
+\f(CWPROC_FD_CHILD\fP
 and
-.L PROC_FD_PARENT
+\f(CWPROC_FD_PARENT\fP
 for the child and parent process context respectively.
 Valid operations are:
 .TP
@@ -144,14 +108,14 @@ in
 The signal handler for
 .I sig
 is set to
-.L SIG_DFL
+\f(CWSIG_DFL\fP
 in the child context.
 .TP
 \f3PROC_SIG_IGN(\fIsig\fP)\fR
 The signal handler for
 .I sig
 is set to
-.L SIG_IGN
+\f(CWSIG_IGN\fP
 in the child context.
 .TP
 \f3PROC_SYS_PGRP(\fIpgid\fP)\fR
@@ -160,16 +124,16 @@ The child process group is set to
 .I pgid
 may have the following values:
 .TP
-.L <0
+\f(CW<0\fP
 The child process becomes a session leader.
 .TP
-.L 0
+\f(CW0\fP
 The child process is in the parent process group.
 .TP
-.L 1
+\f(CW1\fP
 The child process becomes a process group leader.
 .TP
-.L >1
+\f(CW>1\fP
 The child process joins the process group
 .IR pgid .
 .TP
@@ -180,7 +144,7 @@ The child process group file creation mask is set to
 .I flags
 is the inclusive-or of the following:
 .TP
-.L PROC_ARGMOD
+\f(CWPROC_ARGMOD\fP
 .I "argv[-1]"
 and
 .I "argv[0]"
@@ -191,29 +155,29 @@ when
 .I command
 is a shell script.
 .TP
-.L PROC_BACKGROUND
+\f(CWPROC_BACKGROUND\fP
 Standard shell
-.L &
+\f(CW&\fP
 setup is done for the child process.
 .TP
-.L PROC_CLEANUP
+\f(CWPROC_CLEANUP\fP
 Parent process redirection file descriptors are closed on error.
 .TP
-.L PROC_DAEMON
+\f(CWPROC_DAEMON\fP
 Standard daemon setup is done for the child process.
 .TP
-.L PROC_ENVCLEAR
+\f(CWPROC_ENVCLEAR\fP
 The child environment is cleared before
 .I envv
 is added.
 .TP
-.L PROC_GID
+\f(CWPROC_GID\fP
 The child effective group ID is set to the real group ID.
 .TP
-.L PROC_IGNORE
+\f(CWPROC_IGNORE\fP
 Parent pipe errors are ignored.
 .TP
-.L PROC_OVERLAY
+\f(CWPROC_OVERLAY\fP
 The current process is overlaid by
 .I command
 if possible
@@ -221,49 +185,49 @@ if possible
 .IR fork (2)
 call is omitted).
 .TP
-.L PROC_PARANOID
+\f(CWPROC_PARANOID\fP
 Paranoid:
 .I command
 is searched using the default standard
-.LR PATH ;
+\f(CWPATH\fR;
 the child environment variable
-.L PATH
+\f(CWPATH\fP
 is set to the default standard;
 the
-.L PROC_GID
+\f(CWPROC_GID\fP
 and
-.L PROC_UID
+\f(CWPROC_UID\fP
 modes are set;
 only
-.L /bin/sh
+\f(CW/bin/sh\fP
 is used to execute
 .I command
 if it is a shell script.
 .TP
-.L PROC_PRIVILEGED
+\f(CWPROC_PRIVILEGED\fP
 If the effective user ID is
-.L 0
+\f(CW0\fP
 then the child real user ID is set to
-.L 0
+\f(CW0\fP
 and the child real group ID is set to the effective group ID.
 .TP
-.L PROC_READ
+\f(CWPROC_READ\fP
 .I proc.rfd
 is connected to
 .IR command 's
 standard output.
 .TP
-.L PROC_SESSION
+\f(CWPROC_SESSION\fP
 The child process becomes a session group leader.
 (Equivalent to the
 .I opv
 entry
-.LR PROC_SYS_PGRP(-1) .)
+\f(CWPROC_SYS_PGRP(-1)\fR.)
 .TP
-.L PROC_UID
+\f(CWPROC_UID\fP
 The child effective user ID is set to the real user ID.
 .TP
-.L PROC_WRITE
+\f(CWPROC_WRITE\fP
 .I proc.wfd
 is connected to
 .IR commands 's
@@ -271,51 +235,51 @@ standard input.
 .PP
 The return value is a pointer to a structure with the following members:
 .TP
-.L "pid_t \fIpid\fP"
+\f(CWpid_t \fIpid\fP\fP
 The child process ID.
 .TP
-.L "pid_t \fIpgrp\fP"
+\f(CWpid_t \fIpgrp\fP\fP
 The child process group.
 .TP
-.L "int \fIrfd\fP"
+\f(CWint \fIrfd\fP\fP
 A read file descriptor connected to
 .IR command 's
 standard output.
 .TP
-.L "int \fIwfd\fP"
+\f(CWint \fIwfd\fP\fP
 A write file descriptor connected to
 .IR command 's
 standard input.
 .PP
 If an error occurs then
-.L 0
+\f(CW0\fP
 is returned.
 .PP
-.L procclose
+\f(CWprocclose\fP
 waits for the process
 .I proc
 to complete and then closes the command stream
 .IR proc .
 The command exit status is returned.
-.L -1
+\f(CW-1\fP
 is returned if the child portion of
-.L procopen
+\f(CWprocopen\fP
 failed.
 .PP
-.L procfree
+\f(CWprocfree\fP
 frees the process stream without waiting for
 .I command
 to complete.
 Presumably some other mechanism will be used to wait for
 .IR proc.pid .
 .PP
-.L procrun
+\f(CWprocrun\fP
 combines
-.L procopen
+\f(CWprocopen\fP
 and
-.L procclose
+\f(CWprocclose\fP
 with the flags
-.L PROC_GID|PROC_UID
+\f(CWPROC_GID|PROC_UID\fP
 and returns the command exit status.
 .SH "SEE ALSO"
 popen(3), sfpopen(3), spawnveg(3), system(3)

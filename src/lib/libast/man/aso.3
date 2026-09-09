@@ -1,4 +1,3 @@
-.fp 5 CW
 .TH LIBASO 3
 .SH NAME
 \fBASO\fP \- Atomic Scalar Operations
@@ -15,7 +14,7 @@
 ..
 .de Cs
 .nf
-.ft 5
+.ft CW
 ..
 .de Ce
 .ft 1
@@ -25,7 +24,7 @@
 .Cs
 #include <aso.h>
 .Ce
-.Ss "TYPES"
+.SS "TYPES"
 .Cs
 typedef int (*Asoerror_f)(int, const char*);
 typedef void* (*Asoinit_f)(void*, const char*);
@@ -47,7 +46,7 @@ typedef struct Asometh_s
 	const char*	details;
 } Asometh_t;
 .Ce
-.Ss "OPERATIONS"
+.SS "OPERATIONS"
 .Cs
 uint8_t		asocas8(uint8_t volatile*, int, int);
 uint8_t		asoget8(uint8_t volatile*);
@@ -111,17 +110,17 @@ Other functions work similarly on their respective types.
 Some of the functions may be macros that call other functions.
 64 bit operations are provided if the compiler supports 64 bit integers
 and/or pointers.
-.Ss "TYPES"
+.SS "TYPES"
 \f3uint8_t, uint16_t, uint32_t, uint64_t\fP
 
 These are \fIunsigned integer\fP types of different sizes in bits.
 For example, \f3uint32_t\fP represents the type of unsigned integer
 with 32 bits or 4 bytes.
-.Ss "OPERATIONS"
-.Ss "  uint32_t asoget32(uint32_t* from);"
+.SS "OPERATIONS"
+.SS "  uint32_t asoget32(uint32_t* from);"
 This function returns the value \f3*from\fP.
-.Ss "  uint32_t asoinc32(uint32_t* dest);"
-.Ss "  uint32_t asodec32(uint32_t* dest);"
+.SS "  uint32_t asoinc32(uint32_t* dest);"
+.SS "  uint32_t asodec32(uint32_t* dest);"
 These functions increment \f3*dest\fP by 1 and decrement \f3*dest\fP by 1
 in an atomic step.
 The return value is the old value in \f3*dest\fP.
@@ -136,18 +135,18 @@ or \f3asodec32()\fP,
 only normal increment (++) or decrement (--) were used.
 Then, the end result could be either \f3*dest += 1\fP or \f3*dest += 2\fP,
 depending on states of the hardware cache and process scheduling.
-.Ss "  uint32_t asocas32(uint32_t* dest, uint32_t tstval, uint32_t newval);"
+.SS "  uint32_t asocas32(uint32_t* dest, uint32_t tstval, uint32_t newval);"
 This function provides the atomic \fIcompare-and-swap\fP operation.
 If the current content of \f3dest\fP is equal to \f3tstval\fP then it will be
 set to \f3newval\fP.
 If multiple threads/processes are performing the same operations only one
 will succeed with a return value of \f3tstval\fP.
 The return value is the old value in \f3*dest\fP.
-.Ss "  void asorelax(uint32_t nsec)"
+.SS "  void asorelax(uint32_t nsec)"
 This function causes the calling process or thread to briefly pause
 for \f3nsec\fP nanoseconds.
 It is useful to implement tight loops that occasionally yield control.
-.Ss "  int asolock(unsigned int* lock, unsigned int key, int type)"
+.SS "  int asolock(unsigned int* lock, unsigned int key, int type)"
 This function uses \f3key\fP, a non-zero unsigned integer, to lock or
 unlock the \f3lock\fP.
 It returns \f30\fP on success and \f3-1\fP on failure.
@@ -173,7 +172,7 @@ the given \f3key\fP.
 Note that, if the lock is already locked with \f3key\fP, this call can result
 in a deadlock unless that lock can be opened by some other mechanism, e.g.,
 by a different process or thread.
-.Ss "  int asoloop(uintmax_t iteration);"
+.SS "  int asoloop(uintmax_t iteration);"
 This function is used to implement spin locks that periodically relinquish
 the processor:
 .Cs
@@ -195,7 +194,7 @@ If \f3Asodisc_t.hung != 0\fP and \f3Asodisc_t.errorf != 0\fP and
 \f3iteration mod (2**Asodisc_t.hung-1)\fP is \f30\fP,
 then \f3Asodisc_t.errorf\fP is called with type \f3ASO_HUNG\fP
 and \f3-1\fP is returned.
-.Ss "DISCIPLINE"
+.SS "DISCIPLINE"
 The Asodisc_t discipline structure allows the caller to modify default behavior.
 The \fIASO\fP discipline is global for all threads and forked children of the
 current process.
@@ -226,11 +225,11 @@ library condition.
 \f3ASO_HUNG\fP - \f3asoloop\fP() was called
 \f32**Asometh_t.hung\fP times with no access to the loop resource.
 \f3mesg\fP is a 0-terminated message description.
-.Ss "  void ASODISC(Asodisc_t* disc, Asoerror_f errorf);"
+.SS "  void ASODISC(Asodisc_t* disc, Asoerror_f errorf);"
 This function-like-macro initializes
 \f3disc->version = ASO_VERSION\fP, \f3disc->errorf = errorf\fP,
 and the remaining \f3disc\fP members to \f30\fP.
-.Ss "METHODS"
+.SS "METHODS"
 Several atomic locking methods are implemented for atomic operations
 not supported by \fIintrinsic\fP functions or assembly instructions.
 Methods are controlled by the \f3asometh()\fP and \f3asoinit()\fP
@@ -292,7 +291,7 @@ The library provides the "\fBsemaphore\fP" method with
 type \f3ASO_PROCESS|ASO_THREAD|ASO_SIGNAL\fP
 and the "\fBfcntl\fP" method with type \f3ASO_PROCESS|ASO_SIGNAL\fP.
 
-.Ss "  Asometh_t* asometh(int type, void* data);"
+.SS "  Asometh_t* asometh(int type, void* data);"
 This function looks up methods by type or name.
 If type is \f30\fP and \f3data\fP is \f30\fP then the current
 method is returned; a valid method
@@ -324,7 +323,7 @@ The \fBfcntl\fP method uses \fBsize\fP=\fInumber\fP to specify
 the number of 1 byte file locks and uses \fIpathname\fP as the
 file to lock using \f3fcntl(F_SETLCK[W])\fP.
 
-.Ss "  int asoinit(const char* details, Asometh_t* meth, Asodisc_t* disc);"
+.SS "  int asoinit(const char* details, Asometh_t* meth, Asodisc_t* disc);"
 This function sets the global discipline to \f3disc\fP,
 closes the current method (releasing its resources),
 temporarily instantiates the default method

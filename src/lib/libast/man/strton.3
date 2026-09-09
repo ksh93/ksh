@@ -1,50 +1,12 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH STRTON 3
 .SH NAME
 .BR strton ,
 .B strtonll
 \- convert string to integer with optional pseudo-float support
 .SH SYNOPSIS
-.L "long strton(const char* s, char** e, char *basep, int m)"
+\f(CWlong strton(const char* s, char** e, char *basep, int m)\fP
 .PP
-.L "intmax_t strtonll(const char* s, char** e, char *basep, int m)"
+\f(CWintmax_t strtonll(const char* s, char** e, char *basep, int m)\fP
 .SH DESCRIPTION
 The
 .B strton
@@ -60,7 +22,7 @@ integer, respectively.
 If
 .I e
 is not
-.LR NULL ,
+\f(CWNULL\fR,
 then
 .I *e
 is set to point to the first unrecognized character in
@@ -79,9 +41,9 @@ All but
 are optional. The
 .I sign
 may be
-.L +
+\f(CW+\fP
 or
-.LR - .
+\f(CW-\fR.
 The
 .I base
 may be
@@ -97,9 +59,9 @@ for base
 .PP
 For bases greater than 10, the digits above 9 are represented
 by the lower case letters, the upper case letters,
-.RL \[lq] @ \[rq],
+\fR\[lq]\fP@ \[rq],
 and
-.RL \[lq] _ \[rq],
+\fR\[lq]\fP_ \[rq],
 respectively.
 For bases less than or equal to 36, upper and lower case
 letters can be used interchangeably.
@@ -114,7 +76,7 @@ which may affect subsequent calls.
 If, on entry,
 .I basep
 is not
-.L NULL
+\f(CWNULL\fP
 and the numeric value of
 .I *basep
 is not zero,
@@ -190,7 +152,7 @@ is greater than 1,
 and the
 .I suffix
 consists of the currently set locale's radix point (by default,
-.RL \[lq] . \[rq]),
+\fR\[lq]\fP. \[rq]),
 followed by decimal digits, then
 .I s
 is treated as if it were a floating point number
@@ -199,7 +161,7 @@ which is multiplied by
 For example, an
 .I s
 string value of
-.L \[dq]12.34\[dq]
+\f(CW\[dq]12.34\[dq]\fP
 combined with an
 .I m
 value of 1000 yields an integer result of 12340.
@@ -227,7 +189,7 @@ is stored in
 if
 .I e
 is not
-.LR NULL .
+\f(CWNULL\fR.
 Note that
 .I errno
 is not changed in this case.
@@ -239,17 +201,17 @@ is set to
 (if
 .I e
 is not
-.LR NULL ),
+\f(CWNULL\fR),
 the global variable
 .I errno
 is set to
-.LR EINVAL ,
+\f(CWEINVAL\fR,
 and 0 is returned.
 .PP
 If an overflow or underflow occurs, then
 .I errno
 is set to
-.L ERANGE
+\f(CWERANGE\fP
 and the return value is the function's integer type's
 maximum possible or minimum possible value, respectively.
 .SH "SEE ALSO"

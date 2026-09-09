@@ -1,46 +1,9 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH ERROR 3
 .SH NAME
 error \- error and debug trace message formatter
 .SH SYNOPSIS
-.EX
+.nf
+.ft CW
 #include <error.h>
 
 Error_info_t error_info;
@@ -54,9 +17,10 @@ int          errormsg(const char* \fIdictionary\fP, int \fIlevel\fP, ...);
 debug(\fIstatement\fP)
 message((int \fIlevel\fP, ...))
 messagef((void* \fIhandle\fP, void* \fIdiscipline\fP, int \fIlevel\fP, ...))
-.EE
+.ft
+.fi
 .SH DESCRIPTION
-.L error
+\f(CWerror\fP
 is the error and debug trace message formatter.
 .I level
 is the severity level.
@@ -65,18 +29,18 @@ Messages with
 are suppressed.
 .I error_info.trace
 is initially
-.LR 0 .
+\f(CW0\fR.
 The remaining arguments are passed on to
-.LR printf .
+\f(CWprintf\fR.
 A
 .I newline
 is appended to the message text, so none should appear in the
-.L printf
+\f(CWprintf\fP
 format.
 If
 .I error_info.id
 is not
-.L 0
+\f(CW0\fP
 then messages with
 .I "level > 0"
 are prefixed by
@@ -84,18 +48,18 @@ are prefixed by
 .PP
 Before the message text is output to standard error
 it is passed to the function
-.LR "char* ERROR_translate(const char* \fItext\fP, int \fIflag\fP)" .
+\f(CWchar* ERROR_translate(const char* \fItext\fP, int \fIflag\fP)\fR.
 By default
-.L ERROR_translate
+\f(CWERROR_translate\fP
 returns the
-.L text
+\f(CWtext\fP
 argument, but on some systems it may do language translation via lookup
 on the original source text.
-.RL ( error
+\fR(\fP error
 calls
-.L ERROR_translate
+\f(CWERROR_translate\fP
 with a 0
-.L flag
+\f(CWflag\fP
 argument).
 .PP
 .I level
@@ -117,9 +81,9 @@ and the error text for errno is appended to the message.
 Information only; no prefixes are added to the message.
 .TP
 .B "ERROR_WARNING [1]"
-.L "warning:"
+\f(CWwarning:\fP
 is added after
-.L error_info.id
+\f(CWerror_info.id\fP
 and
 .I error_info.warnings
 is incremented.
@@ -133,12 +97,12 @@ is incremented.
 (hard error)
 .I error_info.errors
 is incremented and
-.L exit(\fIlevel\fP\-2)
+\f(CWexit(\fIlevel\fP\-2)\fP
 is called after the message is emitted.
 .TP
 .B "ERROR_PANIC [130]"
 (unrecoverable internal error)
-.L "panic:"
+\f(CWpanic:\fP
 is added after
 .IR error_info.id .
 .PP
@@ -186,9 +150,9 @@ control error output and actions.
 Parts of
 .I error_info
 can be initialized from the
-.L ERROR_OPTIONS
+\f(CWERROR_OPTIONS\fP
 environment variable.
-.L ERROR_OPTIONS
+\f(CWERROR_OPTIONS\fP
 contains space separated
 .IR name [ =value ]
 options, described below.
@@ -200,16 +164,18 @@ then
 .I "level >= error_info.core"
 generates a core dump.
 Initialized by
-.EX
+.nf
+.ft CW
 ERROR_OPTIONS="core=\fIlevel\fP"
-.EE
+.ft
+.fi
 where
 .I level
 can be a number or one of
-.LR error ,
-.LR fatal ,
+\f(CWerror\fR,
+\f(CWfatal\fR,
 or
-.LR panic .
+\f(CWpanic\fR.
 .I error_info.core
 is a handy way to get a stack trace at the exact point of error.
 .TP
@@ -219,76 +185,84 @@ If
 and
 .I "level < error_info.trace"
 then the error message text is suppressed.
-.L exit()
+\f(CWexit()\fP
 may still be called if appropriate for
 .IR level .
 Initialized by
-.EX
+.nf
+.ft CW
 ERROR_OPTIONS="trace=\fIlevel\fP"
-.EE
+.ft
+.fi
 where
 .I error_info.trace
 is set to the negative of
 .IR level .
 .PP
 Library error messages, suppressed by default, are enabled by
-.EX
+.nf
+.ft CW
 ERROR_OPTIONS="library"
-.EE
+.ft
+.fi
 The system
 .I errno
 message text can be forced for each message by
-.EX
+.nf
+.ft CW
 ERROR_OPTIONS="system"
-.EE
+.ft
+.fi
 .SH "EXTENDED DESCRIPTION"
-.L "<debug.h>"
+\f(CW<debug.h>\fP
 provides debugging message macros when
-.L DEBUG
+\f(CWDEBUG\fP
 or
-.L _BLD_DEBUG
+\f(CW_BLD_DEBUG\fP
 are defined
-.RL ( _BLD_DEBUG
+\fR(\fP _BLD_DEBUG
 is defined by
 the
 .IR Mamfile s
 when the
-.L \-G
+\f(CW\-G\fP
 a.k.a.
-.L \-\-debug\-symbols
+\f(CW\-\-debug\-symbols\fP
 option is passed to
 .BR mamake (1),
 which the
 .BR package (1)
 command does automatically when given the argument
-.LR debug=1 ).
+\f(CWdebug=1\fR).
 All of the macros expand to nothing when both
-.L DEBUG
+\f(CWDEBUG\fP
 and
-.L _BLD_DEBUG
+\f(CW_BLD_DEBUG\fP
 are not defined.
 Otherwise
-.L debug
+\f(CWdebug\fP
 expands its arg and
-.L messagef
+\f(CWmessagef\fP
 and
-.L message
+\f(CWmessage\fP
 call
-.L errorf
+\f(CWerrorf\fP
 and
-.L error
+\f(CWerror\fP
 respectively if
 .IR "error_info.trace<0" .
 Notice that
-.L messagef
+\f(CWmessagef\fP
 and
-.L message
+\f(CWmessage\fP
 are macro hacks that require double parentheses ((...)) around the
 arguments.
 .SH EXAMPLE
 To enable debugging message level -3, library messages, and system
 .I errno
 text for all commands:
-.EX
+.nf
+.ft CW
 export ERROR_OPTIONS="trace=3 library system"
-.EE
+.ft
+.fi
