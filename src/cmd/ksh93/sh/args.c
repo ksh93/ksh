@@ -497,12 +497,12 @@ struct dolnod *sh_argcreate(char *argv[])
 	while(sp= *pp++)
 		size += strlen(sp);
 	n = (size_t)(pp - argv)-1;
-	dp = sh_malloc(sizeof(struct dolnod) + n * sizeof(char*) + size + n);
+	dp = sh_malloc(sizeof(struct dolnod) + (n + 1) * sizeof(char*) + size + n);
 	dp->dolrefcnt=1;	/* use count */
 	dp->dolnum = (int)n;
 	dp->dolnxt = 0;
 	pp = dp->dolval;
-	sp = (char*)dp + sizeof(struct dolnod) + n*sizeof(char*);
+	sp = (char*)dp + sizeof(struct dolnod) + (n + 1) * sizeof(char*);
 	while(n)
 	{
 		n--;

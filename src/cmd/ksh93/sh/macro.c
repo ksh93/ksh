@@ -1128,15 +1128,13 @@ int sh_macfun(const char *name, ptrdiff_t offset)
 		{
 			struct comnod	com;
 			Shnode_t	node;
-		} t;
+		} t = { 0 };
 		union
 		{
 			struct argnod	arg;
 			struct dolnod	dol;
-			char buff[sizeof(struct dolnod)+sizeof(char*)];
-		} d;
-		memset(&t,0,sizeof(t));
-		memset(&d,0,sizeof(d));
+			char buff[sizeof(struct dolnod) + 2 * sizeof(char*)];
+		} d = { 0 };
 		t.node.com.comarg.ap = &d.arg;
 		t.node.com.comline = sh.inlineno;
 		d.dol.dolnum = 1;

@@ -282,7 +282,7 @@ static struct dolnod *r_comlist(void)
 	char **argv;
 	if((l=sfgetl(infile))>0)
 	{
-		dol = stkalloc(sh.stk,sizeof(struct dolnod) + sizeof(char*)*(size_t)(l+ARG_SPARE));
+		dol = stkalloc(sh.stk, sizeof(struct dolnod) + (size_t)(l + ARG_SPARE + 1) * sizeof(char*));
 		dol->dolnum = (int)l;
 		dol->dolbot = ARG_SPARE;
 		argv = dol->dolval+ARG_SPARE;
