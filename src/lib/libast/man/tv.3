@@ -1,46 +1,8 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH TV 3
 .SH NAME
 tv \- high resolution time support
 .SH SYNOPSIS
-.L "#include <tv.h>"
+\f(CW#include <tv.h>\fP
 .SH DESCRIPTION
 The
 .I tv
@@ -50,120 +12,134 @@ time specifications.
 .B Tv_t
 contains these elements:
 .TP
-.L "time_t tv_sec"
+\f(CWtime_t tv_sec\fP
 Seconds since the epoch.
 .TP
-.L "uint32_t tv_nsec"
+\f(CWuint32_t tv_nsec\fP
 Nanosecond resolution.
 .PP
 In practice resolution is much coarser than 1 nanosecond.
 Systems that only support 1 second resolution always set
-.L tv_nsec
+\f(CWtv_nsec\fP
 to 0.
 .SS "int tvgettime(Tv_t* tv)"
 Sets
-.L tv
+\f(CWtv\fP
 to the current time.
-.L 0
+\f(CW0\fP
 is returned on success,
-.L -1
+\f(CW-1\fP
 on error.
 .SS "int tvsettime(const Tv_t* tv)"
 Sets the system time to
-.LR tv .
+.IR tv .
 The caller must have sufficient privilege.
-.L 0
+\f(CW0\fP
 is returned on success,
-.L -1
+\f(CW-1\fP
 on error.
 .SS "int tvcmp(const Tv_t* av, const Tv_t* bv)"
 Compares the times
-.L av
+.I av
 and
-.L bv
+.I bv
 and returns
-.L -1
+\f(CW-1\fP
 if
-.L av
+.I av
 is less than
-.LR bv ,
-.L 0
+.IR bv ,
+\f(CW0\fP
 if
-.L av
+.I av
 is equal to
-.LR bv ,
+.IR bv ,
 and
-.L 1
+\f(CW1\fP
 if
-.L av
+.I av
 is greater than
-.LR bv .
+.IR bv .
 .SS "time_t tvgetatime(Tv_t* tv, const struct stat* st)"
 .SS "time_t tvgetmtime(Tv_t* tv, const struct stat* st)"
 .SS "time_t tvgetctime(Tv_t* tv, const struct stat* st)"
 These macros set
-.L tv
+.I tv
 to the
-.L st
-the access, modify, or change time, respectively.
+.I st
+access, modify, or change time, respectively.
 The seconds portion of
-.L tv
+.I tv
 is returned.
 .SS "time_t tvsetatime(Tv_t* tv, struct stat* st)"
 .SS "time_t tvsetmtime(Tv_t* tv, struct stat* st)"
 .SS "time_t tvsetctime(Tv_t* tv, struct stat* st)"
 These macros set the
-.L st
+.I st
 access, modify, or change time, respectively, to
-.LR tv .
+.IR tv .
 The seconds portion of
-.L tv
+.I tv
 is returned.
-.SS "int tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int copy)"
+.SS "int tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int flags)"
 Sets the file
-.L path
+.I path
 access time from
-.LR av ,
+.IR av ,
 modify time from
-.LR mv ,
+.IR mv ,
 and change time from
-.LR cv .
-Any of
-.LR av ,
-.LR mv ,
+.IR cv .
+Each of
+.IR av ,
+.IR mv ,
 and
-.L cv
-may be 0; the corresponding file time will retain the previous value if
-.L path
-exists and
-.L copy
-is
-.L 1 ;
-otherwise the corresponding file time will be set to the current time.
-.L 0
+.I cv
+may be 0 to set the corresponding file time to the current time, or
+\f(CWTV_TOUCH_RETAIN\fP
+to retain the previous file value if
+.I path
+exists (the current time is used otherwise);
+any other value is the exact time to set.
+.I flags
+is the inclusive-or of:
+.TP
+\f(CWTV_TOUCH_CREATE\fP
+Create
+.I path
+if it does not exist.
+.TP
+\f(CWTV_TOUCH_PHYSICAL\fP
+Do not follow symbolic links.
+.PP
+.RS
+.I cv
+is ignored on most implementations.
+\f(CW0\fP
 is returned on success,
-.L -1
+\f(CW-1\fP
 on error.
+.RE
 .SS "int tvsleep(const Tv_t* tv, Tv_t* rv)"
 Pauses execution for
-.L tv
+.I tv
 time.
-.L 0
+\f(CW0\fP
 is returned if the full
-.L tv
+.I tv
 amount has expired.
 Otherwise
-.L -1
+\f(CW-1\fP
 is returned and
-.LR rv ,
+.IR rv ,
 if not 0, is set to the sleep time remaining.
 .SH "RETURN VALUE"
 Except for
-.LR tvcmp() ,
+\f(CWtvcmp()\fP,
 an error return of
-.L -1
+\f(CW-1\fP
 also sets
-.L errno
+\f(CWerrno\fP
 to the corresponding error code.
 .SH "SEE ALSO"
-tm(3)
+tm(3), tmx(3)
