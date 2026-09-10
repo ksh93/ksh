@@ -1,0 +1,1010 @@
+.\" Derived from the FreeBSD fts(3) manual page.
+.\" The copyright notice and license below apply to this manual
+.\" page only, and not to libast's fts implementation itself.
+.\"
+.\" Copyright (c) 1989, 1991, 1993, 1994
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.TH FTS 3
+.SH NAME
+fts \- traverse a file hierarchy
+.SH LIBRARY
+.IR LIBAST (3)
+.SH SYNOPSIS
+.nf
+.ft CR
+#include <fts.h>
+
+FTS*     fts_open(char* const* \fIpaths\fP, int \fIflags\fP,
+                  int (*\fIcomparf\fP)(FTSENT* const*, FTSENT* const*));
+FTSENT*  fts_read(FTS* \fIfts\fP);
+FTSENT*  fts_children(FTS* \fIfts\fP, int \fIflags\fP);
+int      fts_set(FTS* \fIfts\fP, FTSENT* \fIf\fP, int \fIflags\fP);
+int      fts_close(FTS* \fIfts\fP);
+
+int      fts_flags(void);
+int      fts_local(FTSENT* \fIf\fP);
+int      fts_notify(int (*\fInotifyf\fP)(FTS*, FTSENT*, void*), void* \fIcontext\fP);
+.ft
+.fi
+.SH DESCRIPTION
+The
+.B fts
+functions are provided for traversing
+Unix
+file hierarchies.
+A simple overview is that the
+.B fts_open
+function returns a
+\[lq]handle\[rq]
+on a file hierarchy, which is then supplied to
+the other
+.B fts
+functions.
+The
+.B fts_read
+function returns a pointer to a structure describing one of the files
+in the file hierarchy.
+The
+.B fts_children
+function returns a pointer to a linked list of structures, each of
+which describes one of the files contained in a directory in the
+hierarchy.
+In general, directories are visited two distinguishable times; in pre-order
+(before any of their descendants are visited) and in post-order (after all
+of their descendants have been visited).
+Files are visited once.
+It is possible to walk the hierarchy
+\[lq]logically\[rq],
+i.e., visiting the files that symbolic links point to,
+or physically (visiting the symbolic links themselves),
+order the walk of the hierarchy, and
+prune and/or re-visit portions of the hierarchy.
+.PP
+Two structures are defined (and typedef'd) in the include file
+.IR <fts.h> .
+The first is
+\f[CB]FTS\fP,
+the structure that represents the file hierarchy itself.
+The second is
+\f[CB]FTSENT\fP,
+the structure that represents a file in the file
+hierarchy.
+Normally, an
+\f[CB]FTSENT\fP
+structure is returned for every file in the file
+hierarchy.
+In this manual page,
+.I file
+and
+\f[CI]FTSENT\fP
+.I structure
+are generally interchangeable.
+.PP
+The
+\f[CB]FTS\fP
+structure is opaque to the application except for two fields:
+.IR fts_handle ,
+a
+.B void*
+the application may use to store per-hierarchy data, and
+.IR fts_errno ,
+which holds the
+.B errno
+value for the most recent stream-level error (0 if none).
+.PP
+The
+\f[CB]FTSENT\fP
+structure contains at least the following fields, which are
+described in greater detail below:
+.nf
+.ft CR
+
+typedef struct Ftsent {
+        char*           fts_accpath;    /* path relative to .           */
+        char*           fts_name;       /* file name                    */
+        char*           fts_path;       /* path relative to top dir     */
+        FTSENT*         fts_cycle;      /* offender if cycle            */
+        FTSENT*         fts_link;       /* next child                   */
+        FTSENT*         fts_parent;     /* parent directory             */
+        struct stat*    fts_statp;      /* stat info                    */
+        void*           fts_pointer;    /* local pointer value          */
+        long            fts_number;     /* local numeric value          */
+        int             fts_errno;      /* errno for this entry         */
+        unsigned short  fts_info;       /* info flags                   */
+        FTS*            fts;            /* fts_open() handle            */
+        size_t          fts_namelen;    /* strlen(fts_name)             */
+        size_t          fts_pathlen;    /* strlen(fts_path)             */
+        ssize_t         fts_level;      /* file tree depth, 0 at top    */
+} FTSENT;
+.ft
+.fi
+.PP
+These fields are defined as follows:
+.TP
+.I fts_info
+One of the following values describing the returned
+\f[CB]FTSENT\fP
+structure and
+the file it represents.
+With the exception of directories visited in pre-order
+(\f[CB]FTS_D\fP),
+all of these
+entries are terminal, that is, they will not be revisited, nor will any
+of their descendants be visited.
+The
+\f[CB]FTS_D\fP
+value is combined (inclusive-or) with other flag bits to form
+the composite values listed below it.
+.RS
+.TP
+\f[CB]FTS_D\fP
+A directory being visited in pre-order.
+.TP
+\f[CB]FTS_DP\fP
+A directory being visited in post-order.
+The contents of the
+\f[CB]FTSENT\fP
+structure are unchanged from when
+the directory was visited in pre-order, except for the
+.I fts_info
+field and the
+.I fts_statp
+field, which is re-stat'ed to update link counts and times.
+.TP
+\f[CB]FTS_DC\fP
+A directory that causes a cycle in the tree.
+(The
+.I fts_cycle
+field of the
+\f[CB]FTSENT\fP
+structure will be filled in as well.)
+.TP
+\f[CB]FTS_DNR\fP
+A directory which cannot be read.
+This is returned, in place of
+\f[CB]FTS_D\fP,
+when the directory could not be entered and read.
+This is an error return, and the
+.I fts_errno
+field will be set to indicate what caused the error.
+.TP
+\f[CB]FTS_DNX\fP
+A directory which cannot be searched (accessed).
+This is returned when
+.IR opendir (3)
+on the directory fails for lack of search permission.
+This is an error return, and the
+.I fts_errno
+field will be set to indicate what caused the error.
+.TP
+\f[CB]FTS_DOT\fP
+A file named
+\f[CB].\fP
+or
+\f[CB]..\fP
+which was not specified as a path name to
+.B fts_open
+(see
+\f[CB]FTS_SEEDOT\fP).
+.TP
+\f[CB]FTS_F\fP
+A regular file (not a directory or symbolic link).
+.TP
+\f[CB]FTS_NS\fP
+A file for which no
+.IR stat (2)
+information was available.
+The contents of the
+.I fts_statp
+field are undefined.
+This is an error return, and the
+.I fts_errno
+field will be set to indicate what caused the error.
+.TP
+\f[CB]FTS_NSOK\fP
+A file for which no
+.IR stat (2)
+information was requested (see
+\f[CB]FTS_NOSTAT\fP).
+The contents of the
+.I fts_statp
+field are undefined.
+.TP
+\f[CB]FTS_SL\fP
+A symbolic link.
+Symbolic links are only returned in physical mode (see
+\f[CB]FTS_PHYSICAL\fP)
+or when they reference a non-existent file.
+.TP
+\f[CB]FTS_SLNONE\fP
+A symbolic link with a non-existent target.
+The contents of the
+.I fts_statp
+field reference the file characteristic information for the symbolic link
+itself.
+.RE
+.TP
+.I fts_accpath
+A path for accessing the file from the current directory.
+Unless the
+\f[CB]FTS_NOCHDIR\fP
+option was specified, this is the same as
+.I fts_name ,
+valid only while the traversal is positioned in the file's parent
+directory; otherwise it is the same as
+.IR fts_path .
+.TP
+.I fts_path
+The path for the file relative to the root of the traversal.
+This path contains the path specified to
+.B fts_open
+as a prefix.
+A leading
+\f[CB]./\fP
+is omitted unless the
+\f[CB]FTS_SEEDOTDIR\fP
+option is in effect.
+.TP
+.I fts_pathlen
+The length of the string referenced by
+.IR fts_path .
+.TP
+.I fts_name
+The name of the file.
+.TP
+.I fts_namelen
+The length of the string referenced by
+.IR fts_name .
+.TP
+.I fts_level
+The depth of the traversal, numbered from 0 to N, where this file
+was found.
+The
+\f[CB]FTSENT\fP
+structure representing the parent of the starting point (or root)
+of the traversal is numbered \-1, and the
+\f[CB]FTSENT\fP
+structure for the root
+itself is numbered 0.
+.TP
+.I fts_errno
+Upon return of a
+\f[CB]FTSENT\fP
+structure from the
+.B fts_children
+or
+.B fts_read
+functions, with its
+.I fts_info
+field set to
+\f[CB]FTS_DNR\fP,
+\f[CB]FTS_DNX\fP,
+\f[CB]FTS_NS\fP
+or
+\f[CB]FTS_ERR\fP,
+the
+.I fts_errno
+field contains the value of the external variable
+.B errno
+specifying the cause of the error.
+Otherwise, the contents of the
+.I fts_errno
+field are undefined.
+.TP
+.I fts_number
+This field is provided for the use of the application program and is
+not modified by the
+.B fts
+functions.
+It is initialized to 0.
+.TP
+.I fts_pointer
+This field is provided for the use of the application program and is
+not modified by the
+.B fts
+functions.
+It is initialized to
+\f[CB]NULL\fP.
+.TP
+.I fts_parent
+A pointer to the
+\f[CB]FTSENT\fP
+structure referencing the file in the hierarchy
+immediately above the current file, i.e., the directory of which this
+file is a member.
+A parent structure for the initial entry point is provided as well;
+only its
+.IR fts_level ,
+.I fts_number
+and
+.I fts_pointer
+fields are guaranteed to be initialized.
+.TP
+.I fts_link
+Upon return from the
+.B fts_children
+function, the
+.I fts_link
+field points to the next structure in the
+\f[CB]NULL\fP-terminated
+linked list of directory members.
+Otherwise, the contents of the
+.I fts_link
+field are undefined.
+.TP
+.I fts_cycle
+If a directory causes a cycle in the hierarchy (see
+\f[CB]FTS_DC\fP),
+either because
+of a hard link between two directories, or a symbolic link pointing to a
+directory, the
+.I fts_cycle
+field of the structure will point to the
+\f[CB]FTSENT\fP
+structure in the hierarchy that references the same file as the current
+\f[CB]FTSENT\fP
+structure.
+Otherwise, the contents of the
+.I fts_cycle
+field are undefined.
+.TP
+.I fts_statp
+A pointer to
+.IR stat (2)
+information for the file.
+.TP
+.I fts
+A pointer to the
+\f[CB]FTS\fP
+stream handle returned by
+.BR fts_open .
+.PP
+A single buffer is used for all of the paths of all of the files in the
+file hierarchy.
+Therefore, the
+.I fts_path
+and
+.I fts_accpath
+fields are guaranteed to be NUL-terminated
+.I only
+for the file most recently returned by
+.BR fts_read .
+To use these fields to reference any files represented by other
+\f[CB]FTSENT\fP
+structures will require that the path buffer be modified using the
+information contained in that
+\f[CB]FTSENT\fP
+structure's
+.I fts_pathlen
+field.
+Any such modifications should be undone before further calls to
+.B fts_read
+are attempted.
+The
+.I fts_name
+field is always NUL-terminated.
+.SS fts_open
+The
+.B fts_open
+function takes a pointer to an array of character pointers naming one
+or more paths which make up a logical file hierarchy to be traversed.
+The array must be terminated by a
+\f[CB]NULL\fP
+pointer.
+If the
+\f[CB]FTS_ONEPATH\fP
+option is set,
+.I paths
+is instead a single
+.BR "const char *"
+naming the lone path to traverse.
+If
+.I paths
+is
+\f[CB]NULL\fP,
+or (without
+\f[CB]FTS_ONEPATH\fP)
+the array is empty, the path
+\f[CB].\fP
+is traversed.
+.PP
+There are
+a number of options, at least one of which (either
+\f[CB]FTS_LOGICAL\fP
+or
+\f[CB]FTS_PHYSICAL\fP)
+governs the treatment of symbolic links.
+The options are selected by
+.IR or 'ing
+the following values:
+.TP
+\f[CB]FTS_LOGICAL\fP
+This option (value 0, the default) causes the
+.B fts
+routines to return
+\f[CB]FTSENT\fP
+structures for the targets of symbolic links
+instead of the symbolic links themselves.
+If this option is in effect, the only symbolic links for which
+\f[CB]FTSENT\fP
+structures
+are returned to the application are those referencing non-existent files.
+Exactly one of
+\f[CB]FTS_LOGICAL\fP
+or
+\f[CB]FTS_PHYSICAL\fP
+is in effect for any traversal;
+\f[CB]FTS_LOGICAL\fP
+is the default when
+\f[CB]FTS_PHYSICAL\fP
+is not specified.
+.TP
+\f[CB]FTS_PHYSICAL\fP
+This option causes the
+.B fts
+routines to return
+\f[CB]FTSENT\fP
+structures for symbolic links themselves instead
+of the target files they point to.
+If this option is set,
+\f[CB]FTSENT\fP
+structures for all symbolic links in the
+hierarchy are returned to the application.
+.TP
+\f[CB]FTS_META\fP
+This option causes any symbolic link specified as a root path to be
+followed immediately, whether or not
+\f[CB]FTS_LOGICAL\fP
+is also in effect.
+It is also available under the name
+\f[CB]FTS_COMFOLLOW\fP.
+.TP
+\f[CB]FTS_NOCHDIR\fP
+To allow descending to arbitrary depths
+(independent of
+\f[CB]PATH_MAX\fP)
+and improve performance, the
+.B fts
+functions change directories as they walk the file hierarchy.
+This has the side-effect that an application cannot rely on being
+in any particular directory during the traversal.
+The
+\f[CB]FTS_NOCHDIR\fP
+option turns off this feature, and the
+.B fts
+functions will not change the current directory.
+Note that applications should not themselves change their current directory
+and try to access files unless
+\f[CB]FTS_NOCHDIR\fP
+is specified and absolute
+pathnames were provided as arguments to
+.BR fts_open .
+.TP
+\f[CB]FTS_NOSTAT\fP
+By default, returned
+\f[CB]FTSENT\fP
+structures reference file characteristic information (the
+.I fts_statp
+field) for each file visited.
+This option relaxes that requirement as a performance optimization,
+allowing the
+.B fts
+functions to set the
+.I fts_info
+field to
+\f[CB]FTS_NSOK\fP
+and leave the contents of the
+.I fts_statp
+field undefined.
+The roots and any directories encountered during traversal are still
+fully populated.
+.TP
+\f[CB]FTS_SEEDOT\fP
+By default, unless they are specified as path arguments to
+.BR fts_open ,
+any files named
+\f[CB].\fP
+or
+\f[CB]..\fP
+encountered in the file hierarchy are ignored.
+This option causes the
+.B fts
+routines to return
+\f[CB]FTSENT\fP
+structures for them (as
+\f[CB]FTS_DOT\fP).
+.TP
+\f[CB]FTS_SEEDOTDIR\fP
+Retain a leading
+\f[CB]./\fP
+in returned
+.I fts_path
+values.
+This is the default when a root path itself begins with
+\f[CB].\fP
+when
+\f[CB]FTS_PHYSICAL\fP
+is in effect.
+.TP
+\f[CB]FTS_NOSEEDOTDIR\fP
+Never retain a leading
+\f[CB]./\fP
+in returned
+.I fts_path
+values; such prefixes are stripped from root paths.
+This option overrides
+\f[CB]FTS_SEEDOTDIR\fP.
+.TP
+\f[CB]FTS_TOP\fP
+Do not traverse subdirectories; the root paths are returned as terminal
+entries.
+.TP
+\f[CB]FTS_NOPREORDER\fP
+Do not return pre-order
+(\f[CB]FTS_D\fP)
+visits for directories.
+.TP
+\f[CB]FTS_NOPOSTORDER\fP
+Do not return post-order
+(\f[CB]FTS_DP\fP)
+visits for directories.
+.TP
+\f[CB]FTS_XDEV\fP
+This option prevents
+.B fts
+from descending into directories that have a different device number
+than the file from which the descent began.
+.TP
+\f[CB]FTS_ONEPATH\fP
+The
+.I paths
+argument is a single
+.BR "const char *"
+rather than a
+\f[CB]NULL\fP-terminated array of paths.
+.TP
+\f[CB]FTS_USER\fP
+The first option bit available for application use; the
+.B fts
+functions ignore it.
+.PP
+The
+.I comparf
+argument points to a user-defined function which may be used to order
+the traversal of the hierarchy.
+It
+takes two pointers to pointers to
+\f[CB]FTSENT\fP
+structures as arguments and
+should return a negative value, zero, or a positive value to indicate
+if the file referenced by its first argument comes before, in any order
+with respect to, or after, the file referenced by its second argument.
+The
+.IR fts_accpath ,
+.I fts_path
+and
+.I fts_pathlen
+fields of the
+\f[CB]FTSENT\fP
+structures may
+.I never
+be used in this comparison.
+If the
+.I fts_info
+field is set to
+\f[CB]FTS_NS\fP
+or
+\f[CB]FTS_NSOK\fP,
+the
+.I fts_statp
+field may not either.
+If the
+.I comparf
+argument is
+\f[CB]NULL\fP,
+the directory traversal order is in the order listed in
+.I paths
+for the root paths, and in the order listed in the directory for
+everything else.
+.SS fts_read
+The
+.B fts_read
+function returns a pointer to an
+\f[CB]FTSENT\fP
+structure describing a file in
+the hierarchy.
+Directories (that are readable and do not cause cycles) are visited at
+least twice, once in pre-order and once in post-order.
+All other files are visited at least once.
+(Hard links between directories that do not cause cycles or symbolic
+links to symbolic links may cause files to be visited more than once,
+or directories more than twice.)
+.PP
+If all the members of the hierarchy have been returned,
+.B fts_read
+returns
+\f[CB]NULL\fP.
+If an error unrelated to a file in the hierarchy occurs,
+.B fts_read
+returns
+\f[CB]NULL\fP
+and sets the
+.I fts_errno
+field of the stream handle appropriately.
+If an error related to a returned file occurs, a pointer to an
+\f[CB]FTSENT\fP
+structure is returned (see
+.IR fts_info ).
+.PP
+The
+\f[CB]FTSENT\fP
+structures returned by
+.B fts_read
+may be overwritten after a call to
+.B fts_close
+on the same file hierarchy stream, or, after a call to
+.B fts_read
+on the same file hierarchy stream unless they represent a directory,
+in which case they will not be overwritten until the directory's
+post-order
+\f[CB]FTSENT\fP
+structure has been returned.
+.SS fts_children
+The
+.B fts_children
+function returns a pointer to an
+\f[CB]FTSENT\fP
+structure describing the first entry in a
+\f[CB]NULL\fP-terminated
+linked list of
+the files in the directory represented by the
+\f[CB]FTSENT\fP
+structure most recently returned by
+.BR fts_read .
+The list is linked through the
+.I fts_link
+field of the
+\f[CB]FTSENT\fP
+structure, and is ordered by the user-specified comparison function, if any.
+Repeated calls to
+.B fts_children
+will recreate this linked list.
+.PP
+As a special case, if
+.B fts_read
+has not yet been called for a hierarchy,
+.B fts_children
+will return a pointer to the files in the logical directory specified to
+.BR fts_open ,
+i.e., the arguments specified to
+.BR fts_open .
+Otherwise, if the
+\f[CB]FTSENT\fP
+structure most recently returned by
+.B fts_read
+is not a directory being visited in pre-order,
+or the directory does not contain any files,
+.B fts_children
+returns
+\f[CB]NULL\fP.
+If an error occurs,
+.B fts_children
+returns
+\f[CB]NULL\fP
+and sets the stream
+.I fts_errno
+appropriately.
+.PP
+The
+\f[CB]FTSENT\fP
+structures returned by
+.B fts_children
+may be overwritten after a call to
+.BR fts_children ,
+.B fts_close
+or
+.B fts_read
+on the same file hierarchy stream.
+.PP
+.I flags
+may be set to
+\f[CB]FTS_NOSTAT\fP
+to indicate that the file characteristic information in the returned
+list is not needed;
+the contents of the
+.I fts_statp
+fields are then undefined.
+.SS fts_set
+The
+.B fts_set
+function allows the user application to determine further processing
+for the file
+.I f ,
+which must be the entry most recently returned by
+.BR fts_read .
+If the
+.I fts
+argument is
+\f[CB]NULL\fP,
+it defaults to the current
+\f[CB]FTS\fP
+handle stored in the provided
+\f[CB]FTSENT\fP
+structure.
+It is an error for the provided
+\f[CB]FTSENT\fP
+structure not to refer to the current file.
+The
+.B fts_set
+function
+returns 0 on success, and \-1 if an error occurs.
+Its
+.I flags
+argument must have one of the following values:
+.TP
+\f[CB]FTS_AGAIN\fP
+Re-visit the file; any file type may be re-visited.
+The next call to
+.B fts_read
+will return the referenced file.
+The
+.I fts_statp
+and
+.I fts_info
+fields of the structure will be reinitialized at that time,
+but no other fields will have been changed.
+This option is meaningful only for the most recently returned
+file from
+.BR fts_read .
+Normal use is for post-order directory visits, where it causes the
+directory to be re-visited (in both pre- and post-order) as well as all
+of its descendants.
+.TP
+\f[CB]FTS_FOLLOW\fP
+The referenced file must be a symbolic link.
+The next call to
+.B fts_read
+returns the file with the
+.I fts_info
+and
+.I fts_statp
+fields reinitialized to reflect the target of the symbolic link instead
+of the symbolic link itself.
+If the target of the symbolic link does not exist, the fields of the
+returned structure are unchanged and the
+.I fts_info
+field is set to
+\f[CB]FTS_SLNONE\fP.
+If the target of the link is a directory, the pre-order return, followed
+by the return of all of its descendants, followed by a post-order return,
+is done.
+.TP
+\f[CB]FTS_SKIP\fP
+No descendants of this file are visited.
+The file must be a directory being visited in pre-order
+(\f[CB]FTS_D\fP).
+.TP
+\f[CB]FTS_NOPOSTORDER\fP
+Suppress the post-order
+(\f[CB]FTS_DP\fP)
+visit for this directory.
+.TP
+\f[CB]FTS_STAT\fP
+Inform
+.B fts
+that the application has already obtained
+.IR stat (2)
+information for the file in
+.IR f->fts_statp ;
+it will not be re-stat'ed.
+.SS fts_close
+The
+.B fts_close
+function closes a file hierarchy stream
+.I fts
+and, unless the
+\f[CB]FTS_NOCHDIR\fP
+option was specified, restores the current directory to the directory
+from which
+.B fts_open
+was called to open
+.IR fts .
+It returns 0.
+.SS fts_flags
+The
+.B fts_flags
+function returns the default traversal flags implied by the
+.IR astconf (3)
+\[lq]PATH_RESOLVE\fP
+configuration:
+\f[CB]FTS_LOGICAL\fP
+if
+\(lqlogical\(rq,
+\f[CB]FTS_PHYSICAL|FTS_SEEDOTDIR\fP
+if
+\(lqphysical\(rq,
+and
+\f[CB]FTS_META|FTS_PHYSICAL|FTS_SEEDOTDIR\fP
+otherwise.
+.SS fts_local
+The
+.B fts_local
+function returns non-zero if the file described by
+.I f
+resides on a local file system, 0 otherwise.
+.SS fts_notify
+The
+.B fts_notify
+function registers or deregisters a notification function called as
+.IB notifyf ( fts ", " f ", " context )
+for each entry returned by
+.BR fts_read .
+If
+.I context
+is not
+\f[CB]NULL\fP,
+.I notifyf
+is added to the notification list;
+if
+.I context
+is
+\f[CB]NULL\fP,
+the first registered occurrence of
+.I notifyf
+is removed.
+A return value greater than 0 from
+.I notifyf
+stops the traversal of the current entry;
+a value less than 0 aborts the traversal with a stream error.
+.B fts_notify
+returns 0 on success and \-1 on error.
+.SH "RETURN VALUES"
+The
+.B fts_open
+function returns a pointer to the new
+.B fts
+stream on success and
+\f[CB]NULL\fP
+on failure.
+.PP
+The
+.B fts_read
+function returns a pointer to the next file entry on success, or if an
+error occurs that relates specifically to that file entry.
+On reaching the end of the file hierarchy, or on failure, it returns
+\f[CB]NULL\fP;
+in the latter case the stream
+.I fts_errno
+field is set to an appropriate non-zero value.
+.PP
+The
+.B fts_children
+function returns a pointer to a linked list of file entries on
+success.
+On reaching the end of the file hierarchy it returns
+\f[CB]NULL\fP.
+On failure, it returns
+\f[CB]NULL\fP
+and sets the stream
+.I fts_errno
+field to an appropriate non-zero value.
+.PP
+The
+.B fts_set
+function returns 0 on success and \-1 if its
+.I flags
+argument is invalid or
+.I f
+is not the current entry.
+.PP
+The
+.B fts_close
+function returns 0.
+.SH ERRORS
+The
+.B fts_open
+function may fail and set
+.B errno
+for any of the errors specified for the library functions
+.IR open (2)
+and
+.IR malloc (3).
+.PP
+The
+.B fts_close
+function may fail and set
+.B errno
+for any of the errors specified for the library functions
+.IR chdir (2)
+and
+.IR close (2).
+.PP
+The
+.B fts_read
+and
+.B fts_children
+functions may fail and set
+.B errno
+for any of the errors specified for the library functions
+.IR chdir (2),
+.IR malloc (3),
+.IR opendir (3),
+.IR readdir (3)
+and
+.IR stat (2).
+.PP
+In addition, the
+.BR fts_children ,
+.B fts_open
+and
+.B fts_set
+functions may fail and set
+.B errno
+as follows:
+.TP
+\f[CB]EINVAL\fP
+The options were invalid, or the list was empty.
+.SH CAVEATS
+To avoid conflicts with native OS
+.IR fts (3)
+implementations, this
+.IR LIBAST (3)
+version defines all the function names as macros to prefix
+.RB \(lq _ast_ \(rq
+to their actual names. If you
+.B #undef
+them, you get what you paid for.
+.SH "SEE ALSO"
+.IR nftw (3),
+.IR ftwalk (3),
+.IR find (1),
+.IR chdir (2),
+.IR stat (2),
+.IR qsort (3)
+.SH AUTHORS
+Phong Vo and Glenn Fowler, AT&T Research.
+.SH STANDARDS
+None. The
+.B fts
+interface was considered for inclusion in the POSIX standard,
+but was rejected in favor of
+.IR nftw (3)
+in 1997.
+This
+.IR LIBAST (3)
+.B fts
+implementation diverges significantly from the BSD and Linux versions.
+.SH HISTORY
+The original
+.B fts
+interface appeared in 4.4BSD (1993).
+This
+.B fts
+interface was written from scratch and added to
+.IR LIBAST (3)
+on 1996-08-11.
