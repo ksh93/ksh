@@ -1,4 +1,4 @@
-.TH LIBCDT 3
+.TH CDT 3
 .SH NAME
 \fBCdt\fR \- container data types
 .SH SYNOPSIS
@@ -731,7 +731,7 @@ or processes using shared memory should turn on shared mode for the dictionary.
 CDT uses locking and lockless data structures to
 provide safe concurrent accesses of objects.
 Much of this work is based on the atomic scalar operations
-available in \fIlibaso(3)\fP.
+available in \fIaso(3)\fP.
 
 Even though CDT only considers objects
 via the attributes specified in a discipline structure,
@@ -940,7 +940,7 @@ based on doubly linked list.
 that avoids table resizing.
 .PP
 .SH SEE ALSO
-libaso(3), malloc(3)
+aso(3), malloc(3)
 .PP
 .SH AUTHOR
 Kiem-Phong Vo, kpv@research.att.com

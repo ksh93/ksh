@@ -1,4 +1,4 @@
-.TH LIBASO 3
+.TH ASO 3
 .SH NAME
 \fBASO\fP \- Atomic Scalar Operations
 .SH SYNOPSIS
@@ -268,15 +268,13 @@ This is the default method type when \f3ASO_INTRINSIC\fP is not supported.
 This method type is suitable for single-process single-thread, and
 multi-thread applications.
 It typically requires thread library support, and since the default
-\f3aso\fP library is not linked with a thread library, no \f3ASO_THREAD\fP
-method is provided by default.
-Threaded applications must link with
-\fB-ltaso\fP (before \fB-laso\fP or \fB-last\fP)
-in order to access \f3ASO_THREAD\fP methods.
-The \fB-ltaso\fP library provides the "\fBspin\fP" (using
-\fBpthread_spin_lock\fP(3)) and
+\f3aso\fP code in \fBlibast\fP is not linked with a thread library,
+no \f3ASO_THREAD\fP method is provided by default.
+The "\fBspin\fP" (using \fBpthread_spin_lock\fP(3)) and
 "\fBmutex"\fP (using \fBpthread_mutex_lock\fP(3)) methods with
-type \f3ASO_THREAD|ASO_SIGNAL\fP.
+type \f3ASO_THREAD|ASO_SIGNAL\fP
+can be made available by intercepting \f3asometh()\fP
+to prepend them ahead of the default methods.
 .Tp
 \f3ASO_PROCESS\fP:
 This method type is suitable for single-process single-thread,

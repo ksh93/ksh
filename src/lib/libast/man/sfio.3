@@ -13,15 +13,12 @@
 .SS "\\$1"
 ..
 .ta 1.0i 2.0i 3.0i 4.0i 5.0i
-.SS "LIBRARIES"
+.SS "LIBRARY"
 .nf
 .ft CW
 #include      <sfio.h>
 
-libsfio.a     -lsfio
-libstdio.a    -lstdio
-libsfio-mt.a  -lsfio-mt
-libstdio-mt.a -lstdio-mt
+Sfio is part of libast; link with -last.
 .ft 1
 .fi
 .SS "DATA TYPES"
@@ -254,10 +251,9 @@ int        sfdcgzip(Sfio_t* f, int flags);
 .nf
 .ft CW
 #include   <stdio.h>
-cc ... -lstdio -lsfio
-cc ... -lstdio-mt -lsfio-mt
 .ft 1
 .fi
+A stdio-compatible interface is provided; it too is part of libast.
 .SH DESCRIPTION
 .PP
 Sfio provides I/O functions to manage buffered streams.

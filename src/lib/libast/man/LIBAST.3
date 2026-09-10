@@ -43,6 +43,155 @@ Other libraries that depend on
 may also have headers installed in the
 .B include/ast
 directories.
+.SS "Why libast?"
+The standard C libraries provided by the *BSD and Linux systems are
+deliberately minimal: they offer a common, portable baseline, but stop
+well short of what non-trivial programs actually need.
+.B libast
+fills that gap.
+Beyond merely papering over the differences between UNIX variants,
+it supplies modern, carefully engineered implementations of facilities
+that the standard libraries either lack entirely or provide only in
+primitive form.
+The components below are all part of
+.B libast
+and are linked with
+.BR \-last ;
+there is no need to track down and link a scattering of separate
+libraries.
+.PP
+Some highlights:
+.TP
+.B Sfio
+.RI ( sfio (3))
+is a buffered I/O library that goes far beyond
+.IR stdio (3).
+A stream may be a file or an in-memory string, and
+.I disciplines
+allow application-supplied
+.IR read (2)/ write (2)/ lseek (2)
+analogues to be pushed onto a stream, so that filtering, compression or
+transformation layers can be inserted without changing the code that
+performs the I/O.
+Streams may be stacked for recursive processing and gathered into pools
+whose buffers are synchronized automatically.
+File streams may use
+.IR mmap (2)
+where that is more efficient than copying through a buffer.
+Even the
+.BR sfprintf ()/ sfscanf ()
+formatting engines are extensible: an application can define its own
+conversion patterns or redefine the standard ones.
+.TP
+.B Cdt
+.RI ( cdt (3))
+manages run-time dictionaries and containers through a single, uniform
+interface.
+The same handle supports unordered and ordered sets and multisets,
+lists, stacks, queues and deques, and the storage method can be changed
+at run time with
+.BR dtmethod ().
+Object layout, comparison, hashing and memory management are supplied by
+a separate
+.I discipline,
+so one discipline works unchanged with every container type.
+The standard C library has nothing comparable.
+.TP
+.B Vmalloc
+.RI ( vmalloc (3))
+provides region-based memory allocation on top of
+.IR malloc (3).
+Each allocation belongs to a region, and an unlimited number of regions
+may be opened; closing a region frees all of its memory at once.
+This compartmentalizes memory management and makes leaks far easier to
+avoid.
+Regions can also be opened so that all allocated memory is automatically
+initialized to zero, a safeguard against the use of uninitialized data.
+.TP
+.B Stk
+.RI ( stk (3))
+provides efficient stack-oriented dynamic storage for objects that are
+built incrementally and released as a group, which is ideal for parsing
+and code generation.
+It cooperates with
+.B Sfio
+\(em the stack type is layout-compatible with
+.BR Sfio_t ,
+so the
+.B Sfio
+output functions can build an object directly on the stack.
+.TP
+.B regex
+.RI ( regex (3))
+is a full POSIX regular-expression library extended with shell pattern
+syntax
+.RB ( REG_SHELL ),
+augmented operators, left/right anchoring, an LRU cache of compiled
+patterns
+.RB ( regcache ()),
+and
+.IR sed (1)-style
+substitution
+.RB ( regsubcomp ()/ regsubexec ()).
+The companion
+.BR strmatch (3)
+routines match shell glob patterns directly, including the
+.BR & (and)
+and
+.BR ! (not)
+operators that ordinary regular expressions cannot express.
+.TP
+.B tm
+.RI ( tm (3)),
+.B tmx
+.RI ( tmx (3))
+and
+.B tv
+.RI ( tv (3))
+handle date and time at resolutions from seconds to nanoseconds.
+They not only convert and format
+.BR time_t
+values but parse free-form, natural-language date specifications such as
+\(lqnext Tuesday noon\(rq
+or
+\(lq3 weeks ago\(rq
+via
+.BR tmdate ()/ tmxdate (),
+and support ISO 8601 durations via
+.BR tmxduration ().
+.TP
+.B optget
+.RI ( optget (3))
+parses command-line options and, from a single self-describing option
+string, generates the command's usage message and even its
+.BR \-\-man ,
+.B \-\-help
+and
+.B \-\-html
+documentation, so a command's manual and its option parsing never
+drift apart.
+.TP
+.B error
+.RI ( error (3))
+provides leveled error reporting (debug, note, warning, error, fatal)
+with optional internationalization through message catalogs, so a whole
+family of programs can present diagnostics consistently.
+.PP
+In addition,
+.B libast
+supplies portable path manipulation
+.RI ( path (3)),
+file-hierarchy traversal
+.RI ( fts (3)
+and
+.IR ftwalk (3)),
+process-group-aware process creation
+.RI ( spawnveg (3)),
+and a large collection of string, formatting and conversion routines
+.RI ( fmt (3),
+.BR stropt (3),
+.BR strton (3),
+and many more).
 .SH FILES
 .nf
 include/ast         the \fBast\fP package header directory
@@ -59,3 +208,30 @@ cc(1)
 The library documentation is still under construction.
 Yes, some of it has been in this state since the 1980s.
 Thank goodness our commands self-document.
+.PP
+.B libast
+as a whole is currently
+.B not
+thread-safe.
+Many of its components keep internal state in global or static storage
+(for example, the
+.BR tm / tmx
+time-zone and format tables, the
+.B regex
+pattern cache, the
+.B optget
+and
+.B error
+globals, and various
+.B fmt
+buffers), and the library makes no attempt to serialize access to it.
+It is therefore suitable for supporting classic UNIX programs that
+achieve parallelism through cooperating processes \(em such as the Korn
+shell \(em but
+.B not
+for multi-threaded applications.
+(The
+.BR aso (3)
+atomic scalar operations are a low-level building block available to
+applications that do their own synchronization; they do not make the rest
+of the library thread-safe.)
