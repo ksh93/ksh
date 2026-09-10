@@ -140,7 +140,11 @@ cygwin.*)
 	;;
 esac
 
-# Deduplicate -l flags.
+# Set destination directory.
+dest_dir=$INSTALLROOT/dyn
+mkdir -p "$dest_dir/bin" "$dest_dir/lib" || err_out "could not mkdir"
+
+# Deduplicate -l flags and convert them to static linkage where necessary.
 # Keep the last-mentioned of each item that occurs multiple times (this is
 # required for passing libraries to the linker in the correct order; that
 # is, each dependency must come after all the libraries that depend on it).
@@ -157,12 +161,19 @@ do	# Grab first item from dupes
 	*"$CCn$item$CCn"*)
 		continue ;;
 	esac
+	# If item was locally compiled but only as a static library, convert it to static linkage (path to lib${name}.a)
+	name=${item# -l}
+	case $(set +o noglob; set -- $dest_dir/lib/lib${name}.*; printf '%s' "$#,$1") in
+	"1,$dest_dir/lib/lib${name}.*")
+		# Unchanged glob pattern = the dymamic library does not exist in our local build tree.
+		# If there is no local static library either, leave it alone; it's probably an OS library.
+		if	test -f $INSTALLROOT/lib/lib${name}.a
+		then	item=" $INSTALLROOT/lib/lib${name}.a"
+		fi ;;
+	esac
+	# Add item to new space-separated l_flags
 	l_flags="$l_flags$item"
 done
-
-# Set destination directory.
-dest_dir=$INSTALLROOT/dyn
-mkdir -p "$dest_dir/bin" "$dest_dir/lib" || err_out "could not mkdir"
 
 # Do the dynamic linking.
 case ${exec_file} in
