@@ -2,6 +2,17 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-11:
+
+- Implemented advisory locking for $HISTFILE (~/.sh_history by default) so that
+  multiple ksh instances can write to the history file without risking data
+  loss due to concurrent writes. Note that ksh versions before 2026-09-11 will
+  ignore the lock, so the risk continues to exist if they write to the file.
+
+- History file trimming no longer requires write access to the directory in
+  which the history file resides and will no longer change the directory's
+  last-modified timestamp. However, it now requires a usable /tmp or $TMPDIR.
+
 2026-09-10:
 
 - Fixed a rare crash that could occur if a signal (such as interrupt, Ctrl+C)
