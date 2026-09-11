@@ -76,7 +76,7 @@ struct dolnod
 	int		dolnum;		/* number of elements */
 	int		dolbot;		/* current first element */
 	struct dolnod	*dolnxt;	/* used when lists are chained */
-	char		*dolval[1];	/* array of value pointers */
+	char		*dolval[];	/* array of value pointers */
 };
 
 /*
@@ -102,7 +102,7 @@ struct argnod
 	 * to it will mask off any high bits; e.g., ARG_ARITH and friends.
 	 */
 	uint8_t		argflag;
-	char		argval[4];
+	char		argval[];
 };
 
 /* The following should evaluate to the offset of argval in argnod */

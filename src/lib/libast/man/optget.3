@@ -1,83 +1,523 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH OPTGET 3
 .SH NAME
 optget \- option parse assist
 .SH SYNOPSIS
-.EX
+.nf
+.ft CR
 #include <option.h>
 
-Opt_t
-{
-};
+extern Opt_t    opt_info;
 
-Optdisc_t
-{
-	unsigned long  version;
-	unsigned long  flags;
-	char*          catalog;
-	Optinfo_f      infof;
-};
-
-Opt_t   opt_info;
-
-void    optinit(Optdisc_t* \fIdisc\fP, Error_f \fIerrorf\fP);
-int     optget(char** \fIargv\fP, const char* \fIusage\fP);
-int     optstr(const char* \fIstring\fP, const char* \fIusage\fP);
-int     optjoin(char** \fIargv\fP, ... [int (*\fIoptfun\fP)(char** \fIargv\fP, int \fIlast\fP)]);
-int     optselfdoc(void);
-char*   optusage(const char* \fIopts\fP);
-int     optesc(Sfio_t* \fIsp\fP, const char* \fIstring\fP, int \fIflags\fP);
-.EE
+void     optinit(Optdisc_t* \fIdisc\fP, Optinfo_f \fIinfof\fP);
+int      optget(char** \fIargv\fP, const char* \fIoptstring\fP);
+int      optjoin(char** \fIargv\fP, ... );
+char*    opthelp(const char* \fIoptstring\fP, const char* \fIwhat\fP);
+char*    optusage(const char* \fIoptstring\fP);
+int      optselfdoc(void);
+int      optstr(const char* \fIstring\fP, const char* \fIoptstring\fP);
+int      optesc(Sfio_t* \fIsp\fP, const char* \fIstring\fP, int \fIflags\fP);
+Opt_t*   optctx(Opt_t* \fIctx\fP, Opt_t* \fIoctx\fP);
+.ft
+.fi
 .SH DESCRIPTION
+\f[CB]optget\fP
+is used to retrieve options and
+arguments from a list of arguments given by
+.IR argv .
+It can also generate usage messages
+and a manual page for the command based on the information in
+.IR optstring .
+Each time it is invoked,
+\f[CB]optget\fP
+places the value
+of the next option in
+.I opt_info.name
+and the index of the next argument to be processed in
+.IR opt_info.index .
+When an option requires or permits an option
+argument,
+\f[CB]optget\fP
+places the option argument in
+.IR opt_info.arg .
 .PP
-(Most documentation for
+The
+.I optstring
+string consists of alphanumeric characters,
+the special characters
+.BR + ,
+.BR - ,
+.BR ? ,
+.BR : ,
+and
+.BR <space> ,
+or character groups
+enclosed in
+.BR [...] .
+Character groups may be nested in
+.BR {...} .
+Outside of a
+.B [...]
+group, a single new-line followed by zero or
+more blanks is ignored. One or more blank lines separate the
+options from the command argument synopsis.
+.PP
+Each
+.B [...]
+group consists of an optional label,
+optional attributes separated by
+.BR : ,
+and an
+optional description string following
+.BR ? .
+The characters from the
+.B ?
+to the end of the next
+.B ]
+are ignored for option parsing and short
+usage messages. They are used for generating verbose help or manual pages.
+The
+.B :
+character may not appear in the label.
+The
+.B ?
+character must be specified as
+.B ??
+in the label and the
+.B ]
+character
+must be specified as
+.B ]]
+in the description string.
+Text between two
+.B \eb
+(backspace) characters indicates
+that the text should be emboldened when displayed.
+Text between two
+.B \ea
+(bell) characters indicates that the text should
+be emphasized or italicized when displayed.
+Text between two
+.B \ev
+(vertical tab) characters indicates
+that the text should be displayed in a fixed width font.
+Text between two
+.B \ef
+(formfeed) characters will be replaced by the
+output from the function whose name is that of the enclosed text.
+.PP
+There are several group types:
+.IP 1.
+A group of the form
+.BI [-[ version ][ flag [ number ]]...[? text ]]
+appearing as the first group enables the extended interface.
+.I version
+specifies the interface version, currently
+.BR 1 .
+The latest version is
+assumed if
+.I version
+is omitted. Future enhancements
+may increment
+.IR version ,
+but all versions will be supported.
+.I text
+typically specifies an SCCS or CVS identification string. Zero or more
+.I flags
+with optional
+.I number
+values may be specified to control
+option parsing.
+The flags are:
+.RS
+.TP
+.B +
+Arguments beginning with
+.B +
+are considered options.
+.TP
+.B c
+Cache this
+.I optstring
+for multiple passes. Used to optimize
+code that may be called many times within the same process.
+.TP
+.B i
+Ignore this
+.I optstring
+when generating help. Used when
+combining
+.I optstring
+values from multiple passes.
+.TP
+.B l
+Display only
+.I longname
+options in help messages.
+.TP
+.B n
+Associate
+.BI - number
+and
+.BI + number
+options with the first
+option with numeric arguments.
+.TP
+.B o
+The
+.B -
+option character prefix is optional (supports
+obsolete
+.BR ps (1)
+option syntax).
+.TP
+.B p
+.I number
+specifies the number of
+.B -
+characters that must
+prefix long option names. The default is
+.BR 2 ;
+.BR 0 ,
+.B 1
+or
+.B 2
+are accepted (e.g.,
+.B p0
+for
+.BR dd (1)
+and
+.B p1
+for
+.BR find (1)).
+.TP
+.B s
+.I number
+specifies the
+.B --??man
+section number,
+.B 1
+by default.
+.RE
+.IP 2.
+An option specification of the form
+.BI [ option [!][= number ][: longname ][? text ]]\fR.
+In this
+case the first field is the option character; this is the value returned
+when the option is matched. If there is no
+option character then a two or more digit number should be specified.
+This number will be returned if the
+long option is matched. If
+.I option
+is followed by
+.B !
+then the option
+character sense is the inverse of the longname sense.
+.BI = number
+optionally specifies a number to
+be returned instead of the option character.
+A longname is specified by
+.BI -- longname
+and is matched by the shortest
+non-ambiguous prefix of all long options.
+.B *
+in the
+.I longname
+field
+indicates that only characters up to that point need to match, provided
+any additional characters match exactly. The enclosing
+.B [
+and
+.B ]
+can be
+omitted for an option that does not have a longname or descriptive text.
+.IP 3.
+An option argument specification.
+Options that take arguments can be followed by
+.B :
+(string value) or
+.B #
+(numeric value) and an option argument specification. An option argument
+specification consists of the option argument name as field 1.
+The remaining
+.B :
+separated fields are a type name and zero or more of
+the special attribute words
+.BR listof ,
+.BR oneof ,
+and
+.BR ignorecase .
+A default option value may be specified in the final field as
+.BI := default\fR.
+The option argument specification may be followed
+by a list of option value descriptions enclosed in braces.
+A long option that takes an argument is specified as
+.BI -- longname = value\fR.
+If the
+.B :
+or
+.B #
+is followed by
+.B ?
+then the
+option argument is optional. If only the option character form is
+specified then the optional argument value is not set if the next
+argument starts with
+.B -
+or
+.BR + .
+The special attributes are currently
+informational with respect to
+\f[CB]optget\fP(3),
+but may be useful to
+applications that parse
+.B --api
+output. The special attributes are:
+.RS
+.TP
+.B listof
+zero or more of the possible option values may be specified,
+separated by
+.B ,
+or space.
+.TP
+.B oneof
+exactly one of the possible option values must be specified.
+.TP
+.B ignorecase
+case ignored in matching the long option name.
+.RE
+.IP 4.
+An option value description.
+.IP 5.
+An argument specification. A list of valid option argument values
+can be specified by enclosing them inside a
+.B {...}
+following
+the option argument specification. Each of the permitted
+values can be specified with a
+.B [...]
+containing the
+value followed by a description.
+.IP 6.
+A group of the form
+.BI [+ \en ...]
+will display the characters
+representing ... in fixed-width font without adding line breaks.
+.IP 7.
+A group of the form
+.BI [+ name ? text\fP]
+specifies a section
+.I name
+with descriptive
+.IR text .
+If
+.I name
+is omitted then
+.I text
+is placed in a new paragraph.
+.IP 8.
+A group of the form
+.BI [- name ? text\fP]
+specifies entries
+for the
+.B IMPLEMENTATION
+section.
+.PP
+A leading
+.B :
+character in
+.I optstring
+affects the way errors are handled. If an option character or longname
+argument not specified in
+.I optstring
+is encountered when processing
+options,
+\f[CB]optget\fP
+returns the
+.B ?
+character and
+.I opt_info.arg
+points to the unmatched option.
+If an option argument is missing or has an invalid
+value, then
+\f[CB]optget\fP
+returns the
+.B :
+character and
+.I opt_info.arg
+points to a diagnostic message.
+.PP
+A leading
+.B +
+character or a
+.B +
+following a leading
+.B :
+in
+.I optstring
+specifies that arguments beginning with
+.B +
+will also be considered options.
+.PP
+The end of options occurs when:
+.IP 1.
+The special argument
+.B --
+is encountered.
+.IP 2.
+An argument that does not begin with a
+.B -
+is encountered.
+.IP 3.
+A help argument is specified.
+.IP 4.
+An error is encountered.
+.PP
+\f[CB]optget\fP
+can also be used to generate help messages containing command
+usage and detailed descriptions. The help arguments are:
+.RS
+.TP
+.B -?
+Generate a short usage synopsis.
+.TP
+.B --??
+Equivalent to
+.BR --??man .
+.TP
+.B --???
+Show options available to all
+.I AST
+commands.
+.TP
+.B --??man
+Generate a formatted manual page.
+.TP
+.B --??api
+Generate the manual in a simplified and easy to parse nroff-like format.
+.TP
+.B --??html
+Generate a manual page in HTML format.
+.TP
+.B --??nroff
+Generate a manual page in
+.IR nroff (1)
+format.
+.TP
+.B --??usage
+List the current
+.IR optstring .
+.TP
+.BI --??? name
+List
+.BI version= n\fR,
+.IR n >0,
+if the option
+.I name
+is recognized
+by
 .B optget
-and friends is yet to be written.)
+itself (as opposed to the application calling it).
+.RE
 .PP
+When the end of options is encountered,
+\f[CB]optget\fP
+returns
+.B 0
+and
+.I opt_info.index
+is set to the
+index of the first non-option argument.
+.PP
+The obsolete long option forms
+.IR flag ( long-name )
+and
+.IR flag :( long-name )
+for options that take arguments are supported
+for backward compatibility.
+.SH "FUNCTIONS"
+.TP
+\f[CB]optinit(\fP\fIdisc\fP, \fIinfof\fP\f[CB])\fP
+This is a macro that initializes the option discipline
+.IR disc :
+it is cleared, its
+.I version
+field is set to
+\f[CB]OPT_VERSION\fP,
+its
+.I infof
+field is set to the info function
+.IR infof ,
+and
+.I opt_info.disc
+is set to
+.IR disc .
+It must be called before the first
+\f[CB]optget\fP
+call when a discipline is used.
+.TP
+\f[CB]int optget(char** \fIargv\fP, const char* \fIoptstring\fP)\fP
+The main interface to options parsing.
+It parses the next option from
+.I argv
+as described above and returns the
+option value: the option character, or the number from a
+.BI = number
+option specification.
+.B 0
+is returned at the end of options,
+.B ?
+when a usage/help message was generated, and
+.B :
+on error;
+in the latter two cases
+.I opt_info.arg
+points to the message text.
+.TP
+\f[CB]int optjoin(char** \fIargv\fP, ... )\fP
+Performs multi-pass option parsing over
+.IR argv .
+The remaining arguments are a
+\f[CB]NULL\fP-terminated
+list of pass functions of the form
+\f[CB]int (*\fP\fIoptfun\fP)(char** \fIargv\fP, int \fIlast\fP)\fP,
+each of which calls
+\f[CB]optget\fP
+to consume the options it recognizes.
+A pass function sets
+.I opt_info.again
+to request another pass;
+the final pass sees
+.IR "last != 0" .
+0 is returned if all arguments were consumed, 1 if unparsed arguments
+remain at
+.IR opt_info.index ,
+and \-1 on error.
+.TP
+\f[CB]char* opthelp(const char* \fIoptstring\fP, const char* \fIwhat\fP)\fP
+Returns a pointer to a private buffer
+containing the help text for
+.IR optstring ;
+.I what
+controls the amount of detail, with
+\f[CB]NULL\fP
+selecting the short usage.
+The buffer is overwritten on the next call.
+.TP
+\f[CB]char* optusage(const char* \fIoptstring\fP)\fP
+Returns a pointer to the short usage string for
+.IR optstring ;
+it is equivalent to
+\f[CB]opthelp(\fP\fIoptstring\fP, NULL\f[CB])\fP.
+.TP
+\f[CB]int optselfdoc(void)\fP
 The
 .B optselfdoc
 function is for use under
 .I "case '?'"
 in the switch statement within the
-.B getopts
-loop. It diplays the commands's documentation when an
+.B optget
+loop. It displays the command's documentation when an
 AST self-doc option such as
 .I \-\-man
 is given. In ksh 93u+m/1.1 and up, the documentation is
@@ -85,4 +525,56 @@ written to standard output and the function always returns 0;
 the return value may be used as the exit status of the command
 by invoking it like
 .IR "return optselfdoc()" .
+.TP
+\f[CB]int optstr(const char* \fIstring\fP, const char* \fIoptstring\fP)\fP
+Parses options from the space- or comma-separated list
+.I string
+instead of from an
+.I argv
+vector, using the
+.I optstring
+control string.
+Subsequent calls with the same
+.I string
+continue parsing from the last position.
+0 is returned when the string is exhausted.
+.TP
+\f[CB]int optesc(Sfio_t* \fIsp\fP, const char* \fIstring\fP, int \fIflags\fP)\fP
+Writes
+.I string
+to the stream
+.IR sp ,
+escaping the
+.I optstring
+metacharacters
+.B ]
+and, if
+.I flags
+is
+.B ?
+or
+.BR : ,
+that character too, and wrapping option and keyword names in
+.B \eb
+bold markers.
+0 is returned.
+.TP
+\f[CB]Opt_t* optctx(Opt_t* \fIctx\fP, Opt_t* \fIoctx\fP)\fP
+Manages independent option-parsing contexts
+for nested or recursive use.
+\f[CB]optctx(NULL, NULL)\fP
+allocates and returns a new context;
+\f[CB]optctx(\fP\fIctx\fP, NULL\f[CB])\fP
+switches the current context to
+.I ctx
+and returns the previous context;
+\f[CB]optctx(\fP\fIctx\fP, \fIoctx\fP\f[CB])\fP
+switches to
+.I ctx
+and releases
+.IR octx ;
+\f[CB]optctx(NULL, \fP\fIctx\fP\f[CB])\fP
+releases
+.IR ctx .
 .SH "SEE ALSO"
+.IR getopts (1)

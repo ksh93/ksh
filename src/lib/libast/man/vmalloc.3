@@ -1,4 +1,3 @@
-.fp 5 CW
 .TH VMALLOC 3 "4 April 2025"
 .SH NAME
 Vmalloc \- Simplified virtual regions for memory allocation
@@ -15,7 +14,7 @@ Vmalloc \- Simplified virtual regions for memory allocation
 ..
 .de Cs
 .nf
-.ft 5
+.ft CR
 ..
 .de Ce
 .ft 1
@@ -25,13 +24,13 @@ Vmalloc \- Simplified virtual regions for memory allocation
 .Cs
 #include <vmalloc.h>
 .Ce
-.Ss "REGION CONTROL"
+.SS "REGION CONTROL"
 .Cs
 Vmalloc_t *vmopen(void);
 void      vmclear(Vmalloc_t* vm);
 void      vmclose(Vmalloc_t* vm);
 .Ce
-.Ss "ALLOCATION"
+.SS "ALLOCATION"
 .Cs
 void      *vmalloc(Vmalloc_t* vm, size_t size);
 void      *vmresize(Vmalloc_t* vm, void* addr, size_t size);
@@ -39,7 +38,7 @@ void      *vmresize_i(Vmalloc_t* vm, void* addr, size_t size, int init);
 char      *vmstrdup(Vmalloc_t *vm, const char *s);
 void      vmfree(Vmalloc_t* vm, void* addr);
 .Ce
-.Ss "LEGACY MACROS"
+.SS "LEGACY MACROS"
 .Cs
 void      *vmnewof(Vmalloc_t* vm, void* addr, type, size_t n, size_t x);
 void      *vmoldof(Vmalloc_t* vm, void* addr, type, size_t n, size_t x);
@@ -71,9 +70,9 @@ each block must always be freed or resized
 using the interface and/or region it was allocated with.
 Otherwise, undefined behavior will result.
 .PP
-.Ss "REGION CONTROL"
+.SS "REGION CONTROL"
 .PP
-.Ss "  Vmalloc_t *vmopen(void);"
+.SS "  Vmalloc_t *vmopen(void);"
 Open a region.
 This function returns a pointer to an initialized structure declared as:
 .PP
@@ -120,12 +119,12 @@ returns a pointer to the new region, or
 .B NULL
 on failure.
 .PP
-.Ss "  void vmclear(Vmalloc_t *vm);"
+.SS "  void vmclear(Vmalloc_t *vm);"
 Clear a region.
 This function frees all allocations associated with the region
 .IR vm .
 .PP
-.Ss "  void vmclose(Vmalloc_t *vm);"
+.SS "  void vmclose(Vmalloc_t *vm);"
 Close a region.
 This function performs a
 .B vmclear
@@ -133,9 +132,9 @@ on the region
 .I vm
 and then frees the region itself.
 .PP
-.Ss "ALLOCATION"
+.SS "ALLOCATION"
 .PP
-.Ss "  void *vmalloc(Vmalloc_t *vm, size_t size);"
+.SS "  void *vmalloc(Vmalloc_t *vm, size_t size);"
 Allocate a block of the requested
 .I size
 in the region
@@ -151,7 +150,7 @@ returns the allocated block on success or
 .B NULL
 on failure.
 .PP
-.Ss "  void *vmresize(Vmalloc_t *vm, void *addr, size_t size);"
+.SS "  void *vmresize(Vmalloc_t *vm, void *addr, size_t size);"
 Create, resize (grow or shrink), or free a block allocated in the region
 .IR vm .
 If
@@ -197,7 +196,7 @@ The
 function is suitable for use as a memory discipline function, for example, as
 .BR re_resizef " (with " re_resizehandle " set to the region) in the AST " regex "(3) library."
 .PP
-.Ss "  void *vmresize_i(Vmalloc_t *vm, void *addr, size_t size, int init);"
+.SS "  void *vmresize_i(Vmalloc_t *vm, void *addr, size_t size, int init);"
 This function does the same as
 .BR vmresize ,
 except that the
@@ -206,7 +205,7 @@ option bit is ignored and the non-zeroness of the
 .I init
 parameter determines for each call whether initialization is done.
 .PP
-.Ss "  char *vmstrdup(Vmalloc_t *vm, const char *s);"
+.SS "  char *vmstrdup(Vmalloc_t *vm, const char *s);"
 String duplication.
 This function allocates as much memory in the region
 .I vm
@@ -219,16 +218,16 @@ or
 .B NULL
 on failure.
 .PP
-.Ss "  void vmfree(Vmalloc_t *vm, void *addr);"
+.SS "  void vmfree(Vmalloc_t *vm, void *addr);"
 Free the block pointed to by
 .I addr
 from the region
 .IR vm .
 .PP
-.Ss "LEGACY MACROS"
+.SS "LEGACY MACROS"
 .PP
-.Ss "  void *vmnewof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
-.Ss "  void *vmoldof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
+.SS "  void *vmnewof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
+.SS "  void *vmoldof(Vmalloc_t *vm, void *addr, type, size_t n, size_t x);"
 These macro functions are provided for backward compatibility.
 They call
 .B vmresize_i

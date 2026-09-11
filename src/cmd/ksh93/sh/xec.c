@@ -2630,7 +2630,7 @@ int sh_run(int argn, char *argv[])
 	Shbltin_t	bltindata;
 	bltindata = sh.bltindata;
 	op = optctx(np, 0);
-	dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argn*sizeof(char*));
+	dp = stkalloc(sh.stk, sizeof(struct dolnod) + (ARG_SPARE + 1) * sizeof(char*) + (size_t)argn * sizeof(char*));
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;
 	memcpy(dp->dolval+ARG_SPARE, argv, (size_t)(argn+1)*sizeof(char*));
