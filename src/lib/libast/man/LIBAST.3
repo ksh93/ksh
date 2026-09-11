@@ -1,40 +1,3 @@
-.fp 5 CW
-.de Af
-.if \\$2 .nr ;G \\$1
-.ie !\\$3 \{\
-\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8"
-\}
-..
-.de aF
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8"
-.ft \\n(;G
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH LIBAST 3
 .UC 4
 .SH NAME
@@ -80,19 +43,183 @@ Other libraries that depend on
 may also have headers installed in the
 .B include/ast
 directories.
-.SH FILES
-.nf
-include/ast         the \fBast\fP package header directory
-lib/libast.a        the \fBlibast\fP library
-lib/libast-g.a      the \fBlibast\fP library compiled for debugging
-lib/libast-pg.a     the \fBlibast\fP library compiled for profiling
-lib/libast.so.4.0   the \fBlibast\fP shared library
-.fi
-.SH "SEE ALSO"
-intro(3),
-intro(2),
-cc(1)
+.SS "Why libast?"
+.B libast
+supplies modern, carefully engineered implementations of facilities
+that the standard libraries either lack entirely or provide only in
+limited form.
+The components below are all part of
+.B libast
+and are linked with
+.BR \-last .
+.PP
+Some highlights:
+.PP
+.B Sfio
+.RI ( sfio (3))
+is a buffered I/O library that goes far beyond
+.IR stdio (3).
+A stream may be a file or an in-memory string.
+Discipline functions allow application-supplied analogues to
+.IR read (2)/ write (2)/ lseek (2)
+to be pushed onto a stream; this allows filtering, compression or
+transformation layers to be inserted without changing the code that
+performs the I/O.
+Streams may be stacked for recursive processing and gathered into pools
+whose buffers are synchronized automatically.
+File streams automatically use
+.IR mmap (2)
+for performance optimization where appropriate.
+The
+.BR sfprintf ()/ sfscanf ()
+formatting engines are also extensible: an application can define its own
+conversion patterns or redefine the standard ones.
+.PP
+.B Cdt
+.RI ( cdt (3))
+manages run-time dictionaries and containers through a single, uniform
+interface.
+The same handle supports unordered and ordered sets and multisets,
+lists, stacks, queues and \[lq]deques\[rq].
+The storage method can be changed at run time with
+.BR dtmethod ().
+Object layout, comparison, hashing and memory management are supplied by
+a separate discipline,
+so one discipline works unchanged with every container type.
+.PP
+.B Vmalloc
+.RI ( vmalloc (3))
+provides region-based memory allocation on top of
+.IR malloc (3).
+Each allocation belongs to a region, and an unlimited number of regions
+may be opened; closing a region frees all of its memory at once.
+This compartmentalizes memory management and makes leaks far easier to
+avoid.
+Regions can also be opened so that all allocated memory is automatically
+initialized to zero (including added memory when growing an allocation),
+which is a safeguard against the use of uninitialized data.
+.PP
+.B Stk
+.RI ( stk (3))
+provides efficient stack-oriented dynamic storage for objects that are
+built incrementally and released as a group.
+Parsing and code generation are ideal use cases.
+It cooperates with
+.BR Sfio ;
+the
+.B Stk_t
+type is compatible with
+.B Sfio_t
+so the
+.B Sfio
+output functions can build an object directly on the stack.
+.PP
+.B regex
+.RI ( regex (3))
+is a full POSIX regular-expression library extended with shell pattern
+syntax
+.RB ( REG_SHELL ),
+augmented operators, left/right anchoring, an LRU cache of compiled
+patterns
+.RB ( regcache ()),
+and
+.IR sed (1)-style
+substitution
+.RB ( regsubcomp ()/ regsubexec ()).
+The companion
+.BR strmatch (3)
+routines match shell glob patterns directly, including the
+.BR & (and)
+and
+.BR ! (not)
+operators that ordinary regular expressions cannot express.
+.PP
+.B tm
+.RI ( tm (3)),
+.B tmx
+.RI ( tmx (3))
+and
+.B tv
+.RI ( tv (3))
+handle date and time at resolutions from seconds to nanoseconds
+while hiding messy operating system-specific quirks from the caller.
+They not only convert and format
+.BR time_t
+values but parse free-form, natural-language date specifications such as
+\[lq]next Tuesday noon\[rq]
+or
+\[lq]3 weeks ago\[rq]
+via
+.BR tmdate ()/ tmxdate (),
+and support ISO 8601 durations via
+.BR tmxduration ().
+.PP
+.B optget
+.RI ( optget (3))
+not only parses command-line options but also generates,
+from a single self-documenting option string,
+the command's usage message and its
+.B \-\-man
+or
+.B \-\-help
+documentation.
+This makes it much easier to keep a command's documentation
+up to date with its actual option parsing: the two share a
+single source of truth.
+In addition, the output format options
+.BR \-\-html ,
+.BR \-\-nroff ,
+and
+.B \-\-api
+are supported for every command to output its documentation
+in HTML, nroff,
+and a simplified nroff-like format easy for scripts to parse.
+.PP
+.B error
+.RI ( error (3))
+provides leveled error reporting (debug, note, warning, error, fatal)
+with optional internationalization through message catalogs, so a whole
+family of programs can present diagnostics consistently.
+.PP
+In addition,
+.B libast
+supplies portable path manipulation
+.RI ( path (3)),
+file-hierarchy traversal
+.RI ( fts (3)
+and
+.IR ftwalk (3)),
+process-group-aware process creation
+.RI ( spawnveg (3)),
+and a large collection of string, formatting and conversion routines
+.RI ( fmt (3),
+.IR stropt (3),
+.IR strton (3),
+and many more).
 .SH CAVEATS
+.B libast
+as a whole is currently not thread-safe.
+Many of its components keep internal state in global or static storage
+and the library makes no attempt to serialize access to it.
+It is suitable for programs that achieve parallelism
+through cooperating processes, such as the Korn
+shell, but not for multi-threaded applications.
+The
+.IR aso (3)
+atomic scalar operations are available to applications
+that do their own synchronization;
+they do not make the rest of the library thread-safe.
+.PP
 The library documentation is still under construction.
 Yes, some of it has been in this state since the 1980s.
 Thank goodness our commands self-document.
+.SH FILES
+.nf
+include/ast            the \fBast\fP package header directory
+lib/libast.a           the \fBlibast\fP library
+dyn/lib/libast.so.8.0  the \fBlibast\fP shared library
+.fi
+.SH "SEE ALSO"
+.IR intro (3),
+.IR intro (2),
+.IR cc (1)
