@@ -1348,9 +1348,6 @@ static noreturn void exscript(char *path,char *argv[])
 		UNREACHABLE();
 	}
 	sh.infd = sh_iomovefd(sh.infd,10);
-#if SHOPT_ACCT
-	sh_accbegin(path) ;  /* reset accounting */
-#endif	/* SHOPT_ACCT */
 	sh.arglist = sh_argcreate(argv);
 	sh.lastarg = sh_strdup(path);
 	/* save name of calling command */
@@ -1386,93 +1383,6 @@ static noreturn void exscript(char *path,char *argv[])
 	siglongjmp(*sh.jmplist,SH_JMPSCRIPT);
 	UNREACHABLE();  /* silence warning on Haiku */
 }
-
-#if SHOPT_ACCT
-#   include <sys/acct.h>
-#   include "FEATURE/time"
-
-    static struct acct sabuf;
-    static struct tms buffer;
-    static clock_t	before;
-    static char *SHACCT; /* set to value of SHACCT environment variable */
-    static int shaccton; /* non-zero causes accounting record to be written */
-    static int compress(time_t);
-    /*
-     *	initialize accounting, i.e., see if SHACCT variable set
-     */
-    void sh_accinit(void)
-    {
-	SHACCT = getenv("SHACCT");
-    }
-    /*
-     * suspend accounting until turned on by sh_accbegin()
-     */
-    void sh_accsusp(void)
-    {
-	shaccton=0;
-    }
-
-    /*
-     * begin an accounting record by recording start time
-     */
-    void sh_accbegin(const char *cmdname)
-    {
-	if(SHACCT)
-	{
-		sabuf.ac_btime = time(NULL);
-		before = times(&buffer);
-		sabuf.ac_uid = sh.userid;
-		sabuf.ac_gid = sh.groupid;
-		strncpy(sabuf.ac_comm, (char*)path_basename(cmdname),
-			sizeof(sabuf.ac_comm));
-		shaccton = 1;
-	}
-    }
-    /*
-     * terminate an accounting record and append to accounting file
-     */
-    void	sh_accend(void)
-    {
-	int	fd;
-	clock_t	after;
-
-	if(shaccton)
-	{
-		after = times(&buffer);
-		sabuf.ac_utime = compress(buffer.tms_utime + buffer.tms_cutime);
-		sabuf.ac_stime = compress(buffer.tms_stime + buffer.tms_cstime);
-		sabuf.ac_etime = compress( (time_t)(after-before));
-		fd = open( SHACCT , O_WRONLY | O_APPEND | O_CREAT,RW_ALL);
-		write(fd, (const char*)&sabuf, sizeof( sabuf ));
-		ast_close(fd);
-	}
-    }
-    /*
-     * Produce a pseudo-floating point representation
-     * with 3 bits base-8 exponent, 13 bits fraction.
-     */
-    static int compress(time_t t)
-    {
-	int exp = 0, rund = 0;
-
-	while (t >= 8192)
-	{
-		exp++;
-		rund = t&04;
-		t >>= 3;
-	}
-	if (rund)
-	{
-		t++;
-		if (t >= 8192)
-		{
-			t >>= 3;
-			exp++;
-		}
-	}
-	return (exp<<13) + t;
-    }
-#endif	/* SHOPT_ACCT */
 
 /*
  * add a path component to the path search list and eliminate duplicates

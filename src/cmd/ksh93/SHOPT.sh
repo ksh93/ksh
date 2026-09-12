@@ -5,8 +5,6 @@
 # For a more complete description of the options, see src/cmd/ksh93/README.
 #
 
-SHOPT ACCT=0				# accounting
-SHOPT ACCTFILE=0			# per-user accounting info
 SHOPT ALL_LIBCMD=0			# include all libcmd path-bound built-ins in statically linked ksh
 SHOPT AUDIT=1				# enable auditing per SHOPT_AUDITFILE
 SHOPT AUDITFILE='"/etc/ksh_audit"'	# auditing file

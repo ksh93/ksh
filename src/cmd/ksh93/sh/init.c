@@ -122,10 +122,6 @@ char e_version[]	= "\n@(#)$Id: Version "
 #define ATTRS		1
 			"J"
 #endif
-#if SHOPT_ACCT
-#define ATTRS		1
-			"L"
-#endif
 #if SHOPT_MULTIBYTE
 #define ATTRS		1
 			"M"

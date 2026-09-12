@@ -288,11 +288,6 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				sh.readscript = sh.shname;
 			}
 			error_info.id = name;
-#if SHOPT_ACCT
-			sh_accinit();
-			if(fdin != 0)
-				sh_accbegin(error_info.id);
-#endif	/* SHOPT_ACCT */
 		}
 		/* If the shell is initialised with std{in,out,err} closed, make the shell's FD state reflect that. */
 		for(i=0; i<=2; i++)

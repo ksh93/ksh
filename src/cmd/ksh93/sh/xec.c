@@ -2752,9 +2752,6 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	job.toclear = 1;
 	sh_offoption(SH_LOGIN_SHELL);
 	sh_onstate(SH_FORKED);
-#if SHOPT_ACCT
-	sh_accsusp();
-#endif	/* SHOPT_ACCT */
 	/* Reset remaining signals to parent */
 	/* except for those `lost' by trap   */
 	if(!(flags&F_SUBFORK))
