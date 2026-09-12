@@ -56,7 +56,7 @@ typedef struct				/* expression handle		*/
  * set error message string
  */
 
-static cold long
+static COLD long
 seterror(Expr_t* ex, char* msg)
 {
 	if (!ex->errmsg) ex->errmsg = msg;

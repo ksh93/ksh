@@ -26,7 +26,7 @@
 
 #include <error.h>
 
-cold int
+COLD int
 errorf(void* handle, void* discipline, int level, ...)
 {
 	va_list	ap;

@@ -542,20 +542,20 @@ tst	has__Static_assert note{ does this compiler have _Static_assert }end execute
 
 tst - -Werror=ignored-attributes note{ does this compiler have cold and hot attributes }end output{
 	#include <stdio.h>
-	#undef cold
-	#undef hot
-	#define cold	__attribute__((__cold__))
-	#define hot	__attribute__((__hot__))
-	cold static void foo(void);
-	cold static void foo(void)
+	#undef COLD
+	#undef HOT
+	#define COLD	__attribute__((__cold__))
+	#define HOT	__attribute__((__hot__))
+	static void foo(void) COLD;
+	COLD static void foo(void)
 	{
-		printf("#undef cold\n");
-		printf("#define cold\t__attribute__((__cold__))\n");
+		printf("#undef COLD\n");
+		printf("#define COLD\t__attribute__((__cold__))\n");
 	}
-	hot static void bar(void)
+	HOT static void bar(void)
 	{
-		printf("#undef hot\n");
-		printf("#define hot\t__attribute__((__hot__))\n");
+		printf("#undef HOT\n");
+		printf("#define HOT\t__attribute__((__hot__))\n");
 	}
 	int main(void)
 	{
@@ -564,21 +564,21 @@ tst - -Werror=ignored-attributes note{ does this compiler have cold and hot attr
 		return 0;
 	}
 }end fail{
-	echo '#undef cold'
-	echo '#undef hot'
-	echo '#define cold'
-	echo '#define hot'
+	echo '#undef COLD'
+	echo '#undef HOT'
+	echo '#define COLD'
+	echo '#define HOT'
 }end
 
 tst - -Werror=ignored-attributes note{ does this compiler have the malloc attribute }end output{
 	#include <stdio.h>
 	#include <stdlib.h>
-	#undef malloc_attr
-	#define malloc_attr	__attribute__((__malloc__))
-	malloc_attr static void *foo(void)
+	#undef MALLOC_ATTR
+	#define MALLOC_ATTR	__attribute__((__malloc__))
+	MALLOC_ATTR static void *foo(void)
 	{
-		printf("#undef malloc_attr\n");
-		printf("#define malloc_attr\t__attribute__((__malloc__))\n");
+		printf("#undef MALLOC_ATTR\n");
+		printf("#define MALLOC_ATTR\t__attribute__((__malloc__))\n");
 		return malloc(1);
 	}
 	int main(void)
@@ -587,18 +587,18 @@ tst - -Werror=ignored-attributes note{ does this compiler have the malloc attrib
 		return 0;
 	}
 }end fail{
-	echo '#undef malloc_attr'
-	echo '#define malloc_attr'
+	echo '#undef MALLOC_ATTR'
+	echo '#define MALLOC_ATTR'
 }end
 
 tst - -Werror=ignored-attributes note{ does this compiler have the always_inline attribute }end output{
 	#include <stdio.h>
-	#undef always_inline
-	#define always_inline	inline __attribute__((__always_inline__))
-	static always_inline void foo(void)
+	#undef ALWAYS_INLINE
+	#define ALWAYS_INLINE	inline __attribute__((__always_inline__))
+	static ALWAYS_INLINE void foo(void)
 	{
-		printf("#undef always_inline\n");
-		printf("#define always_inline\tinline __attribute__((__always_inline__))\n");
+		printf("#undef ALWAYS_INLINE\n");
+		printf("#define ALWAYS_INLINE\tinline __attribute__((__always_inline__))\n");
 	}
 	int main(void)
 	{
@@ -606,86 +606,86 @@ tst - -Werror=ignored-attributes note{ does this compiler have the always_inline
 		return 0;
 	}
 }end fail{
-	echo '#undef always_inline'
-	echo '#define always_inline'
+	echo '#undef ALWAYS_INLINE'
+	echo '#define ALWAYS_INLINE'
 }end
 
 tst - -Werror=ignored-attributes note{ does this compiler have the returns_nonnull attribute }end output{
 	#include <stdio.h>
-	#undef returns_nonnull
-	#define returns_nonnull	__attribute__((__returns_nonnull__))
-	returns_nonnull static char* foo(void)
+	#undef RETURNS_NONNULL
+	#define RETURNS_NONNULL	__attribute__((__returns_nonnull__))
+	RETURNS_NONNULL static char* foo(void)
 	{
-		return "#define returns_nonnull\t__attribute__((__returns_nonnull__))";
+		return "#define RETURNS_NONNULL\t__attribute__((__returns_nonnull__))";
 	}
 	int main(void)
 	{
-		printf("#undef returns_nonnull\n");
+		printf("#undef RETURNS_NONNULL\n");
 		printf("%s\n", foo());
 		return 0;
 	}
 }end fail{
-	echo '#undef returns_nonnull'
-	echo '#define returns_nonnull'
+	echo '#undef RETURNS_NONNULL'
+	echo '#define RETURNS_NONNULL'
 }end
 
 tst - -Werror=ignored-attributes note{ does this compiler have the nonnull attribute }end output{
 	#include <stdio.h>
-	#undef nonnull
-	#define nonnull(...)	__attribute__((__nonnull__(__VA_ARGS__)))
-	static nonnull(1) void foo(char* str)
+	#undef NONNULL
+	#define NONNULL(...)	__attribute__((__nonnull__(__VA_ARGS__)))
+	static NONNULL(1) void foo(char* str)
 	{
 		printf("%s\n", str);
 	}
 	int main(void)
 	{
-		foo("#undef nonnull");
-		foo("#define nonnull(...)\t__attribute__((__nonnull__(__VA_ARGS__)))");
+		foo("#undef NONNULL");
+		foo("#define NONNULL(...)\t__attribute__((__nonnull__(__VA_ARGS__)))");
 		return 0;
 	}
 }end fail{
-	echo '#undef nonnull'
-	echo '#define nonnull(...)'
+	echo '#undef NONNULL'
+	echo '#define NONNULL(...)'
 }end
 
 tst - -Werror=ignored-attributes note{ are x86-64-v4 and x86-64-v3 targetable }end output{
 	#include <stdio.h>
-	#undef vecdisp
-	#define vecdisp	__attribute__((__target_clones__("arch=x86-64-v4", "arch=x86-64-v3", "default")))
-	static vecdisp char *foo(char* str)
+	#undef VECDISP
+	#define VECDISP	__attribute__((__target_clones__("arch=x86-64-v4", "arch=x86-64-v3", "default")))
+	static VECDISP char *foo(char* str)
 	{
 		return str;
 	}
 	int main(void)
 	{
-		char *str1 = foo("#undef vecdisp");
-		char *str2 = foo("#define vecdisp\t__attribute__((__target_clones__(\"arch=x86-64-v4\", \"arch=x86-64-v3\", \"default\")))");
+		char *str1 = foo("#undef VECDISP");
+		char *str2 = foo("#define VECDISP\t__attribute__((__target_clones__(\"arch=x86-64-v4\", \"arch=x86-64-v3\", \"default\")))");
 		printf("%s\n%s\n", str1, str2);
 		return 0;
 	}
 }end fail{
-	echo '#undef vecdisp'
-	echo '#define vecdisp'
+	echo '#undef VECDISP'
+	echo '#define VECDISP'
 }end
 
 tst - -Werror=ignored-attributes note{ is BMI2 available }end output{
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <x86intrin.h>
-	#undef bmi2
-	#define bmi2	__attribute__((__target__("bmi2")))
-	static bmi2 char *foo(char* str)
+	#undef BMI2
+	#define BMI2	__attribute__((__target__("bmi2")))
+	static BMI2 char *foo(char* str)
 	{
 		volatile unsigned int i = _bzhi_u32(0xC0, 8 - 3);
 		return str;
 	}
 	int main(void)
 	{
-		char *str1 = foo("#undef bmi2");
-		char *str2 = foo("#define bmi2\t__attribute__((__target__(\"bmi2\")))");
+		char *str1 = foo("#undef BMI2");
+		char *str2 = foo("#define BMI2\t__attribute__((__target__(\"bmi2\")))");
 		printf("%s\n%s\n", str1, str2);
 		return 0;
 	}
 }end fail{
-	echo '#undef bmi2'
+	echo '#undef BMI2'
 }end

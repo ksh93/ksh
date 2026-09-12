@@ -153,12 +153,12 @@ extern void		sh_clear_subshell_pwdfd(void);
 #endif /* SHOPT_NAMESPACE */
 
 /* malloc related wrappers */
-extern void		*sh_malloc(size_t size) malloc_attr returns_nonnull;
-extern void		*sh_realloc(void *ptr, size_t size) returns_nonnull;
-extern void		*sh_calloc(size_t nmemb, size_t size) malloc_attr returns_nonnull;
-extern char		*sh_strdup(const char *s) malloc_attr nonnull(1) returns_nonnull;
-extern char		*sh_struse(Sfio_t *) nonnull(1) returns_nonnull;
-extern void		*sh_memdup(const void *s, size_t n) malloc_attr nonnull(1) returns_nonnull;
+extern void		*sh_malloc(size_t size) MALLOC_ATTR RETURNS_NONNULL;
+extern void		*sh_realloc(void *ptr, size_t size) RETURNS_NONNULL;
+extern void		*sh_calloc(size_t nmemb, size_t size) MALLOC_ATTR RETURNS_NONNULL;
+extern char		*sh_strdup(const char *s) MALLOC_ATTR NONNULL(1) RETURNS_NONNULL;
+extern char		*sh_struse(Sfio_t *) NONNULL(1) RETURNS_NONNULL;
+extern void		*sh_memdup(const void *s, size_t n) MALLOC_ATTR NONNULL(1) RETURNS_NONNULL;
 extern char		*sh_getcwd(void);
 #define sh_newof(p,t,n,x)	((p)?(t*)sh_realloc((char*)(p),sizeof(t)*(n)+(x)):(t*)sh_calloc(1,sizeof(t)*(n)+(x)))
 

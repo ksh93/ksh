@@ -29,7 +29,7 @@ Dllstate_t	state;
  * retain==0 resets the last dl*() error
  */
 
-extern cold char*
+extern COLD char*
 dllerror(int retain)
 {
 	char*	s;

@@ -26,7 +26,7 @@
 
 #include <error.h>
 
-cold int
+COLD int
 errormsg(const char* dictionary, int level, ...)
 {
 	va_list	ap;

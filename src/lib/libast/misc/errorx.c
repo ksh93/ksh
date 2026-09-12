@@ -25,7 +25,7 @@
  * this fills in NULL arg defaults and calls error_info.translate
  */
 
-cold char*
+COLD char*
 errorx(const char* loc, const char* cmd, const char* cat, const char* msg)
 {
 	char*	s;

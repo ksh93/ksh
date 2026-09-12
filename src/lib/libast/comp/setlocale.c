@@ -37,7 +37,7 @@
 #include <error.h>
 #include "FEATURE/locale"
 
-#ifdef bmi2
+#ifdef BMI2
 #include <x86intrin.h>
 #endif
 
@@ -211,7 +211,7 @@ static const uint8_t utf8tab[256] =
 	4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0,
 };
 
-static cold int utf8_eilseq_err(unsigned char i)
+static COLD int utf8_eilseq_err(unsigned char i)
 {
 	errno = EILSEQ;
 	ast.mb.sync = i;
@@ -219,15 +219,26 @@ static cold int utf8_eilseq_err(unsigned char i)
 }
 
 /*
- * This is libast's performance optimized implementation of C99 mbtowc.
- * It places ASCII on the fast codepath without sacrificing too much
- * UTF performance. The BMI2 codepath uses the bzhi instruction to
- * negate the branch prediction penalty and gain performance.
- * This is among the most frequently called functions in this codebase.
- * The function ought be structured for the best possible branch prediction,
- * since cache misses will tank performance here.
+ * Write to wp and return ASCII character byte length (aka 1).
  */
-static hot always_inline int
+static COLD int ascii_fallback(wchar_t *wp, unsigned char s)
+{
+	if(likely(wp))
+		*wp = s;
+	return 1;
+}
+
+/*
+ * This is libast's performance optimized implementation of C99 mbtowc.
+ * Due to other optimizations elsewhere in libast, this function is
+ * generally only called for UTF-8 characters, so the ASCII codepath
+ * is marked unlikely (though it's still handled for correctness).
+ * The BMI2 codepath uses the bzhi instruction to gain performance.
+ * This is among the most frequently called functions in this codebase.
+ * The function ought be structured for the best possible branch
+ * prediction to avoid costly cache misses.
+ */
+static HOT ALWAYS_INLINE int
 utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 {
 	unsigned char*	sp = (unsigned char*)str;
@@ -236,13 +247,8 @@ utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 
 	if (expect(!sp || !n || !(s = *sp), 1, 0.02))
 		return ast.mb.sync = 0;
-	if (expect(s < 0x80, 1, 0.75))
-	{
-		/* avoid table lookup for ASCII (hot code path) */
-		if(likely(wp))
-			*wp = s;
-		return 1;
-	}
+	if (s < 0x80)
+		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
 	m = utf8tab[s];
 	if (!m || m > n)
 		return utf8_eilseq_err(0);
@@ -262,7 +268,7 @@ utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	return (int)m;
 }
 
-static hot int
+static HOT int
 utf8_mblen(const char* str, size_t n)
 {
 	wchar_t		w;
@@ -276,8 +282,8 @@ utf8_mblen(const char* str, size_t n)
  * difference is small, but not negligible.
  */
 
-#ifdef bmi2
-static bmi2 hot always_inline int
+#ifdef BMI2
+static BMI2 HOT ALWAYS_INLINE int
 utf8_bmi2_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 {
 	unsigned char*	sp = (unsigned char*)str;
@@ -286,13 +292,8 @@ utf8_bmi2_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 
 	if (expect(!sp || !n || !(s = *sp), 1, 0.02))
 		return ast.mb.sync = 0;
-	if (expect(s < 0x80, 1, 0.75))
-	{
-		/* avoid table lookup for ASCII (hot code path) */
-		if(likely(wp))
-			*wp = s;
-		return 1;
-	}
+	if (s < 0x80)
+		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
 	m = utf8tab[s];
 	if (!m || m > n)
 		return utf8_eilseq_err(0);
@@ -312,7 +313,7 @@ utf8_bmi2_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	return (int)m;
 }
 
-static bmi2 hot int
+static BMI2 HOT int
 utf8_bmi2_mblen(const char* str, size_t n)
 {
 	wchar_t		w;
@@ -1889,12 +1890,12 @@ utf8_alpha(wchar_t c)
 
 #endif /* !AST_NOMULTIBYTE */
 
-#ifndef bmi2
+#ifndef BMI2
 
 #define utf8_bmi2_mbtowc	0
 #define utf8_bmi2_mblen		0
 
-#endif /* bmi2 */
+#endif /* BMI2 */
 
 static int
 default_iswalpha(wchar_t c)
@@ -1949,7 +1950,7 @@ set_ctype(Lc_category_t* cp)
 	if ((locales[cp->internal]->flags & LC_utf8) && !(ast.locale.set & AST_LC_test))
 	{
 		ast.mb.cur_max = 6;
-#ifdef bmi2
+#ifdef BMI2
 		if(__builtin_cpu_supports("bmi2"))
 		{
 			ast.mb.len = utf8_bmi2_mblen;
