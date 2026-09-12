@@ -489,10 +489,10 @@ tst - note{ does this compiler have __builtin_expect() }end output{
 			switch(__builtin_expect(i, 2))
 			{
 				case 2:
-					printf("#undef likely\n");
-					printf("#undef unlikely\n");
-					printf("#define likely(x)\t((int)__builtin_expect(!!(x), 1))\n");
-					printf("#define unlikely(x)\t((int)__builtin_expect(!!(x), 0))\n");
+					printf("#undef LIKELY\n");
+					printf("#undef UNLIKELY\n");
+					printf("#define LIKELY(x)\t((int)__builtin_expect(!!(x), 1))\n");
+					printf("#define UNLIKELY(x)\t((int)__builtin_expect(!!(x), 0))\n");
 					return 0;
 				default:
 					return 1;
@@ -502,10 +502,10 @@ tst - note{ does this compiler have __builtin_expect() }end output{
 			return 1;
 	}
 }end fail{
-	echo '#undef likely'
-	echo '#undef unlikely'
-	echo '#define likely(x)	(!!(x))'
-	echo '#define unlikely(x)	(!!(x))'
+	echo '#undef LIKELY'
+	echo '#undef UNLIKELY'
+	echo '#define LIKELY(x)	(!!(x))'
+	echo '#define UNLIKELY(x)	(!!(x))'
 }end
 
 tst	has__Static_assert note{ does this compiler have _Static_assert }end execute{

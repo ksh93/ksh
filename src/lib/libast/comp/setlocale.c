@@ -223,7 +223,7 @@ static COLD int utf8_eilseq_err(unsigned char i)
  */
 static COLD int ascii_fallback(wchar_t *wp, unsigned char s)
 {
-	if(likely(wp))
+	if (LIKELY(wp))
 		*wp = s;
 	return 1;
 }
@@ -245,7 +245,7 @@ utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	unsigned char	i, m, s;
 	uint32_t	w;
 
-	if (unlikely(!sp || !n || !(s = *sp)))
+	if (UNLIKELY(!sp || !n || !(s = *sp)))
 		return ast.mb.sync = 0;
 	if (s < 0x80)
 		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
@@ -263,7 +263,7 @@ utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	}
 	if (!(utf8mask[m] & w) || w >= 0xd800 && (w <= 0xdfff || w >= 0xfffe && w <= 0xffff))
 		return utf8_eilseq_err(i - 1);
-	if (likely(wp))
+	if (LIKELY(wp))
 		*wp = (wchar_t)w;
 	return (int)m;
 }
@@ -290,7 +290,7 @@ utf8_bmi2_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	unsigned char	i, m, s;
 	uint32_t	w;
 
-	if (unlikely(!sp || !n || !(s = *sp)))
+	if (UNLIKELY(!sp || !n || !(s = *sp)))
 		return ast.mb.sync = 0;
 	if (s < 0x80)
 		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
@@ -308,7 +308,7 @@ utf8_bmi2_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	}
 	if (!(utf8mask[m] & w) || w >= 0xd800 && (w <= 0xdfff || w >= 0xfffe && w <= 0xffff))
 		return utf8_eilseq_err(i - 1);
-	if (likely(wp))
+	if (LIKELY(wp))
 		*wp = (wchar_t)w;
 	return (int)m;
 }
@@ -1355,7 +1355,7 @@ utf8_wcwidth(wchar_t c)
 {
 	int	n;
 
-	return unlikely((n = (utf8_wcw[(c >> 2) & 0x3fff] >> ((c & 0x3) << 1)) & 0x3) == 3) ? -1 : n;
+	return UNLIKELY((n = (utf8_wcw[(c >> 2) & 0x3fff] >> ((c & 0x3) << 1)) & 0x3) == 3) ? -1 : n;
 }
 
 static const unsigned char	utf8_wam[] =
@@ -2041,7 +2041,7 @@ set_numeric(Lc_category_t* cp)
 	{
 		if (locales[cp->internal]->flags & LC_local)
 			dp = locales[cp->internal]->territory == &lc_territories[0] ? &default_numeric : *locales[cp->internal]->territory->code == 'e' ? &eu_numeric : &us_numeric;
-		else if ((lp = localeconv()) && likely(dp = newof(0, Lc_numeric_t, 1, 0)))
+		else if ((lp = localeconv()) && LIKELY(dp = newof(0, Lc_numeric_t, 1, 0)))
 		{
 			dp->decimal = lp->decimal_point && *lp->decimal_point ? *(unsigned char*)lp->decimal_point : '.';
 			dp->thousand = lp->thousands_sep && *lp->thousands_sep ? *(unsigned char*)lp->thousands_sep : -1;
@@ -2425,7 +2425,7 @@ _ast_setlocale(int category, const char* locale)
 	compose:
 		if (category != AST_LC_ALL && category != AST_LC_LANG)
 			return (char*)locales[category]->name;
-		if (!sp && unlikely(!(sp = sfstropen())))
+		if (!sp && UNLIKELY(!(sp = sfstropen())))
 			return NULL;
 		for (i = 1; i < AST_LC_COUNT; i++)
 			cat[i] = -1;
