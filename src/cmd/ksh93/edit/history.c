@@ -327,9 +327,13 @@ int  sh_histinit(void)
 		/* don't allow root a history_file in /tmp */
 		if(sh.userid)
 		{
-			if(!(fname = pathtmp(NULL,0,0,NULL)))
+			if (!(fname = pathtemp(NULL, 0, NULL, "hist", &fd)))
 				goto initfail;
-			fd = sh_open(fname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
+			sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK;
+			if (sh_fcntl(fd, F_SETFD, FD_CLOEXEC) < 0)
+			        goto initfail;
+			if (sh_fcntl(fd, F_SETFL, O_APPEND) < 0)
+			        goto initfail;
 		}
 	}
 	if(fd<0)
@@ -535,12 +539,13 @@ static History_t* hist_trim(History_t *hp, int n)
 	char tmpbuff[HIST_BSIZE + 1];
 	char copybuff[HIST_BSIZE];
 	off_t oldp, newp;
-	tmpname = pathtmp(NULL,0,0,NULL);
-	if (!tmpname)
+	if (!(tmpname = pathtemp(NULL, 0, NULL, "htrim", &fd)))
 		goto trimfail;
-	fd = sh_open(tmpname,O_BINARY|O_RDWR|O_CREAT|O_EXCL|O_cloexec,S_IRUSR|S_IWUSR);
-	if (fd < 0)
-		goto trimfail;
+	sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK;
+	if (sh_fcntl(fd, F_SETFD, FD_CLOEXEC) < 0)
+	        goto trimfail;
+	if (sh_fcntl(fd, F_SETFL, O_APPEND) < 0)
+	        goto trimfail;
 	hist_tmp = sfnew(NULL, tmpbuff, HIST_BSIZE, fd, SFIO_READ|SFIO_WRITE);
 	if (!hist_tmp)
 	{
