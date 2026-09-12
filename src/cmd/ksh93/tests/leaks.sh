@@ -396,6 +396,25 @@ DO
 DONE
 
 # ======
+# Converting a scalar variable to an associative array leaked the old scalar
+# value for variables with certain type attributes (e.g. int, binary or
+# floating point), because for those, nv_getval() returns a temporary
+# conversion buffer rather than the actual value pointer that needs freeing.
+# Discovered while fixing https://github.com/ksh93/ksh/issues/405.
+TEST	title='typeset -A on typed scalar variable in main shell'
+DO
+	typeset -i tvar=42
+	typeset -A tvar
+	unset tvar
+	typeset -b tvar=abc
+	typeset -A tvar
+	unset tvar
+	typeset -F tvar=3.14159
+	typeset -A tvar
+	unset tvar
+DONE
+
+# ======
 # Test for a memory leak after 'cd' (in relation to $PWD and $OLDPWD)
 TEST	title='PWD and/or OLDPWD changed by cd'
 DO
