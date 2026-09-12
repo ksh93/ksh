@@ -97,7 +97,6 @@ extern int	sh_isdevfd(const char*);
 /* the following are readonly */
 extern const char	e_copexists[];
 extern const char	e_query[];
-extern const char	e_history[];
 extern const char	e_argtype[];
 extern const char	e_create[];
 extern const char	e_tmpcreate[];

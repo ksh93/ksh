@@ -69,6 +69,8 @@ typedef struct
 
 /* the following are readonly */
 extern const char	hist_fname[];
+extern const char	e_histopen[];
+extern const char	e_histtemp[];
 extern const char	e_histtrim[];
 extern const char	e_histwrite[];
 

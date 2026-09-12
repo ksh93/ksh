@@ -228,7 +228,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 			if(!sh_histinit())
 			{
 				opt_info.disc = NULL;
-				errormsg(SH_DICT,ERROR_system(1),e_history);
+				errormsg(SH_DICT,ERROR_system(1),e_histopen);
 				UNREACHABLE();
 			}
 			fd = sffileno(sh.hist_ptr->histfp);
