@@ -846,7 +846,6 @@ int hist_flush(History_t *hp)
 flushfail:
 	errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
 	hp->histflush = 0;
-	hist_unlock(hp);
 	hist_close(hp);
 	if (!sh_histinit())
 		sh_offoption(SH_HISTORY);
