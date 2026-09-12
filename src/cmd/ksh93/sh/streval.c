@@ -83,8 +83,8 @@ typedef int        (*Math_2i_f)(Sfdouble_t,Sfdouble_t);
 typedef Sfdouble_t (*Math_3f_f)(Sfdouble_t,Sfdouble_t,Sfdouble_t);
 typedef int        (*Math_3i_f)(Sfdouble_t,Sfdouble_t,Sfdouble_t);
 
-#define getchr(vp)	(*(vp)->nextchr++)
-#define peekchr(vp)	(*(vp)->nextchr)
+#define getchr(vp)	(*(unsigned char*)((vp)->nextchr++))
+#define peekchr(vp)	(*(unsigned char*)((vp)->nextchr))
 #define ungetchr(vp)	((vp)->nextchr--)
 
 /*
