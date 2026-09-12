@@ -461,9 +461,11 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 			__builtin_unreachable();
 		default:
 	#if _AST_release
-			printf("#   define UNREACHABLE()\t__builtin_unreachable()\n");
+			printf("#define UNREACHABLE()\t__builtin_unreachable()\n");
+			printf("#define ASSUME(...)\tdo { if (!(__VA_ARGS__)) __builtin_unreachable(); } while(0)\n");
 	#else
-			printf("#   define UNREACHABLE()\tabort()\n");
+			printf("#define UNREACHABLE()\tabort()\n");
+			printf("#define ASSUME(...)\tdo { if (!(__VA_ARGS__)) abort(); } while(0)\n");
 	#endif
 		}
 	}
@@ -474,6 +476,36 @@ tst - note{ does this compiler have __builtin_unreachable() }end output{
 	}
 }end fail{
 	echo '#define UNREACHABLE()	abort()'
+	echo '#define ASSUME(...)	do { if (!(__VA_ARGS__)) abort(); } while(0)'
+}end
+
+tst - note{ does this compiler have __builtin_expect() }end output{
+	#include <stdio.h>
+	int main(void)
+	{
+		int i = 2;
+		if(__builtin_expect(i == 2, 1))
+		{
+			switch(__builtin_expect(i, 2))
+			{
+				case 2:
+					printf("#undef LIKELY\n");
+					printf("#undef UNLIKELY\n");
+					printf("#define LIKELY(x)\t((int)__builtin_expect(!!(x), 1))\n");
+					printf("#define UNLIKELY(x)\t((int)__builtin_expect(!!(x), 0))\n");
+					return 0;
+				default:
+					return 1;
+			}
+		}
+		else if(__builtin_expect(i == -1, 0))
+			return 1;
+	}
+}end fail{
+	echo '#undef LIKELY'
+	echo '#undef UNLIKELY'
+	echo '#define LIKELY(x)	(!!(x))'
+	echo '#define UNLIKELY(x)	(!!(x))'
 }end
 
 tst	has__Static_assert note{ does this compiler have _Static_assert }end execute{
@@ -481,4 +513,154 @@ tst	has__Static_assert note{ does this compiler have _Static_assert }end execute
 	{
 		_Static_assert(2 + 2 == 4, "poof goes reality");
 	}
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have cold and hot attributes }end output{
+	#include <stdio.h>
+	#undef COLD
+	#undef HOT
+	#define COLD	__attribute__((__cold__))
+	#define HOT	__attribute__((__hot__))
+	static void foo(void) COLD;
+	COLD static void foo(void)
+	{
+		printf("#undef COLD\n");
+		printf("#define COLD\t__attribute__((__cold__))\n");
+	}
+	HOT static void bar(void)
+	{
+		printf("#undef HOT\n");
+		printf("#define HOT\t__attribute__((__hot__))\n");
+	}
+	int main(void)
+	{
+		foo();
+		bar();
+		return 0;
+	}
+}end fail{
+	echo '#undef COLD'
+	echo '#undef HOT'
+	echo '#define COLD'
+	echo '#define HOT'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the malloc attribute }end output{
+	#include <stdio.h>
+	#include <stdlib.h>
+	#undef MALLOC_ATTR
+	#define MALLOC_ATTR	__attribute__((__malloc__))
+	MALLOC_ATTR static void *foo(void)
+	{
+		printf("#undef MALLOC_ATTR\n");
+		printf("#define MALLOC_ATTR\t__attribute__((__malloc__))\n");
+		return malloc(1);
+	}
+	int main(void)
+	{
+		free(foo());
+		return 0;
+	}
+}end fail{
+	echo '#undef MALLOC_ATTR'
+	echo '#define MALLOC_ATTR'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the always_inline attribute }end output{
+	#include <stdio.h>
+	#undef ALWAYS_INLINE
+	#define ALWAYS_INLINE	inline __attribute__((__always_inline__))
+	static ALWAYS_INLINE void foo(void)
+	{
+		printf("#undef ALWAYS_INLINE\n");
+		printf("#define ALWAYS_INLINE\tinline __attribute__((__always_inline__))\n");
+	}
+	int main(void)
+	{
+		foo();
+		return 0;
+	}
+}end fail{
+	echo '#undef ALWAYS_INLINE'
+	echo '#define ALWAYS_INLINE'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the returns_nonnull attribute }end output{
+	#include <stdio.h>
+	#undef RETURNS_NONNULL
+	#define RETURNS_NONNULL	__attribute__((__returns_nonnull__))
+	RETURNS_NONNULL static char* foo(void)
+	{
+		return "#define RETURNS_NONNULL\t__attribute__((__returns_nonnull__))";
+	}
+	int main(void)
+	{
+		printf("#undef RETURNS_NONNULL\n");
+		printf("%s\n", foo());
+		return 0;
+	}
+}end fail{
+	echo '#undef RETURNS_NONNULL'
+	echo '#define RETURNS_NONNULL'
+}end
+
+tst - -Werror=ignored-attributes note{ does this compiler have the nonnull attribute }end output{
+	#include <stdio.h>
+	#undef NONNULL
+	#define NONNULL(...)	__attribute__((__nonnull__(__VA_ARGS__)))
+	static NONNULL(1) void foo(char* str)
+	{
+		printf("%s\n", str);
+	}
+	int main(void)
+	{
+		foo("#undef NONNULL");
+		foo("#define NONNULL(...)\t__attribute__((__nonnull__(__VA_ARGS__)))");
+		return 0;
+	}
+}end fail{
+	echo '#undef NONNULL'
+	echo '#define NONNULL(...)'
+}end
+
+tst - -Werror=ignored-attributes note{ are x86-64-v4 and x86-64-v3 targetable }end output{
+	#include <stdio.h>
+	#undef VECDISP
+	#define VECDISP	__attribute__((__target_clones__("arch=x86-64-v4", "arch=x86-64-v3", "default")))
+	static VECDISP char *foo(char* str)
+	{
+		return str;
+	}
+	int main(void)
+	{
+		char *str1 = foo("#undef VECDISP");
+		char *str2 = foo("#define VECDISP\t__attribute__((__target_clones__(\"arch=x86-64-v4\", \"arch=x86-64-v3\", \"default\")))");
+		printf("%s\n%s\n", str1, str2);
+		return 0;
+	}
+}end fail{
+	echo '#undef VECDISP'
+	echo '#define VECDISP'
+}end
+
+tst - -Werror=ignored-attributes note{ is BMI2 available }end output{
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <x86intrin.h>
+	#undef BMI2
+	#define BMI2	__attribute__((__target__("bmi2")))
+	static BMI2 char *foo(char* str)
+	{
+		volatile unsigned int i = _bzhi_u32(0xC0, 8 - 3);
+		return str;
+	}
+	int main(void)
+	{
+		char *str1 = foo("#undef BMI2");
+		char *str2 = foo("#define BMI2\t__attribute__((__target__(\"bmi2\")))");
+		printf("%s\n%s\n", str1, str2);
+		return 0;
+	}
+}end fail{
+	echo '#undef BMI2'
 }end

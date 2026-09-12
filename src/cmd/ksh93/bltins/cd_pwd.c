@@ -82,7 +82,7 @@ int sh_diropenat(int dir, const char *path)
 		needs_cloexec = 1;
 	if(needs_cloexec)
 		fcntl(fd,F_SETFD,FD_CLOEXEC);
-	sh.fdstatus[fd] = (IOREAD|IOCLEX);
+	sh.fdstatus[fd] = (IOREAD|IONOSEEK|IOCLEX);
 	return fd;
 }
 #endif /* _lib_openat */

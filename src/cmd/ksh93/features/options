@@ -66,21 +66,14 @@ tst	note{ can we probe file system case insensitivity }end output{
 	}
 }end
 
-# for SHOPT_ACCT:
-sys	acct
-
 tst note{ writing overrides }end cat{
 
 	/* overrides */
 	#if SHOPT_SCRIPTONLY
-	#   undef SHOPT_ACCT
 	#   undef SHOPT_AUDIT
 	#   undef SHOPT_ESH
 	#   undef SHOPT_HISTEXPAND
 	#   undef SHOPT_SYSRC
 	#   undef SHOPT_VSH
-	#endif
-	#if !_sys_acct
-	#   undef SHOPT_ACCT
 	#endif
 }end

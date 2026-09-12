@@ -10,95 +10,44 @@ ksh 93u+m maintainers and not with the original author.
 ## Introduction ##
 
 Korn Shell 93 (ksh93) is the only UNIX or GNU/Linux shell that I am aware
-of that, with proper setup, supports a modicum of per-user accounting and
+of that, with proper setup, supports a modicum of per-user
 auditing. This post attempts to explain these facilities and show you how
-to access and manipulate the resulting accounting and auditing records.
+to access and manipulate the resulting auditing records.
 
-Per-user accounting has been a feature of ksh93 since the earliest days of this
-shell. It is a fairly primitive facility which writes out a record for each
-user command that is executed. By default, it is not compiled in to the shell.
-
-An auditing facility was added in July 2008. This is somewhat more
-sophisticated than the accounting facility in that it is configurable and
-writes out a more detailed record either locally or to a remote system for
+An auditing facility was added in July 2008. It is configurable and
+writes out a fairly detailed record either locally or to a remote system for
 each user command that is executed. This facility can be used to monitor,
 track, record, and audit the activities of one or more users on a system,
 including system administrators. As of ksh 93u+ 2012-06-12, this is compiled
 in to the shell by default.
 
-Both facilities only work for interactive users.
+The facility only works for interactive users.
 
-To enable or disable one or both facilities, you need to modify the compile
-time options in `src/cmd/ksh93/SHOPT.sh` as follows. Use `0` to disable and
-`1` to enable (except for `SHOPT_AUDITFILE`). Then recompile the sources;
-see `README.md` in the top directory for building instructions.
+To enable or disable it, you need to modify the compile time options in
+`src/cmd/ksh93/SHOPT.sh` as follows. Use `0` to disable and `1` to enable
+`SHOPT_AUDIT` and edit the auditing file path if you like. Then recompile
+the sources; see `README.md` in the top directory for building instructions.
 
-    SHOPT ACCT=1                          # accounting
-    SHOPT ACCTFILE=1                      # per-user accounting info
     SHOPT AUDIT=1                         # enable auditing per SHOPT_AUDITFILE
     SHOPT AUDITFILE='\"/etc/ksh_audit\"'  # auditing file
 
 After you have recompiled the sources, the new ksh executable is located in the
-`arch/`...`/bin` subdirectory. To see what options have actually been compiled
-into a particular executable, just print out the shell version string.
+`arch/`...`/bin` subdirectory. To verify that `SHOPT_AUDIT` has been
+compiled in to the executable, look for the `A` in the shell version string.
 
-    $ arch/darwin.i386-64/bin/ksh -c 'echo ${.sh.version}'
-    Version AJLM 93u+m/1.1.0-alpha+dev 2022-01-20
-    $ arch/darwin.i386-64/bin/ksh -c 'echo $KSH_VERSION'
-    Version AJLM 93u+m/1.1.0-alpha+dev 2022-01-20
+    $ arch/darwin.arm64-64/bin/ksh -c 'echo ${.sh.version}'
+    Version AJM 93u+m/1.1.0-alpha 2026-09-12
+    $ arch/darwin.arm64-64/bin/ksh -c 'echo KSH_VERSION'
+    Version AJM 93u+m/1.1.0-alpha 2026-09-12
 
-The option string AJLM means that
+The option string AJM means that
 (A) auditing is supported (`SHOPT_AUDIT`),
 (J) one SIGCHLD trap per completed job is supported (`SHOPT_BGX`),
-(L) accounting is supported (`SHOPT_ACCT`), and
 (M) multibyte characters are supported (`SHOPT_MULTIBYTE`).
-
-## Accounting ##
-
-After recompiling the shell to enable this facility, per-user accounting is
-enabled using the `SHACCT` environment variable. To turn on per-user
-accounting, simply set `SHACCT` to the name of the file where you wish to
-store the accounting records.
-
-    export SHACCT="/tmp/ksh_acctfile"
-
-Here is part of the resulting file. Note that the time is stored as
-hexadecimal seconds since the Unix epoch (00:00:00 UTC on 1 January 1970).
-
-    $ cat /tmp/ksh_acctfile
-    echo ${.sh.version}	fpm	495990d8
-    pwd	fpm	495990da
-    id	fpm	495990dd
-    date	fpm	495990e3
-    exit	fpm	495990e5
-
-The following shell script can be used to access the records in this file
-and output them in a more useful format.
-
-    ACCTFILE="/tmp/ksh_acctfile"
-    printf "DATE       TIME     LOGIN  COMMAMD\n\n"
-    # set IFS to TAB only
-    while IFS=$'\t' read cmdstr name hexseconds
-    do
-        printf -v longsecs "%ld" "0x${hexseconds}"
-        printf "%(%Y-%m-%d %H:%M:%S)T, %s, %s\n" "#${longsecs}" "$name" "$cmdstr"
-    done < $ACCTFILE
-
-Invoking this script gives the following output for the above accounting
-records.
-
-    $ ./parse_acctfile
-    DATE       TIME     LOGIN  COMMAMD
-
-    2008-12-29 22:09:12, fpm, echo ${.sh.version}
-    2008-12-29 22:09:14, fpm, pwd
-    2008-12-29 22:09:17, fpm, id
-    2008-12-29 22:09:23, fpm, date
-    2008-12-29 22:09:25, fpm, exit
 
 ## Auditing ##
 
-Next we turn our attention to the auditing facility. Assuming ksh has been
+Now we turn our attention to the auditing facility itself. Assuming ksh has been
 compiled with the `SHOPT_AUDIT` option (the default), you must create an audit
 configuration file on each system to tell ksh93 where to store the audit
 records and to specify which users are to be audited. The configuration file
@@ -136,28 +85,32 @@ commands may span multiple lines, this is the only way to reliably separate
 audit records from each other. But it makes parsing the file in the shell a
 bit challenging, as variable values cannot contain the 0 byte.
 
-As before, here is a simple ksh93 script which parses this audit file. It reads
-0-terminated records by specifying an empty record separator (`-d ""`) to the
-`read` command and splits the fields by semicolon. It assumes that every
-command string ends in a newline, so it doesn't add one itself. Then it
-replaces the UID with the actual user's name and seconds since the Epoch
-with the actual date and time, and outputs the enhanced records in a comma
+Here is a simple ksh93 script that reliably parses this audit file. It reads
+0-terminated records by specifying an empty record separator (`-d ""`) to
+the `read` command and splits the fields by semicolon. It shell-quotes every
+command string, including the final newline, to ensure each output record
+spans one single line, even for history entries that span multiple lines.
+It also replaces the UID with the actual user's name (with caching to avoid
+an expensive id(1) invocation for every line), and seconds since the Epoch
+with the actual date and time. It outputs the enhanced records in a comma
 separated value (CSV) format.
 
     AUDITFILE="/tmp/ksh_auditfile"
     while IFS=";" read -d "" uid sec tty cmdstr
     do
-       printf '%(%Y-%m-%d %H:%M:%S)T, %s, %d, %s, %s' \
-          "#$sec" "${cached_id[$uid]:=$(id -un $uid)}" "$uid" "$tty" "$cmdstr"
+       printf -v cmdstr '%q' "${cmdstr:1}"  # trim 1 leading space
+       unam=${cache[$uid]:=$(id -un "$uid" 2>/dev/null || echo '(unknown)')}
+       printf '%(%Y-%m-%d %H:%M:%S)T, %s, %d, %s, %s\n' \
+          "#$sec" "$unam" "$uid" "$tty" "$cmdstr"
     done < $AUDITFILE
 
 Here is the output for the above audit records.
 
-    2008-12-29 22:09:12, fpm, 500, /dev/pts/2,  echo ${.sh.version}
-    2008-12-29 22:09:14, fpm, 500, /dev/pts/2,  pwd
-    2008-12-29 22:09:17, fpm, 500, /dev/pts/2,  id
-    2008-12-29 22:09:23, fpm, 500, /dev/pts/2,  date
-    2008-12-29 22:09:25, fpm, 500, /dev/pts/2,  exit
+    2008-12-30 03:09:12, fpm, 500, /dev/pts/2, $'echo ${.sh.version}\n'
+    2008-12-30 03:09:14, fpm, 500, /dev/pts/2, $'pwd\n'
+    2008-12-30 03:09:17, fpm, 500, /dev/pts/2, $'id\n'
+    2008-12-30 03:09:23, fpm, 500, /dev/pts/2, $'date\n'
+    2008-12-30 03:09:25, fpm, 500, /dev/pts/2, $'exit\n'
 
 The audit file must be writable by all users whose activities are audited,
 presenting an obvious security problem. However, the Korn shell supports
@@ -186,14 +139,13 @@ record sent by ksh93 should be in the standard audit record format.
 
 ## Afterword ##
 
-Note that while the auditing and accounting facilities within ksh93 can
-provide you with much useful information regarding the actions of one or
-more users on a system or systems, these facilities should not be regarded
-as providing enhanced security akin to the Trusted Computing Base (TCB).
-There are many ways of circumventing these facilities. For example, a
-knowledgeable user could switch to a different shell such as bash where
-their actions will not be recorded. There are a number of other ways but I
-will not discuss them here.
+Note that while the auditing facility within ksh93 can provide you with much
+useful information regarding the actions of one or more users on a system or
+systems, it should not be regarded as providing enhanced security akin to
+the Trusted Computing Base (TCB). There are many ways of circumventing it.
+For example, a knowledgeable user could switch to a different shell such as
+bash where their actions will not be recorded. There are a number of other
+ways, but I will not discuss them here.
 
 Most of the information provided in this post is not documented in a single
 place anywhere that I can find by searching the Internet. The ksh93 man page
@@ -204,6 +156,6 @@ studying the code in
 
 *Martijn Dekker adds:* I would like to thank the author Finnbarr P. Murphy
 for his permission to use his ksh93-related blog posts in the ksh 93u+m
-distribution. As of 2022, this is still the only documentation available for
-the facilities described. If you find any errors or omissions, please
+distribution. As of 2026, this is still the only documentation available for
+the facility described. If you find any errors or omissions, please
 [file an issue](https://github.com/ksh93/ksh).

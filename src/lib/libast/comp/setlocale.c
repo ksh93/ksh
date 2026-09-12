@@ -37,6 +37,10 @@
 #include <error.h>
 #include "FEATURE/locale"
 
+#ifdef BMI2
+#include <x86intrin.h>
+#endif
+
 #if ( _lib_wcwidth || _lib_wctomb ) && _hdr_wctype
 #include <wctype.h>
 #endif
@@ -187,7 +191,7 @@ static const uint32_t		utf8mask[] =
 	0xfc000000,
 };
 
-static const unsigned char	utf8tab[256] =
+static const uint8_t utf8tab[256] =
 {
 	0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -207,57 +211,116 @@ static const unsigned char	utf8tab[256] =
 	4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0,
 };
 
-static int
-utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
+static COLD int utf8_eilseq_err(unsigned char i)
 {
-	unsigned char*	sp = (unsigned char*)str;
-	size_t		m;
-	size_t		i;
-	int		c;
-	wchar_t		w = 0;
-
-	if (!sp || !n)
-		return ast.mb.sync = 0;
-	if ((m = utf8tab[*sp]) > 0)
-	{
-		if (m > n)
-			goto invalid;
-		if (wp)
-		{
-			if (m == 1)
-			{
-				*wp = *sp;
-				return 1;
-			}
-			w = *sp & ((1<<(8-m))-1);
-			for (i = m - 1; i > 0; i--)
-			{
-				c = *++sp;
-				if ((c&0xc0) != 0x80)
-					goto invalid;
-				w = (w<<6) | (c&0x3f);
-			}
-			if (!(utf8mask[m] & (uint32_t)w) || w >= 0xd800 && (w <= 0xdfff || w >= 0xfffe && w <= 0xffff))
-				goto invalid;
-			*wp = w;
-		}
-		return (int)m;
-	}
-	if (!*sp)
-		return ast.mb.sync = 0;
- invalid:
 	errno = EILSEQ;
-	ast.mb.sync = (uint32_t)((const char*)sp - str);
+	ast.mb.sync = i;
 	return -1;
 }
 
-static int
+/*
+ * Write to wp and return ASCII character byte length (aka 1).
+ */
+static COLD int ascii_fallback(wchar_t *wp, unsigned char s)
+{
+	if (LIKELY(wp))
+		*wp = s;
+	return 1;
+}
+
+/*
+ * This is libast's performance optimized implementation of C99 mbtowc.
+ * Due to other optimizations elsewhere in libast, this function is
+ * generally only called for UTF-8 characters, so the ASCII codepath
+ * is marked unlikely (though it's still handled for correctness).
+ * The BMI2 codepath uses the bzhi instruction to gain performance.
+ * This is among the most frequently called functions in this codebase.
+ * The function ought be structured for the best possible branch
+ * prediction to avoid costly cache misses.
+ */
+static HOT ALWAYS_INLINE int
+utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
+{
+	unsigned char*	sp = (unsigned char*)str;
+	unsigned char	i, m, s;
+	uint32_t	w;
+
+	if (UNLIKELY(!sp || !n || !(s = *sp)))
+		return ast.mb.sync = 0;
+	if (s < 0x80)
+		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
+	m = utf8tab[s];
+	if (!m || m > n)
+		return utf8_eilseq_err(0);
+	ASSUME(m > 1);
+	w = s & ((1 << (8 - m)) - 1);
+	for (i = 1; i < m; i++)
+	{
+		unsigned char c = sp[i];
+		if ((c & 0xc0) != 0x80)
+			return utf8_eilseq_err(i);
+		w = (w << 6) | (c & 0x3f);
+	}
+	if (!(utf8mask[m] & w) || w >= 0xd800 && (w <= 0xdfff || w >= 0xfffe && w <= 0xffff))
+		return utf8_eilseq_err(i - 1);
+	if (LIKELY(wp))
+		*wp = (wchar_t)w;
+	return (int)m;
+}
+
+static HOT int
 utf8_mblen(const char* str, size_t n)
 {
 	wchar_t		w;
 
 	return utf8_mbtowc(&w, str, n);
 }
+
+/*
+ * The BMI2-optimized versions are manually dispatched, which helpfully also
+ * allows us to use the hot attribute and avoids a harmful if branch. The
+ * difference is small, but not negligible.
+ */
+
+#ifdef BMI2
+static BMI2 HOT ALWAYS_INLINE int
+utf8_bmi2_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
+{
+	unsigned char*	sp = (unsigned char*)str;
+	unsigned char	i, m, s;
+	uint32_t	w;
+
+	if (UNLIKELY(!sp || !n || !(s = *sp)))
+		return ast.mb.sync = 0;
+	if (s < 0x80)
+		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
+	m = utf8tab[s];
+	if (!m || m > n)
+		return utf8_eilseq_err(0);
+	ASSUME(m > 1);
+	w = _bzhi_u32(s, 8 - m);
+	for (i = 1; i < m; i++)
+	{
+		unsigned char c = sp[i];
+		if ((c & 0xc0) != 0x80)
+			return utf8_eilseq_err(i);
+		w = (w << 6) | (c & 0x3f);
+	}
+	if (!(utf8mask[m] & w) || w >= 0xd800 && (w <= 0xdfff || w >= 0xfffe && w <= 0xffff))
+		return utf8_eilseq_err(i - 1);
+	if (LIKELY(wp))
+		*wp = (wchar_t)w;
+	return (int)m;
+}
+
+static BMI2 HOT int
+utf8_bmi2_mblen(const char* str, size_t n)
+{
+	wchar_t		w;
+
+	return utf8_bmi2_mbtowc(&w, str, n);
+}
+#endif
 
 static const unsigned char	utf8_wcw[] =
 {
@@ -1292,7 +1355,7 @@ utf8_wcwidth(wchar_t c)
 {
 	int	n;
 
-	return (n = (utf8_wcw[(c >> 2) & 0x3fff] >> ((c & 0x3) << 1)) & 0x3) == 3 ? -1 : n;
+	return UNLIKELY((n = (utf8_wcw[(c >> 2) & 0x3fff] >> ((c & 0x3) << 1)) & 0x3) == 3) ? -1 : n;
 }
 
 static const unsigned char	utf8_wam[] =
@@ -1827,6 +1890,13 @@ utf8_alpha(wchar_t c)
 
 #endif /* !AST_NOMULTIBYTE */
 
+#ifndef BMI2
+
+#define utf8_bmi2_mbtowc	0
+#define utf8_bmi2_mblen		0
+
+#endif /* BMI2 */
+
 static int
 default_iswalpha(wchar_t c)
 {
@@ -1880,12 +1950,22 @@ set_ctype(Lc_category_t* cp)
 	if ((locales[cp->internal]->flags & LC_utf8) && !(ast.locale.set & AST_LC_test))
 	{
 		ast.mb.cur_max = 6;
-		ast.mb.len = utf8_mblen;
-		ast.mb.towc = utf8_mbtowc;
+#ifdef BMI2
+		if(__builtin_cpu_supports("bmi2"))
+		{
+			ast.mb.len = utf8_bmi2_mblen;
+			ast.mb.towc = utf8_bmi2_mbtowc;
+		}
+		else
+#endif
+		{
+			ast.mb.len = utf8_mblen;
+			ast.mb.towc = utf8_mbtowc;
+		}
 		if ((locales[cp->internal]->flags & LC_local) || !(ast.mb.width = wcwidth))
 			ast.mb.width = utf8_wcwidth;
-		ast.mb.conv = utf8_wctomb;
 		ast.mb.alpha = utf8_alpha;
+		ast.mb.conv = utf8_wctomb;
 	}
 	else if ((locales[cp->internal]->flags & LC_default) || (ast.mb.cur_max = (uint32_t)MB_CUR_MAX) <= 1 || !(ast.mb.len = mblen) || !(ast.mb.towc = mbtowc))
 	{
@@ -1961,7 +2041,7 @@ set_numeric(Lc_category_t* cp)
 	{
 		if (locales[cp->internal]->flags & LC_local)
 			dp = locales[cp->internal]->territory == &lc_territories[0] ? &default_numeric : *locales[cp->internal]->territory->code == 'e' ? &eu_numeric : &us_numeric;
-		else if ((lp = localeconv()) && (dp = newof(0, Lc_numeric_t, 1, 0)))
+		else if ((lp = localeconv()) && LIKELY(dp = newof(0, Lc_numeric_t, 1, 0)))
 		{
 			dp->decimal = lp->decimal_point && *lp->decimal_point ? *(unsigned char*)lp->decimal_point : '.';
 			dp->thousand = lp->thousands_sep && *lp->thousands_sep ? *(unsigned char*)lp->thousands_sep : -1;
@@ -2169,8 +2249,8 @@ single(int category, Lc_t* lc, unsigned int flags)
 		if (category == AST_LC_CTYPE)
 			sfprintf(sfstderr, " MB_CUR_MAX=%d%s%s%s%s%s"
 				, ast.mb.cur_max
-				, ast.mb.len == utf8_mblen ? " utf8_mblen" : ast.mb.len == mblen ? " mblen" : ""
-				, ast.mb.towc == utf8_mbtowc ? " utf8_mbtowc" : ast.mb.towc == mbtowc ? " mbtowc"
+				, ast.mb.len == utf8_mblen ? " utf8_mblen" : ast.mb.len == utf8_bmi2_mblen ? " utf8_bmi2_mblen" : ast.mb.len == mblen ? " mblen" : ""
+				, ast.mb.towc == utf8_mbtowc ? " utf8_mbtowc" : ast.mb.towc == utf8_bmi2_mbtowc ? " utf8_bmi2_mbtowc" : ast.mb.towc == mbtowc ? " mbtowc"
 #if sjis_workaround
 					: ast.mb.towc == sjis_mbtowc ? " sjis_mbtowc"
 #endif
@@ -2345,7 +2425,7 @@ _ast_setlocale(int category, const char* locale)
 	compose:
 		if (category != AST_LC_ALL && category != AST_LC_LANG)
 			return (char*)locales[category]->name;
-		if (!sp && !(sp = sfstropen()))
+		if (!sp && UNLIKELY(!(sp = sfstropen())))
 			return NULL;
 		for (i = 1; i < AST_LC_COUNT; i++)
 			cat[i] = -1;

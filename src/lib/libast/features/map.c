@@ -94,11 +94,6 @@ main(void)
 	printf("#undef	strmode\n");
 	printf("#define strmode		_ast_strmode\n");
 #endif
-	/* we always use the libast strdup implementation */
-	printf("#undef	strdup\n");
-	printf("#define strdup		_ast_strdup\n");
-	printf("extern char*		strdup(const char*);\n");
-
 	/*
 	 * overriding <stdlib.h> strto*() is problematic to say the least
 	 */

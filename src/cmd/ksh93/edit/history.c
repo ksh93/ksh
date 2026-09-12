@@ -104,53 +104,6 @@ static int	histinit;
 static mode_t	histmode;
 static History_t *hist_ptr;
 
-#if SHOPT_ACCTFILE
-    static int	acctfd;
-    static char *logname;
-#   include <pwd.h>
-
-    static int  acctinit(History_t *hp)
-    {
-	char *cp, *acctfile;
-	Namval_t *np = nv_search("ACCTFILE",sh.var_tree,0);
-
-	if(!np || !(acctfile=nv_getval(np)))
-		return 0;
-	if(!(cp = getlogin()))
-	{
-		struct passwd *userinfo = getpwuid(sh.userid);
-		if(userinfo)
-			cp = userinfo->pw_name;
-		else
-			cp = "unknown";
-	}
-	logname = sh_strdup(cp);
-	if((acctfd=sh_open(acctfile,O_BINARY|O_WRONLY|O_APPEND|O_CREAT|O_cloexec,S_IRUSR|S_IWUSR))>=0 && acctfd < 10)
-	{
-		int n;
-		if((n = sh_fcntl(acctfd, F_dupfd_cloexec, 10)) >= 0)
-		{
-			sh_close(acctfd);
-			acctfd = n;
-		}
-	}
-	if(acctfd < 0)
-	{
-		acctfd = 0;
-		return 0;
-	}
-	if(sh_isdevfd(acctfile))
-	{
-		char newfile[16];
-		sfsprintf(newfile,sizeof(newfile),"/dev/fd/%d\0",acctfd);
-		nv_putval(np,newfile,NV_RDONLY);
-	}
-	else if(!(sh.fdstatus[acctfd]&IOCLEX))
-		sh_fcntl(acctfd,F_SETFD,FD_CLOEXEC);
-	return 1;
-    }
-#endif /* SHOPT_ACCTFILE */
-
 #if SHOPT_AUDIT
 static int sh_checkaudit(const char *name, char *logbuf, size_t len)
 {
@@ -396,10 +349,6 @@ int  sh_histinit(void)
 	sfdisc(hp->histfp,&hp->histdisc);
 	HISTCUR->nvalue = &hp->histind;
 	sh_timeradd(1000L*(HIST_RECENT-30), 1, hist_touch, hp->histname);
-#if SHOPT_ACCTFILE
-	if(sh_isstate(SH_INTERACTIVE))
-		acctinit(hp);
-#endif /* SHOPT_ACCTFILE */
 #if SHOPT_AUDIT
 	{
 		char buff[SFIO_BUFSIZE];
@@ -458,13 +407,6 @@ void hist_close(History_t *hp)
 	free(hp);
 	hist_ptr = 0;
 	sh.hist_ptr = 0;
-#if SHOPT_ACCTFILE
-	if(acctfd)
-	{
-		sh_close(acctfd);
-		acctfd = 0;
-	}
-#endif /* SHOPT_ACCTFILE */
 }
 
 /*
@@ -908,20 +850,6 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 		sfsync(hp->auditfp);
 	}
 #endif	/* SHOPT_AUDIT */
-#if	SHOPT_ACCTFILE
-	if(acctfd)
-	{
-		ssize_t timechars;
-		ptrdiff_t offset = stktell(sh.stk);
-		sfputr(sh.stk,buff,-1);
-		stkseek(sh.stk,stktell(sh.stk) - 1);
-		timechars = sfprintf(sh.stk, "\t%s\t%lx\n",logname,(unsigned long)time(NULL));
-		lseek(acctfd, 0, SEEK_END);
-		write(acctfd, stkptr(sh.stk,offset), (size_t)(size - 2 + timechars));
-		stkseek(sh.stk,offset);
-
-	}
-#endif /* SHOPT_ACCTFILE */
 	if(size&01)
 	{
 		size++;
