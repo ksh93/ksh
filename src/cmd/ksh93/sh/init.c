@@ -220,7 +220,7 @@ static void		stat_init(void);
 /*
  * Exception callback routine for stk(3) and sh_*alloc wrappers.
  */
-static noreturn void nomemory(size_t s)
+static COLD noreturn void nomemory(size_t s)
 {
 	errormsg(SH_DICT, ERROR_SYSTEM|ERROR_PANIC, "out of memory (needed %zu bytes)", s);
 	UNREACHABLE();
@@ -230,7 +230,7 @@ static noreturn void nomemory(size_t s)
  * The following are wrapper functions for memory allocation.
  * These functions will error out if the allocation fails.
  */
-void *sh_malloc(size_t size)
+RETURNS_NONNULL MALLOC_ATTR void *sh_malloc(size_t size)
 {
 	void *cp;
 	cp = malloc(size);
@@ -239,7 +239,7 @@ void *sh_malloc(size_t size)
 	return cp;
 }
 
-void *sh_realloc(void *ptr, size_t size)
+RETURNS_NONNULL void *sh_realloc(void *ptr, size_t size)
 {
 	void *cp;
 	cp = realloc(ptr, size);
@@ -252,7 +252,7 @@ void *sh_realloc(void *ptr, size_t size)
 	return cp;
 }
 
-void *sh_calloc(size_t nmemb, size_t size)
+RETURNS_NONNULL MALLOC_ATTR void *sh_calloc(size_t nmemb, size_t size)
 {
 	void *cp;
 	cp = calloc(nmemb, size);
@@ -261,7 +261,7 @@ void *sh_calloc(size_t nmemb, size_t size)
 	return cp;
 }
 
-char *sh_strdup(const char *s)
+NONNULL(1) RETURNS_NONNULL MALLOC_ATTR char *sh_strdup(const char *s)
 {
 	char *dup;
 	dup = strdup(s);
@@ -270,7 +270,7 @@ char *sh_strdup(const char *s)
 	return dup;
 }
 
-char *sh_struse(Sfio_t *iop)
+NONNULL(1) RETURNS_NONNULL char *sh_struse(Sfio_t *iop)
 {
 	char *s;
 	s = sfstruse(iop);
@@ -279,7 +279,7 @@ char *sh_struse(Sfio_t *iop)
 	return s;
 }
 
-void *sh_memdup(const void *s, size_t n)
+NONNULL(1) RETURNS_NONNULL MALLOC_ATTR void *sh_memdup(const void *s, size_t n)
 {
 	void *dup;
 	dup = memdup(s, n);
@@ -377,7 +377,7 @@ static Sfdouble_t nget_optindex(Namval_t *np, Namfun_t *fp)
 	return (Sfdouble_t)*lp;
 }
 
-static Namfun_t *clone_optindex(Namval_t* np, Namval_t *mp, nvflag_t flags, Namfun_t *fp)
+static MALLOC_ATTR Namfun_t *clone_optindex(Namval_t* np, Namval_t *mp, nvflag_t flags, Namfun_t *fp)
 {
 	Namfun_t *dp = (Namfun_t*)sh_malloc(sizeof(Namfun_t));
 	NOT_USED(flags);
