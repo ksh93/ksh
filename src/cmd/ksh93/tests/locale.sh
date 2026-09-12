@@ -383,6 +383,7 @@ fi
 # A strxfrm(3) bug on some macOS versions caused false positive matches in bracket patterns.
 # This test is to ensure the workaround is functional.
 # https://github.com/ksh93/ksh/issues/936
+unset c
 if	(LC_ALL=en_GB.UTF-8; eval 'c=$'\''\342\202\254'\'; [[ ${#c} == 1 ]]) 2>/dev/null
 then	LC_ALL=en_GB.UTF-8 "$SHELL" -c "LINENO=$((LINENO+1))"'
 	. "${SHTESTS_COMMON:-${0%/*}/_common}"
@@ -432,6 +433,14 @@ do	for reproducer in \
 			"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) with output $(printf %q "$(<out)$(<out2)")"
 	done
 done
+
+# ======
+# Crash when attempting to set an integer variable to a non-integer multibyte character
+unset c
+got=$(set +x; "$SHELL" -c 'integer c; c="€"' 2>&1)
+ret=$?
+((ret==1)) || err_exit "crash when attempting to set an integer to a multibyte non-integer character" \
+	"(got status $ret with output $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
