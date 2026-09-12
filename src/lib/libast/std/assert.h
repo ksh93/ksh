@@ -35,7 +35,7 @@
 
 #ifndef _ASSERT_H
 #  define _ASSERT_H
-extern noreturn void _ast_assertfail(const char *restrict, const char *restrict, const char *restrict, int);
+extern noreturn void _ast_assertfail(const char *restrict, const char *restrict, const char *restrict, int) COLD;
 #  if _has__Static_assert && !defined(static_assert)
 #    define static_assert	_Static_assert
 #  endif

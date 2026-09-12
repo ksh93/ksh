@@ -16,7 +16,7 @@
 
 #include <ast.h>
 
-noreturn void _ast_assertfail(const char *restrict a, const char *restrict fun, const char *restrict file, int line)
+COLD noreturn void _ast_assertfail(const char *restrict a, const char *restrict fun, const char *restrict file, int line)
 {
 	sfprintf(sfstderr,"\n*** assertion %s failed in %s(), %s:%d\n", a, fun, file, line);
 	sfsync(NULL);
