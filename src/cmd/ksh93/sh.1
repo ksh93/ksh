@@ -258,23 +258,9 @@ The symbol
 .B |&
 causes asynchronous execution of the preceding pipeline
 with a two-way pipe established to the parent shell;
-the standard input and output of the spawned pipeline
-can be written to and read from by the parent shell
-by applying
-the redirection operators
-.B <&
-and
-.B >&
-with arg
-.B p
-to commands and by using
-.B \-p
-option of
-the built-in commands
-.B read
-and
-.B print
-described later.
+see the
+.I Co-processes
+section below for more information.
 The symbol
 .B &&
 .RB (\| |\|| \^)
@@ -3872,9 +3858,15 @@ The standard output is closed.
 .TP
 .B <&p
 The input from the co-process is moved to standard input.
+See
+.I Co-processes
+below.
 .TP
 .B >&p
 The output to the co-process is moved to standard output.
+See
+.I Co-processes
+below.
 .TP
 .BI <# \^\^\^  (( expr ))
 Evaluate arithmetic expression
@@ -3997,6 +3989,58 @@ is the empty file
 Otherwise, the environment for the execution of a command contains the
 file descriptors of the invoking shell as modified by
 input/output specifications.
+.\"
+.\" The co-processes section is derived from the pdksh(1) man page,
+.\" which is in the public domain.
+.SS Co-processes.
+A co-process, which is a pipeline created with the
+.B |&
+operator, is an asynchronous process that the shell can both write to (using
+.BR "print -p" )
+and read from (using
+.BR "read -p" ).
+The input and output of the co-process can also be manipulated using
+.B >&p
+and
+.B <&p
+redirections, respectively.
+Once a co-process has been started, another can't
+be started until the co-process exits, or until the co-process's input has been
+redirected using the
+.B redirect
+or
+.B exec
+command, e.g., 
+.B redirect
+.RB \f2n\fP >&p .
+If a co-process's input is redirected in this way, the next
+co-process to be started will share the output with the first co-process,
+unless the output of the initial co-process has been redirected using
+.B redirect
+.RB \f2n\fP <&p .
+.PP
+Some notes concerning co-processes:
+.RS 8
+.IP \[bu] 3
+The only way to close the co-process's input (so the co-process reads an
+end-of-file) is to redirect the input to a numbered file descriptor and then
+close that file descriptor, e.g.,
+.BR "redirect 3>&p 3>&-" .
+.IP \[bu] 3
+The shell closes its copy of the write portion of the co-process output when
+the most recently started co-process exits.
+.IP \[bu] 3
+.B "print -p"
+will ignore
+.B SIGPIPE
+signals during writes if the signal is not being trapped or ignored; the same
+is true if the co-process input has been duplicated to another file descriptor
+and
+.BR "print -u" \f2n\fP
+is used.
+.RE
+.\" (end of public domain co-processes section)
+.\"
 .SS Environment.
 The
 .I environment\^
@@ -6773,8 +6817,10 @@ is ignored except for printing a "not supported" warning.
 If
 .I arg\^
 is not given and only I/O redirections are given,
-then this command persistently modifies file descriptors as in
-.BR redirect .
+then this command persistently modifies file descriptors in the
+manner of the
+.B redirect
+command; see below.
 .TP
 \(dg \f3exit\fP \*(OK \f2n\^\fP \*(CK
 Causes the shell to exit
@@ -7293,7 +7339,10 @@ option causes the
 arguments to be written onto the pipe
 of the process spawned with
 .B |&
-instead of standard output.
+instead of standard output;
+see
+.I Co-processes
+above.
 The
 .B \-v
 option treats each
@@ -7655,6 +7704,9 @@ Input is read from the current co-process spawned by the shell using
 An end-of-file causes
 .B read\^
 to disconnect the co-process so that another can be created.
+See
+.I Co-processes
+above.
 .TP 8
 .B \-r
 Raw mode. The

@@ -101,10 +101,18 @@ e | e[!m]* | m*)
 esac
 case ${module_name:+m}${prefix+p}${suffix+s}${version:+v} in
 '' | mpsv )
+	case $prefix in
+	'' | lib)
+		;;
+	*)	err_out "the -p option value must be 'lib' or ''"
+	;;
+	esac
 	;;
 msv)	note "warning: -p not given; assuming -p lib for backward compat"
-	prefix=lib ;;
-*)	err_out "-m requires -v/-p/-s and vice versa" ;;
+	prefix=lib
+	;;
+*)	err_out "-m requires -v/-p/-s and vice versa"
+	;;
 esac
 
 # Check if building dynamic libraries was disabled.
@@ -163,9 +171,9 @@ do	# Grab first item from dupes
 	esac
 	# If item was locally compiled but only as a static library, convert it to static linkage (path to lib${name}.a)
 	name=${item# -l}
-	case $(set +o noglob; set -- $dest_dir/lib/lib${name}.*; printf '%s' "$#,$1") in
-	"1,$dest_dir/lib/lib${name}.*")
-		# Unchanged glob pattern = the dymamic library does not exist in our local build tree.
+	case $(set +o noglob; set -- $dest_dir/lib/lib$name.* $dest_dir/lib/$name.*; printf '%s' "$#,$1,$2") in
+	"2,$dest_dir/lib/lib$name.*,$dest_dir/lib/$name.*")
+		# Unchanged glob patterns = the dymamic library does not exist in our local build tree.
 		# If there is no local static library either, leave it alone; it's probably an OS library.
 		if	test -f $INSTALLROOT/lib/lib${name}.a
 		then	item=" $INSTALLROOT/lib/lib${name}.a"

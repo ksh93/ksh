@@ -26,6 +26,38 @@ fi
 
 bintrue=$(whence -p true)
 
+# ======
+# basics
+
+function reply_once_and_exit
+{
+	read -r
+	print -r -- "latest $REPLY"
+}
+
+function redirected_reply
+{
+	read -r
+	print -r -- "$REPLY" > "$1"
+}
+
+status=$tmp/coproc-status.$$
+redirected_reply "$status" |&
+olderpid=$!
+redirect 3>&p
+reply_once_and_exit |&
+pid=$!
+print -p ping 2>/dev/null || err_exit "initial write to most recent coprocess failed"
+read -p got || err_exit "read from most recent coprocess failed"
+[[ $got == 'latest ping' ]] || err_exit "most recent coprocess reply is '$got' instead of 'latest ping'"
+wait $pid || err_exit "waiting for most recent coprocess failed"
+print -p pong 2>/dev/null && err_exit "write to exited most recent coprocess should fail"
+print -u3 keep-going 2>/dev/null || err_exit "write to redirected older coprocess input failed"
+wait $olderpid || err_exit "waiting for redirected older coprocess failed"
+[[ $(< "$status") == keep-going ]] || err_exit "redirected older coprocess should still be reachable after most recent coprocess exits"
+redirect 3>&-
+
+# ======
 function ping # ID
 {
 	integer x=0
@@ -349,4 +381,5 @@ wait $pid
 x=$?
 [[ $x == 0 ]] || err_exit "coprocess exitval should be 0, not $x"
 
+# ======
 exit $((Errors<125?Errors:125))
