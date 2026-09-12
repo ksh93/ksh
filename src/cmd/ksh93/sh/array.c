@@ -995,7 +995,22 @@ Namarr_t *nv_setarray(Namval_t *np, void *(*fun)(Namval_t*,const char*,nvflag_t)
 		{
 			nv_putsub(np, "0", ARRAY_ADD);
 			if(value)
+			{
+				/*
+				 * nv_putval() below stores a copy of <value> as the new
+				 * array element, orphaning the buffer <value> points to
+				 * unless it is freed here (memory leak, ksh93/ksh#405).
+				 * But <value> is not always np->nvalue as is; nv_getval()
+				 * may instead have returned a shared/temporary buffer
+				 * (e.g. for NV_INTEGER, NV_BINARY or NV_LJUST/NV_RJUST
+				 * attributes) that must not be freed. So only free it if
+				 * it is still (i.e. was) the actual np->nvalue pointer.
+				 */
+				char *oldvalue = np->nvalue;
 				nv_putval(np, value, 0);
+				if(value==oldvalue && !nv_isattr(np,NV_NOFREE))
+					free(value);
+			}
 			else
 			{
 				Namval_t *mp = (Namval_t*)((*fun)(np,NULL,NV_ACURRENT));

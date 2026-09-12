@@ -354,7 +354,7 @@ DO
 	PATH=/dev/null command true
 DONE
 
-TEST	title='set PATH attribute in main shell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='set PATH attribute in main shell'
 DO
 	typeset -A PATH
 	unset PATH
