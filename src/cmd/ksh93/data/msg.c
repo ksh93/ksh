@@ -46,7 +46,7 @@ const char e_query[]		= "no query process";
 const char e_histopen[]		= "cannot open history file";
 const char e_histtemp[]		= "temporary history file `%s' may need to be removed manually";
 const char e_histtrim[]		= "%s: cannot trim history file; export TMPDIR as a directory with appropriate permissions";
-const char e_histwrite[]	= "%s: history file write error: %s; file unrecoverable";
+const char e_histwrite[]	= "%s: history file write error";
 #endif /* !SHOPT_SCRIPTONLY */
 const char e_optincompat1[]	= "%s cannot be used with other options";
 const char e_optincompat2[]	= "%s cannot be used with %s";

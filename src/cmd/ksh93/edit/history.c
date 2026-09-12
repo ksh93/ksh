@@ -93,7 +93,7 @@
 
 int	_Hist = 0;
 static void	hist_marker(char*,long);
-static History_t* hist_trim(History_t*, int);
+static void	hist_trim(History_t*, int);
 static int	hist_nearend(History_t*,Sfio_t*, off_t);
 static int	hist_check(int);
 static int	hist_clean(int);
@@ -199,35 +199,6 @@ static int hist_setlock(int fd, short type)
 	return 0;
 }
 
-static int hist_rewrite_head(History_t *hp, const void *buf, size_t len)
-{
-	int fd = hp->histlockfd;
-	int flags;
-	ssize_t wr;
-	if (fd < 0)
-		return -1;
-	if ((flags = fcntl(fd, F_GETFL)) < 0)
-		return -1;
-	if ((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) < 0)
-		return -1;
-	if (lseek(fd, 0, SEEK_SET) < 0)
-	{
-		if (flags&O_APPEND)
-			fcntl(fd, F_SETFL, flags);
-		return -1;
-	}
-	wr = write(fd, buf, len);
-	if (flags&O_APPEND)
-		fcntl(fd, F_SETFL, flags);
-	if (wr != (ssize_t)len)
-		return -1;
-	if (sfseek(hp->histfp, 0, SEEK_END) < 0)
-		return -1;
-	if (sfpurge(hp->histfp) < 0)
-		return -1;
-	return 0;
-}
-
 static int hist_lock(History_t *hp)
 {
 	if (!hp || hp->histlockfd < 0)
@@ -291,8 +262,6 @@ int  sh_histinit(void)
 	if (fd < 0)
 	{
 		char *tempname;
-		if (sh_isstate(SH_INTERACTIVE))
-			errormsg(SH_DICT, ERROR_WARNING|ERROR_SYSTEM, e_histopen);
 		/* don't allow root, or any scripts, a temporary history file */
 		if (sh.userid == 0 || !sh_isstate(SH_INTERACTIVE))
 			goto initfail;
@@ -421,7 +390,7 @@ int  sh_histinit(void)
 		sfprintf(sfstderr,"%jd: hist_trim hsize=%jd\n",(Sflong_t)sh.current_pid,(intmax_t)hsize);
 		sfsync(sfstderr);
 #endif /* DEBUG */
-		hp = hist_trim(hp,(int)hp->histind-maxlines);
+		hist_trim(hp,(int)hp->histind-maxlines);
 	}
 	hist_unlock(hp);
 	sfdisc(hp->histfp,&hp->histdisc);
@@ -520,16 +489,19 @@ static int hist_clean(int fd)
 }
 
 /*
- * Copy the last <n> commands to a new file and make this the history file
+ * Trim the history file: copy the last <n> commands to a tempory file and copy them back,
+ * replacing the history file's contents.
+ *
+ * This method works without write access to the parent directory and avoids changing its
+ * timestamp, at the price of requiring appropriate write access to $TMPDIR or /tmp.
  */
-static History_t* hist_trim(History_t *hp, int n)
+static void hist_trim(History_t *hp, int n)
 {
 	char *cp, *tmpname = NULL;
 	int incmd=1, c=0;
 	int fd = -1, index, started_copyback = 0;
 	ssize_t r;
 	int histfd = sffileno(hp->histfp);
-	History_t *hist_orig = hp;
 	Sfio_t *hist_tmp = NULL;
 	char *buff, *endbuff;
 	char tmpbuff[HIST_BSIZE + 1];
@@ -551,19 +523,19 @@ static History_t* hist_trim(History_t *hp, int n)
 	sfwrite(hist_tmp, (char*)hist_stamp, 2);
 	if(--n < 0)
 		n = 0;
-	newp = hist_seek(hist_orig, ++n);
+	newp = hist_seek(hp, ++n);
 	while(1)
 	{
 		if(!incmd)
 		{
 			oldp = newp;
-			newp = hist_seek(hist_orig, ++n);
+			newp = hist_seek(hp, ++n);
 			if(newp <=oldp)
 				break;
 		}
-		if (!(buff = sfreserve(hist_orig->histfp, SFIO_UNBOUND, 0)))
+		if (!(buff = sfreserve(hp->histfp, SFIO_UNBOUND, 0)))
 			break;
-		endbuff = buff + sfvalue(hist_orig->histfp);
+		endbuff = buff + sfvalue(hp->histfp);
 		*endbuff = 0;
 		/* copy to null byte */
 		incmd = 0;
@@ -582,27 +554,27 @@ static History_t* hist_trim(History_t *hp, int n)
 	sfputc(hist_tmp, 0);
 	if (sfsync(hist_tmp) < 0 || sfseek(hist_tmp, 0, SEEK_SET) < 0)
 		goto trimfail;
-	if (sfpurge(hist_orig->histfp) < 0 || ftruncate(histfd, 0) < 0 || sfseek(hist_orig->histfp, 0, SEEK_SET) < 0)
-		goto trimfail;
 	started_copyback = 1;
+	if (sfpurge(hp->histfp) < 0 || ftruncate(histfd, 0) < 0 || sfseek(hp->histfp, 0, SEEK_SET) < 0)
+		goto trimfail;
 	while ((r = sfread(hist_tmp, copybuff, sizeof copybuff)) > 0)
-		if (sfwrite(hist_orig->histfp, copybuff, (size_t)r) != r)
+		if (sfwrite(hp->histfp, copybuff, (size_t)r) != r)
 			goto trimfail;
-	if (r < 0 || sfsync(hist_orig->histfp) < 0 || sfseek(hist_orig->histfp,(off_t)0,SEEK_END) < 0)
+	if (r < 0 || sfsync(hp->histfp) < 0 || sfseek(hp->histfp,(off_t)0,SEEK_END) < 0)
 		goto trimfail;
 	sfclose(hist_tmp);
 	unlink(tmpname);
 	free(tmpname);
-	sfpurge(hist_orig->histfp);
-	memset(hist_orig->histcmds, 0, sizeof(off_t) * (size_t)(hist_orig->histmask + 1));
+	sfpurge(hp->histfp);
+	memset(hp->histcmds, 0, sizeof(off_t) * (size_t)(hp->histmask + 1));
 	index = histinit;
-	hist_orig->histind = 1;
-	hist_orig->histcmds[1] = 2;
-	hist_orig->histcnt = hist_orig->histmarker = 2;
+	hp->histind = 1;
+	hp->histcmds[1] = 2;
+	hp->histcnt = hp->histmarker = 2;
 	histinit = 1;
-	hist_eof(hist_orig);
+	hist_eof(hp);
 	histinit = index;
-	return hist_ptr = hist_orig;
+	return;
 trimfail:
 	if (hist_tmp)
 		sfclose(hist_tmp);
@@ -612,8 +584,10 @@ trimfail:
 			unlink(tmpname);
 		free(tmpname);
 	}
-	errormsg(SH_DICT, ERROR_warn(0), e_histtrim, hist_orig->histname);
-	return hist_ptr = hist_orig;
+	if (started_copyback)
+		errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
+	else
+		errormsg(SH_DICT, ERROR_warn(0), e_histtrim, hp->histname);
 }
 
 /*
@@ -675,6 +649,36 @@ begin:
 	sfseek(iop,(off_t)2,SEEK_SET);
 	hp->histmarker = hp->histcnt = 2L;
 	return 1;
+}
+
+/*
+ * for hist_eof(): rewrite the header bytes
+ */
+static inline int hist_rewrite_header(History_t *hp, const void *buf, size_t len)
+{
+	int fd = hp->histlockfd;
+	int flags;
+	ssize_t wr;
+	if ((flags = fcntl(fd, F_GETFL)) < 0)
+		return -1;
+	if ((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) < 0)
+		return -1;
+	if (lseek(fd, 0, SEEK_SET) < 0)
+	{
+		if (flags&O_APPEND)
+			fcntl(fd, F_SETFL, flags);
+		return -1;
+	}
+	wr = write(fd, buf, len);
+	if (flags&O_APPEND)
+		fcntl(fd, F_SETFL, flags);
+	if (wr != (ssize_t)len)
+		return -1;
+	if (sfseek(hp->histfp, 0, SEEK_END) < 0)
+		return -1;
+	if (sfpurge(hp->histfp) < 0)
+		return -1;
+	return 0;
 }
 
 /*
@@ -788,7 +792,12 @@ again:
 			char buff[2 + HIST_MARKSZ];
 			memcpy(buff, hist_stamp, 2);
 			hist_marker(buff + 2, hp->histind);
-			hist_rewrite_head(hp, buff, sizeof buff);
+			if (hist_rewrite_header(hp, buff, sizeof buff) < 0)
+			{
+				errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
+				hist_unlock(hp);
+				return;
+			}
 		}
 		last = 0;
 		goto again;
@@ -817,30 +826,31 @@ void hist_cancel(History_t *hp)
 /*
  * flush the current history command
  */
-void hist_flush(History_t *hp)
+int hist_flush(History_t *hp)
 {
 	char *buff;
-	if(hp)
-	{
-		hist_lock(hp);
-		if(buff=(char*)sfreserve(hp->histfp,0,SFIO_LOCKR))
-		{
-			hp->histflush = sfvalue(hp->histfp)+1;
-			sfwrite(hp->histfp,buff,0);
-		}
-		else
-			hp->histflush=0;
-		if(sfsync(hp->histfp)<0)
-		{
-			hist_unlock(hp);
-			hist_close(hp);
-			if(!sh_histinit())
-				sh_offoption(SH_HISTORY);
-			return;
-		}
-		hp->histflush = 0;
-		hist_unlock(hp);
-	}
+	if (!hp)
+		return -1;
+	hist_lock(hp);
+	buff = sfreserve(hp->histfp, 0, SFIO_LOCKR);
+	if (!buff)
+		goto flushfail;
+	hp->histflush = sfvalue(hp->histfp) + 1;
+	if (sfwrite(hp->histfp, buff, 0) < 0)
+		goto flushfail;
+	if (sfsync(hp->histfp) < 0)
+		goto flushfail;
+	hp->histflush = 0;
+	hist_unlock(hp);
+	return 0;
+flushfail:
+	errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
+	hp->histflush = 0;
+	hist_unlock(hp);
+	hist_close(hp);
+	if (!sh_histinit())
+		sh_offoption(SH_HISTORY);
+	return -1;
 }
 
 /*
@@ -864,7 +874,7 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	}
 	if((cur = lseek(sffileno(iop),0,SEEK_END)) <0)
 	{
-		errormsg(SH_DICT,2,"hist_flush: EOF seek failed errno=%d",errno);
+		errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
 		hist_unlock(hp);
 		return -1;
 	}
@@ -1324,7 +1334,7 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 			hp->histlockfd = oldfd;
 			hp->histlockcnt = 0;
 		}
-		errormsg(SH_DICT, 2, e_histwrite, hp->histname, strerror(errno));
+		errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
 		return -1;
 	}
 	return 0;

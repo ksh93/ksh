@@ -849,8 +849,8 @@ done:
 	if((sh.fdstatus[fd]&IOTTY) && !keytrap)
 		tty_cooked(fd);
 #if !SHOPT_SCRIPTONLY
-	if(flags&S_FLAG)
-		hist_flush(sh.hist_ptr);
+	if((flags&S_FLAG) && hist_flush(sh.hist_ptr) < 0 && jmpval < 1)
+		jmpval = 1;
 #endif
 	if(jmpval > 1)
 		siglongjmp(*sh.jmplist,jmpval);

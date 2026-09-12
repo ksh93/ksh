@@ -14,7 +14,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   which the history file resides and will no longer change the directory's
   last-modified timestamp. However, it now requires a usable /tmp or $TMPDIR.
 
-- The shell will now show a warning when it fails to open the history file.
+- I/O errors while writing to the history file are no longer silently ignored.
 
 - Fixed a possible crash when attempting to set an integer variable to a
   multibyte character.

@@ -58,7 +58,7 @@ typedef struct
 #define hist_close(h)	0
 #define hist_copy(h)	0
 #define hist_eof(h)	0
-#define hist_flush(h)	0
+#define hist_flush(h)	(-1)
 #define hist_list(a,out,c,d,e)	sfputr(out,sh_translate(e_unknown),'\n')
 #define hist_match(a,b,c,d)	0
 #define hist_tell(a,b)		0
@@ -84,7 +84,7 @@ extern void 		hist_close(History_t*);
 extern int		hist_copy(char*, int, int, int);
 extern void 		hist_eof(History_t*);
 extern Histloc_t	hist_find(History_t*,char*,int, int, int);
-extern void 		hist_flush(History_t*);
+extern int 		hist_flush(History_t*);
 extern void 		hist_list(History_t*,Sfio_t*, off_t, int, char*);
 extern int		hist_match(History_t*,off_t, char*, ptrdiff_t*);
 extern off_t		hist_tell(History_t*,int);
