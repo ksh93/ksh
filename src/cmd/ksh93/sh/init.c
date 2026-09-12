@@ -683,6 +683,15 @@ void sh_reseed_rand(struct rand *rp)
 	rp->rand_last = -1;
 }
 
+static const Namdisc_t RAND_disc	= {  sizeof(struct rand), put_rand, get_rand, nget_rand };
+
+void sh_invalidate_rand_seed(void)
+{
+	struct rand *rp = (struct rand*)nv_hasdisc(RANDNOD, &RAND_disc);
+	if(rp)
+		rp->rand_last = RAND_SEED_INVALIDATED;
+}
+
 /*
  * The following three functions are for SRANDOM
  */
@@ -1025,7 +1034,6 @@ static const Namdisc_t EDITOR_disc	= {  sizeof(Namfun_t), put_ed };
 static const Namdisc_t HISTFILE_disc	= {  sizeof(Namfun_t), put_history };
 static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex, 0, 0, clone_optindex };
 static const Namdisc_t SECONDS_disc	= {  sizeof(Namfun_t), put_seconds, get_seconds, nget_seconds };
-static const Namdisc_t RAND_disc	= {  sizeof(struct rand), put_rand, get_rand, nget_rand };
 static const Namdisc_t SRAND_disc	= {  sizeof(Namfun_t), put_srand, get_srand, nget_srand };
 static const Namdisc_t LINENO_disc	= {  sizeof(Namfun_t), put_lineno, get_lineno, nget_lineno };
 static const Namdisc_t L_ARG_disc	= {  sizeof(Namfun_t), put_lastarg, get_lastarg };
@@ -1284,11 +1292,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	}
 	/* read the environment */
 	env_init();
-	if(!ENVNOD->nvalue)
-	{
-		sfprintf(sh.strbuf,"%s/.kshrc",nv_getval(HOME));
-		nv_putval(ENVNOD,sh_struse(sh.strbuf),NV_RDONLY);
-	}
 	/* increase SHLVL */
 	sh.shlvl++;
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
@@ -1578,6 +1581,12 @@ void sh_reinit(void)
 	free(sh.mathnodes);
 	free(sh.init_context);
 	sh.init_context = nv_init();
+	/* Trigger verification and possible re-init of $PWD (via path_pwd called from env_init) */
+	if(sh.pwd)
+	{
+		free(sh.pwd);
+		sh.pwd = NULL;
+	}
 	/* Re-import the environment (re-exported in exscript()) */
 	env_init();
 	/* Increase SHLVL */
@@ -1726,8 +1735,6 @@ static Init_t *nv_init(void)
 {
 	Sfdouble_t d=0;
 	Init_t *ip = sh_newof(0,Init_t,1,0);
-	sh.nvfun.last = (char*)&sh;
-	sh.nvfun.nofree = 1;
 	sh.var_base = sh.var_tree = sh_inittree(shtab_variables);
 	SHLVL->nvalue = &sh.shlvl;
 	ip->IFS_init.hdr.disc = &IFS_disc;
@@ -1883,11 +1890,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 		if(name_vals==(const struct shtable2*)shtab_builtins)
 			np->nvalue = ((struct shtable3*)tp)->sh_value;
 		else
-		{
-			if(name_vals == shtab_variables)
-				np->nvfun = &sh.nvfun;
 			np->nvalue = (void*)tp->sh_value;
-		}
 		nv_setattr(np,tp->sh_number);
 		if(nv_isattr(np,NV_TABLE))
 			nv_mount(np,NULL,dict=dtopen(&_Nvdisc,Dtoset));
@@ -1960,6 +1963,11 @@ static void env_init(void)
 	path_pwd();
 	if((cp = nv_getval(SHELLNOD)) && (sh_type(cp)&SH_TYPE_RESTRICTED))
 		sh_onoption(SH_RESTRICTED); /* restricted shell */
+	if(!ENVNOD->nvalue)
+	{
+		sfprintf(sh.strbuf,"%s/.kshrc",nv_getval(HOME));
+		nv_putval(ENVNOD,sh_struse(sh.strbuf),NV_RDONLY);
+	}
 }
 
 /*

@@ -161,7 +161,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 	if (av == TV_TOUCH_RETAIN)
 	{
 		ts[0].tv_sec = st.st_atime;
-		ts[0].tv_nsec = ST_ATIME_NSEC_GET(&st);
+		ts[0].tv_nsec = (long)ST_ATIME_NSEC_GET(&st);
 	}
 	else
 	{
@@ -190,7 +190,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 	if (av == TV_TOUCH_RETAIN)
 	{
 		am[0].tv_sec = st.st_atime;
-		am[0].tv_usec = ST_ATIME_NSEC_GET(&st) / 1000;
+		am[0].tv_usec = (suseconds_t)(ST_ATIME_NSEC_GET(&st) / 1000);
 	}
 	else
 	{
@@ -200,7 +200,7 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 	if (mv == TV_TOUCH_RETAIN)
 	{
 		am[1].tv_sec = st.st_mtime;
-		am[1].tv_usec = ST_MTIME_NSEC_GET(&st) / 1000;
+		am[1].tv_usec = (suseconds_t)(ST_MTIME_NSEC_GET(&st) / 1000);
 	}
 	else
 	{

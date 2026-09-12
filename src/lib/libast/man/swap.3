@@ -1,54 +1,20 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH SWAP 3
 .SH NAME
 swap \- integral representation conversion routines
 .SH SYNOPSIS
-.L "#include <swap.h>"
+.nf
+.ft CR
+#include <swap.h>
 .sp
-.L "ssize_t swapop(const void* internal, const void* external, ssize_t width);
+ssize_t swapop(const void* \fIinternal\fP, const void* \fIexternal\fP, ssize_t \fIwidth\fP);
 .br
-.L "intmax_t swapget(int op, const void* from, size_t width);"
+intmax_t swapget(int \fIop\fP, const void* \fIfrom\fP, size_t \fIwidth \fP);
 .br
-.L "void* swapput(int op, void* to, size_t width, intmax_t value);"
+void* swapput(int \fIop\fP, void* \fIto\fP, size_t \fIwidth\fP, intmax_t \fIvalue\fP);
 .br
-.L "void* swapmem(int op, const void* from, void* to, size_t n);"
+void* swapmem(int \fIop\fP, const void* \fIfrom\fP, void* \fIto\fP, size_t \fIn\fP);
+.ft
+.fi
 .SH DESCRIPTION
 These routines convert integral constants between internal and
 external representations.
@@ -57,81 +23,81 @@ New binary data representations should use the compact canonical form
 provided by the
 .IR sfio (3)
 routines
-.L sfputu
+\f[CB]sfputu\fP
 and
-.LR sgetu .
+\f[CB]sgetu\fR.
 .PP
-.L swapop
+\f[CB]swapop\fP
 returns the swap operation required to convert the
-.L width
+.I width
 byte integer
-.L external
+.I external
 to the
-.L width
+.I width
 byte integer
-.LR internal .
+.IR internal .
 The swap operation is a bit mask:
 .TP
-.L 0
+\f[CB]0\fP
 No swapping necessary.
 .TP
-.L 1
+\f[CB]1\fP
 Swap byte
-.L 0
+\f[CB]0\fP
 with byte
-.LR 1 .
+\f[CB]1\fR.
 .TP
-.L 2
+\f[CB]2\fP
 Swap bytes
-.L 0
+\f[CB]0\fP
 and
-.L 1
+\f[CB]1\fP
 with bytes
-.L 2
+\f[CB]2\fP
 and
-.LR 3 .
+\f[CB]3\fR.
 .TP
-.L 4
+\f[CB]4\fP
 Swap bytes
-.L 0-3
+\f[CB]0-3\fP
 with bytes
-.LR 4-7 ,
+\f[CB]4-7\fR,
 and so on.
 The largest native integral type is defined by the type
-.L intmax_t
+\f[CB]intmax_t\fP
 from the header
-.LR <ast.h> .
+\f[CB]<ast.h>\fR.
 .PP
-.L swapget
+\f[CB]swapget\fP
 returns the
-.L width
+.I width
 byte integer in the buffer
-.LR from ,
+.IR from ,
 swapped according to
-.LR op .
+.IR op .
 .PP
-.L swapput
+\f[CB]swapput\fP
 copies the
-.L width
+.I width
 byte integer
-.L value
+.I value
 into the buffer
-.LR to ,
+.IR to ,
 swapped according to
-.LR op .
-.L to
+.IR op .
+.I to
 is returned.
 .PP
-.L swapmem
+\f[CB]swapmem\fP
 swaps
-.L n
+\f[CB]n\fP
 bytes from the buffer
-.L from
+.I from
 to the buffer
-.L to
+.I to
 according to
-.LR op .
-.L to
+.IR op .
+.I to
 and
-.L from
+.I from
 may be the same.

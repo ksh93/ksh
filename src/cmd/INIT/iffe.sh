@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2026-08-27
+version=2026-09-08
 
 # DEFPATH should be inherited from package(1), but just in case...
 case $DEFPATH in
@@ -2794,9 +2794,17 @@ int x;
 								# over, to bump the timestamp even if the results haven't changed
 								case $x in
 								${dir}[\\/]$cur)
-									test -d $dir || mkdir $dir || exit ;;
+									# mamake may run multiple iffes in parallel, so
+									# "mkdir FEATURE" may lose a race; tolerate this
+									test -d $dir || mkdir $dir || test -d $dir || {
+										echo "$command: $dir: cannot create directory" >&$stderr
+										exit 1
+									}
 								esac
-								mv -f $tmp.h $x || exit
+								mv -f $tmp.h $x >&$stderr || {
+									echo "$command: $x: cannot create file" >&$stderr
+									exit 1
+								}
 								;;
 							esac
 							;;

@@ -1,50 +1,13 @@
-.fp 5 B
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH REGEX 3
 .SH NAME
 regex \- regular expression interface
 .SH SYNOPSIS
-.EX
+.nf
+.ft CR
 #include <regex.h>
 
-int         regcomp(regex_t* \fIre\fP, const char* \fIregex\fP, int \fIcflags\fP);
-int         regexec(const regex_t* \fIre\fP, const char* \fIstring\fP, size_t \fInmatch\fP, regmatch_t \fIpmatch\fP[], int \fIeflags\fP);
+int         regcomp(regex_t* \fIre\fP, const char* \fIpattern\fP, regflags_t \fIcflags\fP);
+int         regexec(const regex_t* \fIre\fP, const char* \fIstring\fP, size_t \fInmatch\fP, regmatch_t \fIpmatch\fP[], regflags_t \fIeflags\fP);
 cold size_t regerror(int \fIcode\fP, const regex_t* \fIre\fP, char* \fIerrbuf\fP, size_t \fIerrbuf_size\fP);
 void        regfree(regex_t* \fIre\fP);
 
@@ -61,17 +24,20 @@ cold void   regfatal(regex_t* \fIre\fP, int \fIlevel\fP, int \fIcode\fP);
 cold void   regfatalpat(regex_t* \fIre\fP, int \fIlevel\fP, int \fIcode\fP, const char* \fIpattern\fP);
 
 int         regsubcomp(regex_t* \fIre\fP, const char* \fIstr\fP, const regflags_t* \fImap\fP, int \fIminmatch\fP, regflags_t \fIflags\fP);
-int         regsubexec(const regex_t* \fIre\fP, const char* \fIsubject\fP, size_t \fInmatch\fP, regmatch_t* match);
+int         regsubexec(const regex_t* \fIre\fP, const char* \fIsubject\fP, size_t \fInmatch\fP, regmatch_t* \fImatch\fP);
 int         regsubflags(regex_t* \fIre\fP, const char* \fIstr\fP, char** \fIend\fP, int \fIdelim\fP, const regflags_t* \fImap\fP, int* \fIpm\fP, regflags_t* \fIpf\fP);
 void        regsubfree(regex_t* \fIre\fP);
-.EE
+
+void        regalloc(void* \fIhandle\fP, regresize_t \fIresizef\fP, regflags_t \fIflags\fP);
+.ft
+.fi
 
 .SH DESCRIPTION
-.LR regcomp() ,
-.LR regexec() ,
-.LR regerror() ,
+\f[CB]regcomp\fP,
+\f[CB]regexec\fP,
+\f[CB]regerror\fP,
 and
-.L regfree()
+\f[CB]regfree\fP
 are the POSIX regular expression functions.
 The remaining functions are
 .B AST
@@ -80,78 +46,574 @@ extensions.
 also provides
 .I flags
 extensions to the
-.LR regcomp() ,
-.LR regexec()
+\f[CB]regcomp\fP,
+\f[CB]regexec\fP
 functions and
 .I code
 extensions to the
-.L regerror()
+\f[CB]regerror\fP
 function.
-
 .PP
-.L regcache()
+\f[CB]regcomp\fP
+compiles the regular expression
+.I pattern
+into the
+.B regex_t
+structure pointed to by
+.IR re .
+.I cflags
+is the inclusive-or of the compilation flags below.
+0 is returned on success, otherwise a
+.B REG_*
+error code.
+.PP
+\f[CB]regexec\fP
+matches the compiled expression
+.I re
+against the 0-terminated
+.IR string .
+If
+.I nmatch
+is not 0 and the
+\f[CB]REG_NOSUB\fP
+flag was not set at compile time, then the match offsets of the entire
+match and up to
+.IR "re->re_nsub"
+subexpression matches are stored in
+.IR pmatch ,
+whose elements have type:
+.nf
+.ft CR
+
+typedef struct
+{
+	regoff_t	rm_so;	/* offset of match start	*/
+	regoff_t	rm_eo;	/* offset of match end		*/
+} regmatch_t;
+.ft
+.fi
+.PP
+.I eflags
+is the inclusive-or of the execution flags below.
+0 is returned on match,
+\f[CB]REG_NOMATCH\fP
+if there is no match, otherwise a
+.B REG_*
+error code.
+.PP
+\f[CB]regnexec\fP
+is like
+\f[CB]regexec\fP
+except that the
+.I subject
+string is not 0-terminated; its length is given by
+.IR size .
+.PP
+\f[CB]regerror\fP
+formats a message describing the error
+.I code
+returned by
+\f[CB]regcomp\fP
+or
+\f[CB]regexec\fP
+(with the context
+.IR re )
+into the buffer
+.I errbuf
+of size
+.IR errbuf_size ,
+and returns the full message size including the terminating 0 (which may
+exceed
+.IR errbuf_size ,
+in which case the message is truncated).
+If
+.I errbuf_size
+is 0 then
+.I errbuf
+is not referenced.
+.PP
+\f[CB]regfree\fP
+releases the resources associated with
+.IR re .
+Do not call it on a
+.B regex_t
+returned by
+\f[CB]regcache\fP;
+use
+\f[CB]regsubfree\fP
+to release
+\f[CB]regsubcomp\fP
+substitution data.
+
+.SS "Compilation flags"
+.TP
+\f[CB]REG_AUGMENTED\fP
+Enable the
+.BR ! ,
+.B &
+and
+.B < >
+augmented operators.
+.TP
+\f[CB]REG_EXTENDED\fP
+Enable extended
+.BR ( | )
+syntax (POSIX ERE).
+.TP
+\f[CB]REG_ICASE\fP
+Ignore case in match.
+.TP
+\f[CB]REG_NEWLINE\fP
+.B ^
+and
+.B $
+match embedded newlines; a non-matching list
+.B [^...]
+does not match newline.
+.TP
+\f[CB]REG_NOSUB\fP
+Do not report subexpression match offsets.
+.TP
+\f[CB]REG_SHELL\fP
+Interpret the pattern as a shell pattern.
+.TP
+\f[CB]REG_LEFT\fP
+The pattern is implicitly anchored on the left, as if preceded by
+.BR ^ .
+.TP
+\f[CB]REG_RIGHT\fP
+The pattern is implicitly anchored on the right, as if followed by
+.BR $ .
+.TP
+\f[CB]REG_LITERAL\fP
+The pattern contains no operators.
+.TP
+\f[CB]REG_MINIMAL\fP
+Repetitions match the minimum number of occurrences.
+.TP
+\f[CB]REG_NULL\fP
+Allow null (empty) patterns.
+.TP
+\f[CB]REG_LENIENT\fP
+Look the other way on some syntax errors.
+.TP
+\f[CB]REG_ESCAPE\fP
+.B \e
+escapes the delimiter inside
+.BR [...] .
+.TP
+\f[CB]REG_CLASS_ESCAPE\fP
+.B \e
+escapes are recognized inside
+.BR [...] .
+.TP
+\f[CB]REG_FIRST\fP
+The first match found will do; do not search for a longer one.
+.TP
+\f[CB]REG_MULTIPLE\fP
+The pattern is a list of newline-separated patterns.
+.TP
+\f[CB]REG_DISCIPLINE\fP
+The
+.I re->re_disc
+discipline field is valid.
+.TP
+\f[CB]REG_SPAN\fP
+.B .
+matches newline.
+.TP
+\f[CB]REG_COMMENT\fP
+Ignore unescaped space and
+.BR # ... \en
+comments in the pattern.
+.TP
+\f[CB]REG_MULTIREF\fP
+Allow multiple-digit backreferences.
+.TP
+\f[CB]REG_DELIMITED\fP
+The first character of the pattern is the delimiter.
+.TP
+\f[CB]REG_MUSTDELIM\fP
+All delimiters are required with
+\f[CB]REG_DELIMITED\fP.
+.TP
+\f[CB]REG_REGEXP\fP
+.BR <regexp.h>
+compatibility.
+.TP
+\f[CB]REG_SHELL_DOT\fP
+Leading
+.B .
+must match an explicit
+.BR . .
+.TP
+\f[CB]REG_SHELL_ESCAPED\fP
+.B \e
+is not special.
+.TP
+\f[CB]REG_SHELL_GROUP\fP
+.BR ( | & )
+are special only inside
+.BR [@|&](...) .
+.TP
+\f[CB]REG_SHELL_PATH\fP
+.B /
+must match an explicit
+.BR / .
+
+.SS "Execution flags"
+.TP
+\f[CB]REG_NOTBOL\fP
+The
+.B ^
+character is not special (will not match the beginning of a line).
+.TP
+\f[CB]REG_NOTEOL\fP
+The
+.B $
+character is not special (will nto match the end of a line).
+.TP
+\f[CB]REG_INVERT\fP
+Invert the match sense.
+.TP
+\f[CB]REG_STARTEND\fP
+The subject range is given by
+.IR match [0].rm_so
+through
+.IR match [0].rm_eo.
+.TP
+\f[CB]REG_ADVANCE\fP
+Advance
+.IR match [0].rm_so
+and
+.IR match [0].rm_eo
+past the match for the next
+\f[CB]regnexec\fP
+call.
+
+.SS "Error codes"
+The
+.B REG_*
+error codes returned by
+\f[CB]regcomp\fP,
+\f[CB]regexec\fP
+and described by
+\f[CB]regerror\fP
+are:
+\f[CB]REG_ENOSYS\fP (\-1, not supported),
+\f[CB]REG_NOMATCH\fP (no match),
+\f[CB]REG_BADPAT\fP (invalid regular expression),
+\f[CB]REG_ECOLLATE\fP (invalid collation element),
+\f[CB]REG_ECTYPE\fP (invalid character class),
+\f[CB]REG_EESCAPE\fP (trailing \e in pattern),
+\f[CB]REG_ESUBREG\fP (invalid backreference),
+\f[CB]REG_EBRACK\fP (\f[CB][]\fP imbalance),
+\f[CB]REG_EPAREN\fP (\f[CB]()\fP imbalance),
+\f[CB]REG_EBRACE\fP (\f[CB]{}\fP imbalance),
+\f[CB]REG_BADBR\fP (invalid \f[CB]{}\fP digits),
+\f[CB]REG_ERANGE\fP (invalid range endpoint),
+\f[CB]REG_ESPACE\fP (out of memory),
+\f[CB]REG_BADRPT\fP (unary operator not preceded by expression),
+\f[CB]REG_ENULL\fP (empty subexpression),
+\f[CB]REG_ECOUNT\fP (component count overflow),
+\f[CB]REG_BADESC\fP (invalid \e escape),
+\f[CB]REG_VERSIONID\fP (version ID pseudo error),
+\f[CB]REG_EFLAGS\fP (flags conflict),
+\f[CB]REG_EDELIM\fP (invalid or omitted delimiter),
+\f[CB]REG_PANIC\fP (unrecoverable internal error).
+
+.SS "AST extension functions"
+.TP
+\f[CB]regcache\fP
 maintains a cache of compiled regular expressions for patterns of size
 255 bytes or less.
 The initial cache size is 8.
-.L pattern
+.I pattern
 and
-.L flags
+.I flags
 are passed to
-.L regcomp()
+\f[CB]regcomp\fP
 with an
-.L re
+.I re
 pointer maintained by
-.LR regcache() .
-.LR pcode ,
+\f[CB]regcache\fP.
+.IR pcode ,
 if not 0, points to the return value of the
-.L regcomp()
+\f[CB]regcomp\fP
 call.
 If the
-.L regcomp()
+\f[CB]regcomp\fP
 call fails,
-.L regcache()
+\f[CB]regcache\fP
 returns 0 and
-.L pcode
+.I pcode
 will point to the non-zero error code.
 Do not call
-.L regfree()
+\f[CB]regfree\fP
 on the
-.L re
+.I re
 returned by
-.LR regcache() .
+\f[CB]regcache\fP.
 Both
-.L pattern
+.I pattern
 and
-.L flags
+.I flags
 are used to match entries in the cache.
 When the cache is full the least recently used
-.L re
+.I re
 is freed (via
-.LR regfree() )
+\f[CB]regfree\fP)
 to make space for the new pattern.
 Any
-.L re
+.I re
 previously returned by
-.L regcache()
+\f[CB]regcache\fP
 may be freed (invalidated) on the next call to
-.LR regcache() .
+\f[CB]regcache\fP.
 If
-.L pattern
+.I pattern
 is longer that 255 bytes then it is still passed on to
-.LR regcomp() ,
+\f[CB]regcomp\fP,
 but it will not be cached.
 If
-.L pattern
+.I pattern
 is 0 then the cache is flushed.
 In addition, if the integer value of
-.L flags
+.I flags
 is greater than the current cache size, the cache size is increased
 to that integer value.
 0 is always returned when
-.L pattern
+.I pattern
 is 0;
-.L pcode
+.I pcode
 will point to a non-zero value on error.
+.TP
+\f[CB]regclass\fP
+returns the standard
+.BR [: class :]
+function for the class name in
+.IR str ,
+or 0 if the name is not a standard class.
+If
+.I end
+is not 0 then it points to the first character after the class name on return.
+.TP
+\f[CB]regaddclass\fP
+adds the user-defined character class
+.I name
+with classification function
+.I classf
+to the class table.
+The function is called as
+.IB classf ( c )
+and returns non-zero if the character
+.I c
+is in the class.
+The class may then be referenced as
+.BI [: name :] .
+0 is returned on success, \-1 on error.
+.TP
+\f[CB]regcollate\fP
+converts the collating symbol
+.B [.x.]
+or equivalence class
+.B [=x=]
+starting at
+.I str
+to its native collation value.
+The value, which may be a multi-character collation element, is placed in
+the buffer
+.I buf
+of size
+.IR size ,
+and if
+.I wchar
+is not 0 the corresponding wide character is stored in
+.IR *wchar .
+If
+.I end
+is not 0 then it points to the first unparsed character on return.
+The collation element length is returned on success, \-1 on error.
+.TP
+\f[CB]regstat\fP
+returns a pointer to the
+.B regstat_t
+statistics for the compiled expression
+.IR re :
+.nf
+.ft CR
+
+typedef struct
+{
+	regflags_t	re_flags;	/* REG_* flags			*/
+	ssize_t		re_min;		/* min anchored match length	*/
+	ssize_t		re_max;		/* max anchored match length	*/
+	regflags_t	re_info;	/* REG_* info			*/
+} regstat_t;
+.ft
+.fi
+.TP
+\f[CB]regfatal\fP
+calls the
+\f[CB]regerror_t\fP
+error function of the
+.I re
+discipline with the given
+.I level
+and
+.IR code .
+\f[CB]regfatalpat\fP
+also passes the offending
+.IR pattern .
+.TP
+\f[CB]regsubcomp\fP
+compiles the
+.BR ed (1)-style
+substitution
+.I str
+for the expression
+.IR re .
+If
+.I map
+is not 0 then it is a 256-entry table mapping delimiter characters to
+\f[CB]REG_SUB_*\fP
+flags.
+.I minmatch
+is the minimum number of matches required for the substitution to apply.
+.I flags
+is the inclusive-or of
+\f[CB]REG_SUB_*\fP
+flags.
+0 is returned on success, otherwise a
+.B REG_*
+error code.
+.TP
+\f[CB]regsubexec\fP
+applies the substitution compiled by
+\f[CB]regsubcomp\fP
+to
+.IR subject ,
+using the
+.I nmatch
+match offsets in
+.IR match .
+The substituted result is placed in
+.IR re->re_sub->re_buf ,
+whose length is stored in
+.IR re->re_sub->re_len .
+0 is returned on success, otherwise a
+.B REG_*
+error code.
+.TP
+\f[CB]regsubflags\fP
+parses the substitution option flags in
+.I str
+up to the delimiter
+.IR delim ,
+using
+.I map
+as for
+\f[CB]regsubcomp\fP.
+The resulting minimum match count and flags are stored in
+.I *pm
+and
+.I *pf
+if they are not 0, and
+.I *end
+points to the first unparsed character if
+.I end
+is not 0.
+0 is returned on success, otherwise a
+.B REG_*
+error code.
+.TP
+\f[CB]regsubfree\fP
+releases the substitution data associated with
+.I re
+by
+\f[CB]regsubcomp\fP.
+.TP
+\f[CB]regalloc\fP
+replaces the library memory (re)allocation function with
+.I resizef
+called with the given
+.IR handle .
+.I flags
+may include
+\f[CB]REG_NOFREE\fP
+to inhibit freeing.
+
+.SS "Substitution flags"
+.TP
+\f[CB]REG_SUB_ALL\fP
+Substitute all occurrences.
+.TP
+\f[CB]REG_SUB_LOWER\fP
+Substitute to lower case.
+.TP
+\f[CB]REG_SUB_UPPER\fP
+Substitute to upper case.
+.TP
+\f[CB]REG_SUB_LAST\fP
+Substitute the last occurrence.
+.TP
+\f[CB]REG_SUB_FULL\fP
+The substitution is fully delimited.
+.TP
+\f[CB]REG_SUB_USER\fP
+First user flag bit.
+
+.SS "Data structures"
+The
+.B regex_t
+structure contains the public fields:
+.I re_nsub
+(the number of parenthesized subexpressions),
+.I re_npat
+(the number of pattern characters used),
+.I re_disc
+(the
+\f[CB]REG_DISCIPLINE\fP
+discipline) and
+.I re_sub
+(the
+\f[CB]regsubcomp\fP
+data).
+The
+.B regdisc_t
+discipline structure contains
+.IR re_version ,
+.IR re_flags ,
+the error function
+.IR re_errorf ,
+the allocation function
+.IR re_resizef
+with handle
+.IR re_resizehandle ,
+the
+.BR (?{...})
+compile and execute functions
+.I re_compf
+and
+.IR re_execf ,
+and the external-to-native character code map
+.IR re_map .
+The
+.B reginit(\fIdisc\fP)
+macro initializes a
+.B regdisc_t
+discipline.
+The
+.B _REG_cache,
+.B _REG_class,
+.B _REG_collate,
+.B _REG_fatal,
+.B _REG_nexec,
+.B _REG_stat
+and
+.B _REG_subcomp
+feature macros are defined to 1 to indicate the presence of the
+corresponding functions.
 
 .SH "SEE ALSO"
-strmatch(3)
+.IR strmatch (3)
