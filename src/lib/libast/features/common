@@ -508,31 +508,6 @@ tst - note{ does this compiler have __builtin_expect() }end output{
 	echo '#define unlikely(x)	(!!(x))'
 }end
 
-tst - note{ does this compiler have __builtin_expect_with_probability() }end output{
-	#include <stdio.h>
-	int main(void)
-	{
-		int i = 2;
-		if(__builtin_expect_with_probability(i == 2, 1, 0.9))
-		{
-			switch(__builtin_expect_with_probability(i, 2, 0.99))
-			{
-				case 2:
-					printf("#undef expect\n");
-					printf("#define expect(x,y,z)\t__builtin_expect_with_probability((x), (y), (z))\n");
-					return 0;
-				default:
-					return 1;
-			}
-		}
-		else if(__builtin_expect_with_probability(i == -1, 0, 0.1))
-			return 1;
-	}
-}end fail{
-	echo '#undef expect'
-	echo '#define expect(x,y,z)	(x)'
-}end
-
 tst	has__Static_assert note{ does this compiler have _Static_assert }end execute{
 	int main(void)
 	{
