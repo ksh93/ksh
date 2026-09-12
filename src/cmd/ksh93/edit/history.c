@@ -70,7 +70,7 @@
 	char	histbuff[HIST_BSIZE+1];	/* history file buffer */ \
 	int	histwfail; \
 	_HIST_AUDIT \
-	off_t	histcmds[2];	/* offset for recent commands, must be last */
+	off_t	histcmds[];	/* offset for recent commands */
 
 #define hist_ind(hp,c)	((int)((c)&(hp)->histmask))
 
@@ -272,7 +272,7 @@ retry:
 		maxlines = HIST_DFLT;
 	for(histmask=16;histmask <= maxlines; histmask <<=1 );
 	histmask--;
-	hp = sh_calloc(1, sizeof(History_t) + (size_t)histmask * sizeof(off_t));
+	hp = sh_calloc(1, sizeof(History_t) + ((size_t)histmask + 2) * sizeof(off_t));
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
