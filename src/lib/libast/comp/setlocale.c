@@ -245,7 +245,7 @@ utf8_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	unsigned char	i, m, s;
 	uint32_t	w;
 
-	if (expect(!sp || !n || !(s = *sp), 1, 0.02))
+	if (unlikely(!sp || !n || !(s = *sp)))
 		return ast.mb.sync = 0;
 	if (s < 0x80)
 		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
@@ -290,7 +290,7 @@ utf8_bmi2_mbtowc(wchar_t *restrict wp, const char *restrict str, size_t n)
 	unsigned char	i, m, s;
 	uint32_t	w;
 
-	if (expect(!sp || !n || !(s = *sp), 1, 0.02))
+	if (unlikely(!sp || !n || !(s = *sp)))
 		return ast.mb.sync = 0;
 	if (s < 0x80)
 		return ascii_fallback(wp, s);  /* avoid table lookup for ASCII */
