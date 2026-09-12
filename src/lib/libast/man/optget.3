@@ -1,6 +1,6 @@
 .TH OPTGET 3
 .SH NAME
-optget \- option parse assist
+optget \- parse self-documenting command options
 .SH SYNOPSIS
 .nf
 .ft CR
@@ -52,17 +52,17 @@ and
 .BR <space> ,
 or character groups
 enclosed in
-.BR [...] .
+.BR [ ... ] .
 Character groups may be nested in
-.BR {...} .
+.BR { ... } .
 Outside of a
-.B [...]
+.B [ ... ]
 group, a single new-line followed by zero or
 more blanks is ignored. One or more blank lines separate the
 options from the command argument synopsis.
 .PP
 Each
-.B [...]
+.B [ ... ]
 group consists of an optional label,
 optional attributes separated by
 .BR : ,
@@ -108,7 +108,7 @@ output from the function whose name is that of the enclosed text.
 There are several group types:
 .IP 1.
 A group of the form
-.BI [-[ version ][ flag [ number ]]...[? text ]]
+.BI [-[ version ][ flag [ number ]]\f[R]...\f[B][? text ]]
 appearing as the first group enables the extended interface.
 .I version
 specifies the interface version, currently
@@ -246,8 +246,19 @@ the special attribute words
 .BR oneof ,
 and
 .BR ignorecase .
-A default option value may be specified in the final field as
+.IP
+A default option value that is used if the option is not given
+may be specified in the final field as
 .BI := default\fR.
+An option value that is used if the option is given without an option value
+may be specified in the final field as
+.BI != default\fR.
+Either or both types of default value may be specified;
+no separator is used when specifying both.
+Default option value specifications merely cause appropriate
+text to be appended to the option's self-documentation output;
+it is the caller's responsibility to act accordingly.
+.IP
 The option argument specification may be followed
 by a list of option value descriptions enclosed in braces.
 A long option that takes an argument is specified as
@@ -411,7 +422,9 @@ List the current
 .BI --??? name
 List
 .BI version= n\fR,
-.IR n >0,
+where
+.IR n >0
+is the current interface version,
 if the option
 .I name
 is recognized
@@ -539,7 +552,7 @@ Subsequent calls with the same
 continue parsing from the last position.
 0 is returned when the string is exhausted.
 .TP
-\f[CB]int optesc(Sfio_t* \fIsp\fP, const char* \fIstring\fP, int \fIflags\fP)\fP
+\f[CB]int optesc(Sfio_t* \fIsp\fP, const char* \fIstring\fP, int \fIesc\fP)\fP
 Writes
 .I string
 to the stream
@@ -549,14 +562,30 @@ escaping the
 metacharacters
 .B ]
 and, if
-.I flags
+.I esc
 is
-.B ?
+.B '?'
 or
-.BR : ,
-that character too, and wrapping option and keyword names in
+.BR ':' ,
+that character too.
+The function also wraps the following in
 .B \eb
-bold markers.
+bold markers:
+option names prefixed by
+.B \-
+or
+.BR \-\- ,
+keyword names enclosed in
+.BR < ... > ,
+and manual page references terminated by a digit in parentheses.
+The
+.B optesc
+function is useful for custom functions that dynamically generate option string
+self-documentation text and are invoked via
+.BR \ef ... \ef
+(see the
+.I DESCRIPTION
+section above).
 0 is returned.
 .TP
 \f[CB]Opt_t* optctx(Opt_t* \fIctx\fP, Opt_t* \fIoctx\fP)\fP
@@ -576,5 +605,9 @@ and releases
 \f[CB]optctx(NULL, \fP\fIctx\fP\f[CB])\fP
 releases
 .IR ctx .
+.SH BUGS
+.B optget
+suffers from a severe case of featuritis.
+This manual page is still far from complete.
 .SH "SEE ALSO"
 .IR getopts (1)
