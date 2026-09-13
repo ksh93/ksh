@@ -319,14 +319,6 @@ int  sh_histinit(void)
 			first = hist_nearend(hp,hp->histfp,hsize-size);
 			hp->histind = first;
 		}
-		if (hist_start <= 1)
-		{
-			hist_start = 1;
-			hp->histind = 1;
-			hp->histcnt = 2;
-			hp->histcmds[1] = 2;
-			sfseek(hp->histfp, 2, SEEK_SET);
-		}
 		histinit = hist_start;
 		hist_eof(hp);
 		if(!histinit)
