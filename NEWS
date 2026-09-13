@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-13:
+
+- Fixed a memory leak that occurred when converting an existing scalar
+  variable to an associative array using 'typeset -A'.
+
 2026-09-12:
 
 - Implemented advisory locking for $HISTFILE (~/.sh_history by default) so
