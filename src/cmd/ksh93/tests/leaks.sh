@@ -354,7 +354,7 @@ DO
 	PATH=/dev/null command true
 DONE
 
-TEST	title='set PATH attribute in main shell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='set PATH attribute in main shell'
 DO
 	typeset -A PATH
 	unset PATH
@@ -476,6 +476,24 @@ DO
 	printf -v jday '%(%j)T' "${date}"
 DONE
 unset date jday
+
+# ======
+# Converting any type of scalar variable to an associative array leaked the old scalar value.
+TEST	title='typeset -A on scalar variable'
+DO
+	tvar=loremipsum
+	typeset -A tvar
+	unset tvar
+	typeset -i tvar=42
+	typeset -A tvar
+	unset tvar
+	typeset -b tvar=abc
+	typeset -A tvar
+	unset tvar
+	typeset -F tvar=3.14159
+	typeset -A tvar
+	unset tvar
+DONE
 
 # ======
 exit $((Errors<125?Errors:125))

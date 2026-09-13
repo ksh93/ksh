@@ -995,7 +995,12 @@ Namarr_t *nv_setarray(Namval_t *np, void *(*fun)(Namval_t*,const char*,nvflag_t)
 		{
 			nv_putsub(np, "0", ARRAY_ADD);
 			if(value)
+			{
+				void *oldvalue = np->nvalue;
 				nv_putval(np, value, 0);
+				if(oldvalue && oldvalue!=Empty && oldvalue!=AltEmpty && !nv_isattr(np,NV_NOFREE))
+					free(oldvalue);
+			}
 			else
 			{
 				Namval_t *mp = (Namval_t*)((*fun)(np,NULL,NV_ACURRENT));
