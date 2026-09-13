@@ -320,6 +320,7 @@ static void nv_restore(struct subshell *sp)
 	Namval_t	*mp, *np;
 	Namval_t	*mpnext;
 	nvflag_t	flags;
+	char		nofree;
 	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
 	{
@@ -333,6 +334,7 @@ static void nv_restore(struct subshell *sp)
 			flags |= NV_MINIMAL;
 		if(nv_isarray(mp))
 			 nv_putsub(mp,NULL,ARRAY_SCAN);
+		nofree = mp->nvfun?mp->nvfun->nofree:0;
 		if(np->nvalue==Empty)
 		{
 			if(nv_isnull(mp) && !nv_isvtree(np))
@@ -352,18 +354,9 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
-		if(mp->nvfun && mp->nvfun!=np->nvfun)
-		{
-			/* Free the discipline chain being replaced below; cf. nv_clone() in nvdisc.c */
-			Namfun_t *fp, *fpnext;
-			for(fp=mp->nvfun; fp; fp=fpnext)
-			{
-				fpnext = fp->next;
-				if(!(fp->nofree&1))
-					free(fp);
-			}
-		}
 		mp->nvfun = np->nvfun;
+		if(np->nvfun && nofree)
+			np->nvfun->nofree = nofree;
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -374,6 +367,8 @@ static void nv_restore(struct subshell *sp)
 			nv_putval(mp,nv_getval(np),NV_RDONLY);
 		else
 			mp->nvalue = np->nvalue;
+		if(nofree && np->nvfun && !np->nvfun->nofree)
+			free(np->nvfun);
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
