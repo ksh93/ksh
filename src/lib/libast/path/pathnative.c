@@ -30,25 +30,12 @@
 #include <ast.h>
 
 #if __CYGWIN__
-
-extern void	cygwin_conv_to_win32_path(const char*, char*);
+#include <sys/cygwin.h>
 
 size_t
 pathnative(const char* path, char* buf, size_t siz)
 {
-	size_t		n;
-
-	if (!buf || siz < PATH_MAX)
-	{
-		char	tmp[PATH_MAX];
-
-		cygwin_conv_to_win32_path(path, tmp);
-		if ((n = strlen(tmp)) < siz && buf)
-			memcpy(buf, tmp, n + 1);
-		return n;
-	}
-	cygwin_conv_to_win32_path(path, buf);
-	return strlen(buf);
+	return cygwin_conv_path(CCP_POSIX_TO_WIN_A | CCP_ABSOLUTE, path, buf, siz);
 }
 
 #elif __INTERIX
