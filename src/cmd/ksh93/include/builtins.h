@@ -136,7 +136,6 @@ extern const char	e_badsyntax[];
 #if _cmd_universe
     extern const char	e_nouniverse[];
 #endif /* _cmd_universe */
-extern const char	e_histopen[];
 extern const char	e_condition[];
 extern const char	e_badrange[];
 extern const char	e_trap[];
