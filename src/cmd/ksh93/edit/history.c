@@ -221,7 +221,7 @@ int  sh_histinit(void)
 		/* open a temporary history file */
 		if (!(tempname = pathtemp(NULL, 0, NULL, "hist", &fd)))
 			goto initfail;
-		/* unlink early and keep open (this fails on some systems; tell user to clean up manually then) */
+		/* unlink early and keep open (this fails on some systems; tell user where temp file is for manual cleanup */
 		if (unlink(tempname) < 0)
 			errormsg(SH_DICT, ERROR_warn(0), e_histtemp, tempname);
 		free(tempname);
@@ -510,6 +510,14 @@ static void hist_trim(History_t *hp, int n)
 	histinit = index;
 	return;
 trimfail:
+	if (started_copyback)
+	{
+		/* write error while copying back: tell user where temp file is left (the only good copy now) */
+		errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
+		errormsg(SH_DICT, ERROR_warn(0), e_histtemp, tmpname);
+	}
+	else
+		errormsg(SH_DICT, ERROR_warn(0), e_histtrim, hp->histname);
 	if (hist_tmp)
 		sfclose(hist_tmp);
 	if (tmpname)
@@ -518,10 +526,6 @@ trimfail:
 			unlink(tmpname);
 		free(tmpname);
 	}
-	if (started_copyback)
-		errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
-	else
-		errormsg(SH_DICT, ERROR_warn(0), e_histtrim, hp->histname);
 }
 
 /*
