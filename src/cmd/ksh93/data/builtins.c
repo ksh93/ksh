@@ -1167,7 +1167,7 @@ const char sh_optlet[]	=
 ;
 
 const char sh_optprint[] =
-"[-1c?\n@(#)$Id: print (ksh 93u+m) 2022-09-26 $\n]"
+"[-1c?\n@(#)$Id: print (ksh 93u+m) 2026-09-12 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?print - write arguments to standard output]"
 "[+DESCRIPTION?By default, \bprint\b writes each \astring\a operand to "

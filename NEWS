@@ -4,6 +4,18 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-09-12:
 
+- Implemented advisory locking for $HISTFILE (~/.sh_history by default) so
+  that multiple ksh instances can write to the history file without risking
+  data loss when one of them decides to trim the file. Note that ksh
+  versions before 2026-09-12 will ignore the lock, so the risk continues to
+  exist if an older ksh binary shares write access to the file.
+
+- History file trimming no longer requires write access to the directory in
+  which the history file resides and will no longer change the directory's
+  last-modified timestamp. However, it now requires a usable /tmp or $TMPDIR.
+
+- I/O errors while writing to the history file are no longer silently ignored.
+
 - Fixed a possible crash when attempting to set an integer variable to a
   multibyte character.
 
