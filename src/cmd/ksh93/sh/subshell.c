@@ -40,6 +40,15 @@
 #   define PIPE_BUF	512
 #endif
 
+/*
+ * Namfun_t.nofree bit used privately within nv_restore() (below) to mark a
+ * discipline node as one that nv_restore() itself put in place of a node's
+ * previous nvfun and therefore exclusively owns and may safely free once it
+ * is superseded again. This must not collide with the bits used elsewhere
+ * (1 and 2, cf. nvdisc.c and grep -rw nofree).
+ */
+#define NV_RESTORE_OWNED	4
+
 struct Link
 {
 	struct Link	*next;
@@ -354,6 +363,22 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
+		/*
+		 * mp->nvfun (the live node's current discipline struct, e.g. a PATH/FPATH/
+		 * SHELL/ENV RESTRICTED_disc clone made by sh_assignok/nv_clone on entry to
+		 * this subshell) is about to be superseded below by the chain saved in
+		 * np->nvfun. Free the outgoing node first to avoid leaking it -- but only
+		 * if it is marked with NV_RESTORE_OWNED, i.e., it was itself put there by
+		 * a previous run of this same block (see below). This excludes nodes that
+		 * are statically allocated (e.g. the original RESTRICTED_disc instances in
+		 * sh.init_context, using nofree bit 1) or not exclusively owned by this
+		 * node (e.g. Nambfun_t for a user-defined "name.set" etc. discipline
+		 * function, using nofree bit 2); such nodes must never be freed here, and
+		 * since nofree is copied as-is by nv_clone_disc() and by the transfer
+		 * below, they never end up marked NV_RESTORE_OWNED either.
+		 */
+		if(mp->nvfun && mp->nvfun!=np->nvfun && (mp->nvfun->nofree&NV_RESTORE_OWNED))
+			free(mp->nvfun);
 		mp->nvfun = np->nvfun;
 		if(np->nvfun && nofree)
 			np->nvfun->nofree = nofree;
@@ -369,6 +394,9 @@ static void nv_restore(struct subshell *sp)
 			mp->nvalue = np->nvalue;
 		if(nofree && np->nvfun && !np->nvfun->nofree)
 			free(np->nvfun);
+		else if(mp->nvfun==np->nvfun && np->nvfun)
+			/* mark as a node nv_restore() itself allocated and exclusively owns, cf. above */
+			np->nvfun->nofree |= NV_RESTORE_OWNED;
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{

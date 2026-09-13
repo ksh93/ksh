@@ -390,7 +390,7 @@ DO
 	(readonly PATH)
 DONE
 
-TEST	title='unset PATH in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='unset PATH in subshell'
 DO
 	(unset PATH)
 DONE
