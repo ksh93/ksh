@@ -2,6 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-13:
+
+- Fixed several memory leaks (#405):
+  - Converting a scalar variable to an associative array via 'typeset -A'
+    leaked the old scalar value, for any value type.
+  - Changing the value or attributes of PATH, FPATH, SHELL or ENV inside a
+    virtual subshell (e.g. by assignment, 'readonly' or 'unset') leaked
+    memory once the subshell exited and the variable was restored in the
+    invoking shell.
+
 2026-09-12:
 
 - Fixed a possible crash when attempting to set an integer variable to a

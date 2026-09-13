@@ -375,7 +375,7 @@ DO
 	(hash -r)
 DONE
 
-TEST	title='set PATH value in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='set PATH value in subshell'
 DO
 	(PATH=/dev/null)
 DONE
@@ -385,7 +385,7 @@ DO
 	(PATH=/dev/null command true)
 DONE
 
-TEST	title='set PATH attribute in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='set PATH attribute in subshell'
 DO
 	(readonly PATH)
 DONE

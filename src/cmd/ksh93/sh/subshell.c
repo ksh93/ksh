@@ -330,6 +330,7 @@ static void nv_restore(struct subshell *sp)
 	Namval_t	*mpnext;
 	nvflag_t	flags;
 	char		nofree;
+	char		fresh_disc;
 	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
 	{
@@ -380,6 +381,22 @@ static void nv_restore(struct subshell *sp)
 		if(mp->nvfun && mp->nvfun!=np->nvfun && (mp->nvfun->nofree&NV_RESTORE_OWNED))
 			free(mp->nvfun);
 		mp->nvfun = np->nvfun;
+		/*
+		 * Record whether np->nvfun is a freshly-allocated, exclusively-owned
+		 * node (nofree entirely 0, e.g. one made by nv_clone_disc() for
+		 * sh_assignok()'s COPY-mode clone) before the next line -- kept from
+		 * an older, unrelated fix (commit 2c22ace1, "Fix LINENO after
+		 * unsetting it in a virtual subshell") -- gets a chance to overwrite
+		 * its nofree value. That overwrite is needed so an aliased (not
+		 * cloned) discipline chain shared between mp and np without ever
+		 * being reallocated (e.g. LINENO's) keeps a consistent nofree value;
+		 * but for a genuinely independent clone, blindly copying over an
+		 * unrelated nofree value (e.g. bit 1, from the formerly live
+		 * discipline this one is replacing) would corrupt its ownership
+		 * tracking below, marking it both never-free and NV_RESTORE_OWNED
+		 * at once and causing an invalid free() on the next restore.
+		 */
+		fresh_disc = np->nvfun && !np->nvfun->nofree;
 		if(np->nvfun && nofree)
 			np->nvfun->nofree = nofree;
 		if(nv_isattr(np,NV_IDENT))
@@ -389,14 +406,37 @@ static void nv_restore(struct subshell *sp)
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
 		if(nv_enforcedisc(mp))
+		{
+			/*
+			 * nv_putval() below always makes its own copy of the value (it is
+			 * called with NV_RDONLY, i.e., the passed value is borrowed, not
+			 * adopted), so unlike the plain assignment in the 'else' branch,
+			 * the snapshot's own value buffer (np->nvalue, captured here raw,
+			 * i.e. before nv_getval() may synthesize an unrelated string
+			 * representation for numeric types) is superseded and would leak
+			 * unless freed. Guarded the same way as the analogous fix in
+			 * nv_setarray() (array.c): skip sentinels and values not
+			 * exclusively owned by the snapshot (NV_NOFREE), and skip the
+			 * case where nv_putval() ends up reusing the same pointer.
+			 */
+			char *oldval = np->nvalue;
 			nv_putval(mp,nv_getval(np),NV_RDONLY);
+			if(oldval && oldval!=Empty && oldval!=AltEmpty && oldval!=mp->nvalue && !nv_isattr(np,NV_NOFREE))
+				free(oldval);
+		}
 		else
 			mp->nvalue = np->nvalue;
 		if(nofree && np->nvfun && !np->nvfun->nofree)
 			free(np->nvfun);
-		else if(mp->nvfun==np->nvfun && np->nvfun)
-			/* mark as a node nv_restore() itself allocated and exclusively owns, cf. above */
-			np->nvfun->nofree |= NV_RESTORE_OWNED;
+		else if(fresh_disc && mp->nvfun==np->nvfun && np->nvfun)
+			/*
+			 * Mark as a node nv_restore() itself allocated and exclusively
+			 * owns, cf. above. Set (not OR) the value: fresh_disc means
+			 * nofree was 0 before the propagation above, so any bits it
+			 * carries now came from that unrelated propagated value and
+			 * must be discarded, not combined with NV_RESTORE_OWNED.
+			 */
+			np->nvfun->nofree = NV_RESTORE_OWNED;
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
