@@ -581,6 +581,7 @@ static void put_seconds(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp
 		dp = np->nvalue = sh_malloc(sizeof(double));
 	}
 	nv_putv(np, val, flags, fp);
+	dp = np->nvalue; /* update */
 	d = *dp;
 	timeofday(&tp);
 	*dp = dtime(&tp)-d;

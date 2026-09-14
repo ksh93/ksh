@@ -310,6 +310,79 @@ void sh_assignok(Namval_t *np,int add)
 }
 
 /*
+ * Helper for nv_restore() to restore a variable with a default discipline.
+ * These need to be restored via nv_putval() so their disciplines restore state.
+ *
+ * mp: variable to restore into
+ * np: copy to restore from (was saved by sh_assignok())
+ */
+static inline void nv_restore_specialvar(Namval_t *mp, Namval_t *np)
+{
+	void *val;
+	nvflag_t np_flags = np->nvflag;
+	int mp_freeable = !nv_isattr(mp, NV_NOFREE);
+	if (np_flags & NV_INTEGER)
+	{
+		/* For numeric types, re-use attribute logic from nv_putval. */
+		Sfdouble_t ld = nv_getnum(np);
+		if ((np_flags & NV_DOUBLE) == NV_DOUBLE)
+		{
+			if ((np_flags & NV_LONG) && sizeof(double) < sizeof(Sfdouble_t))
+			{
+				val = sh_malloc(sizeof(Sfdouble_t));
+				*((Sfdouble_t*)val) = ld;
+			}
+			else
+			{
+				val = sh_malloc(sizeof(double));
+				*((double*)val) = (double)ld;
+			}
+		}
+		else
+		{
+			if (np_flags & NV_LONG)
+			{
+				val = sh_malloc(sizeof(Sflong_t));
+				if (np_flags & NV_UNSIGN)
+					*((Sfulong_t*)val) = (Sfulong_t)ld;
+				else
+					*((Sflong_t*)val) = (Sflong_t)ld;
+			}
+			else if (np_flags & NV_SHORT)
+			{
+				val = sh_malloc(sizeof(int16_t));
+				if (np_flags & NV_UNSIGN)
+					*((uint16_t*)val) = (uint16_t)ld;
+				else
+					*((int16_t*)val) = (int16_t)ld;
+			}
+			else
+			{
+				val = sh_malloc(sizeof(int32_t));
+				if (np_flags & NV_UNSIGN)
+					*((uint32_t*)val) = (uint32_t)ld;
+				else
+					*((int32_t*)val) = (int32_t)ld;
+			}
+		}
+	}
+	else
+		val = nv_getval(np);
+	nv_putval(mp, val, NV_RDONLY|NV_NOFREE|np_flags);
+	/*
+	 * Passing NV_NOFREE to nv_putval: (1) avoids creating a new copy
+	 * of val; (2) sets NV_NOFREE in the node. We only want (1) here.
+	 */
+	if (mp_freeable)
+		nv_offattr(mp, NV_NOFREE);
+	/*
+	 * Some disciplines may still create a newly allocated value.
+	 */
+	if (np->nvalue != mp->nvalue && !nv_isattr(np, NV_NOFREE))
+		free(np->nvalue);
+}
+
+/*
  * restore the variables
  */
 static void nv_restore(struct subshell *sp)
@@ -362,7 +435,7 @@ static void nv_restore(struct subshell *sp)
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
 		if(nv_enforcedisc(mp))
-			nv_putval(mp,nv_getval(np),NV_RDONLY);
+			nv_restore_specialvar(mp, np);
 		else
 			mp->nvalue = np->nvalue;
 		if(nofree && np->nvfun && !np->nvfun->nofree)

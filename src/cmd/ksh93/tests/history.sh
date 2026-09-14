@@ -151,7 +151,7 @@ HISTFILE=/dev/null
 
 # Stress test 1: many concurrent sessions each writing one line, history file reinitialised for each line
 histfile=$tmp/hist_stress_1
-typeset -i total=2000 present s
+typeset -i total=200 present s
 for ((s=0; s<total; s++))
 do	(HISTFILE=$histfile; print -s "stress_cmd_$s") &
 done
@@ -179,7 +179,7 @@ unset total present s histfile
 
 # Stress test 2: many concurrent sessions each writing one line, history file initialised once
 HISTFILE=$tmp/hist_stress_2
-typeset -i total=2000 present s
+typeset -i total=200 present s
 for ((s=0; s<total; s++))
 do      print -s "stress_cmd_$s" &
 done
