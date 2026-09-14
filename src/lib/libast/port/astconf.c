@@ -70,7 +70,7 @@
 #define CONF_GLOBAL	(CONF_USER<<3)
 
 #define DEFAULT(o)	((state.std||!dynamic[o].ast)?dynamic[o].std:dynamic[o].ast)
-#define INITIALIZE()	do{if(!state.data)synthesize(NULL,NULL,NULL,NULL);}while(0)
+#define INITIALIZE()	( state.data ? state.data : synthesize(NULL,NULL,NULL,NULL) )
 #define STANDARD(v)	(streq(v,"standard")||streq(v,"strict")||streq(v,"posix")||streq(v,"xopen"))
 
 #define MAXVAL		256
@@ -266,10 +266,10 @@ typedef struct State_s
 
 	/* default initialization from here down */
 
-	int		prefix;
 	int		synthesizing;
 
-	char*		data;
+	char*		data;		/* will be increased to point to value */
+	char*		data_start;	/* remains pointing to the allocation */
 	char*		last;
 
 	Feature_t*	recent;
@@ -337,13 +337,14 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		char*		se;
 		char*		de;
 		char*		ve;
+		ptrdiff_t	namelen;
 
-		state.prefix = (int)strlen(state.name) + 1;
-		n = state.prefix + 3 * MAXVAL;
+		namelen = (ptrdiff_t)strlen(state.name);
+		n = namelen + 1 + 3 * MAXVAL;
 		if ((s = getenv(state.name)) || getenv(state.strict) && (s = (char*)state.standard))
 			n += strlen(s) + 1;
 		n = roundof(n, 32);
-		if (!(state.data = newof(0, char, (size_t)n, 0)))
+		if (!(state.data_start = state.data = newof(0, char, (size_t)n, 0)))
 		{
 			if (conferror)
 				(*conferror)(&state, &state, 2, "synthesize(): out of memory");
@@ -351,7 +352,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		}
 		state.last = state.data + n - 1;
 		strcpy(state.data, state.name);
-		state.data += state.prefix - 1;
+		state.data += namelen;
 		*state.data++ = '=';
 		if (s)
 			strcpy(state.data, s);
@@ -450,20 +451,24 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 	{
 		ptrdiff_t c;
 		ptrdiff_t i;
+		ptrdiff_t val_offset;
+		char *newdata;
 
 		i = d - state.data;
-		state.data -= state.prefix;
 		c = n + state.last - state.data + 3 * MAXVAL;
 		c = roundof(c, 32);
-		if (!(state.data = newof(state.data, char, (size_t)c, 0)))
+		val_offset = state.data - state.data_start;
+		if (!(newdata = newof(state.data_start, char, (size_t)c, 0)))
 		{
 			if (conferror)
 				(*conferror)(&state, &state, 2, "synthesize(): out of memory");
-			return NULL;
+			free(state.data_start);
+			return state.data_start = state.data = NULL;
 		}
-		state.last = state.data + c - 1;
-		state.data += state.prefix;
+		state.last = newdata + c - 1;
+		state.data = newdata + val_offset;
 		d = state.data + i;
+		state.data_start = newdata;
 	}
 	if (d != state.data)
 		*d++ = ' ';
@@ -473,11 +478,11 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 	*d++ = ' ';
 	for (s = (char*)value; *d = *s++; d++);
 #if DEBUG_astconf
-	error(-7, "astconf synthesize %s", state.data - state.prefix);
+	error(-7, "astconf synthesize %s", state.data_start);
 #endif
-	setenviron(state.data - state.prefix);
+	setenviron(state.data_start);
 	if (state.notify)
-		(*state.notify)(NULL, NULL, state.data - state.prefix);
+		(*state.notify)(NULL, NULL, state.data_start);
 	n = s - (char*)value - 1;
  ok:
 	if (!(fp->flags & CONF_ALLOC))
@@ -1413,18 +1418,23 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			{
 				Ast_confdisc_f	notify;
 
-				free(state.data - state.prefix);
-				state.data = 0;
+				free(state.data_start);
+				state.data_start = state.data = NULL;
 				notify = state.notify;
 				state.notify = 0;
-				INITIALIZE();
+				if (!INITIALIZE())
+				{
+					state.notify = notify;
+					return NULL;
+				}
 				state.notify = notify;
 			}
 			return null;
 		}
 		value = 0;
 	}
-	INITIALIZE();
+	if (!INITIALIZE())
+		return NULL;
 	if (!path)
 		path = root;
 	if (state.recent && streq(name, state.recent->name) && (s = format(state.recent, path, value, (unsigned)flags, conferror)))
@@ -1530,7 +1540,8 @@ astconfdisc(Ast_confdisc_f new_notify)
 {
 	Ast_confdisc_f	old_notify;
 
-	INITIALIZE();
+	if (!INITIALIZE())
+		return NULL;
 	old_notify = state.notify;
 	state.notify = new_notify;
 	return old_notify;
@@ -1558,7 +1569,8 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 	Sfio_t*		pp;
 #endif
 
-	INITIALIZE();
+	if (!INITIALIZE())
+		return;
 	if (!path)
 		path = root;
 	else if (access(path, F_OK))
