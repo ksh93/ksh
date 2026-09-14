@@ -24,6 +24,49 @@ set -o noglob	# avoid pathname expansion interfering with field splitting
 CCn='
 '  # newline
 
+case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
+0123)	optstring=$'
+[-?
+@(#)$Id: dylink (ksh 93u+m) 2026-09-14 $
+]
+[-author?Martijn Dekker <martijn@inlv.org>]
+[-copyright?(c) 2021-2026 Contributors to ksh 93u+m]
+[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
+[+NAME?dylink - dynamic library linking tool for ksh 93u+m and supporting libraries]
+[+DESCRIPTION?The \bdylink\b command is called from \b**/Mamfile\b to build
+    dynamically linked shared libraries and executables that use them. It
+    detects whether dynamic libraries are supported on the current system,
+    and if so, invokes the C compiler and linker to produce a dynamic
+    library or link an executable against one. Each non-option argument is
+    a *.o object file built by the compiler.]
+[+?With \b-Q\b, \bdylink\b only queries whether dynamic libraries are
+    supported on the current system; no other options or arguments may be
+    given.]
+[+?Without \b-Q\b, either \b-e\b or \b-m\b must be given (but not both) to
+    specify what should be built.]
+[Q?Query support for dynamic libraries on this system. Exits 0 if supported,
+    1 if not. Must be used alone.]
+[e]:[exec-file?Link \aexec-file\a as an executable against the dynamic
+    libraries specified by \b-l\b.]
+[m]:[module-name?Build a dynamic library named \amodule-name\a. Requires
+    \b-v\b, \b-p\b, and \b-s\b.]
+[l]:[libname?Link against \blib\b\alibname\a. To link against multiple
+    libraries, pecify this option multiple times.]
+[v]:[version?The dynamic library version for the file name, e.g. \b6.0\b.
+    Used with \b-m\b.]
+[p]:[prefix?The operating system'\'$'s dynamic library file name prefix.
+    Must be \blib\b or empty. Used with \b-m\b.]
+[s]:[suffix?The dynamic library file name suffix, e.g. \b.so\b or
+    \b.dylib\b. Used with \b-m\b.]
+
+[ objectfile ... ]
+
+[+SEE ALSO?\bmamake\b(1), \bmkdeps\b(1)]\n'
+	;;
+*)	optstring='Qe:m:l:v:p:s:';
+	;;
+esac
+
 note()
 {
 	printf "${0##*/}: %s\\n" "$@" >&2
@@ -58,7 +101,7 @@ esac
 # Parse options.
 unset opt_query exec_file module_name l_flags version prefix suffix
 deproot=$INSTALLROOT/lib/lib
-while getopts 'Qe:m:l:v:p:s:' opt
+while getopts "$optstring" opt
 do	case $opt in
 	Q)	opt_query=y         # query support for dynamic libraries on this system
 		;;
