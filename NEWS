@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-15:
+
+- Fixed a memory leak when assigning, within a subshell, a value to a
+  special variable (one of IFS, FPATH, CDPATH, SHELL, ENV, VISUAL, EDITOR,
+  HISTFILE, OPTIND, SECONDS, RANDOM,.sh.match, .sh.version, LINENO, _,
+  LC_CTYPE, LC_NUMERIC, LC_COLLATE, LC_MESSAGES, LC_ALL, and LANG).
+
 2026-09-13:
 
 - Fixed a memory leak that occurred when converting an existing scalar

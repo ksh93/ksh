@@ -357,7 +357,7 @@ static void put_history(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp
 	}
 }
 
-/* Trap for OPTINDEX */
+/* Trap for OPTIND */
 static void put_optindex(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 {
 	sh.st.opterror = sh.st.optchar = 0;
@@ -372,17 +372,6 @@ static Sfdouble_t nget_optindex(Namval_t *np, Namfun_t *fp)
 	NOT_USED(fp);
 	return (Sfdouble_t)*lp;
 }
-
-static MALLOC_ATTR Namfun_t *clone_optindex(Namval_t* np, Namval_t *mp, nvflag_t flags, Namfun_t *fp)
-{
-	Namfun_t *dp = (Namfun_t*)sh_malloc(sizeof(Namfun_t));
-	NOT_USED(flags);
-	memcpy(dp,fp,sizeof(Namfun_t));
-	mp->nvalue = np->nvalue;
-	dp->nofree = 0;
-	return dp;
-}
-
 
 /* Trap for restricted variables FPATH, PATH, SHELL, ENV */
 static void put_restricted(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
@@ -494,7 +483,7 @@ static void put_ifs(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	if(!val)
 	{
 		fp = nv_stack(np, NULL);
-		if(fp && !fp->nofree)
+		if(fp && !(fp->namflags & NAMFUN_NOFREE))
 		{
 			free(fp);
 			fp = 0;
@@ -570,7 +559,7 @@ static void put_seconds(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp
 	{
 		nv_putv(np, val, flags, fp);
 		fp = nv_stack(np, NULL);
-		if(fp && !fp->nofree)
+		if(fp && !(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 		return;
 	}
@@ -655,7 +644,7 @@ static void put_rand(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	if(!val)
 	{
 		fp = nv_stack(np, NULL);
-		if(fp && !fp->nofree)
+		if(fp && !(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 		nv_unset(np,NV_RDONLY);
 		return;
@@ -742,7 +731,7 @@ static void put_lineno(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	if(!val)
 	{
 		fp = nv_stack(np, NULL);
-		if(fp && !fp->nofree)
+		if(fp && !(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 		nv_unset(np,NV_RDONLY);
 		return;
@@ -1024,7 +1013,7 @@ static const Namdisc_t CDPATH_disc	= {  sizeof(Namfun_t), put_cdpath };
 static const Namdisc_t EDITOR_disc	= {  sizeof(Namfun_t), put_ed };
 #endif
 static const Namdisc_t HISTFILE_disc	= {  sizeof(Namfun_t), put_history };
-static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex, 0, 0, clone_optindex };
+static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex };
 static const Namdisc_t SECONDS_disc	= {  sizeof(Namfun_t), put_seconds, get_seconds, nget_seconds };
 static const Namdisc_t LINENO_disc	= {  sizeof(Namfun_t), put_lineno, get_lineno, nget_lineno };
 static const Namdisc_t L_ARG_disc	= {  sizeof(Namfun_t), put_lastarg, get_lastarg };
@@ -1725,7 +1714,7 @@ static void stat_init(void)
 	sp->hdr.dsize = sizeof(struct Stats) + extrasize;
 	sp->hdr.disc = &stat_disc;
 	nv_stack(SH_STATS,&sp->hdr);
-	sp->hdr.nofree = 1;
+	sp->hdr.namflags = NAMFUN_NOFREE;
 	nv_setvtree(SH_STATS);
 }
 #endif /* SHOPT_STATS */
@@ -1741,57 +1730,57 @@ static Init_t *nv_init(void)
 	SHLVL->nvalue = &sh.shlvl;
 	ip->IFS_init.hdr.disc = &IFS_disc;
 	ip->PATH_init.disc = &RESTRICTED_disc;
-	ip->PATH_init.nofree = 1;
+	ip->PATH_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->FPATH_init.disc = &RESTRICTED_disc;
-	ip->FPATH_init.nofree = 1;
+	ip->FPATH_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->CDPATH_init.disc = &CDPATH_disc;
-	ip->CDPATH_init.nofree = 1;
+	ip->CDPATH_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->SHELL_init.disc = &RESTRICTED_disc;
-	ip->SHELL_init.nofree = 1;
+	ip->SHELL_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->ENV_init.disc = &RESTRICTED_disc;
-	ip->ENV_init.nofree = 1;
+	ip->ENV_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 #if SHOPT_VSH || SHOPT_ESH
 	ip->VISUAL_init.disc = &EDITOR_disc;
-	ip->VISUAL_init.nofree = 1;
+	ip->VISUAL_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->EDITOR_init.disc = &EDITOR_disc;
-	ip->EDITOR_init.nofree = 1;
+	ip->EDITOR_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 #endif
 	ip->HISTFILE_init.disc = &HISTFILE_disc;
-	ip->HISTFILE_init.nofree = 1;
+	ip->HISTFILE_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->HISTSIZE_init.disc = &HISTFILE_disc;
-	ip->HISTSIZE_init.nofree = 1;
+	ip->HISTSIZE_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->OPTINDEX_init.disc = &OPTINDEX_disc;
-	ip->OPTINDEX_init.nofree = 1;
+	ip->OPTINDEX_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->SECONDS_init.disc = &SECONDS_disc;
-	ip->SECONDS_init.nofree = 1;
+	ip->SECONDS_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->RAND_init.hdr.disc = &RAND_disc;
-	ip->RAND_init.hdr.nofree = 1;
+	ip->RAND_init.hdr.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->SH_MATCH_init.hdr.disc = &SH_MATCH_disc;
-	ip->SH_MATCH_init.hdr.nofree = 1;
+	ip->SH_MATCH_init.hdr.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->SH_MATH_init.disc = &SH_MATH_disc;
-	ip->SH_MATH_init.nofree = 1;
+	ip->SH_MATH_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->SH_VERSION_init.disc = &SH_VERSION_disc;
-	ip->SH_VERSION_init.nofree = 1;
+	ip->SH_VERSION_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LINENO_init.disc = &LINENO_disc;
-	ip->LINENO_init.nofree = 1;
+	ip->LINENO_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->L_ARG_init.disc = &L_ARG_disc;
-	ip->L_ARG_init.nofree = 1;
+	ip->L_ARG_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LC_TYPE_init.disc = &LC_disc;
-	ip->LC_TYPE_init.nofree = 1;
+	ip->LC_TYPE_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LC_TIME_init.disc = &LC_disc;
-	ip->LC_TIME_init.nofree = 1;
+	ip->LC_TIME_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LC_NUM_init.disc = &LC_disc;
-	ip->LC_NUM_init.nofree = 1;
+	ip->LC_NUM_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LC_COLL_init.disc = &LC_disc;
-	ip->LC_COLL_init.nofree = 1;
+	ip->LC_COLL_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LC_MSG_init.disc = &LC_disc;
-	ip->LC_MSG_init.nofree = 1;
+	ip->LC_MSG_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LC_ALL_init.disc = &LC_disc;
-	ip->LC_ALL_init.nofree = 1;
+	ip->LC_ALL_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	ip->LANG_init.disc = &LC_disc;
-	ip->LANG_init.nofree = 1;
+	ip->LANG_init.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	nv_stack(IFSNOD, &ip->IFS_init.hdr);
-	ip->IFS_init.hdr.nofree = 1;
+	ip->IFS_init.hdr.namflags = NAMFUN_NOFREE|NAMFUN_PREDEF;
 	nv_stack(PATHNOD, &ip->PATH_init);
 	nv_stack(FPATHNOD, &ip->FPATH_init);
 	nv_stack(CDPNOD, &ip->CDPATH_init);
@@ -2095,7 +2084,7 @@ static void put_trans(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	{
 		nv_putv(np,val,flags,fp);
 		nv_disc(np,fp,NV_POP);
-		if(!(fp->nofree&1))
+		if(!(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 		stkseek(sh.stk,offset);
 		return;
@@ -2128,7 +2117,7 @@ Namfun_t	*nv_mapchar(Namval_t *np,const char *name)
 		if(strcmp(name,mp->name)==0)
 			return &mp->hdr;
 		nv_disc(np,&mp->hdr,NV_POP);
-		if(!(mp->hdr.nofree&1))
+		if(!(mp->hdr.namflags & NAMFUN_NOFREE))
 			free(mp);
 	}
 	mp = sh_newof(0,struct Mapchar,1,n);

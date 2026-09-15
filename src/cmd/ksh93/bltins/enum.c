@@ -170,7 +170,7 @@ static void put_enum(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	{
 		nv_putv(np, val, flags,fp);
 		nv_disc(np,&ep->hdr,NV_POP);
-		if(!ep->hdr.nofree)
+		if(!(ep->hdr.namflags & NAMFUN_NOFREE))
 			free(ep);
 		return;
 	}

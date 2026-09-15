@@ -80,7 +80,8 @@ static Namval_t *create_tree(Namval_t *np,const char *name,nvflag_t flag,Namfun_
 	return (flag&NV_NOADD) ? 0 : np;
 }
 
-static Namfun_t *clone_tree(Namval_t *np, Namval_t *mp, nvflag_t flags, Namfun_t *fp){
+static Namfun_t *clone_tree(Namval_t *np, Namval_t *mp, nvflag_t flags, Namfun_t *fp)
+{
 	Namfun_t	*dp;
 	if ((flags&NV_MOVE) && nv_type(np))
 		return fp;
@@ -88,7 +89,7 @@ static Namfun_t *clone_tree(Namval_t *np, Namval_t *mp, nvflag_t flags, Namfun_t
 	if((flags&NV_COMVAR) && !(flags&NV_RAW))
 	{
 		walk_tree(np,mp,flags);
-		if((flags&NV_MOVE) && !(fp->nofree&1))
+		if((flags&NV_MOVE) && !(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 	}
 	return dp;

@@ -375,22 +375,22 @@ DO
 	(hash -r)
 DONE
 
-TEST	title='set PATH value in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='set PATH value in subshell'
 DO
 	(PATH=/dev/null)
 DONE
 
-TEST	title='run command with preceding PATH assignment in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='run command with preceding PATH assignment in subshell'
 DO
 	(PATH=/dev/null command true)
 DONE
 
-TEST	title='set PATH attribute in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='set PATH attribute in subshell'
 DO
 	(readonly PATH)
 DONE
 
-TEST	title='unset PATH in subshell' known=y url=https://github.com/ksh93/ksh/issues/405
+TEST	title='unset PATH in subshell'
 DO
 	(unset PATH)
 DONE
@@ -414,9 +414,13 @@ DO
 DONE
 
 # ======
-TEST	title='variable with discipline function in subshell' known=y url=https://github.com/ksh93/ksh/issues/404
+TEST	title='variable with predefined discipline function in subshell'
 DO
-	(SECONDS=1; LANG=C)
+	(SECONDS=1)
+	(LANG=C_EU)
+	(SECONDS=1; LANG=C_EU)
+	(LC_NUMERIC=C_EU)
+	(IFS=foobar)
 DONE
 
 # ======
