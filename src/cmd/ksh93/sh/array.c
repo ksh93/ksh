@@ -93,8 +93,8 @@ static Namarr_t *array_scope(Namarr_t *ap, nvflag_t flags)
 		size = ap->hdr.disc->dsize;
 	aq = sh_newof(NULL,Namarr_t,1,size-sizeof(Namarr_t));
 	memcpy(aq,ap,size);
-	aq->hdr.nofree &= ~1;
-	aq->hdr.nofree |= (flags&NV_RDONLY)?1:0;
+	aq->hdr.namflags &= ~NAMFUN_NOFREE;
+	aq->hdr.namflags |= (flags&NV_RDONLY) ? NAMFUN_NOFREE : 0;
 	if(is_associative(aq))
 	{
 		aq->scope = dtopen(&_Nvdisc,Dtoset);
@@ -128,7 +128,7 @@ static int array_unscope(Namval_t *np,Namarr_t *ap)
 		return 0;
 	if(is_associative(ap))
 		(*ap->fun)(np, NULL, NV_AFREE);
-	if((fp = nv_disc(np,(Namfun_t*)ap,NV_POP)) && !(fp->nofree&1))
+	if((fp = nv_disc(np,(Namfun_t*)ap,NV_POP)) && !(fp->namflags & NAMFUN_NOFREE))
 		free(fp);
 	nv_delete(np,NULL,0);
 	return 1;
@@ -750,7 +750,7 @@ static void array_putval(Namval_t *np, const char *string, nvflag_t flags, Namfu
 			nv_unset(nv_namptr(aq->xp,0),NV_RDONLY);
 			free(aq->xp);
 		}
-		if((nfp = nv_disc(np,(Namfun_t*)ap,NV_POP)) && !(nfp->nofree&1))
+		if((nfp = nv_disc(np,(Namfun_t*)ap,NV_POP)) && !(nfp->namflags & NAMFUN_NOFREE))
 		{
 			ap = 0;
 			free(nfp);
@@ -788,9 +788,9 @@ static void array_copytree(Namval_t *np, Namval_t *mp)
 	if(np->nvalue && !nv_isattr(np,NV_NOFREE))
 		free(np->nvalue);
 	np->nvalue = &mp->nvalue;
-	fp->nofree  &= ~1;
+	fp->namflags &= ~NAMFUN_NOFREE;
 	nv_disc(np,(Namfun_t*)fp, NV_FIRST);
-	fp->nofree |= 1;
+	fp->namflags |= NAMFUN_NOFREE;
 	nv_onattr(np,NV_ARRAY);
 	mp->nvmeta = np;
 }
@@ -869,7 +869,7 @@ static struct index_array *array_grow(Namval_t *np, struct index_array *arp,ssiz
 		if(mp)
 		{
 			array_copytree(np,mp);
-			ap->header.hdr.nofree &= ~1;
+			ap->header.hdr.namflags &= ~NAMFUN_NOFREE;
 		}
 	}
 	for(;i < newsize;i++)
@@ -1043,7 +1043,7 @@ Namval_t *nv_arraychild(Namval_t *np, Namval_t *nq, int c)
 		ap->nelem &= ~ARRAY_NOCLONE;
 	}
 	nq->nvmeta = np;
-	if((fp=nq->nvfun) && fp->disc && fp->disc->setdisc && (fp = nv_disc(nq,fp,NV_POP)))
+	if((fp=nq->nvfun) && fp->disc && fp->disc->setdisc && (fp = nv_disc(nq,fp,NV_POP)) && !(fp->namflags & NAMFUN_NOFREE))
 		free(fp);
 	if(!ap->fun)
 	{
@@ -1400,7 +1400,7 @@ static int array_fixed_init(Namval_t *np, char *sub, char *cp)
 	ap = sh_newof(NULL,Namarr_t,1,(size_t)sz);
 	ap->hdr.disc = &array_disc;
 	ap->hdr.dsize = sizeof(Namarr_t)+(size_t)sz;
-	ap->hdr.nofree &= ~1;
+	ap->hdr.namflags &= ~NAMFUN_NOFREE;
 	fp = (struct fixed_array*)(ap+1);
 	ap->fixed = fp;
 	fp->ndim = (size_t)n;
@@ -1678,7 +1678,7 @@ void *nv_associative(Namval_t *np,const char *sp,nvflag_t mode)
 		ap->header.hdr.disc = &array_disc;
 		nv_disc(np,(Namfun_t*)ap, NV_FIRST);
 		ap->header.hdr.dsize = sizeof(struct assoc_array);
-		ap->header.hdr.nofree &= ~1;
+		ap->header.hdr.namflags &= ~NAMFUN_NOFREE;
 		return ap;
 	    case NV_ADELETE:
 		if(ap->cur)

@@ -772,7 +772,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 			flags &= ~NV_NOSCOPE;
 	}
 	if(!dp->disc)
-		copy = dp->nofree&1;
+		copy = dp->namflags & NAMFUN_NOFREE;
 	if(*cp=='.')
 		cp++;
 	while(1)
@@ -798,7 +798,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 			{
 				ptrdiff_t z = sp-name;
 				copy = cp-name;
-				dp->nofree |= 1;
+				dp->namflags |= NAMFUN_NOFREE;
 				name = copystack(NULL, name,NULL);
 				cp = (char*)name+copy;
 				sp = (char*)name+z;
@@ -1015,7 +1015,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 #endif /* SHOPT_FIXEDARRAY */
 					ptrdiff_t z = (cp-sp);
 					copy = (ptrdiff_t)strlen(cp=nv_name(np));
-					dp->nofree |= 1;
+					dp->namflags |= NAMFUN_NOFREE;
 #if SHOPT_FIXEDARRAY
 					if(*sp==0)
 						name = cp;
@@ -1133,7 +1133,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 						if(!copy)
 						{
 							copy = cp-name;
-							dp->nofree |= 1;
+							dp->namflags |= NAMFUN_NOFREE;
 							name = copystack(NULL, name,NULL);
 							cp = (char*)name+copy;
 							sp = cp-m;
@@ -1370,7 +1370,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, nvflag_t flags)
 	char			*cp=(char*)name;
 	ssize_t			c;
 	Namval_t		*np=0;
-	Namfun_t		fun;
+	Namfun_t		fun = { 0 };
 	nvflag_t		append=0;
 	const char		*msg = e_varname;
 	char			*fname = 0;
@@ -1380,7 +1380,6 @@ Namval_t *nv_open(const char *name, Dt_t *root, nvflag_t flags)
 	struct Cache_entry	*xp;
 #endif
 	sh_stats(STAT_NVOPEN);
-	memset(&fun,0,sizeof(fun));
 	sh.openmatch = 0;
 	sh.last_table = 0;
 	if(!root)
@@ -1395,7 +1394,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, nvflag_t flags)
 			name = cp = copystack(0,name,NULL);
 			fname = strrchr(cp,'.');
 			*fname = 0;
-			fun.nofree |= 1;
+			fun.namflags |= NAMFUN_NOFREE;
 			flags &= ~NV_IDENT;
 			funroot = root;
 			root = sh.var_tree;
@@ -1420,7 +1419,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, nvflag_t flags)
 	else if(sh.prefix && (flags&NV_ASSIGN))
 	{
 		name = cp = copystack(sh.prefix,name,NULL);
-		fun.nofree |= 1;
+		fun.namflags |= NAMFUN_NOFREE;
 	}
 	c = *(unsigned char*)cp;
 	if(root==sh.alias_tree)
@@ -1597,7 +1596,7 @@ skip:
 		errormsg(SH_DICT,ERROR_exit(1),msg,name);
 		UNREACHABLE();
 	}
-	if(fun.nofree&1)
+	if(fun.namflags & NAMFUN_NOFREE)
 		stkseek(sh.stk,offset);
 	return np;
 }

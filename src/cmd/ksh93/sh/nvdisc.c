@@ -130,9 +130,9 @@ void nv_putv(Namval_t *np, const char *value, nvflag_t flags, Namfun_t *nfp)
 		{
 			if(!value && (!(ap=nv_arrayptr(np)) || ap->nelem==0))
 			{
-				if(fp->disc || !(fp->nofree&1))
+				if(fp->disc || !(fp->namflags & NAMFUN_NOFREE))
 					nv_disc(np,fp,NV_POP);
-				if(!(fp->nofree&1))
+				if(!(fp->namflags & NAMFUN_NOFREE))
 					free(fp);
 			}
 			continue;
@@ -230,7 +230,7 @@ static void chktfree(Namval_t *np, struct vardisc *vp)
 	{
 		/* no disc left so pop */
 		Namfun_t *fp;
-		if((fp=nv_stack(np, NULL)) && !(fp->nofree&1))
+		if((fp=nv_stack(np, NULL)) && !(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 	}
 }
@@ -362,7 +362,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 			}
 		}
 		unblock(bp,type);
-		if(!(handle->nofree&1))
+		if(!(handle->namflags & NAMFUN_NOFREE))
 			free(handle);
 	}
 done:
@@ -667,25 +667,25 @@ static void putdisc(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 			}
 		}
 		nv_disc(np,fp,NV_POP);
-		if(!(fp->nofree&1))
+		if(!(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 	}
 }
 
 static const Namdisc_t Nv_bdisc	= {   0, putdisc, 0, 0, setdisc };
-
 Namfun_t *nv_clone_disc(Namfun_t *fp, nvflag_t flags)
 {
 	Namfun_t	*nfp;
 	size_t		size;
-	if(!fp->disc && !fp->next && (fp->nofree&1))
+	/* To avoid memory leaks, refuse to copy predefined readonly disciplines from init.c */
+	if(fp->namflags & NAMFUN_PREDEF)
 		return fp;
 	if(!(size=fp->dsize) && (!fp->disc || !(size=fp->disc->dsize)))
 		size = sizeof(Namfun_t);
 	nfp = sh_newof(NULL,Namfun_t,1,size-sizeof(Namfun_t));
 	memcpy(nfp,fp,size);
-	nfp->nofree &= ~1;
-	nfp->nofree |= (flags&NV_RDONLY)?1:0;
+	nfp->namflags &= ~NAMFUN_NOFREE;
+	nfp->namflags |= (flags&NV_RDONLY) ? NAMFUN_NOFREE : 0;
 	return nfp;
 }
 
@@ -701,7 +701,7 @@ int nv_adddisc(Namval_t *np, const char **names, Namval_t **funs)
 	}
 	vp = sh_newof(NULL,Nambfun_t,1,(size_t)n*sizeof(Namval_t*));
 	vp->fun.dsize = sizeof(Nambfun_t)+(size_t)n*sizeof(Namval_t*);
-	vp->fun.nofree |= 2;
+	vp->fun.namflags |= NAMFUN_IGN;
 	vp->num = n;
 	if(funs)
 		memcpy(vp->bltins, funs,(size_t)n*sizeof(Namval_t*));
@@ -786,7 +786,7 @@ Namfun_t *nv_disc(Namval_t *np, Namfun_t* fp, nvflag_t mode)
 		}
 		else
 		{
-			if((fp->nofree&1) && *lpp)
+			if((fp->namflags & NAMFUN_NOFREE) && *lpp)
 				fp = nv_clone_disc(fp,0);
 			fp->next = *lpp;
 		}
@@ -868,7 +868,7 @@ void clone_all_disc( Namval_t *np, Namval_t *mp, nvflag_t flags)
 		fpnext = fp->next;
 		if(!fpnext && (flags&NV_COMVAR) && fp->disc && fp->disc->namef)
 			return;
-		if((fp->nofree&2) && (flags&NV_NODISC))
+		if((fp->namflags & NAMFUN_IGN) && (flags&NV_NODISC))
 			nfp = 0;
 		if(fp->disc && fp->disc->clonef)
 			nfp = (*fp->disc->clonef)(np,mp,flags,fp);
@@ -903,7 +903,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, nvflag_t flags)
 		fpnext = fp->next;
 		if(!fpnext && (flags&NV_COMVAR) && fp->disc && fp->disc->namef)
 			break;
-		if(!(fp->nofree&1))
+		if(!(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 	}
 	mp->nvfun = fp;
@@ -1300,7 +1300,7 @@ static void put_table(Namval_t* np, const char* val, nvflag_t flags, Namfun_t* f
 	if(sh.last_root==root)
 		sh.last_root = NULL;
 	dtclose(root);
-	if(!(fp->nofree&1))
+	if(!(fp->namflags & NAMFUN_NOFREE))
 		free(fp);
 	np->nvfun = 0;
 }
