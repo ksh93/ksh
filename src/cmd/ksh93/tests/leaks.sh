@@ -117,6 +117,9 @@ alias DONE=\
 '	fi; '\
 'done'
 
+# For testing enum types.
+enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
+
 # ____ Begin memory leak tests ____
 
 TEST	title='variable value reset'
@@ -449,7 +452,6 @@ DONE
 
 # ======
 TEST	title='assigning and comparing enum rvalue in arithmetic'
-	enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
 	Test1_t foo
 DO
 	(((foo = amet) && foo == amet && foo != fermentum))
@@ -498,6 +500,58 @@ DO
 	typeset -A tvar
 	unset tvar
 DONE
+
+TEST title='assign to a variable with a .get shell discipline in a subshell'
+	unset foo
+	foo.get() { :; }
+DO
+	(foo=123)
+DONE
+
+TEST title='assign to a variable with a .set shell discipline in a subshell'
+	unset foo
+	foo.set() { :; }
+DO
+	(foo=123)
+DONE
+
+TEST title='assign to a special variable with a .get shell discipline in a subshell'
+	PATH.get() { :; }
+DO
+	(PATH=123)
+DONE; unset -f PATH.get
+
+TEST title='assign to a special variable with a .set shell discipline in a subshell'
+	PATH.set() { :; }
+DO
+	(PATH=123)
+DONE; unset -f PATH.set
+
+TEST title='assign to an enum variable with a .get discipline in a subshell'
+	unset foo
+	Test1_t foo
+	foo.get() { :; }
+DO
+	(foo=adipiscing)
+DONE
+
+TEST title='assign to an enum variable with a .set discipline in a subshell'
+	unset foo
+	Test1_t foo
+	foo.set() { :; }
+DO
+	(foo=adipiscing)
+DONE
+
+# note: the test below currently crashes; when it is fixed append 2>/dev/null to '(foo=BADVAL)' to avoid terminal noise
+TEST title='assign an invalid value to an enum variable with a .set discipline in a subshell'
+	unset foo
+	Test1_t foo
+	foo.set() { :; }
+DO
+	(foo=BADVAL)
+DONE
+
 
 # ======
 exit $((Errors<125?Errors:125))
