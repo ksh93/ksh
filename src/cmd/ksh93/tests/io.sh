@@ -1175,6 +1175,10 @@ exp='1'
 # their own buffering, which produced indeterminate results. The fix puts the
 # shared file descriptor in O_APPEND mode which tells the kernel to append each
 # write atomically to the current end of file.
+#     The reproducers are inherently racy at the script level as they have two
+# streams writing to the same comsub capture file, one buffered via cat(1).
+# Therefore only test that each line was written atomically and the result is
+# uncorrupted; accept that the second and third lines may appear in any order.
 for ((fd=2; fd<=9; fd++))
 do	got=$(
 		eval "{
@@ -1186,7 +1190,9 @@ do	got=$(
 		} $fd>&1"
 	)
 	exp=$'foobar\nbazquux\nabcdefghijk'
-	[[ $got == "$exp" ]] || err_exit "bug 975, print -u$fd (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	exp2=$'foobar\nabcdefghijk\nbazquux'
+	[[ $got == "$exp" || $got == "$exp2"  ]] || err_exit "bug 975, print -u$fd" \
+		"(expected $(printf %q "$exp") or  $(printf %q "$exp2"), got $(printf %q "$got"))"
 done
 # same again for shell redirection
 for ((fd=2; fd<=9; fd++))
@@ -1200,7 +1206,9 @@ do	got=$(
 		} $fd>&1"
 	)
 	exp=$'foobar\nbazquux\nabcdefghijk'
-	[[ $got == "$exp" ]] || err_exit "bug 975, print >&$fd (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	exp2=$'foobar\nabcdefghijk\nbazquux'
+	[[ $got == "$exp" || $got == "$exp2"  ]] || err_exit "bug 975, print >&$fd" \
+		"(expected $(printf %q "$exp") or  $(printf %q "$exp2"), got $(printf %q "$got"))"
 done
 
 # Stress test for this race condition
