@@ -247,7 +247,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	Namval_t	node;
 	void		*saveval = np->nvalue;
 	Namval_t	*tp, *nr;  /* for 'typeset -T' types */
-	int		jmpval = 0;
+	int		jmpval = 0, popped = 0;
 	/* No unset discipline during virtual subshell cleanup or shell reinit */
 	if(!val && (sh.nv_restore || sh_isstate(SH_INIT)))
 		return;
@@ -313,6 +313,18 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	}
 	if(nv_isarray(np))
 		np->nvalue = saveval;
+	/*
+	 * The recursion-detection node 'block' (a stack variable) has done its
+	 * job once any discipline function above has run.  Pop it off the global
+	 * blist now: the value store below (nv_putv) can longjmp out on error
+	 * (e.g. an invalid enum value), which would otherwise leave blist
+	 * pointing at this abandoned stack frame (stack-use-after-return).
+	 */
+	if(bp == &block)
+	{
+		block_done(bp);
+		popped = 1;
+	}
 	if(val)
 	{
 		char *cp;
@@ -366,7 +378,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 			free(handle);
 	}
 done:
-	if(bp== &block)
+	if(bp== &block && !popped)
 		block_done(bp);
 	if(nq && nq->nvalue && ((struct Ufunction*)nq->nvalue)->running==1)
 	{

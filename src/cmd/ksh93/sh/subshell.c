@@ -392,6 +392,7 @@ static void nv_restore(struct subshell *sp)
 	struct Link	*lp, *lq;
 	Namval_t	*mp, *np;
 	Namval_t	*mpnext;
+	Namfun_t	*fp;
 	nvflag_t	flags;
 	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
@@ -416,6 +417,7 @@ static void nv_restore(struct subshell *sp)
 			if(mp->nvalue && mp->nvalue!=Empty)
 				nv_offattr(mp,NV_NOFREE);
 		}
+		fp = mp->nvfun;
 		nv_unset(mp,NV_RDONLY|NV_CLONE);
 		if(nv_isarray(np))
 		{
@@ -425,7 +427,19 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
-		mp->nvfun = np->nvfun;
+		/*
+		 * If the variable's own discipline chain survived nv_unset()
+		 * unchanged (some disciplines, e.g. the shell-discipline
+		 * 'assign' handler, deliberately stay put during subshell
+		 * restore), then the chain saved by sh_assignok() is a surplus
+		 * clone.  Keep the original and free the clone below, after the
+		 * value has been restored; installing the clone would orphan
+		 * the original, leaking one discipline per subshell invocation.
+		 */
+		if(mp->nvfun!=fp || np->nvfun==fp)
+			fp = 0;		/* saved chain is not a surplus clone */
+		else
+			mp->nvfun = fp;
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -435,7 +449,24 @@ static void nv_restore(struct subshell *sp)
 		if(nv_enforcedisc(mp))
 			nv_restore_specialvar(mp, np);
 		else
+		{
+			if(fp && mp->nvalue && mp->nvalue!=np->nvalue && mp->nvalue!=Empty && !nv_isattr(mp,NV_NOFREE))
+				free(mp->nvalue);	/* free surplus subshell value */
 			mp->nvalue = np->nvalue;
+		}
+		if(fp)
+		{
+			/* free the surplus saved discipline chain */
+			Namfun_t *nfp, *nfpnext;
+			for(nfp=np->nvfun; nfp; nfp=nfpnext)
+			{
+				nfpnext = nfp->next;
+				if(!(nfp->namflags & NAMFUN_NOFREE))
+					free(nfp);
+			}
+		}
+		else
+			mp->nvfun = np->nvfun;
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
