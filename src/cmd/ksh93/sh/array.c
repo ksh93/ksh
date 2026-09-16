@@ -1307,6 +1307,11 @@ Namval_t *nv_putsub(Namval_t *np,char *sp,long mode)
 		}
 		else if(fp->dim< fp->ndim)
 		{
+			if(size >= fp->max[fp->dim] || (size < 0))
+			{
+				errormsg(SH_DICT,ERROR_exit(1),e_subscript, nv_name(np));
+				UNREACHABLE();
+			}
 			fp->curi += (size-fp->cur[fp->dim])*fp->incr[fp->dim];
 			fp->cur[fp->dim] = size;
 		}

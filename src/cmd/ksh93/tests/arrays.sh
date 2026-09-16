@@ -958,4 +958,28 @@ exp='1'
 [[ $got == "$exp" ]] || err_exit "typeset y2=\${x[0].a} (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# Assigning beyond the bounds of a fixed-size array must give a
+# 'subscript out of range' error, not crash with a heap-buffer-overflow.
+# https://github.com/ksh93/ksh/issues/1025
+if ((SHOPT_FIXEDARRAY))
+then
+	exp=': subscript out of range'
+	got=$("$SHELL" -c 'typeset -a fire[4]; typeset -a fire=(a b c d e f); print reached' 2>&1)
+	[[ $got == *"$exp" && $got != *reached* ]] || err_exit 'no error when assigning beyond fixed-size array bounds' \
+		"(expected match of *$(printf %q "$exp") without 'reached', got $(printf %q "$got"))"
+	got=$("$SHELL" -c 'typeset -a fire[4]; fire[4]=x; print reached' 2>&1)
+	[[ $got == *"$exp" && $got != *reached* ]] || err_exit 'no error on out-of-range fixed-size array subscript assignment' \
+		"(expected match of *$(printf %q "$exp") without 'reached', got $(printf %q "$got"))"
+	got=$("$SHELL" -c 'typeset -a fire[4]; print ${fire[4]}' 2>&1)
+	[[ $got == *"$exp" ]] || err_exit 'no error on out-of-range fixed-size array subscript reference' \
+		"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# assigning within the bounds of a fixed-size array must keep working
+	got=$("$SHELL" -c 'typeset -a fire[4]; typeset -a fire=(a b c d); fire[1]=z; print ${fire[1]}' 2>&1)
+	exp='z'
+	[[ $got == "$exp" ]] || err_exit 'in-bounds fixed-size array assignment failed' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
