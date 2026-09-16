@@ -8,6 +8,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   assigned to within a ${ shared-state command substitution }, the state of IFS
   failed to persist beyond it, and a use after free (potential crash) occurred.
 
+- Fixed bounds checking when assigning to fixed-size arrays (declared like,
+  e.g., 'typeset -a array[4]'). Assigning to an out-of-range subscript now
+  produces the expected error instead of potentially crashing.
+
 2026-09-15:
 
 - Fixed a memory leak when assigning, within a subshell, a value to a

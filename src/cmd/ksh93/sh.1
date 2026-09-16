@@ -8783,9 +8783,24 @@ Declares
 .I vname\^
 to be an indexed array. This is the default.
 Subscripts are numerical and start at 0.
-To make it possible to use alphanumeric enumeration constants of a given type
+By default, indexed arrays can have an unlimited number of elements.
+However, a name in the format
+.IR vname [ n ],
+unless followed by a
+.B = ,
+creates a fixed-size array,
+and any attempt to access a subscript
+.I n
+or higher is an error.
+Multidimensional
+fixed-size arrays
+.IR vname [ n1 ][ n2 ]...
+are also supported.
+The square brackets should be quoted to avoid pathname expansion.
+Finally,
+to make it possible to use alphanumeric enumeration constants of a given type
 as subscripts, an option value of the form \f3\*(OK\fP\f2type\fP\f3\*(CK\fP
-can be specified (including the surrounding square brackets), which should be
+can be specified (including the surrounding square brackets, which should be
 quoted to avoid pathname expansion), where
 .I type\^
 must be the name of an enumeration
