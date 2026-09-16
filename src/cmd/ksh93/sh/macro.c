@@ -2300,7 +2300,6 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 	ssize_t			newlines,nextnewlines;
 	ssize_t			bufsize;
 	Sfoff_t			foff;
-	Namval_t		*np;
 	savemac.wasexpan = 1;
 	nv_setoptimize(NULL);
 	sh.st.staklist=0;
@@ -2418,9 +2417,14 @@ static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 	if(was_verbose)
 		sh_onstate(SH_VERBOSE);
 	*mp = savemac;
-	np = sh_scoped(IFSNOD);
-	nv_putval(np,mp->ifsp,NV_RDONLY);
-	mp->ifsp = nv_getval(np);
+	if(type != 2)
+	{
+		Namval_t *np;
+		/* restore IFS (only for non-subshares as a subshare doesn't create an IFS scope) */
+		np = sh_scoped(IFSNOD);
+		nv_putval(np,mp->ifsp,NV_RDONLY);
+		mp->ifsp = nv_getval(np);
+	}
 	stkset(stkp,savptr,savtop);
 	newlines = 0;
 	sfsetbuf(sp,sp,0);
