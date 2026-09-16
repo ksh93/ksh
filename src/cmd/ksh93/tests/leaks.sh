@@ -117,6 +117,9 @@ alias DONE=\
 '	fi; '\
 'done'
 
+# For testing enum types.
+enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
+
 # ____ Begin memory leak tests ____
 
 TEST	title='variable value reset'
@@ -449,7 +452,6 @@ DONE
 
 # ======
 TEST	title='assigning and comparing enum rvalue in arithmetic'
-	enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
 	Test1_t foo
 DO
 	(((foo = amet) && foo == amet && foo != fermentum))
@@ -497,6 +499,101 @@ DO
 	typeset -F tvar=3.14159
 	typeset -A tvar
 	unset tvar
+DONE
+
+# ======
+# Former leaks involving shell discipline functions in combinating with subshells
+
+TEST title='assign to a variable with shell disciplines in a subshell'
+	unset foo
+	foo.get() { :; }
+	foo.getn() { :; }
+	foo.set() { :; }
+	foo.unset() { :; }
+DO
+	(foo=123)
+DONE
+
+TEST title='assign to a special variable with shell disciplines in a subshell'
+	PATH.get() { :; }
+	PATH.getn() { :; }
+	PATH.set() { :; }
+	PATH.unset() { :; }
+DO
+	(PATH=123)
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum variable with shell disciplines in a subshell'
+	unset foo
+	Test1_t foo
+	foo.get() { :; }
+	foo.getn() { :; }
+	foo.set() { :; }
+	foo.unset() { :; }
+DO
+	(foo=adipiscing)
+DONE
+
+TEST title='assign an invalid value to an enum variable with shell disciplines in a subshell'
+	unset foo
+	Test1_t foo
+	foo.get() { :; }
+	foo.getn() { :; }
+	foo.set() { :; }
+	foo.unset() { :; }
+DO
+	(foo=BADVAL) 2>/dev/null
+DONE
+
+# ... the same tests again, but now with the functions defined within the subshells
+
+TEST title='assign to a variable with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo=123
+	)
+DONE
+
+TEST title='assign to a special variable with shell disciplines defined in a subshell'
+DO
+	(
+		PATH.get() { :; }
+		PATH.getn() { :; }
+		PATH.set() { :; }
+		PATH.unset() { :; }
+		PATH=123
+	)
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum variable with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo=adipiscing
+	)
+DONE
+
+TEST title='assign an invalid value to an enum variable with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo=BADVAL
+	) 2>/dev/null
 DONE
 
 # ======

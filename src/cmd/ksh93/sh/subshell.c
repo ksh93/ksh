@@ -392,6 +392,7 @@ static void nv_restore(struct subshell *sp)
 	struct Link	*lp, *lq;
 	Namval_t	*mp, *np;
 	Namval_t	*mpnext;
+	Namfun_t	*fp;
 	nvflag_t	flags;
 	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
@@ -416,6 +417,7 @@ static void nv_restore(struct subshell *sp)
 			if(mp->nvalue && mp->nvalue!=Empty)
 				nv_offattr(mp,NV_NOFREE);
 		}
+		fp = mp->nvfun;
 		nv_unset(mp,NV_RDONLY|NV_CLONE);
 		if(nv_isarray(np))
 		{
@@ -425,7 +427,19 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
-		mp->nvfun = np->nvfun;
+		/*
+		 * If the variable's own linked list of disciplines survived the nv_unset() call above
+		 * unchanged (some disciplines, e.g. the shell-discipline 'assign' handler, deliberately
+		 * stay put during subshell restore), then the chain saved by sh_assignok() is a surplus
+		 * clone. To avoid a memory leak, keep the original and free the clone below.
+		 */
+		if(!fp || !np->nvfun || mp->nvfun!=fp || np->nvfun==fp)
+		{
+			mp->nvfun = np->nvfun;
+			fp = NULL;  /* saved list is empty or not a surplus clone */
+		}
+		else
+			mp->nvfun = fp;
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -435,13 +449,37 @@ static void nv_restore(struct subshell *sp)
 		if(nv_enforcedisc(mp))
 			nv_restore_specialvar(mp, np);
 		else
+		{
+			/*
+			 * If the variable kept its own linked list of disciplines (i.e., if fp is set),
+			 * its subshell value was not moved into the saved copy, so it is surplus, so
+			 * free it -- but only is it's a plain scalar value; a value pointing into a
+			 * type's data area or into a compound variable's tree is not freeable.
+			 */
+			if(fp && mp->nvalue && !nv_isvtree(mp)
+			&& !nv_isattr(mp,NV_ARRAY|NV_MINIMAL|NV_NOFREE)
+			&& mp->nvalue!=np->nvalue && mp->nvalue!=Empty)
+				free(mp->nvalue);
+			/* Restore value. */
 			mp->nvalue = np->nvalue;
+		}
+		if(fp)
+		{
+			/* Free the surplus saved linked list of disciplines. */
+			Namfun_t *nfp, *nfpnext;
+			for(nfp=np->nvfun; nfp; nfp=nfpnext)
+			{
+				nfpnext = nfp->next;
+				if(!(nfp->namflags & NAMFUN_NOFREE))
+					free(nfp);
+			}
+		}
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
 			char *name = nv_name(mp);
 			env_change();
-			if(*name=='_' && strcmp(name,"_AST_FEATURES")==0)
+			if(strcmp(name,"_AST_FEATURES")==0)
 				astconf(NULL, NULL, NULL);
 		}
 		else if(nv_isattr(np,NV_EXPORT))

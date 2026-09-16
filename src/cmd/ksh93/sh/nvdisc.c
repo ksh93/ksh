@@ -269,7 +269,16 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	{
 		if(!nq || isblocked(bp,type))
 		{
-			nv_putv(np,val,flags,handle);
+			/* nv_putv may throw a shell error and longjmp; catch to restore state */
+			int jv;
+			struct checkpt chk;
+			sh_pushcontext(&chk, SH_JMPFUN);
+			jv = sigsetjmp(chk.buff, 0);
+			if (!jv)
+				nv_putv(np,val,flags,handle);
+			sh_popcontext(&chk);
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
 			goto done;
 		}
 		node = *SH_VALNOD;
@@ -287,6 +296,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	if(nq && !isblocked(bp,type))
 	{
 		struct checkpt	checkpoint;
+		int		jv;
 		int		savexit = sh.savexit;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
 		int		bflag;
@@ -297,19 +307,27 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
 		sh_pushcontext(&checkpoint, SH_JMPFUN);
-		jmpval = sigsetjmp(checkpoint.buff, 0);
-		if(!jmpval)
+		jv = sigsetjmp(checkpoint.buff, 0);
+		if(!jv)
+		{
 			sh_fun(nq,np,NULL);
+			sh.savexit = savexit;	/* avoid influencing $? */
+		}
 		sh_popcontext(&checkpoint);
 		if(sh.topfd != checkpoint.topfd)
-			sh_iorestore(checkpoint.topfd, jmpval);
+			sh_iorestore(checkpoint.topfd, jv);
 		unblock(bp,type);
 		if(bflag)
 			unblock(bp,LOOKUPS);
 		if(!vp->disc[type])
 			chktfree(np,vp);
 		*lexp = savelex;
-		sh.savexit = savexit;	/* avoid influencing $? */
+		if(jv)
+		{
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
+			goto done;
+		}
 	}
 	if(nv_isarray(np))
 		np->nvalue = saveval;
@@ -317,6 +335,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	{
 		char *cp;
 		Sfdouble_t d;
+		int jv = 0;
 		if(nv_isnull(SH_VALNOD))
 			cp=0;
 		else if(flags&NV_INTEGER)
@@ -329,10 +348,27 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 		else
 			cp = nv_getval(SH_VALNOD);
 		if(cp)
-			nv_putv(np,cp,flags|NV_RDONLY,handle);
+		{
+			/* nv_putv may throw a shell error and longjmp; catch to restore state */
+			struct checkpt chk;
+			int jv;
+			sh_pushcontext(&chk, SH_JMPFUN);
+			jv = sigsetjmp(chk.buff, 0);
+			if (!jv)
+				nv_putv(np,cp,flags|NV_RDONLY,handle);
+			sh_popcontext(&chk);
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
+		}
 		nv_unset(SH_VALNOD,0);
 		/* restore everything but the nvlink field */
 		memcpy(&SH_VALNOD->nvname,  &node.nvname, sizeof(node)-sizeof(node.nvlink));
+		if(jv)
+		{
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
+			goto done;
+		}
 	}
 	else if(np==SH_FUNNAMENOD)
 		nv_putv(np,val,flags,handle);
