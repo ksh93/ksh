@@ -121,11 +121,15 @@ _ast_strxfrm_workaround(char *restrict s1, const char *restrict s2, size_t n)
  * default locale
  */
 
+#if !AST_NOMULTIBYTE
+
 static int
 default_wcwidth(wchar_t w)
 {
 	return w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1;
 }
+
+#endif
 
 /*
  * called when LC_COLLATE initialized or changes
@@ -1897,6 +1901,8 @@ utf8_alpha(wchar_t c)
 
 #endif /* BMI2 */
 
+#if !AST_NOMULTIBYTE
+
 static int
 default_iswalpha(wchar_t c)
 {
@@ -1923,6 +1929,8 @@ wide_wctomb(char* u, wchar_t w)
 	}
 	return size;
 }
+
+#endif
 
 /*
  * called when LC_CTYPE initialized or changes

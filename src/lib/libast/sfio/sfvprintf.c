@@ -76,7 +76,6 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 	int		dot, sign, decpt;
 	unsigned int	scale;
 	ptrdiff_t	base, k, n, n_s, q, precis, size, v, w, width;
-	ssize_t		n_w;
 	Sfdouble_t	dval;
 	void*		valp;
 	char		*tls[2], **ls;	/* for %..[separ]s		*/
@@ -100,6 +99,7 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 	int		decimal = 0, thousand = 0;
 
 #if _has_multibyte
+	ssize_t		n_w;
 	wchar_t*	wsp = 0;
 	SFMBDCL(fmbs)			/* state of format string	*/
 	SFMBDCL(mbs)			/* state of some string		*/
