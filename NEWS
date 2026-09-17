@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-17:
+
+- Fixed multiple memory leaks occurring upon subshell exit when assigning a
+  value to a variable with a shell discipline function within a subshell.
+
+- Fixed a crash occurring when assigning, within a subshell, an invalid
+  value to a variable of a type defined by the 'enum' command.
+
 2026-09-16:
 
 - Fixed: when the special IFS (field splitting characters) variable was
