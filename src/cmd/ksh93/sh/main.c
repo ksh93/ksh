@@ -194,7 +194,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				if(name = sh_mactry(nv_getval(ENVNOD)))
 					name = *name ? sh_strdup(name) : NULL;
 #if SHOPT_SYSRC
-				if(strncmp(name, "/./", 3) != 0 && strncmp(name, "././", 4) != 0)
+				if(name && strncmp(name, "/./", 3) != 0 && strncmp(name, "././", 4) != 0)
 					sh_source(iop, e_sysrc);
 #endif
 				if(name)
