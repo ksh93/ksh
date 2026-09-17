@@ -550,7 +550,7 @@ void job_init_tty(void)
 		{
 			if(job.mytgid <= 0)
 				return;
-			/* Avoid hang witout -i, or with -i -c */
+			/* Avoid hang without -i, or with -i -c */
 			if(!sh_isoption(SH_INTERACTIVE) || sh_isoption(SH_CFLAG))
 				break;
 			/* Stop this shell until continued */

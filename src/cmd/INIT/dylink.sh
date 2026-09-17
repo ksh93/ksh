@@ -10,6 +10,7 @@
 #         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
 #                                                                      #
 #                  Martijn Dekker <martijn@inlv.org>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 
@@ -51,7 +52,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 [m]:[module-name?Build a dynamic library named \amodule-name\a. Requires
     \b-v\b, \b-p\b, and \b-s\b.]
 [l]:[libname?Link against \blib\b\alibname\a. To link against multiple
-    libraries, pecify this option multiple times.]
+    libraries, specify this option multiple times.]
 [v]:[version?The dynamic library version for the file name, e.g. \b6.0\b.
     Used with \b-m\b.]
 [p]:[prefix?The operating system'\'$'s dynamic library file name prefix.
@@ -216,7 +217,7 @@ do	# Grab first item from dupes
 	name=${item# -l}
 	case $(set +o noglob; set -- $dest_dir/lib/lib$name.* $dest_dir/lib/$name.*; printf '%s' "$#,$1,$2") in
 	"2,$dest_dir/lib/lib$name.*,$dest_dir/lib/$name.*")
-		# Unchanged glob patterns = the dymamic library does not exist in our local build tree.
+		# Unchanged glob patterns = the dynamic library does not exist in our local build tree.
 		# If there is no local static library either, leave it alone; it's probably an OS library.
 		if	test -f $INSTALLROOT/lib/lib${name}.a
 		then	item=" $INSTALLROOT/lib/lib${name}.a"

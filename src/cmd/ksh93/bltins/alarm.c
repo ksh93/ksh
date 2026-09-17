@@ -137,8 +137,7 @@ static void	trap_timeout(void* handle)
 
 void	sh_timetraps(void)
 {
-	struct tevent *tp, *tpnext;
-	struct tevent *tptop;
+	struct tevent *volatile tp, *volatile tpnext, *volatile tptop;
 	while(1)
 	{
 		sh.trapnote &= ~SH_SIGALRM;
@@ -154,6 +153,7 @@ void	sh_timetraps(void)
 					 * so save the lexer state and push/pop context to make sure we can restore it. */
 					struct checkpt	checkpoint;
 					int		jmpval;
+					int		oerrno = errno;
 					int		exitval = sh.exitval, savexit = sh.savexit;
 					Shopt_t		opts = sh.options;
 					int		states = sh.st.states;
@@ -163,8 +163,8 @@ void	sh_timetraps(void)
 					int		savesig = job.savesig;
 					struct process	*pw = job.pwlist;
 					Fcin_t		savefc;
-					int		oerrno = errno;
 					fcsave(&savefc);
+					sh_pushcontext(&checkpoint,SH_JMPTRAP);
 					job.jobcontrol = 0;
 					job.pwlist = NULL;	/* avoid external commands in the disc funct affecting job list */
 					sh_lexopen(lexp,0);	/* fully reset lexer state */
@@ -173,7 +173,6 @@ void	sh_timetraps(void)
 					sh_offstate(SH_INTERACTIVE);
 					sh_offstate(SH_TTYWAIT);
 					sh.st.trap[SH_DEBUGTRAP] = NULL;
-					sh_pushcontext(&checkpoint,SH_JMPTRAP);
 					jmpval = sigsetjmp(checkpoint.buff,0);
 					if(!jmpval)
 						sh_fun(tp->action,tp->node,NULL);

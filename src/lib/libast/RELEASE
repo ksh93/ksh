@@ -529,7 +529,7 @@ ____
 05-09-26 misc/magic.c,misc/magic.tab: handle latest vcodex header
 05-09-12 misc/optget.c: reset opt_info.offset on error
 	 string/strtoi.h: strton() '.' multiplier only if m>1
-	 string/fmtesc.c: add unadvertized FMT_PARM for FMT_SHELL
+	 string/fmtesc.c: add unadvertised FMT_PARM for FMT_SHELL
 05-09-09 string/fmtesc.c: fix FMT_SHELL logic w.r.t. [$`]
 05-08-11 string/strerror.c: fix { sys_errlist sys_nerr } prototypes
 05-08-03 sfio: snarf sfvaprints sfaprints
@@ -1203,7 +1203,7 @@ ____
 	 optget(): fix \f...\f stack bug that referenced data after pop
 01-02-27 *locale*: a batch of fixes for native LC_MESSAGE&LC_TIME hooks
 01-02-22 pathprobe: reprobe test now checks probe.ini too
-	 sfio_s.h: advertize public Sfio_t members with _ prefix
+	 sfio_s.h: advertise public Sfio_t members with _ prefix
 	 sfio.h,features/stdio: add <sfio_s.h> reference
 	 sfhdr.h: map <sfio_s.h> _foo to foo
 	 sfio.h: SF_APPEND=>SF_APPENDWR, SF_CLOSE=>SF_CLOSING

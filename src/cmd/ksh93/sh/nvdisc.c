@@ -238,16 +238,17 @@ static void chktfree(Namval_t *np, struct vardisc *vp)
 /*
  * This function performs an assignment disc on the given node <np>
  */
-static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
+static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handle)
 {
-	int		type = (flags&NV_APPEND)?APPEND:ASSIGN;
-	struct vardisc *vp = (struct vardisc*)handle;
-	Namval_t *nq =  vp->disc[type];
-	struct blocked	block, *bp;
-	Namval_t	node;
-	void		*saveval = np->nvalue;
-	Namval_t	*tp, *nr;  /* for 'typeset -T' types */
-	int		jmpval = 0;
+	volatile nvflag_t	flags = nvflags;
+	int			type = (flags&NV_APPEND)?APPEND:ASSIGN;
+	struct vardisc		*vp = (struct vardisc*)handle;
+	Namval_t		*nq = vp->disc[type];
+	struct blocked		block, *bp;
+	Namval_t		node;
+	void			*saveval = np->nvalue;
+	Namval_t		*tp, *nr;  /* for 'typeset -T' types */
+	int			jmpval = 0;
 	/* No unset discipline during virtual subshell cleanup or shell reinit */
 	if(!val && (sh.nv_restore || sh_isstate(SH_INIT)))
 		return;
@@ -292,11 +293,11 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 		int		bflag;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
+		sh_pushcontext(&checkpoint, SH_JMPFUN);
 		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		block(bp,type);
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
-		sh_pushcontext(&checkpoint, SH_JMPFUN);
 		jmpval = sigsetjmp(checkpoint.buff, 0);
 		if(!jmpval)
 			sh_fun(nq,np,NULL);
@@ -397,8 +398,8 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
-		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		node = *SH_VALNOD;
+		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		if(!nv_isnull(SH_VALNOD))
 		{
 			nv_onattr(SH_VALNOD,NV_NOFREE);

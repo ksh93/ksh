@@ -411,7 +411,7 @@ case " ${locales[*]} " in
 	LANG=en_GB.ISO8859-1
 	for exp in '\u[2026]' '\u133' '\u2116' '\u210a' '\u2122' '\u2103' '\u2109'
 	do	eval "got=\$'$exp'"
-		[[ $got == "$exp" ]] || err_exit "unspported code point $exp fails to fail in iso-8858-1 (got '$got')"
+		[[ $got == "$exp" ]] || err_exit "unsupported code point $exp fails to fail in ISO-8858-1 (got '$got')"
 	done
 	unset LANG
 esac

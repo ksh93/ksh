@@ -352,8 +352,12 @@ vasprintf(char **restrict s, const char *restrict fmt, va_list args)
 
 	if (f = sfstropen())
 	{
+		char *str;
 		v = (int)sfvprintf(f, fmt, args);
-		if (!(*s = strdup(sfstruse(f))))
+		str = sfstruse(f);
+		if (!str)
+			v = -1;
+		else if (!(*s = strdup(str)))
 			v = -1;
 		sfstrclose(f);
 	}

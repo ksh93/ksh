@@ -96,7 +96,7 @@ extern char*	sh_setenviron(const char*);
 #define SH_FUNEVAL		0x10000	/* for sh_eval for function load */
 
 extern char 		**sh_argbuild(int*,const struct comnod*,int);
-extern struct dolnod	*sh_argfree(struct dolnod*,int);
+extern struct dolnod	*sh_argfree(struct dolnod*);
 extern struct dolnod	*sh_argnew(char*[],struct dolnod**);
 extern void 		*sh_argopen(void);
 extern struct argnod	*sh_argprocsub(struct argnod*);
