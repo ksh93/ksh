@@ -164,7 +164,6 @@ void	sh_timetraps(void)
 					struct process	*pw = job.pwlist;
 					Fcin_t		savefc;
 					fcsave(&savefc);
-					sh_pushcontext(&checkpoint,SH_JMPTRAP);
 					job.jobcontrol = 0;
 					job.pwlist = NULL;	/* avoid external commands in the disc funct affecting job list */
 					sh_lexopen(lexp,0);	/* fully reset lexer state */
@@ -173,6 +172,7 @@ void	sh_timetraps(void)
 					sh_offstate(SH_INTERACTIVE);
 					sh_offstate(SH_TTYWAIT);
 					sh.st.trap[SH_DEBUGTRAP] = NULL;
+					sh_pushcontext(&checkpoint,SH_JMPTRAP);
 					jmpval = sigsetjmp(checkpoint.buff,0);
 					if(!jmpval)
 						sh_fun(tp->action,tp->node,NULL);
