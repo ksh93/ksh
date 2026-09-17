@@ -117,6 +117,9 @@ alias DONE=\
 '	fi; '\
 'done'
 
+# For testing enum types.
+enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
+
 # ____ Begin memory leak tests ____
 
 TEST	title='variable value reset'
@@ -449,7 +452,6 @@ DONE
 
 # ======
 TEST	title='assigning and comparing enum rvalue in arithmetic'
-	enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
 	Test1_t foo
 DO
 	(((foo = amet) && foo == amet && foo != fermentum))
@@ -497,6 +499,207 @@ DO
 	typeset -F tvar=3.14159
 	typeset -A tvar
 	unset tvar
+DONE
+
+# ======
+# Former leaks involving shell discipline functions in combinating with subshells
+
+TEST title='assign to a variable with shell disciplines in a subshell'
+	unset foo
+	foo.get() { :; }
+	foo.getn() { :; }
+	foo.set() { :; }
+	foo.unset() { :; }
+DO
+	(foo="a sufficiently long value to cross the threshold for the detection of a memory leak in case one should exist")
+DONE
+
+TEST title='assign to a special variable with shell disciplines in a subshell'
+	PATH.get() { :; }
+	PATH.getn() { :; }
+	PATH.set() { :; }
+	PATH.unset() { :; }
+DO
+	(PATH="a sufficiently long value to cross the threshold for the detection of a memory leak in case one should exist")
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum variable with shell disciplines in a subshell'
+	unset foo
+	Test1_t foo
+	foo.get() { :; }
+	foo.getn() { :; }
+	foo.set() { :; }
+	foo.unset() { :; }
+DO
+	(foo=adipiscing)
+DONE
+
+TEST title='assign an invalid value to an enum variable with shell disciplines in a subshell'
+	unset foo
+	Test1_t foo
+	foo.get() { :; }
+	foo.getn() { :; }
+	foo.set() { :; }
+	foo.unset() { :; }
+DO
+	(foo=BADVAL) 2>/dev/null
+DONE
+
+# ... the same tests again, but now with the functions defined within the subshells
+
+TEST title='assign to a variable with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE
+
+TEST title='assign to a special variable with shell disciplines defined in a subshell'
+DO
+	(
+		PATH.get() { :; }
+		PATH.getn() { :; }
+		PATH.set() { :; }
+		PATH.unset() { :; }
+		PATH="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum variable with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo=adipiscing
+	)
+DONE
+
+TEST title='assign an invalid value to an enum variable with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	) 2>/dev/null
+DONE
+
+# ... the same tests again, but now with indexed array assignments
+
+TEST title='assign to an indexed array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		typeset -a foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE
+
+TEST title='assign to a special indexed array with shell disciplines defined in a subshell' known=y
+DO
+	(
+		typeset -a PATH
+		PATH.get() { :; }
+		PATH.getn() { :; }
+		PATH.set() { :; }
+		PATH.unset() { :; }
+		PATH[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum indexed array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t -a foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[3]=adipiscing
+	)
+DONE
+
+TEST title='assign an invalid value to an enum indexed array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t -a foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	) 2>/dev/null
+DONE
+
+# ... the same tests again, but now with associative array assignments
+
+TEST title='assign to an associative array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		typeset -A foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE
+
+TEST title='assign to a special associative array with shell disciplines defined in a subshell'
+DO
+	(
+		typeset -A PATH
+		PATH.get() { :; }
+		PATH.getn() { :; }
+		PATH.set() { :; }
+		PATH.unset() { :; }
+		PATH[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum associative array with shell disciplines defined in a subshell' known=y
+	unset foo
+DO
+	(
+		Test1_t -A foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[abc]=adipiscing
+	)
+DONE
+
+TEST title='assign an invalid value to an enum associative array with shell disciplines defined in a subshell' known=y
+	unset foo
+DO
+	(
+		Test1_t -A foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	) 2>/dev/null
 DONE
 
 # ======

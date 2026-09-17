@@ -318,7 +318,7 @@ void sh_assignok(Namval_t *np,int add)
  * mp: variable to restore into
  * np: copy to restore from (was saved by sh_assignok())
  */
-static inline void nv_restore_specialvar(Namval_t *mp, Namval_t *np)
+static inline void restore_specialvar(Namval_t *mp, Namval_t *np)
 {
 	void *val;
 	nvflag_t np_flags = np->nvflag;
@@ -384,6 +384,28 @@ static inline void nv_restore_specialvar(Namval_t *mp, Namval_t *np)
 		free(np->nvalue);
 }
 
+static inline void free_scalarvalue(Namval_t *n)
+{
+	if (n->nvalue && !nv_isvtree(n) && !nv_isref(n) && !nv_arrayptr(n) && !nv_isattr(n,NV_MINIMAL|NV_NOFREE))
+	{
+		if (n->nvalue!=Empty && n->nvalue!=AltEmpty)
+			free(n->nvalue);
+		n->nvalue = NULL;
+	}
+}
+
+static inline void free_disciplines(Namval_t *n)
+{
+	Namfun_t *nf, *next;
+	/* note: freeing disciplines breaks the checks in free_scalarvalue() */
+	for (nf = n->nvfun; nf; nf = next)
+	{
+		next = nf->next;
+		if (!(nf->namflags & NAMFUN_NOFREE))
+			free(nf);
+	}
+}
+
 /*
  * restore the variables
  */
@@ -392,6 +414,7 @@ static void nv_restore(struct subshell *sp)
 	struct Link	*lp, *lq;
 	Namval_t	*mp, *np;
 	Namval_t	*mpnext;
+	Namfun_t	*fp;
 	nvflag_t	flags;
 	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
@@ -416,6 +439,7 @@ static void nv_restore(struct subshell *sp)
 			if(mp->nvalue && mp->nvalue!=Empty)
 				nv_offattr(mp,NV_NOFREE);
 		}
+		fp = mp->nvfun;  /* save the pre-restore parent scope disciplines list */
 		nv_unset(mp,NV_RDONLY|NV_CLONE);
 		if(nv_isarray(np))
 		{
@@ -425,7 +449,18 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
-		mp->nvfun = np->nvfun;
+		/* Free leftover disciplines and scalar values from subshell variables with shell discipline functions */
+		if(!(fp && mp->nvfun==fp && np->nvfun && np->nvfun!=fp))
+		{
+			if(!np->nvfun && mp->nvfun)
+			{
+				if(mp->nvalue!=np->nvalue)
+					free_scalarvalue(mp);
+				free_disciplines(mp);
+			}
+			mp->nvfun = np->nvfun;
+			fp = NULL;  /* Avoid duplicate freeing below */
+		}
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -433,15 +468,21 @@ static void nv_restore(struct subshell *sp)
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
 		if(nv_enforcedisc(mp))
-			nv_restore_specialvar(mp, np);
+			restore_specialvar(mp, np);
 		else
+		{
+			if(fp && mp->nvalue!=np->nvalue)
+				free_scalarvalue(mp);
 			mp->nvalue = np->nvalue;
+		}
+		if(fp)
+			free_disciplines(np);
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
 			char *name = nv_name(mp);
 			env_change();
-			if(*name=='_' && strcmp(name,"_AST_FEATURES")==0)
+			if(strcmp(name,"_AST_FEATURES")==0)
 				astconf(NULL, NULL, NULL);
 		}
 		else if(nv_isattr(np,NV_EXPORT))
