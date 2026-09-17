@@ -511,7 +511,7 @@ TEST title='assign to a variable with shell disciplines in a subshell'
 	foo.set() { :; }
 	foo.unset() { :; }
 DO
-	(foo=123)
+	(foo="a sufficiently long value to cross the threshold for the detection of a memory leak in case one should exist")
 DONE
 
 TEST title='assign to a special variable with shell disciplines in a subshell'
@@ -520,7 +520,7 @@ TEST title='assign to a special variable with shell disciplines in a subshell'
 	PATH.set() { :; }
 	PATH.unset() { :; }
 DO
-	(PATH=123)
+	(PATH="a sufficiently long value to cross the threshold for the detection of a memory leak in case one should exist")
 DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
 
 TEST title='assign to an enum variable with shell disciplines in a subshell'
@@ -555,7 +555,7 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo=123
+		foo="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
 	)
 DONE
 
@@ -566,7 +566,7 @@ DO
 		PATH.getn() { :; }
 		PATH.set() { :; }
 		PATH.unset() { :; }
-		PATH=123
+		PATH="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
 	)
 DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
 
@@ -592,7 +592,7 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo=BADVAL
+		foo="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
 	) 2>/dev/null
 DONE
 
