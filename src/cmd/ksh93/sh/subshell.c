@@ -435,6 +435,25 @@ static void nv_restore(struct subshell *sp)
 		 */
 		if(!fp || !np->nvfun || mp->nvfun!=fp || np->nvfun==fp)
 		{
+			/*
+			 * The saved copy has no disciplines (np->nvfun==NULL) but the
+			 * variable currently does: those were added within the subshell
+			 * (e.g. a shell discipline function defined in it), so they are
+			 * not part of the state to restore and must be freed here.  Free
+			 * the disciplines that survived nv_unset() (mp->nvfun); fp itself
+			 * may have been freed by nv_unset() and must not be used.  The
+			 * subshell value, if any, is likewise surplus.
+			 */
+			if(!np->nvfun && mp->nvfun)
+			{
+				Namfun_t *nfp, *nfpnext;
+				for(nfp=mp->nvfun; nfp; nfp=nfpnext)
+				{
+					nfpnext = nfp->next;
+					if(!(nfp->namflags & NAMFUN_NOFREE))
+						free(nfp);
+				}
+			}
 			mp->nvfun = np->nvfun;
 			fp = NULL;  /* saved list is empty or not a surplus clone */
 		}
