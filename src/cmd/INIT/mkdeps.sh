@@ -10,6 +10,7 @@
 #         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
 #                                                                      #
 #                  Martijn Dekker <martijn@inlv.org>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 #
@@ -53,7 +54,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
     discernment.]
 [l]:[libname?The first \b-l\b option'\'$'s argument is the short name of the
      library to be processed, minus the \blib\b prefix. The second and further
-     \b-l\b options similarly indicate the libaries upon whose headers the
+     \b-l\b options similarly indicate the libraries upon whose headers the
      first library depends.]
 
 [ headerbasename ... ]

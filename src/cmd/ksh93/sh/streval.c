@@ -713,7 +713,7 @@ again:
 			Sfdouble_t	(*fun)(Sfdouble_t, ...);
 			short		nargs = lvalue.nargs;
 			if(nargs<0)
-				nargs = -nargs;
+				nargs = nargs * -1;
 			fun = lvalue.fun;
 			lvalue.fun = 0;
 			if(fun)

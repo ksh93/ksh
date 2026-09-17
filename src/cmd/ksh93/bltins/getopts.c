@@ -53,15 +53,16 @@ static int infof(Opt_t* op, Sfio_t* sp, const char* s, Optdisc_t* dp)
 	return 1;
 }
 
-int	b_getopts(int argc,char *argv[],Shbltin_t *context)
+int	b_getopts(int _argc,char *_argv[],Shbltin_t *context)
 {
-	const int longjmpmode = sh_isstate(SH_INTERACTIVE) ? SH_JMPFUN : SH_JMPERREXIT;
-	char *options=error_info.context->id;
+	volatile const int longjmpmode = sh_isstate(SH_INTERACTIVE) ? SH_JMPFUN : SH_JMPERREXIT;
+	char *volatile options = error_info.context->id;
 	Namval_t *np;
 	int flag, mode;
 	char value[2], key[2];
 	int jmpval;
-	volatile int extended, r= -1;
+	volatile int extended, r = -1, argc = _argc;
+	char **volatile argv = _argv;
 	struct checkpt buff, *pp;
 	Optdisc_t disc;
 

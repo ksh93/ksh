@@ -13,6 +13,7 @@
 #                  Martijn Dekker <martijn@inlv.org>                   #
 #               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
 #                  Manuel Einfalt <m-einfalt@gmx.de>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 
@@ -352,23 +353,42 @@ T '3rd tuesday in march 2016'		'2016-03-15'
 T '4th tuesday in march 2016'		'2016-03-22'
 T '5th tuesday in march 2016'		'2016-03-29'
 
-# The following tests for times relative to the current time require GNU 'date' to compare our results to.
-if	! gd=$(	set -o noglob
+# The following tests for times relative to the current time require GNU or uutils 'date' to compare our results to.
+if	! gd=${	set_vendor()
+		{	unset IFS search str ver p c
+			set -o glob
+			vendor=$1
+		}
+		set -o noglob
 		IFS=:
 		search=$PATH:$userPATH:   # userPATH is the user's original path (saved in tests/shtests)
 		for p in $search
 		do	[[ -z $p ]] && p=.
-			for c in gnudate gdate date
-			do	if	[[ -x $p/$c && $(LC_ALL=C "$p/$c" --version 2>/dev/null) == 'date (GNU coreutils)'* ]]
-				then	print -r -- "$p/$c"
-					exit 0
+			for c in gnudate gdate uu-date date
+			do	if	[[ -x $p/$c ]]
+				then	str=$(LC_ALL=C "$p/$c" --version 2>/dev/null)
+					if [[ $str == 'date (GNU coreutils)'* ]]
+					then	print -r -- "$p/$c"
+						set_vendor GNU
+						return 0
+					elif [[ $str == 'date (uutils coreutils)'* ]]
+					then	IFS=. typeset ver=(${str:24})
+						IFS=:
+						# Only allow uutils >= 0.7.0
+						if ! ((ver[0] == 0 && ver[1] < 7))
+						then	print -r -- "$p/$c"
+							set_vendor uutils
+							return 0
+						fi
+					fi
 				fi
 			done
 		done
-		exit 1
-	)
+		set_vendor N/A
+		return 1
+	}
 then
-	warning "GNU 'date' not available -- printf %T 'ago' tests skipped"
+	warning "No suitable 'date' command is available -- printf %T 'ago' tests skipped"
 else
 	# Check printf %T with 'exact' keyword against GNU 'date'
 	function do_test # 1:LINENO 2:date-STRING [3:printf-STRING]
@@ -377,13 +397,13 @@ else
 		{	exp=${ "$gd" +"$format" --date="$2" 2>/dev/null; }
 			if	[[ -z $exp ]]
 			then	_message "$1" "warning: printf '%($format)T' 'exact ${3:-$2}':" \
-					"GNU date(1) did not provide a reference date for '${3:-$2}'; test skipped"
+					"$vendor date(1) did not provide a reference date for '${3:-$2}'; test skipped"
 				return
 			fi
 			printf -v got "%($format)T" "exact ${3:-$2}"
 			[[ $got == "$exp" ]] && return
 		}
-		\err_exit "$1" "check against GNU 'date': printf '%($format)T' 'exact ${3:-$2}':" \
+		\err_exit "$1" "check against $vendor 'date': printf '%($format)T' 'exact ${3:-$2}':" \
 			"expected $(printf %q "$exp"), got $(printf %q "$got")"
 	}
 

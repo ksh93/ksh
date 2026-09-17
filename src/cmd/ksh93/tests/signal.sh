@@ -43,7 +43,7 @@
 	#
 	# Usage: tst [-v] [-options] shell-to-test ...
 
-	# "trap + sig" is an unadvertized extension for this test
+	# "trap + sig" is an unadvertised extension for this test
 	# if run from nmake SIGINT is set to SIG_IGN
 	# this call sets it back to SIG_DFL
 	# semantics w.r.t. function scope must be worked out before

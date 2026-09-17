@@ -2956,7 +2956,7 @@ void nv_newattr(Namval_t *np, nvflag_t newatts, ssize_t size)
 				if(!*sp) sp--;		/* if number was 0, leave one zero */
 			}
 			len = strlen(sp);
-			cp = (char*)sh_malloc((len >= (size_t)size ? len : (size_t)size) + 1);
+			cp = (char*)sh_malloc(((ssize_t)len >= size ? len : (size_t)size) + 1);
 			strcpy(cp, sp);
 			if(sp && (mp=nv_opensub(np)))
 			{

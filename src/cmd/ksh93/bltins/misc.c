@@ -221,7 +221,7 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
     /* for the dictionary generator */
     int	b_source(int n,char *argv[],Shbltin_t *context){}
 #endif
-int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
+int    b_dot_cmd(int n,char *_argv[],Shbltin_t *context)
 {
 	char *script;
 	Namval_t *np;
@@ -231,6 +231,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	int	fd;
 	struct dolnod   *saveargfor = 0;
 	volatile struct dolnod   *argsave=0;
+	char **volatile argv = _argv;
 	struct checkpt buff;
 	Sfio_t *iop=0;
 	while (n = optget(argv,sh_optdot)) switch (n)

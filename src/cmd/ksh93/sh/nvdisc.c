@@ -238,16 +238,17 @@ static void chktfree(Namval_t *np, struct vardisc *vp)
 /*
  * This function performs an assignment disc on the given node <np>
  */
-static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
+static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handle)
 {
-	int		type = (flags&NV_APPEND)?APPEND:ASSIGN;
-	struct vardisc *vp = (struct vardisc*)handle;
-	Namval_t *nq =  vp->disc[type];
-	struct blocked	block, *bp;
-	Namval_t	node;
-	void		*saveval = np->nvalue;
-	Namval_t	*tp, *nr;  /* for 'typeset -T' types */
-	int		jmpval = 0;
+	volatile nvflag_t	flags = nvflags;
+	volatile int		type = (flags&NV_APPEND)?APPEND:ASSIGN;
+	struct vardisc		*vp = (struct vardisc*)handle;
+	Namval_t		*volatile nq = vp->disc[type];
+	struct blocked		block, *bp;
+	Namval_t		node;
+	void			*saveval = np->nvalue;
+	Namval_t		*tp, *nr;  /* for 'typeset -T' types */
+	volatile int		jmpval = 0;
 	/* No unset discipline during virtual subshell cleanup or shell reinit */
 	if(!val && (sh.nv_restore || sh_isstate(SH_INIT)))
 	{
@@ -304,7 +305,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 		int		jv;
 		int		savexit = sh.savexit;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
-		int		bflag;
+		volatile int	bflag;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
 		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
@@ -338,7 +339,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 		np->nvalue = saveval;
 	if(val)
 	{
-		char *cp;
+		char *volatile cp;
 		Sfdouble_t d;
 		int jv = 0;
 		if(nv_isnull(SH_VALNOD))
@@ -438,8 +439,8 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
-		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		node = *SH_VALNOD;
+		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		if(!nv_isnull(SH_VALNOD))
 		{
 			nv_onattr(SH_VALNOD,NV_NOFREE);

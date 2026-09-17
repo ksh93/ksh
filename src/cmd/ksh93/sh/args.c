@@ -433,7 +433,7 @@ char *sh_argdolminus(void* context)
  */
 static void argset(Arg_t *ap,char *argv[])
 {
-	sh_argfree(ap->dolh,0);
+	sh_argfree(ap->dolh);
 	ap->dolh = sh_argcreate(argv);
 	/* link into chain */
 	ap->dolh->dolnxt = ap->argfor;
@@ -449,7 +449,7 @@ static void argset(Arg_t *ap,char *argv[])
  * Delete the blk from the argfor chain
  * If flag is set, then the block dolh is not freed
  */
-struct dolnod *sh_argfree(struct dolnod *blk,int flag)
+struct dolnod *sh_argfree(struct dolnod *blk)
 {
 	struct dolnod*	argr=blk;
 	struct dolnod*	argblk;
@@ -459,25 +459,20 @@ struct dolnod *sh_argfree(struct dolnod *blk,int flag)
 		if((--argblk->dolrefcnt)==0)
 		{
 			argr = argblk->dolnxt;
-			if(flag && argblk==ap->dolh)
-				ap->dolh->dolrefcnt = 1;
+			/* delete from chain */
+			if(ap->argfor == argblk)
+				ap->argfor = argblk->dolnxt;
 			else
 			{
-				/* delete from chain */
-				if(ap->argfor == argblk)
-					ap->argfor = argblk->dolnxt;
-				else
-				{
-					for(argr=ap->argfor;argr;argr=argr->dolnxt)
-						if(argr->dolnxt==argblk)
-							break;
-					if(!argr)
-						return NULL;
-					argr->dolnxt = argblk->dolnxt;
-					argr = argblk->dolnxt;
-				}
-				free(argblk);
+				for(argr=ap->argfor;argr;argr=argr->dolnxt)
+					if(argr->dolnxt==argblk)
+						break;
+				if(!argr)
+					return NULL;
+				argr->dolnxt = argblk->dolnxt;
+				argr = argblk->dolnxt;
 			}
+			free(argblk);
 		}
 	}
 	return argr;
@@ -533,7 +528,7 @@ struct dolnod *sh_argnew(char *argi[], struct dolnod **savargfor)
 void sh_argreset(struct dolnod *blk, struct dolnod *afor)
 {
 	Arg_t *ap = (Arg_t*)sh.arg_context;
-	while(ap->argfor=sh_argfree(ap->argfor,0));
+	while(ap->argfor=sh_argfree(ap->argfor));
 	ap->argfor = afor;
 	if(ap->dolh = blk)
 	{

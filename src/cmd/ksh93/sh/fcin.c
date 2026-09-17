@@ -39,7 +39,6 @@ ssize_t fcfopen(Sfio_t* f)
 	ssize_t	n;
 	char	*buff;
 	Fcin_t	save;
-	errno = 0;
 	_Fcin.fcbuff = _Fcin.fcptr;
 	_Fcin._fcfile = f;
 	fcsave(&save);

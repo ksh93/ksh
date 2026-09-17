@@ -69,6 +69,8 @@
 #define opendir		______opendir
 #undef	readdir
 #define readdir		______readdir
+#undef	rewinddir
+#define rewinddir	______rewinddir
 #undef	seekdir
 #define seekdir		______seekdir
 #undef	telldir
@@ -96,6 +98,7 @@
 #undef	closedir
 #undef	opendir
 #undef	readdir
+#undef	rewinddir
 #undef	seekdir
 #undef	telldir
 

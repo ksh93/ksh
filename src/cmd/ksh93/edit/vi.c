@@ -196,12 +196,13 @@ static int	textmod(Vi_t*,int,int);
 /*
  * if reedit is non-zero, initialize edit buffer with reedit chars
  */
-int ed_viread(void *context, int fd, char *shbuf, int nchar, int reedit)
+int ed_viread(void *context, int fd, char *shbuf, int nchar, int _reedit)
 {
 	Edit_t *ed = (Edit_t*)context;
 	int i;				/* general variable */
 	int r = -1;			/* return value */
-	Vi_t *vp = ed->e_vi;
+	Vi_t *volatile vp = ed->e_vi;
+	volatile int reedit = _reedit;
 	char prompt[PRSIZE+2];		/* prompt */
 	genchar Physical[2*MAXLINE];	/* physical image */
 	genchar Ubuf[MAXLINE];		/* used for U command */
@@ -2194,7 +2195,7 @@ static void sync_cursor(Vi_t *vp)
 			if( v != cur_virt )
 				p += (d-1);
 		}
-		else if(!iswprint(c))
+		else if(!iswprint((wint_t)c))
 #else
 		c = virtual[v];
 		if(!isprint(c))

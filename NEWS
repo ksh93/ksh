@@ -249,7 +249,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Process substitution now no longer depends on compile-time detection of
   /dev/fd/N, but detects this at runtime instead and transparently falls
   back to the legacy method with FIFOs whenever /dev/fd is unavailable. This
-  fixes process substituion on FreeBSD, where /dev/fd is an optional file
+  fixes process substitution on FreeBSD, where /dev/fd is an optional file
   system that may be mounted and unmounted at any time.
 
 - Fixed input buffer memory corruption occurring for inpnut from the terminal

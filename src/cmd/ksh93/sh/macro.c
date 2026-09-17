@@ -99,7 +99,7 @@ typedef struct  _mac_
 static noreturn void	mac_error(void);
 static ssize_t substring(const char*, size_t, const char*, ssize_t[], regflags_t);
 static void	copyto(Mac_t*, int, char);
-static void	comsubst(Mac_t*, Shnode_t*, char);
+static void	comsubst(Mac_t*, Shnode_t*, volatile char);
 static int	varsub(Mac_t*);
 static void	mac_copy(Mac_t*,const char*, ptrdiff_t);
 static void	tilde_expand2(ptrdiff_t);
@@ -132,16 +132,17 @@ char *sh_mactry(char *string)
 		int		savexit = sh.savexit;
 		struct checkpt	buff;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex = *lexp;
+		char		*volatile str = string;
 		sh_pushcontext(&buff,SH_JMPERREXIT);
 		jmp_val = sigsetjmp(buff.buff,0);
 		if(jmp_val == 0)
-			string = sh_mactrim(string,0);
+			str = sh_mactrim(str,0);
 		sh_popcontext(&buff);
 		*lexp = savelex;
 		sh.savexit = savexit;
 		if(jmp_val > SH_JMPERREXIT)
 			siglongjmp(*sh.jmplist,jmp_val);
-		return string;
+		return str;
 	}
 	return "";
 }
@@ -209,14 +210,14 @@ char *sh_mactrim(char *str, int8_t mode)
  */
 int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
 {
-	struct checkpt checkpoint;
-	int	jmpval;
-	int	flags = argp->argflag;
-	char	*str = argp->argval;
-	Mac_t	*mp = (Mac_t*)sh.mac_context;
-	char	**saveoptimize = nv_getoptimize();
-	Mac_t	savemac = *mp;
-	Stk_t	*stkp = sh.stk;
+	struct checkpt	checkpoint;
+	int		jmpval;
+	volatile int	flags = argp->argflag;
+	char		*str = argp->argval;
+	Mac_t		*mp = (Mac_t*)sh.mac_context;
+	char		**saveoptimize = nv_getoptimize();
+	Mac_t		savemac = *mp;
+	Stk_t		*stkp = sh.stk;
 	mp->sp = 0;
 	setup_ifs(mp);
 	if((flag&ARG_OPTIMIZE) && !sh.indebug && !(flags&ARG_MESSAGE))
@@ -2213,7 +2214,7 @@ nosub:
  * <type> is 0 for older `...` version
  * 1 for $(...) or 2 for ${ subshare; }
  */
-static void comsubst(Mac_t *mp,Shnode_t* t, char type)
+static void comsubst(Mac_t *mp,Shnode_t* t, volatile char type)
 {
 	Sfdouble_t		num;
 	int			c;
