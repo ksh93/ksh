@@ -318,7 +318,7 @@ void sh_assignok(Namval_t *np,int add)
  * mp: variable to restore into
  * np: copy to restore from (was saved by sh_assignok())
  */
-static inline void nv_restore_specialvar(Namval_t *mp, Namval_t *np)
+static inline void restore_specialvar(Namval_t *mp, Namval_t *np)
 {
 	void *val;
 	nvflag_t np_flags = np->nvflag;
@@ -384,6 +384,28 @@ static inline void nv_restore_specialvar(Namval_t *mp, Namval_t *np)
 		free(np->nvalue);
 }
 
+static inline void free_scalarvalue(Namval_t *n)
+{
+	if (n->nvalue && !nv_isvtree(n) && !nv_isref(n) && !nv_arrayptr(n) && !nv_isattr(n,NV_MINIMAL|NV_NOFREE))
+	{
+		if (n->nvalue!=Empty && n->nvalue!=AltEmpty)
+			free(n->nvalue);
+		n->nvalue = NULL;
+	}
+}
+
+static inline void free_disciplines(Namval_t *n)
+{
+	Namfun_t *nf, *next;
+	/* note: freeing disciplines breaks the checks in free_scalarvalue() */
+	for (nf = n->nvfun; nf; nf = next)
+	{
+		next = nf->next;
+		if (!(nf->namflags & NAMFUN_NOFREE))
+			free(nf);
+	}
+}
+
 /*
  * restore the variables
  */
@@ -417,7 +439,7 @@ static void nv_restore(struct subshell *sp)
 			if(mp->nvalue && mp->nvalue!=Empty)
 				nv_offattr(mp,NV_NOFREE);
 		}
-		fp = mp->nvfun;
+		fp = mp->nvfun;  /* save the pre-restore parent scope disciplines list */
 		nv_unset(mp,NV_RDONLY|NV_CLONE);
 		if(nv_isarray(np))
 		{
@@ -427,47 +449,18 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
-		/*
-		 * If the variable's own linked list of disciplines survived the nv_unset() call above
-		 * unchanged (some disciplines, e.g. the shell-discipline 'assign' handler, deliberately
-		 * stay put during subshell restore), then the chain saved by sh_assignok() is a surplus
-		 * clone. To avoid a memory leak, keep the original and free the clone below.
-		 */
-		if(!fp || !np->nvfun || mp->nvfun!=fp || np->nvfun==fp)
+		/* Free leftover disciplines and scalar values from subshell variables with shell discipline functions */
+		if(!(fp && mp->nvfun==fp && np->nvfun && np->nvfun!=fp))
 		{
-			/*
-			 * The saved copy has no disciplines (np->nvfun==NULL) but the
-			 * variable currently does: those were added within the subshell
-			 * (e.g. a shell discipline function defined in it), so they are
-			 * not part of the state to restore and must be freed here.  Free
-			 * the disciplines that survived nv_unset() (mp->nvfun); fp itself
-			 * may have been freed by nv_unset() and must not be used.  A
-			 * surplus subshell scalar value, if any, must be freed first,
-			 * while the node's array/compound/type identity is still intact.
-			 */
 			if(!np->nvfun && mp->nvfun)
 			{
-				Namfun_t *nfp, *nfpnext;
-				/* free a surplus plain-scalar value before the disciplines */
-				if(mp->nvalue && !nv_isvtree(mp) && !nv_isref(mp)
-				&& !nv_arrayptr(mp) && !nv_type(mp)
-				&& !nv_isattr(mp,NV_MINIMAL|NV_NOFREE))
-				{
-					free(mp->nvalue);
-					mp->nvalue = NULL;
-				}
-				for(nfp=mp->nvfun; nfp; nfp=nfpnext)
-				{
-					nfpnext = nfp->next;
-					if(!(nfp->namflags & NAMFUN_NOFREE))
-						free(nfp);
-				}
+				if(mp->nvalue!=np->nvalue)
+					free_scalarvalue(mp);
+				free_disciplines(mp);
 			}
 			mp->nvfun = np->nvfun;
-			fp = NULL;  /* saved list is empty or not a surplus clone */
+			fp = NULL;  /* Avoid duplicate freeing below */
 		}
-		else
-			mp->nvfun = fp;
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -475,34 +468,15 @@ static void nv_restore(struct subshell *sp)
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
 		if(nv_enforcedisc(mp))
-			nv_restore_specialvar(mp, np);
+			restore_specialvar(mp, np);
 		else
 		{
-			/*
-			 * If the variable kept its own linked list of disciplines (i.e., if fp is set),
-			 * its subshell value was not moved into the saved copy, so it is surplus, so
-			 * free it -- but only is it's a plain scalar value; a value pointing into a
-			 * type's data area or into a compound variable's tree is not freeable.
-			 */
-			if(fp && mp->nvalue && !nv_isvtree(mp) && !nv_isref(mp)
-			&& !nv_arrayptr(mp)
-			&& !nv_isattr(mp,NV_ARRAY|NV_MINIMAL|NV_NOFREE)
-			&& mp->nvalue!=np->nvalue && mp->nvalue!=Empty)
-				free(mp->nvalue);
-			/* Restore value. */
+			if(fp && mp->nvalue!=np->nvalue)
+				free_scalarvalue(mp);
 			mp->nvalue = np->nvalue;
 		}
 		if(fp)
-		{
-			/* Free the surplus saved linked list of disciplines. */
-			Namfun_t *nfp, *nfpnext;
-			for(nfp=np->nvfun; nfp; nfp=nfpnext)
-			{
-				nfpnext = nfp->next;
-				if(!(nfp->namflags & NAMFUN_NOFREE))
-					free(nfp);
-			}
-		}
+			free_disciplines(np);
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{

@@ -596,5 +596,111 @@ DO
 	) 2>/dev/null
 DONE
 
+# ... the same tests again, but now with indexed array assignments
+
+TEST title='assign to an indexed array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		typeset -a foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE
+
+TEST title='assign to a special indexed array with shell disciplines defined in a subshell'
+DO
+	(
+		typeset -a PATH
+		PATH.get() { :; }
+		PATH.getn() { :; }
+		PATH.set() { :; }
+		PATH.unset() { :; }
+		PATH[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum indexed array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t -a foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[3]=adipiscing
+	)
+DONE
+
+TEST title='assign an invalid value to an enum indexed array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t -a foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	) 2>/dev/null
+DONE
+
+# ... the same tests again, but now with associative array assignments
+
+TEST title='assign to an associative array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		typeset -A foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE
+
+TEST title='assign to a special associative array with shell disciplines defined in a subshell'
+DO
+	(
+		typeset -A PATH
+		PATH.get() { :; }
+		PATH.getn() { :; }
+		PATH.set() { :; }
+		PATH.unset() { :; }
+		PATH[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	)
+DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
+
+TEST title='assign to an enum associative array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t -A foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[abc]=adipiscing
+	)
+DONE
+
+TEST title='assign an invalid value to an enum associative array with shell disciplines defined in a subshell'
+	unset foo
+DO
+	(
+		Test1_t -A foo
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+	) 2>/dev/null
+DONE
+
 # ======
 exit $((Errors<125?Errors:125))
