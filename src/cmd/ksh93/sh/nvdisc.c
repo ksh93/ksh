@@ -248,15 +248,12 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	void		*saveval = np->nvalue;
 	Namval_t	*tp, *nr;  /* for 'typeset -T' types */
 	int		jmpval = 0;
-	/*
-	 * During virtual subshell cleanup or shell reinit, don't run a shell
-	 * unset-discipline function, but DO propagate the unset to lower
-	 * disciplines so that values/arrays are still freed correctly.
-	 */
+	/* No unset discipline during virtual subshell cleanup or shell reinit */
 	if(!val && (sh.nv_restore || sh_isstate(SH_INIT)))
 	{
+		/* ...however, do propagate the unset to other disciplines on the list to avoid a memory leak */
 		if(handle->next)
-			nv_putv(np,NULL,flags,handle);
+			nv_putv(np,NULL,flags|NV_RDONLY,handle);
 		return;
 	}
 	bp = block_info(np, &block);
