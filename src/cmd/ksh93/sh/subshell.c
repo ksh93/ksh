@@ -441,12 +441,21 @@ static void nv_restore(struct subshell *sp)
 			 * (e.g. a shell discipline function defined in it), so they are
 			 * not part of the state to restore and must be freed here.  Free
 			 * the disciplines that survived nv_unset() (mp->nvfun); fp itself
-			 * may have been freed by nv_unset() and must not be used.  The
-			 * subshell value, if any, is likewise surplus.
+			 * may have been freed by nv_unset() and must not be used.  A
+			 * surplus subshell scalar value, if any, must be freed first,
+			 * while the node's array/compound/type identity is still intact.
 			 */
 			if(!np->nvfun && mp->nvfun)
 			{
 				Namfun_t *nfp, *nfpnext;
+				/* free a surplus plain-scalar value before the disciplines */
+				if(mp->nvalue && !nv_isvtree(mp) && !nv_isref(mp)
+				&& !nv_arrayptr(mp) && !nv_type(mp)
+				&& !nv_isattr(mp,NV_MINIMAL|NV_NOFREE))
+				{
+					free(mp->nvalue);
+					mp->nvalue = NULL;
+				}
 				for(nfp=mp->nvfun; nfp; nfp=nfpnext)
 				{
 					nfpnext = nfp->next;
@@ -475,7 +484,8 @@ static void nv_restore(struct subshell *sp)
 			 * free it -- but only is it's a plain scalar value; a value pointing into a
 			 * type's data area or into a compound variable's tree is not freeable.
 			 */
-			if(fp && mp->nvalue && !nv_isvtree(mp)
+			if(fp && mp->nvalue && !nv_isvtree(mp) && !nv_isref(mp)
+			&& !nv_arrayptr(mp)
 			&& !nv_isattr(mp,NV_ARRAY|NV_MINIMAL|NV_NOFREE)
 			&& mp->nvalue!=np->nvalue && mp->nvalue!=Empty)
 				free(mp->nvalue);
