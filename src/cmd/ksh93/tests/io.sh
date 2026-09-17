@@ -1187,6 +1187,7 @@ exp='1'
 # uncorrupted; accept that the second and third lines may appear in any order.
 for ((fd=2; fd<=9; fd++))
 do	got=$(
+		set +x
 		eval "{
 			{
 				print -u$fd foobar
@@ -1203,6 +1204,7 @@ done
 # same again for shell redirection
 for ((fd=2; fd<=9; fd++))
 do	got=$(
+		set +x
 		eval "{
 			{
 				print >&$fd foobar

@@ -83,7 +83,6 @@ FEATURE/
 core
 **/#*#
 tags
-*.out
 *.gcda
 *.gcno
 *.gcov

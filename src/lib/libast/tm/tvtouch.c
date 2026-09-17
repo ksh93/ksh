@@ -59,7 +59,7 @@ extern int	utime(const char*, const time_t*);
  * symlink not followed if (flags&TV_TOUCH_PHYSICAL)
  * cv most likely ignored on most implementations
  *
- * NOTE: when *at() calls are integrated TV_TOUCH_* should be advertized!
+ * NOTE: when *at() calls are integrated TV_TOUCH_* should be advertised!
  */
 
 #define TV_TOUCH_CREATE		1

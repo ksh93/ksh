@@ -423,7 +423,7 @@ static int hist_clean(int fd)
 }
 
 /*
- * Trim the history file: copy the last <n> commands to a tempory file and copy them back,
+ * Trim the history file: copy the last <n> commands to a temporary file and copy them back,
  * replacing the history file's contents.
  *
  * This method works without write access to the parent directory and avoids changing its
@@ -443,8 +443,8 @@ static void hist_trim(History_t *hp, int n)
 	off_t oldp, newp;
 	if (!(tmpname = pathtemp(NULL, 0, NULL, "htrim", &fd)))
 		goto trimfail;
-	sh_fcntl(fd, F_SETFD, FD_CLOEXEC);
-	sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK;  /* pathtemp doesn't update ksh's FD status bookkeeping */
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
+	sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK|IOCLEX;  /* pathtemp doesn't update ksh's FD status bookkeeping */
 	if (fcntl(fd, F_SETFL, O_APPEND) == -1)
 	        goto trimfail;
 	hist_tmp = sfnew(NULL, tmpbuff, HIST_BSIZE, fd, SFIO_READ|SFIO_WRITE);

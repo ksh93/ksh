@@ -658,28 +658,26 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 {
 	struct subshell sub_data;
 	struct subshell *sp = &sub_data;
-	int n, jmpval, fatalerror = 0, saveerrno = 0;
+	int n, jmpval;
+	volatile int fatalerror = 0, saveerrno = 0, argcnt;
 	unsigned int savecurenv = sh.curenv;
 	int savejobpgid = job.curpgid;
 	int *saveexitval = job.exitval;
-	char **savsig;
-	size_t nsig = 0;
-	Sfio_t *iop=0;
+	char **volatile savsig;
+	volatile size_t nsig = 0;
+	Sfio_t *volatile iop=0;
 	struct checkpt checkpoint;
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
-	int argcnt;
+	sfsync(sh.outpool);
 	memset((char*)sp, 0, sizeof(*sp));
 	sp->options = sh.options;
 	sp->subshare = sh.subshare;
 	sp->comsub = sh.comsub;
 	sp->pwdfd = -1;	/* pwdfd should not be initialized to stdin */
-	sfsync(sh.outpool);
 	sh_sigcheck();
 	/* arm critical signal region */
 	sh.savesig = -1;
-	if(argsav = sh_arguse())
-		argcnt = argsav->dolrefcnt;
 	if(sh.curenv==0)
 	{
 		subshell_data=0;
@@ -691,6 +689,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	sh.realsubshell++;	/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
 	subshell_data = sp;
+	if(argsav = sh_arguse())
+		argcnt = argsav->dolrefcnt;
 	sp->jobs = job_subsave();
 	/* make sure initialization has occurred */
 	if(!sh.pathlist)
@@ -1085,7 +1085,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	subshell_data = sp->prev;
 	sh_popcontext(&checkpoint);
 	if(!argsav  ||  argsav->dolrefcnt==argcnt)
-		sh_argfree(argsav,0);
+		sh_argfree(argsav);
 	if(sh.topfd != checkpoint.topfd)
 		sh_iorestore(checkpoint.topfd|IOSUBSHELL,jmpval);
 	/* disarm critical signal region; remember saved signal */

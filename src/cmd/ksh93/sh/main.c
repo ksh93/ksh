@@ -96,7 +96,7 @@ static int sh_source(Sfio_t *iop, const char *file)
 noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 {
 	char		*name;
-	int		fdin = STDIN_FILENO;
+	int		fdin;
 	Sfio_t		*iop;
 	struct stat	statb;
 	int		i;
@@ -120,6 +120,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 		/* begin script execution here */
 		sh_reinit();
 	}
+	fdin = STDIN_FILENO;  /* fdin is set after sigsetjmp to avoid clobbering */
 	command = error_info.id;
 	path_pwd();
 	iop = NULL;
@@ -193,7 +194,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				if(name = sh_mactry(nv_getval(ENVNOD)))
 					name = *name ? sh_strdup(name) : NULL;
 #if SHOPT_SYSRC
-				if(strncmp(name, "/./", 3) != 0 && strncmp(name, "././", 4) != 0)
+				if(name && strncmp(name, "/./", 3) != 0 && strncmp(name, "././", 4) != 0)
 					sh_source(iop, e_sysrc);
 #endif
 				if(name)
@@ -319,13 +320,14 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
  * iop is not null when the input is a string
  * fdin is the input file descriptor
  */
-static void	exfile(Sfio_t *iop,int fno)
+static void	exfile(Sfio_t *_iop, int _fno)
 {
 	time_t curtime;
 	Shnode_t *t;
-	int maxtry=IOMAXTRY, tdone=0, execflags;
-	int states,jmpval;
+	int states, jmpval, execflags;
 	struct checkpt buff;
+	Sfio_t *volatile iop = _iop;
+	volatile int fno = _fno, maxtry=IOMAXTRY, tdone=0;
 	/* open input stream */
 	nv_putval(SH_PATHNAMENOD, sh.st.filename, NV_NOFREE);
 	if(!iop)

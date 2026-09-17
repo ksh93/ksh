@@ -545,8 +545,8 @@ static void funload(int fno, const char *name)
 	struct Ufunction *rp,*rpfirst;
 	int		savestates = sh_getstate(), savelineno = sh.inlineno;
 	char		oldload = sh.funload;
-	volatile Sfio_t	*iop = NULL;
-	volatile char	*errorname = NULL;
+	Sfio_t		*volatile iop = NULL;
+	char		*volatile errorname = NULL;
 	volatile int	jmpval;
 	struct checkpt	checkpoint;
 	pname = path_fullname(stkptr(sh.stk,PATH_OFFSET));

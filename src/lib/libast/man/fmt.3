@@ -56,7 +56,7 @@ Buffers smaller than 16 KiB are allocated within a single static buffer
 of that size. Their overwriting by subsequent calls is delayed as long
 as psosible by cycling through the available space within this buffer.
 Larger requests are satisfied by a single dynamically allocated buffer that
-is re-used and overwritten on each call requesting a buffer >= 16 KiB.
+is reused and overwritten on each call requesting a buffer >= 16 KiB.
 .PP
 \f[CB]fmtclock\fP
 formats the

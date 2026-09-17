@@ -1323,15 +1323,17 @@ int    b_unset(int argc,char *argv[],Shbltin_t *context)
 	return unall(argc,argv,sh.var_tree);
 }
 
-static int unall(int argc, char **argv, Dt_t *troot)
+static int unall(int argc, char **_argv, Dt_t *_troot)
 {
 	Namval_t *np;
 	const char *name;
 	volatile int r;
 	Dt_t	*dp;
 	int all=0,isfun,jmpval;
-	nvflag_t nflag=0;
+	volatile nvflag_t nflag=0;
 	struct checkpt buff;
+	char **volatile argv = _argv;
+	Dt_t *volatile troot = _troot;
 	NOT_USED(argc);
 	if(troot==sh.alias_tree)
 		name = sh_optunalias;
