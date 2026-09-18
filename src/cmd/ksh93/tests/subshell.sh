@@ -1356,16 +1356,35 @@ set -- $v
 # ======
 # Command substitutions lost output from child processes that are not waited for
 # https://github.com/ksh93/ksh/issues/124
-got=$(echo "<$( ( (sleep .1; echo after) & ); echo now)>")
-exp='<now
-after>'
-[[ $got == "$exp" ]] || err_exit 'command substitution loses output from non-waited-for child' \
+got=$(echo "<$( ( (sleep .05; echo after) & ); echo now)>")
+exp=$'<now\nafter>'
+[[ $got == "$exp" ]] || err_exit 'command substitution output from non-waited-for child' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Nesting exercise
+got=$(echo "<$( ( (sleep .05; got=$(echo "<$( ( (sleep .05;
+	got=$(echo "<$( ( (sleep .05; echo after) & ); echo now)>");
+	echo "$got"; echo after) & ); echo now)>"); echo "$got"; echo after) & ); echo now)>")
+exp=$'<now\n<now\n<now\nafter>\nafter>\nafter>'
+[[ $got == "$exp" ]] || err_exit 'nested command substitutions output from non-waited-for children' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# The order should be reversed if the child processes /is/ waited for
+got=$(echo "<$( ( (sleep .05; echo not_after) & wait ); echo now)>")
+exp=$'<not_after\nnow>'
+[[ $got == "$exp" ]] || err_exit 'command substitution output from waited-for child' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # Test persistent redirection inside command substitution
 got=$("$SHELL" -c '{ sleep .25; kill -KILL $$; } & x=$(redirect 3>&1; echo hi); print -r -- "$x"; kill $!' 2>&1)
 [[ e=$? -eq 0 && $got == hi ]] || err_exit 'command substitution containing a persistent stdout redirection' \
 	"(expected status 0 and 'hi', got status $e$(let 'e>128' && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
+# The comsub should stop blocking when the child closes its standard output
+typeset -F3 savesec=SECONDS diff
+: $( (redirect >&-; sleep .1) & )
+(( (diff = SECONDS - savesec) < .1 )) || err_exit "comsub fails to unblock when child closes stdout (took ${diff}s)"
+unset savesec diff
 
 # ======
 exit $((Errors<125?Errors:125))
