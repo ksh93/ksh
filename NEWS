@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-18:
+
+- Fixed: a globstar ('**') immediately following a symlink to a directory
+  failed to be expanded, and thus failed to follow that symlink, if
+  anything other than a bare '**' followed it in the pattern, e.g. in a
+  pattern like 'symlink/**/file'. This is a follow-up fix to a previous,
+  incomplete fix for this bug.
+
 2026-09-17:
 
 - Fixed multiple memory leaks occurring upon subshell exit when assigning a

@@ -44,6 +44,7 @@
 #define MATCH_RAW	1
 #define MATCH_MAKE	2
 #define MATCH_META	4
+#define MATCH_STARSTAR	8
 
 #define MATCHPATH(g)	(offsetof(globlist_t,gl_path)+(g)->gl_extra)
 
@@ -315,6 +316,7 @@ glob_dir(glob_t* gp, globlist_t* ap, regflags_t re_flags)
 	unsigned char	bracket;
 
 	unsigned char	anymeta = ap->gl_flags & MATCH_META;
+	unsigned char	fromstarstar = ap->gl_flags & MATCH_STARSTAR;
 	int		complete = 0;
 	int		err = 0;
 	unsigned char	meta = ((gp->re_flags & REG_ICASE) && *ap->gl_begin != '/') ? MATCH_META : 0;
@@ -326,6 +328,7 @@ glob_dir(glob_t* gp, globlist_t* ap, regflags_t re_flags)
 	regex_t*	prei = 0;
 	char*		matchdir = 0;
 	int		starstar = 0;
+	int		patmeta;
 
 	if (*gp->gl_intr)
 	{
@@ -480,6 +483,29 @@ skip:
 		gp->gl_starstar++;
 	if (gp->gl_opt)
 		pat = strcpy(gp->gl_opt, pat);
+	{
+		/*
+		 * Determine whether the remaining pattern for this directory
+		 * level actually contains a wildcard metacharacter. This is
+		 * used (together with fromstarstar) to decide whether it is
+		 * safe to follow a symlink for a globstar (**) continuation:
+		 * a directory reached via a literal (non-wildcard) path
+		 * component -- even one found by matching a literal name via
+		 * addmatch()/regexec() -- is safe to follow, but one reached
+		 * via an actual wildcard match (or via globstar's own
+		 * unconditional recursion) is not, to avoid infinite loops
+		 * and to preserve existing globstar/symlink semantics.
+		 */
+		char *cp;
+
+		patmeta = 0;
+		for (cp = pat; *cp; cp++)
+			if (*cp == '*' || *cp == '?' || *cp == '[' || *cp == '(')
+			{
+				patmeta = 1;
+				break;
+			}
+	}
 	for (;;)
 	{
 		if (complete)
@@ -489,7 +515,7 @@ skip:
 			prefix = streq(dirname, ".") ? NULL : dirname;
 		}
 		if ((!starstar && !gp->gl_starstar || (t1 = (*gp->gl_type)(gp, dirname, GLOB_STARSTAR)) == GLOB_DIR
-			|| t1 == GLOB_SYM && pat[0]=='*' && pat[1]=='\0') /* follow symlinks to dirs for non-globstar components */
+			|| t1 == GLOB_SYM && (pat[0]=='*' && pat[1]=='\0' || !fromstarstar)) /* follow symlinks to dirs unless reached via a globstar wildcard match */
 		&& (dirf = (*gp->gl_diropen)(gp, dirname)))
 		{
 			if (!(gp->re_flags & REG_ICASE)
@@ -558,13 +584,13 @@ skip:
 				if (ire && !regexec(ire, name, 0, NULL, 0))
 					continue;
 				if (matchdir && (name[0] != '.' || name[1] && (name[1] != '.' || name[2])) && !notdir)
-					addmatch(gp, prefix, name, matchdir, NULL, anymeta);
+					addmatch(gp, prefix, name, matchdir, NULL, anymeta|MATCH_STARSTAR);
 				if (!regexec(pre, name, 0, NULL, 0))
 				{
 					if (!rescan || !notdir)
-						addmatch(gp, prefix, name, rescan, NULL, anymeta);
+						addmatch(gp, prefix, name, rescan, NULL, anymeta|(patmeta?MATCH_STARSTAR:0));
 					if (starstar==1 || (starstar==2 && !notdir))
-						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta);
+						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta|(patmeta?MATCH_STARSTAR:0));
 				}
 				errno = 0;
 			}
