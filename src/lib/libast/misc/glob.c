@@ -328,7 +328,7 @@ glob_dir(glob_t* gp, globlist_t* ap, regflags_t re_flags)
 	regex_t*	prei = 0;
 	char*		matchdir = 0;
 	int		starstar = 0;
-	int		patmeta;
+	int		barewild;
 
 	if (*gp->gl_intr)
 	{
@@ -485,26 +485,27 @@ skip:
 		pat = strcpy(gp->gl_opt, pat);
 	{
 		/*
-		 * Determine whether the remaining pattern for this directory
-		 * level actually contains a wildcard metacharacter. This is
-		 * used (together with fromstarstar) to decide whether it is
-		 * safe to follow a symlink for a globstar (**) continuation:
-		 * a directory reached via a literal (non-wildcard) path
-		 * component -- even one found by matching a literal name via
-		 * addmatch()/regexec() -- is safe to follow, but one reached
-		 * via an actual wildcard match (or via globstar's own
-		 * unconditional recursion) is not, to avoid infinite loops
-		 * and to preserve existing globstar/symlink semantics.
+		 * Determine whether the pattern component for this directory
+		 * level is a "bare" wildcard, consisting only of '*'/'?'
+		 * characters with no other (literal or bracket-expression)
+		 * characters -- e.g. '*' or '?' or '**' but not 'd_sy[m]' or
+		 * 'd_sy*' or 'd_un'. This is used (together with fromstarstar)
+		 * to decide whether it is safe to follow a symlink for a
+		 * globstar (**) continuation: a directory reached via a
+		 * pattern that names a specific entry (whether literally or
+		 * via a glob pattern that still anchors on some literal text
+		 * or bracket expression) is safe to follow, but one reached
+		 * via a bare wildcard match (which could match any number of
+		 * unrelated entries, or via globstar's own unconditional
+		 * recursion) is not, to preserve existing globstar/symlink
+		 * semantics.
 		 */
 		char *cp;
 
-		patmeta = 0;
-		for (cp = pat; *cp; cp++)
-			if (*cp == '*' || *cp == '?' || *cp == '[' || *cp == '(')
-			{
-				patmeta = 1;
-				break;
-			}
+		barewild = *pat != 0;
+		for (cp = pat; barewild && *cp; cp++)
+			if (*cp != '*' && *cp != '?')
+				barewild = 0;
 	}
 	for (;;)
 	{
@@ -588,9 +589,9 @@ skip:
 				if (!regexec(pre, name, 0, NULL, 0))
 				{
 					if (!rescan || !notdir)
-						addmatch(gp, prefix, name, rescan, NULL, anymeta|(patmeta?MATCH_STARSTAR:0));
+						addmatch(gp, prefix, name, rescan, NULL, anymeta|(barewild?MATCH_STARSTAR:0));
 					if (starstar==1 || (starstar==2 && !notdir))
-						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta|(patmeta?MATCH_STARSTAR:0));
+						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta|(barewild?MATCH_STARSTAR:0));
 				}
 				errno = 0;
 			}
