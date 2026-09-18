@@ -155,8 +155,9 @@ static uchar* _sfsetclass(uchar*	form,	/* format string			*/
 			n = 3;
 		}
 		else
-		{ one_char:
+		{
 #if _has_multibyte /* true multi-byte chars must be checked differently */
+		  one_char:
 			if((flags&SFFMT_LONG) && (n = (int)SFMBLEN(form,&mbs)) <= 0)
 				return NULL;
 			if(n == 1)

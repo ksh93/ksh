@@ -214,7 +214,7 @@ typedef uint32_t regflags_t;
 #define mbmax()		( ast.mb.cur_max )
 #define mberr()		( ast.mb.tmp_i < 0 )
 
-#define mbwide()	( mbmax() > 1 )
+#define mbwide()	( LIKELY(mbmax() > 1) )
 #define mbiswide(p)	( *((unsigned char*)(p)) & 0x80 && mbwide() )	/* assumes ASCII: *p & 0x80 == !isascii(*p) */
 
 #define mb2wc(w,p,n)	( (*ast.mb.towc)(&w, (char*)(p), n) )

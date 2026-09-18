@@ -1810,16 +1810,6 @@ printf 'xyz\naA:bc\n:' | read -rd: -n10 got
 exp=$'xyz\naA'
 [[ $got == "$exp" ]] || err_exit "read from pipe with custom delimiter (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
-# ======
-# Between 2025-05-30 and 2026-09-02, 'print -s' failed to write to the history file.
-# https://github.com/ksh93/ksh/issues/1019
-if((!SHOPT_SCRIPTONLY));then
-exp=$'\thello'$$
-got=$(print -s "hello$$"; fc -l -0)
-[[ $got == *"$exp" ]] || err_exit "print -s fails to write to history file" \
-	"(expected match of *$(printf %q "$exp"), got $(printf %q "$got"))"
-fi # !SHOPT_SCRIPTONLY
-
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"

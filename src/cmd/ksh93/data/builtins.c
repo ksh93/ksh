@@ -1176,7 +1176,7 @@ const char sh_optlet[]	=
 ;
 
 const char sh_optprint[] =
-"[-1c?\n@(#)$Id: print (ksh 93u+m) 2022-09-26 $\n]"
+"[-1c?\n@(#)$Id: print (ksh 93u+m) 2026-09-12 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?print - write arguments to standard output]"
 "[+DESCRIPTION?By default, \bprint\b writes each \astring\a operand to "
@@ -1824,7 +1824,7 @@ const char sh_opttrap[] =
 ;
 
 const char sh_opttypeset[] =
-"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2023-05-01 $\n]"
+"+[-1c?\n@(#)$Id: typeset (ksh 93u+m) 2026-09-16 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?typeset - declare or display variables with attributes]"
 "[+DESCRIPTION?Without the \b-f\b option, \btypeset\b sets, unsets, "
@@ -1867,7 +1867,8 @@ const char sh_opttypeset[] =
 #if SHOPT_FIXEDARRAY
 	"Each simple \aname\a creates a dynamic-size array with arbitrary "
 	"dimensions. A \aname\a in the format \aname\a\b[\b\an\a\b]]\b (the "
-	"square brackets should be quoted to avoid pathname expansion) creates "
+	"square brackets should be quoted to avoid pathname expansion), "
+	"unless followed by a \b=\b, creates "
 	"a fixed-size array and any attempt to access a subscript \an\a or "
 	"higher is an error. Multidimensional fixed-size arrays "
 	"\aname\a\b[\b\an1\a\b]][\b\an2\a\b]]\b... are also supported. "

@@ -1,50 +1,12 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH SPAWNVEG 3
 .SH NAME
 spawnveg \- process spawn with process group and session control
 .SH SYNOPSIS
-.L "#include <ast.h>"
+\f[CB]#include <ast.h>\fP
 .sp
-.L "int spawnveg(const char* command, char** argv, char** envv, pid_t pgid, int tcfd);"
+\f[CB]int spawnveg(const char* command, char** argv, char** envv, pid_t pgid, int tcfd);\fP
 .SH DESCRIPTION
-.L spawnveg
+\f[CB]spawnveg\fP
 combines
 .IR fork (2),
 .IR exec (2),
@@ -59,34 +21,34 @@ or
 is available, those functions are preferred over
 .IR fork .
 .PP
-.LR command ,
-.L argv
+\f[CB]command\fR,
+\f[CB]argv\fP
 and
-.L envv
+\f[CB]envv\fP
 are as in
 .IR execve (2).
-.L pgid
+\f[CB]pgid\fP
 controls the new process group and session:
 .TP
-.L -1
+\f[CB]-1\fP
 The new process becomes a session leader.
 .IR setsid (2)
 is called in the child context.
 .TP
-.L 0
+\f[CB]0\fP
 The new process is in the caller's process group.
 .TP
-.L 1
+\f[CB]1\fP
 The new process becomes a process group leader.
 .TP
-.L >1
+\f[CB]>1\fP
 The new process joins the process group
 .IR pgid .
 .PP
 When
-.L tcfd
+\f[CB]tcfd\fP
 is
-.LR >=0 ,
+\f[CB]>=0\fR,
 spawnveg will set the controlling terminal for the new process to
 .IR tcfd ,
 and will set the terminal signals
@@ -103,7 +65,7 @@ If
 and/or
 .I POSIX_SPAWN_SETSID
 aren't available, then
-.L spawnveg
+\f[CB]spawnveg\fP
 will fall back to using
 .I fork
 in cases where either
@@ -112,4 +74,12 @@ or
 .IR tcsetpgrp (3)
 is required.
 .SH "SEE ALSO"
-fork(2), posix_spawn(3), clone(2), exec(2), setpgid(2), setsid(2), sigaction(2), spawnve(2), tcsetpgrp(3)
+.IR fork (2),
+.IR posix_spawn (3),
+.IR clone (2),
+.IR exec (2),
+.IR setpgid (2),
+.IR setsid (2),
+.IR sigaction (2),
+.IR spawnve (2),
+.IR tcsetpgrp (3)

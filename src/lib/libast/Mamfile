@@ -2063,13 +2063,6 @@ make install virtual
 			exec - compile %{<}
 		done
 
-		make strdup.o
-			make string/strdup.c
-				prev include/ast.h
-			done
-			exec - compile %{<}
-		done
-
 		make strcasestr.o
 			make comp/strcasestr.c
 				prev include/ast.h
@@ -2894,29 +2887,8 @@ make install virtual
 			exec - compile %{<} %{mam_cc_NOPROTECT} -Iport -Isfio
 		done
 
-		make sfputd.o
-			make sfio/sfputd.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make sfputl.o
-			make sfio/sfputl.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
 		make sfputr.o
 			make sfio/sfputr.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make sfputu.o
-			make sfio/sfputu.c
 				prev sfio/sfhdr.h
 			done
 			exec - compile %{<} -Iport -Isfio
@@ -3108,13 +3080,6 @@ make install virtual
 			exec - compile %{<} -Iport -Isfio
 		done
 
-		make sfputm.o
-			make sfio/sfputm.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
 		make sfresize.o
 			make sfio/sfresize.c
 				prev sfio/sfhdr.h
@@ -3122,106 +3087,8 @@ make install virtual
 			exec - compile %{<} -Iport -Isfio
 		done
 
-		make _sfclrerr.o
-			make sfio/_sfclrerr.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfeof.o
-			make sfio/_sfeof.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sferror.o
-			make sfio/_sferror.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sffileno.o
-			make sfio/_sffileno.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
 		make _sfopen.o
 			make sfio/_sfopen.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfstacked.o
-			make sfio/_sfstacked.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfvalue.o
-			make sfio/_sfvalue.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfgetc.o
-			make sfio/_sfgetc.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfgetl.o
-			make sfio/_sfgetl.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfgetu.o
-			make sfio/_sfgetu.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfdlen.o
-			make sfio/_sfdlen.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfllen.o
-			make sfio/_sfllen.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfslen.o
-			make sfio/_sfslen.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfulen.o
-			make sfio/_sfulen.c
-				prev sfio/sfhdr.h
-			done
-			exec - compile %{<} -Iport -Isfio
-		done
-
-		make _sfputc.o
-			make sfio/_sfputc.c
 				prev sfio/sfhdr.h
 			done
 			exec - compile %{<} -Iport -Isfio
@@ -3477,7 +3344,7 @@ make install virtual
 	done
 
 	note * section 3 manual pages
-	loop SECT3MAN LIBAST aso ast cdt chr compat error find fmt fmtls ftwalk getcwd iblocks ip6 mem modecanon optget path proc regex setenviron sfio sig spawnveg stk strcopy strdisabbrev strdup strelapsed stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tm tmx touch tv
+	loop SECT3MAN LIBAST aso ast_close ast cdt chr compat error find fmt fmtls fts ftwalk getcwd iblocks ip6 mem modecanon optget path proc regex setenviron sfio sig spawnveg stk strcopy strdisabbrev strelapsed stresc strexpr strgid strmatch stropt strperm strsort strtape strton struid swap tm tmx touch tv vmalloc
 		make %{INSTALLROOT}/man/man3/%{SECT3MAN}.3
 			makp man/%{SECT3MAN}.3
 			exec - cp -f %{<} %{@}

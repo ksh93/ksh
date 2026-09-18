@@ -1,52 +1,17 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH FMTLS 3
 .SH NAME
 fmtls \- format file information in buffer
 .SH SYNOPSIS
-.EX
+.nf
+.ft CR
 #include <ls.h>
 
-char*         fmtls(char* \fIbuf\fP, char* \fIname\fP, struct stat* \fIst\fP, char* \fIinfo\fP, char* \fIlink\fP, int \fIflags\fP);
-.EE
+char* fmtls(char* \fIbuf\fP, const char* \fIname\fP, struct stat* \fIst\fP,
+            const char* \fIinfo\fP, const char* \fIlink\fP, int \fIflags\fP);
+.ft
+.fi
 .SH DESCRIPTION
-.L fmtls
+\f[CB]fmtls\fP
 formats
 .IR ls (1)
 style file information into the buffer
@@ -91,7 +56,7 @@ for
 .TP
 .B LS_CTIME
 Use
-.I st->st_mtime
+.I st->st_ctime
 rather than
 .I st->st_mtime
 for
@@ -99,6 +64,12 @@ for
 .TP
 .B LS_BLOCKS
 List the number of blocks.
+.TP
+.B LS_EXTERNAL
+.I st->st_mode
+is
+\f[CB]modecanon\fP(3)
+canonical.
 .TP
 .B LS_INUMBER
 List the file serial number (inode number).
@@ -110,12 +81,12 @@ file name.
 .TP
 .B LS_MARK
 The file name is appended with
-.L /
+\f[CB]/\fP
 for directories,
-.L @
+\f[CB]@\fP
 for symbolic links,
 and
-.L *
+\f[CB]*\fP
 for executable files.
 .TP
 .B LS_NOGROUP
@@ -124,6 +95,10 @@ Omit the group name from
 .TP
 .B LS_NOUSER
 Omit the user name from
+.BR LS_LONG .
+.TP
+.B LS_NUMBER
+List the user and group numbers rather than the names for
 .BR LS_LONG .
 .PP
 The user and group fields are each

@@ -20,13 +20,6 @@ options where no feature probe is available, probe is the same as off.
 
 The options have the following defaults and meanings:
 
-    ACCT         off Shell accounting.
-                     Noted by "L" in the version string when enabled.
-                     See README-AUDIT.md.
-
-    ACCTFILE     off Enable per user accounting info.
-                     See README-AUDIT.md.
-
     ALL_LIBCMD   off Includes all the available /opt/ast/bin path-bound
                      built-in commands from libcmd in the statically linked ksh
                      binary, instead of a selection of them. (See builtins.c

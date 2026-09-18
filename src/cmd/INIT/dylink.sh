@@ -10,6 +10,7 @@
 #         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         #
 #                                                                      #
 #                  Martijn Dekker <martijn@inlv.org>                   #
+#            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
 
@@ -23,6 +24,49 @@ esac
 set -o noglob	# avoid pathname expansion interfering with field splitting
 CCn='
 '  # newline
+
+case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
+0123)	optstring=$'
+[-?
+@(#)$Id: dylink (ksh 93u+m) 2026-09-14 $
+]
+[-author?Martijn Dekker <martijn@inlv.org>]
+[-copyright?(c) 2021-2026 Contributors to ksh 93u+m]
+[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]
+[+NAME?dylink - dynamic library linking tool for ksh 93u+m and supporting libraries]
+[+DESCRIPTION?The \bdylink\b command is called from \b**/Mamfile\b to build
+    dynamically linked shared libraries and executables that use them. It
+    detects whether dynamic libraries are supported on the current system,
+    and if so, invokes the C compiler and linker to produce a dynamic
+    library or link an executable against one. Each non-option argument is
+    a *.o object file built by the compiler.]
+[+?With \b-Q\b, \bdylink\b only queries whether dynamic libraries are
+    supported on the current system; no other options or arguments may be
+    given.]
+[+?Without \b-Q\b, either \b-e\b or \b-m\b must be given (but not both) to
+    specify what should be built.]
+[Q?Query support for dynamic libraries on this system. Exits 0 if supported,
+    1 if not. Must be used alone.]
+[e]:[exec-file?Link \aexec-file\a as an executable against the dynamic
+    libraries specified by \b-l\b.]
+[m]:[module-name?Build a dynamic library named \amodule-name\a. Requires
+    \b-v\b, \b-p\b, and \b-s\b.]
+[l]:[libname?Link against \blib\b\alibname\a. To link against multiple
+    libraries, specify this option multiple times.]
+[v]:[version?The dynamic library version for the file name, e.g. \b6.0\b.
+    Used with \b-m\b.]
+[p]:[prefix?The operating system'\'$'s dynamic library file name prefix.
+    Must be \blib\b or empty. Used with \b-m\b.]
+[s]:[suffix?The dynamic library file name suffix, e.g. \b.so\b or
+    \b.dylib\b. Used with \b-m\b.]
+
+[ objectfile ... ]
+
+[+SEE ALSO?\bmamake\b(1), \bmkdeps\b(1)]\n'
+	;;
+*)	optstring='Qe:m:l:v:p:s:';
+	;;
+esac
 
 note()
 {
@@ -58,7 +102,7 @@ esac
 # Parse options.
 unset opt_query exec_file module_name l_flags version prefix suffix
 deproot=$INSTALLROOT/lib/lib
-while getopts 'Qe:m:l:v:p:s:' opt
+while getopts "$optstring" opt
 do	case $opt in
 	Q)	opt_query=y         # query support for dynamic libraries on this system
 		;;
@@ -101,10 +145,18 @@ e | e[!m]* | m*)
 esac
 case ${module_name:+m}${prefix+p}${suffix+s}${version:+v} in
 '' | mpsv )
+	case $prefix in
+	'' | lib)
+		;;
+	*)	err_out "the -p option value must be 'lib' or ''"
+	;;
+	esac
 	;;
 msv)	note "warning: -p not given; assuming -p lib for backward compat"
-	prefix=lib ;;
-*)	err_out "-m requires -v/-p/-s and vice versa" ;;
+	prefix=lib
+	;;
+*)	err_out "-m requires -v/-p/-s and vice versa"
+	;;
 esac
 
 # Check if building dynamic libraries was disabled.
@@ -140,7 +192,11 @@ cygwin.*)
 	;;
 esac
 
-# Deduplicate -l flags.
+# Set destination directory.
+dest_dir=$INSTALLROOT/dyn
+mkdir -p "$dest_dir/bin" "$dest_dir/lib" || err_out "could not mkdir"
+
+# Deduplicate -l flags and convert them to static linkage where necessary.
 # Keep the last-mentioned of each item that occurs multiple times (this is
 # required for passing libraries to the linker in the correct order; that
 # is, each dependency must come after all the libraries that depend on it).
@@ -157,12 +213,19 @@ do	# Grab first item from dupes
 	*"$CCn$item$CCn"*)
 		continue ;;
 	esac
+	# If item was locally compiled but only as a static library, convert it to static linkage (path to lib${name}.a)
+	name=${item# -l}
+	case $(set +o noglob; set -- $dest_dir/lib/lib$name.* $dest_dir/lib/$name.*; printf '%s' "$#,$1,$2") in
+	"2,$dest_dir/lib/lib$name.*,$dest_dir/lib/$name.*")
+		# Unchanged glob patterns = the dynamic library does not exist in our local build tree.
+		# If there is no local static library either, leave it alone; it's probably an OS library.
+		if	test -f $INSTALLROOT/lib/lib${name}.a
+		then	item=" $INSTALLROOT/lib/lib${name}.a"
+		fi ;;
+	esac
+	# Add item to new space-separated l_flags
 	l_flags="$l_flags$item"
 done
-
-# Set destination directory.
-dest_dir=$INSTALLROOT/dyn
-mkdir -p "$dest_dir/bin" "$dest_dir/lib" || err_out "could not mkdir"
 
 # Do the dynamic linking.
 case ${exec_file} in

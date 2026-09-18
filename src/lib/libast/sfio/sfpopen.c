@@ -25,9 +25,9 @@
 
 #include	<proc.h>
 
-Sfio_t*	sfpopen(Sfio_t*		f,
-		const char*	command,	/* command to execute */
-		const char*	mode)		/* mode of the stream */
+Sfio_t*	sfpopen(Sfio_t*			f,
+		const char *restrict	command,	/* command to execute */
+		const char *restrict	mode)		/* mode of the stream */
 {
 	Proc_t*		proc;
 	unsigned short	sflags;

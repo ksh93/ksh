@@ -23,25 +23,19 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: sync (AT&T Research) 2006-10-04 $\n]"
+"[-s8?\n@(#)$Id: sync (ksh 93u+m) 2026-09-12 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?sync - schedule file system updates]"
 "[+DESCRIPTION?\bsync\b calls \bsync\b(2), which causes all information "
     "in memory that updates file systems to be scheduled for writing out to "
     "all file systems. The writing, although scheduled, is not necessarily "
-    "complete upon return from \bsync\b.]"
-"[+?Since \bsync\b(2) has no failure indication, \bsync\b only fails for "
-    "option/operand syntax errors, or when \bsync\b(2) does not return, in "
-    "which case \bsync\b also does not return.]"
-"[+?At minimum \bsync\b should be called before halting the system. Most "
-    "systems provide graceful shutdown procedures that include \bsync\b -- "
-    "use them if possible.]"
+    "complete upon return.]"
 "[+EXIT STATUS?]"
     "{"
-	"[+0?\bsync\b(2) returned.]"
+	"[+0?\bsync\b(2) was called.]"
 	"[+>0?Option/operand syntax error.]"
     "}"
-"[+SEE ALSO?\bsync\b(2), \bshutdown\b(8)]"
+"[+SEE ALSO?\bshutdown\b(8)]"
 ;
 
 #include <cmd.h>
@@ -73,7 +67,7 @@ b_sync(int argc, char** argv, Shbltin_t* context)
 	sync();
 	return 0;
 #else
-	error(ERROR_usage(2), "failed -- the native system does not provide a sync(2) call");
-	UNREACHABLE();
+	error(2, "not supported -- the native system does not provide a sync(2) call");
+	return 1;
 #endif
 }

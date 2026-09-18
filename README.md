@@ -39,7 +39,7 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
    Even gradual and careful development may culminate in profound changes.
    Bit rot is prevented by cleaning up unused and obsolete code.
 3. Maintain documented behaviour. Changes required for compliance with the
-   [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html)
+   [POSIX shell language standard](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/contents.html)
    are implemented for the `posix` mode only to avoid breaking legacy scripts.
 4. No 100% bug compatibility. Broken and undocumented behaviour gets fixed.
 5. No bureaucracy, no formalities. Just fix it, or report it: create issues,
@@ -50,10 +50,13 @@ To see what's left to fix, see [the issue tracker](https://github.com/ksh93/ksh/
    change, including updates to documentation and regression tests where
    applicable. Pull requests are therefore squashed into a single commit.
 7. Code style varies somewhat in this historic code base.
+   It's mostly C89/C90 with some useful features of C99, such as designated
+   initialisers and flexible array struct members.
    Your changes should match the style of the code surrounding them.
    Indent with tabs, assuming an 8-space tab width.
    Opening braces are on a line of their own, at the same indentation level
    as their corresponding closing brace.
+   All variables are declared at the beginning of their scope block.
    Comments always use `/*`...`*/`.
 8. Good judgment may override this policy.
 

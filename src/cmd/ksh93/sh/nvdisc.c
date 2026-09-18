@@ -130,9 +130,9 @@ void nv_putv(Namval_t *np, const char *value, nvflag_t flags, Namfun_t *nfp)
 		{
 			if(!value && (!(ap=nv_arrayptr(np)) || ap->nelem==0))
 			{
-				if(fp->disc || !(fp->nofree&1))
+				if(fp->disc || !(fp->namflags & NAMFUN_NOFREE))
 					nv_disc(np,fp,NV_POP);
-				if(!(fp->nofree&1))
+				if(!(fp->namflags & NAMFUN_NOFREE))
 					free(fp);
 			}
 			continue;
@@ -230,7 +230,7 @@ static void chktfree(Namval_t *np, struct vardisc *vp)
 	{
 		/* no disc left so pop */
 		Namfun_t *fp;
-		if((fp=nv_stack(np, NULL)) && !(fp->nofree&1))
+		if((fp=nv_stack(np, NULL)) && !(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 	}
 }
@@ -238,19 +238,25 @@ static void chktfree(Namval_t *np, struct vardisc *vp)
 /*
  * This function performs an assignment disc on the given node <np>
  */
-static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
+static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handle)
 {
-	int		type = (flags&NV_APPEND)?APPEND:ASSIGN;
-	struct vardisc *vp = (struct vardisc*)handle;
-	Namval_t *nq =  vp->disc[type];
-	struct blocked	block, *bp;
-	Namval_t	node;
-	void		*saveval = np->nvalue;
-	Namval_t	*tp, *nr;  /* for 'typeset -T' types */
-	int		jmpval = 0;
+	volatile nvflag_t	flags = nvflags;
+	volatile int		type = (flags&NV_APPEND)?APPEND:ASSIGN;
+	struct vardisc		*vp = (struct vardisc*)handle;
+	Namval_t		*volatile nq = vp->disc[type];
+	struct blocked		block, *bp;
+	Namval_t		node;
+	void			*saveval = np->nvalue;
+	Namval_t		*tp, *nr;  /* for 'typeset -T' types */
+	volatile int		jmpval = 0;
 	/* No unset discipline during virtual subshell cleanup or shell reinit */
 	if(!val && (sh.nv_restore || sh_isstate(SH_INIT)))
+	{
+		/* ...however, do propagate the unset to other disciplines on the list to avoid a memory leak */
+		if(handle->next)
+			nv_putv(np,NULL,flags|NV_RDONLY,handle);
 		return;
+	}
 	bp = block_info(np, &block);
 	if(val && (tp=nv_type(np)) && (nr=nv_open(val,sh.var_tree,NV_VARNAME|NV_ARRAY|NV_NOADD|NV_NOFAIL)) && tp==nv_type(nr))
 	{
@@ -269,7 +275,16 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	{
 		if(!nq || isblocked(bp,type))
 		{
-			nv_putv(np,val,flags,handle);
+			/* nv_putv may throw a shell error and longjmp; catch to restore state */
+			int jv;
+			struct checkpt chk;
+			sh_pushcontext(&chk, SH_JMPFUN);
+			jv = sigsetjmp(chk.buff, 0);
+			if (!jv)
+				nv_putv(np,val,flags,handle);
+			sh_popcontext(&chk);
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
 			goto done;
 		}
 		node = *SH_VALNOD;
@@ -287,9 +302,10 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 	if(nq && !isblocked(bp,type))
 	{
 		struct checkpt	checkpoint;
+		int		jv;
 		int		savexit = sh.savexit;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
-		int		bflag;
+		volatile int	bflag;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
 		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
@@ -297,26 +313,35 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 		if(bflag = (type==APPEND && !isblocked(bp,LOOKUPS)))
 			block(bp,LOOKUPS);
 		sh_pushcontext(&checkpoint, SH_JMPFUN);
-		jmpval = sigsetjmp(checkpoint.buff, 0);
-		if(!jmpval)
+		jv = sigsetjmp(checkpoint.buff, 0);
+		if(!jv)
+		{
 			sh_fun(nq,np,NULL);
+			sh.savexit = savexit;	/* avoid influencing $? */
+		}
 		sh_popcontext(&checkpoint);
 		if(sh.topfd != checkpoint.topfd)
-			sh_iorestore(checkpoint.topfd, jmpval);
+			sh_iorestore(checkpoint.topfd, jv);
 		unblock(bp,type);
 		if(bflag)
 			unblock(bp,LOOKUPS);
 		if(!vp->disc[type])
 			chktfree(np,vp);
 		*lexp = savelex;
-		sh.savexit = savexit;	/* avoid influencing $? */
+		if(jv)
+		{
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
+			goto done;
+		}
 	}
 	if(nv_isarray(np))
 		np->nvalue = saveval;
 	if(val)
 	{
-		char *cp;
+		char *volatile cp;
 		Sfdouble_t d;
+		int jv = 0;
 		if(nv_isnull(SH_VALNOD))
 			cp=0;
 		else if(flags&NV_INTEGER)
@@ -329,10 +354,27 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 		else
 			cp = nv_getval(SH_VALNOD);
 		if(cp)
-			nv_putv(np,cp,flags|NV_RDONLY,handle);
+		{
+			/* nv_putv may throw a shell error and longjmp; catch to restore state */
+			struct checkpt chk;
+			int jv;
+			sh_pushcontext(&chk, SH_JMPFUN);
+			jv = sigsetjmp(chk.buff, 0);
+			if (!jv)
+				nv_putv(np,cp,flags|NV_RDONLY,handle);
+			sh_popcontext(&chk);
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
+		}
 		nv_unset(SH_VALNOD,0);
 		/* restore everything but the nvlink field */
 		memcpy(&SH_VALNOD->nvname,  &node.nvname, sizeof(node)-sizeof(node.nvlink));
+		if(jv)
+		{
+			if (jmpval < jv)
+				jmpval = jv;  /* siglongjmp at 'done' */
+			goto done;
+		}
 	}
 	else if(np==SH_FUNNAMENOD)
 		nv_putv(np,val,flags,handle);
@@ -362,7 +404,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 			}
 		}
 		unblock(bp,type);
-		if(!(handle->nofree&1))
+		if(!(handle->namflags & NAMFUN_NOFREE))
 			free(handle);
 	}
 done:
@@ -397,8 +439,8 @@ static char*	lookup(Namval_t *np, int type, Sfdouble_t *dp,Namfun_t *handle)
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
-		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		node = *SH_VALNOD;
+		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
 		if(!nv_isnull(SH_VALNOD))
 		{
 			nv_onattr(SH_VALNOD,NV_NOFREE);
@@ -667,25 +709,25 @@ static void putdisc(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 			}
 		}
 		nv_disc(np,fp,NV_POP);
-		if(!(fp->nofree&1))
+		if(!(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 	}
 }
 
 static const Namdisc_t Nv_bdisc	= {   0, putdisc, 0, 0, setdisc };
-
 Namfun_t *nv_clone_disc(Namfun_t *fp, nvflag_t flags)
 {
 	Namfun_t	*nfp;
 	size_t		size;
-	if(!fp->disc && !fp->next && (fp->nofree&1))
+	/* To avoid memory leaks, refuse to copy predefined readonly disciplines from init.c */
+	if(fp->namflags & NAMFUN_PREDEF)
 		return fp;
 	if(!(size=fp->dsize) && (!fp->disc || !(size=fp->disc->dsize)))
 		size = sizeof(Namfun_t);
 	nfp = sh_newof(NULL,Namfun_t,1,size-sizeof(Namfun_t));
 	memcpy(nfp,fp,size);
-	nfp->nofree &= ~1;
-	nfp->nofree |= (flags&NV_RDONLY)?1:0;
+	nfp->namflags &= ~NAMFUN_NOFREE;
+	nfp->namflags |= (flags&NV_RDONLY) ? NAMFUN_NOFREE : 0;
 	return nfp;
 }
 
@@ -701,7 +743,7 @@ int nv_adddisc(Namval_t *np, const char **names, Namval_t **funs)
 	}
 	vp = sh_newof(NULL,Nambfun_t,1,(size_t)n*sizeof(Namval_t*));
 	vp->fun.dsize = sizeof(Nambfun_t)+(size_t)n*sizeof(Namval_t*);
-	vp->fun.nofree |= 2;
+	vp->fun.namflags |= NAMFUN_IGN;
 	vp->num = n;
 	if(funs)
 		memcpy(vp->bltins, funs,(size_t)n*sizeof(Namval_t*));
@@ -786,7 +828,7 @@ Namfun_t *nv_disc(Namval_t *np, Namfun_t* fp, nvflag_t mode)
 		}
 		else
 		{
-			if((fp->nofree&1) && *lpp)
+			if((fp->namflags & NAMFUN_NOFREE) && *lpp)
 				fp = nv_clone_disc(fp,0);
 			fp->next = *lpp;
 		}
@@ -868,7 +910,7 @@ void clone_all_disc( Namval_t *np, Namval_t *mp, nvflag_t flags)
 		fpnext = fp->next;
 		if(!fpnext && (flags&NV_COMVAR) && fp->disc && fp->disc->namef)
 			return;
-		if((fp->nofree&2) && (flags&NV_NODISC))
+		if((fp->namflags & NAMFUN_IGN) && (flags&NV_NODISC))
 			nfp = 0;
 		if(fp->disc && fp->disc->clonef)
 			nfp = (*fp->disc->clonef)(np,mp,flags,fp);
@@ -903,7 +945,7 @@ int nv_clone(Namval_t *np, Namval_t *mp, nvflag_t flags)
 		fpnext = fp->next;
 		if(!fpnext && (flags&NV_COMVAR) && fp->disc && fp->disc->namef)
 			break;
-		if(!(fp->nofree&1))
+		if(!(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
 	}
 	mp->nvfun = fp;
@@ -1300,7 +1342,7 @@ static void put_table(Namval_t* np, const char* val, nvflag_t flags, Namfun_t* f
 	if(sh.last_root==root)
 		sh.last_root = NULL;
 	dtclose(root);
-	if(!(fp->nofree&1))
+	if(!(fp->namflags & NAMFUN_NOFREE))
 		free(fp);
 	np->nvfun = 0;
 }

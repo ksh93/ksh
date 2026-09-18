@@ -63,7 +63,7 @@ static ssize_t p_tree(const Shnode_t *t)
 			return p_comarg((struct comnod*)t);
 		case TSETIO:
 		case TFORK:
-			if(sfputu(outfile,t->fork.forkline)<0)
+			if(sfputu(outfile,(uintmax_t)t->fork.forkline)<0)
 				return -1;
 			if(p_tree(t->fork.forktre)<0)
 				return -1;
@@ -96,11 +96,11 @@ static ssize_t p_tree(const Shnode_t *t)
 				return -1;
 			return p_tree(t->lst.lstrit);
 		case TARITH:
-			if(sfputu(outfile,t->ar.arline)<0)
+			if(sfputu(outfile,(uintmax_t)t->ar.arline)<0)
 				return -1;
 			return p_arg(t->ar.arexpr);
 		case TFOR:
-			if(sfputu(outfile,t->for_.forline)<0)
+			if(sfputu(outfile,(uintmax_t)t->for_.forline)<0)
 				return -1;
 			if(p_tree(t->for_.fortre)<0)
 				return -1;
@@ -108,13 +108,13 @@ static ssize_t p_tree(const Shnode_t *t)
 				return -1;
 			return p_tree((Shnode_t*)t->for_.forlst);
 		case TSW:
-			if(sfputu(outfile,t->sw.swline)<0)
+			if(sfputu(outfile,(uintmax_t)t->sw.swline)<0)
 				return -1;
 			if(p_arg(t->sw.swarg)<0)
 				return -1;
 			return p_switch(t->sw.swlst);
 		case TFUN:
-			if(sfputu(outfile,t->funct.functline)<0)
+			if(sfputu(outfile,(uintmax_t)t->funct.functline)<0)
 				return -1;
 			if(p_string(t->funct.functnam)<0)
 				return -1;
@@ -122,7 +122,7 @@ static ssize_t p_tree(const Shnode_t *t)
 				return -1;
 			return p_tree((Shnode_t*)t->funct.functargs);
 		case TTST:
-			if(sfputu(outfile,t->tst.tstline)<0)
+			if(sfputu(outfile,(uintmax_t)t->tst.tstline)<0)
 				return -1;
 			if((t->tre.tretyp&TPAREN)==TPAREN)
 				return p_tree(t->lst.lstlef);
@@ -159,7 +159,7 @@ static ssize_t p_arg(const struct argnod *arg)
 		sfputc(outfile,arg->argflag);
 		if(fp)
 		{
-			sfputu(outfile,fp->fortyp);
+			sfputu(outfile,(uintmax_t)fp->fortyp);
 			p_tree(fp->fortre);
 		}
 		else if(n==0 && (arg->argflag&ARG_EXP) && arg->argchn.ap)
@@ -207,7 +207,7 @@ static ssize_t p_comarg(const struct comnod *com)
 		p_arg(com->comarg.ap);
 	else
 		p_comlist(com->comarg.dp);
-	return sfputu(outfile,com->comline);
+	return sfputu(outfile,(uintmax_t)com->comline);
 }
 
 static ssize_t p_comlist(const struct dolnod *dol)

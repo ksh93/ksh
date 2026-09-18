@@ -83,4 +83,6 @@ FEATURE/
 core
 **/#*#
 tags
-cscope.out
+*.gcda
+*.gcno
+*.gcov

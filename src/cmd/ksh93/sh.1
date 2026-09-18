@@ -258,23 +258,9 @@ The symbol
 .B |&
 causes asynchronous execution of the preceding pipeline
 with a two-way pipe established to the parent shell;
-the standard input and output of the spawned pipeline
-can be written to and read from by the parent shell
-by applying
-the redirection operators
-.B <&
-and
-.B >&
-with arg
-.B p
-to commands and by using
-.B \-p
-option of
-the built-in commands
-.B read
-and
-.B print
-described later.
+see the
+.I Co-processes
+section below for more information.
 The symbol
 .B &&
 .RB (\| |\|| \^)
@@ -3940,9 +3926,15 @@ The standard output is closed.
 .TP
 .B <&p
 The input from the co-process is moved to standard input.
+See
+.I Co-processes
+below.
 .TP
 .B >&p
 The output to the co-process is moved to standard output.
+See
+.I Co-processes
+below.
 .TP
 .BI <# \^\^\^  (( expr ))
 Evaluate arithmetic expression
@@ -4066,6 +4058,58 @@ is the empty file
 Otherwise, the environment for the execution of a command contains the
 file descriptors of the invoking shell as modified by
 input/output specifications.
+.\"
+.\" The co-processes section is derived from the pdksh(1) man page,
+.\" which is in the public domain.
+.SS Co-processes.
+A co-process, which is a pipeline created with the
+.B |&
+operator, is an asynchronous process that the shell can both write to (using
+.BR "print -p" )
+and read from (using
+.BR "read -p" ).
+The input and output of the co-process can also be manipulated using
+.B >&p
+and
+.B <&p
+redirections, respectively.
+Once a co-process has been started, another can't
+be started until the co-process exits, or until the co-process's input has been
+redirected using the
+.B redirect
+or
+.B exec
+command, e.g., 
+.B redirect
+.RB \f2n\fP >&p .
+If a co-process's input is redirected in this way, the next
+co-process to be started will share the output with the first co-process,
+unless the output of the initial co-process has been redirected using
+.B redirect
+.RB \f2n\fP <&p .
+.PP
+Some notes concerning co-processes:
+.RS 8
+.IP \[bu] 3
+The only way to close the co-process's input (so the co-process reads an
+end-of-file) is to redirect the input to a numbered file descriptor and then
+close that file descriptor, e.g.,
+.BR "redirect 3>&p 3>&-" .
+.IP \[bu] 3
+The shell closes its copy of the write portion of the co-process output when
+the most recently started co-process exits.
+.IP \[bu] 3
+.B "print -p"
+will ignore
+.B SIGPIPE
+signals during writes if the signal is not being trapped or ignored; the same
+is true if the co-process input has been duplicated to another file descriptor
+and
+.BR "print -u" \f2n\fP
+is used.
+.RE
+.\" (end of public domain co-processes section)
+.\"
 .SS Environment.
 The
 .I environment\^
@@ -6852,9 +6896,12 @@ If the
 option is given, the command(s) are not executed but their code is subjected
 to static analysis (linting) in the manner of the
 .BR \-n
-option of the
-.B set
-command.
+shell invocation option, with one difference:
+any warnings from
+the linter cause
+.B eval \-n
+to exit with status 1
+(unless there are syntax errors, which produce status 3 as always).
 .TP
 \(dg \f3exec\fP \*(OK \f3\-c\fP \*(CK \*(OK \f3\-a\fP \f2name\^\fP \*(CK \*(OK \f2arg\^\fP .\|.\|. \*(CK
 If
@@ -6891,8 +6938,10 @@ is ignored except for printing a "not supported" warning.
 If
 .I arg\^
 is not given and only I/O redirections are given,
-then this command persistently modifies file descriptors as in
-.BR redirect .
+then this command persistently modifies file descriptors in the
+manner of the
+.B redirect
+command; see below.
 .TP
 \(dg \f3exit\fP \*(OK \f2n\^\fP \*(CK
 Causes the shell to exit
@@ -7414,7 +7463,10 @@ option causes the
 arguments to be written onto the pipe
 of the process spawned with
 .B |&
-instead of standard output.
+instead of standard output;
+see
+.I Co-processes
+above.
 The
 .B \-v
 option treats each
@@ -7776,6 +7828,9 @@ Input is read from the current co-process spawned by the shell using
 An end-of-file causes
 .B read\^
 to disconnect the co-process so that another can be created.
+See
+.I Co-processes
+above.
 .TP 8
 .B \-r
 Raw mode. The
@@ -8013,10 +8068,6 @@ interactive shells.
 .B \-n
 Do not execute commands, but check them for syntax errors and perform static
 analysis (linting) to emit warnings for certain deprecated or obsolete usages.
-If this option is given on the shell's invocation, then any warnings from
-the linter cause the shell to exit with status 1, unless the
-.B posix
-option is on.
 Ignored for interactive shells.
 .TP 8
 .B \-o
@@ -8231,10 +8282,6 @@ While on, the \fBposix\fR option
 .IP \[bu]
 disallows brace expansion on the results of unquoted expansions
 (if the \fB\-B\fR/\fBbraceexpand\fR option is turned back on);
-.IP \[bu]
-causes the shell with the
-.BR \-n / noexec
-option on to exit with status 0 even if the linter emitted warnings;
 .IP \[bu]
 disables the special handling of repeated
 .I isspace
@@ -8736,9 +8783,24 @@ Declares
 .I vname\^
 to be an indexed array. This is the default.
 Subscripts are numerical and start at 0.
-To make it possible to use alphanumeric enumeration constants of a given type
+By default, indexed arrays can have an unlimited number of elements.
+However, a name in the format
+.IR vname [ n ],
+unless followed by a
+.B = ,
+creates a fixed-size array,
+and any attempt to access a subscript
+.I n
+or higher is an error.
+Multidimensional
+fixed-size arrays
+.IR vname [ n1 ][ n2 ]...
+are also supported.
+The square brackets should be quoted to avoid pathname expansion.
+Finally,
+to make it possible to use alphanumeric enumeration constants of a given type
 as subscripts, an option value of the form \f3\*(OK\fP\f2type\fP\f3\*(CK\fP
-can be specified (including the surrounding square brackets), which should be
+can be specified (including the surrounding square brackets, which should be
 quoted to avoid pathname expansion), where
 .I type\^
 must be the name of an enumeration

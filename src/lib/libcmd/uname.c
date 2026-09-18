@@ -296,16 +296,21 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 	if (sethost)
 	{
 #if _lib_sethostname
-		if (sethostname(sethost, strlen(sethost) + 1))
+#if __FreeBSD__ || __APPLE__
+		/* silence compiler warning -- as of 2026, sethostname still takes an int namelen argument on these */
+		if (sethostname(sethost, (int)(strlen(sethost) + 1)))
 #else
-#ifdef	ENOSYS
+		if (sethostname(sethost, strlen(sethost) + 1))
+#endif /* __APPLE__ || __FreeBSD__ */
+#elif defined(ENOSYS)
 		errno = ENOSYS;
 #else
 		errno = EPERM;
-#endif
-#endif
-		error(ERROR_system(1), "%s: cannot set host name", sethost);
-		UNREACHABLE();
+#endif /* _lib_sethostname */
+		{
+			error(ERROR_system(1), "%s: cannot set host name", sethost);
+			UNREACHABLE();
+		}
 	}
 	else if (list)
 		astconflist(sfstdout, NULL, ASTCONF_base|ASTCONF_defined|ASTCONF_lower|ASTCONF_quote|ASTCONF_matchcall, "CS|SI");

@@ -1,85 +1,48 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LI
-.aF 5 2 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH PATH 3
 .SH NAME
 path \- file path routines
 .SH SYNOPSIS
-.EX
+.nf
+.ft CR
 #include <ast.h>
 
 char*     pathaccess(char* \fIpath\fP, const char* \fIdirs\fP, const char* \fIa\fP, const char* \fIb\fP, int \fImode\fP);
 char*     pathbin(void);
 char*     pathcanon(char* \fIpath\fP, int \fIflags\fP);
 char*     pathcat(char* \fIpath\fP, const char* \fIdirs\fP, int \fIsep\fP, const char* \fIa\fP, const char* \fIb\fP);
-char*     pathcd(char* \fIpath\fP, const char* \fIhome\fP);
+int       pathcd(const char* \fIpath\fP, const char* \fIhome\fP);
+int       pathexists(char* \fIpath\fP, int \fImode\fP);
 ssize_t   pathgetlink(const char* \fIname\fP, char* \fIbuf\fP, size_t \fIsiz\fP);
 int       pathicase(const char* \fIpath\fP);
-char*     pathnext(char* \fIpath\fP, char* \fIextra\fP, long* \fIvisits\fP);
+size_t    pathnative(const char* \fIpath\fP, char* \fIbuf\fP, size_t \fIsiz\fP);
 char*     pathpath(char* \fIpath\fP, const char* \fIp\fP, const char* \fIa\fP, int \fImode\fP);
+size_t    pathposix(const char* \fIpath\fP, char* \fIbuf\fP, size_t \fIsiz\fP);
 char*     pathrepl(char* \fIpath\fP, const char* \fImatch\fP, const char* \fIreplace\fP);
 int       pathsetlink(const char* \fItext\fP, char* \fIname\fP);
 int       pathstat(const char* \fIpath\fP, struct stat* \fIst\fP);
-char*     pathtemp(char* \fIpath\fP, const char* \fIdir\fP, const char* \fIpfx\fP);
-.EE
+char*     pathtemp(char* \fIpath\fP, size_t \fIlen\fP, const char* \fIdir\fP, const char* \fIpfx\fP, int* \fIfdp\fP);
+.ft
+.fi
 .SH DESCRIPTION
 These routines operate on file path names.
 Path buffers are assumed to be of size
-.LR PATH_MAX .
-.L <ast.h>
+\f[CB]PATH_MAX\fP.
+\f[CB]<ast.h>\fP
 always defines
-.LR PATH_MAX ,
+\f[CB]PATH_MAX\fP,
 even if it's indeterminate on the local system.
 Yes, this was probably a bad choice, but it was made in the 1980s.
 We will probably move to a <stk.h> based implementation.
 .PP
-.L pathaccess
+\f[CB]pathaccess\fP
 constructs a path in
-.L path
+.I path
 to the file
-.L a/b
+.I a/b
 with access
-.L mode
+.I mode
 using the
-.L :
+\f[CB]:\fP
 separated directories in
 .IR dirs .
 Both
@@ -87,81 +50,90 @@ Both
 and
 .I b
 may be
-.LR 0 .
-.L mode
+\f[CB]NULL\fP.
+If
+.I a
+is
+\f[CB]..\fP
+then relative directories in
+.I dirs
+are ignored.
+.I mode
 is the inclusive-or of:
 .TP
-.L F_OK
-File exists.
-.TP
-.L R_OK
+\f[CB]PATH_READ\fP
 Read permission on file.
 .TP
-.L W_OK
+\f[CB]PATH_WRITE\fP
 Write permission on file.
 .TP
-.L X_OK
+\f[CB]PATH_EXECUTE\fP
 Execute permission on file.
 .TP
-.L PATH_REGULAR
+\f[CB]PATH_REGULAR\fP
 A regular file.
 .TP
-.L PATH_ABSOLUTE
+\f[CB]PATH_ABSOLUTE\fP
 Generated path name is rooted at
-.LR / .
+\f[CB]/\fP.
+.IP
 .I path
-is returned, 0 on error.
+is returned,
+\f[CB]NULL\fP
+on error.
 .PP
-.L pathbin
+\f[CB]pathbin\fP
 returns a pointer to the
-.L :
+\f[CB]:\fP
 separated list of directories to search for executable commands.
 The
-.L PATH
+\f[CB]PATH\fP
 environment variable is first consulted.
 If not defined then
-.L confstr(_CS_PATH,...)
+\f[CB]confstr(_CS_PATH,...)\fP
 is used.
 A valid string is always returned.
 .PP
-.L pathcanon
+\f[CB]pathcanon\fP
 canonicalizes the path
 .I path
 in place.
 A pointer to the trailing 0 in the canonicalized path is returned.
 A canonical path has:
 redundant
-.L .
+\f[CB].\fP
 and
-.L /
+\f[CB]/\fP
 removed;
-.L ..
+\f[CB]..\fP
 moved to the front;
-.L /..
+\f[CB]/..\fP
 preserved for super root hacks.
-.I flags is the inclusive-or of:
+.I flags
+is the inclusive-or of:
 .TP
-.L PATH_DOTDOT
+\f[CB]PATH_DOTDOT\fP
 Each
-.L ..
+\f[CB]..\fP
 is checked for access.
 .TP
-.L PATH_EXISTS
+\f[CB]PATH_EXISTS\fP
 Path must exist at each component.
 .TP
-.L PATH_PHYSICAL
+\f[CB]PATH_PHYSICAL\fP
 Symbolic links are resolved at each component.
 .PP
-0 is returned on error.
+\f[CB]NULL\fP
+is returned on error.
 If an error occurs and either of
-.L PATH_DOTDOT
+\f[CB]PATH_DOTDOT\fP
 or
-.L PATH_EXISTS
+\f[CB]PATH_EXISTS\fP
 is set then
 .I path
 will contain the components following the failure point.
 .PP
-.L pathcat
+\f[CB]pathcat\fP
 concatenates the first
 .I sep
 separated path component in
@@ -171,7 +143,7 @@ with the path components
 and
 .I b
 into
-.LR path .
+.IR path .
 The path is constructed in
 .I path
 by separating each path component with
@@ -181,19 +153,19 @@ Both
 and
 .I b
 may be
-.LR 0 .
+\f[CB]NULL\fP.
 A pointer to the next
 .I sep
 separated component in
 .I dirs
 is returned,
-.L 0
+\f[CB]NULL\fP
 when there are no more components.
-.L pathcat
+\f[CB]pathcat\fP
 is used by
-.LR pathaccess .
+\f[CB]pathaccess\fP.
 .PP
-.L pathcd
+\f[CB]pathcd\fP
 sets the current working directory to
 .I path
 via
@@ -201,19 +173,47 @@ via
 If
 .I path
 is longer than
-.L PATH_MAX
+\f[CB]PATH_MAX\fP
 then it is split up into a sequence of relative paths and
 .I chdir
 is called on each of these.
+If an intermediate
+.I chdir
+fails and
+.I home
+is not
+\f[CB]NULL\fP
+then the current directory is restored to
+.IR home .
+0 is returned on success, \-1 on error.
 For any given system, if you got to a directory, then
-.L pathcd
+\f[CB]pathcd\fP
 can get you back, modulo permission and link changes.
 .PP
-.L pathgetlink
-returns the 0-terminated symbolic link text for
+\f[CB]pathexists\fP
+returns 1 if
 .I path
+exists with the access
+.IR mode ,
+0 otherwise.
+.I mode
+is the inclusive-or of the
+\f[CB]PATH_READ\fP,
+\f[CB]PATH_WRITE\fP,
+\f[CB]PATH_EXECUTE\fP
+and
+\f[CB]PATH_REGULAR\fP
+flags described for
+\f[CB]pathaccess\fP.
+A cache of recent results is maintained to minimize
+.IR stat (2)
+calls.
+.PP
+\f[CB]pathgetlink\fP
+returns the 0-terminated symbolic link text for
+.I name
 in the buffer
-.I bu
+.I buf
 of size
 .IR siz .
 The link text length is returned on success, \-1 on error.
@@ -221,13 +221,13 @@ Weird
 .IR universe (1)
 interactions with dynamic symbolic links are handled
 by converting non-standard dynamic link text to
-.LI .../$( UNIVERSE )/...
+\f[CB].../$(UNIVERSE)/...\fP
 The
-.L pathsetsymlink
+\f[CB]pathsetlink\fP
 function
 converts in the other direction.
 .PP
-.L pathicase
+\f[CB]pathicase\fP
 uses an operating system-specific method, if available,
 to determine if a file system uses case-insensitive file names.
 The return value is
@@ -239,21 +239,39 @@ is case-insensitive (regardless of case preservation),
 if it is not, or
 .B \-1
 if an error occurred. On error,
-.L errno
+\f[CB]errno\fP
 is set by the system-specific function that was used.
 If the operating system does not have a known method
 to determine file system case insensitivity for the
 .IR path ,
 then
-.L pathicase
+\f[CB]pathicase\fP
 returns
 .B \-1
 with
-.L errno
+\f[CB]errno\fP
 set to
-.LR ENOSYS .
+\f[CB]ENOSYS\fP.
 .PP
-.L pathpath
+\f[CB]pathnative\fP
+converts the POSIX path
+.I path
+to the native file system representation in the buffer
+.I buf
+of size
+.IR siz .
+The length of the converted path is returned;
+if the return value is >=
+.I siz
+then
+.I buf
+is indeterminate and the call should be retried with
+.I siz
+at least the returned value plus 1.
+On systems with no distinct native representation the path is
+copied verbatim.
+.PP
+\f[CB]pathpath\fP
 constructs in
 .I path
 a path to
@@ -263,26 +281,54 @@ with
 mode
 .I mode
 using the directories from
-.LR pathbin() .
-If \fIa != 0\fP then
+\f[CB]pathbin()\fP.
+If
+.I a
+!=
+\f[CB]NULL\fP
+then
 .IR a ,
 .IR argv [0]
 (if available via
 .IR optget (3)),
 and the
-.L _
+\f[CB]_\fP
 environment variable (set by
-.IR ksh (1) )
+.IR ksh (1))
 are used for related root searching.
 If
 .I p
 also contains a
-.L /
+\f[CB]/\fP
 then
 .I ../p
 is searched for.
+If
+.I path
+is 0 then space is allocated.
+The path is returned,
+\f[CB]NULL\fP
+on error.
 .PP
-.L pathrepl
+\f[CB]pathposix\fP
+converts the native file system path
+.I path
+to the POSIX representation in the buffer
+.I buf
+of size
+.IR siz .
+The length of the converted path is returned;
+if the return value is >=
+.I siz
+then
+.I buf
+is indeterminate and the call should be retried with
+.I siz
+at least the returned value plus 1.
+On systems with no distinct native representation the path is
+copied verbatim.
+.PP
+\f[CB]pathrepl\fP
 does an in-place replacement of the first occurrence of
 .I /match/
 with
@@ -290,53 +336,82 @@ with
 in
 .IR path .
 .PP
-.L pathsetlink
+\f[CB]pathsetlink\fP
 creates a symbolic link
 .I text
 in the path
 .IR name .
 See
-.L pathgetlink
+\f[CB]pathgetlink\fP
 above for weird
 .IR universe (1)
 interactions hidden by this routine.
 .PP
-.L pathstat
+\f[CB]pathstat\fP
 first tries
-.LI stat( path , st )
+\f[CB]stat(\fP\fIpath\fP\f[CB],\fP \fIst\fP\f[CB])\fP
 and if that fails it tries
-.LI lstat( path , st ) .
+\f[CB]lstat(\fP\fIpath\fP\f[CB],\fP \fIst\fP\f[CB])\fP.
 The
-.L stat
+.I stat
 or
-.L lstat
+.I lstat
 return value is returned.
 .PP
-.L pathtemp
+\f[CB]pathtemp\fP
 generates in
 .I path
 a temporary file path name of the form
-.I dir/pfx<pid>.<suf>
+.IR dir / \fIpfx <base>.<suf>\fP
 where the length of
 .IR pfx ,
 if !=0, is limited to 5, the length of
-.I <pid>
-(the base 64 representation of the current process ID)
+.I <base>
 is limited to 3, and
 .I <suf>
-(an internally generated suffix that avoid file conflicts)
+(an internally generated suffix that avoids file conflicts)
 is limited to 3.
 The generated path name conforms to the classic UNIX 14 char and the DOS
-.LR 8.3
+\f[CB]8.3\fP
 limitations.
+If
+.I len
+is not 0 then it is the size of
+.IR path ;
+if
+.I path
+is 0 then space of size
+.I len
+(or
+\f[CB]PATH_MAX\fP
+if
+.I len
+is 0) is allocated.
 Both
 .I dir
 and
 .I pfx
 may be
-.LR 0 .
+\f[CB]NULL\fP,
+in which case the
+\f[CB]TMPPATH\fP
+and
+\f[CB]TMPDIR\fP
+environment variables and a compiled-in default directory are consulted.
+If
+.I fdp
+is not 0 then the file is atomically created with
+.B O_EXCL
+and the open file descriptor is stored in
+.IR *fdp .
+The generated path name is returned, 0 on error.
 .IR access (2)
-is used to avoid file conflicts but the generated path name is not created,
+is used to avoid file conflicts when
+.I fdp
+is 0, but the generated path name is then not created,
 so you could lose in a race.
 .SH "SEE ALSO"
-access(2), confstr(3), lstat(2), stat(2)
+.IR access (2),
+.IR confstr (3),
+.IR lstat (2),
+.IR stat (2)

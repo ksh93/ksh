@@ -103,8 +103,9 @@ regress(Sfio_t* sp, ssize_t n, int f)
 
 	if (!(r = sfreserve(sp, 4, f)))
 		r = sfreserve(sp, n, f);
-	else if (sfvalue(sp) > 4)
-		sfvalue(sp) = 4;
+	/* hack alert: __sf_value() is an unofficial Sfio macro version of sfvalue() that is an lvalue */
+	else if (__sf_value(sp) > 4)
+		__sf_value(sp) = 4;
 	return r;
 }
 

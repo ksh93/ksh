@@ -647,7 +647,8 @@ int ed_fulledit(Edit_t *ep)
 #endif /* SHOPT_MULTIBYTE */
 		sfwrite(sh.hist_ptr->histfp,(char*)ep->e_inbuf,(size_t)ep->e_eol+1);
 		sh_onstate(SH_HISTORY);
-		hist_flush(sh.hist_ptr);
+		if (hist_flush(sh.hist_ptr) < 0)
+			return -1;
 	}
 	cp = strcopy((char*)ep->e_inbuf,e_runvi);
 	cp = strcopy(cp, fmtint(ep->e_hline,1));

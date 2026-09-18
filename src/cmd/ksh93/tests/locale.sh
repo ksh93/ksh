@@ -383,6 +383,7 @@ fi
 # A strxfrm(3) bug on some macOS versions caused false positive matches in bracket patterns.
 # This test is to ensure the workaround is functional.
 # https://github.com/ksh93/ksh/issues/936
+unset c
 if	(LC_ALL=en_GB.UTF-8; eval 'c=$'\''\342\202\254'\'; [[ ${#c} == 1 ]]) 2>/dev/null
 then	LC_ALL=en_GB.UTF-8 "$SHELL" -c "LINENO=$((LINENO+1))"'
 	. "${SHTESTS_COMMON:-${0%/*}/_common}"
@@ -410,7 +411,7 @@ case " ${locales[*]} " in
 	LANG=en_GB.ISO8859-1
 	for exp in '\u[2026]' '\u133' '\u2116' '\u210a' '\u2122' '\u2103' '\u2109'
 	do	eval "got=\$'$exp'"
-		[[ $got == "$exp" ]] || err_exit "unspported code point $exp fails to fail in iso-8858-1 (got '$got')"
+		[[ $got == "$exp" ]] || err_exit "unsupported code point $exp fails to fail in ISO-8858-1 (got '$got')"
 	done
 	unset LANG
 esac
@@ -432,6 +433,14 @@ do	for reproducer in \
 			"got status $e$( ((e>128)) && print /SIG$(kill -l $e) ) with output $(printf %q "$(<out)$(<out2)")"
 	done
 done
+
+# ======
+# Crash when attempting to set an integer variable to a non-integer multibyte character
+unset c
+got=$(set +x; "$SHELL" -c 'integer c; c="€"' 2>&1)
+ret=$?
+((ret==1)) || err_exit "crash when attempting to set an integer to a multibyte non-integer character" \
+	"(got status $ret with output $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

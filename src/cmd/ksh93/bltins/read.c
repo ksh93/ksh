@@ -208,32 +208,34 @@ static void timedout(void *handle)
  *  <flags> is union of -A, -r, -s, and contains delimiter if not '\n'
  *  <timeout> is the number of milliseconds until timeout
  */
-int sh_readline(char **names, volatile int fd, int flags, int delim, ssize_t size, Sflong_t timeout)
+int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t _size, Sflong_t timeout)
 {
 	ssize_t			c;
 	unsigned char		*cp;
 	Namval_t		*np;
 	char			*name, *val;
-	Sfio_t			*iop;
+	Sfio_t			*volatile iop;
 	Namfun_t		*nfp;
-	const char		*ifs;
-	unsigned char		*cpmax;
+	const char		*volatile ifs;
+	unsigned char		*volatile cpmax;
 	unsigned char		*del;
-	char			was_escape = 0;
-	char			use_stak = 0;
+	volatile char		was_escape = 0;
+	volatile char		use_stak = 0;
 	volatile char		was_write = 0;
 	volatile char		was_share = 1;
-	volatile int		keytrap;
+	volatile int		keytrap, flags = _flags, delim = _delim;
+	volatile ssize_t	size = _size;
 	int			wrd;
 	ptrdiff_t		rel;
 	long			array_index = 0;
-	volatile void		*timeslot = NULL;
+	void			*volatile timeslot = NULL;
 	int			jmpval=0;
 	int			binary;
 	nvflag_t		oflags=NV_VARNAME;
 	char			inquote = 0;
 	struct checkpt		buff;
 	Edit_t			*ep = (struct edit*)sh.ed_context;
+	char			**volatile names = _names;
 	if(!(iop=sh.sftable[fd]) && !(iop=sh_iostream(fd,0)))
 		return 1;
 	sh_stats(STAT_READS);
@@ -849,8 +851,8 @@ done:
 	if((sh.fdstatus[fd]&IOTTY) && !keytrap)
 		tty_cooked(fd);
 #if !SHOPT_SCRIPTONLY
-	if(flags&S_FLAG)
-		hist_flush(sh.hist_ptr);
+	if((flags&S_FLAG) && hist_flush(sh.hist_ptr) < 0 && jmpval < 1)
+		jmpval = 1;
 #endif
 	if(jmpval > 1)
 		siglongjmp(*sh.jmplist,jmpval);

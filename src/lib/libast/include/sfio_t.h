@@ -66,31 +66,18 @@
 #define SFIO_RDWRSTR	(SFIO_RDWR|SFIO_STRING)
 
 /* for static initialization of an Sfio_t structure */
-#define SFNEW(data,size,file,type,disc)	\
-	{ (unsigned char*)(data),			/* next		*/ \
-	  (unsigned char*)(data),			/* endw		*/ \
-	  (unsigned char*)(data),			/* endr		*/ \
-	  (unsigned char*)(data),			/* endb		*/ \
-	  NULL,						/* push		*/ \
-	  (unsigned short)((type)&SFIO_FLAGS),		/* flags	*/ \
-	  (short)(file),				/* file		*/ \
-	  (unsigned char*)(data),			/* data		*/ \
-	  (ssize_t)(size),				/* size		*/ \
-	  -1,						/* val		*/ \
-	  0,						/* extent	*/ \
-	  0,						/* here		*/ \
-	  0,						/* ngetr	*/ \
-	  {0},						/* tiny		*/ \
-	  0,						/* bits		*/ \
-	  (unsigned int)(((type)&(SFIO_RDWR))|SFIO_INIT), /* mode	*/ \
-	  (struct _sfdisc_s*)(disc),			/* disc		*/ \
-	  NULL,						/* pool		*/ \
-	  NULL,						/* rsrv		*/ \
-	  NULL,						/* proc		*/ \
-	  NULL,						/* stdio	*/ \
-	  0,						/* lpos		*/ \
-	  0,						/* iosz		*/ \
-	  0						/* getr		*/ \
+#define SFNEW(data,size,file,type,dsc)	\
+	{ ._next = (unsigned char*)(data),				\
+	  ._endw = (unsigned char*)(data),				\
+	  ._endr = (unsigned char*)(data),				\
+	  ._endb = (unsigned char*)(data),				\
+	  ._flags = (unsigned short)((type)&SFIO_FLAGS),		\
+	  ._file = (short)(file),					\
+	  ._data = (unsigned char*)(data),				\
+	  ._size = (ssize_t)(size),					\
+	  ._val = -1,							\
+	  .mode = (unsigned int)(((type)&(SFIO_RDWR))|SFIO_INIT),	\
+	  .disc = (struct _sfdisc_s*)(dsc)				\
 	}
 
 /* function to clear an Sfio_t structure */

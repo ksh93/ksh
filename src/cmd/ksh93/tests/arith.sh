@@ -265,7 +265,7 @@ do	if	(( '${chr[i]}' != ${val[i]} ))
 done
 unset x
 typeset -ui x=4294967293
-[[ $x != 4294967293 ]]  && err_exit "unsigned integers not working"
+[[ $x != 4294967293 ]]  && err_exit "unsigned integers not working (expected 4294967293, got $x)"
 x=32767
 x=x+1
 [[ $x != 32768 ]]  && err_exit "unsigned integer addition not working"
@@ -1147,7 +1147,7 @@ unset y
 typeset -i y=0
 ((y = y - 1))
 [[ $y == '-1' ]] || err_exit "variable declared with 'typeset -i' not consistently handled as signed int" \
-	"(expected '-1', got '$got')"
+	"(expected '-1', got '$y')"
 
 # ======
 # https://github.com/ksh93/ksh/issues/789

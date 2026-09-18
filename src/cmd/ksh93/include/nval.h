@@ -100,13 +100,18 @@ struct Namdisc
 struct Namfun
 {
 	const Namdisc_t	*disc;
-	char		nofree;
+	char		namflags;
 	unsigned int	subshell;
 	size_t		dsize;
 	Namfun_t	*next;
 	char		*last;
 	Namval_t	*type;
 };
+
+/* bits for Namfun_t.namflags */
+#define NAMFUN_NOFREE	0x01		/* don't call free() on this struct */
+#define NAMFUN_IGN	0x02		/* don't copy if NV_NODISC (see clone_all_disc()) */
+#define NAMFUN_PREDEF	0x04		/* predefined readonly discipline from init.c; don't copy */
 
 struct Nambfun
 {

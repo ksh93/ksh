@@ -1,85 +1,62 @@
-.fp 5 B
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
 .TH IP6 3
 .SH NAME
 ip6 \- IPv6 address support
 .SH SYNOPSIS
-.EX
+.nf
+.ft CR
 #include <ip6.h>
 
-char*      fmtip6(unsigned char* addr, int bits);
-int        strtoip6(const char* str, char** end, unsigned char* addr, unsigned char* bits);
-.EE
-
+char*      fmtip6(const unsigned char* \fIaddr\fP, int \fIbits\fP);
+int        strtoip6(const char* \fIstr\fP, char** \fIend\fP, unsigned char* \fIaddr\fP, unsigned char* \fIbits\fP);
+.ft
+.fi
 .SH DESCRIPTION
-.L fmtip6()
+\f[CB]fmtip6\fP
 formats the IPv6 address
-.L addr
-with optional prefix bits
-.L bits
-(0 if not a prefix) into a thread-specific 0-terminated temporary buffer
+.IR addr ,
+which points to a buffer of
+.B IP6ADDR
+(16) bytes, with optional prefix bits
+.I bits
+(appended as a
+.BI / bits
+suffix if 0 <=
+.I bits
+<= 128) into a thread-specific 0-terminated temporary buffer
 and returns a pointer to the formatted value.
-
+The longest run of zero 16-bit groups is compressed with
+.BR :: ,
+and IPv4-mapped
+.RB ( ::ffff:a.b.c.d )
+and 6to4
+.RB ( 2002:a.b.c.d::... )
+addresses are recognized and formatted with dotted-quad notation.
 .PP
-.L strtoip6()
+\f[CB]strtoip6\fP
 converts a formatted IPv6 address from the 0-terminated string
-.L str
+.I str
 into a host order IPv6 address in
-.L addr
+.IR addr ,
 which must be a buffer of at least
-.L IP6ADDR
+.B IP6ADDR
 bytes.
+Both canonical and
+.BR :: \-compressed
+forms are accepted, as are IPv4-mapped and 6to4 dotted-quad forms.
 If
-.L bits
+.I bits
 is not 0 then an optional
 .BI / bits
 (prefix size in bits) is parsed and
-.L *bits
-is set to the number of prefix bits.
+.I *bits
+is set to the number of prefix bits, or to 0xff if no prefix is present.
 If
-.L end
+.I end
 is not 0 then
-.L *end
+.I *end
 will point to the first unparsed character in
-.L str
+.I str
 on return.
-0 is returned on success, -1 on failure.
-
+0 is returned on success, \-1 on failure.
 .SH "SEE ALSO"
-dss(1)
+.IR dss (1)

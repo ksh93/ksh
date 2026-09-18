@@ -32,9 +32,9 @@ struct rand
 };
 extern void sh_reseed_rand(struct rand *);
 extern void sh_save_rand_seed(struct rand *, int);
+extern void sh_invalidate_rand_seed(void);
 
 #define RAND_SEED_INVALIDATED		-2
-#define sh_invalidate_rand_seed()	(((struct rand*)RANDNOD->nvfun)->rand_last = RAND_SEED_INVALIDATED)
 
 /* update ${.sh.level} and, if needed, restore the current scope */
 #define update_sh_level() \

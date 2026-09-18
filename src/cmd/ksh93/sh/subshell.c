@@ -173,6 +173,7 @@ void sh_subfork(void)
 	if(sp->pipe)
 		sh_subtmpfile(1);
 	sh.curenv = 0;
+	/* arm critical signal region */
 	sh.savesig = -1;
 	if(pid = sh_fork(F_SUBFORK,NULL))
 	{
@@ -199,6 +200,7 @@ void sh_subfork(void)
 		sh.comsub = 0;
 		sp->subpid=0;
 		sh.st.trapcom[0] = (comsub==2 ? NULL : trap);
+		/* disarm critical signal region */
 		sh.savesig = 0;
 		/* sh_fork() increases ${.sh.subshell} but we forked an existing virtual subshell, so undo */
 		sh.realsubshell--;
@@ -326,6 +328,101 @@ void sh_assignok(Namval_t *np,int add)
 }
 
 /*
+ * Helper for nv_restore() to restore a variable with a default discipline.
+ * These need to be restored via nv_putval() so their disciplines restore state.
+ *
+ * mp: variable to restore into
+ * np: copy to restore from (was saved by sh_assignok())
+ */
+static inline void restore_specialvar(Namval_t *mp, Namval_t *np)
+{
+	void *val;
+	nvflag_t np_flags = np->nvflag;
+	int mp_freeable = !nv_isattr(mp, NV_NOFREE);
+	if (np_flags & NV_INTEGER)
+	{
+		/* For numeric types, re-use attribute logic from nv_putval. */
+		Sfdouble_t ld = nv_getnum(np);
+		if ((np_flags & NV_DOUBLE) == NV_DOUBLE)
+		{
+			if ((np_flags & NV_LONG) && sizeof(double) < sizeof(Sfdouble_t))
+			{
+				val = sh_malloc(sizeof(Sfdouble_t));
+				*((Sfdouble_t*)val) = ld;
+			}
+			else
+			{
+				val = sh_malloc(sizeof(double));
+				*((double*)val) = (double)ld;
+			}
+		}
+		else
+		{
+			if (np_flags & NV_LONG)
+			{
+				val = sh_malloc(sizeof(Sflong_t));
+				if (np_flags & NV_UNSIGN)
+					*((Sfulong_t*)val) = (Sfulong_t)ld;
+				else
+					*((Sflong_t*)val) = (Sflong_t)ld;
+			}
+			else if (np_flags & NV_SHORT)
+			{
+				val = sh_malloc(sizeof(int16_t));
+				if (np_flags & NV_UNSIGN)
+					*((uint16_t*)val) = (uint16_t)ld;
+				else
+					*((int16_t*)val) = (int16_t)ld;
+			}
+			else
+			{
+				val = sh_malloc(sizeof(int32_t));
+				if (np_flags & NV_UNSIGN)
+					*((uint32_t*)val) = (uint32_t)ld;
+				else
+					*((int32_t*)val) = (int32_t)ld;
+			}
+		}
+	}
+	else
+		val = nv_getval(np);
+	nv_putval(mp, val, NV_RDONLY|NV_NOFREE|np_flags);
+	/*
+	 * Passing NV_NOFREE to nv_putval: (1) avoids creating a new copy
+	 * of val; (2) sets NV_NOFREE in the node. We only want (1) here.
+	 */
+	if (mp_freeable)
+		nv_offattr(mp, NV_NOFREE);
+	/*
+	 * Some disciplines may still create a newly allocated value.
+	 */
+	if (np->nvalue != mp->nvalue && !nv_isattr(np, NV_NOFREE))
+		free(np->nvalue);
+}
+
+static inline void free_scalarvalue(Namval_t *n)
+{
+	if (n->nvalue && !nv_isvtree(n) && !nv_isref(n) && !nv_arrayptr(n) && !nv_isattr(n,NV_MINIMAL|NV_NOFREE))
+	{
+		if (n->nvalue!=Empty && n->nvalue!=AltEmpty)
+			free(n->nvalue);
+		n->nvalue = NULL;
+	}
+}
+
+static inline void free_disciplines(Namval_t *n)
+{
+	Namfun_t *nf, *next;
+	/* note: freeing disciplines breaks the checks in free_scalarvalue() */
+	for (nf = n->nvfun; nf; nf = next)
+	{
+		next = nf->next;
+		if (!(nf->namflags & NAMFUN_NOFREE))
+			free(nf);
+	}
+}
+
+/*
  * restore the variables
  */
 static void nv_restore(struct subshell *sp)
@@ -333,8 +430,8 @@ static void nv_restore(struct subshell *sp)
 	struct Link	*lp, *lq;
 	Namval_t	*mp, *np;
 	Namval_t	*mpnext;
+	Namfun_t	*fp;
 	nvflag_t	flags;
-	char		nofree;
 	sh.nv_restore = 1;
 	for(lp=sp->svar; lp; lp=lq)
 	{
@@ -348,7 +445,6 @@ static void nv_restore(struct subshell *sp)
 			flags |= NV_MINIMAL;
 		if(nv_isarray(mp))
 			 nv_putsub(mp,NULL,ARRAY_SCAN);
-		nofree = mp->nvfun?mp->nvfun->nofree:0;
 		if(np->nvalue==Empty)
 		{
 			if(nv_isnull(mp) && !nv_isvtree(np))
@@ -359,6 +455,7 @@ static void nv_restore(struct subshell *sp)
 			if(mp->nvalue && mp->nvalue!=Empty)
 				nv_offattr(mp,NV_NOFREE);
 		}
+		fp = mp->nvfun;  /* save the pre-restore parent scope disciplines list */
 		nv_unset(mp,NV_RDONLY|NV_CLONE);
 		if(nv_isarray(np))
 		{
@@ -368,9 +465,18 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
-		mp->nvfun = np->nvfun;
-		if(np->nvfun && nofree)
-			np->nvfun->nofree = nofree;
+		/* Free leftover disciplines and scalar values from subshell variables with shell discipline functions */
+		if(!(fp && mp->nvfun==fp && np->nvfun && np->nvfun!=fp))
+		{
+			if(!np->nvfun && mp->nvfun)
+			{
+				if(mp->nvalue!=np->nvalue)
+					free_scalarvalue(mp);
+				free_disciplines(mp);
+			}
+			mp->nvfun = np->nvfun;
+			fp = NULL;  /* Avoid duplicate freeing below */
+		}
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);
@@ -378,17 +484,21 @@ static void nv_restore(struct subshell *sp)
 		}
 		mp->nvflag = np->nvflag|(flags&NV_MINIMAL);
 		if(nv_enforcedisc(mp))
-			nv_putval(mp,nv_getval(np),NV_RDONLY);
+			restore_specialvar(mp, np);
 		else
+		{
+			if(fp && mp->nvalue!=np->nvalue)
+				free_scalarvalue(mp);
 			mp->nvalue = np->nvalue;
-		if(nofree && np->nvfun && !np->nvfun->nofree)
-			free(np->nvfun);
+		}
+		if(fp)
+			free_disciplines(np);
 		np->nvfun = 0;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
 			char *name = nv_name(mp);
 			env_change();
-			if(*name=='_' && strcmp(name,"_AST_FEATURES")==0)
+			if(strcmp(name,"_AST_FEATURES")==0)
 				astconf(NULL, NULL, NULL);
 		}
 		else if(nv_isattr(np,NV_EXPORT))
@@ -564,27 +674,26 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 {
 	struct subshell sub_data;
 	struct subshell *sp = &sub_data;
-	int n, jmpval, fatalerror = 0, saveerrno = 0;
+	int n, jmpval;
+	volatile int fatalerror = 0, saveerrno = 0, argcnt;
 	unsigned int savecurenv = sh.curenv;
 	int savejobpgid = job.curpgid;
 	int *saveexitval = job.exitval;
-	char **savsig;
-	size_t nsig = 0;
-	Sfio_t *iop=0;
+	char **volatile savsig;
+	volatile size_t nsig = 0;
+	Sfio_t *volatile iop=0;
 	struct checkpt checkpoint;
 	struct sh_scoped savst;
 	struct dolnod   *argsav=0;
-	int argcnt;
+	sfsync(sh.outpool);
 	memset((char*)sp, 0, sizeof(*sp));
 	sp->options = sh.options;
 	sp->subshare = sh.subshare;
 	sp->comsub = sh.comsub;
 	sp->pwdfd = -1;	/* pwdfd should not be initialized to stdin */
-	sfsync(sh.outpool);
 	sh_sigcheck();
+	/* arm critical signal region */
 	sh.savesig = -1;
-	if(argsav = sh_arguse())
-		argcnt = argsav->dolrefcnt;
 	if(sh.curenv==0)
 	{
 		subshell_data=0;
@@ -596,6 +705,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	sh.realsubshell++;	/* increase ${.sh.subshell} */
 	sp->prev = subshell_data;
 	subshell_data = sp;
+	if(argsav = sh_arguse())
+		argcnt = argsav->dolrefcnt;
 	sp->jobs = job_subsave();
 	/* make sure initialization has occurred */
 	if(!sh.pathlist)
@@ -707,9 +818,9 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		else if(sp->prev)
 			sp->pipe = sp->prev->pipe;
 		flags |= sh_state(SH_NOFORK);
+		/* execute the subshell if no signal was saved */
 		if(sh.savesig < 0)
 		{
-			sh.savesig = 0;
 #if !_lib_openat
 			if(sp->pwdfd < 0 && !sh.subshare)	/* if we couldn't get a file descriptor to our PWD ... */
 				sh_subfork();			/* ...we have to fork, as we cannot fchdir back to it. */
@@ -728,22 +839,31 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			 * shell in order for it to start and lead a new process group (via _sh_fork()).  */
 			else if(sh_isstate(SH_MONITOR))
 				sh_subfork();
+			/* disarm critical signal region */
+			sh.savesig = 0;
 			/* Execute the subshell tree */
 			sh_exec(t,flags);
 		}
 	}
+	/* re-arm critical signal region (do not overwrite saved signal if any) */
+	if(!sh.savesig)
+		sh.savesig = -1;
 	if(comsub!=2 && jmpval!=SH_JMPSUB && sh.st.trapcom[0] && sh.subshell)
 	{
 		/* trap on EXIT not handled by child */
 		char *trap=sh.st.trapcom[0];
 		sh.st.trapcom[0] = 0;	/* prevent recursion */
 		sh_trap(trap,0);
+		if(!sh.savesig)
+			sh.savesig = -1;
 		free(trap);
 	}
 	if(sh.subshell==0)	/* we must have forked with sh_subfork(); this is the child process */
 	{
 		subshell_data = sp->prev;
 		sh_popcontext(&checkpoint);
+		/* disarm critical signal region */
+		sh.savesig = 0;
 		if(jmpval==SH_JMPSCRIPT)
 			siglongjmp(*sh.jmplist,jmpval);
 		sh.exitval &= SH_EXITMASK;
@@ -751,8 +871,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sh.exitval |= SH_EXITSIG;
 		sh_done(0);
 	}
-	if(!sh.savesig)
-		sh.savesig = -1;
 	nv_restore(sp);
 	if(comsub)
 	{
@@ -812,7 +930,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sfset(iop,SFIO_READ,1);
 		}
 		if(sp->saveout)
+		{
 			sfswap(sp->saveout,sfstdout);
+			sp->saveout = NULL;
+		}
 		else
 			sfstdout = &_Sfstdout;
 		/* check if standard output was preserved */
@@ -825,6 +946,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				fatalerror = 1;
 			}
 			sh_close(sp->tmpfd);
+			sp->tmpfd = -1;
 		}
 		sh.fdstatus[1] = sp->fdstatus;
 	}
@@ -832,8 +954,13 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	{
 		path_delete((Pathcomp_t*)sh.pathlist);
 		sh.pathlist = sp->pathlist;
+		sp->pathlist = NULL;
 	}
-	job_subrestore(sp->jobs);
+	if(sp->jobs)
+	{
+		job_subrestore(sp->jobs);
+		sp->jobs = NULL;
+	}
 	sh.curenv = sh.jobenv = savecurenv;
 	job.curpgid = savejobpgid;
 	job.exitval = saveexitval;
@@ -856,6 +983,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			}
 			/* Close and free the table itself. */
 			dtclose(sp->strack);
+			sp->strack = NULL;
 		}
 		/* Clean up subshell function table. */
 		if(sp->sfun)
@@ -888,12 +1016,14 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				}
 			}
 			dtclose(sp->sfun);
+			sp->sfun = NULL;
 		}
 		/* Clean up subshell autoload loop detection tree. */
 		if(sp->sfaldt)
 		{
 			sh.funload_loopdetect_tree = dtview(sp->sfaldt,0);
 			dtclose(sp->sfaldt);
+			sp->sfaldt = NULL;
 		}
 		n = sh.st.trapmax-savst.trapmax;
 		sh_sigreset(1);
@@ -976,9 +1106,12 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	subshell_data = sp->prev;
 	sh_popcontext(&checkpoint);
 	if(!argsav  ||  argsav->dolrefcnt==argcnt)
-		sh_argfree(argsav,0);
+		sh_argfree(argsav);
 	if(sh.topfd != checkpoint.topfd)
 		sh_iorestore(checkpoint.topfd|IOSUBSHELL,jmpval);
+	/* disarm critical signal region; remember saved signal */
+	n = sh.savesig;
+	sh.savesig = 0;
 	if(sp->sig)
 	{
 		if(sp->prev)
@@ -991,8 +1124,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	}
 	sh_sigcheck();
 	sh.trapnote = 0;
-	n = sh.savesig;
-	sh.savesig = 0;
+	/* if a signal was saved in sh.savesig, reissue it */
 	if(n > 0)
 		kill(sh.current_pid, n);
 	if(sp->subpid)

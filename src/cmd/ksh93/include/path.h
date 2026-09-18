@@ -86,7 +86,7 @@ extern char 		*path_pwd(void);
 extern Pathcomp_t	*path_nextcomp(Pathcomp_t*,const char*,Pathcomp_t*);
 extern int		path_search(const char*,Pathcomp_t**,int);
 extern char		*path_relative(const char*);
-extern size_t		path_complete(const char*, const char*,struct argnod**);
+extern size_t		path_complete(const char *restrict,const char *restrict,struct argnod**);
 #if SHOPT_BRACEPAT
     extern ssize_t	path_generate(struct argnod*,struct argnod**, int);
 #endif /* SHOPT_BRACEPAT */
@@ -117,12 +117,5 @@ extern const char is_talias[];
 extern const char is_function[];
 extern const char is_ufunction[];
 extern const char e_autoloadfrom[];
-
-#if SHOPT_ACCT
-	extern void sh_accinit(void);
-	extern void sh_accbegin(const char*);
-	extern void sh_accend(void);
-	extern void sh_accsusp(void);
-#endif /* SHOPT_ACCT */
 
 #endif /* !_PATH_H */

@@ -21,7 +21,7 @@
 #ifndef _SFIO_H
 #define _SFIO_H	1
 
-#define SFIO_VERSION	20240303L
+#define SFIO_VERSION	20260907L
 
 /*	Public header file for the sfio library
 **
@@ -181,8 +181,8 @@ extern Sfio_t		_Sfstdout;
 extern Sfio_t		_Sfstderr;
 
 extern Sfio_t*		sfnew(Sfio_t*, void*, size_t, int, unsigned short);
-extern Sfio_t*		sfopen(Sfio_t*, const char*, const char*);
-extern Sfio_t*		sfpopen(Sfio_t*, const char*, const char*);
+extern Sfio_t*		sfopen(Sfio_t*, const char *restrict, const char *restrict);
+extern Sfio_t*		sfpopen(Sfio_t*, const char *restrict, const char *restrict);
 extern Sfio_t*		sfstack(Sfio_t*, Sfio_t*);
 extern Sfio_t*		sfswap(Sfio_t*, Sfio_t*);
 extern Sfio_t*		sftmp(size_t);
@@ -213,14 +213,14 @@ extern ssize_t		sfnputc(Sfio_t*, int, size_t);
 extern int		sfungetc(Sfio_t*, int);
 extern ssize_t		sfprintf(Sfio_t*, const char*, ...);
 extern char*		sfprints(const char*, ...);
-extern ssize_t		sfaprints(char**, const char*, ...);
-extern ssize_t		sfsprintf(char*, size_t, const char*, ...);
-extern ssize_t		sfvsprintf(char*, size_t, const char*, va_list);
-extern ssize_t		sfvasprints(char**, const char*, va_list);
+extern ssize_t		sfaprints(char **restrict, const char *restrict, ...);
+extern ssize_t		sfsprintf(char *restrict, size_t, const char *restrict, ...);
+extern ssize_t		sfvsprintf(char *restrict, size_t, const char *restrict, va_list);
+extern ssize_t		sfvasprints(char **restrict, const char *restrict, va_list);
 extern ssize_t		sfvprintf(Sfio_t*, const char*, va_list);
 extern int		sfscanf(Sfio_t*, const char*, ...);
-extern int		sfsscanf(const char*, const char*, ...);
-extern int		sfvsscanf(const char*, const char*, va_list);
+extern int		sfsscanf(const char *restrict, const char *restrict, ...);
+extern int		sfvsscanf(const char *restrict, const char *restrict, va_list);
 extern int		sfvscanf(Sfio_t*, const char*, va_list);
 
 /* io functions with discipline continuation */
@@ -229,45 +229,23 @@ extern ssize_t		sfwr(Sfio_t*, const void*, size_t, Sfdisc_t*);
 extern Sfoff_t		sfsk(Sfio_t*, Sfoff_t, int, Sfdisc_t*);
 extern ssize_t		sfpkrd(int, void*, size_t, int, long, int);
 
-/* portable handling of primitive types */
-extern int		sfdlen(Sfdouble_t);
-extern int		sfllen(Sflong_t);
-extern int		sfulen(Sfulong_t);
-
-extern ssize_t		sfputd(Sfio_t*, Sfdouble_t);
-extern ssize_t		sfputl(Sfio_t*, Sflong_t);
-extern ssize_t		sfputu(Sfio_t*, Sfulong_t);
-extern ssize_t		sfputm(Sfio_t*, Sfulong_t, Sfulong_t);
-extern ssize_t		sfputc(Sfio_t*, int);
-
 extern Sfdouble_t	sfgetd(Sfio_t*);
 extern Sflong_t		sfgetl(Sfio_t*);
 extern Sfulong_t	sfgetu(Sfio_t*);
 extern Sfulong_t	sfgetm(Sfio_t*, Sfulong_t);
-extern int		sfgetc(Sfio_t*);
 
 extern ssize_t		_sfputd(Sfio_t*, Sfdouble_t);
 extern ssize_t		_sfputl(Sfio_t*, Sflong_t);
 extern ssize_t		_sfputu(Sfio_t*, Sfulong_t);
 extern ssize_t		_sfputm(Sfio_t*, Sfulong_t, Sfulong_t);
 
-extern ptrdiff_t	_sfflsbuf(Sfio_t*, ptrdiff_t);
+extern ptrdiff_t	_sfflsbuf(Sfio_t*, int);
 extern ptrdiff_t	_sffilbuf(Sfio_t*, ptrdiff_t);
 
 extern int		_sfdlen(Sfdouble_t);
 extern int		_sfllen(Sflong_t);
-extern int		_sfulen(Sfulong_t);
 
-/* miscellaneous function analogues of fast in-line functions */
 extern Sfoff_t		sfsize(Sfio_t*);
-extern int		sfclrerr(Sfio_t*);
-extern int		sfeof(Sfio_t*);
-extern int		sferror(Sfio_t*);
-extern int		sffileno(Sfio_t*);
-extern int		sfstacked(Sfio_t*);
-extern ssize_t		sfvalue(Sfio_t*);
-extern ptrdiff_t	sfslen(void);
-extern ssize_t		sfmaxr(ssize_t, int);
 
 /* coding long integers in a portable and compact fashion */
 #define SFIO_SBITS	6
@@ -289,7 +267,7 @@ extern ssize_t		sfmaxr(ssize_t, int);
 #define __sf_putm(f,v,m)	(_sfputm(_SFIO_(f),(Sfulong_t)(v),(Sfulong_t)(m)))
 
 #define __sf_putc(f,c)	(_SFIO_(f)->_next >= _SFIO_(f)->_endw ? \
-			 _sfflsbuf(_SFIO_(f),(int)((unsigned char)(c))) : \
+			 (int)_sfflsbuf(_SFIO_(f),(int)((unsigned char)(c))) : \
 			 (int)(*_SFIO_(f)->_next++ = (unsigned char)(c)) )
 #define __sf_getc(f)	(_SFIO_(f)->_next >= _SFIO_(f)->_endr ? (int)_sffilbuf(_SFIO_(f),0) : \
 			 (int)(*_SFIO_(f)->_next++) )
@@ -308,29 +286,33 @@ extern ssize_t		sfmaxr(ssize_t, int);
 #define __sf_slen()	(_Sfi)
 #define __sf_maxr(n,s)	((s)?((_Sfi=_Sfmaxr),(_Sfmaxr=(n)),_Sfi):_Sfmaxr)
 
-#if defined(__INLINE__) && !_BLD_sfio
+#if !_BLD_sfio
 
-__INLINE__ int sfputd(Sfio_t* f, Sfdouble_t v)	{ return __sf_putd(f,v); }
-__INLINE__ int sfputl(Sfio_t* f, Sflong_t v)	{ return __sf_putl(f,v); }
-__INLINE__ int sfputu(Sfio_t* f, Sfulong_t v)	{ return __sf_putu(f,v); }
-__INLINE__ int sfputm(Sfio_t* f, Sfulong_t v, Sfulong_t m)
+static inline ssize_t sfputd(Sfio_t* f, Sfdouble_t v)
+						{ return __sf_putd(f,v); }
+static inline ssize_t sfputl(Sfio_t* f, Sflong_t v)
+						{ return __sf_putl(f,v); }
+static inline ssize_t sfputu(Sfio_t* f, Sfulong_t v)
+						{ return __sf_putu(f,v); }
+static inline ssize_t sfputm(Sfio_t* f, Sfulong_t v, Sfulong_t m)
 						{ return __sf_putm(f,v,m); }
 
-__INLINE__ int sfputc(Sfio_t* f, int c)		{ return __sf_putc(f,c); }
-__INLINE__ int sfgetc(Sfio_t* f)		{ return __sf_getc(f); }
+static inline int sfputc(Sfio_t* f, int c)	{ return __sf_putc(f,c); }
+static inline int sfgetc(Sfio_t* f)		{ return __sf_getc(f); }
 
-__INLINE__ int sfdlen(Sfdouble_t v)		{ return __sf_dlen(v); }
-__INLINE__ int sfllen(Sflong_t v)		{ return __sf_llen(v); }
-__INLINE__ int sfulen(Sfulong_t v)		{ return __sf_ulen(v); }
+/* portable handling of primitive types */
+static inline int sfdlen(Sfdouble_t v)		{ return __sf_dlen(v); }
+static inline int sfllen(Sflong_t v)		{ return __sf_llen(v); }
+static inline int sfulen(Sfulong_t v)		{ return __sf_ulen(v); }
 
-__INLINE__ int sffileno(Sfio_t* f)		{ return __sf_fileno(f); }
-__INLINE__ int sfeof(Sfio_t* f)			{ return __sf_eof(f); }
-__INLINE__ int sferror(Sfio_t* f)		{ return __sf_error(f); }
-__INLINE__ int sfclrerr(Sfio_t* f)		{ return __sf_clrerr(f); }
-__INLINE__ int sfstacked(Sfio_t* f)		{ return __sf_stacked(f); }
-__INLINE__ ssize_t sfvalue(Sfio_t* f)		{ return __sf_value(f); }
-__INLINE__ ssize_t sfslen()			{ return __sf_slen(); }
-__INLINE__ ssize_t sfmaxr(ssize_t n, int s)	{ return __sf_maxr(n,s); }
+static inline int sffileno(Sfio_t* f)		{ return __sf_fileno(f); }
+static inline int sfeof(Sfio_t* f)		{ return __sf_eof(f); }
+static inline int sferror(Sfio_t* f)		{ return __sf_error(f); }
+static inline int sfclrerr(Sfio_t* f)		{ return __sf_clrerr(f); }
+static inline int sfstacked(Sfio_t* f)		{ return __sf_stacked(f); }
+static inline ssize_t sfvalue(Sfio_t* f)	{ return __sf_value(f); }
+static inline ssize_t sfslen()			{ return __sf_slen(); }
+static inline ssize_t sfmaxr(ssize_t n, int s)	{ return __sf_maxr(n,s); }
 
 #else
 
@@ -355,7 +337,7 @@ __INLINE__ ssize_t sfmaxr(ssize_t n, int s)	{ return __sf_maxr(n,s); }
 #define sfslen()				( __sf_slen() )
 #define sfmaxr(n,s)				( __sf_maxr(n,s) )
 
-#endif /*__INLINE__*/
+#endif /* !_BLD_sfio */
 
 #ifndef _SFSTR_H /* GSF's string manipulation stuff */
 #define _SFSTR_H		1

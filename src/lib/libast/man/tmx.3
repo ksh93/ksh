@@ -1,674 +1,201 @@
-.fp 5 CW
-.de Af
-.ds ;G \\*(;G\\f\\$1\\$3\\f\\$2
-.if !\\$4 .Af \\$2 \\$1 "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-..
-.de aF
-.ie \\$3 .ft \\$1
-.el \{\
-.ds ;G \&
-.nr ;G \\n(.f
-.Af "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7" "\\$8" "\\$9"
-\\*(;G
-.ft \\n(;G \}
-..
-.de L
-.aF 5 \\n(.f "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de LR
-.aF 5 1 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de RL
-.aF 1 5 "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6" "\\$7"
-..
-.de EX		\" start example
-.ta 1i 2i 3i 4i 5i 6i
-.PP
-.RS
-.PD 0
-.ft 5
-.nf
-..
-.de EE		\" end example
-.fi
-.ft
-.PD
-.RE
-.PP
-..
-.TH TM 3
+.TH TMX 3
 .SH NAME
-tm \- time conversion support
+tmx \- high resolution time conversion support
 .SH SYNOPSIS
-.L "#include <tm.h>"
+\f[CB]#include <tmx.h>\fP
 .SH DESCRIPTION
 The
-.I tm
+.I tmx
 library supports conversion between
-string date specifications,
-.L time_t
-clock values and
-.L "struct tm"
-values.
-.L localtime()
-and
-.L gmtime()
-(see
-.IR ctime (3))
-are used to determine local time zone information.
-.PP
-.L time_t
-values are the number of seconds since the epoch,
+string date specifications and
+nanosecond resolution
+\f[CB]Time_t\fP
+clock values.
+\f[CB]Time_t\fP
+is the number of nanoseconds since the epoch,
 .BR "Jan 1 00:00:00 UTC 1970" ,
-with leap seconds omitted.
-.PP
-The global variable
-.L "int tm_info.flags"
-contains flags that allow all programs using the library
-to be controlled in a consistent manner.
-.L tm_info.flags
-is initialized by the
-.L tminit()
-routine described below, and may be explicitly reset after
-.L tminit()
-is called.
-The flags are:
-.TP
-.L TM_ADJUST
-Set by
-.L tminit()
-if
-.L localtime()
+with leap seconds omitted; it is a 64-bit integral type if the
+implementation supports one, otherwise it is an emulated type.
+The
+\f[CB]tmxsec(\fP\fIt\fP\f[CB])\fP
 and
-.L gmtime()
-do not compensate for leap seconds.
-.TP
-.L TM_LEAP
-.L time_t
-values are interpreted as if they include leap seconds.
-Set by
-.L tminit()
-if the
-.L leap
-option is set in the
-.L TM_OPTIONS
-environment variable.
-.TP
-.L TM_UTC
-Times are relative to
-.B UTC
-(universal coordinated time, i.e.,
-.BR GMT ).
-Otherwise times are relative to the local time zone.
-Set by
-.L tminit()
-if the time zone name matches one of
-.L tm_info.format[43]
-through
-.L tm_info.format[46]
-described below.
-If the time zone name is not determined by
-.L localtime()
-then the environment variables
-.L TZNAME
-(as described in BSD 4.3) and
-.L TZ
-(as described in System V)
-are checked, in order.
-If this fails then the time zone name is constructed using
-the local time zone offset.
+\f[CB]tmxnsec(\fP\fIt\fP\f[CB])\fP
+macros extract the seconds and nanoseconds portions of
+.IR t ,
+and
+\f[CB]tmxsns(\fP\fIs\fP, \fIn\fP\f[CB])\fP
+composes a
+\f[CB]Time_t\fP
+from a seconds value
+.I s
+and a nanoseconds value
+.IR n .
+\f[CB]TMX_NOW\fP
+is the current time,
+\f[CB]TMX_NOTIME\fP
+is a distinguished invalid time, and
+\f[CB]TMX_MAXTIME\fP
+is the maximum representable time.
 .PP
 The routines are:
 .TP
-.L "time_t tmdate(const char* date, char** end, time_t* clock)"
+\f[CB]Time_t tmxdate(const char* \fIdate\fP, char** \fIend\fP, Time_t \fInow\fP)\fP
 Parses the date specification
-.L date
-using the
-.L tm_info.format
-string table (described below)
+.I date
 and returns the equivalent
-.L time_t
+\f[CB]Time_t\fP
 value.
 If
-.RL non- NULL ,
-.L end
-is set to the position of the first unrecognized character in
-.LR date .
-.L clock
-is used to provide default values for omitted components in
-.LR date .
-If
-.L clock
-is
-.L NULL
-then the current time is used.
+.I end
+is not
+\f[CB]NULL\fP
+then it is set to the position of the first unrecognized character in
+.IR date .
+.I now
+provides default values for omitted components in
+.IR date .
 .TP
-.L "struct tm* tmfix(struct tm* tp)"
-Corrects any out of bounds fields in
-.L tp
-and returns
-.L tp
-as its value.
-The corrections start with
-.L tp->tm_sec
-and propagate down to
-.LR tp->tm_year .
-For example, if
-.L tp->tm_sec
-were 61 then it would change to 1 and
-.L tp->tm_min
-would be incremented by 1, and so on.
-.LR tp->tm_wday ,
-.LR tp->tm_yday
-and
-.L tp->tm_isdst
-are not changed as these can be computed from the other fields.
-.TP
-.L "char* tmfmt(char* buf, size_t len, const char* format, time_t* clock)"
-Formats the date pointed to by
-.L clock
-into the buffer
-.L buf
-with size
-.L len
-bytes according to the format specification
-.LR format .
-If
-.L format
-is
-.L NULL
-or empty then the string
-.L tm_info.format[40]
-is used.
-If
-.L clock
-is
-.L NULL
-then the current time is used.
-A pointer to the end of
-.L buf
-(i.e., the terminating
-.LR "'\e0'" )
-is returned.
-.RS
-.PP
-.L format
-is in the style of
-.IR printf (3),
-where
-.BI % field
-causes the corresponding fixed size field to be placed in
-.LR buf ,
-zero padded if necessary, and \e\fIc\fP and \e\fInnn\fP
-sequences are interpreted as in the C language.
-Otherwise invalid
-.BI % field
-specifications and all other characters in
-.L format
-are copied into
-.L buf
-without change.
-String field values are taken from the
-.L tm_info.format
-string table.
-The
-.I fields
-are:
-.TP
-.PD 0
-.B %
-.B %
-character.
-.TP
-.B a
-Abbreviated weekday name.
-.TP
-.B A
-Full weekday name.
-.TP
-.B b
-Abbreviated month name.
-.TP
-.B B
-Full month name.
-.TP
-.B c
-.BR ctime (3)
-style date without the trailing
-.BR newline .
-.TP
-.B C
-.BR date (1)
-style date.
-.TP
-.B d
-Day of month number.
-.TP
-.B D
-Date as
-.IR mm / dd / yy .
-.TP
-.B e
-Blank padded day of month number.
-.TP
-.B E
-Unpadded day of month number.
-.TP
-.B f
-Date as
-.IR %Y.%m.%d-%H:%M:%S .
-.TP
-.B F
-ISO 8601:2000 standard date format; equivalent to
-.IR %Y-%m-%d .
-.TP
-.B h
-Abbreviated month name.
-.TP
-.B H
-24-hour clock hour, zero-padded.
-.TP
-.B i
-International
-.BR date (1)
-date that includes the time zone type name
-.RL ( tm_info.format[107] ).
-.TP
-.B I
-12-hour clock hour, zero-padded.
-.TP
-.B j
-1-offset Julian date.
-.TP
-.B J
-0-offset Julian date.
-.TP
-.B k
-24-hour clock hour, blank-padded.
-.TP
-.B K
-Language neutral, all numeric, no embedded space date
-with larger to smaller time units from left to right,
-suitable for sorting:
-.LR '"%Y-%m-%d+%H:%M:%S"' .
-.TP
-.B l
-12-hour clock hour, blank-padded.
-.TP
-.B m
-Month number.
-.TP
-.B M
-Minutes.
-.TP
-.B n
-.B newline
-character.
-.TP
-.B N
-Nanoseconds 000000000-999999999.
-.TP
-.B p
-Meridian (e.g.,
-.B AM
-or
-.BR PM ).
-.TP
+\f[CB]Time_t tmxduration(const char* \fIspan\fP, char** \fIend\fP)\fP
+Parses the duration specification
+.I span
+(an ISO 8601
 .B P
-Lowercase meridian (e.g.,
-.B am
-or
-.BR pm ).
-.TP
-.B q
-The quarter of the year.
-.TP
-\fB%Q\fP\fI<delim>recent<delim>distant<delim>\fP
-Recent dates are formatted with
-.I recent
-and distant dates are formatted with
-.IR distant ,
-where
-.I <delim>
-is any character not appearing in
-.I recent
-or
-.IR distant .
-.TP
-.B r
-12-hour time as
-.IR hh : mm : ss
-.IR meridian .
-.TP
-.B R
-24-hour time as
-.IR hh : mm .
-.TP
-.B s
-Seconds since the epoch.
-.RI . prec
-preceding
-.B s
-appends
-.I prec
-nanosecond digits,
-.B 9
-if
-.I prec
-is omitted.
-.TP
-.B S
-.I seconds.subseconds
-since the epoch.
-.TP
-.B t
-.B tab
-character.
-.TP
-.B T
-24-hour time as
-.IR hh : mm : ss .
-.TP
-.B u
-Weekday number with 1 for Monday, 7 for Sunday.
-.TP
-.B U
-Week number with Sunday as the first day.
-.TP
-.B V
-ISO week number (i18n is \fIfun\fP).
-.TP
-.B w
-Weekday number with 0 for Sunday, 6 for Saturday.
-.TP
-.B W
-Week number with Monday as the first day.
-.TP
-.B x
-Local date style, using
-.LR tm_info.format[39] ,
-that includes the month, day and year.
-.TP
-.B X
-Local time style, using
-.LR tm_info.format[38] ,
-that includes the hours and minutes.
-.TP
-.B y
-2-digit year (you'll be sorry).
-.TP
-.B Y
-4-digit year.
-.TP
-.B z
-Time zone
-.I SHHMM
-west of UTC offset where
-.I S
-is
-.B +
-or
-.BR - .
-.TP
-.B Z
-Time zone name.
-.TP
-=[=]][-+]]\fIflag\fP
-Set (default or +) or clear (-)
-.I flag
-in
-.L tm_info.flags
-for the remainder of
-.IR format ,
-or for the remainder of the process if
-.B ==
-is specified.
-.I flag
-may be:
-.RS
-.TP
-.B l
-.L (TM_LEAP)
-Enable leap second adjustments.
-.TP
-.B s
-.L (TM_SUBSECOND)
-Append nanosecond
-.B .%N
-to
-.BR %S .
-.TP
-.B u
-.L (TM_UTC)
-UTC time zone.
-.RE
-.TP
-.B #
-Equivalent to
-.BR %s .
-.TP
-\fP?\fP\fIalternate\fP
-The
-.I alternate
-format is a default format override has not been specified.
-e.g.,
-.BR ls (1)
-uses
-.BR %?%l .
-Export
-\f3TM_OPTIONS="format='\fP\fIoverride\fP\f3'"\fP
-to override the default.
-.PD
-.RE
-.TP
-.L "void tminit(Tm_zone_t* zone, time_t now, const char newzone)"
-Implicitly called by the other
-.I tm
-library routines to initialize global data, including the
-.L tm_info.format
-table and the
-.L tm_info.flags
-global flags.
-Global data should only be modified after an explicit call to
-.LR tminit .
+duration or a number followed by a unit)
+and returns the equivalent number of nanoseconds.
 If
-.L "zone != 0"
-then it specifies a time zone other that the local time zone.
+.I end
+is not
+\f[CB]NULL\fP
+then it is set to the position of the first unrecognized character in
+.IR span .
 .TP
-.L "void tmset(Tm_zone_t* zone, time_t now, const char newzone);"
-.L tmset
-sets the reference timezone to
-.LR zone .
-.L tm_info.local
-points to the local timezone and
-.L tm_info.zone
-points to the reference timezone at a given time
-.L now
-if
-.L newzone
-is non-zero, or to the current reference timezone otherwise.
+\f[CB]char* tmxfmt(char *\fIrestrict buf\fP, size_t \fIlen\fP, const char *\fIrestrict format\fP, Time_t \fIt\fP)\fP
+Formats the time
+.I t
+into the buffer
+.I buf
+with size
+.I len
+bytes according to the format specification
+.IR format .
+A pointer to the end of
+.I buf
+(i.e., the terminating
+\f[CB]'\e0'\fP)
+is returned.
+The format directives are the same as those of
+\f[CB]tmfmt\fP
+described in
+.BR tm (3),
+with nanosecond resolution for the
+.BR %N ,
+.B %s
+and
+.B %S
+fields.
+\f[CB]tmfmt()\fP
+is a seconds-resolution wrapper around
+\f[CB]tmxfmt()\fP.
 .TP
-.L "time_t tmleap(time_t* clock)"
-Returns a
-.L time_t
-value for the time pointed to by
-.L clock
-with leap seconds adjusted for external
-routines that do not handle leap seconds.
-If
-.L clock
-is
-.L NULL
-then the current time is used.
+\f[CB]Time_t tmxleap(Time_t \fIt\fP)\fP
+Returns
+.I t
+with leap seconds adjusted for external routines that do not handle
+leap seconds.
 Adjustments are only done if the
-.L TM_ADJUST
+\f[CB]TM_ADJUST\fP
 flag is set in
-.LR tm_info.flags .
+\f[CB]tm_info.flags\fP
+(see
+.BR tm (3)).
 .TP
-.L "struct tm* tmmake(time_t* clock)"
+\f[CB]Tm_t* tmxmake(Time_t \fIt\fP)\fP
 Returns a pointer to the
-.L tm
-struct corresponding to the time pointed to by
-.LR clock .
-If
-.L clock
-is
-.L NULL
-then the current time is used.
+\f[CB]Tm_t\fP
+struct (see
+.BR tm (3))
+corresponding to the time
+.IR t .
 .TP
-.L "time_t tmtime(struct tm* tp, int west)"
+\f[CB]Time_t tmxscan(const char* \fIdate\fP, char** \fIend\fP, const char* \fIformat\fP, char** \fIfmt\fP, Time_t \fInow\fP, long \fIflags\fP)\fP
+Scans the date specification
+.I date
+using the
+.BR strptime (3)-style
+.I format
+(or one of the formats in the
+.I fmt
+list) and returns the equivalent
+\f[CB]Time_t\fP
+value, with
+.I now
+providing defaults for omitted components.
+.TP
+\f[CB]int tmxsleep(Time_t \fIt\fP)\fP
+Suspends execution for the time span
+.IR t .
+0 is returned on success, \-1 on error or interruption.
+.TP
+\f[CB]Time_t tmxtime(Tm_t* \fItp\fP, int \fIwest\fP)\fP
 Returns the
-.L time_t
-value corresponding to
-.LR tp .
+\f[CB]Time_t\fP
+value corresponding to the
+\f[CB]Tm_t\fP
+struct
+.IR tp .
 If
-.L west
+.I west
 is
-.L TM_LOCALZONE
+\f[CB]TM_LOCALZONE\fP
 then
-.L tm
+.I tp
 is relative to the local time zone,
 otherwise
-.L west
+.I west
 is the number of minutes west of
-.B UTC
-with daylight savings time taken into account.
-.LR tp->tm_wday ,
-.LR tp->tm_yday
-and
-.L tp->tm_isdst
-are ignored in the conversion.
-.PP
-The library routines use a table of date strings pointed to by
-.LR "char** tm_info.format" .
-The indices in
-.L tm_info.format
-are fixed by category.
-.L tm_info.format
-may be changed to point to other tables
-according to local language and date conventions.
-The contents by index (showing the USA English values) are:
-.RS
+.B UTC .
 .TP
-.PD 0
-.B 0-11
-3-character abbreviated month names.
+\f[CB]Tm_t* tmxtm(Tm_t* \fItp\fP, Time_t \fIt\fP, Tm_zone_t* \fIzone\fP, const char \fInewzone\fP)\fP
+Sets
+.I tp
+to the
+\f[CB]Tm_t\fP
+breakdown of
+.I t
+relative to the time zone
+.IR zone ,
+or the current reference time zone if
+.I zone
+is 0.
+.I tp
+is returned.
 .TP
-.B 12-23
-Full month names.
+\f[CB]Time_t tmxgettime(void)\fP
+Returns the current time.
 .TP
-.B 24-30
-3-character abbreviated weekday names.
+\f[CB]int tmxsettime(Time_t \fIt\fP)\fP
+Sets the system time to
+.IR t .
+The caller must have sufficient privilege.
+0 is returned on success, \-1 on error.
 .TP
-.B 31-37
-Full weekday names.
-.TP
-.B 38
-.L tmform()
-local time format used by the
-.B %X
-field.
-.TP
-.B 39
-.L tmform()
-local date format used by the
-.B %x
-field.
-.TP
-.B 40
-.L tmform()
-format used if the
-.L format
-argument is
-.L NULL
-or empty.
-.TP
-.B 41-42
-Meridian names: AM, PM.
-.TP
-.B 43-46
-.B UTC
-time zone names: UTC, UCT, CUT, GMT.
-.TP
-.B 47-50
-Daylight savings time suffix names: DST.
-.TP
-.B 51-54
-Suffixes to be ignored when matching strings in
-.LR tmform() .
-.TP
-.B 55-61
-Time part names: second, hour, minute, day, week, month, year.
-.TP
-.B 62-65
-Hours of the day names: midnight, morning, noon, evening.
-.TP
-.B 66-68
-Relative day names: yesterday, today, tomorrow.
-.TP
-.B 69-71
-Past relative time references: last, ago, past.
-.TP
-.B 72-75
-Current relative time references: this, now, current.
-.TP
-.B 75-77
-Future relative time references: next, hence, coming.
-.TP
-.B 78-80
-Exact relative time references: exactly.
-.TP
-.B 81-85
-Noise words to be ignored: at, in, on.
-.PD
-.RE
-.PP
-Low level support functions and data are described in
-.LR <tm.h> .
-.SH EXAMPLES
-.EX
-#include <tm.h>
-int main(void) {
-    int       i;
-    time_t    t;
-    char      buf[128];
-    struct {
-        char* date;
-        char* format;
-    }         x[] = {
-        "now",                 "%i",
-        "2 months ago",        "%C",
-        "this Wednesday noon", "%x %I:%M %p",
-        "last December 25",    "%A",
-        0,                     0
-    };
-    for (i = 0; x[i].date; i++) {
-        t = tmdate(x[i].date, NULL, NULL);
-        (void)tmform(buf, x[i].format, &t);
-        puts(buf);
-    }
-}
-.EE
-produces
-.EX
-Fri Sep 30 12:10:14 USA EDT 1988
-Fri Jul  1 00:00:00 EDT 1988
-10/05/88 12:00 PM
-Friday
-.EE
+\f[CB]int tmxtouch(const char* \fIpath\fP, Time_t \fIat\fP, Time_t \fImt\fP, Time_t \fIct\fP, int \fIflags\fP)\fP
+Sets the file
+.I path
+access time from
+.IR at ,
+modify time from
+.IR mt ,
+and change time from
+.IR ct .
+Unless
+\f[CB]PATH_TOUCH_VERBATIM\fP
+is set in
+.IR flags ,
+a time value of 0 uses the current time and a time value of
+\f[CB]TMX_NOTIME\fP
+retains the previous file value.
+0 is returned on success, \-1 on error.
 .SH "SEE ALSO"
-date(1), time(2), ctime(3)
-.SH BUGS
-.L "struct tm"
-values may get clobbered by the
-.I tm
-library routines as the
-.IR ctime (3)
-and
-.IR localtime (3)
-routines typically return pointers to a single static
-.L "struct tm"
-area.
-.L tmdate()
-uses an internal international time zone name table that will
-probably always be incomplete.
+.IR tm (3),
+.IR tv (3)

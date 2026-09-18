@@ -2,6 +2,65 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-17:
+
+- Fixed multiple memory leaks occurring upon subshell exit when assigning a
+  value to a variable with a shell discipline function within a subshell.
+
+- Fixed a crash occurring when assigning, within a subshell, an invalid
+  value to a variable of a type defined by the 'enum' command.
+
+2026-09-16:
+
+- Fixed: when the special IFS (field splitting characters) variable was
+  assigned to within a ${ shared-state command substitution }, the state of IFS
+  failed to persist beyond it, and a use after free (potential crash) occurred.
+
+- Fixed bounds checking when assigning to fixed-size arrays (declared like,
+  e.g., 'typeset -a array[4]'). Assigning to an out-of-range subscript now
+  produces the expected error instead of potentially crashing.
+
+2026-09-15:
+
+- Fixed a memory leak when assigning, within a subshell, a value to a
+  special variable (one of IFS, FPATH, CDPATH, SHELL, ENV, VISUAL, EDITOR,
+  HISTFILE, OPTIND, SECONDS, RANDOM,.sh.match, .sh.version, LINENO, _,
+  LC_CTYPE, LC_NUMERIC, LC_COLLATE, LC_MESSAGES, LC_ALL, and LANG).
+
+2026-09-13:
+
+- Fixed a memory leak that occurred when converting an existing scalar
+  variable to an associative array using 'typeset -A'.
+
+2026-09-12:
+
+- Implemented advisory locking for $HISTFILE (~/.sh_history by default) so
+  that multiple ksh instances can write to the history file without risking
+  data loss when one of them decides to trim the file. Note that ksh
+  versions before 2026-09-12 will ignore the lock, so the risk continues to
+  exist if an older ksh binary shares write access to the file.
+
+- History file trimming no longer requires write access to the directory in
+  which the history file resides and will no longer change the directory's
+  last-modified timestamp. However, it now requires a usable /tmp or $TMPDIR.
+
+- I/O errors while writing to the history file are no longer silently ignored.
+
+- Fixed a possible crash when attempting to set an integer variable to a
+  multibyte character.
+
+2026-09-10:
+
+- Fixed a rare crash that could occur if a signal (such as interrupt, Ctrl+C)
+  occurred while cleaning up the state of a virtual subshell upon its exit.
+
+2026-09-08:
+
+- Fixed: PWD and ENV were not properly reinitialised when executing a shell
+  script without a #! path.
+
+- Fixed a possible crash after unsetting RANDOM. Bug introduced on 2022-07-21.
+
 2026-09-04:
 
 - Fixed a longstanding bug in which output data loss or corruption could
@@ -59,9 +118,6 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 - [v1.1] The -n/--noexec option can now effectively be set in subshells of
   interactive shells, e.g., within a parentheses block.
-
-- [v1.1] The -n/--noexec option, when given at the shell's invocation, now
-  causes the shell to exit with status 1 if the linter emitted any warnings.
 
 - [v1.1] The 'eval' command has a new -n/--noexec option that causes it to
   subject the command(s) given to static analysis in the manner of the
@@ -200,7 +256,7 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Process substitution now no longer depends on compile-time detection of
   /dev/fd/N, but detects this at runtime instead and transparently falls
   back to the legacy method with FIFOs whenever /dev/fd is unavailable. This
-  fixes process substituion on FreeBSD, where /dev/fd is an optional file
+  fixes process substitution on FreeBSD, where /dev/fd is an optional file
   system that may be mounted and unmounted at any time.
 
 - Fixed input buffer memory corruption occurring for inpnut from the terminal

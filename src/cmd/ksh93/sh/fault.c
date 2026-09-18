@@ -686,9 +686,6 @@ noreturn void sh_done(int sig)
 	}
 	nv_scan(sh.var_tree,array_notify,NULL,NV_ARRAY,NV_ARRAY);
 	sh_freeup();
-#if SHOPT_ACCT
-	sh_accend();
-#endif	/* SHOPT_ACCT */
 	if(mbwide() && sh_editor_active())
 		tty_cooked(-1);
 	if((sh_isoption(SH_INTERACTIVE) && sh_isoption(SH_LOGIN_SHELL)) || (!sh_isoption(SH_INTERACTIVE) && (sig==SIGHUP)))

@@ -901,7 +901,7 @@ static Shnode_t *funct(Lex_t *lexp)
 			if(c)
 				sh_syntax(lexp,2);
 			nargs = (size_t)(argv-argv0);
-			size += sizeof(struct dolnod)+(nargs+ARG_SPARE)*sizeof(char*);
+			size += sizeof(struct dolnod) + (nargs + ARG_SPARE + 1) * sizeof(char*);
 			if(sh.shcomp && strncmp(".sh.math.",t->funct.functnam,9)==0)
 			{
 				struct Ufunction *rp;
@@ -1436,7 +1436,7 @@ static struct argnod *process_sub(Lex_t *lexp,int tok)
 	Shnode_t *t;
 	uint8_t mode = (tok==OPROCSYM);
 	t = sh_cmd(lexp,RPAREN,SH_NL);
-	argp = stkalloc(sh.stk,sizeof(struct argnod));
+	argp = stkalloc(sh.stk, sizeof(struct argnod) + 4);
 	*argp->argval = 0;
 	argp->argchn.ap = (struct argnod*)makeparent(lexp,mode?TFORK|FPIN|FAMP|FPCL:TFORK|FPOU,t);
 	argp->argflag = (ARG_EXP|mode);
@@ -1778,7 +1778,7 @@ static struct ionod	*inout(Lex_t *lexp,struct ionod *lastio,int flag)
 	{
 		if(token==RPAREN && (iof&IOLSEEK) && lexp->comsub)
 		{
-			lexp->arg = stkalloc(sh.stk,sizeof(struct argnod)+3);
+			lexp->arg = stkalloc(sh.stk, sizeof(struct argnod) + 7);
 			strcpy(lexp->arg->argval,"CUR");
 			lexp->arg->argflag = ARG_RAW;
 			iof |= IOARITH;
@@ -1909,7 +1909,7 @@ static struct argnod *qscan(struct comnod *ac,int argn)
 			errormsg(SH_DICT,ERROR_warn(0),message,ac->comline);
 	}
 	/* leave space for an extra argument at the front */
-	dp = stkalloc(sh.stk,sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argn*sizeof(char*));
+	dp = stkalloc(sh.stk, sizeof(struct dolnod) + (ARG_SPARE + 1) * sizeof(char*) + (size_t)argn * sizeof(char*));
 	cp = dp->dolval+ARG_SPARE;
 	dp->dolnum = argn;
 	dp->dolbot = ARG_SPARE;

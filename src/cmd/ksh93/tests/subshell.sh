@@ -1328,6 +1328,32 @@ exp='OUT: OK'
 [[ $got == "$exp" ]] || err_exit "bug 951 test 3 (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# A shared-state substitution that reassigns IFS must not leave the enclosing
+# macro expansion with a dangling mp->ifsp pointer (ASan use-after-free).
+# https://github.com/ksh93/ksh/issues/1024
+got=${	IFS=:
+	v='a:b:c'
+	set -- $v
+	print -r -- "$1|$2|$3"
+}
+exp='a|b|c'
+[[ $got == "$exp" ]] || err_exit "subshare reassigning IFS (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# IFS changed by the subshare must persist afterwards (shared state).
+unset IFS
+v='a:b'
+${ IFS=:; }
+set -- $v
+[[ $1 == a && $2 == b ]] || err_exit "subshare IFS assignment did not persist (1=$(printf %q "$1") 2=$(printf %q "$2"))"
+
+# A regular command substitution still runs in a subshell: IFS must be restored.
+unset IFS
+v='a:b'
+x=$(IFS=:; :)
+set -- $v
+[[ $1 == 'a:b' && $# == 1 ]] || err_exit "command substitution failed to restore IFS (1=$(printf %q "$1") \$#=$#)"
+
+# ======
 # Command substitutions lost output from child processes that are not waited for
 # https://github.com/ksh93/ksh/issues/124
 got=$(echo "<$( ( (sleep .1; echo after) & ); echo now)>")

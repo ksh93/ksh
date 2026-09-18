@@ -128,7 +128,10 @@ struct addrinfo
 };
 
 static int
-getaddrinfo(const char* node, const char* service, const struct addrinfo* hint, struct addrinfo **addr)
+getaddrinfo(const char *restrict node,
+	const char *restrict service,
+	const struct addrinfo *restrict hint,
+	struct addrinfo **restrict addr)
 {
 	unsigned long	    	ip_addr = 0;
 	unsigned short	    	ip_port = 0;
@@ -1062,13 +1065,12 @@ static Sfoff_t	file_offset(int fn, char *fname)
 	Sfio_t		*sp = sh.sftable[fn];
 	char		*cp;
 	Sfoff_t		off;
-	struct Eof	endf;
+	struct Eof	endf = { 0 };
 	Namval_t	*mp = nv_open("EOF",sh.var_tree,0);
 	Namval_t	*pp = nv_open("CUR",sh.var_tree,0);
-	memset(&endf,0,sizeof(struct Eof));
 	endf.fd = fn;
 	endf.hdr.disc = &EOF_disc;
-	endf.hdr.nofree = 1;
+	endf.hdr.namflags = NAMFUN_NOFREE;
 	if(mp)
 		nv_stack(mp, &endf.hdr);
 	if(pp)

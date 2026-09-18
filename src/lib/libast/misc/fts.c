@@ -1415,8 +1415,14 @@ fts_read(FTS* fts)
 int
 fts_set(FTS* fts, FTSENT* f, int status)
 {
-	if (fts || !f || f->fts->current != f)
+	if (!f)
 		return -1;
+	if (!fts)
+	{
+		fts = f->fts;
+		if (!fts || fts->current != f)
+			return -1;
+	}
 	switch (status)
 	{
 	case FTS_AGAIN:

@@ -28,7 +28,7 @@
  */
 
 static char*
-dec(char* s, char* p, int n)
+dec(char *restrict s, char *restrict p, int n)
 {
 	while (*s = *p++)
 		s++;

@@ -1,4 +1,3 @@
-.fp 5 CW
 .TH FTWALK 3
 .SH NAME
 \fBftwalk\fR \- file tree walker
@@ -6,15 +5,13 @@
 .ta .75i 1.5i 2.25i 3i 3.75i 4.5i 5.25i 6i
 .PP
 .nf
-\f3
+.ft CR
 #include <ftwalk.h>
 
 int ftwalk(char* path, int (*userf)(struct FTW* ftw), int options,
-       int (*comparf)(struct FTW* ftw1, struct FTW* ftw2));
-
-
+           int (*comparf)(struct FTW* ftw1, struct FTW* ftw2));
 int ftwflags(void);
-\fR
+.ft
 .fi
 .SH DESCRIPTION
 .PP
@@ -233,5 +230,13 @@ popular tools such as \fIls\fR, \fIfind\fR, \fItar\fR, \fIdu\fR, and \fIrm\fR.
 .SH AUTHORS
 Phong Vo, Glenn Fowler, Dave Korn
 .SH SEE ALSO
-find(1), rm(1), du(1), ls(1), tar(1), stat(2), symlink(2),
-astfeature(3), ftw(3), pathcd(3)
+.IR find (1),
+.IR rm (1),
+.IR du (1),
+.IR ls (1),
+.IR tar (1),
+.IR stat (2),
+.IR symlink (2),
+.IR fts (3),
+.IR nftw (3),
+.IR path (3)

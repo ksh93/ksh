@@ -151,7 +151,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 		sh_onstate(SH_EXEC);
 		if(sh.subshell && !sh.subshare)
 		{
-			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + ARG_SPARE*sizeof(char*) + (size_t)argc*sizeof(char*));
+			struct dolnod *dp = stkalloc(sh.stk, sizeof(struct dolnod) + (ARG_SPARE + 1) * sizeof(char*) + (size_t)argc * sizeof(char*));
 			struct comnod *t = stkalloc(sh.stk,sizeof(struct comnod));
 			dp->dolnum = argc;
 			dp->dolbot = ARG_SPARE;
@@ -230,7 +230,7 @@ int    b_eval(int argc,char *argv[], Shbltin_t *context)
     /* for the dictionary generator */
     int	b_source(int n,char *argv[],Shbltin_t *context){}
 #endif
-int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
+int    b_dot_cmd(int n,char *_argv[],Shbltin_t *context)
 {
 	char *script;
 	Namval_t *np;
@@ -240,6 +240,7 @@ int    b_dot_cmd(int n,char *argv[],Shbltin_t *context)
 	int	fd;
 	struct dolnod   *saveargfor = 0;
 	volatile struct dolnod   *argsave=0;
+	char **volatile argv = _argv;
 	struct checkpt buff;
 	Sfio_t *iop=0;
 	while (n = optget(argv,sh_optdot)) switch (n)

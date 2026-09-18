@@ -83,8 +83,8 @@ typedef int        (*Math_2i_f)(Sfdouble_t,Sfdouble_t);
 typedef Sfdouble_t (*Math_3f_f)(Sfdouble_t,Sfdouble_t,Sfdouble_t);
 typedef int        (*Math_3i_f)(Sfdouble_t,Sfdouble_t,Sfdouble_t);
 
-#define getchr(vp)	(*(vp)->nextchr++)
-#define peekchr(vp)	(*(vp)->nextchr)
+#define getchr(vp)	(*(unsigned char*)((vp)->nextchr++))
+#define peekchr(vp)	(*(unsigned char*)((vp)->nextchr))
 #define ungetchr(vp)	((vp)->nextchr--)
 
 /*
@@ -100,7 +100,7 @@ typedef int        (*Math_3i_f)(Sfdouble_t,Sfdouble_t,Sfdouble_t);
 /*
  * set error message string and return 0
  */
-static int _seterror(struct vars *vp,const char *msg)
+static COLD int _seterror(struct vars *vp,const char *msg)
 {
 	if(!vp->errmsg.value)
 		vp->errmsg.value = (char*)msg;
@@ -109,7 +109,7 @@ static int _seterror(struct vars *vp,const char *msg)
 	return 0;
 }
 
-static noreturn void arith_error(const char *message,const char *expr)
+static COLD noreturn void arith_error(const char *message,const char *expr)
 {
 	errormsg(SH_DICT, ERROR_exit(1), message, expr);
 	UNREACHABLE();
@@ -713,7 +713,7 @@ again:
 			Sfdouble_t	(*fun)(Sfdouble_t, ...);
 			short		nargs = lvalue.nargs;
 			if(nargs<0)
-				nargs = -nargs;
+				nargs = nargs * -1;
 			fun = lvalue.fun;
 			lvalue.fun = 0;
 			if(fun)
