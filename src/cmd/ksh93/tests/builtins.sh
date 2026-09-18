@@ -1192,12 +1192,16 @@ sleep "$today" || err_exit "sleep does not recognize date parameter"
 # ======
 # -s Sleep until a signal or a timeout is received. If duration is
 #    omitted or 0 then no timeout will be used.
-float got=0 exp=0.1 s=SECONDS
-sleep -s 0.1
-got=SECONDS
-(( got >= s + exp )) ||
-    err_exit "sleep -s 1 should sleep for at least 1 second (expected $exp, got $((got - s)))"
-unset s got exp
+# This test is run in a child shell because the current process could
+# receive SIGCHLD during this test due to a parallel test terminating.
+got=$("$SHELL" -c '
+	float got=0 s=SECONDS
+	sleep -s 0.1
+	got=SECONDS
+	print $((got - s))
+')
+exp=0.1
+((got >= exp)) || err_exit "sleep -s 1 should sleep for at least 1 second (expected $((exp)), got $((got)))"
 
 # ======
 # Verify unexpected arguments result in an error.
