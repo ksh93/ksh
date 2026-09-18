@@ -135,6 +135,8 @@ extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
 extern void		sh_subtmpfile(char);
+extern void		sh_subpipe_child(void);
+extern int		sh_subpipe_active(void);
 extern char 		*sh_substitute(const char*,const char*,char*);
 extern void		sh_timetraps(void);
 extern const char	*_sh_translate(const char*);

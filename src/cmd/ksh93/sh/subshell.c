@@ -91,6 +91,27 @@ static struct subshell
 
 static unsigned int subenv;
 
+void sh_subpipe_child(void)
+{
+	struct subshell *sp = subshell_data ? subshell_data->pipe : NULL;
+	if(!sp)
+		return;
+	if(sp->pipefd>=0)
+	{
+		sh_close(sp->pipefd);
+		ast_close(1);
+		if(sh_fcntl(sp->pipeoutfd,F_dupfd_cloexec,1)!=1)
+			UNREACHABLE();
+		sh_fcntl(1,F_SETFD,0);
+		ast_close(sp->pipeoutfd);
+	}
+}
+
+int sh_subpipe_active(void)
+{
+	return subshell_data && subshell_data->pipe && subshell_data->pipe->pipefd>=0;
+}
+
 /*
  * This routine will turn the sftmp() file into a real temporary file.
  * If <usepipe> is nonzero, a pipe is used to wait for non-waited-for children,
@@ -188,6 +209,7 @@ void sh_subfork(void)
 	else
 	{
 		/* this is the child part of the fork */
+		sh_subpipe_child();
 		/*
 		 * In a virtual subshell, $RANDOM is not reseeded until it's used, so if that
 		 * hasn't happened yet, invalidate the seed. This allows sh_save_rand_seed()
@@ -874,6 +896,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	nv_restore(sp);
 	if(comsub)
 	{
+		int capture = sp->pipefd>=0;
 		if(savst.states & sh_state(SH_INTERACTIVE))
 			sigrelease(SIGTSTP);
 		/* re-enable job control */
@@ -886,12 +909,24 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			ssize_t n;
 			if(sp->pipeoutfd!=1)
 				sh_close(sp->pipeoutfd);
-			while((n=read(sp->pipefd,buf,sizeof(buf)))>0)
-				;
+			sfsync(sfstdout);
+			for(;;)
+			{
+				if((n=read(sp->pipefd,buf,sizeof(buf)))>0)
+				{
+					if(write(sffileno(sfstdout),buf,(size_t)n)!=(size_t)n)
+						break;
+				}
+				else if(n<0 && errno==EINTR)
+					continue;
+				else
+					break;
+			}
 			sh_close(sp->pipefd);
 			sp->pipefd = -1;
+			sfsync(sfstdout);
 		}
-		if(sp->pipeoutfd!=1)
+		if(!capture && sp->pipeoutfd!=1)
 		{
 			if(sh.spid)
 			{
@@ -903,8 +938,9 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 					sh.spid = 0;
 				sh.pipepid = 0;
 			}
-			/* move tmp file to iop and restore sfstdout */
-			iop = sfswap(sfstdout,NULL);
+		}
+		/* move tmp file to iop and restore sfstdout */
+		iop = sfswap(sfstdout,NULL);
 			if(!iop)
 			{
 				/* maybe locked try again */
@@ -928,7 +964,6 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 				sh.fdstatus[1] = IOCLOSE;
 			}
 			sfset(iop,SFIO_READ,1);
-		}
 		if(sp->saveout)
 		{
 			sfswap(sp->saveout,sfstdout);
