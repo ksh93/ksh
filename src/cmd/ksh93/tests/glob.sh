@@ -401,10 +401,6 @@ test_glob '<d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym
 test_glob '<d_un/d_sym> <d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' d_un/d_sy[m]/**
 test_glob '<d_un/d_sym/d_3/d_4>' d_un/d_sym/d_3/**
 test_glob '<d_un/d_sym/d_3/d_4>' d_un/d_sy[m]/d_3/**
-# https://github.com/ksh93/ksh/issues/629 -- a globstar directly following a symlink to a
-# directory failed to be followed if anything but a literal '*' followed the globstar
-test_glob '<d_un/d_sym/d_3/d_4>' d_un/d_sym/**/d_4
-test_glob '<d_un/d_sym/d_tres/d_quatro>' d_un/d_sym/**/d_quatro
 test_glob '<d_un/d_duo> <d_un/d_duo/d_3> <d_un/d_duo/d_3/d_4> <d_un/d_duo/d_tres> <d_un/d_duo/d_tres/d_quatro>' **/d_duo/**
 test_glob '<d_un/d_sym> <d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' **/d_sym/**
 test_glob '<d_un/d_sym> <d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' **/d_s[y]m/**
@@ -412,6 +408,20 @@ test_glob '<d_un/d_sym> <d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres
 test_glob '<d_un/d_sym//d_3> <d_un/d_sym//d_3/d_4> <d_un/d_sym//d_tres> <d_un/d_sym//d_tres/d_quatro>' **/d_sym//**
 test_glob '<d_un/d_sym//d_3> <d_un/d_sym//d_3/d_4> <d_un/d_sym//d_tres> <d_un/d_sym//d_tres/d_quatro>' **/d_[s]ym//**
 test_glob '<d_un/d_sym//d_3> <d_un/d_sym//d_3/d_4> <d_un/d_sym//d_tres> <d_un/d_sym//d_tres/d_quatro>' **/d_*ym//**
+# a /**/ directly following a symlink to a directory was not followed if anything but a literal '*' followed it
+# https://github.com/ksh93/ksh/issues/629
+test_glob '<d_un/d_sym/d_3/d_4>' d_un/d_sym/**/d_4
+test_glob '<d_un/d_sym/d_tres/d_quatro>' d_un/d_sym/**/d_quatro
+test_glob '<d_un/d_sym/d_3/d_4>' d_un/d_sym/**/d_[4]
+test_glob '<d_un/d_sym/d_tres/d_quatro>' d_un/d_sym/**/d_quat*
+test_glob '<d_un/d_sym/d_3/d_4>' d_u[n]/d_sym/**/d_4
+test_glob '<d_un/d_sym/d_tres/d_quatro>' d_u[n]/d_sym/**/d_quatro
+test_glob '<d_un/d_sym/d_3/d_4>' d_un/d_sy[m]/**/d_4
+test_glob '<d_un/d_sym/d_tres/d_quatro>' d_un/d_sy[m]/**/d_quatro
+test_glob '<d_un/d_sym/d_3/d_4>' d_u[n]/d_sy[m]/**/d_4
+test_glob '<d_un/d_sym/d_tres/d_quatro>' d_u[n]/d_sy[m]/**/d_quatro
+test_glob '<d_un/d_sym/d_3/d_4>' d_u*/d_sy*/**/d_4
+test_glob '<d_un/d_sym/d_tres/d_quatro>' d_u*/d_sy*/**/d_quatro
 
 set --noglobstar
 
