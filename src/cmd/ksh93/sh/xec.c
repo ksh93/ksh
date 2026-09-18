@@ -1445,10 +1445,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 				if(com)
 				{
 #if SHOPT_SPAWN
-					if(sh.subshell && sh_subpipe_active())
-						parent = sh_fork(type|F_COMFORK,&jobid);
-					else
-						parent = sh_ntfork(t,com,&jobid,topfd);
+					parent = sh_ntfork(t,com,&jobid,topfd);
 					if(parent<0)
 						break;
 #else
@@ -1506,7 +1503,6 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			 * this is the FORKED branch (child) of execute
 			 */
 			{
-				sh_subpipe_child();
 				volatile int jmpval, rewrite = 0;
 				struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 				struct ionod *iop;
