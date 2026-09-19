@@ -173,23 +173,33 @@ Sfio_t *stkopen(int flags)
 	struct frame *fp;
 	Sfdisc_t *dp;
 	char *cp;
-	if(!(stream = calloc(1, sizeof(Sfio_t) + sizeof(Sfdisc_t) + sizeof(struct stk))))
+	size_t sz;
+	_stk_overflow_ outofmem = flags&STK_NULL ? 0 : stkcur ? stkcur->stkoverflow : overflow;
+	sz = sizeof(Sfio_t) + sizeof(Sfdisc_t) + sizeof(struct stk);
+	if(!(stream = calloc(1, sz)))
+	{
+		if (outofmem)
+			(*outofmem)(sz);
 		return NULL;
+	}
 	dp = (Sfdisc_t*)(stream+1);
 	dp->exceptf = stkexcept;
 	sp = (struct stk*)(dp+1);
 	sp->stkref = 1;
 	sp->stkflags = flags;
-	sp->stkoverflow = flags&STK_NULL ? 0 : stkcur ? stkcur->stkoverflow : overflow;
+	sp->stkoverflow = outofmem;
 	bsize = init+sizeof(struct frame);
 	if(flags&STK_SMALL)
 		bsize = roundof(bsize,STK_FSIZE/16);
 	else
 		bsize = roundof(bsize,STK_FSIZE);
 	bsize -= sizeof(struct frame);
-	if(!(fp = malloc(sizeof(struct frame) + bsize)))
+	sz = sizeof(struct frame) + bsize;
+	if(!(fp = malloc(sz)))
 	{
 		free(stream);
+		if (outofmem)
+			(*outofmem)(sz);
 		return NULL;
 	}
 	cp = (char*)(fp+1);
@@ -404,7 +414,12 @@ char	*stkcopy(Sfio_t *stream, const char* str)
 	if(off)
 	{
 		if (!(tp = malloc(off)))
+		{
+			struct stk *sp = stream2stk(stream);
+			if(sp->stkoverflow)
+				(*sp->stkoverflow)(off);
 			return NULL;
+		}
 		memcpy(tp, stream->_data, off);
 	}
 	/* allocate space for string on stack */
@@ -446,6 +461,7 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 	ptrdiff_t endoff;
 	char *end=0, *oldbase=0;
 	ssize_t nn=0,add=1;
+	size_t sz;
 	n += (m + sizeof(struct frame)+1);
 	if(sp->stkflags&STK_SMALL)
 		n = roundof(n,STK_FSIZE/16);
@@ -461,9 +477,14 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 		oldbase = dp;
 		endoff = end - dp;
 	}
-	cp = realloc(dp, n + (size_t)nn * sizeof(char*));
+	sz = n + (size_t)nn * sizeof(char*);
+	cp = realloc(dp, sz);
 	if(!cp)
+	{
+		if (sp->stkoverflow)
+			(*sp->stkoverflow)(sz);
 		return NULL;
+	}
 	if(dp==cp)
 	{
 		nn--;
