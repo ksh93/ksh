@@ -1188,6 +1188,7 @@ static int varsub(Mac_t *mp)
 	ptrdiff_t	vsize = -1;
 	char		idbuff[3], *id = idbuff, *pattern=0, *repstr=0, *arrmax=0;
 	char		*idx = 0;
+	char		*defval_subscript = 0;	/* saved array subscript for ${a[sub]=def} and ${a[sub]:=def} */
 	int		var = 1, addsub = 0;
 	nvflag_t	nvflag=0;
 	char		oldpat=mp->pattern;
@@ -1418,6 +1419,16 @@ retry1:
 			sh.cond_expan = 1;	/* tell nv_putsub() not to change value from null to empty */
 			np = nv_open(id,sh.var_tree,nvflag|NV_NOFAIL);
 			sh.cond_expan = 0;
+			/*
+			 * For ${a[subscript]=defval} and ${a[subscript]:=defval}, save the current subscript as
+			 * defval could contain any expansion, even one of another subscript of the same array.
+			 */
+			if(np && nv_isarray(np) && (nvflag&NV_ASSIGN) && !isastchar(mode))
+			{
+				char *cp = nv_getsub(np);
+				if(cp)
+					defval_subscript = stkcopy(sh.stk, cp);
+			}
 		}
 #if  SHOPT_FILESCAN
 		else if(sh.cur_line && strcmp(id,REPLYNOD->nvname)==0)
@@ -2162,6 +2173,11 @@ retry2:
 		{
 			if(np)
 			{
+				if(defval_subscript)
+				{
+					nv_putsub(np,defval_subscript,0);
+					defval_subscript = 0;
+				}
 				if(sh.subshell)
 					sh_assignok(np,1);
 				nv_putval(np,argp,0);
