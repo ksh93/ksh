@@ -519,8 +519,14 @@ parserepfix(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 			r = BAD;
 			goto done;
 		}
-		if (i != GOOD)
+		if (i != GOOD && i != BEST)
 			break;				/* body did not match */
+		/*
+		 * GOOD or BEST: one iteration completed.  (In minimal mode the
+		 * body's internal matchers upgrade the scan catcher's GOOD to
+		 * BEST; that only means the iteration matched, not that the
+		 * whole repetition is done, so accept both here.)
+		 */
 		cur = catcher.re.rep_catch.end;
 		count++;
 		if (cur == catcher.re.rep_catch.beg && count > lo)
@@ -528,37 +534,58 @@ parserepfix(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 	}
 
 	/*
-	 * Backward: retry the continuation at each recorded stop position,
-	 * greedy (largest count) first, restoring that count's submatch state.
+	 * Retry the continuation at each recorded stop position, restoring that
+	 * count's submatch state.  Greedy repetitions try the largest count
+	 * (longest match) first; minimal (REG_MINIMAL) repetitions try the
+	 * smallest count (shortest match) first and an early success is
+	 * unbeatable (BEST).
 	 */
-	while (npos > 0)
 	{
-		npos--;
-		cur = pos[npos];
-		if (ng)
-			memcpy(&env->match[g0], &snap[npos * ng], ng * sizeof(regmatch_t));
-		if (env->stack && pospush(env, rex, cur, END_ANY))
+		ssize_t		k;
+		ssize_t		kend;
+		ssize_t		kstep;
+		int		minimal = (rex->flags & REG_MINIMAL) != 0;
+
+		if (minimal)
 		{
-			r = BAD;
-			goto done;
+			k = 0;
+			kend = (ssize_t)npos;
+			kstep = 1;
 		}
-		i = follow(env, rex, cont, cur);
-		if (env->stack)
-			pospop(env);
-		switch (i)
+		else
 		{
-		case BAD:
-			r = BAD;
-			goto done;
-		case CUT:
-			r = CUT;
-			goto done;
-		case BEST:
-			r = BEST;
-			goto done;
-		case GOOD:
-			r = GOOD;
-			goto done;
+			k = (ssize_t)npos - 1;
+			kend = -1;
+			kstep = -1;
+		}
+		for (; k != kend; k += kstep)
+		{
+			cur = pos[k];
+			if (ng)
+				memcpy(&env->match[g0], &snap[k * ng], ng * sizeof(regmatch_t));
+			if (env->stack && pospush(env, rex, cur, END_ANY))
+			{
+				r = BAD;
+				goto done;
+			}
+			i = follow(env, rex, cont, cur);
+			if (env->stack)
+				pospop(env);
+			switch (i)
+			{
+			case BAD:
+				r = BAD;
+				goto done;
+			case CUT:
+				r = CUT;
+				goto done;
+			case BEST:
+				r = BEST;
+				goto done;
+			case GOOD:
+				r = minimal ? BEST : GOOD;
+				goto done;
+			}
 		}
 	}
 	r = NONE;
@@ -1795,7 +1822,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 		case REX_REP:
 			if (env->stack && pospush(env, rex, s, BEG_REP))
 				return BAD;
-			if (!(rex->flags & REG_MINIMAL))
+			if (1)
 				r = parserepfix(env, rex, cont, s, 0);
 			else
 				r = parserep(env, rex, cont, s, 0);
