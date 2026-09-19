@@ -2,6 +2,12 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-19:
+
+- Fixed a longstanding bug where already-assigned associative array elements
+  cannot be used in default assignment values of another element of same
+  array -- for example, ${x[1]:=${x[0]}} failed to work correctly.
+
 2026-09-17:
 
 - Fixed multiple memory leaks occurring upon subshell exit when assigning a
