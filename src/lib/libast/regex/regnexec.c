@@ -395,58 +395,6 @@ _better(Env_t* env, Pos_t* os, Pos_t* ns, Pos_t* oend, Pos_t* nend, int level)
 static int		parse(Env_t*, Rex_t*, Rex_t*, unsigned char*);
 
 /*
- * repfixed() determines whether a repetition body always matches the same,
- * input-independent number of characters.  Only for such bodies may the
- * iterative parserep() fast path be used: a fixed-length body reaches its
- * continuation at a unique position, so no backtracking into the body is
- * possible and the recursion can be flattened into a loop.  Anything with a
- * variable-length match (alternation, nested repetition, greedy class or dot,
- * backreference, ...) can require the body to be re-matched at a different
- * length during backtracking, which only the recursive algorithm models
- * correctly, so those return 0 (conservative: when in doubt, recurse).
- */
-
-static int
-repfixed(Rex_t* e)
-{
-	for (; e; e = e->next)
-	{
-		switch (e->type)
-		{
-		case REX_NULL:
-		case REX_BEG:
-		case REX_END:
-		case REX_BEG_STR:
-		case REX_END_STR:
-		case REX_FIN_STR:
-		case REX_WBEG:
-		case REX_WEND:
-		case REX_WORD:
-		case REX_WORD_NOT:
-			break;				/* zero-width assertions */
-		case REX_STRING:
-			break;				/* fixed string */
-		case REX_ONECHAR:
-		case REX_DOT:
-		case REX_CLASS:
-		case REX_COLL_CLASS:
-			if (e->lo != e->hi)
-				return 0;		/* variable count */
-			break;				/* fixed count */
-		case REX_GROUP:
-			if (e->lo != e->hi)
-				return 0;
-			if (!repfixed(e->re.group.expr.rex))
-				return 0;
-			break;
-		default:
-			return 0;			/* anything else: recurse */
-		}
-	}
-	return 1;
-}
-
-/*
  * Iterative parserep() for repetition bodies whose match length is fixed
  * (repfixed()).  Such a body reaches its continuation at a unique position,
  * so the per-iteration recursion of the general algorithm is unnecessary: the
@@ -1847,7 +1795,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 		case REX_REP:
 			if (env->stack && pospush(env, rex, s, BEG_REP))
 				return BAD;
-			if (!(rex->flags & REG_MINIMAL) && repfixed(rex->re.group.expr.rex))
+			if (!(rex->flags & REG_MINIMAL))
 				r = parserepfix(env, rex, cont, s, 0);
 			else
 				r = parserep(env, rex, cont, s, 0);
