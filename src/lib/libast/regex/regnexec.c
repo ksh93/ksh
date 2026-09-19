@@ -395,15 +395,114 @@ _better(Env_t* env, Pos_t* os, Pos_t* ns, Pos_t* oend, Pos_t* nend, int level)
 static int		parse(Env_t*, Rex_t*, Rex_t*, unsigned char*);
 
 /*
- * Iterative parserep() for repetition bodies whose match length is fixed
- * (repfixed()).  Such a body reaches its continuation at a unique position,
- * so the per-iteration recursion of the general algorithm is unnecessary: the
- * body is matched one iteration at a time in a loop (each via a REX_REP_SCAN
- * continuation that records the end position without recursing), and then the
- * continuation is retried at each reachable iteration count, greedy first.
- * The C stack depth is thus independent of the repetition count, so patterns
- * such as +(x) no longer overflow the stack on huge input.
- * https://github.com/ksh93/ksh/issues/207
+ * repuni() determines whether a repetition body, for a given start position,
+ * always reaches its continuation at one unique position, independently of
+ * what follows it.  Only then is the iterative parserepfix() correct: it
+ * records one endpoint per iteration, so a body with internal choice that can
+ * end at several positions (an alternation whose branches differ in length,
+ * a nested variable-length repetition, a backreference, ...) cannot be
+ * scanned this way -- choosing among those endpoints requires evaluating the
+ * continuation, which only the recursive parserep() does (via better()).
+ *
+ * This is decided by computing the body's fixed match length where possible.
+ * replength() returns the unique length (>= 0) if the node always matches
+ * exactly that many characters, or -1 if it can match a variable number.
+ * Zero-width assertions have length 0.  A concatenation is the sum of its
+ * parts; an alternation is fixed-length only if all branches share one
+ * length; a group/repetition multiplies its contents.  Conservative: when in
+ * doubt, return -1 (recurse).
+ */
+
+static ptrdiff_t	replength(Rex_t* e);	/* forward */
+
+static ptrdiff_t
+replength_alt(Rex_t* e)		/* REX_ALT / REX_TRIE-like binary branches */
+{
+	ptrdiff_t	l;
+	ptrdiff_t	r;
+
+	l = replength(e->re.group.expr.binary.left);
+	if (l < 0)
+		return -1;
+	r = replength(e->re.group.expr.binary.right);
+	return r == l ? l : -1;
+}
+
+static ptrdiff_t
+replength(Rex_t* e)
+{
+	ptrdiff_t	n;
+	ptrdiff_t	m;
+
+	n = 0;
+	for (; e; e = e->next)
+	{
+		switch (e->type)
+		{
+		case REX_NULL:
+		case REX_BEG:
+		case REX_END:
+		case REX_BEG_STR:
+		case REX_END_STR:
+		case REX_FIN_STR:
+		case REX_WBEG:
+		case REX_WEND:
+		case REX_WORD:
+		case REX_WORD_NOT:
+			break;				/* zero-width assertions */
+		case REX_STRING:
+			n += (ptrdiff_t)e->re.string.size;
+			break;
+		case REX_ONECHAR:
+		case REX_DOT:
+		case REX_CLASS:
+		case REX_COLL_CLASS:
+			if (e->lo != e->hi)
+				return -1;		/* variable count */
+			n += e->lo;
+			break;
+		case REX_GROUP:
+			if (e->lo != e->hi)
+				return -1;
+			m = replength(e->re.group.expr.rex);
+			if (m < 0)
+				return -1;
+			n += m * e->lo;
+			break;
+		case REX_ALT:
+			m = replength_alt(e);
+			if (m < 0)
+				return -1;
+			n += m;
+			break;
+		case REX_TRIE:
+			if (e->re.trie.min != e->re.trie.max)
+				return -1;
+			n += e->re.trie.min;
+			break;
+		default:
+			return -1;			/* nested rep, backref, etc. */
+		}
+	}
+	return n;
+}
+
+static int
+repuni(Rex_t* e)
+{
+	return replength(e) >= 0;
+}
+
+/*
+ * Iterative parserep() for repetition bodies whose match endpoint is unique
+ * (repuni()).  Such a body reaches its continuation at a position determined
+ * solely by where the iteration started, so the per-iteration recursion of
+ * the general algorithm is unnecessary: the body is matched one iteration at
+ * a time in a loop (each via a REX_REP_SCAN continuation that records the end
+ * position without recursing), and then the continuation is retried at each
+ * reachable iteration count, greedy first.  The C stack depth is thus
+ * independent of the repetition count, so patterns such as +(x) no longer
+ * overflow the stack on huge input.  https://github.com/ksh93/ksh/issues/207
  */
 
 static int
@@ -1822,7 +1921,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 		case REX_REP:
 			if (env->stack && pospush(env, rex, s, BEG_REP))
 				return BAD;
-			if (1)
+			if (repuni(rex->re.group.expr.rex))
 				r = parserepfix(env, rex, cont, s, 0);
 			else
 				r = parserep(env, rex, cont, s, 0);

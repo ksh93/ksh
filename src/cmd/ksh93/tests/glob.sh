@@ -593,4 +593,48 @@ unset null
 test_glob '<*>' $null"*"
 
 # ======
+# Very long pattern matches used to overflow the C stack via parse()/parserep()
+# recursion (one frame per repetition iteration).  The matcher now iterates
+# fixed-endpoint repetition bodies instead of recursing.
+# https://github.com/ksh93/ksh/issues/207
+(
+	integer i
+	typeset v
+	v=$(printf 'x%.0s' {1..300000})
+
+	[[ $v == +(x) ]] || err_exit '+(x) fails to match 300k x'
+	[[ $v == *(x) ]] || err_exit '*(x) fails to match 300k x'
+	[[ $v == +(x|y) ]] || err_exit '+(x|y) fails to match 300k x'
+	[[ $v == @(+(x)) ]] || err_exit '@(+(x)) fails to match 300k x'
+
+	v=$(printf 'ab%.0s' {1..150000})
+	[[ $v == +(ab) ]] || err_exit '+(ab) fails to match 150k ab'
+	[[ $v == +(ab)* ]] || err_exit '+(ab)* fails to match 150k ab'
+
+	v=$(printf 'x%.0s' {1..100000})y
+	[[ $v == +(x)y ]] || err_exit '+(x)y fails to match 100k x + y'
+	[[ $v == *(x)y ]] || err_exit '*(x)y fails to match 100k x + y'
+	[[ $v == +(?)+(y) ]] || err_exit '+(?)+(y) fails to match 100k x + y'
+) || err_exit 'large pattern match failed'
+
+# Repetition bodies with internal choice (alternation with prefix-extension
+# branches, or nested variable-length reps) must evaluate the continuation per
+# alternative and rank them via better(), so they keep the recursive matcher.
+# A scan that records one endpoint per iteration cannot rank them.  These
+# regressed while parserepfix() wrongly handled them.
+subject='ab'
+[[ ${subject} =~ (ab|a)+ && ${.sh.match[0]} == ab ]] \
+	|| err_exit 'unanchored (ab|a)+ on "ab" should match "ab"'
+subject='abab'
+[[ ${subject} =~ (ab|a)+ && ${.sh.match[0]} == abab ]] \
+	|| err_exit 'unanchored (ab|a)+ on "abab" should match "abab"'
+subject='aa'
+[[ ${subject} =~ (a*)+ && ${.sh.match[0]} == aa ]] \
+	|| err_exit 'unanchored (a*)+ on "aa" should match "aa"'
+[[ ${subject} =~ (a+)+ && ${.sh.match[0]} == aa ]] \
+	|| err_exit 'unanchored (a+)+ on "aa" should match "aa"'
+
+unset subject
+
+# ======
 exit $((Errors<125?Errors:125))
