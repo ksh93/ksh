@@ -986,12 +986,10 @@ fi
 # if the default word contains expansions of the same array that change
 # the current array element. https://github.com/ksh93/ksh/issues/966
 
-: <<\_disabled_  # default assignments on unset to associative array elements are broken (separate bug, #1027)
 got=$(typeset -A x; x[a]=1; y=${x[a]}; : "${x[b]=${x[a]}}"; : "${x[c]=$y}"; typeset -p x)
 exp='typeset -A x=([a]=1 [b]=1 [c]=1)'
 [[ $got == "$exp" ]] || err_exit 'associative array default assignment on unset with same-array expansion assigns to wrong element' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-_disabled_
 
 got=$(typeset -a x; x[0]=a; y=${x[0]}; : "${x[1]=${x[0]}}"; : "${x[2]=$y}"; print "[0]=${x[0]} [1]=${x[1]} [2]=${x[2]}")
 exp='[0]=a [1]=a [2]=a'
@@ -999,20 +997,16 @@ exp='[0]=a [1]=a [2]=a'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # the default word may also read the element being assigned to
-: <<\_disabled_  # default assignments on unset to associative array elements are broken (separate bug, #1027)
 got=$(typeset -A x; : "${x[b]=${x[b]}new}"; print "${x[b]}")
 exp='new'
 [[ $got == "$exp" ]] || err_exit 'default assignment on unset reading the element being assigned to' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-_disabled_
 
 # the assignment must still work when the default word does not touch the array
-: <<\_disabled_  # default assignments on unset to associative array elements are broken (separate bug, #1027)
 got=$(typeset -A x; : "${x[b]=zzz}"; print "${x[b]}")
 exp='zzz'
 [[ $got == "$exp" ]] || err_exit 'default assignment on unset to array element without same-array expansion' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-_disabled_
 
 # ...and the same again, but for :=
 
@@ -1039,6 +1033,21 @@ exp='new'
 got=$(typeset -A x; : "${x[b]:=zzz}"; print "${x[b]}")
 exp='zzz'
 [[ $got == "$exp" ]] || err_exit 'default assignment on empty to array element without same-array expansion' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Default assignments (${var=def} and ${var:=def}) on *unset* associative
+# array elements should assign to the element named in the subscript.
+# The basic cases above are shared with issue #966; test some extra aspects.
+# https://github.com/ksh93/ksh/issues/1027
+got=$(typeset -A x; x[c]=3; : "${x[b]=${x[c]}}"; print "${x[b]}")
+exp='3'
+[[ $got == "$exp" ]] || err_exit 'default assignment on unset associative array element with expansion of another element' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+got=$(typeset -A x; : "${x[b]=zzz}"; typeset -p x)
+exp='typeset -A x=([b]=zzz)'
+[[ $got == "$exp" ]] || err_exit 'default assignment on unset associative array element assigns exactly one element' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

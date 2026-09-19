@@ -8,6 +8,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   cannot be used in default assignment values of another element of same
   array -- for example, ${x[1]:=${x[0]}} failed to work correctly.
 
+- Fixed default assignments on unset associative array elements, e.g.
+  ${x[sub]=value} or ${x[sub]:=value}, which failed to assign the value to
+  the element and instead left it empty or nonexistent.
+
 2026-09-17:
 
 - Fixed multiple memory leaks occurring upon subshell exit when assigning a

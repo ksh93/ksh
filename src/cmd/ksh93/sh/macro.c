@@ -1425,7 +1425,10 @@ retry1:
 			 */
 			if(np && nv_isarray(np) && (nvflag&NV_ASSIGN) && !isastchar(mode))
 			{
-				char *cp = nv_getsub(np);
+				char *cp;
+				sh.instance++;	/* needed to get associative array subscript even if its value is NULL */
+				cp = nv_getsub(np);
+				sh.instance--;
 				if(cp)
 					defval_subscript = stkcopy(sh.stk, cp);
 			}

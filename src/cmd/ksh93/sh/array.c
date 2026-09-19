@@ -1790,7 +1790,8 @@ void *nv_associative(Namval_t *np,const char *sp,nvflag_t mode)
 				{
 					if(ap->header.nelem&ARRAY_TREE)
 						nv_setvtree(mp);
-					mp->nvalue = Empty;
+					if(!sh.cond_expan)
+						mp->nvalue = Empty;
 				}
 			}
 			else if(ap->header.nelem&ARRAY_SCAN)
