@@ -30,10 +30,10 @@ Shell_t			sh = {0};
 
 Dtdisc_t	_Nvdisc =
 {
-	offsetof(Namval_t,nvname), -1 , 0, 0, 0, nv_compare
+	.key = offsetof(Namval_t,nvname), .size = -1, .comparf = nv_compare
 };
 
-struct jobs	job = {0};
+struct jobs	job = {NULL};
 int32_t		sh_mailchk = 600;
 
 #if SHOPT_KIA

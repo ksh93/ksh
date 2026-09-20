@@ -106,7 +106,7 @@ tee_cleanup(Tee_t* tp)
 int
 b_tee(int argc, char** argv, Shbltin_t* context)
 {
-	Tee_t*		tp = 0;
+	Tee_t*		tp = NULL;
 	int		oflag = O_WRONLY|O_TRUNC|O_CREAT|O_BINARY|O_cloexec;
 	int*		hp;
 	char*		cp;
@@ -116,7 +116,7 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 	{
 		if (context && (tp = (Tee_t*)sh_context(context)->data))
 		{
-			sh_context(context)->data = 0;
+			sh_context(context)->data = NULL;
 			tee_cleanup(tp);
 		}
 		return 0;
@@ -175,7 +175,7 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 					hp++;
 			}
 			if (hp == tp->fd)
-				tp = 0;
+				tp = NULL;
 			else
 			{
 				*hp = -1;

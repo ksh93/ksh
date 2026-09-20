@@ -45,23 +45,23 @@ static Lc_t		default_lc =
 	&lc_languages[0],
 	&lc_territories[0],
 	&lc_charsets[0],
-	0,
+	NULL,
 	LC_default|LC_checked|LC_local,
 	0,
 	{
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
 		{ &default_lc, 0, &default_numeric },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 },
-		{ &default_lc, 0, 0 }
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL },
+		{ &default_lc, 0, NULL }
 	}
 };
 
@@ -271,7 +271,7 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 	{
 		if (tp && tp != &lc_territories[0])
 		{
-			r = 0;
+			r = NULL;
 			if (lp)
 			{
 				if ((flags & (LC_abbreviated|LC_default)) && streq(lp->code, tp->code))
@@ -299,7 +299,7 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 			if (r)
 			{
 				*s = 0;
-				if ((p = setlocale(LC_MESSAGES, 0)) && (p = strdup(p)))
+				if ((p = setlocale(LC_MESSAGES, NULL)) && (p = strdup(p)))
 				{
 					if (!setlocale(LC_MESSAGES, buf))
 					{
@@ -422,16 +422,16 @@ lcmake(const char* name)
 			tp = mp->territory;
 			cp = mp->charset;
 			if (!mp->attribute)
-				al = 0;
+				al = NULL;
 			else if (al = newof(0, Lc_attribute_list_t, 1, 0))
 				al->attribute = mp->attribute;
 			goto mapped;
 		}
 	language_name = buf;
-	territory_name = charset_name = attributes_name = 0;
+	territory_name = charset_name = attributes_name = NULL;
 	s = buf;
 	e = &buf[sizeof(buf)-2];
-	a = 0;
+	a = NULL;
 	n = 0;
 	while (s < e && (c = *t++))
 	{
@@ -506,9 +506,9 @@ lcmake(const char* name)
 		}
 	}
 	*s = 0;
-	tp = 0;
-	cp = ppa = 0;
-	al = 0;
+	tp = NULL;
+	cp = ppa = NULL;
+	al = NULL;
 
 	/*
 	 * language
@@ -533,7 +533,7 @@ lcmake(const char* name)
 	else if (streq(s, "c") || streq(s, "posix"))
 		lp = &lc_languages[0];
 	else
-		lp = 0;
+		lp = NULL;
 	if (!lp || !lp->code)
 	{
 		for (lp = lc_languages; lp->code && !match(s, lp->name, 0, 0); lp++);
@@ -546,7 +546,7 @@ lcmake(const char* name)
 				else
 				{
 					z = 0;
-					tpb = 0;
+					tpb = NULL;
 					for (tp = lc_territories; tp->name; tp++)
 						if ((i = match(s, tp->name, 3, 0)) > (ssize_t)z)
 						{
@@ -584,7 +584,7 @@ lcmake(const char* name)
 							break;
 						}
 				((Lc_language_t*)lp)->charset = cp;
-				al = 0;
+				al = NULL;
 				goto override;
 			}
 		}
@@ -599,7 +599,7 @@ lcmake(const char* name)
 		if (!(s = territory_name))
 		{
 			n = 0;
-			primary = 0;
+			primary = NULL;
 			for (tp = lc_territories; tp->code; tp++)
 				if (tp->languages[0] == lp)
 				{
@@ -628,7 +628,7 @@ lcmake(const char* name)
 						{
 							for (j = 0; j < elementsof(tp->languages) && lp != tp->languages[j]; j++);
 							if (j >= elementsof(tp->languages))
-								tp = 0;
+								tp = NULL;
 						}
 						break;
 					}
@@ -644,7 +644,7 @@ lcmake(const char* name)
 					}
 			}
 			if (tp && !tp->code)
-				tp = 0;
+				tp = NULL;
 		}
 	}
 
@@ -817,7 +817,7 @@ lcscan(Lc_t* lc)
 		else
 		{
 			ls->lc.charset = &lc_charsets[0];
-			ls->list.attribute = 0;
+			ls->list.attribute = NULL;
 		}
 	}
 	ls->lc.attributes = ls->list.attribute ? &ls->list : NULL;

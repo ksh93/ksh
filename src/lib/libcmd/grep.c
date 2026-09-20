@@ -234,7 +234,7 @@ addre(State_t* state, char* s)
 	char*		b;
 	Item_t*		x;
 
-	x = 0;
+	x = NULL;
 	r = -1;
 	b = s;
 	if (state->label)
@@ -246,7 +246,7 @@ addre(State_t* state, char* s)
 		}
 		c = (size_t)(s - b);
 		s++;
-		if (!(x = vmnewof(state->vm, 0, Item_t, 1, c)))
+		if (!(x = vmnewof(state->vm, NULL, Item_t, 1, c)))
 		{
 			error(ERROR_SYSTEM|2, "out of memory (pattern `%s')", b);
 			goto done;
@@ -292,7 +292,7 @@ addstring(State_t* state, List_t* p, char* s)
 {
 	Item_t*	x;
 
-	if (!(x = vmnewof(state->vm, 0, Item_t, 1, strlen(s))))
+	if (!(x = vmnewof(state->vm, NULL, Item_t, 1, strlen(s))))
 	{
 		error(ERROR_SYSTEM|2, "out of memory (string `%s')", s);
 		return -1;
@@ -330,7 +330,7 @@ compile(State_t* state)
 			return r;
 	file = error_info.file;
 	line = error_info.line;
-	f = 0;
+	f = NULL;
 	for (x = state->files.head; x; x = x->next)
 	{
 		s = x->string;
@@ -371,7 +371,7 @@ compile(State_t* state)
 		error_info.file = file;
 		error_info.line = line;
 		sfclose(f);
-		f = 0;
+		f = NULL;
 	}
 	if (!state->any)
 	{
@@ -398,7 +398,7 @@ compile(State_t* state)
 	}
 	if (!state->label)
 	{
-		if (!(state->hit = vmnewof(state->vm, 0, Item_t, 1, 0)))
+		if (!(state->hit = vmnewof(state->vm, NULL, Item_t, 1, 0)))
 		{
 			error(ERROR_SYSTEM|2, "out of memory");
 			goto done;
@@ -434,7 +434,7 @@ hit(State_t* state, const char* prefix, int sep, uintmax_t line, const char* s, 
 		{
 			if (state->only)
 				return 0;
-			pos = 0;
+			pos = NULL;
 		}
 		if (state->prefix)
 			sfprintf(sfstdout, "%s%c", prefix, sep);
@@ -628,8 +628,8 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	if (strcmp(astconf("CONFORMANCE", NULL, NULL), "standard"))
 		state.options |= REG_LENIENT;
 	error_info.id = id;
-	h = 0;
-	fts = 0;
+	h = NULL;
+	fts = NULL;
 	while (c = optget(argv, usage)) switch (c)
 	{
 	/* ... regex type options ... */

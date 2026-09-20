@@ -114,142 +114,120 @@ static Feature_t	dynamic[] =
 {
 #define OP_architecture	0
 	{
-		&dynamic[OP_architecture+1],
-		"ARCHITECTURE",
-		&null[0],
-		0,
-		0,
-		12,
-		CONF_AST,
-		0,
-		OP_architecture
+		.next = &dynamic[OP_architecture+1],
+		.name = "ARCHITECTURE",
+		.value = &null[0],
+		.length = 12,
+		.standard = CONF_AST,
+		.op = OP_architecture
 	},
 #define OP_conformance	1
 	{
-		&dynamic[OP_conformance+1],
-		"CONFORMANCE",
-		"ast",
-		"standard",
-		"ast",
-		11,
-		CONF_AST,
-		0,
-		OP_conformance
+		.next = &dynamic[OP_conformance+1],
+		.name = "CONFORMANCE",
+		.value = "ast",
+		.std = "standard",
+		.ast = "ast",
+		.length = 11,
+		.standard = CONF_AST,
+		.op = OP_conformance
 	},
 #define OP_getconf	2
 	{
-		&dynamic[OP_getconf+1],
-		"GETCONF",
+		.next = &dynamic[OP_getconf+1],
+		.name = "GETCONF",
 #ifdef _pth_getconf
-		_pth_getconf,
+		.value = _pth_getconf,
 #else
-		&null[0],
+		.value = &null[0],
 #endif
-		0,
-		0,
-		7,
-		CONF_AST,
-		CONF_READONLY,
-		OP_getconf
+		.length = 7,
+		.standard = CONF_AST,
+		.flags = CONF_READONLY,
+		.op = OP_getconf
 	},
 #define OP_hosttype	3
 	{
-		&dynamic[OP_hosttype+1],
-		"HOSTTYPE",
-		HOSTTYPE,
-		0,
-		0,
-		8,
-		CONF_AST,
-		CONF_READONLY,
-		OP_hosttype
+		.next = &dynamic[OP_hosttype+1],
+		.name = "HOSTTYPE",
+		.value = HOSTTYPE,
+		.length = 8,
+		.standard = CONF_AST,
+		.flags = CONF_READONLY,
+		.op = OP_hosttype
 	},
 #define OP_libpath	4
 	{
-		&dynamic[OP_libpath+1],
-		"LIBPATH",
+		.next = &dynamic[OP_libpath+1],
+		.name = "LIBPATH",
 #ifdef CONF_LIBPATH
-		CONF_LIBPATH,
+		.value = CONF_LIBPATH,
 #else
-		&null[0],
+		.value = &null[0],
 #endif
-		0,
-		0,
-		7,
-		CONF_AST,
-		0,
-		OP_libpath
+		.length = 7,
+		.standard = CONF_AST,
+		.op = OP_libpath
 	},
 #define OP_libprefix	5
 	{
-		&dynamic[OP_libprefix+1],
-		"LIBPREFIX",
+		.next = &dynamic[OP_libprefix+1],
+		.name = "LIBPREFIX",
 #ifdef CONF_LIBPREFIX
-		CONF_LIBPREFIX,
+		.value = CONF_LIBPREFIX,
 #else
-		"lib",
+		.value = "lib",
 #endif
-		0,
-		0,
-		9,
-		CONF_AST,
-		0,
-		OP_libprefix
+		.length = 9,
+		.standard = CONF_AST,
+		.op = OP_libprefix
 	},
 #define OP_libsuffix	6
 	{
-		&dynamic[OP_libsuffix+1],
-		"LIBSUFFIX",
+		.next = &dynamic[OP_libsuffix+1],
+		.name = "LIBSUFFIX",
 #ifdef CONF_LIBSUFFIX
-		CONF_LIBSUFFIX,
+		.value = CONF_LIBSUFFIX,
 #else
-		".so",
+		.value = ".so",
 #endif
-		0,
-		0,
-		9,
-		CONF_AST,
-		0,
-		OP_libsuffix
+		.length = 9,
+		.standard = CONF_AST,
+		.op = OP_libsuffix
 	},
 #define OP_path_attributes	7
 	{
-		&dynamic[OP_path_attributes+1],
-		"PATH_ATTRIBUTES",
-		&null[0],
-		&null[0],
-		0,
-		15,
-		CONF_AST,
-		CONF_READONLY,
-		OP_path_attributes
+		.next = &dynamic[OP_path_attributes+1],
+		.name = "PATH_ATTRIBUTES",
+		.value = &null[0],
+		.std = &null[0],
+		.length = 15,
+		.standard = CONF_AST,
+		.flags = CONF_READONLY,
+		.op = OP_path_attributes
 	},
 #define OP_path_resolve	8
 	{
-		&dynamic[OP_path_resolve+1],
-		"PATH_RESOLVE",
-		&null[0],
-		"physical",
-		"metaphysical",
-		12,
-		CONF_AST,
-		0,
-		OP_path_resolve
+		.next = &dynamic[OP_path_resolve+1],
+		.name = "PATH_RESOLVE",
+		.value = &null[0],
+		.std = "physical",
+		.ast = "metaphysical",
+		.length = 12,
+		.standard = CONF_AST,
+		.op = OP_path_resolve
 	},
 #define OP_universe	9
 	{
-		0,
-		"UNIVERSE",
-		&null[0],
-		"att",
-		0,
-		8,
-		CONF_AST,
-		0,
-		OP_universe
+		.name = "UNIVERSE",
+		.value = &null[0],
+		.std = "att",
+		.length = 8,
+		.standard = CONF_AST,
+		.op = OP_universe
 	},
 	{
-		0
+		NULL
 	}
 };
 
@@ -371,10 +349,10 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 			if (*ve)
 				*ve = 0;
 			else
-				ve = 0;
+				ve = NULL;
 			*de = 0;
 			*se = 0;
-			feature(0, s, d, v, 0, 0);
+			feature(NULL, s, d, v, 0, NULL);
 			*se = ' ';
 			*de = ' ';
 			if (!ve)
@@ -486,7 +464,7 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 	n = s - (char*)value - 1;
  ok:
 	if (!(fp->flags & CONF_ALLOC))
-		fp->value = 0;
+		fp->value = NULL;
 	if (n == 1 && (*value == '0' || *value == '-'))
 		n = 0;
 	if(!(newvalue = malloc((size_t)(n + 1))))
@@ -527,7 +505,7 @@ initialize(Feature_t* fp, const char* path, const char* command, const char* suc
 		ok = 1;
 		break;
 	case OP_conformance:
-		ok = getenv(state.strict) != 0;
+		ok = getenv(state.strict) != NULL;
 		break;
 	case OP_hosttype:
 		ok = 1;
@@ -686,7 +664,7 @@ format(Feature_t* fp, const char* path, const char* value, unsigned int flags, E
 			state.std = 1;
 			for (sp = state.features; sp; sp = sp->next)
 				if (sp->std && sp->op && sp->op != OP_conformance)
-					feature(sp, 0, path, sp->std, 0, 0);
+					feature(sp, NULL, path, sp->std, 0, NULL);
 		}
 #if DEBUG_astconf
 		error(-6, "state.std=%d %s [%s] std=%s ast=%s value=%s", state.std, fp->name, value, fp->std, fp->ast, fp->value);
@@ -1066,7 +1044,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 		if (look->standard >= 0 && (name[0] != '_' && ((p->flags & CONF_UNDERSCORE) || look->section <= 1) || name[0] == '_' && (p->flags & CONF_NOUNDERSCORE)) || look->standard < 0 && name[0] == '_')
 			goto bad;
 	}
-	s = 0;
+	s = NULL;
 	defined = 1;
 	switch (i = (p->op < 0 || (flags & CONF_MINMAX) && (p->flags & CONF_MINMAX_DEF)) ? 0 : p->call)
 	{
@@ -1129,7 +1107,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 		defined = 0;
 		break;
 	case 0:
-		call = 0;
+		call = NULL;
 		if (p->standard == CONF_AST)
 		{
 			if (streq(p->name, "RELEASE") && (i = open("/proc/version", O_RDONLY|O_cloexec)) >= 0)
@@ -1343,7 +1321,7 @@ print(Sfio_t* sp, Lookup_t* look, const char* name, const char* path, int listfl
 	if (!(listflags & ~(ASTCONF_error|ASTCONF_system)))
 		for (fp = state.features; fp; fp = fp->next)
 			if (streq(name, fp->name))
-				return format(fp, path, 0, (unsigned)listflags, conferror);
+				return format(fp, path, NULL, (unsigned)listflags, conferror);
 	return (listflags & ASTCONF_error) ? NULL : null;
 }
 
@@ -1364,7 +1342,7 @@ nativeconf(Proc_t** pp, const char* operand)
 #endif
 	cmd[0] = (char*)state.id;
 	cmd[1] = (char*)operand;
-	cmd[2] = 0;
+	cmd[2] = NULL;
 	ops[0] = PROC_FD_DUP(open("/dev/null",O_WRONLY,0), 2, PROC_FD_CHILD);
 	ops[1] = 0;
 	if (*pp = procopen(_pth_getconf, cmd, environ, ops, PROC_READ))
@@ -1421,7 +1399,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 				free(state.data_start);
 				state.data_start = state.data = NULL;
 				notify = state.notify;
-				state.notify = 0;
+				state.notify = NULL;
 				if (!INITIALIZE())
 				{
 					state.notify = notify;
@@ -1431,7 +1409,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			}
 			return null;
 		}
-		value = 0;
+		value = NULL;
 	}
 	if (!INITIALIZE())
 		return NULL;
@@ -1512,7 +1490,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			}
 		}
 	}
-	if ((look.standard < 0 || look.standard == CONF_AST) && look.call <= 0 && look.section <= 1 && (s = feature(0, look.name, path, value, (unsigned)flags, conferror)))
+	if ((look.standard < 0 || look.standard == CONF_AST) && look.call <= 0 && look.section <= 1 && (s = feature(NULL, look.name, path, value, (unsigned)flags, conferror)))
 		return s;
 	errno = EINVAL;
 	if (conferror && !(flags & ASTCONF_system))
@@ -1527,7 +1505,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 char*
 astconf(const char* name, const char* path, const char* value)
 {
-	return astgetconf(name, path, value, 0, 0);
+	return astgetconf(name, path, value, 0, NULL);
 }
 
 /*
@@ -1585,7 +1563,7 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 	else if (flags & ASTCONF_parse)
 		flags |= ASTCONF_write;
 	if (!(flags & (ASTCONF_matchcall|ASTCONF_matchname|ASTCONF_matchstandard)))
-		pattern = 0;
+		pattern = NULL;
 	if (pattern)
 	{
 		memset(&redisc, 0, sizeof(redisc));
@@ -1692,7 +1670,7 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 						continue;
 				}
 			}
-			if (!(s = feature(fp, 0, path, NULL, 0, 0)) || !*s)
+			if (!(s = feature(fp, NULL, path, NULL, 0, NULL)) || !*s)
 				s = "0";
 			if (flags & ASTCONF_table)
 			{

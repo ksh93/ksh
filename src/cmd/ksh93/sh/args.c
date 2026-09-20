@@ -306,7 +306,7 @@ int sh_argopts(int argc,char *argv[])
 	argc -= opt_info.index;
 	argv += opt_info.index;
 	if(action==PRINT)
-		sh_printopts(newflags,verbose,0);
+		sh_printopts(newflags,verbose,NULL);
 	if(setflag)
 	{
 		if(action==SORT)
@@ -360,7 +360,7 @@ int sh_argopts(int argc,char *argv[])
 		kia.unknown=kiaentity(lp,"<unknown>",-1,'p',-1,0,0,'0',0,"");
 		kiaentity(lp,"<unknown>",-1,'p',0,0,kia.unknown,'0',0,"");
 		kia.current = kia.script;
-		ap->kiafile = 0;
+		ap->kiafile = NULL;
 	}
 #endif /* SHOPT_KIA */
 	return argc;
@@ -496,7 +496,7 @@ struct dolnod *sh_argcreate(char *argv[])
 	dp = sh_malloc(sizeof(struct dolnod) + (n + 1) * sizeof(char*) + size + n);
 	dp->dolrefcnt=1;	/* use count */
 	dp->dolnum = (int)n;
-	dp->dolnxt = 0;
+	dp->dolnxt = NULL;
 	pp = dp->dolval;
 	sp = (char*)dp + sizeof(struct dolnod) + (n + 1) * sizeof(char*);
 	while(n)
@@ -517,8 +517,8 @@ struct dolnod *sh_argnew(char *argi[], struct dolnod **savargfor)
 	Arg_t *ap = (Arg_t*)sh.arg_context;
 	struct dolnod *olddolh = ap->dolh;
 	*savargfor = ap->argfor;
-	ap->dolh = 0;
-	ap->argfor = 0;
+	ap->dolh = NULL;
+	ap->argfor = NULL;
 	argset(ap,argi);
 	return olddolh;
 }
@@ -646,8 +646,8 @@ void sh_printopts(Shopt_t oflags,int mode, Shopt_t *mask)
  */
 char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 {
-	struct argnod *argp=0;
-	struct argnod *arghead=0;
+	struct argnod *argp = NULL;
+	struct argnod *arghead = NULL;
 	sh.xargmin = 0;
 	{
 		const struct comnod *ac = comptr;
@@ -701,14 +701,14 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 		if(!argp)
 		{
 			/* reserve an extra null pointer */
-			*--comargn = 0;
+			*--comargn = NULL;
 			return comargn;
 		}
 		argi = 0;
 		while(argp)
 		{
 			struct argnod *nextarg = argp->argchn.ap;
-			argp->argchn.ap = 0;
+			argp->argchn.ap = NULL;
 			*--comargn = argp->argval;
 			if(!(argp->argflag&ARG_RAW))
 				sh_trim(*comargn);
@@ -720,7 +720,7 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 			}
 			argi++;
 		}
-		sh.last_table = 0;
+		sh.last_table = NULL;
 		*nargs=argi;
 		return comargn;
 	}
@@ -761,11 +761,11 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 		sh_close(pv[1]);
 		use_devfd = 0;
 		pv[0] = -1;
-		while(sh.fifo = pathtemp(0,0,0,"ksh.fifo",0), sh.fifo && mkfifo(sh.fifo,0)<0)
+		while(sh.fifo = pathtemp(NULL,0,NULL,"ksh.fifo",NULL), sh.fifo && mkfifo(sh.fifo,0)<0)
 		{
 			if(errno==EEXIST || errno==EACCES || errno==ENOENT || errno==ENOTDIR || errno==EROFS)
 				continue;	/* lost race (name conflict or tmp dir change); try again */
-			sh.fifo = 0;
+			sh.fifo = NULL;
 			break;
 		}
 		if(!sh.fifo)
@@ -778,7 +778,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 		sfputr(sh.stk,sh.fifo,0);
 	}
 	ap = stkfreeze(sh.stk,0);
-	sh.inpipe = sh.outpipe = 0;
+	sh.inpipe = sh.outpipe = NULL;
 	/* turn off job control */
 	sh_offstate(SH_INTERACTIVE);
 	sh_offstate(SH_MONITOR);
@@ -807,7 +807,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 			sh.fifo_tree = dtopen(&_Nvdisc,Dtoset);
 		nv_search(sh.fifo,sh.fifo_tree,NV_ADD);
 		free(sh.fifo);
-		sh.fifo = 0;
+		sh.fifo = NULL;
 	}
 	return ap;
 }
@@ -832,7 +832,7 @@ static int arg_expand(struct argnod *argp, struct argnod **argchain,int flag)
 		struct argnod *ap;
 		sh_stats(STAT_ARGEXPAND);
 		if(flag&ARG_OPTIMIZE)
-			argp->argchn.ap=0;
+			argp->argchn.ap = NULL;
 		if(ap=argp->argchn.ap)
 		{
 			sh_stats(STAT_ARGHITS);

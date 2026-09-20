@@ -45,7 +45,7 @@ static const Ccmap_t	maps[] =
 	"e|ebcdic?(-)?([1e])",
 	"X/Open ebcdic",
 	"EBCDIC",
-	0,
+	NULL,
 	CC_EBCDIC_E,
 	},
 
@@ -54,7 +54,7 @@ static const Ccmap_t	maps[] =
 	"o|ebcdic?(-)[3o]|?(cp|ibm)1047|open?(-)edition",
 	"mvs OpenEdition ebcdic",
 	"EBCDIC-O",
-	0,
+	NULL,
 	CC_EBCDIC_O,
 	},
 
@@ -63,7 +63,7 @@ static const Ccmap_t	maps[] =
 	"h|ebcdic?(-)h|?(cp|ibm)?(00)37|[oa]s?(/-)400",
 	"ibm OS/400 AS/400 ebcdic",
 	"EBCDIC-H",
-	0,
+	NULL,
 	CC_EBCDIC_H,
 	},
 
@@ -72,7 +72,7 @@ static const Ccmap_t	maps[] =
 	"s|ebcdic?(-)s|siemens|posix-bc",
 	"siemens posix-bc ebcdic",
 	"EBCDIC-S",
-	0,
+	NULL,
 	CC_EBCDIC_S,
 	},
 
@@ -81,7 +81,7 @@ static const Ccmap_t	maps[] =
 	"i|ebcdic?(-)[2i]|ibm",
 	"X/Open ibm ebcdic (not idempotent)",
 	"EBCDIC-I",
-	0,
+	NULL,
 	CC_EBCDIC_I,
 	},
 
@@ -90,7 +90,7 @@ static const Ccmap_t	maps[] =
 	"m|ebcdic?(-)m|mvs",
 	"mvs ebcdic",
 	"EBCDIC-M",
-	0,
+	NULL,
 	CC_EBCDIC_M,
 	},
 
@@ -99,7 +99,7 @@ static const Ccmap_t	maps[] =
 	"u|ebcdic?(-)(u|mf)|microfocus",
 	"microfocus cobol ebcdic",
 	"EBCDIC-U",
-	0,
+	NULL,
 	CC_EBCDIC_U,
 	},
 
@@ -107,12 +107,12 @@ static const Ccmap_t	maps[] =
 	"native",
 	"n|native|local",
 	"native code set",
-	0,
-	0,
+	NULL,
+	NULL,
 	CC_NATIVE,
 	},
 
-	{ 0 },
+	{ NULL },
 };
 
 /*
@@ -138,7 +138,7 @@ ccmapid(const char* name)
 	ssize_t		n;
 	ssize_t		sub[2];
 
-	bp = 0;
+	bp = NULL;
 	n = 0;
 	for (mp = maps; mp->name; mp++)
 		if (strgrpmatch(name, mp->match, sub, elementsof(sub) / 2, STR_MAXIMAL|STR_LEFT|STR_ICASE))

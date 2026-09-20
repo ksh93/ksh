@@ -250,7 +250,7 @@ S2I_function(const char* a, char** e, int base)
 	if ((negative = S2I_valid(s) && (*s == '-')) || S2I_valid(s) && *s == '+')
 		k = ++s;
 	else
-		k = 0;
+		k = NULL;
 	p = s;
 	if (!base)
 	{
@@ -321,7 +321,7 @@ S2I_function(const char* a, char** e, int base)
 	if (base == 10)
 	{
 		b = s;
-		p = 0;
+		p = NULL;
 		for (;;)
 		{
 			if (S2I_valid(s) && (c = *s++) >= '0' && c <= '9')

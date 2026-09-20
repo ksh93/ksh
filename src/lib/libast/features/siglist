@@ -9,7 +9,7 @@ tst	- run{
 		*[!A-Za-z0-9_]*|*MIN|*MAX)
 			;;
 		*)	echo "#if defined(SIG$sig) && !defined(HAD_SIG$sig)"
-			echo "0,\"$sig\",SIG$sig,"
+			echo "NULL,\"$sig\",SIG$sig,"
 			echo "#endif"
 			;;
 		esac

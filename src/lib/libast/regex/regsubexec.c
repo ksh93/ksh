@@ -36,7 +36,7 @@
 			a *= 2; \
 			if (!((b)->re_buf = alloc(p->env->disc, (b)->re_buf, a))) \
 			{ \
-				(b)->re_buf = (b)->re_cur = (b)->re_end = 0; \
+				(b)->re_buf = (b)->re_cur = (b)->re_end = NULL; \
 				c = REG_ESPACE; \
 				r; \
 			} \

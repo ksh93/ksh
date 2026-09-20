@@ -145,9 +145,9 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 	{
 		errno = oerrno;
 		if (av == TV_TOUCH_RETAIN)
-			av = 0;
+			av = NULL;
 		if (mv == TV_TOUCH_RETAIN)
-			mv = 0;
+			mv = NULL;
 	}
 	if (!av || !mv)
 	{

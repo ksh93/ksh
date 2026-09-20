@@ -106,7 +106,7 @@ int
 b_basename(int argc, char** argv, Shbltin_t* context)
 {
 	char*	string;
-	char*	suffix = 0;
+	char*	suffix = NULL;
 	int	all = 0;
 	char    termch = '\n';
 

@@ -119,7 +119,7 @@ static int paste(ssize_t nstream,Sfio_t* streams[],Sfio_t *out, const char *deli
 						return -1;
 				}
 				else
-					streams[n] = 0;
+					streams[n] = NULL;
 			}
 			if(++n<nstream && more && d>=0)
 			{
@@ -180,7 +180,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 	char		defdelim[2];
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	delim = 0;
+	delim = NULL;
 	for (;;)
 	{
 		switch (optget(argv, usage))
@@ -217,7 +217,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 		UNREACHABLE();
 	}
 	dlen = dsiz = (ssize_t)stresc(delim);
-	mp = 0;
+	mp = NULL;
 	if (mbwide())
 	{
 		cp = delim;

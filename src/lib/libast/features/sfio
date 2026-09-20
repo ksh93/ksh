@@ -31,7 +31,7 @@ tst	tmp_rmfail note{ open files cannot be removed }end execute{
 		*s++ = 'F';
 		*s++ = 'F';
 		*s++ = '3';
-		n = (int)time(0);
+		n = (int)time(NULL);
 		*s++ = (n & 0xF) + 'A';
 		*s++ = ((n >> 4) & 0xF) + 'A';
 		*s++ = ((n >> 8) & 0xF) + 'A';

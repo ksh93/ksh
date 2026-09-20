@@ -134,7 +134,7 @@ void	sh_subtmpfile(void)
 		sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
 		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
 		if(pp && pp->olist  && pp->olist->strm == sfstdout)
-			pp->olist->strm = 0;
+			pp->olist->strm = NULL;
 	}
 }
 
@@ -179,7 +179,7 @@ void sh_subfork(void)
 		 */
 		if(!sp->rand_state)
 			sh_invalidate_rand_seed();
-		subshell_data = 0;
+		subshell_data = NULL;
 		sh.subshell = 0;
 		sh.comsub = 0;
 		sp->subpid=0;
@@ -197,7 +197,7 @@ int nv_subsaved(Namval_t *np, nvflag_t flags)
 	struct Link		*lp, *lpprev;
 	for(sp = (struct subshell*)subshell_data; sp; sp=sp->prev)
 	{
-		lpprev = 0;
+		lpprev = NULL;
 		for(lp=sp->svar; lp; lpprev=lp, lp=lp->next)
 		{
 			if(lp->node==np)
@@ -477,7 +477,7 @@ static void nv_restore(struct subshell *sp)
 		}
 		if(fp)
 			free_disciplines(np);
-		np->nvfun = 0;
+		np->nvfun = NULL;
 		if(nv_isattr(mp,NV_EXPORT))
 		{
 			char *name = nv_name(mp);
@@ -665,10 +665,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	int *saveexitval = job.exitval;
 	char **volatile savsig;
 	volatile size_t nsig = 0;
-	Sfio_t *volatile iop=0;
+	Sfio_t *volatile iop = NULL;
 	struct checkpt checkpoint;
 	struct sh_scoped savst;
-	struct dolnod   *argsav=0;
+	struct dolnod   *argsav = NULL;
 	sfsync(sh.outpool);
 	memset((char*)sp, 0, sizeof(*sp));
 	sp->options = sh.options;
@@ -680,7 +680,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	sh.savesig = -1;
 	if(sh.curenv==0)
 	{
-		subshell_data=0;
+		subshell_data = NULL;
 		subenv = 0;
 	}
 	sh.curenv = ++subenv;
@@ -715,7 +715,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		sh.comsub = comsub;
 	if(!sh.subshare)
 	{
-		char *save_debugtrap = 0;
+		char *save_debugtrap = NULL;
 #if _lib_openat
 		sp->pwd = sh_strdup(sh.pwd);
 		sp->pwdfd = sh.pwdfd;
@@ -836,7 +836,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	{
 		/* trap on EXIT not handled by child */
 		char *trap=sh.st.trapcom[0];
-		sh.st.trapcom[0] = 0;	/* prevent recursion */
+		sh.st.trapcom[0] = NULL;	/* prevent recursion */
 		sh_trap(trap,0);
 		if(!sh.savesig)
 			sh.savesig = -1;
@@ -953,7 +953,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		{
 			Namval_t *np, *next_np;
 			/* Detach this scope from the unified view. */
-			sh.track_tree = dtview(sp->strack,0);
+			sh.track_tree = dtview(sp->strack,NULL);
 			/* Free all elements of the subshell hash table. */
 			for(np = (Namval_t*)dtfirst(sp->strack); np; np = next_np)
 			{
@@ -969,7 +969,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		{
 			Namval_t *np, *next_np;
 			/* Detach this scope from the unified view. */
-			sh.fun_tree = dtview(sp->sfun,0);
+			sh.fun_tree = dtview(sp->sfun,NULL);
 			/* Free all elements of the subshell function table. */
 			for(np = (Namval_t*)dtfirst(sp->sfun); np; np = next_np)
 			{
@@ -1000,7 +1000,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		/* Clean up subshell autoload loop detection tree. */
 		if(sp->sfaldt)
 		{
-			sh.funload_loopdetect_tree = dtview(sp->sfaldt,0);
+			sh.funload_loopdetect_tree = dtview(sp->sfaldt,NULL);
 			dtclose(sp->sfaldt);
 			sp->sfaldt = NULL;
 		}
@@ -1009,7 +1009,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		if(n>0)
 			memset(&sh.st.trapcom[savst.trapmax],0,(size_t)n*sizeof(char*));
 		sh.st = savst;
-		sh.st.otrap = 0;
+		sh.st.otrap = NULL;
 		if(nsig)
 			memcpy(sh.st.trapcom, savsig, nsig);
 		sh.options = sp->options;

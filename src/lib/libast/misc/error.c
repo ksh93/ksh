@@ -48,15 +48,10 @@
 
 static Error_info_t	_error_info_ =
 {
-	2, exit, write,
-	0,0,0,0,0,0,0,0,
-	0,			/* version			*/
-	0,			/* auxiliary			*/
-	0,0,0,0,0,0,0,		/* top of old context stack	*/
-	0,0,0,0,0,0,0,		/* old empty context		*/
-	0,			/* time				*/
-	translate,
-	0			/* catalog			*/
+	.fd = STDERR_FILENO,
+	.exit = exit,
+	.write = write,
+	.translate = translate,
 };
 Error_info_t*		_error_infop_ = &_error_info_;
 
@@ -104,7 +99,7 @@ static const Namval_t		options[] =
 	"system",	OPT_SYSTEM,
 	"time",		OPT_TIME,
 	"trace",	OPT_TRACE,
-	0,		0
+	NULL,		0
 };
 
 /*
@@ -179,13 +174,13 @@ setopt(void* a, const void* p, int n, const char* v)
 				if ((error_state.match || (error_state.match = newof(0, regex_t, 1, 0))) && regcomp(error_state.match, v, REG_EXTENDED|REG_LENIENT))
 				{
 					free(error_state.match);
-					error_state.match = 0;
+					error_state.match = NULL;
 				}
 			}
 			else if (error_state.match)
 			{
 				free(error_state.match);
-				error_state.match = 0;
+				error_state.match = NULL;
 			}
 			break;
 		case OPT_PREFIX:
@@ -194,7 +189,7 @@ setopt(void* a, const void* p, int n, const char* v)
 			else if (error_state.prefix)
 			{
 				free(error_state.prefix);
-				error_state.prefix = 0;
+				error_state.prefix = NULL;
 			}
 			break;
 		case OPT_SYSTEM:
@@ -338,28 +333,28 @@ errorv(const char* id, int level, va_list ap)
 	if ((flags & (ERROR_USAGE|ERROR_NOID)) == ERROR_NOID)
 	{
 		format = (char*)id;
-		id = 0;
+		id = NULL;
 	}
 	else
-		format = 0;
+		format = NULL;
 	if (id)
 	{
 		catalog = (char*)id;
 		if (!*catalog || *catalog == ':')
 		{
-			catalog = 0;
-			library = 0;
+			catalog = NULL;
+			library = NULL;
 		}
 		else if ((library = (char*)strchr(catalog, ':')) && !*++library)
-			library = 0;
+			library = NULL;
 	}
 	else
 	{
-		catalog = 0;
-		library = 0;
+		catalog = NULL;
+		library = NULL;
 	}
 	if (catalog)
-		id = 0;
+		id = NULL;
 	else
 	{
 		id = (const char*)error_info.id;
@@ -536,13 +531,13 @@ errorv(const char* id, int level, va_list ap)
 		}
 		else
 		{
-			s = 0;
+			s = NULL;
 			level &= ERROR_LEVEL;
 		}
 		stkset(stkstd, bas, off);
 	}
 	else
-		s = 0;
+		s = NULL;
 	if (level >= error_state.breakpoint && error_state.breakpoint && (!error_state.match || !regexec(error_state.match, s ? s : format, 0, NULL, 0)) && (!error_state.count || !--error_state.count))
 	{
 		if (error_info.core)

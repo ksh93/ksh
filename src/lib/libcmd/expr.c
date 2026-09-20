@@ -536,7 +536,7 @@ b_expr(int argc, char** argv, Shbltin_t* context)
 	int	n;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
-	state.standard = !!conformance(0, 0);
+	state.standard = !!conformance(NULL, 0);
 	while (n=optget(argv, usage))
 	{
 		/*

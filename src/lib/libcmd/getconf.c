@@ -145,10 +145,10 @@ b_getconf(int argc, char** argv, Shbltin_t* context)
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	oargv = argv;
 	if (*(native = astconf("GETCONF", NULL, NULL)) != '/')
-		native = 0;
+		native = NULL;
 	flags = 0;
-	name = 0;
-	pattern = 0;
+	name = NULL;
+	pattern = NULL;
 	for (;;)
 	{
 		switch (optget(argv, usage))
@@ -211,12 +211,12 @@ b_getconf(int argc, char** argv, Shbltin_t* context)
 	name = *argv;
 	if (name && streq(name, empty))
 	{
-		name = 0;
+		name = NULL;
 		if (path = *++argv)
 		{
 			argv++;
 			if (streq(path, empty))
-				path = 0;
+				path = NULL;
 		}
 	}
 	if (error_info.errors || !name && *argv)
@@ -233,17 +233,17 @@ b_getconf(int argc, char** argv, Shbltin_t* context)
 		do
 		{
 			if (!(path = *++argv))
-				value = 0;
+				value = NULL;
 			else
 			{
 				if (streq(path, empty))
 				{
-					path = 0;
+					path = NULL;
 					flags = 0;
 				}
 				if ((value = *++argv) && (streq(value, empty)))
 				{
-					value = 0;
+					value = NULL;
 					flags = 0;
 				}
 			}

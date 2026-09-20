@@ -145,7 +145,7 @@ const struct shtable3 shtab_builtins[] =
 	CMDLIST(mktemp)
 	CMDLIST(mv)
 #endif
-	"",		0, 0
+	"",		0, NULL
 };
 
 #define _JOB_	"[+?Each \ajob\a can be specified as one of the following:]{" \

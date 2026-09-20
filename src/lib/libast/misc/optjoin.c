@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2024 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -59,7 +60,7 @@ optjoin(char** argv, ...)
 	int		err_offset = 0;
 
 	state = optstate(&opt_info);
-	err = rep = 0;
+	err = rep = NULL;
 	r = -1;
 	while (r < 0)
 	{
@@ -71,7 +72,7 @@ optjoin(char** argv, ...)
 			last_offset = opt_info.offset;
 			state->join++;
 			user = (*fun)(argv, 0);
-			more = argv[opt_info.index] != 0;
+			more = argv[opt_info.index] != NULL;
 			if (!opt_info.again)
 			{
 				if (!more)
@@ -91,7 +92,7 @@ optjoin(char** argv, ...)
 					opt_info.again = -1;
 				}
 				else
-					err = 0;
+					err = NULL;
 			}
 			if (opt_info.again)
 			{

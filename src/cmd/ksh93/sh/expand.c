@@ -107,7 +107,7 @@ size_t path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 		sfputr(sh.strbuf,pattern,-1);
 		trimmedpat = sh_struse(sh.strbuf);
 		sh_trim(trimmedpat);
-		glob(trimmedpat,flags,0,gp);
+		glob(trimmedpat,flags,NULL,gp);
 		/*
 		 * If there is only one result and it is identical to the trimmed pattern, then the pattern didn't
 		 * resolve, and we now need to replace it with the untrimmed pattern to avoid regressions with the
@@ -122,7 +122,7 @@ size_t path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 		}
 	}
 	else
-		glob(pattern,flags,0,gp);
+		glob(pattern,flags,NULL,gp);
 	sh_sigcheck();
 	for(ap= (struct argnod*)gp->gl_list; ap; ap = ap->argnxt.ap)
 	{
@@ -246,14 +246,14 @@ ssize_t path_generate(struct argnod *todo, struct argnod **arghead, int musttrim
 	ssize_t brace;
 	int nobracepat = 0;
 	struct argnod *ap;
-	struct argnod *top = 0;
+	struct argnod *top = NULL;
 	struct argnod *apin;
 	char *pat = NULL, *rescan;
 	char *format = "%d";
 	char comma, range=0;
 	ssize_t first = 0, last = 0, incr = 0, count = 0;
 	char tmp[32], end[1];
-	todo->argchn.ap = 0;
+	todo->argchn.ap = NULL;
 again:
 	apin = ap = todo;
 	todo = ap->argchn.ap;

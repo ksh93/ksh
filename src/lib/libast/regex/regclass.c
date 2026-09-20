@@ -128,22 +128,22 @@ static Ctype_t ctype[] =
 #define CTYPES		13
 
 #if _lib_wctype
-	{ 0, 0,        Is_wc_1 },
-	{ 0, 0,        Is_wc_2 },
-	{ 0, 0,        Is_wc_3 },
-	{ 0, 0,        Is_wc_4 },
-	{ 0, 0,        Is_wc_5 },
-	{ 0, 0,        Is_wc_6 },
-	{ 0, 0,        Is_wc_7 },
-	{ 0, 0,        Is_wc_8 },
-	{ 0, 0,        Is_wc_9 },
-	{ 0, 0,        Is_wc_10 },
-	{ 0, 0,        Is_wc_11 },
-	{ 0, 0,        Is_wc_12 },
-	{ 0, 0,        Is_wc_13 },
-	{ 0, 0,        Is_wc_14 },
-	{ 0, 0,        Is_wc_15 },
-	{ 0, 0,        Is_wc_16 },
+	{ NULL, 0,     Is_wc_1 },
+	{ NULL, 0,     Is_wc_2 },
+	{ NULL, 0,     Is_wc_3 },
+	{ NULL, 0,     Is_wc_4 },
+	{ NULL, 0,     Is_wc_5 },
+	{ NULL, 0,     Is_wc_6 },
+	{ NULL, 0,     Is_wc_7 },
+	{ NULL, 0,     Is_wc_8 },
+	{ NULL, 0,     Is_wc_9 },
+	{ NULL, 0,     Is_wc_10 },
+	{ NULL, 0,     Is_wc_11 },
+	{ NULL, 0,     Is_wc_12 },
+	{ NULL, 0,     Is_wc_13 },
+	{ NULL, 0,     Is_wc_14 },
+	{ NULL, 0,     Is_wc_15 },
+	{ NULL, 0,     Is_wc_16 },
 
 #define WTYPES		16
 
@@ -204,7 +204,7 @@ regclass(const char* s, char** e)
 	for (cp = ctypes; cp; cp = cp->next)
 		if (n == cp->size && strneq(s, cp->name, n))
 			goto found;
-	xp = zp = 0;
+	xp = zp = NULL;
 	lc = (Ctype_t*)setlocale(LC_CTYPE, NULL);
 	for (cp = ctype; cp < &ctype[elementsof(ctype)]; cp++)
 	{
@@ -229,7 +229,7 @@ regclass(const char* s, char** e)
 		if (!streq(cp->name, s))
 		{
 			free((void*)cp->name);
-			cp->name = 0;
+			cp->name = NULL;
 		}
 	}
 	if (!cp->name)
@@ -242,7 +242,7 @@ regclass(const char* s, char** e)
 	if (!(cp->wtype = wctype((char*)cp->name)))
 	{
 		free((void*)cp->name);
-		cp->name = 0;
+		cp->name = NULL;
 		return NULL;
 	}
 	cp->size = n;

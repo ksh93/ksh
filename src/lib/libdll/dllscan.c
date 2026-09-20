@@ -109,25 +109,25 @@ dllinfo(void)
 				{
 					for (d = s; *s && *s != ':' && *s != ','; s++);
 					if (!(dn = (size_t)(s - d)))
-						d = 0;
+						d = NULL;
 					if (*s == ':')
 					{
 						for (v = ++s; *s && *s != ':' && *s != ','; s++);
 						if (!(vn = s - v))
-							v = 0;
+							v = NULL;
 						if (*s == ':')
 						{
 							for (p = ++s; *s && *s != ':' && *s != ','; s++);
 							if (!(pn = (size_t)(s - p)))
-								p = 0;
+								p = NULL;
 						}
 						else
-							p = 0;
+							p = NULL;
 					}
 					else
 					{
-						v = 0;
-						p = 0;
+						v = NULL;
+						p = NULL;
 					}
 					while (*s && *s++ != ',');
 					if (!*s || !p || !h && !*(h = astconf("HOSTTYPE", NULL, NULL)))
@@ -235,12 +235,12 @@ dllsopen(const char* lib, const char* name, const char* version)
 	}
 	else
 	{
-		lib = 0;
+		lib = NULL;
 		i = 0;
 	}
 	if (version && (!*version || *version == '-' && !*(version + 1)))
-		version = 0;
-	if (!(scan = vmnewof(vm, 0, Dllscan_t, 1, i)) || !(scan->tmp = sfstropen()))
+		version = NULL;
+	if (!(scan = vmnewof(vm, NULL, Dllscan_t, 1, i)) || !(scan->tmp = sfstropen()))
 	{
 		vmclose(vm);
 		return NULL;
@@ -263,7 +263,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 	}
 	else if (t = (char*)strrchr(name, '/'))
 	{
-		if (!(scan->pb = vmnewof(vm, 0, char, (size_t)(t - (char*)name), 2)))
+		if (!(scan->pb = vmnewof(vm, NULL, char, (size_t)(t - (char*)name), 2)))
 			goto bad;
 		memcpy(scan->pb, name, (size_t)(t - (char*)name));
 		name = (const char*)(t + 1);
@@ -278,7 +278,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 			if (i > k && streq(name + i - k, info->suffix))
 			{
 				i -= j + k;
-				if (!(t = vmnewof(vm, 0, char, i, 1)))
+				if (!(t = vmnewof(vm, NULL, char, i, 1)))
 					goto bad;
 				memcpy(t, name + j, i);
 				t[i] = 0;
@@ -292,7 +292,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 					if (*t != '-')
 						scan->flags |= DLL_MATCH_VERSION;
 					version = t + 1;
-					if (!(s = vmnewof(vm, 0, char, (size_t)(t - (char*)name), 1)))
+					if (!(s = vmnewof(vm, NULL, char, (size_t)(t - (char*)name), 1)))
 						goto bad;
 					memcpy(s, name, (size_t)(t - (char*)name));
 					name = (const char*)s;
@@ -395,7 +395,7 @@ dllsread(Dllscan_t* scan)
 			if (scan->fts)
 			{
 				fts_close(scan->fts);
-				scan->fts = 0;
+				scan->fts = NULL;
 			}
 			if (!scan->pb)
 				scan->pb = pathbin();
@@ -508,14 +508,14 @@ dllsread(Dllscan_t* scan)
 		}
 		if (dtmatch(scan->dict, b))
 			goto again;
-		if (!(u = vmnewof(scan->vm, 0, Uniq_t, 1, strlen(b))))
+		if (!(u = vmnewof(scan->vm, NULL, Uniq_t, 1, strlen(b))))
 			return NULL;
 		strcpy(u->name, b);
 		dtinsert(scan->dict, u);
 	}
 	else if (!(scan->flags & DLL_MATCH_NAME))
 		scan->flags |= DLL_MATCH_DONE;
-	else if (!(scan->uniq = vmnewof(scan->vm, 0, Uniq_t, 1, strlen(b))))
+	else if (!(scan->uniq = vmnewof(scan->vm, NULL, Uniq_t, 1, strlen(b))))
 		return NULL;
 	else
 		strcpy(scan->uniq->name, b);

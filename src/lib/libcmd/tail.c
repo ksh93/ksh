@@ -278,7 +278,7 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
 	{
 		offset = 0;
 		if (tp->sp == sfstdin)
-			tp->sp = 0;
+			tp->sp = NULL;
 	}
 	else
 		offset = 1;
@@ -351,7 +351,7 @@ init(Tail_t* tp, Sfoff_t number, int delim, int flags, const char** format)
  bad:
 	if (tp->sp != sfstdin)
 		sfclose(tp->sp);
-	tp->sp = 0;
+	tp->sp = NULL;
 	return -1;
 }
 
@@ -556,7 +556,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				number = -number;
 			goto compatibility;
 		suffix:
-			r = 0;
+			r = NULL;
 			if (opt_info.option[0] == '+')
 				number = -number;
 		compatibility:
@@ -639,12 +639,12 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 			error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 			UNREACHABLE();
 		}
-		files = 0;
+		files = NULL;
 		s = *argv;
 		do
 		{
 			fp->name = s;
-			fp->sp = 0;
+			fp->sp = NULL;
 			if (!init(fp, number, delim, flags, &format))
 			{
 				fp->expire = timeout ? (NOW + timeout + 1) : 0;
@@ -658,8 +658,8 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 		} while (s && (s = *++argv));
 		if (!files)
 			return error_info.errors != 0;
-		pp->next = 0;
-		hp = 0;
+		pp->next = NULL;
+		hp = NULL;
 		n = 1;
 		tv.tv_sec = 1;
 		tv.tv_nsec = 0;
@@ -672,7 +672,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				error_info.errors++;
 				break;
 			}
-			pp = 0;
+			pp = NULL;
 			while (fp)
 			{
 				if (fstat(sffileno(fp->sp), &st))

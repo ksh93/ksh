@@ -54,8 +54,8 @@ Sfio_t*	sfpopen(Sfio_t*			f,
 	av[0] = "sh";
 	av[1] = "-c";
 	av[2] = (char*)command;
-	av[3] = 0;
-	if (!(proc = procopen(0, av, 0, 0, flags)))
+	av[3] = NULL;
+	if (!(proc = procopen(NULL, av, NULL, NULL, flags)))
 		return NULL;
 	if (!(f = sfnew(f, NULL, (size_t)SFIO_UNBOUND,
 			(sflags&SFIO_READ) ? proc->rfd : proc->wfd, sflags|((sflags&SFIO_RDWR)?0:SFIO_READ))) ||

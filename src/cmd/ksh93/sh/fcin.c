@@ -29,7 +29,7 @@
 #include	<error.h>
 #include	<fcin.h>
 
-Fcin_t _Fcin = {0};
+Fcin_t _Fcin = {NULL};
 
 /*
  * open stream <f> for fast character input
@@ -48,7 +48,7 @@ ssize_t fcfopen(Sfio_t* f)
 		fcrestore(&save);
 		_Fcin.fcchar = 0;
 		_Fcin.fcptr = _Fcin.fcbuff = &_Fcin.fcchar;
-		_Fcin.fclast = 0;
+		_Fcin.fclast = NULL;
 		_Fcin._fcfile = NULL;
 		if (errno && sferror(f))
 			return EOF - 1;
@@ -97,7 +97,7 @@ int	fcfill(void)
 	if((n = ptr-_Fcin.fcbuff) && _Fcin.fcfun)
 		(*_Fcin.fcfun)(f,(const char*)_Fcin.fcbuff,n,_Fcin.context);
 	sfread(f, (char*)_Fcin.fcbuff, (size_t)n);
-	_Fcin._fcfile = 0;
+	_Fcin._fcfile = NULL;
 	if(!last)
 		return 0;
 	else if((e = fcfopen(f)) < 0)
@@ -111,13 +111,13 @@ int	fcfill(void)
 int fcclose(void)
 {
 	unsigned char *ptr;
-	if(_Fcin.fclast==0)
+	if(_Fcin.fclast==NULL)
 		return 0;
 	if((ptr=_Fcin.fcptr)>_Fcin.fcbuff && *(ptr-1)==0)
 		_Fcin.fcptr--;
 	if(_Fcin.fcchar)
 		*_Fcin.fclast = _Fcin.fcchar;
-	_Fcin.fclast = 0;
+	_Fcin.fclast = NULL;
 	_Fcin.fcleft = 0;
 	return fcfill();
 }

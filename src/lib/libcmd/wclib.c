@@ -99,7 +99,7 @@ static int invalid(const char *file, int nlines)
 	error_info.file = (char*)file;
 	error_info.line = nlines;
 	error(ERROR_SYSTEM|1, "invalid multibyte character");
-	error_info.file = 0;
+	error_info.file = NULL;
 	error_info.line = 0;
 	return nlines;
 }
@@ -179,7 +179,7 @@ int wc_count(Wc_t *wp, Sfio_t *fd, const char* file)
 	wp->longest = 0;
 	if (wp->mb < 0 && (wp->mode & (WC_MBYTE|WC_WORDS)))
 	{
-		cp = buff = endbuff = 0;
+		cp = buff = endbuff = NULL;
 		for (;;)
 		{
 			if (cp >= endbuff || (n = mb2wc(x, cp, (size_t)(endbuff-cp))) < 0)

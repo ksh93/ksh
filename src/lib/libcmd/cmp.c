@@ -139,11 +139,11 @@ cmp(const char* file1, Sfio_t* f1, const char* file2, Sfio_t* f2, int flags, Sfo
 {
 	ptrdiff_t	c1;
 	ptrdiff_t	c2;
-	unsigned char*	p1 = 0;
-	unsigned char*	p2 = 0;
+	unsigned char*	p1 = NULL;
+	unsigned char*	p2 = NULL;
 	Sfoff_t	lines = 1;
-	unsigned char*	e1 = 0;
-	unsigned char*	e2 = 0;
+	unsigned char*	e1 = NULL;
+	unsigned char*	e2 = NULL;
 	Sfoff_t		pos = 0;
 	ptrdiff_t	n1 = 0;
 	int		ret = 0;
@@ -258,8 +258,8 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 	struct stat	s1;
 	struct stat	s2;
 
-	Sfio_t*		f1 = 0;
-	Sfio_t*		f2 = 0;
+	Sfio_t*		f1 = NULL;
+	Sfio_t*		f2 = NULL;
 	Sfoff_t		o1 = 0;
 	Sfoff_t		o2 = 0;
 	Sfoff_t		count = -1;

@@ -150,7 +150,7 @@ int	b_getopts(int _argc,char *_argv[],Shbltin_t *context)
 		else
 		{
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
-			opt_info.arg = 0;
+			opt_info.arg = NULL;
 			flag = '?';
 		}
 		*(options = value) = (char)flag;
@@ -166,7 +166,7 @@ int	b_getopts(int _argc,char *_argv[],Shbltin_t *context)
 		{
 			char *com[2];
 			com[0] = "-?";
-			com[1] = 0;
+			com[1] = NULL;
 			flag = opt_info.index;
 			opt_info.index = 0;
 			optget(com,options);
@@ -177,7 +177,7 @@ int	b_getopts(int _argc,char *_argv[],Shbltin_t *context)
 				UNREACHABLE();
 			}
 		}
-		opt_info.arg = 0;
+		opt_info.arg = NULL;
 		options = value;
 		*options = '?';
 		r=1;
@@ -210,7 +210,7 @@ int	b_getopts(int _argc,char *_argv[],Shbltin_t *context)
 	else
 		nv_putval(np, opt_info.arg, NV_RDONLY);
 	sh_popcontext(&buff);
-	opt_info.disc = 0;
+	opt_info.disc = NULL;
 	opt_info.posix = 0;
 	return r;
 }

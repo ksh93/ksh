@@ -42,19 +42,19 @@ extern const Namdisc_t	ENUM_disc;
 static Sfdouble_t	NaN, Inf, Fun;
 static Namval_t Infnod =
 {
-	{ 0 },
+	{ NULL },
 	"Inf",
 };
 
 static Namval_t NaNnod =
 {
-	{ 0 },
+	{ NULL },
 	"NaN",
 };
 
 static Namval_t FunNode =
 {
-	{ 0 },
+	{ NULL },
 	"?",
 };
 
@@ -71,7 +71,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 	lvalue->nosub = 0;
 	if(nosub<0 && lvalue->ovalue)
 		return (Namval_t*)lvalue->ovalue;
-	lvalue->ovalue = 0;
+	lvalue->ovalue = NULL;
 	if(cp>=lvalue->expr &&  cp < lvalue->expr+lvalue->elen)
 	{
 		ptrdiff_t offset;
@@ -222,7 +222,7 @@ static Math_f sh_mathstdfun(const char *fname, size_t fsize, short *nargs)
 
 int	sh_mathstd(const char *name)
 {
-	return sh_mathstdfun(name,strlen(name),NULL)!=0;
+	return sh_mathstdfun(name,strlen(name),NULL)!=NULL;
 }
 
 static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdouble_t n)
@@ -307,8 +307,8 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		c = mbchar(str);
 		if(isaletter(c))
 		{
-			Namval_t *np=0;
-			nvflag_t dot=0;
+			Namval_t *np = NULL;
+			nvflag_t dot = 0;
 			while(1)
 			{
 				while(xp=str, c=mbchar(str), isaname(c));
@@ -333,7 +333,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 				size_t fsize = (size_t)(str- (char*)(*ptr));
 				const struct mathtab *tp;
 				c = **ptr;
-				lvalue->fun = 0;
+				lvalue->fun = NULL;
 				sfprintf(sh.stk,".sh.math.%.*s%c",fsize,*ptr,0);
 				stkseek(sh.stk,off);
 				if(np=nv_search(stkptr(sh.stk,off),sh.fun_tree,0))

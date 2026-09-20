@@ -72,7 +72,7 @@ static const Namval_t		options[] =
 	"exec",		PROC_OPT_EXEC,
 	"trace",	PROC_OPT_TRACE,
 	"verbose",	PROC_OPT_VERBOSE,
-	0,		0
+	NULL,		0
 };
 
 static int
@@ -392,7 +392,7 @@ restore(Proc_t* proc)
 Proc_t*
 procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 {
-	Proc_t*		proc = 0;
+	Proc_t*		proc = NULL;
 	int		procfd = -1;
 	char**		p;
 	char**		v;
@@ -625,7 +625,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 					break;
 				}
 		if (forked && (flags & PROC_ENVCLEAR))
-			environ = 0;
+			environ = NULL;
 #if _use_spawnveg
 		else if (newenv)
 		{

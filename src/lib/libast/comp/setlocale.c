@@ -141,7 +141,7 @@ set_collate(Lc_category_t* cp)
 	if (locales[cp->internal]->flags & LC_default)
 	{
 		ast.locale.collate = strcmp;
-		ast.locale.transform = 0;  /* check non-0 before calling, or to see if locale-based collection is active */
+		ast.locale.transform = NULL;  /* check non-0 before calling, or to see if locale-based collection is active */
 	}
 	else
 	{
@@ -1978,10 +1978,10 @@ set_ctype(Lc_category_t* cp)
 	else if ((locales[cp->internal]->flags & LC_default) || (ast.mb.cur_max = (uint32_t)MB_CUR_MAX) <= 1 || !(ast.mb.len = mblen) || !(ast.mb.towc = mbtowc))
 	{
 		ast.mb.cur_max = 1;
-		ast.mb.len = 0;
-		ast.mb.towc = 0;
+		ast.mb.len = NULL;
+		ast.mb.towc = NULL;
 		ast.mb.width = default_wcwidth;
-		ast.mb.conv = 0;
+		ast.mb.conv = NULL;
 	}
 	else
 	{
@@ -2067,19 +2067,19 @@ set_numeric(Lc_category_t* cp)
 
 Lc_category_t		lc_categories[] =
 {
-{ "LC_ALL",           LC_ALL,           AST_LC_ALL,           0               },
+{ "LC_ALL",           LC_ALL,           AST_LC_ALL,           NULL            },
 { "LC_COLLATE",       LC_COLLATE,       AST_LC_COLLATE,       set_collate     },
 { "LC_CTYPE",         LC_CTYPE,         AST_LC_CTYPE,         set_ctype       },
-{ "LC_MESSAGES",      LC_MESSAGES,      AST_LC_MESSAGES,      0               },
-{ "LC_MONETARY",      LC_MONETARY,      AST_LC_MONETARY,      0               },
+{ "LC_MESSAGES",      LC_MESSAGES,      AST_LC_MESSAGES,      NULL            },
+{ "LC_MONETARY",      LC_MONETARY,      AST_LC_MONETARY,      NULL            },
 { "LC_NUMERIC",       LC_NUMERIC,       AST_LC_NUMERIC,       set_numeric     },
-{ "LC_TIME",          LC_TIME,          AST_LC_TIME,          0               },
-{ "LC_IDENTIFICATION",LC_IDENTIFICATION,AST_LC_IDENTIFICATION,0               },
-{ "LC_ADDRESS",       LC_ADDRESS,       AST_LC_ADDRESS,       0               },
-{ "LC_NAME",          LC_NAME,          AST_LC_NAME,          0               },
-{ "LC_TELEPHONE",     LC_TELEPHONE,     AST_LC_TELEPHONE,     0               },
-{ "LC_MEASUREMENT",   LC_MEASUREMENT,   AST_LC_MEASUREMENT,   0               },
-{ "LC_PAPER",         LC_PAPER,         AST_LC_PAPER,         0               },
+{ "LC_TIME",          LC_TIME,          AST_LC_TIME,          NULL            },
+{ "LC_IDENTIFICATION",LC_IDENTIFICATION,AST_LC_IDENTIFICATION,NULL            },
+{ "LC_ADDRESS",       LC_ADDRESS,       AST_LC_ADDRESS,       NULL            },
+{ "LC_NAME",          LC_NAME,          AST_LC_NAME,          NULL            },
+{ "LC_TELEPHONE",     LC_TELEPHONE,     AST_LC_TELEPHONE,     NULL            },
+{ "LC_MEASUREMENT",   LC_MEASUREMENT,   AST_LC_MEASUREMENT,   NULL            },
+{ "LC_PAPER",         LC_PAPER,         AST_LC_PAPER,         NULL            },
 };
 
 static Lc_t*		lang;
@@ -2097,7 +2097,7 @@ static const Unamval_t	options[] =
 	"setlocale",		AST_LC_setlocale,
 	"test",			AST_LC_test,
 	"translate",		AST_LC_translate,
-	0,			0
+	NULL,			0
 };
 
 /*
@@ -2170,7 +2170,7 @@ single(int category, Lc_t* lc, unsigned int flags)
 	}
 	if (!lc && (!(lc_categories[category].flags & LC_setlocale) || !(lc = lc_categories[category].prev)) && !(lc = lc_all) && !(lc = lc_categories[category].prev) && !(lc = lang))
 		lc = lcmake(NULL);
-	sys = 0;
+	sys = NULL;
 	if (locales[category] != lc)
 	{
 		if (lc_categories[category].external == -lc_categories[category].internal)
@@ -2500,7 +2500,7 @@ _ast_setlocale(int category, const char* locale)
 			 * precedence determined by X/Open
 			 */
 
-			u = 0;
+			u = NULL;
 			if ((s = getenv("LANG")) && *s)
 			{
 				if (u && streq(s, local))
@@ -2508,7 +2508,7 @@ _ast_setlocale(int category, const char* locale)
 				lang = lcmake(s);
 			}
 			else
-				lang = 0;
+				lang = NULL;
 			if ((s = getenv("LC_ALL")) && *s)
 			{
 				if (u && streq(s, local))
@@ -2516,7 +2516,7 @@ _ast_setlocale(int category, const char* locale)
 				lc_all = lcmake(s);
 			}
 			else
-				lc_all = 0;
+				lc_all = NULL;
 			for (i = 1; i < AST_LC_COUNT; i++)
 				if (lc_categories[i].flags & LC_setlocale)
 					/* explicitly set by setlocale() */;
@@ -2527,7 +2527,7 @@ _ast_setlocale(int category, const char* locale)
 					lc_categories[i].prev = lcmake(s);
 				}
 				else
-					lc_categories[i].prev = 0;
+					lc_categories[i].prev = NULL;
 			for (i = 1; i < AST_LC_COUNT; i++)
 				if (!single(i, lc_all && !(lc_categories[i].flags & LC_setlocale) ? lc_all : lc_categories[i].prev, 0))
 				{

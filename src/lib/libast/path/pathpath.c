@@ -92,7 +92,7 @@ pathpath_20100601(const char* p, const char* a, int mode, char* path, size_t siz
 		}
 	}
 	if (*p == '/')
-		a = 0;
+		a = NULL;
 	else if (s = (char*)a)
 	{
 		if (strchr(p, '/'))
@@ -101,7 +101,7 @@ pathpath_20100601(const char* p, const char* a, int mode, char* path, size_t siz
 			p = "..";
 		}
 		else
-			a = 0;
+			a = NULL;
 		if ((!cmd || *cmd) && (strchr(s, '/') || (s = cmd)))
 		{
 			if (!cmd && *s == '/')

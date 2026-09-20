@@ -26,7 +26,7 @@
 	"The system 5 release 4 checksum. This is the default for \bsum\b \
 	when \bgetconf UNIVERSE\b is \batt\b. This is the only true sum; \
 	all of the other methods are order dependent."
-#define att_options	0
+#define att_options	NULL
 #define att_match	"att|sys5|s5|default"
 #define att_open	long_open
 #define att_init	long_init

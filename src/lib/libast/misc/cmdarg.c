@@ -70,7 +70,7 @@ cmdopen(char** argv, int argmax, ssize_t size, const char* argpat, uint32_t flag
 #define EXIT_QUIT	255
 #endif
 
-static const char*	echo[] = { "echo", 0 };
+static const char*	echo[] = { "echo", NULL };
 
 /*
  * open a cmdarg stream
@@ -92,7 +92,7 @@ cmdopen_20120411(char** argv, int argmax, ssize_t size, const char* argpat, Cmdd
 	int		argc;
 	ssize_t		x;
 
-	char**		post = 0;
+	char**		post = NULL;
 
 	n = (ssize_t)sizeof(char**);
 	if (*argv)
@@ -101,9 +101,9 @@ cmdopen_20120411(char** argv, int argmax, ssize_t size, const char* argpat, Cmdd
 		{
 			if ((disc->flags & CMD_POST) && argpat && streq(*p, argpat))
 			{
-				*p = 0;
+				*p = NULL;
 				post = p + 1;
-				argpat = 0;
+				argpat = NULL;
 			}
 			else
 				n += strlen(*p) + 1;
@@ -189,7 +189,7 @@ cmdopen_20120411(char** argv, int argmax, ssize_t size, const char* argpat, Cmdd
 	if (m)
 	{
 		argmax = 1;
-		*p++ = 0;
+		*p++ = NULL;
 		cmd->insertarg = p;
 		argv = cmd->argv;
 		c = *cmd->insert;
@@ -200,7 +200,7 @@ cmdopen_20120411(char** argv, int argmax, ssize_t size, const char* argpat, Cmdd
 			*p++ = s ? *argv : NULL;
 			argv++;
 		}
-		*p++ = 0;
+		*p++ = NULL;
 	}
 	cmd->firstarg = cmd->nextarg = p;
 	cmd->laststr = cmd->nextstr = cmd->buf + n;
@@ -237,7 +237,7 @@ cmdflush(Cmdarg_t* cmd)
 	if (p = cmd->postarg)
 		while (*cmd->nextarg++ = *p++);
 	else
-		*cmd->nextarg = 0;
+		*cmd->nextarg = NULL;
 	if (s = cmd->insert)
 	{
 		char*	a;

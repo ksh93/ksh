@@ -249,7 +249,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 	struct comnod	*comptr;
 	struct argnod	*ap;
 	char		*out;
-	char 		*av[2], *begin , *dir=0;
+	char 		*av[2], *begin , *dir=NULL;
 	int		addstar=0, rval=0, var=0, strip=1;
 	int 		nomarkdirs = !sh_isoption(SH_MARKDIRS);
 	sh_onstate(SH_FCOMPLETE);
@@ -261,7 +261,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 				return -1;
 			mode = '?';
 			av[0] = ep->e_clist[count-1];
-			av[1] = 0;
+			av[1] = NULL;
 		}
 		else
 		{
@@ -305,8 +305,8 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 	comptr->comtyp = COMSCAN;
 	comptr->comarg.ap = ap;
 	ap->argflag = (ARG_MAC|ARG_EXP);
-	ap->argnxt.ap = 0;
-	ap->argchn.cp = 0;
+	ap->argnxt.ap = NULL;
+	ap->argchn.cp = NULL;
 	{
 		int c;
 		char *last = out;
@@ -366,7 +366,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		sh_onoption(SH_MARKDIRS);
 	{
 		char		**com;
-		char		*cp=begin, *left=0, *saveout=(char*)e_dot;
+		char		*cp=begin, *left=NULL, *saveout=(char*)e_dot;
 		int		nocase=0, narg, cmd_completion=0;
 		int		size='x';
 		ptrdiff_t	sz;
@@ -404,7 +404,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 			goto done;
 		}
 		/* match? */
-		if (*com==0 || (narg <= 1 && (strcmp(ap->argval,*com)==0) || (addstar && com[0][strlen(*com)-1]=='*')))
+		if (*com==NULL || (narg <= 1 && (strcmp(ap->argval,*com)==0) || (addstar && com[0][strlen(*com)-1]=='*')))
 		{
 			rval = -1;
 			goto done;
@@ -463,7 +463,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		if(outbuff+sz >= &outbuff[MAXLINE])
 		{
 			com[0] = ap->argval;
-			com[1] = 0;
+			com[1] = NULL;
 		}
 		/* save remainder of the buffer */
 		if(*out)

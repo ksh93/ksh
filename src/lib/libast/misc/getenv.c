@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -23,11 +23,11 @@
 /*
  * NOTE: the "intercepts" definition is here instead of astintercept.c because some
  *	 static linkers miss lone references to "intercepts" without "astintercept()"
- * ALSO: { 0 } definition required by some dynamic linkers averse to common symbols
+ * ALSO: { NULL } definition required by some dynamic linkers averse to common symbols
  */
 
 Intercepts_t	intercepts
-		= { 0 };
+		= { NULL };
 
 /*
  * get name from the environment

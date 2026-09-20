@@ -92,7 +92,7 @@ key(void* handle, Sffmt_t* fp, const char* arg, char** ps, Sflong_t* pn)
 int
 b_pids(int argc, char** argv, Shbltin_t* context)
 {
-	char*			format = 0;
+	char*			format = NULL;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	for (;;)

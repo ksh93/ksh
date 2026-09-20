@@ -181,7 +181,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 	Tm_zone_t*	zp;
 	Tm_t		ts;
 
-	char*		u = 0;
+	char*		u = NULL;
 	char**		sp = &stack[0];
 
 	while (isspace(*s))
@@ -379,7 +379,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 					u = zp->type;
 				}
 				else
-					u = 0;
+					u = NULL;
 				if (d == 'q')
 					continue;
 				/* FALLTHROUGH */
@@ -493,7 +493,7 @@ tmxscan(const char* s, char** e, const char* format, char** f, Time_t t, long fl
 					if (sfread(sp, v, (size_t)m) != m)
 					{
 						free(p);
-						p = 0;
+						p = NULL;
 					}
 					else
 					{
@@ -506,7 +506,7 @@ tmxscan(const char* s, char** e, const char* format, char** f, Time_t t, long fl
 								break;
 							*v++ = 0;
 						}
-						*p = 0;
+						*p = NULL;
 					}
 				}
 			}

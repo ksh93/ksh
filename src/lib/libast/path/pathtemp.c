@@ -188,7 +188,7 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 			if (tmp.vec)
 			{
 				free(tmp.vec);
-				tmp.vec = 0;
+				tmp.vec = NULL;
 			}
 			if (tmp.tmpdir)
 				free(tmp.tmpdir);
@@ -200,7 +200,7 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 			if (tmp.vec)
 			{
 				free(tmp.vec);
-				tmp.vec = 0;
+				tmp.vec = NULL;
 			}
 			if (tmp.tmppath)
 				free(tmp.tmppath);
@@ -240,12 +240,12 @@ pathtemp(char* buf, size_t len, const char* dir, const char* pfx, int* fdp)
 				}
 				if (!VALID(*(tmp.dir - 1)))
 					tmp.dir--;
-				*tmp.dir = 0;
+				*tmp.dir = NULL;
 			}
 			else
 			{
 				if (((d = tmp.tmpdir) || (d = getenv(TMP_ENV))) && !VALID(d))
-					d = 0;
+					d = NULL;
 				if (!(tmp.vec = newof(0, char*, 2, d ? (strlen(d) + 1) : 0)))
 					return NULL;
 				if (d)
