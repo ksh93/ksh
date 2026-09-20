@@ -539,12 +539,18 @@ typeset -a arr=(
 [[ ${arr[0]} == float ]] || err_exit 'typeset -a should not expand alias for float'
 unset arr
 
-{
-typeset -r -a arr=(
-	float
-)
-} 2> /dev/null
-[[ ${arr[0]} == float ]] || err_exit 'typeset -r -a should not expand alias for float'
+# the next test runs in a subshell to avoid making 'arr' readonly for all the other tests, and
+# has also been updated to account for the fact that 'float' now comes as a builtin, not an alias
+(
+	alias float='typeset -lE'
+	eval '{
+		typeset -r -a arr=(
+			float
+		)
+	}' 2>/dev/null
+	[[ ${arr[0]} == float ]]
+) || err_exit 'typeset -r -a should not expand alias for float'
+
 {
 typeset -a arr2=(
 	typeset +r
@@ -1049,6 +1055,21 @@ got=$(typeset -A x; : "${x[b]=zzz}"; typeset -p x)
 exp='typeset -A x=([b]=zzz)'
 [[ $got == "$exp" ]] || err_exit 'default assignment on unset associative array element assigns exactly one element' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Associative arrays of various types failed to be unset
+# https://github.com/ksh93/ksh/issues/345
+unset arr
+for type in '' L8 LZ8 R8 RZ8 i ui si sui F E; do
+	got=$(
+		typeset -A$type arr=([foo]=1 [bar]=2 [baz]=4)
+		unset arr
+		typeset -p arr
+		[[ -z ${arr+s} && ! -v arr ]]
+	)
+	[[ $? -eq 0 && -z $got ]] || err_exit "associative array of type -A$type fails to be unset" \
+		"(got $(printf %q "$got"))"
+done
 
 # ======
 exit $((Errors<125?Errors:125))
