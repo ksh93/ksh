@@ -1448,7 +1448,7 @@ static int unall(int argc, char **_argv, Dt_t *_troot)
 					sh_assignok(np, !nv_isattr(np,NV_NODISC|NV_ARRAY) && !nv_isvtree(np));
 				}
 			}
-			if(!nv_isnull(np) || nv_size(np) || nv_isattr(np,~(NV_MINIMAL|NV_NOFREE)))
+			if(!nv_isunset(np))
 			{
 				Namarr_t *ap;
 				if(sh.subshell && !sh.subshare && nv_isattr(np,NV_ARRAY|NV_NOFREE)==NV_ARRAY && (ap=nv_arrayptr(np)) && array_assoc(ap))

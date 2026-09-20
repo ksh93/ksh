@@ -12,6 +12,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   ${x[sub]=value} or ${x[sub]:=value}, which failed to assign the value to
   the element and instead left it empty or nonexistent.
 
+- Fixed a bug in unsetting an associative array where the values of the array
+  would be cleared but the former array variable still had leftover attributes.
+
 2026-09-17:
 
 - Fixed multiple memory leaks occurring upon subshell exit when assigning a

@@ -131,7 +131,12 @@ struct Ufunction
 #undef nv_size
 #define nv_size(np)	((np)->nvsize)
 #define _nv_hasget(np)  ((np)->nvfun && (np)->nvfun->disc && nv_hasget(np))
+
+/* test for null/nonexistent value (as opposed to empty value); a get or getn discipline counts as a value */
 #define nv_isnull(np)	(!(np)->nvalue && !_nv_hasget(np))
+
+/* test for properly unset variable: no size, attributes, or value */
+#define nv_isunset(np)	(!nv_size(np) && !nv_isattr(np,~(NV_MINIMAL|NV_NOFREE)) && nv_isnull(np))
 
 /* ...	for arrays */
 
