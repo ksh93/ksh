@@ -2,6 +2,11 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-20:
+
+- Fixed a buffer overflow that could occur when creating a type with
+  'typeset -T', creating a function, then attempting to use 'typeset -p'.
+
 2026-09-19:
 
 - Fixed a longstanding bug where already-assigned associative array elements
