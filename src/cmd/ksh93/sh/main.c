@@ -235,7 +235,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				}
 				else
 				{
-					int isdir = 0;
+					int isdir = 0, fname_alloc = 0;
 					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
 					{
 						sh_close(fdin);
@@ -243,12 +243,19 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 						fdin = -1;
 					}
 					else
+					{
 						sh.st.filename = path_fullname(name);
+						fname_alloc = 1;
+					}
 					if(fdin < 0 && !strchr(name,'/') && path_absolute(name,NULL,0))
 					{
 						char *sp = stkptr(sh.stk,PATH_OFFSET);
 						if((fdin=sh_open(sp,O_RDONLY|O_cloexec,0))>=0)
+						{
+							if(fname_alloc)
+								free(sh.st.filename);
 							sh.st.filename = path_fullname(sp);
+						}
 					}
 					if(fdin<0)
 					{
