@@ -116,12 +116,8 @@ void	sh_fault(int sig)
 			}
 			if(sh.subshell)
 				sh_exit(SH_EXITSIG);
-			if(sig==SIGABRT || (abortsig(sig) && (ptr = malloc(1))))
-			{
-				if(ptr)
-					free(ptr);
+			if(abortsig(sig))
 				sh_done(sig);
-			}
 			/* mark signal and continue */
 			sh.trapnote |= SH_SIGSET;
 			if(sig <= sh.sigmax)
