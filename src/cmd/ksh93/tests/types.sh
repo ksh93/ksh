@@ -879,16 +879,6 @@ Version*93u+m/1.0* | Version*93??\ * | Version*93?\ *)
 esac
 
 # ======
-# Crash when using typeset -p after creating a type and function
-got=$("$SHELL" -c '
-	typeset -T Man_t=( typeset X)
-	Man_t Man
-	function bootstrap { : ;}
-	[[ $(typeset -p) == *Man_t* ]]' 2>&1)
-[[ -z "$got" ]] || err_exit 'typeset -p crashes when used with types' \
-	"(got $(printf %q "$got"))"
-
-# ======
 # https://github.com/ksh93/ksh/issues/791
 if ((!SHOPT_SCRIPTONLY)); then
 CCn=$'\n'
@@ -903,6 +893,16 @@ got=$(set +x; redirect 2>&1; ENV=/./dev/null "$SHELL" -i <<-'EOF'
 	"(expected status 0 and $(printf %q "$exp")," \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
 fi # !SHOPT_SCRIPTONLY
+
+# ======
+# Crash when using typeset -p after creating a type and function
+got=$( set +x; { "$SHELL" -c '
+	typeset -T Man_t=( typeset X)
+	Man_t Man
+	function bootstrap { : ;}
+	[[ $(typeset -p) == *Man_t* ]]'; } 2>&1)
+[[ e=$? -eq 0 && -z "$got" ]] || err_exit 'typeset -p used with types' \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l $e ) and $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))
