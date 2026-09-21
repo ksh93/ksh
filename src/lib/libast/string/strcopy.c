@@ -21,6 +21,7 @@
 
 /*
  * copy t into s, return a pointer to the end of s ('\0')
+ * overlapping buffers are permitted
  */
 
 char*
