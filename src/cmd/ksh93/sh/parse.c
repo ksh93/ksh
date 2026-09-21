@@ -1024,7 +1024,7 @@ static int check_array(Lex_t *lexp)
 }
 
 /*
- * Compound assignment
+ * Compound or array assignment
  */
 static struct argnod *assign(Lex_t *lexp, struct argnod *ap, nvflag_t type)
 {
@@ -1092,6 +1092,9 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, nvflag_t type)
 			if(!aq)
 			{
 				ar = assign(lexp,ar,0);
+				/* for a nested indexed array values TCOM tree, propagate ARG_ARRAY for correct handling */
+				if ((((struct fornod *)ar->argchn.ap)->fortre->tre.tretyp & COMMSK) == TCOM)
+					ar->argflag |= ARG_ARRAY;
 				/* since noreserv is reset to 0 below, we have set it again after a recursive call */
 				lexp->noreserv = 1;
 			}
