@@ -97,7 +97,6 @@ void	sh_fault(int sig)
 		}
 		if(flag&SH_SIGDONE)
 		{
-			void *ptr=0;
 			if((flag&SH_SIGINTERACTIVE) && sh_isstate(SH_INTERACTIVE) && !sh_isstate(SH_FORKED))
 			{
 				/* check for TERM signal between fork/exec */
