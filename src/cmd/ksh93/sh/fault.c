@@ -38,11 +38,34 @@
 #define abortsig(sig)	(sig==SIGABRT || sig==SIGBUS || sig==SIGILL || sig==SIGSEGV)
 
 static char	indone;
-static int	cursig = -1;
+static int		cursig = -1;
+
+/*
+ * Mark a short-lived region in which signal processing must be deferred.
+ * Return a token so nested callers do not accidentally disarm their caller's region.
+ */
+int sh_sigbegin(void)
+{
+	if(sh.savesig)
+		return 0;
+	sh.savesig = -1;
+	return 1;
+}
+
+void sh_sigend(int armed)
+{
+	int sig;
+	if(!armed)
+		return;
+	sig = sh.savesig;
+	sh.savesig = 0;
+	if(sig > 0)
+		kill(sh.current_pid,sig);
+}
 
 /*
  * Most signals caught or ignored by the shell come here
-*/
+ */
 void	sh_fault(int sig)
 {
 	int 		flag=0;
@@ -88,6 +111,15 @@ void	sh_fault(int sig)
 	flag = sh.sigflag[sig]&~SH_SIGOFF;
 	if(!trap)
 	{
+		/* SIGABRT is an assertion/fatal-signal path. Do not enter shell cleanup:
+		 * restore the default disposition and reissue it so the debugger gets a
+		 * normal abort stack trace. An explicit user trap still takes precedence. */
+		if(sig==SIGABRT)
+		{
+			signal(SIGABRT,SIG_DFL);
+			kill(sh.current_pid,SIGABRT);
+			pause();
+		}
 		if(flag&SH_SIGIGNORE)
 		{
 			if(sh.subshell)

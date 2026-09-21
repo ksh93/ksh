@@ -252,13 +252,17 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 	char 		*av[2], *begin , *dir=0;
 	int		addstar=0, rval=0, var=0, strip=1;
 	int 		nomarkdirs = !sh_isoption(SH_MARKDIRS);
+	int		sigsafe = sh_sigbegin();
 	sh_onstate(SH_FCOMPLETE);
 	if(ep->e_nlist)
 	{
 		if(mode=='=' && count>0)
 		{
 			if(count> ep->e_nlist)
+			{
+				sh_sigend(sigsafe);
 				return -1;
+			}
 			mode = '?';
 			av[0] = ep->e_clist[count-1];
 			av[1] = 0;
@@ -579,6 +583,7 @@ int ed_expand(Edit_t *ep, char outbuff[],int *cur,int *eol,int mode, int count)
 		*eol = ed_internal(outbuff,(genchar*)outbuff);
 	}
 #endif /* SHOPT_MULTIBYTE */
+	sh_sigend(sigsafe);
 	return rval;
 }
 

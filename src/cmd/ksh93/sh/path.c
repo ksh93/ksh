@@ -1368,6 +1368,7 @@ static noreturn void exscript(char *path,char *argv[])
 	{
 		static Stk_t	*envstk;
 		Stk_t		*savstk = sh.stk;
+		int		sigsafe = sh_sigbegin();
 		/* if one script executes another, sh_envgen may need to read from the old envstk, so both need to exist */
 		sh.stk = stkopen(STK_SMALL);
 		environ = sh_envgen();
@@ -1375,6 +1376,7 @@ static noreturn void exscript(char *path,char *argv[])
 			stkclose(envstk);
 		stkfreeze(envstk = sh.stk, 0);
 		sh.stk = savstk;
+		sh_sigend(sigsafe);
 	}
 	/*
 	 * Longjmp with SH_JMPSCRIPT triggers a chain of longjmps to restore state as appropriate,

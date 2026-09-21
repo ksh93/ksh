@@ -37,6 +37,8 @@
 #include	<ast.h>
 #include	<align.h>
 #include	<stk.h>
+#include	<stdio.h>
+#include	<unistd.h>
 
 /*
  *  A stack is a header and a linked list of frames
@@ -296,6 +298,15 @@ void *stkset(Sfio_t *stream, void *address, ptrdiff_t offset)
 	char *cp, *loc = (char*)address;
 	struct frame *fp;
 	unsigned int frames = 0;
+	unsigned int frame_count = 0;
+	static struct {
+		void *base;
+		void *end;
+		void *prev;
+		ssize_t aliases;
+	} frame_info[256];
+	char *initial_base = sp->stkbase;
+	char *initial_end = sp->stkend;
 	ssize_t n;
 	if(!init)
 		stkinit((size_t)(offset+1));
@@ -304,6 +315,14 @@ void *stkset(Sfio_t *stream, void *address, ptrdiff_t offset)
 		fp = (struct frame*)sp->stkbase;
 		cp = sp->stkbase + roundof(sizeof(struct frame), STK_ALIGN);
 		n = fp->nalias;
+		if(frame_count < sizeof(frame_info)/sizeof(frame_info[0]))
+		{
+			frame_info[frame_count].base = fp;
+			frame_info[frame_count].end = fp->end;
+			frame_info[frame_count].prev = fp->prev;
+			frame_info[frame_count].aliases = fp->nalias;
+			frame_count++;
+		}
 		while(n-->0)
 		{
 			if(loc==fp->aliases[n])
@@ -331,9 +350,37 @@ void *stkset(Sfio_t *stream, void *address, ptrdiff_t offset)
 			break;
 		frames++;
 	}
-	/* not found: produce a useful stack trace now instead of a useless one later */
+	/* Not found: emit diagnostics before aborting. Keep this independent of
+	 * sfio/error so the diagnostic path cannot recurse through stkset(). */
 	if(loc)
+	{
+		char	buf[256];
+		int	n;
+		struct stk *other = stkcur;
+		int	other_stack = 0;
+		char *requested = (char*)address;
+		n = snprintf(buf,sizeof(buf),
+			"stkset: requested=%p offset=%td stream=%p stkcur=%p frames=%u current=[%p,%p]\n",
+			(void*)address,offset,(void*)stream,(void*)stkcur,frames,
+			(void*)initial_base,(void*)initial_end);
+		if(n>0)
+			write(2,buf,(size_t)(n<(int)sizeof(buf)?n:sizeof(buf)-1));
+		for(n=0; n<(int)frame_count; n++)
+		{
+			int len = snprintf(buf,sizeof(buf),
+				"stkset: frame[%d]=[%p,%p] prev=%p aliases=%zd\n",
+				n,frame_info[n].base,frame_info[n].end,frame_info[n].prev,
+				frame_info[n].aliases);
+			if(len>0)
+				write(2,buf,(size_t)(len<(int)sizeof(buf)?len:sizeof(buf)-1));
+		}
+		if(other && other != sp && requested >= other->stkbase && requested <= other->stkend)
+			other_stack = 1;
+		n = snprintf(buf,sizeof(buf),"stkset: pointer-in-other-stack=%d\n",other_stack);
+		if(n>0)
+			write(2,buf,(size_t)(n<(int)sizeof(buf)?n:sizeof(buf)-1));
 		abort();
+	}
 	/* set stack back to the beginning */
 	cp = (char*)(fp+1);
 	if(frames)

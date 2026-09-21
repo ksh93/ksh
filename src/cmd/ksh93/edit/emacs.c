@@ -172,6 +172,7 @@ int ed_emacsread(void *context, int fd,char *buff,int _scend, int _reedit)
 	int c;
 	int i;
 	int r = -1;  /* return code */
+	int sigsafe = 0;
 	genchar *out;
 	int count;
 	Emacs_t *volatile ep = ed->e_emacs;
@@ -184,6 +185,8 @@ int ed_emacsread(void *context, int fd,char *buff,int _scend, int _reedit)
 	/* Set raw mode */
 	if(tty_raw(ERRIO,0) < 0)
 		return reedit ? reedit : ed_read(context, fd, buff, scend, 0);
+	/* Keep editor stack checkpoints valid until the checkpoint is restored. */
+	sigsafe = sh_sigbegin();
 	/* Initialize some things */
 	memset(Screen,0,sizeof(Screen));
 	if(!ep)
@@ -684,6 +687,7 @@ done:
 	/* avoid leaving invalid pointers to destroyed automatic variables */
 	Prompt = NULL;
 	drawbuff = ep->screen = ep->cursor = NULL;
+	sh_sigend(sigsafe);
 	return r;
 }
 

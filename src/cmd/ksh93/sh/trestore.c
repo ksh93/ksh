@@ -128,6 +128,7 @@ static Shnode_t *r_tree(void)
 		case TFUN:
 		{
 			Stk_t *savstak;
+			int sigsafe = sh_sigbegin();
 			struct slnod *slp;
 			struct functnod *fp;
 			t = getnode(functnod);
@@ -150,6 +151,7 @@ static Shnode_t *r_tree(void)
 			slp->slptr = sh.stk;
 			sh.stk = savstak;
 			slp->slchild = sh.st.staklist;
+			sh_sigend(sigsafe);
 			break;
 		}
 		case TTST:

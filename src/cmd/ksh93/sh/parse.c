@@ -853,6 +853,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	int jmpval;
 	struct  checkpt buff;
 	int save_optget = opt_get;
+	int sigsafe = sh_sigbegin();
 	void	*in_mktype = sh.mktype;
 	sh.mktype = 0;
 	opt_get = 0;
@@ -1002,9 +1003,11 @@ static Shnode_t *funct(Lex_t *lexp)
 			slp->slptr = NULL;
 			stkclose(slptr_save);
 		}
+		sh_sigend(sigsafe);
 		siglongjmp(*sh.jmplist,jmpval);
 	}
 	sh.st.staklist = (struct slnod*)slp;
+	sh_sigend(sigsafe);
 	last = fctell();
 	fp->functline = (int)(last-first);
 	fp->functtre = t;

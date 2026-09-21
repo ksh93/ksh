@@ -201,6 +201,7 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int _reedit)
 	Edit_t *ed = (Edit_t*)context;
 	int i;				/* general variable */
 	int r = -1;			/* return value */
+	int sigsafe = 0;
 	Vi_t *volatile vp = ed->e_vi;
 	volatile int reedit = _reedit;
 	char prompt[PRSIZE+2];		/* prompt */
@@ -214,6 +215,7 @@ int ed_viread(void *context, int fd, char *shbuf, int nchar, int _reedit)
 
 	if( tty_raw(ERRIO,0) < 0 )
 		return reedit ? reedit : ed_read(context, fd, shbuf, nchar, 0);
+	sigsafe = sh_sigbegin();
 
 	if(!vp)
 	{
@@ -350,6 +352,7 @@ done:
 	/* avoid leaving invalid pointers to destroyed automatic variables */
 	Prompt = NULL;
 	virtual = physical = window = vp->U_space = vp->u_space = NULL;
+	sh_sigend(sigsafe);
 	return r;
 }
 

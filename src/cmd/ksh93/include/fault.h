@@ -131,7 +131,9 @@ extern void 	sh_sigclear(int);
 extern void 	sh_sigdone(void);
 extern void	sh_siginit(void);
 extern void 	sh_sigtrap(int);
-extern void 	sh_sigreset(int);
+extern void	sh_sigreset(int);
+extern int	sh_sigbegin(void);
+extern void	sh_sigend(int);
 extern void 	*sh_timeradd(Sfulong_t,int ,void (*)(void*),void*);
 extern void	sh_timerdel(void*);
 
