@@ -10,6 +10,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   works correctly by assigning 'typeset', '-p' and 'PATH' as array values to
   arr[1][0], arr[1][1] and arr[1][2] instead of executing 'typeset -p PATH'.
 
+- Fixed a buffer overflow that could occur when creating a type with
+  'typeset -T', creating a function, then attempting to use 'typeset -p'.
+
 2026-09-19:
 
 - Fixed a longstanding bug where already-assigned associative array elements
