@@ -271,7 +271,6 @@ static void sh_fault_action(int sig)
 		}
 		if(flag&SH_SIGDONE)
 		{
-			void *ptr=0;
 			if((flag&SH_SIGINTERACTIVE) && sh_isstate(SH_INTERACTIVE) && !sh_isstate(SH_FORKED))
 			{
 				/* check for TERM signal between fork/exec */
@@ -297,12 +296,8 @@ static void sh_fault_action(int sig)
 			}
 			if(sh.subshell)
 				sh_exit(SH_EXITSIG);
-			if(sig==SIGABRT || (abortsig(sig) && (ptr = malloc(1))))
-			{
-				if(ptr)
-					free(ptr);
+			if(abortsig(sig))
 				sh_done(sig);
-			}
 			/* mark signal and continue */
 			sh.trapnote |= SH_SIGSET;
 			if(sig <= sh.sigmax)
