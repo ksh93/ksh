@@ -2033,7 +2033,7 @@ static const Namdisc_t TRANS_disc      = {  .dsize = sizeof(struct Mapchar), .pu
 
 Namfun_t	*nv_mapchar(Namval_t *np,const char *name)
 {
-	wctrans_t	trans = name?wctrans(name):NULL;
+	wctrans_t	trans = name?wctrans(name):0;
 	struct Mapchar	*mp = NULL;
 	int		low;
 	size_t		n=0;
