@@ -2,6 +2,17 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-21:
+
+- Fixed a bug in nested indexed array assignments where values that happened
+  to be the names of declaration commands would be executed as those
+  declaration commands. For example, arr=((a b c)(typeset -p PATH)) now
+  works correctly by assigning 'typeset', '-p' and 'PATH' as array values to
+  arr[1][0], arr[1][1] and arr[1][2] instead of executing 'typeset -p PATH'.
+
+- Fixed a buffer overflow that could occur when creating a type with
+  'typeset -T', creating a function, then attempting to use 'typeset -p'.
+
 2026-09-19:
 
 - Fixed a longstanding bug where already-assigned associative array elements

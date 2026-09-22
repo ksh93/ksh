@@ -1699,7 +1699,7 @@ static void print_scan(Sfio_t *file, nvflag_t flag, Dt_t *root, int option,struc
 					continue;
 			}
 			tp->scanmask = flag&~NV_NOSCOPE;
-			tp->scanroot = root;
+			sh.last_root = tp->scanroot = root;
 			print_namval(file,np,option,tp);
 			if(!is_abuiltin(np) && nv_isvtree(np))
 			{
