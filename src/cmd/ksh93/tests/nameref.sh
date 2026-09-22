@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -769,6 +769,55 @@ val=$(
 	done
 )
 [[ $val == 123 ]] || err_exit 'optimization bug with for loops with references'
+
+# ======
+# nameref failed with nested associative arrays in function scope
+# https://github.com/ksh93/ksh/issues/594
+
+# a1 failed
+function a1 {
+	typeset -n ref=$1
+	typeset -A ref=(
+		[key1]=(
+			[key2]=val2
+		)
+	)
+}
+# a2 succeeded (assignment separate from typeset)
+function a2 {
+	typeset -n ref=$1
+	typeset -A ref
+	ref[key1]=(
+		[key2]=val2
+	)
+}
+# a3 (deeper recursion than a2) failed again, losing key2 and down
+function a3 {
+	typeset -n ref=$1
+	typeset -A ref
+	ref[key1]=(
+		[key2]=(
+			[key3]=val3
+		)
+	)
+}
+# local scope necessary to trigger bug
+function testit {
+	typeset map1 map2 map3
+	a1 map1
+	a2 map2
+	a3 map3
+	print -n 'Function a1: '; typeset -p map1
+	print -n 'Function a2: '; typeset -p map2
+	print -n 'Function a3: '; typeset -p map3
+}
+got=$(testit)
+exp=$'Function a1: typeset -A map1=([key1]=([key2]=val2) )\n'
+exp+=$'Function a2: typeset -A map2=([key1]=([key2]=val2) )\n'
+exp+=$'Function a3: typeset -A map3=([key1]=([key2]=([key3]=val3) ) )'
+[[ $got == "$exp" ]] || err_exit 'nameref with nested associative arrays' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset -f a2 a2 a3 testit
 
 # ======
 exit $((Errors<125?Errors:125))
