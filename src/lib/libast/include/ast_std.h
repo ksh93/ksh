@@ -59,9 +59,6 @@ struct _sfio_s;
 #endif
 
 #include <ast_lib.h>
-#if !_lib_fork
-#error In 2022, libast joined the 21st century and started requiring fork(2).
-#endif
 #include <ast_sys.h>
 #include <ast_fcntl.h>
 #include <ast_limits.h>

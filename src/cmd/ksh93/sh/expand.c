@@ -64,13 +64,12 @@ static char *nextdir(glob_t *gp, char *dir)
 
 size_t path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 {
-	glob_t gdata;
+	glob_t gdata = {0};
 	struct argnod *ap;
 	glob_t *gp= &gdata;
 	int flags;
 	size_t extra=0;
 	sh_stats(STAT_GLOBS);
-	memset(gp,0,sizeof(gdata));
 	flags = GLOB_GROUP|GLOB_AUGMENTED|GLOB_NOCHECK|GLOB_NOSORT|GLOB_STACK|GLOB_LIST|GLOB_DISC;
 	if(sh_isoption(SH_MARKDIRS))
 		flags |= GLOB_MARK;
@@ -292,11 +291,11 @@ again:
 						{
 							if(*endc=='%')
 							{
-								Sffmt_t	fmt;
-								memset(&fmt, 0, sizeof(fmt));
-								fmt.version = SFIO_VERSION;
-								fmt.form = endc;
-								fmt.extf = checkfmt;
+								Sffmt_t	fmt = {
+									.version = SFIO_VERSION,
+									.form = endc,
+									.extf = checkfmt
+								};
 								sfprintf(sfstdout, "%!", &fmt);
 								if(!(fmt.flags&(SFFMT_LLONG|SFFMT_LDOUBLE)))
 									switch (fmt.fmt)

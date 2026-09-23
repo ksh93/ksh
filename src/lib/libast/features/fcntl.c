@@ -34,9 +34,7 @@
 #define getpagesize	______getpagesize
 #define ioctl		______ioctl
 
-#if _hdr_fcntl
 #include <fcntl.h>
-#endif
 #include <unistd.h>
 
 #include <sys/stat.h>

@@ -72,11 +72,7 @@ _ast_open(const char* path, int op, ...)
 						close(fd);
 						return -1;
 					}
-#if _lib_fchmod
 					if (mode && fchmod(fd, mode))
-#else
-					if (mode && chmod(path, mode))
-#endif
 						errno = save_errno;
 				}
 				if ((op & O_ACCMODE) == O_RDWR)

@@ -1247,13 +1247,10 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
 	sh.lex_context = sh_lexopen(0,1);
-	sh.radixpoint = '.';  /* pre-locale init */
 	sh.strbuf = sfstropen();
-	stkoverflow(sh.stk = stkstd, nomemory);
+	stkoverflow(sh.stk, nomemory);
 	sfsetbuf(sh.strbuf,NULL,64);
 	error_info.catalog = e_dict;
-	sh.cpipe[0] = -1;
-	sh.coutpipe = -1;
 	/* initialize file descriptor states */
 	if(!sh_iovalidfd(16))
 	{
@@ -1423,13 +1420,12 @@ int nv_ispredef(Namval_t *np)
  */
 void sh_reinit(void)
 {
-	Shopt_t opt;
+	Shopt_t opt = {0};
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
 	sh_onstate(SH_INIT);
 	sh_offstate(SH_FORKED);
 	/* Reset shell options; inherit some */
-	memset(&opt,0,sizeof(opt));
 	if(sh_isoption(SH_POSIX))
 		on_option(&opt,SH_POSIX);
 #if SHOPT_ESH
