@@ -8,6 +8,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   assigned to a name reference that pointed to a variable in a calling
   function's local scope.
 
+- Fixed a bug that caused the emacs and vi editor modes to treat multibyte
+  spaces as non-space characters.
+
 2026-09-21:
 
 - Fixed a bug in nested indexed array assignments where values that happened

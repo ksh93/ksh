@@ -924,6 +924,7 @@ make install virtual
 			prev include/io.h
 			prev include/defs.h
 			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/wchar.h
 			prev FEATURE/options
 		done
 
@@ -935,6 +936,7 @@ make install virtual
 			prev include/history.h
 			prev include/io.h
 			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/wchar.h
 			prev include/defs.h
 			prev FEATURE/options
 		done
