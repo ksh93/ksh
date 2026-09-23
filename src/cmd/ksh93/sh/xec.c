@@ -35,6 +35,7 @@
 #include	"jobs.h"
 #include	"test.h"
 #include	"builtins.h"
+#include	<tv.h>
 #include	"FEATURE/time"
 #include	"FEATURE/externs"
 #include	"FEATURE/locale"
@@ -2254,7 +2255,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 		    case TTIME:
 		    {
 			const char *format = e_timeformat;
-			struct timeval ta, tb;
+			Tv_t tva, tvb;
 			struct timeval before_usr, before_sys, after_usr, after_sys, tm[3];
 			if(type!=TTIME)
 			{
@@ -2266,7 +2267,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			{
 				int timer_on = sh_isstate(SH_TIMING);
 				/* must be run after forking a subshell */
-				timeofday(&tb);
+				tvgettime(&tvb);
 				get_cpu_times(&before_usr, &before_sys);
 				sh_onstate(SH_TIMING);
 				sh_exec(t->par.partre,sh_isstate(SH_ERREXIT)|(flags & ARG_OPTIMIZE));
@@ -2275,13 +2276,17 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			}
 			else
 			{
-				tb.tv_sec = tb.tv_usec = 0;
+				tvb.tv_sec = tvb.tv_nsec = 0;
 				before_usr.tv_sec = before_usr.tv_usec = 0;
 				before_sys.tv_sec = before_sys.tv_usec = 0;
 			}
 			get_cpu_times(&after_usr, &after_sys);
-			timeofday(&ta);
-			timersub(&ta, &tb, &tm[TM_REAL_IDX]); /* calculate elapsed real-time */
+			tvgettime(&tva);
+			{
+				struct timeval ta = { .tv_sec = tva.tv_sec, .tv_usec = (suseconds_t)(tva.tv_nsec / 1000) };
+				struct timeval tb = { .tv_sec = tvb.tv_sec, .tv_usec = (suseconds_t)(tvb.tv_nsec / 1000) };
+				timersub(&ta, &tb, &tm[TM_REAL_IDX]); /* calculate elapsed real-time */
+			}
 			timersub(&after_usr, &before_usr, &tm[TM_USR_IDX]);
 			timersub(&after_sys, &before_sys, &tm[TM_SYS_IDX]);
 			if(t->par.partre)

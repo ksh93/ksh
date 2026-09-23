@@ -32,6 +32,7 @@
 #include	"defs.h"
 #include	<pwd.h>
 #include	<tmx.h>
+#include	<tv.h>
 #include	<regex.h>
 #include	<math.h>
 #include	<ast_random.h>
@@ -549,14 +550,13 @@ static char* get_ifs(Namval_t *np, Namfun_t *fp)
 /*
  * these functions are used to get and set the SECONDS variable
  */
-#define dtime(tp) ((double)((tp)->tv_sec)+1e-6*((double)((tp)->tv_usec)))
-#define tms	timeval
+#define dtime(tp) ((double)((tp)->tv_sec)+1e-9*((double)((tp)->tv_nsec)))
 
 static void put_seconds(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 {
 	double d;
 	double *dp = np->nvalue;
-	struct tms tp;
+	Tv_t tp;
 	if(!val)
 	{
 		nv_putv(np, val, flags, fp);
@@ -574,19 +574,19 @@ static void put_seconds(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp
 	nv_putv(np, val, flags, fp);
 	dp = np->nvalue; /* update */
 	d = *dp;
-	timeofday(&tp);
+	tvgettime(&tp);
 	*dp = dtime(&tp)-d;
 }
 
 static char* get_seconds(Namval_t *np, Namfun_t *fp)
 {
 	size_t places = nv_size(np);
-	struct tms tp;
+	Tv_t tp;
 	double d;
 	double *dp = np->nvalue;
 	double offset = dp ? *dp : 0;
 	NOT_USED(fp);
-	timeofday(&tp);
+	tvgettime(&tp);
 	d = dtime(&tp)- offset;
 	sfprintf(sh.strbuf,"%.*f",places,d);
 	return sh_struse(sh.strbuf);
@@ -594,11 +594,11 @@ static char* get_seconds(Namval_t *np, Namfun_t *fp)
 
 static Sfdouble_t nget_seconds(Namval_t *np, Namfun_t *fp)
 {
-	struct tms tp;
+	Tv_t tp;
 	double *dp = np->nvalue;
 	double offset = dp ? *dp : 0;
 	NOT_USED(fp);
-	timeofday(&tp);
+	tvgettime(&tp);
 	return dtime(&tp) - offset;
 }
 

@@ -319,6 +319,7 @@ make install virtual
 			prev include/fcin.h
 			prev include/builtins.h
 			prev %{INCLUDE_AST}/tmx.h
+			prev %{INCLUDE_AST}/tv.h
 			prev %{INCLUDE_AST}/error.h
 			prev include/defs.h
 			prev FEATURE/options
@@ -654,6 +655,7 @@ make install virtual
 			prev FEATURE/options
 			prev include/defs.h
 			prev %{INCLUDE_AST}/tmx.h
+			prev %{INCLUDE_AST}/tv.h
 			prev %{INCLUDE_AST}/regex.h
 			prev %{INCLUDE_AST}/ast_random.h
 			prev %{INCLUDE_AST}/vmalloc.h
@@ -811,6 +813,7 @@ make install virtual
 			prev FEATURE/time
 			prev include/defs.h
 			prev include/fault.h
+			prev %{INCLUDE_AST}/tv.h
 			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/sig.h
 			prev %{INCLUDE_AST}/ast.h
@@ -831,6 +834,7 @@ make install virtual
 		done
 
 		make sh/xec.c
+			prev %{INCLUDE_AST}/tv.h
 			prev include/streval.h
 			prev FEATURE/locale
 			prev FEATURE/externs

@@ -27,6 +27,7 @@
 #include	"defs.h"
 #include	<error.h>
 #include	<tmx.h>
+#include	<tv.h>
 #include	"builtins.h"
 #include	"fcin.h"
 #include	"shlex.h"
@@ -96,9 +97,9 @@ static 	void *time_delete(struct tevent *item, void *list)
 
 static Time_t getnow(void)
 {
-	struct timeval tmp;
-	timeofday(&tmp);
-	return tmp.tv_sec + 1.e-6 * tmp.tv_usec;
+	Tv_t tmp;
+	tvgettime(&tmp);
+	return tmp.tv_sec + 1.e-9 * tmp.tv_nsec;
 }
 
 static void	print_alarms(void *list)
