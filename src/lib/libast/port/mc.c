@@ -618,7 +618,7 @@ mcindex(const char* s, char** e, int* set, int* msg)
 	char*		t;
 
 	m = 0;
-	n = (int)strtol(s, &t, 0);
+	n = strtoi(s, &t, 0);
 	if (t == (char*)s)
 	{
 		SFCVINIT();
@@ -635,7 +635,7 @@ mcindex(const char* s, char** e, int* set, int* msg)
 		s = (const char*)t;
 	r = n;
 	if (*s)
-		m = (int)strtol(s + 1, e, 0);
+		m = strtoi(s + 1, e, 0);
 	else
 	{
 		if (e)

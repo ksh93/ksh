@@ -90,15 +90,21 @@ static int jobfork;
 
 pid_t	pid_fromstring(char *str)
 {
-	pid_t	pid;
-	char	*last;
+	int		oerrno = errno;
+	pid_t		pid;
+	char		*last;
+	long long	ll;
 	errno = 0;
-	pid = (pid_t)strtoll(str, &last, 10);
+	ll = strtoll(str, &last, 10);
+	pid = (pid_t)ll;
+	if(pid != ll)
+		errno = ERANGE;
 	if(errno==ERANGE || *last)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),"%s: invalid process ID",str);
+		errormsg(SH_DICT,ERROR_system(1),"%s: invalid process ID",str);
 		UNREACHABLE();
 	}
+	errno = oerrno;
 	return pid;
 }
 
@@ -888,7 +894,16 @@ static struct process *job_bystring(char *ajob)
 		return NULL;
 	c = *ajob;
 	if(isdigit(c))
-		pw = job_byjid((int)strtol(ajob, NULL, 10));
+	{
+		int oerrno = errno;
+		int jid = strtoi(ajob, NULL, 10);
+		if(errno==ERANGE)
+		{
+			errno = oerrno;
+			return NULL;
+		}
+		pw = job_byjid(jid);
+	}
 	else if(c=='+' || c=='%')
 		;
 	else if(c=='-')

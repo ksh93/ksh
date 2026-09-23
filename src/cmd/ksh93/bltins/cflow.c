@@ -64,27 +64,23 @@ done:
 	argv += opt_info.index;
 	if(*argv)
 	{
-		intmax_t l = strtoll(*argv, NULL, 10);
-		if(do_exit)
+		char *e;
+		int oerrno = errno;
+		errno = 0;
+		n = strtoi(*argv, &e, 10);
+		if(*e || errno==ERANGE)		/* check for overflow or bad number */
 		{
-			n = (int)(l & SH_EXITMASK);	/* exit: apply bitmask before conversion to avoid undefined int overflow */
-			if (sh.intrap)
-				sh.intrap_exit_n = 1;
+			errormsg(SH_DICT,ERROR_system(0),errno==ERANGE?e_outofrange:e_number,*argv);
+			n = 128;		/* overflow is undefined, so use a consistent status for this */
 		}
-		else if (l < INT_MIN || l > INT_MAX)
-		{
-			errormsg(SH_DICT,ERROR_warn(0),"%s: out of range",*argv);
-			n = 128;			/* overflow is undefined, so use a consistent status for this */
-		}
-		else
-			n = (int)l;
+		errno = oerrno;
+		if(do_exit && sh.intrap)
+			sh.intrap_exit_n = 1;
 	}
 	else
-	{
-		n = sh.savexit;				/* no argument: pass down $? */
-		if(do_exit)
-			n &= SH_EXITMASK;
-	}
+		n = sh.savexit;			/* no argument: pass down $? */
+	if(do_exit)
+		n &= SH_EXITMASK;		/* exit: apply bitmask before conversion to avoid undefined int overflow */
 	((struct checkpt*)sh.jmplist)->mode = do_exit ? SH_JMPEXIT : SH_JMPFUN;
 	sh_exit(sh.savexit = n);
 	UNREACHABLE();
@@ -118,14 +114,17 @@ int	b_break(int n, char *argv[],Shbltin_t *context)
 	}
 	argv += opt_info.index;
 	n=1;
-	if(arg= *argv)
+	if(*argv)
 	{
-		n = (int)strtol(arg,&arg,10);
-		if(n<=0 || *arg)
+		int oerrno = errno;
+		errno = 0;
+		n = strtoi(*argv,&arg,10);
+		if(n<=0 || *arg || errno==ERANGE)
 		{
-			errormsg(SH_DICT,ERROR_exit(1),e_number,*argv);
+			errormsg(SH_DICT,ERROR_system(1),*arg?e_number:e_outofrange,*argv);
 			UNREACHABLE();
 		}
+		errno = oerrno;
 	}
 	if(sh.st.loopcnt)
 	{

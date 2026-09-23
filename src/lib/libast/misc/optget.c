@@ -2339,14 +2339,18 @@ get_terminal_width(void)
 {
 	char		*cp, *lastc, base = 10;
 	int		width = 0;
-	intmax_t	tmp;
+	long long	tmp;
+	int		oerrno = errno;
 
-	if ((cp = getenv("COLUMNS")) && (tmp = strtonll(cp,&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX)
+	errno = 0;
+	if ((cp = getenv("COLUMNS")) && (tmp = strtonll(cp,&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX && errno != ERANGE)
 		width = (int)tmp;
 	else
 		astwinsize(1, NULL, &width);
 	if (width < 20 || width > USHRT_MAX)
 		width = OPT_WIDTH;
+	if (!errno)
+		errno = oerrno;
 	return width;
 }
 
@@ -5034,7 +5038,7 @@ optget(char** argv, const char* oopts)
 									if (*(a + 1) == '=')
 										a += 2;
 								}
-								x = -((int)strtol(a, &b, 0));
+								x = -strtoi(a, &b, 0);
 								if ((b - a) > (ssize_t)sizeof(opt_info.option) - 2)
 									b = a + (ssize_t)sizeof(opt_info.option) - 2;
 								memcpy(&opt_info.option[1], a, (size_t)(b - a));
@@ -5164,7 +5168,7 @@ optget(char** argv, const char* oopts)
 						}
 						if (*f == '=')
 						{
-							c = -((int)strtol(++f, &b, 0));
+							c = -strtoi(++f, &b, 0);
 							if ((b - f) > (ssize_t)sizeof(opt_info.option) - 2)
 								b = f + (ssize_t)sizeof(opt_info.option) - 2;
 							memcpy(&opt_info.option[1], f, (size_t)(b - f));
@@ -5195,7 +5199,7 @@ optget(char** argv, const char* oopts)
 								if (*(a + 1) == '=')
 									a += 2;
 							}
-							numchr = -((int)strtol(a, NULL, 0));
+							numchr = -strtoi(a, NULL, 0);
 						}
 					}
 				}
@@ -5572,7 +5576,7 @@ optget(char** argv, const char* oopts)
 										if (*(a + 1) == '=')
 											a += 2;
 									}
-									x = -((int)strtol(a, &b, 0));
+									x = -strtoi(a, &b, 0);
 								}
 								b = e;
 								a = s = skip(s, 0, 0, 0, 1, 0, 0, version);
@@ -5757,7 +5761,7 @@ optstr(const char* str, const char* opts)
 			sfputc(mp, '-');
 			sfputc(mp, '-');
 		}
-		if (isdigit(*s) && (v = (int)strtol(s, &e, 10)) > 1 && isspace(*e) && --v <= (ssize_t)strlen(s) && (s[v] == 0 || s[v] == '\n'))
+		if (isdigit(*s) && (v = strtoi(s, &e, 10)) > 1 && isspace(*e) && --v <= (ssize_t)strlen(s) && (s[v] == 0 || s[v] == '\n'))
 		{
 			s += v;
 			while (isspace(*++e));

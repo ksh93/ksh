@@ -107,10 +107,11 @@ static History_t *hist_ptr;
 #if SHOPT_AUDIT
 static int sh_checkaudit(const char *name, char *logbuf, size_t len)
 {
-	char	*cp, *last;
-	uid_t	id1, id2;
-	int	r=0, fd;
-	ssize_t	n;
+	long long	ll;
+	char		*cp, *last;
+	uid_t		id1, id2;
+	int		r=0, fd;
+	ssize_t		n;
 	if((fd=open(name, O_RDONLY|O_cloexec)) < 0)
 		return 0;
 	if((n = read(fd, logbuf,len-1)) < 0)
@@ -124,9 +125,29 @@ static int sh_checkaudit(const char *name, char *logbuf, size_t len)
 	do
 	{
 		cp++;
-		id1 = id2 = (uid_t)strtol(cp,&last,10);
+		ll = strtoll(cp,&last,10);
+		id1 = id2 = (uid_t)ll;
+		if(id2!=ll)
+			errno = ERANGE;
+		if(errno==ERANGE)
+		{
+			r = 0;
+			errormsg(SH_DICT,ERROR_system(0),e_outofrange_uid,cp);
+			goto done;
+		}
 		if(*last=='-')
-			id1 = (uid_t)strtol(last+1,&last,10);
+		{
+			ll = strtoll(last+1,&last,10);
+			id1 = (uid_t)ll;
+			if(id1!=ll)
+				errno = ERANGE;
+			if(errno==ERANGE)
+			{
+				r = 0;
+				errormsg(SH_DICT,ERROR_system(0),e_outofrange_uid,cp);
+				goto done;
+			}
+		}
 		if(sh.euserid >=id1 && sh.euserid <= id2)
 			r |= 1;
 		if(sh.userid >=id1 && sh.userid <= id2)
@@ -268,7 +289,7 @@ int  sh_histinit(void)
 		long long m = strtoll(cp, NULL, 10);
 		if(m>HIST_MAX)
 			m = HIST_MAX;
-		else if(m<0)
+		else if(m<0 || errno==ERANGE)
 			m = HIST_DFLT;
 		maxlines = (int)m;
 	}

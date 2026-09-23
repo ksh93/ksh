@@ -35,7 +35,7 @@
 int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 {
 	char *cp;
-	double d=0;
+	Sfdouble_t d=0;
 	int sflag=0;
 	char *last;
 	NOT_USED(context);
@@ -60,8 +60,8 @@ int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 	argv += opt_info.index;
 	if(cp = *argv)
 	{
-		d = strtod(cp, &last);
-		if (isnan(d))
+		d = strtold(cp, &last);
+		if(isnan(d))
 			last = cp;  /* trigger error */
 		if(*last)
 		{
@@ -75,7 +75,7 @@ int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 			{
 				*(pp=last) = sh.radixpoint;
 				if(!strchr(cp,'.'))
-					d = strtod(cp,&last);
+					d = strtold(cp,&last);
 				*pp = '.';
 				if(*last==0)
 					goto skip;
@@ -120,7 +120,7 @@ skip:
  * If sflag==1, stop sleeping when any signal is received
  * (such as SIGWINCH in an interactive shell).
  */
-void sh_delay(double t, int sflag)
+void sh_delay(Sfdouble_t t, int sflag)
 {
 	uint32_t n;
 	Tv_t ts, tx;
@@ -135,9 +135,14 @@ void sh_delay(double t, int sflag)
 				return;
 		}
 	}
+	if(t > UINT_MAX || t < 0)
+	{
+		errormsg(SH_DICT,ERROR_exit(1),t<0?e_negative_flt:e_outofrange_flt,sizeof(t),t);
+		UNREACHABLE();
+	}
 	n = (uint32_t)t;
 	ts.tv_sec = n;
-	ts.tv_nsec = 1000000000 * (t - (double)n);
+	ts.tv_nsec = 1000000000 * (t - (Sfdouble_t)n);
 #if __APPLE__ && __MACH__
 	/*
 	 * Bug in macOS: if sleep is invoked from the interactive command line and then suspended

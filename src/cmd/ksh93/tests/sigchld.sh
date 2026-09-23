@@ -147,9 +147,11 @@ trap - CHLD
 
 if((!SHOPT_SCRIPTONLY));then
 x=$($SHELL 2> /dev/null -ic '/dev/null/notfound; sleep .2 & sleep .4;jobs')
-[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after notfound'
+[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after notfound' \
+	"(got $(printf %q "$x"))"
 x=$($SHELL 2> /dev/null  -ic 'kill -0 12345678901234567876; sleep .2 & sleep .4;jobs')
-[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after error message'
+[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after error message' \
+	"(got $(printf %q "$x"))"
 fi # !SHOPT_SCRIPTONLY
 
 print 'set -o monitor;sleep .05 & sleep .1;jobs' > $tmp/foobar

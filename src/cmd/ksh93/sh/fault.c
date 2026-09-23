@@ -221,11 +221,14 @@ void	sh_winsize(int keep_env)
 	 */
 	if (keep_env)
 	{
-		intmax_t tmp;
-		if (!nv_isnull(LINES) && (tmp = strtonll(nv_getval(LINES),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX)
+		int oerrno = errno;
+		long long tmp;
+		errno = 0;
+		if (!nv_isnull(LINES) && (tmp = strtonll(nv_getval(LINES),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX && errno != ERANGE)
 			lines = (int)tmp;
-		if (!nv_isnull(COLUMNS) && (tmp = strtonll(nv_getval(COLUMNS),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX)
+		if (!nv_isnull(COLUMNS) && (tmp = strtonll(nv_getval(COLUMNS),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX && errno != ERANGE)
 			columns = (int)tmp;
+		errno = oerrno;
 	}
 	if (lines < 0 || lines > USHRT_MAX)
 		lines = 0;

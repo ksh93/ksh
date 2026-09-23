@@ -393,46 +393,119 @@ static void sane(struct termios *sp)
 			}
 }
 
-static int gin(char *arg,struct termios *sp)
+typedef union
 {
-	speed_t i;
-	if(*arg++ != ':')
-		return 0;
-	sp->c_iflag = (tcflag_t)strtol(arg,&arg,16);
-	if(*arg++ != ':')
-		return 0;
-	sp->c_oflag = (tcflag_t)strtol(arg,&arg,16);
-	if(*arg++ != ':')
-		return 0;
-	sp->c_cflag = (tcflag_t)strtol(arg,&arg,16);
-	if(*arg++ != ':')
-		return 0;
-	sp->c_lflag = (tcflag_t)strtol(arg,&arg,16);
-	if(*arg++ != ':')
-		return 0;
-	for(i=0;i< NCCS; i++)
+	tcflag_t	tc;
+	cc_t		cc;
+	speed_t		s;
+} termios_flag_u;
+
+typedef enum
+{
+	TCFLAG_T,
+	CC_T,
+	SPEED_T
+} tc_trilean_t;
+
+static void tokenize_arg(termios_flag_u *t, char **arg, const char *full_args, tc_trilean_t trit)
+{
+	char *endptr;
+	unsigned long result;
+	if(!arg || !*arg)
+		goto invalid;
+	errno = 0;
+	result = strtoul(*arg,&endptr,16);
+	switch(trit)
 	{
-		sp->c_cc[i] = (cc_t)strtol(arg,&arg,16);
-		if(*arg++ != ':')
-			return 0;
+	    case TCFLAG_T:
+		t->tc = (tcflag_t)result;
+		if(errno!=ERANGE && t->tc != result)
+			errno = ERANGE;
+		break;
+	    case CC_T:
+		t->cc = (cc_t)result;
+		if(errno!=ERANGE && t->cc != result)
+			errno = ERANGE;
+		break;
+	    case SPEED_T:
+		t->s = (speed_t)result;
+		if(errno!=ERANGE && t->s != result)
+			errno = ERANGE;
+		break;
 	}
+	if((*endptr && *endptr != ':') || errno==ERANGE)
+	{
+		/* argument must be a valid number */
+		char *arg_err = strchr(*arg,':');
+		if(arg_err)
+			*arg_err = '\0';
+		if(errno==ERANGE)
+			error(ERROR_system(1),"'%s': invalid argument",*arg);
+		else
+			error(ERROR_exit(1),"'%s': invalid argument",*arg);
+		UNREACHABLE();
+	}
+	else if(*endptr == ':')
+	{
+		char *arg_next = endptr+1;
+		if(*arg_next==':')
+		{
+			*endptr = '\0';
+			error(ERROR_exit(1),"invalid settings (missing an argument between the delimiters after '%s')",*arg);
+			UNREACHABLE();
+		}
+		*arg = arg_next;
+		return;
+	}
+	else if(**arg && !*endptr)
+	{
+		*arg = NULL;
+		return;
+	}
+invalid:
+	error(ERROR_exit(1),"'%s': invalid settings",full_args);
+	UNREACHABLE();
+}
+
+static void gin(char *arg,struct termios *sp,int enclosing_colons)
+{
+	const char *full_args = arg;
+	termios_flag_u u;
+	if(enclosing_colons)
+		arg++;
+	if(!*arg)
+	{
+		error(ERROR_exit(1),"invalid argument");
+		UNREACHABLE();
+	}
+	tokenize_arg(&u, &arg, full_args, TCFLAG_T);
+	sp->c_iflag = u.tc;
+	tokenize_arg(&u, &arg, full_args, TCFLAG_T);
+	sp->c_oflag = u.tc;
+	tokenize_arg(&u, &arg, full_args, TCFLAG_T);
+	sp->c_cflag = u.tc;
+	tokenize_arg(&u, &arg, full_args, TCFLAG_T);
+	sp->c_lflag = u.tc;
+	for(cc_t i=0; i<NCCS; i++)
+	{
+		tokenize_arg(&u, &arg, full_args, CC_T);
+		sp->c_cc[i] = u.cc;
+	}
+	if((!arg && !enclosing_colons) || (arg && !*arg))
+		return;  /* other 'stty -g' outputs might exclude the last three, so skip */
+	tokenize_arg(&u, &arg, full_args, CC_T);
 #if _mem_c_line_termios
-	sp->c_line = (cc_t)
+	sp->c_line = u.cc;
 #endif
-		strtol(arg,&arg,16);
-	if(*arg++ != ':')
-		return 0;
-	i = (speed_t)strtol(arg,&arg,16);
-	if(*arg++ != ':')
-		return 0;
-	cfsetispeed(sp, i);
-	i = (speed_t)strtol(arg,&arg,16);
-	if(*arg++ != ':')
-		return 0;
-	cfsetospeed(sp, i);
-	if(*arg)
-		return 0;
-	return 1;
+	tokenize_arg(&u, &arg, full_args, SPEED_T);
+	cfsetispeed(sp, u.s);
+	tokenize_arg(&u, &arg, full_args, SPEED_T);
+	cfsetospeed(sp, u.s);
+	if((!enclosing_colons && arg) || (arg && *arg) || (enclosing_colons && !arg))
+	{
+		error(ERROR_exit(1),"'%s': invalid settings",full_args);
+		UNREACHABLE();
+	}
 }
 
 static void gout(struct termios *sp)
@@ -582,7 +655,7 @@ static const Tty_t *lookup(const char *name)
 	return NULL;
 }
 
-static const Tty_t *getspeed(unsigned long val)
+static const Tty_t *getspeed(speed_t val)
 {
 	size_t i;
 	for(i=0; i < elementsof(Ttable); i++)
@@ -593,7 +666,7 @@ static const Tty_t *getspeed(unsigned long val)
 	return NULL;
 }
 
-static int gettchar(const char *cp)
+static long gettchar(const char *cp)
 {
 	if(*cp==0)
 		return -1;
@@ -617,7 +690,11 @@ static int gettchar(const char *cp)
 static void set(char *argv[], struct termios *sp)
 {
 	const Tty_t *tp;
-	int c,off;
+	int off;
+	long ch;
+	unsigned long ul;
+	cc_t cc;
+	speed_t s;
 	char *cp;
 	char *ep;
 	while(cp = *argv++)
@@ -646,9 +723,9 @@ static void set(char *argv[], struct termios *sp)
 				error(ERROR_exit(1),"missing argument to %s",cp);
 				UNREACHABLE();
 			}
-			c = gettchar(*argv++);
-			if(c>=0)
-				sp->c_cc[tp->mask] = (cc_t)c;
+			ch = gettchar(*argv++);
+			if(ch>=0)
+				sp->c_cc[tp->mask] = (cc_t)ch;
 			else
 				sp->c_cc[tp->mask] = _POSIX_VDISABLE;
 			break;
@@ -689,7 +766,7 @@ static void set(char *argv[], struct termios *sp)
 		    case WINDSZ:
 		    {
 			struct winsize win;
-			int n;
+			unsigned short n;
 			if(ioctl(0,TIOCGWINSZ,&win)<0)
 			{
 				error(ERROR_system(1),"cannot set %s",tp->name);
@@ -718,16 +795,20 @@ static void set(char *argv[], struct termios *sp)
 				UNREACHABLE();
 			}
 			argv++;
-			n=(int)strtol(cp,&cp,10);
-			if(*cp)
+			errno = 0;
+			ul = strtoul(cp,&ep,10);
+			n = (unsigned short)ul;
+			if(n != ul)
+				errno = ERANGE;
+			if(*ep || errno==ERANGE)
 			{
-				error(ERROR_system(1),"%d: invalid number of %s",argv[-1],tp->name);
+				error(ERROR_system(1),"%s: invalid number of %s",argv[-1],tp->name);
 				UNREACHABLE();
 			}
 			if(tp->mask)
-				win.ws_col = (unsigned short)n;
+				win.ws_col = n;
 			else
-				win.ws_row = (unsigned short)n;
+				win.ws_row = n;
 			if(ioctl(0,TIOCSWINSZ,&win)<0)
 			{
 				error(ERROR_system(1),"cannot set %s",tp->name);
@@ -750,26 +831,46 @@ static void set(char *argv[], struct termios *sp)
 				UNREACHABLE();
 			}
 			argv++;
-			c = (int)strtol(cp, &ep, 10);
+			errno = 0;
+			ul = strtoul(cp, &ep, 10);
 			if (*ep)
 			{
 				error(ERROR_exit(1), "%s: %s: numeric argument expected", tp->name, cp);
+				UNREACHABLE();
+			}
+			else if(errno==ERANGE)
+			{
+				error(ERROR_system(1),"%s: %s: invalid number", tp->name, cp);
 				UNREACHABLE();
 			}
 			switch (tp->field)
 			{
 #if _mem_c_line_termios
 			case C_LINE:
-				sp->c_line = (cc_t)c;
+				cc = (cc_t)ul;
+				if(cc != ul)
+				{
+					errno = ERANGE;
+					error(ERROR_system(1),"%s: %s: invalid number", tp->name, cp);
+					UNREACHABLE();
+				}
+				sp->c_line = cc;
 				break;
 #endif
 			case C_SPEED:
-				if(getspeed((unsigned long)c))
+				s = (speed_t)ul;
+				if(s != ul)
+				{
+					errno = ERANGE;
+					error(ERROR_system(1),"%s: %s: invalid speed", tp->name, cp);
+					UNREACHABLE();
+				}
+				if(getspeed(s))
 				{
 					if (*tp->name != 'o')
-						cfsetispeed(sp, (speed_t)c);
+						cfsetispeed(sp, s);
 					if (*tp->name != 'i')
-						cfsetospeed(sp, (speed_t)c);
+						cfsetospeed(sp, s);
 				}
 				else
 				{
@@ -778,7 +879,14 @@ static void set(char *argv[], struct termios *sp)
 				}
 				break;
 			case T_CHAR:
-				sp->c_cc[tp->mask] = (cc_t)c;
+				cc = (cc_t)ul;
+				if(cc != ul)
+				{
+					errno = ERANGE;
+					error(ERROR_system(1),"%s: %s: invalid number", tp->name, cp);
+					UNREACHABLE();
+				}
+				sp->c_cc[tp->mask] = cc;
 				break;
 			}
 			break;
@@ -836,7 +944,7 @@ static void listgroup(Sfio_t *sp,int type, const char *description)
 	sfprintf(sp,"?%s.]",description);
 }
 
-static void listmask(Sfio_t *sp,unsigned int mask,const char *description)
+static void listmask(Sfio_t *sp,unsigned long mask,const char *description)
 {
 	size_t i;
 	sfprintf(sp,"[+");
@@ -987,7 +1095,9 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 	else if (*argv)
 	{
 		if (!argv[1] && **argv == ':')
-			gin(*argv, &tty);
+			gin(*argv, &tty, 1);
+		else if (!argv[1] && strchr(*argv,':'))
+			gin(*argv, &tty, 0);
 		else
 			set(argv, &tty);
 		if (tcsetattr(0, TCSANOW, &tty) < 0)

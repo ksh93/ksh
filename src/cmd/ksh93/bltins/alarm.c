@@ -234,15 +234,26 @@ static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 	{
 		Time_t now = getnow();
 		char *last;
+		int oerrno;
 		if(*val=='+')
 		{
+			oerrno = errno;
+			errno = 0;
 			d = strtod(val+1, &last);
+			if(errno==ERANGE)
+				errormsg(SH_DICT,ERROR_system(0),e_outofrange,val+1);
+			errno = oerrno;
 			x = d + now;
 			nv_putv(np,val,flag,fp);
 		}
 		else
 		{
+			oerrno = errno;
+			errno = 0;
 			d = strtod(val, &last);
+			if(errno==ERANGE)
+				errormsg(SH_DICT,ERROR_system(0),e_outofrange,val+1);
+			errno = oerrno;
 			if(*last)
 			{
 				if(pp = sfprints("exact %s", val))

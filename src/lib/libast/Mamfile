@@ -2091,8 +2091,8 @@ make install virtual
 			exec - compile %{<} -Iport -Isfio
 		done
 
-		make strtol.o
-			make comp/strtol.c
+		make strtoi.o
+			make comp/strtoi.c
 				make string/strtoi.h
 					prev sfio/sfhdr.h
 					prev include/error.h
@@ -2102,11 +2102,25 @@ make install virtual
 			exec - compile %{<} -Iport -Isfio -Istring
 		done
 
+		make strtol.o
+			make comp/strtol.c
+				prev string/strtoi.h
+			done
+			exec - compile %{<} -Iport -Isfio -Istring
+		done
+
 		make strtoll.o
 			make comp/strtoll.c
 				prev string/strtoi.h
 				prev ast_map.h
 				prev include/ast.h
+			done
+			exec - compile %{<} -Iport -Isfio -Istring
+		done
+
+		make strtoui.o
+			make comp/strtoui.c
+				prev string/strtoi.h
 			done
 			exec - compile %{<} -Iport -Isfio -Istring
 		done
