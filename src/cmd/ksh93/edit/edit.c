@@ -1213,7 +1213,7 @@ int	ed_external(const genchar *src, char *dest)
 #if _lib_wcscpy
 		wcscpy((wchar_t *)dest,(const wchar_t *)buffer);
 #else
-		strcopy(dest,buffer);
+		strcpy(dest,buffer);
 #endif
 		return c;
 	}

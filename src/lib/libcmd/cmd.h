@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1992-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -13,6 +13,7 @@
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  David Korn <dgk@research.att.com>                   *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -100,8 +101,7 @@ main(int argc, char** argv)
 	buf[0] = '_';
 	buf[1] = 'b';
 	buf[2] = '_';
-	strncpy(buf + 3, s, sizeof(buf) - 4);
-	buf[sizeof(buf) - 1] = 0;
+	strlcpy(buf + 3, s, sizeof(buf) - 3);
 	if (t = strchr(buf, '.'))
 		*t = 0;
 	for (;;)

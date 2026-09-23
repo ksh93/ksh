@@ -847,7 +847,7 @@ error(DEBUG_TRACE, "AHA#%d _ast_iconv_open f=%s:%s:%d t=%s:%s:%d\n", __LINE__, f
 	if (!(cc = newof(0, Conv_t, 1, strlen(to) + strlen(fr) + 2)))
 		return (iconv_t)(-1);
 	cc->to.name = (char*)(cc + 1);
-	cc->from.name = strcopy(cc->to.name, to) + 1;
+	cc->from.name = stpcpy(cc->to.name, to) + 1;
 	strcpy(cc->from.name, fr);
 	cc->cvt = (iconv_t)(-1);
 

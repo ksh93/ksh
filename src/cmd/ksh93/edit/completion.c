@@ -650,8 +650,8 @@ int ed_fulledit(Edit_t *ep)
 		if (hist_flush(sh.hist_ptr) < 0)
 			return -1;
 	}
-	cp = strcopy((char*)ep->e_inbuf,e_runvi);
-	cp = strcopy(cp, fmtint(ep->e_hline,1));
+	cp = stpcpy((char*)ep->e_inbuf,e_runvi);
+	cp = stpcpy(cp, fmtint(ep->e_hline,1));
 #if SHOPT_VSH
 	ep->e_eol = (int)(((unsigned char*)cp - (unsigned char*)ep->e_inbuf)-(sh_isoption(SH_VI)!=0));
 #else

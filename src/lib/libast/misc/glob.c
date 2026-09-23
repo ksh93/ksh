@@ -769,7 +769,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	ap->gl_begin = ap->gl_path + gp->gl_extra;
 	pat = strcopy(ap->gl_begin, pattern + (size_t)optlen);
 	if (suflen)
-		pat = strcopy(pat, gp->gl_suffix);
+		pat = stpcpy(pat, gp->gl_suffix);
 	if (optlen)
 		strlcpy(gp->gl_pat = gp->gl_opt = pat + 1, pattern, (size_t)optlen);
 	else

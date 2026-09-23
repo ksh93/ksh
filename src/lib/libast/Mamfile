@@ -816,6 +816,13 @@ make install virtual
 			exec - compile %{<}
 		done
 
+		make stpcpy.o
+			make string/stpcpy.c
+				prev include/ast.h
+			done
+			exec - compile %{<}
+		done
+
 		make modei.o
 			make string/modei.c
 				make string/modelib.h

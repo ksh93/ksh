@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2025-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -10,34 +10,39 @@
 *      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      *
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
-*                 Glenn Fowler <gsf@research.att.com>                  *
-*                  David Korn <dgk@research.att.com>                   *
-*                   Phong Vo <kpv@research.att.com>                    *
-*                  Martijn Dekker <martijn@inlv.org>                   *
+*               Glenn Fowler <glenn.s.fowler@gmail.com>                *
+*                    David Korn <dgkorn@gmail.com>                     *
+*                     Phong Vo <phongvo@gmail.com>                     *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
+/*
+ * stpcpy implementation
+ */
 
 #include <ast.h>
 
+#undef	_def_map_ast
+#include <ast_map.h>
+
+#if _lib_stpcpy
+
+NoN(stpcpy)
+
+#else
+
 /*
- * copy up to n bytes of string f into t
- * trailing 0 always added to t, even if n==0
- * pointer to the copied 0 returned
- * overlapping buffers are permitted
+ * copy f into t, return a pointer to the end of t ('\0')
+ * the buffers cannot overlap
  */
 
-char*
-strncopy(char* t, const char* f, size_t n)
+extern char*
+stpcpy(char *restrict t, const char *restrict f)
 {
-	char*	e = t + n - 1;
-
-	do
-	{
-		if (t >= e)
-		{
-			*t = 0;
-			return t;
-		}
-	} while (*t++ = *f++);
+	if (!f)
+		return t;
+	while (*t++ = *f++);
 	return t - 1;
 }
+
+#endif
