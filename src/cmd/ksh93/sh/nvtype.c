@@ -795,12 +795,12 @@ void nv_addtype(Namval_t *np, const char *optstr, Optdisc_t *op, size_t optsz)
 void nv_newtype(Namval_t *mp)
 {
 	struct	{
-		    Optdisc_t	opt;
-		    Namval_t	*np;
-		}	optdisc;
-	memset(&optdisc,0,sizeof(optdisc));
-	optdisc.opt.infof = typeinfo;
-	optdisc.np = mp;
+	    Optdisc_t	opt;
+	    Namval_t	*np;
+	} optdisc = {
+		.opt = { .infof = typeinfo },
+		.np = mp
+	};
 	nv_addtype(mp,sh_opttype, &optdisc.opt, sizeof(optdisc));
 }
 

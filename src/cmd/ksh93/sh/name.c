@@ -40,7 +40,9 @@ static Namval_t	NullNode;
 static Dt_t	*Refdict;
 static Dtdisc_t	_Refdisc =
 {
-	offsetof(struct Namref,np),sizeof(struct Namval_t*),sizeof(struct Namref)
+	.key = offsetof(struct Namref,np),
+	.size = sizeof(struct Namval_t*),
+	.link = sizeof(struct Namref)
 };
 
 static void	pushnam(Namval_t*,void*);
@@ -2269,12 +2271,12 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,nvflag_t mask, n
 {
 	Namval_t *np;
 	Dt_t *base=0;
-	struct scan sdata;
-	sdata.scanmask = mask;
-	sdata.scanflags = flags&~NV_NOSCOPE;
-	sdata.scanfn = fn;
-	sdata.scancount = 0;
-	sdata.scandata = data;
+	struct scan sdata = {
+		.scanmask = mask,
+		.scanflags = flags&~NV_NOSCOPE,
+		.scanfn = fn,
+		.scandata = data
+	};
 	if(flags&NV_NOSCOPE)
 		base = dtview((Dt_t*)root,0);
 	for(np=(Namval_t*)dtfirst(root);np; np=(Namval_t*)dtnext(root,np))

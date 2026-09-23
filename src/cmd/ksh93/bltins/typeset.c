@@ -95,11 +95,9 @@ int    b_readonly(int argc,char *argv[],Shbltin_t *context)
 	int n;
 	nvflag_t flag;
 	char *command = argv[0];
-	struct tdata tdata;
+	struct tdata tdata = { .aflag = '-' };
 	NOT_USED(argc);
 	NOT_USED(context);
-	memset(&tdata,0,sizeof(tdata));
-	tdata.aflag = '-';
 	while((n = optget(argv,*command=='e'?sh_optexport:sh_optreadonly))) switch(n)
 	{
 		case 'p':
@@ -138,10 +136,9 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 	nvflag_t flag = NV_NOARRAY|NV_NOSCOPE|NV_ASSIGN;
 	Dt_t *troot;
 	int rflag=0, xflag=0, n;
-	struct tdata tdata;
+	struct tdata tdata = { 0 };
 	NOT_USED(argc);
 	NOT_USED(context);
-	memset(&tdata,0,sizeof(tdata));
 	troot = sh.alias_tree;
 	if(*argv[0]=='h')
 		flag |= NV_TAGGED;
@@ -150,7 +147,6 @@ int    b_alias(int argc,char *argv[],Shbltin_t *context)
 		opt_info.offset = 0;
 		opt_info.index = 1;
 		*opt_info.option = 0;
-		tdata.argnum = 0;
 		tdata.aflag = *argv[1];
 		while((n = optget(argv, *argv[0]=='h' ? sh_opthash : sh_optalias))) switch(n)
 		{
@@ -220,13 +216,12 @@ int    b_typeset(int argc,char *argv[],Shbltin_t *context)
 {
 	int		n;
 	nvflag_t	flag = NV_VARNAME|NV_ASSIGN;
-	struct tdata	tdata;
+	struct tdata	tdata = { 0 };
 	const char	*optstring = sh_opttypeset;
 	Namdecl_t 	*ntp = (Namdecl_t*)context->ptr;
 	Dt_t		*troot;
 	int		isfloat=0, isadjust=0, shortint=0, sflag=0;
 
-	memset(&tdata,0,sizeof(tdata));
 	troot = sh.var_tree;
 	if(ntp)					/* type declaration command added using 'typeset -T' or 'enum' */
 	{
@@ -1131,7 +1126,7 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 	nvflag_t flag=0;
 	Namval_t *np;
 	int dlete=0;
-	struct tdata tdata;
+	struct tdata tdata = { 0 };
 	Shbltin_f addr;
 	Stk_t	*stkp;
 	char *errmsg;
@@ -1140,7 +1135,6 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 #endif
 	NOT_USED(argc);
 	NOT_USED(context);
-	memset(&tdata,0,sizeof(tdata));
 	stkp = sh.stk;
 	if(!sh.pathlist)
 		path_absolute(argv[0],NULL,0);
@@ -1285,10 +1279,8 @@ int	b_builtin(int argc,char *argv[],Shbltin_t *context)
 
 int    b_set(int argc,char *argv[],Shbltin_t *context)
 {
-	struct tdata tdata;
+	struct tdata tdata = { 0 };
 	NOT_USED(context);
-	memset(&tdata,0,sizeof(tdata));
-	tdata.prefix=0;
 	if(argv[1])
 	{
 		if(sh_argopts(argc,argv) < 0)

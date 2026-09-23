@@ -159,10 +159,11 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	char		*lastval=0;
 	int		lastsub=0;
 	Math_f		fun;
-	struct lval	node = { 0 };
-	node.flags = ep->flags;
-	node.expr = ep->expr;
-	node.elen = ep->elen;
+	struct lval	node = { 
+		.flags = ep->flags,
+		.expr = ep->expr,
+		.elen = ep->elen
+	};
 	if(sh.arithrecursion++ >= MAXLEVEL)
 	{
 		arith_error(e_recursive,ep->expr);
@@ -900,15 +901,15 @@ again:
 
 Arith_t *arith_compile(const char *string,char **last,Sfdouble_t(*fun)(const char**,struct lval*,int,Sfdouble_t),int flags)
 {
-	struct vars cur;
 	Arith_t *ep;
 	ptrdiff_t offset;
-	memset(&cur,0,sizeof(cur));
-	cur.expr = cur.nextchr = string;
-	cur.convert = fun;
-	cur.flags = flags;
-	cur.errmsg.value = 0;
-	cur.errmsg.flags = flags;
+	struct vars cur = {
+		.expr = string,
+		.nextchr = string,
+		.convert = fun,
+		.flags = flags,
+		.errmsg = { .flags = flags }
+	};
 	stkseek(sh.stk,(ssize_t)sizeof(Arith_t));
 	if(!expr(&cur,0) && cur.errmsg.value)
 	{

@@ -3,7 +3,7 @@ ref	-D_def_map_ast=1
 cmd	universe
 
 sys	mman
-hdr	fcntl,dirent,direntry,filio,fnmatch,jioctl,libgen,limits
+hdr	dirent,direntry,jioctl,limits
 hdr	locale,ndir,nl_types,process,spawn,utime
 hdr	linux/fs,linux/msdos_fs
 hdr	wctype
@@ -22,17 +22,13 @@ hdr	wchar note{ <wchar.h> and isw*() really work }end execute{
 
 dat	_tzname,tzname
 
-lib	BSDsetpgrp
-lib	_cleanup
-lib	bcopy,bzero,confstr,dirread
-lib	fchmod,fcntl,fnmatch,fork
+lib	confstr,dirread
+lib	fcntl,fnmatch
 lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
-lib	mktemp
 lib	opendir,openat,pathconf,pipe2,posix_close
-lib	rand_r
 lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair
@@ -348,14 +344,6 @@ tst	cross{
 		;;
 	esac
 	echo "#define _UNIV_DEFAULT	\"$u\"	/* default universe name */"
-}end
-
-std	cleanup note{ stuck with standard _cleanup }end noexecute{
-	extern void exit(int);
-	extern void _exit(int);
-	extern void _cleanup(void);
-	void _cleanup(void) { _exit(0); }
-	int main(void) { printf("cleanup\n"); exit(1); }
 }end
 
 std	strtod stdlib.h note{ stuck with standard strtod }end nostatic{
