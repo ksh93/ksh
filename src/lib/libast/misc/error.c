@@ -136,7 +136,7 @@ setopt(void* a, const void* p, int n, const char* v)
 					error_state.breakpoint = ERROR_PANIC;
 					break;
 				default:
-					error_state.breakpoint = (int)strtol(v, NULL, 0);
+					error_state.breakpoint = strtoi(v, NULL, 0);
 					break;
 				}
 			else
@@ -157,7 +157,7 @@ setopt(void* a, const void* p, int n, const char* v)
 				error_state.count = 0;
 			break;
 		case OPT_FD:
-			error_info.fd = n ? (int)strtol(v, NULL, 0) : -1;
+			error_info.fd = n ? strtoi(v, NULL, 0) : -1;
 			break;
 		case OPT_LIBRARY:
 			if (n)
@@ -167,7 +167,7 @@ setopt(void* a, const void* p, int n, const char* v)
 			break;
 		case OPT_MASK:
 			if (n)
-				error_info.mask = (int)strtol(v, NULL, 0);
+				error_info.mask = strtoi(v, NULL, 0);
 			else
 				error_info.mask = 0;
 			break;
@@ -208,7 +208,7 @@ setopt(void* a, const void* p, int n, const char* v)
 			break;
 		case OPT_TRACE:
 			if (n)
-				error_info.trace = -((int)strtol(v, NULL, 0));
+				error_info.trace = -strtoi(v, NULL, 0);
 			else
 				error_info.trace = 0;
 			break;

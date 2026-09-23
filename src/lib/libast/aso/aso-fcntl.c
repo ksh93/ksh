@@ -96,7 +96,7 @@ aso_init_fcntl(void* data, const char* details)
 			else if (strneq(path, "size=", 5))
 			{
 				size = strtoul(path + 5, NULL, 0);
-				if (size <= sizeof(references))
+				if (size <= sizeof(references) || errno == ERANGE)
 					goto bad;
 				size -= sizeof(references);
 			}

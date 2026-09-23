@@ -302,6 +302,7 @@ extern void		astwinsize(int, int*, int*);
 #define CONF_NGROUPS_MAX	_SC_NGROUPS_MAX
 #define CONF_OPEN_MAX		_SC_OPEN_MAX
 #define CONF_PAGESIZE		_SC_PAGESIZE
+#define astconf_int(x)		(int)sysconf(x)
 #define astconf_long(x)		sysconf(x)
 #define astconf_ulong(x)	(unsigned long)sysconf(x)
 #else
@@ -312,6 +313,7 @@ extern void		astwinsize(int, int*, int*);
 #define CONF_NGROUPS_MAX	"NGROUPS_MAX"
 #define CONF_OPEN_MAX		"OPEN_MAX"
 #define CONF_PAGESIZE		"PAGESIZE"
+#define astconf_int(x)		strtoi(astconf(x,NULL,NULL),NULL,0)
 #define astconf_long(x)		strtol(astconf(x,NULL,NULL),NULL,0)
 #define astconf_ulong(x)	strtoul(astconf(x,NULL,NULL),NULL,0)
 #endif
@@ -386,11 +388,11 @@ extern int		strnpcmp(const char*, const char*, size_t);
 extern double		strntod(const char*, size_t, char**);
 extern _ast_fltmax_t	strntold(const char*, size_t, char**);
 extern long		strntol(const char*, size_t, char**, int);
-extern intmax_t		strntoll(const char*, size_t, char**, int);
+extern long long	strntoll(const char*, size_t, char**, int);
 extern long		strnton(const char*, size_t, char**, char*, int);
 extern unsigned long	strntoul(const char*, size_t, char**, int);
-extern intmax_t		strntonll(const char*, size_t, char**, char*, int);
-extern uintmax_t	strntoull(const char*, size_t, char**, int);
+extern long long	strntonll(const char*, size_t, char**, char*, int);
+extern unsigned long long strntoull(const char*, size_t, char**, int);
 extern int		strnvcmp(const char*, const char*, size_t);
 extern int		stropt(const char*, const void*, int, int(*)(void*, const void*, int, const char*), void*);
 extern int		strpcmp(const char*, const char*);
@@ -402,8 +404,10 @@ extern char*		strsubmatch(const char*, const char*, regflags_t);
 extern unsigned long	strsum(const char*, unsigned long);
 extern char*		strtape(const char*, char**);
 extern int		strtoip4(const char*, char**, uint32_t*, unsigned char*);
+extern int		strtoi(const char*, char**, int);
+extern unsigned int	strtoui(const char*, char**, int);
 extern long		strton(const char*, char**, char*, int);
-extern intmax_t		strtonll(const char*, char**, char*, int);
+extern long long	strtonll(const char*, char**, char*, int);
 extern int		struid(const char*);
 extern ptrdiff_t	struniq(char**, ptrdiff_t);
 extern int		strvcmp(const char*, const char*);

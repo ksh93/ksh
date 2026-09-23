@@ -171,7 +171,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 	int n, fd = 1;
 	uint8_t fdmode;
 	const char *options, *msg = e_file+4;
-	char *format = 0;
+	char *format = NULL, *eptr;
 #if !SHOPT_SCRIPTONLY
 	int sflag = 0;
 #endif /* !SHOPT_SCRIPTONLY */
@@ -245,8 +245,8 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 		case 'u':
 			if(opt_info.arg[0]=='p' && opt_info.arg[1]==0)
 				goto coprocess;
-			fd = (int)strtol(opt_info.arg,&opt_info.arg,10);
-			if(*opt_info.arg)
+			fd = strtoi(opt_info.arg,&eptr,10);
+			if(*eptr || errno == ERANGE)
 				fd = -1;
 			else if(!sh_iovalidfd(fd))
 				fd = -1;
@@ -342,7 +342,8 @@ skip:
 skip2:
 	if(fd < 0)
 	{
-		errno = EBADF;
+		if(errno!=ERANGE)
+			errno = EBADF;
 		fdmode = 0;
 	}
 	else if(!(fdmode=sh.fdstatus[fd]))
@@ -936,9 +937,12 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 				if(sh.bltinfun==b_printf && sh_isoption(SH_POSIX))
 				{
 					/* POSIX requires evaluating a number here, not an arithmetic expression */
+					int oerrno = errno;
+					errno = 0;
 					d = (Sfdouble_t)strtoll(argp,&lastchar,0);
-					if(*lastchar)
-						errormsg(SH_DICT,ERROR_exit(0),e_number,argp);
+					if(*lastchar || errno == ERANGE)
+						errormsg(SH_DICT,ERROR_system(0),e_number,argp);
+					errno = oerrno;
 				}
 				else
 					d = sh_strnum(argp,&lastchar,0);
@@ -982,9 +986,12 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 				if(sh.bltinfun==b_printf && sh_isoption(SH_POSIX))
 				{
 					/* POSIX requires evaluating a number here, not an arithmetic expression */
+					int oerrno = errno;
+					errno = 0;
 					d = strtold(argp,&lastchar);
-					if(*lastchar)
-						errormsg(SH_DICT,ERROR_exit(0),e_number,argp);
+					if(*lastchar || errno == ERANGE)
+						errormsg(SH_DICT,ERROR_system(0),e_number,argp);
+					errno = oerrno;
 				}
 				else
 					d = sh_strnum(argp,&lastchar,0);

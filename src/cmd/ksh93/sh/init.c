@@ -757,10 +757,19 @@ static char* get_lineno(Namval_t *np, Namfun_t *fp)
 static char* get_lastarg(Namval_t *np, Namfun_t *fp)
 {
 	char	*cp;
-	int	pid;
 	NOT_USED(fp);
-	if(sh_isstate(SH_INIT) && (cp=sh.lastarg) && *cp=='*' && (pid=(pid_t)strtoll(cp+1,&cp,10)) && *cp=='*')
-		nv_putval(np,cp+1,0);
+	if(sh_isstate(SH_INIT) && (cp=sh.lastarg) && *cp=='*')
+	{
+		int oerrno = errno;
+		long long ll;
+		pid_t pid;
+		errno = 0;
+		ll = strtoll(cp+1,&cp,10);
+		pid = (pid_t)ll;
+		if(pid && pid == ll && *cp=='*' && errno!=ERANGE)
+			nv_putval(np,cp+1,0);
+		errno = oerrno;
+	}
 	return sh.lastarg;
 }
 
@@ -1235,7 +1244,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	sh.euserid = geteuid();
 	sh.groupid = getgid();
 	sh.egroupid = getegid();
-	sh.lim.child_max = (int)astconf_long(CONF_CHILD_MAX);
+	sh.lim.child_max = astconf_int(CONF_CHILD_MAX);
 	sh.lim.clk_tck = (clock_t)astconf_long(CONF_CLK_TCK);
 	if(sh.lim.child_max <= 0)
 		sh.lim.child_max = CHILD_MAX;

@@ -18,13 +18,12 @@
 *                                                                      *
 ***********************************************************************/
 /*
- * strntonll() implementation
+ * strtoi() implementation
  */
 
-#define S2I_function	strntonll
-#define S2I_number	long long
-#define S2I_unumber	unsigned long long
-#define S2I_multiplier	1
-#define S2I_size	1
+
+#define S2I_function	strtoi
+#define S2I_number	int
+#define S2I_unumber	unsigned int
 
 #include "strtoi.h"

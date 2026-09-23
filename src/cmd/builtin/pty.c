@@ -782,18 +782,20 @@ struct Cond_s
 static int
 dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 {
-	int		op;
-	int		line;
-	intmax_t	n;
-	char*		s;
-	char*		m;
-	char*		e;
-	char*		id;
-	Vmalloc_t*	vm;
-	Cond_t*		cond;
-	Master_t*	master;
-
-	int		status = 0;
+	unsigned long long	ull;
+	useconds_t		ud;
+	long			l;
+	int			op;
+	int			line;
+	intmax_t		n;
+	char*			s;
+	char*			m;
+	char*			e;
+	char*			id;
+	Vmalloc_t*		vm;
+	Cond_t*			cond;
+	Master_t*		master;
+	int			status = 0;
 
 	if (!(vm = vmopen()))
 		outofmemory(0);
@@ -847,9 +849,15 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				usleep(delay * 1000);
 			break;
 		case 'd':
-			delay = (useconds_t)strtol(s, &e, 0);
-			if (*e)
-				error(2, "%s: invalid delay -- milliseconds expected", s);
+			ull = strtoull(s, &e, 0);
+			delay = (useconds_t)ull;
+			if (delay != ull)
+				errno = ERANGE;
+			if (*e || errno == ERANGE)
+			{
+				error(ERROR_SYSTEM|2, "%s: invalid delay -- milliseconds expected", s);
+				goto done;
+			}
 			break;
 		case 'i':
 			if (!cond->next)
@@ -921,16 +929,25 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			match(s, m, 1);
 			break;
 		case 's':
-			n = strtoll(s, &e, 0);
-			if (*e)
-				error(2, "%s: invalid delay -- milliseconds expected", s);
-			if (n)
-				usleep((useconds_t)n * 1000);
+			ull = strtoull(s, &e, 0);
+			ud = (useconds_t)ull;
+			if (ull != ud)
+				errno = ERANGE;
+			if (*e || errno == ERANGE)
+			{
+				error(ERROR_SYSTEM|2, "%s: invalid delay -- milliseconds expected", s);
+				goto done;
+			}
+			if (ud)
+				usleep(ud * 1000);
 			break;
 		case 't':
-			timeout = (int)strtol(s, &e, 0);
-			if (*e)
-				error(2, "%s: invalid timeout -- milliseconds expected", s);
+			timeout = strtoi(s, &e, 0);
+			if (*e || errno == ERANGE)
+			{
+				error(ERROR_SYSTEM|2, "%s: invalid timeout -- milliseconds expected", s);
+				goto done;
+			}
 			break;
 		case 'u':
 			if (cond->flags & SKIP)
@@ -945,14 +962,20 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			} while (!match(s, m, 0));
 			break;
 		case 'v':
-			error_info.trace = -(int)strtol(s, &e, 0);
-			if (*e)
-				error(2, "%s: invalid verbose level -- number expected", s);
+			error_info.trace = -strtoi(s, &e, 0);
+			if (*e || errno == ERANGE)
+			{
+				error(ERROR_SYSTEM|2, "%s: invalid verbose level -- number expected", s);
+				goto done;
+			}
 			break;
 		case 'x':
-			status = (int)strtol(s, &e, 0);
-			if (*e)
-				error(2, "%s: invalid exit code", s);
+			status = strtoi(s, &e, 0);
+			if (*e || errno == ERANGE)
+			{
+				error(ERROR_SYSTEM|2, "%s: invalid exit code", s);
+				goto done;
+			}
 			break;
 		case 'I':
 			if (master->ignore)

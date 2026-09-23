@@ -143,11 +143,11 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			{
 				char *last;
 				/* an explicit suffix unit overrides the default */
-				if((i=(rlim_t)strtol(limit,&last,0))!=ULIMIT_INFINITY && !*last)
+				if((i=(rlim_t)strtol(limit,&last,0))!=ULIMIT_INFINITY && !*last && errno!=ERANGE)
 					i *= unit;
-				else if((i=(rlim_t)strton(limit,&last,NULL,0))==ULIMIT_INFINITY || *last)
+				else if((i=(rlim_t)strton(limit,&last,NULL,0))==ULIMIT_INFINITY || *last || errno==ERANGE)
 				{
-					if((i=(rlim_t)sh_strnum(limit,&last,2))==ULIMIT_INFINITY || *last)
+					if((i=(rlim_t)sh_strnum(limit,&last,2))==ULIMIT_INFINITY || *last || errno==ERANGE)
 					{
 						errormsg(SH_DICT,ERROR_system(1),e_number,limit);
 						UNREACHABLE();
