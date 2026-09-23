@@ -1443,5 +1443,31 @@ w set -- --help; OPTIND=1; while getopts x o; do :; done; echo OK/CONTINUED/2
 u ^OK/CONTINUED/2\r\n$
 !
 
+((SHOPT_MULTIBYTE && SHOPT_ESH)) &&
+[[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+tst $LINENO << "!"
+L emacs mode not aware of multibyte spaces
+
+d 40
+p :test-1:
+w set -o emacs
+p :test-2:
+w echo foo　baz\Eb\Edbar
+u ^foo　bar\r\n$
+!
+
+((SHOPT_MULTIBYTE && SHOPT_VSH)) &&
+[[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+tst $LINENO << "!"
+L vi mode not aware of multibyte spaces
+
+d 40
+p :test-1:
+w set -o vi
+p :test-2:
+w echo bar　uux\Ebiq
+u ^bar　quux\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
