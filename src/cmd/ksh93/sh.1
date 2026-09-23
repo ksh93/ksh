@@ -1590,6 +1590,43 @@ will be deleted and the
 in front of
 .I string\^
 may be omitted.
+In
+.I pattern\^,
+an unescaped
+.B /
+ends the pattern,
+so a literal
+.B /
+in the value being matched must be written as \f3\e/\fP.
+No escaping of
+.B /
+is needed in
+.IR string ,
+which extends to the closing brace.
+Apart from the \f3\e\fP\f2n\^\fP subpattern references described above,
+a backslash in
+.I string\^
+quotes the following character and is itself removed:
+\f3\e\e\fP produces a single backslash,
+and \f3\e\fP before any other character produces just that character.
+The exception is \f3\e/\fP,
+where the backslash is kept and both characters appear literally in the
+result.
+Thus \f3${parameter//\e//\e/}\fP
+replaces each
+.B /
+with \f3\e/\fP,
+while bash discards the backslash and produces a plain
+.BR / .
+To replace
+.B //
+with a single
+.B /
+as one would in bash,
+write the replacement with an unescaped
+.BR / ,
+as in \f3${parameter//\e/\e///}\fP,
+which behaves identically in both shells.
 When
 .I parameter\^
 is
