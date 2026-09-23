@@ -321,7 +321,9 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 						}
 					}
 				}
-				np = nv_open(cp,sh.var_tree,flag|NV_ASSIGN);
+				/* For correct nested assignments, create the node either in sh.prefix_root or
+				 * in sh.var_tree, as previously determined and stored in the vartree variable. */
+				np = nv_open(cp,vartree,flag|NV_ASSIGN);
 				if ( (arg->argflag & ARG_APPEND) &&
 				     (tp->tre.tretyp & COMMSK)==TCOM &&
 				     tp->com.comset &&
@@ -491,6 +493,10 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 							if(!(array&NV_IARRAY) && !(tp->com.comset->argflag&ARG_MESSAGE))
 								nv_setarray(np,nv_associative);
 						}
+						/* For correct nested assignments, propagate sh.first_root into
+						 * the recursive nv_setlist() call, so its 'vartree' variable
+						 * becomes the parent's tree instead of the default sh.var_tree. */
+						sh.prefix_root = sh.first_root;
 						nv_setlist(tp->com.comset,flags&~NV_STATIC,NULL);
 						sh.prefix = prefix;
 						if(tp->com.comset->argval[1]!='[')
@@ -945,6 +951,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 						nv_unref(np);
 					return np;
 				}
+				/* Fully dereference a chain of namerefs */
 				while(nv_isref(np) && np->nvalue)
 				{
 					root = nv_reftree(np);
@@ -970,6 +977,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 					flags |= NV_NOSCOPE;
 					noscope = 1;
 				}
+				/* Save the first/main root so nv_setlist() can recover the assigned-to node's function scope */
 				sh.first_root = root;
 				if(nv_isref(np))
 				{

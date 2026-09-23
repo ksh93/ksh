@@ -380,10 +380,10 @@ struct Shell_s
 	Sfio_t		*strbuf;
 	Sfio_t		*strbuf2;
 	Sfio_t		*notifybuf;	/* for 'set -o notify' job notices */
-	Dt_t		*first_root;
-	Dt_t		*prefix_root;
-	Dt_t		*last_root;
-	Dt_t		*prev_root;
+	Dt_t		*first_root;	/* dictionary root after fully dereferenceing a chain of namerefs; used by nv_setlist() */
+	Dt_t		*prefix_root;	/* copy of first_root while nv_setlist() recurses to handle prefixed/compound assignments */
+	Dt_t		*last_root;	/* dictionary where the most recently looked-up name was actually found */
+	Dt_t		*prev_root;	/* saved last_root, restored after nested lookup when copying/moving/renaming trees */
 	Dt_t		*fpathdict;
 	Dt_t		*typedict;
 	Dt_t		*funload_loopdetect_tree; /* for function autoload loop detection */

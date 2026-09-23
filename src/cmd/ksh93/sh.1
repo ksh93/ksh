@@ -1191,46 +1191,6 @@ third element of the indexed array, use
 .BI ${ vname [ 3 ][ foobar ]}
 .sp .5
 .PP
-A
-.I nameref\^
-is a variable that is a reference to another variable.
-A nameref is created with the
-.B \-n
-attribute of
-.B typeset
-or with the equivalent
-.B nameref
-command.
-The value of the variable at the time of that
-command becomes the variable that will be referenced whenever
-the nameref variable is used.
-The name of a nameref cannot contain a \fB\s+2.\s-2\fP.
-When a variable or function name contains a \fB\s+2.\s-2\fP, and the portion
-of the name up to the first \fB\s+2.\s-2\fP matches the
-name of a nameref, the variable referred to is obtained by
-replacing the nameref portion with the name of the variable
-referenced by the nameref.
-If a nameref is used as the index of a \fBfor\fP loop,
-a name reference is established for each item in the list.
-.PP
-A nameref provides a convenient way to refer to the variable
-inside a function whose name is passed as an argument to a function.
-For example, if the name of a variable is passed as the first
-argument to a function, the command
-\fBtypeset \-n var=$1\fR
-(a.k.a.
-\fBnameref var=$1\fR)
-inside the function causes references and assignments to
-.B var
-to be references and assignments to the variable whose
-name has been passed to the function.
-Note that, for this to work, the positional parameter must be assigned directly
-to the nameref as part of the declaration command, as in the example above;
-only that idiom can allow one function to access a local variable of another.
-For instance, \fBtypeset \-n var; var=$1\fR won't cross that barrier, nor will
-\fBtypeset foo=$1; typeset \-n var=foo\fR.
-.sp .5
-.PP
 If any of the floating point attributes,
 .BR \-E ,
 .BR \-F ,
@@ -1363,7 +1323,9 @@ This will be
 .I vname\^
 except when
 .I vname\^
-is a name reference.
+is a name reference (see
+.I "Name References"
+below).
 .TP
 \f3${!\fP\f2vname\^\fP\f3[\f2subscript\^\f3]}\fP
 Expands to name of the subscript unless
@@ -1672,6 +1634,58 @@ then \f2parameter\fP is substituted unmodified.
 When \f2parameter\fP is \f3@\fP, \f3*\fP,
 or an array variable with subscript \f3@\fP or \f3*\fP,
 the transformation is applied to each element in turn.
+.SS Name References.
+.sp .5
+.PP
+A
+.I nameref\^
+or name reference
+is a variable whose value refers to another variable by name.
+A nameref is created with the
+.B \-n
+attribute of
+.B typeset
+or with the equivalent
+.B nameref
+command.
+The value of the variable at the time of that
+command becomes the variable that will be referenced whenever
+the nameref variable is used.
+The name of a nameref cannot contain a \fB\s+2.\s-2\fP.
+When a variable or function name contains a \fB\s+2.\s-2\fP, and the portion
+of the name up to the first \fB\s+2.\s-2\fP matches the
+name of a nameref, the variable referred to is obtained by
+replacing the nameref portion with the name of the variable
+referenced by the nameref.
+If a nameref is used as the index of a \fBfor\fP loop,
+a name reference is established for each item in the list.
+.PP
+Name references may also be used specially to pass local variables between
+functions. As a special exception to the static scoping provided by shell
+functions declared with the
+.B function
+.I name\^
+syntax (see
+.I Functions\^
+below), a name reference may be used to give a function being called
+access to a variable belonging to the calling function's scope, provided the
+variable's name is passed as an argument to a function being called.
+For example, supposing we pass the name of a variable as the first argument
+to a function, the command
+\fBtypeset \-n \fR\fIref\fR\fB=$1\fR
+(a.k.a.
+\fBnameref \fR\fIref\fR\fB=$1\fR)
+inside the function causes references and assignments to
+.I ref
+to be references and assignments to the variable whose
+name has been passed to the function.
+For this to work, the positional parameter must be assigned directly to the
+nameref variable as part of the command that declares it, as in the example.
+Seemingly equivalent variants like
+\fBtypeset \-n \fR\fIref\fI\fB; \fR\fIref\fR\fB=$1\fR
+or
+\fBtypeset \fR\fIfoo\fR\fB=$1; typeset \-n \fR\fIref\fR\fB=\fR\fIfoo\fR
+will not cross the static scoping barrier.
 .SS Shell Variables.
 The following
 parameters

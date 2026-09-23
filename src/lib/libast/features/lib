@@ -403,3 +403,12 @@ tst	macos_strxfrm_bug - note{ macOS strxfrm(3) bug }end execute{
 		return !(strxfrm(NULL,"\xC2\xA7",0) == 0);
 	}
 }end
+
+# MacOS Tahoe (26.6), after installation of 27.0 SDK/dev command line tools,
+# ships a broken, crashing pipe2(2) in the system libraries. A compiler warning
+# tells us it's "not available" until 27.0, but iffe(1) sees it regardless.
+cat{
+	#if _lib_pipe2 && __APPLE__ && __MACH__ && MAC_OS_X_VERSION_MIN_REQUIRED < 270000
+	#undef _lib_pipe2
+	#endif
+}end
