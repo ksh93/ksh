@@ -1065,7 +1065,7 @@ static Sfoff_t	file_offset(int fn, char *fname)
 	Sfio_t		*sp = sh.sftable[fn];
 	char		*cp;
 	Sfoff_t		off;
-	struct Eof	endf = { NULL };
+	struct Eof	endf = { 0 };
 	Namval_t	*mp = nv_open("EOF",sh.var_tree,0);
 	Namval_t	*pp = nv_open("CUR",sh.var_tree,0);
 	endf.fd = fn;

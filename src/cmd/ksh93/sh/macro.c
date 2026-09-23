@@ -1135,7 +1135,7 @@ int sh_macfun(const char *name, ptrdiff_t offset)
 			struct argnod	arg;
 			struct dolnod	dol;
 			char buff[sizeof(struct dolnod) + 2 * sizeof(char*)];
-		} d = { NULL };
+		} d = { 0 };
 		t.node.com.comarg.ap = &d.arg;
 		t.node.com.comline = sh.inlineno;
 		d.dol.dolnum = 1;

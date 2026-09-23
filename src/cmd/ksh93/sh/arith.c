@@ -42,19 +42,19 @@ extern const Namdisc_t	ENUM_disc;
 static Sfdouble_t	NaN, Inf, Fun;
 static Namval_t Infnod =
 {
-	{ NULL },
+	{ 0 },
 	"Inf",
 };
 
 static Namval_t NaNnod =
 {
-	{ NULL },
+	{ 0 },
 	"NaN",
 };
 
 static Namval_t FunNode =
 {
-	{ NULL },
+	{ 0 },
 	"?",
 };
 

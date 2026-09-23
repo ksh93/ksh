@@ -29,7 +29,7 @@
 #include	<error.h>
 #include	<fcin.h>
 
-Fcin_t _Fcin = {NULL};
+Fcin_t _Fcin = { 0 };
 
 /*
  * open stream <f> for fast character input

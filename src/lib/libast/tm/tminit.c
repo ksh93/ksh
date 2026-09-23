@@ -62,7 +62,7 @@ static const Namval_t		options[] =
  *	      to allow future Tm_info_t growth
  */
 
-static Tm_info_t	_tm_info_ = { NULL };
+static Tm_info_t	_tm_info_ = { 0 };
 Tm_info_t*		_tm_infop_ = &_tm_info_;
 
 static char*		tz_abbr;

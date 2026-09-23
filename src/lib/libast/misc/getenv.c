@@ -23,11 +23,11 @@
 /*
  * NOTE: the "intercepts" definition is here instead of astintercept.c because some
  *	 static linkers miss lone references to "intercepts" without "astintercept()"
- * ALSO: { NULL } definition required by some dynamic linkers averse to common symbols
+ * ALSO: { 0 } definition required by some dynamic linkers averse to common symbols
  */
 
 Intercepts_t	intercepts
-		= { NULL };
+		= { 0 };
 
 /*
  * get name from the environment

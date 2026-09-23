@@ -58,7 +58,7 @@ const Limit_t	shtab_limits[] =
 "swap",     "swap size",                     RLIMIT_SWAP,       NULL,           'w', LIM_KBYTE,
 "threads",  "number of threads",             RLIMIT_PTHREAD,    "THREADS_MAX",  'T', LIM_COUNT,
 "vmem",     "process size",                  RLIMIT_VMEM,       NULL,           'v', LIM_KBYTE,
-{ NULL }
+{ 0 }
 };
 
 #endif

@@ -112,7 +112,7 @@ static const Ccmap_t	maps[] =
 	CC_NATIVE,
 	},
 
-	{ NULL },
+	{ 0 },
 };
 
 /*

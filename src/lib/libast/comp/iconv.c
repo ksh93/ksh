@@ -138,7 +138,7 @@ static const _ast_iconv_list_t	codes[] =
 	CC_SCU,
 	},
 
-	{ NULL },
+	{ 0 },
 };
 
 /*

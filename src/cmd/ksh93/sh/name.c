@@ -1378,7 +1378,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, nvflag_t flags)
 	char			*cp=(char*)name;
 	ssize_t			c;
 	Namval_t		*np = NULL;
-	Namfun_t		fun = { NULL };
+	Namfun_t		fun = { 0 };
 	nvflag_t		append = 0;
 	const char		*msg = e_varname;
 	char			*fname = NULL;
