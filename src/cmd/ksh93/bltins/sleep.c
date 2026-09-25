@@ -32,6 +32,25 @@
 #include	"FEATURE/time"
 #include	"FEATURE/poll"
 
+#if __APPLE__ && __MACH__
+/*
+ * Bug in macOS: if sleep is invoked from the interactive command line and then suspended (^Z),
+ * the forked ksh process freezes in the nanosleep(2) or pause(2) function in libsystem_c.dylib.
+ * As a workaround, make it impossible to suspend sleep in that case, by ignoring SIGTSTP.
+ */
+#define WORKAROUND_START()	do { \
+	if (sh_isstate(SH_INTERACTIVE)) \
+		signal(SIGTSTP,SIG_IGN); \
+} while(0)
+#define WORKAROUND_END()	do { \
+	if (sh_isstate(SH_INTERACTIVE) && !(sh.sigflag[SIGTSTP] & SH_SIGOFF)) \
+		signal(SIGTSTP,sh_fault); \
+} while(0)
+#else
+#define	WORKAROUND_START()	do { } while(0)
+#define WORKAROUND_END()	do { } while(0)
+#endif /* __APPLE__ && __MACH__ */
+
 int	b_sleep(int argc,char *argv[],Shbltin_t *context)
 {
 	char *cp;
@@ -109,20 +128,9 @@ skip:
 	}
 	if(sflag && d==0)
 	{
-#if __APPLE__ && __MACH__
-		/*
-		 * Bug in macOS: if sleep is invoked from the interactive command line and then suspended
-		 * (^Z), the forked ksh process freezes in the pause(2) function in libsystem_c.dylib.
-		 * As a workaround, make it impossible to suspend sleep in that case, by ignoring SIGTSTP.
-		 */
-		if (sh_isstate(SH_INTERACTIVE))
-			signal(SIGTSTP,SIG_IGN);
-#endif
+		WORKAROUND_START();
 		pause();  /* 'sleep -s' waits until a signal is sent */
-#if __APPLE__ && __MACH__
-		if (sh_isstate(SH_INTERACTIVE) && !(sh.sigflag[SIGTSTP] & SH_SIGOFF))
-			signal(SIGTSTP,sh_fault);
-#endif
+		WORKAROUND_END();
 	}
 	else
 		sh_delay(d,sflag);
@@ -142,7 +150,9 @@ void sh_delay(double t, int sflag)
 	{
 		while (1)
 		{
+			WORKAROUND_START();
 			pause();
+			WORKAROUND_END();
 			if (sh.trapnote & SH_SIGALRM)
 				sh_timetraps();
 			if ((sh.trapnote & SH_SIGTRAP) || sflag)
@@ -153,17 +163,14 @@ void sh_delay(double t, int sflag)
 	n = (uint32_t)t;
 	ts.tv_sec = n;
 	ts.tv_nsec = 1000000000 * (t - (double)n);
-#if __APPLE__ && __MACH__
-	/*
-	 * Bug in macOS: if sleep is invoked from the interactive command line and then suspended
-	 * (^Z), the forked ksh process freezes in the nanosleep(2) function in libsystem_c.dylib.
-	 * As a workaround, make it impossible to suspend sleep in that case, by ignoring SIGTSTP.
-	 */
-	if (sh_isstate(SH_INTERACTIVE))
-		signal(SIGTSTP,SIG_IGN);
-#endif
-	while(tvsleep(&ts, &tx) < 0)
+	while(1)
 	{
+		int r;
+		WORKAROUND_START();
+		r = tvsleep(&ts, &tx);
+		WORKAROUND_END();
+		if (r >= 0)
+			break;
 		if (sh.trapnote & SH_SIGALRM)
 			sh_timetraps();
 		if ((sh.trapnote & SH_SIGTRAP) || sflag)
@@ -171,8 +178,4 @@ void sh_delay(double t, int sflag)
 		sh_sigcheck();
 		ts = tx;
 	}
-#if __APPLE__ && __MACH__
-	if (sh_isstate(SH_INTERACTIVE) && !(sh.sigflag[SIGTSTP] & SH_SIGOFF))
-		signal(SIGTSTP,sh_fault);
-#endif
 }
