@@ -8,6 +8,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   whose last element runs in the current shell environment, such as the
   'read' built-in in 'sleep 10 | read'.
 
+- Fixed: in ${var%word} and ${var%%word}, any unescaped '|' in 'word' was
+  incorrectly treated as an alternation operator, even without the @(...|...)
+  syntax required to enable this; it is now treated as a literal character as
+  documented (and as always in ${var#word} and ${var##word}). Scripts that
+  rely on this bug should be corrected to use, e.g., ${var%@(word1|word2)}.
+
 2026-09-23:
 
 - Fixed failures (assignment data loss) when a nested associative array was

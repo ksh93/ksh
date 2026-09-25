@@ -904,4 +904,27 @@ got=$( set +x; { "$SHELL" -c 'v=abc; : ${v//*/}; print -r "${.sh.match[@]} ${.sh
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
 
 # ======
+# In the word of ${var%word}, ${var%%word}, ${var#word} and ${var##word},
+# a '|' must match itself literally. Only inside the extended pattern-list
+# operators @(...), |(...) and &(...) does '|' act as an alternation (OR)
+# operator; it is not to be treated as such at the top level of the word.
+# https://github.com/ksh93/ksh/issues/918
+
+s='ab|cd|ef'
+
+got=${s%|*}
+[[ $got == 'ab|cd' ]] || err_exit "\${s%|*}: '|' not literal (got $(printf %q "$got"))"
+got=${s%%|*}
+[[ $got == ab ]] || err_exit "\${s%%|*}: '|' not literal (got $(printf %q "$got"))"
+got=${s#|*}
+[[ $got == 'ab|cd|ef' ]] || err_exit "\${s#|*}: '|' not literal (got $(printf %q "$got"))"
+got=${s##|*}
+[[ $got == 'ab|cd|ef' ]] || err_exit "\${s##|*}: '|' not literal (got $(printf %q "$got"))"
+got=${s%d|e*}
+[[ $got == 'ab|c' ]] || err_exit "\${s%d|e*}: '|' not literal (got $(printf %q "$got"))"
+
+got=${s%@(d|e)*}
+[[ $got == 'ab|cd|' ]] || err_exit "\${s%@(d|e)*}: pattern-list alternation broken (got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))
