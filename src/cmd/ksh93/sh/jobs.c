@@ -344,7 +344,19 @@ int job_reap(int sig)
 			pw->p_flag |= (P_NOTIFY|P_SIGNALLED|P_STOPPED|P_BG);
 			pw->p_exit = (unsigned short)WSTOPSIG(wstat);
 			if(pw->p_pgrp && pw->p_pgrp==job.curpgid && sh_isstate(SH_STOPOK))
-				kill(sh.current_pid,pw->p_exit);
+			{
+				/*
+				 * We likely got here via the SIGCHLD handler, job_waitsafe().
+				 * SIGCHLD occurred because a child was just suspended (^Z).
+				 * For correct exception handling in the main shell environment (e.g.,
+				 * via sh_sigcheck() or slowexcept()), pretend the stop signal was
+				 * reissued to self and deferred, then return from the signal handler
+				 * so sh_exit(), which longjmps, ends up called from a safe location.
+				 */
+				sh.lastsig = (unsigned char)pw->p_exit;
+				sh.trapnote |= SH_SIGSET|SH_SIGTSTP;
+				break;
+			}
 			if(px)
 			{
 				/* move to top of job list */

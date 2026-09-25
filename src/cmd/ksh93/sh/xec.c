@@ -1001,6 +1001,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			{
 				static char *argv[2];
 				int tflags = 1;
+				int lastpipe = 0;
 				if(np && nv_isattr(np,BLT_DCL))
 					tflags |= 2;
 				if(execflg && !check_exec_optimization(type,execflg,execflg2,io))
@@ -1080,6 +1081,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 				}
 				if(np && pipejob==2)
 				{
+					lastpipe = 1;
 					job_unlock();
 					nlock--;
 					pipejob = 1;
@@ -1092,10 +1094,16 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 					volatile void	*save_data;
 					volatile short	save_prompt;
 					volatile int	share=0;
+					volatile int	suspendable;
 					char		was_mktype=(sh.mktype!=NULL);
 					char		was_nofork = execflg && sh_isstate(SH_NOFORK);
 					struct checkpt	*buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 					Shbltin_t	*bp = &sh.bltindata;
+					/*
+					 * To avoid hanging on ^Z, ignore BLT_ENV (allow suspending) for a built-in
+					 * that is run as the last element of a pipeline in a shell with job control.
+					 */
+					suspendable = !(nv_isattr(np,BLT_ENV)) || (lastpipe && sh_isstate(SH_MONITOR));
 					save_ptr = bp->ptr;
 					save_data = bp->data;
 					if(execflg)
@@ -1140,7 +1148,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 							for(item=buffp->olist;item;item=item->next)
 								item->strm=0;
 						}
-						if(!(nv_isattr(np,BLT_ENV)))
+						if(suspendable)
 						{
 							sfsync(NULL);
 							share = sfset(sfstdin,SFIO_SHARE,0);
@@ -1208,7 +1216,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						np->nvfun = bp->ptr;
 					if(execflg && !was_nofork)
 						sh_offstate(SH_NOFORK);
-					if(!(nv_isattr(np,BLT_ENV)))
+					if(suspendable)
 					{
 						sh_offstate(SH_STOPOK);
 						if(share&SFIO_SHARE)
