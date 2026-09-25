@@ -108,10 +108,24 @@ skip:
 		UNREACHABLE();
 	}
 	if(sflag && d==0)
+	{
+#if __APPLE__ && __MACH__
+		/*
+		 * Bug in macOS: if sleep is invoked from the interactive command line and then suspended
+		 * (^Z), the forked ksh process freezes in the pause(2) function in libsystem_c.dylib.
+		 * As a workaround, make it impossible to suspend sleep in that case, by ignoring SIGTSTP.
+		 */
+		if (sh_isstate(SH_INTERACTIVE))
+			signal(SIGTSTP,SIG_IGN);
+#endif
 		pause();  /* 'sleep -s' waits until a signal is sent */
+#if __APPLE__ && __MACH__
+		if (sh_isstate(SH_INTERACTIVE) && !(sh.sigflag[SIGTSTP] & SH_SIGOFF))
+			signal(SIGTSTP,sh_fault);
+#endif
+	}
 	else
 		sh_delay(d,sflag);
-	sh_sigcheck();
 	return 0;
 }
 
@@ -131,8 +145,9 @@ void sh_delay(double t, int sflag)
 			pause();
 			if (sh.trapnote & SH_SIGALRM)
 				sh_timetraps();
-			if ((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
+			if ((sh.trapnote & SH_SIGTRAP) || sflag)
 				return;
+			sh_sigcheck();
 		}
 	}
 	n = (uint32_t)t;
@@ -151,8 +166,9 @@ void sh_delay(double t, int sflag)
 	{
 		if (sh.trapnote & SH_SIGALRM)
 			sh_timetraps();
-		if ((sh.trapnote & (SH_SIGSET | SH_SIGTRAP)) || sflag)
+		if ((sh.trapnote & SH_SIGTRAP) || sflag)
 			break;
+		sh_sigcheck();
 		ts = tx;
 	}
 #if __APPLE__ && __MACH__
