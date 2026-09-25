@@ -289,7 +289,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 	}
 	else
 	{
-		name = 0;
+		name = NULL;
 		np = sh_scoped(REPLYNOD);
 	}
 	keytrap =  ep?ep->e_keytrap:0;
@@ -393,7 +393,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 				c = size;
 				if(keytrap)
 				{
-					cp = 0;
+					cp = NULL;
 					f = 0;
 					m = 0;
 					while(c-->0 && (buf[m]=(char)ed_getchar(ep,0)))
@@ -571,8 +571,8 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 	sh.nextprompt = 2;
 	rel = stktell(sh.stk);
 	/* val==0 at the start of a field */
-	val = 0;
-	del = 0;
+	val = NULL;
+	del = NULL;
 	while(1)
 	{
 		ssize_t mbsz;
@@ -580,7 +580,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		{
 #if SHOPT_MULTIBYTE
 		   case S_MBYTE:
-			if(val==0)
+			if(val==NULL)
 				val = (char*)(cp-1);
 			if(sh_strchr(ifs,(char*)cp-1)>=0)
 			{
@@ -638,7 +638,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 				sfputr(sh.stk,val,-1);
 				use_stak = 1;
 			}
-			val = 0;
+			val = NULL;
 			if(cp>=cpmax)
 			{
 				c = S_NL;
@@ -665,7 +665,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 #endif
 					cpmax = cp + c;
 					c = sh.ifstable[*cp++];
-					val=0;
+					val = NULL;
 					if(!name && (c==S_SPACE || c==S_DELIM || c==S_MBYTE))
 						c = 0;
 					continue;
@@ -708,7 +708,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 			/* FALLTHROUGH */
 
 		    case 0:
-			if(val==0 || was_escape)
+			if(val==NULL || was_escape)
 			{
 				val = (char*)(cp-1);
 				was_escape = 0;
@@ -803,8 +803,8 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		}
 		else
 			nv_putval(np,val,0);
-		val = 0;
-		del = 0;
+		val = NULL;
+		del = NULL;
 		if(use_stak)
 		{
 			stkseek(sh.stk,rel);
@@ -825,7 +825,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 				name = *++names;
 			}
 			else
-				np = 0;
+				np = NULL;
 			if(c!=S_NL)
 				break;
 			if(!np)

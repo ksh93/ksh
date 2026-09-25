@@ -139,8 +139,8 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 	char*		v;
 	char*		t;
 	char*		b;
-	char*		a = 0;
-	char*		s = 0;
+	char*		a = NULL;
+	char*		s = NULL;
 	Sflong_t	n = 0;
 	int		h = 0;
 	int		i = 0;
@@ -193,7 +193,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 						x = FMT_edit;
 					*(a + 4) = (char)d;
 					if (x)
-						a = 0;
+						a = NULL;
 				}
 			}
 			break;
@@ -209,7 +209,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 	else
 	{
 		h = (*fp->lookup)(fp->handle, &fp->fmt, a, &s, &n);
-		v = 0;
+		v = NULL;
 	}
 	fp->fmt.flags |= SFFMT_VALUE;
 	switch (fp->fmt.fmt)
@@ -264,7 +264,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 						fmt = *fp;
 						fmt.fmt.form = v;
 						for (h = 0; h < (ssize_t)elementsof(fmt.tmp); h++)
-							fmt.tmp[h] = 0;
+							fmt.tmp[h] = NULL;
 						if (!fp->tmp[0] && !(fp->tmp[0] = sfstropen()) || sfprintf(fp->tmp[0], "%!", &fmt) <= 0 || !(s = sfstruse(fp->tmp[0])))
 							s = "";
 						*(v - 1) = (char)d;

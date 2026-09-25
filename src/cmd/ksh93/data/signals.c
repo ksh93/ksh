@@ -221,5 +221,5 @@ const struct shtable2 shtab_signals[] =
 #ifdef SIGXRES
 	"XRES",		VAL(SIGXRES,SH_SIGDONE|SH_SIGINTERACTIVE),	S("Exceeded resource control"),
 #endif	/* SIGRES */
-	"",	0,	0
+	"",	0,	NULL
 };

@@ -149,7 +149,7 @@ tmxfmt(char *restrict buf, size_t len, const char *restrict format, Time_t t)
 			continue;
 		}
 		alt = 0;
-		arg = 0;
+		arg = NULL;
 		pad = 0;
 		width = 0;
 		prec = 0;
@@ -590,7 +590,7 @@ tmxfmt(char *restrict buf, size_t len, const char *restrict format, Time_t t)
 		case 'z':	/* time zone west offset */
 			if (arg)
 			{
-				if ((zp = tmzone(arg, &f, 0, 0)) && !*f && tm->tm_zone != zp)
+				if ((zp = tmzone(arg, &f, NULL, NULL)) && !*f && tm->tm_zone != zp)
 					tm = tmxtm(tm, tmxtime(tm, tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0)), zp, 0);
 				continue;
 			}
@@ -600,7 +600,7 @@ tmxfmt(char *restrict buf, size_t len, const char *restrict format, Time_t t)
 		case 'Z':	/* time zone */
 			if (arg)
 			{
-				if ((zp = tmzone(arg, &f, 0, 0)) && !*f && tm->tm_zone != zp)
+				if ((zp = tmzone(arg, &f, NULL, NULL)) && !*f && tm->tm_zone != zp)
 				{
 					tm = tmxtm(tm, tmxtime(tm, tm->tm_zone->west + (tm->tm_isdst ? tm->tm_zone->dst : 0)), zp, 0);
 					if (zp->west || zp->dst)

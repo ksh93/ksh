@@ -34,7 +34,7 @@
 
 #include <error.h>
 
-#define ERROR(e)	{ errno = e; return 0; }
+#define ERROR(e)	{ errno = e; return NULL; }
 
 char*
 getcwd(char* buf, size_t len)
@@ -44,7 +44,7 @@ getcwd(char* buf, size_t len)
 	int		oerrno;
 
 	if (buf)
-		return SYSGETCWD(buf, len) < 0 ? 0 : buf;
+		return SYSGETCWD(buf, len) < 0 ? NULL : buf;
 	oerrno = errno;
 	n = PATH_MAX;
 	for (;;)

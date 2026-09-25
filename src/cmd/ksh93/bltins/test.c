@@ -204,7 +204,7 @@ int b_test(int argc, char *argv[],Shbltin_t *context)
 					char *av[3];
 					av[0] = argv[0];
 					av[1] = argv[1];
-					av[2] = 0;
+					av[2] = NULL;
 					if (optget(av,sh_opttest) == '?')
 						return optselfdoc();
 					errormsg(SH_DICT, ERROR_exit(2), "%s", opt_info.arg);
@@ -309,7 +309,7 @@ static int e3(struct test *tp,int inparens)
 		return op;
 	}
 	cp = nxtarg(tp,1);
-	if(cp!=0 && (c_eq(cp,'=') || c2_eq(cp,'!','=')))
+	if(cp!=NULL && (c_eq(cp,'=') || c2_eq(cp,'!','=')))
 		goto skip;
 	if(!sh_isoption(SH_POSIX) && c2_eq(arg,'-','t'))
 	{	/*

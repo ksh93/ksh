@@ -181,7 +181,7 @@ char *sh_mactrim(char *str, int8_t mode)
 	if(mode<0)
 		mp->assign = mode * -1;
 	mp->quoted = mp->lit = mp->split = mp->quote = 0;
-	mp->sp = 0;
+	mp->sp = NULL;
 	setup_ifs(mp);
 	stkseek(stkp,0);
 	fcsopen(str);
@@ -190,7 +190,7 @@ char *sh_mactrim(char *str, int8_t mode)
 	if(mode==2)
 	{
 		/* expand only if unique */
-		struct argnod *arglist=0;
+		struct argnod *arglist = NULL;
 		size_t path_mode;
 		if((path_mode=path_expand(str,&arglist,0))==1)
 			str = arglist->argval;
@@ -218,7 +218,7 @@ int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
 	char		**saveoptimize = nv_getoptimize();
 	Mac_t		savemac = *mp;
 	Stk_t		*stkp = sh.stk;
-	mp->sp = 0;
+	mp->sp = NULL;
 	setup_ifs(mp);
 	if((flag&ARG_OPTIMIZE) && !sh.indebug && !(flags&ARG_MESSAGE))
 		nv_setoptimize((char**)&argp->argchn.ap);
@@ -306,7 +306,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 		fcfopen(infile);
 	else
 		fcsopen(string);
-	fcnotify(0,lp);
+	fcnotify(NULL,lp);
 	cp = fcseek(0);
 	while(1)
 	{
@@ -378,7 +378,7 @@ void sh_machere(Sfio_t *infile, Sfio_t *outfile, char *string)
 				ptrdiff_t offset = stktell(stkp);
 				ptrdiff_t offset2;
 				ptrdiff_t write_len;
-				fcnotify(0,lp);
+				fcnotify(NULL,lp);
 				sfputc(stkp,c);
 				if(n==S_LBRA)
 				{
@@ -441,13 +441,13 @@ char *sh_macpat(struct argnod *arg, int flags)
 		return sp;
 	sh_stats(STAT_ARGEXPAND);
 	if(flags&ARG_OPTIMIZE)
-		arg->argchn.ap=0;
+		arg->argchn.ap = NULL;
 	if(!(sp=arg->argchn.cp))
 	{
 		sh_macexpand(arg,NULL,flags|ARG_ARRAYOK);
 		sp = arg->argchn.cp;
 		if(!(flags&ARG_OPTIMIZE) || !(arg->argflag&ARG_MAKE))
-			arg->argchn.cp = 0;
+			arg->argchn.cp = NULL;
 		arg->argflag &= ~ARG_MAKE;
 	}
 	else
@@ -475,7 +475,7 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 	char		bracketexpr = 0; 	/* set when in [brackets] within a non-ERE glob pattern */
 	Sfio_t		*sp = mp->sp;
 	Stk_t		*stkp = sh.stk;
-	char		*resume = 0;
+	char		*resume = NULL;
 	mp->sp = NULL;
 	mp->quote = newquote;
 	first = cp = fcseek(0);
@@ -694,7 +694,7 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 			{
 				fcclose();
 				fcsopen(resume);
-				resume = 0;
+				resume = NULL;
 				cp = first = fcseek(0);
 				continue;
 			}
@@ -1040,7 +1040,7 @@ static char *getdolarg(ptrdiff_t n, ptrdiff_t *size)
 	if(m > sh.offsets[0])
 		sh.offsets[0] = m;
 	if(n)
-		first = last = 0;
+		first = last = NULL;
 	if(size)
 		*size = last-first;
 	return (char*)first;
@@ -1053,7 +1053,7 @@ static char *getdolarg(ptrdiff_t n, ptrdiff_t *size)
 static char *prefix(char *id)
 {
 	Namval_t *np;
-	char *sub=0, *cp = strchr(id,'.');
+	char *sub = NULL, *cp = strchr(id,'.');
 	if(cp)
 	{
 		*cp = 0;
@@ -1183,12 +1183,12 @@ static int varsub(Mac_t *mp)
 	Namval_t	*np = NULL;
 	ptrdiff_t	dolmax=0, dolg=0;
 	Lex_t		*lp = (Lex_t*)sh.lex_context;
-	Namarr_t	*ap=0;
+	Namarr_t	*ap = NULL;
 	int		nulflg, bysub=0;
 	ptrdiff_t	vsize = -1;
-	char		idbuff[3], *id = idbuff, *pattern=0, *repstr=0, *arrmax=0;
-	char		*idx = 0;
-	char		*defval_subscript = 0;	/* saved array subscript for ${a[sub]=def} and ${a[sub]:=def} */
+	char		idbuff[3], *id = idbuff, *pattern = NULL, *repstr = NULL, *arrmax = NULL;
+	char		*idx = NULL;
+	char		*defval_subscript = NULL;	/* saved array subscript for ${a[sub]=def} and ${a[sub]:=def} */
 	int		var = 1, addsub = 0;
 	nvflag_t	nvflag=0;
 	char		oldpat=mp->pattern;
@@ -1257,7 +1257,7 @@ retry1:
 #endif  /* SHOPT_FILESCAN */
 			dolmax = sh.st.dolc+1;
 			mp->atmode = (v && mp->quoted && c=='@');
-			dolg = (v!=0);
+			dolg = (v!=NULL);
 		}
 		break;
 	    case S_LBRA:
@@ -1305,7 +1305,7 @@ retry1:
 			v = sh.st.dolv[ppnum];
 		}
 		else
-			v = 0;
+			v = NULL;
 		/* Handle 'set -u'/'set -o nounset' for positional parameters */
 		if(!v && sh_isoption(SH_NOUNSET))
 		{
@@ -1326,7 +1326,7 @@ retry1:
 		offset = stktell(stkp);
 		do
 		{
-			np = 0;
+			np = NULL;
 			do
 			{
 				if(LEN==1)
@@ -1471,10 +1471,10 @@ retry1:
 #else
 			else
 #endif  /* SHOPT_FILESCAN */
-				np = 0;
+				np = NULL;
 		}
 		np_orig = np;
-		ap = np?nv_arrayptr(np):0;
+		ap = np?nv_arrayptr(np):NULL;
 		if(type)
 		{
 			if(mp->dotdot)
@@ -1505,7 +1505,7 @@ retry1:
 				else
 				{
 					if((long)sh_arith(v))
-						np = 0;
+						np = NULL;
 				}
 			}
 			else if(ap && (isastchar(mode)||type==M_TREE)  && !(ap->nelem&ARRAY_SCAN) && type!=M_SIZE)
@@ -1582,10 +1582,10 @@ retry1:
 					if(ap)
 					{
 						ap = nv_arrayptr(np_orig); /* update */
-						v = nv_arrayisset(np,ap)?(char*)"x":0;
+						v = nv_arrayisset(np,ap)?(char*)"x":NULL;
 					}
 					else
-						v = nv_isnull(np)?0:(char*)"x";
+						v = nv_isnull(np)?NULL:(char*)"x";
 				}
 				else
 					v = nv_getval(np);
@@ -1604,7 +1604,7 @@ retry1:
 				errormsg(SH_DICT,ERROR_exit(1),e_notset,id);
 				UNREACHABLE();
 			}
-			v = 0;
+			v = NULL;
 			if(type==M_VNAME)
 			{
 				v = id;
@@ -1700,7 +1700,7 @@ retry1:
 				d = array_elem(ap);
 			}
 			else
-				d = (v!=0);
+				d = (v!=NULL);
 			dolg = dolmax = 0;
 			v = ltos(d);
 		}
@@ -1820,7 +1820,7 @@ retry1:
 				else if(sliceoffset < dolmax)
 					v = sh.st.dolv[dolg = sliceoffset];
 				else
-					v =  0;
+					v = NULL;
 			}
 			else if(ap)
 			{
@@ -1836,7 +1836,7 @@ retry1:
 				if(array_assoc(ap))
 				{
 					nv_putsub(np, NULL, ap->nelem&ARRAY_SCAN ? 0 : ARRAY_SCAN);
-					while(sliceoffset-- > 0 && (v=0,nv_nextsub(np)))
+					while(sliceoffset-- > 0 && (v=NULL,nv_nextsub(np)))
 						v = nv_getval(np);
 				}
 				else if(sliceoffset >= 0)
@@ -1844,11 +1844,11 @@ retry1:
 					if(nv_putsub(np, NULL, sliceoffset|ARRAY_SCAN))
 						v = nv_getval(np);
 					else
-						v = 0;
+						v = NULL;
 				}
 			}
 			else if(sliceoffset > 0)
-				v = 0;
+				v = NULL;
 			if(!v)
 				mp->atmode = 0;
 		}
@@ -1858,7 +1858,7 @@ retry1:
 			if(sliceoffset < 0 && (sliceoffset += vsize) < 0)
 				sliceoffset = 0;
 			if(vsize < sliceoffset)
-				v = 0;
+				v = NULL;
 			else if(mbwide())
 			{
 				ptrdiff_t d;
@@ -1875,7 +1875,7 @@ retry1:
 			ptrdiff_t slicelength = sh_strnum(lastchar+1,&lastchar,1);
 			if(slicelength <= 0)
 			{
-				v = 0;
+				v = NULL;
 				mp->atmode = 0;
 			}
 			else if(isastchar(mode))
@@ -1910,7 +1910,7 @@ retry1:
 		if(*lastchar)
 			mac_error();
 		stkseek(stkp,offset);
-		argp = 0;
+		argp = NULL;
 	}
 	/* check for substring operations */
 	else if(sh_lexstates[ST_BRACE][c]==S_MOD2)
@@ -2036,7 +2036,7 @@ retry2:
 				if(!mp->macsub && (!repstr || (nmatch==0 && index==0)))
 					sh_setmatch(vlast,vsize_last,nmatch,match,index++);
 				if(!mp->macsub && index>0 && c=='/' && type)
-					sh_setmatch(0,0,nmatch,0,-1);
+					sh_setmatch(NULL,0,nmatch,NULL,-1);
 			}
 			if (c == '^' || c == ',')
 			{
@@ -2068,7 +2068,7 @@ retry2:
 					{
 						int	wc;
 						wint_t	nwc;
-						char	*mbuf = 0;
+						char	*mbuf = NULL;
 						char	*cp = v + match[0], *ocp;
 						while (cp < v + match[1])
 						{
@@ -2221,7 +2221,7 @@ retry2:
 	else if(argp)
 	{
 		if(c=='/' && replen>0 && pattern && strmatch("",pattern))
-			mac_substitute(mp,repstr,v,0,0);
+			mac_substitute(mp,repstr,v,NULL,0);
 		if(c=='?')
 		{
 			if(np)
@@ -2246,7 +2246,7 @@ retry2:
 				if(defval_subscript)
 				{
 					nv_putsub(np,defval_subscript,0);
-					defval_subscript = 0;
+					defval_subscript = NULL;
 				}
 				if(sh.subshell)
 					sh_assignok(np,1);
@@ -2322,10 +2322,10 @@ static void comsubst(Mac_t *mp,Shnode_t* t, volatile char type)
 	Sfoff_t			foff;
 	savemac.wasexpan = 1;
 	nv_setoptimize(NULL);
-	sh.st.staklist=0;
+	sh.st.staklist = NULL;
 	if(type)
 	{
-		sp = 0;
+		sp = NULL;
 		fcseek(-1);
 		if(!t)
 			t = sh_dolparen((Lex_t*)sh.lex_context);
@@ -2393,7 +2393,7 @@ static void comsubst(Mac_t *mp,Shnode_t* t, volatile char type)
 			/* special case $(<file) and $(<#file) */
 			volatile int fd = -1;
 			int jmpval = 0;
-			struct ionod *ip=0;
+			struct ionod *ip = NULL;
 			if ((ip = t->tre.treio) && ((ip->iofile & IOLSEEK) || !(ip->iofile & IOUFD)))
 			{
 				struct checkpt buff;
@@ -2743,7 +2743,7 @@ static void endfield(Mac_t *mp,int split)
 	if(stktell(stkp) > (ssize_t)ARGVAL || split)
 	{
 		argp = stkfreeze(stkp,1);
-		argp->argnxt.cp = 0;
+		argp->argnxt.cp = NULL;
 		argp->argflag = 0;
 		mp->atmode = 0;
 		if(mp->patfound)

@@ -41,7 +41,7 @@ ssize_t sfvsprintf(char *restrict s, size_t n, const char *restrict form, va_lis
 	Sfnotify_f	notify = _Sfnotify;
 
 	/* make a temp stream */
-	_Sfnotify = 0;
+	_Sfnotify = NULL;
 	f = sfnew(NULL,NULL,(size_t)SFIO_UNBOUND, -1,SFIO_WRITE|SFIO_STRING);
 	_Sfnotify = notify;
 	if(!f)

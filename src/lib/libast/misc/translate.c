@@ -117,7 +117,7 @@ find(const char* locale, const char* catalog)
 	if (!mcfind(locale, catalog, LC_MESSAGES, 0, path, sizeof(path)) || (d = catopen(path, NL_CAT_LOCALE)) == NOCAT)
 	{
 		if (locale == (const char*)lc_categories[AST_LC_MESSAGES].prev)
-			o = 0;
+			o = NULL;
 		else if (o = setlocale(LC_MESSAGES, NULL))
 		{
 			ast.locale.set |= AST_LC_internal;
@@ -193,7 +193,7 @@ init(char* s)
 			if (!m)
 			{
 				dtclose(cp->messages);
-				cp->messages = 0;
+				cp->messages = NULL;
 			}
 		}
 		catclose(d);

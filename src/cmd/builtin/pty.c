@@ -246,7 +246,7 @@ mkpty(int* master, int* minion)
 		tty.c_oflag &= ~OPOST;
 		tty.c_lflag &= ~(ISIG | ICANON | ECHO | ECHOE | ECHOK | ECHONL);
 #endif /* _lib_cfmakeraw */
-		ttyp = 0;
+		ttyp = NULL;
 	}
 	tty.c_lflag |= ICANON | IEXTEN | ISIG | ECHO | ECHOE | ECHOK;
 #ifdef ECHOKE
@@ -281,7 +281,7 @@ mkpty(int* master, int* minion)
 			error(-1, "unable to get standard error window size");
 		win.ws_row = 0;
 		win.ws_col = 0;
-		winp = 0;
+		winp = NULL;
 	}
 	if (win.ws_row < 24)
 		win.ws_row = 24;
@@ -387,7 +387,7 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 	NOT_USED(delay);
 	ip = sfstdin;
 	if (!fstat(sffileno(ip), &dst) && !stat("/dev/null", &fst) && dst.st_dev == fst.st_dev && dst.st_ino == fst.st_ino)
-		ip = 0;
+		ip = NULL;
 	do
 	{
 		i = 0;
@@ -417,7 +417,7 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				if (!(s = (char*)sfreserve(mp, SFIO_UNBOUND, -1)))
 				{
 					sfclose(mp);
-					mp = 0;
+					mp = NULL;
 				}
 				else if ((r = sfvalue(mp)) > 0 && (sfwrite(sfstdout, s, (size_t)r) != r || sfsync(sfstdout)))
 				{
@@ -429,7 +429,7 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			{
 				t++;
 				if (!(s = sfgetr(ip, '\n', 1)))
-					ip = 0;
+					ip = NULL;
 				else if (sfputr(mp, s, '\r') < 0 || sfsync(mp))
 				{
 					error(ERROR_SYSTEM|2, "write failed");
@@ -543,7 +543,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		if (strneq(bp->cur, promptbuf, promptlen))
 			r = bp->cur;
 		else
-			r = 0;
+			r = NULL;
 		if (bp->cur < bp->end && bp->saving)
 			*bp->cur = 0;
 		if (r)
@@ -581,7 +581,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		if (bp->nxt >= bp->end)
 		{
 			bp->cur = bp->end = bp->buf;
-			bp->nxt = 0;
+			bp->nxt = NULL;
 		}
 		else
 		{
@@ -609,7 +609,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 			}
 			r = bp->cur;
 			*bp->end = 0;
-			bp->nxt = 0;
+			bp->nxt = NULL;
 			if (prompt && strneq(r, promptbuf, promptlen))
 			{
 				error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
@@ -641,7 +641,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 				r = bp->cur;
 				*bp->end = 0;
 				bp->cur = bp->end = bp->buf;
-				bp->nxt = 0;
+				bp->nxt = NULL;
 				goto done;
 			}
 			else
@@ -681,7 +681,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		if (bp->cur >= bp->end)
 		{
 			bp->cur = bp->end = bp->buf;
-			bp->nxt = 0;
+			bp->nxt = NULL;
 		}
 		else if (bp->nxt = memchr(bp->cur + 1, '\n', (size_t)(bp->end - bp->cur - 1)))
 			bp->nxt++;
@@ -692,7 +692,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	{
 		bp->saving = 0;
 		bp->cur = r;
-		bp->nxt = 0;
+		bp->nxt = NULL;
 		must = 0;
 		goto again;
 	}
@@ -706,14 +706,14 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 			error(ERROR_PANIC, "pty.c:%d: internal error: r is %td bytes before bp->bufunderflow", __LINE__, bp->bufunderflow - r);
 		bp->cursor = 0;
 	}
-	for (t = 0, n = 0; *s; s++)
+	for (t = NULL, n = 0; *s; s++)
 		if (*s == '\n')
 		{
 			if (t)
 			{
 				*t++ = '\n';
 				*t = 0;
-				t = 0;
+				t = NULL;
 				n = 0;
 			}
 		}
@@ -799,17 +799,17 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		outofmemory(0);
 	vm->options = VM_INIT | VM_FREEONFAIL;
 	vm->outofmemory = outofmemory;
-	cond = vmnewof(vm, 0, Cond_t, 1, 0);
-	master = vmnewof(vm, 0, Master_t, 1, 0);
+	cond = vmnewof(vm, NULL, Cond_t, 1, 0);
+	master = vmnewof(vm, NULL, Master_t, 1, 0);
 	master->vm = vm;
-	master->bufunderflow = vmnewof(vm, 0, char, 2 * SFIO_BUFSIZE, BUFUNDERFLOW);
+	master->bufunderflow = vmnewof(vm, NULL, char, 2 * SFIO_BUFSIZE, BUFUNDERFLOW);
 	master->buf = master->bufunderflow + BUFUNDERFLOW;
 	master->cur = master->end = master->buf;
 	master->max = master->buf + 2 * SFIO_BUFSIZE - 1;
 	master->saving = 0;
 	errno = 0;
 	id = error_info.id;
-	error_info.id = 0;
+	error_info.id = NULL;
 	line = error_info.line;
 	error_info.line = 0;
 	while (s = sfgetr(sfstdin, '\n', 1))
@@ -853,10 +853,10 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			break;
 		case 'i':
 			if (!cond->next)
-				cond->next = vmnewof(vm, 0, Cond_t, 1, 0);
+				cond->next = vmnewof(vm, NULL, Cond_t, 1, 0);
 			cond = cond->next;
 			cond->flags = IF;
-			if ((cond->prev->flags & SKIP) && !(cond->text = 0) || !(cond->text = masterline(mp, lp, 0, 0, timeout, master)))
+			if ((cond->prev->flags & SKIP) && !(cond->text = NULL) || !(cond->text = masterline(mp, lp, NULL, 0, timeout, master)))
 				cond->flags |= KEPT|SKIP;
 			else if (match(s, cond->text, 0))
 				cond->flags |= KEPT;
@@ -916,7 +916,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'r':
 			if (cond->flags & SKIP)
 				continue;
-			if (!(m = masterline(mp, lp, 0, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master)))
+			if (!(m = masterline(mp, lp, NULL, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master)))
 				goto done;
 			match(s, m, 1);
 			break;
@@ -937,7 +937,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				continue;
 			do
 			{
-				if (!(m = masterline(mp, lp, 0, -1, timeout, master)))
+				if (!(m = masterline(mp, lp, NULL, -1, timeout, master)))
 				{
 					match(s, m, 1);
 					goto done;
@@ -958,7 +958,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			if (master->ignore)
 			{
 				vmfree(vm, master->ignore);
-				master->ignore = 0;
+				master->ignore = NULL;
 			}
 			if (*s)
 				master->ignore = vmstrdup(vm, s);
@@ -967,7 +967,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			if (error_info.id)
 			{
 				vmfree(vm, error_info.id);
-				error_info.id = 0;
+				error_info.id = NULL;
 			}
 			if (*s)
 				error_info.id = vmstrdup(vm, s);
@@ -976,7 +976,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			if (master->prompt)
 			{
 				vmfree(vm, master->prompt);
-				master->prompt = 0;
+				master->prompt = NULL;
 			}
 			if (*s)
 				master->prompt = vmstrdup(vm, s);
@@ -1021,9 +1021,9 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	char		buf[64];
 
 	useconds_t	delay = 0;
-	char*		log = 0;
-	char*		messages = 0;
-	char*		stty = 0;
+	char*		log = NULL;
+	char*		messages = NULL;
+	char*		stty = NULL;
 	int		session = 1;
 	int		timeout = 1000;
 	int		(*fun)(Sfio_t*,Sfio_t*,useconds_t,int) = process;
@@ -1076,7 +1076,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_system(1), "unable to create pty");
 		UNREACHABLE();
 	}
-	if (!(mp = sfnew(NULL, 0, (size_t)SFIO_UNBOUND, master, SFIO_READ|SFIO_WRITE)))
+	if (!(mp = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, master, SFIO_READ|SFIO_WRITE)))
 	{
 		error(ERROR_system(1), "cannot open master stream");
 		UNREACHABLE();
@@ -1105,12 +1105,12 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 				*s = 0;
 				ap->argv[++n] = s + 1;
 			}
-		ap->argv[n + 1] = 0;
-		b_stty(ap->argc, ap->argv, 0);
+		ap->argv[n + 1] = NULL;
+		b_stty(ap->argc, ap->argv, NULL);
 		free(ap);
 	}
 	if (!log)
-		lp = 0;
+		lp = NULL;
 	else if (!(lp = sfopen(NULL, log, "w")))
 	{
 		error(ERROR_system(1), "%s: cannot write", log);

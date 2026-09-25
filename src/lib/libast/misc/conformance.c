@@ -23,7 +23,7 @@
 
 static char**		ids;
 
-static const char*	dflt[] = { "ast", "standard", 0 };
+static const char*	dflt[] = { "ast", "standard", NULL };
 
 /*
  * initialize the conformance() ID list
@@ -43,7 +43,7 @@ initconformance(void)
 
 	static const char*	conf[] = { "CONFORMANCE", "HOSTTYPE", "UNIVERSE" };
 
-	p = 0;
+	p = NULL;
 	if (sp = sfstropen())
 	{
 		for (i = h = 0, j = 1; i < elementsof(conf); i++)
@@ -85,7 +85,7 @@ initconformance(void)
 				while (*m++);
 				p[i++] = m;
 			}
-			p[i] = 0;
+			p[i] = NULL;
 		}
 		sfstrclose(sp);
 	}
@@ -118,7 +118,7 @@ conformance(const char* s, size_t n)
 		{
 			if (ids != (char**)dflt)
 				free(ids);
-			ids = 0;
+			ids = NULL;
 		}
 		p = initconformance();
 	}

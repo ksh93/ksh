@@ -610,7 +610,7 @@ static int treeevent(Dt_t* dt, int event, void* arg)
 	if(event == DT_OPEN)
 	{	if(tree) /* already initialized */
 			return 0;
-		if(!(tree = (Dttree_t*)(*dt->memoryf)(dt, 0, sizeof(Dttree_t), dt->disc)) )
+		if(!(tree = (Dttree_t*)(*dt->memoryf)(dt, NULL, sizeof(Dttree_t), dt->disc)) )
 		{	DTERROR(dt, "Error in allocating a tree data structure");
 			return -1;
 		}

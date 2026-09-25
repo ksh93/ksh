@@ -481,14 +481,14 @@ static void put_lang(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 static void put_ifs(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 {
 	struct ifs *ip = (struct ifs*)fp;
-	ip->ifsnp = 0;
+	ip->ifsnp = NULL;
 	if(!val)
 	{
 		fp = nv_stack(np, NULL);
 		if(fp && !(fp->namflags & NAMFUN_NOFREE))
 		{
 			free(fp);
-			fp = 0;
+			fp = NULL;
 		}
 	}
 	if(val != np->nvalue)
@@ -669,7 +669,7 @@ void sh_reseed_rand(struct rand *rp)
 	rp->rand_last = -1;
 }
 
-static const Namdisc_t RAND_disc	= {  sizeof(struct rand), put_rand, get_rand, nget_rand };
+static const Namdisc_t RAND_disc	= {  .dsize = sizeof(struct rand), .putval = put_rand, .getval = get_rand, .getnum = nget_rand };
 
 void sh_invalidate_rand_seed(void)
 {
@@ -875,12 +875,12 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 				if(np->nvfun && np->nvfun != &mp->hdr)
 				{
 					free(np->nvfun);
-					np->nvfun = 0;
+					np->nvfun = NULL;
 				}
 				np = nv_namptr(np+1,0);
 			}
 			vmfree(mp->vm, mp->nodes);
-			mp->nodes = 0;
+			mp->nodes = NULL;
 		}
 		mp->vlen = 0;
 		if(ap && ap->hdr.next != &mp->hdr)
@@ -975,7 +975,7 @@ static char* get_match(Namval_t *np, Namfun_t *fp)
 	return mp->rval[i];
 }
 
-static const Namdisc_t SH_MATCH_disc  = { sizeof(struct match), 0, get_match };
+static const Namdisc_t SH_MATCH_disc  = { .dsize = sizeof(struct match), .getval = get_match };
 
 static char* get_version(Namval_t *np, Namfun_t *fp)
 {
@@ -995,10 +995,10 @@ static Sfdouble_t nget_version(Namval_t *np, Namfun_t *fp)
 	return (Sfdouble_t)t;
 }
 
-static const Namdisc_t SH_VERSION_disc	= {  0, 0, get_version, nget_version };
+static const Namdisc_t SH_VERSION_disc	= { .getval = get_version, .getnum = nget_version };
 
 
-static const Namdisc_t IFS_disc		= {  sizeof(struct ifs), put_ifs, get_ifs };
+static const Namdisc_t IFS_disc		= { .dsize = sizeof(struct ifs), .putval = put_ifs, .getval = get_ifs };
 
 /* Invalidate IFS state table */
 void sh_invalidate_ifs(void)
@@ -1008,21 +1008,21 @@ void sh_invalidate_ifs(void)
 	{
 		struct ifs *ip = (struct ifs*)nv_hasdisc(np, &IFS_disc);
 		if(ip)
-			ip->ifsnp = 0;
+			ip->ifsnp = NULL;
 	}
 }
 
-const Namdisc_t RESTRICTED_disc	= {  sizeof(Namfun_t), put_restricted };
-static const Namdisc_t CDPATH_disc	= {  sizeof(Namfun_t), put_cdpath };
+const Namdisc_t RESTRICTED_disc	= { .dsize = sizeof(Namfun_t), .putval = put_restricted };
+static const Namdisc_t CDPATH_disc	= { .dsize = sizeof(Namfun_t), .putval = put_cdpath };
 #if SHOPT_VSH || SHOPT_ESH
-static const Namdisc_t EDITOR_disc	= {  sizeof(Namfun_t), put_ed };
+static const Namdisc_t EDITOR_disc	= { .dsize = sizeof(Namfun_t), .putval = put_ed };
 #endif
-static const Namdisc_t HISTFILE_disc	= {  sizeof(Namfun_t), put_history };
-static const Namdisc_t OPTINDEX_disc	= {  sizeof(Namfun_t), put_optindex, 0, nget_optindex };
-static const Namdisc_t SECONDS_disc	= {  sizeof(Namfun_t), put_seconds, get_seconds, nget_seconds };
-static const Namdisc_t SRAND_disc	= {  sizeof(Namfun_t), put_srand, get_srand, nget_srand };
-static const Namdisc_t LINENO_disc	= {  sizeof(Namfun_t), put_lineno, get_lineno, nget_lineno };
-static const Namdisc_t L_ARG_disc	= {  sizeof(Namfun_t), put_lastarg, get_lastarg };
+static const Namdisc_t HISTFILE_disc	= { .dsize = sizeof(Namfun_t), .putval = put_history };
+static const Namdisc_t OPTINDEX_disc	= { .dsize = sizeof(Namfun_t), .putval = put_optindex, .getnum = nget_optindex };
+static const Namdisc_t SECONDS_disc	= { .dsize = sizeof(Namfun_t), .putval = put_seconds, .getval = get_seconds, .getnum = nget_seconds };
+static const Namdisc_t SRAND_disc	= { .dsize = sizeof(Namfun_t), .putval = put_srand, .getval = get_srand, .getnum = nget_srand };
+static const Namdisc_t LINENO_disc	= { .dsize = sizeof(Namfun_t), .putval = put_lineno, .getval = get_lineno, .getnum = nget_lineno };
+static const Namdisc_t L_ARG_disc	= { .dsize = sizeof(Namfun_t), .putval = put_lastarg, .getval = get_lastarg };
 
 
 #define MAX_MATH_ARGS	3
@@ -1036,13 +1036,12 @@ static char *name_math(Namval_t *np, Namfun_t *fp)
 
 static const Namdisc_t	math_child_disc =
 {
-	0,0,0,0,0,0,0,
-	name_math
+	.namef = name_math
 };
 
 static Namfun_t	 math_child_fun =
 {
-	&math_child_disc, 1, 0, sizeof(Namfun_t)
+	.disc = &math_child_disc, .namflags = NAMFUN_NOFREE, .dsize = sizeof(Namfun_t)
 };
 
 static void math_init(void)
@@ -1120,15 +1119,15 @@ static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namf
 	mp = nv_search(name, sh.fun_tree, action?NV_ADD:0);
 	stkseek(sh.stk,off);
 	if(getname)
-		return mp ? (char*)dtnext(sh.fun_tree,mp) : 0;
+		return mp ? (char*)dtnext(sh.fun_tree,mp) : NULL;
 	if(action==np)
 		action = mp;
 	return action ? (char*)action : "";
 }
 
-static const Namdisc_t SH_MATH_disc  = { 0, 0, get_math, 0, setdisc_any, create_math, };
+static const Namdisc_t SH_MATH_disc  = { .getval = get_math, .setdisc = setdisc_any, .createf = create_math, };
 
-static const Namdisc_t LC_disc = {  sizeof(Namfun_t), put_lang };
+static const Namdisc_t LC_disc = {  .dsize = sizeof(Namfun_t), .putval = put_lang };
 
 /*
  * This function will get called whenever a configuration parameter changes
@@ -1139,7 +1138,7 @@ static int newconf(const char *name, const char *path, const char *value)
 	NOT_USED(path);
 	if(!name)
 		setenviron(value);
-	else if(strcmp(name,"UNIVERSE")==0 && strcmp(astconf(name,0,0),value))
+	else if(strcmp(name,"UNIVERSE")==0 && strcmp(astconf(name,NULL,NULL),value))
 	{
 		sh.universe = 0;
 		/* set directory in new universe */
@@ -1246,7 +1245,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	umask(sh.mask = umask(0));
 	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
-	sh.lex_context = sh_lexopen(0,1);
+	sh.lex_context = sh_lexopen(NULL,1);
 	sh.radixpoint = '.';  /* pre-locale init */
 	sh.strbuf = sfstropen();
 	stkoverflow(sh.stk = stkstd, nomemory);
@@ -1302,7 +1301,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 			sh.exitval = 0;  /* self-doc was written to stdout */
 			sh_done(0);
 		}
-		opt_info.disc = 0;
+		opt_info.disc = NULL;
 		sh.st.dolv = argv + (argc - 1) - sh.st.dolc;
 		sh.st.dolv[0] = argv[0];
 		if(sh.st.dolc < 1 && !sh_isoption(SH_CFLAG))
@@ -1447,7 +1446,7 @@ void sh_reinit(void)
 	if(sh.heredocs)
 	{
 		sfclose(sh.heredocs);
-		sh.heredocs = 0;
+		sh.heredocs = NULL;
 	}
 	/* Reset arguments */
 	if(sh.arglist)
@@ -1458,8 +1457,8 @@ void sh_reinit(void)
 	sh_sigreset(0);
 	sh.st.filename = sh_strdup(sh.lastarg);
 	nv_delete(NULL, NULL, 0);
-	job.exitval = 0;
-	sh.inpipe = sh.outpipe = 0;
+	job.exitval = NULL;
+	sh.inpipe = sh.outpipe = NULL;
 	job_clear();
 	job.in_critical = 0;
 	/* update $$, $PPID */
@@ -1470,7 +1469,7 @@ void sh_reinit(void)
 	{
 		dp=nv_dict(sh.namespace);
 		if(dp==sh.var_tree)
-			sh.var_tree = dtview(dp,0);
+			sh.var_tree = dtview(dp,NULL);
 		nv_unset(sh.namespace,NV_RDONLY);
 		sh.namespace = NULL;
 	}
@@ -1635,7 +1634,7 @@ static Namval_t *create_stat(Namval_t *np,const char *name,nvflag_t flag,Namfun_
 	int			i=0;
 	size_t			j;
 	ptrdiff_t		n;
-	Namval_t		*nq=0;
+	Namval_t		*nq = NULL;
 	NOT_USED(flag);
 	if(!name)
 		return SH_STATS;
@@ -1647,7 +1646,7 @@ static Namval_t *create_stat(Namval_t *np,const char *name,nvflag_t flag,Namfun_
 		if((n==0||strncmp(name,nq->nvname,(size_t)n)==0) && nq->nvname[n]==0)
 			goto found;
 	}
-	nq = 0;
+	nq = NULL;
 found:
 	if(nq)
 	{
@@ -1664,10 +1663,8 @@ found:
 
 static const Namdisc_t stat_disc =
 {
-	0, 0, 0, 0, 0,
-	create_stat,
-	0, 0,
-	next_stat
+	.createf = create_stat,
+	.nextf = next_stat
 };
 
 static char *name_stat(Namval_t *np, Namfun_t *fp)
@@ -1677,15 +1674,14 @@ static char *name_stat(Namval_t *np, Namfun_t *fp)
 	return sh_struse(sh.strbuf);
 }
 
-static const Namdisc_t	stat_child_disc =
+static const Namdisc_t stat_child_disc =
 {
-	0,0,0,0,0,0,0,
-	name_stat
+	.namef = name_stat
 };
 
-static Namfun_t	 stat_child_fun =
+static Namfun_t stat_child_fun =
 {
-	&stat_child_disc, 1, 0, sizeof(Namfun_t)
+	.disc = &stat_child_disc, .namflags = NAMFUN_NOFREE, .dsize = sizeof(Namfun_t)
 };
 
 static void stat_init(void)
@@ -1851,7 +1847,7 @@ Dt_t *sh_inittree(const struct shtable2 *name_vals)
 	const struct shtable2 *tp;
 	size_t n = 0;
 	Dt_t *treep;
-	Dt_t *base_treep, *dict = 0;
+	Dt_t *base_treep, *dict = NULL;
 	for(tp=name_vals;*tp->sh_name;tp++)
 		n++;
 	np = (Namval_t*)sh_calloc(n,sizeof(Namval_t));
@@ -2033,18 +2029,18 @@ skip:
 	stkseek(sh.stk,offset);
 }
 
-static const Namdisc_t TRANS_disc      = {  sizeof(struct Mapchar), put_trans };
+static const Namdisc_t TRANS_disc      = {  .dsize = sizeof(struct Mapchar), .putval = put_trans };
 
 Namfun_t	*nv_mapchar(Namval_t *np,const char *name)
 {
 	wctrans_t	trans = name?wctrans(name):0;
-	struct Mapchar	*mp=0;
+	struct Mapchar	*mp = NULL;
 	int		low;
 	size_t		n=0;
 	if(np)
 		mp = (struct Mapchar*)nv_hasdisc(np,&TRANS_disc);
 	if(!name)
-		return mp ? (Namfun_t*)mp->name : 0;
+		return mp ? (Namfun_t*)mp->name : NULL;
 	if(!trans)
 		return NULL;
 	if(!np)

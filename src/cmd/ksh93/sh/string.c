@@ -43,8 +43,8 @@ const Shtable_t *sh_locate(const char *sp,const Shtable_t *table,int size)
 	int			first;
 	const Shtable_t		*tp;
 	int			c;
-	static const Shtable_t	empty = {0,0};
-	if(sp==0 || (first= *sp)==0)
+	static const Shtable_t	empty = {NULL,0};
+	if(sp==NULL || (first= *sp)==0)
 		return &empty;
 	tp=table;
 	while((c = *tp->sh_name) && c <= first)
@@ -78,7 +78,7 @@ int sh_lookopt(const char *sp, int *invert)
 	int			hit;
 	int			inv;
 	int			no;
-	if(sp==0)
+	if(sp==NULL)
 		return 0;
 	if(*sp=='n' && *(sp+1)=='o' && (*(sp+2)!='t' || *(sp+3)!='i'))
 	{
@@ -178,7 +178,7 @@ char *sh_substitute(const char *string,const char *oldsp,char *newsp)
 {
 	const char *sp = string;
 	const char *cp;
-	const char *savesp = 0;
+	const char *savesp = NULL;
 	stkseek(sh.stk,0);
 	if(*sp==0)
 		return NULL;

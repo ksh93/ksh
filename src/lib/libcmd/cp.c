@@ -740,14 +740,14 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 		memset(state, 0, offsetof(State_t, INITSTATE));
 	state->context = context;
 	state->presiz = -1;
-	backup_type = 0;
+	backup_type = NULL;
 	FTS_flags = FTS_NOCHDIR|FTS_NOSEEDOTDIR;
 	state->uid = geteuid();
 	state->wflags = O_WRONLY|O_CREAT|O_TRUNC|O_BINARY;
 	if (!state->tmp && !(state->tmp = sfstropen()))
 		outofmemory(state);
 	sfputr(state->tmp, usage_head, -1);
-	standard = !!conformance(0, 0);
+	standard = !!conformance(NULL, 0);
 	switch (error_info.id[0])
 	{
 	case 'c':
@@ -988,13 +988,13 @@ b_cp(int argc, char** argv, Shbltin_t* context)
 	/* save the destination argument */
 	dest = argv[argc];
 	/* let argv contain only the source argument(s) */
-	argv[argc] = 0;
+	argv[argc] = NULL;
 	if (s = strrchr(dest, '/'))
 	{
 		while (*s == '/')
 			s++;
 		if (!(!*s || *s == '.' && (!*++s || *s == '.' && !*++s)))
-			s = 0;
+			s = NULL;
 	}
 	if (dest != (char*)dot)
 		pathcanon(dest, 0, 0);

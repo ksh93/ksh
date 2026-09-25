@@ -180,7 +180,7 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 
 	/* make sure that the notify function won't be called here since
 	   we are only interested in creating the file, not the stream */
-	_Sfnotify = 0;
+	_Sfnotify = NULL;
 	sf = sfnew(&newf,NULL,(size_t)SFIO_UNBOUND,fd,SFIO_READ|SFIO_WRITE);
 	_Sfnotify = notify;
 	if(!sf)
@@ -223,7 +223,7 @@ static int _tmpexcept(Sfio_t* f, int type, void* val, Sfdisc_t* disc)
 	/* erase all traces of newf */
 	newf.data = newf.endb = newf.endr = newf.endw = NULL;
 	newf.file = -1;
-	_Sfnotify = 0;
+	_Sfnotify = NULL;
 	sfclose(&newf);
 	_Sfnotify = notify;
 
@@ -245,7 +245,7 @@ Sfio_t* sftmp(size_t s)
 			};
 
 	/* start with a memory resident stream */
-	_Sfnotify = 0; /* local computation so no notification */
+	_Sfnotify = NULL; /* local computation so no notification */
 	f = sfnew(NULL,NULL,s,-1,SFIO_STRING|SFIO_READ|SFIO_WRITE);
 	_Sfnotify = notify;
 	if(!f)
@@ -255,7 +255,7 @@ Sfio_t* sftmp(size_t s)
 		f->disc = &Tmpdisc;
 
 	if(s == 0) /* make the file now */
-	{	_Sfnotify = 0; /* local computation so no notification */
+	{	_Sfnotify = NULL; /* local computation so no notification */
 		rv =  _tmpexcept(f,SFIO_DPOP,NULL,f->disc);
 		_Sfnotify = notify;
 		if(rv < 0)

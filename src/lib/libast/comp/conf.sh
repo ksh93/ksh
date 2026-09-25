@@ -1319,7 +1319,13 @@ ${script}
 		;;
 	esac
 	case $string in
-	1)	conf_limit="{ 0, $conf_limit }" conf_minmax="{ 0, $conf_minmax }"
+	1)	if test "$conf_limit" = "0"
+		then	conf_limit=NULL
+		fi
+		if test "$conf_minmax" = "0"
+		then	conf_minmax=NULL
+		fi
+		conf_limit="{ 0, $conf_limit }" conf_minmax="{ 0, $conf_minmax }"
 		;;
 	*)	case $conf_limit in
 		0[xX]*|-*|+*|[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_]*)
@@ -1397,7 +1403,7 @@ ${script}
 			conf_minmax=${conf_minmax}${U_suffix}${LL_suffix}
 			;;
 		esac
-		conf_limit="{ $conf_limit, 0 }" conf_minmax="{ $conf_minmax, 0 }"
+		conf_limit="{ $conf_limit, NULL }" conf_minmax="{ $conf_minmax, NULL }"
 		;;
 	esac
 	case $conf_flags in

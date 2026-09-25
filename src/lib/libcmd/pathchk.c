@@ -84,7 +84,7 @@ static const char usage[] =
 #define COMPONENTS	0x1
 #define PATH	0x2
 
-#define isport(c)	(((c)>='a' && (c)<='z') || ((c)>='A' && (c)<='Z') || ((c)>='0' && (c)<='9') || (strchr("._-",(c))!=0) )
+#define isport(c)	(((c)>='a' && (c)<='z') || ((c)>='A' && (c)<='Z') || ((c)>='0' && (c)<='9') || (strchr("._-",(c))!=NULL) )
 
 /*
  * call pathconf and handle unlimited sizes
@@ -139,7 +139,7 @@ static int pathchk(char* path, int mode)
 				if(!(cpold = getcwd(NULL, 0)) && errno == EINVAL && (cpold = newof(0, char, PATH_MAX, 0)) && !getcwd(cpold, PATH_MAX))
 				{
 					free(cpold);
-					cpold = 0;
+					cpold = NULL;
 				}
 				if(cpold)
 				{

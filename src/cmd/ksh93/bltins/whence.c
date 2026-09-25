@@ -166,8 +166,8 @@ static int whence(char **argv, int flags)
 	while(name= *argv++)
 	{
 		aflag = ((flags&A_FLAG)!=0);
-		cp = 0;
-		np = 0;
+		cp = NULL;
+		np = NULL;
 		if(flags&P_FLAG)
 			goto search;
 		if(flags&Q_FLAG)
@@ -199,7 +199,7 @@ static int whence(char **argv, int flags)
 				sfputr(sfstdout,sh_fmtq(cp),'\n');
 			if(!aflag)
 				continue;
-			cp = 0;
+			cp = NULL;
 			aflag++;
 		}
 	bltins:
@@ -214,7 +214,7 @@ static int whence(char **argv, int flags)
 				if(nv_isnull(np))
 				{
 					sfprintf(sfstdout,sh_translate(is_ufunction));
-					pp = 0;
+					pp = NULL;
 					while(!path_search(name,&pp,3) && pp && (pp = pp->next))
 						;
 					if(*stkptr(sh.stk,PATH_OFFSET)=='/')
@@ -249,7 +249,7 @@ static int whence(char **argv, int flags)
 			aflag++;
 		}
 	search:
-		pp = 0;
+		pp = NULL;
 		do
 		{
 			int maybe_undef_fn = 0;  /* flag for possible undefined (i.e. autoloadable) function */
@@ -262,7 +262,7 @@ static int whence(char **argv, int flags)
 				if(*cp!='/')
 				{
 					if(flags&(P_FLAG|F_FLAG)) /* Ignore functions when passed -f or -p */
-						cp = 0;
+						cp = NULL;
 					else
 						maybe_undef_fn = 1;
 				}
@@ -271,7 +271,7 @@ static int whence(char **argv, int flags)
 			{
 				cp = stkptr(sh.stk,PATH_OFFSET);
 				if(*cp==0)
-					cp = 0;
+					cp = NULL;
 			}
 			if(flags&Q_FLAG)
 			{
@@ -339,7 +339,7 @@ static int whence(char **argv, int flags)
 					pp = pp->next;
 			}
 			else
-				pp = 0;
+				pp = NULL;
 		} while(pp);
 	}
 	return ret;

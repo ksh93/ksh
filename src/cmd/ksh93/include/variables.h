@@ -40,7 +40,7 @@ extern void sh_invalidate_rand_seed(void);
 #define update_sh_level() \
 ( \
 	sh.level = sh.fn_depth + sh.dot_depth, \
-	sh.topscope != (Shscope_t*)sh.st.self ? sh_setscope(sh.topscope) : 0, \
+	sh.topscope != (Shscope_t*)sh.st.self ? sh_setscope(sh.topscope) : NULL, \
 	1 \
 )
 

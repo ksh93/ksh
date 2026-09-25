@@ -129,7 +129,7 @@ static void	trap_timeout(void* handle)
 	struct tevent *tp = (struct tevent*)handle;
 	sh.trapnote |= SH_SIGALRM;
 	if(!(tp->flags&R_FLAG))
-		tp->timeout = 0;
+		tp->timeout = NULL;
 	tp->flags |= L_FLAG;
 	if(sh_isstate(SH_TTYWAIT))
 		sh_timetraps();
@@ -272,11 +272,9 @@ static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 
 static const Namdisc_t alarmdisc =
 {
-	sizeof(struct tevent),
-	putval,
-	0,
-	0,
-	setdisc,
+	.dsize = sizeof(struct tevent),
+	.putval = putval,
+	.setdisc = setdisc,
 };
 
 int	b_alarm(int argc,char *argv[],Shbltin_t *context)

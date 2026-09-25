@@ -81,7 +81,7 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 		switch (optget(argv, usage))
 		{
 		case 'd':
-			fdp = 0;
+			fdp = NULL;
 			continue;
 		case 'm':
 			mode = strperm(pfx = opt_info.arg, &opt_info.arg, S_IRWXU);
@@ -90,7 +90,7 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 			continue;
 		case 'p':
 			if ((t = getenv("TMPDIR")) && *t)
-				dir = 0;
+				dir = NULL;
 			else
 				dir = opt_info.arg;
 			continue;
@@ -98,11 +98,11 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 			quiet = 1;
 			continue;
 		case 't':
-			dir = 0;
+			dir = NULL;
 			continue;
 		case 'u':
 			unsafe = 1;
-			fdp = 0;
+			fdp = NULL;
 			continue;
 		case 'R':
 			if (!pathtemp(NULL, 0, opt_info.arg, "/seed", NULL))
@@ -130,7 +130,7 @@ b_mktemp(int argc, char** argv, Shbltin_t* context)
 	{
 		pfx = "tmp_";
 		if (dir && !*dir)
-			dir = 0;
+			dir = NULL;
 	}
 	if (t = strrchr(pfx, '/'))
 	{

@@ -138,7 +138,7 @@ node(Cenv_t* env, unsigned char type, ptrdiff_t lo, ptrdiff_t hi, size_t extra)
 	Rex_t*	e;
 
 	DEBUG_TEST(0x0800,(sfprintf(sfstdout, "node(%u,%td,%td,%zu)\n", (unsigned int)type, lo, hi, sizeof(Rex_t) + extra)),(0));
-	if (e = (Rex_t*)alloc(env->disc, 0, sizeof(Rex_t) + extra))
+	if (e = (Rex_t*)alloc(env->disc, NULL, sizeof(Rex_t) + extra))
 	{
 		memset(e, 0, sizeof(Rex_t) + extra);
 		e->type = type;
@@ -315,7 +315,7 @@ cat(Cenv_t* env, Rex_t* e, Rex_t* f)
 	if (f->type == REX_NULL)
 	{
 		g = f->next;
-		f->next = 0;
+		f->next = NULL;
 		drop(env->disc, f);
 		f = g;
 	}
@@ -337,7 +337,7 @@ cat(Cenv_t* env, Rex_t* e, Rex_t* f)
 				e->lo = m;
 				e->hi = n;
 				g = f->next;
-				f->next = 0;
+				f->next = NULL;
 				drop(env->disc, f);
 				f = g;
 			}
@@ -1031,7 +1031,7 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 	int		et;
 	Ckey_t		key;
 
-	assert(ast.locale.transform != 0);
+	assert(ast.locale.transform != NULL);
 	c = cc = 0;
 	for (;;)
 	{
@@ -1897,7 +1897,7 @@ trienode(Cenv_t* env, unsigned char c)
 {
 	Trie_node_t*	t;
 
-	if (t = (Trie_node_t*)alloc(env->disc, 0, sizeof(Trie_node_t)))
+	if (t = (Trie_node_t*)alloc(env->disc, NULL, sizeof(Trie_node_t)))
 	{
 		memset(t, 0, sizeof(Trie_node_t));
 		t->c = c;
@@ -2373,7 +2373,7 @@ grp(Cenv_t* env, int parno)
 		c = 0;
 		if (isdigit(*env->cursor))
 		{
-			f = 0;
+			f = NULL;
 			do
 			{
 				if (c > (INT_MAX / 10))
@@ -2470,7 +2470,7 @@ grp(Cenv_t* env, int parno)
 		e->re.exec.text = (const char*)p;
 		e->re.exec.size = (size_t)(env->cursor - p - 2);
 		if (!env->disc->re_compf)
-			e->re.exec.data = 0;
+			e->re.exec.data = NULL;
 		else
 			e->re.exec.data = (*env->disc->re_compf)(env->regex, e->re.exec.text, e->re.exec.size, env->disc);
 		return e;
@@ -2632,7 +2632,7 @@ seq(Cenv_t* env)
 			case T_QUES:
 			case T_BANG:
 				if ((s -= n) == buf)
-					e = 0;
+					e = NULL;
 				else
 				{
 					j = s - buf;
@@ -2891,7 +2891,7 @@ alt(Cenv_t* env, int number, int cond)
 	{
 		if (!cond)
 			return e;
-		f = 0;
+		f = NULL;
 		if (e->type == REX_NULL)
 			goto bad;
 	}
@@ -2948,7 +2948,7 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 		disc = &state.disc;
 	if (!disc->re_errorlevel)
 		disc->re_errorlevel = 2;
-	p->env = 0;
+	p->env = NULL;
 	if (!pattern)
 		return fatal(disc, REG_BADPAT, pattern);
 	if (!state.initialized)
@@ -2966,7 +2966,7 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 		LCINFO(AST_LC_CTYPE)->data = fold;
 	}
  again:
-	if (!(p->env = (Env_t*)alloc(disc, 0, sizeof(Env_t))))
+	if (!(p->env = (Env_t*)alloc(disc, NULL, sizeof(Env_t))))
 		return fatal(disc, REG_ESPACE, pattern);
 	memset(p->env, 0, sizeof(*p->env));
 	if (!(p->env->mst = stkopen(STK_NULL)))

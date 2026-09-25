@@ -274,7 +274,7 @@ strexpr(const char* s, char** end, long(*convert)(const char*, char**, void*), v
 	Expr_t	ex;
 
 	ex.nextchr = (char*)s;
-	ex.errmsg = 0;
+	ex.errmsg = NULL;
 	ex.convert = convert;
 	ex.handle = handle;
 	n = expr(&ex, 0);

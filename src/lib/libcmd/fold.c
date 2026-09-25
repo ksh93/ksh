@@ -89,7 +89,7 @@ static void fold(Sfio_t *in, Sfio_t *out, ptrdiff_t width, const char *cont, siz
 	ptrdiff_t n, col=0;
 	ssize_t s;
 	char x=0;
-	char *last_space=0;
+	char *last_space=NULL;
 	cols[0] = 0;
 	for (;;)
 	{
@@ -108,7 +108,7 @@ static void fold(Sfio_t *in, Sfio_t *out, ptrdiff_t width, const char *cont, siz
 		}
 		first = cp;
 		col = 0;
-		last_space = 0;
+		last_space = NULL;
 		for(;;)
 		{
 			while((n=cols[*(unsigned char*)cp++])==0);
@@ -121,7 +121,7 @@ static void fold(Sfio_t *in, Sfio_t *out, ptrdiff_t width, const char *cont, siz
 				sfwrite(out,first,(size_t)col);
 				first += col;
 				col = 0;
-				last_space = 0;
+				last_space = NULL;
 				if(cp>first+1 || (n!=T_NL && n!=T_BS))
 					sfwrite(out, cont, contsize);
 			}
@@ -147,7 +147,7 @@ static void fold(Sfio_t *in, Sfio_t *out, ptrdiff_t width, const char *cont, siz
 					sfwrite(out, cont, contsize);
 					first = cp;
 					col =  TABSIZE-1;
-					last_space = 0;
+					last_space = NULL;
 					continue;
 				}
 				if(cols[' '])

@@ -108,7 +108,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 		case '?':
 			return optselfdoc();
 	}
-	opt_info.disc = 0;
+	opt_info.disc = NULL;
 	/* default to -f */
 	limit = argv[opt_info.index];
 	if(hit==0)

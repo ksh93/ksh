@@ -66,15 +66,17 @@ CHAR_MAX			C	XX 1 L
 CHAR_MIN			C	XX 1 L
 CHAR_TERM			POSIX	SC 2 FUW
 CHILD_MAX			POSIX	SC 1 CDLMUX	6	cc{
+	#include <stdio.h>
+	#include <unistd.h>
 	int main(void)
 	{
 		int	i;
-		int	n;
+		pid_t	n;
 		for (i = 3; i < 512 && (n = fork()) >= 0; i++)
 			if (!n) _exit(0);
 		while (wait(NULL) > 0);
 		for (n = 8; n < i; n <<= 1);
-		printf("%d", n);
+		printf("%ld", (long)n);
 		return 0;
 	}
 }
@@ -199,10 +201,10 @@ NAME_MAX			POSIX	PC 1 LMU	14	cc{
 	#ifdef MAXNAMLEN
 		printf("%d", MAXNAMLEN);
 	#else
-		int	i;
-		int	n;
-		int	v;
-		char	name[256];
+		size_t		i;
+		int		n;
+		unsigned int	v;
+		char		name[256];
 		for (i = 0; i < sizeof(name); i++)
 			name[i] = 'F';
 		name[8] = '.';
@@ -232,7 +234,7 @@ NAME_MAX			POSIX	PC 1 LMU	14	cc{
 				break;
 			}
 		}
-		printf("%d", v);
+		printf("%u", v);
 		return 0;
 	}
 	#endif
@@ -356,6 +358,7 @@ PBS_MESSAGE			POSIX	SC 2 FUW
 PBS_TRACK			POSIX	SC 2 FUW
 PHYS_PAGES			SUN	SC 1 0
 PID_MAX				SVID	SC 1 LMU	30000	cc{
+	#include <sys/types.h>
 	#include <fcntl.h>
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -363,7 +366,7 @@ PID_MAX				SVID	SC 1 LMU	30000	cc{
 	{
 		long	v;
 		int	fd;
-		int	n;
+		ssize_t	n;
 		char	buf[1024];
 #ifdef PID_MAX
 		v = PID_MAX;
@@ -374,12 +377,6 @@ PID_MAX				SVID	SC 1 LMU	30000	cc{
 		{
 			buf[n] = 0;
 			v = strtol(buf, NULL, 0);
-		}
-		else
-		{
-#ifdef __sgi
-			v = 0x7fffffff;
-#endif
 		}
 		printf("%ld", v);
 		if (fd >= 0)

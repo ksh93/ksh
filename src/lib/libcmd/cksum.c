@@ -459,7 +459,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 	state.flags = SUM_SIZE;
 	state.warn = 1;
 	logical = 1;
-	method = 0;
+	method = NULL;
 	optinit(&optdisc, optinfo);
 	for (;;)
 	{

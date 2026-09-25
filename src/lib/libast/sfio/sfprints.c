@@ -33,7 +33,7 @@ char* sfvprints(const char* form, va_list args)
 	static Sfio_t*	f;
 
 	if(!f) /* make a string stream to write into */
-	{	_Sfnotify = 0;
+	{	_Sfnotify = NULL;
 		f = sfnew(NULL,NULL,(size_t)SFIO_UNBOUND, -1,SFIO_WRITE|SFIO_STRING);
 		_Sfnotify = notify;
 		if(!f)

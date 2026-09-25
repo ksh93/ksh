@@ -79,7 +79,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 	int	n;
 	const char *pname;
 	int	clear = 0;
-	char	*arg0 = 0;
+	char	*arg0 = NULL;
 	NOT_USED(context);
 	sh.st.ioset = 0;
 	while (n = optget(argv, *argv[0]=='r' ? sh_optredirect : sh_optexec)) switch (n)
@@ -123,7 +123,7 @@ int    b_exec(int argc,char *argv[], Shbltin_t *context)
 			sh_subfork();
 #endif /* !_execve_ignores_argv0 */
 		if(clear)
-			nv_scan(sh.var_tree,noexport,0,NV_EXPORT,NV_EXPORT);
+			nv_scan(sh.var_tree,noexport,NULL,NV_EXPORT,NV_EXPORT);
 		while(arg)
 		{
 			if((cp=strchr(arg->argval,'=')) &&
@@ -236,13 +236,13 @@ int    b_dot_cmd(int n,char *_argv[],Shbltin_t *context)
 	Namval_t *np;
 	int jmpval;
 	struct sh_scoped savst, *prevscope = sh.st.self;
-	char *filename=0, *tofree;
+	char *filename = NULL, *tofree;
 	int	fd;
-	struct dolnod   *saveargfor = 0;
-	volatile struct dolnod   *argsave=0;
+	struct dolnod   *saveargfor = NULL;
+	volatile struct dolnod   *argsave = NULL;
 	char **volatile argv = _argv;
 	struct checkpt buff;
-	Sfio_t *iop=0;
+	Sfio_t *iop = NULL;
 	while (n = optget(argv,sh_optdot)) switch (n)
 	{
 	    case ':':
@@ -273,7 +273,7 @@ int    b_dot_cmd(int n,char *_argv[],Shbltin_t *context)
 			if(np->nvalue)
 			{
 				if(nv_isattr(np,NV_FPOSIX))
-					np = 0;
+					np = NULL;
 			}
 			else
 			{
@@ -283,7 +283,7 @@ int    b_dot_cmd(int n,char *_argv[],Shbltin_t *context)
 		}
 	}
 	else
-		np = 0;
+		np = NULL;
 	if(!np)
 	{
 		/* open the dot script */
@@ -461,7 +461,7 @@ int    b_bg(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_exit(1),e_no_jctl);
 		UNREACHABLE();
 	}
-	if(flag=='d' && *argv==0)
+	if(flag=='d' && *argv==NULL)
 		argv = NULL;
 	if(job_walk(sfstdout,job_switch,flag,argv))
 	{
@@ -498,7 +498,7 @@ int    b_jobs(int n,char *argv[],Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2),"%s",optusage(NULL));
 		UNREACHABLE();
 	}
-	if(*argv==0)
+	if(*argv==NULL)
 		argv = NULL;
 	if(job_walk(sfstdout,job_list,flag,argv))
 	{

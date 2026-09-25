@@ -344,7 +344,7 @@ int  sh_histinit(void)
 #if SHOPT_AUDIT
 	{
 		char buff[SFIO_BUFSIZE];
-		hp->auditfp = 0;
+		hp->auditfp = NULL;
 		if(sh_isstate(SH_INTERACTIVE) && (hp->auditmask = sh_checkaudit(SHOPT_AUDITFILE, buff, sizeof(buff))))
 		{
 			if((fd=sh_open(buff,O_BINARY|O_WRONLY|O_APPEND|O_CREAT|O_cloexec,S_IRUSR|S_IWUSR))>=0 && fd < 10)
@@ -397,8 +397,8 @@ void hist_close(History_t *hp)
 	}
 #endif /* SHOPT_AUDIT */
 	free(hp);
-	hist_ptr = 0;
-	sh.hist_ptr = 0;
+	hist_ptr = NULL;
+	sh.hist_ptr = NULL;
 }
 
 /*
@@ -937,7 +937,7 @@ Histloc_t hist_find(History_t*hp,char *string,int index1,int flag,int direction)
 {
 	int index2;
 	off_t offset;
-	ptrdiff_t *coffset=0;
+	ptrdiff_t *coffset = NULL;
 	Histloc_t location;
 	location.hist_command = -1;
 	location.hist_char = 0;
@@ -1061,7 +1061,7 @@ int hist_copy(char *s1,int size,int command,int line)
 		}
 	}
 	sfseek(hp->histfp,0,SEEK_END);
-	if(s1==0)
+	if(s1==NULL)
 		return count;
 	if(count && s1 > s1orig && (c = *(s1 - 1)) == '\n')
 		s1--;

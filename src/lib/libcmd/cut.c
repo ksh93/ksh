@@ -273,7 +273,7 @@ cutcols(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 		if (!bp && !(bp = sfgetr(fdin, 0, SFIO_LASTR)))
 			break;
 		len = sfvalue(fdin);
-		xx = 0;
+		xx = NULL;
 		if (!(ncol = skip  = *(lp = cut->list)))
 			ncol = *++lp;
 		must = 1;
@@ -295,7 +295,7 @@ cutcols(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 						{
 							w += s - xx;
 							bp = (char*)(s = xx);
-							xx = 0;
+							xx = NULL;
 							continue;
 						}
 						xx = s;
@@ -379,7 +379,7 @@ cutfields(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 	unsigned char *bp, *first=NULL;
 	unsigned char lastchar;
 	wchar_t w;
-	Sfio_t *fdtmp = 0;
+	Sfio_t *fdtmp = NULL;
 	long offset = 0;
 	unsigned char mb[8];
 	/* process each buffer */
@@ -398,7 +398,7 @@ cutfields(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 				nodelim = empty = 1;
 				copy = cp;
 				if (nfields = *(lp = cut->list))
-					copy = 0;
+					copy = NULL;
 				else
 					nfields = *++lp;
 			}
@@ -524,7 +524,7 @@ cutfields(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 					empty = 0;
 					if ((c = wp - copy) > 0 && sfwrite(fdout, (char*)copy, (size_t)c) < 0)
 						goto failed;
-					copy = 0;
+					copy = NULL;
 				}
 				else
 					/* set to delimiter unless the first field */
@@ -573,7 +573,7 @@ cutfields(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 int
 b_cut(int argc, char** argv, Shbltin_t* context)
 {
-	char*		cp = 0;
+	char*		cp = NULL;
 	Sfio_t*		fp;
 	char*		s;
 	ptrdiff_t	n;
