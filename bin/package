@@ -136,7 +136,7 @@ case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 [+DESCRIPTION?The \b'$command$'\b command is the main control script
     for building and installing KornShell 93u+m.
     It is a POSIX \bsh\b(1) script coded for maximal portability.
-    A POSIX shell and C compiler installation are the only requirements.
+    A POSIX shell and C99 compiler installation are the only requirements.
     All package files are in the \b$PACKAGEROOT\b directory tree.
     Binary package files are in the \b$INSTALLROOT\b
     (\b$PACKAGEROOT/arch/\b\ahosttype\a) tree, where
@@ -380,7 +380,7 @@ SYNOPSIS
 DESCRIPTION
   The package command is the main control script for building and installing
   KornShell 93u+m. It is a POSIX sh(1) script coded for maximal portability. A
-  POSIX shell and C compiler installation are the only requirements. All
+  POSIX shell and C99 compiler installation are the only requirements. All
   package files are in the $PACKAGEROOT directory tree. Binary package files
   are in the $INSTALLROOT ($PACKAGEROOT/arch/hosttype) tree, where
   hosttype=$(bin/package host type). See DETAILS for more information.
@@ -1959,7 +1959,7 @@ case $x in
 	esac
 	checkcc
 	case $cc in
-	?*)	# check that $CC (full path $cc) is a C compiler that produces executables for the current architecture
+	?*)	# check that $CC (full path $cc) is a C99 compiler that produces executables for the current architecture
 		test -f "$INITROOT/hello.c" || err_out "$INITROOT: INIT source not found"
 		(
 			cd "$TMPDIR" || exit
@@ -1967,10 +1967,10 @@ case $x in
 			trap "set +o noglob; rm -rf pkg$$.*" 0
 			if	! $cc -o pkg$$.exe pkg$$.c >pkg$$.e 2>&1
 			then	if	$cc -Dnew=old -Drestrict= -o pkg$$.exe pkg$$.c >/dev/null 2>&1
-				then	err_out "$CC: must be a C compiler (not C++)"
+				then	err_out "$CC: must be a C99 compiler (not C++)"
 				fi
 				cat pkg$$.e
-				err_out "$CC: failed to compile and link $INITROOT/hello.c -- is it a C compiler?"
+				err_out "$CC: failed to compile and link $INITROOT/hello.c -- is it a C99 compiler?"
 			fi
 			./pkg$$.exe >/dev/null 2>&1 || err_out \
 				"Cross-compiling is not supported. $CC seems to be a cross-compiler." \
@@ -2589,7 +2589,7 @@ make|view)
 		cat $tmp.c >&2
 		if	test -s $tmp.err
 		then	cat $tmp.err >&2
-		else	note "$CC: not a C compiler"
+		else	note "$CC: not a C99 compiler"
 		fi
 		(set +o noglob; rm -rf $tmp.*)
 		exit 1
