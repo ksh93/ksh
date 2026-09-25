@@ -215,6 +215,14 @@ For more details, see the NEWS file and for complete details, see the git log.
 	now a maximum line length of 2 MiB. (Post-1.0 change introduced in
 	ksh 93u+m/1.0.11, necessary to fix buffer overflows in the parser)
 
+40.	In ${var%word} and ${var%%word}, an unescaped '|' in 'word' is no
+	longer incorrectly treated as an alternation operator without the
+	@(...|...) syntax required to enable this; it is now treated as a
+	literal character, as documented (and as was always the case in
+	${var#word} and ${var##word}). Scripts that rely on this bug should
+	be corrected to use, for example, ${var%@(word1|word2)} instead of
+	${var%word1|word2}. (Post-1.0 change introduced in ksh 93u+m/1.0.11)
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

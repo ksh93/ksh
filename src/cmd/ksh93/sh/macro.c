@@ -2725,7 +2725,7 @@ static ssize_t substring(const char *string,size_t len,const char *pat,ssize_t m
 	ssize_t n, nmatch;
 	if(flag)
 	{
-		if(n=strngrpmatch(sp,len,pat,smatch,elementsof(smatch)/2,STR_RIGHT|STR_MAXIMAL))
+		if(n=strngrpmatch(sp,len,pat,smatch,elementsof(smatch)/2,STR_GROUP|STR_RIGHT|STR_MAXIMAL))
 		{
 			memcpy(match,smatch,(size_t)n*2*sizeof(smatch[0]));
 			return n;
@@ -2738,7 +2738,7 @@ static ssize_t substring(const char *string,size_t len,const char *pat,ssize_t m
 	{
 		if(mbwide())
 			sp = lastchar(string,sp);
-		if(n=strgrpmatch(sp,pat,smatch,elementsof(smatch)/2,STR_RIGHT|STR_LEFT|STR_MAXIMAL))
+		if(n=strgrpmatch(sp,pat,smatch,elementsof(smatch)/2,STR_GROUP|STR_RIGHT|STR_LEFT|STR_MAXIMAL))
 		{
 			nmatch = n;
 			memcpy(match,smatch,(size_t)n*2*sizeof(smatch[0]));
