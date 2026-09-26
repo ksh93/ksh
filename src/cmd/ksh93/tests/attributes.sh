@@ -932,12 +932,19 @@ got=$(typeset -a ecv[0][0]=(); typeset -p ecv)
 for exp in 'typeset -a ecv=(() )' \
 	'typeset -a ecv=([0]=() [2]=() [3]=z)' \
 	'typeset -a ecv=((() ) )'
-do
-	got=$(unset ecv; eval "$exp"; typeset -p ecv)
+do	got=$(eval "$exp"; typeset -p ecv)
 	[[ $got == "$exp" ]] || err_exit "re-entering $exp" \
 		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
 done
-unset ecv
+
+# indentation with print -v
+for exp in $'typeset -a ecv=(\n\t(\n\t)\n)' \
+	$'typeset -a ecv=(\n\t[0]=(\n\t)\n\t[2]=(\n\t)\n\t[3]=z\n)' \
+	$'typeset -a ecv=(\n\t(\n\t\t(\n\t\t)\n\t)\n)'
+do	got=$(eval "$exp"; print -v ecv)
+	[[ $got == "${exp#*=}" ]] || err_exit "'print -v ecv' indented output for $(printf %q "$exp")" \
+		"(expected $(printf %q "${exp#*=}"); got $(printf %q "$got"))"
+done
 
 # ======
 exit $((Errors<125?Errors:125))

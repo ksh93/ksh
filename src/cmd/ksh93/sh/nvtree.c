@@ -604,7 +604,11 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 			if(nv_arrayptr(mp) || nv_isvtree(mp))
 				nv_outnode(mp, out, indent, 0);
 			else
+			{
 				sfputc(out,'(');
+				if(indent>0)
+					sfputc(out,'\n');
+			}
 			if(indent>0)
 				sfnputc(out,'\t',(size_t)indent);
 			sfputc(out,')');
