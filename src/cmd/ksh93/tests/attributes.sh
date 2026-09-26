@@ -907,4 +907,41 @@ got=$(set +x; redirect 2>&1; "$SHELL" -s <<-'EOF'
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
 
 # ======
+# typeset -p on an array holding an empty compound variable
+# https://github.com/ksh93/ksh/issues/148
+# The output must be re-enterable; note that "( )" rather than "()" is used
+# where the parentheses could otherwise become an empty "((...))" pair.
+exp='typeset -a ecv=(() )'
+got=$(typeset -a ecv[0]=(); typeset -p ecv)
+[[ $got == "$exp" ]] || err_exit "typeset -p on an array with an empty compound variable element" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+got=$(eval "$exp"; typeset -p ecv)
+[[ $got == "$exp" ]] || err_exit "re-entering typeset -p output for an empty compound variable" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+# empty compound variables at a non-zero index, written out as "[n]="
+exp='typeset -a ecv=([0]=() [2]=() [3]=z)'
+got=$(typeset -a ecv[0]=(); typeset -a ecv[2]=(); typeset -a ecv[3]=z; typeset -p ecv)
+[[ $got == "$exp" ]] || err_exit "typeset -p with empty compound variables and a sparse index" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+# an empty compound variable nested two levels deep
+exp='typeset -a ecv=((() ) )'
+got=$(typeset -a ecv[0][0]=(); typeset -p ecv)
+[[ $got == "$exp" ]] || err_exit "typeset -p with a doubly nested empty compound variable" \
+	"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+
+# each of the above must survive being re-entered and printed again
+for exp in 'typeset -a ecv=(() )' \
+	'typeset -a ecv=([0]=() [2]=() [3]=z)' \
+	'typeset -a ecv=((() ) )'
+do
+	got=$(unset ecv; eval "$exp"; typeset -p ecv)
+	[[ $got == "$exp" ]] || err_exit "re-entering $exp" \
+		"(expected $(printf %q "$exp"); got $(printf %q "$got"))"
+done
+unset ecv
+
+# ======
 exit $((Errors<125?Errors:125))
