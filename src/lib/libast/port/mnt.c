@@ -38,7 +38,7 @@
 #define FIXARGS(p,m,s)		do {					\
 					if ((p)&&*(p)!='/') {		\
 						mode = p;		\
-						path = 0;		\
+						path = NULL;		\
 					}				\
 					if (!path)			\
 						path = s;		\
@@ -732,7 +732,7 @@ mntread(void* handle)
 			break;
 		case 4:
 			*s = 0;
-			b = s = m = 0;
+			b = s = m = NULL;
 			break;
 		}
 		break;

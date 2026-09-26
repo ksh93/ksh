@@ -38,7 +38,7 @@
 
 #if defined(_aso_casptr) && (defined(_aso_cas32) || defined(_aso_cas64))
 #define ASO_METHOD		(&_aso_meth_intrinsic)
-#define ASO_LOCKF		0
+#define ASO_LOCKF		NULL
 #else
 #define ASO_METHOD		(&_aso_meth_signal)
 #define ASO_LOCKF		_aso_lock_signal
@@ -112,10 +112,10 @@ _aso_lock_signal(void* data, ssize_t k, void volatile* p)
 	return 1;
 }
 
-static Asometh_t	_aso_meth_signal =    { "signal",    ASO_SIGNAL,    0, _aso_lock_signal };
+static Asometh_t	_aso_meth_signal =    { "signal",    ASO_SIGNAL,    NULL, _aso_lock_signal };
 extern Asometh_t	_aso_meth_semaphore;
 extern Asometh_t	_aso_meth_fcntl;
-static Asometh_t	_aso_meth_intrinsic = { "intrinsic", ASO_INTRINSIC|ASO_PROCESS|ASO_THREAD|ASO_SIGNAL, 0, 0 };
+static Asometh_t	_aso_meth_intrinsic = { "intrinsic", ASO_INTRINSIC|ASO_PROCESS|ASO_THREAD|ASO_SIGNAL, NULL, NULL };
 
 static Asometh_t*	method[] =
 {
@@ -212,8 +212,8 @@ asoexit(void)
 	if (state.meth && state.meth->initf && state.data && state.pid == getpid())
 	{
 		state.lockf = ASO_METHOD->lockf;
-		state.meth->initf(state.data, 0);
-		state.data = 0;
+		state.meth->initf(state.data, NULL);
+		state.data = NULL;
 	}
 }
 
@@ -239,18 +239,18 @@ asoinit(const char* details, Asometh_t* meth, Asodisc_t* disc)
 	if (!meth->lockf && !(meth->type & ASO_INTRINSIC))
 	{
 		if (state.errorf)
-			asoerror(ASO_EMETHOD, "%s method has no lock function", meth->name, 0, 0);
+			asoerror(ASO_EMETHOD, "%s method has no lock function", meth->name, NULL, 0);
 		return -1;
 	}
 	state.lockf = ASO_METHOD->lockf;
 	if (state.meth && state.meth->initf && state.data)
 	{
-		state.meth->initf(state.data, 0);
-		state.data = 0;
+		state.meth->initf(state.data, NULL);
+		state.data = NULL;
 	}
 	if (!meth->initf)
-		data = 0;
-	else if (!(data = meth->initf(0, details ? details : meth->details)))
+		data = NULL;
+	else if (!(data = meth->initf(NULL, details ? details : meth->details)))
 	{
 		state.meth = ASO_METHOD;
 		if (state.errorf)
@@ -277,7 +277,7 @@ int
 asoloop(uintmax_t rep)
 {
 	if (state.hung && !(rep & state.hung) && state.errorf)
-		return asoerror(ASO_EHUNG, "spin lock possibly hung after 2^%u attempts", 0, 0, state.hung2);
+		return asoerror(ASO_EHUNG, "spin lock possibly hung after 2^%u attempts", NULL, NULL, state.hung2);
 	return (rep & ASO_RELAX) ? 0 : asorelax(1);
 }
 
@@ -291,7 +291,7 @@ lock(void* data, ssize_t k, void volatile* p)
 	ssize_t		r;
 
 	if ((r = state.lockf(data, k, p)) < 0 && state.errorf)
-		asoerror(ASO_EMETHOD, "%s method lock failed", state.meth->name, 0, 0);
+		asoerror(ASO_EMETHOD, "%s method lock failed", state.meth->name, NULL, 0);
 	return r;
 }
 

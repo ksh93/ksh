@@ -139,14 +139,14 @@ enter(Table_t* tab, Link_t* v)
 	Link_t*	x;
 	Link_t*	p;
 
-	for (p = 0, x = tab->root; x; p = x, x = x->next)
+	for (p = NULL, x = tab->root; x; p = x, x = x->next)
 		if (!strcmp(x->code, v->code))
 			return x;
 	if (p)
 		p->next = v;
 	else
 		tab->root = v;
-	v->next = 0;
+	v->next = NULL;
 	v->index = tab->count++;
 	return v;
 }
@@ -192,7 +192,7 @@ macro(FILE* f, char* p1, char* p2, char* p3)
 	part[0] = p1;
 	part[1] = p2;
 	part[2] = p3;
-	part[3] = 0;
+	part[3] = NULL;
 	n = 0;
 	fprintf(f, "\n");
 	do
@@ -327,12 +327,12 @@ main(int argc, char** argv)
 				break;
 			for (*s++ = 0; isspace(*s); s++);
 			if (!strcmp(*(vp - 1), "-"))
-				*(vp - 1) = 0;
+				*(vp - 1) = NULL;
 			if (!*s || vp >= ve)
 				break;
 		}
 		while (vp < ve)
-			*vp++ = 0;
+			*vp++ = NULL;
 		if (!arg[0])
 		{
 			fprintf(stderr, "%s: %d: empty first argument\n", command, line);
@@ -418,7 +418,7 @@ main(int argc, char** argv)
 			b = (char*)(tp + 1);
 			tp->link.code = copy(&b, arg[0]);
 			tp->name = copy(&b, arg[1]);
-			tp->languages = 0;
+			tp->languages = NULL;
 			if (s = copy(&b, arg[2]))
 			{
 				i = 0;
@@ -443,7 +443,7 @@ main(int argc, char** argv)
 						lz->next = ll;
 					lz = ll;
 					ll->language = lp;
-					ll->next = 0;
+					ll->next = NULL;
 					i++;
 					if (c == ':')
 					{
@@ -474,20 +474,20 @@ main(int argc, char** argv)
 			lp->name = copy(&b, arg[1]);
 			lp->alternates = copy(&b, arg[2]);
 			if (!arg[3])
-				lp->charset = 0;
+				lp->charset = NULL;
 			else if (!(lp->charset = (Charset_t*)lookup(&state.charset, arg[3])))
 			{
 				fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
 				goto error_out;
 			}
-			lp->attributes = 0;
+			lp->attributes = NULL;
 			if (s = copy(&b, arg[4]))
 			{
 				i = 0;
 				fprintf(lf, "\nconst Lc_attribute_t attribute_%s[] =\n{\n", lp->link.code);
 				while (*(b = s))
 				{
-					for (f = 0; *s && *s != '|'; s++)
+					for (f = NULL; *s && *s != '|'; s++)
 						if (*s == ':')
 						{
 							*s++ = 0;
@@ -518,7 +518,7 @@ main(int argc, char** argv)
 						az->next = al;
 					az = al;
 					al->attribute = ap;
-					al->next = 0;
+					al->next = NULL;
 					macro(lf, "SUBLANG", lp->name, b);
 					fprintf(lf, "\n},\n");
 				}
@@ -556,13 +556,13 @@ main(int argc, char** argv)
 				goto error_out;
 			}
 			if (!arg[3])
-				mp->charset = 0;
+				mp->charset = NULL;
 			else if (!(mp->charset = (Charset_t*)lookup(&state.charset, arg[3])))
 			{
 				fprintf(stderr, "%s: %d: %s: unknown charset\n", command, line, arg[3]);
 				goto error_out;
 			}
-			mp->attribute = 0;
+			mp->attribute = NULL;
 			if (arg[4])
 			{
 				for (al = mp->language->attributes; al; al = al->next)
@@ -676,18 +676,18 @@ main(int argc, char** argv)
 		if (cp->alternates)
 			fprintf(lf, "\"%s\",", cp->alternates);
 		else
-			fprintf(lf, "0,");
+			fprintf(lf, "NULL,");
 		if (cp->ms)
 			fprintf(lf, "\"%s\",", cp->ms);
 		else
-			fprintf(lf, "0");
+			fprintf(lf, "NULL");
 		fprintf(lf, "},\n");
 	}
-	fprintf(lf, "\t0\n};\n");
+	fprintf(lf, "\tNULL\n};\n");
 	fprintf(lf, "\nconst Lc_language_t lc_languages[] =\n{\n");
 	fprintf(lf, "{\"C\",\"C\",\"POSIX\",&lc_charsets[0],LC_default,0,");
 	for (i = 0; i < language_attribute_max; i++)
-		fprintf(lf, "0,");
+		fprintf(lf, "NULL,");
 	fprintf(lf, "},\n");
 	for (lp = (Language_t*)state.language.root; lp; lp = (Language_t*)lp->link.next)
 	{
@@ -695,25 +695,19 @@ main(int argc, char** argv)
 		if (lp->alternates)
 			fprintf(lf, "\"%s\",", lp->alternates);
 		else
-			fprintf(lf, "0,");
+			fprintf(lf, "NULL,");
 		fprintf(lf, "&lc_charsets[%d],0,", lp->charset ? lp->charset->link.index : 0);
 		macro(lf, "LANG", lp->name, NULL);
 		for (i = 0, al = lp->attributes; al; al = al->next, i++)
 			fprintf(lf, "&attribute_%s[%d],", lp->link.code, al->attribute->link.index);
 		for (; i < language_attribute_max; i++)
-			fprintf(lf, "0,");
+			fprintf(lf, "NULL,");
 		fprintf(lf, "\n},\n");
 	}
-	fprintf(lf, "\t0\n};\n");
+	fprintf(lf, "\tNULL\n};\n");
 	fprintf(lf, "\nconst Lc_territory_t lc_territories[] =\n{\n");
-	fprintf(lf, "{\"C\",\"C\",LC_default,0,&lc_languages[0],");
-	for (i = 1; i < 2 * territory_language_max; i++)
-		fprintf(lf, "0,");
-	fprintf(lf, "},\n");
-	fprintf(lf, "{\"eu\",\"euro\",0,0,&lc_languages[0],");
-	for (i = 1; i < 2 * territory_language_max; i++)
-		fprintf(lf, "0,");
-	fprintf(lf, "},\n");
+	fprintf(lf, "{ .code = \"C\", .name = \"C\", .flags = LC_default, .languages = &lc_languages[0] },\n");
+	fprintf(lf, "{ .code = \"eu\", .name = \"euro\", .languages = &lc_languages[0] },\n");
 	for (tp = (Territory_t*)state.territory.root; tp; tp = (Territory_t*)tp->link.next)
 	{
 		fprintf(lf, "{\"%s\",\"%s\",", tp->link.code, tp->name);
@@ -725,14 +719,14 @@ main(int argc, char** argv)
 		for (i = 0, ll = tp->languages; ll; ll = ll->next, i++)
 			fprintf(lf, "&lc_languages[%d],", ll->language->link.index);
 		for (; i < territory_language_max; i++)
-			fprintf(lf, "0,");
+			fprintf(lf, "NULL,");
 		for (i = 0, ll = tp->languages; ll; ll = ll->next, i++)
 			macro(lf, "SUBLANG", ll->language->name, tp->name);
 		for (; i < territory_language_max; i++)
 			fprintf(lf, "0,");
 		fprintf(lf, "\n},\n");
 	}
-	fprintf(lf, "\t0\n};\n");
+	fprintf(lf, "\tNULL\n};\n");
 	fprintf(lf, "\nconst Lc_map_t lc_maps[] =\n{\n");
 	for (mp = (Map_t*)state.map.root; mp; mp = (Map_t*)mp->link.next)
 	{
@@ -743,10 +737,10 @@ main(int argc, char** argv)
 		if (mp->attribute)
 			fprintf(lf, "&attribute_%s[%d]", mp->language->link.code, mp->attribute->link.index);
 		else
-			fprintf(lf, "0");
+			fprintf(lf, "NULL");
 		fprintf(lf, "},\n");
 	}
-	fprintf(lf, "\t0\n};\n");
+	fprintf(lf, "\tNULL\n};\n");
 	fclose(lf);
 	fprintf(hf, "\n#endif\n");
 	fclose(hf);

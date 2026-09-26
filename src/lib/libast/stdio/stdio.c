@@ -363,7 +363,7 @@ vasprintf(char **restrict s, const char *restrict fmt, va_list args)
 	}
 	else
 	{
-		*s = 0;
+		*s = NULL;
 		v = -1;
 	}
 	return v;

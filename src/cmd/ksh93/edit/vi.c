@@ -2322,7 +2322,7 @@ addin:
 			if(vp->repeat_set==0)
 				vp->repeat = -1;
 			p = (genchar*)hist_word((char*)tmpbuf,MAXLINE,vp->repeat);
-			if(p==0)
+			if(p==NULL)
 			{
 				ed_ringbell();
 				break;

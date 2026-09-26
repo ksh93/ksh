@@ -85,7 +85,7 @@ static int uniq(Sfio_t *fdin, Sfio_t *fdout, ssize_t fields, ssize_t chars, ssiz
 	ptrdiff_t n, outsize=0, cwidth=0;
 	int sep, mb = mbwide();
 	char *cp=NULL, *ep, *mp, *bufp, *outp=NULL;
-	char *orecp=NULL, *sbufp=0, *outbuff;
+	char *orecp=NULL, *sbufp=NULL, *outbuff;
 	ptrdiff_t reclen,oreclen= -1;
 	int count=0,next;
 	if(mode&C_FLAG)
@@ -250,7 +250,7 @@ b_uniq(int argc, char** argv, Shbltin_t* context)
 	char *cp;
 	ssize_t fields=0, chars=0, width=-1;
 	Sfio_t *fpin, *fpout;
-	int* all = 0;
+	int* all = NULL;
 	int sep;
 	Compare_f compare = (Compare_f)memcmp;
 

@@ -141,7 +141,7 @@ static const NV_t	family[] =
 #ifdef AF_BLUETOOTH
 	"BLUETOOTH",	AF_BLUETOOTH,
 #endif
-	0
+	NULL
 };
 
 #endif
@@ -273,7 +273,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 #endif
 			if (!st.st_mode)
 				st.st_mode = S_IFSOCK|S_IRUSR|S_IWUSR;
-			s = 0;
+			s = NULL;
 			switch (type)
 			{
 			case SOCK_DGRAM:
