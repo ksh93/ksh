@@ -1091,9 +1091,12 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, nvflag_t type)
 			ar->argnxt.ap = 0;
 			if(!aq)
 			{
+				Shnode_t *ntp;
 				ar = assign(lexp,ar,0);
+				ntp = ((struct fornod *)ar->argchn.ap)->fortre;
 				/* for a nested indexed array values TCOM tree, propagate ARG_ARRAY for correct handling */
-				if ((((struct fornod *)ar->argchn.ap)->fortre->tre.tretyp & COMMSK) == TCOM)
+				if ((ntp->tre.tretyp & COMMSK) == TCOM
+				&& (ntp->com.comnamp || !ntp->com.comset || ntp->com.comset->argval[0]=='['))
 					ar->argflag |= ARG_ARRAY;
 				/* since noreserv is reset to 0 below, we have set it again after a recursive call */
 				lexp->noreserv = 1;

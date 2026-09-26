@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-26:
+
+- Fixed a regression in nested compound variable assignment, introduced on
+  2026-09-21, where a compound variable written as a list of assignments
+  without semicolons was misparsed as an array value. For example,
+  'typeset -a ecv=(((y=76 x=12))); typeset -p ecv' incorrectly created
+  ecv[0] as an indexed array holding the string '(x=12;y=76)'.
+
 2026-09-25:
 
 - Fixed the interactive shell freezing if a pipeline was suspended (^Z)
