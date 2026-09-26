@@ -90,7 +90,7 @@ int sh_diropenat(int dir, const char *path)
 int	b_cd(int argc, char *argv[],Shbltin_t *context)
 {
 	char *dir;
-	Pathcomp_t *cdpath = 0;
+	Pathcomp_t *cdpath = NULL;
 	const char *dp;
 	int saverrno=0;
 	int rval,pflag=0,eflag=0,ret=1,saverr;
@@ -203,7 +203,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 	do
 	{
 		dp = cdpath?cdpath->name:"";
-		cdpath = path_nextcomp(cdpath,dir,0);
+		cdpath = path_nextcomp(cdpath,dir,NULL);
 #if _WINIX
 		if(*stkptr(sh.stk,PATH_OFFSET+1)==':' && isalpha(*stkptr(sh.stk,PATH_OFFSET)))
 		{

@@ -207,7 +207,7 @@ static char* get_enum(Namval_t* np, Namfun_t *fp)
 	return buff;
 }
 
-const Namdisc_t ENUM_disc = { 0, put_enum, get_enum, nv_getn, 0, 0, clone_enum };
+const Namdisc_t ENUM_disc = { .putval = put_enum, .getval = get_enum, .getnum = nv_getn, .clonef = clone_enum };
 
 int b_enum(int argc, char** argv, Shbltin_t *context)
 {
@@ -279,7 +279,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 		ep->nelem = (ssize_t)n;
 		cp = (char*)&ep->values[n+1];
 		nv_putsub(np, NULL, ARRAY_SCAN);
-		ep->values[n] = 0;
+		ep->values[n] = NULL;
 		i = 0;
 		do
 		{

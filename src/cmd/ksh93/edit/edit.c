@@ -351,7 +351,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 #endif /* SHOPT_MULTIBYTE */
 	if(!(last = sh.prompt))
 		last = "";
-	sh.prompt = 0;
+	sh.prompt = NULL;
 	if(sh.hist_ptr)
 	{
 		History_t *hp = sh.hist_ptr;
@@ -556,7 +556,7 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 		ep->e_lookahead = (int)n;
 		while(n-- > 0)
 			ep->e_lbuf[n] = *pp++;
-		ep->e_default = 0;
+		ep->e_default = NULL;
 	}
 }
 
@@ -611,7 +611,7 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	}
 	sh_onstate(SH_TTYWAIT);
 	errno = EINTR;
-	sh.waitevent = 0;
+	sh.waitevent = NULL;
 	while(rv<0 && errno==EINTR)
 	{
 		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))

@@ -150,28 +150,28 @@ void hist_setchars(char *hc)
 
 int hist_expand(const char *ln, char **xp)
 {
-	ptrdiff_t off,	/* stack offset */
-		  off2; /* other stack offset */
-	int	q,	/* quotation flags */
-		p,	/* flag */
-		c,	/* current char */
-		flag=0;	/* HIST_* flags */
-	Sfoff_t	n,	/* history line number, counter, etc. */
-		i,	/* counter */
-		w[2];	/* word range */
-	char	*sp,	/* stack pointer */
-		*cp,	/* current char in ln */
-		*str,	/* search string */
-		*evp,	/* event/word designator string, for error msgs */
-		*cc=0,	/* copy of current line up to cp */
-		hc[3],	/* default histchars */
+	ptrdiff_t off,		/* stack offset */
+		  off2; 	/* other stack offset */
+	int	q,		/* quotation flags */
+		p,		/* flag */
+		c,		/* current char */
+		flag=0;		/* HIST_* flags */
+	Sfoff_t	n,		/* history line number, counter, etc. */
+		i,		/* counter */
+		w[2];		/* word range */
+	char	*sp,		/* stack pointer */
+		*cp,		/* current char in ln */
+		*str,		/* search string */
+		*evp,		/* event/word designator string, for error msgs */
+		*cc=NULL,	/* copy of current line up to cp */
+		hc[3],		/* default histchars */
 		*qc="\'\"`";	/* quote characters */
-	Sfio_t	*ref=0,	/* line referenced by event designator */
-		*tmp=0,	/* temporary line buffer */
-		*tmp2=0;/* temporary line buffer */
-	Histloc_t hl;	/* history location */
-	static struct subst	sb = {0,0};	/* substitution strings */
-	static Sfio_t	*wm=0;	/* word match from !?string? event designator */
+	Sfio_t	*ref=NULL,	/* line referenced by event designator */
+		*tmp=NULL,	/* temporary line buffer */
+		*tmp2=NULL;	/* temporary line buffer */
+	Histloc_t hl;		/* history location */
+	static struct subst	sb = {NULL,NULL};	/* substitution strings */
+	static Sfio_t	*wm = NULL;			/* word match from !?string? event designator */
 
 	if(!wm)
 		wm = sfopen(NULL, NULL, "swr");
@@ -215,10 +215,10 @@ int hist_expand(const char *ln, char **xp)
 		}
 
 		n = -1;
-		str = 0;
+		str = NULL;
 		flag &= HIST_EVENT; /* save event flag for returning later */
 		evp = cp;
-		ref = 0;
+		ref = NULL;
 
 		if(*cp == hc[1]) /* shortcut substitution */
 		{
@@ -523,7 +523,7 @@ getsel:
 			sfclose(ref);
 			flag &= ~HIST_HASH;
 			free(cc);
-			cc = 0;
+			cc = NULL;
 		}
 
 		evp = cp;
@@ -662,7 +662,7 @@ getsel:
 				if(wm != tmp)
 					sfclose(tmp);
 				tmp = tmp2;
-				tmp2 = 0;
+				tmp2 = NULL;
 			}
 			if(*cp)
 				cp++;
@@ -715,7 +715,7 @@ done:
 		/* close !# temp file */
 		sfclose(ref);
 		free(cc);
-		cc = 0;
+		cc = NULL;
 	}
 
 	/* error? */
@@ -725,7 +725,7 @@ done:
 		*xp = sh_struse(sh.strbuf);
 	}
 	else
-		*xp = 0;
+		*xp = NULL;
 
 	/* restore shell stack */
 	if(off)

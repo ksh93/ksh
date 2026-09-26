@@ -127,7 +127,7 @@ outline(Fmt_t* fp)
 			fp->nextdent = 0;
 		}
 	}
-	fp->outp = 0;
+	fp->outp = NULL;
 }
 
 static void
@@ -238,7 +238,7 @@ dofmt(Fmt_t* fp)
 	char*	tp;
 	char	buf[8192];
 
-	cp = 0;
+	cp = NULL;
 	while (cp || (cp = sfgetr(fp->in, '\n', 0)) && !(splice = 0) && (lp = cp + sfvalue(fp->in) - 1) || (cp = sfgetr(fp->in, '\n', SFIO_LASTR)) && (splice = 1) && (lp = cp + sfvalue(fp->in)))
 	{
 		if (isoption(fp, 'o'))
@@ -281,12 +281,12 @@ dofmt(Fmt_t* fp)
 		}
 	again:
 		dp = buf;
-		ep = 0;
+		ep = NULL;
 		for (b = 1;; b = 0)
 		{
 			if (cp >= lp)
 			{
-				cp = 0;
+				cp = NULL;
 				break;
 			}
 			c = *cp++;
@@ -490,7 +490,7 @@ dofmt(Fmt_t* fp)
 						*dp = 0;
 						split(fp, buf, 0);
 						dp = buf;
-						ep = 0;
+						ep = NULL;
 						fp->retain = 0;
 						if (fp->outp >= fp->endbuf)
 							outline(fp);
@@ -540,11 +540,11 @@ dofmt(Fmt_t* fp)
 						dp = tp;
 						break;
 					}
-				ep = 0;
+				ep = NULL;
 				break;
 			}
 			if (c != ' ')
-				ep = 0;
+				ep = NULL;
 			else if (!ep)
 				ep = dp;
 			*dp++ = (char)c;
@@ -569,7 +569,7 @@ b_fmt(int argc, char** argv, Shbltin_t* context)
 	fmt.flags = 0;
 	fmt.out = sfstdout;
 	fmt.outbuf = outbuf;
-	fmt.outp = 0;
+	fmt.outp = NULL;
 	fmt.endbuf = &outbuf[72];
 	fmt.indent = 0;
 	fmt.nextdent = 0;

@@ -90,7 +90,7 @@ mcfind(const char* locale, const char* catalog, int category, int nls, char* pat
 	paths[i++] = "share/lib/locale/%l/%C/%N";
 	paths[i++] = "share/locale/%l/%C/%N";
 	paths[i++] = "lib/locale/%l/%C/%N";
-	paths[i] = 0;
+	paths[i] = NULL;
 	next = 1;
 	for (i = 0; p = paths[i]; i += next)
 	{
@@ -238,7 +238,7 @@ mcopen(Sfio_t* ip)
 	 * allocate the region
 	 */
 
-	if (!(vm = vmopen()) || !(mc = vmnewof(vm, 0, Mc_t, 1, 0)))
+	if (!(vm = vmopen()) || !(mc = vmnewof(vm, NULL, Mc_t, 1, 0)))
 	{
 		errno = oerrno;
 		return NULL;
@@ -274,18 +274,18 @@ mcopen(Sfio_t* ip)
 		if (sfeof(ip))
 			goto bad;
 	}
-	else if (!(mc->translation = vmnewof(vm, 0, char, 1, 0)))
+	else if (!(mc->translation = vmnewof(vm, NULL, char, 1, 0)))
 		goto bad;
 
 	/*
 	 * allocate the remaining space
 	 */
 
-	if (!(mc->set = vmnewof(vm, 0, Mcset_t, (size_t)mc->num + 1, 0)))
+	if (!(mc->set = vmnewof(vm, NULL, Mcset_t, (size_t)mc->num + 1, 0)))
 		goto bad;
 	if (!ip)
 		return mc;
-	if (!(mp = vmnewof(vm, 0, char*, mc->nmsgs + (size_t)mc->num + 1, 0)))
+	if (!(mp = vmnewof(vm, NULL, char*, mc->nmsgs + (size_t)mc->num + 1, 0)))
 		goto bad;
 	if (!(rp = sp = vmalloc(vm, mc->nstrs + 1)))
 		goto bad;
@@ -394,7 +394,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 			 * decrease the string table size
 			 */
 
-			mc->set[set].msg[num] = 0;
+			mc->set[set].msg[num] = NULL;
 			mc->nstrs -= strlen(s) + 1;
 			if (mc->set[set].num == num)
 			{
@@ -428,7 +428,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 		if (set > mc->gen)
 		{
 			i = MC_SET_MAX;
-			if (!(sp = vmnewof(mc->vm, 0, Mcset_t, (size_t)i + 1, 0)))
+			if (!(sp = vmnewof(mc->vm, NULL, Mcset_t, (size_t)i + 1, 0)))
 				return -1;
 			mc->gen = i;
 			for (i = 1; i <= mc->num; i++)
@@ -454,7 +454,7 @@ mcput(Mc_t* mc, int set, int num, const char* msg)
 					i = 2 * num;
 				if (i > MC_NUM_MAX)
 					i = MC_NUM_MAX;
-				if (!(mp = vmnewof(mc->vm, 0, char*, (size_t)i + 1, 0)))
+				if (!(mp = vmnewof(mc->vm, NULL, char*, (size_t)i + 1, 0)))
 					return -1;
 				mc->gen = i;
 				sp->msg = mp;

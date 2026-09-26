@@ -107,7 +107,7 @@ static const char*	disctab[] =
 	"accept",
 	"action",
 	"close",
-	0
+	NULL
 };
 
 typedef struct Service_s Service_t;
@@ -136,7 +136,7 @@ static int		(*covered_fdnotify)(int, int);
 static int fdclose(Service_t *sp, int fd)
 {
 	int i;
-	service_list[fd] = 0;
+	service_list[fd] = NULL;
 	if(sp->fd==fd)
 		sp->fd = -1;
 	for(i=0; i < npoll; i++)
@@ -161,7 +161,7 @@ static int fdnotify(int fd1, int fd2)
 	{
 		int i;
 		service_list[fd2] = service_list[fd1];
-		service_list[fd1] = 0;
+		service_list[fd1] = NULL;
 		for(i=0; i < npoll; i++)
 		{
 			if(file_list[i]==fd1)
@@ -200,7 +200,7 @@ static void process_stream(Sfio_t* iop)
 	}
 	else if(sp->actionf)
 	{
-		service_list[fd] = 0;
+		service_list[fd] = NULL;
 		r = (*sp->actionf)(sp, fd, 0);
 		service_list[fd] = sp;
 		if(r<0)
@@ -210,7 +210,7 @@ static void process_stream(Sfio_t* iop)
 
 static int waitnotify(int fd, long timeout, int rw)
 {
-	Sfio_t	*special=0, **pstream;
+	Sfio_t	*special = NULL, **pstream;
 	int	i;
 
 	if (fd >= 0)
@@ -291,7 +291,7 @@ static int Accept(Service_t *sp, int accept_fd)
 			char	buff[20];
 
 			av[1] = buff;
-			av[2] = 0;
+			av[2] = NULL;
 			sfsprintf(buff, sizeof(buff), "%d", fd);
 			if (sh_fun(nq, sp->node, av))
 			{
@@ -319,7 +319,7 @@ static int Action(Service_t *sp, int fd, int close)
 		char	buff[20];
 
 		av[1] = buff;
-		av[2] = 0;
+		av[2] = NULL;
 		sfsprintf(buff, sizeof(buff), "%d", fd);
 		r=sh_fun(nq, sp->node, av);
 	}
@@ -361,7 +361,7 @@ static char* setdisc(Namval_t* np, const char* event, Namval_t* action, Namfun_t
 			if (action)
 				sp->disc[i] = action;
 			else
-				sp->disc[i] = 0;
+				sp->disc[i] = NULL;
 		}
 		return action ? (char*)action : "";
 	}
@@ -394,11 +394,9 @@ static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 
 static const Namdisc_t servdisc =
 {
-	sizeof(Service_t),
-	putval,
-	0,
-	0,
-	setdisc
+	.dsize = sizeof(Service_t),
+	.putval = putval,
+	.setdisc = setdisc
 };
 
 int	b_mkservice(int argc, char** argv, Shbltin_t *context)
@@ -436,7 +434,7 @@ int	b_mkservice(int argc, char** argv, Shbltin_t *context)
 	sp->errorf = Error;
 	sp->refcount = 1;
 	sp->context = context;
-	sp->node = 0;
+	sp->node = NULL;
 	sp->fun.disc = &servdisc;
 	if((fd = sh_open(path, O_SERVICE|O_RDWR))<=0)
 	{

@@ -54,7 +54,7 @@ static const Namval_t		options[] =
 	"subsecond",	TM_SUBSECOND,
 	"type",		TM_type,
 	"utc",		TM_UTC,
-	0,		0
+	NULL,		0
 };
 
 /*
@@ -171,7 +171,7 @@ tmopt(void* a, const void* p, int n, const char* v)
 			tm_info.deformat = (n && (n = (int)strlen(v)) > 0 && (n < 2 || v[n-2] != '%' || v[n-1] != '?')) ? strdup(v) : tm_info.format[TM_DEFAULT];
 			break;
 		case TM_type:
-			tm_info.local->type = (n && *v) ? ((zp = tmtype(v, NULL)) ? zp->type : strdup(v)) : 0;
+			tm_info.local->type = (n && *v) ? ((zp = tmtype(v, NULL)) ? zp->type : strdup(v)) : NULL;
 			break;
 		default:
 			if (n)
@@ -331,7 +331,7 @@ tmlocal(time_t now)
 		 * tm_data.zone table lookup
 		 */
 
-		t = 0;
+		t = NULL;
 		for (zp = tm_data.zone; zp->standard; zp++)
 		{
 			if (zp->type)
@@ -403,7 +403,7 @@ tmlocal(time_t now)
 	if (!local.type && local.standard)
 	{
 		s = local.standard;
-		t = 0;
+		t = NULL;
 		for (zp = tm_data.zone; zp->standard; zp++)
 		{
 			if (zp->type)
@@ -453,7 +453,7 @@ tminit(Tm_zone_t* zp, time_t now, const char newzone)
 
 	if(tz_abbr)
 		free(tz_abbr);
-	tz_abbr = 0;
+	tz_abbr = NULL;
 	if (serial != ast.env_serial)
 	{
 		serial = ast.env_serial;
@@ -464,7 +464,7 @@ tminit(Tm_zone_t* zp, time_t now, const char newzone)
 			if (tm_info.local->daylight)
 				free(tm_info.local->daylight);
 			memset(tm_info.local, 0, sizeof(*tm_info.local));
-			tm_info.local = 0;
+			tm_info.local = NULL;
 		}
 	}
 	if (!tm_info.local || newzone)

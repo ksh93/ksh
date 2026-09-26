@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -100,7 +100,7 @@ sfprintf(sfstderr, "AHA#%d:%s %s\n", __LINE__, __FILE__, s);
 		 * now the native catalogs
 		 */
 
-		if (s && (d = catopen(s, flag)) != (nl_catd)(-1) || !(s = 0) && (d = catopen(name, flag)) != (nl_catd)(-1))
+		if (s && (d = catopen(s, flag)) != (nl_catd)(-1) || !(s = NULL) && (d = catopen(name, flag)) != (nl_catd)(-1))
 		{
 			if (!(cc = newof(0, Cc_t, 1, 0)))
 			{

@@ -68,7 +68,7 @@ static ssize_t filterread(Sfio_t*	f,	/* stream reading from */
 
 			if(r == 1) /* non-blocking write */
 			{	errno = 0;
-				if((w = sfwr(fi->filter, fi->next, (size_t)w, 0)) > 0)
+				if((w = sfwr(fi->filter, fi->next, (size_t)w, NULL)) > 0)
 					fi->next += w;
 				else if(errno != EAGAIN)
 					return 0;
@@ -82,7 +82,7 @@ static ssize_t filterread(Sfio_t*	f,	/* stream reading from */
 
 		if(!fi->next || w == 1) /* non-blocking read */
 		{	errno = 0;
-			if((r = sfrd(fi->filter, buf, n, 0)) > 0)
+			if((r = sfrd(fi->filter, buf, n, NULL)) > 0)
 				return r;
 			if(errno != EAGAIN)
 				return 0;

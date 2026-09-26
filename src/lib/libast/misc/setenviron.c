@@ -56,7 +56,7 @@ setenviron(const char* akey)
 	if (p && !v)
 	{
 		environ = next = p;
-		*++next = 0;
+		*++next = NULL;
 	}
 	else if (p != v || !v)
 	{
@@ -80,7 +80,7 @@ setenviron(const char* akey)
 		else
 			*p++ = "_=";
 		if (!v)
-			*p = 0;
+			*p = NULL;
 		else
 			while (*p = *v++)
 				if (p[0][0] == '_' && p[0][1] == '=')
@@ -127,7 +127,7 @@ setenviron(const char* akey)
 	if (!(s = strchr(key, '=')))
 		return ok;
 	p = next;
-	*++next = 0;
+	*++next = NULL;
 	*p = key;
 	return s + 1;
 }

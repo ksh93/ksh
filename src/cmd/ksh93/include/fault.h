@@ -99,7 +99,7 @@ struct checkpt
 #define sh_pushcontext(bp,n) \
 ( \
 	(bp)->mode = (n), \
-	(bp)->olist = 0, \
+	(bp)->olist = NULL, \
 	(bp)->topfd = sh.topfd, \
 	(bp)->prev = sh.jmplist, \
 	(bp)->err = *ERROR_CONTEXT_BASE, \
@@ -118,7 +118,7 @@ do { \
 	sigemptyset(&ss); \
 	if(s) \
 		sigaddset(&ss,(s)); \
-	sigprocmask(action,&ss,0); \
+	sigprocmask(action,&ss,NULL); \
 } while(0)
 #define sigrelease(s)	sh_sigaction(s,SIG_UNBLOCK)
 #define sigblock(s)	sh_sigaction(s,SIG_BLOCK)

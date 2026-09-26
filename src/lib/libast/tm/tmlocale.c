@@ -552,12 +552,12 @@ load(Lc_info_t* li)
 	char**		b;
 	char**		v;
 	char**		e;
-	unsigned char*		u;
-	ssize_t			n;
-	iconv_t			cvt;
-	Sfio_t*			sp;
-	Sfio_t*			tp;
-	char			path[PATH_MAX];
+	unsigned char*	u;
+	ssize_t		n;
+	iconv_t		cvt;
+	Sfio_t*		sp;
+	Sfio_t*		tp;
+	char		path[PATH_MAX];
 
 	if (b = (char**)li->data)
 	{
@@ -572,7 +572,7 @@ load(Lc_info_t* li)
 	if (mcfind(NULL, NULL, LC_TIME, 0, path, sizeof(path)) && (sp = sfopen(NULL, path, "r")))
 	{
 		n = (ssize_t)sfsize(sp);
-		tp = 0;
+		tp = NULL;
 		if (u = (unsigned char*)sfreserve(sp, 3, 1))
 		{
 			if (u[0] == 0xef && u[1] == 0xbb && u[2] == 0xbf && (cvt = iconv_open("", "utf")) != (iconv_t)(-1))

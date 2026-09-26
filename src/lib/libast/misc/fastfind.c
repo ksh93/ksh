@@ -82,8 +82,8 @@ static const char lib[] = "libast:fastfind";
 
 static char*		findcodes[] =
 {
-	0,
-	0,
+	NULL,
+	NULL,
 	FIND_CODES,
 	"/usr/local/share/lib",
 	"/usr/local/lib",
@@ -169,14 +169,14 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 		findcodes[1] = getenv(FIND_CODES_ENV);
 	if (disc->flags & FIND_GENERATE)
 	{
-		if (!(fp = vmnewof(vm, 0, Find_t, 1, sizeof(Encode_t) - sizeof(Code_t))))
+		if (!(fp = vmnewof(vm, NULL, Find_t, 1, sizeof(Encode_t) - sizeof(Code_t))))
 			goto nomemory;
 		fp->vm = vm;
 		fp->id = lib;
 		fp->disc = disc;
 		fp->generate = 1;
 		if (file && (!*file || streq(file, "-")))
-			file = 0;
+			file = NULL;
 		uid = geteuid();
 		j = (findcodes[0] = (char*)file) && *file == '/' ? 1 : (ssize_t)elementsof(findcodes);
 
@@ -353,7 +353,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 		if (!pattern || !*pattern)
 			pattern = "*";
 		i += (j = 2 * ((ssize_t)strlen(pattern) + 1));
-		if (!(fp = vmnewof(vm, 0, Find_t, 1, (size_t)i)))
+		if (!(fp = vmnewof(vm, NULL, Find_t, 1, (size_t)i)))
 		{
 			vmclose(vm);
 			return NULL;
@@ -496,11 +496,11 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 					k = 0;
 				if (k)
 				{
-					if (!(fp->dirs = vmnewof(fp->vm, 0, char*, 2 * k + 1, 0)))
+					if (!(fp->dirs = vmnewof(fp->vm, NULL, char*, 2 * k + 1, 0)))
 						goto drop;
-					if (!(fp->lens = vmnewof(fp->vm, 0, ssize_t, 2 * k, 0)))
+					if (!(fp->lens = vmnewof(fp->vm, NULL, ssize_t, 2 * k, 0)))
 						goto drop;
-					p = 0;
+					p = NULL;
 					b = fp->decode.temp;
 					j = fp->method == FF_old || fp->method == FF_gnu;
 
@@ -695,7 +695,7 @@ findread(Find_t* fp)
 	if (fp->decode.restore)
 	{
 		*fp->decode.restore = '/';
-		fp->decode.restore = 0;
+		fp->decode.restore = NULL;
 	}
 	ignorecase = fp->decode.ignorecase ? STR_ICASE : 0;
 	c = fp->decode.peek;
@@ -1046,7 +1046,7 @@ finddone(Find_t* fp)
 		return -1;
 	}
 	r = sfclose(fp->fp);
-	fp->fp = 0;
+	fp->fp = NULL;
 	if (r)
 	{
 		if (fp->disc->errorf)
@@ -1243,7 +1243,7 @@ findsync(Find_t* fp)
 	if (fp->fp)
 	{
 		sfclose(fp->fp);
-		fp->fp = 0;
+		fp->fp = NULL;
 	}
 	remove(fp->encode.temp);
 	return -1;
