@@ -456,8 +456,8 @@ static void put_level(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	}
 }
 
-static const Namdisc_t level_disc = { sizeof(Namfun_t), put_level };
-static Namfun_t level_disc_fun = { &level_disc, 1 };
+static const Namdisc_t level_disc = { .dsize = sizeof(Namfun_t), .putval = put_level };
+static Namfun_t level_disc_fun = { .disc = &level_disc, .namflags = NAMFUN_NOFREE };
 
 /*
  * Execute the DEBUG trap:

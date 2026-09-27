@@ -2565,7 +2565,7 @@ static Namfun_t *clone_optimize(Namval_t* np, Namval_t *mp, nvflag_t flags, Namf
 	return NULL;
 }
 
-const Namdisc_t OPTIMIZE_disc  = {sizeof(struct optimize),put_optimize,NULL,NULL,NULL,NULL,clone_optimize};
+const Namdisc_t OPTIMIZE_disc  = { .dsize = sizeof(struct optimize), .putval = put_optimize, .clonef = clone_optimize };
 
 void nv_optimize(Namval_t *np)
 {

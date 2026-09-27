@@ -669,7 +669,7 @@ void sh_reseed_rand(struct rand *rp)
 	rp->rand_last = -1;
 }
 
-static const Namdisc_t RAND_disc	= {  .dsize = sizeof(struct rand), .putval = put_rand, .getval = get_rand, .getnum = nget_rand };
+static const Namdisc_t RAND_disc	= { .dsize = sizeof(struct rand), .putval = put_rand, .getval = get_rand, .getnum = nget_rand };
 
 void sh_invalidate_rand_seed(void)
 {
@@ -1125,9 +1125,9 @@ static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namf
 	return action ? (char*)action : "";
 }
 
-static const Namdisc_t SH_MATH_disc  = { .getval = get_math, .setdisc = setdisc_any, .createf = create_math, };
+static const Namdisc_t SH_MATH_disc  = { .getval = get_math, .setdisc = setdisc_any, .createf = create_math };
 
-static const Namdisc_t LC_disc = {  .dsize = sizeof(Namfun_t), .putval = put_lang };
+static const Namdisc_t LC_disc = { .dsize = sizeof(Namfun_t), .putval = put_lang };
 
 /*
  * This function will get called whenever a configuration parameter changes
