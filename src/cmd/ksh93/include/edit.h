@@ -43,7 +43,7 @@
 
 #define TABSIZE	8
 #define PRSIZE	256
-#define MAXLINE	1024		/* longest edit line permitted */
+#define MAXLINE	8192		/* longest edit line permitted */
 
 typedef struct _edit_pos
 {
