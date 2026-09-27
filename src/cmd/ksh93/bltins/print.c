@@ -453,7 +453,7 @@ static int echolist(Sfio_t *outfile, int raw, char *argv[])
 {
 	char	*cp;
 	ptrdiff_t n;
-	struct printf pdata = {0};
+	struct printf pdata = { 0 };
 	while(!pdata.cescape && (cp= *argv++))
 	{
 		if(!raw  && (n=fmtvecho(cp,&pdata))>=0)

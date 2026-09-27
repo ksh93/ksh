@@ -1419,7 +1419,7 @@ int nv_ispredef(Namval_t *np)
  */
 void sh_reinit(void)
 {
-	Shopt_t opt = {0};
+	Shopt_t opt = { 0 };
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
 	sh_onstate(SH_INIT);

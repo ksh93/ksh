@@ -159,7 +159,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	char		*lastval=NULL;
 	int		lastsub=0;
 	Math_f		fun;
-	struct lval	node = { 
+	struct lval	node = {
 		.flags = ep->flags,
 		.expr = ep->expr,
 		.elen = ep->elen

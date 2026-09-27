@@ -64,11 +64,11 @@ static char *nextdir(glob_t *gp, char *dir)
 
 size_t path_expand(const char *pattern, struct argnod **arghead, int musttrim)
 {
-	glob_t gdata = {0};
+	glob_t gdata = { 0 };
 	struct argnod *ap;
-	glob_t *gp= &gdata;
+	glob_t *gp = &gdata;
 	int flags;
-	size_t extra=0;
+	size_t extra = 0;
 	sh_stats(STAT_GLOBS);
 	flags = GLOB_GROUP|GLOB_AUGMENTED|GLOB_NOCHECK|GLOB_NOSORT|GLOB_STACK|GLOB_LIST|GLOB_DISC;
 	if(sh_isoption(SH_MARKDIRS))
