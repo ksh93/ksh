@@ -1965,6 +1965,7 @@ case $x in
 			cd "$TMPDIR" || exit
 			cp $INITROOT/hello.c pkg$$.c || exit
 			trap "set +o noglob; rm -rf pkg$$.*" 0
+			if	! $cc $CCFLAGS -o pkg$$.exe "$INITROOT/hello.c" >pkg$$.e 2>&1
 			then	if	$cc $CCFLAGS -std=gnu99 -o pkg$$.exe "$INITROOT/hello.c" >/dev/null 2>&1
 				then	# for GCC 3.x/4.x
 					exit 107
@@ -2588,22 +2589,6 @@ make|view)
 	*)	err_out "$CC: not found -- set CC=C-compiler"
 		;;
 	esac
-	cd $INSTALLROOT/lib/package/gen
-	tmp=pkg$$
-	echo 'int main(void){return 0;}' > $tmp.c
-	if	$CC -o $tmp.exe $tmp.c > /dev/null 2> $tmp.err &&
-		test -x $tmp.exe
-	then	: ok
-	else	note "$CC: failed to compile this program:"
-		cat $tmp.c >&2
-		if	test -s $tmp.err
-		then	cat $tmp.err >&2
-		else	note "$CC: not a C99 compiler"
-		fi
-		(set +o noglob; rm -rf $tmp.*)
-		exit 1
-	fi
-	(set +o noglob; rm -rf $tmp.*)
 	cd $PACKAGEROOT
 
 	# check against previous compiler and flags
