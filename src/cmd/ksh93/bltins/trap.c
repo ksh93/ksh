@@ -127,10 +127,10 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 						sfputr(sfstdout,sh_fmtq(arg),'\n');
 					continue;
 				}
-				sh.st.otrap = 0;
+				sh.st.otrap = NULL;
 				if(sh.st.trap[sig])
 					free(sh.st.trap[sig]);
-				sh.st.trap[sig] = 0;
+				sh.st.trap[sig] = NULL;
 				if(!clear && *action)
 					sh.st.trap[sig] = sh_strdup(action);
 				if(sig == SH_DEBUGTRAP)
@@ -483,9 +483,9 @@ static void sig_list(int flag)
 	{
 		/* not all signals may be defined, so initialize */
 		for(sig=sh.sigmax; sig>=0; sig--)
-			names[sig] = 0;
+			names[sig] = NULL;
 		for(sig=SH_DEBUGTRAP; sig>=0; sig--)
-			traps[sig] = 0;
+			traps[sig] = NULL;
 	}
 	for(; *tp->sh_name; tp++)
 	{
@@ -544,7 +544,7 @@ static void sig_list(int flag)
 		}
 		if(flag)
 		{
-			names[sig] = 0;
+			names[sig] = NULL;
 			sh_menu(sfstdout,sh.sigmax,(char**)names+1);
 		}
 	}

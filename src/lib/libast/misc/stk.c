@@ -57,7 +57,7 @@ typedef void (*_stk_overflow_)(size_t);
 typedef char* (*_old_stk_overflow_)(size_t);	/* for stkinstall (deprecated) */
 
 static int stkexcept(Sfio_t*,int,void*,Sfdisc_t*);
-static Sfdisc_t stkdisc = { 0, 0, 0, stkexcept };
+static Sfdisc_t stkdisc = { .exceptf = stkexcept };
 
 Sfio_t	_Stak_data = SFNEW(NULL,0,-1,SFIO_STATIC|SFIO_WRITE|SFIO_STRING,&stkdisc);
 
@@ -135,7 +135,7 @@ static int stkexcept(Sfio_t *stream, int type, void* val, Sfdisc_t* dp)
 					}
 				}
 			}
-			stream->_data = stream->_next = 0;
+			stream->_data = stream->_next = NULL;
 		}
 		return 0;
 	    case SFIO_FINAL:
@@ -174,7 +174,7 @@ Sfio_t *stkopen(int flags)
 	Sfdisc_t *dp;
 	char *cp;
 	size_t sz;
-	_stk_overflow_ outofmem = flags&STK_NULL ? 0 : stkcur ? stkcur->stkoverflow : overflow;
+	_stk_overflow_ outofmem = flags&STK_NULL ? NULL : stkcur ? stkcur->stkoverflow : overflow;
 	sz = sizeof(Sfio_t) + sizeof(Sfdisc_t) + sizeof(struct stk);
 	if(!(stream = calloc(1, sz)))
 	{
@@ -204,9 +204,9 @@ Sfio_t *stkopen(int flags)
 	}
 	cp = (char*)(fp+1);
 	sp->stkbase = (char*)fp;
-	fp->prev = 0;
+	fp->prev = NULL;
 	fp->nalias = 0;
-	fp->aliases = 0;
+	fp->aliases = NULL;
 	fp->end = sp->stkend = cp+bsize;
 	if(!sfnew(stream,cp,bsize,-1,SFIO_STRING|SFIO_WRITE|SFIO_STATIC|SFIO_EOF))
 		return NULL;
@@ -230,7 +230,7 @@ Sfio_t *stkinstall(Sfio_t *stream, _old_stk_overflow_ oflow)
 			stkcur->stkoverflow = (_stk_overflow_)oflow;
 		return NULL;
 	}
-	old = stkcur?stk2stream(stkcur):0;
+	old = stkcur?stk2stream(stkcur):NULL;
 	if(stream)
 	{
 		sp = stream2stk(stream);
@@ -456,10 +456,10 @@ static char *stkgrow(Sfio_t *stream, size_t size)
 	size_t n = size;
 	struct stk *sp = stream2stk(stream);
 	struct frame *fp= (struct frame*)sp->stkbase;
-	char *cp, *dp=0;
+	char *cp, *dp=NULL;
 	size_t m = (size_t)stktell(stream);
 	ptrdiff_t endoff;
-	char *end=0, *oldbase=0;
+	char *end=NULL, *oldbase=NULL;
 	ssize_t nn=0,add=1;
 	size_t sz;
 	n += (m + sizeof(struct frame)+1);

@@ -43,7 +43,7 @@ Dtdisc_t	_Nvdisc =
 	.comparf = nv_compare
 };
 
-struct jobs	job = {0};
+struct jobs	job = { 0 };
 int32_t		sh_mailchk = 600;
 
 #if SHOPT_KIA

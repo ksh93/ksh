@@ -156,7 +156,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 	char		*tp;
 	Sfdouble_t	small_stack[SMALL_STACK+1],arg[9];
 	const char	*ptr = "";
-	char		*lastval=0;
+	char		*lastval=NULL;
 	int		lastsub=0;
 	Math_f		fun;
 	struct lval	node = { 
@@ -234,7 +234,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			cp += sizeof(ptrdiff_t);
 			lastval = node.value = (char*)dp;
 			if(node.sub_idx = c)
-				lastval = 0;
+				lastval = NULL;
 			node.isfloat=0;
 			node.level = sh.arithrecursion;
 			node.nosub = 0;
@@ -284,7 +284,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			node.sub_idx = c;
 			if(lastval)
 				node.isenum = 1;
-			node.enum_p = 0;
+			node.enum_p = NULL;
 			num = (*ep->fun)(&ptr,&node,ASSIGN,num);
 			if(lastval && node.enum_p)
 			{
@@ -300,7 +300,7 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 				}
 
 			}
-			lastval = 0;
+			lastval = NULL;
 			c=0;
 			break;
 		    case A_PUSHF:
@@ -484,10 +484,10 @@ Sfdouble_t	arith_exec(Arith_t *ep)
 			break;
 		}
 		if(c)
-			lastval = 0;
+			lastval = NULL;
 		if(c&T_BINARY)
 		{
-			node.enum_p = 0;
+			node.enum_p = NULL;
 			sp--,tp--;
 			type  |= (*tp!=0);
 		}
@@ -579,9 +579,9 @@ static int expr(struct vars *vp,int precedence)
 	const char	*pos;
 	Sfdouble_t	d;
 
-	lvalue.value = 0;
+	lvalue.value = NULL;
 	lvalue.nargs = 0;
-	lvalue.fun = 0;
+	lvalue.fun = NULL;
 	assignop.sub_idx = 0;  /* silence gcc warning */
 again:
 	op = gettok(vp);
@@ -621,7 +621,7 @@ again:
 	invalid = wasop;
 	while(1)
 	{
-		assignop.value = 0;
+		assignop.value = NULL;
 		op = gettok(vp);
 		if(op==A_DIG || op==A_REG || op==A_LIT)
 		{
@@ -661,10 +661,10 @@ again:
 			if(lvalue.sub_idx < 0)
 				lvalue.sub_idx = 0;
 			stkpush(sh.stk,vp,lvalue.sub_idx,ptrdiff_t);
-			if(vp->nextchr==0)
+			if(vp->nextchr==NULL)
 				ERROR(vp,e_number);
 			if(!(strval_precedence[op]&SEQPOINT))
-				lvalue.value = 0;
+				lvalue.value = NULL;
 			invalid = 0;
 		}
 		else if(precedence==A_LVALUE)
@@ -704,7 +704,7 @@ again:
 				stkseek(sh.stk,stktell(sh.stk)-1);
 				return 0;
 			}
-			lvalue.value = 0;
+			lvalue.value = NULL;
 			break;
 
 		case A_LPAR:
@@ -716,7 +716,7 @@ again:
 			if(nargs<0)
 				nargs = nargs * -1;
 			fun = lvalue.fun;
-			lvalue.fun = 0;
+			lvalue.fun = NULL;
 			if(fun)
 			{
 				if(vp->staksize++>=vp->stakmaxsize)
@@ -773,7 +773,7 @@ again:
 			}
 			else
 				sfputc(sh.stk,op);
-			lvalue.value = 0;
+			lvalue.value = NULL;
 			break;
 
 		case A_QUEST:
@@ -793,7 +793,7 @@ again:
 			if(!expr(vp,3))
 				return 0;
 			*((ptrdiff_t*)stkptr(sh.stk,offset2)) = (ptrdiff_t)stktell(sh.stk);
-			lvalue.value = 0;
+			lvalue.value = NULL;
 			wasop = 0;
 			break;
 		}
@@ -819,7 +819,7 @@ again:
 			*((ptrdiff_t*)stkptr(sh.stk,offset)) = stktell(sh.stk);
 			if(op!=A_QCOLON)
 				sfputc(sh.stk,A_NOTNOT);
-			lvalue.value = 0;
+			lvalue.value = NULL;
 			wasop=0;
 			break;
 		}
@@ -954,7 +954,7 @@ Sfdouble_t arith_strval(const char *s, char **end, Sfdouble_t(*convert)(const ch
 {
 	Arith_t *ep;
 	Sfdouble_t d;
-	char *sp=0;
+	char *sp = NULL;
 	ptrdiff_t offset;
 	if(offset=stktell(sh.stk))
 		sp = stkfreeze(sh.stk,1);

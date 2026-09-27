@@ -46,7 +46,7 @@ context_open(Sfio_t* ip, size_t before, size_t after, Context_list_f listf, void
 	Context_t*	cp;
 
 	if (!(cp = newof(0, Context_t, 1, (before + after) * sizeof(Context_line_t))))
-		return 0;
+		return NULL;
 	cp->ip = ip;
 	cp->before = before;
 	cp->after = after;
@@ -73,7 +73,7 @@ context_line(Context_t* cp)
 	if (lp->show)
 	{
 		if (cp->listf(lp, lp->show == ':', cp->before ? 0 : lp->line != cp->next && cp->next, cp->handle))
-			return 0;
+			return NULL;
 		cp->next = lp->line + 1;
 	}
 	if (++cp->curline >= cp->total)
@@ -85,16 +85,16 @@ context_line(Context_t* cp)
 	if (lp->drop)
 	{
 		free(lp->drop);
-		lp->drop = 0;
+		lp->drop = NULL;
 	}
 	if (cp->cur >= cp->end)
 	{
 		lp->drop = cp->buf;
 		if (!(cp->buf = oldof(0, char, CONTEXT_BLOCK, 0)))
-			return 0;
+			return NULL;
 		cp->cur = cp->buf;
 		if ((r = sfread(cp->ip, cp->buf, CONTEXT_BLOCK)) <= 0)
-			return 0;
+			return NULL;
 		cp->end = cp->buf + r;
 	}
 	if (lp->span)
@@ -114,7 +114,7 @@ context_line(Context_t* cp)
 	{
 		m = roundof(n, CONTEXT_LINE);
 		if (!(t = oldof(0, char, m, 0)))
-			return 0;
+			return NULL;
 		lp->data = t;
 		lp->span = 1;
 		e = t + m;
@@ -122,11 +122,11 @@ context_line(Context_t* cp)
 		t += n;
 		lp->drop = cp->buf;
 		if (!(cp->buf = oldof(0, char, CONTEXT_BLOCK, 0)))
-			return 0;
+			return NULL;
 		do
 		{
 			if ((r = sfread(cp->ip, cp->buf, CONTEXT_BLOCK)) <= 0)
-				return 0;
+				return NULL;
 			cp->end = cp->buf + r;
 			n = (s = memchr(cp->buf, '\n', (size_t)r)) ? (size_t)(s - cp->buf + 1) : (size_t)r;
 			if ((ssize_t)n > (e - t))
@@ -135,7 +135,7 @@ context_line(Context_t* cp)
 				m = (size_t)(r + (s - cp->buf));
 				m = roundof(m, CONTEXT_LINE);
 				if (!(lp->data = oldof(lp->data, char, m, 0)))
-					return 0;
+					return NULL;
 				t = lp->data + r;
 			}
 			memcpy(t, cp->buf, n);

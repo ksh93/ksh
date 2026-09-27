@@ -813,7 +813,7 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 			char buf[MAXLINE];
 			char *ptr;
 			ptr = hist_word(buf,MAXLINE,(count?count:-1));
-			if(ptr==0)
+			if(ptr==NULL)
 			{
 				beep();
 				break;

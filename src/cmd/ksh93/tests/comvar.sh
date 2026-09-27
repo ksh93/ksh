@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -731,6 +731,25 @@ c.c=()
 got=$(print -v c)
 exp=$'(\n\ttypeset -C -a c\n)'
 [[ $got == "$exp" ]] || err_exit 'setting compound array c.c=() does not preserve -C attribute' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# a nested compound variable assignment may also be written as a list of
+# assignments without semicolons, which is valid syntax; both spellings must
+# give identical results, and the typeset -p output must be re-enterable
+unset x ecv
+exp='typeset -a x=(hello (x=12;y=5) world)'
+for z in 'typeset -a x=(hello (x=12;y=5) world)' 'typeset -a x=(hello (x=12 y=5) world)'
+do	got=$(set +x; eval "$z" 2>&1; typeset -p x)
+	[[ $got == "$exp" ]] || err_exit "compound assignment '$z' not working" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+exp='typeset -a ecv=(((x=12;y=76)) )'
+got=$(typeset -a ecv=(((y=76 x=12))); typeset -p ecv)
+[[ $got == "$exp" ]] || err_exit 'typeset -a ecv=(((y=76 x=12))) not working' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(set +x; eval "$exp" 2>&1; typeset -p ecv)
+[[ $got == "$exp" ]] || err_exit "re-entering typeset -p output for a nested compound variable" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

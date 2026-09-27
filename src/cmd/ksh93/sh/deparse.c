@@ -80,7 +80,7 @@ void sh_deparse(Sfio_t *out, const Shnode_t *t,nvflag_t tflags, int initlevel)
  */
 static void p_tree(const Shnode_t *t,nvflag_t tflags)
 {
-	char *cp=0;
+	char *cp = NULL;
 	int save = end_line, e;
 	uint32_t needbrace = (tflags&NEED_BRACE);
 	uint32_t procsub = (tflags&PROC_SUBST);
@@ -244,7 +244,7 @@ static void p_tree(const Shnode_t *t,nvflag_t tflags)
 			if(here_doc)
 			{
 				here_body(here_doc);
-				here_doc = 0;
+				here_doc = NULL;
 			}
 			level++;
 			p_tree(t->lst.lstrit,tflags|NEED_BRACE);
@@ -373,7 +373,7 @@ static void p_tree(const Shnode_t *t,nvflag_t tflags)
 	while(begin_line && here_doc)
 	{
 		here_body(here_doc);
-		here_doc = 0;
+		here_doc = NULL;
 	}
 	end_line = save;
 	return;
@@ -574,7 +574,7 @@ static void p_comlist(const struct dolnod *dol,int endchar)
 			argv++;
 		else
 			cp = "";
-		if(*argv==0)
+		if(*argv==NULL)
 		{
 			if((flag=endchar)=='\n')
 				begin_line = 1;

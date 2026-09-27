@@ -161,7 +161,7 @@ static void lex_advance(Sfio_t *iop, const char *buff, ptrdiff_t size, void *con
 	if(size>0 && (lp->arg||lp->lexd.inlexskip))
 	{
 		sfwrite(sh.stk,buff,(size_t)size);
-		lp->lexd.first = 0;
+		lp->lexd.first = NULL;
 	}
 }
 
@@ -191,7 +191,7 @@ static int lexfill(Lex_t *lp)
 	lp->lex = savelex.lex;
 	lp->lexd = savelex.lexd;
 	if(fcfile() ||  c)
-		lp->lexd.first = 0;
+		lp->lexd.first = NULL;
 	aok= lp->aliasok;
 	ap = lp->arg;
 	memcpy(lp, &savelex, offsetof(Lex_t,lexd));
@@ -316,11 +316,11 @@ int sh_lex(Lex_t* lp)
 	}
 	if(!lp->lexd.dolparen)
 	{
-		lp->arg = 0;
+		lp->arg = NULL;
 		if(mode!=ST_BEGIN)
 			lp->lexd.first = fcseek(0);
 		else
-			lp->lexd.first = 0;
+			lp->lexd.first = NULL;
 	}
 	lp->lastline = sh.inlineno;
 	while(1)
@@ -441,7 +441,7 @@ int sh_lex(Lex_t* lp)
 					}
 					if(!lp->lexd.dolparen)
 						lp->lexd.nocopy--;
-					lp->heredoc = 0;
+					lp->heredoc = NULL;
 				}
 				lp->lex.reservok = !lp->lex.intest;
 				lp->lex.skipword = 0;
@@ -656,7 +656,7 @@ int sh_lex(Lex_t* lp)
 					if(n<=(ssize_t)ARGVAL)
 					{
 						mode = 0;
-						lp->lexd.first = 0;
+						lp->lexd.first = NULL;
 					}
 					continue;
 				}
@@ -1296,7 +1296,7 @@ breakloop:
 	stkseek(sh.stk,stktell(sh.stk)-1);
 	state = stkptr(sh.stk,ARGVAL);
 	n = stktell(sh.stk)-(ptrdiff_t)ARGVAL;
-	lp->lexd.first=0;
+	lp->lexd.first = NULL;
 	if(n==1)
 	{
 		/* check for numbered redirection */
@@ -1370,8 +1370,8 @@ breakloop:
 	}
 	else if(!lp->lex.skipword)
 		lp->assignok = 0;
-	lp->arg->argchn.cp = 0;
-	lp->arg->argnxt.ap = 0;
+	lp->arg->argchn.cp = NULL;
+	lp->arg->argnxt.ap = NULL;
 	if(mode==ST_NONE)
 		return lp->token=EXPRSYM;
 	if(lp->lex.intest)
@@ -1785,7 +1785,7 @@ void sh_lexskip(Lex_t *lp, char close, int copy, int state)
 	if(copy)
 	{
 		ptrdiff_t len;
-		fcnotify(0,lp);
+		fcnotify(NULL,lp);
 		if(!(cp=lp->lexd.first))
 			cp = fcfirst();
 		if((len = fcseek(0)-cp) > 0)
@@ -2197,8 +2197,8 @@ static unsigned char *stack_shift(unsigned char *sp, unsigned char *dp)
 static struct argnod *endword(int mode)
 {
 	const char *const state = sh_lexstates[ST_NESTED];
-	unsigned char *sp, *dp, *ep=0, *xp=0;	/* must be unsigned: pointed-to values used as index to 256-byte state table */
-	int inquote=0, inlit=0;			/* set within quoted strings */
+	unsigned char *sp, *dp, *ep=NULL, *xp=NULL;	/* must be unsigned: pointed-to values used as index to 256-byte state table */
+	int inquote=0, inlit=0;				/* set within quoted strings */
 	int bracket=0;
 	ssize_t n;
 	sfputc(sh.stk,0);
@@ -2242,7 +2242,7 @@ static struct argnod *endword(int mode)
 		{
 		    case S_EOF:
 		    {
-			struct argnod* argp=0;
+			struct argnod* argp = NULL;
 			stkseek(sh.stk,dp - (unsigned char*)stkptr(sh.stk,0));
 			if(mode<=0)
 			{
@@ -2264,7 +2264,7 @@ static struct argnod *endword(int mode)
 						stresc((char*)ep);
 						dp = ep + strlen((char*)ep);
 					}
-					ep = 0;
+					ep = NULL;
 				}
 			}
 			break;
@@ -2282,7 +2282,7 @@ static struct argnod *endword(int mode)
 					if(mode==2)
 					{
 						sfprintf(sfstdout,"%.*s\n",dp-ep,ep);
-						ep = 0;
+						ep = NULL;
 						break;
 					}
 					*--dp = 0;
@@ -2298,7 +2298,7 @@ static struct argnod *endword(int mode)
 					memmove(ep,msg,(size_t)n);
 					*dp++ = '"';
 				}
-				ep = 0;
+				ep = NULL;
 			}
 			break;
 		    case S_DOL:	/* check for $'...'  and $"..." */
@@ -2367,7 +2367,7 @@ static struct argnod *endword(int mode)
 				inquote >>= 1;
 				if(xp)
 					dp = (unsigned char*)sh_checkid((char*)xp,(char*)dp);
-				xp = 0;
+				xp = NULL;
 				if(--bracket<=0 && mode<0)
 					inquote = 1;
 			}

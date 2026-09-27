@@ -1025,7 +1025,7 @@ static void substitute(Buf_t *buf, char *s)
 				if (v)
 				{
 					if (((q - t) != 1 || *t != '*') && strncmp(v, t, (size_t)(q - t)))
-						v = 0;
+						v = NULL;
 				}
 				else if (q == t)
 					v = s;
@@ -1142,7 +1142,7 @@ static void substitute(Buf_t *buf, char *s)
 			case '+':
 			case '-':
 				/* %{variable+x}, %{variable-x} */
-				if ((v == 0 || *v == 0) == (c == '-'))
+				if ((v == NULL || *v == 0) == (c == '-'))
 				{
 					c = *s;
 					*s = 0;
@@ -1180,7 +1180,7 @@ static void substitute(Buf_t *buf, char *s)
 						if (*t)
 							*t = 0;
 						else
-							t = 0;
+							t = NULL;
 						substitute(buf, v);
 						if (t)
 							*t = ' ';
@@ -1264,7 +1264,7 @@ static char *status(Buf_t *buf, size_t off, char *path, struct stat *st)
 	{
 		if (off)
 			s[off] = 0;
-		s = 0;
+		s = NULL;
 	}
 	return s;
 }
@@ -1369,7 +1369,7 @@ static int pop(void)
 	else
 		r = fclose(state.sp->fp);
 	if (state.sp == state.streams)
-		state.sp = 0;
+		state.sp = NULL;
 	else
 		state.sp--;
 	return r;
@@ -2266,7 +2266,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 					if (*s)
 						*s = 0;
 					else
-						s = 0;
+						s = NULL;
 					/* only bother if t is a path to a *.a we built (i.e. not -l...) */
 					if (t[0] && (t[0] != '-' || t[1] != 'l'))
 					{
@@ -2398,7 +2398,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			if (r->path)
 			{
 				free(r->path);
-				r->path = 0;
+				r->path = NULL;
 				r->time = 0;
 			}
 			if (state.active)

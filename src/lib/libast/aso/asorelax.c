@@ -29,5 +29,5 @@ asorelax(uint32_t nsec)
 
 	tv.tv_sec = 0;
 	tv.tv_nsec = nsec;
-	return tvsleep(&tv, 0);
+	return tvsleep(&tv, NULL);
 }

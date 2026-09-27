@@ -57,7 +57,7 @@ typedef void (*SH_SIGTYPE)(int,void(*)(int));
 #define SH_SIGDONE		020	/* default is exit */
 #define SH_SIGIGNORE		040	/* default is ignore signal */
 #define SH_SIGINTERACTIVE	0100	/* handle interactive specially */
-#define SH_SIGTSTP		0200	/* tstp signal received */
+#define SH_SIGTSTP		020	/* tstp signal received */
 #define SH_SIGALRM		0200	/* timer alarm received */
 #define SH_SIGTERM		SH_SIGOFF /* term signal received */
 #define SH_SIGRUNTIME		0400	/* runtime value */
@@ -100,7 +100,7 @@ struct checkpt
 #define sh_pushcontext(bp,n) \
 ( \
 	(bp)->mode = (n), \
-	(bp)->olist = 0, \
+	(bp)->olist = NULL, \
 	(bp)->topfd = sh.topfd, \
 	(bp)->prev = sh.jmplist, \
 	(bp)->err = *ERROR_CONTEXT_BASE, \
@@ -119,7 +119,7 @@ do { \
 	sigemptyset(&ss); \
 	if(s) \
 		sigaddset(&ss,(s)); \
-	sigprocmask(action,&ss,0); \
+	sigprocmask(action,&ss,NULL); \
 } while(0)
 #define sigrelease(s)	sh_sigaction(s,SIG_UNBLOCK)
 #define sigblock(s)	sh_sigaction(s,SIG_BLOCK)

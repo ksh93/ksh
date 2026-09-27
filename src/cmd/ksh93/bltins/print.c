@@ -77,7 +77,7 @@ static const struct printmap  Pmap[] =
 	4,	"html",		"H",	"%H",
 	7,	"pattern",	"P",	"%P",
 	3,	"url",		"H+",	"%#H",
-	0,	0,		0,
+	0,	NULL,		0,
 };
 
 
@@ -94,7 +94,7 @@ struct print
 	char		echon;
 };
 
-static char* 	nullarg[] = { 0, 0 };
+static char* 	nullarg[] = { NULL, NULL };
 static int	exitval;
 
 #if !SHOPT_ECHOPRINT
@@ -108,7 +108,7 @@ static int	exitval;
 	if(!sh.universe)
 	{
 		char *universe;
-		if(universe=astconf("UNIVERSE",0,0))
+		if(universe=astconf("UNIVERSE",NULL,NULL))
 			bsd_univ = (strcmp(universe,"ucb")==0);
 		sh.universe = 1;
 	}
@@ -167,7 +167,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 	int n, fd = 1;
 	uint8_t fdmode;
 	const char *options, *msg = e_file+4;
-	char *format = 0;
+	char *format = NULL;
 #if !SHOPT_SCRIPTONLY
 	int sflag = 0;
 #endif /* !SHOPT_SCRIPTONLY */
@@ -182,7 +182,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 	{
 		options = sh_optprint;
 		nflag = rflag = 0;
-		format = 0;
+		format = NULL;
 	}
 	else
 	{
@@ -761,7 +761,7 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 		}
 	}
 	else
-		pp->lastarg = 0;
+		pp->lastarg = NULL;
 	fe->flags |= SFFMT_VALUE;
 	if(!argp || format=='Z')
 	{
@@ -1147,7 +1147,7 @@ static ptrdiff_t reload(ptrdiff_t argn, char fmt, void* v, Sffmt_t* fe)
 	n = pp->nextarg - pp->argv0;
 	pp->nextarg = pp->argv0 + argn;
 	fe->fmt = fmt;
-	r = extend(0,v,fe);
+	r = extend(NULL,v,fe);
 	pp->nextarg = pp->argv0 + n;
 	return r;
 }

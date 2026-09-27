@@ -63,7 +63,7 @@ static int rev_char(Sfio_t *in, Sfio_t *out)
 	size_t w;
 	if (mbwide())
 	{
-		wp = 0;
+		wp = NULL;
 		w = 0;
 		while(cp = bp = sfgetr(in,'\n',0))
 		{
