@@ -8000,22 +8000,41 @@ only directories and subdirectories are matched,
 including symbolic links that point to directories.
 A prefixed directory name is not included in the results unless that
 directory was itself found by a pattern. For example,
-.B dir/**
+\f2dir\fP\f3/**\fP
 matches the recursive contents of
-.B dir
+.I dir
 but not
-.B dir
+.I dir
 itself, whereas
-.B di[r]/**
+\f2di\fP\f3[\fP\f2r\fP\f3]/**\fP
 matches both
-.B dir
+.I dir
 itself and the recursive contents of
-.BR dir .
+.IR dir .
 Symbolic links to non-directories are not followed.
 Symbolic links to directories are followed if they are specified literally
 or match a pattern as described under
-.IR "Pathname Expansion\^" ,
-but not if they result from a double-star pattern.
+.IR "Pathname Expansion\^" .
+A
+.B **
+pattern component may match a symbolic link to a directory, but it will not
+recursively traverse one; such a symbolic link is followed only as necessary
+to match the remainder of the pattern, and not at all if the
+.B **
+component is last in the pattern. For example,
+\f2dir\fP\f3/**\fP
+matches the contents of
+.I dir
+and of its subdirectories, but not the contents of a symbolic link to a
+directory that a
+.B **
+component finds, whereas
+\f2dir\fP\f3/**/\fP\f2file\fP
+does match
+.I file
+inside a directory pointed to by such a symlink, and
+\f2symlink\fP\f3/**\fP
+matches everything below it.
 .TP 8
 .B \-H
 Enable \f3!\fP-style history expansion similar to

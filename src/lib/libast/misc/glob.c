@@ -44,6 +44,8 @@
 #define MATCH_RAW	1
 #define MATCH_MAKE	2
 #define MATCH_META	4
+#define MATCH_FOLDSYM	8	/* last path component was matched by a non-** pattern element,
+				 * so a symlink to a directory must be resolved (see glob_dir()) */
 
 #define MATCHPATH(g)	(offsetof(globlist_t,gl_path)+(g)->gl_extra)
 
@@ -233,7 +235,7 @@ trim(char* sp, char* p1, ptrdiff_t* n1, char* p2, ptrdiff_t* n2)
 }
 
 static void
-addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char* endslash, unsigned char meta)
+addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char* endslash, unsigned char meta, int regular)
 {
 	globlist_t*	ap;
 	ptrdiff_t	offset;
@@ -286,6 +288,8 @@ addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char*
 	ap->gl_flags = MATCH_RAW|meta;
 	if (gp->gl_flags & GLOB_COMPLETE)
 		ap->gl_flags |= MATCH_MAKE;
+	if (regular)
+		ap->gl_flags |= MATCH_FOLDSYM;
 }
 
 /*
@@ -315,6 +319,9 @@ glob_dir(glob_t* gp, globlist_t* ap, regflags_t re_flags)
 	unsigned char	bracket;
 
 	unsigned char	anymeta = ap->gl_flags & MATCH_META;
+	unsigned char	foldsym = ap->gl_flags & MATCH_FOLDSYM;
+	int		starstarlast = 0;
+	int		dontrecurse = 0;
 	int		complete = 0;
 	int		err = 0;
 	unsigned char	meta = ((gp->re_flags & REG_ICASE) && *ap->gl_begin != '/') ? MATCH_META : 0;
@@ -358,10 +365,10 @@ again:
 				c = (*gp->gl_type)(gp, prefix, 0);
 				*(rescan - 2) = gp->gl_delim;
 				if (c == GLOB_DIR)
-					addmatch(gp, NULL, prefix, NULL, rescan - 1, anymeta);
+					addmatch(gp, NULL, prefix, NULL, rescan - 1, anymeta, 0);
 			}
 			else if ((anymeta || !(gp->gl_flags & GLOB_NOCHECK)) && (*gp->gl_type)(gp, prefix, 0))
-				addmatch(gp, NULL, prefix, NULL, NULL, anymeta);
+				addmatch(gp, NULL, prefix, NULL, NULL, anymeta, 0);
 			return;
 		case '[':
 			if (!bracket)
@@ -447,6 +454,7 @@ again:
 			}
 			rescan = *pat?NULL:pat;
 			pat = "*";
+			starstarlast = 1;  /* the '**' component is the last one in the pattern */
 			goto skip;
 		}
 	if (matchdir)
@@ -488,10 +496,28 @@ skip:
 				break;
 			prefix = streq(dirname, ".") ? NULL : dirname;
 		}
+		/*
+		 * Decide whether to follow a symlink to a directory. We follow it if it resulted from
+		 * something other than a double-star pattern, i.e., if it is a literal (or quoted) part of
+		 * the pattern, which is signalled by 'first' (nothing has been matched yet, so 'dirname' is
+		 * still the unmodified leading part of the pattern), or if it was matched by a standard
+		 * pattern component, which is signalled by 'foldsym' (see addmatch()).
+		 *     However, we still follow a directory symlink resulting from a '**' component, because
+		 * the rest of the pattern has to be matched inside the directory it points to; this is
+		 * signalled by 'matchdir' being non-NULL.
+		 *     As an exception to that exception, we go back to *not* following that symlink if the
+		 * '**' component is the last one in the pattern, because we should then not be looking inside
+		 * the directory that the symlink points to; this is the case if 'starstarlast' is false.
+		 *     Though a ** component may match a symlink to a directory, it may not traverse it, so we
+		 * follow such a symlink only as necessary to match the rest of the pattern; this is flagged
+		 * by 'dontrecurse' below, which stops any further ** recursion.
+		 */
+		t1 = 0;
 		if ((!starstar && !gp->gl_starstar || (t1 = (*gp->gl_type)(gp, dirname, GLOB_STARSTAR)) == GLOB_DIR
-			|| t1 == GLOB_SYM && pat[0]=='*' && pat[1]=='\0') /* follow symlinks to dirs for non-globstar components */
+			|| t1 == GLOB_SYM && (first || foldsym || matchdir && !starstarlast))
 		&& (dirf = (*gp->gl_diropen)(gp, dirname)))
 		{
+			dontrecurse = t1 == GLOB_SYM && !first && !foldsym;
 			if (!(gp->re_flags & REG_ICASE)
 			&& (gp->gl_flags & GLOB_DCASE)
 			&& ((*gp->gl_attr)(gp, dirname, 0) & GLOB_ICASE))
@@ -557,14 +583,14 @@ skip:
 					gp->gl_status &= ~GLOB_NOTDIR;
 				if (ire && !regexec(ire, name, 0, NULL, 0))
 					continue;
-				if (matchdir && (name[0] != '.' || name[1] && (name[1] != '.' || name[2])) && !notdir)
-					addmatch(gp, prefix, name, matchdir, NULL, anymeta);
+				if (matchdir && !dontrecurse && (name[0] != '.' || name[1] && (name[1] != '.' || name[2])) && !notdir)
+					addmatch(gp, prefix, name, matchdir, NULL, anymeta, 0);
 				if (!regexec(pre, name, 0, NULL, 0))
 				{
 					if (!rescan || !notdir)
-						addmatch(gp, prefix, name, rescan, NULL, anymeta);
+						addmatch(gp, prefix, name, rescan, NULL, anymeta, 1);
 					if (starstar==1 || (starstar==2 && !notdir))
-						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta);
+						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta, 0);
 				}
 				errno = 0;
 			}
