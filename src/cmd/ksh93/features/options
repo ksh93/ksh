@@ -77,3 +77,6 @@ tst note{ writing overrides }end cat{
 	#   undef SHOPT_VSH
 	#endif
 }end
+
+# for $RANDOM
+lib rand_r
