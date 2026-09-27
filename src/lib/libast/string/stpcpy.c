@@ -25,11 +25,7 @@
 #undef	_def_map_ast
 #include <ast_map.h>
 
-#if _lib_stpcpy
-
-NoN(stpcpy)
-
-#else
+#if !_lib_stpcpy
 
 /*
  * copy f into t, return a pointer to the end of t ('\0')
@@ -44,5 +40,9 @@ stpcpy(char *restrict t, const char *restrict f)
 	while (*t++ = *f++);
 	return t - 1;
 }
+
+#else
+
+NoN(stpcpy)
 
 #endif
