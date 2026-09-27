@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -376,24 +376,28 @@ ln -s d_duo d_un/d_sym
 # As of commit 5312a59d, globstar failed to expand **/. or **/.. or **/./file or **/../file
 # https://github.com/ksh93/ksh/issues/146#issuecomment-790845391
 test_glob \
- '<d_un/.> <d_un/d_duo/.> <d_un/d_duo/d_3/.> <d_un/d_duo/d_3/d_4/.> <d_un/d_duo/d_tres/.> <d_un/d_duo/d_tres/d_quatro/.>' \
+ '<d_un/.> <d_un/d_duo/.> <d_un/d_duo/d_3/.> <d_un/d_duo/d_3/d_4/.> <d_un/d_duo/d_tres/.> <d_un/d_duo/d_tres/d_quatro/.> <d_un/d_sym/.>' \
   d_un/**/.
 test_glob \
- '<d_un/..> <d_un/d_duo/..> <d_un/d_duo/d_3/..> <d_un/d_duo/d_3/d_4/..> <d_un/d_duo/d_tres/..> <d_un/d_duo/d_tres/d_quatro/..>' \
+ '<d_un/..> <d_un/d_duo/..> <d_un/d_duo/d_3/..> <d_un/d_duo/d_3/d_4/..> <d_un/d_duo/d_tres/..> <d_un/d_duo/d_tres/d_quatro/..> <d_un/d_sym/..>' \
   d_un/**/..
 test_glob \
- '<d_un/./d_duo> <d_un/./d_sym> <d_un/d_duo/./d_3> <d_un/d_duo/./d_tres> <d_un/d_duo/d_3/./d_4> <d_un/d_duo/d_tres/./d_quatro>' \
+ '<d_un/./d_duo> <d_un/./d_sym> <d_un/d_duo/./d_3> <d_un/d_duo/./d_tres> <d_un/d_duo/d_3/./d_4> <d_un/d_duo/d_tres/./d_quatro> <d_un/d_sym/./d_3> <d_un/d_sym/./d_tres>' \
   d_un/**/./d_*
 test_glob \
  '<d_un/../d_un> <d_un/d_duo/../d_duo> <d_un/d_duo/../d_sym> <d_un/d_duo/d_3/../d_3> <d_un/d_duo/d_3/../d_tres>'\
-' <d_un/d_duo/d_3/d_4/../d_4> <d_un/d_duo/d_tres/../d_3> <d_un/d_duo/d_tres/../d_tres> <d_un/d_duo/d_tres/d_quatro/../d_quatro>' \
+' <d_un/d_duo/d_3/d_4/../d_4> <d_un/d_duo/d_tres/../d_3> <d_un/d_duo/d_tres/../d_tres> <d_un/d_duo/d_tres/d_quatro/../d_quatro> <d_un/d_sym/../d_duo> <d_un/d_sym/../d_sym>' \
   d_un/**/../d_*
-test_glob '<d_un/d_duo/.tres>' d_un/**/.*
-test_glob '<d_un/d_duo/d_3/../.tres> <d_un/d_duo/d_tres/../.tres>' d_un/*/**/../.*
+test_glob '<d_un/d_duo/.tres> <d_un/d_sym/.tres>' d_un/**/.*
+test_glob \
+	'<d_un/d_duo/d_3/../.tres> <d_un/d_duo/d_tres/../.tres> <d_un/d_sym/d_3/../.tres> <d_un/d_sym/d_tres/../.tres>' \
+	d_un/*/**/../.*
 test_glob \
 	'<d_un/d_duo/d_3/../.tres> <d_un/d_duo/d_tres/../.tres> <d_un/d_sym/d_3/../.tres> <d_un/d_sym/d_tres/../.tres>' \
 	d_un/**/*/../.*
-test_glob '<d_un/./d_duo/./d_3/./.././.tres> <d_un/./d_duo/./d_tres/./.././.tres>' d_un/./**/./*/./.././.*
+test_glob \
+	'<d_un/./d_duo/./d_3/./.././.tres> <d_un/./d_duo/./d_tres/./.././.tres> <d_un/./d_sym/./d_3/./.././.tres> <d_un/./d_sym/./d_tres/./.././.tres>' \
+	d_un/./**/./*/./.././.*
 
 # New in 93u+m 2021-03-06: follow symlink to directory if specified literally or matched by a regular glob pattern component
 # https://github.com/ksh93/ksh/issues/146#issuecomment-792142794
@@ -408,6 +412,43 @@ test_glob '<d_un/d_sym> <d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres
 test_glob '<d_un/d_sym//d_3> <d_un/d_sym//d_3/d_4> <d_un/d_sym//d_tres> <d_un/d_sym//d_tres/d_quatro>' **/d_sym//**
 test_glob '<d_un/d_sym//d_3> <d_un/d_sym//d_3/d_4> <d_un/d_sym//d_tres> <d_un/d_sym//d_tres/d_quatro>' **/d_[s]ym//**
 test_glob '<d_un/d_sym//d_3> <d_un/d_sym//d_3/d_4> <d_un/d_sym//d_tres> <d_un/d_sym//d_tres/d_quatro>' **/d_*ym//**
+
+# A symlink to a directory was not resolved if a ** pattern element was followed by more pattern
+# https://github.com/ksh93/ksh/issues/629
+test_glob '<d_un/d_sym/d_3>' d_un/d_sym/**/d_3
+test_glob '<d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4>' d_un/d_sym/**/d_[34]*
+test_glob '<d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' d_un/d_sym/**/d_*
+test_glob '<d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' d_un/d_sym/**/*
+test_glob '<d_un/d_sym/d_3/../.tres> <d_un/d_sym/d_tres/../.tres>' d_un/d_sym/**/../.*
+test_glob '<d_un/d_sym/d_tres/d_quatro>' d_un/d_sym/**/**/d_quatro
+test_glob '<d_un//d_sym/d_3>' d_un//d_sym/**/d_3
+
+# A symlink to a directory that is matched by a regular pattern component must be resolved by a
+# following ** pattern element, just as a literal one is, no matter what follows the ** element
+# https://github.com/ksh93/ksh/issues/629
+test_glob '<d_un/d_sym/d_3>' **/d_sym/**/d_3
+test_glob '<d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' **/d_sy[m]/**/*
+test_glob '<d_un/d_sym/d_3/../.tres> <d_un/d_sym/d_tres/../.tres>' **/d_*ym/**/../.*
+
+# A ** must not recurse through a symlink that it matched, but it may resolve one in order to match
+# the rest of the pattern. This matches bash's globstar. Previously '**' recursed through a symlink
+# only when it was the last element in the pattern, which made the result depend on what came after.
+# https://github.com/ksh93/ksh/issues/629
+test_glob \
+	'<d_un/d_duo> <d_un/d_duo/d_3> <d_un/d_duo/d_3/d_4> <d_un/d_duo/d_tres> <d_un/d_duo/d_tres/d_quatro> <d_un/d_sym>' \
+	d_un/**
+test_glob '<d_un/d_duo/d_3> <d_un/d_sym/d_3>' d_un/**/d_3
+test_glob '<d_un/d_duo/d_3> <d_un/d_sym/d_3>' d_un/**/**/d_3
+test_glob \
+	'<d_un/d_duo> <d_un/d_duo/d_3> <d_un/d_duo/d_3/d_4> <d_un/d_duo/d_tres> <d_un/d_duo/d_tres/d_quatro> <d_un/d_sym> <d_un/d_sym/d_3> <d_un/d_sym/d_tres>' \
+	d_un/**/*
+test_glob '<d_un/d_duo/d_3> <d_un/d_sym/d_3>' d_un/*/**/d_3
+test_glob '<d_un/d_duo/d_3> <d_un/d_sym/d_3>' **/d_3
+test_glob '<d_un/d_duo/d_3> <d_un/d_sym/d_3>' d_un/**/d_*/d_3
+
+# We still recurse into a literally specified symlink to a directory, or one resulting from a non-globstar pattern.
+test_glob '<d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' d_un/d_sym/**
+test_glob '<d_un/d_sym> <d_un/d_sym/d_3> <d_un/d_sym/d_3/d_4> <d_un/d_sym/d_tres> <d_un/d_sym/d_tres/d_quatro>' d_un/d*ym/**
 
 set --noglobstar
 
