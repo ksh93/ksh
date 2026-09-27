@@ -181,7 +181,7 @@ aso_lock_semaphore(void* data, ssize_t k, void volatile* p)
 	return semop(apl->id, &sem, 1) < 0 ? -1 : k;
 }
 
-Asometh_t	_aso_meth_semaphore = { "semaphore", ASO_PROCESS|ASO_THREAD, aso_init_semaphore, aso_lock_semaphore };
+Asometh_t	_aso_meth_semaphore = { .name = "semaphore", .type = ASO_PROCESS|ASO_THREAD, .initf = aso_init_semaphore, .lockf = aso_lock_semaphore };
 
 #else
 
