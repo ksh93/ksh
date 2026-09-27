@@ -389,7 +389,7 @@ _better(Env_t* env, Pos_t* os, Pos_t* ns, Pos_t* oend, Pos_t* nend, int level)
 
 #endif
 
-#define follow(e,r,c,s)	((r)->next?parse(e,(r)->next,c,s):(c)?parse(e,c,0,s):BEST)
+#define follow(e,r,c,s)	((r)->next?parse(e,(r)->next,c,s):(c)?parse(e,c,NULL,s):BEST)
 
 static int		parse(Env_t*, Rex_t*, Rex_t*, unsigned char*);
 
@@ -578,7 +578,7 @@ collelt(Celt_t* ce, char* key, int c, ptrdiff_t x)
 {
 	Ckey_t	elt;
 
-	assert(ast.locale.transform != 0);
+	assert(ast.locale.transform != NULL);
 	ast.locale.transform((char*)elt, key, COLL_KEY_MAX);
 	for (;; ce++)
 	{
@@ -654,7 +654,7 @@ collmatch(Rex_t* rex, unsigned char* s, unsigned char* e, unsigned char** p)
 	Ckey_t			key;
 	Ckey_t			elt;
 
-	assert(ast.locale.transform != 0);
+	assert(ast.locale.transform != NULL);
 	ic = (rex->flags & REG_ICASE);
 	if ((w = MBSIZE(s)) > 1)
 	{
@@ -752,7 +752,7 @@ nestmatch(unsigned char* s, unsigned char* e, const unsigned short* type, int co
 			{
 			case REX_NEST_delimiter:
 			case REX_NEST_terminator:
-				return oc ? 0 : s;
+				return oc ? NULL : s;
 			case REX_NEST_separator:
 				if (!oc)
 					return s;
@@ -786,7 +786,7 @@ nestmatch(unsigned char* s, unsigned char* e, const unsigned short* type, int co
 				break;
 			}
 		}
-		return (oc || !(type[UCHAR_MAX+1] & REX_NEST_terminator)) ? 0 : s;
+		return (oc || !(type[UCHAR_MAX+1] & REX_NEST_terminator)) ? NULL : s;
 	}
 	return NULL;
 }
@@ -1021,7 +1021,7 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			catcher.re.conj_left.right = rex->re.group.expr.binary.right;
 			catcher.re.conj_left.cont = &next;
 			catcher.re.conj_left.beg = s;
-			catcher.next = 0;
+			catcher.next = NULL;
 			return parse(env, rex->re.group.expr.binary.left, &catcher, s);
 		case REX_CONJ_LEFT:
 			rex->re.conj_left.cont->re.conj_right.end = s;
@@ -1273,7 +1273,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 			{
 				catcher.type = REX_GROUP_BEHIND_NOT_CATCH;
 				catcher.re.neg_catch.beg = s;
-				catcher.next = 0;
+				catcher.next = NULL;
 				e = env->end;
 				env->end = s;
 				for (t = s - rex->re.group.size; t >= env->beg; t--)
@@ -1298,7 +1298,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				catcher.re.cond_catch.next[1] = q->re.group.expr.binary.left;
 			}
 			else
-				catcher.re.cond_catch.next[0] = catcher.re.cond_catch.next[1] = 0;
+				catcher.re.cond_catch.next[0] = catcher.re.cond_catch.next[1] = NULL;
 			if (q = rex->re.group.expr.binary.left)
 			{
 				catcher.type = REX_GROUP_COND_CATCH;
@@ -1682,7 +1682,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s \"%-.*s\" `%-.*s'
 				return NONE;
 			return parsetrie(env, x, rex, cont, s);
 		case REX_EXEC:
-			u = 0;
+			u = NULL;
 			r = (*env->disc->re_execf)(env->regex, rex->re.exec.data, rex->re.exec.text, rex->re.exec.size, (const char*)s, (size_t)(env->end - s), &u, env->disc);
 			e = (unsigned char*)u;
 			if (e >= s && e <= env->end)
@@ -1732,7 +1732,7 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s \"%-.*s\" `%-.*s'
 		{
 			if (!(rex = cont))
 				break;
-			cont = 0;
+			cont = NULL;
 		}
 	}
 	return GOOD;
@@ -1884,7 +1884,7 @@ regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, re
 	k = 0;
  done:
 	stkold(env->mst, &env->stk);
-	env->stk.base = 0;
+	env->stk.base = NULL;
 	if (k > REG_NOMATCH)
 		fatal(p->env->disc, k, NULL);
 	return k;
@@ -1901,10 +1901,10 @@ regfree(regex_t* p)
 		if (env->sub)
 		{
 			regsubfree(p);
-			p->re_sub = 0;
+			p->re_sub = NULL;
 		}
 #endif
-		p->env = 0;
+		p->env = NULL;
 		if (!(env->disc->re_flags & REG_NOFREE))
 		{
 			drop(env->disc, env->rex);

@@ -309,7 +309,7 @@ static int listevent(Dt_t* dt, int event, void* arg)
 	if(event == DT_OPEN)
 	{	if(list) /* already initialized */
 			return 0;
-		if(!(list = (Dtlist_t*)(*dt->memoryf)(dt, 0, sizeof(Dtlist_t), dt->disc)) )
+		if(!(list = (Dtlist_t*)(*dt->memoryf)(dt, NULL, sizeof(Dtlist_t), dt->disc)) )
 		{	DTERROR(dt, "Error in allocating a list data structure");
 			return -1;
 		}

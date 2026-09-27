@@ -72,7 +72,7 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 	}
 	while (isspace(*s))
 		s++;
-	z = 0;
+	z = NULL;
 	a = 0;
 	if (*s)
 		for (;;)

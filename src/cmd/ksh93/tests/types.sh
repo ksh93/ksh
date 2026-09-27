@@ -895,4 +895,14 @@ got=$(set +x; redirect 2>&1; ENV=/./dev/null "$SHELL" -i <<-'EOF'
 fi # !SHOPT_SCRIPTONLY
 
 # ======
+# Crash when using typeset -p after creating a type and function
+got=$( set +x; { "$SHELL" -c '
+	typeset -T Man_t=( typeset X)
+	Man_t Man
+	function bootstrap { : ;}
+	[[ $(typeset -p) == *Man_t* ]]'; } 2>&1)
+[[ e=$? -eq 0 && -z "$got" ]] || err_exit 'typeset -p used with types' \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l $e ) and $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -49,7 +50,7 @@ touch(const char* path, time_t at, time_t mt, int flags)
 	if (at == (time_t)(-1) && !(flags & PATH_TOUCH_VERBATIM))
 		ap = TV_TOUCH_RETAIN;
 	else if (!at && !(flags & PATH_TOUCH_VERBATIM))
-		ap = 0;
+		ap = NULL;
 	else
 	{
 		av.tv_sec = at;
@@ -59,7 +60,7 @@ touch(const char* path, time_t at, time_t mt, int flags)
 	if (mt == (time_t)(-1) && !(flags & PATH_TOUCH_VERBATIM))
 		mp = TV_TOUCH_RETAIN;
 	else if (!mt && !(flags & PATH_TOUCH_VERBATIM))
-		mp = 0;
+		mp = NULL;
 	else
 	{
 		mv.tv_sec = mt;

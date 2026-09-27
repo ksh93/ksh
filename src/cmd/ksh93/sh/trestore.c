@@ -53,7 +53,7 @@ static Shnode_t *r_tree(void)
 {
 	Sflong_t l = sfgetl(infile);
 	int type;
-	Shnode_t *t=0;
+	Shnode_t *t = NULL;
 	if(l<0)
 		return t;
 	type = (int)l;
@@ -100,7 +100,7 @@ static Shnode_t *r_tree(void)
 			t = getnode(arithnod);
 			t->ar.arline = (int)sfgetu(infile);
 			t->ar.arexpr = r_arg();
-			t->ar.arcomp = 0;
+			t->ar.arcomp = NULL;
 			if((t->ar.arexpr)->argflag&ARG_RAW)
 				 t->ar.arcomp = sh_arithcomp((t->ar.arexpr)->argval);
 			break;
@@ -122,7 +122,7 @@ static Shnode_t *r_tree(void)
 			if(type&COMSCAN)
 				t->sw.swio = r_redirect();
 			else
-				t->sw.swio = 0;
+				t->sw.swio = NULL;
 			t->sw.swlst = r_switch();
 			break;
 		case TFUN:
@@ -136,9 +136,9 @@ static Shnode_t *r_tree(void)
 			savstak = sh.stk;
 			sh.stk = stkopen(STK_SMALL);
 			slp = stkalloc(sh.stk,sizeof(struct slnod)+sizeof(struct functnod));
-			slp->slchild = 0;
+			slp->slchild = NULL;
 			slp->slnext = sh.st.staklist;
-			sh.st.staklist = 0;
+			sh.st.staklist = NULL;
 			fp = (struct functnod*)(slp+1);
 			fp->functtyp = TFUN|FAMP;
 			if(sh.st.filename)
@@ -170,9 +170,9 @@ static Shnode_t *r_tree(void)
 
 static struct argnod *r_arg(void)
 {
-	struct argnod	*ap=0, *apold, *aptop=0;
+	struct argnod	*ap = NULL, *apold, *aptop = NULL;
 	Sfulong_t	l;
-	Stk_t		*stkp=sh.stk;
+	Stk_t		*stkp = sh.stk;
 	while((l=sfgetu(infile))>0)
 	{
 		ap = stkseek(stkp,(ptrdiff_t)l+(ptrdiff_t)ARGVAL);
@@ -183,7 +183,7 @@ static struct argnod *r_arg(void)
 		if(--l > 0)
 			sfread(infile,ap->argval,(size_t)l);
 		ap->argval[l] = 0;
-		ap->argchn.cp = 0;
+		ap->argchn.cp = NULL;
 		ap->argflag = (uint8_t)sfgetc(infile);
 		ap = stkfreeze(stkp,0);
 		if(*ap->argval==0 && (ap->argflag&ARG_EXP))
@@ -199,14 +199,14 @@ static struct argnod *r_arg(void)
 		apold = ap;
 	}
 	if(ap)
-		ap->argnxt.ap = 0;
+		ap->argnxt.ap = NULL;
 	return aptop;
 }
 
 static struct ionod *r_redirect(void)
 {
 	Sflong_t l;
-	struct ionod *iop=0, *iopold, *ioptop=0;
+	struct ionod *iop = NULL, *iopold, *ioptop = NULL;
 	while((l=sfgetl(infile))>=0)
 	{
 		iop = (struct ionod*)getnode(ionod);
@@ -235,20 +235,20 @@ static struct ionod *r_redirect(void)
 		if(iop->iofile&IOVNM)
 			iop->iovname = r_string();
 		else
-			iop->iovname = 0;
+			iop->iovname = NULL;
 		iop->iofile &= (unsigned)~IOVNM;
 	}
 	if(iop)
-		iop->ionxt = 0;
+		iop->ionxt = NULL;
 	return ioptop;
 }
 
 static void r_comarg(struct comnod *com)
 {
-	char *cmdname=0;
+	char *cmdname = NULL;
 	com->comio = r_redirect();
 	com->comset = r_arg();
-	com->comstate = 0;
+	com->comstate = NULL;
 	if(com->comtyp&COMSCAN)
 	{
 		com->comarg.ap = r_arg();
@@ -258,7 +258,7 @@ static void r_comarg(struct comnod *com)
 	else if(com->comarg.dp = r_comlist())
 		cmdname = com->comarg.dp->dolval[ARG_SPARE];
 	com->comline = (int)sfgetu(infile);
-	com->comnamq = 0;
+	com->comnamq = NULL;
 	if(cmdname)
 	{
 		char *cp;
@@ -271,12 +271,12 @@ static void r_comarg(struct comnod *com)
 		}
 	}
 	else
-		com->comnamp  = 0;
+		com->comnamp = NULL;
 }
 
 static struct dolnod *r_comlist(void)
 {
-	struct dolnod *dol=0;
+	struct dolnod *dol = NULL;
 	Sflong_t l;
 	char **argv;
 	if((l=sfgetl(infile))>0)
@@ -293,7 +293,7 @@ static struct dolnod *r_comlist(void)
 static struct regnod *r_switch(void)
 {
 	Sflong_t l;
-	struct regnod *reg=0,*regold,*regtop=0;
+	struct regnod *reg = NULL, *regold, *regtop = NULL;
 	while((l=sfgetl(infile))>=0)
 	{
 		reg = getnode(regnod);
@@ -307,7 +307,7 @@ static struct regnod *r_switch(void)
 		regold = reg;
 	}
 	if(reg)
-		reg->regnxt = 0;
+		reg->regnxt = NULL;
 	return regtop;
 }
 

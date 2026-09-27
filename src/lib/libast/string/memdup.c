@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -30,7 +31,7 @@ memdup(const void* s, size_t n)
 {
 	void*	t;
 
-	return (t = newof(0, char, n, 0)) ? memcpy(t, s, n) : 0;
+	return (t = newof(0, char, n, 0)) ? memcpy(t, s, n) : NULL;
 }
 
 #else

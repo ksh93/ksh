@@ -164,7 +164,7 @@ gl_nextdir(glob_t* gp, char* dir)
 	switch (*gp->gl_nextpath)
 	{
 	case 0:
-		dir = 0;
+		dir = NULL;
 		break;
 	case ':':
 		while (*gp->gl_nextpath == ':')
@@ -221,12 +221,12 @@ trim(char* sp, char* p1, ptrdiff_t* n1, char* p2, ptrdiff_t* n2)
 			c = *sp++;
 		if (sp == p1)
 		{
-			p1 = 0;
+			p1 = NULL;
 			*n1 = sp - dp - 1;
 		}
 		if (sp == p2)
 		{
-			p2 = 0;
+			p2 = NULL;
 			*n2 = sp - dp - 1;
 		}
 	} while (*dp++ = c);
@@ -320,11 +320,11 @@ glob_dir(glob_t* gp, globlist_t* ap, regflags_t re_flags)
 	unsigned char	meta = ((gp->re_flags & REG_ICASE) && *ap->gl_begin != '/') ? MATCH_META : 0;
 	int		quote = 0;
 	int		savequote = 0;
-	char*		restore1 = 0;
-	char*		restore2 = 0;
-	regex_t*	prec = 0;
-	regex_t*	prei = 0;
-	char*		matchdir = 0;
+	char*		restore1 = NULL;
+	char*		restore2 = NULL;
+	regex_t*	prec = NULL;
+	regex_t*	prei = NULL;
+	char*		matchdir = NULL;
 	int		starstar = 0;
 
 	if (*gp->gl_intr)
@@ -344,7 +344,7 @@ again:
 		case 0:
 			if (meta)
 			{
-				rescan = 0;
+				rescan = NULL;
 				break;
 			}
 			if (quote)
@@ -410,11 +410,11 @@ again:
 		goto skip;
 	if (pat == prefix)
 	{
-		prefix = 0;
+		prefix = NULL;
 		if (!rescan && (gp->gl_flags & GLOB_COMPLETE))
 		{
 			complete = 1;
-			dirname = 0;
+			dirname = NULL;
 		}
 		else
 			dirname = ".";
@@ -445,7 +445,7 @@ again:
 				if (*pat)
 					continue;
 			}
-			rescan = *pat?0:pat;
+			rescan = *pat?NULL:pat;
 			pat = "*";
 			goto skip;
 		}
@@ -615,14 +615,14 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	ssize_t		extra = 1;
 	unsigned char	intr = 0;
 
-	gp->gl_rescan = 0;
+	gp->gl_rescan = NULL;
 	gp->gl_error = 0;
 	gp->gl_errfn = errfn;
 	if (flags & GLOB_APPEND)
 	{
 		if ((unsigned)(gp->gl_flags |= GLOB_APPEND) ^ ((unsigned)flags|GLOB_MAGIC))
 			return GLOB_APPERR;
-		if (((gp->gl_flags & GLOB_STACK) == 0) == (gp->gl_stak == 0))
+		if (((gp->gl_flags & GLOB_STACK) == 0) == (gp->gl_stak == NULL))
 			return GLOB_APPERR;
 		if (gp->gl_starstar > 1)
 			gp->gl_flags |= GLOB_STARSTAR;
@@ -634,24 +634,24 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		gp->gl_flags = (signed)(((unsigned)flags & GLOB_FLAGMASK) | GLOB_MAGIC);
 		gp->re_flags = REG_SHELL|REG_NOSUB|REG_LEFT|REG_RIGHT|((flags&GLOB_AUGMENTED)?REG_AUGMENTED:0);
 		gp->gl_pathc = 0;
-		gp->gl_ignore = 0;
-		gp->gl_ignorei = 0;
+		gp->gl_ignore = NULL;
+		gp->gl_ignorei = NULL;
 		gp->gl_starstar = 0;
 		if (!(flags & GLOB_DISC))
 		{
-			gp->gl_fignore = 0;
-			gp->gl_suffix = 0;
-			gp->gl_intr = 0;
+			gp->gl_fignore = NULL;
+			gp->gl_suffix = NULL;
+			gp->gl_intr = NULL;
 			gp->gl_delim = 0;
-			gp->gl_handle = 0;
-			gp->gl_diropen = 0;
-			gp->gl_dirnext = 0;
-			gp->gl_dirclose = 0;
-			gp->gl_type = 0;
-			gp->gl_attr = 0;
-			gp->gl_nextdir = 0;
-			gp->gl_stat = 0;
-			gp->gl_lstat = 0;
+			gp->gl_handle = NULL;
+			gp->gl_diropen = NULL;
+			gp->gl_dirnext = NULL;
+			gp->gl_dirclose = NULL;
+			gp->gl_type = NULL;
+			gp->gl_attr = NULL;
+			gp->gl_nextdir = NULL;
+			gp->gl_stat = NULL;
+			gp->gl_lstat = NULL;
 			gp->gl_extra = 0;
 		}
 		if (!(flags & GLOB_ALTDIRFUNC))
@@ -691,7 +691,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 			gp->gl_ignore = &gp->re_ignore;
 		}
 		if (gp->gl_flags & GLOB_STACK)
-			gp->gl_stak = 0;
+			gp->gl_stak = NULL;
 		else if (!(gp->gl_stak = stkopen(0)))
 			return GLOB_NOSPACE;
 		if ((gp->gl_flags & GLOB_COMPLETE) && !gp->gl_nextdir)
@@ -764,7 +764,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		}
 	}
 	top = ap = stkalloc(globstk,(optlen ? 2 : 1) * strlen(pattern) + sizeof(globlist_t) + suflen + gp->gl_extra);
-	ap->gl_next = 0;
+	ap->gl_next = NULL;
 	ap->gl_flags = 0;
 	ap->gl_begin = ap->gl_path + gp->gl_extra;
 	pat = strcopy(ap->gl_begin, pattern + (size_t)optlen);
@@ -773,10 +773,10 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	if (optlen)
 		strlcpy(gp->gl_pat = gp->gl_opt = pat + 1, pattern, (size_t)optlen);
 	else
-		gp->gl_pat = 0;
+		gp->gl_pat = NULL;
 	suflen = 0;
 	if (!(flags & GLOB_LIST))
-		gp->gl_match = 0;
+		gp->gl_match = NULL;
 	re_flags = gp->re_flags;
 	gp->re_first = 1;
 	do
@@ -812,7 +812,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		{
 			av = argv;
 			while (--extra > 0)
-				*av++ = 0;
+				*av++ = NULL;
 		}
 		gp->gl_pathv = argv;
 		argv = av;
@@ -822,12 +822,12 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 			*argv++ = ap->gl_path + gp->gl_extra;
 			ap = ap->gl_next;
 		}
-		*argv = 0;
+		*argv = NULL;
 		if (!(flags & GLOB_NOSORT) && (argv - av) > 1)
 		{
 			strsort(av, (int)(argv - av), ast.locale.collate);
 			if (gp->gl_starstar > 1)
-				av[gp->gl_pathc = (size_t)struniq(av, argv - av)] = 0;
+				av[gp->gl_pathc = (size_t)struniq(av, argv - av)] = NULL;
 			gp->gl_starstar = 0;
 		}
 	}

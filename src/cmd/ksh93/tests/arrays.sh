@@ -1072,4 +1072,20 @@ for type in '' L8 LZ8 R8 RZ8 i ui si sui F E; do
 done
 
 # ======
+# Nested values in multidimensional indexed array assignments were
+# executed as commands if they looked like declaration commands
+# https://github.com/ksh93/ksh/issues/792
+
+exp='typeset -a arr=((a (export demo array) c) (typeset demo array) )'
+unset arr
+# test it with typeset -a...
+got=$(typeset -a arr=( (a (export demo array) c) (typeset demo array) ); typeset -p arr)
+[[ $got == "$exp" ]] || err_exit 'multidimensional indexed array assignment with values looking like declaration commands' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# ...and without typeset (implicit array assignment)
+got=$(arr=( (a (export demo array) c) (typeset demo array) ); typeset -p arr)
+[[ $got == "$exp" ]] || err_exit 'multidimensional indexed array assignment with values looking like declaration commands' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

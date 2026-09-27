@@ -75,7 +75,7 @@ base64encode(const void* fb, size_t fz, void** fn, void* tb, size_t tz, void** t
 		if (fn)
 			*fn = fp;
 		if (tn)
-			*tn = 0;
+			*tn = NULL;
 		tp = tmp;
 		te = tp + sizeof(tmp) - B64_EC + 1;
 		n = 1;
