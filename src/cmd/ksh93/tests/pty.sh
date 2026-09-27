@@ -1343,6 +1343,7 @@ L crash when discipline functions exit with an error
 # https://github.com/ksh93/ksh/issues/346
 
 d 40
+P :test-.:
 w "$SHELL"
 w PS1.get() {; printf '$ '; trap --invalid-flag 2>/dev/null; }
 w PS2.get() {; printf '> '; trap --invalid-flag 2>/dev/null; }
@@ -1481,6 +1482,29 @@ r \^Z.*(Stopped|Suspended)
 p :test-3:
 w echo OK
 u ^OK
+!
+
+((multiline && SHOPT_ESH)) && VISUAL=emacs TERM=vt100 tst $LINENO <<"!"
+L up arrow breaks with long history entry
+# https://github.com/ksh93/ksh/issues/864
+
+d 15
+p :test-1:
+w echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+r ^:test-1: echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
+p :test-2:
+w echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+r ^:test-2: echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna\r\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna\r\n$
+p :test-3:
+w echo Lor\E[A \E[A
+r ^:test-3: echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
+p :test-4:
+w echo Final prompt.
+r ^:test-4: echo Final prompt.\r\n$
+r ^Final prompt.\r\n$
 !
 
 # ======

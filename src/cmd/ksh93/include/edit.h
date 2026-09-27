@@ -26,15 +26,12 @@
  *
  */
 
-#define SEARCHSIZE	80
-
 #include	"FEATURE/cmds"
 #include	"FEATURE/locale"
 #include	"terminal.h"
 #include	"national.h"
 
 #define STRIP		0377
-#define LOOKAHEAD	80
 
 #if SHOPT_MULTIBYTE
     typedef wchar_t genchar;
@@ -89,9 +86,9 @@ typedef struct edit
 	genchar	*e_inbuf;	/* pointer to input buffer */
 	char	*e_prompt;	/* pointer to trimmed final line of PS1 prompt, used when redrawing command line */
 	genchar	*e_killbuf;	/* pointer to delete buffer */
-	char	e_search[SEARCHSIZE];	/* search string */
+	char	e_search[MAXLINE];	/* search string */
 	genchar	*e_physbuf;	/* temporary workspace buffer */
-	int	e_lbuf[LOOKAHEAD];/* pointer to look-ahead buffer */
+	int	e_lbuf[MAXLINE];/* pointer to look-ahead buffer */
 	int	e_fd;		/* file descriptor */
 	int	e_ttyspeed;	/* line speed, also indicates tty parameters are valid */
 	int	e_tabcount;

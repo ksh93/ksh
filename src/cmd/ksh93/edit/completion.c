@@ -591,7 +591,7 @@ int ed_macro(Edit_t *ep, int i)
 {
 	char *out;
 	Namval_t *np;
-	genchar buff[LOOKAHEAD+1];
+	genchar buff[MAXLINE+1];
 	if(i != '@')
 		ep->e_macro[1] = (char)i;
 	/* macros of the form <ESC>[c evoke alias __c */
@@ -604,20 +604,19 @@ int ed_macro(Edit_t *ep, int i)
 		/* copy to buff in internal representation */
 #if SHOPT_MULTIBYTE
 		char c = 0;
-		if( strlen(out) > LOOKAHEAD )
+		if( strlen(out) > MAXLINE )
 		{
-			c = out[LOOKAHEAD];
-			out[LOOKAHEAD] = 0;
+			c = out[MAXLINE];
+			out[MAXLINE] = 0;
 		}
 		i = ed_internal(out,buff);
 		if(c)
-			out[LOOKAHEAD] = c;
+			out[MAXLINE] = c;
 		while(i-- > 0)
 			ed_ungetchar(ep,buff[i]);
 #else
 		size_t len;
-		strncpy((char*)buff,out,LOOKAHEAD);
-		buff[LOOKAHEAD] = 0;
+		strlcpy((char*)buff,out,MAXLINE-1);
 		len = strlen((char*)buff);
 		while(len-- > 0)
 			ed_ungetchar(ep,buff[len]);

@@ -1232,7 +1232,7 @@ static void xcommands(Emacs_t *ep,int count)
 
 static int dosearch(Emacs_t *ep, genchar *out, int direction)
 {
-	if(cur>0 && eol==cur && (cur<(SEARCHSIZE-2) || ep->prevdirection == -2))
+	if(cur>0 && eol==cur && (cur<(MAXLINE-2) || ep->prevdirection == -2))
 	{
 		if(ep->lastdraw==APPEND)
 		{
@@ -1267,7 +1267,7 @@ static int dosearch(Emacs_t *ep, genchar *out, int direction)
 static void search(Emacs_t* ep,genchar *out,int direction)
 {
 	int i,sl;
-	genchar str_buff[LBUF];
+	genchar str_buff[MAXLINE];
 	genchar *string = drawbuff;
 	/* save current line */
 	int sav_cur = cur;
@@ -1348,8 +1348,8 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 #if SHOPT_MULTIBYTE
 		ed_external(string,(char*)string);
 #endif /* SHOPT_MULTIBYTE */
-		strncopy(lstring,((char*)string)+4,SEARCHSIZE-1);
-		lstring[SEARCHSIZE-1] = 0;
+		strncopy(lstring,((char*)string)+4,MAXLINE-1);
+		lstring[MAXLINE-1] = 0;
 		ep->prevdirection = direction;
 	}
 	else
