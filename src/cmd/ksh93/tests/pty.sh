@@ -1485,28 +1485,24 @@ u ^OK
 
 ((SHOPT_MULTIBYTE && SHOPT_ESH)) &&
 [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
-tst $LINENO << "!"
+VISUAL=emacs tst $LINENO << "!"
 L emacs mode not aware of multibyte spaces
 # https://github.com/ksh93/ksh/pull/1037
 
-d 40
+d 15
 p :test-1:
-w set -o emacs
-p :test-2:
 w echo foo　baz\Eb\Edbar
 u ^foo　bar\r\n$
 !
 
 ((SHOPT_MULTIBYTE && SHOPT_VSH)) &&
 [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
-tst $LINENO << "!"
+VISUAL=vi tst $LINENO << "!"
 L vi mode not aware of multibyte spaces
 # https://github.com/ksh93/ksh/pull/1037
 
-d 40
+d 15
 p :test-1:
-w set -o vi
-p :test-2:
 w echo bar　uux\Ebiq
 u ^bar　quux\r\n$
 !
