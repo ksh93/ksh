@@ -70,7 +70,7 @@ ftwalk(const char* path, int (*userf)(Ftw_t*), int flags, int (*comparf)(Ftw_t*,
 	if (children = flags & FTW_CHILDREN)
 		flags |= FTS_SEEDOT;
 	state.comparf = comparf;
-	if (!(f = fts_open((char* const*)path, flags, comparf ? ftscompare : 0)))
+	if (!(f = fts_open((char* const*)path, flags, comparf ? ftscompare : NULL)))
 	{
 		if (!path || !(flags & FTS_ONEPATH) && !(path = (const char*)(*((char**)path))))
 			return -1;
@@ -101,7 +101,7 @@ ftwalk(const char* path, int (*userf)(Ftw_t*), int flags, int (*comparf)(Ftw_t*,
 			}
 		e->parent->link = e;
 		rv = (*userf)((Ftw_t*)e->parent);
-		e->parent->link = 0;
+		e->parent->link = NULL;
 		while (nd > 0)
 			dd[--nd]->info |= FTS_DD;
 		for (x = e; x; x = x->link)

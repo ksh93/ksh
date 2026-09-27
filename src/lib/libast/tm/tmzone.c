@@ -112,7 +112,7 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 		return &fixed;
 	}
 	zp = tm_info.local;
-	p = 0;
+	p = NULL;
 	do
 	{
 		if (zp->type)

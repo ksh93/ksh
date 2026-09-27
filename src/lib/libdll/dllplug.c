@@ -12,6 +12,7 @@
 *                                                                      *
 *                 Glenn Fowler <gsf@research.att.com>                  *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -51,7 +52,7 @@ dllplugin(const char* lib, const char* name, const char* ver, unsigned long rel,
 					{
 						err = state.error;
 						dlclose(dll);
-						dll = 0;
+						dll = NULL;
 						continue;
 					}
 					if (path && size)
@@ -74,14 +75,14 @@ dllplugin(const char* lib, const char* name, const char* ver, unsigned long rel,
 		}
 		if (!lib)
 			break;
-		lib = 0;
+		lib = NULL;
 	}
 	if (dll = dllopen(name, flags))
 	{
 		if (!dllcheck(dll, name, rel, cur))
 		{
 			dlclose(dll);
-			dll = 0;
+			dll = NULL;
 		}
 		else if (path && size)
 			strlcpy(path, name, size);

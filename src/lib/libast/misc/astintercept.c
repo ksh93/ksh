@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -37,14 +37,14 @@ astintercept(Shbltin_t* call, int set)
 		if (set)
 			intercepts.intercept_getenv = call->shgetenv;
 		else
-			intercepts.intercept_getenv = 0;
+			intercepts.intercept_getenv = NULL;
 	}
 	if (call->shsetenv)
 	{
 		if (set)
 			intercepts.intercept_setenviron = call->shsetenv;
 		else
-			intercepts.intercept_setenviron = 0;
+			intercepts.intercept_setenviron = NULL;
 	}
 	return 0;
 }

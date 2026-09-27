@@ -1443,10 +1443,51 @@ w set -- --help; OPTIND=1; while getopts x o; do :; done; echo OK/CONTINUED/2
 u ^OK/CONTINUED/2\r\n$
 !
 
+tst $LINENO <<"!"
+L suspend a pipeline whose last element reads from it
+# https://github.com/ksh93/ksh/issues/750
+
+d 15
+p :test-1:
+w sleep 10 | read v
+r \r\n$
+c \cZ
+r \^Z.*(Stopped|Suspended)
+p :test-2:
+w { sleep 10; } | read var
+r \r\n$
+c \cZ
+r \^Z.*(Stopped|Suspended)
+p :test-3:
+w echo OK
+u ^OK
+!
+
+tst $LINENO <<"!"
+L suspend two consecutive pipelines
+# https://github.com/ksh93/ksh/issues/750
+
+d 15
+p :test-1:
+w sleep 10 | sleep 20
+r \r\n$
+c \cZ
+r \^Z.*(Stopped|Suspended)
+p :test-2:
+w { sleep 10; } | sleep 20
+r \r\n$
+c \cZ
+r \^Z.*(Stopped|Suspended)
+p :test-3:
+w echo OK
+u ^OK
+!
+
 ((SHOPT_MULTIBYTE && SHOPT_ESH)) &&
 [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
 tst $LINENO << "!"
 L emacs mode not aware of multibyte spaces
+# https://github.com/ksh93/ksh/pull/1037
 
 d 40
 p :test-1:
@@ -1460,6 +1501,7 @@ u ^foo　bar\r\n$
 [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
 tst $LINENO << "!"
 L vi mode not aware of multibyte spaces
+# https://github.com/ksh93/ksh/pull/1037
 
 d 40
 p :test-1:

@@ -131,7 +131,7 @@ pathcd(const char* path, const char* home)
 
 		if (!(p = (char*)home))
 			return -1;
-		home = 0;
+		home = NULL;
 		r = -1;
 	}
 }

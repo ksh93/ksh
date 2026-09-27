@@ -239,12 +239,12 @@ static int moreexcept(Sfio_t* f, int type, void* data, Sfdisc_t* dp)
 	{
 		if (f = more->input)
 		{
-			more->input = 0;
+			more->input = NULL;
 			sfdisc(f, SFIO_POPDISC);
 		}
 		else if (f = more->error)
 		{
-			more->error = 0;
+			more->error = NULL;
 			sfdisc(f, SFIO_POPDISC);
 		}
 		else

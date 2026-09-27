@@ -179,8 +179,8 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 		/* first try an a.out and verify that SIGHUP is ignored */
 		cmd[0] = argv[0];
 		cmd[1] = "test";
-		cmd[2] = 0;
-		if (posix_spawn(&pid, cmd[0], 0, &attr, cmd, 0))
+		cmd[2] = NULL;
+		if (posix_spawn(&pid, cmd[0], NULL, &attr, cmd, NULL))
 		{
 			NOTE("posix_spawn() FAILED");
 			_exit(0);
@@ -219,7 +219,7 @@ tst	lib_posix_spawn unistd.h stdlib.h spawn.h -Dfork=______fork note{ posix_spaw
 		cmd[0] = tmp;
 		n = 0; /* 0 means reject */
 		pid = -1;
-		if (posix_spawn(&pid, cmd[0], 0, &attr, cmd, 0))
+		if (posix_spawn(&pid, cmd[0], NULL, &attr, cmd, NULL))
 		{
 			n = 2;
 			NOTE("ENOEXEC produces posix_spawn() error (BEST)");
@@ -360,12 +360,12 @@ std	cleanup note{ stuck with standard _cleanup }end noexecute{
 
 std	strtod stdlib.h note{ stuck with standard strtod }end nostatic{
 	double strtod(const char* s, char** e) { return 0.0; }
-	int main(void) { printf(""); return strtod("1",0) != 0; }
+	int main(void) { printf(""); return strtod("1",NULL) != 0; }
 }end
 
 std	strtold stdlib.h note{ stuck with standard strtold }end nostatic{
 	long double strtold(const char* s, char** e) { return 0.0; }
-	int main(void) { printf(""); return strtold("1",0) != 0; }
+	int main(void) { printf(""); return strtold("1",NULL) != 0; }
 }end
 
 std	strtol note{ stuck with standard strtol }end nostatic{

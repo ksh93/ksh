@@ -57,7 +57,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 	char*	v;
 	char*	t;
 	char**	p;
-	char*	u = 0;
+	char*	u = NULL;
 	char*	x;
 	char*	e;
 	int	n;
@@ -100,13 +100,13 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 				if (!t)
 				{
 					u = v = s;
-					p = 0;
+					p = NULL;
 				}
 			}
 			else
 			{
 				p = (char**)(v = s);
-				t = 0;
+				t = NULL;
 			}
 			while (*v && !isspace(*v) && *v != '=' && *v != ',')
 				if (*v++ == ':' && *v == '=')

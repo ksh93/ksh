@@ -20,6 +20,7 @@
 #include	<ast.h>
 #include	<sig.h>
 #include	<error.h>
+#include	<tv.h>
 #include	"fault.h"
 #include	"defs.h"
 #include	"FEATURE/time"
@@ -44,9 +45,9 @@ static char time_state;
 static Sfdouble_t getnow(void)
 {
 	Sfdouble_t now;
-	struct timeval tp;
-	timeofday(&tp);
-	now = tp.tv_sec + 1.e-6*tp.tv_usec;
+	Tv_t tp;
+	tvgettime(&tp);
+	now = tp.tv_sec + 1.e-6*(tp.tv_nsec/1000);
 	return now+.001;
 }
 
@@ -148,8 +149,8 @@ static void sigalrm(int sig)
 	while(1)
 	{
 		now = getnow();
-		tpold = tpmin = 0;
-		for(tplast=0,tp=tptop; tp; tp=tpnext)
+		tpold = tpmin = NULL;
+		for(tplast=NULL,tp=tptop; tp; tp=tpnext)
 		{
 			tpnext = tp->next;
 			if(tp->action)
@@ -197,7 +198,7 @@ static void sigalrm(int sig)
 			void	(*action)(void*);
 			action = tp->action;
 			if(!tp->incr)
-				tp->action = 0;
+				tp->action = NULL;
 			errno = EINTR;
 			time_state &= ~IN_SIGALRM;
 			(*action)(tp->handle);
@@ -258,7 +259,7 @@ void *sh_timeradd(Sfulong_t msec,int flags,void (*action)(void*),void *handle)
 		time_state=SIGALRM_CALL;
 		sigalrm(SIGALRM);
 		if(tp!=tptop)
-			tp=0;
+			tp = NULL;
 	}
 	return tp;
 }
@@ -270,14 +271,14 @@ void	sh_timerdel(void *handle)
 {
 	Timer_t *tp = (Timer_t*)handle;
 	if(tp)
-		tp->action = 0;
+		tp->action = NULL;
 	else
 	{
 		for(tp=tptop; tp; tp=tp->next)
-			tp->action = 0;
+			tp->action = NULL;
 		if(tpmin)
 		{
-			tpmin = 0;
+			tpmin = NULL;
 			setalarm((Sfdouble_t)0);
 		}
 		signal(SIGALRM,(sh.sigflag[SIGALRM]&SH_SIGFAULT)?sh_fault:SIG_DFL);
