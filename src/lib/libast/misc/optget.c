@@ -450,7 +450,7 @@ secname(char* section)
 			break;
 		}
 		if (s)
-			t = strcopy(t, s);
+			t = stpcpy(t, s);
 	}
 	s = NULL;
 	for (i = 0; i < elementsof(sections); i++)
@@ -463,10 +463,10 @@ secname(char* section)
 	}
 	if (!s)
 	{
-		t = strcopy(t, "SECTION ");
+		t = stpcpy(t, "SECTION ");
 		s = section;
 	}
-	strcopy(t, s);
+	stpcpy(t, s);
 	return b;
 }
 

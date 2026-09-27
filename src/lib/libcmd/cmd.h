@@ -101,8 +101,7 @@ main(int argc, char** argv)
 	buf[0] = '_';
 	buf[1] = 'b';
 	buf[2] = '_';
-	strncpy(buf + 3, s, sizeof(buf) - 4);
-	buf[sizeof(buf) - 1] = 0;
+	strlcpy(buf + 3, s, sizeof(buf) - 3);
 	if (t = strchr(buf, '.'))
 		*t = 0;
 	for (;;)
