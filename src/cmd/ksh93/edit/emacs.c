@@ -131,7 +131,6 @@ typedef struct _emacs_
 #define killing		editb.e_mode
 #define location	ep->_location
 
-#define LBUF		100
 #define KILLCHAR	UKILL
 #define ERASECHAR	UERASE
 #define EOFCHAR		UEOF
@@ -640,7 +639,7 @@ static void show_info(Emacs_t *ep,const char *str)
 {
 	genchar *out = drawbuff;
 	int c;
-	genchar string[LBUF];
+	genchar string[MAXLINE];
 	int sav_cur = cur;
 	/* save current line */
 	genncpy(string,out,sizeof(string)/sizeof(*string));
