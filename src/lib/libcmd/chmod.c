@@ -146,7 +146,7 @@ b_chmod(int argc, char** argv, Shbltin_t* context)
 	mode_t		mode = 0;
 	int		force = 0;
 	int		flags;
-	char*		amode = 0;
+	char*		amode = NULL;
 	FTS*		fts;
 	FTSENT*		ent;
 	char*		last;
@@ -236,7 +236,7 @@ b_chmod(int argc, char** argv, Shbltin_t* context)
 	if (ignore)
 		ignore = umask(0);
 	if (amode)
-		amode = 0;
+		amode = NULL;
 	else
 	{
 		amode = *argv++;

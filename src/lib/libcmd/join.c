@@ -193,7 +193,7 @@ init(void)
 		jp->state[' '] = jp->state['\t'] = S_SPACE;
 		jp->state['\n'] = S_NL;
 		jp->delim = -1;
-		jp->nullfield = 0;
+		jp->nullfield = NULL;
 		if (!(jp->file[0].fields = newof(0, Field_t, NFIELD + 1, 0)) ||
 		    !(jp->file[1].fields = newof(0, Field_t, NFIELD + 1, 0)))
 		{
@@ -659,7 +659,7 @@ join(Join_t* jp)
 	Sfoff_t		lo = -1;
 	Sfoff_t		hi = -1;
 
-	if ((cp1 = getrec(jp, 0, 0)) && (cp2 = getrec(jp, 1, 0)) || (cp2 = 0))
+	if ((cp1 = getrec(jp, 0, 0)) && (cp2 = getrec(jp, 1, 0)) || (cp2 = NULL))
 	{
 		n1 = jp->file[0].fieldlen;
 		n2 = jp->file[1].fieldlen;
@@ -986,7 +986,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 	}
 	jp->outfile = sfstdout;
 	if (!jp->outlist)
-		jp->nullfield = 0;
+		jp->nullfield = NULL;
 	if (join(jp) < 0)
 	{
 		done(jp);

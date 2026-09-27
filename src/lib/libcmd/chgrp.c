@@ -212,7 +212,7 @@ b_chgrp(int argc, char** argv, Shbltin_t* context)
 	Map_t*		m;
 	FTS*		fts;
 	FTSENT*		ent;
-	Dt_t*		map = 0;
+	Dt_t*		map = NULL;
 	int		logical = 1;
 	int		flags;
 	int		uid = -1;

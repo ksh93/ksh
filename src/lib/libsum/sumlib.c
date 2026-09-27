@@ -138,7 +138,7 @@ long_data(Sum_t* p, Sumdata_t* data)
 
 	data->size = sizeof(data->num);
 	data->num = x->sum;
-	data->buf = 0;
+	data->buf = NULL;
 	return 0;
 }
 
