@@ -27,6 +27,7 @@
 #include	"defs.h"
 #include	<error.h>
 #include	<tmx.h>
+#include	<tv.h>
 #include	"builtins.h"
 #include	"fcin.h"
 #include	"shlex.h"
@@ -96,9 +97,9 @@ static 	void *time_delete(struct tevent *item, void *list)
 
 static Time_t getnow(void)
 {
-	struct timeval tmp;
-	timeofday(&tmp);
-	return tmp.tv_sec + 1.e-6 * tmp.tv_usec;
+	Tv_t tmp;
+	tvgettime(&tmp);
+	return tmp.tv_sec + 1.e-9 * tmp.tv_nsec;
 }
 
 static void	print_alarms(void *list)
@@ -129,7 +130,7 @@ static void	trap_timeout(void* handle)
 	struct tevent *tp = (struct tevent*)handle;
 	sh.trapnote |= SH_SIGALRM;
 	if(!(tp->flags&R_FLAG))
-		tp->timeout = 0;
+		tp->timeout = NULL;
 	tp->flags |= L_FLAG;
 	if(sh_isstate(SH_TTYWAIT))
 		sh_timetraps();
@@ -283,11 +284,9 @@ static void putval(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 
 static const Namdisc_t alarmdisc =
 {
-	sizeof(struct tevent),
-	putval,
-	0,
-	0,
-	setdisc,
+	.dsize = sizeof(struct tevent),
+	.putval = putval,
+	.setdisc = setdisc,
 };
 
 int	b_alarm(int argc,char *argv[],Shbltin_t *context)

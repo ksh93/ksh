@@ -242,7 +242,7 @@ settime(Shbltin_t* context, Time_t now, int adjust, int network)
 			*argv++ = "-u";
 	}
 	*argv++ = buf;
-	*argv = 0;
+	*argv = NULL;
 	if (!sh_run(context, (int)(argv - args), args))
 		return 0;
 	return -1;
@@ -286,22 +286,22 @@ b_date(int argc, char** argv, Shbltin_t* context)
 	Fmt_t		fmt;
 	struct stat	st;
 
-	char*		format = 0;	/* tmxfmt() format		*/
-	char*		string = 0;	/* date string			*/
-	int		elapsed = 0;	/* args are start/stop pairs	*/
-	int		filetime = 0;	/* use this st_ time field	*/
-	int		increment = 0;	/* incrementally adjust time	*/
-	int		last = 0;	/* display the last time arg	*/
-	Tm_zone_t*	listzones = 0;	/* known time zone table	*/
-	int		network = 0;	/* don't set network time	*/
-	int		show = 0;	/* show date and don't set	*/
-	int		unelapsed = 0;	/* fmtelapsed() => strelapsed	*/
+	char*		format = NULL;	 /* tmxfmt() format		*/
+	char*		string = NULL;	 /* date string			*/
+	int		elapsed = 0;	 /* args are start/stop pairs	*/
+	int		filetime = 0;	 /* use this st_ time field	*/
+	int		increment = 0;	 /* incrementally adjust time	*/
+	int		last = 0;	 /* display the last time arg	*/
+	Tm_zone_t*	listzones = NULL;/* known time zone table	*/
+	int		network = 0;	 /* don't set network time	*/
+	int		show = 0;	 /* show date and don't set	*/
+	int		unelapsed = 0;	 /* fmtelapsed() => strelapsed	*/
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	tm_info.flags = TM_DATESTYLE;
 	fmts = &fmt;
 	fmt.format = "";
-	fmt.next = 0;
+	fmt.next = NULL;
 	for (;;)
 	{
 		switch (optget(argv, usage))
@@ -440,7 +440,7 @@ b_date(int argc, char** argv, Shbltin_t* context)
 			error(ERROR_usage(2), "%s", optusage(NULL));
 			UNREACHABLE();
 		}
-		n = argv[1] != 0;
+		n = argv[1] != NULL;
 		while (s = *argv++)
 		{
 			if (stat(s, &st))

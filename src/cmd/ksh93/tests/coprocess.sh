@@ -162,7 +162,7 @@ do
 	fi
 	wait $!
 
-	( sleep 3 |& sleep .1 && kill $!; sleep .5; sleep 3 |& sleep .1 && kill $! ) ||
+	( sleep 3 |& sleep .1 && kill $!; wait $! 2>/dev/null; sleep 3 |& sleep .1 && kill $! ) ||
 		err_exit "$cat coprocess cleanup not working correctly"
 	{ : |& } 2>/dev/null ||
 		err_exit "subshell $cat coprocess lingers in parent"

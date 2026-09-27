@@ -349,7 +349,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 			fp[n].ft.precis = 0;
 			fp[n].ft.base = 0;
 			fp[n].ft.size = 0;
-			fp[n].ft.t_str = 0;
+			fp[n].ft.t_str = NULL;
 			fp[n].ft.n_str = 0;
 			fp[n].ft.flags = 0;
 			for(v = 0; v < FP_INDEX; ++v)

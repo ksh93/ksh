@@ -149,7 +149,7 @@ crc_open(const Method_t* method, const char* name)
 	s = name;
 	while (*(t = s))
 	{
-		for (t = s, v = 0; *s && *s != '-'; s++)
+		for (t = s, v = NULL; *s && *s != '-'; s++)
 			if (*s == '=' && !v)
 				v = s;
 		k = (v ? v : s) - t;

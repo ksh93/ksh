@@ -277,7 +277,7 @@ int job_reap(int sig)
 		flags = WNOHANG|WUNTRACED|wcontinued;
 	else
 		flags = WUNTRACED|wcontinued;
-	sh.waitevent = 0;
+	sh.waitevent = NULL;
 	while(1)
 	{
 		if(!(flags&WNOHANG) && !sh.intrap && job.pwlist)
@@ -321,7 +321,7 @@ int job_reap(int sig)
 			job_chksave(pid);
 		flags |= WNOHANG;
 		job.waitsafe++;
-		jp = 0;
+		jp = NULL;
 		lastpid = pid;
 		if(!(pw=job_bypid(pid)))
 		{
@@ -339,7 +339,7 @@ int job_reap(int sig)
 			jp = jobsave_create(pid);
 			pw->p_flag = 0;
 			lastpid = pw->p_pid = pid;
-			px = 0;
+			px = NULL;
 			if(jp && WIFSTOPPED(wstat))
 			{
 				jp->exitval = SH_STOPSIG;
@@ -355,7 +355,19 @@ int job_reap(int sig)
 			pw->p_flag |= (P_NOTIFY|P_SIGNALLED|P_STOPPED|P_BG);
 			pw->p_exit = (unsigned short)WSTOPSIG(wstat);
 			if(pw->p_pgrp && pw->p_pgrp==job.curpgid && sh_isstate(SH_STOPOK))
-				kill(sh.current_pid,pw->p_exit);
+			{
+				/*
+				 * We likely got here via the SIGCHLD handler, job_waitsafe().
+				 * SIGCHLD occurred because a child was just suspended (^Z).
+				 * For correct exception handling in the main shell environment (e.g.,
+				 * via sh_sigcheck() or slowexcept()), pretend the stop signal was
+				 * reissued to self and deferred, then return from the signal handler
+				 * so sh_exit(), which longjmps, ends up called from a safe location.
+				 */
+				sh.lastsig = (unsigned char)pw->p_exit;
+				sh.trapnote |= SH_SIGSET|SH_SIGTSTP;
+				break;
+			}
 			if(px)
 			{
 				/* move to top of job list */
@@ -713,7 +725,7 @@ void job_bwait(char **jobs)
 	char *jp;
 	struct process *pw;
 	pid_t pid;
-	if(*jobs==0)
+	if(*jobs==NULL)
 		job_wait((pid_t)-1);
 	else while(jp = *jobs++)
 	{
@@ -742,13 +754,13 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 	int r = 0;
 	char *jobid, **jobs=joblist;
 	struct process *px;
-	job_string = 0;
+	job_string = NULL;
 	outfile = file;
 	by_number = 0;
 	job_lock();
 	pw = job.pwlist;
 	job_waitsafe(SIGCHLD);
-	if(jobs==0)
+	if(jobs==NULL)
 	{
 		/* do all jobs */
 		for(;pw;pw=px)
@@ -760,7 +772,7 @@ int job_walk(Sfio_t *file,int (*fun)(struct process*,int),int arg,char *joblist[
 				r = 2;
 		}
 	}
-	else if(*jobs==0)	/* current job */
+	else if(*jobs==NULL)	/* current job */
 	{
 		/* skip over non-stop jobs */
 		while(pw && (pw->p_env!=sh.jobenv || pw->p_pgrp==0))
@@ -870,7 +882,7 @@ int job_list(struct process *pw,int flag)
 		{
 			while(px=px->p_nxtproc)
 				px->p_flag &= ~P_NOTIFY;
-			px = 0;
+			px = NULL;
 		}
 		if(!px)
 			hist_list(sh.hist_ptr,outfile,pw->p_name,0,";");
@@ -1052,8 +1064,8 @@ int job_hup(struct process *pw, int sig)
 static struct process *job_byname(char *name)
 {
 	struct process *pw = job.pwlist;
-	struct process *pz = 0;
-	ptrdiff_t *flag = 0;
+	struct process *pz = NULL;
+	ptrdiff_t *flag = NULL;
 	ptrdiff_t offset;
 	char *cp = name;
 	if(!sh.hist_ptr)
@@ -1099,7 +1111,7 @@ void	job_clear(void)
 		jpnext = jp->next;
 		free(jp);
 	}
-	bck.list = 0;
+	bck.list = NULL;
 	if(njob_savelist < NJOB_SAVELIST)
 		init_savelist();
 	job.pwlist = NULL;
@@ -1180,7 +1192,7 @@ int job_post(pid_t pid, pid_t join)
 		while((pw->p_job = job_alloc()) < 0)
 			job_wait((pid_t)1);
 		pw->p_nxtjob = job.pwlist;
-		pw->p_nxtproc = 0;
+		pw->p_nxtproc = NULL;
 	}
 	pw->p_exitval = job.exitval;
 	job.pwlist = pw;
@@ -1297,7 +1309,7 @@ static void job_prmsg(struct process *pw)
  */
 int	job_wait(pid_t pid)
 {
-	struct process	*pw=0,*px;
+	struct process	*pw = NULL, *px;
 	int		jobid = 0;
 	int		nochild = 1;
 	char		intr = 0;
@@ -1409,7 +1421,7 @@ int	job_wait(pid_t pid)
 					px = job_byjid(jobid);
 					/* last process in job */
 					if(px!=pw)
-						px = 0;
+						px = NULL;
 					if(px)
 					{
 						sh.exitval=px->p_exit;
@@ -1441,7 +1453,7 @@ int	job_wait(pid_t pid)
 	}
 	if(intr && sh.trapnote)
 		sh.exitval = 1;
-	pwfg = 0;
+	pwfg = NULL;
 	job_unlock();
 	if(pid==1)
 		return nochild;
@@ -1733,7 +1745,7 @@ static char *job_sigmsg(int sig)
  */
 static int job_chksave(pid_t pid)
 {
-	struct jobsave *jp = bck.list, *jpold=0;
+	struct jobsave *jp = bck.list, *jpold = NULL;
 	int r= -1;
 	int count=bck.count;
 	struct back_save *bp= &bck;
@@ -1751,7 +1763,7 @@ again:
 	{
 		count = bp->count;
 		jp = bp->list;
-		jpold = 0;
+		jpold = NULL;
 		goto again;
 	}
 	if(jp)
@@ -1783,7 +1795,7 @@ void *job_subsave(void)
 	*bp = bck;
 	bp->prev = bck.prev;
 	bck.count = 0;
-	bck.list = 0;
+	bck.list = NULL;
 	bck.prev = bp;
 	job_unlock();
 	return bp;

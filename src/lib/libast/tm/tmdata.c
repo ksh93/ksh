@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2022 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -230,39 +230,39 @@ static Tm_leap_t	leap[] =
 
 static Tm_zone_t	zone[] =
 {
- 0,	"GMT",	0,	 ( 0 * 60),	     0,	/* UTC			*/
- 0,	"UCT",	0,	 ( 0 * 60),	     0,	/* UTC			*/
- 0,	"UTC",	0,	 ( 0 * 60),	     0,	/* UTC			*/
- 0,	"CUT",	0,	 ( 0 * 60),	     0,	/* UTC			*/
- 0,	"Z",	0,	 ( 0 * 60),	     0,	/* UTC			*/
- "USA",	"HST",	0,	 (10 * 60),	     0,	/* Hawaii		*/
- 0,	"YST",	"YDT",	 ( 9 * 60),	TM_DST,	/* Yukon		*/
- 0,	"PST",	"PDT",	 ( 8 * 60),	TM_DST,	/* Pacific		*/
- 0,	"PST",	"PPET",	 ( 8 * 60),	TM_DST,	/* Pacific pres elect	*/
- 0,	"MST",	"MDT",	 ( 7 * 60),	TM_DST,	/* Mountain		*/
- 0,	"CST",	"CDT",	 ( 6 * 60),	TM_DST,	/* Central		*/
- 0,	"EST",	"EDT",	 ( 5 * 60),	TM_DST,	/* Eastern		*/
+ NULL,	"GMT",	NULL,	 ( 0 * 60),	     0,	/* UTC			*/
+ NULL,	"UCT",	NULL,	 ( 0 * 60),	     0,	/* UTC			*/
+ NULL,	"UTC",	NULL,	 ( 0 * 60),	     0,	/* UTC			*/
+ NULL,	"CUT",	NULL,	 ( 0 * 60),	     0,	/* UTC			*/
+ NULL,	"Z",	NULL,	 ( 0 * 60),	     0,	/* UTC			*/
+ "USA",	"HST",	NULL,	 (10 * 60),	     0,	/* Hawaii		*/
+ NULL,	"YST",	"YDT",	 ( 9 * 60),	TM_DST,	/* Yukon		*/
+ NULL,	"PST",	"PDT",	 ( 8 * 60),	TM_DST,	/* Pacific		*/
+ NULL,	"PST",	"PPET",	 ( 8 * 60),	TM_DST,	/* Pacific pres elect	*/
+ NULL,	"MST",	"MDT",	 ( 7 * 60),	TM_DST,	/* Mountain		*/
+ NULL,	"CST",	"CDT",	 ( 6 * 60),	TM_DST,	/* Central		*/
+ NULL,	"EST",	"EDT",	 ( 5 * 60),	TM_DST,	/* Eastern		*/
  "CAN",	"AST",	"ADT",	 ( 4 * 60),	TM_DST,	/* Atlantic		*/
- 0,	"NST",	0,	 ( 3 * 60 + 30),     0,	/* Newfoundland		*/
+ NULL,	"NST",	NULL,	 ( 3 * 60 + 30),     0,	/* Newfoundland		*/
  "GBR",	"",	"BST",	 ( 0 * 60),	TM_DST,	/* British Summer	*/
  "EUR",	"WET",	"WEST",	 ( 0 * 60),	TM_DST,	/* Western European	*/
- 0,	"CET",	"CEST",	-( 1 * 60),	TM_DST,	/* Central European	*/
- 0,	"MET",	"MEST",	-( 1 * 60),	TM_DST,	/* Middle European	*/
- 0,	"EET",	"EEST",	-( 2 * 60),	TM_DST,	/* Eastern European	*/
+ NULL,	"CET",	"CEST",	-( 1 * 60),	TM_DST,	/* Central European	*/
+ NULL,	"MET",	"MEST",	-( 1 * 60),	TM_DST,	/* Middle European	*/
+ NULL,	"EET",	"EEST",	-( 2 * 60),	TM_DST,	/* Eastern European	*/
  "ISR",	"IST",	"IDT",  -( 3 * 60),	TM_DST,	/* Israel		*/
- "IND",	"IST",	0,  	-( 5 * 60 + 30 ),    0,	/* India		*/
- "CHN",	"HKT",	0,	-( 8 * 60),	     0,	/* Hong Kong		*/
+ "IND",	"IST",	NULL,  	-( 5 * 60 + 30 ),    0,	/* India		*/
+ "CHN",	"HKT",	NULL,	-( 8 * 60),	     0,	/* Hong Kong		*/
  "KOR",	"KST",	"KDT",	-( 8 * 60),	TM_DST,	/* Korea		*/
- "SNG",	"SST",	0,	-( 8 * 60),	     0,	/* Singapore		*/
- "JPN",	"JST",	0,	-( 9 * 60),	     0,	/* Japan		*/
- "AUS",	"AWST",	0,	-( 8 * 60),	     0,	/* Australia Western	*/
- 0,	"WST",	0,	-( 8 * 60),	     0,	/* Australia Western	*/
- 0,	"ACST",	0,	-( 9 * 60 + 30),TM_DST,	/* Australia Central	*/
- 0,	"CST",	0,	-( 9 * 60 + 30),TM_DST,	/* Australia Central	*/
- 0,	"AEST",	0,	-(10 * 60),	TM_DST,	/* Australia Eastern	*/
- 0,	"EST",	0,	-(10 * 60),	TM_DST,	/* Australia Eastern	*/
+ "SNG",	"SST",	NULL,	-( 8 * 60),	     0,	/* Singapore		*/
+ "JPN",	"JST",	NULL,	-( 9 * 60),	     0,	/* Japan		*/
+ "AUS",	"AWST",	NULL,	-( 8 * 60),	     0,	/* Australia Western	*/
+ NULL,	"WST",	NULL,	-( 8 * 60),	     0,	/* Australia Western	*/
+ NULL,	"ACST",	NULL,	-( 9 * 60 + 30),TM_DST,	/* Australia Central	*/
+ NULL,	"CST",	NULL,	-( 9 * 60 + 30),TM_DST,	/* Australia Central	*/
+ NULL,	"AEST",	NULL,	-(10 * 60),	TM_DST,	/* Australia Eastern	*/
+ NULL,	"EST",	NULL,	-(10 * 60),	TM_DST,	/* Australia Eastern	*/
  "NZL",	"NZST",	"NZDT",	-(12 * 60),	TM_DST,	/* New Zealand		*/
- 0,	0,	0,	0,		     0
+ NULL,	NULL,	NULL,	0,		     0
 };
 
 /*
