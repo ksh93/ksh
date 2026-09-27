@@ -98,7 +98,7 @@ static const _ast_iconv_list_t	codes[] =
 	"um|ume|utf?(-)7",
 	"multibyte 7-bit unicode",
 	"UTF-7",
-	0,
+	NULL,
 	CC_UME,
 	},
 
@@ -106,8 +106,8 @@ static const _ast_iconv_list_t	codes[] =
 	"euc",
 	"(big|euc)*",
 	"euc family",
-	0,
-	0,
+	NULL,
+	NULL,
 	CC_ICONV,
 	},
 
@@ -116,7 +116,7 @@ static const _ast_iconv_list_t	codes[] =
 	"dos?(-)?(855)",
 	"dos code page",
 	"DOS855",
-	0,
+	NULL,
 	CC_ICONV,
 	},
 
@@ -169,7 +169,7 @@ _ast_iconv_name(const char* m, char* b, size_t n)
 	o = b;
 #endif
 	e = b + n - 1;
-	bp = 0;
+	bp = NULL;
 	n = 0;
 	cp = ccmaplist(NULL);
 #if DEBUG_TRACE
@@ -828,7 +828,7 @@ error(DEBUG_TRACE, "AHA#%d _ast_iconv_open f=%s:%s:%d t=%s:%s:%d\n", __LINE__, f
 	for (i = 0; i < elementsof(freelist); i++)
 		if ((cc = freelist[i]) && streq(to, cc->to.name) && streq(fr, cc->from.name))
 		{
-			freelist[i] = 0;
+			freelist[i] = NULL;
 #if _lib_iconv_open
 			/*
 			 * reset the shift state if any
@@ -1102,7 +1102,7 @@ _ast_iconv_write(_ast_iconv_t cd, Sfio_t* op, char** fb, size_t* fn, Iconv_disc_
 		iconv_init(disc, 0);
 	}
 	else
-		e = 0;
+		e = NULL;
 	r = 0;
 	tn = 0;
 	ok = 1;
@@ -1205,8 +1205,8 @@ _ast_iconv_move(_ast_iconv_t cd, Sfio_t* ip, Sfio_t* op, size_t n, Iconv_disc_t*
 		iconv_init(disc, 0);
 	}
 	else
-		e = 0;
-	tb = 0;
+		e = NULL;
+	tb = NULL;
 	fe = OK;
 	ft = 0;
 	fn = n;

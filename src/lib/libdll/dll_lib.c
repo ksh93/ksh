@@ -91,10 +91,10 @@ dllnames(const char* id, const char* name, Dllnames_t* names)
 	else
 	{
 		names->name = (char*)name;
-		names->type = 0;
+		names->type = NULL;
 	}
 	*(names->path = b) = 0;
-	names->opts = 0;
+	names->opts = NULL;
 	names->id = (char*)id;
 	return names;
 }
@@ -182,5 +182,5 @@ dllmeth(const char* id, const char* name, unsigned long version)
 {
 	Dllnames_t	names;
 
-	return dll_lib(dllnames(id, name, &names), version, 0, 0);
+	return dll_lib(dllnames(id, name, &names), version, NULL, NULL);
 }

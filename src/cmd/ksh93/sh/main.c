@@ -235,20 +235,21 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				}
 				else
 				{
-					int isdir = 0;
+					int isdir = 0, fname_alloc = 0;
 					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
 					{
 						sh_close(fdin);
 						isdir = 1;
 						fdin = -1;
 					}
-					else
-						sh.st.filename = path_fullname(name);
 					if(fdin < 0 && !strchr(name,'/') && path_absolute(name,NULL,0))
 					{
 						char *sp = stkptr(sh.stk,PATH_OFFSET);
 						if((fdin=sh_open(sp,O_RDONLY|O_cloexec,0))>=0)
+						{
 							sh.st.filename = path_fullname(sp);
+							fname_alloc = 1;
+						}
 					}
 					if(fdin<0)
 					{
@@ -258,6 +259,8 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 						errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
 						UNREACHABLE();
 					}
+					if(!fname_alloc)
+						sh.st.filename = path_fullname(name);
 					/*
 					 * Note: fdin could wind up being zero or some such if the
 					 *       shell was opened with stdin/stdout/stderr closed
@@ -545,7 +548,7 @@ static void	exfile(Sfio_t *_iop, int _fno)
 		t = (Shnode_t*)sh_parse(iop,0);
 		if(!sh_isstate(SH_INTERACTIVE) && !sh_isoption(SH_CFLAG))
 			error_info.flags &= ~ERROR_INTERACTIVE;
-		sh.readscript = 0;
+		sh.readscript = NULL;
 		if(sh_isstate(SH_INTERACTIVE) && sh.hist_ptr)
 			hist_flush(sh.hist_ptr);
 		sh_offstate(SH_HISTORY);
@@ -588,7 +591,7 @@ done:
 		sh_close(fno);
 	if(sh.st.filename)
 		free(sh.st.filename);
-	sh.st.filename = 0;
+	sh.st.filename = NULL;
 }
 
 
@@ -597,7 +600,7 @@ static void chkmail(char *files)
 {
 	char		*cp,*sp,*qp;
 	char		save;
-	struct argnod	*arglist=0;
+	struct argnod	*arglist = NULL;
 	ptrdiff_t	offset = stktell(sh.stk);
 	char	 	*savstak = stkptr(sh.stk,0);
 	struct stat	statb;
@@ -607,8 +610,8 @@ static void chkmail(char *files)
 	do
 	{
 		/* skip to : or end of string saving first '?' */
-		for(qp=0;*sp && *sp != ':';sp++)
-			if((*sp == '?' || *sp=='%') && qp == 0)
+		for(qp=NULL;*sp && *sp != ':';sp++)
+			if((*sp == '?' || *sp=='%') && qp == NULL)
 				qp = sp;
 		save = *sp;
 		*sp = 0;
@@ -657,7 +660,7 @@ static void chkmail(char *files)
 				arglist = arglist->argchn.ap;
 			}
 			else
-				cp = 0;
+				cp = NULL;
 		}
 		while(cp);
 		if(qp)

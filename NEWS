@@ -2,6 +2,42 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-27:
+
+- Fixed bugs in -G/--globstar, all concerning symbolic links to directories:
+  1. If a ** pattern component is followed by further pattern, then a
+     preceding symlink specified by literal name or matched by a regular
+     (non-**) pattern component, as in 'symlink/**/file', matched nothing.
+  2. A symlink matched by a regular pattern component was not followed
+     consistently: '**/symlink/**' worked, but '**/symlink/**/file' didn't.
+  3. A ** pattern component did recursive matching through a symlink that it
+     had matched, but only if the ** was the last element in the pattern:
+     'dir/**' descended into a symlink, but 'dir/**/file' didn't. A ** now
+     never recurses through a symlink. The symlink is now resolved as needed
+     to match the rest of the pattern, and not at all if there is no rest.
+
+2026-09-26:
+
+- Fixed a regression in nested compound variable assignment, introduced on
+  2026-09-21, where a compound variable written as a list of assignments
+  without semicolons was misparsed as an array value. For example,
+  'typeset -a ecv=(((y=76 x=12))); typeset -p ecv' incorrectly created
+  ecv[0] as an indexed array holding the string '(x=12;y=76)'.
+
+2026-09-25:
+
+- Fixed the interactive shell freezing if a pipeline was suspended (^Z)
+  whose last element runs in the current shell environment, such as the
+  'read' built-in in 'sleep 10 | read'.
+
+- Fixed: in ${var%word} and ${var%%word}, any unescaped '|' in 'word' was
+  incorrectly treated as an alternation operator, even without the @(...|...)
+  syntax required to enable this; it is now treated as a literal character as
+  documented (and as always in ${var#word} and ${var##word}). Scripts that
+  rely on this bug should be corrected to use, e.g., ${var%@(word1|word2)}.
+
+- Fixed the syntax of an empty compound variable in 'typeset -p' output.
+
 2026-09-23:
 
 - Fixed failures (assignment data loss) when a nested associative array was

@@ -86,7 +86,7 @@ pathexists(char* path, int mode)
 				*ee = 0;
 			}
 			else
-				ee = 0;
+				ee = NULL;
 			x = stat(path, &st);
 			if (ee)
 			{

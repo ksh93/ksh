@@ -44,6 +44,8 @@
 #define MATCH_RAW	1
 #define MATCH_MAKE	2
 #define MATCH_META	4
+#define MATCH_FOLDSYM	8	/* last path component was matched by a non-** pattern element,
+				 * so a symlink to a directory must be resolved (see glob_dir()) */
 
 #define MATCHPATH(g)	(offsetof(globlist_t,gl_path)+(g)->gl_extra)
 
@@ -164,7 +166,7 @@ gl_nextdir(glob_t* gp, char* dir)
 	switch (*gp->gl_nextpath)
 	{
 	case 0:
-		dir = 0;
+		dir = NULL;
 		break;
 	case ':':
 		while (*gp->gl_nextpath == ':')
@@ -221,19 +223,19 @@ trim(char* sp, char* p1, ptrdiff_t* n1, char* p2, ptrdiff_t* n2)
 			c = *sp++;
 		if (sp == p1)
 		{
-			p1 = 0;
+			p1 = NULL;
 			*n1 = sp - dp - 1;
 		}
 		if (sp == p2)
 		{
-			p2 = 0;
+			p2 = NULL;
 			*n2 = sp - dp - 1;
 		}
 	} while (*dp++ = c);
 }
 
 static void
-addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char* endslash, unsigned char meta)
+addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char* endslash, unsigned char meta, int regular)
 {
 	globlist_t*	ap;
 	ptrdiff_t	offset;
@@ -286,6 +288,8 @@ addmatch(glob_t* gp, const char* dir, const char* pat, const char* rescan, char*
 	ap->gl_flags = MATCH_RAW|meta;
 	if (gp->gl_flags & GLOB_COMPLETE)
 		ap->gl_flags |= MATCH_MAKE;
+	if (regular)
+		ap->gl_flags |= MATCH_FOLDSYM;
 }
 
 /*
@@ -315,16 +319,19 @@ glob_dir(glob_t* gp, globlist_t* ap, regflags_t re_flags)
 	unsigned char	bracket;
 
 	unsigned char	anymeta = ap->gl_flags & MATCH_META;
+	unsigned char	foldsym = ap->gl_flags & MATCH_FOLDSYM;
+	int		starstarlast = 0;
+	int		dontrecurse = 0;
 	int		complete = 0;
 	int		err = 0;
 	unsigned char	meta = ((gp->re_flags & REG_ICASE) && *ap->gl_begin != '/') ? MATCH_META : 0;
 	int		quote = 0;
 	int		savequote = 0;
-	char*		restore1 = 0;
-	char*		restore2 = 0;
-	regex_t*	prec = 0;
-	regex_t*	prei = 0;
-	char*		matchdir = 0;
+	char*		restore1 = NULL;
+	char*		restore2 = NULL;
+	regex_t*	prec = NULL;
+	regex_t*	prei = NULL;
+	char*		matchdir = NULL;
 	int		starstar = 0;
 
 	if (*gp->gl_intr)
@@ -344,7 +351,7 @@ again:
 		case 0:
 			if (meta)
 			{
-				rescan = 0;
+				rescan = NULL;
 				break;
 			}
 			if (quote)
@@ -358,10 +365,10 @@ again:
 				c = (*gp->gl_type)(gp, prefix, 0);
 				*(rescan - 2) = gp->gl_delim;
 				if (c == GLOB_DIR)
-					addmatch(gp, NULL, prefix, NULL, rescan - 1, anymeta);
+					addmatch(gp, NULL, prefix, NULL, rescan - 1, anymeta, 0);
 			}
 			else if ((anymeta || !(gp->gl_flags & GLOB_NOCHECK)) && (*gp->gl_type)(gp, prefix, 0))
-				addmatch(gp, NULL, prefix, NULL, NULL, anymeta);
+				addmatch(gp, NULL, prefix, NULL, NULL, anymeta, 0);
 			return;
 		case '[':
 			if (!bracket)
@@ -410,11 +417,11 @@ again:
 		goto skip;
 	if (pat == prefix)
 	{
-		prefix = 0;
+		prefix = NULL;
 		if (!rescan && (gp->gl_flags & GLOB_COMPLETE))
 		{
 			complete = 1;
-			dirname = 0;
+			dirname = NULL;
 		}
 		else
 			dirname = ".";
@@ -445,8 +452,9 @@ again:
 				if (*pat)
 					continue;
 			}
-			rescan = *pat?0:pat;
+			rescan = *pat?NULL:pat;
 			pat = "*";
+			starstarlast = 1;  /* the '**' component is the last one in the pattern */
 			goto skip;
 		}
 	if (matchdir)
@@ -488,10 +496,28 @@ skip:
 				break;
 			prefix = streq(dirname, ".") ? NULL : dirname;
 		}
+		/*
+		 * Decide whether to follow a symlink to a directory. We follow it if it resulted from
+		 * something other than a double-star pattern, i.e., if it is a literal (or quoted) part of
+		 * the pattern, which is signalled by 'first' (nothing has been matched yet, so 'dirname' is
+		 * still the unmodified leading part of the pattern), or if it was matched by a standard
+		 * pattern component, which is signalled by 'foldsym' (see addmatch()).
+		 *     However, we still follow a directory symlink resulting from a '**' component, because
+		 * the rest of the pattern has to be matched inside the directory it points to; this is
+		 * signalled by 'matchdir' being non-NULL.
+		 *     As an exception to that exception, we go back to *not* following that symlink if the
+		 * '**' component is the last one in the pattern, because we should then not be looking inside
+		 * the directory that the symlink points to; this is the case if 'starstarlast' is false.
+		 *     Though a ** component may match a symlink to a directory, it may not traverse it, so we
+		 * follow such a symlink only as necessary to match the rest of the pattern; this is flagged
+		 * by 'dontrecurse' below, which stops any further ** recursion.
+		 */
+		t1 = 0;
 		if ((!starstar && !gp->gl_starstar || (t1 = (*gp->gl_type)(gp, dirname, GLOB_STARSTAR)) == GLOB_DIR
-			|| t1 == GLOB_SYM && pat[0]=='*' && pat[1]=='\0') /* follow symlinks to dirs for non-globstar components */
+			|| t1 == GLOB_SYM && (first || foldsym || matchdir && !starstarlast))
 		&& (dirf = (*gp->gl_diropen)(gp, dirname)))
 		{
+			dontrecurse = t1 == GLOB_SYM && !first && !foldsym;
 			if (!(gp->re_flags & REG_ICASE)
 			&& (gp->gl_flags & GLOB_DCASE)
 			&& ((*gp->gl_attr)(gp, dirname, 0) & GLOB_ICASE))
@@ -557,14 +583,14 @@ skip:
 					gp->gl_status &= ~GLOB_NOTDIR;
 				if (ire && !regexec(ire, name, 0, NULL, 0))
 					continue;
-				if (matchdir && (name[0] != '.' || name[1] && (name[1] != '.' || name[2])) && !notdir)
-					addmatch(gp, prefix, name, matchdir, NULL, anymeta);
+				if (matchdir && !dontrecurse && (name[0] != '.' || name[1] && (name[1] != '.' || name[2])) && !notdir)
+					addmatch(gp, prefix, name, matchdir, NULL, anymeta, 0);
 				if (!regexec(pre, name, 0, NULL, 0))
 				{
 					if (!rescan || !notdir)
-						addmatch(gp, prefix, name, rescan, NULL, anymeta);
+						addmatch(gp, prefix, name, rescan, NULL, anymeta, 1);
 					if (starstar==1 || (starstar==2 && !notdir))
-						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta);
+						addmatch(gp, prefix, name, starstar==2?"":NULL, NULL, anymeta, 0);
 				}
 				errno = 0;
 			}
@@ -615,14 +641,14 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	ssize_t		extra = 1;
 	unsigned char	intr = 0;
 
-	gp->gl_rescan = 0;
+	gp->gl_rescan = NULL;
 	gp->gl_error = 0;
 	gp->gl_errfn = errfn;
 	if (flags & GLOB_APPEND)
 	{
 		if ((unsigned)(gp->gl_flags |= GLOB_APPEND) ^ ((unsigned)flags|GLOB_MAGIC))
 			return GLOB_APPERR;
-		if (((gp->gl_flags & GLOB_STACK) == 0) == (gp->gl_stak == 0))
+		if (((gp->gl_flags & GLOB_STACK) == 0) == (gp->gl_stak == NULL))
 			return GLOB_APPERR;
 		if (gp->gl_starstar > 1)
 			gp->gl_flags |= GLOB_STARSTAR;
@@ -634,24 +660,24 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		gp->gl_flags = (signed)(((unsigned)flags & GLOB_FLAGMASK) | GLOB_MAGIC);
 		gp->re_flags = REG_SHELL|REG_NOSUB|REG_LEFT|REG_RIGHT|((flags&GLOB_AUGMENTED)?REG_AUGMENTED:0);
 		gp->gl_pathc = 0;
-		gp->gl_ignore = 0;
-		gp->gl_ignorei = 0;
+		gp->gl_ignore = NULL;
+		gp->gl_ignorei = NULL;
 		gp->gl_starstar = 0;
 		if (!(flags & GLOB_DISC))
 		{
-			gp->gl_fignore = 0;
-			gp->gl_suffix = 0;
-			gp->gl_intr = 0;
+			gp->gl_fignore = NULL;
+			gp->gl_suffix = NULL;
+			gp->gl_intr = NULL;
 			gp->gl_delim = 0;
-			gp->gl_handle = 0;
-			gp->gl_diropen = 0;
-			gp->gl_dirnext = 0;
-			gp->gl_dirclose = 0;
-			gp->gl_type = 0;
-			gp->gl_attr = 0;
-			gp->gl_nextdir = 0;
-			gp->gl_stat = 0;
-			gp->gl_lstat = 0;
+			gp->gl_handle = NULL;
+			gp->gl_diropen = NULL;
+			gp->gl_dirnext = NULL;
+			gp->gl_dirclose = NULL;
+			gp->gl_type = NULL;
+			gp->gl_attr = NULL;
+			gp->gl_nextdir = NULL;
+			gp->gl_stat = NULL;
+			gp->gl_lstat = NULL;
 			gp->gl_extra = 0;
 		}
 		if (!(flags & GLOB_ALTDIRFUNC))
@@ -691,7 +717,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 			gp->gl_ignore = &gp->re_ignore;
 		}
 		if (gp->gl_flags & GLOB_STACK)
-			gp->gl_stak = 0;
+			gp->gl_stak = NULL;
 		else if (!(gp->gl_stak = stkopen(0)))
 			return GLOB_NOSPACE;
 		if ((gp->gl_flags & GLOB_COMPLETE) && !gp->gl_nextdir)
@@ -764,7 +790,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		}
 	}
 	top = ap = stkalloc(globstk,(optlen ? 2 : 1) * strlen(pattern) + sizeof(globlist_t) + suflen + gp->gl_extra);
-	ap->gl_next = 0;
+	ap->gl_next = NULL;
 	ap->gl_flags = 0;
 	ap->gl_begin = ap->gl_path + gp->gl_extra;
 	pat = strcopy(ap->gl_begin, pattern + (size_t)optlen);
@@ -773,10 +799,10 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	if (optlen)
 		strlcpy(gp->gl_pat = gp->gl_opt = pat + 1, pattern, (size_t)optlen);
 	else
-		gp->gl_pat = 0;
+		gp->gl_pat = NULL;
 	suflen = 0;
 	if (!(flags & GLOB_LIST))
-		gp->gl_match = 0;
+		gp->gl_match = NULL;
 	re_flags = gp->re_flags;
 	gp->re_first = 1;
 	do
@@ -812,7 +838,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 		{
 			av = argv;
 			while (--extra > 0)
-				*av++ = 0;
+				*av++ = NULL;
 		}
 		gp->gl_pathv = argv;
 		argv = av;
@@ -822,12 +848,12 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 			*argv++ = ap->gl_path + gp->gl_extra;
 			ap = ap->gl_next;
 		}
-		*argv = 0;
+		*argv = NULL;
 		if (!(flags & GLOB_NOSORT) && (argv - av) > 1)
 		{
 			strsort(av, (int)(argv - av), ast.locale.collate);
 			if (gp->gl_starstar > 1)
-				av[gp->gl_pathc = (size_t)struniq(av, argv - av)] = 0;
+				av[gp->gl_pathc = (size_t)struniq(av, argv - av)] = NULL;
 			gp->gl_starstar = 0;
 		}
 	}

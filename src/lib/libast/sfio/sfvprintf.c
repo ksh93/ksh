@@ -100,7 +100,7 @@ ssize_t sfvprintf(Sfio_t*		f,		/* file to print to	*/
 
 #if _has_multibyte
 	ssize_t		n_w;
-	wchar_t*	wsp = 0;
+	wchar_t*	wsp = NULL;
 	SFMBDCL(fmbs)			/* state of format string	*/
 	SFMBDCL(mbs)			/* state of some string		*/
 	char*		osp;

@@ -220,7 +220,7 @@ tmxdate(const char* s, char** e, Time_t now)
 	dir = 0;
 	dst = TM_DST;
 	set = state = 0;
-	type = 0;
+	type = NULL;
 	zone = TM_LOCALZONE;
 	skip[0] = 0;
 	for (n = 1; n <= UCHAR_MAX; n++)

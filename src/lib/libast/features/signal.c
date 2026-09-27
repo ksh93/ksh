@@ -280,7 +280,7 @@ static struct _m_ map[] =
 "File size limit",		"XFSZ",		SIGXFSZ,
 #endif
 #include "FEATURE/siglist"
-0
+NULL
 };
 
 #define RANGE_MIN	(1<<14)
@@ -359,7 +359,7 @@ main(void)
 		}
 		else
 			printf("	\"%s\",\n", map[j].name);
-	printf("	0\n");
+	printf("	NULL\n");
 	printf("};\n");
 	printf("\n");
 	printf("static const char* const	sig_text[] =\n");
@@ -377,7 +377,7 @@ main(void)
 #endif
 		else
 			printf("	\"Signal %d\",\n", i);
-	printf("	0\n");
+	printf("	NULL\n");
 	printf("};\n");
 	return 0;
 }

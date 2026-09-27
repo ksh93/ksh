@@ -135,8 +135,8 @@ main(int argc, char** argv)
 #define CMD_CONTEXT(p)		((Shbltin_t*)(p))
 #define cmdinit(a,b,c,d,e)	do{if(_cmd_init(a,b,c,d,e))return -1;}while(0)
 #else
-#define CMD_CONTEXT(p)		(((p)&&((Shbltin_t*)(p))->version>=20071012&&((Shbltin_t*)(p))->version<20350101)?((Shbltin_t*)(p)):0)
-#define cmdinit(a,b,c,d,e)	do{if((c)&&!CMD_CONTEXT(c))c=0;if(_cmd_init(a,b,c,d,e))return -1;}while(0)
+#define CMD_CONTEXT(p)		(((p)&&((Shbltin_t*)(p))->version>=20071012&&((Shbltin_t*)(p))->version<20350101)?((Shbltin_t*)(p)):NULL)
+#define cmdinit(a,b,c,d,e)	do{if((c)&&!CMD_CONTEXT(c))c=NULL;if(_cmd_init(a,b,c,d,e))return -1;}while(0)
 #endif
 
 extern int	_cmd_init(int, char**, Shbltin_t*, const char*, int);

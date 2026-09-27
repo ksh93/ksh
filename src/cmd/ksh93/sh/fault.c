@@ -306,7 +306,7 @@ void	sh_sigtrap(int sig)
 {
 	int flag;
 	void (*fun)(int);
-	sh.st.otrapcom = 0;
+	sh.st.otrapcom = NULL;
 	if(sig==0)
 		sh_sigdone();
 	else if(!((flag=sh.sigflag[sig])&(SH_SIGFAULT|SH_SIGOFF)))
@@ -367,7 +367,7 @@ void	sh_sigreset(int mode)
 			{
 				if(mode)
 					free(trap);
-				sh.st.trapcom[sig] = 0;
+				sh.st.trapcom[sig] = NULL;
 			}
 			else if(sig && mode>1)
 			{
@@ -385,12 +385,12 @@ void	sh_sigreset(int mode)
 		{
 			if(mode)
 				free(trap);
-			sh.st.trap[sig] = 0;
+			sh.st.trap[sig] = NULL;
 		}
 	}
 	if(sh.st.trapcom[0] && sh.st.trapcom[0] != Empty)
 		free(sh.st.trapcom[0]);
-	sh.st.trapcom[0] = 0;
+	sh.st.trapcom[0] = NULL;
 	if(mode)
 		sh.st.trapmax = 0;
 	sh.trapnote=0;
@@ -403,7 +403,7 @@ void	sh_sigclear(int sig)
 {
 	int flag = sh.sigflag[sig];
 	char *trap;
-	sh.st.otrapcom=0;
+	sh.st.otrapcom = NULL;
 	if(!(flag&SH_SIGFAULT))
 		return;
 	flag &= ~(SH_SIGTRAP|SH_SIGSET);
@@ -411,7 +411,7 @@ void	sh_sigclear(int sig)
 	{
 		if(!sh.subshell)
 			free(trap);
-		sh.st.trapcom[sig]=0;
+		sh.st.trapcom[sig] = NULL;
 	}
 	sh.sigflag[sig] = (unsigned char)flag;
 }
@@ -436,7 +436,7 @@ void	sh_chktrap(void)
 		if(sh.st.trap[SH_ERRTRAP])
 		{
 			trap = sh.st.trap[SH_ERRTRAP];
-			sh.st.trap[SH_ERRTRAP] = 0;
+			sh.st.trap[SH_ERRTRAP] = NULL;
 			sh_trap(trap,0);
 			sh.st.trap[SH_ERRTRAP] = trap;
 		}
@@ -633,8 +633,8 @@ void sh_exit(int xno)
 		sh_done(sig);
 	sh.arithrecursion = 0;
 	sh.intrace = 0;
-	sh.prefix = 0;
-	sh.mktype = 0;
+	sh.prefix = NULL;
+	sh.mktype = NULL;
 	sh.invoc_local = 0;
 	sh.tilde_block = 0;
 	if(job.in_critical)
@@ -650,7 +650,7 @@ static void array_notify(Namval_t *np, void *data)
 	Namarr_t	*ap = nv_arrayptr(np);
 	NOT_USED(data);
 	if(ap && ap->fun)
-		(*ap->fun)(np, 0, NV_AFREE);
+		(*ap->fun)(np, NULL, NV_AFREE);
 }
 
 /*
@@ -669,7 +669,7 @@ noreturn void sh_done(int sig)
 		(*sh.userinit)(&sh, -1);
 	if(t=sh.st.trapcom[0])
 	{
-		sh.st.trapcom[0]=0; /* should free but not long */
+		sh.st.trapcom[0] = NULL; /* should free but not long */
 		sh_trap(t,0);
 		savxit = sh.exitval;
 	}

@@ -145,7 +145,7 @@ const struct shtable3 shtab_builtins[] =
 	CMDLIST(mktemp)
 	CMDLIST(mv)
 #endif
-	"",		0, 0
+	"",		0, NULL
 };
 
 #define _JOB_	"[+?Each \ajob\a can be specified as one of the following:]{" \
@@ -1736,7 +1736,7 @@ const char sh_optshift[] =
 ;
 
 const char sh_optsleep[] =
-"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2026-03-09 $\n]"
+"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2026-09-25 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?sleep - suspend execution for an interval]"
 "[+DESCRIPTION?\bsleep\b suspends execution for at least the time specified "

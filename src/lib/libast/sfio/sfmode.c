@@ -311,7 +311,7 @@ int _sfmode(Sfio_t*	f,	/* change r/w mode and sync file pointer for this stream 
 		}
 
 		for(;;)
-		{	if((rv = (*f->disc->exceptf)(f,SFIO_LOCKED,0,f->disc)) < 0)
+		{	if((rv = (*f->disc->exceptf)(f,SFIO_LOCKED,NULL,f->disc)) < 0)
 				return rv;
 			if((!local && SFFROZEN(f)) ||
 			   (!(f->flags&SFIO_STRING) && f->file < 0) )

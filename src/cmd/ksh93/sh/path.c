@@ -111,7 +111,7 @@ static unsigned arg_extra = _arg_extrabytes;
 static pid_t command_xargs(const char *path, char *argv[],char *const envp[], int spawn)
 {
 	char *cp, **av, **xv;
-	char **avlast= &argv[sh.xargmax], **saveargs=0;
+	char **avlast = &argv[sh.xargmax], **saveargs = NULL;
 	char *const *ev;
 	ssize_t size, left;
 	size_t nlast=1,n;
@@ -164,7 +164,7 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 				argv[n++] = *xv;
 			for(xv=avlast; cp=  *xv; xv++)
 				argv[n++] = cp;
-			argv[n] = 0;
+			argv[n] = NULL;
 		}
 		if(saveargs || av<avlast || (exitval && !spawn))
 		{
@@ -187,7 +187,7 @@ static pid_t command_xargs(const char *path, char *argv[],char *const envp[], in
 			{
 				memcpy(av,saveargs,n);
 				free(saveargs);
-				saveargs = 0;
+				saveargs = NULL;
 			}
 		}
 		else if(spawn)
@@ -266,7 +266,7 @@ char *path_pwd(void)
  */
 void  path_delete(Pathcomp_t *first)
 {
-	Pathcomp_t *pp=first, *old=0, *ppnext;
+	Pathcomp_t *pp = first, *old = NULL, *ppnext;
 	while(pp)
 	{
 		ppnext = pp->next;
@@ -357,7 +357,7 @@ static void checkdup(Pathcomp_t *pp)
 	{
 		ptrdiff_t offset = stktell(sh.stk);
 		sfputr(sh.stk,name,0);
-		checkdotpaths(first,0,pp,offset);
+		checkdotpaths(first,NULL,pp,offset);
 		stkseek(sh.stk,offset);
 	}
 }
@@ -372,7 +372,7 @@ Pathcomp_t *path_nextcomp(Pathcomp_t *pp, const char *name, Pathcomp_t *last)
 	Pathcomp_t	*ppnext;
 	stkseek(sh.stk,PATH_OFFSET);
 	if(*name=='/')
-		pp = 0;
+		pp = NULL;
 	else
 	{
 		for(;pp && pp!=last;pp=ppnext)
@@ -437,7 +437,7 @@ static void pathinit(void)
  */
 Pathcomp_t *path_get(const char *name)
 {
-	Pathcomp_t *pp=0;
+	Pathcomp_t *pp = NULL;
 	if(*name && strchr(name,'/'))
 		return NULL;
 	if(!sh_isstate(SH_DEFPATH))
@@ -473,7 +473,7 @@ static int	opentype(const char *name, Pathcomp_t *pp, int fun)
 	do
 	{
 		pp = nextpp;
-		nextpp = path_nextcomp(pp,name,0);
+		nextpp = path_nextcomp(pp,name,NULL);
 		if(pp && (pp->flags&PATH_SKIP))
 			continue;
 		if(fun && (!pp || !(pp->flags&PATH_FPATH)))
@@ -566,7 +566,7 @@ static void funload(int fno, const char *name)
 			if((np = dtsearch(funtree,rp->np)) && is_afunction(np))
 			{
 				if(np->nvalue)
-					((struct Ufunction*)np->nvalue)->fdict = 0;
+					((struct Ufunction*)np->nvalue)->fdict = NULL;
 				nv_delete(np,funtree,NV_NOFREE);
 			}
 			dtinsert(funtree,rp->np);
@@ -613,7 +613,7 @@ static void funload(int fno, const char *name)
 	}
 	/* restore state */
 	sh_close(fno);
-	sh.readscript = 0;
+	sh.readscript = NULL;
 	free(pname);
 	sh.funload = oldload;
 	sh.inlineno = savelineno;
@@ -663,7 +663,7 @@ static void funload(int fno, const char *name)
 int	path_search(const char *name,Pathcomp_t **oldpp, int flag)
 {
 	int fno;
-	Pathcomp_t *pp=0;
+	Pathcomp_t *pp = NULL;
 	if(name && strchr(name,'/'))
 	{
 		char *pwd;
@@ -751,12 +751,12 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 	while(1)
 	{
 		sh_sigcheck();
-		sh.bltin_dir = 0;
+		sh.bltin_dir = NULL;
 		/* In this loop, oldpp is the current pointer.
 		   pp is the next pointer. */
 		while(oldpp=pp)
 		{
-			pp = path_nextcomp(pp,name,0);
+			pp = path_nextcomp(pp,name,NULL);
 			if(!(oldpp->flags&PATH_SKIP))
 				break;
 		}
@@ -784,7 +784,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 			   (np = sh_addbuiltin(stkptr(sh.stk,PATH_OFFSET),addr,NULL)) &&
 			   nv_isattr(np,NV_BLTINOPT))
 			{
-				sh.bltin_dir = 0;
+				sh.bltin_dir = NULL;
 				return oldpp;
 			}
 			stkseek(sh.stk,n);
@@ -797,12 +797,12 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 				{
 					*fp++ = 0;
 					oldpp->blib = fp;
-					fp = 0;
+					fp = NULL;
 				}
 				else
 				{
 					fp = oldpp->bbuf;
-					oldpp->blib = oldpp->bbuf = 0;
+					oldpp->blib = oldpp->bbuf = NULL;
 				}
 				n = stktell(sh.stk);
 				sfputr(sh.stk,"b_",-1);
@@ -824,7 +824,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 				found:
 					if(fp)
 						free(fp);
-					sh.bltin_dir = 0;
+					sh.bltin_dir = NULL;
 					return oldpp;
 				}
 				if (dll = dllplugin(SH_ID, stkptr(sh.stk,m), NULL, SH_PLUGIN_VERSION, NULL, RTLD_LAZY, NULL, 0))
@@ -845,7 +845,7 @@ Pathcomp_t *path_absolute(const char *name, Pathcomp_t *pp, int flag)
 			}
 #endif /* SHOPT_DYNAMIC */
 		}
-		sh.bltin_dir = 0;
+		sh.bltin_dir = NULL;
 		sh_stats(STAT_PATHS);
 		f = canexecute(stkptr(sh.stk,PATH_OFFSET),isfun);
 		if(isfun && f>=0 && (cp = (char*)strrchr(name,'.')))
@@ -986,10 +986,10 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 {
 	char **envp;
 	const char *opath;
-	Pathcomp_t *libpath, *pp=0;
+	Pathcomp_t *libpath, *pp=NULL;
 	int slash=0, not_executable=0;
 	pid_t spawnpid;
-	nv_setlist(local,NV_EXPORT|NV_IDENT|NV_ASSIGN,0);
+	nv_setlist(local,NV_EXPORT|NV_IDENT|NV_ASSIGN,NULL);
 	envp = sh_envgen();
 	if(strchr(arg0,'/'))
 	{
@@ -1014,7 +1014,7 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 		sh_sigcheck();
 		if(libpath=pp)
 		{
-			pp = path_nextcomp(pp,arg0,0);
+			pp = path_nextcomp(pp,arg0,NULL);
 			opath = (char*)stkfreeze(sh.stk,1) + PATH_OFFSET;
 		}
 		else
@@ -1038,7 +1038,7 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 			}
 		}
 		while(pp && (pp->flags&PATH_FPATH))
-			pp = path_nextcomp(pp,arg0,0);
+			pp = path_nextcomp(pp,arg0,NULL);
 	}
 	while(pp);
 	if(sh_isstate(SH_EXEC) && sh_isstate(SH_INTERACTIVE))
@@ -1075,7 +1075,7 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath, int spawn)
 {
 	char		*path;
-	char		**xp=0, *xval, *libenv = (libpath?libpath->lib:0);
+	char		**xp = NULL, *xval, *libenv = (libpath?libpath->lib:NULL);
 	Namval_t*	np;
 	char		*s, *v;
 	int		r;
@@ -1176,7 +1176,7 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 		if (r)
 		{
 			*envp-- = v;
-			xp = 0;
+			xp = NULL;
 		}
 	}
 	if(!opath)
@@ -1323,7 +1323,7 @@ static noreturn void exscript(char *path,char *argv[])
 {
 	Sfio_t *sp;
 	path = path_relative(path);
-	sh.comdiv=0;
+	sh.comdiv = NULL;
 	sh.bckpid = 0;
 	sh.st.ioset=0;
 	/* clean up any cooperating processes */
@@ -1413,7 +1413,7 @@ static Pathcomp_t *path_addcomp(Pathcomp_t *first, Pathcomp_t *old,const char *n
 			return first;
 		}
 	}
-	for(pp=first, oldpp=0; pp; oldpp=pp, pp=pp->next);
+	for(pp=first, oldpp=NULL; pp; oldpp=pp, pp=pp->next);
 	pp = sh_newof(NULL,Pathcomp_t,1,len+1);
 	pp->refcount = 1;
 	memcpy((char*)(pp+1),name,len+1);
@@ -1468,7 +1468,7 @@ static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, ptrd
 		n=read(fd,cp=sp,l);
 		sp[n] = 0;
 		ast_close(fd);
-		for(ep=0; n--; cp++)
+		for(ep=NULL; n--; cp++)
 		{
 			if(*cp=='=')
 			{
@@ -1517,7 +1517,7 @@ static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, ptrd
 				}
 			}
 			sp = cp+1;
-			ep = 0;
+			ep = NULL;
 		}
 	}
 	return 0;
@@ -1527,7 +1527,7 @@ static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, ptrd
 Pathcomp_t *path_addpath(Pathcomp_t *first, const char *path,uint16_t type)
 {
 	const char *cp;
-	Pathcomp_t *old=0;
+	Pathcomp_t *old = NULL;
 	ptrdiff_t offset = stktell(sh.stk);
 	char *savptr = NULL;
 	if(!path && type!=PATH_PATH)
@@ -1535,7 +1535,7 @@ Pathcomp_t *path_addpath(Pathcomp_t *first, const char *path,uint16_t type)
 	if(type!=PATH_FPATH)
 	{
 		old = first;
-		first = 0;
+		first = NULL;
 	}
 	if(offset)
 		savptr = stkfreeze(sh.stk,0);
@@ -1638,7 +1638,7 @@ void path_newdir(Pathcomp_t *first)
 			sfputr(sh.stk,pp->name,0);
 			stkseek(sh.stk,offset);
 			next = pp->next;
-			pp->next = 0;
+			pp->next = NULL;
 			checkdotpaths(first,NULL,pp,offset);
 			if(pp->next)
 				pp = pp->next;
@@ -1650,7 +1650,7 @@ void path_newdir(Pathcomp_t *first)
 Pathcomp_t *path_unsetfpath(void)
 {
 	Pathcomp_t	*first = (Pathcomp_t*)sh.pathlist;
-	Pathcomp_t	*pp=first, *old=0;
+	Pathcomp_t	*pp = first, *old = NULL;
 	if(sh.fpathdict)
 	{
 		struct Ufunction  *rp, *rpnext;
@@ -1659,7 +1659,7 @@ Pathcomp_t *path_unsetfpath(void)
 			rpnext = (struct Ufunction*)dtnext(sh.fpathdict,rp);
 			if(rp->fdict)
 				nv_delete(rp->np,rp->fdict,NV_NOFREE);
-			rp->fdict = 0;
+			rp->fdict = NULL;
 		}
 	}
 	while(pp)
@@ -1713,7 +1713,7 @@ static char *talias_get(Namval_t *np, Namfun_t *nvp)
 	NOT_USED(nvp);
 	if(!pp)
 		return NULL;
-	sh.last_table = 0;
+	sh.last_table = NULL;
 	path_nextcomp(pp,nv_name(np),pp);
 	ptr = stkfreeze(sh.stk,0);
 	return ptr+PATH_OFFSET;

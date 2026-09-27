@@ -59,8 +59,8 @@ utf32towc(uint32_t utf32)
 	/* open an iconv descriptor for converting from UTF-8 to the current locale --
 	 * remember it across invocations; setlocale will close/reset it upon changing locale */
 	if (ast.locale.uc2wc == (void*)(-1) && (ast.locale.uc2wc = iconv_open(getcodeset(), "UTF-8")) == (void*)(-1))
-		ast.locale.uc2wc = 0;
-	if (ast.locale.uc2wc == 0)
+		ast.locale.uc2wc = NULL;
+	if (ast.locale.uc2wc == NULL)
 		return -1;
 	inbytesleft = utf32toutf8(tmp_in, utf32);
 	tmp_in[inbytesleft] = 0;
@@ -157,7 +157,7 @@ chrexp(const char* s, char** p, int* m, int flags)
 					{
 						char*		r;
 
-						c = chrexp(s - 1, &r, 0, flags);
+						c = chrexp(s - 1, &r, NULL, flags);
 						s = (const char*)r;
 					}
 					if (islower(c))
@@ -238,7 +238,7 @@ chrexp(const char* s, char** p, int* m, int flags)
 					case '[':
 						if (s != e)
 							break;
-						e = 0;
+						e = NULL;
 						s++;
 						if (w && *s == 'U' && *(s + 1) == '+')
 							s += 2;
