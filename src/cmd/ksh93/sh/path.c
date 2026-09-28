@@ -652,6 +652,10 @@ static void funload(int fno, const char *name)
  * - the given name is a function or non-path-bound builtin, and a path search found nothing external
  * - the given name matched an autoloadable function on FPATH
  *
+ * A tracked alias (a.k.a. hash table entry) from a previous PATH search is tried first: for
+ * flag==1 the cached path is used only if it is still executable, otherwise a full PATH search
+ * is done and the hash table entry is updated; for the other flags it is used unconditionally.
+ *
  * path_search() returns 0/false if:
  * - the given relative path was found executable; the PWD is prefixed to make it absolute
  * - a tracked alias (a.k.a. hash table entry) was found and used
@@ -689,15 +693,27 @@ int	path_search(const char *name,Pathcomp_t **oldpp, int flag)
 	if(flag)
 	{
 		Namval_t *np;
-		if(!(flag & 1) && (np = path_gettrackedalias(name)))
+		if((flag == 1 || !(flag & 1)) && (np = path_gettrackedalias(name)))
 		{
 			pp = np->nvalue;
 			stkseek(sh.stk,PATH_OFFSET);
 			path_nextcomp(pp,name,pp);
-			if(oldpp)
-				*oldpp = pp;
-			sfputc(sh.stk,0);
-			return 0;
+			/*
+			 * For a regular PATH search (flag==1), the cached path may have become invalid
+			 * since it was stored, e.g. if the command was moved or removed without the
+			 * value of PATH being changed. In that case, fall back to the full PATH search
+			 * below, which updates the hash table entry (see path_settrackedalias()).
+			 * For other flags the search is only used to obtain information (whence,
+			 * 'command -v'), so consistency with the hash table is preferred over validity.
+			 */
+			if(!(flag & 1) || canexecute(stkptr(sh.stk,PATH_OFFSET),0)>=0)
+			{
+				if(oldpp)
+					*oldpp = pp;
+				sfputc(sh.stk,0);
+				return 0;
+			}
+			stkseek(sh.stk,PATH_OFFSET);
 		}
 		pp = path_absolute(name,oldpp?*oldpp:NULL,flag);
 		if(oldpp)
@@ -987,6 +1003,7 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 	char **envp;
 	const char *opath;
 	Pathcomp_t *libpath, *pp=NULL;
+	Namval_t *np;
 	int slash=0, not_executable=0;
 	pid_t spawnpid;
 	nv_setlist(local,NV_EXPORT|NV_IDENT|NV_ASSIGN,NULL);
@@ -1006,6 +1023,23 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 	sh.path_err= ENOENT;
 	sfsync(NULL);
 	sh_timerdel(NULL);
+	/*
+	 * If a tracked alias (a.k.a. hash table entry) from a previous PATH search is
+	 * available, try to execve(2) that path directly, avoiding the full PATH search
+	 * below. If this fails, fall through to the regular search, which reports the
+	 * appropriate error. (path_spawn() never returns upon success.)
+	 */
+	if(!slash && (np = path_gettrackedalias(arg0)) && np->nvalue)
+	{
+		libpath = np->nvalue;
+		path_nextcomp(libpath,arg0,libpath);
+		opath = (char*)stkfreeze(sh.stk,1) + PATH_OFFSET;
+		if(sh.subshell)
+			sh_subtmpfile();
+		spawnpid = path_spawn(opath,argv,envp,libpath,0);
+		if(spawnpid == -1 && sh.path_err != ENOENT)
+			not_executable = sh.path_err;
+	}
 	/* find first path that has a library component */
 	while(pp && (pp->flags&PATH_SKIP))
 		pp = pp->next;
@@ -1781,4 +1815,21 @@ Namval_t *path_gettrackedalias(const char *name)
 	&& np->nvalue)
 		return np;
 	return NULL;
+}
+
+/*
+ * Return 1 if any FPATH directories are to be searched, either from the FPATH
+ * variable or from a .paths file found in a PATH directory, so that a given name
+ * could be an autoloadable function. This is used by sh_exec() to decide whether
+ * a full path search may be skipped for the exec optimisation (see path_exec()).
+ */
+int path_hasfpath(void)
+{
+	Pathcomp_t *pp;
+	if(sh_scoped(FPATHNOD)->nvalue)
+		return 1;
+	for(pp=(Pathcomp_t*)sh.pathlist; pp; pp=pp->next)
+		if(pp->flags&PATH_FPATH)
+			return 1;
+	return 0;
 }

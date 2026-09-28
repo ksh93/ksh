@@ -1107,6 +1107,17 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 					{
 						/* Do nothing */
 					}
+					else if(execflg && !path_hasfpath() && (np = path_gettrackedalias(com0)))
+						/*
+						 * A tracked alias (a.k.a. hash table entry) from a previous PATH search
+						 * exists and this command is the last one, which the shell will execve(2)
+						 * directly (exec optimisation; see check_exec_optimization()). Skip the
+						 * stat(2)-based PATH search here: path_exec() does the entire search using
+						 * execve(2) and will fall back to it if the cached path no longer works.
+						 * This is only done when there is no FPATH to search, because an
+						 * autoloadable function cannot be resolved by execve(2) alone.
+						 */
+						np = nv_search(nv_getval(np),sh.bltin_tree,0);
 					else if(path_search(com0,NULL,1))
 					{
 						error_info.line = t->com.comline-sh.st.firstline;

@@ -4795,6 +4795,21 @@ does not already exist it will be added to the environment
 list for the specified command.
 A parenthesized command is executed in
 a subshell without removing non-exported variables.
+.PP
+Whenever a command is found during this search, its location is remembered
+in a hash table (see the
+.B hash
+built-in command below). If the same command is executed again, the shell
+tries the remembered location first, thereby avoiding a repeated search of
+the whole
+.B
+.SM PATH
+list. If the command is no longer found there, the shell transparently falls
+back to a full search, and the hash table is updated with the new location.
+Changing the value of
+.B
+.SM PATH
+empties the hash table.
 .SS Command Re-entry.
 The text of the last
 .B
