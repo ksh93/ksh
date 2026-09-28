@@ -235,20 +235,21 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 				}
 				else
 				{
-					int isdir = 0;
+					int isdir = 0, fname_alloc = 0;
 					if((fdin=sh_open(name,O_RDONLY|O_cloexec,0))>=0 &&(fstat(fdin,&statb)<0 || S_ISDIR(statb.st_mode)))
 					{
 						sh_close(fdin);
 						isdir = 1;
 						fdin = -1;
 					}
-					else
-						sh.st.filename = path_fullname(name);
 					if(fdin < 0 && !strchr(name,'/') && path_absolute(name,NULL,0))
 					{
 						char *sp = stkptr(sh.stk,PATH_OFFSET);
 						if((fdin=sh_open(sp,O_RDONLY|O_cloexec,0))>=0)
+						{
 							sh.st.filename = path_fullname(sp);
+							fname_alloc = 1;
+						}
 					}
 					if(fdin<0)
 					{
@@ -258,6 +259,8 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 						errormsg(SH_DICT,ERROR_system(ERROR_NOEXEC),e_open,name);
 						UNREACHABLE();
 					}
+					if(!fname_alloc)
+						sh.st.filename = path_fullname(name);
 					/*
 					 * Note: fdin could wind up being zero or some such if the
 					 *       shell was opened with stdin/stdout/stderr closed
