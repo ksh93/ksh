@@ -2,6 +2,16 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-29:
+
+- The hash table entries (a.k.a. tracked aliases) as shown by the 'hash' and
+  'alias -t' commands are no longer ignored when running an external command
+  and are now used to optimise the $PATH search. If the result of a previous
+  $PATH search was stored in the hash table, that path is tried first. If it
+  is not found (e.g., because the command was moved), the shell falls back
+  to a full $PATH search and updates the hash table entry. There should not
+  be any behaviour change in ksh except a slight speed optimisation.
+
 2026-09-27:
 
 - Fixed bugs in -G/--globstar, all concerning symbolic links to directories:

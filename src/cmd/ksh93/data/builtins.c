@@ -973,7 +973,7 @@ _JOB_
 ;
 
 const char sh_opthash[] =
-"[-1c?\n@(#)$Id: hash (ksh 93u+m) 2024-06-30 $\n]"
+"[-1c?\n@(#)$Id: hash (ksh 93u+m) 2026-09-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?hash - display the locations of recently used programs]"
 "[+DESCRIPTION?\bhash\b displays or modifies the hash table with the "
@@ -981,6 +981,7 @@ const char sh_opthash[] =
 	"all command/path associations (a.k.a. 'tracked aliases') in the hash "
 	"table. Otherwise, \bhash\b performs a \bPATH\b search for each "
 	"\autility\a supplied and adds the result to the hash table. "
+	"The shell will use it to optimize subsequent \bPATH\b searches. "
 	"An error is issued for each \autility\a that is not found.]"
 "[r?Empty the hash table. This can also be achieved by resetting \bPATH\b.]"
 "\n"
