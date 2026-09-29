@@ -4733,6 +4733,20 @@ does not already exist it will be added to the environment
 list for the specified command.
 A parenthesized command is executed in
 a subshell without removing non-exported variables.
+.PP
+Whenever a command is found during this search, its location is remembered
+as a \(lqtracked alias\(rq in the hash table (see the
+.B hash
+built-in command below). If the same command is executed again, the shell
+optimizes the
+.B PATH
+search by trying the remembered location first.
+If the command is no longer found there, the shell transparently falls back
+to a full search and the hash table is updated with the new location if found.
+Changing the value of
+.B
+.SM PATH
+empties the hash table.
 .SS Command Re-entry.
 The text of the last
 .B
@@ -7036,13 +7050,16 @@ can only be specified as the first option.
 .B hash
 displays or modifies the hash table with the locations of recently used
 programs. If given no arguments, it lists all command/path associations
-(a.k.a. 'tracked aliases') in the hash table. Otherwise,
+(a.k.a. \(lqtracked aliases\(rq) in the hash table. Otherwise,
 .B hash
 performs a
 .B PATH
 search for each
 .I utility\^
 supplied and adds the result to the hash table.
+The shell will use it to optimize subsequent
+.B PATH
+searches.
 Any
 .I utility\^
 that is not found is silently ignored.
