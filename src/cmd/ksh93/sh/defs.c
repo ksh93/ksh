@@ -35,6 +35,14 @@ Dtdisc_t	_Nvdisc =
 	.comparf = nv_compare
 };
 
+Dtdisc_t	_Nvdisc_dofree =
+{
+	.key = offsetof(Namval_t,nvname),
+	.size = -1,
+	.comparf = nv_compare,
+	.freef = nv_free
+};
+
 struct jobs	job = { 0 };
 int32_t		sh_mailchk = 600;
 

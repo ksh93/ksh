@@ -3577,6 +3577,13 @@ Namval_t *nv_lastdict(void)
 	return sh.last_table;
 }
 
+void nv_free(Dt_t *dt, void *obj, Dtdisc_t *disc)
+{
+	NOT_USED(dt);
+	NOT_USED(disc);
+	free(obj);
+}
+
 /*
  * libshell compatibility functions
  */

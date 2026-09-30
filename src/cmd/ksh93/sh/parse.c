@@ -244,7 +244,7 @@ static void check_typedef(struct comnod *tp, char intypeset)
 		Dt_t *tp = sh.bltin_tree;
 		if(!dcl_tree)
 		{
-			dcl_tree = dtopen(&_Nvdisc, Dtoset);
+			dcl_tree = dtopen(&_Nvdisc_dofree, Dtoset);
 			dtview(sh.bltin_tree, dcl_tree);
 		}
 		sh.bltin_tree = dcl_tree;

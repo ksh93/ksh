@@ -191,6 +191,7 @@ extern Namfun_t		*nv_mapchar(Namval_t*, const char*);
    extern ssize_t	nv_arrfixed(Namval_t*, Sfio_t*, int, char*);
 #endif /* SHOPT_FIXEDARRAY */
 extern int		nv_ispredef(Namval_t*);
+extern void		nv_free(Dt_t*, void*, Dtdisc_t*);
 
 extern const Namdisc_t	RESTRICTED_disc;
 extern const Namdisc_t	ENUM_disc;
@@ -199,6 +200,7 @@ extern const Namdisc_t	OPTIMIZE_disc;
 #endif /* SHOPT_OPTIMIZE */
 extern char		nv_local;
 extern Dtdisc_t		_Nvdisc;
+extern Dtdisc_t		_Nvdisc_dofree;
 extern const char	*nv_discnames[];
 extern const char	e_optincompat1[];
 extern const char	e_optincompat2[];
