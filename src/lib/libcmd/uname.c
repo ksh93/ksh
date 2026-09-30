@@ -123,7 +123,7 @@ uname(struct utsname* ut)
 	if (gethostname(ut->nodename, sizeof(ut->nodename) - 1))
 		return -1;
 #else
-	strncpy(ut->nodename, "local", sizeof(ut->nodename) - 1);
+	strlcpy(ut->nodename, "local", sizeof(ut->nodename));
 #endif
 #ifdef HOSTTYPE
 	if (!(ut->sysname = sys))
@@ -409,7 +409,7 @@ b_uname(int argc, char** argv, Shbltin_t* context)
 					t++;
 				else
 					t = (char*)hosttype;
-				strncpy(s = buf, t, sizeof(buf) - 1);
+				strlcpy(s = buf, t, sizeof(buf));
 			}
 			output(OPT_implementation, s, "implementation");
 		}

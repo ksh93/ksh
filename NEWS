@@ -2,6 +2,30 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-09-29:
+
+- The hash table entries (a.k.a. tracked aliases) as shown by the 'hash' and
+  'alias -t' commands are no longer ignored when running an external command
+  and are now used to optimise the $PATH search. If the result of a previous
+  $PATH search was stored in the hash table, that path is tried first. If it
+  is not found (e.g., because the command was moved), the shell falls back
+  to a full $PATH search and updates the hash table entry. There should not
+  be any behaviour change in ksh except a slight speed optimisation.
+
+2026-09-27:
+
+- Fixed bugs in -G/--globstar, all concerning symbolic links to directories:
+  1. If a ** pattern component is followed by further pattern, then a
+     preceding symlink specified by literal name or matched by a regular
+     (non-**) pattern component, as in 'symlink/**/file', matched nothing.
+  2. A symlink matched by a regular pattern component was not followed
+     consistently: '**/symlink/**' worked, but '**/symlink/**/file' didn't.
+  3. A ** pattern component did recursive matching through a symlink that it
+     had matched, but only if the ** was the last element in the pattern:
+     'dir/**' descended into a symlink, but 'dir/**/file' didn't. A ** now
+     never recurses through a symlink. The symlink is now resolved as needed
+     to match the rest of the pattern, and not at all if there is no rest.
+
 2026-09-26:
 
 - Fixed a regression in nested compound variable assignment, introduced on

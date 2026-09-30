@@ -130,9 +130,6 @@ main(void)
 
 #if	NEED_F
 	printf("#define fcntl		_ast_fcntl\n");
-#if	_lib_fcntl
-	printf("#define _lib_fcntl	1\n");
-#endif
 	printf("#define _ast_F_LOCAL	%d\n", f_local + 1);
 #ifndef F_DUPFD
 	printf("#define F_DUPFD		%d\n", ++f_local);

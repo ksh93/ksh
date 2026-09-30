@@ -4795,6 +4795,20 @@ does not already exist it will be added to the environment
 list for the specified command.
 A parenthesized command is executed in
 a subshell without removing non-exported variables.
+.PP
+Whenever a command is found during this search, its location is remembered
+as a \(lqtracked alias\(rq in the hash table (see the
+.B hash
+built-in command below). If the same command is executed again, the shell
+optimizes the
+.B PATH
+search by trying the remembered location first.
+If the command is no longer found there, the shell transparently falls back
+to a full search and the hash table is updated with the new location if found.
+Changing the value of
+.B
+.SM PATH
+empties the hash table.
 .SS Command Re-entry.
 The text of the last
 .B
@@ -7157,13 +7171,16 @@ can only be specified as the first option.
 .B hash
 displays or modifies the hash table with the locations of recently used
 programs. If given no arguments, it lists all command/path associations
-(a.k.a. 'tracked aliases') in the hash table. Otherwise,
+(a.k.a. \(lqtracked aliases\(rq) in the hash table. Otherwise,
 .B hash
 performs a
 .B PATH
 search for each
 .I utility\^
 supplied and adds the result to the hash table.
+The shell will use it to optimize subsequent
+.B PATH
+searches.
 An error message is issued for each
 .I utility\^
 that is not found and the exit status is non-zero if any were not found.
@@ -8000,22 +8017,41 @@ only directories and subdirectories are matched,
 including symbolic links that point to directories.
 A prefixed directory name is not included in the results unless that
 directory was itself found by a pattern. For example,
-.B dir/**
+\f2dir\fP\f3/**\fP
 matches the recursive contents of
-.B dir
+.I dir
 but not
-.B dir
+.I dir
 itself, whereas
-.B di[r]/**
+\f2di\fP\f3[\fP\f2r\fP\f3]/**\fP
 matches both
-.B dir
+.I dir
 itself and the recursive contents of
-.BR dir .
+.IR dir .
 Symbolic links to non-directories are not followed.
 Symbolic links to directories are followed if they are specified literally
 or match a pattern as described under
-.IR "Pathname Expansion\^" ,
-but not if they result from a double-star pattern.
+.IR "Pathname Expansion\^" .
+A
+.B **
+pattern component may match a symbolic link to a directory, but it will not
+recursively traverse one; such a symbolic link is followed only as necessary
+to match the remainder of the pattern, and not at all if the
+.B **
+component is last in the pattern. For example,
+\f2dir\fP\f3/**\fP
+matches the contents of
+.I dir
+and of its subdirectories, but not the contents of a symbolic link to a
+directory that a
+.B **
+component finds, whereas
+\f2dir\fP\f3/**/\fP\f2file\fP
+does match
+.I file
+inside a directory pointed to by such a symlink, and
+\f2symlink\fP\f3/**\fP
+matches everything below it.
 .TP 8
 .B \-H
 Enable \f3!\fP-style history expansion similar to

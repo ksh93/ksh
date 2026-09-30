@@ -1107,14 +1107,19 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 					{
 						/* Do nothing */
 					}
-					else if(path_search(com0,NULL,1))
+					/* If this is the last command and there is no FPATH, then skip the
+					 * stat(2)-based path_search() and let path_exec() handle the search. */
+ 					else if(!(execflg && !path_hasfpath()) && path_search(com0,NULL,1))
 					{
 						error_info.line = t->com.comline-sh.st.firstline;
+						/* Search for a function or built-in named com0. */
 #if SHOPT_NAMESPACE
 						if(!sh.namespace || !(np=sh_fsearch(com0,0)))
 #endif /* SHOPT_NAMESPACE */
 							np=nv_search(com0,sh.fun_tree,0);
-						if(!np || !np->nvalue)
+						/* If the search found a null node (undefined function), it won't have kept
+						 * searching through fun_tree's view to bltin_tree, so do this manually. */
+						if(np && !np->nvalue)
 						{
 							Namval_t *mp=nv_search(com0,sh.bltin_tree,0);
 							if(mp)
