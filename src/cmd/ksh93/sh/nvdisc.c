@@ -598,7 +598,8 @@ char *nv_setdisc(Namval_t* np,const char *event,Namval_t *action,Namfun_t *fp)
 		dp = (Namdisc_t*)(vp+1);
 		vp->fun.disc = dp;
 		memset(dp,0,sizeof(*dp));
-		dp->dsize = sizeof(struct vardisc);
+		/* the descriptor follows the vardisc in this block, so clone both */
+		dp->dsize = sizeof(struct vardisc)+sizeof(Namdisc_t);
 		dp->putval = assign;
 		if(nv_isarray(np) && !nv_arrayptr(np))
 			nv_putsub(np,NULL, 1);
@@ -726,6 +727,9 @@ Namfun_t *nv_clone_disc(Namfun_t *fp, nvflag_t flags)
 		size = sizeof(Namfun_t);
 	nfp = sh_newof(NULL,Namfun_t,1,size-sizeof(Namfun_t));
 	memcpy(nfp,fp,size);
+	/* keep an embedded descriptor pointing at the copy, not at <fp> */
+	if(fp->disc && (char*)fp->disc >= (char*)fp && (char*)fp->disc + sizeof(Namdisc_t) <= (char*)fp + size)
+		nfp->disc = (const Namdisc_t*)((char*)nfp + ((char*)fp->disc - (char*)fp));
 	nfp->namflags &= ~NAMFUN_NOFREE;
 	nfp->namflags |= (flags&NV_RDONLY) ? NAMFUN_NOFREE : 0;
 	return nfp;
@@ -905,6 +909,12 @@ static void *num_clone(Namval_t *np, void *val)
 void clone_all_disc( Namval_t *np, Namval_t *mp, nvflag_t flags)
 {
 	Namfun_t *fp, **mfp = &mp->nvfun, *nfp, *fpnext;
+	/*
+	 * The list built below belongs to <mp>, so a clonef callback that
+	 * points <mp>->nvfun at what it is cloning must restore it before
+	 * returning, or it orphans what has been linked so far; see
+	 * array_clone().
+	 */
 	for(fp=np->nvfun; fp;fp=fpnext)
 	{
 		fpnext = fp->next;

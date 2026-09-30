@@ -442,6 +442,7 @@ static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, nvflag_t flags, Namfun_
 	Namarr_t		*ap = (Namarr_t*)fp;
 	Namval_t		*nq, *mq;
 	char			*name, *sub=NULL;
+	Namfun_t		*mphead;
 	int			skipped=0;
 	long			nelem;
 	Dt_t			*otable=ap->table;
@@ -467,6 +468,8 @@ static Namfun_t *array_clone(Namval_t *np, Namval_t *mp, nvflag_t flags, Namfun_
 		ap = array_scope(ap,flags);
 		return &ap->hdr;
 	}
+	/* the discipline list belongs to clone_all_disc(); see the comment there */
+	mphead = mp->nvfun;
 	ap = (Namarr_t*)nv_clone_disc(fp,0);
 	if(flags&NV_COMVAR)
 	{
@@ -546,6 +549,7 @@ skip:
 			nv_putsub(np,sub,0L);
 		free(sub);
 	}
+	mp->nvfun = mphead;
 	aq->header.nelem = ap->nelem = nelem;
 	return &ap->hdr;
 }
