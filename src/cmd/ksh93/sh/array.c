@@ -857,8 +857,15 @@ static struct index_array *array_grow(Namval_t *np, struct index_array *arp,ssiz
 				i++;
 			}
 		}
-		else
-		if((ap->val[0] = np->nvalue) || (nv_isattr(np,NV_INTEGER) && !nv_isnull(np)))
+		else if(ap->val[0] = np->nvalue)
+		{
+			i++;
+			/* the scalar value was moved into element 0, so translate its NV_NOFREE bit to ARRAY_NOFREE */
+			if(nv_isattr(np,NV_NOFREE))
+				array_setbit(ap->bits,0,ARRAY_NOFREE);
+			nv_offattr(np,NV_NOFREE);
+		}
+		else if(nv_isattr(np,NV_INTEGER) && !nv_isnull(np))
 			i++;
 		ap->header.nelem = i;
 		ap->header.hdr.disc = &array_disc;
@@ -994,9 +1001,11 @@ Namarr_t *nv_setarray(Namval_t *np, void *(*fun)(Namval_t*,const char*,nvflag_t)
 			nv_putsub(np, "0", ARRAY_ADD);
 			if(value)
 			{
+				/* nv_putval() may clear the node's NV_NOFREE attribute, so save it first */
+				int oldnofree = nv_isattr(np,NV_NOFREE);
 				void *oldvalue = np->nvalue;
 				nv_putval(np, value, 0);
-				if(oldvalue && oldvalue!=Empty && oldvalue!=AltEmpty && !nv_isattr(np,NV_NOFREE))
+				if(oldvalue && oldvalue!=Empty && oldvalue!=AltEmpty && !oldnofree)
 					free(oldvalue);
 			}
 			else

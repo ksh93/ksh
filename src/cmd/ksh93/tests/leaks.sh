@@ -611,7 +611,7 @@ DO
 	)
 DONE
 
-TEST title='assign to a special indexed array with shell disciplines defined in a subshell' known=y
+TEST title='assign to a special indexed array with shell disciplines defined in a subshell'
 DO
 	(
 		typeset -a PATH
@@ -676,7 +676,7 @@ DO
 	)
 DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
 
-TEST title='assign to an enum associative array with shell disciplines defined in a subshell' known=y
+TEST title='assign to an enum associative array with shell disciplines defined in a subshell'
 	unset foo
 DO
 	(
@@ -689,7 +689,7 @@ DO
 	)
 DONE
 
-TEST title='assign an invalid value to an enum associative array with shell disciplines defined in a subshell' known=y
+TEST title='assign an invalid value to an enum associative array with shell disciplines defined in a subshell'
 	unset foo
 DO
 	(
