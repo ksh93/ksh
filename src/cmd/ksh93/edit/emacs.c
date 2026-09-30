@@ -55,6 +55,7 @@ One line screen editor for any program
 
 #include	"FEATURE/options"
 #include	<ast.h>
+#include	<ast_wchar.h>
 
 #if SHOPT_ESH
 
@@ -76,16 +77,18 @@ One line screen editor for any program
 #   define gencpy(a,b)	ed_gencpy(a,b)
 #   define genncpy(a,b,n)	ed_genncpy(a,b,n)
 #   define genlen(str)	ed_genlen(str)
-    static int	print(int);
     static int	_isword(int);
 #   define  isword(c)	_isword(out[c])
-#   define digit(c)	((c&~STRIP)==0 && isdigit(c))
+#   if _lib_iswdigit
+#      define digit(c)	iswdigit((wint_t)(c))
+#   else
+#      define digit(c)	((c&~STRIP)==0 && isdigit(c))
+#   endif
 
 #else
 #   define gencpy(a,b)	strcopy((char*)(a),(char*)(b))
 #   define genncpy(a,b,n)	strncopy((char*)(a),(char*)(b),n)
 #   define genlen(str)	strlen(str)
-#   define print(c)	isprint(c)
 #   define isword(c)	(isalnum(out[c]) || (out[c]=='_'))
 #   define digit(c)	isdigit(c)
 #endif /* SHOPT_MULTIBYTE */
@@ -251,7 +254,7 @@ int ed_emacsread(void *context, int fd,char *buff,int _scend, int _reedit)
 		{
 			if(c!='\\')
 				backslash = 0;
-			if (c==usrerase||c==usrkill||(!print(c) &&
+			if (c==usrerase||c==usrkill||(!sh_isprint(c) &&
 				(c!='\r'&&c!='\n')))
 			{
 				/* accept a backslashed character */
@@ -1321,7 +1324,7 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 				/* Backslashes don't affect newlines */
 				if (i == '\n' || i == '\r')
 					goto skip;
-				else if (i == usrerase || !print(i))
+				else if (i == usrerase || !sh_isprint(i))
 					string[--sl] = '\0';
 			}
 		}
@@ -1443,7 +1446,7 @@ static void draw(Emacs_t *ep,Draw_t option)
 		i = 0;
 
 	if ((option == APPEND)&&(ep->scvalid)&&(*logcursor == '\0')&&
-	    print(i)&&((ep->cursor-ep->screen)<(w_size-1)))
+	    sh_isprint(i)&&((ep->cursor-ep->screen)<(w_size-1)))
 	{
 		putchar(ep->ed,i);
 		*ep->cursor++ = (genchar)i;
@@ -1582,14 +1585,13 @@ static void setcursor(Emacs_t *ep,int newp,int c)
 }
 
 #if SHOPT_MULTIBYTE
-static int print(int c)
-{
-	return (c&~STRIP)==0 && isprint(c);
-}
-
 static int _isword(int c)
 {
+#if _lib_iswalnum
+	return iswalnum((wint_t)c) || c=='_';
+#else
 	return (c&~STRIP) || isalnum(c) || c=='_';
+#endif
 }
 #endif /* SHOPT_MULTIBYTE */
 
@@ -1601,14 +1603,8 @@ static int blankline(Emacs_t *ep, genchar *out, int uptocursor)
 	int x;
 	ep->mark = cur;
 	for(x=0; uptocursor ? (x < cur) : (x <= eol); x++)
-	{
-#if SHOPT_MULTIBYTE
-		if(!iswspace((wint_t)out[x]))
-#else
-		if(!isspace(out[x]))
-#endif /* SHOPT_MULTIBYTE */
+		if(!sh_isspace(out[x]))
 			return 0;
-	}
 	return 1;
 }
 
