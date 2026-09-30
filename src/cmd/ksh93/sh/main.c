@@ -221,7 +221,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 			if(!sh_isoption(SH_SFLAG))
 			{
 				/* open stream should have been passed into shell */
-				if(sh_isdevfd(name) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)
+				if(sh_isdevfd(name) && (fdin=strtoi(name+8, NULL, 10)) > 2 && errno!=ERANGE)
 				{
 					if(fstat(fdin,&statb)<0)
 					{

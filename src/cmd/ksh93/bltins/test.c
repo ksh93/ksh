@@ -319,8 +319,8 @@ static int e3(struct test *tp,int inparens)
 		 */
 		if(cp)
 		{
-			op = (int)strtol(cp,&binop, 10);
-			return *binop ? 0 : tty_check(op);
+			op = strtoi(cp,&binop,10);
+			return *binop || errno == ERANGE ? 0 : tty_check(op);
 		}
 		else
 		{
@@ -450,8 +450,8 @@ int test_unop(int op,const char *arg)
 	    case 't':
 	    {
 		char *last;
-		op = (int)strtol(arg,&last, 10);
-		return *last ? 0 : tty_check(op);
+		op = strtoi(arg,&last, 10);
+		return *last || errno == ERANGE ? 0 : tty_check(op);
 	    }
 	    case 'v':
 	    case 'R':
@@ -498,15 +498,17 @@ int test_binop(unsigned int op,const char *left,const char *right)
 		{
 			/* for test/[ in POSIX, only accept simple decimal numbers */
 			char *l = (char*)left, *r = (char*)right;
+			char *lstr, *rstr;
 			while(*l=='0')
 				l++;
 			while(*r=='0')
 				r++;
-			lnum = strtold(l,&l);
-			rnum = strtold(r,&r);
-			if(*l || *r)
+			errno = 0;
+			lnum = strtold(l,&lstr);
+			rnum = strtold(r,&rstr);
+			if(*lstr || *rstr || errno==ERANGE)
 			{
-				errormsg(SH_DICT, ERROR_exit(2), e_number, *l ? left : right);
+				errormsg(SH_DICT, ERROR_system(2), e_number, *lstr ? left : right);
 				UNREACHABLE();
 			}
 		}
@@ -610,7 +612,12 @@ int sh_access(const char *name, int mode)
 	if(*name==0)
 		return -1;
 	if(!sh_isoption(SH_POSIX) && sh_isdevfd(name))
-		return sh_ioaccess((int)strtol(name+8, NULL, 10),mode);
+	{
+		int fd = strtoi(name+8, NULL, 10);
+		if(errno == ERANGE)
+			return -1;
+		return sh_ioaccess(fd,mode);
+	}
 	/* can't use access function for execute permission with root */
 	if(mode==X_OK && sh.euserid==0)
 		goto skip;
@@ -665,7 +672,7 @@ skip:
 				if((maxgroups=getgroups(0,NULL)) <= 0)
 				{
 					/* pre-POSIX system */
-					maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
+					maxgroups = astconf_int(CONF_NGROUPS_MAX);
 				}
 			}
 			groups = stkalloc(sh.stk,(maxgroups+1)*sizeof(gid_t));
@@ -715,6 +722,11 @@ static int test_stat(const char *name,struct stat *buff)
 		return fstat(sh.pwdfd,buff);
 #endif
 	if(sh_isdevfd(name))
-		return fstat((int)strtol(name+8, NULL, 10),buff);
+	{
+		int fd = strtoi(name+8, NULL, 10);
+		if(errno == ERANGE)
+			return -1;
+		return fstat(fd,buff);
+	}
 	return stat(name,buff);
 }

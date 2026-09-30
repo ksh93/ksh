@@ -217,6 +217,8 @@ getolist(Join_t* jp, const char* first, char** arglist)
 	ptrdiff_t*	outmax;
 	size_t		nfield = NFIELD;
 	char*		str;
+	long long	ll;
+	int		oerrno;
 
 	outptr = jp->outlist = newof(0, ptrdiff_t, NFIELD + 1, 0);
 	if (!outptr)
@@ -236,9 +238,20 @@ getolist(Join_t* jp, const char* first, char** arglist)
 			c = JOINFIELD;
 			goto skip;
 		}
-		if (cp[1]!='.' || (*cp!='1' && *cp!='2') || (c=(ptrdiff_t)strtol(cp+2,&str,10)) <=0)
+		if (cp[1]!='.' || (*cp!='1' && *cp!='2'))
 		{
 			error(2,"%s: invalid field list",first);
+			break;
+		}
+		oerrno = errno;
+		ll = strtoll(cp+2,&str,10);
+		c = (ptrdiff_t)ll;
+		if (c!=ll)
+			errno = ERANGE;
+		if (c<=0 || errno==ERANGE)
+		{
+			error(2,"%s: invalid field list",first);
+			errno = oerrno;
 			break;
 		}
 		c--;
@@ -276,9 +289,20 @@ getolist(Join_t* jp, const char* first, char** arglist)
 			break;
 		}
 		str = (char*)cp;
-		c = (ptrdiff_t)strtol(cp+2, &str,10);
-		if (*str || --c<0)
+		oerrno = errno;
+		ll = strtoll(cp+2, &str,10);
+		c = (ptrdiff_t)ll;
+		if (c!=ll)
+			errno = ERANGE;
+		if (*str || --c<0 || errno==ERANGE)
+		{
+			if(errno==ERANGE)
+			{
+				error(2,"%s: bad number",cp+2);
+				errno = oerrno;
+			}
 			break;
+		}
 		argv++;
 		c <<= 2;
 		if (*cp=='2')
@@ -881,8 +905,13 @@ b_join(int argc, char** argv, Shbltin_t* context)
 					break;
 				}
 				opt_info.num = strtol(cp, &e, 10);
-				if (*e)
+				if (*e || errno == ERANGE)
 				{
+					if(errno == ERANGE)
+					{
+						error(2,"%s: out of range",cp);
+						errno = 0;
+					}
 					argc = 0;
 					break;
 				}

@@ -599,15 +599,16 @@ execute(State_t* state, Sfio_t* input, char* name, Shbltin_t* context)
 static int
 grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 {
-	int	c;
-	char*	s;
-	char*	h;
-	Sfio_t*	f;
-	int	flags;
-	int	r = 1;
-	FTS*	fts;
-	FTSENT*	ent;
-	State_t	state;
+	long long	ll;
+	int		c;
+	char*		s;
+	char*		h;
+	Sfio_t*		f;
+	int		flags;
+	int		r = 1;
+	FTS*		fts;
+	FTSENT*		ent;
+	State_t		state;
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_NOTIFY);
 	flags = fts_flags() | FTS_META | FTS_TOP | FTS_NOPOSTORDER | FTS_NOSEEDOTDIR;
@@ -677,8 +678,11 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	case 'A':
 		if (opt_info.arg)
 		{
-			state.after = (ssize_t)strtol(opt_info.arg, &s, 0);
-			if (*s || state.after < 0)
+			ll = strtoll(opt_info.arg, &s, 0);
+			state.after = (ssize_t)ll;
+			if (ll != state.after)
+				errno = ERANGE;
+			if (*s || state.after < 0 || errno == ERANGE)
 			{
 	badafter:
 				error(2, "%s: invalid after-context line count", opt_info.arg);
@@ -691,8 +695,11 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	case 'B':
 		if (opt_info.arg)
 		{
-			state.before = (ssize_t)strtol(opt_info.arg, &s, 0);
-			if (*s || state.before < 0)
+			ll = strtoll(opt_info.arg, &s, 0);
+			state.before = (ssize_t)ll;
+			if (ll != state.before)
+				errno = ERANGE;
+			if (*s || state.before < 0 || errno == ERANGE)
 			{
 	badbefore:
 				error(2, "%s: invalid before-context line count", opt_info.arg);
@@ -705,10 +712,23 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	case 'C':
 		if (opt_info.arg)
 		{
-			state.before = (ssize_t)strtol(opt_info.arg, &s, 0);
-			if (state.before < 0 || (*s && *s != ','))
+			ll = strtoll(opt_info.arg, &s, 0);
+			state.before = (ssize_t)ll;
+			if (ll != state.before)
+				errno = ERANGE;
+			if (state.before < 0 || (*s && *s != ',') || errno == ERANGE)
 				goto badbefore;
-			state.after = (*s == ',') ? (ssize_t)strtol(s + 1, &s, 0) : state.before;
+			if (*s == ',')
+			{
+				ll = strtoll(s + 1, &s, 0);
+				state.after = (ssize_t)ll;
+				if (ll != state.after)
+					errno = ERANGE;
+				if (errno == ERANGE)
+					goto badafter;
+			}
+			else
+				state.after = state.before;
 			if (*s || state.after < 0)
 				goto badafter;
 		}

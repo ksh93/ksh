@@ -268,11 +268,21 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 		return;
 	if (t = strchr(s, ' '))
 	{
+		unsigned long long ull;
 		if ((t - s) > 10 || !(file = strchr(t + 1, ' ')))
 			file = t;
 		*file++ = 0;
 		attr = 0;
-		if ((mode = (mode_t)strtoul(file, &e, 8)) && *e == ' ' && (e - file) == 4)
+		ull = strtoull(file, &e, 8);
+		mode = (mode_t)ull;
+		if (mode != ull)
+			errno = ERANGE;
+		if (errno == ERANGE)
+		{
+			error(ERROR_SYSTEM|3, "%s: mode out of range", file);
+			UNREACHABLE();
+		}
+		if (mode && *e == ' ' && (e - file) == 4)
 		{
 			mode = modei(mode);
 			if (t = strchr(++e, ' '))

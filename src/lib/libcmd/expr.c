@@ -179,6 +179,12 @@ typedef struct State_s
 
 static int expr_or(State_t*, Node_t*);
 
+static COLD noreturn void outofrange(const char *errstr)
+{
+	error(ERROR_system(2), "%s: out of range", errstr);
+	UNREACHABLE();
+}
+
 static int getnode(State_t* state, Node_t *np)
 {
 	char*	sp;
@@ -251,6 +257,7 @@ static int getnode(State_t* state, Node_t *np)
 		case 's':
 			if (cp[1] == 'u' && !strcmp(cp, "substr"))
 			{
+				long long ll;
 				if (!(sp = *state->arglist++))
 				{
 					error(ERROR_exit(2), "string argument expected");
@@ -261,7 +268,15 @@ static int getnode(State_t* state, Node_t *np)
 					error(ERROR_exit(2), "position argument expected");
 					UNREACHABLE();
 				}
-				i = (ssize_t)strtol(cp, &ep, 10);
+				ll = strtoll(cp, &ep, 10);
+				i = (ssize_t)ll;
+				if (!*ep)
+				{
+					if (i != ll)
+						errno = ERANGE;
+					if (errno == ERANGE)
+						outofrange(cp);
+				}
 				if (*ep || --i < 0)
 					i = -1;
 				if (!(cp = *state->arglist++))
@@ -269,9 +284,17 @@ static int getnode(State_t* state, Node_t *np)
 					error(ERROR_exit(2), "length argument expected");
 					UNREACHABLE();
 				}
-				j = (ssize_t)strtol(cp, &ep, 10);
+				ll = strtoll(cp, &ep, 10);
+				j = (ssize_t)ll;
 				if (*ep)
 					j = -1;
+				else
+				{
+					if (j != ll)
+						errno = ERANGE;
+					if (errno == ERANGE)
+						outofrange(cp);
+				}
 				k = (ssize_t)strlen(sp);
 				if (i < 0 || i >= k || j < 0)
 					sp = "";
@@ -305,7 +328,11 @@ static int getnode(State_t* state, Node_t *np)
 		{
 			np->num = strtol(np->str,&ep,10);
 			if (!*ep)
+			{
+				if (errno == ERANGE)
+					outofrange(np->str);
 				np->type |= T_NUM;
+			}
 		}
 	}
  next:
@@ -353,7 +380,11 @@ static int expr_cond(State_t* state, Node_t *np)
 					np->str[match[1].rm_eo - match[1].rm_so] = 0;
 					np->num = strtol(np->str,&cp,10);
 					if (cp!=np->str && *cp==0)
+					{
+						if (errno == ERANGE)
+							outofrange(np->str);
 						np->type |= T_NUM;
+					}
 				}
 				else
 					np->str = "";

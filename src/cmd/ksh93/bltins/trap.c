@@ -280,7 +280,15 @@ endopts:
 		else while(signame = *argv++)
 		{
 			if(isdigit(*signame))
-				sig_list(((int)strtol(signame, NULL, 10)&0177)+1);
+			{
+				int i = strtoi(signame, NULL, 10);
+				if(errno == ERANGE)
+				{
+					errormsg(SH_DICT,ERROR_system(1),e_number,signame);
+					UNREACHABLE();
+				}
+				sig_list((i&0177)+1);
+			}
 			else
 			{
 				if((sig=sig_number(signame))<0)
@@ -356,8 +364,8 @@ static int sig_number(const char *string)
 	char		*last, *name;
 	if(isdigit(*string))
 	{
-		n = (int)strtol(string,&last,10);
-		if(*last)
+		n = strtoi(string,&last,10);
+		if(*last || errno == ERANGE)
 			n = -1;
 	}
 	else
@@ -379,7 +387,9 @@ static int sig_number(const char *string)
 			o += 3;
 			if(isdigit(*stkptr(sh.stk,o)))
 			{
-				n = (int)strtol(stkptr(sh.stk,o),&last,10);
+				n = strtoi(stkptr(sh.stk,o),&last,10);
+				if(errno==ERANGE)
+					return -1;
 				if(!*last)
 					return n;
 			}
@@ -407,15 +417,15 @@ static int sig_number(const char *string)
 			/* Real-time signals */
 			if(name[0]=='M' && name[1]=='I' && name[2]=='N' && name[3]=='+')	/* MIN+ */
 			{
-				if((sig=(int)strtol(name+4,&name,10)) >= 0 && !*name)
+				if((sig=strtoi(name+4,&last,10)) >= 0 && !*last && errno!=ERANGE)
 					n = sh.sigruntime[SH_SIGRTMIN] + sig;
 			}
 			else if(name[0]=='M' && name[1]=='A' && name[2]=='X' && name[3]=='-')	/* MAX- */
 			{
-				if((sig=(int)strtol(name+4,&name,10)) >= 0 && !*name)
+				if((sig=strtoi(name+4,&last,10)) >= 0 && !*last && errno!=ERANGE)
 					n = sh.sigruntime[SH_SIGRTMAX] - sig;
 			}
-			else if((sig=(int)strtol(name,&name,10)) > 0 && !*name)
+			else if((sig=strtoi(name,&last,10)) > 0 && !*last && errno!=ERANGE)
 				n = sh.sigruntime[SH_SIGRTMIN] + sig - 1;
 			if(n < sh.sigruntime[SH_SIGRTMIN] || n > sh.sigruntime[SH_SIGRTMAX])
 				n = -1;

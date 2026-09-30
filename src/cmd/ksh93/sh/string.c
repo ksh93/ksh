@@ -111,8 +111,10 @@ int sh_lookopt(const char *sp, int *invert)
 			{
 				if(!*s || *s=='=')
 				{
-					if (*s == '=' && !strtol(s+1, NULL, 0))
+					int oerrno = errno;
+					if (*s == '=' && !strtol(s+1, NULL, 0) && errno != ERANGE)
 						no = !no;
+					errno = oerrno;
 					if (!*t)
 					{
 						*invert ^= no;
