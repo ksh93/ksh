@@ -272,7 +272,7 @@ inetopen(const char* path, int flags)
 		if (streq(s, "local"))
 			s = "localhost";
 		else
-			t = (char*)strchr(path,'/')+1;  /* POSIX requires getaddrinfo()'s arguments not overlap */
+			t = path + (t - s);	/* POSIX requires getaddrinfo()'s arguments not overlap */
 		fd = getaddrinfo(s, t, &hint, &addr);
 	}
 	else
