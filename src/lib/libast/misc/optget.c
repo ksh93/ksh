@@ -322,7 +322,7 @@ static Msg_t		C_LC_MESSAGES_libast[] =
 	{ C("version") },
 };
 
-static Opt_t	_opt_info_ = { 0,NULL,NULL,0,NULL,0,0,{0},{0},NULL,0,0,0,&state };
+static Opt_t	_opt_info_ = { .state = &state };
 Opt_t*		_opt_infop_ = &_opt_info_;
 
 Optstate_t*

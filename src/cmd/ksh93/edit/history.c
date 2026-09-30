@@ -141,7 +141,7 @@ done:
 #endif /* SHOPT_AUDIT */
 
 static const unsigned char hist_stamp[2] = { HIST_UNDO, HIST_VERSION };
-static const Sfdisc_t hist_disc = { NULL, hist_write, NULL, hist_exceptf, NULL};
+static const Sfdisc_t hist_disc = { .writef = hist_write, .exceptf = hist_exceptf };
 
 static int hist_setlock(int fd, short type)
 {
