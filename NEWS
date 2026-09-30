@@ -14,6 +14,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-09-27:
 
+- The maximum length of edit lines in the emacs and vi line editors has been
+  increased from 1024 to 8192 bytes.
+
+- Fixed a potential freeze in the emacs and vi line editors when attempting
+  to use reverse search completion to obtain long history file entries.
+
 - Fixed bugs in -G/--globstar, all concerning symbolic links to directories:
   1. If a ** pattern component is followed by further pattern, then a
      preceding symlink specified by literal name or matched by a regular
