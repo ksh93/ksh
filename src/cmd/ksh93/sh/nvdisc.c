@@ -594,12 +594,9 @@ char *nv_setdisc(Namval_t* np,const char *event,Namval_t *action,Namfun_t *fp)
 		Namdisc_t	*dp;
 		if(action==np)
 			return (char*)action;
-		vp = sh_newof(NULL,struct vardisc,1,sizeof(Namdisc_t));
-		dp = (Namdisc_t*)(vp+1);
-		vp->fun.disc = dp;
-		memset(dp,0,sizeof(*dp));
-		/* the descriptor follows the vardisc in this block, so clone both */
-		dp->dsize = sizeof(struct vardisc)+sizeof(Namdisc_t);
+		vp = sh_calloc(1, sizeof(struct vardisc) + sizeof(Namdisc_t));
+		vp->fun.disc = dp = (Namdisc_t*)(vp + 1);
+		dp->dsize = sizeof(struct vardisc) + sizeof(Namdisc_t);
 		dp->putval = assign;
 		if(nv_isarray(np) && !nv_arrayptr(np))
 			nv_putsub(np,NULL, 1);
@@ -904,6 +901,30 @@ static void *num_clone(Namval_t *np, void *val)
 	nval = sh_malloc(size);
 	memcpy(nval,val,size);
 	return nval;
+}
+
+/*
+ * Restore np's shell discipline definitions onto mp. The two lists
+ * are walked in step, so this stops at the first discipline that
+ * is not the shell discipline that a subshell may have redefined.
+ */
+void nv_restore_disc(Namval_t *mp, Namval_t *np)
+{
+	Namfun_t	*fp, *gp;
+	struct vardisc	*vp, *wp;
+	Namdisc_t	*vd;
+	for (fp = mp->nvfun, gp = np->nvfun; fp && gp; fp = fp->next, gp = gp->next)
+	{
+		vp = (struct vardisc*)fp;
+		wp = (struct vardisc*)gp;
+		if (!vp->fun.disc || !wp->fun.disc || vp->fun.disc->putval!=assign || wp->fun.disc->putval!=assign)
+			break;
+		vd = (Namdisc_t*)vp->fun.disc;
+		memcpy(vp->disc, wp->disc, sizeof(vp->disc));
+		/* only restore these two Namdisc_t fields; no others change per variable */
+		vd->getval = wp->fun.disc->getval;
+		vd->getnum = wp->fun.disc->getnum;
+	}
 }
 
 void clone_all_disc( Namval_t *np, Namval_t *mp, nvflag_t flags)

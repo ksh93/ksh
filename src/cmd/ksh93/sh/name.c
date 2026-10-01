@@ -2454,7 +2454,16 @@ void nv_unset(Namval_t *np, nvflag_t flags)
 				 npv = nv_open(name,sh.var_tree,NV_NOARRAY|NV_VARNAME|NV_NOADD);
 				*cp++ = '.';
 				if(npv && npv!=sh.namespace)
-					nv_setdisc(npv,cp,NULL,(Namfun_t*)npv);
+				{
+					/*
+					 * Only remove the discipline if this function is the one
+					 * installed: the shell may have restored the parent's own
+					 * discipline on <npv> already, as nv_restore() runs before
+					 * the subshell's functions are freed.
+					 */
+					if((Namval_t*)nv_setdisc(npv,cp,npv,(Namfun_t*)npv)==np)
+						nv_setdisc(npv,cp,NULL,(Namfun_t*)npv);
+				}
 			}
 			if(rp->fname && sh.fpathdict && (rq = (struct Ufunction*)nv_search(rp->fname,sh.fpathdict,0)))
 			{
