@@ -390,20 +390,24 @@ static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handl
 			pp = np->nvmeta;
 		nv_putv(np, val, flags, handle);
 		if(sh.subshell)
-			goto done;
-		if(pp && nv_isarray(pp))
-			goto done;
-		if(nv_isarray(np) && (ap=nv_arrayptr(np)) && ap->nelem>0)
-			goto done;
-		for(n=0; n < sizeof(vp->disc)/sizeof(*vp->disc); n++)
+			goto done;  /* nv_restore() may still refer to <handle> */
+		if(!(pp && nv_isarray(pp)) && !(nv_isarray(np) && (ap=nv_arrayptr(np)) && ap->nelem>0))
 		{
-			if((nq=vp->disc[n]) && !nv_isattr(nq,NV_NOFREE))
+			for(n=0; n < sizeof(vp->disc)/sizeof(*vp->disc); n++)
 			{
-				nv_unset(nq,0);
-				dtdelete(root,nq);
+				if((nq=vp->disc[n]) && !nv_isattr(nq,NV_NOFREE))
+				{
+					nv_unset(nq,0);
+					dtdelete(root,nq);
+				}
 			}
+			unblock(bp,type);
 		}
-		unblock(bp,type);
+		/*
+		 * <handle> was popped off <np>'s list above and is no longer
+		 * reachable from it, so free it even when its discipline
+		 * functions are kept for the array or compound variable.
+		 */
 		if(!(handle->namflags & NAMFUN_NOFREE))
 			free(handle);
 	}
