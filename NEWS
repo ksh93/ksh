@@ -2,6 +2,14 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-01:
+
+- Fixed: if an associative array has one or more shell discipline functions
+  (.get, .getn, .set, and/or .unset) associated with it in the main shell
+  environment, and these are then redefined in a subshell, the main
+  environment's discipline functions were lost. They are now preserved and
+  restored properly.
+
 2026-09-29:
 
 - The hash table entries (a.k.a. tracked aliases) as shown by the 'hash' and

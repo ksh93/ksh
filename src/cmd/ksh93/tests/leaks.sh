@@ -120,6 +120,9 @@ alias DONE=\
 # For testing enum types.
 enum Test1_t=(lorem ipsum dolor sit amet consectetur adipiscing elit curabitur scelerisque massa nec diam fermentum tempor)
 
+# A long-ish string value.
+typeset -r longval="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+
 # ____ Begin memory leak tests ____
 
 TEST	title='variable value reset'
@@ -555,7 +558,7 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		foo=$longval
 	)
 DONE
 
@@ -566,7 +569,7 @@ DO
 		PATH.getn() { :; }
 		PATH.set() { :; }
 		PATH.unset() { :; }
-		PATH="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		PATH=$longval
 	)
 DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
 
@@ -592,7 +595,7 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		foo=$longval
 	) 2>/dev/null
 DONE
 
@@ -607,7 +610,7 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		foo[3]=$longval
 	)
 DONE
 
@@ -619,7 +622,7 @@ DO
 		PATH.getn() { :; }
 		PATH.set() { :; }
 		PATH.unset() { :; }
-		PATH[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		PATH[3]=$longval
 	)
 DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
 
@@ -645,7 +648,7 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo[3]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		foo[3]=$longval
 	) 2>/dev/null
 DONE
 
@@ -660,7 +663,7 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		foo[abc]=$longval
 	)
 DONE
 
@@ -672,7 +675,7 @@ DO
 		PATH.getn() { :; }
 		PATH.set() { :; }
 		PATH.unset() { :; }
-		PATH[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		PATH[abc]=$longval
 	)
 DONE; unset -f PATH.get PATH.getn PATH.set PATH.unset
 
@@ -698,8 +701,27 @@ DO
 		foo.getn() { :; }
 		foo.set() { :; }
 		foo.unset() { :; }
-		foo[abc]="a value that is long enough to cross the threshold for the detection of a memory leak in case one exists"
+		foo[abc]=$longval
 	) 2>/dev/null
+DONE
+
+# ======
+TEST title='redefine the shell disciplines of an indexed array in a subshell'
+	unset foo
+DO
+	typeset -a foo
+	foo[1]=one
+	foo.get() { :; }
+	foo.getn() { :; }
+	foo.set() { :; }
+	foo.unset() { :; }
+	(
+		foo.get() { :; }
+		foo.getn() { :; }
+		foo.set() { :; }
+		foo.unset() { :; }
+		foo[2]=$longval
+	)
 DONE
 
 # ======
