@@ -16,6 +16,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   environment's discipline functions were lost. They are now preserved and
   restored properly.
 
+- Fixed an excessive recursion problem in the regex engine that caused a
+  crash if very long strings were compared using [[ ... == ... ]] (even if
+  the right-hand side does not contain any pattern operators).
+
 2026-09-29:
 
 - The hash table entries (a.k.a. tracked aliases) as shown by the 'hash' and

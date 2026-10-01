@@ -671,4 +671,17 @@ done
 unset e t
 
 # ======
+# Comparing long literal strings with [[ ... == "..." ]] used to segfault (C stack overflow)
+"$SHELL" -c 'a=a; for((i=0;i<12;i++)); do a=$a$a$a$a; done; [[ $a == "$a" ]]'
+[[ e=$? -eq 0 ]] || err_exit '[[ $a == "$a" ]] for 16 MiB $a' \
+	"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+# Regressions found in previous iterations of this fix
+[[ $'hello\r\n' =~ hello\r?\n$ ]] || err_exit 'literal prefix preceding \r? repetition not working'
+[[ $'hello\r\n' =~ ^hello\r?\n$ ]] || err_exit 'anchored literal prefix preceding \r? repetition not working'
+[[ $'hello\r\n' =~ hello\r\n ]] || err_exit "non-anchored, no repetition"
+[[ $'hello\n' =~ hello\r?\n ]] || err_exit '\r? for missing \r'
+[[ $'hello\r\n' =~ hel.o ]] || err_exit "dot"
+[[ $'hello\r\n' =~ o\r?\n ]] || err_exit 'short match'
+
+# ======
 exit $((Errors<125?Errors:125))
