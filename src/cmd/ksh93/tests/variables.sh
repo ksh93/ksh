@@ -1888,6 +1888,22 @@ chmod +x unset_execute_test
 [[ e=$? -eq 0 ]] || err_exit "unset_execute_test crashes (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 eval "$errors"
 
+# ======
+# A subshell that redefines a discipline function on a variable must not take
+# the parent's own definition of it along when the subshell exits.
+got=$("$SHELL" -c '
+	var.get() { .sh.value=main; }
+	print $var
+	(
+		var.get() { .sh.value=sub; }
+		print $var
+	)
+	print $var
+')
+exp=$'main\nsub\nmain'
+[[ $got == "$exp" ]] || err_exit "subshell redefining a discipline function loses the parent's" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
