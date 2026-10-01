@@ -1554,6 +1554,21 @@ Otherwise, each occurrence of \f3\e\fP\f2n\^\fP in
 .I string
 is replaced by the portion of \f2parameter\^\fP
 that matches the \f2n\^\fP-th subpattern.
+Apart from that,
+any \f3\e\fP in
+.I pattern\^
+or
+.I string\^
+escapes the character that follows,
+disabling its special meaning (if any);
+the \f3\e\fP itself is removed.
+In
+.IR string ,
+only the literal characters
+.B }
+and
+.B \e
+need such escaping.
 In the first form,
 only the first occurrence of
 .I pattern\^

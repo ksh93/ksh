@@ -4,6 +4,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-10-01:
 
+- Fixed a bug in the ${parameter/pattern/string}, ${parameter//pattern/string},
+  ${parameter/#pattern/string} and ${parameter/#%pattern/string} expansions: in
+  the replacement 'string' (which may contain subpattern references like \1,
+  \2, etc. and supports backslash escaping), the shell failed to remove an
+  escaping backslash preceding the characters '/', '-', '<' and '>'.
+
 - Fixed: if a variable has one or more shell discipline functions
   (.get, .getn, .set, and/or .unset) associated with it in the main shell
   environment, and these are then redefined in a subshell, the main
