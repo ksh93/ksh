@@ -525,6 +525,17 @@ static void nv_restore(struct subshell *sp)
 			mp->nvfun = np->nvfun;
 			fp = NULL;  /* Avoid duplicate freeing below */
 		}
+		else
+		{
+			/*
+			 * The subshell redefined a discipline function instead of adding
+			 * one, so <fp> is still the parent's own struct vardisc rather than
+			 * one made in the subshell. Its definitions do refer to the subshell's
+			 * functions now, so copy back the ones that sh_assignok() saved in
+			 * <np> when the subshell started. The saved copy is freed below.
+			 */
+			nv_restore_disc(mp,np);
+		}
 		if(nv_isattr(np,NV_IDENT))
 		{
 			nv_offattr(np,NV_IDENT);

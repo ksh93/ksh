@@ -910,6 +910,30 @@ static void *num_clone(Namval_t *np, void *val)
 	return nval;
 }
 
+/*
+ * Restore the shell discipline definitions on <np> onto <mp>. The two lists
+ * are walked in step, so this stops at the first discipline that is not the
+ * shell discipline that a subshell may have redefined in place.
+ */
+void nv_restore_disc(Namval_t *mp, Namval_t *np)
+{
+	Namfun_t		*fp = mp->nvfun, *gp = np->nvfun;
+	struct vardisc	*vp, *wp;
+	Namdisc_t		*vd;
+	for( ; fp && gp; fp=fp->next, gp=gp->next)
+	{
+		vp = (struct vardisc*)fp;
+		wp = (struct vardisc*)gp;
+		if(!vp->fun.disc || !wp->fun.disc
+		|| vp->fun.disc->putval!=assign || wp->fun.disc->putval!=assign)
+			break;
+		vd = (Namdisc_t*)vp->fun.disc;
+		memcpy(vp->disc, wp->disc, sizeof(vp->disc));
+		vd->getval = wp->fun.disc->getval;
+		vd->getnum = wp->fun.disc->getnum;
+	}
+}
+
 void clone_all_disc( Namval_t *np, Namval_t *mp, nvflag_t flags)
 {
 	Namfun_t *fp, **mfp = &mp->nvfun, *nfp, *fpnext;
