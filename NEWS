@@ -2,6 +2,15 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-02:
+
+- Fixed an excessive recursion problem in the regex engine that caused a crash
+  (C stack overflow) if a pattern with a repetition operator was matched
+  against a string with a very large number of matching iterations, for
+  example: [[ $(printf 'a%.0s' {0..99999}) == +(a) ]]. The state of a
+  repetition is now kept on a stack on the heap instead of on the C stack.
+Progresses: https://github.com/ksh93/ksh/issues/207
+
 2026-10-01:
 
 - Fixed a bug in the ${parameter/pattern/string}, ${parameter//pattern/string},

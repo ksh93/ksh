@@ -684,4 +684,65 @@ unset e t
 [[ $'hello\r\n' =~ o\r?\n ]] || err_exit 'short match'
 
 # ======
+# A repetition with a huge number of iterations used to overflow the C stack
+# in the regex execution engine (https://github.com/ksh93/ksh/issues/207).
+# The state of a repetition is now kept on a heap stack instead.
+# 2^17 == 131072 iterations, which is more than enough to smash the C stack.
+for op in '+(a)' '*(a|b)' '~(E)^a*$' '~(E)^(a)*$' '~(E)^(a|ab)*$'
+do	"$SHELL" -c 'typeset a=a; for((i=0;i<17;i++)); do a=$a$a; done
+		[[ $a == '"$op"' ]]'
+	[[ e=$? -eq 0 ]] || err_exit "[[ \$a == $op ]] for 128 KiB \$a" \
+		"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+unset a op
+
+# ======
+# checkmatch <string> <ere> [<expected group 0> [<expected group 1> ...]]
+# Each argument after the ERE is the expected value of the corresponding
+# submatch; use UNSET if the submatch is not set by the match. As ksh does not
+# clear .sh.match entries that the current match did not set, each check runs
+# in a subshell (command substitution) so that .sh.match starts out empty.
+checkmatch()
+{
+	typeset -i i
+	typeset str=$1 ere=$2 got= exp=
+	shift 2
+	for ((i = 0; i < $#; i++)); do eval "exp+=\"\${$((i+1))} \""; done
+	got=$(
+		unset .sh.match
+		if	[[ $str =~ $ere ]]
+		then	typeset o=
+			for ((i = 0; i < 4; i++)); do o+="${.sh.match[i]-UNSET} "; done
+			print -r -- "$o"
+		else	print -r -- NOMATCH
+		fi
+	)
+	[[ ${got%" "} == ${exp%" "} ]] || err_exit "[[ $str =~ $ere ]] gives (sub)matches $(printf %q "$got")" \
+		"instead of $(printf %q "$exp")"
+}
+
+# Ambiguity inside a repetition: the engine must pick the same (sub)matches as
+# a straightforward recursive, depth-first search would. See issue 207.
+checkmatch aaaaaa '^(a|aa)*$'        aaaaaa aa UNSET UNSET
+checkmatch aaaaaa '^((a)|(aa))*$'    aaaaaa aa UNSET aa
+checkmatch aaaaaa '^((a)|(aa))+$'    aaaaaa aa UNSET aa
+checkmatch aaaa   '^((a)*)*$'        aaaa aaaa a UNSET
+checkmatch aaaa   '^(a*)(a*)$'       aaaa aaaa '' UNSET
+checkmatch ababab '^((a)(b*))+$'     ababab ab a b
+checkmatch abcabc '^((abc)|(ab|c))*abc$'  abcabc abc abc UNSET
+checkmatch aabab  '^(a|ab)*b$'       aabab a UNSET UNSET
+checkmatch aaaaaa '^((a)|(aa))*((a)|(aa))$'  aaaaaa a a UNSET
+# An alternative that can match the empty string inside a repetition
+checkmatch aaaa   '^(a*|b)*$'        aaaa aaaa UNSET UNSET
+checkmatch aaaa   '^(a|b|a*)*$'      aaaa aaaa UNSET UNSET
+checkmatch aaaa   '^(a+|b*)$'        aaaa aaaa UNSET UNSET
+checkmatch abab   '^(a|b?)*$'        abab b UNSET UNSET
+# Backreferences to a group in the same repetition
+checkmatch abbabb '^((a)(b)\2)+$'    NOMATCH
+checkmatch abcabc '^((abc)\1)*$'     NOMATCH
+# Nested repetitions that must not match
+checkmatch aaaa   '^a*bc$'           NOMATCH
+unset -f checkmatch
+
+# ======
 exit $((Errors<125?Errors:125))
