@@ -742,6 +742,23 @@ checkmatch abbabb '^((a)(b)\2)+$'    NOMATCH
 checkmatch abcabc '^((abc)\1)*$'     NOMATCH
 # Nested repetitions that must not match
 checkmatch aaaa   '^a*bc$'           NOMATCH
+# Repetition bodies of fixed length, which are matched in a flat loop instead of
+# by the general matcher: the submatch state of each iteration has to survive
+checkmatch ababab '^(ab)+$'          ababab ab UNSET UNSET
+checkmatch ababab '^(ab)*$'          ababab ab UNSET UNSET
+checkmatch ababab '(ab)+?'           ab ab UNSET UNSET
+checkmatch ababab '(ab)*?'           '' UNSET UNSET UNSET
+checkmatch ababab '^(a(b))+$'        ababab ab b UNSET
+checkmatch ababab '^((ab))+$'        ababab ab ab UNSET
+checkmatch ababab '^((ab)*)+$'       ababab ababab ab UNSET
+checkmatch ababab '^((ab)+)+$'       ababab ababab ab UNSET
+checkmatch ababa  '(ab)+'            abab ab UNSET UNSET
+checkmatch a1b2c3 '^([a-z][0-9])+$' a1b2c3 c3 UNSET UNSET
+checkmatch abcabc '^(abc|xyz)+abc$' abcabc abc UNSET UNSET
+checkmatch abba   '^(ab|ba)+$'      abba ba UNSET UNSET
+checkmatch ababab '^(.+)(.+)$'      ababab ababa b UNSET
+checkmatch abab   '^(ab){2}$'       abab ab UNSET UNSET
+checkmatch abab   '^(ab){1,2}$'     abab ab UNSET UNSET
 unset -f checkmatch
 
 # ======

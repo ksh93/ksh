@@ -634,4 +634,46 @@ unset null
 test_glob '<*>' $null"*"
 
 # ======
+# Very long matches used to overflow the C stack in the regex execution engine,
+# one C stack frame per repetition iteration, and to take minutes of CPU time.
+# Repetition bodies of fixed length are now matched in a flat loop; see
+# https://github.com/ksh93/ksh/issues/207
+(
+	typeset v
+
+	v=$(printf 'x%.0s' {1..300000})
+	[[ $v == +(x) ]] || err_exit '+(x) fails to match 300k x'
+	[[ $v == *(x) ]] || err_exit '*(x) fails to match 300k x'
+	[[ $v == +(x|y) ]] || err_exit '+(x|y) fails to match 300k x'
+	[[ $v == @(+(x)) ]] || err_exit '@(+(x)) fails to match 300k x'
+
+	v=$(printf 'ab%.0s' {1..150000})
+	[[ $v == +(ab) ]] || err_exit '+(ab) fails to match 150k ab'
+	[[ $v == +(ab)* ]] || err_exit '+(ab)* fails to match 150k ab'
+
+	v=$(printf 'x%.0s' {1..100000})y
+	[[ $v == +(x)y ]] || err_exit '+(x)y fails to match 100k x + y'
+	[[ $v == *(x)y ]] || err_exit '*(x)y fails to match 100k x + y'
+	[[ $v == +(?)+(y) ]] || err_exit '+(?)+(y) fails to match 100k x + y'
+)
+
+# A repetition body that can reach its continuation at more than one position
+# per iteration, such as an alternation whose branches differ in length or a
+# nested variable-length repetition, cannot be scanned one iteration at a time;
+# such bodies keep the general matcher, which ranks the alternatives with
+# better(). These are regressions from an attempt that did not.
+subject=ab
+[[ ${subject} =~ (ab|a)+ && ${.sh.match[0]} == ab ]] \
+	|| err_exit 'unanchored (ab|a)+ on "ab" should match "ab"'
+subject=abab
+[[ ${subject} =~ (ab|a)+ && ${.sh.match[0]} == abab ]] \
+	|| err_exit 'unanchored (ab|a)+ on "abab" should match "abab"'
+subject=aa
+[[ ${subject} =~ (a*)+ && ${.sh.match[0]} == aa ]] \
+	|| err_exit 'unanchored (a*)+ on "aa" should match "aa"'
+[[ ${subject} =~ (a+)+ && ${.sh.match[0]} == aa ]] \
+	|| err_exit 'unanchored (a+)+ on "aa" should match "aa"'
+unset subject
+
+# ======
 exit $((Errors<125?Errors:125))

@@ -9,6 +9,16 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   against a string with a very large number of matching iterations, for
   example: [[ $(printf 'a%.0s' {0..99999}) == +(a) ]]. The state of a
   repetition is now kept on a stack on the heap instead of on the C stack.
+
+- Fixed the excessive runtime of the regex engine when matching a repetition
+  with a body of fixed length, such as +(ab), against a long string: [[ $(printf
+  'ab%.0s' {1..150000}) == +(ab)* ]] used to take minutes and now takes a
+  fraction of a second. Such repetitions are now matched one iteration at a
+  time in a flat loop, recording the end position and submatch state of each,
+  and the continuation is only tried afterwards. Repetition bodies that can
+  reach their continuation at more than one position per iteration, such as
+  (ab|a)+ or (a*)+, keep using the general algorithm, as choosing between
+  those positions requires ranking them.
 Progresses: https://github.com/ksh93/ksh/issues/207
 
 2026-10-01:
