@@ -879,7 +879,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 			mp->nodes = NULL;
 		}
 		mp->vlen = 0;
-		if(ap && ap->hdr.next != &mp->hdr)
+		if(ap)
 			free(ap);
 		SH_MATCHNOD->nvalue = NULL;
 		SH_MATCHNOD->nvfun = NULL;
