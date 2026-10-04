@@ -1084,4 +1084,57 @@ got=${ $SHELL -c 'print ${!.sh.match} ${!.sh.match[1]} ${!.sh.match[2]}' }
 	"(expected ${ printf %q "$exp" }, got ${ printf %q "$got" })"
 
 # ======
+# Test repetiton handling in the shell glob pattern and regular expression engine
+# https://github.com/ksh93/ksh/issues/207
+
+# Helper function and alias for the tests below.
+# Each argument after the pattern is the expected value of the corresponding submatch.
+# The special argument UNSET indicates that the submatch should not be set by the match.
+function _checkmatch  # <lineno> <string> <pattern> [ <expected group 0> [ <expected group 1> ... ] ]
+{
+	typeset -i i
+	typeset lineno=$1 str=$2 pat=$3 got
+	shift 3
+	exp=$*
+	if	[[ $str =~ $pat ]]
+	then	for ((i = 0; i < 4; i++))
+		do	got+=${got+ }${.sh.match[i]-UNSET}
+		done
+	else	got=NOMATCH
+	fi
+	[[ $got == "$exp" ]] || err\_exit "$lineno" "[[ $str =~ $pat ]] produced incorrect (sub)matches" \
+		"(got $(printf %q "$got"), expected $(printf %q "$exp"))"
+}
+alias checkmatch='_checkmatch "$LINENO"'
+
+# Ambiguity inside a repetition: the engine must pick the same (sub)matches
+# as a straightforward recursive, depth-first search would.
+# https://github.com/ksh93/ksh/issues/207
+checkmatch aaaaaa '^(a|aa)*$' aaaaaa aa UNSET UNSET
+checkmatch aaaaaa '^((a)|(aa))*$' aaaaaa aa UNSET aa
+checkmatch aaaaaa '^((a)|(aa))+$' aaaaaa aa UNSET aa
+checkmatch aaaa '^((a)*)*$' aaaa aaaa a UNSET
+checkmatch aaaa '^(a*)(a*)$' aaaa aaaa '' UNSET
+checkmatch ababab '^((a)(b*))+$' ababab ab a b
+checkmatch abcabc '^((abc)|(ab|c))*abc$' abcabc abc abc UNSET
+checkmatch aabab '^(a|ab)*b$' aabab a UNSET UNSET
+checkmatch aaaaaa '^((a)|(aa))*((a)|(aa))$' aaaaaa a a UNSET
+
+# An alternative that can match the empty string inside a repetition
+checkmatch aaaa '^(a*|b)*$' aaaa aaaa UNSET UNSET
+checkmatch aaaa '^(a|b|a*)*$' aaaa aaaa UNSET UNSET
+checkmatch aaaa '^(a+|b*)$' aaaa aaaa UNSET UNSET
+checkmatch abab '^(a|b?)*$' abab b UNSET UNSET
+
+# Backreferences to a group in the same repetition
+checkmatch abbabb '^((a)(b)\2)+$' NOMATCH
+checkmatch abcabc '^((abc)\1)*$' NOMATCH
+
+# Nested repetitions that must not match
+checkmatch aaaa '^a*bc$' NOMATCH
+
+unset -f _checkmatch
+unalias checkmatch
+
+# ======
 exit $((Errors<125?Errors:125))

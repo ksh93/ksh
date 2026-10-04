@@ -25,79 +25,6 @@
 
 #include "reglib.h"
 
-#if _AST_REGEX_DEBUG
-
-#define DEBUG_TEST(f,y,n)	((debug&(debug_flag=f))?(y):(n))
-#define DEBUG_CODE(f,y,n)	do if(debug&(f)){y}else{n} while(0)
-#define DEBUG_INIT()		do { char* t; if (!debug) { debug = 0x80000000; if (t = getenv("_AST_regex_exec_debug")) debug |= strtoul(t, NULL, 0); } } while (0)
-
-static unsigned long	debug;
-static unsigned long	debug_flag;
-
-static const char*	rexnames[] =
-{
-	"REX_NULL",
-	"REX_ALT",
-	"REX_ALT_CATCH",
-	"REX_BACK",
-	"REX_BEG",
-	"REX_BEG_STR",
-	"REX_CAT",
-	"REX_CLASS",
-	"REX_COLL_CLASS",
-	"REX_CONJ",
-	"REX_CONJ_LEFT",
-	"REX_CONJ_RIGHT",
-	"REX_DONE",
-	"REX_DOT",
-	"REX_END",
-	"REX_END_STR",
-	"REX_EXEC",
-	"REX_FIN_STR",
-	"REX_GROUP",
-	"REX_GROUP_CATCH",
-	"REX_GROUP_AHEAD",
-	"REX_GROUP_AHEAD_CATCH",
-	"REX_GROUP_AHEAD_NOT",
-	"REX_GROUP_BEHIND",
-	"REX_GROUP_BEHIND_CATCH",
-	"REX_GROUP_BEHIND_NOT",
-	"REX_GROUP_BEHIND_NOT_CATCH",
-	"REX_GROUP_COND",
-	"REX_GROUP_COND_CATCH",
-	"REX_GROUP_CUT",
-	"REX_GROUP_CUT_CATCH",
-	"REX_NEG",
-	"REX_NEG_CATCH",
-	"REX_NEST",
-	"REX_ONECHAR",
-	"REX_REP",
-	"REX_REP_CATCH",
-	"REX_STRING",
-	"REX_TRIE",
-	"REX_WBEG",
-	"REX_WEND",
-	"REX_WORD",
-	"REX_WORD_NOT"
-};
-
-static const char* rexname(Rex_t* rex)
-{
-	if (!rex)
-		return "NIL";
-	if (rex->type >= elementsof(rexnames))
-		return "ERROR";
-	return rexnames[rex->type];
-}
-
-#else
-
-#define DEBUG_INIT()
-#define DEBUG_TEST(f,y,n)	(n)
-#define DEBUG_CODE(f,y,n)	do {n} while(0)
-
-#endif
-
 #define BEG_ALT		1	/* beginning of an alt			*/
 #define BEG_ONE		2	/* beginning of one iteration of a rep	*/
 #define BEG_REP		3	/* beginning of a repetition		*/
@@ -113,6 +40,7 @@ static const char* rexname(Rex_t* rex)
 #define CUT		2	/* no match and no backtrack		*/
 #define BEST		3	/* an unbeatable parse was found	*/
 #define BAD		4	/* error occurred			*/
+#define SUSPEND		5	/* parse asked for another iteration	*/
 
 /*
  * REG_SHELL_DOT test
@@ -308,11 +236,10 @@ better(Env_t* env, Pos_t* os, Pos_t* ns, Pos_t* oend, Pos_t* nend, int level)
 		return -1;
 	for (;;)
 	{
-		DEBUG_CODE(0x0080,{sfprintf(sfstdout, "   %-*.*sold ", (level + 3) * 4, (level + 3) * 4, "");for (oe = os; oe < oend; oe++)sfprintf(sfstdout, "<%d,%d,%d>", oe->p - env->beg, oe->serial, oe->be);sfprintf(sfstdout, "\n   %-*.*snew ", (level + 3) * 4, (level + 3) * 4, "");for (oe = ns; oe < nend; oe++)sfprintf(sfstdout, "<%d,%d,%d>", oe->p - env->beg, oe->serial, oe->be);sfprintf(sfstdout, "\n");},{0;});
 		if (ns >= nend)
-			return DEBUG_TEST(0x8000,(os < oend),(0));
+			return 0;
 		if (os >= oend)
-			return DEBUG_TEST(0x8000,(-1),(1));
+			return 1;
 		n = os->serial;
 		if (ns->serial > n)
 			return -1;
@@ -356,58 +283,139 @@ better(Env_t* env, Pos_t* os, Pos_t* ns, Pos_t* oend, Pos_t* nend, int level)
 	}
 }
 
-#if _AST_REGEX_DEBUG
-
-static void
-showmatch(regmatch_t* p)
-{
-	sfputc(sfstdout, '(');
-	if (p->rm_so < 0)
-		sfputc(sfstdout, '?');
-	else
-		sfprintf(sfstdout, "%z", p->rm_so);
-	sfputc(sfstdout, ',');
-	if (p->rm_eo < 0)
-		sfputc(sfstdout, '?');
-	else
-		sfprintf(sfstdout, "%z", p->rm_eo);
-	sfputc(sfstdout, ')');
-}
-
-static int
-_better(Env_t* env, Pos_t* os, Pos_t* ns, Pos_t* oend, Pos_t* nend, int level)
-{
-	int	i;
-
-	DEBUG_CODE(0x0040,{sfprintf(sfstdout, "AHA better old ");for (i = 0; i <= env->nsub; i++)showmatch(&env->best[i]);sfprintf(sfstdout, "\n           new ");for (i = 0; i <= env->nsub; i++)showmatch(&env->match[i]);sfprintf(sfstdout, "\n");},{0;});
-	i = better(env, os, ns, oend, nend, 0);
-	DEBUG_TEST(0x0040,(sfprintf(sfstdout, "           %s\n", i <= 0 ? "OLD" : "NEW")),(0));
-	return i;
-}
-
-#define better	_better
-
-#endif
-
 #define follow(e,r,c,s)	((r)->next?parse(e,(r)->next,c,s):(c)?parse(e,c,NULL,s):BEST)
 
 static int		parse(Env_t*, Rex_t*, Rex_t*, unsigned char*);
 
-static int
-parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
-{
-	int	i;
-	int	r = NONE;
-	Rex_t	catcher;
+/*
+ * Matching a repetition means parsing its body over and over again, handing
+ * control to the continuation after each iteration. Doing that by calling
+ * parserep() recursively grows the C stack per iteration, which overflows if
+ * there are too many matching elements: crash. Instead, the recursion is now
+ * emulated with a stack of Rep_frame_t on the heap, which has no such limit.
+ *
+ * When a nested iteration is requested from deep inside parse(), the C stack
+ * unwinds back to parserep() with SUSPEND, which then runs the requested
+ * iteration itself and hands the result back via the requesting rep catcher.
+ *
+ * Each frame saves the mutable parse state (position vector, match stack,
+ * match array and end pointer) just before it parses anything, and restores
+ * it whenever the attempt is resumed, so that a resumed attempt sees the
+ * same state that the recursive version would have seen.
+ */
 
-	DEBUG_TEST(0x0010,(sfprintf(sfstdout, "AHA#%04d 0x%04x parserep %s %d %d %d %d `%-.*s'\n", __LINE__, debug_flag, rexname(rex->re.group.expr.rex), rex->re.group.number, rex->lo, n, rex->hi, env->end - s, s)),(0));
+#define REP_START	0	/* fresh iteration			*/
+#define REP_DOWN	1	/* body parse suspended; replay it	*/
+#define REP_FOLLOW1	2	/* MINIMAL early exit follow suspended	*/
+#define REP_FOLLOW3	3	/* trailing follow suspended		*/
+
+/*
+ * One iteration that has already been run for a repetition, and the result it
+ * produced. A repetition with a body that offers a choice can reach the same
+ * rep catcher more than once while parsing its body, each time at a different
+ * string position and each time needing its own iteration, so one result per
+ * catcher is not enough: results are kept per position instead.
+ */
+
+typedef struct Rep_req_s
+{
+	unsigned char*	s;		/* string position the iteration started at	*/
+	int		res;		/* what it returned				*/
+} Rep_req_t;
+
+typedef struct Rep_frame_s
+{
+	Rex_t		catcher;	/* REX_REP_CATCH continuation; must be first,
+					   because catcher addresses identify frames	*/
+	Rex_t*		rex;		/* the repetition being matched			*/
+	Rex_t*		cont;		/* its continuation				*/
+	size_t		parent;		/* frame that asked for this one, or ~0		*/
+	size_t		reqidx;		/* entry in the parent's req[] to fill in	*/
+	unsigned char*	s;		/* string position of this iteration		*/
+	int		n;		/* iteration number				*/
+	int		stage;		/* how far this iteration has got		*/
+	int		r;		/* saved result of the body parse		*/
+	Rep_req_t*	req;		/* iterations already run for this catcher	*/
+	size_t		nreq;		/* number of entries in req[]			*/
+	size_t		reqmax;		/* allocated size of req[]			*/
+	regmatch_t*	match;		/* saved copy of env->match[0..nsub]		*/
+	ssize_t		poscur;		/* saved env->pos->cur				*/
+	Stk_pos_t	mstpos;		/* saved env->mst position			*/
+	unsigned char*	end;		/* saved env->end				*/
+} Rep_frame_t;
+
+/*
+ * save parse state
+ */
+
+static void
+rep_save(Env_t* env, Rep_frame_t* f)
+{
+	if (env->stack)
+	{
+		f->poscur = env->pos->cur;
+		stknew(env->mst, &f->mstpos);
+		f->end = env->end;
+		memcpy(f->match, env->match, (env->nsub + 1) * sizeof(regmatch_t));
+	}
+}
+
+/*
+ * restore parse state: undo everything that the suspended attempt pushed onto it
+ */
+
+static void
+rep_restore(Env_t* env, Rep_frame_t* f)
+{
+	if (env->stack)
+	{
+		env->pos->cur = f->poscur;
+		stkold(env->mst, &f->mstpos);
+		env->end = f->end;
+		memcpy(env->match, f->match, (env->nsub + 1) * sizeof(regmatch_t));
+	}
+}
+
+/*
+ * run one iteration of one repetition, returning SUSPEND if the parse asked
+ * for an iteration that has to be run by the caller (see parserep() below)
+ */
+
+static int
+rep_iterate(Env_t* env, Rep_frame_t* f)
+{
+	Rex_t*		rex = f->rex;
+	Rex_t*		cont = f->cont;
+	Rex_t*		catcher = &f->catcher;
+	unsigned char*	s = f->s;
+	int		n = f->n;
+	int		i;
+	int		r = NONE;
+
+	/* a resumed attempt must first undo what the suspended attempt pushed */
+	if (f->stage != REP_START)
+		rep_restore(env, f);
+	if (f->stage == REP_FOLLOW3)
+	{
+		r = f->r;
+		goto final;
+	}
+	if (f->stage == REP_DOWN)
+		goto descend;
+
 	if ((rex->flags & REG_MINIMAL) && n >= rex->lo && n < rex->hi)
 	{
+		/* minimal repetition: try the continuation before repeating again */
+		rep_save(env, f);
 		if (env->stack && pospush(env, rex, s, END_ANY))
 			return BAD;
 		i = follow(env, rex, cont, s);
-		if (env->stack)
-			pospop(env);
+		if (i == SUSPEND)
+		{
+			f->stage = REP_FOLLOW1;
+			return SUSPEND;
+		}
+		rep_restore(env, f);
 		switch (i)
 		{
 		case BAD:
@@ -419,15 +427,17 @@ parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 			return BEST;
 		}
 	}
+	r = NONE;
 	if (n < rex->hi)
 	{
-		catcher.type = REX_REP_CATCH;
-		catcher.serial = rex->serial;
-		catcher.re.rep_catch.ref = rex;
-		catcher.re.rep_catch.cont = cont;
-		catcher.re.rep_catch.beg = s;
-		catcher.re.rep_catch.n = n + 1;
-		catcher.next = rex->next;
+		catcher->type = REX_REP_CATCH;
+		catcher->serial = rex->serial;
+		catcher->re.rep_catch.ref = rex;
+		catcher->re.rep_catch.cont = cont;
+		catcher->re.rep_catch.beg = s;
+		catcher->re.rep_catch.s = s;
+		catcher->re.rep_catch.n = n + 1;
+		catcher->next = rex->next;
 		if (n == 0)
 			rex->re.rep_catch.beg = s;
 		if (env->stack)
@@ -436,15 +446,18 @@ parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 				return BAD;
 			if (pospush(env, rex, s, BEG_ONE))
 				return BAD;
-DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x PUSH %d   (%z,%z)(%z,%z)(%z,%z) (%z,%z)(%z,%z)(%z,%z)\n", __LINE__, debug_flag, rex->re.group.number, env->best[0].rm_so, env->best[0].rm_eo, env->best[1].rm_so, env->best[1].rm_eo, env->best[2].rm_so, env->best[2].rm_eo, env->match[0].rm_so, env->match[0].rm_eo, env->match[1].rm_so, env->match[1].rm_eo, env->match[2].rm_so, env->match[2].rm_eo)),(0));
 		}
-		r = parse(env, rex->re.group.expr.rex, &catcher, s);
-		DEBUG_TEST(0x0010,(sfprintf(sfstdout, "AHA#%04d 0x%04x parserep parse %d %d `%-.*s'\n", __LINE__, debug_flag, rex->re.group.number, r, env->end - s, s)),(0));
+descend:
+		rep_save(env, f);
+		f->stage = REP_DOWN;
+		r = parse(env, rex->re.group.expr.rex, catcher, s);
+		if (r == SUSPEND)
+			return SUSPEND;
+		rep_restore(env, f);
 		if (env->stack)
 		{
 			pospop(env);
 			matchpop(env, rex);
-DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x POP  %d %d (%z,%z)(%z,%z)(%z,%z) (%z,%z)(%z,%z)(%z,%z)\n", __LINE__, debug_flag, rex->re.group.number, r, env->best[0].rm_so, env->best[0].rm_eo, env->best[1].rm_so, env->best[1].rm_eo, env->best[2].rm_so, env->best[2].rm_eo, env->match[0].rm_so, env->match[0].rm_eo, env->match[1].rm_so, env->match[1].rm_eo, env->match[2].rm_so, env->match[2].rm_eo)),(0));
 		}
 		switch (r)
 		{
@@ -464,13 +477,21 @@ DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x POP  %d %d (%z,%z)(%z,%z)(
 	}
 	if (n < rex->lo)
 		return r;
+	f->r = r;
+final:
 	if (!(rex->flags & REG_MINIMAL) || n >= rex->hi)
 	{
+		/* try to match the continuation */
+		rep_save(env, f);
 		if (env->stack && pospush(env, rex, s, END_ANY))
 			return BAD;
 		i = follow(env, rex, cont, s);
-		if (env->stack)
-			pospop(env);
+		if (i == SUSPEND)
+		{
+			f->stage = REP_FOLLOW3;
+			return SUSPEND;
+		}
+		rep_restore(env, f);
 		switch (i)
 		{
 		case BAD:
@@ -487,6 +508,156 @@ DEBUG_TEST(0x0004,(sfprintf(sfstdout,"AHA#%04d 0x%04x POP  %d %d (%z,%z)(%z,%z)(
 			break;
 		}
 	}
+	return r;
+}
+
+static int
+parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
+{
+	Rep_frame_t**	stack = NULL;
+	Rep_frame_t**	newstack;
+	Rep_frame_t*	f;
+	Rep_frame_t*	fr;
+	Rep_catch_t*	rc;
+	size_t		requester = ~(size_t)0;
+	size_t		reqidx = 0;
+	ssize_t		max = 0;
+	ssize_t		top = 0;
+	ssize_t		i;
+	int		r = BAD;
+	size_t		pidx;
+	size_t		ridx;
+
+	for (;;)
+	{
+		if (top >= max)
+		{
+			ssize_t	oldmax = max;
+			/* grow the stack of pointers to repetition frames, exponentially at first, but limit that */
+			max = !max ? 8 : max < 2048 ? 2 * max : max + 2048;
+			newstack = realloc(stack, (size_t)max * sizeof(Rep_frame_t*));
+			if (!newstack)
+			{
+				env->error = REG_ESPACE;
+				goto done;
+			}
+			stack = newstack;
+			/* init added pointers to NULL */
+			memset(stack + oldmax, 0, (size_t)(max - oldmax) * sizeof(Rep_frame_t*));
+		}
+		if (!stack[top])
+		{
+			f = calloc(1, sizeof(Rep_frame_t));
+			if (!f)
+			{
+				env->error = REG_ESPACE;
+				goto done;
+			}
+			f->rex = rex;
+			f->cont = cont;
+			f->s = s;
+			f->n = n;
+			f->parent = requester;
+			stack[top] = f;
+			if (env->stack && !(f->match = malloc((env->nsub + 1) * sizeof(regmatch_t))))
+			{
+				free(f);
+				stack[top] = NULL;
+				env->error = REG_ESPACE;
+				goto done;
+			}
+			f->reqidx = reqidx;
+		}
+		env->rep_suspended = NULL;
+		r = rep_iterate(env, stack[top]);
+		if (env->rep_suspended)
+		{
+			/*
+			 * Run the iteration that the parse asked for. The catcher that asked
+			 * for it belongs to a frame that is still suspended below us, and
+			 * that frame is the one to resume once it is done. It is usually the
+			 * frame we just ran, but not always: a repetition can ask for another
+			 * iteration from within its trailing continuation, in which case the
+			 * catcher belongs to a frame further down. The catcher is the first
+			 * member of its frame, so its address identifies the frame.
+			 */
+			for (i = top; i >= 0; i--)
+				if (stack[i] == (Rep_frame_t*)env->rep_suspended)
+					break;
+			if (i < 0)
+			{
+				/*
+				 * The catcher belongs to an enclosing repetition, reached
+				 * from within the body of the one we are parsing. Only the
+				 * enclosing parserep() can run that iteration, so drop our
+				 * frames and let SUSPEND travel up to it and restore state.
+				 */
+				r = SUSPEND;
+				goto done;
+			}
+			fr = (Rep_frame_t*)env->rep_suspended;
+			rc = &fr->catcher.re.rep_catch;
+			/*
+			 * Record the request, so that a later visit to this catcher at
+			 * the same position can be answered from it.
+			 */
+			if (fr->nreq >= fr->reqmax)
+			{
+				size_t	oldmax = fr->reqmax;
+				Rep_req_t*	newreq;
+
+				if (!(newreq = realloc(fr->req, (fr->reqmax = oldmax ? 2 * oldmax : 4) * sizeof(Rep_req_t))))
+				{
+					env->error = REG_ESPACE;
+					r = BAD;
+					goto done;
+				}
+				fr->req = newreq;
+			}
+			fr->req[fr->nreq].s = s = rc->s;
+			fr->req[fr->nreq].res = NONE;
+			reqidx = fr->nreq++;
+			rex = rc->ref;
+			cont = rc->cont;
+			n = rc->n;
+			requester = (size_t)i;
+			top++;
+			continue;
+		}
+
+		pidx = stack[top]->parent;
+		ridx = stack[top]->reqidx;
+
+		if (pidx == ~(size_t)0)
+			goto done;
+		/*
+		 * This iteration is finished; return its result to the catcher that asked for
+		 * it, then discard every frame above the one to resume. The frame to resume
+		 * is identified by the frame that just finished, not by whatever was pushed
+		 * most recently, which may have been a different branch of the search.
+		 */
+		i = (ssize_t)pidx;
+		while (top > i)
+		{
+			free(stack[top]->match);
+			free(stack[top]->req);
+			free(stack[top]);
+			stack[top] = NULL;
+			top--;
+		}
+		stack[top]->req[ridx].res = r;
+	}
+ done:
+	for (i = 0; stack && i < max; i++)
+	{
+		if (stack[i])
+		{
+			free(stack[i]->match);
+			free(stack[i]->req);
+			free(stack[i]);
+		}
+	}
+	free(stack);
 	return r;
 }
 
@@ -537,6 +708,8 @@ parsetrie(Env_t* env, Trie_node_t* x, Rex_t* rex, Rex_t* cont, unsigned char* s)
 		case BEST:
 		case GOOD:
 			return BEST;
+		case SUSPEND:
+			return SUSPEND;
 		}
 	if (x->son)
 		switch (parsetrie(env, x->son, rex, cont, s))
@@ -552,6 +725,8 @@ parsetrie(Env_t* env, Trie_node_t* x, Rex_t* rex, Rex_t* cont, unsigned char* s)
 				return BEST;
 			r = GOOD;
 			break;
+		case SUSPEND:
+			return SUSPEND;
 		default:
 			r = NONE;
 			break;
@@ -569,6 +744,8 @@ parsetrie(Env_t* env, Trie_node_t* x, Rex_t* rex, Rex_t* cont, unsigned char* s)
 			return BEST;
 		case GOOD:
 			return GOOD;
+		case SUSPEND:
+			return SUSPEND;
 	}
 	return r;
 }
@@ -815,7 +992,6 @@ parse(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s)
 
 	for (;;)
 	{
-DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LINE__, debug_flag, rexname(rex), env->end - s, s)),(0));
 		switch (rex->type)
 		{
 		case REX_ALT:
@@ -830,11 +1006,15 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 				catcher.re.alt_catch.cont = cont;
 				catcher.next = rex->next;
 				r = parse(env, rex->re.group.expr.binary.left, &catcher, s);
+				if (r == SUSPEND)
+					return SUSPEND;
 				if (r < BEST || (rex->flags & REG_MINIMAL))
 				{
 					matchcopy(env, rex);
 					((Pos_t*)env->pos->vec + env->pos->cur - 1)->serial = catcher.serial = rex->re.group.expr.binary.serial;
 					n = parse(env, rex->re.group.expr.binary.right, &catcher, s);
+					if (n == SUSPEND)
+						return SUSPEND;
 					if (n != NONE)
 						r = (int)n;
 				}
@@ -843,8 +1023,15 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			}
 			else
 			{
-				if ((r = parse(env, rex->re.group.expr.binary.left, cont, s)) == NONE)
+				r = parse(env, rex->re.group.expr.binary.left, cont, s);
+				if (r == SUSPEND)
+					return SUSPEND;
+				if (r == NONE)
+				{
 					r = parse(env, rex->re.group.expr.binary.right, cont, s);
+					if (r == SUSPEND)
+						return SUSPEND;
+				}
 				if (r == GOOD)
 					r = BEST;
 			}
@@ -853,6 +1040,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			if (pospush(env, rex, s, END_ANY))
 				return BAD;
 			r = follow(env, rex, rex->re.alt_catch.cont, s);
+			if (r == SUSPEND)
+				return SUSPEND;
 			pospop(env);
 			return r;
 		case REX_BACK:
@@ -922,6 +1111,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 					case GOOD:
 						r = GOOD;
 						break;
+					case SUSPEND:
+						return SUSPEND;
 					}
 			}
 			else
@@ -941,6 +1132,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 					case BEST:
 					case GOOD:
 						return BEST;
+					case SUSPEND:
+						return SUSPEND;
 					}
 					if (s >= e || !settst(rex->re.charclass, *s))
 						break;
@@ -987,6 +1180,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 					case GOOD:
 						r = GOOD;
 						break;
+					case SUSPEND:
+						return SUSPEND;
 					}
 				stkpop(env->mst);
 			}
@@ -1007,6 +1202,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 					case BEST:
 					case GOOD:
 						return BEST;
+					case SUSPEND:
+						return SUSPEND;
 					}
 					if (s >= e || !collmatch(rex, s, e, &s))
 						break;
@@ -1041,7 +1238,6 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 				return BEST;
 			n = s - env->beg;
 			r = (int)env->nsub;
-			DEBUG_TEST(0x0100,(sfprintf(sfstdout,"AHA#%04d 0x%04x %s (%z,%z)(%z,%z)(%z,%z)(%z,%z) (%z,%z)(%z,%z)\n", __LINE__, debug_flag, rexname(rex), env->best[0].rm_so, env->best[0].rm_eo, env->best[1].rm_so, env->best[1].rm_eo, env->best[2].rm_so, env->best[2].rm_eo, env->best[3].rm_so, env->best[3].rm_eo, env->match[0].rm_so, env->match[0].rm_eo, env->match[1].rm_so, env->match[1].rm_eo)),(0));
 			if ((rf = env->best[0].rm_eo) >= 0)
 			{
 				if (rex->flags & REG_MINIMAL)
@@ -1073,7 +1269,6 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 			}
 			env->bestpos->cur = cur_save;
 			memcpy(env->bestpos->vec, env->pos->vec, (size_t)cur_save * sizeof(Pos_t));
-			DEBUG_TEST(0x0100,(sfprintf(sfstdout,"AHA#%04d 0x%04x %s (%z,%z)(%z,%z)(%z,%z)(%z,%z) (%z,%z)(%z,%z)\n", __LINE__, debug_flag, rexname(rex), env->best[0].rm_so, env->best[0].rm_eo, env->best[1].rm_so, env->best[1].rm_eo, env->best[2].rm_so, env->best[2].rm_eo, env->best[3].rm_so, env->best[3].rm_eo, env->match[0].rm_so, env->match[0].rm_eo, env->match[1].rm_so, env->match[1].rm_eo)),(0));
 			return GOOD;
 		}
 		case REX_DOT:
@@ -1112,6 +1307,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 						case GOOD:
 							r = GOOD;
 							break;
+						case SUSPEND:
+							return SUSPEND;
 						}
 				}
 				else
@@ -1140,6 +1337,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 						case GOOD:
 							r = GOOD;
 							break;
+						case SUSPEND:
+							return SUSPEND;
 						}
 					stkpop(env->mst);
 				}
@@ -1159,6 +1358,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 						case BEST:
 						case GOOD:
 							return BEST;
+						case SUSPEND:
+							return SUSPEND;
 						}
 				}
 				else
@@ -1178,6 +1379,8 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 							case BEST:
 							case GOOD:
 								return BEST;
+							case SUSPEND:
+								return SUSPEND;
 							}
 				}
 			}
@@ -1187,7 +1390,6 @@ DEBUG_TEST(0x0008,(sfprintf(sfstdout, "AHA#%04d 0x%04x parse %s `%-.*s'\n", __LI
 				return NONE;
 			break;
 		case REX_GROUP:
-DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s `%-.*s'\n", __LINE__, debug_flag, rexname(rex), env->end - s, s)),(0));
 			if (env->stack)
 			{
 				if (rex->re.group.number)
@@ -1201,6 +1403,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s `%-.*s'\n", __LIN
 			catcher.re.group_catch.cont = cont;
 			catcher.next = rex->next;
 			r = parse(env, rex->re.group.expr.rex, &catcher, s);
+			if (r == SUSPEND)
+				return SUSPEND;
 			if (env->stack)
 			{
 				pospop(env);
@@ -1209,7 +1413,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s `%-.*s'\n", __LIN
 			}
 			return r;
 		case REX_GROUP_CATCH:
-DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", __LINE__, debug_flag, rexname(rex), rexname(rex->re.group_catch.cont), env->end - s, s)),(0));
 			if (env->stack)
 			{
 				if (rex->re.group_catch.eo)
@@ -1218,6 +1421,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 					return BAD;
 			}
 			r = follow(env, rex, rex->re.group_catch.cont, s);
+			if (r == SUSPEND)
+				return SUSPEND;
 			if (env->stack)
 			{
 				pospop(env);
@@ -1237,8 +1442,14 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 			return follow(env, rex, rex->re.rep_catch.cont, rex->re.rep_catch.beg);
 		case REX_GROUP_AHEAD_NOT:
 			r = parse(env, rex->re.group.expr.rex, NULL, s);
+			if (r == SUSPEND)
+				return SUSPEND;
 			if (r == NONE)
+			{
 				r = follow(env, rex, cont, s);
+				if (r == SUSPEND)
+					return SUSPEND;
+			}
 			else if (r != BAD)
 				r = NONE;
 			return r;
@@ -1256,6 +1467,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 			{
 				env->end = s;
 				r = parse(env, rex->re.group.expr.rex, &catcher, t);
+				if (r == SUSPEND)
+					return SUSPEND;
 				env->end = e;
 				if (r != NONE)
 					return r;
@@ -1279,13 +1492,19 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				for (t = s - rex->re.group.size; t >= env->beg; t--)
 				{
 					r = parse(env, rex->re.group.expr.rex, &catcher, t);
+					if (r == SUSPEND)
+						return SUSPEND;
 					if (r != NONE)
 						break;
 				}
 				env->end = e;
 			}
 			if (r == NONE)
+			{
 				r = follow(env, rex, cont, s);
+				if (r == SUSPEND)
+					return SUSPEND;
+			}
 			else if (r != BAD)
 				r = NONE;
 			return r;
@@ -1309,6 +1528,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				catcher.re.cond_catch.cont = cont;
 				catcher.next = rex->next;
 				r = parse(env, q, &catcher, s);
+				if (r == SUSPEND)
+					return SUSPEND;
 				if (r == BAD || catcher.re.cond_catch.yes)
 					return r;
 			}
@@ -1352,6 +1573,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 			case NONE:
 				r = CUT;
 				break;
+			case SUSPEND:
+				return SUSPEND;
 			}
 			return r;
 		case REX_NEG:
@@ -1365,9 +1588,10 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				return BAD;
 			memset(catcher.re.neg_catch.index = p, 0, (size_t)n);
 			catcher.next = rex->next;
-			if (parse(env, rex->re.group.expr.rex, &catcher, s) == BAD)
-				r = BAD;
-			else
+			r = parse(env, rex->re.group.expr.rex, &catcher, s);
+			if (r == SUSPEND)
+				return SUSPEND;
+			if (r != BAD)
 			{
 				r = NONE;
 				for (; j >= 0; j--)
@@ -1387,6 +1611,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						case GOOD:
 							r = GOOD;
 							/* FALLTHROUGH */
+						case SUSPEND:
+							return SUSPEND;
 						default:
 							continue;
 						}
@@ -1457,6 +1683,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						case GOOD:
 							r = GOOD;
 							break;
+						case SUSPEND:
+							return SUSPEND;
 						}
 				}
 				else
@@ -1502,6 +1730,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 						case GOOD:
 							r = GOOD;
 							break;
+						case SUSPEND:
+							return SUSPEND;
 						}
 					stkpop(env->mst);
 				}
@@ -1528,6 +1758,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							case BEST:
 							case GOOD:
 								return BEST;
+							case SUSPEND:
+								return SUSPEND;
 							}
 							if (s >= e || p[*s++] != c)
 								break;
@@ -1550,6 +1782,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							case BEST:
 							case GOOD:
 								return BEST;
+							case SUSPEND:
+								return SUSPEND;
 							}
 							if (s >= e || *s++ != c)
 								break;
@@ -1579,6 +1813,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							case BEST:
 							case GOOD:
 								return BEST;
+							case SUSPEND:
+								return SUSPEND;
 							}
 							if (s >= e)
 								break;
@@ -1605,6 +1841,8 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 							case BEST:
 							case GOOD:
 								return BEST;
+							case SUSPEND:
+								return SUSPEND;
 							}
 							if (s >= e)
 								break;
@@ -1619,11 +1857,12 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 			if (env->stack && pospush(env, rex, s, BEG_REP))
 				return BAD;
 			r = parserep(env, rex, cont, s, 0);
+			if (r == SUSPEND)
+				return SUSPEND;
 			if (env->stack)
 				pospop(env);
 			return r;
 		case REX_REP_CATCH:
-			DEBUG_TEST(0x0020,(sfprintf(sfstdout, "AHA#%04d 0x%04x %s n %d len %d s `%-.*s'\n", __LINE__, debug_flag, rexname(rex), rex->re.rep_catch.n, s - rex->re.rep_catch.beg, env->end - s, s)),(0));
 			if (env->stack && pospush(env, rex, s, END_ANY))
 				return BAD;
 			if (s == rex->re.rep_catch.beg && rex->re.rep_catch.n > rex->re.rep_catch.ref->lo)
@@ -1632,7 +1871,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s=>%s `%-.*s'\n", _
 				 * optional empty iteration
 				 */
 
-DEBUG_TEST(0x0002,(sfprintf(sfstdout, "AHA#%04d %p re.group.back=%d re.group.expr.rex=%s\n", __LINE__, rex->re.rep_catch.ref->re.group.expr.rex, rex->re.rep_catch.ref->re.group.expr.rex->re.group.back, rexname(rex->re.rep_catch.ref->re.group.expr.rex))),(0));
 				if (!env->stack || s != rex->re.rep_catch.ref->re.rep_catch.beg && !rex->re.rep_catch.ref->re.group.expr.rex->re.group.back)
 					r = NONE;
 				else if (pospush(env, rex, s, END_ANY))
@@ -1640,16 +1878,37 @@ DEBUG_TEST(0x0002,(sfprintf(sfstdout, "AHA#%04d %p re.group.back=%d re.group.exp
 				else
 				{
 					r = follow(env, rex, rex->re.rep_catch.cont, s);
+					if (r == SUSPEND)
+						return SUSPEND;
 					pospop(env);
 				}
 			}
 			else
-				r = parserep(env, rex->re.rep_catch.ref, rex->re.rep_catch.cont, s, rex->re.rep_catch.n);
+			{
+				/*
+				 * If this catcher has already been run for this position,
+				 * return that result. Otherwise, ask parserep() to run the
+				 * iteration; it will come back here with the result recorded.
+				 */
+				Rep_frame_t*	fr = (Rep_frame_t*)rex;
+				size_t		k;
+
+				for (k = 0; k < fr->nreq; k++)
+					if (fr->req[k].s == s)
+						break;
+				if (k < fr->nreq)
+					r = fr->req[k].res;
+				else
+				{
+					rex->re.rep_catch.s = s;
+					env->rep_suspended = rex;
+					return SUSPEND;
+				}
+			}
 			if (env->stack)
 				pospop(env);
 			return r;
 		case REX_STRING:
-DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s \"%-.*s\" `%-.*s'\n", __LINE__, debug_flag, rexname(rex), rex->re.string.size, rex->re.string.base, env->end - s, s)),(0));
 			if (rex->re.string.size > (size_t)(env->end - s))
 				return NONE;
 			t = rex->re.string.base;
@@ -1738,53 +1997,6 @@ DEBUG_TEST(0x0200,(sfprintf(sfstdout,"AHA#%04d 0x%04x parse %s \"%-.*s\" `%-.*s'
 	return GOOD;
 }
 
-#if _AST_REGEX_DEBUG
-
-static void
-listnode(Rex_t* e, int level)
-{
-	int	i;
-
-	if (e)
-	{
-		do
-		{
-			for (i = 0; i < level; i++)
-				sfprintf(sfstderr, "  ");
-			sfprintf(sfstderr, "%s\n", rexname(e));
-			switch (e->type)
-			{
-			case REX_ALT:
-			case REX_CONJ:
-				listnode(e->re.group.expr.binary.left, level + 1);
-				listnode(e->re.group.expr.binary.right, level + 1);
-				break;
-			case REX_GROUP:
-			case REX_GROUP_AHEAD:
-			case REX_GROUP_AHEAD_NOT:
-			case REX_GROUP_BEHIND:
-			case REX_GROUP_BEHIND_NOT:
-			case REX_GROUP_CUT:
-			case REX_NEG:
-			case REX_REP:
-				listnode(e->re.group.expr.rex, level + 1);
-				break;
-			}
-		} while (e = e->next);
-	}
-}
-
-static int
-list(Env_t* env, Rex_t* rex)
-{
-	sfprintf(sfstderr, "AHA regex hard=%d stack=%p\n", env->hard, env->stack);
-	if (rex)
-		listnode(rex, 1);
-	return 0;
-}
-
-#endif
-
 /*
  * returning REG_BADPAT or REG_ESPACE is not explicitly
  * countenanced by the standard
@@ -1801,17 +2013,12 @@ regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, re
 	int		advance;
 	Env_t*		env;
 
-	DEBUG_INIT();
-	DEBUG_TEST(0x0001,(sfprintf(sfstdout, "AHA#%04d 0x%04x regnexec %d 0x%08x `%-.*s'\n", __LINE__, debug_flag, nmatch, flags, len, s)),(0));
 	if (!p || !(env = p->env))
 		return REG_BADPAT;
 	if (!s)
 		return fatal(env->disc, REG_BADPAT, NULL);
 	if (len < env->min)
-	{
-		DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d REG_NOMATCH %d %d\n", __LINE__, len, env->min)),(0));
 		return REG_NOMATCH;
-	}
 	env->regex = p;
 	env->beg = (unsigned char*)s;
 	env->end = env->beg + len;
@@ -1838,10 +2045,8 @@ regnexec_20120528(const regex_t* p, const char* s, size_t len, size_t nmatch, re
 		if (flags & REG_ADVANCE)
 			advance = 1;
 	}
-	DEBUG_TEST(0x1000,(list(env,env->rex)),(0));
 	k = REG_NOMATCH;
 	j = env->once || (flags & REG_LEFT);
-	DEBUG_TEST(0x0080,(sfprintf(sfstdout, "AHA#%04d parse once=%zu\n", __LINE__, j)),(0));
 	while ((i = parse(env, env->rex, &env->done, (unsigned char*)s)) == NONE || advance && !env->best[0].rm_eo && !(advance = 0))
 	{
 		if (j)

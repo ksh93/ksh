@@ -65,10 +65,6 @@ typedef struct regsubop_s
 
 #include <ctype.h>
 
-#if _BLD_DEBUG && !defined(_AST_REGEX_DEBUG)
-#define _AST_REGEX_DEBUG	1
-#endif
-
 #if AST_NOMULTIBYTE
 #define MBSIZE(p)	((p),1)
 #else
@@ -447,6 +443,7 @@ typedef struct Rep_catch_s
 	struct Rex_s*	cont;
 	struct Rex_s*	ref;
 	unsigned char*	beg;
+	unsigned char*	s;		/* string position to resume at	*/
 	int		n;
 } Rep_catch_t;
 
@@ -521,6 +518,7 @@ typedef struct reglib_s			/* library private regex_t info	*/
 	unsigned char*	end;		/* end of string		*/
 	Vector_t*	pos;		/* posns of certain subpatterns	*/
 	Vector_t*	bestpos;	/* ditto for best match		*/
+	Rex_t*		rep_suspended;	/* rep catcher awaiting iterat.	*/
 	regmatch_t*	match;		/* subexrs in current match 	*/
 	regmatch_t*	best;		/* ditto in best match yet	*/
 	Stk_t*		mst;		/* match stack			*/
