@@ -684,4 +684,17 @@ unset e t
 [[ $'hello\r\n' =~ o\r?\n ]] || err_exit 'short match'
 
 # ======
+# A repetition operator that matches a large number of elements used to
+# overflow the C stack in the regex execution engine. A repetition's state
+# is now kept on a heap stack instead, which can grow without limit.
+# 2^17 == 131072 iterations, which is more than enough to smash the C stack.
+# https://github.com/ksh93/ksh/issues/207
+for op in '+(a)' '*(a|b)' '~(E)^a*$' '~(E)^(a)*$' '~(E)^(a|ab)*$'
+do	"$SHELL" -c "typeset a=a; for((i=0;i<17;i++)); do a=\$a\$a; done; [[ \$a == $op ]]"
+	[[ e=$? -eq 0 ]] || err_exit "[[ \$a == $op ]] for 128 KiB repeating \$a" \
+		"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+unset a op
+
+# ======
 exit $((Errors<125?Errors:125))

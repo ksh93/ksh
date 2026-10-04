@@ -31,23 +31,6 @@
 #define C_ESC			(-1)
 #define C_MB			(-2)
 
-#if _AST_REGEX_DEBUG
-
-#define DEBUG_TEST(f,y,n)	((debug&(debug_flag=f))?(y):(n))
-#define DEBUG_CODE(f,y,n)	do if(debug&(f)){y}else{n} while(0)
-#define DEBUG_INIT()		do { char* t; if (!debug) { debug = 0x80000000; if (t = getenv("_AST_regex_comp_debug")) debug |= strtoul(t, NULL, 0); } } while (0)
-
-static unsigned long	debug;
-static unsigned long	debug_flag;
-
-#else
-
-#define DEBUG_INIT()
-#define DEBUG_TEST(f,y,n)	(n)
-#define DEBUG_CODE(f,y,n)	do {n} while(0)
-
-#endif
-
 typedef struct Cchr_s
 {
 	Dtlink_t	lnk;
@@ -137,7 +120,6 @@ node(Cenv_t* env, unsigned char type, ptrdiff_t lo, ptrdiff_t hi, size_t extra)
 {
 	Rex_t*	e;
 
-	DEBUG_TEST(0x0800,(sfprintf(sfstdout, "node(%u,%td,%td,%zu)\n", (unsigned int)type, lo, hi, sizeof(Rex_t) + extra)),(0));
 	if (e = (Rex_t*)alloc(env->disc, NULL, sizeof(Rex_t) + extra))
 	{
 		memset(e, 0, sizeof(Rex_t) + extra);
