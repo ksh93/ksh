@@ -1468,5 +1468,17 @@ w echo OK
 u ^OK
 !
 
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L prompt width with CSI intermediate bytes
+
+d 40
+p :test-1:
+w COLUMNS=20 PS1=$':child\\E[ q\\E[6 q: ' "$SHELL" +o multiline
+p :child
+c : abcdefg
+w
+r ^:child.*: : abcdefg\r\n$
+!
+
 # ======
 exit $((Errors<125?Errors:125))
