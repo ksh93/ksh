@@ -289,8 +289,8 @@ static int		parse(Env_t*, Rex_t*, Rex_t*, unsigned char*);
 
 /*
  * Matching a repetition means parsing its body over and over again, handing
- * control to the continuation after each iteration. Doing that by calling
- * parserep() recursively grows the C stack per iteration, which overflows if
+ * control to the continuation after each iteration. If we do this by calling
+ * parserep() recursively, the C stack grows per iteration, which overflows if
  * there are too many matching elements: crash. Instead, the recursion is now
  * emulated with a stack of Rep_frame_t on the heap, which has no such limit.
  *
@@ -661,6 +661,333 @@ parserep(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
 	return r;
 }
 
+/*
+ * number of subexpression records that a repetition's iterations update
+ */
+
+static size_t
+repgroups(Env_t* env, Rex_t* rex)
+{
+	if (!env->stack || rex->re.group.number <= 0 || rex->re.group.last < rex->re.group.number)
+		return 0;
+	return (size_t)(rex->re.group.last - rex->re.group.number + 1);
+}
+
+/*
+ * grow the stop point arrays of parserep_fixedlength()
+ * so that entry npos fits in both of them
+ */
+
+static int
+repgrow(unsigned char*** posp, regmatch_t** snapp, size_t ng, size_t* posmaxp)
+{
+	unsigned char**	pos = *posp;
+	size_t		posmax = *posmaxp;
+	regmatch_t*	snap = *snapp;
+
+	/* grow exponentially at first, but limit that */
+	posmax = !posmax ? 16 : posmax < 2048 ? 2 * posmax : posmax + 2048;
+	if (ng && !(snap = realloc(snap, posmax * ng * sizeof(regmatch_t))))
+		return -1;
+	if (!(pos = realloc(pos, posmax * sizeof(unsigned char**))))
+		return -1;
+
+	*posp = pos;
+	*posmaxp = posmax;
+	*snapp = snap;
+	return 0;
+}
+
+/*
+ * rep_hasfixedlength() tells whether a repetition body always matches the same
+ * number of characters, no matter where it starts and no matter what follows
+ * it. Only then does the body reach its continuation at one unique position
+ * per iteration, which is what parserep_fixedlength() below is built on.
+ *
+ * It decides this by computing the body's match length where it can:
+ * rep_length() returns the number of characters (>= 0) that the node always
+ * matches, or -1 if it can match a variable number. Zero-width assertions
+ * match nothing, a concatenation is the sum of its parts, an alternation is
+ * fixed-length only if all of its branches agree, and a group matches as much
+ * as what it encloses. This is deliberately conservative: anything not
+ * recognised here, such as a nested repetition, a back-reference or a nested
+ * match, yields -1 so the general algorithm is used instead.
+ */
+
+static ptrdiff_t	rep_length(Rex_t* e);	/* forward */
+
+static ptrdiff_t
+rep_length_alt(Rex_t* e)	/* both branches must have one length */
+{
+	ptrdiff_t	l;
+	ptrdiff_t	r;
+
+	if (!(e->re.group.expr.binary.left && e->re.group.expr.binary.right))
+		return -1; 	/* e.g., missing branch of a conditional */
+	l = rep_length(e->re.group.expr.binary.left);
+	if (l < 0)
+		return -1;
+	r = rep_length(e->re.group.expr.binary.right);
+	return r == l ? l : -1;
+}
+
+static ptrdiff_t
+rep_length(Rex_t* e)
+{
+	ptrdiff_t	n;
+	ptrdiff_t	m;
+
+	n = 0;
+	for (; e; e = e->next)
+	{
+		switch (e->type)
+		{
+		case REX_NULL:
+		case REX_BEG:
+		case REX_END:
+		case REX_BEG_STR:
+		case REX_END_STR:
+		case REX_FIN_STR:
+		case REX_WBEG:
+		case REX_WEND:
+		case REX_WORD:
+		case REX_WORD_NOT:
+			continue;		/* zero-width assertions */
+		case REX_STRING:
+			n += (ptrdiff_t)e->re.string.size;
+			continue;
+		case REX_ONECHAR:
+		case REX_DOT:
+		case REX_CLASS:
+		case REX_COLL_CLASS:
+			if (e->lo != e->hi)
+				return -1;	/* variable repetition count */
+			n += e->lo;
+			continue;
+		case REX_GROUP:
+			/*
+			 * A plain group's repetition counts are 0, meaning "match this once".
+			 * Real repetition counts are only left on a plain group if rep() in
+			 * regcomp.c rewrites a negated body into a group, and usch a body
+			 * does not have a fixed length anyway.
+			 */
+			if (e->lo != e->hi)
+				return -1;
+			m = rep_length(e->re.group.expr.rex);
+			if (m < 0)
+				return -1;
+			n += m * (e->lo ? e->lo : 1);
+			continue;
+		case REX_ALT:
+			if ((m = rep_length_alt(e)) < 0)
+				return -1;
+			n += m;
+			continue;
+		case REX_TRIE:
+			if (e->re.trie.min != e->re.trie.max)
+				return -1;	/* words of unequal length */
+			n += e->re.trie.min;
+			continue;
+		default:
+			return -1;		/* nested repetition, back-reference, ... */
+		}
+		UNREACHABLE();
+	}
+	return n;
+}
+
+static int
+rep_hasfixedlength(Rex_t* e)
+{
+	return rep_length(e) >= 0;
+}
+
+/*
+ * parserep_fixedlength() matches a repetition whose body always matches the
+ * same number of characters (fixed match length), i.e., one that reaches its
+ * continuation at a unique position per iteration, as determined by
+ * rep_hasfixedlength(). In such cases, the whole frame stack used by
+ * parserep() is skipped; instead, this function first matches such a body one
+ * iteration at a time in a plain loop, and only afterwards it tries the
+ * continuation at each of the positions it recorded. This is much faster.
+ *
+ * Each such iteration gets a REX_REP_SCAN continuation that records where that
+ * iteration ended and, while the body's group catchers still have it live,
+ * snapshots the submatch state. The stop points are indexed by iteration
+ * count: entry k holds the end of the subject after k iterations, along with
+ * the submatch state there.
+ *
+ * The continuation is tried at each recorded stop point, with that count's
+ * submatch state restored, largest count first for a greedy repetition and
+ * smallest count first for a minimal one: the same order, over the same
+ * counts, and with the same submatch state, that parserep() would have used.
+ *
+ * As rep_hasfixedlength() rejects a body with a nested repetition, the body
+ * parse below can never ask for another iteration, so never needs to suspend.
+ *
+ * NOTE: repetition bodies that can reach their continuation at more than one
+ * position per iteration, such as an alternation whose branches differ in
+ * length, continue to need the slower and more general parserep() function.
+ * Picking between those positions means evaluating the continuation and
+ * ranking the results, which is what better() is for.
+ */
+
+static int
+parserep_fixedlength(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int n)
+{
+	Rex_t		catcher;
+	unsigned char**	pos = NULL;		/* end of subject per count	*/
+	regmatch_t*	snap = NULL;		/* submatch state per count	*/
+	size_t		npos = 0;		/* stop points recorded so far	*/
+	size_t		posmax = 0;		/* stop points allocated	*/
+	size_t		ng = repgroups(env, rex);
+	unsigned char*	cur = s;		/* end of the last iteration	*/
+	int		count = n;		/* iterations matched so far	*/
+	int		lo = (int)rex->lo;
+	int		hi = rex->hi > RE_DUP_MAX ? RE_DUP_INF : (int)rex->hi;
+	int		i;
+	int		r;
+	int		minimal;
+	ssize_t		k;
+	ssize_t		kend;
+	ssize_t		kstep;
+
+	if (repgrow(&pos, &snap, ng, &posmax) != 0)
+		goto nomem;
+	pos[npos] = cur;	/* no iteration has run yet */
+	if (ng)
+		memcpy(&snap[npos * ng], &env->match[rex->re.group.number], ng * sizeof(regmatch_t));
+	npos++;
+
+	for (;;)
+	{
+		if (count >= hi)
+			break;	/* pos[count] was recorded below */
+		/*
+		 * The iteration below, if it matches, ends at the stop point for count + 1,
+		 * so leave room for that entry in both arrays; the scan catcher fills in
+		 * its submatch state and the loop fills in its position.
+		 */
+		if (npos >= posmax && repgrow(&pos, &snap, ng, &posmax) != 0)
+			goto nomem;
+
+		/* match one more iteration */
+		catcher.type = REX_REP_SCAN;
+		catcher.serial = rex->serial;
+		catcher.re.rep_catch.ref = rex;
+		catcher.re.rep_catch.cont = cont;
+		catcher.re.rep_catch.beg = cur;
+		catcher.re.rep_catch.end = 0;
+		catcher.re.rep_catch.n = count + 1;
+		catcher.re.rep_catch.snap = ng ? &snap[npos * ng] : NULL;
+		catcher.next = rex->next;
+		if (count == n)
+			rex->re.rep_catch.beg = cur;
+		if (env->stack)
+		{
+			if (matchpush(env, rex))
+			{
+				r = BAD;
+				goto done;
+			}
+			if (pospush(env, rex, cur, BEG_ONE))
+			{
+				r = BAD;
+				goto done;
+			}
+		}
+		i = parse(env, rex->re.group.expr.rex, &catcher, cur);
+		/* only a repetition body can ask for another iteration, and rep_hasfixedlength() rejects those */
+		assert(i != SUSPEND);
+		if (env->stack)
+		{
+			pospop(env);
+			matchpop(env, rex);
+		}
+		if (i == BAD)
+		{
+			r = BAD;
+			goto done;
+		}
+		if (i != GOOD && i != BEST)
+			break;	/* body did not match */
+		/*
+		 * GOOD or BEST: one iteration completed. (In minimal mode, the body's own
+		 * matchers may have upgraded the scan catcher's GOOD to BEST; this only means
+		 * the iteration matched, not that the repetition is done, so take both.)
+		 */
+		cur = catcher.re.rep_catch.end;
+		count++;
+		pos[npos++] = cur;
+		if (cur == catcher.re.rep_catch.beg && count > lo)
+			break;	/* empty iteration: stop */
+	}
+
+	if (count < lo)
+	{
+		r = NONE;	/* body did not match often enough */
+		goto done;
+	}
+
+	/*
+	 * Retry the continuation at each recorded stop point. Greedy repetitions
+	 * try the largest count (longest match) first; minimal (REG_MINIMAL)
+	 * ones try the smallest count first, where an early match is unbeatable.
+	 */
+	minimal = (rex->flags & REG_MINIMAL) != 0;
+	k = minimal ? lo : count;
+	kend = minimal ? count + 1 : lo - 1;
+	kstep = minimal ? 1 : -1;
+	for (; k != kend; k += kstep)
+	{
+		cur = pos[k];
+		if (ng)
+			memcpy(&env->match[rex->re.group.number], &snap[k * ng], ng * sizeof(regmatch_t));
+		if (env->stack && pospush(env, rex, cur, END_ANY))
+		{
+			r = BAD;
+			goto done;
+		}
+		i = follow(env, rex, cont, cur);
+		if (i == SUSPEND)
+		{
+			/*
+			 * The continuation asked for an iteration of a repetition enclosing this
+			 * one. Leave the parse state alone like rep_iterate() does, so that the
+			 * frame that called us can run that iteration and replay this one.
+			 */
+			r = SUSPEND;
+			goto done;
+		}
+		if (env->stack)
+			pospop(env);
+		switch (i)
+		{
+		case BAD:
+			r = BAD;
+			goto done;
+		case CUT:
+			r = CUT;
+			goto done;
+		case BEST:
+			r = BEST;
+			goto done;
+		case GOOD:
+			r = minimal ? BEST : GOOD;
+			goto done;
+		}
+	}
+	r = NONE;
+	goto done;
+ nomem:
+	env->error = REG_ESPACE;
+	r = BAD;
+ done:
+	free(pos);
+	free(snap);
+	return r;
+}
+
 static int
 parsetrie(Env_t* env, Trie_node_t* x, Rex_t* rex, Rex_t* cont, unsigned char* s)
 {
@@ -989,6 +1316,7 @@ parse(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s)
 	ssize_t		cur_save;
 	regoff_t	rf;
 	ptrdiff_t	j;
+	size_t		ng;
 
 	for (;;)
 	{
@@ -1856,7 +2184,10 @@ parse(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s)
 		case REX_REP:
 			if (env->stack && pospush(env, rex, s, BEG_REP))
 				return BAD;
-			r = parserep(env, rex, cont, s, 0);
+			if (rep_hasfixedlength(rex->re.group.expr.rex))
+				r = parserep_fixedlength(env, rex, cont, s, 0);
+			else
+				r = parserep(env, rex, cont, s, 0);
 			if (r == SUSPEND)
 				return SUSPEND;
 			if (env->stack)
@@ -1908,6 +2239,17 @@ parse(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s)
 			if (env->stack)
 				pospop(env);
 			return r;
+		case REX_REP_SCAN:
+			/*
+			 * One iteration of a fixed-length repetition body completed here.
+			 * Record where it ended and take a snapsot of that state before the
+			 * body's group catchers undo the submatch state on their way out,
+			 * then report success to the iteration loop in parserep_fixedlength().
+			 */
+			rex->re.rep_catch.end = s;
+			if (rex->re.rep_catch.snap && (ng = repgroups(env, rex->re.rep_catch.ref)))
+				memcpy(rex->re.rep_catch.snap, &env->match[rex->re.rep_catch.ref->re.group.number], ng * sizeof(regmatch_t));
+			return GOOD;
 		case REX_STRING:
 			if (rex->re.string.size > (size_t)(env->end - s))
 				return NONE;
