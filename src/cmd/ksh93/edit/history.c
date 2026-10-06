@@ -1207,17 +1207,24 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 			hp->histlockfd = -1;
 			hp->histlockcnt = 0;
 		}
-		sh_close(oldfd);
-		if((newfd=sh_open(hp->histname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
+		/*
+		 * Do NOT call sh_close, sh_open, or sh_fcntl below; we'll either end up with the
+		 * same file descriptor again or fail, so ksh's file descriptor bookkeeping should
+		 * be left untouched. Calling sh_close(oldfd) would also free the very Sfio stream
+		 * for which this is the exception handler, which would crash the shell.
+		 */
+		close(oldfd);
+		newfd = open(hp->histname, O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
+		if(newfd >= 0)
 		{
 			if(newfd != oldfd)
 			{
-				int dupfd = sh_fcntl(newfd, F_dupfd_cloexec, oldfd);
-				sh_close(newfd);
+				int dupfd = fcntl(newfd, F_dupfd_cloexec, oldfd);
+				close(newfd);
 				if(dupfd != oldfd)
 				{
 					if(dupfd > -1)
-						sh_close(dupfd);
+						close(dupfd);
 					if (relock)
 					{
 						hp->histlockfd = oldfd;

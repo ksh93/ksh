@@ -4,6 +4,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-10-06:
 
+- Fixed a potential crash upon failure to write to the shell history file.
+
 - Fixed the shell seemingly freezing (in fact, taking several minutes) while
   processing certain repetition patterns against a long string. Reproducer:
 	[[ $(printf 'ab%.0s' {0..99999}) == +(ab)* ]]
