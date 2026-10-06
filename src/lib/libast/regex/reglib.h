@@ -122,6 +122,7 @@ typedef struct regsubop_s
 #define REX_WEND		40	/* \>				*/
 #define REX_WORD		41	/* word boundary		*/
 #define REX_WORD_NOT		42	/* not word boundary		*/
+#define REX_REP_SCAN		43	/* REX_REP iteration scan	*/
 
 #define T_META		((int)UCHAR_MAX+1)
 #define T_STAR		(T_META+0)
@@ -434,8 +435,8 @@ typedef struct Neg_catch_s
 } Neg_catch_t;
 
 /*
- * REX_REP catcher.  One is created on the stack for
- * each iteration of a complex repetition.
+ * REX_REP_CATCH and REX_REP_SCAN catcher.  One is created on the
+ * stack for each iteration of a complex repetition.
  */
 
 typedef struct Rep_catch_s
@@ -443,7 +444,9 @@ typedef struct Rep_catch_s
 	struct Rex_s*	cont;
 	struct Rex_s*	ref;
 	unsigned char*	beg;
-	unsigned char*	s;		/* string position to resume at	*/
+	unsigned char*	s;		/* string position to resume at */
+	unsigned char*	end;		/* REX_REP_SCAN: where it ended */
+	regmatch_t*	snap;		/* REX_REP_SCAN: snapshot target */
 	int		n;
 } Rep_catch_t;
 

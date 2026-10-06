@@ -106,6 +106,7 @@ fi
 [[ . -ef $(pwd) ]] || err_exit ". is not $PWD"
 set -o allexport
 [[ -o allexport ]] || err_exit '-o: did not set allexport option'
+set +o allexport  # if we don't turn this off, later tests that create large variables will break external commands
 if	[[ -n  $null ]]
 then	err_exit "'$null' has non-zero length"
 fi
@@ -695,6 +696,39 @@ do	"$SHELL" -c "typeset a=a; for((i=0;i<17;i++)); do a=\$a\$a; done; [[ \$a == $
 		"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
 done
 unset a op
+
+# Repetition bodies of fixed length are now matched in a flat loop.
+v=$(printf %300000s | tr ' ' 'x')
+for p in '+(x)' '*(x)' '+(x|y)' '@(+(x))'
+do	[[ $v == $p ]] &
+	pid=$!
+	(sleep 10; kill -9 $pid) &
+	wait "$pid"
+	e=$?
+	kill "$!" 2>/dev/null
+	((e==0)) || err_exit "$p fails to match 300k x (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+v=$(printf %300000s | sed 's/  /ab/g')
+for p in '+(ab)' '+(ab)*'
+do	[[ $v == $p ]] &
+	pid=$!
+	(sleep 10; kill -9 $pid) &
+	wait "$pid"
+	e=$?
+	kill "$!" 2>/dev/null
+	((e==0)) || err_exit "$p fails to match 150k ab (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+v=$(printf %100000s | tr ' ' 'x')y
+for p in '+(x)y' '*(x)y' '+(?)+(y)'
+do	[[ $v == $p ]] &
+	pid=$!
+	(sleep 10; kill -9 $pid) &
+	wait "$pid"
+	e=$?
+	kill "$!" 2>/dev/null
+	((e==0)) || err_exit "$p fails to match 100k x + y (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+unset v p e
 
 # ======
 exit $((Errors<125?Errors:125))
