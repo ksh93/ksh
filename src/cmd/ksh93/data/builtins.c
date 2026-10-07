@@ -821,7 +821,7 @@ const char sh_optgetopts[] =
     "values can be specified with a [...]] containing the "
     "value followed by a description.]"
   "[+6.?A group of the form [+\\n...]] will display the characters "
-    "representing ... in fixed-width font without adding line breaks.]"
+    "represented by ... in fixed-width font without adding line breaks.]"
   "[+7.?A group of the form [+\aname\a?\atext\a]] specifies a section "
     "\aname\a with descriptive \atext\a. If \aname\a is omitted then "
     "\atext\a is placed in a new paragraph.]"
