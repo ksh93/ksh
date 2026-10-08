@@ -319,6 +319,12 @@ chmod +x bad_func  # bug only triggered if file is executable
 (FPATH=$PWD; alias -t bad_func 2>/dev/null; typeset -f bad_func >/dev/null)
 (($? > 0)) || err_exit "'hash'/'alias -t' autoloads function"
 
+# bug-666: Phi:
+alias 'x=function ' y=f z='{ ' t='echo ' u='AA '  v='}'
+x y z t u v
+got=$(f)
+[ "$got" = 'AA' ] || err_exit "alias x='function ' not working"
+
 # ======
 # Use after free if alias redefines itself
 # https://github.com/ksh93/ksh/issues/990
