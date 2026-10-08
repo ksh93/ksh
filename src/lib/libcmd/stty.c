@@ -923,12 +923,12 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 	int			flags = 0;
 	int			fd = 0;
 	const Tty_t*		tp;
-	Optdisc_t		disc;
+	Optdisc_t		disc = {
+		.version = OPT_VERSION,
+		.infof = infof
+	};
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, ERROR_INTERACTIVE);
-	memset(&disc, 0, sizeof(disc));
-	disc.version = OPT_VERSION;
-	disc.infof = infof;
 	opt_info.disc = &disc;
 	for (;;)
 	{

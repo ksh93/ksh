@@ -1764,8 +1764,8 @@ static void talias_put(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	nv_putv(np,val,flags,fp);
 }
 
-static const Namdisc_t talias_disc   = { 0, talias_put, talias_get   };
-static Namfun_t  talias_init = { &talias_disc, 1 };
+static const Namdisc_t talias_disc   = { .putval = talias_put, .getval = talias_get };
+static Namfun_t  talias_init = { .disc = &talias_disc, .namflags = NAMFUN_NOFREE };
 
 /*
  * find or create tracked alias node named <name> and set it to value <pp>

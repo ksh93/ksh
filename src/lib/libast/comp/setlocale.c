@@ -2037,9 +2037,9 @@ set_numeric(Lc_category_t* cp)
 	struct lconv*	lp;
 	Lc_numeric_t*	dp;
 
-	static Lc_numeric_t	default_numeric = { '.', -1 };
-	static Lc_numeric_t	eu_numeric = { ',', '.' };
-	static Lc_numeric_t	us_numeric = { '.', ',' };
+	static Lc_numeric_t	default_numeric =	{ .decimal = '.', .thousand = -1 };
+	static Lc_numeric_t	eu_numeric =		{ .decimal = ',', .thousand = '.' };
+	static Lc_numeric_t	us_numeric =		{ .decimal = '.', .thousand = ',' };
 
 #if AHA
 	if ((ast.locale.set & AST_LC_setlocale) && !(ast.locale.set & AST_LC_internal))

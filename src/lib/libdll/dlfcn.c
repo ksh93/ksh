@@ -320,7 +320,7 @@
 	static const char	e_static[] = T("image statically linked");
 	static const char	e_undefined[] = T("undefined symbol");
 
-	static Dll_t global = { DL_MAGIC };
+	static Dll_t global = { .magic = DL_MAGIC };
 
 	static void undefined(const char* name)
 	{
