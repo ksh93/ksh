@@ -16,6 +16,7 @@
 #                Govind Kamat <govind_kamat@yahoo.com>                 #
 #               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
 #                      Phi <phi.debian@gmail.com>                      #
+#                   Spenser Truex <truex@equwal.com>                   #
 #                                                                      #
 ########################################################################
 
@@ -1466,6 +1467,18 @@ r \^Z.*(Stopped|Suspended)
 p :test-3:
 w echo OK
 u ^OK
+!
+
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L prompt width with CSI intermediate bytes
+
+d 40
+p :test-1:
+w COLUMNS=20 PS1=$':child\\E[ q\\E[6 q: ' "$SHELL" +o multiline
+p :child
+c : abcdefg
+w
+r ^:child.*: : abcdefg\r\n$
 !
 
 # ======
