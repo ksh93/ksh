@@ -390,14 +390,15 @@ static void put_restricted(Namval_t* np,const char *val,nvflag_t flags,Namfun_t 
 	{
 		/* Clear the hash table */
 		nv_scan(sh_subtracktree(1),nv_rehash,NULL,NV_TAGGED,NV_TAGGED);
-		if(path_scoped && !val)
-			val = PATHNOD->nvalue;
 	}
 	if(val && !(flags&NV_RDONLY) && np->nvalue && strcmp(val,np->nvalue)==0)
 		 return;
 	if(np==FPATHNOD	|| (fpath_scoped=(strcmp(name,FPATHNOD->nvname)==0)))
 		sh.pathlist = path_unsetfpath();
 	nv_putv(np, val, flags, fp);
+	/* A scoped copy of $PATH inherits the value of $PATH when it is unset */
+	if(path_scoped && !val)
+		nv_clone(PATHNOD, np, 0);
 	sh.universe = 0;
 	if(sh.pathlist)
 	{
@@ -883,7 +884,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 			mp->nodes = NULL;
 		}
 		mp->vlen = 0;
-		if(ap && ap->hdr.next != &mp->hdr)
+		if(ap)
 			free(ap);
 		SH_MATCHNOD->nvalue = NULL;
 		SH_MATCHNOD->nvfun = NULL;

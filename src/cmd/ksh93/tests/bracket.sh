@@ -106,6 +106,7 @@ fi
 [[ . -ef $(pwd) ]] || err_exit ". is not $PWD"
 set -o allexport
 [[ -o allexport ]] || err_exit '-o: did not set allexport option'
+set +o allexport  # if we don't turn this off, later tests that create large variables will break external commands
 if	[[ -n  $null ]]
 then	err_exit "'$null' has non-zero length"
 fi
@@ -669,6 +670,65 @@ for exp in \
 	esac
 done
 unset e t
+
+# ======
+# Comparing long literal strings with [[ ... == "..." ]] used to segfault (C stack overflow)
+"$SHELL" -c 'a=a; for((i=0;i<12;i++)); do a=$a$a$a$a; done; [[ $a == "$a" ]]'
+[[ e=$? -eq 0 ]] || err_exit '[[ $a == "$a" ]] for 16 MiB $a' \
+	"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+# Regressions found in previous iterations of this fix
+[[ $'hello\r\n' =~ hello\r?\n$ ]] || err_exit 'literal prefix preceding \r? repetition not working'
+[[ $'hello\r\n' =~ ^hello\r?\n$ ]] || err_exit 'anchored literal prefix preceding \r? repetition not working'
+[[ $'hello\r\n' =~ hello\r\n ]] || err_exit "non-anchored, no repetition"
+[[ $'hello\n' =~ hello\r?\n ]] || err_exit '\r? for missing \r'
+[[ $'hello\r\n' =~ hel.o ]] || err_exit "dot"
+[[ $'hello\r\n' =~ o\r?\n ]] || err_exit 'short match'
+
+# ======
+# A repetition operator that matches a large number of elements used to
+# overflow the C stack in the regex execution engine. A repetition's state
+# is now kept on a heap stack instead, which can grow without limit.
+# 2^17 == 131072 iterations, which is more than enough to smash the C stack.
+# https://github.com/ksh93/ksh/issues/207
+for op in '+(a)' '*(a|b)' '~(E)^a*$' '~(E)^(a)*$' '~(E)^(a|ab)*$'
+do	"$SHELL" -c "typeset a=a; for((i=0;i<17;i++)); do a=\$a\$a; done; [[ \$a == $op ]]"
+	[[ e=$? -eq 0 ]] || err_exit "[[ \$a == $op ]] for 128 KiB repeating \$a" \
+		"(expected status 0, got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+unset a op
+
+# Repetition bodies of fixed length are now matched in a flat loop.
+v=$(printf %300000s | tr ' ' 'x')
+for p in '+(x)' '*(x)' '+(x|y)' '@(+(x))'
+do	[[ $v == $p ]] &
+	pid=$!
+	(sleep 10; kill -9 $pid) &
+	wait "$pid"
+	e=$?
+	kill "$!" 2>/dev/null
+	((e==0)) || err_exit "$p fails to match 300k x (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+v=$(printf %300000s | sed 's/  /ab/g')
+for p in '+(ab)' '+(ab)*'
+do	[[ $v == $p ]] &
+	pid=$!
+	(sleep 10; kill -9 $pid) &
+	wait "$pid"
+	e=$?
+	kill "$!" 2>/dev/null
+	((e==0)) || err_exit "$p fails to match 150k ab (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+v=$(printf %100000s | tr ' ' 'x')y
+for p in '+(x)y' '*(x)y' '+(?)+(y)'
+do	[[ $v == $p ]] &
+	pid=$!
+	(sleep 10; kill -9 $pid) &
+	wait "$pid"
+	e=$?
+	kill "$!" 2>/dev/null
+	((e==0)) || err_exit "$p fails to match 100k x + y (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
+done
+unset v p e
 
 # ======
 exit $((Errors<125?Errors:125))

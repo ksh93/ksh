@@ -574,13 +574,20 @@ static void copyto(Mac_t *mp,int endch, char newquote)
 				if(!mp->lit && !mp->quote)
 				{
 					int nc = *(unsigned char*)cp;
-					if(n==S_DIG || ((paren || ere) && sh_lexstates[ST_DOL][nc]==S_ALP || nc=='<' || nc=='>'))
+					if(n==S_DIG)
 						break;
+					if(mp->pattern!=3)
+					{
+						if((paren || ere) && sh_lexstates[ST_DOL][nc]==S_ALP)
+							break;
+						if(nc=='<' || nc=='>')
+							break;
+					}
 					if(ere && mp->pattern==1 && strchr(".[()*+?{|^$&!",*cp))
 						break;
 				}
 				/* followed by file expansion */
-				if(!mp->lit && (n==S_ESC || (!mp->quote &&
+				if(!mp->lit && (n==S_ESC || (mp->pattern!=3 && !mp->quote &&
 					(n==S_PAT||n==S_ENDCH||n==S_SLASH||n==S_BRACT||*cp=='-'))))
 				{
 					cp += (n!=S_EOF);

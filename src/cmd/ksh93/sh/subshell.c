@@ -407,6 +407,48 @@ static inline void free_disciplines(Namval_t *n)
 }
 
 /*
+ * Return the number of disciplines on the list <fp>
+ */
+static inline size_t count_disciplines(Namfun_t *fp)
+{
+	size_t n = 0;
+	while (fp)
+		n++, fp = fp->next;
+	return n;
+}
+
+/*
+ * Free the discipline functions that were created within a virtual subshell
+ * and return the resulting head of <mp>'s discipline list.
+ *
+ * New disciplines are pushed onto the head of a variable's discipline list, so
+ * the ones created in the subshell precede the <keep> disciplines that were
+ * already on the list when the subshell started. Those are not necessarily the
+ * same objects, because sh_assignok() clones them into the saved copy of the
+ * variable, so <saved> points at that clone list to avoid freeing a saved
+ * discipline by mistake.
+ */
+static Namfun_t *free_subshell_disciplines(Namval_t *mp, Namfun_t *saved, size_t keep)
+{
+	Namfun_t	*fp, *next, *sp;
+	size_t		n, total;
+	if ((total = count_disciplines(mp->nvfun)) <= keep)
+		return mp->nvfun;
+	for (n = total - keep, fp = mp->nvfun; n && fp; n--)
+	{
+		for (sp = saved; sp && sp!=fp; sp = sp->next)
+			;
+		if (sp == fp)
+			break;  /* the saved disciplines start here, so stop */
+		next = fp->next;
+		if (!(fp->namflags & NAMFUN_NOFREE))
+			free(fp);
+		mp->nvfun = fp = next;
+	}
+	return mp->nvfun;
+}
+
+/*
  * restore the variables
  */
 static void nv_restore(struct subshell *sp)
@@ -428,7 +470,19 @@ static void nv_restore(struct subshell *sp)
 		if(nv_isattr(mp,NV_MINIMAL) && !nv_isattr(np,NV_EXPORT))
 			flags |= NV_MINIMAL;
 		if(nv_isarray(mp))
-			 nv_putsub(mp,NULL,ARRAY_SCAN);
+		{
+			Namarr_t	*ap;
+			nv_putsub(mp,NULL,ARRAY_SCAN);
+			/*
+			 * nv_putsub() clears ARRAY_SCAN again when the scan finds no
+			 * elements, but array_putval() -- which nv_unset() calls below to
+			 * free the array -- only frees an array that is flagged as fully
+			 * scanned, so the array would be leaked. An array without elements
+			 * is fully scanned by definition, so flag it as such.
+			 */
+			if ((ap = nv_arrayptr(mp)) && array_elem(ap)==0)
+				ap->nelem |= ARRAY_SCAN;
+		}
 		if(np->nvalue==Empty)
 		{
 			if(nv_isnull(mp) && !nv_isvtree(np))
@@ -449,17 +503,38 @@ static void nv_restore(struct subshell *sp)
 		nv_setsize(mp,nv_size(np));
 		if(!(flags&NV_MINIMAL))
 			mp->nvmeta = np->nvmeta;
-		/* Free leftover disciplines and scalar values from subshell variables with shell discipline functions */
+		/*
+		 * Free leftover disciplines and scalar values from subshell variables
+		 * with shell discipline functions. Note that nv_unset() above does not
+		 * run the unset discipline during virtual subshell cleanup, so any
+		 * discipline created within the subshell is still on <mp>'s list here.
+		 */
 		if(!(fp && mp->nvfun==fp && np->nvfun && np->nvfun!=fp))
 		{
-			if(!np->nvfun && mp->nvfun)
+			if (mp->nvfun)
 			{
-				if(mp->nvalue!=np->nvalue)
-					free_scalarvalue(mp);
-				free_disciplines(mp);
+				if (np->nvfun)
+					free_subshell_disciplines(mp, np->nvfun, count_disciplines(np->nvfun));
+				else
+				{
+					if (mp->nvalue != np->nvalue)
+						free_scalarvalue(mp);
+					free_disciplines(mp);
+				}
 			}
 			mp->nvfun = np->nvfun;
 			fp = NULL;  /* Avoid duplicate freeing below */
+		}
+		else
+		{
+			/*
+			 * The subshell redefined a discipline function instead of adding
+			 * one, so <fp> is still the parent's own struct vardisc rather than
+			 * one made in the subshell. Its definitions do refer to the subshell's
+			 * functions now, so copy back the ones that sh_assignok() saved in
+			 * <np> when the subshell started. The saved copy is freed below.
+			 */
+			nv_restore_disc(mp,np);
 		}
 		if(nv_isattr(np,NV_IDENT))
 		{
