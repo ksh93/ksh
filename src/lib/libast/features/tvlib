@@ -1,4 +1,3 @@
-hdr	time
 lib	clock_settime,gettimeofday,settimeofday,stime,utimes
 lib	nanosleep,usleep
 lib	utimensat sys/stat.h note{ complete utimensat implementation }end link{

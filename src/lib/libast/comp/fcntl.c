@@ -35,10 +35,8 @@
 #endif
 #endif
 
-#if _lib_fcntl
 #undef	fcntl
 extern int	fcntl(int, int, ...);
-#endif
 
 int
 _ast_fcntl(int fd, int op, ...)
@@ -75,14 +73,7 @@ _ast_fcntl(int fd, int op, ...)
 		break;
 	}
 	else
-#if _lib_fcntl
 	op = fcntl(fd, op, va_arg(ap, int));
-#else
-	{
-		errno = EINVAL;
-		op = -1;
-	}
-#endif
 	va_end(ap);
 	return op;
 }
