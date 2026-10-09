@@ -16,6 +16,7 @@
 #                Govind Kamat <govind_kamat@yahoo.com>                 #
 #               K. Eugene Carlson <kvngncrlsn@gmail.com>               #
 #                      Phi <phi.debian@gmail.com>                      #
+#                   Spenser Truex <truex@equwal.com>                   #
 #                                                                      #
 ########################################################################
 
@@ -74,7 +75,8 @@ function tst
 	integer lineno=$1 offset
 	typeset text
 
-	pty $debug --dialogue --messages='/dev/fd/1' 2>/dev/tty $SHELL |
+	: > $HISTFILE
+	pty $debug --dialogue --messages='/dev/fd/1' 2>/dev/tty "$SHELL" |
 	while	read -r text
 	do	if	[[ $text == *debug* ]]
 		then	print -u2 -r -- "$text"
@@ -93,7 +95,7 @@ elif	((SHOPT_ESH))
 then	export VISUAL=emacs
 else	unset VISUAL
 fi
-export PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE= TERM=dumb
+export PS1=':test-!: ' PS2='> ' PS4=': ' ENV=/./dev/null EXINIT= HISTFILE=$tmp/pty_history TERM=dumb
 
 if	! pty $bintrue < /dev/null
 then	warning "pty command hangs on $bintrue -- tests skipped"
@@ -223,9 +225,6 @@ w allo
 u ^hello\r?\n$
 !
 
-if	[[ $(id -u) == 0 ]]
-then	warning "running as root: skipping test POSIX sh 096(C)"
-else
 tst $LINENO <<"!"
 L POSIX sh 096(C)
 
@@ -254,7 +253,6 @@ r stty intr \^C
 r echo
 r history
 !
-fi
 
 tst $LINENO <<"!"
 L POSIX sh 097(C)
@@ -268,9 +266,6 @@ c echo ok\n
 u ^ok\r?\n$
 !
 
-if	[[ $(id -u) == 0 ]]
-then	warning "running as root: skipping test POSIX sh 099(C)"
-else
 tst $LINENO <<"!"
 L POSIX sh 099(C)
 
@@ -299,7 +294,6 @@ r stty intr \^C
 r echo last
 r history
 !
-fi
 
 tst $LINENO <<"!"
 L POSIX sh 100(C)
@@ -378,9 +372,6 @@ c \cD
 u ^done\r?\n$
 !
 
-if	[[ $(id -u) == 0 ]]
-then	warning "running as root: skipping test POSIX sh 111(C)"
-else
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 111(C)
 
@@ -400,11 +391,7 @@ w history
 u #echo save
 r history
 !
-fi
 
-if	[[ $(id -u) == 0 ]]
-then	warning "running as root: skipping test POSIX sh 251(C)"
-else
 ((SHOPT_VSH)) && tst $LINENO <<"!"
 L POSIX sh 251(C)
 
@@ -447,7 +434,6 @@ r echo repeat-2
 c n
 r echo repeat-3
 !
-fi
 
 # This test freezes the 'less' pager on OpenBSD, which is not a ksh bug.
 : <<\disabled
@@ -744,11 +730,11 @@ w exec "$SHELL" -o emacs
 r ^:test-1: exec "\$SHELL" -o emacs\r\n$
 p :test-1:
 w set -o vi
-r ^:test-1: set -o vi\r\n$
+r set -o vi\r\n$
 p :test-2:
 c \Erri
 w echo Success
-r ^:test-2: echo Success\r\n$
+r echo Success\r\n$
 r ^Success\r\n$
 !
 
@@ -972,7 +958,7 @@ p :child-1:
 w trap '' INT
 p :child-2:
 w : lorem\cCipsum
-r ^:child-2: : lorem\^Cipsum\r\n$
+r : lorem\^Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent
@@ -980,7 +966,7 @@ p :test-2:
 w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
 p :child-1:
 w : lorem\cCipsum
-r ^:child-1: : lorem\^Cipsum\r\n$
+r : lorem\^Cipsum\r\n$
 w exit
 
 # SIGINT ignored by parent, trapped in child
@@ -990,7 +976,7 @@ p :child-1:
 w trap 'echo test' INT
 p :child-2:
 w : lorem\cCipsum
-r ^:child-2: : lorem\^Cipsum\r\n$
+r : lorem\^Cipsum\r\n$
 w exit
 !
 
@@ -1307,7 +1293,7 @@ p :test-1:
 w PS1=':child-!: ' "$SHELL"
 p :child-1:
 w kill -s HUP \$\$
-r ^:child-1: kill -s HUP \$\$\r\n$
+r kill -s HUP \$\$\r\n$
 r ^Hangup\r\n$
 !
 
@@ -1481,6 +1467,18 @@ r \^Z.*(Stopped|Suspended)
 p :test-3:
 w echo OK
 u ^OK
+!
+
+((SHOPT_VSH)) && tst $LINENO <<"!"
+L prompt width with CSI intermediate bytes
+
+d 40
+p :test-1:
+w COLUMNS=20 PS1=$':child\\E[ q\\E[6 q: ' "$SHELL" +o multiline
+p :child
+c : abcdefg
+w
+r ^:child.*: : abcdefg\r\n$
 !
 
 ((SHOPT_MULTIBYTE && SHOPT_ESH)) &&

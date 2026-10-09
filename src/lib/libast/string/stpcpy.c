@@ -1,8 +1,8 @@
 /***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
-*          Copyright (c) 1982-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
+*          Copyright (c) 1985-2013 AT&T Intellectual Property          *
+*          Copyright (c) 2025-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -10,34 +10,39 @@
 *      https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html      *
 *         (with md5 checksum 84283fa8859daf213bdda5a9f8d1be1d)         *
 *                                                                      *
-*                  David Korn <dgk@research.att.com>                   *
-*                  Martijn Dekker <martijn@inlv.org>                   *
+*               Glenn Fowler <glenn.s.fowler@gmail.com>                *
+*                    David Korn <dgkorn@gmail.com>                     *
+*                     Phong Vo <phongvo@gmail.com>                     *
 *            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
+/*
+ * stpcpy implementation
+ */
 
-#include	"FEATURE/options"
-#include	<shell.h>
-#include	"FEATURE/externs"
+#include <ast.h>
 
-#if defined(__sun) && _sys_mman && _lib_memcntl && defined(MHA_MAPSIZE_STACK) && defined(MC_HAT_ADVISE)
-#   include	<sys/mman.h>
-#else
-#   undef	_lib_memcntl
-#endif
+#undef	_def_map_ast
+#include <ast_map.h>
 
-typedef int (*Shnote_f)(int, long, int);
+#if !_lib_stpcpy
 
-int main(int argc, char *argv[])
+/*
+ * copy f into t, return a pointer to the end of t ('\0')
+ * the buffers cannot overlap
+ */
+
+extern char*
+stpcpy(char *restrict t, const char *restrict f)
 {
-#if _lib_memcntl
-	/* advise larger stack size */
-	struct memcntl_mha mha = {
-		.mha_cmd = MHA_MAPSIZE_STACK,
-		.mha_pagesize = 64 * 1024
-	};
-	(void)memcntl(NULL, 0, MC_HAT_ADVISE, (caddr_t)&mha, 0, 0);
-#endif
-	sh_main(argc, argv, NULL);
-	UNREACHABLE();
+	if (!f)
+		return t;
+	while (*t++ = *f++);
+	return t - 1;
 }
+
+#else
+
+NoN(stpcpy)
+
+#endif

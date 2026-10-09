@@ -390,20 +390,24 @@ static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handl
 			pp = np->nvmeta;
 		nv_putv(np, val, flags, handle);
 		if(sh.subshell)
-			goto done;
-		if(pp && nv_isarray(pp))
-			goto done;
-		if(nv_isarray(np) && (ap=nv_arrayptr(np)) && ap->nelem>0)
-			goto done;
-		for(n=0; n < sizeof(vp->disc)/sizeof(*vp->disc); n++)
+			goto done;  /* nv_restore() may still refer to <handle> */
+		if(!(pp && nv_isarray(pp)) && !(nv_isarray(np) && (ap=nv_arrayptr(np)) && ap->nelem>0))
 		{
-			if((nq=vp->disc[n]) && !nv_isattr(nq,NV_NOFREE))
+			for(n=0; n < sizeof(vp->disc)/sizeof(*vp->disc); n++)
 			{
-				nv_unset(nq,0);
-				dtdelete(root,nq);
+				if((nq=vp->disc[n]) && !nv_isattr(nq,NV_NOFREE))
+				{
+					nv_unset(nq,0);
+					dtdelete(root,nq);
+				}
 			}
+			unblock(bp,type);
 		}
-		unblock(bp,type);
+		/*
+		 * <handle> was popped off <np>'s list above and is no longer
+		 * reachable from it, so free it even when its discipline
+		 * functions are kept for the array or compound variable.
+		 */
 		if(!(handle->namflags & NAMFUN_NOFREE))
 			free(handle);
 	}
@@ -594,11 +598,9 @@ char *nv_setdisc(Namval_t* np,const char *event,Namval_t *action,Namfun_t *fp)
 		Namdisc_t	*dp;
 		if(action==np)
 			return (char*)action;
-		vp = sh_newof(NULL,struct vardisc,1,sizeof(Namdisc_t));
-		dp = (Namdisc_t*)(vp+1);
-		vp->fun.disc = dp;
-		memset(dp,0,sizeof(*dp));
-		dp->dsize = sizeof(struct vardisc);
+		vp = sh_calloc(1, sizeof(struct vardisc) + sizeof(Namdisc_t));
+		vp->fun.disc = dp = (Namdisc_t*)(vp + 1);
+		dp->dsize = sizeof(struct vardisc) + sizeof(Namdisc_t);
 		dp->putval = assign;
 		if(nv_isarray(np) && !nv_arrayptr(np))
 			nv_putsub(np,NULL, 1);
@@ -726,6 +728,9 @@ Namfun_t *nv_clone_disc(Namfun_t *fp, nvflag_t flags)
 		size = sizeof(Namfun_t);
 	nfp = sh_newof(NULL,Namfun_t,1,size-sizeof(Namfun_t));
 	memcpy(nfp,fp,size);
+	/* keep an embedded descriptor pointing at the copy, not at <fp> */
+	if(fp->disc && (char*)fp->disc >= (char*)fp && (char*)fp->disc + sizeof(Namdisc_t) <= (char*)fp + size)
+		nfp->disc = (const Namdisc_t*)((char*)nfp + ((char*)fp->disc - (char*)fp));
 	nfp->namflags &= ~NAMFUN_NOFREE;
 	nfp->namflags |= (flags&NV_RDONLY) ? NAMFUN_NOFREE : 0;
 	return nfp;
@@ -902,9 +907,38 @@ static void *num_clone(Namval_t *np, void *val)
 	return nval;
 }
 
+/*
+ * Restore np's shell discipline definitions onto mp. The two lists
+ * are walked in step, so this stops at the first discipline that
+ * is not the shell discipline that a subshell may have redefined.
+ */
+void nv_restore_disc(Namval_t *mp, Namval_t *np)
+{
+	Namfun_t	*fp, *gp;
+	struct vardisc	*vp, *wp;
+	Namdisc_t	*vd;
+	for (fp = mp->nvfun, gp = np->nvfun; fp && gp; fp = fp->next, gp = gp->next)
+	{
+		vp = (struct vardisc*)fp;
+		wp = (struct vardisc*)gp;
+		if (!vp->fun.disc || !wp->fun.disc || vp->fun.disc->putval!=assign || wp->fun.disc->putval!=assign)
+			break;
+		vd = (Namdisc_t*)vp->fun.disc;
+		memcpy(vp->disc, wp->disc, sizeof(vp->disc));
+		/* only restore these two Namdisc_t fields; no others change per variable */
+		vd->getval = wp->fun.disc->getval;
+		vd->getnum = wp->fun.disc->getnum;
+	}
+}
+
 void clone_all_disc( Namval_t *np, Namval_t *mp, nvflag_t flags)
 {
 	Namfun_t *fp, **mfp = &mp->nvfun, *nfp, *fpnext;
+	/*
+	 * The list head pointer to the discipline list built below, mp->nvfun, must
+	 * not be changed (or must be saved and restored) by the fp->disc->clonef
+	 * callback function (e.g., array_clone()), or the whole list will be orphaned.
+	 */
 	for(fp=np->nvfun; fp;fp=fpnext)
 	{
 		fpnext = fp->next;

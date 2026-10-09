@@ -16,6 +16,7 @@
 *               Anuradha Weeraman <anuradha@debian.org>                *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *            SHIMIZU Akifumi <shimizu.akifumi@fujitsu.com>             *
+*                   Spenser Truex <truex@equwal.com>                   *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -421,6 +422,8 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 						skip = 0;
 						continue;
 					}
+					if(n>1 && c>=0x20 && c<=0x2f)	/* CSI intermediate bytes */
+						continue;
 					if(n==3 && (c=='?' || c=='!' || c==':'))
 						continue;
 					else if(n>1 && c==';')
@@ -1213,7 +1216,7 @@ int	ed_external(const genchar *src, char *dest)
 #if _lib_wcscpy
 		wcscpy((wchar_t *)dest,(const wchar_t *)buffer);
 #else
-		strcopy(dest,buffer);
+		strcpy(dest,buffer);
 #endif
 		return c;
 	}

@@ -1072,4 +1072,28 @@ got=$?
 fi # !SHOPT_SCRIPTONLY
 
 # ======
+# As a special case, a scoped copy of PATH inherits the value and attributes
+# of the parent when unset (historic ksh behaviour, corrected for attributes)
+function f
+{
+	typeset -A PATH=([one]=1 [two]=2 [three]=3)
+	print -n f1:
+	typeset -p PATH
+	unset PATH
+	print -n f2:
+	typeset -p PATH
+}
+{
+	f
+	print -n main:
+	typeset -p PATH
+} >out
+CCn=$'\n'
+printf -v p '%q' "$PATH"
+got=$(<out)
+exp="f1:typeset -x -A PATH=([one]=1 [three]=3 [two]=2)${CCn}f2:typeset -x PATH=$p${CCn}main:typeset -x PATH=$p"
+[[ $got == "$exp" ]] || err_exit "PATH unset in function scope failed to inherit parent" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

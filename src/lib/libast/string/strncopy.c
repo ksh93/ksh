@@ -23,6 +23,7 @@
  * copy up to n bytes of string f into t
  * trailing 0 always added to t, even if n==0
  * pointer to the copied 0 returned
+ * overlapping buffers are permitted
  */
 
 char*

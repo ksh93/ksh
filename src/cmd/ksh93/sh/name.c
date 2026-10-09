@@ -40,7 +40,9 @@ static Namval_t	NullNode;
 static Dt_t	*Refdict;
 static Dtdisc_t	_Refdisc =
 {
-	offsetof(struct Namref,np),sizeof(struct Namval_t*),sizeof(struct Namref)
+	.key = offsetof(struct Namref,np),
+	.size = sizeof(struct Namval_t*),
+	.link = sizeof(struct Namref)
 };
 
 static void	pushnam(Namval_t*,void*);
@@ -2269,12 +2271,12 @@ int nv_scan(Dt_t *root, void (*fn)(Namval_t*,void*), void *data,nvflag_t mask, n
 {
 	Namval_t *np;
 	Dt_t *base = NULL;
-	struct scan sdata;
-	sdata.scanmask = mask;
-	sdata.scanflags = flags&~NV_NOSCOPE;
-	sdata.scanfn = fn;
-	sdata.scancount = 0;
-	sdata.scandata = data;
+	struct scan sdata = {
+		.scanmask = mask,
+		.scanflags = flags&~NV_NOSCOPE,
+		.scanfn = fn,
+		.scandata = data
+	};
 	if(flags&NV_NOSCOPE)
 		base = dtview((Dt_t*)root,NULL);
 	for(np=(Namval_t*)dtfirst(root);np; np=(Namval_t*)dtnext(root,np))
@@ -2403,7 +2405,16 @@ void nv_unset(Namval_t *np, nvflag_t flags)
 				 npv = nv_open(name,sh.var_tree,NV_NOARRAY|NV_VARNAME|NV_NOADD);
 				*cp++ = '.';
 				if(npv && npv!=sh.namespace)
-					nv_setdisc(npv,cp,NULL,(Namfun_t*)npv);
+				{
+					/*
+					 * Only remove the discipline if this function is the one
+					 * installed: the shell may have restored the parent's own
+					 * discipline on <npv> already, as nv_restore() runs before
+					 * the subshell's functions are freed.
+					 */
+					if((Namval_t*)nv_setdisc(npv,cp,npv,(Namfun_t*)npv)==np)
+						nv_setdisc(npv,cp,NULL,(Namfun_t*)npv);
+				}
 			}
 			if(rp->fname && sh.fpathdict && (rq = (struct Ufunction*)nv_search(rp->fname,sh.fpathdict,0)))
 			{
@@ -2563,7 +2574,7 @@ static Namfun_t *clone_optimize(Namval_t* np, Namval_t *mp, nvflag_t flags, Namf
 	return NULL;
 }
 
-const Namdisc_t OPTIMIZE_disc  = {sizeof(struct optimize),put_optimize,NULL,NULL,NULL,NULL,clone_optimize};
+const Namdisc_t OPTIMIZE_disc  = { .dsize = sizeof(struct optimize), .putval = put_optimize, .clonef = clone_optimize };
 
 void nv_optimize(Namval_t *np)
 {

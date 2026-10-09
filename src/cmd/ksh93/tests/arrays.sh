@@ -1088,4 +1088,27 @@ got=$(arr=( (a (export demo array) c) (typeset demo array) ); typeset -p arr)
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# A subshell that redefines the discipline functions of an associative
+# array must not make the parent lose its own definitions.
+got=$("$SHELL" -c '
+	typeset -A x
+	x.get() { print get; }
+	x.set() { print set; }
+	x.unset() { print unset; }
+	(
+		x[abc]=long
+		typeset -A x
+		x.get() { :; }
+		x.set() { :; }
+		x.unset() { :; }
+	)
+	x[def]=ghi
+	print -- ${x[def]:-N}
+	unset "x[def]"
+')
+exp=$'set\nset\nget\nghi\nunset'
+[[ $got == "$exp" ]] || err_exit "subshell redefining the disciplines of an associative array loses the parent's" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

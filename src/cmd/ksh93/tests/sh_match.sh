@@ -1084,4 +1084,493 @@ got=${ $SHELL -c 'print ${!.sh.match} ${!.sh.match[1]} ${!.sh.match[2]}' }
 	"(expected ${ printf %q "$exp" }, got ${ printf %q "$got" })"
 
 # ======
+# Test repetiton handling in the shell glob pattern and regular expression engine
+# https://github.com/ksh93/ksh/issues/207
+
+# Helper function and alias for the tests below.
+# Given --glob, a ksh glob pattern is matched, otherwise an extended regular expression.
+# Each argument after the pattern is the expected value of the corresponding submatch.
+# The special argument UNSET indicates that the submatch should not be set by the match.
+function _checkmatch  # <lineno> [ --glob ] <string> <pattern> [ <expected group 0> [ <expected group 1> ... ] ]
+{
+	typeset lineno=$1
+	shift
+	if	[[ $1 == --glob ]]
+	then	typeset patop='=='
+		shift
+	else	typeset patop='=~'
+	fi
+	typeset -i i
+	typeset str=$1 pat=$2 got
+	shift 2
+	exp=$*
+	if	eval "[[ \$str $patop \$pat ]]"
+	then	for ((i = 0; i < 7; i++))
+		do	got+=${got+ }${.sh.match[i]-UNSET}
+		done
+	else	got=NOMATCH
+	fi
+	[[ $got == "$exp" ]] || err\_exit "$lineno" "[[ $str $patop $pat ]] produced incorrect (sub)matches" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+}
+alias checkmatch='_checkmatch "$LINENO"'
+
+# All of the tests below already passed before #207 was fixed. The tests
+# were designed to add to our regression test converage in the area of
+# repetitions and to verify that the recursion-avoiding rewrite of the
+# repetition handling code doesn't introduce regressions.
+
+# Set 1: basic tests for the regular expressions engine
+# (extended regular expressions via [[ string =~ ERE ]]).
+
+# 1. back-reference state across repetition iterations
+checkmatch abbabb '(a(b)\2)+' abbabb abb b UNSET UNSET UNSET UNSET
+checkmatch abbabb '(a(b)\2){2}' abbabb abb b UNSET UNSET UNSET UNSET
+checkmatch abcabc '(a(bc)\2)+' NOMATCH
+checkmatch aabbaabb '(a(b)\2|b)+' abb abb b UNSET UNSET UNSET UNSET
+checkmatch xy '(x)\1' NOMATCH
+checkmatch xyz '(x)(y)\1\2' NOMATCH
+checkmatch ababab '(a|b)*' ababab b UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '((a)\2)+' aaaa aa a UNSET UNSET UNSET UNSET
+checkmatch abbb '(a(bb)\2)+' NOMATCH
+checkmatch abcabcabc '((a)(bc)\2)+' abca abca a bc UNSET UNSET UNSET
+checkmatch aabb '(a(b)\2)?b' b UNSET UNSET UNSET UNSET UNSET UNSET
+
+# 2. greedy / lazy / minimal
+checkmatch aaaa 'a*' aaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa 'a*?' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa a+ aaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa 'a+?' a UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa 'a{2,3}' aaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa 'a{2,3}?' aa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaa 'a{2,}?' aa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch baaaab 'a*' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abcabc '(abc)+' abcabc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch abcabc '(abc)+?' abc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch xyz 'x*' x UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch '' 'a*' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '(a*)*' '' '' UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '(a*)+' '' '' UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '(a?)*' '' '' UNSET UNSET UNSET UNSET UNSET
+checkmatch aaa 'a{3}' aaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa 'a{3}?' aaa UNSET UNSET UNSET UNSET UNSET UNSET
+
+# 3. empty-iteration / zero-width loops
+checkmatch ab '(a|)*' a a UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '(a|b)*' ab b UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '(a*)*' aa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '(a*)+' aa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaa '(a?)*' aaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch b '(a*)*b' b '' UNSET UNSET UNSET UNSET UNSET
+checkmatch aab '(|a)*b' aab a UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '(|a)*' '' '' UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '(a|ab)*' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch aba '(a|ab)*' aba a UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '(a|b)*?' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aa 'a**' aa UNSET UNSET UNSET UNSET UNSET UNSET
+
+# 4. alternation / groups
+checkmatch abc 'a(b|c)d' NOMATCH
+checkmatch abd 'a(b|c)d' abd b UNSET UNSET UNSET UNSET UNSET
+checkmatch xyz '(x)(y)(z)' xyz x y z UNSET UNSET UNSET
+checkmatch abcabc '(abc|abd)' abc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch abd '(abc|abd)' abd abd UNSET UNSET UNSET UNSET UNSET
+checkmatch aaa '(a|aa)+' aaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaa '(a|aa)+' aaaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '(a|aa)*' aaaaaa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch x '(a)?x' x UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch x '(a)*x' x UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abc 'a(b(c))d' NOMATCH
+
+# 5. case folding
+checkmatch ABC '(abc)' NOMATCH
+checkmatch ABC '(abc)' NOMATCH
+checkmatch ABCabc '(abc)+' abc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch ABC '[[:upper:]]+' ABC UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '[[:lower:]]+' abc UNSET UNSET UNSET UNSET UNSET UNSET
+
+# 6. anchors, word boundaries
+checkmatch xabc ^abc NOMATCH
+checkmatch xabc 'abc$' abc UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '^abc$' abc UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch a-b '\b-\b' - UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '\<abc\>' abc UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '\B' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch 'a b' '\s\w+' ' b' UNSET UNSET UNSET UNSET UNSET UNSET
+
+# 7. dot / classes / collation
+checkmatch abc a.c abc UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '[^x]+' abc UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '[[:alpha:]][[:alnum:]][[:alpha:]]' abc UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch a-b '[[:punct:]]' - UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch a1 '\w\d' a1 UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch xyz '[[=x=]][[=y=]][[=z=]]' xyz UNSET UNSET UNSET UNSET UNSET UNSET
+
+# 8. back-references
+checkmatch abab '(ab)\1' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab)\1\1' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '(a)(a)\1\2' aaaa a a UNSET UNSET UNSET UNSET
+checkmatch abcabc '([a-c])\1' NOMATCH
+checkmatch xyzxyz '(xyz)\1*' xyzxyz xyz UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '(a)?b' ab a UNSET UNSET UNSET UNSET UNSET
+checkmatch b '(a)?b' b UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '(a+)\1' aaaa aa UNSET UNSET UNSET UNSET UNSET
+
+# 9. nested repetitions
+checkmatch aaaa '((a)*)*' aaaa aaaa a UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '((a*)*)*' aaaaaa aaaaaa aaaaaa UNSET UNSET UNSET UNSET
+checkmatch ababab '((ab)*)*' ababab ababab ab UNSET UNSET UNSET UNSET
+checkmatch abcabc '((abc)*)*' abcabc abcabc abc UNSET UNSET UNSET UNSET
+checkmatch aaa '(a*(a*)*)*' aaa aaa '' UNSET UNSET UNSET UNSET
+checkmatch abab '((a)(b))*' abab ab a b UNSET UNSET UNSET
+checkmatch abcabcabc '((abc)*)*' abcabcabc abcabcabc abc UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '(a**)*' aaaaaa aaaaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '((a)|(aa))*' aaaaaa aa UNSET aa UNSET UNSET UNSET
+
+# 10. cut / negation interactions
+checkmatch abc '(~a)b' NOMATCH
+checkmatch abc '(~(a)b)c' NOMATCH
+checkmatch abcd '(~(a|b))c' NOMATCH
+checkmatch xyz '[^a]*' xyz UNSET UNSET UNSET UNSET UNSET UNSET
+
+# 11. longer repetitions
+checkmatch aaaaaaaaaaaaaaaaaaaaaaaaaaaa a+ aaaaaaaaaaaaaaaaaaaaaaaaaaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abababababababababababababab '(ab)+' abababababababababababababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch abababababababababababababab '(ab)*' abababababababababababababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch abababababababababababababab '(a|b)+' abababababababababababababab b UNSET UNSET UNSET UNSET UNSET
+checkmatch abababababababababababababab '(a*)(b*)' ab a b UNSET UNSET UNSET UNSET
+checkmatch abcdefabcdefabcdef '(abcdef)+' abcdefabcdefabcdef abcdef UNSET UNSET UNSET UNSET UNSET
+checkmatch abcdefabcdefabcdef '(abcdef)*' abcdefabcdefabcdef abcdef UNSET UNSET UNSET UNSET UNSET
+checkmatch xyxyxyxyxyxy '(xy)+' xyxyxyxyxyxy xy UNSET UNSET UNSET UNSET UNSET
+checkmatch a1a1a1a1 '([a-z][0-9])+' a1a1a1a1 a1 UNSET UNSET UNSET UNSET UNSET
+checkmatch ab_cd_ab_cd '(ab_cd)+' ab_cd ab_cd UNSET UNSET UNSET UNSET UNSET
+checkmatch xy '(x|y)+' xy y UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '(a|aa|aaa)+' aaaaaa aaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aXbXcX '(a|[A-Z])X' aX a UNSET UNSET UNSET UNSET UNSET
+checkmatch abcdabcd '(abcd){2}' abcdabcd abcd UNSET UNSET UNSET UNSET UNSET
+
+# 12. minimal/greedy with trailing continuation
+checkmatch aaa 'a*bc' NOMATCH
+checkmatch aaab 'a*ab' aaab UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abcabc '(a|ab)c' abc ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(a|ab)*c' NOMATCH
+checkmatch aaaa 'a*a' aaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaaa 'a*aa' aaaaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abab 'a*b' ab UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aab 'a?ab' aab UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaab 'a??ab' aab UNSET UNSET UNSET UNSET UNSET UNSET
+
+# Set 2: ambiguity and backtracking inside repetitions, where the
+# engine's choice between equally long matches is decided by better().
+
+# alternation inside a repetition, differing alternative lengths
+checkmatch aaaaaa '^(a|aa)*$' aaaaaa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '^((a)|(aa))*$' aaaaaa aa UNSET aa UNSET UNSET UNSET
+checkmatch aaaaaa '^((a)|(aa))+$' aaaaaa aa UNSET aa UNSET UNSET UNSET
+checkmatch aaaaaa '^(aa|a)*$' aaaaaa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|aa)*$' aaaa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaa '^(a|aa)*$' aaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '^(a|aa|aaa)*$' aaaaaa aaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '^((a|aa))*$' aaaaaa aa aa UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '^(a|aaa|aa)*$' aaaaaa aaa UNSET UNSET UNSET UNSET UNSET
+checkmatch abcabc '^(a|ab|c)*$' abcabc c UNSET UNSET UNSET UNSET UNSET
+checkmatch abcabc '^((a|ab|c))*$' abcabc c c UNSET UNSET UNSET UNSET
+checkmatch aababa '^(a|ab)*$' aababa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aabab '^(a|ab)*b$' aabab a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|aa)+$' aaaa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aab '^(a|ab)+$' aab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch xaaay '^(x|a)*y$' xaaay a UNSET UNSET UNSET UNSET UNSET
+
+# ambiguous repetition boundaries
+checkmatch aaaa '^(a*)(a*)$' aaaa aaaa '' UNSET UNSET UNSET UNSET
+checkmatch aaaa '^((a*)(a*))$' aaaa aaaa aaaa '' UNSET UNSET UNSET
+checkmatch aaaa '^(a*)(a*)(a*)$' aaaa aaaa '' '' UNSET UNSET UNSET
+checkmatch aaab '^(a*)(b)$' aaab aaa b UNSET UNSET UNSET UNSET
+checkmatch aaaab '^(a*)(a*)(b)$' aaaab aaaa '' b UNSET UNSET UNSET
+checkmatch abab '^((ab)*|(ba)*)$' abab abab ab UNSET UNSET UNSET UNSET
+checkmatch ababab '^((ab)*|ab)*$' ababab ababab ab UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(aa|a)+$' aaaa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^((aa|a))+a$' aaaa a a UNSET UNSET UNSET UNSET
+checkmatch abcabc '^((abc)|(ab|c))*abc$' abcabc abc abc UNSET UNSET UNSET UNSET
+
+# repetition body with choice ending at different positions
+checkmatch ababab '^((a)(b*))+$' ababab ab a b UNSET UNSET UNSET
+checkmatch ababab '^((a)|(b*))+$' ababab b UNSET b UNSET UNSET UNSET
+checkmatch abcabc '^((ab)|(c))*$' abcabc c UNSET c UNSET UNSET UNSET
+checkmatch xabab '^x((a)|(ab))*$' xabab ab UNSET ab UNSET UNSET UNSET
+
+# nested repetitions
+checkmatch aaaa '^((a)*)*$' aaaa aaaa a UNSET UNSET UNSET UNSET
+checkmatch aaaa '^((a*)*)*$' aaaa aaaa aaaa UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a**(a*)*)*$' aaaa aaaa '' UNSET UNSET UNSET UNSET
+checkmatch aaa '^((a)?)*$' aaa a a UNSET UNSET UNSET UNSET
+checkmatch aaaa '^((a)+)*$' aaaa aaaa a UNSET UNSET UNSET UNSET
+checkmatch ababab '^((ab)*)*$' ababab ababab ab UNSET UNSET UNSET UNSET
+checkmatch aaaaaa '^((a)|(aa))*((a)|(aa))$' aaaaaa a a UNSET a a UNSET
+
+# back-references across iterations
+checkmatch abbabb '^((a)(b)\2)+$' NOMATCH
+checkmatch aabbaa '^((a)(b)\2)*$' NOMATCH
+checkmatch aaaaaa '^((a)\1)+$' NOMATCH
+checkmatch abcabc '^((abc)\1)*$' NOMATCH
+checkmatch abab '^((a)(b)\1\2)$' NOMATCH
+checkmatch aaa '^((a)\1?)*$' NOMATCH
+
+# anchors and alternation together
+checkmatch aaaa '^(a|aa)*a$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^((a)|(aa))*aa$' aaaa aa UNSET aa UNSET UNSET UNSET
+checkmatch baaa '^([ab]|a)*$' baaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '^(a|b|ab)*c$' abc ab UNSET UNSET UNSET UNSET UNSET
+checkmatch cab '^(a|b|ab)*c$' NOMATCH
+
+# Set 3: alternation with possibly empty branches inside a repetition.
+
+# an alternative that can match the empty string inside a repetition
+checkmatch aaaa '^(a|b*)$' NOMATCH
+checkmatch a '^(a|b*)$' a a UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '^(a|b*)$' NOMATCH
+checkmatch aabb '^(a|b*)$' NOMATCH
+checkmatch b '^(a|b*)$' b b UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '^(a|b*)$' '' '' UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*)c*$' NOMATCH
+checkmatch aaaac '^(a|b*)c*$' NOMATCH
+checkmatch aaa '^(b*a)*$' aaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aab '^(b*a)*$' NOMATCH
+checkmatch aba '^(b*a)*$' aba ba UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a*|b)*$' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b|a*)*$' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a*|b*)*$' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*)+$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*){2,}$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*)?$' NOMATCH
+checkmatch aaaa '^(a|b*){3}$' NOMATCH
+checkmatch aaaa '^(a+|b*)$' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a*|b+)$' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*)(a|b*)$' NOMATCH
+checkmatch aaaa '^(a|b*)*a$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*)*$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|(b*))*c$' NOMATCH
+checkmatch aaab '^(a|(b*))*b$' aaab a UNSET UNSET UNSET UNSET UNSET
+checkmatch aabb '^(a|(b*))*bb$' aabb a UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '^((a)|(b*))*$' aa a a UNSET UNSET UNSET UNSET
+checkmatch aa '^((a)|(b*))+$' aa a a UNSET UNSET UNSET UNSET
+checkmatch ab '^(a|b)(a|b)*$' ab a b UNSET UNSET UNSET UNSET
+checkmatch aba '^(a|b)(a|b)*$' aba a a UNSET UNSET UNSET UNSET
+checkmatch ab '^(a?b?)*$' ab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '^(a?b?)+$' ab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '^(a?|b?)*$' aa a UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '^(a|b?)*$' abab b UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '^(a?)*$' '' '' UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '^(a?)*b$' NOMATCH
+
+# same shapes, minimal repetition
+checkmatch aaaa '^(a|b*)*?$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*)+?$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|b*){2,}?$' aaaa a UNSET UNSET UNSET UNSET UNSET
+
+# ksh glob pattern syntax uses the same engine
+checkmatch --glob aaaa '@(a|b*)' NOMATCH
+checkmatch --glob aaaa '*(a|b*)' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob aaaa '+(a|b*)' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob aaaa '?(a|b*)' NOMATCH
+checkmatch --glob aaaa '{2,}(a|b*)' aaaa aaaa UNSET UNSET UNSET UNSET UNSET
+
+# Set 4: repetition bodies of fixed match length, i.e., bodies that reach
+# their continuation at a unique position per iteration. These are handled
+# by the fast parserep_fixedlen() function instead of the general but slow
+# parserep(). This test set validates the semantics of that split.
+
+# plain fixed length body, greedy and minimal
+checkmatch ababab '(ab)+' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab)*' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababa '(ab)+' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababa '(ab)*' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '(ab)+' ab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch zzzzz '(ab)+' NOMATCH
+checkmatch zababz '(ab)+' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '(ab)*' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '(ab)+' NOMATCH
+checkmatch ababab '^(ab)+$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababx '^(ab)+$' NOMATCH
+checkmatch abababababababababababx '^(ab)+x$' abababababababababababx ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababababababababababab '^(ab)+$' ababababababababababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab)+?' ab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab)*?' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab){2,3}' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab){2,3}?' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab){2,}' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab){2}?' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '(ab){4}' NOMATCH
+checkmatch ababab '(ab){0,2}' abab ab UNSET UNSET UNSET UNSET UNSET
+
+# subexpressions inside the body: the submatch state per iteration
+checkmatch ababab '^(ab)+$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '((ab))+$' ababab ab ab UNSET UNSET UNSET UNSET
+checkmatch ababab '(((ab)))+$' ababab ab ab ab UNSET UNSET UNSET
+checkmatch ababab '^(a(b))+$' ababab ab b UNSET UNSET UNSET UNSET
+checkmatch ababab '^((a)(b))+$' ababab ab a b UNSET UNSET UNSET
+checkmatch ababab '^(a(b)(c))+$' NOMATCH
+checkmatch ababab '(ab)+x' NOMATCH
+checkmatch zababz '(ab)+' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab 'x(ab)+' NOMATCH
+checkmatch ababab '(ab)+(ab)+' ababab ab ab UNSET UNSET UNSET UNSET
+checkmatch ababab '(ab)*(ab)*' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(a)(b)+$' NOMATCH
+checkmatch a1b2c3 '^([a-z][0-9])+$' a1b2c3 c3 UNSET UNSET UNSET UNSET UNSET
+checkmatch ab_cd_ab_cd '^(ab_cd)+$' NOMATCH
+checkmatch ababab '^((ab)*)+$' ababab ababab ab UNSET UNSET UNSET UNSET
+checkmatch ababab '^((ab)+)*$' ababab ababab ab UNSET UNSET UNSET UNSET
+checkmatch aaaa '^((a)*)*$' aaaa aaaa a UNSET UNSET UNSET UNSET
+checkmatch aaaa '^((a)*)+$' aaaa aaaa a UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(((a)))+$' aaaa a a a UNSET UNSET UNSET
+checkmatch aaa '^(a+)+$' aaa aaa UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '^(ab)*a$' NOMATCH
+
+# one character and character class bodies are fixed length too
+checkmatch abc '^(.)$' NOMATCH
+checkmatch abc '^(.)+$' abc c UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '^(..)+$' NOMATCH
+checkmatch abc '(.+)' abc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '^(.+)(.+)$' abc ab c UNSET UNSET UNSET UNSET
+checkmatch abc '^(.+?)(.+?)$' abc a bc UNSET UNSET UNSET UNSET
+checkmatch aabb '^[ab]+$' aabb UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aabb '^[^a]+$' NOMATCH
+checkmatch abc '^[a-c]+$' abc UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaa '^a{3}$' aaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^a{2,4}$' aaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^a{2,4}?$' aaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaaa '^a{2,}$' aaaaa UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch aaa '^(a){3}$' aaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '^(ab){2}$' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab){1,2}$' NOMATCH
+
+# alternatives whose branches all have the same length
+checkmatch abab '^(ab|ba)+$' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch abba '^(ab|ba)+$' abba ba UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '^(a|b)+$' abab b UNSET UNSET UNSET UNSET UNSET
+checkmatch abcd '^(ab|cd)+$' abcd cd UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '^(abc|xyz)+$' abc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab|ba|cd)+$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch aaaa '^(a|aa|aaa)+$' aaaa a UNSET UNSET UNSET UNSET UNSET
+checkmatch ab '^(ab|a)+$' ab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '^(ab|a)+$' abab ab UNSET UNSET UNSET UNSET UNSET
+
+# negated bodies are not fixed length; they use the slow general matcher
+checkmatch abc '^(~a)b$' NOMATCH
+checkmatch abc '^(~(a)b)c$' NOMATCH
+checkmatch xyz '^[^a]*$' xyz UNSET UNSET UNSET UNSET UNSET UNSET
+
+# back-references are not fixed length either
+checkmatch abbabb '^(a(b)\2)+$' abbabb abb b UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab)\1$' NOMATCH
+
+# bodies that cannot match often enough, or stop short
+checkmatch abc '^(ab){2,}$' NOMATCH
+checkmatch ab '^(ab){2,}$' NOMATCH
+checkmatch ababab '^(ab)+c$' NOMATCH
+checkmatch ababa '^(ab)+b$' NOMATCH
+checkmatch aaa '^(aa)+$' NOMATCH
+checkmatch aaaa '^(aa)+$' aaaa aa UNSET UNSET UNSET UNSET UNSET
+
+# nested repetitions of fixed length bodies in shell pattern syntax
+checkmatch --glob ababab '+(ab)' ababab ababab UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob ababab '*(ab)' ababab ababab UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob ababab '+(ab)*' ababab ababab UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob ababab '*(ab)*' ababab ababab UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob aaaaaaaa '+(aa)' aaaaaaaa aaaaaaaa UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob ababab '@(+(ab))' ababab ababab ababab UNSET UNSET UNSET UNSET
+checkmatch --glob ababab '+(ab|ba)' ababab ababab UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob aaa '+(a)' aaa aaa UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob abc '+(a|b|c)' abc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob aaaaaaaaaa '@(+(aa))' aaaaaaaaaa aaaaaaaaaa aaaaaaaaaa UNSET UNSET UNSET UNSET
+checkmatch --glob ababab '+(a)(b)+' NOMATCH
+checkmatch --glob xababab 'x+(ab)' xababab ababab UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob abababx '+(ab)x' abababx ababab UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob aaaaaaaa '+(aa)b' NOMATCH
+checkmatch --glob abc '+(~(a))b' NOMATCH
+checkmatch --glob ababab '~(ab)*' NOMATCH
+checkmatch --glob ababab '~(ab)+' NOMATCH
+
+# Set 5: edge cases of repetition bodies whose match length is fixed, which
+# parserep_fixedlen() handles: bodies that can match the empty string, zero
+# and fixed dup counts, and the corresponding minimal variants.
+
+# bodies that can match the empty string
+checkmatch aaa '^(*)$' NOMATCH
+checkmatch '' '^(*)$' NOMATCH
+checkmatch aaa '^(*a)$' NOMATCH
+checkmatch aa '^(a*)*$' aa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '^(a*)+$' aa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aaa '^(a{0})*$' NOMATCH
+checkmatch aaa '^(a{0})+$' NOMATCH
+checkmatch aaa '^(a{0}b)*$' NOMATCH
+checkmatch aaa '^(a{0}b)+$' NOMATCH
+checkmatch 'a$b' '^(^)*$' NOMATCH
+checkmatch 'a$b' '^(a$)*$' NOMATCH
+
+# zero and fixed dup counts
+checkmatch ababab '^(ab){0}$' NOMATCH
+checkmatch ababab '^(ab){0}x*$' NOMATCH
+checkmatch ababab '^(ab){0,3}$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab){0,3}?$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab){3}$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab){4}$' NOMATCH
+checkmatch ab '^(ab){2}$' NOMATCH
+checkmatch a '^(ab){2}$' NOMATCH
+checkmatch abab '^(a){2}$' NOMATCH
+checkmatch a '^(a){0}$' NOMATCH
+checkmatch '' '^(a){0}$' '' UNSET UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '^(a|b|c){3}$' abc c UNSET UNSET UNSET UNSET UNSET
+checkmatch abcabc '^(a|b|c){6}$' abcabc c UNSET UNSET UNSET UNSET UNSET
+checkmatch abcd '^(ab|cd){2}$' abcd cd UNSET UNSET UNSET UNSET UNSET
+checkmatch abc '^(abc){2}$' NOMATCH
+checkmatch abcd '^(ab|cd){2,4}$' abcd cd UNSET UNSET UNSET UNSET UNSET
+checkmatch abcd '^(ab|cd){2,4}?$' abcd cd UNSET UNSET UNSET UNSET UNSET
+checkmatch abababab '^((ab){2})+$' abababab abab ab UNSET UNSET UNSET UNSET
+checkmatch ababab '^((ab){2})b$' NOMATCH
+checkmatch ababab '^((ab){2})+$' NOMATCH
+
+# nested repetitions of fixed length bodies
+checkmatch abababab '^((ab)+)+$' abababab abababab ab UNSET UNSET UNSET UNSET
+checkmatch abababab '^(((ab)+)+)+$' abababab abababab abababab ab UNSET UNSET UNSET
+checkmatch abababab '^(ab)+(ab)+$' abababab ab ab UNSET UNSET UNSET UNSET
+checkmatch abababab '^((ab){2}(ab){2})$' abababab abababab ab ab UNSET UNSET UNSET
+checkmatch ababab '^(ab){2}(ab)$' ababab ab ab UNSET UNSET UNSET UNSET
+
+# minimal
+checkmatch ababab '^(ab){2,}?$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab){2,3}?$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab)*?$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch abcabc '^(a|b|c)*?$' abcabc c UNSET UNSET UNSET UNSET UNSET
+checkmatch ababab '^(ab)+?$' ababab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch '' '^(ab)*?$' '' UNSET UNSET UNSET UNSET UNSET UNSET
+
+# the same in ksh glob pattern syntax
+checkmatch --glob aaa '*(a)' aaa aaa UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob aaa '*(a{0})' NOMATCH
+checkmatch --glob ababab '*(ab){3}' NOMATCH
+checkmatch --glob ababab '+(ab){0}' NOMATCH
+checkmatch --glob ababab '?(ab)' NOMATCH
+checkmatch --glob ababab '~(ab)+?' NOMATCH
+checkmatch --glob ababab '@(ab){2}' NOMATCH
+checkmatch --glob abc '+(a|b|c)' abc abc UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob abcabcabc '+(a|b|c)' abcabcabc abcabcabc UNSET UNSET UNSET UNSET UNSET
+checkmatch --glob abababab '@(+((ab)+))' NOMATCH
+
+# Set 6: a repetition body that can reach its continuation at more than one
+# position per iteration, such as an alternation whose branches differ in
+# length or a nested variable-length repetition, cannot be scanned one
+# iteration at a time. Such bodies keep the slower general matcher, which
+# ranks the alternatives with better(). These are regressions from an
+# attempt that failed to use the general matcher in such cases.
+
+checkmatch ab '(ab|a)+' ab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch abab '(ab|a)+' abab ab UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '(a*)+' aa aa UNSET UNSET UNSET UNSET UNSET
+checkmatch aa '(a+)+' aa aa UNSET UNSET UNSET UNSET UNSET
+
+unset -f _checkmatch
+unalias checkmatch
+
+# ======
 exit $((Errors<125?Errors:125))
