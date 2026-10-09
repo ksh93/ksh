@@ -7,6 +7,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed the calculation of the width of the line editor prompt on the terminal
   when the prompt includes ANSI escape codes with CSI intermediate bytes.
 
+- Fixed a bug that caused the emacs and vi editor modes to treat multibyte
+  spaces as non-space characters.
+
 2026-10-06:
 
 - Fixed a potential crash upon failure to write to the shell history file.
@@ -97,9 +100,6 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed failures (assignment data loss) when a nested associative array was
   assigned to a name reference that pointed to a variable in a calling
   function's local scope.
-
-- Fixed a bug that caused the emacs and vi editor modes to treat multibyte
-  spaces as non-space characters.
 
 2026-09-21:
 
