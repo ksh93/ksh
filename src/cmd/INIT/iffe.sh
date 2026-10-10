@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2026-09-08
+version=2026-10-10
 
 # DEFPATH should be inherited from package(1), but just in case...
 case $DEFPATH in
@@ -388,6 +388,7 @@ report() # [-] [-0] [-1] status value success failure default
 			case $_report_default in
 			''|-)	;;
 			*)	case $define$set in
+				1" ")	echo "#define $v		/* $_report_default */" ;;
 				1?*)	echo "#define $v	$set	/* $_report_default */" ;;
 				n?*)	echo "$v=$set" ;;
 				esac
@@ -3585,10 +3586,7 @@ int f(void){int $w = 1;return($w);}" > $tmp.c
 									esac
 									case $1 in
 									=)	break ;;
-									esac
-									case $w in
-									'')	w=$1 ;;
-									*)	w="$w $1" ;;
+									?*)	w=${w:+"$w "}$1 ;;
 									esac
 									shift
 								done
