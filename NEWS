@@ -2,6 +2,11 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-10:
+
+- Fixed a bug that caused the emacs and vi editor modes to treat multibyte
+  spaces as non-space characters.
+
 2026-10-08:
 
 - Fixed the calculation of the width of the line editor prompt on the terminal

@@ -37,6 +37,7 @@
 #include	"edit.h"
 #include	"terminal.h"
 #include	"FEATURE/time"
+#include	<ast_wchar.h>
 
 #ifdef ECHOCTL
 #   define echoctl	ECHOCTL
@@ -58,8 +59,11 @@
 #   define gencpy(a,b)	ed_gencpy(a,b)
 #   define genncpy(a,b,n)	ed_genncpy(a,b,n)
 #   define genlen(str)	ed_genlen(str)
-#   define digit(c)	((c&~STRIP)==0 && isdigit(c))
-#   define is_print(c)	((c&~STRIP) || isprint(c))
+#   if _lib_iswdigit
+#      define digit(c)	iswdigit((wint_t)(c))
+#   else
+#      define digit(c)	((c&~STRIP)==0 && isdigit(c))
+#   endif
     static int _isalph(int);
     static int _isblank(int);
 #   undef  isblank
@@ -74,7 +78,6 @@
 #   undef  isblank
 #   define isblank(v)	isspace(virtual[v])
 #   define digit(c)	isdigit(c)
-#   define is_print(c)	isprint(c)
 #endif	/* SHOPT_MULTIBYTE */
 
 #define fold(c)	((c)&~040)	/* lower- and uppercase equivalent (ASCII) */
@@ -1774,7 +1777,7 @@ static void refresh(Vi_t* vp, int mode)
 #endif /* SHOPT_EDPREDICT */
 	if( v<vp->ocur_virt || vp->ocur_virt==INVALID
 		|| ( v==vp->ocur_virt
-			&& (!is_print(virtual[v]) || !is_print(vp->o_v_char))) )
+			&& (!sh_isprint(virtual[v]) || !sh_isprint(vp->o_v_char))) )
 	{
 		opflag = 0;
 		p = 0;
@@ -1785,7 +1788,7 @@ static void refresh(Vi_t* vp, int mode)
 		opflag = 1;
 		p = vp->ocur_phys;
 		v = vp->ocur_virt;
-		if( !is_print(virtual[v]) )
+		if( !sh_isprint(virtual[v]) )
 		{
 			/*** avoid double ^'s ***/
 			++p;
@@ -1934,15 +1937,15 @@ static void replace(Vi_t *vp, int c, int increment)
 		return;
 	}
 	cur_window = cur_phys - vp->first_wind;
-	if( vp->ocur_virt == INVALID || !is_print(c)
-		|| !is_print(virtual[cur_virt])
-		|| !is_print(vp->o_v_char)
+	if( vp->ocur_virt == INVALID || !sh_isprint(c)
+		|| !sh_isprint(virtual[cur_virt])
+		|| !sh_isprint(vp->o_v_char)
 #if SHOPT_MULTIBYTE
 		|| !iswascii(c) || mbwidth(vp->o_v_char)>1
 		|| !iswascii(virtual[cur_virt])
 #endif /* SHOPT_MULTIBYTE */
 		|| (increment && (cur_window==w_size-1)
-			|| !is_print(virtual[cur_virt+1])) )
+			|| !sh_isprint(virtual[cur_virt+1])) )
 	{
 		/*** must use standard refresh routine ***/
 
@@ -2195,7 +2198,7 @@ static void sync_cursor(Vi_t *vp)
 			if( v != cur_virt )
 				p += (d-1);
 		}
-		else if(!iswprint((wint_t)c))
+		else if(!sh_isprint(c))
 #else
 		c = virtual[v];
 		if(!isprint(c))
@@ -2479,7 +2482,7 @@ deleol:
 		if( cur_virt != INVALID )
 		{
 			i = virtual[cur_virt];
-			if(!is_print(i))
+			if(!sh_isprint(i))
 				vp->ocur_virt = INVALID;
 			--cur_virt;
 		}
@@ -2627,7 +2630,7 @@ yankeol:
 
     static int _isblank(int v)
     {
-	return (v&~STRIP)==0 && isspace(v);
+	return sh_isspace(v);
     }
 #endif	/* SHOPT_MULTIBYTE */
 
@@ -2638,14 +2641,8 @@ static int blankline(Vi_t *vp, int uptocursor)
 {
 	int x;
 	for(x=0; x <= (uptocursor ? cur_virt : last_virt); x++)
-	{
-#if SHOPT_MULTIBYTE
-		if(!iswspace((wint_t)virtual[x]))
-#else
-		if(!isspace(virtual[x]))
-#endif /* SHOPT_MULTIBYTE */
+		if(!sh_isspace(virtual[x]))
 			return 0;
-	}
 	return 1;
 }
 
