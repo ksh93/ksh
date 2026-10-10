@@ -203,7 +203,7 @@ b_fds(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if ((open_max = (int)astconf_long(CONF_OPEN_MAX)) <= 0)
+	if ((open_max = astconf_int(CONF_OPEN_MAX)) <= 0)
 	{
 #if defined(OPEN_MAX)
 		open_max = OPEN_MAX;

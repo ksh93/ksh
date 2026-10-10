@@ -2002,6 +2002,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 					else
 					{
 						int c;  /* user's menu choice */
+						int oerrno = errno;
 						if(*(cp=val) == 0)
 						{
 							refresh++;
@@ -2013,11 +2014,12 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						if(c!=0)
 							c = nargs;
 						else
-							c = (int)strtol(val, NULL, 10)-1;
-						if(c<0 || c >= nargs)
+							c = strtoi(val, NULL, 10)-1;
+						if(c<0 || c >= nargs || errno==ERANGE)
 							cp = Empty;
 						else
 							cp = args[c];
+						errno = oerrno;
 					}
 				}
 				if(nameref)

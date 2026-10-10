@@ -1814,6 +1814,27 @@ printf 'xyz\naA:bc\n:' | read -rd: -n10 got
 exp=$'xyz\naA'
 [[ $got == "$exp" ]] || err_exit "read from pipe with custom delimiter (expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# ======
+# The sleep builtin should reject out of range values and negative numbers
+unset ret got
+got=$(set +x; "$SHELL" -c '(sleep 2; kill -KILL $$) & sleep $(( pow(2,32) ))' 2>&1)
+ret=$?
+((ret==1)) || err_exit "sleep builtin doesn't reject out of range values beyond INT_MAX" \
+	"(got exit status $ret, output $(printf %q "$got"))"
+unset ret got
+got=$(set +x; "$SHELL" -c '(sleep 2; kill -KILL $$) & sleep -- -1' 2>&1)
+ret=$?
+((ret==1)) || err_exit "sleep builtin doesn't reject negative numbers" \
+	"(got exit status $ret, output $(printf %q "$got"))"
+
+# ======
+# The kill builtin should reject absurd signal numbers
+unset ret got
+got=$(set +x; "$SHELL" -c 'kill -s $((pow(2,32))) $$' 2>&1)
+ret=$?
+((ret==1)) || err_exit "kill builtin doesn't reject out of range numbers" \
+	"(got exit status $ret, output $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"

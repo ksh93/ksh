@@ -7,6 +7,7 @@ ast \- miscellaneous libast support
 #include <ast.h>
 
 char*          astconf(const char* \fIname\fP, const char* \fIpath\fP, const char* \fIvalue\fP);
+int            astconf_int(\fIarg\fP);
 long           astconf_long(\fIarg\fP);
 unsigned long  astconf_ulong(\fIarg\fP);
 Ast_confdisc_t astconfdisc(Ast_confdisc_t new_notify);
@@ -125,6 +126,7 @@ User defined
 values may also be set and queried, but these should probably have
 some form of vendor prefix to avoid being stomped by future standards.
 .PP
+\f[CB]astconf_int\fP,
 \f[CB]astconf_long\fP
 and
 \f[CB]astconf_ulong\fP
@@ -135,8 +137,10 @@ or
 preferring
 .I sysconf
 if it's available.
+\f[CB]astconf_int\fP
+and
 \f[CB]astconf_long\fP
-returns a signed long value while
+return signed int and long values while
 \f[CB]astconf_ulong\fP
 returns an unsigned long value.
 The argument passed to these macros may be one of the following:

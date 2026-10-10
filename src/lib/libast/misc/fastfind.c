@@ -1153,7 +1153,7 @@ findsync(Find_t* fp)
 		{
 			z = strtol(s, &t, 0);
 			s = t;
-			if (z < 0 || z > 2 * FF_OFF)
+			if (z < 0 || z > 2 * FF_OFF || errno == ERANGE)
 			{
 				sfputc(sp, FF_ESC);
 				sfputc(sp, (z >> 24));

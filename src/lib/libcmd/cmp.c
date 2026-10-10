@@ -265,6 +265,7 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 	Sfoff_t		count = -1;
 	Sfoff_t		differences = -1;
 	int		flags = 0;
+	long long	ll;
 
 	NoP(argc);
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
@@ -283,12 +284,20 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 			differences = opt_info.number;
 			continue;
 		case 'i':
-			o1 = strtoll(opt_info.arg, &e, 0);
-			if (*e == ':')
-				o2 = strtoll(e + 1, &e, 0);
+			ll = strtoll(opt_info.arg, &e, 0);
+			o1 = (Sfoff_t)ll;
+			if (o1 != ll)
+				errno = ERANGE;
+			else if (*e == ':')
+			{
+				ll = strtoll(e + 1, &e, 0);
+				o2 = (Sfoff_t)ll;
+				if (o2 != ll)
+					errno = ERANGE;
+			}
 			else
 				o2 = o1;
-			if (*e)
+			if (*e || errno == ERANGE)
 			{
 				error(2, "%s: skip1:skip2 expected", opt_info.arg);
 				break;
@@ -336,16 +345,22 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 	}
 	if (s = *argv++)
 	{
-		o1 = strtoll(s, &e, 0);
-		if (*e)
+		ll = strtoll(s, &e, 0);
+		o1 = (Sfoff_t)ll;
+		if (o1 != ll)
+			errno = ERANGE;
+		if (*e || errno == ERANGE)
 		{
 			error(ERROR_exit(0), "%s: %s: invalid skip", file1, s);
 			goto done;
 		}
 		if (s = *argv++)
 		{
-			o2 = strtoll(s, &e, 0);
-			if (*e)
+			ll = strtoll(s, &e, 0);
+			o2 = (Sfoff_t)ll;
+			if (o2 != ll)
+				errno = ERANGE;
+			if (*e || errno == ERANGE)
 			{
 				error(ERROR_exit(0), "%s: %s: invalid skip", file2, s);
 				goto done;

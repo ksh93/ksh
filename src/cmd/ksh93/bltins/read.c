@@ -61,7 +61,7 @@ struct read_save
 int	b_read(int argc,char *argv[], Shbltin_t *context)
 {
 	Sfdouble_t sec;
-	char *prompt;
+	char *prompt, *eptr;
 	const char *msg = e_file+4;
 	int ret, flags=0, fd=0;
 	int delim = '\n';
@@ -129,8 +129,8 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 	    case 'u':
 		if(opt_info.arg[0]=='p' && opt_info.arg[1]==0)
 			goto coprocess;
-		fd = (int)strtol(opt_info.arg,&opt_info.arg,10);
-		if(*opt_info.arg || !sh_iovalidfd(fd) || sh_inuse(fd))
+		fd = strtoi(opt_info.arg,&eptr,10);
+		if(errno == ERANGE || *eptr || !sh_iovalidfd(fd) || sh_inuse(fd))
 			fd = -1;
 		break;
 	    case 'v':
@@ -148,7 +148,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if(!((fdmode=sh.fdstatus[fd])&IOREAD) || !(fdmode&(IOSEEK|IONOSEEK)))
+	if(fd>=0 && (!((fdmode=sh.fdstatus[fd])&IOREAD) || !(fdmode&(IOSEEK|IONOSEEK))))
 		fdmode = sh_iocheckfd(fd,NULL);
 	if(fd<0 || !(fdmode&IOREAD))
 	{

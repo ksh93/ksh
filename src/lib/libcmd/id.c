@@ -227,7 +227,7 @@ getids(Sfio_t* sp, const char* name, int flags)
 			 */
 
 			if ((maxgroups = getgroups(0, groups)) <= 0)
-				maxgroups = (int)astconf_long(CONF_NGROUPS_MAX);
+				maxgroups = astconf_int(CONF_NGROUPS_MAX);
 			if (!(groups = newof(0, gid_t, (size_t)maxgroups + 1, 0)))
 			{
 				error(ERROR_SYSTEM|ERROR_PANIC, "out of memory [group array]");
@@ -248,10 +248,13 @@ getids(Sfio_t* sp, const char* name, int flags)
 		if (!(pw = getpwnam(name)))
 		{
 			/* numeric "name": look up user name (GNU/BSD extension) */
-			user = (uid_t)strtol(name, &s, 0);
-			if (*s || !(pw = getpwuid(user)))
+			long long ll = strtoll(name, &s, 0);
+			user = (uid_t)ll;
+			if (ll != (long long)user)
+				errno = ERANGE;
+			if (errno == ERANGE || *s || !(pw = getpwuid(user)))
 			{
-				error(ERROR_exit(1), "%s: name not found", name);
+				error(ERROR_system(1), "%s: name not found", name);
 				UNREACHABLE();
 			}
 			name = pw->pw_name;
