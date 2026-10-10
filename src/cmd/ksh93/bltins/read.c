@@ -355,7 +355,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		if(jmpval)
 			goto done;
 		if(timeout)
-	                timeslot = sh_timeradd((Sfulong_t)timeout,0,timedout,iop);
+			timeslot = sh_timeradd((Sfulong_t)timeout,0,timedout,iop);
 	}
 #if !SHOPT_SCRIPTONLY
 	if((flags&S_FLAG) && !sh.hist_ptr)

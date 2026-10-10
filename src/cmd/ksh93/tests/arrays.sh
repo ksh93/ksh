@@ -151,11 +151,11 @@ typeset -i y
 z=${y[@]}
 typeset -R12 y
 typeset -i y
-if      [[ ${y[@]} != "$z" ]]
-then    err_exit 'error in array conversion from int to R12'
+if	[[ ${y[@]} != "$z" ]]
+then	err_exit 'error in array conversion from int to R12'
 fi
-if      (( ${#y[@]} != 3  ))
-then    err_exit 'error in count of array conversion from int to R12'
+if	(( ${#y[@]} != 3  ))
+then	err_exit 'error in count of array conversion from int to R12'
 fi
 unset abcdefg
 :  ${abcdefg[1]}
@@ -164,7 +164,7 @@ unset x y
 x=1
 typeset -i y[$x]=4
 if	[[ ${y[1]} != 4 ]]
-then    err_exit 'arithmetic expressions in typeset not working'
+then	err_exit 'arithmetic expressions in typeset not working'
 fi
 unset foo
 typeset foo=bar
@@ -358,7 +358,7 @@ function EMPTY
 	typeset i
 	typeset -n ARRAY=$1
 	for i in ${!ARRAY[@]}
-	do      unset ARRAY[$i]
+	do	unset ARRAY[$i]
 	done
 }
 unset foo

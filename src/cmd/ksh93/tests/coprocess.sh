@@ -364,9 +364,9 @@ exp=ok
 cop |&
 pid=$!
 (
-if      print -p yo 2>/dev/null
-then    read -p got
-else    got='no coprocess'
+if	print -p yo 2>/dev/null
+then	read -p got
+else	got='no coprocess'
 fi
 [[ $got == $exp ]] || err_exit "main coprocess subshell query failed -- expected $exp, got '$got'"
 )

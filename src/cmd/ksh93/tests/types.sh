@@ -258,7 +258,7 @@ $SHELL > /dev/null  <<- '+++++' || err_exit 'passing _ as nameref arg not workin
 expected='A_t b.a=(name=one)'
 [[ $( $SHELL <<- '+++'
 	typeset -T A_t=(
-	     typeset name=aha
+	 	typeset name=aha
 	)
 	typeset -T B_t=(
 	 	typeset     arr
@@ -738,7 +738,7 @@ exp=8
 got=$("$SHELL" -c 'typeset -p .sh.type
 typeset -Ttyp1 typ1=(
 	function get {
-	        .sh.value="'\''Sample'\''";
+		.sh.value="'\''Sample'\''";
 	}
 )
 typeset -p .sh.type

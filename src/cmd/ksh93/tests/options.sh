@@ -489,8 +489,8 @@ spy=$!
 wait $tst 2>/dev/null
 status=$?
 if	[[ $status == 0 || $(kill -l $status) == PIPE ]]
-then    kill $spy 2>/dev/null
-else    err_exit "pipefail pipeline bypasses SIGPIPE and hangs"
+then	kill $spy 2>/dev/null
+else	err_exit "pipefail pipeline bypasses SIGPIPE and hangs"
 fi
 wait
 

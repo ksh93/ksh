@@ -595,19 +595,19 @@ below, for a description of
 .IR expression .
 .TP
 .PD 0
-\f3function\fP \f2varname\^\fP \f3{\fP \f2list\^\fP \f3;}\fP \*(OK \f2redirection\^\fP ... \*(CK
+\f3function\fP \f2vname\^\fP \f3{\fP \f2list\^\fP \f3;}\fP \*(OK \f2redirection\^\fP ... \*(CK
 .TP
-\f2varname\^\fP \f3()\fP \f2compound-command\^\fP \*(OK \f2redirection\^\fP ... \*(CK
+\f2vname\^\fP \f3()\fP \f2compound-command\^\fP \*(OK \f2redirection\^\fP ... \*(CK
 .PD
 Define a function which is referenced by
-.IR varname .
+.IR vname .
 A function whose
-.I varname\^
+.I vname\^
 contains a
 .B \s+2.\s-2
 is called a discipline function and the portion
 of the
-.I varname\^
+.I vname\^
 preceding the last
 .B \s+2.\s-2
 must refer to an existing variable.
@@ -617,10 +617,10 @@ of commands between
 .B {
 and
 .BR } .
-A function defined with the \f3function\fP \f2varname\^\fP
+A function defined with the \f3function\fP \f2vname\^\fP
 syntax can also be used as an argument to the \f3.\fP
 special built-in command to get the equivalent behavior
-as if the \f2varname\^\fP\f3()\fP syntax were used to define it.
+as if the \f2vname\^\fP\f3()\fP syntax were used to define it.
 (See
 .I Functions\^
 below.)
@@ -667,86 +667,6 @@ and are not quoted:
 .if n if then else elif fi case esac for while until do done { } function select time [[ ]] !
 .if t if   then   else   elif   fi   case   esac   for   while   until   do   done   {   }   function   select   time  [[  ]]   !
 .if t .RE
-.SS Variable Assignments.
-One or more variable assignments can start a simple command
-or can be arguments to the
-.BR typeset ,
-.BR enum ,
-.BR export ,
-or
-.B readonly
-special built-in commands as well as
-to other declaration commands created as types.
-The syntax for an \f2assignment\^\fP is of the form:
-.TP
-.PD 0
-\f2varname\^\fP\f3=\fP\f2word\^\fP
-.TP
-\f2varname\^\fP\f3[\fP\f2word\^\fP\f3]\fP=\fP\f2word\^\fP
-.PD
-No space is permitted between \f2varname\^\fP and the \f3=\fP or
-between \f3=\fP and \fIword\^\fP.
-.TP
-\f2varname\^\fP\f3=(\fP\f2assign_list\^\fP\f3)\fP
-No space is permitted between \f2varname\^\fP and the \f3=\fP.
-The variable
-.I varname
-is unset before the assignment.
-An \f2assign_list\^\fP can be one of the following:
-.RS 15
-.PD 0
-.TP
-\f2word\^\fP ...
-Indexed array assignment.
-.TP
-\f3[\fP\f2word\^\fP\f3]=\fP\f2word\^\fP .\|.\|.
-Associative array assignment.
-If preceded by
-.B typeset \-a
-this will create an indexed array instead.
-.TP
-\f2assignment\^\fP .\|.\|.
-Compound variable assignment.
-This creates a compound variable \f2varname\^\fP with
-subvariables of the form \f2varname\^\fP\f3.\fP\f2name\^\fP,
-where \f2name\^\fP is the name portion of \f2assignment\^\fP.
-The value of \f2varname\^\fP will contain all the assignment elements.
-Additional assignments made to subvariables of \f2varname\^\fP
-will also be displayed as part of the value of \f2varname\^\fP.
-If no \f2assignment\fPs are specified, \f2varname\^\fP will be
-a compound variable allowing subsequent child elements to be defined.
-.TP
-\f3typeset\fP \*(OK\f2options\fP\*(CK \f2assignment\^\fP .\|.\|.
-Nested variable assignment.  Multiple assignments
-can be specified by separating each of them with a \f3;\fP.
-The previous value is unset before the assignment.
-Other declaration commands such as
-.BR readonly,
-.BR enum ,
-and
-other declaration commands can be used in place of
-.BR typeset .
-.TP
-\f3\|.\fP \f2filename\^\fP
-Include the assignment commands contained in
-.IR filename .
-.PD
-.RE
-.PP
-In addition, a \f3+=\fP can be used in place of the \f3=\fP
-to signify adding to or appending to the previous value.
-When \f3+=\fP is applied to an arithmetic type, \f2word\^\fP
-is evaluated as an arithmetic expression and added to the current value.
-When applied to a string variable, the value defined by \f2word\^\fP
-is appended to the value.  For compound assignments, the previous
-value is not unset and the new values are appended to the
-current ones provided that the types are compatible.
-.PP
-The right hand side of a variable assignment undergoes all the expansion
-listed below except word splitting, brace expansion, and pathname expansion.
-When the left hand side is an assignment is a compound variable and
-the right hand is the name of a compound variable, the compound variable
-on the right will be copied or appended to the compound variable on the left.
 .SS Comments.
 .PD 0
 A word beginning with
@@ -1060,7 +980,123 @@ can also be used with the
 redirection operator which causes the output of
 .I list\^
 to be standard input or the input for whatever file descriptor is specified.
+.SS Variable Assignments.
+A
+.I variable\^
+is denoted by a \f2vname\fP.
+A
+.I variable\^
+has a
+.I value\^
+and zero or more
+.IR attributes .
+One or more variable assignments can start a simple command
+or can be arguments to the
+.BR typeset ,
+.BR export ,
+.B readonly
+and other declaration commands,
+including those created for types by
+.BR "typeset -T" .
+The syntax for an \f2assignment\^\fP is of the form:
+.TP
+.PD 0
+\f2vname\^\fP\f3=\fP\f2word\^\fP
+.TP
+\f2vname\^\fP\f3[\fP\f2word\^\fP\f3]\fP=\fP\f2word\^\fP
+.PD
+No space is permitted between \f2vname\^\fP and the \f3=\fP or
+between \f3=\fP and \fIword\^\fP.
+.TP
+\f2vname\^\fP\f3=(\fP\f2assign_list\^\fP\f3)\fP
+No space is permitted between \f2vname\^\fP and the \f3=\fP.
+An \f2assign_list\^\fP can be one of the following:
+.RS 15
+.PD 0
+.TP
+\f2word\^\fP ...
+Indexed array assignment.
+See
+.I Arrays\^
+below.
+.TP
+\f3[\fP\f2word\^\fP\f3]=\fP\f2word\^\fP .\|.\|.
+Associative array assignment.
+See
+.I Arrays\^
+below.
+If preceded by
+.B typeset \-a
+this will create an indexed array instead.
+.TP
+\f2assignment\^\fP .\|.\|.
+Compound variable assignment.
+This creates a compound variable \f2vname\^\fP with
+subvariables of the form \f2vname\^\fP\f3.\fP\f2name\^\fP,
+where \f2name\^\fP is the name portion of \f2assignment\^\fP.
+The value of \f2vname\^\fP will contain all the assignment elements.
+Additional assignments made to subvariables of \f2vname\^\fP
+will also be displayed as part of the value of \f2vname\^\fP.
+If no \f2assignment\fPs are specified, \f2vname\^\fP will be
+a compound variable allowing subsequent child elements to be defined.
+.TP
+\f3typeset\fP \*(OK\f2options\fP\*(CK \f2assignment\^\fP .\|.\|.
+Nested variable assignment.  Multiple assignments
+can be specified by separating each of them with a \f3;\fP.
+The previous value is unset before the assignment.
+Other declaration commands such as
+.BR readonly,
+.BR enum ,
+and
+other declaration commands can be used in place of
+.BR typeset .
+.TP
+\f3\|.\fP \f2filename\^\fP
+Include the assignment commands contained in
+.IR filename .
+.PD
+.RE
+.PP
+To create a variable whose
+.I vname\^
+contains a \f3\s+2.\s-2\fP,
+a variable whose
+.I vname\^
+consists of everything before the last \f3\s+2.\s-2\fP must already exist.
+.PP
+An assignment normally overwrites any previous value the variable may have.
+However, a \f3+=\fP can be used in place of the \f3=\fP
+to signify adding to or appending to the previous value.
+When \f3+=\fP is applied to an arithmetic type, \f2word\^\fP
+is evaluated as an arithmetic expression and added to the current value.
+When applied to a string variable, the value defined by \f2word\^\fP
+is appended to the value.
+For compound assignments, the new values are appended to the
+current ones provided that the types are compatible.
+.PP
+The right hand side of a variable assignment undergoes all the expansion
+listed below except word splitting, brace expansion, and pathname expansion.
+When the left hand side is an assignment is a compound variable and
+the right hand is the name of a compound variable, the compound variable
+on the right will be copied to the compound variable on the left.
+.PP
+If any of the floating point attributes,
+.BR \-E ,
+.BR \-F ,
+or
+.BR \-X ,
+or the integer attribute,
+.BR \-i ,
+is set for
+.IR vname ,
+then the
+.I value\^
+is subject to arithmetic evaluation as described below.
 .SS Parameter Expansion.
+The character
+.B $
+is used to introduce substitutable
+.IR parameters .
 A
 .I parameter\^
 is a
@@ -1075,138 +1111,14 @@ or any of the characters
 .BR $ ,
 and
 .BR !\\^ .
-A
-.I variable\^
-is denoted by a \f2vname\fP.
-To create a variable whose
-.I vname\^
-contains a \f3\s+2.\s-2\fP,
-a variable whose
-.I vname\^
-consists of everything before the last \f3\s+2.\s-2\fP must already exist.
-A
-.I variable\^
-has a
-.I value\^
-and zero or more
-.IR attributes .
-.I Variables\^
-can be assigned
-.I values\^
-and
-.I attributes
-by using the
-.B typeset\^
-special built-in command.
-The attributes supported by the shell are described
-later with the
-.B typeset\^
-special built-in command.
-.PP
-The shell supports both indexed and associative arrays.
-An element of an array variable is referenced by a
-.IR subscript .
-A
-.I subscript\^
-for an indexed array is denoted by
-an
-.I arithmetic expression\^
-(see
-.I "Arithmetic Evaluation"
-below)
-between a
-.B [
-and a
-.BR ] .
-To assign values to an indexed array, use
-\f2vname\fP\f3=(\fP\f2value\fP .\|.\|.\f3)\fP or
-\f3set \-A\fP \f2vname\fP  \f2value\fP .\|.\|. .
-The value of all non-negative
-subscripts must be in the
-range of
-0 through 4,194,303.
-A negative subscript is treated as an offset from the maximum
-current index +1 so that \-1 refers to the last element.
-Indexed arrays can be declared with the
-.B \-a
-option to
-.BR typeset.
-Indexed arrays need not be declared.
-Any reference to a variable
-with a valid subscript is
-legal and an array will be created if necessary.
-.PP
-An associative array is created with the
-.B \-A
-option to
-.BR typeset.
-A
-.I subscript\^
-for an associative array is denoted by
-a string enclosed between
-.B [
-and
-.BR ] .
-.PP
-Referencing any array without a subscript
-is equivalent to referencing the array with subscript 0.
-.PP
-The
-.I value\^
-of a
-.I variable\^
-may be assigned by writing:
-.PP
-.RS
-.IB vname = value\^\|
-\*(OK
-.IB vname = value\^
-\*(CK .\|.\|.
-.RE
-.PP
-or
-.PP
-.RS
-.IB vname [ subscript ]= value\^\|
-\*(OK
-.IB vname [ subscript ]= value\^
-\*(CK .\|.\|.
-.RE
-.PP
-Note that no space is allowed before or after the
-.BR = .
-.PP
-Attributes assigned by the
-.I typeset\^
-special built-in command apply to all elements of the array.
-An array element can be a simple variable, a compound variable or an
-array variable.  An element of an indexed array can be either an indexed
-array or an associative array.  An element of an associative array can also
-be either.  To refer to an array element that is part of an array
-element, concatenate the subscript in brackets.  For example, to refer
-to the
-.I foobar\^
-element of an associative array that is defined as the
-third element of the indexed array, use
-.BI ${ vname [ 3 ][ foobar ]}
-.sp .5
-.PP
-If any of the floating point attributes,
-.BR \-E ,
-.BR \-F ,
-or
-.BR \-X ,
-or the integer attribute,
-.BR \-i ,
-is set for
-.IR vname ,
-then the
-.I value\^
-is subject to arithmetic evaluation as described below.
 .sp .5
 .PP
 Positional parameters,
 parameters denoted by a number,
+are automatically set based on the arguments given to the current script or
+shell function (see
+.I Functions\^
+below). They
 may be assigned values with the
 .B set\^
 special built-in command.
@@ -1215,11 +1127,6 @@ Parameter
 is set from argument zero when the shell
 is invoked.
 .sp .5
-.PP
-The character
-.B $
-is used to introduce substitutable
-.IR parameters .
 .TP
 \f3${\fP\f2parameter\^\fP\f3}\fP
 The shell
@@ -1649,9 +1556,69 @@ then \f2parameter\fP is substituted unmodified.
 When \f2parameter\fP is \f3@\fP, \f3*\fP,
 or an array variable with subscript \f3@\fP or \f3*\fP,
 the transformation is applied to each element in turn.
-.SS Name References.
-.sp .5
+.SS Arrays.
+The shell supports both indexed and associative arrays.
+An element of an array variable is referenced by a
+.IR subscript .
+A
+.I subscript\^
+for an indexed array is denoted by
+an
+.I arithmetic expression\^
+(see
+.I "Arithmetic Evaluation"
+below)
+between a
+.B [
+and a
+.BR ] .
+To assign values to an indexed array, use
+\f2vname\fP\f3=(\fP\f2value\fP .\|.\|.\f3)\fP or
+\f3set \-A\fP \f2vname\fP  \f2value\fP .\|.\|. .
+The value of all non-negative
+subscripts must be in the
+range of
+0 through 4,194,303.
+A negative subscript is treated as an offset from the maximum
+current index +1 so that \-1 refers to the last element.
+Indexed arrays can be declared with the
+.B \-a
+option to
+.BR typeset.
+Indexed arrays need not be declared.
+Any reference to a variable
+with a valid subscript is
+legal and an array will be created if necessary.
 .PP
+An associative array is created with the
+.B \-A
+option to
+.BR typeset.
+A
+.I subscript\^
+for an associative array is denoted by
+a string enclosed between
+.B [
+and
+.BR ] .
+.PP
+Referencing any array without a subscript
+is equivalent to referencing the array with subscript 0.
+.PP
+Attributes assigned by the
+.I typeset\^
+special built-in command apply to all elements of the array.
+An array element can be a simple variable, a compound variable or an
+array variable.  An element of an indexed array can be either an indexed
+array or an associative array.  An element of an associative array can also
+be either.  To refer to an array element that is part of an array
+element, concatenate the subscript in brackets.  For example, to refer
+to the
+.I foobar\^
+element of an associative array that is defined as the
+third element of the indexed array, use
+.BI ${ vname [ 3 ][ foobar ]}
+.SS Name References.
 A
 .I nameref\^
 or name reference
@@ -4007,18 +3974,18 @@ and
 .B <#
 forms,
 is preceded by
-.BI { varname }
+.BI { vname }
 with no intervening space,
 then a file descriptor number > 9
 will be selected by
 the shell and stored in the variable
-.IR varname ,
+.IR vname ,
 so it can be read from or written to with redirections like
 .B <&
-.I $varname
+.I $vname
 or
 .B >&
-.IR $varname .
+.IR $vname .
 If
 .B >&\-
 or the any of the
@@ -4027,9 +3994,9 @@ and
 .B <#
 forms
 is preceded by
-.BI { varname }
+.BI { vname }
 the value of
-.I varname\^
+.I vname\^
 defines the file descriptor to close or position.
 For example:
 .PP
@@ -6472,7 +6439,7 @@ are expanded with the same rules as a variable assignment.
 This means that tilde expansion is performed after the
 .B =
 sign, array assignments of the form
-\f2varname\^\fP\f3=(\fP\f2assign_list\^\fP\f3)\fP
+\f2vname\^\fP\f3=(\fP\f2assign_list\^\fP\f3)\fP
 are supported, and field splitting and pathname expansion are not
 performed.
 .PD

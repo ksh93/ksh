@@ -163,12 +163,12 @@ then	err_exit 'closing brace escape not working'
 fi
 xx=%28text%29
 if	[[ ${xx//%28/abc\)} != 'abc)text%29' ]]
-then	 err_exit '${xx//%28/abc\)} not working'
+then	err_exit '${xx//%28/abc\)} not working'
 fi
 xx='a:b'
 str='(){}[]*?|&^%$#@l'
 for ((i=0 ; i < ${#str}; i++))
-do      [[ $(eval print -r -- \"\${xx//:/\\${str:i:1}}\") == "a${str:i:1}b" ]] || err_exit "substitution of \\${str:i:1}} failed"
+do	[[ $(eval print -r -- \"\${xx//:/\\${str:i:1}}\") == "a${str:i:1}b" ]] || err_exit "substitution of \\${str:i:1}} failed"
 	[[ $(eval print -rn -- \"\${xx//:/\'${str:i:1}\'}\") == "a${str:i:1}b" ]] || err_exit "substitution of '${str:i:1}' failed"
 	[[ $(eval print -r -- \"\${xx//:/\"${str:i:1}\"}\") == "a${str:i:1}b" ]] || err_exit "substitution of \"${str:i:1}\" failed"
 done

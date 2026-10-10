@@ -166,8 +166,8 @@ $SHELL -c 'read x <<< hello' 2> /dev/null || err_exit 'syntax <<< not recognized
 unset x
 readonly x
 set -- $(readonly)
-if      [[ " $@ " != *" x "* ]]
-then    err_exit 'unset readonly variables are not displayed'
+if	[[ " $@ " != *" x "* ]]
+then	err_exit 'unset readonly variables are not displayed'
 fi
 if	[[ $(	for i in foo bar
 		do	print $i
@@ -253,8 +253,8 @@ then	err_exit 'whence -v test after builtin -d incorrect'
 fi
 typeset -Z3 percent=$(printf '%o\n' "'%'")
 forrmat=\\${percent}s
-if      [[ $(printf "$forrmat") != %s ]]
-then    err_exit "printf $forrmat not working"
+if	[[ $(printf "$forrmat") != %s ]]
+then	err_exit "printf $forrmat not working"
 fi
 if	(( $(printf 'x\0y' | wc -c) != 3 ))
 then	err_exit 'printf \0 not working'
@@ -395,8 +395,8 @@ read -n1 y <<!
 abc
 !
 exp=a
-if      [[ $y != $exp ]]
-then    err_exit "read -n1 failed -- expected '$exp', got '$y'"
+if	[[ $y != $exp ]]
+then	err_exit "read -n1 failed -- expected '$exp', got '$y'"
 fi
 print -n $'{ read -r line;print $line;}\nhello' > $tmp/script
 chmod 755 $tmp/script
@@ -405,8 +405,8 @@ then	err_exit 'read of incomplete line not working correctly'
 fi
 set -f
 set -- *
-if      [[ $1 != '*' ]]
-then    err_exit 'set -f not working'
+if	[[ $1 != '*' ]]
+then	err_exit 'set -f not working'
 fi
 unset pid1 pid2
 false &
@@ -579,21 +579,21 @@ then	for i in $(command command -x ${SHELL:-ksh} -c 'print $#;[[ $1 != argument0
 fi
 # test command -x option with extra arguments
 integer sum=0 n=10000
-if      ! ${SHELL:-ksh} -c 'print $#' count $(longline $n) > /dev/null  2>&1
-then    for i in $(command command -x ${SHELL:-ksh} -c 'print $#;[[ $1 != argument0 ]]' count $(longline $n) one two three) #2> /dev/null)
-	do      ((sum += $i))
+if	! ${SHELL:-ksh} -c 'print $#' count $(longline $n) > /dev/null  2>&1
+then	for i in $(command command -x ${SHELL:-ksh} -c 'print $#;[[ $1 != argument0 ]]' count $(longline $n) one two three)
+	do	((sum += $i))
 	done
-	(( sum  > n )) || err_exit "command -x processed only $sum arguments"
-	(( (sum-n)%3==0 )) || err_exit "command -x processed only $sum arguments"
-	(( sum == n+3)) && err_exit "command -x processed only $sum arguments"
+	(( sum > n )) || err_exit "command -x processed only $sum arguments"
+	(( (sum - n) % 3==0 )) || err_exit "command -x processed only $sum arguments"
+	(( sum == n + 3 )) && err_exit "command -x processed only $sum arguments"
 	command -p command -x ${SHELL:-ksh} -c 'print $#;[[ $1 == argument0 ]]' count $(longline $n) > /dev/null  2>&1
 	[[ $? != 1 ]] && err_exit 'incorrect exit status for command -x'
 fi
 # test for debug trap
 [[ $(typeset -i i=0
 	trap 'print $i' DEBUG
-	while (( i <2))
-	do	(( i++))
+	while (( i <2 ))
+	do	(( i++ ))
 	done) == $'0\n0\n1\n1\n2' ]]  || err_exit  "DEBUG trap not working"
 if ((!SHOPT_ECHOPRINT)) && builtin getconf 2> /dev/null; then
 	getconf UNIVERSE - ucb

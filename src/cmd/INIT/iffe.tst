@@ -1478,7 +1478,7 @@ key	chr = char = int'
 #define _REGRESS	1
 #define _key_int	1	/* int is a reserved keyword */
 #define _key_const	1	/* const is a reserved keyword */
-#define bar	 	/* default for reserved keyword bar */
+#define bar		/* default for reserved keyword bar */
 #define aha	int	/* default for reserved keyword aha */
 #define _key_char	1	/* char is a reserved keyword */
 #define chr	char	/* alternate for reserved keyword chr */
@@ -1502,7 +1502,7 @@ iffe: test: is char a reserved keyword ... yes'
 #define _key_const	1	/* const is a reserved keyword */
 #undef	_key_foo		/* foo is not a reserved keyword */
 #undef	_key_bar		/* bar is not a reserved keyword */
-#define bar	 	/* default for reserved keyword bar */
+#define bar		/* default for reserved keyword bar */
 #undef	_key_huh		/* huh is not a reserved keyword */
 #define aha	int	/* default for reserved keyword aha */
 #define _key_char	1	/* char is a reserved keyword */
@@ -1519,7 +1519,7 @@ iffe: test: is char a reserved keyword ... yes'
 #define _key_const	1	/* const is a reserved keyword */
 #define _key_foo	0	/* foo is not a reserved keyword */
 #define _key_bar	0	/* bar is not a reserved keyword */
-#define bar	 	/* default for reserved keyword bar */
+#define bar		/* default for reserved keyword bar */
 #define _key_huh	0	/* huh is not a reserved keyword */
 #define aha	int	/* default for reserved keyword aha */
 #define _key_char	1	/* char is a reserved keyword */
@@ -1536,7 +1536,7 @@ iffe: test: is char a reserved keyword ... yes'
 #define HAVE_CONST_RESERVED	1	/* const is a reserved keyword */
 #undef	HAVE_FOO_RESERVED		/* foo is not a reserved keyword */
 #undef	HAVE_BAR_RESERVED		/* bar is not a reserved keyword */
-#define bar	 	/* default for reserved keyword bar */
+#define bar		/* default for reserved keyword bar */
 #undef	HAVE_HUH_RESERVED		/* huh is not a reserved keyword */
 #define aha	int	/* default for reserved keyword aha */
 #define HAVE_CHAR_RESERVED	1	/* char is a reserved keyword */
@@ -1624,7 +1624,7 @@ cat{
 #define a 1
  #define b 2
   #define c 3
-	 #define d 4
+	#define d 4
 }end'
 #define _foo_bar SOME'
 		OUTPUT - $'/* : : generated from t.iffe by iffe version 1995-03-19 : : */
