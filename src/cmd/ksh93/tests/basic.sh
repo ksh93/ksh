@@ -119,7 +119,7 @@ parallel_5=$!
 	"$binsleep" 0  # avoid OS caching delay on first launch
 	float s=SECONDS
 	for i in .1 .2
-	do      print $i
+	do	print $i
 	done | while read sec; do ( "$binsleep" "$sec"; "$binsleep" "$sec") done
 	(( (SECONDS - s) >= .4 ))
 } &
@@ -175,11 +175,11 @@ rm -f foobar
 # optimizer bug test
 > foobar
 for i in 1 2
-do      print foobar*
+do	print foobar*
 	rm -f foobar
 done > out
-if      [[ "$(<out)"  != "foobar"$'\n'"foobar*" ]]
-then    print -u2 "optimizer bug with file expansion"
+if	[[ "$(<out)"  != "foobar"$'\n'"foobar*" ]]
+then	print -u2 "optimizer bug with file expansion"
 fi
 date > dat1 || err_exit "date > dat1 failed"
 test -r dat1 || err_exit "dat1 is not readable"
@@ -962,16 +962,19 @@ then	meminfo=($(grep 'MemAvailable:' /proc/meminfo))
 	((res = meminfo[1] / 1000000))
 	# Don't try unless we have at least 5 * 2 + 2 GB of available RAM
 	if ((res >= 12))
-	then	got=$(	ulimit -t unlimited 2>/dev/null  # Fork
+	then	got=$(set +x; (
+			ulimit -c 0 2>/dev/null  # Fork and disable coredump
+			export LC_ALL=C  # No point in slow multibyte processing here
 			# Allocate 5 gigabytes into the variable 'v'.
 			# This test must allocate more than UINT_MAX.
 			printf -v v "%5000000000d" 0
 			echo ${#v}
-		)
-		if (($? != 0))
-		then	err_exit "ksh crashes when attempting to allocate 5 gigabytes to a variable"
-		elif [[ $got != 5000000000 ]]
-		then	err_exit "ksh cannot allocate at least 5 gigabytes to a variable (got $(printf %q "$got"))"
+		) 2>&1)
+		if	[[ e=$? -gt 128 && $(kill -l "$e") == 'KILL' ]]
+		then	warning "Kernel SIGKILLed subshell upon allocating 5 GB; cannot test 64-bit address space validity"
+		elif	[[ e -ne 0 || $got != '5000000000' ]]
+		then	err_exit "attempt to assign 5 gigabytes to a variable" \
+				"(got status $e$( ((e > 128)) && print -n /SIG && kill -l "$e" ) and  $(printf %q "$got"))"
 		fi
 	fi
 fi

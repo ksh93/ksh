@@ -2825,7 +2825,7 @@ int x;
 							esac
 							case $o in
 							iff)	case $M in
-								""|*-*)	 ;;
+								""|*-*)	;;
 								*)	iff=${m}_H ;;
 								esac
 								;;

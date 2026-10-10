@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2025-04-28\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-10-10\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
@@ -1148,5 +1148,5 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_system(1), "%s: write error", log);
 		UNREACHABLE();
 	}
-	return minion ? minion : master;
+	return !!error_info.errors;
 }

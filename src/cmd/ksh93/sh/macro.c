@@ -992,7 +992,7 @@ static void mac_substitute(Mac_t *mp, char *cp,char *str,ssize_t subexp[],ssize_
 	free(ptr);
 }
 
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 #define MAX_OFFSETS	 ((ssize_t)(sizeof(sh.offsets)/sizeof(sh.offsets[0])))
 #define MAX_ARGN	(32*1024)
 
@@ -1249,7 +1249,7 @@ retry1:
 		if(isastchar(c))
 		{
 			mode = c;
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 			if(sh.cur_line)
 			{
 				dolmax = MAX_ARGN;
@@ -1299,7 +1299,7 @@ retry1:
 		}
 		if(ppnum==0)
 			v = special(0);
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 		else if(sh.cur_line)
 		{
 			sh.used_pos = 1;
@@ -1440,7 +1440,7 @@ retry1:
 					defval_subscript = stkcopy(sh.stk, cp);
 			}
 		}
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 		else if(sh.cur_line && strcmp(id,REPLYNOD->nvname)==0)
 		{
 			nv_setoptimize(NULL);
@@ -1473,7 +1473,7 @@ retry1:
 		{
 			if(nv_isattr(np,NV_NOFREE))
 				nv_offattr(np,NV_NOFREE);
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 			else if(np!=REPLYNOD  || !sh.cur_line)
 #else
 			else
@@ -1576,7 +1576,7 @@ retry1:
 					nv_attribute(np,sh.strbuf,"typeset",1);
 				v = sh_struse(sh.strbuf);
 			}
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 			else if(sh.cur_line && np==REPLYNOD)
 				v = sh.cur_line;
 #endif  /* SHOPT_FILESCAN */
@@ -1691,7 +1691,7 @@ retry1:
 				d = charlen(v,vsize);
 			else if(dolg>0)
 			{
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 				if(sh.cur_line)
 				{
 					getdolarg(MAX_ARGN,NULL);
@@ -1816,7 +1816,7 @@ retry1:
 					sliceoffset = 0;
 				if(sliceoffset==0)
 					v = special(dolg=0);
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 				else if(sh.cur_line)
 				{
 					v = getdolarg(dolg = sliceoffset, &vsize);
@@ -2081,7 +2081,7 @@ retry2:
 			{
 				if(++dolg >= dolmax)
 					break;
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 				if(sh.cur_line)
 				{
 					if(!(v=getdolarg(dolg,&vsize)))
@@ -2934,7 +2934,7 @@ static char *special(int c)
 	    case '*':
 		return sh.st.dolc>0?sh.st.dolv[1]:NULL;
 	    case '#':
-#if  SHOPT_FILESCAN
+#if SHOPT_FILESCAN
 		if(sh.cur_line)
 		{
 			getdolarg(MAX_ARGN,NULL);

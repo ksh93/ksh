@@ -1,5 +1,3 @@
-![](https://github.com/ksh93/ksh/workflows/CI/badge.svg)
-
 # KornShell 93u+m
 
 This is version 1.0.x of the 93u+m fork of the KornShell, including a

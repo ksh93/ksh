@@ -181,7 +181,7 @@ unset total present s histfile
 HISTFILE=$tmp/hist_stress_2
 typeset -i total=200 present s
 for ((s=0; s<total; s++))
-do      print -s "stress_cmd_$s" &
+do	print -s "stress_cmd_$s" &
 done
 wait
 got=$(fc -l -N 1 2>&1)

@@ -571,7 +571,7 @@ endargs:
 
 static void print_value(Sfio_t *iop, Namval_t *np, struct tdata *tp)
 {
-	char		 *name;
+	char		*name;
 	int		aflag=tp->aflag;
 	Namval_t	*table;
 	if(nv_isnull(np))

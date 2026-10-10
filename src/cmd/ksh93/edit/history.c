@@ -218,15 +218,16 @@ int  sh_histinit(void)
 		/* don't allow root, or any scripts, a temporary history file */
 		if (sh.userid == 0 || !sh_isstate(SH_INTERACTIVE))
 			goto initfail;
-		/* open a temporary history file */
+		/* open a temporary history file close-on-exec */
 		if (!(tempname = pathtemp(NULL, 0, NULL, "hist", &fd)))
 			goto initfail;
-		/* unlink early and keep open (this fails on some systems; tell user where temp file is for manual cleanup */
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
+		/* unlink early and keep open (this fails on some systems; tell user where temp file is for manual cleanup) */
 		if (unlink(tempname) < 0)
 			errormsg(SH_DICT, ERROR_warn(0), e_histtemp, tempname);
 		free(tempname);
 		/* pathtemp doesn't update ksh's FD status bookkeeping */
-		sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK;
+		sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK|IOCLEX;
 		/* set append flag for atomic writes */
 		if (fcntl(fd, F_SETFL, O_APPEND) == -1)
 		        goto initfail;

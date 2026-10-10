@@ -390,24 +390,36 @@ then	float s
 fi
 
 yes() for ((;;)); do print y; done
-
-	for exp in TERM VTALRM PIPE
-	do	if	[[ ${SIG[$exp]} ]]
-		then	{
-				bindate=$(whence -p date) "$SHELL" <<- EOF
-				foo() { return 0; }
-				trap foo EXIT
-				{ sleep .2; kill -$exp \$\$; sleep .3; kill -0 \$\$ && kill -KILL \$\$; } &
-				yes |
-				while read yes
-				do	("\$bindate"; sleep .01)
-				done > /dev/null
-				EOF
-			} 2>> /dev/null
-			got=$(kill -l $?)
-			[[ $exp == $got ]] || err_exit "kill -$exp \$\$ failed, required termination by signal '$got'"
-		fi
-	done
+export bindate=$(command -vx date)
+for exp in TERM VTALRM PIPE
+do	if	[[ ${SIG[$exp]} ]]
+	then	"$SHELL" <<-EOF 2>/dev/null
+			parentready=ready.$exp.\$\$
+			foo() { return 0; }
+			trap foo EXIT
+			{
+				typeset -i t=0
+				while	[[ ! -e \$parentready && t++ -lt 200 ]]
+				do	sleep .01
+				done
+				[[ -e \$parentready ]] || exit
+				kill -$exp \$\$
+				sleep 3
+				kill -0 \$\$ && kill -KILL \$\$
+			} &
+			yes |
+			while read yes
+			do	("\$bindate"; sleep .01)
+				: >\$parentready
+			done > /dev/null
+		EOF
+		e=$?
+		got=$(let "e>128" && kill -l "$e")
+		[[ $got == "$exp" ]] || err_exit "kill -$exp \$\$ failed, got exit status $e${got:+/SIG$got}"
+	fi
+done
+unset bindate
+unset -f yes
 
 # The test for SIGBUS trap handling below is incompatible with ASan or UBSan
 # because these implement their own SIGBUS handler independently of ksh.

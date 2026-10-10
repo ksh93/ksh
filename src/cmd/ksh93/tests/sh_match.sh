@@ -3,7 +3,7 @@
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2012 AT&T Intellectual Property          #
 #                    Copyright (c) 2012 Roland Mainz                   #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -581,7 +581,7 @@ function test_testop_v2
 		out.stderr="${ { out.stdout="${ ${SHELL} -o nounset -c "${cmd}" ; (( out.res=$? )) ; }" ; } 2>&1 ; }"
 
 		[[ "${out.stdout}" == "${tst.expected_output_1d}" ]] || err_exit "${testname}: Expected stdout==${ printf '%q\n' "${tst.expected_output_1d}" ;}, got ${ printf '%q\n' "${out.stdout}" ; }"
-		[[ "${out.stderr}" == ''		   ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
+		[[ "${out.stderr}" == ''			  ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
 		(( out.res == 0 )) || err_exit "${testname}: Unexpected exit code ${out.res}"
 
 
@@ -601,7 +601,7 @@ function test_testop_v2
 		out.stderr="${ { out.stdout="${ ${SHELL} -o nounset -c "${cmd}" ; (( out.res=$? )) ; }" ; } 2>&1 ; }"
 
 		[[ "${out.stdout}" == "${tst.expected_output_2d}" ]] || err_exit "${testname}: Expected stdout==${ printf '%q\n' "${tst.expected_output_2d}" ;}, got ${ printf '%q\n' "${out.stdout}" ; }"
-		[[ "${out.stderr}" == ''		   ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
+		[[ "${out.stderr}" == ''		 	  ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
 		(( out.res == 0 )) || err_exit "${testname}: Unexpected exit code ${out.res}"
 
 		#
@@ -618,7 +618,7 @@ function test_testop_v2
 		out.stderr="${ { out.stdout="${ ${SHELL} -o nounset -c "${cmd}" ; (( out.res=$? )) ; }" ; } 2>&1 ; }"
 
 		[[ "${out.stdout}" == "${tst.expected_output_1d}" ]] || err_exit "${testname}: Expected stdout==${ printf '%q\n' "${tst.expected_output_1d}" ;}, got ${ printf '%q\n' "${out.stdout}" ; }"
-		[[ "${out.stderr}" == ''		   ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
+		[[ "${out.stderr}" == ''			  ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
 		(( out.res == 0 )) || err_exit "${testname}: Unexpected exit code ${out.res}"
 
 
@@ -638,7 +638,7 @@ function test_testop_v2
 		out.stderr="${ { out.stdout="${ ${SHELL} -o nounset -c "${cmd}" ; (( out.res=$? )) ; }" ; } 2>&1 ; }"
 
 		[[ "${out.stdout}" == "${tst.expected_output_2d}" ]] || err_exit "${testname}: Expected stdout==${ printf '%q\n' "${tst.expected_output_2d}" ;}, got ${ printf '%q\n' "${out.stdout}" ; }"
-		[[ "${out.stderr}" == ''		   ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
+		[[ "${out.stderr}" == ''			  ]] || err_exit "${testname}: Expected empty stderr, got ${ printf '%q\n' "${out.stderr}" ; }"
 		(( out.res == 0 )) || err_exit "${testname}: Unexpected exit code ${out.res}"
 
 	done

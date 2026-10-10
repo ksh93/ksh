@@ -1028,7 +1028,7 @@ if builtin cat 2>/dev/null
 then	got=$(PATH=/opt/ast/bin:$PATH "$SHELL" -c 'command -x cat /dev/null; whence -v cat')
 	exp='cat is a shell builtin version of /opt/ast/bin/cat'
 	[[ $got == "$exp" ]] || err_exit "'command -x' creates tracked alias" \
-	        "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	# https://github.com/ksh93/ksh/issues/609
 	exp=$(builtin -d cat; whence -p cat)
 	got=$(set +x; PATH=/opt/ast/bin:$PATH "$SHELL" -c 'command -vx cat; command -x cat /dev/null' 2>&1)

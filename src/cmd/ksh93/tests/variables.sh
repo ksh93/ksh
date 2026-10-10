@@ -386,7 +386,7 @@ if	(( $# !=1 ))
 then	err_exit	'"${@-}" not expanding to null string'
 fi
 for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
-do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
+do	(eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
 done
 
 # ___ begin: IFS tests ___
@@ -799,7 +799,7 @@ function foo.set
 {
 	case ${.sh.subscript} in
 	bar)	if	((.sh.value > 1 ))
-	        then	.sh.value=5
+		then	.sh.value=5
 			foo[barrier_hit]=yes
 		fi
 		;;
@@ -1242,7 +1242,7 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	do	exp=$(set +x; eval "echo \${foo${op}${word}}" 2>&1)
 		if	[[ $exp != "$word" ]]
 		then	err_exit "\${foo${op}${word}} when foo is not set: expected \"$word\", got \"$exp\""
-	        fi
+		fi
 	done
 done
 
@@ -1286,7 +1286,7 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
 		if	[[ $got != "$word" ]]
 		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected \"$word\", got \"$got\""
-	        fi
+		fi
 	done
 done
 
