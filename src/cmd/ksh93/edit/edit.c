@@ -66,7 +66,6 @@ static char *erase_eos;  /* erase to end of screen */
 #define MINWINDOW	15	/* minimum width window */
 #define RAWMODE		1
 #define ECHOMODE	3
-#define SYSERR	-1
 
 static int keytrap(Edit_t *,char*, int, int, int);
 
@@ -108,10 +107,10 @@ int tty_get(int fd, struct termios *tty)
 		*tty = ep->e_savetty;
 	else
 	{
-		while(tcgetattr(fd,tty) == SYSERR)
+		while(tcgetattr(fd,tty) == -1)
 		{
 			if(errno !=EINTR)
-				return SYSERR;
+				return -1;
 			errno = 0;
 		}
 		/* save terminal settings if in canonical state */
@@ -134,10 +133,10 @@ int tty_set(int fd, int action, struct termios *tty)
 	Edit_t *ep = (Edit_t*)(sh.ed_context);
 	if(fd >=0)
 	{
-		while(tcsetattr(fd, action, tty) == SYSERR)
+		while(tcsetattr(fd, action, tty) == -1)
 		{
 			if(errno !=EINTR)
-				return SYSERR;
+				return -1;
 			errno = 0;
 		}
 		ep->e_savetty = *tty;
@@ -162,7 +161,7 @@ void tty_cooked(int fd)
 	if(fd < 0)
 		fd = ep->e_savefd;
 	/*** don't do tty_set unless ttyparm has valid data ***/
-	if(tty_set(fd, TCSANOW, &ttyparm) == SYSERR)
+	if(tty_set(fd, TCSANOW, &ttyparm) == -1)
 		return;
 	ep->e_raw = 0;
 	return;
@@ -182,7 +181,7 @@ int tty_raw(int fd, int echomode)
 		return echo?-1:0;
 	else if(ep->e_raw==ECHOMODE)
 		return echo?0:-1;
-	if(tty_get(fd,&ttyparm) == SYSERR)
+	if(tty_get(fd,&ttyparm) == -1)
 		return -1;
 	if (!(ttyparm.c_lflag & ECHO ))
 	{
@@ -233,7 +232,7 @@ int tty_raw(int fd, int echomode)
 	ep->e_eof = ttyparm.c_cc[VEOF];
 	ep->e_erase = ttyparm.c_cc[VERASE];
 	ep->e_kill = ttyparm.c_cc[VKILL];
-	if( tty_set(fd, TCSADRAIN, &nttyparm) == SYSERR )
+	if( tty_set(fd, TCSADRAIN, &nttyparm) == -1 )
 		return -1;
 	ep->e_ttyspeed = (cfgetospeed(&ttyparm)>=B1200?FAST:SLOW);
 	ep->e_raw = (echomode?ECHOMODE:RAWMODE);
@@ -1550,26 +1549,4 @@ void	*ed_open(void)
 	Edit_t *ed = sh_newof(0,Edit_t,1,0);
 	strcpy(ed->e_macro,"_??");
 	return ed;
-}
-
-/*
- * tcgetattr and tcsetattr are mapped to these versions in terminal.h
- */
-
-#undef tcgetattr
-int sh_tcgetattr(int fd, struct termios *tty)
-{
-	int r,err = errno;
-	while((r=tcgetattr(fd,tty)) < 0 && errno==EINTR)
-		errno = err;
-	return r;
-}
-
-#undef tcsetattr
-int sh_tcsetattr(int fd, int cmd, struct termios *tty)
-{
-	int r,err = errno;
-	while((r=tcsetattr(fd,cmd,tty)) < 0 && errno==EINTR)
-		errno = err;
-	return r;
 }
