@@ -21,7 +21,6 @@
  */
 
 #include <ast.h>
-#include <stdio.h>
 
 #ifndef L_tmpnam
 #define L_tmpnam	25

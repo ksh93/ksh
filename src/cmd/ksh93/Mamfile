@@ -145,9 +145,9 @@ make install virtual
 	note *
 
 	make include/fault.h
-		prev %{INCLUDE_AST}/sfio.h
-		prev %{INCLUDE_AST}/error.h
 		prev %{INCLUDE_AST}/sig.h
+		prev %{INCLUDE_AST}/error.h
+		prev %{INCLUDE_AST}/sfio.h
 	done
 
 	make include/history.h
@@ -155,71 +155,70 @@ make install virtual
 	done
 
 	make include/nval.h
-		prev %{INCLUDE_AST}/option.h
-		prev %{INCLUDE_AST}/cdt.h
 		prev %{INCLUDE_AST}/ast.h
+		prev %{INCLUDE_AST}/cdt.h
+		prev %{INCLUDE_AST}/option.h
 	done
 
 	make include/name.h
-		prev include/nval.h
-		prev %{INCLUDE_AST}/cdt.h
 		prev %{INCLUDE_AST}/ast.h
+		prev %{INCLUDE_AST}/cdt.h
+		prev include/nval.h
 	done
 
 	make include/shell.h
-		prev include/fault.h
-		prev %{INCLUDE_AST}/stk.h
-		prev include/history.h
-		prev %{INCLUDE_AST}/cmd.h
-		prev %{INCLUDE_AST}/shcmd.h
-		prev include/nval.h
-		prev include/name.h
-		prev %{INCLUDE_AST}/cdt.h
 		prev %{INCLUDE_AST}/ast.h
+		prev %{INCLUDE_AST}/cdt.h
+		prev include/name.h
+		prev include/nval.h
+		prev %{INCLUDE_AST}/shcmd.h
+		prev %{INCLUDE_AST}/cmd.h
+		prev include/history.h
+		prev %{INCLUDE_AST}/stk.h
+		prev include/fault.h
 	done
 
 	make include/shtable.h
 	done
 
 	make include/builtins.h
-		prev include/shtable.h
 		prev %{INCLUDE_AST}/option.h
+		prev include/shtable.h
 	done
 
 	make include/argnod.h
 	done
 
 	make include/defs.h
-		prev include/shtable.h
-		prev include/shell.h
-		prev %{INCLUDE_AST}/endian.h
-		prev include/name.h
-		prev include/argnod.h
-		prev %{INCLUDE_AST}/cdt.h
-		prev FEATURE/externs
-		prev %{INCLUDE_AST}/error.h
-		prev %{INCLUDE_AST}/sfio.h
 		prev %{INCLUDE_AST}/ast.h
+		prev %{INCLUDE_AST}/sfio.h
+		prev %{INCLUDE_AST}/error.h
+		prev FEATURE/externs
+		prev %{INCLUDE_AST}/cdt.h
+		prev include/argnod.h
+		prev include/name.h
+		prev include/shell.h
+		prev include/shtable.h
 	done
 
 	make include/test.h
-		prev include/shtable.h
 		prev include/defs.h
+		prev include/shtable.h
 	done
 
 	make include/path.h
-		prev include/defs.h
 		prev include/nval.h
+		prev include/defs.h
 	done
 
 	make include/variables.h
-		prev %{INCLUDE_AST}/option.h
 		prev include/nval.h
+		prev %{INCLUDE_AST}/option.h
 	done
 
 	make include/shnodes.h
-		prev include/argnod.h
 		prev %{INCLUDE_AST}/ast.h
+		prev include/argnod.h
 	done
 
 	make include/national.h
@@ -230,47 +229,46 @@ make install virtual
 	done
 
 	make include/edit.h
-		prev include/national.h
-		prev include/terminal.h
-		prev %{INCLUDE_AST}/sig.h
-		prev FEATURE/locale
 		prev FEATURE/cmds
+		prev FEATURE/locale
+		prev include/terminal.h
+		prev include/national.h
 	done
 
 	make include/io.h
-		prev %{INCLUDE_AST}/sfio.h
-		prev %{INCLUDE_AST}/ast.h
 		prev FEATURE/fchdir
+		prev %{INCLUDE_AST}/ast.h
+		prev %{INCLUDE_AST}/sfio.h
 	done
 
 	make include/jobs.h
-		prev include/terminal.h
-		prev %{INCLUDE_AST}/aso.h
-		prev %{INCLUDE_AST}/sfio.h
 		prev %{INCLUDE_AST}/ast.h
+		prev %{INCLUDE_AST}/sfio.h
+		prev %{INCLUDE_AST}/aso.h
+		prev include/terminal.h
 	done
 
 	make include/streval.h
-		prev %{INCLUDE_AST}/ast_float.h
-		prev include/defs.h
 		prev %{INCLUDE_AST}/ast.h
+		prev include/defs.h
+		prev %{INCLUDE_AST}/ast_float.h
 	done
 
 	make include/lexstates.h
-		prev %{INCLUDE_AST}/wchar.h
 		prev FEATURE/locale
+		prev %{INCLUDE_AST}/wchar.h
 	done
 
 	make include/ulimit.h
-		prev FEATURE/rlimits
 		prev FEATURE/time
+		prev FEATURE/rlimits
 	done
 
 	make include/shlex.h
-		prev include/lexstates.h
-		prev include/shtable.h
-		prev include/shnodes.h
 		prev %{INCLUDE_AST}/cdt.h
+		prev include/shnodes.h
+		prev include/shtable.h
+		prev include/lexstates.h
 	done
 
 	make include/fcin.h
@@ -278,8 +276,8 @@ make install virtual
 	done
 
 	make include/version.h
-		prev git.h
 		prev %{INCLUDE_AST}/ast_release.h
+		prev git.h
 	done
 
 	make include/timeout.h
@@ -290,20 +288,20 @@ make install virtual
 	note *
 
 	make sh/pmain.c
-		prev FEATURE/externs
-		prev include/shell.h
 		prev FEATURE/options
+		prev include/shell.h
+		prev FEATURE/externs
 	done
 
 	make sh/shcomp.c
-		prev include/builtins.h
-		prev include/terminal.h
-		prev include/shnodes.h
-		prev include/path.h
-		prev include/defs.h
-		prev include/shell.h
-		prev include/version.h
 		prev FEATURE/options
+		prev include/version.h
+		prev include/shell.h
+		prev include/defs.h
+		prev include/path.h
+		prev include/shnodes.h
+		prev include/terminal.h
+		prev include/builtins.h
 	done
 
 	note *
@@ -313,275 +311,275 @@ make install virtual
 
 	make c_sources virtual
 		make bltins/alarm.c
-			prev FEATURE/time
-			prev include/jobs.h
-			prev include/shlex.h
-			prev include/fcin.h
-			prev include/builtins.h
-			prev %{INCLUDE_AST}/tmx.h
-			prev %{INCLUDE_AST}/tv.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/tv.h
+			prev %{INCLUDE_AST}/tmx.h
+			prev include/builtins.h
+			prev include/fcin.h
+			prev include/shlex.h
+			prev include/jobs.h
+			prev FEATURE/time
 		done
 
 		make bltins/cd_pwd.c
-			prev include/test.h
-			prev %{INCLUDE_AST}/ls.h
-			prev include/builtins.h
-			prev include/io.h
-			prev include/name.h
-			prev include/path.h
-			prev include/variables.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/name.h
+			prev include/io.h
+			prev include/builtins.h
+			prev %{INCLUDE_AST}/ls.h
+			prev include/test.h
 		done
 
 		make bltins/cflow.c
-			prev include/builtins.h
-			prev include/shnodes.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/ast.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/shnodes.h
+			prev include/builtins.h
 		done
 
 		make sh/deparse.c
-			prev include/test.h
-			prev include/shnodes.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/shnodes.h
+			prev include/test.h
 		done
 
 		make bltins/enum.c
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
 		done
 
 		make bltins/getopts.c
-			prev include/builtins.h
-			prev include/nval.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/variables.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/variables.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/nval.h
+			prev include/builtins.h
 		done
 
 		make bltins/hist.c
-			prev include/edit.h
-			prev include/builtins.h
-			prev include/history.h
-			prev include/name.h
-			prev include/io.h
-			prev include/variables.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/tv.h
-			prev %{INCLUDE_AST}/ls.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/tv.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/variables.h
+			prev include/io.h
+			prev include/name.h
+			prev include/history.h
+			prev include/builtins.h
+			prev include/edit.h
 		done
 
 		make bltins/misc.c
-			prev %{INCLUDE_AST}/times.h
-			prev FEATURE/time
-			prev FEATURE/locale
-			prev include/jobs.h
-			prev include/builtins.h
-			prev include/history.h
-			prev include/name.h
-			prev include/io.h
-			prev include/path.h
-			prev include/shnodes.h
-			prev include/variables.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/variables.h
+			prev include/shnodes.h
+			prev include/path.h
+			prev include/io.h
+			prev include/name.h
+			prev include/history.h
+			prev include/builtins.h
+			prev include/jobs.h
+			prev FEATURE/locale
+			prev FEATURE/time
+			prev %{INCLUDE_AST}/times.h
 		done
 
 		make bltins/mkservice.c
-			prev %{INCLUDE_AST}/cmd.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/nval.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/nval.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/cmd.h
 		done
 
 		make bltins/print.c
-			prev %{INCLUDE_AST}/tmx.h
-			prev include/streval.h
-			prev include/builtins.h
-			prev include/history.h
-			prev include/name.h
-			prev include/io.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/io.h
+			prev include/name.h
+			prev include/history.h
+			prev include/builtins.h
+			prev include/streval.h
+			prev %{INCLUDE_AST}/tmx.h
 		done
 
 		make bltins/read.c
-			prev include/edit.h
-			prev include/terminal.h
-			prev include/history.h
-			prev include/builtins.h
-			prev include/name.h
-			prev include/io.h
-			prev include/lexstates.h
-			prev include/variables.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/defs.h
+			prev include/variables.h
+			prev include/lexstates.h
+			prev include/io.h
+			prev include/name.h
+			prev include/builtins.h
+			prev include/history.h
+			prev include/terminal.h
+			prev include/edit.h
 		done
 
 		make bltins/sleep.c
-			prev FEATURE/poll
-			prev FEATURE/time
-			prev include/builtins.h
-			prev %{INCLUDE_AST}/ast_float.h
-			prev %{INCLUDE_AST}/tmx.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/tmx.h
+			prev %{INCLUDE_AST}/ast_float.h
+			prev include/builtins.h
+			prev FEATURE/time
+			prev FEATURE/poll
 		done
 
 		make bltins/trap.c
-			prev include/builtins.h
-			prev include/jobs.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/jobs.h
+			prev include/builtins.h
 		done
 
 		make bltins/test.c
-			prev %{INCLUDE_AST}/tmx.h
-			prev FEATURE/poll
-			prev FEATURE/externs
-			prev include/builtins.h
-			prev include/test.h
-			prev include/terminal.h
-			prev include/io.h
-			prev %{INCLUDE_AST}/regex.h
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/regex.h
+			prev include/io.h
+			prev include/terminal.h
+			prev include/test.h
+			prev include/builtins.h
+			prev FEATURE/externs
+			prev FEATURE/poll
+			prev %{INCLUDE_AST}/tmx.h
 		done
 
 		make bltins/ulimit.c
-			prev include/ulimit.h
-			prev include/name.h
-			prev include/builtins.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/sfio.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/sfio.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/defs.h
+			prev include/builtins.h
+			prev include/name.h
+			prev include/ulimit.h
 		done
 
 		make bltins/umask.c
-			prev include/builtins.h
-			prev include/shell.h
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/sfio.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/sfio.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/ls.h
+			prev include/shell.h
+			prev include/builtins.h
 		done
 
 		make bltins/whence.c
-			prev include/builtins.h
-			prev include/shlex.h
-			prev include/path.h
-			prev include/name.h
-			prev include/shtable.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/shtable.h
+			prev include/name.h
+			prev include/path.h
+			prev include/shlex.h
+			prev include/builtins.h
 		done
 
 		make sh/main.c
-			prev FEATURE/externs
-			prev FEATURE/time
-			prev include/timeout.h
-			prev include/history.h
-			prev include/shnodes.h
-			prev include/shlex.h
-			prev include/jobs.h
-			prev include/io.h
-			prev include/path.h
-			prev include/variables.h
-			prev include/defs.h
-			prev include/fcin.h
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/sfio.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/sfio.h
+			prev %{INCLUDE_AST}/ls.h
+			prev include/fcin.h
+			prev include/defs.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/io.h
+			prev include/jobs.h
+			prev include/shlex.h
+			prev include/shnodes.h
+			prev include/history.h
+			prev include/timeout.h
+			prev FEATURE/time
+			prev FEATURE/externs
 		done
 
 		make sh/nvdisc.c
-			prev include/shlex.h
-			prev include/io.h
-			prev include/path.h
-			prev include/builtins.h
-			prev include/variables.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/variables.h
+			prev include/builtins.h
+			prev include/path.h
+			prev include/io.h
+			prev include/shlex.h
 		done
 
 		make sh/nvtype.c
-			prev include/builtins.h
-			prev include/variables.h
-			prev include/io.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/io.h
+			prev include/variables.h
+			prev include/builtins.h
 		done
 
 		make sh/arith.c
-			prev %{INCLUDE_AST}/ast_release.h
-			prev include/builtins.h
-			prev include/variables.h
-			prev include/streval.h
-			prev include/name.h
-			prev include/lexstates.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/lexstates.h
+			prev include/name.h
+			prev include/streval.h
+			prev include/variables.h
+			prev include/builtins.h
+			prev %{INCLUDE_AST}/ast_release.h
 		done
 
 		make sh/args.c
-			prev include/io.h
-			prev include/shlex.h
-			prev FEATURE/poll
-			prev include/edit.h
-			prev include/terminal.h
-			prev include/builtins.h
-			prev include/jobs.h
-			prev include/path.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/path.h
+			prev include/jobs.h
+			prev include/builtins.h
+			prev include/terminal.h
+			prev include/edit.h
+			prev FEATURE/poll
+			prev include/shlex.h
+			prev include/io.h
 		done
 
 		make sh/array.c
-			prev %{INCLUDE_AST}/ast_release.h
-			prev %{INCLUDE_AST}/assert.h
-			prev include/name.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/name.h
+			prev %{INCLUDE_AST}/assert.h
+			prev %{INCLUDE_AST}/ast_release.h
 		done
 
 		make edit/completion.c
-			prev include/history.h
-			prev include/edit.h
-			prev include/io.h
-			prev include/path.h
-			prev include/lexstates.h
-			prev %{INCLUDE_AST}/ast_wchar.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/ast_wchar.h
+			prev include/lexstates.h
+			prev include/path.h
+			prev include/io.h
+			prev include/edit.h
+			prev include/history.h
 		done
 
 		make sh/defs.c
-			prev include/jobs.h
-			prev include/defs.h
-			prev include/shlex.h
 			prev FEATURE/options
+			prev include/shlex.h
+			prev include/defs.h
+			prev include/jobs.h
 		done
 
 		make edit/edit.c
@@ -601,54 +599,54 @@ make install virtual
 		done
 
 		make sh/expand.c
-			prev include/path.h
-			prev include/io.h
-			prev %{INCLUDE_AST}/ast_dir.h
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/glob.h
-			prev %{INCLUDE_AST}/ast.h
-			prev include/test.h
-			prev include/variables.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/variables.h
+			prev include/test.h
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/glob.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/ast_dir.h
+			prev include/io.h
+			prev include/path.h
 		done
 
 		make sh/fault.c
-			prev include/ulimit.h
-			prev include/builtins.h
-			prev include/path.h
-			prev include/jobs.h
-			prev include/variables.h
-			prev include/shlex.h
-			prev include/history.h
-			prev include/io.h
-			prev include/fcin.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/fcin.h
+			prev include/io.h
+			prev include/history.h
+			prev include/shlex.h
+			prev include/variables.h
+			prev include/jobs.h
+			prev include/path.h
+			prev include/builtins.h
+			prev include/ulimit.h
 		done
 
 		make sh/fcin.c
-			prev include/fcin.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/sfio.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/sfio.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/fcin.h
 		done
 
 		make edit/history.c
-			prev %{INCLUDE_AST}/stdio.h
-			prev include/history.h
-			prev include/io.h
-			prev include/builtins.h
-			prev include/path.h
-			prev include/variables.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/error.h
-			prev FEATURE/time
-			prev %{INCLUDE_AST}/sfio.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/sfio.h
+			prev FEATURE/time
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/ls.h
+			prev include/defs.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/builtins.h
+			prev include/io.h
+			prev include/history.h
+			prev %{INCLUDE_AST}/stdio.h
 		done
 
 		make sh/init.c
@@ -676,32 +674,31 @@ make install virtual
 		done
 
 		make sh/io.c
-			prev %{INCLUDE_AST}/endian.h
-			prev FEATURE/poll
-			prev FEATURE/externs
-			prev include/timeout.h
-			prev include/edit.h
-			prev include/history.h
-			prev include/shnodes.h
-			prev include/shlex.h
-			prev include/jobs.h
-			prev include/io.h
-			prev include/path.h
-			prev include/variables.h
-			prev %{INCLUDE_AST}/regex.h
-			prev %{INCLUDE_AST}/ls.h
-			prev include/fcin.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/fcin.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/regex.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/io.h
+			prev include/jobs.h
+			prev include/shlex.h
+			prev include/shnodes.h
+			prev include/history.h
+			prev include/edit.h
+			prev include/timeout.h
+			prev FEATURE/externs
+			prev FEATURE/poll
 		done
 
 		make sh/jobs.c
-			prev include/history.h
-			prev include/jobs.h
-			prev include/io.h
-			prev %{INCLUDE_AST}/wait.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/wait.h
+			prev include/io.h
+			prev include/jobs.h
+			prev include/history.h
 		done
 
 		make sh/lex.c
@@ -720,19 +717,19 @@ make install virtual
 		done
 
 		make sh/macro.c
-			prev include/streval.h
-			prev include/national.h
-			prev include/path.h
-			prev include/shnodes.h
-			prev include/jobs.h
-			prev include/io.h
-			prev include/shlex.h
-			prev include/variables.h
-			prev include/name.h
-			prev %{INCLUDE_AST}/regex.h
-			prev include/fcin.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/fcin.h
+			prev %{INCLUDE_AST}/regex.h
+			prev include/name.h
+			prev include/variables.h
+			prev include/shlex.h
+			prev include/io.h
+			prev include/jobs.h
+			prev include/shnodes.h
+			prev include/path.h
+			prev include/national.h
+			prev include/streval.h
 		done
 
 		make sh/name.c
@@ -750,205 +747,204 @@ make install virtual
 		done
 
 		make sh/nvtree.c
-			prev include/lexstates.h
-			prev include/argnod.h
-			prev include/name.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/name.h
+			prev include/argnod.h
+			prev include/lexstates.h
 		done
 
 		make sh/parse.c
-			prev include/path.h
-			prev include/test.h
-			prev include/builtins.h
-			prev include/history.h
-			prev include/shlex.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/fcin.h
-			prev include/shell.h
-			prev include/defs.h
-			prev include/version.h
 			prev FEATURE/options
+			prev include/version.h
+			prev include/defs.h
+			prev include/shell.h
+			prev include/fcin.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/shlex.h
+			prev include/history.h
+			prev include/builtins.h
+			prev include/test.h
+			prev include/path.h
 		done
 
 		make sh/string.c
-			prev include/national.h
-			prev include/lexstates.h
-			prev include/shtable.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/ast_wchar.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/ast_wchar.h
+			prev include/defs.h
+			prev include/shtable.h
+			prev include/lexstates.h
+			prev include/national.h
 		done
 
 		make sh/streval.c
-			prev FEATURE/externs
-			prev %{INCLUDE_AST}/error.h
-			prev include/streval.h
 			prev FEATURE/options
+			prev include/streval.h
+			prev %{INCLUDE_AST}/error.h
+			prev FEATURE/externs
 		done
 
 		make sh/subshell.c
-			prev include/path.h
-			prev include/variables.h
-			prev include/jobs.h
-			prev include/shlex.h
-			prev include/shnodes.h
-			prev include/fault.h
-			prev include/io.h
-			prev %{INCLUDE_AST}/ls.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/ls.h
+			prev include/io.h
+			prev include/fault.h
+			prev include/shnodes.h
+			prev include/shlex.h
+			prev include/jobs.h
+			prev include/variables.h
+			prev include/path.h
 		done
 
 		make sh/tdump.c
-			prev include/io.h
-			prev include/path.h
-			prev include/shnodes.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/shnodes.h
+			prev include/path.h
+			prev include/io.h
 		done
 
 		make sh/timers.c
-			prev FEATURE/time
-			prev include/defs.h
-			prev include/fault.h
-			prev %{INCLUDE_AST}/tv.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/sig.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/sig.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/tv.h
+			prev include/fault.h
+			prev include/defs.h
+			prev FEATURE/time
 		done
 
 		make sh/trestore.c
-			prev include/io.h
-			prev include/path.h
-			prev include/shnodes.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/shnodes.h
+			prev include/path.h
+			prev include/io.h
 		done
 
 		make sh/waitevent.c
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
 		done
 
 		make sh/xec.c
-			prev %{INCLUDE_AST}/tv.h
-			prev include/streval.h
-			prev FEATURE/locale
-			prev FEATURE/externs
-			prev FEATURE/time
-			prev include/builtins.h
-			prev include/test.h
-			prev include/jobs.h
-			prev include/shnodes.h
-			prev include/io.h
-			prev include/name.h
-			prev include/path.h
-			prev include/variables.h
-			prev include/fcin.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/fcin.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/name.h
+			prev include/io.h
+			prev include/shnodes.h
+			prev include/jobs.h
+			prev include/test.h
+			prev include/builtins.h
+			prev FEATURE/time
+			prev FEATURE/externs
+			prev FEATURE/locale
+			prev include/streval.h
+			prev %{INCLUDE_AST}/tv.h
 		done
 
 		make data/limits.c
-			prev include/ulimit.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev include/ulimit.h
 		done
 
 		make data/msg.c
-			prev include/edit.h
-			prev include/jobs.h
-			prev include/builtins.h
-			prev include/history.h
-			prev include/timeout.h
-			prev include/shlex.h
-			prev include/io.h
-			prev include/path.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev include/defs.h
+			prev include/path.h
+			prev include/io.h
+			prev include/shlex.h
+			prev include/timeout.h
+			prev include/history.h
+			prev include/builtins.h
+			prev include/jobs.h
+			prev include/edit.h
 		done
 
 		make data/testops.c
-			prev include/test.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev include/defs.h
+			prev include/test.h
 		done
 
 		make data/keywords.c
-			prev include/shlex.h
-			prev include/shell.h
 			prev FEATURE/options
+			prev include/shell.h
+			prev include/shlex.h
 		done
 
 		make data/options.c
-			prev include/shtable.h
-			prev include/name.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/name.h
+			prev include/shtable.h
 		done
 
 		make data/signals.c
-			prev include/jobs.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/jobs.h
 		done
 
 		make data/aliases.c
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
 		done
 
 		make data/variables.c
-			prev include/builtins.h
-			prev include/variables.h
-			prev include/defs.h
-			prev include/name.h
-			prev include/shtable.h
-			prev include/shell.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/ast.h
+			prev include/shell.h
+			prev include/shtable.h
+			prev include/name.h
+			prev include/defs.h
+			prev include/variables.h
+			prev include/builtins.h
 		done
 
 		make data/lexstates.c
-			prev include/lexstates.h
-			prev %{INCLUDE_AST}/ast.h
 			prev FEATURE/options
+			prev include/lexstates.h
 		done
 
 		make edit/emacs.c
-			prev %{INCLUDE_AST}/ast_release.h
-			prev include/terminal.h
-			prev include/edit.h
-			prev include/history.h
-			prev include/io.h
-			prev include/defs.h
-			prev %{INCLUDE_AST}/ast.h
-			prev %{INCLUDE_AST}/wchar.h
 			prev FEATURE/options
+			prev %{INCLUDE_AST}/wchar.h
+			prev %{INCLUDE_AST}/ast.h
+			prev include/defs.h
+			prev include/io.h
+			prev include/history.h
+			prev include/edit.h
+			prev include/terminal.h
+			prev %{INCLUDE_AST}/ast_release.h
 		done
 
 		make edit/vi.c
-			prev include/lexstates.h
-			prev FEATURE/time
-			prev include/terminal.h
-			prev include/edit.h
-			prev include/history.h
-			prev include/io.h
-			prev %{INCLUDE_AST}/ast.h
-			prev %{INCLUDE_AST}/wchar.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/wchar.h
+			prev %{INCLUDE_AST}/ast.h
+			prev include/io.h
+			prev include/history.h
+			prev include/edit.h
+			prev include/terminal.h
+			prev FEATURE/time
+			prev include/lexstates.h
 		done
 
 		make edit/hexpand.c
-			prev include/edit.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/edit.h
 		done
 
 		setv _libshell_c_sources_ %{^}
@@ -961,46 +957,44 @@ make install virtual
 
 	make c_sources_shopt_dynamic virtual
 		make bltins/typeset.c
-			prev %{INCLUDE_AST}/dlldefs.h
-			prev include/variables.h
-			prev include/builtins.h
-			prev include/history.h
-			prev include/name.h
-			prev include/path.h
-			prev %{INCLUDE_AST}/error.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev %{INCLUDE_AST}/error.h
+			prev include/path.h
+			prev include/name.h
+			prev include/history.h
+			prev include/builtins.h
+			prev include/variables.h
+			prev %{INCLUDE_AST}/dlldefs.h
 		done
 
 		make sh/path.c
-			prev FEATURE/time
-			prev %{INCLUDE_AST}/endian.h
-			prev %{INCLUDE_AST}/dlldefs.h
-			prev include/test.h
-			prev include/history.h
-			prev include/jobs.h
-			prev include/io.h
-			prev include/path.h
-			prev include/variables.h
-			prev include/nval.h
-			prev %{INCLUDE_AST}/ls.h
-			prev include/fcin.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/fcin.h
+			prev %{INCLUDE_AST}/ls.h
+			prev include/nval.h
+			prev include/variables.h
+			prev include/path.h
+			prev include/io.h
+			prev include/jobs.h
+			prev include/history.h
+			prev include/test.h
+			prev %{INCLUDE_AST}/dlldefs.h
 		done
 
 		make data/builtins.c
-			prev %{INCLUDE_AST}/cmdlist.h
-			prev FEATURE/poll
-			prev FEATURE/cmds
-			prev include/jobs.h
-			prev include/builtins.h
-			prev include/version.h
-			prev include/name.h
-			prev include/ulimit.h
-			prev include/shtable.h
-			prev include/defs.h
 			prev FEATURE/options
+			prev include/defs.h
+			prev include/shtable.h
+			prev include/ulimit.h
+			prev include/name.h
+			prev include/version.h
+			prev include/builtins.h
+			prev include/jobs.h
+			prev FEATURE/cmds
+			prev FEATURE/poll
+			prev %{INCLUDE_AST}/cmdlist.h
 		done
 
 		setv _libshell_c_sources_dyn_ %{^}
@@ -1050,10 +1044,10 @@ make install virtual
 		note * stage, so that it can run in parallel for as long as possible
 		make strdata.o
 			make data/strdata.c
-				prev FEATURE/math
-				prev include/streval.h
-				prev %{INCLUDE_AST}/ast_standards.h
 				prev FEATURE/options
+				prev %{INCLUDE_AST}/ast_standards.h
+				prev include/streval.h
+				prev FEATURE/math
 			done
 			exec - %{compile} %{<}
 		done
