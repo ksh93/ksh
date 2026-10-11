@@ -99,6 +99,7 @@ typedef struct _vi_
 	int first_wind;		/* first column of window */
 	int last_wind;		/* last column in window */
 	int lastmotion;		/* last motion */
+	int lastobject;		/* last text object after a or i motion */
 	int long_char; 		/* line bigger than window */
 	int long_line;		/* line bigger than window */
 	int ocur_phys;		/* old current physical position */
@@ -866,6 +867,385 @@ static void del_line(Vi_t *vp, int mode)
 	return;
 }
 
+/*
+ * Text objects for c, d and y: aw iw aW iW, a" i" a' i' a` i`, and
+ * ab ib a( i( a) i) a[ i[ a] i] aB iB a{ i{ a} i} a< i< a> i>.
+ *
+ * They follow vim, on the one line that the editor has. In each routine
+ * the object is the range virtual[*bp] up to virtual[*ep-1]. A routine
+ * returns 0 if there is no such object. The cursor is virtual[cur_virt].
+ */
+
+static int isobjblank(int c)
+{
+	return c==' ' || c=='\t';
+}
+
+/*
+ * character class, as vim's cls(): 0 blank, 1 punctuation, 2 word
+ * letters of other scripts, such as kana and kanji, are classes of their own
+ * if big is set, every non-blank is class 1
+ */
+static int objclass(int c, int big)
+{
+	int cl;
+
+	if( isobjblank(c) || c==0xa0 || c==0x3000 )
+		return 0;
+	if( c<0x80 )
+		cl = (isalnum(c) || c=='_') ? 2 : 1;
+	else if( c<0x100 )
+		cl = (c>=0xc0 || c==0xaa || c==0xb5 || c==0xba) ? 2 : 1;
+	else if( c>=0x3040 && c<=0x309f )
+		cl = 0x3040;
+	else if( c>=0x30a0 && c<=0x30ff )
+		cl = 0x30a0;
+	else if( (c>=0x3300 && c<=0x9fff) || (c>=0xf900 && c<=0xfaff) )
+		cl = 0x4e00;
+	else if( c>=0xac00 && c<=0xd7a3 )
+		cl = 0xac00;
+	else if( (c>=0x2000 && c<=0x206f) || (c>=0x3001 && c<=0x303f) || (c>=0xff01 && c<=0xff0f) )
+		cl = 1;
+	else
+		cl = 2;
+	return (big && cl) ? 1 : cl;
+}
+
+/* index after the run of one class that starts at virtual[i] */
+static int objrunend(Vi_t *vp, int i, int big)
+{
+	int cl = objclass(virtual[i],big);
+
+	while( ++i<=last_virt && objclass(virtual[i],big)==cl );
+	return i;
+}
+
+/*
+ * aw iw aW iW, with a count
+ */
+static int wordobject(Vi_t *vp, int incl, int big, int count, int *bp, int *ep)
+{
+	int b, e, start, p, white = 0;
+
+	for(b=cur_virt; b>0 && objclass(virtual[b-1],big)==objclass(virtual[cur_virt],big); b--);
+	start = b;
+	if( (objclass(virtual[b],big)==0) == incl )
+	{
+		/*** a blank and its word, or a word ***/
+		e = objrunend(vp,b,big);
+		if( objclass(virtual[b],big)==0 )
+		{
+			if( e>last_virt )
+				return 0;
+			e = objrunend(vp,e,big);
+		}
+		e--;
+	}
+	else
+	{
+		/*** a word and its blanks, or blanks ***/
+		e = objrunend(vp,b,big);
+		if( incl )
+		{
+			white = 1;
+			if( e<=last_virt && objclass(virtual[e],big)==0 )
+				e = objrunend(vp,e,big);
+		}
+		e--;
+	}
+	while( --count>0 )
+	{
+		if( e>=last_virt )
+			return 0;
+		p = e+1;
+		if( incl != (objclass(virtual[p],big)==0) )
+		{
+			/*** the next word and its blanks, or the next blanks ***/
+			int j = objrunend(vp,p,big);
+			if( incl && j<=last_virt && objclass(virtual[j],big)==0 )
+				j = objrunend(vp,j,big);
+			if( count>1 && (p==last_virt || j>last_virt && objclass(virtual[j-1],big)==0) )
+				return 0;
+			e = j-1;
+		}
+		else
+		{
+			/*** the next word, after blanks ***/
+			int j = objrunend(vp,p,big);
+			if( objclass(virtual[p],big)==0 )
+			{
+				if( j>last_virt )
+					return 0;
+				j = objrunend(vp,j,big);
+			}
+			e = j-1;
+		}
+	}
+	if( white && objclass(virtual[e],big)!=0 && start>0 )
+	{
+		/*** no blanks after the word: take the blanks before it, but not an indent ***/
+		for(p=start-1; p>0 && objclass(virtual[p-1],big)==objclass(virtual[start-1],big); p--);
+		if( objclass(virtual[p],big)==0 && p>0 )
+			start = p;
+	}
+	*bp = start;
+	*ep = e+1;
+	return 1;
+}
+
+/* the next quote q at or after virtual[i], or INVALID; a backslash skips a character if esc is set */
+static int nextquote(Vi_t *vp, int i, int q, int esc)
+{
+	for(; i<=last_virt; i++)
+	{
+		if( esc && virtual[i]=='\\' )
+		{
+			if( ++i>last_virt )
+				break;
+		}
+		else if( virtual[i]==q )
+			return i;
+	}
+	return INVALID;
+}
+
+/* the quote q before virtual[i], else the first column; backslash escaped quotes do not count */
+static int prevquote(Vi_t *vp, int i, int q)
+{
+	int n;
+
+	while( i>0 )
+	{
+		i--;
+		for(n=0; i-n>0 && virtual[i-n-1]=='\\'; n++);
+		if( n&1 )
+			i -= n;
+		else if( virtual[i]==q )
+			break;
+	}
+	return i;
+}
+
+/*
+ * a" i" a' i' a` i`
+ */
+static int quoteobject(Vi_t *vp, int incl, int q, int count, int *bp, int *ep)
+{
+	int cs = cur_virt, ce;
+
+	if( virtual[cs]==q )
+	{
+		/*** on a quote: pair the quotes from the start of the line to see if it opens or closes ***/
+		int first = cs;
+		for(cs=0;;)
+		{
+			if( (cs=nextquote(vp,cs,q,0))==INVALID || cs>first )
+				return 0;
+			if( (ce=nextquote(vp,cs+1,q,1))==INVALID )
+				return 0;
+			if( cs<=first && first<=ce )
+				break;
+			cs = ce+1;
+		}
+	}
+	else
+	{
+		cs = prevquote(vp,cs,q);
+		if( virtual[cs]!=q && (cs=nextquote(vp,cs,q,0))==INVALID )
+			return 0;
+		if( (ce=nextquote(vp,cs+1,q,1))==INVALID )
+			return 0;
+	}
+	if( incl )
+	{
+		if( ce<last_virt && isobjblank(virtual[ce+1]) )
+			while( ce<last_virt && isobjblank(virtual[ce+1]) )
+				ce++;
+		else
+			while( cs>0 && isobjblank(virtual[cs-1]) )
+				cs--;
+	}
+	else if( count<2 )
+		cs++;
+	*bp = cs;
+	*ep = (incl || count>1) ? ce+1 : ce;
+	return 1;
+}
+
+/* a backslash before virtual[i] escapes it */
+static int objescaped(Vi_t *vp, int i)
+{
+	int n = 0;
+
+	while( i>0 && virtual[--i]=='\\' )
+		n++;
+	return n&1;
+}
+
+/*
+ * the bracket that matches the one at virtual[from], searching in direction dir
+ * returns the unmatched open bracket before from if dir is -1, the unmatched
+ * close bracket after from if dir is 1; else INVALID
+ * backslash escaped brackets do not count; quotes do not matter
+ */
+static int blockfind(Vi_t *vp, int from, int open, int close, int dir)
+{
+	int i, c, depth = 0;
+
+	for(i=from+dir; i>=0 && i<=last_virt; i+=dir)
+	{
+		c = virtual[i];
+		if( (c!=open && c!=close) || objescaped(vp,i) )
+			continue;
+		if( c==(dir<0 ? close : open) )
+			depth++;
+		else if( depth-- == 0 )
+			return i;
+	}
+	return INVALID;
+}
+
+/*
+ * the close bracket that matches the open bracket at virtual[b], or INVALID
+ * as in vim, if the line has an even number of double quotes, a bracket
+ * after an odd number of them from b on does not count; 'x' and '\x' are skipped
+ */
+static int blockend(Vi_t *vp, int b, int open, int close)
+{
+	int i, c, n = 0, depth = 0, inq = 0, startq = 0, doq;
+
+	/*** count the quotes: a backslash hides the next character, '"' is no quote ***/
+	for(i=0; i<=last_virt; i++)
+	{
+		if( virtual[i]=='"' && !(i>0 && i<last_virt && virtual[i-1]=='\'' && virtual[i+1]=='\'') )
+			n++;
+		if( virtual[i]=='\\' && i<last_virt )
+			i++;
+	}
+	doq = !(n&1);
+	if( !doq && virtual[last_virt]=='\\' )
+		doq = inq = startq = 1;	/* the string goes on after the line */
+	for(i=b+1; i<=last_virt; i++)
+	{
+		c = virtual[i];
+		if( c=='"' )
+		{
+			if( doq && !objescaped(vp,i) )
+				inq = !inq, startq = 0;
+			continue;
+		}
+		if( c=='\'' && i<last_virt )
+		{
+			if( virtual[i+1]=='\\' && i+3<=last_virt && virtual[i+3]=='\'' )
+			{
+				i += 3;
+				continue;
+			}
+			if( i+2<=last_virt && virtual[i+2]=='\'' )
+			{
+				i += 2;
+				continue;
+			}
+		}
+		if( (inq && !startq) || (c!=open && c!=close) || objescaped(vp,i) )
+			continue;
+		if( c==open )
+			depth++;
+		else if( depth-- == 0 )
+			return i;
+	}
+	return INVALID;
+}
+
+/*
+ * ab ib a( i( ... : the count'th block around the cursor, else the first one after it
+ * ib, i(, ... leave out the brackets
+ */
+static int blockobject(Vi_t *vp, int incl, int open, int close, int count, int *bp, int *ep)
+{
+	int cur = cur_virt, b, e, n;
+
+	if( open=='{' )
+	{
+		/*** the cursor in the indent counts as on the first bracket ***/
+		for(n=0; n<=last_virt && isobjblank(virtual[n]); n++);
+		while( cur<n )
+			cur++;
+	}
+	if( cur<=last_virt && virtual[cur]==open )
+		cur++;
+	if( (b=blockfind(vp,cur,open,close,-1))!=INVALID )
+	{
+		while( --count>0 )
+			if( (b=blockfind(vp,b,open,close,-1))==INVALID )
+				return 0;
+	}
+	else
+	{
+		/*** not in a block: the next open bracket, a close bracket before it hides it ***/
+		for(n=cur; count-->0; )
+			if( (b=n=blockfind(vp,n,close,open,1))==INVALID )
+				return 0;
+	}
+	if( (e=blockend(vp,b,open,close))==INVALID )
+		return 0;
+	if( incl )
+		e++;
+	else
+		b++;
+	*bp = b;
+	*ep = e<b ? b : e;
+	return 1;
+}
+
+/*{	TEXTOBJECT( ai, mode )
+ *
+ *	Delete, change or yank the text object vp->lastobject.
+ *
+ *	ai	= 'a', the object with its blanks or brackets
+ *		= 'i', the inner object
+ *	mode	= as for delmotion()
+ *
+ *	Returns 1 if the object was found; else 0.
+ *
+}*/
+
+static int textobject(Vi_t *vp, int ai, int mode)
+{
+	static const char brackets[] = "()[]{}<>";
+	int obj = vp->lastobject, incl = ai=='a';
+	int b, e, ok;
+	const char *cp;
+
+	if( obj=='w' || obj=='W' )
+		ok = wordobject(vp,incl,obj=='W',vp->repeat,&b,&e);
+	else if( obj=='"' || obj=='\'' || obj=='`' )
+		ok = quoteobject(vp,incl,obj,vp->repeat,&b,&e);
+	else
+	{
+		if( obj=='b' )
+			obj = '(';
+		else if( obj=='B' )
+			obj = '{';
+		if( !obj || !iswascii(obj) || !(cp=strchr(brackets,obj)) )
+			return 0;
+		cp = brackets + ((cp-brackets) & ~1);
+		ok = blockobject(vp,incl,cp[0],cp[1],vp->repeat,&b,&e);
+	}
+	if( !ok )
+		return 0;
+
+	/*** the object is virtual[b] up to virtual[e-1] ***/
+	cur_virt = b;
+	if( e>b )
+		cdelete(vp,e-b,mode=='c' ? 'd' : mode);	/* c saves the text too, as in vim */
+	else
+		--cur_virt;	/* empty object: c inserts at b */
+	if( mode=='y' )
+		cur_virt = b;
+	return 1;
+}
+
 /*{	DELMOTION( motion, mode )
  *
  *	Delete through motion.
@@ -886,6 +1266,8 @@ static int delmotion(Vi_t *vp,int motion, int mode)
 		return 0;
 	if( mode != 'y' )
 		save_v(vp);
+	if( motion=='a' || motion=='i' )
+		return textobject(vp,motion,mode);
 	begin = cur_virt;
 
 	/*** fake out the motion routines by appending a blank ***/
@@ -1026,6 +1408,17 @@ static int getcount(Vi_t *vp,int c)
 
 	if( i > 0 )
 		vp->repeat *= i;
+	return c;
+}
+
+/*
+ * get the motion for c, d or y; after a or i, also get the text object
+ */
+static int getmotion(Vi_t *vp)
+{
+	int c = getcount(vp,ed_getchar(vp->ed,-1));
+	if( c=='a' || c=='i' )
+		vp->lastobject = getrchar(vp);
 	return c;
 }
 
@@ -2393,7 +2786,7 @@ addin:
 		if( mode )
 			c = vp->lastmotion;
 		else
-			c = getcount(vp,ed_getchar(vp->ed,-1));
+			c = getmotion(vp);
 chgeol:
 		vp->lastmotion = c;
 		if( cur_virt == INVALID )
@@ -2429,7 +2822,7 @@ chgeol:
 			c = 'w';
 		}
 		else
-			c = getcount(vp,ed_getchar(vp->ed,-1));
+			c = getmotion(vp);
 deleol:
 		vp->lastmotion = c;
 		if( c == 'd' )
@@ -2528,7 +2921,7 @@ deleol:
 		if( mode )
 			c = vp->lastmotion;
 		else
-			c = getcount(vp,ed_getchar(vp->ed,-1));
+			c = getmotion(vp);
 yankeol:
 		vp->lastmotion = c;
 		if( c == 'y' )
