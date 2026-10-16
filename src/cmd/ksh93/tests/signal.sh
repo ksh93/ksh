@@ -393,7 +393,7 @@ yes() for ((;;)); do print y; done
 export bindate=$(command -vx date)
 for exp in TERM VTALRM PIPE
 do	if	[[ ${SIG[$exp]} ]]
-	then	"$SHELL" <<-EOF 2>/dev/null
+	then	{ "$SHELL" <<-EOF
 			parentready=ready.$exp.\$\$
 			foo() { return 0; }
 			trap foo EXIT
@@ -413,6 +413,7 @@ do	if	[[ ${SIG[$exp]} ]]
 				: >\$parentready
 			done > /dev/null
 		EOF
+		} 2>/dev/null
 		e=$?
 		got=$(let "e>128" && kill -l "$e")
 		[[ $got == "$exp" ]] || err_exit "kill -$exp \$\$ failed, got exit status $e${got:+/SIG$got}"
