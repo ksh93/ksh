@@ -241,7 +241,7 @@ int	b_kill(int argc,char *argv[],Shbltin_t *context)
 	while((n = optget(argv, **argv == 's' ? sh_optstop : sh_optkill))) switch(n)
 	{
 		case ':':
-			if((signame=argv[opt_info.index++]) && (sig=sig_number(signame+1))>=0)
+			if((signame=argv[opt_info.index++]) && (sig=sig_number(signame+1))>=0 && !(sig & SH_TRAP))
 				goto endopts;
 			opt_info.index--;
 			errormsg(SH_DICT,2, "%s", opt_info.arg);

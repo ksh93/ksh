@@ -327,8 +327,8 @@ got="$(<$tmp/1)"
 $SHELL -c 'exec 3<>; /dev/null'  2> /dev/null && err_exit '<>; with exec should be an error'
 $SHELL -c ': 3<>; /dev/null'  2> /dev/null || err_exit '<>; not working with at all'
 print $'hello\nworld' > $tmp/1
-if      ! $SHELL -c "false <>; $tmp/1"  2> /dev/null
-then    [[ $(<$tmp/1) == $'hello\nworld' ]] || err_exit '<>; not preserving file on failure'
+if	! $SHELL -c "false <>; $tmp/1"  2> /dev/null
+then	[[ $(<$tmp/1) == $'hello\nworld' ]] || err_exit '<>; not preserving file on failure'
 fi
 if	! $SHELL -c "head -1 $tmp/1" <>; $tmp/1  2> /dev/null
 then	[[ $(<$tmp/1) == hello ]] || err_exit '<>; not truncating file on success of head'
@@ -342,8 +342,8 @@ unset y
 read -n1 y <<!
 abc
 !
-if      [[ $y != a ]]
-then    err_exit  'read -n1 not working'
+if	[[ $y != a ]]
+then	err_exit  'read -n1 not working'
 fi
 unset a
 { read -N3 a; read -N1 b;}  <<!
@@ -411,7 +411,7 @@ then	(
 		read -t1 -n 1000 line3
 		read -t1 -n 1000 line4
 	}
-	[[ $? == 0 ]]		 	&& err_exit 'should have timed out'
+	[[ $? == 0 ]]			&& err_exit 'should have timed out'
 	[[ $line1 == 'prompt1: ' ]] 	|| err_exit "line1 should be 'prompt1: '"
 	[[ $line2 == line2 ]]		|| err_exit "line2 should be line2"
 	[[ $line3 == 'prompt2: ' ]]	|| err_exit "line3 should be 'prompt2: '"
@@ -516,9 +516,9 @@ $SHELL -c "sed  -e 's/there //' $tmp/foobar  >; $tmp/foobar"
 
 binfalse=$(whence -p false)
 for	(( i=1; i < 50; i++ ))
-do      out=$("$binfalse" 2>/dev/null)
+do	out=$("$binfalse" 2>/dev/null)
 	if	(( $? == 0 ))
-	then    err_exit 'wrong error code with redirection'
+	then	err_exit 'wrong error code with redirection'
 		break
 	fi
 done

@@ -162,7 +162,7 @@ done:
 #endif /* SHOPT_AUDIT */
 
 static const unsigned char hist_stamp[2] = { HIST_UNDO, HIST_VERSION };
-static const Sfdisc_t hist_disc = { NULL, hist_write, NULL, hist_exceptf, NULL};
+static const Sfdisc_t hist_disc = { .writef = hist_write, .exceptf = hist_exceptf };
 
 static int hist_setlock(int fd, short type)
 {
@@ -239,15 +239,16 @@ int  sh_histinit(void)
 		/* don't allow root, or any scripts, a temporary history file */
 		if (sh.userid == 0 || !sh_isstate(SH_INTERACTIVE))
 			goto initfail;
-		/* open a temporary history file */
+		/* open a temporary history file close-on-exec */
 		if (!(tempname = pathtemp(NULL, 0, NULL, "hist", &fd)))
 			goto initfail;
-		/* unlink early and keep open (this fails on some systems; tell user where temp file is for manual cleanup */
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
+		/* unlink early and keep open (this fails on some systems; tell user where temp file is for manual cleanup) */
 		if (unlink(tempname) < 0)
 			errormsg(SH_DICT, ERROR_warn(0), e_histtemp, tempname);
 		free(tempname);
 		/* pathtemp doesn't update ksh's FD status bookkeeping */
-		sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK;
+		sh.fdstatus[fd] = IOREAD|IOWRITE|IOSEEK|IOCLEX;
 		/* set append flag for atomic writes */
 		if (fcntl(fd, F_SETFL, O_APPEND) == -1)
 		        goto initfail;
@@ -1228,17 +1229,24 @@ static int hist_exceptf(Sfio_t* fp, int type, void *data, Sfdisc_t *handle)
 			hp->histlockfd = -1;
 			hp->histlockcnt = 0;
 		}
-		sh_close(oldfd);
-		if((newfd=sh_open(hp->histname,O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR)) >= 0)
+		/*
+		 * Do NOT call sh_close, sh_open, or sh_fcntl below; we'll either end up with the
+		 * same file descriptor again or fail, so ksh's file descriptor bookkeeping should
+		 * be left untouched. Calling sh_close(oldfd) would also free the very Sfio stream
+		 * for which this is the exception handler, which would crash the shell.
+		 */
+		close(oldfd);
+		newfd = open(hp->histname, O_BINARY|O_APPEND|O_CREAT|O_RDWR|O_cloexec,S_IRUSR|S_IWUSR);
+		if(newfd >= 0)
 		{
 			if(newfd != oldfd)
 			{
-				int dupfd = sh_fcntl(newfd, F_dupfd_cloexec, oldfd);
-				sh_close(newfd);
+				int dupfd = fcntl(newfd, F_dupfd_cloexec, oldfd);
+				close(newfd);
 				if(dupfd != oldfd)
 				{
 					if(dupfd > -1)
-						sh_close(dupfd);
+						close(dupfd);
 					if (relock)
 					{
 						hp->histlockfd = oldfd;

@@ -24,6 +24,12 @@ make install virtual
 		bind -lutil dontcare
 		make pty.o
 			make pty.c
+				prev %{INCLUDE_AST}/cmd.h
+				prev %{INCLUDE_AST}/error.h
+				prev %{INCLUDE_AST}/proc.h
+				prev %{INCLUDE_AST}/regex.h
+				prev %{INCLUDE_AST}/vmalloc.h
+				prev %{INCLUDE_AST}/ast_time.h
 				make FEATURE/pty
 					make features/pty
 						prev %{INCLUDE_AST}/ast.h
@@ -32,12 +38,6 @@ make install virtual
 					exec - iffe %{IFFEFLAGS} -v -c "%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{LDFLAGS}" ref \
 					exec -	-I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libast} %{mam_libutil} : run %{<}
 				done
-				prev %{INCLUDE_AST}/ast_time.h
-				prev %{INCLUDE_AST}/vmalloc.h
-				prev %{INCLUDE_AST}/regex.h
-				prev %{INCLUDE_AST}/proc.h
-				prev %{INCLUDE_AST}/error.h
-				prev %{INCLUDE_AST}/cmd.h
 			done pty.c
 			exec - %{CC} %{mam_cc_FLAGS} %{CCFLAGS} -I. -I%{INCLUDE_AST} \
 			exec -	'-DERROR_CATALOG="builtin"' -DCMD_STANDALONE=b_pty -c %{<}

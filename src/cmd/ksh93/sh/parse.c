@@ -289,7 +289,15 @@ static void dcl_dehacktivate(void)
 	{
 		dtview(sh.bltin_tree, NULL);
 		if(!sh.shcomp)
-			dtclear(dcl_tree);
+		{
+			Namval_t *np, *next;
+			for (np = dtfirst(dcl_tree); np; np = next)
+			{
+				next = dtnext(dcl_tree, np);
+				dtremove(dcl_tree, np);
+				free(np);
+			}
+		}
 	}
 }
 static noreturn void dcl_exit(int e)
@@ -1527,7 +1535,7 @@ static Shnode_t *simple(Lex_t *lexp,nvflag_t flag, struct ionod *io)
 				Namval_t *np=nv_bfsearch(argp->argval,sh.fun_tree, (Namval_t**)&t->comnamq,NULL);
 				if(np && is_abuiltin(np))
 				{
-					if(cmdarg==0)
+					if(cmdarg==0 && sh.fun_tree->walk != dcl_tree)
 						t->comnamp = np;
 					if(nv_isattr(np,BLT_DCL))
 					{

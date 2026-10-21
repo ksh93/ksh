@@ -47,13 +47,13 @@ make install virtual
 
 	make c_sources virtual
 		make cmdinit.c
-			prev %{INCLUDE_AST}/shcmd.h
 			make cmd.h
-				prev %{INCLUDE_AST}/shcmd.h
-				prev %{INCLUDE_AST}/stk.h
-				prev %{INCLUDE_AST}/error.h
 				prev %{INCLUDE_AST}/ast.h
+				prev %{INCLUDE_AST}/error.h
+				prev %{INCLUDE_AST}/stk.h
+				prev %{INCLUDE_AST}/shcmd.h
 			done cmd.h
+			prev %{INCLUDE_AST}/shcmd.h
 		done cmdinit.c
 		make basename.c
 			prev cmd.h
@@ -62,33 +62,32 @@ make install virtual
 			prev cmd.h
 		done
 		make chgrp.c
-			prev FEATURE/symlink
-			prev %{INCLUDE_AST}/fts.h
-			prev %{INCLUDE_AST}/endian.h
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/cdt.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/cdt.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/fts.h
+			prev FEATURE/symlink
 		done
 		make chmod.c
-			prev FEATURE/symlink
-			prev %{INCLUDE_AST}/fts.h
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/fts.h
+			prev FEATURE/symlink
 		done
 		make chown.c
 			prev cmd.h
 		done
 		make cksum.c
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/fts.h
-			prev %{INCLUDE_AST}/modex.h
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/sum.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/sum.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/modex.h
+			prev %{INCLUDE_AST}/fts.h
+			prev %{INCLUDE_AST}/error.h
 		done
 		make cmp.c
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make comm.c
 			prev cmd.h
@@ -109,21 +108,20 @@ make install virtual
 			prev cmd.h
 		done
 		make date.c
-			prev %{INCLUDE_AST}/times.h
-			prev %{INCLUDE_AST}/tmx.h
-			prev %{INCLUDE_AST}/proc.h
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/proc.h
+			prev %{INCLUDE_AST}/tmx.h
+			prev %{INCLUDE_AST}/times.h
 		done
 		make expr.c
-			prev %{INCLUDE_AST}/regex.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/regex.h
 		done
 		make fds.c
-			prev %{INCLUDE_AST}/endian.h
-			prev FEATURE/sockets
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
+			prev FEATURE/sockets
 		done
 		make fmt.c
 			prev cmd.h
@@ -132,22 +130,22 @@ make install virtual
 			prev cmd.h
 		done
 		make getconf.c
-			prev %{INCLUDE_AST}/ls.h
-			prev %{INCLUDE_AST}/proc.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/proc.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make head.c
 			prev cmd.h
 		done
 		make id.c
-			prev %{INCLUDE_AST}/stdio.h
-			prev FEATURE/ids
 			prev cmd.h
+			prev FEATURE/ids
+			prev %{INCLUDE_AST}/stdio.h
 		done
 		make join.c
-			prev %{INCLUDE_AST}/wchar.h
-			prev %{INCLUDE_AST}/sfdisc.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/sfdisc.h
+			prev %{INCLUDE_AST}/wchar.h
 		done
 		make ln.c
 			prev cmd.h
@@ -159,16 +157,16 @@ make install virtual
 			prev cmd.h
 		done
 		make mkdir.c
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make mkfifo.c
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make mktemp.c
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make mv.c
 			prev cmd.h
@@ -177,74 +175,74 @@ make install virtual
 			prev cmd.h
 		done
 		make pathchk.c
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make pids.c
-			prev %{INCLUDE_AST}/sfdisc.h
-			prev %{INCLUDE_AST}/ast_tty.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ast_tty.h
+			prev %{INCLUDE_AST}/sfdisc.h
 		done
 		make rev.c
-			makp rev.h
 			prev cmd.h
+			makp rev.h
 		done
 		make rm.c
-			prev %{INCLUDE_AST}/fts.h
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/fts.h
 		done
 		make rmdir.c
 			prev cmd.h
 		done
 		make stty.c
-			prev %{INCLUDE_AST}/ast_tty.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ast_tty.h
 		done
 		make sum.c
 			prev cmd.h
 		done
 		make sync.c
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make tail.c
-			prev rev.h
-			prev %{INCLUDE_AST}/tv.h
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/tv.h
+			prev rev.h
 		done
 		make tee.c
-			prev %{INCLUDE_AST}/sig.h
-			prev %{INCLUDE_AST}/ls.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
+			prev %{INCLUDE_AST}/sig.h
 		done
 		make tty.c
 			prev cmd.h
 		done
 		make uname.c
-			prev FEATURE/utsname
-			prev %{INCLUDE_AST}/proc.h
 			prev cmd.h
+			prev %{INCLUDE_AST}/proc.h
+			prev FEATURE/utsname
 		done
 		make uniq.c
 			prev cmd.h
 		done
 		make wc.c
-			prev %{INCLUDE_AST}/ls.h
+			prev cmd.h
 			make wc.h
 				prev %{INCLUDE_AST}/ast.h
 			done
-			prev cmd.h
+			prev %{INCLUDE_AST}/ls.h
 		done
 		make revlib.c
-			prev rev.h
 			prev cmd.h
+			prev rev.h
 		done
 		make wclib.c
-			prev %{INCLUDE_AST}/wchar.h
-			prev wc.h
 			prev cmd.h
+			prev wc.h
+			prev %{INCLUDE_AST}/wchar.h
 		done
 		make lib.c
 			prev cmd.h

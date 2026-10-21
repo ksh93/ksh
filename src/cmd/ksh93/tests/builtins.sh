@@ -166,8 +166,8 @@ $SHELL -c 'read x <<< hello' 2> /dev/null || err_exit 'syntax <<< not recognized
 unset x
 readonly x
 set -- $(readonly)
-if      [[ " $@ " != *" x "* ]]
-then    err_exit 'unset readonly variables are not displayed'
+if	[[ " $@ " != *" x "* ]]
+then	err_exit 'unset readonly variables are not displayed'
 fi
 if	[[ $(	for i in foo bar
 		do	print $i
@@ -253,8 +253,8 @@ then	err_exit 'whence -v test after builtin -d incorrect'
 fi
 typeset -Z3 percent=$(printf '%o\n' "'%'")
 forrmat=\\${percent}s
-if      [[ $(printf "$forrmat") != %s ]]
-then    err_exit "printf $forrmat not working"
+if	[[ $(printf "$forrmat") != %s ]]
+then	err_exit "printf $forrmat not working"
 fi
 if	(( $(printf 'x\0y' | wc -c) != 3 ))
 then	err_exit 'printf \0 not working'
@@ -336,23 +336,23 @@ case ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
 	# URL/URI encoding of UTF-8 characters
 	expect='wh.at%3F'
 	actual=$(printf %#H 'wh.at?')
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: ASCII characters' \
+	[[ $actual == "$expect" ]] || err_exit 'printf %#H: ASCII characters' \
 				"(expected $expect; got $actual)"
 	expect='%D8%B9%D9%86%D8%AF%D9%85%D8%A7%20%D9%8A%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%B9%D8%A7%D9%84%D9%85%20%D8%A3%D9%86%20%E2%80%AA%D9%8A%D8%AA%D9%83%D9%84%D9%91%D9%85%20%E2%80%AC%20%D8%8C%20%D9%81%D9%87%D9%88%20%D9%8A%D8%AA%D8%AD%D8%AF%D9%91%D8%AB%20%D8%A8%D9%84%D8%BA%D8%A9%20%D9%8A%D9%88%D9%86%D9%8A%D9%83%D9%88%D8%AF.'
 	actual=$(printf %#H 'عندما يريد العالم أن ‪يتكلّم ‬ ، فهو يتحدّث بلغة يونيكود.')
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: Arabic UTF-8 characters' \
+	[[ $actual == "$expect" ]] || err_exit 'printf %#H: Arabic UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	expect='%E6%AD%A3%E5%B8%B8%E7%B5%82%E4%BA%86%20%E6%AD%A3%E5%B8%B8%E7%B5%82%E4%BA%86'
 	eval 'actual=$(printf %#H '\''正常終了 正常終了'\'')'
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: Japanese UTF-8 characters' \
+	[[ $actual == "$expect" ]] || err_exit 'printf %#H: Japanese UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	expect='%C2%AB%20l%E2%80%99ab%C3%AEme%20de%20mon%C2%A0m%C3%A9tier%E2%80%A6%20%C2%BB'
 	actual=$(printf %#H '« l’abîme de mon métier… »')
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: Latin UTF-8 characters' \
+	[[ $actual == "$expect" ]] || err_exit 'printf %#H: Latin UTF-8 characters' \
 				"(expected $expect; got $actual)"
-	expect='%3F%C2%86%3F%3F%3F'
+	expect='%86%C2%86%F0%96v%A7%B5'
 	actual=$(printf %#H $'\x86\u86\xF0\x96\x76\xA7\xB5')
-	[[ $actual == "$expect" ]] || err_exit 'printf %H: invalid UTF-8 characters' \
+	[[ $actual == "$expect" ]] || err_exit 'printf %#H: invalid UTF-8 characters' \
 				"(expected $expect; got $actual)"
 	;;
 esac
@@ -395,8 +395,8 @@ read -n1 y <<!
 abc
 !
 exp=a
-if      [[ $y != $exp ]]
-then    err_exit "read -n1 failed -- expected '$exp', got '$y'"
+if	[[ $y != $exp ]]
+then	err_exit "read -n1 failed -- expected '$exp', got '$y'"
 fi
 print -n $'{ read -r line;print $line;}\nhello' > $tmp/script
 chmod 755 $tmp/script
@@ -405,8 +405,8 @@ then	err_exit 'read of incomplete line not working correctly'
 fi
 set -f
 set -- *
-if      [[ $1 != '*' ]]
-then    err_exit 'set -f not working'
+if	[[ $1 != '*' ]]
+then	err_exit 'set -f not working'
 fi
 unset pid1 pid2
 false &
@@ -579,21 +579,21 @@ then	for i in $(command command -x ${SHELL:-ksh} -c 'print $#;[[ $1 != argument0
 fi
 # test command -x option with extra arguments
 integer sum=0 n=10000
-if      ! ${SHELL:-ksh} -c 'print $#' count $(longline $n) > /dev/null  2>&1
-then    for i in $(command command -x ${SHELL:-ksh} -c 'print $#;[[ $1 != argument0 ]]' count $(longline $n) one two three) #2> /dev/null)
-	do      ((sum += $i))
+if	! ${SHELL:-ksh} -c 'print $#' count $(longline $n) > /dev/null  2>&1
+then	for i in $(command command -x ${SHELL:-ksh} -c 'print $#;[[ $1 != argument0 ]]' count $(longline $n) one two three)
+	do	((sum += $i))
 	done
-	(( sum  > n )) || err_exit "command -x processed only $sum arguments"
-	(( (sum-n)%3==0 )) || err_exit "command -x processed only $sum arguments"
-	(( sum == n+3)) && err_exit "command -x processed only $sum arguments"
+	(( sum > n )) || err_exit "command -x processed only $sum arguments"
+	(( (sum - n) % 3==0 )) || err_exit "command -x processed only $sum arguments"
+	(( sum == n + 3 )) && err_exit "command -x processed only $sum arguments"
 	command -p command -x ${SHELL:-ksh} -c 'print $#;[[ $1 == argument0 ]]' count $(longline $n) > /dev/null  2>&1
 	[[ $? != 1 ]] && err_exit 'incorrect exit status for command -x'
 fi
 # test for debug trap
 [[ $(typeset -i i=0
 	trap 'print $i' DEBUG
-	while (( i <2))
-	do	(( i++))
+	while (( i <2 ))
+	do	(( i++ ))
 	done) == $'0\n0\n1\n1\n2' ]]  || err_exit  "DEBUG trap not working"
 if ((!SHOPT_ECHOPRINT)) && builtin getconf 2> /dev/null; then
 	getconf UNIVERSE - ucb
@@ -1813,6 +1813,61 @@ exp=$'x\n'
 printf 'xyz\naA:bc\n:' | read -rd: -n10 got
 exp=$'xyz\naA'
 [[ $got == "$exp" ]] || err_exit "read from pipe with custom delimiter (expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# Self-documentation section lookup (see optget(3)).
+# A section defined as [+name?text] can be requested with a +name argument;
+# on success only that section is displayed. This needs the optstring to use a
+# single-character long-option prefix, i.e. the 'p1' flag in the leading flags
+# header (as in the '+[-p1?]' control string below). None of the ksh builtin
+# optstrings in src/cmd/ksh93/data/builtins.c set that flag -- their headers
+# are of the form '[-1c?...]' -- so for them a '+name' argument is not parsed
+# as a section request. That is why, e.g., 'typeset +NAME' does not display the
+# NAME section of 'typeset --man': with the default two-character prefix,
+# '+NAME' is parsed as the short options +N +A +M +E instead.
+OPTIND=1
+sectusage='+[-p1?][+NAME?NAME section text][+DESCRIPTION?DESCRIPTION section text][o:opt]'
+got=$(getopts "$sectusage" o +NAME 2>&1)
+exp='NAME section text'
+[[ $got == *"$exp" ]] || err_exit "getopts +NAME section lookup" \
+	"(expected *$(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(getopts "$sectusage" o +DESCRIPTION 2>&1)
+exp='DESCRIPTION section text'
+[[ $got == *"$exp" ]] || err_exit "getopts +DESCRIPTION section lookup" \
+	"(expected *$(printf %q "$exp"), got $(printf %q "$got"))"
+
+# requesting a nonexistent section is a legitimate error
+OPTIND=1
+got=$(getopts "$sectusage" o +NONEXISTENT 2>&1)
+exp=': +NONEXISTENT: section not found'
+[[ $got == *"$exp" ]] || err_exit "getopts +NONEXISTENT message" \
+	"(expected *$(printf %q "$exp"), got $(printf %q "$got"))"
+
+# https://github.com/ksh93/ksh/issues/1051
+# an unknown ++long-option must not be misreported as a missing section,
+# but --opy and a valid ++opt must keep working as before
+OPTIND=1
+got=$(getopts '[-+][o:opt]' o ++opy 2>&1)
+exp=': ++opy: unknown option'
+[[ $got == *"$exp" ]] || err_exit "getopts error message for unknown option ++opy" \
+	"(expected *$(printf %q "$exp"), got $(printf %q "$got"))"
+OPTIND=1
+got=$(getopts '[-+][o:opt]' o --opy 2>&1)
+exp=': --opy: unknown option'
+[[ $got == *"$exp" ]] || err_exit "getopts error message for unknown option --opy" \
+	"(expected *$(printf %q "$exp"), got $(printf %q "$got"))"
+OPTIND=1
+getopts '[-+][o:opt]' o ++opt
+[[ $o == +o ]] || err_exit "getopts ++opt failed" \
+	"(expected +o, got $(printf %q "$o"))"
+
+# https://github.com/ksh93/ksh/issues/1051#issuecomment-6106681513
+#got=$("$SHELL" -c 'getopts "[-+][o:opt]:" opt' myscript ++noopt=1 2>&1)
+OPTIND=1
+got=$(getopts "[-+][o:opt]:" opt ++noopt=1 2>&1)
+exp=': ++noopt: value not expected'
+[[ $got == *"$exp" ]] || err_exit "getopts error message for ++noopt=1" \
+	"(expected $(printf %q *"$exp"), got $(printf %q "$got"))"
 
 # ======
 # The sleep builtin should reject out of range values and negative numbers

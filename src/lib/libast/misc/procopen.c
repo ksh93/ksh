@@ -52,7 +52,7 @@
 #endif /* _sys_socket */
 #endif /* _lib_socketpair */
 
-Proc_t			proc_default = { -1 };
+Proc_t			proc_default = { .pid = -1 };
 
 #if DEBUG_PROC
 

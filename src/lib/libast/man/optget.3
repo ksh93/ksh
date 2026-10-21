@@ -311,9 +311,9 @@ containing the
 value followed by a description.
 .IP 6.
 A group of the form
-.BI [+ \en ...]
+.BI [+ \en... ]
 will display the characters
-representing ... in fixed-width font without adding line breaks.
+represented by \f2...\fP in fixed-width font without adding line breaks.
 .IP 7.
 A group of the form
 .BI [+ name ? text\fP]
@@ -326,6 +326,33 @@ If
 is omitted then
 .I text
 is placed in a new paragraph.
+.IP
+A section
+.I name
+can be displayed on its own by calling the
+\f[CB]opthelp\fP
+function with
+.I what
+set to
+.BI + name\fR;
+only the text of that section is returned, and a
+\(lqsection not found\(rq
+diagnostic is issued if
+.I name
+does not exist. The same can be triggered from the command line by passing
+.BI + name
+as an argument, but only if
+.B +
+arguments are enabled as options and long option names use a single-character
+prefix (the
+.B p
+flag set to
+.B 1
+described above); otherwise
+.BI + name
+is parsed as short options and
+.BI ++ name
+as a long option, so no section is requested.
 .IP 8.
 A group of the form
 .BI [- name ? text\fP]

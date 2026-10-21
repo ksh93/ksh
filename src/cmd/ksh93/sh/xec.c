@@ -456,8 +456,8 @@ static void put_level(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	}
 }
 
-static const Namdisc_t level_disc = { sizeof(Namfun_t), put_level };
-static Namfun_t level_disc_fun = { &level_disc, 1 };
+static const Namdisc_t level_disc = { .dsize = sizeof(Namfun_t), .putval = put_level };
+static Namfun_t level_disc_fun = { .disc = &level_disc, .namflags = NAMFUN_NOFREE };
 
 /*
  * Execute the DEBUG trap:
@@ -506,7 +506,14 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		sfputc(sh.stk,')');
 	else
 		*stkptr(sh.stk,stktell(sh.stk)-1) = 0;
+	if(np->nvalue || np->nvfun)
+	{
+		if(nv_arrayptr(np))
+			nv_putsub(np,NULL,ARRAY_SCAN);
+		nv_unset(np,NV_RDONLY);
+	}
 	np->nvalue = stkfreeze(sh.stk,1);
+	nv_onattr(np,NV_NOFREE);
 	sh.st.lineno = error_info.line;
 	*savst = sh.st;
 	save_prefix = sh.prefix;
@@ -520,7 +527,9 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	n = sh_trap(trap,0);
 	/* restore state */
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
-	np->nvalue = NULL;
+	if(nv_arrayptr(np))
+		nv_putsub(np,NULL,ARRAY_SCAN);
+	nv_unset(np,NV_RDONLY);
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
@@ -1107,14 +1116,19 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 					{
 						/* Do nothing */
 					}
-					else if(path_search(com0,NULL,1))
+					/* If this is the last command and there is no FPATH, then skip the
+					 * stat(2)-based path_search() and let path_exec() handle the search. */
+ 					else if(!(execflg && !path_hasfpath()) && path_search(com0,NULL,1))
 					{
 						error_info.line = t->com.comline-sh.st.firstline;
+						/* Search for a function or built-in named com0. */
 #if SHOPT_NAMESPACE
 						if(!sh.namespace || !(np=sh_fsearch(com0,0)))
 #endif /* SHOPT_NAMESPACE */
 							np=nv_search(com0,sh.fun_tree,0);
-						if(!np || !np->nvalue)
+						/* If the search found a null node (undefined function), it won't have kept
+						 * searching through fun_tree's view to bltin_tree, so do this manually. */
+						if(np && !np->nvalue)
 						{
 							Namval_t *mp=nv_search(com0,sh.bltin_tree,0);
 							if(mp)

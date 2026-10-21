@@ -380,11 +380,21 @@ function foo
 	:
 }
 [[ $(whence -p foo) == foo ]] && err_exit 'whence -p foo should not find function foo'
+unset -f foo
 
 # whence -q bug fix
-$SHELL -c 'whence -q cat' & pid=$!
-sleep .1
-kill $! 2> /dev/null && err_exit 'whence -q appears to be hung'
+"$SHELL" -c 'whence -q cat' &
+unset i m
+typeset -i i m=300
+for ((i=0; i<m; i++))
+do	sleep .01
+	kill -0 $! || break
+done 2>/dev/null
+if	((i==m))
+then	kill -9 $! 2>/dev/null
+	err_exit 'whence -q appears to be hung'
+fi
+unset m i
 
 FPATH=$PWD
 print  'function foobar { :;}' > foobar
@@ -1028,7 +1038,7 @@ if builtin cat 2>/dev/null
 then	got=$(PATH=/opt/ast/bin:$PATH "$SHELL" -c 'command -x cat /dev/null; whence -v cat')
 	exp='cat is a shell builtin version of /opt/ast/bin/cat'
 	[[ $got == "$exp" ]] || err_exit "'command -x' creates tracked alias" \
-	        "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	# https://github.com/ksh93/ksh/issues/609
 	exp=$(builtin -d cat; whence -p cat)
 	got=$(set +x; PATH=/opt/ast/bin:$PATH "$SHELL" -c 'command -vx cat; command -x cat /dev/null' 2>&1)
@@ -1070,6 +1080,30 @@ output=$($SHELL -ic $'PATH=/dev/null exec notacommand\nexit 0' 2>&1)
 got=$?
 ((got==exp)) || err_exit "interactive shells exit after exec(1) fails to run a command (expected status '$exp', got status '$got' with output $(printf %q "$output"))"
 fi # !SHOPT_SCRIPTONLY
+
+# ======
+# As a special case, a scoped copy of PATH inherits the value and attributes
+# of the parent when unset (historic ksh behaviour, corrected for attributes)
+function f
+{
+	typeset -A PATH=([one]=1 [two]=2 [three]=3)
+	print -n f1:
+	typeset -p PATH
+	unset PATH
+	print -n f2:
+	typeset -p PATH
+}
+{
+	f
+	print -n main:
+	typeset -p PATH
+} >out
+CCn=$'\n'
+printf -v p '%q' "$PATH"
+got=$(<out)
+exp="f1:typeset -x -A PATH=([one]=1 [three]=3 [two]=2)${CCn}f2:typeset -x PATH=$p${CCn}main:typeset -x PATH=$p"
+[[ $got == "$exp" ]] || err_exit "PATH unset in function scope failed to inherit parent" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

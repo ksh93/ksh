@@ -113,13 +113,14 @@ static int test_strmatch(const char *str, const char *pat)
 
 int b_test(int argc, char *argv[],Shbltin_t *context)
 {
-	struct test tdata;
 	char *cp = argv[0];
 	int not;
+	struct test tdata = {
+		.av = argv,
+		.ap = 1
+	};
 
 	NOT_USED(context);
-	tdata.av = argv;
-	tdata.ap = 1;
 	if(c_eq(cp,'['))
 	{
 		cp = argv[--argc];

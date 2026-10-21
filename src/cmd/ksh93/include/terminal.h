@@ -32,12 +32,5 @@ extern int	tty_get(int,struct termios*);
 extern int	tty_raw(int,int);
 extern int	tty_check(int);
 extern int	tty_set(int, int, struct termios*);
-extern int	sh_tcgetattr(int,struct termios*);
-extern int	sh_tcsetattr(int,int,struct termios*);
-
-#undef	tcgetattr
-#undef	tcsetattr
-#define tcgetattr(a,b)		sh_tcgetattr(a,b)
-#define tcsetattr(a,b,c)	sh_tcsetattr(a,b,c)
 
 #endif /* !_TERMINAL_H */

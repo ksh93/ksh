@@ -29,6 +29,10 @@
 # setting TMOUT in a virtual subshell removes its special meaning
 # https://github.com/ksh93/ksh/issues/782
 (
+	if	! { true </dev/tty; } 2>/dev/null
+	then	warning "no tty -- TMOUT test skipped"
+		exit 0
+	fi
 	typeset -F s=SECONDS
 	"$SHELL" -c 'TMOUT=2; (TMOUT=3); TMOUT=1; read v' </dev/tty
 	((SECONDS < s + 2))
@@ -386,7 +390,7 @@ if	(( $# !=1 ))
 then	err_exit	'"${@-}" not expanding to null string'
 fi
 for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
-do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
+do	(eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
 done
 
 # ___ begin: IFS tests ___
@@ -799,7 +803,7 @@ function foo.set
 {
 	case ${.sh.subscript} in
 	bar)	if	((.sh.value > 1 ))
-	        then	.sh.value=5
+		then	.sh.value=5
 			foo[barrier_hit]=yes
 		fi
 		;;
@@ -1242,7 +1246,7 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	do	exp=$(set +x; eval "echo \${foo${op}${word}}" 2>&1)
 		if	[[ $exp != "$word" ]]
 		then	err_exit "\${foo${op}${word}} when foo is not set: expected \"$word\", got \"$exp\""
-	        fi
+		fi
 	done
 done
 
@@ -1286,7 +1290,7 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
 		if	[[ $got != "$word" ]]
 		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected \"$word\", got \"$got\""
-	        fi
+		fi
 	done
 done
 
@@ -1887,6 +1891,22 @@ chmod +x unset_execute_test
 	.sh.version .sh.file .sh.subshell .sh.lineno .sh.math .sh.pid .sh.ppid); } 2>/dev/null
 [[ e=$? -eq 0 ]] || err_exit "unset_execute_test crashes (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 eval "$errors"
+
+# ======
+# A subshell that redefines a discipline function on a variable must not take
+# the parent's own definition of it along when the subshell exits.
+got=$("$SHELL" -c '
+	var.get() { .sh.value=main; }
+	print $var
+	(
+		var.get() { .sh.value=sub; }
+		print $var
+	)
+	print $var
+')
+exp=$'main\nsub\nmain'
+[[ $got == "$exp" ]] || err_exit "subshell redefining a discipline function loses the parent's" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)

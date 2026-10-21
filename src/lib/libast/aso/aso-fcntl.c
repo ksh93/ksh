@@ -176,7 +176,7 @@ aso_lock_fcntl(void* data, ssize_t k, void volatile* p)
 	return fcntl(apl->fd, F_SETLKW, &lock) < 0 ? -1 : k;
 }
 
-Asometh_t	_aso_meth_fcntl = { "fcntl", ASO_PROCESS, aso_init_fcntl, aso_lock_fcntl };
+Asometh_t	_aso_meth_fcntl = { .name = "fcntl", .type = ASO_PROCESS, .initf = aso_init_fcntl, .lockf = aso_lock_fcntl };
 
 #else
 

@@ -334,16 +334,18 @@ sfkeyprintf(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup
 {
 	size_t		i;
 	ssize_t		r;
-	Fmt_t		fmt;
+	Fmt_t		fmt = {
+		.version = 20030909,
+		.handle = handle,
+		.lookup = lookup,
+		.convert = convert,
+		.fmt = {
+			.version = SFIO_VERSION,
+			.form = (char*)format,
+			.extf = getfmt
+		}
+	};
 
-	memset(&fmt, 0, sizeof(fmt));
-	fmt.version = 20030909;
-	fmt.fmt.version = SFIO_VERSION;
-	fmt.fmt.form = (char*)format;
-	fmt.fmt.extf = getfmt;
-	fmt.handle = handle;
-	fmt.lookup = lookup;
-	fmt.convert = convert;
 	r = sfprintf(sp, "%!", &fmt) - fmt.invisible;
 	for (i = 0; i < elementsof(fmt.tmp); i++)
 		if (fmt.tmp[i])

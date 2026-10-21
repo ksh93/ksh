@@ -11,7 +11,7 @@ cat{
 }end
 
 lib	mbstowcs,wctomb,wcrtomb,wcslen,wcstombs,wcwidth stdlib.h stdio.h wchar.h
-lib	towlower,towupper stdlib.h stdio.h wchar.h
+lib	iswalnum,iswdigit,towlower,towupper stdlib.h stdio.h wchar.h
 typ	mbstate_t stdlib.h stdio.h wchar.h
 nxt	wchar
 

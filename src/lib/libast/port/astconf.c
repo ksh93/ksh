@@ -256,7 +256,14 @@ typedef struct State_s
 
 } State_t;
 
-static State_t	state = { "getconf", "_AST_FEATURES", "CONFORMANCE = standard", "POSIXLY_CORRECT", dynamic, -1 };
+static State_t	state = {
+	.id = "getconf",
+	.name = "_AST_FEATURES",
+	.standard = "CONFORMANCE = standard",
+	.strict = "POSIXLY_CORRECT",
+	.features = dynamic,
+	.std = -1
+};
 
 static char*	feature(Feature_t*, const char*, const char*, const char*, unsigned int, Error_f);
 

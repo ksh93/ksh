@@ -1022,7 +1022,7 @@ int job_kill(struct process *pw,int sig)
 			msg = sh_translate(e_no_job);
 		if(errno == EPERM)
 			msg = sh_translate(e_access);
-		sfprintf(sfstderr,"kill: %s: %s\n",job_string, msg);
+		error(2, "%s: %s", job_string, msg);
 		r = 2;
 	}
 	sh_delay(.001,0);

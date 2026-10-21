@@ -1072,16 +1072,6 @@ utime(const char* path, const struct utimbuf* ut)
  * own BSD-like macros
  */
 
-#if !_lib_bzero && !defined(bzero)
-
-void
-bzero(void* b, size_t n)
-{
-	memset(b, 0, n);
-}
-
-#endif
-
 #if !_lib_getpagesize || defined(getpagesize)
 
 #ifndef OMITTED

@@ -1,5 +1,5 @@
 iff	AST_COMMON
-hdr	pthread,stdarg,stddef,stdint,inttypes,types,unistd
+hdr	stdarg,stdint,inttypes
 sys	types
 typ	__va_list stdio.h
 
@@ -407,12 +407,8 @@ typ uintptr_t stdint.h inttypes.h no{
 
 cat{
 	#ifndef _AST_STD_H
-	#	if _hdr_stddef
 	#	include	<stddef.h>
-	#	endif
-	#	if _sys_types
 	#	include	<sys/types.h>
-	#	endif
 	#	if _hdr_stdint
 	#	include	<stdint.h>
 	#	else

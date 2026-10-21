@@ -109,11 +109,17 @@
 
 	cat > tst-1 <<-'EOF'
 	exec 2>/dev/null
+	rm -f tst-3.ready
 	case $1 in
 	*v*)	echo 1-main ;;
 	esac
 	{
-		sleep .2
+		typeset -i i
+		# wait up to 10 seconds for tst-3 to be ready to receive SIGINT
+		for ((i=0; i<200; i++))
+		do	[[ -e tst-3.ready ]] && break
+			sleep .05
+		done
 		case $1 in
 		*v*)	echo "SIGINT" ;;
 		esac
@@ -135,6 +141,7 @@
 	esac
 	printf '1-%04d\n' $status
 	sleep .2
+	rm -f tst-3.ready
 	EOF
 
 	cat > tst-2 <<-'EOF'
@@ -185,6 +192,8 @@
 	case $1 in
 	*v*)	echo 3-main ;;
 	esac
+	# tell tst-1 we're ready to receive SIGINT
+	: > tst-3.ready
 	sleep .5
 	printf '3-%04d\n' $?
 	EOF
@@ -306,10 +315,16 @@ done
 			do 	print hello
 			done
 		EOF
-	} | head > /dev/null
+	} | {
+		# use this read loop instead of head >/dev/null to avoid a race condition due to buffering
+		typeset -i i
+		for ((i=0; i<10; i++))
+		do	read -r
+		done
+	}
 ) &
 cop=$!
-{ sleep .4; kill $cop; } 2>/dev/null &
+{ sleep 4; kill $cop; } 2>/dev/null &
 spy=$!
 if	wait $cop 2>/dev/null
 then	: ok :
@@ -375,24 +390,37 @@ then	float s
 fi
 
 yes() for ((;;)); do print y; done
-
-	for exp in TERM VTALRM PIPE
-	do	if	[[ ${SIG[$exp]} ]]
-		then	{
-				bindate=$(whence -p date) "$SHELL" <<- EOF
-				foo() { return 0; }
-				trap foo EXIT
-				{ sleep .2; kill -$exp \$\$; sleep .3; kill -0 \$\$ && kill -KILL \$\$; } &
-				yes |
-				while read yes
-				do	("\$bindate"; sleep .01)
-				done > /dev/null
-				EOF
-			} 2>> /dev/null
-			got=$(kill -l $?)
-			[[ $exp == $got ]] || err_exit "kill -$exp \$\$ failed, required termination by signal '$got'"
-		fi
-	done
+export bindate=$(command -vx date)
+for exp in TERM VTALRM PIPE
+do	if	[[ ${SIG[$exp]} ]]
+	then	{ "$SHELL" <<-EOF
+			parentready=ready.$exp.\$\$
+			foo() { return 0; }
+			trap foo EXIT
+			{
+				typeset -i t=0
+				while	[[ ! -e \$parentready && t++ -lt 200 ]]
+				do	sleep .01
+				done
+				[[ -e \$parentready ]] || exit
+				kill -$exp \$\$
+				sleep 3
+				kill -0 \$\$ && kill -KILL \$\$
+			} &
+			yes |
+			while read yes
+			do	("\$bindate"; sleep .01)
+				: >\$parentready
+			done > /dev/null
+		EOF
+		} 2>/dev/null
+		e=$?
+		got=$(let "e>128" && kill -l "$e")
+		[[ $got == "$exp" ]] || err_exit "kill -$exp \$\$ failed, got exit status $e${got:+/SIG$got}"
+	fi
+done
+unset bindate
+unset -f yes
 
 # The test for SIGBUS trap handling below is incompatible with ASan or UBSan
 # because these implement their own SIGBUS handler independently of ksh.

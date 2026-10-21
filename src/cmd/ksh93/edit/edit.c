@@ -16,6 +16,7 @@
 *               Anuradha Weeraman <anuradha@debian.org>                *
 *               K. Eugene Carlson <kvngncrlsn@gmail.com>               *
 *            SHIMIZU Akifumi <shimizu.akifumi@fujitsu.com>             *
+*                   Spenser Truex <truex@equwal.com>                   *
 *                                                                      *
 ***********************************************************************/
 /*
@@ -65,7 +66,6 @@ static char *erase_eos;  /* erase to end of screen */
 #define MINWINDOW	15	/* minimum width window */
 #define RAWMODE		1
 #define ECHOMODE	3
-#define SYSERR	-1
 
 static int keytrap(Edit_t *,char*, int, int, int);
 
@@ -107,10 +107,10 @@ int tty_get(int fd, struct termios *tty)
 		*tty = ep->e_savetty;
 	else
 	{
-		while(tcgetattr(fd,tty) == SYSERR)
+		while(tcgetattr(fd,tty) == -1)
 		{
 			if(errno !=EINTR)
-				return SYSERR;
+				return -1;
 			errno = 0;
 		}
 		/* save terminal settings if in canonical state */
@@ -133,10 +133,10 @@ int tty_set(int fd, int action, struct termios *tty)
 	Edit_t *ep = (Edit_t*)(sh.ed_context);
 	if(fd >=0)
 	{
-		while(tcsetattr(fd, action, tty) == SYSERR)
+		while(tcsetattr(fd, action, tty) == -1)
 		{
 			if(errno !=EINTR)
-				return SYSERR;
+				return -1;
 			errno = 0;
 		}
 		ep->e_savetty = *tty;
@@ -161,7 +161,7 @@ void tty_cooked(int fd)
 	if(fd < 0)
 		fd = ep->e_savefd;
 	/*** don't do tty_set unless ttyparm has valid data ***/
-	if(tty_set(fd, TCSANOW, &ttyparm) == SYSERR)
+	if(tty_set(fd, TCSANOW, &ttyparm) == -1)
 		return;
 	ep->e_raw = 0;
 	return;
@@ -181,7 +181,7 @@ int tty_raw(int fd, int echomode)
 		return echo?-1:0;
 	else if(ep->e_raw==ECHOMODE)
 		return echo?0:-1;
-	if(tty_get(fd,&ttyparm) == SYSERR)
+	if(tty_get(fd,&ttyparm) == -1)
 		return -1;
 	if (!(ttyparm.c_lflag & ECHO ))
 	{
@@ -232,7 +232,7 @@ int tty_raw(int fd, int echomode)
 	ep->e_eof = ttyparm.c_cc[VEOF];
 	ep->e_erase = ttyparm.c_cc[VERASE];
 	ep->e_kill = ttyparm.c_cc[VKILL];
-	if( tty_set(fd, TCSADRAIN, &nttyparm) == SYSERR )
+	if( tty_set(fd, TCSADRAIN, &nttyparm) == -1 )
 		return -1;
 	ep->e_ttyspeed = (cfgetospeed(&ttyparm)>=B1200?FAST:SLOW);
 	ep->e_raw = (echomode?ECHOMODE:RAWMODE);
@@ -421,6 +421,8 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 						skip = 0;
 						continue;
 					}
+					if(n>1 && c>=0x20 && c<=0x2f)	/* CSI intermediate bytes */
+						continue;
 					if(n==3 && (c=='?' || c=='!' || c==':'))
 						continue;
 					else if(n>1 && c==';')
@@ -1274,6 +1276,29 @@ size_t	ed_genlen(const genchar *str)
 #endif /* (SHOPT_ESH || SHOPT_VSH) && SHOPT_MULTIBYTE */
 
 /*
+ * Unset one of the internal .sh.ed* variables used to pass line editor
+ * state to a KEYBD trap.
+ *
+ * These variables are expected to be plain scalars, but a KEYBD trap is
+ * arbitrary user code and may assign an array to one of them, e.g.
+ * 'trap ".sh.edtext=(x)" KEYBD'. In that case a plain nv_unset() call
+ * only deletes the current array element, leaving an empty array shell
+ * (and its array discipline) in place. That corrupts the variable: the
+ * next nv_putval() call, which assumes a scalar, follows the array
+ * discipline and then frees an array-internal pointer as if it were the
+ * scalar value, crashing the shell. So request a full array scan first,
+ * which makes nv_unset() able to remove the array completely.
+ */
+static void ed_unset(Namval_t *np)
+{
+	if(!np->nvalue && !np->nvfun)
+		return;
+	if(nv_arrayptr(np))
+		nv_putsub(np,NULL,ARRAY_SCAN);
+	nv_unset(np,NV_RDONLY);
+}
+
+/*
  * Execute keyboard trap on given buffer <inbuff> of given size <isize>
  * <mode> < 0 for vi insert mode
  */
@@ -1297,9 +1322,13 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 	}
 	else
 		*ep->e_vi_insert = 0;
+	ed_unset(ED_CHRNOD);
 	nv_putval(ED_CHRNOD,inbuff,NV_NOFREE);
+	ed_unset(ED_COLNOD);
 	nv_putval(ED_COLNOD,(char*)&ep->e_col,NV_NOFREE|NV_INTEGER);
+	ed_unset(ED_TXTNOD);
 	nv_putval(ED_TXTNOD,(char*)cp,NV_NOFREE);
+	ed_unset(ED_MODENOD);
 	nv_putval(ED_MODENOD,ep->e_vi_insert,NV_NOFREE);
 	savexit = sh.savexit;
 	savelex = *lexp;
@@ -1307,7 +1336,7 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 	*lexp = savelex;
 	sh.savexit = savexit;
 	if((cp = nv_getval(ED_CHRNOD)) == inbuff)
-		nv_unset(ED_CHRNOD,0);
+		ed_unset(ED_CHRNOD);
 	else if(bufsize>0)
 	{
 		strncopy(inbuff,cp,(size_t)bufsize);
@@ -1316,7 +1345,7 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 	}
 	else
 		insize = 0;
-	nv_unset(ED_TXTNOD,0);
+	ed_unset(ED_TXTNOD);
 	return insize;
 }
 
@@ -1325,26 +1354,4 @@ void	*ed_open(void)
 	Edit_t *ed = sh_newof(0,Edit_t,1,0);
 	strcpy(ed->e_macro,"_??");
 	return ed;
-}
-
-/*
- * tcgetattr and tcsetattr are mapped to these versions in terminal.h
- */
-
-#undef tcgetattr
-int sh_tcgetattr(int fd, struct termios *tty)
-{
-	int r,err = errno;
-	while((r=tcgetattr(fd,tty)) < 0 && errno==EINTR)
-		errno = err;
-	return r;
-}
-
-#undef tcsetattr
-int sh_tcsetattr(int fd, int cmd, struct termios *tty)
-{
-	int r,err = errno;
-	while((r=tcsetattr(fd,cmd,tty)) < 0 && errno==EINTR)
-		errno = err;
-	return r;
 }

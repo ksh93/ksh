@@ -31,23 +31,6 @@
 #define C_ESC			(-1)
 #define C_MB			(-2)
 
-#if _AST_REGEX_DEBUG
-
-#define DEBUG_TEST(f,y,n)	((debug&(debug_flag=f))?(y):(n))
-#define DEBUG_CODE(f,y,n)	do if(debug&(f)){y}else{n} while(0)
-#define DEBUG_INIT()		do { char* t; if (!debug) { debug = 0x80000000; if (t = getenv("_AST_regex_comp_debug")) debug |= strtoul(t, NULL, 0); } } while (0)
-
-static unsigned long	debug;
-static unsigned long	debug_flag;
-
-#else
-
-#define DEBUG_INIT()
-#define DEBUG_TEST(f,y,n)	(n)
-#define DEBUG_CODE(f,y,n)	do {n} while(0)
-
-#endif
-
 typedef struct Cchr_s
 {
 	Dtlink_t	lnk;
@@ -137,7 +120,6 @@ node(Cenv_t* env, unsigned char type, ptrdiff_t lo, ptrdiff_t hi, size_t extra)
 {
 	Rex_t*	e;
 
-	DEBUG_TEST(0x0800,(sfprintf(sfstdout, "node(%u,%td,%td,%zu)\n", (unsigned int)type, lo, hi, sizeof(Rex_t) + extra)),(0));
 	if (e = (Rex_t*)alloc(env->disc, NULL, sizeof(Rex_t) + extra))
 	{
 		memset(e, 0, sizeof(Rex_t) + extra);
@@ -294,7 +276,8 @@ serialize(Cenv_t* env, Rex_t* e, int n)
 }
 
 /*
- * catenate e and f into a sequence, collapsing them if possible
+ * concatenate two expression fragments e and f into a sequence, collapsing them if
+ * possible, e.g., collapse adjacent dots, handle REX_NULL, drop NULL right operands
  */
 
 static Rex_t*
@@ -2566,11 +2549,52 @@ grp(Cenv_t* env, int parno)
 	return NULL;
 }
 
+/*
+ * helper for seq()
+ */
+
+static int
+grow_leftstack(Cenv_t* env, Rex_t*** leftstack_p, size_t* leftmax_p)
+{
+	Rex_t** new_leftstack;
+	*leftmax_p = !(*leftmax_p) ? 8 : *leftmax_p < 2048 ? 2 * (*leftmax_p) : *leftmax_p + 2048;
+	new_leftstack = realloc(*leftstack_p, (*leftmax_p) * sizeof(Rex_t*));
+	if (!new_leftstack)
+	{
+		env->error = REG_ESPACE;
+		return -1;
+	}
+	*leftstack_p = new_leftstack;
+	return 0;
+}
+
+/*
+ * Very long concatenations may overflow the C stack if seq() recursively calls
+ * itself for each element. Therefore, seq() accumulates the elements iteratively,
+ * and then combines them right to left with cat() in a non-recursive loop. To
+ * that end, define a macro to push one element on a stack we maintain manually.
+ */
+#define PUSH_ELEMENT(element) \
+do \
+{ \
+	if (leftidx == leftmax && grow_leftstack(env, &leftstack, &leftmax) != 0) \
+		goto error_return; \
+	leftstack[leftidx++] = (element); \
+} while (0)
+
+/*
+ * core term parser: parses a concatenation sequence while building literals and atoms,
+ * handling groups, classes, anchors, backrefs and special tokens, and applying quantifiers
+ */
+
 static Rex_t*
 seq(Cenv_t* env)
 {
 	Rex_t*		e;
 	Rex_t*		f;
+	Rex_t**		leftstack = NULL;	/* manual stack of left-side sequence elements	*/
+	size_t		leftmax = 0;		/* current size of leftstack allocation		*/
+	size_t		leftidx = 0;		/* stack index / number of pushed elements	*/
 	Token_t		tok;
 	ssize_t		c;
 	ptrdiff_t	n = 1;
@@ -2622,8 +2646,9 @@ seq(Cenv_t* env)
 			eat(env);
 		}
 		if (c == T_BAD)
-			return NULL;
+			goto error_return;
 		if (s > buf)
+		{
 			switch (c)
 			{
 			case T_STAR:
@@ -2637,7 +2662,7 @@ seq(Cenv_t* env)
 				{
 					j = s - buf;
 					if (!(e = node(env, REX_STRING, 0, 0, (size_t)j)))
-						return NULL;
+						goto error_return;
 					memcpy((char*)(e->re.string.base = (unsigned char*)e->re.data), (char*)buf, (size_t)j);
 					e->re.string.size = (size_t)j;
 				}
@@ -2646,33 +2671,35 @@ seq(Cenv_t* env)
 					if (!(f = node(env, REX_ONECHAR, 1, 1, 0)))
 					{
 						drop(env->disc, e);
-						return NULL;
+						goto error_return;
 					}
 					f->re.onechar = (unsigned char)((env->flags & REG_ICASE) ? toupper((int)x) : x);
 				}
 				else
 				{
 					if (!(f = node(env, REX_STRING, 0, 0, (size_t)n)))
-						return NULL;
+						goto error_return;
 					memcpy((char*)(f->re.string.base = (unsigned char*)f->re.data), (char*)p, (size_t)n);
 					f->re.string.size = (size_t)n;
 				}
-				if (!(f = rep(env, f, 0, 0)) || !(f = cat(env, f, seq(env))))
+				if (!(f = rep(env, f, 0, 0)))
 				{
 					drop(env->disc, e);
-					return NULL;
+					goto error_return;
 				}
 				if (e)
-					f = cat(env, e, f);
-				return f;
+					PUSH_ELEMENT(e);
+				e = f;
+				break;
 			default:
 				j = s - buf;
 				if (!(e = node(env, REX_STRING, 0, 0, (size_t)j)))
-					return NULL;
+					goto error_return;
 				memcpy((char*)(e->re.string.base = (unsigned char*)e->re.data), (char*)buf, (size_t)j);
 				e->re.string.size = (size_t)j;
-				return cat(env, e, seq(env));
+				break;
 			}
+		}
 		else if (c > T_BACK)
 		{
 			eat(env);
@@ -2680,19 +2707,21 @@ seq(Cenv_t* env)
 			if (c > env->parno || !env->paren[c])
 			{
 				env->error = REG_ESUBREG;
-				return NULL;
+				goto error_return;
 			}
 			env->paren[c]->re.group.back = 1;
 			e = rep(env, node(env, REX_BACK, (ptrdiff_t)c, 0, 0), 0, 0);
 		}
 		else
+		{
 			switch (c)
 			{
 			case T_AND:
 			case T_CLOSE:
 			case T_BAR:
 			case T_END:
-				return node(env, REX_NULL, 0, 0, 0);
+				e = node(env, REX_NULL, 0, 0, 0);
+				goto combine_and_return;
 			case T_DOLL:
 				eat(env);
 				e = rep(env, node(env, REX_END, 0, 0, 0), 0, 0);
@@ -2719,20 +2748,20 @@ seq(Cenv_t* env)
 				{
 					drop(env->disc, e);
 					env->error = (*env->cursor == 0 || *env->cursor == env->delimiter || *env->cursor == env->terminator) ? REG_EPAREN : REG_ENULL;
-					return NULL;
+					goto error_return;
 				}
 				if (token(env) != T_CLOSE)
 				{
 					drop(env->disc, e);
 					env->error = REG_EPAREN;
-					return NULL;
+					goto error_return;
 				}
 				env->parnest--;
 				eat(env);
 				if (!(f = node(env, REX_GROUP, 0, 0, 0)))
 				{
 					drop(env->disc, e);
-					return NULL;
+					goto error_return;
 				}
 				if (parno < (ssize_t)elementsof(env->paren))
 					env->paren[parno] = f;
@@ -2745,13 +2774,13 @@ seq(Cenv_t* env)
 					env->token = tok;
 				}
 				if (!(e = rep(env, f, parno, env->parno)))
-					return NULL;
+					goto error_return;
 				if (env->type == KRE)
 				{
 					if (!(f = node(env, REX_GROUP, 0, 0, 0)))
 					{
 						drop(env->disc, e);
-						return NULL;
+						goto error_return;
 					}
 					if (--parno < (ssize_t)elementsof(env->paren))
 						env->paren[parno] = f;
@@ -2771,7 +2800,7 @@ seq(Cenv_t* env)
 				if (!(e = grp(env, env->parno + 1)))
 				{
 					if (env->error)
-						return NULL;
+						goto error_return;
 					if (env->literal == env->pattern && env->literal == p)
 						env->literal = env->cursor;
 					continue;
@@ -2844,13 +2873,40 @@ seq(Cenv_t* env)
 				break;
 			default:
 				env->error = REG_BADRPT;
-				return NULL;
+				goto error_return;
 			}
+		}
 		if (e && *env->cursor != 0 && *env->cursor != env->delimiter && *env->cursor != env->terminator)
-			e = cat(env, e, seq(env));
+		{
+			/* more sequence elements follow */
+			PUSH_ELEMENT(e);
+			continue;
+		}
+ combine_and_return:
+		/*
+		 * Combine the pushed elements right to left with cat().
+		 * On a NULL result, e.g. from bra(), this loop drops the whole left side.
+		 */
+		while (leftidx > 0)
+		{
+			f = leftstack[--leftidx];
+			if (!e)
+				drop(env->disc, f);
+			else if (!(e = cat(env, f, e)))
+				goto error_return;
+		}
+		free(leftstack);
 		return e;
-	}
+	} /* end of for (;;) */
+	UNREACHABLE();
+ error_return:
+	while (leftidx > 0)
+		drop(env->disc, leftstack[--leftidx]);
+	free(leftstack);
+	return NULL;
 }
+
+#undef PUSH_ELEMENT
 
 static Rex_t*
 con(Cenv_t* env)

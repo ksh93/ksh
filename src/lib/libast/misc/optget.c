@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-08-14"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-10-14"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -322,7 +322,7 @@ static Msg_t		C_LC_MESSAGES_libast[] =
 	{ C("version") },
 };
 
-static Opt_t	_opt_info_ = { 0,NULL,NULL,0,NULL,0,0,{0},{0},NULL,0,0,0,&state };
+static Opt_t	_opt_info_ = { .state = &state };
 Opt_t*		_opt_infop_ = &_opt_info_;
 
 Optstate_t*
@@ -1693,7 +1693,7 @@ item(Sfio_t* sp, char* s, int about, int level, int style, Sfio_t* ip, int versi
 	{
 		par = 0;
 		if (style >= STYLE_nroff)
-			sfprintf(sp, ".DS\n");
+			sfprintf(sp, ".PP\n.EX\n");
 		else
 		{
 			if (style == STYLE_html)
@@ -1703,10 +1703,10 @@ item(Sfio_t* sp, char* s, int about, int level, int style, Sfio_t* ip, int versi
 			for (n = 0; n < level; n++)
 				sfputc(sp, '\t');
 		}
-		label(sp, 0, s + 1, about, -1, level, style, FONT_LITERAL, ip, version, id, catalog);
+		label(sp, 0, s + 1, about, -1, level, style, style >= STYLE_nroff ? 0 : FONT_LITERAL, ip, version, id, catalog);
 		sfputc(sp, '\n');
 		if (style >= STYLE_nroff)
-			sfprintf(sp, ".DE");
+			sfprintf(sp, ".EE\n");
 		else if (style == STYLE_html)
 			sfprintf(sp, "</PRE>");
 	}
@@ -3670,16 +3670,6 @@ opthelp(const char* oopts, const char* what)
 \\\\$1 \\\\$2\n\
 .in 9n\n\
 ..\n\
-.de DS\n\
-.in +3n\n\
-.ft 5\n\
-.nf\n\
-..\n\
-.de DE\n\
-.fi\n\
-.ft R\n\
-.in -3n\n\
-..\n\
 "
 , ud
 , section
@@ -4216,7 +4206,7 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 	s = *p == '-' ? p : opt_info.name;
 	if (*p == '!')
 	{
-		while (*s == '-')
+		while (*s == '-' || *s == '+')
 			sfputc(mp, *s++);
 		sfputc(mp, 'n');
 		sfputc(mp, 'o');
@@ -4259,7 +4249,7 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 		p = C("value not expected");
 	else if (*p == '?')
 		p = *(p + 1) == '?' ? C("optget: option not supported") : C("ambiguous option");
-	else if (*p == '+')
+	else if (*p == '+' && *(p + 1) != '+')
 		p = C("section not found");
 	else
 	{

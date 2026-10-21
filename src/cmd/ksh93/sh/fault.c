@@ -42,7 +42,7 @@ static int	cursig = -1;
 
 /*
  * Most signals caught or ignored by the shell come here
-*/
+ */
 void	sh_fault(int sig)
 {
 	int 		flag=0;

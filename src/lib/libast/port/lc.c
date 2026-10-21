@@ -36,32 +36,30 @@ typedef struct Local_s
 
 #undef	setlocale	/* this file deals with the system locale */
 
-static Lc_numeric_t	default_numeric = { '.', -1 };
+static Lc_numeric_t	default_numeric = { .decimal = '.', .thousand = -1 };
 
 static Lc_t		default_lc =
 {
-	"C",
-	"POSIX",
-	&lc_languages[0],
-	&lc_territories[0],
-	&lc_charsets[0],
-	NULL,
-	LC_default|LC_checked|LC_local,
-	0,
-	{
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, &default_numeric },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL },
-		{ &default_lc, 0, NULL }
+	.name = "C",
+	.code = "POSIX",
+	.language = &lc_languages[0],
+	.territory = &lc_territories[0],
+	.charset = &lc_charsets[0],
+	.flags = LC_default|LC_checked|LC_local,
+	.info = {
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc, .data = &default_numeric },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc },
+		{ .lc = &default_lc }
 	}
 };
 

@@ -689,15 +689,28 @@ int	path_search(const char *name,Pathcomp_t **oldpp, int flag)
 	if(flag)
 	{
 		Namval_t *np;
-		if(!(flag & 1) && (np = path_gettrackedalias(name)))
+		/*
+		 * See if we can use a tracked alias.
+		 */
+		if((flag==1 || !(flag & 1)) && (np = path_gettrackedalias(name)))
 		{
 			pp = np->nvalue;
 			stkseek(sh.stk,PATH_OFFSET);
 			path_nextcomp(pp,name,pp);
-			if(oldpp)
-				*oldpp = pp;
-			sfputc(sh.stk,0);
-			return 0;
+			/*
+			 * For a regular PATH search (flag==1), the cached path may have become invalid.
+			 * In that case, fall back to the full PATH search below and update the tracked alias.
+			 * For other flags, the search is only used to obtain information (whence, 'command -v')
+			 * and the tracked alias is used unconditionally; this is historic ksh behaviour.
+			 */
+			if(!(flag & 1) || canexecute(stkptr(sh.stk,PATH_OFFSET),0)>=0)
+			{
+				if(oldpp)
+					*oldpp = pp;
+				sfputc(sh.stk,0);
+				return 0;
+			}
+			stkseek(sh.stk,PATH_OFFSET);
 		}
 		pp = path_absolute(name,oldpp?*oldpp:NULL,flag);
 		if(oldpp)
@@ -987,6 +1000,7 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 	char **envp;
 	const char *opath;
 	Pathcomp_t *libpath, *pp=NULL;
+	Namval_t *np;
 	int slash=0, not_executable=0;
 	pid_t spawnpid;
 	nv_setlist(local,NV_EXPORT|NV_IDENT|NV_ASSIGN,NULL);
@@ -1001,11 +1015,30 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 			UNREACHABLE();
 		}
 	}
-	else
-		pp=path_get(arg0);
 	sh.path_err= ENOENT;
 	sfsync(NULL);
 	sh_timerdel(NULL);
+	if(!slash)
+	{
+		/* if a tracked alias is available, try that path first */
+		if((np = path_gettrackedalias(arg0)) && np->nvalue)
+		{
+			libpath = np->nvalue;
+			path_nextcomp(libpath,arg0,libpath);
+			opath = (char*)stkfreeze(sh.stk,1) + PATH_OFFSET;
+			if(sh.subshell)
+				sh_subtmpfile();
+			spawnpid = path_spawn(opath,argv,envp,libpath,0);
+			if(spawnpid == -1)
+			{
+				if(sh.path_err == E2BIG)
+					goto handle_error; /* args list too long: no use trying other paths */
+				if(sh.path_err != ENOENT)
+					not_executable = sh.path_err;
+			}
+		}
+		pp = path_get(arg0);
+	}
 	/* find first path that has a library component */
 	while(pp && (pp->flags&PATH_SKIP))
 		pp = pp->next;
@@ -1041,6 +1074,7 @@ noreturn void path_exec(const char *arg0,char *argv[],struct argnod *local)
 			pp = path_nextcomp(pp,arg0,NULL);
 	}
 	while(pp);
+handle_error:
 	if(sh_isstate(SH_EXEC) && sh_isstate(SH_INTERACTIVE))
 	{
 		/*
@@ -1730,8 +1764,8 @@ static void talias_put(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	nv_putv(np,val,flags,fp);
 }
 
-static const Namdisc_t talias_disc   = { 0, talias_put, talias_get   };
-static Namfun_t  talias_init = { &talias_disc, 1 };
+static const Namdisc_t talias_disc   = { .putval = talias_put, .getval = talias_get };
+static Namfun_t  talias_init = { .disc = &talias_disc, .namflags = NAMFUN_NOFREE };
 
 /*
  * find or create tracked alias node named <name> and set it to value <pp>
@@ -1739,7 +1773,7 @@ static Namfun_t  talias_init = { &talias_disc, 1 };
 void path_settrackedalias(const char *name, Pathcomp_t *pp)
 {
 	Namval_t *np;
-	if(sh_isstate(SH_DEFPATH) || sh_isstate(SH_XARG) || sh_isstate(SH_EXEC))
+	if(sh_isstate(SH_DEFPATH) || sh_isstate(SH_XARG))
 		return;
 	if(!(np = nv_search(name,sh_subtracktree(1),NV_ADD|NV_NOSCOPE)))
 		return;
@@ -1775,10 +1809,25 @@ Namval_t *path_gettrackedalias(const char *name)
 	Namval_t *np;
 	if(!sh_isstate(SH_DEFPATH)
 	&& !sh_isstate(SH_XARG)
-	&& !sh_isstate(SH_EXEC)
 	&& (np=nv_search(name,sh.track_tree,0))
 	&& !nv_isattr(np,NV_NOALIAS)
 	&& np->nvalue)
 		return np;
 	return NULL;
+}
+
+/*
+ * Return 1 if any FPATH directories are to be searched,
+ * i.e., if a given name could be an autoloadable function.
+ */
+int path_hasfpath(void)
+{
+	Pathcomp_t *pp;
+	if(sh_scoped(FPATHNOD)->nvalue)
+		return 1;
+	/* also check for pathname components from a .paths file found in a PATH directory */
+	for(pp=(Pathcomp_t*)sh.pathlist; pp; pp=pp->next)
+		if(pp->flags&PATH_FPATH)
+			return 1;
+	return 0;
 }

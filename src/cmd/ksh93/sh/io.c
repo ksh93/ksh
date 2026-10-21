@@ -219,17 +219,14 @@ static int	onintr(struct addrinfo*);
 static int
 inetopen(const char* path, int flags)
 {
-	char*		s;
-	char*		t;
+	char			*s, *t, *tofree;
 	int			fd;
 	int			oerrno;
-	struct addrinfo		hint;
+	struct addrinfo		hint = { .ai_family = PF_UNSPEC };
 	struct addrinfo*	addr;
 	struct addrinfo*	p;
 	int			server = !!(flags&O_SERVICE);
 
-	memset(&hint, 0, sizeof(hint));
-	hint.ai_family = PF_UNSPEC;
 	switch (path[0])
 	{
 #ifdef IPPROTO_SCTP
@@ -268,17 +265,19 @@ inetopen(const char* path, int flags)
 	}
 	if(flags==O_NONBLOCK)
 		return 1;
-	s = sh_strdup(path);
+	tofree = s = sh_strdup(path);
 	if (t = strchr(s, '/'))
 	{
 		*t++ = 0;
 		if (streq(s, "local"))
-			s = sh_strdup("localhost");
+			s = "localhost";
+		else
+			t = (char*)path + (t - s);	/* POSIX requires getaddrinfo()'s arguments not overlap */
 		fd = getaddrinfo(s, t, &hint, &addr);
 	}
 	else
 		fd = -1;
-	free(s);
+	free(tofree);
 	if (fd)
 	{
 		if (fd != EAI_SYSTEM)
@@ -416,7 +415,7 @@ int  sh_iovalidfd(int fd)
 	if(n > max)
 		n = (int)max;
 	max = sh.lim.open_max;
-	sh.sftable = (Sfio_t**)sh_calloc((size_t)(n+1)*(sizeof(int*)+sizeof(Sfio_t*)+1),1);
+	sh.sftable = sh_calloc((size_t)(n + 1) * (sizeof(int*) + sizeof(Sfio_t*) + sizeof(uint8_t)), 1);
 	if(max)
 		memcpy(sh.sftable,sftable,(size_t)max*sizeof(Sfio_t*));
 	sh.fdptrs = (int**)(&sh.sftable[n]);
@@ -547,8 +546,8 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	Sfdisc_t *dp;
 	size_t iobsize = IOBSIZE;
 	char scriptpipe = 0;
-	if (read_script && !sh_isoption(SH_SFLAG))
-		read_script = 0;
+	if (read_script && fd < sh.lim.open_max && (sh.fdstatus[fd] & IOSCRIPT))
+		return sh.sftable[fd];  /* already done */
 	status = sh_iocheckfd(fd, read_script ? &filesize : NULL);
 	if (read_script && (status & IOTTY))
 		read_script = 0;
@@ -634,6 +633,10 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	}
 	sfdisc(iop,dp);
 	sh.sftable[fd] = iop;
+	if(read_script)
+		sh.fdstatus[fd] |= IOSCRIPT;
+	else
+		sh.fdstatus[fd] &= ~IOSCRIPT;
 	return iop;
 }
 
@@ -1065,12 +1068,15 @@ static Sfoff_t	file_offset(int fn, char *fname)
 	Sfio_t		*sp = sh.sftable[fn];
 	char		*cp;
 	Sfoff_t		off;
-	struct Eof	endf = { 0 };
 	Namval_t	*mp = nv_open("EOF",sh.var_tree,0);
 	Namval_t	*pp = nv_open("CUR",sh.var_tree,0);
-	endf.fd = fn;
-	endf.hdr.disc = &EOF_disc;
-	endf.hdr.namflags = NAMFUN_NOFREE;
+	struct Eof	endf = {
+		.fd = fn,
+		.hdr = {
+			.disc = &EOF_disc,
+			.namflags = NAMFUN_NOFREE
+		}
+	};
 	if(mp)
 		nv_stack(mp, &endf.hdr);
 	if(pp)
@@ -1169,6 +1175,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 	int o_mode;		/* mode flag for open */
 	static char io_op[7];	/* used for -x trace info */
 	int trunc=0, clexec=0, fn, traceon=0, dupflags;
+	int pfd = -1;		/* file descriptor for a process substitution that uses /dev/fd */
 	int indx = sh.topfd, perm = -1;
 	char *tname = NULL, *after = "", *trace = sh.st.trap[SH_DEBUGTRAP];
 	Namval_t *np = NULL;
@@ -1252,7 +1259,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 			else if(sh.subshell)
 				sh_subtmpfile();
 			ap->argchn.ap = (struct argnod*)fname;
-			ap = sh_argprocsub(ap);
+			ap = sh_argprocsub(ap, flag==SH_SHOWME ? NULL : &pfd);
 			fname = ap->argval;
 		}
 		errno = 0;
@@ -1430,12 +1437,14 @@ int	sh_redirect(struct ionod *iop, int flag)
 						UNREACHABLE();
 					}
 					if(perm>0)
-#if _lib_fchmod
 						fchmod(fd,(mode_t)perm);
-#else
-						chmod(tname,(mode_t)perm);
-#endif
 				}
+			}
+			if(pfd >= 0)
+			{
+				/* the process substitution's /dev/fd/N path has been opened above; drop our copy */
+				sh_close(pfd);
+				pfd = -1;
 			}
 		traceit:
 			if(traceon && fname)

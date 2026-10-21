@@ -443,4 +443,49 @@ ret=$?
 	"(got status $ret with output $(printf %q "$got"))"
 
 # ======
+# As of 2020-08-10, printf %#H (URL-style encoding) misguidedly validated multibyte characters; it should simply encode bytes
+# https://github.com/ksh93/ksh/issues/1059
+got=$(LC_CTYPE=C.UTF-8 printf "%#H" $'a\x80')
+exp='a%80'
+[[ $got == "$exp" ]] || err_exit 'printf %#H encoding of bytes that are invalid multibyte characters' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# verify that there is no change for valid UTF-8
+got=$(LC_CTYPE=C.UTF-8 printf "%#H" 'いつかまた日本を訪れることができたらいいな……')
+exp='%E3%81%84%E3%81%A4%E3%81%8B%E3%81%BE%E3%81%9F%E6%97%A5%E6%9C%AC%E3%82%92%E8%A8%AA%E3%82%8C%E3%82%8B%E3'\
+'%81%93%E3%81%A8%E3%81%8C%E3%81%A7%E3%81%8D%E3%81%9F%E3%82%89%E3%81%84%E3%81%84%E3%81%AA%E2%80%A6%E2%80%A6'
+[[ $got == "$exp" ]] || err_exit 'printf %#H encoding of valid UTF-8 characters' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# https://github.com/ksh93/ksh/issues/861
+# https://github.com/ksh93/ksh/issues/1060
+export LC_CTYPE=C.UTF-8
+(
+	typeset -i i
+	r=$'日本語の変数名=OK\n'
+	: disabling xtrace while generating 131072-line issue861.sh :
+	set +x
+	for((i=0;i<17;i++))
+	do	r+=$r
+	done
+	print -rn "$r" >issue861.sh
+)
+got=$("$SHELL" -n issue861.sh 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "issue 861 lexer buffer overflow (normal script)" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+got=$("$SHELL" -nc '. ./issue861.sh' 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "issue 861 lexer buffer overflow (dot script)" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+got=$("$SHELL" -nc 'eval "$(<issue861.sh)"' 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "issue 861 lexer buffer overflow (eval)" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+got=$(cat issue861.sh | "$SHELL" -n 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "issue 861 lexer buffer overflow (script read from stdin pipe)" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+got=$(cat issue861.sh | "$SHELL" -c 'eval -n "$(cat)"' 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "issue 861 lexer buffer overflow (eval read from pipe)" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+unset LC_CTYPE
+
+# ======
 exit $((Errors<125?Errors:125))

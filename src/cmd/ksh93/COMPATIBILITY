@@ -263,6 +263,15 @@ For more details, see the NEWS file and for complete details, see the git log.
 	be corrected to use, for example, ${var%@(word1|word2)} instead of
 	${var%word1|word2}. (Post-1.0 change introduced in ksh 93u+m/1.0.11)
 
+41.	In the 'string' part of ${parameter/pattern/string},
+	${parameter//pattern/string}, ${parameter/#pattern/string} and
+	${parameter/#%pattern/string} expansions, an escaping backslash
+	preceding the characters '/', '-', '<' and '>' was incorrectly left
+	in the result, and is now removed. Note that, apart from subpattern
+	references, escaping anything but '}' or '\' in 'string' was always
+	unnecessary, so removing any such escaping is compatible with all
+	ksh versions. (Post-1.0 change introduced in ksh 93u+m/1.0.11)
+
 ____________________________________________________________________________
 
 		KSH-93 VS. KSH-88

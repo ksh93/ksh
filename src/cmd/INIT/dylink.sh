@@ -115,7 +115,7 @@ do	case $opt in
 		module_name=$OPTARG
 		;;
 	l)	if	test -f "$OPTARG.req"
-		then    l_flags=${l_flags:+$l_flags$CCn}$(cat "$OPTARG.req") || exit
+		then	l_flags=${l_flags:+$l_flags$CCn}$(cat "$OPTARG.req") || exit
 		elif	test -f "$deproot/$OPTARG"
 		then	l_flags=${l_flags:+$l_flags$CCn}$(cat "$deproot/$OPTARG") || exit
 		else	l_flags=${l_flags:+$l_flags$CCn}\ -l$OPTARG

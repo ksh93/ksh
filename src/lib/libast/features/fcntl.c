@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2012 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2025 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -34,9 +34,7 @@
 #define getpagesize	______getpagesize
 #define ioctl		______ioctl
 
-#if _hdr_fcntl
 #include <fcntl.h>
-#endif
 #include <unistd.h>
 
 #include <sys/stat.h>
@@ -132,9 +130,6 @@ main(void)
 
 #if	NEED_F
 	printf("#define fcntl		_ast_fcntl\n");
-#if	_lib_fcntl
-	printf("#define _lib_fcntl	1\n");
-#endif
 	printf("#define _ast_F_LOCAL	%d\n", f_local + 1);
 #ifndef F_DUPFD
 	printf("#define F_DUPFD		%d\n", ++f_local);

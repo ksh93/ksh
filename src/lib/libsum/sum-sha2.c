@@ -132,35 +132,6 @@ typedef uint64_t sha2_word64;	/* Exactly 8 bytes */
 	} \
 }
 
-/*
- * Macros for copying blocks of memory and for zeroing out ranges
- * of memory.  Using these macros makes it easy to switch from
- * using memset()/memcpy() and using bzero()/bcopy().
- *
- * Please define either SHA2_USE_MEMSET_MEMCPY or define
- * SHA2_USE_BZERO_BCOPY depending on which function set you
- * choose to use:
- */
-
-#if !defined(SHA2_USE_MEMSET_MEMCPY) && !defined(SHA2_USE_BZERO_BCOPY)
-/* Default to memset()/memcpy() if no option is specified */
-#define SHA2_USE_MEMSET_MEMCPY	1
-#endif
-#if defined(SHA2_USE_MEMSET_MEMCPY) && defined(SHA2_USE_BZERO_BCOPY)
-/* Abort with an error if BOTH options are defined */
-#error Define either SHA2_USE_MEMSET_MEMCPY or SHA2_USE_BZERO_BCOPY, not both!
-#endif
-
-#ifdef SHA2_USE_MEMSET_MEMCPY
-#define MEMSET_BZERO(p,l)	memset((p), 0, (l))
-#define MEMCPY_BCOPY(d,s,l)	memcpy((d), (s), (l))
-#endif
-#ifdef SHA2_USE_BZERO_BCOPY
-#define MEMSET_BZERO(p,l)	bzero((p), (l))
-#define MEMCPY_BCOPY(d,s,l)	bcopy((s), (d), (l))
-#endif
-
-
 /*** THE SIX LOGICAL FUNCTIONS ****************************************/
 /*
  * Bit shifting and rotation (used by the six SHA-XYZ logical functions:
@@ -576,14 +547,14 @@ sha256_block(Sum_t* p, const void* s, size_t len)
 
 		if (len >= freespace) {
 			/* Fill the buffer completely and process it */
-			MEMCPY_BCOPY(&sha->buffer[usedspace], data, freespace);
+			memcpy(&sha->buffer[usedspace], data, freespace);
 			sha->bitcount += freespace << 3;
 			len -= freespace;
 			data += freespace;
 			SHA256_Transform(sha, (sha2_word32*)sha->buffer);
 		} else {
 			/* The buffer is not yet full */
-			MEMCPY_BCOPY(&sha->buffer[usedspace], data, len);
+			memcpy(&sha->buffer[usedspace], data, len);
 			sha->bitcount += len << 3;
 			/* Clean up: */
 			usedspace = freespace = 0;
@@ -599,7 +570,7 @@ sha256_block(Sum_t* p, const void* s, size_t len)
 	}
 	if (len > 0) {
 		/* There's leftovers, so save 'em */
-		MEMCPY_BCOPY(sha->buffer, data, len);
+		memcpy(sha->buffer, data, len);
 		sha->bitcount += len << 3;
 	}
 	/* Clean up: */
@@ -613,8 +584,8 @@ sha256_init(Sum_t* p)
 {
 	Sha256_t*	sha = (Sha256_t*)p;
 
-	MEMCPY_BCOPY(sha->state, sha256_initial_hash_value, SHA256_DIGEST_LENGTH);
-	MEMSET_BZERO(sha->buffer, SHA256_BLOCK_LENGTH);
+	memcpy(sha->state, sha256_initial_hash_value, SHA256_DIGEST_LENGTH);
+	memset(sha->buffer, 0, SHA256_BLOCK_LENGTH);
 	sha->bitcount = 0;
 
 	return 0;
@@ -655,26 +626,26 @@ sha256_done(Sum_t* p)
 
 		if (usedspace <= SHA256_SHORT_BLOCK_LENGTH) {
 			/* Set-up for the last transform: */
-			MEMSET_BZERO(&sha->buffer[usedspace], SHA256_SHORT_BLOCK_LENGTH - usedspace);
+			memset(&sha->buffer[usedspace], 0, SHA256_SHORT_BLOCK_LENGTH - usedspace);
 		} else {
 			if (usedspace < SHA256_BLOCK_LENGTH) {
-				MEMSET_BZERO(&sha->buffer[usedspace], SHA256_BLOCK_LENGTH - usedspace);
+				memset(&sha->buffer[usedspace], 0, SHA256_BLOCK_LENGTH - usedspace);
 			}
 			/* Do second-to-last transform: */
 			SHA256_Transform(sha, (sha2_word32*)sha->buffer);
 
 			/* And set-up for the last transform: */
-			MEMSET_BZERO(sha->buffer, SHA256_SHORT_BLOCK_LENGTH);
+			memset(sha->buffer, 0, SHA256_SHORT_BLOCK_LENGTH);
 		}
 	} else {
 		/* Set-up for the last transform: */
-		MEMSET_BZERO(sha->buffer, SHA256_SHORT_BLOCK_LENGTH);
+		memset(sha->buffer, 0, SHA256_SHORT_BLOCK_LENGTH);
 
 		/* Begin padding with a 1 bit: */
 		*sha->buffer = 0x80;
 	}
 	/* Store the length of input data (in bits): */
-	MEMCPY_BCOPY(&sha->buffer[SHA256_SHORT_BLOCK_LENGTH], &sha->bitcount, 8);
+	memcpy(&sha->buffer[SHA256_SHORT_BLOCK_LENGTH], &sha->bitcount, 8);
 
 	/* Final transform: */
 	SHA256_Transform(sha, (sha2_word32*)sha->buffer);
@@ -690,7 +661,7 @@ sha256_done(Sum_t* p)
 		}
 	}
 #else
-	MEMCPY_BCOPY(sha->digest, sha->state, SHA256_DIGEST_LENGTH);
+	memcpy(sha->digest, sha->state, SHA256_DIGEST_LENGTH);
 #endif
 
 	/* accumulate the digests */
@@ -698,7 +669,7 @@ sha256_done(Sum_t* p)
 		sha->digest_sum[i] ^= sha->digest[i];
 
 	/* Clean up state data: */
-	MEMSET_BZERO(&sha->state, sizeof(*sha) - offsetof(Sha256_t, state));
+	memset(&sha->state, 0, sizeof(*sha) - offsetof(Sha256_t, state));
 	usedspace = 0;
 
 	return 0;
@@ -940,14 +911,14 @@ sha512_block(Sum_t* p, const void* s, size_t len)
 
 		if (len >= freespace) {
 			/* Fill the buffer completely and process it */
-			MEMCPY_BCOPY(&sha->buffer[usedspace], data, freespace);
+			memcpy(&sha->buffer[usedspace], data, freespace);
 			ADDINC128(sha->bitcount, freespace << 3);
 			len -= freespace;
 			data += freespace;
 			SHA512_Transform(sha, (sha2_word64*)sha->buffer);
 		} else {
 			/* The buffer is not yet full */
-			MEMCPY_BCOPY(&sha->buffer[usedspace], data, len);
+			memcpy(&sha->buffer[usedspace], data, len);
 			ADDINC128(sha->bitcount, len << 3);
 			/* Clean up: */
 			usedspace = freespace = 0;
@@ -963,7 +934,7 @@ sha512_block(Sum_t* p, const void* s, size_t len)
 	}
 	if (len > 0) {
 		/* There's leftovers, so save 'em */
-		MEMCPY_BCOPY(sha->buffer, data, len);
+		memcpy(sha->buffer, data, len);
 		ADDINC128(sha->bitcount, len << 3);
 	}
 	/* Clean up: */
@@ -977,8 +948,8 @@ sha512_init(Sum_t* p)
 {
 	Sha512_t*	sha = (Sha512_t*)p;
 
-	MEMCPY_BCOPY(sha->state, sha512_initial_hash_value, SHA512_DIGEST_LENGTH);
-	MEMSET_BZERO(sha->buffer, SHA512_BLOCK_LENGTH);
+	memcpy(sha->state, sha512_initial_hash_value, SHA512_DIGEST_LENGTH);
+	memset(sha->buffer, 0, SHA512_BLOCK_LENGTH);
 	sha->bitcount[0] = sha->bitcount[1] =  0;
 
 	return 0;
@@ -1017,26 +988,26 @@ sha512_done(Sum_t* p)
 
 		if (usedspace <= SHA512_SHORT_BLOCK_LENGTH) {
 			/* Set-up for the last transform: */
-			MEMSET_BZERO(&sha->buffer[usedspace], SHA512_SHORT_BLOCK_LENGTH - usedspace);
+			memset(&sha->buffer[usedspace], 0, SHA512_SHORT_BLOCK_LENGTH - usedspace);
 		} else {
 			if (usedspace < SHA512_BLOCK_LENGTH) {
-				MEMSET_BZERO(&sha->buffer[usedspace], SHA512_BLOCK_LENGTH - usedspace);
+				memset(&sha->buffer[usedspace], 0, SHA512_BLOCK_LENGTH - usedspace);
 			}
 			/* Do second-to-last transform: */
 			SHA512_Transform(sha, (sha2_word64*)sha->buffer);
 
 			/* And set-up for the last transform: */
-			MEMSET_BZERO(sha->buffer, SHA512_BLOCK_LENGTH - 2);
+			memset(sha->buffer, 0, SHA512_BLOCK_LENGTH - 2);
 		}
 	} else {
 		/* Prepare for final transform: */
-		MEMSET_BZERO(sha->buffer, SHA512_SHORT_BLOCK_LENGTH);
+		memset(sha->buffer, 0, SHA512_SHORT_BLOCK_LENGTH);
 
 		/* Begin padding with a 1 bit: */
 		*sha->buffer = 0x80;
 	}
 	/* Store the length of input data (in bits): */
-	MEMCPY_BCOPY(&sha->buffer[SHA512_SHORT_BLOCK_LENGTH], &sha->bitcount[0], 16);
+	memcpy(&sha->buffer[SHA512_SHORT_BLOCK_LENGTH], &sha->bitcount[0], 16);
 
 	/* Final transform: */
 	SHA512_Transform(sha, (sha2_word64*)sha->buffer);
@@ -1052,7 +1023,7 @@ sha512_done(Sum_t* p)
 		}
 	}
 #else
-	MEMCPY_BCOPY(sha->digest, sha->state, SHA512_DIGEST_LENGTH);
+	memcpy(sha->digest, sha->state, SHA512_DIGEST_LENGTH);
 #endif
 
 	/* accumulate the digests */
@@ -1060,7 +1031,7 @@ sha512_done(Sum_t* p)
 		sha->digest_sum[i] ^= sha->digest[i];
 
 	/* Clean up state data: */
-	MEMSET_BZERO(&sha->state, sizeof(*sha) - offsetof(Sha512_t, state));
+	memset(&sha->state, 0, sizeof(*sha) - offsetof(Sha512_t, state));
 	usedspace = 0;
 
 	return 0;
@@ -1115,8 +1086,8 @@ sha384_init(Sum_t* p)
 {
 	Sha384_t*	sha = (Sha384_t*)p;
 
-	MEMCPY_BCOPY(sha->state, sha384_initial_hash_value, SHA512_DIGEST_LENGTH);
-	MEMSET_BZERO(sha->buffer, SHA384_BLOCK_LENGTH);
+	memcpy(sha->state, sha384_initial_hash_value, SHA512_DIGEST_LENGTH);
+	memset(sha->buffer, 0, SHA384_BLOCK_LENGTH);
 	sha->bitcount[0] = sha->bitcount[1] = 0;
 
 	return 0;

@@ -305,8 +305,10 @@ then
 is searched for.
 If
 .I path
-is 0 then space is allocated.
-The path is returned,
+is
+\f[CB]NULL\fP
+then space is allocated.
+The path is returned, or
 \f[CB]NULL\fP
 on error.
 .PP
@@ -380,7 +382,9 @@ is not 0 then it is the size of
 .IR path ;
 if
 .I path
-is 0 then space of size
+is
+\f[CB]NULL\fP
+then space of size
 .I len
 (or
 \f[CB]PATH_MAX\fP
@@ -400,7 +404,9 @@ and
 environment variables and a compiled-in default directory are consulted.
 If
 .I fdp
-is not 0 then the file is atomically created with
+is not
+\f[CB]NULL\fP
+then the file is atomically created with
 .B O_EXCL
 and the open file descriptor is stored in
 .IR *fdp .
@@ -408,7 +414,9 @@ The generated path name is returned, 0 on error.
 .IR access (2)
 is used to avoid file conflicts when
 .I fdp
-is 0, but the generated path name is then not created,
+is
+\f[CB]NULL\fP,
+but the generated path name is then not created,
 so you could lose in a race.
 .SH "SEE ALSO"
 .IR access (2),

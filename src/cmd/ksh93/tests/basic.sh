@@ -119,7 +119,7 @@ parallel_5=$!
 	"$binsleep" 0  # avoid OS caching delay on first launch
 	float s=SECONDS
 	for i in .1 .2
-	do      print $i
+	do	print $i
 	done | while read sec; do ( "$binsleep" "$sec"; "$binsleep" "$sec") done
 	(( (SECONDS - s) >= .4 ))
 } &
@@ -175,11 +175,11 @@ rm -f foobar
 # optimizer bug test
 > foobar
 for i in 1 2
-do      print foobar*
+do	print foobar*
 	rm -f foobar
 done > out
-if      [[ "$(<out)"  != "foobar"$'\n'"foobar*" ]]
-then    print -u2 "optimizer bug with file expansion"
+if	[[ "$(<out)"  != "foobar"$'\n'"foobar*" ]]
+then	print -u2 "optimizer bug with file expansion"
 fi
 date > dat1 || err_exit "date > dat1 failed"
 test -r dat1 || err_exit "dat1 is not readable"
@@ -942,6 +942,12 @@ fi
 got=$(set +x; trap 'function f { :; }' DEBUG; { b=(v1=1 v2=2); } 2>&1)
 [[ -z $got ]] || err_exit "DEBUG trap with function definition invoked by compound assignment (got $(printf %q "$got"))"
 
+# Assigning to .sh.command within DEBUG trap crashes the shell
+# https://github.com/ksh93/ksh/issues/1047
+got=$(set +x; { "$SHELL" -c 'trap ".sh.command=([lorem]=foo [ipsum]=bar)" DEBUG; typeset -p .sh.command'; } 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "assign to .sh.command within DEBUG trap" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+
 # ======
 # In ksh93v- and ksh2020 EXIT traps don't work in forked subshells
 # https://github.com/att/ast/issues/1452
@@ -972,16 +978,19 @@ then	meminfo=($(grep 'MemAvailable:' /proc/meminfo))
 	((res = meminfo[1] / 1000000))
 	# Don't try unless we have at least 5 * 2 + 2 GB of available RAM
 	if ((res >= 12))
-	then	got=$(	ulimit -t unlimited 2>/dev/null  # Fork
+	then	got=$(set +x; (
+			ulimit -c 0 2>/dev/null  # Fork and disable coredump
+			export LC_ALL=C  # No point in slow multibyte processing here
 			# Allocate 5 gigabytes into the variable 'v'.
 			# This test must allocate more than UINT_MAX.
 			printf -v v "%5000000000d" 0
 			echo ${#v}
-		)
-		if (($? != 0))
-		then	err_exit "ksh crashes when attempting to allocate 5 gigabytes to a variable"
-		elif [[ $got != 5000000000 ]]
-		then	err_exit "ksh cannot allocate at least 5 gigabytes to a variable (got $(printf %q "$got"))"
+		) 2>&1)
+		if	[[ e=$? -gt 128 && $(kill -l "$e") == 'KILL' ]]
+		then	warning "Kernel SIGKILLed subshell upon allocating 5 GB; cannot test 64-bit address space validity"
+		elif	[[ e -ne 0 || $got != '5000000000' ]]
+		then	err_exit "attempt to assign 5 gigabytes to a variable" \
+				"(got status $e$( ((e > 128)) && print -n /SIG && kill -l "$e" ) and  $(printf %q "$got"))"
 		fi
 	fi
 fi
@@ -1187,6 +1196,139 @@ do
 	[[ e=$? -eq 0 || -z $got ]] || err_exit "parsing a very long list of commands separated by $(printf %q "$sep")" \
 		"(expected status 0 and '', got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
 done
+
+# ======
+# After a process substitution, 'wait' lost the exit status of background jobs
+# that had already finished, spuriously returning 127 (no such process).
+# https://github.com/ksh93/ksh/issues/1061
+exp='3 7'
+# test process substitution as an argument and as a redirection
+for trigger in 'true <(true)' 'cat < <(print -n x) >/dev/null'
+do	got=$("$SHELL" -c '
+		eval "$1"
+		(exit 3) & p1=$!
+		(exit 7) & p2=$!
+		sleep .1	# let the shell reap the finished jobs before invoking wait(1)
+		wait "$p1"; print -n "$? "
+		wait "$p2"; print "$?"
+	' procsub-wait-test "$trigger" 2>&1)
+	[[ $got == "$exp" ]] || err_exit "background job exit status after process substitution" \
+		"(trigger: $trigger; expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+unset trigger
+
+# ======
+# A file descriptor opened by 'exec' or 'redirect' to a process substitution
+# was not persistent: it was closed again right after the command, because the
+# process substitution's own copy of the pipe descriptor was scheduled to be
+# closed by number when the redirection was restored, and that number had in
+# the meantime been reused for the new persistent file descriptor.
+# https://github.com/ksh93/ksh/issues/1062
+for cmd in exec redirect
+do	# Closing descriptor 3 first ensures the process substitution gets the lowest
+	# free descriptors, so that the collision happens reliably on an unfixed shell.
+	got=$("$SHELL" -c '
+		exec 3<&-
+		"$1" 3< <(print OK)
+		read -r -u3 got && print -r -- "$got"
+		exec 3<&-
+	' procsub-exec-test "$cmd" 2>&1)
+	[[ $got == OK ]] || err_exit "file descriptor 3 from process substitution after $cmd" \
+		"(expected 'OK', got $(printf %q "$got"))"
+	# The same for the write end of an output process substitution (fd 4 is the
+	# second-lowest free descriptor, which is the write end of the pipe).
+	got=$("$SHELL" -c '
+		exec 3<&- 4<&-
+		"$1" 4> >(cat > "$2")
+		print -u4 OK
+		exec 4>&-
+		for ((i = 0; i < 100; i++))
+		do	[[ -s $2 ]] && break
+			sleep .01
+		done
+		cat "$2"
+	' procsub-exec-test "$cmd" "$tmp/1062_$cmd.out" 2>&1)
+	[[ $got == OK ]] || err_exit "file descriptor 4 from output process substitution after $cmd" \
+		"(expected 'OK', got $(printf %q "$got"))"
+done
+unset cmd
+
+# ======
+# Lexical analysis in ksh has many buffer overflow bugs upon crossing buffer
+# boundaries; these are worked around by eliminating the buffer bounaries,
+# which means reading the entire script in memory if possible, or using a 2 MiB
+# per-line buffer otherwise (for a script read from a pipe).
+# https://github.com/ksh93/ksh/issues/861
+# https://github.com/ksh93/ksh/issues/1060
+unset pid desc lineno
+typeset -i e=0 i=0 serial=0 idx=-1
+for r in \
+	': $( typeset -a arr=((a b c) 1) )' \
+	'case x in x):;;&esac' \
+	': &>>/dev/null' \
+	': $((1))'
+do
+	((serial++))
+	rq=$(printf %q "$r")
+	(
+		r+=$'\n'
+		: disabling xtrace while generating 131072-line script :
+		set +x
+		for((i=0;i<17;i++))
+		do	r+=$r
+		done
+		print -rn "$r" >issue861_$serial.sh
+	)
+
+	desc+=( "normal script: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -n "issue861_$serial.sh" >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "script read from stdin: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -n <issue861_$serial.sh >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "dot script: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -nc ". ./issue861_$serial.sh" >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "eval: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -nc "eval \"\$(<issue861_$serial.sh)\"" >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "script read from stdin pipe: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	cat "issue861_$serial.sh" | "$SHELL" -n >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "eval read from stdin pipe: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	cat "issue861_$serial.sh" | "$SHELL" -c 'eval -n "$(cat)"' >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+done
+for ((i=0; i<=idx; i++))
+do	got=$(<issue861_$i.out)
+	wait "${pid[i]}"
+	[[ e=$? -eq 0 && -z $got ]] || err\_exit "${lineno[i]}" "issue 861 lexer buffer overflow: ${desc[i]}" \
+		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+done
+unset pid desc lineno e i serial idx
+
+# ======
+# line continuation
+got=$("$SHELL" -c $'true $(\\\n(1)) $(\\\n(2)) $((\\\n3)) $((4\\\n)) $((5)\\\n) $((6))' 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "line continuation in arithmetic expression" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see near the top)

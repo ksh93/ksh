@@ -166,6 +166,7 @@ extern void		nv_outname(Sfio_t*,char*, ptrdiff_t);
 extern void 		nv_unref(Namval_t*);
 extern int		nv_hasget(Namval_t*);
 extern void		clone_all_disc(Namval_t*, Namval_t*, nvflag_t);
+extern void		nv_restore_disc(Namval_t*, Namval_t*);
 extern Namfun_t		*nv_clone_disc(Namfun_t*, nvflag_t);
 extern void		*nv_diropen(Namval_t*, const char*, int);
 extern char		*nv_dirnext(void*);

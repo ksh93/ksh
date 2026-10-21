@@ -151,11 +151,11 @@ typeset -i y
 z=${y[@]}
 typeset -R12 y
 typeset -i y
-if      [[ ${y[@]} != "$z" ]]
-then    err_exit 'error in array conversion from int to R12'
+if	[[ ${y[@]} != "$z" ]]
+then	err_exit 'error in array conversion from int to R12'
 fi
-if      (( ${#y[@]} != 3  ))
-then    err_exit 'error in count of array conversion from int to R12'
+if	(( ${#y[@]} != 3  ))
+then	err_exit 'error in count of array conversion from int to R12'
 fi
 unset abcdefg
 :  ${abcdefg[1]}
@@ -164,7 +164,7 @@ unset x y
 x=1
 typeset -i y[$x]=4
 if	[[ ${y[1]} != 4 ]]
-then    err_exit 'arithmetic expressions in typeset not working'
+then	err_exit 'arithmetic expressions in typeset not working'
 fi
 unset foo
 typeset foo=bar
@@ -358,7 +358,7 @@ function EMPTY
 	typeset i
 	typeset -n ARRAY=$1
 	for i in ${!ARRAY[@]}
-	do      unset ARRAY[$i]
+	do	unset ARRAY[$i]
 	done
 }
 unset foo
@@ -1085,6 +1085,29 @@ got=$(typeset -a arr=( (a (export demo array) c) (typeset demo array) ); typeset
 # ...and without typeset (implicit array assignment)
 got=$(arr=( (a (export demo array) c) (typeset demo array) ); typeset -p arr)
 [[ $got == "$exp" ]] || err_exit 'multidimensional indexed array assignment with values looking like declaration commands' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# A subshell that redefines the discipline functions of an associative
+# array must not make the parent lose its own definitions.
+got=$("$SHELL" -c '
+	typeset -A x
+	x.get() { print get; }
+	x.set() { print set; }
+	x.unset() { print unset; }
+	(
+		x[abc]=long
+		typeset -A x
+		x.get() { :; }
+		x.set() { :; }
+		x.unset() { :; }
+	)
+	x[def]=ghi
+	print -- ${x[def]:-N}
+	unset "x[def]"
+')
+exp=$'set\nset\nget\nghi\nunset'
+[[ $got == "$exp" ]] || err_exit "subshell redefining the disciplines of an associative array loses the parent's" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======

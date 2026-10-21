@@ -112,10 +112,10 @@ _aso_lock_signal(void* data, ssize_t k, void volatile* p)
 	return 1;
 }
 
-static Asometh_t	_aso_meth_signal =    { "signal",    ASO_SIGNAL,    NULL, _aso_lock_signal };
+static Asometh_t	_aso_meth_signal = { .name = "signal", .type = ASO_SIGNAL, .lockf = _aso_lock_signal };
 extern Asometh_t	_aso_meth_semaphore;
 extern Asometh_t	_aso_meth_fcntl;
-static Asometh_t	_aso_meth_intrinsic = { "intrinsic", ASO_INTRINSIC|ASO_PROCESS|ASO_THREAD|ASO_SIGNAL, NULL, NULL };
+static Asometh_t	_aso_meth_intrinsic = { .name = "intrinsic", .type = ASO_INTRINSIC|ASO_PROCESS|ASO_THREAD|ASO_SIGNAL };
 
 static Asometh_t*	method[] =
 {

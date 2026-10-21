@@ -126,11 +126,11 @@ int sh_argopts(int argc,char *argv[])
 	Namval_t	*np = NULL;
 	const char	*cp;
 	int		verbose, f;
-	Optdisc_t	disc;
+	Optdisc_t	disc = {
+		.version = OPT_VERSION,
+		.infof = infof
+	};
 	newflags=sh.options;
-	memset(&disc, 0, sizeof(disc));
-	disc.version = OPT_VERSION;
-	disc.infof = infof;
 	opt_info.disc = &disc;
 
 	if(argc>0)
@@ -221,6 +221,12 @@ int sh_argopts(int argc,char *argv[])
 			{
 				opt_info.arg = argv[opt_info.index-1] + 2;
 				f = 1;
+				goto byname;
+			}
+			if(opt_info.name[0]=='+' && opt_info.name[1]=='+')
+			{
+				opt_info.arg = argv[opt_info.index-1] + 2;
+				f = 0;  /* ++foo means: turn off foo */
 				goto byname;
 			}
 			errormsg(SH_DICT,2, "%s", opt_info.arg);
@@ -730,7 +736,16 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 #   define sh_pipe(a,b)	sh_rpipe(a,b)
 #endif
 
-struct argnod *sh_argprocsub(struct argnod *argp)
+/*
+ * Handle an argument of the form <(cmd) or >(cmd) by starting the process
+ * substitution and returning an argument node containing the resulting
+ * filename: /dev/fd/N, or a FIFO path if the /dev/fd method is unavailable.
+ *
+ * If pfd is not NULL, then, on success, the file descriptor that the
+ * /dev/fd method is using is stored in *pfd. If the FIFO method is used,
+ * or if the function is somehow interrupted, then *pfd is set to -1.
+ */
+struct argnod *sh_argprocsub(struct argnod *argp, int *pfd)
 {
 	/* argument of the form <(cmd) or >(cmd) */
 	struct argnod *ap;
@@ -738,8 +753,11 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	int savestates = sh_getstate();
 	char savejobcontrol = job.jobcontrol;
 	unsigned int savesubshell = sh.subshell;
+	int *saveinpipe = sh.inpipe, *saveoutpipe = sh.outpipe;
 	int use_devfd = 1;
 	struct stat statb;
+	if(pfd)
+		*pfd = -1;
 	ap = stkseek(sh.stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
@@ -792,13 +810,17 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	sh_onstate(SH_PROCSUB);
 	sh_exec((Shnode_t*)argp->argchn.ap,sh_isstate(SH_ERREXIT));
 	/* restore the previous state */
+	sh.inpipe = saveinpipe, sh.outpipe = saveoutpipe;
 	sh.subshell = savesubshell;
 	job.jobcontrol = savejobcontrol;
 	sh_setstate(savestates);
 	if (use_devfd)
 	{
 		sh_close(pv[1-fd]);
-		sh_iosave(-pv[fd], sh.topfd, NULL);
+		if(pfd)
+			*pfd = pv[fd];
+		else
+			sh_iosave(-pv[fd], sh.topfd, NULL);
 	}
 	else
 	{
@@ -820,7 +842,7 @@ static int arg_expand(struct argnod *argp, struct argnod **argchain,int flag)
 	if(*argp->argval==0 && (argp->argflag&ARG_EXP))
 	{
 		struct argnod *ap;
-		ap = sh_argprocsub(argp);
+		ap = sh_argprocsub(argp,NULL);
 		ap->argchn.ap = *argchain;
 		*argchain = ap;
 		count++;
