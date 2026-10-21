@@ -9,6 +9,11 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   used, 'wait' returned status 127 (not found) for background jobs that had
   already finished.
 
+- Fixed a longstanding bug in process substitution: in some cases, a file
+  descriptor that is opened with 'exec' or 'redirect' redirecting a process
+  substitution (e.g. 'exec 3< <(print hello)') was closed again as soon as
+  the command had finished, so it could not be used by subsequent commands.
+
 2206-10-15:
 
 - Fixed 'printf %#H' URL pecent-encoding to be locale-independent. Bytes

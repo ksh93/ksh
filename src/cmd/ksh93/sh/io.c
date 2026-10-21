@@ -1171,6 +1171,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 	int o_mode;		/* mode flag for open */
 	static char io_op[7];	/* used for -x trace info */
 	int trunc=0, clexec=0, fn, traceon=0, dupflags;
+	int pfd = -1;		/* file descriptor for a process substitution that uses /dev/fd */
 	int indx = sh.topfd, perm = -1;
 	char *tname = NULL, *after = "", *trace = sh.st.trap[SH_DEBUGTRAP];
 	Namval_t *np = NULL;
@@ -1254,7 +1255,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 			else if(sh.subshell)
 				sh_subtmpfile();
 			ap->argchn.ap = (struct argnod*)fname;
-			ap = sh_argprocsub(ap);
+			ap = sh_argprocsub(ap, flag==SH_SHOWME ? NULL : &pfd);
 			fname = ap->argval;
 		}
 		errno = 0;
@@ -1434,6 +1435,12 @@ int	sh_redirect(struct ionod *iop, int flag)
 					if(perm>0)
 						fchmod(fd,(mode_t)perm);
 				}
+			}
+			if(pfd >= 0)
+			{
+				/* the process substitution's /dev/fd/N path has been opened above; drop our copy */
+				sh_close(pfd);
+				pfd = -1;
 			}
 		traceit:
 			if(traceon && fname)
