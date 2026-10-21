@@ -736,7 +736,16 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 #   define sh_pipe(a,b)	sh_rpipe(a,b)
 #endif
 
-struct argnod *sh_argprocsub(struct argnod *argp)
+/*
+ * Handle an argument of the form <(cmd) or >(cmd) by starting the process
+ * substitution and returning an argument node containing the resulting
+ * filename: /dev/fd/N, or a FIFO path if the /dev/fd method is unavailable.
+ *
+ * If pfd is not NULL, then, on success, the file descriptor that the
+ * /dev/fd method is using is stored in *pfd. If the FIFO method is used,
+ * or if the function is somehow interrupted, then *pfd is set to -1.
+ */
+struct argnod *sh_argprocsub(struct argnod *argp, int *pfd)
 {
 	/* argument of the form <(cmd) or >(cmd) */
 	struct argnod *ap;
@@ -747,6 +756,8 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	int *saveinpipe = sh.inpipe, *saveoutpipe = sh.outpipe;
 	int use_devfd = 1;
 	struct stat statb;
+	if(pfd)
+		*pfd = -1;
 	ap = stkseek(sh.stk,ARGVAL);
 	ap->argflag |= ARG_MAKE;
 	ap->argflag &= ~ARG_RAW;
@@ -806,7 +817,10 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	if (use_devfd)
 	{
 		sh_close(pv[1-fd]);
-		sh_iosave(-pv[fd], sh.topfd, NULL);
+		if(pfd)
+			*pfd = pv[fd];
+		else
+			sh_iosave(-pv[fd], sh.topfd, NULL);
 	}
 	else
 	{
@@ -828,7 +842,7 @@ static int arg_expand(struct argnod *argp, struct argnod **argchain,int flag)
 	if(*argp->argval==0 && (argp->argflag&ARG_EXP))
 	{
 		struct argnod *ap;
-		ap = sh_argprocsub(argp);
+		ap = sh_argprocsub(argp,NULL);
 		ap->argchn.ap = *argchain;
 		*argchain = ap;
 		count++;

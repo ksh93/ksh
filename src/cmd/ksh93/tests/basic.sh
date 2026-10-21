@@ -1204,7 +1204,7 @@ done
 exp='3 7'
 # test process substitution as an argument and as a redirection
 for trigger in 'true <(true)' 'cat < <(print -n x) >/dev/null'
-do	got=$(set +x; "$SHELL" -c '
+do	got=$("$SHELL" -c '
 		eval "$1"
 		(exit 3) & p1=$!
 		(exit 7) & p2=$!
@@ -1215,6 +1215,43 @@ do	got=$(set +x; "$SHELL" -c '
 	[[ $got == "$exp" ]] || err_exit "background job exit status after process substitution" \
 		"(trigger: $trigger; expected $(printf %q "$exp"), got $(printf %q "$got"))"
 done
+unset trigger
+
+# ======
+# A file descriptor opened by 'exec' or 'redirect' to a process substitution
+# was not persistent: it was closed again right after the command, because the
+# process substitution's own copy of the pipe descriptor was scheduled to be
+# closed by number when the redirection was restored, and that number had in
+# the meantime been reused for the new persistent file descriptor.
+# https://github.com/ksh93/ksh/issues/1062
+for cmd in exec redirect
+do	# Closing descriptor 3 first ensures the process substitution gets the lowest
+	# free descriptors, so that the collision happens reliably on an unfixed shell.
+	got=$("$SHELL" -c '
+		exec 3<&-
+		"$1" 3< <(print OK)
+		read -r -u3 got && print -r -- "$got"
+		exec 3<&-
+	' procsub-exec-test "$cmd" 2>&1)
+	[[ $got == OK ]] || err_exit "file descriptor 3 from process substitution after $cmd" \
+		"(expected 'OK', got $(printf %q "$got"))"
+	# The same for the write end of an output process substitution (fd 4 is the
+	# second-lowest free descriptor, which is the write end of the pipe).
+	got=$("$SHELL" -c '
+		exec 3<&- 4<&-
+		"$1" 4> >(cat > "$2")
+		print -u4 OK
+		exec 4>&-
+		for ((i = 0; i < 100; i++))
+		do	[[ -s $2 ]] && break
+			sleep .01
+		done
+		cat "$2"
+	' procsub-exec-test "$cmd" "$tmp/1062_$cmd.out" 2>&1)
+	[[ $got == OK ]] || err_exit "file descriptor 4 from output process substitution after $cmd" \
+		"(expected 'OK', got $(printf %q "$got"))"
+done
+unset cmd
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see near the top)

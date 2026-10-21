@@ -99,7 +99,7 @@ extern char 		**sh_argbuild(int*,const struct comnod*,int);
 extern struct dolnod	*sh_argfree(struct dolnod*);
 extern struct dolnod	*sh_argnew(char*[],struct dolnod**);
 extern void 		*sh_argopen(void);
-extern struct argnod	*sh_argprocsub(struct argnod*);
+extern struct argnod	*sh_argprocsub(struct argnod*,int*);
 extern void 		sh_argreset(struct dolnod*,struct dolnod*);
 extern void		sh_assignok(Namval_t*,int);
 extern struct dolnod	*sh_arguse(void);
