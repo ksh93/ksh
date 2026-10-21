@@ -359,11 +359,9 @@ static void	exfile(Sfio_t *_iop, int _fno)
 				if(!(sh.fdstatus[fno]&IOCLEX))
 					sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
 			}
-			/* buffer the stream in script mode */
-			iop = sh_iostream(fno,1);
 		}
-		else
-			iop = sfstdin;
+		/* buffer the stream in script mode */
+		iop = sh_iostream(fno,1);
 	}
 	else
 		fno = -1;

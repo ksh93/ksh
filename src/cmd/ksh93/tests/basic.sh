@@ -1253,6 +1253,83 @@ do	# Closing descriptor 3 first ensures the process substitution gets the lowest
 done
 unset cmd
 
+# ======
+# Lexical analysis in ksh has many buffer overflow bugs upon crossing buffer
+# boundaries; these are worked around by eliminating the buffer bounaries,
+# which means reading the entire script in memory if possible, or using a 2 MiB
+# per-line buffer otherwise (for a script read from a pipe).
+# https://github.com/ksh93/ksh/issues/861
+# https://github.com/ksh93/ksh/issues/1060
+unset pid desc lineno
+typeset -i e=0 i=0 serial=0 idx=-1
+for r in \
+	': $( typeset -a arr=((a b c) 1) )' \
+	'case x in x):;;&esac' \
+	': &>>/dev/null' \
+	': $((1))'
+do
+	((serial++))
+	rq=$(printf %q "$r")
+	(
+		r+=$'\n'
+		: disabling xtrace while generating 131072-line script :
+		set +x
+		for((i=0;i<17;i++))
+		do	r+=$r
+		done
+		print -rn "$r" >issue861_$serial.sh
+	)
+
+	desc+=( "normal script: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -n "issue861_$serial.sh" >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "script read from stdin: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -n <issue861_$serial.sh >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "dot script: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -nc ". ./issue861_$serial.sh" >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "eval: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	"$SHELL" -nc "eval \"\$(<issue861_$serial.sh)\"" >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "script read from stdin pipe: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	cat "issue861_$serial.sh" | "$SHELL" -n >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+
+	desc+=( "eval read from stdin pipe: $rq" )
+	((idx++))
+	lineno+=( $((LINENO+1)) )
+	cat "issue861_$serial.sh" | "$SHELL" -c 'eval -n "$(cat)"' >issue861_$idx.out 2>&1 &
+	pid+=( $! )
+done
+for ((i=0; i<=idx; i++))
+do	got=$(<issue861_$i.out)
+	wait "${pid[i]}"
+	[[ e=$? -eq 0 && -z $got ]] || err\_exit "${lineno[i]}" "issue 861 lexer buffer overflow: ${desc[i]}" \
+		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+done
+unset pid desc lineno e i serial idx
+
+# ======
+# line continuation
+got=$("$SHELL" -c $'true $(\\\n(1)) $(\\\n(2)) $((\\\n3)) $((4\\\n)) $((5)\\\n) $((6))' 2>&1)
+[[ e=$? -eq 0 && -z $got ]] || err_exit "line continuation in arithmetic expression" \
+	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see near the top)
 wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"

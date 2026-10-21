@@ -45,6 +45,7 @@
 #define IOCLEX 		0100U
 #define IOCLOSE		(IOSEEK|IONOSEEK)
 #define IOHIST		(IOCLOSE|IOCLEX)
+#define IOSCRIPT	0200U			/* marks special handling for reading a script */
 
 #define IOSUBSHELL	0x8000	/* must be larger than any file descriptor */
 #define IOPICKFD	0x10000 /* file descriptor number was selected automatically */

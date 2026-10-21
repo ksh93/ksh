@@ -415,7 +415,7 @@ int  sh_iovalidfd(int fd)
 	if(n > max)
 		n = (int)max;
 	max = sh.lim.open_max;
-	sh.sftable = (Sfio_t**)sh_calloc((size_t)(n+1)*(sizeof(int*)+sizeof(Sfio_t*)+1),1);
+	sh.sftable = sh_calloc((size_t)(n + 1) * (sizeof(int*) + sizeof(Sfio_t*) + sizeof(uint8_t)), 1);
 	if(max)
 		memcpy(sh.sftable,sftable,(size_t)max*sizeof(Sfio_t*));
 	sh.fdptrs = (int**)(&sh.sftable[n]);
@@ -546,8 +546,8 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	Sfdisc_t *dp;
 	size_t iobsize = IOBSIZE;
 	char scriptpipe = 0;
-	if (read_script && !sh_isoption(SH_SFLAG))
-		read_script = 0;
+	if (read_script && fd < sh.lim.open_max && (sh.fdstatus[fd] & IOSCRIPT))
+		return sh.sftable[fd];  /* already done */
 	status = sh_iocheckfd(fd, read_script ? &filesize : NULL);
 	if (read_script && (status & IOTTY))
 		read_script = 0;
@@ -633,6 +633,10 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	}
 	sfdisc(iop,dp);
 	sh.sftable[fd] = iop;
+	if(read_script)
+		sh.fdstatus[fd] |= IOSCRIPT;
+	else
+		sh.fdstatus[fd] &= ~IOSCRIPT;
 	return iop;
 }
 
