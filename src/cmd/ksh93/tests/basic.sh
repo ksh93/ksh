@@ -1155,6 +1155,25 @@ do
 		"(expected status 0 and '', got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
 done
 
+# ======
+# After a process substitution, 'wait' lost the exit status of background jobs
+# that had already finished, spuriously returning 127 (no such process).
+# https://github.com/ksh93/ksh/issues/1061
+exp='3 7'
+# test process substitution as an argument and as a redirection
+for trigger in 'true <(true)' 'cat < <(print -n x) >/dev/null'
+do	got=$(set +x; "$SHELL" -c '
+		eval "$1"
+		(exit 3) & p1=$!
+		(exit 7) & p2=$!
+		sleep .1	# let the shell reap the finished jobs before invoking wait(1)
+		wait "$p1"; print -n "$? "
+		wait "$p2"; print "$?"
+	' procsub-wait-test "$trigger" 2>&1)
+	[[ $got == "$exp" ]] || err_exit "background job exit status after process substitution" \
+		"(trigger: $trigger; expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see near the top)
 wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"

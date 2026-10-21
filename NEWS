@@ -2,6 +2,13 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-21:
+
+- Fixed a longstanding bug in background process handling while job control
+  is off (i.e., in most scripts): after a process substitution had been
+  used, 'wait' returned status 127 (not found) for background jobs that had
+  already finished.
+
 2206-10-15:
 
 - Fixed 'printf %#H' URL pecent-encoding to be locale-independent. Bytes

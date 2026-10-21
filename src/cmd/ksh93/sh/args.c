@@ -743,6 +743,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	int savestates = sh_getstate();
 	char savejobcontrol = job.jobcontrol;
 	unsigned int savesubshell = sh.subshell;
+	int *saveinpipe = sh.inpipe, *saveoutpipe = sh.outpipe;
 	int use_devfd = 1;
 	struct stat statb;
 	ap = stkseek(sh.stk,ARGVAL);
@@ -797,6 +798,7 @@ struct argnod *sh_argprocsub(struct argnod *argp)
 	sh_onstate(SH_PROCSUB);
 	sh_exec((Shnode_t*)argp->argchn.ap,sh_isstate(SH_ERREXIT));
 	/* restore the previous state */
+	sh.inpipe = saveinpipe, sh.outpipe = saveoutpipe;
 	sh.subshell = savesubshell;
 	job.jobcontrol = savejobcontrol;
 	sh_setstate(savestates);
