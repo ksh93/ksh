@@ -10,6 +10,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed bugs that caused many builtins (such as kill) to mishandle out of
   range numbers.
 
+- Fixed scope corruption and crashes occurring when assigning to .sh.level
+  within a DEBUG trap action to switch to a parent function scope; the scope
+  and .sh.level were not properly restored when the trap action ended, and
+  calling a function or sourcing a dot script within the trap corrupted the
+  state.
+
 2026-10-21:
 
 - Fixed a longstanding bug in background process handling while job control

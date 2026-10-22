@@ -403,6 +403,7 @@ struct Shell_s
 	char		nv_putsub_already_called_sh_arith;
 	int		nv_putsub_idx;	/* saves array index obtained by nv_putsub() using sh_arith() */
 	int16_t		level;		/* ${.sh.level} */
+	int16_t		level_delta;	/* ${.sh.level} adjustment for DEBUG trap scope switching */
 #if SHOPT_STATS
 	int		*stats;
 #endif

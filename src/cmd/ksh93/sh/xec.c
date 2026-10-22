@@ -453,7 +453,15 @@ static void put_level(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 		int breakcnt = sh.st.breakcnt, loopcnt = sh.st.loopcnt;
 		sh_setscope(sp);
 		sh.st.breakcnt = breakcnt, sh.st.loopcnt = loopcnt;
+		/*
+		 * Keep ${.sh.level} at the assigned value for the rest of the trap
+		 * run, so functions or dot scripts called by the trap are relative
+		 * to the switched scope instead of resetting it.
+		 */
+		sh.level_delta = level - (sh.fn_depth + sh.dot_depth);
 	}
+	else
+		sh.level = oldlevel;	/* can't switch scope; revert value */
 }
 
 static const Namdisc_t level_disc = { .dsize = sizeof(Namfun_t), .putval = put_level };
@@ -472,6 +480,12 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	char			*save_prefix;
 	ptrdiff_t		offset;
 	int			n = 4;
+	struct checkpt		*chkp;
+	int			jmpval;
+	/* state to restore in case the trap switches scope via .sh.level */
+	Shscope_t		*savscope = (Shscope_t*)sh.st.self, *savtop = sh.topscope;
+	Dt_t			*savtree = sh.var_tree;
+	int16_t			savlevel = sh.level, savdelta = sh.level_delta;
 	if(sh.indebug)
 		return 0;
 	sh.indebug = 1;
@@ -524,7 +538,12 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
 	nv_offattr(SH_LEVELNOD,NV_RDONLY);
 	/* run the trap */
-	n = sh_trap(trap,0);
+	chkp = stkalloc(sh.stk,sizeof(struct checkpt));
+	sh_pushcontext(chkp,SH_JMPTRAP);
+	jmpval = sigsetjmp(chkp->buff,0);
+	if(jmpval == 0)
+		n = sh_trap(trap,0);
+	sh_popcontext(chkp);
 	/* restore state */
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
 	if(nv_arrayptr(np))
@@ -533,14 +552,23 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
-	/* restore scope */
-	update_sh_level();
+	/* restore the scope and .sh.level in case the trap changed them */
+	if((Shscope_t*)sh.st.self != savscope)
+		sh_setscope(savscope);
+	sh.var_tree = savtree;
+	sh.topscope = savtop;
+	sh.level_delta = savdelta;
+	sh.level = savlevel;
 	sh.st = *savst;
+	SH_PATHNAMENOD->nvalue = sh.st.filename;
+	SH_FUNNAMENOD->nvalue = sh.st.funname;
 	sh.prefix = save_prefix;
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
 	else
 		stkseek(sh.stk,offset);
+	if(jmpval)
+		siglongjmp(*sh.jmplist,jmpval);
 	return n;
 }
 

@@ -1908,6 +1908,53 @@ exp=$'main\nsub\nmain'
 [[ $got == "$exp" ]] || err_exit "subshell redefining a discipline function loses the parent's" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# ======
+# .sh.level scoping in DEBUG trap
+# A, B, C, D, E should all print LOCAL5
+exp='A: LOCAL5
+d1a: 4 LOCAL3
+d1b: 4 LOCAL3
+B: LOCAL5
+d2a: 2 LOCAL1
+d2b: 2 LOCAL1
+C: LOCAL5
+d3a: 5 LOCAL5
+d3b: 5 LOCAL5
+D: LOCAL5
+d4a: 3 LOCAL3
+d4b: 3 LOCAL3
+E: LOCAL5
+g: GLOBAL'
+got=$(set +x; { "$SHELL" -c '
+	scope=GLOBAL
+	function dummy { :; }
+	function f1 { typeset scope=LOCAL1; f2; }
+	f2() { f3; }
+	function f3 { typeset scope=LOCAL3; f4; }
+	f4() { f5; }
+	function f5 {
+		typeset scope=LOCAL5
+		echo A: $scope
+		trap '\''.sh.level=4; echo d1a: ${.sh.level} $scope; . dummy; echo d1b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo B: $scope
+		trap '\''.sh.level=2; echo d2a: ${.sh.level} $scope; . dummy; echo d2b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo C: $scope
+		trap '\''.sh.level=5; echo d3a: ${.sh.level} $scope; . dummy; echo d3b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo D: $scope
+		trap '\''.sh.level=3; echo d4a: ${.sh.level} $scope; . dummy; echo d4b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo E: $scope
+	}
+	f1
+	echo g: $scope
+'; } 2>&1)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit '.sh.level scoping in DEBUG trap' \
+	"(expected status 0 and output $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and output $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
