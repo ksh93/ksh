@@ -55,7 +55,7 @@ recstr(const char* s, char** e)
 		else
 		{
 			if (*s == '0' && (*(s + 1) == 'x' || *(s + 1) == 'X'))
-				n = (int)strtol(s, &t, 0);
+				n = strtoi(s, &t, 0);
 			else
 				n = chresc(s, &t);
 			s = (const char*)t;
@@ -107,7 +107,7 @@ recstr(const char* s, char** e)
 	case 'u':
 	case 'U':
 		while (*++s == ' ' || *s == '\t' || *s == ',');
-		n = (int)strtol(s, &t, 0);
+		n = strtoi(s, &t, 0);
 		if (n < 0 || n > 15 || *t++ != '.')
 			break;
 		v = strtol(t, &t, 0);
@@ -176,7 +176,7 @@ recstr(const char* s, char** e)
 			case '0': case '1': case '2': case '3': case '4':
 			case '5': case '6': case '7': case '8': case '9':
 				v = 0;
-				a[n++] = (int)strtol(s, &t, 0);
+				a[n++] = strtoi(s, &t, 0);
 				s = (const char*)t - 1;
 				continue;
 			}

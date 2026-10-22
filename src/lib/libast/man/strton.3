@@ -6,7 +6,7 @@
 .SH SYNOPSIS
 \f[CB]long strton(const char* s, char** e, char *basep, int m)\fP
 .PP
-\f[CB]intmax_t strtonll(const char* s, char** e, char *basep, int m)\fP
+\f[CB]long long strtonll(const char* s, char** e, char *basep, int m)\fP
 .SH DESCRIPTION
 The
 .B strton
@@ -16,8 +16,8 @@ functions convert the zero-terminated string
 .I s
 to a
 .B long
-integer or an
-.B intmax_t
+integer or a
+.B long long
 integer, respectively.
 If
 .I e

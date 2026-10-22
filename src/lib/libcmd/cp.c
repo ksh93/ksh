@@ -24,7 +24,7 @@
  */
 
 static const char usage_head[] =
-"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-07-31 $\n]"
+"[-?\n@(#)$Id: cp (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -548,7 +548,7 @@ visit(State_t* state, FTSENT* ent)
 			{
 				while (sub = fts_read(fts))
 				{
-					if (strneq(s, sub->fts_name, length) && sub->fts_name[length] == '.' && strneq(sub->fts_name + length + 1, state->suffix, state->suflen) && (m = (int)strtol(sub->fts_name + length + state->suflen + 1, &e, 10)) && streq(e, state->suffix) && m > v)
+					if (strneq(s, sub->fts_name, length) && sub->fts_name[length] == '.' && strneq(sub->fts_name + length + 1, state->suffix, state->suflen) && (m = strtoi(sub->fts_name + length + state->suflen + 1, &e, 10)) && streq(e, state->suffix) && m > v)
 						v = m;
 					if (sub->fts_level)
 						fts_set(NULL, sub, FTS_SKIP);
