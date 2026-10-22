@@ -317,7 +317,7 @@ const char sh_set[] =
 ;
 
 const char sh_optbreak[] =
-"[-1c?\n@(#)$Id: break (ksh 93u+m) 2023-03-09 $\n]"
+"[-1c?\n@(#)$Id: break (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?break - break out of loop ]"
 "[+DESCRIPTION?\bbreak\b is a shell special built-in that exits the "
@@ -335,7 +335,7 @@ const char sh_optbreak[] =
 ;
 
 const char sh_optcont[] =
-"[-1c?\n@(#)$Id: continue (ksh 93u+m) 2023-03-09 $\n]"
+"[-1c?\n@(#)$Id: continue (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?continue - continue execution at top of the loop]"
 "[+DESCRIPTION?\bcontinue\b is a shell special built-in that continues "
@@ -657,7 +657,7 @@ const char sh_optexec[] =
 ;
 
 const char sh_optexit[] =
-"[-1c?\n@(#)$Id: exit (ksh 93u+m) 2021-12-08 $\n]"
+"[-1c?\n@(#)$Id: exit (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?exit - exit the current shell]"
 "[+DESCRIPTION?\bexit\b is a shell special built-in that causes the "
@@ -989,7 +989,7 @@ const char sh_opthash[] =
 
 #if !SHOPT_SCRIPTONLY
 const char sh_opthist[]	=
-"[-1cn?\n@(#)$Id: hist (ksh 93u+m) 2025-05-10 $\n]"
+"[-1cn?\n@(#)$Id: hist (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?\f?\f - process command history list]"
 "[+DESCRIPTION?\b\f?\f\b lists, edits, or re-executes, commands "
@@ -1168,7 +1168,7 @@ const char sh_optlet[]	=
 ;
 
 const char sh_optprint[] =
-"[-1c?\n@(#)$Id: print (ksh 93u+m) 2026-09-12 $\n]"
+"[-1c?\n@(#)$Id: print (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?print - write arguments to standard output]"
 "[+DESCRIPTION?By default, \bprint\b writes each \astring\a operand to "
@@ -1226,7 +1226,7 @@ const char sh_optprint[] =
 ;
 
 const char sh_optprintf[] =
-"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2026-08-26 $\n]"
+"[-1c?\n@(#)$Id: printf (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?printf - write formatted output]"
 "[+DESCRIPTION?\bprintf\b writes each \astring\a operand to "
@@ -1423,7 +1423,7 @@ const char sh_optpwd[] =
 ;
 
 const char sh_optread[] =
-"[-1c?\n@(#)$Id: read (ksh 93u+m) 2026-10-21 $\n]"
+"[-1c?\n@(#)$Id: read (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?read - read a line from standard input]"
 "[+DESCRIPTION?\bread\b reads a line from standard input and breaks it "
@@ -1547,7 +1547,7 @@ const char sh_optredirect[] =
 ;
 
 const char sh_optreturn[] =
-"[-1c?\n@(#)$Id: return (ksh 93u+m) 2021-12-08 $\n]"
+"[-1c?\n@(#)$Id: return (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?return - return from a function or dot script ]"
 "[+DESCRIPTION?\breturn\b is a shell special built-in that causes the "
@@ -1727,7 +1727,7 @@ const char sh_optshift[] =
 ;
 
 const char sh_optsleep[] =
-"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2026-09-25 $\n]"
+"[-1c?\n@(#)$Id: sleep (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?sleep - suspend execution for an interval]"
 "[+DESCRIPTION?\bsleep\b suspends execution for at least the time specified "
@@ -1761,7 +1761,7 @@ const char sh_optsleep[] =
 ;
 
 const char sh_opttrap[] =
-"[-1c?\n@(#)$Id: trap (AT&T Research) 1999-07-17 $\n]"
+"[-1c?\n@(#)$Id: trap (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?trap - trap signals and conditions]"
 "[+DESCRIPTION?\btrap\b is a special built-in that defines actions to be "
@@ -1951,7 +1951,7 @@ const char sh_opttypeset[] =
 
 #ifndef _no_ulimit
 const char sh_optulimit[] =
-"[-1c?\n@(#)$Id: ulimit (ksh 93u+m) 2022-10-13 $\n]"
+"[-1c?\n@(#)$Id: ulimit (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?ulimit - set or display resource limits]"
 "[+DESCRIPTION?\bulimit\b sets or displays resource limits. These "

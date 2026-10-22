@@ -72,9 +72,11 @@ struid(const char* name)
 		id = (int)pw->pw_uid;
 	else
 	{
-		id = (int)strtol(name, &e, 0);
+		id = strtoi(name, &e, 0);
 #if _WINIX
-		if (!*e)
+		if (errno == ERANGE)
+			id = -1;
+		else if (!*e)
 		{
 			if (!getpwuid((uid_t)id))
 				id = -1;
@@ -84,7 +86,7 @@ struid(const char* name)
 		else
 			id = -1;
 #else
-		if (*e || !getpwuid((uid_t)id))
+		if (*e || errno == ERANGE || !getpwuid((uid_t)id))
 			id = -1;
 #endif
 	}

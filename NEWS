@@ -2,6 +2,14 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-22:
+
+- The sleep builtin will now reject values beyond UINT_MAX and negative
+  numbers.
+
+- Fixed bugs that caused many builtins (such as kill) to mishandle out of
+  range numbers.
+
 2026-10-21:
 
 - Fixed a longstanding bug in background process handling while job control

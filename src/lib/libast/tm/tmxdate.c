@@ -71,6 +71,7 @@
 static int
 range(char* s, char** e, char* set, size_t lo, size_t hi)
 {
+	int	oerrno = errno;
 	long	n;
 	long	m;
 	long	i;
@@ -87,19 +88,28 @@ range(char* s, char** e, char* set, size_t lo, size_t hi)
 	for (;;)
 	{
 		n = strtol(s, &t, 10);
-		if (s == t || n < (ssize_t)lo || n > (ssize_t)hi)
+		if (s == t || n < (ssize_t)lo || n > (ssize_t)hi || errno == ERANGE)
+		{
+			errno = oerrno;
 			return -1;
+		}
 		i = 1;
 		if (*(s = t) == '-')
 		{
 			m = strtol(++s, &t, 10);
-			if (s == t || m < n || m > (ssize_t)hi)
+			if (s == t || m < n || m > (ssize_t)hi || errno == ERANGE)
+			{
+				errno = oerrno;
 				return -1;
+			}
 			if (*(s = t) == '/')
 			{
 				i = strtol(++s, &t, 10);
-				if (s == t || i < 1)
+				if (s == t || i < 1 || errno == ERANGE)
+				{
+					errno = oerrno;
 					return -1;
+				}
 				s = t;
 			}
 		}
@@ -1619,7 +1629,7 @@ tmxdate(const char* s, char** e, Time_t now)
 		}
 		else if (*s == '/')
 		{
-			if (!(state & (YEAR|MONTH)) && n >= 1969 && n < 3000 && (i = (int)strtol(s + 1, &t, 10)) > 0 && i <= 12)
+			if (!(state & (YEAR|MONTH)) && n >= 1969 && n < 3000 && (i = strtoi(s + 1, &t, 10)) > 0 && i <= 12)
 			{
 				state |= YEAR;
 				tm->tm_year = (int)n - 1900;

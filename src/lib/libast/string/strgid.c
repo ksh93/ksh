@@ -80,9 +80,11 @@ strgid(const char* name)
 		id = (int)pw->pw_gid;
 	else
 	{
-		id = (int)strtol(name, &e, 0);
+		id = strtoi(name, &e, 0);
 #if _WINIX
-		if (!*e)
+		if (errno == ERANGE)
+			id = -1;
+		else if (!*e)
 		{
 			if (!getgrgid((gid_t)id))
 				id = -1;
@@ -96,7 +98,7 @@ strgid(const char* name)
 		else
 			id = -1;
 #else
-		if (*e || !getgrgid((gid_t)id))
+		if (*e || errno == ERANGE || !getgrgid((gid_t)id))
 			id = -1;
 #endif
 	}

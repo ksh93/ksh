@@ -25,7 +25,7 @@
  */
 
 static const char usage_1[] =
-"[-?\n@(#)$Id: chgrp (ksh 93u+m) 2022-08-30 $\n]"
+"[-?\n@(#)$Id: chgrp (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 ;
 
@@ -159,7 +159,12 @@ getids(char* s, char** e, Key_t* key, int options)
 	{
 		if (*s)
 		{
-			int i, j = (int)strtol(s, &z, 0);
+			int i, j = strtoi(s, &z, 0);
+			if (errno == ERANGE)
+			{
+				error(ERROR_system(1), "%s: UID out of range", s);
+				UNREACHABLE();
+			}
 			if (*z || !(options & OPT_NUMERIC))
 			{
 				if ((i = struid(s)) >= 0)
@@ -182,7 +187,12 @@ getids(char* s, char** e, Key_t* key, int options)
 	}
 	if (*s)
 	{
-		int i, j = (int)strtol(s, &z, 0);
+		int i, j = strtoi(s, &z, 0);
+		if (errno == ERANGE)
+		{
+			error(ERROR_system(1), "%s: GID out of range", s);
+			UNREACHABLE();
+		}
 		if (*z || !(options & OPT_NUMERIC))
 		{
 			if ((i = strgid(s)) >= 0)
