@@ -66,8 +66,10 @@ static Sfdouble_t setalarm(Sfdouble_t t)
 	 * for root and specially privileged processes. :-/
 	 */
 	static timer_t timer;
-	static char created;
+	static pid_t created;
 	struct itimerspec tnew = { 0 }, told;
+	if(created != getpid())
+		created = 0;
 	if(!t)
 	{
 		if(created)
@@ -85,7 +87,7 @@ static Sfdouble_t setalarm(Sfdouble_t t)
 		if(timer_create(CLOCK_MONOTONIC,&sev,&timer) < 0)
 			if(timer_create(CLOCK_REALTIME,&sev,&timer) < 0)
 				goto error_out;
-		created = 1;
+		created = getpid();
 	}
 	tnew.it_value.tv_sec = t;
 	tnew.it_value.tv_nsec = 1.e9 * (t - (Sfdouble_t)tnew.it_value.tv_sec);
