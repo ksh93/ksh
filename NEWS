@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-22:
+
+- The sleep builtin will now reject values beyond UINT_MAX and negative
+  numbers.
+
+- Fixed bugs that caused many builtins (such as kill) to mishandle out of
+  range numbers.
+
 2026-10-21:
 
 - Fixed a longstanding bug in background process handling while job control
@@ -140,11 +148,6 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed failures (assignment data loss) when a nested associative array was
   assigned to a name reference that pointed to a variable in a calling
   function's local scope.
-
-- The sleep builtin will now reject values beyond UINT_MAX and negative numbers.
-
-- Fixed bugs that caused many builtins (such as kill) to mishandle out of
-  range numbers.
 
 2026-09-21:
 

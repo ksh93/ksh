@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2026-10-10\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-10-22\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
