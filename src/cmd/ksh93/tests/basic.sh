@@ -1317,9 +1317,10 @@ do
 	pid+=( $! )
 done
 for ((i=0; i<=idx; i++))
-do	got=$(<issue861_$i.out)
-	wait "${pid[i]}"
-	[[ e=$? -eq 0 && -z $got ]] || err\_exit "${lineno[i]}" "issue 861 lexer buffer overflow: ${desc[i]}" \
+do	wait "${pid[i]}"
+	e=$?
+	got=$(<issue861_$i.out)
+	[[ e -eq 0 && -z $got ]] || err\_exit "${lineno[i]}" "issue 861 lexer buffer overflow: ${desc[i]}" \
 		"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
 done
 unset pid desc lineno e i serial idx
