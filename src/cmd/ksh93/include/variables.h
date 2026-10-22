@@ -35,10 +35,16 @@ extern void sh_invalidate_rand_seed(void);
 
 #define RAND_SEED_INVALIDATED		-2
 
-/* update ${.sh.level} and, if needed, restore the current scope */
+/*
+ * Update ${.sh.level} and, if needed, restore the current scope.
+ *
+ * If a DEBUG trap has switched the scope by assigning to .sh.level, then
+ * sh.level_delta contains the difference between ${.sh.level} and the current
+ * function/dot script call depth for as long as the trap runs (see put_level()).
+ */
 #define update_sh_level() \
 ( \
-	sh.level = sh.fn_depth + sh.dot_depth, \
+	sh.level = sh.fn_depth + sh.dot_depth + sh.level_delta, \
 	sh.topscope != (Shscope_t*)sh.st.self ? sh_setscope(sh.topscope) : NULL, \
 	1 \
 )
