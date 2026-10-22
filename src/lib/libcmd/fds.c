@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)$Id: fds (AT&T Research) 2009-09-09 $\n]"
+"[-?\n@(#)$Id: fds (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?fds - list open file descriptor status]"
 "[+DESCRIPTION?\bfds\b lists the status for each open file descriptor. "

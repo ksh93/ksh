@@ -25,7 +25,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: cmp (AT&T Research) 2010-04-11 $\n]"
+"[-?\n@(#)$Id: cmp (ksn 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?cmp - compare two files]"
 "[+DESCRIPTION?\bcmp\b compares two files \afile1\a and \afile2\a. "

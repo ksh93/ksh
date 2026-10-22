@@ -24,7 +24,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: expr (ksh 93u+m) 2026-08-31 $\n]"
+"[-?\n@(#)$Id: expr (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?expr - evaluate arguments as an expression]"
 "[+DESCRIPTION?\bexpr\b evaluates an expression given as arguments and writes "

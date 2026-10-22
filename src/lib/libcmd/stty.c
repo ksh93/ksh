@@ -23,7 +23,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: stty (ksh 93u+m) 2021-11-23 $\n]"
+"[-?\n@(#)$Id: stty (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?stty - set or get terminal modes]"
 "[+DESCRIPTION?\bstty\b sets certain terminal I/O modes for the device "

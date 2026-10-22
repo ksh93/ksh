@@ -25,7 +25,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: id (ksh 93u+m) 2026-08-15 $\n]"
+"[-?\n@(#)$Id: id (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?id - return user identity]"
 "[+DESCRIPTION?If no \auser\a operand is specified \bid\b writes user and "

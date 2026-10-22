@@ -25,7 +25,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: join (ksh 93u+m) 2026-03-16 $\n]"
+"[-?\n@(#)$Id: join (ksh 93u+m) 2026-10-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?join - relational database operator]"
 "[+DESCRIPTION?\bjoin\b performs an \aequality join\a on the files \afile1\a "
