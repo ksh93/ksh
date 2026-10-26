@@ -2,6 +2,17 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-26:
+
+- Fixed data corruption occurring when appending (with a += assignment) a
+  compound or multidimensional array value to a non-empty indexed array.
+  Example reproducers:
+	unset arr; arr[0]=1; arr+=( (x=2 y=3) ); typeset -p arr
+	unset arr; arr[0]=1; arr+=( 2 (3 4) 5); typeset -p arr
+
+- Fixed a parser bug that caused a script compiled with shcomp to hang
+  on a multidimensional array assignment such as: foo=(1 2 (3 4 5) 6 7)
+
 2026-10-22:
 
 - The sleep builtin will now reject values beyond UINT_MAX and negative

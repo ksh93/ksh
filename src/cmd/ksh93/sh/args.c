@@ -855,7 +855,7 @@ static int arg_expand(struct argnod *argp, struct argnod **argchain,int flag)
 		sh_stats(STAT_ARGEXPAND);
 		if(flag&ARG_OPTIMIZE)
 			argp->argchn.ap = NULL;
-		if(ap=argp->argchn.ap)
+		if(*argp->argval && (ap=argp->argchn.ap))
 		{
 			sh_stats(STAT_ARGHITS);
 			count = 1;

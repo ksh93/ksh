@@ -1127,6 +1127,9 @@ static struct argnod *assign(Lex_t *lexp, struct argnod *ap, nvflag_t type)
 				settail = &(ar->argnxt.ap);
 			}
 		}
+		/* to avoid an inconsistent state, clear COMSCAN if there are no arguments left */
+		if(!ac->comarg.ap)
+			ac->comtyp &= ~COMSCAN;
 	}
 	else if(n && n!=FUNCTSYM)
 		sh_syntax(lexp,0);
