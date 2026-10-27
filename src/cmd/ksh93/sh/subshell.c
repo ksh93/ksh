@@ -235,6 +235,23 @@ void sh_save_rand_seed(struct rand *rp, int reseed)
 }
 
 /*
+ * Return 1 if <np> is a member of the type instance <mp>, possibly via one or
+ * more nested compound members; that is, if <np> is stored in the value data
+ * that <mp> owns.
+ */
+static int is_member(Namval_t *np, Namval_t *mp)
+{
+	Namval_t	*tp;
+	while((tp = nv_typeparent(np)) && tp != np)
+	{
+		if(tp == mp)
+			return 1;
+		np = tp;
+	}
+	return 0;
+}
+
+/*
  * This routine will make a copy of the given node in the
  * layer created by the most recent virtual subshell if the
  * node hasn't already been copied.
@@ -257,6 +274,14 @@ void sh_assignok(Namval_t *np,int add)
 	 */
 	if(sh.nv_restore || sh.subshare || np==SH_LEVELNOD)
 		return;
+	/*
+	 * A type instance is not saved in a subshell scope if one of its members has
+	 * already been saved there; the member's value is then restored on its own.
+	 */
+	if(add && nv_typeparent(np)==np)
+		for(lp=sp->svar; lp; lp=lp->next)
+			if(is_member(lp->node,np))
+				return;
 	if((ap=nv_arrayptr(np)) && (mp=nv_opensub(np)))
 	{
 		sh.last_root = ap->table;

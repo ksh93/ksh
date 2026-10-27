@@ -1354,4 +1354,24 @@ set -- $v
 [[ $1 == 'a:b' && $# == 1 ]] || err_exit "command substitution failed to restore IFS (1=$(printf %q "$1") \$#=$#)"
 
 # ======
+# A compound assignment to a type instance, or to an element of a type array,
+# must not survive a virtual subshell.
+exp=$'scalar: 2 3\nelem1: 4 5\nelem2: 6 7'
+got=$(set +x; { "$SHELL" -c '
+	typeset -T T=(integer x=1; integer y=2)
+	T scalar
+	scalar=(x=2; y=3)
+	T arr[3]
+	arr[1]=(x=4; y=5)
+	arr[2]=(x=6; y=7)
+	( scalar=(x=7; y=8); arr[1]=(x=8; y=9); arr[2].x=9 )
+	print "scalar: ${scalar.x} ${scalar.y}"
+	print "elem1: ${arr[1].x} ${arr[1].y}"
+	print "elem2: ${arr[2].x} ${arr[2].y}"
+'; } 2>&1)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit "type instance assignment in a virtual subshell" \
+	"(expected status 0 and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
+
+# ======
 exit $((Errors<125?Errors:125))

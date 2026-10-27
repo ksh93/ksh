@@ -1473,3 +1473,14 @@ int	sh_outtype(Sfio_t *out)
 	dtinsert(sh.var_base,L_ARGNOD);
 	return 0;
 }
+
+Namval_t *nv_typeparent(Namval_t *np)
+{
+	Namchld_t *fp;
+	Namtype_t *tp;
+	if(fp = (Namchld_t*)nv_hasdisc(np,&chtype_disc))
+		return fp->ptype->parent;
+	if(tp = (Namtype_t*)nv_hasdisc(np,&type_disc))
+		return tp->parent;
+	return NULL;
+}

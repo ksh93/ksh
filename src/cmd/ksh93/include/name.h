@@ -185,6 +185,7 @@ extern int		nv_compare(Dt_t*, void*, void*, Dtdisc_t*);
 extern void		nv_outnode(Namval_t*,Sfio_t*, int, int);
 extern int		nv_subsaved(Namval_t*, nvflag_t);
 extern void		nv_typename(Namval_t*, Sfio_t*);
+extern Namval_t		*nv_typeparent(Namval_t*);
 extern int		nv_istable(Namval_t*);
 extern size_t		nv_datasize(Namval_t*, size_t*);
 extern Namfun_t		*nv_mapchar(Namval_t*, const char*);
