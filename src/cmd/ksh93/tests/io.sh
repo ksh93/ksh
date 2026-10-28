@@ -747,7 +747,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 
 	# Same as above, but also test commands executed with command(1)
 	gotout=$(
@@ -764,7 +764,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 
 	# Now test with command -x
 	gotout=$(
@@ -781,7 +781,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 else	warning "can't set ulimit; skipping tests for process substitution leaking file descriptors when used as argument"
 fi
 

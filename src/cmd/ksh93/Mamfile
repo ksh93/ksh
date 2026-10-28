@@ -774,6 +774,7 @@ make install virtual
 			prev include/jobs.h
 			prev include/variables.h
 			prev include/path.h
+			prev FEATURE/poll
 		done
 
 		make sh/tdump.c

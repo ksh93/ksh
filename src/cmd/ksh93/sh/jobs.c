@@ -721,7 +721,10 @@ void job_bwait(char **jobs)
 	struct process *pw;
 	pid_t pid;
 	if(*jobs==NULL)
+	{
+		sh_comsubpipedrain(0);
 		job_wait((pid_t)-1);
+	}
 	else while(jp = *jobs++)
 	{
 		if(*jp == '%')
@@ -1296,6 +1299,17 @@ static void job_prmsg(struct process *pw)
 }
 
 /*
+ * Return nonzero if the process <pid> has exited or stopped, so that it is
+ * ready to be handled by job_wait(). Returns nonzero if the process is not
+ * tracked by the job table at all.
+ */
+int job_isdone(pid_t pid)
+{
+	struct process	*pw = job_bypid(pid);
+	return !pw || (pw->p_flag&(P_DONE|P_STOPPED));
+}
+
+/*
  * Wait for process to complete
  * If pid < -1, then wait can be interrupted, -pid is waited for (wait builtin)
  * pid=0 to unpost all done processes
@@ -1313,6 +1327,13 @@ int	job_wait(pid_t pid)
 		pid = -pid;
 		intr = 1;
 	}
+	/*
+	 * Inside a command substitution, collect the output of a child process
+	 * that was connected to a pipe before waiting for it, so that it cannot
+	 * block on a full pipe.
+	 */
+	if(pid > 1)
+		sh_comsubpipedrain(pid);
 	job_lock();
 	if(pid==0)
 	{

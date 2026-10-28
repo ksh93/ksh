@@ -34,6 +34,7 @@
 #include	"jobs.h"
 #include	"variables.h"
 #include	"path.h"
+#include	"FEATURE/poll"
 
 #ifndef PIPE_BUF
 #   define PIPE_BUF	512
@@ -45,6 +46,19 @@ struct Link
 	Namval_t	*child;
 	Dt_t		*dict;
 	Namval_t	*node;
+};
+
+/*
+ * Pending pipe carrying the standard output of a child process that was
+ * forked from within a command substitution. The parent process copies the
+ * pipe's output into the comsub's output buffer or temp file. It blocks
+ * until the pipe is disconnected (i.e., all writers have closed it).
+ */
+struct Comsubpipe
+{
+	struct Comsubpipe *next;
+	pid_t		pid;	/* process ID of the child that writes to the pipe */
+	int		rfd;	/* read end of the pipe */
 };
 
 /*
@@ -81,6 +95,10 @@ static struct subshell
 	int		rand_last;          /* last random number from $RANDOM in parent shell */
 	char		rand_state;         /* 0 means sp->rand_seed hasn't been set, 1 is the opposite */
 	int		pwdfd;              /* parent shell's file descriptor for PWD */
+	struct Comsubpipe *cpipes;          /* pending command substitution output pipes */
+	int		comsubtmp;          /* set if comsub output is a real temp file */
+	dev_t		comsubdev;          /* device of the comsub output temp file */
+	ino_t		comsubino;          /* inode of the comsub output temp file */
 #if !_lib_openat
 	char		pwdclose;
 #endif /* !_lib_openat */
@@ -133,8 +151,299 @@ void	sh_subtmpfile(void)
 		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
 		if(pp && pp->olist  && pp->olist->strm == sfstdout)
 			pp->olist->strm = NULL;
+		/*
+		 * Remember which file standard output now refers to, so that we can tell
+		 * whether standard output still is the command substitution's output file
+		 * (and has not been redirected in the meantime).
+		 */
+		if(sp && sp->pipe==sp)
+		{
+			struct stat st;
+			if(fstat(1,&st)==0)
+			{
+				sp->comsubtmp = 1;
+				sp->comsubdev = st.st_dev;
+				sp->comsubino = st.st_ino;
+			}
+		}
 	}
 }
+
+
+/**** The sh_comsub* and comsub* functions implement a blocking pipe mechanism for command substitutions ****/
+
+/*
+ * If the current process is executing a command substitution,
+ * return a pointer to its subshell structure, otherwise NULL.
+ */
+static inline struct subshell *comsubdata(void)
+{
+	struct subshell *sp = subshell_data;
+	if(!sh.comsub || !sp || !(sp = sp->pipe))
+		return NULL;
+	/* a command substitution is the subshell whose pipe points to itself */
+	return sp->pipe==sp ? sp : NULL;
+}
+
+/*
+ * Return nonzero if standard output has not been redirected away from
+ * the command substitution's output capture buffer or temporary file.
+ */
+static inline int comsubstdout(struct subshell *sp)
+{
+	struct stat st;
+	if(!sp->comsubtmp || sffileno(sfstdout) != 1 || !(sh.fdstatus[1]&IOWRITE) || fstat(1,&st) < 0)
+		return 0;
+	return st.st_dev==sp->comsubdev && st.st_ino==sp->comsubino;
+}
+
+/*
+ * Return nonzero if file descriptor <fd> refers to the same file as the
+ * command substitution's captured output, i.e., if it has been redirected
+ * to standard output. File descriptors that the shell does not know to be
+ * open for writing are ignored.
+ */
+static inline int comsubstdoutfd(struct subshell *sp, int fd)
+{
+	struct stat st;
+	if(!sp->comsubtmp || fd<0 || fd>=sh.lim.open_max || fd==1 || !(sh.fdstatus[fd]&IOWRITE))
+		return 0;
+	/* disregard internally tracked file descriptor copies (user redirections never set these) */
+	if(sh.fdptrs[fd])
+		return 0;
+	return fstat(fd,&st)==0 && st.st_dev==sp->comsubdev && st.st_ino==sp->comsubino;
+}
+
+/*
+ * Copy the output that is currently available on the pipe <rfd> to
+ * the command substitution's output buffer/temp file. Returns 1 if
+ * the pipe is disconnected (i.e. the last writer has closed it).
+ */
+int sh_comsubpiperead(int rfd)
+{
+	char buff[SFIO_BUFSIZE];
+	ssize_t n;
+	while((n = read(rfd,buff,sizeof(buff))) > 0)
+		sfwrite(sfstdout,buff,(size_t)n);
+	return n == 0;
+}
+
+/*
+ * Collect the output of any pending pipe that has been disconnected without
+ * blocking, and close it. This stops file descriptors accumulating when a
+ * command substitution starts many child processes.
+ */
+static void comsubpipescavenge(struct subshell *sp)
+{
+	struct Comsubpipe **cpipes_p = &sp->cpipes, *cpipe;
+	while(*cpipes_p)
+	{
+		cpipe = *cpipes_p;
+		if(sh_comsubpiperead(cpipe->rfd))
+		{
+			/* the pipe is disconnected */
+			*cpipes_p = cpipe->next;
+			sh_close(cpipe->rfd);
+			free(cpipe);
+			continue;
+		}
+		cpipes_p = &cpipe->next;
+	}
+}
+
+/*
+ * Prepare to fork a child process whose standard output is to be captured
+ * by the command substitution that this process is executing. Creates a
+ * pipe <pv>; the child's standard output must be connected to pv[1], and
+ * the comsub process reads pv[0] when it is time to collect the child's
+ * output. Returns 1 if a pipe was created, 0 otherwise.
+ */
+int sh_comsubpipe(int pv[2])
+{
+	struct subshell *sp = comsubdata();
+	if(!sp || !comsubstdout(sp))
+		return 0;
+	comsubpipescavenge(sp);
+	sh_rpipe(pv,1);
+	if(fcntl(pv[0],F_SETFL,O_NONBLOCK) < 0)
+		errormsg(SH_DICT,ERROR_system(1),e_pipe);
+	return 1;
+}
+
+/*
+ * Redirect every file descriptor that is redirected to standard output, i.e.,
+ * that refers to the command substitution's output temp file, to the write end
+ * <wfd> of a command substitution output pipe. This ensures that its output is
+ * captured in proper order with the rest of the command substitution's output.
+ *
+ * If <save> is nonzero, the original file descriptors are saved with
+ * sh_iosave() so that sh_iorestore() can restore them in the command
+ * substitution process itself afterwards; the value that sh.topfd had
+ * before saving is returned for this purpose.
+ *
+ * Returns -1 if this is not a command substitution process.
+ */
+int sh_comsubpipestdout(int wfd, int save)
+{
+	struct subshell *sp = comsubdata();
+	int fd, indx = sh.topfd, dupfd, clexec;
+	if(!sp)
+		return -1;
+	for(fd = 0; fd < sh.lim.open_max; fd++)
+	{
+		if(!comsubstdoutfd(sp,fd) || (dupfd = sh_fcntl(wfd,F_DUPFD,10)) < 0)
+			continue;
+		clexec = sh.fdstatus[fd] & IOCLEX;
+		if(save)
+			sh_iosave(fd,indx,NULL);
+		sh_iorenumber(dupfd,fd);
+		/* sh_iorenumber() clears the close-on-exec flag; preserve it */
+		if(clexec)
+			sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
+	}
+	return indx;
+}
+
+/*
+ * Register the read end of a command substitution output pipe for process
+ * <pid>, so that its output can be collected later.
+ */
+void sh_comsubpipeadd(pid_t pid, int rfd)
+{
+	struct Comsubpipe *cpipe;
+	struct subshell *sp = comsubdata();
+	if(!sp)
+	{
+		sh_close(rfd);
+		return;
+	}
+	cpipe = sh_malloc(sizeof(struct Comsubpipe));
+	cpipe->pid = pid;
+	cpipe->rfd = rfd;
+	cpipe->next = sp->cpipes;
+	sp->cpipes = cpipe;
+}
+
+/*
+ * Called in the parent process after the child has been forked, to register
+ * the read end of the command substitution output pipe <pv> for process <pid>.
+ */
+void sh_comsubpipeparent(pid_t pid, int pv[2])
+{
+	sh_close(pv[1]);	/* the child has its own copy */
+	sh_comsubpipeadd(pid,pv[0]);
+}
+
+/*
+ * Called in the forked child process to connect standard output
+ * to the write end of the command substitution output pipe <pv>.
+ * No extra file descriptors are exposed to the child.
+ */
+void sh_comsubpipechild(int pv[2])
+{
+	sh_close(pv[0]);
+	sh_close(1);  /* close existing stdout to free the Sfio stream */
+	if(dup2(pv[1],1) < 0)
+	{
+		errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,e_pipestdout);
+		UNREACHABLE();
+	}
+	/* standard output is now a pipe, not the comsub's string stream or temp file */
+	sh.fdstatus[1] = IONOSEEK|IOWRITE;
+	sh_iostream(1,0);
+	/*
+	 * Any other file descriptors that are redirected to standard output must be
+	 * connected to the pipe as well, so that their output is captured and
+	 * properly ordered. The redirection is permanent in this child process.
+	 */
+	sh_comsubpipestdout(pv[1],0);
+	sh_close(pv[1]);
+}
+
+/*
+ * Collect the output of the pipe <cpipe> into the command substitution's
+ * output buffer or temp file. If <pid> is zero, this blocks until the pipe
+ * is disconnected, i.e. until all writers (including background children)
+ * have closed it.
+ *
+ * If <pid> is nonzero, stop collecting as soon as that process has finished,
+ * and leave the pipe pending.
+ *
+ * Returns 1 if the pipe is disconnected (so the caller must close it).
+ */
+static inline int comsubpipecollect(struct Comsubpipe *cpipe, pid_t pid)
+{
+#if _lib_poll
+	struct pollfd pfd;
+#endif /* _lib_poll */
+	while(1)
+	{
+		if(sh_comsubpiperead(cpipe->rfd))
+			return 1;
+		if(pid && (job_isdone(pid) || job.savesig))
+			return 0;
+		/* wait for more output, disconnection, or a signal such as SIGCHLD */
+#if _lib_poll
+		pfd.fd = cpipe->rfd;
+		pfd.events = POLLIN;
+		if(poll(&pfd,1,100) < 0 && errno != EINTR)
+			return 0;
+#else
+		sh_delay(.001,1);
+#endif /* _lib_poll */
+	}
+}
+
+/*
+ * Collect the output of the comsub output pipes into the comsub's output
+ * buffer or temporary file. If <pid> is nonzero, only collect the pipe(s)
+ * for that process, and leave anything that remains after that process has
+ * finished pending; if zero, collect all pending pipes, blocking until they
+ * are disconnected.
+ */
+void sh_comsubpipedrain(pid_t pid)
+{
+	struct subshell *sp = comsubdata();
+	struct Comsubpipe **cpipes_p, *cpipe;
+	if(!sp || !sp->cpipes || !comsubstdout(sp))
+		return;
+	comsubpipescavenge(sp);
+	cpipes_p = &sp->cpipes;
+	while(*cpipes_p)
+	{
+		cpipe = *cpipes_p;
+		if(pid && cpipe->pid!=pid)
+		{
+			cpipes_p = &cpipe->next;
+			continue;
+		}
+		if(!comsubpipecollect(cpipe,pid))
+		{
+			cpipes_p = &cpipe->next;
+			continue;
+		}
+		*cpipes_p = cpipe->next;
+		sh_close(cpipe->rfd);
+		free(cpipe);
+	}
+}
+
+/*
+ * Discard and close any remaining command substitution output pipes.
+ */
+static inline void comsubpipeclose(struct subshell *sp)
+{
+	struct Comsubpipe *cpipe, *next;
+	for(cpipe = sp->cpipes; cpipe; cpipe = next)
+	{
+		next = cpipe->next;
+		sh_close(cpipe->rfd);
+		free(cpipe);
+	}
+	sp->cpipes = NULL;
+}
+
+/**** End of functions for a blocking pipe mechanism for command substitutions ****/
 
 
 /*
@@ -148,12 +457,17 @@ void sh_subfork(void)
 	unsigned int curenv = sh.curenv;
 	char comsub = sh.comsub;
 	pid_t pid;
+	int csp = 0, cspv[2];
 	char *trap = sh.st.trapcom[0];
 	if(trap)
 		trap = sh_strdup(trap);
 	/* see whether inside $(...) */
 	if(sp->pipe)
+	{
 		sh_subtmpfile();
+		/* the child's standard output must go through a pipe so we can wait for it */
+		csp = sh_comsubpipe(cspv);
+	}
 	sh.curenv = 0;
 	/* arm critical signal region */
 	sh.savesig = -1;
@@ -161,6 +475,8 @@ void sh_subfork(void)
 	{
 		sh.curenv = curenv;
 		/* this is the parent part of the fork */
+		if(csp)
+			sh_comsubpipeparent(pid,cspv);
 		if(sp->subpid==0)
 			sp->subpid = pid;
 		if(trap)
@@ -170,6 +486,8 @@ void sh_subfork(void)
 	else
 	{
 		/* this is the child part of the fork */
+		if(csp)
+			sh_comsubpipechild(cspv);
 		/*
 		 * In a virtual subshell, $RANDOM is not reseeded until it's used, so if that
 		 * hasn't happened yet, invalidate the seed. This allows sh_save_rand_seed()
@@ -179,7 +497,7 @@ void sh_subfork(void)
 			sh_invalidate_rand_seed();
 		subshell_data = NULL;
 		sh.subshell = 0;
-		sh.comsub = 0;
+		/* sh.comsub is deliberately *not* reset here; a forked command substitution is still a command substitution */
 		sp->subpid=0;
 		sh.st.trapcom[0] = (comsub==2 ? NULL : trap);
 		/* disarm critical signal region */
@@ -971,6 +1289,15 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		}
 		else
 		{
+			/*
+			 * Collect the output of any child processes that are still
+			 * connected to a pipe. This blocks until they have all
+			 * disconnected from the pipe, so no output is lost.
+			 */
+			sh_comsubpipedrain(0);
+			/*
+			 * Wait for any remaining foreground child process.
+			 */
 			if(sh.spid)
 			{
 				int e = sh.exitval;
@@ -1027,6 +1354,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sp->tmpfd = -1;
 		}
 		sh.fdstatus[1] = sp->fdstatus;
+		comsubpipeclose(sp);
 	}
 	if(!sh.subshare)
 	{

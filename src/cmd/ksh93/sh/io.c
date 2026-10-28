@@ -454,6 +454,12 @@ int  sh_iosafefd(int min_fd)
 	return min_fd;
 }
 
+/*
+ * Check if a file descriptor is in use by the shell's internal machinery
+ * (e.g., saved redirections from filemap[].save_fd; the coprocess file
+ * descriptors in sh.cpipe[] and sh.coutpipe). Note that sh.fdptrs is not
+ * set by user redirections.
+ */
 int  sh_inuse(int fd)
 {
 	return fd < sh.lim.open_max && sh.fdptrs[fd];
