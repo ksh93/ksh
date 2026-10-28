@@ -287,7 +287,7 @@ struct Shell_s
 	struct sh_scoped st;		/* scoped information */
 	Stk_t		*stk;		/* stack pointer */
 	Sfio_t		*heredocs;	/* current here-doc temp file */
-	int		**fdptrs;	/* pointer to file numbers */
+	int		**fdptrs;	/* internally tracked file descriptors (not user redirects) */
 	char		*lastarg;	/* $_ */
 	int		path_err;	/* last error on path search */
 	Dt_t		*var_base;	/* global level variables */
@@ -311,7 +311,7 @@ struct Shell_s
 	sigjmp_buf	*jmplist;	/* longjmp return stack */
 	pid_t		bckpid;		/* background process id */
 	pid_t		cpid;
-	pid_t		spid; 		/* subshell process id */
+	pid_t		spid; 		/* ID of foreground process spawned by virtual comsub */
 	pid_t		pipepid;
 	pid_t		outpipepid;
 	int		topfd;
@@ -334,7 +334,7 @@ struct Shell_s
 	unsigned char	lastsig;	/* last signal received */
 	char		chldexitsig;	/* set if the last command was a child process that exited due to a signal */
 	char		pathinit;	/* pathinit called from subshell */
-	char		comsub;		/* set to 1 when in `...`, 2 when in ${ ...; }, 3 when in $(...) */
+	char		comsub;		/* set to 1 when in `...`, 2 when in ${ ...; }, 3 when in $(...); not reset upon fork */
 	char		subshare;	/* set when comsub==2 (shared-state ${ ...; } command substitution) */
 	char		toomany;	/* set when out of fd's */
 	char		instance;	/* in set_instance */

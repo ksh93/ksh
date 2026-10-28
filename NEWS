@@ -2,6 +2,14 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-29:
+
+- The ordering of the output of non-waited-for background processes within
+  command substitutions has been fixed to match the behaviour of other
+  shells. A command substitution that invokes a background process without
+  an explicit 'wait' command will now correctly block until the background
+  process has closed or redirected its standard output.
+
 2026-10-27:
 
 - Fixed incorrect restore of values and a possible use-after-free crash upon

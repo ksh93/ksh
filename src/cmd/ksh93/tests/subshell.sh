@@ -1374,4 +1374,130 @@ got=$(set +x; { "$SHELL" -c '
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and $(printf %q "$got"))"
 
 # ======
+# Command substitutions lost output from child processes that are not waited for
+# https://github.com/ksh93/ksh/issues/124
+typeset -F3 startsec diff
+for fork in ':' 'ulimit -c 0'
+do
+	case $fork in
+	:)	forkmsg='' ;;
+	*)	forkmsg='forked ' ;;
+	esac
+
+	got=$(echo "<$( $fork; ( (sleep .05; echo after) & ); echo now)>")
+	exp=$'<now\nafter>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution output from non-waited-for child" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# Original reproducer from the issue: the output of a background child of a
+	# foreground process must follow the command substitution's own later output
+	got=$(echo "<$( $fork; "$SHELL" -c '(sleep .05; echo after) &'; echo now)>")
+	exp=$'<now\nafter>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution output from background child" \
+		"of foreground process" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# A persistent redirection of any other file descriptor to standard output
+	# must not stop this fix from working: such file descriptors must be
+	# connected to the pipe as well (re: sh_comsubpipe())
+	got=$(echo "<$( $fork; exec 2>&1; "$SHELL" -c '(sleep .05; echo after) &'; echo now)>")
+	exp=$'<now\nafter>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution output from background child" \
+		"with stderr redirected to stdout" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# File descriptor 2 is not special: any file descriptor redirected to
+	# standard output must be treated the same way.
+	got=$(echo "<$( $fork; { "$SHELL" -c '(sleep .05; echo after) >&5 &'; } 5>&1; echo now)>")
+	exp=$'<now\nafter>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution output from background child" \
+		"with fd 5 redirected to stdout" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# And it must all keep working with 'eval', too.
+	got=$(echo "<$( $fork; eval '"$SHELL" -c '\''(sleep .05; echo after) >&7 &'\' 7>&1; echo now)>")
+	exp=$'<now\nafter>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution output from eval'ed background child" \
+		"with fd 7 redirected to stdout" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# A command's own redirections must not be able to pick up the shell's
+	# internal file descriptors, such as the command substitution's output
+	# pipe, which is open in the command substitution process while a child
+	# process is spawned: a redirection to an unopened file descriptor must
+	# fail, just as it would outside a command substitution
+	got=$(echo "<$( $fork; exec 3>&1 2>/dev/null
+		for fd in 4 5 6 7 8 9
+		do	"$SHELL" -c 'echo hi' 2>&$fd || echo fail
+		done )>")
+	exp=$'<fail\nfail\nfail\nfail\nfail\nfail>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution exposes its internal output pipe to command redirections" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# ...but the command substitution's own output to such a file descriptor
+	# must not be reordered or moved, and the redirection must be restored
+	got=$(echo "<$( $fork; exec 2>&1; "$SHELL" -c 'echo err >&2'; echo out; echo last >&2)>")
+	exp=$'<err\nout\nlast>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution output order with stderr redirected to stdout" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# Nesting exercise
+	got=$(echo "<$( $fork; ( (sleep .05; got=$(echo "<$( $fork; ( (sleep .05;
+		got=$(echo "<$( $fork; ( (sleep .05; echo after) & ); echo now)>");
+		echo "$got"; echo after) & ); echo now)>"); echo "$got"; echo after) & ); echo now)>")
+	exp=$'<now\n<now\n<now\nafter>\nafter>\nafter>'
+	[[ $got == "$exp" ]] || err_exit "nested ${forkmsg}command substitutions output from non-waited-for children" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# The order should be reversed if the child processes /is/ waited for
+	got=$(echo "<$( $fork; ( (sleep .05; echo not_after) & wait ); echo now)>")
+	exp=$'<not_after\nnow>'
+	[[ $got == "$exp" ]] || err_exit "${forkmsg}command substitution output from waited-for child" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# Test persistent redirection inside command substitution
+	got=$("$SHELL" -c \
+		"{ sleep .25; kill -KILL \$\$; } & x=$( $fork; redirect 3>&1; echo hi); print -r -- \"\$x\"; kill \$!" 2>&1)
+	[[ e=$? -eq 0 && $got == hi ]] \
+		|| err_exit "${forkmsg}command substitution containing a persistent stdout redirection" \
+			"(expected status 0 and 'hi'," \
+			"got status $e$(let 'e>128' && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
+	# The comsub should stop blocking when the child closes its standard output
+	startsec=SECONDS
+	: $( $fork; (redirect >&-; sleep .1) & )
+	(( (diff = SECONDS - startsec) < .1 )) \
+		|| err_exit "${forkmsg}comsub fails to unblock when subshell child closes stdout" \
+			"(took ${diff}s)"
+	startsec=SECONDS
+	: $( $fork; ("$SHELL" -c 'redirect >&-; sleep .1') & )
+	(( (diff = SECONDS - startsec) < .1 )) \
+		|| err_exit "${forkmsg}comsub fails to unblock when non-subshell child closes stdout" \
+			"(took ${diff}s)"
+	# ...or when the child redirects its standard output
+	startsec=SECONDS
+	: $( $fork; (redirect >/dev/null; sleep .1) & )
+	(( (diff = SECONDS - startsec) < .1 )) \
+		|| err_exit "${forkmsg}comsub fails to unblock when subshell child closes stdout" \
+			"(took ${diff}s)"
+	startsec=SECONDS
+	: $( $fork; ("$SHELL" -c 'redirect >/dev/null; sleep .1') & )
+	(( (diff = SECONDS - startsec) < .1 )) \
+		|| err_exit "${forkmsg}comsub fails to unblock when non-subshell child closes stdout" \
+			"(took ${diff}s)"
+	# ...but *not* when the child redirects its standard output back to itself
+	startsec=SECONDS
+	: $( $fork; (redirect 3>&1; redirect 1>&3; sleep .05) & )
+	(( (diff = SECONDS - startsec) >= .05 )) \
+		|| err_exit "${forkmsg}comsub fails to block when subshell child redirects stdout to itself" \
+			"(took ${diff}s)"
+	startsec=SECONDS
+	: $( $fork; ("$SHELL" -c 'redirect 3>&1; redirect 1>&3; sleep .05') & )
+	(( (diff = SECONDS - startsec) >= .05 )) \
+		|| err_exit "${forkmsg}comsub fails to block when non-subshell child redirects stdout to itself" \
+			"(took ${diff}s)"
+done
+unset startsec diff fork forkmsg
+
+# ======
 exit $((Errors<125?Errors:125))
