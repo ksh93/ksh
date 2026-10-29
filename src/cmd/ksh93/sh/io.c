@@ -473,8 +473,8 @@ void sh_ioinit(void)
 	sh.sftable[1] = sfstdout;
 	sh.sftable[2] = sfstderr;
 	sfnotify(sftrack);
-	/* init standard input (0) stream, potentially for reading a script */
-	sh_iostream(0,1);
+	/* init standard input (0) stream, in script mode if a script will be read from it */
+	sh_iostream(0, sh_isoption(SH_SFLAG) && !sh.comdiv);
 	/* init standard output (1) stream */
 	sh_iostream(1,0);
 	/* all write streams are in the same pool and share outbuff */

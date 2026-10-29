@@ -10,6 +10,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   an explicit 'wait' command will now correctly block until the background
   process has closed or redirected its standard output.
 
+- Fixed breakage of the <#pattern redirection occurring when executed from
+  a -c script with input read from a pipe. Bug introduced on 2026-04-17.
+
 2026-10-27:
 
 - Fixed incorrect restore of values and a possible use-after-free crash upon
