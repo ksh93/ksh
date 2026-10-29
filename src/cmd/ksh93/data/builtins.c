@@ -1423,7 +1423,7 @@ const char sh_optpwd[] =
 ;
 
 const char sh_optread[] =
-"[-1c?\n@(#)$Id: read (ksh 93u+m) 2026-10-22 $\n]"
+"[-1c?\n@(#)$Id: read (ksh 93u+m) 2026-10-29 $\n]"
 "[--catalog?" SH_DICT "]"
 "[+NAME?read - read a line from standard input]"
 "[+DESCRIPTION?\bread\b reads a line from standard input and breaks it "

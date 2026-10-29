@@ -1250,4 +1250,17 @@ done
 unset i fails n explen
 
 # ======
+# The <#pattern redirection must not make the shell lose the matching line from standard input
+if	mkfifo "$tmp/fifo_patredir" 2> /dev/null
+then	printf 'first line\nsecond line\nthird line\n' > $tmp/fifo_patredir &
+	exp='first line'
+	got=$($SHELL -c '<# first*; read -r; print -r -- "$REPLY"' < $tmp/fifo_patredir)
+	wait
+	[[ $got == "$exp" ]] || err_exit '<#pattern on a pipe loses the matching line' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	rm -f $tmp/fifo_patredir &
+else	warning "mkfifo failed; cannot test <# with read builtin via FIFO"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

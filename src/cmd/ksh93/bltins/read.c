@@ -236,8 +236,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 	struct checkpt		buff;
 	Edit_t			*ep = (struct edit*)sh.ed_context;
 	char			**volatile names = _names;
-	/* init stream buffer, or re-init to remove special handling for scripts */
-	if((!(iop=sh.sftable[fd]) || sh.fdstatus[fd]&IOSCRIPT) && !(iop=sh_iostream(fd,0)))
+	if(!(iop=sh.sftable[fd]) && !(iop=sh_iostream(fd,0)))
 		return 1;
 	sh_stats(STAT_READS);
 	if(names && (name = *names))
