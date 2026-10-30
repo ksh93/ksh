@@ -294,6 +294,7 @@ struct Shell_s
 	Namval_t	*prev_table;	/* previous table used in nv_open */
 	Sfio_t		*outpool;	/* output stream pool */
 	long		timeout;	/* read timeout */
+	char		readavail;	/* set for read -n/-N to read available input, not a record */
 	unsigned int	curenv;		/* current subshell number */
 	unsigned int	jobenv;		/* subshell number for jobs */
 	int		infd;		/* input file descriptor */

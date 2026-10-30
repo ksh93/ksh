@@ -1453,13 +1453,9 @@ const char sh_optread[] =
 	"Multibyte characters for \adelim\a are not supported. "
 	"If \adelim\a is the empty string, "
 	"the read continues until the first 0 byte.]"
-"[n]#[count?Read at most \acount\a characters or (for binary fields) bytes."
-#if _pipe_socketpair
-	" When reading from a slow device, "
-	"will return as soon as any characters have been read, "
-	"unless the \bposix\b shell option is on."
-#endif
-	"]"
+"[n]#[count?Read at most \acount\a characters or (for binary fields) bytes. "
+	"When reading from a slow device, \bread\b will return "
+	"as soon as any characters have been read.]"
 "[N]#[count?Read exactly \acount\a characters or (for binary fields) bytes.]"
 "[p?Read from the current co-process instead of standard input. "
 	"An end-of-file causes \bread\b to disconnect the co-process "

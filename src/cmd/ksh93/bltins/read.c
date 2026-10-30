@@ -377,6 +377,8 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		else
 			end = var + sizeof(buf) - 1;
 		up = cur = var;
+		/* -n/-N: read only what is available instead of a whole record */
+		sh.readavail = 1;
 		if((sfset(iop,SFIO_SHARE,1)&SFIO_SHARE) && fd!=0)
 			was_share = 1;
 		if(size==0)
@@ -840,6 +842,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		}
 	}
 done:
+	sh.readavail = 0;
 	if(timeslot)
 		sh_timerdel((void*)timeslot);
 	if(timeout || (sh.fdstatus[fd]&(IOTTY|IONOSEEK)))

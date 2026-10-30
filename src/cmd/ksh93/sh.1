@@ -184,12 +184,6 @@ separated by
 .BR | .
 The standard output of each command but the last
 is connected by a
-.IR socketpair (2)
-or
-(if the
-.B posix
-shell option is on)
-by a
 .IR pipe (2)
 to the standard input of the next command.
 Each command except the last is run asynchronously in a subshell (see
@@ -8200,21 +8194,6 @@ disables fast filescan loops of type
 .IP \[bu]
 makes the \fB<>\fR redirection operator default to redirecting standard input
 if no file descriptor number precedes it;
-.IP \[bu]
-causes the shell to use a standard UNIX
-.IR pipe (2)
-instead of a
-.IR socketpair (2)
-to connect commands in a pipeline
-(when reading directly from a pipeline, the
-.BI <# pattern
-and
-.BI <## pattern
-redirection operators will not work and the
-.B -n
-option to the
-.B read
-built-in will not return early when reading from a slow device);
 .IP \[bu]
 disables the special floating point constants \fBInf\fR and \fBNaN\fR in
 arithmetic evaluation so that, e.g., \fB$((inf))\fR and \fB$((nan))\fR refer

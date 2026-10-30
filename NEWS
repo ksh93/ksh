@@ -2,6 +2,18 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-10-30:
+
+- Pipes connecting the commands of a pipeline are now always created using
+  the standard UNIX pipe(2) call, even with the posix option off. The
+  socketpair(2) method has been removed. This fixes problems caused by
+  programs detecting a socket instead of a pipe, such as not being able to
+  open /dev/stdin on Linux, and spurious EPIPE and ECONNRESET errors.
+      Features that previously required socketpair(2) to correctly read from
+  a shell pipe, i.e. the <#PATTERN redirection operator and 'read -n', have
+  been reimplemented to work correctly with real pipes. These now also work
+  when reading from pipes with the posix option on.
+
 2026-10-29:
 
 - The ordering of the output of non-waited-for background processes within

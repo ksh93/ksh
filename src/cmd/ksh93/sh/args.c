@@ -731,10 +731,6 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 	}
 }
 
-#if _pipe_socketpair && !_socketpair_devfd
-#   define sh_pipe(a,b)	sh_rpipe(a,b)
-#endif
-
 /*
  * Handle an argument of the form <(cmd) or >(cmd) by starting the process
  * substitution and returning an argument node containing the resulting

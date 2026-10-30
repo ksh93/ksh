@@ -264,7 +264,7 @@ int sh_comsubpipe(int pv[2])
 	if(!sp || !comsubstdout(sp))
 		return 0;
 	comsubpipescavenge(sp);
-	sh_rpipe(pv,1);
+	sh_pipe(pv,1);
 	if(fcntl(pv[0],F_SETFL,O_NONBLOCK) < 0)
 		errormsg(SH_DICT,ERROR_system(1),e_pipe);
 	return 1;
