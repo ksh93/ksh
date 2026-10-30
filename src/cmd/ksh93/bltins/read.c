@@ -236,8 +236,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 	struct checkpt		buff;
 	Edit_t			*ep = (struct edit*)sh.ed_context;
 	char			**volatile names = _names;
-	/* init stream buffer, or re-init to remove special handling for scripts */
-	if((!(iop=sh.sftable[fd]) || sh.fdstatus[fd]&IOSCRIPT) && !(iop=sh_iostream(fd,0)))
+	if(!(iop=sh.sftable[fd]) && !(iop=sh_iostream(fd,0)))
 		return 1;
 	sh_stats(STAT_READS);
 	if(names && (name = *names))
@@ -378,6 +377,8 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		else
 			end = var + sizeof(buf) - 1;
 		up = cur = var;
+		/* -n/-N: read only what is available instead of a whole record */
+		sh.readavail = 1;
 		if((sfset(iop,SFIO_SHARE,1)&SFIO_SHARE) && fd!=0)
 			was_share = 1;
 		if(size==0)
@@ -841,6 +842,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		}
 	}
 done:
+	sh.readavail = 0;
 	if(timeslot)
 		sh_timerdel((void*)timeslot);
 	if(timeout || (sh.fdstatus[fd]&(IOTTY|IONOSEEK)))

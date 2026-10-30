@@ -23,12 +23,6 @@
 sh -c 'exec 3>&1' 1>&- 2>/dev/null
 typeset -si can_close_stdout=$?
 
-# Socketpairs as pipes aren't available on all systems.
-grep -qE '_pipe_socketpair|_socketpair_devfd' "$INSTALLROOT/src/cmd/ksh93/FEATURE/poll"
-typeset -si pipe_socketpair=$?
-((pipe_socketpair > 1)) && exit 2
-((pipe_socketpair = !pipe_socketpair))  # invert exit status logic to get boolean logic
-
 unset HISTFILE
 
 function fun
@@ -248,11 +242,8 @@ then	[[ $(3<#) -eq 0 ]] || err_exit "not at position 0"
 	redirect 3<# *abc*
 	read -u3 && err_exit "not found pattern not positioning at eof"
 
-	if	((pipe_socketpair))
-	then	cat $tmp/seek | read -r <# *WWW*
-		[[ $REPLY == *WWWWW* ]] || err_exit '<# not working for pipes'
-	else	warning "socketpair as pipe not available: skipping test for <# for pipe"
-	fi
+	cat $tmp/seek | read -r <# *WWW*
+	[[ $REPLY == *WWWWW* ]] || err_exit '<# not working for pipes'
 
 	# The next test seeks past a 2 GiB boundary, which may fail on 32-bit systems. To prevent
 	# a test failure, the long seek test is only run on 64-bit systems.
@@ -359,30 +350,26 @@ abcdefg
 [[ $a == abc ]] || err_exit 'read -N3 from pipe not working'
 [[ $b == d ]] || err_exit 'read -N1 from pipe not working'
 
-if	((pipe_socketpair))
-then	(print -n a; sleep .1; print -n bcde) 2>/dev/null |read -n3 a
-	[[ $a == a ]] || err_exit 'read -n3 from pipe not working'
-else	warning "socketpair as pipe not available: skipping test for 'read -n3' from pipe"
-fi
+(print -n a; sleep .1; print -n bcde) 2>/dev/null |read -n3 a
+[[ $a == a ]] || err_exit 'read -n3 from pipe not working'
 
 if	mkfifo $tmp/fifo 2> /dev/null
-then	if	((pipe_socketpair))
-	then	(print -n a; sleep .2; print -n bcde) > $tmp/fifo &
-		{
-		read -u5 -n3 -t1 a || err_exit 'read -n3 from fifo timed out'
-		read -u5 -n1 -t1 b || err_exit 'read -n1 from fifo timed out'
-		} 5< $tmp/fifo
-		exp=a
-		got=$a
-		[[ $got == "$exp" ]] || err_exit "read -n3 from fifo failed -- expected '$exp', got '$got'"
-		exp=b
-		got=$b
-		[[ $got == "$exp" ]] || err_exit "read -n1 from fifo failed -- expected '$exp', got '$got'"
-		rm -f $tmp/fifo
-		wait
-		mkfifo $tmp/fifo 2> /dev/null
-	else	warning "socketpair as pipe not available: skipping tests for 'read -n1' from fifo"
-	fi
+then
+	(print -n a; sleep .2; print -n bcde) > $tmp/fifo &
+	{
+	read -u5 -n3 -t1 a || err_exit 'read -n3 from fifo timed out'
+	read -u5 -n1 -t1 b || err_exit 'read -n1 from fifo timed out'
+	} 5< $tmp/fifo
+	exp=a
+	got=$a
+	[[ $got == "$exp" ]] || err_exit "read -n3 from fifo failed -- expected '$exp', got '$got'"
+	exp=b
+	got=$b
+	[[ $got == "$exp" ]] || err_exit "read -n1 from fifo failed -- expected '$exp', got '$got'"
+	rm -f $tmp/fifo
+	wait
+
+	mkfifo $tmp/fifo 2> /dev/null
 	(print -n a; sleep .2; print -n bcde) > $tmp/fifo &
 	{
 	read -u5 -N3 -t1 a || err_exit 'read -N3 from fifo timed out'
@@ -395,58 +382,53 @@ then	if	((pipe_socketpair))
 	got=$b
 	[[ $got == "$exp" ]] || err_exit "read -N1 from fifo failed -- expected '$exp', got '$got'"
 	wait
+else	warning "mkfifo failed; cannot test read -[nN] from FIFO"
 fi
 
-if	((pipe_socketpair))
-then	(
-		print -n 'prompt1: '
-		sleep .01
-		print line2
-		sleep .01
-		print -n 'prompt2: '
-		sleep .01
-	) | {
-		read -t1 -n 1000 line1
-		read -t1 -n 1000 line2
-		read -t1 -n 1000 line3
-		read -t1 -n 1000 line4
-	}
-	[[ $? == 0 ]]			&& err_exit 'should have timed out'
-	[[ $line1 == 'prompt1: ' ]] 	|| err_exit "line1 should be 'prompt1: '"
-	[[ $line2 == line2 ]]		|| err_exit "line2 should be line2"
-	[[ $line3 == 'prompt2: ' ]]	|| err_exit "line3 should be 'prompt2: '"
-	[[ ! $line4 ]]			|| err_exit "line4 should be empty"
-else	warning "socketpair as pipe not available: skipping tests for 'read -t1 -n 1000' from pipe"
-fi
+(
+	print -n 'prompt1: '
+	sleep .01
+	print line2
+	sleep .01
+	print -n 'prompt2: '
+	sleep .01
+) | {
+	read -t1 -n 1000 line1
+	read -t1 -n 1000 line2
+	read -t1 -n 1000 line3
+	read -t1 -n 1000 line4
+}
+[[ $? == 0 ]]			&& err_exit 'should have timed out'
+[[ $line1 == 'prompt1: ' ]] 	|| err_exit "line1 should be 'prompt1: '"
+[[ $line2 == line2 ]]		|| err_exit "line2 should be line2"
+[[ $line3 == 'prompt2: ' ]]	|| err_exit "line3 should be 'prompt2: '"
+[[ ! $line4 ]]			|| err_exit "line4 should be empty"
 
 if	$SHELL -c "export LC_ALL=C.UTF-8; c=$'\342\202\254'; [[ \${#c} == 1 ]]" 2>/dev/null
 then	lc_utf8=C.UTF-8
 else	lc_utf8=''
 fi
 
-if	((pipe_socketpair))
-then	integer i
-	typeset -a e o=(-n2 -N2)
-	set -- \
-		'a'	'bcd'	'a bcd'	'ab cd' \
-		'ab'	'cd'	'ab cd'	'ab cd' \
-		'abc'	'd'	'ab cd'	'ab cd' \
-		'abcd'	''	'ab cd'	'ab cd'
-	while	(( $# >= 3 ))
-	do	a=$1
-		b=$2
-		e[0]=$3
-		e[1]=$4
-		shift 4
-		for ((i = 0; i < 2; i++))
-		do	for lc_all in C $lc_utf8
-			do	g=$(LC_ALL=$lc_all $SHELL -c "{ print -n '$a'; sleep .02; print -n '$b'; sleep .02; } | { read ${o[i]} a; print -n \$a; read a; print -n \ \$a; }")
-				[[ $g == "${e[i]}" ]] || err_exit "LC_ALL=$lc_all read ${o[i]} from pipe '$a $b' failed -- expected '${e[i]}', got '$g'"
-			done
+integer i
+typeset -a e o=(-n2 -N2)
+set -- \
+	'a'	'bcd'	'a bcd'	'ab cd' \
+	'ab'	'cd'	'ab cd'	'ab cd' \
+	'abc'	'd'	'ab cd'	'ab cd' \
+	'abcd'	''	'ab cd'	'ab cd'
+while	(( $# >= 3 ))
+do	a=$1
+	b=$2
+	e[0]=$3
+	e[1]=$4
+	shift 4
+	for ((i = 0; i < 2; i++))
+	do	for lc_all in C $lc_utf8
+		do	g=$(LC_ALL=$lc_all $SHELL -c "{ print -n '$a'; sleep .02; print -n '$b'; sleep .02; } | { read ${o[i]} a; print -n \$a; read a; print -n \ \$a; }")
+			[[ $g == "${e[i]}" ]] || err_exit "LC_ALL=$lc_all read ${o[i]} from pipe '$a $b' failed -- expected '${e[i]}', got '$g'"
 		done
 	done
-else	warning "socketpair as pipe not available: skipping test for 'read -n2' from pipe"
-fi
+done
 
 if	[[ $lc_utf8 ]]
 then	export LC_ALL=$lc_utf8
@@ -679,7 +661,7 @@ then	trap 'sleep_pid=0; kill "$ksh_pid"; err_exit "'\''read'\'' hangs on EOF wit
 	wait "$ksh_pid"
 	trap - TERM
 	((sleep_pid)) && kill "$sleep_pid"
-else	err_exit "mkfifo failed; cannot test reading from FIFO"
+else	warning "mkfifo failed; cannot test reading from FIFO"
 fi
 
 # ======
@@ -747,7 +729,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 
 	# Same as above, but also test commands executed with command(1)
 	gotout=$(
@@ -764,7 +746,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 
 	# Now test with command -x
 	gotout=$(
@@ -781,7 +763,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 else	warning "can't set ulimit; skipping tests for process substitution leaking file descriptors when used as argument"
 fi
 
@@ -1254,6 +1236,19 @@ do
 done
 ((fails == 0)) || err_exit "bug 975 stress test: $fails/$n iterations produced wrong output"
 unset i fails n explen
+
+# ======
+# The <#pattern redirection must not make the shell lose the matching line from standard input
+if	mkfifo "$tmp/fifo_patredir" 2> /dev/null
+then	printf 'first line\nsecond line\nthird line\n' > $tmp/fifo_patredir &
+	exp='first line'
+	got=$($SHELL -c '<# first*; read -r; print -r -- "$REPLY"' < $tmp/fifo_patredir)
+	wait
+	[[ $got == "$exp" ]] || err_exit '<#pattern on a pipe loses the matching line' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	rm -f $tmp/fifo_patredir &
+else	warning "mkfifo failed; cannot test <# with read builtin via FIFO"
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

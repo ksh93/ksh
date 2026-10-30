@@ -946,7 +946,7 @@ void clone_all_disc( Namval_t *np, Namval_t *mp, nvflag_t flags)
 			return;
 		if((fp->namflags & NAMFUN_IGN) && (flags&NV_NODISC))
 			nfp = NULL;
-		if(fp->disc && fp->disc->clonef)
+		else if(fp->disc && fp->disc->clonef)
 			nfp = (*fp->disc->clonef)(np,mp,flags,fp);
 		else	if(flags&NV_MOVE)
 			nfp = fp;

@@ -72,6 +72,7 @@ const char e_restricted[]	= "%s: restricted";
 const char e_copexists[]	= "coprocess is running; cannot create a new coprocess";
 const char e_exists[]		= "%s: file already exists";
 const char e_pipe[]		= "cannot create pipe";
+const char e_pipestdout[]	= "cannot connect standard output to pipe";
 const char e_alarm[]		= "cannot set alarm";
 const char e_open[]		= "%s: cannot open";
 const char e_notseek[]		= "%s: not seekable";

@@ -221,6 +221,73 @@ Namval_t *nv_addnode(Namval_t* np, int remove)
 }
 
 /*
+ * Return a copy of the array assignment word list <arg> in which the
+ * subscripts of the elements to be assigned are offset by <off>, or NULL if
+ * the list is not in the form produced by the parser for an array value.
+ * The parse tree is not modifiedd.
+ *
+ * The parser numbers the words of an array value sequentially from zero,
+ * either as "[n]=value" for a plain value or, for a compound or nested array
+ * value, with the subscript in the for node (fornam) of the word. This is
+ * used to append such a list to a non-empty indexed array: the words must be
+ * assigned to the subscripts following the last element.
+ */
+static struct argnod *shift_words(struct argnod *arg, ssize_t off)
+{
+	struct argnod *first = NULL, **last = &first;
+	ssize_t n = 0;
+	while(arg)
+	{
+		struct argnod *nq;
+		if(*arg->argval==0 && arg->argchn.ap && !(arg->argflag&ARG_EXP))
+		{
+			/* compound or nested array value: subscript in the for node */
+			struct fornod *fp = (struct fornod*)arg->argchn.ap;
+			struct fornod *fq = stkalloc(sh.stk,sizeof(struct fornod));
+			*fq = *fp;
+			sfprintf(sh.stk,"[%jd]",(intmax_t)(off+n));
+			fq->fornam = stkfreeze(sh.stk,1);
+			nq = stkalloc(sh.stk,sizeof(struct argnod));
+			*nq = *arg;
+			nq->argchn.ap = (struct argnod*)fq;
+		}
+		else
+		{
+			/* plain value: subscript is the "[n]=" prefix of the word */
+			char *ep, *val;
+			size_t len;
+			if(*arg->argval!='[' || strtoimax(arg->argval+1,&ep,10)!=n || *ep!=']' || ep[1]!='=')
+				return NULL;
+			sfprintf(sh.stk,"[%jd]=%s",(intmax_t)(off+n),ep+2);
+			val = stkfreeze(sh.stk,1);
+			len = strlen(val) + 1;
+			nq = stkalloc(sh.stk,sizeof(struct argnod)+len);
+			*nq = *arg;
+			memcpy(nq->argval,val,len);
+		}
+		nq->argnxt.ap = NULL;
+		*last = nq;
+		last = &nq->argnxt.ap;
+		arg = arg->argnxt.ap;
+		n++;
+	}
+	return first;
+}
+
+/*
+ * Return non-zero if the assignment word list <arg> contains a compound or
+ * multidimensional array value, which has no value string of its own and so
+ * cannot be expanded as an ordinary word.
+ */
+static int has_compound_word(struct argnod *arg)
+{
+	for(; arg; arg=arg->argnxt.ap)
+		if(*arg->argval==0 && arg->argchn.ap && !(arg->argflag&ARG_EXP))
+			return 1;
+	return 0;
+}
+
+/*
  * Perform parameter assignment for a linked list of parameters
  * <flags> contains attributes for the parameters
  */
@@ -228,6 +295,7 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 {
 	char		*cp;
 	Namval_t	*np, *mp;
+	struct argnod	*aq;
 	char		*eqp;
 	char		*trap=sh.st.trap[SH_DEBUGTRAP];
 	char		*prefix = sh.prefix;
@@ -326,9 +394,12 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 				/* For correct nested assignments, create the node either in sh.prefix_root or
 				 * in sh.var_tree, as previously determined and stored in the vartree variable. */
 				np = nv_open(cp,vartree,flag|NV_ASSIGN);
+				if((arg->argflag&ARG_APPEND) && nv_isarray(np) && nv_aimax(np)>=0)
+					sub = nv_aimax(np)+1;
 				if ( (arg->argflag & ARG_APPEND) &&
 				     (tp->tre.tretyp & COMMSK)==TCOM &&
 				     tp->com.comset &&
+				     !has_compound_word(tp->com.comset) &&
 				     !nv_isvtree(np) &&
 				     ( ( (ap = nv_arrayptr(np)) &&
 				         !ap->fun &&
@@ -485,21 +556,28 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 				{
 					if(tp->tre.tretyp!=TLST && !tp->com.comnamp && tp->com.comset && tp->com.comset->argval[0]==0 && tp->com.comset->argchn.ap)
 					{
+						struct argnod *comset = tp->com.comset;
 						if(prefix || np)
 							cp = stkcopy(sh.stk,nv_name(np));
 						sh.prefix = cp;
-						if(tp->com.comset->argval[1]=='[')
+						if(comset->argval[1]=='[')
 						{
-							if((arg->argflag&ARG_APPEND) && (!nv_isarray(np) || (nv_aindex(np)>=0)))
-								nv_unset(np,0);
-							if(!(array&NV_IARRAY) && !(tp->com.comset->argflag&ARG_MESSAGE))
+							if(!(array&NV_IARRAY) && !(comset->argflag&ARG_MESSAGE))
 								nv_setarray(np,nv_associative);
+						}
+						/* When appending, assign the values to the
+						 * subscripts following the last element. */
+						if(sub > 0)
+						{
+							struct argnod *aq = shift_words(comset,sub);
+							if(aq)
+								comset = aq;
 						}
 						/* For correct nested assignments, propagate sh.first_root into
 						 * the recursive nv_setlist() call, so its 'vartree' variable
 						 * becomes the parent's tree instead of the default sh.var_tree. */
 						sh.prefix_root = sh.first_root;
-						nv_setlist(tp->com.comset,flags&~NV_STATIC,NULL);
+						nv_setlist(comset,flags&~NV_STATIC,NULL);
 						sh.prefix = prefix;
 						if(tp->com.comset->argval[1]!='[')
 							 nv_setvtree(np);
@@ -547,9 +625,28 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 			skip:
 				if(sub>0)
 				{
-					sfprintf(sh.stk,"%s[%jd]",prefix?nv_name(np):cp,(intmax_t)sub);
-					sh.prefix = stkfreeze(sh.stk,1);
-					nv_putsub(np,NULL,ARRAY_ADD|ARRAY_FILL|sub);
+					if((arg->argflag&ARG_APPEND)
+					&& tp->com.comset && tp->com.comset->argval[0]=='['
+					&& has_compound_word(tp->com.comset)
+					&& (aq = shift_words(tp->com.comset,sub)))
+					{
+						/*
+						 * Appending an array value list that contains a compound or
+						 * nested array value. Assign the values at the subscripts
+						 * following the last element of the array.
+						 */
+						Shnode_t *tq = stkalloc(sh.stk,sizeof(struct comnod));
+						memcpy(tq,tp,sizeof(struct comnod));
+						tq->com.comset = aq;
+						tp = tq;
+						sh.prefix = stkcopy(sh.stk,prefix?nv_name(np):cp);
+					}
+					else
+					{
+						sfprintf(sh.stk,"%s[%jd]",prefix?nv_name(np):cp,(intmax_t)sub);
+						sh.prefix = stkfreeze(sh.stk,1);
+						nv_putsub(np,NULL,ARRAY_ADD|ARRAY_FILL|sub);
+					}
 				}
 				else if(prefix)
 					sh.prefix = stkcopy(sh.stk,nv_name(np));

@@ -732,10 +732,6 @@ char **sh_argbuild(int *nargs, const struct comnod *comptr,int flag)
 	}
 }
 
-#if _pipe_socketpair && !_socketpair_devfd
-#   define sh_pipe(a,b)	sh_rpipe(a,b)
-#endif
-
 /*
  * Handle an argument of the form <(cmd) or >(cmd) by starting the process
  * substitution and returning an argument node containing the resulting
@@ -855,7 +851,7 @@ static int arg_expand(struct argnod *argp, struct argnod **argchain,int flag)
 		sh_stats(STAT_ARGEXPAND);
 		if(flag&ARG_OPTIMIZE)
 			argp->argchn.ap = NULL;
-		if(ap=argp->argchn.ap)
+		if(*argp->argval && (ap=argp->argchn.ap))
 		{
 			sh_stats(STAT_ARGHITS);
 			count = 1;

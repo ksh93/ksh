@@ -2,9 +2,45 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2026-10-23:
+2026-10-30:
 
-- Fixed an unterminated collation sentinel causing out-of-bounds copies.
+- Pipes connecting the commands of a pipeline are now always created using
+  the standard UNIX pipe(2) call, even with the posix option off. The
+  socketpair(2) method has been removed. This fixes problems caused by
+  programs detecting a socket instead of a pipe, such as not being able to
+  open /dev/stdin on Linux, and spurious EPIPE and ECONNRESET errors.
+      Features that previously required socketpair(2) to correctly read from
+  a shell pipe, i.e. the <#PATTERN redirection operator and 'read -n', have
+  been reimplemented to work correctly with real pipes. These now also work
+  when reading from pipes with the posix option on.
+
+2026-10-29:
+
+- The ordering of the output of non-waited-for background processes within
+  command substitutions has been fixed to match the behaviour of other
+  shells. A command substitution that invokes a background process without
+  an explicit 'wait' command will now correctly block until the background
+  process has closed or redirected its standard output.
+
+- Fixed breakage of the <#pattern redirection occurring when executed from
+  a -c script with input read from a pipe. Bug introduced on 2026-04-17.
+
+2026-10-27:
+
+- Fixed incorrect restore of values and a possible use-after-free crash upon
+  exiting a virtual subshell in which values were assigned to a variable of
+  a type created with 'typeset -T'.
+
+2026-10-26:
+
+- Fixed data corruption occurring when appending (with a += assignment) a
+  compound or multidimensional array value to a non-empty indexed array.
+  Example reproducers:
+	unset arr; arr[0]=1; arr+=( (x=2 y=3) ); typeset -p arr
+	unset arr; arr[0]=1; arr+=( 2 (3 4) 5); typeset -p arr
+
+- Fixed a parser bug that caused a script compiled with shcomp to hang
+  on a multidimensional array assignment such as: foo=(1 2 (3 4 5) 6 7)
 
 2026-10-22:
 
