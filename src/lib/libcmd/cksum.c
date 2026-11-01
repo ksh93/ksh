@@ -162,9 +162,9 @@ openfile(const char* path, const char* mode)
  */
 
 static int
-closefile(Sfio_t* sp)
+closefile(Sfio_t* sp, close_mode_t m)
 {
-	return sp == sfstdin ? 0 : sfclose(sp);
+	return sp == sfstdin ? 0 : sfclose_batch(sp, m);
 }
 
 /*
@@ -391,7 +391,7 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 					}
 				}
 			}
-			closefile(sp);
+			closefile(sp, NOW);
 		}
 	}
 	else if (strneq(s, "method=", 7))
@@ -422,8 +422,9 @@ list(State_t* state, Sfio_t* lp)
 		if (sp = openfile(file, state->check ? "rt" : "rb"))
 		{
 			pr(state, sfstdout, sp, file, state->permissions, NULL, state->check);
-			closefile(sp);
+			closefile(sp, QUEUE);
 		}
+	ast_close_batch(-1, ENACT);
 }
 
 /*
@@ -592,13 +593,14 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 				if (sp = openfile(file, "rt"))
 				{
 					list(&state, sp);
-					closefile(sp);
+					closefile(sp, QUEUE);
 				}
+			ast_close_batch(-1, ENACT);
 		}
 		else if (sp = openfile(NULL, "rt"))
 		{
 			list(&state, sp);
-			closefile(sp);
+			closefile(sp, NOW);
 		}
 	}
 	else if (!*argv && !state.recursive)
@@ -621,7 +623,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 				if (sp = openfile(ent->fts_accpath, "rb"))
 				{
 					pr(&state, sfstdout, sp, ent->fts_path, state.permissions, ent->fts_statp, state.check);
-					closefile(sp);
+					closefile(sp, QUEUE);
 				}
 				break;
 			case FTS_DC:
@@ -637,6 +639,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 				error(ERROR_system(0), "%s: not found", ent->fts_path);
 				break;
 			}
+		ast_close_batch(-1, ENACT);
 		fts_close(fts);
 	}
 	if (state.total)

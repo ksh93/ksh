@@ -14,6 +14,7 @@
 *                  David Korn <dgk@research.att.com>                   *
 *                   Phong Vo <kpv@research.att.com>                    *
 *                  Martijn Dekker <martijn@inlv.org>                   *
+*            Johnothan King <johnothanking@protonmail.com>             *
 *                                                                      *
 ***********************************************************************/
 
@@ -40,9 +41,10 @@ fcloseall(void)
 					break;
 			for(n = 0; n < ((p == &_Sfpool) ? p->n_sf : 1); ++n)
 			{	count += 1;
-				if(sfclose(p->sf[n]) >= 0)
+				if(sfclose_batch(p->sf[n],QUEUE) >= 0)
 					nclose += 1;
 			}
+			ast_close_batch(-1,ENACT);
 		}
 		if(nclose == count)
 			break;

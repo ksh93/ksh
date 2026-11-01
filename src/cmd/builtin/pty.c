@@ -322,8 +322,8 @@ mkpty(int* master, int* minion)
 		struct termios	tst;
 		if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
 		{
-			ast_close(*minion);
-			ast_close(*master);
+			ast_close_batch(*minion,QUEUE);
+			ast_close_batch(*master,ENACT);
 			return -1;
 		}
 	}
@@ -1159,8 +1159,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 			error(ERROR_system(1), "%s: cannot redirect messages", messages);
 			UNREACHABLE();
 		}
-		ast_close(2);
-		dup(fd);
+		dup2(fd, 2);
 		if (drop)
 			ast_close(fd);
 	}

@@ -17,6 +17,21 @@
 #include <ast.h>
 #include <error.h>
 
+#if _lib_close_range
+
+#define QUEUE_MAX_FD		1024	/* for ksh93's needs we don't need an infinite queue */
+#define QUEUE_SAFETY_MARGIN	7
+#define QUEUE_EMPTY		(-1)
+#define QUEUE_NOT_EMPTY		(-2)
+static int batch_start = QUEUE_EMPTY;
+static int batch_end = QUEUE_EMPTY;
+static int queue_largest_fd = -1;
+static int queue_smallest_fd = -1;
+static int open_max_margin = QUEUE_MAX_FD - 7;
+static uint8_t fd_queue[QUEUE_MAX_FD+1] = {0};
+
+#endif /* _lib_close_range */
+
 /*
  * Depending on the implementation, after EINTR, close(2) must either
  * always, or never be repeated. And if it must be repeated, then the FD
@@ -30,7 +45,7 @@
  * required behavior for the operating systems ksh supports.
  */
 
-int ast_close(int fd)
+static int close_single(int fd)
 {
 	int r, save_errno = errno;
 
@@ -124,4 +139,115 @@ int ast_close(int fd)
 	 */
 
 	return r;
+}
+
+/*
+ * Set errno, return -1 for bad file descriptors, and mark the codepath cold.
+ */
+static COLD int bad_fd(int err)
+{
+	errno = err;
+	return -1;
+}
+
+#if _lib_close_range
+
+/*
+ * File descriptors are placed in a batching queue for close_range(2),
+ * which is cheaper than calling close(2) multiple times.
+ * The queueing system itself must have low overhead for this to be
+ * worth bothering with for small batches (ksh most commonly batches
+ * two at a time).
+ */
+
+static int close_queue(int new_fd)
+{
+	int r;
+	if(batch_start == batch_end)
+		r = close_single(batch_start);	/* close(2) is faster for closing just one fd */
+	else
+		r = close_range((unsigned)batch_start, (unsigned)batch_end, 0);
+	batch_start = batch_end = new_fd;	/* New batch */
+	return r;
+}
+
+static int clear_queue(void)
+{
+	int got_failure = 0;
+	if(batch_start != QUEUE_NOT_EMPTY)
+		return 0;
+	for(int fd = queue_smallest_fd; fd <= queue_largest_fd; fd++)
+	{
+		if(fd_queue[fd])
+		{
+			if(batch_start < 0)
+				batch_start = batch_end = fd;
+			else if(batch_end == fd - 1)
+				batch_end++;
+			else if(close_queue(fd) < 0)
+				got_failure = errno;
+			fd_queue[fd] = 0;
+		}
+	}
+	close_queue(QUEUE_EMPTY);
+	queue_largest_fd = queue_smallest_fd = QUEUE_EMPTY;
+	if(got_failure)
+		return bad_fd(got_failure);
+	return 0;
+}
+
+static int add_to_queue(int fd)
+{
+	if(UNLIKELY(QUEUE_MAX_FD < fd))
+		return close_single(fd);	/* The fd will not fit in the queue */
+	fd_queue[fd] = 1;
+	batch_start = batch_end = QUEUE_NOT_EMPTY;
+	if(queue_largest_fd < fd)
+		queue_largest_fd = fd;
+	if(queue_smallest_fd > fd || queue_smallest_fd == QUEUE_EMPTY)
+		queue_smallest_fd = fd;
+	if(UNLIKELY(open_max_margin < fd))
+		return clear_queue();
+	return 0;
+}
+
+int ast_close_batch(int fd, close_mode_t mode)
+{
+	if(mode != ENACT && fd < 0)
+		return bad_fd(EBADF);
+	switch(mode)
+	{
+	    case NOW:
+		return close_single(fd);
+	    case AUXILIARY:
+		return 0;  /* no-op */
+	    case QUEUE:
+		return add_to_queue(fd);
+	    case ENACT:
+		if(fd > -1)
+			add_to_queue(fd);
+		return clear_queue();
+	    case LIMIT:
+		open_max_margin = fd - 7;
+		return 0;
+	}
+	UNREACHABLE();
+}
+
+#else
+
+int ast_close_batch(int fd, close_mode_t mode)
+{
+	if(mode != ENACT && fd < 0)
+		return bad_fd(EBADF);
+	if(mode == AUXILIARY || mode == LIMIT || (mode == ENACT && fd < 0))
+		return 0;
+	return close_single(fd);
+}
+
+#endif /* _lib_close_range */
+
+int ast_close(int fd)
+{
+	return close_single(fd);
 }

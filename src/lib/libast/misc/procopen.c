@@ -175,8 +175,7 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 			{
 				if (arg2 != PROC_ARG_NULL)
 				{
-					ast_close((int)arg2);
-					if (fcntl((int)arg1, F_DUPFD, arg2) != arg2)
+					if (dup2((int)arg1, (int)arg2) < 0)
 						return -1;
 				}
 				if (op & PROC_FD_CHILD)
@@ -187,7 +186,8 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 			setsid();
 			for (i = 0; i <= 2; i++)
 				if (arg1 != i)
-					ast_close(i);
+					ast_close_batch(i, QUEUE);
+			ast_close_batch(-1, ENACT);
 			arg2 = -1;
 #ifdef TIOCSCTTY
 			if (ioctl((int)arg1, TIOCSCTTY, NULL) < 0)
@@ -199,12 +199,13 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 				return -1;
 #endif /* TIOCSCTTY */
 			for (i = 0; i <= 2; i++)
-				if (arg1 != i && (int)arg2 != i && fcntl((int)arg1, F_DUPFD, i) != i)
+				if (arg1 != i && (int)arg2 != i && dup2((int)arg1, i) < 0)
 					return -1;
 			if (arg1 > 2)
-				ast_close((int)arg1);
+				ast_close_batch((int)arg1, QUEUE);
 			if (arg2 > 2)
-				ast_close((int)arg2);
+				ast_close_batch((int)arg2, QUEUE);
+			ast_close_batch(-1, ENACT);
 			break;
 		case PROC_sig_dfl:
 			signal((int)arg1, SIG_DFL);
@@ -260,8 +261,7 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 #if F_dupfd_cloexec == F_DUPFD
 					fcntl(m->save, F_SETFD, FD_CLOEXEC);
 #endif /* F_dupfd_cloexec == F_DUPFD */
-					ast_close(arg2);
-					if (fcntl(arg1, F_DUPFD, arg2) != arg2)
+					if (dup2(arg1, arg2) < 0)
 						return -1;
 					if (op & PROC_FD_CHILD)
 						ast_close(arg1);
@@ -342,14 +342,10 @@ restore(Proc_t* proc)
 				if (!(m->op & PROC_FD_PARENT))
 				{
 					if (m->op & PROC_FD_CHILD)
-					{
-						ast_close(m->arg.fd.parent.fd);
-						fcntl(m->arg.fd.child.fd, F_DUPFD, m->arg.fd.parent.fd);
-					}
+						dup2(m->arg.fd.child.fd, m->arg.fd.parent.fd);
 					fcntl(m->arg.fd.parent.fd, F_SETFD, m->arg.fd.parent.flag);
 				}
-				ast_close(m->arg.fd.child.fd);
-				fcntl(m->save, F_DUPFD, m->arg.fd.child.fd);
+				dup2(m->save, m->arg.fd.child.fd);
 				ast_close(m->save);
 				if (m->arg.fd.child.flag)
 					fcntl(m->arg.fd.child.fd, F_SETFD, FD_CLOEXEC);
@@ -535,8 +531,8 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 		{
 			if (!(proc->pid = fork()))
 			{
-				ast_close(pop[0]);
-				ast_close(pop[1]);
+				ast_close_batch(pop[0],QUEUE);
+				ast_close_batch(pop[1],ENACT);
 			}
 			else
 			{
@@ -755,7 +751,7 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 				{
 				case PROC_fd_dup|PROC_FD_PARENT:
 				case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
-					ast_close(PROC_ARG(n, 1));
+					ast_close_batch(PROC_ARG(n, 1), QUEUE);
 					break;
 				case PROC_sys_pgrp:
 					if (proc->pgrp < 0)
@@ -782,19 +778,19 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			{
 			case 0:
 				proc->wfd = pio[1];
-				ast_close(pio[0]);
+				ast_close_batch(pio[0], QUEUE);
 				break;
 			default:
 #if _pipe_rw || _lib_socketpair
 				proc->wfd = pio[0];
 #else
 				proc->wfd = poi[1];
-				ast_close(poi[0]);
+				ast_close_batch(poi[0], QUEUE);
 #endif /* _pipe_rw || _lib_socketpair */
 				/* FALLTHROUGH */
 			case 1:
 				proc->rfd = pio[0];
-				ast_close(pio[1]);
+				ast_close_batch(pio[1], QUEUE);
 				break;
 			}
 			if (proc->rfd > 2)
@@ -809,8 +805,9 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			while (waitpid(proc->pid, &i, 0) == -1 && errno == EINTR);
 			if (read(pop[0], &proc->pid, sizeof(proc->pid)) != sizeof(proc->pid))
 				goto bad;
-			ast_close(pop[0]);
+			ast_close_batch(pop[0], QUEUE);
 		}
+		ast_close_batch(-1, ENACT);
 		return proc;
 	}
  bad:
@@ -831,23 +828,24 @@ procopen(const char* cmd, char** argv, char** envv, int64_t* modv, int flags)
 			case PROC_fd_dup|PROC_FD_CHILD:
 			case PROC_fd_dup|PROC_FD_PARENT|PROC_FD_CHILD:
 				if (PROC_ARG(n, 2) != PROC_ARG_NULL)
-					ast_close(PROC_ARG(n, 1));
+					ast_close_batch(PROC_ARG(n, 1), QUEUE);
 				break;
 			}
 	if (pio[0] >= 0)
-		ast_close(pio[0]);
+		ast_close_batch(pio[0], QUEUE);
 	if (pio[1] >= 0)
-		ast_close(pio[1]);
+		ast_close_batch(pio[1], QUEUE);
 	if (pop[0] >= 0)
-		ast_close(pop[0]);
+		ast_close_batch(pop[0], QUEUE);
 	if (pop[1] >= 0)
-		ast_close(pop[1]);
+		ast_close_batch(pop[1], QUEUE);
 #if !_pipe_rw && !_lib_socketpair
 	if (poi[0] >= 0)
-		ast_close(poi[0]);
+		ast_close_batch(poi[0], QUEUE);
 	if (poi[1] >= 0)
-		ast_close(poi[1]);
+		ast_close_batch(poi[1], QUEUE);
 #endif /* !_pipe_rw && !_lib_socketpair */
+	ast_close_batch(-1, ENACT);
 	procfree(proc);
 	return NULL;
 }

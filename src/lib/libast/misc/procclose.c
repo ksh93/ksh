@@ -37,9 +37,10 @@ procclose(Proc_t* p)
 	if (p)
 	{
 		if (p->rfd >= 0)
-			ast_close(p->rfd);
+			ast_close_batch(p->rfd,QUEUE);
 		if (p->wfd >= 0 && p->wfd != p->rfd)
-			ast_close(p->wfd);
+			ast_close_batch(p->wfd,QUEUE);
+		ast_close_batch(-1,ENACT);
 		if (p->flags & PROC_ORPHAN)
 			status = 0;
 		else

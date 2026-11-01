@@ -2161,12 +2161,13 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			char always_true;
 			Namval_t *np;
 			Shbltin_f fp;
+			int  jmpval = ((struct checkpt*)sh.jmplist)->mode;
 #if SHOPT_FILESCAN
 			Sfio_t *volatile iop = NULL;
 			volatile int savein = -1;
+			int topfd = sh.topfd;
 #endif /* SHOPT_FILESCAN */
 #if SHOPT_OPTIMIZE
-			int  jmpval = ((struct checkpt*)sh.jmplist)->mode;
 			struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 			void *optlist = sh.optlist;
 			sh.optlist = NULL;
@@ -2245,9 +2246,12 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			if(iop)
 			{
 				sfclose(iop);
-				ast_close(0);
-				dup(savein);
+				dup2(savein,0);
+				sh_close(savein);
 				sh.cur_line = NULL;
+				fifo_cleanup();
+				if(sh.topfd > topfd)
+					sh_iorestore(topfd,jmpval);
 			}
 #endif /* SHOPT_FILESCAN */
 			break;

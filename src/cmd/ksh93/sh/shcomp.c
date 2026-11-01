@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
 	}
 	if(cp= *argv)
 	{
-		struct stat statb;
 		int fd;
+		struct stat statb;
 		if(!(out = sfopen(NULL,cp,"w")))
 		{
 			errormsg(SH_DICT,ERROR_system(1),"%s: cannot create",cp);
@@ -212,8 +212,9 @@ int main(int argc, char *argv[])
 	if(!sfeof(in))
 		sfmove(in,out,SFIO_UNBOUND,-1);
 	if(in!=sfstdin)
-		sfclose(in);
+		sfclose_batch(in,QUEUE);
 	if(out!=sfstdout)
-		sfclose(out);
+		sfclose_batch(out,QUEUE);
+	ast_close_batch(-1,ENACT);
 	return 0;
 }

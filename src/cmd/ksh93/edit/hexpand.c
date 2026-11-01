@@ -513,19 +513,20 @@ getsel:
 		if(str)
 		{
 			if(wm)
-				sfclose(wm);
+				sfclose_batch(wm,QUEUE);
 			wm = tmp;
 		}
 
 		if(cc && (flag&HIST_HASH))
 		{
 			/* close !# temp file */
-			sfclose(ref);
+			sfclose_batch(ref,QUEUE);
 			flag &= ~HIST_HASH;
 			free(cc);
 			cc = NULL;
 		}
 
+		ast_close_batch(-1,ENACT);
 		evp = cp;
 
 		/* selected line/words are now in buffer, now go for the modifiers */
@@ -713,7 +714,7 @@ done:
 	if(cc && (flag&HIST_HASH))
 	{
 		/* close !# temp file */
-		sfclose(ref);
+		sfclose_batch(ref,QUEUE);
 		free(cc);
 		cc = NULL;
 	}
@@ -736,9 +737,10 @@ done:
 	/* drop temporary files */
 
 	if(tmp && tmp != wm)
-		sfclose(tmp);
+		sfclose_batch(tmp,QUEUE);
 	if(tmp2)
-		sfclose(tmp2);
+		sfclose_batch(tmp2,QUEUE);
+	ast_close_batch(-1,ENACT);
 
 	return flag & HIST_ERROR ? HIST_ERROR : flag & HIST_FLAG_RETURN_MASK;
 }

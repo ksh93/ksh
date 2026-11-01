@@ -44,7 +44,7 @@
 static int		canexecute(char*,int);
 static void		funload(int,const char*);
 static noreturn void 	exscript(char*, char*[]);
-static int		checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,ptrdiff_t);
+static int		checkdotpaths(Pathcomp_t*,Pathcomp_t*,Pathcomp_t*,ptrdiff_t,close_mode_t);
 static void		checkdup(Pathcomp_t*);
 static Pathcomp_t	*defpath(void);
 
@@ -316,7 +316,7 @@ static char *dotpaths_lib(Pathcomp_t *pp, char *path)
 		if(last)
 			pcomp.len = (size_t)(last-path);
 		memcpy(save, stkptr(sh.stk,PATH_OFFSET+pcomp.len),sizeof(save));
-		if(checkdotpaths(NULL,NULL,&pcomp,PATH_OFFSET))
+		if(checkdotpaths(NULL,NULL,&pcomp,PATH_OFFSET,NOW))
 			return stkfreeze(sh.stk,1);
 		memcpy(stkptr(sh.stk,PATH_OFFSET+pcomp.len),save,sizeof(save));
 	}
@@ -357,7 +357,7 @@ static void checkdup(Pathcomp_t *pp)
 	{
 		ptrdiff_t offset = stktell(sh.stk);
 		sfputr(sh.stk,name,0);
-		checkdotpaths(first,NULL,pp,offset);
+		checkdotpaths(first,NULL,pp,offset,NOW);
 		stkseek(sh.stk,offset);
 	}
 }
@@ -483,12 +483,13 @@ static int	opentype(const char *name, Pathcomp_t *pp, int fun)
 			if(fstat(fd,&statb)<0 || S_ISDIR(statb.st_mode))
 			{
 				errno = EISDIR;
-				sh_close(fd);
+				sh_close_batch(fd,QUEUE);
 				fd = -1;
 			}
 		}
 	}
 	while(fd<0 && nextpp);
+	ast_close_batch(-1,ENACT);
 	if(fd>=0 && (fd = sh_iomovefd(fd,10)) > 0 && !(sh.fdstatus[fd]&IOCLEX))
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 	return fd;
@@ -1364,10 +1365,10 @@ static noreturn void exscript(char *path,char *argv[])
 	sh.st.ioset=0;
 	/* clean up any cooperating processes */
 	if(sh.cpipe[0] > -1)
-		sh_pclose(sh.cpipe);
+		sh_pclose_batch(sh.cpipe,QUEUE);
 	if(sh.cpid && sh.outpipe && *sh.outpipe > -1)
 	{
-		sh_close(*sh.outpipe);
+		sh_close_batch(*sh.outpipe,QUEUE);
 		*sh.outpipe = -1;
 	}
 	sh.cpid = 0;
@@ -1375,7 +1376,8 @@ static noreturn void exscript(char *path,char *argv[])
 		while(sfstack(sp,SFIO_POPSTACK));
 	job_clear();
 	if(sh.infd>0 && (sh.fdstatus[sh.infd]&IOCLEX))
-		sh_close(sh.infd);
+		sh_close_batch(sh.infd,QUEUE);
+	ast_close_batch(-1,ENACT);
 	sh_setstate(sh_state(SH_FORKED));
 	sfsync(sfstderr);
 	if((sh.infd = sh_open(path,O_RDONLY,0)) < 0)
@@ -1468,7 +1470,7 @@ static Pathcomp_t *path_addcomp(Pathcomp_t *first, Pathcomp_t *old,const char *n
 		return first;
 	}
 	if((old||sh.pathinit) &&  ((flag&(PATH_PATH|PATH_SKIP))==PATH_PATH))
-		checkdotpaths(first,old,pp,offset);
+		checkdotpaths(first,old,pp,offset,NOW);
 	return first;
 }
 
@@ -1476,7 +1478,7 @@ static Pathcomp_t *path_addcomp(Pathcomp_t *first, Pathcomp_t *old,const char *n
  * This function checks for the .paths file in directory in <pp>
  * it assumes that the directory is on the stack at <offset>
  */
-static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, ptrdiff_t offset)
+static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, ptrdiff_t offset, close_mode_t cmode)
 {
 	struct stat statb;
 	int fd;
@@ -1494,7 +1496,7 @@ static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, ptrd
 		if(!S_ISREG(statb.st_mode))
 		{
 			/* .paths cannot be a directory */
-			ast_close(fd);
+			ast_close_batch(fd,cmode);
 			return 0;
 		}
 		l = (size_t)statb.st_size;
@@ -1503,7 +1505,7 @@ static int checkdotpaths(Pathcomp_t *first, Pathcomp_t* old,Pathcomp_t *pp, ptrd
 		*sp++ = '/';
 		n=read(fd,cp=sp,l);
 		sp[n] = 0;
-		ast_close(fd);
+		ast_close_batch(fd,cmode);
 		for(ep=NULL; n--; cp++)
 		{
 			if(*cp=='=')
@@ -1675,12 +1677,13 @@ void path_newdir(Pathcomp_t *first)
 			stkseek(sh.stk,offset);
 			next = pp->next;
 			pp->next = NULL;
-			checkdotpaths(first,NULL,pp,offset);
+			checkdotpaths(first,NULL,pp,offset,QUEUE);
 			if(pp->next)
 				pp = pp->next;
 			pp->next = next;
 		}
 	}
+	ast_close_batch(-1,ENACT);
 }
 
 Pathcomp_t *path_unsetfpath(void)

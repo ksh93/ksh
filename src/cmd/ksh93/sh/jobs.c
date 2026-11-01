@@ -383,9 +383,10 @@ int job_reap(int sig)
 			if(pid==sh.cpid)
 			{
 				if(sh.coutpipe > -1)
-					sh_close(sh.coutpipe);
+					sh_close_batch(sh.coutpipe,QUEUE);
 				if(sh.cpipe[1] > -1)
-					sh_close(sh.cpipe[1]);
+					sh_close_batch(sh.cpipe[1],QUEUE);
+				ast_close_batch(-1,ENACT);
 				sh.coutpipe = sh.cpipe[1] = -1;
 			}
 			else if(sh.subshell)
@@ -1386,8 +1387,8 @@ int	job_wait(pid_t pid)
 	errno = 0;
 	if(sh.coutpipe>=0 && lastpid && sh.cpid==lastpid)
 	{
-		sh_close(sh.coutpipe);
-		sh_close(sh.cpipe[1]);
+		sh_close_batch(sh.coutpipe,QUEUE);
+		sh_close_batch(sh.cpipe[1],ENACT);
 		sh.cpipe[1] = sh.coutpipe = -1;
 	}
 	while(1)

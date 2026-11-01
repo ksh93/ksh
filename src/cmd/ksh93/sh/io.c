@@ -728,7 +728,7 @@ int sh_iorenumber(int f1,int f2)
 /*
  * close a file descriptor and update stream table and attributes
  */
-int sh_close(int fd)
+int sh_close_batch(int fd, close_mode_t mode)
 {
 	Sfio_t *sp;
 	int r = 0;
@@ -739,12 +739,10 @@ int sh_close(int fd)
 	}
 	if(fd >= sh.lim.open_max)
 		sh_iovalidfd(fd);
-	if(!(sp=sh.sftable[fd]) || sfclose(sp) < 0)
-	{
-		if(fdnotify)
-			(*fdnotify)(fd,SH_FDCLOSE);
-		r = ast_close(fd);
-	}
+	if(fdnotify)
+		(*fdnotify)(fd,SH_FDCLOSE);
+	if(!(sp=sh.sftable[fd]) || sfclose_batch(sp,mode) < 0)
+		r = ast_close_batch(fd,mode);
 	if(fd>2)
 		sh.sftable[fd] = NULL;
 	sh.fdstatus[fd] = IOCLOSE;
@@ -754,6 +752,11 @@ int sh_close(int fd)
 	if(fd < 10)
 		sh.inuse_bits &= ~(1<<fd);
 	return r;
+}
+
+int sh_close(int fd)
+{
+	return sh_close_batch(fd,NOW);
 }
 
 #ifdef O_SERVICE
@@ -1136,8 +1139,8 @@ static void pat_handoff(Sfio_t *sp)
 	sh.fdstatus[pv[1]] = IOWRITE|IONOSEEK;
 	if((pid = fork()) < 0)
 	{
-		sh_close(pv[0]);
-		sh_close(pv[1]);
+		sh_close_batch(pv[0],QUEUE);
+		sh_close_batch(pv[1],ENACT);
 		goto err;
 	}
 	if(pid==0)
@@ -1151,7 +1154,8 @@ static void pat_handoff(Sfio_t *sp)
 		signal(SIGPIPE, SIG_IGN);
 		for(i = 0; i < sh.lim.open_max; i++)
 			if(i!=fd && i!=pv[1] && sh.fdstatus[i]!=IOCLOSE)
-				ast_close(i);
+				ast_close_batch(i,QUEUE);
+		ast_close_batch(-1,ENACT);
 		/* The start of the matching record may have been read before the stream. */
 		if((!pat_redir || pat_redir->patheadlen==0
 			|| pat_write(pv[1], pat_redir->pathead, pat_redir->patheadlen)==0)
@@ -1172,20 +1176,26 @@ static void pat_handoff(Sfio_t *sp)
 		_exit(0);
 	}
 	/* Make the new pipe the input. */
-	sh_close(pv[1]);
+	sh_close_batch(pv[1],QUEUE);
 	if(pv[0]!=fd)
 	{
 		i = fcntl(fd, F_GETFD);
+#if _lib_dup3 && O_cloexec
+		dup3(pv[0], fd, (i & FD_CLOEXEC) ? O_cloexec : 0);
+#else
 		dup2(pv[0], fd);
 		if(i & FD_CLOEXEC)
 		{
 			/* dup2 clears the close-on-exec flag; restore it */
 			fcntl(fd,F_SETFD,FD_CLOEXEC);
-			sh.fdstatus[pv[0]] |= IOCLEX;
 		}
+#endif
+		if(i & FD_CLOEXEC)
+			sh.fdstatus[pv[0]] |= IOCLEX;
 		sh.fdstatus[fd] = sh.fdstatus[pv[0]];
-		sh_close(pv[0]);
+		sh_close_batch(pv[0],QUEUE);
 	}
+	ast_close_batch(-1,ENACT);
 	if(buf)
 		free(buf);
 	/* The input is unseekable again, so discard the sfdcseekable discipline. */
@@ -1424,13 +1434,19 @@ static Sfoff_t	file_offset(int fn, char *fname)
 /*
  * close a pipe
  */
-void sh_pclose(int pv[])
+void sh_pclose_batch(int pv[], close_mode_t mode)
 {
 	if(pv[0]>=2)
-		sh_close(pv[0]);
+		sh_close_batch(pv[0],mode);
 	if(pv[1]>=2)
-		sh_close(pv[1]);
+		sh_close_batch(pv[1],mode);
 	pv[0] = pv[1] = -1;
+}
+
+void sh_pclose(int pv[])
+{
+	sh_pclose_batch(pv,QUEUE);
+	ast_close_batch(-1,ENACT);
 }
 
 static char *io_usename(char *name, int *perm, int fno, int mode)
@@ -1445,9 +1461,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 		{
 			r = fstat(fd,&statb);
 			sh_close(fd);
-			if(r)
-				return NULL;
-			if(!S_ISREG(statb.st_mode))
+			if(r || !S_ISREG(statb.st_mode))
 				return NULL;
 			*perm = statb.st_mode&(RW_ALL|(S_IXUSR|S_IXGRP|S_IXOTH));
 		}
@@ -2138,9 +2152,10 @@ void	sh_iounsave(void)
 		else
 		{
 			sh.sftable[savefd] = NULL;
-			sh_close(savefd);
+			sh_close_batch(savefd,QUEUE);
 		}
 	}
+	ast_close_batch(-1,ENACT);
 	sh.topfd = newfd;
 }
 
@@ -2161,7 +2176,7 @@ void	sh_iorestore(int last, int jmpval)
 			if ((savefd = filemap[fd].save_fd) >= 0)
 			{
 				sh.sftable[savefd] = NULL;
-				sh_close(savefd);
+				sh_close_batch(savefd,QUEUE);
 			}
 			continue;
 		}
@@ -2171,7 +2186,7 @@ void	sh_iorestore(int last, int jmpval)
 			/* this should never happen */
 			savefd = filemap[fd].save_fd;
 			sh.sftable[savefd] = NULL;
-			sh_close(savefd);
+			sh_close_batch(savefd,ENACT);
 			return;
 		}
 		if(filemap[fd].tname == Empty && sh.exitval==0)
@@ -2181,16 +2196,19 @@ void	sh_iorestore(int last, int jmpval)
 		}
 		else if(filemap[fd].tname)
 			io_usename(filemap[fd].tname,NULL,origfd,sh.exitval?2:1);
-		sh_close(origfd);
+		sh_close_batch(origfd,AUXILIARY);
 		if ((savefd = filemap[fd].save_fd) >= 0)
 		{
-			sh_fcntl(savefd, F_DUPFD, origfd);
+#if _lib_dup3 && O_cloexec
+			sh_dup3(savefd,origfd,(sh.fdstatus[savefd]&IOCLEX)?O_cloexec:0);
+#else
+			sh_dup2(savefd,origfd);
+			if(sh.fdstatus[savefd]&IOCLEX)
+				fcntl(origfd,F_SETFD,FD_CLOEXEC);
+#endif
 			if(savefd==job.fd)
 				job.fd=origfd;
 			sh.fdstatus[origfd] = sh.fdstatus[savefd];
-			/* turn off close-on-exec if flag if necessary */
-			if(sh.fdstatus[origfd]&IOCLEX)
-				fcntl(origfd,F_SETFD,FD_CLOEXEC);
 			if(origfd<=2)
 			{
 				sfswap(sh.sftable[savefd],sh.sftable[origfd]);
@@ -2200,11 +2218,12 @@ void	sh_iorestore(int last, int jmpval)
 			else
 				sh.sftable[origfd] = sh.sftable[savefd];
 			sh.sftable[savefd] = NULL;
-			sh_close(savefd);
+			sh_close_batch(savefd,QUEUE);
 		}
 		else
-			sh.fdstatus[origfd] = IOCLOSE;
+			ast_close_batch(origfd,QUEUE);
 	}
+	ast_close_batch(-1,ENACT);
 	if(!flag)
 	{
 		/* keep file descriptors for subshell restore */
@@ -2972,6 +2991,41 @@ int sh_dup(int old)
 	}
 	return fd;
 }
+
+#undef dup2
+int sh_dup2(int old, int new)
+{
+	int fd = dup2(old,new);
+	if(fd==new)
+	{
+		if(sh.fdstatus[new] == IOCLOSE)
+			sh.fdstatus[new] = 0;
+		sh.fdstatus[fd] = (sh.fdstatus[old]&~IOCLEX);
+		if(fdnotify)
+			(*fdnotify)(new,fd);
+	}
+	return fd;
+}
+
+#if _lib_dup3
+#undef dup3
+int sh_dup3(int old, int new, int flags)
+{
+	int fd = dup3(old,new,flags);
+	if(fd==new)
+	{
+		if(sh.fdstatus[new] == IOCLOSE)
+			sh.fdstatus[new] = 0;
+		if(flags&O_cloexec)
+			sh.fdstatus[fd] = (sh.fdstatus[old]|IOCLEX);
+		else
+			sh.fdstatus[fd] = (sh.fdstatus[old]&~IOCLEX);
+		if(fdnotify)
+			(*fdnotify)(new,fd);
+	}
+	return fd;
+}
+#endif
 
 #undef fcntl
 int sh_fcntl(int fd, int op, ...)

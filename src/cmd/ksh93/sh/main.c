@@ -277,7 +277,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 		/* If the shell is initialised with std{in,out,err} closed, make the shell's FD state reflect that. */
 		for(i=0; i<=2; i++)
 			if(fcntl(i,F_GETFD,NULL)==-1 && errno==EBADF)	/* closed at OS level? */
-				sh_close(i); 				/* update shell FD state */
+				sh_close_batch(i,AUXILIARY); 		/* update shell FD state */
 	}
 	else
 	{

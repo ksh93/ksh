@@ -152,8 +152,9 @@ b_head(int argc, char** argv, Shbltin_t* context)
 			error(ERROR_system(0), "%s: read error", cp);
 	next:
 		if (fp != sfstdin)
-			sfclose(fp);
+			sfclose_batch(fp, QUEUE);
 	} while (cp = *argv++);
+	ast_close_batch(-1, ENACT);
 	if (sfsync(sfstdout))
 		error(ERROR_system(0), "write error");
 	return error_info.errors != 0;

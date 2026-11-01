@@ -7,6 +7,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: the <#PATTERN redirection operator lost input when reading from an
   external command via a pipe. Bug introduced on 2026-10-30.
 
+- Fixed a bug that caused filescan loops to leak file descriptors.
+
 2026-10-30:
 
 - Pipes connecting the commands of a pipeline are now always created using
