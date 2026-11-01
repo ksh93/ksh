@@ -1698,6 +1698,25 @@ w echo bar　uux\Ebiq
 u ^bar　quux\r\n$
 !
 
+tst $LINENO <<"!"
+L pattern redirection from a pipe with a prompt discipline function
+
+d 50
+p :test-1:
+# the 'return' command below longjmps, which is essential to trigger the infinite recursion bug
+w ulimit --cpu 2 2>/dev/null; function prompt.get { .sh.value=':x-!:'; return; }; PS1='$prompt '
+r PS1=
+p :x-2:
+w print -r -- hello | cat <#hello; print "GOOD"
+r llo; print "GOOD"
+r ^hello\r?\n$
+r ^GOOD\r?\n$
+p :x-3:
+w print OK
+r print OK
+r ^OK\r?\n$
+!
+
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
 
 foreground_tests
