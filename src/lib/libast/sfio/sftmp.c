@@ -99,7 +99,7 @@ static void _rmfiles(void)
 }
 
 static Sfdisc_t	Rmdisc =
-	{ NULL, NULL, NULL, _tmprmfile, NULL };
+	{ .exceptf = _tmprmfile };
 
 #endif /*_tmp_rmfail*/
 
@@ -235,12 +235,13 @@ Sfio_t* sftmp(size_t s)
 	Sfio_t		*f;
 	int		rv;
 	Sfnotify_f	notify = _Sfnotify;
+
+
+
 	static Sfdisc_t	Tmpdisc =
-			{ NULL, NULL, NULL, _tmpexcept,
+			{ .exceptf = _tmpexcept,
 #if _tmp_rmfail
-			  &Rmdisc
-#else
-			NULL
+			  .disc = &Rmdisc
 #endif
 			};
 

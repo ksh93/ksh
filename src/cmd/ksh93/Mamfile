@@ -655,6 +655,7 @@ make install virtual
 			prev FEATURE/options
 			prev include/defs.h
 			prev include/fcin.h
+			prev %{INCLUDE_AST}/sfdisc.h
 			prev %{INCLUDE_AST}/ls.h
 			prev %{INCLUDE_AST}/regex.h
 			prev include/variables.h
