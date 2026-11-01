@@ -95,9 +95,15 @@ main(void)
 	printf("#define strmode		_ast_strmode\n");
 #endif
 	/*
+	 * NetBSD and AST strtoi conflict, so remap.
+	 */
+	printf("#undef	strtoi\n");
+	printf("#define strtoi		_ast_strtoi\n");
+	printf("#undef	strtoui\n");
+	printf("#define strtoui		_ast_strtoui\n");
+	/*
 	 * overriding <stdlib.h> strto*() is problematic to say the least
 	 */
-
 #if _std_strtol
 #if !__CYGWIN__
 	printf("#undef	strtol\n");
