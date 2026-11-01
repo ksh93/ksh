@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
 	}
 	if(cp= *argv)
 	{
-		int fd;
 		struct stat statb;
+		int fd;
 		if(!(out = sfopen(NULL,cp,"w")))
 		{
 			errormsg(SH_DICT,ERROR_system(1),"%s: cannot create",cp);
