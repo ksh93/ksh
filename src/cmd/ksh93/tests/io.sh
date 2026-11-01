@@ -1322,7 +1322,7 @@ exp=$'10000\nend\nmore'
 	"(expected $(printf %q "$exp"), got $(printf %q "${got:0:80}")$( ((${#got} > 80)) && print -n '...' ))"
 
 # ======
-#
+# https://github.com/ksh93/ksh/pull/1071
 # Filescan loops shouldn't leak file descriptors
 if ((SHOPT_FILESCAN)); then
 	unset i
