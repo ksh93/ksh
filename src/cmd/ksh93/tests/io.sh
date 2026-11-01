@@ -1112,7 +1112,8 @@ got=$(set +x; eval '{ :; } >(: wrong)' 2>&1)
 exp='*: syntax error at line *: `>('\'' unexpected'
 [[ $got == $exp ]] || err_exit "'{ :; } >(: wrong)' throws incorrect syntax error" \
 	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-got=$(set +x; eval 'cat >out <(echo OK)' 2>&1; echo ===; cat out)
+got=$(set +x; ulimit -c 0; eval 'cat >out <(echo OK)' 2>&1; echo ===; cat out)
+#             ^^^^^^^^^^^ fork to fail gracefully on 93u+ 2012-08-01
 exp=$'===\nOK'
 [[ $got == "$exp" ]] || err_exit "process substitution nixes output redirection" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -1249,6 +1250,76 @@ then	printf 'first line\nsecond line\nthird line\n' > $tmp/fifo_patredir &
 	rm -f $tmp/fifo_patredir &
 else	warning "mkfifo failed; cannot test <# with read builtin via FIFO"
 fi
+
+# ======
+# The <#pattern redirection must let a non-shell command see the matching line and the
+# rest of the input. A pipe cannot be rewound, so the shell must read ahead and pass the
+# data that it read on to the command; before, that data was lost to external commands.
+exp=$'second line\nthird line'
+got=$(printf 'first line\nsecond line\nthird line\n' | sed -n p <# second*)
+[[ $got == "$exp" ]] || err_exit 'the <#pattern redirection loses input for external commands' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Also check that input beyond the shell's own read buffer is passed on correctly.
+exp=2000
+got=$(awk 'BEGIN { for(i=1;i<=2000;i++) print i; }' | sed -n '$p' <# 1999)
+[[ $got == "$exp" ]] || err_exit 'the <#pattern redirection loses input for external commands' \
+	"(expected $exp, got $(printf %q "$got"))"
+
+# <#pattern in a non-final pipeline component with an external command
+got=$(print $'1\n2\n3\n4\n5\n6\n7\n8\n9\n10' | command -x cat <#5 | head)
+exp=$'5\n6\n7\n8\n9\n10'
+[[ $got == "$exp" ]] || err_exit '<#pattern in non-final pipeline component' \
+        "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Same, but with input beyond the shell's read buffer, which the shell must read
+# ahead and pass on to the external command without losing any of it.
+got=$(awk 'BEGIN { for(i=1;i<=100;i++) print i; }' | command -x cat <#50 | head -1)
+[[ $got == 50 ]] || err_exit '<#pattern in non-final pipeline component loses input' \
+        "(expected 50, got $(printf %q "$got"))"
+
+# The same must work on an input pipe that never ends: the shell must not wait
+# for the input to end (which would hang).
+got=$(while :; do print no; done | command -x cat <#n? | head -1)
+[[ $got == no ]] || err_exit '<#pattern hangs on an input pipe that never ends' \
+        "(expected no, got $(printf %q "$got"))"
+
+# Skipping over a lot of input must not lose data, nor keep the skipped data
+# buffered (which could fill up the file system).
+got=$({ awk 'BEGIN { for(i=1;i<=400000;i++) print i; }' | command -x cat <#399999 | tail -1; } 5>/dev/null)
+[[ $got == 400000 ]] || err_exit '<#pattern loses input when skipping a long way' \
+        "(expected 400000, got $(printf %q "$got"))"
+
+# Input that a shell built-in has already read must not be passed on to a
+# non-shell command again. The shell reads ahead to find a <#pattern match, so
+# it has to keep track of how much of that read-ahead the built-in consumed.
+exp=$'x=b\nc\nd'
+got=$(printf 'a\nb\nc\nd\n' | { <#b; read -r x; print -r -- "x=$x"; command -x cat; })
+[[ $got == "$exp" ]] || err_exit 'input read by a built-in is passed on to a non-shell command again' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# The same when the input continues beyond what the shell has read ahead.
+got=$(awk 'BEGIN { for(i=1;i<=10000;i++) print i; }' | { <#5000; read -r x; print -r -- "x=$x"; command -x cat; })
+[[ $got == $'x=5000\n5001\n'* ]] || err_exit 'input read by a built-in is passed on to a non-shell command again' \
+	"(got $(printf %q "${got:0:80}")$( ((${#got} > 80)) && print -n '...' ))"
+n=$(print -r -- "$got" | wc -l)
+((n == 5001)) || err_exit 'input read by a built-in is passed on to a non-shell command again' \
+	"(expected 5001 lines, got $n)"
+unset n
+
+# A matching record that is longer than the shell's read buffer must be passed on
+# as a whole, also after a built-in has read part of the read-ahead.
+long=xxxxxxxxxx # length==10
+while	((${#long} < 10000))
+do	long+=$long
+done
+long=${long:0:10000}
+got=$(printf 'DISCARD LINE ONE\nDISCARD LINE TWO\n%s\nend\nmore\n' "$long" \
+	| { <#x*; read -r x; print -r -- "${#x}"; command -x cat; })
+unset long
+exp=$'10000\nend\nmore'
+[[ $got == "$exp" ]] || err_exit 'a matching record longer than the read buffer is not passed on correctly' \
+	"(expected $(printf %q "$exp"), got $(printf %q "${got:0:80}")$( ((${#got} > 80)) && print -n '...' ))"
 
 # ======
 exit $((Errors<125?Errors:125))

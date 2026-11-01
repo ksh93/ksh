@@ -84,6 +84,7 @@ extern void 	sh_pclose(int[]);
 extern void 	sh_iorestore(int,int);
 extern Sfio_t 	*sh_iostream(int,int);
 extern int	sh_redirect(struct ionod*,int);
+extern void	sh_pat_handoff(void);
 extern void 	sh_iosave(int,int,char*);
 extern int 	sh_iovalidfd(int);
 extern int	sh_iosafefd(int);

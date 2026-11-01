@@ -38,7 +38,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 
 ____________________________________________________________________________
 
-		ksh 93u+m/1.0.11 vs. ksh 93u+
+		ksh 93u+m/1.0.25 vs. ksh 93u+
 
 The following is a list of changes between ksh 93u+ 2012-08-01 and the new
 ksh 93u+m reboot that could cause incompatibilities in rare corner cases.
@@ -249,11 +249,11 @@ For more details, see the NEWS file and for complete details, see the git log.
 	now correctly converted to the current locale. For example, if the
 	locale on Linux/BSD/macOS is el_GR.ISO8859-7, echo $'\u03B1' now
 	outputs a Greek lower-case alpha encoded in ISO8859-7 ($'\xE1').
-	(Post-1.0 fix introduced in ksh 93u+m/1.0.11)
+	(Post-1.0 fix introduced in ksh 93u+m/1.0.25)
 
 39.	For scripts read from a pipe or other non-seekable input, there is
 	now a maximum line length of 2 MiB. (Post-1.0 change introduced in
-	ksh 93u+m/1.0.11, necessary to fix buffer overflows in the parser)
+	ksh 93u+m/1.0.25, necessary to fix buffer overflows in the parser)
 
 40.	In ${var%word} and ${var%%word}, an unescaped '|' in 'word' is no
 	longer incorrectly treated as an alternation operator without the
@@ -261,7 +261,7 @@ For more details, see the NEWS file and for complete details, see the git log.
 	literal character, as documented (and as was always the case in
 	${var#word} and ${var##word}). Scripts that rely on this bug should
 	be corrected to use, for example, ${var%@(word1|word2)} instead of
-	${var%word1|word2}. (Post-1.0 change introduced in ksh 93u+m/1.0.11)
+	${var%word1|word2}. (Post-1.0 change introduced in ksh 93u+m/1.0.25)
 
 41.	In the 'string' part of ${parameter/pattern/string},
 	${parameter//pattern/string}, ${parameter/#pattern/string} and
@@ -270,7 +270,13 @@ For more details, see the NEWS file and for complete details, see the git log.
 	in the result, and is now removed. Note that, apart from subpattern
 	references, escaping anything but '}' or '\' in 'string' was always
 	unnecessary, so removing any such escaping is compatible with all
-	ksh versions. (Post-1.0 change introduced in ksh 93u+m/1.0.11)
+	ksh versions. (Post-1.0 change introduced in ksh 93u+m/1.0.25)
+
+42.	ksh no longer uses socketpair(2) to handle shell pipes but now uses
+	pipe(2) like other shells. This resolves various incompatibilities,
+	particularly on Linux. Features that depended on the use of socketpairs
+	(the <# redirection and 'read -n') have been reimplemented to avoid
+	needing them. (Post-1.0 change introduced in ksh 93u+m/1.0.25)
 
 ____________________________________________________________________________
 

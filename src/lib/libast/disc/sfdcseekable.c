@@ -21,7 +21,7 @@
 
 /*	Discipline to make an unseekable read stream seekable
 **
-**	sfraise(f,SFSK_DISCARD,0) discards previous seek data
+**	sfraise(f,SFSK_DISCARD,NULL) discards previous seek data
 **	but seeks from current offset on still allowed
 **
 **	Written by Kiem-Phong Vo, kpv@research.att.com, 03/18/1998.

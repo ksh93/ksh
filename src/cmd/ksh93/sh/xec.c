@@ -1277,8 +1277,12 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						bp->sigset = 0;
 						bp->notify = 0;
 						bp->flags = ((flags & ARG_OPTIMIZE)!=0);
-						if(sh.subshell && nv_isattr(np,BLT_NOSFIO))
-							sh_subtmpfile();
+						if(nv_isattr(np,BLT_NOSFIO))
+						{
+							if(sh.subshell)
+								sh_subtmpfile();
+							sh_pat_handoff();
+						}
 						if(argn)
 							sh.exitval = (*sh.bltinfun)(argn,com,bp);
 						if(error_info.flags&ERROR_INTERACTIVE)

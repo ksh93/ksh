@@ -3926,10 +3926,10 @@ See
 .I Co-processes
 below.
 .TP
-.BI <# \^\^\^  (( expr ))
+.BI <# \^\^\^  (( offset ))
 Evaluate arithmetic expression
-.I expr\^
-and position file descriptor 0
+.I offset\^
+and position file descriptor 0 (standard input)
 to the resulting value
 bytes from the start of the file.
 The variables
@@ -3942,12 +3942,15 @@ respectively when evaluating
 .TP
 .BI ># \^\^\^ (( offset ))
 The same as
-.B <#
-except applies to file descriptor 1.
+.BI <# \^\^\^ (( offset ))
+except applies to file descriptor 1 (standard output).
 .TP
 .BI <# pattern
-Seeks forward to the beginning of the next line containing
+Seeks forward to the beginning of the next line that matches
 .IR pattern .
+The form of the pattern is the same as that used for pathname expansion (see
+.I "Pathname Expansion\^"
+above).
 .TP
 .BI <## pattern
 The same as

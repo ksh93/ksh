@@ -1130,6 +1130,8 @@ pid_t path_spawn(const char *opath,char **argv, char **envp, Pathcomp_t *libpath
 		errno = 0;
 		return -2;  /* treat like failure to spawn in sh_ntfork() except for the error message */
 	}
+	/* if <#pattern positioned a non-seekable input, pass the remaining input on to the command */
+	sh_pat_handoff();
 	/* leave room for inserting _= pathname in environment */
 	envp--;
 	/* save original pathname */
