@@ -1352,23 +1352,21 @@ void sh_pat_handoff(void)
 
 static int io_patseek(regex_t *rp, Sfio_t* sp, unsigned int flags)
 {
-	char	*cp;
-	int	fd = sffileno(sp), close_exec = sh.fdstatus[fd]&IOCLEX;
-	int	s = PIPE_BUF > SFIO_BUFSIZE ? SFIO_BUFSIZE : PIPE_BUF;
-	int	was_share = 0;
-	size_t	m, n;
+	int	fd = sffileno(sp);
+	short	save_prompt = sh.nextprompt;
+	sh.nextprompt = 0;
 	if(sh.fdstatus[fd]&IONOSEEK)
 		pat_scan(sp, rp, flags);
 	else
 	{
+		char	*cp;
+		int	s = PIPE_BUF > SFIO_BUFSIZE ? SFIO_BUFSIZE : PIPE_BUF;
+		int	was_share = 0;
+		size_t	m, n;
 		/*
 		 * Seekable input: read a buffer at a time until a record matches the
 		 * pattern, then seek back to the start of that record.
-		 *
-		 * In case we are reading from a pipe, temporarily set the IOCLEX status bit (even if
-		 * FD_CLOEXEC is not really set) to make piperead() call sfrd() instead of ed_read().
 		 */
-		sh.fdstatus[fd] |= IOCLEX;
 		if(fd==0)
 			was_share = sfset(sp,SFIO_SHARE,1);
 		while((cp=sfreserve(sp, -s, SFIO_LOCKR)) || (cp=sfreserve(sp,SFIO_UNBOUND, SFIO_LOCKR)))
@@ -1385,11 +1383,10 @@ static int io_patseek(regex_t *rp, Sfio_t* sp, unsigned int flags)
 			if(m<n || n==0)
 				break;
 		}
-		if(!close_exec)
-			sh.fdstatus[fd] &= ~IOCLEX;
 		if(fd==0 && !(was_share&SFIO_SHARE))
 			sfset(sp, SFIO_SHARE,0);
 	}
+	sh.nextprompt = save_prompt;
 	return 0;
 }
 
@@ -2371,8 +2368,6 @@ static ssize_t piperead(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 	sh_onstate(SH_TTYWAIT);
 	if(sh.readavail)
 		ret = pipereadavail(fd,buff,size);
-	else if(!(sh.fdstatus[fd]&IOCLEX) && (sfset(iop,0,0)&SFIO_SHARE))
-		ret = (ssize_t)ed_read(sh.ed_context, fd, (char*)buff, (int)size, 0);
 	else
 		ret = sfrd(iop,buff,size,handle);
 	sh_offstate(SH_TTYWAIT);
