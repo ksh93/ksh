@@ -1734,6 +1734,77 @@ w echo bar　uux\Ebiq
 u ^bar　quux\r\n$
 !
 
+tst $LINENO <<"!"
+L pattern redirection from a pipe with a prompt discipline function
+
+d 50
+p :test-1:
+# the 'return' command below longjmps, which is essential to trigger the infinite recursion bug
+w ulimit --cpu 2 2>/dev/null; function prompt.get { .sh.value=':x-!:'; return; }; PS1='$prompt '
+r PS1=
+p :x-2:
+w print -r -- hello | cat <#hello; print "GOOD"
+r llo; print "GOOD"
+r ^hello\r?\n$
+r ^GOOD\r?\n$
+p :x-3:
+w print OK
+r print OK
+r ^OK\r?\n$
+!
+
+tst $LINENO <<"!"
+L pattern redirection on terminal input with a built-in command
+# On a terminal, the shell searches the input as it is typed, and the command
+# reads the matching record and the rest of the input from the terminal one
+# record at a time, just as it would read them from a pipe. Afterwards, the
+# shell keeps reading its own commands from the terminal. Terminal echo is
+# turned off so that the typed records do not show up as output.
+
+d 50
+p :test-1:
+w stty -echo
+r stty -echo
+p :test-2:
+w /opt/ast/bin/cat <#MATCH
+w een
+w twee
+w MATCH
+r MATCH
+w drie
+r drie
+w vier
+r vier
+c \cD
+p :test-3:
+w print OK
+r OK
+!
+
+tst $LINENO <<"!"
+L pattern redirection on terminal input with an external command
+# The same with an external command. Identical behaviour expected.
+
+d 50
+p :test-1:
+w stty -echo
+r stty -echo
+p :test-2:
+w command -x cat <#MATCH
+w een
+w twee
+w MATCH
+r MATCH
+w drie
+r drie
+w vier
+r vier
+c \cD
+p :test-3:
+w print OK
+r OK
+!
+
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
 
 foreground_tests

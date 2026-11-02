@@ -7,6 +7,16 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed: the <#PATTERN redirection operator lost input when reading from an
   external command via a pipe. Bug introduced on 2026-10-30.
 
+- Fixed a longstanding bug: when using the <#PATTERN redirection operator on
+  an interactive shell, the shell entered into an infinite loop printing the
+  prompt without reading input from the terminal until it crashed.
+
+- Fixed another longstanding bug: the <#PATTERN redirection operator did not
+  work on terminal input in an interactive shell. The shell did not match a
+  typed line until end of input (^D), and it would then stop reading its own
+  commands from the terminal. Terminal input is now read and processed one
+  line at a time and matching on terminal input now works correctly.
+
 - Fixed a bug that caused filescan loops to leak file descriptors.
 
 2026-10-30:
