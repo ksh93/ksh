@@ -689,10 +689,11 @@ int sh_iorenumber(int f1,int f2)
 		}
 		else if(f2==0)
 			sh.st.ioset = 1;
-		sh_close(f2);
 		if(f2<=2 && sp)
 		{
-			Sfio_t *spnew = sh_iostream(f1,0);
+			Sfio_t *spnew;
+			sh_close(f2);
+			spnew = sh_iostream(f1,0);
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
 			sfsetfd(spnew,f2);
 			sfswap(spnew,sp);
@@ -700,8 +701,9 @@ int sh_iorenumber(int f1,int f2)
 		}
 		else
 		{
+			sh_close_batch(f2,AUXILIARY);
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
-			if((f2 = sh_fcntl(f1,F_DUPFD, f2)) < 0)
+			if((f2 = sh_dup2(f1, f2)) < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_file+4);
 				UNREACHABLE();
