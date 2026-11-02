@@ -298,10 +298,7 @@ int sh_comsubpipestdout(int wfd, int save)
 		clexec = sh.fdstatus[fd] & IOCLEX;
 		if(save)
 			sh_iosave(fd,indx,NULL);
-		sh_iorenumber(dupfd,fd);
-		/* sh_iorenumber() clears the close-on-exec flag; preserve it */
-		if(clexec)
-			sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
+		sh_iorenumber(dupfd,fd,clexec?IOCLEX:0,NOW);
 	}
 	return indx;
 }

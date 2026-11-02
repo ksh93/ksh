@@ -674,8 +674,12 @@ static void io_preserve(Sfio_t *sp, int f2)
  * If <f2> is needed move it, otherwise it is closed first.
  * The original stream <f1> is closed.
  * The new file descriptor <f2> is returned.
+ * If the IOCLEX bit is set for <clexec>, <f2> will be given
+ * the close-on-exec bit.
+ * <queue_mode> is passed along to sh_close for <f1>,
+ * which is called if <f1> != <f2>.
  */
-int sh_iorenumber(int f1,int f2)
+int sh_iorenumber(int f1,int f2,uint8_t clexec,close_mode_t queue_mode)
 {
 	Sfio_t *sp = sh.sftable[f2];
 	if(f1!=f2)
@@ -695,7 +699,13 @@ int sh_iorenumber(int f1,int f2)
 			sh_close(f2);
 			spnew = sh_iostream(f1,0);
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
-			sfsetfd(spnew,f2);
+			if(clexec & IOCLEX)
+			{
+				sfsetfd_cloexec(spnew,f2);
+				sh.fdstatus[f2] |= IOCLEX;
+			}
+			else
+				sfsetfd(spnew,f2);
 			sfswap(spnew,sp);
 			sfset(sp,SFIO_SHARE|SFIO_PUBLIC,1);
 		}
@@ -703,7 +713,14 @@ int sh_iorenumber(int f1,int f2)
 		{
 			sh_close_batch(f2,AUXILIARY);
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
-			if((f2 = sh_dup2(f1, f2)) < 0)
+#if _lib_dup3 && O_cloexec
+			f2 = sh_dup3(f1, f2, (clexec & IOCLEX) ? O_cloexec : 0);
+#else
+			f2 = sh_dup2(f1, f2);
+			if(f2 >= 0 && (clexec & IOCLEX))
+				sh_fcntl(f2, F_SETFD, FD_CLOEXEC);
+#endif
+			if(f2 < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_file+4);
 				UNREACHABLE();
@@ -714,14 +731,22 @@ int sh_iorenumber(int f1,int f2)
 		if(sp)
 			sh.sftable[f1] = NULL;
 		if(sh.fdstatus[f1]!=IOCLOSE)
-			sh_close(f1);
+			sh_close_batch(f1,queue_mode);
 	}
 	else if(sp)
 	{
-		sfsetfd(sp,f2);
+		if(clexec & IOCLEX)
+		{
+			sfsetfd_cloexec(sp,f2);
+			sh.fdstatus[f2] |= IOCLEX;
+		}
+		else
+			sfsetfd(sp,f2);
 		if(f2<=2)
 			sfset(sp,SFIO_SHARE|SFIO_PUBLIC,1);
 	}
+	else if(clexec & IOCLEX)
+		sh_fcntl(f2,F_SETFD,FD_CLOEXEC);
 	if(f2>=sh.lim.open_max)
 		sh_iovalidfd(f2);
 	return f2;
@@ -1977,7 +2002,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				}
 				else
 				{
-					fd = sh_iorenumber(sh_iomovefd(fd,3),fn);
+					fd = sh_iorenumber(sh_iomovefd(fd,3),fn,(fn>2&&clexec)?IOCLEX:0,NOW);
 					if(fn>2 && fn<10)
 						sh.inuse_bits |= (1<<fn);
 				}

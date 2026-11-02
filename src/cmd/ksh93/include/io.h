@@ -79,7 +79,7 @@
 extern uint8_t	sh_iocheckfd(int,ssize_t*);
 extern void 	sh_ioinit(void);
 extern int 	sh_iomovefd(int,int);
-extern int	sh_iorenumber(int,int);
+extern int	sh_iorenumber(int,int,uint8_t,close_mode_t);
 extern void 	sh_pclose(int[]);
 extern void 	sh_pclose_batch(int[],close_mode_t);
 extern void 	sh_iorestore(int,int);

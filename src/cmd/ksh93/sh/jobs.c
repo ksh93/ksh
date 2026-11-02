@@ -556,7 +556,7 @@ void job_init_tty(void)
 		if((fd = open(ttynam,O_RDWR)) <0)
 			return;
 		if(fd!=JOBTTY)
-			sh_iorenumber(fd,JOBTTY);
+			sh_iorenumber(fd,JOBTTY,0,NOW);
 		tcsetpgrp(JOBTTY,sh.pid);
 		job.mypgid = sh.pid;
 	}
