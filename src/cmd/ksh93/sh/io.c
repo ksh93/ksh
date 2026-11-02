@@ -1085,10 +1085,9 @@ static void pat_handoff(Sfio_t *sp)
 {
 	char		*buf = NULL, *cp;
 	char		rbuf[SFIO_BUFSIZE];
-	ssize_t		r;
 	size_t		buflen = 0, n;
 	Sfoff_t		cur, end;
-	int		fd = sffileno(sp), pv[2], i;
+	int		fd = sffileno(sp), pv[2];
 	pid_t		pid;
 	/*
 	 * Collect the data that has been read from the input but not consumed: what is
@@ -1142,13 +1141,15 @@ static void pat_handoff(Sfio_t *sp)
 	}
 	if(pid==0)
 	{
+		ssize_t		r;
+		int		i;
 		/*
 		 * This is the child (the helper process). It needs nothing but the input and
 		 * the new pipe. Close everything else to avoid, e.g., keeping the write end
 		 * of a pipeline's next pipe open after the command has finished. (Let's not
 		 * bother updating the shell's FD bookkeeping in this short-lived helper.)
 		 */
-		signal(SIGPIPE, SIG_IGN);
+		signal(SIGPIPE, SIG_DFL);  /* the helper should terminate reliably when parent closes the pipe */
 		for(i = 0; i < sh.lim.open_max; i++)
 			if(i!=fd && i!=pv[1] && sh.fdstatus[i]!=IOCLOSE)
 				ast_close(i);
@@ -1157,12 +1158,25 @@ static void pat_handoff(Sfio_t *sp)
 			|| pat_write(pv[1], pat_redir->pathead, pat_redir->patheadlen)==0)
 		&& (buflen==0 || pat_write(pv[1], buf, buflen)==0))
 		{
+			pid_t	fg;
+			int	joined = 0;
 			for(;;)
 			{
 				if((r = read(fd, rbuf, sizeof(rbuf))) < 0)
 				{
 					if(errno==EINTR)
 						continue;
+					/*
+					 * If the command runs in its own process group, join the terminal process group
+					 * so that this helper can read the terminal for as long as the command runs.
+					 * The shell reassumes control of the terminal once the command has finished.
+					 */
+					if(errno==EIO && !joined && (fg = tcgetpgrp(fd)) > 0
+					&& fg != getpgrp() && setpgid(0, fg) == 0)
+					{
+						joined = 1;
+						continue;
+					}
 					break;
 				}
 				if(r==0 || pat_write(pv[1], rbuf, (size_t)r) < 0)
@@ -1175,9 +1189,8 @@ static void pat_handoff(Sfio_t *sp)
 	sh_close(pv[1]);
 	if(pv[0]!=fd)
 	{
-		i = fcntl(fd, F_GETFD);
 		dup2(pv[0], fd);
-		if(i & FD_CLOEXEC)
+		if(sh.fdstatus[fd] & IOCLEX)
 		{
 			/* dup2 clears the close-on-exec flag; restore it */
 			fcntl(fd,F_SETFD,FD_CLOEXEC);
@@ -1189,7 +1202,8 @@ static void pat_handoff(Sfio_t *sp)
 	if(buf)
 		free(buf);
 	/* The input is unseekable again, so discard the sfdcseekable discipline. */
-	sfdisc(sp, SFIO_POPDISC);
+	if(!(sh.fdstatus[fd]&IOTTY))
+		sfdisc(sp, SFIO_POPDISC);
 	return;
   err:
 	if(buf)
@@ -1239,7 +1253,8 @@ static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
 	size_t	len = 0, max = 0, pos, part, n, consumed = 0;
 	int	matched = 0;
 	int	s = PIPE_BUF > SFIO_BUFSIZE ? SFIO_BUFSIZE : PIPE_BUF;
-	if(sfdcseekable(sp) < 0)
+	int	tty = sh.fdstatus[sffileno(sp)] & IOTTY;
+	if(!tty && sfdcseekable(sp) < 0)
 	{
 		pat_redir_free();
 		errormsg(SH_DICT,ERROR_system(1),"<#: cannot make input seekable");
@@ -1247,7 +1262,7 @@ static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
 	}
 	for(;;)
 	{
-		if(consumed >= PAT_SHADOW_MAX)
+		if(!tty && consumed >= PAT_SHADOW_MAX)
 		{
 			/*
 			 * The data passed over so far is not needed any more. The discipline
@@ -1266,7 +1281,12 @@ static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
 			}
 			consumed = 0;
 		}
-		if(!(cp = sfreserve(sp, -s, SFIO_LOCKR)) && !(cp = sfreserve(sp, SFIO_UNBOUND, SFIO_LOCKR)))
+		/*
+		 * Read a block at a time, but do not wait for a buffer to fill up (no negative <s>).
+		 * A terminal delivers input one line at a time, so waiting for a full buffer would
+		 * keep the search from matching an interactively typed input line.
+		 */
+		if(!(cp = sfreserve(sp, s, SFIO_LOCKR)) && !(cp = sfreserve(sp, SFIO_UNBOUND, SFIO_LOCKR)))
 			break;
 		n = (size_t)sfvalue(sp);
 		for(pos = 0; pos < n; pos += part)
@@ -1851,6 +1871,17 @@ int	sh_redirect(struct ionod *iop, int flag)
 					}
 					if(!sp)
 						sp = sh_iostream(fn,0);
+					if(fn<=2 && flag==0 && (fdstatus&IOTTY) && sh_isstate(SH_INTERACTIVE))
+					{
+						/*
+						 * On an interactive shell's terminal, the input is passed on to the
+						 * command through a pipe (see sh_pat_handoff()), so save the file
+						 * descriptor and its stream to be restored after the command.
+						 */
+						sh_iosave(fn, indx, NULL);
+						if(sfsetfd(sp, fn) < 0)
+							sp = sh_iostream(fn,0);
+					}
 					r=io_patseek(rp,sp,iof);
 					if(sp && flag==3)
 					{
