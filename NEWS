@@ -11,6 +11,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   an interactive shell, the shell entered into an infinite loop printing the
   prompt without reading input from the terminal until it crashed.
 
+- Fixed another longstanding bug: the <#PATTERN redirection operator did not
+  work on terminal input in an interactive shell. The shell did not match a
+  typed line until end of input (^D), and it would then stop reading its own
+  commands from the terminal. Terminal input is now read and processed one
+  line at a time and matching on terminal input now works correctly.
+
 2026-10-30:
 
 - Pipes connecting the commands of a pipeline are now always created using
