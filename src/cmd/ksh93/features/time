@@ -36,7 +36,7 @@ cat{
 	#define _def_time	1
 	/* BSD timeradd and timersub macros */
 	#if !defined(timeradd)
-	#define	timeradd(tvp, uvp, vvp)						\
+	#define	timeradd(tvp, uvp, vvp)					\
 	do {								\
 		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
 		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;	\
@@ -47,7 +47,7 @@ cat{
 	} while(0)
 	#endif
 	#if !defined(timersub)
-	#define	timersub(tvp, uvp, vvp)						\
+	#define	timersub(tvp, uvp, vvp)					\
 	do {								\
 		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
 		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\

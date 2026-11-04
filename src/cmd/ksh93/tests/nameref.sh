@@ -143,8 +143,8 @@ if	[[	$(typeset -A var1 var2
 		var1[sub1]=1 var2[sub2]=1
 		for i in var1 var2
 		do
-		        typeset -n array=$i
-		        print ${!array[*]}
+			typeset -n array=$i
+			print ${!array[*]}
 		done) != $'sub1\nsub2' ]]
 then 	err_exit 'for loop nameref optimization test2 error'
 fi
@@ -253,7 +253,7 @@ do	got=$($SHELL 2> /dev/null <<- ++EOF++
 	[[ $got != foo ]] && err_exit 'nameref x=a[$c] '"not working for c=$c (expected 'foo', got $(printf %q "$got"))"
 done
 for c in '=' '[' ']' '\' "'" '"' '<' '=' '('
-do      got=$($SHELL 2> /dev/null <<- ++EOF++
+do	got=$($SHELL 2> /dev/null <<- ++EOF++
 	i=\\$c;typeset -A a; a[\$i]=foo;b=a[\$i];typeset -n x=\$b; print "\$x"
 	++EOF++
 	)
@@ -400,7 +400,7 @@ function fun2
 }
 function fun3
 {
-       fun2 container #2> /dev/null
+       fun2 container
 }
 compound container
 fun3

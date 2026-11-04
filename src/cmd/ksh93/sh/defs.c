@@ -26,7 +26,15 @@
 #include	"jobs.h"
 #include	"shlex.h"
 
-Shell_t			sh = {0};
+Shell_t			sh = {
+	.cpipe[0] = -1,
+	.coutpipe = -1,
+#if _lib_openat
+	.pwdfd = -1,
+#endif
+	.radixpoint = '.',	/* pre-locale init */
+	.stk = stkstd
+};
 
 Dtdisc_t	_Nvdisc =
 {

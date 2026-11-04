@@ -48,7 +48,7 @@ Shscope_t	*sh_setscope(Shscope_t *\fIscope\fP);
 int		(*sh_fdnotify(int(*\fIfn\fP)(int,int)))(int,int);
 char		*sh_fmtq(const char *\fIstring\fP);
 Shwait_f	*sh_waitnotify(Shwait_f \fIfn\fP);
-void 		sh_delay(double \fIsec\fP, int \fIsflag\fP);
+void 		sh_delay(Sfdouble_t \fIsec\fP, int \fIsflag\fP);
 Sfio_t 		*sh_iogetiop(int \fIfd\fP, int \fImode\fP);
 int		sh_sigcheck(void);
 .ft R

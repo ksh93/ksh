@@ -48,15 +48,15 @@ make install virtual
 		done
 		make dllopen.c
 			make dlllib.h
-				prev %{INCLUDE_AST}/error.h
-				prev dlldefs.h
 				prev %{INCLUDE_AST}/ast.h
+				prev dlldefs.h
+				prev %{INCLUDE_AST}/error.h
 			done
 		done
 		make dllfind.c
-			prev %{INCLUDE_AST}/error.h
-			prev dlldefs.h
 			prev %{INCLUDE_AST}/ast.h
+			prev dlldefs.h
+			prev %{INCLUDE_AST}/error.h
 		done
 		make dllplug.c
 			prev dlllib.h
@@ -65,22 +65,21 @@ make install virtual
 			prev dlllib.h
 		done
 		make dllnext.c
-			prev dlldefs.h
 			prev %{INCLUDE_AST}/ast.h
+			prev dlldefs.h
 		done
 		make dlllook.c
-			prev dlldefs.h
-			prev %{INCLUDE_AST}/error.h
 			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/error.h
+			prev dlldefs.h
 		done
 		make dllscan.c
-			prev dlldefs.h
-			prev %{INCLUDE_AST}/vmalloc.h
-			prev %{INCLUDE_AST}/fts.h
-			prev %{INCLUDE_AST}/error.h
-			prev %{INCLUDE_AST}/endian.h
-			prev %{INCLUDE_AST}/cdt.h
 			prev %{INCLUDE_AST}/ast.h
+			prev %{INCLUDE_AST}/cdt.h
+			prev %{INCLUDE_AST}/error.h
+			prev %{INCLUDE_AST}/fts.h
+			prev %{INCLUDE_AST}/vmalloc.h
+			prev dlldefs.h
 		done
 		make dllcheck.c
 			prev dlllib.h

@@ -29,35 +29,34 @@ make install virtual
 	make libsum.a
 		make sumlib.o
 			make sumlib.c
-				make sum-sha2.c
-					prev %{INCLUDE_AST}/endian.h
-					prev %{INCLUDE_AST}/assert.h
+				make sum.h
+					prev %{INCLUDE_AST}/ast.h
 				done
-				makp sum-sha1.c
-				makp sum-md5.c
-				makp sum-lmd.c
-				make sum-prng.c
-					prev %{INCLUDE_AST}/fnv.h
-				done
-				makp sum-bsd.c
-				makp sum-ast4.c
+				prev %{INCLUDE_AST}/swap.h
+				prev %{INCLUDE_AST}/hashpart.h
 				make FEATURE/sum
 					makp features/sum
 					exec - iffe %{IFFEFLAGS} -v -c \
 					exec -  '%{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} %{LDFLAGS}' \
 					exec -	ref -I%{INCLUDE_AST} -I%{INSTALLROOT}/include %{mam_libast} : run %{<}
 				done
-				prev %{INCLUDE_AST}/hashpart.h
-				prev %{INCLUDE_AST}/swap.h
-				prev %{INCLUDE_AST}/endian.h
-				make sum.h
-					prev %{INCLUDE_AST}/ast.h
-				done
 				make sum-att.c
 					prev %{INCLUDE_AST}/ast.h
 				done
+				makp sum-ast4.c
+				makp sum-bsd.c
 				make sum-crc.c
 					prev %{INCLUDE_AST}/ast.h
+				done
+				make sum-prng.c
+					prev %{INCLUDE_AST}/fnv.h
+				done
+				makp sum-lmd.c
+				makp sum-md5.c
+				makp sum-sha1.c
+				make sum-sha2.c
+					prev %{INCLUDE_AST}/endian.h
+					prev %{INCLUDE_AST}/assert.h
 				done
 			done
 			exec - %{CC} %{mam_cc_FLAGS} %{CCFLAGS} %{mam_cc_NOSTRICTALIASING} -I. -I%{INCLUDE_AST} -c %{<}

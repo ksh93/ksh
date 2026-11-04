@@ -33,7 +33,7 @@ debug_fatal(const char* file, int line)
 	abort();
 }
 
-#if _sys_times && _lib_getrusage
+#if _lib_getrusage
 
 #include <times.h>
 #ifndef RUSAGE_SELF

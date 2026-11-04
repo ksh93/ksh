@@ -76,7 +76,7 @@ static int		comsub(Lex_t*,int);
 static void		nested_here(Lex_t*);
 static ptrdiff_t	here_copy(Lex_t*, struct ionod*);
 static int 		stack_grow(void);
-static const Sfdisc_t alias_disc = { NULL, NULL, NULL, alias_exceptf, NULL };
+static const Sfdisc_t alias_disc = { .exceptf = alias_exceptf };
 
 /* these were taken out of the Lex_t struct because they should never be saved and restored (see stack_grow()) */
 static int		lex_max, *lex_match;

@@ -32,7 +32,7 @@
 #include <ccode.h>
 #include <ctype.h>
 
-#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-08-14"
+#define OPTGET_VERSION	"optget (ksh 93u+m) 2026-10-14"
 
 #define KEEP		"*[A-Za-z][A-Za-z]*"
 #define OMIT		"*@(\\[[-+]*\\?*\\]|\\@\\(#\\)|Copyright \\(c\\)|\\$\\I\\d\\: )*"
@@ -322,7 +322,7 @@ static Msg_t		C_LC_MESSAGES_libast[] =
 	{ C("version") },
 };
 
-static Opt_t	_opt_info_ = { 0,NULL,NULL,0,NULL,0,0,{0},{0},NULL,0,0,0,&state };
+static Opt_t	_opt_info_ = { .state = &state };
 Opt_t*		_opt_infop_ = &_opt_info_;
 
 Optstate_t*
@@ -1693,7 +1693,7 @@ item(Sfio_t* sp, char* s, int about, int level, int style, Sfio_t* ip, int versi
 	{
 		par = 0;
 		if (style >= STYLE_nroff)
-			sfprintf(sp, ".DS\n");
+			sfprintf(sp, ".PP\n.EX\n");
 		else
 		{
 			if (style == STYLE_html)
@@ -1703,10 +1703,10 @@ item(Sfio_t* sp, char* s, int about, int level, int style, Sfio_t* ip, int versi
 			for (n = 0; n < level; n++)
 				sfputc(sp, '\t');
 		}
-		label(sp, 0, s + 1, about, -1, level, style, FONT_LITERAL, ip, version, id, catalog);
+		label(sp, 0, s + 1, about, -1, level, style, style >= STYLE_nroff ? 0 : FONT_LITERAL, ip, version, id, catalog);
 		sfputc(sp, '\n');
 		if (style >= STYLE_nroff)
-			sfprintf(sp, ".DE");
+			sfprintf(sp, ".EE\n");
 		else if (style == STYLE_html)
 			sfprintf(sp, "</PRE>");
 	}
@@ -2339,14 +2339,18 @@ get_terminal_width(void)
 {
 	char		*cp, *lastc, base = 10;
 	int		width = 0;
-	intmax_t	tmp;
+	long long	tmp;
+	int		oerrno = errno;
 
-	if ((cp = getenv("COLUMNS")) && (tmp = strtonll(cp,&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX)
+	errno = 0;
+	if ((cp = getenv("COLUMNS")) && (tmp = strtonll(cp,&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX && errno != ERANGE)
 		width = (int)tmp;
 	else
 		astwinsize(1, NULL, &width);
 	if (width < 20 || width > USHRT_MAX)
 		width = OPT_WIDTH;
+	if (!errno)
+		errno = oerrno;
 	return width;
 }
 
@@ -3666,16 +3670,6 @@ opthelp(const char* oopts, const char* what)
 \\\\$1 \\\\$2\n\
 .in 9n\n\
 ..\n\
-.de DS\n\
-.in +3n\n\
-.ft 5\n\
-.nf\n\
-..\n\
-.de DE\n\
-.fi\n\
-.ft R\n\
-.in -3n\n\
-..\n\
 "
 , ud
 , section
@@ -4212,7 +4206,7 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 	s = *p == '-' ? p : opt_info.name;
 	if (*p == '!')
 	{
-		while (*s == '-')
+		while (*s == '-' || *s == '+')
 			sfputc(mp, *s++);
 		sfputc(mp, 'n');
 		sfputc(mp, 'o');
@@ -4255,7 +4249,7 @@ opterror(char* p, int err, int version, char* id, char* catalog)
 		p = C("value not expected");
 	else if (*p == '?')
 		p = *(p + 1) == '?' ? C("optget: option not supported") : C("ambiguous option");
-	else if (*p == '+')
+	else if (*p == '+' && *(p + 1) != '+')
 		p = C("section not found");
 	else
 	{
@@ -5034,7 +5028,7 @@ optget(char** argv, const char* oopts)
 									if (*(a + 1) == '=')
 										a += 2;
 								}
-								x = -((int)strtol(a, &b, 0));
+								x = -strtoi(a, &b, 0);
 								if ((b - a) > (ssize_t)sizeof(opt_info.option) - 2)
 									b = a + (ssize_t)sizeof(opt_info.option) - 2;
 								memcpy(&opt_info.option[1], a, (size_t)(b - a));
@@ -5164,7 +5158,7 @@ optget(char** argv, const char* oopts)
 						}
 						if (*f == '=')
 						{
-							c = -((int)strtol(++f, &b, 0));
+							c = -strtoi(++f, &b, 0);
 							if ((b - f) > (ssize_t)sizeof(opt_info.option) - 2)
 								b = f + (ssize_t)sizeof(opt_info.option) - 2;
 							memcpy(&opt_info.option[1], f, (size_t)(b - f));
@@ -5195,7 +5189,7 @@ optget(char** argv, const char* oopts)
 								if (*(a + 1) == '=')
 									a += 2;
 							}
-							numchr = -((int)strtol(a, NULL, 0));
+							numchr = -strtoi(a, NULL, 0);
 						}
 					}
 				}
@@ -5572,7 +5566,7 @@ optget(char** argv, const char* oopts)
 										if (*(a + 1) == '=')
 											a += 2;
 									}
-									x = -((int)strtol(a, &b, 0));
+									x = -strtoi(a, &b, 0);
 								}
 								b = e;
 								a = s = skip(s, 0, 0, 0, 1, 0, 0, version);
@@ -5757,7 +5751,7 @@ optstr(const char* str, const char* opts)
 			sfputc(mp, '-');
 			sfputc(mp, '-');
 		}
-		if (isdigit(*s) && (v = (int)strtol(s, &e, 10)) > 1 && isspace(*e) && --v <= (ssize_t)strlen(s) && (s[v] == 0 || s[v] == '\n'))
+		if (isdigit(*s) && (v = strtoi(s, &e, 10)) > 1 && isspace(*e) && --v <= (ssize_t)strlen(s) && (s[v] == 0 || s[v] == '\n'))
 		{
 			s += v;
 			while (isspace(*++e));

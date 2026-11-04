@@ -18,7 +18,6 @@
 *                                                                      *
 ***********************************************************************/
 #include	"sfhdr.h"
-static char*	Version = "\n@(#)$Id: sfio (AT&T Labs - Research) 2009-09-15 $\0\n";
 
 /*	Functions to set a given stream to some desired mode
 **
@@ -60,8 +59,6 @@ static void _sfcleanup(void)
 	Sfio_t*		f;
 	int		n;
 	unsigned int	pool;
-
-	f = (Sfio_t*)Version; /* shut compiler warning */
 
 	/* set this so that no more buffering is allowed for write streams */
 	_Sfexiting = 1001;

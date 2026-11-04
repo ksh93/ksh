@@ -251,9 +251,9 @@ function winpath
 	usage='q pathname ...'
 	typeset var format=s
 	while   getopts  "$usage" var
-	do      case $var in
+	do	case $var in
 		q)      format=q;;
-	        esac
+		esac
 	done
 	print done
 }
@@ -269,8 +269,8 @@ function x
 	print "$@"
 }
 typeset -ft x
-if      [[ $(x x=y 2>/dev/null) != x=y ]]
-then    err_exit 'name=value pair args not passed to traced functions'
+if	[[ $(x x=y 2>/dev/null) != x=y ]]
+then	err_exit 'name=value pair args not passed to traced functions'
 fi
 function bad
 {
@@ -870,7 +870,7 @@ sub()
 	(
 		OPTIND=1
 		while getopts :abc OPTION "$@"
-		do      print OPTIND=$OPTIND
+		do	print OPTIND=$OPTIND
 		done
 	)
 }
@@ -1181,9 +1181,9 @@ func2
 { $SHELL <<- \EOF
 	function foo
 	{
-	        typeset rc=0
-		unset -f foo
-		return $rc;
+	 	typeset rc=0
+	 	unset -f foo
+	 	return $rc;
 	}
 	foo
 EOF
@@ -1205,7 +1205,7 @@ function foo
 	while getopts hi: opt
 	do	case $opt in
 		h)	hflag=1;;
-	        i)	[[ $OPTARG == foobar ]] || err_exit 'OPTARG should be set to foobar in function foo';;
+		i)	[[ $OPTARG == foobar ]] || err_exit 'OPTARG should be set to foobar in function foo';;
 		esac
 	done
 	shift $((OPTIND - 1))

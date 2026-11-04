@@ -111,8 +111,10 @@ int sh_lookopt(const char *sp, int *invert)
 			{
 				if(!*s || *s=='=')
 				{
-					if (*s == '=' && !strtol(s+1, NULL, 0))
+					int oerrno = errno;
+					if (*s == '=' && !strtol(s+1, NULL, 0) && errno != ERANGE)
 						no = !no;
+					errno = oerrno;
 					if (!*t)
 					{
 						*invert ^= no;
@@ -296,7 +298,7 @@ static char	*sh_fmtcsv(const char *string)
 /*
  * Returns false if c is an invisible Unicode character, excluding ASCII space.
  */
-static int	sh_isprint(int c)
+int	sh_isprint(int c)
 {
 	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
 		return isprint(c);			/* use plain isprint(3) */
@@ -312,6 +314,13 @@ static int	sh_isprint(int c)
 			c == 0x3000))			/* ideographic space */
 		return 0;
 	return iswgraph((wint_t)c);
+}
+
+int	sh_isspace(int c)
+{
+	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
+		return isspace(c);			/* use plain isprint(3) */
+	return iswspace((wint_t)c);
 }
 
 /*

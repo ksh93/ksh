@@ -156,9 +156,9 @@ typeset -Z  LAST=00
 unset -f foo
 function foo
 {
-	if [[ $1 ]]
-	then    LAST=$1
-	else    ((LAST++))
+	if	[[ $1 ]]
+	then	LAST=$1
+	else	((LAST++))
 	fi
 }
 foo 1

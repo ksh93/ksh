@@ -29,6 +29,10 @@
 # setting TMOUT in a virtual subshell removes its special meaning
 # https://github.com/ksh93/ksh/issues/782
 (
+	if	! { true </dev/tty; } 2>/dev/null
+	then	warning "no tty -- TMOUT test skipped"
+		exit 0
+	fi
 	typeset -F s=SECONDS
 	"$SHELL" -c 'TMOUT=2; (TMOUT=3); TMOUT=1; read v' </dev/tty
 	((SECONDS < s + 2))
@@ -386,7 +390,7 @@ if	(( $# !=1 ))
 then	err_exit	'"${@-}" not expanding to null string'
 fi
 for i in : % + / 3b '**' '***' '@@' '{' '[' '}' !!  '*a' '$foo'
-do      (eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
+do	(eval : \${"$i"} 2> /dev/null) && err_exit "\${$i} not a syntax error"
 done
 
 # ___ begin: IFS tests ___
@@ -799,7 +803,7 @@ function foo.set
 {
 	case ${.sh.subscript} in
 	bar)	if	((.sh.value > 1 ))
-	        then	.sh.value=5
+		then	.sh.value=5
 			foo[barrier_hit]=yes
 		fi
 		;;
@@ -1242,7 +1246,7 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	do	exp=$(set +x; eval "echo \${foo${op}${word}}" 2>&1)
 		if	[[ $exp != "$word" ]]
 		then	err_exit "\${foo${op}${word}} when foo is not set: expected \"$word\", got \"$exp\""
-	        fi
+		fi
 	done
 done
 
@@ -1286,7 +1290,7 @@ do	for word in '(word)' 'w(or)d' '(wor)d' 'w(ord)' 'w(ord' 'wor)d'
 	do	got=$(set +x; eval "echo \${2${op}${word}}" 2>&1)
 		if	[[ $got != "$word" ]]
 		then	err_exit "\${2${op}${word}} when PP 2 is not set: expected \"$word\", got \"$got\""
-	        fi
+		fi
 	done
 done
 
@@ -1887,6 +1891,69 @@ chmod +x unset_execute_test
 	.sh.version .sh.file .sh.subshell .sh.lineno .sh.math .sh.pid .sh.ppid); } 2>/dev/null
 [[ e=$? -eq 0 ]] || err_exit "unset_execute_test crashes (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e"))"
 eval "$errors"
+
+# ======
+# A subshell that redefines a discipline function on a variable must not take
+# the parent's own definition of it along when the subshell exits.
+got=$("$SHELL" -c '
+	var.get() { .sh.value=main; }
+	print $var
+	(
+		var.get() { .sh.value=sub; }
+		print $var
+	)
+	print $var
+')
+exp=$'main\nsub\nmain'
+[[ $got == "$exp" ]] || err_exit "subshell redefining a discipline function loses the parent's" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# ======
+# .sh.level scoping in DEBUG trap
+# A, B, C, D, E should all print LOCAL5
+exp='A: LOCAL5
+d1a: 4 LOCAL3
+d1b: 4 LOCAL3
+B: LOCAL5
+d2a: 2 LOCAL1
+d2b: 2 LOCAL1
+C: LOCAL5
+d3a: 5 LOCAL5
+d3b: 5 LOCAL5
+D: LOCAL5
+d4a: 3 LOCAL3
+d4b: 3 LOCAL3
+E: LOCAL5
+g: GLOBAL'
+got=$(set +x; { "$SHELL" -c '
+	scope=GLOBAL
+	function dummy { :; }
+	function f1 { typeset scope=LOCAL1; f2; }
+	f2() { f3; }
+	function f3 { typeset scope=LOCAL3; f4; }
+	f4() { f5; }
+	function f5 {
+		typeset scope=LOCAL5
+		echo A: $scope
+		trap '\''.sh.level=4; echo d1a: ${.sh.level} $scope; . dummy; echo d1b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo B: $scope
+		trap '\''.sh.level=2; echo d2a: ${.sh.level} $scope; . dummy; echo d2b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo C: $scope
+		trap '\''.sh.level=5; echo d3a: ${.sh.level} $scope; . dummy; echo d3b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo D: $scope
+		trap '\''.sh.level=3; echo d4a: ${.sh.level} $scope; . dummy; echo d4b: ${.sh.level} $scope'\'' DEBUG
+		trap - DEBUG
+		echo E: $scope
+	}
+	f1
+	echo g: $scope
+'; } 2>&1)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit '.sh.level scoping in DEBUG trap' \
+	"(expected status 0 and output $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and output $(printf %q "$got"))"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)

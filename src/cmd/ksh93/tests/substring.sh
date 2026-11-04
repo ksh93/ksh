@@ -163,12 +163,12 @@ then	err_exit 'closing brace escape not working'
 fi
 xx=%28text%29
 if	[[ ${xx//%28/abc\)} != 'abc)text%29' ]]
-then	 err_exit '${xx//%28/abc\)} not working'
+then	err_exit '${xx//%28/abc\)} not working'
 fi
 xx='a:b'
 str='(){}[]*?|&^%$#@l'
 for ((i=0 ; i < ${#str}; i++))
-do      [[ $(eval print -r -- \"\${xx//:/\\${str:i:1}}\") == "a${str:i:1}b" ]] || err_exit "substitution of \\${str:i:1}} failed"
+do	[[ $(eval print -r -- \"\${xx//:/\\${str:i:1}}\") == "a${str:i:1}b" ]] || err_exit "substitution of \\${str:i:1}} failed"
 	[[ $(eval print -rn -- \"\${xx//:/\'${str:i:1}\'}\") == "a${str:i:1}b" ]] || err_exit "substitution of '${str:i:1}' failed"
 	[[ $(eval print -r -- \"\${xx//:/\"${str:i:1}\"}\") == "a${str:i:1}b" ]] || err_exit "substitution of \"${str:i:1}\" failed"
 done
@@ -925,6 +925,28 @@ got=${s%d|e*}
 
 got=${s%@(d|e)*}
 [[ $got == 'ab|cd|' ]] || err_exit "\${s%@(d|e)*}: pattern-list alternation broken (got $(printf %q "$got"))"
+
+# ======
+# Apart from back references, an escaping backslash should
+# be removed before any character in the replacement string
+# https://github.com/ksh93/ksh/issues/909
+foo=one/two/three
+chars=' !"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~w'
+typeset -i i L=${#chars}
+for ((i=0; i<L; i++))
+do	c=${chars:i:1}
+	eval "got=\${foo//o/\\$c}"
+	exp=${c}ne/tw${c}/three
+	[[ $got == "$exp" ]] || err_exit "backslash not removed from \\$c in replacement string" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	# ... even if the replacement string itself contains a ~(...) introducer,
+	# which must not turn it into a pattern that preserves the backslash
+	eval "got=\${foo//o/~(E)\\$c}"
+	exp="~(E)${c}ne/tw~(E)${c}/three"
+	[[ $got == "$exp" ]] || err_exit "backslash not removed from \\$c after ~(E) in replacement string" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+unset foo chars c i L
 
 # ======
 exit $((Errors<125?Errors:125))

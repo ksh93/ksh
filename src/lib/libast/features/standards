@@ -99,8 +99,6 @@ elif tst note{ SunOS (Solaris, illumos) }end compile{
 		 * defining recommended standards macros will disable functionality that
 		 * libast depends on. Instead we define unofficial _XPG* macros that enable
 		 * up-to-date declarations and functionality in Solaris system headers.
-		 * (Note that we must also avoid passing any -std=... flag to the compiler,
-		 * because that will disable essential functionality as well.)
 		 */
 		#define _XPG7
 		#define	_XPG6

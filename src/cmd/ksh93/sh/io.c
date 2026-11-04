@@ -29,6 +29,7 @@
 #include	"FEATURE/options"
 #include	"defs.h"
 #include	<fcin.h>
+#include	<sfdisc.h>
 #include	<ls.h>
 #include	<stdarg.h>
 #include	<regex.h>
@@ -88,19 +89,6 @@ static int	(*fdnotify)(int,int);
 #   if !defined(htonl) && !_lib_htonl
 #      define htonl(x)	(x)
 #   endif
-#   if _pipe_socketpair && !_stream_peek
-#      ifndef SHUT_RD
-#         define SHUT_RD         0
-#      endif
-#      ifndef SHUT_WR
-#         define SHUT_WR         1
-#      endif
-#      if _socketpair_shutdown_mode
-#         define socketpipe(v,f) ((socketpair(AF_UNIX,SOCK_STREAM|((f)?SOCK_CLOEXEC:0),0,v)<0||shutdown((v)[1],SHUT_RD)<0||fchmod((v)[1],S_IWUSR)<0||shutdown((v)[0],SHUT_WR)<0||fchmod((v)[0],S_IRUSR)<0)?(-1):0)
-#      else
-#         define socketpipe(v,f) ((socketpair(AF_UNIX,SOCK_STREAM|((f)?SOCK_CLOEXEC:0),0,v)<0||shutdown((v)[1],SHUT_RD)<0||shutdown((v)[0],SHUT_WR)<0)?(-1):0)
-#      endif
-#   endif
 
 #if !_lib_getaddrinfo
 
@@ -147,7 +135,7 @@ getaddrinfo(const char *restrict node,
 		return EAI_SYSTEM;
 	}
 	ip_addr = (unsigned long)((struct in_addr*)hp->h_addr)->s_addr;
-	if ((n = strtol(service, &prot, 10)) > 0 && n <= USHRT_MAX && !*prot)
+	if ((n = strtol(service, &prot, 10)) > 0 && n <= USHRT_MAX && !*prot && errno != ERANGE)
 		ip_port = htons((unsigned short)n);
 	else
 	{
@@ -219,17 +207,14 @@ static int	onintr(struct addrinfo*);
 static int
 inetopen(const char* path, int flags)
 {
-	char*		s;
-	char*		t;
+	char			*s, *t, *tofree;
 	int			fd;
 	int			oerrno;
-	struct addrinfo		hint;
+	struct addrinfo		hint = { .ai_family = PF_UNSPEC };
 	struct addrinfo*	addr;
 	struct addrinfo*	p;
 	int			server = !!(flags&O_SERVICE);
 
-	memset(&hint, 0, sizeof(hint));
-	hint.ai_family = PF_UNSPEC;
 	switch (path[0])
 	{
 #ifdef IPPROTO_SCTP
@@ -268,17 +253,19 @@ inetopen(const char* path, int flags)
 	}
 	if(flags==O_NONBLOCK)
 		return 1;
-	s = sh_strdup(path);
+	tofree = s = sh_strdup(path);
 	if (t = strchr(s, '/'))
 	{
 		*t++ = 0;
 		if (streq(s, "local"))
-			s = sh_strdup("localhost");
+			s = "localhost";
+		else
+			t = (char*)path + (t - s);	/* POSIX requires getaddrinfo()'s arguments not overlap */
 		fd = getaddrinfo(s, t, &hint, &addr);
 	}
 	else
 		fd = -1;
-	free(s);
+	free(tofree);
 	if (fd)
 	{
 		if (fd != EAI_SYSTEM)
@@ -416,7 +403,7 @@ int  sh_iovalidfd(int fd)
 	if(n > max)
 		n = (int)max;
 	max = sh.lim.open_max;
-	sh.sftable = (Sfio_t**)sh_calloc((size_t)(n+1)*(sizeof(int*)+sizeof(Sfio_t*)+1),1);
+	sh.sftable = sh_calloc((size_t)(n + 1) * (sizeof(int*) + sizeof(Sfio_t*) + sizeof(uint8_t)), 1);
 	if(max)
 		memcpy(sh.sftable,sftable,(size_t)max*sizeof(Sfio_t*));
 	sh.fdptrs = (int**)(&sh.sftable[n]);
@@ -455,6 +442,12 @@ int  sh_iosafefd(int min_fd)
 	return min_fd;
 }
 
+/*
+ * Check if a file descriptor is in use by the shell's internal machinery
+ * (e.g., saved redirections from filemap[].save_fd; the coprocess file
+ * descriptors in sh.cpipe[] and sh.coutpipe). Note that sh.fdptrs is not
+ * set by user redirections.
+ */
 int  sh_inuse(int fd)
 {
 	return fd < sh.lim.open_max && sh.fdptrs[fd];
@@ -468,8 +461,8 @@ void sh_ioinit(void)
 	sh.sftable[1] = sfstdout;
 	sh.sftable[2] = sfstderr;
 	sfnotify(sftrack);
-	/* init standard input (0) stream, potentially for reading a script */
-	sh_iostream(0,1);
+	/* init standard input (0) stream, in script mode if a script will be read from it */
+	sh_iostream(0, sh_isoption(SH_SFLAG) && !sh.comdiv);
 	/* init standard output (1) stream */
 	sh_iostream(1,0);
 	/* all write streams are in the same pool and share outbuff */
@@ -547,8 +540,8 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	Sfdisc_t *dp;
 	size_t iobsize = IOBSIZE;
 	char scriptpipe = 0;
-	if (read_script && !sh_isoption(SH_SFLAG))
-		read_script = 0;
+	if (read_script && fd < sh.lim.open_max && (sh.fdstatus[fd] & IOSCRIPT))
+		return sh.sftable[fd];  /* already done */
 	status = sh_iocheckfd(fd, read_script ? &filesize : NULL);
 	if (read_script && (status & IOTTY))
 		read_script = 0;
@@ -634,6 +627,10 @@ Sfio_t *sh_iostream(int fd, int read_script)
 	}
 	sfdisc(iop,dp);
 	sh.sftable[fd] = iop;
+	if(read_script)
+		sh.fdstatus[fd] |= IOSCRIPT;
+	else
+		sh.fdstatus[fd] &= ~IOSCRIPT;
 	return iop;
 }
 
@@ -811,8 +808,8 @@ int sh_open(const char *path, int flags, ...)
 			{
 				if(flags==O_NONBLOCK)
 					return 1;
-				fd = (int)strtol(path+8, &e, 10);
-				if (*e)
+				fd = strtoi(path+8, &e, 10);
+				if (*e || errno==ERANGE)
 					fd = -1;
 			}
 			break;
@@ -946,49 +943,13 @@ int sh_iomovefd(int fdold, int minfd)
 	return fdnew;
 }
 
+#if !_lib_pipe2 || !O_cloexec
+#    define pipe2(a,b)	pipe(a)
+#endif
 /*
  * create a pipe and print message on failure
  */
 int	sh_pipe(int pv[], int cloexec)
-{
-	int fd[2];
-	uint8_t fdcloexec = 0;
-#ifndef socketpipe
-	return sh_rpipe(pv,cloexec);
-#else
-	if(sh_isoption(SH_POSIX))
-		return sh_rpipe(pv,cloexec);
-	if(socketpipe(fd,cloexec)<0 || (pv[0]=fd[0])<0 || (pv[1]=fd[1])<0)
-	{
-		errormsg(SH_DICT,ERROR_system(1),e_pipe);
-		UNREACHABLE();
-	}
-	if(cloexec)
-		fdcloexec = IOCLEX;
-	if(SOCK_CLOEXEC==0 && cloexec)
-	{
-		if(pv[0]>2)
-			fcntl(pv[0],F_SETFD,FD_CLOEXEC);
-		if(pv[1]>2)
-			fcntl(pv[1],F_SETFD,FD_CLOEXEC);
-	}
-	sh.fdstatus[pv[0]] = IONOSEEK|IOREAD|fdcloexec;
-	sh.fdstatus[pv[1]] = IONOSEEK|IOWRITE|fdcloexec;
-	if(pv[0]<=2)
-		pv[0] = sh_iomovefd(pv[0],3);
-	if(pv[1]<=2)
-		pv[1] = sh_iomovefd(pv[1],3);
-	sh_subsavefd(pv[0]);
-	sh_subsavefd(pv[1]);
-	return 0;
-#endif /* socketpipe */
-}
-
-#if !_lib_pipe2 || !O_cloexec
-#    define pipe2(a,b)	pipe(a)
-#endif
-/* create a real pipe when pipe() is socketpair */
-int	sh_rpipe(int pv[], int cloexec)
 {
 	int fd[2];
 	uint8_t fdcloexec = 0;
@@ -1016,47 +977,436 @@ int	sh_rpipe(int pv[], int cloexec)
 	return 0;
 }
 
+/*
+ * Plumbing for <# pattern-matching redirections over Unix pipes
+ */
+
+static struct _pat_redir_over_pipe_
+{
+	Sfio_t		*patstream;	/* stream holding input for the next non-shell command */
+	int		patfd;		/* its file descriptor */
+	Sfdisc_t	*patdisc;	/* the seekable discipline pushed onto it */
+	char		*pathead;	/* part of the matching record read before the current buffer */
+	size_t		patheadlen;	/* its length */
+} *pat_redir;
+
+static inline void pat_redir_init(void)
+{
+	if(pat_redir)
+		return;
+	pat_redir = sh_calloc(1, sizeof(struct _pat_redir_over_pipe_));
+	pat_redir->patfd = -1;
+}
+
+static void pat_redir_free(void)
+{
+	if(!pat_redir)
+		return;
+	if(pat_redir->pathead)
+		free(pat_redir->pathead);
+	free(pat_redir);
+	pat_redir = NULL;
+}
+
+/*
+ * Match an input line against the given <# patten
+ */
 static size_t pat_line(const regex_t* rp, const char *buff, size_t n)
 {
 	const char *cp=buff, *sp;
 	while(n>0)
 	{
 		sp = cp;
-		while(n>0 && *cp++ != '\n')
+		while(n>0 && *cp!='\n')
+		{
+			cp++;
 			n--;
+		}
+		if(n>0)
+		{
+			/* include the terminating newline */
+			cp++;
+			n--;
+		}
 		if(regnexec(rp,sp,(size_t)(cp-sp), 0, NULL, 0)==0)
 			return (size_t)(sp-buff);
 	}
 	return (size_t)(cp-buff);
 }
 
+/*
+ * How much input to skip over before throwing away the discipline's shadow
+ * copy of it. Without this, skipping infinite input that does not match
+ * would keep writing that copy to a temporary file until the disk is full.
+ */
+#define PAT_SHADOW_MAX	(256*1024)
+
+/*
+ * Write <n> bytes from <buff> to file descriptor <fd>, ignoring interrupts.
+ * Returns -1 if the data could not be written.
+ */
+static int pat_write(int fd, const char *buff, size_t n)
+{
+	ssize_t	w;
+	while(n > 0)
+	{
+		if((w = write(fd, buff, n)) < 0)
+		{
+			if(errno==EINTR)
+				continue;
+			return -1;
+		}
+		buff += w;
+		n -= (size_t)w;
+	}
+	return 0;
+}
+
+/*
+ * Hand the input that a <#pattern redirection positioned over to an external
+ * command or a built-in flagged with BLT_NOSFIO. As those commands can't
+ * access the shell's Sfio streams, they read the file descriptor itself, so
+ * they don't see the data that the shell has read from it and is holding in
+ * the stream buffer.
+ *
+ * A pipe cannot be rewound, so data that has been read from it cannot be put
+ * back, but the command must still see it. Collect it, pass it together with
+ * the rest of the input to a helper process, which writes it to a new pipe and
+ * then copies the rest of the input to that pipe. The new pipe becomes the
+ * input.
+ *
+ * This keeps the input streaming: no matter how much input follows, the shell
+ * holds no more than it has already read ahead, and nothing is written to the
+ * file system. Forking the helper process is the only way to do this, as a pipe
+ * cannot be rewound and only another process can pass on the rest of the input
+ * while the command reads it.
+ */
+static void pat_handoff(Sfio_t *sp)
+{
+	char		*buf = NULL, *cp;
+	char		rbuf[SFIO_BUFSIZE];
+	size_t		buflen = 0, n;
+	Sfoff_t		cur, end;
+	int		fd = sffileno(sp), pv[2];
+	pid_t		pid;
+	/*
+	 * Collect the data that has been read from the input but not consumed: what is
+	 * still sitting in the stream's buffer, and what the sfdcseekable discipline
+	 * has read from the input beyond that. This has to be taken from the stream
+	 * rather than from a copy of what was read ahead when the match was found,
+	 * because a shell built-in may have read part of that in the meantime, and the
+	 * rest would then be served twice.
+	 */
+	if((cp = sfreserve(sp, 0, SFIO_LOCKR)))
+	{
+		n = (size_t)sfvalue(sp);
+		if(n)
+		{
+			buf = sh_malloc(n);
+			memcpy(buf, cp, n);
+			buflen = n;
+		}
+		sfread(sp, cp, n);
+	}
+	if((cur = sfseek(sp, 0, SEEK_CUR)) >= 0 && lseek(fd, 0, SEEK_CUR) < 0)
+	{
+		/*
+		 * The input is a pipe, so the read-ahead is held by the sfdcseekable
+		 * discipline instead of by the stream's buffer. Copy what it has read
+		 * from the input beyond the data that has been consumed (at most one
+		 * buffer's worth) so that it can be passed on as well.
+		 */
+		if((end = sfseek(sp, 0, SEEK_END)) > cur && sfseek(sp, cur, SEEK_SET)==cur
+		&& (cp = sfreserve(sp, end - cur, SFIO_LOCKR)))
+		{
+			n = (size_t)sfvalue(sp);
+			if(n)
+			{
+				buf = sh_realloc(buf, buflen + n);
+				memcpy(buf + buflen, cp, n);
+				buflen += n;
+			}
+			sfread(sp, cp, n);
+		}
+	}
+	if(pipe(pv) < 0)
+		goto err;
+	sh.fdstatus[pv[0]] = IOREAD|IONOSEEK;
+	sh.fdstatus[pv[1]] = IOWRITE|IONOSEEK;
+	if((pid = fork()) < 0)
+	{
+		sh_close(pv[0]);
+		sh_close(pv[1]);
+		goto err;
+	}
+	if(pid==0)
+	{
+		ssize_t		r;
+		int		i;
+		/*
+		 * This is the child (the helper process). It needs nothing but the input and
+		 * the new pipe. Close everything else to avoid, e.g., keeping the write end
+		 * of a pipeline's next pipe open after the command has finished. (Let's not
+		 * bother updating the shell's FD bookkeeping in this short-lived helper.)
+		 */
+		signal(SIGPIPE, SIG_DFL);  /* the helper should terminate reliably when parent closes the pipe */
+		for(i = 0; i < sh.lim.open_max; i++)
+			if(i!=fd && i!=pv[1] && sh.fdstatus[i]!=IOCLOSE)
+				ast_close(i);
+		/* The start of the matching record may have been read before the stream. */
+		if((!pat_redir || pat_redir->patheadlen==0
+			|| pat_write(pv[1], pat_redir->pathead, pat_redir->patheadlen)==0)
+		&& (buflen==0 || pat_write(pv[1], buf, buflen)==0))
+		{
+			pid_t	fg;
+			int	joined = 0;
+			for(;;)
+			{
+				if((r = read(fd, rbuf, sizeof(rbuf))) < 0)
+				{
+					if(errno==EINTR)
+						continue;
+					/*
+					 * If the command runs in its own process group, join the terminal process group
+					 * so that this helper can read the terminal for as long as the command runs.
+					 * The shell reassumes control of the terminal once the command has finished.
+					 */
+					if(errno==EIO && !joined && (fg = tcgetpgrp(fd)) > 0
+					&& fg != getpgrp() && setpgid(0, fg) == 0)
+					{
+						joined = 1;
+						continue;
+					}
+					break;
+				}
+				if(r==0 || pat_write(pv[1], rbuf, (size_t)r) < 0)
+					break;
+			}
+		}
+		_exit(0);
+	}
+	/* Make the new pipe the input. */
+	sh_close(pv[1]);
+	if(pv[0]!=fd)
+	{
+		dup2(pv[0], fd);
+		if(sh.fdstatus[fd] & IOCLEX)
+		{
+			/* dup2 clears the close-on-exec flag; restore it */
+			fcntl(fd,F_SETFD,FD_CLOEXEC);
+			sh.fdstatus[pv[0]] |= IOCLEX;
+		}
+		sh.fdstatus[fd] = sh.fdstatus[pv[0]];
+		sh_close(pv[0]);
+	}
+	if(buf)
+		free(buf);
+	/* The input is unseekable again, so discard the sfdcseekable discipline. */
+	if(!(sh.fdstatus[fd]&IOTTY))
+		sfdisc(sp, SFIO_POPDISC);
+	return;
+  err:
+	if(buf)
+		free(buf);
+	pat_redir_free();
+	errormsg(SH_DICT,ERROR_system(1),"<#: cannot pass on input");
+	UNREACHABLE();
+}
+
+/*
+ * Save the start of a matching record that was read before the buffer it
+ * ended in, so that pat_handoff() can pass it on to an external command or
+ * non-Sfio built-in. Unlike the rest of the read-ahead, that part is no
+ * longer in the stream, so it has to be kept in memory.
+ */
+static void pat_save(const char *head, size_t headlen)
+{
+	pat_redir_init();
+	if(pat_redir->pathead)
+		free(pat_redir->pathead);
+	pat_redir->patheadlen = headlen;
+	pat_redir->pathead = sh_malloc(headlen ? headlen : 1);
+	if(headlen)
+		memcpy(pat_redir->pathead, head, headlen);
+}
+
+/*
+ * Position the unseekable stream <sp> at the first record that matches <rp>.
+ * Return 1 if a record matched, 0 if the input ended before that.
+ *
+ * A pipe cannot be rewound, but everything before the matching record must be
+ * consumed while that record and the rest of the input must remain available
+ * to the reader. Push the sfdcseekable() discipline onto the stream; it keeps
+ * a copy of the data read from the file descriptor so that the stream cannot
+ * serve the same data twice and so that data that was read ahead of the match
+ * stays available. The discipline also makes the read go through the stream's
+ * own discipline, which is needed to read reliably from a pipe.
+ *
+ * A shell built-in that uses Sfio reads the input through the stream, so it
+ * sees the data held by the discipline. External commands and non-Sfio
+ * built-ins read the file descriptor itself and cannot see the Sfio stream;
+ * sh_pat_handoff() deals with that when the command is about to be executed.
+ */
+static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
+{
+	char	*cp, *end, *line = NULL;
+	size_t	len = 0, max = 0, pos, part, n, consumed = 0;
+	int	matched = 0;
+	int	s = PIPE_BUF > SFIO_BUFSIZE ? SFIO_BUFSIZE : PIPE_BUF;
+	int	tty = sh.fdstatus[sffileno(sp)] & IOTTY;
+	if(!tty && sfdcseekable(sp) < 0)
+	{
+		pat_redir_free();
+		errormsg(SH_DICT,ERROR_system(1),"<#: cannot make input seekable");
+		UNREACHABLE();
+	}
+	for(;;)
+	{
+		if(!tty && consumed >= PAT_SHADOW_MAX)
+		{
+			/*
+			 * The data passed over so far is not needed any more. The discipline
+			 * has copied it into a temporary stream, which is only held to be
+			 * able to serve the data that the shell has not consumed yet. Replace
+			 * the discipline to throw that copy away, so that skipping a long
+			 * input that does not (or does not yet) match cannot fill up the file
+			 * system. This also keeps the input seekable from here on.
+			 */
+			sfdisc(sp, SFIO_POPDISC);
+			if(sfdcseekable(sp) < 0)
+			{
+				pat_redir_free();
+				errormsg(SH_DICT,ERROR_system(1),"<#: cannot make input seekable");
+				UNREACHABLE();
+			}
+			consumed = 0;
+		}
+		/*
+		 * Read a block at a time, but do not wait for a buffer to fill up (no negative <s>).
+		 * A terminal delivers input one line at a time, so waiting for a full buffer would
+		 * keep the search from matching an interactively typed input line.
+		 */
+		if(!(cp = sfreserve(sp, s, SFIO_LOCKR)) && !(cp = sfreserve(sp, SFIO_UNBOUND, SFIO_LOCKR)))
+			break;
+		n = (size_t)sfvalue(sp);
+		for(pos = 0; pos < n; pos += part)
+		{
+			/*
+			 * Assemble the current record, which may span several buffers.
+			 * Do not test a record before its end has been read.
+			 */
+			end = memchr(cp+pos, '\n', n-pos);
+			part = end ? (size_t)(end - (cp+pos)) + 1 : n - pos;
+			if(len + part > max)
+			{
+				max = 2 * (len + part);
+				line = sh_realloc(line, max);
+			}
+			memcpy(line+len, cp+pos, part);
+			len += part;
+			if(!end)
+				break;
+			if(!pat_line(rp, line, len))
+			{
+				matched = 1;
+				break;
+			}
+			if(flags&IOCOPY)
+				sfwrite(sfstdout, line, len);
+			len = 0;
+		}
+		if(matched)
+		{
+			/* save the start of the record that was read before this buffer (see pat_save()) */
+			pat_save(line, len - part);
+			/* release the reserve, consuming everything before the match */
+			sfread(sp, cp, pos);
+			break;
+		}
+		/* consume the data before the match, so that the reader gets it */
+		sfread(sp, cp, n);
+		consumed += n;
+	}
+	if(!matched && len)
+	{
+		/* The input ended in the middle of a record (no final newline). Test this, too. */
+		if(!pat_line(rp, line, len))
+		{
+			/* Matched; the record has been consumed, but the input has reached EOF. */
+			matched = 1;
+			pat_save(line, len);
+		}
+		else if(flags&IOCOPY)
+			sfwrite(sfstdout, line, len);
+	}
+	if(matched)
+	{
+		pat_redir_init();
+		pat_redir->patstream = sp;
+		pat_redir->patfd = sffileno(sp);
+		pat_redir->patdisc = sfdisc(sp, (Sfdisc_t*)sp);
+	}
+	if(line)
+		free(line);
+	return matched;
+}
+
+/*
+ * Called just before executing any command other than a Sfio built-in.
+ * If the input was positioned by a <#pattern redirection on a non-seekable stream,
+ * then the matching record and the rest of the input are held by the shell's stream,
+ * where that command cannot see them. Pass them on.
+ */
+void sh_pat_handoff(void)
+{
+	Sfio_t	*sp;
+	int	fd;
+	if(!pat_redir)
+		return;
+	sp = pat_redir->patstream;
+	fd = pat_redir->patfd;
+	if(fd >= 0 && sh.sftable[fd]==sp && sffileno(sp)==fd && sfdisc(sp, (Sfdisc_t*)sp)==pat_redir->patdisc)
+		pat_handoff(sp);
+	pat_redir_free();
+}
+
 static int io_patseek(regex_t *rp, Sfio_t* sp, unsigned int flags)
 {
-	char	*cp;
-	int	fd = sffileno(sp), close_exec = sh.fdstatus[fd]&IOCLEX;
-	int	was_share,s=(PIPE_BUF>SFIO_BUFSIZE?SFIO_BUFSIZE:PIPE_BUF);
-	size_t	n,m;
-	sh.fdstatus[sffileno(sp)] |= IOCLEX;
-	if(fd==0)
-		was_share = sfset(sp,SFIO_SHARE,1);
-	while((cp=sfreserve(sp, -s, SFIO_LOCKR)) || (cp=sfreserve(sp,SFIO_UNBOUND, SFIO_LOCKR)))
+	int	fd = sffileno(sp);
+	short	save_prompt = sh.nextprompt;
+	sh.nextprompt = 0;
+	if(sh.fdstatus[fd]&IONOSEEK)
+		pat_scan(sp, rp, flags);
+	else
 	{
-		m = n = (size_t)sfvalue(sp);
-		while(n>0 && cp[n-1]!='\n')
-			n--;
-		if(n)
-			m = n;
-		m = pat_line(rp,cp,m);
-		if(m && (flags&IOCOPY))
-			sfwrite(sfstdout,cp,m);
-		sfread(sp,cp,m);
-		if(m<n || n==0)
-			break;
+		char	*cp;
+		int	s = PIPE_BUF > SFIO_BUFSIZE ? SFIO_BUFSIZE : PIPE_BUF;
+		int	was_share = 0;
+		size_t	m, n;
+		/*
+		 * Seekable input: read a buffer at a time until a record matches the
+		 * pattern, then seek back to the start of that record.
+		 */
+		if(fd==0)
+			was_share = sfset(sp,SFIO_SHARE,1);
+		while((cp=sfreserve(sp, -s, SFIO_LOCKR)) || (cp=sfreserve(sp,SFIO_UNBOUND, SFIO_LOCKR)))
+		{
+			m = n = (size_t)sfvalue(sp);
+			while(n>0 && cp[n-1]!='\n')
+				n--;
+			if(n)
+				m = n;
+			m = pat_line(rp,cp,m);
+			if(m && (flags&IOCOPY))
+				sfwrite(sfstdout,cp,m);
+			sfread(sp,cp,m);
+			if(m<n || n==0)
+				break;
+		}
+		if(fd==0 && !(was_share&SFIO_SHARE))
+			sfset(sp, SFIO_SHARE,0);
 	}
-	if(!close_exec)
-		sh.fdstatus[sffileno(sp)] &= ~IOCLEX;
-	if(fd==0 && !(was_share&SFIO_SHARE))
-		sfset(sp, SFIO_SHARE,0);
+	sh.nextprompt = save_prompt;
 	return 0;
 }
 
@@ -1065,12 +1415,15 @@ static Sfoff_t	file_offset(int fn, char *fname)
 	Sfio_t		*sp = sh.sftable[fn];
 	char		*cp;
 	Sfoff_t		off;
-	struct Eof	endf = { 0 };
 	Namval_t	*mp = nv_open("EOF",sh.var_tree,0);
 	Namval_t	*pp = nv_open("CUR",sh.var_tree,0);
-	endf.fd = fn;
-	endf.hdr.disc = &EOF_disc;
-	endf.hdr.namflags = NAMFUN_NOFREE;
+	struct Eof	endf = {
+		.fd = fn,
+		.hdr = {
+			.disc = &EOF_disc,
+			.namflags = NAMFUN_NOFREE
+		}
+	};
 	if(mp)
 		nv_stack(mp, &endf.hdr);
 	if(pp)
@@ -1169,6 +1522,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 	int o_mode;		/* mode flag for open */
 	static char io_op[7];	/* used for -x trace info */
 	int trunc=0, clexec=0, fn, traceon=0, dupflags;
+	int pfd = -1;		/* file descriptor for a process substitution that uses /dev/fd */
 	int indx = sh.topfd, perm = -1;
 	char *tname = NULL, *after = "", *trace = sh.st.trap[SH_DEBUGTRAP];
 	Namval_t *np = NULL;
@@ -1252,7 +1606,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 			else if(sh.subshell)
 				sh_subtmpfile();
 			ap->argchn.ap = (struct argnod*)fname;
-			ap = sh_argprocsub(ap);
+			ap = sh_argprocsub(ap, flag==SH_SHOWME ? NULL : &pfd);
 			fname = ap->argval;
 		}
 		errno = 0;
@@ -1304,13 +1658,13 @@ int	sh_redirect(struct ionod *iop, int flag)
 				if((fd=fname[0])>='0' && fd<='9')
 				{
 					char *number = fname;
-					dupfd = (int)strtol(fname,&number,10);
+					dupfd = strtoi(fname,&number,10);
 					if(*number=='-')
 					{
 						toclose = dupfd;
 						number++;
 					}
-					if(*number || !sh_iovalidfd(dupfd) || dupfd > IOUFD)
+					if(*number || errno==ERANGE || !sh_iovalidfd(dupfd) || dupfd > IOUFD)
 					{
 						message = e_file;
 						goto fail;
@@ -1430,12 +1784,14 @@ int	sh_redirect(struct ionod *iop, int flag)
 						UNREACHABLE();
 					}
 					if(perm>0)
-#if _lib_fchmod
 						fchmod(fd,(mode_t)perm);
-#else
-						chmod(tname,(mode_t)perm);
-#endif
 				}
+			}
+			if(pfd >= 0)
+			{
+				/* the process substitution's /dev/fd/N path has been opened above; drop our copy */
+				sh_close(pfd);
+				pfd = -1;
 			}
 		traceit:
 			if(traceon && fname)
@@ -1515,6 +1871,17 @@ int	sh_redirect(struct ionod *iop, int flag)
 					}
 					if(!sp)
 						sp = sh_iostream(fn,0);
+					if(fn<=2 && flag==0 && (fdstatus&IOTTY) && sh_isstate(SH_INTERACTIVE))
+					{
+						/*
+						 * On an interactive shell's terminal, the input is passed on to the
+						 * command through a pipe (see sh_pat_handoff()), so save the file
+						 * descriptor and its stream to be restored after the command.
+						 */
+						sh_iosave(fn, indx, NULL);
+						if(sfsetfd(sp, fn) < 0)
+							sp = sh_iostream(fn,0);
+					}
 					r=io_patseek(rp,sp,iof);
 					if(sp && flag==3)
 					{
@@ -1988,6 +2355,31 @@ static void time_grace(void *handle)
 	sh.trapnote |= SH_SIGTRAP;
 }
 
+/*
+ * Read whatever input is available from a non-seekable file descriptor such as
+ * a pipe or a terminal, without waiting for a record delimiter. Used by the
+ * read built-in for the -n and -N options, which must return as soon as any
+ * input has been read. Unlike ed_read(), do not read a whole record, as that
+ * would block until the delimiter (usually a newline) arrives.
+ */
+static ssize_t pipereadavail(int fd, void *buff, size_t size)
+{
+	Shwait_f waitevent = sh.waitevent;
+	ssize_t ret = -1;
+	sh.waitevent = NULL;
+	errno = EINTR;
+	while(ret < 0 && errno == EINTR)
+	{
+		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
+			break;
+		errno = 0;
+		if(!waitevent || (ret = (*waitevent)(fd,-1L,0)) >= 0)
+			ret = read(fd,buff,size);
+	}
+	sh.waitevent = waitevent;
+	return ret;
+}
+
 static ssize_t piperead(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 {
 	int fd = sffileno(iop);
@@ -2005,8 +2397,8 @@ static ssize_t piperead(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 	if(sh_isstate(SH_INTERACTIVE) && fd==0 && io_prompt(iop,sh.nextprompt)<0 && errno==EIO)
 		return 0;
 	sh_onstate(SH_TTYWAIT);
-	if(!(sh.fdstatus[fd]&IOCLEX) && (sfset(iop,0,0)&SFIO_SHARE))
-		ret = (ssize_t)ed_read(sh.ed_context, fd, (char*)buff, (int)size, 0);
+	if(sh.readavail)
+		ret = pipereadavail(fd,buff,size);
 	else
 		ret = sfrd(iop,buff,size,handle);
 	sh_offstate(SH_TTYWAIT);
@@ -2173,15 +2565,7 @@ uint8_t sh_iocheckfd(int fd, ssize_t *filesize_p)
 			n |= IONOSEEK;
 #ifdef S_ISSOCK
 			if(S_ISSOCK(statb.st_mode))
-			{
 				n |= IOREAD|IOWRITE;
-#   if _socketpair_shutdown_mode
-				if(!(statb.st_mode&S_IRUSR))
-					n &= ~IOREAD;
-				else if(!(statb.st_mode&S_IWUSR))
-					n &= ~IOWRITE;
-#   endif
-			}
 #endif /* S_ISSOCK */
 		}
 		else if(S_ISFIFO(statb.st_mode)

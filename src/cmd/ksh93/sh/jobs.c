@@ -90,15 +90,21 @@ static int jobfork;
 
 pid_t	pid_fromstring(char *str)
 {
-	pid_t	pid;
-	char	*last;
+	int		oerrno = errno;
+	pid_t		pid;
+	char		*last;
+	long long	ll;
 	errno = 0;
-	pid = (pid_t)strtoll(str, &last, 10);
+	ll = strtoll(str, &last, 10);
+	pid = (pid_t)ll;
+	if(pid != ll)
+		errno = ERANGE;
 	if(errno==ERANGE || *last)
 	{
-		errormsg(SH_DICT,ERROR_exit(1),"%s: invalid process ID",str);
+		errormsg(SH_DICT,ERROR_system(1),"%s: invalid process ID",str);
 		UNREACHABLE();
 	}
+	errno = oerrno;
 	return pid;
 }
 
@@ -720,7 +726,10 @@ void job_bwait(char **jobs)
 	struct process *pw;
 	pid_t pid;
 	if(*jobs==NULL)
+	{
+		sh_comsubpipedrain(0);
 		job_wait((pid_t)-1);
+	}
 	else while(jp = *jobs++)
 	{
 		if(*jp == '%')
@@ -900,7 +909,16 @@ static struct process *job_bystring(char *ajob)
 		return NULL;
 	c = *ajob;
 	if(isdigit(c))
-		pw = job_byjid((int)strtol(ajob, NULL, 10));
+	{
+		int oerrno = errno;
+		int jid = strtoi(ajob, NULL, 10);
+		if(errno==ERANGE)
+		{
+			errno = oerrno;
+			return NULL;
+		}
+		pw = job_byjid(jid);
+	}
 	else if(c=='+' || c=='%')
 		;
 	else if(c=='-')
@@ -1007,7 +1025,7 @@ int job_kill(struct process *pw,int sig)
 			msg = sh_translate(e_no_job);
 		if(errno == EPERM)
 			msg = sh_translate(e_access);
-		sfprintf(sfstderr,"kill: %s: %s\n",job_string, msg);
+		error(2, "%s: %s", job_string, msg);
 		r = 2;
 	}
 	sh_delay(.001,0);
@@ -1286,6 +1304,17 @@ static void job_prmsg(struct process *pw)
 }
 
 /*
+ * Return nonzero if the process <pid> has exited or stopped, so that it is
+ * ready to be handled by job_wait(). Returns nonzero if the process is not
+ * tracked by the job table at all.
+ */
+int job_isdone(pid_t pid)
+{
+	struct process	*pw = job_bypid(pid);
+	return !pw || (pw->p_flag&(P_DONE|P_STOPPED));
+}
+
+/*
  * Wait for process to complete
  * If pid < -1, then wait can be interrupted, -pid is waited for (wait builtin)
  * pid=0 to unpost all done processes
@@ -1303,6 +1332,13 @@ int	job_wait(pid_t pid)
 		pid = -pid;
 		intr = 1;
 	}
+	/*
+	 * Inside a command substitution, collect the output of a child process
+	 * that was connected to a pipe before waiting for it, so that it cannot
+	 * block on a full pipe.
+	 */
+	if(pid > 1)
+		sh_comsubpipedrain(pid);
 	job_lock();
 	if(pid==0)
 	{

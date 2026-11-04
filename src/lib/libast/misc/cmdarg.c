@@ -43,10 +43,8 @@ cmdrun(int argc, char** argv, Cmddisc_t* disc)
 Cmdarg_t*
 cmdopen(char** argv, int argmax, ssize_t size, const char* argpat, uint32_t flags)
 {
-	Cmddisc_t	disc;
+	Cmddisc_t	disc = { .version = CMD_VERSION };
 
-	memset(&disc, 0, sizeof(disc));
-	disc.version = CMD_VERSION;
 	if (!(flags & CMD_SILENT))
 	{
 		flags |= CMD_EXIT;

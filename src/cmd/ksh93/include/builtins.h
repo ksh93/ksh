@@ -138,6 +138,7 @@ extern const char	e_badsyntax[];
 #endif /* _cmd_universe */
 extern const char	e_condition[];
 extern const char	e_badrange[];
+extern const char	e_badrange2[];
 extern const char	e_trap[];
 extern const char	e_direct[];
 extern const char	e_defedit[];

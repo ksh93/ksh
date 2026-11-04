@@ -22,7 +22,7 @@ typeset -T Time_t=(
 	_='%F+%H:%M'
 	get()
 	{
-		if      (( _ < 0 ))
+		if	(( _ < 0 ))
 		then	.sh.value=${ printf "%(${_._})T" now ;}
 		else	.sh.value=${ printf "%(${_._})T" "#$((_))" ;}
 		fi

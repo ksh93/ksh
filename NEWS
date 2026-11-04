@@ -2,13 +2,181 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2026-09-27:
+2026-11-04:
 
 - The maximum length of edit lines in the emacs and vi line editors has been
   increased from 1024 to 8192 bytes.
 
 - Fixed a potential freeze in the emacs and vi line editors when attempting
   to use reverse search completion to obtain long history file entries.
+
+2026-11-01:
+
+- Fixed: the <#PATTERN redirection operator lost input when reading from an
+  external command via a pipe. Bug introduced on 2026-10-30.
+
+- Fixed a longstanding bug: when using the <#PATTERN redirection operator on
+  an interactive shell, the shell entered into an infinite loop printing the
+  prompt without reading input from the terminal until it crashed.
+
+- Fixed another longstanding bug: the <#PATTERN redirection operator did not
+  work on terminal input in an interactive shell. The shell did not match a
+  typed line until end of input (^D), and it would then stop reading its own
+  commands from the terminal. Terminal input is now read and processed one
+  line at a time and matching on terminal input now works correctly.
+
+2026-10-30:
+
+- Pipes connecting the commands of a pipeline are now always created using
+  the standard UNIX pipe(2) call, even with the posix option off. The
+  socketpair(2) method has been removed. This fixes problems caused by
+  programs detecting a socket instead of a pipe, such as not being able to
+  open /dev/stdin on Linux, and spurious EPIPE and ECONNRESET errors.
+      Features that previously required socketpair(2) to correctly read from
+  a shell pipe, i.e. the <#PATTERN redirection operator and 'read -n', have
+  been reimplemented to work correctly with real pipes. These now also work
+  when reading from pipes with the posix option on.
+
+2026-10-29:
+
+- The ordering of the output of non-waited-for background processes within
+  command substitutions has been fixed to match the behaviour of other
+  shells. A command substitution that invokes a background process without
+  an explicit 'wait' command will now correctly block until the background
+  process has closed or redirected its standard output.
+
+- Fixed breakage of the <#pattern redirection occurring when executed from
+  a -c script with input read from a pipe. Bug introduced on 2026-04-17.
+
+2026-10-27:
+
+- Fixed incorrect restore of values and a possible use-after-free crash upon
+  exiting a virtual subshell in which values were assigned to a variable of
+  a type created with 'typeset -T'.
+
+2026-10-26:
+
+- Fixed data corruption occurring when appending (with a += assignment) a
+  compound or multidimensional array value to a non-empty indexed array.
+  Example reproducers:
+	unset arr; arr[0]=1; arr+=( (x=2 y=3) ); typeset -p arr
+	unset arr; arr[0]=1; arr+=( 2 (3 4) 5); typeset -p arr
+
+- Fixed a parser bug that caused a script compiled with shcomp to hang
+  on a multidimensional array assignment such as: foo=(1 2 (3 4 5) 6 7)
+
+2026-10-22:
+
+- The sleep builtin will now reject values beyond UINT_MAX and negative
+  numbers.
+
+- Fixed bugs that caused many builtins (such as kill) to mishandle out of
+  range numbers.
+
+- Fixed scope corruption and crashes occurring when assigning to .sh.level
+  within a DEBUG trap action to switch to a parent function scope; the scope
+  and .sh.level were not properly restored when the trap action ended, and
+  calling a function or sourcing a dot script within the trap corrupted the
+  state.
+
+2026-10-21:
+
+- Fixed a longstanding bug in background process handling while job control
+  is off (i.e., in most scripts): after a process substitution had been
+  used, 'wait' returned status 127 (not found) for background jobs that had
+  already finished.
+
+- Fixed a longstanding bug in process substitution: in some cases, a file
+  descriptor that is opened with 'exec' or 'redirect' redirecting a process
+  substitution (e.g. 'exec 3< <(print hello)') was closed again as soon as
+  the command had finished, so it could not be used by subsequent commands.
+
+2206-10-15:
+
+- Fixed 'printf %#H' URL pecent-encoding to be locale-independent. Bytes
+  that are invalid multibyte sequences in the current locale are no longer
+  encoded as %3F (the question mark). No change for valid characters. Issue
+  introduced on 2020-08-10. ('printf %H', HTML encoding, is not changed.)
+
+2026-10-14:
+
+- Fixed spurious "section not found" error message fon an invalid option
+  that starts with ++ (for commands that support these).
+
+2026-10-13:
+
+- Fixed a bug in the 'kill' builtin: the arguments -ERR, -KEYBD, and -DEBUG
+  were incorrectly accepted and translated to invalid signal numbers.
+
+- Fixed a bug in shell option handling where an initial ++ produced incorrect
+  and inconsistent behaviour. The ++ prefix now correctly turns off a shell
+  option by its long-form name like + does for single-letter options. This
+  applies to ksh command line invocation options as well.
+
+- Fixed a crash upon assigning to .sh.command within a DEBUG trap action.
+
+- Fixed a crash upon assigning an array to .sh.edtext within a KEYBD trap.
+
+2026-10-10:
+
+- Fixed a bug that caused the emacs and vi editor modes to treat multibyte
+  spaces as non-space characters.
+
+2026-10-08:
+
+- Fixed the calculation of the width of the line editor prompt on the terminal
+  when the prompt includes ANSI escape codes with CSI intermediate bytes.
+
+2026-10-06:
+
+- Fixed a potential crash upon failure to write to the shell history file.
+
+- Fixed the shell seemingly freezing (in fact, taking several minutes) while
+  processing certain repetition patterns against a long string. Reproducer:
+	[[ $(printf 'ab%.0s' {0..99999}) == +(ab)* ]]
+  This now uses an optimised algorithm that takes only a fraction of a second.
+  (Note: before yesterday's fix below, this reproducer crashed the shell.)
+
+2026-10-04:
+
+- Refactored the regular expression and shell glob pattern engine to fix a
+  crash (caused by excessive recursion) if a pattern with a repetition
+  operator was matched against a string with a large number of matching
+  elements. Example: [[ $(printf 'a%.0s' {0..99999}) == +(a) ]] now
+  correctly matches the string of 10,000 'a's against the +(a) pattern.
+
+- Fixed a small memory leak occurring the first time a pattern matching
+  operation sets the .sh.match array.
+
+2026-10-01:
+
+- Fixed a bug in the ${parameter/pattern/string}, ${parameter//pattern/string},
+  ${parameter/#pattern/string} and ${parameter/#%pattern/string} expansions: in
+  the replacement 'string' (which may contain subpattern references like \1,
+  \2, etc. and supports backslash escaping), the shell failed to remove an
+  escaping backslash preceding the characters '/', '-', '<' and '>'.
+
+- Fixed: if a variable has one or more shell discipline functions
+  (.get, .getn, .set, and/or .unset) associated with it in the main shell
+  environment, and these are then redefined in a subshell, the main
+  environment's discipline functions were lost. They are now preserved and
+  restored properly.
+
+- Fixed an excessive recursion problem in the regex engine that caused a
+  crash if very long strings were compared using [[ ... == ... ]] (even if
+  the right-hand side does not contain any pattern operators).
+
+2026-09-29:
+
+- The hash table entries (a.k.a. tracked aliases) as shown by the 'hash' and
+  'alias -t' commands are no longer ignored when running an external command
+  and are now used to optimise the $PATH search. If the result of a previous
+  $PATH search was stored in the hash table, that path is tried first. If it
+  is not found (e.g., because the command was moved), the shell falls back
+  to a full $PATH search and updates the hash table entry. There should not
+  be any behaviour change in ksh except a slight speed optimisation.
+
+2026-09-27:
 
 - Fixed bugs in -G/--globstar, all concerning symbolic links to directories:
   1. If a ** pattern component is followed by further pattern, then a

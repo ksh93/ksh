@@ -17,7 +17,6 @@
 ***********************************************************************/
 
 #include	"FEATURE/options"
-#include	<ast.h>
 #include	"lexstates.h"
 
 /* The ST_* state table names are defined in include/lexstates.h */

@@ -158,8 +158,13 @@ then	mkdir bar foo
 		err_exit "-G **/bam.c failed -- expected '$expected', got '$*'"
 fi
 
+# Marker
 t="<$$>.profile.<$$>"
-echo "echo '$t'" > .profile
+# If the local sysadmin thought they were smart and made /etc/profile source
+# ~/.profile itself, then the ksh -p tests below would be defeated. Therefore
+# make ~/.profile emit the marker only if it hasn't been sourced by another
+# script (or called by a function), which we can check for using ${.sh.level}.
+echo "if (( \${.sh.level} == 0 )); then echo '$t'; fi" > .profile
 cp $SHELL ./-ksh
 if	[[ -o privileged ]]
 then
@@ -489,8 +494,8 @@ spy=$!
 wait $tst 2>/dev/null
 status=$?
 if	[[ $status == 0 || $(kill -l $status) == PIPE ]]
-then    kill $spy 2>/dev/null
-else    err_exit "pipefail pipeline bypasses SIGPIPE and hangs"
+then	kill $spy 2>/dev/null
+else	err_exit "pipefail pipeline bypasses SIGPIPE and hangs"
 fi
 wait
 
@@ -724,6 +729,15 @@ PATH=/dev/null "$SHELL" -n nonexistent_script 2>/dev/null && err_exit "'ksh -n n
 # ksh -c should not force on -s
 got=$("$SHELL" -c 'print $-')
 [[ $got == *s* ]] && err_exit "-s incorrectly set upon invocation with -c script (got '$got')"
+
+# ======
+# ++foo should turn off foo and not produce incorrect behaviour
+got=$(set -o posix; set ++posix 2>&1; [[ -o posix ]])
+[[ e=$? -eq 1 && -z $got ]] || err_exit "set ++posix does not turn off --posix (got status $e and output $(printf %q "$got"))"
+exp=': unknown option'
+got=$(set ++nonexistent 2>&1)
+[[ e=$? -eq 2 && $got == *"$exp"* ]] || err_exit "set ++nonexistent does not error out correctly" \
+	"(expected status 2 and *$(printf %q "$exp"*), got status $e and $(printf %q "$got"))"
 
 # ======
 exit $((Errors<125?Errors:125))

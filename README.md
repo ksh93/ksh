@@ -1,5 +1,3 @@
-![](https://github.com/ksh93/ksh/workflows/CI/badge.svg)
-
 # KornShell 93u+m
 
 Welcome to the repository where the KornShell is under active development.

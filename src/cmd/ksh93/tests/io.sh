@@ -23,12 +23,6 @@
 sh -c 'exec 3>&1' 1>&- 2>/dev/null
 typeset -si can_close_stdout=$?
 
-# Socketpairs as pipes aren't available on all systems.
-grep -qE '_pipe_socketpair|_socketpair_devfd' "$INSTALLROOT/src/cmd/ksh93/FEATURE/poll"
-typeset -si pipe_socketpair=$?
-((pipe_socketpair > 1)) && exit 2
-((pipe_socketpair = !pipe_socketpair))  # invert exit status logic to get boolean logic
-
 unset HISTFILE
 
 function fun
@@ -248,11 +242,8 @@ then	[[ $(3<#) -eq 0 ]] || err_exit "not at position 0"
 	redirect 3<# *abc*
 	read -u3 && err_exit "not found pattern not positioning at eof"
 
-	if	((pipe_socketpair))
-	then	cat $tmp/seek | read -r <# *WWW*
-		[[ $REPLY == *WWWWW* ]] || err_exit '<# not working for pipes'
-	else	warning "socketpair as pipe not available: skipping test for <# for pipe"
-	fi
+	cat $tmp/seek | read -r <# *WWW*
+	[[ $REPLY == *WWWWW* ]] || err_exit '<# not working for pipes'
 
 	# The next test seeks past a 2 GiB boundary, which may fail on 32-bit systems. To prevent
 	# a test failure, the long seek test is only run on 64-bit systems.
@@ -327,8 +318,8 @@ got="$(<$tmp/1)"
 $SHELL -c 'exec 3<>; /dev/null'  2> /dev/null && err_exit '<>; with exec should be an error'
 $SHELL -c ': 3<>; /dev/null'  2> /dev/null || err_exit '<>; not working with at all'
 print $'hello\nworld' > $tmp/1
-if      ! $SHELL -c "false <>; $tmp/1"  2> /dev/null
-then    [[ $(<$tmp/1) == $'hello\nworld' ]] || err_exit '<>; not preserving file on failure'
+if	! $SHELL -c "false <>; $tmp/1"  2> /dev/null
+then	[[ $(<$tmp/1) == $'hello\nworld' ]] || err_exit '<>; not preserving file on failure'
 fi
 if	! $SHELL -c "head -1 $tmp/1" <>; $tmp/1  2> /dev/null
 then	[[ $(<$tmp/1) == hello ]] || err_exit '<>; not truncating file on success of head'
@@ -342,8 +333,8 @@ unset y
 read -n1 y <<!
 abc
 !
-if      [[ $y != a ]]
-then    err_exit  'read -n1 not working'
+if	[[ $y != a ]]
+then	err_exit  'read -n1 not working'
 fi
 unset a
 { read -N3 a; read -N1 b;}  <<!
@@ -359,30 +350,26 @@ abcdefg
 [[ $a == abc ]] || err_exit 'read -N3 from pipe not working'
 [[ $b == d ]] || err_exit 'read -N1 from pipe not working'
 
-if	((pipe_socketpair))
-then	(print -n a; sleep .1; print -n bcde) 2>/dev/null |read -n3 a
-	[[ $a == a ]] || err_exit 'read -n3 from pipe not working'
-else	warning "socketpair as pipe not available: skipping test for 'read -n3' from pipe"
-fi
+(print -n a; sleep .1; print -n bcde) 2>/dev/null |read -n3 a
+[[ $a == a ]] || err_exit 'read -n3 from pipe not working'
 
 if	mkfifo $tmp/fifo 2> /dev/null
-then	if	((pipe_socketpair))
-	then	(print -n a; sleep .2; print -n bcde) > $tmp/fifo &
-		{
-		read -u5 -n3 -t1 a || err_exit 'read -n3 from fifo timed out'
-		read -u5 -n1 -t1 b || err_exit 'read -n1 from fifo timed out'
-		} 5< $tmp/fifo
-		exp=a
-		got=$a
-		[[ $got == "$exp" ]] || err_exit "read -n3 from fifo failed -- expected '$exp', got '$got'"
-		exp=b
-		got=$b
-		[[ $got == "$exp" ]] || err_exit "read -n1 from fifo failed -- expected '$exp', got '$got'"
-		rm -f $tmp/fifo
-		wait
-		mkfifo $tmp/fifo 2> /dev/null
-	else	warning "socketpair as pipe not available: skipping tests for 'read -n1' from fifo"
-	fi
+then
+	(print -n a; sleep .2; print -n bcde) > $tmp/fifo &
+	{
+	read -u5 -n3 -t1 a || err_exit 'read -n3 from fifo timed out'
+	read -u5 -n1 -t1 b || err_exit 'read -n1 from fifo timed out'
+	} 5< $tmp/fifo
+	exp=a
+	got=$a
+	[[ $got == "$exp" ]] || err_exit "read -n3 from fifo failed -- expected '$exp', got '$got'"
+	exp=b
+	got=$b
+	[[ $got == "$exp" ]] || err_exit "read -n1 from fifo failed -- expected '$exp', got '$got'"
+	rm -f $tmp/fifo
+	wait
+
+	mkfifo $tmp/fifo 2> /dev/null
 	(print -n a; sleep .2; print -n bcde) > $tmp/fifo &
 	{
 	read -u5 -N3 -t1 a || err_exit 'read -N3 from fifo timed out'
@@ -395,58 +382,53 @@ then	if	((pipe_socketpair))
 	got=$b
 	[[ $got == "$exp" ]] || err_exit "read -N1 from fifo failed -- expected '$exp', got '$got'"
 	wait
+else	warning "mkfifo failed; cannot test read -[nN] from FIFO"
 fi
 
-if	((pipe_socketpair))
-then	(
-		print -n 'prompt1: '
-		sleep .01
-		print line2
-		sleep .01
-		print -n 'prompt2: '
-		sleep .01
-	) | {
-		read -t1 -n 1000 line1
-		read -t1 -n 1000 line2
-		read -t1 -n 1000 line3
-		read -t1 -n 1000 line4
-	}
-	[[ $? == 0 ]]		 	&& err_exit 'should have timed out'
-	[[ $line1 == 'prompt1: ' ]] 	|| err_exit "line1 should be 'prompt1: '"
-	[[ $line2 == line2 ]]		|| err_exit "line2 should be line2"
-	[[ $line3 == 'prompt2: ' ]]	|| err_exit "line3 should be 'prompt2: '"
-	[[ ! $line4 ]]			|| err_exit "line4 should be empty"
-else	warning "socketpair as pipe not available: skipping tests for 'read -t1 -n 1000' from pipe"
-fi
+(
+	print -n 'prompt1: '
+	sleep .01
+	print line2
+	sleep .01
+	print -n 'prompt2: '
+	sleep .01
+) | {
+	read -t1 -n 1000 line1
+	read -t1 -n 1000 line2
+	read -t1 -n 1000 line3
+	read -t1 -n 1000 line4
+}
+[[ $? == 0 ]]			&& err_exit 'should have timed out'
+[[ $line1 == 'prompt1: ' ]] 	|| err_exit "line1 should be 'prompt1: '"
+[[ $line2 == line2 ]]		|| err_exit "line2 should be line2"
+[[ $line3 == 'prompt2: ' ]]	|| err_exit "line3 should be 'prompt2: '"
+[[ ! $line4 ]]			|| err_exit "line4 should be empty"
 
 if	$SHELL -c "export LC_ALL=C.UTF-8; c=$'\342\202\254'; [[ \${#c} == 1 ]]" 2>/dev/null
 then	lc_utf8=C.UTF-8
 else	lc_utf8=''
 fi
 
-if	((pipe_socketpair))
-then	integer i
-	typeset -a e o=(-n2 -N2)
-	set -- \
-		'a'	'bcd'	'a bcd'	'ab cd' \
-		'ab'	'cd'	'ab cd'	'ab cd' \
-		'abc'	'd'	'ab cd'	'ab cd' \
-		'abcd'	''	'ab cd'	'ab cd'
-	while	(( $# >= 3 ))
-	do	a=$1
-		b=$2
-		e[0]=$3
-		e[1]=$4
-		shift 4
-		for ((i = 0; i < 2; i++))
-		do	for lc_all in C $lc_utf8
-			do	g=$(LC_ALL=$lc_all $SHELL -c "{ print -n '$a'; sleep .02; print -n '$b'; sleep .02; } | { read ${o[i]} a; print -n \$a; read a; print -n \ \$a; }")
-				[[ $g == "${e[i]}" ]] || err_exit "LC_ALL=$lc_all read ${o[i]} from pipe '$a $b' failed -- expected '${e[i]}', got '$g'"
-			done
+integer i
+typeset -a e o=(-n2 -N2)
+set -- \
+	'a'	'bcd'	'a bcd'	'ab cd' \
+	'ab'	'cd'	'ab cd'	'ab cd' \
+	'abc'	'd'	'ab cd'	'ab cd' \
+	'abcd'	''	'ab cd'	'ab cd'
+while	(( $# >= 3 ))
+do	a=$1
+	b=$2
+	e[0]=$3
+	e[1]=$4
+	shift 4
+	for ((i = 0; i < 2; i++))
+	do	for lc_all in C $lc_utf8
+		do	g=$(LC_ALL=$lc_all $SHELL -c "{ print -n '$a'; sleep .02; print -n '$b'; sleep .02; } | { read ${o[i]} a; print -n \$a; read a; print -n \ \$a; }")
+			[[ $g == "${e[i]}" ]] || err_exit "LC_ALL=$lc_all read ${o[i]} from pipe '$a $b' failed -- expected '${e[i]}', got '$g'"
 		done
 	done
-else	warning "socketpair as pipe not available: skipping test for 'read -n2' from pipe"
-fi
+done
 
 if	[[ $lc_utf8 ]]
 then	export LC_ALL=$lc_utf8
@@ -516,9 +498,9 @@ $SHELL -c "sed  -e 's/there //' $tmp/foobar  >; $tmp/foobar"
 
 binfalse=$(whence -p false)
 for	(( i=1; i < 50; i++ ))
-do      out=$("$binfalse" 2>/dev/null)
+do	out=$("$binfalse" 2>/dev/null)
 	if	(( $? == 0 ))
-	then    err_exit 'wrong error code with redirection'
+	then	err_exit 'wrong error code with redirection'
 		break
 	fi
 done
@@ -679,7 +661,7 @@ then	trap 'sleep_pid=0; kill "$ksh_pid"; err_exit "'\''read'\'' hangs on EOF wit
 	wait "$ksh_pid"
 	trap - TERM
 	((sleep_pid)) && kill "$sleep_pid"
-else	err_exit "mkfifo failed; cannot test reading from FIFO"
+else	warning "mkfifo failed; cannot test reading from FIFO"
 fi
 
 # ======
@@ -747,7 +729,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 
 	# Same as above, but also test commands executed with command(1)
 	gotout=$(
@@ -764,7 +746,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with command(1)" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 
 	# Now test with command -x
 	gotout=$(
@@ -781,7 +763,7 @@ then	err=$(
 	((got==exp)) || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
 		"(expected exit status $exp, got status $got)"
 	[[ $expout == "$gotout" ]] || err_exit "Process substitution leaks file descriptors when used as argument to nonexistent command run with 'command -x'" \
-		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout"))"
+		$'Diff follows:\n'"$(diff -u <(print -r -- "$expout") <(print -r -- "$gotout") | sed $'s/^/\t| /')"
 else	warning "can't set ulimit; skipping tests for process substitution leaking file descriptors when used as argument"
 fi
 
@@ -1130,7 +1112,8 @@ got=$(set +x; eval '{ :; } >(: wrong)' 2>&1)
 exp='*: syntax error at line *: `>('\'' unexpected'
 [[ $got == $exp ]] || err_exit "'{ :; } >(: wrong)' throws incorrect syntax error" \
 	"(expected match of $(printf %q "$exp"), got $(printf %q "$got"))"
-got=$(set +x; eval 'cat >out <(echo OK)' 2>&1; echo ===; cat out)
+got=$(set +x; ulimit -c 0; eval 'cat >out <(echo OK)' 2>&1; echo ===; cat out)
+#             ^^^^^^^^^^^ fork to fail gracefully on 93u+ 2012-08-01
 exp=$'===\nOK'
 [[ $got == "$exp" ]] || err_exit "process substitution nixes output redirection" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -1254,6 +1237,89 @@ do
 done
 ((fails == 0)) || err_exit "bug 975 stress test: $fails/$n iterations produced wrong output"
 unset i fails n explen
+
+# ======
+# The <#pattern redirection must not make the shell lose the matching line from standard input
+if	mkfifo "$tmp/fifo_patredir" 2> /dev/null
+then	printf 'first line\nsecond line\nthird line\n' > $tmp/fifo_patredir &
+	exp='first line'
+	got=$($SHELL -c '<# first*; read -r; print -r -- "$REPLY"' < $tmp/fifo_patredir)
+	wait
+	[[ $got == "$exp" ]] || err_exit '<#pattern on a pipe loses the matching line' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	rm -f $tmp/fifo_patredir &
+else	warning "mkfifo failed; cannot test <# with read builtin via FIFO"
+fi
+
+# ======
+# The <#pattern redirection must let a non-shell command see the matching line and the
+# rest of the input. A pipe cannot be rewound, so the shell must read ahead and pass the
+# data that it read on to the command; before, that data was lost to external commands.
+exp=$'second line\nthird line'
+got=$(printf 'first line\nsecond line\nthird line\n' | sed -n p <# second*)
+[[ $got == "$exp" ]] || err_exit 'the <#pattern redirection loses input for external commands' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Also check that input beyond the shell's own read buffer is passed on correctly.
+exp=2000
+got=$(awk 'BEGIN { for(i=1;i<=2000;i++) print i; }' | sed -n '$p' <# 1999)
+[[ $got == "$exp" ]] || err_exit 'the <#pattern redirection loses input for external commands' \
+	"(expected $exp, got $(printf %q "$got"))"
+
+# <#pattern in a non-final pipeline component with an external command
+got=$(print $'1\n2\n3\n4\n5\n6\n7\n8\n9\n10' | command -x cat <#5 | head)
+exp=$'5\n6\n7\n8\n9\n10'
+[[ $got == "$exp" ]] || err_exit '<#pattern in non-final pipeline component' \
+        "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# Same, but with input beyond the shell's read buffer, which the shell must read
+# ahead and pass on to the external command without losing any of it.
+got=$(awk 'BEGIN { for(i=1;i<=100;i++) print i; }' | command -x cat <#50 | head -1)
+[[ $got == 50 ]] || err_exit '<#pattern in non-final pipeline component loses input' \
+        "(expected 50, got $(printf %q "$got"))"
+
+# The same must work on an input pipe that never ends: the shell must not wait
+# for the input to end (which would hang).
+got=$(while :; do print no; done | command -x cat <#n? | head -1)
+[[ $got == no ]] || err_exit '<#pattern hangs on an input pipe that never ends' \
+        "(expected no, got $(printf %q "$got"))"
+
+# Skipping over a lot of input must not lose data, nor keep the skipped data
+# buffered (which could fill up the file system).
+got=$({ awk 'BEGIN { for(i=1;i<=400000;i++) print i; }' | command -x cat <#399999 | tail -1; } 5>/dev/null)
+[[ $got == 400000 ]] || err_exit '<#pattern loses input when skipping a long way' \
+        "(expected 400000, got $(printf %q "$got"))"
+
+# Input that a shell built-in has already read must not be passed on to a
+# non-shell command again. The shell reads ahead to find a <#pattern match, so
+# it has to keep track of how much of that read-ahead the built-in consumed.
+exp=$'x=b\nc\nd'
+got=$(printf 'a\nb\nc\nd\n' | { <#b; read -r x; print -r -- "x=$x"; command -x cat; })
+[[ $got == "$exp" ]] || err_exit 'input read by a built-in is passed on to a non-shell command again' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# The same when the input continues beyond what the shell has read ahead.
+got=$(awk 'BEGIN { for(i=1;i<=10000;i++) print i; }' | { <#5000; read -r x; print -r -- "x=$x"; command -x cat; })
+[[ $got == $'x=5000\n5001\n'* ]] || err_exit 'input read by a built-in is passed on to a non-shell command again' \
+	"(got $(printf %q "${got:0:80}")$( ((${#got} > 80)) && print -n '...' ))"
+n=$(print -r -- "$got" | wc -l)
+((n == 5001)) || err_exit 'input read by a built-in is passed on to a non-shell command again' \
+	"(expected 5001 lines, got $n)"
+unset n
+
+# A matching record that is longer than the shell's read buffer must be passed on
+# as a whole, also after a built-in has read part of the read-ahead.
+long=xxxxxxxxxx # length==10
+while	((${#long} < 10000))
+do	long+=$long
+done
+long=${long:0:10000}
+got=$(printf 'DISCARD LINE ONE\nDISCARD LINE TWO\n%s\nend\nmore\n' "$long" \
+	| { <#x*; read -r x; print -r -- "${#x}"; command -x cat; })
+unset long
+exp=$'10000\nend\nmore'
+[[ $got == "$exp" ]] || err_exit 'a matching record longer than the read buffer is not passed on correctly' \
+	"(expected $(printf %q "$exp"), got $(printf %q "${got:0:80}")$( ((${#got} > 80)) && print -n '...' ))"
 
 # ======
 exit $((Errors<125?Errors:125))

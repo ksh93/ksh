@@ -390,14 +390,15 @@ static void put_restricted(Namval_t* np,const char *val,nvflag_t flags,Namfun_t 
 	{
 		/* Clear the hash table */
 		nv_scan(sh_subtracktree(1),nv_rehash,NULL,NV_TAGGED,NV_TAGGED);
-		if(path_scoped && !val)
-			val = PATHNOD->nvalue;
 	}
 	if(val && !(flags&NV_RDONLY) && np->nvalue && strcmp(val,np->nvalue)==0)
 		 return;
 	if(np==FPATHNOD	|| (fpath_scoped=(strcmp(name,FPATHNOD->nvname)==0)))
 		sh.pathlist = path_unsetfpath();
 	nv_putv(np, val, flags, fp);
+	/* A scoped copy of $PATH inherits the value of $PATH when it is unset */
+	if(path_scoped && !val)
+		nv_clone(PATHNOD, np, 0);
 	sh.universe = 0;
 	if(sh.pathlist)
 	{
@@ -669,7 +670,7 @@ void sh_reseed_rand(struct rand *rp)
 	rp->rand_last = -1;
 }
 
-static const Namdisc_t RAND_disc	= {  .dsize = sizeof(struct rand), .putval = put_rand, .getval = get_rand, .getnum = nget_rand };
+static const Namdisc_t RAND_disc	= { .dsize = sizeof(struct rand), .putval = put_rand, .getval = get_rand, .getnum = nget_rand };
 
 void sh_invalidate_rand_seed(void)
 {
@@ -757,10 +758,19 @@ static char* get_lineno(Namval_t *np, Namfun_t *fp)
 static char* get_lastarg(Namval_t *np, Namfun_t *fp)
 {
 	char	*cp;
-	int	pid;
 	NOT_USED(fp);
-	if(sh_isstate(SH_INIT) && (cp=sh.lastarg) && *cp=='*' && (pid=(pid_t)strtoll(cp+1,&cp,10)) && *cp=='*')
-		nv_putval(np,cp+1,0);
+	if(sh_isstate(SH_INIT) && (cp=sh.lastarg) && *cp=='*')
+	{
+		int oerrno = errno;
+		long long ll;
+		pid_t pid;
+		errno = 0;
+		ll = strtoll(cp+1,&cp,10);
+		pid = (pid_t)ll;
+		if(pid && pid == ll && *cp=='*' && errno!=ERANGE)
+			nv_putval(np,cp+1,0);
+		errno = oerrno;
+	}
 	return sh.lastarg;
 }
 
@@ -883,7 +893,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 			mp->nodes = NULL;
 		}
 		mp->vlen = 0;
-		if(ap && ap->hdr.next != &mp->hdr)
+		if(ap)
 			free(ap);
 		SH_MATCHNOD->nvalue = NULL;
 		SH_MATCHNOD->nvfun = NULL;
@@ -1125,9 +1135,9 @@ static char *setdisc_any(Namval_t *np, const char *event, Namval_t *action, Namf
 	return action ? (char*)action : "";
 }
 
-static const Namdisc_t SH_MATH_disc  = { .getval = get_math, .setdisc = setdisc_any, .createf = create_math, };
+static const Namdisc_t SH_MATH_disc  = { .getval = get_math, .setdisc = setdisc_any, .createf = create_math };
 
-static const Namdisc_t LC_disc = {  .dsize = sizeof(Namfun_t), .putval = put_lang };
+static const Namdisc_t LC_disc = { .dsize = sizeof(Namfun_t), .putval = put_lang };
 
 /*
  * This function will get called whenever a configuration parameter changes
@@ -1234,7 +1244,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	sh.euserid = geteuid();
 	sh.groupid = getgid();
 	sh.egroupid = getegid();
-	sh.lim.child_max = (int)astconf_long(CONF_CHILD_MAX);
+	sh.lim.child_max = astconf_int(CONF_CHILD_MAX);
 	sh.lim.clk_tck = (clock_t)astconf_long(CONF_CLK_TCK);
 	if(sh.lim.child_max <= 0)
 		sh.lim.child_max = CHILD_MAX;
@@ -1246,13 +1256,10 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	sh.mac_context = sh_macopen();
 	sh.arg_context = sh_argopen();
 	sh.lex_context = sh_lexopen(NULL,1);
-	sh.radixpoint = '.';  /* pre-locale init */
 	sh.strbuf = sfstropen();
-	stkoverflow(sh.stk = stkstd, nomemory);
+	stkoverflow(sh.stk, nomemory);
 	sfsetbuf(sh.strbuf,NULL,64);
 	error_info.catalog = e_dict;
-	sh.cpipe[0] = -1;
-	sh.coutpipe = -1;
 	/* initialize file descriptor states */
 	if(!sh_iovalidfd(16))
 	{
@@ -1422,13 +1429,12 @@ int nv_ispredef(Namval_t *np)
  */
 void sh_reinit(void)
 {
-	Shopt_t opt;
+	Shopt_t opt = { 0 };
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
 	sh_onstate(SH_INIT);
 	sh_offstate(SH_FORKED);
 	/* Reset shell options; inherit some */
-	memset(&opt,0,sizeof(opt));
 	if(sh_isoption(SH_POSIX))
 		on_option(&opt,SH_POSIX);
 #if SHOPT_ESH

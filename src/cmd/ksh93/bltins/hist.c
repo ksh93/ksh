@@ -144,7 +144,12 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			if(*arg==0)
 			{
 				arg = argv[1];
-				range[++flag] = (int)strtol(arg, NULL, 10);
+				range[++flag] = strtoi(arg, NULL, 10);
+				if(errno == ERANGE)
+				{
+					errormsg(SH_DICT,ERROR_system(1),e_badrange2,arg);
+					UNREACHABLE();
+				}
 				if(*arg == '-')
 					range[flag] += (hist_max(hp)-1);
 				argv++;

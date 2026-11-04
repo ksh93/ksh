@@ -95,9 +95,15 @@ main(void)
 	printf("#define strmode		_ast_strmode\n");
 #endif
 	/*
+	 * NetBSD and AST strtoi conflict, so remap.
+	 */
+	printf("#undef	strtoi\n");
+	printf("#define strtoi		_ast_strtoi\n");
+	printf("#undef	strtoui\n");
+	printf("#define strtoui		_ast_strtoui\n");
+	/*
 	 * overriding <stdlib.h> strto*() is problematic to say the least
 	 */
-
 #if _std_strtol
 #if !__CYGWIN__
 	printf("#undef	strtol\n");
@@ -160,7 +166,7 @@ main(void)
 #if _npt_strtoll && !_std_strtol
 	printf("#ifndef _ISOC99_SOURCE\n");
 #endif
-	printf("extern _ast_intmax_t		strtoll(const char*, char**, int);\n");
+	printf("extern long long	strtoll(const char*, char**, int);\n");
 #if _npt_strtoll && !_std_strtol
 	printf("#endif\n");
 #endif
@@ -169,7 +175,7 @@ main(void)
 #if _npt_strtoull && !_std_strtol
 	printf("#ifndef _ISOC99_SOURCE\n");
 #endif
-	printf("extern unsigned _ast_intmax_t	strtoull(const char*, char**, int);\n");
+	printf("extern unsigned long long	strtoull(const char*, char**, int);\n");
 #if _npt_strtoull && !_std_strtoul
 	printf("#endif\n");
 #endif

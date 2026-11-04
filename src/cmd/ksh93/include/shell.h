@@ -174,6 +174,10 @@ extern const char	e_autoloadnotfound[];
 extern const char	e_toolong[];
 extern const char	e_format[];
 extern const char 	e_number[];
+extern const char 	e_negative_flt[];
+extern const char 	e_outofrange[];
+extern const char 	e_outofrange_flt[];
+extern const char 	e_outofrange_uid[];
 extern const char	e_restricted[];
 extern const char	e_recursive[];
 extern char		e_version[];
@@ -283,7 +287,7 @@ struct Shell_s
 	struct sh_scoped st;		/* scoped information */
 	Stk_t		*stk;		/* stack pointer */
 	Sfio_t		*heredocs;	/* current here-doc temp file */
-	int		**fdptrs;	/* pointer to file numbers */
+	int		**fdptrs;	/* internally tracked file descriptors (not user redirects) */
 	char		*lastarg;	/* $_ */
 	int		path_err;	/* last error on path search */
 	Dt_t		*var_base;	/* global level variables */
@@ -294,6 +298,7 @@ struct Shell_s
 	Namval_t	*prev_table;	/* previous table used in nv_open */
 	Sfio_t		*outpool;	/* output stream pool */
 	long		timeout;	/* read timeout */
+	char		readavail;	/* set for read -n/-N to read available input, not a record */
 	unsigned int	curenv;		/* current subshell number */
 	unsigned int	jobenv;		/* subshell number for jobs */
 	int		infd;		/* input file descriptor */
@@ -307,7 +312,7 @@ struct Shell_s
 	sigjmp_buf	*jmplist;	/* longjmp return stack */
 	pid_t		bckpid;		/* background process id */
 	pid_t		cpid;
-	pid_t		spid; 		/* subshell process id */
+	pid_t		spid; 		/* ID of foreground process spawned by virtual comsub */
 	pid_t		pipepid;
 	pid_t		outpipepid;
 	int		topfd;
@@ -330,7 +335,7 @@ struct Shell_s
 	unsigned char	lastsig;	/* last signal received */
 	char		chldexitsig;	/* set if the last command was a child process that exited due to a signal */
 	char		pathinit;	/* pathinit called from subshell */
-	char		comsub;		/* set to 1 when in `...`, 2 when in ${ ...; }, 3 when in $(...) */
+	char		comsub;		/* set to 1 when in `...`, 2 when in ${ ...; }, 3 when in $(...); not reset upon fork */
 	char		subshare;	/* set when comsub==2 (shared-state ${ ...; } command substitution) */
 	char		toomany;	/* set when out of fd's */
 	char		instance;	/* in set_instance */
@@ -399,6 +404,7 @@ struct Shell_s
 	char		nv_putsub_already_called_sh_arith;
 	int		nv_putsub_idx;	/* saves array index obtained by nv_putsub() using sh_arith() */
 	int16_t		level;		/* ${.sh.level} */
+	int16_t		level_delta;	/* ${.sh.level} adjustment for DEBUG trap scope switching */
 #if SHOPT_STATS
 	int		*stats;
 #endif
@@ -442,7 +448,7 @@ extern void		sh_subfork(void);
 extern Shell_t		*sh_init(int,char*[],Shinit_f);
 extern void		sh_reinit(void);
 extern int 		sh_eval(Sfio_t*,int);
-extern void 		sh_delay(double,int);
+extern void 		sh_delay(Sfdouble_t,int);
 extern void		*sh_parse(Sfio_t*,int);
 extern int 		sh_trap(const char*,int);
 extern int 		sh_fun(Namval_t*,Namval_t*, char*[]);

@@ -61,7 +61,7 @@ struct read_save
 int	b_read(int argc,char *argv[], Shbltin_t *context)
 {
 	Sfdouble_t sec;
-	char *prompt;
+	char *prompt, *eptr;
 	const char *msg = e_file+4;
 	int ret, flags=0, fd=0;
 	int delim = '\n';
@@ -129,8 +129,8 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 	    case 'u':
 		if(opt_info.arg[0]=='p' && opt_info.arg[1]==0)
 			goto coprocess;
-		fd = (int)strtol(opt_info.arg,&opt_info.arg,10);
-		if(*opt_info.arg || !sh_iovalidfd(fd) || sh_inuse(fd))
+		fd = strtoi(opt_info.arg,&eptr,10);
+		if(errno == ERANGE || *eptr || !sh_iovalidfd(fd) || sh_inuse(fd))
 			fd = -1;
 		break;
 	    case 'v':
@@ -148,7 +148,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 		errormsg(SH_DICT,ERROR_usage(2), "%s", optusage(NULL));
 		UNREACHABLE();
 	}
-	if(!((fdmode=sh.fdstatus[fd])&IOREAD) || !(fdmode&(IOSEEK|IONOSEEK)))
+	if(fd>=0 && (!((fdmode=sh.fdstatus[fd])&IOREAD) || !(fdmode&(IOSEEK|IONOSEEK))))
 		fdmode = sh_iocheckfd(fd,NULL);
 	if(fd<0 || !(fdmode&IOREAD))
 	{
@@ -355,7 +355,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		if(jmpval)
 			goto done;
 		if(timeout)
-	                timeslot = sh_timeradd((Sfulong_t)timeout,0,timedout,iop);
+			timeslot = sh_timeradd((Sfulong_t)timeout,0,timedout,iop);
 	}
 #if !SHOPT_SCRIPTONLY
 	if((flags&S_FLAG) && !sh.hist_ptr)
@@ -377,6 +377,8 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		else
 			end = var + sizeof(buf) - 1;
 		up = cur = var;
+		/* -n/-N: read only what is available instead of a whole record */
+		sh.readavail = 1;
 		if((sfset(iop,SFIO_SHARE,1)&SFIO_SHARE) && fd!=0)
 			was_share = 1;
 		if(size==0)
@@ -840,6 +842,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		}
 	}
 done:
+	sh.readavail = 0;
 	if(timeslot)
 		sh_timerdel((void*)timeslot);
 	if(timeout || (sh.fdstatus[fd]&(IOTTY|IONOSEEK)))

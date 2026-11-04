@@ -101,9 +101,7 @@ static int	exitval;
    int    B_echo(int argc, char *argv[],Shbltin_t *context)
    {
 	static char bsd_univ;
-	struct print prdata;
-	prdata.options = sh_optecho+5;
-	prdata.raw = prdata.echon = 0;
+	struct print prdata = { .options = sh_optecho+5 };
 	NOT_USED(argc);
 	NOT_USED(context);
 	/* This mess is because /bin/echo on BSD is different */
@@ -141,11 +139,9 @@ static int	exitval;
 
 int    b_printf(int argc, char *argv[],Shbltin_t *context)
 {
-	struct print prdata;
+	struct print prdata = { .options = sh_optprintf };
 	NOT_USED(argc);
 	NOT_USED(context);
-	memset(&prdata,0,sizeof(prdata));
-	prdata.options = sh_optprintf;
 	return b_print(-1,argv,(Shbltin_t*)&prdata);
 }
 
@@ -171,17 +167,17 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 	int n, fd = 1;
 	uint8_t fdmode;
 	const char *options, *msg = e_file+4;
-	char *format = NULL;
+	char *format = NULL, *eptr;
 #if !SHOPT_SCRIPTONLY
 	int sflag = 0;
 #endif /* !SHOPT_SCRIPTONLY */
 	int nflag=0, rflag=0, vflag=0;
 	Namval_t *vname = NULL;
-	Optdisc_t disc;
+	Optdisc_t disc = {
+		.version = OPT_VERSION,
+		.infof = infof
+	};
 	exitval = 0;
-	memset(&disc, 0, sizeof(disc));
-	disc.version = OPT_VERSION;
-	disc.infof = infof;
 	if(argc>0)
 	{
 		options = sh_optprint;
@@ -245,8 +241,8 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 		case 'u':
 			if(opt_info.arg[0]=='p' && opt_info.arg[1]==0)
 				goto coprocess;
-			fd = (int)strtol(opt_info.arg,&opt_info.arg,10);
-			if(*opt_info.arg)
+			fd = strtoi(opt_info.arg,&eptr,10);
+			if(*eptr || errno == ERANGE)
 				fd = -1;
 			else if(!sh_iovalidfd(fd))
 				fd = -1;
@@ -342,7 +338,8 @@ skip:
 skip2:
 	if(fd < 0)
 	{
-		errno = EBADF;
+		if(errno!=ERANGE)
+			errno = EBADF;
 		fdmode = 0;
 	}
 	else if(!(fdmode=sh.fdstatus[fd]))
@@ -380,12 +377,14 @@ printf_v:
 	{
 		/* printf style print */
 		Sfio_t *pool;
-		struct printf pdata;
-		memset(&pdata, 0, sizeof(pdata));
-		pdata.hdr.version = SFIO_VERSION;
-		pdata.hdr.extf = extend;
-		pdata.hdr.reloadf = reload;
-		pdata.nextarg = argv;
+		struct printf pdata = {
+			.hdr = {
+				.version = SFIO_VERSION,
+				.extf = extend,
+				.reloadf = reload
+			},
+			.nextarg = argv
+		};
 		sh_offstate(SH_STOPOK);
 		pool=sfpool(sfstderr,NULL,SFIO_WRITE);
 		do
@@ -455,9 +454,7 @@ static int echolist(Sfio_t *outfile, int raw, char *argv[])
 {
 	char	*cp;
 	ptrdiff_t n;
-	struct printf pdata;
-	pdata.cescape = 0;
-	pdata.err = 0;
+	struct printf pdata = { 0 };
 	while(!pdata.cescape && (cp= *argv++))
 	{
 		if(!raw  && (n=fmtvecho(cp,&pdata))>=0)
@@ -560,29 +557,13 @@ static char *fmthtml(const char *string, int flags)
 	}
 	else
 	{
-		/* Percent-encode for URI. Ref.: RFC 3986, section 2.3 */
-		if(mbwide())
+		/* Percent-encode for URI. Ref.: RFC 3986, section 2.3. Intentionally *not* multibyte-aware. */
+		while(c = *(unsigned char*)cp++)
 		{
-			while(op = cp, c = mbchar(cp))
-			{
-				if(c < 0)
-					sfputr(sh.stk,"%3F",-1);
-				else if(c < 128 && strchr(URI_RFC3986_UNRESERVED, c))
-					sfputc(sh.stk,c);
-				else
-					while(c = *(unsigned char*)op++, op <= cp)
-						sfprintf(sh.stk, "%%%02X", c);
-			}
-		}
-		else
-		{
-			while(c = *(unsigned char*)cp++)
-			{
-				if(strchr(URI_RFC3986_UNRESERVED, c))
-					sfputc(sh.stk,c);
-				else
-					sfprintf(sh.stk, "%%%02X", c);
-			}
+			if(isascii(c) && strchr(URI_RFC3986_UNRESERVED, c))
+				sfputc(sh.stk,c);
+			else
+				sfprintf(sh.stk, "%%%02X", c);
 		}
 	}
 	sfputc(sh.stk,0);
@@ -936,9 +917,12 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 				if(sh.bltinfun==b_printf && sh_isoption(SH_POSIX))
 				{
 					/* POSIX requires evaluating a number here, not an arithmetic expression */
+					int oerrno = errno;
+					errno = 0;
 					d = (Sfdouble_t)strtoll(argp,&lastchar,0);
-					if(*lastchar)
-						errormsg(SH_DICT,ERROR_exit(0),e_number,argp);
+					if(*lastchar || errno == ERANGE)
+						errormsg(SH_DICT,ERROR_system(0),e_number,argp);
+					errno = oerrno;
 				}
 				else
 					d = sh_strnum(argp,&lastchar,0);
@@ -982,9 +966,12 @@ static int extend(Sfio_t* sp, void* v, Sffmt_t* fe)
 				if(sh.bltinfun==b_printf && sh_isoption(SH_POSIX))
 				{
 					/* POSIX requires evaluating a number here, not an arithmetic expression */
+					int oerrno = errno;
+					errno = 0;
 					d = strtold(argp,&lastchar);
-					if(*lastchar)
-						errormsg(SH_DICT,ERROR_exit(0),e_number,argp);
+					if(*lastchar || errno == ERANGE)
+						errormsg(SH_DICT,ERROR_system(0),e_number,argp);
+					errno = oerrno;
 				}
 				else
 					d = sh_strnum(argp,&lastchar,0);

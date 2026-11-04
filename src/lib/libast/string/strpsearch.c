@@ -23,18 +23,11 @@
  */
 
 #include <ast.h>
-#include <ccode.h>
 #include <ctype.h>
-
-#if CC_NATIVE == CC_ASCII
-#define MAP(m,c)	(c)
-#else
-#define MAP(m,c)	m[c]
-#endif
 
 /*
  * return a pointer to the isalpha() identifier matching
- * name in the CC_ASCII sorted tab of num elements of
+ * name in the ASCII sorted tab of num elements of
  * size siz where the first member of each
  * element is a char*
  *
@@ -44,6 +37,8 @@
  * 0 returned if name not found
  * otherwise if next!=0 then it points to the next
  * unmatched char in name
+ *
+ * assumes an ASCII-based operating system
  */
 
 void*
@@ -52,23 +47,17 @@ strpsearch(const void* tab, size_t num, size_t siz, const char* name, char** nex
 	char*		lo = (char*)tab;
 	char*		hi = lo + (num - 1) * siz;
 	char*		mid;
-#if CC_NATIVE != CC_ASCII
-	unsigned char*	m;
-#endif
 	unsigned char*	s;
 	unsigned char*	t;
 	int		c;
 	int		v;
 	int		sequential = 0;
 
-#if CC_NATIVE != CC_ASCII
-	m = ccmap(CC_NATIVE, CC_ASCII);
-#endif
-	c = MAP(m, *((unsigned char*)name));
+	c = *((unsigned char*)name);
 	while (lo <= hi)
 	{
 		mid = lo + (sequential ? 0 : (((hi - lo) / (ssize_t)siz) / 2) * (ssize_t)siz);
-		if (!(v = c - MAP(m, *(s = *((unsigned char**)mid)))) || *s == '[' && !(v = c - MAP(m, *++s)) && (v = 1))
+		if (!(v = c - *(s = *((unsigned char**)mid))) || *s == '[' && !(v = c - *++s) && (v = 1))
 		{
 			t = (unsigned char*)name;
 			for (;;)
@@ -93,7 +82,7 @@ strpsearch(const void* tab, size_t num, size_t siz, const char* name, char** nex
 					}
 					if (!sequential)
 					{
-						while ((mid -= siz) >= lo && (s = *((unsigned char**)mid)) && ((c == MAP(m, *s)) || *s == '[' && c == MAP(m, *(s + 1))));
+						while ((mid -= siz) >= lo && (s = *((unsigned char**)mid)) && ((c == *s) || *s == '[' && c == *(s + 1)));
 						sequential = 1;
 					}
 					v = 1;
@@ -101,7 +90,7 @@ strpsearch(const void* tab, size_t num, size_t siz, const char* name, char** nex
 				}
 				else if (*t != *s)
 				{
-					v = MAP(m, *t) - MAP(m, *s);
+					v = *t - *s;
 					break;
 				}
 				else

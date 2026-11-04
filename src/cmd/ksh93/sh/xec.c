@@ -46,7 +46,7 @@
 #endif
 
 #if SHOPT_SPAWN
-    static pid_t sh_ntfork(const Shnode_t*,char*[],int*,int);
+    static pid_t sh_ntfork(const Shnode_t*,char*[],int*,int,int);
 #endif /* SHOPT_SPAWN */
 
 static void	sh_funct(Namval_t*, int, char*[], struct argnod*,int);
@@ -453,11 +453,19 @@ static void put_level(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 		int breakcnt = sh.st.breakcnt, loopcnt = sh.st.loopcnt;
 		sh_setscope(sp);
 		sh.st.breakcnt = breakcnt, sh.st.loopcnt = loopcnt;
+		/*
+		 * Keep ${.sh.level} at the assigned value for the rest of the trap
+		 * run, so functions or dot scripts called by the trap are relative
+		 * to the switched scope instead of resetting it.
+		 */
+		sh.level_delta = level - (sh.fn_depth + sh.dot_depth);
 	}
+	else
+		sh.level = oldlevel;	/* can't switch scope; revert value */
 }
 
-static const Namdisc_t level_disc = { sizeof(Namfun_t), put_level };
-static Namfun_t level_disc_fun = { &level_disc, 1 };
+static const Namdisc_t level_disc = { .dsize = sizeof(Namfun_t), .putval = put_level };
+static Namfun_t level_disc_fun = { .disc = &level_disc, .namflags = NAMFUN_NOFREE };
 
 /*
  * Execute the DEBUG trap:
@@ -472,6 +480,12 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	char			*save_prefix;
 	ptrdiff_t		offset;
 	int			n = 4;
+	struct checkpt		*chkp;
+	int			jmpval;
+	/* state to restore in case the trap switches scope via .sh.level */
+	Shscope_t		*savscope = (Shscope_t*)sh.st.self, *savtop = sh.topscope;
+	Dt_t			*savtree = sh.var_tree;
+	int16_t			savlevel = sh.level, savdelta = sh.level_delta;
 	if(sh.indebug)
 		return 0;
 	sh.indebug = 1;
@@ -506,7 +520,14 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		sfputc(sh.stk,')');
 	else
 		*stkptr(sh.stk,stktell(sh.stk)-1) = 0;
+	if(np->nvalue || np->nvfun)
+	{
+		if(nv_arrayptr(np))
+			nv_putsub(np,NULL,ARRAY_SCAN);
+		nv_unset(np,NV_RDONLY);
+	}
 	np->nvalue = stkfreeze(sh.stk,1);
+	nv_onattr(np,NV_NOFREE);
 	sh.st.lineno = error_info.line;
 	*savst = sh.st;
 	save_prefix = sh.prefix;
@@ -517,21 +538,37 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 		nv_disc(SH_LEVELNOD,&level_disc_fun,NV_FIRST);
 	nv_offattr(SH_LEVELNOD,NV_RDONLY);
 	/* run the trap */
-	n = sh_trap(trap,0);
+	chkp = stkalloc(sh.stk,sizeof(struct checkpt));
+	sh_pushcontext(chkp,SH_JMPTRAP);
+	jmpval = sigsetjmp(chkp->buff,0);
+	if(jmpval == 0)
+		n = sh_trap(trap,0);
+	sh_popcontext(chkp);
 	/* restore state */
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
-	np->nvalue = NULL;
+	if(nv_arrayptr(np))
+		nv_putsub(np,NULL,ARRAY_SCAN);
+	nv_unset(np,NV_RDONLY);
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
 	nv_onattr(SH_FUNNAMENOD,NV_NOFREE);
-	/* restore scope */
-	update_sh_level();
+	/* restore the scope and .sh.level in case the trap changed them */
+	if((Shscope_t*)sh.st.self != savscope)
+		sh_setscope(savscope);
+	sh.var_tree = savtree;
+	sh.topscope = savtop;
+	sh.level_delta = savdelta;
+	sh.level = savlevel;
 	sh.st = *savst;
+	SH_PATHNAMENOD->nvalue = sh.st.filename;
+	SH_FUNNAMENOD->nvalue = sh.st.funname;
 	sh.prefix = save_prefix;
 	if(sav != stkptr(sh.stk,0))
 		stkset(sh.stk,sav,offset);
 	else
 		stkseek(sh.stk,offset);
+	if(jmpval)
+		siglongjmp(*sh.jmplist,jmpval);
 	return n;
 }
 
@@ -548,10 +585,8 @@ int sh_eval(Sfio_t *iop, int eval_mode)
 	static Sfio_t *io_save;
 	volatile int traceon=0, lineno=0, mode = eval_mode;
 	char binscript=sh.binscript;
-	char comsub = sh.comsub;
 	io_save = iop; /* preserve correct value across longjmp */
 	sh.binscript = 0;
-	sh.comsub = 0;
 	sh_pushcontext(buffp,SH_JMPEVAL);
 	buffp->olist = pp->olist;
 	jmpval = sigsetjmp(buffp->buff,0);
@@ -594,7 +629,6 @@ int sh_eval(Sfio_t *iop, int eval_mode)
 		sh.exitval = error_info.warnings != 0;  /* for 'eval -n' */
 	sh_popcontext(buffp);
 	sh.binscript = binscript;
-	sh.comsub = comsub;
 	if(traceon)
 		sh_onoption(SH_XTRACE);
 	if(lineno)
@@ -770,6 +804,17 @@ static Namval_t *enter_namespace(Namval_t *nsp)
 	return onsp;
 }
 #endif /* SHOPT_NAMESPACE */
+
+/*
+ * Return nonzero if the redirection node list <iop> redirects standard output.
+ */
+static int redirects_stdout(struct ionod *iop)
+{
+	for(; iop; iop = iop->ionxt)
+		if((iop->iofile & IOUFD) == 1)
+			return 1;
+	return 0;
+}
 
 /*
  * Check whether to execve(2) the final command or make its redirections permanent.
@@ -1107,14 +1152,19 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 					{
 						/* Do nothing */
 					}
-					else if(path_search(com0,NULL,1))
+					/* If this is the last command and there is no FPATH, then skip the
+					 * stat(2)-based path_search() and let path_exec() handle the search. */
+ 					else if(!(execflg && !path_hasfpath()) && path_search(com0,NULL,1))
 					{
 						error_info.line = t->com.comline-sh.st.firstline;
+						/* Search for a function or built-in named com0. */
 #if SHOPT_NAMESPACE
 						if(!sh.namespace || !(np=sh_fsearch(com0,0)))
 #endif /* SHOPT_NAMESPACE */
 							np=nv_search(com0,sh.fun_tree,0);
-						if(!np || !np->nvalue)
+						/* If the search found a null node (undefined function), it won't have kept
+						 * searching through fun_tree's view to bltin_tree, so do this manually. */
+						if(np && !np->nvalue)
 						{
 							Namval_t *mp=nv_search(com0,sh.bltin_tree,0);
 							if(mp)
@@ -1227,8 +1277,12 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						bp->sigset = 0;
 						bp->notify = 0;
 						bp->flags = ((flags & ARG_OPTIMIZE)!=0);
-						if(sh.subshell && nv_isattr(np,BLT_NOSFIO))
-							sh_subtmpfile();
+						if(nv_isattr(np,BLT_NOSFIO))
+						{
+							if(sh.subshell)
+								sh_subtmpfile();
+							sh_pat_handoff();
+						}
 						if(argn)
 							sh.exitval = (*sh.bltinfun)(argn,com,bp);
 						if(error_info.flags&ERROR_INTERACTIVE)
@@ -1426,6 +1480,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			pid_t parent;
 			int no_fork,jobid;
 			int pipes[3];
+			int comsubpipe = 0, comsubwant = 0, comsubpv[2];
 			if(sh.subshell)
 				sh_subtmpfile();
 			if(no_fork = check_exec_optimization(type,execflg,execflg2,t->fork.forkio))
@@ -1451,10 +1506,28 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 				}
 				if(sh.fifo)
 					fifo_save_ppid = sh.current_pid;
+				/*
+				 * In a `` or $() command substitution, connect the standard output of
+				 * a child process to a pipe so that all its output is captured and the
+				 * command substitution waits until the pipe is disconnected. If the
+				 * command's output is redirected elsewhere, or if it is part of a
+				 * pipeline, then no pipe is needed.
+				 */
+				comsubwant = !(type&FPOU) && sh.comsub && !redirects_stdout(t->fork.forkio);
+#if SHOPT_SPAWN
+				/*
+				 * A command that is spawned gets its pipe from sh_ntfork(), which
+				 * creates it after applying the command's own redirections; see there.
+				 */
+				if(comsubwant && !com)
+#else
+				if(comsubwant)
+#endif /* SHOPT_SPAWN */
+					comsubpipe = sh_comsubpipe(comsubpv);
 				if(com)
 				{
 #if SHOPT_SPAWN
-					parent = sh_ntfork(t,com,&jobid,topfd);
+					parent = sh_ntfork(t,com,&jobid,topfd,comsubwant);
 					if(parent<0)
 						break;
 #else
@@ -1469,13 +1542,19 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			 * It may or may not wait for the child
 			 */
 			{
+				if(comsubpipe)
+					sh_comsubpipeparent(parent,comsubpv);
 				if(pipejob==2)
 				{
 					pipejob = 1;
 					nlock--;
 					job_unlock();
 				}
-				if(sh.subshell)
+				/*
+				 * Remember a foreground child process so the active comsub (if any) can wait for it in
+				 * sh_subshell(). Background jobs are not tracked here; a comsub must not wait for them.
+				 */
+				if(sh.subshell && sh.comsub && !(type&FAMP))
 					sh.spid = parent;
 				if(type&FPCL)
 					sh_close(sh.inpipe[0]);
@@ -1516,6 +1595,8 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 				struct checkpt *buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 				struct ionod *iop;
 				char	*save_sh_fifo = sh.fifo;
+				if(comsubpipe)
+					sh_comsubpipechild(comsubpv);
 				if(sh.fifo_tree)
 				{
 					/* do not clean up process substitution FIFOs in child; parent handles this */
@@ -1677,7 +1758,8 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 				for (i = t->fork.forkio; i; i = i->ionxt)
 				{
 					unsigned f = i->iofile;
-					if ((f & (unsigned)~(IOUFD|IOPUT))==(IOMOV|IORAW) && !strcmp(i->ioname,"-") || (f & IOUFD)==1 && sh.comsub)
+					if ((f & (unsigned)~(IOUFD|IOPUT))==(IOMOV|IORAW) && !strcmp(i->ioname,"-")
+					|| (f & IOUFD)==1 && sh.subshell && sh.comsub)
 					{
 						sh_subfork();
 						break;
@@ -1997,6 +2079,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 					else
 					{
 						int c;  /* user's menu choice */
+						int oerrno = errno;
 						if(*(cp=val) == 0)
 						{
 							refresh++;
@@ -2008,11 +2091,12 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						if(c!=0)
 							c = nargs;
 						else
-							c = (int)strtol(val, NULL, 10)-1;
-						if(c<0 || c >= nargs)
+							c = strtoi(val, NULL, 10)-1;
+						if(c<0 || c >= nargs || errno==ERANGE)
 							cp = Empty;
 						else
 							cp = args[c];
+						errno = oerrno;
 					}
 				}
 				if(nameref)
@@ -2834,7 +2918,7 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	sh_clear_subshell_pwdfd();
 	sh.realsubshell++;		/* increase ${.sh.subshell} */
 	sh.subshell = 0;		/* zero virtual subshells */
-	sh.comsub = 0;
+	/* sh.comsub is deliberately *not* reset here; a forked command substitution is still a command substitution */
 	sh.spid = 0;
 	if((flags&FAMP) && sh.coutpipe>1)
 		sh_close(sh.coutpipe);
@@ -3330,11 +3414,14 @@ static void sigreset(int mode)
  * the sh_fork() codepath, even when the underlying system calls it uses wind up
  * being the same.
  */
-static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
+static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd,int comsubwant)
 {
 	static pid_t	spawnpid;
 	struct checkpt	*buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 	int		jmpval,jobfork=0;
+	int		comsubpv[2];
+	volatile int	comsubindx=-1;
+	volatile int	comsubrfd=-1;
 	volatile int	scope=0, sigwasset=0;
 	char		**arge, *path;
 	volatile pid_t	grp = 0;
@@ -3346,8 +3433,31 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 	if(jmpval == 0)
 	{
 		spawnpid = -1;
+		/*
+		 * Apply the command's redirections.
+		 */
 		if(t->com.comio)
 			sh_redirect(t->com.comio,0);
+		/*
+		 * In a command substitution, connect standard output to a pipe for the
+		 * spawned process, so that all its output (including that of any child
+		 * processes it leaves behind) is captured and the command substitution can
+		 * block until the pipe is disconnected. Must be done *after* sh_redirect.
+		 */
+		if(comsubwant && sh_comsubpipe(comsubpv))
+		{
+			sfsync(NULL);
+			/*
+			 * Connect standard output, and any file descriptors redirected to
+			 * it, to the pipe for the duration of the spawn; that way all their
+			 * output is captured and stays properly ordered. They are saved for
+			 * restoring as soon as the process has spawned.
+			 */
+			comsubrfd = comsubpv[0];
+			comsubindx = sh_comsubpipestdout(comsubpv[1],1);
+			sh_iosave(1,comsubindx,NULL);
+			sh_iorenumber(comsubpv[1],1);
+		}
 		error_info.id = *argv;
 		if(t->com.comset)
 		{
@@ -3427,6 +3537,27 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd)
 	}
 	else
 		exitset();
+	/* Restore standard output and any other redirected file descriptors. */
+	if(comsubindx >= 0)
+	{
+		sh_iorestore(comsubindx,0);
+		comsubindx = -1;
+	}
+	if(comsubrfd >= 0)
+	{
+		if(spawnpid > 0)
+			sh_comsubpipeadd(spawnpid,comsubrfd);
+		else
+		{	/*
+			 * The child process could not be spawned, but an error message may have been written
+			 * to its output pipe if standard error was redirected to standard output. Collect
+			 * such output (if any) into the command substitution's output and close the pipe.
+			 */
+			sh_comsubpiperead(comsubrfd);
+			sh_close(comsubrfd);
+		}
+		comsubrfd = -1;
+	}
 	sh_popcontext(buffp);
 	if(buffp->olist)
 		free_list(buffp->olist);

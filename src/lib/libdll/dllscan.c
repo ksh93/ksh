@@ -187,9 +187,9 @@ vercmp(FTSENT* const* ap, FTSENT* const* bp)
 	{
 		if (isdigit(*a) && isdigit(*b))
 		{
-			m = (int)strtol((char*)a, &e, 10);
+			m = strtoi((char*)a, &e, 10);
 			a = (unsigned char*)e;
-			n = (int)strtol((char*)b, &e, 10);
+			n = strtoi((char*)b, &e, 10);
 			b = (unsigned char*)e;
 			if (n -= m)
 				return n;

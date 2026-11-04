@@ -110,7 +110,7 @@ struct whnod
 struct fornod
 {
 	int		fortyp;
-	char	 	*fornam;
+	char		*fornam;
 	Shnode_t	*fortre;
 	struct comnod	*forlst;
 	int		forline;

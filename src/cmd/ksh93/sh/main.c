@@ -221,7 +221,7 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
 			if(!sh_isoption(SH_SFLAG))
 			{
 				/* open stream should have been passed into shell */
-				if(sh_isdevfd(name) && (fdin=(int)strtol(name+8, NULL, 10)) > 2)
+				if(sh_isdevfd(name) && (fdin=strtoi(name+8, NULL, 10)) > 2 && errno!=ERANGE)
 				{
 					if(fstat(fdin,&statb)<0)
 					{
@@ -359,11 +359,9 @@ static void	exfile(Sfio_t *_iop, int _fno)
 				if(!(sh.fdstatus[fno]&IOCLEX))
 					sh_fcntl(fno,F_SETFD,FD_CLOEXEC);
 			}
-			/* buffer the stream in script mode */
-			iop = sh_iostream(fno,1);
 		}
-		else
-			iop = sfstdin;
+		/* buffer the stream in script mode */
+		iop = sh_iostream(fno,1);
 	}
 	else
 		fno = -1;

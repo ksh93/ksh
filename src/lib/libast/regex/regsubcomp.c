@@ -51,7 +51,7 @@ regsubflags(regex_t* p, const char* s, char** e, int delim, const regflags_t* ma
 		map = submap;
 	while (!(flags & REG_SUB_LAST))
 	{
-		if  (!(c = *s++) || c == delim)
+		if (!(c = *s++) || c == delim)
 		{
 			s--;
 			break;
