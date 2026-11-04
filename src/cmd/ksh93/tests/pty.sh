@@ -255,7 +255,7 @@ r \^Z
 # Ctrl+C should interrupt it and trigger an error message
 c \cC
 s 50
-u testfifo464: cannot create \[.*\]\r\n$
+u testfifo464: cannot create \[.*\]\r?\n$
 p :test-2:
 w echo ok
 r echo ok\r?\n$
@@ -1707,7 +1707,7 @@ w COLUMNS=20 PS1=$':child\\E[ q\\E[6 q: ' "$SHELL" +o multiline
 p :child
 c : abcdefg
 w
-r ^:child.*: : abcdefg\r\n$
+r ^:child.*: : abcdefg\r?\n$
 !
 
 ((SHOPT_MULTIBYTE && SHOPT_ESH)) &&
@@ -1719,7 +1719,7 @@ L emacs mode not aware of multibyte spaces
 d 50
 p :test-1:
 w echo foo　baz\Eb\Edbar
-u ^foo　bar\r\n$
+u ^foo　bar\r?\n$
 !
 
 ((SHOPT_MULTIBYTE && SHOPT_VSH)) &&
@@ -1731,7 +1731,7 @@ L vi mode not aware of multibyte spaces
 d 50
 p :test-1:
 w echo bar　uux\Ebiq
-u ^bar　quux\r\n$
+u ^bar　quux\r?\n$
 !
 
 tst $LINENO <<"!"
@@ -1812,25 +1812,24 @@ L up arrow breaks with long history entry
 d 50
 p :test-1:
 w echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-r ^:test-1: echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
-r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
+r magna aliqua.\r?\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r?\n$
 p :test-2:
 w echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-r ^:test-2: echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna\r\n$
-r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna\r\n$
+r dolore magna\r?\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna\r?\n$
 p :test-3:
 w echo Lor\E[A \E[A
-r ^:test-3: echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
-r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
+r magna aliqua.\r?\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r?\n$
 p :test-4:
 w echo Final prompt.
-r ^:test-4: echo Final prompt.\r\n$
-r ^Final prompt.\r\n$
+r echo Final prompt.\r?\n$
+r ^Final prompt.\r?\n$
 !
 
 ((SHOPT_ESH && SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
-rep=$(awk -v ORS= 'BEGIN { for (i=0; i<40; i++) print "é"; }') &&
-VISUAL=emacs tst $LINENO <<!
+VISUAL=emacs tst $LINENO <<"!"
 L KEYBD trap with a long multibyte line
 # https://github.com/ksh93/ksh/issues/864
 
@@ -1844,58 +1843,47 @@ L KEYBD trap with a long multibyte line
 # the entire line, so the old code overflows its stack buffer.
 d 50
 p :test-1:
-w rep=$rep
-w trap 'if [[ \${.sh.edchar} == x ]]; then .sh.edchar=\$rep; fi' KEYBD
-s 300
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c x
-c \cM
-s 1000
+w trap 'if [[ ${.sh.edchar} == x ]]; then .sh.edchar=éééééééééééééééééééééééééééééééééééééééé; fi' KEYBD
+r KEYBD\r?\n$
+p :test-2:
+w xxxxxxxxxxxxxxxxxxxx
+r ééééééééé\r?\n$
+r éééééééééééééééééééééé: file name too long\r?\n$
+p :test-3:
 w print OK
-u ^OK\\r?\\n$
+r print OK\r?\n$
+r ^OK\r?\n$
 !
 
 ((SHOPT_VSH && SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
-rep=$(awk -v ORS= 'BEGIN { for (i=0; i<60; i++) print "ほ"; }') &&
-VISUAL=vi tst $LINENO <<!
+VISUAL=vi tst $LINENO <<"!"
 L vi history search with a long multibyte line
 # https://github.com/ksh93/ksh/issues/864
 
 # The line must be shorter than the old SEARCHSIZE (80) limit to make
 # vi copy it into the search buffer on ESC + Up-arrow, while its UTF-8
-# form is longer than that buffer. 60 characters are 180 bytes.
+# form is longer than that buffer.
 d 50
 p :test-1:
-c $rep
+w PATH=/dev/null
+r PATH=/dev/null\r?\n$
+p :test-2:
+# The 60 characters below are 180 bytes.
+c ほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほ
 c \E
 c \E[A
 c \r
-s 1000
+# no \r?\n$ anchor on reading back the terminal echo here; it may end in a split multibyte character
+r ほほほほほほ
+r ほほほほほほ: not found\r?\n$
+p :test-3:
 w print OK
-u ^OK\\r?\\n$
+r print OK\r?\n$
+r ^OK\r?\n$
 !
 
-((SHOPT_ESH && SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
-rep=$(awk -v ORS= 'BEGIN { for (i=0; i<42; i++) print "x"; }') &&
-VISUAL=emacs tst $LINENO <<!
+((SHOPT_ESH)) &&
+VISUAL=emacs tst $LINENO <<"!"
 L very long command name
 # https://github.com/ksh93/ksh/issues/864
 
@@ -1909,22 +1897,24 @@ L very long command name
 d 50
 p :test-1:
 w print NOTLONG
-w rep=$rep
-w trap 'if [[ \${.sh.edchar} == @ ]]; then .sh.edchar=\$rep; fi' KEYBD
-s 200
-c print LONGDONE # 
-c @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-c \cM
-s 800
-u ^LONGDONE\\r?\\n$
+r print NOTLONG\r?\n$
+r ^NOTLONG\r?\n$
 p :test-2:
+w trap 'if [[ ${.sh.edchar} == @ ]]; then .sh.edchar=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx; fi' KEYBD
+r KEYBD\r?\n$
+p :test-3:
+w print LONGDONE #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+r xxxxxx\r?\n$
+r ^LONGDONE\r?\n$
+p :test-4:
 c \cP
-s 500
 c \cM
-s 800
-u ^LONGDONE\\r?\\n$
+r xxxxxx\r?\n$
+r ^LONGDONE\r?\n$
+p :test-5:
 w print OK
-u ^OK\\r?\\n$
+r print OK\r?\n$
+r ^OK\r?\n$
 !
 
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
