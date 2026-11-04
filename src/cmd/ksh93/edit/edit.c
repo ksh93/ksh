@@ -732,6 +732,11 @@ done:
 static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 {
 	int c;
+	/* never overflow the look-ahead buffer (e.g. when a KEYBD trap expands the input) */
+	if(nbyte > MAXLINE - ep->e_lookahead)
+		nbyte = MAXLINE - ep->e_lookahead;
+	if(nbyte <= 0)
+		return 1;
 #if SHOPT_MULTIBYTE
 	char *endp, *p=string;
 	ssize_t size;
@@ -1205,11 +1210,11 @@ int	ed_external(const genchar *src, char *dest)
 {
 	genchar wc;
 	char *dp = dest;
-	char *dpmax = dp+sizeof(genchar)*MAXLINE-2;
+	char *dpmax = dp+MAXEXTLINE-2;
 	if((char*)src == dp)
 	{
 		int c;
-		char buffer[MAXLINE*sizeof(genchar)] = "";
+		char buffer[MAXEXTLINE] = "";
 		c = ed_external(src,buffer);
 
 #if _lib_wcscpy
@@ -1308,7 +1313,7 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 	int savexit;
 	Lex_t *lexp = (Lex_t*)sh.lex_context, savelex;
 #if SHOPT_MULTIBYTE
-	char buff[MAXLINE];
+	char buff[MAXEXTLINE];
 	ed_external(ep->e_inbuf,cp=buff);
 #else
 	cp = ep->e_inbuf;

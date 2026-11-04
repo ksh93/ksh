@@ -1285,6 +1285,12 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 	draw(ep,UPDATE);
 	while ((i = ed_getchar(ep->ed,1))&&(i != '\r')&&(i != '\n'))
 	{
+		if(sl >= MAXLINE-3)
+		{
+			/* search string longer than the maximum line length: ignore it */
+			beep();
+			continue;
+		}
 		if (i==usrerase || i==DELETE || i=='\b' || i==ERASECHAR)
 		{
 			if (sl > 4)
@@ -1350,8 +1356,8 @@ static void search(Emacs_t* ep,genchar *out,int direction)
 #if SHOPT_MULTIBYTE
 		ed_external(string,(char*)string);
 #endif /* SHOPT_MULTIBYTE */
-		strncopy(lstring,((char*)string)+4,MAXLINE-1);
-		lstring[MAXLINE-1] = 0;
+		strncopy(lstring,((char*)string)+4,MAXEXTLINE-1);
+		lstring[MAXEXTLINE-1] = 0;
 		ep->prevdirection = direction;
 	}
 	else

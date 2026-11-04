@@ -2066,8 +2066,8 @@ static int search(Vi_t* vp,int mode)
 		location = hist_find(sh.hist_ptr,((char*)virtual)+1, curhline, 1, new_direction);
 	}
 	cur_virt = i;
-	strncopy(lsearch, ((char*)virtual)+1, MAXLINE-1);
-	lsearch[MAXLINE-1] = 0;
+	strncopy(lsearch, ((char*)virtual)+1, MAXEXTLINE-1);
+	lsearch[MAXEXTLINE-1] = 0;
 	if( (curhline=location.hist_command) >=0 )
 	{
 		vp->ocur_virt = INVALID;

@@ -43,7 +43,8 @@
 
 #define TABSIZE	8
 #define PRSIZE	256
-#define MAXLINE	8192		/* longest edit line permitted */
+#define MAXLINE	8192		/* longest edit line permitted (in genchars) */
+#define MAXEXTLINE	(MAXLINE*CHARSIZE) /* longest external (multibyte) form of an edit line */
 
 typedef struct _edit_pos
 {
@@ -86,9 +87,9 @@ typedef struct edit
 	genchar	*e_inbuf;	/* pointer to input buffer */
 	char	*e_prompt;	/* pointer to trimmed final line of PS1 prompt, used when redrawing command line */
 	genchar	*e_killbuf;	/* pointer to delete buffer */
-	char	e_search[MAXLINE];	/* search string */
+	char	e_search[MAXEXTLINE+1]; /* search string (external form) */
 	genchar	*e_physbuf;	/* temporary workspace buffer */
-	int	e_lbuf[MAXLINE];/* pointer to look-ahead buffer */
+	int	e_lbuf[MAXLINE];	/* look-ahead buffer */
 	int	e_fd;		/* file descriptor */
 	int	e_ttyspeed;	/* line speed, also indicates tty parameters are valid */
 	int	e_tabcount;

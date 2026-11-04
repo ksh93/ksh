@@ -1828,6 +1828,66 @@ r ^:test-4: echo Final prompt.\r\n$
 r ^Final prompt.\r\n$
 !
 
+((SHOPT_ESH && SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+rep=$(awk -v ORS= 'BEGIN { for (i=0; i<1000; i++) print "é"; }') &&
+VISUAL=emacs tst $LINENO <<!
+L KEYBD trap with a long multibyte line
+# https://github.com/ksh93/ksh/issues/864
+
+d 50
+p :test-1:
+w trap : KEYBD
+s 300
+c $rep
+c $rep
+c $rep
+c $rep
+c $rep
+c $rep
+c $rep
+c A
+c \cM
+s 1000
+w print OK
+u ^OK\\r?\\n$
+!
+
+((SHOPT_VSH && SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+rep=$(awk -v ORS= 'BEGIN { for (i=0; i<800; i++) print "ほ"; }') &&
+VISUAL=vi tst $LINENO <<!
+L vi history search with a long multibyte line
+# https://github.com/ksh93/ksh/issues/864
+
+d 50
+p :test-1:
+c $rep
+c $rep
+c $rep
+c $rep
+c $rep
+c \E
+c \E[A
+c \r
+s 1000
+w print OK
+u ^OK\\r?\\n$
+!
+
+((SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+rep=$(awk -v ORS= 'BEGIN { for (i=0; i<6000; i++) print "x"; }') &&
+tst $LINENO <<!
+L very long command name
+# https://github.com/ksh93/ksh/issues/864
+
+d 50
+p :test-1:
+w x=$rep
+w \$x
+s 1000
+w print OK
+u ^OK\\r?\\n$
+!
+
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
 
 foreground_tests

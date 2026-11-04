@@ -616,7 +616,7 @@ int ed_macro(Edit_t *ep, int i)
 			ed_ungetchar(ep,buff[i]);
 #else
 		size_t len;
-		strlcpy((char*)buff,out,MAXLINE-1);
+		strlcpy((char*)buff,out,MAXLINE+1);
 		len = strlen((char*)buff);
 		while(len-- > 0)
 			ed_ungetchar(ep,buff[len]);

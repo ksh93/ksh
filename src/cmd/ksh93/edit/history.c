@@ -66,6 +66,9 @@
 	off_t	histcnt;	/* offset into history file */\
 	off_t	histmarker;	/* offset of last command marker */ \
 	ssize_t	histflush;	/* set if flushed outside of hflush() */\
+	int	histdirect;	/* set if data was written directly since last flush */\
+	off_t	histdirstart;	/* offset of first direct write since last flush */\
+	off_t	histdirend;	/* offset after last direct write */\
 	int	histmask;	/* power of two mask for histcnt */ \
 	int	histlockfd;	/* lock file descriptor for history file */ \
 	int	histlockcnt;	/* history lock reference counter */ \
@@ -96,6 +99,7 @@ static void	hist_marker(char*,long);
 static void	hist_trim(History_t*, int);
 static int	hist_nearend(History_t*,Sfio_t*, off_t);
 static int	hist_check(int);
+static int	hist_finish(History_t*, off_t, off_t);
 static int	hist_clean(int);
 static ssize_t	hist_write(Sfio_t*, const void*, size_t, Sfdisc_t*);
 static int	hist_exceptf(Sfio_t*, int, void*, Sfdisc_t*);
@@ -762,6 +766,7 @@ again:
 		last = 0;
 		goto again;
 	}
+	hp->histdirect = 0;
 	hist_unlock(hp);
 }
 
@@ -784,6 +789,54 @@ void hist_cancel(History_t *hp)
 }
 
 /*
+ * Finish a command that was written directly to the history file instead
+ * of being buffered, because it was larger than the history file buffer
+ * (see hist_write()). Append the terminating null byte and pad to an even
+ * offset, then register the command in the history index. If the command
+ * consists of whitespace only, discard it like hist_write() would.
+ * The command consists of the file bytes from offset start to cur.
+ */
+static int hist_finish(History_t *hp, off_t start, off_t cur)
+{
+	char *buff = hp->histbuff;
+	off_t off;
+	ssize_t r;
+	ssize_t n = 0;
+	size_t i;
+	int fd = sffileno(hp->histfp);
+	int c;
+	for(off = start; off < cur; off += r)
+	{
+		r = (cur - off > HIST_BSIZE) ? HIST_BSIZE : (ssize_t)(cur - off);
+		if(lseek(fd, off, SEEK_SET) < 0 || (r = read(fd, buff, (size_t)r)) <= 0)
+			return -1;
+		for(i = 0; i < (size_t)r; i++)
+			if(!isspace((unsigned char)buff[i]))
+				goto nonblank;
+	}
+	/* whitespace only: remove it again and don't register a command */
+	if(ftruncate(fd, start) < 0)
+		return -1;
+	sfseek(hp->histfp, 0, SEEK_END);
+	return 0;
+nonblank:
+	if(lseek(fd, cur - 1, SEEK_SET) < 0 || read(fd, &c, 1) != 1)
+		return -1;
+	if(lseek(fd, cur, SEEK_SET) < 0)
+		return -1;
+	if(c != '\n')
+		buff[n++] = '\n';
+	buff[n++] = 0;
+	if((cur + n) & 01)
+		buff[n++] = 0;
+	if(write(fd, buff, (size_t)n) != n)
+		return -1;
+	hp->histcnt = cur + n;
+	hp->histcmds[hist_ind(hp, ++hp->histind)] = hp->histcnt;
+	return 0;
+}
+
+/*
  * flush the current history command
  */
 int hist_flush(History_t *hp)
@@ -798,6 +851,28 @@ int hist_flush(History_t *hp)
 	hp->histflush = sfvalue(hp->histfp) + 1;
 	if (sfwrite(hp->histfp, buff, 0) < 0)
 		goto flushfail;
+	/*
+	 * If the command did not fit in the history file buffer, its first part
+	 * has been written to the file directly by hist_write(), so the write
+	 * above never saw it. Complete and register it now so that it is not
+	 * cancelled as an unfinished command by hist_eof(). Only do this if
+	 * our data is still at the end of the file; another session sharing the
+	 * history file may have appended to it in the meantime, and its data
+	 * must not be mistaken for ours.
+	 */
+	if(hp->histdirect)
+	{
+		off_t end;
+		hp->histdirect = 0;
+		if((end = lseek(sffileno(hp->histfp), 0, SEEK_END)) < 0)
+			goto flushfail;
+		if(end == hp->histdirend)
+		{
+			hp->histflush = 0;
+			if(hist_finish(hp, hp->histdirstart, end) < 0)
+				goto flushfail;
+		}
+	}
 	if (sfsync(hp->histfp) < 0)
 		goto flushfail;
 	hp->histflush = 0;
@@ -828,6 +903,20 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	if(!hp->histflush)
 	{
 		size = write(sffileno(iop),(char*)buff,(size_t)size);
+		/*
+		 * The data did not fit in the history file buffer, so it is in the
+		 * file but not registered yet. Remember where it is so that
+		 * hist_flush() can complete and register the command.
+		 */
+		if(size > 0 && (cur = lseek(sffileno(iop),0,SEEK_END)) >= 0)
+		{
+			if(!hp->histdirect)
+			{
+				hp->histdirect = 1;
+				hp->histdirstart = cur - size;
+			}
+			hp->histdirend = cur;
+		}
 		hist_unlock(hp);
 		return size;
 	}
@@ -881,6 +970,7 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	if(size>=0)
 	{
 		hp->histwfail = 0;
+		hp->histdirect = 0;
 		hist_unlock(hp);
 		return (ssize_t)insize;
 	}

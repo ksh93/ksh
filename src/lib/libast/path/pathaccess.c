@@ -52,6 +52,12 @@ pathaccess_20100601(const char* dirs, const char* a, const char* b, int mode, ch
 	do
 	{
 		dirs = pathcat(dirs, sep, a, b, path, size);
+		if(!memchr(path, 0, size))
+		{
+			/* pathcat() could not fit the result: path is not null-terminated */
+			errno = ENAMETOOLONG;
+			return NULL;
+		}
 		pathcanon(path, size, 0);
 		if ((!sib || *path == '/') && pathexists(path, mode))
 		{
