@@ -1809,7 +1809,7 @@ r OK
 L up arrow breaks with long history entry
 # https://github.com/ksh93/ksh/issues/864
 
-d 15
+d 50
 p :test-1:
 w echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 r ^:test-1: echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r\n$
