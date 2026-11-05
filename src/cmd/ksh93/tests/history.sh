@@ -207,4 +207,45 @@ unset total present s
 HISTFILE=/dev/null
 
 # ======
+# A command too large for the history file buffer (HIST_BSIZE, 4096 bytes) must
+# not be written to the file before it is complete. If it is, a command written
+# by another session in the meantime ends up in the middle of it, leaving an
+# unterminated command behind that is cancelled or merged on the next scan, so
+# both commands are lost. The complete command must be stored as one unit.
+typeset -i i
+histfile=$tmp/hist_oversize/history
+mkdir -p "${histfile%/*}"
+long=$(awk -v ORS= 'BEGIN { for (i = 0; i < 4200; i++) print "x"; }')
+fifo=$histfile.fifo
+: >$histfile
+mkfifo -m 600 "$fifo" || err_exit "mkfifo failed"
+HISTFILE=$histfile "$SHELL" -i <"$fifo" >$histfile.out 2>&1 &
+hpid=$!
+redirect 9>$fifo	# keep the fifo open: the shell must not see EOF yet
+print -u9 "if true; then print LONGDONE # $long"	# incomplete compound command
+# If the incomplete command is wrongly written to the file before it is
+# finished, wait for that so the corruption is reproduced; otherwise this
+# just expires.
+for ((i = 0; i < 100; i++))
+do	(( $(wc -c <"$histfile") > 2 )) && break
+	sleep .01
+done
+HISTFILE=$histfile "$SHELL" -c 'print -s other_session'	# concurrent write
+print -u9 'fi'		# terminate background session's compound command
+print -u9 'exit'
+redirect 9>&-
+wait "$hpid"
+got=$(
+	HISTFILE=$histfile
+	fc -ln 1 2>&1
+)
+[[ $got == *other_session* ]] \
+	|| err_exit "oversized history command: concurrent session's command lost"
+[[ $got == *"LONGDONE # $long"* ]] \
+	|| err_exit "oversized history command: incomplete or lost after a concurrent write" \
+	"(read back ${#got} bytes of history, expected at least $((${#long} + 16)))"
+HISTFILE=/dev/null
+unset i histfile long fifo hpid
+
+# ======
 exit $((Errors<125?Errors:125))
