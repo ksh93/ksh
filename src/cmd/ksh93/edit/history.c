@@ -820,8 +820,7 @@ static int hist_direct_add(History_t *hp, const void *buff, size_t size)
 		while(max < hp->histdirlen + size)
 			max += HIST_BSIZE;
 		/* room for a newline, a null byte and even-offset padding */
-		if(!(newbuff = realloc(hp->histdirbuff, max + 4)))
-			return -1;
+		newbuff = sh_realloc(hp->histdirbuff, max + 4);
 		hp->histdirbuff = newbuff;
 		hp->histdirmax = max;
 	}

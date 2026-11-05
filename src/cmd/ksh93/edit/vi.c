@@ -2588,7 +2588,7 @@ yankeol:
     static int _isalph(int v)
     {
 #if _lib_iswalnum
-	return iswalnum(v) || v=='_';
+	return iswalnum((wint_t)v) || v=='_';
 #else
 	return (v&~STRIP) || isalnum(v) || v=='_';
 #endif
