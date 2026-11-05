@@ -206,46 +206,74 @@ fi
 unset total present s
 HISTFILE=/dev/null
 
-# ======
-# A command too large for the history file buffer (HIST_BSIZE, 4096 bytes) must
-# not be written to the file before it is complete. If it is, a command written
-# by another session in the meantime ends up in the middle of it, leaving an
-# unterminated command behind that is cancelled or merged on the next scan, so
-# both commands are lost. The complete command must be stored as one unit.
+# A command that is entered over multiple lines must not be written to the
+# history file before it is complete: a command that another session writes in
+# the meantime would end up in the middle of it, leaving an unterminated
+# command behind that is cancelled or merged on the next scan, so both commands
+# are lost. The complete command must be stored as one unit. The history index
+# of the session that entered it must also include the commands written by
+# other sessions, or that session cannot find its own command with fc or by
+# scrolling back with the arrow keys.
+# https://github.com/ksh93/ksh/issues/864
 typeset -i i
-histfile=$tmp/hist_oversize/history
-mkdir -p "${histfile%/*}"
 long=$(awk -v ORS= 'BEGIN { for (i = 0; i < 4200; i++) print "x"; }')
-fifo=$histfile.fifo
-: >$histfile
-mkfifo -m 600 "$fifo" || err_exit "mkfifo failed"
-HISTFILE=$histfile "$SHELL" -i <"$fifo" >$histfile.out 2>&1 &
-hpid=$!
-redirect 9>$fifo	# keep the fifo open: the shell must not see EOF yet
-print -u9 "if true; then print LONGDONE # $long"	# incomplete compound command
-# If the incomplete command is wrongly written to the file before it is
-# finished, wait for that so the corruption is reproduced; otherwise this
-# just expires.
-for ((i = 0; i < 100; i++))
-do	(( $(wc -c <"$histfile") > 2 )) && break
-	sleep .01
+for variant in small large
+do	histfile=$tmp/hist_multiline/$variant/history
+	mkdir -p "${histfile%/*}" || exit
+	: >$histfile
+	fifo=$histfile.fifo
+	mkfifo -m 600 "$fifo" || { warning "mkfifo failed; skipping concurrent multiline commands test"; break; }
+	HISTFILE=$histfile "$SHELL" -i <$fifo >$histfile.out 2>&1 &
+	hpid=$!
+	exec 9>$fifo		# keep the fifo open: the shell must not see EOF yet
+	# Wait until the session has started and written to its history file.
+	print -u9 "print WARMUP"
+	for ((i = 0; i < 100; i++))
+	do	grep -q WARMUP "$histfile" && break
+		sleep .01
+	done
+	if	[[ $variant == large ]]
+	then	marker="LONGDONE # $long"			# larger than HIST_BSIZE
+		print -u9 "if true; then print $marker"
+		# Only a command larger than HIST_BSIZE was wrongly written to the
+		# file before it was finished; wait for that first so that the
+		# corruption is reproduced, otherwise this loop just expires.
+		size=$(wc -c <$histfile)
+		for ((i = 0; i < 100; i++))
+		do	(( $(wc -c <$histfile) > size )) && break
+			sleep .01
+		done
+	else	marker="then print SMALLDONE"			# well within HIST_BSIZE
+		print -u9 "if true"
+		print -u9 "$marker"
+	fi
+	(HISTFILE=$histfile; print -s other_session)		# concurrent write
+	print -u9 fi
+	print -u9 'fc -ln 1'
+	print -u9 exit
+	exec 9>&-
+	wait "$hpid"
+	# The session that entered the command must have both in its own history.
+	got=$(<$histfile.out)
+	[[ $got == *other_session* ]] \
+		|| err_exit "multiline history command ($variant): concurrent session's command lost" \
+		"(fc output: $(printf %q "$got"))"
+	[[ $got == *"$marker"* ]] || err_exit "multiline history command ($variant):" \
+		"incomplete or lost after a concurrent write" \
+		"(fc output: $(printf %q "$got" | cut -c 1-200))"
+	# A new session must find both commands in the history file as well.
+	got=$(
+		HISTFILE=$histfile
+		fc -ln 1 2>&1
+	)
+	[[ $got == *other_session* ]] || err_exit "multiline history command ($variant):" \
+		"concurrent session's command not in history file" \
+		"(fc output: $(printf %q "$got"))"
+	[[ $got == *"$marker"* ]] || err_exit "multiline history command ($variant):" \
+		"missing from history file" \
+		"(fc output: $(printf %q "$got"))"
 done
-HISTFILE=$histfile "$SHELL" -c 'print -s other_session'	# concurrent write
-print -u9 'fi'		# terminate background session's compound command
-print -u9 'exit'
-redirect 9>&-
-wait "$hpid"
-got=$(
-	HISTFILE=$histfile
-	fc -ln 1 2>&1
-)
-[[ $got == *other_session* ]] \
-	|| err_exit "oversized history command: concurrent session's command lost"
-[[ $got == *"LONGDONE # $long"* ]] \
-	|| err_exit "oversized history command: incomplete or lost after a concurrent write" \
-	"(read back ${#got} bytes of history, expected at least $((${#long} + 16)))"
-HISTFILE=/dev/null
-unset i histfile long fifo hpid
+unset i long variant histfile fifo hpid got marker size
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -2,13 +2,18 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
-2026-11-04:
+2026-11-05:
 
 - The maximum length of edit lines in the emacs and vi line editors has been
   increased from 1024 to 8192 characters.
 
 - Fixed a potential freeze in the emacs and vi line editors when attempting
   to use reverse search completion to obtain long history file entries.
+
+- Fixed a bug in the history locking mechanism added in 2026-09-12, where an
+  unfinished multiline command (for example, an 'if' with the 'fi' not yet
+  entered and the cursor being at the PS2 prompt '> ') could be lost from the
+  history if another shell sharing the history file concurrently writes to it.
 
 2026-11-01:
 
