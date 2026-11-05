@@ -302,7 +302,7 @@ int  sh_histinit(void)
 		maxlines = HIST_DFLT;
 	for(histmask=16;histmask <= maxlines; histmask <<=1 );
 	histmask--;
-	hp = sh_calloc(1, sizeof(History_t) + ((size_t)histmask + 2) * sizeof(off_t));
+	hp = sh_calloc(1, sizeof(History_t) + (size_t)(histmask + 2) * sizeof(off_t));
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
@@ -945,7 +945,7 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 	else if(hp->histraw)
 	{
 		/* this is history file bookkeeping data, not part of a command */
-		size = write(sffileno(iop),(char*)buff,(size_t)insize);
+		size = write(sffileno(iop), (char*)buff, insize);
 	}
 	else if(hist_hold(hp, buff, insize) < 0)
 	{
