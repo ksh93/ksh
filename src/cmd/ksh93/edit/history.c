@@ -291,7 +291,9 @@ int  sh_histinit(void)
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
 	if(cp=nv_getval(HISTSIZE))
 	{
-		long long m = strtoll(cp, NULL, 10);
+		long long m;
+		errno = 0;
+		m = strtoll(cp, NULL, 10);
 		if(m>HIST_MAX)
 			m = HIST_MAX;
 		else if(m<0 || errno==ERANGE)
