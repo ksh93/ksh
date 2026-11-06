@@ -316,6 +316,7 @@ static int e3(struct test *tp,int inparens)
 		 */
 		if(cp)
 		{
+			errno = 0;
 			op = strtoi(cp,&binop,10);
 			return *binop || errno == ERANGE ? 0 : tty_check(op);
 		}
@@ -447,6 +448,7 @@ int test_unop(int op,const char *arg)
 	    case 't':
 	    {
 		char *last;
+		errno = 0;
 		op = strtoi(arg,&last, 10);
 		return *last || errno == ERANGE ? 0 : tty_check(op);
 	    }
@@ -610,7 +612,9 @@ int sh_access(const char *name, int mode)
 		return -1;
 	if(!sh_isoption(SH_POSIX) && sh_isdevfd(name))
 	{
-		int fd = strtoi(name+8, NULL, 10);
+		int fd;
+		errno = 0;
+		fd = strtoi(name+8, NULL, 10);
 		if(errno == ERANGE)
 			return -1;
 		return sh_ioaccess(fd,mode);
@@ -720,7 +724,9 @@ static int test_stat(const char *name,struct stat *buff)
 #endif
 	if(sh_isdevfd(name))
 	{
-		int fd = strtoi(name+8, NULL, 10);
+		int fd;
+		errno = 0;
+		fd = strtoi(name+8, NULL, 10);
 		if(errno == ERANGE)
 			return -1;
 		return fstat(fd,buff);

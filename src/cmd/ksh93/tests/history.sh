@@ -105,7 +105,7 @@ histfile=$tmp/hist_trim/sh_history
 	done
 ) >/dev/null 2>&1				# older ksh misdirects 'print -s' to stdout or stderr here
 size1=$(wc -c <$histfile)
-touch -d '2020-07-12T01:43:13' "$histfile"	# make the history file 'old' to force a physical trim of the file
+touch -r / "$histfile"				# make the history file 'old' to force a physical trim of the file
 chmod a-w hist_trim				# verify that trimming works with a non-writable parent directory
 # only the last 50 entries should survive; 'print -s' triggers the trim
 (

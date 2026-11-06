@@ -2140,20 +2140,15 @@ checkaout()	# cmd ...
 	for i
 	do	if	test ! -e "$INSTALLROOT/bin/$i" || test "$INITROOT/$i.c" -nt "$INSTALLROOT/bin/$i"
 		then	note "update $INSTALLROOT/bin/$i"
-			test -d "$INSTALLROOT/bin" || mkdir -p "$INSTALLROOT/bin"
+			test -d "$INSTALLROOT/bin" || mkdir -p "$INSTALLROOT/bin" || exit
+			test -d "$INSTALLROOT/src/cmd/INIT" || mkdir -p "$INSTALLROOT/src/cmd/INIT" || exit
 			rm -f "$INSTALLROOT/dyn/bin/$i" "$INSTALLROOT/src/lib/libast/$i" &
-			case $HOSTTYPE in
-			cygwin.*)
-				# Windows/Cygwin kills fork(2) after deleting *or* renaming an executable that's in use :-/
-				# To allow relinking the binary against libast later, add a _bootstrap suffix and create
-				# a symlink to it. The symlink can be removed/renamed instead of the _bootstrap binary.
-				$CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/${i}_bootstrap" "$INITROOT/$i.c" || exit
-				ln -sf "${i}_bootstrap" "$INSTALLROOT/bin/$i" || exit
-				;;
-			*)	$CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/bin/$i" "$INITROOT/$i.c" || exit
-				;;
-			esac
-			test -f $i.o && rm -f $i.o
+			# Windows/Cygwin kills fork(2) after deleting *or* renaming an executable that's in use :-/
+			# To allow relinking the binary against libast later, create it in $INITROOT and then copy
+			# it to bin/. The copy can be removed/renamed instead of the $INITROOT binary.
+			# This will also allow the regression tests to test both the default and libast versions.
+			$CC -O $CCFLAGS $LDFLAGS -o "$INSTALLROOT/src/cmd/INIT/$i" "$INITROOT/$i.c" || exit
+			ln -sf "$INSTALLROOT/src/cmd/INIT/$i" "$INSTALLROOT/bin/$i" || exit
 			hash -r
 		fi
 	done
@@ -2655,7 +2650,7 @@ make|view)
 
 	# transition - we no longer install these there and old versions get in the way
 
-	for f in bin/.paths bin/package src/cmd/INIT/mamake
+	for f in bin/.paths bin/package
 	do	if	test -f "$INSTALLROOT/$f"
 		then	rm -f "$INSTALLROOT/$f"
 		fi

@@ -848,6 +848,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				usleep(delay * 1000);
 			break;
 		case 'd':
+			errno = 0;
 			ull = strtoull(s, &e, 0);
 			delay = (useconds_t)ull;
 			if (delay != ull)
@@ -928,6 +929,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			match(s, m, 1);
 			break;
 		case 's':
+			errno = 0;
 			ull = strtoull(s, &e, 0);
 			ud = (useconds_t)ull;
 			if (ull != ud)
@@ -941,6 +943,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				usleep(ud * 1000);
 			break;
 		case 't':
+			errno = 0;
 			timeout = strtoi(s, &e, 0);
 			if (*e || errno == ERANGE)
 			{
@@ -961,6 +964,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			} while (!match(s, m, 0));
 			break;
 		case 'v':
+			errno = 0;
 			error_info.trace = -strtoi(s, &e, 0);
 			if (*e || errno == ERANGE)
 			{
@@ -969,6 +973,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			}
 			break;
 		case 'x':
+			errno = 0;
 			status = strtoi(s, &e, 0);
 			if (*e || errno == ERANGE)
 			{

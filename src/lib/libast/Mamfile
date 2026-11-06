@@ -3390,8 +3390,9 @@ make install virtual
 		note * We purposely do not have a make target of %{INSTALLROOT}/bin/mamake here;
 		note * this helps to ensure that the package.sh-built version gets overwritten.
 		note *
-		note * macOS throws code signature error if 'cp' overwrites Mach-O binary; must remove first
-		exec - (set +f; exec rm -rf %{INSTALLROOT}/bin/%{@} %{INSTALLROOT}/bin/%{@}.*)
+		note * Remove the original before copying, as bin/package creates it as a symlink.
+		note * (Even if not, macOS would throw a code signature error if 'cp' overwrites Mach-O binary.)
+		exec - rm -rf %{INSTALLROOT}/bin/%{@}
 		exec - cp %{@} %{INSTALLROOT}/bin/%{@}
 	done
 done install
@@ -3400,6 +3401,6 @@ make test virtual
 	make test.mamake virtual
 		makp %{PACKAGEROOT}/src/cmd/INIT/mamake.tst
 		exec - : testing the libast rebuild of mamake at $PWD/mamake :
-		exec - regress --verbose %{<} mamake
+		exec - regress --verbose %{<} "$PWD/mamake"
 	done
 done test

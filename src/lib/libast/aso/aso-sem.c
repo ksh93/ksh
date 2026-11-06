@@ -87,6 +87,7 @@ aso_init_semaphore(void* data, const char* details)
 			}
 			else if (strneq(path, "size=", 5))
 			{
+				errno = 0;
 				size = strtoul(path + 5, NULL, 0);
 				if (size <= 1 || errno == ERANGE)
 					return NULL;

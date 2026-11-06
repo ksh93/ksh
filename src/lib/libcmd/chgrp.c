@@ -159,7 +159,9 @@ getids(char* s, char** e, Key_t* key, int options)
 	{
 		if (*s)
 		{
-			int i, j = strtoi(s, &z, 0);
+			int i, j;
+			errno = 0;
+			j = strtoi(s, &z, 0);
 			if (errno == ERANGE)
 			{
 				error(ERROR_system(1), "%s: UID out of range", s);
@@ -187,7 +189,9 @@ getids(char* s, char** e, Key_t* key, int options)
 	}
 	if (*s)
 	{
-		int i, j = strtoi(s, &z, 0);
+		int i, j;
+		errno = 0;
+		j = strtoi(s, &z, 0);
 		if (errno == ERANGE)
 		{
 			error(ERROR_system(1), "%s: GID out of range", s);

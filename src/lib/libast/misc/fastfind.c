@@ -1151,6 +1151,7 @@ findsync(Find_t* fp)
 
 		while (s = sfgetr(fp->fp, 0, 0))
 		{
+			errno = 0;
 			z = strtol(s, &t, 0);
 			s = t;
 			if (z < 0 || z > 2 * FF_OFF || errno == ERANGE)

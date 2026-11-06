@@ -698,6 +698,10 @@ done
 unset a op
 
 # Repetition bodies of fixed length are now matched in a flat loop.
+[[ -o xtrace ]]
+trace=$(( ! $? ))
+: you do not want to trace these, trust me :
+set +x
 v=$(printf %300000s | tr ' ' 'x')
 for p in '+(x)' '*(x)' '+(x|y)' '@(+(x))'
 do	[[ $v == $p ]] &
@@ -729,6 +733,9 @@ do	[[ $v == $p ]] &
 	((e==0)) || err_exit "$p fails to match 100k x + y (got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ))"
 done
 unset v p e
+if	((trace))
+then	set -x
+fi
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -284,6 +284,7 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 			differences = opt_info.number;
 			continue;
 		case 'i':
+			errno = 0;
 			ll = strtoll(opt_info.arg, &e, 0);
 			o1 = (Sfoff_t)ll;
 			if (o1 != ll)
@@ -345,6 +346,7 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 	}
 	if (s = *argv++)
 	{
+		errno = 0;
 		ll = strtoll(s, &e, 0);
 		o1 = (Sfoff_t)ll;
 		if (o1 != ll)
@@ -356,6 +358,7 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 		}
 		if (s = *argv++)
 		{
+			errno = 0;
 			ll = strtoll(s, &e, 0);
 			o2 = (Sfoff_t)ll;
 			if (o2 != ll)

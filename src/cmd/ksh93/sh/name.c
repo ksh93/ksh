@@ -260,7 +260,8 @@ static struct argnod *shift_words(struct argnod *arg, ssize_t off)
 			/* plain value: subscript is the "[n]=" prefix of the word */
 			char *ep, *val;
 			size_t len;
-			if(*arg->argval!='[' || strtoimax(arg->argval+1,&ep,10)!=n || *ep!=']' || ep[1]!='=')
+			char base = 10;
+			if(*arg->argval!='[' || strtonll(arg->argval+1,&ep,&base,-1)!=n || *ep!=']' || ep[1]!='=')
 				return NULL;
 			sfprintf(sh.stk,"[%jd]=%s",(intmax_t)(off+n),ep+2);
 			val = stkfreeze(sh.stk,1);
