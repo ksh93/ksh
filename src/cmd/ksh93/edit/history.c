@@ -1,4 +1,4 @@
-	/***********************************************************************
+/***********************************************************************
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1982-2014 AT&T Intellectual Property          *
@@ -171,22 +171,29 @@ static const Sfdisc_t hist_disc = { .writef = hist_write, .exceptf = hist_except
 static int hist_setlock(int fd, short type)
 {
 	struct flock lock = { .l_type = type, .l_whence = SEEK_SET };
-	while (fcntl(fd, F_SETLKW, &lock) < 0)
+	while (fcntl(fd, F_SETLKW, &lock) == -1)
 		if (errno != EINTR)
 			return -1;
 	return 0;
 }
 
-static int hist_lock(History_t *hp)
+static void hist_lock(History_t *hp)
 {
+	static int warned;
 	if (!hp || hp->histlockfd < 0)
-		return 0;
+		return;
 	if (hp->histlockcnt++ > 0)
-		return 0;
+		return;
 	if (hist_setlock(hp->histlockfd, F_WRLCK) == 0)
-		return 0;
-	hp->histlockcnt--;
-	return -1;
+		return;
+	/* Lock failed somehow. Risk it and continue without; it's better than not having shell history at all. */
+	hp->histlockcnt = 0;
+	if (!warned)
+	{
+		errormsg(SH_DICT, ERROR_system(0), "%s: history file cannot be locked", hp->histname);
+		warned = 1;
+	}
+
 }
 
 static void hist_unlock(History_t *hp)
@@ -902,16 +909,13 @@ int hist_flush(History_t *hp)
 		return -1;
 	hist_lock(hp);
 	/*
-	 * Another shell sharing the history file may have added commands since
-	 * we last looked at it, e.g. while a multiline command was being entered.
-	 * Read them now, so that our command is registered after them; otherwise
-	 * the history index of this session would skip our own command, making it
-	 * invisible to fc and to line editing.
+	 * Another shell may have added commands, e.g., while a multiline command was
+	 * being entered. Ensure that histind is up to date with the last command,
+	 * otherwise the history index (and hence fc -l and arrow up) may omit ours.
 	 */
 	hist_eof(hp);
 	/*
-	 * The command is complete. hist_write() has been holding its data in
-	 * memory; write it now as one record, while the history lock is held.
+	 * Atomically write the complete command as saved up in memory by hist_write().
 	 */
 	hp->histflush = 1;
 	if (sfsync(hp->histfp) < 0 || (hp->histcmdlen && hist_finish(hp) < 0))
@@ -937,24 +941,32 @@ static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* h
 {
 	History_t *hp = (History_t*)handle;
 	ssize_t size = (ssize_t)insize;
-	hist_lock(hp);
 	if(hp->histflush)
 	{
 		/* the last part of a complete command: write the whole command */
-		if(hist_hold(hp, buff, insize) < 0 || hist_finish(hp) < 0)
+		if(hist_hold(hp, buff, insize) < 0)
 			size = -1;
+		else
+		{
+			hist_lock(hp);
+			if(hist_finish(hp) < 0)
+				size = -1;
+			hist_unlock(hp);
+		}
 	}
 	else if(hp->histraw)
 	{
 		/* this is history file bookkeeping data, not part of a command */
+		hist_lock(hp);
 		size = write(sffileno(iop), (char*)buff, insize);
+		hist_unlock(hp);
 	}
-	else if(hist_hold(hp, buff, insize) < 0)
+	else
 	{
 		/* command is incomplete: keep its data in memory until hist_flush() */
-		size = -1;
+		if(hist_hold(hp, buff, insize) < 0)
+			size = -1;
 	}
-	hist_unlock(hp);
 	return size;
 }
 
