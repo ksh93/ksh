@@ -784,7 +784,6 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 {
 	unsigned long long	ull;
 	useconds_t		ud;
-	long			l;
 	int			op;
 	int			line;
 	intmax_t		n;
