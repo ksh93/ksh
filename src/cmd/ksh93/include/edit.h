@@ -122,8 +122,6 @@ typedef struct edit
 	Namval_t *e_default;	/* variable containing default value */
 } Edit_t;
 
-#undef MAXWINDOW
-#define MAXWINDOW	300	/* maximum width window */
 #define FAST	2
 #define SLOW	1
 #define ESC	cntl('[')

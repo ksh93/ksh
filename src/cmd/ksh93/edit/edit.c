@@ -250,8 +250,8 @@ int ed_window(void)
 	cols = sh.columns - 1;
 	if(cols < MINWINDOW)
 		cols = MINWINDOW;
-	else if(cols > MAXWINDOW)
-		cols = MAXWINDOW;
+	else if(cols > MAXLINE)
+		cols = MAXLINE;
 	return cols;
 }
 
