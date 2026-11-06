@@ -129,6 +129,7 @@ int	b_read(int argc,char *argv[], Shbltin_t *context)
 	    case 'u':
 		if(opt_info.arg[0]=='p' && opt_info.arg[1]==0)
 			goto coprocess;
+		errno = 0;
 		fd = strtoi(opt_info.arg,&eptr,10);
 		if(errno == ERANGE || *eptr || !sh_iovalidfd(fd) || sh_inuse(fd))
 			fd = -1;

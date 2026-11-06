@@ -226,6 +226,7 @@ void	sh_winsize(int keep_env)
 		errno = 0;
 		if (!nv_isnull(LINES) && (tmp = strtonll(nv_getval(LINES),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX && errno != ERANGE)
 			lines = (int)tmp;
+		errno = 0;
 		if (!nv_isnull(COLUMNS) && (tmp = strtonll(nv_getval(COLUMNS),&lastc,&base,0)) && !*lastc && tmp >= 0 && tmp <= USHRT_MAX && errno != ERANGE)
 			columns = (int)tmp;
 		errno = oerrno;

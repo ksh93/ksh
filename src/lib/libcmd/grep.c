@@ -678,6 +678,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	case 'A':
 		if (opt_info.arg)
 		{
+			errno = 0;
 			ll = strtoll(opt_info.arg, &s, 0);
 			state.after = (ssize_t)ll;
 			if (ll != state.after)
@@ -695,6 +696,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	case 'B':
 		if (opt_info.arg)
 		{
+			errno = 0;
 			ll = strtoll(opt_info.arg, &s, 0);
 			state.before = (ssize_t)ll;
 			if (ll != state.before)
@@ -712,6 +714,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	case 'C':
 		if (opt_info.arg)
 		{
+			errno = 0;
 			ll = strtoll(opt_info.arg, &s, 0);
 			state.before = (ssize_t)ll;
 			if (ll != state.before)
@@ -720,6 +723,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 				goto badbefore;
 			if (*s == ',')
 			{
+				errno = 0;
 				ll = strtoll(s + 1, &s, 0);
 				state.after = (ssize_t)ll;
 				if (ll != state.after)

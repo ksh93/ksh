@@ -135,6 +135,7 @@ getaddrinfo(const char *restrict node,
 		return EAI_SYSTEM;
 	}
 	ip_addr = (unsigned long)((struct in_addr*)hp->h_addr)->s_addr;
+	errno = 0;
 	if ((n = strtol(service, &prot, 10)) > 0 && n <= USHRT_MAX && !*prot && errno != ERANGE)
 		ip_port = htons((unsigned short)n);
 	else
@@ -808,6 +809,7 @@ int sh_open(const char *path, int flags, ...)
 			{
 				if(flags==O_NONBLOCK)
 					return 1;
+				errno = 0;
 				fd = strtoi(path+8, &e, 10);
 				if (*e || errno==ERANGE)
 					fd = -1;
@@ -1658,6 +1660,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				if((fd=fname[0])>='0' && fd<='9')
 				{
 					char *number = fname;
+					errno = 0;
 					dupfd = strtoi(fname,&number,10);
 					if(*number=='-')
 					{
@@ -2579,7 +2582,7 @@ uint8_t sh_iocheckfd(int fd, ssize_t *filesize_p)
 	}
 	if(fd==0)
 		n &= ~IOWRITE;
-	else if(fd==1)
+	else if(fd==1 || fd==2)
 		n &= ~IOREAD;
 	if (filesize_p && fstatresult < -1)
 		fstatresult = fstat(fd,&statb);

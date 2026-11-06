@@ -2088,6 +2088,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						while(c = *cp++)
 							if(c < '0' || c > '9')
 								break;
+						errno = 0;
 						if(c!=0)
 							c = nargs;
 						else

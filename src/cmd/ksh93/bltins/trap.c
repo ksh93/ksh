@@ -281,7 +281,9 @@ endopts:
 		{
 			if(isdigit(*signame))
 			{
-				int i = strtoi(signame, NULL, 10);
+				int i;
+				errno = 0;
+				i = strtoi(signame, NULL, 10);
 				if(errno == ERANGE)
 				{
 					errormsg(SH_DICT,ERROR_system(1),e_number,signame);
@@ -364,6 +366,7 @@ static int sig_number(const char *string)
 	char		*last, *name;
 	if(isdigit(*string))
 	{
+		errno = 0;
 		n = strtoi(string,&last,10);
 		if(*last || errno == ERANGE)
 			n = -1;
@@ -387,6 +390,7 @@ static int sig_number(const char *string)
 			o += 3;
 			if(isdigit(*stkptr(sh.stk,o)))
 			{
+				errno = 0;
 				n = strtoi(stkptr(sh.stk,o),&last,10);
 				if(errno==ERANGE)
 					return -1;
@@ -415,6 +419,7 @@ static int sig_number(const char *string)
 		if(n<0 && sh.sigruntime[1] && (name=stkptr(sh.stk,o)) && *name++=='R' && *name++=='T')
 		{
 			/* Real-time signals */
+			errno = 0;
 			if(name[0]=='M' && name[1]=='I' && name[2]=='N' && name[3]=='+')	/* MIN+ */
 			{
 				if((sig=strtoi(name+4,&last,10)) >= 0 && !*last && errno!=ERANGE)

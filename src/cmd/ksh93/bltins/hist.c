@@ -144,6 +144,7 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			if(*arg==0)
 			{
 				arg = argv[1];
+				errno = 0;
 				range[++flag] = strtoi(arg, NULL, 10);
 				if(errno == ERANGE)
 				{

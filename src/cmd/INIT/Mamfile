@@ -167,7 +167,7 @@ make test virtual
 	make test.mamake virtual
 		makp mamake.tst
 		exec - : testing non-libast mamake at $PWD/mamake :
-		exec - regress --verbose %{<} mamake
+		exec - regress --verbose %{<} "$PWD/mamake"
 	done
 	make test.iffe virtual
 		makp iffe.tst

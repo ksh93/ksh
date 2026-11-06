@@ -129,6 +129,7 @@ static int sh_checkaudit(const char *name, char *logbuf, size_t len)
 	do
 	{
 		cp++;
+		errno = 0;
 		ll = strtoll(cp,&last,10);
 		id1 = id2 = (uid_t)ll;
 		if(id2!=ll)
@@ -141,6 +142,7 @@ static int sh_checkaudit(const char *name, char *logbuf, size_t len)
 		}
 		if(*last=='-')
 		{
+			errno = 0;
 			ll = strtoll(last+1,&last,10);
 			id1 = (uid_t)ll;
 			if(id1!=ll)

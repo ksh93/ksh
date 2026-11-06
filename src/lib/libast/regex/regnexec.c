@@ -942,7 +942,7 @@ parserep_fixedlength(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s, int 
 	{
 		cur = pos[k];
 		if (ng)
-			memcpy(&env->match[rex->re.group.number], &snap[k * ng], ng * sizeof(regmatch_t));
+			memcpy(&env->match[rex->re.group.number], &snap[(size_t)k * ng], ng * sizeof(regmatch_t));
 		if (env->stack && pospush(env, rex, cur, END_ANY))
 		{
 			r = BAD;

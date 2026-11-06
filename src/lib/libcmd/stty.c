@@ -419,17 +419,17 @@ static void tokenize_arg(termios_flag_u *t, char **arg, const char *full_args, t
 	{
 	    case TCFLAG_T:
 		t->tc = (tcflag_t)result;
-		if(errno!=ERANGE && t->tc != result)
+		if(t->tc != result)
 			errno = ERANGE;
 		break;
 	    case CC_T:
 		t->cc = (cc_t)result;
-		if(errno!=ERANGE && t->cc != result)
+		if(t->cc != result)
 			errno = ERANGE;
 		break;
 	    case SPEED_T:
 		t->s = (speed_t)result;
-		if(errno!=ERANGE && t->s != result)
+		if(t->s != result)
 			errno = ERANGE;
 		break;
 	}

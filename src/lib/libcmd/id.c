@@ -248,7 +248,9 @@ getids(Sfio_t* sp, const char* name, int flags)
 		if (!(pw = getpwnam(name)))
 		{
 			/* numeric "name": look up user name (GNU/BSD extension) */
-			long long ll = strtoll(name, &s, 0);
+			long long ll;
+			errno = 0;
+			ll = strtoll(name, &s, 0);
 			user = (uid_t)ll;
 			if (ll != (long long)user)
 				errno = ERANGE;

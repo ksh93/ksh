@@ -87,6 +87,7 @@ range(char* s, char** e, char* set, size_t lo, size_t hi)
 	memset(set, 0, hi + 1);
 	for (;;)
 	{
+		errno = 0;
 		n = strtol(s, &t, 10);
 		if (s == t || n < (ssize_t)lo || n > (ssize_t)hi || errno == ERANGE)
 		{
@@ -96,6 +97,7 @@ range(char* s, char** e, char* set, size_t lo, size_t hi)
 		i = 1;
 		if (*(s = t) == '-')
 		{
+			errno = 0;
 			m = strtol(++s, &t, 10);
 			if (s == t || m < n || m > (ssize_t)hi || errno == ERANGE)
 			{
@@ -104,6 +106,7 @@ range(char* s, char** e, char* set, size_t lo, size_t hi)
 			}
 			if (*(s = t) == '/')
 			{
+				errno = 0;
 				i = strtol(++s, &t, 10);
 				if (s == t || i < 1 || errno == ERANGE)
 				{

@@ -241,6 +241,7 @@ int    b_print(int argc, char *argv[], Shbltin_t *context)
 		case 'u':
 			if(opt_info.arg[0]=='p' && opt_info.arg[1]==0)
 				goto coprocess;
+			errno = 0;
 			fd = strtoi(opt_info.arg,&eptr,10);
 			if(*eptr || errno == ERANGE)
 				fd = -1;
@@ -338,7 +339,7 @@ skip:
 skip2:
 	if(fd < 0)
 	{
-		if(errno!=ERANGE)
+		if(!(errno==ERANGE && fd==-1))
 			errno = EBADF;
 		fdmode = 0;
 	}

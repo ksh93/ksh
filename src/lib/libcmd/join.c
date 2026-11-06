@@ -244,6 +244,7 @@ getolist(Join_t* jp, const char* first, char** arglist)
 			break;
 		}
 		oerrno = errno;
+		errno = 0;
 		ll = strtoll(cp+2,&str,10);
 		c = (ptrdiff_t)ll;
 		if (c!=ll)
@@ -290,6 +291,7 @@ getolist(Join_t* jp, const char* first, char** arglist)
 		}
 		str = (char*)cp;
 		oerrno = errno;
+		errno = 0;
 		ll = strtoll(cp+2, &str,10);
 		c = (ptrdiff_t)ll;
 		if (c!=ll)
@@ -904,6 +906,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 					argc = 0;
 					break;
 				}
+				errno = 0;
 				opt_info.num = strtol(cp, &e, 10);
 				if (*e || errno == ERANGE)
 				{

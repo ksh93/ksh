@@ -24,13 +24,34 @@
 
 # These are tests for the interactive shell, run in a pseudoterminal utility
 # called 'pty', which allows for scripting interactive sessions and which is
-# installed in arch/*/bin while building. To understand these tests, first
-# read the pty manual by running: arch/*/bin/pty --man
+# installed in arch/*/bin while building.
 #
-# Do not globally set the locale; these tests must pass for all locales.
-
-# the trickiest part of the tests is avoiding typeahead
-# in the pty dialogue
+# Hints for writing correct and robust pty tests:
+#
+# - Read the manual by running: arch/*/bin/pty --man
+# - Temporarily passing --debug=1 to a tst function call (as in:
+#   tst --debug=1 $LINENO <<"!") is extremely helpful to see what output is
+#   actually produced; make sure all of it is read back and verified in the
+#   correct order.
+# - Use a global delay (d) of 50ms; this works best with parallel testing.
+# - The trickiest part of the tests is avoiding typeahead in the pty
+#   dialogue. Strictly following the points below should help with this:
+#   * Wait (peek) for *all* the prompts in correct order (p) before typing.
+#   * Read back *all* the terminal typing echo (r) to avoid synchronisation
+#     problems. A partial regex is fine here, it's just for synching.
+#	> The PS1 prompt should not be included in the terminal echo check
+#	  regexes, because that intermittently fails on some systems.
+#   * Consistently use \r?\n$ (optional CR, mandatory LF) for the
+#     end-of-line anchor in readback (r) regexes.
+#   * Read back and verify *all* the output in correct order (r), including
+#     error messages and any other expected output.
+#   * Unless there is a good reason, avoid 'u' commands, which skip arbitrary
+#     output until something matches and can therefore miss failures.
+# - Doing all the above correctly should usually remove the need to sleep for
+#   extra delays (s), though there are exceptions to that.
+# - Do not globally set the locale; these tests must pass for all locales.
+#   Tests specific to UTF-8 locales can be skipped when not in a UTF-8 locale:
+#	[[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] && ...
 
 JOBMAX=32  # max number of parallel tests
 
