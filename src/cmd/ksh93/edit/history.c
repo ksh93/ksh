@@ -633,9 +633,9 @@ static inline int hist_rewrite_header(History_t *hp, const void *buf, size_t len
 	int fd = hp->histlockfd;
 	int flags;
 	ssize_t wr;
-	if ((flags = fcntl(fd, F_GETFL)) < 0)
+	if ((flags = fcntl(fd, F_GETFL)) == -1)
 		return -1;
-	if ((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) < 0)
+	if ((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) == -1)
 		return -1;
 	if (lseek(fd, 0, SEEK_SET) < 0)
 	{
