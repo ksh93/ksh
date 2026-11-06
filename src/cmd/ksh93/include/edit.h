@@ -143,8 +143,6 @@ typedef struct edit
 #endif /* SHOPT_EDPREDICT */
 } Edit_t;
 
-#undef MAXWINDOW
-#define MAXWINDOW	300	/* maximum width window */
 #define FAST	2
 #define SLOW	1
 #define ESC	cntl('[')
