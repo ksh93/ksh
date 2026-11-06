@@ -65,7 +65,11 @@
 #define _HIST_PRIVATE \
 	off_t	histcnt;	/* offset into history file */\
 	off_t	histmarker;	/* offset of last command marker */ \
-	ssize_t	histflush;	/* set if flushed outside of hflush() */\
+	int	histflush;	/* set while a complete command is written */ \
+	int	histraw;	/* set if writing history file bookkeeping data */ \
+	char	*histcmd;	/* data of the command being entered */ \
+	size_t	histcmdlen;	/* length of histcmd data */ \
+	size_t	histcmdmax;	/* allocated length of histcmd data */ \
 	int	histmask;	/* power of two mask for histcnt */ \
 	int	histlockfd;	/* lock file descriptor for history file */ \
 	int	histlockcnt;	/* history lock reference counter */ \
@@ -167,22 +171,29 @@ static const Sfdisc_t hist_disc = { .writef = hist_write, .exceptf = hist_except
 static int hist_setlock(int fd, short type)
 {
 	struct flock lock = { .l_type = type, .l_whence = SEEK_SET };
-	while (fcntl(fd, F_SETLKW, &lock) < 0)
+	while (fcntl(fd, F_SETLKW, &lock) == -1)
 		if (errno != EINTR)
 			return -1;
 	return 0;
 }
 
-static int hist_lock(History_t *hp)
+static void hist_lock(History_t *hp)
 {
+	static int warned;
 	if (!hp || hp->histlockfd < 0)
-		return 0;
+		return;
 	if (hp->histlockcnt++ > 0)
-		return 0;
+		return;
 	if (hist_setlock(hp->histlockfd, F_WRLCK) == 0)
-		return 0;
-	hp->histlockcnt--;
-	return -1;
+		return;
+	/* Lock failed somehow. Risk it and continue without; it's better than not having shell history at all. */
+	hp->histlockcnt = 0;
+	if (!warned)
+	{
+		errormsg(SH_DICT, ERROR_system(0), "%s: history file cannot be locked", hp->histname);
+		warned = 1;
+	}
+
 }
 
 static void hist_unlock(History_t *hp)
@@ -287,7 +298,9 @@ int  sh_histinit(void)
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);  /* set the file to close-on-exec */
 	if(cp=nv_getval(HISTSIZE))
 	{
-		long long m = strtoll(cp, NULL, 10);
+		long long m;
+		errno = 0;
+		m = strtoll(cp, NULL, 10);
 		if(m>HIST_MAX)
 			m = HIST_MAX;
 		else if(m<0 || errno==ERANGE)
@@ -298,7 +311,7 @@ int  sh_histinit(void)
 		maxlines = HIST_DFLT;
 	for(histmask=16;histmask <= maxlines; histmask <<=1 );
 	histmask--;
-	hp = sh_calloc(1, sizeof(History_t) + ((size_t)histmask + 2) * sizeof(off_t));
+	hp = sh_calloc(1, sizeof(History_t) + (size_t)(histmask + 2) * sizeof(off_t));
 	sh.hist_ptr = hist_ptr = hp;
 	hp->histsize = maxlines;
 	hp->histmask = histmask;
@@ -418,6 +431,7 @@ void hist_close(History_t *hp)
 		sfclose(hp->auditfp);
 	}
 #endif /* SHOPT_AUDIT */
+	free(hp->histcmd);
 	free(hp);
 	hist_ptr = NULL;
 	sh.hist_ptr = NULL;
@@ -619,9 +633,9 @@ static inline int hist_rewrite_header(History_t *hp, const void *buf, size_t len
 	int fd = hp->histlockfd;
 	int flags;
 	ssize_t wr;
-	if ((flags = fcntl(fd, F_GETFL)) < 0)
+	if ((flags = fcntl(fd, F_GETFL)) == -1)
 		return -1;
-	if ((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) < 0)
+	if ((flags&O_APPEND) && fcntl(fd, F_SETFL, flags & ~O_APPEND) == -1)
 		return -1;
 	if (lseek(fd, 0, SEEK_SET) < 0)
 	{
@@ -739,8 +753,10 @@ again:
 	hp->histcnt = count;
 	if(incmd && last)
 	{
+		hp->histraw = 1;
 		sfputc(hp->histfp,0);
 		hist_cancel(hp);
+		hp->histraw = 0;
 		count = 2;
 		skip = 0;
 		oldind -= hp->histind;
@@ -774,9 +790,11 @@ void hist_cancel(History_t *hp)
 	if(!hp)
 		return;
 	hist_lock(hp);
+	hp->histraw = 1;
 	sfputc(hp->histfp,HIST_UNDO);
 	sfputc(hp->histfp,0);
 	sfsync(hp->histfp);
+	hp->histraw = 0;
 	hp->histcnt += 2;
 	c = hist_ind(hp,--hp->histind);
 	hp->histcmds[c] = hp->histcnt;
@@ -784,21 +802,123 @@ void hist_cancel(History_t *hp)
 }
 
 /*
+ * Add data of an incomplete command to the hold buffer.
+ * A command must not be written to the history file before it is complete:
+ * another shell that shares the history file may add a command in the
+ * meantime, and the file would then hold a command in the middle of an
+ * unterminated one, which hist_eof() cancels or merges on its next scan,
+ * losing both. So, keep the data in memory and let hist_flush() write the
+ * whole command in one atomic write under the history lock.
+ */
+static int hist_hold(History_t *hp, const void *buff, size_t size)
+{
+	size_t max;
+	char *newbuff;
+	if(!size)
+		return 0;
+	if(hp->histcmdlen + size > hp->histcmdmax)
+	{
+		max = hp->histcmdmax ? hp->histcmdmax : HIST_BSIZE;
+		while(max < hp->histcmdlen + size)
+			max *= 2;
+		/* room for a newline, a null byte and even-offset padding */
+		/* NOTE: sh_realloc intentionally not used here as we must not longjmp before hist_unlock() */
+		if(!(newbuff = realloc(hp->histcmd, max + 4)))
+			return -1;
+		hp->histcmd = newbuff;
+		hp->histcmdmax = max;
+	}
+	memcpy(hp->histcmd + hp->histcmdlen, buff, size);
+	hp->histcmdlen += size;
+	return 0;
+}
+
+/*
+ * Write the complete command collected in the hold buffer to the history file
+ * as one record: strip trailing whitespace, append a newline, the terminating
+ * null byte and even-offset padding, then register the command in the history
+ * index.  A command that is whitespace only is discarded.  The history lock
+ * must be held, so that the record is written atomically.
+ */
+static int hist_finish(History_t *hp)
+{
+	char *buff = hp->histcmd;
+	char *bufptr = buff + hp->histcmdlen;
+	char *end;
+	size_t size;
+	off_t cur;
+	ssize_t n;
+	int fd = sffileno(hp->histfp);
+	int c;
+	if(!hp->histcmdlen)
+		return 0;
+	/* remove whitespace from end of command */
+	while(--bufptr >= buff)
+	{
+		c = *bufptr;
+		if(!isspace((unsigned char)c))
+		{
+			if(c=='\\' && bufptr + 1 < buff + hp->histcmdlen && bufptr[1] != '\n')
+				bufptr++;
+			break;
+		}
+	}
+	/* don't count empty lines */
+	if(++bufptr <= buff)
+	{
+		hp->histcmdlen = 0;
+		return 0;
+	}
+	end = bufptr;
+	*end++ = '\n';
+	*end++ = 0;
+	size = (size_t)(end - buff);
+#if	SHOPT_AUDIT
+	if(hp->auditfp)
+	{
+		time_t	t=time(NULL);
+		sfprintf(hp->auditfp, "%u;%ju;%s;%*s%c",
+			 sh_isoption(SH_PRIVILEGED) ? sh.euserid : sh.userid,
+			 (Sfulong_t)t, hp->tty, size, buff, 0);
+		sfsync(hp->auditfp);
+	}
+#endif	/* SHOPT_AUDIT */
+	if(size&01)
+	{
+		*end++ = 0;
+		size++;
+	}
+	hp->histcmdlen = 0;
+	if((cur = lseek(fd, 0, SEEK_END)) < 0)
+		return -1;
+	errno = 0;
+	if((n = write(fd, buff, size)) != (ssize_t)size)
+		return -1;
+	hp->histwfail = 0;
+	hp->histcnt = cur + (off_t)size;
+	hp->histcmds[hist_ind(hp, ++hp->histind)] = hp->histcnt;
+	return 0;
+}
+
+/*
  * flush the current history command
  */
 int hist_flush(History_t *hp)
 {
-	char *buff;
 	if (!hp)
 		return -1;
 	hist_lock(hp);
-	buff = sfreserve(hp->histfp, 0, SFIO_LOCKR);
-	if (!buff)
-		goto flushfail;
-	hp->histflush = sfvalue(hp->histfp) + 1;
-	if (sfwrite(hp->histfp, buff, 0) < 0)
-		goto flushfail;
-	if (sfsync(hp->histfp) < 0)
+	/*
+	 * Another shell may have added commands, e.g., while a multiline command was
+	 * being entered. Ensure that histind is up to date with the last command,
+	 * otherwise the history index (and hence fc -l and arrow up) may omit ours.
+	 */
+	hist_eof(hp);
+	/*
+	 * Atomically write the complete command as saved up in memory by hist_write().
+	 */
+	hp->histflush = 1;
+	if (sfsync(hp->histfp) < 0 || (hp->histcmdlen && hist_finish(hp) < 0))
 		goto flushfail;
 	hp->histflush = 0;
 	hist_unlock(hp);
@@ -813,79 +933,41 @@ flushfail:
 }
 
 /*
- * This is the write discipline for the history file
- * When called from hist_flush(), trailing newlines are deleted and
- * a zero byte.  Line sequencing is added as required
+ * This is the write discipline for the history file.
+ * Command data is only written to the file by hist_finish(), when the command
+ * is complete. History file bookkeeping data is written immediately.
  */
 static ssize_t hist_write(Sfio_t *iop,const void *buff,size_t insize,Sfdisc_t* handle)
 {
 	History_t *hp = (History_t*)handle;
-	char *bufptr = ((char*)buff)+insize;
 	ssize_t size = (ssize_t)insize;
-	off_t cur;
-	int c;
-	hist_lock(hp);
-	if(!hp->histflush)
+	if(hp->histflush)
 	{
-		size = write(sffileno(iop),(char*)buff,(size_t)size);
-		hist_unlock(hp);
-		return size;
-	}
-	if((cur = lseek(sffileno(iop),0,SEEK_END)) <0)
-	{
-		errormsg(SH_DICT, ERROR_system(0), e_histwrite, hp->histname);
-		hist_unlock(hp);
-		return -1;
-	}
-	hp->histcnt = cur;
-	/* remove whitespace from end of commands */
-	while(--bufptr >= (char*)buff)
-	{
-		c= *bufptr;
-		if(!isspace(c))
+		/* the last part of a complete command: write the whole command */
+		if(hist_hold(hp, buff, insize) < 0)
+			size = -1;
+		else
 		{
-			if(c=='\\' && *(bufptr+1)!='\n')
-				bufptr++;
-			break;
+			hist_lock(hp);
+			if(hist_finish(hp) < 0)
+				size = -1;
+			hist_unlock(hp);
 		}
 	}
-	/* don't count empty lines */
-	if(++bufptr <= (char*)buff)
+	else if(hp->histraw)
 	{
+		/* this is history file bookkeeping data, not part of a command */
+		hist_lock(hp);
+		size = write(sffileno(iop), (char*)buff, insize);
 		hist_unlock(hp);
-		return (ssize_t)insize;
 	}
-	*bufptr++ = '\n';
-	*bufptr++ = 0;
-	size = (ssize_t)(bufptr - (char*)buff);
-#if	 SHOPT_AUDIT
-	if(hp->auditfp)
+	else
 	{
-		time_t	t=time(NULL);
-		sfprintf(hp->auditfp, "%u;%ju;%s;%*s%c",
-			 sh_isoption(SH_PRIVILEGED) ? sh.euserid : sh.userid,
-			 (Sfulong_t)t, hp->tty, size, buff, 0);
-		sfsync(hp->auditfp);
+		/* command is incomplete: keep its data in memory until hist_flush() */
+		if(hist_hold(hp, buff, insize) < 0)
+			size = -1;
 	}
-#endif	/* SHOPT_AUDIT */
-	if(size&01)
-	{
-		size++;
-		*bufptr++ = 0;
-	}
-	hp->histcnt += size;
-	c = hist_ind(hp,++hp->histind);
-	hp->histcmds[c] = hp->histcnt;
-	errno = 0;
-	size = write(sffileno(iop),(char*)buff,(size_t)size);
-	if(size>=0)
-	{
-		hp->histwfail = 0;
-		hist_unlock(hp);
-		return (ssize_t)insize;
-	}
-	hist_unlock(hp);
-	return -1;
+	return size;
 }
 
 /*

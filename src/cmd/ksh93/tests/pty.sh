@@ -255,7 +255,7 @@ r \^Z
 # Ctrl+C should interrupt it and trigger an error message
 c \cC
 s 50
-u testfifo464: cannot create \[.*\]\r\n$
+u testfifo464: cannot create \[.*\]\r?\n$
 p :test-2:
 w echo ok
 r echo ok\r?\n$
@@ -1671,7 +1671,7 @@ w COLUMNS=20 PS1=$':child\\E[ q\\E[6 q: ' "$SHELL" +o multiline
 p :child
 c : abcdefg
 w
-r ^:child.*: : abcdefg\r\n$
+r ^:child.*: : abcdefg\r?\n$
 !
 
 ((SHOPT_MULTIBYTE && SHOPT_ESH)) &&
@@ -1683,7 +1683,7 @@ L emacs mode not aware of multibyte spaces
 d 50
 p :test-1:
 w echo foo　baz\Eb\Edbar
-u ^foo　bar\r\n$
+u ^foo　bar\r?\n$
 !
 
 ((SHOPT_MULTIBYTE && SHOPT_VSH)) &&
@@ -1695,7 +1695,7 @@ L vi mode not aware of multibyte spaces
 d 50
 p :test-1:
 w echo bar　uux\Ebiq
-u ^bar　quux\r\n$
+u ^bar　quux\r?\n$
 !
 
 tst $LINENO <<"!"
@@ -1767,6 +1767,118 @@ c \cD
 p :test-3:
 w print OK
 r OK
+!
+
+((multiline && SHOPT_ESH)) && VISUAL=emacs TERM=vt100 tst $LINENO <<"!"
+L up arrow breaks with long history entry
+# https://github.com/ksh93/ksh/issues/864
+
+d 50
+p :test-1:
+w echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+r magna aliqua.\r?\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r?\n$
+p :test-2:
+w echo Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+r dolore magna\r?\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna\r?\n$
+p :test-3:
+w echo Lor\E[A \E[A
+r magna aliqua.\r?\n$
+r ^Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r?\n$
+p :test-4:
+w echo Final prompt.
+r echo Final prompt.\r?\n$
+r ^Final prompt.\r?\n$
+!
+
+((SHOPT_ESH && SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+VISUAL=emacs tst $LINENO <<"!"
+L KEYBD trap with a long multibyte line
+# https://github.com/ksh93/ksh/issues/864
+
+# Do not type the long line: pty(1) does not read the terminal output while
+# writing, and the terminal input buffer is small (1024 bytes on macOS), so
+# input beyond that is silently discarded and the shell then waits forever
+# for the rest of the line. Instead, let the KEYBD trap replace each typed
+# 'x' with a chunk of multibyte characters, so the long line is built up
+# inside the shell: 20 x 40 characters = 1600 UTF-8 bytes. That is well over
+# the old MAXLINE limit (1024 bytes) into which keytrap() used to convert
+# the entire line, so the old code overflows its stack buffer.
+d 50
+p :test-1:
+w trap 'if [[ ${.sh.edchar} == x ]]; then .sh.edchar=éééééééééééééééééééééééééééééééééééééééé; fi' KEYBD
+r KEYBD\r?\n$
+p :test-2:
+w xxxxxxxxxxxxxxxxxxxx
+r ééééééééé\r?\n$
+r éééééééééééééééééééééé: file name too long\r?\n$
+p :test-3:
+w print OK
+r print OK\r?\n$
+r ^OK\r?\n$
+!
+
+((SHOPT_VSH && SHOPT_MULTIBYTE)) && [[ ${LC_ALL:-${LC_CTYPE:-${LANG:-}}} =~ [Uu][Tt][Ff]-?8 ]] &&
+VISUAL=vi tst $LINENO <<"!"
+L vi history search with a long multibyte line
+# https://github.com/ksh93/ksh/issues/864
+
+# The line must be shorter than the old SEARCHSIZE (80) limit to make
+# vi copy it into the search buffer on ESC + Up-arrow, while its UTF-8
+# form is longer than that buffer.
+d 50
+p :test-1:
+w PATH=/dev/null
+r PATH=/dev/null\r?\n$
+p :test-2:
+# The 60 characters below are 180 bytes.
+c ほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほほ
+c \E
+c \E[A
+c \r
+# no \r?\n$ anchor on reading back the terminal echo here; it may end in a split multibyte character
+r ほほほほほほ
+r ほほほほほほ: not found\r?\n$
+p :test-3:
+w print OK
+r print OK\r?\n$
+r ^OK\r?\n$
+!
+
+((SHOPT_ESH)) &&
+VISUAL=emacs tst $LINENO <<"!"
+L very long command name
+# https://github.com/ksh93/ksh/issues/864
+
+# A command line larger than the history file stream buffer (HIST_BSIZE,
+# 4096 bytes) is written directly to the file rather than through the
+# buffer. It must still be completed and registered in the history index,
+# or it cannot be recalled. Do not type the 4000+ characters: the
+# terminal input buffer is small (see the KEYBD test above). Instead,
+# let the KEYBD trap expand each typed '@' into a 42-character chunk.
+# 16 typed characters + 100 x 42 makes a 4216-character line.
+d 50
+p :test-1:
+w print NOTLONG
+r print NOTLONG\r?\n$
+r ^NOTLONG\r?\n$
+p :test-2:
+w trap 'if [[ ${.sh.edchar} == @ ]]; then .sh.edchar=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx; fi' KEYBD
+r KEYBD\r?\n$
+p :test-3:
+w print LONGDONE #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+r xxxxxx\r?\n$
+r ^LONGDONE\r?\n$
+p :test-4:
+c \cP
+c \cM
+r xxxxxx\r?\n$
+r ^LONGDONE\r?\n$
+p :test-5:
+w print OK
+r print OK\r?\n$
+r ^OK\r?\n$
 !
 
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^

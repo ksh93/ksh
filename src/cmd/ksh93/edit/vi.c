@@ -1397,9 +1397,9 @@ static int mvcursor(Vi_t* vp,int motion)
 		    case 'A':
 			/* VT220 up arrow */
 #if SHOPT_EDPREDICT
-			if(!vp->ed->hlist && cur_virt>=0  && cur_virt<(SEARCHSIZE-2) && cur_virt == last_virt)
+			if(!vp->ed->hlist && cur_virt>=0  && cur_virt<(MAXLINE-2) && cur_virt == last_virt)
 #else
-			if(cur_virt>=0  && cur_virt<(SEARCHSIZE-2) && cur_virt == last_virt)
+			if(cur_virt>=0  && cur_virt<(MAXLINE-2) && cur_virt == last_virt)
 #endif /* SHOPT_EDPREDICT */
 			{
 				virtual[last_virt + 1] = '\0';
@@ -2139,8 +2139,8 @@ static int search(Vi_t* vp,int mode)
 		location = hist_find(sh.hist_ptr,((char*)virtual)+1, curhline, 1, new_direction);
 	}
 	cur_virt = i;
-	strncopy(lsearch, ((char*)virtual)+1, SEARCHSIZE-1);
-	lsearch[SEARCHSIZE-1] = 0;
+	strncopy(lsearch, ((char*)virtual)+1, MAXEXTLINE-1);
+	lsearch[MAXEXTLINE-1] = 0;
 	if( (curhline=location.hist_command) >=0 )
 	{
 		vp->ocur_virt = INVALID;
@@ -2621,7 +2621,7 @@ yankeol:
     static int _isalph(int v)
     {
 #if _lib_iswalnum
-	return iswalnum(v) || v=='_';
+	return iswalnum((wint_t)v) || v=='_';
 #else
 	return (v&~STRIP) || isalnum(v) || v=='_';
 #endif
