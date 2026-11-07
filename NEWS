@@ -2,6 +2,16 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-11-07:
+
+- Fixed misparsing bugs occurring with associative array subscripts
+  containing literal '[', ']' or '\' characters. Assignments to associative
+  (typeset -A) arrays such as foo['][']=bar and foo['ab\cd']=bar now work
+  correctly. In addition, the requirement to backslash-escape these three
+  characters in associative array subscripts in command arguments passed to
+  commands that take variable names (e.g., 'unset', 'read'), which always
+  existed but was undocumented, is now documented in the manual.
+
 2026-11-05:
 
 - The maximum length of edit lines in the emacs and vi line editors has been

@@ -1554,10 +1554,67 @@ option to
 A
 .I subscript\^
 for an associative array is denoted by
-a string enclosed between
+an arbitrary string enclosed between the delimiters
 .B [
 and
 .BR ] .
+Note that even
+.B [
+and
+.B ]
+themseves may be part of the subscript,
+creating ambiguities with the delimiters.
+In shell assignments such as
+.BR foo['][']=bar ,
+in variable expansions such as
+.BR ${foo['][']} ,
+and in arithmetic expressions,
+these ambiguities must be resolved using shell quoting (see the
+.I Quoting\^
+section below).
+However, if a variable name with a subscript is passed as an argument
+to a command that takes variable names, such as
+.B unset
+.IR vname ,
+.B read
+.IR vname ,
+or
+.BI "[[ \-v " vname " ]]"\fR,
+shell quoting is ineffective for that purpose,
+because the shell language parser resolves and removes all quoting
+before the command ever sees the argument.
+To deal with that, the shell resolves backslash
+escaping in those subscripts at runtime.
+Any
+.BR [ ,
+.B ]
+or
+.B \e
+in a subscript passed as part of a command argument must be escaped
+by prefixing a
+.B \e
+(which must itself be shell-quoted to stop the parser resolving it).
+For example, if
+.B a
+is an associative array, the element whose subscript is
+.B \e
+can be unset with
+.BR "unset 'a[\e\e]'" ,
+and the element whose subscript is
+.B ][
+can be read into with
+\f3read 'a[\e]\e[]'\fP.
+This mechanism allows for a safe way to pass arbitrary subscripts as arguments:
+given a subscript
+.I sub
+(excluding the
+.B [
+and
+.B ]
+delimiters),
+the expansion
+.BI ${ sub //@(\e[|\e]|\e\e)/\e\e\e1}
+inserts the necessary backslash escapes.
 .PP
 Referencing any array without a subscript
 is equivalent to referencing the array with subscript 0.

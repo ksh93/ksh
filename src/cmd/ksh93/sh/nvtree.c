@@ -981,7 +981,7 @@ static char *walk_tree(Namval_t *np, Namval_t *xp, nvflag_t flags)
 	if(arp && !(arp->nelem&ARRAY_SCAN) && (subscript = nv_getsub(np)))
 	{
 		mp = nv_opensub(np);
-		sfprintf(sh.stk,"[%s].",subscript);
+		sfprintf(sh.stk,"[%s].",nv_subesc(subscript));
 	}
 	else if(*stkptr(sh.stk,stktell(sh.stk)-1) == ']')
 		mp = np;

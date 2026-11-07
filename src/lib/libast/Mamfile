@@ -1367,9 +1367,7 @@ make install virtual
 		done
 
 		make fmtbuf.o
-			make string/fmtbuf.c
-				prev include/ast.h
-			done
+			makp string/fmtbuf.c
 			exec - compile %{<}
 		done
 
