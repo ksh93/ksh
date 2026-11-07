@@ -1111,4 +1111,59 @@ exp=$'set\nset\nget\nghi\nunset'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ======
+# A subscript of an associative array element is an arbitrary string that may even contain
+# '[' and ']'. The nv_name() function used to reconstruct the canonical name with the raw
+# subscript between brackets (without backslash escaping), so the resulting name could not
+# be re-parsed unambiguously. The prefix of a compound assignment is built from the element
+# name, so for the element [']['] (subscript "][") it was parsed as an empty subscript
+# followed by the beginning of another subscript, and the compound value was assigned to
+# the element with the empty subscript instead.
+
+for sub in \
+	'' '[' ']' '][' '[]' '[]]' \
+	'[abc' 'ab[c' 'ab]c' 'abc[' 'abc]' \
+	'bar].baz[quux' '[bar].baz[quux]' \
+	'\' '\\' ']\[' '\[\]\]' 'ab\cd' \
+	'xxx xxx->xxx->xxx->xx:xx.x->(x * @ xx:xx)->(xxxxx:xxxx)' \
+	'xxx xxx->xxx->xxx->xx:xx.x->(x [ * @ xx:xx)->(xxxxx:xxxx)' \
+	'xxx xxx->xxx->xxx->xx:xx.x->(x \ * @ xx:xx)->(xxxxx:xxxx)' \
+	'xxx xxx->xxx->xxx->xx:xx.x->(x ] * @ xx:xx)->(xxxxx:xxxx)'
+do
+	unset foo
+	command typeset -A foo=([$sub]=(x=1 y=2))  # 'command' avoids exiting on 'invalid variable name' error
+	got=$(typeset -p foo)
+	exp="typeset -A foo=(['$sub']=(x=1;y=2))"
+	[[ $got == "$exp" ]] || err_exit "compound value assignment to associative array element ['$sub'] misparsed" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	((${#foo[@]} == 1)) || err_exit "compound value assignment to element ['$sub'] creates ${#foo[@]} elements, expected 1"
+	[[ ${foo[$sub].x} == 1 && ${foo[$sub].y} == 2 ]] || err_exit "fields of element ['$sub'] not assigned correctly"
+
+	unset foo
+	typeset -A foo
+	command eval 'foo[$sub]=(y=2 x=1)'  # 'command eval' avoids exiting on 'invalid variable name' error
+	got=$(typeset -p foo)
+	exp="typeset -A foo=(['$sub']=(x=1;y=2))"
+	[[ $got == "$exp" ]] || err_exit "compound value assignment to element ['$sub'] without declaration command misparsed" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# this is the documented expansion for backslash-escaping '[', ']' and '\' in the subscript for passing as argument
+	subesc=${sub//@(\[|\]|\\)/\\\1}
+
+	# replace the compound value with a scalar 'OK'
+	printf -v "foo[$subesc]" 'OK'
+	got=$(typeset -p foo)
+	exp="typeset -A foo=(['$sub']=OK)"
+	[[ $got == "$exp" ]] || err_exit "backslash-escaped subscript [$subesc] passed to 'printf -v'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# unset it
+	unset "foo[$subesc]"
+	got=$(typeset -p foo)
+	exp="typeset -A foo=()"
+	[[ $got == "$exp" ]] || err_exit "backslash-escaped subscript [$subesc] passed to 'unset'" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+done
+unset foo sub subesc
+
+# ======
 exit $((Errors<125?Errors:125))
