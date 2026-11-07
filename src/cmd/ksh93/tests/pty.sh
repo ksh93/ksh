@@ -36,11 +36,18 @@
 # - Use a global delay (d) of 50ms; this works best with parallel testing.
 # - The trickiest part of the tests is avoiding typeahead in the pty
 #   dialogue. Strictly following the points below should help with this:
-#   * Wait (peek) for *all* the prompts in correct order (p) before typing.
-#   * Read back *all* the terminal typing echo (r) to avoid synchronisation
-#     problems. A partial regex is fine here, it's just for synching.
+#   * Peek (p) for *all* the prompts before typing (w).
+#   * Read back *all* the terminal typing echo (r) after each write (w) to
+#     avoid synchronisation problems. A partial regex is fine here, it's
+#     just for synching.
 #	> The PS1 prompt should not be included in the terminal echo check
 #	  regexes, because that intermittently fails on some systems.
+#	> The typing echo that is read back is what would be physically
+#	  displayed on the terminal at the end of the write; this is relevant
+#	  when writes move the cursor and insert or delete characters.
+#	> If the write leaves the terminal cursor somewhere other than one
+#	  past the end of the line, then only the typing echo that is to the
+#	  left of the cursor is read back.
 #   * Consistently use \r?\n$ (optional CR, mandatory LF) for the
 #     end-of-line anchor in readback (r) regexes.
 #   * Read back and verify *all* the output in correct order (r), including
@@ -1598,13 +1605,16 @@ L emacs: repeat count sticks after ESC commands
 
 d 50
 # The 'P' command sets an automatic 'p' before every 'w', delaying writing until a match is read.
-P :test-.:
+p :test-1:
 w false bad rigt wrong
+r false bad rigt wrong\r?\n$
 # Insert 'print '; recall 3rd word 'rigt' (ESC 3 ESC _); cursor back one position (^B); insert 'h'.
 # (With the bug, the repeat count of 3 sticks and ^B goes back 3 positions, resulting in 'rhigt'.)
+p :test-2:
 w print \E3\E_\cBh
-I print
-r right
+# pty(1) doesn't read back the echo of the final 't' because it is not to the left of the cursor
+r print righ\r?\n$
+r ^right\r?\n$
 !
 
 bintrue=$bintrue tst --noparallel $LINENO << "!"
