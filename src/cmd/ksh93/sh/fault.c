@@ -645,6 +645,7 @@ void sh_exit(int xno)
 		job_unlock();
 	if(pp->mode == SH_JMPSCRIPT && !pp->prev)
 		sh_done(sig);
+	ast_close_batch(-1,ENACT);
 	if(pp->mode)
 		siglongjmp(pp->buff,pp->mode);
 }

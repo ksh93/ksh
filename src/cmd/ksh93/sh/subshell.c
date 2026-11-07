@@ -298,10 +298,7 @@ int sh_comsubpipestdout(int wfd, int save)
 		clexec = sh.fdstatus[fd] & IOCLEX;
 		if(save)
 			sh_iosave(fd,indx,NULL);
-		sh_iorenumber(dupfd,fd);
-		/* sh_iorenumber() clears the close-on-exec flag; preserve it */
-		if(clexec)
-			sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
+		sh_iorenumber(dupfd,fd,clexec?IOCLEX:0,NOW);
 	}
 	return indx;
 }
@@ -997,9 +994,10 @@ void sh_subjobcheck(pid_t pid)
 		if(sp->cpid==pid)
 		{
 			if(sp->coutpipe > -1)
-				sh_close(sp->coutpipe);
+				sh_close_batch(sp->coutpipe,QUEUE);
 			if(sp->cpipe > -1)
-				sh_close(sp->cpipe);
+				sh_close_batch(sp->cpipe,QUEUE);
+			ast_close_batch(-1,ENACT);
 			sp->coutpipe = sp->cpipe = -1;
 			return;
 		}
@@ -1047,7 +1045,7 @@ void sh_clear_subshell_pwdfd(void)
 	{
 		if(sp->pwdfd > -1 && sp->pwdfd != prevfd)
 		{
-			sh_close(sp->pwdfd);
+			sh_close_batch(sp->pwdfd,QUEUE);
 			prevfd = sp->pwdfd;
 		}
 		sp = sp->prev;
@@ -1057,13 +1055,14 @@ void sh_clear_subshell_pwdfd(void)
 	{
 		if(sp->pwdclose)
 		{
-			sh_close(sp->pwdfd);
+			sh_close_batch(sp->pwdfd,QUEUE);
 			sp->pwdclose = 0;
 			sp->pwdfd = -1;
 		}
 		sp = sp->prev;
 	}
 #endif /* _lib_openat */
+	ast_close_batch(-1,ENACT);
 }
 
 /*
@@ -1345,8 +1344,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		/* check if standard output was preserved */
 		if(sp->tmpfd>=0)
 		{
-			ast_close(1);
-			if (fcntl(sp->tmpfd,F_DUPFD,1) != 1)
+			if(dup2(sp->tmpfd,1) < 0)
 			{
 				saveerrno = errno;
 				fatalerror = 1;
@@ -1486,8 +1484,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			umask(sh.mask=sp->mask);
 		if(sh.coutpipe!=sp->coutpipe)
 		{
-			sh_close(sh.coutpipe);
-			sh_close(sh.cpipe[1]);
+			sh_close_batch(sh.coutpipe,QUEUE);
+			sh_close_batch(sh.cpipe[1],ENACT);
 		}
 		sh.cpid = sp->cpid;
 		sh.cpipe[1] = sp->cpipe;

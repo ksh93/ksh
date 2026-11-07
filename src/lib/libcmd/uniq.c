@@ -344,8 +344,9 @@ b_uniq(int argc, char** argv, Shbltin_t* context)
 	}
 	error_info.errors = uniq(fpin,fpout,fields,chars,width,mode,all,compare);
 	if(fpin!=sfstdin)
-		sfclose(fpin);
+		sfclose_batch(fpin, QUEUE);
 	if(fpout!=sfstdout)
-		sfclose(fpout);
+		sfclose_batch(fpout, QUEUE);
+	ast_close_batch(-1, ENACT);
 	return error_info.errors;
 }

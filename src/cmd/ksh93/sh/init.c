@@ -1250,6 +1250,7 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 		sh.lim.child_max = CHILD_MAX;
 	if(sh.lim.clk_tck <= 0)
 		sh.lim.clk_tck = (clock_t)CLK_TCK;
+	ast_close_batch((int)astconf_long(CONF_OPEN_MAX),LIMIT);
 	sh.ed_context = ed_open();
 	error_info.id = path_basename(argv[0]);
 	umask(sh.mask = umask(0));

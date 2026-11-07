@@ -164,9 +164,9 @@ static void
 done(Join_t* jp)
 {
 	if (jp->file[0].iop && jp->file[0].iop != sfstdin)
-		sfclose(jp->file[0].iop);
+		sfclose_batch(jp->file[0].iop, QUEUE);
 	if (jp->file[1].iop && jp->file[1].iop != sfstdin)
-		sfclose(jp->file[1].iop);
+		sfclose_batch(jp->file[1].iop, QUEUE);
 	if (jp->outlist)
 		free(jp->outlist);
 	if (jp->file[0].fields)
@@ -175,6 +175,7 @@ done(Join_t* jp)
 		free(jp->file[1].fields);
 	if (jp->same)
 		free(jp->same);
+	ast_close_batch(-1, ENACT);
 	free(jp);
 }
 

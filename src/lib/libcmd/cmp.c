@@ -399,8 +399,9 @@ b_cmp(int argc, char** argv, Shbltin_t* context)
 		n = ((flags & CMP_SILENT) && S_ISREG(s1.st_mode) && S_ISREG(s2.st_mode) && (s1.st_size - o1) != (s2.st_size - o2)) ? 1 : cmp(file1, f1, file2, f2, flags, count, differences);
  done:
 	if (f1 && f1 != sfstdin)
-		sfclose(f1);
+		sfclose_batch(f1, QUEUE);
 	if (f2 && f2 != sfstdin)
-		sfclose(f2);
+		sfclose_batch(f2, QUEUE);
+	ast_close_batch(-1, ENACT);
 	return n;
 }
