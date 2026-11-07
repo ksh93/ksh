@@ -1044,6 +1044,15 @@ static size_t pat_line(const regex_t* rp, const char *buff, size_t n)
 #define PAT_SHADOW_MAX	(256*1024)
 
 /*
+ * How far back the start of a matching record can be restored by seeking. A seek
+ * that the stream's buffer can serve is cheap and leaves the stream position
+ * correct; a longer one has to be served by the sfdcseekable() discipline, whose
+ * copy makes the reported position unreliable afterwards. A record that starts
+ * further back is passed on to a command separately instead (see pat_save()).
+ */
+#define PAT_RESTORE_MAX	(IOBSIZE/2)
+
+/*
  * Write <n> bytes from <buff> to file descriptor <fd>, ignoring interrupts.
  * Returns -1 if the data could not be written.
  */
@@ -1284,11 +1293,12 @@ static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
 			consumed = 0;
 		}
 		/*
-		 * Read a block at a time, but do not wait for a buffer to fill up (no negative <s>).
-		 * A terminal delivers input one line at a time, so waiting for a full buffer would
-		 * keep the search from matching an interactively typed input line.
+		 * Read a block at a time. On a terminal, do not wait for a block to fill up (no
+		 * negative <s>): a terminal delivers input one line at a time, so waiting for a
+		 * full buffer would keep the search from matching an interactively typed line.
+		 * In all other cases, fill the block.
 		 */
-		if(!(cp = sfreserve(sp, s, SFIO_LOCKR)) && !(cp = sfreserve(sp, SFIO_UNBOUND, SFIO_LOCKR)))
+		if(!(cp = sfreserve(sp, tty ? s : -s, SFIO_LOCKR)) && !(cp = sfreserve(sp, SFIO_UNBOUND, SFIO_LOCKR)))
 			break;
 		n = (size_t)sfvalue(sp);
 		for(pos = 0; pos < n; pos += part)
@@ -1319,10 +1329,19 @@ static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
 		}
 		if(matched)
 		{
-			/* save the start of the record that was read before this buffer (see pat_save()) */
-			pat_save(line, len - part);
+			size_t	head = len - part;
+			int	restored = 0;
 			/* release the reserve, consuming everything before the match */
 			sfread(sp, cp, pos);
+			/*
+			 * If the start of the record was read before this block, it has already been
+			 * consumed from the stream. Seek back to it, so that the whole record is available
+			 * to whatever reads the stream next. If it cannot be restored, then the pat_save()
+			 * call keeps the start of the record aside for pat_handoff() to pass on.
+			 */
+			if(head && !tty && head <= PAT_RESTORE_MAX)
+				restored = sfseek(sp, -(Sfoff_t)head, SEEK_CUR) >= 0;
+			pat_save(line, restored ? 0 : head);
 			break;
 		}
 		/* consume the data before the match, so that the reader gets it */

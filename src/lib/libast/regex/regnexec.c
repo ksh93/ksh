@@ -1714,7 +1714,7 @@ parse(Env_t* env, Rex_t* rex, Rex_t* cont, unsigned char* s)
 			}
 			return r;
 		case REX_END:
-			if ((!(rex->flags & REG_NEWLINE) || *s != '\n') && ((env->flags & REG_NOTEOL) || s < env->end))
+			if ((!(rex->flags & REG_NEWLINE) || s >= env->end || *s != '\n') && ((env->flags & REG_NOTEOL) || s < env->end))
 				return NONE;
 			break;
 		case REX_GROUP:
