@@ -3415,7 +3415,8 @@ done install
 make test virtual
 	make test.mamake virtual
 		makp %{PACKAGEROOT}/src/cmd/INIT/mamake.tst
-		exec - : testing the libast rebuild of mamake at $PWD/mamake :
-		exec - regress --verbose %{<} "$PWD/mamake"
+		makp %{INSTALLROOT}/src/lib/libast/mamake
+		exec - : testing the libast rebuild of mamake at %{<} :
+		exec - regress --verbose %{^}
 	done
 done test
