@@ -21,7 +21,8 @@ static const char usage[] =
 "[-?\n@(#)pty (ksh 93u+m) 2026-11-09\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
-"[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
+"[-copyright?(c) 2001-2013 AT&T Intellectual Property]"
+"[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
 "[--catalog?builtin]"
 "[+NAME?pty - create pseudo terminal and run command]"
@@ -104,7 +105,7 @@ static const char usage[] =
 #include <cmd.h>
 #include <error.h>
 #include <fcntl.h>
-#include <signal.h>
+#include <sig.h>
 #include <termios.h>
 #include <proc.h>
 #include <ctype.h>
@@ -497,6 +498,73 @@ match(char* pattern, char* text, int must)
 	return 1;
 }
 
+/*
+ * Time, in milliseconds, to wait for the rest of a line that is otherwise
+ * ready to be returned (see masterline()). A newline that ends the line, or
+ * the rest of a redraw, is nearly always already on its way when the text
+ * matches, so a short wait keeps the line intact without stalling the test.
+ */
+
+#define GRACE	50
+
+/*
+ * Return true if regex <pattern> does *not* end in a newline.
+ */
+
+static int
+unterminated(const char* pattern)
+{
+	size_t		n = strlen(pattern);
+
+	if (n > 0 && pattern[n - 1] == '$')
+		n--;
+	if (n >= 2 && pattern[n - 2] == '\\' && pattern[n - 1] == 'n')
+		return 0;
+	if (n >= 1 && pattern[n - 1] == '\n')
+		return 0;
+	return 1;
+}
+
+/*
+ * Time, in milliseconds, to wait for the shell's line editor to take over the
+ * terminal after it has displayed a prompt (see waitraw()).
+ */
+
+#define RAWWAIT	500
+
+/*
+ * Wait until the terminal is in raw mode.
+ *
+ * In the following idiomatic sequence in a pty dialogue:
+ *	p :test-1:
+ *	w some command
+ * the p command peeks for the shell prompt (PS1), then the w command writes
+ * immediately after it has been displayed. But ksh only switches the terminal
+ * away from canonical mode after printing the prompt. So there was a race
+ * condition: typing could start before the terminal is in raw mode, causing
+ * typeahead to be echoed, which interferes with the tests reading back input.
+ * To fix the race, this function is used to wait until the terminal is in
+ * raw mode before returning the prompt to the caller.
+ *
+ * A prompt that does not come from the editor (e.g., the read builtin's)
+ * stays in canonical mode; for those, we give up after the timeout.
+ */
+
+static void
+waitraw(Sfio_t* mp)
+{
+	struct termios	term;
+	int		fd = sffileno(mp);
+	int		n;
+
+	for (n = 0; n < RAWWAIT; n += 10)
+	{
+		if (tcgetattr(fd, &term) < 0 || !(term.c_lflag & ICANON))
+			return;
+		usleep(10 * 1000);
+	}
+}
+
 typedef struct Master_s
 {
 	Vmalloc_t*	vm;		/* allocation region			*/
@@ -539,7 +607,7 @@ masterprompt(Master_t* bp)
 }
 
 static char*
-masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t* bp)
+masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, char* want, int must, int timeout, Master_t* bp)
 {
 	char*		r;
 	char*		s;
@@ -554,7 +622,8 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	{
 		if (bp->cur < bp->end && bp->saving)
 			*bp->cur = bp->save;
-		if (strneq(bp->cur, prompt, promptlen))
+		/* avoid matching against consumed data: only match if the buffer hasn't been reset yet */
+		if (bp->cur < bp->end && strneq(bp->cur, prompt, promptlen))
 			r = bp->cur;
 		else
 			r = NULL;
@@ -563,6 +632,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 			/* leave the matched line intact for the caller */
 			if (bp->cur < bp->end && bp->saving)
 				bp->saving = 0;
+			waitraw(mp);
 			error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 			return r;
 		}
@@ -572,6 +642,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		{
 			if (strneq(r, prompt, promptlen))
 			{
+				waitraw(mp);
 				error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 				return r;
 			}
@@ -579,12 +650,19 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 			{
 				if (strneq(++r, prompt, promptlen))
 				{
+					waitraw(mp);
 					error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 					return r;
 				}
 			}
 		}
-		*bp->cur = 0;
+		/*
+		 * Do not truncate unconsumed input here: the prompt may be split
+		 * over several reads, in which case it only matches once all of
+		 * its bytes have arrived and been preserved.
+		 */
+		if (bp->cur >= bp->end)
+			*bp->cur = 0;
 	}
 	else if (bp->nxt)
 	{
@@ -607,6 +685,36 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		}
 		goto done;
 	}
+	else if (want && bp->cur < bp->end && unterminated(want))
+	{
+		/*
+		 * The shell has written something that is not terminated by a newline: a
+		 * command line that has been echoed but not yet run, for instance. Such text
+		 * is normally only returned when the poll below times out, so a test that
+		 * reads what the shell has already written would sit there for the whole
+		 * timeout. If no further output is available and the text already matches
+		 * what the caller is waiting for, then return it now-ish instead of waiting.
+		 */
+		if (bp->saving)
+			*bp->cur = bp->save;
+		r = bp->cur;
+		n = sfpoll(&mp, 1, GRACE);
+		if (!memchr(r, '\n', (size_t)(bp->end - r)) && (n <= 0 || !(sfvalue(mp) & SFIO_READ)) && match(want, r, 0))
+		{
+			bp->saving = 0;
+			*bp->end = 0;
+			bp->nxt = NULL;
+			bp->cur = bp->end = bp->buf;
+			goto done;
+		}
+		if (bp->saving)
+			*bp->cur = 0; /* restore the hidden line terminator */
+	}
+	/*
+	 * A master opened for reading and writing is reported as SFIO_WRITE
+	 * ready even when the poll times out, so a timeout has to be detected
+	 * as an absence of SFIO_READ rather than as a zero return value.
+	 */
 	if ((n = sfpoll(&mp, 1, timeout)) <= 0 || !(sfvalue(mp) & SFIO_READ))
 	{
 		if (n < 0)
@@ -845,7 +953,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'w':
 			if (cond->flags & SKIP)
 				continue;
-			if ((m = masterprompt(master)) && !masterline(mp, lp, m, 0, timeout, master))
+			if ((m = masterprompt(master)) && !masterline(mp, lp, m, NULL, 0, timeout, master))
 				goto done;
 			if (delay)
 				usleep(delay * 1000);
@@ -880,7 +988,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				cond->next = vmnewof(vm, NULL, Cond_t, 1, 0);
 			cond = cond->next;
 			cond->flags = IF;
-			if ((cond->prev->flags & SKIP) && !(cond->text = NULL) || !(cond->text = masterline(mp, lp, NULL, 0, timeout, master)))
+			if ((cond->prev->flags & SKIP) && !(cond->text = NULL) || !(cond->text = masterline(mp, lp, NULL, NULL, 0, timeout, master)))
 				cond->flags |= KEPT|SKIP;
 			else if (match(s, cond->text, 0))
 				cond->flags |= KEPT;
@@ -934,7 +1042,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'p':
 			if (cond->flags & SKIP)
 				continue;
-			if (!(m = masterline(mp, lp, s, 1, timeout, master)))
+			if (!(m = masterline(mp, lp, s, NULL, 1, timeout, master)))
 				goto done;
 			if (!strneq(m, s, strlen(s)))
 			{
@@ -945,7 +1053,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'r':
 			if (cond->flags & SKIP)
 				continue;
-			if (!(m = masterline(mp, lp, NULL, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master)))
+			if (!(m = masterline(mp, lp, NULL, s, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master)))
 				goto done;
 			match(s, m, 1);
 			break;
@@ -977,7 +1085,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				continue;
 			do
 			{
-				if (!(m = masterline(mp, lp, NULL, -1, timeout, master)))
+				if (!(m = masterline(mp, lp, NULL, s, -1, timeout, master)))
 				{
 					match(s, m, 1);
 					goto done;
@@ -1075,6 +1183,13 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	int		session = 1;
 	int		timeout = 1000;
 	int		(*fun)(Sfio_t*,Sfio_t*,useconds_t,int) = process;
+
+	/*
+	 * In case pty was invoked as a background job, unignore SIGINT
+	 * and SIGQUIT; pty tests need these signals to work normally.
+	 */
+	signal(SIGINT, SIG_DFL);
+	signal(SIGQUIT, SIG_DFL);
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	for (;;)
