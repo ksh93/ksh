@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2026-10-22\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-11-09\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
@@ -54,8 +54,8 @@ static const char usage[] =
             "matching \be\b or \bf\b]"
         "[f?end of \bi\b/\be\b block]"
         "[m \atext\a?write \atext\a to the standard error]"
-        "[p \atext\a?peek input until \atext\a is found at the beginning "
-            "of a line; input is not consumed]"
+        "[p \atext\a?peek ahead and verify the next line begins "
+            " with \atext\a; input is not consumed]"
         "[r [\are\a]]?read a line from the master [and it should match "
             "\are\a]]]"
         "[s \amilliseconds\a?sleep for \amilliseconds\a]"
@@ -445,7 +445,7 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 }
 
 /*
- * return 1 is extended re pattern matches text
+ * return 1 if extended RE <pattern> matches <text>
  */
 
 static int
@@ -523,6 +523,21 @@ typedef struct Master_s
 #define MASTER_EOF	(-1)
 #define MASTER_TIMEOUT	(-2)
 
+/*
+ * expand the prompt for the next line
+ */
+
+static char*
+masterprompt(Master_t* bp)
+{
+	static char	buf[64];
+
+	if (!bp->prompt)
+		return NULL;
+	sfsprintf(buf, sizeof(buf), bp->prompt, ++bp->line);
+	return buf;
+}
+
 static char*
 masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t* bp)
 {
@@ -531,41 +546,42 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	char*		t;
 	ssize_t		n;
 	size_t		promptlen = 0;
-	char		promptbuf[64];
 
 	if (prompt)
-		promptlen = (size_t)sfsprintf(promptbuf, sizeof(promptbuf), prompt, ++bp->line);
+		promptlen = strlen(prompt);
  again:
 	if (prompt)
 	{
 		if (bp->cur < bp->end && bp->saving)
 			*bp->cur = bp->save;
-		if (strneq(bp->cur, promptbuf, promptlen))
+		if (strneq(bp->cur, prompt, promptlen))
 			r = bp->cur;
 		else
 			r = NULL;
-		if (bp->cur < bp->end && bp->saving)
-			*bp->cur = 0;
 		if (r)
 		{
-			error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+			/* leave the matched line intact for the caller */
+			if (bp->cur < bp->end && bp->saving)
+				bp->saving = 0;
+			error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 			return r;
 		}
+		if (bp->cur < bp->end && bp->saving)
+			*bp->cur = 0;
 		if (r = bp->nxt)
 		{
-			if (strneq(r, promptbuf, promptlen))
+			if (strneq(r, prompt, promptlen))
 			{
-				error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+				error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 				return r;
 			}
 			while (r = memchr(r, '\n', (size_t)(bp->end - r)))
 			{
-				if (strneq(r, promptbuf, promptlen))
+				if (strneq(++r, prompt, promptlen))
 				{
-					error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+					error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 					return r;
 				}
-				r++;
 			}
 		}
 		*bp->cur = 0;
@@ -610,9 +626,9 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 			r = bp->cur;
 			*bp->end = 0;
 			bp->nxt = NULL;
-			if (prompt && strneq(r, promptbuf, promptlen))
+			if (prompt && strneq(r, prompt, promptlen))
 			{
-				error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+				error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 				return r;
 			}
 			bp->cur = bp->end = bp->buf;
@@ -829,7 +845,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'w':
 			if (cond->flags & SKIP)
 				continue;
-			if (master->prompt && !masterline(mp, lp, master->prompt, 0, timeout, master))
+			if ((m = masterprompt(master)) && !masterline(mp, lp, m, 0, timeout, master))
 				goto done;
 			if (delay)
 				usleep(delay * 1000);
@@ -920,6 +936,11 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				continue;
 			if (!(m = masterline(mp, lp, s, 1, timeout, master)))
 				goto done;
+			if (!strneq(m, s, strlen(s)))
+			{
+				error(2, "expected \"%s\", got \"%s\"", s, fmtesq(m, "\""));
+				goto done;
+			}
 			break;
 		case 'r':
 			if (cond->flags & SKIP)

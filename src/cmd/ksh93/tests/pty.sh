@@ -297,15 +297,30 @@ L loss of here-doc in loaded function after interrupting a here-doc
 t 5000
 d 40
 p :test-1:
-w function fn { cat <<EOF\nthis is a test\nEOF\necho 'HERE-DOC LOST'\n}
+w function fn { cat <<EOF
+r function fn \{ cat <<EOF\r?\n$
+p >
+w this is a test
+r this is a test\r?\n$
+p >
+w EOF
+r EOF\r?\n$
+p >
+w echo 'HERE-DOC LOST'
+r echo 'HERE-DOC LOST'\r?\n$
+p >
+w }
+r ^> \}\r?\n$
 p :test-2:
 w sleep 3
+r sleep 3\r?\n$
 s 40
 c \cC
-p :test-3:
+p ^C:test-3:
 w fn
-r fn
+r fn\r?\n$
 r ^this is a test\r?\n$
+r ^HERE-DOC LOST\r?\n$
 !
 
 tst --noparallel $LINENO <<"!"
@@ -894,7 +909,7 @@ r ^Exit status is: 0\r?\n$
 p :test-5:
 w false
 r false
-p >
+p :test-6:
 w (
 r \(
 p >
@@ -903,7 +918,7 @@ r exit
 p >
 w )
 r )
-p :test-6:
+p :test-7:
 w echo "Exit status is: $?"
 r echo "Exit status is: \$\?"\r?\n$
 r ^Exit status is: 1\r?\n$
@@ -1073,16 +1088,15 @@ p :test-3:
 c '`/dev
 w \t
 r '`/dev[[:blank:]]*\r?\n$
-# escape from PS2 prompt with Ctrl+C
 r ^> $
 c \cC
-p :test-4:
+# Ctrl+C only clears the edit buffer; as SIGINT is ignored in background tests,
+# the shell stays at the PS2 prompt, so there is no new prompt to peek for
 c '$(/dev
 w \t
 r '\$\(/dev[[:blank:]]*\r?\n$
 r ^> $
 c \cC
-p :test-5:
 c $'`/dev
 w \t
 r \$'`/dev[[:blank:]]*\r?\n$
@@ -1186,27 +1200,29 @@ d 50
 # SIGINT ignored by child
 p :test-1:
 w PS1=':child-!: ' "$SHELL"
-p :child-1:
-w trap '' INT
 p :child-2:
+w trap '' INT
+r trap '' INT\r?\n$
+p :child-3:
 w : lorem\cCipsum
 r : lorem\^Cipsum\r?\n$
 w exit
 
 # SIGINT ignored by parent
-p :test-2:
+p :test-5:
 w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
-p :child-1:
+p :child-6:
 w : lorem\cCipsum
 r : lorem\^Cipsum\r?\n$
 w exit
 
 # SIGINT ignored by parent, trapped in child
-p :test-3:
+p :test-8:
 w (trap '' INT; ENV=/./dev/null PS1=':child-!: ' "$SHELL")
-p :child-1:
+p :child-9:
 w trap 'echo test' INT
-p :child-2:
+r trap 'echo test' INT\r?\n$
+p :child-10:
 w : lorem\cCipsum
 r : lorem\^Cipsum\r?\n$
 w exit
@@ -1274,7 +1290,7 @@ w histchars='!^@'
 p :test-3:
 w true \\@ !non_existent
 u : !non_existent: event not found
-p :test-4:
+p :test-3:
 w echo @ !non_existent
 u @ !non_existent\r?\n$
 !
@@ -1532,7 +1548,7 @@ L terminate interactive shell using the kill built-in
 d 50
 p :test-1:
 w PS1=':child-!: ' "$SHELL"
-p :child-1:
+p :child-2:
 w kill -s HUP \$\$
 r kill -s HUP \$\$\r?\n$
 r ^Hangup\r?\n$
@@ -1558,9 +1574,9 @@ p :test-1:
 w "$SHELL"
 p :test-2:
 w cat << EOS
-p :test-3:
+p >
 w \cD
-p :test-4:
+p :test-3:
 w print Exit status $?
 u ^Exit status 0\r?\n$
 !
@@ -1586,21 +1602,21 @@ r "\$SHELL"\r?\n$
 p :test-2:
 w . ./issue346.sh
 r \. \./issue346\.sh\r?\n$
-p :test-3:
+p $ :test-3:
 w echo ~
 r echo ~\r?\n$
 # HOME should be set to the temp dir defined in shtests, which contains at least this component
 r /ksh93\.shtests\.
-p :test-4:
+p $ :test-4:
 w echo ~ret
 r echo ~ret\r?\n$
 r ^Exit status is\r?\n$
-p :test-5:
+p $ :test-5:
 w echo ~
 r echo ~\r?\n$
 # HOME should be set to the temp dir defined in shtests, which contains at least this component
 r /ksh93\.shtests\.
-p :test-6:
+p $ :test-6:
 w echo ~ret $?
 r echo ~ret \$\?\r?\n$
 r ^Exit status is 0\r?\n$
