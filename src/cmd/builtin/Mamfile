@@ -26,6 +26,7 @@ make install virtual
 			make pty.c
 				prev %{INCLUDE_AST}/cmd.h
 				prev %{INCLUDE_AST}/error.h
+				prev %{INCLUDE_AST}/sig.h
 				prev %{INCLUDE_AST}/proc.h
 				prev %{INCLUDE_AST}/regex.h
 				prev %{INCLUDE_AST}/vmalloc.h

@@ -107,7 +107,7 @@ fi
 
 function tst
 {
-	bool noparallel=false
+	bool noparallel=$xtrace
 	while	[[ $1 == -* ]]
 	do	case $1 in
 		--)	shift
@@ -128,18 +128,19 @@ function tst
 		esac
 		shift
 	done
-	if	((noparallel || xtrace))
+	# a 4 second read timeout (--timeout=4000) is needed to avoid intermittent failures under high system load
+	if	((noparallel))
 	then	((fgtests++))
 		export HISTFILE=$tmp/pty_history_fg_$fgtests
 		{
 			print $1  # lineno
-			pty $debug --dialogue --messages='/dev/fd/1' 2>/dev/tty "$SHELL"
+			pty $debug --dialogue --messages='/dev/fd/1' --timeout=4000 2>/dev/tty "$SHELL"
 		} | chk
 	else	((bgtests++))
 		export HISTFILE=$tmp/pty_history_bg_$bgtests
 		{
 			print $1  # lineno
-			pty $debug --dialogue --messages='/dev/fd/1' 2>/dev/tty "$SHELL" &
+			pty $debug --dialogue --messages='/dev/fd/1' --timeout=4000 2>/dev/tty "$SHELL" &
 		} >pty_$bgtests.out
 	fi
 }
@@ -183,17 +184,9 @@ if	! let "multiline = ! $?"
 then	warning "tput(1) not available on default path; tests that require multiline editing are skipped"
 fi
 
-# The --noparallel tests cannot be run in the background because, for
-# reasons unclear, doing so disables the effect of Ctrl+C. It is not
-# because SIGINT is ignored or because 'stty intr' is set wrong.
-#
-# Define these in a shell function now to defer them, and run them
-# at the end so other tests can at least run in parallel with them.
+# ====== start of pty tests ======
 
-foreground_tests()
-{
-
-tst --noparallel $LINENO <<"!"
+tst $LINENO <<"!"
 L POSIX sh 026(C)
 
 # If the User Portability Utilities Option is supported:  When the
@@ -208,8 +201,16 @@ p :test-1:
 w sleep 60 &
 u [[:digit:]]\r?\n$
 p :test-2:
-w kill -TSTP $!
-s 100
+# A signal sent to a just-forked background job can be blocked or ignored
+# until the child has finished setting itself up. To avoid intermittent
+# failures under high system load, keep signalling it until it is actually
+# stopped. We can tell this by the output of the 'jobs' command as it
+# reports the process state the shell has reaped. We must run it in a
+# subshell, like the $(command substitution) below, otherwise 'jobs' would
+# consume the job state change notification that is being tested. The shell
+# only reports a job state change when it prints a prompt, so finish with a
+# null command to force the prompt that displays the notification.
+w until [[ $(jobs) =~ (Stopped|Suspended) ]]; do kill -TSTP $!; sleep 0.1; done; :
 u (Stopped|Suspended)
 p :test-3:
 w kill -KILL $!
@@ -218,7 +219,7 @@ s 100
 u (Killed|Done)
 !
 
-tst --noparallel $LINENO <<"!"
+tst $LINENO <<"!"
 L POSIX sh 028(C)
 
 # If the User Portability Utilities Option is supported:  When the
@@ -233,8 +234,9 @@ p :test-1:
 w sleep 60 &
 u [[:digit:]]\r?\n$
 p :test-2:
-w kill -TTIN $!
-s 100
+# See the comment in the POSIX sh 026(C) test above.
+w until [[ $(ulimit -c 0; jobs) =~ (Stopped|Suspended) ]]; do kill -TTIN $!; sleep 0.1; done; :
+#            ^^^^^^^^^^^ FIXME: need to fork subshell to avoid consuming notification
 u (Stopped|Suspended) \(SIGTTIN\)
 p :test-3:
 w kill -KILL $!
@@ -243,7 +245,7 @@ s 100
 u (Killed|Done)
 !
 
-tst --noparallel $LINENO <<"!"
+tst $LINENO <<"!"
 L POSIX sh 029(C)
 
 # If the User Portability Utilities Option is supported:  When the
@@ -258,8 +260,9 @@ p :test-1:
 w sleep 60 &
 u [[:digit:]]\r?\n$
 p :test-2:
-w kill -TTOU $!
-s 100
+# See the comment in the POSIX sh 026(C) test above.
+w until [[ $(ulimit -c 0; jobs) =~ (Stopped|Suspended) ]]; do kill -TTOU $!; sleep 0.1; done; :
+#            ^^^^^^^^^^^ FIXME: need to fork subshell to avoid consuming notification
 u (Stopped|Suspended) \(SIGTTOU\)
 p :test-3:
 w kill -KILL $!
@@ -268,18 +271,29 @@ s 100
 u (Killed|Done)
 !
 
-tst --noparallel $LINENO <<"!"
+mkfifo testfifo464 && tst $LINENO <<"!"
 L suspend a blocked write to a FIFO
 # https://github.com/ksh93/ksh/issues/464
 
 t 5000
 d 40
 p :test-1:
-w mkfifo testfifo464; echo >testfifo464
+
+# enclose the background job in another subshell to avoid job control output
+w ( (sleep .1; echo BLOCKED) & ); echo >testfifo464
 r echo >testfifo464\r?\n$
+
+# The >testfifo464 output redirection will block in open(2) until something
+# opens the FIFO for reading. Instead of sleeping some arbitrary time (which
+# carries a risk of intermittent timing-related failures), read back the
+# 'BLOCKED' marker that the shell writes from a quick background job shortly
+# after that open(2).
+r ^BLOCKED\r?\n$
+
 # untrapped SIGTSTP (Ctrl+Z) should be ineffective here and just print ^Z
 c \cZ
 r \^Z
+
 # Ctrl+C should interrupt it and trigger an error message
 c \cC
 s 50
@@ -290,7 +304,7 @@ r echo ok\r?\n$
 r ^ok\r?\n$
 !
 
-tst --noparallel $LINENO <<"!"
+tst $LINENO <<"!"
 L loss of here-doc in loaded function after interrupting a here-doc
 # https://github.com/ksh93/ksh/issues/978
 
@@ -323,7 +337,7 @@ r ^this is a test\r?\n$
 r ^HERE-DOC LOST\r?\n$
 !
 
-tst --noparallel $LINENO <<"!"
+tst $LINENO <<"!"
 L notify job state changes
 
 # 'set -b' should immediately notify the user about job state changes.
@@ -337,12 +351,6 @@ u ^\[1\][[:blank:]]+[[:digit:]]+\r?\n$
 s 100
 u Done
 !
-
-} # end of foreground_tests()
-
-
-
-# ====== start of tests that can run in parallel ======
 
 tst $LINENO <<"!"
 L POSIX sh 091(C)
@@ -1014,8 +1022,10 @@ w 123abc
 u cd emacstest/123abc\r?\n$
 !
 
+# The /./ prefix keeps the system-wide /etc/ksh.kshrc, if any, from being
+# executed first; it could print prompts or otherwise interfere with the test.
 echo '((' >$tmp/synerror
-ENV=$tmp/synerror tst $LINENO <<"!"
+ENV=/./$tmp/synerror tst $LINENO <<"!"
 L syntax error in profile causes exit on startup
 # https://github.com/ksh93/ksh/issues/281
 
@@ -1088,15 +1098,16 @@ p :test-3:
 c '`/dev
 w \t
 r '`/dev[[:blank:]]*\r?\n$
+# escape from PS2 prompt with Ctrl+C
 r ^> $
 c \cC
-# Ctrl+C only clears the edit buffer; as SIGINT is ignored in background tests,
-# the shell stays at the PS2 prompt, so there is no new prompt to peek for
+p :test-4:
 c '$(/dev
 w \t
 r '\$\(/dev[[:blank:]]*\r?\n$
 r ^> $
 c \cC
+p :test-5:
 c $'`/dev
 w \t
 r \$'`/dev[[:blank:]]*\r?\n$
@@ -1633,7 +1644,7 @@ r print righ\r?\n$
 r ^right\r?\n$
 !
 
-bintrue=$bintrue tst --noparallel $LINENO << "!"
+bintrue=$bintrue tst $LINENO << "!"
 L crash after E2BIG due to failed tcpgrp restoration
 
 t 10000
@@ -1671,20 +1682,27 @@ L suspend a pipeline whose last element reads from it
 
 d 50
 p :test-1:
-w sleep 10 | read v
-r \r?\n$
+# The first element reports when it has started, so that the Ctrl+Z is sure
+# to be delivered to the pipeline and not to the shell still starting it.
+w { print READY >&2; sleep 10; } | read v
+r \| read v\r?\n$
+r ^READY\r?\n$
 c \cZ
-s 100
-u (Stopped|Suspended)
+# A stopped foreground job is reported before the next prompt is displayed,
+# so read the notification first and only then peek the prompt. Typing
+# anything before that is unreliable: the shell may not have reclaimed the
+# terminal yet, and typeahead is then liable to be thrown away.
+r (Stopped|Suspended)
 p :test-2:
-w { sleep 10; } | read var
-r \r?\n$
+w { print READY >&2; sleep 10; } | read var
+r \| read var\r?\n$
+r ^READY\r?\n$
 c \cZ
-s 100
-u (Stopped|Suspended)
+r (Stopped|Suspended)
 p :test-3:
 w echo OK
-u ^OK
+r echo OK\r?\n$
+r ^OK\r?\n$
 !
 
 tst $LINENO <<"!"
@@ -1693,20 +1711,23 @@ L suspend two consecutive pipelines
 
 d 50
 p :test-1:
-w sleep 10 | sleep 20
-r \r?\n$
+# Report startup so the Ctrl+Z cannot arrive before the pipeline is running.
+w { print READY >&2; sleep 10; } | sleep 20
+r \| sleep 20\r?\n$
+r ^READY\r?\n$
 c \cZ
-s 500
-u (Stopped|Suspended)
+# See the comment in the test above.
+r (Stopped|Suspended)
 p :test-2:
-w { sleep 10; } | sleep 20
-r \r?\n$
+w { print READY >&2; sleep 10; } | sleep 20
+r \| sleep 20\r?\n$
+r ^READY\r?\n$
 c \cZ
-s 500
-u (Stopped|Suspended)
+r (Stopped|Suspended)
 p :test-3:
 w echo OK
-u ^OK
+r echo OK\r?\n$
+r ^OK\r?\n$
 !
 
 ((SHOPT_VSH)) && tst $LINENO <<"!"
@@ -1929,8 +1950,6 @@ r ^OK\r?\n$
 !
 
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
-
-foreground_tests
 
 # Check results of parallel tests
 wait
